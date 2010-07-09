@@ -1,0 +1,73 @@
+#!/bin/sh
+# $Id: xilinx_ghdl_unisim 311 2010-06-30 17:52:37Z mueller $
+#
+#  Revision History:
+# 2009-11-08   248   1.1    adopt to ISE 11.1, use VITAL models from ./primitive
+# 2007-10-26    92   1.0    Initial version
+#
+
+if [ -z "$XILINX" ]
+then
+  echo "XILINX not defined"
+  exit 1
+fi
+#
+cd $XILINX
+echo "============================================================"
+echo "* Build ghdl UNISIM libs for $XILINX"
+echo "============================================================"
+#
+if [ ! -d ghdl ]
+then
+  mkdir ghdl
+fi
+#
+cd $XILINX/ghdl
+if [ ! -d unisim  ]
+then
+  mkdir unisim
+fi
+#
+cd $XILINX/ghdl/unisim
+cp $XILINX/vhdl/src/unisims/unisim_VCOMP.vhd .
+cp $XILINX/vhdl/src/unisims/unisim_VPKG.vhd .
+#
+# for ISE 11.1 the VITAL models are individually in sub-dir primitives
+#   and vhdl_analyze_order is a file with best compilation order
+# for ISE 10 and before all VITAL models are in one concatenetaed file
+#   in this case xilinx_vhdl_chop will chop this into individual model files
+#
+if [ ! -d primitive ]
+then
+  mkdir primitive
+fi
+cd primitive
+#
+if [ -d $XILINX/vhdl/src/unisims/primitive ]
+then
+  cp -p $XILINX/vhdl/src/unisims/primitive/*.vhd .
+  cp -p $XILINX/vhdl/src/unisims/primitive/vhdl_analyze_order .
+else
+  xilinx_vhdl_chop $XILINX/vhdl/src/unisims/unisim_VITAL.vhd
+  find . -maxdepth 1 -name "*.vhd" | perl -p -e 's|\./||' > vhdl_analyze_order
+fi
+#
+xilinx_vhdl_memcolltype_fix
+#
+cd ..
+echo "# ghdl ... unisim_VCOMP.vhd"
+ghdl -a --ieee=synopsys --work=unisim unisim_VCOMP.vhd
+echo "# ghdl ... unisim_VPKG.vhd"
+ghdl -a --ieee=synopsys --work=unisim unisim_VPKG.vhd
+
+for file in `cat primitive/vhdl_analyze_order`
+do
+  echo "# ghdl ... primitive/$file"
+  ghdl -a -fexplicit --ieee=synopsys --work=unisim \
+      --no-vital-checks primitive/$file 2>&1 |\
+      tee primitive/$file.ghdl.log
+done
+#
+echo "--- scan for compilation errors:"
+find primitive -name "*.ghdl.log" | xargs grep error
+#

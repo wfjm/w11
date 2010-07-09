@@ -1,0 +1,28 @@
+; $Id: 211bsd_rk_boot.pcmd 312 2010-07-04 18:25:58Z mueller $
+;
+; Setup file for 211bsd RK based system (w11a, in sys/tb area...)
+;
+; Usage:
+;   
+; telnet_starter -d DL0 &
+; telnet_starter -d DL1 &
+;
+; dorri -s3 @211bsd_rk_boot.pcmd      (for ghdl sim of tb_w11a_s3)
+; dorri -n2 @211bsd_rk_boot.pcmd      (for ghdl sim of tb_w11a_n2)
+;
+; dorri -t      @211bsd_rk_boot.pcmd  (fpga link via /dev/ttyS0)
+; dorri -u0,460 @211bsd_rk_boot.pcmd  (fpga link via /dev/ttyUSB0)
+;
+.mode serv11
+;
+att TT0 8000
+att TT1 8001
+;
+reset
+att rk0 211bsd_rk_root.dsk
+att rk1 211bsd_rk_swap.dsk
+att rk2 211bsd_rk_tmp.dsk
+att rk3 211bsd_rk_bin.dsk
+att rk4 211bsd_rk_usr.dsk
+boot rk0
+server

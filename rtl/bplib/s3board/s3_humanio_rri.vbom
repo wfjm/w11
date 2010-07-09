@@ -1,0 +1,8 @@
+# libs
+../../vlib/slvtypes.vhd
+../../vlib/rri/rrilib.vhd
+s3boardlib.vbom
+# components
+s3_humanio.vbom
+# design
+s3_humanio_rri.vhd

@@ -1,0 +1,13 @@
+# libs
+../vlib/slvtypes.vhd
+../ibus/iblib.vhd
+pdp11.vbom
+# components
+pdp11_gpr.vbom
+pdp11_psr.vbom
+pdp11_abox.vbom
+pdp11_dbox.vbom
+pdp11_lbox.vbom
+pdp11_mbox.vbom
+# design
+pdp11_dpath.vhd

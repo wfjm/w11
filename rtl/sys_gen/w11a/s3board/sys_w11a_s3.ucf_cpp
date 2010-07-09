@@ -1,0 +1,21 @@
+## $Id: sys_w11a_s3.ucf_cpp 311 2010-06-30 17:52:37Z mueller $
+##
+## Revision History: 
+## Date         Rev Version  Comment
+## 2010-05-02   287   2.0    added defs for pm1 rs232
+## 2007-12-16   101   1.1    converted to ucf_cpp, factor out std pins
+## 2007-12-09   100   1.0    Initial version
+##
+
+NET "CLK" TNM_NET = "CLK";
+TIMESPEC "TS_CLK" = PERIOD "CLK" 20 ns HIGH 50 %;
+OFFSET =  IN 10 ns BEFORE "CLK";
+OFFSET = OUT 20 ns  AFTER "CLK";
+
+## std board
+##
+#include "bplib/s3board/s3board_pins.ucf"
+##
+## Pmod1-RS232 on A2 connector
+##
+#include "bplib/s3board/s3board_a2_pm1_rs232.ucf"

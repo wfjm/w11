@@ -1,0 +1,8 @@
+# libs
+../slvtypes.vhd
+memlib.vhd
+# components
+[ghdl,isim]ram_1swar_1ar_gen.vbom
+[xst]ram_1swar_1ar_gen_unisim.vbom
+# design
+fifo_1c_dram_raw.vhd

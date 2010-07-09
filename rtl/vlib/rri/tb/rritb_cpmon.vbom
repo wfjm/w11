@@ -1,0 +1,7 @@
+# libs
+../../slvtypes.vhd
+../../simlib/simlib.vhd
+../rrilib.vhd
+# components
+# design
+rritb_cpmon.vhd

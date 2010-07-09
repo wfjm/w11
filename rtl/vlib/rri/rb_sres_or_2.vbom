@@ -1,0 +1,8 @@
+# libs
+../slvtypes.vhd
+rrilib.vhd
+[ghdl,isim]tb/rritblib.vhd
+# components
+[ghdl,isim]tb/rritb_sres_or_mon.vbom
+# design
+rb_sres_or_2.vhd

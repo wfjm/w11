@@ -1,0 +1,7 @@
+# libs
+../../slvtypes.vhd
+../serport.vhd
+# components
+../serport_uart_rx.vbom
+# design
+tbd_serport_uart_rx.vhd

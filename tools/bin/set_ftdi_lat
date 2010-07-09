@@ -1,0 +1,34 @@
+#!/bin/sh
+# $Id: set_ftdi_lat 311 2010-06-30 17:52:37Z mueller $
+#
+# Usage: sudo $HOME/other/retro/trunk/bin/set_ftdi_lat USB0 1
+#
+#  Revision History: 
+# Date         Rev Version  Comment
+# 2010-04-24   282   1.0    fix filename for retrieving old latency
+# 2010-04-24   281   0.9    Initial version
+#
+
+dev=${1:-USB0}
+lat=${2:-1}
+
+file="/sys/bus/usb-serial/devices/tty$dev/latency_timer"
+
+if [ ! -r $file ]
+then
+  echo "set_ftdi_lat-E: device $dev not available"
+  echo "   $file not found"
+  exit 1
+fi
+
+if [ ! -w $file ]
+then
+  echo "set_ftdi_lat-E: parameters for $dev not writable"
+  exit 1
+fi
+
+old=`cat $file`
+
+echo "Set latency for tty$dev: old=$old new=$lat"
+
+echo "$lat" > $file

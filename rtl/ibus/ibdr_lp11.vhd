@@ -1,0 +1,205 @@
+-- $Id: ibdr_lp11.vhd 314 2010-07-09 17:38:41Z mueller $
+--
+-- Copyright 2009-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+--
+-- This program is free software; you may redistribute and/or modify it under
+-- the terms of the GNU General Public License as published by the Free
+-- Software Foundation, either version 2, or at your option any later version.
+--
+-- This program is distributed in the hope that it will be useful, but
+-- WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
+-- or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+-- for complete details.
+--
+------------------------------------------------------------------------------
+-- Module Name:    ibdr_lp11 - syn
+-- Description:    ibus dev(rem): LP11
+--
+-- Dependencies:   -
+-- Test bench:     -
+-- Target Devices: generic
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 10.1; ghdl 0.18-0.25
+--
+-- Synthesized (xst):
+-- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2009-07-11   232  10.1.03 K39 xc3s1000-4    11   30    0   19 s  5.8
+--
+-- Revision History: 
+-- Date         Rev Version  Comment
+-- 2010-06-11   303   1.1    use IB_MREQ.racc instead of RRI_REQ
+-- 2009-06-21   228   1.0.1  generate interrupt locally when err=1
+-- 2009-05-30   220   1.0    Initial version 
+------------------------------------------------------------------------------
+--
+-- Notes:
+--   - the ERR bit is just a status flag
+--   - no hardware interlock (DONE forced 0 when ERR=1), like in simh
+--   - also no interrupt when ERR goes 1, like in simh
+
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+
+use work.slvtypes.all;
+use work.iblib.all;
+
+-- ----------------------------------------------------------------------------
+entity ibdr_lp11 is                     -- ibus dev(rem): LP11
+                                        -- fixed address: 177514
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit;                   -- system reset
+    BRESET : in slbit;                  -- ibus reset
+    RRI_LAM : out slbit;                -- remote attention
+    IB_MREQ : in ib_mreq_type;          -- ibus request
+    IB_SRES : out ib_sres_type;         -- ibus response
+    EI_REQ : out slbit;                 -- interrupt request
+    EI_ACK : in slbit                   -- interrupt acknowledge
+  );
+end ibdr_lp11;
+
+architecture syn of ibdr_lp11 is
+
+  constant ibaddr_lp11 : slv16 := conv_std_logic_vector(8#177514#,16);
+
+  constant ibaddr_csr : slv1 := "0";   -- csr address offset
+  constant ibaddr_buf : slv1 := "1";   -- buf address offset
+  
+  constant csr_ibf_err :   integer := 15;
+  constant csr_ibf_done :  integer :=  7;
+  constant csr_ibf_ie :    integer :=  6;
+  constant buf_ibf_val :   integer :=  8;
+
+  type regs_type is record              -- state registers
+    err : slbit;                        -- csr: error flag
+    done : slbit;                       -- csr: done flag
+    ie : slbit;                         -- csr: interrupt enable
+    buf : slv7;                         -- buf:
+    intreq : slbit;                     -- interrupt request
+  end record regs_type;
+
+  constant regs_init : regs_type := (
+    '1',                                -- err  !! is set !!
+    '1',                                -- done !! is set !!
+    '0',                                -- ie
+    (others=>'0'),                      -- buf
+    '0'                                 -- intreq
+  );
+
+  signal R_REGS : regs_type := regs_init;
+  signal N_REGS : regs_type := regs_init;
+
+begin
+  
+  proc_regs: process (CLK)
+  begin
+    if CLK'event and CLK='1' then
+      if BRESET = '1' then              -- BRESET is 1 for system and ibus reset
+        R_REGS <= regs_init;
+        if RESET = '0' then               -- if RESET=0 we do just an ibus reset
+          R_REGS.err <= N_REGS.err;         -- don't reset ERR flag
+        end if;
+     else
+        R_REGS <= N_REGS;
+      end if;
+    end if;
+  end process proc_regs;
+
+  proc_next : process (R_REGS, IB_MREQ, EI_ACK)
+    variable r : regs_type := regs_init;
+    variable n : regs_type := regs_init;
+    variable ibsel : slbit := '0';
+    variable idout : slv16 := (others=>'0');
+    variable ibrd : slbit := '0';
+    variable ibw0 : slbit := '0';
+    variable ilam : slbit := '0';
+  begin
+
+    r := R_REGS;
+    n := R_REGS;
+
+    ibsel := '0';
+    idout := (others=>'0');
+    ibrd  := not IB_MREQ.we;
+    ibw0  := IB_MREQ.we and IB_MREQ.be0;
+    ilam  := '0';
+    
+    -- ibus address decoder
+    if IB_MREQ.req='1' and
+       IB_MREQ.addr(12 downto 2)=ibaddr_lp11(12 downto 2) then
+      ibsel := '1';
+    end if;
+
+    -- ibus transactions
+    if ibsel = '1' then
+      case IB_MREQ.addr(1 downto 1) is
+
+        when ibaddr_csr =>              -- CSR -- control status -------------
+          idout(csr_ibf_err)  := r.err;
+          idout(csr_ibf_done) := r.done;
+          idout(csr_ibf_ie)   := r.ie;
+          if IB_MREQ.racc = '0' then      -- cpu
+            if ibw0 = '1' then
+              n.ie   := IB_MREQ.din(csr_ibf_ie);
+              if IB_MREQ.din(csr_ibf_ie) = '1' then
+                if r.done='1' and r.ie='0' then   -- ie set while done=1
+                  n.intreq := '1';                -- request interrupt
+                end if;
+              else
+                n.intreq := '0';
+              end if;
+            end if;
+          else                          -- rri
+            n.err := IB_MREQ.din(csr_ibf_err);
+          end if;
+
+        when ibaddr_buf =>              -- BUF -- data buffer ----------------
+          if IB_MREQ.racc = '0' then      -- cpu
+            if ibw0 = '1' then
+              n.buf    := IB_MREQ.din(n.buf'range);
+              if r.err = '0' then         -- if online (handle via rbus)
+                ilam     := '1';            -- request attention
+                n.done   := '0';            -- clear done
+                n.intreq := '0';            -- clear interrupt
+              else                        -- if offline (discard locally)
+                n.done   := '1';            -- set done
+                if r.ie = '1' then          -- if interrupts enabled
+                  n.intreq := '1';            -- request interrupt
+                end if;
+              end if;
+            end if;
+          else                          -- rri
+            idout(r.buf'range)  := r.buf;
+            idout(buf_ibf_val)  := not r.done;
+            if ibrd = '1' then
+              n.done := '1';
+              if r.ie = '1' then
+                n.intreq := '1';
+              end if;
+            end if;
+          end if;
+
+        when others => null;
+      end case;
+
+    end if;    
+
+    -- other state changes
+    if EI_ACK = '1' then
+      n.intreq := '0';
+    end if;
+
+    N_REGS <= n;
+
+    IB_SRES.dout <= idout;
+    IB_SRES.ack  <= ibsel;
+    IB_SRES.busy <= '0';
+
+    RRI_LAM <= ilam;
+    EI_REQ  <= r.intreq;
+    
+  end process proc_next;
+
+    
+end syn;

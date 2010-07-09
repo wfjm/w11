@@ -1,0 +1,17 @@
+# Not meant for direct top level usage. Used with 
+# tb_rri_(core|serport|...)[_ssim].vbom and config
+# lines to generate the different cases.
+#
+# libs
+../../slvtypes.vhd
+../../genlib/genlib.vhd
+../../comlib/comlib.vhd
+../rrilib.vhd
+../../simlib/simlib.vhd
+# components
+../../simlib/simclk.vbom
+../../genlib/clkdivce.vbom
+tbd_rri_gen : tbd_rri_core.vbom
+# design
+tb_rri.vhd
+@top:tb_rri

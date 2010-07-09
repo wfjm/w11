@@ -1,0 +1,11 @@
+# libs
+../../vlib/slvtypes.vhd
+../../vlib/simlib/simlib.vhd
+../../vlib/simlib/simbus.vhd
+../pdp11_sim.vhd
+../pdp11.vbom
+# components
+../../vlib/simlib/simclk.vbom
+tbd_pdp11_core : tbd_pdp11_core.vbom
+# design
+tb_pdp11_core.vhd

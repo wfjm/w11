@@ -1,0 +1,6 @@
+# libs
+../slvtypes.vhd
+# components
+[ghdl,isim]iob_keeper_gen.vbom
+# design
+iob_reg_io_gen.vhd

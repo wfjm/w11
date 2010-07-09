@@ -1,0 +1,4 @@
+# $Id: tbw.dat 311 2010-06-30 17:52:37Z mueller $
+#
+[tb_n2_cram_memctl_as]
+tb_n2_cram_memctl_stim = tb_n2_cram_memctl_stim.dat

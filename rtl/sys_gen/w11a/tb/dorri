@@ -1,0 +1,200 @@
+#!/usr/bin/perl -w
+# $Id: dorri 311 2010-06-30 17:52:37Z mueller $
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2010-05-29   296   1.4    allow -ux,baud (usb devnum and baudrate)
+# 2010-05-28   295   1.3    w11a_s3/w11a_n2 support: -s3 and -n2 instead of -f
+#                           add -tmu option
+# 2010-05-03   287   1.2    add -u[123] options for fast usb serport
+# 2009-08-01   237   1.1.1  use 115200 instead of 38400 as default baud rate
+# 2009-04-26   209   1.1    add -b (batch) option
+# 2009-04-11   206   1.0    Initial version
+#
+
+use 5.005;                                  # require Perl 5.005 or higher
+use strict;                                 # require strict checking
+use FileHandle;
+
+sub print_usage;
+
+autoflush STDOUT 1;             # autoflush, so noting lost on exec later
+
+my $opt_b;
+my $opt_io;
+my $opt_tmu;
+my $pirri;
+my $val_cmax="3";
+my $val_time="3.";
+my $val_term=",115200,1";
+my $val_log="rri.log";
+my $val_tb_s3="tbw ../s3board/tb/tb_w11a_s3";
+my $val_tb_n2="tbw ../nexys2/tb/tb_w11a_n2";
+my $val_tb;
+my $val_e;
+
+my @arglist;
+
+my %baudtbl = (
+       "57" =>   57600,
+      "115" =>  115200,
+      "230" =>  230400,
+      "460" =>  460800,
+      "500" =>  500000,
+     "1000" => 1000000,
+     "2000" => 2000000,
+     "3000" => 2000000
+   );
+
+#
+# process dorri options
+#
+while (scalar(@ARGV)) {
+  my $curarg = $ARGV[0];
+  if ($curarg =~ m{^-b$} ) {		    # -b
+    $opt_b = 1;
+    shift @ARGV;
+  } elsif ($curarg =~ m{^-tmu$} ) {	    # -tmu
+    $opt_tmu = 1;
+    shift @ARGV;
+  } elsif ($curarg =~ m{^-s3$} ) {	    # -s3
+    $opt_io = "f";
+    $val_tb = $val_tb_s3;
+    shift @ARGV;
+  } elsif ($curarg =~ m{^-n2$} ) {	    # -n2
+    $opt_io = "f";
+    $val_tb = $val_tb_n2;
+    shift @ARGV;
+  } elsif ($curarg =~ m{^-t$} ) {	    # -t
+    $opt_io = "t";
+
+  } elsif ($curarg =~ m{^-u(\d)} )  {      # -ux...
+    my $devnum   = $1;
+    my $rest     = $';
+    my $baudspec = "115";
+    my $baudrate;
+    if ($rest ne "") {
+      if ($rest =~ m{^,(\d*)$}) {
+        $baudspec = $1;
+      } else {
+        print STDERR "dorri-E: invalid format of -u option\n";
+        exit 1;
+      }
+    }
+    if (defined $baudtbl{$baudspec}) {
+      $baudrate = $baudtbl{$baudspec};
+    } else {
+      print STDERR "dorri-E: invalid baudrate specification\n";
+      exit 1;
+    }
+    $opt_io = "t";
+    $val_term = sprintf "/dev/ttyUSB%d,%d,1", $devnum, $baudrate;
+    shift @ARGV;
+
+  } elsif ($curarg =~ m{^-e$} ) {	    # -e <file>
+    print STDERR "dorri-W: multiple -e options, only last taken\n"
+      if defined $val_e;
+    shift @ARGV;
+    if (scalar(@ARGV) == 0 || $ARGV[0] =~ m{^-}) {
+      print STDERR "dorri-E: no file name after -e option\n";
+      exit 1;
+    } else {
+      $val_e = shift @ARGV;
+      if (not -r $val_e) {
+	print STDERR "dorri-E: file '$val_e' not found\n";
+	exit 1;
+      }
+    }
+  } else {
+    last;
+  }
+}
+
+#
+# rename old log file
+#
+if (-r $val_log) {
+  my $old_log = $val_log;
+  $old_log =~ s{\.log}{\.old\.log};
+  rename $val_log, $old_log 
+    or die "failed to rename: $!";
+}
+
+#
+# check that either -s3/n2 or -t given
+# setup pi_rri options for either case
+#
+
+if ($opt_io eq "f") {
+  push @arglist, "--fifo";
+  push @arglist, "--run";
+  push @arglist, $val_tb;
+} elsif ($opt_io eq "t") {
+  push @arglist, "--term=$val_term";
+} else {
+  print STDERR "dorri-E: neither -s3/-n2 nor -t specified\n";
+  print_usage();
+  exit 1;
+}
+
+#
+# setup all other options
+#
+
+push @arglist, "--timeout=$val_time";
+push @arglist, "--cmax=$val_cmax";
+push @arglist, "--log=$val_log";
+push @arglist, "--dserv";
+push @arglist, "--tserv";
+push @arglist, "--int" unless $opt_b;
+
+if (defined $val_e) {
+  push @arglist, ".mode serv11";
+  push @arglist, "ldabs $val_e";
+  push @arglist, "set sim tmu 1" if $opt_tmu;
+  push @arglist, "start 200";
+}
+
+while (scalar(@ARGV)) {
+  my $curarg = shift @ARGV;
+  if ($curarg =~ m{^@(.*)$} && ! -r $1) {
+    print STDERR "dorri-E: file '$1' not found\n";
+    exit 1;
+  }
+  push @arglist,$curarg;
+}
+
+if (defined $val_e) {
+  push @arglist, "server";
+}
+
+#
+# find pi_rri executable
+#
+
+$pirri=`which pi_rri`;
+chomp $pirri;
+if ($pirri eq "" || ! -e $pirri) {
+  print STDERR "dorri-E: failed to locate pi_rri\n";
+  exit 1;
+}
+
+#
+# print command file
+#
+if (1) {
+ print "pi_rri ", join (" ", map {(m{\s}) ? "\"$_\"" : $_} @arglist) , "\n";
+}
+
+#
+# and do it
+#
+exec $pirri, @arglist
+  or die "failed to exec: $!";
+
+exit 1;
+
+# ----------------------------------------------------------------------------
+sub print_usage {
+  print "usage: dorri [-f] [-t] [-u(123) [-e file] <pi_rri opts and cmds>...\n";
+}

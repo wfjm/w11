@@ -1,0 +1,8 @@
+tb_w11a_n2
+tb_w11a_n2_[sft]sim
+tb_rriext_fifo_rx
+tb_rriext_fifo_tx
+tb_rriext_conf
+tmu_ofile
+sys_w11a_n2.ucf
+*.dep_ucf_cpp

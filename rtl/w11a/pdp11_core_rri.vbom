@@ -1,0 +1,6 @@
+# libs
+../vlib/slvtypes.vhd
+../vlib/rri/rrilib.vhd
+pdp11.vbom
+# design
+pdp11_core_rri.vhd

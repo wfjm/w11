@@ -1,0 +1,30 @@
+# libs
+../../../vlib/slvtypes.vhd
+../../../vlib/genlib/genlib.vhd
+../../../vlib/rri/rrilib.vhd
+../../../bplib/s3board/s3boardlib.vbom
+../../../bplib/nexys2/nexys2lib.vhd
+../../../ibus/iblib.vhd
+../../../ibus/ibdlib.vhd
+../../../w11a/pdp11.vhd
+sys_conf = sys_conf.vhd
+# components
+../../../vlib/genlib/clkdivce.vbom
+../../../bplib/s3board/s3_rs232_iob_int_ext.vbom
+../../../bplib/s3board/s3_humanio_rri.vbom
+../../../vlib/rri/rri_core_serport.vbom
+../../../vlib/rri/rb_sres_or_3.vbom
+../../../w11a/pdp11_core_rri.vbom
+../../../w11a/pdp11_core.vbom
+../../../w11a/pdp11_bram.vbom
+../../../bplib/nexys2/n2_cram_dummy.vbom
+../../../w11a/pdp11_cache.vbom
+../../../w11a/pdp11_mem70.vbom
+../../../bplib/nexys2/n2_cram_memctl_as.vbom
+../../../ibus/ib_sres_or_2.vbom
+../../../ibus/ibdr_minisys.vbom
+../../../ibus/ibdr_maxisys.vbom
+[ghdl,isim]../../../w11a/pdp11_tmu_sb.vbom
+# design
+sys_w11a_n2.vhd
+@ucf_cpp: sys_w11a_n2.ucf

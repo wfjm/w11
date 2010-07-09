@@ -1,0 +1,6 @@
+# $Id: tbw.dat 311 2010-06-30 17:52:37Z mueller $
+#
+[tb_w11a_n2]
+tb_rriext_fifo_rx = <fifo>
+tb_rriext_fifo_tx = <fifo>
+tb_rriext_conf = <null>

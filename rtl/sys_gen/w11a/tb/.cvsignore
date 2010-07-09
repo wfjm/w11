@@ -1,0 +1,14 @@
+tb_rriext_fifo_rx
+tb_rriext_fifo_tx
+tb_rriext_conf
+to_ptp
+to_lda
+tmu_ofile
+*.dsk
+*.log
+*.log.gz
+*.lst
+*.lda
+lpt.dat
+ptp.dat
+*.LOG

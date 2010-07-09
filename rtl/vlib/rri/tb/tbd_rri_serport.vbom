@@ -1,0 +1,13 @@
+# libs
+../../slvtypes.vhd
+../../comlib/comlib.vhd
+../../serport/serport.vhd
+../rrilib.vhd
+# components
+tbu_rri_serport : tbu_rri_serport.vbom
+../../serport/serport_uart_tx.vbom
+../../serport/serport_uart_rx.vbom
+../../comlib/byte2cdata.vbom
+../../comlib/cdata2byte.vbom
+# design
+tbd_rri_serport.vhd

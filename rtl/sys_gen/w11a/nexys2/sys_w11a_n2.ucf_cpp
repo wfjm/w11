@@ -1,0 +1,19 @@
+## $Id: sys_w11a_n2.ucf_cpp 311 2010-06-30 17:52:37Z mueller $
+##
+## Revision History: 
+## Date         Rev Version  Comment
+## 2010-05-26   295   1.0    Initial version
+##
+
+NET "CLK" TNM_NET = "CLK";
+TIMESPEC "TS_CLK" = PERIOD "CLK" 20 ns HIGH 50 %;
+OFFSET =  IN 10 ns BEFORE "CLK";
+OFFSET = OUT 20 ns  AFTER "CLK";
+
+## std board
+##
+#include "bplib/nexys2/nexys2_pins.ucf"
+##
+## Pmod B0 - RS232 
+##
+#include "bplib/nexys2/nexys2_pins_pmb0_rs232.ucf"

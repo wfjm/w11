@@ -1,0 +1,9 @@
+# libs
+../../slvtypes.vhd
+../../simlib/simlib.vhd
+../serport.vhd
+# components
+../../simlib/simclk.vbom
+tbd_serport_uart_rx : tbd_serport_uart_rx.vbom
+# design
+tb_serport_uart_rx.vhd

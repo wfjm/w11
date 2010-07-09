@@ -1,0 +1,13 @@
+#!/bin/sh
+# $Id: rm_dep 311 2010-06-30 17:52:37Z mueller $
+#
+#  Revision History: 
+# Date         Rev Version  Comment
+# 2010-04-26   284   1.1    add xargs -r to prevent rm errors on empty lists
+# 2010-04-24   282   1.0    Initial version
+#
+for ftype in dep_ghdl dep_isim dep_xst dep_ucf_cpp
+do
+  echo "---------- remove *.$ftype ----------------------------------------"
+  find -name "*.$ftype" | xargs --no-run-if-empty rm -v
+done

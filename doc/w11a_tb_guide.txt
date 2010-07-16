@@ -1,0 +1,153 @@
+# $ $Id: w11a_tb_guide.txt 316 2010-07-16 19:07:47Z mueller $
+
+== Guide to running w11a test benches ==
+
+1. Unit tests benches -----------------------------------------------------
+
+   All unit test benches have the same simple structure:
+
+   - a stimulus process reads test patterns as well as the expected
+     responses from a stimulus file
+
+   - the responses are checked in very simple cases by the stimulus process,
+     in general by a monitoring process
+
+   - the test bench produces a comprehensive log file. For each checked
+     response the line contains the word "CHECK" and either an "OK" or a
+     "FAIL", in the later case in general with an indication of whats wrong.
+     Other unexpected behaviour, like timeouts, will also result in a line
+     containing the word "FAIL".
+
+   - at the end a line with the word "DONE" is printed.
+
+   - the test bench is run like
+
+       tbw <testbenchname> [stimfile] | tee <logfile> | egrep "(FAIL|DONE)"
+
+     where 
+       - 'tbw' is a small perl script setting up a symbolic link to the
+         stimulus file, the default extracted from the file tbw.dat, if
+         an optional file name is give this one will be used instead.
+       - 'tee' ensured that the full log is saved
+       - 'egrep' filters FAIL and DONE lines, a successful run will
+         produce a single DONE line
+
+   - Most tests can be run against 
+       - the functional model
+       - gate level models at three stages
+         - the post-xst model   (produced by netgen from ngc xst output)
+         - the post-map model   (produced by netgen from ncd ngdbuild output)
+         - the post-par model   (produced by netgen from ncd par output)
+     This is simply done using
+        make <testbench>_ssim       for post-xst
+        make <testbench>_fsim       for post-map
+        make <testbench>_tsim       for post-par
+     all the rest is handled by the build environment.
+     An example of a post-synthesis model is given for the w11a core test.
+
+2. Available unit tests benches -------------------------------------------
+
+   In the following the available tests are listed with 
+     - the 'make' command to build them
+     - the pipe setup to run them
+     - the expected output (the run time measured on a 3 GHz system)
+
+   - serport receiver test
+     cd $RETROBASE/rtl/vlib/serport/tb
+     make tb_serport_uart_rx
+     time tbw tb_serport_uart_rx |\
+       tee tb_serport_uart_rx_dsim.log | egrep "(FAIL|DONE)"
+     -> 1269955 ns  63488: DONE 
+
+   - serport receiver/transmitter test
+     make tb_serport_uart_rxtx
+     time tbw tb_serport_uart_rxtx |\
+       tee tb_serport_uart_rxtx_dsim.log | egrep "(FAIL|DONE)"
+     ->  52335 ns   2607: DONE 
+
+   - serport autobauder test
+     make tb_serport_autobaud
+     time tbw tb_serport_autobaud |\
+       tee tb_serport_autobaud_dsim.log | egrep "(FAIL|DONE)"
+     -> 367475 ns  18364: DONE 
+
+   - rri core test
+
+     cd $RETROBASE/rtl/vlib/rri/tb
+     make tb_rri_core
+     time tbw tb_rri_core |\
+       tee tb_rri_core_dsim.log | egrep "(FAIL|DONE)"
+     ->  61855 ns   3083: DONE
+     -> real    0m0.163s   user    0m0.128s   sys     0m0.020s
+
+   - rri core test via serial port interface
+
+     make tb_rri_serport
+     time tbw tb_rri_serport |\
+       tee tb_rri_serport_dsim.log | egrep "(FAIL|DONE)"
+     -> 273355 ns  13658: DONE
+     -> real    0m0.939s   user    0m0.924s   sys     0m0.008s
+
+   - w11a core test (using behavioural model)
+
+     cd $RETROBASE/rtl/w11a/tb
+     make tb_pdp11_core
+     time tbw tb_pdp11_core |\
+       tee tb_pdp11_core_dsim.log | egrep "(FAIL|DONE)"
+     -> 1220255 ns  61003: DONE 
+     -> real    0m14.964s   user    0m14.977s   sys     0m0.108s
+
+   - w11a core test (using post-synthesis model)
+
+     make ghdl_tmp_clean tb_pdp11_core_ssim
+     time tbw tb_pdp11_core_ssim |\
+       tee tb_pdp11_core_ssim.log | egrep "(FAIL|DONE)"
+     ->  1220255 ns  61003: DONE 
+     -> real    1m8.230s   user    1m8.144s   sys     0m0.124s
+
+3. System tests benches ---------------------------------------------------
+
+   The system tests allow to verify to verify the full 11/70 SoC design.
+   In this case vhdl test bench code contains
+     - (simple) models of the memories used on the FPGA boards
+     - drivers for the rri connection (currently just serialport)
+     - code to interface the rri data stream to a UNIX 'named pipe',
+       implemented with a C routine which is called via VHPI from VHDL.
+   This way the whole ghdl simulation can be controlled via a di-directional
+   byte stream. 
+
+   The rri backend process, currently a perl script named pi_rri, can connect
+   either via a named pipe to a ghdl simulation, or via a serial port to a 
+   FPGA board. This way the same tests can be executed in simulation and
+   on real hardware.
+
+4. Available system tests benches -----------------------------------------
+
+   The stimulus file used in the w11a core test can be executed in the
+   full system context (both s3board and nexys2 versions) with the 
+   following commands. Note that the cycle number printed in the DONE
+   line can now vary slightly because the response time of the rri
+   backend process and thus scheduling of backend vs. ghdl process
+   can affect the result.
+
+   - sys_w11a_s3 system test
+
+     cd $RETROBASE/rtl/sys_gen/w11a/s3board/tb
+     make tb_w11a_s3
+     time pi_rri --fifo --timeout=40. --cmax=3 \
+        --run="tbw tb_w11a_s3" -- \
+   	 @../../../../w11a/tb/tb_pdp11_core_stim.dat |\
+       tee tb_w11a_s3_stim2_dsim.log | egrep "(-[EW]:|FAIL|PEND|DONE)"
+     ->   7766215 ns 388301: DONE 
+     -> real    0m51.300s   user    0m51.711s   sys     0m0.772s
+
+   - sys_w11a_n2 system test
+
+     cd $RETROBASE/rtl/sys_gen/w11a/nexys2/tb
+     make tb_w11a_n2
+     time pi_rri --fifo --timeout=40. --cmax=3 \
+        --run="tbw tb_w11a_n2" -- \
+   	 @../../../../w11a/tb/tb_pdp11_core_stim.dat |\
+       tee tb_w11a_n2_stim2_dsim.log | egrep "(-[EW]:|FAIL|PEND|DONE)"
+     -> 7766855 ns 388333: DONE 
+     -> real    0m51.243s   user    0m51.647s   sys     0m0.776s

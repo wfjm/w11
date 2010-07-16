@@ -1,0 +1,158 @@
+# $ $Id: w11a_os_guide.txt 316 2010-07-16 19:07:47Z mueller $
+
+1. I/O emulation setup ----------------------------------------------------
+
+   All UNIBUS peripherals which exchange data (currently DL11, LP11, PC11, RK11)
+   are currently emulated via a backend process. In the current version the
+   communication between FPGA board and backend is via the serial port, either 
+   directly or via a USB-RS232 adapter. A direct connection is limited to 115k 
+   Baud on most PCs, while a connection via a USB-RS232 adapter was tested up 
+   to 460k Baud. 
+
+   Notes: - A USB-RS232 cable with a Prolific Technology PL2303 chip simply
+            never gave reliable connections for higher Baud rates.
+          - A USB-RS232 cable with a FTDI FT232R chip, like the cable offered
+            by FTDI as US232R-100 worked fine.
+          - For FTDI USB-RS232 cables it is essential to set the latency
+            timer to 1 ms (from the power in default of 16 ms), e.g. with
+              sudo $RETROBASE/tools/bin/set_ftdi_lat USB0 1
+          - the following assumes that a USB-RS232 cable with FTDI chip is used
+
+   A 460k Baud connection gives in practice a disk throughput of about 20 kB/s.
+   This allows to test the system but is a bit slow to real usage.  In an OS 
+   with good disk caching like 2.11BSD the impact of such a 'slow disk' is 
+   actually smaller than the bare numbers suggest.
+
+2. FPGA Board setup -------------------------------------------------------
+
+   - connect the USB-RS232 cable to the RS232 port of the s3board or nexys2
+   - set the latency timer of the USB-RS232, e.g. with
+       sudo $RETROBASE/tools/bin/set_ftdi_lat USB0 1
+   - ensure that all 8 switches are in '0' position
+   - load the w11a design into the FPGA, e.g. via impact
+
+3. Unix V5 system ---------------------------------------------------------
+
+   - A disk set is available from
+       http://www-linux.gsi.de/~mueller/retro/oc_w11/data/unix_v5_rkset.tgz
+     Download, unpack and copy the disk images (*.dsk) to
+       $RETROBASE/rtl/sys_gen/w11a/tb
+
+   - Setup USB-RS232 cable, start xterm in vt100 mode and the server backend
+
+       cd $RETROBASE/rtl/sys_gen/w11a/tb
+       sudo $RETROBASE/tools/bin/set_ftdi_lat USB0 1
+       telnet_starter -d DL0 &
+       dorri -u0,460 @uv5_boot.pcmd
+
+   - the boot dialog in the console xterm window will look like
+     (required input is in {..}, with {<CR>} denoting a carriage return:
+
+       @{unix}
+       
+       login: {root}
+
+     Now you are at the shell prompt and can excercise the system, e.g.
+
+       # {ls -al}
+       total 62
+       drwxr-xr-x  9 bin       160 Jan 29 16:14 .
+       drwxr-xr-x  9 bin       160 Jan 29 16:14 ..
+       drwxr-xr-x  2 bin       944 Nov 26 18:13 bin
+       drwxr-xr-x  2 bin        80 Nov 26 18:13 dev
+       drwxr-xr-x  2 bin       240 Mar 21 12:07 etc
+       drwxr-xr-x  2 bin       224 Nov 26 18:13 lib
+       drwxr-xr-x  2 bin        32 Nov 26 18:13 mnt
+       drwxrwxrwx  2 bin        32 Nov 26 18:13 tmp
+       -rwxrwxrwx  1 bin     25802 Mar 21 12:07 unix
+       drwxr-xr-x 14 bin       224 Nov 26 18:13 usr
+
+     There is no 'halt' or 'shutdown' command, just ^D out of the server 
+     session. The disks aren't cached, so no need to sync either.
+
+4. 2.11BSD system ---------------------------------------------------------
+   - A disk set is available from
+      http://www-linux.gsi.de/~mueller/retro/oc_w11/data/211bsd_rkset.tgz
+     Download, unpack and copy the disk images (*.dsk) to
+       $RETROBASE/rtl/sys_gen/w11a/tb
+
+   - Setup USB-RS232 cable, start two xterm in vt100 mode and the server backend
+
+       cd $RETROBASE/rtl/sys_gen/w11a/tb
+       sudo $RETROBASE/tools/bin/set_ftdi_lat USB0 1
+       telnet_starter -d DL0 &
+       telnet_starter -d DL1 &
+       dorri -u0,460 @211bsd_rk_boot.pcmd
+
+   - the boot dialog in the console xterm window will look like
+     (required input is in {..}, with {<CR>} denoting a carriage return:
+
+       70Boot from rk(0,0,0) at 0177404
+       : {<CR>}
+       : rk(0,0,0)unix
+       Boot: bootdev=03000 bootcsr=0177404
+       
+       2.11 BSD UNIX #26: Thu Jan 1 19:49:13 PST 2009
+           root@curly.2bsd.com:/usr/src/sys/RETRONFPRK
+       
+       phys mem  = 3932160
+       avail mem = 3577856
+       user mem  = 307200
+       
+       January  4 16:45:33 init: configure system
+       
+       dz ? csr 160100 vector 310 skipped:  No CSR.
+       lp 0 csr 177514 vector 200 attached
+       rk ? csr 177400 vector 220 didn't interrupt.
+       rl ? csr 174400 vector 160 skipped:  No CSR.
+       tm ? csr 172520 vector 224 skipped:  No CSR.
+       xp ? csr 176700 vector 254 skipped:  No CSR.
+       cn 1 csr 176500 vector 300 attached
+       erase, kill ^U, intr ^C
+
+     In first '#' prompt the system is in single-user mode. Just enter a ^D 
+     to continue the system startup to multi-user mode:
+
+       #^D
+       checking quotas: done.
+       Assuming non-networking system ...
+       checking for core dump... 
+       preserving editor files
+       clearing /tmp
+       standard daemons: update cron accounting.
+       starting lpd
+       starting local daemons:Sun Jan  4 16:46:37 PST 2009
+       January  4 16:46:37 init: kernel security level changed from 0 to 1
+       January  4 16:46:40 getty: /dev/tty01: Device not configured
+       
+       
+       January  4 16:46:40 getty: /dev/tty00: Device not configured
+       
+       
+       2.11 BSD UNIX (curly.2bsd.com) (console)
+       
+       login: {root}
+       erase, kill ^U, intr ^C
+
+     Now the system is in multi-user mode, daemons runnng. You can explore
+     the system, e.g. with a 'pstat -T' or a 'mount' command. At end is 
+     important to shutdown properly with a 'halt':
+
+       # {pstat -T}
+         7/186 files
+        39/208 inodes
+        11/150 processes
+         6/ 46 texts active,  28 used
+         2/135 swapmap entries,  366 kB used, 2069 kB free, 2063 kB max
+        33/150 coremap entries, 2960 kB free, 2867 kB max
+         1/ 10  ub_map entries,   10    free,   10    max
+       # {mount}
+       /dev/rk0h on /
+       /dev/rk2h on /tmp
+       /dev/rk3h on /bin
+       /dev/rk4h on /usr
+       # {halt}
+       syncing disks... done
+       halting
+
+     Now the server process can be stopped with two ^D.

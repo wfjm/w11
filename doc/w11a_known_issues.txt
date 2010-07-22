@@ -1,6 +1,14 @@
-# $ $Id: w11a_known_issues.txt 316 2010-07-16 19:07:47Z mueller $
+# $Id: w11a_known_issues.txt 317 2010-07-22 19:36:56Z mueller $
 
-1. Known differences between w11a and KB-11C (11/70)
+Summary of known issues for w11a CPU and systems
+
+  Table of content:
+  1. Known differences between w11a and KB-11C (11/70)
+  2. Known limitations
+  3. Known bugs
+
+
+1. Known differences between w11a and KB-11C (11/70) ----------------------
 
    - the SPL instruction in the 11/70 always fetched the next instruction
      regardless of pending device or even console interrupts. This is known
@@ -30,7 +38,7 @@
    depends on them, therefore they are considered acceptable implementation
    differences
 
-2. Known limitations
+2. Known limitations ------------------------------------------------------
 
    - some programs use timing loops based on the execution speed of the
      original processors. This can lead to spurious timeouts, especially
@@ -44,7 +52,7 @@
      --> a 'watch dog' mechanism will be added in a future version which
          suspends the CPU when the server doesn't respond fast enough.
 
-3. Known bugs
+3. Known bugs -------------------------------------------------------------
 
    - TCK-036 pri=L: RK11: hardware poll not working
      The RK11/RK05 hardware poll logic is probably no reflecting the

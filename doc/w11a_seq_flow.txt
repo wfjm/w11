@@ -1,4 +1,4 @@
-$ $Id: w11a_seq_flow.txt 315 2010-07-11 22:18:39Z mueller $
+# $Id: w11a_seq_flow.txt 317 2010-07-22 19:36:56Z mueller $
 
 The states are 
  1. grouped by 'flows', related states are in a dashed box

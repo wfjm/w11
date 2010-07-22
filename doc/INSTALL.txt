@@ -1,0 +1,139 @@
+# $Id: INSTALL.txt 317 2010-07-22 19:36:56Z mueller $
+
+Guide to install and build w11a
+
+  Table of content:
+  
+  1. Download
+  2. Install and setup the build system
+  3. Compile UNISIM/SIMPRIM libraries for ghdl
+  4. The build system
+  5. Building test benches
+  6. Building systems
+
+
+1. Download ---------------------------------------------------------------
+
+  All instructions below assume that the project files reside in a
+  working directory with the name represented as <wdir>
+
+  To download latest tagged version (V0.5) of w11a
+
+    cd <wdir>
+    svn co http://opencores.org/ocsvn/w11/w11/tags/w11a_V0.5
+
+  To download latest snapshot of trunk
+
+    cd <wdir>
+    svn co http://opencores.org/ocsvn/w11/w11/trunk
+
+2. Install and setup the build system -------------------------------------
+
+  The build system for test benches and systems requires
+  - the definition of the environment variable RETROBASE
+  - that the tools binary directory is in the path
+
+  For bash and alike use
+
+    export RETROBASE=<wdir>
+    export PATH=$PATH:$RETROBASE/tools/bin
+
+  After that building functional model based test benches will work. If you 
+  want to also build post-xst or post-par test benches read next section.
+
+3. Compile UNISIM/SIMPRIM libraries for ghdl ------------------------------
+
+  The build system for test benches also supports test benches run against
+  the gate level models derived after the xst, map or par step. In this
+  case ghdl has to link against a compiled UNISIM or SIMPRIM library.
+
+  To make handling of the parallel installion of several WebPack versions
+  easy the compiled libraries are stored in sub-directories under $XILINX:
+
+     $XILINX/ghdl/unisim
+     $XILINX/ghdl/simprim
+
+  Two helper scripts will create these libraries:
+
+    <setup WebPack, e.g. source .../ISE_DS/settings32.sh>  
+
+    cd $RETROBASE
+    xilinx_ghdl_unisim
+    xilinx_ghdl_simprim
+
+  If you have several WebPack versions installed, repeat for each version.
+
+
+4. The build system -------------------------------------------------------
+
+  Simulation and synthesis tools usually need a list of the VHDL source
+  files, often in proper compilation order (libraries before components).
+  The different tools have different formats of these 'project files'.
+
+  The build system employed in this project is based on 
+     "VHDL bill of material" or 'vbom' files
+  which list for each vhdl source file the libraries and sources for
+  the instantiated components, the later via their vbom, and last but
+  not least the name of the vhdl source file. All file name are relative
+  to the current directory. A recursive traversal through all vbom's gives
+  for each vhld module all sources needed to compile it. The vbomconv script 
+  in tools/bin does this, and generates depending on options
+   - make dependency files
+   - ISE xst project files
+   - ISE ISim project files
+   - ghdl commands for analysis, inspection and make step
+
+  The master make files contain pattern rules like
+    %.ngc  : %.vbom           -- synthesize with xst
+    %      : %.vbom           -- build functional model test bench
+  which encapsulate all the vbomconf magic
+
+  A full w11a is build from more than 80 source files, test benches from
+  even more. Using the vbom's a large number of designs can be easily
+  maintained.
+
+5. Building test benches --------------------------------------------------
+
+  To compile a test bench named <tbench> all is needed is
+
+    make <tbench>
+
+  The make file will use <tbench>.vbom, create all make dependency files,
+  and generate the needed ghdl commands.
+
+  In many cases the test benches can also be compiled against the gate
+  level models derived after the xst, map or par step. To compile them
+
+    make ghdl_tmp_clean
+    make <tbench>_ssim                  # for post-xst
+    make <tbench>_fsim                  # for post-map
+    make <tbench>_tsim                  # for post-par
+
+  The 'make ghdl_tmp_clean' is needed to flush the ghdl work area from
+  the compilation remains of earlier functional model compiles.
+
+6. Building systems -------------------------------------------------------
+
+  To generate a bit file for a system named <sys> all is needed is
+
+    make <sys>.bit
+
+  The make file will use <sys>.vbom, create all make dependency files, build 
+  the ucf file with cpp, and run the synthesis flow (xst, ngdbuild, par, trce).
+  The log files will be named
+
+      <sys>_xst.log        # xst log file
+      <sys>_tra.log        # translate (ngdbuild) log file (renamed %.bld)
+      <sys>_map.log        # map log file                  (renamed %_map.mrp)
+      <sys>_par.log        # par log file                  (renamed %.par)
+      <sys>_pad.log        # pad file                      (renamed %_pad.txt)
+      <sys>_twr.log        # trce log file                 (renamed %.twr)
+  
+  To load the bitfile with WebPack impact into the target board use
+
+    make <sys>.impact
+
+  If only the xst or par output is wanted just use
+
+    make <sys>.ngc
+    make <sys>.ncd

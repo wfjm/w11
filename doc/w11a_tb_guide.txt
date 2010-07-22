@@ -1,6 +1,14 @@
-# $ $Id: w11a_tb_guide.txt 316 2010-07-16 19:07:47Z mueller $
+# $Id: w11a_tb_guide.txt 317 2010-07-22 19:36:56Z mueller $
 
-== Guide to running w11a test benches ==
+Guide to running w11a test benches
+
+  Table of content:
+  
+  1. Unit tests benches
+  2. Available unit tests benches
+  3. System tests benches
+  4. Available system tests benches
+
 
 1. Unit tests benches -----------------------------------------------------
 

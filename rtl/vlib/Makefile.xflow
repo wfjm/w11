@@ -1,4 +1,4 @@
-# $Id: Makefile.xflow 311 2010-06-30 17:52:37Z mueller $
+# $Id: Makefile.xflow 317 2010-07-22 19:36:56Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -111,6 +111,7 @@ XFLOW    = xflow -p ${ISE_PATH}
 #            %_map.log  map log file                  (renamed %_map.mrp)
 #            %_par.log  par log file                  (renamed %.par)
 #            %_pad.log  pad file                      (renamed %_pad.txt)
+#            %_twr.log  trce log file                 (renamed %.twr)
 #
 %.ncd %.pcf: %.ngc
 	if [ ! -d ./ise ]; then mkdir ./ise; fi

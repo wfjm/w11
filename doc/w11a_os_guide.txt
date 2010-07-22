@@ -1,4 +1,14 @@
-# $ $Id: w11a_os_guide.txt 316 2010-07-16 19:07:47Z mueller $
+# $Id: w11a_os_guide.txt 317 2010-07-22 19:36:56Z mueller $
+
+Guide to run operating system images on w11a systems
+
+  Table of content:
+
+    1. I/O emulation setup
+    2. FPGA Board setup
+    3. Unix V5 system
+    4. 2.11BSD system
+
 
 1. I/O emulation setup ----------------------------------------------------
 

@@ -1,4 +1,4 @@
--- $Id: ibdr_rk11.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: ibdr_rk11.vhd 317 2010-07-22 19:36:56Z mueller $
 --
 -- Copyright 2008-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -75,7 +75,7 @@ architecture syn of ibdr_rk11 is
   constant ibaddr_rkcs : slv3 := "010";  -- rkcs address offset
   constant ibaddr_rkwc : slv3 := "011";  -- rkwc address offset
   constant ibaddr_rkba : slv3 := "100";  -- rkba address offset
-  constant ibaddr_rkda : slv3 := "101";  -- rkba address offset
+  constant ibaddr_rkda : slv3 := "101";  -- rkda address offset
   constant ibaddr_rkmr : slv3 := "110";  -- rkmr address offset
   constant ibaddr_rkdb : slv3 := "111";  -- rkdb address offset
   

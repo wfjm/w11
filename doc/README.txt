@@ -1,4 +1,4 @@
-# $Id: README.txt 317 2010-07-22 19:36:56Z mueller $
+# $Id: README.txt 318 2010-07-23 18:28:40Z mueller $
 
 Release notes for w11a
 
@@ -18,6 +18,7 @@ Release notes for w11a
     * INSTALL.txt: installation and building test benches and systems
     * w11a_tb_guide.txt: running test benches
     * w11a_os_guide.txt: booting operating systems 
+    * w11a_known_issues.txt: known differences, limitations and issues
 
 2. Files ------------------------------------------------------------------
 
@@ -47,7 +48,12 @@ Release notes for w11a
 
 3. Change Log -------------------------------------------------------------
 
-2010-07-24 - w11a version V0.5 -----------------------------
+- trunk (current development snapshot) -----------------------
+
+  indentical to w11a_V0.5
+
+- w11a_V0.5 (2010-07-23) -------------------------------------
+
   Initial release with 
   - w11a CPU core
   - basic set of peripherals: kw11l, dl11, lp11, pc11, rk11/rk05

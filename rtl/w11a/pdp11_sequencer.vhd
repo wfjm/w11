@@ -1,4 +1,4 @@
--- $Id: pdp11_sequencer.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: pdp11_sequencer.vhd 335 2010-10-24 22:24:23Z mueller $
 --
 -- Copyright 2006-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -15,12 +15,16 @@
 -- Module Name:    pdp11_sequencer - syn
 -- Description:    pdp11: CPU sequencer
 --
--- Dependencies:   -
+-- Dependencies:   ib_sel
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+--
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-10-23   335   1.4.1  use ib_sel
+-- 2010-10-17   333   1.4    use ibus V2 interface
+-- 2010-09-18   300   1.3.2  rename (adlm)box->(oalm)unit
 -- 2010-06-20   307   1.3.1  rename cpacc to cacc in vm_cntl_type
 -- 2010-06-13   305   1.3    remove CPDIN_WE, CPDOUT_WE out ports; set
 --                           CNTL.cpdout_we instead of CPDOUT_WE
@@ -244,32 +248,31 @@ architecture syn of pdp11_sequencer is
 
 begin
 
-  proc_ibsel: process (IB_MREQ)
-    variable icpuerr : slbit := '0';
-  begin
-    icpuerr := '0';
-    if IB_MREQ.req='1' and IB_MREQ.addr=ibaddr_cpuerr(12 downto 1) then
-      icpuerr := '1';
-    end if;
-    IBSEL_CPUERR <= icpuerr;
-    IB_SRES.ack  <= icpuerr;
-    IB_SRES.busy <= '0';
-  end process proc_ibsel;
+  SEL : ib_sel
+    generic map (
+      IB_ADDR => ibaddr_cpuerr)
+    port map (
+      CLK     => CLK,
+      IB_MREQ => IB_MREQ,
+      SEL     => IBSEL_CPUERR
+    );
 
-  proc_ibdout : process (IBSEL_CPUERR, R_CPUERR)
-    variable cpuerrout : slv16 := (others=>'0');
+  proc_ibres : process (IBSEL_CPUERR, IB_MREQ, R_CPUERR)
+    variable idout : slv16 := (others=>'0');
   begin
-    cpuerrout := (others=>'0');
+    idout := (others=>'0');
     if IBSEL_CPUERR = '1' then
-      cpuerrout(cpuerr_ibf_illhlt) := R_CPUERR.illhlt;
-      cpuerrout(cpuerr_ibf_adderr) := R_CPUERR.adderr;
-      cpuerrout(cpuerr_ibf_nxm)    := R_CPUERR.nxm;
-      cpuerrout(cpuerr_ibf_iobto)  := R_CPUERR.iobto;
-      cpuerrout(cpuerr_ibf_ysv)    := R_CPUERR.ysv;
-      cpuerrout(cpuerr_ibf_rsv)    := R_CPUERR.rsv;
+      idout(cpuerr_ibf_illhlt) := R_CPUERR.illhlt;
+      idout(cpuerr_ibf_adderr) := R_CPUERR.adderr;
+      idout(cpuerr_ibf_nxm)    := R_CPUERR.nxm;
+      idout(cpuerr_ibf_iobto)  := R_CPUERR.iobto;
+      idout(cpuerr_ibf_ysv)    := R_CPUERR.ysv;
+      idout(cpuerr_ibf_rsv)    := R_CPUERR.rsv;
     end if;
-    IB_SRES.dout <= cpuerrout;
-  end process proc_ibdout;
+    IB_SRES.dout <= idout;
+    IB_SRES.ack  <= IBSEL_CPUERR and (IB_MREQ.re or IB_MREQ.we); -- ack all
+    IB_SRES.busy <= '0';
+  end process proc_ibres;
 
   proc_status: process (CLK)
   begin
@@ -373,10 +376,10 @@ begin
                                 nmmumoni : inout mmu_moni_type;
                                 updt_sp  : in slbit := '0') is
     begin
-      ndpcntl.abox_asel := c_abox_asel_dsrc;     -- ABOX A=DSRC
-      ndpcntl.abox_const := "000000010";         -- ABOX const=2
-      ndpcntl.abox_bsel := c_abox_bsel_const;    -- ABOX B=const
-      ndpcntl.dres_sel := c_dpath_res_abox;      -- DRES = ABOX
+      ndpcntl.ounit_asel := c_ounit_asel_dsrc;   -- OUNIT A=DSRC
+      ndpcntl.ounit_const := "000000010";        -- OUNIT const=2
+      ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const
+      ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
       ndpcntl.dsrc_sel := c_dpath_dsrc_res;      -- DSRC = DRES
       ndpcntl.dsrc_we := '1';                    -- update DSRC
       if updt_sp = '1' then
@@ -427,9 +430,9 @@ begin
     begin
       if bytop='0' or isdef='1' or
          regnum=c_gpr_pc or regnum=c_gpr_sp then
-        ndpcntl.abox_const := "000000010";
+        ndpcntl.ounit_const := "000000010";
       else
-        ndpcntl.abox_const := "000000001";
+        ndpcntl.ounit_const := "000000001";
       end if;
     end procedure do_const_opsize;
 
@@ -522,10 +525,10 @@ begin
     begin
       ndpcntl.dtmp_sel := c_dpath_dtmp_psw;    -- DTMP = PSW 
       ndpcntl.dtmp_we := '1';
-      ndpcntl.abox_azero := '1';               -- ABOX A = 0
-      ndpcntl.abox_const := vector & "00";     -- vector
-      ndpcntl.abox_bsel := c_abox_bsel_const;  -- ABOX B=const(vector)
-      ndpcntl.dres_sel := c_dpath_res_abox;    -- DRES = ABOX
+      ndpcntl.ounit_azero := '1';              -- OUNIT A = 0
+      ndpcntl.ounit_const := vector & "00";    -- vector
+      ndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B=const(vector)
+      ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
       ndpcntl.dsrc_sel := c_dpath_dsrc_res;    -- DSRC = DRES
       ndpcntl.dsrc_we := '1';                  -- DSRC = vector
       nstate := s_int_getpc;
@@ -545,7 +548,7 @@ begin
     
     nidstat := R_IDSTAT;
 
-    if IB_MREQ.we='1' and IBSEL_CPUERR='1' then -- write to CPUERR clears it !!
+    if IBSEL_CPUERR='1' and IB_MREQ.we='1' then -- write to CPUERR clears it !
       ncpuerr := cpuerr_init;
     end if;
 
@@ -603,28 +606,28 @@ begin
     ndpcntl.dtmp_sel := c_dpath_dtmp_dsrc;
     ndpcntl.dtmp_we := '0';
 
-    ndpcntl.abox_asel := c_abox_asel_ddst;
-    ndpcntl.abox_azero := '0';            -- DEFAULT
-    ndpcntl.abox_const := (others=>'0');  -- DEFAULT
-    ndpcntl.abox_bsel := c_abox_bsel_const;
-    ndpcntl.abox_opsub := '0';            -- DEFAULT
+    ndpcntl.ounit_asel  := c_ounit_asel_ddst;
+    ndpcntl.ounit_azero := '0';            -- DEFAULT
+    ndpcntl.ounit_const := (others=>'0');  -- DEFAULT
+    ndpcntl.ounit_bsel  := c_ounit_bsel_const;
+    ndpcntl.ounit_opsub := '0';            -- DEFAULT
 
-    ndpcntl.dbox_srcmod := R_IDSTAT.dbox_srcmod; -- STATIC
-    ndpcntl.dbox_dstmod := R_IDSTAT.dbox_dstmod; -- STATIC
-    ndpcntl.dbox_cimod  := R_IDSTAT.dbox_cimod;  -- STATIC
-    ndpcntl.dbox_cc1op  := R_IDSTAT.dbox_cc1op;  -- STATIC
-    ndpcntl.dbox_ccmode := R_IDSTAT.dbox_ccmode; -- STATIC
-    ndpcntl.dbox_bytop  := R_IDSTAT.is_bytop;    -- STATIC
+    ndpcntl.aunit_srcmod := R_IDSTAT.aunit_srcmod; -- STATIC
+    ndpcntl.aunit_dstmod := R_IDSTAT.aunit_dstmod; -- STATIC
+    ndpcntl.aunit_cimod  := R_IDSTAT.aunit_cimod;  -- STATIC
+    ndpcntl.aunit_cc1op  := R_IDSTAT.aunit_cc1op;  -- STATIC
+    ndpcntl.aunit_ccmode := R_IDSTAT.aunit_ccmode; -- STATIC
+    ndpcntl.aunit_bytop  := R_IDSTAT.is_bytop;     -- STATIC
 
-    ndpcntl.lbox_func   := R_IDSTAT.lbox_func;   -- STATIC
-    ndpcntl.lbox_bytop  := R_IDSTAT.is_bytop;    -- STATIC
+    ndpcntl.lunit_func   := R_IDSTAT.lunit_func;   -- STATIC
+    ndpcntl.lunit_bytop  := R_IDSTAT.is_bytop;     -- STATIC
 
-    ndpcntl.mbox_func := R_IDSTAT.mbox_func;     -- STATIC
+    ndpcntl.munit_func := R_IDSTAT.munit_func;     -- STATIC
 
     ndpcntl.ireg_we := '0';
 
     ndpcntl.cres_sel := R_IDSTAT.res_sel;        -- DEFAULT
-    ndpcntl.dres_sel := c_dpath_res_abox;
+    ndpcntl.dres_sel := c_dpath_res_ounit;
     ndpcntl.vmaddr_sel := c_dpath_vmaddr_dsrc;
 
     if CP_CNTL.req='1' and R_STATUS.cmdbusy='0' then
@@ -766,16 +769,16 @@ begin
         end if;
 
       when s_cp_regread =>
-        ndpcntl.abox_asel := c_abox_asel_ddst;   -- ABOX A = DDST
-        ndpcntl.abox_bsel := c_abox_bsel_const;  -- ABOX B = const(0)
-        ndpcntl.dres_sel  := c_dpath_res_abox;   -- DRES = ABOX
+        ndpcntl.ounit_asel := c_ounit_asel_ddst;  -- OUNIT A = DDST
+        ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B = const(0)
+        ndpcntl.dres_sel  := c_dpath_res_ounit;   -- DRES = OUNIT
         nstatus.cmdack := '1';
         nstate := s_idle;
         
       when s_cp_rps =>
-        ndpcntl.abox_asel := c_abox_asel_dtmp;   -- ABOX A = DTMP
-        ndpcntl.abox_bsel := c_abox_bsel_const;  -- ABOX B = const(0)
-        ndpcntl.dres_sel  := c_dpath_res_abox;   -- DRES = ABOX
+        ndpcntl.ounit_asel := c_ounit_asel_dtmp;  -- OUNIT A = DTMP
+        ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B = const(0)
+        ndpcntl.dres_sel  := c_dpath_res_ounit;   -- DRES = OUNIT
         nstatus.cmdack := '1';
         nstate := s_idle;
 
@@ -941,10 +944,10 @@ begin
         end if;
 
       when s_srcr_inc =>
-        ndpcntl.abox_asel := c_abox_asel_dsrc;   -- ABOX A=DSRC
+        ndpcntl.ounit_asel := c_ounit_asel_dsrc;  -- OUNIT A=DSRC
         do_const_opsize(ndpcntl, R_IDSTAT.is_bytop, SRCDEF, SRCREG);
-        ndpcntl.abox_bsel := c_abox_bsel_const;  -- ABOX B=const
-        ndpcntl.dres_sel := c_dpath_res_abox;    -- DRES = ABOX
+        ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B=const
+        ndpcntl.dres_sel := c_dpath_res_ounit;    -- DRES = OUNIT
         ndpcntl.gpr_adst := SRCREG;
         ndpcntl.gpr_we := '1';
         nmmumoni.regmod := '1';
@@ -977,11 +980,11 @@ begin
         end if;
         
       when s_srcr_dec =>
-        ndpcntl.abox_asel := c_abox_asel_dsrc;   -- ABOX A=DSRC
+        ndpcntl.ounit_asel := c_ounit_asel_dsrc; -- OUNIT A=DSRC
         do_const_opsize(ndpcntl, R_IDSTAT.is_bytop, SRCDEF, SRCREG);
-        ndpcntl.abox_bsel := c_abox_bsel_const;  -- ABOX B=const
-        ndpcntl.abox_opsub := '1';               -- ABOX = A-B
-        ndpcntl.dres_sel := c_dpath_res_abox;    -- DRES = ABOX
+        ndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B=const
+        ndpcntl.ounit_opsub := '1';              -- OUNIT = A-B
+        ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
         ndpcntl.dsrc_sel := c_dpath_dsrc_res;    -- DSRC = DRES
         ndpcntl.dsrc_we := '1';                  -- update DSRC
         ndpcntl.gpr_adst := SRCREG;
@@ -1005,12 +1008,12 @@ begin
       when s_srcr_ind1_w =>
         nstate := s_srcr_ind1_w;
         if R_IDSTAT.is_srcpc = '0' then
-          ndpcntl.abox_asel := c_abox_asel_dsrc; -- ABOX A = DSRC
+          ndpcntl.ounit_asel := c_ounit_asel_dsrc; -- OUNIT A = DSRC
         else
-          ndpcntl.abox_asel := c_abox_asel_pc;   -- ABOX A = PC (for nn(pc))
+          ndpcntl.ounit_asel := c_ounit_asel_pc;   -- OUNIT A = PC (for nn(pc))
         end if;
-        ndpcntl.abox_bsel := c_abox_bsel_vmdout; -- ABOX B = VMDOUT
-        ndpcntl.dres_sel := c_dpath_res_abox;    -- DRES = ABOX
+        ndpcntl.ounit_bsel := c_ounit_bsel_vmdout; -- OUNIT B = VMDOUT
+        ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
         ndpcntl.dsrc_sel := c_dpath_dsrc_res;    -- DSRC = DRES
         ndpcntl.ddst_sel := c_dpath_ddst_dst;    -- DDST = R(DST)
         do_memcheck(nstate, nstatus, imemok);
@@ -1101,10 +1104,10 @@ begin
         end if;
 
       when s_dstr_inc =>
-        ndpcntl.abox_asel := c_abox_asel_ddst;   -- ABOX A=DDST
+        ndpcntl.ounit_asel := c_ounit_asel_ddst; -- OUNIT A=DDST
         do_const_opsize(ndpcntl, R_IDSTAT.is_bytop, DSTDEF, DSTREG);
-        ndpcntl.abox_bsel := c_abox_bsel_const;  -- ABOX B=const
-        ndpcntl.dres_sel := c_dpath_res_abox;    -- DRES = ABOX
+        ndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B=const
+        ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
         ndpcntl.gpr_adst := DSTREG;
         ndpcntl.gpr_we := '1';
         nmmumoni.regmod := '1';
@@ -1130,11 +1133,11 @@ begin
         end if;
         
       when s_dstr_dec =>
-        ndpcntl.abox_asel := c_abox_asel_ddst;   -- ABOX A=DDST
+        ndpcntl.ounit_asel := c_ounit_asel_ddst; -- OUNIT A=DDST
         do_const_opsize(ndpcntl, R_IDSTAT.is_bytop, DSTDEF, DSTREG);
-        ndpcntl.abox_bsel := c_abox_bsel_const;  -- ABOX B=const
-        ndpcntl.abox_opsub := '1';               -- ABOX = A-B
-        ndpcntl.dres_sel := c_dpath_res_abox;    -- DRES = ABOX
+        ndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B=const
+        ndpcntl.ounit_opsub := '1';              -- OUNIT = A-B
+        ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
         ndpcntl.ddst_sel := c_dpath_ddst_res;    -- DDST = DRES
         ndpcntl.ddst_we := '1';                  -- update DDST
         ndpcntl.gpr_adst := DSTREG;
@@ -1156,12 +1159,12 @@ begin
       when s_dstr_ind1_w =>
         nstate := s_dstr_ind1_w;
         if R_IDSTAT.is_dstpc = '0' then
-          ndpcntl.abox_asel := c_abox_asel_ddst; -- ABOX A = DDST
+          ndpcntl.ounit_asel := c_ounit_asel_ddst; -- OUNIT A = DDST
         else
-          ndpcntl.abox_asel := c_abox_asel_pc;   -- ABOX A = PC (for nn(pc))
+          ndpcntl.ounit_asel := c_ounit_asel_pc;   -- OUNIT A = PC (for nn(pc))
         end if;
-        ndpcntl.abox_bsel := c_abox_bsel_vmdout; -- ABOX B = VMDOUT
-        ndpcntl.dres_sel := c_dpath_res_abox;    -- DRES = ABOX
+        ndpcntl.ounit_bsel := c_ounit_bsel_vmdout;-- OUNIT B = VMDOUT
+        ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
         ndpcntl.ddst_sel := c_dpath_ddst_res;    -- DDST = DRES
         do_memcheck(nstate, nstatus, imemok);
         if imemok then
@@ -1249,16 +1252,16 @@ begin
       when s_dstw_inc =>
         ndpcntl.psr_ccwe := '1';
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_ddst;   -- VA = DDST
-        ndpcntl.abox_asel := c_abox_asel_ddst;       -- ABOX A=DDST  (for else)
+        ndpcntl.ounit_asel := c_ounit_asel_ddst;     -- OUNIT A=DDST  (for else)
         do_const_opsize(ndpcntl, R_IDSTAT.is_bytop, DSTDEF, DSTREG);  --(...)
-        ndpcntl.abox_bsel := c_abox_bsel_const;      -- ABOX B=const (for else)
+        ndpcntl.ounit_bsel := c_ounit_bsel_const;    -- OUNIT B=const (for else)
         if DSTDEF = '0' then
           ndpcntl.dres_sel := R_IDSTAT.res_sel;      -- DRES = choice of idec
           nvmcntl.kstack := is_dstkstack1246;
           do_memwrite(nstate, nvmcntl, s_dstw_inc_w);
           nstatus.do_gprwe := '1';
         else
-          ndpcntl.dres_sel := c_dpath_res_abox;      -- DRES = ABOX
+          ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
           ndpcntl.gpr_adst := DSTREG;
           ndpcntl.gpr_we := '1';
           nmmumoni.regmod := '1';
@@ -1269,10 +1272,10 @@ begin
         
       when s_dstw_inc_w =>
         nstate := s_dstw_inc_w;
-        ndpcntl.abox_asel := c_abox_asel_ddst;     -- ABOX A=DDST
+        ndpcntl.ounit_asel := c_ounit_asel_ddst;   -- OUNIT A=DDST
         do_const_opsize(ndpcntl, R_IDSTAT.is_bytop, DSTDEF, DSTREG);
-        ndpcntl.abox_bsel := c_abox_bsel_const;    -- ABOX B=const
-        ndpcntl.dres_sel := c_dpath_res_abox;      -- DRES = ABOX
+        ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const
+        ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
         ndpcntl.gpr_adst := DSTREG;
         if R_STATUS.do_gprwe = '1' then
           nmmumoni.regmod := '1';
@@ -1298,11 +1301,11 @@ begin
 
       when s_dstw_dec =>
         ndpcntl.psr_ccwe := '1';
-        ndpcntl.abox_asel := c_abox_asel_ddst;   -- ABOX A=DDST
+        ndpcntl.ounit_asel := c_ounit_asel_ddst; -- OUNIT A=DDST
         do_const_opsize(ndpcntl, R_IDSTAT.is_bytop, DSTDEF, DSTREG);
-        ndpcntl.abox_bsel := c_abox_bsel_const;  -- ABOX B=const
-        ndpcntl.abox_opsub := '1';               -- ABOX = A-B
-        ndpcntl.dres_sel := c_dpath_res_abox;    -- DRES = ABOX
+        ndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B=const
+        ndpcntl.ounit_opsub := '1';              -- OUNIT = A-B
+        ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
         ndpcntl.ddst_sel := c_dpath_ddst_res;    -- DDST = DRES
         ndpcntl.ddst_we := '1';                  -- update DDST
         ndpcntl.gpr_adst := DSTREG;
@@ -1328,12 +1331,12 @@ begin
       when s_dstw_ind_w =>
         nstate := s_dstw_ind_w;
         if R_IDSTAT.is_dstpc = '0' then
-          ndpcntl.abox_asel := c_abox_asel_ddst; -- ABOX A = DDST
+          ndpcntl.ounit_asel := c_ounit_asel_ddst; -- OUNIT A = DDST
         else
-          ndpcntl.abox_asel := c_abox_asel_pc;   -- ABOX A = PC (for nn(pc))
+          ndpcntl.ounit_asel := c_ounit_asel_pc;   -- OUNIT A = PC (for nn(pc))
         end if;
-        ndpcntl.abox_bsel := c_abox_bsel_vmdout; -- ABOX B = VMDOUT
-        ndpcntl.dres_sel := c_dpath_res_abox;    -- DRES = ABOX
+        ndpcntl.ounit_bsel := c_ounit_bsel_vmdout;-- OUNIT B = VMDOUT
+        ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
         ndpcntl.ddst_sel := c_dpath_ddst_res;    -- DDST = DRES
         do_memcheck(nstate, nstatus, imemok);
         if imemok then
@@ -1378,10 +1381,10 @@ begin
   --               -> do_fork_opa
 
       when s_dsta_inc =>
-        ndpcntl.abox_asel := c_abox_asel_ddst;     -- ABOX A=DDST
-        ndpcntl.abox_const := "000000010";
-        ndpcntl.abox_bsel := c_abox_bsel_const;    -- ABOX B=const(2)
-        ndpcntl.dres_sel := c_dpath_res_abox;      -- DRES = ABOX
+        ndpcntl.ounit_asel := c_ounit_asel_ddst;   -- OUNIT A=DDST
+        ndpcntl.ounit_const := "000000010";
+        ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const(2)
+        ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
         ndpcntl.gpr_adst := DSTREG;
         ndpcntl.gpr_we := '1';
         nmmumoni.regmod := '1';
@@ -1409,11 +1412,11 @@ begin
         end if;    
     
       when s_dsta_dec =>
-        ndpcntl.abox_asel := c_abox_asel_ddst;   -- ABOX A=DDST
-        ndpcntl.abox_const := "000000010";
-        ndpcntl.abox_bsel := c_abox_bsel_const;  -- ABOX B=const(2)
-        ndpcntl.abox_opsub := '1';               -- ABOX = A-B
-        ndpcntl.dres_sel := c_dpath_res_abox;    -- DRES = ABOX
+        ndpcntl.ounit_asel := c_ounit_asel_ddst; -- OUNIT A=DDST
+        ndpcntl.ounit_const := "000000010";
+        ndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B=const(2)
+        ndpcntl.ounit_opsub := '1';              -- OUNIT = A-B
+        ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
         ndpcntl.ddst_sel := c_dpath_ddst_res;    -- DDST = DRES
         ndpcntl.ddst_we := '1';                  -- update DDST
         ndpcntl.gpr_adst := DSTREG;
@@ -1440,12 +1443,12 @@ begin
       when s_dsta_ind_w =>
         nstate := s_dsta_ind_w;
         if R_IDSTAT.is_dstpc = '0' then
-          ndpcntl.abox_asel := c_abox_asel_ddst; -- ABOX A = DDST
+          ndpcntl.ounit_asel := c_ounit_asel_ddst; -- OUNIT A = DDST
         else
-          ndpcntl.abox_asel := c_abox_asel_pc;   -- ABOX A = PC (for nn(pc))
+          ndpcntl.ounit_asel := c_ounit_asel_pc;   -- OUNIT A = PC (for nn(pc))
         end if;
-        ndpcntl.abox_bsel := c_abox_bsel_vmdout; -- ABOX B = VMDOUT
-        ndpcntl.dres_sel := c_dpath_res_abox;    -- DRES = ABOX
+        ndpcntl.ounit_bsel := c_ounit_bsel_vmdout;-- OUNIT B = VMDOUT
+        ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
         ndpcntl.ddst_sel := c_dpath_ddst_res;    -- DDST = DRES
         do_memcheck(nstate, nstatus, imemok);
         if imemok then
@@ -1492,9 +1495,9 @@ begin
         nstate := s_idle;
         
       when s_op_rts =>                  -- RTS
-        ndpcntl.abox_asel := c_abox_asel_ddst;     -- ABOX A=DDST
-        ndpcntl.abox_bsel := c_abox_bsel_const;    -- ABOX B=const(0)
-        ndpcntl.dres_sel := c_dpath_res_abox;      -- DRES = ABOX
+        ndpcntl.ounit_asel := c_ounit_asel_ddst;   -- OUNIT A=DDST
+        ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const(0)
+        ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
         ndpcntl.gpr_adst := c_gpr_pc;
         ndpcntl.gpr_we := '1';                     -- load PC with reg(dst)
         nstate := s_op_rts_pop;
@@ -1534,9 +1537,9 @@ begin
       when s_op_br =>                   -- BR
         nvmcntl.dspace := '0';                   -- prepare do_fork_next_pref
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_pc; -- VA = PC
-        ndpcntl.abox_asel := c_abox_asel_pc;     -- ABOX A = PC
-        ndpcntl.abox_bsel := c_abox_bsel_ireg8;  -- ABOX B = IREG8
-        ndpcntl.dres_sel := c_dpath_res_abox;    -- DRES = ABOX
+        ndpcntl.ounit_asel := c_ounit_asel_pc;   -- OUNIT A = PC
+        ndpcntl.ounit_bsel := c_ounit_bsel_ireg8;-- OUNIT B = IREG8
+        ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
         -- note: cc are NZVC
         case brcode(3 downto 1) is
           when "000" =>                 -- BR
@@ -1567,9 +1570,9 @@ begin
         end if;
         
       when s_op_mark =>                 -- MARK 
-        ndpcntl.abox_asel := c_abox_asel_pc;     -- ABOX A = PC
-        ndpcntl.abox_bsel := c_abox_bsel_ireg6;  -- ABOX B = IREG6
-        ndpcntl.dres_sel := c_dpath_res_abox;    -- DRES = ABOX
+        ndpcntl.ounit_asel := c_ounit_asel_pc;   -- OUNIT A = PC
+        ndpcntl.ounit_bsel := c_ounit_bsel_ireg6;-- OUNIT B = IREG6
+        ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
         ndpcntl.dsrc_sel := c_dpath_dsrc_res;    -- DSRC = DRES
         ndpcntl.dsrc_we := '1';                  -- update DSRC (with PC+2*nn)
         ndpcntl.gpr_adst := c_gpr_r5;            -- fetch r5
@@ -1578,9 +1581,9 @@ begin
         nstate := s_op_mark1;
 
       when s_op_mark1 =>
-        ndpcntl.abox_asel := c_abox_asel_ddst;   -- ABOX A = DDST
-        ndpcntl.abox_bsel := c_abox_bsel_const;  -- ABOX B = const(0)
-        ndpcntl.dres_sel := c_dpath_res_abox;    -- DRES = ABOX
+        ndpcntl.ounit_asel := c_ounit_asel_ddst; -- OUNIT A = DDST
+        ndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B = const(0)
+        ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
         ndpcntl.gpr_adst := c_gpr_pc;
         ndpcntl.gpr_we := '1';                   -- load PC with r5
         nstate := s_op_mark_pop;
@@ -1615,10 +1618,10 @@ begin
         end if;
         
       when s_op_sob1 =>                 -- SOB (br) 
-        ndpcntl.abox_asel := c_abox_asel_pc;     -- ABOX A = PC
-        ndpcntl.abox_bsel := c_abox_bsel_ireg6;  -- ABOX B = IREG6
-        ndpcntl.abox_opsub := '1';               -- ABOX = A - B
-        ndpcntl.dres_sel := c_dpath_res_abox;    -- DRES = ABOX
+        ndpcntl.ounit_asel := c_ounit_asel_pc;   -- OUNIT A = PC
+        ndpcntl.ounit_bsel := c_ounit_bsel_ireg6;-- OUNIT B = IREG6
+        ndpcntl.ounit_opsub := '1';              -- OUNIT = A - B
+        ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
         ndpcntl.gpr_adst := c_gpr_pc;
         ndpcntl.gpr_we := '1';
         do_fork_next(nstate, nstatus, nmmumoni);
@@ -1677,23 +1680,23 @@ begin
         nstate := s_opg_mul1;
         
       when s_opg_mul1 =>                -- MUL (write odd reg)
-        ndpcntl.abox_asel := c_abox_asel_dtmp;   -- ABOX A = DTMP
-        ndpcntl.abox_bsel := c_abox_bsel_const;  -- ABOX B = const(0)
-        ndpcntl.dres_sel := c_dpath_res_abox;    -- DRES = ABOX
+        ndpcntl.ounit_asel := c_ounit_asel_dtmp; -- OUNIT A = DTMP
+        ndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B = const(0)
+        ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
         ndpcntl.gpr_adst := SRCREG(2 downto 1) & "1";-- write odd reg !
         ndpcntl.gpr_we := '1';
         ndpcntl.psr_ccwe := '1';
         do_fork_next(nstate, nstatus, nmmumoni);
         
       when s_opg_div =>                 -- DIV (load dd_low)
-        ndpcntl.mbox_s_div := '1';
+        ndpcntl.munit_s_div := '1';
         ndpcntl.gpr_asrc := SRCREG(2 downto 1) & "1";-- read odd reg !
         ndpcntl.dtmp_sel := c_dpath_dtmp_dsrc;
         ndpcntl.dtmp_we := '1';
         nstate := s_opg_div_cn;
 
       when s_opg_div_cn =>              -- DIV (1st...16th cycle)
-        ndpcntl.mbox_s_div_cn := '1';
+        ndpcntl.munit_s_div_cn := '1';
         ndpcntl.dres_sel := R_IDSTAT.res_sel;     -- DRES = choice of idec
         ndpcntl.dsrc_sel := c_dpath_dsrc_res;     -- DSRC = DRES
         ndpcntl.dtmp_sel := c_dpath_dtmp_drese;   -- DTMP = DRESE
@@ -1709,17 +1712,17 @@ begin
         end if;
 
       when s_opg_div_cr =>              -- DIV (reminder correction)
-        ndpcntl.mbox_s_div_cr := '1';
+        ndpcntl.munit_s_div_cr := '1';
         ndpcntl.dres_sel := R_IDSTAT.res_sel;     -- DRES = choice of idec
         ndpcntl.dsrc_sel := c_dpath_dsrc_res;     -- DSRC = DRES
         ndpcntl.dsrc_we := DP_STAT.div_cr;        -- update DSRC
         nstate := s_opg_div_sq;
         
       when s_opg_div_sq =>              -- DIV (store quotient)
-        ndpcntl.abox_asel := c_abox_asel_dtmp;    -- ABOX A=DTMP
-        ndpcntl.abox_const := "00000000"&DP_STAT.div_cq;-- ABOX const = Q corr.
-        ndpcntl.abox_bsel := c_abox_bsel_const;   -- ABOX B=const (q cor)
-        ndpcntl.dres_sel := c_dpath_res_abox;     -- DRES = ABOX
+        ndpcntl.ounit_asel := c_ounit_asel_dtmp;  -- OUNIT A=DTMP
+        ndpcntl.ounit_const := "00000000"&DP_STAT.div_cq;-- OUNIT const = Q corr.
+        ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B=const (q cor)
+        ndpcntl.dres_sel := c_dpath_res_ounit;    -- DRES = OUNIT
         ndpcntl.gpr_adst := SRCREG;               -- write result
         ndpcntl.gpr_we := '1';
         ndpcntl.dtmp_sel := c_dpath_dtmp_dres;    -- DTMP = DRES
@@ -1727,9 +1730,9 @@ begin
         nstate := s_opg_div_sr;
 
       when s_opg_div_sr =>              -- DIV (store reminder)
-        ndpcntl.abox_asel := c_abox_asel_dsrc;    -- ABOX A=DSRC
-        ndpcntl.abox_bsel := c_abox_bsel_const;   -- ABOX B=const (0)
-        ndpcntl.dres_sel := c_dpath_res_abox;     -- DRES = ABOX
+        ndpcntl.ounit_asel := c_ounit_asel_dsrc;  -- OUNIT A=DSRC
+        ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B=const (0)
+        ndpcntl.dres_sel := c_dpath_res_ounit;    -- DRES = OUNIT
         ndpcntl.gpr_adst := SRCREG(2 downto 1) & "1";-- write odd reg !
         ndpcntl.gpr_we := '1';
         ndpcntl.psr_ccwe := '1';
@@ -1740,23 +1743,23 @@ begin
         do_fork_next(nstate, nstatus, nmmumoni);
 
       when s_opg_ash =>                 -- ASH (load shc)
-        ndpcntl.mbox_s_ash := '1';
+        ndpcntl.munit_s_ash := '1';
         nstate := s_opg_ash_cn;
 
       when s_opg_ash_cn =>              -- ASH (shift cycles)
         nvmcntl.dspace := '0';                    -- prepare do_fork_next_pref
         ndpcntl.dsrc_sel := c_dpath_dsrc_res;     -- DSRC = DRES
-        ndpcntl.abox_asel := c_abox_asel_dsrc;    -- ABOX A=DSRC
-        ndpcntl.abox_bsel := c_abox_bsel_const;   -- ABOX B=const(0)
+        ndpcntl.ounit_asel := c_ounit_asel_dsrc;  -- OUNIT A=DSRC
+        ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B=const(0)
         ndpcntl.gpr_adst := SRCREG;               -- write result
-        ndpcntl.mbox_s_ash_cn := '1';
+        ndpcntl.munit_s_ash_cn := '1';
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_pc;  -- VA = PC
         nstate := s_opg_ash_cn;
         if DP_STAT.shc_tc = '0' then
           ndpcntl.dres_sel := R_IDSTAT.res_sel;   -- DRES = choice of idec
           ndpcntl.dsrc_we := '1';                 -- update DSRC
         else
-          ndpcntl.dres_sel := c_dpath_res_abox;   -- DRES = ABOX
+          ndpcntl.dres_sel := c_dpath_res_ounit;  -- DRES = OUNIT
           ndpcntl.gpr_we := '1';
           ndpcntl.psr_ccwe := '1';
           do_fork_next_pref(nstate, nstatus, ndpcntl, nvmcntl, nmmumoni);
@@ -1766,32 +1769,32 @@ begin
         ndpcntl.gpr_asrc := SRCREG(2 downto 1) & "1";-- read odd reg !
         ndpcntl.dtmp_sel := c_dpath_dtmp_dsrc;
         ndpcntl.dtmp_we := '1';
-        ndpcntl.mbox_s_ashc := '1';
+        ndpcntl.munit_s_ashc := '1';
         nstate := s_opg_ashc_cn;
 
       when s_opg_ashc_cn =>             -- ASHC (shift cycles)
         ndpcntl.dsrc_sel := c_dpath_dsrc_res;     -- DSRC = DRES
         ndpcntl.dtmp_sel := c_dpath_dtmp_drese;   -- DTMP = DRESE
-        ndpcntl.abox_asel := c_abox_asel_dsrc;    -- ABOX A=DSRC
-        ndpcntl.abox_bsel := c_abox_bsel_const;   -- ABOX B=const(0)
+        ndpcntl.ounit_asel := c_ounit_asel_dsrc;  -- OUNIT A=DSRC
+        ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B=const(0)
         ndpcntl.gpr_adst := SRCREG;               -- write result
-        ndpcntl.mbox_s_ashc_cn := '1';
+        ndpcntl.munit_s_ashc_cn := '1';
         nstate := s_opg_ashc_cn;
         if DP_STAT.shc_tc = '0' then
           ndpcntl.dres_sel := R_IDSTAT.res_sel;   -- DRES = choice of idec
           ndpcntl.dsrc_we := '1';                 -- update DSRC
           ndpcntl.dtmp_we := '1';                 -- update DTMP
         else
-          ndpcntl.dres_sel := c_dpath_res_abox;   -- DRES = ABOX
+          ndpcntl.dres_sel := c_dpath_res_ounit;  -- DRES = OUNIT
           ndpcntl.gpr_we := '1';
           ndpcntl.psr_ccwe := '1';
           nstate := s_opg_ashc_wl;
         end if;
 
       when s_opg_ashc_wl =>             -- ASHC (write low)
-        ndpcntl.abox_asel := c_abox_asel_dtmp;   -- ABOX A = DTMP
-        ndpcntl.abox_bsel := c_abox_bsel_const;  -- ABOX B = const(0)
-        ndpcntl.dres_sel := c_dpath_res_abox;    -- DRES = ABOX
+        ndpcntl.ounit_asel := c_ounit_asel_dtmp; -- OUNIT A = DTMP
+        ndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B = const(0)
+        ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
         ndpcntl.gpr_adst := SRCREG(2 downto 1) & "1";-- write odd reg !
         ndpcntl.gpr_we := '1';
         do_fork_next(nstate, nstatus, nmmumoni);
@@ -1813,11 +1816,11 @@ begin
         ndpcntl.dtmp_sel := c_dpath_dtmp_dsrc;     -- DTMP = regfile
         ndpcntl.dtmp_we := '1';
         
-        ndpcntl.abox_asel := c_abox_asel_dsrc;     -- ABOX A=DSRC
-        ndpcntl.abox_const := "000000010";
-        ndpcntl.abox_bsel := c_abox_bsel_const;    -- ABOX B=const(2)
-        ndpcntl.abox_opsub := '1';                 -- ABOX = A-B
-        ndpcntl.dres_sel := c_dpath_res_abox;      -- DRES = ABOX
+        ndpcntl.ounit_asel := c_ounit_asel_dsrc;   -- OUNIT A=DSRC
+        ndpcntl.ounit_const := "000000010";
+        ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const(2)
+        ndpcntl.ounit_opsub := '1';                -- OUNIT = A-B
+        ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
         ndpcntl.dsrc_sel := c_dpath_dsrc_res;      -- DDST = DRES
         ndpcntl.dsrc_we := '1';                    -- update DDST
         ndpcntl.gpr_adst := c_gpr_sp;
@@ -1827,9 +1830,9 @@ begin
         nstate := s_opa_jsr_push;
 
       when s_opa_jsr_push =>
-        ndpcntl.abox_asel := c_abox_asel_dtmp;     -- ABOX A=DTMP
-        ndpcntl.abox_bsel := c_abox_bsel_const;    -- ABOX B=const(0)
-        ndpcntl.dres_sel := c_dpath_res_abox;      -- DRES = ABOX
+        ndpcntl.ounit_asel := c_ounit_asel_dtmp;   -- OUNIT A=DTMP
+        ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const(0)
+        ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_dsrc; -- VA = DSRC
         nvmcntl.dspace := '1';
         nvmcntl.kstack := is_kmode;
@@ -1839,9 +1842,9 @@ begin
 
       when s_opa_jsr_push_w =>
         nstate := s_opa_jsr_push_w;
-        ndpcntl.abox_asel := c_abox_asel_pc;       -- ABOX A=PC
-        ndpcntl.abox_bsel := c_abox_bsel_const;    -- ABOX B=const(0)
-        ndpcntl.dres_sel := c_dpath_res_abox;      -- DRES = ABOX
+        ndpcntl.ounit_asel := c_ounit_asel_pc;     -- OUNIT A=PC
+        ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const(0)
+        ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
         ndpcntl.gpr_adst := SRCREG;
         do_memcheck(nstate, nstatus, imemok);
         if imemok then
@@ -1850,17 +1853,17 @@ begin
         end if;
 
       when s_opa_jsr2 =>
-        ndpcntl.abox_asel := c_abox_asel_ddst;     -- ABOX A=DDST
-        ndpcntl.abox_bsel := c_abox_bsel_const;    -- ABOX B=const(0)
-        ndpcntl.dres_sel := c_dpath_res_abox;      -- DRES = ABOX
+        ndpcntl.ounit_asel := c_ounit_asel_ddst;   -- OUNIT A=DDST
+        ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const(0)
+        ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
         ndpcntl.gpr_adst := c_gpr_pc;
         ndpcntl.gpr_we := '1';                     -- load PC with dsta
         do_fork_next(nstate, nstatus, nmmumoni);
 
       when s_opa_jmp =>
-        ndpcntl.abox_asel := c_abox_asel_ddst;     -- ABOX A=DDST
-        ndpcntl.abox_bsel := c_abox_bsel_const;    -- ABOX B=const(0)
-        ndpcntl.dres_sel := c_dpath_res_abox;      -- DRES = ABOX
+        ndpcntl.ounit_asel := c_ounit_asel_ddst;   -- OUNIT A=DDST
+        ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const(0)
+        ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
         ndpcntl.gpr_adst := c_gpr_pc;
         if R_IDSTAT.is_dstmode0 = '1' then
           nstate := s_trap_10;                     -- trap 10 like 11/70
@@ -1896,19 +1899,19 @@ begin
         ndpcntl.ddst_we  := '1';                  -- update DDST (needed for sp)
 
       when s_opa_mtp_reg =>
-        ndpcntl.abox_asel := c_abox_asel_dtmp;    -- ABOX A = DTMP
-        ndpcntl.abox_bsel := c_abox_bsel_const;   -- ABOX B = const(0)
-        ndpcntl.dres_sel := c_dpath_res_abox;     -- DRES = ABOX
-        ndpcntl.psr_ccwe := '1';                  -- set cc (from abox too)
+        ndpcntl.ounit_asel := c_ounit_asel_dtmp;  -- OUNIT A = DTMP
+        ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B = const(0)
+        ndpcntl.dres_sel := c_dpath_res_ounit;    -- DRES = OUNIT
+        ndpcntl.psr_ccwe := '1';                  -- set cc (from ounit too)
         ndpcntl.gpr_mode := PSW.pmode;            -- load reg in pmode
         ndpcntl.gpr_we := '1';
         do_fork_next(nstate, nstatus, nmmumoni);
 
       when s_opa_mtp_mem =>
-        ndpcntl.abox_asel := c_abox_asel_dtmp;    -- ABOX A = DTMP
-        ndpcntl.abox_bsel := c_abox_bsel_const;   -- ABOX B = const(0)
-        ndpcntl.dres_sel := c_dpath_res_abox;     -- DRES = ABOX
-        ndpcntl.psr_ccwe := '1';                  -- set cc (from abox too)
+        ndpcntl.ounit_asel := c_ounit_asel_dtmp;  -- OUNIT A = DTMP
+        ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B = const(0)
+        ndpcntl.dres_sel := c_dpath_res_ounit;    -- DRES = OUNIT
+        ndpcntl.psr_ccwe := '1';                  -- set cc (from ounit too)
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_ddst;-- VA = DDST
         nvmcntl.dspace := IREG(15);            -- msb indicates I/D: 0->I, 1->D
         nvmcntl.mode := PSW.pmode;
@@ -1952,11 +1955,11 @@ begin
         end if;
 
       when s_opa_mfp_dec =>         
-        ndpcntl.abox_asel := c_abox_asel_dsrc;     -- ABOX A=DSRC
-        ndpcntl.abox_const := "000000010";
-        ndpcntl.abox_bsel := c_abox_bsel_const;    -- ABOX B=const(2)
-        ndpcntl.abox_opsub := '1';                 -- ABOX = A-B
-        ndpcntl.dres_sel := c_dpath_res_abox;      -- DRES = ABOX
+        ndpcntl.ounit_asel := c_ounit_asel_dsrc;   -- OUNIT A=DSRC
+        ndpcntl.ounit_const := "000000010";
+        ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const(2)
+        ndpcntl.ounit_opsub := '1';                -- OUNIT = A-B
+        ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
         ndpcntl.dsrc_sel := c_dpath_dsrc_res;      -- DSRC = DRES
         ndpcntl.dsrc_we := '1';                    -- update DSRC
         ndpcntl.gpr_adst := c_gpr_sp;
@@ -1966,10 +1969,10 @@ begin
         nstate := s_opa_mfp_push;
 
       when s_opa_mfp_push =>
-        ndpcntl.abox_asel := c_abox_asel_ddst;     -- ABOX A=DDST
-        ndpcntl.abox_bsel := c_abox_bsel_const;    -- ABOX B=const(0)
-        ndpcntl.dres_sel := c_dpath_res_abox;      -- DRES = ABOX
-        ndpcntl.psr_ccwe := '1';                   -- set cc (from abox too)
+        ndpcntl.ounit_asel := c_ounit_asel_ddst;   -- OUNIT A=DDST
+        ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const(0)
+        ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
+        ndpcntl.psr_ccwe := '1';                   -- set cc (from ounit too)
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_dsrc; -- VA = DSRC
         nvmcntl.dspace := '1';
         nvmcntl.kstack := is_kmode;
@@ -2056,11 +2059,11 @@ begin
         nstate := s_int_decsp;
 
       when s_int_decsp =>
-        ndpcntl.abox_asel := c_abox_asel_dsrc;   -- ABOX A=DSRC
-        ndpcntl.abox_const := "000000010";       -- ABOX const=2
-        ndpcntl.abox_bsel := c_abox_bsel_const;  -- ABOX B=const
-        ndpcntl.abox_opsub := '1';               -- ABOX = A-B
-        ndpcntl.dres_sel := c_dpath_res_abox;    -- DRES = ABOX
+        ndpcntl.ounit_asel := c_ounit_asel_dsrc; -- OUNIT A=DSRC
+        ndpcntl.ounit_const := "000000010";      -- OUNIT const=2
+        ndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B=const
+        ndpcntl.ounit_opsub := '1';              -- OUNIT = A-B
+        ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
         ndpcntl.dsrc_sel := c_dpath_dsrc_res;    -- DSRC = DRES
         ndpcntl.dsrc_we := '1';                  -- update DSRC
         ndpcntl.gpr_adst := c_gpr_sp;
@@ -2068,9 +2071,9 @@ begin
         nstate := s_int_pushps;
 
       when s_int_pushps =>
-        ndpcntl.abox_asel := c_abox_asel_dtmp;     -- ABOX A=DTMP (old PS)
-        ndpcntl.abox_bsel := c_abox_bsel_const;    -- ABOX B=const (0)
-        ndpcntl.dres_sel := c_dpath_res_abox;      -- DRES = ABOX
+        ndpcntl.ounit_asel := c_ounit_asel_dtmp;   -- OUNIT A=DTMP (old PS)
+        ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const (0)
+        ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_dsrc; -- VA = DSRC
         nvmcntl.wacc := '1';                       -- write mem
         nvmcntl.dspace := '1';
@@ -2079,11 +2082,11 @@ begin
         nstate := s_int_pushps_w;
 
       when s_int_pushps_w =>
-        ndpcntl.abox_asel := c_abox_asel_dsrc;   -- ABOX A=DSRC
-        ndpcntl.abox_const := "000000010";       -- ABOX const=2
-        ndpcntl.abox_bsel := c_abox_bsel_const;  -- ABOX B=const
-        ndpcntl.abox_opsub := '1';               -- ABOX = A-B
-        ndpcntl.dres_sel := c_dpath_res_abox;    -- DRES = ABOX
+        ndpcntl.ounit_asel := c_ounit_asel_dsrc; -- OUNIT A=DSRC
+        ndpcntl.ounit_const := "000000010";      -- OUNIT const=2
+        ndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B=const
+        ndpcntl.ounit_opsub := '1';              -- OUNIT = A-B
+        ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
         ndpcntl.dsrc_sel := c_dpath_dsrc_res;    -- DSRC = DRES
         ndpcntl.gpr_adst := c_gpr_sp;
 
@@ -2096,9 +2099,9 @@ begin
         end if;
         
       when s_int_pushpc =>
-        ndpcntl.abox_asel := c_abox_asel_pc;       -- ABOX A=PC
-        ndpcntl.abox_bsel := c_abox_bsel_const;    -- ABOX B=const (0)
-        ndpcntl.dres_sel := c_dpath_res_abox;      -- DRES = ABOX
+        ndpcntl.ounit_asel := c_ounit_asel_pc;     -- OUNIT A=PC
+        ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const (0)
+        ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_dsrc; -- VA = DSRC
         nvmcntl.wacc := '1';                       -- write mem
         nvmcntl.dspace := '1';
@@ -2107,9 +2110,9 @@ begin
         nstate := s_int_pushpc_w;
 
       when s_int_pushpc_w =>
-        ndpcntl.abox_asel := c_abox_asel_ddst;     -- ABOX A=DDST
-        ndpcntl.abox_bsel := c_abox_bsel_const;    -- ABOX B=const (0)
-        ndpcntl.dres_sel := c_dpath_res_abox;      -- DRES = ABOX
+        ndpcntl.ounit_asel := c_ounit_asel_ddst;   -- OUNIT A=DDST
+        ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const (0)
+        ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
         ndpcntl.gpr_adst := c_gpr_pc;
 
         nstate := s_int_pushpc_w;
@@ -2155,14 +2158,14 @@ begin
         end if;
 
       when s_rti_newpc =>
-        ndpcntl.abox_asel := c_abox_asel_ddst;     -- ABOX A=DDST
-        ndpcntl.abox_bsel := c_abox_bsel_const;    -- ABOX B=const (0)
-        ndpcntl.dres_sel := c_dpath_res_abox;      -- DRES = ABOX
+        ndpcntl.ounit_asel := c_ounit_asel_ddst;  -- OUNIT A=DDST
+        ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B=const (0)
+        ndpcntl.dres_sel := c_dpath_res_ounit;    -- DRES = OUNIT
         ndpcntl.gpr_adst := c_gpr_pc;
-        ndpcntl.gpr_we := '1';                     -- load new PC
-        if R_IDSTAT.op_rtt = '1' then              -- if RTT instruction
-          nstate := s_ifetch;                      --   force fetch
-        else                                       -- otherwise RTI
+        ndpcntl.gpr_we := '1';                    -- load new PC
+        if R_IDSTAT.op_rtt = '1' then             -- if RTT instruction
+          nstate := s_ifetch;                       --   force fetch
+        else                                      -- otherwise RTI
           do_fork_next(nstate, nstatus, nmmumoni);
         end if;
 
@@ -2172,22 +2175,22 @@ begin
         nstate := s_cpufail;
 
                                             -- setup for R_VMSTAT.err_rsv='1'
-        ndpcntl.abox_azero := '1';               -- ABOX A = 0
-        ndpcntl.abox_const := "000000100";       -- emergency stack pointer
-        ndpcntl.abox_bsel := c_abox_bsel_const;  -- ABOX B=const(vector)
-        ndpcntl.dres_sel := c_dpath_res_abox;    -- DRES = ABOX
-        ndpcntl.gpr_mode := c_psw_kmode;         -- set kmode SP to 4
+        ndpcntl.ounit_azero := '1';               -- OUNIT A = 0
+        ndpcntl.ounit_const := "000000100";       -- emergency stack pointer
+        ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B=const(vector)
+        ndpcntl.dres_sel := c_dpath_res_ounit;    -- DRES = OUNIT
+        ndpcntl.gpr_mode := c_psw_kmode;          -- set kmode SP to 4
         ndpcntl.gpr_adst := c_gpr_sp;
         
-        nstatus.trap_mmu :='0';                  -- drop pending mmu trap
+        nstatus.trap_mmu :='0';                   -- drop pending mmu trap
 
-        if R_VMSTAT.fail = '1' then              -- vmbox failure
-          nstatus.cpugo   := '0';                  -- halt cpu
+        if R_VMSTAT.fail = '1' then               -- vmbox failure
+          nstatus.cpugo   := '0';                   -- halt cpu
           nstatus.cpurust := c_cpurust_vfail;
           nstate := s_idle; 
 
-        elsif R_STATUS.do_intrsv = '1' then      -- double error
-          nstatus.cpugo := '0';                    -- give up, HALT cpu
+        elsif R_STATUS.do_intrsv = '1' then       -- double error
+          nstatus.cpugo := '0';                     -- give up, HALT cpu
           nstatus.cpurust := c_cpurust_recrsv;
           nstate := s_idle;
           
@@ -2251,7 +2254,7 @@ begin
     VM_CNTL <= nvmcntl;
 
     nmmumoni.regnum := ndpcntl.gpr_adst;
-    nmmumoni.delta := ndpcntl.abox_const(3 downto 0);
+    nmmumoni.delta  := ndpcntl.ounit_const(3 downto 0);
     MMU_MONI <= nmmumoni;
     
   end process proc_next;

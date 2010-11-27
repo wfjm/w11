@@ -1,4 +1,4 @@
--- $Id: ibdr_minisys.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: ibdr_minisys.vhd 335 2010-10-24 22:24:23Z mueller $
 --
 -- Copyright 2008-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -23,9 +23,16 @@
 --                 ib_intmap
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+--
+-- Synthesized (xst):
+-- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2010-10-17   333  12.1    M53 xc3s1000-4   128  469   16  265 s  7.8
+-- 2010-10-17   314  12.1    M53 xc3s1000-4   122  472   16  269 s  7.6
+--
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-10-23   335   1.1.1  rename RRI_LAM->RB_LAM;
 -- 2010-06-11   303   1.1    use IB_MREQ.racc instead of RRI_REQ
 -- 2009-07-12   233   1.0.7  reorder ports, add CE_USEC; add RESET and CE_USEC
 --                           to _dl11
@@ -65,7 +72,7 @@ entity ibdr_minisys is                  -- ibus(rem) minimal sys:SDR+KW+DL+RK
     CE_MSEC : in slbit;                 -- msec pulse
     RESET : in slbit;                   -- reset
     BRESET : in slbit;                  -- ibus reset
-    RRI_LAM : out slv16_1;              -- remote attention vector
+    RB_LAM : out slv16_1;               -- remote attention vector
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response
     EI_ACKM : in slbit;                 -- interrupt acknowledge (from master)
@@ -96,8 +103,8 @@ architecture syn of ibdr_minisys is
      intmap_init                        -- line  0
      );
 
-  signal RRI_LAM_DL11 : slbit := '0';
-  signal RRI_LAM_RK11 : slbit := '0';
+  signal RB_LAM_DL11 : slbit := '0';
+  signal RB_LAM_RK11 : slbit := '0';
 
   signal IB_SRES_SDREG : ib_sres_type := ib_sres_init;
   signal IB_SRES_KW11L : ib_sres_type := ib_sres_init;
@@ -146,7 +153,7 @@ begin
       CE_USEC   => CE_USEC,
       RESET     => RESET,
       BRESET    => BRESET,
-      RRI_LAM   => RRI_LAM_DL11,
+      RB_LAM    => RB_LAM_DL11,
       IB_MREQ   => IB_MREQ,
       IB_SRES   => IB_SRES_DL11,
       EI_REQ_RX => EI_REQ_DL11RX,
@@ -160,7 +167,7 @@ begin
       CLK     => CLK,
       CE_MSEC => CE_MSEC,
       BRESET  => BRESET,
-      RRI_LAM => RRI_LAM_RK11,
+      RB_LAM  => RB_LAM_RK11,
       IB_MREQ => IB_MREQ,
       IB_SRES => IB_SRES_RK11,
       EI_REQ  => EI_REQ_RK11,
@@ -197,10 +204,10 @@ begin
   EI_ACK_DL11RX <= EI_ACK(2);
   EI_ACK_DL11TX <= EI_ACK(1);
 
-  RRI_LAM(1) <= RRI_LAM_DL11;
-  RRI_LAM(2) <= '0';                  -- for 2nd DL11
-  RRI_LAM(3) <= '0';                  -- for DZ11
-  RRI_LAM(4) <= RRI_LAM_RK11;
-  RRI_LAM(15 downto 5) <= (others=>'0');        
+  RB_LAM(1) <= RB_LAM_DL11;
+  RB_LAM(2) <= '0';                  -- for 2nd DL11
+  RB_LAM(3) <= '0';                  -- for DZ11
+  RB_LAM(4) <= RB_LAM_RK11;
+  RB_LAM(15 downto 5) <= (others=>'0');        
     
 end syn;

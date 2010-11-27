@@ -1,7 +1,8 @@
-# $Id: Makefile.xflow 317 2010-07-22 19:36:56Z mueller $
+# $Id: Makefile.xflow 341 2010-11-27 23:05:43Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2010-11-26   340   1.5.8  fix path for .opt defaults (now rtl/vlib)
 # 2010-05-06   289   1.5.7  add xilinx_tsim_xon support
 # 2010-04-24   282   1.5.6  add %.impact rule to run impact_wrapper
 # 2010-04-17   278   1.4.5  add '|| true' after grep in diag summary to prevent
@@ -69,8 +70,8 @@ XFLOW    = xflow -p ${ISE_PATH}
 	(cd ./ise; vbomconv --xst_prj ../$< > $*.prj)
 	(cd ./ise; touch $*.xcf)
 	if [ -r  $*.xcf ]; then cp $*.xcf ./ise; fi
-	if [ -r ${RETROBASE}/vlib/${XFLOWOPT_SYN} ]; then \
-		cp ${RETROBASE}/vlib/${XFLOWOPT_SYN} ./ise; fi
+	if [ -r ${RETROBASE}/rtl/vlib/${XFLOWOPT_SYN} ]; then \
+		cp ${RETROBASE}/rtl/vlib/${XFLOWOPT_SYN} ./ise; fi
 	if [ -r ${XFLOWOPT_SYN} ]; then cp ${XFLOWOPT_SYN} ./ise; fi
 	${XFLOW} -wd ise -synth ${XFLOWOPT_SYN} $*.prj 
 	(cd ./ise; chmod -x *.* )
@@ -89,8 +90,8 @@ XFLOW    = xflow -p ${ISE_PATH}
 	(cd ./ise; vbomconv --xst_prj ../$< > $*.prj)
 	(cd ./ise; touch $*.xcf)
 	if [ -r  $*.xcf ]; then cp $*.xcf ./ise; fi
-	if [ -r ${RETROBASE}/vlib/${XFLOWOPT_SYN} ]; then \
-		cp ${RETROBASE}/vlib/${XFLOWOPT_SYN} ./ise; fi
+	if [ -r ${RETROBASE}/rtl/vlib/${XFLOWOPT_SYN} ]; then \
+		cp ${RETROBASE}/rtl/vlib/${XFLOWOPT_SYN} ./ise; fi
 	if [ -r ${XFLOWOPT_SYN} ]; then cp ${XFLOWOPT_SYN} ./ise; fi
 	${XFLOW} -wd ise -synth ${XFLOWOPT_SYN} $*.prj 
 	(cd ./ise; chmod -x *.* )
@@ -117,8 +118,8 @@ XFLOW    = xflow -p ${ISE_PATH}
 	if [ ! -d ./ise ]; then mkdir ./ise; fi
 	if [ -r $*.ngc ]; then cp -p $*.ngc ./ise; fi
 	if [ -r $*.ucf ]; then cp -p $*.ucf ./ise; fi
-	if [ -r ${RETROBASE}/vlib/${XFLOWOPT_IMP} ]; then \
-		cp ${RETROBASE}/vlib/${XFLOWOPT_IMP} ./ise; fi
+	if [ -r ${RETROBASE}/rtl/vlib/${XFLOWOPT_IMP} ]; then \
+		cp ${RETROBASE}/rtl/vlib/${XFLOWOPT_IMP} ./ise; fi
 	if [ -r ${XFLOWOPT_IMP} ]; then cp -p ${XFLOWOPT_IMP} ./ise; fi
 	${XFLOW} -wd ise -implement ${XFLOWOPT_IMP} $<
 	(cd ./ise; chmod -x *.* )

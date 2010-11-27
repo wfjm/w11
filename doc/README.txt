@@ -1,4 +1,4 @@
-# $Id: README.txt 318 2010-07-23 18:28:40Z mueller $
+# $Id: README.txt 341 2010-11-27 23:05:43Z mueller $
 
 Release notes for w11a
 
@@ -48,9 +48,37 @@ Release notes for w11a
 
 3. Change Log -------------------------------------------------------------
 
-- trunk (current development snapshot) -----------------------
+- trunk (2010-11-28: svn rev 8(oc) 341(wfjm); untagged w11a_V0.51)
 
-  indentical to w11a_V0.5
+  - Changes
+    - module renames:
+      - in future 'box' is used for large autonomous blocks, therefore use
+        the term unit for purely sequential logic modules:
+          pdp11_abox -> pdp11_ounit
+          pdp11_dbox -> pdp11_aunit
+          pdp11_lbox -> pdp11_lunit
+          pdp11_mbox -> pdp11_munit
+
+    - signal renames:
+      - renamed RRI_LAM -> RB_LAM in all ibus devices
+      - renamed CLK     -> I_CLK50 in all top level nexys2 and s3board designs
+
+    - migrate to ibus protocol verion 2
+      - in ib_mreq use now aval,re,we,rmw instead of req,we,dip
+      - basic ibus transaction now takes 2 cycles, one for address select, one
+        for data exchange. This avoids too long logic paths in ibus sector.
+
+  - New features
+    - ibus
+      - added ib_sres_or_mon to check for miss-behaving ibus devices
+      - added ib_sel to encapsulate address select logic
+    - nexys2 systems
+      - now DCM derived system clock supported
+      - sys_gen/w11a/nexys2
+        - sys_w11a_n2 now runs with 58 MHz clksys
+
+  - Bug fixes
+    - rtl/vlib/Makefile.xflow: use default .opt files under rtl/vlib again.
 
 - w11a_V0.5 (2010-07-23) -------------------------------------
 

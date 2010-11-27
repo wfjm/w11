@@ -1,4 +1,4 @@
-# $Id: tbw.dat 311 2010-06-30 17:52:37Z mueller $
+# $Id: tbw.dat 81 2007-09-09 20:50:42Z mueller $
 #
 [tb_rritba_pdp11core]
 tb_rritba_stim = tb_rritba_pdp11core_stim.dat

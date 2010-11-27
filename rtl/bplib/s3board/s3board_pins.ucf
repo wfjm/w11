@@ -1,4 +1,4 @@
-## $Id: s3board_pins.ucf 311 2010-06-30 17:52:37Z mueller $
+## $Id: s3board_pins.ucf 336 2010-11-06 18:28:27Z mueller $
 ##
 ## Pin locks for S3BOARD core functionality:
 ##    internal RS232
@@ -7,13 +7,14 @@
 ##
 ## Revision History: 
 ## Date         Rev Version  Comment
+## 2010-11-06   336   1.1.1  Rename CLK -> I_CLK50
 ## 2008-05-25   150   1.1    Use DRIVE=6|SLEW=SLOW|KEEPER for memory data lines
 ## 2008-02-17   101   1.0    Initial version 
 ##
 ## Note: default is DRIVE=12 | SLEW=SLOW
 ##
 ## clocks --------------------------------------------------------------------
-NET "CLK"       LOC = "t9"  | IOSTANDARD=LVCMOS33;
+NET "I_CLK50"   LOC = "t9"  | IOSTANDARD=LVCMOS33;
 ##
 ## RS232 interface -----------------------------------------------------------
 NET "I_RXD"     LOC = "t13" | IOSTANDARD=LVCMOS33;

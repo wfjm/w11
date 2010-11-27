@@ -1,4 +1,4 @@
--- $Id: sys_w11a_s3.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: sys_w11a_s3.vhd 336 2010-11-06 18:28:27Z mueller $
 --
 -- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -35,10 +35,12 @@
 -- Test bench:     tb/tb_s3board_w11a_s3
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 10.1, 11.4; ghdl 0.18-0.26
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 10.1, 11.4, 12.1; ghdl 0.18-0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2010-11-06   336 12.1    M53d xc3s1000-4  1284 4253* 242 2575 OK: LP+PC+DL+II
+-- 2010-10-24   335 12.1    M53d xc3s1000-4  1284 4495  242 2575 OK: LP+PC+DL+II
 -- 2010-05-01   285 11.4    L68  xc3s1000-4  1239 4086  224 2471 OK: LP+PC+DL+II
 -- 2010-04-26   283 11.4    L68  xc3s1000-4  1245 4083  224 2474 OK: LP+PC+DL+II
 -- 2009-07-12   233 11.2    L46  xc3s1000-4  1245 4078  224 2472 OK: LP+PC+DL+II
@@ -64,9 +66,12 @@
 -- 2008-01-06   111  8.2.03 I34  xc3s1000-4   971 2898  182 1831 m+p; TIME OK
 -- 2007-12-30   107  8.2.03 I34  xc3s1000-4   891 2719  137 1515 s 18.8
 -- 2007-12-30   107  8.2.03 I34  xc3s1000-4   891 2661  137 1654 m+p; TIME OK
+--   Note: till 2010-10-24 lutm included 'route-thru', after only logic
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-11-06   336   1.3.7  rename input pin CLK -> I_CLK50
+-- 2010-10-23   335   1.3.3  rename RRI_LAM->RB_LAM;
 -- 2010-06-26   309   1.3.2  use constants for rbus addresses (rbaddr_...)
 -- 2010-06-18   306   1.3.1  rename RB_ADDR->RB_ADDR_CORE, add RB_ADDR_IBUS;
 --                           remove pdp11_ibdr_rri
@@ -136,7 +141,7 @@ use work.sys_conf.all;
 entity sys_w11a_s3 is                   -- top level
                                         -- implements s3board_fusp_aif
   port (
-    CLK : in slbit;                     -- clock
+    I_CLK50 : in slbit;                 -- 50 MHz board clock
     I_RXD : in slbit;                   -- receive data (board view)
     O_TXD : out slbit;                  -- transmit data (board view)
     I_SWI : in slv8;                    -- s3 switches
@@ -158,6 +163,8 @@ entity sys_w11a_s3 is                   -- top level
 end sys_w11a_s3;
 
 architecture syn of sys_w11a_s3 is
+
+  signal CLK :   slbit := '0';
 
   signal RXD :   slbit := '1';
   signal TXD :   slbit := '0';
@@ -229,6 +236,8 @@ architecture syn of sys_w11a_s3 is
   constant rbaddr_hio   : slv8 := "11000000";
 
 begin
+
+  CLK <= I_CLK50;                       -- use 50MHz as system clock
 
   CLKDIV : clkdivce
     generic map (
@@ -315,7 +324,7 @@ begin
       RB_MREQ   => RB_MREQ,
       RB_SRES   => RB_SRES_CPU,
       RB_STAT   => RB_STAT,
-      RRI_LAM   => RB_LAM(0),
+      RB_LAM    => RB_LAM(0),
       CPU_RESET => CPU_RESET,
       CP_CNTL   => CP_CNTL,
       CP_ADDR   => CP_ADDR,
@@ -459,7 +468,7 @@ begin
         CE_MSEC  => CE_MSEC,
         RESET    => CPU_RESET,
         BRESET   => BRESET,
-        RRI_LAM  => RB_LAM(15 downto 1),
+        RB_LAM   => RB_LAM(15 downto 1),
         IB_MREQ  => IB_MREQ,
         IB_SRES  => IB_SRES_IBDR,
         EI_ACKM  => EI_ACKM,
@@ -477,7 +486,7 @@ begin
         CE_MSEC  => CE_MSEC,
         RESET    => CPU_RESET,
         BRESET   => BRESET,
-        RRI_LAM  => RB_LAM(15 downto 1),
+        RB_LAM   => RB_LAM(15 downto 1),
         IB_MREQ  => IB_MREQ,
         IB_SRES  => IB_SRES_IBDR,
         EI_ACKM  => EI_ACKM,

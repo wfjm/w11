@@ -1,4 +1,4 @@
--- $Id: ibdr_dl11.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: ibdr_dl11.vhd 335 2010-10-24 22:24:23Z mueller $
 --
 -- Copyright 2008-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,15 +18,18 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 10.1; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 10.1, 12.1; ghdl 0.18-0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2010-10-17   333  12.1    M53 xc3s1000-4    39  126    0   72 s  7.6
 -- 2009-07-12   233  10.1.03 K39 xc3s1000-4    38  119    0   69 s  6.3
 -- 2009-07-11   232  10.1.03 K39 xc3s1000-4    23   61    0   40 s  5.5
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-10-23   335   1.2.1  rename RRI_LAM->RB_LAM;
+-- 2010-10-17   333   1.2    use ibus V2 interface
 -- 2010-06-11   303   1.1    use IB_MREQ.racc instead of RRI_REQ
 -- 2009-07-12   233   1.0.5  add RESET, CE_USEC port; implement input rate limit
 -- 2008-08-22   161   1.0.6  use iblib; add EI_ACK_* to proc_next sens. list
@@ -55,7 +58,7 @@ entity ibdr_dl11 is                     -- ibus dev(rem): DL11-A/B
     CE_USEC : in slbit;                 -- usec pulse
     RESET : in slbit;                   -- system reset
     BRESET : in slbit;                  -- ibus reset
-    RRI_LAM : out slbit;                -- remote attention
+    RB_LAM : out slbit;                 -- remote attention
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response
     EI_REQ_RX : out slbit;              -- interrupt request, receiver
@@ -84,6 +87,7 @@ architecture syn of ibdr_dl11 is
   constant xbuf_ibf_rrdy :  integer :=  9;
 
   type regs_type is record              -- state registers
+    ibsel : slbit;                      -- ibus select
     rrlim : slv3;                       -- rcsr: receiver rate limit
     rdone : slbit;                      -- rcsr: receiver done
     rie : slbit;                        -- rcsr: receiver interrupt enable
@@ -100,6 +104,7 @@ architecture syn of ibdr_dl11 is
   end record regs_type;
 
   constant regs_init : regs_type := (
+    '0',                                -- ibsel
     (others=>'0'),                      -- rrlim
     '0','0',                            -- rdone, rie
     (others=>'0'),                      -- rbuf
@@ -126,7 +131,7 @@ begin
           R_REGS.rdlybsy <= N_REGS.rdlybsy; -- don't reset rx delay busy
           R_REGS.rdlycnt <= N_REGS.rdlycnt; -- don't reset rx delay counter
         end if;
-     else
+      else
         R_REGS <= N_REGS;
       end if;
     end if;
@@ -135,8 +140,8 @@ begin
   proc_next : process (CE_USEC, R_REGS, IB_MREQ, EI_ACK_RX, EI_ACK_TX)
     variable r : regs_type := regs_init;
     variable n : regs_type := regs_init;
-    variable ibsel : slbit := '0';
     variable idout : slv16 := (others=>'0');
+    variable ibreq : slbit := '0';
     variable ibrd : slbit := '0';
     variable ibw0 : slbit := '0';
     variable ibw1 : slbit := '0';
@@ -148,21 +153,23 @@ begin
     r := R_REGS;
     n := R_REGS;
 
-    ibsel := '0';
     idout := (others=>'0');
-    ibrd  := not IB_MREQ.we;
+    ibreq := IB_MREQ.re or IB_MREQ.we;
+    ibrd  := IB_MREQ.re;
     ibw0  := IB_MREQ.we and IB_MREQ.be0;
     ibw1  := IB_MREQ.we and IB_MREQ.be1;
     ilam  := '0';
     rdlystart := '0';
       
     -- ibus address decoder
-    if IB_MREQ.req='1' and IB_MREQ.addr(12 downto 3)=IB_ADDR(12 downto 3) then
-      ibsel := '1';
+    n.ibsel := '0';
+    if IB_MREQ.aval='1' and
+       IB_MREQ.addr(12 downto 3)=IB_ADDR(12 downto 3) then
+      n.ibsel := '1';
     end if;
 
     -- ibus transactions
-    if ibsel = '1' then
+    if r.ibsel = '1' then
       case IB_MREQ.addr(2 downto 1) is
 
         when ibaddr_rcsr =>             -- RCSR -- receive control status ----
@@ -328,10 +335,10 @@ begin
     N_REGS <= n;
 
     IB_SRES.dout <= idout;
-    IB_SRES.ack  <= ibsel;
+    IB_SRES.ack  <= r.ibsel and ibreq;
     IB_SRES.busy <= '0';
 
-    RRI_LAM <= ilam;
+    RB_LAM    <= ilam;
     EI_REQ_RX <= r.rintreq;
     EI_REQ_TX <= r.xintreq;
     

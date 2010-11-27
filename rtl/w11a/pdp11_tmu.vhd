@@ -1,4 +1,4 @@
--- $Id: pdp11_tmu.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: pdp11_tmu.vhd 333 2010-10-17 21:18:33Z mueller $
 --
 -- Copyright 2008-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,8 +20,10 @@
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
 -- Tool versions:  ghdl 0.18-0.25
+--
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-10-17   333   1.0.6  use ibus V2 interface
 -- 2010-06-26   309   1.0.5  add ibmreq.dip,.cacc,.racc to trace
 -- 2009-05-10   214   1.0.4  add ENA signal (trace enable)
 -- 2008-12-14   177   1.0.3  write gpr_* of DM_STAT_DP and dp_ireg_we_last
@@ -95,11 +97,12 @@ begin
         write(oline, string'(" dp.gpr_bytop:b"));
         write(oline, string'(" dp.gpr_we:b"));
 
-        write(oline, string'(" vm.ibmreq.req:b"));
+        write(oline, string'(" vm.ibmreq.aval:b"));
+        write(oline, string'(" vm.ibmreq.re:b"));
         write(oline, string'(" vm.ibmreq.we:b"));
+        write(oline, string'(" vm.ibmreq.rmw:b"));
         write(oline, string'(" vm.ibmreq.be0:b"));
         write(oline, string'(" vm.ibmreq.be1:b"));
-        write(oline, string'(" vm.ibmreq.dip:b"));
         write(oline, string'(" vm.ibmreq.cacc:b"));
         write(oline, string'(" vm.ibmreq.racc:b"));
         write(oline, string'(" vm.ibmreq.addr:o"));
@@ -146,7 +149,8 @@ begin
          DM_STAT_SY.emsres.ack_r='1' or
          DM_STAT_SY.emsres.ack_w='1' or
          DM_STAT_SY.emmreq.cancel='1' or
-         DM_STAT_VM.ibmreq.req='1' or
+         DM_STAT_VM.ibmreq.re='1' or
+         DM_STAT_VM.ibmreq.we='1' or
          DM_STAT_VM.ibsres.ack='1'
       then
         wcycle := true;
@@ -179,11 +183,12 @@ begin
         write(oline, DM_STAT_DP.gpr_bytop, right, 2);
         write(oline, DM_STAT_DP.gpr_we, right, 2);
 
-        write(oline,    DM_STAT_VM.ibmreq.req, right, 2);
+        write(oline,    DM_STAT_VM.ibmreq.aval, right, 2);
+        write(oline,    DM_STAT_VM.ibmreq.re, right, 2);
         write(oline,    DM_STAT_VM.ibmreq.we, right, 2);
+        write(oline,    DM_STAT_VM.ibmreq.rmw, right, 2);
         write(oline,    DM_STAT_VM.ibmreq.be0, right, 2);
         write(oline,    DM_STAT_VM.ibmreq.be1, right, 2);
-        write(oline,    DM_STAT_VM.ibmreq.dip, right, 2);
         write(oline,    DM_STAT_VM.ibmreq.cacc, right, 2);
         write(oline,    DM_STAT_VM.ibmreq.racc, right, 2);
         writeoct(oline, ibaddr, right, 7);

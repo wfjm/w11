@@ -1,4 +1,4 @@
--- $Id: tb_s3board_fusp.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: tb_s3board_fusp.vhd 336 2010-11-06 18:28:27Z mueller $
 --
 -- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -26,6 +26,7 @@
 -- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4; ghdl 0.18-0.26
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-11-06   336   1.0.4  rename input pin CLK -> I_CLK50
 -- 2010-05-21   292   1.0.3  rename _PM1_ -> _FUSP_
 -- 2010-05-16   291   1.0.2  rename tb_s3board_usp->tb_s3board_fusp
 -- 2010-05-02   287   1.0.1  add sbaddr_portsel def, now sbus addr 8
@@ -133,7 +134,7 @@ begin
 
   UUT : s3board_fusp_aif
     port map (
-      CLK          => CLK,
+      I_CLK50      => CLK,
       I_RXD        => I_RXD,
       O_TXD        => O_TXD,
       I_SWI        => I_SWI,

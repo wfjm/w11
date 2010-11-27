@@ -1,6 +1,6 @@
--- $Id: pdp11_mmu_ssr12.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: pdp11_mmu_ssr12.vhd 335 2010-10-24 22:24:23Z mueller $
 --
--- Copyright 2006-2009 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -15,13 +15,15 @@
 -- Module Name:    pdp11_mmu_ssr12 - syn
 -- Description:    pdp11: mmu register ssr1 and ssr2
 --
--- Dependencies:   -
+-- Dependencies:   ib_sel
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
--- Revision History: 
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+-- 
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-10-23   335   1.2.1  use ib_sel
+-- 2010-10-17   333   1.2    use ibus V2 interface
 -- 2009-05-30   220   1.1.4  final removal of snoopers (were already commented)
 -- 2008-08-22   161   1.1.3  rename ubf_ -> ibf_; use iblib
 -- 2008-03-02   121   1.1.2  remove snoopers
@@ -66,28 +68,29 @@ architecture syn of pdp11_mmu_ssr12 is
   signal IBSEL_SSR2 : slbit := '0';
   signal R_SSR1 : mmu_ssr1_type := mmu_ssr1_init;
   signal R_SSR2 : slv16 := (others=>'0');
-  signal NEXT_SSR1 : mmu_ssr1_type := mmu_ssr1_init;
-  signal NEXT_SSR2 : slv16 := (others=>'0');
+  signal N_SSR1 : mmu_ssr1_type := mmu_ssr1_init;
+  signal N_SSR2 : slv16 := (others=>'0');
 
 begin
 
-  proc_ibsel: process (IB_MREQ)
-    variable issr1 : slbit := '0';
-    variable issr2 : slbit := '0';
-  begin
-    issr1 := '0';
-    issr2 := '0';
-    if IB_MREQ.req = '1' then
-      if IB_MREQ.addr = ibaddr_ssr1(12 downto 1) then issr1 := '1'; end if;
-      if IB_MREQ.addr = ibaddr_ssr2(12 downto 1) then issr2 := '1'; end if;
-    end if;
-    IBSEL_SSR1   <= issr1;
-    IBSEL_SSR2   <= issr2;
-    IB_SRES.ack  <= issr1 or issr2;
-    IB_SRES.busy <= '0';
-  end process proc_ibsel;
+  SEL_SSR1 : ib_sel
+    generic map (
+      IB_ADDR => ibaddr_ssr1)
+    port map (
+      CLK     => CLK,
+      IB_MREQ => IB_MREQ,
+      SEL     => IBSEL_SSR1
+    );
+  SEL_SSR2 : ib_sel
+    generic map (
+      IB_ADDR => ibaddr_ssr2)
+    port map (
+      CLK     => CLK,
+      IB_MREQ => IB_MREQ,
+      SEL     => IBSEL_SSR2
+    );
 
-  proc_ubdout : process (IBSEL_SSR1, IBSEL_SSR2, R_SSR1, R_SSR2)
+  proc_ibres : process (IBSEL_SSR1, IBSEL_SSR2, IB_MREQ, R_SSR1, R_SSR2)
     variable ssr1out : slv16 := (others=>'0');
     variable ssr2out : slv16 := (others=>'0');
   begin
@@ -106,14 +109,17 @@ begin
     end if;
      
     IB_SRES.dout <= ssr1out or ssr2out;
+    IB_SRES.ack  <= (IBSEL_SSR1 or IBSEL_SSR2) and
+                    (IB_MREQ.re or IB_MREQ.we); -- ack all
+    IB_SRES.busy <= '0';
 
-  end process proc_ubdout;
+  end process proc_ibres;
 
   proc_regs : process (CLK)
   begin
     if CLK'event and CLK='1' then
-      R_SSR1 <= NEXT_SSR1;
-      R_SSR2 <= NEXT_SSR2;
+      R_SSR1 <= N_SSR1;
+      R_SSR2 <= N_SSR2;
     end if;
   end process proc_regs;
 
@@ -177,8 +183,8 @@ begin
 
     end if;
 
-    NEXT_SSR1 <= nssr1;
-    NEXT_SSR2 <= nssr2;
+    N_SSR1 <= nssr1;
+    N_SSR2 <= nssr2;
 
   end process proc_comb;  
 

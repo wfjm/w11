@@ -1,4 +1,4 @@
--- $Id: ibdr_rk11.vhd 317 2010-07-22 19:36:56Z mueller $
+-- $Id: ibdr_rk11.vhd 335 2010-10-24 22:24:23Z mueller $
 --
 -- Copyright 2008-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,15 +18,18 @@
 -- Dependencies:   ram_1swar_gen
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2010-10-17   333  12.1    M53 xc3s1000-4    46  248   16  137 s  7.2
 -- 2009-06-01   221  10.1.03 K39 xc3s1000-4    46  249   16  148 s  7.1
 -- 2008-01-06   111   8.2.03 I34 xc3s1000-4    36  189   16  111 s  6.0
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-10-23   335   1.2.1  rename RRI_LAM->RB_LAM;
+-- 2010-10-17   333   1.2    use ibus V2 interface
 -- 2010-06-11   303   1.1    use IB_MREQ.racc instead of RRI_REQ
 -- 2009-05-24   219   1.0.9  add CE_MSEC input; inc sector counter every msec
 --                           BUGFIX: sector counter now counts 000,...,013.
@@ -58,7 +61,7 @@ entity ibdr_rk11 is                     -- ibus dev(rem): RK11
     CLK : in slbit;                     -- clock
     CE_MSEC : in slbit;                 -- msec pulse
     BRESET : in slbit;                  -- ibus reset
-    RRI_LAM : out slbit;                -- remote attention
+    RB_LAM : out slbit;                 -- remote attention
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response
     EI_REQ : out slbit;                 -- interrupt request
@@ -113,6 +116,7 @@ architecture syn of ibdr_rk11 is
   );
 
   type regs_type is record              -- state registers
+    ibsel : slbit;                      -- ibus select
     state : state_type;                 -- state
     id : slv3;                          -- rkds: drive id of search done
     sc : slv4;                          -- rkds: sector counter
@@ -134,7 +138,8 @@ architecture syn of ibdr_rk11 is
   end record regs_type;
 
   constant regs_init : regs_type := (
-    s_init,                             --
+    '0',                                -- ibsel
+    s_init,                             -- state
     (others=>'0'),                      -- id
     (others=>'0'),                      -- sc
     '0','0',                            -- cse, wce
@@ -200,12 +205,12 @@ begin
   proc_next : process (R_REGS, CE_MSEC, IB_MREQ, MEM_DOUT, EI_ACK)
     variable r : regs_type := regs_init;
     variable n : regs_type := regs_init;
-    variable ibsel  : slbit := '0';
-    variable ibbusy : slbit := '0';
+    variable ibhold : slbit := '0';
     variable icrip  : slbit := '0';
     variable idout  : slv16 := (others=>'0');
-    variable ibrd   : slbit := '0';
     variable ibrem  : slbit := '0';
+    variable ibreq  : slbit := '0';
+    variable ibrd   : slbit := '0';
     variable ibw0   : slbit := '0';
     variable ibw1   : slbit := '0';
     variable ibwrem : slbit := '0';
@@ -223,12 +228,12 @@ begin
     r := R_REGS;
     n := R_REGS;
 
-    ibsel  := '0';
-    ibbusy := '0';
+    ibhold := '0';
     icrip  := '0';
     idout  := (others=>'0');
-    ibrd   := not IB_MREQ.we;
     ibrem  := IB_MREQ.racc or r.maint;
+    ibreq  := IB_MREQ.re or IB_MREQ.we;
+    ibrd   := IB_MREQ.re;
     ibw0   := IB_MREQ.we and IB_MREQ.be0;
     ibw1   := IB_MREQ.we and IB_MREQ.be1;
     ibwrem := IB_MREQ.we and ibrem;
@@ -243,9 +248,10 @@ begin
     imem_din  := IB_MREQ.din;
     
     -- ibus address decoder
-    if IB_MREQ.req = '1' and
+    n.ibsel := '0';
+    if IB_MREQ.aval = '1' and
        IB_MREQ.addr(12 downto 4)=ibaddr_rk11(12 downto 4) then
-      ibsel := '1';
+      n.ibsel := '1';
     end if;
 
     -- internal state machine (for control reset)
@@ -254,8 +260,7 @@ begin
         null;
 
       when s_init =>
-        ibbusy := ibsel;                -- keep req pending if selected
-        ibsel  := '0';                  -- but don't process selection
+        ibhold := r.ibsel;              -- hold ibus when controller busy
         icrip  := '1';
         n.icnt := unsigned(r.icnt) + 1;
         if unsigned(r.icnt) = 7 then
@@ -267,7 +272,8 @@ begin
 
     
     -- ibus transactions
-    if ibsel = '1' then
+    
+    if r.ibsel='1' and ibhold='0' then  -- selected and not holding
       idout := MEM_DOUT;
       imem_we0 := ibw0;
       imem_we1 := ibw1;
@@ -462,11 +468,11 @@ begin
     MEM_DIN  <= imem_din;
     
     IB_SRES.dout <= idout;
-    IB_SRES.ack  <= ibsel;
-    IB_SRES.busy <= ibbusy;
+    IB_SRES.ack  <= r.ibsel and ibreq;
+    IB_SRES.busy <= ibhold  and ibreq;
 
-    RRI_LAM <= ilam;
-    EI_REQ  <= iei_req;
+    RB_LAM <= ilam;
+    EI_REQ <= iei_req;
     
   end process proc_next;
 

@@ -1,4 +1,4 @@
--- $Id: iblib.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: iblib.vhd 335 2010-10-24 22:24:23Z mueller $
 --
 -- Copyright 2008-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,9 +16,11 @@
 -- Description:    Definitions for ibus interface and bus entities
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-10-23   335   2.0.1  add ib_sel; add ib_sres_or_mon
+-- 2010-10-17   333   2.0    ibus V2 interface: use aval,re,we,rmw
 -- 2010-06-11   303   1.1    added racc,cacc signals to ib_mreq_type
 -- 2009-06-01   221   1.0.1  added dip signal to ib_mreq_type
 -- 2008-08-22   161   1.0    Initial version (extracted from pdp11.vhd)
@@ -33,11 +35,12 @@ use work.slvtypes.all;
 package iblib is
 
 type ib_mreq_type is record             -- ibus - master request
-  req  : slbit;                         -- request
+  aval : slbit;                         -- address valid
+  re   : slbit;                         -- read enable
   we   : slbit;                         -- write enable
+  rmw  : slbit;                         -- read-modify-write
   be0  : slbit;                         -- byte enable low
   be1  : slbit;                         -- byte enable high
-  dip  : slbit;                         -- data in pause: rmw cycle 1st part
   cacc : slbit;                         -- console access
   racc : slbit;                         -- remote access
   addr : slv13_1;                       -- address bit(12:1)
@@ -45,8 +48,8 @@ type ib_mreq_type is record             -- ibus - master request
 end record ib_mreq_type;
 
 constant ib_mreq_init : ib_mreq_type :=
-  ('0','0','0','0',                     -- req, we, be0, be1,
-   '0','0','0',                         -- dip, cacc, racc
+  ('0','0','0','0',                     -- aval, re, we, rmw
+   '0','0','0','0',                     -- be0, be1, cacc, racc
    (others=>'0'),                       -- addr
    (others=>'0'));                      -- din
 
@@ -64,6 +67,17 @@ type ib_sres_vector is array (natural range <>) of ib_sres_type;
 
 subtype ibf_byte1  is integer range 15 downto 8;
 subtype ibf_byte0  is integer range  7 downto 0;
+
+component ib_sel is                     -- ibus address select logic
+  generic (
+    IB_ADDR : slv16;                    -- ibus address base
+    SAWIDTH : natural := 0);            -- device subaddress space width
+  port (
+    CLK : in slbit;                     -- clock
+    IB_MREQ : in ib_mreq_type;          -- ibus request
+    SEL : out slbit                     -- select state bit
+  );
+end component;
 
 component ib_sres_or_2 is               -- ibus result or, 2 input
   port (
@@ -96,6 +110,15 @@ component ib_sres_or_gen is             -- ibus result or, generic
   port (
     IB_SRES_IN : in ib_sres_vector(1 to WIDTH); -- ib_sres input array
     IB_SRES_OR : out ib_sres_type               -- ib_sres or'ed output
+  );
+end component;
+
+component ib_sres_or_mon is             -- ibus result or monitor
+  port (
+    IB_SRES_1 :  in ib_sres_type;                 -- ib_sres input 1
+    IB_SRES_2 :  in ib_sres_type := ib_sres_init; -- ib_sres input 2
+    IB_SRES_3 :  in ib_sres_type := ib_sres_init; -- ib_sres input 3
+    IB_SRES_4 :  in ib_sres_type := ib_sres_init  -- ib_sres input 4
   );
 end component;
 

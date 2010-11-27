@@ -6,5 +6,6 @@ pdp11.vbom
 # components
 [ghdl,isim]../vlib/memlib/ram_1swar_gen.vbom
 [xst]../vlib/memlib/ram_1swar_gen_unisim.vbom
+../ibus/ib_sel.vbom
 # design
 pdp11_ubmap.vhd

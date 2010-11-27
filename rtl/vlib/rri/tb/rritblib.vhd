@@ -1,4 +1,4 @@
--- $Id: rritblib.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: rritblib.vhd 338 2010-11-13 22:19:25Z mueller $
 --
 -- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,9 +16,10 @@
 -- Description:    Remote Register Interface test environment components
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4; ghdl 0.18-0.29
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-11-13   338   2.5.2  add rritb_core_dcm
 -- 2010-06-26   309   2.5.1  add rritb_sres_or_mon
 -- 2010-06-06   302   2.5    use sop/eop framing instead of soc+chaining
 -- 2010-06-05   301   2.1.2  renamed _rpmon -> _rbmon
@@ -126,6 +127,23 @@ component rritb_core is                 -- core of rri/cext based test bench
     C2OUT_TIME : time :=  10 ns);       -- clock to output time
   port (
     CLK : out slbit;                    -- main clock
+    RX_DATA : out slv8;                 -- read data         (data ext->tb)
+    RX_VAL : out slbit;                 -- read data valid   (data ext->tb)
+    RX_HOLD : in slbit;                 -- read data hold    (data ext->tb)
+    TX_DATA : in slv8;                  -- write data        (data tb->ext)
+    TX_ENA : in slbit                   -- write data enable (data tb->ext)
+  );
+end component;
+
+component rritb_core_dcm is             -- dcm aware core of rri/cext based tb's
+  generic (
+    CLKOSC_PERIOD : time :=  20 ns;     -- clock osc period
+    CLKOSC_OFFSET : time := 200 ns;     -- clock osc offset (time to start clk)
+    SETUP_TIME : time :=   5 ns;        -- setup time
+    C2OUT_TIME : time :=  10 ns);       -- clock to output time
+  port (
+    CLKOSC : out slbit;                 -- clock osc
+    CLKSYS : in slbit;                  -- DCM derived system clock
     RX_DATA : out slv8;                 -- read data         (data ext->tb)
     RX_VAL : out slbit;                 -- read data valid   (data ext->tb)
     RX_HOLD : in slbit;                 -- read data hold    (data ext->tb)

@@ -8,5 +8,6 @@ pdp11_mmu.vbom
 pdp11_ubmap.vbom
 ../ibus/ib_sres_or_4.vbom
 ../ibus/ib_sres_or_2.vbom
+../ibus/ib_sel.vbom
 # design
 pdp11_vmbox.vhd

@@ -1,6 +1,6 @@
--- $Id: simlib.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: simlib.vhd 338 2010-11-13 22:19:25Z mueller $
 --
--- Copyright 2006-2008 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,9 +18,11 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+--
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-11-13   338   1.3.6  add simclkcnt; xx.x ns time in writetimestamp()
 -- 2008-03-24   129   1.3.5  CLK_CYCLE now 31 bits
 -- 2008-03-02   121   1.3.4  added readempty (to discard rest of line)
 -- 2007-12-27   106   1.3.3  added simclk2v
@@ -217,6 +219,13 @@ component simclkv is                  -- test bench clock generator
     CLK_PERIOD : in time;             -- clock period
     CLK_HOLD : in slbit;              -- if 1, hold clocks in 0 state
     CLK_STOP : in slbit               -- clock stop trigger
+  );
+end component;
+
+component simclkcnt is                -- test bench system clock cycle counter
+  port (
+    CLK  : in slbit;                  -- clock
+    CLK_CYCLE  : out slv31            -- clock cycle number
   );
 end component;
 
@@ -1049,9 +1058,22 @@ procedure writetimestamp(
   clkcyc: in slv31;
   str: in string := null_string) is
 
+  variable t_nsec  : integer := 0;
+  variable t_psec  : integer := 0;
+  variable t_dnsec : integer := 0;
+
 begin
 
-  write(L, now, right, 12);
+  t_nsec  := now / 1 ns;
+  t_psec  := (now - t_nsec * 1 ns) / 1 ps;
+  t_dnsec := t_psec/100;
+  
+  -- write(L, now, right, 12);
+  write(L, t_nsec, right, 8);
+  write(L,'.');
+  write(L, t_dnsec, right, 1);
+  write(L, string'(" ns"));
+  
   write(L, conv_integer(unsigned(clkcyc)), right, 7);
   if str /= null_string then
     write(L, str);

@@ -1,4 +1,4 @@
--- $Id: sys_conf_sim.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: sys_conf_sim.vhd 341 2010-11-27 23:05:43Z mueller $
 --
 -- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  xst 11.4; ghdl 0.26
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-11-27   341   1.1    add dcm and memctl related constants (clksys=58)
 -- 2010-05-28   295   1.0    Initial version (cloned from _s3)
 ------------------------------------------------------------------------------
 
@@ -29,9 +30,17 @@ use work.slvtypes.all;
 
 package sys_conf is
 
-  constant sys_conf_hio_debounce : boolean := false;   -- no debouncers
+  constant sys_conf_clkfx_divide : positive   :=  25;
+  constant sys_conf_clkfx_multiply : positive :=  29;   -- ==> 58 MHz
+
+  constant sys_conf_memctl_read0delay : positive := 3;
+  constant sys_conf_memctl_read1delay : positive := sys_conf_memctl_read0delay;
+  constant sys_conf_memctl_writedelay : positive := 4;
+
   constant sys_conf_ser2rri_cdinit : integer := 1-1;   -- 1 cycle/bit in sim
   
+  constant sys_conf_hio_debounce : boolean := false;   -- no debouncers
+    
   constant sys_conf_bram           : integer :=  0;      -- no bram, use cache
   constant sys_conf_bram_awidth    : integer := 14;      -- bram size (16 kB)
   constant sys_conf_mem_losize     : integer := 8#167777#; --   4 MByte
@@ -42,6 +51,12 @@ package sys_conf is
 --  constant sys_conf_mem_losize     : integer := 8#001777#; -- 64 kByte
   
   constant sys_conf_cache_fmiss    : slbit   := '0';     -- cache enabled
+
+  -- derived constants
+
+  constant sys_conf_clksys : integer :=
+    (50000000/sys_conf_clkfx_divide)*sys_conf_clkfx_multiply;
+  constant sys_conf_clksys_mhz : integer := sys_conf_clksys/1000000;
 
 end package sys_conf;
 

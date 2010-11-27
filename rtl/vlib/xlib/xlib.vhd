@@ -1,6 +1,6 @@
--- $Id: xlib.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: xlib.vhd 338 2010-11-13 22:19:25Z mueller $
 --
--- Copyright 2007-2008 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,6 +19,7 @@
 -- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-11-07   337   1.0.5  add dcm_sp_sfs
 -- 2008-05-23   149   1.0.4  add iob_io(_gen)
 -- 2008-05-22   148   1.0.3  add iob_keeper(_gen);
 -- 2008-05-18   147   1.0.2  add PULL generic to iob_reg_io(_gen)
@@ -148,6 +149,18 @@ component iob_keeper_gen is             -- keeper for IOB, vector
     DWIDTH : positive := 16);           -- data port width
   port (
     PAD  : inout slv(DWIDTH-1 downto 0)  -- i/o pad
+  );
+end component;
+
+component dcm_sp_sfs is                 -- DCM_SP as 'simple freq. synthesis'
+  generic (
+    CLKFX_DIVIDE : positive := 2;       -- FX clock divide (1-32)
+    CLKFX_MULTIPLY : positive := 2;     -- FX clock divide (2-32)
+    CLKIN_PERIOD : real := 20.0);       -- CLKIN period (def is 20.0 ns)
+  port (
+    CLKIN : in slbit;                   -- clock input
+    CLKFX : out slbit;                  -- clock output (synthesized freq.) 
+    LOCKED : out slbit                  -- dcm locked
   );
 end component;
 

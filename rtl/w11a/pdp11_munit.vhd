@@ -1,4 +1,4 @@
--- $Id: pdp11_mbox.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: pdp11_munit.vhd 330 2010-09-19 17:43:53Z mueller $
 --
 -- Copyright 2006-2007 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -12,8 +12,8 @@
 -- for complete details.
 --
 ------------------------------------------------------------------------------
--- Module Name:    pdp11_mbox - syn
--- Description:    pdp11: mul/div unit for data (mbox)
+-- Module Name:    pdp11_munit - syn
+-- Description:    pdp11: mul/div unit for data (munit)
 --
 -- Dependencies:   -
 -- Test bench:     tb/tb_pdp11_core (implicit)
@@ -21,6 +21,7 @@
 -- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-09-18   300   1.1    renamed from mbox
 -- 2007-06-14    56   1.0.1  Use slvtypes.all
 -- 2007-05-12    26   1.0    Initial version 
 ------------------------------------------------------------------------------
@@ -34,7 +35,7 @@ use work.pdp11.all;
 
 -- ----------------------------------------------------------------------------
 
-entity pdp11_mbox is                    -- mul/div unit for data (mbox)
+entity pdp11_munit is                   -- mul/div unit for data (munit)
   port (
     CLK : in slbit;                     -- clock
     DSRC : in slv16;                    -- 'src' data in
@@ -58,9 +59,9 @@ entity pdp11_mbox is                    -- mul/div unit for data (mbox)
     DOUTE : out slv16;                  -- data output extra
     CCOUT : out slv4                    -- condition codes out
   );
-end pdp11_mbox;
+end pdp11_munit;
 
-architecture syn of pdp11_mbox is
+architecture syn of pdp11_munit is
 
   signal R_DD_L : slv16 := (others=>'0'); -- divident, low order part
   signal R_DDO_LT : slbit := '0';         -- original sign bit of divident
@@ -280,7 +281,7 @@ begin
         end if;
         NEXT_ASH_C <= DSRC(15);
       else                              -- right shift
-        if FUNC = c_mbox_func_ash then
+        if FUNC = c_munit_func_ash then
           NEXT_ASH_C <= DSRC(0);
         else
           NEXT_ASH_C <= DTMP(0);
@@ -306,11 +307,11 @@ begin
     prod := signed(DSRC) * signed(DDST);
 
     case FUNC is
-      when c_mbox_func_mul =>
+      when c_munit_func_mul =>
         omux_sel := "00";
-      when c_mbox_func_div =>
+      when c_munit_func_div =>
         omux_sel := "01";
-      when c_mbox_func_ash |c_mbox_func_ashc =>
+      when c_munit_func_ash |c_munit_func_ashc =>
         if R_SHC(5) = '0' then
           omux_sel := "10";
         else
@@ -319,7 +320,7 @@ begin
       when others => null;
     end case;
 
-    if FUNC = c_mbox_func_ash then
+    if FUNC = c_munit_func_ash then
       ash_dout0 := '0';
     else
       ash_dout0 := DTMP(15);
@@ -353,13 +354,13 @@ begin
     end if;
     
     case FUNC is
-      when c_mbox_func_mul =>
+      when c_munit_func_mul =>
         CCOUT(3) <= DSRC(15);               -- N
         CCOUT(2) <= DSRC_ZERO and DTMP_ZERO;-- Z
         CCOUT(1) <= '0';                    -- V=0
         CCOUT(0) <= mul_c;                  -- C
 
-      when c_mbox_func_div =>
+      when c_munit_func_div =>
         if DDST_ZERO = '1' then
           CCOUT(3) <= '0';                    -- N=0 if div/0
           CCOUT(2) <= '1';                    -- Z=1 if div/0
@@ -373,13 +374,13 @@ begin
         CCOUT(1) <= R_DIV_V or DDST_ZERO;     -- V
         CCOUT(0) <= DDST_ZERO;                -- C (dst=0)
 
-      when c_mbox_func_ash =>
+      when c_munit_func_ash =>
         CCOUT(3) <= DSRC(15);               -- N
         CCOUT(2) <= DSRC_ZERO;              -- Z
         CCOUT(1) <= R_ASH_V;                -- V
         CCOUT(0) <= R_ASH_C;                -- C
 
-      when c_mbox_func_ashc =>
+      when c_munit_func_ashc =>
         CCOUT(3) <= DSRC(15);               -- N
         CCOUT(2) <= DSRC_ZERO and DTMP_ZERO;-- Z
         CCOUT(1) <= R_ASH_V;                -- V

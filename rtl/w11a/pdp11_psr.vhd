@@ -1,6 +1,6 @@
--- $Id: pdp11_psr.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: pdp11_psr.vhd 335 2010-10-24 22:24:23Z mueller $
 --
--- Copyright 2006-2009 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -15,12 +15,15 @@
 -- Module Name:    pdp11_psr - syn
 -- Description:    pdp11: processor status word register
 --
--- Dependencies:   -
+-- Dependencies:   ib_sel
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+--
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-10-23   335   1.2.1  use ib_sel
+-- 2010-10-17   333   1.2    use ibus V2 interface
 -- 2009-05-30   220   1.1.4  final removal of snoopers (were already commented)
 -- 2008-08-22   161   1.1.3  rename ubf_ -> ibf_; use iblib
 -- 2008-03-02   121   1.1.2  remove snoopers
@@ -64,32 +67,31 @@ architecture syn of pdp11_psr is
 
 begin
   
-  proc_ibsel: process (IB_MREQ)
-    variable ipsr : slbit := '0';
+  SEL : ib_sel
+    generic map (
+      IB_ADDR => ibaddr_psr)
+    port map (
+      CLK     => CLK,
+      IB_MREQ => IB_MREQ,
+      SEL     => IBSEL_PSR
+    );
+
+  proc_ibres: process (IBSEL_PSR, IB_MREQ, R_PSW)
+    variable idout : slv16 := (others=>'0');
   begin
-    ipsr := '0';
-    if IB_MREQ.req='1' and IB_MREQ.addr=ibaddr_psr(12 downto 1) then
-      ipsr := '1';
-    end if;
-    IBSEL_PSR    <= ipsr;
-    IB_SRES.ack  <= ipsr;
-    IB_SRES.busy <= '0';
-  end process proc_ibsel;
-    
-  proc_ibdout: process (IBSEL_PSR, R_PSW)
-    variable pswout : slv16 := (others=>'0');
-  begin
-    pswout := (others=>'0');
+    idout := (others=>'0');
     if IBSEL_PSR = '1' then
-      pswout(psw_ibf_cmode) := R_PSW.cmode;
-      pswout(psw_ibf_pmode) := R_PSW.pmode;
-      pswout(psw_ibf_rset)  := R_PSW.rset;
-      pswout(psw_ibf_pri)   := R_PSW.pri;
-      pswout(psw_ibf_tflag) := R_PSW.tflag;
-      pswout(psw_ibf_cc)    := R_PSW.cc;      
+      idout(psw_ibf_cmode) := R_PSW.cmode;
+      idout(psw_ibf_pmode) := R_PSW.pmode;
+      idout(psw_ibf_rset)  := R_PSW.rset;
+      idout(psw_ibf_pri)   := R_PSW.pri;
+      idout(psw_ibf_tflag) := R_PSW.tflag;
+      idout(psw_ibf_cc)    := R_PSW.cc;      
     end if;
-    IB_SRES.dout <= pswout;
-  end process proc_ibdout;
+    IB_SRES.dout <= idout;
+    IB_SRES.ack  <= IBSEL_PSR and (IB_MREQ.re or IB_MREQ.we); -- ack all
+    IB_SRES.busy <= '0';
+  end process proc_ibres;
   
   proc_psw : process (CLK)
   begin
@@ -120,26 +122,26 @@ begin
             when c_psr_func_wint =>       -- wint (interupt handling)
               R_PSW.cmode <= DIN(psw_ibf_cmode);
               R_PSW.pmode <= R_PSW.cmode; --   save current mode
-              R_PSW.rset <= DIN(psw_ibf_rset);
-              R_PSW.pri <= DIN(psw_ibf_pri);
+              R_PSW.rset  <= DIN(psw_ibf_rset);
+              R_PSW.pri   <= DIN(psw_ibf_pri);
               R_PSW.tflag <= DIN(psw_ibf_tflag);
-              R_PSW.cc <= DIN(psw_ibf_cc);
+              R_PSW.cc    <= DIN(psw_ibf_cc);
             
             when c_psr_func_wrti =>       -- wrti (rti/rtt in non-kernel mode)
               R_PSW.cmode <= R_PSW.cmode or DIN(psw_ibf_cmode);
               R_PSW.pmode <= R_PSW.pmode or DIN(psw_ibf_pmode) or
                              R_PSW.cmode or DIN(psw_ibf_cmode); 
-              R_PSW.rset <= R_PSW.rset or DIN(psw_ibf_rset);
+              R_PSW.rset  <= R_PSW.rset or DIN(psw_ibf_rset);
               R_PSW.tflag <= DIN(psw_ibf_tflag);
-              R_PSW.cc <= DIN(psw_ibf_cc);
+              R_PSW.cc    <= DIN(psw_ibf_cc);
 
             when c_psr_func_wall =>       -- wall (rti/rtt kernel mode)
               R_PSW.cmode <= DIN(psw_ibf_cmode);
               R_PSW.pmode <= DIN(psw_ibf_pmode);
-              R_PSW.rset <= DIN(psw_ibf_rset);
-              R_PSW.pri <= DIN(psw_ibf_pri);
+              R_PSW.rset  <= DIN(psw_ibf_rset);
+              R_PSW.pri   <= DIN(psw_ibf_pri);
               R_PSW.tflag <= DIN(psw_ibf_tflag);
-              R_PSW.cc <= DIN(psw_ibf_cc);
+              R_PSW.cc    <= DIN(psw_ibf_cc);
                            
             when others => null;
           end case;
@@ -150,11 +152,11 @@ begin
         if IB_MREQ.be1 = '1' then
           R_PSW.cmode <= IB_MREQ.din(psw_ibf_cmode);
           R_PSW.pmode <= IB_MREQ.din(psw_ibf_pmode);
-          R_PSW.rset <= IB_MREQ.din(psw_ibf_rset);
+          R_PSW.rset  <= IB_MREQ.din(psw_ibf_rset);
         end if;
         if IB_MREQ.be0 = '1' then
           R_PSW.pri <= IB_MREQ.din(psw_ibf_pri);
-          R_PSW.cc <= IB_MREQ.din(psw_ibf_cc);
+          R_PSW.cc  <= IB_MREQ.din(psw_ibf_cc);
         end if;
       end if;
       

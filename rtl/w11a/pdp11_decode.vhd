@@ -1,4 +1,4 @@
--- $Id: pdp11_decode.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: pdp11_decode.vhd 330 2010-09-19 17:43:53Z mueller $
 --
 -- Copyright 2006-2008 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -21,6 +21,7 @@
 -- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-09-18   300   1.0.5  rename (adlm)box->(oalm)unit
 -- 2008-11-30   174   1.0.4  BUGFIX: add updt_dstadsrc; set for MFP(I/D)
 -- 2008-05-03   143   1.0.3  get fork_srcr,fork_dstr,fork_dsta assign out of if
 -- 2008-04-27   139   1.0.2  BUGFIX: mtp now via do_fork_op; is_dsta logic mods
@@ -103,14 +104,14 @@ begin
     nstat.force_srcsp := '0';
     nstat.updt_dstadsrc := '0';
     
-    nstat.dbox_srcmod := c_dbox_mod_pass;
-    nstat.dbox_dstmod := c_dbox_mod_pass;
-    nstat.dbox_cimod := c_dbox_mod_pass;
-    nstat.dbox_cc1op := '0';
-    nstat.dbox_ccmode := IREG(8 downto 6);   -- STATIC
-    nstat.lbox_func := (others=>'0');
-    nstat.mbox_func := (others=>'0');
-    nstat.res_sel := c_dpath_res_abox;
+    nstat.aunit_srcmod := c_aunit_mod_pass;
+    nstat.aunit_dstmod := c_aunit_mod_pass;
+    nstat.aunit_cimod := c_aunit_mod_pass;
+    nstat.aunit_cc1op := '0';
+    nstat.aunit_ccmode := IREG(8 downto 6);   -- STATIC
+    nstat.lunit_func := (others=>'0');
+    nstat.munit_func := (others=>'0');
+    nstat.res_sel := c_dpath_res_ounit;
     
     nstat.fork_op := (others=>'0');
     nstat.fork_srcr := (others=>'0');
@@ -231,8 +232,8 @@ begin
           nstat.fork_opg := c_fork_opg_gen;
           nstat.do_fork_opg := '1';
           nstat.do_pref_dec := is_dstmode0notpc;
-          nstat.lbox_func := c_lbox_func_swap;
-          nstat.res_sel := c_dpath_res_lbox;
+          nstat.lunit_func := c_lunit_func_swap;
+          nstat.res_sel := c_dpath_res_lunit;
         end if;
         
       end if; -- OPBYTE='0' and OPEXT1="000"
@@ -265,54 +266,54 @@ begin
       
       if OPEXT1 = "101" then            -- CLR(B),...,TST(B)
         nstat.is_res := '0';
-        nstat.res_sel := c_dpath_res_dbox;
+        nstat.res_sel := c_dpath_res_aunit;
         if OPBYTE = '1' then
           nstat.is_bytop := '1';
         end if;
 
-        nstat.dbox_cc1op := '1';
+        nstat.aunit_cc1op := '1';
         
         case OPEXT2 is
           when "000" =>                 -- CLR:    0 +    0 + 0   (0)
             is_dstw := '1';
-            nstat.dbox_srcmod := c_dbox_mod_zero;
-            nstat.dbox_dstmod := c_dbox_mod_zero;
-            nstat.dbox_cimod  := c_dbox_mod_zero;
+            nstat.aunit_srcmod := c_aunit_mod_zero;
+            nstat.aunit_dstmod := c_aunit_mod_zero;
+            nstat.aunit_cimod  := c_aunit_mod_zero;
           when "001" =>                 -- COM:    0 + ~DST + 0   (~dst)
             is_dstm := '1';
-            nstat.dbox_srcmod := c_dbox_mod_zero;
-            nstat.dbox_dstmod := c_dbox_mod_inv;
-            nstat.dbox_cimod  := c_dbox_mod_zero;
+            nstat.aunit_srcmod := c_aunit_mod_zero;
+            nstat.aunit_dstmod := c_aunit_mod_inv;
+            nstat.aunit_cimod  := c_aunit_mod_zero;
           when "010" =>                 -- INC:    0 +  DST + 1   (dst+1)
             is_dstm := '1';
-            nstat.dbox_srcmod := c_dbox_mod_zero;
-            nstat.dbox_dstmod := c_dbox_mod_pass;
-            nstat.dbox_cimod  := c_dbox_mod_one;
+            nstat.aunit_srcmod := c_aunit_mod_zero;
+            nstat.aunit_dstmod := c_aunit_mod_pass;
+            nstat.aunit_cimod  := c_aunit_mod_one;
           when "011" =>                 -- DEC:   ~0 +  DST + 0   (dst-1)
             is_dstm := '1';
-            nstat.dbox_srcmod := c_dbox_mod_one;
-            nstat.dbox_dstmod := c_dbox_mod_pass;
-            nstat.dbox_cimod  := c_dbox_mod_zero;
+            nstat.aunit_srcmod := c_aunit_mod_one;
+            nstat.aunit_dstmod := c_aunit_mod_pass;
+            nstat.aunit_cimod  := c_aunit_mod_zero;
           when "100" =>                 -- NEG:    0 + ~DST + 1   (-dst)
             is_dstm := '1';
-            nstat.dbox_srcmod := c_dbox_mod_zero;
-            nstat.dbox_dstmod := c_dbox_mod_inv;
-            nstat.dbox_cimod  := c_dbox_mod_one;
+            nstat.aunit_srcmod := c_aunit_mod_zero;
+            nstat.aunit_dstmod := c_aunit_mod_inv;
+            nstat.aunit_cimod  := c_aunit_mod_one;
           when "101" =>                 -- ADC:    0 +  DST + CI  (dst+ci)
             is_dstm := '1';
-            nstat.dbox_srcmod := c_dbox_mod_zero;
-            nstat.dbox_dstmod := c_dbox_mod_pass;
-            nstat.dbox_cimod  := c_dbox_mod_pass;
+            nstat.aunit_srcmod := c_aunit_mod_zero;
+            nstat.aunit_dstmod := c_aunit_mod_pass;
+            nstat.aunit_cimod  := c_aunit_mod_pass;
           when "110" =>                 -- SBC:   ~0 +  DST + ~CI (dst-ci)
             is_dstm := '1';
-            nstat.dbox_srcmod := c_dbox_mod_one;
-            nstat.dbox_dstmod := c_dbox_mod_pass;
-            nstat.dbox_cimod  := c_dbox_mod_inv;
+            nstat.aunit_srcmod := c_aunit_mod_one;
+            nstat.aunit_dstmod := c_aunit_mod_pass;
+            nstat.aunit_cimod  := c_aunit_mod_inv;
           when "111" =>                 -- TST:    0 +  DST + 0   (dst)
             is_dstr := '1';
-            nstat.dbox_srcmod := c_dbox_mod_zero;
-            nstat.dbox_dstmod := c_dbox_mod_pass;
-            nstat.dbox_cimod  := c_dbox_mod_zero;
+            nstat.aunit_srcmod := c_aunit_mod_zero;
+            nstat.aunit_dstmod := c_aunit_mod_pass;
+            nstat.aunit_cimod  := c_aunit_mod_zero;
           when others => null;
         end case;
 
@@ -332,16 +333,16 @@ begin
           if OPBYTE = '1' then
             nstat.is_bytop := '1';
           end if;
-          nstat.res_sel := c_dpath_res_lbox;
+          nstat.res_sel := c_dpath_res_lunit;
           case OPEXT2(1 downto 0) is
             when "00" =>                -- ROR
-              nstat.lbox_func := c_lbox_func_ror;
+              nstat.lunit_func := c_lunit_func_ror;
             when "01" =>                -- ROL
-              nstat.lbox_func := c_lbox_func_rol;
+              nstat.lunit_func := c_lunit_func_rol;
             when "10" =>                -- ASR
-              nstat.lbox_func := c_lbox_func_asr;
+              nstat.lunit_func := c_lunit_func_asr;
             when "11" =>                -- ASL
-              nstat.lbox_func := c_lbox_func_asl;
+              nstat.lunit_func := c_lunit_func_asl;
             when others => null;
           end case;
         end if;
@@ -358,7 +359,7 @@ begin
           if DSTREG = c_gpr_sp then       -- is dst reg == sp ?
             nstat.updt_dstadsrc := '1';     -- ensure DSRC update in dsta flow
           end if;
-          nstat.res_sel := c_dpath_res_abox;
+          nstat.res_sel := c_dpath_res_ounit;
           if nstat.is_dstmode0 = '1' then
             nstat.fork_opa := c_fork_opa_mfp_reg;
           else
@@ -370,7 +371,7 @@ begin
         if OPEXT2 = "110" then          -- MTP(I/D)
           nstat.is_res := '0';
           nstat.force_srcsp := '1';
-          nstat.res_sel := c_dpath_res_abox;
+          nstat.res_sel := c_dpath_res_ounit;
           nstat.fork_opa := c_fork_opa_mtp;
           nstat.fork_op  := c_fork_op_mtp;
           nstat.do_fork_op := '1';
@@ -382,8 +383,8 @@ begin
           nstat.fork_opg := c_fork_opg_gen;
           nstat.do_fork_opg := '1';
           nstat.do_pref_dec := is_dstmode0notpc;
-          nstat.lbox_func := c_lbox_func_sxt;
-          nstat.res_sel := c_dpath_res_lbox;
+          nstat.lunit_func := c_lunit_func_sxt;
+          nstat.res_sel := c_dpath_res_lunit;
         end if;
       end if;
 
@@ -396,47 +397,47 @@ begin
           is_srcr := '1';
           is_dstw := '1';
           nstat.op_mov := '1';
-          nstat.lbox_func := c_lbox_func_mov;
-          nstat.res_sel  := c_dpath_res_lbox;
+          nstat.lunit_func := c_lunit_func_mov;
+          nstat.res_sel  := c_dpath_res_lunit;
           nstat.is_bytop := OPBYTE;
         when "010" =>                   -- CMP
           is_srcr := '1';
           is_dstr := '1';
-          nstat.res_sel  := c_dpath_res_dbox;
-          nstat.dbox_srcmod := c_dbox_mod_pass;
-          nstat.dbox_dstmod := c_dbox_mod_inv;
-          nstat.dbox_cimod  := c_dbox_mod_one;
+          nstat.res_sel  := c_dpath_res_aunit;
+          nstat.aunit_srcmod := c_aunit_mod_pass;
+          nstat.aunit_dstmod := c_aunit_mod_inv;
+          nstat.aunit_cimod  := c_aunit_mod_one;
           nstat.is_bytop := OPBYTE;
         when "011" =>                   -- BIT
           is_srcr := '1';
           is_dstr := '1';
-          nstat.lbox_func := c_lbox_func_bit;
-          nstat.res_sel  := c_dpath_res_lbox;
+          nstat.lunit_func := c_lunit_func_bit;
+          nstat.res_sel  := c_dpath_res_lunit;
           nstat.is_bytop := OPBYTE;
         when "100" =>                   -- BIC
           is_srcr := '1';
           is_dstm := '1';
-          nstat.lbox_func := c_lbox_func_bic;
-          nstat.res_sel  := c_dpath_res_lbox;
+          nstat.lunit_func := c_lunit_func_bic;
+          nstat.res_sel  := c_dpath_res_lunit;
           nstat.is_bytop := OPBYTE;
         when "101" =>                   -- BIS
           is_srcr := '1';
           is_dstm := '1';
-          nstat.lbox_func := c_lbox_func_bis;
-          nstat.res_sel  := c_dpath_res_lbox;
+          nstat.lunit_func := c_lunit_func_bis;
+          nstat.res_sel  := c_dpath_res_lunit;
           nstat.is_bytop := OPBYTE;
         when "110" =>
           is_srcr := '1';
           is_dstm := '1';
-          nstat.res_sel    := c_dpath_res_dbox;
+          nstat.res_sel    := c_dpath_res_aunit;
           if OPBYTE = '0' then          -- ADD
-            nstat.dbox_srcmod := c_dbox_mod_pass;
-            nstat.dbox_dstmod := c_dbox_mod_pass;
-            nstat.dbox_cimod  := c_dbox_mod_zero;
+            nstat.aunit_srcmod := c_aunit_mod_pass;
+            nstat.aunit_dstmod := c_aunit_mod_pass;
+            nstat.aunit_cimod  := c_aunit_mod_zero;
           else                          -- SUB
-            nstat.dbox_srcmod := c_dbox_mod_inv;
-            nstat.dbox_dstmod := c_dbox_mod_pass;
-            nstat.dbox_cimod  := c_dbox_mod_one;
+            nstat.aunit_srcmod := c_aunit_mod_inv;
+            nstat.aunit_dstmod := c_aunit_mod_pass;
+            nstat.aunit_cimod  := c_aunit_mod_one;
           end if;
         when others => null;
       end case;
@@ -452,45 +453,45 @@ begin
         when "000" =>                   -- MUL
           nstat.is_res := '0';
           is_dstr := '1';
-          nstat.mbox_func := c_mbox_func_mul;
-          nstat.res_sel := c_dpath_res_mbox;
+          nstat.munit_func := c_munit_func_mul;
+          nstat.res_sel := c_dpath_res_munit;
           nstat.fork_opg := c_fork_opg_mul;
           nstat.do_fork_opg := '1';
         when "001" =>                   -- DIV
           nstat.is_res := '0';          
           is_dstr := '1';
-          nstat.mbox_func := c_mbox_func_div;
-          nstat.res_sel := c_dpath_res_mbox;
+          nstat.munit_func := c_munit_func_div;
+          nstat.res_sel := c_dpath_res_munit;
           nstat.fork_opg := c_fork_opg_div;
           nstat.do_fork_opg := '1';
         when "010" =>                   -- ASH
           nstat.is_res := '0';
           is_dstr := '1';
-          nstat.mbox_func := c_mbox_func_ash;
-          nstat.res_sel := c_dpath_res_mbox;
+          nstat.munit_func := c_munit_func_ash;
+          nstat.res_sel := c_dpath_res_munit;
           nstat.fork_opg := c_fork_opg_ash;
           nstat.do_fork_opg := '1';
         when "011" =>                   -- ASHC
           nstat.is_res := '0';
           is_dstr := '1';
-          nstat.mbox_func := c_mbox_func_ashc;
-          nstat.res_sel := c_dpath_res_mbox;
+          nstat.munit_func := c_munit_func_ashc;
+          nstat.res_sel := c_dpath_res_munit;
           nstat.fork_opg := c_fork_opg_ashc;
           nstat.do_fork_opg := '1';
         when "100" =>                   -- XOR
           nstat.is_res := '0';
           is_dstm := '1';
-          nstat.lbox_func := c_lbox_func_xor;
-          nstat.res_sel := c_dpath_res_lbox;
+          nstat.lunit_func := c_lunit_func_xor;
+          nstat.res_sel := c_dpath_res_lunit;
           nstat.fork_opg := c_fork_opg_gen;
           nstat.do_fork_opg := '1';
           nstat.do_pref_dec := is_dstmode0notpc;
         when "111" =>                   -- SOB:  SRC +   ~0 + 0   (src-1)
           nstat.is_res := '0';
-          nstat.dbox_srcmod := c_dbox_mod_pass;
-          nstat.dbox_dstmod := c_dbox_mod_one;
-          nstat.dbox_cimod  := c_dbox_mod_zero;
-          nstat.res_sel := c_dpath_res_dbox;
+          nstat.aunit_srcmod := c_aunit_mod_pass;
+          nstat.aunit_dstmod := c_aunit_mod_one;
+          nstat.aunit_cimod  := c_aunit_mod_zero;
+          nstat.res_sel := c_dpath_res_aunit;
           nstat.fork_op := c_fork_op_sob;
           nstat.do_fork_op := '1';
         when others => null;

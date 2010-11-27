@@ -1,4 +1,4 @@
--- $Id: pdp11_dbox.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: pdp11_aunit.vhd 330 2010-09-19 17:43:53Z mueller $
 --
 -- Copyright 2006-2007 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -12,15 +12,16 @@
 -- for complete details.
 --
 ------------------------------------------------------------------------------
--- Module Name:    pdp11_dbox - syn
--- Description:    pdp11: arithmetic unit for data (dbox)
+-- Module Name:    pdp11_aunit - syn
+-- Description:    pdp11: arithmetic unit for data (aunit)
 --
 -- Dependencies:   -
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.26
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-09-18   300   1.1    renamed from abox
 -- 2007-06-14    56   1.0.1  Use slvtypes.all
 -- 2007-05-12    26   1.0    Initial version 
 ------------------------------------------------------------------------------
@@ -48,7 +49,7 @@ use work.pdp11.all;
 --   CLR:    0 +    0 + 0   (0)
 --   SOB:  SRC +   ~0 + 0   (src-1)
 
-entity pdp11_dbox is                    -- arithmetic unit for data (dbox)
+entity pdp11_aunit is                   -- arithmetic unit for data (aunit)
   port (
     DSRC : in slv16;                    -- 'src' data in
     DDST : in slv16;                    -- 'dst' data in
@@ -62,9 +63,9 @@ entity pdp11_dbox is                    -- arithmetic unit for data (dbox)
     DOUT : out slv16;                   -- data output
     CCOUT : out slv4                    -- condition codes out
   );
-end pdp11_dbox;
+end pdp11_aunit;
 
-architecture syn of pdp11_dbox is
+architecture syn of pdp11_aunit is
 
 -- --------------------------------------
 
@@ -118,26 +119,26 @@ begin
   begin
 
     case SRCMOD is
-      when c_dbox_mod_pass => msrc := DSRC;
-      when c_dbox_mod_inv  => msrc := not DSRC;
-      when c_dbox_mod_zero => msrc := (others=>'0');
-      when c_dbox_mod_one  => msrc := (others=>'1');
+      when c_aunit_mod_pass => msrc := DSRC;
+      when c_aunit_mod_inv  => msrc := not DSRC;
+      when c_aunit_mod_zero => msrc := (others=>'0');
+      when c_aunit_mod_one  => msrc := (others=>'1');
       when others => null;
     end case;
 
     case DSTMOD is
-      when c_dbox_mod_pass => mdst := DDST;
-      when c_dbox_mod_inv  => mdst := not DDST;
-      when c_dbox_mod_zero => mdst := (others=>'0');
-      when c_dbox_mod_one  => mdst := (others=>'1');
+      when c_aunit_mod_pass => mdst := DDST;
+      when c_aunit_mod_inv  => mdst := not DDST;
+      when c_aunit_mod_zero => mdst := (others=>'0');
+      when c_aunit_mod_one  => mdst := (others=>'1');
       when others => null;
     end case;
 
     case CIMOD is
-      when c_dbox_mod_pass => mci := CI;
-      when c_dbox_mod_inv  => mci := not CI;
-      when c_dbox_mod_zero => mci := '0';
-      when c_dbox_mod_one  => mci := '1';
+      when c_aunit_mod_pass => mci := CI;
+      when c_aunit_mod_inv  => mci := not CI;
+      when c_aunit_mod_zero => mci := '0';
+      when c_aunit_mod_one  => mci := '1';
       when others => null;
     end case;
 
@@ -189,10 +190,10 @@ begin
     -- the MOD's the operation type.
     
     if CC1OP = '0' then                 -- 2 operand cases
-      if unsigned(CIMOD) = unsigned(c_dbox_mod_zero) then   -- case ADD
+      if unsigned(CIMOD) = unsigned(c_aunit_mod_zero) then   -- case ADD
         nvo := not(src_msb xor dst_msb) and (src_msb xor sum_msb);
       else
-        if unsigned(SRCMOD) = unsigned(c_dbox_mod_inv) then -- case SUB 
+        if unsigned(SRCMOD) = unsigned(c_aunit_mod_inv) then -- case SUB 
           nvo := (src_msb xor dst_msb) and not (src_msb xor sum_msb);
         else                                                -- case CMP
           nvo := (src_msb xor dst_msb) and not (dst_msb xor sum_msb);
@@ -202,30 +203,30 @@ begin
       
     else                                -- 1 operand cases
       case CCMODE is
-        when c_dbox_ccmode_clr|c_dbox_ccmode_tst =>
+        when c_aunit_ccmode_clr|c_aunit_ccmode_tst =>
           nvo := '0';                     -- force v=0 for tst and clr
           nco := '0';                     -- force c=0 for tst and clr
         
-        when c_dbox_ccmode_com =>
+        when c_aunit_ccmode_com =>
           nvo := '0';                     -- force v=0 for com
           nco := '1';                     -- force c=1 for com
         
-        when c_dbox_ccmode_inc =>
+        when c_aunit_ccmode_inc =>
           nvo := sum_msb and not dst_msb;
           nco := CI;                      -- C not affected for INC
 
-        when c_dbox_ccmode_dec =>
+        when c_aunit_ccmode_dec =>
           nvo := not sum_msb and dst_msb;
           nco := CI;                      -- C not affected for DEC
 
-        when c_dbox_ccmode_neg =>
+        when c_aunit_ccmode_neg =>
           nvo := sum_msb and dst_msb;
           nco := not nzo;
         
-        when c_dbox_ccmode_adc =>
+        when c_aunit_ccmode_adc =>
           nvo := sum_msb and not dst_msb;
 
-        when c_dbox_ccmode_sbc =>
+        when c_aunit_ccmode_sbc =>
           nvo := not sum_msb and dst_msb;
           nco := not nco;
 

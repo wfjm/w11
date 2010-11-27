@@ -1,4 +1,4 @@
--- $Id: pdp11_mmu.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: pdp11_mmu.vhd 335 2010-10-24 22:24:23Z mueller $
 --
 -- Copyright 2006-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,12 +18,16 @@
 -- Dependencies:   pdp11_mmu_sadr
 --                 pdp11_mmu_ssr12
 --                 ibus/ib_sres_or_3
+--                 ibus/ib_sel
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+--
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-10-23   335   1.4.1  use ib_sel
+-- 2010-10-17   333   1.4    use ibus V2 interface
 -- 2010-06-20   307   1.3.7  rename cpacc to cacc in mmu_cntl_type
 -- 2009-05-30   220   1.3.6  final removal of snoopers (were already commented)
 -- 2009-05-09   213   1.3.5  BUGFIX: tie inst_compl permanentely '0'
@@ -133,30 +137,31 @@ begin
     IB_MREQ => IB_MREQ,
     IB_SRES => IB_SRES_SSR12);
 
-  IB_SRES_OR : ib_sres_or_3
+  SRES_OR : ib_sres_or_3
     port map (
       IB_SRES_1  => IB_SRES_SADR,
       IB_SRES_2  => IB_SRES_SSR12,
       IB_SRES_3  => IB_SRES_SSR03,
       IB_SRES_OR => IB_SRES);
 
-  proc_ibsel: process (IB_MREQ)
-    variable issr0 : slbit := '0';
-    variable issr3 : slbit := '0';
-  begin
-    issr0 := '0';
-    issr3 := '0';
-    if IB_MREQ.req = '1' then
-      if IB_MREQ.addr = ibaddr_ssr0(12 downto 1) then issr0 := '1'; end if;
-      if IB_MREQ.addr = ibaddr_ssr3(12 downto 1) then issr3 := '1'; end if;
-    end if;
-    IBSEL_SSR0         <= issr0;
-    IBSEL_SSR3         <= issr3;
-    IB_SRES_SSR03.ack  <= issr0 or issr3;
-    IB_SRES_SSR03.busy <= '0';
-  end process proc_ibsel;
+  SEL_SSR0 : ib_sel
+    generic map (
+      IB_ADDR => ibaddr_ssr0)
+    port map (
+      CLK     => CLK,
+      IB_MREQ => IB_MREQ,
+      SEL     => IBSEL_SSR0
+    );
+  SEL_SSR3 : ib_sel
+    generic map (
+      IB_ADDR => ibaddr_ssr3)
+    port map (
+      CLK     => CLK,
+      IB_MREQ => IB_MREQ,
+      SEL     => IBSEL_SSR3
+    );
 
-  proc_ibdout : process (IBSEL_SSR0, IBSEL_SSR3, R_SSR0, R_SSR3)
+  proc_ibres : process (IBSEL_SSR0, IBSEL_SSR3, IB_MREQ, R_SSR0, R_SSR3)
 
     variable ssr0out : slv16 := (others=>'0');
     variable ssr3out : slv16 := (others=>'0');
@@ -187,8 +192,11 @@ begin
     end if;
  
     IB_SRES_SSR03.dout <= ssr0out or ssr3out;
+    IB_SRES_SSR03.ack  <= (IBSEL_SSR0 or IBSEL_SSR3) and
+                          (IB_MREQ.re or IB_MREQ.we); -- ack all
+    IB_SRES_SSR03.busy <= '0';
 
-  end process proc_ibdout;
+  end process proc_ibres;
 
   proc_ssr0 : process (CLK)
   begin
@@ -206,7 +214,7 @@ begin
     if CLK'event and CLK='1' then
       if BRESET = '1' then
         R_SSR3 <= mmu_ssr3_init;
-      elsif IB_MREQ.we='1' and IBSEL_SSR3='1' then
+      elsif IBSEL_SSR3='1' and IB_MREQ.we='1' then
         if IB_MREQ.be0 = '1' then
           R_SSR3.ena_ubmap <= IB_MREQ.din(ssr3_ibf_ena_ubmap);
           R_SSR3.ena_22bit <= IB_MREQ.din(ssr3_ibf_ena_22bit);
@@ -324,7 +332,7 @@ begin
         abo_nonres := '1';
     end case;
 
-    if IB_MREQ.we='1' and IBSEL_SSR0='1' then
+    if IBSEL_SSR0='1' and IB_MREQ.we='1' then
 
       if IB_MREQ.be1 = '1' then
         nssr0.abo_nonres := IB_MREQ.din(ssr0_ibf_abo_nonres);

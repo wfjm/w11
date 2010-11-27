@@ -1,4 +1,4 @@
-## $Id: nexys2_pins.ucf 311 2010-06-30 17:52:37Z mueller $
+## $Id: nexys2_pins.ucf 338 2010-11-13 22:19:25Z mueller $
 ##
 ## Pin locks for Nexys 2 core functionality (for 1200k FPGA)
 ##    internal RS232
@@ -7,13 +7,19 @@
 ##
 ## Revision History: 
 ## Date         Rev Version  Comment
+## 2010-11-13   338   1.0.3  add O_CLKSYS (for DCM derived system clock)
+## 2010-11-06   336   1.0.2  Rename CLK -> I_CLK50
 ## 2010-05-23   294   1.0.1  use ADV_N rather ADV
 ## 2010-05-16   291   1.0    Initial version 
 ##
 ## Note: default is DRIVE=12 | SLEW=SLOW
 ##
 ## clocks --------------------------------------------------------------------
-NET "CLK"       LOC = "b8"  | IOSTANDARD=LVCMOS33;
+NET "I_CLK50"   LOC = "b8"  | IOSTANDARD=LVCMOS33;
+##
+## system clock on FX2 connector ---------------------------------------------
+## (use FX2_CLKIO pin; currently only used to make test benches happy !!)
+NET "O_CLKSYS"  LOC = "m9"  | IOSTANDARD=LVCMOS33 | DRIVE=6 | SLEW=SLOW;
 ##
 ## RS232 interface -----------------------------------------------------------
 NET "I_RXD"     LOC = "u6"  | IOSTANDARD=LVCMOS33;

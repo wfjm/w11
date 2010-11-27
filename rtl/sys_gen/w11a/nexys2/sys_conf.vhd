@@ -1,4 +1,4 @@
--- $Id: sys_conf.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: sys_conf.vhd 341 2010-11-27 23:05:43Z mueller $
 --
 -- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  xst 11.4; ghdl 0.26
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-11-27   341   1.1    add dcm and memctl related constants (clksys=58)
 -- 2010-05-05   295   1.0    Initial version (derived from _s3 version)
 ------------------------------------------------------------------------------
 
@@ -27,10 +28,24 @@ use ieee.std_logic_1164.all;
 
 use work.slvtypes.all;
 
+-- valid system clock / delay combinations:
+--  div mul  clksys  read0 read1 write
+--    1   1   50.0     2     2     3
+--   25  27   54.0     3     3     3
+--   25  29   58.0     3     3     4
+
 package sys_conf is
 
+  constant sys_conf_clkfx_divide : positive   :=  25;
+  constant sys_conf_clkfx_multiply : positive :=  29;   -- ==> 58 MHz
+
+  constant sys_conf_memctl_read0delay : positive := 3;
+  constant sys_conf_memctl_read1delay : positive := sys_conf_memctl_read0delay;
+  constant sys_conf_memctl_writedelay : positive := 4;
+
+  constant sys_conf_ser2rri_defbaud : integer := 115200;   -- default 115k baud
+
   constant sys_conf_hio_debounce : boolean := true;    -- instantiate debouncers
-  constant sys_conf_ser2rri_cdinit : integer := 434-1;   -- 50000000/115200
 
   constant sys_conf_bram           : integer :=  0;      -- no bram, use cache
   constant sys_conf_bram_awidth    : integer := 14;      -- bram size (16 kB)
@@ -43,6 +58,15 @@ package sys_conf is
   
   constant sys_conf_cache_fmiss    : slbit   := '0';     -- cache enabled
 
+  -- derived constants
+
+  constant sys_conf_clksys : integer :=
+    (50000000/sys_conf_clkfx_divide)*sys_conf_clkfx_multiply;
+  constant sys_conf_clksys_mhz : integer := sys_conf_clksys/1000000;
+
+  constant sys_conf_ser2rri_cdinit : integer :=
+    (sys_conf_clksys/sys_conf_ser2rri_defbaud)-1;
+  
 end package sys_conf;
 
 -- Note: mem_losize holds 16 MSB of the PA of the addressable memory

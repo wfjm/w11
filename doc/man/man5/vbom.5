@@ -1,0 +1,107 @@
+.\"  -*- nroff -*-
+.\"  $Id: vbom.5 320 2010-07-30 19:35:01Z mueller $
+.\"
+.\" Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" 
+.\" ------------------------------------------------------------------
+.
+.TH VBOM 2010-07-25 "Retro Project" "Retro Project Manual"
+.\" ------------------------------------------------------------------
+.SH NAME
+vbom \- 'vhdl bill of material' file format
+.
+.\" ------------------------------------------------------------------
+.SH DESCRIPTION
+These files describe the sources needed to build a 
+.I vhdl
+module. The source files are either given directly in case of libraries
+or via other 
+.IR vbom 's
+in case of instantiated components. They are used by
+.BR vbomconv (1)
+to build project descriptions for synthesis and simulation tools.
+
+The format has four types of lines:
+.
+.\" ----------------------------------------------
+.TP
+.B comments
+each line starting with
+.B #
+is treated as comment and ignored.
+.
+.\" ----------------------------------------------
+.TP
+.B file names
+either source files with a
+.I '.vhd'
+file type or nested 
+.IR vbom 's
+with a 
+.I '.vbom'
+file type. The must be given as relative path name
+from the directory the 
+.I vbom
+file is located in. Absolute path names are not allowed, nor is expansion of 
+environment variables. 
+.
+.\" ----------------------------------------------
+.TP
+.B logical names
+A logical name can be defined with
+.EX
+    <lname> = <filename> 
+.EE
+The first definition of a logical name encountered in the traversal of the
+.IR vbom 's
+by 
+.BR vbomconv (1)
+is taken, all later definitions are ignored.
+
+A logical name can be used with
+.EX
+    <lname> : <filename> 
+.EE
+If it wasn't
+
+
+Again, the filenames, either of type
+.I vhd
+or
+.IR vbom ,
+must be given as relative path name from the directory the
+.I vbom
+file is located in.
+
+The definition clause just sets up the logical name for later usage.
+The usage clause 
+
+.\" ----------------------------------------------
+.TP
+.B directives
+
+
+
+The format is simple, essentially a list of file names, either
+source files with a
+.I '.vhd'
+file type or nested 
+.IR vbom 's
+with a 
+.I '.vbom'
+file type. Lines starting with
+.B #
+are treated as comments.
+
+
+.
+.\" ------------------------------------------------------------------
+.SH EXAMPLES
+.
+.\" ------------------------------------------------------------------
+.SH "SEE ALSO"
+.BR vbomconv (1)
+.
+.\" ------------------------------------------------------------------
+.SH AUTHOR
+Walter F.J. Mueller <W.F.J.Mueller@gsi.de>

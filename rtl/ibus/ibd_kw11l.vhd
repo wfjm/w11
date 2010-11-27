@@ -1,6 +1,6 @@
--- $Id: ibd_kw11l.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: ibd_kw11l.vhd 335 2010-10-24 22:24:23Z mueller $
 --
--- Copyright 2008-2009 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,14 +18,16 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 10.1; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 10.1, 12.1; ghdl 0.18-0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2010-10-17   333  12.1    M53 xc3s1000-4     9   23    0   14 s  5.3
 -- 2009-07-11   232  10.1.03 K39 xc3s1000-4     8   25    0   15 s  5.3
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-10-17   333   1.1    use ibus V2 interface
 -- 2009-06-01   221   1.0.5  BUGFIX: add RESET; don't clear tcnt on ibus reset
 -- 2008-08-22   161   1.0.4  use iblib; add EI_ACK to proc_next sens. list
 -- 2008-05-09   144   1.0.3  use intreq flop, use EI_ACK
@@ -67,6 +69,7 @@ architecture syn of ibd_kw11l is
   constant tdivide : natural := 20;
   
   type regs_type is record              -- state registers
+    ibsel : slbit;                      -- ibus select    
     ie : slbit;                         -- interrupt enable
     moni : slbit;                       -- monitor bit
     intreq : slbit;                     -- interrupt request
@@ -74,6 +77,7 @@ architecture syn of ibd_kw11l is
   end record regs_type;
 
   constant regs_init : regs_type := (
+    '0',                                -- ibsel
     '0',                                -- ie
     '1',                                -- moni (set on reset !!)
     '0',                                -- intreq
@@ -93,7 +97,7 @@ begin
         if RESET = '0' then               -- if RESET=0 we do just an ibus reset
           R_REGS.tcnt <= N_REGS.tcnt;       -- don't clear msec tick counter
         end if;
-     else
+      else
         R_REGS <= N_REGS;
       end if;
     end if;
@@ -102,29 +106,33 @@ begin
   proc_next : process (R_REGS, IB_MREQ, CE_MSEC, EI_ACK)
     variable r : regs_type := regs_init;
     variable n : regs_type := regs_init;
-    variable ibsel : slbit := '0';
     variable idout : slv16 := (others=>'0');
+    variable ibreq : slbit := '0';
+    variable ibw0 : slbit := '0';
   begin
 
     r := R_REGS;
     n := R_REGS;
 
-    ibsel := '0';
     idout := (others=>'0');
+    ibreq := IB_MREQ.re or IB_MREQ.we;
+    ibw0  := IB_MREQ.we and IB_MREQ.be0;
     
     -- ibus address decoder
-    if IB_MREQ.req='1' and IB_MREQ.addr=ibaddr_kw11l(12 downto 1) then
-      ibsel := '1';
+    n.ibsel := '0';
+    if IB_MREQ.aval='1' and
+       IB_MREQ.addr=ibaddr_kw11l(12 downto 1) then
+      n.ibsel := '1';
     end if;
 
     -- ibus output driver
-    if ibsel = '1' then
+    if r.ibsel = '1' then
       idout(lks_ibf_ie)   := R_REGS.ie;
       idout(lks_ibf_moni) := R_REGS.moni;
     end if;
 
     -- ibus write transactions
-    if ibsel='1' and IB_MREQ.we='1' and IB_MREQ.be0='1' then
+    if r.ibsel='1' and ibw0='1' then
       n.ie   := IB_MREQ.din(lks_ibf_ie);
       n.moni := IB_MREQ.din(lks_ibf_moni);
       if IB_MREQ.din(lks_ibf_ie)='0' or IB_MREQ.din(lks_ibf_moni)='0' then
@@ -151,7 +159,7 @@ begin
     N_REGS <= n;
 
     IB_SRES.dout <= idout;
-    IB_SRES.ack  <= ibsel;
+    IB_SRES.ack  <= r.ibsel and ibreq;
     IB_SRES.busy <= '0';
     
     EI_REQ <= r.intreq;

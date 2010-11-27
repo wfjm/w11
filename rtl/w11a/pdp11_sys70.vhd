@@ -1,6 +1,6 @@
--- $Id: pdp11_sys70.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: pdp11_sys70.vhd 333 2010-10-17 21:18:33Z mueller $
 --
--- Copyright 2008- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,9 +18,11 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+--
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-10-17   333   1.1    use ibus V2 interface
 -- 2008-08-22   161   1.0.1  use iblib
 -- 2008-04-20   137   1.0    Initial version 
 ------------------------------------------------------------------------------
@@ -51,10 +53,13 @@ architecture syn of pdp11_sys70 is
   constant ibaddr_sysid  : slv16 := conv_std_logic_vector(8#177764#,16);
 
   type regs_type is record              -- state registers
+    ibsel_mbrk : slbit;                 -- ibus select mbrk
+    ibsel_sysid : slbit;                -- ibus select sysid
     mbrk    : slv8;                     -- status of mbrk register
   end record regs_type;
 
   constant regs_init : regs_type := (
+    '0','0',                            -- ibsel_*
     mbrk=>(others=>'0')                 -- mbrk
   );
 
@@ -77,47 +82,47 @@ begin
   proc_next: process (R_REGS, IB_MREQ)
     variable r : regs_type := regs_init;
     variable n : regs_type := regs_init;
-    variable ibsel_mbrk  : slbit := '0';   -- mbrk
-    variable ibsel_sysid : slbit := '0';   -- sysid
-    variable ibsel : slbit := '0';
     variable idout : slv16 := (others=>'0');
+    variable ibreq : slbit := '0';
+    variable ibw0 : slbit := '0';
   begin
     
     r := R_REGS;
     n := R_REGS;
 
-    ibsel_mbrk  := '0';
-    ibsel_sysid := '0';
-    ibsel := '0';
     idout := (others=>'0');
+    ibreq := IB_MREQ.re or IB_MREQ.we;
+    ibw0  := IB_MREQ.we and IB_MREQ.be0;
 
-    if IB_MREQ.req = '1' then
+    -- ibus address decoder
+    n.ibsel_mbrk  := '0';
+    n.ibsel_sysid := '0';
+    if IB_MREQ.aval = '1' then
       if IB_MREQ.addr = ibaddr_mbrk(12 downto 1) then
-        ibsel_mbrk  := '1';
+        n.ibsel_mbrk  := '1';
       end if;
       if IB_MREQ.addr = ibaddr_sysid(12 downto 1) then
-        ibsel_sysid := '1';
+        n.ibsel_sysid := '1';
       end if;
-    end if;
-
-    ibsel := ibsel_mbrk or ibsel_sysid;
+    end if;    
     
-    if ibsel_mbrk = '1' then
+    -- ibus transactions
+    if r.ibsel_mbrk = '1' then
       idout(r.mbrk'range) := r.mbrk;
     end if;
-    if ibsel_sysid = '1' then
+    if r.ibsel_sysid = '1' then
       idout := conv_std_logic_vector(8#123456#,16);
     end if;
 
-    if ibsel_mbrk='1' and IB_MREQ.we='1' and IB_MREQ.be0='1' then
+    if r.ibsel_mbrk='1' and ibw0='1' then
       n.mbrk := IB_MREQ.din(n.mbrk'range);
     end if;
 
     N_REGS <= n;
 
-    IB_SRES.ack  <= ibsel;
-    IB_SRES.busy <= '0';
     IB_SRES.dout <= idout;
+    IB_SRES.ack  <= (r.ibsel_mbrk or r.ibsel_sysid) and ibreq;
+    IB_SRES.busy <= '0';
 
   end process proc_next;
     

@@ -1,4 +1,4 @@
-# $Id: tbw.dat 311 2010-06-30 17:52:37Z mueller $
+# $Id: tbw.dat 295 2010-05-29 16:58:01Z mueller $
 #
 [tb_w11a_n2]
 tb_rriext_fifo_rx = <fifo>

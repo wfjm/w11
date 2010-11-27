@@ -1,6 +1,6 @@
--- $Id: pdp11_irq.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: pdp11_irq.vhd 335 2010-10-24 22:24:23Z mueller $
 --
--- Copyright 2007-2008 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -15,12 +15,15 @@
 -- Module Name:    pdp11_irq - syn
 -- Description:    pdp11: interrupt requester
 --
--- Dependencies:   -
+-- Dependencies:   ib_sel
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+--
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-10-23   335   1.2.1  use ib_sel
+-- 2010-10-17   333   1.2    use ibus V2 interface
 -- 2008-08-22   161   1.1.4  use iblib
 -- 2008-04-25   138   1.1.3  use BRESET to clear pirq
 -- 2008-01-06   111   1.1.2  rename signal EI_ACK->EI_ACKM (master ack)
@@ -73,29 +76,28 @@ architecture syn of pdp11_irq is
   
 begin
 
-  proc_ibsel: process (IB_MREQ)
-    variable ipirq : slbit := '0';
-  begin
-    ipirq := '0';
-    if IB_MREQ.req='1' and IB_MREQ.addr=ibaddr_pirq(12 downto 1) then
-      ipirq := '1';
-    end if;
-    IBSEL_PIRQ   <= ipirq;
-    IB_SRES.ack  <= ipirq;
-    IB_SRES.busy <= '0';
-  end process proc_ibsel;
+  SEL : ib_sel
+    generic map (
+      IB_ADDR => ibaddr_pirq)
+    port map (
+      CLK     => CLK,
+      IB_MREQ => IB_MREQ,
+      SEL     => IBSEL_PIRQ
+    );
 
-  proc_ibdout : process (IBSEL_PIRQ, R_PIRQ, PI_PRI)
-    variable pirqout : slv16 := (others=>'0');
+  proc_ibres : process (IBSEL_PIRQ, IB_MREQ, R_PIRQ, PI_PRI)
+    variable idout : slv16 := (others=>'0');
   begin
-    pirqout := (others=>'0');
+    idout := (others=>'0');
     if IBSEL_PIRQ = '1' then
-      pirqout(pirq_ubf_pir)   := R_PIRQ;
-      pirqout(pirq_ubf_pia_h) := PI_PRI;
-      pirqout(pirq_ubf_pia_l) := PI_PRI;
+      idout(pirq_ubf_pir)   := R_PIRQ;
+      idout(pirq_ubf_pia_h) := PI_PRI;
+      idout(pirq_ubf_pia_l) := PI_PRI;
     end if;
-    IB_SRES.dout <= pirqout;
-  end process proc_ibdout;
+    IB_SRES.dout <= idout;
+    IB_SRES.ack  <= IBSEL_PIRQ and (IB_MREQ.re or IB_MREQ.we); -- ack all
+    IB_SRES.busy <= '0';
+  end process proc_ibres;
  
   proc_pirq : process (CLK)
   begin

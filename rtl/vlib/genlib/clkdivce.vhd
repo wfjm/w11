@@ -1,6 +1,6 @@
--- $Id: clkdivce.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: clkdivce.vhd 341 2010-11-27 23:05:43Z mueller $
 --
--- Copyright 2007- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2008 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,7 +18,7 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date        Rev  Version    Comment
 -- 2008-01-20   112   1.0.2  rename clkgen->clkdivce; remove SYS_CLK port

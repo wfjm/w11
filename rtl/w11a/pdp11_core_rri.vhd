@@ -1,4 +1,4 @@
--- $Id: pdp11_core_rri.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: pdp11_core_rri.vhd 335 2010-10-24 22:24:23Z mueller $
 --
 -- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -21,9 +21,10 @@
 --                 tb/tb_rriext_pdp11core
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4; ghdl 0.18-0.26
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.26
 -- Revision History: -
 -- Date         Rev Version  Comment
+-- 2010-10-23   335   1.2.3  rename RRI_LAM->RB_LAM;
 -- 2010-06-20   308   1.2.2  use c_ibrb_ibf_ def's
 -- 2010-06-18   306   1.2.1  rename RB_ADDR->RB_ADDR_CORE, add RB_ADDR_IBUS;
 --                           add ibrb register and ibr window logic
@@ -96,7 +97,7 @@ entity pdp11_core_rri is                -- core to rri reg port interface
     RB_MREQ : in rb_mreq_type;          -- rbus: request
     RB_SRES : out rb_sres_type;         -- rbus: response
     RB_STAT : out slv3;                 -- rbus: status flags
-    RRI_LAM : out slbit;                -- remote attention
+    RB_LAM : out slbit;                 -- remote attention
     CPU_RESET : out slbit;              -- cpu master reset
     CP_CNTL : out cp_cntl_type;         -- console control port
     CP_ADDR : out cp_addr_type;         -- console address port
@@ -382,7 +383,7 @@ architecture syn of pdp11_core_rri is
     RB_STAT(1) <= CP_STAT.cpuhalt or CP_STAT.cpurust(CP_STAT.cpurust'left);
     RB_STAT(2) <= CP_STAT.cmderr  or CP_STAT.cmdmerr;
 
-    RRI_LAM    <= irb_lam;
+    RB_LAM     <= irb_lam;
 
     CPU_RESET  <= icpureset;
     

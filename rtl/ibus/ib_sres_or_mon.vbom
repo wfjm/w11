@@ -1,5 +1,5 @@
 # libs
 ../vlib/slvtypes.vhd
-pdp11.vbom
+iblib.vhd
 # design
-pdp11_mbox.vhd
+ib_sres_or_mon.vhd

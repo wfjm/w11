@@ -1,4 +1,4 @@
--- $Id: rritb_sres_or_mon.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: rritb_sres_or_mon.vhd 336 2010-11-06 18:28:27Z mueller $
 --
 -- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,6 +20,7 @@
 -- Tool versions:  ghdl 0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-10-28   336   1.0.1  log errors only if now>0ns (drop startup glitches)
 -- 2010-06-26   309   1.0    Initial version 
 ------------------------------------------------------------------------------
 
@@ -80,7 +81,7 @@ begin
     if RB_SRES_3.dout /= dzero then ndout := ndout + 1;  end if;
     if RB_SRES_4.dout /= dzero then ndout := ndout + 1;  end if;
 
-    if nack>1 or nbusy>1 or nerr>1 or ndout>1 then
+    if now > 0 ns and (nack>1 or nbusy>1 or nerr>1 or ndout>1) then
       write(oline, now, right, 12);
       if nack > 1 then
         write(oline, string'(" #ack="));

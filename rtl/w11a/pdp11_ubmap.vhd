@@ -1,6 +1,6 @@
--- $Id: pdp11_ubmap.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: pdp11_ubmap.vhd 335 2010-10-24 22:24:23Z mueller $
 --
--- Copyright 2008- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -15,12 +15,16 @@
 -- Module Name:    pdp11_ubmap - syn
 -- Description:    pdp11: 11/70 unibus mapper
 --
--- Dependencies:   -
+-- Dependencies:   memlib/ram_1swar_gen
+--                 ib_sel
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+--
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-10-23   335   1.1.1  use ib_sel
+-- 2010-10-17   333   1.1    use ibus V2 interface
 -- 2008-08-22   161   1.0.1  use iblib
 -- 2008-01-27   115   1.0    Initial version 
 ------------------------------------------------------------------------------
@@ -50,6 +54,8 @@ end pdp11_ubmap;
 architecture syn of pdp11_ubmap is
   
   constant ibaddr_ubmap : slv16 := conv_std_logic_vector(8#170200#,16);
+
+  signal IBSEL_UBMAP : slbit := '0';
 
   signal MAP_2_WE : slbit := '0';
   signal MAP_1_WE : slbit := '0';
@@ -92,8 +98,17 @@ begin
       DI   => IB_MREQ.din(7 downto 1),
       DO   => MAP_DOUT(7 downto 1));
 
-  proc_comb: process (MREQ, ADDR_UB, IB_MREQ, MAP_DOUT)
-    variable ibsel : slbit := '0';
+  SEL : ib_sel
+    generic map (
+      IB_ADDR => ibaddr_ubmap,
+      SAWIDTH => 6)                     -- 2^6 = 64 = 2*32 words
+    port map (
+      CLK     => CLK,
+      IB_MREQ => IB_MREQ,
+      SEL     => IBSEL_UBMAP
+    );
+
+  proc_comb: process (MREQ, ADDR_UB, IBSEL_UBMAP, IB_MREQ, MAP_DOUT)
     variable ibusy : slbit := '0';
     variable idout : slv16 := (others=>'0');
     variable iwe2  : slbit := '0';
@@ -102,7 +117,6 @@ begin
     variable iaddr : slv5 := (others=>'0');
   begin
     
-    ibsel := '0';
     ibusy := '0';
     idout := (others=>'0');
     iwe2  := '0';
@@ -110,12 +124,7 @@ begin
     iwe0  := '0';
     iaddr := (others=>'0');
 
-    if IB_MREQ.req = '1' and
-       IB_MREQ.addr(12 downto 7)=ibaddr_ubmap(12 downto 7) then
-      ibsel := '1';
-    end if;
-    
-    if ibsel = '1' then
+    if IBSEL_UBMAP = '1' then
       if IB_MREQ.addr(1) = '1' then
         idout(5 downto 0)  := MAP_DOUT(21 downto 16);
       else
@@ -126,7 +135,7 @@ begin
       end if;
     end if;
 
-    if ibsel='1' and IB_MREQ.we='1' then
+    if IBSEL_UBMAP='1' and IB_MREQ.we='1' then
       if IB_MREQ.addr(1)='1' then
         if IB_MREQ.be0 = '1' then
           iwe2 := '1';
@@ -154,7 +163,7 @@ begin
 
     ADDR_PM  <= unsigned(MAP_DOUT) + unsigned("000000000"&ADDR_UB(12 downto 1));
 
-    IB_SRES.ack  <= ibsel;
+    IB_SRES.ack  <= IBSEL_UBMAP and (IB_MREQ.re or IB_MREQ.we);
     IB_SRES.busy <= ibusy;
     IB_SRES.dout <= idout;
 

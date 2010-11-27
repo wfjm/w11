@@ -1,4 +1,4 @@
--- $Id: sys_w11a_n2.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: sys_w11a_n2.vhd 341 2010-11-27 23:05:43Z mueller $
 --
 -- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -15,7 +15,8 @@
 -- Module Name:    sys_w11a_n2 - syn
 -- Description:    w11a test design for nexys2
 --
--- Dependencies:   vlib/genlib/clkdivce
+-- Dependencies:   vlib/xlib/dcm_sp_sfs
+--                 vlib/genlib/clkdivce
 --                 bplib/s3board/s3_rs232_iob_int_ext
 --                 bplib/s3board/s3_humanio_rri
 --                 vlib/rri/rri_core_serport
@@ -35,11 +36,15 @@
 -- Test bench:     tb/tb_s3board_w11a_n2
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.2, 9.1, 9.2, 10.1, 11.4, 12.1; ghdl 0.26 - 0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 10.1, 11.4, 12.1; ghdl 0.26-0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
--- 2010-06-27   310 12.1    M53d xc3s1200e-4 1337 4307  242 2630 ok: LP+PC+DL+I
+-- 2010-11-06   336 12.1    M53d xc3s1200e-4 1357 4304* 242 2618 ok: LP+PC+DL+II
+-- 2010-10-24   335 12.1    M53d xc3s1200e-4 1357 4546  242 2618 ok: LP+PC+DL+II
+-- 2010-10-17   333 12.1    M53d xc3s1200e-4 1350 4541  242 2617 ok: LP+PC+DL+II
+-- 2010-10-16   332 12.1    M53d xc3s1200e-4 1338 4545  242 2629 ok: LP+PC+DL+II
+-- 2010-06-27   310 12.1    M53d xc3s1200e-4 1337 4307  242 2630 ok: LP+PC+DL+II
 -- 2010-06-26   309 11.4    L68  xc3s1200e-4 1318 4293  242 2612 ok: LP+PC+DL+II
 -- 2010-06-18   306 12.1    M53d xc3s1200e-4 1319 4300  242 2624 ok: LP+PC+DL+II
 -- "            306 11.4    L68  xc3s1200e-4 1319 4286  242 2618 ok: LP+PC+DL+II
@@ -52,9 +57,14 @@
 -- 2010-06-03   300 11.4    L68  xc3s1200e-4 1318 4181  242 2572 ok: LP+PC+DL+II
 -- 2010-06-03   299 11.4    L68  xc3s1200e-4 1250 4071  224 2489 ok: LP+PC+DL+II
 -- 2010-05-26   296 11.4    L68  xc3s1200e-4 1284 4079  224 2492 ok: LP+PC+DL+II
+--   Note: till 2010-10-24 lutm included 'route-thru', after only logic
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-11-27   341   1.1.8  add DCM; new sys_conf consts for mem and clkdiv
+-- 2010-11-13   338   1.1.7  add O_CLKSYS (for DCM derived system clock)
+-- 2010-11-06   336   1.1.6  rename input pin CLK -> I_CLK50
+-- 2010-10-23   335   1.1.5  rename RRI_LAM->RB_LAM;
 -- 2010-06-26   309   1.1.4  use constants for rbus addresses (rbaddr_...)
 --                           BUGFIX: resolve rbus address clash hio<->ibr
 -- 2010-06-18   306   1.1.3  change proc_led sensitivity list to avoid xst warn;
@@ -100,6 +110,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 
 use work.slvtypes.all;
+use work.xlib.all;
 use work.genlib.all;
 use work.rrilib.all;
 use work.s3boardlib.all;
@@ -114,7 +125,8 @@ use work.sys_conf.all;
 entity sys_w11a_n2 is                   -- top level
                                         -- implements nexys2_fusp_aif
   port (
-    CLK : in slbit;                     -- clock
+    I_CLK50 : in slbit;                 -- 50 MHz clock
+    O_CLKSYS : out slbit;               -- DCM derived system clock
     I_RXD : in slbit;                   -- receive data (board view)
     O_TXD : out slbit;                  -- transmit data (board view)
     I_SWI : in slv8;                    -- s3 switches
@@ -141,6 +153,8 @@ entity sys_w11a_n2 is                   -- top level
 end sys_w11a_n2;
 
 architecture syn of sys_w11a_n2 is
+
+  signal CLK :   slbit := '0';
 
   signal RXD :   slbit := '1';
   signal TXD :   slbit := '0';
@@ -218,10 +232,27 @@ architecture syn of sys_w11a_n2 is
 
 begin
 
+  assert (sys_conf_clksys mod 1000000) = 0
+    report "assert sys_conf_clksys on MHz grid"
+    severity failure;
+  
+  DCM : dcm_sp_sfs
+    generic map (
+      CLKFX_DIVIDE   => sys_conf_clkfx_divide,
+      CLKFX_MULTIPLY => sys_conf_clkfx_multiply,
+      CLKIN_PERIOD   => 20.0)
+    port map (
+      CLKIN   => I_CLK50,
+      CLKFX   => CLK,
+      LOCKED  => open
+    );
+
+  O_CLKSYS <= CLK;
+
   CLKDIV : clkdivce
     generic map (
       CDUWIDTH => 6,
-      USECDIV  => 50,
+      USECDIV  => sys_conf_clksys_mhz,
       MSECDIV  => 1000)
     port map (
       CLK     => CLK,
@@ -307,7 +338,7 @@ begin
       RB_MREQ   => RB_MREQ,
       RB_SRES   => RB_SRES_CPU,
       RB_STAT   => RB_STAT,
-      RRI_LAM   => RB_LAM(0),
+      RB_LAM    => RB_LAM(0),
       CPU_RESET => CPU_RESET,
       CP_CNTL   => CP_CNTL,
       CP_ADDR   => CP_ADDR,
@@ -420,9 +451,9 @@ begin
 
     SRAM_CTL: n2_cram_memctl_as
       generic map (
-        READ0DELAY => 2,
-        READ1DELAY => 2,
-        WRITEDELAY => 3)
+        READ0DELAY => sys_conf_memctl_read0delay,
+        READ1DELAY => sys_conf_memctl_read1delay,
+        WRITEDELAY => sys_conf_memctl_writedelay)
       port map (
         CLK         => CLK,
         RESET       => CPU_RESET,
@@ -468,7 +499,7 @@ begin
         CE_MSEC  => CE_MSEC,
         RESET    => CPU_RESET,
         BRESET   => BRESET,
-        RRI_LAM  => RB_LAM(15 downto 1),
+        RB_LAM   => RB_LAM(15 downto 1),
         IB_MREQ  => IB_MREQ,
         IB_SRES  => IB_SRES_IBDR,
         EI_ACKM  => EI_ACKM,
@@ -487,7 +518,7 @@ begin
         CE_MSEC  => CE_MSEC,
         RESET    => CPU_RESET,
         BRESET   => BRESET,
-        RRI_LAM  => RB_LAM(15 downto 1),
+        RB_LAM   => RB_LAM(15 downto 1),
         IB_MREQ  => IB_MREQ,
         IB_SRES  => IB_SRES_IBDR,
         EI_ACKM  => EI_ACKM,
@@ -548,6 +579,6 @@ begin
       DM_STAT_CO => DM_STAT_CO,
       DM_STAT_SY => DM_STAT_SY
     );
-
 -- synthesis translate_on
+  
 end syn;

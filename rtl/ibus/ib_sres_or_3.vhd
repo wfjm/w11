@@ -1,6 +1,6 @@
--- $Id: ib_sres_or_3.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: ib_sres_or_3.vhd 335 2010-10-24 22:24:23Z mueller $
 --
--- Copyright 2007-2008 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,9 +18,11 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+--
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-10-23   335   1.1    add ib_sres_or_mon
 -- 2008-08-22   161   1.0.2  renamed pdp11_ibres_ -> ib_sres_; use iblib
 -- 2008-01-05   110   1.0.1  rename IB_MREQ(ena->req) SRES(sel->ack, hold->busy)
 -- 2007-12-29   107   1.0    Initial version 
@@ -61,5 +63,15 @@ begin
                        IB_SRES_3.dout;
     
   end process proc_comb;
+
+-- synthesis translate_off
+  ORMON : ib_sres_or_mon
+    port map (
+      IB_SRES_1 => IB_SRES_1,
+      IB_SRES_2 => IB_SRES_2,
+      IB_SRES_3 => IB_SRES_3,
+      IB_SRES_4 => ib_sres_init
+    );
+-- synthesis translate_on
   
 end syn;

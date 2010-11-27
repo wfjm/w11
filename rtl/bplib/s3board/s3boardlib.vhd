@@ -1,4 +1,4 @@
--- $Id: s3boardlib.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: s3boardlib.vhd 336 2010-11-06 18:28:27Z mueller $
 --
 -- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4; ghdl 0.18-0.26
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-11-06   336   1.3.1  rename input pin CLK -> I_CLK50
 -- 2010-06-03   300   1.3    add s3_humanio_rri (now needs rrilib)
 -- 2010-05-21   292   1.2.2  rename _PM1_ -> _FUSP_
 -- 2010-05-16   291   1.2.1  rename memctl_s3sram -> s3_sram_memctl; _usp->_fusp
@@ -45,7 +46,7 @@ package s3boardlib is
 
 component s3board_aif is                -- S3BOARD, abstract iface, base
   port (
-    CLK : in slbit;                     -- clock
+    I_CLK50 : in slbit;                 -- 50 MHz board clock
     I_RXD : in slbit;                   -- receive data (board view)
     O_TXD : out slbit;                  -- transmit data (board view)
     I_SWI : in slv8;                    -- s3 switches
@@ -64,7 +65,7 @@ end component;
 
 component s3board_fusp_aif is           -- S3BOARD, abstract iface, base+fusp
   port (
-    CLK : in slbit;                     -- clock
+    I_CLK50 : in slbit;                 -- 50 MHz board clock
     I_RXD : in slbit;                   -- receive data (board view)
     O_TXD : out slbit;                  -- transmit data (board view)
     I_SWI : in slv8;                    -- s3 switches

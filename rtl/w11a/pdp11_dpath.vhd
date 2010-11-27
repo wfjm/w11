@@ -1,4 +1,4 @@
--- $Id: pdp11_dpath.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: pdp11_dpath.vhd 330 2010-09-19 17:43:53Z mueller $
 --
 -- Copyright 2006-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -17,16 +17,17 @@
 --
 -- Dependencies:   pdp11_gpr
 --                 pdp11_psr
---                 pdp11_abox
---                 pdp11_dbox
---                 pdp11_lbox
---                 pdp11_mbox
+--                 pdp11_ounit
+--                 pdp11_aunit
+--                 pdp11_lunit
+--                 pdp11_munit
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
 -- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-09-18   300   1.2.1  rename (adlm)box->(oalm)unit
 -- 2010-06-13   305   1.2    rename CPDIN -> CP_DIN; add CP_DOUT out port;
 --                           remove CPADDR out port; drop R_CPADDR, proc_cpaddr;
 --                           added R_CPDOUT, proc_cpdout
@@ -92,16 +93,16 @@ architecture syn of pdp11_dpath is
   signal DRES : slv16 := (others=>'0');  -- result bus
   signal DRESE : slv16 := (others=>'0'); -- result bus extra
 
-  signal ABOX_DOUT : slv16 := (others=>'0'); -- result abox
-  signal DBOX_DOUT : slv16 := (others=>'0'); -- result dbox
-  signal LBOX_DOUT : slv16 := (others=>'0'); -- result lbox
-  signal MBOX_DOUT : slv16 := (others=>'0'); -- result mbox
+  signal OUNIT_DOUT : slv16 := (others=>'0'); -- result ounit
+  signal AUNIT_DOUT : slv16 := (others=>'0'); -- result aunit
+  signal LUNIT_DOUT : slv16 := (others=>'0'); -- result lunit
+  signal MUNIT_DOUT : slv16 := (others=>'0'); -- result munit
 
-  signal ABOX_NZOUT : slv2 := (others=>'0'); -- nz flags abox
-  signal ABOX_CCOUT : slv4 := (others=>'0'); -- cc flags abox
-  signal DBOX_CCOUT : slv4 := (others=>'0'); -- cc flags dbox
-  signal LBOX_CCOUT : slv4 := (others=>'0'); -- cc flags lbox
-  signal MBOX_CCOUT : slv4 := (others=>'0'); -- cc flags mbox
+  signal OUNIT_NZOUT : slv2 := (others=>'0'); -- nz flags ounit
+  signal OUNIT_CCOUT : slv4 := (others=>'0'); -- cc flags ounit
+  signal AUNIT_CCOUT : slv4 := (others=>'0'); -- cc flags aunit
+  signal LUNIT_CCOUT : slv4 := (others=>'0'); -- cc flags lunit
+  signal MUNIT_CCOUT : slv4 := (others=>'0'); -- cc flags munit
 
   subtype  lal_ibf_addr  is integer range 15 downto 1;
   subtype  lah_ibf_addr  is integer range  5 downto 0;
@@ -138,82 +139,82 @@ begin
     IB_SRES => IB_SRES
   );
   
-  ABOX : pdp11_abox port map (
+  OUNIT : pdp11_ounit port map (
     DSRC   => R_DSRC,
     DDST   => R_DDST,
     DTMP   => R_DTMP,
     PC     => GPR_PC,
-    ASEL   => CNTL.abox_asel,
-    AZERO  => CNTL.abox_azero,
+    ASEL   => CNTL.ounit_asel,
+    AZERO  => CNTL.ounit_azero,
     IREG8  => R_IREG(7 downto 0),
     VMDOUT => VM_DOUT,
-    CONST  => CNTL.abox_const,
-    BSEL   => CNTL.abox_bsel,
-    OPSUB  => CNTL.abox_opsub,
-    DOUT   => ABOX_DOUT,
-    NZOUT  => ABOX_NZOUT
+    CONST  => CNTL.ounit_const,
+    BSEL   => CNTL.ounit_bsel,
+    OPSUB  => CNTL.ounit_opsub,
+    DOUT   => OUNIT_DOUT,
+    NZOUT  => OUNIT_NZOUT
   );
   
-  DBOX : pdp11_dbox port map (
+  AUNIT : pdp11_aunit port map (
     DSRC   => R_DSRC,
     DDST   => R_DDST,
     CI     => CCIN(0),
-    SRCMOD => CNTL.dbox_srcmod,
-    DSTMOD => CNTL.dbox_dstmod,
-    CIMOD  => CNTL.dbox_cimod,
-    CC1OP  => CNTL.dbox_cc1op,
-    CCMODE => CNTL.dbox_ccmode,
-    BYTOP  => CNTL.dbox_bytop,
-    DOUT   => DBOX_DOUT,
-    CCOUT  => DBOX_CCOUT
+    SRCMOD => CNTL.aunit_srcmod,
+    DSTMOD => CNTL.aunit_dstmod,
+    CIMOD  => CNTL.aunit_cimod,
+    CC1OP  => CNTL.aunit_cc1op,
+    CCMODE => CNTL.aunit_ccmode,
+    BYTOP  => CNTL.aunit_bytop,
+    DOUT   => AUNIT_DOUT,
+    CCOUT  => AUNIT_CCOUT
   );
 
-  LBOX : pdp11_lbox port map (
+  LUNIT : pdp11_lunit port map (
     DSRC  => R_DSRC,
     DDST  => R_DDST,
     CCIN  => CCIN,
-    FUNC  => CNTL.lbox_func,
-    BYTOP => CNTL.lbox_bytop,
-    DOUT  => LBOX_DOUT,
-    CCOUT => LBOX_CCOUT
+    FUNC  => CNTL.lunit_func,
+    BYTOP => CNTL.lunit_bytop,
+    DOUT  => LUNIT_DOUT,
+    CCOUT => LUNIT_CCOUT
   );
   
-  MBOX : pdp11_mbox port map (
+  MUNIT : pdp11_munit port map (
     CLK       => CLK,
     DSRC      => R_DSRC,
     DDST      => R_DDST,
     DTMP      => R_DTMP,
     GPR_DSRC  => GPR_DSRC,
-    FUNC      => CNTL.mbox_func,
-    S_DIV     => CNTL.mbox_s_div,
-    S_DIV_CN  => CNTL.mbox_s_div_cn,
-    S_DIV_CR  => CNTL.mbox_s_div_cr,
-    S_ASH     => CNTL.mbox_s_ash,
-    S_ASH_CN  => CNTL.mbox_s_ash_cn,
-    S_ASHC    => CNTL.mbox_s_ashc,
-    S_ASHC_CN => CNTL.mbox_s_ashc_cn,
+    FUNC      => CNTL.munit_func,
+    S_DIV     => CNTL.munit_s_div,
+    S_DIV_CN  => CNTL.munit_s_div_cn,
+    S_DIV_CR  => CNTL.munit_s_div_cr,
+    S_ASH     => CNTL.munit_s_ash,
+    S_ASH_CN  => CNTL.munit_s_ash_cn,
+    S_ASHC    => CNTL.munit_s_ashc,
+    S_ASHC_CN => CNTL.munit_s_ashc_cn,
     SHC_TC    => STAT.shc_tc,
     DIV_CR    => STAT.div_cr,
     DIV_CQ    => STAT.div_cq,
     DIV_ZERO  => STAT.div_zero,
     DIV_OVFL  => STAT.div_ovfl,
-    DOUT      => MBOX_DOUT,
+    DOUT      => MUNIT_DOUT,
     DOUTE     => DRESE,
-    CCOUT     => MBOX_CCOUT
+    CCOUT     => MUNIT_CCOUT
   );
 
   CCIN <= PSW.cc;
 
-  ABOX_CCOUT <= ABOX_NZOUT & "0" & CCIN(0); -- clear v, keep c
+  OUNIT_CCOUT <= OUNIT_NZOUT & "0" & CCIN(0); -- clear v, keep c
   
-  proc_dres_sel: process (ABOX_DOUT, DBOX_DOUT, LBOX_DOUT, MBOX_DOUT,
+  proc_dres_sel: process (OUNIT_DOUT, AUNIT_DOUT, LUNIT_DOUT, MUNIT_DOUT,
                           VM_DOUT, R_IREG, CP_DIN, CNTL)
   begin
     case CNTL.dres_sel is
-      when c_dpath_res_abox   => DRES <= ABOX_DOUT;
-      when c_dpath_res_dbox   => DRES <= DBOX_DOUT;
-      when c_dpath_res_lbox   => DRES <= LBOX_DOUT;
-      when c_dpath_res_mbox   => DRES <= MBOX_DOUT;
+      when c_dpath_res_ounit  => DRES <= OUNIT_DOUT;
+      when c_dpath_res_aunit  => DRES <= AUNIT_DOUT;
+      when c_dpath_res_lunit  => DRES <= LUNIT_DOUT;
+      when c_dpath_res_munit  => DRES <= MUNIT_DOUT;
       when c_dpath_res_vmdout => DRES <= VM_DOUT;
       when c_dpath_res_fpdout => DRES <= (others=>'0');
       when c_dpath_res_ireg   => DRES <= R_IREG;
@@ -222,14 +223,14 @@ begin
     end case;
   end process proc_dres_sel;
 
-  proc_cres_sel: process (ABOX_CCOUT, DBOX_CCOUT, LBOX_CCOUT, MBOX_CCOUT,
+  proc_cres_sel: process (OUNIT_CCOUT, AUNIT_CCOUT, LUNIT_CCOUT, MUNIT_CCOUT,
                           CCIN, CNTL)
   begin
     case CNTL.cres_sel is
-      when c_dpath_res_abox   => CCOUT <= ABOX_CCOUT;
-      when c_dpath_res_dbox   => CCOUT <= DBOX_CCOUT;
-      when c_dpath_res_lbox   => CCOUT <= LBOX_CCOUT;
-      when c_dpath_res_mbox   => CCOUT <= MBOX_CCOUT;
+      when c_dpath_res_ounit  => CCOUT <= OUNIT_CCOUT;
+      when c_dpath_res_aunit  => CCOUT <= AUNIT_CCOUT;
+      when c_dpath_res_lunit  => CCOUT <= LUNIT_CCOUT;
+      when c_dpath_res_munit  => CCOUT <= MUNIT_CCOUT;
       when c_dpath_res_vmdout => CCOUT <= CCIN;
       when c_dpath_res_fpdout => CCOUT <= "0000";
       when c_dpath_res_ireg   => CCOUT <= CCIN;

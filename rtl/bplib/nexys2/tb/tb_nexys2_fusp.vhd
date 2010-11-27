@@ -1,4 +1,4 @@
--- $Id: tb_nexys2_fusp.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: tb_nexys2_fusp.vhd 339 2010-11-22 21:20:51Z mueller $
 --
 -- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -15,7 +15,7 @@
 -- Module Name:    tb_nexys2_fusp - sim
 -- Description:    Test bench for nexys2 (base+fusp)
 --
--- Dependencies:   vlib/rri/tb/rritb_core
+-- Dependencies:   vlib/rri/tb/rritb_core_dcm
 --                 tb_nexys2_core
 --                 vlib/serport/serport_uart_rxtx
 --                 nexys2_fusp_aif [UUT]
@@ -23,9 +23,12 @@
 -- To test:        generic, any nexys2_fusp_aif target
 --
 -- Target Devices: generic
--- Tool versions:  xst 11.4; ghdl 0.26
+-- Tool versions:  xst 11.4, 12.1; ghdl 0.26-0.29
+--
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-11-13   338   1.0.2  now dcm aware: add O_CLKSYS, use rritb_core_dcm
+-- 2010-11-06   336   1.0.1  rename input pin CLK -> I_CLK50
 -- 2010-05-28   295   1.0    Initial version (derived from tb_s3board_fusp)
 ------------------------------------------------------------------------------
 
@@ -48,7 +51,8 @@ end tb_nexys2_fusp;
 
 architecture sim of tb_nexys2_fusp is
   
-  signal CLK : slbit := '0';
+  signal CLKOSC : slbit := '0';
+  signal CLKSYS : slbit := '0';
 
   signal RESET : slbit := '0';
   signal CLKDIV : slv2 := "00";         -- run with 1 clocks / bit !!
@@ -97,21 +101,22 @@ architecture sim of tb_nexys2_fusp is
 
   constant sbaddr_portsel: slv8 := conv_std_logic_vector( 8,8);
 
-  constant clock_period : time :=  20 ns;
-  constant clock_offset : time := 200 ns;
+  constant clockosc_period : time :=  20 ns;
+  constant clockosc_offset : time := 200 ns;
   constant setup_time : time :=  5 ns;
-  constant c2out_time : time := 10 ns;
+  constant c2out_time : time :=  9 ns;
 
 begin
   
-  TBCORE : rritb_core
+  TBCORE : rritb_core_dcm
     generic map (
-      CLK_PERIOD => clock_period,
-      CLK_OFFSET => clock_offset,
+      CLKOSC_PERIOD => clockosc_period,
+      CLKOSC_OFFSET => clockosc_offset,
       SETUP_TIME => setup_time,
       C2OUT_TIME => c2out_time)
     port map (
-      CLK     => CLK,
+      CLKOSC  => CLKOSC,
+      CLKSYS  => CLKSYS,
       RX_DATA => TXDATA,
       RX_VAL  => TXENA,
       RX_HOLD => RX_HOLD,
@@ -140,7 +145,8 @@ begin
 
   UUT : nexys2_fusp_aif
     port map (
-      CLK          => CLK,
+      I_CLK50      => CLKOSC,
+      O_CLKSYS     => CLKSYS,
       I_RXD        => I_RXD,
       O_TXD        => O_TXD,
       I_SWI        => I_SWI,
@@ -169,7 +175,7 @@ begin
     generic map (
       CDWIDTH => CLKDIV'length)
     port map (
-      CLK    => CLK,
+      CLK    => CLKSYS,
       RESET  => UART_RESET,
       CLKDIV => CLKDIV,
       RXSD   => UART_RXD,
@@ -208,7 +214,7 @@ begin
   begin
     
     loop
-      wait until CLK'event and CLK='1';
+      wait until CLKSYS'event and CLKSYS='1';
       wait for c2out_time;
 
       if RXERR = '1' then

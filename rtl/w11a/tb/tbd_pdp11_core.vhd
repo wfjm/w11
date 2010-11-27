@@ -1,4 +1,4 @@
--- $Id: tbd_pdp11_core.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: tbd_pdp11_core.vhd 335 2010-10-24 22:24:23Z mueller $
 --
 -- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -41,6 +41,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-10-23   335   1.4.2  rename RRI_LAM->RB_LAM;
 -- 2010-06-20   307   1.4.1  add CP_ADDR_racc, CP_ADDR_be port
 -- 2010-06-13   305   1.4    add CP_ADDR_... in ports; add CP_CNTL_rnum in port
 -- 2010-06-11   303   1.3.9  use IB_MREQ.racc instead of RRI_REQ
@@ -191,7 +192,7 @@ begin
       CE_MSEC  => CE_USEC,              -- !! in test benches msec = usec !!
       RESET    => RESET,
       BRESET   => BRESET,
-      RRI_LAM  => open,
+      RB_LAM   => open,
       IB_MREQ  => IB_MREQ_M,
       IB_SRES  => IB_SRES_M,
       EI_ACKM  => EI_ACKM,

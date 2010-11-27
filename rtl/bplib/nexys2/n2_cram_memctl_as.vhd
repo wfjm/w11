@@ -1,4 +1,4 @@
--- $Id: n2_cram_memctl_as.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: n2_cram_memctl_as.vhd 340 2010-11-27 13:00:57Z mueller $
 --
 -- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -31,6 +31,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-11-22   339   1.0.4  cntdly now 3 bit; add assert for DELAY generics
 -- 2010-06-03   299   1.0.3  add "KEEP" for data iob; MEM_OE='1' on first read
 --                           cycle;
 -- 2010-05-30   297   1.0.2  use READ(0|1)DELAY generic
@@ -53,6 +54,23 @@
 --     MEM_OE goes 1->0 on s_rdget1->s_wrinit and the memory will go high-z with
 --     some dekal. FPGA_OE goes 0->1 in the next cycle at s_wrinit->s_wrwait0.
 --     Again no clash due to the 1 cycle delay.
+--
+-- Nominal timings:
+--     READ0/1 = N_rd_cycle - 2
+--     WRITE   = N_wr_cycle - 1
+--
+-- from notes_nexys2.txt (Rev 339):
+--         clksys        RD  WR     < use for >               Test case
+--                                                            MHz div mul
+--        <51.20          2   3     <-- 50                     50   1   1
+--         51.20- 54.80   3   3     <-- 52,54                  54  25  27
+--         54.80- 64.10   3   4     <-- 55,56,58,60,62,64      64  25  32
+--         64.10- 68.50   4   4     <-- 65                     65  10  13
+--         68.50- 76.92   4   5     <-- 70,75                  75   2   3
+--         76.92- 82.19   5   5     <-- 80                     80   5   8
+--         82.19- 89.74   5   6     <-- 85                     85  10  17
+--         89.74- 95.89   6   6     <-- 90,95                  95  10  19
+--         95.89-102.56   6   7     <-- 100                   100   1   2
 --
 -- Timing of some signals:
 --
@@ -154,7 +172,7 @@ architecture syn of n2_cram_memctl_as is
     ackr : slbit;                       -- signal ack_r
     addr0 : slbit;                      -- current addr0
     be2nd : slv2;                       -- be's of 2nd write cycle
-    cntdly : slv2;                      -- wait delay counter
+    cntdly : slv3;                      -- wait delay counter
     cntce : slv7;                       -- ce counter
     fidle : slbit;                      -- force idle flag
     memdo0 : slv16;                     -- mem data out, low word
@@ -196,6 +214,12 @@ architecture syn of n2_cram_memctl_as is
 --  attribute s of I_MEM_WAIT : signal is "true";
 
 begin
+
+  assert READ0DELAY<=2**R_REGS.cntdly'length and
+         READ1DELAY<=2**R_REGS.cntdly'length and
+         WRITEDELAY<=2**R_REGS.cntdly'length
+    report "assert(READ0,READ1,WRITEDELAY <= 2**cntdly'length)"
+    severity failure;
 
   CLK_180 <= not CLK;
   

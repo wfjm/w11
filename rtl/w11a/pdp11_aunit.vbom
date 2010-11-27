@@ -2,4 +2,4 @@
 ../vlib/slvtypes.vhd
 pdp11.vbom
 # design
-pdp11_dbox.vhd
+pdp11_aunit.vhd

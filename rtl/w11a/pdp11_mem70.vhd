@@ -1,6 +1,6 @@
--- $Id: pdp11_mem70.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: pdp11_mem70.vhd 333 2010-10-17 21:18:33Z mueller $
 --
--- Copyright 2008- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,9 +18,11 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+--
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-10-17   333   1.1    use ibus V2 interface
 -- 2008-08-22   161   1.0.2  rename ubf_ -> ibf_; use iblib
 -- 2008-02-23   118   1.0.1  use sys_conf_mem_losize; rename CACHE_ENA->_FMISS
 -- 2008-01-27   115   1.0    Initial version 
@@ -66,6 +68,10 @@ architecture syn of pdp11_mem70 is
   constant cntl_ibf_distrap  : integer :=  0;
 
   type regs_type is record              -- state registers
+    ibsel_cr : slbit;                   -- ibus select cntl
+    ibsel_hm : slbit;                   -- ibus select hitmiss
+    ibsel_ls : slbit;                   -- ibus select losize
+    ibsel_nn : slbit;                   -- ibus select others
     hm_data : slv6;                     -- hit/miss: data
     cr_frep : slv2;                     -- cntl: force replacement bits
     cr_fmiss : slv2;                    -- cntl: force miss bits
@@ -74,6 +80,7 @@ architecture syn of pdp11_mem70 is
   end record regs_type;
 
   constant regs_init : regs_type := (
+    '0','0','0','0',                    -- ibsel_*
     (others=>'0'),                      -- hm_data
     "00","00",                          -- cr_freq,_fmiss
     '0','0'                             -- dis(u)trap
@@ -98,59 +105,57 @@ begin
   proc_next: process (R_REGS, HM_ENA, HM_VAL, IB_MREQ)
     variable r : regs_type := regs_init;
     variable n : regs_type := regs_init;
-    variable ibsel_cr : slbit := '0';   -- control reg
-    variable ibsel_hm : slbit := '0';   -- hit/miss reg
-    variable ibsel_ls : slbit := '0';   -- low size reg
-    variable ibsel_nn : slbit := '0';   -- all other
-    variable ibsel : slbit := '0';
     variable idout : slv16 := (others=>'0');
+    variable ibreq : slbit := '0';
+    variable ibw0 : slbit := '0';
   begin
     
     r := R_REGS;
     n := R_REGS;
 
-    ibsel_cr := '0';
-    ibsel_hm := '0';
-    ibsel_ls := '0';
-    ibsel_nn := '0';
-    ibsel := '0';
     idout := (others=>'0');
+    ibreq := IB_MREQ.re or IB_MREQ.we;
+    ibw0  := IB_MREQ.we and IB_MREQ.be0;
 
-    if IB_MREQ.req = '1' then
+    -- ibus address decoder
+    n.ibsel_cr := '0';
+    n.ibsel_hm := '0';
+    n.ibsel_ls := '0';
+    n.ibsel_nn := '0';
+    if IB_MREQ.aval = '1' then
       if IB_MREQ.addr = ibaddr_cntl(12 downto 1) then
-        ibsel_cr := '1';
+        n.ibsel_cr := '1';
       end if;
       if IB_MREQ.addr = ibaddr_hm(12 downto 1) then
-        ibsel_hm := '1';
+        n.ibsel_hm := '1';
       end if;
       if IB_MREQ.addr = ibaddr_losize(12 downto 1) then
-        ibsel_ls := '1';
+        n.ibsel_ls := '1';
       end if;
       if IB_MREQ.addr=ibaddr_loaddr(12 downto 1) or
          IB_MREQ.addr=ibaddr_hiaddr(12 downto 1) or
          IB_MREQ.addr=ibaddr_syserr(12 downto 1) or
          IB_MREQ.addr=ibaddr_maint(12 downto 1)  or
          IB_MREQ.addr=ibaddr_hisize(12 downto 1) then
-        ibsel_nn := '1';
+        n.ibsel_nn := '1';
       end if;
     end if;
-
-    ibsel := ibsel_cr or ibsel_hm or ibsel_ls or ibsel_nn;
     
-    if ibsel_cr = '1' then
+    -- ibus transactions
+    if r.ibsel_cr = '1' then
       idout(cntl_ibf_frep)     := r.cr_frep;
       idout(cntl_ibf_fmiss)    := r.cr_fmiss;
       idout(cntl_ibf_disutrap) := r.cr_disutrap;
       idout(cntl_ibf_distrap)  := r.cr_distrap;
     end if;
-    if ibsel_hm = '1' then
+    if r.ibsel_hm = '1' then
       idout(r.hm_data'range)  := r.hm_data;
     end if;
-    if ibsel_ls = '1' then
+    if r.ibsel_ls = '1' then
       idout := conv_std_logic_vector(sys_conf_mem_losize,16);
     end if;
 
-    if ibsel_cr='1' and IB_MREQ.we='1' and IB_MREQ.be0='1' then
+    if r.ibsel_cr='1' and ibw0='1' then
       n.cr_frep     := IB_MREQ.din(cntl_ibf_frep);
       n.cr_fmiss    := IB_MREQ.din(cntl_ibf_fmiss);
       n.cr_disutrap := IB_MREQ.din(cntl_ibf_disutrap);
@@ -163,9 +168,10 @@ begin
 
     N_REGS <= n;
 
-    IB_SRES.ack  <= ibsel;
-    IB_SRES.busy <= '0';
     IB_SRES.dout <= idout;
+    IB_SRES.ack  <= (r.ibsel_cr or r.ibsel_hm or
+                     r.ibsel_ls or r.ibsel_nn) and ibreq;
+    IB_SRES.busy <= '0';
 
   end process proc_next;
 

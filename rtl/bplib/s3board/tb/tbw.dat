@@ -1,4 +1,4 @@
-# $Id: tbw.dat 311 2010-06-30 17:52:37Z mueller $
+# $Id: tbw.dat 290 2010-05-16 08:44:36Z mueller $
 #
 [tb_s3board_dummy]
 tb_rriext_fifo_rx = <fifo>

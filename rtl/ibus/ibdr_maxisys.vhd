@@ -1,4 +1,4 @@
--- $Id: ibdr_maxisys.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: ibdr_maxisys.vhd 335 2010-10-24 22:24:23Z mueller $
 --
 -- Copyright 2009-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -27,9 +27,16 @@
 --                 ib_intmap
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+--
+-- Synthesized (xst):
+-- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2010-10-17   333  12.1    M53 xc3s1000-4   312 1058   16  617 s 10.3
+-- 2010-10-17   314  12.1    M53 xc3s1000-4   300 1094   16  626 s 10.4
+--
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-10-23   335   1.1.1  rename RRI_LAM->RB_LAM;
 -- 2010-06-11   303   1.1    use IB_MREQ.racc instead of RRI_REQ
 -- 2009-07-12   233   1.0.4  reorder ports; add RESET, CE_USEC to _dl11
 -- 2009-06-20   227   1.0.3  rename generate labels.
@@ -79,7 +86,7 @@ entity ibdr_maxisys is                  -- ibus(rem) full system
     CE_MSEC : in slbit;                 -- msec pulse
     RESET : in slbit;                   -- reset
     BRESET : in slbit;                  -- ibus reset
-    RRI_LAM : out slv16_1;              -- remote attention vector
+    RB_LAM : out slv16_1;               -- remote attention vector
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response
     EI_ACKM : in slbit;                 -- interrupt acknowledge (from master)
@@ -110,16 +117,16 @@ architecture syn of ibdr_maxisys is
      intmap_init                        -- line  0
      );
 
-  signal RRI_LAM_DENUA  : slbit := '0';
-  signal RRI_LAM_RP06   : slbit := '0';
-  signal RRI_LAM_RL11   : slbit := '0';
-  signal RRI_LAM_RK11   : slbit := '0';
-  signal RRI_LAM_TM11   : slbit := '0';
-  signal RRI_LAM_DZ11   : slbit := '0';
-  signal RRI_LAM_DL11_0 : slbit := '0';
-  signal RRI_LAM_DL11_1 : slbit := '0';
-  signal RRI_LAM_PC11   : slbit := '0';
-  signal RRI_LAM_LP11   : slbit := '0';
+  signal RB_LAM_DENUA  : slbit := '0';
+  signal RB_LAM_RP06   : slbit := '0';
+  signal RB_LAM_RL11   : slbit := '0';
+  signal RB_LAM_RK11   : slbit := '0';
+  signal RB_LAM_TM11   : slbit := '0';
+  signal RB_LAM_DZ11   : slbit := '0';
+  signal RB_LAM_DL11_0 : slbit := '0';
+  signal RB_LAM_DL11_1 : slbit := '0';
+  signal RB_LAM_PC11   : slbit := '0';
+  signal RB_LAM_LP11   : slbit := '0';
 
   signal IB_SRES_IIST   : ib_sres_type := ib_sres_init;
   signal IB_SRES_KW11P  : ib_sres_type := ib_sres_init;
@@ -231,7 +238,7 @@ begin
         CLK     => CLK,
         CE_MSEC => CE_MSEC,
         BRESET  => BRESET,
-        RRI_LAM => RRI_LAM_RK11,
+        RB_LAM  => RB_LAM_RK11,
         IB_MREQ => IB_MREQ,
         IB_SRES => IB_SRES_RK11,
         EI_REQ  => EI_REQ_RK11,
@@ -245,7 +252,7 @@ begin
       CE_USEC   => CE_USEC,
       RESET     => RESET,
       BRESET    => BRESET,
-      RRI_LAM   => RRI_LAM_DL11_0,
+      RB_LAM    => RB_LAM_DL11_0,
       IB_MREQ   => IB_MREQ,
       IB_SRES   => IB_SRES_DL11_0,
       EI_REQ_RX => EI_REQ_DL11RX_0,
@@ -264,7 +271,7 @@ begin
         CE_USEC   => CE_USEC,
         RESET     => RESET,
         BRESET    => BRESET,
-        RRI_LAM   => RRI_LAM_DL11_1,
+        RB_LAM    => RB_LAM_DL11_1,
         IB_MREQ   => IB_MREQ,
         IB_SRES   => IB_SRES_DL11_1,
         EI_REQ_RX => EI_REQ_DL11RX_1,
@@ -281,7 +288,7 @@ begin
         CLK        => CLK,
         RESET      => RESET,
         BRESET     => BRESET,
-        RRI_LAM    => RRI_LAM_PC11,
+        RB_LAM     => RB_LAM_PC11,
         IB_MREQ    => IB_MREQ,
         IB_SRES    => IB_SRES_PC11,
         EI_REQ_PTR => EI_REQ_PC11PTR,
@@ -298,7 +305,7 @@ begin
         CLK     => CLK,
         RESET   => RESET,
         BRESET  => BRESET,
-        RRI_LAM => RRI_LAM_LP11,
+        RB_LAM  => RB_LAM_LP11,
         IB_MREQ => IB_MREQ,
         IB_SRES => IB_SRES_LP11,
         EI_REQ  => EI_REQ_LP11,
@@ -399,16 +406,16 @@ begin
   EI_ACK_PC11PTP  <= EI_ACK( 2);
   EI_ACK_LP11     <= EI_ACK( 1);
 
-  RRI_LAM(15 downto 11) <= (others=>'0'); 
-  RRI_LAM(10) <= RRI_LAM_PC11;
-  RRI_LAM( 9) <= RRI_LAM_DENUA;
-  RRI_LAM( 8) <= RRI_LAM_LP11;
-  RRI_LAM( 7) <= RRI_LAM_TM11;
-  RRI_LAM( 6) <= RRI_LAM_RP06;
-  RRI_LAM( 5) <= RRI_LAM_RL11;
-  RRI_LAM( 4) <= RRI_LAM_RK11;
-  RRI_LAM( 3) <= RRI_LAM_DZ11;
-  RRI_LAM( 2) <= RRI_LAM_DL11_1;
-  RRI_LAM( 1) <= RRI_LAM_DL11_0;
+  RB_LAM(15 downto 11) <= (others=>'0'); 
+  RB_LAM(10) <= RB_LAM_PC11;
+  RB_LAM( 9) <= RB_LAM_DENUA;
+  RB_LAM( 8) <= RB_LAM_LP11;
+  RB_LAM( 7) <= RB_LAM_TM11;
+  RB_LAM( 6) <= RB_LAM_RP06;
+  RB_LAM( 5) <= RB_LAM_RL11;
+  RB_LAM( 4) <= RB_LAM_RK11;
+  RB_LAM( 3) <= RB_LAM_DZ11;
+  RB_LAM( 2) <= RB_LAM_DL11_1;
+  RB_LAM( 1) <= RB_LAM_DL11_0;
     
 end syn;

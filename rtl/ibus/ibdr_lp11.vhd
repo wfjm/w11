@@ -1,4 +1,4 @@
--- $Id: ibdr_lp11.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: ibdr_lp11.vhd 335 2010-10-24 22:24:23Z mueller $
 --
 -- Copyright 2009-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,14 +18,17 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 10.1; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 10.1, 12.1; ghdl 0.18-0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2010-10-17   333  12.1    M53 xc3s1000-4    12   35    0   24 s  5.6
 -- 2009-07-11   232  10.1.03 K39 xc3s1000-4    11   30    0   19 s  5.8
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-10-23   335   1.2.1  rename RRI_LAM->RB_LAM;
+-- 2010-10-17   333   1.2    use ibus V2 interface
 -- 2010-06-11   303   1.1    use IB_MREQ.racc instead of RRI_REQ
 -- 2009-06-21   228   1.0.1  generate interrupt locally when err=1
 -- 2009-05-30   220   1.0    Initial version 
@@ -51,7 +54,7 @@ entity ibdr_lp11 is                     -- ibus dev(rem): LP11
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- system reset
     BRESET : in slbit;                  -- ibus reset
-    RRI_LAM : out slbit;                -- remote attention
+    RB_LAM : out slbit;                 -- remote attention
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response
     EI_REQ : out slbit;                 -- interrupt request
@@ -72,6 +75,7 @@ architecture syn of ibdr_lp11 is
   constant buf_ibf_val :   integer :=  8;
 
   type regs_type is record              -- state registers
+    ibsel : slbit;                      -- ibus select
     err : slbit;                        -- csr: error flag
     done : slbit;                       -- csr: done flag
     ie : slbit;                         -- csr: interrupt enable
@@ -80,6 +84,7 @@ architecture syn of ibdr_lp11 is
   end record regs_type;
 
   constant regs_init : regs_type := (
+    '0',                                -- ibsel
     '1',                                -- err  !! is set !!
     '1',                                -- done !! is set !!
     '0',                                -- ie
@@ -100,7 +105,7 @@ begin
         if RESET = '0' then               -- if RESET=0 we do just an ibus reset
           R_REGS.err <= N_REGS.err;         -- don't reset ERR flag
         end if;
-     else
+      else
         R_REGS <= N_REGS;
       end if;
     end if;
@@ -109,8 +114,8 @@ begin
   proc_next : process (R_REGS, IB_MREQ, EI_ACK)
     variable r : regs_type := regs_init;
     variable n : regs_type := regs_init;
-    variable ibsel : slbit := '0';
     variable idout : slv16 := (others=>'0');
+    variable ibreq : slbit := '0';
     variable ibrd : slbit := '0';
     variable ibw0 : slbit := '0';
     variable ilam : slbit := '0';
@@ -119,20 +124,21 @@ begin
     r := R_REGS;
     n := R_REGS;
 
-    ibsel := '0';
     idout := (others=>'0');
-    ibrd  := not IB_MREQ.we;
+    ibreq := IB_MREQ.re or IB_MREQ.we;
+    ibrd  := IB_MREQ.re;
     ibw0  := IB_MREQ.we and IB_MREQ.be0;
     ilam  := '0';
     
     -- ibus address decoder
-    if IB_MREQ.req='1' and
+    n.ibsel := '0';
+    if IB_MREQ.aval='1' and
        IB_MREQ.addr(12 downto 2)=ibaddr_lp11(12 downto 2) then
-      ibsel := '1';
+      n.ibsel := '1';
     end if;
 
     -- ibus transactions
-    if ibsel = '1' then
+    if r.ibsel = '1' then
       case IB_MREQ.addr(1 downto 1) is
 
         when ibaddr_csr =>              -- CSR -- control status -------------
@@ -193,11 +199,11 @@ begin
     N_REGS <= n;
 
     IB_SRES.dout <= idout;
-    IB_SRES.ack  <= ibsel;
+    IB_SRES.ack  <= r.ibsel and ibreq;
     IB_SRES.busy <= '0';
 
-    RRI_LAM <= ilam;
-    EI_REQ  <= r.intreq;
+    RB_LAM <= ilam;
+    EI_REQ <= r.intreq;
     
   end process proc_next;
 

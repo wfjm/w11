@@ -1,4 +1,4 @@
--- $Id: ibdlib.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: ibdlib.vhd 335 2010-10-24 22:24:23Z mueller $
 --
 -- Copyright 2008-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,9 +16,10 @@
 -- Description:    Definitions for ibus devices
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-10-23   335   1.1.1  rename RRI_LAM->RB_LAM;
 -- 2010-06-11   303   1.1    use IB_MREQ.racc instead of RRI_REQ
 -- 2009-07-12   233   1.0.5  add RESET, CE_USEC to _dl11, CE_USEC to _minisys
 -- 2009-06-07   224   1.0.4  add iist_mreq and iist_sreq;
@@ -120,7 +121,7 @@ component ibdr_rl11 is                  -- ibus dev(rem): RL11
   port (
     CLK : in slbit;                     -- clock
     BRESET : in slbit;                  -- ibus reset
-    RRI_LAM : out slbit;                -- remote attention
+    RB_LAM : out slbit;                 -- remote attention
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response
     EI_REQ : out slbit;                 -- interrupt request
@@ -134,7 +135,7 @@ component ibdr_rk11 is                  -- ibus dev(rem): RK11
     CLK : in slbit;                     -- clock
     CE_MSEC : in slbit;                 -- msec pulse
     BRESET : in slbit;                  -- ibus reset
-    RRI_LAM : out slbit;                -- remote attention
+    RB_LAM : out slbit;                 -- remote attention
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response
     EI_REQ : out slbit;                 -- interrupt request
@@ -147,7 +148,7 @@ component ibdr_tm11 is                  -- ibus dev(rem): TM11
   port (
     CLK : in slbit;                     -- clock
     BRESET : in slbit;                  -- ibus reset
-    RRI_LAM : out slbit;                -- remote attention
+    RB_LAM : out slbit;                 -- remote attention
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response
     EI_REQ : out slbit;                 -- interrupt request
@@ -162,7 +163,7 @@ component ibdr_dz11 is                  -- ibus dev(rem): DZ11
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- system reset
     BRESET : in slbit;                  -- ibus reset
-    RRI_LAM : out slbit;                -- remote attention
+    RB_LAM : out slbit;                 -- remote attention
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response
     EI_REQ_RX : out slbit;              -- interrupt request, receiver
@@ -180,7 +181,7 @@ component ibdr_dl11 is                  -- ibus dev(rem): DL11-A/B
     CE_USEC : in slbit;                 -- usec pulse
     RESET : in slbit;                   -- system reset
     BRESET : in slbit;                  -- ibus reset
-    RRI_LAM : out slbit;                -- remote attention
+    RB_LAM : out slbit;                 -- remote attention
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response
     EI_REQ_RX : out slbit;              -- interrupt request, receiver
@@ -196,7 +197,7 @@ component ibdr_pc11 is                  -- ibus dev(rem): PC11
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- system reset
     BRESET : in slbit;                  -- ibus reset
-    RRI_LAM : out slbit;                -- remote attention
+    RB_LAM : out slbit;                 -- remote attention
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response
     EI_REQ_PTR : out slbit;             -- interrupt request, reader
@@ -212,7 +213,7 @@ component ibdr_lp11 is                  -- ibus dev(rem): LP11
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- system reset
     BRESET : in slbit;                  -- ibus reset
-    RRI_LAM : out slbit;                -- remote attention
+    RB_LAM : out slbit;                 -- remote attention
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response
     EI_REQ : out slbit;                 -- interrupt request
@@ -238,7 +239,7 @@ component ibdr_minisys is               -- ibus(rem) minimal sys:SDR+KW+DL+RK
     CE_MSEC : in slbit;                 -- msec pulse
     RESET : in slbit;                   -- reset
     BRESET : in slbit;                  -- ibus reset
-    RRI_LAM : out slv16_1;              -- remote attention vector
+    RB_LAM : out slv16_1;               -- remote attention vector
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response
     EI_ACKM : in slbit;                 -- interrupt acknowledge (from master)
@@ -255,7 +256,7 @@ component ibdr_maxisys is               -- ibus(rem) full system
     CE_MSEC : in slbit;                 -- msec pulse
     RESET : in slbit;                   -- reset
     BRESET : in slbit;                  -- ibus reset
-    RRI_LAM : out slv16_1;              -- remote attention vector
+    RB_LAM : out slv16_1;               -- remote attention vector
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response
     EI_ACKM : in slbit;                 -- interrupt acknowledge (from master)

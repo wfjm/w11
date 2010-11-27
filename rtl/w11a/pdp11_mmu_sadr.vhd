@@ -1,6 +1,6 @@
--- $Id: pdp11_mmu_sadr.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: pdp11_mmu_sadr.vhd 336 2010-11-06 18:28:27Z mueller $
 --
--- Copyright 2006-2008 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,9 +19,12 @@
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+--
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-10-23   335   1.3.1  change proc_eaddr logic, shorten logic path
+-- 2010-10-17   333   1.3    use ibus V2 interface
 -- 2008-08-22   161   1.2.2  rename ubf_ -> ibf_; use iblib
 -- 2008-01-05   110   1.2.1  rename _mmu_regs -> _mmu_sadr
 --                           rename IB_MREQ(ena->req) SRES(sel->ack, hold->busy)
@@ -89,13 +92,13 @@ architecture syn of pdp11_mmu_sadr is
   signal SDR_AIB_WE : slbit := '0';     -- ...
   signal SDR_LOW_WE : slbit := '0';     -- ...
 
-  signal IBSEL_DR : slbit := '0';
-  signal IBSEL_AR : slbit := '0';
+  signal R_IBSEL_DR : slbit := '0';     -- DR's selected from ibus
+  signal R_IBSEL_AR : slbit := '0';     -- AR's selected from ibus
 
   signal SAF : slv16 := (others=>'0');  -- current SAF
   signal SLF : slv7 := (others=>'0');   -- current SLF
   signal AIB : slv2 := "00";            -- current AIB flags
-  signal NEXT_AIB : slv2 := "00";       -- next AIB flags
+  signal N_AIB : slv2 := "00";          -- next AIB flags
   signal ED_ACF : slv4 := "0000";       -- current ED & ACF
   
 begin
@@ -141,7 +144,7 @@ begin
       CLK  => CLK,
       WE   => SDR_AIB_WE,
       ADDR => SADR_ADDR,
-      DI   => NEXT_AIB,
+      DI   => N_AIB,
       DO   => AIB);
     
   SDR_LOW : ram_1swar_gen
@@ -155,68 +158,86 @@ begin
       DI   => IB_MREQ.din(sdr_ibf_acf),
       DO   => ED_ACF);
 
-  -- determibe IBSEL's and the address for accessing the SADR's
-  
-  proc_ibsel: process (IB_MREQ, MODE, ASN)
-    variable iaddr : slv6 := (others=>'0');
-    variable idr : slbit := '0';
-    variable iar : slbit := '0';
+  -- determine IBSEL's and the address for accessing the SADR's
+
+  proc_ibsel: process (CLK)
+    variable ibsel_dr : slbit := '0';
+    variable ibsel_ar : slbit := '0';
   begin
-    
-    iaddr := MODE & ASN;
-    idr := '0';
-    iar := '0';
-    
-    if IB_MREQ.req = '1' then
-      iaddr(5)          := IB_MREQ.addr(8);
-      iaddr(4)          := not IB_MREQ.addr(6);
-      iaddr(3 downto 0) := IB_MREQ.addr(4 downto 1);
-      if IB_MREQ.addr(12 downto 6)=ibaddr_kmdar(12 downto 6) or
-         IB_MREQ.addr(12 downto 6)=ibaddr_smdar(12 downto 6) or
-         IB_MREQ.addr(12 downto 6)=ibaddr_umdar(12 downto 6) then
-        if IB_MREQ.addr(5) = '0' then
-          idr := '1';
-        else
-          iar := '1';
+    if CLK'event and CLK='1' then
+      ibsel_dr := '0';
+      ibsel_ar := '0';
+      if IB_MREQ.aval = '1' then
+        if IB_MREQ.addr(12 downto 6)=ibaddr_kmdar(12 downto 6) or
+           IB_MREQ.addr(12 downto 6)=ibaddr_smdar(12 downto 6) or
+           IB_MREQ.addr(12 downto 6)=ibaddr_umdar(12 downto 6) then
+          if IB_MREQ.addr(5) = '0' then
+            ibsel_dr := '1';
+          else
+            ibsel_ar := '1';
+          end if;
         end if;
       end if;
+      R_IBSEL_DR <= ibsel_dr;
+      R_IBSEL_AR <= ibsel_ar;
     end if;
-    
-    SADR_ADDR    <= iaddr;
---  SADR_ADDR    <= iaddr(3) & iaddr(5 downto 4) & iaddr(2 downto 0);
-    IBSEL_DR     <= idr;
-    IBSEL_AR     <= iar;
-    IB_SRES.ack  <= idr or iar;
-    IB_SRES.busy <= '0';
-    
   end process proc_ibsel;
-
-  proc_ubdout : process (IBSEL_DR, IBSEL_AR, SAF, SLF, AIB, ED_ACF)    
+  
+  proc_ibres : process (R_IBSEL_DR, R_IBSEL_AR, IB_MREQ, SAF, SLF, AIB, ED_ACF)
     variable sarout : slv16 := (others=>'0');  -- IB sar out
     variable sdrout : slv16 := (others=>'0');  -- IB sdr out
   begin
 
     sarout := (others=>'0');
-    if IBSEL_AR = '1' then
+    if R_IBSEL_AR = '1' then
       sarout := SAF;
     end if;
     
     sdrout := (others=>'0');
-    if IBSEL_DR = '1' then
+    if R_IBSEL_DR = '1' then
       sdrout(sdr_ibf_slf) := SLF;
       sdrout(sdr_ibf_aib) := AIB;
       sdrout(sdr_ibf_acf) := ED_ACF;
     end if;
 
     IB_SRES.dout <= sarout or sdrout;
+    IB_SRES.ack  <= (R_IBSEL_DR or R_IBSEL_AR) and
+                    (IB_MREQ.re or IB_MREQ.we); -- ack all
+    IB_SRES.busy <= '0';
 
-  end process proc_ubdout;
+  end process proc_ibres;
 
-  proc_comb : process (IBSEL_AR, IBSEL_DR, IB_MREQ, AIB_WE, AIB_SETA, AIB_SETW,
+  -- the eaddr select should be done as early as possible, it is in the
+  -- mmu paadr logic path. Currently it's derived from 4 flops. If that's
+  -- to slow just use IB_MREQ.we or IB_MREQ.we, that should be sufficient
+  -- and reduce the eaddr mux to a 4-input LUT. Last resort is a 2 cycle ibus
+  -- access with a state flop marking the 2nd cycle of a re/we transaction.
+  
+  proc_eaddr: process (IB_MREQ, MODE, ASN)
+    variable eaddr : slv6 := (others=>'0');
+    variable idr : slbit := '0';
+    variable iar : slbit := '0';
+  begin
+    
+    eaddr := MODE & ASN;
+    
+    if (R_IBSEL_DR='1' or R_IBSEL_AR='1') and
+       (IB_MREQ.re='1' or IB_MREQ.we='1') then
+      eaddr(5)          := IB_MREQ.addr(8);
+      eaddr(4)          := not IB_MREQ.addr(6);
+      eaddr(3 downto 0) := IB_MREQ.addr(4 downto 1);
+    end if;
+    
+    SADR_ADDR    <= eaddr;
+
+  end process proc_eaddr;
+
+  proc_comb : process (R_IBSEL_AR, R_IBSEL_DR, IB_MREQ, AIB_WE,
+                       AIB_SETA, AIB_SETW,
                        SAF, SLF, AIB, ED_ACF)
   begin 
 
-    NEXT_AIB <= "00";
+    N_AIB <= "00";
     SAR_HIGH_WE <= '0';
     SAR_LOW_WE <= '0';
     SDR_SLF_WE <= '0';
@@ -224,7 +245,7 @@ begin
     SDR_LOW_WE <= '0';
     
     if IB_MREQ.we = '1' then
-      if IBSEL_AR = '1' then
+      if R_IBSEL_AR = '1' then
         if IB_MREQ.be1 = '1' then
           SAR_HIGH_WE <= '1';
         end if;
@@ -233,7 +254,7 @@ begin
         end if;
       end if;
 
-      if IBSEL_DR = '1' then
+      if R_IBSEL_DR = '1' then
         if IB_MREQ.be1 = '1' then
           SDR_SLF_WE <= '1';
         end if;
@@ -242,15 +263,15 @@ begin
         end if;
       end if;
 
-      if (IBSEL_AR or IBSEL_DR)='1' then
-        NEXT_AIB <= "00";
+      if (R_IBSEL_AR or R_IBSEL_DR)='1' then
+        N_AIB <= "00";
         SDR_AIB_WE <= '1';
       end if;
     end if;
 
     if AIB_WE = '1' then
-      NEXT_AIB(0) <= AIB(0) or AIB_SETW;
-      NEXT_AIB(1) <= AIB(1) or AIB_SETA;
+      N_AIB(0) <= AIB(0) or AIB_SETW;
+      N_AIB(1) <= AIB(1) or AIB_SETA;
       SDR_AIB_WE  <= '1';
     end if;
 

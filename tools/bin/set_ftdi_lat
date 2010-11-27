@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: set_ftdi_lat 311 2010-06-30 17:52:37Z mueller $
+# $Id: set_ftdi_lat 282 2010-04-24 12:08:32Z mueller $
 #
 # Usage: sudo $HOME/other/retro/trunk/bin/set_ftdi_lat USB0 1
 #

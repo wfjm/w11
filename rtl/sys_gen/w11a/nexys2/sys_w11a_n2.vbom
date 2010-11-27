@@ -1,5 +1,6 @@
 # libs
 ../../../vlib/slvtypes.vhd
+../../../vlib/xlib/xlib.vhd
 ../../../vlib/genlib/genlib.vhd
 ../../../vlib/rri/rrilib.vhd
 ../../../bplib/s3board/s3boardlib.vbom
@@ -9,6 +10,8 @@
 ../../../w11a/pdp11.vhd
 sys_conf = sys_conf.vhd
 # components
+[xst,isim]../../../vlib/xlib/dcm_sp_sfs_unisim.vbom
+[ghdl]../../../vlib/xlib/dcm_sp_sfs_gsim.vbom
 ../../../vlib/genlib/clkdivce.vbom
 ../../../bplib/s3board/s3_rs232_iob_int_ext.vbom
 ../../../bplib/s3board/s3_humanio_rri.vbom

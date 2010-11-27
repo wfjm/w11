@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tmuconv 314 2010-07-09 17:38:41Z mueller $
+# $Id: tmuconv 334 2010-10-23 08:24:24Z mueller $
 #
 # Copyright 2008-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2010-10-22   334   1.0.9  adapt to ibus V2 signals: req,we,dip->aval,re,we,rmw
 # 2010-06-26   309   1.0.8  add ibimres.cacc/racc handling
 # 2010-04-26   284   1.0.7  add error check for GetOptions
 # 2009-09-19   240   1.0.6  add more VFETCH addr defs; add 2nd DL11 defs
@@ -40,11 +41,12 @@
 #   dp.gpr_mode:o
 #   dp.gpr_bytop:b
 #   dp.gpr_we:b
-#   vm.ibmreq.req:b
+#   vm.ibmreq.aval:b
+#   vm.ibmreq.re:b
 #   vm.ibmreq.we:b
+#   vm.ibmreq.rmw:b
 #   vm.ibmreq.be0:b
 #   vm.ibmreq.be1:b
-#   vm.ibmreq.dip:b
 #   vm.ibmreq.cacc:b
 #   vm.ibmreq.racc:b
 #   vm.ibmreq.addr:o
@@ -108,8 +110,10 @@ my $ind_dp_gpr_mode;
 my $ind_dp_gpr_bytop;
 my $ind_dp_gpr_we;
 
-my $ind_vm_ibmreq_req;
+my $ind_vm_ibmreq_aval;
+my $ind_vm_ibmreq_re;
 my $ind_vm_ibmreq_we;
+my $ind_vm_ibmreq_rmw;
 my $ind_vm_ibmreq_be0;
 my $ind_vm_ibmreq_be1;
 my $ind_vm_ibmreq_cacc;
@@ -463,8 +467,10 @@ sub do_file {
       $ind_dp_gpr_bytop     = $name{'dp.gpr_bytop'}->{ind};
       $ind_dp_gpr_we        = $name{'dp.gpr_we'}->{ind};
 
-      $ind_vm_ibmreq_req    = $name{'vm.ibmreq.req'}->{ind};
+      $ind_vm_ibmreq_aval   = $name{'vm.ibmreq.aval'}->{ind};
+      $ind_vm_ibmreq_re     = $name{'vm.ibmreq.re'}->{ind};
       $ind_vm_ibmreq_we     = $name{'vm.ibmreq.we'}->{ind};
+      $ind_vm_ibmreq_rmw    = $name{'vm.ibmreq.rmw'}->{ind};
       $ind_vm_ibmreq_be0    = $name{'vm.ibmreq.be0'}->{ind};
       $ind_vm_ibmreq_be1    = $name{'vm.ibmreq.be1'}->{ind};
       $ind_vm_ibmreq_cacc   = $name{'vm.ibmreq.cacc'}->{ind};
@@ -685,19 +691,20 @@ sub do_file {
       }
 #
 # handle t_ib
-#   uses cycles with sy_ibmreq_req = '1'
+#   uses cycles with sy_ibmreq_re = '1' or sy_ibmreq_we = '1'
 #                    sy_ibsres_ack = '1'
 #                    vm_ibsres_busy '1' -> '0' transition
 #
       if (exists $opts{t_ib}) {
-	if ($val_curr[$ind_vm_ibmreq_req]) {
+	if ($val_curr[$ind_vm_ibmreq_re] || $val_curr[$ind_vm_ibmreq_we]) {
 	  my $addr_str = sprintf "%6.6o", $val_curr[$ind_vm_ibmreq_addr];
 	  $ibreq_cyc = $cyc_curr;
 	  $ibreq_typ = sprintf "%s%s",
 	                 ($val_curr[$ind_vm_ibmreq_cacc] ? "c" : "-"),
 	                 ($val_curr[$ind_vm_ibmreq_racc] ? "r" : "-");
-	  $ibreq_str = sprintf "%s %s%s   %s",
-	                 ($val_curr[$ind_vm_ibmreq_we] ? "w" : "r"),
+	  $ibreq_str = sprintf "%s%s%s%s   %s",
+	                 ($val_curr[$ind_vm_ibmreq_we]  ? "w" : "r"),
+                         ($val_curr[$ind_vm_ibmreq_rmw] ? "m" : " "),
 	                 $val_curr[$ind_vm_ibmreq_be1],
 	                 $val_curr[$ind_vm_ibmreq_be0],
 	                 $addr_str;

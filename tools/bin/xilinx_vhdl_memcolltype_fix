@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: xilinx_vhdl_memcolltype_fix 311 2010-06-30 17:52:37Z mueller $
+# $Id: xilinx_vhdl_memcolltype_fix 93 2007-10-28 21:24:44Z mueller $
 #
 # remove the lines
 #

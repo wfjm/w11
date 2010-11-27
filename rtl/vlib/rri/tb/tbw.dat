@@ -1,4 +1,4 @@
-# $Id: tbw.dat 311 2010-06-30 17:52:37Z mueller $
+# $Id: tbw.dat 81 2007-09-09 20:50:42Z mueller $
 #
 [tb_rri_core]
 tb_rri_stim = tb_rri_stim.dat

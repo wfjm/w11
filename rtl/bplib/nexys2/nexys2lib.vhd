@@ -1,4 +1,4 @@
--- $Id: nexys2lib.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: nexys2lib.vhd 338 2010-11-13 22:19:25Z mueller $
 --
 -- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,9 +16,12 @@
 -- Description:    Nexys 2 components
 -- 
 -- Dependencies:   -
--- Tool versions:  xst 11.4; ghdl 0.26
+-- Tool versions:  xst 11.4, 12.1; ghdl 0.26-0.29
+--
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-11-13   338   1.0.2  add O_CLKSYS to aif's (DCM derived system clock)
+-- 2010-11-06   336   1.0.4  rename input pin CLK -> I_CLK50
 -- 2010-05-28   295   1.0.3  use _ADV_N also for n2_cram_dummy
 -- 2010-05-23   294   1.0.2  add n2_cram_dummy;
 -- 2010-05-23   293   1.0.1  use _ADV_N rather _ADV; add generic for memctl
@@ -34,7 +37,8 @@ package nexys2lib is
 
 component nexys2_aif is                 -- NEXYS 2, abstract iface, base
   port (
-    CLK : in slbit;                     -- clock
+    I_CLK50 : in slbit;                 -- 50 MHz board clock
+    O_CLKSYS : out slbit;               -- DCM derived system clock
     I_RXD : in slbit;                   -- receive data (board view)
     O_TXD : out slbit;                  -- transmit data (board view)
     I_SWI : in slv8;                    -- s3 switches
@@ -58,7 +62,8 @@ end component;
 
 component nexys2_fusp_aif is           -- NEXYS 2, abstract iface, base+fusp
   port (
-    CLK : in slbit;                     -- clock
+    I_CLK50 : in slbit;                 -- 50 MHz board clock
+    O_CLKSYS : out slbit;               -- DCM derived system clock
     I_RXD : in slbit;                   -- receive data (board view)
     O_TXD : out slbit;                  -- transmit data (board view)
     I_SWI : in slv8;                    -- s3 switches

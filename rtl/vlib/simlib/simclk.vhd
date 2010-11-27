@@ -1,4 +1,4 @@
--- $Id: simclk.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: simclk.vhd 338 2010-11-13 22:19:25Z mueller $
 --
 -- Copyright 2007-2008 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Test bench:     -
 -- Target Devices: generic
 -- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+--
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2008-03-24   129   1.0.2  CLK_CYCLE now 31 bits
@@ -45,7 +46,7 @@ end entity simclk;
 architecture sim of simclk is
 begin
 
-  clk_proc: process
+  proc_clk: process
     constant clock_halfperiod : time := PERIOD/2;
     variable icycle : slv31 := (others=>'0');
   begin
@@ -73,6 +74,6 @@ begin
     
     wait;                               -- endless wait, simulator will stop
     
-  end process;
+  end process proc_clk;
 
 end sim;

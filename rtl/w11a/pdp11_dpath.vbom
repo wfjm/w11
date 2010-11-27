@@ -5,9 +5,9 @@ pdp11.vbom
 # components
 pdp11_gpr.vbom
 pdp11_psr.vbom
-pdp11_abox.vbom
-pdp11_dbox.vbom
-pdp11_lbox.vbom
-pdp11_mbox.vbom
+pdp11_ounit.vbom
+pdp11_aunit.vbom
+pdp11_lunit.vbom
+pdp11_munit.vbom
 # design
 pdp11_dpath.vhd

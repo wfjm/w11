@@ -1,0 +1,13 @@
+# libs
+../../slvtypes.vhd
+../../simlib/simlib.vhd
+../../simlib/simbus.vhd
+rritblib.vhd
+vhpi_rriext.vhd
+# components
+../../simlib/simclk.vbom
+../../simlib/simclkcnt.vbom
+# vhpi
+cext_rriext.c
+# design
+rritb_core_dcm.vhd

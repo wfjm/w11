@@ -1,4 +1,4 @@
--- $Id: pdp11_vmbox.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: pdp11_vmbox.vhd 335 2010-10-24 22:24:23Z mueller $
 --
 -- Copyright 2006-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,12 +19,17 @@
 --                 pdp11_ubmap
 --                 ibus/ib_sres_or_4
 --                 ibus/ib_sres_or_2
+--                 ibus/ib_sel
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
 -- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+--
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-10-23   335   1.6.2  add r.paddr_iopage, use ib_sel
+-- 2010-10-22   334   1.6.1  deassert ibus be's at end-cycle; fix rmw logic
+-- 2010-10-17   333   1.6    implement ibus V2 interface
 -- 2010-06-27   310   1.5    redo ibus driver logic, now ibus driven from flops
 -- 2010-06-20   307   1.4.2  rename cpacc to cacc in vm_cntl_type, mmu_cntl_type
 -- 2010-06-18   306   1.4.1  for cpacc: set cacc in ib_mreq, forward racc,be
@@ -118,14 +123,14 @@ architecture syn of pdp11_vmbox is
     trap_mmu : slbit;                   -- mmu trace trap requested
     mdin : slv16;                       -- data input (memory order)
     paddr : slv22;                      -- physical address register
+    paddr_iopage : slv9;                -- iopage base (upper 9 bits of paddr)
     atocnt : slv(atowidth-1 downto 0);  -- access timeout counter
-    ibreq : slbit;                      -- ibus req signal
+    ibre : slbit;                       -- ibus re signal
     ibwe : slbit;                       -- ibus we signal
     ibbe : slv2;                        -- ibus be0,be1 signals
-    ibdip : slbit;                      -- ibus dip signal
+    ibrmw : slbit;                      -- ibus rmw signal
     ibcacc : slbit;                     -- ibus cacc signal
     ibracc : slbit;                     -- ibus racc signal
-    ibaddr : slv13_1;                   -- ibus addr signal
     ibdout : slv16;                     -- ibus dout register
   end record regs_type;
 
@@ -136,10 +141,10 @@ architecture syn of pdp11_vmbox is
     '0','0','0','0',                    -- kstack,ysv,vaok,trap_mmu
     (others=>'0'),                      -- mdin
     (others=>'0'),                      -- paddr
+    (others=>'0'),                      -- paddr_iopage
     atocnt_init,                        -- atocnt
-    '0','0',"00",                       -- ibreq,ibwe,ibbe
-    '0','0','0',                        -- ibdip,ibcacc,ibracc
-    (others=>'0'),                      -- ibaddr
+    '0','0',"00",                       -- ibre,ibwe,ibbe
+    '0','0','0',                        -- ibrmw,ibcacc,ibracc
     (others=>'0')                       -- ibdout
   );
 
@@ -190,7 +195,7 @@ begin
       IB_SRES => IB_SRES_UBMAP
     );
 
-  IB_SRES_OR_INT : ib_sres_or_4
+  SRES_OR_INT : ib_sres_or_4
     port map (
       IB_SRES_1  => IB_SRES_CPU,
       IB_SRES_2  => IB_SRES_SLIM,
@@ -199,41 +204,40 @@ begin
       IB_SRES_OR => IB_SRES_INT
     );
 
-  IB_SRES_OR_ALL : ib_sres_or_2
+  SRES_OR_ALL : ib_sres_or_2
     port map (
       IB_SRES_1  => IB_SRES_INT,
       IB_SRES_2  => IB_SRES_EXT,
       IB_SRES_OR => IB_SRES
     );
 
-  proc_ibsel: process (IB_MREQ)
-    variable islim : slbit := '0';
-  begin
-    islim := '0';
-    if IB_MREQ.req='1' and IB_MREQ.addr=ibaddr_slim(12 downto 1) then
-      islim := '1';
-    end if;
-    IBSEL_SLIM        <= islim;
-    IB_SRES_SLIM.ack  <= islim;
-    IB_SRES_SLIM.busy <= '0';
-  end process proc_ibsel;
+  SEL : ib_sel
+    generic map (
+      IB_ADDR => ibaddr_slim)
+    port map (
+      CLK     => CLK,
+      IB_MREQ => IB_MREQ,
+      SEL     => IBSEL_SLIM
+    );
 
-  proc_ibdout : process (IBSEL_SLIM, R_SLIM)
-    variable slimout : slv16 := (others=>'0');
+  proc_ibres : process (IBSEL_SLIM, IB_MREQ, R_SLIM)
+    variable idout : slv16 := (others=>'0');
   begin
-    slimout := (others=>'0');
+    idout := (others=>'0');
     if IBSEL_SLIM = '1' then
-      slimout(ibf_byte1) := R_SLIM;
+      idout(ibf_byte1) := R_SLIM;
     end if;
-    IB_SRES_SLIM.dout <= slimout;
-  end process proc_ibdout;
+    IB_SRES_SLIM.dout <= idout;
+    IB_SRES_SLIM.ack  <= IBSEL_SLIM and (IB_MREQ.re or IB_MREQ.we); -- ack all
+    IB_SRES_SLIM.busy <= '0';
+  end process proc_ibres;
 
   proc_slim: process (CLK)
   begin
     if CLK'event and CLK='1' then
       if BRESET = '1' then
         R_SLIM <= (others=>'0');
-      elsif IB_MREQ.we='1' and IBSEL_SLIM='1' then
+      elsif IBSEL_SLIM='1' and IB_MREQ.we='1' then
         if IB_MREQ.be1 = '1' then
           R_SLIM <= IB_MREQ.din(ibf_byte1);
         end if;
@@ -261,9 +265,13 @@ begin
 
     variable ivm_stat : vm_stat_type := vm_stat_init;
     variable ivm_dout : slv16 := (others=>'0');
-    variable ipaddr   : slv22 := (others=>'0');
     variable iem_mreq : em_mreq_type := em_mreq_init;
     variable immu_cntl : mmu_cntl_type := mmu_cntl_init;
+
+    variable ipaddr        : slv22 := (others=>'0');
+    variable ipaddr_iopage : slv9 := (others=>'0');
+
+    variable iib_aval : slbit := '0';
     
     variable ato_go : slbit := '0';
     variable ato_end : slbit := '0';
@@ -279,7 +287,6 @@ begin
     constant c_paddr_sel_cacc   : slv2 := "10";
     constant c_paddr_sel_ubmap  : slv2 := "11";
 
-    variable paddr_iopage : slv9 := (others=>'0');
     
   begin
     
@@ -292,6 +299,8 @@ begin
     ivm_dout  := EM_SRES.dout;
     immu_cntl := mmu_cntl_init;
 
+    iib_aval  := '0';
+    
     iem_mreq  := em_mreq_init;
     iem_mreq.din  := VM_DIN;
 
@@ -323,17 +332,22 @@ begin
       end if;
     end if;
 
-    paddr_iopage := "111111111";        -- iopage match pattern (for 22 bit)
-    if r.cacc = '1' then
+    -- the iopage base is determined based on mmu regs and request type
+    -- r.paddr_iopage is updated during s_idle. This way the iopage base
+    -- address is determined in parallel to paddr and latched at end of s_idle.
+    -- Note: is VM_CNTL.cacc here, the status in s_idle is relevant !
+    
+    ipaddr_iopage := "111111111";       -- iopage match pattern (for 22 bit)
+    if VM_CNTL.cacc = '1' then
       if CP_ADDR.ena_22bit = '0' then
-        paddr_iopage := "000000111";    -- 16 bit cacc
+        ipaddr_iopage := "000000111";   -- 16 bit cacc
       end if;
     else
       if MMU_STAT.ena_mmu = '0' then
-        paddr_iopage := "000000111";    -- 16 bit mode
+        ipaddr_iopage := "000000111";   -- 16 bit mode
       else
         if MMU_STAT.ena_22bit = '0' then
-          paddr_iopage := "000011111";  -- 18 bit mode
+          ipaddr_iopage := "000011111"; -- 18 bit mode
         end if;
       end if;
     end if;
@@ -418,10 +432,11 @@ begin
           n.state := s_idle;
 
         else
-          if r.paddr(21 downto 13) = paddr_iopage then
+          if r.paddr(21 downto 13) = r.paddr_iopage then
                                              -- I/O page decoded
             iem_mreq.cancel  := '1';         -- cancel pending mem request
-            n.ibreq  := '1';                 -- setup ibus request
+            iib_aval := '1';                 -- declare ibus addr valid
+            n.ibre   := not r.wacc;
             n.ibwe   := r.wacc;
             n.ibcacc := r.cacc;
             n.ibracc := r.cacc and CP_ADDR.racc;
@@ -437,8 +452,7 @@ begin
                 end if;
               end if;
             end if;
-            n.ibdip  := r.macc;
-            n.ibaddr := r.paddr(12 downto 1);
+            n.ibrmw  := r.macc;
             n.state  := s_ib_w;
 
           else
@@ -471,19 +485,35 @@ begin
       when s_ib_w =>                    -- s_ib_w: wait for ibus -------------
         ato_go := '1';                    -- activate timeout counter
 
-        n.ibreq := '0';                   -- end cycle, unless busy seen
-        n.ibwe  := '0';
-        
+        iib_aval := '1';                  -- declare ibus addr valid
+
+        n.ibre   := '0';                  -- end cycle, unless busy seen
+        n.ibwe   := '0';
+        n.ibrmw  := '0';
+        n.ibbe   := "00";
+        n.ibcacc := '0';
+        n.ibracc := '0';
+          
         if IB_SRES.ack='1' and IB_SRES.busy='0' then -- ibus cycle finished
           if r.wacc = '1' then
             n.state := s_ib_wend;
           else
+            if r.macc = '1' then          -- if first part of rmw
+              n.ibrmw  := r.macc;           -- keep rmw 
+              n.ibbe   := r.ibbe;           -- keep be's
+              n.ibcacc := r.ibcacc;
+              n.ibracc := r.ibracc;
+            end if;
             n.ibdout := IB_SRES.dout;
             n.state  := s_ib_rend;
           end if;
         elsif IB_SRES.busy='1' and ato_end='0' then
-          n.ibreq := r.ibreq;             -- continue ibus cycle
-          n.ibwe  := r.ibwe;
+          n.ibre   := r.ibre;             -- continue ibus cycle
+          n.ibwe   := r.ibwe;
+          n.ibrmw  := r.ibrmw;
+          n.ibbe   := r.ibbe;
+          n.ibcacc := r.ibcacc;
+          n.ibracc := r.ibracc;
           n.state := s_ib_w;
         else
           n.state := s_errib;
@@ -496,7 +526,8 @@ begin
       when s_ib_rend =>                 -- s_ib_rend: ibus read completion ---
         ivm_stat.ack := '1';
         ivm_dout := r.ibdout;
-        if r.macc='1' and r.wacc='0' then -- first part of read-mod-write
+        if r.macc='1' then                -- first part of read-mod-write
+          iib_aval := '1';                  -- keep ibus addr valid
           n.state := s_idle_mw_ib;
         else
           n.state := s_idle;
@@ -504,6 +535,7 @@ begin
 
       when s_idle_mw_ib =>              -- s_idle_mw_ib: wait macc write (ibus)
         n.state := s_idle_mw_ib;
+        iib_aval := '1';                  -- keep ibus addr valid
         if r.ibbe = "10" then
           iem_mreq.din(ibf_byte1) := VM_DIN(ibf_byte0);
         end if;
@@ -514,7 +546,6 @@ begin
           if VM_CNTL.wacc='0' or VM_CNTL.macc='0' then
             n.state := s_fail;
           else
-            n.ibreq := '1';                 -- start ibus write cycle
             n.ibwe  := '1';                 -- Note: all other ibus drivers
                                             --   already set in 1st part
             n.state := s_ib_w;
@@ -614,7 +645,8 @@ begin
     end if;
 
     if r.state = s_idle then
-      n.paddr  := ipaddr;
+      n.paddr        := ipaddr;
+      n.paddr_iopage := ipaddr_iopage;
     end if;
     
     iem_mreq.addr := ipaddr(21 downto 1);
@@ -623,14 +655,15 @@ begin
 
     UBMAP_MREQ <= iubmap_mreq;
 
-    IB_MREQ.req  <= r.ibreq;
+    IB_MREQ.aval <= iib_aval;
+    IB_MREQ.re   <= r.ibre;
     IB_MREQ.we   <= r.ibwe;
     IB_MREQ.be0  <= r.ibbe(0);
     IB_MREQ.be1  <= r.ibbe(1);
-    IB_MREQ.dip  <= r.ibdip;
+    IB_MREQ.rmw  <= r.ibrmw;
     IB_MREQ.cacc <= r.ibcacc;
     IB_MREQ.racc <= r.ibracc;
-    IB_MREQ.addr <= r.ibaddr;
+    IB_MREQ.addr <= r.paddr(12 downto 1);
     IB_MREQ.din  <= r.mdin;
     
     VM_DOUT  <= ivm_dout;    

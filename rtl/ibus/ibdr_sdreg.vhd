@@ -1,4 +1,4 @@
--- $Id: ibdr_sdreg.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: ibdr_sdreg.vhd 335 2010-10-24 22:24:23Z mueller $
 --
 -- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,14 +18,16 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 10.1; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 10.1, 12.1; ghdl 0.18-0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2010-10-17   333  12.1    M53 xc3s1000-4    34   40    0   30 s  4.0
 -- 2009-07-11   232  10.1.03 K39 xc3s1000-4    32   39    0   29 s  2.5
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-10-17   333   1.2    use ibus V2 interface
 -- 2010-06-11   303   1.1    use IB_MREQ.racc instead of RRI_REQ
 -- 2008-08-22   161   1.0.4  use iblib
 -- 2008-04-18   136   1.0.3  use RESET. Switch/Display not cleared by console
@@ -60,13 +62,15 @@ architecture syn of ibdr_sdreg is
   constant ibaddr_sdreg : slv16 := conv_std_logic_vector(8#177570#,16);
 
   type regs_type is record              -- state registers
+    ibsel : slbit;                      -- ibus select
     sreg : slv16;                       -- switch register
     dreg : slv16;                       -- display register
   end record regs_type;
 
   constant regs_init : regs_type := (
-    (others=>'0'),
-    (others=>'0')
+    '0',                                -- ibsel
+    (others=>'0'),                      -- sreg
+    (others=>'0')                       -- dreg
   );
 
   signal R_REGS : regs_type := regs_init;
@@ -79,7 +83,7 @@ begin
     if CLK'event and CLK='1' then
       if RESET = '1' then
         R_REGS <= regs_init;
-     else
+      else
         R_REGS <= N_REGS;
       end if;
     end if;
@@ -88,23 +92,25 @@ begin
   proc_next : process (R_REGS, IB_MREQ)
     variable r : regs_type := regs_init;
     variable n : regs_type := regs_init;
-    variable ibsel : slbit := '0';
     variable idout : slv16 := (others=>'0');
+    variable ibreq : slbit := '0';
   begin
 
     r := R_REGS;
     n := R_REGS;
 
-    ibsel := '0';
     idout := (others=>'0');
-    
+    ibreq := IB_MREQ.re or IB_MREQ.we;
+
     -- ibus address decoder
-    if IB_MREQ.req='1' and IB_MREQ.addr=ibaddr_sdreg(12 downto 1) then
-      ibsel := '1';
+    n.ibsel := '0';
+    if IB_MREQ.aval='1' and
+       IB_MREQ.addr=ibaddr_sdreg(12 downto 1) then
+      n.ibsel := '1';
     end if;
 
     -- ibus output driver
-    if ibsel = '1' then
+    if r.ibsel = '1' then
       if IB_MREQ.racc = '0' then
         idout := r.sreg;             -- cpu will read switch register
       else
@@ -113,7 +119,7 @@ begin
     end if;
 
     -- ibus write transactions
-    if ibsel='1' and IB_MREQ.we='1' then
+    if r.ibsel='1' and IB_MREQ.we='1' then
       if IB_MREQ.racc = '0' then     -- cpu will write display register
         if IB_MREQ.be1 = '1' then
           n.dreg(ibf_byte1) := IB_MREQ.din(ibf_byte1);
@@ -129,7 +135,7 @@ begin
     N_REGS <= n;
 
     IB_SRES.dout <= idout;
-    IB_SRES.ack  <= ibsel;
+    IB_SRES.ack  <= r.ibsel and ibreq;
     IB_SRES.busy <= '0';
     
     DISPREG <= r.dreg;

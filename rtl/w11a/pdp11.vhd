@@ -1,4 +1,4 @@
--- $Id: pdp11.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: pdp11.vhd 335 2010-10-24 22:24:23Z mueller $
 --
 -- Copyright 2006-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,9 @@
 -- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4; ghdl 0.18-0.26
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-10-23   335   1.4.6  rename RRI_LAM->RB_LAM;
+-- 2010-10-16   332   1.4.5  renames of pdp11_du_drv port names
+-- 2010-09-18   330   1.4.4  rename (adlm)box->(oalm)unit
 -- 2010-06-20   308   1.4.3  add c_ibrb_ibf_ def's
 -- 2010-06-20   307   1.4.2  rename cpacc to cacc in vm_cntl_type, mmu_cntl_type
 -- 2010-06-18   306   1.4.1  add racc, be to cp_addr_type; rm pdp11_ibdr_rri
@@ -140,27 +143,27 @@ package pdp11 is
     ddst_we : slbit;                    -- dst data register write enable
     dtmp_sel : slv2;                    -- tmp data register source select
     dtmp_we : slbit;                    -- tmp data register write enable
-    abox_asel : slv2;                   -- abox a port selector
-    abox_azero : slbit;                 -- abox a port force zero
-    abox_const : slv9;                  -- abox b port const
-    abox_bsel : slv2;                   -- abox b port selector
-    abox_opsub : slbit;                 -- abox operation
-    dbox_srcmod : slv2;                 -- dbox src port modifier
-    dbox_dstmod : slv2;                 -- dbox dst port modifier
-    dbox_cimod : slv2;                  -- dbox ci port modifier
-    dbox_cc1op : slbit;                 -- dbox use cc modes (1 op instruction)
-    dbox_ccmode : slv3;                 -- dbox cc port mode
-    dbox_bytop : slbit;                 -- dbox byte operation
-    lbox_func : slv4;                   -- lbox function
-    lbox_bytop : slbit;                 -- lbox byte operation
-    mbox_func : slv2;                   -- mbox function
-    mbox_s_div : slbit;                 -- mbox s_opg_div state
-    mbox_s_div_cn : slbit;              -- mbox s_opg_div_cn state
-    mbox_s_div_cr : slbit;              -- mbox s_opg_div_cr state
-    mbox_s_ash : slbit;                 -- mbox s_opg_ash state
-    mbox_s_ash_cn : slbit;              -- mbox s_opg_ash_cn state
-    mbox_s_ashc : slbit;                -- mbox s_opg_ashc state
-    mbox_s_ashc_cn : slbit;             -- mbox s_opg_ashc_cn state
+    ounit_asel : slv2;                  -- ounit a port selector
+    ounit_azero : slbit;                -- ounit a port force zero
+    ounit_const : slv9;                 -- ounit b port const
+    ounit_bsel : slv2;                  -- ounit b port selector
+    ounit_opsub : slbit;                -- ounit operation
+    aunit_srcmod : slv2;                -- aunit src port modifier
+    aunit_dstmod : slv2;                -- aunit dst port modifier
+    aunit_cimod : slv2;                 -- aunit ci port modifier
+    aunit_cc1op : slbit;                -- aunit use cc modes (1 op instruction)
+    aunit_ccmode : slv3;                -- aunit cc port mode
+    aunit_bytop : slbit;                -- aunit byte operation
+    lunit_func : slv4;                  -- lunit function
+    lunit_bytop : slbit;                -- lunit byte operation
+    munit_func : slv2;                  -- munit function
+    munit_s_div : slbit;                -- munit s_opg_div state
+    munit_s_div_cn : slbit;             -- munit s_opg_div_cn state
+    munit_s_div_cr : slbit;             -- munit s_opg_div_cr state
+    munit_s_ash : slbit;                -- munit s_opg_ash state
+    munit_s_ash_cn : slbit;             -- munit s_opg_ash_cn state
+    munit_s_ashc : slbit;               -- munit s_opg_ashc state
+    munit_s_ashc_cn : slbit;            -- munit s_opg_ashc_cn state
     ireg_we : slbit;                    -- ireg register write enable
     cres_sel : slv3;                    -- result bus (cres) select
     dres_sel : slv3;                    -- result bus (dres) select
@@ -172,10 +175,10 @@ package pdp11 is
     "000","000","00",'0','0','0','0',   -- gpr
     '0','0',"000",                      -- psr
     '0','0','0','0',"00",'0',           -- dsrc,..,dtmp
-    "00",'0',"000000000","00",'0',      -- abox
-    "00","00","00",'0',"000",'0',       -- dbox
-    "0000",'0',                         -- lbox
-    "00",'0','0','0','0','0','0','0',   -- mbox
+    "00",'0',"000000000","00",'0',      -- ounit
+    "00","00","00",'0',"000",'0',       -- aunit
+    "0000",'0',                         -- lunit
+    "00",'0','0','0','0','0','0','0',   -- munit
     '0',"000","000","00",'0'            -- rest
   );
      
@@ -189,10 +192,10 @@ package pdp11 is
   constant c_dpath_dtmp_dres  : slv2 := "10"; -- DTMP = DRES
   constant c_dpath_dtmp_drese : slv2 := "11"; -- DTMP = DRESE
 
-  constant c_dpath_res_abox   : slv3 := "000"; -- D/CRES = ABOX
-  constant c_dpath_res_dbox   : slv3 := "001"; -- D/CRES = DBOX
-  constant c_dpath_res_lbox   : slv3 := "010"; -- D/CRES = LBOX
-  constant c_dpath_res_mbox   : slv3 := "011"; -- D/CRES = MBOX
+  constant c_dpath_res_ounit  : slv3 := "000"; -- D/CRES = OUNIT
+  constant c_dpath_res_aunit  : slv3 := "001"; -- D/CRES = AUNIT
+  constant c_dpath_res_lunit  : slv3 := "010"; -- D/CRES = LUNIT
+  constant c_dpath_res_munit  : slv3 := "011"; -- D/CRES = MUNIT
   constant c_dpath_res_vmdout : slv3 := "100"; -- D/CRES = VMDOUT
   constant c_dpath_res_fpdout : slv3 := "101"; -- D/CRES = FPDOUT
   constant c_dpath_res_ireg   : slv3 := "110"; -- D/CRES = IREG
@@ -229,13 +232,13 @@ package pdp11 is
     trap_vec : slv3;                    -- trap vector addr bits 4:2
     force_srcsp : slbit;                -- force src register to be sp
     updt_dstadsrc : slbit;              -- update dsrc in dsta flow
-    dbox_srcmod : slv2;                 -- dbox src port modifier
-    dbox_dstmod : slv2;                 -- dbox dst port modifier
-    dbox_cimod : slv2;                  -- dbox ci port modifier
-    dbox_cc1op : slbit;                 -- dbox use cc modes (1 op instruction)
-    dbox_ccmode : slv3;                 -- dbox cc port mode
-    lbox_func : slv4;                   -- lbox function
-    mbox_func : slv2;                   -- mbox function
+    aunit_srcmod : slv2;                -- aunit src port modifier
+    aunit_dstmod : slv2;                -- aunit dst port modifier
+    aunit_cimod : slv2;                 -- aunit ci port modifier
+    aunit_cc1op : slbit;                -- aunit use cc modes (1 op instruction)
+    aunit_ccmode : slv3;                -- aunit cc port mode
+    lunit_func : slv4;                  -- lunit function
+    munit_func : slv2;                  -- munit function
     res_sel : slv3;                     -- result bus (cres/dres) select
     fork_op : slv4;                     -- op fork after idecode state
     fork_srcr : slv2;                   -- src-read fork after idecode state
@@ -254,8 +257,8 @@ package pdp11 is
   constant decode_stat_init : decode_stat_type := (
     '0','0','0','0','0','0','0','0','0', -- is_
     '0','0',"000",'0','0',               -- op_, trap_, force_, updt_
-    "00","00","00",'0',"000",            -- dbox_
-    "0000","00","000",                   -- lbox_, mbox_, res_
+    "00","00","00",'0',"000",            -- aunit_
+    "0000","00","000",                   -- lunit_, munit_, res_
     "0000","00","00","00","0000","000",  -- fork_
     '0','0','0','0','0',                 -- do_fork_
     '0'                                  -- do_pref_
@@ -694,7 +697,7 @@ constant c_psr_func_wint : slv3 := "010"; -- interupt mode: pmode=cmode
 constant c_psr_func_wrti : slv3 := "011"; -- rti mode: protect modes
 constant c_psr_func_wall : slv3 := "100"; -- write all fields
 
-component pdp11_abox is                 -- arithmetic unit for addresses (abox)
+component pdp11_ounit is                -- offset adder for addresses (ounit)
   port (
     DSRC : in slv16;                    -- 'src' data for port A
     DDST : in slv16;                    -- 'dst' data for port A
@@ -712,17 +715,17 @@ component pdp11_abox is                 -- arithmetic unit for addresses (abox)
   );
 end component;
 
-constant c_abox_asel_ddst : slv2 := "00"; -- A = DDST
-constant c_abox_asel_dsrc : slv2 := "01"; -- A = DSRC
-constant c_abox_asel_pc   : slv2 := "10"; -- A = PC  
-constant c_abox_asel_dtmp : slv2 := "11"; -- A = DTMP
+constant c_ounit_asel_ddst : slv2 := "00";   -- A = DDST
+constant c_ounit_asel_dsrc : slv2 := "01";   -- A = DSRC
+constant c_ounit_asel_pc   : slv2 := "10";   -- A = PC  
+constant c_ounit_asel_dtmp : slv2 := "11";   -- A = DTMP
 
-constant c_abox_bsel_const  : slv2 := "00"; -- B = CONST
-constant c_abox_bsel_vmdout : slv2 := "01"; -- B = VMDOUT
-constant c_abox_bsel_ireg6  : slv2 := "10"; -- B = 2*IREG(6bit)
-constant c_abox_bsel_ireg8  : slv2 := "11"; -- B = 2*IREG(8bit,sign-extend)
+constant c_ounit_bsel_const  : slv2 := "00"; -- B = CONST
+constant c_ounit_bsel_vmdout : slv2 := "01"; -- B = VMDOUT
+constant c_ounit_bsel_ireg6  : slv2 := "10"; -- B = 2*IREG(6bit)
+constant c_ounit_bsel_ireg8  : slv2 := "11"; -- B = 2*IREG(8bit,sign-extend)
 
-component pdp11_dbox is                 -- arithmetic unit for data (dbox)
+component pdp11_aunit is                -- arithmetic unit for data (aunit)
   port (                              
     DSRC : in slv16;                    -- 'src' data in
     DDST : in slv16;                    -- 'dst' data in
@@ -738,22 +741,22 @@ component pdp11_dbox is                 -- arithmetic unit for data (dbox)
   );
 end component;
 
-constant c_dbox_mod_pass : slv2 := "00"; -- pass data
-constant c_dbox_mod_inv  : slv2 := "01"; -- invert data
-constant c_dbox_mod_zero : slv2 := "10"; -- set to 0
-constant c_dbox_mod_one  : slv2 := "11"; -- set to 1
+constant c_aunit_mod_pass : slv2 := "00"; -- pass data
+constant c_aunit_mod_inv  : slv2 := "01"; -- invert data
+constant c_aunit_mod_zero : slv2 := "10"; -- set to 0
+constant c_aunit_mod_one  : slv2 := "11"; -- set to 1
 
--- the c_dbox_ccmode codes follow exactly the opcode format (bit 8:6)
-constant c_dbox_ccmode_clr : slv3 := "000"; -- do clr instruction
-constant c_dbox_ccmode_com : slv3 := "001"; -- do com instruction
-constant c_dbox_ccmode_inc : slv3 := "010"; -- do inc instruction
-constant c_dbox_ccmode_dec : slv3 := "011"; -- do dec instruction
-constant c_dbox_ccmode_neg : slv3 := "100"; -- do neg instruction
-constant c_dbox_ccmode_adc : slv3 := "101"; -- do adc instruction
-constant c_dbox_ccmode_sbc : slv3 := "110"; -- do sbc instruction
-constant c_dbox_ccmode_tst : slv3 := "111"; -- do tst instruction
+-- the c_aunit_ccmode codes follow exactly the opcode format (bit 8:6)
+constant c_aunit_ccmode_clr : slv3 := "000"; -- do clr instruction
+constant c_aunit_ccmode_com : slv3 := "001"; -- do com instruction
+constant c_aunit_ccmode_inc : slv3 := "010"; -- do inc instruction
+constant c_aunit_ccmode_dec : slv3 := "011"; -- do dec instruction
+constant c_aunit_ccmode_neg : slv3 := "100"; -- do neg instruction
+constant c_aunit_ccmode_adc : slv3 := "101"; -- do adc instruction
+constant c_aunit_ccmode_sbc : slv3 := "110"; -- do sbc instruction
+constant c_aunit_ccmode_tst : slv3 := "111"; -- do tst instruction
   
-component pdp11_lbox is                 -- logic unit for data (lbox)
+component pdp11_lunit is                -- logic unit for data (lunit)
   port (
     DSRC : in slv16;                    -- 'src' data in
     DDST : in slv16;                    -- 'dst' data in
@@ -765,19 +768,19 @@ component pdp11_lbox is                 -- logic unit for data (lbox)
   );        
 end component;
 
-constant c_lbox_func_asr  : slv4 := "0000"; -- ASR/ASRB ??? recheck coding !!
-constant c_lbox_func_asl  : slv4 := "0001"; -- ASL/ASLB
-constant c_lbox_func_ror  : slv4 := "0010"; -- ROR/RORB
-constant c_lbox_func_rol  : slv4 := "0011"; -- ROL/ROLB
-constant c_lbox_func_bis  : slv4 := "0100"; -- BIS/BISB
-constant c_lbox_func_bic  : slv4 := "0101"; -- BIC/BICB
-constant c_lbox_func_bit  : slv4 := "0110"; -- BIT/BITB
-constant c_lbox_func_mov  : slv4 := "0111"; -- MOV/MOVB
-constant c_lbox_func_sxt  : slv4 := "1000"; -- SXT
-constant c_lbox_func_swap : slv4 := "1001"; -- SWAB
-constant c_lbox_func_xor  : slv4 := "1010"; -- XOR
+constant c_lunit_func_asr  : slv4 := "0000"; -- ASR/ASRB ??? recheck coding !!
+constant c_lunit_func_asl  : slv4 := "0001"; -- ASL/ASLB
+constant c_lunit_func_ror  : slv4 := "0010"; -- ROR/RORB
+constant c_lunit_func_rol  : slv4 := "0011"; -- ROL/ROLB
+constant c_lunit_func_bis  : slv4 := "0100"; -- BIS/BISB
+constant c_lunit_func_bic  : slv4 := "0101"; -- BIC/BICB
+constant c_lunit_func_bit  : slv4 := "0110"; -- BIT/BITB
+constant c_lunit_func_mov  : slv4 := "0111"; -- MOV/MOVB
+constant c_lunit_func_sxt  : slv4 := "1000"; -- SXT
+constant c_lunit_func_swap : slv4 := "1001"; -- SWAB
+constant c_lunit_func_xor  : slv4 := "1010"; -- XOR
 
-component pdp11_mbox is                 -- mul/div unit for data (mbox)
+component pdp11_munit is                -- mul/div unit for data (munit)
   port (                              
     CLK : in slbit;                     -- clock
     DSRC : in slv16;                    -- 'src' data in
@@ -803,10 +806,10 @@ component pdp11_mbox is                 -- mul/div unit for data (mbox)
   );
 end component;
 
-constant c_mbox_func_mul  : slv2 := "00"; -- MUL
-constant c_mbox_func_div  : slv2 := "01"; -- DIV
-constant c_mbox_func_ash  : slv2 := "10"; -- ASH
-constant c_mbox_func_ashc : slv2 := "11"; -- ASHC
+constant c_munit_func_mul  : slv2 := "00"; -- MUL
+constant c_munit_func_div  : slv2 := "01"; -- DIV
+constant c_munit_func_ash  : slv2 := "10"; -- ASH
+constant c_munit_func_ashc : slv2 := "11"; -- ASHC
 
 component pdp11_mmu_sadr is             -- mmu SAR/SDR register set
   port (
@@ -1046,8 +1049,8 @@ component pdp11_du_drv is               -- display unit low level driver
     ROW3 : in slv10;                    -- led row 3 (10 leds, bottom)
     SWOPT : out slv8;                   -- option pattern from du
     SWOPT_RDY : out slbit;              -- marks update of swopt
-    DU_CLK : out slbit;                 -- DU: clk
-    DU_FRAME : out slbit;               -- DU: frame
+    DU_SCLK : out slbit;                -- DU: sclk
+    DU_SS_N : out slbit;                -- DU: ss_n
     DU_MOSI : out slbit;                -- DU: mosi (master out, slave in)
     DU_MISO : in slbit                  -- DU: miso (master in, slave out)
   );
@@ -1074,7 +1077,7 @@ component pdp11_core_rri is             -- core to rri reg port interface
     RB_MREQ : in rb_mreq_type;          -- rbus: request
     RB_SRES : out rb_sres_type;         -- rbus: response
     RB_STAT : out slv3;                 -- rbus: status flags
-    RRI_LAM : out slbit;                -- remote attention
+    RB_LAM : out slbit;                 -- remote attention
     CPU_RESET : out slbit;              -- cpu master reset
     CP_CNTL : out cp_cntl_type;         -- console control port
     CP_ADDR : out cp_addr_type;         -- console address port

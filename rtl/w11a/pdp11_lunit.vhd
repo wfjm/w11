@@ -1,4 +1,4 @@
--- $Id: pdp11_lbox.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: pdp11_lunit.vhd 330 2010-09-19 17:43:53Z mueller $
 --
 -- Copyright 2006-2008 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -12,15 +12,16 @@
 -- for complete details.
 --
 ------------------------------------------------------------------------------
--- Module Name:    pdp11_lbox - syn
--- Description:    pdp11: logic unit for data (lbox)
+-- Module Name:    pdp11_lunit - syn
+-- Description:    pdp11: logic unit for data (lunit)
 --
 -- Dependencies:   -
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.26
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-09-18   300   1.1    renamed from lbox
 -- 2008-03-30   131   1.0.2  BUGFIX: SXT clears V condition code
 -- 2007-06-14    56   1.0.1  Use slvtypes.all
 -- 2007-05-12    26   1.0    Initial version 
@@ -35,7 +36,7 @@ use work.pdp11.all;
 
 -- ----------------------------------------------------------------------------
 
-entity pdp11_lbox is                    -- logic unit for data (lbox)
+entity pdp11_lunit is                   -- logic unit for data (lunit)
   port (
     DSRC : in slv16;                    -- 'src' data in
     DDST : in slv16;                    -- 'dst' data in
@@ -45,9 +46,9 @@ entity pdp11_lbox is                    -- logic unit for data (lbox)
     DOUT : out slv16;                   -- data output
     CCOUT : out slv4                    -- condition codes out
   );
-end pdp11_lbox;
+end pdp11_lunit;
 
-architecture syn of pdp11_lbox is
+architecture syn of pdp11_lunit is
 
 -- --------------------------------------
 

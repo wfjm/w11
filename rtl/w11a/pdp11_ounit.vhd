@@ -1,4 +1,4 @@
--- $Id: pdp11_abox.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: pdp11_ounit.vhd 330 2010-09-19 17:43:53Z mueller $
 --
 -- Copyright 2006-2007 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -12,8 +12,8 @@
 -- for complete details.
 --
 ------------------------------------------------------------------------------
--- Module Name:    pdp11_abox - syn
--- Description:    pdp11: arithmetic unit for addresses (abox)
+-- Module Name:    pdp11_ounit - syn
+-- Description:    pdp11: arithmetic unit for addresses (ounit)
 --
 -- Dependencies:   -
 -- Test bench:     tb/tb_pdp11_core (implicit)
@@ -21,6 +21,7 @@
 -- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-09-18   300   1.1    renamed from abox
 -- 2007-06-14    56   1.0.1  Use slvtypes.all
 -- 2007-05-12    26   1.0    Initial version 
 ------------------------------------------------------------------------------
@@ -34,7 +35,7 @@ use work.pdp11.all;
 
 -- ----------------------------------------------------------------------------
 
-entity pdp11_abox is                    -- arithmetic unit for addresses (abox)
+entity pdp11_ounit is                   -- offset adder for addresses (ounit)
   port (
     DSRC : in slv16;                    -- 'src' data for port A
     DDST : in slv16;                    -- 'dst' data for port A
@@ -50,9 +51,9 @@ entity pdp11_abox is                    -- arithmetic unit for addresses (abox)
     DOUT : out slv16;                   -- data output
     NZOUT : out slv2                    -- NZ condition codes out
   );
-end pdp11_abox;
+end pdp11_ounit;
 
-architecture syn of pdp11_abox is
+architecture syn of pdp11_ounit is
 
 -- --------------------------------------
 
@@ -70,10 +71,10 @@ begin
 
     if AZERO = '0' then
       case ASEL is
-        when c_abox_asel_dsrc => ma := DSRC;
-        when c_abox_asel_ddst => ma := DDST;
-        when c_abox_asel_dtmp => ma := DTMP;
-        when c_abox_asel_pc   => ma := PC;
+        when c_ounit_asel_dsrc => ma := DSRC;
+        when c_ounit_asel_ddst => ma := DDST;
+        when c_ounit_asel_dtmp => ma := DTMP;
+        when c_ounit_asel_pc   => ma := PC;
         when others => null;
       end case;
     else
@@ -81,12 +82,12 @@ begin
     end if;
 
     case BSEL is
-      when c_abox_bsel_ireg6  => mb := "000000000" & IREG8(5 downto 0) & "0"; 
-      when c_abox_bsel_ireg8  => mb := IREG8(7) & IREG8(7) & IREG8(7) &
+      when c_ounit_bsel_ireg6  => mb := "000000000" & IREG8(5 downto 0) & "0"; 
+      when c_ounit_bsel_ireg8  => mb := IREG8(7) & IREG8(7) & IREG8(7) &
                                        IREG8(7) & IREG8(7) & IREG8(7) &
                                        IREG8(7) & IREG8 & "0";   
-      when c_abox_bsel_vmdout => mb := VMDOUT;
-      when c_abox_bsel_const  => mb := "0000000" & CONST;
+      when c_ounit_bsel_vmdout => mb := VMDOUT;
+      when c_ounit_bsel_const  => mb := "0000000" & CONST;
       when others => null;
     end case;
 

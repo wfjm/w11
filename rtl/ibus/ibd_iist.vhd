@@ -1,6 +1,6 @@
--- $Id: ibd_iist.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: ibd_iist.vhd 335 2010-10-24 22:24:23Z mueller $
 --
--- Copyright 2009- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2009-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,15 +18,18 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2010-10-17   333  12.1    M53 xc3s1000-4   112  510    0  291 s 15.8
+-- 2010-10-17   314  12.1    M53 xc3s1000-4   111  504    0  290 s 15.6
 -- 2009-06-01   223  10.1.03 K39 xc3s1000-4   111  439    0  256 s  9.8
 -- 2009-06-01   221  10.1.03 K39 xc3s1000-4   111  449    0  258 s 13.3
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-10-17   333   0.8    use ibus V2 interface
 -- 2009-06-07   224   0.7    send inverted stc_stp; remove pgc_err; honor msk_im
 --                           also for dcf_dcf and exc_rte; add iist_mreq and
 --                           iist_sreq, boot and lock interfaces
@@ -142,6 +145,7 @@ architecture syn of ibd_iist is
   );
 
   type regs_type is record              -- state registers
+    ibsel : slbit;                      -- ibus select
     acr_ac : slv4;                      -- acr: ac 
     pge_pbe : slv4;                     -- pge: pg boot ena
     pge_pie : slv4;                     -- pge: pg int ena
@@ -185,6 +189,7 @@ architecture syn of ibd_iist is
    end record regs_type;
 
   constant regs_init : regs_type := (
+    '0',                                -- ibsel
     "0000",                             -- acr_ac
     "0000","0000",                      -- pge_pbe, pge_pie
     '0',                                -- pgc_grj
@@ -227,7 +232,7 @@ begin
           R_REGS.stf_sbf <= N_REGS.stf_sbf; -- don't reset st boot flags
           R_REGS.tcnt256 <= N_REGS.tcnt256; -- don't reset st clock divider
         end if;
-     else
+      else
         R_REGS <= N_REGS;
       end if;
     end if;
@@ -238,9 +243,9 @@ begin
                        IIST_SRES)
     variable r : regs_type := regs_init;
     variable n : regs_type := regs_init;
-    variable ibsel  : slbit := '0';
-    variable ibbusy : slbit := '0';
+    variable ibhold : slbit := '0';
     variable idout : slv16 := (others=>'0');
+    variable ibreq : slbit := '0';
     variable ibrd : slbit := '0';
     variable ibw0 : slbit := '0';
     variable ibw1 : slbit := '0';
@@ -258,10 +263,10 @@ begin
     r := R_REGS;
     n := R_REGS;
 
-    ibsel  := '0';
-    ibbusy := '0';
+    ibhold := '0';
     idout  := (others=>'0');
-    ibrd   := not IB_MREQ.we;
+    ibreq  := IB_MREQ.re or IB_MREQ.we;
+    ibrd   := IB_MREQ.re;
     ibw0   := IB_MREQ.we and IB_MREQ.be0;
     ibw1   := IB_MREQ.we and IB_MREQ.be1;
 
@@ -300,9 +305,10 @@ begin
     iout     := iist_line_init;            -- default state of out line
     
     -- ibus address decoder
-    if IB_MREQ.req='1' and
+    n.ibsel := '0';
+    if IB_MREQ.aval='1' and
        IB_MREQ.addr(12 downto 2)=ibaddr_iist(12 downto 2) then
-      ibsel := '1';
+      n.ibsel := '1';
     end if;
 
     -- internal state machine
@@ -316,8 +322,7 @@ begin
         end if;
           
       when s_clear =>                   -- handle acr clr
-        ibbusy := ibsel;                -- keep req pending if selected
-        ibsel  := '0';                  -- but don't process selection
+        ibhold := r.ibsel;              -- keep req pending if selected
         -- r.req_clear is set when in this state and cause a reset in prog_regs
         --   --> n.req_clear := '0';
         --   --> n.state := s_idle;
@@ -355,7 +360,7 @@ begin
     end if;
     
     -- ibus transactions
-    if ibsel = '1' then
+    if r.ibsel = '1' and ibhold='0' then
 
       if IB_MREQ.addr(1 downto 1) = "0" then -- ACR -- access control reg -----
 
@@ -553,7 +558,7 @@ begin
         end case;
 
         if unsigned(r.acr_ac) <= unsigned(ac_exc) then -- if ac 0,..,10
-          if IB_MREQ.dip = '0' then                    -- if not 1st part of rmw
+          if IB_MREQ.rmw = '0' then                    -- if not 1st part of rmw
             n.acr_ac := unsigned(r.acr_ac) + 1;          -- autoincrement
           end if;
         end if;
@@ -658,8 +663,8 @@ begin
     N_REGS <= n;
 
     IB_SRES.dout <= idout;
-    IB_SRES.ack  <= ibsel;
-    IB_SRES.busy <= ibbusy;
+    IB_SRES.ack  <= r.ibsel and ibreq;
+    IB_SRES.busy <= ibhold  and ibreq;
 
     EI_REQ <= r.pgc_ie and int_or;
 

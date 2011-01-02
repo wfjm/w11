@@ -1,4 +1,4 @@
--- $Id: tb_nexys2_fusp.vhd 339 2010-11-22 21:20:51Z mueller $
+-- $Id: tb_nexys2_fusp.vhd 351 2010-12-30 21:50:54Z mueller $
 --
 -- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -15,7 +15,7 @@
 -- Module Name:    tb_nexys2_fusp - sim
 -- Description:    Test bench for nexys2 (base+fusp)
 --
--- Dependencies:   vlib/rri/tb/rritb_core_dcm
+-- Dependencies:   vlib/rlink/tb/tbcore_rlink_dcm
 --                 tb_nexys2_core
 --                 vlib/serport/serport_uart_rxtx
 --                 nexys2_fusp_aif [UUT]
@@ -27,6 +27,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-12-29   351   3.0    use rlink/tb now
 -- 2010-11-13   338   1.0.2  now dcm aware: add O_CLKSYS, use rritb_core_dcm
 -- 2010-11-06   336   1.0.1  rename input pin CLK -> I_CLK50
 -- 2010-05-28   295   1.0    Initial version (derived from tb_s3board_fusp)
@@ -39,8 +40,8 @@ use ieee.std_logic_textio.all;
 use std.textio.all;
 
 use work.slvtypes.all;
-use work.rrilib.all;
-use work.rritblib.all;
+use work.rlinklib.all;
+use work.rlinktblib.all;
 use work.serport.all;
 use work.nexys2lib.all;
 use work.simlib.all;
@@ -108,7 +109,7 @@ architecture sim of tb_nexys2_fusp is
 
 begin
   
-  TBCORE : rritb_core_dcm
+  TBCORE : tbcore_rlink_dcm
     generic map (
       CLKOSC_PERIOD => clockosc_period,
       CLKOSC_OFFSET => clockosc_offset,

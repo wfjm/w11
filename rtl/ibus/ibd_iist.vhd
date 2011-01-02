@@ -1,4 +1,4 @@
--- $Id: ibd_iist.vhd 335 2010-10-24 22:24:23Z mueller $
+-- $Id: ibd_iist.vhd 350 2010-12-28 16:40:11Z mueller $
 --
 -- Copyright 2009-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -22,10 +22,10 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
--- 2010-10-17   333  12.1    M53 xc3s1000-4   112  510    0  291 s 15.8
--- 2010-10-17   314  12.1    M53 xc3s1000-4   111  504    0  290 s 15.6
--- 2009-06-01   223  10.1.03 K39 xc3s1000-4   111  439    0  256 s  9.8
--- 2009-06-01   221  10.1.03 K39 xc3s1000-4   111  449    0  258 s 13.3
+-- 2010-10-17   333 12.1    M53d xc3s1000-4   112  510    0  291 s 15.8
+-- 2010-10-17   314 12.1    M53d xc3s1000-4   111  504    0  290 s 15.6
+-- 2009-06-01   223 10.1.03 K39  xc3s1000-4   111  439    0  256 s  9.8
+-- 2009-06-01   221 10.1.03 K39  xc3s1000-4   111  449    0  258 s 13.3
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

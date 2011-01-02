@@ -4,14 +4,14 @@
 #
 # libs
 ../../../vlib/slvtypes.vhd
-../../../vlib/rri/rrilib.vhd
-../../../vlib/rri/tb/rritblib.vhd
+../../../vlib/rlink/rlinklib.vbom
+../../../vlib/rlink/tb/rlinktblib.vhd
 ../../../vlib/serport/serport.vhd
 ../nexys2lib.vhd
 ../../../vlib/simlib/simlib.vhd
 ../../../vlib/simlib/simbus.vhd
 # components
-../../../vlib/rri/tb/rritb_core_dcm.vbom
+../../../vlib/rlink/tb/tbcore_rlink_dcm.vbom
 tb_nexys2_core.vbom
 ../../../vlib/serport/serport_uart_rxtx.vbom
 nexys2_fusp_aif : nexys2_fusp_dummy.vbom

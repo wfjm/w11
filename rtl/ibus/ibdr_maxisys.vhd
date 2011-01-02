@@ -1,4 +1,4 @@
--- $Id: ibdr_maxisys.vhd 335 2010-10-24 22:24:23Z mueller $
+-- $Id: ibdr_maxisys.vhd 350 2010-12-28 16:40:11Z mueller $
 --
 -- Copyright 2009-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -31,8 +31,8 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
--- 2010-10-17   333  12.1    M53 xc3s1000-4   312 1058   16  617 s 10.3
--- 2010-10-17   314  12.1    M53 xc3s1000-4   300 1094   16  626 s 10.4
+-- 2010-10-17   333 12.1    M53d xc3s1000-4   312 1058   16  617 s 10.3
+-- 2010-10-17   314 12.1    M53d xc3s1000-4   300 1094   16  626 s 10.4
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

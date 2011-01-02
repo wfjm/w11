@@ -1,7 +1,8 @@
 # libs
 ../../../vlib/slvtypes.vhd
 ../../../vlib/genlib/genlib.vhd
-../../../vlib/rri/rrilib.vhd
+../../../vlib/rbus/rblib.vhd
+../../../vlib/rlink/rlinklib.vbom
 ../../../bplib/s3board/s3boardlib.vbom
 ../../../ibus/iblib.vhd
 ../../../ibus/ibdlib.vhd
@@ -11,9 +12,9 @@ sys_conf = sys_conf.vhd
 ../../../vlib/genlib/clkdivce.vbom
 ../../../bplib/s3board/s3_rs232_iob_int_ext.vbom
 ../../../bplib/s3board/s3_humanio.vbom
-../../../vlib/rri/rri_core_serport.vbom
-../../../vlib/rri/rb_sres_or_2.vbom
-../../../w11a/pdp11_core_rri.vbom
+../../../vlib/rlink/rlink_base_serport.vbom
+../../../vlib/rbus/rb_sres_or_2.vbom
+../../../w11a/pdp11_core_rbus.vbom
 ../../../w11a/pdp11_core.vbom
 ../../../w11a/pdp11_bram.vbom
 ../../../bplib/s3board/s3_sram_dummy.vbom

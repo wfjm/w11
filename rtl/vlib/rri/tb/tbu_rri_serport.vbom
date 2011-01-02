@@ -1,8 +1,0 @@
-# libs
-../../slvtypes.vhd
-../rrilib.vhd
-# components
-../rri_core.vbom
-../rri_serport.vbom
-# design
-tbu_rri_serport.vhd

@@ -1,4 +1,4 @@
--- $Id: tb_s3board_fusp.vhd 336 2010-11-06 18:28:27Z mueller $
+-- $Id: tb_s3board_fusp.vhd 351 2010-12-30 21:50:54Z mueller $
 --
 -- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -15,7 +15,7 @@
 -- Module Name:    tb_s3board_fusp - sim
 -- Description:    Test bench for s3board (base+fusp)
 --
--- Dependencies:   vlib/rri/tb/rritb_core
+-- Dependencies:   vlib/rlink/tb/tbcore_rlink_dcm
 --                 tb_s3board_core
 --                 vlib/serport/serport_uart_rxtx
 --                 s3board_fusp_aif [UUT]
@@ -23,9 +23,10 @@
 -- To test:        generic, any s3board_fusp_aif target
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4; ghdl 0.18-0.26
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-12-30   351   3.0    use rlink/tb now
 -- 2010-11-06   336   1.0.4  rename input pin CLK -> I_CLK50
 -- 2010-05-21   292   1.0.3  rename _PM1_ -> _FUSP_
 -- 2010-05-16   291   1.0.2  rename tb_s3board_usp->tb_s3board_fusp
@@ -40,8 +41,8 @@ use ieee.std_logic_textio.all;
 use std.textio.all;
 
 use work.slvtypes.all;
-use work.rrilib.all;
-use work.rritblib.all;
+use work.rlinklib.all;
+use work.rlinktblib.all;
 use work.serport.all;
 use work.s3boardlib.all;
 use work.simlib.all;
@@ -103,7 +104,7 @@ architecture sim of tb_s3board_fusp is
 
 begin
   
-  TBCORE : rritb_core
+  TBCORE : tbcore_rlink
     generic map (
       CLK_PERIOD => clock_period,
       CLK_OFFSET => clock_offset,

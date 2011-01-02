@@ -1,0 +1,6 @@
+# configure tb_rlink with tbd_rlink_serport wrapper;
+# use vhdl configure file (tb_rlink_serport.vhd) to allow 
+# that all configurations will co-exist in work library
+tbd_rlink_gen = tbd_rlink_serport.vbom
+tb_rlink.vbom
+tb_rlink_serport.vhd

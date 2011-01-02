@@ -1,6 +1,6 @@
--- $Id: serport_uart_rxtx_ab.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: serport_uart_rxtx_ab.vhd 350 2010-12-28 16:40:11Z mueller $
 --
--- Copyright 2007- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,9 +19,15 @@
 --                 serport_uart_rxtx
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4; ghdl 0.18-0.26
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.29
+--
+-- Synthesized (xst):
+-- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2010-12-25   348 12.1    M53d xc3s1000-4    99  197    -  124 s  9.8
+--
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-12-26   348   1.1    add ABCLKDIV port for clock divider setting
 -- 2007-06-24    60   1.0    Initial version 
 ------------------------------------------------------------------------------
 
@@ -50,7 +56,8 @@ entity serport_uart_rxtx_ab is          -- serial port uart: rx+tx+autobaud
     TXENA : in slbit;                   -- transmit data enable
     TXBUSY : out slbit;                 -- transmit busy
     ABACT : out slbit;                  -- autobaud active; if 1 clkdiv invalid
-    ABDONE : out slbit                  -- autobaud resync done
+    ABDONE : out slbit;                 -- autobaud resync done
+    ABCLKDIV : out slv(CDWIDTH-1 downto 0) -- autobaud clock divider setting
   );
 end serport_uart_rxtx_ab;
 
@@ -78,6 +85,7 @@ begin
 
   UART_RESET <= ABACT_L or RESET;
   ABACT      <= ABACT_L;
+  ABCLKDIV   <= CLKDIV;
   
   RXTX : serport_uart_rxtx
     generic map (

@@ -1,10 +1,15 @@
-// $Id: w11a_seq_flow.DOT 315 2010-07-11 22:18:39Z mueller $
+// $Id: w11a_seq_flow.DOT 343 2010-12-05 21:24:38Z mueller $
 //
 // The create pdf use
 //
 //  cpp w11a_seq_flow.DOT w11a_seq_flow.dot
-//  dot -Tps2 w11a_seq_flow.dot > w11a_seq_flow.ps
-//  ps2pdf w11a_seq_flow.ps
+//  dot -Tpdf w11a_seq_flow.dot > w11a_seq_flow.pdf
+//  xpdf w11a_seq_flow.pdf
+//  -> gives 30.54 x 43.92 in page size
+//
+//  pdflatex w11a_seq_flow_a4wrap.tex
+//  xpdf w11a_seq_flow_a4wrap.pdf
+//  --> gives 8.27 x 11.69 in page size (A4)
 //
 
 #define FORKSTATE

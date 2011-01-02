@@ -1,6 +1,0 @@
-# configure tb_rri with tbd_rri_core wrapper
-# use vhdl configure file (tb_rri_core.vhd) at allow 
-# that all configurations will co-exist in work library
-tbd_rri_gen = tbd_rri_core.vbom
-tb_rri.vbom
-tb_rri_core.vhd

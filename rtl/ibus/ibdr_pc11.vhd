@@ -1,4 +1,4 @@
--- $Id: ibdr_pc11.vhd 335 2010-10-24 22:24:23Z mueller $
+-- $Id: ibdr_pc11.vhd 350 2010-12-28 16:40:11Z mueller $
 --
 -- Copyright 2009-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -22,8 +22,8 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
--- 2010-10-17   333  12.1    M53 xc3s1000-4    26   97    0   57 s  6.0
--- 2009-06-28   230  10.1.03 K39 xc3s1000-4    25   92    0   54 s  4.9
+-- 2010-10-17   333 12.1    M53d xc3s1000-4    26   97    0   57 s  6.0
+-- 2009-06-28   230 10.1.03 K39  xc3s1000-4    25   92    0   54 s  4.9
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

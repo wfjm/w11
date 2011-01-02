@@ -1,0 +1,9 @@
+# libs
+../slvtypes.vhd
+../serport/serport.vhd
+../rbus/rblib.vhd
+rlinklib.vbom
+# components
+../serport/serport_uart_rxtx_ab.vbom
+# design
+rlink_serport.vhd

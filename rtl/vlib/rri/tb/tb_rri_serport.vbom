@@ -1,6 +1,0 @@
-# configure tb_rri with tbd_rri_serport wrapper;
-# use vhdl configure file (tb_rri_serport.vhd) to allow 
-# that all configurations will co-exist in work library
-tbd_rri_gen = tbd_rri_serport.vbom
-tb_rri.vbom
-tb_rri_serport.vhd

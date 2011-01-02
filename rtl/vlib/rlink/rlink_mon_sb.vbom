@@ -1,0 +1,9 @@
+# libs
+../slvtypes.vhd
+../simlib/simlib.vhd
+../simlib/simbus.vhd
+rlinklib.vbom
+# components
+rlink_mon.vbom
+# design
+rlink_mon_sb.vhd

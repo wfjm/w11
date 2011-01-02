@@ -1,4 +1,4 @@
 # libs
 ../../vlib/slvtypes.vhd
-../../vlib/rri/rrilib.vhd
+../../vlib/rbus/rblib.vhd
 s3boardlib.vhd

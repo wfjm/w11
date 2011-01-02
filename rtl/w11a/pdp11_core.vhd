@@ -1,4 +1,4 @@
--- $Id: pdp11_core.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: pdp11_core.vhd 351 2010-12-30 21:50:54Z mueller $
 --
 -- Copyright 2006-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -23,13 +23,11 @@
 --                 pdp11_sys70
 --                 ibus/ib_sres_or_4
 --
--- Test bench:     tb/tb_pdp11_core
---                 tb/tb_rritba_pdp11core
---                 tb/tb_rripdp_pdp11core
---                 tb/tb_rriext_pdp11core
+-- Test bench:     tb/tb_pdp11core
+--                 tb/tb_rlink_tba_pdp11core
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2010-06-13   305   1.3    add CP_ADDR in port; drop R_CPDIN, R_CPOUT; _vmbox

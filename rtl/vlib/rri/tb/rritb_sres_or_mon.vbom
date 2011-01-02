@@ -1,5 +1,0 @@
-# libs
-../../slvtypes.vhd
-../rrilib.vhd
-# design
-rritb_sres_or_mon.vhd

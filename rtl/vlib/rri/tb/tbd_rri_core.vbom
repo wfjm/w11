@@ -1,7 +1,0 @@
-# libs
-../../slvtypes.vhd
-../rrilib.vhd
-# components
-../rri_core.vbom
-# design
-tbd_rri_core.vhd

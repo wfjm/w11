@@ -2,7 +2,8 @@
 ../../../vlib/slvtypes.vhd
 ../../../vlib/xlib/xlib.vhd
 ../../../vlib/genlib/genlib.vhd
-../../../vlib/rri/rrilib.vhd
+../../../vlib/rbus/rblib.vhd
+../../../vlib/rlink/rlinklib.vbom
 ../../../bplib/s3board/s3boardlib.vbom
 ../../../bplib/nexys2/nexys2lib.vhd
 ../../../ibus/iblib.vhd
@@ -14,10 +15,10 @@ sys_conf = sys_conf.vhd
 [ghdl]../../../vlib/xlib/dcm_sp_sfs_gsim.vbom
 ../../../vlib/genlib/clkdivce.vbom
 ../../../bplib/s3board/s3_rs232_iob_int_ext.vbom
-../../../bplib/s3board/s3_humanio_rri.vbom
-../../../vlib/rri/rri_core_serport.vbom
-../../../vlib/rri/rb_sres_or_3.vbom
-../../../w11a/pdp11_core_rri.vbom
+../../../bplib/s3board/s3_humanio_rbus.vbom
+../../../vlib/rlink/rlink_base_serport.vbom
+../../../vlib/rbus/rb_sres_or_3.vbom
+../../../w11a/pdp11_core_rbus.vbom
 ../../../w11a/pdp11_core.vbom
 ../../../w11a/pdp11_bram.vbom
 ../../../bplib/nexys2/n2_cram_dummy.vbom

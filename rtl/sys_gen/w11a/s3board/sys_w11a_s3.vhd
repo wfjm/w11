@@ -1,4 +1,4 @@
--- $Id: sys_w11a_s3.vhd 336 2010-11-06 18:28:27Z mueller $
+-- $Id: sys_w11a_s3.vhd 351 2010-12-30 21:50:54Z mueller $
 --
 -- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,9 +18,9 @@
 -- Dependencies:   vlib/genlib/clkdivce
 --                 bplib/s3board/s3_rs232_iob_int_ext
 --                 bplib/s3board/s3_humanio
---                 vlib/rri/rri_core_serport
---                 vlib/rri/rb_sres_or_2
---                 w11a/pdp11_core_rri
+--                 vlib/rlink/rlink_base_serport
+--                 vlib/rbus/rb_sres_or_2
+--                 w11a/pdp11_core_rbus
 --                 w11a/pdp11_core
 --                 w11a/pdp11_bram
 --                 vlib/s3board/s3_sram_dummy
@@ -39,6 +39,7 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2010-12-30   351 12.1    M53d xc3s1000-4  1316 4291  242 2609 OK: LP+PC+DL+II
 -- 2010-11-06   336 12.1    M53d xc3s1000-4  1284 4253* 242 2575 OK: LP+PC+DL+II
 -- 2010-10-24   335 12.1    M53d xc3s1000-4  1284 4495  242 2575 OK: LP+PC+DL+II
 -- 2010-05-01   285 11.4    L68  xc3s1000-4  1239 4086  224 2471 OK: LP+PC+DL+II
@@ -70,6 +71,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-12-30   351   1.4    ported to rbv3
 -- 2010-11-06   336   1.3.7  rename input pin CLK -> I_CLK50
 -- 2010-10-23   335   1.3.3  rename RRI_LAM->RB_LAM;
 -- 2010-06-26   309   1.3.2  use constants for rbus addresses (rbaddr_...)
@@ -113,7 +115,7 @@
 ------------------------------------------------------------------------------
 --
 -- w11a test design for s3board
---    w11a + rri + serport
+--    w11a + rlink + serport
 --
 -- Usage of S3BOARD Switches, Buttons, LEDs:
 --    LED(7..0):last RXDATA
@@ -129,7 +131,8 @@ use ieee.std_logic_arith.all;
 
 use work.slvtypes.all;
 use work.genlib.all;
-use work.rrilib.all;
+use work.rblib.all;
+use work.rlinklib.all;
 use work.s3boardlib.all;
 use work.iblib.all;
 use work.ibdlib.all;
@@ -285,10 +288,12 @@ begin
       O_SEG_N => O_SEG_N
     );
 
-  RRI : rri_core_serport
+  RLINK : rlink_base_serport
     generic map (
       ATOWIDTH =>  6,                   -- 64 cycles access timeout
       ITOWIDTH =>  6,                   -- 64 periods max idle timeout
+      IFAWIDTH =>  5,                   -- 32 word input fifo
+      OFAWIDTH =>  0,                   -- no output fifo
       CDWIDTH  => 13,
       CDINIT   => sys_conf_ser2rri_cdinit)
     port map (
@@ -304,7 +309,9 @@ begin
       RB_MREQ  => RB_MREQ,
       RB_SRES  => RB_SRES,
       RB_LAM   => RB_LAM,
-      RB_STAT  => RB_STAT
+      RB_STAT  => RB_STAT,
+      RL_MONI  => open,
+      RL_SER_MONI => open
     );
 
   RB_SRES_OR : rb_sres_or_2
@@ -314,7 +321,7 @@ begin
       RB_SRES_OR => RB_SRES
     );
   
-  RP2CP : pdp11_core_rri
+  RP2CP : pdp11_core_rbus
     generic map (
       RB_ADDR_CORE => rbaddr_core0,
       RB_ADDR_IBUS => rbaddr_ibus)

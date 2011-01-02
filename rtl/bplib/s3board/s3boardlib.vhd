@@ -1,4 +1,4 @@
--- $Id: s3boardlib.vhd 336 2010-11-06 18:28:27Z mueller $
+-- $Id: s3boardlib.vhd 351 2010-12-30 21:50:54Z mueller $
 --
 -- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,9 +16,10 @@
 -- Description:    S3BOARD components
 -- 
 -- Dependencies:   -
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4; ghdl 0.18-0.26
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-12-30   351   1.3.2  use rblib; rename human s3_humanio_rri -> _rbus
 -- 2010-11-06   336   1.3.1  rename input pin CLK -> I_CLK50
 -- 2010-06-03   300   1.3    add s3_humanio_rri (now needs rrilib)
 -- 2010-05-21   292   1.2.2  rename _PM1_ -> _FUSP_
@@ -40,7 +41,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 
 use work.slvtypes.all;
-use work.rrilib.all;
+use work.rblib.all;
 
 package s3boardlib is
 
@@ -118,7 +119,7 @@ component s3_humanio is                 -- human i/o handling: swi,btn,led,dsp
   );
 end component;
 
-component s3_humanio_rri is             -- human i/o handling with rri intercept
+component s3_humanio_rbus is            -- human i/o handling /w rbus intercept
   generic (
     DEBOUNCE : boolean := true;         -- instantiate debouncer for SWI,BTN
     RB_ADDR : slv8 := conv_std_logic_vector(2#10000000#,8));

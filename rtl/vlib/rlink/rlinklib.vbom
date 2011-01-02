@@ -1,0 +1,4 @@
+# libs
+../slvtypes.vhd
+../rbus/rblib.vhd
+rlinklib.vhd

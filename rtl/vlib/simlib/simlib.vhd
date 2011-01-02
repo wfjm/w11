@@ -1,4 +1,4 @@
--- $Id: simlib.vhd 338 2010-11-13 22:19:25Z mueller $
+-- $Id: simlib.vhd 346 2010-12-22 22:59:26Z mueller $
 --
 -- Copyright 2006-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -22,6 +22,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-12-22   346   1.3.7  rename readcommand -> readdotcomm
 -- 2010-11-13   338   1.3.6  add simclkcnt; xx.x ns time in writetimestamp()
 -- 2008-03-24   129   1.3.5  CLK_CYCLE now 31 bits
 -- 2008-03-02   121   1.3.4  added readempty (to discard rest of line)
@@ -76,7 +77,7 @@ procedure readcomment(
   L: inout line;
   good: out boolean);
 
-procedure readcommand(
+procedure readdotcomm(
   L: inout line;
   name: out string;
   good: out boolean);
@@ -471,7 +472,7 @@ end procedure readcomment;
 
 -- -------------------------------------
   
-procedure readcommand(
+procedure readdotcomm(
   L: inout line;
   name: out string;
   good: out boolean) is
@@ -486,7 +487,7 @@ begin
     readword(L, name, good);
   end if;
   
-end procedure readcommand;
+end procedure readdotcomm;
   
 -- -------------------------------------
   

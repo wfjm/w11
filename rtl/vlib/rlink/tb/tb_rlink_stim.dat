@@ -1,0 +1,3110 @@
+# $Id: tb_rlink_stim.dat 351 2010-12-30 21:50:54Z mueller $
+#
+#  Revision History: 
+# Date         Rev Version  Comment
+# 2010-12-29   351   3.0.6  use new rbd_tester addr 111100xx (from 111101xx)
+# 2010-12-28   350   3.3.2  adapt for cdinit=0 in tbd/tbu(some .iowt 10->20)
+# 2010-12-25   348   3.3.1  Test 3b moved to tb_rlink_serport_stim.dat
+# 2010-12-22   346   3.3    Test 7: check dcrc sends nak and ends in s_error
+#                           Test 20: check that '111' ends in s_error
+#                           Test 21*: now covers eop aborts of all commands
+# 2010-12-21   345   3.2    rename .[rt]x... -> [rt]x...; use .[rt]x(idle|attn)
+# 2010-12-12   344   3.1    now almost complete test coverage
+# 2010-12-05   343   3.0    re-write for usage with tbd_tester
+# 2010-06-06   302   2.0    use sop/eop framing instead of soc+chaining
+# 2007-11-24    98   1.2    adapt to new internal init handling
+# 2007-11-04    95   1.1    add .iowt's in Test 15 to get serport timing right
+# 2007-06-17    58   1.0    Initial version
+#
+#---------------------------------------
+# test coverage table
+#   rlink_core
+#     command function and attribute matrix
+#        cmd  function  rberr  rbnak- rbnak- rbnak- busy  cerr  derr  idle  eop 
+#                              nak    dnak   time
+#       rreg  2,3a      4a     8a     12a    10     10    6a    n/a   18a   21b
+#       wreg  1,3a      4b     8a     12a    10     10    6b    n/a   18a   21a
+#       rblk  4a        4b,7   8b     12b    11     11    6c    n/a   18b   21d
+#       wblk  4a        4b     8b     12b    11     11    6c    7     18b   21c
+#       stat  5,6*,7    n/a    n/a    n/a    n/a    n/a   6c    n/a   18c   21e
+#       attn  13*       n/a    n/a    n/a    n/a    n/a   16    n/a   18c   21f
+#       init  9,15a     n/a    n/a    n/a    n/a    n/a   16    n/a   18c   21g
+#
+#     cmd rreg
+#     cmd wreg
+#     cmd rblk
+#     cmd wblk
+#     cmd stat
+#       returns last command status     -> 5
+#       returns cerr error flag         -> 6a,6b
+#       returns derr error flag         -> 7
+#     cmd attn
+#     cmd init
+#       generates external init         -> 9
+#       generates internal init         -> 15a
+#     drop cmd after ccrc               -> 6b
+#     attn poll                         -> 14
+#     attn notification                 -> 15a,15b
+#     idle timeout                      -> 17
+#     idle insertion at any state       -> 18a,18b,18c
+#     sop-eop framing                   -> 19
+#     unused command code 111 gives nak -> 20
+#     eop aborts (all commands)         -> 21*
+#     nak aborts (only wreg)            -> 21
+#     
+#   tbd_tester
+#     reg cntl
+#       nofifo: read/write, disable fifo-> 8a,8b
+#       nofifo: clear fifo on 1->0      -> 8a
+#       stat: write and RB_STAT connect -> 3
+#       stat: read                      -> 3
+#       nbusy: controls # of busy cycles-> 10
+#       cleared by init (..001)         -> 9
+#     reg data
+#       write                           -> 1,3,5
+#       read                            -> 2,3,5
+#       cleared by init (..010)         -> 9
+#     reg fifo
+#       write/read normal               -> 4a
+#       read: rberr on EMPTY            -> 4a,4b,8a
+#       write: rberr on FULL            -> 4b
+#       cleared by nofifo 1->0          -> 8a
+#       cleared by init (..100)         -> 9
+#     reg attn
+#       returns cycle length on read    -> 10
+#       write tickles RB_LAM            -> 13b
+#
+#---------------------------------------
+# rbus address mapping
+#   11110000   rbd_tester cntl
+#   11110001   rbd_tester data
+#   11110010   rbd_tester fifo
+#   11110011   rbd_tester attn
+#
+.rlmon 0
+.rbmon 0
+#
+.wait 5
+C some non frame data first
+tx8   00000000
+.wait 5
+tx8   00000001
+.wait 5
+tx8   00000010
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 1: wreg(data)
+C   data := 0011001111001100
+C   ==> shows that rlink can write a register
+C
+C wreg: tx: sop - cmd(00001,010) addr(0001) dl dh ccrc - eop
+C       rx: sop - cmd(010) stat crc - eop
+#
+rxsop 
+rxcs   00001010 00000000
+rxeop 
+#
+txsop 
+txcad  00001010 11110001 0011001111001100
+txeop 
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 2: rreg(data)
+C   data -> 0011001111001100
+C   ==> shows that rlink can read back a register
+C
+C rreg: tx: sop - cmd(00001,000) addr(0001) ccrc - eop
+C       rx: sop - cmd(000) dl dh stat crc - eop
+#
+rxsop 
+rxcds  00001000          0011001111001100 00000000
+rxeop 
+#
+txsop 
+txca   00001000 11110001
+txeop 
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 3: chained wreg(cntl) - wreg(data) - rreg(cntl) - rreg(data)
+C   cntl := 0111000000000000  (nf=0,stat=111,nbusy=0)
+C   data := 1100110000110011                            --> stat=111 !
+C   cntl -> 0111000000000000                            --> stat=111 !
+C   data -> 1100110000110011                            --> stat=111 !
+C   ==> shows that rlink can properly address two registers
+C   ==> shows that tbd_tester cntl can set RB_STAT
+C
+C wreg: tx: sop - cmd(00001,010) addr(0000) dl dh ccrc
+C wreg: tx:     - cmd(00010,010) addr(0001) dl dh ccrc
+C rreg: tx:     - cmd(00011,000) addr(0000) ccrc
+C rreg: tx:     - cmd(00100,000) addr(0001) ccrc
+C       tx:     - eop
+C       rx: sop - cmd(010) stat crc
+C       rx:     - cmd(010) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - eop
+#
+rxsop 
+rxcs   00001010 00000000
+rxcs   00010010 11100000
+rxcds  00011000          0111000000000000 11100000
+rxcds  00100000          1100110000110011 11100000
+rxeop 
+#
+txsop 
+txcad  00001010 11110000 0111000000000000
+txcad  00010010 11110001 1100110000110011
+txca   00011000 11110000
+txca   00100000 11110001 
+txeop 
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 4a: wblk - rblk (normal)
+C   write 8 words to fifo with wblk
+C   read back 8 words from fifo with rblk
+C   read back 9'th word from fifo with rreg (fails with err)
+C   ==> shows that block write/read work
+C   ==> shows that RB_SRES.err works with rreg
+C
+C wblk: tx: sop - cmd(10110,011) addr(0010) cnt(8->111) ccrc dl dh .. dcrc
+C       tx:     - eop
+C       rx: sop - cmd(011) stat crc
+C       rx:     - eop
+#
+rxsop 
+rxcs   10110011 11100000
+rxeop 
+#
+txsop 
+txcac  10110011 11110010 00000111
+tx16   0000000001000000
+tx16   0000000001000001
+tx16   0000000001000010
+tx16   0000000001000011
+tx16   0000000001000100
+tx16   0000000001000101
+tx16   0000000001000110
+tx16   0000000001000111
+txcrc 
+txeop 
+#
+.iowt 10
+#
+C rblk: tx: sop - cmd(10111,001) addr(0010) cnt(8->111) ccrc - eop
+C       rx: sop - cmd(001) cnt dl dh ... stat crc - eop
+#
+rxsop 
+rx8    10111001
+rx8    00000111
+rx16   0000000001000000
+rx16   0000000001000001
+rx16   0000000001000010
+rx16   0000000001000011
+rx16   0000000001000100
+rx16   0000000001000101
+rx16   0000000001000110
+rx16   0000000001000111
+rx8    11100000
+rxcrc 
+rxeop 
+#
+txsop 
+txcac  10111001 11110010 00000111
+txeop 
+#
+.iowt 10
+#
+C rreg: tx: sop - cmd(11000,000) addr(0010) ccrc - eop
+C       rx: sop - cmd(000) dl dh stat crc - eop
+C
+C     stat: stat(111),attn(0),cerr(0),derr(0),rbnak(0),rberr(1) -> 11100001
+C     Note: returns 0101... empty pattern
+#
+rxsop 
+rxcds  11000000          0101010101010101 11100001
+rxeop 
+#
+txsop 
+txca   11000000 11110010
+txeop 
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 4b: wblk - rblk (rberr response)
+C   write 17 words to fifo with wblk
+C   write 18'th word to fifo with wreg
+C   read back 17 words from fifo with rblk
+C   ==> shows that RB_SRES.err works with wblk,wreg,rblk
+C
+C wblk: tx: sop - cmd(00001,011) addr(0010) cnt(17->10000) ccrc dl dh .. dcrc
+C wreg: tx:     - cmd(00010,010) addr(0010) dl dh ccrc
+C rblk: tx:     - cmd(00011,001) addr(0010) cnt(18->10001) ccrc
+C       tx:     - eop
+C       rx: sop - cmd(011) stat crc
+C       rx:     - cmd(010) stat crc
+C       rx:     - cmd(001) cnt dl dh ... stat crc
+C       rx:     - eop
+C
+C     stat: stat(111),attn(0),cerr(0),derr(0),rbnak(0),rberr(1) -> 11100001
+#
+rxsop 
+rxcs   00001011 11100001
+rxcs   00010010 11100001
+rx8    00011001
+rx8    00010001
+rx16   0000001111000000
+rx16   0000001111000001
+rx16   0000001111000010
+rx16   0000001111000011
+rx16   0000001111000100
+rx16   0000001111000101
+rx16   0000001111000110
+rx16   0000001111000111
+rx16   0000001111001000
+rx16   0000001111001001
+rx16   0000001111001010
+rx16   0000001111001011
+rx16   0000001111001100
+rx16   0000001111001101
+rx16   0000001111001110
+rx16   0000001111001111
+rx16   0101010101010101
+rx16   0101010101010101
+rx8    11100001
+rxcrc 
+rxeop 
+#
+txsop 
+txcac  00001011 11110010 00010000
+tx16   0000001111000000
+tx16   0000001111000001
+tx16   0000001111000010
+tx16   0000001111000011
+tx16   0000001111000100
+tx16   0000001111000101
+tx16   0000001111000110
+tx16   0000001111000111
+tx16   0000001111001000
+tx16   0000001111001001
+tx16   0000001111001010
+tx16   0000001111001011
+tx16   0000001111001100
+tx16   0000001111001101
+tx16   0000001111001110
+tx16   0000001111001111
+tx16   0000001111010000
+txcrc 
+txcad  00010010 11110010 0000001111010001
+txcac  00011001 11110010 00010001
+txeop 
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 5: stat (in non-error case) re-read last cmd twice, shouldn't change
+C   cntl := 0000000000000000  (nf=0,stat=000,nbusy=0)   --> stat=111
+C   data := 1010101010101010                            --> stat=000
+C   cntl -> 0000000000000000                            --> stat=000
+C   data -> 1010101010101010                            --> stat=000
+C   use 'stat' twice, should give cmd and data of last 'read data'
+C   ==> shows that stat command works properly
+C
+C wreg: tx: sop - cmd(00001,010) addr(0000) dl dh ccrc
+C wreg: tx:     - cmd(00010,010) addr(0001) dl dh ccrc
+C rreg: tx:     - cmd(00011,000) addr(0000) ccrc
+C rreg: tx:     - cmd(00100,000) addr(0001) ccrc
+C stat: tx:     - cmd(00101,100) ccrc
+C stat: tx:     - cmd(00110,100) ccrc
+C       tx:     - eop
+C       rx: sop - cmd(010) stat crc
+C       rx:     - cmd(010) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(100) ccmd(000) dl dh stat crc
+C       rx:     - cmd(100) ccmd(000) dl dh stat crc
+C       rx:     - eop
+#
+rxsop 
+rxcs   00001010 11100000
+rxcs   00010010 00000000
+rxcds  00011000          0000000000000000 00000000
+rxcds  00100000          1010101010101010 00000000
+rxccd  00101100 00100000 1010101010101010 00000000
+rxccd  00110100 00100000 1010101010101010 00000000
+rxeop 
+#
+txsop 
+txcad  00001010 11110000 0000000000000000
+txcad  00010010 11110001 1010101010101010 
+txca   00011000 11110000
+txca   00100000 11110001
+txc    00101100
+txc    00110100
+txeop 
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 6a: ccrc error abort for rreg, last command in packet fails
+C   cntl := 0101000000000000  (nf=0,stat=101,nbusy=0)   --> stat=000
+C   data := 1100110011001100                            --> stat=101
+C   cntl -> 0101000000000000                            --> stat=101
+C   data -> 1100110011001100   *send with bad CCRC*, will fail
+C   ==> shows command ccrc check works properly
+C
+C wreg: tx: sop - cmd(00001,010) addr(0000) dl dh ccrc
+C wreg: tx:     - cmd(00010,010) addr(0001) dl dh ccrc
+C rreg: tx:     - cmd(00011,000) addr(0000) ccrc
+C rreg: tx:     - cmd(00100,000) addr(0001) *BAD CCRC*
+C       tx:     - eop
+C       rx: sop - cmd(010) stat crc
+C       rx:     - cmd(010) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - nak  *ABORT*
+C       rx:     - eop
+#
+rxsop 
+rxcs   00001010 00000000
+rxcs   00010010 10100000
+rxcds  00011000          0101000000000000 10100000
+rxnak 
+rxeop 
+#
+txsop 
+txcad  00001010 11110000 0101000000000000
+txcad  00010010 11110001 1100110011001100
+txca   00011000 11110000
+tx8    00100000 
+tx8    11110001
+txbad 
+txeop 
+#
+.iowt 10
+#
+C
+C now check that stat reflects last successfull rreg; re-read cerr=1 sticks !
+C   ==> shows command stat allows to deterine last successful (non-stat) command
+C
+C stat: tx: sop - cmd(00101,100) ccrc
+C stat: tx:     - cmd(00110,100) ccrc
+C       tx:     - eop
+C       rx:     - cmd(100) ccmd(000) dl dh stat crc
+C       rx:     - cmd(100) ccmd(000) dl dh stat crc
+C       rx:     - eop
+C
+C     stat: stat(101),attn(0),cerr(1),derr(0),rbnak(0),rberr(0) -> 10101000
+rxsop 
+rxccd  00101100 00011000 0101000000000000 10101000
+rxccd  00110100 00011000 0101000000000000 10101000
+rxeop 
+#
+txsop 
+txc    00101100
+txc    00110100
+txeop 
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 6b: ccrc error abort for wreg, failure inside packet
+C   cntl := 0000000000000000  (nf=0,stat=000,nbusy=0)
+C   cntl := 0111000000000000  (nf=0,stat=111,nbusy=0) *send with bad CCRC*
+C   data := 0011001100110011                          *will be ignored*  
+C   ==> shows commands after a ccrc fail are ignored
+C
+C wreg: tx: sop - cmd(00001,010) addr(0000) dl dh ccrc
+C wreg: tx:     - cmd(00010,010) addr(0000) dl dh *BAD CCRC*
+C wreg: tx:     - cmd(00011,010) addr(0001) dl dh ccrc
+C       tx:     - eop
+C       rx: sop - cmd(010) stat crc
+C       rx:     - nak  *ABORT*
+C       rx:     - eop
+C
+rxsop 
+rxcs   00001010 10100000
+rxnak 
+rxeop 
+#
+txsop 
+txcad  00001010 11110000 0000000000000000
+tx8    00010010 
+tx8    11110000
+tx8    00000000
+tx8    01110000
+txbad 
+txcad  00011010 11110001 0011001100110011
+txeop 
+#
+.iowt 10
+#
+C
+C now check that stat reflects first successfull wreg; re-read cerr=1 sticks !
+C   ==> shows command stat allows to deterine last successful (non-stat) command
+C
+C stat: tx: sop - cmd(00101,100) ccrc
+C stat: tx:     - cmd(00110,100) ccrc
+C       tx:     - eop
+C       rx:     - cmd(100) ccmd (000) dl dh stat crc
+C       rx:     - cmd(100) ccmd (000) dl dh stat crc
+C       rx:     - eop
+C
+C     stat: stat(101),attn(0),cerr(1),derr(0),rbnak(0),rberr(0) -> 10101000
+rxsop 
+rxccd  00101100 00001010 0101000000000000 10101000
+rxccd  00110100 00001010 0101000000000000 10101000
+rxeop 
+#
+txsop 
+txc    00101100
+txc    00110100
+txeop 
+#
+.iowt 10
+#
+C
+C finally check that cntl register was really written by first wreg
+C   cntl -> 0000000000000000
+C
+C rreg: tx: sop - cmd(01000,000) addr(0000) ccrc - eop
+C       rx: sop - cmd(000) dl dh stat crc - eop
+#
+rxsop 
+rxcds  01000000          0000000000000000 00000000
+rxeop 
+#
+txsop 
+txca   01000000 11110000
+txeop 
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 6c: ccrc error abort for wblk,rblk and stat
+C   write 2 words to fifo with bad CCRC   -> nak
+C   read 2 words from fifo with bad CCRC  -> nak
+C   cmd stat with bad CCRC                -> nak
+C   finally stat, will return last successfull read from Test 6b
+C
+C wblk: tx: sop - cmd(00001,011) addr(0010) cnt(2->001) *BAD CCRC* dl dh .. dcrc
+C               - eop
+C       rx: sop - nak - eop
+C
+rxsop 
+rxnak 
+rxeop 
+#
+txsop 
+tx8    00001011 
+tx8    11110010 
+tx8    00000001
+txbad  
+tx16   1010101010101010
+tx16   0101010101010101
+txcrc  
+txeop 
+#
+.iowt 10
+#
+C
+C rblk: tx: sop - cmd(00010,001) addr(0010) cnt(2->001) *BAD CCRC* - eop
+C       rx: sop - nak - eop
+C
+rxsop 
+rxnak 
+rxeop 
+#
+txsop 
+tx8    00010001 
+tx8    11110010 
+tx8    00000001
+txbad  
+txeop 
+#
+.iowt 10
+#
+C
+C stat: tx: sop - cmd(00011,100) *BAD CCRC* - eop
+C       rx: sop - nak - eop
+C
+rxsop 
+rxnak 
+rxeop 
+#
+txsop 
+tx8    00011100 
+txbad  
+txeop 
+#
+.iowt 10
+#
+C
+C stat: tx: sop - cmd(00100,100) ccrc - eop
+C       rx: sop - cmd(100) ccmd (000) dl dh stat crc - eop
+C
+C     stat: stat(000),attn(0),cerr(1),derr(0),rbnak(0),rberr(0) -> 00001000
+C
+rxsop 
+rxccd  00100100 01000000 0000000000000000 00001000
+rxeop 
+#
+txsop 
+txc    00100100
+txeop 
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 7: dcrc error condition in wblk
+C   write 4 words to fifo with wblk and bad DCRC, will cause a dcrc fail
+C   ==> shows that data dcrc works in wblk, aborts with <nak>
+C   ==> shows that commands after a dcrc failed wblk are discarded
+C
+C wblk: tx: sop - cmd(00001,011) addr(0010) cnt(4->011) ccrc dl dh .. 
+C                 *BAD DCRC* 
+C                 cmd(00010,000) addr(0001) ccrc
+C               - eop
+C       rx: sop - cmd(011) stat crc
+C       rx:     - nak eop
+C
+C     stat: stat(000),attn(0),cerr(0),derr(1),rbnak(0),rberr(0) -> 00000100
+#
+rxsop 
+rxcs   00001011 00000100
+rxnak
+rxeop 
+#
+txsop 
+txcac  00001011 11110010 00000011
+tx16   0001000001000000
+tx16   0001000001000001
+tx16   0001000001000010
+tx16   0001000001000011
+txbad 
+txca   00010000 11110001
+txeop 
+#
+.iowt 10
+#
+C
+C now check that stat reflects bad dcrc: re-read derr=1 sticks !
+C stat: tx: sop - cmd(00011,100) ccrc
+C stat: tx:     - cmd(00100,100) ccrc
+C       tx:     - eop
+C       rx:     - cmd(100) ccmd (000) dl dh stat crc
+C       rx:     - cmd(100) ccmd (000) dl dh stat crc
+C       rx:     - eop
+C
+C     stat: stat(000),attn(0),cerr(0),derr(1),rbnak(0),rberr(0) -> 00000100
+C     Note: dl,dh still the last read of Test 6 !!
+rxsop 
+rxccd  00011100 00001011 0000000000000000 00000100
+rxccd  00100100 00001011 0000000000000000 00000100
+rxeop 
+#
+txsop 
+txc    00011100
+txc    00100100
+txeop 
+#
+.iowt 10
+#
+C
+C now read 6 words from fifo: first 4 previous data, 2 empty reads and err=1
+C rblk: tx: sop - cmd(00101,001) addr(0010) cnt(6->101) ccrc - eop
+C       rx: sop - cmd(001) cnt dl dh ... stat crc - eop
+C
+C     stat: stat(000),attn(0),cerr(0),derr(0),rbnak(0),rberr(1) -> 00000001
+#
+rxsop 
+rx8   00101001
+rx8   00000101
+rx16  0001000001000000
+rx16  0001000001000001
+rx16  0001000001000010
+rx16  0001000001000011
+rx16  0101010101010101
+rx16  0101010101010101
+rx8   00000001
+rxcrc 
+rxeop 
+#
+txsop 
+txcac  00101001 11110010 00000101
+txeop 
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 8a: rbnak(no ack) condition (rreg/wreg)
+C   fifo := 1111111100000000     -> rbnak=0
+C   cntl := 1000000000000000  (nf=1,stat=000,nbusy=0) --> disable fifo
+C   fifo := 1111111100001111     -> rbnak=1
+C   fifo -> 0101010101010101     -> rbnak=1            
+C   cntl := 0000000000000000  (nf=0,stat=000,nbusy=0) --> enable and clear fifo
+C   fifo := 0000000001010101     -> rbnak=0
+C   fifo -> 0000000001010101     -> rbnak=0
+C   fifo -> 0101010101010101     -> rberr=1 (first fifo write data cleared...)
+C   ==> shows that missing ack is handled properly and rbnak flag set
+C
+C wreg: tx: sop - cmd(00001,010) addr(0010) dl dh ccrc
+C wreg: tx:     - cmd(00010,010) addr(0000) dl dh ccrc
+C wreg: tx:     - cmd(00011,010) addr(0010) dl dh ccrc
+C rreg: tx:     - cmd(00100,000) addr(0010) ccrc
+C wreg: tx:     - cmd(00101,010) addr(0000) dl dh ccrc
+C wreg: tx:     - cmd(00110,010) addr(0010) dl dh ccrc
+C rreg: tx:     - cmd(00111,000) addr(0010) ccrc
+C rreg: tx:     - cmd(01000,000) addr(0010) ccrc
+C       tx:     - eop
+C       rx: sop - cmd(010) stat crc
+C       rx:     - cmd(010) stat crc
+C       rx:     - cmd(010) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(010) stat crc
+C       rx:     - cmd(010) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - eop
+C
+C   stat-3: stat(000),attn(0),cerr(0),derr(0),rbnak(1),rberr(0) -> 00000010
+C   stat-8: stat(000),attn(0),cerr(0),derr(0),rbnak(0),rberr(1) -> 00000001
+C     Note: fifo will nak when nofifo flag set in cntl
+C     Note: tb returns 0000000000000000 for access to bad addresses
+#
+rxsop 
+rxcs   00001010 00000000
+rxcs   00010010 00000000
+rxcs   00011010 00000010
+rxcds  00100000          0000000000000000 00000010
+rxcs   00101010 00000000
+rxcs   00110010 00000000
+rxcds  00111000          0000000010101010 00000000
+rxcds  01000000          0101010101010101 00000001
+rxeop 
+#
+txsop 
+txcad  00001010 11110010 1111111100000000
+txcad  00010010 11110000 1000000000000000
+txcad  00011010 11110010 1111111100001111
+txca   00100000 11110010
+txcad  00101010 11110000 0000000000000000
+txcad  00110010 11110010 0000000010101010
+txca   00111000 11110010
+txca   01000000 11110010
+txeop 
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 8b: rbnak(no ack) condition (rblk/wblk)
+C   cntl := 1000000000000000  (nf=1,stat=000,nbusy=0) --> disable fifo
+C   write 2 words to fifo    -> rbnak=1
+C   read 2 words from fifo   -> rbnak=1
+C   cntl := 0000000000000000  (nf=0,stat=000,nbusy=0) --> enable and clear fifo
+C   ==> shows that missing ack is handled properly and rbnak flag set
+C
+C wreg: tx: sop - cmd(00001,010) addr(0000) dl dh ccrc
+C wblk: tx:     - cmd(00010,011) addr(0010) cnt(2->001) ccrc dl dh .. dcrc
+C rblk: tx:     - cmd(00011,001) addr(0010) cnt(2->001) ccrc
+C wreg: tx:     - cmd(00100,010) addr(0000) dl dh ccrc
+C       tx:     - eop
+C       rx: sop - cmd(010) stat crc
+C       rx:     - cmd(011) stat crc
+C       rx:     - cmd(001) cnt dl dh ... stat crc - eop
+C       rx:     - cmd(010) stat crc
+C       rx:     - eop
+C
+C     stat: stat(000),attn(0),cerr(0),derr(0),rbnak(1),rberr(0) -> 00000010
+C     Note: fifo will nak when nofifo flag set in cntl
+C     Note: tb returns 0000000000000000 for access to bad addresses
+#
+rxsop 
+rxcs   00001010 00000000
+rxcs   00010011 00000010
+rx8    00011001
+rx8    00000001
+rx16   0000000000000000
+rx16   0000000000000000
+rx8    00000010
+rxcrc 
+rxcs   00100010 00000000
+rxeop 
+#
+txsop 
+txcad  00001010 11110000 1000000000000000
+txcac  00010011 11110010 00000001
+tx16   0011110000000000
+tx16   0011110000000001
+txcrc 
+txcac  00011001 11110010 00000001
+txcad  00100010 11110000 0000000000000000
+txeop 
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 9: init 
+C   cntl := 0010000000000000  (nf=0,stat=010,nbusy=0)
+C   data := 1100110000000000
+C   fifo := 1100110011000000
+C   fifo := 1100110011000001
+C   fifo := 1100110011000010
+C   fifo := 1100110011000011
+C   init (11110000:0000000000000000)  noop
+C   cntl -> 0010000000000000  
+C   data -> 1100110000000000
+C   fifo -> 1100110011000000
+C   init (11110000:0000000000000001)  clear cntl
+C   cntl -> 0000000000000000  
+C   data -> 1100110000000000
+C   fifo -> 1100110011000001
+C   init (11110000:0000000000000010)  clear data
+C   data -> 0000000000000000
+C   fifo -> 1100110011000010
+C   init (11110000:0000000000000100)  clear fifo
+C   fifo -> 0101010101010101 ierr=1
+C   ==> shows that init is issued and properly decoded
+C
+C wreg: tx: sop - cmd(00001,010) addr(0000) dl dh ccrc
+C wreg: tx:     - cmd(00010,010) addr(0001) dl dh ccrc
+C wreg: tx:     - cmd(00011,010) addr(0010) dl dh ccrc
+C wreg: tx:     - cmd(00100,010) addr(0010) dl dh ccrc
+C wreg: tx:     - cmd(00101,010) addr(0010) dl dh ccrc
+C wreg: tx:     - cmd(00110,010) addr(0010) dl dh ccrc
+C init: tx:     - cmd(00111,110) addr(0000) dl dh ccrc
+C rreg: tx:     - cmd(01000,000) addr(0000) ccrc
+C rreg: tx:     - cmd(01001,000) addr(0001) ccrc
+C rreg: tx:     - cmd(01010,000) addr(0010) ccrc
+C init: tx:     - cmd(01011,110) addr(0000) dl dh ccrc
+C rreg: tx:     - cmd(01100,000) addr(0000) ccrc
+C rreg: tx:     - cmd(01101,000) addr(0001) ccrc
+C rreg: tx:     - cmd(01110,000) addr(0010) ccrc
+C init: tx:     - cmd(01111,110) addr(0000) dl dh ccrc
+C rreg: tx:     - cmd(10000,000) addr(0001) ccrc
+C rreg: tx:     - cmd(10001,000) addr(0010) ccrc
+C init: tx:     - cmd(10010,110) addr(0000) dl dh ccrc
+C rreg: tx:     - cmd(10011,000) addr(0010) ccrc
+C       tx:     - eop
+C       rx: sop - cmd(010) stat crc
+C       rx:     - cmd(010) stat crc
+C       rx:     - cmd(010) stat crc
+C       rx:     - cmd(010) stat crc
+C       rx:     - cmd(010) stat crc
+C       rx:     - cmd(010) stat crc
+C       rx:     - cmd(110) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(110) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(110) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(110) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - eop
+C
+#
+rxsop 
+rxcs   00001010 00000000
+rxcs   00010010 01000000
+rxcs   00011010 01000000
+rxcs   00100010 01000000
+rxcs   00101010 01000000
+rxcs   00110010 01000000
+rxcs   00111110 01000000
+rxcds  01000000          0010000000000000 01000000
+rxcds  01001000          1100110000000000 01000000
+rxcds  01010000          1100110011000000 01000000
+rxcs   01011110 01000000
+rxcds  01100000          0000000000000000 00000000
+rxcds  01101000          1100110000000000 00000000
+rxcds  01110000          1100110011000001 00000000
+rxcs   01111110 00000000
+rxcds  10000000          0000000000000000 00000000
+rxcds  10001000          1100110011000010 00000000
+rxcs   10010110 00000000
+rxcds  10011000          0101010101010101 00000001
+rxeop 
+#
+txsop 
+txcad  00001010 11110000 0010000000000000
+txcad  00010010 11110001 1100110000000000
+txcad  00011010 11110010 1100110011000000
+txcad  00100010 11110010 1100110011000001
+txcad  00101010 11110010 1100110011000010
+txcad  00110010 11110010 1100110011000011
+txcad  00111110 11110000 0000000000000000
+txca   01000000 11110000
+txca   01001000 11110001
+txca   01010000 11110010
+txcad  01011110 11110000 0000000000000001
+txca   01100000 11110000
+txca   01101000 11110001
+txca   01110000 11110010
+txcad  01111110 11110000 0000000000000010
+txca   10000000 11110001
+txca   10001000 11110010
+txcad  10010110 11110000 0000000000000100
+txca   10011000 11110010
+txeop 
+#
+.iowt 10
+#
+C
+C   cntl := 1111001111111111  (nf=1,stat=111,nbusy=1023)
+C   cntl -> 1111001111111111  
+C   init (11110000:0000000000000001)  clear cntl
+C   cntl -> 0000000000000000  
+C   ==> shows that init completely clears cntl
+C
+C wreg: tx: sop - cmd(00001,010) addr(0000) dl dh ccrc
+C rreg: tx:     - cmd(00010,000) addr(0000) ccrc
+C init: tx:     - cmd(00011,110) addr(0000) dl dh ccrc
+C rreg: tx:     - cmd(00100,000) addr(0000) ccrc
+C       tx:     - eop
+C       rx: sop - cmd(010) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(110) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - eop
+#
+rxsop 
+rxcs   00001010 00000000
+rxcds  00010000          1111001111111111 11100000
+rxcs   00011110 11100000
+rxcds  00100000          0000000000000000 00000000
+rxeop 
+#
+txsop 
+txcad  00001010 11110000 1111001111111111
+txca   00010000 11110000
+txcad  00011110 11110000 0000000000000001
+txca   00100000 11110000
+txeop 
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 10: rbus busy handling (wreg/rreg via data)
+C   cntl := 0000000000000000  (nf=0,stat=000,nbusy=0)
+C   cntl -> 0000000000000000
+C   data := 0011001100000000  -> ncyc=1
+C   attn -> 0000000000000001
+C   data -> 0011001100000000  -> ncyc=1
+C   attn -> 0000000000000001
+C   ==> shows that reading register attn returns proper ncyc if no busy
+C
+C wreg: tx: sop - cmd(00001,010) addr(0000) dl dh ccrc
+C rreg: tx:     - cmd(00010,000) addr(0000) ccrc
+C wreg: tx:     - cmd(00011,010) addr(0001) dl dh ccrc
+C rreg: tx:     - cmd(00100,000) addr(0011) ccrc
+C rreg: tx:     - cmd(00101,000) addr(0001) ccrc
+C rreg: tx:     - cmd(00110,000) addr(0011) ccrc
+C       tx:     - eop
+C       rx: sop - cmd(010) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(010) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - eop
+C
+#
+rxsop 
+rxcs   00001010 00000000
+rxcds  00010000          0000000000000000 00000000
+rxcs   00011010 00000000
+rxcds  00100000          0000000000000001 00000000
+rxcds  00101000          0011001100000000 00000000
+rxcds  00110000          0000000000000001 00000000
+rxeop 
+#
+txsop 
+txcad  00001010 11110000 0000000000000000
+txca   00010000 11110000
+txcad  00011010 11110001 0011001100000000
+txca   00100000 11110011
+txca   00101000 11110001
+txca   00110000 11110011
+txeop 
+#
+.iowt 10
+#
+C
+C - now with nbusy=1
+C   cntl := 0000000000000001  (nf=0,stat=000,nbusy=1)
+C   cntl -> 0000000000000001
+C   data := 0011001100000001  -> ncyc=2
+C   attn -> 0000000000000010
+C   data -> 0011001100000001  -> ncyc=2
+C   attn -> 0000000000000010
+C   ==> shows that wreg/rreg strech cycle; attn returns proper ncyc
+C
+#
+rxsop 
+rxcs   00001010 00000000
+rxcds  00010000          0000000000000001 00000000
+rxcs   00011010 00000000
+rxcds  00100000          0000000000000010 00000000
+rxcds  00101000          0011001100000001 00000000
+rxcds  00110000          0000000000000010 00000000
+rxeop 
+#
+txsop 
+txcad  00001010 11110000 0000000000000001
+txca   00010000 11110000
+txcad  00011010 11110001 0011001100000001
+txca   00100000 11110011
+txca   00101000 11110001
+txca   00110000 11110011
+txeop 
+#
+.iowt 10
+#
+C
+C - now with nbusy=2
+C   cntl := 0000000000000010  (nf=0,stat=000,nbusy=2)
+C   cntl -> 0000000000000010
+C   data := 0011001100000010  -> ncyc=3
+C   attn -> 0000000000000011
+C   data -> 0011001100000010  -> ncyc=3
+C   attn -> 0000000000000011
+C
+#
+rxsop 
+rxcs   00001010 00000000
+rxcds  00010000          0000000000000010 00000000
+rxcs   00011010 00000000
+rxcds  00100000          0000000000000011 00000000
+rxcds  00101000          0011001100000010 00000000
+rxcds  00110000          0000000000000011 00000000
+rxeop 
+#
+txsop 
+txcad  00001010 11110000 0000000000000010
+txca   00010000 11110000
+txcad  00011010 11110001 0011001100000010
+txca   00100000 11110011
+txca   00101000 11110001
+txca   00110000 11110011
+txeop 
+#
+.iowt 10
+#
+C
+C - now with nbusy=31 (still succeeds)
+C   cntl := 0000000000011111  (nf=0,stat=000,nbusy=31)
+C   cntl -> 0000000000011111
+C   data := 0011001100011111  -> ncyc=32
+C   attn -> 0000000000100000
+C   data -> 0011001100011111  -> ncyc=32
+C   attn -> 0000000000100000
+C
+#
+rxsop 
+rxcs   00001010 00000000
+rxcds  00010000          0000000000011111 00000000
+rxcs   00011010 00000000
+rxcds  00100000          0000000000100000 00000000
+rxcds  00101000          0011001100011111 00000000
+rxcds  00110000          0000000000100000 00000000
+rxeop 
+#
+txsop 
+txcad  00001010 11110000 0000000000011111
+txca   00010000 11110000
+txcad  00011010 11110001 0011001100011111
+txca   00100000 11110011
+txca   00101000 11110001
+txca   00110000 11110011
+txeop 
+#
+.iowt 20
+#
+C
+C - now with nbusy=32  (fails with rbnak=1)
+C   cntl := 0000000000100000  (nf=0,stat=000,nbusy=32)
+C   cntl -> 0000000000100000
+C   data := 0011001100100000  -> ncyc=32, rbnak=1
+C   attn -> 0000000000100000
+C   data -> 0011001100100000  -> ncyc=32, rbnak=1
+C   attn -> 0000000000100000
+C
+C     stat: stat(000),attn(0),cerr(0),derr(0),rbnak(1),rberr(0) -> 00000010
+C   ==> shows that timeout abort works
+C
+#
+rxsop 
+rxcs   00001010 00000000
+rxcds  00010000          0000000000100000 00000000
+rxcs   00011010 00000010
+rxcds  00100000          0000000000100000 00000000
+rxcds  00101000          0101010101010101 00000010
+rxcds  00110000          0000000000100000 00000000
+rxeop 
+#
+txsop 
+txcad  00001010 11110000 0000000000100000
+txca   00010000 11110000
+txcad  00011010 11110001 0011001100100000
+txca   00100000 11110011
+txca   00101000 11110001
+txca   00110000 11110011
+txeop 
+#
+.iowt 20
+#
+C
+C - now with nbusy=1023
+C   cntl := 0000001111111111  (nf=0,stat=000,nbusy=1023)
+C   cntl -> 0000001111111111
+C   data := 0011001111111111  -> ncyc=32,rbnak=1
+C   attn -> 0000000000100000
+C   data -> 0101010101010101  -> ncyc=32,rbnak=1
+C   attn -> 0000000000100000
+C
+C     stat: stat(000),attn(0),cerr(0),derr(0),rbnak(1),rberr(0) -> 00000010
+C
+#
+rxsop 
+rxcs   00001010 00000000
+rxcds  00010000          0000001111111111 00000000
+rxcs   00011010 00000010
+rxcds  00100000          0000000000100000 00000000
+rxcds  00101000          0101010101010101 00000010
+rxcds  00110000          0000000000100000 00000000
+rxeop 
+#
+txsop 
+txcad  00001010 11110000 0000001111111111
+txca   00010000 11110000
+txcad  00011010 11110001 0011001111111111
+txca   00100000 11110011
+txca   00101000 11110001
+txca   00110000 11110011
+txeop 
+#
+.iowt 20
+#
+C -----------------------------------------------------------------------------
+C Test 11: rbus busy handling (wblk/rblk via fifo)
+C   cntl := 0000000000000000  (nf=0,stat=000,nbusy=0)
+C   cntl -> 0000000000000000
+C   write 2 words to fifo     -> ncyc=1
+C   attn -> 0000000000000001
+C   read  2 words from fifo   -> ncyc=1
+C   attn -> 0000000000000001
+C
+C wreg: tx: sop - cmd(00001,010) addr(0000) dl dh ccrc
+C rreg: tx:     - cmd(00010,000) addr(0000) ccrc
+C wblk: tx:     - cmd(00011,011) addr(0010) cnt(2->001) ccrc dl dh .. dcrc
+C rreg: tx:     - cmd(00100,000) addr(0011) ccrc
+C rblk: tx:     - cmd(00101,001) addr(0010) cnt(2->001) ccrc
+C rreg: tx:     - cmd(00110,000) addr(0011) ccrc
+C       tx:     - eop
+C       rx: sop - cmd(010) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(011) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(001) cnt dl dh ... stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - eop
+C
+rxsop 
+rxcs   00001010 00000000
+rxcds  00010000          0000000000000000 00000000
+rxcs   00011011 00000000
+rxcds  00100000          0000000000000001 00000000
+rx8    00101001
+rx8    00000001
+rx16   0011001100000000
+rx16   0011001100000001
+rx8    00000000
+rxcrc 
+rxcds  00110000          0000000000000001 00000000
+rxeop 
+#
+txsop 
+txcad  00001010 11110000 0000000000000000
+txca   00010000 11110000
+txcac  00011011 11110010 00000001
+tx16   0011001100000000
+tx16   0011001100000001
+txcrc 
+txca   00100000 11110011
+txcac  00101001 11110010 00000001
+txca   00110000 11110011
+txeop 
+#
+.iowt 10
+#
+C
+C - now with nbusy=1
+C   cntl := 0000000000000001  (nf=0,stat=000,nbusy=1)
+C   cntl -> 0000000000000001
+C   write 2 words to fifo     -> ncyc=2
+C   attn -> 0000000000000010
+C   read  2 words from fifo   -> ncyc=2
+C   attn -> 0000000000000010
+C
+rxsop 
+rxcs   00001010 00000000
+rxcds  00010000          0000000000000001 00000000
+rxcs   00011011 00000000
+rxcds  00100000          0000000000000010 00000000
+rx8    00101001
+rx8    00000001
+rx16   0011001100000000
+rx16   0011001100000001
+rx8    00000000
+rxcrc 
+rxcds  00110000          0000000000000010 00000000
+rxeop 
+#
+txsop 
+txcad  00001010 11110000 0000000000000001
+txca   00010000 11110000
+txcac  00011011 11110010 00000001
+tx16   0011001100000000
+tx16   0011001100000001
+txcrc 
+txca   00100000 11110011
+txcac  00101001 11110010 00000001
+txca   00110000 11110011
+txeop 
+#
+.iowt 10
+#
+C
+C - now with nbusy=31 (still succeeds)
+C   cntl := 0000000000011111  (nf=0,stat=000,nbusy=31)
+C   cntl -> 0000000000011111
+C   write 2 words to fifo     -> ncyc=32
+C   attn -> 0000000000100000
+C   read  2 words from fifo   -> ncyc=32
+C   attn -> 0000000000100000
+C
+rxsop 
+rxcs   00001010 00000000
+rxcds  00010000          0000000000011111 00000000
+rxcs   00011011 00000000
+rxcds  00100000          0000000000100000 00000000
+rx8    00101001
+rx8    00000001
+rx16   0011001100000000
+rx16   0011001100000001
+rx8    00000000
+rxcrc 
+rxcds  00110000          0000000000100000 00000000
+rxeop 
+#
+txsop 
+txcad  00001010 11110000 0000000000011111
+txca   00010000 11110000
+txcac  00011011 11110010 00000001
+tx16   0011001100000000
+tx16   0011001100000001
+txcrc 
+txca   00100000 11110011
+txcac  00101001 11110010 00000001
+txca   00110000 11110011
+txeop 
+#
+.iowt 20
+#
+C
+C - now with nbusy=32  (fails with rbnak=1)
+C   cntl := 0000000000100000  (nf=0,stat=000,nbusy=32)
+C   cntl -> 0000000000100000
+C   write 2 words to fifo     -> ncyc=32,rbnak=1
+C   attn -> 0000000000100000
+C   read  2 words from fifo   -> ncyc=32,rbnak=1
+C   attn -> 0000000000100000
+C
+C     stat: stat(000),attn(0),cerr(0),derr(0),rbnak(1),rberr(0) -> 00000010
+C
+rxsop 
+rxcs   00001010 00000000
+rxcds  00010000          0000000000100000 00000000
+rxcs   00011011 00000010
+rxcds  00100000          0000000000100000 00000000
+rx8    00101001
+rx8    00000001
+rx16   0101010101010101
+rx16   0101010101010101
+rx8    00000010
+rxcrc 
+rxcds  00110000          0000000000100000 00000000
+rxeop 
+#
+txsop 
+txcad  00001010 11110000 0000000000100000
+txca   00010000 11110000
+txcac  00011011 11110010 00000001
+tx16   0011001100000000
+tx16   0011001100000001
+txcrc 
+txca   00100000 11110011
+txcac  00101001 11110010 00000001
+txca   00110000 11110011
+txeop 
+#
+.iowt 20
+#
+C -----------------------------------------------------------------------------
+C Test 12a: rbus delay non-ack handling (wreg/rreg via disabled fifo)
+C   cntl := 1000000000000011  (nf=1,stat=000,nbusy=3)
+C   cntl -> 1000000000000011
+C   data := 1111000000000011  -> ncyc=4,rbnak=1
+C   attn -> 0000000000000100
+C   data -> 0000000000000000  -> ncyc=4,rbnak=1
+C   attn -> 0000000000000100
+C   init (11110000:0000000000000111)   clear all  
+C
+C     stat: stat(000),attn(0),cerr(0),derr(0),rbnak(1),rberr(0) -> 00000010
+C   ==> shows that cycle can be first stretched and than aborted
+C
+C wreg: tx: sop - cmd(00001,010) addr(0000) dl dh ccrc
+C rreg: tx:     - cmd(00010,000) addr(0000) ccrc
+C wreg: tx:     - cmd(00011,010) addr(0010) dl dh ccrc
+C rreg: tx:     - cmd(00100,000) addr(0011) ccrc
+C rreg: tx:     - cmd(00101,000) addr(0010) ccrc
+C rreg: tx:     - cmd(00110,000) addr(0011) ccrc
+C init: tx:     - cmd(00111,110) addr(0000) dl dh ccrc
+C       tx:     - eop
+C       rx: sop - cmd(010) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(010) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(110) stat crc
+C       rx:     - eop
+C
+#
+rxsop 
+rxcs   00001010 00000000
+rxcds  00010000          1000000000000011 00000000
+rxcs   00011010 00000010
+rxcds  00100000          0000000000000100 00000000
+rxcds  00101000          0000000000000000 00000010
+rxcds  00110000          0000000000000100 00000000
+rxcs   00111110 00000000
+rxeop 
+#
+txsop 
+txcad  00001010 11110000 1000000000000011
+txca   00010000 11110000
+txcad  00011010 11110010 1111000000000011
+txca   00100000 11110011
+txca   00101000 11110010
+txca   00110000 11110011
+txcad  00111110 11110000 0000000000000111
+txeop 
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 12b: rbus delay non-ack handling (wbk/rblk via disabled fifo)
+C   cntl := 1000000000000011  (nf=1,stat=000,nbusy=3)
+C   cntl -> 1000000000000011
+C   write 2 words to fifo     -> ncyc=3,rbnak=1
+C   attn -> 0000000000000100
+C   read  2 words from fifo   -> ncyc=3,rbnak=1
+C   attn -> 0000000000000100
+C   init (11110000:0000000000000111)   clear all  
+C
+C wreg: tx: sop - cmd(00001,010) addr(0000) dl dh ccrc
+C rreg: tx:     - cmd(00010,000) addr(0000) ccrc
+C wblk: tx:     - cmd(00011,011) addr(0010) cnt(2->001) ccrc dl dh .. dcrc
+C rreg: tx:     - cmd(00100,000) addr(0011) ccrc
+C rblk: tx:     - cmd(00101,001) addr(0010) cnt(2->001) ccrc
+C rreg: tx:     - cmd(00110,000) addr(0011) ccrc
+C init: tx:     - cmd(00111,110) addr(0000) dl dh ccrc
+C       tx:     - eop
+C       rx: sop - cmd(010) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(011) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(001) cnt dl dh ... stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(110) stat crc
+C       rx:     - eop
+C
+rxsop 
+rxcs   00001010 00000000
+rxcds  00010000          1000000000000011 00000000
+rxcs   00011011 00000010
+rxcds  00100000          0000000000000100 00000000
+rx8    00101001
+rx8    00000001
+rx16   0000000000000000
+rx16   0000000000000000
+rx8    00000010
+rxcrc 
+rxcds  00110000          0000000000000100 00000000
+rxcs   00111110 00000000
+rxeop 
+#
+txsop 
+txcad  00001010 11110000 1000000000000011
+txca   00010000 11110000
+txcac  00011011 11110010 00000001
+tx16   1111000000000000
+tx16   1111000000000001
+txcrc 
+txca   00100000 11110011
+txcac  00101001 11110010 00000001
+txca   00110000 11110011
+txcad  00111110 11110000 0000000000000111
+txeop 
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 13a: attention logic (via asynchronous LAM from test bench)
+C   .attn   0000000000000000          
+C   cmd attn returns 0000000000000000, stat=00000000
+C   .attn   1000000000000000
+C   cmd attn returns 1000000000000000, stat=00000000
+C   cmd attn returns 0000000000000000, stat=00000000
+C   .attn   0100000000000000
+C   .attn   0010000000000000
+C   cmd attn returns 0110000000000000, stat=00000000
+C   cmd attn returns 0000000000000000, stat=00000000
+C
+C   ==> shows that attn command works properly
+C
+C       .attn 0000000000000000
+C attn: tx: sop - cmd(00001,101) ccrc - eop
+C       rx: sop - cmd(101) dl dh stat crc - eop
+#
+.attn  0000000000000000
+rxsop 
+rxcds  00001101          0000000000000000 00000000
+rxeop 
+txsop 
+txc    00001101
+txeop 
+.iowt  10
+C
+C       .attn 1000000000000000
+C attn: tx: sop - cmd(00010,101) ccrc
+C attn: tx:     - cmd(00011,101) ccrc - eop
+C       rx: sop - cmd(101) dl dh stat crc
+C       rx:     - cmd(101) dl dh stat crc - eop
+#
+.attn  1000000000000000
+rxsop 
+rxcds  00010101          1000000000000000 00000000
+rxcds  00011101          0000000000000000 00000000
+rxeop 
+txsop 
+txc    00010101
+txc    00011101
+txeop 
+.iowt  10
+C
+C       .attn 0100000000000000
+C       .attn 0110000000000000
+C attn: tx: sop - cmd(00100,101) ccrc
+C attn: tx:     - cmd(00101,101) ccrc - eop
+C       rx: sop - cmd(101) dl dh stat crc
+C       rx:     - cmd(101) dl dh stat crc - eop
+C
+#
+.attn  0100000000000000
+.attn  0010000000000000
+rxsop 
+rxcds  00100101          0110000000000000 00000000
+rxcds  00101101          0000000000000000 00000000
+rxeop 
+txsop 
+txc    00100101
+txc    00101101
+txeop 
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 13b: attention logic (via synchronous LAM from rbd_tester)
+C   attn := 0000000000000000           stat=00000000
+C   cmd attn returns 0000000000000000, stat=00000000
+C   attn := 0000000000000001           stat=00010000
+C   cmd attn returns 0000000000000001, stat=00000000
+C   cmd attn returns 0000000000000000, stat=00000000
+C   attn := 0000000000000010           stat=00010000
+C   attn := 0000000000000100           stat=00010000
+C   cmd attn returns 0000000000000110, stat=00000000
+C   cmd attn returns 0000000000000000, stat=00000000
+C
+C     stat: stat(000),attn(1),cerr(0),derr(0),rbnak(0),rberr(0) -> 00010000
+C   ==> shows that attn command works properly
+C   ==> shows that attn register in tb_rlink triggers RB_LAM
+C
+C wreg: tx: sop - cmd(00001,010) addr(0011) dl dh ccrc
+C attn: tx:     - cmd(00010,101) ccrc
+C wreg: tx:     - cmd(00011,010) addr(0011) dl dh ccrc
+C attn: tx:     - cmd(00100,101) ccrc
+C attn: tx:     - cmd(00101,101) ccrc
+C wreg: tx:     - cmd(00110,010) addr(0011) dl dh ccrc
+C wreg: tx:     - cmd(00111,010) addr(0011) dl dh ccrc
+C attn: tx:     - cmd(01000,101) ccrc
+C attn: tx:     - cmd(01001,101) ccrc
+C       tx:     - eop
+C       rx: sop - cmd(010) stat crc
+C       rx:     - cmd(101) dl dh stat crc
+C       rx:     - cmd(010) stat crc
+C       rx:     - cmd(101) dl dh stat crc
+C       rx:     - cmd(101) dl dh stat crc
+C       rx:     - cmd(010) stat crc
+C       rx:     - cmd(010) stat crc
+C       rx:     - cmd(101) dl dh stat crc
+C       rx:     - cmd(101) dl dh stat crc
+C       rx:     - eop
+C
+#
+rxsop 
+rxcs   00001010 00000000
+rxcds  00010101          0000000000000000 00000000
+rxcs   00011010 00010000
+rxcds  00100101          0000000000000001 00000000
+rxcds  00101101          0000000000000000 00000000
+rxcs   00110010 00010000
+rxcs   00111010 00010000
+rxcds  01000101          0000000000000110 00000000
+rxcds  01001101          0000000000000000 00000000
+rxeop 
+#
+txsop 
+txcad  00001010 11110011 0000000000000000
+txc    00010101
+txcad  00011010 11110011 0000000000000001
+txc    00100101
+txc    00101101
+txcad  00110010 11110011 0000000000000010
+txcad  00111010 11110011 0000000000000100
+txc    01000101
+txc    01001101
+txeop 
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 14: attn poll
+C   send 2 attn commas, get 2 idle chars
+C   attn := 0000000000001000           stat=00010000
+C   send 2 attn commas, get 2 attn chars
+C   cmd attn returns 0000000000001000, stat=00010000
+C   send 2 attn commas, get 2 idle chars
+C
+C send 2 <attn>, expect two <idle> back
+C
+C oof:  tx: attn - attn
+C       rx: idle - idle
+C
+rxidle
+rxidle
+txattn
+txattn
+.iowt 10
+C
+C write attn register, set attn bit and flag
+C
+C wreg: tx: sop  - cmd(00001,010) addr(0011) dl dh ccrc - eop
+C       rx: sop  - cmd(010) stat crc - eop
+C
+rxsop 
+rxcs   00001010 00010000
+rxeop 
+txsop 
+txcad  00001010 11110011 0000000000001000
+txeop 
+.iowt 10
+C
+C send 2 <attn>, expect two <attn> back
+C
+C oof:  tx: attn - attn
+C       rx: attn - attn
+C
+rxattn
+rxattn
+txattn
+txattn
+.iowt 10
+C
+C send attn cmd, read and clear attn bits and flag
+C
+C attn: tx:      - cmd(00010,101) ccrc  - eop
+C       rx:      - cmd(101) dl dh stat crc - eop
+C
+rxsop 
+rxcds  00010101          0000000000001000 00000000
+rxeop 
+txsop 
+txc    00010101
+txeop 
+.iowt 10
+C
+C send 2 <attn>, expect two <idle> back
+C
+C oof:  tx: attn - attn
+C       rx: idle - idle
+C
+rxidle
+rxidle
+txattn
+txattn
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 15a: enable and test asynchronous attn notification (when idle)
+C   init (11111111:1000000000000000)  noop
+C      anena(1), itoena(0), ito(0)   -> 11111111,1000000000000000
+C   .attn   0001000000000000
+C      --> <attn> will be send
+C   cmd attn returns 0001000000000000, stat=00000000
+C
+C   ==> shows that internal init works
+C   ==> shows asynchronous attn notification works
+C
+C init: tx: sob - cmd(00001,110) addr(11111111) dl dh ccrc - eop
+C       rx: sob - cmd(110) stat crc - eop
+C
+rxsop 
+rxcs   00001110 00000000
+rxeop 
+txsop 
+txcad  00001110 11111111 1000000000000000
+txeop 
+.iowt 10
+C
+C now ping an attention line, expect out-of-frame attn symbol
+C       .attn 0001000000000000
+C       rx: attn
+C
+.wait 20
+rxattn
+.attn  0001000000000000
+.wait 20
+.iowt 10
+C
+C attn: tx:     - cmd(00010,101) ccrc  - eop
+C       rx:     - cmd(101) dl dh stat crc - eop
+C
+rxsop 
+rxcds  00010101          0001000000000000 00000000
+rxeop 
+txsop 
+txc    00010101
+txeop 
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 15b: enable and test asynchronous attn notification (when in packet)
+C   attn := 0000000000010000           stat=00010000
+C      --> <attn> will be send after eop
+C   cmd attn returns 0000000000010000, stat=00000000
+C   
+C   ==> shows asynchronous attn notification comes after eop
+C
+C write attn register, set attn bit and flag, expect <attn> comma after <eop>
+C
+C wreg: tx: sop - cmd(00001,010) addr(0011) dl dh ccrc - eop
+C       rx: sop - cmd(010) stat crc - eop
+C       rx: attn
+C
+rxsop 
+rxcs   00001010 00010000
+rxeop 
+rxattn
+txsop 
+txcad  00001010 11110011 0000000000010000
+txeop 
+.iowt 10
+C
+C send attn cmd, read and clear attn bits and flag
+C
+C attn: tx:     - cmd(00010,101) ccrc  - eop
+C       rx:     - cmd(101) dl dh stat crc - eop
+C
+rxsop 
+rxcds  00010101          0000000000010000 00000000
+rxeop 
+txsop 
+txc    00010101
+txeop 
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 16: ccrc error abort for attn,init
+C
+C attn: tx: sop - cmd(00001,101) *BAD CRC - eop
+C       rx: sop - nak - eop
+C
+rxsop 
+rxnak 
+rxeop 
+#
+txsop 
+tx8    00001101 
+txbad  
+txeop 
+#
+.iowt 10
+#
+C
+C init: tx:     - cmd(00010,110) addr(0000) dl dh ccrc
+C       rx: sop - nak - eop
+C
+rxsop 
+rxnak 
+rxeop 
+#
+txsop 
+tx8    00010110 
+tx8    11110000
+tx8    00000000
+tx8    00000000
+txbad 
+txeop 
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 17: enable and test idle timeout
+C   init (11111111:1100000000001001)
+C      anena(1), itoena(1), ito(9)   -> 11111111,1100000000001001
+C      ito=9 --> divider=10; ce_xsec div is 1:20 --> total every 200 cycles
+C   --> send <idle> every 200 cycles
+C   .attn   0000100000000000
+C   --> send <attn> every 200 cycles
+C   cmd attn returns 0000100000000000, stat=00000000
+C   --> send <idle> every 200 cycles
+C   init (11111111:0000000000000000)
+C
+C first init (11111111:1100000000001001) -> enable idle timeout
+C
+C init: tx: sob - cmd(00001,110) addr(00000011) dl dh ccrc - eop
+C       rx: sob - cmd(110) stat crc - eop
+C       rx: idle (every 200 cycles)
+C       .attn 0000100000000000
+C       rx: attn (every 200 cycles)
+C
+rxsop 
+rxcs   00001110 00000000
+rxeop 
+rxidle
+rxidle
+txsop 
+txcad  00001110 11111111 1100000000001001
+txeop 
+.iowt 10
+.wait 500
+C
+C set attn bits, now <attn> send (1 prompt, 2 more every 200 cycles) 
+C
+rxattn
+rxattn
+rxattn
+.attn  0000100000000000
+.wait 500
+C
+C send attn cmd, read and clear attn bits and flag
+C
+C attn: tx:     - cmd(00010,101) ccrc  - eop
+C       rx:     - cmd(101) dl dh stat crc - eop
+C       rx: idle (every 200 cycles)
+C
+rxsop 
+rxcds  00010101          0000100000000000 00000000
+rxeop 
+rxidle
+rxidle
+txsop 
+txc    00010101
+txeop 
+.iowt 10
+.wait 500
+C
+C second init (11111111:0000000000000000) -> disable idle timeout
+C
+C init: tx: sob - cmd(00011,110) addr(00000011) dl dh ccrc - eop
+C       rx: sob - cmd(110) stat crc - eop
+C
+rxsop 
+rxcs   00001110 00000000
+rxeop 
+txsop 
+txcad  00001110 11111111 0000000000000000
+txeop 
+.iowt 10
+C
+C wait to be sure there are no more <idle> or <attn> comming
+C
+.wait 300
+#
+C -----------------------------------------------------------------------------
+C Test 18a: verify that <idle> commas are tolerated at any state: wreg/rreg
+C          do wreg+rreg, with <idle> between all command bytes send
+C          use as data 1000000 and 10000001 to force escaping here
+C
+C wreg: tx: sop - cmd(00001,010) addr(0001) dl dh ccrc
+C rreg: tx:     - cmd(00010,000) addr(0001) ccrc
+C       tx:     - eop
+C       rx: sop - cmd(010) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - eop
+#
+rxsop 
+rxcs   00001010 00000000
+rxcds  00010000          1000000010000001 00000000
+rxeop 
+#
+txidle
+txsop 
+txidle
+tx8    00001010 
+txidle
+tx8    11110001 
+txidle
+tx8    10000001
+txidle
+txidle
+tx8    10000000
+txidle
+txcrc 
+txidle
+tx8    00010000 
+txidle
+txidle
+txidle
+tx8    11110001
+txidle
+txcrc 
+txeop 
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 18b: verify that <idle> commas are tolerated at any state: wblk/rblk
+C          do wblk+rblk, with <idle> between all command bytes send
+C          use as data 1000000 to 10000011 to force escaping here
+C
+C wblk: tx: sop - cmd(00001,011) addr(0010) cnt(2->001) ccrc dl dh .. dcrc
+C rblk: tx:     - cmd(00010,001) addr(0010) cnt(2->001) ccrc
+C       tx:     - eop
+C       rx: sop - cmd(011) stat crc
+C       rx:     - cmd(001) cnt dl dh ... stat crc
+C       rx:     - eop
+#
+rxsop 
+rxcs   00001011 00000000
+rx8    00010001
+rx8    00000001
+rx16   1000000010000001
+rx16   1000001010000011
+rx8    00000000
+rxcrc 
+rxeop 
+#
+# wblk
+txidle
+txsop 
+txidle
+tx8    00001011
+txidle
+tx8    11110010
+txidle
+tx8    00000001
+txidle
+txcrc 
+txidle
+tx8    10000001
+txidle
+tx8    10000000
+txidle
+tx8    10000011
+txidle
+tx8    10000010
+txidle
+txcrc 
+# rblk
+txidle
+tx8    00010001
+txidle
+tx8    11110010
+txidle
+tx8    00000001
+txidle
+txcrc 
+txidle
+txeop 
+txidle
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 18c: verify that <idle> commas are tolerated at any state: stat,attn,init
+C   cntl := 0000000000001111
+C   cntl -> 0000000000001111
+C   cmd stat
+C   cmd attn
+C   cmd init (11110000:0000000000000001)  clear cntl
+C   cntl -> 0000000000000000
+C   
+C wreg: tx: sop - cmd(00001,010) addr(0000) dl dh ccrc
+C rreg: tx:     - cmd(00010,000) addr(0000) ccrc
+C stat: tx:     - cmd(00011,100) ccrc
+C attn: tx:     - cmd(00100,101) ccrc
+C init: tx:     - cmd(00101,110) addr(0000) dl dh ccrc
+C rreg: tx:     - cmd(00110,000) addr(0000) ccrc
+C       tx:     - eop
+C       rx: sop - cmd(010) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(100) ccmd(010) dl dh stat crc
+C       rx:     - cmd(101) dl dh stat crc
+C       rx:     - cmd(110) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - eop
+C
+#
+rxsop 
+rxcs   00001010 00000000                          
+rxcds  00010000          0000000000001111 00000000
+rxccd  00011100 00010000 0000000000001111 00000000
+rxcds  00100101          0000000000000000 00000000
+rxcs   00101110 00000000                          
+rxcds  00110000          0000000000000000 00000000
+rxeop 
+#
+txsop 
+# wreg
+txidle
+txcad  00001010 11110000 0000000000001111
+# rreg
+txidle
+txca   00010000 11110000 
+txidle
+# stat
+tx8    00011100 
+txidle
+txcrc 
+# attn
+txidle
+tx8    00100101 
+txidle
+txcrc 
+# init
+txidle
+tx8    00101110 
+txidle
+tx8    11110000 
+txidle
+tx8    00000001 
+txidle
+tx8    00000000 
+txidle
+txcrc 
+# rreg
+txidle
+txca   00110000 11110000 
+txidle
+txeop 
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 19: sop - eop framing
+C   test all sequences of sop and eop and nak
+C
+C 1. sop-eop  ==> sop-eop  (empty packet)
+C       tx: sop - eop
+C       rx: sop - eop
+C
+rxsop 
+rxeop 
+#
+txsop 
+txeop 
+.iowt 10
+C
+C 2. eop  ==> nak-eop  (out-of-order eop, gives nak)
+C       tx: eop
+C       rx: nak - eop
+C       tx: sop - eop
+C       rx: sop - eop
+C
+rxnak 
+rxeop 
+txeop 
+#
+.iowt 10
+rxsop 
+rxeop 
+txsop 
+txeop 
+.iowt 10
+C
+C 3. sop - sop - eop  ==> sop-nak-eop  (out-of-order sop, gives nak)
+C       tx: sop - sop - eop
+C       rx: sop - nak - eop
+C
+rxsop 
+rxnak 
+rxeop 
+# (use txoof for 2nd sop to avoid the side effects of txsop ) 
+txsop 
+txoof  100000001
+txeop 
+.iowt 10
+C
+C 4. sop - nak - eop  ==> sop-nak-eop  (nak is echoed)
+C       tx: sop - nak - eop
+C       rx: sop - nak - eop
+C
+rxsop 
+rxnak 
+rxeop 
+# 
+txsop 
+txoof  100000011
+txeop 
+.iowt 10
+C
+C 5. nak  ==> {ignored}  (out-of-order nak is ignored)
+C       tx: nak
+C       tx: sop - eop
+C       rx: sop - eop
+C
+rxsop 
+rxeop 
+# 
+txoof  100000011
+txsop 
+txeop 
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 20: unused command code '111' gives a nak and transits to error state
+C   1. do '111' command (will abort with nak)
+C   2. do rreg command  (will be ignored)
+C
+C 111:  tx: sop - '111' 
+C rreg: tx:     - cmd(00010,000) addr(0001) ccrc
+C       tx:     - eop
+C       rx: sop - nak 
+C       rx:     - eop
+C
+rxsop 
+rxnak 
+rxeop 
+#
+txsop 
+tx8    00000111
+txca   00010000 11110001 
+txeop 
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 21a: eop aborts of wreg
+C
+C 0. write all-1s to data register and read back to initialize context
+C wreg: tx: sop - cmd(11110,010) addr(0001) dl dh ccrc
+C rreg: tx:     - cmd(11111,000) addr(0001) ccrc 
+C       tx:     - eop
+C       rx: sop - cmd(010) stat crc
+C       rx: sop - cmd(000) dl dh stat crc
+C       rx:     - eop
+#
+rxsop 
+rxcs   11110010 00000000
+rxcds  11111000          1111111111111111 00000000
+rxeop 
+#
+txsop 
+txcad  11110010 11110001 1111111111111111
+txca   11111000 11110001
+txeop 
+#
+.iowt 10
+#
+C
+C 1a. abort after cmd
+C wreg: tx: sop - cmd(00001,010) [[addr(0001) dl dh ccrc]] - eop
+C       rx: sop - nak - eop
+C
+#
+rxsop 
+rxnak 
+rxeop 
+#
+txsop 
+tx8    00100010 
+txeop 
+.iowt 10
+C 
+C 1b. check stat
+C     stat: stat(000),attn(0),cerr(1),derr(0),rbnak(0),rberr(0) -> 00001000
+C stat: tx: sop - cmd(00110,100) ccrc - eop
+C       rx: sop - cmd(100) ccmd(000) dl dh stat crc - eop
+C
+#
+rxsop 
+rxccd  00110100 11111000 1111111111111111 00001000
+rxeop 
+txsop 
+txc    00110100
+txeop 
+.iowt 10
+C
+C 2a. abort after addr
+C wreg: tx: sop - cmd(00001,010) addr(0001) [[dl dh ccrc]] - eop
+C       rx: sop - nak - eop
+C
+#
+rxsop 
+rxnak 
+rxeop 
+#
+txsop 
+tx8    00001010 
+tx8    11110001 
+txeop 
+.iowt 10
+C 
+C 2b. check stat (stat as for 1a.)
+C
+#
+rxsop 
+rxccd  00110100 11111000 1111111111111111 00001000
+rxeop 
+txsop 
+txc    00110100
+txeop 
+.iowt 10
+C
+C 3a. abort after dl
+C wreg: tx: sop - cmd(00001,010) addr(0001) dl [[dh ccrc]] - eop
+C       rx: sop - nak - eop
+C
+#
+rxsop 
+rxnak 
+rxeop 
+#
+txsop 
+tx8    00001010 
+tx8    11110001 
+tx8    00000011 
+txeop 
+.iowt 10
+C 
+C 3b. check stat (stat as for 1a.)
+C
+#
+rxsop 
+rxccd  00110100 11111000 1111111111111111 00001000
+rxeop 
+txsop 
+txc    00110100
+txeop 
+.iowt 10
+C
+C 4a. abort after dh
+C wreg: tx: sop - cmd(00001,010) addr(0001) dl dh [[ccrc]] - eop
+C       rx: sop - nak - eop
+C
+#
+rxsop 
+rxnak 
+rxeop 
+#
+txsop 
+tx8    00001010 
+tx8    11110001 
+tx8    00000011 
+tx8    11000000 
+txeop 
+.iowt 10
+C 
+C 4b. check stat (stat as for 1a.)
+C
+#
+rxsop 
+rxccd  00110100 11111000 1111111111111111 00001000
+rxeop 
+txsop 
+txc    00110100
+txeop 
+.iowt 10
+C
+C 5a. finally just normal wreg to data register
+C wreg: tx: sop - cmd(00001,010) addr(0001) dl dh ccrc - eop
+C       rx: sop - cmd(010) stat crc - eop
+C
+#
+rxsop 
+rxcs   00001010 00000000
+rxeop 
+#
+txsop 
+tx8    00001010 
+tx8    11110001 
+tx8    00000011 
+tx8    11000000 
+txcrc 
+txeop 
+.iowt 10
+C 
+C 5b. check stat (now cerr=0 again)
+C
+#
+rxsop 
+rxccd  00110100 00001010 1111111111111111 00000000
+rxeop 
+txsop 
+txc    00110100
+txeop 
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 21b: eop aborts of rreg
+C
+C 1a. abort after cmd
+C rreg: tx: sop - cmd(00001,000) [[addr(0001) ccrc]] - eop
+C       rx: sop - nak - eop
+C
+#
+rxsop 
+rxnak 
+rxeop 
+#
+txsop 
+tx8    00001000 
+txeop 
+.iowt 10
+C 
+C 1b. check stat (cerr=1, last successfull command in Test 21a/5a)
+C
+#
+rxsop 
+rxccd  00110100 00001010 1111111111111111 00001000
+rxeop 
+txsop 
+txc    00110100
+txeop 
+.iowt 10
+#
+C
+C 2a. abort after addr
+C rreg: tx: sop - cmd(00001,000) addr(0001) [[ccrc]] - eop
+C       rx: sop - nak - eop
+C
+#
+rxsop 
+rxnak 
+rxeop 
+#
+txsop 
+tx8    00001000 
+tx8    11110001
+txeop 
+.iowt 10
+C 
+C 2b. check stat (cerr=1)
+C
+#
+rxsop 
+rxccd  00110100 00001010 1111111111111111 00001000
+rxeop 
+txsop 
+txc    00110100
+txeop 
+.iowt 10
+C
+C 3a. finally just normal rreg from data register
+C rreg: tx: sop - cmd(00001,000) addr(0001) ccrc - eop
+C       rx: sop - cmd(000) dl dh stat crc - eop
+C
+#
+rxsop 
+rxcds  00001000          1100000000000011 00000000
+rxeop 
+#
+txsop 
+tx8    00001000 
+tx8    11110001
+txcrc 
+txeop 
+.iowt 10
+C 
+C 3b. check stat (cerr=0 again)
+C
+#
+rxsop 
+rxccd  00110100 00001000 1100000000000011 00000000
+rxeop 
+txsop 
+txc    00110100
+txeop 
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 21c: eop aborts of wblk (with cnt=2)
+C
+C 1a. abort after cmd
+C wreg: tx: sop - cmd(00001,011) [[addr cnt(2->001) ccrc dl dh dl dh dcrc]] -eop
+C       rx: sop - nak - eop
+C
+#
+rxsop 
+rxnak 
+rxeop 
+#
+txsop 
+tx8    00001011 
+txeop 
+.iowt 10
+C 
+C 1b. check stat (cerr=1)
+C     stat: stat(000),attn(0),cerr(1),derr(0),rbnak(0),rberr(0) -> 00001000
+C
+#
+rxsop 
+rxccd  00110100 00001000 1100000000000011 00001000
+rxeop 
+txsop 
+txc    00110100
+txeop 
+.iowt 10
+C
+C 2a. abort after addr
+C wreg: tx: sop - cmd(00001,011) addr [[cnt(2->001) ccrc dl dh dl dh dcrc]] -eop
+C       rx: sop - nak - eop
+C
+#
+rxsop 
+rxnak 
+rxeop 
+#
+txsop 
+tx8    00001011 
+tx8    11110010
+txeop 
+.iowt 10
+C 
+C 2b. check stat (cerr=1)
+C
+#
+rxsop 
+rxccd  11110100 00001000 1100000000000011 00001000
+rxeop 
+txsop 
+txc    11110100
+txeop 
+.iowt 10
+C
+C 3a. abort after cnt
+C wreg: tx: sop - cmd(00001,011) addr cnt(2->001) [[ccrc dl dh dl dh dcrc]] -eop
+C       rx: sop - nak - eop
+C
+#
+rxsop 
+rxnak 
+rxeop 
+#
+txsop 
+tx8    00001011 
+tx8    11110010
+tx8    00000001
+txeop 
+.iowt 10
+C 
+C 3b. check stat (cerr=1)
+C
+#
+rxsop 
+rxccd  11110100 00001000 1100000000000011 00001000
+rxeop 
+txsop 
+txc    11110100
+txeop 
+.iowt 10
+C
+C 4a. abort after ccrc
+C wreg: tx: sop - cmd(00001,011) addr cnt(2->001) ccrc [[dl dh dl dh dcrc]] -eop
+C       rx: sop - cmd(011) - nak - eop
+C
+#
+rxsop 
+rx8    00001011 
+rxnak 
+rxeop 
+#
+txsop 
+tx8    00001011 
+tx8    11110010
+tx8    00000001
+txcrc
+txeop 
+.iowt 10
+C 
+C 4b. check stat (ccmd is wblk now; cerr=0,derr=1)
+C     stat: stat(000),attn(0),cerr(0),derr(1),rbnak(0),rberr(0) -> 00000100
+C
+#
+rxsop 
+rxccd  11110100 00001011 1100000000000011 00000100
+rxeop 
+txsop 
+txc    11110100
+txeop 
+.iowt 10
+C
+C 5a. abort after 1st dl
+C wreg: tx: sop - cmd(00010,011) addr cnt(2->001) ccrc dl [[dh dl dh dcrc]] -eop
+C       rx: sop - cmd(011) - nak - eop
+C
+#
+rxsop 
+rx8    00010011 
+rxnak 
+rxeop 
+#
+txsop 
+tx8    00010011 
+tx8    11110010
+tx8    00000001
+txcrc
+tx8    00000001
+txeop 
+.iowt 10
+C 
+C 5b. check stat (ccmd is wblk now; cerr=0,derr=1)
+C
+#
+rxsop 
+rxccd  11110100 00010011 1100000000000011 00000100
+rxeop 
+txsop 
+txc    11110100
+txeop 
+.iowt 10
+C
+C 6a. abort after 1st dh
+C wreg: tx: sop - cmd(00011,011) addr cnt(2->001) ccrc dl dh [[dl dh dcrc]] -eop
+C       rx: sop - cmd(011) - nak - eop
+C
+#
+rxsop 
+rx8    00011011 
+rxnak 
+rxeop 
+#
+txsop 
+tx8    00011011 
+tx8    11110010
+tx8    00000001
+txcrc
+tx8    00000001
+tx8    00011011
+txeop 
+.iowt 10
+C 
+C 6b. check stat (ccmd is wblk now; cerr=0,derr=1)
+C
+#
+rxsop 
+rxccd  11110100 00011011 1100000000000011 00000100
+rxeop 
+txsop 
+txc    11110100
+txeop 
+.iowt 10
+C
+C 7a. abort after 2nd dl
+C wreg: tx: sop - cmd(00100,011) addr cnt(2->001) ccrc dl dh dl [[dh dcrc]] -eop
+C       rx: sop - cmd(011) - nak - eop
+C
+#
+rxsop 
+rx8    00100011 
+rxnak 
+rxeop 
+#
+txsop 
+tx8    00100011 
+tx8    11110010
+tx8    00000001
+txcrc
+tx8    00000001
+tx8    00100011
+tx8    00000010
+txeop 
+.iowt 10
+C 
+C 7b. check stat (ccmd is wblk now; cerr=0,derr=1)
+C
+#
+rxsop 
+rxccd  11110100 00100011 1100000000000011 00000100
+rxeop 
+txsop 
+txc    11110100
+txeop 
+.iowt 10
+C
+C 8a. abort after 2nd dh
+C wreg: tx: sop - cmd(00101,011) addr cnt(2->001) ccrc dl dh dl dh [[dcrc]] -eop
+C       rx: sop - cmd(011) - nak - eop
+C
+#
+rxsop 
+rx8    00101011 
+rxnak 
+rxeop 
+#
+txsop 
+tx8    00101011 
+tx8    11110010
+tx8    00000001
+txcrc
+tx8    00000001
+tx8    00101011
+tx8    00000010
+tx8    00101011 
+txeop 
+.iowt 10
+C 
+C 8b. check stat (ccmd is wblk now; cerr=0,derr=1)
+C
+#
+rxsop 
+rxccd  11110100 00101011 1100000000000011 00000100
+rxeop 
+txsop 
+txc    11110100
+txeop 
+.iowt 10
+C
+C 9a. finally complete wblk without about, for a change
+C wreg: tx: sop - cmd(00110,011) addr cnt(2->001) ccrc dl dh dl dh dcrc - eop
+C       rx: sop - cmd(011) stat crc - eop
+C
+#
+rxsop 
+rx8    00101011 
+rx8    00000000 
+rxcrc
+rxeop 
+#
+txsop 
+tx8    00101011 
+tx8    11110010
+tx8    00000001
+txcrc
+tx8    00000001
+tx8    00110011
+tx8    00000010
+tx8    00110011 
+txcrc
+txeop 
+.iowt 10
+C
+C 10. now read back fifo, it will contain data from partially done wblk's
+C       6a:  00011011 00000001
+C       7a:  00100011 00000001
+C       8a:  00101011 00000001
+C            00101011 00000010
+C       9a:  00110011 00000001
+C            00110011 00000010
+C      --> read back 7 words, gives the above 6 plus '0101...' and a rberr=1
+C
+C rblk: tx: sop - cmd(00111,001) addr(0010) cnt(7->110) ccrc - eop
+C       rx: sop - cmd(001) cnt dl dh ... stat crc - eop
+C
+C     stat: stat(000),attn(0),cerr(0),derr(0),rbnak(0),rberr(1) -> 00000001
+C
+rxsop 
+rx8    00111001
+rx8    00000110
+rx16   0001101100000001
+rx16   0010001100000001
+rx16   0010101100000001
+rx16   0010101100000010
+rx16   0011001100000001
+rx16   0011001100000010
+rx16   0101010101010101
+rx8    00000001
+rxcrc 
+rxeop 
+#
+txsop 
+txcac  00111001 11110010 00000110
+txeop 
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 21d: eop aborts of rblk (with cnt=2)
+C
+C 1. to prepare write 2 words into fifo
+C wreg: tx: sop - cmd(00001,011) addr cnt(2->001) ccrc dl dh dl dh dcrc - eop
+C       rx: sop - cmd(011) stat crc - eop
+C
+#
+rxsop 
+rxcs   00001011 00000000
+rxeop 
+#
+txsop 
+txcac  00001011 11110010 00000001
+tx16   1111111100000000
+tx16   1111111100000001
+txcrc 
+txeop 
+.iowt 10
+#
+C
+C 2a. abort after cmd
+C rblk: tx: sop - cmd(00010,001) [[addr(0010) cnt(2->001) ccrc]] - eop
+C       rx: sop - nak - eop
+C
+rxsop
+rxnak
+rxeop
+#
+txsop
+tx8    00010001
+txeop
+.iowt 10
+#
+C 
+C 2b. check stat (cerr=1)
+C
+#
+rxsop 
+rxccd  11110100 00001011 0101010101010101 00001000
+rxeop 
+txsop 
+txc    11110100
+txeop 
+.iowt 10
+#
+C
+C 3a. abort after addr
+C rblk: tx: sop - cmd(00011,001) addr(0010) [[cnt(2->001) ccrc]] - eop
+C       rx: sop - nak - eop
+C
+rxsop
+rxnak
+rxeop
+#
+txsop
+tx8    00011001
+tx8    11110010
+txeop
+.iowt 10
+#
+C 
+C 3b. check stat (cerr=1)
+C
+#
+rxsop 
+rxccd  11110100 00001011 0101010101010101 00001000
+rxeop 
+txsop 
+txc    11110100
+txeop 
+.iowt 10
+C
+C 4a. abort after cnt
+C rblk: tx: sop - cmd(00100,001) addr(0010) cnt(2->001) [[ccrc]] - eop
+C       rx: sop - nak - eop
+C
+rxsop
+rxnak
+rxeop
+#
+txsop
+tx8    00100001
+tx8    11110010
+tx8    00000001
+txeop
+.iowt 10
+#
+C 
+C 4b. check stat (cerr=1)
+C
+#
+rxsop 
+rxccd  11110100 00001011 0101010101010101 00001000
+rxeop 
+txsop 
+txc    11110100
+txeop 
+.iowt 10
+#
+C
+C 5a. finally do successful rblk
+C rblk: tx: sop - cmd(00101,001) addr(0010) cnt(2->001) ccrc - eop
+C       rx: sop - cmd(001) cnt dl dh ... stat crc - eop
+C
+rxsop
+rx8    00101001
+rx8    00000001
+rx16   1111111100000000
+rx16   1111111100000001
+rx8    00000000
+rxcrc
+rxeop
+#
+txsop
+tx8    00101001
+tx8    11110010
+tx8    00000001
+txcrc
+txeop
+.iowt 10
+#
+C 
+C 5b. check stat (cerr=0)
+C
+#
+rxsop 
+rxccd  11110100 00101001 1111111100000001 00000000
+rxeop 
+txsop 
+txc    11110100
+txeop 
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 21e: eop aborts of stat
+C
+C 1. abort after cmd
+C rblk: tx: sop - cmd(00001,100) [[ccrc]] - eop
+C       rx: sop - nak - eop
+C
+rxsop
+rxnak
+rxeop
+#
+txsop
+tx8    00001100
+txeop
+.iowt 10
+#
+C
+C 2. normal stat, finally
+C rblk: tx: sop - cmd(00010,100) [[ccrc]] - eop
+C       rx: sop - cmd(100) ccmd(001) dl dh stat crc
+C
+C     stat: stat(000),attn(0),cerr(0),derr(0),rbnak(0),rberr(0) -> 00000000
+C           --> Note: stat commands don't the status
+C           -->       no cerr bit set here, despite the failed stat above !!
+C
+rxsop
+rx8    00010100
+rx8    00101001
+rx16   1111111100000001
+rx8    00000000
+rxcrc  
+rxeop
+#
+txsop
+tx8    00010100
+txcrc
+txeop
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 21f: eop aborts of attn
+C
+C 0. prepare, set 1 attn flag
+C
+.attn  0000000100000000
+C
+C 1a. abort after cmd
+C rblk: tx: sop - cmd(00001,101) [[ccrc]] - eop
+C       rx: sop - nak - eop
+C
+rxsop
+rxnak
+rxeop
+#
+txsop
+tx8    00001101
+txeop
+.iowt 10
+C 
+C 1b. check stat
+C     stat: stat(000),attn(1),cerr(1),derr(0),rbnak(0),rberr(0) -> 00011000
+C
+#
+rxsop 
+rxccd  11110100 00101001 1111111100000001 00011000
+rxeop 
+txsop 
+txc    11110100
+txeop 
+.iowt 10
+#
+C
+C 2. normal attn, finally
+C rblk: tx: sop - cmd(00001,101) ccrc - eop
+C       rx: sop - cmd(101) dl dh stat crc - eop
+C
+rxsop
+rx8    00001101
+rx16   0000000100000000
+rx8    00000000
+rxcrc
+rxeop
+#
+txsop
+tx8    00001101
+txcrc
+txeop
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 21g: eop aborts of init
+C
+C 0. prepare, set data register
+C   data := 0000000000000001
+C
+rxsop 
+rxcs   00001010 00000000
+rxeop 
+txsop 
+txcad  00001010 11110001 0000000000000001
+txeop 
+.iowt 10
+#
+C
+C 1a. abort after cmd
+C rblk: tx: sop - cmd(00010,110) [[addr(0000) dl dh ccrc]] - eop
+C       rx: sop - nak - eop
+C
+rxsop
+rxnak
+rxeop
+#
+txsop
+tx8    00010110
+txeop
+.iowt 10
+C 
+C 1b. check stat
+C     stat: stat(000),attn(0),cerr(1),derr(0),rbnak(0),rberr(0) -> 00001000
+C
+#
+rxsop 
+rxccd  11110100 00001010 0000000100000000 00001000
+rxeop 
+txsop 
+txc    11110100
+txeop 
+.iowt 10
+C
+C 2a. abort after addr
+C rblk: tx: sop - cmd(00010,110) addr(0000) [[dl dh ccrc]] - eop
+C       rx: sop - nak - eop
+C
+rxsop
+rxnak
+rxeop
+#
+txsop
+tx8    00010110
+tx8    11110000
+txeop
+.iowt 10
+C 
+C 2b. check stat
+C
+#
+rxsop 
+rxccd  11110100 00001010 0000000100000000 00001000
+rxeop 
+txsop 
+txc    11110100
+txeop 
+.iowt 10
+C
+C 3a. abort after dl
+C rblk: tx: sop - cmd(00010,110) addr(0000) dl [[dh ccrc]] - eop
+C       rx: sop - nak - eop
+C
+rxsop
+rxnak
+rxeop
+#
+txsop
+tx8    00010110
+tx8    11110000
+tx8    00000010
+txeop
+.iowt 10
+C 
+C 3b. check stat
+C
+#
+rxsop 
+rxccd  11110100 00001010 0000000100000000 00001000
+rxeop 
+txsop 
+txc    11110100
+txeop 
+.iowt 10
+C
+C 4a. abort after dh
+C rblk: tx: sop - cmd(00010,110) addr(0000) dl dh [[ccrc]] - eop
+C       rx: sop - nak - eop
+C
+rxsop
+rxnak
+rxeop
+#
+txsop
+tx8    00010110
+tx8    11110000
+tx8    00000010
+tx8    00000000
+txeop
+.iowt 10
+C 
+C 4b. check stat
+C
+#
+rxsop 
+rxccd  11110100 00001010 0000000100000000 00001000
+rxeop 
+txsop 
+txc    11110100
+txeop 
+.iowt 10
+#
+C
+C 5a. normal init, finally
+C rblk: tx: sop - cmd(00010,110) addr(0000) dl dh ccrc - eop
+C       rx: sop - cmd(110) stat crc - eop
+C
+rxsop
+rx8    00010110
+rx8    00000000
+rxcrc
+rxeop
+#
+txsop
+tx8    00010110
+tx8    11110000
+tx8    00000010
+tx8    00000000
+txcrc
+txeop
+.iowt 10
+C
+C 5b. check that data register cleared
+C   data -> 0000000000000000
+C
+C rreg: tx: sop - cmd(00001,000) addr(0001) ccrc - eop
+C       rx: sop - cmd(000) dl dh stat crc - eop
+#
+rxsop 
+rxcds  00001000          0000000000000000 00000000
+rxeop 
+#
+txsop 
+txca   00001000 11110001
+txeop 
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 22: nak aborts of wreg
+C   Note: nak aborts only tested for wreg !
+C         sufficient because implementation is internally common for eop and
+C         nak aborts and all eop aborts are tested above in Test 21*.
+C
+C 0. write all-1s to data register and read back to initialize context
+C wreg: tx: sop - cmd(11110,010) addr(0001) dl dh ccrc
+C rreg: tx:     - cmd(11111,000) addr(0001) ccrc 
+C       tx:     - eop
+C       rx: sop - cmd(010) stat crc
+C       rx: sop - cmd(000) dl dh stat crc
+C       rx:     - eop
+#
+rxsop 
+rxcs   11110010 00000000
+rxcds  11111000          1111111111111111 00000000
+rxeop 
+#
+txsop 
+txcad  11110010 11110001 1111111111111111
+txca   11111000 11110001
+txeop 
+#
+.iowt 10
+#
+C
+C 1a. abort after cmd
+C wreg: tx: sop - cmd(00001,010) nak - eop
+C       rx: sop - nak - eop
+C
+#
+rxsop 
+rxnak 
+rxeop 
+#
+txsop 
+tx8    00100010 
+txnak
+txeop 
+.iowt 10
+C 
+C 1b. check stat
+C     stat: stat(000),attn(0),cerr(1),derr(0),rbnak(0),rberr(0) -> 00001000
+C stat: tx: sop - cmd(00110,100) ccrc - eop
+C       rx: sop - cmd(100) ccmd(000) dl dh stat crc - eop
+C
+#
+rxsop 
+rxccd  00110100 11111000 1111111111111111 00001000
+rxeop 
+txsop 
+txc    00110100
+txeop 
+.iowt 10
+C
+C 2a. abort after addr
+C wreg: tx: sop - cmd(00001,010) addr(0001) nak - eop
+C       rx: sop - nak - eop
+C
+#
+rxsop 
+rxnak 
+rxeop 
+#
+txsop 
+tx8    00001010 
+tx8    11110001
+txnak 
+txeop 
+.iowt 10
+C 
+C 2b. check stat (stat as for 1a.)
+C
+#
+rxsop 
+rxccd  00110100 11111000 1111111111111111 00001000
+rxeop 
+txsop 
+txc    00110100
+txeop 
+.iowt 10
+C
+C 3a. abort after dl
+C wreg: tx: sop - cmd(00001,010) addr(0001) dl nak - eop
+C       rx: sop - nak - eop
+C
+#
+rxsop 
+rxnak 
+rxeop 
+#
+txsop 
+tx8    00001010 
+tx8    11110001 
+tx8    00000011 
+txnak
+txeop 
+.iowt 10
+C 
+C 3b. check stat (stat as for 1a.)
+C
+#
+rxsop 
+rxccd  00110100 11111000 1111111111111111 00001000
+rxeop 
+txsop 
+txc    00110100
+txeop 
+.iowt 10
+C
+C 4a. abort after dh
+C wreg: tx: sop - cmd(00001,010) addr(0001) dl dh nak - eop
+C       rx: sop - nak - eop
+C
+#
+rxsop 
+rxnak 
+rxeop 
+#
+txsop 
+tx8    00001010 
+tx8    11110001 
+tx8    00000011 
+tx8    11000000 
+txnak
+txeop 
+.iowt 10
+C 
+C 4b. check stat (stat as for 1a.)
+C
+#
+rxsop 
+rxccd  00110100 11111000 1111111111111111 00001000
+rxeop 
+txsop 
+txc    00110100
+txeop 
+.iowt 10
+C
+C 5a. finally just normal wreg to data register
+C wreg: tx: sop - cmd(00001,010) addr(0001) dl dh ccrc - eop
+C       rx: sop - cmd(010) stat crc - eop
+C
+#
+rxsop 
+rxcs   00001010 00000000
+rxeop 
+#
+txsop 
+tx8    00001010 
+tx8    11110001 
+tx8    00000011 
+tx8    11000000 
+txcrc 
+txeop 
+.iowt 10
+C 
+C 5b. check stat (now cerr=0 again)
+C
+#
+rxsop 
+rxccd  00110100 00001010 1111111111111111 00000000
+rxeop 
+txsop 
+txc    00110100
+txeop 
+.iowt 10
+#
+#==============================================================================
+#
+C -----------------------------------------------------------------------------
+C Run down and Finish
+.iowt 10
+.wait 10

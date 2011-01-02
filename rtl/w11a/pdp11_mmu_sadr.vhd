@@ -1,4 +1,4 @@
--- $Id: pdp11_mmu_sadr.vhd 336 2010-11-06 18:28:27Z mueller $
+-- $Id: pdp11_mmu_sadr.vhd 351 2010-12-30 21:50:54Z mueller $
 --
 -- Copyright 2006-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -23,6 +23,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-12-30   351   1.3.2  BUGFIX: fix sensitivity list of proc_eaddr
 -- 2010-10-23   335   1.3.1  change proc_eaddr logic, shorten logic path
 -- 2010-10-17   333   1.3    use ibus V2 interface
 -- 2008-08-22   161   1.2.2  rename ubf_ -> ibf_; use iblib
@@ -213,7 +214,7 @@ begin
   -- and reduce the eaddr mux to a 4-input LUT. Last resort is a 2 cycle ibus
   -- access with a state flop marking the 2nd cycle of a re/we transaction.
   
-  proc_eaddr: process (IB_MREQ, MODE, ASN)
+  proc_eaddr: process (IB_MREQ, MODE, ASN, R_IBSEL_DR, R_IBSEL_AR)
     variable eaddr : slv6 := (others=>'0');
     variable idr : slbit := '0';
     variable iar : slbit := '0';

@@ -1,4 +1,4 @@
--- $Id: byte2cdata.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: byte2cdata.vhd 348 2010-12-26 15:23:44Z mueller $
 --
 -- Copyright 2007- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,7 +18,8 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+--
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2007-10-12    88   1.0.1  avoid ieee.std_logic_unsigned, use cast to unsigned
@@ -41,7 +42,7 @@ entity byte2cdata is                    -- byte stream -> 9bit comma,data
     DI : in slv8;                       -- input data
     ENA : in slbit;                     -- write enable
     BUSY : out slbit;                   -- write port hold    
-    DO : out slv9;                      -- output data; bit 8 = komma flag
+    DO : out slv9;                      -- output data; bit 8 = comma flag
     VAL : out slbit;                    -- read valid
     HOLD : in slbit                     -- read hold
   );

@@ -1,4 +1,0 @@
-# configure for _*sim case
-tbd_pdp11_core = tbd_pdp11_core_ssim.vhd
-tb_pdp11_core.vbom
-@top:tb_pdp11_core

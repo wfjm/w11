@@ -1,4 +1,4 @@
--- $Id: iblib.vhd 335 2010-10-24 22:24:23Z mueller $
+-- $Id: iblib.vhd 346 2010-12-22 22:59:26Z mueller $
 --
 -- Copyright 2008-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -113,15 +113,6 @@ component ib_sres_or_gen is             -- ibus result or, generic
   );
 end component;
 
-component ib_sres_or_mon is             -- ibus result or monitor
-  port (
-    IB_SRES_1 :  in ib_sres_type;                 -- ib_sres input 1
-    IB_SRES_2 :  in ib_sres_type := ib_sres_init; -- ib_sres input 2
-    IB_SRES_3 :  in ib_sres_type := ib_sres_init; -- ib_sres input 3
-    IB_SRES_4 :  in ib_sres_type := ib_sres_init  -- ib_sres input 4
-  );
-end component;
-
 type intmap_type is record              -- interrupt map entry type
   vec : integer;                        -- vector address
   pri : integer;                        -- priority
@@ -142,5 +133,18 @@ component ib_intmap is                  -- external interrupt mapper
     EI_VECT : out slv9_2                -- interrupt vector
   );
 end component;
+
+--
+-- components for use in test benches (not synthesizable)
+--
   
+component ib_sres_or_mon is             -- ibus result or monitor
+  port (
+    IB_SRES_1 :  in ib_sres_type;                 -- ib_sres input 1
+    IB_SRES_2 :  in ib_sres_type := ib_sres_init; -- ib_sres input 2
+    IB_SRES_3 :  in ib_sres_type := ib_sres_init; -- ib_sres input 3
+    IB_SRES_4 :  in ib_sres_type := ib_sres_init  -- ib_sres input 4
+  );
+end component;
+
 end package iblib;

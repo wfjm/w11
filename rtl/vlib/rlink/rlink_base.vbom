@@ -1,0 +1,11 @@
+# libs
+../slvtypes.vhd
+../rbus/rblib.vhd
+rlinklib.vbom
+# components
+rlink_core.vbom
+rlink_rlb2rl.vbom
+[ghdl,isim]rlink_mon_sb.vbom
+[ghdl,isim]../rbus/rb_mon_sb.vbom
+# design
+rlink_base.vhd

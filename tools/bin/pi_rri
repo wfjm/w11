@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: pi_rri 314 2010-07-09 17:38:41Z mueller $
+# $Id: pi_rri 351 2010-12-30 21:50:54Z mueller $
 #
 # Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2010-12-29   351   1.6.3  rename rriext->cext and cpmon->rlmon
 # 2010-06-27   310   1.6.2  fix autoflush for fh_log; duplicate exec err to log
 # 2010-06-18   306   1.6.1  PDPCP_ADDR_IBRB now 020, PDPCP_ADDR_IBR now 0200;
 #                           ibrbase now just drops the 6 lsb's; pdpcp mode:
@@ -2089,7 +2090,7 @@ sub rri_close {
 }
 
 #-------------------------------------------------------------------------------
-#  .cpmon 0|1
+#  .rlmon 0|1
 #  .rbmon 0|1
 #  .scntl n 0|1
 #  .sinit g8 g16
@@ -2117,8 +2118,8 @@ sub rri_cexec {
   $cmd_rest = "";
   $cmd_bad  = 0;
 
-  if ($cmd =~ /^(\.cpmon|\.rbmon)\s+([01])/) {  # .cpmon, .rbmon -------------
-    my $ind = ($1 eq ".cpmon") ? 15 : 14;
+  if ($cmd =~ /^(\.rlmon|\.rbmon)\s+([01])/) {  # .rlmon, .rbmon -------------
+    my $ind = ($1 eq ".rlmon") ? 15 : 14;
     $cmd_rest = $';
     rri_sideband(0x00, ($ind<<8) + $2);
 
@@ -2708,7 +2709,7 @@ sub pdpcp_close {
 #  .tostp n
 #  .togo  n
 #  .anena 0|1
-#  .cpmon 0|1
+#  .rlmon 0|1
 #  .rbmon 0|1
 #  .scntl n 0|1
 #  .sinit g8 g16
@@ -2777,9 +2778,9 @@ sub pdpcp_cexec {
 			data     => $ena_data};
     rri_cmdlist_do();
 
-  } elsif ($cmd =~ /^(\.cpmon|\.rbmon)\s+([01])/) { # .cpmon, .rbmon ---------
+  } elsif ($cmd =~ /^(\.rlmon|\.rbmon)\s+([01])/) { # .rlmon, .rbmon ---------
     $cmd_rest = $';
-    my $ind = ($1 eq ".cpmon") ? 15 : 14;
+    my $ind = ($1 eq ".rlmon") ? 15 : 14;
     $cmd_rest = $';
     rri_sideband(0x00, ($ind<<8) + $2);
 
@@ -3237,7 +3238,7 @@ sub serv11_cexec {
       my $val  = cget_bool();
       return if $cmd_bad or cget_chkblank();
       my $ind;
-      $ind = 15 if $pnam eq "cpmon";
+      $ind = 15 if $pnam eq "rlmon";
       $ind = 14 if $pnam eq "rbmon";
       $ind = 13 if $pnam eq "tmu";
       if (defined $ind) {
@@ -6370,7 +6371,7 @@ sub wait_sel_filercv {			    # poll/wait for TX to be ready
 sub fifo_open {				    # chan fifo: open handler
   my ($arg) = @_;
   my ($file,$keep) = split /,/,$arg;
-  my $file_base = $file ? $file : "tb_rriext_fifo";
+  my $file_base = $file ? $file : "rlink_cext_fifo";
   my $file_snd = $file_base . "_rx";
   my $file_rcv = $file_base . "_tx";
 

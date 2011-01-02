@@ -1,4 +1,4 @@
--- $Id: pdp11.vhd 335 2010-10-24 22:24:23Z mueller $
+-- $Id: pdp11.vhd 351 2010-12-30 21:50:54Z mueller $
 --
 -- Copyright 2006-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,9 +16,10 @@
 -- Description:    Definitions for pdp11 components
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4; ghdl 0.18-0.26
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-12-30   351   1.4.7  rename pdp11_core_rri->pdp11_core_rbus; use rblib
 -- 2010-10-23   335   1.4.6  rename RRI_LAM->RB_LAM;
 -- 2010-10-16   332   1.4.5  renames of pdp11_du_drv port names
 -- 2010-09-18   330   1.4.4  rename (adlm)box->(oalm)unit
@@ -84,7 +85,7 @@ use ieee.std_logic_arith.all;
 
 use work.slvtypes.all;
 use work.iblib.all;
-use work.rrilib.all;
+use work.rblib.all;
 
 package pdp11 is
 
@@ -1067,7 +1068,7 @@ component pdp11_bram is                 -- BRAM based ext. memory dummy
   );
 end component;
 
-component pdp11_core_rri is             -- core to rri reg port interface
+component pdp11_core_rbus is            -- core to rbus interface
   generic (
     RB_ADDR_CORE : slv8 := conv_std_logic_vector(2#00000000#,8);
     RB_ADDR_IBUS : slv8 := conv_std_logic_vector(2#10000000#,8));

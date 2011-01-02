@@ -1,4 +1,4 @@
--- $Id: sys_w11a_n2.vhd 341 2010-11-27 23:05:43Z mueller $
+-- $Id: sys_w11a_n2.vhd 351 2010-12-30 21:50:54Z mueller $
 --
 -- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,10 +18,10 @@
 -- Dependencies:   vlib/xlib/dcm_sp_sfs
 --                 vlib/genlib/clkdivce
 --                 bplib/s3board/s3_rs232_iob_int_ext
---                 bplib/s3board/s3_humanio_rri
---                 vlib/rri/rri_core_serport
+--                 bplib/s3board/s3_humanio_rbus
+--                 vlib/rlink/rlink_base_serport
 --                 vlib/rri/rb_sres_or_3
---                 w11a/pdp11_core_rri
+--                 w11a/pdp11_core_rbus
 --                 w11a/pdp11_core
 --                 w11a/pdp11_bram
 --                 vlib/nexys2/n2_cram_dummy
@@ -40,6 +40,7 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2010-12-30   351 12.1    M53d xc3s1200e-4 1389 4368  242 2674 ok: LP+PC+DL+II
 -- 2010-11-06   336 12.1    M53d xc3s1200e-4 1357 4304* 242 2618 ok: LP+PC+DL+II
 -- 2010-10-24   335 12.1    M53d xc3s1200e-4 1357 4546  242 2618 ok: LP+PC+DL+II
 -- 2010-10-17   333 12.1    M53d xc3s1200e-4 1350 4541  242 2617 ok: LP+PC+DL+II
@@ -61,6 +62,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2010-12-30   351   1.2    ported to rbv3
 -- 2010-11-27   341   1.1.8  add DCM; new sys_conf consts for mem and clkdiv
 -- 2010-11-13   338   1.1.7  add O_CLKSYS (for DCM derived system clock)
 -- 2010-11-06   336   1.1.6  rename input pin CLK -> I_CLK50
@@ -80,7 +82,7 @@
 ------------------------------------------------------------------------------
 --
 -- w11a test design for nexys2
---    w11a + rri + serport
+--    w11a + rlink + serport
 --
 -- Usage of Nexys 2 Switches, Buttons, LEDs:
 --
@@ -96,7 +98,7 @@
 --              if cpugo=0 shows cpurust
 --                (3:0) cpurust code
 --                  (4) '1'
---         (5)  cmdbusy (all rri access, mostly rdma)
+--         (5)  cmdbusy (all rlink access, mostly rdma)
 --         (6)  MEM_ACT_R
 --         (7)  MEM_ACT_W
 --
@@ -112,7 +114,8 @@ use ieee.std_logic_arith.all;
 use work.slvtypes.all;
 use work.xlib.all;
 use work.genlib.all;
-use work.rrilib.all;
+use work.rblib.all;
+use work.rlinklib.all;
 use work.s3boardlib.all;
 use work.nexys2lib.all;
 use work.iblib.all;
@@ -276,7 +279,7 @@ begin
       O_RTS1_N => O_FUSP_RTS_N
     );
 
-  HIO : s3_humanio_rri
+  HIO : s3_humanio_rbus
     generic map (
       DEBOUNCE => sys_conf_hio_debounce,
       RB_ADDR  => rbaddr_hio)
@@ -298,10 +301,12 @@ begin
       O_SEG_N => O_SEG_N
     );
 
-  RRI : rri_core_serport
+  RLINK : rlink_base_serport
     generic map (
       ATOWIDTH =>  6,                   -- 64 cycles access timeout
       ITOWIDTH =>  6,                   -- 64 periods max idle timeout
+      IFAWIDTH =>  5,                   -- 32 word input fifo
+      OFAWIDTH =>  0,                   -- no output fifo
       CDWIDTH  => 13,
       CDINIT   => sys_conf_ser2rri_cdinit)
     port map (
@@ -317,7 +322,9 @@ begin
       RB_MREQ  => RB_MREQ,
       RB_SRES  => RB_SRES,
       RB_LAM   => RB_LAM,
-      RB_STAT  => RB_STAT
+      RB_STAT  => RB_STAT,
+      RL_MONI  => open,
+      RL_SER_MONI => open
     );
 
   RB_SRES_OR : rb_sres_or_3
@@ -328,7 +335,7 @@ begin
       RB_SRES_OR => RB_SRES
     );
   
-  RB2CP : pdp11_core_rri
+  RB2CP : pdp11_core_rbus
     generic map (
       RB_ADDR_CORE => rbaddr_core0,
       RB_ADDR_IBUS => rbaddr_ibus)

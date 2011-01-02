@@ -1,4 +1,4 @@
--- $Id: ibdr_minisys.vhd 335 2010-10-24 22:24:23Z mueller $
+-- $Id: ibdr_minisys.vhd 350 2010-12-28 16:40:11Z mueller $
 --
 -- Copyright 2008-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -27,8 +27,8 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
--- 2010-10-17   333  12.1    M53 xc3s1000-4   128  469   16  265 s  7.8
--- 2010-10-17   314  12.1    M53 xc3s1000-4   122  472   16  269 s  7.6
+-- 2010-10-17   333 12.1    M53d xc3s1000-4   128  469   16  265 s  7.8
+-- 2010-10-17   314 12.1    M53d xc3s1000-4   122  472   16  269 s  7.6
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

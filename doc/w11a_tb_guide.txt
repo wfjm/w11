@@ -1,4 +1,4 @@
-# $Id: w11a_tb_guide.txt 317 2010-07-22 19:36:56Z mueller $
+# $Id: w11a_tb_guide.txt 352 2011-01-02 13:01:37Z mueller $
 
 Guide to running w11a test benches
 
@@ -65,66 +65,75 @@ Guide to running w11a test benches
      make tb_serport_uart_rx
      time tbw tb_serport_uart_rx |\
        tee tb_serport_uart_rx_dsim.log | egrep "(FAIL|DONE)"
-     -> 1269955 ns  63488: DONE 
+     -> 1269955.0 ns  63488: DONE 
+     -> real    0m1.178s   user    0m1.172s   sys     0m0.020s
+
 
    - serport receiver/transmitter test
      make tb_serport_uart_rxtx
      time tbw tb_serport_uart_rxtx |\
        tee tb_serport_uart_rxtx_dsim.log | egrep "(FAIL|DONE)"
-     ->  52335 ns   2607: DONE 
+     ->  52335.0 ns   2607: DONE 
+     -> real    0m0.094s   user    0m0.092s   sys     0m0.008s
 
    - serport autobauder test
      make tb_serport_autobaud
      time tbw tb_serport_autobaud |\
        tee tb_serport_autobaud_dsim.log | egrep "(FAIL|DONE)"
-     -> 367475 ns  18364: DONE 
+     -> 367475.0 ns  18364: DONE 
+     -> real    0m0.610s   user    0m0.612s   sys     0m0.004s
 
-   - rri core test
+   - rlink core test
 
-     cd $RETROBASE/rtl/vlib/rri/tb
-     make tb_rri_core
-     time tbw tb_rri_core |\
-       tee tb_rri_core_dsim.log | egrep "(FAIL|DONE)"
-     ->  61855 ns   3083: DONE
-     -> real    0m0.163s   user    0m0.128s   sys     0m0.020s
+     cd $RETROBASE/rtl/vlib/rlink/tb
+     make tb_rlink_direct
+     time tbw tb_rlink_direct |\
+       tee tb_rlink_direct_dsim.log | egrep "(FAIL|DONE)"
+     ->  142355.0 ns   7108: DONE 
+     -> real    0m0.317s   user    0m0.324s   sys     0m0.028s
 
-   - rri core test via serial port interface
+   - rlink core test via serial port interface
 
-     make tb_rri_serport
-     time tbw tb_rri_serport |\
-       tee tb_rri_serport_dsim.log | egrep "(FAIL|DONE)"
-     -> 273355 ns  13658: DONE
-     -> real    0m0.939s   user    0m0.924s   sys     0m0.008s
+     make tb_rlink_serport
+     time tbw tb_rlink_serport tb_rlink_serport_stim.dat |\
+       tee tb_rlink_serport_stim2_dsim.log | egrep "(FAIL|DONE)"
+     ->   72735.0 ns   3627: DONE 
+     -> real    0m0.266s   user    0m0.264s   sys     0m0.008s
+
+     time tbw tb_rlink_serport tb_rlink_stim.dat |\
+       tee tb_rlink_serport_dsim.log | egrep "(FAIL|DONE)"
+     -> 536155.0 ns  26798: DONE 
+     -> real    0m1.714s   user    0m1.704s   sys     0m0.044s
 
    - w11a core test (using behavioural model)
 
      cd $RETROBASE/rtl/w11a/tb
-     make tb_pdp11_core
-     time tbw tb_pdp11_core |\
-       tee tb_pdp11_core_dsim.log | egrep "(FAIL|DONE)"
-     -> 1220255 ns  61003: DONE 
-     -> real    0m14.964s   user    0m14.977s   sys     0m0.108s
+     make tb_pdp11core
+     time tbw tb_pdp11core |\
+       tee tb_pdp11core_dsim.log | egrep "(FAIL|DONE)"
+     -> 1220255.0 ns  61003: DONE 
+     -> real    0m10.736s   user    0m10.713s   sys     0m0.060s
 
    - w11a core test (using post-synthesis model)
 
-     make ghdl_tmp_clean tb_pdp11_core_ssim
-     time tbw tb_pdp11_core_ssim |\
-       tee tb_pdp11_core_ssim.log | egrep "(FAIL|DONE)"
-     ->  1220255 ns  61003: DONE 
-     -> real    1m8.230s   user    1m8.144s   sys     0m0.124s
+     make ghdl_tmp_clean tb_pdp11core_ssim
+     time tbw tb_pdp11core_ssim |\
+       tee tb_pdp11core_ssim.log | egrep "(FAIL|DONE)"
+     ->  1220255.0 ns  61003: DONE 
+     -> real    1m9.738s   user    1m9.588s   sys     0m0.096s
 
 3. System tests benches ---------------------------------------------------
 
    The system tests allow to verify to verify the full 11/70 SoC design.
    In this case vhdl test bench code contains
      - (simple) models of the memories used on the FPGA boards
-     - drivers for the rri connection (currently just serialport)
-     - code to interface the rri data stream to a UNIX 'named pipe',
+     - drivers for the rlink connection (currently just serialport)
+     - code to interface the rlink data stream to a UNIX 'named pipe',
        implemented with a C routine which is called via VHPI from VHDL.
    This way the whole ghdl simulation can be controlled via a di-directional
    byte stream. 
 
-   The rri backend process, currently a perl script named pi_rri, can connect
+   The rlink backend process, currently a perl script named pi_rri, can connect
    either via a named pipe to a ghdl simulation, or via a serial port to a 
    FPGA board. This way the same tests can be executed in simulation and
    on real hardware.
@@ -134,7 +143,7 @@ Guide to running w11a test benches
    The stimulus file used in the w11a core test can be executed in the
    full system context (both s3board and nexys2 versions) with the 
    following commands. Note that the cycle number printed in the DONE
-   line can now vary slightly because the response time of the rri
+   line can now vary slightly because the response time of the rlink
    backend process and thus scheduling of backend vs. ghdl process
    can affect the result.
 
@@ -144,10 +153,10 @@ Guide to running w11a test benches
      make tb_w11a_s3
      time pi_rri --fifo --timeout=40. --cmax=3 \
         --run="tbw tb_w11a_s3" -- \
-   	 @../../../../w11a/tb/tb_pdp11_core_stim.dat |\
+   	 @../../../../w11a/tb/tb_pdp11core_stim.dat |\
        tee tb_w11a_s3_stim2_dsim.log | egrep "(-[EW]:|FAIL|PEND|DONE)"
-     ->   7766215 ns 388301: DONE 
-     -> real    0m51.300s   user    0m51.711s   sys     0m0.772s
+     -> 7757655.0 ns 387873: DONE
+     -> real    0m49.835s   user    0m50.203s   sys     0m0.696s
 
    - sys_w11a_n2 system test
 
@@ -155,7 +164,7 @@ Guide to running w11a test benches
      make tb_w11a_n2
      time pi_rri --fifo --timeout=40. --cmax=3 \
         --run="tbw tb_w11a_n2" -- \
-   	 @../../../../w11a/tb/tb_pdp11_core_stim.dat |\
+   	 @../../../../w11a/tb/tb_pdp11core_stim.dat |\
        tee tb_w11a_n2_stim2_dsim.log | egrep "(-[EW]:|FAIL|PEND|DONE)"
-     -> 7766855 ns 388333: DONE 
-     -> real    0m51.243s   user    0m51.647s   sys     0m0.776s
+     -> 6673237.2 ns 387035: DONE
+     -> real    0m56.173s   user    0m56.612s   sys     0m0.604s

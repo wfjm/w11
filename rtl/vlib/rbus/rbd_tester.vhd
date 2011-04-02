@@ -1,4 +1,4 @@
--- $Id: rbd_tester.vhd 352 2011-01-02 13:01:37Z mueller $
+-- $Id: rbd_tester.vhd 369 2011-03-13 22:39:26Z mueller $
 --
 -- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -42,7 +42,6 @@
 --             15   nofifo    r/w/-    a 1 disables fifo, to test delayed aborts
 --          14:12   stat      r/w/-    echo'ed on RB_STAT
 --          11:00   nbusy     r/w/-    busy cycles (for data and fifo access)
---             00   go        r/w/-    enables monitor
 -- bbbbbb01 15:00 data        r/w/-  Data register (just w/r reg, no function)
 -- bbbbbb10 15:00 fifo        r/w/-  Fifo interface register
 -- bbbbbb11       attn        r/w/-  Attn/Length register

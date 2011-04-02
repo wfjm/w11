@@ -1,0 +1,204 @@
+#! /usr/bin/env tclsh
+# -*- tcl -*-
+# $Id: ti_rri 375 2011-04-02 07:56:47Z mueller $
+#
+# Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+#
+# This program is free software; you may redistribute and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 2, or at your option any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# for complete details.
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2011-04-02   376   1.0    Initial version
+# 2011-03-19   371   0.1    First draft
+#
+#
+# --fifo[=name,keep]
+# --term[=???]        ; not yet implemented...
+# --run=command
+# --log=filename      ; default "-"
+# --logl=n            ; default 2
+# --dmpl=n            ; default 0
+# --tiol=n            ; default 0
+# --int
+# --help
+# --
+#   tcl cmds 
+#   @...tcl
+#
+
+array set opts { 
+    fifo   0
+    fifo_  ""
+    term   0
+    term_  ""
+    run_   ""
+    log_   "-"
+    logl_  2
+    dmpl_  0
+    tiol_  0
+    int    0
+    help   0
+}
+
+set clist {}
+set optsendseen 0
+
+foreach arg $argv {
+  if { $optsendseen } {
+    lappend clist $arg
+    continue
+  }
+  switch -regexp -- $arg {
+    ^--?fifo=?.*$ { set opts(fifo) 1; regexp -- {=(.*)} $arg dummy opts(fifo_) }
+    ^--?term=?.*$ { set opts(term) 1; regexp -- {=(.*)} $arg dummy opts(term_) }
+    ^--?run=.+$   { regexp -- {=(.*)} $arg dummy opts(run_) }
+    ^--?log=.+$   { regexp -- {=(.*)} $arg dummy opts(log_) }
+    ^--?logl=.+$  { regexp -- {=(.*)} $arg dummy opts(logl_) }
+    ^--?dmpl=.+$  { regexp -- {=(.*)} $arg dummy opts(dmpl_) }
+    ^--?tiol=.+$  { regexp -- {=(.*)} $arg dummy opts(tiol_) }
+    ^--?int$      { set opts(int) 1 }
+    ^--?help$     { set opts(help) 1 }
+    ^--$          { set optsendseen 1 }
+    ^--.+$        { puts "-E: bad option $arg, see --help for proper usage"
+                    return 1
+                  }
+    default       { lappend clist $arg }
+  }
+}
+
+if { $opts(help) } {
+  puts "usage: ti_rri"
+  return 0
+}
+
+if { $opts(fifo) && $opts(term) } {
+  puts "-E: both --fifo and --term given, only one allowed"
+  return 1
+}
+
+lappend auto_path [file join $env(RETROBASE) tools tcl]
+lappend auto_path [file join $env(RETROBASE) tools lib]
+
+package require rlink
+package require rutiltpp
+package require rlinktpp
+
+rlinkconnect rlc
+
+# setup logging
+if { $opts(log_) ne "-" } {
+  rlc config -logfile       $opts(log_)
+}
+rlc config -logprintlevel $opts(logl_)
+rlc config -logdumplevel  $opts(dmpl_)
+rlc config -logtracelevel $opts(tiol_)
+
+# first start, if specified with -run, the test bench
+set runpid {}
+if { $opts(run_) ne "" } {
+  if { [catch {eval "exec $opts(run_) &" } runpid] } {
+    puts "-E: failed to execute \"$opts(run_)\" with error message\n  $runpid"
+    puts "aborting..."
+    return 1
+  }
+}
+
+# than open the rlink connection
+# handle --fifo
+if { $opts(fifo) } {
+  set nlist [split $opts(fifo_) ","]
+  set path [lindex $nlist 0]
+  set keep [lindex $nlist 1]
+  if {$path eq ""} {set path "rlink_cext_fifo"}
+  set url "fifo:$path"
+  if {$keep ne ""} {append url "?keep"}
+  rlc open $url
+}
+
+# handle --term
+if { $opts(term) } {
+  set nlist [split $opts(term_) ","]
+  set dev  [lindex $nlist 0]
+  set baud [lindex $nlist 1]
+  set brk  [lindex $nlist 2]
+  if {$dev  eq ""} {set dev  "/dev/ttyS0"}
+  if {$baud eq ""} {set baud "115k"}
+  set url "term:$dev?baud=$baud"
+  if {$brk ne ""} {append url ";break"}
+  rlc open $url
+}
+
+# setup simulation mode default
+set rlink::sim_mode [rlink::isfifo]
+
+foreach cmd $clist {
+  # handle @filename commands
+  if { [regexp {^@(.+)} $cmd dummy filename] } {
+    # handle @file.tcl --> source tcl file
+    if { [regexp {\.tcl$} $filename] } {
+      if { [catch {source $filename} errmsg] } {
+        puts "-E: failed to source file \"$filename\" with error message:"
+        if {[info exists errorInfo]} {puts $errorInfo} else {puts $errmsg}
+        puts "aborting..."
+        break
+      }
+    # handle @file.dat ect --> not yet supported
+    } else {
+      puts "-E: only tcl supported but $filename found"
+      puts "aborting..."
+      break
+    }
+
+  # handle normal tcl commands --> eval them
+  } else {
+    if { [catch {eval $cmd} errmsg] } {
+      puts "-E: eval of \"$cmd\" failed with error message:"
+      if {[info exists errorInfo]} {puts $errorInfo} else {puts $errmsg}
+      puts "aborting..."
+      break
+    }
+  }
+}
+
+# if tclsh runs a script given on the command line or is invoked
+# like here via a shebang the tcl_interactive is always set to 0
+# so we have to check whether stdin/stdout is a terminal and set
+# tcl_interactive accordingly
+
+# FIXME_code: fstat not available (grr...), currently just assume istty
+set tcl_interactive 1
+
+if { $opts(int) || [llength $clist] == 0 } {
+  if {$tcl_interactive} {
+    package require tclreadline
+    namespace eval tclreadline {
+      proc prompt1 {} {
+        set version [info tclversion]
+        return "ti_rri > "
+      }
+    }
+    ::tclreadline::Loop
+  }
+}
+
+#
+# now close rlink connection
+#
+if { $opts(fifo) || $opts(term) } {
+  rlc close
+}
+
+# FIXME_code: should sync here with -run process run-down
+#             but no wait available in tcl (grr...)
+if { $runpid } {
+  after 100;                            # currently just wait 100ms
+}
+
+return 0

@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: pi_rri 351 2010-12-30 21:50:54Z mueller $
+# $Id: pi_rri 374 2011-03-27 17:02:47Z mueller $
 #
 # Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -6455,7 +6455,7 @@ sub term_open {				    # term fifo: open handler
   my $newtios = new POSIX::Termios;
   $newtios->getattr($fd) || die "getattr failed: $!";    ## hack for cygwin !!
 
-  my $c_iflag = &POSIX::BRKINT;	            # ignore parity errors
+  my $c_iflag = &POSIX::BRKINT;	            # ignore parity errors (??? WRONG??)
   my $c_oflag = 0;
   my $c_cflag = &POSIX::CS8 |	            # 8 bit chars
                 &POSIX::CSTOPB |            # 2 stop bits
@@ -6532,30 +6532,30 @@ sub term_tios_print {
 
   printf "iflag = %8.8x:", $iflag;
   print " BRKINT" if $iflag & &POSIX::BRKINT;
-  print " ICRNL " if $iflag & &POSIX::ICRNL; 
+  print " ICRNL " if $iflag & &POSIX::ICRNL;
   print " IGNBRK" if $iflag & &POSIX::IGNBRK;
-  print " IGNCR " if $iflag & &POSIX::IGNCR; 
+  print " IGNCR " if $iflag & &POSIX::IGNCR;
   print " IGNPAR" if $iflag & &POSIX::IGNPAR;
-  print " INLCR " if $iflag & &POSIX::INLCR; 
-  print " INPCK " if $iflag & &POSIX::INPCK; 
+  print " INLCR " if $iflag & &POSIX::INLCR;
+  print " INPCK " if $iflag & &POSIX::INPCK;
   print " ISTRIP" if $iflag & &POSIX::ISTRIP;
-  print " IXOFF " if $iflag & &POSIX::IXOFF; 
-  print " IXON  " if $iflag & &POSIX::IXON;  
+  print " IXOFF " if $iflag & &POSIX::IXOFF;
+  print " IXON  " if $iflag & &POSIX::IXON;
   print " PARMRK" if $iflag & &POSIX::PARMRK;
   print "\n";
   printf "oflag = %8.8x:", $oflag;
-  print " OPOST " if $oflag & &POSIX::OPOST; 
+  print " OPOST " if $oflag & &POSIX::OPOST;
   print "\n";
 
   printf "cflag = %8.8x:", $cflag;
   print " CLOCAL" if $cflag & &POSIX::CLOCAL;
-  print " CREAD " if $cflag & &POSIX::CREAD; 
+  print " CREAD " if $cflag & &POSIX::CREAD;
   print " CS5   " if ($cflag & &POSIX::CSIZE) == &POSIX::CS5;
   print " CS6   " if ($cflag & &POSIX::CSIZE) == &POSIX::CS6;
   print " CS7   " if ($cflag & &POSIX::CSIZE) == &POSIX::CS7;
   print " CS8   " if ($cflag & &POSIX::CSIZE) == &POSIX::CS8;
   print " CSTOPB" if $cflag & &POSIX::CSTOPB;
-  print " HUPCL " if $cflag & &POSIX::HUPCL; 
+  print " HUPCL " if $cflag & &POSIX::HUPCL;
   print " PARENB" if $cflag & &POSIX::PARENB;
   print " PARODD" if $cflag & &POSIX::PARODD;
 
@@ -6563,7 +6563,7 @@ sub term_tios_print {
 	        &POSIX::B150 | &POSIX::B200 | &POSIX::B300 | &POSIX::B600 |
 	        &POSIX::B1200 | &POSIX::B1800 | &POSIX::B2400 | &POSIX::B4800 |
 	        &POSIX::B9600 | &POSIX::B19200 | &POSIX::B38400;
-  print " B0    " if ($cflag & $sbits) == &POSIX::B0; 
+  print " B0    " if ($cflag & $sbits) == &POSIX::B0;
   print " B50   " if ($cflag & $sbits) == &POSIX::B50;
   print " B75   " if ($cflag & $sbits) == &POSIX::B75;
   print " B110  " if ($cflag & $sbits) == &POSIX::B110;
@@ -6582,13 +6582,13 @@ sub term_tios_print {
   print "\n";
 
   printf "lflag = %8.8x:", $lflag;
-  print " ECHO  " if $lflag & &POSIX::ECHO;  
-  print " ECHOE " if $lflag & &POSIX::ECHOE; 
-  print " ECHOK " if $lflag & &POSIX::ECHOK; 
+  print " ECHO  " if $lflag & &POSIX::ECHO;
+  print " ECHOE " if $lflag & &POSIX::ECHOE;
+  print " ECHOK " if $lflag & &POSIX::ECHOK;
   print " ECHONL" if $lflag & &POSIX::ECHONL;
   print " ICANON" if $lflag & &POSIX::ICANON;
   print " IEXTEN" if $lflag & &POSIX::IEXTEN;
-  print " ISIG  " if $lflag & &POSIX::ISIG;  
+  print " ISIG  " if $lflag & &POSIX::ISIG;
   print " NOFLSH" if $lflag & &POSIX::NOFLSH;
   print " TOSTOP" if $lflag & &POSIX::TOSTOP;
   print "\n";

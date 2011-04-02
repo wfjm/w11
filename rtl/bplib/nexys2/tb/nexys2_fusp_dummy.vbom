@@ -1,0 +1,7 @@
+# libs
+../../../vlib/slvtypes.vhd
+../nexys2lib.vhd
+# components
+../n2_cram_dummy.vbom
+# design
+nexys2_fusp_dummy.vhd

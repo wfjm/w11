@@ -1,4 +1,4 @@
-/* $Id: rlink_cext.c 351 2010-12-30 21:50:54Z mueller $
+/* $Id: rlink_cext.c 366 2011-03-05 14:55:15Z mueller $
  *
  * Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
  *
@@ -13,6 +13,7 @@
  *
  *  Revision History: 
  * Date         Rev  Vers    Comment
+ * 2011-03-05   366   1.3.1  add RLINK_CEXT_TRACE=2 trace level
  * 2010-12-29   351   1.3    rename cext_rriext -> rlink_cext; rename functions
  *                           cext_* -> rlink_cext_* and fifo file names
  *                           tb_cext_* -> rlink_cext_*
@@ -78,6 +79,12 @@ static void rlink_cext_doread()
   char buf[1];
   ssize_t nbyte;
   nbyte = read(fd_rx, buf, 1);
+  if (io_trace > 1) {
+    printf("rlink_cext-I: read   rc=%d", nbyte);
+    if (nbyte < 0) printf(" errno=%d %s", errno, strerror(errno));
+    printf("\n");
+  }
+
   if (nbyte < 0) {
     qr_err = errno;
   } else if (nbyte == 0) {
@@ -128,8 +135,15 @@ int rlink_cext_getbyte(int clk)
 
     io_trace = 0;
     env_val = getenv("RLINK_CEXT_TRACE");
-    if (env_val && strcmp(env_val, "1") == 0) {
-      io_trace = 1;
+    if (env_val) {
+      printf("rlink_cext-I: seen RLINK_CEXT_TRACE=%s\n", env_val);
+      if (strcmp(env_val, "1") == 0) {
+        printf("rlink_cext-I: set trace level to 1\n");
+        io_trace = 1;
+      } else if (strcmp(env_val, "2") == 0) {
+        printf("rlink_cext-I: set trace level to 2\n");
+        io_trace = 2;
+      }
     }
     
   }
@@ -208,6 +222,11 @@ int rlink_cext_putbyte(int dat)
 
   buf[0] = (unsigned char) dat;
   nbyte = write(fd_tx, buf, 1);
+  if (io_trace > 1) {
+    printf("rlink_cext-I: write  rc=%d", nbyte);
+    if (nbyte < 0) printf(" errno=%d %s", errno, strerror(errno));
+    printf("\n");
+  }
 
   if (nbyte < 0) {
     perror("rlink_cext-E: write error on rlink_cext_fifo_tx");

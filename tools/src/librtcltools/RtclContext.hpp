@@ -1,0 +1,90 @@
+// $Id: RtclContext.hpp 368 2011-03-12 09:58:53Z mueller $
+//
+// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+//
+// This program is free software; you may redistribute and/or modify it under
+// the terms of the GNU General Public License as published by the Free
+// Software Foundation, either version 2, or at your option any later version.
+//
+// This program is distributed in the hope that it will be useful, but
+// WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
+// or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+// for complete details.
+// 
+// Revision History: 
+// Date         Rev Version  Comment
+// 2011-03-12   368   1.0.1  drop fExitSeen, get exit handling right
+// 2011-02-18   362   1.0    Initial version
+// 2011-02-18   362   0.1    First draft
+// ---------------------------------------------------------------------------
+
+/*!
+  \file
+  \version $Id: RtclContext.hpp 368 2011-03-12 09:58:53Z mueller $
+  \brief   Declaration of class RtclContext.
+*/
+
+#ifndef included_Retro_RtclContext
+#define included_Retro_RtclContext 1
+
+#include "tcl.h"
+
+#include <string>
+#include <set>
+#include <map>
+
+#include "RtclClassBase.hpp"
+#include "RtclProxyBase.hpp"
+
+namespace Retro {
+
+  class RtclContext {
+    public:
+      typedef std::set<RtclClassBase*> cset_t;
+      typedef cset_t::iterator         cset_it_t;
+      typedef std::set<RtclProxyBase*> pset_t;
+      typedef pset_t::iterator         pset_it_t;
+      typedef std::map<Tcl_Interp*, RtclContext*>  xmap_t;
+      typedef xmap_t::iterator                     xmap_it_t;
+      typedef xmap_t::value_type                   xmap_val_t;
+
+      explicit      RtclContext(Tcl_Interp* interp);
+      virtual       ~RtclContext();
+
+      void          RegisterClass(RtclClassBase* pobj);
+      void          UnRegisterClass(RtclClassBase* pobj);
+
+      void          RegisterProxy(RtclProxyBase* pobj);
+      void          UnRegisterProxy(RtclProxyBase* pobj);
+      bool          CheckProxy(RtclProxyBase* pobj);
+      bool          CheckProxy(RtclProxyBase* pobj, const std::string& type);
+
+      void          ListProxy(std::vector<RtclProxyBase*>& list,
+                              const std::string& type);
+
+      static RtclContext&  Find(Tcl_Interp* interp);
+
+      static void   ThunkTclExitProc(ClientData cdata);
+
+    protected:
+
+      Tcl_Interp*   fInterp;                //!< associated tcl interpreter
+      cset_t        fSetClass;              //!< set for Class objects
+      pset_t        fSetProxy;              //!< set for Proxy objects
+
+      static xmap_t fMapContext;            //!< map of contexts
+
+    // RtclContext is not copy or assignable nor default constructable
+    private:
+                    RtclContext();
+                    RtclContext(const RtclContext& rhs);
+      RtclContext&  operator=(const RtclContext& rhs);
+  };
+  
+} // end namespace Retro
+
+#if !(defined(Retro_NoInline) || defined(Retro_RtclContext_NoInline))
+#include "RtclContext.ipp"
+#endif
+
+#endif

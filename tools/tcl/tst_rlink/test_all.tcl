@@ -1,4 +1,4 @@
-# $Id: test_all.tcl 375 2011-04-02 07:56:47Z mueller $
+# $Id: test_all.tcl 376 2011-04-17 12:24:07Z mueller $
 #
 # Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2011-04-17   376   1.0.1  add rbemon::test_rbtest_sim  (if in sum mode)
 # 2011-04-02   375   1.0    Initial version
 # 2011-03-26   373   0.1    First draft
 #
@@ -33,6 +34,9 @@ namespace eval tst_rlink {
     incr errcnt [rbmoni::test_regs]
     incr errcnt [rbmoni::test_rbtest]
     incr errcnt [rbemon::test_regs]
+    if {[rlink::issim]} {
+      incr errcnt [rbemon::test_rbtest_sim]
+    }
 
     puts "tst_rlink::test_all errcnt = $errcnt --> [rutil::errcnt2txt $errcnt]"
 

@@ -1,4 +1,4 @@
-// $Id: RtclRlinkConnect.cpp 375 2011-04-02 07:56:47Z mueller $
+// $Id: RtclRlinkConnect.cpp 376 2011-04-17 12:24:07Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2011-04-17   376   1.0.1  M_wtlam: now correct log levels
 // 2011-03-27   374   1.0    Initial version
 // 2011-02-11   360   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclRlinkConnect.cpp 375 2011-04-02 07:56:47Z mueller $
+  \version $Id: RtclRlinkConnect.cpp 376 2011-04-17 12:24:07Z mueller $
   \brief   Implemenation of class RtclRlinkConnect.
  */
 
@@ -512,7 +513,7 @@ int RtclRlinkConnect::M_wtlam(RtclArgs& args)
     args.AppendResult(emsg.Message());
     return kERR;
   } else if (twait == -1.) {
-    if (Obj().GetLogOpts().printlevel >= 2) {
+    if (Obj().GetLogOpts().printlevel >= 1) {
       Obj().LogFile()() << "-- wtlam to=" << RosPrintf(tout, "f", 0,3)
                         << " FAIL timeout" << endl;
       fErrCnt += 1;
@@ -521,7 +522,7 @@ int RtclRlinkConnect::M_wtlam(RtclArgs& args)
     }
   }
 
-  if (Obj().GetLogOpts().printlevel >= 1) {
+  if (Obj().GetLogOpts().printlevel >= 3) {
     Obj().LogFile()() << "-- wtlam to=" << RosPrintf(tout, "f", 0,3)
                       << "  T=" << RosPrintf(twait, "f", 0,3)
                       << "  OK" << endl;

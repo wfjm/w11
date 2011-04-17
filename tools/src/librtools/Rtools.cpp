@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2011-04-10   376   1.0.1  add ThrowLogic(), ThrowRuntime()
 // 2011-03-12   368   1.0    Initial version
 // ---------------------------------------------------------------------------
 
@@ -25,6 +26,7 @@
 #include <stdexcept>
 
 #include "Rtools.hpp"
+#include "RerrMsg.hpp"
 
 using namespace std;
 using namespace Retro;
@@ -54,6 +56,29 @@ std::string Rtools::Flags2String(uint32_t flags, const RflagName* fnam,
   return rval;
 }
 
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rtools::ThrowLogic(const std::string& meth, 
+                        const std::string& text, int errnum)
+{
+  RerrMsg emsg;
+  emsg.Init(meth, text);
+  if (errnum != 0) emsg.AppendErrno(errnum);
+  throw logic_error(emsg.Message());
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rtools::ThrowRuntime(const std::string& meth, 
+                          const std::string& text, int errnum)
+{
+  RerrMsg emsg;
+  emsg.Init(meth, text);
+  if (errnum != 0) emsg.AppendErrno(errnum);
+  throw runtime_error(emsg.Message());
+}
 
 //------------------------------------------+-----------------------------------
 #if (defined(Retro_NoInline) || defined(Retro_Rtools_NoInline))

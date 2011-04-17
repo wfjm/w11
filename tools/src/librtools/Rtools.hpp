@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2011-04-10   376   1.0.1  add ThrowLogic(), ThrowRuntime()
 // 2011-03-12   368   1.0    Initial version
 // ---------------------------------------------------------------------------
 
@@ -39,6 +40,10 @@ namespace Retro {
   namespace Rtools {
     std::string     Flags2String(uint32_t flags, const RflagName* fnam, 
                                  char delim='|');
+    void            ThrowLogic(const std::string& meth, 
+                               const std::string& text, int errnum=0);
+    void            ThrowRuntime(const std::string& meth, 
+                                 const std::string& text, int errnum=0);
   };
 
 } // end namespace Retro

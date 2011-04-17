@@ -1,6 +1,6 @@
 #! /usr/bin/env tclsh
 # -*- tcl -*-
-# $Id: ti_rri 375 2011-04-02 07:56:47Z mueller $
+# $Id: ti_rri 376 2011-04-17 12:24:07Z mueller $
 #
 # Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -15,12 +15,12 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
-# 2011-04-02   376   1.0    Initial version
+# 2011-04-17   376   1.0    Initial version
 # 2011-03-19   371   0.1    First draft
 #
 #
 # --fifo[=name,keep]
-# --term[=???]        ; not yet implemented...
+# --term[=name,baud,break]
 # --run=command
 # --log=filename      ; default "-"
 # --logl=n            ; default 2
@@ -128,8 +128,11 @@ if { $opts(term) } {
   set dev  [lindex $nlist 0]
   set baud [lindex $nlist 1]
   set brk  [lindex $nlist 2]
-  if {$dev  eq ""} {set dev  "/dev/ttyS0"}
+  if {$dev  eq ""} {set dev  "USB0"}
   if {$baud eq ""} {set baud "115k"}
+  if {! [regexp -- {^/dev} $dev]} {
+    set dev "/dev/tty$dev"
+  }
   set url "term:$dev?baud=$baud"
   if {$brk ne ""} {append url ";break"}
   rlc open $url

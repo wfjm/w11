@@ -1,15 +1,22 @@
-# $Id: INSTALL.txt 317 2010-07-22 19:36:56Z mueller $
+# $Id: INSTALL.txt 376 2011-04-17 12:24:07Z mueller $
 
-Guide to install and build w11a
+Guide to install and build w11a systems, test benches and support software
 
   Table of content:
   
-  1. Download
-  2. Install and setup the build system
-  3. Compile UNISIM/SIMPRIM libraries for ghdl
-  4. The build system
-  5. Building test benches
-  6. Building systems
+  1.  Download
+  2.  Setup environment variables
+  3.  Compile UNISIM/SIMPRIM libraries for ghdl
+  4.  Compile and install the support software
+       a. Compile sharable libraries
+       b. Setup Tcl packages
+  5.  The build system
+  6.  Building test benches
+       a. General instructions
+       b. Available test benches
+  7.  Building systems
+       a. General instructions
+       b. Available systems
 
 
 1. Download ---------------------------------------------------------------
@@ -27,16 +34,21 @@ Guide to install and build w11a
     cd <wdir>
     svn co http://opencores.org/ocsvn/w11/w11/trunk
 
-2. Install and setup the build system -------------------------------------
+2. Setup environment variables --------------------------------------------
 
-  The build system for test benches and systems requires
-  - the definition of the environment variable RETROBASE
-  - that the tools binary directory is in the path
+  The make flow for building test benches (ghdl and ISim based) and systems
+  (Xilinx xst based) as well as the support software (mainly the rlink backend
+  server) requires
+
+    - the definition of the environment variable RETROBASE
+    - that the tools binary directory is in the path
+    - that the tools library directory is in the library path
 
   For bash and alike use
 
     export RETROBASE=<wdir>
     export PATH=$PATH:$RETROBASE/tools/bin
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$RETROBASE/tools/lib
 
   After that building functional model based test benches will work. If you 
   want to also build post-xst or post-par test benches read next section.
@@ -63,8 +75,48 @@ Guide to install and build w11a
 
   If you have several WebPack versions installed, repeat for each version.
 
+4. Compile and install the support software -------------------------------
 
-4. The build system -------------------------------------------------------
+4a. Compile sharable libraries ---------------------------------------
+
+  To build all sharable libraries
+
+    cd $RETROBASE/tools/src
+    make -j 4
+
+  To cleanup, e.g. before a re-build
+    
+    cd $RETROBASE/tools/src
+    rm_dep
+    make realclean
+
+4b. Setup Tcl environment --------------------------------------------
+
+  The Tcl files are organized in several packages. To create the Tcl
+  package files (pkgIndex.tcl)
+
+    cd $RETROBASE/tools/tcl
+    setup_packages
+
+  To use these packages it is convenient to make them available via the
+  'auto_path' mechanism. To do that add in your .tclshrc or .wishrc
+
+    lappend auto_path [file join $env(RETROBASE) tools tcl]
+    lappend auto_path [file join $env(RETROBASE) tools lib]
+
+  The w11 distribution contains two ready to use .tclshrc or .wishrc
+  files which
+    - include the auto_path statements above
+    - activate tclreadline (and thus in tclshrc an event loop)
+
+  To use them simply copy them into your home directory (or soft link them)
+
+    cd $HOME
+    ln -s $RETROBASE/tools/tcl/.tclshrc .
+    ln -s $RETROBASE/tools/tcl/.wishrc  .
+
+
+5. The build system -------------------------------------------------------
 
   Simulation and synthesis tools usually need a list of the VHDL source
   files, often in proper compilation order (libraries before components).
@@ -92,7 +144,9 @@ Guide to install and build w11a
   even more. Using the vbom's a large number of designs can be easily
   maintained.
 
-5. Building test benches --------------------------------------------------
+6. Building test benches --------------------------------------------------
+
+6a. General instructions ---------------------------------------------
 
   To compile a test bench named <tbench> all is needed is
 
@@ -112,7 +166,13 @@ Guide to install and build w11a
   The 'make ghdl_tmp_clean' is needed to flush the ghdl work area from
   the compilation remains of earlier functional model compiles.
 
-6. Building systems -------------------------------------------------------
+6b. Available test benches -------------------------------------------
+
+  See file w11a_tb_guide.txt
+
+7. Building systems -------------------------------------------------------
+
+7a. General instructions ---------------------------------------------
 
   To generate a bit file for a system named <sys> all is needed is
 
@@ -137,3 +197,26 @@ Guide to install and build w11a
 
     make <sys>.ngc
     make <sys>.ncd
+
+7b. Available systems ------------------------------------------------
+
+  Note: Currently ready to build versions exist for 
+          Digilent S3BOARD (-1000 FPGA version)
+          Digilent Nexys2 board (-1200 FPGA version)
+
+  1. rlink tester
+     a. for Digilent Nexys2 board
+
+        cd $RETROBASE/rtl/sys_gen/tst_rlink/nexys2
+        make sys_tst_rlink_n2.bit
+
+  2. w11a systems
+     a. for Digilent S3BOARD
+     
+        cd $RETROBASE/rtl/sys_gen/w11a/s3board
+        make sys_w11a_s3.bit
+
+     b. for Digilent Nexys2 board
+
+        cd $RETROBASE/rtl/sys_gen/w11a/nexys2
+        make sys_w11a_n2.bit

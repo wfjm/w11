@@ -1,4 +1,4 @@
-# $Id: util.tcl 375 2011-04-02 07:56:47Z mueller $
+# $Id: util.tcl 376 2011-04-17 12:24:07Z mueller $
 #
 # Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,7 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
-# 2011-03-19   372   0.1    Initial version
+# 2011-03-19   372   1.0    Initial version
 #
 
 package provide rbbram 1.0

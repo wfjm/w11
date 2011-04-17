@@ -1,4 +1,4 @@
-# $Id: w11a_tb_guide.txt 352 2011-01-02 13:01:37Z mueller $
+# $Id: w11a_tb_guide.txt 376 2011-04-17 12:24:07Z mueller $
 
 Guide to running w11a test benches
 
@@ -124,7 +124,7 @@ Guide to running w11a test benches
 
 3. System tests benches ---------------------------------------------------
 
-   The system tests allow to verify to verify the full 11/70 SoC design.
+   The system tests allow to verify to verify a full system design.
    In this case vhdl test bench code contains
      - (simple) models of the memories used on the FPGA boards
      - drivers for the rlink connection (currently just serialport)
@@ -133,12 +133,33 @@ Guide to running w11a test benches
    This way the whole ghdl simulation can be controlled via a di-directional
    byte stream. 
 
-   The rlink backend process, currently a perl script named pi_rri, can connect
-   either via a named pipe to a ghdl simulation, or via a serial port to a 
-   FPGA board. This way the same tests can be executed in simulation and
-   on real hardware.
+   The rlink backend process can connect either via a named pipe to a ghdl 
+   simulation, or via a serial port to a FPGA board. This way the same tests 
+   can be executed in simulation and on real hardware.
+
+   Currently two backend implementations are available:
+   - pi_rri: written in perl (old, slow, but full functionality)
+   - ti_tti: written in C++ and Tcl (new, fast, but as of V0.53 only with
+               limited functionality; will replace pi_rri).
 
 4. Available system tests benches -----------------------------------------
+
+4a. rlink tester -----------------------------------------------------
+
+   The sys_tst_rlink design is a test target for validating the rlink
+   and rbus functionality at all levels.
+
+   - sys_tst_rlink_n2 test bench
+
+     cd $RETROBASE/rtl/sys_gen/tst_rlink/nexys2/tb
+     make tb_tst_rlink_n2
+     time ti_rri --run="tbw tb_tst_rlink_n2" --fifo --logl=3 -- \
+       "package require tst_rlink" "tst_rlink::setup" "tst_rlink::test_all" |\
+       tee tb_tst_rlink_n2_dsim.log | egrep "(-[EW]:|FAIL|PEND|DONE)"
+     -> 1769140.0 ns  88446: DONE 
+     -> real 0m15.289s
+
+4b. w11a systems -----------------------------------------------------
 
    The stimulus file used in the w11a core test can be executed in the
    full system context (both s3board and nexys2 versions) with the 
@@ -147,7 +168,7 @@ Guide to running w11a test benches
    backend process and thus scheduling of backend vs. ghdl process
    can affect the result.
 
-   - sys_w11a_s3 system test
+   - sys_w11a_s3 test bench
 
      cd $RETROBASE/rtl/sys_gen/w11a/s3board/tb
      make tb_w11a_s3
@@ -156,9 +177,9 @@ Guide to running w11a test benches
    	 @../../../../w11a/tb/tb_pdp11core_stim.dat |\
        tee tb_w11a_s3_stim2_dsim.log | egrep "(-[EW]:|FAIL|PEND|DONE)"
      -> 7757655.0 ns 387873: DONE
-     -> real    0m49.835s   user    0m50.203s   sys     0m0.696s
+     -> real 0m49.835s   user 0m50.203s   sys 0m0.696s
 
-   - sys_w11a_n2 system test
+   - sys_w11a_n2 test bench
 
      cd $RETROBASE/rtl/sys_gen/w11a/nexys2/tb
      make tb_w11a_n2
@@ -167,4 +188,4 @@ Guide to running w11a test benches
    	 @../../../../w11a/tb/tb_pdp11core_stim.dat |\
        tee tb_w11a_n2_stim2_dsim.log | egrep "(-[EW]:|FAIL|PEND|DONE)"
      -> 6673237.2 ns 387035: DONE
-     -> real    0m56.173s   user    0m56.612s   sys     0m0.604s
+     -> real 0m56.173s   user 0m56.612s   sys 0m0.604s

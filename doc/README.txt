@@ -1,4 +1,4 @@
-# $Id: README.txt 353 2011-01-02 21:02:48Z mueller $
+# $Id: README.txt 376 2011-04-17 12:24:07Z mueller $
 
 Release notes for w11a
 
@@ -31,6 +31,8 @@ Release notes for w11a
    rtl/bplib/s3board              - for Digilent S3BOARD
    rtl/ibus                     - ibus devices (UNIBUS peripherals)
    rtl/sys_gen                  - top level designs
+   rtl/sys_gen/tst_rlink          - top level designs for an rlink tester
+   rtl/sys_gen/tst_rlink/nexys2     - rlink tester system for Digilent Nexsy2
    rtl/sys_gen/w11a               - top level designs for w11a SoC
    rtl/sys_gen/w11a/nexys2          - w11a SoC for Digilent Nexsy2
    rtl/sys_gen/w11a/s3board         - w11a SoC for Digilent S3BOARD
@@ -46,13 +48,69 @@ Release notes for w11a
    rtl/w11a                     - w11a core
    tools                        helper programs
    tools/bin                    - scripts and binaries
+   tools/dox                    - Doxygen documentation configuration
+   tools/make                   - make includes
+   tools/src                    - C++ sources
+   tools/src/librlink             - basic rlink interface
+   tools/src/librlinktpp          - C++ to tcl binding for rlink interface
+   tools/src/librtools            - general support classes and methods
+   tools/src/librtcltools         - support classes to implement Tcl bindings
+   tools/src/librutiltpp          - Tcl support commands implemented in C++
+   tools/tcl                    - Tcl scripts
 
 3. Change Log ----------------------------------------------------------------
 
-- trunk (2011-01-02: svn rev 9(oc) 352(wfjm); untagged w11a_V0.52) +++++++++
+- trunk (2011-04-17: svn rev 11(oc) 376(wfjm); untagged w11a_V0.53) ++++++++++
 
   - Summary
-    - Introduced rbus protocol V3
+    - Introduce C++ and Tcl based backend server. A set of C++ classes provide
+      the basic rlink communication promitives. Additional glue classes provide
+      a Tcl binding. This first phase contains the basic functionality needed
+      to control simple test benches.
+    - add an 'rlink exerciser' (tst_rlink) and a top level design for a Nexys2
+      board (sys_tst_rlink_n2) and a test suite implemented in Tcl.
+
+  - Note: No functional changes in w11a core and I/O system at this point!
+          The w11a demonstrator systems are still operated with the old
+          backend code (pi_rri).
+
+  - New features
+    - new directory trees for
+      - C++ sources of backend (plus make and doxygen documentation support)
+        - tools/dox                - Doxygen documentation configuration
+        - tools/make               - make includes
+        - tools/src/librlink       - basic rlink interface
+        - tools/src/librlinktpp    - C++ to tcl binding for rlink interface
+        - tools/src/librtools      - general support classes and methods
+        - tools/src/librtcltools   - support classes to implement Tcl bindings
+        - tools/src/librutiltpp    - Tcl support commands implemented in C++
+      - VHDL sources of an 'rlink exerciser'
+        - rtl/sys_gen/tst_rlink    - top level designs for an rlink tester
+        - rtl/sys_gen/tst_rlink/nexys2  - rlink tester system for Nexsy2 board
+      - Tcl sources of 'rlink exerciser'
+        - tools/tcl/rlink          - defs and proc's for basic rlink functions
+        - tools/tcl/rutil          - general support procs
+        - tools/tcl/rbtest         - defs and proc's for rbd_tester
+        - tools/tcl/rbbram         - defs and proc's for rbd_bram
+        - tools/tcl/rbmoni         - defs and proc's for rbd_rbmon
+        - tools/tcl/rbs3hio        - defs and proc's for s3_humanio_rbus
+        - tools/tcl/tst_rlink      - defs and proc's for tst_rlink
+    - new modules
+      - rtl/vlib/rbus
+        - rbd_bram     - rbus bram test target
+        - rbd_eyemon   - eye monitor for serport's
+        - rbd_rbmon    - rbus monitor
+        - rbd_tester   - rbus tester
+        - rbd_timer    - usec precision timer
+      - rtl/vlib/memlib
+        - additional wrappers for distributed and block memories added
+      - tools/bin
+        - ti_rri: Tcl driver for rlink tests and servers (will replace pi_rri)
+
+- trunk (2011-01-02: svn rev 9(oc) 352(wfjm); untagged w11a_V0.52) +++++++++++
+
+  - Summary
+    - Introduce rbus protocol V3
     - reorganize rbus and rlink modules, many renames
 
   - Changes
@@ -121,10 +179,10 @@ Release notes for w11a
       - added several rbus devices useful for debugging
         - rbd_tester: test target, used for example in test benches
 
-- trunk (2010-11-28: svn rev 8(oc) 341(wfjm); untagged w11a_V0.51) ++++++++
+- trunk (2010-11-28: svn rev 8(oc) 341(wfjm); untagged w11a_V0.51) +++++++++++
 
   - Summary 
-    - Introduced ibus protocol V2
+    - Introduce ibus protocol V2
     - Nexys2 systems use DCM
     - sys_w11a_n2 now runs with 58 MHz
 
@@ -158,7 +216,7 @@ Release notes for w11a
   - Bug fixes
     - rtl/vlib/Makefile.xflow: use default .opt files under rtl/vlib again.
 
-- w11a_V0.5 (2010-07-23) ++++++++++++++++++++++++++++++++++++++++++++++++++
+- w11a_V0.5 (2010-07-23) +++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   Initial release with 
   - w11a CPU core

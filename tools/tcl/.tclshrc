@@ -1,0 +1,16 @@
+# -*- tcl -*-
+# $Id: .tclshrc 376 2011-04-17 12:24:07Z mueller $
+#
+lappend auto_path [file join $env(RETROBASE) tools tcl]
+lappend auto_path [file join $env(RETROBASE) tools lib]
+#
+if {$tcl_interactive} {
+  package require tclreadline
+  namespace eval tclreadline {
+    proc prompt1 {} {
+      set version [info tclversion]
+      return "tclsh$version > "
+    }
+  }
+  ::tclreadline::Loop
+}

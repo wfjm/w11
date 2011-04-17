@@ -1,4 +1,4 @@
-# $Id: util.tcl 375 2011-04-02 07:56:47Z mueller $
+# $Id: util.tcl 376 2011-04-17 12:24:07Z mueller $
 #
 # Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2011-04-17   376   1.0.1  add proc read
 # 2011-04-02   375   1.0    Initial version
 #
 
@@ -80,6 +81,26 @@ namespace eval rbemon {
   #
   proc stop {} {
     rlc exec -wreg em.cntl 0x0000
+  }
+  #
+  # read: read eyemon data
+  #
+  proc read {{nval 512}} {
+    set addr 0
+    set rval {}
+    while {$nval > 0} {
+      set nblk [expr $nval << 1]
+      if {$nblk > 256} {set nblk 256}
+      rlc exec \
+        -wreg em.addr $addr \
+        -rblk em.data $nblk rawdat
+      foreach {dl dh} $rawdat {
+        lappend rval [expr ( $dh << 16 ) | $dl]
+      }
+      incr addr $nblk
+      set nval [expr $nval - ( $nblk >> 1 ) ]
+    }
+    return $rval
   }
   
 }

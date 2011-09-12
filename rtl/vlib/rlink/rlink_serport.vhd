@@ -1,6 +1,6 @@
--- $Id: rlink_serport.vhd 350 2010-12-28 16:40:11Z mueller $
+-- $Id: rlink_serport.vhd 406 2011-08-14 21:06:44Z mueller $
 --
--- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,7 +20,7 @@
 -- Test bench:     tb/tb_rlink_serport
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 12.1, 13.1; ghdl 0.18-0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -28,6 +28,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-08-14   406   3.1.1  cleaner code for RL_SER_MONI.clkdiv assignment
 -- 2010-12-25   348   3.1    re-written, is now a serial to rlink_base adapter
 -- 2010-12-24   347   3.0.1  rename: CP_*->RL->*
 -- 2010-12-04   343   3.0    renamed rri_ -> rlink_
@@ -110,7 +111,7 @@ architecture syn of rlink_serport is
   signal TXBUSY : slbit := '0';
   signal ABACT : slbit := '0';
   signal ABDONE : slbit := '0';
-  signal ABCLKDIV : slv16 := (others=>'0');
+  signal ABCLKDIV : slv(CDWIDTH-1 downto 0) := (others=>'0');
 
 begin
 
@@ -230,6 +231,11 @@ begin
   RL_SER_MONI.txact  <= TXBUSY;
   RL_SER_MONI.abact  <= ABACT;
   RL_SER_MONI.abdone <= ABDONE;
-  RL_SER_MONI.clkdiv <= ABCLKDIV;
+  
+  proc_clkdiv: process (ABCLKDIV)
+  begin
+    RL_SER_MONI.clkdiv <= (others=>'0');
+    RL_SER_MONI.clkdiv(ABCLKDIV'range) <= ABCLKDIV;
+  end process proc_clkdiv;
 
 end syn;

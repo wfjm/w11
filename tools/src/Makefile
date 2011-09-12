@@ -1,10 +1,11 @@
-# $Id: Makefile 372 2011-03-20 22:48:11Z mueller $
+# $Id: Makefile 401 2011-07-31 21:02:33Z mueller $
 #
 # Top level makefile, using the recipe found in
 #    http://www.lackof.org/taggart/hacking/make-example/
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2011-07-31   401   1.2    rename realclean->distclean
 # 2011-03-20   372   1.1.1  renamed ..tcl -> ..tpp
 # 2011-03-14   370   1.1.0  rename librtoolstcl -> librtcltools
 # 2011-02-13   361   1.1    add realclean rule; add dirs and dependencies
@@ -18,9 +19,9 @@ DIRS += librlinktpp
 #
 BUILDDIRS = $(DIRS:%=build-%)
 CLEANDIRS = $(DIRS:%=clean-%)
-REALCDIRS = $(DIRS:%=realc-%)
+REALCDIRS = $(DIRS:%=distc-%)
 #
-.PHONY: all clean realclean
+.PHONY: all clean distclean
 .PHONY: $(DIRS)
 .PHONY: $(BUILDDIRS)
 .PHONY: $(CLEANDIRS)
@@ -44,8 +45,8 @@ clean: $(CLEANDIRS)
 $(CLEANDIRS): 
 	$(MAKE) -C $(@:clean-%=%) clean
 #
-# realclean rule
+# distclean rule
 #
-realclean: $(REALCDIRS)
+distclean: $(REALCDIRS)
 $(REALCDIRS): 
-	$(MAKE) -C $(@:realc-%=%) realclean
+	$(MAKE) -C $(@:distc-%=%) distclean

@@ -1,6 +1,6 @@
--- $Id: comlib.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: comlib.vhd 400 2011-07-31 09:02:16Z mueller $
 --
--- Copyright 2007- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    communication components
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4; ghdl 0.18-0.26
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-07-30   400   1.3    added byte2word, word2byte
 -- 2007-10-12    88   1.2.1  avoid ieee.std_logic_unsigned, use cast to unsigned
 -- 2007-07-08    65   1.2    added procedure crc8_update_tbl
 -- 2007-06-29    61   1.1.1  rename for crc8 SALT->INIT 
@@ -33,6 +34,34 @@ use ieee.std_logic_arith.all;
 use work.slvtypes.all;
 
 package comlib is
+
+component byte2word is                  -- 2 byte -> 1 word stream converter
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit;                   -- reset
+    DI : in slv8;                       -- input data (byte)
+    ENA : in slbit;                     -- write enable
+    BUSY : out slbit;                   -- write port hold    
+    DO : out slv16;                     -- output data (word)
+    VAL : out slbit;                    -- read valid
+    HOLD : in slbit;                    -- read hold
+    ODD : out slbit                     -- odd byte pending
+  );
+end component;
+
+component word2byte is                  -- 1 word -> 2 byte stream converter
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit;                   -- reset
+    DI : in slv16;                      -- input data (word)
+    ENA : in slbit;                     -- write enable
+    BUSY : out slbit;                   -- write port hold    
+    DO : out slv8;                      -- output data (byte)
+    VAL : out slbit;                    -- read valid
+    HOLD : in slbit;                    -- read hold
+    ODD : out slbit                     -- odd byte pending
+  );
+end component;
 
 component cdata2byte is                 -- 9bit comma,data -> byte stream
   generic (
@@ -83,7 +112,7 @@ end component;
   procedure crc8_update_tbl (crc : inout slv8;
                              data : in slv8);
 
-end comlib;
+end package comlib;
 
 -- ----------------------------------------------------------------------------
 

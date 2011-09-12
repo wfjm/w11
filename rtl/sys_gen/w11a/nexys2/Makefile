@@ -1,7 +1,8 @@
-# $Id: Makefile 311 2010-06-30 17:52:37Z mueller $
+# $Id: Makefile 405 2011-08-14 08:16:28Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2011-08-13   405   1.1    use includes from rtl/make
 # 2010-05-28   295   1.0    Initial version (derived from _s3 version)
 #
 VBOM_all  = $(wildcard *.vbom)
@@ -10,7 +11,7 @@ BIT_all   = $(VBOM_all:.vbom=.bit)
 ISE_BOARD = nexys2
 ISE_PATH  = xc3s1200e-fg320-4
 #
-.phony : all clean
+.PHONY : all clean
 #
 all : $(BIT_all)
 #
@@ -24,8 +25,8 @@ sys_w11a_n2.mcs : sys_w11a_n2.bit
 #
 #----
 #
-include $(RETROBASE)/rtl/vlib/Makefile.xflow
-include $(RETROBASE)/rtl/vlib/Makefile.ghdl
+include $(RETROBASE)/rtl/make/generic_xflow.mk
+include $(RETROBASE)/rtl/make/generic_ghdl.mk
 #
 include $(VBOM_all:.vbom=.dep_xst)
 include $(VBOM_all:.vbom=.dep_ghdl)

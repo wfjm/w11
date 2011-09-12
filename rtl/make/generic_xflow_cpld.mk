@@ -1,7 +1,8 @@
-# $Id: Makefile.xflow_cpld 268 2010-03-14 22:41:18Z mueller $
+# $Id: generic_xflow_cpld.mk 405 2011-08-14 08:16:28Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2011-08-13   405   1.1    renamed, moved to rtl/make;
 # 2010-03-13   268   1.0    Initial version, cloned from .xflow Rev 252
 #---
 #
@@ -112,7 +113,7 @@ XFLOW    = xflow -p ${ISE_PATH}
 %.dep_ucf_cpp : %.ucf_cpp
 	cpp -MM $*.ucf_cpp | sed 's/\.o:/\.ucf:/' > $*.dep_ucf_cpp
 #
-.phony : ise_clean ise_tmp_clean
+.PHONY : ise_clean ise_tmp_clean
 #
 ise_clean: ise_tmp_clean
 	rm -rf *.ngc

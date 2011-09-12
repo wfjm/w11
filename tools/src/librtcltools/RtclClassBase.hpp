@@ -1,4 +1,4 @@
-// $Id: RtclClassBase.hpp 365 2011-02-28 07:28:26Z mueller $
+// $Id: RtclClassBase.hpp 380 2011-04-25 18:14:52Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,24 +13,27 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2011-04-24   380   1.0.1  use boost::noncopyable (instead of private dcl's)
 // 2011-02-20   363   1.0    Initial version
 // 2011-02-11   360   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclClassBase.hpp 365 2011-02-28 07:28:26Z mueller $
+  \version $Id: RtclClassBase.hpp 380 2011-04-25 18:14:52Z mueller $
   \brief   Declaration of class RtclClassBase.
 */
 
 #ifndef included_Retro_RtclClassBase
 #define included_Retro_RtclClassBase 1
 
+#include "boost/utility.hpp"
+
 #include "tcl.h"
 
 namespace Retro {
 
-  class RtclClassBase {
+  class RtclClassBase : private boost::noncopyable {
     public:
       static const int kOK  = TCL_OK;
       static const int kERR = TCL_ERROR;
@@ -64,13 +67,6 @@ namespace Retro {
       std::string   fType;                  //!< classed type name
       Tcl_Interp*   fInterp;                //!< tcl interpreter
       Tcl_Command   fCmdToken;              //!< cmd token for class command
-
-    // RtclClassBase is not copy or assignable
-    private:
-                    RtclClassBase(const RtclClassBase& rhs);
-      RtclClassBase&  operator=(const RtclClassBase& rhs);
-
-
   };
   
 } // end namespace Retro

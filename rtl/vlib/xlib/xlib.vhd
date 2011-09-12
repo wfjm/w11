@@ -1,4 +1,4 @@
--- $Id: xlib.vhd 338 2010-11-13 22:19:25Z mueller $
+-- $Id: xlib.vhd 389 2011-07-07 21:59:00Z mueller $
 --
 -- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -164,4 +164,4 @@ component dcm_sp_sfs is                 -- DCM_SP as 'simple freq. synthesis'
   );
 end component;
 
-end xlib;
+end package xlib;

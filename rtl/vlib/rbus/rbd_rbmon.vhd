@@ -1,4 +1,4 @@
--- $Id: rbd_rbmon.vhd 374 2011-03-27 17:02:47Z mueller $
+-- $Id: rbd_rbmon.vhd 387 2011-07-03 17:24:52Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -33,17 +33,17 @@
 -- 2010-12-27   349   1.0    Initial version 
 ------------------------------------------------------------------------------
 --
--- address layout:
---   bbbbbb00 : cntl
---                 00 : go/halt (writing 1 clears addr)
---   bbbbbb01 : alim: read-write register
---              15:08 : hilim: upper address limit (def: ff)
---               7:00 : lolim: lower address limit (def: 00)
---   bbbbbb10 : addr: read-write register
---                 15 : wrap: line address wrapped (read-only, cleared on write)
---              xx:02 : laddr: line address
---              01:00 : waddr: word address
---   bbbbbb11 : data: read-write register
+-- Address   Bits Name        r/w/f  Function
+-- bbbbbb00       cntl        r/w/f  Control register
+--             00   go        r/w/f    writing 1 clears add
+-- bbbbbb01       alim        r/w/-  Address limit register
+--          15:08   hilim     r/w/-    upper address limit (def: ff)
+--          07:00   lolim     r/w/-    lower address limit (def: 00)
+-- bbbbbb10       addr        r/w/-  Address register
+--             15   wrap      r/0/-    line address wrapped (cleared on write)
+--           *:02   laddr     r/w/-    line address
+--          01:00   waddr     r/w/-    word address
+-- bbbbbb11       data        r/w/-  Data register
 --
 --     data format:
 --     word 3     15 : ack

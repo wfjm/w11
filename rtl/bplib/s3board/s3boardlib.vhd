@@ -1,6 +1,6 @@
--- $Id: s3boardlib.vhd 351 2010-12-30 21:50:54Z mueller $
+-- $Id: s3boardlib.vhd 391 2011-07-09 17:25:02Z mueller $
 --
--- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,6 +19,9 @@
 -- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-07-09   391   1.3.5  move s3_rs232_iob_int_ext to bpgenlib
+-- 2011-07-08   390   1.3.4  move s3_(dispdrv|humanio*) to bpgenlib
+-- 2011-07-03   387   1.3.3  move s3_rs232_iob_(int|ext) to bpgenlib
 -- 2010-12-30   351   1.3.2  use rblib; rename human s3_humanio_rri -> _rbus
 -- 2010-11-06   336   1.3.1  rename input pin CLK -> I_CLK50
 -- 2010-06-03   300   1.3    add s3_humanio_rri (now needs rrilib)
@@ -41,7 +44,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 
 use work.slvtypes.all;
-use work.rblib.all;
 
 package s3boardlib is
 
@@ -87,102 +89,6 @@ component s3board_fusp_aif is           -- S3BOARD, abstract iface, base+fusp
   );
 end component;
 
-component s3_dispdrv is                 -- 7 segment display driver
-  generic (
-    CDWIDTH : positive := 6);           -- clk divider width (must be >= 5)
-  port (
-    CLK : in slbit;                     -- clock
-    DIN : in slv16;                     -- data
-    DP : in slv4;                       -- decimal points
-    ANO_N : out slv4;                   -- anodes    (act.low)
-    SEG_N : out slv8                    -- segements (act.low)
-  );
-end component;
-
-component s3_humanio is                 -- human i/o handling: swi,btn,led,dsp
-  generic (
-    DEBOUNCE : boolean := true);        -- instantiate debouncer for SWI,BTN
-  port (
-    CLK : in slbit;                     -- clock
-    RESET : in slbit;                   -- reset
-    CE_MSEC : in slbit;                 -- 1 ms clock enable
-    SWI : out slv8;                     -- switch settings, debounced
-    BTN : out slv4;                     -- button settings, debounced
-    LED : in slv8;                      -- led data
-    DSP_DAT : in slv16;                 -- display data
-    DSP_DP : in slv4;                   -- display decimal points
-    I_SWI : in slv8;                    -- pad-i: switches
-    I_BTN : in slv4;                    -- pad-i: buttons
-    O_LED : out slv8;                   -- pad-o: leds
-    O_ANO_N : out slv4;                 -- pad-o: 7 seg disp: anodes   (act.low)
-    O_SEG_N : out slv8                  -- pad-o: 7 seg disp: segments (act.low)
-  );
-end component;
-
-component s3_humanio_rbus is            -- human i/o handling /w rbus intercept
-  generic (
-    DEBOUNCE : boolean := true;         -- instantiate debouncer for SWI,BTN
-    RB_ADDR : slv8 := conv_std_logic_vector(2#10000000#,8));
-  port (
-    CLK : in slbit;                     -- clock
-    RESET : in slbit;                   -- reset
-    CE_MSEC : in slbit;                 -- 1 ms clock enable
-    RB_MREQ : in rb_mreq_type;          -- rbus: request
-    RB_SRES : out rb_sres_type;         -- rbus: response
-    SWI : out slv8;                     -- switch settings, debounced
-    BTN : out slv4;                     -- button settings, debounced
-    LED : in slv8;                      -- led data
-    DSP_DAT : in slv16;                 -- display data
-    DSP_DP : in slv4;                   -- display decimal points
-    I_SWI : in slv8;                    -- pad-i: switches
-    I_BTN : in slv4;                    -- pad-i: buttons
-    O_LED : out slv8;                   -- pad-o: leds
-    O_ANO_N : out slv4;                 -- pad-o: 7 seg disp: anodes   (act.low)
-    O_SEG_N : out slv8                  -- pad-o: 7 seg disp: segments (act.low)
-  );
-end component;
-
-component s3_rs232_iob_int is           -- iob's for internal rs232
-  port (
-    CLK : in slbit;                     -- clock
-    RXD : out slbit;                    -- receive data (board view)
-    TXD : in slbit;                     -- transmit data (board view)
-    I_RXD : in slbit;                   -- pad-i: receive data (board view)
-    O_TXD : out slbit                   -- pad-o: transmit data (board view)
-  );
-end component;
-
-component s3_rs232_iob_ext is           -- iob's for external rs232 (Pmod)
-  port (
-    CLK : in slbit;                     -- clock
-    RXD : out slbit;                    -- receive data (board view)
-    TXD : in slbit;                     -- transmit data (board view)
-    CTS_N : out slbit;                  -- clear to send   (act. low)
-    RTS_N : in slbit;                   -- request to send (act. low)
-    I_RXD : in slbit;                   -- pad-i: receive data (board view)
-    O_TXD : out slbit;                  -- pad-o: transmit data (board view)
-    I_CTS_N : in slbit;                 -- pad-i: clear to send   (act. low)
-    O_RTS_N : out slbit                 -- pad-o: request to send (act. low)
-  );
-end component;
-
-component s3_rs232_iob_int_ext is       -- iob's for int+ext rs232, with select
-  port (
-    CLK : in slbit;                     -- clock
-    SEL : in slbit;                     -- select, '0' for port 0
-    RXD : out slbit;                    -- receive data (board view)
-    TXD : in slbit;                     -- transmit data (board view)
-    CTS_N : out slbit;                  -- clear to send   (act. low)
-    RTS_N : in slbit;                   -- request to send (act. low)
-    I_RXD0 : in slbit;                  -- pad-i: p0: receive data (board view)
-    O_TXD0 : out slbit;                 -- pad-o: p0: transmit data (board view)
-    I_RXD1 : in slbit;                  -- pad-i: p1: receive data (board view)
-    O_TXD1 : out slbit;                 -- pad-o: p1: transmit data (board view)
-    I_CTS1_N : in slbit;                -- pad-i: p1: clear to send   (act. low)
-    O_RTS1_N : out slbit                -- pad-o: p1: request to send (act. low)
-  );
-end component;
-
 component s3_sram_dummy is              -- SRAM protection dummy 
   port (
     O_MEM_CE_N : out slv2;              -- sram: chip enables  (act.low)
@@ -218,4 +124,4 @@ component s3_sram_memctl is             -- SRAM driver
   );
 end component;
 
-end s3boardlib;
+end package s3boardlib;

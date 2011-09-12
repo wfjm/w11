@@ -1,4 +1,4 @@
-// $Id:  $
+// $Id: Rtools.hpp 403 2011-08-06 17:36:22Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,7 @@
 
 /*!
   \file
-  \version $Id:  $
+  \version $Id: Rtools.hpp 403 2011-08-06 17:36:22Z mueller $
   \brief   Declaration of class Rtools .
 */
 

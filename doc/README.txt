@@ -1,4 +1,4 @@
-# $Id: README.txt 376 2011-04-17 12:24:07Z mueller $
+# $Id: README.txt 408 2011-09-12 19:48:36Z mueller $
 
 Release notes for w11a
 
@@ -59,6 +59,34 @@ Release notes for w11a
    tools/tcl                    - Tcl scripts
 
 3. Change Log ----------------------------------------------------------------
+
+- trunk (2011-09-11: svn rev 12(oc) 408(wfjm); untagged w11a_V0.531) +++++++++
+
+  - Summary
+    - Many small changes to prepare upcoming support for
+      - Spartan-6 boards (nexys3 and atlys)
+      - usage of Cypress FX2 USB interface on nexys2/3 and atlys boards
+    - no functional change of w11a CPU core or any test systems
+
+  - Changes
+    - use boost libraries instead of custom coding:
+      - boost/function and /bind for callbacks, retire RmethDscBase and RmethDsc
+      - boost/foreach for some iterator loops
+      Note: boost 1.35 and gcc 4.3 or newer is required, see INSTALL.txt
+    - module renames:
+        bplib/s3board/s3_rs232_iob_int -> bplib/bpgen/bp_rs232_2line_iob
+        bplib/s3board/s3_rs232_iob_ext -> bplib/bpgen/bp_rs232_4line_iob
+        bplib/s3board/s3_dispdrv       -> bplib/bpgen/sn_4x7segctl
+        bplib/s3board/s3_humanio       -> bplib/bpgen/sn_humanio
+        bplib/s3board/s3_humanio_rbus  -> bplib/bpgen/sn_humanio_rbus
+    - other renames:
+        tools/bin/impact_wrapper       -> tools/bin/config_wrapper
+    - reorganize Makefile includes and xflow option files
+        rtl/vlib/Makefile.ghdl         -> rtl/make/generic_ghdl.mk
+        rtl/vlib/Makefile.isim         -> rtl/make/generic_isim.mk
+        rtl/vlib/Makefile.xflow        -> rtl/make/generic_xflow.mk
+        rtl/vlib/xst_vhdl.opt          -> rtl/make/syn_s3_speed.opt
+        rtl/vlib/balanced.opt          -> rtl/make/imp_s3_speed.opt
 
 - trunk (2011-04-17: svn rev 11(oc) 376(wfjm); untagged w11a_V0.53) ++++++++++
 

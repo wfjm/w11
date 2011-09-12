@@ -1,4 +1,4 @@
-// $Id: RtclProxyBase.cpp 374 2011-03-27 17:02:47Z mueller $
+// $Id: RtclProxyBase.cpp 401 2011-07-31 21:02:33Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2011-07-31   401   1.2    add ctor(type,interp,name) for direct usage
+// 2011-04-23   380   1.1    use boost/function instead of RmethDsc
 // 2011-03-05   366   1.0.1  use AppendResultNewLines() in exception catcher
 // 2011-02-20   363   1.0    Initial version
 // 2011-02-11   360   0.1    First draft
@@ -20,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RtclProxyBase.cpp 374 2011-03-27 17:02:47Z mueller $
+  \version $Id: RtclProxyBase.cpp 401 2011-07-31 21:02:33Z mueller $
   \brief   Implemenation of RtclProxyBase.
 */
 
@@ -50,14 +52,23 @@ RtclProxyBase::RtclProxyBase(const std::string& type)
 {}
 
 //------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+RtclProxyBase::RtclProxyBase(const std::string& type, Tcl_Interp* interp,
+                             const char* name)
+  : fType(type),
+    fMapMeth(),
+    fInterp(0)
+{
+  CreateObjectCmd(interp, name);
+}
+
+//------------------------------------------+-----------------------------------
 //! Destructor
 
 RtclProxyBase::~RtclProxyBase()
 {
   if (fInterp) RtclContext::Find(fInterp).UnRegisterProxy(this);
-  for (mmap_it_t it=fMapMeth.begin(); it!=fMapMeth.end(); it++) {
-    delete it->second;
-  }
 }
 
 //------------------------------------------+-----------------------------------
@@ -76,10 +87,9 @@ int RtclProxyBase::ClassCmdConfig(Tcl_Interp* interp, int objc,
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RtclProxyBase::AddMeth(const std::string& name, 
-                            RmethDscBase<RtclArgs>* pmeth)
+void RtclProxyBase::AddMeth(const std::string& name, const methfo_t& methfo)
 {
-  mmap_ins_t ret = fMapMeth.insert(mmap_val_t(name, pmeth));
+  mmap_ins_t ret = fMapMeth.insert(mmap_val_t(name, methfo));
   if (ret.second == false)                  // or use !(ret.second)
     throw logic_error(string("RtclProxyBase::AddMeth: duplicate name: ") + 
                       name);
@@ -106,7 +116,7 @@ void RtclProxyBase::CreateObjectCmd(Tcl_Interp* interp, const char* name)
 int RtclProxyBase::TclObjectCmd(Tcl_Interp* interp, int objc, 
                                 Tcl_Obj* const objv[])
 {
-  mdsc_t* pmdsc = 0;
+  mmap_cit_t it_match;
 
   if (objc == 1) {                             // no args
     mmap_cit_t it = fMapMeth.find("$default"); // default method registered ?
@@ -114,7 +124,7 @@ int RtclProxyBase::TclObjectCmd(Tcl_Interp* interp, int objc,
       Tcl_WrongNumArgs(interp, 1, objv, "option ?args?");
       return TCL_ERROR;
     }
-    pmdsc = it->second;
+    it_match = it;
 
   } else {                                     // at least method name given 
     string name(Tcl_GetString(objv[1]));
@@ -134,7 +144,7 @@ int RtclProxyBase::TclObjectCmd(Tcl_Interp* interp, int objc,
       return TCL_ERROR;
     }
     
-    pmdsc = it->second;
+    it_match = it;
     
     // check for ambiguous substring match
     if (name != it->first) {
@@ -155,7 +165,7 @@ int RtclProxyBase::TclObjectCmd(Tcl_Interp* interp, int objc,
   }
   
   RtclArgs  args(interp, objc, objv, 2);
-  return (*pmdsc)(args);
+  return (it_match->second)(args);
 }
 
 //------------------------------------------+-----------------------------------

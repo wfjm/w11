@@ -1,4 +1,4 @@
-// $Id: RlogFile.hpp 357 2011-01-31 08:00:13Z mueller $
+// $Id: RlogFile.hpp 380 2011-04-25 18:14:52Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,12 +13,13 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2011-04-24   380   1.0.1  use boost::noncopyable (instead of private dcl's)
 // 2011-01-30   357   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RlogFile.hpp 357 2011-01-31 08:00:13Z mueller $
+  \version $Id: RlogFile.hpp 380 2011-04-25 18:14:52Z mueller $
   \brief   Declaration of class RlogFile.
 */
 
@@ -29,9 +30,11 @@
 #include <ostream>
 #include <fstream>
 
+#include "boost/utility.hpp"
+
 namespace Retro {
 
-  class RlogFile {
+  class RlogFile : private boost::noncopyable {
     public:
                     RlogFile();
       explicit      RlogFile(std::ostream* os);
@@ -53,13 +56,6 @@ namespace Retro {
       int           fTagYear;               //!< year of last time tag
       int           fTagMonth;              //!< month of last time tag
       int           fTagDay;                //!< day of last time tag
-
-    // RlogFile is not copy or assignable
-    private:
-                    RlogFile(const RlogFile& rhs);
-      RlogFile&     operator=(const RlogFile& rhs);
-
-
   };
   
 } // end namespace Retro

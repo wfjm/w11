@@ -1,6 +1,6 @@
 #! /usr/bin/env tclsh
 # -*- tcl -*-
-# $Id: ti_rri 376 2011-04-17 12:24:07Z mueller $
+# $Id: ti_rri 386 2011-07-01 17:31:03Z mueller $
 #
 # Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -15,6 +15,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2011-04-22   379   1.0.1  check for RETROBASE; proper exit handling; help text
 # 2011-04-17   376   1.0    Initial version
 # 2011-03-19   371   0.1    First draft
 #
@@ -49,6 +50,29 @@ array set opts {
 
 set clist {}
 set optsendseen 0
+set runpid {}
+
+#
+# cleanup handler
+#   must be in a proc so that it can be called from tclreadline
+#   must be defined before ::tclreadline::Loop called (all after ignored...)
+#
+proc exit_cleanup {} {
+  global opts
+  global runpid
+
+  # now close rlink connection
+  if { $opts(fifo) || $opts(term) } {
+    rlc close
+  }
+
+  # FIXME_code: should sync here with -run process run-down
+  #             but no wait available in tcl (grr...)
+  if { "$runpid" ne ""  } {
+    after 100;                          # currently just wait 100ms
+  }
+  return
+}
 
 foreach arg $argv {
   if { $optsendseen } {
@@ -74,8 +98,54 @@ foreach arg $argv {
 }
 
 if { $opts(help) } {
-  puts "usage: ti_rri"
+  # use {} as defimiter here to avoid that escaping of all [] 
+  puts {usage: ti_rri [OPTION]... [COMMAND]...}
+  puts {}
+  puts {Options:}
+  puts {  --run=CMD      exec's CMD as subprocess before the rlink port opened}
+  puts {                 useful to start test benches, usually via 'tbw'}
+  puts {  --fifo[=ARGS]  open fifo type rlink port. Optional arguments are:}
+  puts {                   --fifo=[NAME[,KEEP]]}
+  puts {                     NAME  fifo name prefix, default 'rlink_cext_fifo'}
+  puts {                     KEEP  if non-empty the fifo is kept open on exit}
+  puts {  --term[=ARGS]  open term type rlink port. Optional arguments are:}
+  puts {                   --term=[NAME,[BAUD,[BREAK]]]}
+  puts {                     NAME  tty device name, default 'USB0'}
+  puts {                           if not starting with '/' the name is}
+  puts {                           prefixed with '/dev/tty'}
+  puts {                     BAUD  serial port baud rate, default '115k'}
+  puts {                           allowed baud rate settings are:}
+  puts {                             9600, 19200, 19k, 38400, 38k, 57600, 57k}
+  puts {                             115200, 115k, 230400, 230k, 460800, 460k}
+  puts {                             500000, 500k, 921600, 921k, 1000000, 1M}
+  puts {                             2000000, 2M, 3000000, 3M}
+  puts {  --log=FILE     set log file name. Default is to write to stdout.}
+  puts {  --logl=LVL     set log level, default is '2' allowed values:}
+  puts {                   0 no logging}
+  puts {                   1 log rlink commands with communication errors}
+  puts {                   2 log rlink commands with failed checks}
+  puts {                   3 log all rlink commands}
+  puts {  --dmpl=LVL     set dump level, default is '0', values like logl}
+  puts {  --tiol=LVL     set i/o trace level, default is '0', allowed values:}
+  puts {                   0 no i/o trace}
+  puts {                   1 trace buffer activities}
+  puts {                   2 trace character activities}
+  puts {  --int          enter interactive mode even when commands given}
+  puts {  --help         display this help and exit}
+  puts {  --             all following arguments are treated as tcl commands}
+  puts {}
+  puts {Command handling:}
+  puts {  For arguments of the form '@<name>.tcl' the respective file is}
+  puts {  sourced. All other arguments are treated as Tcl commands and executed}
+  puts {  with eval.}
+  puts {}
+  puts {For further details consults the ti_rri man page.}
   return 0
+}
+
+if {![info exists env(RETROBASE)]} {
+  puts "-E: RETROBASE environment variable not defined"
+  return 1
 }
 
 if { $opts(fifo) && $opts(term) } {
@@ -100,8 +170,7 @@ rlc config -logprintlevel $opts(logl_)
 rlc config -logdumplevel  $opts(dmpl_)
 rlc config -logtracelevel $opts(tiol_)
 
-# first start, if specified with -run, the test bench
-set runpid {}
+# first start, if specified with --run, the test bench
 if { $opts(run_) ne "" } {
   if { [catch {eval "exec $opts(run_) &" } runpid] } {
     puts "-E: failed to execute \"$opts(run_)\" with error message\n  $runpid"
@@ -130,7 +199,7 @@ if { $opts(term) } {
   set brk  [lindex $nlist 2]
   if {$dev  eq ""} {set dev  "USB0"}
   if {$baud eq ""} {set baud "115k"}
-  if {! [regexp -- {^/dev} $dev]} {
+  if {! [regexp -- {^/} $dev]} {
     set dev "/dev/tty$dev"
   }
   set url "term:$dev?baud=$baud"
@@ -187,21 +256,11 @@ if { $opts(int) || [llength $clist] == 0 } {
         return "ti_rri > "
       }
     }
+    ::tclreadline::readline eofchar {::exit_cleanup; puts {}; exit}
     ::tclreadline::Loop
   }
-}
-
-#
-# now close rlink connection
-#
-if { $opts(fifo) || $opts(term) } {
-  rlc close
-}
-
-# FIXME_code: should sync here with -run process run-down
-#             but no wait available in tcl (grr...)
-if { $runpid } {
-  after 100;                            # currently just wait 100ms
+} else {
+  exit_cleanup
 }
 
 return 0

@@ -3,6 +3,7 @@
 ../../../vlib/genlib/genlib.vhd
 ../../../vlib/rbus/rblib.vhd
 ../../../vlib/rlink/rlinklib.vbom
+../../../bplib/bpgen/bpgenlib.vbom
 ../../../bplib/s3board/s3boardlib.vbom
 ../../../ibus/iblib.vhd
 ../../../ibus/ibdlib.vhd
@@ -10,8 +11,8 @@
 sys_conf = sys_conf.vhd
 # components
 ../../../vlib/genlib/clkdivce.vbom
-../../../bplib/s3board/s3_rs232_iob_int_ext.vbom
-../../../bplib/s3board/s3_humanio.vbom
+../../../bplib/bpgen/bp_rs232_2l4l_iob.vbom
+../../../bplib/bpgen/sn_humanio.vbom
 ../../../vlib/rlink/rlink_base_serport.vbom
 ../../../vlib/rbus/rb_sres_or_2.vbom
 ../../../w11a/pdp11_core_rbus.vbom

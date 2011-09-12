@@ -1,7 +1,8 @@
-# $Id: Makefile 351 2010-12-30 21:50:54Z mueller $
+# $Id: Makefile 405 2011-08-14 08:16:28Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2011-08-13   405   1.4    use includes from rtl/make
 # 2010-12-30   351   1.3    retire tb_rripdp_pdp11core tb_rriext_pdp11core
 # 2009-11-22   252   1.2    add ISim support
 # 2007-09-16    83   1.1.1  add include *.o.dep_ghdl
@@ -11,7 +12,7 @@
 EXE_all = tb_pdp11core tb_rlink_tba_pdp11core
 #
 #
-.phony : all all_ssim all_tsim clean
+.PHONY : all all_ssim all_tsim clean
 #
 all      : $(EXE_all)
 all_ssim : $(EXE_all:=_ssim)
@@ -21,9 +22,9 @@ clean : ise_clean ghdl_clean isim_clean
 #
 #-----
 #
-include $(RETROBASE)/rtl/vlib/Makefile.ghdl
-include $(RETROBASE)/rtl/vlib/Makefile.isim
-include $(RETROBASE)/rtl/vlib/Makefile.xflow
+include $(RETROBASE)/rtl/make/generic_ghdl.mk
+include $(RETROBASE)/rtl/make/generic_isim.mk
+include $(RETROBASE)/rtl/make/generic_xflow.mk
 #
 VBOM_all = $(wildcard *.vbom)
 #

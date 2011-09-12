@@ -1,4 +1,5 @@
 #! /usr/bin/env tclsh
+# $Id: setup_packages 403 2011-08-06 17:36:22Z mueller $
 #
 pkg_mkIndex -verbose ../lib libr*tpp.so
 #

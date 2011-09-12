@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.hpp 375 2011-04-02 07:56:47Z mueller $
+// $Id: RlinkConnect.hpp 380 2011-04-25 18:14:52Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,9 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2011-04-24   380   1.1    use boost::noncopyable (instead of private dcl's);
+//                           use boost::(mutex&lock), implement Lockable IF
+// 2011-04-22   379   1.0.1  add Lock(), Unlock()
 // 2011-04-02   375   1.0    Initial version
 // 2011-01-15   356   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -20,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.hpp 375 2011-04-02 07:56:47Z mueller $
+  \version $Id: RlinkConnect.hpp 380 2011-04-25 18:14:52Z mueller $
   \brief   Declaration of class \c RlinkConnect.
 */
 
@@ -31,6 +34,9 @@
 #include <string>
 #include <vector>
 #include <ostream>
+
+#include "boost/utility.hpp"
+#include "boost/thread/recursive_mutex.hpp"
 
 #include "librtools/RerrMsg.hpp"
 #include "librtools/Rstats.hpp"
@@ -43,7 +49,7 @@
 
 namespace Retro {
 
-  class RlinkConnect {
+  class RlinkConnect : private boost::noncopyable {
     public:
       struct LogOpts {
         size_t        baseaddr;
@@ -67,9 +73,12 @@ namespace Retro {
       bool          IsOpen() const;
       RlinkPort*    Port() const;
 
+      // provide boost Lockable interface
+      void          lock();
+      bool          try_lock();
+      void          unlock();
+
       bool          Exec(RlinkCommandList& clist, RerrMsg& emsg);
-      bool          ExecPart(RlinkCommandList& clist, size_t ibeg, size_t iend, 
-                             RerrMsg& emsg);
 
       double        WaitAttn(double timeout, RerrMsg& emsg);
       bool          SndOob(uint16_t addr, uint16_t data, RerrMsg& emsg);
@@ -90,7 +99,6 @@ namespace Retro {
 
       void          Print(std::ostream& os) const;
       void          Dump(std::ostream& os, int ind=0, const char* text=0) const;
-
 
     // statistics counter indices
       enum stats {
@@ -123,6 +131,10 @@ namespace Retro {
       };
 
     protected: 
+      bool          ExecPart(RlinkCommandList& clist, size_t ibeg, size_t iend, 
+                             RerrMsg& emsg);
+
+    protected: 
       RlinkPort*    fpPort;                 //!< ptr to port
       uint8_t       fSeqNumber[8];          //!< command sequence number
       RlinkPacketBuf fTxPkt;                //!< transmit packet buffer
@@ -131,11 +143,7 @@ namespace Retro {
       Rstats        fStats;                 //!< statistics
       LogOpts       fLogOpts;               //!< log options
       RlogFile      fLogFile;               //!< connection log file
-
-    // RlinkConnect is not copyable and assignable
-    private:
-                    RlinkConnect(const RlinkConnect& rhs);
-      RlinkConnect& operator=(const RlinkConnect& rhs);
+      boost::recursive_mutex fMutexConn;    //!< mutex to lock whole connect
   };
   
 } // end namespace Retro

@@ -2,4 +2,4 @@
 ../../vlib/slvtypes.vhd
 # components
 # design
-s3_dispdrv.vhd
+sn_4x7segctl.vhd

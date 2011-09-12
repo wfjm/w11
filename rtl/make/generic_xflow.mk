@@ -1,7 +1,12 @@
-# $Id: Makefile.xflow 341 2010-11-27 23:05:43Z mueller $
+# $Id: generic_xflow.mk 406 2011-08-14 21:06:44Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2011-08-14   406   1.7.1  use isemsg_filter; new %.mfsum target
+# 2011-08-13   405   1.7    renamed, moved to rtl/make;
+# 2011-07-17   394   1.6.2  add rm *.svf to ise_clean rule
+# 2011-07-11   392   1.6.1  use config_wrapper, support jtag via svf generation
+# 2011-06-26   385   1.6    use ISE_PATH for vbomconv -xst_prj
 # 2010-11-26   340   1.5.8  fix path for .opt defaults (now rtl/vlib)
 # 2010-05-06   289   1.5.7  add xilinx_tsim_xon support
 # 2010-04-24   282   1.5.6  add %.impact rule to run impact_wrapper
@@ -44,11 +49,11 @@ endif
 # setup defaults for xflow option files for synthesis and implementation
 #
 ifndef XFLOWOPT_SYN
-XFLOWOPT_SYN = xst_vhdl.opt
+XFLOWOPT_SYN = syn_s3_speed.opt
 endif
 #
 ifndef XFLOWOPT_IMP
-XFLOWOPT_IMP = balanced.opt
+XFLOWOPT_IMP = imp_s3_speed.opt
 endif
 #
 XFLOW    = xflow -p ${ISE_PATH} 
@@ -67,20 +72,21 @@ XFLOW    = xflow -p ${ISE_PATH}
 #
 %.ngc: %.vbom
 	if [ ! -d ./ise ]; then mkdir ./ise; fi
-	(cd ./ise; vbomconv --xst_prj ../$< > $*.prj)
+	(cd ./ise; vbomconv --ise_path=${ISE_PATH} --xst_prj ../$< > $*.prj)
 	(cd ./ise; touch $*.xcf)
 	if [ -r  $*.xcf ]; then cp $*.xcf ./ise; fi
-	if [ -r ${RETROBASE}/rtl/vlib/${XFLOWOPT_SYN} ]; then \
-		cp ${RETROBASE}/rtl/vlib/${XFLOWOPT_SYN} ./ise; fi
+	if [ -r ${RETROBASE}/rtl/make/${XFLOWOPT_SYN} ]; then \
+		cp ${RETROBASE}/rtl/make/${XFLOWOPT_SYN} ./ise; fi
 	if [ -r ${XFLOWOPT_SYN} ]; then cp ${XFLOWOPT_SYN} ./ise; fi
 	${XFLOW} -wd ise -synth ${XFLOWOPT_SYN} $*.prj 
 	(cd ./ise; chmod -x *.* )
 	if [ -r ./ise/$*.ngc ]; then cp -p ./ise/$*.ngc .; fi
 	if [ -r ./ise/$*_xst.log ]; then cp -p ./ise/$*_xst.log .; fi
 	@ echo "==============================================================="
-	@ echo "*     Makefile.xflow: XST Diagnostic Summary                  *"
+	@ echo "*     XST Diagnostic Summary                                  *"
 	@ echo "==============================================================="
-	@ grep -i -A 1 ":.*:" $*_xst.log || true
+	@ if [ -r $*.mfset ]; then isemsg_filter xst $*.mfset $*_xst.log; fi
+	@ if [ ! -r $*.mfset ]; then grep -i -A 1 ":.*:" $*_xst.log || true; fi
 	@ echo "==============================================================="
 #
 # the following rule needed to generate an %_*sim.vhd in a ./tb sub-directory
@@ -90,20 +96,21 @@ XFLOW    = xflow -p ${ISE_PATH}
 	(cd ./ise; vbomconv --xst_prj ../$< > $*.prj)
 	(cd ./ise; touch $*.xcf)
 	if [ -r  $*.xcf ]; then cp $*.xcf ./ise; fi
-	if [ -r ${RETROBASE}/rtl/vlib/${XFLOWOPT_SYN} ]; then \
-		cp ${RETROBASE}/rtl/vlib/${XFLOWOPT_SYN} ./ise; fi
+	if [ -r ${RETROBASE}/rtl/make/${XFLOWOPT_SYN} ]; then \
+		cp ${RETROBASE}/rtl/make/${XFLOWOPT_SYN} ./ise; fi
 	if [ -r ${XFLOWOPT_SYN} ]; then cp ${XFLOWOPT_SYN} ./ise; fi
 	${XFLOW} -wd ise -synth ${XFLOWOPT_SYN} $*.prj 
 	(cd ./ise; chmod -x *.* )
 	if [ -r ./ise/$*.ngc ]; then cp -p ./ise/$*.ngc .; fi
 	if [ -r ./ise/$*_xst.log ]; then cp -p ./ise/$*_xst.log .; fi
 	@ echo "==============================================================="
-	@ echo "*     Makefile.xflow: XST Diagnostic Summary                  *"
+	@ echo "*     XST Diagnostic Summary                                  *"
 	@ echo "==============================================================="
-	@ grep -i -A 1 ":.*:" $*_xst.log || true
+	@ if [ -r $*.mfset ]; then isemsg_filter xst $*.mfset $*_xst.log; fi
+	@ if [ ! -r $*.mfset ]; then grep -i -A 1 ":.*:" $*_xst.log || true; fi
 	@ echo "==============================================================="
 #
-# Implement (map+par)
+# Implement 1 (map+par)
 #   input:   %.ngc
 #            %.ucf      constraint file (if available)
 #   output:  %.ncd
@@ -118,8 +125,8 @@ XFLOW    = xflow -p ${ISE_PATH}
 	if [ ! -d ./ise ]; then mkdir ./ise; fi
 	if [ -r $*.ngc ]; then cp -p $*.ngc ./ise; fi
 	if [ -r $*.ucf ]; then cp -p $*.ucf ./ise; fi
-	if [ -r ${RETROBASE}/rtl/vlib/${XFLOWOPT_IMP} ]; then \
-		cp ${RETROBASE}/rtl/vlib/${XFLOWOPT_IMP} ./ise; fi
+	if [ -r ${RETROBASE}/rtl/make/${XFLOWOPT_IMP} ]; then \
+		cp ${RETROBASE}/rtl/make/${XFLOWOPT_IMP} ./ise; fi
 	if [ -r ${XFLOWOPT_IMP} ]; then cp -p ${XFLOWOPT_IMP} ./ise; fi
 	${XFLOW} -wd ise -implement ${XFLOWOPT_IMP} $<
 	(cd ./ise; chmod -x *.* )
@@ -131,7 +138,7 @@ XFLOW    = xflow -p ${ISE_PATH}
 	if [ -r ./ise/$*_pad.txt ]; then cp -p ./ise/$*_pad.txt ./$*_pad.log; fi
 	if [ -r ./ise/$*.twr ]; then cp -p ./ise/$*.twr ./$*_twr.log; fi
 #
-# Configure (bitgen)
+# Implement 2 (bitgen)
 #   input:   %.ncd      
 #   output:  %.bit
 #            %.msk
@@ -146,13 +153,47 @@ XFLOW    = xflow -p ${ISE_PATH}
 	if [ -r ./ise/$*.msk ]; then cp -p ./ise/$*.msk .; fi
 	if [ -r ./ise/$*.bgn ]; then cp -p ./ise/$*.bgn ./$*_bgn.log; fi
 #
-# Program FPGA with impact
+# Create svf from bitstream
 #   input:   %.bit
-#   output:  .phony
+#   output:  %.svf
 #
-%.impact: %.bit
-	impact_wrapper --board=${ISE_BOARD} --path=${ISE_PATH} $*.bit
+%.svf: %.bit
+	config_wrapper --board=${ISE_BOARD} --path=${ISE_PATH} bit2svf $*.bit
 
+#
+# Configure FPGA with impact
+#   input:   %.bit
+#   output:  .PHONY
+#
+%.iconfig: %.bit
+	config_wrapper --board=${ISE_BOARD} --path=${ISE_PATH} iconfig $*.bit
+
+#
+# Configure FPGA with jtag
+#   input:   %.svf
+#   output:  .PHONY
+#
+%.jconfig: %.svf
+	config_wrapper --board=${ISE_BOARD} --path=${ISE_PATH} jconfig $*.svf
+
+#
+# Print log file summary
+#   input:   %_*.log (not depended)
+#   output:  .PHONY
+%.mfsum: %.mfset
+	@ echo "=== XST summary ============================================="
+	@ if [ -r $*_xst.log ]; then isemsg_filter xst $*.mfset $*_xst.log; fi
+	@ echo "=== Translate summary ======================================="
+	@ if [ -r $*_tra.log ]; then isemsg_filter tra $*.mfset $*_tra.log; fi
+	@ echo "=== MAP summary ============================================="
+	@ if [ -r $*_map.log ]; then isemsg_filter map $*.mfset $*_map.log; fi
+	@ echo "=== PAR summary ============================================="
+	@ if [ -r $*_par.log ]; then isemsg_filter par $*.mfset $*_par.log; fi
+	@ echo "=== Bitgen summary =========================================="
+	@ if [ -r $*_bgn.log ]; then isemsg_filter bgn $*.mfset $*_bgn.log; fi
+
+#
+#
 #
 # Post-XST simulation model (netgen -sim; UNISIM based)
 #   input:   %.ngc    
@@ -219,7 +260,7 @@ XFLOW    = xflow -p ${ISE_PATH}
 	cpp -I${RETROBASE}/rtl -MM $*.ucf_cpp |\
             sed 's/\.o:/\.ucf:/' > $*.dep_ucf_cpp
 #
-.phony : ise_clean ise_tmp_clean
+.PHONY : ise_clean ise_tmp_clean
 #
 ise_clean: ise_tmp_clean
 	rm -rf *.ngc
@@ -227,6 +268,7 @@ ise_clean: ise_tmp_clean
 	rm -rf *.pcf
 	rm -rf *.bit
 	rm -rf *.msk
+	rm -rf *.svf
 	rm -rf *_[sft]sim.vhd
 	rm -rf *_tsim.sdf
 	rm -rf *_xst.log

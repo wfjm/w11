@@ -1,4 +1,4 @@
-# $Id: util.tcl 375 2011-04-02 07:56:47Z mueller $
+# $Id: util.tcl 403 2011-08-06 17:36:22Z mueller $
 #
 # Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2011-08-06   403   1.0.1  add SINT and SINIT defs for serport init
 # 2011-03-26   373   1.0    Initial version
 # 2011-03-19   372   0.1    First draft
 #
@@ -22,8 +23,9 @@ package provide rlink 1.0
 package require rutil 1.0
 
 namespace eval rlink {
-  regdsc STAT {stat 7 3} {attn 4} {cerr 3} {derr 2} {rbnak 1} {rberr 0}
-  regdsc INIT {anena 15} {itoena 14} {itoval 7 8}
+  regdsc STAT  {stat 7 3} {attn 4} {cerr 3} {derr 2} {rbnak 1} {rberr 0}
+  regdsc INIT  {anena 15} {itoena 14} {itoval 7 8}
+  regdsc SINIT {fena 12} {fwidth 11 3} {fdelay 8 3} {rtsoff 5 3} {rtson 2 3}
   #
   # 'pseudo register', describes 3rd word in return list element for -rlist
   regdsc FLAGS {vol 16} \
@@ -33,13 +35,15 @@ namespace eval rlink {
     {done 2} {send 1} {init 0} 
 
   variable IINT 0x00ff
+  variable SINT 0x00fe
 
   #
-  # init: reset rlink (disable enables; clear attn register
+  # init: reset rlink: disable enables; clear attn register
   #
   proc init {} {
     rlc exec \
       -init $rlink::IINT 0x0000 \
+      -init $rlink::SINT [regbld rlink::SINIT {rtsoff 7} {rtson 6} ] \
       -attn
     return ""
   }

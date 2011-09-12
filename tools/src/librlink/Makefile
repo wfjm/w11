@@ -1,7 +1,9 @@
-# $Id:  $
+# $Id: Makefile 403 2011-08-06 17:36:22Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2011-07-31   401   1.1    rename realclean->distclean
+# 2011-07-01   386   1.0.1  add BOOSTINC
 # 2011-01-09   354   1.0    Initial version (adopted from CTB...)
 #---
 #
@@ -13,8 +15,8 @@ SOMINV     = 0
 #
 # Compile and Link search paths
 #
-INCLFLAGS  = -I${RETROBASE}/tools/src
-LDLIBS     = -L${RETROBASE}/tools/lib -lrtools
+INCLFLAGS  = -I${RETROBASE}/tools/src -I${BOOSTINC}
+LDLIBS     = -lboost_thread -L${RETROBASE}/tools/lib -lrtools
 #
 # Object files to be included
 #
@@ -42,7 +44,7 @@ include $(DEP_all)
 #
 # cleanup phonies:
 #
-.PHONY    : clean cleandep realclean
+.PHONY    : clean cleandep distclean
 clean     :
 	@ rm -f $(OBJ_all)
 	@ echo "Object files removed"
@@ -51,7 +53,7 @@ cleandep  :
 	@ rm -f $(DEP_all)
 	@ echo "Dependency files removed"
 #
-realclean : clean cleandep
+distclean : clean cleandep
 	@ rm -f $(SOPATH)/lib$(SONAME).a $(SOPATH)/lib$(SONAME).so*
 	@ echo "Libraries removed"
 #

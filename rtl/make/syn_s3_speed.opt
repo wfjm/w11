@@ -1,0 +1,40 @@
+FLOWTYPE = FPGA_SYNTHESIS;
+#
+# $Id: syn_s3_speed.opt 405 2011-08-14 08:16:28Z mueller $
+#
+#  Revision History: 
+# Date         Rev Version Comment
+# 2011-08-13   405   1.1    renamed, moved to rtl/make;
+# 2007-07-20    67   1.0    Initial version
+#
+# Derived from ISE xst_vhdl.opt
+#
+# ----------------------------------------------------------------------------
+# Options for XST
+#
+Program xst
+-ifn <design>_xst.scr;            # input XST script file
+-ofn <design>_xst.log;            # output XST log file
+-intstyle xflow;                  # Message Reporting Style
+#
+# ParamFile lists the XST Properties that can be set by the user. 
+#
+ParamFile: <design>_xst.scr
+"run";
+#
+# Global Synthesis Options
+#
+"-ifn <synthdesign>";             # Input/Project File Name
+"-ifmt VHDL";                     # Input Format (Verilog or VHDL)
+"-ofn <design>";                  # Output File Name
+"-ofmt ngc";                      # Output File Format
+"-p <partname>";                  # Target Device
+"-opt_mode SPEED";                # Optimization Criteria # AREA or SPEED
+"-opt_level 2";                   # Optimization Effort Criteria: 2=High
+"-uc <design>.xcf";               # Constraint File name
+#
+# The following are HDL Options
+#
+End ParamFile
+End Program xst
+#

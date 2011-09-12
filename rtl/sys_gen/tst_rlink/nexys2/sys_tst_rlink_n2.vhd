@@ -1,4 +1,4 @@
--- $Id: sys_tst_rlink_n2.vhd 375 2011-04-02 07:56:47Z mueller $
+-- $Id: sys_tst_rlink_n2.vhd 406 2011-08-14 21:06:44Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -17,7 +17,9 @@
 --
 -- Dependencies:   vlib/xlib/dcm_sp_sfs
 --                 vlib/genlib/clkdivce
---                 bplib/s3board/s3_rs232_iob_int_ext
+--                 bplib/bpgen/bp_rs232_2l4l_iob
+--                 bplib/bpgen/sn_humanio_rbus
+--                 tst_rlink
 --                 vlib/nexys2/n2_cram_dummy
 --
 -- Test bench:     tb/tb_tst_rlink_n2
@@ -27,13 +29,33 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2011-06-26   385 12.1    M53d xc3s1200e-4  688 1500   68  993 t 16.2
 -- 2011-04-02   375 12.1    M53d xc3s1200e-4  688 1572   68  994 t 13.8
 -- 2010-12-29   351 12.1    M53d xc3s1200e-4  604 1298   68  851 t 14.7
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-07-09   391   1.1.2  use now bp_rs232_2l4l_iob
+-- 2011-07-08   390   1.1.1  use now sn_humanio
+-- 2011-06-26   385   1.1    move s3_humanio_rbus from tst_rlink to top level
 -- 2010-12-29   351   1.0    Initial version
 ------------------------------------------------------------------------------
+-- Usage of Nexys 2 Switches, Buttons, LEDs:
+--
+--    SWI(0):   0 -> main board RS232 port  - implemented in bp_rs232_2l4l_iob
+--              1 -> Pmod B/top RS232 port  /
+--       (1:7): no function (only connected to s3_humanio_rbus)
+--
+--    LED(0):   timer 0 busy 
+--    LED(1):   timer 1 busy 
+--    LED(2:6): no function (only connected to s3_humanio_rbus)
+--    LED(7):   RL_SER_MONI.abact
+--
+--    DSP:      RL_SER_MONI.clkdiv  (from auto bauder)
+--    DP(0):    RL_SER_MONI.rxact
+--    DP(1):    RTS_N  (shows rx back preasure)
+--    DP(2):    RL_SER_MONI.txact
+--    DP(3):    CTS_N  (shows tx back preasure)
 --
 
 library ieee;
@@ -43,7 +65,9 @@ use ieee.std_logic_arith.all;
 use work.slvtypes.all;
 use work.xlib.all;
 use work.genlib.all;
-use work.s3boardlib.all;
+use work.rblib.all;
+use work.rlinklib.all;
+use work.bpgenlib.all;
 use work.nexys2lib.all;
 use work.sys_conf.all;
 
@@ -90,16 +114,28 @@ architecture syn of sys_tst_rlink_n2 is
     
   signal SWI     : slv8  := (others=>'0');
   signal BTN     : slv4  := (others=>'0');
+  signal LED     : slv8  := (others=>'0');
+  signal DSP_DAT : slv16 := (others=>'0');
+  signal DSP_DP  : slv4  := (others=>'0');
 
   signal RESET   : slbit := '0';
   signal CE_USEC : slbit := '0';
   signal CE_MSEC : slbit := '0';
+
+  signal RB_MREQ_TOP : rb_mreq_type := rb_mreq_init;
+  signal RB_SRES_TOP : rb_sres_type := rb_sres_init;
+  signal RL_SER_MONI : rl_ser_moni_type := rl_ser_moni_init;
+  signal STAT    : slv8  := (others=>'0');
+
+  constant rbaddr_hio   : slv8 := "11000000"; -- 110000xx
 
 begin
 
   assert (sys_conf_clksys mod 1000000) = 0
     report "assert sys_conf_clksys on MHz grid"
     severity failure;
+
+  RESET <= '0';                         -- so far not used
   
   DCM : dcm_sp_sfs
     generic map (
@@ -125,9 +161,10 @@ begin
       CE_MSEC => CE_MSEC
     );
 
-  IOB_RS232 : s3_rs232_iob_int_ext
+  IOB_RS232 : bp_rs232_2l4l_iob
     port map (
       CLK      => CLK,
+      RESET    => '0',
       SEL      => SWI(0),
       RXD      => RXD,
       TXD      => TXD,
@@ -141,26 +178,44 @@ begin
       O_RTS1_N => O_FUSP_RTS_N
     );
 
-  RLTEST : entity work.tst_rlink
+  HIO : sn_humanio_rbus
     generic map (
       DEBOUNCE => sys_conf_hio_debounce,
-      CDINIT   => sys_conf_ser2rri_cdinit)
+      RB_ADDR  => rbaddr_hio)
     port map (
       CLK     => CLK,
       RESET   => RESET,
-      CE_USEC => CE_USEC,
       CE_MSEC => CE_MSEC,
-      RXD     => RXD,
-      TXD     => TXD,
-      CTS_N   => CTS_N,
-      RTS_N   => RTS_N,      
+      RB_MREQ => RB_MREQ_TOP,
+      RB_SRES => RB_SRES_TOP,
       SWI     => SWI,                   
       BTN     => BTN,                   
+      LED     => LED,                   
+      DSP_DAT => DSP_DAT,               
+      DSP_DP  => DSP_DP,
       I_SWI   => I_SWI,                 
       I_BTN   => I_BTN,
       O_LED   => O_LED,
       O_ANO_N => O_ANO_N,
       O_SEG_N => O_SEG_N
+    );
+
+  RLTEST : entity work.tst_rlink
+    generic map (
+      CDINIT   => sys_conf_ser2rri_cdinit)
+    port map (
+      CLK         => CLK,
+      RESET       => RESET,
+      CE_USEC     => CE_USEC,
+      CE_MSEC     => CE_MSEC,
+      RXD         => RXD,
+      TXD         => TXD,
+      CTS_N       => CTS_N,
+      RTS_N       => RTS_N,
+      RB_MREQ_TOP => RB_MREQ_TOP,
+      RB_SRES_TOP => RB_SRES_TOP,
+      RL_SER_MONI => RL_SER_MONI,
+      STAT        => STAT
     );
 
   SRAM_PROT : n2_cram_dummy            -- connect CRAM to protection dummy
@@ -177,5 +232,16 @@ begin
       O_MEM_ADDR  => O_MEM_ADDR,
       IO_MEM_DATA => IO_MEM_DATA
     );
-    
+
+  DSP_DAT   <= RL_SER_MONI.clkdiv;
+  DSP_DP(0) <= RL_SER_MONI.rxact;
+  DSP_DP(1) <= RTS_N;
+  DSP_DP(2) <= RL_SER_MONI.txact;
+  DSP_DP(3) <= CTS_N;
+
+  LED(7) <= RL_SER_MONI.abact;
+  LED(6 downto 2) <= (others=>'0');
+  LED(1) <= STAT(1);
+  LED(0) <= STAT(0);
+   
 end syn;

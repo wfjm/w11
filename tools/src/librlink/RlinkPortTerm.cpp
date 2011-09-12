@@ -1,4 +1,4 @@
-// $Id: RlinkPortTerm.cpp 375 2011-04-02 07:56:47Z mueller $
+// $Id: RlinkPortTerm.cpp 388 2011-07-06 18:40:47Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,12 +13,13 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2011-07-04   388   1.0.1  add termios readback and verification
 // 2011-03-27   374   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RlinkPortTerm.cpp 375 2011-04-02 07:56:47Z mueller $
+  \version $Id: RlinkPortTerm.cpp 388 2011-07-06 18:40:47Z mueller $
   \brief   Implemenation of RlinkPortTerm.
 */
 
@@ -151,6 +152,39 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
     emsg.InitErrno("RlinkPortTerm::Open()", 
                    string("tcsetattr() for \"") + fPath + string("\" failed: "),
                    errno);
+    close(fd);
+    return false;
+  }
+
+  // tcsetattr() returns success if any of the requested changes could be
+  // successfully carried out. Therefore the termios structure is read back
+  // and verified.
+
+  struct termios tios;
+  if (tcgetattr(fd, &tios) != 0) {
+    emsg.InitErrno("RlinkPortTerm::Open()", 
+                   string("2nd tcgetattr() for \"") + fPath + 
+                     string("\" failed: "), 
+                   errno);
+    close(fd);
+    return false;
+  }
+
+  const char* pmsg = 0;
+  if (tios.c_iflag != fTiosNew.c_iflag) pmsg = "c_iflag";
+  if (tios.c_oflag != fTiosNew.c_oflag) pmsg = "c_oflag";
+  if (tios.c_cflag != fTiosNew.c_cflag) pmsg = "c_cflag";
+  if (tios.c_lflag != fTiosNew.c_lflag) pmsg = "c_lflag";
+  if (cfgetispeed(&tios) != speed)      pmsg = "ispeed";
+  if (cfgetospeed(&tios) != speed)      pmsg = "ospeed";
+  for (int i=0; i<NCCS; i++) {
+    if (tios.c_cc[i] != fTiosNew.c_cc[i]) pmsg = "c_cc char";
+  }
+
+  if (pmsg) {
+    emsg.Init("RlinkPortTerm::Open()",
+              string("tcsetattr() failed to set") +
+                string(pmsg));
     close(fd);
     return false;
   }

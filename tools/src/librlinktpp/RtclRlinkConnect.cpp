@@ -1,4 +1,4 @@
-// $Id: RtclRlinkConnect.cpp 376 2011-04-17 12:24:07Z mueller $
+// $Id: RtclRlinkConnect.cpp 380 2011-04-25 18:14:52Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2011-04-23   380   1.1    use boost/bind instead of RmethDsc
 // 2011-04-17   376   1.0.1  M_wtlam: now correct log levels
 // 2011-03-27   374   1.0    Initial version
 // 2011-02-11   360   0.1    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RtclRlinkConnect.cpp 376 2011-04-17 12:24:07Z mueller $
+  \version $Id: RtclRlinkConnect.cpp 380 2011-04-25 18:14:52Z mueller $
   \brief   Implemenation of class RtclRlinkConnect.
  */
 
@@ -29,11 +30,12 @@
 #include <stdexcept>
 #include <iostream>
 
+#include "boost/bind.hpp"
+
 #include "librtcltools/Rtcl.hpp"
 #include "librtcltools/RtclOPtr.hpp"
 #include "librtcltools/RtclNameSet.hpp"
 #include "librtcltools/RtclStats.hpp"
-#include "librtools/RmethDsc.hpp"
 #include "librtools/RosPrintf.hpp"
 #include "librlink/RlinkCommandList.hpp"
 #include "RtclRlinkConnect.hpp"
@@ -55,20 +57,19 @@ RtclRlinkConnect::RtclRlinkConnect(Tcl_Interp* interp, const char* name)
     fErrCnt(0),
     fLogFileName("-")
 {
-  typedef RmethDsc<RtclRlinkConnect, RtclArgs> mdsc_t;
-  AddMeth("open",     new mdsc_t(this, &RtclRlinkConnect::M_open));
-  AddMeth("close",    new mdsc_t(this, &RtclRlinkConnect::M_close));
-  AddMeth("exec",     new mdsc_t(this, &RtclRlinkConnect::M_exec));
-  AddMeth("amap",     new mdsc_t(this, &RtclRlinkConnect::M_amap));
-  AddMeth("errcnt",   new mdsc_t(this, &RtclRlinkConnect::M_errcnt));
-  AddMeth("wtlam",    new mdsc_t(this, &RtclRlinkConnect::M_wtlam));
-  AddMeth("oob",      new mdsc_t(this, &RtclRlinkConnect::M_oob));
-  AddMeth("stats",    new mdsc_t(this, &RtclRlinkConnect::M_stats));
-  AddMeth("log",      new mdsc_t(this, &RtclRlinkConnect::M_log));
-  AddMeth("print",    new mdsc_t(this, &RtclRlinkConnect::M_print));
-  AddMeth("dump",     new mdsc_t(this, &RtclRlinkConnect::M_dump));
-  AddMeth("config",   new mdsc_t(this, &RtclRlinkConnect::M_config));
-  AddMeth("$default", new mdsc_t(this, &RtclRlinkConnect::M_default));
+  AddMeth("open",     boost::bind(&RtclRlinkConnect::M_open,    this, _1));
+  AddMeth("close",    boost::bind(&RtclRlinkConnect::M_close,   this, _1));
+  AddMeth("exec",     boost::bind(&RtclRlinkConnect::M_exec,    this, _1));
+  AddMeth("amap",     boost::bind(&RtclRlinkConnect::M_amap,    this, _1));
+  AddMeth("errcnt",   boost::bind(&RtclRlinkConnect::M_errcnt,  this, _1));
+  AddMeth("wtlam",    boost::bind(&RtclRlinkConnect::M_wtlam,   this, _1));
+  AddMeth("oob",      boost::bind(&RtclRlinkConnect::M_oob,     this, _1));
+  AddMeth("stats",    boost::bind(&RtclRlinkConnect::M_stats,   this, _1));
+  AddMeth("log",      boost::bind(&RtclRlinkConnect::M_log,     this, _1));
+  AddMeth("print",    boost::bind(&RtclRlinkConnect::M_print,   this, _1));
+  AddMeth("dump",     boost::bind(&RtclRlinkConnect::M_dump,    this, _1));
+  AddMeth("config",   boost::bind(&RtclRlinkConnect::M_config,  this, _1));
+  AddMeth("$default", boost::bind(&RtclRlinkConnect::M_default, this, _1));
 
   for (size_t i=0; i<8; i++) {
     fCmdnameObj[i] = Tcl_NewStringObj(RlinkCommand::CommandName(i), -1);

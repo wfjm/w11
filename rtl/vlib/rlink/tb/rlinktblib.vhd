@@ -1,4 +1,4 @@
--- $Id: rlinktblib.vhd 351 2010-12-30 21:50:54Z mueller $
+-- $Id: rlinktblib.vhd 389 2011-07-07 21:59:00Z mueller $
 --
 -- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -174,4 +174,4 @@ component rricp_rp is                   -- rri comm->reg port aif forwarder
   );
 end component;
 
-end rlinktblib;
+end package rlinktblib;

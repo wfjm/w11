@@ -1,6 +1,6 @@
--- $Id: crc8.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: crc8.vhd 406 2011-08-14 21:06:44Z mueller $
 --
--- Copyright 2007- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -31,9 +31,10 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2,.., 13.1; ghdl 0.18-0.25
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-08-14   406   1.0.1  remove superfluous variable r
 -- 2007-07-08    65   1.0    Initial version 
 ------------------------------------------------------------------------------
 
@@ -78,13 +79,9 @@ begin
   end process proc_regs;
 
   proc_next: process (R_CRC, DI, ENA)
-
-    variable r : slv8 := INIT;
     variable n : slv8 := INIT;
-
   begin
 
-    r := R_CRC;
     n := R_CRC;
 
     if ENA = '1' then

@@ -1,4 +1,4 @@
-// $Id: RlinkCommandList.cpp 375 2011-04-02 07:56:47Z mueller $
+// $Id: RlinkCommandList.cpp 380 2011-04-25 18:14:52Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,18 +13,22 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2011-04-25   380   1.0.1  use boost/foreach
 // 2011-03-05   366   1.0    Initial version
 // 2011-01-15   355   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RlinkCommandList.cpp 375 2011-04-02 07:56:47Z mueller $
+  \version $Id: RlinkCommandList.cpp 380 2011-04-25 18:14:52Z mueller $
   \brief   Implemenation of class RlinkCommandList.
  */
 
 #include <string>
 #include <stdexcept>
+
+#include "boost/foreach.hpp"
+#define foreach BOOST_FOREACH
 
 #include "RlinkCommandList.hpp"
 
@@ -62,7 +66,7 @@ RlinkCommandList::RlinkCommandList(const RlinkCommandList& rhs)
 
 RlinkCommandList::~RlinkCommandList()
 {
-  for (size_t i=0; i<fList.size(); i++) delete fList[i];
+  foreach (RlinkCommand* pcmd, fList) { delete pcmd; }
 }
 
 //------------------------------------------+-----------------------------------
@@ -224,8 +228,8 @@ void RlinkCommandList::Clear()
 void RlinkCommandList::Print(std::ostream& os, const RlinkAddrMap* pamap, 
                              size_t abase, size_t dbase, size_t sbase) const
 {
-  for (size_t i=0; i<fList.size(); i++) {
-    fList[i]->Print(os, pamap, abase, dbase, sbase);
+  foreach (RlinkCommand* pcmd, fList) {
+    pcmd->Print(os, pamap, abase, dbase, sbase);
   }
   return;
 }
@@ -254,7 +258,8 @@ RlinkCommandList&
   Retro::RlinkCommandList::operator=( const RlinkCommandList& rhs)
 {
   if (&rhs == this) return *this;
-  for (size_t i=0; i<fList.size(); i++) delete fList[i];
+  
+  foreach (RlinkCommand* pcmd, fList) { delete pcmd; }
   fList.clear();
   for (size_t i=0; i<rhs.Size(); i++) AddCommand(rhs[i]);
   return *this;

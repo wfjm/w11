@@ -1,8 +1,0 @@
-# libs
-../../vlib/slvtypes.vhd
-s3boardlib.vbom
-# components
-s3_rs232_iob_int.vbom
-s3_rs232_iob_ext.vbom
-# design
-s3_rs232_iob_int_ext.vhd

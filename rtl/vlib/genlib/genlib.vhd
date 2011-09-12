@@ -1,4 +1,4 @@
--- $Id: genlib.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: genlib.vhd 389 2011-07-07 21:59:00Z mueller $
 --
 -- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -153,4 +153,4 @@ component timer is                      -- retriggerable timer
   );
 end component;
 
-end genlib;
+end package genlib;

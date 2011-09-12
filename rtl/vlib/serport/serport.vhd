@@ -1,4 +1,4 @@
--- $Id: serport.vhd 348 2010-12-26 15:23:44Z mueller $
+-- $Id: serport.vhd 389 2011-07-07 21:59:00Z mueller $
 --
 -- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -134,4 +134,4 @@ component serport_uart_autobaud is      -- serial port uart: autobauder
   );
 end component;
 
-end serport;
+end package serport;

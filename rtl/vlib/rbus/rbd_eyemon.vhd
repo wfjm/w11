@@ -1,4 +1,4 @@
--- $Id: rbd_eyemon.vhd 375 2011-04-02 07:56:47Z mueller $
+-- $Id: rbd_eyemon.vhd 406 2011-08-14 21:06:44Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -137,6 +137,8 @@ architecture syn of rbd_eyemon is
   
 begin
 
+  BRAM_DIA <= (others=>'0');            -- always 0, no writes on this port
+  
   BRAM : ram_2swsr_wfirst_gen
     generic map (
       AWIDTH =>  9,

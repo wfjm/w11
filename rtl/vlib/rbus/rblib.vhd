@@ -1,6 +1,6 @@
--- $Id: rblib.vhd 349 2010-12-28 14:02:13Z mueller $
+-- $Id: rblib.vhd 405 2011-08-14 08:16:28Z mueller $
 --
--- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,6 +20,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-08-13   405   3.0.3  add in direction for  FADDR,SEL ports
 -- 2010-12-26   349   3.0.2  add rb_sel
 -- 2010-12-22   346   3.0.1  add rb_mon and rb_mon_sb;
 -- 2010-12-04   343   3.0    extracted from rrilib and rritblib;
@@ -113,8 +114,8 @@ component rb_wreg_rw_3 is               -- rbus: wide register r/w 3 bit select
   port (
     CLK  : in slbit;                    -- clock
     RESET  : in slbit;                  -- reset
-    FADDR : slv3;                       -- field address
-    SEL : slbit;                        -- select
+    FADDR : in slv3;                    -- field address
+    SEL : in slbit;                     -- select
     DATA : out slv(DWIDTH-1 downto 0);  -- data
     RB_MREQ :  in rb_mreq_type;         -- rbus request
     RB_SRES : out rb_sres_type          -- rbus response
@@ -127,8 +128,8 @@ component rb_wreg_w_3 is                -- rbus: wide register w-o 3 bit select
   port (
     CLK  : in slbit;                    -- clock
     RESET  : in slbit;                  -- reset
-    FADDR : slv3;                       -- field address
-    SEL : slbit;                        -- select
+    FADDR : in slv3;                    -- field address
+    SEL : in slbit;                     -- select
     DATA : out slv(DWIDTH-1 downto 0);  -- data
     RB_MREQ :  in rb_mreq_type;         -- rbus request
     RB_SRES : out rb_sres_type          -- rbus response
@@ -139,8 +140,8 @@ component rb_wreg_r_3 is                -- rbus: wide register r-o 3 bit select
   generic (
     DWIDTH : positive := 16);
   port (
-    FADDR : slv3;                       -- field address
-    SEL : slbit;                        -- select
+    FADDR : in slv3;                    -- field address
+    SEL : in slbit;                     -- select
     DATA : in slv(DWIDTH-1 downto 0);   -- data
     RB_SRES : out rb_sres_type          -- rbus response
   );
@@ -189,5 +190,4 @@ component rb_mon_sb is                  -- simbus wrapper for rbus monitor
   );
 end component;
 
-
-end rblib;
+end package rblib;

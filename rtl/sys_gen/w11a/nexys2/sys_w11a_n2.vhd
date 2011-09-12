@@ -1,6 +1,6 @@
--- $Id: sys_w11a_n2.vhd 351 2010-12-30 21:50:54Z mueller $
+-- $Id: sys_w11a_n2.vhd 404 2011-08-07 22:00:25Z mueller $
 --
--- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -17,8 +17,8 @@
 --
 -- Dependencies:   vlib/xlib/dcm_sp_sfs
 --                 vlib/genlib/clkdivce
---                 bplib/s3board/s3_rs232_iob_int_ext
---                 bplib/s3board/s3_humanio_rbus
+--                 bplib/bpgen/bp_rs232_2l4l_iob
+--                 bplib/bpgen/sn_humanio_rbus
 --                 vlib/rlink/rlink_base_serport
 --                 vlib/rri/rb_sres_or_3
 --                 w11a/pdp11_core_rbus
@@ -33,7 +33,7 @@
 --                 ibus/ibdr_maxisys
 --                 w11a/pdp11_tmu_sb           [sim only]
 --
--- Test bench:     tb/tb_s3board_w11a_n2
+-- Test bench:     tb/tb_sys_w11a_n2
 --
 -- Target Devices: generic
 -- Tool versions:  xst 8.2, 9.1, 9.2, 10.1, 11.4, 12.1; ghdl 0.26-0.29
@@ -62,6 +62,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-07-09   391   1.2.2  use now bp_rs232_2l4l_iob
+-- 2011-07-08   390   1.2.1  use now sn_humanio
 -- 2010-12-30   351   1.2    ported to rbv3
 -- 2010-11-27   341   1.1.8  add DCM; new sys_conf consts for mem and clkdiv
 -- 2010-11-13   338   1.1.7  add O_CLKSYS (for DCM derived system clock)
@@ -116,7 +118,7 @@ use work.xlib.all;
 use work.genlib.all;
 use work.rblib.all;
 use work.rlinklib.all;
-use work.s3boardlib.all;
+use work.bpgenlib.all;
 use work.nexys2lib.all;
 use work.iblib.all;
 use work.ibdlib.all;
@@ -263,9 +265,10 @@ begin
       CE_MSEC => CE_MSEC
     );
 
-  IOB_RS232 : s3_rs232_iob_int_ext
+  IOB_RS232 : bp_rs232_2l4l_iob
     port map (
       CLK      => CLK,
+      RESET    => '0',
       SEL      => SWI(0),
       RXD      => RXD,
       TXD      => TXD,
@@ -279,7 +282,7 @@ begin
       O_RTS1_N => O_FUSP_RTS_N
     );
 
-  HIO : s3_humanio_rbus
+  HIO : sn_humanio_rbus
     generic map (
       DEBOUNCE => sys_conf_hio_debounce,
       RB_ADDR  => rbaddr_hio)

@@ -1,4 +1,4 @@
--- $Id: nexys2lib.vhd 338 2010-11-13 22:19:25Z mueller $
+-- $Id: nexys2lib.vhd 389 2011-07-07 21:59:00Z mueller $
 --
 -- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -54,7 +54,7 @@ component nexys2_aif is                 -- NEXYS 2, abstract iface, base
     O_MEM_CLK : out slbit;              -- cram: clock
     O_MEM_CRE : out slbit;              -- cram: command register enable
     I_MEM_WAIT : in slbit;              -- cram: mem wait
-    O_FLA_CE_N : out slbit;               -- flash ce..        (act.low)
+    O_FLA_CE_N : out slbit;             -- flash ce..          (act.low)
     O_MEM_ADDR  : out slv23;            -- cram: address lines
     IO_MEM_DATA : inout slv16           -- cram: data lines
   );
@@ -138,4 +138,4 @@ component n2_cram_memctl_as is          -- CRAM driver (async+page mode)
   );
 end component;
 
-end nexys2lib;
+end package nexys2lib;

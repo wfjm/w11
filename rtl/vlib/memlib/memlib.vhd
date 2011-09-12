@@ -1,4 +1,4 @@
--- $Id: memlib.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: memlib.vhd 389 2011-07-07 21:59:00Z mueller $
 --
 -- Copyright 2006-2007 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -235,4 +235,4 @@ component fifo_2c_dram is               -- fifo, 2 clock, dram based
   );
 end component;
 
-end memlib;
+end package memlib;

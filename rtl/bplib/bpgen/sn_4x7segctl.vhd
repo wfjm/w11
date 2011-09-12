@@ -1,6 +1,6 @@
--- $Id: s3_dispdrv.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: sn_4x7segctl.vhd 400 2011-07-31 09:02:16Z mueller $
 --
--- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -12,15 +12,17 @@
 -- for complete details.
 -- 
 ------------------------------------------------------------------------------
--- Module Name:    s3_dispdrv - syn
--- Description:    s3board: 7 segment display driver
+-- Module Name:    sn_4x7segctl - syn
+-- Description:    Quad 7 segment display controller (for s3board and nexys2/3)
 --
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4; ghdl 0.18-0.26
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-07-30   400   1.2    digit dark in last quarter (not 16 clocks)
+-- 2011-07-08   390   1.1.2  renamed from s3_dispdrv
 -- 2010-04-17   278   1.1.1  renamed from dispdrv
 -- 2010-03-29   272   1.1    add all ANO off time to allow to driver turn-off
 --                           delay and to avoid cross talk between digits
@@ -34,7 +36,7 @@ use ieee.std_logic_arith.all;
 
 use work.slvtypes.all;
 
-entity s3_dispdrv is                    -- 7 segment display driver
+entity sn_4x7segctl is                  -- Quad 7 segment display controller
   generic (
     CDWIDTH : positive := 6);           -- clk divider width (must be >= 5)
   port (
@@ -44,9 +46,9 @@ entity s3_dispdrv is                    -- 7 segment display driver
     ANO_N : out slv4;                   -- anodes    (act.low)
     SEG_N : out slv8                    -- segements (act.low)
   );
-end s3_dispdrv;
+end sn_4x7segctl;
 
-architecture syn of s3_dispdrv is
+architecture syn of sn_4x7segctl is
 
   type regs_type is record
     cdiv : std_logic_vector(CDWIDTH-1 downto 0); -- clock divider counter
@@ -128,16 +130,18 @@ begin
     end case;
 
     -- the logic below ensures that the anode PNP driver transistor is switched
-    -- off 16 cycles before the cathode drivers change. This  prevents 'cross
-    -- talk' between digits due to transistor turn off delays. With no or 4
-    -- cycles gap one gets well visible cross talk, with 8 cycles still some
-    -- weak cross talk. With 16 cycles (at 50MHz) none is visible. The
-    -- turn-off delay of the anode driver PNP's this therefore larger 160 ns 
-    -- and below 320 ns.
-    -- As consquence CDWIDTH should be at least 5, better 6.
+    -- off in the last quarter of the digit cycle.This  prevents 'cross talk'
+    -- between digits due to transistor turn off delays.
+    -- For a nexys2 board at 50 MHz observed:
+    --   no or 4 cycles gap well visible cross talk
+    --   with 8 cycles still some weak cross talk
+    --   with 16 cycles none is visible.
+    --   --> The turn-off delay of the anode driver PNP's this therefore
+    --       larger 160 ns and below 320 ns.
+    -- As consquence CDWIDTH should be at least 6 for 50 MHz and 7 for 100 MHz.
 
     cano := "1111";
-    if unsigned(r.cdiv) >= 16 then
+    if r.cdiv(CDWIDTH-1 downto CDWIDTH-2) /= "00" then
       cano(conv_integer(unsigned(r.dcnt))) := '0';
     end if;
     

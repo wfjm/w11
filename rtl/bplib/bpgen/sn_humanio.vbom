@@ -1,0 +1,11 @@
+# libs
+../../vlib/slvtypes.vhd
+../../vlib/xlib/xlib.vhd
+bpgenlib.vbom
+## sys_conf : sys_conf.vhd
+# components
+../../vlib/xlib/iob_reg_o_gen.vbom
+bp_swibtnled.vbom
+sn_4x7segctl.vbom
+# design
+sn_humanio.vhd

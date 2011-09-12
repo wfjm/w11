@@ -1,4 +1,4 @@
--- $Id: rlink_cext_vhpi.vhd 351 2010-12-30 21:50:54Z mueller $
+-- $Id: rlink_cext_vhpi.vhd 389 2011-07-07 21:59:00Z mueller $
 --
 -- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -37,7 +37,7 @@ package rlink_cext_vhpi is
   attribute foreign of rlink_cext_putbyte :
     function is "VHPIDIRECT rlink_cext_putbyte";
 
-end rlink_cext_vhpi;
+end package rlink_cext_vhpi;
 
 package body rlink_cext_vhpi is
 
@@ -55,4 +55,4 @@ package body rlink_cext_vhpi is
     report "rlink_cext_getbyte not vhpi'ed" severity failure;
   end rlink_cext_putbyte;
 
-end rlink_cext_vhpi;
+end package body rlink_cext_vhpi;

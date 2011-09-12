@@ -1,7 +1,9 @@
-# $Id: Makefile 370 2011-03-14 18:33:43Z mueller $
+# $Id: Makefile 401 2011-07-31 21:02:33Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2011-07-31   401   1.1    rename realclean->distclean
+# 2011-07-01   386   1.0.1  add BOOSTINC
 # 2011-02-11   360   1.0    Initial version
 #---
 #
@@ -13,7 +15,7 @@ SOMINV     = 0
 #
 # Compile and Link search paths
 #
-INCLFLAGS  = -I/usr/include/tcl8.4 -I${RETROBASE}/tools/src
+INCLFLAGS  = -I/usr/include/tcl8.4 -I${RETROBASE}/tools/src -I${BOOSTINC}
 LDLIBS     = -L${RETROBASE}/tools/lib -lrtools
 #
 # Object files to be included
@@ -39,7 +41,7 @@ include $(DEP_all)
 #
 # cleanup phonies:
 #
-.PHONY    : clean cleandep realclean
+.PHONY    : clean cleandep distclean
 clean     :
 	@ rm -f $(OBJ_all)
 	@ echo "Object files removed"
@@ -48,7 +50,7 @@ cleandep  :
 	@ rm -f $(DEP_all)
 	@ echo "Dependency files removed"
 #
-realclean : clean cleandep
+distclean : clean cleandep
 	@ rm -f $(SOPATH)/lib$(SONAME).a $(SOPATH)/lib$(SONAME).so*
 	@ echo "Libraries removed"
 #

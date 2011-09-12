@@ -1,4 +1,4 @@
-// $Id: RlinkPort.hpp 375 2011-04-02 07:56:47Z mueller $
+// $Id: RlinkPort.hpp 380 2011-04-25 18:14:52Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2011-04-24   380   1.0.1  use boost::noncopyable (instead of private dcl's)
 // 2011-03-27   375   1.0    Initial version
 // 2011-01-15   356   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPort.hpp 375 2011-04-02 07:56:47Z mueller $
+  \version $Id: RlinkPort.hpp 380 2011-04-25 18:14:52Z mueller $
   \brief   Declaration of class RlinkPort.
 */
 
@@ -30,13 +31,15 @@
 #include <string>
 #include <map>
 
+#include "boost/utility.hpp"
+
 #include "librtools/RerrMsg.hpp"
 #include "librtools/RlogFile.hpp"
 #include "librtools/Rstats.hpp"
 
 namespace Retro {
 
-  class RlinkPort {
+  class RlinkPort : private boost::noncopyable {
     public:
       typedef std::map<std::string, std::string> omap_t;
       typedef omap_t::iterator         omap_it_t;
@@ -106,12 +109,6 @@ namespace Retro {
       RlogFile*     fpLogFile;              //!< ptr to log file dsc
       size_t        fTraceLevel;            //!< trace level
       Rstats        fStats;                 //!< statistics
-
-    // RlinkPort is not copyable and assignable
-    private:
-                    RlinkPort(const RlinkPort& rhs);
-      RlinkPort&    operator=(const RlinkPort& rhs);
-
   };
   
 } // end namespace Retro

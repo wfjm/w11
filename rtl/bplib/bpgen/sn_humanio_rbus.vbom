@@ -1,8 +1,8 @@
 # libs
 ../../vlib/slvtypes.vhd
 ../../vlib/rbus/rblib.vhd
-s3boardlib.vbom
+bpgenlib.vbom
 # components
-s3_humanio.vbom
+sn_humanio.vbom
 # design
-s3_humanio_rbus.vhd
+sn_humanio_rbus.vhd

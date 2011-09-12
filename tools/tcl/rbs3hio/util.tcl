@@ -1,4 +1,4 @@
-# $Id: util.tcl 376 2011-04-17 12:24:07Z mueller $
+# $Id: util.tcl 406 2011-08-14 21:06:44Z mueller $
 #
 # Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2011-08-14   406   1.0.2  adopt to common register layout
 # 2011-04-17   376   1.0.1  print: show also switch values; add proc disptest
 # 2011-03-27   374   1.0    Initial version
 # 2011-03-19   372   0.1    First draft
@@ -27,8 +28,8 @@ namespace eval rbs3hio {
   #
   # setup register descriptions for s3_humanio_rbus
   #
-  regdsc CNTL {daten 11} {dpen 10} {leden 9} {swien 8} {btn 3 4}
-  regdsc LED  {dp 11 4} {led 7 8}
+  regdsc CNTL {btn 12 4} {dspen 3} {dpen 2} {leden 1} {swien 0}
+  regdsc LED  {dp 15 4} {led 7 8}
 
   #
   # setup: amap definitions for s3_humanio_rbus
@@ -79,7 +80,7 @@ namespace eval rbs3hio {
   proc disptest {} {
     rlc exec -rreg hi.cntl r_cntl
     set swien [regget rbs3hio::CNTL(swien) $r_cntl]
-    rlc exec -wreg hi.cntl [regbld rbs3hio::CNTL daten dpen leden \
+    rlc exec -wreg hi.cntl [regbld rbs3hio::CNTL dspen dpen leden \
                               [list swien $swien]  ]
 
     foreach ledval {0x0f 0xf0 0xff} {

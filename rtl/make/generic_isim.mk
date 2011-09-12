@@ -1,7 +1,8 @@
-# $Id: Makefile.isim 284 2010-04-26 20:55:13Z mueller $
+# $Id: generic_isim.mk 405 2011-08-14 08:16:28Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version Comment
+# 2011-08-13   405   1.2    renamed, moved to rtl/make;
 # 2010-04-26   284   1.1    add _[sft]sim support
 # 2009-11-22   252   1.0    Initial version
 #
@@ -34,7 +35,7 @@ FUSE = fuse
 %.dep_isim: %.vbom
 	vbomconv --dep_isim $< > $@
 #
-.phony: isim_clean isim_tmp_clean
+.PHONY: isim_clean isim_tmp_clean
 #
 isim_clean: isim_tmp_clean
 	rm -f $(EXE_all:%=%_ISim)

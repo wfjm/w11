@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: vbomconv 314 2010-07-09 17:38:41Z mueller $
+# $Id: vbomconv 405 2011-08-14 08:16:28Z mueller $
 #
-# Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,11 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2011-08-13   405   1.9.1  always write 'vhdl' into xst prj files again; for
+#                           -xst_export: remove opt file export, add ucf_cpp
+#                           handling
+# 2011-06-26   385   1.9    add --ise_path, pass it to vbomconv --xst_prj
+# 2011-06-09   383   1.8.6  fix xst_vhdl.opt logic (use rtl/vlib now)
 # 2010-07-03   312   1.8.5  add --flist action
 # 2010-06-03   299   1.8.4  generate ucf->ncd dependencies in dep_xst
 # 2010-04-26   284   1.8.3  add _[sft]sim support for ISim
@@ -46,7 +51,7 @@ use Getopt::Long;
 
 my %opts = ();
 
-GetOptions(\%opts, "help", "trace",
+GetOptions(\%opts, "help", "trace", "ise_path=s",
 	           "dep_xst", "dep_ghdl", "dep_isim",
                    "xst_prj", "isim_prj",
 	           "ghdl_a", "ghdl_a_cmd",
@@ -87,6 +92,14 @@ my $is_fsim;
 my $is_tsim;
 my $do_trace = exists $opts{trace};
 my $level;
+my $xst_writevhdl = 1;
+
+# now using '-ifmt mixed', so language always needed (2011-08-13)
+#if (defined $opts{ise_path}) {
+#  if ($opts{ise_path} =~ /^xc6s/) {
+#    $xst_writevhdl = 0;
+#  }
+#}
 
 autoflush STDOUT 1;		# autoflush, so noting lost on exec later
 
@@ -106,7 +119,7 @@ if (scalar(@ARGV) != 1) {
 # check that only one action is defined, mark xst, gdhl, or isim class
 
 foreach (keys %opts) {
-  $nactions += 1 unless ($_ eq "trace");
+  $nactions += 1 unless ($_ eq "trace" || $_ eq "ise_path");
   $is_xst  = 1   if ($_ eq "dep_xst");
   $is_ghdl = 1   if ($_ eq "dep_ghdl");
   $is_isim = 1   if ($_ eq "dep_isim");
@@ -307,8 +320,11 @@ if (exists $opts{ghdl_m} || exists $opts{ghdl_m_cmd} ) {
 
 if (exists $opts{xst_prj}) {
   foreach (@file_list) {
-    print "vhdl work $_\n";
-#    print "work $_\n";       # for ISE 11.2 S-6/V-6 compilations
+    if ($xst_writevhdl) {
+      print "vhdl work $_\n";
+    } else {
+      print "work $_\n";       # for ISE S-6/V-6 compilations with '-ifmt VHDL'
+    }
   }
 }
 
@@ -484,16 +500,17 @@ if (exists $opts{xst_export}  or
 
   close(PFILE);
 
+  # Note: currently no xflow opt files exported !!
   if (exists $opts{xst_export}) {
-    copy_edir($ENV{RETROBASE}."/vlib/xst_vhdl.opt", $edir)
-      if (defined $ENV{RETROBASE} || -r $ENV{RETROBASE}."/vlib/xst_vhdl.opt");
-
-    copy_edir("xst_vhdl.opt", $edir) if (-r "xst_vhdl.opt");
-
     open(XFILE, ">$edir/$stem.xcf") or 
       die "can't write open $edir/$stem.xcf: $!";
     close(XFILE);
+
     foreach(glob("*.xcf")) { copy_edir($_, $edir); }
+
+    if (-r "$stem.ucf_cpp") {
+      system "/bin/sh", "-c", "make $stem.ucf";
+    }
 
     foreach(glob("*.ucf")) { copy_edir($_, $edir); }
   }

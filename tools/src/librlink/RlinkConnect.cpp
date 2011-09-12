@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.cpp 375 2011-04-02 07:56:47Z mueller $
+// $Id: RlinkConnect.cpp 386 2011-07-01 17:31:03Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,19 +13,22 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2011-04-25   380   1.1    use boost::(mutex&lock), implement Lockable IF
+// 2011-04-22   379   1.0.1  add Lock(), Unlock(), lock connect in Exec()
 // 2011-04-02   375   1.0    Initial version
 // 2011-01-15   356   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RlinkConnect.cpp 375 2011-04-02 07:56:47Z mueller $
+  \version $Id: RlinkConnect.cpp 386 2011-07-01 17:31:03Z mueller $
   \brief   Implemenation of RlinkConnect.
 */
 
 #include <iostream>
-
 #include <stdexcept>
+
+#include "boost/thread/locks.hpp"
 
 #include "RlinkConnect.hpp"
 #include "RlinkPortFactory.hpp"
@@ -33,6 +36,7 @@
 #include "librtools/RosFill.hpp"
 #include "librtools/RosPrintf.hpp"
 #include "librtools/RosPrintBvi.hpp"
+#include "librtools/Rtools.hpp"
 
 using namespace std;
 using namespace Retro;
@@ -52,10 +56,12 @@ RlinkConnect::RlinkConnect()
     fAddrMap(),
     fStats(),
     fLogOpts(),
-    fLogFile(&cout)
+    fLogFile(&cout),
+    fMutexConn()
 {
   for (size_t i=0; i<8; i++) fSeqNumber[i] = 0;
-  
+ 
+  // Statistic setup
   fStats.Define(kStatNExec,     "NExec",     "Exec() calls");
   fStats.Define(kStatNSplitVol, "NSplitVol", "clist splits: Volatile");
   fStats.Define(kStatNExecPart, "NExecPart", "ExecPart() calls");
@@ -88,7 +94,7 @@ RlinkConnect::RlinkConnect()
 
 RlinkConnect::~RlinkConnect()
 {
-  delete fpPort;
+  if (fpPort) Close();
 }
 
 //------------------------------------------+-----------------------------------
@@ -128,12 +134,40 @@ void RlinkConnect::Close()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-bool RlinkConnect::Exec(RlinkCommandList& clist, RerrMsg& emsg)
+void RlinkConnect::lock()
 {
+  fMutexConn.lock();
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+bool RlinkConnect::try_lock()
+{
+  return fMutexConn.try_lock();
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void RlinkConnect::unlock()
+{
+  fMutexConn.unlock();
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+bool RlinkConnect::Exec(RlinkCommandList& clist, RerrMsg& emsg)
+{  
   if (clist.Size() == 0)
     throw invalid_argument("RlinkConnect::Exec(): clist empty");
   if (! IsOpen())
     throw logic_error("RlinkConnect::Exec(): port not open");
+
+  boost::lock_guard<RlinkConnect> lock(*this);
 
   fStats.Inc(kStatNExec);
 

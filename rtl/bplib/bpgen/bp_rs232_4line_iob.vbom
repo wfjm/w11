@@ -5,4 +5,4 @@
 ../../vlib/xlib/iob_reg_i.vbom
 ../../vlib/xlib/iob_reg_o.vbom
 # design
-s3_rs232_iob_int.vhd
+bp_rs232_4line_iob.vhd

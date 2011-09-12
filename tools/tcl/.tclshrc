@@ -1,8 +1,10 @@
 # -*- tcl -*-
-# $Id: .tclshrc 376 2011-04-17 12:24:07Z mueller $
+# $Id: .tclshrc 379 2011-04-22 20:56:19Z mueller $
 #
-lappend auto_path [file join $env(RETROBASE) tools tcl]
-lappend auto_path [file join $env(RETROBASE) tools lib]
+if {[info exists env(RETROBASE)]} {
+  lappend auto_path [file join $env(RETROBASE) tools tcl]
+  lappend auto_path [file join $env(RETROBASE) tools lib]
+}
 #
 if {$tcl_interactive} {
   package require tclreadline

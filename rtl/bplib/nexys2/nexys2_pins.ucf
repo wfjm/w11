@@ -1,9 +1,9 @@
-## $Id: nexys2_pins.ucf 338 2010-11-13 22:19:25Z mueller $
+## $Id: nexys2_pins.ucf 402 2011-08-05 18:56:44Z mueller $
 ##
 ## Pin locks for Nexys 2 core functionality (for 1200k FPGA)
-##    internal RS232
-##    human I/O (switches, buttons, leds, display)
-##    cram
+##  - internal RS232
+##  - human I/O (switches, buttons, leds, display)
+##  - cram
 ##
 ## Revision History: 
 ## Date         Rev Version  Comment

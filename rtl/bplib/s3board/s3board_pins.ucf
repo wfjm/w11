@@ -1,9 +1,9 @@
-## $Id: s3board_pins.ucf 336 2010-11-06 18:28:27Z mueller $
+## $Id: s3board_pins.ucf 402 2011-08-05 18:56:44Z mueller $
 ##
 ## Pin locks for S3BOARD core functionality:
-##    internal RS232
-##    human I/O (switches, buttons, leds, display)
-##    sram
+##  - internal RS232
+##  - human I/O (switches, buttons, leds, display)
+##  - sram
 ##
 ## Revision History: 
 ## Date         Rev Version  Comment

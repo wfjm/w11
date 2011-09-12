@@ -3,7 +3,6 @@
 ../../vlib/rbus/rblib.vhd
 ../../vlib/rbus/rbdlib.vhd
 ../../vlib/rlink/rlinklib.vbom
-../../bplib/s3board/s3boardlib.vhd
 # components
 ../../vlib/rlink/rlink_base_serport.vbom
 ../../vlib/rbus/rbd_tester.vbom
@@ -11,7 +10,6 @@
 ../../vlib/rbus/rbd_rbmon.vbom
 ../../vlib/rbus/rbd_eyemon.vbom
 ../../vlib/rbus/rbd_timer.vbom
-../../bplib/s3board/s3_humanio_rbus.vbom
 ../../vlib/rbus/rb_sres_or_4.vbom
 # design
 tst_rlink.vhd

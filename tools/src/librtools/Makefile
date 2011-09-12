@@ -1,7 +1,8 @@
-# $Id: Makefile 374 2011-03-27 17:02:47Z mueller $
+# $Id: Makefile 401 2011-07-31 21:02:33Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2011-07-31   401   1.1    rename realclean->distclean
 # 2011-03-27   374   1.0.1  removed Rnamed (obsolete now)
 # 2011-01-15   357   1.0    Initial version (adopted from CTB...)
 #---
@@ -42,7 +43,7 @@ include $(DEP_all)
 #
 # cleanup phonies:
 #
-.PHONY    : clean cleandep realclean
+.PHONY    : clean cleandep distclean
 clean     :
 	@ rm -f $(OBJ_all)
 	@ echo "Object files removed"
@@ -51,7 +52,7 @@ cleandep  :
 	@ rm -f $(DEP_all)
 	@ echo "Dependency files removed"
 #
-realclean : clean cleandep
+distclean : clean cleandep
 	@ rm -f $(SOPATH)/lib$(SONAME).a $(SOPATH)/lib$(SONAME).so*
 	@ echo "Libraries removed"
 #

@@ -1,4 +1,4 @@
-// $Id: RtclContext.hpp 368 2011-03-12 09:58:53Z mueller $
+// $Id: RtclContext.hpp 380 2011-04-25 18:14:52Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2011-04-24   380   1.0.2  use boost::noncopyable (instead of private dcl's)
 // 2011-03-12   368   1.0.1  drop fExitSeen, get exit handling right
 // 2011-02-18   362   1.0    Initial version
 // 2011-02-18   362   0.1    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RtclContext.hpp 368 2011-03-12 09:58:53Z mueller $
+  \version $Id: RtclContext.hpp 380 2011-04-25 18:14:52Z mueller $
   \brief   Declaration of class RtclContext.
 */
 
@@ -33,12 +34,14 @@
 #include <set>
 #include <map>
 
+#include "boost/utility.hpp"
+
 #include "RtclClassBase.hpp"
 #include "RtclProxyBase.hpp"
 
 namespace Retro {
 
-  class RtclContext {
+  class RtclContext : private boost::noncopyable {
     public:
       typedef std::set<RtclClassBase*> cset_t;
       typedef cset_t::iterator         cset_it_t;
@@ -73,12 +76,6 @@ namespace Retro {
       pset_t        fSetProxy;              //!< set for Proxy objects
 
       static xmap_t fMapContext;            //!< map of contexts
-
-    // RtclContext is not copy or assignable nor default constructable
-    private:
-                    RtclContext();
-                    RtclContext(const RtclContext& rhs);
-      RtclContext&  operator=(const RtclContext& rhs);
   };
   
 } // end namespace Retro

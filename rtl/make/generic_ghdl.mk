@@ -1,7 +1,8 @@
-# $Id: Makefile.ghdl 284 2010-04-26 20:55:13Z mueller $
+# $Id: generic_ghdl.mk 405 2011-08-14 08:16:28Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version Comment
+# 2011-08-13   405   1.3    renamed, moved to rtl/make;
 # 2007-11-04    95   1.2.2  fix find statement in ghdl_tmp_clean
 # 2007-11-02    94   1.2.1  don't delete cext_*.o in ghdl_tmp_clean
 # 2007-07-08    65   1.2    support now autobuilding of _fsim and _tsim models
@@ -32,7 +33,7 @@ LINK.vhd = $(GHDL) -e $(GHDLIEEE)
 %.dep_ghdl: %.vbom
 	vbomconv --dep_ghdl $< > $@
 #
-.phony: ghdl_clean ghdl_tmp_clean
+.PHONY: ghdl_clean ghdl_tmp_clean
 #
 ghdl_clean: ghdl_tmp_clean
 	rm -f $(EXE_all)

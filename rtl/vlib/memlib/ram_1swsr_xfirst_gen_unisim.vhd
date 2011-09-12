@@ -1,6 +1,6 @@
--- $Id: ram_1swsr_xfirst_gen_unisim.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: ram_1swsr_xfirst_gen_unisim.vhd 406 2011-08-14 21:06:44Z mueller $
 --
--- Copyright 2008- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,9 +19,10 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: Spartan-3, Virtex-2,-4
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2,.., 13.1; ghdl 0.18-0.25
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-08-14   406   1.0.2  cleaner code for L_DI initialization
 -- 2008-04-13   135   1.0.1  fix range error for AW_14_S1
 -- 2008-03-08   123   1.0    Initial version
 ------------------------------------------------------------------------------
@@ -71,6 +72,9 @@ begin
     signal L_DI : slv(dw_mem-1 downto 0) := (others=> '0');
   begin
     
+    DI_PAD: if dw_mem>DWIDTH generate
+      L_DI(dw_mem-1 downto DWIDTH) <= (others=>'0');
+    end generate DI_PAD;
     L_DI(DI'range) <= DI;
     
    GL: for i in dw_mem/36-1 downto 0 generate
@@ -122,7 +126,10 @@ begin
     signal L_DO : slv(dw_mem-1 downto 0) := (others=> '0');
     signal L_DI : slv(dw_mem-1 downto 0) := (others=> '0');
   begin
-    
+
+    DI_PAD: if dw_mem>DWIDTH generate
+      L_DI(dw_mem-1 downto DWIDTH) <= (others=>'0');
+    end generate DI_PAD;
     L_DI(DI'range) <= DI;
     
     GL: for i in dw_mem/18-1 downto 0 generate
@@ -175,6 +182,9 @@ begin
     signal L_DI : slv(dw_mem-1 downto 0) := (others=> '0');
   begin
     
+    DI_PAD: if dw_mem>DWIDTH generate
+      L_DI(dw_mem-1 downto DWIDTH) <= (others=>'0');
+    end generate DI_PAD;
     L_DI(DI'range) <= DI;
     
     GL: for i in dw_mem/9-1 downto 0 generate
@@ -227,6 +237,9 @@ begin
     signal L_DI : slv(dw_mem-1 downto 0) := (others=> '0');
   begin
     
+    DI_PAD: if dw_mem>DWIDTH generate
+      L_DI(dw_mem-1 downto DWIDTH) <= (others=>'0');
+    end generate DI_PAD;
     L_DI(DI'range) <= DI;
     
     GL: for i in dw_mem/4-1 downto 0 generate
@@ -256,6 +269,9 @@ begin
     signal L_DI : slv(dw_mem-1 downto 0) := (others=> '0');
   begin
     
+    DI_PAD: if dw_mem>DWIDTH generate
+      L_DI(dw_mem-1 downto DWIDTH) <= (others=>'0');
+    end generate DI_PAD;
     L_DI(DI'range) <= DI;
     
     GL: for i in dw_mem/2-1 downto 0 generate

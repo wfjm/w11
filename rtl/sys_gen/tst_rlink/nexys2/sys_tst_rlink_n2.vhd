@@ -1,4 +1,4 @@
--- $Id: sys_tst_rlink_n2.vhd 406 2011-08-14 21:06:44Z mueller $
+-- $Id: sys_tst_rlink_n2.vhd 427 2011-11-19 21:04:11Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -15,7 +15,7 @@
 -- Module Name:    sys_tst_rlink_n2 - syn
 -- Description:    rlink tester design for nexys2
 --
--- Dependencies:   vlib/xlib/dcm_sp_sfs
+-- Dependencies:   vlib/xlib/dcm_sfs
 --                 vlib/genlib/clkdivce
 --                 bplib/bpgen/bp_rs232_2l4l_iob
 --                 bplib/bpgen/sn_humanio_rbus
@@ -25,7 +25,7 @@
 -- Test bench:     tb/tb_tst_rlink_n2
 --
 -- Target Devices: generic
--- Tool versions:  xst 12.1; ghdl 0.29
+-- Tool versions:  xst 12.1, 13.1; ghdl 0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -35,6 +35,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-17   426   1.1.3  use dcm_sfs now
 -- 2011-07-09   391   1.1.2  use now bp_rs232_2l4l_iob
 -- 2011-07-08   390   1.1.1  use now sn_humanio
 -- 2011-06-26   385   1.1    move s3_humanio_rbus from tst_rlink to top level
@@ -60,7 +61,6 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
 
 use work.slvtypes.all;
 use work.xlib.all;
@@ -137,7 +137,7 @@ begin
 
   RESET <= '0';                         -- so far not used
   
-  DCM : dcm_sp_sfs
+  DCM : dcm_sfs
     generic map (
       CLKFX_DIVIDE   => sys_conf_clkfx_divide,
       CLKFX_MULTIPLY => sys_conf_clkfx_multiply,

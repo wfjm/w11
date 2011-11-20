@@ -1,6 +1,6 @@
--- $Id: serport_uart_rxtx_ab.vhd 350 2010-12-28 16:40:11Z mueller $
+-- $Id: serport_uart_rxtx_ab.vhd 417 2011-10-22 10:30:29Z mueller $
 --
--- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,7 +19,7 @@
 --                 serport_uart_rxtx
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1, 13.1; ghdl 0.18-0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -27,13 +27,14 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-10-22   417   1.1.1  now numeric_std clean
 -- 2010-12-26   348   1.1    add ABCLKDIV port for clock divider setting
 -- 2007-06-24    60   1.0    Initial version 
 ------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.serport.all;
@@ -63,7 +64,7 @@ end serport_uart_rxtx_ab;
 
 architecture syn of serport_uart_rxtx_ab is
   
-  signal CLKDIV : slv(CDWIDTH-1 downto 0) := conv_std_logic_vector(0, CDWIDTH);
+  signal CLKDIV : slv(CDWIDTH-1 downto 0) := slv(to_unsigned(0, CDWIDTH));
   signal ABACT_L : slbit := '0';        -- local readable copy of ABACT
   signal UART_RESET : slbit := '0';
   

@@ -1,6 +1,6 @@
--- $Id: ram_2swsr_wfirst_gen.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: ram_2swsr_wfirst_gen.vhd 422 2011-11-10 18:44:06Z mueller $
 --
--- Copyright 2006-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -22,18 +22,19 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic Spartan, Virtex
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-08   422   1.0.4  now numeric_std clean
 -- 2010-06-03   299   1.0.3  use sv_ prefix for shared variables
--- 2008-03-08   123   1.0.2  use std_logic_arith, not _unsigned; use unsigned();
+-- 2008-03-08   123   1.0.2  use std_..._arith, not _unsigned; use unsigned();
 -- 2008-03-02   122   1.0.1  change generic default for BRAM models
 -- 2007-06-03    45   1.0    Initial version 
 ------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 
@@ -73,24 +74,24 @@ begin
 
   proc_clka: process (CLKA)
   begin
-    if CLKA'event and CLKA='1' then
+    if rising_edge(CLKA) then
       if ENA = '1' then
         if WEA = '1' then
-          sv_ram(conv_integer(unsigned(ADDRA))) := DIA;
+          sv_ram(to_integer(unsigned(ADDRA))) := DIA;
         end if;
-        R_DOA <= sv_ram(conv_integer(unsigned(ADDRA)));
+        R_DOA <= sv_ram(to_integer(unsigned(ADDRA)));
       end if;
     end if;
   end process proc_clka;
 
   proc_clkb: process (CLKB)
   begin
-    if CLKB'event and CLKB='1' then
+    if rising_edge(CLKB) then
       if ENB = '1' then
         if WEB = '1' then
-          sv_ram(conv_integer(unsigned(ADDRB))) := DIB;
+          sv_ram(to_integer(unsigned(ADDRB))) := DIB;
         end if;
-        R_DOB <= sv_ram(conv_integer(unsigned(ADDRB)));
+        R_DOB <= sv_ram(to_integer(unsigned(ADDRB)));
       end if;
     end if;
   end process proc_clkb;

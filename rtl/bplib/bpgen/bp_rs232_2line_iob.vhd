@@ -1,4 +1,4 @@
--- $Id: bp_rs232_2line_iob.vhd 387 2011-07-03 17:24:52Z mueller $
+-- $Id: bp_rs232_2line_iob.vhd 426 2011-11-18 18:14:08Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -32,7 +32,6 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
 
 use work.slvtypes.all;
 use work.xlib.all;

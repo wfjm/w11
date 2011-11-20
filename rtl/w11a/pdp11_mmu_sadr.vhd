@@ -1,6 +1,6 @@
--- $Id: pdp11_mmu_sadr.vhd 351 2010-12-30 21:50:54Z mueller $
+-- $Id: pdp11_mmu_sadr.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2006-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,10 +19,11 @@
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   1.3.3  now numeric_std clean
 -- 2010-12-30   351   1.3.2  BUGFIX: fix sensitivity list of proc_eaddr
 -- 2010-10-23   335   1.3.1  change proc_eaddr logic, shorten logic path
 -- 2010-10-17   333   1.3    use ibus V2 interface
@@ -40,7 +41,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.memlib.all;
@@ -77,9 +78,9 @@ architecture syn of pdp11_mmu_sadr is
   --
   --  mode => (addr(8), not addr(6))   [Note: km "00" sm "01" um "11"]
   
-  constant ibaddr_kmdar : slv16 := conv_std_logic_vector(8#172300#,16);
-  constant ibaddr_smdar : slv16 := conv_std_logic_vector(8#172200#,16);
-  constant ibaddr_umdar : slv16 := conv_std_logic_vector(8#177600#,16);
+  constant ibaddr_kmdar : slv16 := slv(to_unsigned(8#172300#,16));
+  constant ibaddr_smdar : slv16 := slv(to_unsigned(8#172200#,16));
+  constant ibaddr_umdar : slv16 := slv(to_unsigned(8#177600#,16));
 
   subtype sdr_ibf_slf is integer range 14 downto 8;
   subtype sdr_ibf_aib is integer range  7 downto 6;
@@ -165,7 +166,7 @@ begin
     variable ibsel_dr : slbit := '0';
     variable ibsel_ar : slbit := '0';
   begin
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       ibsel_dr := '0';
       ibsel_ar := '0';
       if IB_MREQ.aval = '1' then

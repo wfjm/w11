@@ -1,6 +1,6 @@
--- $Id: serport_uart_rx.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: serport_uart_rx.vhd 421 2011-11-07 21:23:50Z mueller $
 --
--- Copyright 2007-2009 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -24,9 +24,10 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_serport_uart_rxtx
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-10-22   417   2.0.3  now numeric_std clean
 -- 2009-07-12   233   2.0.2  remove snoopers
 -- 2008-03-02   121   2.0.1  comment out snoopers
 -- 2007-10-21    91   2.0    re-designed and -implemented with state machine.
@@ -43,12 +44,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-
--- synthesis translate_off
-use ieee.std_logic_textio.all;
-use std.textio.all;
--- synthesis translate_on
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 
@@ -91,11 +87,11 @@ architecture syn of serport_uart_rx is
   constant ccntzero : slv(CDWIDTH-1 downto 0) := (others=>'0');
   constant dcntzero : slv(CDWIDTH   downto 0) := (others=>'0');
   constant regs_init : regs_type := (
-    s_idle,
-    ccntzero,
-    dcntzero,
-    (others=>'0'),
-    (others=>'0')
+    s_idle,                             -- state
+    ccntzero,                           -- ccnt
+    dcntzero,                           -- dcnt
+    (others=>'0'),                      -- bcnt
+    (others=>'0')                       -- sreg
   );
 
   signal R_REGS : regs_type := regs_init;  -- state registers
@@ -106,7 +102,7 @@ begin
   proc_regs: process (CLK)
   begin
 
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       R_REGS <= N_REGS;
     end if;
 
@@ -280,7 +276,7 @@ begin
     if ld_ccnt = '1' then               -- implement ccnt
       n.ccnt := CLKDIV;
     else
-      n.ccnt := unsigned(r.ccnt) - 1;
+      n.ccnt := slv(unsigned(r.ccnt) - 1);
     end if;
 
     if ld_dcnt = '1' then               -- implement dcnt
@@ -288,7 +284,7 @@ begin
       n.dcnt(0) := RXSD;
     else
       if RXSD = '1' then
-        n.dcnt := unsigned(r.dcnt) + 1;
+        n.dcnt := slv(unsigned(r.dcnt) + 1);
       end if;
     end if;
 
@@ -296,7 +292,7 @@ begin
       n.bcnt := (others=>'0');
     else
       if ce_bcnt = '1' then
-        n.bcnt := unsigned(r.bcnt) + 1;
+        n.bcnt := slv(unsigned(r.bcnt) + 1);
       end if;
     end if;
 

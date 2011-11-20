@@ -1,4 +1,4 @@
--- $Id: tb_pdp11core.vhd 352 2011-01-02 13:01:37Z mueller $
+-- $Id: tb_pdp11core.vhd 427 2011-11-19 21:04:11Z mueller $
 --
 -- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -46,6 +46,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   1.3.2  now numeric_std clean
 -- 2011-01-02   352   1.3.1  rename .cpmon->.rlmon
 -- 2010-12-30   351   1.3    rename tb_pdp11_core -> tb_pdp11core
 -- 2010-06-20   308   1.2.2  add wibrb, ribr, wibr commands for ibr accesses
@@ -77,7 +78,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 use ieee.std_logic_textio.all;
 use std.textio.all;
 
@@ -353,12 +354,12 @@ begin
 
             when "rr|   " =>            -- rr[0-7]
               ifunc := c_cpfunc_rreg;
-              irnum := conv_std_logic_vector(rind, 3);
+              irnum := slv(to_unsigned(rind, 3));
               readtagval2_ea(iline, "d", ichk, idin, imsk, 8);
 
             when "wr|   " =>            -- wr[0-7]
               ifunc := c_cpfunc_wreg;
-              irnum := conv_std_logic_vector(rind, 3);
+              irnum := slv(to_unsigned(rind, 3));
               readoct_ea(iline, idin);
 
             -- Note: there are no field definitions for wal, wah, wibrb because
@@ -524,7 +525,7 @@ begin
       end loop;
 
       if imemi then                    -- rmi or wmi seen ? then inc ar
-        r_addr := unsigned(r_addr) + 1;
+        r_addr := slv(unsigned(r_addr) + 1);
       end if;
       
       write(oline, dcycle, right, 4);
@@ -637,7 +638,7 @@ begin
   begin
 
     loop 
-      wait until CLK'event and CLK='1';
+      wait until rising_edge(CLK);
       wait for c2out_time;
 
       R_WAITOK <= '0';

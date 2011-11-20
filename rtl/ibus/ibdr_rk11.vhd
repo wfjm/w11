@@ -1,6 +1,6 @@
--- $Id: ibdr_rk11.vhd 350 2010-12-28 16:40:11Z mueller $
+-- $Id: ibdr_rk11.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2008-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,7 +18,7 @@
 -- Dependencies:   ram_1swar_gen
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -28,6 +28,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   1.2.2  now numeric_std clean
 -- 2010-10-23   335   1.2.1  rename RRI_LAM->RB_LAM;
 -- 2010-10-17   333   1.2    use ibus V2 interface
 -- 2010-06-11   303   1.1    use IB_MREQ.racc instead of RRI_REQ
@@ -48,7 +49,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.memlib.all;
@@ -71,7 +72,7 @@ end ibdr_rk11;
 
 architecture syn of ibdr_rk11 is
 
-  constant ibaddr_rk11 : slv16 := conv_std_logic_vector(8#177400#,16);
+  constant ibaddr_rk11 : slv16 := slv(to_unsigned(8#177400#,16));
 
   constant ibaddr_rkds : slv3 := "000";  -- rkds address offset
   constant ibaddr_rker : slv3 := "001";  -- rker address offset
@@ -190,7 +191,7 @@ begin
 
   proc_regs: process (CLK)
   begin
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if BRESET='1' or R_REGS.creset='1' then
         R_REGS <= regs_init;
         if R_REGS.creset = '1' then
@@ -262,7 +263,7 @@ begin
       when s_init =>
         ibhold := r.ibsel;              -- hold ibus when controller busy
         icrip  := '1';
-        n.icnt := unsigned(r.icnt) + 1;
+        n.icnt := slv(unsigned(r.icnt) + 1);
         if unsigned(r.icnt) = 7 then
           n.state := s_idle;
         end if;
@@ -296,7 +297,7 @@ begin
             idout(rkds_ibf_sc) := r.sc;
           end if;
 
-          if r.sbusy(conv_integer(unsigned(imem_addr(2 downto 0))))='1' then
+          if r.sbusy(to_integer(unsigned(imem_addr(2 downto 0))))='1' then
             idout(rkds_ibf_adry) := '0';             -- clear drive access rdy
           end if;
           
@@ -359,7 +360,7 @@ begin
                 
                 if unsigned(IB_MREQ.din(rkcs_ibf_func))=4 or   -- if seek
                    unsigned(IB_MREQ.din(rkcs_ibf_func))=6 then -- or drive reset
-                  n.sbusy(conv_integer(unsigned(r.drsel))) := '1'; -- set busy
+                  n.sbusy(to_integer(unsigned(r.drsel))) := '1'; -- set busy
                 end if;
 
               end if;
@@ -441,7 +442,7 @@ begin
       elsif iscval = '1' then             -- was a seek done
         n.scp := '1';                     -- signal seek complete interrupt
         n.id := iscid;                        -- load id
-        n.sireq(conv_integer(unsigned(iscid))) := '0';  -- reset sireq bit
+        n.sireq(to_integer(unsigned(iscid))) := '0';  -- reset sireq bit
       end if;
     end if;
     
@@ -456,7 +457,7 @@ begin
       if unsigned(r.sc) = 8#13# then      -- sector counter (count to 8#13#)
         n.sc := (others=>'0');
       else
-        n.sc := unsigned(r.sc) + 1;
+        n.sc := slv(unsigned(r.sc) + 1);
       end if;      
     end if;
     

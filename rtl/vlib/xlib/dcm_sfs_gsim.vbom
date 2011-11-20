@@ -1,4 +1,4 @@
 # libs
 ../slvtypes.vhd
 # design
-dcm_sp_sfs_gsim.vhd
+dcm_sfs_gsim.vhd

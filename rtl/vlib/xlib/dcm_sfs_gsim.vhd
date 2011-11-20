@@ -1,6 +1,6 @@
--- $Id: dcm_sp_sfs_gsim.vhd 338 2010-11-13 22:19:25Z mueller $
+-- $Id: dcm_sfs_gsim.vhd 426 2011-11-18 18:14:08Z mueller $
 --
--- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -12,17 +12,18 @@
 -- for complete details.
 --
 ------------------------------------------------------------------------------
--- Module Name:    dcm_sp_sfs - sim
--- Description:    DCM_SP as 'simple freq. synthesis'
+-- Module Name:    dcm_sfs - sim
+-- Description:    DCM for simple frequency synthesis
 --                 simple vhdl model, without Xilinx UNISIM primitives
 --
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic Spartan-3A,-3E
--- Tool versions:  xst 12.1; ghdl 0.29
+-- Tool versions:  xst 12.1, 13.1; ghdl 0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-17   426   1.0.1  rename dcm_sp_sfs -> dcm_sfs
 -- 2010-11-12   338   1.0    Initial version 
 ------------------------------------------------------------------------------
 
@@ -31,7 +32,7 @@ use ieee.std_logic_1164.all;
 
 use work.slvtypes.all;
 
-entity dcm_sp_sfs is                    -- DCM_SP as 'simple freq. synthesis'
+entity dcm_sfs is                       -- DCM for simple frequency synthesis
   generic (
     CLKFX_DIVIDE : positive := 1;       -- FX clock divide   (1-32)
     CLKFX_MULTIPLY : positive := 1;     -- FX clock multiply (2-32) (1->no DCM)
@@ -41,10 +42,10 @@ entity dcm_sp_sfs is                    -- DCM_SP as 'simple freq. synthesis'
     CLKFX : out slbit;                  -- clock output (synthesized freq.) 
     LOCKED : out slbit                  -- dcm locked
   );
-end dcm_sp_sfs;
+end dcm_sfs;
 
 
-architecture sim of dcm_sp_sfs is
+architecture sim of dcm_sfs is
 
   signal CLK_DIVPULSE : slbit := '0';
   signal CLKOUT_PERIOD : time := 0 ns;

@@ -1,4 +1,4 @@
-# $Id: README.txt 408 2011-09-12 19:48:36Z mueller $
+# $Id: README.txt 428 2011-11-20 12:19:31Z mueller $
 
 Release notes for w11a
 
@@ -60,7 +60,30 @@ Release notes for w11a
 
 3. Change Log ----------------------------------------------------------------
 
-- trunk (2011-09-11: svn rev 12(oc) 408(wfjm); untagged w11a_V0.531) +++++++++
+- trunk (2011-11-20: svn rev 13(oc) 428(wfjm); untagged w11a_V0.532) +++++++++
+
+  - Summary
+    - generalized the 'human I/O' interface for s3board,nexys2/3 and atlys
+    - added test design for the 'human I/O' interface
+    - no functional change of w11a CPU core or any existing test systems
+
+  - New features
+    - new modules
+      - rtl/sys_gen/tst_snhumanio
+        - sub-tree with test design for 'human I/O' interface modules
+        - atlys, nexys2, and s3board directories contain the systems
+          for the respectice Digilent boards
+
+  - Changes
+    - functional changes
+      - use now 'a6' polynomial of Koopman et al for crc8 in rlink
+    - with one exception all vhdl sources use now numeric_std
+    - module renames:
+        vlib/xlib/dcm_sp_sfs_gsim   -> vlib/xlib/dcm_sfs_gsim
+        vlib/xlib/dcm_sp_sfs_unisim -> vlib/xlib/dcm_sfs_unisim_s3e
+        vlib/xlib/tb/tb_dcm_sp_sfs  -> vlib/xlib/tb/tb_dcm_sfs
+
+- trunk (2011-09-11: svn rev 12(oc) 409(wfjm); untagged w11a_V0.531) +++++++++
 
   - Summary
     - Many small changes to prepare upcoming support for

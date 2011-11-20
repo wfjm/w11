@@ -1,6 +1,6 @@
--- $Id: serport_uart_tx.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: serport_uart_tx.vhd 417 2011-10-22 10:30:29Z mueller $
 --
--- Copyright 2007- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,9 +18,10 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_serport_uart_rxtx
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-10-22   417   1.0.4  now numeric_std clean
 -- 2007-10-21    91   1.0.3  use 1 stop bits (redesigned _rx allows this)
 -- 2007-10-19    90   1.0.2  use 2 stop bits (allow CLKDIV=0 operation in sim)
 -- 2007-10-12    88   1.0.1  avoid ieee.std_logic_unsigned, use cast to unsigned
@@ -29,7 +30,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 
@@ -73,7 +74,7 @@ begin
   proc_regs: process (CLK)
   begin
 
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       R_REGS <= N_REGS;
     end if;
 
@@ -104,7 +105,7 @@ begin
       if unsigned(r.ccnt) = 0 then
         ld_ccnt := '1';
         n.sreg := '1' & r.sreg(8 downto 1);
-        n.bcnt := unsigned(r.bcnt) + 1;
+        n.bcnt := slv(unsigned(r.bcnt) + 1);
         if unsigned(r.bcnt) = 9 then    -- if 10 bits send
           n.busy := '0';                -- declare all done
         end if;
@@ -119,7 +120,7 @@ begin
     if ld_ccnt = '1' then
       n.ccnt := CLKDIV;
     else
-      n.ccnt := unsigned(r.ccnt) - 1;
+      n.ccnt := slv(unsigned(r.ccnt) - 1);
     end if;
     
     N_REGS <= n;

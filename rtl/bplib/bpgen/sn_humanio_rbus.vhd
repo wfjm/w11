@@ -1,4 +1,4 @@
--- $Id: sn_humanio_rbus.vhd 406 2011-08-14 21:06:44Z mueller $
+-- $Id: sn_humanio_rbus.vhd 427 2011-11-19 21:04:11Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,7 +20,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 11.4, 12.1; ghdl 0.26-0.29
+-- Tool versions:  xst 11.4, 12.1, 13.1; ghdl 0.26-0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -31,6 +31,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-19   427   1.2.1  now numeric_std clean
 -- 2011-08-14   406   1.2    common register layout with bp_swibtnled_rbus
 -- 2011-08-07   404   1.3    add pipeline regs ledin,(swi,btn,led,dp,dat)eff
 -- 2011-07-08   390   1.2    renamed from s3_humanio_rbus, add BWIDTH generic
@@ -65,7 +66,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.rblib.all;
@@ -77,7 +78,7 @@ entity sn_humanio_rbus is               -- human i/o handling /w rbus intercept
   generic (
     BWIDTH : positive := 4;             -- BTN port width
     DEBOUNCE : boolean := true;         -- instantiate debouncer for SWI,BTN
-    RB_ADDR : slv8 := conv_std_logic_vector(2#10000000#,8));
+    RB_ADDR : slv8 := slv(to_unsigned(2#10000000#,8)));
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit := '0';            -- reset
@@ -183,7 +184,7 @@ begin
   proc_regs: process (CLK)
   begin
 
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if RESET = '1' then
         R_REGS <= regs_init;
       else

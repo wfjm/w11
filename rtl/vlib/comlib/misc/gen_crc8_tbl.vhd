@@ -1,6 +1,6 @@
--- $Id: gen_crc8_tbl.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: gen_crc8_tbl.vhd 410 2011-09-18 11:23:09Z mueller $
 --
--- Copyright 2007- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -15,18 +15,18 @@
 -- Module Name:    gen_crc8_tbl - sim
 -- Description:    stand-alone program to print crc8 transition table
 --
--- Dependencies:   comlib/crc8_update (procedure)
+-- Dependencies:   comlib/crc8_update (function)
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-09-17   410   1.1    now numeric_std clean; use function crc8_update
 -- 2007-10-12    88   1.0.1  avoid ieee.std_logic_unsigned, use cast to unsigned
 -- 2007-07-08    65   1.0    Initial version 
 ------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_textio.all;
+use ieee.numeric_std.all;
 use std.textio.all;
 
 use work.slvtypes.all;
@@ -41,13 +41,14 @@ begin
   process
     variable crc : slv8 := (others=>'0');
     variable dat : slv8 := (others=>'0');
+    variable nxt : slv8 := (others=>'0');
     variable oline : line;
   begin
     for i in 0 to 255 loop
       crc := (others=>'0');
-      dat := conv_std_logic_vector(i,8);
-      crc8_update(crc, dat);
-      write(oline, conv_integer(unsigned(crc)), right, 4);
+      dat := slv(to_unsigned(i,8));
+      nxt := crc8_update(crc, dat);
+      write(oline, to_integer(unsigned(nxt)), right, 4);
       if i /= 255 then
         write(oline, string'(","));
       end if;

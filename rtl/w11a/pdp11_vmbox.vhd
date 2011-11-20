@@ -1,6 +1,6 @@
--- $Id: pdp11_vmbox.vhd 335 2010-10-24 22:24:23Z mueller $
+-- $Id: pdp11_vmbox.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2006-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -23,10 +23,11 @@
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   1.6.3  now numeric_std clean
 -- 2010-10-23   335   1.6.2  add r.paddr_iopage, use ib_sel
 -- 2010-10-22   334   1.6.1  deassert ibus be's at end-cycle; fix rmw logic
 -- 2010-10-17   333   1.6    implement ibus V2 interface
@@ -61,7 +62,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.iblib.all;
@@ -94,7 +95,7 @@ end pdp11_vmbox;
 
 architecture syn of pdp11_vmbox is
 
-  constant ibaddr_slim : slv16 := conv_std_logic_vector(8#177774#,16); 
+  constant ibaddr_slim : slv16 := slv(to_unsigned(8#177774#,16)); 
   constant atowidth : natural := 5;     -- size of access timeout counter
   
   type state_type is (
@@ -234,7 +235,7 @@ begin
 
   proc_slim: process (CLK)
   begin
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if BRESET = '1' then
         R_SLIM <= (others=>'0');
       elsif IBSEL_SLIM='1' and IB_MREQ.we='1' then
@@ -247,7 +248,7 @@ begin
 
   proc_regs: process (CLK)
   begin
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if GRESET = '1' then
         R_REGS <= regs_init;
      else
@@ -617,7 +618,7 @@ begin
     if ato_go = '0' then                -- handle access timeout counter
       n.atocnt := atocnt_init;          -- if ato_go=0, keep in reset
     else
-      n.atocnt := unsigned(r.atocnt) - 1;-- otherwise count down
+      n.atocnt := slv(unsigned(r.atocnt) - 1);-- otherwise count down
     end if;
 
     ipaddr := (others=>'0');            

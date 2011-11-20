@@ -1,6 +1,6 @@
--- $Id: clkdivce.vhd 341 2010-11-27 23:05:43Z mueller $
+-- $Id: clkdivce.vhd 418 2011-10-23 20:11:40Z mueller $
 --
--- Copyright 2007-2008 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,9 +18,10 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date        Rev  Version    Comment
+-- 2011-10-22   418   1.0.3  now numeric_std clean
 -- 2008-01-20   112   1.0.2  rename clkgen->clkdivce; remove SYS_CLK port
 -- 2007-10-12    88   1.0.1  avoid ieee.std_logic_unsigned, use cast to unsigned
 -- 2007-06-30    62   1.0    Initial version 
@@ -28,7 +29,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 
@@ -55,8 +56,8 @@ architecture syn of clkdivce is
   end record regs_type;
 
   constant regs_init : regs_type := (
-    conv_std_logic_vector(USECDIV-1,CDUWIDTH),
-    conv_std_logic_vector(MSECDIV-1,10),
+    slv(to_unsigned(USECDIV-1,CDUWIDTH)),
+    slv(to_unsigned(MSECDIV-1,10)),
     '0','0'
   );
 
@@ -73,7 +74,7 @@ begin
   proc_regs: process (CLK)
   begin
 
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       R_REGS <= N_REGS;
     end if;
 
@@ -92,14 +93,14 @@ begin
     n.usec := '0';
     n.msec := '0';
 
-    n.ucnt := unsigned(r.ucnt) - 1;
+    n.ucnt := slv(unsigned(r.ucnt) - 1);
     if unsigned(r.ucnt) = 0 then
       n.usec := '1';
-      n.ucnt := conv_std_logic_vector(USECDIV-1,CDUWIDTH);
-      n.mcnt := unsigned(r.mcnt) - 1;
+      n.ucnt := slv(to_unsigned(USECDIV-1,CDUWIDTH));
+      n.mcnt := slv(unsigned(r.mcnt) - 1);
       if unsigned(r.mcnt) = 0 then
         n.msec := '1';
-        n.mcnt := conv_std_logic_vector(MSECDIV-1,10);
+        n.mcnt := slv(to_unsigned(MSECDIV-1,10));
       end if;
     end if;
     

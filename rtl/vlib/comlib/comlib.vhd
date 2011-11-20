@@ -1,4 +1,4 @@
--- $Id: comlib.vhd 400 2011-07-31 09:02:16Z mueller $
+-- $Id: comlib.vhd 427 2011-11-19 21:04:11Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,9 +16,11 @@
 -- Description:    communication components
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-09-17   410   1.4    now numeric_std clean; use for crc8 'A6' polynomial
+--                           of Koopman et al.; crc8_update(_tbl) now function
 -- 2011-07-30   400   1.3    added byte2word, word2byte
 -- 2007-10-12    88   1.2.1  avoid ieee.std_logic_unsigned, use cast to unsigned
 -- 2007-07-08    65   1.2    added procedure crc8_update_tbl
@@ -29,7 +31,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 
@@ -107,10 +109,8 @@ component crc8 is                       -- crc-8 generator, checker
   );
 end component;
 
-  procedure crc8_update (crc : inout slv8;
-                         data : in slv8);
-  procedure crc8_update_tbl (crc : inout slv8;
-                             data : in slv8);
+  function crc8_update     (crc : in slv8; data : in slv8) return slv8;
+  function crc8_update_tbl (crc : in slv8; data : in slv8) return slv8;
 
 end package comlib;
 
@@ -118,67 +118,68 @@ end package comlib;
 
 package body comlib is
   
-  procedure crc8_update (crc : inout slv8;
-                         data : in slv8) is
+  function crc8_update (crc: in slv8; data: in slv8) return slv8 is
     variable t : slv8 := (others=>'0');
+    variable n : slv8 := (others=>'0');
   begin
 
     t := data xor crc;
-    crc(0) := t(0) xor t(4) xor t(5) xor t(6);
-    crc(1) := t(1) xor t(5) xor t(6) xor t(7);
-    crc(2) := t(0) xor t(2) xor t(4) xor t(5) xor t(7);
-    crc(3) := t(0) xor t(1) xor t(3) xor t(4);
-    crc(4) := t(0) xor t(1) xor t(2) xor t(6);
-    crc(5) := t(1) xor t(2) xor t(3) xor t(7);
-    crc(6) := t(2) xor t(3) xor t(4);
-    crc(7) := t(3) xor t(4) xor t(5);
+
+    n(0) := t(5) xor t(4) xor t(2) xor t(0);
+    n(1) := t(6) xor t(5) xor t(3) xor t(1);
+    n(2) := t(7) xor t(6) xor t(5) xor t(0);
+    n(3) := t(7) xor t(6) xor t(5) xor t(4) xor t(2) xor t(1) xor t(0);
+    n(4) := t(7) xor t(6) xor t(5) xor t(3) xor t(2) xor t(1);
+    n(5) := t(7) xor t(6) xor t(4) xor t(3) xor t(2);
+    n(6) := t(7) xor t(3) xor t(2) xor t(0);
+    n(7) := t(4) xor t(3) xor t(1);
+
+    return n;
     
-  end procedure crc8_update;
+  end function crc8_update;
   
-  procedure crc8_update_tbl (crc : inout slv8;
-                             data : in slv8) is
+  function crc8_update_tbl (crc: in slv8; data: in slv8) return slv8 is
     
     type crc8_tbl_type is array (0 to 255) of integer;
     variable crc8_tbl : crc8_tbl_type :=        -- generated with gen_crc8_tbl
-      (   0,  29,  58,  39, 116, 105,  78,  83,
-        232, 245, 210, 207, 156, 129, 166, 187,
-        205, 208, 247, 234, 185, 164, 131, 158,
-         37,  56,  31,   2,  81,  76, 107, 118,
-        135, 154, 189, 160, 243, 238, 201, 212,
-        111, 114,  85,  72,  27,   6,  33,  60,
-         74,  87, 112, 109,  62,  35,   4,  25,
-        162, 191, 152, 133, 214, 203, 236, 241,
-         19,  14,  41,  52, 103, 122,  93,  64,
-        251, 230, 193, 220, 143, 146, 181, 168,
-        222, 195, 228, 249, 170, 183, 144, 141,
-         54,  43,  12,  17,  66,  95, 120, 101,
-        148, 137, 174, 179, 224, 253, 218, 199,
-        124,  97,  70,  91,   8,  21,  50,  47,
-         89,  68,  99, 126,  45,  48,  23,  10,
-        177, 172, 139, 150, 197, 216, 255, 226,
-         38,  59,  28,   1,  82,  79, 104, 117,
-        206, 211, 244, 233, 186, 167, 128, 157,
-        235, 246, 209, 204, 159, 130, 165, 184,
-          3,  30,  57,  36, 119, 106,  77,  80,
-        161, 188, 155, 134, 213, 200, 239, 242,
-         73,  84, 115, 110,  61,  32,   7,  26,
-        108, 113,  86,  75,  24,   5,  34,  63,
-        132, 153, 190, 163, 240, 237, 202, 215,
-         53,  40,  15,  18,  65,  92, 123, 102,
-        221, 192, 231, 250, 169, 180, 147, 142,
-        248, 229, 194, 223, 140, 145, 182, 171,
-         16,  13,  42,  55, 100, 121,  94,  67,
-        178, 175, 136, 149, 198, 219, 252, 225,
-         90,  71,  96, 125,  46,  51,  20,   9,
-        127,  98,  69,  88,  11,  22,  49,  44,
-        151, 138, 173, 176, 227, 254, 217, 196
-       );
+      (  0,  77, 154, 215, 121,  52, 227, 174,    -- 00-07
+       242, 191, 104,  37, 139, 198,  17,  92,    -- 00-0f
+       169, 228,  51, 126, 208, 157,  74,   7,    -- 10-17
+        91,  22, 193, 140,  34, 111, 184, 245,    -- 10-1f
+        31,  82, 133, 200, 102,  43, 252, 177,    -- 20-27
+       237, 160, 119,  58, 148, 217,  14,  67,    -- 20-2f
+       182, 251,  44,  97, 207, 130,  85,  24,    -- 30-37
+        68,   9, 222, 147,  61, 112, 167, 234,    -- 30-3f
+        62, 115, 164, 233,  71,  10, 221, 144,    -- 40-47
+       204, 129,  86,  27, 181, 248,  47,  98,    -- 40-4f
+       151, 218,  13,  64, 238, 163, 116,  57,    -- 50-57
+       101,  40, 255, 178,  28,  81, 134, 203,    -- 50-5f
+        33, 108, 187, 246,  88,  21, 194, 143,    -- 60-67
+       211, 158,  73,   4, 170, 231,  48, 125,    -- 60-6f
+       136, 197,  18,  95, 241, 188, 107,  38,    -- 70-70
+       122,  55, 224, 173,   3,  78, 153, 212,    -- 70-7f
+       124,  49, 230, 171,   5,  72, 159, 210,    -- 80-87
+       142, 195,  20,  89, 247, 186, 109,  32,    -- 80-8f
+       213, 152,  79,   2, 172, 225,  54, 123,    -- 90-97
+        39, 106, 189, 240,  94,  19, 196, 137,    -- 90-9f
+        99,  46, 249, 180,  26,  87, 128, 205,    -- a0-a7
+       145, 220,  11,  70, 232, 165, 114,  63,    -- a0-af
+       202, 135,  80,  29, 179, 254,  41, 100,    -- b0-b7
+        56, 117, 162, 239,  65,  12, 219, 150,    -- b0-bf
+        66,  15, 216, 149,  59, 118, 161, 236,    -- c0-c7
+       176, 253,  42, 103, 201, 132,  83,  30,    -- c0-cf
+       235, 166, 113,  60, 146, 223,   8,  69,    -- d0-d7
+        25,  84, 131, 206,  96,  45, 250, 183,    -- d0-df
+        93,  16, 199, 138,  36, 105, 190, 243,    -- e0-e7
+       175, 226,  53, 120, 214, 155,  76,   1,    -- e0-ef
+       244, 185, 110,  35, 141, 192,  23,  90,    -- f0-f7
+         6,  75, 156, 209, 127,  50, 229, 168     -- f0-ff
+      );
     
   begin
 
-    crc := conv_std_logic_vector(
-             crc8_tbl(conv_integer(unsigned(data xor crc))), 8);
+    return slv(to_unsigned(crc8_tbl(to_integer(unsigned(data xor crc))), 8));
     
-  end procedure crc8_update_tbl;
+  end function crc8_update_tbl;
   
 end package body comlib;

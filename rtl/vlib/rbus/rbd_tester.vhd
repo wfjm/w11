@@ -1,6 +1,6 @@
--- $Id: rbd_tester.vhd 369 2011-03-13 22:39:26Z mueller $
+-- $Id: rbd_tester.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,7 +20,7 @@
 -- Test bench:     rlink/tb/tb_rlink (used as test target)
 --
 -- Target Devices: generic
--- Tool versions:  xst 12.1; ghdl 0.29
+-- Tool versions:  xst 12.1, 13.1; ghdl 0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -29,6 +29,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-19   427   1.0.4  now numeric_std clean
 -- 2010-12-31   352   1.0.3  simplify irb_ack logic
 -- 2010-12-29   351   1.0.2  default addr 111101xx->111100xx
 -- 2010-12-12   344   1.0.1  send 0101.. on busy or err; fix init and busy logic
@@ -51,7 +52,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.memlib.all;
@@ -60,7 +61,7 @@ use work.rblib.all;
 entity rbd_tester is                    -- rbus dev: rbus tester
                                         -- complete rrirp_aif interface
   generic (
-    RB_ADDR : slv8 := conv_std_logic_vector(2#11110000#,8));
+    RB_ADDR : slv8 := slv(to_unsigned(2#11110000#,8)));
   port (
     CLK  : in slbit;                    -- clock
     RESET : in slbit;                   -- reset
@@ -146,7 +147,7 @@ begin
 
   proc_regs: process (CLK)
   begin
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if RESET = '1' then
         R_REGS <= regs_init;
       else
@@ -208,10 +209,10 @@ begin
       
       if irbena = '1' then              -- if request active
         if unsigned(r.cntbusy) /= 0 then  -- if busy timer > 0
-          n.cntbusy := unsigned(r.cntbusy) - 1; -- decrement busy timer
+          n.cntbusy := slv(unsigned(r.cntbusy) - 1); -- decrement busy timer
         end if;
         if r.cntcyc /= cntcyc_max then    -- if cycle counter < max
-          n.cntcyc  := unsigned(r.cntcyc) + 1;  -- increment cycle counter
+          n.cntcyc  := slv(unsigned(r.cntcyc) + 1);  -- increment cycle counter
         end if;
       end if;
       

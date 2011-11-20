@@ -1,4 +1,4 @@
--- $Id: iob_reg_o_gen.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: iob_reg_o_gen.vhd 426 2011-11-18 18:14:08Z mueller $
 --
 -- Copyright 2007- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -55,7 +55,7 @@ begin
 
   proc_regs: process (CLK)
   begin
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if CE = '1' then
         R_DO <= DO;
       end if;

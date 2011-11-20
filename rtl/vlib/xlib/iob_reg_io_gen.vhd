@@ -1,4 +1,4 @@
--- $Id: iob_reg_io_gen.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: iob_reg_io_gen.vhd 427 2011-11-19 21:04:11Z mueller $
 --
 -- Copyright 2007-2008 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,7 +18,7 @@
 -- Dependencies:   iob_keeper_gen                 [sim only]
 -- Test bench:     -
 -- Target Devices: generic Spartan, Virtex
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2008-05-22   149   1.0.4  use internally TE to match OBUFT T polarity
@@ -76,7 +76,7 @@ begin
   
   proc_regs: process (CLK)
   begin
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       R_TE <= not OE;
       if CEI = '1' then
         R_DI <= to_x01(PAD);

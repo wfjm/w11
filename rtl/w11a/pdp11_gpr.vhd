@@ -1,6 +1,6 @@
--- $Id: pdp11_gpr.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: pdp11_gpr.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2006-2007 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,9 +19,10 @@
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   1.0.4  now numeric_std clean
 -- 2008-08-22   161   1.0.3  rename ubf_ -> ibf_; use iblib
 -- 2007-12-30   108   1.0.2  use ubf_byte[01]
 -- 2007-06-14    56   1.0.1  Use slvtypes.all
@@ -30,7 +31,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.memlib.all;
@@ -140,14 +141,14 @@ begin
   proc_pc : process (CLK)
     alias R_PC15 : slv15 is R_PC(15 downto 1);  -- upper 15 bit of PC
   begin 
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if WE='1' and ADST=c_gpr_pc then
         R_PC(ibf_byte0) <= DIN(ibf_byte0);
         if BYTOP = '0' then
           R_PC(ibf_byte1) <= DIN(ibf_byte1);
         end if;
       elsif PCINC = '1' then
-        R_PC15 <= unsigned(R_PC15) + 1;
+        R_PC15 <= slv(unsigned(R_PC15) + 1);
       end if;
     end if;
   end process proc_pc;

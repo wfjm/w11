@@ -1,6 +1,6 @@
--- $Id: pdp11_munit.vhd 330 2010-09-19 17:43:53Z mueller $
+-- $Id: pdp11_munit.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2006-2007 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,9 +18,10 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   1.1.1  now numeric_std clean
 -- 2010-09-18   300   1.1    renamed from mbox
 -- 2007-06-14    56   1.0.1  Use slvtypes.all
 -- 2007-05-12    26   1.0    Initial version 
@@ -28,7 +29,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.pdp11.all;
@@ -99,7 +100,7 @@ begin
 
   proc_regs: process (CLK)
   begin
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       R_DD_L   <= NEXT_DD_L;
       R_DDO_LT <= NEXT_DDO_LT;
       R_DIV_V  <= NEXT_DIV_V;
@@ -152,9 +153,9 @@ begin
 
     if S_DIV_CN='1' or S_ASH_CN='1' or S_ASHC_CN='1' then
       if R_SHC(5) = '0' then
-        NEXT_SHC <= unsigned(R_SHC) - 1;
+        NEXT_SHC <= slv(unsigned(R_SHC) - 1);
       else
-        NEXT_SHC <= unsigned(R_SHC) + 1;
+        NEXT_SHC <= slv(unsigned(R_SHC) + 1);
       end if;
       NEXT_C1 <= '0';
     end if;
@@ -210,9 +211,9 @@ begin
     end if;
     
     if subadd = '0' then
-      dd_h_new := signed(dd_h_old) + signed(DR);
+      dd_h_new := slv(signed(dd_h_old) + signed(DR));
     else
-      dd_h_new := signed(dd_h_old) - signed(DR);
+      dd_h_new := slv(signed(dd_h_old) - signed(DR));
     end if;
 
     dd_gt := '0';
@@ -304,7 +305,7 @@ begin
 
   begin
 
-    prod := signed(DSRC) * signed(DDST);
+    prod := slv(signed(DSRC) * signed(DDST));
 
     case FUNC is
       when c_munit_func_mul =>

@@ -1,6 +1,6 @@
--- $Id: pdp11_core.vhd 351 2010-12-30 21:50:54Z mueller $
+-- $Id: pdp11_core.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2006-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -27,9 +27,10 @@
 --                 tb/tb_rlink_tba_pdp11core
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   1.3.1  now numeric_std clean
 -- 2010-06-13   305   1.3    add CP_ADDR in port; drop R_CPDIN, R_CPOUT; _vmbox
 --                           CP_ADDR now from in port; dpath CP_DIN now from in
 --                           port; out port CP_DOUT now from _dpath
@@ -51,7 +52,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.iblib.all;

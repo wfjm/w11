@@ -1,6 +1,6 @@
--- $Id: pdp11_mem70.vhd 333 2010-10-17 21:18:33Z mueller $
+-- $Id: pdp11_mem70.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2008-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,10 +18,11 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   1.1.1  now numeric_std clean
 -- 2010-10-17   333   1.1    use ibus V2 interface
 -- 2008-08-22   161   1.0.2  rename ubf_ -> ibf_; use iblib
 -- 2008-02-23   118   1.0.1  use sys_conf_mem_losize; rename CACHE_ENA->_FMISS
@@ -30,7 +31,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.iblib.all;
@@ -53,14 +54,14 @@ end pdp11_mem70;
 
 architecture syn of pdp11_mem70 is
   
-  constant ibaddr_loaddr : slv16 := conv_std_logic_vector(8#177740#,16);
-  constant ibaddr_hiaddr : slv16 := conv_std_logic_vector(8#177742#,16);
-  constant ibaddr_syserr : slv16 := conv_std_logic_vector(8#177744#,16);
-  constant ibaddr_cntl   : slv16 := conv_std_logic_vector(8#177746#,16);
-  constant ibaddr_maint  : slv16 := conv_std_logic_vector(8#177750#,16);
-  constant ibaddr_hm     : slv16 := conv_std_logic_vector(8#177752#,16);
-  constant ibaddr_losize : slv16 := conv_std_logic_vector(8#177760#,16);
-  constant ibaddr_hisize : slv16 := conv_std_logic_vector(8#177762#,16);
+  constant ibaddr_loaddr : slv16 := slv(to_unsigned(8#177740#,16));
+  constant ibaddr_hiaddr : slv16 := slv(to_unsigned(8#177742#,16));
+  constant ibaddr_syserr : slv16 := slv(to_unsigned(8#177744#,16));
+  constant ibaddr_cntl   : slv16 := slv(to_unsigned(8#177746#,16));
+  constant ibaddr_maint  : slv16 := slv(to_unsigned(8#177750#,16));
+  constant ibaddr_hm     : slv16 := slv(to_unsigned(8#177752#,16));
+  constant ibaddr_losize : slv16 := slv(to_unsigned(8#177760#,16));
+  constant ibaddr_hisize : slv16 := slv(to_unsigned(8#177762#,16));
 
   subtype  cntl_ibf_frep    is integer range  5 downto  4;
   subtype  cntl_ibf_fmiss   is integer range  3 downto  2;
@@ -93,7 +94,7 @@ begin
 
   proc_regs: process (CLK)
   begin
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if CRESET = '1' then
         R_REGS <= regs_init;
      else
@@ -152,7 +153,7 @@ begin
       idout(r.hm_data'range)  := r.hm_data;
     end if;
     if r.ibsel_ls = '1' then
-      idout := conv_std_logic_vector(sys_conf_mem_losize,16);
+      idout := slv(to_unsigned(sys_conf_mem_losize,16));
     end if;
 
     if r.ibsel_cr='1' and ibw0='1' then

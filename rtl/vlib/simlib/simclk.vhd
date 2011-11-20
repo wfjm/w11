@@ -1,6 +1,6 @@
--- $Id: simclk.vhd 338 2010-11-13 22:19:25Z mueller $
+-- $Id: simclk.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2007-2008 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,10 +18,11 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.2, 9.1, 9.2; ghdl 0.18-0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   1.0.3  now numeric_std clean
 -- 2008-03-24   129   1.0.2  CLK_CYCLE now 31 bits
 -- 2007-10-12    88   1.0.1  avoid ieee.std_logic_unsigned, use cast to unsigned
 -- 2007-08-10    72   1.0    Initial version 
@@ -29,7 +30,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 use work.slvtypes.all;
 
 entity simclk is                      -- test bench clock generator
@@ -58,7 +59,7 @@ begin
     clk_loop: loop
       CLK <= '1';
       wait for 0 ns;                    -- make a delta cycle so that clock
-      icycle := unsigned(icycle) + 1;   -- cycle number is updated after the 
+      icycle := slv(unsigned(icycle) + 1); -- cycle number is updated after the 
       CLK_CYCLE <= icycle;              -- clock transition. all edge triggered
                                         -- proc's will thus read old value.
       wait for clock_halfperiod;

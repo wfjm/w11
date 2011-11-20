@@ -1,4 +1,4 @@
-# $Id: w11a_tb_guide.txt 376 2011-04-17 12:24:07Z mueller $
+# $Id: w11a_tb_guide.txt 428 2011-11-20 12:19:31Z mueller $
 
 Guide to running w11a test benches
 
@@ -66,7 +66,7 @@ Guide to running w11a test benches
      time tbw tb_serport_uart_rx |\
        tee tb_serport_uart_rx_dsim.log | egrep "(FAIL|DONE)"
      -> 1269955.0 ns  63488: DONE 
-     -> real    0m1.178s   user    0m1.172s   sys     0m0.020s
+     -> real 0m01.178s   user 0m01.172s   sys 0m00.020s
 
 
    - serport receiver/transmitter test
@@ -74,14 +74,14 @@ Guide to running w11a test benches
      time tbw tb_serport_uart_rxtx |\
        tee tb_serport_uart_rxtx_dsim.log | egrep "(FAIL|DONE)"
      ->  52335.0 ns   2607: DONE 
-     -> real    0m0.094s   user    0m0.092s   sys     0m0.008s
+     -> real 0m00.094s   user 0m00.092s   sys 0m00.008s
 
    - serport autobauder test
      make tb_serport_autobaud
      time tbw tb_serport_autobaud |\
        tee tb_serport_autobaud_dsim.log | egrep "(FAIL|DONE)"
      -> 367475.0 ns  18364: DONE 
-     -> real    0m0.610s   user    0m0.612s   sys     0m0.004s
+     -> real 0m00.610s   user 0m00.612s   sys 0m00.004s
 
    - rlink core test
 
@@ -90,7 +90,7 @@ Guide to running w11a test benches
      time tbw tb_rlink_direct |\
        tee tb_rlink_direct_dsim.log | egrep "(FAIL|DONE)"
      ->  142355.0 ns   7108: DONE 
-     -> real    0m0.317s   user    0m0.324s   sys     0m0.028s
+     -> real 0m00.317s   user 0m00.324s   sys 0m00.028s
 
    - rlink core test via serial port interface
 
@@ -98,12 +98,12 @@ Guide to running w11a test benches
      time tbw tb_rlink_serport tb_rlink_serport_stim.dat |\
        tee tb_rlink_serport_stim2_dsim.log | egrep "(FAIL|DONE)"
      ->   72735.0 ns   3627: DONE 
-     -> real    0m0.266s   user    0m0.264s   sys     0m0.008s
+     -> real 0m00.266s   user 0m00.264s   sys 0m00.008s
 
      time tbw tb_rlink_serport tb_rlink_stim.dat |\
        tee tb_rlink_serport_dsim.log | egrep "(FAIL|DONE)"
      -> 536155.0 ns  26798: DONE 
-     -> real    0m1.714s   user    0m1.704s   sys     0m0.044s
+     -> real  0m01.714s   user  0m01.704s   sys  0m00.044s
 
    - w11a core test (using behavioural model)
 
@@ -112,7 +112,7 @@ Guide to running w11a test benches
      time tbw tb_pdp11core |\
        tee tb_pdp11core_dsim.log | egrep "(FAIL|DONE)"
      -> 1220255.0 ns  61003: DONE 
-     -> real    0m10.736s   user    0m10.713s   sys     0m0.060s
+     -> real 0m10.736s   user 0m10.713s   sys 0m00.060s
 
    - w11a core test (using post-synthesis model)
 
@@ -120,7 +120,7 @@ Guide to running w11a test benches
      time tbw tb_pdp11core_ssim |\
        tee tb_pdp11core_ssim.log | egrep "(FAIL|DONE)"
      ->  1220255.0 ns  61003: DONE 
-     -> real    1m9.738s   user    1m9.588s   sys     0m0.096s
+     -> real 1m09.738s   user 1m09.588s   sys 0m00.096s
 
 3. System tests benches ---------------------------------------------------
 
@@ -177,7 +177,7 @@ Guide to running w11a test benches
    	 @../../../../w11a/tb/tb_pdp11core_stim.dat |\
        tee tb_w11a_s3_stim2_dsim.log | egrep "(-[EW]:|FAIL|PEND|DONE)"
      -> 7757655.0 ns 387873: DONE
-     -> real 0m49.835s   user 0m50.203s   sys 0m0.696s
+     -> real 0m49.835s   user 0m50.203s   sys 0m00.696s
 
    - sys_w11a_n2 test bench
 
@@ -188,4 +188,4 @@ Guide to running w11a test benches
    	 @../../../../w11a/tb/tb_pdp11core_stim.dat |\
        tee tb_w11a_n2_stim2_dsim.log | egrep "(-[EW]:|FAIL|PEND|DONE)"
      -> 6673237.2 ns 387035: DONE
-     -> real 0m56.173s   user 0m56.612s   sys 0m0.604s
+     -> real 0m56.173s   user 0m56.612s   sys 0m00.604s

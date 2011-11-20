@@ -1,4 +1,4 @@
--- $Id: crc8.vhd 406 2011-08-14 21:06:44Z mueller $
+-- $Id: crc8.vhd 410 2011-09-18 11:23:09Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,34 +13,35 @@
 --
 ------------------------------------------------------------------------------
 -- Module Name:    crc8 - syn
--- Description:    8bit CRC generator, use CRC-8-SAE J1850 polynomial.
---                 Based on  CRC-8-SAE J1850 polynomial:
---                      x^8 + x^4 + x^3 + x^2 + 1   (0x1d)
---                 It is irreducible, and can be implemented with <= 54 xor's
+-- Description:    8bit CRC generator, use 'A6' polynomial of Koopman and
+--                 Chakravarty. Has HD=3 for up to 247 bits and optimal HD=2
+--                 error detection for longer messages:
 --
--- Notes:       #  XST synthesis for a Spartan-3 gives:
---                   1-bit xor2  :           11
---                   1-bit xor4  :            5
---                   1-bit xor5  :            1
---                   Number of 4 input LUTs: 20
---              #  Synthesis with crc8_update_tbl gives a lut-rom based table
---                 design. Even though a 256x8 bit ROM is behind, the optimizer
---                 gets it into 12 slices with 22 4 input LUTs, thus only
---                 little larger than with xor's.
+--                      x^8 + x^6 + x^3 + x^2 + 1   (0xa6)
+--
+--                 It is irreducible, and can be implemented with <= 37 xor's
+--                 This polynomial is described in
+--                   http://dx.doi.org/10.1109%2FDSN.2004.1311885
 --
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2,.., 13.1; ghdl 0.18-0.25
+-- Tool versions:  xst 8.2, 9.1, 9.2,.., 13.1; ghdl 0.18-0.29
+--
+-- Synthesized (xst):
+-- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2011-09-17   410 13.1    O40d xc3s1200e-4    8   25    -   13   (A6 polynom)
+-- 2011-09-17   409 13.1    O40d xc3s1200e-4    8   18    -   10   (SAE J1850)
+--
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-09-17   409   1.1    use now 'A6' polynomial of Koopman et al.
 -- 2011-08-14   406   1.0.1  remove superfluous variable r
 -- 2007-07-08    65   1.0    Initial version 
 ------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
 
 use work.slvtypes.all;
 use work.comlib.all;
@@ -59,40 +60,24 @@ end crc8;
 
 
 architecture syn of crc8 is
-
   signal R_CRC : slv8 := INIT;         -- state registers
-  signal N_CRC : slv8 := INIT;         -- next value state regs
-
 begin
 
   proc_regs: process (CLK)
   begin
 
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if RESET = '1' then
         R_CRC <= INIT;
       else
-        R_CRC <= N_CRC;        
+        if ENA = '1' then
+          R_CRC <= crc8_update(R_CRC, DI);
+        end if;
       end if;
     end if;
 
   end process proc_regs;
 
-  proc_next: process (R_CRC, DI, ENA)
-    variable n : slv8 := INIT;
-  begin
-
-    n := R_CRC;
-
-    if ENA = '1' then
-      crc8_update(n, DI);
-    end if;
-    
-    N_CRC <= n;
-
-    CRC <= R_CRC;
-    
-  end process proc_next;
-
-
+  CRC <= R_CRC;
+  
 end syn;

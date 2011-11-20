@@ -1,6 +1,6 @@
--- $Id: tb_nexys2_fusp.vhd 351 2010-12-30 21:50:54Z mueller $
+-- $Id: tb_nexys2_fusp.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -23,10 +23,11 @@
 -- To test:        generic, any nexys2_fusp_aif target
 --
 -- Target Devices: generic
--- Tool versions:  xst 11.4, 12.1; ghdl 0.26-0.29
+-- Tool versions:  xst 11.4, 12.1, 13.1; ghdl 0.26-0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-19   427   3.0.1  now numeric_std clean
 -- 2010-12-29   351   3.0    use rlink/tb now
 -- 2010-11-13   338   1.0.2  now dcm aware: add O_CLKSYS, use rritb_core_dcm
 -- 2010-11-06   336   1.0.1  rename input pin CLK -> I_CLK50
@@ -35,7 +36,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 use ieee.std_logic_textio.all;
 use std.textio.all;
 
@@ -100,7 +101,7 @@ architecture sim of tb_nexys2_fusp is
 
   signal R_PORTSEL : slbit := '0';
 
-  constant sbaddr_portsel: slv8 := conv_std_logic_vector( 8,8);
+  constant sbaddr_portsel: slv8 := slv(to_unsigned( 8,8));
 
   constant clockosc_period : time :=  20 ns;
   constant clockosc_offset : time := 200 ns;
@@ -215,7 +216,7 @@ begin
   begin
     
     loop
-      wait until CLKSYS'event and CLKSYS='1';
+      wait until rising_edge(CLKSYS);
       wait for c2out_time;
 
       if RXERR = '1' then

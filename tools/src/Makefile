@@ -5,7 +5,7 @@
 #
 #  Revision History: 
 # Date         Rev Version  Comment
-# 2011-07-31   401   1.2    rename realclean->distclean
+# 2011-07-31   401   1.2    rename realclean->distclean; add librusbtpp
 # 2011-03-20   372   1.1.1  renamed ..tcl -> ..tpp
 # 2011-03-14   370   1.1.0  rename librtoolstcl -> librtcltools
 # 2011-02-13   361   1.1    add realclean rule; add dirs and dependencies
@@ -16,6 +16,7 @@ DIRS += librlink
 DIRS += librtcltools 
 DIRS += librutiltpp
 DIRS += librlinktpp
+DIRS += librusbtpp
 #
 BUILDDIRS = $(DIRS:%=build-%)
 CLEANDIRS = $(DIRS:%=clean-%)
@@ -35,6 +36,7 @@ build-librlink      : build-librtools
 build-librtcltools  : build-librtools
 build-librutiltpp   : build-librtcltools
 build-librlinktpp   : build-librlink build-librtcltools
+build-librusbtpp    : build-librtcltools
 #
 $(BUILDDIRS):
 	$(MAKE) -C $(@:build-%=%)

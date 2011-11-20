@@ -1,6 +1,6 @@
--- $Id: n2_cram_memctl_as.vhd 340 2010-11-27 13:00:57Z mueller $
+-- $Id: n2_cram_memctl_as.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -21,7 +21,7 @@
 -- Test bench:     tb/tb_n2_cram_memctl
 --                 fw_gen/tst_sram/nexys2/tb/tb_tst_sram_n2
 -- Target Devices: generic
--- Tool versions:  xst 11.4; ghdl 0.26
+-- Tool versions:  xst 11.4, 13.1; ghdl 0.26
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -31,6 +31,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-19   427   1.0.5  now numeric_std clean
 -- 2010-11-22   339   1.0.4  cntdly now 3 bit; add assert for DELAY generics
 -- 2010-06-03   299   1.0.3  add "KEEP" for data iob; MEM_OE='1' on first read
 --                           cycle;
@@ -111,7 +112,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.xlib.all;
@@ -304,7 +305,7 @@ begin
   proc_regs: process (CLK)
   begin
 
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if RESET = '1' then
         R_REGS <= regs_init;
       else
@@ -391,7 +392,7 @@ begin
     idata_oe  := '0';
 
     if unsigned(r.cntdly) /= 0 then
-      n.cntdly := unsigned(r.cntdly) - 1;
+      n.cntdly := slv(unsigned(r.cntdly) - 1);
     end if;
     
     case r.state is
@@ -406,7 +407,7 @@ begin
         iactr   := '1';                   -- signal mem read
         imem_ce := '1';                   -- ce CRAM next cycle
         imem_oe := '1';                   -- oe CRAM next cycle
-        n.cntdly:= conv_std_logic_vector(READ0DELAY-1, n.cntdly'length);
+        n.cntdly:= slv(to_unsigned(READ0DELAY-1, n.cntdly'length));
         n.state := s_rdwait0;             -- next: wait
 
       when s_rdwait0 =>                  -- s_rdwait0: read wait low word
@@ -426,7 +427,7 @@ begin
         idata_cei := '1';                 -- latch input data
         iaddr0_ce := '1';                 -- latch address 0 bit
         iaddr0    := '1';                 -- now go for high word
-        n.cntdly:= conv_std_logic_vector(READ1DELAY-1, n.cntdly'length);
+        n.cntdly:= slv(to_unsigned(READ1DELAY-1, n.cntdly'length));
         n.state := s_rdwait1;             -- next: wait high word
 
       when s_rdwait1 =>                 -- s_rdwait1: read wait high word
@@ -461,7 +462,7 @@ begin
         idata_oe := '1';                  -- oe FPGA next cycle
         imem_ce  := '1';                  -- ce CRAM next cycle
         imem_we  := '1';                  -- we CRAM in half cycle
-        n.cntdly:= conv_std_logic_vector(WRITEDELAY-1, n.cntdly'length);
+        n.cntdly:= slv(to_unsigned(WRITEDELAY-1, n.cntdly'length));
         n.state := s_wrwait0;             -- next: wait
 
       when s_wrwait0 =>                 -- s_rdput0:  write wait 1st word
@@ -504,7 +505,7 @@ begin
         idata_oe := '1';                  -- oe FPGA next cycle
         imem_ce  := '1';                  -- ce CRAM next cycle
         imem_we  := '1';                  -- we CRAM in half cycle
-        n.cntdly:= conv_std_logic_vector(WRITEDELAY-1, n.cntdly'length);
+        n.cntdly:= slv(to_unsigned(WRITEDELAY-1, n.cntdly'length));
         n.state := s_wrwait1;             -- next: wait
 
       when s_wrwait1 =>                 -- s_wrwait1: write wait 2nd word
@@ -540,7 +541,7 @@ begin
       if unsigned(r.cntce) >= 127 then    -- if max ce count expired
         n.fidle := '1';                     -- set forced idle flag
       else                                -- if max ce count not yet reached
-        n.cntce := unsigned(r.cntce) + 1;   -- increment counter
+        n.cntce := slv(unsigned(r.cntce) + 1);   -- increment counter
       end if;
     end if;
     

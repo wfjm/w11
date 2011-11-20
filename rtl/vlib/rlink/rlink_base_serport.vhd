@@ -1,6 +1,6 @@
--- $Id: rlink_base_serport.vhd 350 2010-12-28 16:40:11Z mueller $
+-- $Id: rlink_base_serport.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -32,6 +32,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-19   427   3.1.1  now numeric_std clean
 -- 2010-12-26   348   3.1    rename from rlink_core_serport, use now rlink_base
 -- 2010-12-24   347   3.0.1  rename: CP_*->RL->*
 -- 2010-12-04   343   3.0    renamed rri_ -> rlink_
@@ -45,7 +46,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.rblib.all;
@@ -60,7 +61,7 @@ entity rlink_base_serport is            -- rlink base+serport combo
     OFAWIDTH : natural :=  5;           -- output fifo address width (0=none)
     ENAPIN_RLMON : integer := sbcntl_sbf_rlmon;  -- SB_CNTL for rlmon (-1=none)
     ENAPIN_RBMON : integer := sbcntl_sbf_rbmon;  -- SB_CNTL for rbmon (-1=none)
-    RB_ADDR : slv8 := conv_std_logic_vector(2#11111110#,8);
+    RB_ADDR : slv8 := slv(to_unsigned(2#11111110#,8));
     CDWIDTH : positive := 13;           -- clk divider width
     CDINIT : natural   := 15);          -- clk divider initial/reset setting
   port (

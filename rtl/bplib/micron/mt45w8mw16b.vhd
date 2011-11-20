@@ -1,6 +1,6 @@
--- $Id: mt45w8mw16b.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: mt45w8mw16b.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -23,9 +23,10 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 11.4; ghdl 0.26
+-- Tool versions:  xst 11.4, 13.1; ghdl 0.26-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-19   427   1.3.2  now numeric_std clean
 -- 2010-06-03   299   1.3.1  improved timing model (WE cycle, robust T_apa)
 -- 2010-06-03   298   1.3    add timing model again
 -- 2010-05-28   295   1.2    drop timing (was incorrect), pure functional now
@@ -56,7 +57,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 
@@ -170,7 +171,7 @@ begin
       end if;
       addr_last := L_ADDR;
     end if;
-    if OE'event and OE='1' then
+    if rising_edge(OE) then
       DOUT_VAL_OE <= '0', '1' after T_oe;
     end if;
   end process proc_dout_val;
@@ -203,14 +204,14 @@ begin
 
     -- end of write cycle
     -- note: to_x01 used below to prevent that 'z' a written into mem.
-    if WE_L_EFF'event and WE_L_EFF='0' then
-      ram(conv_integer(unsigned(L_ADDR)))(f_byte0) := to_x01(DATA(f_byte0));
+    if falling_edge(WE_L_EFF) then
+      ram(to_integer(unsigned(L_ADDR)))(f_byte0) := to_x01(DATA(f_byte0));
     end if;
-    if WE_U_EFF'event and WE_U_EFF='0' then
-      ram(conv_integer(unsigned(L_ADDR)))(f_byte1) := to_x01(DATA(f_byte1));
+    if falling_edge(WE_U_EFF) then
+      ram(to_integer(unsigned(L_ADDR)))(f_byte1) := to_x01(DATA(f_byte1));
     end if;
 
-    DOUT <= ram(conv_integer(unsigned(L_ADDR)));
+    DOUT <= ram(to_integer(unsigned(L_ADDR)));
 
   end process proc_cram;
 

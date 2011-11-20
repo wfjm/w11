@@ -1,6 +1,6 @@
--- $Id: tbcore_rlink.vhd 351 2010-12-30 21:50:54Z mueller $
+-- $Id: tbcore_rlink.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,9 +20,10 @@
 -- To test:        generic, any rlink_cext based target
 --
 -- Target Devices: generic
--- Tool versions:  xst 11.4; ghdl 0.26
+-- Tool versions:  xst 11.4, 13.1; ghdl 0.26-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-19   427   3.0.1  now numeric_std clean
 -- 2010-12-29   351   3.0    rename rritb_core->tbcore_rlink; use rbv3 naming
 -- 2010-06-05   301   1.1.2  rename .rpmon -> .rbmon
 -- 2010-05-02   287   1.1.1  rename config command .sdata -> .sinit;
@@ -33,7 +34,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 use ieee.std_logic_textio.all;
 use std.textio.all;
 
@@ -181,23 +182,23 @@ begin
 
     stim_loop: loop
       
-      wait until CLK_L'event and CLK_L='1';
+      wait until rising_edge(CLK_L);
       wait for CLK_PERIOD-SETUP_TIME;
 
       SB_ADDR <= (others=>'Z');
       SB_DATA <= (others=>'Z');
 
-      icycle := conv_integer(unsigned(SB_CLKCYCLE));
+      icycle := to_integer(unsigned(SB_CLKCYCLE));
       RX_VAL <= '0';
 
       if RX_HOLD = '0'  then
         irxint := rlink_cext_getbyte(icycle);
         if irxint >= 0 then
           if irxint <= 16#ff# then      -- normal data byte
-            RX_DATA <= conv_std_logic_vector(irxint, 8);
+            RX_DATA <= slv(to_unsigned(irxint, 8));
             RX_VAL  <= '1';
           elsif irxint >= 16#1000000# then  -- out-of-band message
-            irxslv := conv_std_logic_vector(irxint, 24);
+            irxslv := slv(to_unsigned(irxint mod 16#1000000#, 24));
             iaddr := irxslv(23 downto 16);
             idata := irxslv(15 downto  0);
             writetimestamp(oline, SB_CLKCYCLE, ": OOB-MSG");
@@ -209,7 +210,7 @@ begin
             writeoct(oline, idata, right, 7);
             writeline(output, oline);
             if unsigned(iaddr) = 0 then
-              ibit := conv_integer(unsigned(idata(15 downto 8)));
+              ibit := to_integer(unsigned(idata(15 downto 8)));
               r_sb_cntl(ibit) := idata(0);
             else
               SB_ADDR <= iaddr;
@@ -250,10 +251,10 @@ begin
   begin
     
     loop
-      wait until CLK_L'event and CLK_L='1';
+      wait until rising_edge(CLK_L);
       wait for C2OUT_TIME;
       if TX_ENA = '1' then
-        itxdata := conv_integer(unsigned(TX_DATA));
+        itxdata := to_integer(unsigned(TX_DATA));
         itxrc := rlink_cext_putbyte(itxdata);
         assert itxrc=0
           report "rlink_cext_putbyte error: "  & integer'image(itxrc)

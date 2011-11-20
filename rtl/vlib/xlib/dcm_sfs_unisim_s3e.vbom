@@ -2,4 +2,4 @@
 ../slvtypes.vhd
 @lib:unisim
 # design
-dcm_sp_sfs_unisim.vhd
+dcm_sfs_unisim_s3e.vhd

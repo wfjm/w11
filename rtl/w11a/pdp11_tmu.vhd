@@ -1,6 +1,6 @@
--- $Id: pdp11_tmu.vhd 333 2010-10-17 21:18:33Z mueller $
+-- $Id: pdp11_tmu.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2008-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,10 +19,11 @@
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ghdl 0.18-0.25
+-- Tool versions:  ghdl 0.18-0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   1.0.7  now numeric_std clean
 -- 2010-10-17   333   1.0.6  use ibus V2 interface
 -- 2010-06-26   309   1.0.5  add ibmreq.dip,.cacc,.racc to trace
 -- 2009-05-10   214   1.0.4  add ENA signal (trace enable)
@@ -34,7 +35,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 use ieee.std_logic_textio.all;
 use std.textio.all;
 
@@ -76,7 +77,7 @@ begin
   begin
 
 
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
 
       if R_FIRST = '1' then
         R_FIRST <= '0';
@@ -167,7 +168,7 @@ begin
       end if;
 
       if wcycle then
-        write(oline, conv_integer(unsigned(SB_CLKCYCLE)), right, 9);
+        write(oline, to_integer(unsigned(SB_CLKCYCLE)), right, 9);
         write(oline, string'(" 0"));
         writeoct(oline, DM_STAT_DP.pc,   right, 7);
         writeoct(oline, ipsw, right, 7);

@@ -1,4 +1,4 @@
--- $Id: ib_sel.vhd 335 2010-10-24 22:24:23Z mueller $
+-- $Id: ib_sel.vhd 427 2011-11-19 21:04:11Z mueller $
 --
 -- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -54,7 +54,7 @@ begin
   proc_regs: process (CLK)
     variable isel : slbit := '0';
   begin
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       isel := '0';
       if IB_MREQ.aval='1' and
         IB_MREQ.addr(12 downto SAWIDTH+1)=IB_ADDR(12 downto SAWIDTH+1) then

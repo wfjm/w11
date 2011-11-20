@@ -1,6 +1,6 @@
--- $Id: tbd_serport_autobaud.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: tbd_serport_autobaud.vhd 417 2011-10-22 10:30:29Z mueller $
 --
--- Copyright 2007- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -34,7 +34,7 @@
 -- 2007-10-27    92  8.2.03 I34  xc3s1000-4   153  338    0  178 s 9.45
 -- 2007-10-27    92  8.1.03 I27  xc3s1000-4   152  293    0    - s 9.40
 --
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2008-01-20   112   1.0.1  rename clkgen->clkdivce
@@ -43,7 +43,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.genlib.all;

@@ -1,6 +1,6 @@
--- $Id: tb_serport_uart_rx.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: tb_serport_uart_rx.vhd 417 2011-10-22 10:30:29Z mueller $
 --
--- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -30,6 +30,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-10-22   417   1.0.3  now numeric_std clean
 -- 2010-04-24   281   1.0.2  use direct instatiation for tbd_
 -- 2008-03-24   129   1.0.1  CLK_CYCLE now 31 bits
 -- 2007-10-21    91   1.0    Initial version 
@@ -37,7 +38,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 use ieee.std_logic_textio.all;
 use std.textio.all;
 
@@ -52,7 +53,7 @@ architecture sim of tb_serport_uart_rx is
   
   signal CLK :  slbit := '0';
   signal RESET :  slbit := '0';
-  signal CLKDIV : slv5 := conv_std_logic_vector(15, 5);
+  signal CLKDIV : slv5 := slv(to_unsigned(15, 5));
   signal RXSD :  slbit := '1';
   signal RXDATA : slv8 := (others=>'0');
   signal RXVAL :  slbit := '0';
@@ -156,7 +157,7 @@ begin
             end loop;
             read_ea(iline, irate);
             wait for 2*clock_period;
-            CLKDIV <= conv_std_logic_vector(irate-1, CLKDIV'length);
+            CLKDIV <= slv(to_unsigned(irate-1, CLKDIV'length));
             wait for 2*clock_period;
               
           when ".xrate" =>              -- .xrate 
@@ -266,7 +267,7 @@ begin
   begin
 
     loop 
-      wait until CLK'event and CLK='1';
+      wait until rising_edge(CLK);
 
       if R_MON_VAL_1 = '1' then
         if R_MON_VAL_2 = '1' then

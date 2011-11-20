@@ -1,4 +1,4 @@
--- $Id: sys_w11a_n2.vhd 404 2011-08-07 22:00:25Z mueller $
+-- $Id: sys_w11a_n2.vhd 427 2011-11-19 21:04:11Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -15,7 +15,7 @@
 -- Module Name:    sys_w11a_n2 - syn
 -- Description:    w11a test design for nexys2
 --
--- Dependencies:   vlib/xlib/dcm_sp_sfs
+-- Dependencies:   vlib/xlib/dcm_sfs
 --                 vlib/genlib/clkdivce
 --                 bplib/bpgen/bp_rs232_2l4l_iob
 --                 bplib/bpgen/sn_humanio_rbus
@@ -36,10 +36,11 @@
 -- Test bench:     tb/tb_sys_w11a_n2
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.2, 9.1, 9.2, 10.1, 11.4, 12.1; ghdl 0.26-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 10.1, 11.4, 12.1, 13.1; ghdl 0.26-0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2011-11-18   427 13.1    O40d xc3s1200e-4 1433 4374  242 2680 ok: LP+PC+DL+II
 -- 2010-12-30   351 12.1    M53d xc3s1200e-4 1389 4368  242 2674 ok: LP+PC+DL+II
 -- 2010-11-06   336 12.1    M53d xc3s1200e-4 1357 4304* 242 2618 ok: LP+PC+DL+II
 -- 2010-10-24   335 12.1    M53d xc3s1200e-4 1357 4546  242 2618 ok: LP+PC+DL+II
@@ -62,6 +63,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-19   427   1.2.4  now numeric_std clean
+-- 2011-11-17   426   1.2.3  use dcm_sfs now
 -- 2011-07-09   391   1.2.2  use now bp_rs232_2l4l_iob
 -- 2011-07-08   390   1.2.1  use now sn_humanio
 -- 2010-12-30   351   1.2    ported to rbv3
@@ -111,7 +114,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.xlib.all;
@@ -241,7 +244,7 @@ begin
     report "assert sys_conf_clksys on MHz grid"
     severity failure;
   
-  DCM : dcm_sp_sfs
+  DCM : dcm_sfs
     generic map (
       CLKFX_DIVIDE   => sys_conf_clkfx_divide,
       CLKFX_MULTIPLY => sys_conf_clkfx_multiply,

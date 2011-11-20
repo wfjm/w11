@@ -1,6 +1,6 @@
--- $Id: pdp11_ubmap.vhd 335 2010-10-24 22:24:23Z mueller $
+-- $Id: pdp11_ubmap.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2008-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,10 +19,11 @@
 --                 ib_sel
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   1.1.2  now numeric_std clean
 -- 2010-10-23   335   1.1.1  use ib_sel
 -- 2010-10-17   333   1.1    use ibus V2 interface
 -- 2008-08-22   161   1.0.1  use iblib
@@ -31,7 +32,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.memlib.all;
@@ -53,7 +54,7 @@ end pdp11_ubmap;
 
 architecture syn of pdp11_ubmap is
   
-  constant ibaddr_ubmap : slv16 := conv_std_logic_vector(8#170200#,16);
+  constant ibaddr_ubmap : slv16 := slv(to_unsigned(8#170200#,16));
 
   signal IBSEL_UBMAP : slbit := '0';
 
@@ -161,7 +162,8 @@ begin
     MAP_1_WE <= iwe1;
     MAP_0_WE <= iwe0;
 
-    ADDR_PM  <= unsigned(MAP_DOUT) + unsigned("000000000"&ADDR_UB(12 downto 1));
+    ADDR_PM  <= slv(unsigned(MAP_DOUT) +
+                    unsigned("000000000"&ADDR_UB(12 downto 1)));
 
     IB_SRES.ack  <= IBSEL_UBMAP and (IB_MREQ.re or IB_MREQ.we);
     IB_SRES.busy <= ibusy;

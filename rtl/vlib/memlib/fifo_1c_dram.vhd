@@ -1,4 +1,4 @@
--- $Id: fifo_1c_dram.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: fifo_1c_dram.vhd 421 2011-11-07 21:23:50Z mueller $
 --
 -- Copyright 2007- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -36,7 +36,6 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
 
 use work.slvtypes.all;
 use work.memlib.all;

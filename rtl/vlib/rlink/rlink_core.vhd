@@ -1,6 +1,6 @@
--- $Id: rlink_core.vhd 350 2010-12-28 16:40:11Z mueller $
+-- $Id: rlink_core.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -22,7 +22,7 @@
 --                 tb/tb_rlink_tba_ttcombo
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1, 13.1; ghdl 0.18-0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -33,6 +33,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-19   427   3.1.3  now numeric_std clean
 -- 2010-12-25   348   3.1.2  drop RL_FLUSH support, add RL_MONI for rlink_core;
 -- 2010-12-24   347   3.1.1  rename: CP_*->RL->*
 -- 2010-12-22   346   3.1    wblk dcrc error: send nak, transit to s_error now;
@@ -162,7 +163,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.comlib.all;
@@ -326,7 +327,7 @@ begin
   proc_regs: process (CLK)
   begin
 
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if RESET = '1' then
         R_REGS <= regs_init;
       else
@@ -773,7 +774,7 @@ begin
         end if;
           
       when s_blk =>                     -- s_blk: block count handling -------
-        n.cnt := unsigned(r.cnt) - 1;     -- decrement transfer count
+        n.cnt := slv(unsigned(r.cnt) - 1);-- decrement transfer count
         if unsigned(r.cnt) = 0 then       -- if last transfer 
           if r.rcmd(c_rlink_cmd_rbf_code) = c_rlink_cmd_rblk then -- if rblk
             n.state := s_txstat;          -- next: send stat
@@ -852,14 +853,14 @@ begin
     if ato_go = '0' then                -- handle access timeout counter
       n.atocnt := atocnt_init;          -- if ato_go=0, keep in reset
     else
-      n.atocnt := unsigned(r.atocnt) - 1;-- otherwise count down
+      n.atocnt := slv(unsigned(r.atocnt) - 1);-- otherwise count down
     end if;
     
     if ito_go = '0' then                -- handle idle timeout counter
       n.itocnt := r.itoval;             -- if ito_go=0, keep at start value
     else
       if CE_INT = '1' then
-        n.itocnt := unsigned(r.itocnt) - 1;-- otherwise count down every CE_INT
+        n.itocnt := slv(unsigned(r.itocnt) - 1);-- otherwise cnt dn every CE_INT
       end if;
     end if;
     

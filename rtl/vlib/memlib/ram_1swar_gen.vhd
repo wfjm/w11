@@ -1,6 +1,6 @@
--- $Id: ram_1swar_gen.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: ram_1swar_gen.vhd 422 2011-11-10 18:44:06Z mueller $
 --
--- Copyright 2006-2008 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -22,10 +22,11 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic Spartan, Virtex
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2008-03-08   123   1.0.1  use std_logic_arith, not _unsigned; use unsigned()
+-- 2011-11-08   422   1.0.2  now numeric_std clean
+-- 2008-03-08   123   1.0.1  use std_..._arith, not _unsigned; use unsigned()
 -- 2007-06-03    45   1.0    Initial version 
 --
 -- Some synthesis results:
@@ -38,7 +39,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 
@@ -69,13 +70,13 @@ begin
 
   proc_clk: process (CLK)
   begin
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if WE = '1' then
-        RAM(conv_integer(unsigned(ADDR))) <= DI;
+        RAM(to_integer(unsigned(ADDR))) <= DI;
       end if;
     end if;
   end process proc_clk;
 
-  DO <= RAM(conv_integer(unsigned(ADDR)));
+  DO <= RAM(to_integer(unsigned(ADDR)));
 
 end syn;

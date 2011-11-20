@@ -1,4 +1,4 @@
-# $Id: Makefile 405 2011-08-14 08:16:28Z mueller $
+# $Id: Makefile 410 2011-09-18 11:23:09Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -17,11 +17,6 @@ all : $(BIT_all)
 #
 clean : ise_clean
 	rm -f sys_tst_rlink_n2.ucf
-#
-sys_tst_rlink_n2.mcs : sys_tst_rlink_n2.bit
-	promgen -w -x xcf04s -p mcs -u 0 sys_tst_rlink_n2
-	mv sys_tst_rlink_n2.prm sys_tst_rlink_n2_prm.log
-	mv sys_tst_rlink_n2.cfi sys_tst_rlink_n2_cfi.log
 #
 #----
 #

@@ -1,6 +1,6 @@
--- $Id: sys_conf.vhd 341 2010-11-27 23:05:43Z mueller $
+-- $Id: sys_conf.vhd 428 2011-11-20 12:19:31Z mueller $
 --
--- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Definitions for sys_w11a_n2 (for synthesis)
 --
 -- Dependencies:   -
--- Tool versions:  xst 11.4; ghdl 0.26
+-- Tool versions:  xst 11.4, 13.1; ghdl 0.26-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-19   428   1.1.1  use clksys=56 (58 no closure after numeric_std...)
 -- 2010-11-27   341   1.1    add dcm and memctl related constants (clksys=58)
 -- 2010-05-05   295   1.0    Initial version (derived from _s3 version)
 ------------------------------------------------------------------------------
@@ -37,7 +38,7 @@ use work.slvtypes.all;
 package sys_conf is
 
   constant sys_conf_clkfx_divide : positive   :=  25;
-  constant sys_conf_clkfx_multiply : positive :=  29;   -- ==> 58 MHz
+  constant sys_conf_clkfx_multiply : positive :=  28;   -- ==> 56 MHz
 
   constant sys_conf_memctl_read0delay : positive := 3;
   constant sys_conf_memctl_read1delay : positive := sys_conf_memctl_read0delay;

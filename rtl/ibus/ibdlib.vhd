@@ -1,6 +1,6 @@
--- $Id: ibdlib.vhd 335 2010-10-24 22:24:23Z mueller $
+-- $Id: ibdlib.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2008-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Definitions for ibus devices
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   1.1.2  now numeric_std clean
 -- 2010-10-23   335   1.1.1  rename RRI_LAM->RB_LAM;
 -- 2010-06-11   303   1.1    use IB_MREQ.racc instead of RRI_REQ
 -- 2009-07-12   233   1.0.5  add RESET, CE_USEC to _dl11, CE_USEC to _minisys
@@ -31,7 +32,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.iblib.all;
@@ -66,6 +67,12 @@ type iist_sres_type is record         -- cpu->iist responses
 end record iist_sres_type;
 
 constant iist_sres_init : iist_sres_type := ('0','0');
+
+-- ise 13.1 xst can bug check if generic defaults in a package are defined via 
+-- 'slv(to_unsigned())'. The conv_ construct prior to numeric_std was ok.
+-- As workaround the ibus default addresses are defined here as constant.
+constant ibaddr_dz11 : slv16 := slv(to_unsigned(8#160100#,16));
+constant ibaddr_dl11 : slv16 := slv(to_unsigned(8#177560#,16));
 
 component ibd_iist is                   -- ibus dev(loc): IIST
                                         -- fixed address: 177500
@@ -158,7 +165,7 @@ end component;
 
 component ibdr_dz11 is                  -- ibus dev(rem): DZ11
   generic (
-    IB_ADDR : slv16 := conv_std_logic_vector(8#160100#,16));
+    IB_ADDR : slv16 := ibaddr_dz11);
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- system reset
@@ -175,7 +182,7 @@ end component;
 
 component ibdr_dl11 is                  -- ibus dev(rem): DL11-A/B
   generic (
-    IB_ADDR : slv16 := conv_std_logic_vector(8#177560#,16));
+    IB_ADDR : slv16 := ibaddr_dl11);
   port (
     CLK : in slbit;                     -- clock
     CE_USEC : in slbit;                 -- usec pulse

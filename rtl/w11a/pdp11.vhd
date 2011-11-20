@@ -1,6 +1,6 @@
--- $Id: pdp11.vhd 351 2010-12-30 21:50:54Z mueller $
+-- $Id: pdp11.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2006-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Definitions for pdp11 components
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   1.4.8  now numeric_std clean
 -- 2010-12-30   351   1.4.7  rename pdp11_core_rri->pdp11_core_rbus; use rblib
 -- 2010-10-23   335   1.4.6  rename RRI_LAM->RB_LAM;
 -- 2010-10-16   332   1.4.5  renames of pdp11_du_drv port names
@@ -81,7 +82,7 @@
  
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.iblib.all;
@@ -1070,8 +1071,8 @@ end component;
 
 component pdp11_core_rbus is            -- core to rbus interface
   generic (
-    RB_ADDR_CORE : slv8 := conv_std_logic_vector(2#00000000#,8);
-    RB_ADDR_IBUS : slv8 := conv_std_logic_vector(2#10000000#,8));
+    RB_ADDR_CORE : slv8 := slv(to_unsigned(2#00000000#,8));
+    RB_ADDR_IBUS : slv8 := slv(to_unsigned(2#10000000#,8)));
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- reset

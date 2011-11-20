@@ -1,6 +1,6 @@
--- $Id: tbd_pdp11core.vhd 351 2010-12-30 21:50:54Z mueller $
+-- $Id: tbd_pdp11core.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -26,7 +26,7 @@
 -- To test:        pdp11_core
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -41,6 +41,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   1.5.1  now numeric_std clean
 -- 2010-12-30   351   1.5    rename tbd_pdp11_core -> tbd_pdp11core
 -- 2010-10-23   335   1.4.2  rename RRI_LAM->RB_LAM;
 -- 2010-06-20   307   1.4.1  add CP_ADDR_racc, CP_ADDR_be port
@@ -63,7 +64,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.genlib.all;

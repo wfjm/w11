@@ -1,6 +1,6 @@
--- $Id: pdp11_mmu_ssr12.vhd 335 2010-10-24 22:24:23Z mueller $
+-- $Id: pdp11_mmu_ssr12.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2006-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,10 +18,11 @@
 -- Dependencies:   ib_sel
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
 -- 
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   1.2.2  now numeric_std clean
 -- 2010-10-23   335   1.2.1  use ib_sel
 -- 2010-10-17   333   1.2    use ibus V2 interface
 -- 2009-05-30   220   1.1.4  final removal of snoopers (were already commented)
@@ -35,7 +36,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.iblib.all;
@@ -56,8 +57,8 @@ end pdp11_mmu_ssr12;
 
 architecture syn of pdp11_mmu_ssr12 is
 
-  constant ibaddr_ssr1 : slv16 := conv_std_logic_vector(8#177574#,16);
-  constant ibaddr_ssr2 : slv16 := conv_std_logic_vector(8#177576#,16);
+  constant ibaddr_ssr1 : slv16 := slv(to_unsigned(8#177574#,16));
+  constant ibaddr_ssr2 : slv16 := slv(to_unsigned(8#177576#,16));
   
   subtype ssr1_ibf_rb_delta is integer range 15 downto 11;
   subtype ssr1_ibf_rb_num is integer range 10 downto 8;
@@ -117,7 +118,7 @@ begin
 
   proc_regs : process (CLK)
   begin
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       R_SSR1 <= N_SSR1;
       R_SSR2 <= N_SSR2;
     end if;
@@ -167,16 +168,16 @@ begin
         if use_rb = '0' then
           nssr1.ra_num := MONI.regnum;
           if MONI.isdec = '0' then
-            nssr1.ra_delta := signed(nssr1.ra_delta) + signed(delta);
+            nssr1.ra_delta := slv(signed(nssr1.ra_delta) + signed(delta));
           else
-            nssr1.ra_delta := signed(nssr1.ra_delta) - signed(delta);
+            nssr1.ra_delta := slv(signed(nssr1.ra_delta) - signed(delta));
           end if;
         else
           nssr1.rb_num := MONI.regnum;
           if MONI.isdec = '0' then
-            nssr1.rb_delta := signed(nssr1.rb_delta) + signed(delta);
+            nssr1.rb_delta := slv(signed(nssr1.rb_delta) + signed(delta));
           else
-            nssr1.rb_delta := signed(nssr1.rb_delta) - signed(delta);
+            nssr1.rb_delta := slv(signed(nssr1.rb_delta) - signed(delta));
           end if;
         end if;
       end if;

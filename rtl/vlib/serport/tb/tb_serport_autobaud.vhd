@@ -1,6 +1,6 @@
--- $Id: tb_serport_autobaud.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: tb_serport_autobaud.vhd 417 2011-10-22 10:30:29Z mueller $
 --
--- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -33,6 +33,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-10-22   417   1.1.3  now numeric_std clean
 -- 2010-04-24   281   1.1.2  use direct instatiation for tbd_
 -- 2008-03-24   129   1.1.1  CLK_CYCLE now 31 bits
 -- 2007-10-21    91   1.1    now use 'send' command, self-checking (FAIL's)
@@ -44,7 +45,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 use ieee.std_logic_textio.all;
 use std.textio.all;
 
@@ -231,7 +232,7 @@ begin
   begin
 
     loop 
-      wait until CLK'event and CLK='1';
+      wait until rising_edge(CLK);
 
       if R_MON_VAL_1 = '1' then
         if R_MON_VAL_2 = '1' then
@@ -256,7 +257,7 @@ begin
       
       if ABDONE = '1' then
         writetimestamp(oline, CLK_CYCLE, ": auto   CLKDIV =");
-        write(oline, conv_integer(unsigned(CLKDIV)), right, 3);
+        write(oline, to_integer(unsigned(CLKDIV)), right, 3);
         writeline(output, oline);
       end if;
       

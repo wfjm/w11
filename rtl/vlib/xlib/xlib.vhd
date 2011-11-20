@@ -1,6 +1,6 @@
--- $Id: xlib.vhd 389 2011-07-07 21:59:00Z mueller $
+-- $Id: xlib.vhd 426 2011-11-18 18:14:08Z mueller $
 --
--- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,11 @@
 -- Description:    Xilinx specific components
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-17   426   1.0.7  rename dcm_sp_sfs -> dcm_sfs; remove family generic
+-- 2011-11-10   423   1.0.6  add family generic for dcm_sp_sfs
 -- 2010-11-07   337   1.0.5  add dcm_sp_sfs
 -- 2008-05-23   149   1.0.4  add iob_io(_gen)
 -- 2008-05-22   148   1.0.3  add iob_keeper(_gen);
@@ -152,7 +154,7 @@ component iob_keeper_gen is             -- keeper for IOB, vector
   );
 end component;
 
-component dcm_sp_sfs is                 -- DCM_SP as 'simple freq. synthesis'
+component dcm_sfs is                    -- DCM for simple frequency synthesis
   generic (
     CLKFX_DIVIDE : positive := 2;       -- FX clock divide (1-32)
     CLKFX_MULTIPLY : positive := 2;     -- FX clock divide (2-32)

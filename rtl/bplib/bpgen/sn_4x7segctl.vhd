@@ -1,4 +1,4 @@
--- $Id: sn_4x7segctl.vhd 400 2011-07-31 09:02:16Z mueller $
+-- $Id: sn_4x7segctl.vhd 410 2011-09-18 11:23:09Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,9 +18,10 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-09-17   410   1.2.1  now numeric_std clean
 -- 2011-07-30   400   1.2    digit dark in last quarter (not 16 clocks)
 -- 2011-07-08   390   1.1.2  renamed from s3_dispdrv
 -- 2010-04-17   278   1.1.1  renamed from dispdrv
@@ -32,7 +33,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 
@@ -51,12 +52,12 @@ end sn_4x7segctl;
 architecture syn of sn_4x7segctl is
 
   type regs_type is record
-    cdiv : std_logic_vector(CDWIDTH-1 downto 0); -- clock divider counter
-    dcnt : slv2;                                 -- digit counter
+    cdiv : slv(CDWIDTH-1 downto 0);     -- clock divider counter
+    dcnt : slv2;                        -- digit counter
   end record regs_type;
 
   constant regs_init : regs_type := (
-    conv_std_logic_vector(0,CDWIDTH),
+    slv(to_unsigned(0,CDWIDTH)),
     (others=>'0')
   );
 
@@ -93,7 +94,7 @@ begin
   proc_regs: process (CLK)
   begin
 
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       R_REGS <= N_REGS;
     end if;
 
@@ -113,9 +114,9 @@ begin
     r := R_REGS;
     n := R_REGS;
 
-    n.cdiv := unsigned(r.cdiv) - 1;
+    n.cdiv := slv(unsigned(r.cdiv) - 1);
     if unsigned(r.cdiv) = 0 then
-      n.dcnt := unsigned(r.dcnt) + 1;
+      n.dcnt := slv(unsigned(r.dcnt) + 1);
     end if;
 
     chex := "0000";
@@ -142,13 +143,13 @@ begin
 
     cano := "1111";
     if r.cdiv(CDWIDTH-1 downto CDWIDTH-2) /= "00" then
-      cano(conv_integer(unsigned(r.dcnt))) := '0';
+      cano(to_integer(unsigned(r.dcnt))) := '0';
     end if;
     
     N_REGS <= n;
 
     ANO_N <= cano;
-    SEG_N <= not (cdp & hex2segtbl(conv_integer(unsigned(chex))));
+    SEG_N <= not (cdp & hex2segtbl(to_integer(unsigned(chex))));
 
   end process proc_next;
   

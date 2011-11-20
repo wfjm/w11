@@ -1,6 +1,6 @@
--- $Id: tbu_rlink_serport.vhd 350 2010-12-28 16:40:11Z mueller $
+-- $Id: tbu_rlink_serport.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -32,10 +32,11 @@
 -- 2007-10-27    92  8.2.03 I34  xc3s1000-4   283  594   18  323 s 10.3
 -- 2007-10-27    92  8.1.03 I27  xc3s1000-4   285  596   18    - s 9.32
 --
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1, 13.1; ghdl 0.18-0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-19   427   3.1.2  now numeric_std clean
 -- 2010-12-28   350   3.1.1  use CLKDIV/CDINIT=0;
 -- 2010-12-26   348   3.1    use rlink_base now; add RTS/CTS ports
 -- 2010-12-24   347   3.0.1  rename: CP_*->RL->*
@@ -53,7 +54,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.rblib.all;
@@ -147,7 +148,7 @@ begin
 
   SERPORT : rlink_serport
     generic map (
-      RB_ADDR  => conv_std_logic_vector(2#11111110#,8),
+      RB_ADDR  => slv(to_unsigned(2#11111110#,8)),
       CDWIDTH  => CDWIDTH,
       CDINIT   => c_cdinit)
     port map (

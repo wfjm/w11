@@ -1,4 +1,4 @@
--- $Id: bp_swibtnled.vhd 403 2011-08-06 17:36:22Z mueller $
+-- $Id: bp_swibtnled.vhd 410 2011-09-18 11:23:09Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -32,7 +32,6 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
 
 use work.slvtypes.all;
 use work.xlib.all;

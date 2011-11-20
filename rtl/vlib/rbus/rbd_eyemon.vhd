@@ -1,4 +1,4 @@
--- $Id: rbd_eyemon.vhd 406 2011-08-14 21:06:44Z mueller $
+-- $Id: rbd_eyemon.vhd 427 2011-11-19 21:04:11Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,7 +20,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 12.1; ghdl 0.29
+-- Tool versions:  xst 12.1, 13.1; ghdl 0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -29,6 +29,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-19   427   1.0.3  now numeric_std clean
 -- 2011-04-02   375   1.0.2  handle back-to-back chars properly (in sim..)
 -- 2010-12-31   352   1.0.1  simplify irb_ack logic
 -- 2010-12-27   349   1.0    Initial version 
@@ -56,7 +57,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.memlib.all;
@@ -64,8 +65,8 @@ use work.rblib.all;
 
 entity rbd_eyemon is                    -- rbus dev: eye monitor for serport's
   generic (
-    RB_ADDR : slv8 := conv_std_logic_vector(2#11111000#,8);
-    RDIV : slv8 := conv_std_logic_vector(0,8));
+    RB_ADDR : slv8 := slv(to_unsigned(2#11111000#,8));
+    RDIV : slv8 := slv(to_unsigned(0,8)));
   port (
     CLK  : in slbit;                    -- clock
     RESET : in slbit;                   -- reset
@@ -160,7 +161,7 @@ begin
 
   proc_regs: process (CLK)
   begin
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if RESET = '1' then
         R_REGS <= regs_init;
       else
@@ -313,7 +314,7 @@ begin
             laddr_inc := '1';
           end if;
         else
-          n.rdivcnt := unsigned(r.rdivcnt) - 1;
+          n.rdivcnt := slv(unsigned(r.rdivcnt) - 1);
         end if;
         
       when s_clr =>                     -- s_clr: clear memory ---------------
@@ -333,7 +334,7 @@ begin
     elsif laddr_clr = '1' then
       n.laddr := (others=>'0');
     elsif laddr_inc = '1' then
-      n.laddr := unsigned(r.laddr) + 1;
+      n.laddr := slv(unsigned(r.laddr) + 1);
     end if;
 
     n.laddr_1 := r.laddr;
@@ -341,7 +342,7 @@ begin
 
     ibramdi := (others=>'0');
     if r.memclr = '0' then
-      ibramdi := unsigned(BRAM_DOA) + 1;
+      ibramdi := slv(unsigned(BRAM_DOA) + 1);
     end if;
     
     N_REGS <= n;

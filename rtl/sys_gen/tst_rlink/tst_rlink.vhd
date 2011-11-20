@@ -1,4 +1,4 @@
--- $Id: tst_rlink.vhd 385 2011-06-26 22:10:57Z mueller $
+-- $Id: tst_rlink.vhd 427 2011-11-19 21:04:11Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -26,10 +26,11 @@
 -- Test bench:     nexys2/tb/tb_tst_rlink_n2
 --
 -- Target Devices: generic
--- Tool versions:  xst 12.1; ghdl 0.29
+-- Tool versions:  xst 12.1, 13.1; ghdl 0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-19   427   1.1.1  now numeric_std clean
 -- 2011-06-26   385   1.1    remove s3_humanio_rbus (will be in board design);
 --                           remove hio interface ports, add rbus ports
 -- 2011-04-02   375   1.0.1  add rbd_eyemon and two timer
@@ -42,7 +43,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.rblib.all;
@@ -113,7 +114,7 @@ begin
       OFAWIDTH =>  0,
       ENAPIN_RLMON => sbcntl_sbf_rlmon,
       ENAPIN_RBMON => sbcntl_sbf_rbmon,
-      RB_ADDR  => conv_std_logic_vector(2#11111110#,8),
+      RB_ADDR  => slv(to_unsigned(2#11111110#,8)),
       CDWIDTH  => 13,
       CDINIT   => CDINIT)
     port map (
@@ -175,7 +176,7 @@ begin
   EMON : rbd_eyemon
     generic map (
       RB_ADDR => rbaddr_emon,
-      RDIV    => conv_std_logic_vector(0,8))
+      RDIV    => slv(to_unsigned(0,8)))
     port map (
       CLK         => CLK,
       RESET       => RESET,

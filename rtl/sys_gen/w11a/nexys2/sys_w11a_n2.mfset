@@ -1,4 +1,4 @@
-# $Id: sys_w11a_n2.mfset 406 2011-08-14 21:06:44Z mueller $
+# $Id: sys_w11a_n2.mfset 427 2011-11-19 21:04:11Z mueller $
 #
 # ----------------------------------------------------------------------------
 [xst]
@@ -14,7 +14,7 @@ Node <HIO/R_REGS.swi_\d*> of sequential type is unconnected
 Node <HIO/R_REGS.btn_\d*> of sequential type is unconnected
 Node <MEM_SRAM.SRAM_CTL/R_REGS.addr0> of sequential type is unconnected
 
-Unconnected output port 'LOCKED' of component 'dcm_sp_sfs'
+Unconnected output port 'LOCKED' of component 'dcm_sfs'
 Unconnected output port 'RL_MONI' of component 'rlink_base_serport'
 Unconnected output port 'RL_SER_MONI' of component 'rlink_base_serport'
 Unconnected output port 'ACK_W' of component 'n2_cram_memctl_as'

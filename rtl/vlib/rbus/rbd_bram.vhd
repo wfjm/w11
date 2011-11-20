@@ -1,6 +1,6 @@
--- $Id: rbd_bram.vhd 372 2011-03-20 22:48:11Z mueller $
+-- $Id: rbd_bram.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,7 +20,7 @@
 -- Test bench:     rlink/tb/tb_rlink_tba_ttcombo
 --
 -- Target Devices: generic
--- Tool versions:  xst 12.1; ghdl 0.29
+-- Tool versions:  xst 12.1, 13.1; ghdl 0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -28,6 +28,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-19   427   1.0.3  now numeric_std clean
 -- 2010-12-31   352   1.0.2  simplify irb_ack logic
 -- 2010-12-29   351   1.0.1  default addr 1111001x->1111010x
 -- 2010-12-26   349   1.0    Initial version 
@@ -44,7 +45,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.memlib.all;
@@ -53,7 +54,7 @@ use work.rblib.all;
 entity rbd_bram is                      -- rbus dev: rbus bram test target
                                         -- complete rrirp_aif interface
   generic (
-    RB_ADDR : slv8 := conv_std_logic_vector(2#11110100#,8));
+    RB_ADDR : slv8 := slv(to_unsigned(2#11110100#,8)));
   port (
     CLK  : in slbit;                    -- clock
     RESET : in slbit;                   -- reset
@@ -109,7 +110,7 @@ begin
 
   proc_regs: process (CLK)
   begin
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if RESET = '1' then
         R_REGS <= regs_init;
       else
@@ -165,7 +166,7 @@ begin
       
       if irbena = '1' then              -- if request active
         if unsigned(r.cntbusy) /= 0 then  -- if busy timer > 0
-          n.cntbusy := unsigned(r.cntbusy) - 1; -- decrement busy timer
+          n.cntbusy := slv(unsigned(r.cntbusy) - 1); -- decrement busy timer
         end if;
       end if;
 
@@ -186,7 +187,7 @@ begin
               ibramwe := '1';
             end if;
             if irbena = '1' then
-              n.addr := unsigned(r.addr) + 1;
+              n.addr := slv(unsigned(r.addr) + 1);
             end if;
           end if;
           

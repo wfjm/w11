@@ -1,6 +1,6 @@
--- $Id: simclkcnt.vhd 338 2010-11-13 22:19:25Z mueller $
+-- $Id: simclkcnt.vhd 423 2011-11-12 22:22:25Z mueller $
 --
--- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,16 +18,17 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 12.1; ghdl 0.29
+-- Tool versions:  xst 12.1, 13.1; ghdl 0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-12   423   1.0.1  now numeric_std clean
 -- 2010-11-13    72   1.0    Initial version 
 ------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 use work.slvtypes.all;
 
 entity simclkcnt is                   -- test bench system clock cycle counter
@@ -44,8 +45,8 @@ begin
   proc_clk: process (CLK)
   begin
 
-    if CLK'event and CLK='1' then
-      R_CLKCNT <= unsigned(R_CLKCNT) + 1;
+    if rising_edge(CLK) then
+      R_CLKCNT <= slv(unsigned(R_CLKCNT) + 1);
     end if;
     
   end process proc_clk;

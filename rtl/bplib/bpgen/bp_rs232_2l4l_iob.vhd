@@ -1,4 +1,4 @@
--- $Id: bp_rs232_2l4l_iob.vhd 406 2011-08-14 21:06:44Z mueller $
+-- $Id: bp_rs232_2l4l_iob.vhd 426 2011-11-18 18:14:08Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -36,7 +36,6 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
 
 use work.slvtypes.all;
 use work.bpgenlib.all;
@@ -123,7 +122,7 @@ begin
   DORELAY : if RELAY generate
     proc_regs_pipe: process (CLK)
     begin
-      if CLK'event and CLK='1' then
+      if rising_edge(CLK) then
         if RESET = '1' then
           RR_RXD0   <= '1';
           RR_TXD0   <= '1';
@@ -155,7 +154,7 @@ begin
   proc_regs_mux: process (CLK)
   begin
 
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if RESET = '1' then
         R_RXD    <= '1';
         R_CTS_N  <= '0';

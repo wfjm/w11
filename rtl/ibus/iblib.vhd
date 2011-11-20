@@ -1,4 +1,4 @@
--- $Id: iblib.vhd 346 2010-12-22 22:59:26Z mueller $
+-- $Id: iblib.vhd 427 2011-11-19 21:04:11Z mueller $
 --
 -- Copyright 2008-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -28,7 +28,6 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
 
 use work.slvtypes.all;
 

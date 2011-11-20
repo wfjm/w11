@@ -1,6 +1,6 @@
--- $Id: pdp11_dpath.vhd 330 2010-09-19 17:43:53Z mueller $
+-- $Id: pdp11_dpath.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2006-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -24,9 +24,10 @@
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   1.2.2  now numeric_std clean
 -- 2010-09-18   300   1.2.1  rename (adlm)box->(oalm)unit
 -- 2010-06-13   305   1.2    rename CPDIN -> CP_DIN; add CP_DOUT out port;
 --                           remove CPADDR out port; drop R_CPADDR, proc_cpaddr;
@@ -44,7 +45,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.iblib.all;
@@ -242,7 +243,7 @@ begin
   proc_dregs: process (CLK)
   begin
 
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       
       if CNTL.dsrc_we = '1' then
         if CNTL.dsrc_sel = '0' then
@@ -284,7 +285,7 @@ begin
   proc_mregs: process (CLK)
   begin
 
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       
       if CNTL.ireg_we = '1' then
         R_IREG <= VM_DOUT;
@@ -295,7 +296,7 @@ begin
 
   proc_cpdout: process (CLK)
   begin
-    if CLK'event and CLK='1'then
+    if rising_edge(CLK) then
       if CRESET = '1' then
         R_CPDOUT <= (others=>'0');
       else

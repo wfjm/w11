@@ -1,6 +1,6 @@
--- $Id: serport_uart_rxtx.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: serport_uart_rxtx.vhd 417 2011-10-22 10:30:29Z mueller $
 --
--- Copyright 2007- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,7 +19,7 @@
 --                 serport_uart_tx
 -- Test bench:     tb/tb_serport_uart_rxtx
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4; ghdl 0.18-0.26
+-- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 13.1; ghdl 0.18-0.29
 -- Revision History:
 -- Date         Rev Version  Comment
 -- 2007-06-24    60   1.0    Initial version 
@@ -27,7 +27,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.serport.all;

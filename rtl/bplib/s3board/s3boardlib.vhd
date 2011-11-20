@@ -1,4 +1,4 @@
--- $Id: s3boardlib.vhd 391 2011-07-09 17:25:02Z mueller $
+-- $Id: s3boardlib.vhd 426 2011-11-18 18:14:08Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -41,7 +41,6 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
 
 use work.slvtypes.all;
 

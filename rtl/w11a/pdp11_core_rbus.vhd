@@ -1,6 +1,6 @@
--- $Id: pdp11_core_rbus.vhd 352 2011-01-02 13:01:37Z mueller $
+-- $Id: pdp11_core_rbus.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,9 +19,10 @@
 -- Test bench:     tb/tb_rlink_tba_pdp11core
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.26
+-- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1, 13.1; ghdl 0.18-0.29
 -- Revision History: -
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   1.1.1  now numeric_std clean
 -- 2010-12-29   351   1.1    renamed from pdp11_core_rri; ported to rbv3
 -- 2010-10-23   335   1.2.3  rename RRI_LAM->RB_LAM;
 -- 2010-06-20   308   1.2.2  use c_ibrb_ibf_ def's
@@ -78,7 +79,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.rblib.all;
@@ -88,8 +89,8 @@ use work.pdp11.all;
 
 entity pdp11_core_rbus is               -- core to rbus interface
   generic (
-    RB_ADDR_CORE : slv8 := conv_std_logic_vector(2#00000000#,8);
-    RB_ADDR_IBUS : slv8 := conv_std_logic_vector(2#10000000#,8));
+    RB_ADDR_CORE : slv8 := slv(to_unsigned(2#00000000#,8));
+    RB_ADDR_IBUS : slv8 := slv(to_unsigned(2#10000000#,8)));
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- reset
@@ -152,7 +153,7 @@ architecture syn of pdp11_core_rbus is
   proc_regs: process (CLK)
   begin
 
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if RESET = '1' then
         R_REGS <= regs_init;
       else
@@ -341,7 +342,7 @@ architecture syn of pdp11_core_rbus is
           irb_err  := CP_STAT.cmderr or CP_STAT.cmdmerr;
           if CP_STAT.cmdack = '1' then       -- normal cycle end
             if r.doinc = '1' then
-              n.addr := unsigned(r.addr) + 1;
+              n.addr := slv(unsigned(r.addr) + 1);
             end if;
             if r.waitstep = '1' then
               irb_busy := '1';

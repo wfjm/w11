@@ -1,6 +1,6 @@
--- $Id: simlib.vhd 346 2010-12-22 22:59:26Z mueller $
+-- $Id: simlib.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2006-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,10 +18,11 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   1.3.8  now numeric_std clean
 -- 2010-12-22   346   1.3.7  rename readcommand -> readdotcomm
 -- 2010-11-13   338   1.3.6  add simclkcnt; xx.x ns time in writetimestamp()
 -- 2008-03-24   129   1.3.5  CLK_CYCLE now 31 bits
@@ -43,7 +44,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 use ieee.std_logic_textio.all;
 use std.textio.all;
 
@@ -375,10 +376,10 @@ end procedure readhex;
 -- -------------------------------------
 
 procedure readgen(                    -- read slv generic base
-  L: inout line;            -- line
-  value: out std_logic_vector;  -- value to be read
-  good: out boolean;            -- success flag
-  base: in integer := 2) is     -- default base
+  L: inout line;                      -- line
+  value: out std_logic_vector;        -- value to be read
+  good: out boolean;                  -- success flag
+  base: in integer := 2) is           -- default base
   
   variable nibble : std_logic_vector(3 downto 0);
   variable sum : std_logic_vector(31 downto 0);
@@ -387,7 +388,7 @@ procedure readgen(                    -- read slv generic base
   variable ok : boolean;
   variable ivalue : integer;
   variable ichar : character;
-  
+
 begin
   
   assert not value'ascending(1)
@@ -430,7 +431,12 @@ begin
       when 16 => readhex(L, value, ok);
       when 10 =>
         read(L, ivalue, ok);
-        value := conv_std_logic_vector(ivalue, value'length);
+        -- the following if allows to enter negative integers, e.g. -1 for all-1
+        if ivalue >= 0 then
+          value := slv(to_unsigned(ivalue, value'length));
+        else
+          value := slv(to_signed(ivalue, value'length));
+        end if;
       when others => null;
     end case;
   end if;
@@ -955,7 +961,7 @@ begin
       end case;
     end loop;  -- i
     if ochar = ' ' then
-      write(L,conv_integer(unsigned(nibble)));
+      write(L,to_integer(unsigned(nibble)));
     else
       write(L,ochar);
     end if;
@@ -1017,7 +1023,7 @@ begin
       end case;
     end loop;  -- i
     if ochar = ' ' then
-      write(L,hextab(conv_integer(unsigned(nibble))+1));
+      write(L,hextab(to_integer(unsigned(nibble))+1));
     else
       write(L,ochar);
     end if;
@@ -1075,7 +1081,7 @@ begin
   write(L, t_dnsec, right, 1);
   write(L, string'(" ns"));
   
-  write(L, conv_integer(unsigned(clkcyc)), right, 7);
+  write(L, to_integer(unsigned(clkcyc)), right, 7);
   if str /= null_string then
     write(L, str);
   end if;

@@ -1,6 +1,6 @@
--- $Id: tbd_rlink_serport.vhd 350 2010-12-28 16:40:11Z mueller $
+-- $Id: tbd_rlink_serport.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -27,10 +27,11 @@
 -- To test:        rlink_serport
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-19   427   3.0.5  now numeric_std clean
 -- 2010-12-28   350   3.0.4  use CLKDIV/CDINIT=0;
 -- 2010-12-26   348   3.0.3  add RTS/CTS ports for tbu_;
 -- 2010-12-24   347   3.0.2  rename: CP_*->RL->*
@@ -52,7 +53,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 use ieee.std_logic_textio.all;
 use std.textio.all;
 
@@ -107,7 +108,7 @@ architecture syn of tbd_rlink_serport is
   signal TXDATA : slv8 := (others=>'0');
   signal TXENA : slbit := '0';
   signal TXBUSY : slbit := '0';
-  signal CLKDIV : slv13 := conv_std_logic_vector(c_cdinit,CDWIDTH);
+  signal CLKDIV : slv13 := slv(to_unsigned(c_cdinit,CDWIDTH));
   
 component tbu_rlink_serport is            -- rlink core+serport combo
   port (
@@ -227,7 +228,7 @@ begin
     variable ncycle : integer := 0;
   begin
     loop
-      wait until CLK'event and CLK='1'; -- check at end of clock cycle
+      wait until rising_edge(CLK);      -- check at end of clock cycle
       if RTS_N /= rts_last then
         writetimestamp(oline, SB_CLKCYCLE, ": rts  ");
         write(oline, string'(" RTS_N "));

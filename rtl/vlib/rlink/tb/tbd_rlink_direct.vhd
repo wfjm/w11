@@ -1,4 +1,4 @@
--- $Id: tbd_rlink_direct.vhd 348 2010-12-26 15:23:44Z mueller $
+-- $Id: tbd_rlink_direct.vhd 427 2011-11-19 21:04:11Z mueller $
 --
 -- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -50,7 +50,6 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
 
 use work.slvtypes.all;
 use work.rblib.all;

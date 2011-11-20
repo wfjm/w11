@@ -1,4 +1,4 @@
-# $Id: sys_tst_rlink_n2.mfset 406 2011-08-14 21:06:44Z mueller $
+# $Id: sys_tst_rlink_n2.mfset 427 2011-11-19 21:04:11Z mueller $
 #
 # ----------------------------------------------------------------------------
 [xst]
@@ -9,7 +9,7 @@ Node <HIO/R_REGS.swi_[1-7]> of sequential type is unconnected
 Node <HIO/R_REGS.btneff_[0-5]> of sequential type is unconnected
 Node <HIO/R_REGS.btn_[0-5]> of sequential type is unconnected
 
-Unconnected output port 'LOCKED' of component 'dcm_sp_sfs'
+Unconnected output port 'LOCKED' of component 'dcm_sfs'
 Unconnected output port 'OFIFO_SIZE' of component 'rlink_base'
 Unconnected output port 'DOA' of component 'ram_1swar_1ar_gen'
 Unconnected output port 'DOB' of component 'ram_2swsr_wfirst_gen'

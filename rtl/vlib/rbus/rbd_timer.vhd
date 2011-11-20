@@ -1,6 +1,6 @@
--- $Id: rbd_timer.vhd 351 2010-12-30 21:50:54Z mueller $
+-- $Id: rbd_timer.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,7 +20,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 12.1; ghdl 0.29
+-- Tool versions:  xst 12.1, 13.1; ghdl 0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -28,6 +28,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-19   427   1.0.1  now numeric_std clean
 -- 2010-12-29   351   1.0    Initial version 
 ------------------------------------------------------------------------------
 --
@@ -40,14 +41,14 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.rblib.all;
 
 entity rbd_timer is                     -- rbus dev: usec precision timer
   generic (
-    RB_ADDR : slv8 := conv_std_logic_vector(2#00000000#,8));
+    RB_ADDR : slv8 := slv(to_unsigned(2#00000000#,8)));
   port (
     CLK  : in slbit;                    -- clock
     CE_USEC : in slbit;                 -- usec pulse
@@ -82,7 +83,7 @@ begin
 
   proc_regs: process (CLK)
   begin
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if RESET = '1' then
         R_REGS <= regs_init;
       else
@@ -132,7 +133,7 @@ begin
           n.timer_act := '0';               -- mark unactive
           n.timer_end := '1';               -- send end marker
         else                              -- else: timer not at end
-          n.timer := unsigned(r.timer) - 1;  -- decrement
+          n.timer := slv(unsigned(r.timer) - 1);  -- decrement
         end if;
       end if;
     end if;

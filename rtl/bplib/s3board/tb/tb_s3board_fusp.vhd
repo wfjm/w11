@@ -1,6 +1,6 @@
--- $Id: tb_s3board_fusp.vhd 351 2010-12-30 21:50:54Z mueller $
+-- $Id: tb_s3board_fusp.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -23,9 +23,10 @@
 -- To test:        generic, any s3board_fusp_aif target
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-19   427   3.0.1  now numeric_std clean
 -- 2010-12-30   351   3.0    use rlink/tb now
 -- 2010-11-06   336   1.0.4  rename input pin CLK -> I_CLK50
 -- 2010-05-21   292   1.0.3  rename _PM1_ -> _FUSP_
@@ -36,7 +37,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 use ieee.std_logic_textio.all;
 use std.textio.all;
 
@@ -95,7 +96,7 @@ architecture sim of tb_s3board_fusp is
   
   signal R_PORTSEL : slbit := '0';
 
-  constant sbaddr_portsel: slv8 := conv_std_logic_vector( 8,8);
+  constant sbaddr_portsel: slv8 := slv(to_unsigned( 8,8));
 
   constant clock_period : time :=  20 ns;
   constant clock_offset : time := 200 ns;
@@ -198,7 +199,7 @@ begin
   begin
     
     loop
-      wait until CLK'event and CLK='1';
+      wait until rising_edge(CLK);
       wait for c2out_time;
 
       if RXERR = '1' then

@@ -1,4 +1,4 @@
--- $Id: sn_humanio.vhd 403 2011-08-06 17:36:22Z mueller $
+-- $Id: sn_humanio.vhd 410 2011-09-18 11:23:09Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -22,10 +22,11 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 11.4; ghdl 0.26
+-- Tool versions:  xst 11.4, 12.1, 13.1; ghdl 0.26
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2011-09-17   409 13.1    O40d xc3s1000-4    49   86    0   53 s  5.3 ns 
 -- 2011-07-02   387 12.1    M53d xc3s1000-4    48   87    0   53 s  5.1 ns 
 -- 2010-04-10   275 11.4    L68  xc3s1000-4    48   87    0   53 s  5.2 ns 
 --
@@ -42,7 +43,6 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
 
 use work.slvtypes.all;
 use work.xlib.all;

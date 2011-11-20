@@ -1,4 +1,4 @@
--- $Id: rlink_mon_sb.vhd 347 2010-12-24 12:10:42Z mueller $
+-- $Id: rlink_mon_sb.vhd 427 2011-11-19 21:04:11Z mueller $
 --
 -- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -17,7 +17,7 @@
 --
 -- Dependencies:   simbus
 -- Test bench:     -
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

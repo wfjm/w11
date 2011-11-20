@@ -1,6 +1,6 @@
--- $Id: genlib.vhd 389 2011-07-07 21:59:00Z mueller $
+-- $Id: genlib.vhd 422 2011-11-10 18:44:06Z mueller $
 --
--- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,6 +19,7 @@
 -- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4; ghdl 0.18-0.26
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-09   421   1.0.8  add cdc_pulse
 -- 2010-04-17   277   1.0.7  timer: no default for START,DONE,BUSY; drop STOP
 -- 2010-04-02   273   1.0.6  add timer
 -- 2008-01-20   112   1.0.5  rename clkgen->clkdivce
@@ -150,6 +151,20 @@ component timer is                      -- retriggerable timer
     STOP : in slbit := '0';             -- stop timer
     DONE : out slbit;                   -- mark last delay cycle
     BUSY : out slbit                    -- timer running
+  );
+end component;
+
+component cdc_pulse is                  -- clock domain cross for pulse
+  generic (
+    POUT_SINGLE : boolean := false;     -- if true: single cycle pout
+    BUSY_WACK : boolean := false);      -- if true: busy waits for ack
+  port (
+    CLKM : in slbit;                    -- clock master
+    RESET : in slbit := '0';            -- M|reset
+    CLKS : in slbit;                    -- clock slave
+    PIN : in slbit;                     -- M|pulse in
+    BUSY : out slbit;                   -- M|busy
+    POUT : out slbit                    -- S|pulse out
   );
 end component;
 

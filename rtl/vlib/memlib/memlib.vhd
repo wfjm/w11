@@ -1,4 +1,4 @@
--- $Id: memlib.vhd 389 2011-07-07 21:59:00Z mueller $
+-- $Id: memlib.vhd 424 2011-11-13 16:38:23Z mueller $
 --
 -- Copyright 2006-2007 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -17,7 +17,7 @@
 --                 asynchronus rams; Fifo's.
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2008-03-08   123   1.0.3  add ram_2swsr_xfirst_gen_unisim
@@ -222,16 +222,16 @@ component fifo_2c_dram is               -- fifo, 2 clock, dram based
   port (
     CLKW : in slbit;                    -- clock (write side)
     CLKR : in slbit;                    -- clock (read side)
-    RESETW : in slbit;                  -- reset (synchronous with CLKW)
-    RESETR : in slbit;                  -- reset (synchronous with CLKR)
-    DI : in slv(DWIDTH-1 downto 0);     -- input data
-    ENA : in slbit;                     -- write enable
-    BUSY : out slbit;                   -- write port hold    
-    DO : out slv(DWIDTH-1 downto 0);    -- output data
-    VAL : out slbit;                    -- read valid
-    HOLD : in slbit;                    -- read hold
-    SIZEW : out slv(AWIDTH-1 downto 0); -- number slots to write (synch w/ CLKW)
-    SIZER : out slv(AWIDTH-1 downto 0)  -- number slots to read  (synch w/ CLKR)
+    RESETW : in slbit;                  -- W|reset from write side
+    RESETR : in slbit;                  -- R|reset from read side
+    DI : in slv(DWIDTH-1 downto 0);     -- W|input data
+    ENA : in slbit;                     -- W|write enable
+    BUSY : out slbit;                   -- W|write port hold    
+    DO : out slv(DWIDTH-1 downto 0);    -- R|output data
+    VAL : out slbit;                    -- R|read valid
+    HOLD : in slbit;                    -- R|read hold
+    SIZEW : out slv(AWIDTH-1 downto 0); -- W|number slots to write
+    SIZER : out slv(AWIDTH-1 downto 0)  -- R|number slots to read 
   );
 end component;
 

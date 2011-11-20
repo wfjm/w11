@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: tbw 314 2010-07-09 17:38:41Z mueller $
+# $Id: tbw 420 2011-11-06 21:25:54Z mueller $
 #
-# Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2011-11-06   420   1.2.3  fix tbw.dat parsing (allow / in file names)
 # 2010-05-23   294   1.2.2  handle tb_code's in non-local directories
 # 2010-04-18   279   1.2.1  add -help and more text to print_usage()
 # 2009-11-22   252   1.2    add ISim support
@@ -103,15 +104,17 @@ if (-r $tbwdat_file) {
   while (<TBW>) {
     chomp;
     next if /^#/;
-    if (/^\s*\[([\.\/a-zA-Z0-9_]*)\]\s*$/) {
+    if ( m{^\s*\[([\.\/a-zA-Z0-9_]*)\]\s*$} ) {
       last if $done;
       $ok = 0;
       $ok = 1 if ($1 eq $tb_code || $1 eq $tb_code_stem);
-    } elsif (/^\s*([a-zA-Z0-9_]*)\s*=\s*([a-zA-Z0-9_.<>]*)\s*$/) {
+    } elsif ( m{^\s*([a-zA-Z0-9_]*)\s*=\s*([a-zA-Z0-9_./<>]*)\s*$} ) {
       if ($ok) {
 	push @file_dsc, {tag=>$1, val=>$2};
 	$done = 1;
       }
+    } else {
+      print "tbw-E: bad line in tbw.dat:\n  $_\n";
     }
   }
 }
@@ -123,6 +126,14 @@ if (-r $tbwdat_file) {
 unless (scalar (@file_dsc)) {
   push @file_dsc, {tag=>$tb_code_stem . "_stim",
 		   val=>$tb_code_stem . "_stim.dat"};
+}
+
+if (0) {
+  foreach my $dsc (@file_dsc) {
+    my $tag = $dsc->{tag};
+    my $val = $dsc->{val};
+    printf "    %s = %s\n", $tag, $val;
+  }
 }
 
 #

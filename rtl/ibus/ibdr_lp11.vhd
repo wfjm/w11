@@ -1,6 +1,6 @@
--- $Id: ibdr_lp11.vhd 350 2010-12-28 16:40:11Z mueller $
+-- $Id: ibdr_lp11.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2009-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2009-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,7 +18,7 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 10.1, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 10.1, 12.1, 13.1; ghdl 0.18-0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -27,6 +27,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   1.2.2  now numeric_std clean
 -- 2010-10-23   335   1.2.1  rename RRI_LAM->RB_LAM;
 -- 2010-10-17   333   1.2    use ibus V2 interface
 -- 2010-06-11   303   1.1    use IB_MREQ.racc instead of RRI_REQ
@@ -42,7 +43,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.iblib.all;
@@ -64,7 +65,7 @@ end ibdr_lp11;
 
 architecture syn of ibdr_lp11 is
 
-  constant ibaddr_lp11 : slv16 := conv_std_logic_vector(8#177514#,16);
+  constant ibaddr_lp11 : slv16 := slv(to_unsigned(8#177514#,16));
 
   constant ibaddr_csr : slv1 := "0";   -- csr address offset
   constant ibaddr_buf : slv1 := "1";   -- buf address offset
@@ -99,7 +100,7 @@ begin
   
   proc_regs: process (CLK)
   begin
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if BRESET = '1' then              -- BRESET is 1 for system and ibus reset
         R_REGS <= regs_init;
         if RESET = '0' then               -- if RESET=0 we do just an ibus reset

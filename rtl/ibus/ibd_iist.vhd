@@ -1,6 +1,6 @@
--- $Id: ibd_iist.vhd 350 2010-12-28 16:40:11Z mueller $
+-- $Id: ibd_iist.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2009-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2009-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,7 +18,7 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -29,6 +29,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   0.8.1  now numeric_std clean
 -- 2010-10-17   333   0.8    use ibus V2 interface
 -- 2009-06-07   224   0.7    send inverted stc_stp; remove pgc_err; honor msk_im
 --                           also for dcf_dcf and exc_rte; add iist_mreq and
@@ -40,7 +41,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.iblib.all;
@@ -69,7 +70,7 @@ end ibd_iist;
 
 architecture syn of ibd_iist is
 
-  constant ibaddr_iist : slv16 := conv_std_logic_vector(8#177500#,16);
+  constant ibaddr_iist : slv16 := slv(to_unsigned(8#177500#,16));
 
   constant tdlysnd : natural := 150;    -- send delay timer
 
@@ -223,7 +224,7 @@ begin
   
   proc_regs: process (CLK)
   begin
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if BRESET = '1' or                -- BRESET is 1 for system and ibus reset
          R_REGS.req_clear='1' then
         R_REGS <= regs_init;            --
@@ -280,14 +281,14 @@ begin
     
     tcnt256_end := '0';
     if CE_USEC='1' and r.stc_enb='1'then   -- if st enabled on every usec
-      n.tcnt256 := unsigned(r.tcnt256) + 1;  -- advance 8 bit counter
+      n.tcnt256 := slv(unsigned(r.tcnt256) + 1);  -- advance 8 bit counter
       if unsigned(r.tcnt256) = 255 then      -- if wrap
         tcnt256_end := '1';                  -- signal 256 usec passed
       end if;
     end if;
     
     tcntsnd_end := '0';
-    n.tcntsnd := unsigned(r.tcntsnd) + 1;  -- advance send timer counter
+    n.tcntsnd := slv(unsigned(r.tcntsnd) + 1);  -- advance send timer counter
     if unsigned(r.tcntsnd) = tdlysnd-1 then -- if delay time reached 
       tcntsnd_end := '1';                    -- signal end
     end if;
@@ -559,7 +560,7 @@ begin
 
         if unsigned(r.acr_ac) <= unsigned(ac_exc) then -- if ac 0,..,10
           if IB_MREQ.rmw = '0' then                    -- if not 1st part of rmw
-            n.acr_ac := unsigned(r.acr_ac) + 1;          -- autoincrement
+            n.acr_ac := slv(unsigned(r.acr_ac) + 1);     -- autoincrement
           end if;
         end if;
         
@@ -570,7 +571,7 @@ begin
     -- sanity timer
 
     if tcnt256_end = '1' then           -- if 256 usec expired (and enabled)
-      n.stc_count := unsigned(r.stc_count) - 1;
+      n.stc_count := slv(unsigned(r.stc_count) - 1);
       if unsigned(r.stc_count) = 0 then   -- if sanity timer expired
         n.stc_tmo := '1';                   -- set timeout flag
         n.req_stsnd := '1';                 -- request st transmit
@@ -598,8 +599,8 @@ begin
                  eff_bus(i).bmask(2) xor eff_bus(i).bmask(3) xor
                  not eff_bus(i).par;
       
-      act_ibit := eff_bus(i).imask(conv_integer(unsigned(eff_id)));
-      act_bbit := eff_bus(i).bmask(conv_integer(unsigned(eff_id)));
+      act_ibit := eff_bus(i).imask(to_integer(unsigned(eff_id)));
+      act_bbit := eff_bus(i).bmask(to_integer(unsigned(eff_id)));
       
       n.dcf_brk(i) := eff_bus(i).dcf;     -- trace dcf state in brk
       

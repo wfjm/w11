@@ -1,6 +1,6 @@
--- $Id: pdp11_bram.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: pdp11_bram.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2008- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,9 +18,10 @@
 -- Dependencies:   memlib/ram_2swsr_rfirst_gen
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   1.0.3  now numeric_std clean
 -- 2008-03-01   120   1.0.2  add addrzero constant to avoid XST errors
 -- 2008-02-23   118   1.0.1  AWIDTH now a generic port
 -- 2008-02-17   117   1.0    Initial version 
@@ -28,7 +29,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.memlib.all;
@@ -112,7 +113,7 @@ begin
   proc_regs: process (CLK)
   begin
 
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if GRESET = '1' then
         R_REGS <= regs_init;
       else

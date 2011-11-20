@@ -1,6 +1,6 @@
--- $Id: tb_nexys2_core.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: tb_nexys2_core.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,15 +20,16 @@
 -- To test:        generic, any nexys2 target
 --
 -- Target Devices: generic
--- Tool versions:  xst 11.4; ghdl 0.26
+-- Tool versions:  xst 11.4, 13.1; ghdl 0.26-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-19   427   1.0.1  now numeric_std clean
 -- 2010-05-23   294   1.0    Initial version (derived from tb_s3board_core)
 ------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 use ieee.std_logic_textio.all;
 use std.textio.all;
 
@@ -59,8 +60,8 @@ architecture sim of tb_nexys2_core is
   signal R_SWI : slv8 := (others=>'0');
   signal R_BTN : slv4 := (others=>'0');
 
-  constant sbaddr_swi:  slv8 := conv_std_logic_vector( 16,8);
-  constant sbaddr_btn:  slv8 := conv_std_logic_vector( 17,8);
+  constant sbaddr_swi:  slv8 := slv(to_unsigned( 16,8));
+  constant sbaddr_btn:  slv8 := slv(to_unsigned( 17,8));
 
 begin
   

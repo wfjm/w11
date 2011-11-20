@@ -1,4 +1,4 @@
--- $Id: rbd_rbmon.vhd 387 2011-07-03 17:24:52Z mueller $
+-- $Id: rbd_rbmon.vhd 427 2011-11-19 21:04:11Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,7 +20,7 @@
 -- Test bench:     rlink/tb/tb_rlink_tba_ttcombo
 --
 -- Target Devices: generic
--- Tool versions:  xst 12.1; ghdl 0.29
+-- Tool versions:  xst 12.1, 13.1; ghdl 0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -28,6 +28,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-19   427   1.0.3  now numeric_std clean
 -- 2011-03-27   374   1.0.2  rename ncyc -> nbusy because it counts busy cycles
 -- 2010-12-31   352   1.0.1  simplify irb_ack logic
 -- 2010-12-27   349   1.0    Initial version 
@@ -63,7 +64,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.memlib.all;
@@ -71,7 +72,7 @@ use work.rblib.all;
 
 entity rbd_rbmon is                     -- rbus dev: rbus monitor
   generic (
-    RB_ADDR : slv8 := conv_std_logic_vector(2#11111100#,8);
+    RB_ADDR : slv8 := slv(to_unsigned(2#11111100#,8));
     AWIDTH : positive := 9);
   port (
     CLK  : in slbit;                    -- clock
@@ -197,7 +198,7 @@ begin
 
   proc_regs: process (CLK)
   begin
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if RESET = '1' then
         R_REGS <= regs_init;
       else
@@ -282,7 +283,7 @@ begin
             irb_err := '1';
           end if;
           if RB_MREQ.re = '1' then
-            n.waddr := unsigned(r.waddr) + 1;
+            n.waddr := slv(unsigned(r.waddr) + 1);
             if r.waddr = "11" then
               laddr_inc := '1';
             end if;
@@ -352,7 +353,7 @@ begin
           n.rberr := '1';
         end if;
         if r.rbnbusy /= rbnbusylast then      -- and count  
-          n.rbnbusy := unsigned(r.rbnbusy) + 1;
+          n.rbnbusy := slv(unsigned(r.rbnbusy) + 1);
         end if;
       end if;
       n.rbnak  := not RB_SRES_SUM.ack;
@@ -368,13 +369,13 @@ begin
         n.rbndly := (others=>'0');          -- clear delay counter
       else                                -- just idle
         if r.rbndly /= rbndlylast then      -- count cycles
-          n.rbndly := unsigned(r.rbndly) + 1;
+          n.rbndly := slv(unsigned(r.rbndly) + 1);
         end if;
       end if;
     end if;
 
     if laddr_inc = '1' then
-      n.laddr := unsigned(r.laddr) + 1;
+      n.laddr := slv(unsigned(r.laddr) + 1);
       if r.go='1' and r.laddr=laddrlast then
         n.wrap := '1';
       end if;

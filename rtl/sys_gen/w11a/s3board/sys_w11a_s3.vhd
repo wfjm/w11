@@ -1,4 +1,4 @@
--- $Id: sys_w11a_s3.vhd 404 2011-08-07 22:00:25Z mueller $
+-- $Id: sys_w11a_s3.vhd 427 2011-11-19 21:04:11Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -35,10 +35,11 @@
 -- Test bench:     tb/tb_sys_w11a_s3
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 10.1, 11.4, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 10.1, 11.4, 12.1, 13.1; ghdl 0.18-0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2011-11-19   427 13.1    O40d xc3s1000-4  1322 4298  242 2616 OK: LP+PC+DL+II
 -- 2010-12-30   351 12.1    M53d xc3s1000-4  1316 4291  242 2609 OK: LP+PC+DL+II
 -- 2010-11-06   336 12.1    M53d xc3s1000-4  1284 4253* 242 2575 OK: LP+PC+DL+II
 -- 2010-10-24   335 12.1    M53d xc3s1000-4  1284 4495  242 2575 OK: LP+PC+DL+II
@@ -71,6 +72,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-19   427   1.4.3  now numeric_std clean
 -- 2011-07-09   391   1.4.2  use now bp_rs232_2l4l_iob
 -- 2011-07-08   390   1.4.1  use now sn_humanio
 -- 2010-12-30   351   1.4    ported to rbv3
@@ -129,7 +131,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.genlib.all;

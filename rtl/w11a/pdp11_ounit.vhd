@@ -1,6 +1,6 @@
--- $Id: pdp11_ounit.vhd 330 2010-09-19 17:43:53Z mueller $
+-- $Id: pdp11_ounit.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2006-2007 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,9 +18,10 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   1.1.1  now numeric_std clean
 -- 2010-09-18   300   1.1    renamed from abox
 -- 2007-06-14    56   1.0.1  Use slvtypes.all
 -- 2007-05-12    26   1.0    Initial version 
@@ -28,7 +29,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.pdp11.all;
@@ -92,9 +93,9 @@ begin
     end case;
 
     if OPSUB = '0' then
-      sum := unsigned(ma) + unsigned(mb);
+      sum := slv(unsigned(ma) + unsigned(mb));
     else
-      sum := unsigned(ma) - unsigned(mb);        
+      sum := slv(unsigned(ma) - unsigned(mb));
     end if;
 
     nzo := '0';

@@ -1,4 +1,4 @@
--- $Id: rlink_serport.vhd 406 2011-08-14 21:06:44Z mueller $
+-- $Id: rlink_serport.vhd 427 2011-11-19 21:04:11Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,7 +20,7 @@
 -- Test bench:     tb/tb_rlink_serport
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 12.1, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1, 13.1; ghdl 0.18-0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -28,6 +28,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-19   427   3.1.2  now numeric_std clean
 -- 2011-08-14   406   3.1.1  cleaner code for RL_SER_MONI.clkdiv assignment
 -- 2010-12-25   348   3.1    re-written, is now a serial to rlink_base adapter
 -- 2010-12-24   347   3.0.1  rename: CP_*->RL->*
@@ -42,7 +43,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.serport.all;
@@ -51,7 +52,7 @@ use work.rlinklib.all;
 
 entity rlink_serport is                 -- rlink serport adapter
   generic (
-    RB_ADDR : slv8 := conv_std_logic_vector(2#11111110#,8);
+    RB_ADDR : slv8 := slv(to_unsigned(2#11111110#,8));
     CDWIDTH : positive := 13;           -- clk divider width
     CDINIT : natural   := 15);          -- clk divider initial/reset setting
   port (
@@ -144,7 +145,7 @@ begin
   proc_regs: process (CLK)
   begin
 
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if RESET = '1' then
         R_REGS <= regs_init;
       else
@@ -204,7 +205,7 @@ begin
         n.flpbusy := '1';
         n.flpcnt  := r.fwidth;
       else
-        n.fldcnt := unsigned(r.fldcnt) - 1;
+        n.fldcnt := slv(unsigned(r.fldcnt) - 1);
       end if;
     end if;
 
@@ -212,7 +213,7 @@ begin
       if unsigned(r.flpcnt) = 0 then
         n.flpbusy := '0';
       else
-        n.flpcnt := unsigned(r.flpcnt) - 1;
+        n.flpcnt := slv(unsigned(r.flpcnt) - 1);
       end if;
     end if;
     

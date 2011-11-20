@@ -1,4 +1,4 @@
--- $Id: rlink_rlb2rl.vhd 350 2010-12-28 16:40:11Z mueller $
+-- $Id: rlink_rlb2rl.vhd 427 2011-11-19 21:04:11Z mueller $
 --
 -- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -70,7 +70,6 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
 
 use work.slvtypes.all;
 use work.comlib.all;

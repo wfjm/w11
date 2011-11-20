@@ -1,6 +1,6 @@
--- $Id: pdp11_irq.vhd 335 2010-10-24 22:24:23Z mueller $
+-- $Id: pdp11_irq.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,10 +18,11 @@
 -- Dependencies:   ib_sel
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   1.2.2  now numeric_std clean
 -- 2010-10-23   335   1.2.1  use ib_sel
 -- 2010-10-17   333   1.2    use ibus V2 interface
 -- 2008-08-22   161   1.1.4  use iblib
@@ -36,7 +37,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.iblib.all;
@@ -61,7 +62,7 @@ end pdp11_irq;
 
 architecture syn of pdp11_irq is
   
-  constant ibaddr_pirq : slv16 := conv_std_logic_vector(8#177772#,16);
+  constant ibaddr_pirq : slv16 := slv(to_unsigned(8#177772#,16));
 
   subtype  pirq_ubf_pir    is integer range 15 downto 9;
   subtype  pirq_ubf_pia_h  is integer range  7 downto 5;
@@ -101,7 +102,7 @@ begin
  
   proc_pirq : process (CLK)
   begin
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if BRESET = '1' then
         R_PIRQ <= (others => '0');
       elsif IBSEL_PIRQ='1' and IB_MREQ.we='1'and IB_MREQ.be1='1'  then
@@ -120,7 +121,7 @@ begin
             "000";
 
   proc_irq : process (PI_PRI, EI_PRI, EI_VECT, INT_ACK)
-
+    constant vect_default : slv9 := slv(to_unsigned(8#240#,9));
   begin
 
     EI_ACKM <= '0';
@@ -131,7 +132,7 @@ begin
       EI_ACKM <= INT_ACK;
     else
       PRI  <= PI_PRI;
-      VECT <= conv_std_logic_vector(8#240#,9)(8 downto 2);      
+      VECT <= vect_default(8 downto 2);
     end if;
     
   end process proc_irq;

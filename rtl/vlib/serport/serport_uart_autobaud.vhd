@@ -1,6 +1,6 @@
--- $Id: serport_uart_autobaud.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: serport_uart_autobaud.vhd 417 2011-10-22 10:30:29Z mueller $
 --
--- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,9 +18,10 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_serport_autobaud
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4; ghdl 0.18-0.26
+-- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-10-22   417   1.0.4  now numeric_std clean
 -- 2010-04-18   279   1.0.3  change ccnt start value to -3, better rounding
 -- 2007-10-14    89   1.0.2  all instantiation with CDINIT=0
 -- 2007-10-12    88   1.0.1  avoid ieee.std_logic_unsigned, use cast to unsigned
@@ -29,7 +30,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 
@@ -75,11 +76,11 @@ architecture syn of serport_uart_autobaud is
   --   --> ccntinit = -3
   
   constant ccntinit : slv(CDWIDTH-1+3 downto 0) :=
-    conv_std_logic_vector(2**(CDWIDTH+3)-3, CDWIDTH+3);
+    slv(to_unsigned(2**(CDWIDTH+3)-3, CDWIDTH+3));
   constant mcntzero : slv7 := (others=>'0');
   constant mcntlast : slv7 := (others=>'1');
   constant regs_init : regs_type := (
-    conv_std_logic_vector(CDINIT,CDWIDTH)&"000",
+    slv(to_unsigned(CDINIT,CDWIDTH))&"000",
     (others=>'0'),
     '0',
     s_idle
@@ -97,7 +98,7 @@ begin
   proc_regs: process (CLK)
   begin
 
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if RESET = '1' then
         R_REGS <= regs_init;
       else
@@ -128,7 +129,7 @@ begin
         iact := '0';
         if CE_MSEC = '1' then             -- if end of msec
           if r.seen1 = '0' then             -- if no '1' seen on RXD
-            n.mcnt := unsigned(r.mcnt) + 1;   -- up break timer counter
+            n.mcnt := slv(unsigned(r.mcnt) + 1); -- up break timer counter
             if r.mcnt = mcntlast then         -- after 127 msec
               n.state := s_break;                -- break detected !
             end if;
@@ -156,7 +157,7 @@ begin
           n.state := s_idle;                -- to s_idle, autobauding done
           idone := '1';                     -- emit done pulse
         else                              -- otherwise still in '0' of sync
-          n.ccnt := unsigned(n.ccnt) + 1;   -- increment ccnt
+          n.ccnt := slv(unsigned(n.ccnt) + 1); -- increment ccnt
         end if;
 
       when others => null;              -- -----------------------------------

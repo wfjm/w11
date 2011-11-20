@@ -1,6 +1,6 @@
--- $Id: ib_intmap.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: ib_intmap.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2006-2008 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,9 +18,10 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   1.2.2  now numeric_std clean
 -- 2008-08-22   161   1.2.1  renamed pdp11_ -> ib_; use iblib
 -- 2008-01-20   112   1.2    add INTMAP generic to externalize config
 -- 2008-01-06   111   1.1    add EI_ACK output lines, remove EI_LINE
@@ -31,7 +32,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.iblib.all;
@@ -58,41 +59,41 @@ architecture syn of ib_intmap is
   type intv_type is array (15 downto 0) of slv9;
 
   constant conf_intp : intp_type :=
-    (conv_std_logic_vector(INTMAP(15).pri,3),  -- line 15
-     conv_std_logic_vector(INTMAP(14).pri,3),  -- line 14
-     conv_std_logic_vector(INTMAP(13).pri,3),  -- line 13
-     conv_std_logic_vector(INTMAP(12).pri,3),  -- line 12
-     conv_std_logic_vector(INTMAP(11).pri,3),  -- line 11
-     conv_std_logic_vector(INTMAP(10).pri,3),  -- line 10
-     conv_std_logic_vector(INTMAP( 9).pri,3),  -- line  9
-     conv_std_logic_vector(INTMAP( 8).pri,3),  -- line  8
-     conv_std_logic_vector(INTMAP( 7).pri,3),  -- line  7
-     conv_std_logic_vector(INTMAP( 6).pri,3),  -- line  6
-     conv_std_logic_vector(INTMAP( 5).pri,3),  -- line  5
-     conv_std_logic_vector(INTMAP( 4).pri,3),  -- line  4
-     conv_std_logic_vector(INTMAP( 3).pri,3),  -- line  3
-     conv_std_logic_vector(INTMAP( 2).pri,3),  -- line  2
-     conv_std_logic_vector(INTMAP( 1).pri,3),  -- line  1     
-     conv_std_logic_vector(             0,3)   -- line  0 (always 0 !!)
+    (slv(to_unsigned(INTMAP(15).pri,3)),  -- line 15
+     slv(to_unsigned(INTMAP(14).pri,3)),  -- line 14
+     slv(to_unsigned(INTMAP(13).pri,3)),  -- line 13
+     slv(to_unsigned(INTMAP(12).pri,3)),  -- line 12
+     slv(to_unsigned(INTMAP(11).pri,3)),  -- line 11
+     slv(to_unsigned(INTMAP(10).pri,3)),  -- line 10
+     slv(to_unsigned(INTMAP( 9).pri,3)),  -- line  9
+     slv(to_unsigned(INTMAP( 8).pri,3)),  -- line  8
+     slv(to_unsigned(INTMAP( 7).pri,3)),  -- line  7
+     slv(to_unsigned(INTMAP( 6).pri,3)),  -- line  6
+     slv(to_unsigned(INTMAP( 5).pri,3)),  -- line  5
+     slv(to_unsigned(INTMAP( 4).pri,3)),  -- line  4
+     slv(to_unsigned(INTMAP( 3).pri,3)),  -- line  3
+     slv(to_unsigned(INTMAP( 2).pri,3)),  -- line  2
+     slv(to_unsigned(INTMAP( 1).pri,3)),  -- line  1     
+     slv(to_unsigned(             0,3))   -- line  0 (always 0 !!)
      ); 
 
   constant conf_intv : intv_type :=
-    (conv_std_logic_vector(INTMAP(15).vec,9),  -- line 15
-     conv_std_logic_vector(INTMAP(14).vec,9),  -- line 14
-     conv_std_logic_vector(INTMAP(13).vec,9),  -- line 13
-     conv_std_logic_vector(INTMAP(12).vec,9),  -- line 12
-     conv_std_logic_vector(INTMAP(11).vec,9),  -- line 11
-     conv_std_logic_vector(INTMAP(10).vec,9),  -- line 10
-     conv_std_logic_vector(INTMAP( 9).vec,9),  -- line  9
-     conv_std_logic_vector(INTMAP( 8).vec,9),  -- line  8
-     conv_std_logic_vector(INTMAP( 7).vec,9),  -- line  7
-     conv_std_logic_vector(INTMAP( 6).vec,9),  -- line  6
-     conv_std_logic_vector(INTMAP( 5).vec,9),  -- line  5
-     conv_std_logic_vector(INTMAP( 4).vec,9),  -- line  4
-     conv_std_logic_vector(INTMAP( 3).vec,9),  -- line  3
-     conv_std_logic_vector(INTMAP( 2).vec,9),  -- line  2
-     conv_std_logic_vector(INTMAP( 1).vec,9),  -- line  1     
-     conv_std_logic_vector(             0,9)   -- line  0 (always 0 !!)
+    (slv(to_unsigned(INTMAP(15).vec,9)),  -- line 15
+     slv(to_unsigned(INTMAP(14).vec,9)),  -- line 14
+     slv(to_unsigned(INTMAP(13).vec,9)),  -- line 13
+     slv(to_unsigned(INTMAP(12).vec,9)),  -- line 12
+     slv(to_unsigned(INTMAP(11).vec,9)),  -- line 11
+     slv(to_unsigned(INTMAP(10).vec,9)),  -- line 10
+     slv(to_unsigned(INTMAP( 9).vec,9)),  -- line  9
+     slv(to_unsigned(INTMAP( 8).vec,9)),  -- line  8
+     slv(to_unsigned(INTMAP( 7).vec,9)),  -- line  7
+     slv(to_unsigned(INTMAP( 6).vec,9)),  -- line  6
+     slv(to_unsigned(INTMAP( 5).vec,9)),  -- line  5
+     slv(to_unsigned(INTMAP( 4).vec,9)),  -- line  4
+     slv(to_unsigned(INTMAP( 3).vec,9)),  -- line  3
+     slv(to_unsigned(INTMAP( 2).vec,9)),  -- line  2
+     slv(to_unsigned(INTMAP( 1).vec,9)),  -- line  1     
+     slv(to_unsigned(             0,9))   -- line  0 (always 0 !!)
      ); 
 
 --  attribute PRIORITY_EXTRACT : string;
@@ -122,7 +123,7 @@ begin
     variable iei_ack : slv16 := (others=>'0');
   begin
 
-    iline := conv_integer(unsigned(EI_LINE));
+    iline := to_integer(unsigned(EI_LINE));
 
     iei_ack := (others=>'0');
     if EI_ACKM = '1' then

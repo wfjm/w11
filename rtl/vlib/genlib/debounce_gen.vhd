@@ -1,6 +1,6 @@
--- $Id: debounce_gen.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: debounce_gen.vhd 418 2011-10-23 20:11:40Z mueller $
 --
--- Copyright 2007- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,9 +18,10 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_debounce_gen
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-10-22   418   1.0.3  now numeric_std clean
 -- 2007-12-26   105   1.0.2  add default for RESET
 -- 2007-10-12    88   1.0.1  avoid ieee.std_logic_unsigned, use cast to unsigned
 -- 2007-06-29    61   1.0    Initial version 
@@ -28,7 +29,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 
@@ -76,7 +77,7 @@ begin
   proc_regs: process (CLK)
   begin
 
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if RESET = '1' then
         R_REGS.cecnt <= cntzero;
         R_REGS.dref  <= DI;
@@ -107,7 +108,7 @@ begin
 
     if CE_INT = '1' then
       if unsigned(r.cecnt) = 0 then
-        n.cecnt := conv_std_logic_vector(CEDIV-1,CWIDTH);
+        n.cecnt := slv(to_unsigned(CEDIV-1,CWIDTH));
         n.dref  := DI;
         n.dchange := datazero;
         for i in DI'range loop
@@ -117,7 +118,7 @@ begin
         end loop;
 
       else
-        n.cecnt := unsigned(r.cecnt) - 1;
+        n.cecnt := slv(unsigned(r.cecnt) - 1);
       end if;
     end if;
     

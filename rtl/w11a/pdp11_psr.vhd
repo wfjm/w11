@@ -1,6 +1,6 @@
--- $Id: pdp11_psr.vhd 335 2010-10-24 22:24:23Z mueller $
+-- $Id: pdp11_psr.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2006-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,10 +18,11 @@
 -- Dependencies:   ib_sel
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   1.2.2  now numeric_std clean
 -- 2010-10-23   335   1.2.1  use ib_sel
 -- 2010-10-17   333   1.2    use ibus V2 interface
 -- 2009-05-30   220   1.1.4  final removal of snoopers (were already commented)
@@ -35,7 +36,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.iblib.all;
@@ -60,7 +61,7 @@ end pdp11_psr;
 
 architecture syn of pdp11_psr is
 
-  constant ibaddr_psr : slv16 := conv_std_logic_vector(8#177776#,16);
+  constant ibaddr_psr : slv16 := slv(to_unsigned(8#177776#,16));
 
   signal IBSEL_PSR : slbit := '0';
   signal R_PSW : psw_type := psw_init;  -- ps register
@@ -96,7 +97,7 @@ begin
   proc_psw : process (CLK)
   begin
       
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
 
       if CRESET = '1' then
         R_PSW <= psw_init;

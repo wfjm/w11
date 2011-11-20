@@ -1,6 +1,6 @@
--- $Id: rb_mon.vhd 346 2010-12-22 22:59:26Z mueller $
+-- $Id: rb_mon.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -17,10 +17,11 @@
 --
 -- Dependencies:   -
 -- Test bench:     -
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-19   427   3.0.1  now numeric_std clean
 -- 2010-12-22   346   3.0    renamed rritb_rbmon -> rb_mon
 -- 2010-06-05   301   2.1.1  renamed _rpmon -> _rbmon
 -- 2010-06-03   299   2.1    new init encoding (WE=0/1 int/ext)
@@ -35,7 +36,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 use ieee.std_logic_textio.all;
 use std.textio.all;
 
@@ -99,7 +100,7 @@ begin
         wait until ENA='1';             -- stall process till enabled
       end if;
 
-      wait until CLK'event and CLK='1'; -- check at end of clock cycle
+      wait until rising_edge(CLK);      -- check at end of clock cycle
 
       if RB_MREQ.aval='1' and (RB_MREQ.re='1' or RB_MREQ.we='1') then
         if RB_SRES.err = '1' then

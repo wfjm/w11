@@ -1,6 +1,6 @@
--- $Id: fifo_1c_dram_raw.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: fifo_1c_dram_raw.vhd 421 2011-11-07 21:23:50Z mueller $
 --
--- Copyright 2007- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,16 +20,17 @@
 --
 -- Test bench:     tb/tb_fifo_1c_dram
 -- Target Devices: generic Spartan, Virtex
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-07   421   1.0.2  now numeric_std clean
 -- 2007-10-12    88   1.0.1  avoid ieee.std_logic_unsigned, use cast to unsigned
 -- 2007-06-03    47   1.0    Initial version 
 ------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.memlib.all;
@@ -63,9 +64,9 @@ architecture syn of fifo_1c_dram_raw is
 
   constant memsize : positive := 2**AWIDTH;
   constant regs_init : regs_type := (
-    conv_std_logic_vector(0,AWIDTH),
-    conv_std_logic_vector(0,AWIDTH),
-    '1','0'
+    slv(to_unsigned(0,AWIDTH)),         -- waddr
+    slv(to_unsigned(0,AWIDTH)),         -- raddr
+    '1','0'                             -- empty,full
   );
 
   signal R_REGS : regs_type := regs_init;  -- state registers
@@ -92,7 +93,7 @@ begin
   proc_regs: process (CLK)
   begin
 
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       R_REGS <= N_REGS;
     end if;
 
@@ -116,7 +117,7 @@ begin
 
     re_val := RE and not r.empty;
     we_val := WE and ((not r.full) or RE);
-    isize := unsigned(r.waddr) - unsigned(r.raddr);
+    isize := slv(unsigned(r.waddr) - unsigned(r.raddr));
     iram_we := '0';
     
     if RESET = '1' then
@@ -125,7 +126,7 @@ begin
     else
 
       if we_val = '1' then
-        n.waddr := unsigned(r.waddr) + 1;
+        n.waddr := slv(unsigned(r.waddr) + 1);
         iram_we := '1';
         if re_val = '0' then
           n.empty := '0';
@@ -136,7 +137,7 @@ begin
       end if;
 
       if re_val = '1' then
-        n.raddr := unsigned(r.raddr) + 1;
+        n.raddr := slv(unsigned(r.raddr) + 1);
         if we_val = '0' then
           n.full := '0';
           if unsigned(isize) = 1 then

@@ -1,6 +1,6 @@
--- $Id: pdp11_sequencer.vhd 335 2010-10-24 22:24:23Z mueller $
+-- $Id: pdp11_sequencer.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2006-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,10 +18,11 @@
 -- Dependencies:   ib_sel
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   1.4.2  now numeric_std clean
 -- 2010-10-23   335   1.4.1  use ib_sel
 -- 2010-10-17   333   1.4    use ibus V2 interface
 -- 2010-09-18   300   1.3.2  rename (adlm)box->(oalm)unit
@@ -59,7 +60,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.iblib.all;
@@ -94,7 +95,7 @@ end pdp11_sequencer;
 
 architecture syn of pdp11_sequencer is
 
-  constant ibaddr_cpuerr : slv16 := conv_std_logic_vector(8#177766#,16);
+  constant ibaddr_cpuerr : slv16 := slv(to_unsigned(8#177766#,16));
   
   constant cpuerr_ibf_illhlt : integer := 7;
   constant cpuerr_ibf_adderr : integer := 6;
@@ -276,7 +277,7 @@ begin
 
   proc_status: process (CLK)
   begin
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if GRESET = '1' then
         R_STATUS <= cpustat_init;
         R_CPUERR <= cpuerr_init;
@@ -293,7 +294,7 @@ begin
 
   proc_state: process (CLK)
   begin
-    if CLK'event and CLK='1' then
+    if rising_edge(CLK) then
       if GRESET = '1' then
         R_STATE <= s_idle;
       else

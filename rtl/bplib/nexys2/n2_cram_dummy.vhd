@@ -1,4 +1,4 @@
--- $Id: n2_cram_dummy.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: n2_cram_dummy.vhd 426 2011-11-18 18:14:08Z mueller $
 --
 -- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -27,7 +27,6 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
 
 use work.slvtypes.all;
 

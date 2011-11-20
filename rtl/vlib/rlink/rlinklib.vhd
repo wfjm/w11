@@ -1,6 +1,6 @@
--- $Id: rlinklib.vhd 389 2011-07-07 21:59:00Z mueller $
+-- $Id: rlinklib.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,10 +16,11 @@
 -- Description:    Definitions for rlink interface and bus entities
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1, 13.1; ghdl 0.18-0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-18   427   3.1.3  now numeric_std clean
 -- 2010-12-25   348   3.1.2  drop RL_FLUSH support, add RL_MONI for rlink_core;
 --                           new rlink_serport interface;
 --                           rename rlink_core_serport->rlink_base_serport
@@ -47,7 +48,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.rblib.all;
@@ -93,6 +94,11 @@ end record rl_moni_type;
 
 constant rl_moni_init : rl_moni_type :=
   ('0','0','0');                        -- eop,attn,lamp
+
+-- ise 13.1 xst can bug check if generic defaults in a package are defined via 
+-- 'slv(to_unsigned())'. The conv_ construct prior to numeric_std was ok.
+-- As workaround the ibus default addresses are defined here as constant.
+constant rbaddr_rlink_serport : slv8 := slv(to_unsigned(2#11111110#,8));
 
 component rlink_core is                 -- rlink core with 9bit iface
   generic (
@@ -214,7 +220,7 @@ subtype  c_rlink_serport_rbf_rtson  is integer range  2 downto 0; --
 
 component rlink_serport is              -- rlink serport adapter
   generic (
-    RB_ADDR : slv8 := conv_std_logic_vector(2#11111110#,8);
+    RB_ADDR : slv8 := rbaddr_rlink_serport;
     CDWIDTH : positive := 13;           -- clk divider width
     CDINIT : natural   := 15);          -- clk divider initial/reset setting
   port (
@@ -248,7 +254,7 @@ component rlink_base_serport is         -- rlink base+serport combo
     OFAWIDTH : natural :=  5;           -- output fifo address width (0=none)
     ENAPIN_RLMON : integer := sbcntl_sbf_rlmon;  -- SB_CNTL for rlmon (-1=none)
     ENAPIN_RBMON : integer := sbcntl_sbf_rbmon;  -- SB_CNTL for rbmon (-1=none)
-    RB_ADDR : slv8 := conv_std_logic_vector(2#11111110#,8);
+    RB_ADDR : slv8 := rbaddr_rlink_serport;
     CDWIDTH : positive := 13;           -- clk divider width
     CDINIT : natural   := 15);          -- clk divider initial/reset setting
   port (

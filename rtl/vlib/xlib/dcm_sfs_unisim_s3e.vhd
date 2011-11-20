@@ -1,6 +1,6 @@
--- $Id: dcm_sp_sfs_unisim.vhd 338 2010-11-13 22:19:25Z mueller $
+-- $Id: dcm_sfs_unisim_s3e.vhd 426 2011-11-18 18:14:08Z mueller $
 --
--- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -12,8 +12,8 @@
 -- for complete details.
 --
 ------------------------------------------------------------------------------
--- Module Name:    dcm_sp_sfs - syn
--- Description:    DCM_SP as 'simple freq. synthesis'
+-- Module Name:    dcm_sfs - syn
+-- Description:    DCM for simple frequency synthesis; SPARTAN-3E version
 --                 Direct instantiation of Xilinx UNISIM primitives
 --
 -- Dependencies:   -
@@ -23,6 +23,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-17   426   1.0.3  rename dcm_sp_sfs -> dcm_sfs, SPARTAN-3E version
+-- 2011-11-10   423   1.0.2  add FAMILY generic, SPARTAN-3 support
 -- 2010-11-12   338   1.0.1  drop SB_CLK generic; allow DIV=1,MUL=1 without DCM
 -- 2010-11-07   337   1.0    Initial version 
 ------------------------------------------------------------------------------
@@ -35,7 +37,7 @@ use unisim.vcomponents.ALL;
 
 use work.slvtypes.all;
 
-entity dcm_sp_sfs is                    -- DCM_SP as 'simple freq. synthesis'
+entity dcm_sfs is                       -- DCM for simple frequency synthesis
   generic (
     CLKFX_DIVIDE : positive := 1;       -- FX clock divide   (1-32)
     CLKFX_MULTIPLY : positive := 1;     -- FX clock multiply (2-32) (1->no DCM)
@@ -45,10 +47,10 @@ entity dcm_sp_sfs is                    -- DCM_SP as 'simple freq. synthesis'
     CLKFX : out slbit;                  -- clock output (synthesized freq.) 
     LOCKED : out slbit                  -- dcm locked
   );
-end dcm_sp_sfs;
+end dcm_sfs;
 
 
-architecture syn of dcm_sp_sfs is
+architecture syn of dcm_sfs is
 
 begin
 
@@ -60,8 +62,8 @@ begin
     CLKFX  <= CLKIN;
     LOCKED <= '1';
   end generate DCM0;
-
-  DCM1: if CLKFX_MULTIPLY >= 2 generate
+  
+  DCM1: if CLKFX_MULTIPLY>=2 generate
     
     DCM : dcm_sp
       generic map (

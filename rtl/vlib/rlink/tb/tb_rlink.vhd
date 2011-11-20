@@ -1,6 +1,6 @@
--- $Id: tb_rlink.vhd 351 2010-12-30 21:50:54Z mueller $
+-- $Id: tb_rlink.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -27,10 +27,11 @@
 --                 rlink_serport  (via tbd_rlink_serport)
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1, 13.1; ghdl 0.18-0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-19   427   3.0.7  fix crc8_update_tbl usage; now numeric_std clean
 -- 2010-12-29   351   3.0.6  use new rbd_tester addr 111100xx (from 111101xx)
 -- 2010-12-26   348   3.0.5  use simbus to export clkcycle (for tbd_..serport)
 -- 2010-12-23   347   3.0.4  use rb_mon, rlink_mon directly; rename CP_*->RL_*
@@ -94,7 +95,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 use ieee.std_logic_textio.all;
 use std.textio.all;
 
@@ -227,7 +228,7 @@ begin
 
   RBTEST : rbd_tester
     generic map (
-      RB_ADDR => conv_std_logic_vector(2#11110000#,8))
+      RB_ADDR => slv(to_unsigned(2#11110000#,8)))
     port map (
       CLK      => CLK,
       RESET    => '0',
@@ -318,7 +319,7 @@ begin
     begin
       txlist(ntxlist) := '0' & data;
       ntxlist := ntxlist + 1;
-      crc8_update_tbl(txcrc, data);
+      txcrc := crc8_update_tbl(txcrc, data);
     end procedure do_tx8;
     
     procedure do_tx16 (data : inout slv16)  is
@@ -331,7 +332,7 @@ begin
     begin
       sv_rxlist(sv_nrxlist) := '0' & data;
       sv_nrxlist := sv_nrxlist + 1;
-      crc8_update_tbl(rxcrc, data);
+      rxcrc := crc8_update_tbl(rxcrc, data);
     end procedure do_rx8;
 
     procedure do_rx16 (data : inout slv16)  is
@@ -626,7 +627,7 @@ begin
   begin
 
     loop 
-      wait until CLK'event and CLK='1';
+      wait until rising_edge(CLK);
       wait for c2out_time;
 
       if RL_VAL = '1' then

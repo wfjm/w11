@@ -1,6 +1,6 @@
--- $Id: is61lv25616al.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: is61lv25616al.vhd 427 2011-11-19 21:04:11Z mueller $
 --
--- Copyright 2007-2008 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -21,9 +21,10 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-19   427   1.0.2  now numeric_std clean
 -- 2008-05-12   145   1.0.1  BUGFIX: Output now 'Z' if byte enables deasserted 
 -- 2007-12-14   101   1.0    Initial version  (written on warsaw airport)
 ------------------------------------------------------------------------------
@@ -42,7 +43,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 
@@ -108,7 +109,7 @@ end sim;
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 
@@ -152,14 +153,14 @@ begin
     variable ram : ram_type := (others=>datzero);
   begin
 
-    if WE_EFF'event and WE_EFF='0' then   -- end of write cycle
-                                          -- note: to_x01 used below to prevent
-                                          --       that 'z' a written into mem.
-      ram(conv_integer(unsigned(ADDR))) := to_x01(DATA);
+    if falling_edge(WE_EFF) then        -- end of write cycle
+                                        -- note: to_x01 used below to prevent
+                                        --       that 'z' a written into mem.
+      ram(to_integer(unsigned(ADDR))) := to_x01(DATA);
     end if;
 
     if CE='1' and OE='1' and BE='1' and WE='0' then -- output driver
-      DATA <= ram(conv_integer(unsigned(ADDR)));
+      DATA <= ram(to_integer(unsigned(ADDR)));
     else
       DATA <= (others=>'Z');
     end if;

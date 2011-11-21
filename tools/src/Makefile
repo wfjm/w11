@@ -1,4 +1,4 @@
-# $Id: Makefile 401 2011-07-31 21:02:33Z mueller $
+# $Id: Makefile 429 2011-11-20 12:54:56Z mueller $
 #
 # Top level makefile, using the recipe found in
 #    http://www.lackof.org/taggart/hacking/make-example/
@@ -16,7 +16,6 @@ DIRS += librlink
 DIRS += librtcltools 
 DIRS += librutiltpp
 DIRS += librlinktpp
-DIRS += librusbtpp
 #
 BUILDDIRS = $(DIRS:%=build-%)
 CLEANDIRS = $(DIRS:%=clean-%)
@@ -36,7 +35,6 @@ build-librlink      : build-librtools
 build-librtcltools  : build-librtools
 build-librutiltpp   : build-librtcltools
 build-librlinktpp   : build-librlink build-librtcltools
-build-librusbtpp    : build-librtcltools
 #
 $(BUILDDIRS):
 	$(MAKE) -C $(@:build-%=%)

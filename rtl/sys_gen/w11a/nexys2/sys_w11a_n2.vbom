@@ -5,7 +5,7 @@
 ../../../vlib/rbus/rblib.vhd
 ../../../vlib/rlink/rlinklib.vbom
 ../../../bplib/bpgen/bpgenlib.vbom
-../../../bplib/nexys2/nexys2lib.vhd
+../../../bplib/nxcramlib/nxcramlib.vhd
 ../../../ibus/iblib.vhd
 ../../../ibus/ibdlib.vhd
 ../../../w11a/pdp11.vhd
@@ -21,10 +21,10 @@ sys_conf = sys_conf.vhd
 ../../../w11a/pdp11_core_rbus.vbom
 ../../../w11a/pdp11_core.vbom
 ../../../w11a/pdp11_bram.vbom
-../../../bplib/nexys2/n2_cram_dummy.vbom
+../../../bplib/nxcramlib/nx_cram_dummy.vbom
 ../../../w11a/pdp11_cache.vbom
 ../../../w11a/pdp11_mem70.vbom
-../../../bplib/nexys2/n2_cram_memctl_as.vbom
+../../../bplib/nxcramlib/nx_cram_memctl_as.vbom
 ../../../ibus/ib_sres_or_2.vbom
 ../../../ibus/ibdr_minisys.vbom
 ../../../ibus/ibdr_maxisys.vbom

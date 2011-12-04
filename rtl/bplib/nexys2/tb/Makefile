@@ -1,13 +1,14 @@
-# $Id: Makefile 405 2011-08-14 08:16:28Z mueller $
+# $Id: Makefile 433 2011-11-27 22:04:39Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2011-11-26   433   1.2    remove tb_n2_cram_memctl_as (moved to nxcramlib)
 # 2011-08-13   405   1.1    use includes from rtl/make
 # 2010-05-30   297   1.0.2  use tb_n2_cram_memctl_as now
 # 2010-05-28   295   1.0.1  add tb_.._dummy's
 # 2007-09-23    84   1.0    Initial version
 #
-EXE_all = tb_nexys2_dummy tb_nexys2_fusp_dummy tb_n2_cram_memctl_as
+EXE_all = tb_nexys2_dummy tb_nexys2_fusp_dummy
 #
 ISE_PATH = xc3s1200e-fg320-4
 #

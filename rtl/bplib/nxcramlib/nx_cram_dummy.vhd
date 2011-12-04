@@ -1,6 +1,6 @@
--- $Id: n2_cram_dummy.vhd 426 2011-11-18 18:14:08Z mueller $
+-- $Id: nx_cram_dummy.vhd 433 2011-11-27 22:04:39Z mueller $
 --
--- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -12,15 +12,17 @@
 -- for complete details.
 -- 
 ------------------------------------------------------------------------------
--- Module Name:    n2_cram_dummy - syn
--- Description:    nexys2: CRAM protection dummy
+-- Module Name:    nx_cram_dummy - syn
+-- Description:    nexys2/3: CRAM protection dummy
 --
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 11.4; ghdl 0.26
+-- Tool versions:  xst 11.4, 13.1; ghdl 0.26-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-26   433   1.2    renamed from n2_cram_dummy
+-- 2011-11-23   432   1.1    remove O_FLA_CE_N port
 -- 2010-05-28   295   1.0.1  use _ADV_N
 -- 2010-05-21   292   1.0    Initial version 
 ------------------------------------------------------------------------------
@@ -30,7 +32,7 @@ use ieee.std_logic_1164.all;
 
 use work.slvtypes.all;
 
-entity n2_cram_dummy is                 -- CRAM protection dummy
+entity nx_cram_dummy is                 -- CRAM protection dummy
   port (
     O_MEM_CE_N : out slbit;             -- cram: chip enable   (act.low)
     O_MEM_BE_N : out slv2;              -- cram: byte enables  (act.low)
@@ -40,14 +42,13 @@ entity n2_cram_dummy is                 -- CRAM protection dummy
     O_MEM_CLK : out slbit;              -- cram: clock
     O_MEM_CRE : out slbit;              -- cram: command register enable
     I_MEM_WAIT : in slbit;              -- cram: mem wait
-    O_FLA_CE_N : out slbit;             -- flash ce..          (act.low)
     O_MEM_ADDR  : out slv23;            -- cram: address lines
     IO_MEM_DATA : inout slv16           -- cram: data lines
   );
-end n2_cram_dummy;
+end nx_cram_dummy;
 
 
-architecture syn of n2_cram_dummy is
+architecture syn of nx_cram_dummy is
 begin
 
   O_MEM_CE_N  <= '1';                    -- disable cram chip
@@ -57,7 +58,6 @@ begin
   O_MEM_ADV_N <= '1';
   O_MEM_CLK   <= '0';
   O_MEM_CRE   <= '0';
-  O_FLA_CE_N  <= '1';
   O_MEM_ADDR  <= (others=>'0');
   IO_MEM_DATA <= (others=>'0');
   

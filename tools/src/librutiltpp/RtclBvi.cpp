@@ -1,4 +1,4 @@
-// $Id: RtclBvi.cpp 375 2011-04-02 07:56:47Z mueller $
+// $Id: RtclBvi.cpp 434 2011-12-02 19:17:38Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2011-11-28   434   1.0.1  DoCmd(): use intptr_t cast for lp64 compatibility
 // 2011-03-27   374   1.0    Initial version
 // 2011-02-13   361   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclBvi.cpp 375 2011-04-02 07:56:47Z mueller $
+  \version $Id: RtclBvi.cpp 434 2011-12-02 19:17:38Z mueller $
   \brief   Implemenation of RtclBvi.
 */
 
@@ -64,7 +65,8 @@ int RtclBvi::DoCmd(ClientData cdata, Tcl_Interp* interp, int objc,
   int nbit  = 0;
   if (!CheckFormat(interp, objc, objv, list, form, nbit)) return kERR;
   
-  ConvMode mode = (ConvMode)((int) cdata);
+  //ConvMode mode = (ConvMode)((int) cdata);
+  ConvMode mode = (ConvMode)((intptr_t) cdata);
 
   if (list) {
     int lobjc = 0;

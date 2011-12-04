@@ -35,11 +35,17 @@ Guide to run operating system images on w11a systems
 
 2. FPGA Board setup -------------------------------------------------------
 
-   - connect the USB-RS232 cable to the RS232 port of the s3board or nexys2
-   - set the latency timer of the USB-RS232, e.g. with
-       sudo $RETROBASE/tools/bin/set_ftdi_lat USB0 1
-   - ensure that all 8 switches are in '0' position
-   - load the w11a design into the FPGA, e.g. via impact
+   - for s3board and nexys2
+     - connect the USB-RS232 cable to the RS232 port of the s3board or nexys2
+     - set the latency timer of the USB-RS232, e.g. with
+         sudo $RETROBASE/tools/bin/set_ftdi_lat USB0 1
+     - ensure that all 8 switches are in '0' position
+     - load the w11a design into the FPGA, e.g. via impact
+
+   - for nexys3
+     - connect USB cable to the 'usb uart' port (next to the 5 buttons)
+     - ensure that all 8 switches are in '0' position
+     - load the w11a design into the FPGA, e.g. via impact
 
 3. Unix V5 system ---------------------------------------------------------
 
@@ -53,7 +59,8 @@ Guide to run operating system images on w11a systems
        cd $RETROBASE/rtl/sys_gen/w11a/tb
        sudo $RETROBASE/tools/bin/set_ftdi_lat USB0 1
        telnet_starter -d DL0 &
-       dorri -u0,460 @uv5_boot.pcmd
+       [for s3,n2:]   dorri -u0,460      @uv5_boot.pcmd
+       [for n3:]      dorri -u0,500,1,0  @uv5_boot.pcmd
 
    - the boot dialog in the console xterm window will look like
      (required input is in {..}, with {<CR>} denoting a carriage return:
@@ -92,7 +99,8 @@ Guide to run operating system images on w11a systems
        sudo $RETROBASE/tools/bin/set_ftdi_lat USB0 1
        telnet_starter -d DL0 &
        telnet_starter -d DL1 &
-       dorri -u0,460 @211bsd_rk_boot.pcmd
+       [for s3,n2:]   dorri -u0,460      @211bsd_rk_boot.pcmd
+       [for n3:]      dorri -u0,500,1,0  @211bsd_rk_boot.pcmd
 
    - the boot dialog in the console xterm window will look like
      (required input is in {..}, with {<CR>} denoting a carriage return:

@@ -1,0 +1,23 @@
+# Not meant for direct top level usage. Used with 
+# tb_nexys3_fusp_(....)[_ssim].vbom and config
+# lines to generate the different cases.
+#
+# libs
+../../../vlib/slvtypes.vhd
+../../../vlib/rlink/rlinklib.vbom
+../../../vlib/rlink/tb/rlinktblib.vhd
+../../../vlib/serport/serport.vhd
+../../../vlib/xlib/xlib.vhd
+../nexys3lib.vhd
+../../../vlib/simlib/simlib.vhd
+../../../vlib/simlib/simbus.vhd
+sys_conf : sys_conf_sim.vhd
+# components
+../../../vlib/rlink/tb/tbcore_rlink_dcm.vbom
+../../../vlib/xlib/dcm_sfs_gsim.vbom
+tb_nexys3_core.vbom
+../../../vlib/serport/serport_uart_rxtx.vbom
+nexys3_fusp_aif : nexys3_fusp_dummy.vbom
+# design
+tb_nexys3_fusp.vhd
+@top:tb_nexys3_fusp

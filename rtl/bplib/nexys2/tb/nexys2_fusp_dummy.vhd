@@ -1,6 +1,6 @@
--- $Id: nexys2_fusp_dummy.vhd 338 2010-11-13 22:19:25Z mueller $
+-- $Id: nexys2_fusp_dummy.vhd 433 2011-11-27 22:04:39Z mueller $
 --
--- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,10 +18,12 @@
 -- Dependencies:   -
 -- To test:        tb_nexys2
 -- Target Devices: generic
--- Tool versions:  xst 11.4, 12.1; ghdl 0.26-0.29
+-- Tool versions:  xst 11.4, 12.1, 13.1; ghdl 0.26-0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-26   433   1.2    use nxcramlib
+-- 2011-11-23   432   1.1    remove O_FLA_CE_N port from n2_cram_dummy
 -- 2010-11-13   338   1.0.2  add O_CLKSYS (for DCM derived system clock)
 -- 2010-11-06   336   1.0.1  rename input pin CLK -> I_CLK50
 -- 2010-05-28   295   1.0    Initial version (derived from s3board_fusp_dummy)
@@ -31,7 +33,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 use work.slvtypes.all;
-use work.nexys2lib.all;
+use work.nxcramlib.all;
 
 entity nexys2_fusp_dummy is             -- NEXYS 2 dummy (base+fusp; loopback)
                                         -- implements nexys2_fusp_aif
@@ -40,9 +42,9 @@ entity nexys2_fusp_dummy is             -- NEXYS 2 dummy (base+fusp; loopback)
     O_CLKSYS : out slbit;               -- DCM derived system clock
     I_RXD : in slbit;                   -- receive data (board view)
     O_TXD : out slbit;                  -- transmit data (board view)
-    I_SWI : in slv8;                    -- s3 switches
-    I_BTN : in slv4;                    -- s3 buttons
-    O_LED : out slv8;                   -- s3 leds
+    I_SWI : in slv8;                    -- n2 switches
+    I_BTN : in slv4;                    -- n2 buttons
+    O_LED : out slv8;                   -- n2 leds
     O_ANO_N : out slv4;                 -- 7 segment disp: anodes   (act.low)
     O_SEG_N : out slv8;                 -- 7 segment disp: segments (act.low)
     O_MEM_CE_N : out slbit;             -- cram: chip enable   (act.low)
@@ -53,9 +55,9 @@ entity nexys2_fusp_dummy is             -- NEXYS 2 dummy (base+fusp; loopback)
     O_MEM_CLK : out slbit;              -- cram: clock
     O_MEM_CRE : out slbit;              -- cram: command register enable
     I_MEM_WAIT : in slbit;              -- cram: mem wait
-    O_FLA_CE_N : out slbit;             -- flash ce..          (act.low)
     O_MEM_ADDR  : out slv23;            -- cram: address lines
     IO_MEM_DATA : inout slv16;          -- cram: data lines
+    O_FLA_CE_N : out slbit;             -- flash ce..          (act.low)
     O_FUSP_RTS_N : out slbit;           -- fusp: rs232 rts_n
     I_FUSP_CTS_N : in slbit;            -- fusp: rs232 cts_n
     I_FUSP_RXD : in slbit;              -- fusp: rs232 rx
@@ -72,7 +74,7 @@ begin
   O_FUSP_TXD   <= I_FUSP_RXD;
   O_FUSP_RTS_N <= I_FUSP_CTS_N;
 
-  CRAM : n2_cram_dummy                  -- connect CRAM to protection dummy
+  CRAM : nx_cram_dummy                  -- connect CRAM to protection dummy
     port map (
       O_MEM_CE_N  => O_MEM_CE_N,
       O_MEM_BE_N  => O_MEM_BE_N,
@@ -82,9 +84,10 @@ begin
       O_MEM_CLK   => O_MEM_CLK,
       O_MEM_CRE   => O_MEM_CRE,
       I_MEM_WAIT  => I_MEM_WAIT,
-      O_FLA_CE_N  => O_FLA_CE_N,
       O_MEM_ADDR  => O_MEM_ADDR,
       IO_MEM_DATA => IO_MEM_DATA
     );
+  
+  O_FLA_CE_N  <= '1';                   -- keep Flash memory disabled
 
 end syn;

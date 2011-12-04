@@ -1,0 +1,34 @@
+# libs
+../../../vlib/slvtypes.vhd
+../../../vlib/xlib/xlib.vhd
+../../../vlib/genlib/genlib.vhd
+../../../vlib/rbus/rblib.vhd
+../../../vlib/rlink/rlinklib.vbom
+../../../bplib/bpgen/bpgenlib.vbom
+../../../bplib/nxcramlib/nxcramlib.vhd
+../../../ibus/iblib.vhd
+../../../ibus/ibdlib.vhd
+../../../w11a/pdp11.vhd
+sys_conf = sys_conf.vhd
+# components
+[xst,isim]../../../vlib/xlib/dcm_sfs_unisim_s3e.vbom
+[ghdl]../../../vlib/xlib/dcm_sfs_gsim.vbom
+../../../vlib/genlib/clkdivce.vbom
+../../../bplib/bpgen/bp_rs232_2l4l_iob.vbom
+../../../bplib/bpgen/sn_humanio_rbus.vbom
+../../../vlib/rlink/rlink_base_serport.vbom
+../../../vlib/rbus/rb_sres_or_3.vbom
+../../../w11a/pdp11_core_rbus.vbom
+../../../w11a/pdp11_core.vbom
+../../../w11a/pdp11_bram.vbom
+../../../bplib/nxcramlib/nx_cram_dummy.vbom
+../../../w11a/pdp11_cache.vbom
+../../../w11a/pdp11_mem70.vbom
+../../../bplib/nxcramlib/nx_cram_memctl_as.vbom
+../../../ibus/ib_sres_or_2.vbom
+../../../ibus/ibdr_minisys.vbom
+../../../ibus/ibdr_maxisys.vbom
+[ghdl,isim]../../../w11a/pdp11_tmu_sb.vbom
+# design
+sys_w11a_n3.vhd
+@ucf_cpp: sys_w11a_n3.ucf

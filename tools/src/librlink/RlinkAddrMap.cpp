@@ -1,4 +1,4 @@
-// $Id: RlinkAddrMap.cpp 375 2011-04-02 07:56:47Z mueller $
+// $Id: RlinkAddrMap.cpp 434 2011-12-02 19:17:38Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2011-11-28   434   1.0.1  Print(): use proper cast for lp64 compatibility
 // 2011-03-06   367   1.0    Initial version
 // 2011-03-05   366   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RlinkAddrMap.cpp 375 2011-04-02 07:56:47Z mueller $
+  \version $Id: RlinkAddrMap.cpp 434 2011-12-02 19:17:38Z mueller $
   \brief   Implemenation of class RlinkAddrMap.
  */
 
@@ -157,7 +158,7 @@ size_t RlinkAddrMap::MaxNameLength() const
 
 void RlinkAddrMap::Print(std::ostream& os, int ind) const
 {
-  size_t maxlen = max(6u, MaxNameLength());
+  size_t maxlen = max(((size_t) 6), MaxNameLength());
   
   RosFill bl(ind);
   for (amap_cit_t it=fAddrMap.begin(); it!=fAddrMap.end(); it++) {

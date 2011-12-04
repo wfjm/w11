@@ -1,4 +1,4 @@
-// $Id: RtclRlinkConnect.hpp 375 2011-04-02 07:56:47Z mueller $
+// $Id: RtclRlinkConnect.hpp 434 2011-12-02 19:17:38Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2011-11-28   434   1.0.1  ConfigBase(): use uint32_t for lp64 compatibility
 // 2011-03-27   374   1.0    Initial version
 // 2011-02-11   360   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclRlinkConnect.hpp 375 2011-04-02 07:56:47Z mueller $
+  \version $Id: RtclRlinkConnect.hpp 434 2011-12-02 19:17:38Z mueller $
   \brief   Declaration of class RtclRlinkConnect.
 */
 
@@ -59,7 +60,7 @@ namespace Retro {
       bool          GetAddr(RtclArgs& args, RlinkConnect& conn, uint16_t& addr);
       bool          GetVarName(RtclArgs& args, const char* argname, 
                                size_t nind, std::vector<std::string>& varname);
-      bool          ConfigBase(RtclArgs& args, size_t& base);
+      bool          ConfigBase(RtclArgs& args, uint32_t& base);
       bool          ClistNonEmpty(RtclArgs& args, 
                                   const RlinkCommandList& clist);
 

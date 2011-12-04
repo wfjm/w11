@@ -1,4 +1,4 @@
--- $Id: tb_nexys2_fusp.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: tb_nexys2_fusp.vhd 433 2011-11-27 22:04:39Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -27,6 +27,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-26   433   3.1.1  remove O_FLA_CE_N from tb_nexys2_core
+-- 2011-11-21   432   3.1    update O_FLA_CE_N usage
 -- 2011-11-19   427   3.0.1  now numeric_std clean
 -- 2010-12-29   351   3.0    use rlink/tb now
 -- 2010-11-13   338   1.0.2  now dcm aware: add O_CLKSYS, use rritb_core_dcm
@@ -84,9 +86,9 @@ architecture sim of tb_nexys2_fusp is
   signal O_MEM_CLK   : slbit := '0';
   signal O_MEM_CRE   : slbit := '0';
   signal I_MEM_WAIT  : slbit := '0';
-  signal O_FLA_CE_N  : slbit := '0';
   signal O_MEM_ADDR  : slv23 := (others=>'Z');
   signal IO_MEM_DATA : slv16 := (others=>'0');
+  signal O_FLA_CE_N  : slbit := '0';
 
   signal O_FUSP_RTS_N : slbit := '0';
   signal I_FUSP_CTS_N : slbit := '0';
@@ -140,7 +142,6 @@ begin
       O_MEM_CLK   => O_MEM_CLK,
       O_MEM_CRE   => O_MEM_CRE,
       I_MEM_WAIT  => I_MEM_WAIT,
-      O_FLA_CE_N  => O_FLA_CE_N,
       O_MEM_ADDR  => O_MEM_ADDR,
       IO_MEM_DATA => IO_MEM_DATA
     );
@@ -164,9 +165,9 @@ begin
       O_MEM_CLK    => O_MEM_CLK,
       O_MEM_CRE    => O_MEM_CRE,
       I_MEM_WAIT   => I_MEM_WAIT,
-      O_FLA_CE_N   => O_FLA_CE_N,
       O_MEM_ADDR   => O_MEM_ADDR,
       IO_MEM_DATA  => IO_MEM_DATA,
+      O_FLA_CE_N   => O_FLA_CE_N,
       O_FUSP_RTS_N => O_FUSP_RTS_N,
       I_FUSP_CTS_N => I_FUSP_CTS_N,
       I_FUSP_RXD   => I_FUSP_RXD,

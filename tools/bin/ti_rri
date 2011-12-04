@@ -1,6 +1,6 @@
 #! /usr/bin/env tclsh
 # -*- tcl -*-
-# $Id: ti_rri 386 2011-07-01 17:31:03Z mueller $
+# $Id: ti_rri 435 2011-12-04 20:15:25Z mueller $
 #
 # Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -15,13 +15,14 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2011-12-04   435   1.0.2  add flow attribute to --term
 # 2011-04-22   379   1.0.1  check for RETROBASE; proper exit handling; help text
 # 2011-04-17   376   1.0    Initial version
 # 2011-03-19   371   0.1    First draft
 #
 #
 # --fifo[=name,keep]
-# --term[=name,baud,break]
+# --term[=name,baud,break,flow]
 # --run=command
 # --log=filename      ; default "-"
 # --logl=n            ; default 2
@@ -109,7 +110,7 @@ if { $opts(help) } {
   puts {                     NAME  fifo name prefix, default 'rlink_cext_fifo'}
   puts {                     KEEP  if non-empty the fifo is kept open on exit}
   puts {  --term[=ARGS]  open term type rlink port. Optional arguments are:}
-  puts {                   --term=[NAME,[BAUD,[BREAK]]]}
+  puts {                   --term=[NAME[,BAUD[,BREAK[,FLOW]]]]}
   puts {                     NAME  tty device name, default 'USB0'}
   puts {                           if not starting with '/' the name is}
   puts {                           prefixed with '/dev/tty'}
@@ -119,6 +120,12 @@ if { $opts(help) } {
   puts {                             115200, 115k, 230400, 230k, 460800, 460k}
   puts {                             500000, 500k, 921600, 921k, 1000000, 1M}
   puts {                             2000000, 2M, 3000000, 3M}
+  puts {                     BREAK controls whether a break will be send:}
+  puts {                             0 no break (default)}
+  puts {                             1 send break, do autobaud}
+  puts {                     FLOW  controls flow control regime:}
+  puts {                             0 no flow control (default)}
+  puts {                             1 cts/rts hardware flow control}
   puts {  --log=FILE     set log file name. Default is to write to stdout.}
   puts {  --logl=LVL     set log level, default is '2' allowed values:}
   puts {                   0 no logging}
@@ -197,13 +204,18 @@ if { $opts(term) } {
   set dev  [lindex $nlist 0]
   set baud [lindex $nlist 1]
   set brk  [lindex $nlist 2]
+  set flow [lindex $nlist 3]
   if {$dev  eq ""} {set dev  "USB0"}
   if {$baud eq ""} {set baud "115k"}
+  if {$brk  eq ""} {set brk  0}
+  if {$flow eq ""} {set flow 0}
   if {! [regexp -- {^/} $dev]} {
     set dev "/dev/tty$dev"
   }
   set url "term:$dev?baud=$baud"
-  if {$brk ne ""} {append url ";break"}
+  if {$brk  eq 1} {append url ";break"}
+  if {$flow eq 1} {append url ";cts"}
+  # puts "-I: $url"
   rlc open $url
 }
 

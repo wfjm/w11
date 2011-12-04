@@ -1,4 +1,4 @@
-# $Id: README.txt 428 2011-11-20 12:19:31Z mueller $
+# $Id: README.txt 434 2011-12-02 19:17:38Z mueller $
 
 Release notes for w11a
 
@@ -28,13 +28,16 @@ Release notes for w11a
    rtl/bplib/issi                 - for ISSI parts
    rtl/bplib/micron               - for Micron parts
    rtl/bplib/nexys2               - for Digilent Nexsy2 board
+   rtl/bplib/nexys3               - for Digilent Nexsy3 board
    rtl/bplib/s3board              - for Digilent S3BOARD
    rtl/ibus                     - ibus devices (UNIBUS peripherals)
    rtl/sys_gen                  - top level designs
    rtl/sys_gen/tst_rlink          - top level designs for an rlink tester
    rtl/sys_gen/tst_rlink/nexys2     - rlink tester system for Digilent Nexsy2
+   rtl/sys_gen/tst_rlink/nexys3     - rlink tester system for Digilent Nexsy3
    rtl/sys_gen/w11a               - top level designs for w11a SoC
    rtl/sys_gen/w11a/nexys2          - w11a SoC for Digilent Nexsy2
+   rtl/sys_gen/w11a/nexys3          - w11a SoC for Digilent Nexsy3
    rtl/sys_gen/w11a/s3board         - w11a SoC for Digilent S3BOARD
    rtl/vlib                     - VHDL component libs
    rtl/vlib/comlib                - communication
@@ -60,7 +63,25 @@ Release notes for w11a
 
 3. Change Log ----------------------------------------------------------------
 
-- trunk (2011-11-20: svn rev 13(oc) 428(wfjm); untagged w11a_V0.532) +++++++++
+- trunk (2011-12-04: svn rev 15(oc) 436(wfjm); untagged w11a_V0.54)  +++++++++
+
+  - Summary
+    - added support for nexys3 board for w11a
+
+  - New features
+    - new systems
+      - sys_gen/w11a/sys_w11a_n3
+      - sys_gen/w11a/sys_tst_rlink_n3
+
+  - Changes
+    - module renames:
+        bplib/nexys2/n2_cram_dummy     -> bplib/nxcramlib/nx_cram_dummy
+        bplib/nexys2/n2_cram_memctl_as -> bplib/nxcramlib/nx_cram_memctl_as
+
+  - Bug fixes
+    - tools/src/lib*: backend libraries compile now on 64 bit systems
+
+- trunk (2011-11-20: svn rev 14(oc) 428(wfjm); untagged w11a_V0.532) +++++++++
 
   - Summary
     - generalized the 'human I/O' interface for s3board,nexys2/3 and atlys

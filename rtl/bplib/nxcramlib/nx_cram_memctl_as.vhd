@@ -1,4 +1,4 @@
--- $Id: n2_cram_memctl_as.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: nx_cram_memctl_as.vhd 433 2011-11-27 22:04:39Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -12,14 +12,14 @@
 -- for complete details.
 -- 
 ------------------------------------------------------------------------------
--- Module Name:    n2_cram_memctl_as - syn
--- Description:    nexys2: CRAM driver - async and page mode
+-- Module Name:    nx_cram_memctl_as - syn
+-- Description:    nexys2/3: CRAM driver - async and page mode
 --
 -- Dependencies:   vlib/xlib/iob_reg_o
 --                 vlib/xlib/iob_reg_o_gen
 --                 vlib/xlib/iob_reg_io_gen
--- Test bench:     tb/tb_n2_cram_memctl
---                 fw_gen/tst_sram/nexys2/tb/tb_tst_sram_n2
+-- Test bench:     tb/tb_nx_cram_memctl_as
+--                 sys_gen/tst_sram/nexys2/tb/tb_tst_sram_n2
 -- Target Devices: generic
 -- Tool versions:  xst 11.4, 13.1; ghdl 0.26
 --
@@ -31,6 +31,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-26   433   1.2    renamed from n2_cram_memctl_as
+-- 2011-11-19   432   1.1    remove O_FLA_CE_N port
 -- 2011-11-19   427   1.0.5  now numeric_std clean
 -- 2010-11-22   339   1.0.4  cntdly now 3 bit; add assert for DELAY generics
 -- 2010-06-03   299   1.0.3  add "KEEP" for data iob; MEM_OE='1' on first read
@@ -117,7 +119,7 @@ use ieee.numeric_std.all;
 use work.slvtypes.all;
 use work.xlib.all;
 
-entity n2_cram_memctl_as is             -- CRAM driver (async+page mode)
+entity nx_cram_memctl_as is             -- CRAM driver (async+page mode)
   generic (
     READ0DELAY : positive := 2;         -- read word 0 delay in clock cycles
     READ1DELAY : positive := 2;         -- read word 1 delay in clock cycles
@@ -144,14 +146,13 @@ entity n2_cram_memctl_as is             -- CRAM driver (async+page mode)
     O_MEM_CLK : out slbit;              -- cram: clock
     O_MEM_CRE : out slbit;              -- cram: command register enable
     I_MEM_WAIT : in slbit;              -- cram: mem wait
-    O_FLA_CE_N : out slbit;             -- flash ce..          (act.low)
     O_MEM_ADDR  : out slv23;            -- cram: address lines
     IO_MEM_DATA : inout slv16           -- cram: data lines
   );
-end n2_cram_memctl_as;
+end nx_cram_memctl_as;
 
 
-architecture syn of n2_cram_memctl_as is
+architecture syn of nx_cram_memctl_as is
 
   type state_type is (
     s_idle,                             -- s_idle: wait for req
@@ -300,7 +301,6 @@ begin
   O_MEM_ADV_N <= '0';
   O_MEM_CLK   <= '0';
   O_MEM_CRE   <= '0';
-  O_FLA_CE_N  <= '1';
 
   proc_regs: process (CLK)
   begin

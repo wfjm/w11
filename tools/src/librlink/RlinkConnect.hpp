@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.hpp 380 2011-04-25 18:14:52Z mueller $
+// $Id: RlinkConnect.hpp 434 2011-12-02 19:17:38Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2011-11-28   434   1.1.1  struct LogOpts: use uint32_t for lp64 compatibility
 // 2011-04-24   380   1.1    use boost::noncopyable (instead of private dcl's);
 //                           use boost::(mutex&lock), implement Lockable IF
 // 2011-04-22   379   1.0.1  add Lock(), Unlock()
@@ -23,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.hpp 380 2011-04-25 18:14:52Z mueller $
+  \version $Id: RlinkConnect.hpp 434 2011-12-02 19:17:38Z mueller $
   \brief   Declaration of class \c RlinkConnect.
 */
 
@@ -52,12 +53,12 @@ namespace Retro {
   class RlinkConnect : private boost::noncopyable {
     public:
       struct LogOpts {
-        size_t        baseaddr;
-        size_t        basedata;
-        size_t        basestat;
-        size_t        printlevel;           // 0=off,1=err,2=chk,3=all
-        size_t        dumplevel;            // 0=off,1=err,2=chk,3=all
-        size_t        tracelevel;           // 0=off,1=buf,2=char
+        uint32_t      baseaddr;
+        uint32_t      basedata;
+        uint32_t      basestat;
+        uint32_t      printlevel;           // 0=off,1=err,2=chk,3=all
+        uint32_t      dumplevel;            // 0=off,1=err,2=chk,3=all
+        uint32_t      tracelevel;           // 0=off,1=buf,2=char
 
                       LogOpts()
                         : baseaddr(16), basedata(16), basestat(16),

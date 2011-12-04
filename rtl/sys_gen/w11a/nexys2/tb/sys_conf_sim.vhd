@@ -1,4 +1,4 @@
--- $Id: sys_conf_sim.vhd 341 2010-11-27 23:05:43Z mueller $
+-- $Id: sys_conf_sim.vhd 433 2011-11-27 22:04:39Z mueller $
 --
 -- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,9 +16,10 @@
 -- Description:    Definitions for sys_w11a_n2 (for simulation)
 --
 -- Dependencies:   -
--- Tool versions:  xst 11.4; ghdl 0.26
+-- Tool versions:  xst 11.4, 13.1; ghdl 0.26-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-27   433   1.1.1  use /1*1 to skip dcm in sim, _ssim fails with dcm
 -- 2010-11-27   341   1.1    add dcm and memctl related constants (clksys=58)
 -- 2010-05-28   295   1.0    Initial version (cloned from _s3)
 ------------------------------------------------------------------------------
@@ -30,8 +31,10 @@ use work.slvtypes.all;
 
 package sys_conf is
 
-  constant sys_conf_clkfx_divide : positive   :=  25;
-  constant sys_conf_clkfx_multiply : positive :=  29;   -- ==> 58 MHz
+  constant sys_conf_clkfx_divide : positive   :=  1;
+  constant sys_conf_clkfx_multiply : positive :=  1;   -- no dcm in sim...
+--  constant sys_conf_clkfx_divide : positive   :=  25;
+--  constant sys_conf_clkfx_multiply : positive :=  28;   -- ==> 56 MHz
 
   constant sys_conf_memctl_read0delay : positive := 3;
   constant sys_conf_memctl_read1delay : positive := sys_conf_memctl_read0delay;

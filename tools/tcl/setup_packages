@@ -1,5 +1,5 @@
 #! /usr/bin/env tclsh
-# $Id: setup_packages 429 2011-11-20 12:54:56Z mueller $
+# $Id: setup_packages 431 2011-11-21 17:56:37Z mueller $
 #
 pkg_mkIndex -verbose ../lib libr*tpp.so
 #

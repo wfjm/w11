@@ -1,4 +1,4 @@
-// $Id: RtclRlinkConnect.cpp 380 2011-04-25 18:14:52Z mueller $
+// $Id: RtclRlinkConnect.cpp 434 2011-12-02 19:17:38Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2011-11-28   434   1.1.1  ConfigBase(): use uint32_t for lp64 compatibility
 // 2011-04-23   380   1.1    use boost/bind instead of RmethDsc
 // 2011-04-17   376   1.0.1  M_wtlam: now correct log levels
 // 2011-03-27   374   1.0    Initial version
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RtclRlinkConnect.cpp 380 2011-04-25 18:14:52Z mueller $
+  \version $Id: RtclRlinkConnect.cpp 434 2011-12-02 19:17:38Z mueller $
   \brief   Implemenation of class RtclRlinkConnect.
  */
 
@@ -801,9 +802,9 @@ bool RtclRlinkConnect::GetVarName(RtclArgs& args, const char* argname,
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-bool RtclRlinkConnect::ConfigBase(RtclArgs& args, size_t& base)
+bool RtclRlinkConnect::ConfigBase(RtclArgs& args, uint32_t& base)
 {
-  size_t tmp = base;
+  uint32_t tmp = base;
   if (!args.Config("??base", tmp, 16, 2)) return false;
   if (tmp != base && tmp != 2 && tmp !=8 && tmp != 16) {
     args.AppendResult("-E: base must be 2, 8, or 16, found \"",

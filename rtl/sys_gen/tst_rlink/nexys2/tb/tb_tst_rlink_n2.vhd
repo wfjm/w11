@@ -1,4 +1,4 @@
--- $Id: tb_tst_rlink_n2.vhd 351 2010-12-30 21:50:54Z mueller $
+-- $Id: tb_tst_rlink_n2.vhd 433 2011-11-27 22:04:39Z mueller $
 --
 -- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,7 +13,7 @@
 --
 ------------------------------------------------------------------------------
 -- Module Name:    tb_tst_rlink
--- Description:    Configuration for tb_tst_rlink_s2 for tb_nexys2_fusp
+-- Description:    Configuration for tb_tst_rlink_n2 for tb_nexys2_fusp
 --
 -- Dependencies:   sys_tst_rlink_n2
 --

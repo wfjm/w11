@@ -1,8 +1,9 @@
 #!/usr/bin/perl -w
-# $Id: dorri 296 2010-05-29 21:45:09Z mueller $
+# $Id: dorri 435 2011-12-04 20:15:25Z mueller $
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2011-12-03   435   1.5    add w11a_n3 support; add break/flow control to -u
 # 2010-05-29   296   1.4    allow -ux,baud (usb devnum and baudrate)
 # 2010-05-28   295   1.3    w11a_s3/w11a_n2 support: -s3 and -n2 instead of -f
 #                           add -tmu option
@@ -30,6 +31,7 @@ my $val_term=",115200,1";
 my $val_log="rri.log";
 my $val_tb_s3="tbw ../s3board/tb/tb_w11a_s3";
 my $val_tb_n2="tbw ../nexys2/tb/tb_w11a_n2";
+my $val_tb_n3="tbw ../nexys3/tb/tb_w11a_n3";
 my $val_tb;
 my $val_e;
 
@@ -65,30 +67,35 @@ while (scalar(@ARGV)) {
     $opt_io = "f";
     $val_tb = $val_tb_n2;
     shift @ARGV;
+  } elsif ($curarg =~ m{^-n3$} ) {	    # -n3
+    $opt_io = "f";
+    $val_tb = $val_tb_n3;
+    shift @ARGV;
   } elsif ($curarg =~ m{^-t$} ) {	    # -t
     $opt_io = "t";
 
-  } elsif ($curarg =~ m{^-u(\d)} )  {      # -ux...
+  } elsif ($curarg =~ m{^-u(\d),?} )  {     # -ux...
     my $devnum   = $1;
-    my $rest     = $';
-    my $baudspec = "115";
-    my $baudrate;
-    if ($rest ne "") {
-      if ($rest =~ m{^,(\d*)$}) {
-        $baudspec = $1;
-      } else {
-        print STDERR "dorri-E: invalid format of -u option\n";
-        exit 1;
-      }
+    my ($dev,$baud,$break,$flow) = split /,/,$curarg;
+    $baud  = "115"  unless defined $baud;
+    $break = 1      unless defined $break;      # default: break
+    $flow  = 1      unless defined $flow;       # default: cts
+
+    if ($baud !~ m{^\d*$} || $break !~ m{^[01]$} || $flow !~ m{^[012]$}) {
+      print STDERR "dorri-E: invalid format of -u option\n";
+      exit 1;
     }
-    if (defined $baudtbl{$baudspec}) {
-      $baudrate = $baudtbl{$baudspec};
+
+    my $baudrate;
+    if (defined $baudtbl{$baud}) {
+      $baudrate = $baudtbl{$baud};
     } else {
-      print STDERR "dorri-E: invalid baudrate specification\n";
+      print STDERR "dorri-E: invalid baudrate specification $baud\n";
       exit 1;
     }
     $opt_io = "t";
-    $val_term = sprintf "/dev/ttyUSB%d,%d,1", $devnum, $baudrate;
+    $val_term = sprintf "/dev/ttyUSB%d,%d,%d,%d",
+      $devnum, $baudrate, $break, $flow;
     shift @ARGV;
 
   } elsif ($curarg =~ m{^-e$} ) {	    # -e <file>
@@ -121,7 +128,7 @@ if (-r $val_log) {
 }
 
 #
-# check that either -s3/n2 or -t given
+# check that either -s3/n2/n3 or -t given
 # setup pi_rri options for either case
 #
 
@@ -132,7 +139,7 @@ if ($opt_io eq "f") {
 } elsif ($opt_io eq "t") {
   push @arglist, "--term=$val_term";
 } else {
-  print STDERR "dorri-E: neither -s3/-n2 nor -t specified\n";
+  print STDERR "dorri-E: neither -s3/-n2/-n3 nor -t specified\n";
   print_usage();
   exit 1;
 }

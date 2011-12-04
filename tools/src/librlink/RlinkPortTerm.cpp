@@ -1,4 +1,4 @@
-// $Id: RlinkPortTerm.cpp 388 2011-07-06 18:40:47Z mueller $
+// $Id: RlinkPortTerm.cpp 435 2011-12-04 20:15:25Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2011-12-04   435   1.0.2  Open(): add cts attr, hw flow control now optional
 // 2011-07-04   388   1.0.1  add termios readback and verification
 // 2011-03-27   374   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RlinkPortTerm.cpp 388 2011-07-06 18:40:47Z mueller $
+  \version $Id: RlinkPortTerm.cpp 435 2011-12-04 20:15:25Z mueller $
   \brief   Implemenation of RlinkPortTerm.
 */
 
@@ -65,7 +66,7 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
 {
   if (IsOpen()) Close();
 
-  if (!ParseUrl(url, "|baud=|break|", emsg)) return false;
+  if (!ParseUrl(url, "|baud=|break|cts|", emsg)) return false;
 
   speed_t speed = B115200;
   string baud;
@@ -120,12 +121,17 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
 
   fTiosNew.c_iflag = IGNBRK |               // ignore breaks on input
                      IGNPAR;                // ignore parity errors
+
   fTiosNew.c_oflag = 0;
+
   fTiosNew.c_cflag = CS8 |                  // 8 bit chars
                      CSTOPB |               // 2 stop bits
                      CREAD |                // enable receiver
-                     CLOCAL |               // ignore modem control
-                     CRTSCTS;               // enable hardware flow control
+                     CLOCAL;                // ignore modem control
+  if (UrlFindOpt("cts")) {
+    fTiosNew.c_cflag |= CRTSCTS;            // enable hardware flow control
+  }
+
   fTiosNew.c_lflag = 0;
 
   if (cfsetspeed(&fTiosNew, speed) != 0) {

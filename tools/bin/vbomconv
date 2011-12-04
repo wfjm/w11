@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: vbomconv 405 2011-08-14 08:16:28Z mueller $
+# $Id: vbomconv 433 2011-11-27 22:04:39Z mueller $
 #
 # Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2011-11-27   433   1.9.2  use in ghdl_m -fexplicit when unisim used
 # 2011-08-13   405   1.9.1  always write 'vhdl' into xst prj files again; for
 #                           -xst_export: remove opt file export, add ucf_cpp
 #                           handling
@@ -296,6 +297,7 @@ if (exists $opts{ghdl_m} || exists $opts{ghdl_m_cmd} ) {
 
   $cmd .= "ghdl -m";
   $cmd .= " -o $stem";
+  $cmd .= ' -fexplicit'             if $has_unisim;    # needed for ISE 13.1
   $cmd .= ' -P$XILINX/ghdl/unisim'  if $has_unisim;
   $cmd .= ' -P$XILINX/ghdl/simprim' if $has_simprim;
   $cmd .= " --ieee=synopsys";

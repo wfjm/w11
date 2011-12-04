@@ -1,4 +1,4 @@
--- $Id: tb_nexys2_core.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: tb_nexys2_core.vhd 433 2011-11-27 22:04:39Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -23,6 +23,8 @@
 -- Tool versions:  xst 11.4, 13.1; ghdl 0.26-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-26   433   1.1.1  remove O_FLA_CE_N from tb_nexys2_core
+-- 2011-11-21   432   1.1    update O_FLA_CE_N usage
 -- 2011-11-19   427   1.0.1  now numeric_std clean
 -- 2010-05-23   294   1.0    Initial version (derived from tb_s3board_core)
 ------------------------------------------------------------------------------
@@ -49,7 +51,6 @@ entity tb_nexys2_core is
     O_MEM_CLK : in slbit;               -- cram: clock
     O_MEM_CRE : in slbit;               -- cram: command register enable
     I_MEM_WAIT : out slbit;             -- cram: mem wait
-    O_FLA_CE_N : in slbit;              -- flash ce..          (act.low)
     O_MEM_ADDR  : in slv23;             -- cram: address lines
     IO_MEM_DATA : inout slv16           -- cram: data lines
   );

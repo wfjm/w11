@@ -1,4 +1,4 @@
-// $Id: RlinkCommandExpect.cpp 375 2011-04-02 07:56:47Z mueller $
+// $Id: RlinkCommandExpect.cpp 434 2011-12-02 19:17:38Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2011-11-28   434   1.0.1  Dump(): use proper cast for lp64 compatibility
 // 2011-03-12   368   1.0    Initial version
 // 2011-01-15   355   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RlinkCommandExpect.cpp 375 2011-04-02 07:56:47Z mueller $
+  \version $Id: RlinkCommandExpect.cpp 434 2011-12-02 19:17:38Z mueller $
   \brief   Implemenation of class RlinkCommandExpect.
  */
 
@@ -167,7 +168,7 @@ void RlinkCommandExpect::Dump(std::ostream& os, int ind, const char* text) const
   if (fBlockVal.size() > 0) {
     os << bl << "  fBlockVal & Msk data: ";
     size_t width = (fBlockMsk.size()>0) ? 9 : 4;
-    size_t ncol  = max(1u, (80-ind-4-5)/(width+1));
+    size_t ncol  = max(((size_t) 1), (80-ind-4-5)/(width+1));
     for (size_t i=0; i< fBlockVal.size(); i++) {
       if (i%ncol == 0) os << "\n" << bl << "    " << RosPrintf(i,"d",3) << ": ";
       

@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: pi_rri 410 2011-09-18 11:23:09Z mueller $
+# $Id: pi_rri 435 2011-12-04 20:15:25Z mueller $
 #
-# Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2011-12-04   435   1.6.5  add control over flow control (cts or none)
 # 2011-09-17   410   1.6.4  use for crc8 now a6 polynomial
 # 2010-12-29   351   1.6.3  rename rriext->cext and cpmon->rlmon
 # 2010-06-27   310   1.6.2  fix autoflush for fh_log; duplicate exec err to log
@@ -6425,13 +6426,14 @@ sub fifo_close {       			    # chan fifo: close handler
 }
 
 #-------------------------------------------------------------------------------
-
+#
 sub term_open {				    # term fifo: open handler
   my ($arg) = @_;
-  my ($dev,$baud,$break) = split /,/,$arg;
-  $dev   = "/dev/ttyS0" unless $dev;
-  $baud  = 115200       unless $baud;
-  $break = 0            unless $break;
+  my ($dev,$baud,$break,$flow) = split /,/,$arg;
+  $dev   = "/dev/ttyS0" unless defined $dev;
+  $baud  = 115200       unless defined $baud;
+  $break = 0            unless defined $break;      # default: no break
+  $flow  = 1            unless defined $flow;       # default: cts
 
   $fdset_filercv = "";
 
@@ -6451,6 +6453,9 @@ sub term_open {				    # term fifo: open handler
   $term_oldtios = new POSIX::Termios;
   $term_oldtios->getattr($fd) || die "getattr failed: $!";
 
+  print_fatal("flow attribute must be 0(none),1(cts), or 2(xon)")
+    unless ($flow>=0 && $flow<=2);
+
 ##  term_tios_print($term_oldtios);
 
   my $newtios = new POSIX::Termios;
@@ -6461,8 +6466,10 @@ sub term_open {				    # term fifo: open handler
   my $c_cflag = &POSIX::CS8 |	            # 8 bit chars
                 &POSIX::CSTOPB |            # 2 stop bits
                 &POSIX::CREAD |             # enable receiver
-                &POSIX::CLOCAL |            # ignore modem control
-                LINUX_CRTSCTS;              # enable hardware flow control
+                &POSIX::CLOCAL;             # ignore modem control
+  if ($flow == 1) {                         # if cts/rts flow control
+    $c_cflag |= LINUX_CRTSCTS;                # enable hardware flow control
+  }
   my $c_lflag = 0;
   my $speed = 0;
 

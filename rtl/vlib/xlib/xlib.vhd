@@ -1,4 +1,4 @@
--- $Id: xlib.vhd 426 2011-11-18 18:14:08Z mueller $
+-- $Id: xlib.vhd 432 2011-11-25 20:16:28Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-11-24   432   1.0.8  add iob_oddr2_simple
 -- 2011-11-17   426   1.0.7  rename dcm_sp_sfs -> dcm_sfs; remove family generic
 -- 2011-11-10   423   1.0.6  add family generic for dcm_sp_sfs
 -- 2010-11-07   337   1.0.5  add dcm_sp_sfs
@@ -125,6 +126,19 @@ component iob_io is                     -- un-registered IOB, in/output
     DI   : out slbit;                   -- input data   (read from pad)
     DO   : in slbit;                    -- output data  (write  to pad)
     PAD  : inout slbit                  -- i/o pad
+  );
+end component;
+
+component iob_oddr2_simple is           -- DDR2 output I/O pad
+  generic (
+    ALIGN : string := "NONE";           -- ddr_alignment
+    INIT : slbit := '0');               -- initial state
+  port (
+    CLK  : in slbit;                    -- clock
+    CE   : in slbit := '1';             -- clock enable
+    DO0  : in slbit;                    -- output data
+    DO1  : in slbit;                    -- output data
+    PAD  : out slbit                    -- i/o pad
   );
 end component;
 

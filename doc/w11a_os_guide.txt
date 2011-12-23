@@ -1,4 +1,4 @@
-# $Id: w11a_os_guide.txt 428 2011-11-20 12:19:31Z mueller $
+# $Id: w11a_os_guide.txt 442 2011-12-23 10:03:28Z mueller $
 
 Guide to run operating system images on w11a systems
 
@@ -23,9 +23,11 @@ Guide to run operating system images on w11a systems
             never gave reliable connections for higher Baud rates.
           - A USB-RS232 cable with a FTDI FT232R chip, like the cable offered
             by FTDI as US232R-100 worked fine.
-          - For FTDI USB-RS232 cables it is essential to set the latency
-            timer to 1 ms (from the power in default of 16 ms), e.g. with
+          - On older linux kernels (prior 2.6.32) it is essential to set the
+            latency timer for the FTDI USB-RS232 cable to 1 ms (from the power 
+            in default of 16 ms), e.g. with
               sudo $RETROBASE/tools/bin/set_ftdi_lat USB0 1
+            For linux kernel 2.6.32 or newer the default is 1 ms already.
           - the following assumes that a USB-RS232 cable with FTDI chip is used
 
    A 460k Baud connection gives in practice a disk throughput of about 20 kB/s.
@@ -37,14 +39,14 @@ Guide to run operating system images on w11a systems
 
    - for s3board and nexys2
      - connect the USB-RS232 cable to the RS232 port of the s3board or nexys2
-     - set the latency timer of the USB-RS232, e.g. with
+     - for kernel < 2.6.32: set the latency timer of the USB-RS232, e.g. with
          sudo $RETROBASE/tools/bin/set_ftdi_lat USB0 1
-     - ensure that all 8 switches are in '0' position
+     - ensure that all 8 switches are in the indicated positions (SWI=xxxxxxxx)
      - load the w11a design into the FPGA, e.g. via impact
 
    - for nexys3
      - connect USB cable to the 'usb uart' port (next to the 5 buttons)
-     - ensure that all 8 switches are in '0' position
+     - ensure that all 8 switches are in the indicated positions (SWI=xxxxxxxx)
      - load the w11a design into the FPGA, e.g. via impact
 
 3. Unix V5 system ---------------------------------------------------------
@@ -55,12 +57,18 @@ Guide to run operating system images on w11a systems
        $RETROBASE/rtl/sys_gen/w11a/tb
 
    - Setup USB-RS232 cable, start xterm in vt100 mode and the server backend
+     Note: It is essential that the settings of the board switches are correct
+           in the following indicated by SWI = xxxxxxxx.
 
        cd $RETROBASE/rtl/sys_gen/w11a/tb
        sudo $RETROBASE/tools/bin/set_ftdi_lat USB0 1
        telnet_starter -d DL0 &
-       [for s3,n2:]   dorri -u0,460      @uv5_boot.pcmd
-       [for n3:]      dorri -u0,500,1,0  @uv5_boot.pcmd
+     [for s3,n2:]
+       SWI = 00000010
+       dorri -u0,460,1,2   @uv5_boot.pcmd
+     [for n3:]
+       SWI = 00000010
+       dorri -u0,2000,1,2  @uv5_boot.pcmd
 
    - the boot dialog in the console xterm window will look like
      (required input is in {..}, with {<CR>} denoting a carriage return:
@@ -94,13 +102,19 @@ Guide to run operating system images on w11a systems
        $RETROBASE/rtl/sys_gen/w11a/tb
 
    - Setup USB-RS232 cable, start two xterm in vt100 mode and the server backend
+     Note: It is essential that the settings of the board switches are correct
+           in the following indicated by SWI = xxxxxxxx.
 
        cd $RETROBASE/rtl/sys_gen/w11a/tb
        sudo $RETROBASE/tools/bin/set_ftdi_lat USB0 1
        telnet_starter -d DL0 &
        telnet_starter -d DL1 &
-       [for s3,n2:]   dorri -u0,460      @211bsd_rk_boot.pcmd
-       [for n3:]      dorri -u0,500,1,0  @211bsd_rk_boot.pcmd
+     [for s3,n2:]
+       SWI = 00000010
+       dorri -u0,460,1,2   @211bsd_rk_boot.pcmd
+     [for n3:]
+       SWI = 00000010
+       dorri -u0,2000,1,2  @211bsd_rk_boot.pcmd
 
    - the boot dialog in the console xterm window will look like
      (required input is in {..}, with {<CR>} denoting a carriage return:

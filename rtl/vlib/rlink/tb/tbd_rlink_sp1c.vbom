@@ -1,0 +1,16 @@
+# libs
+../../slvtypes.vhd
+../../comlib/comlib.vhd
+../../serport/serport.vhd
+../../rbus/rblib.vhd
+../rlinklib.vbom
+../../simlib/simlib.vhd
+../../simlib/simbus.vhd
+# components
+tbu_rlink_sp1c : tbu_rlink_sp1c.vbom
+../../serport/serport_uart_tx.vbom
+../../serport/serport_uart_rx.vbom
+../../comlib/byte2cdata.vbom
+../../comlib/cdata2byte.vbom
+# design
+tbd_rlink_sp1c.vhd

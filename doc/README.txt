@@ -1,4 +1,4 @@
-# $Id: README.txt 434 2011-12-02 19:17:38Z mueller $
+# $Id: README.txt 442 2011-12-23 10:03:28Z mueller $
 
 Release notes for w11a
 
@@ -25,20 +25,23 @@ Release notes for w11a
    doc                          Documentation
    rtl                          VHDL sources
    rtl/bplib                    - board and component support libs
+   rtl/bplib/atlys                - for Digilent Atlys board
    rtl/bplib/issi                 - for ISSI parts
    rtl/bplib/micron               - for Micron parts
    rtl/bplib/nexys2               - for Digilent Nexsy2 board
    rtl/bplib/nexys3               - for Digilent Nexsy3 board
+   rtl/bplib/nxcramlib            - for CRAM part used in Nexys2/3
    rtl/bplib/s3board              - for Digilent S3BOARD
    rtl/ibus                     - ibus devices (UNIBUS peripherals)
    rtl/sys_gen                  - top level designs
    rtl/sys_gen/tst_rlink          - top level designs for an rlink tester
-   rtl/sys_gen/tst_rlink/nexys2     - rlink tester system for Digilent Nexsy2
-   rtl/sys_gen/tst_rlink/nexys3     - rlink tester system for Digilent Nexsy3
+     nexys2,nexys3,s3board          - systems for Nexsy2,Nexsy3,S3BOARD
+   rtl/sys_gen/tst_serloop        - top level designs for serport loop tester
+     nexys2,nexys3,s3board          - systems for Nexsy2,Nexsy3,S3BOARD
+   rtl/sys_gen/tst_snhumanio      - top level designs for human I/O tester
+     atlys,nexys2,nexys3,s3board    - systems for Atlys,Nexsy2,Nexsy3,S3BOARD
    rtl/sys_gen/w11a               - top level designs for w11a SoC
-   rtl/sys_gen/w11a/nexys2          - w11a SoC for Digilent Nexsy2
-   rtl/sys_gen/w11a/nexys3          - w11a SoC for Digilent Nexsy3
-   rtl/sys_gen/w11a/s3board         - w11a SoC for Digilent S3BOARD
+     nexys2,nexys3,s3board          - w11a systems for Nexsy2,Nexsy3,S3BOARD
    rtl/vlib                     - VHDL component libs
    rtl/vlib/comlib                - communication
    rtl/vlib/genlib                - general
@@ -63,20 +66,53 @@ Release notes for w11a
 
 3. Change Log ----------------------------------------------------------------
 
+- trunk (2011-12-23: svn rev 16(oc) 442(wfjm); untagged w11a_V0.55)  +++++++++
+
+  - Summary
+    - added xon/xoff (software flow control) support to serport library
+    - added test systems for serport verification
+    - use new serport stack in sys_w11a_* and sys_tst_rlink_* systems
+
+  - Changes
+    - retired modules
+      - vlib/rlink
+        - rlink_rlb2rl       - obsolete, now all in rlink_core8
+        - rlink_base         - use now new rlink_core8
+        - rlink_serport      - obsolete, now all in rlink_sp1c
+        - rlink_base_serport - use now new rlink_sp1c
+
+  - New features
+    - new modules
+      - vlib/serport
+        - serport_xonrx  - xon/xoff logic rx path
+        - serport_xontx  - xon/xoff logic tx path
+        - serport_1clock - serial port module (uart, fifo, flow control)
+      - vlib/rlink
+        - rlink_core8 - rlink core8 with 8bit interface
+        - rlink_sp1c  - rlink_core8 + serport_1clock combo
+    - new unit tests
+      - bplib/s3board/tb/tb_s3_sram_memctl       (for s3board sram controller
+      - bplib/nxcramlib/tb/tb_nx_cram_memctl_as  (for nexys2,3 cram controller)
+    - new systems
+      - sys_gen/tst_serloop/nexys2/sys_tst_serloop1_n2
+      - sys_gen/tst_serloop/nexys3/sys_tst_serloop1_n3
+      - sys_gen/tst_serloop/s3board/sys_tst_serloop1_s3
+      - sys_gen/tst_rlink/s3board/sys_tst_rlink_s3
+
 - trunk (2011-12-04: svn rev 15(oc) 436(wfjm); untagged w11a_V0.54)  +++++++++
 
   - Summary
     - added support for nexys3 board for w11a
 
-  - New features
-    - new systems
-      - sys_gen/w11a/sys_w11a_n3
-      - sys_gen/w11a/sys_tst_rlink_n3
-
   - Changes
     - module renames:
         bplib/nexys2/n2_cram_dummy     -> bplib/nxcramlib/nx_cram_dummy
         bplib/nexys2/n2_cram_memctl_as -> bplib/nxcramlib/nx_cram_memctl_as
+
+  - New features
+    - new systems
+      - sys_gen/w11a/nexys3/sys_w11a_n3
+      - sys_gen/w11a/nexys3/sys_tst_rlink_n3
 
   - Bug fixes
     - tools/src/lib*: backend libraries compile now on 64 bit systems
@@ -88,13 +124,6 @@ Release notes for w11a
     - added test design for the 'human I/O' interface
     - no functional change of w11a CPU core or any existing test systems
 
-  - New features
-    - new modules
-      - rtl/sys_gen/tst_snhumanio
-        - sub-tree with test design for 'human I/O' interface modules
-        - atlys, nexys2, and s3board directories contain the systems
-          for the respectice Digilent boards
-
   - Changes
     - functional changes
       - use now 'a6' polynomial of Koopman et al for crc8 in rlink
@@ -103,6 +132,13 @@ Release notes for w11a
         vlib/xlib/dcm_sp_sfs_gsim   -> vlib/xlib/dcm_sfs_gsim
         vlib/xlib/dcm_sp_sfs_unisim -> vlib/xlib/dcm_sfs_unisim_s3e
         vlib/xlib/tb/tb_dcm_sp_sfs  -> vlib/xlib/tb/tb_dcm_sfs
+
+  - New features
+    - new modules
+      - rtl/sys_gen/tst_snhumanio
+        - sub-tree with test design for 'human I/O' interface modules
+        - atlys, nexys2, and s3board directories contain the systems
+          for the respective Digilent boards
 
 - trunk (2011-09-11: svn rev 12(oc) 409(wfjm); untagged w11a_V0.531) +++++++++
 
@@ -136,7 +172,7 @@ Release notes for w11a
 
   - Summary
     - Introduce C++ and Tcl based backend server. A set of C++ classes provide
-      the basic rlink communication promitives. Additional glue classes provide
+      the basic rlink communication primitives. Additional glue classes provide
       a Tcl binding. This first phase contains the basic functionality needed
       to control simple test benches.
     - add an 'rlink exerciser' (tst_rlink) and a top level design for a Nexys2
@@ -228,7 +264,7 @@ Release notes for w11a
           ioto  -> rbnak  - indicates rbus abort, either no ack or timeout
           ioerr -> rberr  - indicates that rbus err flag was set
 
-    - migrate to rbus protocol verion 3
+    - migrate to rbus protocol version 3
       - in rb_mreq use now aval,re,we instead of req,we
       - basic rbus transaction now takes 2 cycles, one for address select, one
         for data exchange. Same concept and reasoning behind as in ibus V2.
@@ -271,7 +307,7 @@ Release notes for w11a
       - renamed RRI_LAM -> RB_LAM in all ibus devices
       - renamed CLK     -> I_CLK50 in all top level nexys2 and s3board designs
 
-    - migrate to ibus protocol verion 2
+    - migrate to ibus protocol version 2
       - in ib_mreq use now aval,re,we,rmw instead of req,we,dip
       - basic ibus transaction now takes 2 cycles, one for address select, one
         for data exchange. This avoids too long logic paths in the ibus logic.

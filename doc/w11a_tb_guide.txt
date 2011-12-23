@@ -1,4 +1,4 @@
-# $Id: w11a_tb_guide.txt 433 2011-11-27 22:04:39Z mueller $
+# $Id: w11a_tb_guide.txt 442 2011-12-23 10:03:28Z mueller $
 
 Guide to running w11a test benches
 
@@ -122,6 +122,28 @@ Guide to running w11a test benches
      ->  1220255.0 ns  61003: DONE 
      -> real 1m09.738s   user 1m09.588s   sys 0m00.096s
 
+   - s3board sram controller test 
+
+     cd $RETROBASE/rtl/bplib/s3board/tb
+
+     make tb_s3_sram_memctl
+     time tbw tb_s3_sram_memctl |\
+       tee tb_s3_sram_memctl_dsim.log | egrep "(FAIL|DONE)"
+     -> 5015.0 ns    241: DONE 
+     -> real 0m00.113s   user 0m00.068s   sys 0m00.016s
+
+
+   - nexys2/nexys3 cram controller test 
+
+     cd $RETROBASE/rtl/bplib/nxcramlib/tb
+     
+     make tb_nx_cram_memctl_as
+     time tbw tb_nx_cram_memctl_as |\
+       tee tb_nx_cram_memctl_as_dsim.log | egrep "(FAIL|DONE)"
+     -> 24272.5 ns   1204: DONE 
+     -> real 0m00.343s   user 0m00.248s   sys 0m00.100s
+
+
 3. System tests benches ---------------------------------------------------
 
    The system tests allow to verify to verify a full system design.
@@ -139,15 +161,64 @@ Guide to running w11a test benches
 
    Currently two backend implementations are available:
    - pi_rri: written in perl (old, slow, but full functionality)
-   - ti_tti: written in C++ and Tcl (new, fast, but as of V0.53 only with
+   - ti_tti: written in C++ and Tcl (new, fast, but as of V0.55 only with
                limited functionality; will replace pi_rri).
 
 4. Available system tests benches -----------------------------------------
 
-4a. rlink tester -----------------------------------------------------
+4a. serport tester -- --------------------------------------------
+
+   The sys_tst_serloop design is a test target for validating the serial
+   link UART stack. Send and receive throughput as well as loop-back tests
+   are supported
+
+   - sys_tst_serloop_s3 test bench
+
+     cd $RETROBASE/rtl/sys_gen/tst_serloop/s3board/tb
+     make tb_tst_serloop_s3
+     time tbw tb_tst_serloop_s3 |\
+       tee tb_tst_serloop_s3_dsim.log | egrep "(FAIL|DONE)"
+     -> 301353.3 ns  18068: DONE 
+     -> real 0m1.422s   user 0m1.372s   sys 0m0.024s
+
+   - sys_tst_serloop_n2 test bench
+
+     cd $RETROBASE/rtl/sys_gen/tst_serloop/nexys2/tb
+     make tb_tst_serloop1_n2
+     time tbw tb_tst_serloop1_n2 |\
+       tee tb_tst_serloop1_n2_dsim.log | egrep "(FAIL|DONE)"
+     -> 361560.0 ns  18068: DONE
+     -> real 0m1.341s   user 0m1.340s   sys 0m0.016s
+
+     make tb_tst_serloop2_n2
+     time tbw tb_tst_serloop2_n2 |\
+       tee tb_tst_serloop2_n2_dsim.log | egrep "(FAIL|DONE)"
+     -> 304353.3 ns  18248: DONE
+     -> real 0m1.933s   user 0m1.924s   sys 0m0.024s
+
+   - sys_tst_serloop_n3 test bench
+
+     cd $RETROBASE/rtl/sys_gen/tst_serloop/nexys3/tb
+     make tb_tst_serloop1_n3
+     time tbw tb_tst_serloop1_n3 |\
+       tee tb_tst_serloop1_n3_dsim.log | egrep "(FAIL|DONE)"
+     -> 361560.0 ns  18068: DONE
+     -> real 0m1.371s   user 0m1.372s   sys 0m0.016s
+
+4b. rlink tester -----------------------------------------------------
 
    The sys_tst_rlink design is a test target for validating the rlink
    and rbus functionality at all levels.
+
+   - sys_tst_rlink_s3 test bench
+
+     cd $RETROBASE/rtl/sys_gen/tst_rlink/s3board/tb
+     make tb_tst_rlink_s3
+     time ti_rri --run="tbw tb_tst_rlink_s3" --fifo --logl=3 -- \
+       "package require tst_rlink" "tst_rlink::setup" "tst_rlink::test_all" |\
+       tee tb_tst_rlink_s3_dsim.log | egrep "(-[EFW]:|FAIL|PEND|DONE)"
+     -> 1822195.0 ns  91100: DONE 
+     -> real 0m13.281s
 
    - sys_tst_rlink_n2 test bench
 
@@ -155,7 +226,7 @@ Guide to running w11a test benches
      make tb_tst_rlink_n2
      time ti_rri --run="tbw tb_tst_rlink_n2" --fifo --logl=3 -- \
        "package require tst_rlink" "tst_rlink::setup" "tst_rlink::test_all" |\
-       tee tb_tst_rlink_n2_dsim.log | egrep "(-[EW]:|FAIL|PEND|DONE)"
+       tee tb_tst_rlink_n2_dsim.log | egrep "(-[EFW]:|FAIL|PEND|DONE)"
      -> 1769140.0 ns  88446: DONE 
      -> real 0m15.289s
 
@@ -165,11 +236,11 @@ Guide to running w11a test benches
      make tb_tst_rlink_n3
      time ti_rri --run="tbw tb_tst_rlink_n3" --fifo --logl=3 -- \
        "package require tst_rlink" "tst_rlink::setup" "tst_rlink::test_all" |\
-       tee tb_tst_rlink_n3_dsim.log | egrep "(-[EW]:|FAIL|PEND|DONE)"
+       tee tb_tst_rlink_n3_dsim.log | egrep "(-[EFW]:|FAIL|PEND|DONE)"
      -> 893590.0 ns  89338: DONE
      -> real 0m9.510s
 
-4b. w11a systems -----------------------------------------------------
+4c. w11a systems -----------------------------------------------------
 
    The stimulus file used in the w11a core test can be executed in the
    full system context (both s3board and nexys2 versions) with the 
@@ -185,8 +256,8 @@ Guide to running w11a test benches
      time pi_rri --fifo --timeout=40. --cmax=3 \
         --run="tbw tb_w11a_s3" -- \
    	 @../../../../w11a/tb/tb_pdp11core_stim.dat |\
-       tee tb_w11a_s3_stim2_dsim.log | egrep "(-[EW]:|FAIL|PEND|DONE)"
-     -> 7757655.0 ns 387873: DONE
+       tee tb_w11a_s3_stim2_dsim.log | egrep "(-[EFW]:|FAIL|PEND|DONE)"
+     -> 7852095.0 ns 392595: DONE 
      -> real 0m49.835s   user 0m50.203s   sys 0m00.696s
 
    - sys_w11a_n2 test bench
@@ -196,9 +267,9 @@ Guide to running w11a test benches
      time pi_rri --fifo --timeout=40. --cmax=3 \
         --run="tbw tb_w11a_n2" -- \
    	 @../../../../w11a/tb/tb_pdp11core_stim.dat |\
-       tee tb_w11a_n2_stim2_dsim.log | egrep "(-[EW]:|FAIL|PEND|DONE)"
-     -> 6673237.2 ns 387035: DONE
-     -> real 0m56.173s   user 0m56.612s   sys 0m00.604s
+       tee tb_w11a_n2_stim2_dsim.log | egrep "(-[EFW]:|FAIL|PEND|DONE)"
+     -> 7836580.0 ns 391818: DONE
+     -> real 1m0.854s   user 1m1.332s   sys 0m0.800s
 
    - sys_w11a_n3 test bench
 
@@ -207,6 +278,7 @@ Guide to running w11a test benches
      time pi_rri --fifo --timeout=40. --cmax=3 \
         --run="tbw tb_w11a_n3" -- \
    	 @../../../../w11a/tb/tb_pdp11core_stim.dat |\
-       tee tb_w11a_n3_stim2_dsim.log | egrep "(-[EW]:|FAIL|PEND|DONE)"
-     -> 4593598.2 ns 390438: DONE
-     -> real 0m55.326s   user 0m55.711s   sys 0m00.752s
+       tee tb_w11a_n3_stim2_dsim.log | egrep "(-[EFW]:|FAIL|PEND|DONE)"
+     -> 3956540.0 ns 395633: DONE 
+     -> real 1m13.811s   user 1m14.389s   sys 0m0.948s
+

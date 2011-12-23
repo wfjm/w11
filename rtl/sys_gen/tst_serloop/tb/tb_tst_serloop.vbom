@@ -1,0 +1,9 @@
+# libs
+../../../vlib/slvtypes.vhd
+../../../vlib/simlib/simlib.vhd
+../../../vlib/serport/serport.vhd
+# components
+../../../vlib/serport/serport_uart_rxtx.vbom
+../../../vlib/serport/serport_xontx.vbom
+# design
+tb_tst_serloop.vhd

@@ -1,0 +1,10 @@
+# libs
+../slvtypes.vhd
+../rbus/rblib.vhd
+rlinklib.vbom
+../serport/serport.vhd
+# components
+rlink_core8.vbom
+../serport/serport_1clock.vbom
+# design
+rlink_sp1c.vhd

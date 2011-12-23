@@ -1,5 +1,0 @@
-# configure tb_rlink with tbd_rlink_serport wrapper; _*sim case
-tbd_rlink_gen = tbd_rlink_serport.vbom
-tbu_rlink_serport = tbu_rlink_serport_ssim.vhd
-tb_rlink_serport.vbom
-@top:tb_rlink_serport

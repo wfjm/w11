@@ -1,9 +1,0 @@
-# libs
-../slvtypes.vhd
-../rbus/rblib.vhd
-rlinklib.vbom
-# components
-rlink_base.vbom
-rlink_serport.vbom
-# design
-rlink_base_serport.vhd

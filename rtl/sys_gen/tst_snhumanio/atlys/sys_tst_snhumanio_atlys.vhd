@@ -1,4 +1,4 @@
--- $Id: sys_tst_snhumanio_atlys.vhd 414 2011-10-11 19:38:12Z mueller $
+-- $Id: sys_tst_snhumanio_atlys.vhd 439 2011-12-16 21:56:04Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -46,7 +46,7 @@ use work.sys_conf.all;
 -- ----------------------------------------------------------------------------
 
 entity sys_tst_snhumanio_atlys is       -- top level
-                                        -- implements xxx_aif
+                                        -- implements atlys_aif
   port (
     I_CLK100 : in slbit;                -- 100 MHz clock
 --  O_CLKSYS : out slbit;               -- DCM derived system clock

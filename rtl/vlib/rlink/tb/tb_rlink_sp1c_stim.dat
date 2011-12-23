@@ -1,0 +1,146 @@
+# $Id: tb_rlink_sp1c_stim.dat 442 2011-12-23 10:03:28Z mueller $
+#
+#  Revision History: 
+# Date         Rev Version  Comment
+# 2011-12-22   442   1.1    remove RTS tests (now obsolete)
+# 2010-12-29   351   1.0.1  use new rbd_tester addr 111100xx (from 111101xx)
+# 2010-12-26   348   1.0    Initial version (Test 3 from tb_rlink_stim.dat)
+#
+#---------------------------------------
+# rbus address mapping
+#   11110000   rbd_tester cntl
+#   11110001   rbd_tester data
+#   11110010   rbd_tester fifo
+#   11110011   rbd_tester attn
+#
+.rlmon 0
+.rbmon 1
+#
+C -----------------------------------------------------------------------------
+C Test 1: wreg(data)
+C   data := 0011001111001100
+C   ==> shows that rlink can write a register
+C
+C wreg: tx: sop - cmd(00001,010) addr(0001) dl dh ccrc - eop
+C       rx: sop - cmd(010) stat crc - eop
+#
+rxsop 
+rxcs   00001010 00000000
+rxeop 
+#
+txsop 
+txcad  00001010 11110001 0011001111001100
+txeop 
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 2: rreg(data)
+C   data -> 0011001111001100
+C   ==> shows that rlink can read back a register
+C
+C rreg: tx: sop - cmd(00001,000) addr(0001) ccrc - eop
+C       rx: sop - cmd(000) dl dh stat crc - eop
+#
+rxsop 
+rxcds  00001000          0011001111001100 00000000
+rxeop 
+#
+txsop 
+txca   00001000 11110001
+txeop 
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test 3: Test comma escapes
+C         Assumes CPREF=1000, covers 11111111:10000111 and 10001101:10010000
+C
+C   data := 1000000011111111      <idle>,...
+C   data -> 1000000011111111
+C   data := 1000001010000001      <eop> ,<sop>
+C   data -> 1000001010000001
+C   data := 1000010010000011      <attn>,<nak>
+C   data -> 1000010010000011
+C   data := 1000011010000101      6,5
+C   data -> 1000011010000101
+C   data := 1000100010000111      8,7
+C   data -> 1000100010000111
+C   data := 1000111010001101      14,13
+C   data -> 1000111010001101
+C   data := 1001000010001111      ..,<esc>
+C   data -> 1001000010001111
+C
+C wreg: tx: sop - cmd(00001,010) addr(0001) dl dh ccrc
+C rreg: tx:     - cmd(00010,000) addr(0001) ccrc
+C wreg: tx:     - cmd(00011,010) addr(0001) dl dh ccrc
+C rreg: tx:     - cmd(00100,000) addr(0001) ccrc
+C wreg: tx:     - cmd(00101,010) addr(0001) dl dh ccrc
+C rreg: tx:     - cmd(00110,000) addr(0001) ccrc
+C wreg: tx:     - cmd(00111,010) addr(0001) dl dh ccrc
+C rreg: tx:     - cmd(01000,000) addr(0001) ccrc
+C wreg: tx:     - cmd(01001,010) addr(0001) dl dh ccrc
+C rreg: tx:     - cmd(01010,000) addr(0001) ccrc
+C wreg: tx:     - cmd(01011,010) addr(0001) dl dh ccrc
+C rreg: tx:     - cmd(01100,000) addr(0001) ccrc
+C wreg: tx:     - cmd(01101,010) addr(0001) dl dh ccrc
+C rreg: tx:     - cmd(01110,000) addr(0001) ccrc
+C       tx:     - eop
+C       rx: sop - cmd(010) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(010) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(010) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(010) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(010) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(010) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - cmd(010) stat crc
+C       rx:     - cmd(000) dl dh stat crc
+C       rx:     - eop
+#
+rxsop 
+rxcs   00001010 00000000
+rxcds  00010000          1000000011111111 00000000
+rxcs   00011010 00000000
+rxcds  00100000          1000001010000001 00000000
+rxcs   00101010 00000000
+rxcds  00110000          1000010010000011 00000000
+rxcs   00111010 00000000
+rxcds  01000000          1000011010000101 00000000
+rxcs   01001010 00000000
+rxcds  01010000          1000100010000111 00000000
+rxcs   01011010 00000000
+rxcds  01100000          1000111010001101 00000000
+rxcs   01101010 00000000
+rxcds  01110000          1001000010001111 00000000
+rxeop 
+#
+txsop 
+txcad  00001010 11110001 1000000011111111
+txca   00010000 11110001 
+txcad  00011010 11110001 1000001010000001
+txca   00100000 11110001 
+txcad  00101010 11110001 1000010010000011
+txca   00110000 11110001 
+txcad  00111010 11110001 1000011010000101
+txca   01000000 11110001 
+txcad  01001010 11110001 1000100010000111
+txca   01010000 11110001 
+txcad  01011010 11110001 1000111010001101
+txca   01100000 11110001 
+txcad  01101010 11110001 1001000010001111
+txca   01110000 11110001 
+txeop 
+#
+.iowt 10
+#
+#==============================================================================
+#
+C -----------------------------------------------------------------------------
+C Run down and Finish
+.iowt 10
+.wait 100

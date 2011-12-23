@@ -1,9 +1,8 @@
-# $Id: Makefile 405 2011-08-14 08:16:28Z mueller $
+# $Id: Makefile 442 2011-12-23 10:03:28Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
 # 2011-08-13   405   1.4    use includes from rtl/make
-# 2010-12-28   349   1.3.1  add tb_rlink_tba_eyemon
 # 2010-12-05   343   1.3    rri->rlink renames
 # 2009-11-21   252   1.2    add ISim support
 # 2007-11-03    95   1.1.2  use .log rather .dat output in check_dsim
@@ -11,8 +10,8 @@
 # 2007-06-29    61   1.1    add clean and all
 # 2007-06-10    51   1.0    Initial version
 #
-EXE_all = tb_rlink_direct tb_rlink_serport \
-            tb_rlink_tba_ttcombo tb_rlink_tba_eyemon
+EXE_all  = tb_rlink_direct 
+EXE_all += tb_rlink_sp1c
 #
 #
 .PHONY : all all_ssim all_tsim clean

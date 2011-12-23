@@ -1,6 +1,6 @@
 #! /usr/bin/env tclsh
 # -*- tcl -*-
-# $Id: ti_rri 435 2011-12-04 20:15:25Z mueller $
+# $Id: ti_rri 440 2011-12-18 20:08:09Z mueller $
 #
 # Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -15,14 +15,15 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2011-12-19   440   1.0.3  re-organize option handling for --term and --fifo
 # 2011-12-04   435   1.0.2  add flow attribute to --term
 # 2011-04-22   379   1.0.1  check for RETROBASE; proper exit handling; help text
 # 2011-04-17   376   1.0    Initial version
 # 2011-03-19   371   0.1    First draft
 #
 #
-# --fifo[=name,keep]
-# --term[=name,baud,break,flow]
+# --fifo[=name,opts,...]
+# --term[=name,baud,opts,...]
 # --run=command
 # --log=filename      ; default "-"
 # --logl=n            ; default 2
@@ -108,24 +109,25 @@ if { $opts(help) } {
   puts {  --fifo[=ARGS]  open fifo type rlink port. Optional arguments are:}
   puts {                   --fifo=[NAME[,KEEP]]}
   puts {                     NAME  fifo name prefix, default 'rlink_cext_fifo'}
-  puts {                     KEEP  if non-empty the fifo is kept open on exit}
+  puts {                     OPTS  further options (comma separated list):}
+  puts {                             keep  fifo is kept open on exit}
   puts {  --term[=ARGS]  open term type rlink port. Optional arguments are:}
-  puts {                   --term=[NAME[,BAUD[,BREAK[,FLOW]]]]}
+  puts {                   --term=[NAME[,BAUD[,OPTS]]]}
   puts {                     NAME  tty device name, default 'USB0'}
   puts {                           if not starting with '/' the name is}
   puts {                           prefixed with '/dev/tty'}
   puts {                     BAUD  serial port baud rate, default '115k'}
   puts {                           allowed baud rate settings are:}
-  puts {                             9600, 19200, 19k, 38400, 38k, 57600, 57k}
-  puts {                             115200, 115k, 230400, 230k, 460800, 460k}
-  puts {                             500000, 500k, 921600, 921k, 1000000, 1M}
-  puts {                             2000000, 2M, 3000000, 3M}
-  puts {                     BREAK controls whether a break will be send:}
-  puts {                             0 no break (default)}
-  puts {                             1 send break, do autobaud}
-  puts {                     FLOW  controls flow control regime:}
-  puts {                             0 no flow control (default)}
-  puts {                             1 cts/rts hardware flow control}
+  puts {                             2400, 4800, 9600, 19200, 19k, 38400, 38k}
+  puts {                             57600, 57k, 115200, 115k, 230400, 230k}
+  puts {                             460800, 460k, 500000, 500k, 921600, 921k}
+  puts {                             1000000, 1000k, 1M, 1500000, 1500k}
+  puts {                             2000000, 2000k, 2M, 2500000, 2500k}
+  puts {                             3000000, 3000k, 3M, 4000000, 4000k, 4M}
+  puts {                     OPTS  further options (comma separated list):}
+  puts {                             break  send a break, do autobaud}
+  puts {                             cts    hardware flow control (cts/rts)}
+  puts {                             xon    software flow control (xon/xoff)}
   puts {  --log=FILE     set log file name. Default is to write to stdout.}
   puts {  --logl=LVL     set log level, default is '2' allowed values:}
   puts {                   0 no logging}
@@ -191,10 +193,14 @@ if { $opts(run_) ne "" } {
 if { $opts(fifo) } {
   set nlist [split $opts(fifo_) ","]
   set path [lindex $nlist 0]
-  set keep [lindex $nlist 1]
   if {$path eq ""} {set path "rlink_cext_fifo"}
   set url "fifo:$path"
-  if {$keep ne ""} {append url "?keep"}
+  set delim "?"
+  foreach opt [lrange $nlist 1 end] {
+    if {$opt  ne ""} {append url "$delim$opt"}
+    set delim ";"
+  }
+  # puts "-I: $url"
   rlc open $url
 }
 
@@ -203,18 +209,12 @@ if { $opts(term) } {
   set nlist [split $opts(term_) ","]
   set dev  [lindex $nlist 0]
   set baud [lindex $nlist 1]
-  set brk  [lindex $nlist 2]
-  set flow [lindex $nlist 3]
   if {$dev  eq ""} {set dev  "USB0"}
   if {$baud eq ""} {set baud "115k"}
-  if {$brk  eq ""} {set brk  0}
-  if {$flow eq ""} {set flow 0}
-  if {! [regexp -- {^/} $dev]} {
-    set dev "/dev/tty$dev"
-  }
   set url "term:$dev?baud=$baud"
-  if {$brk  eq 1} {append url ";break"}
-  if {$flow eq 1} {append url ";cts"}
+  foreach opt [lrange $nlist 2 end] {
+    if {$opt  ne ""} {append url ";$opt"}
+  }
   # puts "-I: $url"
   rlc open $url
 }

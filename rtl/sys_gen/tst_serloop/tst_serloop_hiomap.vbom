@@ -1,0 +1,7 @@
+# libs
+../../vlib/slvtypes.vhd
+../../vlib/serport/serport.vhd
+tst_serlooplib.vbom
+# components
+# design
+tst_serloop_hiomap.vhd

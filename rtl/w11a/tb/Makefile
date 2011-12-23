@@ -1,4 +1,4 @@
-# $Id: Makefile 405 2011-08-14 08:16:28Z mueller $
+# $Id: Makefile 442 2011-12-23 10:03:28Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -9,7 +9,7 @@
 # 2007-07-06    64   1.1    use vbom's
 # 2007-06-17    58   1.0    Initial version
 #
-EXE_all = tb_pdp11core tb_rlink_tba_pdp11core
+EXE_all  = tb_pdp11core
 #
 #
 .PHONY : all all_ssim all_tsim clean

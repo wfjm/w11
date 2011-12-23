@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: pi_rri 435 2011-12-04 20:15:25Z mueller $
+# $Id: pi_rri 440 2011-12-18 20:08:09Z mueller $
 #
 # Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2011-12-18   440   1.6.6  add xon/xoff flow control support
 # 2011-12-04   435   1.6.5  add control over flow control (cts or none)
 # 2011-09-17   410   1.6.4  use for crc8 now a6 polynomial
 # 2010-12-29   351   1.6.3  rename rriext->cext and cpmon->rlmon
@@ -167,6 +168,10 @@ use constant D9SOP  => 0x101;
 use constant D9EOP  => 0x102;
 use constant D9NAK  => 0x103;
 use constant D9ATTN => 0x104;
+
+use constant KC_XON  => 0x11;               # XON  char -> ^Q = hex 11
+use constant KC_XOFF => 0x13;               # XOFF char -> ^S = hex 13
+use constant KC_XESC => 0x1b;               # XESC char -> ^[ = ESC = hex 1B
 
 use constant PDPCP_ADDR_CONF =>  000;
 use constant PDPCP_ADDR_CNTL =>  001;
@@ -442,6 +447,9 @@ my $term_oldtios;
 my $raw_rcv_esc = 0;
 my $raw_timeout = 1.;
 my $cmax = 16;
+
+my $xesc_enable = 0;                        # enables xon/xoff/xesc escaping
+my $xesc_pending = 0;                       # xesc pending on receive
 
 my $cmd_line;
 my $cmd_rest;
@@ -6342,10 +6350,14 @@ sub raw_rcv8_to {			    # get 8bit from TX, expl. time-out
   &{$chan_tab{$curchan}{write}}();	    # flush write queue before read
 
   &{$chan_tab{$curchan}{read}}($timeout) unless @que_rcv;
+  if ($xesc_enable) {
+    &{$chan_tab{$curchan}{read}}($timeout) unless @que_rcv;
+  }
+
   $dat = shift @que_rcv;
 
   if (exists $opts{tio8} and defined $dat) {
-    print $fh_log conv_etime(\$tlast_tio8), 
+    print $fh_log conv_etime(\$tlast_tio8),
           "[$curchan] rcv8   ", conv_dat8($dat),"\n";
   }
   $stat_tab{ibyte} += 1;
@@ -6456,13 +6468,22 @@ sub term_open {				    # term fifo: open handler
   print_fatal("flow attribute must be 0(none),1(cts), or 2(xon)")
     unless ($flow>=0 && $flow<=2);
 
+  $xesc_enable = ($flow == 2);              # enable/disable xesc escaping
+  $xesc_pending = 0;
+
 ##  term_tios_print($term_oldtios);
 
   my $newtios = new POSIX::Termios;
   $newtios->getattr($fd) || die "getattr failed: $!";    ## hack for cygwin !!
 
   my $c_iflag = &POSIX::BRKINT;	            # ignore parity errors (??? WRONG??)
+  if ($flow == 2) {
+    $c_iflag |= &POSIX::IXON |              # XON/XOFF flow control output
+                &POSIX::IXOFF;              # XON/XOFF flow control input
+  }
+
   my $c_oflag = 0;
+
   my $c_cflag = &POSIX::CS8 |	            # 8 bit chars
                 &POSIX::CSTOPB |            # 2 stop bits
                 &POSIX::CREAD |             # enable receiver
@@ -6470,9 +6491,10 @@ sub term_open {				    # term fifo: open handler
   if ($flow == 1) {                         # if cts/rts flow control
     $c_cflag |= LINUX_CRTSCTS;                # enable hardware flow control
   }
-  my $c_lflag = 0;
-  my $speed = 0;
 
+  my $c_lflag = 0;
+
+  my $speed = 0;
   $speed = &POSIX::B9600   if $baud == 9600;
   $speed = &POSIX::B19200  if $baud == 19200;
   $speed = &POSIX::B38400  if $baud == 38400;
@@ -6505,6 +6527,11 @@ sub term_open {				    # term fifo: open handler
   $newtios->setcc(&POSIX::VSTOP,    0);     # undef
   $newtios->setcc(&POSIX::VMIN,  1);        # wait for 1 char
   $newtios->setcc(&POSIX::VTIME, 0);        #
+
+  if ($flow == 2) {
+    $newtios->setcc(&POSIX::VSTART, KC_XON);  # setup XON  -> ^Q
+    $newtios->setcc(&POSIX::VSTOP,  KC_XOFF); # setup XOFF -> ^S
+  }
 
 ## term_tios_print($newtios);
 
@@ -6634,15 +6661,30 @@ sub genio_read {			    # generic io: read handler
 
     if (exists $opts{tiob}) {
       printf $fh_log "%s[$curchan] read  %3d bytes in %8.6f sec\n",
-	conv_etime(\$tlast_tiob), $rc, get_time()-$tstart;
+        conv_etime(\$tlast_tiob), $rc, get_time()-$tstart;
     }
     if ($rc) {
-      push @que_rcv, unpack("C*", $buf);
+      if ($xesc_enable) {
+        my @que_rcv_xesc = unpack("C*", $buf);
+        foreach my $char (@que_rcv_xesc) {
+          if ($xesc_pending) {
+            push @que_rcv, (~$char) & 0xff;
+            $xesc_pending = 0;
+          } elsif ($char == KC_XESC) {
+            $xesc_pending = 1;
+          } else {
+            push @que_rcv, $char;
+          }
+        }
+
+      } else {
+        push @que_rcv, unpack("C*", $buf);
+      }
     }
   }
 ###  if (defined $rc) {
 ###    printf "+++1 _read $timeout rc=%d\n", $rc;
-###  } else { 
+###  } else {
 ###    printf "+++1 _read $timeout rc=undef\n";
 ###  }
   return $rc;
@@ -6654,7 +6696,24 @@ sub genio_write {			    # generic io: write handler
 ##  printf "+++2 _write q=%d\n", scalar @que_snd;
   if (scalar @que_snd) {
 
-    my $buf = pack("C*", @que_snd);
+    my $buf;
+
+    if ($xesc_enable) {                     # handle xon,xoff,xesc escaping
+      my @que_snd_xesc;
+      foreach my $char (@que_snd) {
+        if ($char==KC_XON || $char==KC_XOFF || $char==KC_XESC) {
+          push @que_snd_xesc, KC_XESC;
+          push @que_snd_xesc, (~$char) & 0xff;
+        } else {
+          push @que_snd_xesc, $char;
+        }
+      }
+      $buf = pack("C*", @que_snd_xesc);
+
+    } else {
+      $buf = pack("C*", @que_snd);
+    }
+
     while (length($buf)) {
       while(1) {		            # read rcv fifo before writing
         my $rc = genio_read(0.);            # to avoid blocking under cygwin

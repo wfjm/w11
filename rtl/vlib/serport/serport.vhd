@@ -1,4 +1,4 @@
--- $Id: serport.vhd 424 2011-11-13 16:38:23Z mueller $
+-- $Id: serport.vhd 437 2011-12-09 19:38:07Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,6 +20,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-09   437   1.2.5  rename stat->moni port
 -- 2011-10-23   419   1.2.4  remove serport_clkdiv_ consts;
 -- 2011-10-22   417   1.2.3  add serport_xon(rx|tx) defs
 -- 2011-10-14   416   1.2.2  add c_serport defs
@@ -159,7 +160,7 @@ component serport_xontx is              -- serial port: xon/xoff logic tx path
   );
 end component;
 
-type serport_stat_type is record        -- serial port module status
+type serport_moni_type is record        -- serport monitor port
   rxerr : slbit;                        -- receiver data error (frame error)
   rxovr : slbit;                        -- receiver data overrun
   rxact : slbit;                        -- receiver active
@@ -169,9 +170,9 @@ type serport_stat_type is record        -- serial port module status
   abclkdiv : slv16;                     -- autobauder clock divider
   rxok : slbit;                         -- rx channel ok
   txok : slbit;                         -- tx channel ok
-end record serport_stat_type;
+end record serport_moni_type;
   
-constant serport_stat_init : serport_stat_type := (
+constant serport_moni_init : serport_moni_type := (
   '0','0',                              -- rxerr,rxovr
   '0','0',                              -- rxact,txact
   '0','0',                              -- abact,abdone
@@ -197,7 +198,7 @@ component serport_1clock is             -- serial port module, 1 clock domain
     TXDATA : in slv8;                   -- transmit data in
     TXENA : in slbit;                   -- transmit data enable
     TXBUSY : out slbit;                 -- transmit busy
-    STAT : out serport_stat_type;       -- serport module status
+    MONI : out serport_moni_type;       -- serport monitor port
     RXSD : in slbit;                    -- receive serial data (uart view)
     TXSD : out slbit;                   -- transmit serial data (uart view)
     RXRTS_N : out slbit;                -- receive rts (uart view, act.low)
@@ -224,7 +225,7 @@ component serport_2clock is             -- serial port module, 2 clock domain
     TXDATA : in slv8;                   -- U|transmit data in
     TXENA : in slbit;                   -- U|transmit data enable
     TXBUSY : out slbit;                 -- U|transmit busy
-    STAT : out serport_stat_type;       -- U|serport module status
+    MONI : out serport_moni_type;       -- U|serport monitor port
     RXSD : in slbit;                    -- S|receive serial data (uart view)
     TXSD : out slbit;                   -- S|transmit serial data (uart view)
     RXRTS_N : out slbit;                -- S|receive rts (uart view, act.low)

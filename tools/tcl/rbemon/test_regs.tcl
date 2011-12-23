@@ -1,4 +1,4 @@
-# $Id: test_regs.tcl 375 2011-04-02 07:56:47Z mueller $
+# $Id: test_regs.tcl 440 2011-12-18 20:08:09Z mueller $
 #
 # Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2011-12-18   440   1.0.1  increase npoll in "CNTL.clr->0" test
 # 2011-04-02   375   1.0    Initial version
 #
 
@@ -82,7 +83,7 @@ namespace eval rbemon {
     #
     #-------------------------------------------------------------------------
     rlc log "  test 4: verify that CNTL.clr returns to 0"
-    set npoll 32
+    set npoll 48
     set edat {}
     set emsk {}
     for {set i 0} {$i < $npoll} {incr i} { lappend edat 0x0000 }

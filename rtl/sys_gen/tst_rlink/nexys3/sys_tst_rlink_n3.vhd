@@ -1,4 +1,4 @@
--- $Id: sys_tst_rlink_n3.vhd 433 2011-11-27 22:04:39Z mueller $
+-- $Id: sys_tst_rlink_n3.vhd 442 2011-12-23 10:03:28Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,7 +19,9 @@
 --                 vlib/genlib/clkdivce
 --                 bplib/bpgen/bp_rs232_2l4l_iob
 --                 bplib/bpgen/sn_humanio_rbus
---                 tst_rlink
+--                 vlib/rlink/rlink_sp1c
+--                 rbd_tst_rlink
+--                 vlib/rbus/rb_sres_or_2
 --                 vlib/nxcramlib/nx_cram_dummy
 --
 -- Test bench:     tb/tb_tst_rlink_n3
@@ -29,28 +31,32 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2011-12-18   440 13.1    O40d xc6slx16-2   752 1258   48  439 t  7.9
 -- 2011-11-26   433 13.1    O40d xc6slx16-2   722 1199   36  423 t  9.7
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-18   440   1.1.1  use [rt]xok for DSP_DP
+-- 2011-12-11   438   1.1    use now rbd_tst_rlink and rlink_sp1c
 -- 2011-11-26   433   1.0    Initial version (derived from sys_tst_rlink_n2)
 ------------------------------------------------------------------------------
 -- Usage of Nexys 3 Switches, Buttons, LEDs:
 --
+--    SWI(7:2): no function (only connected to sn_humanio_rbus)
+--    SWI(1):   1 enable XON
 --    SWI(0):   0 -> main board RS232 port  - implemented in bp_rs232_2l4l_iob
 --              1 -> Pmod B/top RS232 port  /
---       (1:7): no function (only connected to s3_humanio_rbus)
 --
+--    LED(7):   SER_MONI.abact
+--    LED(6:2): no function (only connected to sn_humanio_rbus)
 --    LED(0):   timer 0 busy 
 --    LED(1):   timer 1 busy 
---    LED(2:6): no function (only connected to s3_humanio_rbus)
---    LED(7):   RL_SER_MONI.abact
 --
---    DSP:      RL_SER_MONI.clkdiv  (from auto bauder)
---    DP(0):    RL_SER_MONI.rxact
---    DP(1):    RTS_N  (shows rx back preasure)
---    DP(2):    RL_SER_MONI.txact
---    DP(3):    CTS_N  (shows tx back preasure)
+--    DSP:      SER_MONI.clkdiv         (from auto bauder)
+--    DP(3):    not SER_MONI.txok       (shows tx back preasure)
+--    DP(2):    SER_MONI.txact          (shows tx activity)
+--    DP(1):    not SER_MONI.rxok       (shows rx back preasure)
+--    DP(0):    SER_MONI.rxact          (shows rx activity)
 --
 
 library ieee;
@@ -59,6 +65,7 @@ use ieee.std_logic_1164.all;
 use work.slvtypes.all;
 use work.xlib.all;
 use work.genlib.all;
+use work.serport.all;
 use work.rblib.all;
 use work.rlinklib.all;
 use work.bpgenlib.all;
@@ -116,9 +123,15 @@ architecture syn of sys_tst_rlink_n3 is
   signal CE_USEC : slbit := '0';
   signal CE_MSEC : slbit := '0';
 
-  signal RB_MREQ_TOP : rb_mreq_type := rb_mreq_init;
-  signal RB_SRES_TOP : rb_sres_type := rb_sres_init;
-  signal RL_SER_MONI : rl_ser_moni_type := rl_ser_moni_init;
+  signal RB_MREQ : rb_mreq_type := rb_mreq_init;
+  signal RB_SRES : rb_sres_type := rb_sres_init;
+  signal RB_SRES_HIO : rb_sres_type := rb_sres_init;
+  signal RB_SRES_TST : rb_sres_type := rb_sres_init;
+
+  signal RB_LAM  : slv16 := (others=>'0');
+  signal RB_STAT : slv3  := (others=>'0');
+  
+  signal SER_MONI : serport_moni_type := serport_moni_init;
   signal STAT    : slv8  := (others=>'0');
 
   constant rbaddr_hio   : slv8 := "11000000"; -- 110000xx
@@ -179,8 +192,8 @@ begin
       CLK     => CLK,
       RESET   => RESET,
       CE_MSEC => CE_MSEC,
-      RB_MREQ => RB_MREQ_TOP,
-      RB_SRES => RB_SRES_TOP,
+      RB_MREQ => RB_MREQ,
+      RB_SRES => RB_SRES_HIO,
       SWI     => SWI,                   
       BTN     => BTN,                   
       LED     => LED,                   
@@ -193,22 +206,57 @@ begin
       O_SEG_N => O_SEG_N
     );
 
-  RLTEST : entity work.tst_rlink
+  RLINK : rlink_sp1c
     generic map (
-      CDINIT   => sys_conf_ser2rri_cdinit)
+      ATOWIDTH     => 6,
+      ITOWIDTH     => 6,
+      CPREF        => c_rlink_cpref,
+      IFAWIDTH     => 5,
+      OFAWIDTH     => 5,
+      ENAPIN_RLMON => sbcntl_sbf_rlmon,
+      ENAPIN_RBMON => sbcntl_sbf_rbmon,
+      CDWIDTH      => 15,
+      CDINIT       => sys_conf_ser2rri_cdinit)
+    port map (
+      CLK      => CLK,
+      CE_USEC  => CE_USEC,
+      CE_MSEC  => CE_MSEC,
+      CE_INT   => CE_MSEC,
+      RESET    => RESET,
+      ENAXON   => SWI(1),
+      ENAESC   => SWI(1),
+      RXSD     => RXD,
+      TXSD     => TXD,
+      CTS_N    => CTS_N,
+      RTS_N    => RTS_N,
+      RB_MREQ  => RB_MREQ,
+      RB_SRES  => RB_SRES,
+      RB_LAM   => RB_LAM,
+      RB_STAT  => RB_STAT,
+      RL_MONI  => open,
+      SER_MONI => SER_MONI
+    );
+
+  RBDTST : entity work.rbd_tst_rlink
     port map (
       CLK         => CLK,
       RESET       => RESET,
       CE_USEC     => CE_USEC,
-      CE_MSEC     => CE_MSEC,
-      RXD         => RXD,
-      TXD         => TXD,
-      CTS_N       => CTS_N,
-      RTS_N       => RTS_N,
-      RB_MREQ_TOP => RB_MREQ_TOP,
-      RB_SRES_TOP => RB_SRES_TOP,
-      RL_SER_MONI => RL_SER_MONI,
+      RB_MREQ     => RB_MREQ,
+      RB_SRES     => RB_SRES_TST,
+      RB_LAM      => RB_LAM,
+      RB_STAT     => RB_STAT,
+      RB_SRES_TOP => RB_SRES,
+      RXSD        => RXD,
+      RXACT       => SER_MONI.rxact,
       STAT        => STAT
+    );
+
+  RB_SRES_OR1 : rb_sres_or_2
+    port map (
+      RB_SRES_1  => RB_SRES_HIO,
+      RB_SRES_2  => RB_SRES_TST,
+      RB_SRES_OR => RB_SRES
     );
 
   SRAM_PROT : nx_cram_dummy            -- connect CRAM to protection dummy
@@ -228,13 +276,14 @@ begin
   O_PPCM_CE_N  <= '1';                  -- keep parallel PCM memory disabled
   O_PPCM_RST_N <= '1';                  --
 
-  DSP_DAT   <= RL_SER_MONI.clkdiv;
-  DSP_DP(0) <= RL_SER_MONI.rxact;
-  DSP_DP(1) <= RTS_N;
-  DSP_DP(2) <= RL_SER_MONI.txact;
-  DSP_DP(3) <= CTS_N;
+  DSP_DAT   <= SER_MONI.abclkdiv;
 
-  LED(7) <= RL_SER_MONI.abact;
+  DSP_DP(3) <= not SER_MONI.txok;
+  DSP_DP(2) <= SER_MONI.txact;
+  DSP_DP(1) <= not SER_MONI.rxok;
+  DSP_DP(0) <= SER_MONI.rxact;
+
+  LED(7) <= SER_MONI.abact;
   LED(6 downto 2) <= (others=>'0');
   LED(1) <= STAT(1);
   LED(0) <= STAT(0);

@@ -1,4 +1,4 @@
-// $Id: RlinkPortTerm.cpp 435 2011-12-04 20:15:25Z mueller $
+// $Id: RlinkPortTerm.cpp 440 2011-12-18 20:08:09Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,10 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2011-12-18   440   1.0.4  add kStatNPort stats; Open(): autoadd /dev/tty,
+//                           BUGFIX: Open(): set VSTART, VSTOP
+// 2011-12-11   438   1.0.3  Read(),Write(): added for xon handling, tcdrain();
+//                           Open(): add more baud rates, support xon attribute
 // 2011-12-04   435   1.0.2  Open(): add cts attr, hw flow control now optional
 // 2011-07-04   388   1.0.1  add termios readback and verification
 // 2011-03-27   374   1.0    Initial version
@@ -20,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPortTerm.cpp 435 2011-12-04 20:15:25Z mueller $
+  \version $Id: RlinkPortTerm.cpp 440 2011-12-18 20:08:09Z mueller $
   \brief   Implemenation of RlinkPortTerm.
 */
 
@@ -45,11 +49,20 @@ using namespace Retro;
 */
 
 //------------------------------------------+-----------------------------------
+// constants definitions
+const uint8_t RlinkPortTerm::kc_xon;
+const uint8_t RlinkPortTerm::kc_xoff;
+const uint8_t RlinkPortTerm::kc_xesc;
+
+//------------------------------------------+-----------------------------------
 //! Default constructor
 
 RlinkPortTerm::RlinkPortTerm()
   : RlinkPort()
-{}
+{
+  fStats.Define(kStatNPortTxXesc, "NPortTxXesc", "Tx XESC escapes");
+  fStats.Define(kStatNPortRxXesc, "NPortRxXesc", "Rx XESC escapes");
+}
 
 //------------------------------------------+-----------------------------------
 //! Destructor
@@ -66,12 +79,21 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
 {
   if (IsOpen()) Close();
 
-  if (!ParseUrl(url, "|baud=|break|cts|", emsg)) return false;
+  if (!ParseUrl(url, "|baud=|break|cts|xon", emsg)) return false;
+
+  // if path doesn't start with a '/' prepend a '/dev/tty'
+  if (fPath.substr(0,1) != "/") {
+    string dev = fPath;
+    fPath  = "/dev/tty";
+    fPath += dev;
+  }
 
   speed_t speed = B115200;
   string baud;
   if (UrlFindOpt("baud", baud)) {
     speed = B0;
+    if (baud=="2400")                     speed = B2400;
+    if (baud=="4800")                     speed = B4800;
     if (baud=="9600")                     speed = B9600;
     if (baud=="19200"   || baud=="19k")   speed = B19200;
     if (baud=="38400"   || baud=="38k")   speed = B38400;
@@ -81,9 +103,14 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
     if (baud=="460800"  || baud=="460k")  speed = B460800;
     if (baud=="500000"  || baud=="500k")  speed = B500000;
     if (baud=="921600"  || baud=="921k")  speed = B921600;
-    if (baud=="1000000" || baud=="1M")    speed = B1000000;
-    if (baud=="2000000" || baud=="2M")    speed = B2000000;
-    if (baud=="3000000" || baud=="3M")    speed = B3000000;
+    if (baud=="1000000" || baud=="1000k" || baud=="1M") speed = B1000000;
+    if (baud=="1152000" || baud=="1152k")               speed = B1152000;
+    if (baud=="1500000" || baud=="1500k")               speed = B1500000;
+    if (baud=="2000000" || baud=="2000k" || baud=="2M") speed = B2000000;
+    if (baud=="2500000" || baud=="2500k")               speed = B2500000;
+    if (baud=="3000000" || baud=="3000k" || baud=="3M") speed = B3000000;
+    if (baud=="3500000" || baud=="3500k")               speed = B3500000;
+    if (baud=="4000000" || baud=="4000k" || baud=="4M") speed = B4000000;
     if (speed == B0) {
       emsg.Init("RlinkPortTerm::Open()", 
                 string("invalid baud rate \"") + baud + string("\" specified"));
@@ -117,10 +144,19 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
     return false;
   }
 
+  bool use_cts = UrlFindOpt("cts");
+  bool use_xon = UrlFindOpt("xon");
+  fUseXon = use_xon;
+  fPendXesc = false;
+
   fTiosNew = fTiosOld;
 
   fTiosNew.c_iflag = IGNBRK |               // ignore breaks on input
                      IGNPAR;                // ignore parity errors
+  if (use_xon) {
+    fTiosNew.c_iflag |= IXON|               // XON/XOFF flow control output
+                        IXOFF;              // XON/XOFF flow control input
+  }
 
   fTiosNew.c_oflag = 0;
 
@@ -128,7 +164,7 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
                      CSTOPB |               // 2 stop bits
                      CREAD |                // enable receiver
                      CLOCAL;                // ignore modem control
-  if (UrlFindOpt("cts")) {
+  if (use_cts) {
     fTiosNew.c_cflag |= CRTSCTS;            // enable hardware flow control
   }
 
@@ -153,6 +189,10 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
   fTiosNew.c_cc[VSTOP]  = 0;                // undef
   fTiosNew.c_cc[VMIN]   = 1;                // wait for 1 char
   fTiosNew.c_cc[VTIME]  = 0;                // 
+  if (use_xon) {
+    fTiosNew.c_cc[VSTART] = kc_xon;         // setup XON  -> ^Q
+    fTiosNew.c_cc[VSTOP]  = kc_xoff;        // setup XOFF -> ^S   
+  }
 
   if (tcsetattr(fd, TCSANOW, &fTiosNew) != 0) {
     emsg.InitErrno("RlinkPortTerm::Open()", 
@@ -234,6 +274,78 @@ void RlinkPortTerm::Close()
 }
   
 //------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+int RlinkPortTerm::Read(uint8_t* buf, size_t size, double timeout, 
+                        RerrMsg& emsg)
+{
+  int irc;
+  if (fUseXon) {
+    uint8_t* po = buf;
+    if (fRxBuf.size() < size) fRxBuf.resize(size);
+
+    // repeat read untill at least one byte returned (or an error occurs)
+    // this avoids that the Read() returns with 0 in case only one byte is
+    // seen and this is a kc_xesc. At most two iterations possible because
+    // in 2nd iteration fPendXesc must be set and thus po pushed.
+    while (po == buf) {
+      irc = RlinkPort::Read(fRxBuf.data(), size, timeout, emsg);
+      if (irc <= 0) break;
+      uint8_t* pi = fRxBuf.data();
+      for (int i=0; i<irc; i++) {
+        uint8_t c = *pi++;
+        if (fPendXesc) {
+          *po++ = ~c;
+          fPendXesc = false;
+        } else if (c == kc_xesc) {
+          fStats.Inc(kStatNPortRxXesc);
+          fPendXesc = true;
+        } else {
+          *po++ = c;
+        }
+      }
+      irc = po - buf;                       // set irc to # of unescaped bytes
+    }
+
+  } else {
+    irc = RlinkPort::Read(buf, size, timeout, emsg);
+  }
+
+  return irc;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+int RlinkPortTerm::Write(const uint8_t* buf, size_t size, RerrMsg& emsg)
+{
+  int irc = 0;
+  
+  if (fUseXon) {
+    fTxBuf.clear();
+    const uint8_t* pc = buf;
+    
+    for (size_t i=0; i<size; i++) {
+      uint8_t c = *pc++;
+      if (c==kc_xon || c==kc_xoff || c==kc_xesc) {
+        fStats.Inc(kStatNPortTxXesc);
+        fTxBuf.push_back(kc_xesc);
+        fTxBuf.push_back(~c);
+      } else {
+        fTxBuf.push_back(c);
+      }
+    }
+    int irce = RlinkPort::Write(fTxBuf.data(), fTxBuf.size(), emsg);
+    if (irce == (int)fTxBuf.size()) irc = size;
+  } else {
+    irc = RlinkPort::Write(buf, size, emsg);
+  }
+
+  /* tcdrain(fFdWrite);*/
+  return irc;
+}
+
+//------------------------------------------+-----------------------------------
 //! FIXME_text
 
 void RlinkPortTerm::Dump(std::ostream& os, int ind, const char* text) const
@@ -286,6 +398,8 @@ void RlinkPortTerm::DumpTios(std::ostream& os, int ind, const std::string& name,
   if (tios.c_cflag & PARODD) os << " PARODD";
   speed_t speed = cfgetispeed(&tios);
   int baud = 0;
+  if (speed == B2400)    baud =    2400;
+  if (speed == B4800)    baud =    4800;
   if (speed == B9600)    baud =    9600;
   if (speed == B19200)   baud =   19200;
   if (speed == B38400)   baud =   38400;
@@ -296,8 +410,13 @@ void RlinkPortTerm::DumpTios(std::ostream& os, int ind, const std::string& name,
   if (speed == B500000)  baud =  500000;
   if (speed == B921600)  baud =  921600;
   if (speed == B1000000) baud = 1000000;
+  if (speed == B1152000) baud = 1152000;
+  if (speed == B1500000) baud = 1500000;
   if (speed == B2000000) baud = 2000000;
+  if (speed == B2500000) baud = 2500000;
   if (speed == B3000000) baud = 3000000;
+  if (speed == B3500000) baud = 3500000;
+  if (speed == B4000000) baud = 4000000;
   os << " speed: " << RosPrintf(baud, "d", 7);
   os << endl;
 

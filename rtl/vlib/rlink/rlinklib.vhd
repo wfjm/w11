@@ -1,4 +1,4 @@
--- $Id: rlinklib.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: rlinklib.vhd 442 2011-12-23 10:03:28Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,6 +20,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-21   442   3.2.1  retire old, deprecated interfaces
+-- 2011-12-09   437   3.2    add rlink_core8
 -- 2011-11-18   427   3.1.3  now numeric_std clean
 -- 2010-12-25   348   3.1.2  drop RL_FLUSH support, add RL_MONI for rlink_core;
 --                           new rlink_serport interface;
@@ -52,6 +54,7 @@ use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.rblib.all;
+use work.serport.all;
 
 package rlinklib is
 
@@ -100,6 +103,11 @@ constant rl_moni_init : rl_moni_type :=
 -- As workaround the ibus default addresses are defined here as constant.
 constant rbaddr_rlink_serport : slv8 := slv(to_unsigned(2#11111110#,8));
 
+-- this definition logically belongs into the 'for test benches' section'
+-- must be here because it is needed as generic default in rlink_core8
+-- simbus sb_cntl field usage for rlink
+constant sbcntl_sbf_rlmon : integer := 15;
+
 component rlink_core is                 -- rlink core with 9bit iface
   generic (
     ATOWIDTH : positive :=  5;          -- access timeout counter width
@@ -136,44 +144,11 @@ component rlink_aif is                  -- rlink, abstract interface
   );
 end component;
 
-component rlink_rlb2rl is               -- rlink 8 bit(rlb) to 9 bit(rl) adapter
-  generic (
-    CPREF : slv4 := c_rlink_cpref;      -- comma prefix
-    IFAWIDTH : natural :=  5;           -- input fifo address width  (0=none)
-    OFAWIDTH : natural :=  5);          -- output fifo address width (0=none)
-  port (
-    CLK  : in slbit;                    -- clock
-    RESET : in slbit;                   -- reset
-    RLB_DI : in slv8;                   -- rlink 8b: data in
-    RLB_ENA : in slbit;                 -- rlink 8b: data enable
-    RLB_BUSY : out slbit;               -- rlink 8b: data busy
-    RLB_DO : out slv8;                  -- rlink 8b: data out
-    RLB_VAL : out slbit;                -- rlink 8b: data valid
-    RLB_HOLD : in slbit;                -- rlink 8b: data hold
-    IFIFO_SIZE : out slv4;              --  input fifo size (4 msb's)
-    OFIFO_SIZE : out slv4;              -- output fifo fill (4 msb's)
-    RL_DI : out slv9;                   -- rlink 9b: data in
-    RL_ENA : out slbit;                 -- rlink 9b: data enable
-    RL_BUSY : in slbit;                 -- rlink 9b: data busy
-    RL_DO : in slv9;                    -- rlink 9b: data out
-    RL_VAL : in slbit;                  -- rlink 9b: data valid
-    RL_HOLD : out slbit                 -- rlink 9b: data hold
-  );
-end component;
-
--- this definition logically belongs into the 'for test benches' section'
--- must be here because it is needed as generic default in rlink_base
--- simbus sb_cntl field usage for rlink
-  constant sbcntl_sbf_rlmon : integer := 15;
-
-component rlink_base is                 -- rlink base: core+rl2rlb+rlmon+rbmon
-                                        -- with buffered 8bit interface
+component rlink_core8 is                -- rlink core with 8bit iface
   generic (
     ATOWIDTH : positive :=  5;          -- access timeout counter width
     ITOWIDTH : positive :=  6;          -- idle timeout counter width
     CPREF : slv4 := c_rlink_cpref;      -- comma prefix
-    IFAWIDTH : natural :=  5;           -- input fifo address width  (0=none)
-    OFAWIDTH : natural :=  5;           -- output fifo address width (0=none)
     ENAPIN_RLMON : integer := sbcntl_sbf_rlmon;  -- SB_CNTL for rlmon (-1=none)
     ENAPIN_RBMON : integer := sbcntl_sbf_rbmon); -- SB_CNTL for rbmon (-1=none)
   port (
@@ -186,8 +161,6 @@ component rlink_base is                 -- rlink base: core+rl2rlb+rlmon+rbmon
     RLB_DO : out slv8;                  -- rlink 8b: data out
     RLB_VAL : out slbit;                -- rlink 8b: data valid
     RLB_HOLD : in slbit;                -- rlink 8b: data hold
-    IFIFO_SIZE : out slv4;              --  input fifo size (4 msb's)
-    OFIFO_SIZE : out slv4;              -- output fifo fill (4 msb's)
     RL_MONI : out rl_moni_type;         -- rlink: monitor port
     RB_MREQ : out rb_mreq_type;         -- rbus: request
     RB_SRES : in rb_sres_type;          -- rbus: response
@@ -196,56 +169,11 @@ component rlink_base is                 -- rlink base: core+rl2rlb+rlmon+rbmon
   );
 end component;
 
-type rl_ser_moni_type is record         -- rlink_serport monitor port
-  rxerr : slbit;                        -- rx err
-  rxdrop : slbit;                       -- rx drop
-  rxact : slbit;                        -- rx active
-  txact : slbit;                        -- tx active
-  abact : slbit;                        -- ab active
-  abdone : slbit;                       -- ab done
-  clkdiv : slv16;                       -- clock divider
-end record rl_ser_moni_type;
+--
+-- core + concrete_interface combo's
+--
 
-constant rl_ser_moni_init : rl_ser_moni_type :=
-  ('0','0',                             -- rxerr,rxdrop
-   '0','0',                             -- rxact,txact
-   '0','0',                             -- abact,abdone
-   (others=>'0'));                      -- clkdiv
-
-constant c_rlink_serport_rbf_fena:     integer := 12;             -- 
-subtype  c_rlink_serport_rbf_fwidth is integer range 11 downto 9; -- 
-subtype  c_rlink_serport_rbf_fdelay is integer range  8 downto 6; -- 
-subtype  c_rlink_serport_rbf_rtsoff is integer range  5 downto 3; -- 
-subtype  c_rlink_serport_rbf_rtson  is integer range  2 downto 0; -- 
-
-component rlink_serport is              -- rlink serport adapter
-  generic (
-    RB_ADDR : slv8 := rbaddr_rlink_serport;
-    CDWIDTH : positive := 13;           -- clk divider width
-    CDINIT : natural   := 15);          -- clk divider initial/reset setting
-  port (
-    CLK  : in slbit;                    -- clock
-    CE_USEC : in slbit;                 -- 1 usec clock enable
-    CE_MSEC : in slbit;                 -- 1 msec clock enable
-    RESET  : in slbit;                  -- reset
-    RXSD : in slbit;                    -- receive serial data      (board view)
-    TXSD : out slbit;                   -- transmit serial data     (board view)
-    CTS_N : in slbit := '0';            -- clear to send   (act.low, board view)
-    RTS_N : out slbit;                  -- request to send (act.low, board view)
-    RLB_DI : out slv8;                  -- rlink 8b: data in
-    RLB_ENA : out slbit;                -- rlink 8b: data enable
-    RLB_BUSY : in slbit;                -- rlink 8b: data busy
-    RLB_DO : in slv8;                   -- rlink 8b: data out
-    RLB_VAL : in slbit;                 -- rlink 8b: data valid
-    RLB_HOLD : out slbit;               -- rlink 8b: data hold
-    RB_MREQ : in rb_mreq_type;          -- rbus: request (for inits only)
-    IFIFO_SIZE : in slv4;               -- rlink_rlb2rb: input fifo size
-    RL_MONI : in rl_moni_type;          -- rlink_core: monitor port
-    RL_SER_MONI : out rl_ser_moni_type  -- rlink_serport: monitor port
-  );
-end component;
-
-component rlink_base_serport is         -- rlink base+serport combo
+component rlink_sp1c is                 -- rlink_core8+serport_1clock combo
   generic (
     ATOWIDTH : positive :=  5;          -- access timeout counter width
     ITOWIDTH : positive :=  6;          -- idle timeout counter width
@@ -254,7 +182,6 @@ component rlink_base_serport is         -- rlink base+serport combo
     OFAWIDTH : natural :=  5;           -- output fifo address width (0=none)
     ENAPIN_RLMON : integer := sbcntl_sbf_rlmon;  -- SB_CNTL for rlmon (-1=none)
     ENAPIN_RBMON : integer := sbcntl_sbf_rbmon;  -- SB_CNTL for rbmon (-1=none)
-    RB_ADDR : slv8 := rbaddr_rlink_serport;
     CDWIDTH : positive := 13;           -- clk divider width
     CDINIT : natural   := 15);          -- clk divider initial/reset setting
   port (
@@ -263,6 +190,8 @@ component rlink_base_serport is         -- rlink base+serport combo
     CE_MSEC : in slbit;                 -- 1 msec clock enable
     CE_INT : in slbit := '0';           -- rri ito time unit clock enable
     RESET  : in slbit;                  -- reset
+    ENAXON : in slbit;                  -- enable xon/xoff handling
+    ENAESC : in slbit;                  -- enable xon/xoff escaping
     RXSD : in slbit;                    -- receive serial data      (board view)
     TXSD : out slbit;                   -- transmit serial data     (board view)
     CTS_N : in slbit := '0';            -- clear to send   (act.low, board view)
@@ -272,7 +201,7 @@ component rlink_base_serport is         -- rlink base+serport combo
     RB_LAM : in slv16;                  -- rbus: look at me
     RB_STAT : in slv3;                  -- rbus: status flags
     RL_MONI : out rl_moni_type;         -- rlink_core: monitor port
-    RL_SER_MONI : out rl_ser_moni_type  -- rlink_serport: monitor port
+    SER_MONI : out serport_moni_type    -- serport: monitor port
   );
 end component;
 

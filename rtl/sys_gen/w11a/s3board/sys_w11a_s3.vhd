@@ -1,4 +1,4 @@
--- $Id: sys_w11a_s3.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: sys_w11a_s3.vhd 442 2011-12-23 10:03:28Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,7 +18,7 @@
 -- Dependencies:   vlib/genlib/clkdivce
 --                 bplib/bpgen/bp_rs232_2l4l_iob
 --                 bplib/bpgen/sn_humanio
---                 vlib/rlink/rlink_base_serport
+--                 vlib/rlink/rlink_sp1c
 --                 vlib/rbus/rb_sres_or_2
 --                 w11a/pdp11_core_rbus
 --                 w11a/pdp11_core
@@ -39,6 +39,7 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2011-12-21   442 13.1    O40d xc3s1000-4  1301 4307  270 2613 OK: LP+PC+DL+II
 -- 2011-11-19   427 13.1    O40d xc3s1000-4  1322 4298  242 2616 OK: LP+PC+DL+II
 -- 2010-12-30   351 12.1    M53d xc3s1000-4  1316 4291  242 2609 OK: LP+PC+DL+II
 -- 2010-11-06   336 12.1    M53d xc3s1000-4  1284 4253* 242 2575 OK: LP+PC+DL+II
@@ -72,6 +73,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-21   442   1.4.4  use rlink_sp1c; hio led usage now a for n2/n3
 -- 2011-11-19   427   1.4.3  now numeric_std clean
 -- 2011-07-09   391   1.4.2  use now bp_rs232_2l4l_iob
 -- 2011-07-08   390   1.4.1  use now sn_humanio
@@ -122,12 +124,30 @@
 --    w11a + rlink + serport
 --
 -- Usage of S3BOARD Switches, Buttons, LEDs:
---    LED(7..0):last RXDATA
 --
---    DP(0):    RXSD   (inverted to signal activity)
---    DP(1):    RTS_N  (shows rx back preasure)
---    DP(2):    TXSD   (inverted to signal activity)
---    DP(3):    CTS_N  (shows tx back preasure)
+--    SWI(7:2): no function (only connected to sn_humanio_rbus)
+--    SWI(1):   1 enable XON
+--    SWI(0):   0 -> main board RS232 port
+--              1 -> Pmod B/top RS232 port
+--    
+--    LED(7)    MEM_ACT_W
+--       (6)    MEM_ACT_R
+--       (5)    cmdbusy (all rlink access, mostly rdma)
+--       (4:0): if cpugo=1 show cpu mode activity
+--                  (4) kernel mode, pri>0
+--                  (3) kernel mode, pri=0
+--                  (2) kernel mode, wait
+--                  (1) supervisor mode
+--                  (0) user mode
+--              if cpugo=0 shows cpurust
+--                (3:0) cpurust code
+--                  (4) '1'
+--
+--    DP(3):    not SER_MONI.txok       (shows tx back preasure)
+--    DP(2):    SER_MONI.txact          (shows tx activity)
+--    DP(1):    not SER_MONI.rxok       (shows rx back preasure)
+--    DP(0):    SER_MONI.rxact          (shows rx activity)
+--
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -135,6 +155,7 @@ use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.genlib.all;
+use work.serport.all;
 use work.rblib.all;
 use work.rlinklib.all;
 use work.bpgenlib.all;
@@ -188,6 +209,8 @@ architecture syn of sys_w11a_s3 is
   signal RB_LAM  : slv16 := (others=>'0');
   signal RB_STAT : slv3  := (others=>'0');
 
+  signal SER_MONI : serport_moni_type := serport_moni_init;
+
   signal RB_MREQ     : rb_mreq_type := rb_mreq_init;
   signal RB_SRES     : rb_sres_type := rb_sres_init;
   signal RB_SRES_CPU : rb_sres_type := rb_sres_init;
@@ -220,6 +243,8 @@ architecture syn of sys_w11a_s3 is
   signal MEM_WE    : slbit := '0';
   signal MEM_BUSY  : slbit := '0';
   signal MEM_ACK_R : slbit := '0';
+  signal MEM_ACT_R : slbit := '0';
+  signal MEM_ACT_W : slbit := '0';
   signal MEM_ADDR  : slv20 := (others=>'0');
   signal MEM_BE    : slv4  := (others=>'0');
   signal MEM_DI    : slv32 := (others=>'0');
@@ -294,20 +319,25 @@ begin
       O_SEG_N => O_SEG_N
     );
 
-  RLINK : rlink_base_serport
+  RLINK : rlink_sp1c
     generic map (
-      ATOWIDTH =>  6,                   -- 64 cycles access timeout
-      ITOWIDTH =>  6,                   -- 64 periods max idle timeout
-      IFAWIDTH =>  5,                   -- 32 word input fifo
-      OFAWIDTH =>  0,                   -- no output fifo
-      CDWIDTH  => 13,
-      CDINIT   => sys_conf_ser2rri_cdinit)
+      ATOWIDTH     => 6,                --  64 cycles access timeout
+      ITOWIDTH     => 6,                --  64 periods max idle timeout
+      CPREF        => c_rlink_cpref,
+      IFAWIDTH     => 5,                --  32 word input fifo
+      OFAWIDTH     => 5,                --  32 word output fifo
+      ENAPIN_RLMON => sbcntl_sbf_rlmon,
+      ENAPIN_RBMON => sbcntl_sbf_rbmon,
+      CDWIDTH      => 13,
+      CDINIT       => sys_conf_ser2rri_cdinit)
     port map (
       CLK      => CLK,
       CE_USEC  => CE_USEC,
       CE_MSEC  => CE_MSEC,
       CE_INT   => CE_MSEC,
       RESET    => RESET,
+      ENAXON   => SWI(1),
+      ENAESC   => SWI(1),
       RXSD     => RXD,
       TXSD     => TXD,
       CTS_N    => CTS_N,
@@ -317,9 +347,9 @@ begin
       RB_LAM   => RB_LAM,
       RB_STAT  => RB_STAT,
       RL_MONI  => open,
-      RL_SER_MONI => open
+      SER_MONI => SER_MONI
     );
-
+   
   RB_SRES_OR : rb_sres_or_2
     port map (
       RB_SRES_1  => RB_SRES_CPU,
@@ -450,8 +480,8 @@ begin
         BUSY        => MEM_BUSY,
         ACK_R       => MEM_ACK_R,
         ACK_W       => open,
-        ACT_R       => open,
-        ACT_W       => open,
+        ACT_R       => MEM_ACT_R,
+        ACT_W       => MEM_ACT_W,
         ADDR        => MEM_ADDR(17 downto 0),
         BE          => MEM_BE,
         DI          => MEM_DI,
@@ -509,17 +539,41 @@ begin
   end generate IBD_MAXI;
     
   DSP_DAT(15 downto 0) <= DISPREG;
-  DSP_DP(0) <= not RXD;
-  DSP_DP(1) <= RTS_N;
-  DSP_DP(2) <= not TXD;
-  DSP_DP(3) <= CTS_N;
+
+  DSP_DP(3) <= not SER_MONI.txok;
+  DSP_DP(2) <= SER_MONI.txact;
+  DSP_DP(1) <= not SER_MONI.rxok;
+  DSP_DP(0) <= SER_MONI.rxact;
   
-  LED(0)          <= CP_STAT.cpugo;
-  LED(1)          <= CP_STAT.cpuhalt;
-  LED(5 downto 2) <= CP_STAT.cpurust;
-  LED(6) <= SWI(0) or SWI(1) or SWI(2) or SWI(3) or
-            SWI(4) or SWI(5) or SWI(6) or SWI(7);
-  LED(7) <= BTN(0) or BTN(1) or BTN(2) or BTN(3);
+  proc_led: process (MEM_ACT_W, MEM_ACT_R, CP_STAT, DM_STAT_DP.psw)
+    variable iled : slv8 := (others=>'0');
+  begin
+    iled := (others=>'0');
+    iled(7) := MEM_ACT_W;
+    iled(6) := MEM_ACT_R;
+    iled(5) := CP_STAT.cmdbusy;
+    if CP_STAT.cpugo = '1' then
+      case DM_STAT_DP.psw.cmode is
+        when c_psw_kmode =>
+          if CP_STAT.cpuwait = '1' then
+            iled(2) := '1';
+          elsif unsigned(DM_STAT_DP.psw.pri) = 0 then
+            iled(3) := '1';
+          else
+            iled(4) := '1';
+          end if;
+        when c_psw_smode =>
+          iled(1) := '1';
+        when c_psw_umode =>
+          iled(0) := '1';
+        when others => null;
+      end case;
+    else
+      iled(4) := '1';
+      iled(3 downto 0) := CP_STAT.cpurust;
+    end if;
+    LED <= iled;
+  end process;
       
 -- synthesis translate_off
   DM_STAT_SY.emmreq <= EM_MREQ;
@@ -536,6 +590,6 @@ begin
       DM_STAT_CO => DM_STAT_CO,
       DM_STAT_SY => DM_STAT_SY
     );
-
 -- synthesis translate_on
+  
 end syn;

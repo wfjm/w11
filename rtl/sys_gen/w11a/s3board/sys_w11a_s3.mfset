@@ -1,4 +1,4 @@
-# $Id: sys_w11a_s3.mfset 406 2011-08-14 21:06:44Z mueller $
+# $Id: sys_w11a_s3.mfset 442 2011-12-23 10:03:28Z mueller $
 #
 # ----------------------------------------------------------------------------
 [xst]
@@ -7,16 +7,10 @@ INFO:.*Mux is complete : default of case is discarded
 Node <IBD_MAXI.IBDR_SYS/IIST.I0/R_REGS.req_boot> of sequential type is unconnected
 Node <IBD_MAXI.IBDR_SYS/IIST.I0/R_REGS.req_lock> of sequential type is unconnected
 Node <CORE/VMBOX/R_REGS.ibcacc> of sequential type is unconnected
-Node <CORE/SEQ/R_STATUS.cpuwait> of sequential type is unconnected
 
-Unconnected output port 'RL_MONI' of component 'rlink_base_serport'
-Unconnected output port 'RL_SER_MONI' of component 'rlink_base_serport'
-Unconnected output port 'OFIFO_SIZE' of component 'rlink_base'
 Unconnected output port 'DOA' of component 'ram_1swar_1ar_gen'
 Unconnected output port 'DOB' of component 'ram_2swsr_rfirst_gen'
 Unconnected output port 'ACK_W' of component 's3_sram_memctl'
-Unconnected output port 'ACT_R' of component 's3_sram_memctl'
-Unconnected output port 'ACT_W' of component 's3_sram_memctl'
 
 Input <CP_STAT.cpuwait> is never used
 Input <CP_STAT.cmdbusy> is never used
@@ -37,9 +31,6 @@ Input <IREG<\d*:\d*>> is never used
 Input <MONI.idone> is never used
 Input <MONI.trace_prev> is never used
 Input <DIN<\d*:\d*>> is never used
-Input <RB_MREQ.din<\d*:\d*>> is never used
-Input <RB_MREQ.aval> is never used
-Input <RB_MREQ.re> is never used
 Input <CNTL.trap_done> is never used
 Input <VADDR<\d*:\d*>> is never used
 
@@ -84,8 +75,6 @@ Signal <DM_STAT_DP.dtmp> is assigned but never used
 Signal <DM_STAT_DP.dsrc> is assigned but never used
 Signal <DM_STAT_DP.dres> is assigned but never used
 Signal <DM_STAT_DP.ddst> is assigned but never used
-Signal <DM_STAT_DP.psw.pri> is assigned but never used
-Signal <DM_STAT_DP.psw.cmode> is assigned but never used
 Signal <DM_STAT_CO.cpuhalt> is assigned but never used
 Signal <DM_STAT_CO.cpugo> is assigned but never used
 
@@ -98,7 +87,6 @@ Signal <EI_ACK_DZ11TX> is assigned but never used
 Signal <EI_ACK_DZ11RX> is assigned but never used
 Signal <EI_ACK<\d*>> is assigned but never used
 
-Signal <SIZE<\d*:\d*>> is assigned but never used
 Signal <MEM_ADDR<\d*:\d*>> is assigned but never used
 
 FF/Latch <R_REGS.dcf_brk_1> in Unit <ibd_iist> is equivalent
@@ -109,7 +97,6 @@ FF/Latch <CORE/SEQ/R_IDSTAT.aunit_srcmod_\d*> in Unit <sys_w11a_s3> is equivalen
 FF/Latch <IBD_MAXI.IBDR_SYS/IIST.I0/R_REGS.dcf_brk_\d*> in Unit <sys_w11a_s3> is equivalent
 
 FF/Latch <R_SSR0.inst_compl> has a constant value of 0
-FF/Latch <RLINK/BASE/RL/R_REGS.attn_\d*> has a constant value
 FF/Latch <CORE/SEQ/R_STATUS.intvect_8> has a constant value of 0
 FF/Latch <CORE/SEQ/R_IDSTAT.res_sel_2> has a constant value of 0
 

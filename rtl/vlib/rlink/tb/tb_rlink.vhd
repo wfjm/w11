@@ -1,4 +1,4 @@
--- $Id: tb_rlink.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: tb_rlink.vhd 444 2011-12-25 10:04:58Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,6 +16,7 @@
 -- Description:    Test bench for rlink_core
 --
 -- Dependencies:   simlib/simclk
+--                 simlib/simclkcnt
 --                 genlib/clkdivce
 --                 rbus/tbd_tester
 --                 rbus/rb_mon
@@ -31,6 +32,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-23   444   3.1    use new simclk/simclkcnt
 -- 2011-11-19   427   3.0.7  fix crc8_update_tbl usage; now numeric_std clean
 -- 2010-12-29   351   3.0.6  use new rbd_tester addr 111100xx (from 111101xx)
 -- 2010-12-26   348   3.0.5  use simbus to export clkcycle (for tbd_..serport)
@@ -106,7 +108,6 @@ use work.rblib.all;
 use work.rbdlib.all;
 use work.rlinklib.all;
 use work.simlib.all;
-use work.simbus.all;
 
 entity tb_rlink is
 end tb_rlink;
@@ -146,6 +147,7 @@ architecture sim of tb_rlink is
   signal RB_SRES : rb_sres_type := rb_sres_init;
   
   signal CLK_STOP : slbit := '0';
+  signal CLK_CYCLE : integer := 0;
 
   constant slv9_zero  : slv9  := (others=>'0');
   constant slv16_zero : slv16 := (others=>'0');
@@ -192,22 +194,22 @@ end component;
 
 begin
 
-  SYSCLK : simclk
+  CLKGEN : simclk
     generic map (
       PERIOD => clock_period,
       OFFSET => clock_offset)
     port map (
       CLK       => CLK,
-      CLK_CYCLE => SB_CLKCYCLE,
       CLK_STOP  => CLK_STOP
     );
+
+  CLKCNT : simclkcnt port map (CLK => CLK, CLK_CYCLE => CLK_CYCLE);
 
   CLKDIV : clkdivce
     generic map (
       CDUWIDTH => 6,
       USECDIV  => 4,
-      MSECDIV  => 5
-      )
+      MSECDIV  => 5)
     port map (
       CLK     => CLK,
       CE_USEC => CE_USEC,
@@ -245,7 +247,7 @@ begin
       DWIDTH => RL_DI'length)
     port map (
       CLK       => CLK,
-      CLK_CYCLE => SB_CLKCYCLE,
+      CLK_CYCLE => CLK_CYCLE,
       ENA       => RLMON_EN,
       RL_DI     => RL_DI,
       RL_ENA    => RL_ENA,
@@ -260,7 +262,7 @@ begin
       DBASE  => 2)
     port map (
       CLK       => CLK,
-      CLK_CYCLE => SB_CLKCYCLE,
+      CLK_CYCLE => CLK_CYCLE,
       ENA       => RBMON_EN,
       RB_MREQ   => RB_MREQ,
       RB_SRES   => RB_SRES,
@@ -345,7 +347,7 @@ begin
     begin
       if sv_rxind < sv_nrxlist then
         for i in sv_rxind to sv_nrxlist-1 loop
-          writetimestamp(oline, SB_CLKCYCLE, ": moni ");
+          writetimestamp(oline, CLK_CYCLE, ": moni ");
           write(oline, string'("  FAIL MISSING DATA="));
           write(oline, sv_rxlist(i)(8));
           write(oline, string'(" "));
@@ -575,7 +577,7 @@ begin
         RL_DI <= txlist(i);
         RL_ENA <= '1';
 
-        writetimestamp(oline, SB_CLKCYCLE, ": stim");
+        writetimestamp(oline, CLK_CYCLE, ": stim");
         write(oline, txlist(i)(8), right, 3);
         write(oline, txlist(i)(7 downto 0), right, 9);
         if txlist(i)(8) = '1' then
@@ -611,7 +613,7 @@ begin
     wait for 50*clock_period;
 
     checkmiss_rx;
-    writetimestamp(oline, SB_CLKCYCLE, ": DONE ");
+    writetimestamp(oline, CLK_CYCLE, ": DONE ");
     writeline(output, oline);
 
     CLK_STOP <= '1';
@@ -631,7 +633,7 @@ begin
       wait for c2out_time;
 
       if RL_VAL = '1' then
-        writetimestamp(oline, SB_CLKCYCLE, ": moni");
+        writetimestamp(oline, CLK_CYCLE, ": moni");
         write(oline, RL_DO(8), right, 3);
         write(oline, RL_DO(7 downto 0), right, 9);
         if RL_DO(8) = '1' then

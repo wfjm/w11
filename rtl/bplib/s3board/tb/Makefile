@@ -1,4 +1,4 @@
-# $Id: Makefile 405 2011-08-14 08:16:28Z mueller $
+# $Id: Makefile 444 2011-12-25 10:04:58Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -9,7 +9,9 @@
 # 2007-11-26    98   1.1    use make includes
 # 2007-09-23    84   1.0    Initial version
 #
-EXE_all = tb_s3board_dummy tb_s3board_fusp_dummy tb_s3_sram_memctl
+EXE_all  = tb_s3board_dummy
+EXE_all += tb_s3board_fusp_dummy 
+EXE_all += tb_s3_sram_memctl
 #
 ISE_PATH = xc3s1000-ft256-4
 #

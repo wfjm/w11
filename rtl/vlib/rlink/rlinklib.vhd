@@ -1,6 +1,6 @@
--- $Id: rlinklib.vhd 442 2011-12-23 10:03:28Z mueller $
+-- $Id: rlinklib.vhd 466 2012-12-30 13:26:55Z mueller $
 --
--- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2012 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,10 +16,12 @@
 -- Description:    Definitions for rlink interface and bus entities
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1, 13.3; ghdl 0.18-0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2012-12-29   466   3.3.1  add rlink_rlbmux
+-- 2011-12-23   444   3.3    CLK_CYCLE now integer
 -- 2011-12-21   442   3.2.1  retire old, deprecated interfaces
 -- 2011-12-09   437   3.2    add rlink_core8
 -- 2011-11-18   427   3.1.3  now numeric_std clean
@@ -169,6 +171,30 @@ component rlink_core8 is                -- rlink core with 8bit iface
   );
 end component;
 
+component rlink_rlbmux is               -- rlink rlb multiplexer
+  port (
+    SEL : in slbit;                     -- port select (0:RLB<->P0; 1:RLB<->P1)
+    RLB_DI : out slv8;                  -- rlb: data in
+    RLB_ENA : out slbit;                -- rlb: data enable
+    RLB_BUSY : in slbit;                -- rlb: data busy
+    RLB_DO : in slv8;                   -- rlb: data out
+    RLB_VAL : in slbit;                 -- rlb: data valid
+    RLB_HOLD : out slbit;               -- rlb: data hold
+    P0_RXDATA : in slv8;                -- p0: rx data
+    P0_RXVAL : in slbit;                -- p0: rx valid
+    P0_RXHOLD : out slbit;              -- p0: rx hold
+    P0_TXDATA : out slv8;               -- p0: tx data
+    P0_TXENA : out slbit;               -- p0: tx enable
+    P0_TXBUSY : in slbit;               -- p0: tx busy
+    P1_RXDATA : in slv8;                -- p1: rx data
+    P1_RXVAL : in slbit;                -- p1: rx valid
+    P1_RXHOLD : out slbit;              -- p1: rx hold
+    P1_TXDATA : out slv8;               -- p1: tx data
+    P1_TXENA : out slbit;               -- p1: tx enable
+    P1_TXBUSY : in slbit                -- p1: tx busy
+  );
+end component;
+
 --
 -- core + concrete_interface combo's
 --
@@ -214,7 +240,7 @@ component rlink_mon is                  -- rlink monitor
     DWIDTH : positive :=  9);           -- data port width (8 or 9)
   port (
     CLK  : in slbit;                    -- clock
-    CLK_CYCLE : in slv31 := (others=>'0');  -- clock cycle number
+    CLK_CYCLE : in integer := 0;        -- clock cycle number
     ENA  : in slbit := '1';             -- enable monitor output
     RL_DI : in slv(DWIDTH-1 downto 0);  -- rlink: data in
     RL_ENA : in slbit;                  -- rlink: data enable

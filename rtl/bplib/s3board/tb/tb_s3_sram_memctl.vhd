@@ -1,4 +1,4 @@
--- $Id: tb_s3_sram_memctl.vhd 432 2011-11-25 20:16:28Z mueller $
+-- $Id: tb_s3_sram_memctl.vhd 444 2011-12-25 10:04:58Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,6 +16,7 @@
 -- Description:    Test bench for s3_sram_memctl
 --
 -- Dependencies:   vlib/simlib/simclk
+--                 vlib/simlib/simclkcnt
 --                 bplib/issi/is61lv25616al
 --                 s3_sram_memctl [UUT]
 --
@@ -30,6 +31,7 @@
 -- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-23   444   1.1    use new simclk/simclkcnt
 -- 2011-11-21   432   1.0.6  now numeric_std clean
 -- 2010-05-23   293   1.0.5  output # busy cycles; change CHK pipeline logic
 -- 2010-05-16   291   1.0.4  rename tb_memctl_s3sram->tb_s3_sram_memctl
@@ -86,7 +88,7 @@ architecture sim of tb_s3_sram_memctl is
   signal R_REF_ADDR_DL : slv18 := (others=>'0');
   
   signal CLK_STOP : slbit := '0';
-  signal CLK_CYCLE : slv31 := (others=>'0');
+  signal CLK_CYCLE : integer := 0;
 
   constant clock_period : time :=  20 ns;
   constant clock_offset : time := 200 ns;
@@ -95,15 +97,16 @@ architecture sim of tb_s3_sram_memctl is
 
 begin
 
-  SYSCLK : simclk
+  CLKGEN : simclk
     generic map (
       PERIOD => clock_period,
       OFFSET => clock_offset)
     port map (
       CLK => CLK,
-      CLK_CYCLE => CLK_CYCLE,
       CLK_STOP => CLK_STOP
     );
+
+  CLKCNT : simclkcnt port map (CLK => CLK, CLK_CYCLE => CLK_CYCLE);
 
   MEM_L : entity work.is61lv25616al
     port map (

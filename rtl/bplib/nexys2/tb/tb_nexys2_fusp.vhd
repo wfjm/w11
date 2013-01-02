@@ -1,4 +1,4 @@
--- $Id: tb_nexys2_fusp.vhd 433 2011-11-27 22:04:39Z mueller $
+-- $Id: tb_nexys2_fusp.vhd 467 2013-01-02 19:49:05Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -15,9 +15,12 @@
 -- Module Name:    tb_nexys2_fusp - sim
 -- Description:    Test bench for nexys2 (base+fusp)
 --
--- Dependencies:   vlib/rlink/tb/tbcore_rlink_dcm
+-- Dependencies:   simlib/simclk
+--                 simlib/simclkcnt
+--                 xlib/dcm_sfs
+--                 rlink/tb/tbcore_rlink
 --                 tb_nexys2_core
---                 vlib/serport/serport_uart_rxtx
+--                 serport/serport_uart_rxtx
 --                 nexys2_fusp_aif [UUT]
 --
 -- To test:        generic, any nexys2_fusp_aif target
@@ -27,6 +30,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-23   444   3.2    new system clock scheme, new tbcore_rlink iface
 -- 2011-11-26   433   3.1.1  remove O_FLA_CE_N from tb_nexys2_core
 -- 2011-11-21   432   3.1    update O_FLA_CE_N usage
 -- 2011-11-19   427   3.0.1  now numeric_std clean
@@ -46,9 +50,11 @@ use work.slvtypes.all;
 use work.rlinklib.all;
 use work.rlinktblib.all;
 use work.serport.all;
+use work.xlib.all;
 use work.nexys2lib.all;
 use work.simlib.all;
 use work.simbus.all;
+use work.sys_conf.all;
 
 entity tb_nexys2_fusp is
 end tb_nexys2_fusp;
@@ -56,7 +62,10 @@ end tb_nexys2_fusp;
 architecture sim of tb_nexys2_fusp is
   
   signal CLKOSC : slbit := '0';
-  signal CLKSYS : slbit := '0';
+  signal CLKCOM : slbit := '0';
+
+  signal CLK_STOP : slbit := '0';
+  signal CLKCOM_CYCLE : integer := 0;
 
   signal RESET : slbit := '0';
   signal CLKDIV : slv2 := "00";         -- run with 1 clocks / bit !!
@@ -105,27 +114,42 @@ architecture sim of tb_nexys2_fusp is
 
   constant sbaddr_portsel: slv8 := slv(to_unsigned( 8,8));
 
-  constant clockosc_period : time :=  20 ns;
-  constant clockosc_offset : time := 200 ns;
-  constant setup_time : time :=  5 ns;
-  constant c2out_time : time :=  9 ns;
+  constant clock_period : time :=  20 ns;
+  constant clock_offset : time := 200 ns;
 
 begin
   
-  TBCORE : tbcore_rlink_dcm
+  CLKGEN : simclk
     generic map (
-      CLKOSC_PERIOD => clockosc_period,
-      CLKOSC_OFFSET => clockosc_offset,
-      SETUP_TIME => setup_time,
-      C2OUT_TIME => c2out_time)
+      PERIOD => clock_period,
+      OFFSET => clock_offset)
     port map (
-      CLKOSC  => CLKOSC,
-      CLKSYS  => CLKSYS,
-      RX_DATA => TXDATA,
-      RX_VAL  => TXENA,
-      RX_HOLD => RX_HOLD,
-      TX_DATA => RXDATA,
-      TX_ENA  => RXVAL
+      CLK      => CLKOSC,
+      CLK_STOP => CLK_STOP
+    );
+  
+  DCM_COM : dcm_sfs
+    generic map (
+      CLKFX_DIVIDE   => sys_conf_clkfx_divide,
+      CLKFX_MULTIPLY => sys_conf_clkfx_multiply,
+      CLKIN_PERIOD   => 20.0)
+    port map (
+      CLKIN   => CLKOSC,
+      CLKFX   => CLKCOM,
+      LOCKED  => open
+    );
+
+  CLKCNT : simclkcnt port map (CLK => CLKCOM, CLK_CYCLE => CLKCOM_CYCLE);
+
+  TBCORE : tbcore_rlink
+    port map (
+      CLK      => CLKCOM,
+      CLK_STOP => CLK_STOP,
+      RX_DATA  => TXDATA,
+      RX_VAL   => TXENA,
+      RX_HOLD  => RX_HOLD,
+      TX_DATA  => RXDATA,
+      TX_ENA   => RXVAL
     );
 
   RX_HOLD <= TXBUSY or RTS_N;           -- back preasure for data flow to tb
@@ -149,7 +173,6 @@ begin
   UUT : nexys2_fusp_aif
     port map (
       I_CLK50      => CLKOSC,
-      O_CLKSYS     => CLKSYS,
       I_RXD        => I_RXD,
       O_TXD        => O_TXD,
       I_SWI        => I_SWI,
@@ -178,7 +201,7 @@ begin
     generic map (
       CDWIDTH => CLKDIV'length)
     port map (
-      CLK    => CLKSYS,
+      CLK    => CLKCOM,
       RESET  => UART_RESET,
       CLKDIV => CLKDIV,
       RXSD   => UART_RXD,
@@ -217,11 +240,10 @@ begin
   begin
     
     loop
-      wait until rising_edge(CLKSYS);
-      wait for c2out_time;
+      wait until rising_edge(CLKCOM);
 
       if RXERR = '1' then
-        writetimestamp(oline, SB_CLKCYCLE, " : seen RXERR=1");
+        writetimestamp(oline, CLKCOM_CYCLE, " : seen RXERR=1");
         writeline(output, oline);
       end if;
       

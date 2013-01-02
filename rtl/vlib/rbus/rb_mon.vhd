@@ -1,4 +1,4 @@
--- $Id: rb_mon.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: rb_mon.vhd 444 2011-12-25 10:04:58Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -21,6 +21,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-23   444   3.1    CLK_CYCLE now integer
 -- 2011-11-19   427   3.0.1  now numeric_std clean
 -- 2010-12-22   346   3.0    renamed rritb_rbmon -> rb_mon
 -- 2010-06-05   301   2.1.1  renamed _rpmon -> _rbmon
@@ -49,7 +50,7 @@ entity rb_mon is                        -- rbus monitor (for tb's)
     DBASE : positive :=  2);            -- base for writing data values
   port (
     CLK  : in slbit;                    -- clock
-    CLK_CYCLE : in slv31 := (others=>'0');  -- clock cycle number
+    CLK_CYCLE : in integer := 0;        -- clock cycle number
     ENA  : in slbit := '1';             -- enable monitor output
     RB_MREQ : in rb_mreq_type;          -- rbus: request
     RB_SRES : in rb_sres_type;          -- rbus: response

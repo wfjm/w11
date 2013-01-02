@@ -1,4 +1,4 @@
--- $Id: tb_nx_cram_memctl.vhd 433 2011-11-27 22:04:39Z mueller $
+-- $Id: tb_nx_cram_memctl.vhd 444 2011-12-25 10:04:58Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,6 +16,7 @@
 -- Description:    Test bench for nx_cram_memctl
 --
 -- Dependencies:   vlib/simlib/simclk
+--                 vlib/simlib/simclkcnt
 --                 bplib/micron/mt45w8mw16b
 --                 tbd_nx_cram_memctl        [UUT, abstact]
 --
@@ -25,6 +26,7 @@
 -- Tool versions:  xst 11.4, 13.1; ghdl 0.26-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-23   444   1.4    use new simclk/simclkcnt
 -- 2011-11-26   433   1.3    renamed from tb_n2_cram_memctl
 -- 2011-11-21   432   1.2    now numeric_std clean; update O_FLA_CE_N usage
 -- 2010-05-30   297   1.1    use abstact uut tbd_nx_cram_memctl
@@ -109,7 +111,7 @@ end component;
   signal R_REF_ADDR_DL : slv22 := (others=>'0');
   
   signal CLK_STOP : slbit := '0';
-  signal CLK_CYCLE : slv31 := (others=>'0');
+  signal CLK_CYCLE : integer := 0;
 
   constant clock_period : time :=  20 ns;
   constant clock_offset : time := 200 ns;
@@ -118,15 +120,16 @@ end component;
 
 begin
 
-  SYSCLK : simclk
+  CLKGEN : simclk
     generic map (
       PERIOD => clock_period,
       OFFSET => clock_offset)
     port map (
       CLK => CLK,
-      CLK_CYCLE => CLK_CYCLE,
       CLK_STOP => CLK_STOP
     );
+
+  CLKCNT : simclkcnt port map (CLK => CLK, CLK_CYCLE => CLK_CYCLE);
 
   MEM : entity work.mt45w8mw16b
     port map (

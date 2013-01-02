@@ -1,4 +1,4 @@
--- $Id: tb_tst_serloop.vhd 441 2011-12-20 17:01:16Z mueller $
+-- $Id: tb_tst_serloop.vhd 444 2011-12-25 10:04:58Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -15,7 +15,8 @@
 -- Module Name:    tb_tst_serloop - sim
 -- Description:    Generic test bench for sys_tst_serloop_xx
 --
--- Dependencies:   vlib/serport/serport_uart_rxtx
+-- Dependencies:   vlib/simlib/simclkcnt
+--                 vlib/serport/serport_uart_rxtx
 --                 vlib/serport/serport_xontx
 --
 -- To test:        sys_tst_serloop_xx
@@ -24,6 +25,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-23   444   1.1    use new simclkcnt
 -- 2011-11-13   425   1.0    Initial version
 -- 2011-11-06   420   0.5    First draft
 ------------------------------------------------------------------------------
@@ -59,7 +61,7 @@ end tb_tst_serloop;
 architecture sim of tb_tst_serloop is
   
   signal CLK_STOP_L  : slbit := '0';  
-  signal CLK_CYCLE : slv31 := (others=>'0');
+  signal CLK_CYCLE : integer := 0;
   
   signal UART_RESET : slbit := '0';
   signal UART_RXD : slbit := '1';
@@ -101,12 +103,7 @@ architecture sim of tb_tst_serloop is
 
 begin
 
-  proc_cycle: process (CLKS)
-  begin
-    if rising_edge(CLKS) then
-      CLK_CYCLE <= slv(unsigned(CLK_CYCLE) + 1);
-    end if;
-  end process proc_cycle;
+  CLKCNT : simclkcnt port map (CLK => CLKS, CLK_CYCLE => CLK_CYCLE);
 
   UART : serport_uart_rxtx
     generic map (

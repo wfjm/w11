@@ -1,4 +1,4 @@
-# $Id: README.txt 442 2011-12-23 10:03:28Z mueller $
+# $Id: README.txt 467 2013-01-02 19:49:05Z mueller $
 
 Release notes for w11a
 
@@ -26,6 +26,7 @@ Release notes for w11a
    rtl                          VHDL sources
    rtl/bplib                    - board and component support libs
    rtl/bplib/atlys                - for Digilent Atlys board
+   rtl/bplib/fx2lib               - for Cypress FX2 USB interface controller
    rtl/bplib/issi                 - for ISSI parts
    rtl/bplib/micron               - for Micron parts
    rtl/bplib/nexys2               - for Digilent Nexsy2 board
@@ -34,8 +35,12 @@ Release notes for w11a
    rtl/bplib/s3board              - for Digilent S3BOARD
    rtl/ibus                     - ibus devices (UNIBUS peripherals)
    rtl/sys_gen                  - top level designs
+   rtl/sys_gen/tst_fx2loop        - top level designs for Cypress FX2 tester
+     nexys2                         - systems for Nexsy2
    rtl/sys_gen/tst_rlink          - top level designs for an rlink tester
      nexys2,nexys3,s3board          - systems for Nexsy2,Nexsy3,S3BOARD
+   rtl/sys_gen/tst_rlink_cuff     - top level designs for rlink over FX2 tester
+     nexys2                         - systems for Nexsy2
    rtl/sys_gen/tst_serloop        - top level designs for serport loop tester
      nexys2,nexys3,s3board          - systems for Nexsy2,Nexsy3,S3BOARD
    rtl/sys_gen/tst_snhumanio      - top level designs for human I/O tester
@@ -56,15 +61,76 @@ Release notes for w11a
    tools/bin                    - scripts and binaries
    tools/dox                    - Doxygen documentation configuration
    tools/make                   - make includes
-   tools/src                    - C++ sources
+   tools/fx2                    - Firmware for Cypress FX2 USB Interface
+   tools/fx2/bin                  - pre-build firmware images in .ihx format
+   tools/fx2/src                  - C and asm sources
+   tools/fx2/sys                  - udev rules for USB on fpga eval boards
+   tools/src                    - C++ sources for rlink backend software
    tools/src/librlink             - basic rlink interface
    tools/src/librlinktpp          - C++ to tcl binding for rlink interface
-   tools/src/librtools            - general support classes and methods
    tools/src/librtcltools         - support classes to implement Tcl bindings
+   tools/src/librtools            - general support classes and methods
    tools/src/librutiltpp          - Tcl support commands implemented in C++
    tools/tcl                    - Tcl scripts
 
 3. Change Log ----------------------------------------------------------------
+
+- trunk (2013-01-02: svn rev 17(oc) 467(wfjm); untagged w11a_V0.56) ++++++++++
+
+  - Summary
+    - re-organized handling of board and derived clocks in test benches
+    - added message filter definitions for some designs (.mfset files)
+    - added Cypress EZ-USB FX2 controller (USB interface)
+    - added firmware for EZ-USB FX2 supporting jtag access and data transfer
+    - FPGA configure over USB now supported directly in make build flow
+    - added test systems for USB testing and rlink over USB verification
+    - no functional change of w11a CPU core or any pre-existing test systems
+    - Note: Carefully read the disclaimer about usage of USB VID/PID numbers
+            in the file README_USB-VID-PID.txt. You'll be responsible for any
+            misuse of the defaults provided with the project sources !!
+
+  - New refernce system
+    The development and test system was upgraded from Kubuntu 10.04 to 12.04.
+    The version of several key tools and libraries changed:
+       linux kernel    3.2.0    (was  2.6.32)
+       gcc/g++         4.6.3    (was  4.4.3)
+       boost           1.46.1   (was  1.40)
+       libusb          1.0.9    (was  1.0.6)
+       perl            5.14.2   (was  5.10.1)
+       tcl             8.5.11   (was  8.4.19)
+       xilinx ise     13.3      (was 13.1)
+    --> see INSTALL.txt, INSTALL_ghdl.txt and INSTALL_urjtag.txt
+
+  - New features
+    - added firmware for Cypress FX2 controller
+      - tools/fx2
+        - bin    - pre-build firmware images in .ihx file format
+        - src    - C and asm sources
+        - sys    - udev rules for usb interfaces on fpga eval boards
+    - new modules
+      - rtl/bplib/fx2lib
+        - fx2_2fifoctl_ic - Cypress EZ-USB FX2 controller (2 fifo; int clk)
+        - fx2_3fifoctl_ic - Cypress EZ-USB FX2 controller (3 fifo; int clk)
+    - new systems
+      - rtl/sys_gen/tst_fx2loop/nexys2/ic/sys_tst_fx2loop_ic_n2
+      - rtl/sys_gen/tst_fx2loop/nexys2/ic3/sys_tst_fx2loop_ic3_n2
+      - rtl/sys_gen/tst_rlink_cuff/nexys2/ic/sys_tst_rlink_cuff_ic_n2
+    - tools/bin
+      - xilinx_sdf_ghdl_filter: tool to patch ISE sdf files for usage with ghdl
+
+  - Changes
+    - documentation
+      - added a 'system requirements' section in INSTALL.txt
+      - added INSTALL_ghdl.txt and INSTALL_urjtag.txt covering ghdl and urjtag
+      - added README_USB-VID-PID.txt
+    - organizational changes
+      - added TCLINC,RETRO_FX2_VID,RETRO_FX2_PID environment variables
+    - functional changes
+      - tools/bin
+        - vbomconv - file name substitution handling redone; many vboms updated
+    - retired modules
+      - vlib/rlink/tb/
+        - tbcore_rlink_dcm  - obsolete, use tbcore_rlink
 
 - trunk (2011-12-23: svn rev 16(oc) 442(wfjm); untagged w11a_V0.55)  +++++++++
 
@@ -72,14 +138,6 @@ Release notes for w11a
     - added xon/xoff (software flow control) support to serport library
     - added test systems for serport verification
     - use new serport stack in sys_w11a_* and sys_tst_rlink_* systems
-
-  - Changes
-    - retired modules
-      - vlib/rlink
-        - rlink_rlb2rl       - obsolete, now all in rlink_core8
-        - rlink_base         - use now new rlink_core8
-        - rlink_serport      - obsolete, now all in rlink_sp1c
-        - rlink_base_serport - use now new rlink_sp1c
 
   - New features
     - new modules
@@ -99,20 +157,28 @@ Release notes for w11a
       - sys_gen/tst_serloop/s3board/sys_tst_serloop1_s3
       - sys_gen/tst_rlink/s3board/sys_tst_rlink_s3
 
+  - Changes
+    - retired modules
+      - vlib/rlink
+        - rlink_rlb2rl       - obsolete, now all in rlink_core8
+        - rlink_base         - use now new rlink_core8
+        - rlink_serport      - obsolete, now all in rlink_sp1c
+        - rlink_base_serport - use now new rlink_sp1c
+
 - trunk (2011-12-04: svn rev 15(oc) 436(wfjm); untagged w11a_V0.54)  +++++++++
 
   - Summary
     - added support for nexys3 board for w11a
 
-  - Changes
-    - module renames:
-        bplib/nexys2/n2_cram_dummy     -> bplib/nxcramlib/nx_cram_dummy
-        bplib/nexys2/n2_cram_memctl_as -> bplib/nxcramlib/nx_cram_memctl_as
-
   - New features
     - new systems
       - sys_gen/w11a/nexys3/sys_w11a_n3
       - sys_gen/w11a/nexys3/sys_tst_rlink_n3
+
+  - Changes
+    - module renames:
+        bplib/nexys2/n2_cram_dummy     -> bplib/nxcramlib/nx_cram_dummy
+        bplib/nexys2/n2_cram_memctl_as -> bplib/nxcramlib/nx_cram_memctl_as
 
   - Bug fixes
     - tools/src/lib*: backend libraries compile now on 64 bit systems
@@ -221,6 +287,11 @@ Release notes for w11a
     - Introduce rbus protocol V3
     - reorganize rbus and rlink modules, many renames
 
+  - New features
+    - vlib/rbus
+      - added several rbus devices useful for debugging
+        - rbd_tester: test target, used for example in test benches
+
   - Changes
     - module renames:
       - the rri (remote-register-interface) components were re-organized and
@@ -282,17 +353,21 @@ Release notes for w11a
       - rlink_serport (re-written) is an adapter to a serial interface
       - rlink_base_serport (renamed) combines rlink_base and rlink_serport
 
-  - New features
-    - vlib/rbus
-      - added several rbus devices useful for debugging
-        - rbd_tester: test target, used for example in test benches
-
 - trunk (2010-11-28: svn rev 8(oc) 341(wfjm); untagged w11a_V0.51) +++++++++++
 
   - Summary 
     - Introduce ibus protocol V2
     - Nexys2 systems use DCM
     - sys_w11a_n2 now runs with 58 MHz
+
+  - New features
+    - ibus
+      - added ib_sres_or_mon to check for miss-behaving ibus devices
+      - added ib_sel to encapsulate address select logic
+    - nexys2 systems
+      - now DCM derived system clock supported
+      - sys_gen/w11a/nexys2
+        - sys_w11a_n2 now runs with 58 MHz clksys
 
   - Changes
     - module renames:
@@ -311,15 +386,6 @@ Release notes for w11a
       - in ib_mreq use now aval,re,we,rmw instead of req,we,dip
       - basic ibus transaction now takes 2 cycles, one for address select, one
         for data exchange. This avoids too long logic paths in the ibus logic.
-
-  - New features
-    - ibus
-      - added ib_sres_or_mon to check for miss-behaving ibus devices
-      - added ib_sel to encapsulate address select logic
-    - nexys2 systems
-      - now DCM derived system clock supported
-      - sys_gen/w11a/nexys2
-        - sys_w11a_n2 now runs with 58 MHz clksys
 
   - Bug fixes
     - rtl/vlib/Makefile.xflow: use default .opt files under rtl/vlib again.

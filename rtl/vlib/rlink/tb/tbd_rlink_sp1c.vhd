@@ -1,4 +1,4 @@
--- $Id: tbd_rlink_sp1c.vhd 442 2011-12-23 10:03:28Z mueller $
+-- $Id: tbd_rlink_sp1c.vhd 444 2011-12-25 10:04:58Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -23,6 +23,7 @@
 --                 serport_uart_rx
 --                 byte2cdata
 --                 cdata2byte
+--                 simlib/simclkcnt
 --
 -- To test:        rlink_sp1c
 --
@@ -31,6 +32,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-23   444   3.2    use simclkcnt instead of simbus global
 -- 2011-12-22   442   3.1    renamed and retargeted to tbu_rlink_sp1c
 -- 2011-11-19   427   3.0.5  now numeric_std clean
 -- 2010-12-28   350   3.0.4  use CLKDIV/CDINIT=0;
@@ -110,7 +112,8 @@ architecture syn of tbd_rlink_sp1c is
   signal TXENA : slbit := '0';
   signal TXBUSY : slbit := '0';
   signal CLKDIV : slv13 := slv(to_unsigned(c_cdinit,CDWIDTH));
-  
+  signal CLK_CYCLE : integer := 0;
+
 component tbu_rlink_sp1c is             -- rlink core+serport combo
   port (
     CLK  : in slbit;                    -- clock
@@ -223,6 +226,8 @@ begin
       HOLD  => TXBUSY
     );
   
+  CLKCNT : simclkcnt port map (CLK => CLK, CLK_CYCLE => CLK_CYCLE);
+
   proc_moni: process
     variable oline : line;
     variable rts_last : slbit := '0';
@@ -231,7 +236,7 @@ begin
     loop
       wait until rising_edge(CLK);      -- check at end of clock cycle
       if RTS_N /= rts_last then
-        writetimestamp(oline, SB_CLKCYCLE, ": rts  ");
+        writetimestamp(oline, CLK_CYCLE, ": rts  ");
         write(oline, string'(" RTS_N "));
         write(oline, rts_last, right, 1);
         write(oline, string'(" -> "));

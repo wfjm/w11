@@ -1,4 +1,4 @@
--- $Id: tb_nexys3_fusp.vhd 433 2011-11-27 22:04:39Z mueller $
+-- $Id: tb_nexys3_fusp.vhd 444 2011-12-25 10:04:58Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -15,10 +15,12 @@
 -- Module Name:    tb_nexys3_fusp - sim
 -- Description:    Test bench for nexys3 (base+fusp)
 --
--- Dependencies:   vlib/rlink/tb/tbcore_rlink_dcm
---                 vlib/xlib/dcm_sfs
+-- Dependencies:   simlib/simclk
+--                 simlib/simclkcnt
+--                 xlib/dcm_sfs
+--                 rlink/tb/tbcore_rlink
 --                 tb_nexys3_core
---                 vlib/serport/serport_uart_rxtx
+--                 serport/serport_uart_rxtx
 --                 nexys3_fusp_aif [UUT]
 --
 -- To test:        generic, any nexys3_fusp_aif target
@@ -28,6 +30,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-23   444   1.1    new system clock scheme, new tbcore_rlink iface
 -- 2011-11-25   432   1.0    Initial version (derived from tb_nexys2_fusp)
 ------------------------------------------------------------------------------
 
@@ -52,8 +55,11 @@ end tb_nexys3_fusp;
 
 architecture sim of tb_nexys3_fusp is
   
-  signal CLKOSC : slbit := '0';
-  signal CLKSYS : slbit := '0';
+  signal CLKOSC : slbit := '0';         -- board clock (100 Mhz)
+  signal CLKCOM : slbit := '0';         -- communication clock
+
+  signal CLK_STOP : slbit := '0';
+  signal CLKCOM_CYCLE : integer := 0;
 
   signal RESET : slbit := '0';
   signal CLKDIV : slv2 := "00";         -- run with 1 clocks / bit !!
@@ -103,38 +109,42 @@ architecture sim of tb_nexys3_fusp is
 
   constant sbaddr_portsel: slv8 := slv(to_unsigned( 8,8));
 
-  constant clockosc_period : time :=  10 ns;
-  constant clockosc_offset : time := 200 ns;
-  constant setup_time : time :=  5 ns;
-  constant c2out_time : time :=  9 ns;
+  constant clock_period : time :=  10 ns;
+  constant clock_offset : time := 200 ns;
 
 begin
   
-  TBCORE : tbcore_rlink_dcm
+  CLKGEN : simclk
     generic map (
-      CLKOSC_PERIOD => clockosc_period,
-      CLKOSC_OFFSET => clockosc_offset,
-      SETUP_TIME => setup_time,
-      C2OUT_TIME => c2out_time)
+      PERIOD => clock_period,
+      OFFSET => clock_offset)
     port map (
-      CLKOSC  => CLKOSC,
-      CLKSYS  => CLKSYS,
-      RX_DATA => TXDATA,
-      RX_VAL  => TXENA,
-      RX_HOLD => RX_HOLD,
-      TX_DATA => RXDATA,
-      TX_ENA  => RXVAL
+      CLK      => CLKOSC,
+      CLK_STOP => CLK_STOP
     );
-
-  DCM_SYS : dcm_sfs
+  
+  DCM_COM : dcm_sfs
     generic map (
       CLKFX_DIVIDE   => sys_conf_clkfx_divide,
       CLKFX_MULTIPLY => sys_conf_clkfx_multiply,
       CLKIN_PERIOD   => 10.0)
     port map (
       CLKIN   => CLKOSC,
-      CLKFX   => CLKSYS,
+      CLKFX   => CLKCOM,
       LOCKED  => open
+    );
+
+  CLKCNT : simclkcnt port map (CLK => CLKCOM, CLK_CYCLE => CLKCOM_CYCLE);
+
+  TBCORE : tbcore_rlink
+    port map (
+      CLK      => CLKCOM,
+      CLK_STOP => CLK_STOP,
+      RX_DATA  => TXDATA,
+      RX_VAL   => TXENA,
+      RX_HOLD  => RX_HOLD,
+      TX_DATA  => RXDATA,
+      TX_ENA   => RXVAL
     );
 
   RX_HOLD <= TXBUSY or RTS_N;           -- back preasure for data flow to tb
@@ -187,7 +197,7 @@ begin
     generic map (
       CDWIDTH => CLKDIV'length)
     port map (
-      CLK    => CLKSYS,
+      CLK    => CLKCOM,
       RESET  => UART_RESET,
       CLKDIV => CLKDIV,
       RXSD   => UART_RXD,
@@ -226,11 +236,10 @@ begin
   begin
     
     loop
-      wait until rising_edge(CLKSYS);
-      wait for c2out_time;
+      wait until rising_edge(CLKCOM);
 
       if RXERR = '1' then
-        writetimestamp(oline, SB_CLKCYCLE, " : seen RXERR=1");
+        writetimestamp(oline, CLKCOM_CYCLE, " : seen RXERR=1");
         writeline(output, oline);
       end if;
       

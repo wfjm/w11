@@ -1,4 +1,4 @@
-# $Id: w11a_tb_guide.txt 442 2011-12-23 10:03:28Z mueller $
+# $Id: w11a_tb_guide.txt 443 2011-12-23 11:21:03Z mueller $
 
 Guide to running w11a test benches
 
@@ -89,20 +89,22 @@ Guide to running w11a test benches
      make tb_rlink_direct
      time tbw tb_rlink_direct |\
        tee tb_rlink_direct_dsim.log | egrep "(FAIL|DONE)"
-     ->  142355.0 ns   7108: DONE 
+     ->  147755.0 ns   7378: DONE 
      -> real 0m00.317s   user 0m00.324s   sys 0m00.028s
 
    - rlink core test via serial port interface
 
-     make tb_rlink_serport
-     time tbw tb_rlink_serport tb_rlink_serport_stim.dat |\
-       tee tb_rlink_serport_stim2_dsim.log | egrep "(FAIL|DONE)"
-     ->   72735.0 ns   3627: DONE 
-     -> real 0m00.266s   user 0m00.264s   sys 0m00.008s
+     cd $RETROBASE/rtl/vlib/rlink/tb
+     make tb_rlink_sp1c
+     time tbw tb_rlink_sp1c tb_rlink_sp1c_stim.dat |\
+       tee tb_rlink_sp1c_stim2_dsim.log | egrep "(FAIL|DONE)"
+     ->   24695.0 ns   1225: DONE
+     -> real 0m0.133s   user 0m0.104s   sys 0m0.008s
 
-     time tbw tb_rlink_serport tb_rlink_stim.dat |\
-       tee tb_rlink_serport_dsim.log | egrep "(FAIL|DONE)"
-     -> 536155.0 ns  26798: DONE 
+
+     time tbw tb_rlink_sp1c tb_rlink_stim.dat |\
+       tee tb_rlink_sp1c_dsim.log | egrep "(FAIL|DONE)"
+     -> 551935.0 ns  27587: DONE 
      -> real  0m01.714s   user  0m01.704s   sys  0m00.044s
 
    - w11a core test (using behavioural model)
@@ -125,7 +127,6 @@ Guide to running w11a test benches
    - s3board sram controller test 
 
      cd $RETROBASE/rtl/bplib/s3board/tb
-
      make tb_s3_sram_memctl
      time tbw tb_s3_sram_memctl |\
        tee tb_s3_sram_memctl_dsim.log | egrep "(FAIL|DONE)"
@@ -136,7 +137,6 @@ Guide to running w11a test benches
    - nexys2/nexys3 cram controller test 
 
      cd $RETROBASE/rtl/bplib/nxcramlib/tb
-     
      make tb_nx_cram_memctl_as
      time tbw tb_nx_cram_memctl_as |\
        tee tb_nx_cram_memctl_as_dsim.log | egrep "(FAIL|DONE)"

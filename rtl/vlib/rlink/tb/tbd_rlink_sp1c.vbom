@@ -7,10 +7,11 @@
 ../../simlib/simlib.vhd
 ../../simlib/simbus.vhd
 # components
-tbu_rlink_sp1c : tbu_rlink_sp1c.vbom
+${tbu_rlink_sp1c := tbu_rlink_sp1c.vbom}
 ../../serport/serport_uart_tx.vbom
 ../../serport/serport_uart_rx.vbom
 ../../comlib/byte2cdata.vbom
 ../../comlib/cdata2byte.vbom
+../../simlib/simclkcnt.vbom
 # design
 tbd_rlink_sp1c.vhd

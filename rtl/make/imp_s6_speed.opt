@@ -1,10 +1,11 @@
 FLOWTYPE = FPGA;
 #
-# $Id: imp_s6_speed.opt 405 2011-08-14 08:16:28Z mueller $
+# $Id: imp_s6_speed.opt 449 2012-01-04 08:14:11Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version Comment
-# 2011-08-13   405   1.0    Initial version
+# 2012-01-03   449   1.1   use '-mt 2' in map and par
+# 2011-08-13   405   1.0   Initial version
 #
 # Derived from ISE balanced.opt
 # Uses uses settings like 'mapgloboptlogoptregdup' SmartExplorer strategy 
@@ -39,6 +40,7 @@ Program map
 -logic_opt on;           # Perform physical synthesis combinatorial logic opt.
 -register_duplication on;# Duplicate registers/luts during timing-driven packing
 -w;                      # Always overwrite any existing output files
+-mt 2;                   # Multi-threading
 <inputdir><design>.ngd;  # Input NGD file
 <inputdir><design>.pcf;  # Physical constraints file
 END Program map
@@ -69,6 +71,7 @@ Program par
 -ol high;                 # Overall effort level
 -xe n;                    # extra effort level
 -intstyle xflow;          # Message Reporting Style: ise, xflow, or silent
+-mt 2;                    # Multi-threading
 <design>_map.ncd;         # Input mapped NCD file
 <inputdir><design>.ncd;   # Output placed and routed NCD
 <inputdir><design>.pcf;   # Input physical constraints file

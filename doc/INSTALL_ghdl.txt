@@ -1,0 +1,27 @@
+# $Id: INSTALL_ghdl.txt 467 2013-01-02 19:49:05Z mueller $
+
+The w11 project uses the open source VHDL simulator
+
+  ghdl
+
+It used to be part of most distributions. Unfortunately the Debian maintainer 
+for ghdl refused at some point to integrate ghdl into Debian Etch. Therefore
+ghdl is part of Debian Lenny, and again of Debian Squeeze (the current 
+'stable'). So for an up-to-date Debian simply install the ghdl package.
+
+The glitch at Debian unfortunately lead to the removal of ghdl from Ubuntu, 
+which is based on Debian. Ubuntu Lucid (10.04) and up to Oneiric (11.10) 
+included ghdl, the currently maintained versions Precise (12.04 LTS) and 
+Quantal (12.10) don't.
+
+Thanks to Peter Gavin Ubuntu packages for GHDL are available from his PPA
+'Personal Package Archives', see
+
+  https://launchpad.net/~pgavin/+archive/ghdl
+
+So to install ghdl under Ubuntu use
+
+  sudo add-apt-repository ppa:pgavin/ghdl
+  sudo apt-get update
+  sudo apt-get install ghdl
+

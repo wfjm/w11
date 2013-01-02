@@ -1,4 +1,4 @@
--- $Id: sys_tst_serloop1_n2.vhd 441 2011-12-20 17:01:16Z mueller $
+-- $Id: sys_tst_serloop1_n2.vhd 444 2011-12-25 10:04:58Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -34,7 +34,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2011-12-16   439   0.5    Initial version
+-- 2011-12-23   444   1.1    remove clksys output hack
+-- 2011-12-16   439   1.0    Initial version
 ------------------------------------------------------------------------------
 --
 
@@ -57,7 +58,6 @@ entity sys_tst_serloop1_n2 is            -- top level
                                         -- implements nexys2_fusp_aif
   port (
     I_CLK50 : in slbit;                 -- 50 MHz clock
-    O_CLKSYS : out slbit;               -- DCM derived system clock
     I_RXD : in slbit;                   -- receive data (board view)
     O_TXD : out slbit;                  -- transmit data (board view)
     I_SWI : in slv8;                    -- n2 switches
@@ -117,7 +117,6 @@ architecture syn of sys_tst_serloop1_n2 is
 begin
 
   CLK <= I_CLK50;
-  O_CLKSYS <= CLK;
 
   CLKDIV : clkdivce
     generic map (

@@ -1,7 +1,8 @@
-# $Id: Makefile 401 2011-07-31 21:02:33Z mueller $
+# $Id: Makefile 464 2012-12-26 10:14:15Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2012-12-24   464   1.1.1  add TCLINC
 # 2011-07-31   401   1.1    rename realclean->distclean
 # 2011-07-01   386   1.0.1  add BOOSTINC
 # 2011-02-11   360   1.0    Initial version
@@ -15,7 +16,7 @@ SOMINV     = 0
 #
 # Compile and Link search paths
 #
-INCLFLAGS  = -I/usr/include/tcl8.4 -I${RETROBASE}/tools/src -I${BOOSTINC}
+INCLFLAGS  = -I${RETROBASE}/tools/src -I${TCLINC} -I${BOOSTINC}
 LDLIBS     = -L${RETROBASE}/tools/lib -lrtools
 #
 # Object files to be included

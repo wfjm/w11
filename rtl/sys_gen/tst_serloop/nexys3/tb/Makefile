@@ -1,4 +1,4 @@
-# $Id: Makefile 442 2011-12-23 10:03:28Z mueller $
+# $Id: Makefile 448 2012-01-02 21:55:11Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -6,6 +6,12 @@
 # 2011-11-27   433   1.0    Initial version
 #
 EXE_all  = tb_tst_serloop1_n3 
+#
+ISE_BOARD = nexys3
+ISE_PATH  = xc6slx16-csg324-2
+#
+XFLOWOPT_SYN = syn_s6_speed.opt
+XFLOWOPT_IMP = imp_s6_speed.opt
 #
 .PHONY : all all_ssim all_tsim clean
 #

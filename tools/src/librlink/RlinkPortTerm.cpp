@@ -1,4 +1,4 @@
-// $Id: RlinkPortTerm.cpp 440 2011-12-18 20:08:09Z mueller $
+// $Id: RlinkPortTerm.cpp 466 2012-12-30 13:26:55Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -24,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPortTerm.cpp 440 2011-12-18 20:08:09Z mueller $
+  \version $Id: RlinkPortTerm.cpp 466 2012-12-30 13:26:55Z mueller $
   \brief   Implemenation of RlinkPortTerm.
 */
 
@@ -263,13 +263,14 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
 
 void RlinkPortTerm::Close()
 {
-  if (fIsOpen) {
-    if (fFdWrite >= 0) {
-      tcflush(fFdWrite, TCIOFLUSH);
-      tcsetattr(fFdWrite, TCSANOW, &fTiosOld);
-    }
-    RlinkPort::Close();
+  if (!IsOpen()) return;
+
+  if (fFdWrite >= 0) {
+    tcflush(fFdWrite, TCIOFLUSH);
+    tcsetattr(fFdWrite, TCSANOW, &fTiosOld);
   }
+  RlinkPort::Close();
+
   return;
 }
   
@@ -284,7 +285,7 @@ int RlinkPortTerm::Read(uint8_t* buf, size_t size, double timeout,
     uint8_t* po = buf;
     if (fRxBuf.size() < size) fRxBuf.resize(size);
 
-    // repeat read untill at least one byte returned (or an error occurs)
+    // repeat read until at least one byte returned (or an error occurs)
     // this avoids that the Read() returns with 0 in case only one byte is
     // seen and this is a kc_xesc. At most two iterations possible because
     // in 2nd iteration fPendXesc must be set and thus po pushed.

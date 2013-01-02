@@ -1,4 +1,4 @@
-// $Id: RlinkPort.cpp 375 2011-04-02 07:56:47Z mueller $
+// $Id: RlinkPort.cpp 466 2012-12-30 13:26:55Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,15 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2012-12-28   466   1.0.2  allow Close() even when not open
+// 2012-12-26   465   1.0.1  add CloseFd() method
 // 2011-03-27   375   1.0    Initial version
 // 2011-01-15   356   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RlinkPort.cpp 375 2011-04-02 07:56:47Z mueller $
+  \version $Id: RlinkPort.cpp 466 2012-12-30 13:26:55Z mueller $
   \brief   Implemenation of RlinkPort.
 */
 
@@ -78,14 +80,12 @@ RlinkPort::~RlinkPort()
 
 void RlinkPort::Close()
 {
-  if (! IsOpen())
-    throw logic_error("RlinkPort::Close(): port not open");
+  if (!IsOpen()) return;
 
-  close(fFdRead);
-  if (fFdWrite != fFdRead) close(fFdWrite);
+  if (fFdWrite == fFdRead) fFdWrite = -1;
+  CloseFd(fFdWrite);
+  CloseFd(fFdRead);
 
-  fFdRead  = -1;
-  fFdWrite = -1;
   fIsOpen  = false;
   fUrl.clear();
   fScheme.clear();
@@ -338,7 +338,7 @@ bool RlinkPort::ParseUrl(const std::string& url, const std::string& optlist,
 
   return true;
 }
-
+//
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
@@ -356,6 +356,18 @@ bool RlinkPort::AddOpt(const std::string& key, const std::string& val,
 
   fOptMap.insert(omap_val_t(key, hasval ? val : "1"));
   return true;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void RlinkPort::CloseFd(int& fd)
+{
+  if (fd >= 0) {
+    close(fd);
+    fd  = -1;
+  }
+  return;
 }
 
 //------------------------------------------+-----------------------------------

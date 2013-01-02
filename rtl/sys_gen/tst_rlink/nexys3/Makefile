@@ -1,4 +1,4 @@
-# $Id: Makefile 433 2011-11-27 22:04:39Z mueller $
+# $Id: Makefile 448 2012-01-02 21:55:11Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -18,7 +18,7 @@ XFLOWOPT_IMP = imp_s6_speed.opt
 all : $(BIT_all)
 #
 clean : ise_clean
-	rm -f sys_tst_rlink_n3.ucf
+	rm -f $(VBOM_all:.vbom=.ucf)
 #
 #----
 #

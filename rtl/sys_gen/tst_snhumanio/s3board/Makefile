@@ -1,4 +1,4 @@
-# $Id: Makefile 410 2011-09-18 11:23:09Z mueller $
+# $Id: Makefile 448 2012-01-02 21:55:11Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -15,7 +15,7 @@ ISE_PATH  = xc3s1000-ft256-4
 all : $(BIT_all)
 #
 clean : ise_clean
-	rm -f sys_tst_snhumanio_s3.ucf
+	rm -f $(VBOM_all:.vbom=.ucf)
 #
 #----
 #

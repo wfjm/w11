@@ -1,4 +1,4 @@
-# $Id: Makefile 405 2011-08-14 08:16:28Z mueller $
+# $Id: Makefile 448 2012-01-02 21:55:11Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -16,7 +16,7 @@ ISE_PATH  = xc3s1200e-fg320-4
 all : $(BIT_all)
 #
 clean : ise_clean
-	rm -f sys_w11a_n2.ucf
+	rm -f $(VBOM_all:.vbom=.ucf)
 #
 sys_w11a_n2.mcs : sys_w11a_n2.bit
 	promgen -w -x xcf04s -p mcs -u 0 sys_w11a_n2

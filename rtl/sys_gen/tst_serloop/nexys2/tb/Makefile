@@ -1,10 +1,14 @@
-# $Id: Makefile 441 2011-12-20 17:01:16Z mueller $
+# $Id: Makefile 448 2012-01-02 21:55:11Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
 # 2011-11-13   424   1.0    Initial version
 #
-EXE_all = tb_tst_serloop1_n2 tb_tst_serloop2_n2
+EXE_all  = tb_tst_serloop1_n2
+EXE_all += tb_tst_serloop2_n2
+#
+ISE_BOARD = nexys2
+ISE_PATH  = xc3s1200e-fg320-4
 #
 .PHONY : all all_ssim all_tsim clean
 #

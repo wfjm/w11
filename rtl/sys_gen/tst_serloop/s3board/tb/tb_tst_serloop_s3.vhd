@@ -1,4 +1,4 @@
--- $Id: tb_tst_serloop_s3.vhd 441 2011-12-20 17:01:16Z mueller $
+-- $Id: tb_tst_serloop_s3.vhd 444 2011-12-25 10:04:58Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -26,6 +26,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-23   444   1.1    use new simclk
 -- 2011-11-17   426   1.0.1  use dcm_sfs now
 -- 2011-11-06   420   1.0    Initial version 
 ------------------------------------------------------------------------------
@@ -82,7 +83,6 @@ begin
       OFFSET => clock_offset)
     port map (
       CLK       => CLK50,
-      CLK_CYCLE => open,
       CLK_STOP  => CLK_STOP
     );
 

@@ -2,7 +2,7 @@
 ../vlib/slvtypes.vhd
 ../ibus/iblib.vhd
 pdp11.vbom
-sys_conf : sys_conf.vhd
+${sys_conf := sys_conf.vhd}
 # components
 # design
 pdp11_mem70.vhd

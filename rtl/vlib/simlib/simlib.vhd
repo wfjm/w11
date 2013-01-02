@@ -1,4 +1,4 @@
--- $Id: simlib.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: simlib.vhd 444 2011-12-25 10:04:58Z mueller $
 --
 -- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -22,6 +22,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-23   444   2.0    drop CLK_CYCLE from simclk,simclkv; use integer for
+--                           simclkcnt(CLK_CYCLE),writetimestamp(clkcyc);
 -- 2011-11-18   427   1.3.8  now numeric_std clean
 -- 2010-12-22   346   1.3.7  rename readcommand -> readdotcomm
 -- 2010-11-13   338   1.3.6  add simclkcnt; xx.x ns time in writetimestamp()
@@ -197,7 +199,7 @@ procedure writegen(                     -- write slv in generic base (arb. lth)
 
 procedure writetimestamp(
   L: inout line;
-  clkcyc: in slv31;
+  clkcyc: in integer;
   str : in string := null_string);
 
 -- ----------------------------------------------------------------------------
@@ -208,7 +210,6 @@ component simclk is                   -- test bench clock generator
     OFFSET : time := 200 ns);         -- clock offset (first up transition)
   port (
     CLK  : out slbit;                 -- clock
-    CLK_CYCLE  : out slv31;           -- clock cycle number
     CLK_STOP : in slbit               -- clock stop trigger
   );
 end component;
@@ -217,7 +218,6 @@ component simclkv is                  -- test bench clock generator
                                       --  with variable periods
   port (
     CLK  : out slbit;                 -- clock
-    CLK_CYCLE  : out slv31;           -- clock cycle number
     CLK_PERIOD : in time;             -- clock period
     CLK_HOLD : in slbit;              -- if 1, hold clocks in 0 state
     CLK_STOP : in slbit               -- clock stop trigger
@@ -227,7 +227,7 @@ end component;
 component simclkcnt is                -- test bench system clock cycle counter
   port (
     CLK  : in slbit;                  -- clock
-    CLK_CYCLE  : out slv31            -- clock cycle number
+    CLK_CYCLE  : out integer          -- clock cycle number
   );
 end component;
 
@@ -1062,7 +1062,7 @@ end procedure writegen;
 
 procedure writetimestamp(
   L: inout line;
-  clkcyc: in slv31;
+  clkcyc: in integer;
   str: in string := null_string) is
 
   variable t_nsec  : integer := 0;
@@ -1081,7 +1081,7 @@ begin
   write(L, t_dnsec, right, 1);
   write(L, string'(" ns"));
   
-  write(L, to_integer(unsigned(clkcyc)), right, 7);
+  write(L, clkcyc, right, 7);
   if str /= null_string then
     write(L, str);
   end if;

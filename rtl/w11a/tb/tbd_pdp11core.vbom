@@ -4,7 +4,7 @@
 ../../ibus/iblib.vhd
 ../../ibus/ibdlib.vhd
 ../pdp11.vbom
-sys_conf : ../sys_conf.vhd
+${sys_conf := ../sys_conf.vhd}
 # components
 ../../vlib/genlib/clkdivce.vbom
 ../pdp11_core.vbom

@@ -4,6 +4,7 @@
 ../serport.vhd
 # components
 ../../simlib/simclk.vbom
-tbd_serport_autobaud : tbd_serport_autobaud.vbom
+../../simlib/simclkcnt.vbom
+${tbd_serport_autobaud := tbd_serport_autobaud.vbom}
 # design
 tb_serport_autobaud.vhd

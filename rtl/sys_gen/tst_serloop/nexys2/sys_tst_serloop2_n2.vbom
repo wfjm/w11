@@ -6,7 +6,7 @@
 ../tst_serlooplib.vbom
 ../../../vlib/serport/serport.vhd
 ../../../bplib/nxcramlib/nxcramlib.vhd
-sys_conf : sys_conf2.vhd
+${sys_conf := sys_conf2.vhd}
 # components
 [xst,isim]../../../vlib/xlib/dcm_sfs_unisim_s3e.vbom
 [ghdl]../../../vlib/xlib/dcm_sfs_gsim.vbom

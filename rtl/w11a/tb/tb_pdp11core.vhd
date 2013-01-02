@@ -1,4 +1,4 @@
--- $Id: tb_pdp11core.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: tb_pdp11core.vhd 444 2011-12-25 10:04:58Z mueller $
 --
 -- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -46,6 +46,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-23   444   1.4    use new simclk/simclkcnt
 -- 2011-11-18   427   1.3.2  now numeric_std clean
 -- 2011-01-02   352   1.3.1  rename .cpmon->.rlmon
 -- 2010-12-30   351   1.3    rename tb_pdp11_core -> tb_pdp11core
@@ -116,6 +117,7 @@ architecture sim of tb_pdp11core is
   signal CP_DOUT : slv16 := (others=>'0');
 
   signal CLK_STOP : slbit := '0';
+  signal CLK_CYCLE : integer := 0;
 
   signal R_CHKDAT : slv16 := (others=>'0');
   signal R_CHKMSK : slv16 := (others=>'0');
@@ -130,15 +132,16 @@ architecture sim of tb_pdp11core is
   
 begin 
 
-  SYSCLK : simclk
+  CLKGEN : simclk
     generic map (
       PERIOD => clock_period,
       OFFSET => clock_offset)
     port map (
       CLK => CLK,
-      CLK_CYCLE => SB_CLKCYCLE,
       CLK_STOP  => CLK_STOP
     );
+  
+  CLKCNT : simclkcnt port map (CLK => CLK, CLK_CYCLE => CLK_CYCLE);
 
   UUT: entity work.tbd_pdp11core
     port map (
@@ -626,7 +629,7 @@ begin
     wait for 4*clock_period;
     CLK_STOP <= '1';
 
-    writetimestamp(oline, SB_CLKCYCLE, ": DONE ");
+    writetimestamp(oline, CLK_CYCLE, ": DONE ");
     writeline(output, oline);
     
     wait;                               -- suspend proc_stim forever

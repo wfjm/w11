@@ -1,4 +1,4 @@
--- $Id: tb_serport_uart_rxtx.vhd 417 2011-10-22 10:30:29Z mueller $
+-- $Id: tb_serport_uart_rxtx.vhd 444 2011-12-25 10:04:58Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -33,6 +33,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-23   444   1.2    use new simclk/simclkcnt
 -- 2011-10-22   417   1.1.3  now numeric_std clean
 -- 2010-04-24   281   1.1.2  use direct instatiation for tbd_
 -- 2008-03-24   129   1.1.1  CLK_CYCLE now 31 bits
@@ -69,7 +70,7 @@ architecture sim of tb_serport_uart_rxtx is
   signal TXBUSY : slbit := '0';
   
   signal CLK_STOP : slbit := '0';
-  signal CLK_CYCLE : slv31 := (others=>'0');
+  signal CLK_CYCLE : integer := 0;
   
   signal N_MON_VAL : slbit := '0';
   signal N_MON_DAT : slv8 := (others=>'0');
@@ -85,15 +86,16 @@ architecture sim of tb_serport_uart_rxtx is
 
 begin
 
-  SYSCLK : simclk
+  CLKGEN : simclk
     generic map (
       PERIOD => clock_period,
       OFFSET => clock_offset)
     port map (
       CLK       => CLK,
-      CLK_CYCLE => CLK_CYCLE,
       CLK_STOP  => CLK_STOP
     );
+
+  CLKCNT : simclkcnt port map (CLK => CLK, CLK_CYCLE => CLK_CYCLE);
 
   UUT : entity work.tbd_serport_uart_rxtx
     port map (

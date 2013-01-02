@@ -1,6 +1,6 @@
--- $Id: rlinktblib.vhd 389 2011-07-07 21:59:00Z mueller $
+-- $Id: rlinktblib.vhd 444 2011-12-25 10:04:58Z mueller $
 --
--- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    rlink test environment components
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-23   444   3.1    new clock iface for tbcore_rlink; drop .._dcm
 -- 2010-12-29   351   3.0.1  add rbtba_aif;
 -- 2010-12-24   347   3.0    rename rritblib->rlinktblib, CP_*->RL_*;
 --                           many rri->rlink renames; drop rbus parts;
@@ -125,30 +126,9 @@ component rbtba_aif is                  -- rbus tba, abstract interface
 end component;
 
 component tbcore_rlink is               -- core of vhpi_cext based test bench
-  generic (
-    CLK_PERIOD : time :=  20 ns;        -- clock period
-    CLK_OFFSET : time := 200 ns;        -- clock offset (time to start clock)
-    SETUP_TIME : time :=   5 ns;        -- setup time
-    C2OUT_TIME : time :=  10 ns);       -- clock to output time
   port (
-    CLK : out slbit;                    -- main clock
-    RX_DATA : out slv8;                 -- read data         (data ext->tb)
-    RX_VAL : out slbit;                 -- read data valid   (data ext->tb)
-    RX_HOLD : in slbit;                 -- read data hold    (data ext->tb)
-    TX_DATA : in slv8;                  -- write data        (data tb->ext)
-    TX_ENA : in slbit                   -- write data enable (data tb->ext)
-  );
-end component;
-
-component tbcore_rlink_dcm is           -- dcm aware core of vhpi_cext based tb
-  generic (
-    CLKOSC_PERIOD : time :=  20 ns;     -- clock osc period
-    CLKOSC_OFFSET : time := 200 ns;     -- clock osc offset (time to start clk)
-    SETUP_TIME : time :=   5 ns;        -- setup time
-    C2OUT_TIME : time :=  10 ns);       -- clock to output time
-  port (
-    CLKOSC : out slbit;                 -- clock osc
-    CLKSYS : in slbit;                  -- DCM derived system clock
+    CLK : in slbit;                     -- control interface clock
+    CLK_STOP : out slbit;               -- clock stop trigger
     RX_DATA : out slv8;                 -- read data         (data ext->tb)
     RX_VAL : out slbit;                 -- read data valid   (data ext->tb)
     RX_HOLD : in slbit;                 -- read data hold    (data ext->tb)

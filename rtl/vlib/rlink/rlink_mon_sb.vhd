@@ -1,6 +1,6 @@
--- $Id: rlink_mon_sb.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: rlink_mon_sb.vhd 444 2011-12-25 10:04:58Z mueller $
 --
--- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,11 +16,14 @@
 -- Description:    simbus wrapper for rlink monitor
 --
 -- Dependencies:   simbus
+--                 simlib/simclkcnt
+--                 rlink_mon
 -- Test bench:     -
 -- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-23   444   3.1    use simclkcnt instead of simbus global
 -- 2010-12-24   347   3.0.1  rename: CP_*->RL->*
 -- 2010-12-22   346   3.0    renamed rritb_cpmon_sb -> rlink_mon_sb
 -- 2010-05-02   287   1.0.1  use sbcntl_sbf_cpmon def
@@ -54,11 +57,14 @@ end rlink_mon_sb;
 architecture sim of rlink_mon_sb is
 
   signal ENA : slbit := '0';
-  
+  signal CLK_CYCLE : integer := 0;
+
 begin
 
   assert ENAPIN>=SB_CNTL'low and ENAPIN<=SB_CNTL'high
     report "assert(ENAPIN in SB_CNTL'range)" severity failure;
+
+  CLKCNT : simclkcnt port map (CLK => CLK, CLK_CYCLE => CLK_CYCLE);
 
   ENA <= to_x01(SB_CNTL(ENAPIN));
   
@@ -67,7 +73,7 @@ begin
       DWIDTH => DWIDTH)
     port map (
       CLK       => CLK,
-      CLK_CYCLE => SB_CLKCYCLE,
+      CLK_CYCLE => CLK_CYCLE,
       ENA       => ENA,
       RL_DI     => RL_DI,
       RL_ENA    => RL_ENA,

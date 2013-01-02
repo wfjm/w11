@@ -1,4 +1,4 @@
--- $Id: sys_w11a_n2.vhd 440 2011-12-18 20:08:09Z mueller $
+-- $Id: sys_w11a_n2.vhd 444 2011-12-25 10:04:58Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -64,6 +64,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-23   444   1.3    remove clksys output hack
 -- 2011-12-18   440   1.2.7  use rlink_sp1c
 -- 2011-11-26   433   1.2.6  use nx_cram_(dummy|memctl_as) now
 -- 2011-11-23   432   1.2.5  update O_FLA_CE_N usage
@@ -142,7 +143,6 @@ entity sys_w11a_n2 is                   -- top level
                                         -- implements nexys2_fusp_aif
   port (
     I_CLK50 : in slbit;                 -- 50 MHz clock
-    O_CLKSYS : out slbit;               -- DCM derived system clock
     I_RXD : in slbit;                   -- receive data (board view)
     O_TXD : out slbit;                  -- transmit data (board view)
     I_SWI : in slv8;                    -- n2 switches
@@ -264,8 +264,6 @@ begin
       CLKFX   => CLK,
       LOCKED  => open
     );
-
-  O_CLKSYS <= CLK;
 
   CLKDIV : clkdivce
     generic map (

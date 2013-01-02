@@ -1,9 +1,10 @@
 FLOWTYPE = FPGA_SYNTHESIS;
 #
-# $Id: syn_s6_speed.opt 405 2011-08-14 08:16:28Z mueller $
+# $Id: syn_s6_speed.opt 456 2012-02-05 22:19:44Z mueller $
 #
 #  Revision History: 
-# Date         Rev Version Comment
+# Date         Rev Version  Comment
+# 2012-02-05   456   1.1    use $top_entity variable for -top attribute
 # 2011-08-13   405   1.0    Initial version
 #
 # Derived from ISE xst_mixed.opt
@@ -27,7 +28,7 @@ ParamFile: <design>_xst.scr
 "-ifmt mixed";                    # Input Format (Verilog and VHDL)
 "-ofn <design>";                  # Output File Name
 "-ofmt ngc";                      # Output File Format
-"-top <design>";                  # Top Design Name
+"-top $top_entity";               # Top Design Name
 "-p <partname>";                  # Target Device
 "-opt_mode SPEED";                # Optimization Criteria # AREA or SPEED
 "-opt_level 2";                   # Optimization Effort Criteria: 2=High

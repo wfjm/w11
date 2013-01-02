@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: vbomconv 433 2011-11-27 22:04:39Z mueller $
+# $Id: vbomconv 456 2012-02-05 22:19:44Z mueller $
 #
-# Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2007-2012 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,8 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2012-02-05   456   1.9.4  redo filename substitution (= and :); add --get_top
+# 2012-01-02   448   1.9.3  use in ghdl_m -fexplicit also when simprim used
 # 2011-11-27   433   1.9.2  use in ghdl_m -fexplicit when unisim used
 # 2011-08-13   405   1.9.1  always write 'vhdl' into xst prj files again; for
 #                           -xst_export: remove opt file export, add ucf_cpp
@@ -61,6 +63,7 @@ GetOptions(\%opts, "help", "trace", "ise_path=s",
 	           "xst_export=s",
 	           "ghdl_export=s",
                    "isim_export=s",
+                   "get_top",
                    "flist") || exit 1;
 
 sub print_help;
@@ -68,13 +71,14 @@ sub read_vbom;
 sub scan_vbom;
 sub copy_edir;
 sub write_vbomdep;
+sub canon_fname;
 
 my @vbom_list;
 my @file_list;
 my %vbom_tbl;
 my %file_tbl;
 my %read_tbl;
-my %conf_tbl;
+my %para_tbl;
 my @ucf_cpp_list;
 my $is_xst  = 0;                            # XST synthesis target
 my $is_ghdl = 0;                            # ghdl simulation target
@@ -196,9 +200,9 @@ foreach (keys %file_tbl) {
 
 if ($do_trace) {
   print STDERR "\n";
-  print STDERR "configuration table:\n";
-  foreach (sort keys %conf_tbl) {
-    print STDERR "  $_ = $conf_tbl{$_}\n";
+  print STDERR "filename substitution table:\n";
+  foreach (sort keys %para_tbl) {
+    print STDERR "  $_ = $para_tbl{$_}\n";
   }
   print STDERR "final file_list:\n";
   foreach (@file_list) {
@@ -225,10 +229,10 @@ if (exists $opts{ghdl_a} || exists $opts{ghdl_a_cmd}) {
 	my $rc = int($wrc/256);
 	if ($rc == 0) {
 	  my $sig = $wrc % 256;
-	  print STDERR "%vbomconv-I compilation aborted by signal $sig\n";
+	  print STDERR "%vbomconv-I: compilation aborted by signal $sig\n";
 	  exit(1);
 	} else {
-	  print STDERR "%vbomconv-I compilation failed (rc=$rc) $?\n";
+	  print STDERR "%vbomconv-I: compilation failed (rc=$rc) $?\n";
 	  exit($rc);
 	}
       }
@@ -297,7 +301,8 @@ if (exists $opts{ghdl_m} || exists $opts{ghdl_m_cmd} ) {
 
   $cmd .= "ghdl -m";
   $cmd .= " -o $stem";
-  $cmd .= ' -fexplicit'             if $has_unisim;    # needed for ISE 13.1
+                                    # -fexplicit needed for ISE 13.1,13.3
+  $cmd .= ' -fexplicit'             if $has_unisim or $has_simprim;
   $cmd .= ' -P$XILINX/ghdl/unisim'  if $has_unisim;
   $cmd .= ' -P$XILINX/ghdl/simprim' if $has_simprim;
   $cmd .= " --ieee=synopsys";
@@ -519,6 +524,12 @@ if (exists $opts{xst_export}  or
 
 }
 
+# --get_top ----------------------------------------------------------
+
+if (exists $opts{get_top}) {
+  print "$top\n";
+}
+
 # --flist ------------------------------------------------------------
 
 if (exists $opts{flist}) {
@@ -575,6 +586,51 @@ sub read_vbom {
 
     s/\s*$//;			            # drop trailing blanks
 
+    # process parameter definitions
+    if (m{([\w]+)\s*=\s*(.*)}) {
+      my $para = $1;
+      my $val  = $2;
+      if ($val eq "") {
+        print STDERR "%vbomconv-E: invalid \'$_\' in $vbom_file\n";
+        exit 1;
+      }
+      if (not exists $para_tbl{$para}) {
+        $para_tbl{$para} = canon_fname($vbom_path, $val);
+        print STDERR "--- define \${$para} = $val\n" if $do_trace;
+      } else {
+        print STDERR "--- ignore \${$para} = $val\n" if $do_trace;
+      }
+      next;
+    }
+
+    # process parameter substitutions
+    while (m{\$\{([\w]+)\s*(:=)?\s*(.*?)\}}) {
+      my $para = $1;
+      my $del  = $2;
+      my $val  = $3;
+      my $pre  = $`;
+      my $post = $';
+      if (defined $del && $del eq ":=") {
+        if (not exists $para_tbl{$para}) {
+          $para_tbl{$para} = canon_fname($vbom_path, $val);
+          print STDERR "--- define \${$para := $val}\n" if $do_trace;
+        } else {
+          print STDERR "--- ignore \${$para := $val}\n" if $do_trace;
+        }
+      }
+      if (defined $para_tbl{$para}) {
+        if ($do_trace) {
+          print STDERR "--- use    \${$para} -> $para_tbl{$para}\n";
+        } else {
+          ## print STDERR "%vbomconv-I: \${$para} -> $para_tbl{$para}\n";
+        }
+        $_ = $pre . "!" . $para_tbl{$para} . $post;
+      } else {
+        print STDERR "%vbomconv-E: undefined \${$para} in $vbom_file\n";
+        exit 1;
+      }
+    }
+
     if (/^\[([a-z,]+)\]\s*(.+)$/) {         # [xxx,yyy] tag seen
       my $qual = $1;
       my $name = $2;
@@ -599,35 +655,33 @@ sub read_vbom {
 
     my $tag;
     my $val = $_;
-    my $del;
 
-    # detect tag=val or tag:val lines
-    if (m{^\s*(.*?)\s*([=:])\s*(.*?)\s*$}) {
+    # detect tag:val lines
+    if (m{^\s*(.*?)\s*:\s*(.*?)\s*$}) {
       $tag = $1;
-      $del = $2;
-      $val = $3;
-    }
+      $val = $2;
 
-    # process @top:<entity> lines
-    if (defined $del && $del eq ":" && $tag eq '@top') {
-      $top = $val unless $top_done;
-      next;
-    }
+      # process @top:<entity> lines
+      if ($tag eq '@top') {
+        $top = $val unless $top_done;
 
-    # process @ucf_cpp:<file> lines
-    if (defined $del && $del eq ":" && $tag eq '@ucf_cpp') {
-      push @ucf_cpp_list, $val;
-      next;
-    }
+      # process @ucf_cpp:<file> lines
+      } elsif ($tag eq '@ucf_cpp') {
+        push @ucf_cpp_list, $val;
 
-    # process @lib:<name> lines
-    if (defined $del && $del eq ":" && $tag eq '@lib') {
-      if ($val eq 'unisim') {
-	$has_unisim = 1;
-      } elsif ($val eq 'simprim') {
-	$has_simprim = 1;
+      # process @lib:<name> lines
+      } elsif ($tag eq '@lib') {
+        if ($val eq 'unisim') {
+          $has_unisim = 1;
+        } elsif ($val eq 'simprim') {
+          $has_simprim = 1;
+        } else {
+          print STDERR "%vbomconv-E: invalid lib type \'$tag\' in $vbom_file\n";
+          exit 1;
+        }
       } else {
-	die "unknown library type: $val";
+        print STDERR "%vbomconv-E: invalid \'$tag:\' line in $vbom_file\n";
+        exit 1;
       }
       next;
     }
@@ -637,24 +691,13 @@ sub read_vbom {
     $val =~ s{_ssim\.vhd$}{_tsim.vhd} if $is_tsim;
 
     # process normal .vhd or .vbom file lines
-    # get full relative file name (relative to cwd)
-
-    my $fname = $val;
-    $fname = "$vbom_path/$fname" if $vbom_path ne "";
-
-    # remove 'inner' .., e.g.  ../x/../y -->  ../y
-    # this will also canonize the file names, thus same file same name
-
-    my @flist;
-    foreach (split "/",$fname) {
-      if (scalar(@flist) && $flist[$#flist] ne ".." && $_ eq "..") {
-	pop @flist;
-      } else {
-	push @flist, $_;
-      }
+    # canonize file name unless not already done by filename substitution
+    my $fullname;
+    if ($val =~ m{^!(.*)$}) {
+      $fullname = $1;
+    } else {
+      $fullname = canon_fname($vbom_path, $val);
     }
-
-    my $fullname = join "/", @flist;
 
     # determine whether additional libs needed
     if ($fullname =~ m{_ssim\.vhd$}) {	    # ends in _ssim.vhd
@@ -664,26 +707,6 @@ sub read_vbom {
       $has_simprim = 1;
     }
 
-    # handle configuration statements (tag=val)
-    if (defined $del && $del eq "=") {
-      if (exists $conf_tbl{$tag}) {
-	print STDERR "--- ignore $tag = $fullname\n" if $do_trace;
-      } else {
-	$conf_tbl{$tag} = $fullname;
-	print STDERR "--- config $tag = $fullname\n" if $do_trace;
-      }
-      next;
-    }
-
-    # handle configurable lines (tag:val)
-    if (defined $del && $del eq ":") {
-      if (exists $conf_tbl{$tag}) {
-	$fullname = $conf_tbl{$tag};
-	print STDERR "--- use $tag = $fullname\n" if $do_trace;
-      } else {
-	print STDERR "--- use $tag = $fullname (default)\n" if $do_trace;
-      }
-    }
 
     # build vbom table
     push @{$vbom_tbl{$vbom}}, $fullname;
@@ -756,6 +779,27 @@ sub write_vbomdep {
   foreach (sort keys %read_tbl) {
     print "$target : $_\n";
   }
+}
+
+#-------------------------------------------------------------------------------
+sub canon_fname {
+  my ($vpath,$fname) = @_;
+    # get full relative file name (relative to cwd)
+    $fname = "$vpath/$fname" if $vpath ne "";
+
+    # remove 'inner' .., e.g.  ../x/../y -->  ../y
+    # this will also canonize the file names, thus same file same name
+
+    my @flist;
+    foreach (split "/",$fname) {
+      if (scalar(@flist) && $flist[$#flist] ne ".." && $_ eq "..") {
+	pop @flist;
+      } else {
+	push @flist, $_;
+      }
+    }
+
+    return join "/", @flist;
 }
 
 #-------------------------------------------------------------------------------

@@ -6,6 +6,7 @@
 ../pdp11.vbom
 # components
 ../../vlib/simlib/simclk.vbom
-tbd_pdp11core : tbd_pdp11core.vbom
+../../vlib/simlib/simclkcnt.vbom
+${tbd_pdp11core := tbd_pdp11core.vbom}
 # design
 tb_pdp11core.vhd

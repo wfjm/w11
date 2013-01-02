@@ -1,4 +1,4 @@
-// $Id: RlinkPort.hpp 380 2011-04-25 18:14:52Z mueller $
+// $Id: RlinkPort.hpp 465 2012-12-27 21:29:38Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2012-12-26   465   1.0.2  add CloseFd() method
 // 2011-04-24   380   1.0.1  use boost::noncopyable (instead of private dcl's)
 // 2011-03-27   375   1.0    Initial version
 // 2011-01-15   356   0.1    First draft
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPort.hpp 380 2011-04-25 18:14:52Z mueller $
+  \version $Id: RlinkPort.hpp 465 2012-12-27 21:29:38Z mueller $
   \brief   Declaration of class RlinkPort.
 */
 
@@ -97,6 +98,7 @@ namespace Retro {
       bool          AddOpt(const std::string& key, const std::string& val, 
                            bool hasval, const std::string& optlist, 
                            RerrMsg& emsg);
+      void          CloseFd(int& fd);
 
     protected:
       bool          fIsOpen;                //!< is open flag

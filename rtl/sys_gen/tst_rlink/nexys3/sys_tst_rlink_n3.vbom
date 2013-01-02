@@ -7,7 +7,7 @@
 ../../../vlib/rlink/rlinklib.vbom
 ../../../bplib/bpgen/bpgenlib.vbom
 ../../../bplib/nxcramlib/nxcramlib.vhd
-sys_conf : sys_conf.vhd
+${sys_conf := sys_conf.vhd}
 # components
 [xst,isim]../../../vlib/xlib/dcm_sfs_unisim_s3e.vbom
 [ghdl]../../../vlib/xlib/dcm_sfs_gsim.vbom

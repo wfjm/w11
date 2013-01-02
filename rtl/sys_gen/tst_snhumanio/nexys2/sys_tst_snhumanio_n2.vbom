@@ -3,7 +3,7 @@
 ../../../vlib/genlib/genlib.vhd
 ../../../bplib/bpgen/bpgenlib.vbom
 ../../../bplib/nxcramlib/nxcramlib.vhd
-sys_conf : sys_conf.vhd
+${sys_conf := sys_conf.vhd}
 # components
 ../../../vlib/genlib/clkdivce.vbom
 ../../../bplib/bpgen/sn_humanio.vbom

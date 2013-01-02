@@ -1,4 +1,4 @@
--- $Id: rlink_mon.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: rlink_mon.vhd 444 2011-12-25 10:04:58Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -21,6 +21,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-23   444   3.1    CLK_CYCLE now integer
 -- 2011-11-19   427   3.0.2  now numeric_std clean
 -- 2010-12-24   347   3.0.1  rename: CP_*->RL->*
 -- 2010-12-22   346   3.0    renamed rritb_cpmon -> rlink_mon
@@ -45,7 +46,7 @@ entity rlink_mon is                     -- rlink monitor
     DWIDTH : positive :=  9);           -- data port width (8 or 9)
   port (
     CLK  : in slbit;                    -- clock
-    CLK_CYCLE : in slv31 := (others=>'0');  -- clock cycle number
+    CLK_CYCLE : in integer := 0;        -- clock cycle number
     ENA  : in slbit := '1';             -- enable monitor output
     RL_DI : in slv(DWIDTH-1 downto 0);  -- rlink: data in
     RL_ENA : in slbit;                  -- rlink: data enable

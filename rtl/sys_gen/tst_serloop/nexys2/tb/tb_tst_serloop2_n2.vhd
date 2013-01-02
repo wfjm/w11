@@ -1,4 +1,4 @@
--- $Id: tb_tst_serloop2_n2.vhd 441 2011-12-20 17:01:16Z mueller $
+-- $Id: tb_tst_serloop2_n2.vhd 444 2011-12-25 10:04:58Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -26,6 +26,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-23   444   1.1    use new simclk; remove clksys output hack
 -- 2011-11-23   432   1.0.2  update O_FLA_CE_N usage
 -- 2011-11-17   426   1.0.1  use dcm_sfs now
 -- 2011-11-13   424   1.0    Initial version 
@@ -84,7 +85,6 @@ begin
       OFFSET => clock_offset)
     port map (
       CLK       => CLK50,
-      CLK_CYCLE => open,
       CLK_STOP  => CLK_STOP
     );
 
@@ -113,7 +113,6 @@ begin
   UUT : entity work.sys_tst_serloop2_n2
     port map (
       I_CLK50      => CLK50,
-      O_CLKSYS     => open,
       I_RXD        => I_RXD,
       O_TXD        => O_TXD,
       I_SWI        => I_SWI,

@@ -4,6 +4,7 @@
 ../simlib/simbus.vhd
 rlinklib.vbom
 # components
+../simlib/simclkcnt.vbom
 rlink_mon.vbom
 # design
 rlink_mon_sb.vhd

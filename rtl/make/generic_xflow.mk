@@ -1,7 +1,11 @@
-# $Id: generic_xflow.mk 406 2011-08-14 21:06:44Z mueller $
+# $Id: generic_xflow.mk 456 2012-02-05 22:19:44Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2012-02-05   456   1.7.5  use vbomvonv --get_top for xflow calls
+# 2012-01-08   451   1.7.4  use xilinx_ghdl_sdf_filter
+# 2012-01-04   450   1.7.3  display isemsg_filter for ncd and bit targets too
+# 2011-12-29   446   1.7.2  add fx2load_wrapper in jconfig target
 # 2011-08-14   406   1.7.1  use isemsg_filter; new %.mfsum target
 # 2011-08-13   405   1.7    renamed, moved to rtl/make;
 # 2011-07-17   394   1.6.2  add rm *.svf to ise_clean rule
@@ -78,7 +82,8 @@ XFLOW    = xflow -p ${ISE_PATH}
 	if [ -r ${RETROBASE}/rtl/make/${XFLOWOPT_SYN} ]; then \
 		cp ${RETROBASE}/rtl/make/${XFLOWOPT_SYN} ./ise; fi
 	if [ -r ${XFLOWOPT_SYN} ]; then cp ${XFLOWOPT_SYN} ./ise; fi
-	${XFLOW} -wd ise -synth ${XFLOWOPT_SYN} $*.prj 
+	${XFLOW} -wd ise -synth ${XFLOWOPT_SYN} \
+	  -g top_entity:`vbomconv --get_top $<` $*.prj 
 	(cd ./ise; chmod -x *.* )
 	if [ -r ./ise/$*.ngc ]; then cp -p ./ise/$*.ngc .; fi
 	if [ -r ./ise/$*_xst.log ]; then cp -p ./ise/$*_xst.log .; fi
@@ -99,7 +104,8 @@ XFLOW    = xflow -p ${ISE_PATH}
 	if [ -r ${RETROBASE}/rtl/make/${XFLOWOPT_SYN} ]; then \
 		cp ${RETROBASE}/rtl/make/${XFLOWOPT_SYN} ./ise; fi
 	if [ -r ${XFLOWOPT_SYN} ]; then cp ${XFLOWOPT_SYN} ./ise; fi
-	${XFLOW} -wd ise -synth ${XFLOWOPT_SYN} $*.prj 
+	${XFLOW} -wd ise -synth ${XFLOWOPT_SYN} \
+	  -g top_entity:`vbomconv --get_top $<` $*.prj 
 	(cd ./ise; chmod -x *.* )
 	if [ -r ./ise/$*.ngc ]; then cp -p ./ise/$*.ngc .; fi
 	if [ -r ./ise/$*_xst.log ]; then cp -p ./ise/$*_xst.log .; fi
@@ -137,6 +143,21 @@ XFLOW    = xflow -p ${ISE_PATH}
 	if [ -r ./ise/$*.par ]; then cp -p ./ise/$*.par ./$*_par.log; fi
 	if [ -r ./ise/$*_pad.txt ]; then cp -p ./ise/$*_pad.txt ./$*_pad.log; fi
 	if [ -r ./ise/$*.twr ]; then cp -p ./ise/$*.twr ./$*_twr.log; fi
+	@ if [ -r $*.mfset ]; then \
+	  echo "=============================================================";\
+	  echo "*     Translate Diagnostic Summary                          *";\
+	  echo "=============================================================";\
+	  isemsg_filter tra $*.mfset $*_tra.log;\
+	  echo "=============================================================";\
+	  echo "*     MAP Diagnostic Summary                                *";\
+	  echo "=============================================================";\
+	  isemsg_filter map $*.mfset $*_map.log;\
+	  echo "=============================================================";\
+	  echo "*     PAR Diagnostic Summary                                *";\
+	  echo "=============================================================";\
+	  isemsg_filter par $*.mfset $*_par.log;\
+	  echo "=============================================================";\
+	  fi
 #
 # Implement 2 (bitgen)
 #   input:   %.ncd      
@@ -152,6 +173,13 @@ XFLOW    = xflow -p ${ISE_PATH}
 	if [ -r ./ise/$*.bit ]; then cp -p ./ise/$*.bit .; fi
 	if [ -r ./ise/$*.msk ]; then cp -p ./ise/$*.msk .; fi
 	if [ -r ./ise/$*.bgn ]; then cp -p ./ise/$*.bgn ./$*_bgn.log; fi
+	@ if [ -r $*.mfset ]; then \
+	  echo "=============================================================";\
+	  echo "*     Bitgen Diagnostic Summary                             *";\
+	  echo "=============================================================";\
+	  isemsg_filter bgn $*.mfset $*_bgn.log;\
+	  echo "=============================================================";\
+	  fi
 #
 # Create svf from bitstream
 #   input:   %.bit
@@ -173,7 +201,12 @@ XFLOW    = xflow -p ${ISE_PATH}
 #   input:   %.svf
 #   output:  .PHONY
 #
+ifneq "$(origin FX2_FILE)" "undefined"
+FX2LOAD_OPT = --file=${FX2_FILE}
+endif
+#
 %.jconfig: %.svf
+	fx2load_wrapper --board=${ISE_BOARD} ${FX2LOAD_OPT}
 	config_wrapper --board=${ISE_BOARD} --path=${ISE_PATH} jconfig $*.svf
 
 #
@@ -225,9 +258,12 @@ XFLOW    = xflow -p ${ISE_PATH}
 	if [ -r ./ise/$*.nlf ]; then cp -p ./ise/$*.nlf ./$*_ngn_fsim.log; fi
 #
 # Post-par timing simulation model (netgen -sim)
-#   input:   %.ncd      
+#   input:   %.ncd
+#            %.tsim_xon_dat     xon disable descriptor file (optional)
 #   output:  %_tsim.vhd
-#            %_ngn_tsim.log  netgen log file    (renamed time_sim.nlf)
+#            %_ngn_tsim.log     netgen log file    (renamed time_sim.nlf)
+#            %_tsim.sdf         delay annotation
+#            %_tsim.sdf_ghdl    delay annotation with ghdl patches
 #
 #!! use netgen directly because xflow 8.1 goes mad when -tsim used a 2nd time
 #!! see blog_xilinx_webpack.txt 2007-06-10
@@ -243,6 +279,7 @@ XFLOW    = xflow -p ${ISE_PATH}
 	if [ -r ./ise/$*_tsim.sdf ]; then cp -p ./ise/$*_tsim.sdf .; fi
 	if [ -r ./ise/$*_tsim.nlf ]; then cp -p ./ise/$*_tsim.nlf ./$*_ngn_tsim.log; fi
 	if [ -r $*_tsim.vhd -a -r $*.tsim_xon_dat ]; then xilinx_tsim_xon $*; fi
+	if [ -r $*_tsim.sdf ]; then xilinx_ghdl_sdf_filter $*_tsim.sdf > $*_tsim.sdf_ghdl ; fi
 #
 # generate dep_xst files from vbom
 #
@@ -271,6 +308,7 @@ ise_clean: ise_tmp_clean
 	rm -rf *.svf
 	rm -rf *_[sft]sim.vhd
 	rm -rf *_tsim.sdf
+	rm -rf *_tsim.sdf_ghdl
 	rm -rf *_xst.log
 	rm -rf *_tra.log
 	rm -rf *_map.log

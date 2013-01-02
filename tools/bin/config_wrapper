@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: config_wrapper 435 2011-12-04 20:15:25Z mueller $
+# $Id: config_wrapper 467 2013-01-02 19:49:05Z mueller $
 #
-# Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2010-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,8 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2013-01-02   467   1.1.7  jconfig: prepend '0x' to support 'jtag #2007'
+# 2012-02-11   457   1.1.6  jconfig: use RETRO_FX2_VID/PID for USB VID/PID
 # 2011-12-03   435   1.1.5  add nexys3 support;
 # 2011-08-04   402   1.1.4  add atlys support;
 # 2011-07-25   399   1.1.3  add nexys2-500 support; bsdl path for sp605
@@ -177,7 +179,28 @@ if ($cmd eq "iconfig") {
 
   my $jtag_part = $#plist + 1 - $pfpga;
 
-  print  OFILE "cable usbblaster\n";
+  # handle USB VID/PID of board
+  #  taken from RETRO_FX2_VID and RETRO_FX2_PID environment variables
+  #  in the retro11 project the default is:
+  #    VID: 16c0  (VOTI)
+  #    PID: 03ef  (VOTI free for internal lab use 1007)
+  #
+  #   !! Important Note on Usage of this USB VID/PID !!
+  #   This VID/PID is owned by VOTI, a small dutch company. Usage is granted
+  #   for 'internal lab use only' by VOTI under the conditions:
+  #     - the gadgets in which you use those PIDs do not leave your desk
+  #     - you won't complain to VOTI if you get in trouble with duplicate PIDs
+  #       (for instance because someone else did not follow the previous rule).
+  #   See also http://www.voti.nl/pids/pidfaq.html
+  #
+
+  my $fx2_vid = $ENV{RETRO_FX2_VID};
+  my $fx2_pid = $ENV{RETRO_FX2_PID};
+  $fx2_vid = "16c0" unless defined $fx2_vid;
+  $fx2_pid = "03ef" unless defined $fx2_pid;
+
+  # give vid/pid with 0x prefix. jtag #2007 requires this, #1502 tolerates
+  print  OFILE "cable usbblaster vid=0x$fx2_vid pid=0x$fx2_pid\n";
   printf OFILE "bsdl path %s\n", $bpath;
   print  OFILE "detect\n";
   printf OFILE "part %d\n", $jtag_part;

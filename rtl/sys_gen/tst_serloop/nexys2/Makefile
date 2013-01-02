@@ -1,4 +1,4 @@
-# $Id: Makefile 441 2011-12-20 17:01:16Z mueller $
+# $Id: Makefile 448 2012-01-02 21:55:11Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -15,8 +15,7 @@ ISE_PATH  = xc3s1200e-fg320-4
 all : $(BIT_all)
 #
 clean : ise_clean
-	rm -f sys_tst_serloop1_n2.ucf
-	rm -f sys_tst_serloop2_n2.ucf
+	rm -f $(VBOM_all:.vbom=.ucf)
 #
 #----
 #

@@ -1,4 +1,4 @@
--- $Id: nexys2_fusp_dummy.vhd 433 2011-11-27 22:04:39Z mueller $
+-- $Id: nexys2_fusp_dummy.vhd 467 2013-01-02 19:49:05Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -12,7 +12,7 @@
 -- for complete details.
 -- 
 ------------------------------------------------------------------------------
--- Module Name:    nexys2_dummy - syn
+-- Module Name:    nexys2_fusp_dummy - syn
 -- Description:    nexys2 minimal target (base; serport loopback)
 --
 -- Dependencies:   -
@@ -22,6 +22,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-23   444   1.3    remove clksys output hack
 -- 2011-11-26   433   1.2    use nxcramlib
 -- 2011-11-23   432   1.1    remove O_FLA_CE_N port from n2_cram_dummy
 -- 2010-11-13   338   1.0.2  add O_CLKSYS (for DCM derived system clock)
@@ -39,7 +40,6 @@ entity nexys2_fusp_dummy is             -- NEXYS 2 dummy (base+fusp; loopback)
                                         -- implements nexys2_fusp_aif
   port (
     I_CLK50 : in slbit;                 -- 50 MHz board clock
-    O_CLKSYS : out slbit;               -- DCM derived system clock
     I_RXD : in slbit;                   -- receive data (board view)
     O_TXD : out slbit;                  -- transmit data (board view)
     I_SWI : in slv8;                    -- n2 switches
@@ -69,7 +69,6 @@ architecture syn of nexys2_fusp_dummy is
   
 begin
 
-  O_CLKSYS <= I_CLK50;                  -- use 50 MHz clock
   O_TXD    <= I_RXD;                    -- loop back
   O_FUSP_TXD   <= I_FUSP_RXD;
   O_FUSP_RTS_N <= I_FUSP_CTS_N;

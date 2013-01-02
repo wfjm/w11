@@ -1,4 +1,4 @@
--- $Id: tb_s3board_fusp.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: tb_s3board_fusp.vhd 444 2011-12-25 10:04:58Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -15,10 +15,12 @@
 -- Module Name:    tb_s3board_fusp - sim
 -- Description:    Test bench for s3board (base+fusp)
 --
--- Dependencies:   vlib/rlink/tb/tbcore_rlink_dcm
+-- Dependencies:   simlib/simclk
+--                 simlib/simclkcnt
+--                 rlink/tb/tbcore_rlink
 --                 tb_s3board_core
---                 vlib/serport/serport_uart_rxtx
 --                 s3board_fusp_aif [UUT]
+--                 serport/serport_uart_rxtx
 --
 -- To test:        generic, any s3board_fusp_aif target
 --
@@ -26,6 +28,7 @@
 -- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-23   444   3.1    new system clock scheme, new tbcore_rlink iface
 -- 2011-11-19   427   3.0.1  now numeric_std clean
 -- 2010-12-30   351   3.0    use rlink/tb now
 -- 2010-11-06   336   1.0.4  rename input pin CLK -> I_CLK50
@@ -55,6 +58,9 @@ end tb_s3board_fusp;
 architecture sim of tb_s3board_fusp is
   
   signal CLK : slbit := '0';
+  
+  signal CLK_STOP : slbit := '0';
+  signal CLK_CYCLE : integer := 0;
 
   signal RESET : slbit := '0';
   signal CLKDIV : slv2 := "00";         -- run with 1 clocks / bit !!
@@ -100,24 +106,29 @@ architecture sim of tb_s3board_fusp is
 
   constant clock_period : time :=  20 ns;
   constant clock_offset : time := 200 ns;
-  constant setup_time : time :=  5 ns;
-  constant c2out_time : time := 10 ns;
 
 begin
-  
-  TBCORE : tbcore_rlink
+
+  CLKGEN : simclk
     generic map (
-      CLK_PERIOD => clock_period,
-      CLK_OFFSET => clock_offset,
-      SETUP_TIME => setup_time,
-      C2OUT_TIME => c2out_time)
+      PERIOD => clock_period,
+      OFFSET => clock_offset)
     port map (
-      CLK     => CLK,
-      RX_DATA => TXDATA,
-      RX_VAL  => TXENA,
-      RX_HOLD => RX_HOLD,
-      TX_DATA => RXDATA,
-      TX_ENA  => RXVAL
+      CLK      => CLK,
+      CLK_STOP => CLK_STOP
+    );
+  
+  CLKCNT : simclkcnt port map (CLK => CLK, CLK_CYCLE => CLK_CYCLE);
+
+  TBCORE : tbcore_rlink
+    port map (
+      CLK      => CLK,
+      CLK_STOP => CLK_STOP,
+      RX_DATA  => TXDATA,
+      RX_VAL   => TXENA,
+      RX_HOLD  => RX_HOLD,
+      TX_DATA  => RXDATA,
+      TX_ENA   => RXVAL
     );
 
   RX_HOLD <= TXBUSY or RTS_N;           -- back preasure for data flow to tb
@@ -200,10 +211,9 @@ begin
     
     loop
       wait until rising_edge(CLK);
-      wait for c2out_time;
 
       if RXERR = '1' then
-        writetimestamp(oline, SB_CLKCYCLE, " : seen RXERR=1");
+        writetimestamp(oline, CLK_CYCLE, " : seen RXERR=1");
         writeline(output, oline);
       end if;
       

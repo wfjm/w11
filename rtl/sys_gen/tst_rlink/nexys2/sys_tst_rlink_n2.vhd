@@ -1,4 +1,4 @@
--- $Id: sys_tst_rlink_n2.vhd 442 2011-12-23 10:03:28Z mueller $
+-- $Id: sys_tst_rlink_n2.vhd 465 2012-12-27 21:29:38Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -31,6 +31,7 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2012-12-27   453 13.3    O76d xc3s1200e-4  754 1605   96 1057 t 14.5
 -- 2011-12-18   440 13.1    O40d xc3s1200e-4  754 1605   96 1057 t 16.8
 -- 2011-06-26   385 12.1    M53d xc3s1200e-4  688 1500   68  993 t 16.2
 -- 2011-04-02   375 12.1    M53d xc3s1200e-4  688 1572   68  994 t 13.8
@@ -38,6 +39,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-23   444   1.2    remove clksys output hack
 -- 2011-12-18   440   1.1.6  use now rbd_tst_rlink and rlink_sp1c
 -- 2011-11-26   433   1.1.5  use nx_cram_dummy now
 -- 2011-11-23   432   1.1.4  update O_FLA_CE_N usage
@@ -49,21 +51,21 @@
 ------------------------------------------------------------------------------
 -- Usage of Nexys 2 Switches, Buttons, LEDs:
 --
---    SWI(7:2): no function (only connected to sn_humanio_rbus)
---    SWI(1):   1 enable XON
---    SWI(0):   0 -> main board RS232 port  - implemented in bp_rs232_2l4l_iob
+--    SWI(7:2)  no function (only connected to sn_humanio_rbus)
+--       (1)    1 enable XON
+--       (0)    0 -> main board RS232 port  - implemented in bp_rs232_2l4l_iob
 --              1 -> Pmod B/top RS232 port  /
 --
---    LED(7):   SER_MONI.abact
---    LED(6:2): no function (only connected to sn_humanio_rbus)
---    LED(0):   timer 0 busy 
---    LED(1):   timer 1 busy 
+--    LED(7)    SER_MONI.abact
+--       (6:2)  no function (only connected to sn_humanio_rbus)
+--       (0)    timer 0 busy 
+--       (1)    timer 1 busy 
 --
 --    DSP:      SER_MONI.clkdiv         (from auto bauder)
---    DP(3):    not SER_MONI.txok       (shows tx back preasure)
---    DP(2):    SER_MONI.txact          (shows tx activity)
---    DP(1):    not SER_MONI.rxok       (shows rx back preasure)
---    DP(0):    SER_MONI.rxact          (shows rx activity)
+--    DP(3)     not SER_MONI.txok       (shows tx back preasure)
+--      (2)     SER_MONI.txact          (shows tx activity)
+--      (1)     not SER_MONI.rxok       (shows rx back preasure)
+--      (0)     SER_MONI.rxact          (shows rx activity)
 --
 
 library ieee;
@@ -85,7 +87,6 @@ entity sys_tst_rlink_n2 is              -- top level
                                         -- implements nexys2_fusp_aif
   port (
     I_CLK50 : in slbit;                 -- 50 MHz clock
-    O_CLKSYS : out slbit;               -- DCM derived system clock
     I_RXD : in slbit;                   -- receive data (board view)
     O_TXD : out slbit;                  -- transmit data (board view)
     I_SWI : in slv8;                    -- n2 switches
@@ -161,8 +162,6 @@ begin
       CLKFX   => CLK,
       LOCKED  => open
     );
-
-  O_CLKSYS <= CLK;
 
   CLKDIV : clkdivce
     generic map (

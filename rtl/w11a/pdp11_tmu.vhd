@@ -1,4 +1,4 @@
--- $Id: pdp11_tmu.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: pdp11_tmu.vhd 444 2011-12-25 10:04:58Z mueller $
 --
 -- Copyright 2008-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -23,6 +23,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-23   444   1.1    use local clkcycle count instead of simbus global
 -- 2011-11-18   427   1.0.7  now numeric_std clean
 -- 2010-10-17   333   1.0.6  use ibus V2 interface
 -- 2010-06-26   309   1.0.5  add ibmreq.dip,.cacc,.racc to trace
@@ -66,6 +67,7 @@ begin
 
   proc_tm: process (CLK)
     variable oline  : line;
+    variable clkcycle : integer := 0;
     variable ipsw   : slv16 := (others=>'0');
     variable ibaddr : slv16 := (others=>'0');
     variable emaddr : slv22 := (others=>'0');
@@ -76,9 +78,10 @@ begin
     file ofile : text open write_mode is "tmu_ofile";
   begin
 
-
     if rising_edge(CLK) then
 
+      clkcycle := clkcycle + 1;
+      
       if R_FIRST = '1' then
         R_FIRST <= '0';
         write(oline, string'("#"));
@@ -168,7 +171,7 @@ begin
       end if;
 
       if wcycle then
-        write(oline, to_integer(unsigned(SB_CLKCYCLE)), right, 9);
+        write(oline, clkcycle, right, 9);
         write(oline, string'(" 0"));
         writeoct(oline, DM_STAT_DP.pc,   right, 7);
         writeoct(oline, ipsw, right, 7);

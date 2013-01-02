@@ -1,6 +1,6 @@
--- $Id: simbus.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: simbus.vhd 444 2011-12-25 10:04:58Z mueller $
 --
--- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Global signals for support control in test benches
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4; ghdl 0.18-0.25
+-- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 13.1; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-23   444   2.0    remove global clock cycle signal
 -- 2010-04-24   282   1.1    add SB_(VAL|ADDR|DATA)
 -- 2008-03-24   129   1.0.1  use 31 bits for SB_CLKCYCLE
 -- 2007-08-27    76   1.0    Initial version 
@@ -32,7 +33,6 @@ use work.slvtypes.all;
 package simbus is
   
   signal SB_CLKSTOP : slbit := '0';             -- global clock stop
-  signal SB_CLKCYCLE : slv31 := (others=>'0');  -- global clock cycle
   signal SB_CNTL : slv16 := (others=>'0');      -- global signals tb -> uut
   signal SB_STAT : slv16 := (others=>'0');      -- global signals uut -> tb
   signal SB_VAL : slbit := '0';                 -- init bcast valid

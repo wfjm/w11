@@ -1,6 +1,6 @@
-# $Id: perf.tcl 376 2011-04-17 12:24:07Z mueller $
+# $Id: perf.tcl 465 2012-12-27 21:29:38Z mueller $
 #
-# Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2012 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2012-12-27   495   1.0.1  adopt format, cover small ms and large kb 
 # 2011-04-17   376   1.0    Initial version
 #
 
@@ -135,7 +136,16 @@ namespace eval rbbram {
       foreach {nr i trun} $pval {
         set ms [expr double($trun) / double($nr*$i)]
         set kb [expr double(2*$nr*$i*$nblk) / double($trun)]
-        append oline [format " %5.1f %5.1f" $ms $kb]
+        if { $ms < 9.94 } {
+          append oline [format " %5.2f" $ms]
+        } else {
+          append oline [format " %5.1f" $ms]
+        }
+        if { $kb > 999.9 } {
+          append oline [format " %5.0f" $kb]
+        } else {
+          append oline [format " %5.1f" $kb]
+        }
       }
 
       append rval $oline

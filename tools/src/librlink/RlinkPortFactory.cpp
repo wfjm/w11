@@ -1,6 +1,6 @@
-// $Id: RlinkPortFactory.cpp 375 2011-04-02 07:56:47Z mueller $
+// $Id: RlinkPortFactory.cpp 465 2012-12-27 21:29:38Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2012 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,19 +13,21 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2012-12-26   465   1.1    add cuff: support
 // 2011-03-27   374   1.0    Initial version
 // 2011-01-15   356   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RlinkPortFactory.cpp 375 2011-04-02 07:56:47Z mueller $
+  \version $Id: RlinkPortFactory.cpp 465 2012-12-27 21:29:38Z mueller $
   \brief   Implemenation of RlinkPortFactory.
 */
 
 #include "RlinkPortFactory.hpp"
 #include "RlinkPortFifo.hpp"
 #include "RlinkPortTerm.hpp"
+#include "RlinkPortCuff.hpp"
 
 using namespace std;
 using namespace Retro;
@@ -53,6 +55,8 @@ RlinkPort* Retro::RlinkPortFactory::New(const std::string& url, RerrMsg& emsg)
     return new RlinkPortFifo();
   } else if (scheme == "term") {
     return new RlinkPortTerm();
+  } else if (scheme == "cuff") {
+    return new RlinkPortCuff();
   }
   
   emsg.Init("RlinkPortFactory::New()", string("unknown scheme: ") + scheme);

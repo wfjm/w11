@@ -1,4 +1,4 @@
-// $Id: RlinkPortFifo.cpp 375 2011-04-02 07:56:47Z mueller $
+// $Id: RlinkPortFifo.cpp 466 2012-12-30 13:26:55Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPortFifo.cpp 375 2011-04-02 07:56:47Z mueller $
+  \version $Id: RlinkPortFifo.cpp 466 2012-12-30 13:26:55Z mueller $
   \brief   Implemenation of RlinkPortFifo.
 */
 
@@ -49,7 +49,10 @@ RlinkPortFifo::RlinkPortFifo()
 //! Destructor
 
 RlinkPortFifo::~RlinkPortFifo()
-{}
+{
+  // no need to call Close() here, no RlinkPortFifo::Close()
+  // cleanup will be done by ~RlinkPort()
+}
 
 //------------------------------------------+-----------------------------------
 //! FIXME_text

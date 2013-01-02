@@ -1,6 +1,6 @@
--- $Id: genlib.vhd 422 2011-11-10 18:44:06Z mueller $
+-- $Id: genlib.vhd 466 2012-12-30 13:26:55Z mueller $
 --
--- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2012 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    some general purpose components
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4; ghdl 0.18-0.26
+-- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 13.3; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2012-12-29   466   1.0.9  add led_pulse_stretch
 -- 2011-11-09   421   1.0.8  add cdc_pulse
 -- 2010-04-17   277   1.0.7  timer: no default for START,DONE,BUSY; drop STOP
 -- 2010-04-02   273   1.0.6  add timer
@@ -165,6 +166,16 @@ component cdc_pulse is                  -- clock domain cross for pulse
     PIN : in slbit;                     -- M|pulse in
     BUSY : out slbit;                   -- M|busy
     POUT : out slbit                    -- S|pulse out
+  );
+end component;
+
+component led_pulse_stretch is          -- pulse stretcher for leds
+  port (
+    CLK : in slbit;                     -- clock
+    CE_INT : in slbit;                  -- pulse time unit clock enable
+    RESET : in slbit := '0';            -- reset
+    DIN : in slbit;                     -- data in
+    POUT : out slbit                    -- pulse out
   );
 end component;
 

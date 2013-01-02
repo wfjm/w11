@@ -1,4 +1,4 @@
--- $Id: rblib.vhd 405 2011-08-14 08:16:28Z mueller $
+-- $Id: rblib.vhd 444 2011-12-25 10:04:58Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,10 +16,11 @@
 -- Description:    Definitions for rbus interface and bus entities
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1, 13.1; ghdl 0.18-0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-23   444   3.1    CLK_CYCLE now integer
 -- 2011-08-13   405   3.0.3  add in direction for  FADDR,SEL ports
 -- 2010-12-26   349   3.0.2  add rb_sel
 -- 2010-12-22   346   3.0.1  add rb_mon and rb_mon_sb;
@@ -168,7 +169,7 @@ component rb_mon is                     -- rbus monitor
     DBASE : positive :=  2);            -- base for writing data values
   port (
     CLK  : in slbit;                    -- clock
-    CLK_CYCLE : in slv31 := (others=>'0');  -- clock cycle number
+    CLK_CYCLE : in integer := 0;        -- clock cycle number
     ENA  : in slbit := '1';             -- enable monitor output
     RB_MREQ : in rb_mreq_type;          -- rbus: request
     RB_SRES : in rb_sres_type;          -- rbus: response

@@ -1,8 +1,8 @@
 #! /usr/bin/env tclsh
 # -*- tcl -*-
-# $Id: ti_rri 440 2011-12-18 20:08:09Z mueller $
+# $Id: ti_rri 467 2013-01-02 19:49:05Z mueller $
 #
-# Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -15,6 +15,9 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2013-01-02   467   1.1.1  call rlc close only when really open
+# 2012-12-27   465   1.1    add --cuff support
+# 2012-02-09   457   1.0.4  disable autoexec
 # 2011-12-19   440   1.0.3  re-organize option handling for --term and --fifo
 # 2011-12-04   435   1.0.2  add flow attribute to --term
 # 2011-04-22   379   1.0.1  check for RETROBASE; proper exit handling; help text
@@ -24,6 +27,7 @@
 #
 # --fifo[=name,opts,...]
 # --term[=name,baud,opts,...]
+# --cuff[=name,...]
 # --run=command
 # --log=filename      ; default "-"
 # --logl=n            ; default 2
@@ -41,6 +45,8 @@ array set opts {
     fifo_  ""
     term   0
     term_  ""
+    cuff   0
+    cuff_  ""
     run_   ""
     log_   "-"
     logl_  2
@@ -54,6 +60,9 @@ set clist {}
 set optsendseen 0
 set runpid {}
 
+# disable autoexec
+set auto_noexec 1
+
 #
 # cleanup handler
 #   must be in a proc so that it can be called from tclreadline
@@ -64,8 +73,8 @@ proc exit_cleanup {} {
   global runpid
 
   # now close rlink connection
-  if { $opts(fifo) || $opts(term) } {
-    rlc close
+  if { $opts(fifo) || $opts(term) || $opts(cuff) } {
+    if { [rlc open] ne "" } { rlc close }
   }
 
   # FIXME_code: should sync here with -run process run-down
@@ -84,6 +93,7 @@ foreach arg $argv {
   switch -regexp -- $arg {
     ^--?fifo=?.*$ { set opts(fifo) 1; regexp -- {=(.*)} $arg dummy opts(fifo_) }
     ^--?term=?.*$ { set opts(term) 1; regexp -- {=(.*)} $arg dummy opts(term_) }
+    ^--?cuff=?.*$ { set opts(cuff) 1; regexp -- {=(.*)} $arg dummy opts(cuff_) }
     ^--?run=.+$   { regexp -- {=(.*)} $arg dummy opts(run_) }
     ^--?log=.+$   { regexp -- {=(.*)} $arg dummy opts(log_) }
     ^--?logl=.+$  { regexp -- {=(.*)} $arg dummy opts(logl_) }
@@ -107,7 +117,7 @@ if { $opts(help) } {
   puts {  --run=CMD      exec's CMD as subprocess before the rlink port opened}
   puts {                 useful to start test benches, usually via 'tbw'}
   puts {  --fifo[=ARGS]  open fifo type rlink port. Optional arguments are:}
-  puts {                   --fifo=[NAME[,KEEP]]}
+  puts {                   --fifo=[NAME[,OPTS]]}
   puts {                     NAME  fifo name prefix, default 'rlink_cext_fifo'}
   puts {                     OPTS  further options (comma separated list):}
   puts {                             keep  fifo is kept open on exit}
@@ -128,6 +138,12 @@ if { $opts(help) } {
   puts {                             break  send a break, do autobaud}
   puts {                             cts    hardware flow control (cts/rts)}
   puts {                             xon    software flow control (xon/xoff)}
+  puts {  --cuff[=ARGS]  open cuff type rlink port. Optional arguments are:}
+  puts {                   --cuff=[NAME[,OPTS]]}
+  puts {                     NAME  USB path, default derived from environment}
+  puts {                             variables RETRO_FX2_VID and RETRO_FX2_PID}
+  puts {                     OPTS  further options (comma separated list):}
+  puts {                             trace  trace USB activities}
   puts {  --log=FILE     set log file name. Default is to write to stdout.}
   puts {  --logl=LVL     set log level, default is '2' allowed values:}
   puts {                   0 no logging}
@@ -157,8 +173,13 @@ if {![info exists env(RETROBASE)]} {
   return 1
 }
 
-if { $opts(fifo) && $opts(term) } {
-  puts "-E: both --fifo and --term given, only one allowed"
+set nopen 0;
+if { $opts(fifo) } { incr nopen }
+if { $opts(term) } { incr nopen }
+if { $opts(cuff) } { incr nopen }
+
+if { $nopen > 1 } {
+  puts "-E: more than one of --fifo,--term,--cuff given, only one allowed"
   return 1
 }
 
@@ -214,6 +235,20 @@ if { $opts(term) } {
   set url "term:$dev?baud=$baud"
   foreach opt [lrange $nlist 2 end] {
     if {$opt  ne ""} {append url ";$opt"}
+  }
+  # puts "-I: $url"
+  rlc open $url
+}
+
+# handle --cuff
+if { $opts(cuff) } {
+  set nlist [split $opts(cuff_) ","]
+  set path [lindex $nlist 0]
+  set url "cuff:$path"
+  set delim "?"
+  foreach opt [lrange $nlist 1 end] {
+    if {$opt  ne ""} {append url "$delim$opt"}
+    set delim ";"
   }
   # puts "-I: $url"
   rlc open $url

@@ -1,4 +1,4 @@
-# $Id: Makefile 405 2011-08-14 08:16:28Z mueller $
+# $Id: Makefile 444 2011-12-25 10:04:58Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -7,7 +7,9 @@
 # 2007-11-26    98   1.1    use make includes
 # 2007-06-03    48   1.0    Initial version
 #
-EXE_all = tb_serport_uart_rx tb_serport_uart_rxtx tb_serport_autobaud
+EXE_all  = tb_serport_uart_rx 
+EXE_all += tb_serport_uart_rxtx 
+EXE_all += tb_serport_autobaud
 #
 .PHONY : all all_ssim all_tsim clean
 #

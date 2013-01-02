@@ -1,4 +1,4 @@
--- $Id: sys_tst_serloop2_n2.vhd 441 2011-12-20 17:01:16Z mueller $
+-- $Id: sys_tst_serloop2_n2.vhd 444 2011-12-25 10:04:58Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -37,6 +37,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2011-12-23   444   1.1    remove clksys output hack
 -- 2011-12-09   437   1.0.4  rename serport stat->moni port
 -- 2011-11-26   433   1.0.3  use nx_cram_dummy now
 -- 2011-11-23   432   1.0.2  update O_FLA_CE_N usage
@@ -65,7 +66,6 @@ entity sys_tst_serloop2_n2 is            -- top level
                                         -- implements nexys2_fusp_aif
   port (
     I_CLK50 : in slbit;                 -- 50 MHz clock
-    O_CLKSYS : out slbit;               -- DCM derived system clock
     I_RXD : in slbit;                   -- receive data (board view)
     O_TXD : out slbit;                  -- transmit data (board view)
     I_SWI : in slv8;                    -- n2 switches
@@ -137,8 +137,6 @@ begin
       CLKFX   => CLK,
       LOCKED  => open
     );
-
-  O_CLKSYS <= '0';
 
   CLKDIV_U : clkdivce
     generic map (

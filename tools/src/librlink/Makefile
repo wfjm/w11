@@ -1,4 +1,4 @@
-# $Id: Makefile 403 2011-08-06 17:36:22Z mueller $
+# $Id: Makefile 465 2012-12-27 21:29:38Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -16,7 +16,7 @@ SOMINV     = 0
 # Compile and Link search paths
 #
 INCLFLAGS  = -I${RETROBASE}/tools/src -I${BOOSTINC}
-LDLIBS     = -lboost_thread -L${RETROBASE}/tools/lib -lrtools
+LDLIBS     = -lboost_thread -lusb-1.0 -L${RETROBASE}/tools/lib -lrtools
 #
 # Object files to be included
 #
@@ -24,7 +24,8 @@ OBJ_all    = RlinkAddrMap.o \
              RlinkCommand.o RlinkCommandExpect.o RlinkCommandList.o \
 	     RlinkConnect.o \
 	     RlinkCrc8.o RlinkPacketBuf.o \
-	     RlinkPort.o RlinkPortFactory.o RlinkPortFifo.o RlinkPortTerm.o
+	     RlinkPort.o RlinkPortFactory.o \
+	     RlinkPortFifo.o RlinkPortTerm.o RlinkPortCuff.o 
 #
 DEP_all    = $(OBJ_all:.o=.dep)
 #

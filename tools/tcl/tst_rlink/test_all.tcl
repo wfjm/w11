@@ -1,4 +1,4 @@
-# $Id: test_all.tcl 376 2011-04-17 12:24:07Z mueller $
+# $Id: test_all.tcl 469 2013-01-05 12:29:44Z mueller $
 #
 # Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2013-01-04   469   1.0.2  move rbemon tests from test_all to test_all_emon
 # 2011-04-17   376   1.0.1  add rbemon::test_rbtest_sim  (if in sum mode)
 # 2011-04-02   375   1.0    Initial version
 # 2011-03-26   373   0.1    First draft
@@ -33,12 +34,23 @@ namespace eval tst_rlink {
     incr errcnt [rbtest::test_all 0x7 0xfffc]
     incr errcnt [rbmoni::test_regs]
     incr errcnt [rbmoni::test_rbtest]
+
+    puts "tst_rlink::test_all errcnt = $errcnt --> [rutil::errcnt2txt $errcnt]"
+
+    return $errcnt
+  }
+  #
+  # Driver for emon based tst_rlink tests
+  #
+  proc test_all_emon {} {
+    #
+    set errcnt 0
     incr errcnt [rbemon::test_regs]
     if {[rlink::issim]} {
       incr errcnt [rbemon::test_rbtest_sim]
     }
 
-    puts "tst_rlink::test_all errcnt = $errcnt --> [rutil::errcnt2txt $errcnt]"
+    puts "tst_rlink::test_all_emon errcnt = $errcnt --> [rutil::errcnt2txt $errcnt]"
 
     return $errcnt
   }

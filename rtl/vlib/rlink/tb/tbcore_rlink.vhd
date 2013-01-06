@@ -1,6 +1,6 @@
--- $Id: tbcore_rlink.vhd 445 2011-12-26 21:19:26Z mueller $
+-- $Id: tbcore_rlink.vhd 469 2013-01-05 12:29:44Z mueller $
 --
--- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -23,6 +23,7 @@
 -- Tool versions:  xst 11.4, 13.1; ghdl 0.26-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2013-01-04   469   3.1.2  use 1ns wait for .sinit to allow simbus debugging
 -- 2011-12-25   445   3.1.1  add SB_ init drivers to avoid SB_VAL='U' at start
 -- 2011-12-23   444   3.1    redo clock handling, remove simclk, CLK now input
 -- 2011-11-19   427   3.0.1  now numeric_std clean
@@ -129,11 +130,11 @@ begin
             SB_ADDR <= iaddr;
             SB_DATA <= idata;
             SB_VAL  <= 'H';
-            wait for 0 ns;
+            wait for 1 ns;
             SB_VAL  <= 'L';
             SB_ADDR <= (others=>'L');
             SB_DATA <= (others=>'L');
-            wait for 0 ns;
+            wait for 1 ns;
 
           when others =>                -- bad command
             write(oline, string'("?? unknown command: "));

@@ -1,6 +1,6 @@
--- $Id: fx2_3fifoctl_ic.vhd 453 2012-01-15 17:51:18Z mueller $
+-- $Id: fx2_3fifoctl_ic.vhd 472 2013-01-06 14:39:10Z mueller $
 --
--- Copyright 2012- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2012-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -27,10 +27,12 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2012-01-15   453  13.3   O76x xc3s1200e-4  157  265   96  243 s  7.7/7.4
 -- 2012-01-15   453  13.3   O76x xc3s1200e-4  156  259   96  238 s  7.9/7.5
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2013-01-04   469   1.1    BUGFIX: redo rx logic, now properly pipelined
 -- 2012-01-09   453   1.0    Initial version (derived from 2fifo_ic)
 --
 ------------------------------------------------------------------------------
@@ -98,7 +100,7 @@ architecture syn of fx2_3fifoctl_ic is
     s_rxprep1,                          -- s_rxprep1: fifo addr setup
     s_rxprep2,                          -- s_rxprep2: wait for flags
     s_rxdisp,                           -- s_rxdisp: read, dispatch
-    s_rxpipe,                           -- s_rxpipe: read, pipe drain
+    s_rxpipe,                           -- s_rxpipe: read, pipe wait
     s_txprep0,                          -- s_txprep0: switch to tx-fifo
     s_txprep1,                          -- s_txprep1: fifo addr setup
     s_txprep2,                          -- s_txprep2: wait for flags
@@ -115,7 +117,8 @@ architecture syn of fx2_3fifoctl_ic is
     pe2tocnt : slv(PETOWIDTH-1 downto 0); -- pktend 2 time out counter
     pepend : slbit;                     -- pktend 1 pending
     pe2pend : slbit;                    -- pktend 2 pending
-    rxpipe : slbit;                     -- read transaction in flight
+    rxpipe1 : slbit;                    -- read pipe 1: iob capture stage
+    rxpipe2 : slbit;                    -- read pipe 2: fifo write stage
     ccnt : slv(CCWIDTH-1 downto 0);     -- chunk counter
     moni_ep4_sel : slbit;               -- ep4 (rx) select
     moni_ep6_sel : slbit;               -- ep6 (tx) select
@@ -132,7 +135,8 @@ architecture syn of fx2_3fifoctl_ic is
     s_idle,                             -- state
     petocnt_init,                       -- petocnt
     petocnt_init,                       -- pe2tocnt
-    '0','0','0',                        -- pepend,pe2pend,rxpipe
+    '0','0',                            -- pepend,pe2pend
+    '0','0',                            -- rxpipe1, rxpipe2
     ccnt_init,                          -- ccnt
     '0','0','0',                        -- moni_ep(4|6|8)_sel
     '0','0','0'                         -- moni_ep(4|6|8)_pf
@@ -355,8 +359,6 @@ begin
     variable idata_oe  : slbit := '0';
     variable idata_do  : slv8 := (others=>'0');
 
-    variable imoni  : fx2ctl_moni_type := fx2ctl_moni_init;
-
     variable slrxok  : slbit := '0';
     variable sltxok  : slbit := '0';
     variable sltx2ok : slbit := '0';
@@ -388,8 +390,6 @@ begin
     idata_oe  := '0';
     idata_do  := TXFIFO_DO;
 
-    imoni := fx2ctl_moni_init;
-    
     slrxok  := FX2_FLAG_N(c_flag_rx_ef);  -- empty flag is act.low!
     sltxok  := FX2_FLAG_N(c_flag_tx_ff);  --  full flag is act.low!
     sltx2ok := FX2_FLAG_N(c_flag_tx2_ff); --  full flag is act.low!
@@ -402,6 +402,8 @@ begin
     else
       cc_done := '0';
     end if;
+    
+    n.rxpipe1  := '0';
 
     case r.state is
       when s_idle =>                    -- s_idle:
@@ -434,42 +436,44 @@ begin
 
       when s_rxdisp =>                  -- s_rxdisp: read, dispatch
         isloe := '1';
-        if r.rxpipe = '1' then            -- read in flight ?
-          irxfifo_ena := '1';               -- capture rxdata
-          n.rxpipe := '0';
-        end if;
-
         -- if chunk done and tx or pe pending and possible
         if cc_done='1' and sltxok='1' and (TXFIFO_VAL='1' or r.pepend='1') then
-          n.state := s_txprep0;
+          if r.rxpipe1='1' or r.rxpipe2='1' then -- rx pipe busy ?
+            n.state := s_rxdisp;            -- wait
+          else
+            n.state := s_txprep0;           -- otherwise switch to tx flow
+          end if;
         -- if chunk done and tx2 or pe2 pending and possible
         elsif cc_done='1' and sltx2ok='1' and (TX2FIFO_VAL='1' or r.pe2pend='1')
         then
-          n.state := s_tx2prep0;
+          if r.rxpipe1='1' or r.rxpipe2='1' then -- rx pipe busy ?
+            n.state := s_rxdisp;            -- wait
+          else
+            n.state := s_tx2prep0;
+          end if;
         -- if more rx to do and possible
-        elsif slrxok='1' and RXFIFO_BUSY='0' then
-          cc_cnt := '1';
-          idata_cei := '1';
+        elsif slrxok='1' and unsigned(RXSIZE_FX2)>3 then  -- !thres must be >3!
           islrd := '1';
-          if false and pipeok='1' and unsigned(RXSIZE_FX2)>2 then
-            n.rxpipe := '1';
-            n.state := s_rxdisp;
+          cc_cnt := '1';
+          n.rxpipe1 := '1';
+          if pipeok='1' then
+            n.state := s_rxdisp;             -- 1 cycle read
+            --n.state := s_rxprep2;            -- 2 cycle read
           else
             n.state := s_rxpipe;
-          end if;          
+          end if;
         -- otherwise back to idle
         else
-          n.state  := s_idle;
+          if r.rxpipe1='1' or r.rxpipe2='1' then -- rx pipe busy ?
+            n.state := s_rxdisp;            -- wait
+          else
+            n.state := s_idle;              -- to idle
+          end if;
         end if;
 
-      when s_rxpipe =>                  -- s_rxpipe:  read, pipe drain
+      when s_rxpipe =>                  -- s_rxpipe:  read, pipe wait
         isloe := '1';
-        irxfifo_ena := '1';               -- capture rxdata
-        if pipeok='1' and unsigned(RXSIZE_FX2)>1 then
-          n.state := s_rxdisp;
-        else
-          n.state := s_rxprep2;
-        end if;
+        n.state := s_rxprep2;
 
       when s_txprep0 =>                 -- s_txprep0: switch to tx-fifo
         ififo_ce := '1';
@@ -562,6 +566,11 @@ begin
       when others => null;
     end case;
 
+    -- rx pipe handling
+    idata_cei   := r.rxpipe1;
+    n.rxpipe2   := r.rxpipe1;
+    irxfifo_ena := r.rxpipe2;
+    
     -- chunk counter handling
     if cc_clr = '1' then
       n.ccnt := (others=>'1');

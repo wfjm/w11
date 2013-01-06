@@ -1,7 +1,8 @@
-# $Id: generic_xflow_cpld.mk 405 2011-08-14 08:16:28Z mueller $
+# $Id: generic_xflow_cpld.mk 470 2013-01-05 17:28:46Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2013-01-05   470   1.1.1  remove '-r' from all non-dir clean rm's
 # 2011-08-13   405   1.1    renamed, moved to rtl/make;
 # 2010-03-13   268   1.0    Initial version, cloned from .xflow Rev 252
 #---
@@ -116,14 +117,14 @@ XFLOW    = xflow -p ${ISE_PATH}
 .PHONY : ise_clean ise_tmp_clean
 #
 ise_clean: ise_tmp_clean
-	rm -rf *.ngc
-	rm -rf *.ncd
-	rm -rf *.jed
-	rm -rf *_xst.log
-	rm -rf *_tra.log
-	rm -rf *_fit.log
-	rm -rf *_tim.log
-	rm -rf *_pad.log
+	rm -f *.ngc
+	rm -f *.ncd
+	rm -f *.jed
+	rm -f *_xst.log
+	rm -f *_tra.log
+	rm -f *_fit.log
+	rm -f *_tim.log
+	rm -f *_pad.log
 #
 ise_tmp_clean:
 	rm -rf ./ise

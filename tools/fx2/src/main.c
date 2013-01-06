@@ -1,6 +1,6 @@
-/* $Id: main.c 447 2011-12-31 19:41:32Z mueller $ */
+/* $Id: main.c 472 2013-01-06 14:39:10Z mueller $ */
 /*
- * Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+ * Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
  * Code was forked from ixo-jtag.svn.sourceforge.net on 2011-07-17
  *
  * - original copyright and licence disclaimer --------------------------------
@@ -25,6 +25,7 @@
  * Revision History:
  * 
  * Date         Rev Version  Comment
+ * 2013-01-05   472   1.1.1  BUGFIX: explicitly set FIFOPINPOLAR=0
  * 2011-07-23   397   1.1    factor out usb_fifo_init() code
  * 2011-07-17   394   1.0    Initial version (from ixo-jtag/usb_jtag Rev 204)
  *
@@ -349,6 +350,12 @@ extern void usb_fifo_init(void);
 void main(void)
 {
   EA = 0; // disable all interrupts
+ 
+  // Digilent nexys3 and atlys boards change FIFOPINPOLAR such that
+  // EE and FF are active high. In nexys2 boards they are active low
+  // All config regs should be set (even when power on defaults are
+  // use, but this one especially....
+  FIFOPINPOLAR = 0;
 
   usb_jtag_init();
   usb_fifo_init();

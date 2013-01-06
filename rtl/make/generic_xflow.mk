@@ -1,7 +1,8 @@
-# $Id: generic_xflow.mk 456 2012-02-05 22:19:44Z mueller $
+# $Id: generic_xflow.mk 470 2013-01-05 17:28:46Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2013-01-05   470   1.7.6  remove '-r' from all non-dir clean rm's
 # 2012-02-05   456   1.7.5  use vbomvonv --get_top for xflow calls
 # 2012-01-08   451   1.7.4  use xilinx_ghdl_sdf_filter
 # 2012-01-04   450   1.7.3  display isemsg_filter for ncd and bit targets too
@@ -300,25 +301,25 @@ endif
 .PHONY : ise_clean ise_tmp_clean
 #
 ise_clean: ise_tmp_clean
-	rm -rf *.ngc
-	rm -rf *.ncd
-	rm -rf *.pcf
-	rm -rf *.bit
-	rm -rf *.msk
-	rm -rf *.svf
-	rm -rf *_[sft]sim.vhd
-	rm -rf *_tsim.sdf
-	rm -rf *_tsim.sdf_ghdl
-	rm -rf *_xst.log
-	rm -rf *_tra.log
-	rm -rf *_map.log
-	rm -rf *_par.log
-	rm -rf *_pad.log
-	rm -rf *_twr.log
-	rm -rf *_bgn.log
-	rm -rf *_ngn_[sft]sim.log
-	rm -rf *_svn.log
-	rm -rf *_sum.log
+	rm -f *.ngc
+	rm -f *.ncd
+	rm -f *.pcf
+	rm -f *.bit
+	rm -f *.msk
+	rm -f *.svf
+	rm -f *_[sft]sim.vhd
+	rm -f *_tsim.sdf
+	rm -f *_tsim.sdf_ghdl
+	rm -f *_xst.log
+	rm -f *_tra.log
+	rm -f *_map.log
+	rm -f *_par.log
+	rm -f *_pad.log
+	rm -f *_twr.log
+	rm -f *_bgn.log
+	rm -f *_ngn_[sft]sim.log
+	rm -f *_svn.log
+	rm -f *_sum.log
 #
 ise_tmp_clean:
 	rm -rf ./ise

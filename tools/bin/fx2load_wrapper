@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: fx2load_wrapper 457 2012-02-12 22:34:20Z mueller $
+# $Id: fx2load_wrapper 470 2013-01-05 17:28:46Z mueller $
 #
-# Copyright 2011-2012 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -206,6 +206,7 @@ sub print_help {
   print "usage: fx2load_wrapper [--board=b] [--file=f] <opts>\n";
   print "  --help           this message\n";
   print "  --dry_run        print command only\n";
+  print "  --force          reload even when proper firmware detected\n";
   print "  --cycfx2prog     use cycfx2prog instead of fxload\n";
   print "  --board=b        type of board (default nexys2)\n";
   print "  --file=f         ihx file to load (default 2fifo_as)\n";

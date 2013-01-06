@@ -1,6 +1,6 @@
-// $Id: RlinkPacketBuf.cpp 375 2011-04-02 07:56:47Z mueller $
+// $Id: RlinkPacketBuf.cpp 469 2013-01-05 12:29:44Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-01-04   469   1.0.1  SndOob(): Add filler 0 to ensure escape state
 // 2011-04-02   375   1.0    Initial version
 // 2011-03-05   366   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RlinkPacketBuf.cpp 375 2011-04-02 07:56:47Z mueller $
+  \version $Id: RlinkPacketBuf.cpp 469 2013-01-05 12:29:44Z mueller $
   \brief   Implemenation of class RlinkPacketBuf.
  */
 
@@ -271,6 +272,9 @@ bool RlinkPacketBuf::SndOob(RlinkPort* port, uint16_t addr, uint16_t data,
   fRawBuf.push_back((uint8_t)addr);                 // ADDR 
   fRawBuf.push_back((uint8_t)(data & 0x00ff));      // DL
   fRawBuf.push_back((uint8_t)((data>>8) & 0x00ff)); // DH
+  // write a filler char (just 0) to ensure that the 8b->9b stage in the
+  // receiver (byte2cdata) is always out if the escape state...
+  fRawBuf.push_back(0);                             // filler
 
   return SndRaw(port, emsg);
 }

@@ -1,4 +1,4 @@
-# $Id: Makefile 466 2012-12-30 13:26:55Z mueller $
+# $Id: Makefile 472 2013-01-06 14:39:10Z mueller $
 #
 # 'Meta Makefile' for whole retro project
 #   allows to make all synthesis targets
@@ -19,6 +19,9 @@ SYN_all += rtl/sys_gen/tst_rlink/nexys2
 SYN_all += rtl/sys_gen/tst_rlink/nexys3
 SYN_all += rtl/sys_gen/tst_rlink/s3board
 SYN_all += rtl/sys_gen/tst_rlink_cuff/nexys2/ic
+SYN_all += rtl/sys_gen/tst_rlink_cuff/nexys2/ic3
+SYN_all += rtl/sys_gen/tst_rlink_cuff/nexys3/ic
+SYN_all += rtl/sys_gen/tst_rlink_cuff/atlys/ic
 SYN_all += rtl/sys_gen/tst_serloop/nexys2
 SYN_all += rtl/sys_gen/tst_serloop/nexys3
 SYN_all += rtl/sys_gen/tst_serloop/s3board
@@ -34,6 +37,7 @@ SIM_all += rtl/bplib/nxcramlib/tb
 SIM_all += rtl/sys_gen/tst_rlink/nexys2/tb
 SIM_all += rtl/sys_gen/tst_rlink/nexys3/tb
 SIM_all += rtl/sys_gen/tst_rlink/s3board/tb
+SIM_all += rtl/sys_gen/tst_rlink_cuff/nexys2/ic/tb
 SIM_all += rtl/sys_gen/tst_serloop/nexys2/tb
 SIM_all += rtl/sys_gen/tst_serloop/nexys3/tb
 SIM_all += rtl/sys_gen/tst_serloop/s3board/tb

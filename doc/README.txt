@@ -1,4 +1,4 @@
-# $Id: README.txt 467 2013-01-02 19:49:05Z mueller $
+# $Id: README.txt 472 2013-01-06 14:39:10Z mueller $
 
 Release notes for w11a
 
@@ -40,7 +40,7 @@ Release notes for w11a
    rtl/sys_gen/tst_rlink          - top level designs for an rlink tester
      nexys2,nexys3,s3board          - systems for Nexsy2,Nexsy3,S3BOARD
    rtl/sys_gen/tst_rlink_cuff     - top level designs for rlink over FX2 tester
-     nexys2                         - systems for Nexsy2
+     nexys2,nexys3,atlys            - systems for Atlys,Nexsy2,Nexsy3
    rtl/sys_gen/tst_serloop        - top level designs for serport loop tester
      nexys2,nexys3,s3board          - systems for Nexsy2,Nexsy3,S3BOARD
    rtl/sys_gen/tst_snhumanio      - top level designs for human I/O tester
@@ -75,6 +75,26 @@ Release notes for w11a
 
 3. Change Log ----------------------------------------------------------------
 
+- trunk (2013-01-06: svn rev 18(oc) 472(wfjm); untagged w11a_V0.561) +++++++++
+
+  - Summary
+    - Added simple simulation model of Cypress FX2 and test benches for
+      functional verifcation of FX2 controller
+    - Bugfixes in FX2 firmware and controller, works now also on Nexys3 & Atlys
+    - Added test systems for rlink over USB verification for Nexys3 & Atlys
+
+  - New features
+    - new test benches
+      - rtl/sys_gen/tst_rlink_cuff/nexys2/ic/tb/tb_tst_rlink_cuff_ic_n2
+    - new systems
+      - rtl/sys_gen/tst_rlink_cuff/nexys2/ic/sys_tst_rlink_cuff_ic_n3
+      - rtl/sys_gen/tst_rlink_cuff/nexys2/ic/sys_tst_rlink_cuff_ic_atlys
+
+  - Bug fixes
+    - tools/fx2/src: FX2 firmware now properly re-initializes hardware registers
+        and will work on Nexys3 and Atlys boards with default Digilent EPROM
+    - rtl/bplib/fx2lib: read pipeline logic in FX2 controller corrected
+
 - trunk (2013-01-02: svn rev 17(oc) 467(wfjm); untagged w11a_V0.56) ++++++++++
 
   - Summary
@@ -89,7 +109,7 @@ Release notes for w11a
             in the file README_USB-VID-PID.txt. You'll be responsible for any
             misuse of the defaults provided with the project sources !!
 
-  - New refernce system
+  - New reference system
     The development and test system was upgraded from Kubuntu 10.04 to 12.04.
     The version of several key tools and libraries changed:
        linux kernel    3.2.0    (was  2.6.32)

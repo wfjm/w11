@@ -1,6 +1,6 @@
-# $Id: perf.tcl 465 2012-12-27 21:29:38Z mueller $
+# $Id: perf.tcl 469 2013-01-05 12:29:44Z mueller $
 #
-# Copyright 2011-2012 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,7 +13,8 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
-# 2012-12-27   495   1.0.1  adopt format, cover small ms and large kb 
+# 2013-01-04   469   1.0.2  perf_blk: add optional 2nd arg: trace
+# 2012-12-27   465   1.0.1  adopt format, cover small ms and large kb 
 # 2011-04-17   376   1.0    Initial version
 #
 
@@ -23,7 +24,7 @@ namespace eval rbbram {
   #
   # perf_blk: determine wblk/rblk write performance
   # 
-  proc perf_blk {{tmax 1000}} {
+  proc perf_blk {{tmax 1000} {trace 0}} {
     if {$tmax < 1} { error "-E: perf_blk: tmax argument must be >= 1" }
 
     set amax [regget rbbram::CNTL(addr) -1]
@@ -47,6 +48,7 @@ namespace eval rbbram {
       set pval {}
 
       # single wblk
+      if {$trace} { puts "1 wblk for $nblk" }
       set tbeg [clock clicks -milliseconds]
       set addr 0x0000
       for {set i 1} {1} {incr i} {
@@ -60,6 +62,7 @@ namespace eval rbbram {
       lappend pval 1 $i $trun
 
       # double wblk
+      if {$trace} { puts "2 wblk for $nblk" }
       set tbeg [clock clicks -milliseconds]
       set addr 0x0000
       for {set i 1} {1} {incr i} {
@@ -74,6 +77,7 @@ namespace eval rbbram {
       lappend pval 2 $i $trun
 
       # quad wblk
+      if {$trace} { puts "4 wblk for $nblk" }
       set tbeg [clock clicks -milliseconds]
       set addr 0x0000
       for {set i 1} {1} {incr i} {
@@ -90,6 +94,7 @@ namespace eval rbbram {
       lappend pval 4 $i $trun
 
       # single rblk
+      if {$trace} { puts "1 rblk for $nblk" }
       set tbeg [clock clicks -milliseconds]
       set addr 0x0000
       for {set i 1} {1} {incr i} {
@@ -103,6 +108,7 @@ namespace eval rbbram {
       lappend pval 1 $i $trun
 
       # double rblk
+      if {$trace} { puts "2 rblk for $nblk" }
       set tbeg [clock clicks -milliseconds]
       set addr 0x0000
       for {set i 1} {1} {incr i} {
@@ -117,6 +123,7 @@ namespace eval rbbram {
       lappend pval 2 $i $trun
 
       # quad rblk
+      if {$trace} { puts "4 rblk for $nblk" }
       set tbeg [clock clicks -milliseconds]
       set addr 0x0000
       for {set i 1} {1} {incr i} {

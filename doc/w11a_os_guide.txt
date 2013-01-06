@@ -1,4 +1,4 @@
-# $Id: w11a_os_guide.txt 442 2011-12-23 10:03:28Z mueller $
+# $Id: w11a_os_guide.txt 469 2013-01-05 12:29:44Z mueller $
 
 Guide to run operating system images on w11a systems
 
@@ -52,7 +52,7 @@ Guide to run operating system images on w11a systems
 3. Unix V5 system ---------------------------------------------------------
 
    - A disk set is available from
-       http://www-linux.gsi.de/~mueller/retro/oc_w11/data/unix_v5_rkset.tgz
+       http://www.retro11.de/data/oc_w11/unix_v5_rkset.tgz
      Download, unpack and copy the disk images (*.dsk) to
        $RETROBASE/rtl/sys_gen/w11a/tb
 
@@ -97,7 +97,7 @@ Guide to run operating system images on w11a systems
 
 4. 2.11BSD system ---------------------------------------------------------
    - A disk set is available from
-       http://www-linux.gsi.de/~mueller/retro/oc_w11/data/211bsd_rkset.tgz
+       http://www.retro11.de/data/oc_w11/211bsd_rkset.tgz
      Download, unpack and copy the disk images (*.dsk) to
        $RETROBASE/rtl/sys_gen/w11a/tb
 

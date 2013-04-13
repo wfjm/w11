@@ -1,4 +1,4 @@
-// $Id: RiosState.hpp 357 2011-01-31 08:00:13Z mueller $
+// $Id: RiosState.hpp 486 2013-02-10 22:34:43Z mueller $
 //
 // Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: RiosState.hpp 357 2011-01-31 08:00:13Z mueller $
+  \version $Id: RiosState.hpp 486 2013-02-10 22:34:43Z mueller $
   \brief   Declaration of class RiosState.
 */
 
@@ -57,8 +57,6 @@ namespace Retro {
   
 } // end namespace Retro
 
-#if !(defined(Retro_NoInline) || defined(Retro_RiosState_NoInline))
 #include "RiosState.ipp"
-#endif
 
 #endif

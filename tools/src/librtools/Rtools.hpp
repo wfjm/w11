@@ -1,6 +1,6 @@
-// $Id: Rtools.hpp 403 2011-08-06 17:36:22Z mueller $
+// $Id: Rtools.hpp 486 2013-02-10 22:34:43Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-02-13   481   1.0.2  remove ThrowLogic(), ThrowRuntime()
 // 2011-04-10   376   1.0.1  add ThrowLogic(), ThrowRuntime()
 // 2011-03-12   368   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rtools.hpp 403 2011-08-06 17:36:22Z mueller $
+  \version $Id: Rtools.hpp 486 2013-02-10 22:34:43Z mueller $
   \brief   Declaration of class Rtools .
 */
 
@@ -34,22 +35,15 @@ namespace Retro {
   struct RflagName {
     uint32_t      mask;
     const char*   name;
-  };
-  
+  };  
 
   namespace Rtools {
     std::string     Flags2String(uint32_t flags, const RflagName* fnam, 
                                  char delim='|');
-    void            ThrowLogic(const std::string& meth, 
-                               const std::string& text, int errnum=0);
-    void            ThrowRuntime(const std::string& meth, 
-                                 const std::string& text, int errnum=0);
   };
 
 } // end namespace Retro
 
-#if !(defined(Retro_NoInline) || defined(Retro_Rtools_NoInline))
 //#include "Rtools.ipp"
-#endif
 
 #endif

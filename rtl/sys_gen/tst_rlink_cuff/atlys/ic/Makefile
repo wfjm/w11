@@ -1,4 +1,4 @@
-# $Id: Makefile 472 2013-01-06 14:39:10Z mueller $
+# $Id: Makefile 477 2013-01-27 14:07:10Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -8,12 +8,8 @@
 VBOM_all  = $(wildcard *.vbom)
 BIT_all   = $(VBOM_all:.vbom=.bit)
 #
-ISE_BOARD = atlys
-ISE_PATH  = xc6slx45-csg324-2
+include $(RETROBASE)/rtl/make/xflow_default_atlys.mk
 FX2_FILE  = nexys3_jtag_2fifo_ic.ihx
-#
-XFLOWOPT_SYN = syn_s6_speed.opt
-XFLOWOPT_IMP = imp_s6_speed.opt
 #
 .PHONY : all clean
 #
@@ -27,6 +23,8 @@ clean : ise_clean
 include $(RETROBASE)/rtl/make/generic_xflow.mk
 include $(RETROBASE)/rtl/make/generic_ghdl.mk
 #
+ifndef DONTINCDEP
 include $(VBOM_all:.vbom=.dep_xst)
 include $(VBOM_all:.vbom=.dep_ghdl)
+endif
 #

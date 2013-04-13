@@ -1,6 +1,6 @@
-// $Id: RlinkCommandList.cpp 380 2011-04-25 18:14:52Z mueller $
+// $Id: RlinkCommandList.cpp 495 2013-03-06 17:13:48Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-06   495   1.0.3  add RlinkContext to Print() args
+// 2013-02-03   481   1.0.2  use Rexception
 // 2011-04-25   380   1.0.1  use boost/foreach
 // 2011-03-05   366   1.0    Initial version
 // 2011-01-15   355   0.1    First draft
@@ -20,28 +22,30 @@
 
 /*!
   \file
-  \version $Id: RlinkCommandList.cpp 380 2011-04-25 18:14:52Z mueller $
+  \version $Id: RlinkCommandList.cpp 495 2013-03-06 17:13:48Z mueller $
   \brief   Implemenation of class RlinkCommandList.
  */
 
 #include <string>
-#include <stdexcept>
 
 #include "boost/foreach.hpp"
-#define foreach BOOST_FOREACH
+#define foreach_ BOOST_FOREACH
 
 #include "RlinkCommandList.hpp"
 
 #include "librtools/RosPrintf.hpp"
 #include "librtools/RosFill.hpp"
+#include "librtools/Rexception.hpp"
 
 using namespace std;
-using namespace Retro;
 
 /*!
   \class Retro::RlinkCommandList
   \brief FIXME_docs
 */
+
+// all method definitions in namespace Retro
+namespace Retro {
 
 //------------------------------------------+-----------------------------------
 //! Default constructor
@@ -66,7 +70,7 @@ RlinkCommandList::RlinkCommandList(const RlinkCommandList& rhs)
 
 RlinkCommandList::~RlinkCommandList()
 {
-  foreach (RlinkCommand* pcmd, fList) { delete pcmd; }
+  foreach_ (RlinkCommand* pcmd, fList) { delete pcmd; }
 }
 
 //------------------------------------------+-----------------------------------
@@ -196,7 +200,8 @@ size_t RlinkCommandList::AddInit(uint16_t addr, uint16_t data)
 void RlinkCommandList::LastVolatile()
 {
   if (fList.size() == 0)
-    throw out_of_range("RlinkCommandList::LastExpect: list empty");
+    throw Rexception("RlinkCommandList::LastVolatile()", 
+                     "Bad state: list empty");
   fList[fList.size()-1]->SetFlagBit(RlinkCommand::kFlagVol);
   return;
 }
@@ -207,7 +212,8 @@ void RlinkCommandList::LastVolatile()
 void RlinkCommandList::LastExpect(RlinkCommandExpect* exp)
 {
   if (fList.size() == 0)
-    throw out_of_range("RlinkCommandList::LastExpect: list empty");
+    throw Rexception("RlinkCommandList::LastExpect()",
+                     "Bad state: list empty");
   fList[fList.size()-1]->SetExpect(exp);
   return;
 }
@@ -225,11 +231,12 @@ void RlinkCommandList::Clear()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RlinkCommandList::Print(std::ostream& os, const RlinkAddrMap* pamap, 
-                             size_t abase, size_t dbase, size_t sbase) const
+void RlinkCommandList::Print(std::ostream& os, const RlinkContext& cntx,
+                             const RlinkAddrMap* pamap, size_t abase, 
+                             size_t dbase, size_t sbase) const
 {
-  foreach (RlinkCommand* pcmd, fList) {
-    pcmd->Print(os, pamap, abase, dbase, sbase);
+  foreach_ (RlinkCommand* pcmd, fList) {
+    pcmd->Print(os, cntx, pamap, abase, dbase, sbase);
   }
   return;
 }
@@ -259,7 +266,7 @@ RlinkCommandList&
 {
   if (&rhs == this) return *this;
   
-  foreach (RlinkCommand* pcmd, fList) { delete pcmd; }
+  foreach_ (RlinkCommand* pcmd, fList) { delete pcmd; }
   fList.clear();
   for (size_t i=0; i<rhs.Size(); i++) AddCommand(rhs[i]);
   return *this;
@@ -281,9 +288,4 @@ const Retro::RlinkCommand& Retro::RlinkCommandList::operator[](size_t ind) const
   return *fList.at(ind);
 }
 
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_RlinkCommandList_NoInline))
-#define inline
-#include "RlinkCommandList.ipp"
-#undef  inline
-#endif
+} // end namespace Retro

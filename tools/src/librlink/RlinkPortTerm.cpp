@@ -1,6 +1,6 @@
-// $Id: RlinkPortTerm.cpp 466 2012-12-30 13:26:55Z mueller $
+// $Id: RlinkPortTerm.cpp 494 2013-03-03 21:50:07Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-02-23   492   1.1    use RparseUrl
 // 2011-12-18   440   1.0.4  add kStatNPort stats; Open(): autoadd /dev/tty,
 //                           BUGFIX: Open(): set VSTART, VSTOP
 // 2011-12-11   438   1.0.3  Read(),Write(): added for xon handling, tcdrain();
@@ -24,7 +25,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPortTerm.cpp 466 2012-12-30 13:26:55Z mueller $
+  \version $Id: RlinkPortTerm.cpp 494 2013-03-03 21:50:07Z mueller $
   \brief   Implemenation of RlinkPortTerm.
 */
 
@@ -41,12 +42,14 @@
 #include "librtools/RosPrintf.hpp"
 
 using namespace std;
-using namespace Retro;
 
 /*!
   \class Retro::RlinkPortTerm
-  \brief FIXME_text
+  \brief FIXME_docs
 */
+
+// all method definitions in namespace Retro
+namespace Retro {
 
 //------------------------------------------+-----------------------------------
 // constants definitions
@@ -69,28 +72,26 @@ RlinkPortTerm::RlinkPortTerm()
 
 RlinkPortTerm::~RlinkPortTerm()
 {
-  if (IsOpen()) RlinkPortTerm::Close();
+  RlinkPortTerm::Close();
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
 {
-  if (IsOpen()) Close();
+  Close();
 
-  if (!ParseUrl(url, "|baud=|break|cts|xon", emsg)) return false;
+  if (!fUrl.Set(url, "|baud=|break|cts|xon|", emsg)) return false;
 
   // if path doesn't start with a '/' prepend a '/dev/tty'
-  if (fPath.substr(0,1) != "/") {
-    string dev = fPath;
-    fPath  = "/dev/tty";
-    fPath += dev;
+  if (fUrl.Path().substr(0,1) != "/") {
+    fUrl.SetPath(string("/dev/tty" + fUrl.Path()));
   }
 
   speed_t speed = B115200;
   string baud;
-  if (UrlFindOpt("baud", baud)) {
+  if (fUrl.FindOpt("baud", baud)) {
     speed = B0;
     if (baud=="2400")                     speed = B2400;
     if (baud=="4800")                     speed = B4800;
@@ -113,39 +114,40 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
     if (baud=="4000000" || baud=="4000k" || baud=="4M") speed = B4000000;
     if (speed == B0) {
       emsg.Init("RlinkPortTerm::Open()", 
-                string("invalid baud rate \"") + baud + string("\" specified"));
+                string("invalid baud rate '") + baud + string("' specified"));
       return false;
     }
   }
 
   int fd;
 
-  fd = open(fPath.c_str(), O_RDWR|O_NOCTTY);
+  fd = open(fUrl.Path().c_str(), O_RDWR|O_NOCTTY);
   if (fd < 0) {
     emsg.InitErrno("RlinkPortTerm::Open()", 
-                   string("open() for \"") + fPath + string("\" failed: "),
+                   string("open() for '") + fUrl.Path() + string("' failed: "),
                    errno);
     return false;
   }
 
   if (!isatty(fd)) {
     emsg.Init("RlinkPortTerm::Open()", 
-              string("isatty() check for \"") + fPath + 
-              string("\" failed: not a TTY"));
+              string("isatty() check for '") + fUrl.Path() + 
+              string("' failed: not a TTY"));
     close(fd);
     return false;
   }
 
   if (tcgetattr(fd, &fTiosOld) != 0) {
     emsg.InitErrno("RlinkPortTerm::Open()", 
-                   string("tcgetattr() for \"") + fPath + string("\" failed: "),
+                   string("tcgetattr() for '") + fUrl.Path() + 
+                   string("' failed: "),
                    errno);
     close(fd);
     return false;
   }
 
-  bool use_cts = UrlFindOpt("cts");
-  bool use_xon = UrlFindOpt("xon");
+  bool use_cts = fUrl.FindOpt("cts");
+  bool use_xon = fUrl.FindOpt("xon");
   fUseXon = use_xon;
   fPendXesc = false;
 
@@ -172,7 +174,7 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
 
   if (cfsetspeed(&fTiosNew, speed) != 0) {
     emsg.InitErrno("RlinkPortTerm::Open()", 
-                   string("cfsetspeed() for \"") + baud + string("\" failed: "),
+                   string("cfsetspeed() for '") + baud + string("' failed: "),
                    errno);
     close(fd);
     return false;
@@ -196,7 +198,8 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
 
   if (tcsetattr(fd, TCSANOW, &fTiosNew) != 0) {
     emsg.InitErrno("RlinkPortTerm::Open()", 
-                   string("tcsetattr() for \"") + fPath + string("\" failed: "),
+                   string("tcsetattr() for '") + fUrl.Path() + 
+                   string("' failed: "),
                    errno);
     close(fd);
     return false;
@@ -209,8 +212,8 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
   struct termios tios;
   if (tcgetattr(fd, &tios) != 0) {
     emsg.InitErrno("RlinkPortTerm::Open()", 
-                   string("2nd tcgetattr() for \"") + fPath + 
-                     string("\" failed: "), 
+                   string("2nd tcgetattr() for '") + fUrl.Path() + 
+                   string("' failed: "), 
                    errno);
     close(fd);
     return false;
@@ -239,11 +242,11 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
   fFdRead  = fd;
   fIsOpen  = true;
 
-  if (UrlFindOpt("break")) {
+  if (fUrl.FindOpt("break")) {
     if (tcsendbreak(fd, 0) != 0) {
       emsg.InitErrno("RlinkPortTerm::Open()", 
-                     string("tcsendbreak() for \"") + fPath + 
-                     string("\" failed: "), errno);
+                     string("tcsendbreak() for '") + fUrl.Path() + 
+                     string("' failed: "), errno);
       Close();
       return false;
     }
@@ -259,7 +262,7 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 void RlinkPortTerm::Close()
 {
@@ -347,7 +350,7 @@ int RlinkPortTerm::Write(const uint8_t* buf, size_t size, RerrMsg& emsg)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 void RlinkPortTerm::Dump(std::ostream& os, int ind, const char* text) const
 {
@@ -355,13 +358,12 @@ void RlinkPortTerm::Dump(std::ostream& os, int ind, const char* text) const
   os << bl << (text?text:"--") << "RlinkPortTerm @ " << this << endl;
   DumpTios(os, ind, "fTiosOld", fTiosOld);
   DumpTios(os, ind, "fTiosNew", fTiosNew);
-  RlinkPort::Dump(os, ind+2, "");
+  RlinkPort::Dump(os, ind, " ^");
   return;
-}
-  
+} 
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 void RlinkPortTerm::DumpTios(std::ostream& os, int ind, const std::string& name,
                              const struct termios& tios) const
@@ -449,9 +451,4 @@ void RlinkPortTerm::DumpTios(std::ostream& os, int ind, const std::string& name,
   return;
 }
 
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_RlinkPortTerm_NoInline))
-#define inline
-//#include "RlinkPortTerm.ipp"
-#undef  inline
-#endif
+} // end namespace Retro

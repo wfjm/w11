@@ -1,6 +1,6 @@
-// $Id: RlinkCommand.ipp 375 2011-04-02 07:56:47Z mueller $
+// $Id: RlinkCommand.ipp 495 2013-03-06 17:13:48Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,21 +13,22 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-06   495   1.0.1  add RlinkContext to Print() args; drop oper<<()
 // 2011-03-27   374   1.0    Initial version
 // 2011-01-15   355   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RlinkCommand.ipp 375 2011-04-02 07:56:47Z mueller $
+  \version $Id: RlinkCommand.ipp 495 2013-03-06 17:13:48Z mueller $
   \brief   Implemenation (inline) of class RlinkCommand.
 */
 
-// all method definitions in namespace Retro (avoid using in includes...)
+// all method definitions in namespace Retro
 namespace Retro {
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline void RlinkCommand::CmdRreg(uint16_t addr)
 {
@@ -36,7 +37,7 @@ inline void RlinkCommand::CmdRreg(uint16_t addr)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline void RlinkCommand::CmdWreg(uint16_t addr, uint16_t data)
 {
@@ -45,7 +46,7 @@ inline void RlinkCommand::CmdWreg(uint16_t addr, uint16_t data)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline void RlinkCommand::CmdStat()
 {
@@ -54,7 +55,7 @@ inline void RlinkCommand::CmdStat()
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline void RlinkCommand::CmdAttn()
 {
@@ -63,7 +64,7 @@ inline void RlinkCommand::CmdAttn()
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline void RlinkCommand::CmdInit(uint16_t addr, uint16_t data)
 {
@@ -72,7 +73,7 @@ inline void RlinkCommand::CmdInit(uint16_t addr, uint16_t data)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline void RlinkCommand::SetSeqNumber(uint8_t snum)
 {
@@ -81,7 +82,7 @@ inline void RlinkCommand::SetSeqNumber(uint8_t snum)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline void RlinkCommand::SetData(uint16_t data)
 {
@@ -90,7 +91,7 @@ inline void RlinkCommand::SetData(uint16_t data)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline void RlinkCommand::SetStatRequest(uint8_t ccmd)
 {
@@ -99,7 +100,7 @@ inline void RlinkCommand::SetStatRequest(uint8_t ccmd)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline void RlinkCommand::SetStatus(uint8_t stat)
 {
@@ -108,7 +109,7 @@ inline void RlinkCommand::SetStatus(uint8_t stat)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline void RlinkCommand::SetFlagBit(uint32_t mask)
 {
@@ -117,7 +118,7 @@ inline void RlinkCommand::SetFlagBit(uint32_t mask)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline void RlinkCommand::ClearFlagBit(uint32_t mask)
 {
@@ -126,7 +127,7 @@ inline void RlinkCommand::ClearFlagBit(uint32_t mask)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline void RlinkCommand::SetRcvSize(size_t rsize)
 {
@@ -135,7 +136,7 @@ inline void RlinkCommand::SetRcvSize(size_t rsize)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline uint8_t RlinkCommand::Request() const
 {
@@ -143,7 +144,7 @@ inline uint8_t RlinkCommand::Request() const
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline uint8_t RlinkCommand::Command() const
 {
@@ -151,7 +152,7 @@ inline uint8_t RlinkCommand::Command() const
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline uint8_t RlinkCommand::SeqNumber() const
 {
@@ -159,7 +160,7 @@ inline uint8_t RlinkCommand::SeqNumber() const
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline uint16_t RlinkCommand::Address() const
 {
@@ -167,7 +168,7 @@ inline uint16_t RlinkCommand::Address() const
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline uint16_t RlinkCommand::Data() const
 {
@@ -175,7 +176,7 @@ inline uint16_t RlinkCommand::Data() const
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline const std::vector<uint16_t>&  RlinkCommand::Block() const
 {
@@ -183,7 +184,7 @@ inline const std::vector<uint16_t>&  RlinkCommand::Block() const
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline bool RlinkCommand::IsBlockExt() const
 {
@@ -191,7 +192,7 @@ inline bool RlinkCommand::IsBlockExt() const
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline uint16_t* RlinkCommand::BlockPointer()
 {
@@ -199,7 +200,7 @@ inline uint16_t* RlinkCommand::BlockPointer()
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline const uint16_t* RlinkCommand::BlockPointer() const
 {
@@ -207,7 +208,7 @@ inline const uint16_t* RlinkCommand::BlockPointer() const
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline size_t RlinkCommand::BlockSize() const
 {
@@ -215,7 +216,7 @@ inline size_t RlinkCommand::BlockSize() const
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline uint8_t RlinkCommand::StatRequest() const
 {
@@ -223,7 +224,7 @@ inline uint8_t RlinkCommand::StatRequest() const
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline uint8_t RlinkCommand::Status() const
 {
@@ -231,7 +232,7 @@ inline uint8_t RlinkCommand::Status() const
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline uint32_t RlinkCommand::Flags() const
 {
@@ -239,7 +240,7 @@ inline uint32_t RlinkCommand::Flags() const
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline bool RlinkCommand::TestFlagAny(uint32_t mask) const
 {
@@ -247,7 +248,7 @@ inline bool RlinkCommand::TestFlagAny(uint32_t mask) const
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline bool RlinkCommand::TestFlagAll(uint32_t mask) const
 {
@@ -255,7 +256,7 @@ inline bool RlinkCommand::TestFlagAll(uint32_t mask) const
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline size_t RlinkCommand::RcvSize() const
 {
@@ -263,23 +264,11 @@ inline size_t RlinkCommand::RcvSize() const
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline RlinkCommandExpect* RlinkCommand::Expect() const
 {
   return fpExpect;
-}
-
-//------------------------------------------+-----------------------------------
-/*! 
-  \relates RlinkCommand
-  \brief ostream insertion operator.
-*/
-
-inline std::ostream& operator<<(std::ostream& os, const RlinkCommand& obj)
-{
-  obj.Print(os);
-  return os;
 }
 
 } // end namespace Retro

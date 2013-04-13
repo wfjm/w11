@@ -1,6 +1,6 @@
-// $Id: RlinkCommandList.hpp 375 2011-04-02 07:56:47Z mueller $
+// $Id: RlinkCommandList.hpp 495 2013-03-06 17:13:48Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-06   495   1.0.1  add RlinkContext to Print() args; drop oper<<()
 // 2011-03-05   366   1.0    Initial version
 // 2011-01-09   354   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RlinkCommandList.hpp 375 2011-04-02 07:56:47Z mueller $
+  \version $Id: RlinkCommandList.hpp 495 2013-03-06 17:13:48Z mueller $
   \brief   Declaration of class RlinkCommandList.
 */
 
@@ -34,6 +35,7 @@
 
 #include "RlinkCommandExpect.hpp"
 #include "RlinkCommand.hpp"
+#include "RlinkContext.hpp"
 #include "RlinkAddrMap.hpp"
 
 namespace Retro {
@@ -43,7 +45,7 @@ namespace Retro {
 
                     RlinkCommandList();
                     RlinkCommandList(const RlinkCommandList&);
-                    ~RlinkCommandList();
+                   ~RlinkCommandList();
 
       size_t        AddCommand(RlinkCommand* cmd);
       size_t        AddCommand(const RlinkCommand& cmd);
@@ -64,9 +66,9 @@ namespace Retro {
       void          Clear();
       size_t        Size() const;
 
-      void          Print(std::ostream& os, const RlinkAddrMap* pamap=0, 
-                          size_t abase=16, size_t dbase=16, 
-                          size_t sbase=16) const;
+      void          Print(std::ostream& os, const RlinkContext& cntx,
+                          const RlinkAddrMap* pamap=0, size_t abase=16, 
+                          size_t dbase=16, size_t sbase=16) const;
       void          Dump(std::ostream& os, int ind=0, const char* text=0) const;
 
       RlinkCommandList& operator=(const RlinkCommandList& rhs);
@@ -78,12 +80,8 @@ namespace Retro {
       std::vector<RlinkCommand*> fList;     //!< vector of commands 
   };
 
-  std::ostream& operator<<(std::ostream& os, const RlinkCommandList& obj);
-
 } // end namespace Retro
 
-#if !(defined(Retro_NoInline) || defined(Retro_RlinkCommandList_NoInline))
 #include "RlinkCommandList.ipp"
-#endif
 
 #endif

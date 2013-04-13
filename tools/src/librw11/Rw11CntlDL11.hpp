@@ -1,0 +1,79 @@
+// $Id: Rw11CntlDL11.hpp 504 2013-04-13 15:37:24Z mueller $
+//
+// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+//
+// This program is free software; you may redistribute and/or modify it under
+// the terms of the GNU General Public License as published by the Free
+// Software Foundation, either version 2, or at your option any later version.
+//
+// This program is distributed in the hope that it will be useful, but
+// WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
+// or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+// for complete details.
+// 
+// Revision History: 
+// Date         Rev Version  Comment
+// 2013-03-06   495   1.0    Initial version
+// 2013-02-05   483   0.1    First draft
+// ---------------------------------------------------------------------------
+
+
+/*!
+  \file
+  \version $Id: Rw11CntlDL11.hpp 504 2013-04-13 15:37:24Z mueller $
+  \brief   Declaration of class Rw11CntlDL11.
+*/
+
+#ifndef included_Retro_Rw11CntlDL11
+#define included_Retro_Rw11CntlDL11 1
+
+#include "Rw11CntlBase.hpp"
+#include "Rw11UnitDL11.hpp"
+
+namespace Retro {
+
+  class Rw11CntlDL11 : public Rw11CntlBase<Rw11UnitDL11,1> {
+    public:
+
+                    Rw11CntlDL11();
+                   ~Rw11CntlDL11();
+
+      void          Config(const std::string& name, uint16_t base, int lam);
+
+      virtual void  Start();
+
+      void          Wakeup();
+
+      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
+
+    // some constants (also defined in cpp)
+      static const uint16_t kIbaddr = 0177560; //!< RK11 default address
+      static const int      kLam    = 1;       //!< RK11 default lam 
+
+      static const uint16_t kRCSR = 000; //!< RCSR register address offset
+      static const uint16_t kRBUF = 002; //!< RBUF register address offset
+      static const uint16_t kXCSR = 004; //!< XCSR register address offset
+      static const uint16_t kXBUF = 006; //!< XBUF register address offset
+
+      static const uint16_t kProbeOff = kRCSR; //!< probe address offset (rcsr)
+      static const bool     kProbeInt = true;  //!< probe int active
+      static const bool     kProbeRem = true;  //!< probr rem active
+
+      static const uint16_t kRCSR_M_RDONE = kWBit07;
+      static const uint16_t kXCSR_M_XRDY  = kWBit07;
+      static const uint16_t kXBUF_M_RRDY  = kWBit09;
+      static const uint16_t kXBUF_M_XVAL  = kWBit08;
+      static const uint16_t kXBUF_M_XBUF  = 0xff;
+
+    protected:
+      int           AttnHandler(const RlinkServer::AttnArgs& args);
+    
+    protected:
+      size_t        fPC_xbuf;               //!< PrimClist: xbuf index
+  };
+  
+} // end namespace Retro
+
+//#include "Rw11CntlDL11.ipp"
+
+#endif

@@ -1,6 +1,6 @@
-// $Id: RtclProxyBase.hpp 401 2011-07-31 21:02:33Z mueller $
+// $Id: RtclProxyBase.hpp 486 2013-02-10 22:34:43Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,10 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-02-09   485   1.4.2  add CommandName()
+// 2013-02-05   483   1.4.1  ClassCmdConfig: use RtclArgs
+// 2013-02-02   480   1.4    factor out RtclCmdBase base class
+// 2013-02-01   479   1.3    add DispatchCmd(), support $unknown method
 // 2011-07-31   401   1.2    add ctor(type,interp,name) for direct usage
 // 2011-04-23   380   1.1    use boost/function instead of RmethDsc
 //                           use boost::noncopyable (instead of private dcl's)
@@ -22,7 +26,7 @@
 
 /*!
   \file
-  \version $Id: RtclProxyBase.hpp 401 2011-07-31 21:02:33Z mueller $
+  \version $Id: RtclProxyBase.hpp 486 2013-02-10 22:34:43Z mueller $
   \brief   Declaration of class RtclProxyBase.
 */
 
@@ -34,41 +38,29 @@
 #include <string>
 #include <map>
 
-#include "boost/utility.hpp"
-#include "boost/function.hpp"
+#include "RtclCmdBase.hpp"
 
 #include "RtclArgs.hpp"
 
 namespace Retro {
 
-  class RtclProxyBase : private boost::noncopyable {
+  class RtclProxyBase : public RtclCmdBase {
     public:
-      static const int kOK  = TCL_OK;
-      static const int kERR = TCL_ERROR;
-
-      typedef boost::function<int(RtclArgs&)> methfo_t;
-
-      typedef std::map<std::string, methfo_t> mmap_t;
-      typedef mmap_t::iterator         mmap_it_t;
-      typedef mmap_t::const_iterator   mmap_cit_t;
-      typedef mmap_t::value_type       mmap_val_t;
 
       explicit      RtclProxyBase(const std::string& type = std::string());
                     RtclProxyBase(const std::string& type, Tcl_Interp* interp,
                                   const char* name);
-      virtual       ~RtclProxyBase();
+      virtual      ~RtclProxyBase();
 
-      virtual int   ClassCmdConfig(Tcl_Interp* interp, int objc,
-                                   Tcl_Obj* const objv[]);
+      virtual int   ClassCmdConfig(RtclArgs& args);
 
       const std::string& Type() const;
       Tcl_Command        Token() const;
+      std::string   CommandName() const;
 
     protected:
       void          SetType(const std::string& type);
 
-      void          AddMeth(const std::string& name, const methfo_t& methfo);
-  
       void          CreateObjectCmd(Tcl_Interp* interp, const char* name);
 
       int           TclObjectCmd(Tcl_Interp* interp, int objc, 
@@ -81,15 +73,12 @@ namespace Retro {
     
     protected:
       std::string   fType;                  //!< proxied type name
-      mmap_t        fMapMeth;               //!< map for named methods
       Tcl_Interp*   fInterp;                //!< tcl interpreter
       Tcl_Command   fCmdToken;              //!< cmd token for object command
   };
   
 } // end namespace Retro
 
-#if !(defined(Retro_NoInline) || defined(Retro_RtclProxyBase_NoInline))
 #include "RtclProxyBase.ipp"
-#endif
 
 #endif

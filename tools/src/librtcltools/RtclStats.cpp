@@ -1,6 +1,6 @@
-// $Id: RtclStats.cpp 374 2011-03-27 17:02:47Z mueller $
+// $Id: RtclStats.cpp 495 2013-03-06 17:13:48Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-03-06   495   1.0.1  Rename Exec->Collect
 // 2011-02-26   364   1.0    Initial version
 // 2011-02-20   363   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclStats.cpp 374 2011-03-27 17:02:47Z mueller $
+  \version $Id: RtclStats.cpp 495 2013-03-06 17:13:48Z mueller $
   \brief   Implemenation of RtclStats.
 */
 
@@ -30,7 +31,14 @@
 #include "RtclOPtr.hpp"
 
 using namespace std;
-using namespace Retro;
+
+/*!
+  \class Retro::RtclStats
+  \brief FIXME_docs
+*/
+
+// all method definitions in namespace Retro
+namespace Retro {
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
@@ -73,7 +81,8 @@ bool RtclStats::GetArgs(RtclArgs& args, Context& cntx)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-bool RtclStats::Exec(RtclArgs& args, Context& cntx, const Rstats& stats)
+bool RtclStats::Collect(RtclArgs& args, const Context& cntx, 
+                        const Rstats& stats)
 {
   Tcl_Interp* interp = args.Interp();
   Tcl_Obj*    plist   = Tcl_GetObjResult(interp);
@@ -135,17 +144,12 @@ bool RtclStats::Exec(RtclArgs& args, Context& cntx, const Rstats& stats)
     args.AppendResultLines(sos);
 
   } else {
-    args.AppendResult("-E: BUG! RtclStats::Exec: bad option \"", 
-                      cntx.opt.c_str(), "\"", NULL);
+    args.AppendResult("-E: BUG! RtclStats::Collect: bad option '", 
+                      cntx.opt.c_str(), "'", NULL);
     return false;
   }
   
   return true;
 }
 
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_RtclStats_NoInline))
-#define inline
-//#include "RtclStats.ipp"
-#undef  inline
-#endif
+} // end namespace Retro

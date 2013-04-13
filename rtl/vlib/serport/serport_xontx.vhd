@@ -1,4 +1,4 @@
--- $Id: serport_xontx.vhd 426 2011-11-18 18:14:08Z mueller $
+-- $Id: serport_xontx.vhd 476 2013-01-26 22:23:53Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -30,7 +30,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 use work.slvtypes.all;
-use work.serport.all;
+use work.serportlib.all;
 
 entity serport_xontx is                 -- serial port: xon/xoff logic tx path
   port (

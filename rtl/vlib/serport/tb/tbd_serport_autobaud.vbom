@@ -1,7 +1,7 @@
 # libs
 ../../slvtypes.vhd
 ../../genlib/genlib.vhd
-../serport.vhd
+../serportlib.vbom
 # components
 ../../genlib/clkdivce.vbom
 ../serport_uart_autobaud.vbom

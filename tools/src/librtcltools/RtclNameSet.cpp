@@ -1,6 +1,6 @@
-// $Id: RtclNameSet.cpp 374 2011-03-27 17:02:47Z mueller $
+// $Id: RtclNameSet.cpp 492 2013-02-24 22:14:47Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,31 +13,34 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-02-03   481   1.0.1  use Rexception
 // 2011-02-20   363   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclNameSet.cpp 374 2011-03-27 17:02:47Z mueller $
+  \version $Id: RtclNameSet.cpp 492 2013-02-24 22:14:47Z mueller $
   \brief   Implemenation of RtclNameSet.
 */
 
 // debug
 #include <iostream>
 
-#include <stdexcept>
-
 #include "RtclNameSet.hpp"
 
+#include "librtools/Rexception.hpp"
+
 using namespace std;
-using namespace Retro;
 
 /*!
   \class Retro::RtclNameSet
   \brief FIXME_docs
 */
 
-typedef std::pair<Retro::RtclNameSet::nset_it_t, bool>  nset_ins_t;
+// all method definitions in namespace Retro
+namespace Retro {
+
+typedef std::pair<RtclNameSet::nset_it_t, bool>  nset_ins_t;
 
 //------------------------------------------+-----------------------------------
 //! Default constructor
@@ -59,8 +62,9 @@ RtclNameSet::RtclNameSet(const std::string& nset)
       string name(nset, ibeg, iend-ibeg);
       nset_ins_t ret = fSet.insert(name);
         if (ret.second == false)                  // or use !(ret.second)
-          throw logic_error(string("RtclNameSet::<ctor> duplicate name '") +
-                            name + string("' in set '") + nset + string("'"));
+          throw Rexception("RtclNameSet::<ctor>", "Bad args: " +
+                           string("duplicate name '") + name + 
+                           string("' in set '") + nset + string("'"));
     }
     if (iend == string::npos) break;
     ibeg = iend+1;
@@ -84,8 +88,8 @@ bool RtclNameSet:: Check(Tcl_Interp* interp, std::string& rval,
 
   // no leading substring match
   if (it==fSet.end() || tval!=it->substr(0,tval.length())) {
-    Tcl_AppendResult(interp, "-E: bad option \"", tval.c_str(),
-                     "\": must be ", NULL);
+    Tcl_AppendResult(interp, "-E: bad option '", tval.c_str(),
+                     "': must be ", NULL);
     const char* delim = "";
     for (nset_cit_t it1=fSet.begin(); it1!=fSet.end(); it1++) {
       Tcl_AppendResult(interp, delim, it1->c_str(), NULL);
@@ -99,8 +103,8 @@ bool RtclNameSet:: Check(Tcl_Interp* interp, std::string& rval,
     nset_cit_t it1 = it;
     it1++;
     if (it1!=fSet.end() && tval==it1->substr(0,tval.length())) {
-      Tcl_AppendResult(interp, "-E: ambiguous option \"", tval.c_str(),
-                       "\": must be ", NULL);
+      Tcl_AppendResult(interp, "-E: ambiguous option '", tval.c_str(),
+                       "': must be ", NULL);
       const char* delim = "";
       for (it1=it; it1!=fSet.end() &&
              tval==it1->substr(0,tval.length()); it1++) {
@@ -115,9 +119,4 @@ bool RtclNameSet:: Check(Tcl_Interp* interp, std::string& rval,
   return true;
 }
 
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_RtclNameSet_NoInline))
-#define inline
-#include "RtclNameSet.ipp"
-#undef  inline
-#endif
+} // end namespace Retro

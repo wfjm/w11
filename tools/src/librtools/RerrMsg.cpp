@@ -1,6 +1,6 @@
-// $Id: RerrMsg.cpp 365 2011-02-28 07:28:26Z mueller $
+// $Id: RerrMsg.cpp 493 2013-03-01 21:02:33Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-01-12   474   1.2    add meth+text and meth+text+errnum ctors
 // 2011-02-06   359   1.1    use references in interface, fix printf usage
 // 2011-01-15   356   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RerrMsg.cpp 365 2011-02-28 07:28:26Z mueller $
+  \version $Id: RerrMsg.cpp 493 2013-03-01 21:02:33Z mueller $
   \brief   Implemenation of RerrMsg.
 */
 
@@ -30,12 +31,14 @@
 #include "RerrMsg.hpp"
 
 using namespace std;
-using namespace Retro;
 
 /*!
   \class Retro::RerrMsg
   \brief FIXME_docs
 */
+
+// all method definitions in namespace Retro
+namespace Retro {
 
 //------------------------------------------+-----------------------------------
 //! Default constructor
@@ -46,12 +49,30 @@ RerrMsg::RerrMsg()
 {}
 
 //------------------------------------------+-----------------------------------
-//! FIXME_docs
+//! Copy constructor
 
 RerrMsg::RerrMsg(const RerrMsg& rhs)
   : fMeth(rhs.fMeth),
     fText(rhs.fText)
 {}
+
+//------------------------------------------+-----------------------------------
+//! Construct from method and message text
+
+RerrMsg::RerrMsg(const std::string& meth, const std::string& text)
+  : fMeth(meth),
+    fText(text)
+{}
+
+//------------------------------------------+-----------------------------------
+//! Construct from method and message text and errno
+
+RerrMsg::RerrMsg(const std::string& meth, const std::string& text, int errnum)
+  : fMeth(meth),
+    fText(text)
+{
+  AppendErrno(errnum);
+}
 
 //------------------------------------------+-----------------------------------
 //! Destructor
@@ -157,7 +178,7 @@ std::string RerrMsg::Message() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RerrMsg::Grab(RerrMsg& rhs)
+void RerrMsg::Swap(RerrMsg& rhs)
 {
   fMeth.swap(rhs.fMeth);
   fText.swap(rhs.fText);
@@ -175,9 +196,4 @@ RerrMsg& RerrMsg::operator=(const RerrMsg& rhs)
   return *this;  
 }
 
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_RerrMsg_NoInline))
-#define inline
-#include "RerrMsg.ipp"
-#undef  inline
-#endif
+} // end namespace Retro

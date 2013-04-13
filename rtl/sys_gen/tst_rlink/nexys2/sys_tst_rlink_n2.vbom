@@ -2,10 +2,11 @@
 ../../../vlib/slvtypes.vhd
 ../../../vlib/xlib/xlib.vhd
 ../../../vlib/genlib/genlib.vhd
-../../../vlib/serport/serport.vhd
+../../../vlib/serport/serportlib.vbom
 ../../../vlib/rbus/rblib.vhd
 ../../../vlib/rlink/rlinklib.vbom
 ../../../bplib/bpgen/bpgenlib.vbom
+../../../bplib/bpgen/bpgenrbuslib.vbom
 ../../../bplib/nxcramlib/nxcramlib.vhd
 ${sys_conf := sys_conf.vhd}
 # components

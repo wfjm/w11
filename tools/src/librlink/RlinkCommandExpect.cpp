@@ -1,4 +1,4 @@
-// $Id: RlinkCommandExpect.cpp 434 2011-12-02 19:17:38Z mueller $
+// $Id: RlinkCommandExpect.cpp 488 2013-02-16 18:49:47Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,14 +20,13 @@
 
 /*!
   \file
-  \version $Id: RlinkCommandExpect.cpp 434 2011-12-02 19:17:38Z mueller $
+  \version $Id: RlinkCommandExpect.cpp 488 2013-02-16 18:49:47Z mueller $
   \brief   Implemenation of class RlinkCommandExpect.
  */
 
 // debug
 #include <iostream>
 
-#include <stdexcept>
 #include <algorithm>
 
 #include "RlinkCommandExpect.hpp"
@@ -37,12 +36,14 @@
 #include "librtools/RosPrintBvi.hpp"
 
 using namespace std;
-using namespace Retro;
 
 /*!
   \class Retro::RlinkCommandExpect
   \brief FIXME_docs
 */
+
+// all method definitions in namespace Retro
+namespace Retro {
 
 //------------------------------------------+-----------------------------------
 //! Default constructor
@@ -188,9 +189,4 @@ void RlinkCommandExpect::Dump(std::ostream& os, int ind, const char* text) const
   return;
 }
 
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_RlinkCommandExpect_NoInline))
-#define inline
-#include "RlinkCommandExpect.ipp"
-#undef  inline
-#endif
+} // end namespace Retro

@@ -1,4 +1,4 @@
-// $Id: RtclBvi.cpp 434 2011-12-02 19:17:38Z mueller $
+// $Id: RtclBvi.cpp 488 2013-02-16 18:49:47Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: RtclBvi.cpp 434 2011-12-02 19:17:38Z mueller $
+  \version $Id: RtclBvi.cpp 488 2013-02-16 18:49:47Z mueller $
   \brief   Implemenation of RtclBvi.
 */
 
@@ -34,18 +34,20 @@
 #include "librtcltools/RtclOPtr.hpp"
 
 using namespace std;
-using namespace Retro;
 
 /*!
   \class Retro::RtclBvi
-  \brief FIXME_text
+  \brief FIXME_docs
 */
+
+// all method definitions in namespace Retro
+namespace Retro {
 
 static const int kOK  = TCL_OK;
 static const int kERR = TCL_ERROR;
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 void RtclBvi::CreateCmds(Tcl_Interp* interp)
 {
@@ -55,7 +57,7 @@ void RtclBvi::CreateCmds(Tcl_Interp* interp)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 int RtclBvi::DoCmd(ClientData cdata, Tcl_Interp* interp, int objc, 
                    Tcl_Obj* const objv[])
@@ -95,7 +97,7 @@ int RtclBvi::DoCmd(ClientData cdata, Tcl_Interp* interp, int objc,
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 Tcl_Obj* RtclBvi::DoConv(Tcl_Interp* interp, ConvMode mode, Tcl_Obj* val, 
                          char form, int nbit)
@@ -117,7 +119,7 @@ Tcl_Obj* RtclBvi::DoConv(Tcl_Interp* interp, ConvMode mode, Tcl_Obj* val,
     // check for c"ddd" format
     if (lval>3 && pval[1]=='"' && pval[lval-1]=='"') {
       if (strchr("bBoOdDxX", pval[0]) == 0) {
-        Tcl_AppendResult(interp, "-E: bad prefix in c\"dddd\" format string", 
+        Tcl_AppendResult(interp, "-E: bad prefix in c'dddd' format string", 
                          NULL);
         return 0;
       }
@@ -201,7 +203,7 @@ Tcl_Obj* RtclBvi::DoConv(Tcl_Interp* interp, ConvMode mode, Tcl_Obj* val,
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 bool RtclBvi::CheckFormat(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[], 
                           bool& list, char& form, int& nbit)
@@ -236,12 +238,12 @@ bool RtclBvi::CheckFormat(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[],
       if (*opt>='0' && *opt<='9') {
         nbit = 10*nbit + ((*opt) - '0');
         if (nbit > 32) {
-          Tcl_AppendResult(interp, "-E: invalid bvi format \"", opt, "\"", 
+          Tcl_AppendResult(interp, "-E: invalid bvi format '", opt, "'", 
                            " bit count > 32", NULL);
           return false;
         }
       } else {
-        Tcl_AppendResult(interp, "-E: invalid bvi format \"", opt, "\"", 
+        Tcl_AppendResult(interp, "-E: invalid bvi format '", opt, "'", 
                          " allowed: [bBoOxXl][0-9]*", NULL);
         return false;
       }
@@ -255,9 +257,4 @@ bool RtclBvi::CheckFormat(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[],
   return true;
 }
 
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_RtclBvi_NoInline))
-#define inline
-//#include "RtclBvi.ipp"
-#undef  inline
-#endif
+} // end namespace Retro

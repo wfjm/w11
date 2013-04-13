@@ -1,4 +1,4 @@
--- $Id: sys_tst_serloop1_n3.vhd 441 2011-12-20 17:01:16Z mueller $
+-- $Id: sys_tst_serloop1_n3.vhd 476 2013-01-26 22:23:53Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -47,7 +47,7 @@ use work.xlib.all;
 use work.genlib.all;
 use work.bpgenlib.all;
 use work.tst_serlooplib.all;
-use work.serport.all;
+use work.serportlib.all;
 use work.nxcramlib.all;
 use work.sys_conf.all;
 

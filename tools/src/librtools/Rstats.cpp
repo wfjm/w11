@@ -1,6 +1,6 @@
-// $Id: Rstats.cpp 368 2011-03-12 09:58:53Z mueller $
+// $Id: Rstats.cpp 492 2013-02-24 22:14:47Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,30 +13,35 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-02-03   481   1.0.2  use Rexception
 // 2011-03-06   367   1.0.1  use max from algorithm
 // 2011-02-06   359   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rstats.cpp 368 2011-03-12 09:58:53Z mueller $
+  \version $Id: Rstats.cpp 492 2013-02-24 22:14:47Z mueller $
   \brief   Implemenation of Rstats .
 */
 
-#include <stdexcept>
 #include <algorithm>
 
 #include "Rstats.hpp"
+
 #include "RosFill.hpp"
 #include "RosPrintf.hpp"
+#include "Rexception.hpp"
 
 using namespace std;
-using namespace Retro;
 
 /*!
   \class Retro::Rstats
   \brief FIXME_docs
 */
+
+// all method definitions in namespace Retro
+namespace Retro {
+
 //------------------------------------------+-----------------------------------
 //! Default constructor
 
@@ -145,7 +150,7 @@ void Rstats::Dump(std::ostream& os, int ind, const char* text) const
   for (size_t i=0; i<Size(); i++) {
     os << bl << "  " << fName[i] << ":" << RosFill(maxlen-fName[i].length()+1)
        << RosPrintf(fValue[i], "f", 12)
-       << "  \"" << fText[i] << "\"" << endl;
+       << "  '" << fText[i] << "'" << endl;
   }
 
   return;
@@ -171,7 +176,8 @@ Rstats& Rstats::operator=(const Rstats& rhs)
   // otherwise check hash and copy only values
   } else {
     if (Size() != rhs.Size() || fHash != rhs.fHash) {
-      throw invalid_argument("Rstats::oper=: assign incompatible stats");
+      throw Rexception("Rstats::oper=()",
+                       "Bad args: assign incompatible stats");
     }
     fValue = rhs.fValue;
   }
@@ -185,7 +191,8 @@ Rstats& Rstats::operator=(const Rstats& rhs)
 Rstats& Rstats::operator-(const Rstats& rhs)
 {
   if (Size() != rhs.Size() || fHash != rhs.fHash) {
-    throw invalid_argument("Rstats::oper-: subtract incompatible stats");
+    throw Rexception("Rstats::oper-()",
+                     "Bad args: subtract incompatible stats");
   }
 
   for (size_t i=0; i<fValue.size(); i++) {
@@ -205,9 +212,4 @@ Rstats& Rstats::operator*(double rhs)
   return *this;
 }
 
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_Rstats_NoInline))
-#define inline
-#include "Rstats.ipp"
-#undef  inline
-#endif
+} // end namespace Retro

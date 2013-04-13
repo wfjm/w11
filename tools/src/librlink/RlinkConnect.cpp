@@ -1,6 +1,6 @@
-// $Id: RlinkConnect.cpp 386 2011-07-01 17:31:03Z mueller $
+// $Id: RlinkConnect.cpp 495 2013-03-06 17:13:48Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,12 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-03-01   493   1.3.1  add Server(Active..|SignalAttn)() methods
+// 2013-02-23   492   1.3    use scoped_ptr for Port; Close allways allowed
+//                           use RlinkContext, add Context(), Exec(..., cntx)
+// 2013-02-22   491   1.2    use new RlogFile/RlogMsg interfaces
+// 2013-02-03   481   1.1.2  use Rexception
+// 2013-01-13   474   1.1.1  add PollAttn() method
 // 2011-04-25   380   1.1    use boost::(mutex&lock), implement Lockable IF
 // 2011-04-22   379   1.0.1  add Lock(), Unlock(), lock connect in Exec()
 // 2011-04-02   375   1.0    Initial version
@@ -21,43 +27,49 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.cpp 386 2011-07-01 17:31:03Z mueller $
+  \version $Id: RlinkConnect.cpp 495 2013-03-06 17:13:48Z mueller $
   \brief   Implemenation of RlinkConnect.
 */
 
 #include <iostream>
-#include <stdexcept>
 
 #include "boost/thread/locks.hpp"
 
-#include "RlinkConnect.hpp"
 #include "RlinkPortFactory.hpp"
-
 #include "librtools/RosFill.hpp"
 #include "librtools/RosPrintf.hpp"
 #include "librtools/RosPrintBvi.hpp"
 #include "librtools/Rtools.hpp"
+#include "librtools/Rexception.hpp"
+#include "librtools/RlogMsg.hpp"
+#include "RlinkServer.hpp"
+
+#include "RlinkConnect.hpp"
 
 using namespace std;
-using namespace Retro;
 
 /*!
   \class Retro::RlinkConnect
   \brief FIXME_docs
 */
 
+// all method definitions in namespace Retro
+namespace Retro {
+
 //------------------------------------------+-----------------------------------
 //! Default constructor
 
 RlinkConnect::RlinkConnect()
-  : fpPort(0),
+  : fpPort(),
+    fpServ(0),
     fTxPkt(),
     fRxPkt(),
+    fContext(),
     fAddrMap(),
     fStats(),
     fLogOpts(),
-    fLogFile(&cout),
-    fMutexConn()
+    fspLog(new RlogFile(&cout, "<cout>")),
+    fConnectMutex()
 {
   for (size_t i=0; i<8; i++) fSeqNumber[i] = 0;
  
@@ -94,7 +106,7 @@ RlinkConnect::RlinkConnect()
 
 RlinkConnect::~RlinkConnect()
 {
-  if (fpPort) Close();
+  Close();
 }
 
 //------------------------------------------+-----------------------------------
@@ -102,12 +114,12 @@ RlinkConnect::~RlinkConnect()
 
 bool RlinkConnect::Open(const std::string& name, RerrMsg& emsg)
 {
-  if (fpPort) Close();
+  Close();
 
-  fpPort = RlinkPortFactory::Open(name, emsg);
+  fpPort.reset(RlinkPortFactory::Open(name, emsg));
   if (!fpPort) return false;
 
-  fpPort->SetLogFile(&fLogFile);
+  fpPort->SetLogFile(fspLog);
   fpPort->SetTraceLevel(fLogOpts.tracelevel);
   return true;
 }
@@ -117,17 +129,50 @@ bool RlinkConnect::Open(const std::string& name, RerrMsg& emsg)
 
 void RlinkConnect::Close()
 {
-  if (!fpPort)
-    throw logic_error("RlinkConnect::PortClose(): no port connected");
+  if (!fpPort) return;
 
-  if (fpPort->UrlFindOpt("keep")) {
+  if (fpServ) fpServ->Stop();               // stop server in case still running
+
+  if (fpPort->Url().FindOpt("keep")) {
     RerrMsg emsg;
-    fTxPkt.SndKeep(fpPort, emsg);
+    fTxPkt.SndKeep(fpPort.get(), emsg);
   }
 
-  delete fpPort;
-  fpPort = 0;
+  fpPort.reset();
     
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+bool RlinkConnect::ServerActive() const
+{
+  return fpServ && fpServ->IsActive();
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+bool RlinkConnect::ServerActiveInside() const
+{
+  return fpServ && fpServ->IsActiveInside();
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+bool RlinkConnect::ServerActiveOutside() const
+{
+  return fpServ && fpServ->IsActiveOutside();
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void RlinkConnect::ServerSignalAttn()
+{
+  if (fpServ) fpServ->SignalAttn();
   return;
 }
 
@@ -136,7 +181,7 @@ void RlinkConnect::Close()
 
 void RlinkConnect::lock()
 {
-  fMutexConn.lock();
+  fConnectMutex.lock();
   return;
 }
 
@@ -145,7 +190,7 @@ void RlinkConnect::lock()
 
 bool RlinkConnect::try_lock()
 {
-  return fMutexConn.try_lock();
+  return fConnectMutex.try_lock();
 }
 
 //------------------------------------------+-----------------------------------
@@ -153,19 +198,20 @@ bool RlinkConnect::try_lock()
 
 void RlinkConnect::unlock()
 {
-  fMutexConn.unlock();
+  fConnectMutex.unlock();
   return;
 }
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-bool RlinkConnect::Exec(RlinkCommandList& clist, RerrMsg& emsg)
+bool RlinkConnect::Exec(RlinkCommandList& clist, RlinkContext& cntx, 
+                        RerrMsg& emsg)
 {  
   if (clist.Size() == 0)
-    throw invalid_argument("RlinkConnect::Exec(): clist empty");
+    throw Rexception("RlinkConnect::Exec()", "Bad state: clist empty");
   if (! IsOpen())
-    throw logic_error("RlinkConnect::Exec(): port not open");
+    throw Rexception("RlinkConnect::Exec()", "Bad state: port not open");
 
   boost::lock_guard<RlinkConnect> lock(*this);
 
@@ -177,9 +223,16 @@ bool RlinkConnect::Exec(RlinkCommandList& clist, RerrMsg& emsg)
   for (size_t i=0; i<size; i++) {
     RlinkCommand& cmd = clist[i];
    if (!cmd.TestFlagAny(RlinkCommand::kFlagInit))
-      throw invalid_argument("RlinkConnect::Exec(): command not initialized");
+     throw Rexception("RlinkConnect::Exec()", 
+                      "BugCheck: command not initialized");
     if (cmd.Command() > RlinkCommand::kCmdInit)
-      throw invalid_argument("RlinkConnect::Exec(): invalid command code");
+      throw Rexception("RlinkConnect::Exec()", 
+                       "BugCheck: invalid command code");
+    // trap attn command when server running and outside server thread
+    if (cmd.Command() == RlinkCommand::kCmdAttn && ServerActiveOutside())
+      throw Rexception("RlinkConnect::Exec()", 
+                       "attn command not allowed outside avtice server");
+
     cmd.ClearFlagBit(RlinkCommand::kFlagSend   | RlinkCommand::kFlagDone |
                      RlinkCommand::kFlagPktBeg | RlinkCommand::kFlagPktEnd |
                      RlinkCommand::kFlagRecov  | RlinkCommand::kFlagResend |
@@ -196,7 +249,7 @@ bool RlinkConnect::Exec(RlinkCommandList& clist, RerrMsg& emsg)
         break;
       }
     }
-    bool rc = ExecPart(clist, ibeg, iend, emsg);
+    bool rc = ExecPart(clist, ibeg, iend, emsg, cntx);
     if (!rc) return rc;
     ibeg = iend+1;
   }
@@ -207,36 +260,60 @@ bool RlinkConnect::Exec(RlinkCommandList& clist, RerrMsg& emsg)
   for (size_t i=0; i<size; i++) {
     RlinkCommand& cmd = clist[i];
     
-    checkseen |= cmd.TestFlagAny(RlinkCommand::kFlagChkStat | 
-                                 RlinkCommand::kFlagChkData);
-    errorseen |= cmd.TestFlagAny(RlinkCommand::kFlagErrNak | 
-                                 RlinkCommand::kFlagErrMiss |
-                                 RlinkCommand::kFlagErrCmd |
-                                 RlinkCommand::kFlagErrCrc);
+    bool checkfound = cmd.TestFlagAny(RlinkCommand::kFlagChkStat | 
+                                      RlinkCommand::kFlagChkData);
+    bool errorfound = cmd.TestFlagAny(RlinkCommand::kFlagErrNak | 
+                                      RlinkCommand::kFlagErrMiss |
+                                      RlinkCommand::kFlagErrCmd |
+                                      RlinkCommand::kFlagErrCrc);
+    checkseen |= checkfound;
+    errorseen |= errorfound;
+    if (checkfound | errorfound) cntx.IncErrorCount();
   }
 
   size_t loglevel = 3;
   if (checkseen) loglevel = 2;
   if (errorseen) loglevel = 1;
-  if (loglevel <= fLogOpts.printlevel) 
-    clist.Print(fLogFile(), &AddrMap(), fLogOpts.baseaddr, fLogOpts.basedata,
+  if (loglevel <= fLogOpts.printlevel) {
+    RlogMsg lmsg(*fspLog);
+    clist.Print(lmsg(), cntx, &AddrMap(), fLogOpts.baseaddr, fLogOpts.basedata,
                 fLogOpts.basestat);
-  if (loglevel <= fLogOpts.dumplevel) 
-    clist.Dump(fLogFile(), 0);
-
+  }
+  if (loglevel <= fLogOpts.dumplevel) {
+    RlogMsg lmsg(*fspLog);
+    clist.Dump(lmsg(), 0);
+  }
+  
   return true;
 }
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
+bool RlinkConnect::Exec(RlinkCommandList& clist, RlinkContext& cntx)
+{
+  RerrMsg emsg;
+  bool rc = Exec(clist, cntx, emsg);
+  if (!rc) {
+    RlogMsg lmsg(*fspLog, 'E');
+    lmsg << emsg << endl;
+    lmsg << "Dump of failed clist:" << endl;
+    clist.Dump(lmsg(), 0);    
+  }
+  return rc;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
 bool RlinkConnect::ExecPart(RlinkCommandList& clist, size_t ibeg, size_t iend,
-                            RerrMsg& emsg)
+                            RerrMsg& emsg, RlinkContext& cntx)
 {
   if (ibeg<0 || ibeg>iend || iend>=clist.Size())
-    throw invalid_argument("RlinkConnect::ExecPart(): ibeg or iend invalid");
+    throw Rexception("RlinkConnect::ExecPart()",
+                     "Bad args: ibeg or iend invalid");
   if (!IsOpen())
-    throw logic_error("RlinkConnect::ExecPart(): port not open");
+    throw Rexception("RlinkConnect::ExecPart()","Bad state: port not open");
 
   fStats.Inc(kStatNExecPart);
 
@@ -305,7 +382,7 @@ bool RlinkConnect::ExecPart(RlinkCommandList& clist, size_t ibeg, size_t iend,
         break;
 
       default:
-        throw logic_error("RlinkConnect::Exec(): invalid command");
+        throw Rexception("RlinkConnect::Exec()", "BugCheck: invalid command");
     }
 
     fTxPkt.PutCrc();
@@ -317,13 +394,23 @@ bool RlinkConnect::ExecPart(RlinkCommandList& clist, size_t ibeg, size_t iend,
   clist[iend].SetFlagBit(RlinkCommand::kFlagPktEnd);
 
   // FIXME_code: handle send fail properly;
-  if (!fTxPkt.SndPacket(fpPort, emsg)) return false;
+  if (!fTxPkt.SndPacket(fpPort.get(), emsg)) return false;
   fStats.Inc(kStatNTxPktByt, double(fTxPkt.PktSize()));
   fStats.Inc(kStatNTxEsc   , double(fTxPkt.Nesc()));
 
   fRxPkt.Init();
-  // FIXME_code: handle timeout properly; parametrize timeout
-  if (!fRxPkt.RcvPacket(fpPort, nrcvtot, 1.0, emsg)) return false;
+  // FIXME_code: parametrize timeout
+  if (!fRxPkt.RcvPacket(fpPort.get(), nrcvtot, 5.0, emsg)) return false;
+
+  // FIXME_code: handle timeout properly
+  if (fRxPkt.TestFlag(RlinkPacketBuf::kFlagTout)) {
+    emsg.Init("RlinkConnect::ExecPart", "timeout from RlinkPacketBuf");
+    return false;
+  }
+
+  // if attn seen, signal to server
+  if (fRxPkt.Nattn()) ServerSignalAttn();
+
   fStats.Inc(kStatNRxPktByt, double(fRxPkt.PktSize()));
   fStats.Inc(kStatNRxEsc   , double(fRxPkt.Nesc()));
   fStats.Inc(kStatNRxAttn  , double(fRxPkt.Nattn()));
@@ -331,6 +418,7 @@ bool RlinkConnect::ExecPart(RlinkCommandList& clist, size_t ibeg, size_t iend,
   fStats.Inc(kStatNRxDrop  , double(fRxPkt.Ndrop()));
 
   size_t ncmd = 0;
+  const char* etxt = 0;
 
   for (size_t i=ibeg; i<=iend; i++) {
     RlinkCommand& cmd = clist[i];
@@ -340,11 +428,13 @@ bool RlinkConnect::ExecPart(RlinkCommandList& clist, size_t ibeg, size_t iend,
 
     if (!fRxPkt.CheckSize(cmd.RcvSize())) {   // not enough data for cmd
       cmd.SetFlagBit(RlinkCommand::kFlagErrMiss);
+      etxt = "FlagErrMiss: not enough data for cmd";
       break;
     }
     
     if (fRxPkt.Get8WithCrc() != cmd.Request()) { // command mismatch
       cmd.SetFlagBit(RlinkCommand::kFlagErrCmd);
+      etxt = "FlagErrCmd: command mismatch";
       break;
     }
 
@@ -352,6 +442,7 @@ bool RlinkConnect::ExecPart(RlinkCommandList& clist, size_t ibeg, size_t iend,
     if (ccode == RlinkCommand::kCmdRblk) {
       if (fRxPkt.Get8WithCrc() != (uint8_t)(ndata-1)) {  // length mismatch
         cmd.SetFlagBit(RlinkCommand::kFlagErrCmd);
+        etxt = "FlagErrCmd: length mismatch";
         break;
       }
     }
@@ -381,12 +472,13 @@ bool RlinkConnect::ExecPart(RlinkCommandList& clist, size_t ibeg, size_t iend,
 
       case RlinkCommand::kCmdInit:
         break;
-    }
+    } // switch(ccode)
 
     cmd.SetStatus(fRxPkt.Get8WithCrc());
     if (!fRxPkt.CheckCrc()) {                 // crc mismatch
       cmd.SetFlagBit(RlinkCommand::kFlagErrCrc);
       //fStats.Inc(kStatNRxCcrc);
+      etxt = "FlagErrCrc: crc mismatch";
       break;
     }
 
@@ -402,7 +494,7 @@ bool RlinkConnect::ExecPart(RlinkCommandList& clist, size_t ibeg, size_t iend,
     cmd.SetFlagBit(RlinkCommand::kFlagDone);
     ncmd += 1;
 
-    if (cmd.Expect()) {
+    if (cmd.Expect()) {                     // expect object attached ?
       RlinkCommandExpect& expect = *cmd.Expect();
       if (expect.DataIsChecked() || 
           expect.BlockValue().size()>0) fStats.Inc(kStatNExpData);
@@ -425,12 +517,20 @@ bool RlinkConnect::ExecPart(RlinkCommandList& clist, size_t ibeg, size_t iend,
         fStats.Inc(kStatNChkStat);
         cmd.SetFlagBit(RlinkCommand::kFlagChkStat);
       }
+
+    } else {                                // no expect, use context
+      if (!cntx.StatusCheck(cmd.Status())) {
+        fStats.Inc(kStatNChkStat);
+        cmd.SetFlagBit(RlinkCommand::kFlagChkStat);
+      }
     }
 
   }
 
   // FIXME_code: add proper error handling...
   if (ncmd != iend-ibeg+1) {
+    if (etxt == 0) etxt = "not all commands processed";
+    emsg.Init("RlinkConnect::ExecPart", etxt);
     return false;
   }
 
@@ -442,7 +542,27 @@ bool RlinkConnect::ExecPart(RlinkCommandList& clist, size_t ibeg, size_t iend,
 
 double RlinkConnect::WaitAttn(double timeout, RerrMsg& emsg)
 {
-  double rval = fRxPkt.WaitAttn(fpPort, timeout, emsg);
+  if (ServerActiveOutside())
+    throw Rexception("RlinkConnect::WaitAttn()", 
+                     "not allowed outside avtice server");
+
+  double rval = fRxPkt.WaitAttn(fpPort.get(), timeout, emsg);
+  fStats.Inc(kStatNRxAttn  , double(fRxPkt.Nattn()));
+  fStats.Inc(kStatNRxIdle  , double(fRxPkt.Nidle()));
+  fStats.Inc(kStatNRxDrop  , double(fRxPkt.Ndrop()));  
+  return rval;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+int RlinkConnect::PollAttn(RerrMsg& emsg)
+{
+  if (ServerActiveOutside())
+    throw Rexception("RlinkConnect::PollAttn()", 
+                     "not allowed outside avtice server");
+  
+  int rval = fRxPkt.PollAttn(fpPort.get(), emsg);
   fStats.Inc(kStatNRxAttn  , double(fRxPkt.Nattn()));
   fStats.Inc(kStatNRxIdle  , double(fRxPkt.Nidle()));
   fStats.Inc(kStatNRxDrop  , double(fRxPkt.Ndrop()));  
@@ -455,28 +575,7 @@ double RlinkConnect::WaitAttn(double timeout, RerrMsg& emsg)
 bool RlinkConnect::SndOob(uint16_t addr, uint16_t data, RerrMsg& emsg)
 {
   fStats.Inc(kStatNSndOob);
-  return fTxPkt.SndOob(fpPort, addr, data, emsg);
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-bool RlinkConnect::LogOpen(const std::string& name)
-{
-  if (!fLogFile.Open(name)) {
-    fLogFile.UseStream(&cout);
-    return false;
-  }
-  return true;
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-void RlinkConnect::LogUseStream(std::ostream* pstr)
-{
-  fLogFile.UseStream(pstr);
-  return;
+  return fTxPkt.SndOob(fpPort.get(), addr, data, emsg);
 }
 
 //------------------------------------------+-----------------------------------
@@ -485,14 +584,38 @@ void RlinkConnect::LogUseStream(std::ostream* pstr)
 void RlinkConnect::SetLogOpts(const LogOpts& opts)
 {
   if (opts.baseaddr!=2 && opts.baseaddr!=8 && opts.baseaddr!=16)
-    throw invalid_argument("RlinkConnect::SetLogOpts(): baseaddr != 2,8,16");
+    throw Rexception("RlinkConnect::SetLogOpts()",
+                     "Bad args: baseaddr != 2,8,16");
   if (opts.basedata!=2 && opts.basedata!=8 && opts.basedata!=16)
-    throw invalid_argument("RlinkConnect::SetLogOpts(): basedata != 2,8,16");
+    throw Rexception("RlinkConnect::SetLogOpts()",
+                     "Bad args: basedata != 2,8,16");
   if (opts.basestat!=2 && opts.basestat!=8 && opts.basestat!=16)
-    throw invalid_argument("RlinkConnect::SetLogOpts(): basestat != 2,8,16");
+    throw Rexception("RlinkConnect::SetLogOpts()",
+                     "Bad args: basestat != 2,8,16");
 
   fLogOpts = opts;
   if (fpPort) fpPort->SetTraceLevel(opts.tracelevel);
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+bool RlinkConnect::LogOpen(const std::string& name)
+{
+  if (!fspLog->Open(name)) {
+    fspLog->UseStream(&cout, "<cout>");
+    return false;
+  }
+  return true;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void RlinkConnect::LogUseStream(std::ostream* pstr, const std::string& name)
+{
+  fspLog->UseStream(pstr, name);
   return;
 }
 
@@ -516,23 +639,27 @@ void RlinkConnect::Dump(std::ostream& os, int ind, const char* text) const
   if (fpPort) {
     fpPort->Dump(os, ind+2, "fpPort: ");
   } else {
-    os << bl << "  fpPort:          " <<  fpPort << endl;
+    os << bl << "  fpPort:          " <<  fpPort.get() << endl;
   }
 
+  os << bl << "  fpServ:          " << fpServ << endl;
   os << bl << "  fSeqNumber:      ";
   for (size_t i=0; i<8; i++) os << RosPrintBvi(fSeqNumber[i],16) << " ";
   os << endl;
   
   fTxPkt.Dump(os, ind+2, "fTxPkt: ");
   fRxPkt.Dump(os, ind+2, "fRxPkt: ");
+  fContext.Dump(os, ind+2, "fContext: ");
   fAddrMap.Dump(os, ind+2, "fAddrMap: ");
   fStats.Dump(os, ind+2, "fStats: ");
+  os << bl << "  fLogOpts.baseaddr   " << fLogOpts.baseaddr << endl;
+  os << bl << "          .basedata   " << fLogOpts.basedata << endl;
+  os << bl << "          .basestat   " << fLogOpts.basestat << endl;
+  os << bl << "          .printlevel " << fLogOpts.printlevel << endl;
+  os << bl << "          .dumplevel  " << fLogOpts.dumplevel << endl;
+  os << bl << "          .tracelevel " << fLogOpts.tracelevel << endl;
+  fspLog->Dump(os, ind+2, "fspLog: ");
   return;
 }
 
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_RlinkConnect_NoInline))
-#define inline
-#include "RlinkConnect.ipp"
-#undef  inline
-#endif
+} // end namespace Retro

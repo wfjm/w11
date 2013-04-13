@@ -1,6 +1,6 @@
-// $Id: RtclClassBase.cpp 374 2011-03-27 17:02:47Z mueller $
+// $Id: RtclClassBase.cpp 488 2013-02-16 18:49:47Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-02-10   485   1.0.3  add static const defs
+// 2013-01-13   474   1.0.2  TclClassCmd(): check for existing Rtclproxy names
 // 2011-03-05   366   1.0.1  use AppendResultNewLines() in exception catcher
 // 2011-02-20   363   1.0    Initial version
 // 2011-02-11   360   0.1    First draft
@@ -20,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RtclClassBase.cpp 374 2011-03-27 17:02:47Z mueller $
+  \version $Id: RtclClassBase.cpp 488 2013-02-16 18:49:47Z mueller $
   \brief   Implemenation of RtclClassBase.
 */
 
@@ -34,12 +36,20 @@
 #include "Rtcl.hpp"
 
 using namespace std;
-using namespace Retro;
 
 /*!
   \class Retro::RtclClassBase
   \brief FIXME_docs
 */
+
+// all method definitions in namespace Retro
+namespace Retro {
+
+//------------------------------------------+-----------------------------------
+// constants definitions
+
+const int RtclClassBase::kOK;
+const int RtclClassBase::kERR;
 
 //------------------------------------------+-----------------------------------
 //! Default constructor
@@ -74,25 +84,38 @@ void RtclClassBase::CreateClassCmd(Tcl_Interp* interp, const char* name)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline int RtclClassBase::TclClassCmd(Tcl_Interp* interp, int objc, 
+int RtclClassBase::TclClassCmd(Tcl_Interp* interp, int objc, 
                                       Tcl_Obj* const objv[])
 {
+  // no args -> lists existing proxies
   if (objc == 1) {
     return ClassCmdList(interp);
   }
 
+  // 2nd arg -delete -> delete proxy
   const char* name = Tcl_GetString(objv[1]);
   if (objc == 3 && strcmp(Tcl_GetString(objv[2]), "-delete")==0) {
     return ClassCmdDelete(interp, name);
   }
-  
+
+  // check if proxy of given name already existing
+  RtclProxyBase* pprox = RtclContext::Find(interp).FindProxy("",name);
+  if (pprox) {
+    Tcl_AppendResult(interp, "-E: command name '", name, 
+                     "' exists already as RtclProxy of type '", 
+                     pprox->Type().c_str(), "'", NULL);
+    return kERR;
+
+  }
+
+  // finally create new proxy
   return ClassCmdCreate(interp, objc, objv);
 }
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline int RtclClassBase::ClassCmdList(Tcl_Interp* interp)
+int RtclClassBase::ClassCmdList(Tcl_Interp* interp)
 {
   std::vector<RtclProxyBase*> list;
   RtclContext::Find(interp).ListProxy(list, Type());
@@ -112,30 +135,30 @@ inline int RtclClassBase::ClassCmdList(Tcl_Interp* interp)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline int RtclClassBase::ClassCmdDelete(Tcl_Interp* interp, const char* name)
+int RtclClassBase::ClassCmdDelete(Tcl_Interp* interp, const char* name)
 {
   Tcl_CmdInfo cinfo;
   if (Tcl_GetCommandInfo(interp, name, &cinfo) == 0) {
-    Tcl_AppendResult(interp, "-E: unknown command name \"", name, "\"", NULL);
+    Tcl_AppendResult(interp, "-E: unknown command name '", name, "'", NULL);
     return kERR;
   }
   
   RtclContext& cntx = RtclContext::Find(interp);
   if (!cntx.CheckProxy((RtclProxyBase*) cinfo.objClientData)) {
-    Tcl_AppendResult(interp, "-E: command \"", name, "\" is not a RtclProxy", 
+    Tcl_AppendResult(interp, "-E: command '", name, "' is not a RtclProxy", 
                      NULL);
     return kERR;
   }
   if (!cntx.CheckProxy((RtclProxyBase*) cinfo.objClientData, Type())) {
-    Tcl_AppendResult(interp, "-E: command \"", name, 
-                     "\" is not a RtclProxy of type \"", 
-                     Type().c_str(), "\"", NULL);
+    Tcl_AppendResult(interp, "-E: command '", name, 
+                     "' is not a RtclProxy of type '", 
+                     Type().c_str(), "'", NULL);
     return kERR;
   }
 
   int irc = Tcl_DeleteCommand(interp, name);
-  if (irc != kOK) Tcl_AppendResult(interp, "-E: failed to delete \"", name, 
-                                   "\"", NULL);
+  if (irc != kOK) Tcl_AppendResult(interp, "-E: failed to delete '", name, 
+                                   "'", NULL);
   return irc;
 }
 
@@ -155,8 +178,8 @@ int RtclClassBase::ThunkTclClassCmd(ClientData cdata, Tcl_Interp* interp,
     return ((RtclClassBase*) cdata)->TclClassCmd(interp, objc, objv);
   } catch (exception& e) {
     Rtcl::AppendResultNewLines(interp);
-    Tcl_AppendResult(interp, "-E: exception caught in ThunkTclClassCmd: \"", 
-                     e.what(), "\"", NULL);
+    Tcl_AppendResult(interp, "-E: exception caught in ThunkTclClassCmd: '", 
+                     e.what(), "'", NULL);
   }
   return kERR;
 }
@@ -180,9 +203,4 @@ void RtclClassBase::ThunkTclExitProc(ClientData cdata)
   return;
 }
 
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_RtclClassBase_NoInline))
-#define inline
-#include "RtclClassBase.ipp"
-#undef  inline
-#endif
+} // end namespace Retro

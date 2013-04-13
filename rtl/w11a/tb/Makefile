@@ -1,4 +1,4 @@
-# $Id: Makefile 442 2011-12-23 10:03:28Z mueller $
+# $Id: Makefile 477 2013-01-27 14:07:10Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -11,6 +11,8 @@
 #
 EXE_all  = tb_pdp11core
 #
+# reference board for test synthesis is Spartan-6 based Nexys3
+include $(RETROBASE)/rtl/make/xflow_default_nexys3.mk
 #
 .PHONY : all all_ssim all_tsim clean
 #
@@ -28,10 +30,12 @@ include $(RETROBASE)/rtl/make/generic_xflow.mk
 #
 VBOM_all = $(wildcard *.vbom)
 #
+ifndef DONTINCDEP
 include $(VBOM_all:.vbom=.dep_xst)
 include $(VBOM_all:.vbom=.dep_ghdl)
 include $(VBOM_all:.vbom=.dep_isim)
 include $(wildcard *.o.dep_ghdl)
+endif
 #
 #-----
 #  	time ~/misc_walter/p11_util/bin/pdp11 $*.scmd > $*.simh_raw_log

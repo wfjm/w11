@@ -1,6 +1,6 @@
 # libs
 ../slvtypes.vhd
-serport.vhd
+serportlib.vbom
 ../memlib/memlib.vhd
 # components
 serport_uart_rxtx_ab.vbom

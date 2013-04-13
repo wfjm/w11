@@ -1,6 +1,6 @@
-// $Id: RtclContext.hpp 380 2011-04-25 18:14:52Z mueller $
+// $Id: RtclContext.hpp 490 2013-02-22 18:43:26Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-01-12   474   1.0.3  add FindProxy() method
 // 2011-04-24   380   1.0.2  use boost::noncopyable (instead of private dcl's)
 // 2011-03-12   368   1.0.1  drop fExitSeen, get exit handling right
 // 2011-02-18   362   1.0    Initial version
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RtclContext.hpp 380 2011-04-25 18:14:52Z mueller $
+  \version $Id: RtclContext.hpp 490 2013-02-22 18:43:26Z mueller $
   \brief   Declaration of class RtclContext.
 */
 
@@ -52,7 +53,7 @@ namespace Retro {
       typedef xmap_t::value_type                   xmap_val_t;
 
       explicit      RtclContext(Tcl_Interp* interp);
-      virtual       ~RtclContext();
+      virtual      ~RtclContext();
 
       void          RegisterClass(RtclClassBase* pobj);
       void          UnRegisterClass(RtclClassBase* pobj);
@@ -64,6 +65,8 @@ namespace Retro {
 
       void          ListProxy(std::vector<RtclProxyBase*>& list,
                               const std::string& type);
+      RtclProxyBase* FindProxy(const std::string& type,
+                               const std::string& name);
 
       static RtclContext&  Find(Tcl_Interp* interp);
 
@@ -80,8 +83,6 @@ namespace Retro {
   
 } // end namespace Retro
 
-#if !(defined(Retro_NoInline) || defined(Retro_RtclContext_NoInline))
-#include "RtclContext.ipp"
-#endif
+//#include "RtclContext.ipp"
 
 #endif

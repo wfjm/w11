@@ -2,7 +2,7 @@
 ../slvtypes.vhd
 ../rbus/rblib.vhd
 rlinklib.vbom
-../serport/serport.vhd
+../serport/serportlib.vbom
 # components
 rlink_core8.vbom
 ../serport/serport_1clock.vbom

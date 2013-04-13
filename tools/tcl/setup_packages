@@ -1,5 +1,5 @@
 #! /usr/bin/env tclsh
-# $Id: setup_packages 445 2011-12-26 21:19:26Z mueller $
+# $Id: setup_packages 480 2013-02-03 10:11:02Z mueller $
 #
 pkg_mkIndex -verbose ../lib libr*tpp.so
 #
@@ -10,5 +10,7 @@ pkg_mkIndex -verbose rbmoni  *.tcl
 pkg_mkIndex -verbose rbbram  *.tcl
 pkg_mkIndex -verbose rbs3hio *.tcl
 pkg_mkIndex -verbose rbemon  *.tcl
+#
+pkg_mkIndex -verbose rw11a   *.tcl
 #
 pkg_mkIndex -verbose tst_rlink    *.tcl

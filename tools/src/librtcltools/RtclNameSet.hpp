@@ -1,4 +1,4 @@
-// $Id: RtclNameSet.hpp 365 2011-02-28 07:28:26Z mueller $
+// $Id: RtclNameSet.hpp 488 2013-02-16 18:49:47Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,7 @@
 
 /*!
   \file
-  \version $Id: RtclNameSet.hpp 365 2011-02-28 07:28:26Z mueller $
+  \version $Id: RtclNameSet.hpp 488 2013-02-16 18:49:47Z mueller $
   \brief   Declaration of class RtclNameSet.
 */
 
@@ -54,8 +54,6 @@ namespace Retro {
 
 } // end namespace Retro
 
-#if !(defined(Retro_NoInline) || defined(Retro_RtclNameSet_NoInline))
-#include "RtclNameSet.ipp"
-#endif
+//#include "RtclNameSet.ipp"
 
 #endif

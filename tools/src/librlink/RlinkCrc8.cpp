@@ -1,4 +1,4 @@
-// $Id: RlinkCrc8.cpp 410 2011-09-18 11:23:09Z mueller $
+// $Id: RlinkCrc8.cpp 488 2013-02-16 18:49:47Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,19 +20,21 @@
 
 /*!
   \file
-  \version $Id: RlinkCrc8.cpp 410 2011-09-18 11:23:09Z mueller $
+  \version $Id: RlinkCrc8.cpp 488 2013-02-16 18:49:47Z mueller $
   \brief   Implemenation of class RlinkCrc8.
  */
 
 #include "RlinkCrc8.hpp"
 
 using namespace std;
-using namespace Retro;
 
 /*!
   \class Retro::RlinkCrc8
-  \brief FIXME_text
+  \brief FIXME_docs
 */
+
+// all method definitions in namespace Retro
+namespace Retro {
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
@@ -74,9 +76,4 @@ const uint8_t RlinkCrc8::fCrc8Table[256] =
     6,  75, 156, 209, 127,  50, 229, 168
 };
 
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_RlinkCrc8_NoInline))
-#define inline
-#include "RlinkCrc8.ipp"
-#undef  inline
-#endif
+} // end namespace Retro

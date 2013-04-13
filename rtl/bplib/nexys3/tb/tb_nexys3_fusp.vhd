@@ -1,4 +1,4 @@
--- $Id: tb_nexys3_fusp.vhd 444 2011-12-25 10:04:58Z mueller $
+-- $Id: tb_nexys3_fusp.vhd 476 2013-01-26 22:23:53Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -43,7 +43,7 @@ use std.textio.all;
 use work.slvtypes.all;
 use work.rlinklib.all;
 use work.rlinktblib.all;
-use work.serport.all;
+use work.serportlib.all;
 use work.xlib.all;
 use work.nexys3lib.all;
 use work.simlib.all;

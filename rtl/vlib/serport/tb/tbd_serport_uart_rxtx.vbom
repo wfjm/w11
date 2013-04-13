@@ -1,6 +1,6 @@
 # libs
 ../../slvtypes.vhd
-../serport.vhd
+../serportlib.vbom
 # components
 ../serport_uart_rxtx.vbom
 # design

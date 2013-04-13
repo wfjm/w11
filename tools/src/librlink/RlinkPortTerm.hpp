@@ -1,4 +1,4 @@
-// $Id: RlinkPortTerm.hpp 440 2011-12-18 20:08:09Z mueller $
+// $Id: RlinkPortTerm.hpp 486 2013-02-10 22:34:43Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -21,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPortTerm.hpp 440 2011-12-18 20:08:09Z mueller $
+  \version $Id: RlinkPortTerm.hpp 486 2013-02-10 22:34:43Z mueller $
   \brief   Declaration of class RlinkPortTerm.
 */
 
@@ -49,7 +49,7 @@ namespace Retro {
 
       virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
 
-    // some constants
+    // some constants (also defined in cpp)
       static const uint8_t kc_xon  = 0x11;  // XON  char -> ^Q = hex 11
       static const uint8_t kc_xoff = 0x13;  // XOFF char -> ^S = hex 13
       static const uint8_t kc_xesc = 0x1b;  // XESC char -> ^[ = ESC = hex 1B
@@ -76,8 +76,6 @@ namespace Retro {
   
 } // end namespace Retro
 
-#if !(defined(Retro_NoInline) || defined(Retro_RlinkPortTerm_NoInline))
 //#include "RlinkPortTerm.ipp"
-#endif
 
 #endif

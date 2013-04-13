@@ -1,4 +1,4 @@
-// $Id: RlinkCrc8.hpp 365 2011-02-28 07:28:26Z mueller $
+// $Id: RlinkCrc8.hpp 486 2013-02-10 22:34:43Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: RlinkCrc8.hpp 365 2011-02-28 07:28:26Z mueller $
+  \version $Id: RlinkCrc8.hpp 486 2013-02-10 22:34:43Z mueller $
   \brief   Declaration of class \c RlinkCrc8.
 */
 
@@ -49,8 +49,6 @@ namespace Retro {
   
 } // end namespace Retro
 
-#if !(defined(Retro_NoInline) || defined(Retro_RlinkCrc8_NoInline))
 #include "RlinkCrc8.ipp"
-#endif
 
 #endif

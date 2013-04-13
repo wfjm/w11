@@ -1,7 +1,9 @@
-# $Id: generic_xflow.mk 470 2013-01-05 17:28:46Z mueller $
+# $Id: generic_xflow.mk 477 2013-01-27 14:07:10Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2013-01-27   477   1.8    remove defaults for ISE_(BOARD|PATH) and XFLOWOPT_*
+#                           use dontincdep.mk to suppress .dep include on clean
 # 2013-01-05   470   1.7.6  remove '-r' from all non-dir clean rm's
 # 2012-02-05   456   1.7.5  use vbomvonv --get_top for xflow calls
 # 2012-01-08   451   1.7.4  use xilinx_ghdl_sdf_filter
@@ -40,11 +42,11 @@
 # setup default board (for impact), device and userid (for bitgen)
 #
 ifndef ISE_BOARD
-ISE_BOARD = s3board
+$(error ISE_BOARD is not defined)
 endif
 #
 ifndef ISE_PATH
-ISE_PATH  = xc3s1000-ft256-4
+$(error ISE_PATH is not defined)
 endif
 #
 ifndef ISE_USERID
@@ -54,11 +56,11 @@ endif
 # setup defaults for xflow option files for synthesis and implementation
 #
 ifndef XFLOWOPT_SYN
-XFLOWOPT_SYN = syn_s3_speed.opt
+$(error XFLOWOPT_SYN is not defined)
 endif
 #
 ifndef XFLOWOPT_IMP
-XFLOWOPT_IMP = imp_s3_speed.opt
+$(error XFLOWOPT_IMP is not defined)
 endif
 #
 XFLOW    = xflow -p ${ISE_PATH} 
@@ -297,6 +299,8 @@ endif
 %.dep_ucf_cpp : %.ucf_cpp
 	cpp -I${RETROBASE}/rtl -MM $*.ucf_cpp |\
             sed 's/\.o:/\.ucf:/' > $*.dep_ucf_cpp
+#
+include $(RETROBASE)/rtl/make/dontincdep.mk
 #
 .PHONY : ise_clean ise_tmp_clean
 #

@@ -1,4 +1,4 @@
-// $Id: RosFill.ipp 359 2011-02-06 22:37:43Z mueller $
+// $Id: RosFill.ipp 488 2013-02-16 18:49:47Z mueller $
 //
 // Copyright 2000-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,11 +19,11 @@
 
 /*!
   \file
-  \version $Id: RosFill.ipp 359 2011-02-06 22:37:43Z mueller $
+  \version $Id: RosFill.ipp 488 2013-02-16 18:49:47Z mueller $
   \brief   Implemenation (inline) of RosFill.
 */
 
-// all method definitions in namespace Retro (avoid using in includes...)
+// all method definitions in namespace Retro
 namespace Retro {
 
 //------------------------------------------+-----------------------------------

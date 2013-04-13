@@ -9,6 +9,7 @@
 ../../../vlib/xlib/xlib.vhd
 ../../../vlib/genlib/genlib.vhd
 ../../../bplib/bpgen/bpgenlib.vbom
+../../../bplib/bpgen/bpgenrbuslib.vbom
 ../../../vlib/rbus/rblib.vhd
 ../../../bplib/fx2lib/fx2lib.vhd
 ${sys_conf}

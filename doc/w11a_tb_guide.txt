@@ -1,4 +1,4 @@
-# $Id: w11a_tb_guide.txt 443 2011-12-23 11:21:03Z mueller $
+# $Id: w11a_tb_guide.txt 504 2013-04-13 15:37:24Z mueller $
 
 Guide to running w11a test benches
 
@@ -159,11 +159,6 @@ Guide to running w11a test benches
    simulation, or via a serial port to a FPGA board. This way the same tests 
    can be executed in simulation and on real hardware.
 
-   Currently two backend implementations are available:
-   - pi_rri: written in perl (old, slow, but full functionality)
-   - ti_tti: written in C++ and Tcl (new, fast, but as of V0.55 only with
-               limited functionality; will replace pi_rri).
-
 4. Available system tests benches -----------------------------------------
 
 4a. serport tester -- --------------------------------------------
@@ -217,8 +212,8 @@ Guide to running w11a test benches
      time ti_rri --run="tbw tb_tst_rlink_s3" --fifo --logl=3 -- \
        "package require tst_rlink" "tst_rlink::setup" "tst_rlink::test_all" |\
        tee tb_tst_rlink_s3_dsim.log | egrep "(-[EFW]:|FAIL|PEND|DONE)"
-     -> 1822195.0 ns  91100: DONE 
-     -> real 0m13.281s
+     -> 960540.0 ns  48017: DONE
+     -> real 0m4.470s
 
    - sys_tst_rlink_n2 test bench
 
@@ -227,8 +222,8 @@ Guide to running w11a test benches
      time ti_rri --run="tbw tb_tst_rlink_n2" --fifo --logl=3 -- \
        "package require tst_rlink" "tst_rlink::setup" "tst_rlink::test_all" |\
        tee tb_tst_rlink_n2_dsim.log | egrep "(-[EFW]:|FAIL|PEND|DONE)"
-     -> 1769140.0 ns  88446: DONE 
-     -> real 0m15.289s
+     -> 960560.0 ns  48017: DONE 
+     -> real 0m4.717s
 
    - sys_tst_rlink_n3 test bench
 
@@ -237,8 +232,8 @@ Guide to running w11a test benches
      time ti_rri --run="tbw tb_tst_rlink_n3" --fifo --logl=3 -- \
        "package require tst_rlink" "tst_rlink::setup" "tst_rlink::test_all" |\
        tee tb_tst_rlink_n3_dsim.log | egrep "(-[EFW]:|FAIL|PEND|DONE)"
-     -> 893590.0 ns  89338: DONE
-     -> real 0m9.510s
+     -> 480380.0 ns  48017: DONE
+     -> real 0m4.860s
 
 4c. w11a systems -----------------------------------------------------
 
@@ -253,32 +248,44 @@ Guide to running w11a test benches
 
      cd $RETROBASE/rtl/sys_gen/w11a/s3board/tb
      make tb_w11a_s3
-     time pi_rri --fifo --timeout=40. --cmax=3 \
-        --run="tbw tb_w11a_s3" -- \
-   	 @../../../../w11a/tb/tb_pdp11core_stim.dat |\
+     time ti_rri --pack=rw11a --run="tbw tb_w11a_s3" --fifo --logl=3 -- \
+         "rw11a::setup_cpu" \
+         "rw11a::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat" |\
        tee tb_w11a_s3_stim2_dsim.log | egrep "(-[EFW]:|FAIL|PEND|DONE)"
-     -> 7852095.0 ns 392595: DONE 
-     -> real 0m49.835s   user 0m50.203s   sys 0m00.696s
+     -> 10225140.0 ns 511247: DONE 
+     -> real 0m52.105s  user 0m0.260s  sys 0m0.132s
 
    - sys_w11a_n2 test bench
 
      cd $RETROBASE/rtl/sys_gen/w11a/nexys2/tb
      make tb_w11a_n2
-     time pi_rri --fifo --timeout=40. --cmax=3 \
-        --run="tbw tb_w11a_n2" -- \
-   	 @../../../../w11a/tb/tb_pdp11core_stim.dat |\
+     time ti_rri --pack=rw11a --run="tbw tb_w11a_n2" --fifo --logl=3 -- \
+         "rw11a::setup_cpu" \
+         "rw11a::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat" |\
        tee tb_w11a_n2_stim2_dsim.log | egrep "(-[EFW]:|FAIL|PEND|DONE)"
-     -> 7836580.0 ns 391818: DONE
-     -> real 1m0.854s   user 1m1.332s   sys 0m0.800s
+     -> 10278380.0 ns 513908: DONE 
+     -> real 1m26.388s  user 0m0.312s  sys 0m0.156s
 
    - sys_w11a_n3 test bench
 
      cd $RETROBASE/rtl/sys_gen/w11a/nexys3/tb
      make tb_w11a_n3
-     time pi_rri --fifo --timeout=40. --cmax=3 \
-        --run="tbw tb_w11a_n3" -- \
-   	 @../../../../w11a/tb/tb_pdp11core_stim.dat |\
+     time ti_rri --pack=rw11a --run="tbw tb_w11a_n3" --fifo --logl=3 -- \
+         "rw11a::setup_cpu" \
+         "rw11a::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat" |\
        tee tb_w11a_n3_stim2_dsim.log | egrep "(-[EFW]:|FAIL|PEND|DONE)"
-     -> 3956540.0 ns 395633: DONE 
-     -> real 1m13.811s   user 1m14.389s   sys 0m0.948s
+     -> 5167410.0 ns 516720: DONE 
+     -> real 1m26.611s   user 0m0.248s   sys 0m0.196s
 
+   A new, modular w11a test bench is under construction. So far it is very
+   incomplete. This very preliminary version can be executed with
+
+   - sys_w11a_n2 test bench
+
+     cd $RETROBASE/rtl/sys_gen/w11a/nexys2/tb
+     make tb_w11a_n2
+     time ti_rri --pack=rw11a --run="tbw tb_w11a_n2" --fifo --logl=3 -- \
+         "rw11a::setup_cpu" "rw11a::tbench @w11a_all.dat" | \
+       tee w11a_tbench_dsim.log | egrep "(-[EFW]:|FAIL|PASS|DONE)"
+     -> 904180.0 ns  45198: DONE 
+     -> real 0m5.739s   user 0m0.576s   sys 0m0.076s

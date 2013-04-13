@@ -1,4 +1,4 @@
-# $Id: Makefile 448 2012-01-02 21:55:11Z mueller $
+# $Id: Makefile 477 2013-01-27 14:07:10Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -13,8 +13,7 @@
 VBOM_all  = $(wildcard *.vbom)
 BIT_all   = $(VBOM_all:.vbom=.bit)
 #
-ISE_BOARD = s3board
-ISE_PATH  = xc3s1000-ft256-4
+include $(RETROBASE)/rtl/make/xflow_default_s3board.mk
 #
 .PHONY : all clean
 #
@@ -33,6 +32,8 @@ sys_w11a_s3.mcs : sys_w11a_s3.bit
 include $(RETROBASE)/rtl/make/generic_xflow.mk
 include $(RETROBASE)/rtl/make/generic_ghdl.mk
 #
+ifndef DONTINCDEP
 include $(VBOM_all:.vbom=.dep_xst)
 include $(VBOM_all:.vbom=.dep_ghdl)
+endif
 #

@@ -1,4 +1,4 @@
-# $Id: INSTALL.txt 467 2013-01-02 19:49:05Z mueller $
+# $Id: INSTALL.txt 504 2013-04-13 15:37:24Z mueller $
 
 Guide to install and build w11a systems, test benches and support software
 
@@ -22,6 +22,7 @@ Guide to install and build w11a systems, test benches and support software
        a. General instructions
        b. Configuring FPGAs
        c. Available systems
+  9.  Generate Doxygen based source code view
 
 1. Download ---------------------------------------------------------------
 
@@ -75,6 +76,9 @@ Guide to install and build w11a systems, test benches and support software
     - ghdl
       -> see INSTALL_ghdl.txt for the unfortunately gory details
 
+  - for doxygen documentation an up-to-date installation of doxygen is
+    required, version 1.8.3.1 or later
+
   - optional but very useful is:
     - gtkwave
       -> package: gtkwave
@@ -89,13 +93,15 @@ Guide to install and build w11a systems, test benches and support software
 
     - the definition of the environment variables:
       - RETROBASE: must refer to the installation root directory
-      - BOOSTINC:  pathname for includes of boost library
       - TCLINC:    pathname for includes of Tcl runtime library
       - RETRO_FX2_VID and RETRO_FX2_PID: default USB VID/PID, see below
     - that the tools binary directory is in the path
     - that the tools library directory is in the library path
+    - optional environment variables:
+      - BOOSTINC:  pathname for includes of boost library
+      - BOOSTLIB:  pathname for libraries of boost library
+        {Note: Either both must be undefined, or both must be defined}
     
-
   For bash and alike use
 
     export RETROBASE=<wdir>
@@ -105,8 +111,9 @@ Guide to install and build w11a systems, test benches and support software
   In most cases the boost library version coming with the distribution will
   work, similar for Tcl, in those cases simply use
 
-    export BOOSTINC=/usr/include
     export TCLINC=/usr/include/tcl8.5
+
+  and don't setup BOOSTINC and BOOSTLIB.
 
   After that building functional model based test benches will work. If you 
   want to also build post-xst or post-par test benches read next section.
@@ -378,3 +385,22 @@ Guide to install and build w11a systems, test benches and support software
 
         cd $RETROBASE/rtl/sys_gen/w11a/nexys3
         make sys_w11a_n3.bit
+
+9. Generate Doxygen based source code view --------------------------------
+
+   Currently there is not much real documentation included in the source
+   files. The doxygen generated html output is nevertheless very useful
+   to browse the code. C++, Tcl and Vhdl source are covered by setup files
+   contained in the project files.
+
+   To generate the html files
+
+     cd $RETROBASE/tools/dox
+     export RETRODOXY <desired root of html documentation>
+     ./make_doxy
+
+   If RETRODOXY is not defined '/tmp' is used. To view the docs use
+
+     firefox $RETRODOXY/w11/cpp/html/index.html &
+     firefox $RETRODOXY/w11/tcl/html/index.html &
+     firefox $RETRODOXY/w11/vhd/html/index.html &

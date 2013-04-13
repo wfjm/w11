@@ -1,6 +1,6 @@
-// $Id: RtclProxyBase.cpp 401 2011-07-31 21:02:33Z mueller $
+// $Id: RtclProxyBase.cpp 488 2013-02-16 18:49:47Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,10 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-02-09   485   1.4.2  add CommandName()
+// 2013-02-05   483   1.4.1  ClassCmdConfig: use RtclArgs
+// 2013-02-02   480   1.4    factor out RtclCmdBase base class
+// 2013-02-01   479   1.3    add DispatchCmd(), support $unknown method
 // 2011-07-31   401   1.2    add ctor(type,interp,name) for direct usage
 // 2011-04-23   380   1.1    use boost/function instead of RmethDsc
 // 2011-03-05   366   1.0.1  use AppendResultNewLines() in exception catcher
@@ -22,32 +26,33 @@
 
 /*!
   \file
-  \version $Id: RtclProxyBase.cpp 401 2011-07-31 21:02:33Z mueller $
+  \version $Id: RtclProxyBase.cpp 488 2013-02-16 18:49:47Z mueller $
   \brief   Implemenation of RtclProxyBase.
 */
 
-#include <stdexcept>
-
 #include "RtclProxyBase.hpp"
+
 #include "RtclContext.hpp"
 #include "Rtcl.hpp"
 
 using namespace std;
-using namespace Retro;
 
 /*!
   \class Retro::RtclProxyBase
   \brief FIXME_docs
 */
 
-typedef std::pair<Retro::RtclProxyBase::mmap_it_t, bool>  mmap_ins_t;
+// all method definitions in namespace Retro
+namespace Retro {
+
+typedef std::pair<RtclProxyBase::mmap_it_t, bool>  mmap_ins_t;
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
 RtclProxyBase::RtclProxyBase(const std::string& type)
-  : fType(type),
-    fMapMeth(),
+  : RtclCmdBase(),
+    fType(type),
     fInterp(0)
 {}
 
@@ -56,8 +61,8 @@ RtclProxyBase::RtclProxyBase(const std::string& type)
 
 RtclProxyBase::RtclProxyBase(const std::string& type, Tcl_Interp* interp,
                              const char* name)
-  : fType(type),
-    fMapMeth(),
+  : RtclCmdBase(),
+    fType(type),
     fInterp(0)
 {
   CreateObjectCmd(interp, name);
@@ -74,26 +79,18 @@ RtclProxyBase::~RtclProxyBase()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-int RtclProxyBase::ClassCmdConfig(Tcl_Interp* interp, int objc,
-                                  Tcl_Obj* const objv[])
+int RtclProxyBase::ClassCmdConfig(RtclArgs& args)
 {
-  if (objc > 2) {
-    Tcl_AppendResult(interp, "-E: no configuration args supported", NULL);
-    return TCL_ERROR;
-  }
-  return TCL_OK;
+  if (!args.AllDone()) return kERR;
+  return kOK;
 }
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RtclProxyBase::AddMeth(const std::string& name, const methfo_t& methfo)
+std::string RtclProxyBase::CommandName() const
 {
-  mmap_ins_t ret = fMapMeth.insert(mmap_val_t(name, methfo));
-  if (ret.second == false)                  // or use !(ret.second)
-    throw logic_error(string("RtclProxyBase::AddMeth: duplicate name: ") + 
-                      name);
-  return;
+  return string(Tcl_GetCommandName(fInterp, fCmdToken));
 }
 
 //------------------------------------------+-----------------------------------
@@ -116,56 +113,8 @@ void RtclProxyBase::CreateObjectCmd(Tcl_Interp* interp, const char* name)
 int RtclProxyBase::TclObjectCmd(Tcl_Interp* interp, int objc, 
                                 Tcl_Obj* const objv[])
 {
-  mmap_cit_t it_match;
-
-  if (objc == 1) {                             // no args
-    mmap_cit_t it = fMapMeth.find("$default"); // default method registered ?
-    if (it == fMapMeth.end()) {                // if not, complain
-      Tcl_WrongNumArgs(interp, 1, objv, "option ?args?");
-      return TCL_ERROR;
-    }
-    it_match = it;
-
-  } else {                                     // at least method name given 
-    string name(Tcl_GetString(objv[1]));
-    mmap_cit_t it = fMapMeth.lower_bound(name);
-    
-    // no leading substring match
-    if (it==fMapMeth.end() || name!=it->first.substr(0,name.length())) {
-      Tcl_AppendResult(interp, "-E: bad option \"", Tcl_GetString(objv[1]),
-                       "\": must be ", NULL);
-      const char* delim = "";
-      for (mmap_cit_t it1=fMapMeth.begin(); it1!=fMapMeth.end(); it1++) {
-        if (it1->first.c_str()[0] != '$') {
-          Tcl_AppendResult(interp, delim, it1->first.c_str(), NULL);
-          delim = ",";
-        }        
-      }
-      return TCL_ERROR;
-    }
-    
-    it_match = it;
-    
-    // check for ambiguous substring match
-    if (name != it->first) {
-      mmap_cit_t it1 = it;
-      it1++;
-      if (it1!=fMapMeth.end() && name==it1->first.substr(0,name.length())) {
-        Tcl_AppendResult(interp, "-E: ambiguous option \"", 
-                         Tcl_GetString(objv[1]), "\": must be ", NULL);
-        const char* delim = "";
-        for (it1=it; it1!=fMapMeth.end() &&
-               name==it1->first.substr(0,name.length()); it1++) {
-          Tcl_AppendResult(interp, delim, it1->first.c_str(), NULL);
-          delim = ",";
-        }
-        return TCL_ERROR;
-      }
-    }
-  }
-  
   RtclArgs  args(interp, objc, objv, 2);
-  return (it_match->second)(args);
+  return DispatchCmd(args);
 }
 
 //------------------------------------------+-----------------------------------
@@ -184,7 +133,7 @@ int RtclProxyBase::ThunkTclObjectCmd(ClientData cdata, Tcl_Interp* interp,
     return ((RtclProxyBase*) cdata)->TclObjectCmd(interp, objc, objv);
   } catch (exception& e) {
     Rtcl::AppendResultNewLines(interp);
-    Tcl_AppendResult(interp, "-E: exception caught \"", e.what(), "\"", NULL);
+    Tcl_AppendResult(interp, "-E: exception caught '", e.what(), "'", NULL);
   }
   return TCL_ERROR;
 }
@@ -208,9 +157,4 @@ void RtclProxyBase::ThunkTclExitProc(ClientData cdata)
   return;
 }
 
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_RtclProxyBase_NoInline))
-#define inline
-#include "RtclProxyBase.ipp"
-#undef  inline
-#endif
+} // end namespace Retro

@@ -1,4 +1,4 @@
--- $Id: tb_serport_uart_rxtx.vhd 444 2011-12-25 10:04:58Z mueller $
+-- $Id: tb_serport_uart_rxtx.vhd 476 2013-01-26 22:23:53Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -50,7 +50,7 @@ use std.textio.all;
 
 use work.slvtypes.all;
 use work.simlib.all;
-use work.serport.all;
+use work.serportlib.all;
 
 entity tb_serport_uart_rxtx is
 end tb_serport_uart_rxtx;

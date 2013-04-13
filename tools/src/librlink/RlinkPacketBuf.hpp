@@ -1,6 +1,6 @@
-// $Id: RlinkPacketBuf.hpp 375 2011-04-02 07:56:47Z mueller $
+// $Id: RlinkPacketBuf.hpp 486 2013-02-10 22:34:43Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-01-13   474   1.0.1  add PollAttn() method
 // 2011-04-02   375   1.0    Initial version
 // 2011-03-05   366   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPacketBuf.hpp 375 2011-04-02 07:56:47Z mueller $
+  \version $Id: RlinkPacketBuf.hpp 486 2013-02-10 22:34:43Z mueller $
   \brief   Declaration of class RlinkPacketBuf.
 */
 
@@ -52,6 +53,7 @@ namespace Retro {
                               RerrMsg& emsg);
 
       double        WaitAttn(RlinkPort* port, double timeout, RerrMsg& emsg);
+      int           PollAttn(RlinkPort* port, RerrMsg& emsg);
       bool          SndOob(RlinkPort* port, uint16_t addr, uint16_t data, 
                            RerrMsg& emsg);
       bool          SndKeep(RlinkPort* port, RerrMsg& emsg);
@@ -73,7 +75,7 @@ namespace Retro {
 
       void          Dump(std::ostream& os, int ind=0, const char* text=0) const;
 
-    // flag bits
+    // flag bits (also defined in cpp)
       static const uint32_t kFlagSopSeen  = 1<<0;  //!< sop was seen
       static const uint32_t kFlagEopSeen  = 1<<1;  //!< eop was seen
       static const uint32_t kFlagNakSeen  = 1<<2;  //!< nak was seen
@@ -82,7 +84,7 @@ namespace Retro {
       static const uint32_t kFlagDatDrop  = 1<<17; //!< data before sop dropped
       static const uint32_t kFlagDatMiss  = 1<<18; //!< eop before expected data
 
-    // some constants
+    // some constants (also defined in cpp)
       static const uint8_t kCPREF = 0x80;   //!< VHDL def for comma prefix
       static const uint8_t kNCOMM = 0x04;   //!< VHDL def for number of commas
       static const uint8_t kCommaIdle = kCPREF+0; //!< IDLE comma
@@ -115,8 +117,6 @@ namespace Retro {
   
 } // end namespace Retro
 
-#if !(defined(Retro_NoInline) || defined(Retro_RlinkPacketBuf_NoInline))
 #include "RlinkPacketBuf.ipp"
-#endif
 
 #endif

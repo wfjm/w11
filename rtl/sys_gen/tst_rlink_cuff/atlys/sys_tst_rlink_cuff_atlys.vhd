@@ -1,4 +1,4 @@
--- $Id: sys_tst_rlink_cuff_atlys.vhd 472 2013-01-06 14:39:10Z mueller $
+-- $Id: sys_tst_rlink_cuff_atlys.vhd 476 2013-01-26 22:23:53Z mueller $
 --
 -- Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,7 +18,7 @@
 -- Dependencies:   vlib/xlib/dcm_sfs
 --                 vlib/genlib/clkdivce
 --                 bplib/bpgen/bp_rs232_2l4l_iob
---                 bplib/bpgen/sn_humanio_rbus
+--                 bplib/bpgen/sn_humanio_demu_rbus
 --                 bplib/fx2lib/fx2_2fifoctl_as   [sys_conf_fx2_type="as2"]
 --                 bplib/fx2lib/fx2_2fifoctl_ic   [sys_conf_fx2_type="ic2"]
 --                 bplib/fx2lib/fx2_3fifoctl_ic   [sys_conf_fx2_type="ic3"]
@@ -40,7 +40,7 @@
 ------------------------------------------------------------------------------
 -- Usage of Atlys Switches, Buttons, LEDs:
 --
---    SWI(7:3)  no function (only connected to sn_humanio_rbus)
+--    SWI(7:3)  no function (only connected to sn_humanio_demu_rbus)
 --       (2)    0 -> int/ext RS242 port for rlink
 --              1 -> use USB interface for rlink
 --       (1)    1 enable XON
@@ -48,7 +48,7 @@
 --              1 -> Pmod B/top RS232 port  /
 --
 --    LED(7)    SER_MONI.abact
---       (6:2)  no function (only connected to sn_humanio_rbus)
+--       (6:2)  no function (only connected to sn_humanio_demu_rbus)
 --       (0)    timer 0 busy 
 --       (1)    timer 1 busy 
 --
@@ -73,6 +73,7 @@ use work.slvtypes.all;
 use work.xlib.all;
 use work.genlib.all;
 use work.bpgenlib.all;
+use work.bpgenrbuslib.all;
 use work.rblib.all;
 use work.fx2lib.all;
 use work.sys_conf.all;

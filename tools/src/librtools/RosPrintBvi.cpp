@@ -1,6 +1,6 @@
-// $Id: RosPrintBvi.cpp 368 2011-03-12 09:58:53Z mueller $
+// $Id: RosPrintBvi.cpp 492 2013-02-24 22:14:47Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,27 +13,30 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-02-03   481   1.0.2  use Rexception
 // 2011-03-12   368   1.0.1  allow base=0, will print in hex,oct and bin
 // 2011-03-05   366   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RosPrintBvi.cpp 368 2011-03-12 09:58:53Z mueller $
+  \version $Id: RosPrintBvi.cpp 492 2013-02-24 22:14:47Z mueller $
   \brief   Implemenation of RosPrintBvi .
 */
 
-#include <stdexcept>
-
 #include "RosPrintBvi.hpp"
 
+#include "Rexception.hpp"
+
 using namespace std;
-using namespace Retro;
 
 /*! 
   \class Retro::RosPrintBvi 
   \brief FIXME_docs.
 */
+
+// all method definitions in namespace Retro
+namespace Retro {
 
 //------------------------------------------+-----------------------------------
 //! Constructor. FIXME_docs
@@ -44,9 +47,11 @@ RosPrintBvi::RosPrintBvi(uint8_t val, size_t base, size_t nbit)
     fNbit(nbit)
 {
   if (base!=0 && base!=2 && base!=8 && base!=16)
-    throw invalid_argument("RosPrintBvi::ctor: base must be 0,2,8, or 16");
+    throw Rexception("RosPrintBvi::<ctor>",
+                     "Bad args: base must be 0,2,8, or 16");
   if (nbit<1 || nbit>8)
-    throw invalid_argument("RosPrintBvi::ctor: nbit must be in 1,..,8");
+    throw Rexception("RosPrintBvi::<ctor>",
+                     "Bad args: nbit must be in 1,..,8");
 }
 
 //------------------------------------------+-----------------------------------
@@ -58,9 +63,11 @@ RosPrintBvi::RosPrintBvi(uint16_t val, size_t base, size_t nbit)
     fNbit(nbit)
 {
   if (base!=0 && base!=2 && base!=8 && base!=16)
-    throw invalid_argument("RosPrintBvi::ctor: base must be 0,2,8, or 16");
+    throw Rexception("RosPrintBvi::<ctor>",
+                     "Bad args: base must be 0,2,8, or 16");
   if (nbit<1 || nbit>16)
-    throw invalid_argument("RosPrintBvi::ctor: nbit must be in 1,..,16");
+    throw Rexception("RosPrintBvi::<ctor>",
+                     "Bad args: nbit must be in 1,..,16");
 }
 
 //------------------------------------------+-----------------------------------
@@ -72,9 +79,11 @@ RosPrintBvi::RosPrintBvi(uint32_t val, size_t base, size_t nbit)
     fNbit(nbit)
 {
   if (base!=0 && base!=2 && base!=8 && base!=16)
-    throw invalid_argument("RosPrintBvi::ctor: base must be 0,2,8, or 16");
+    throw Rexception("RosPrintBvi::<ctor>",
+                     "Bad args: base must be 0,2,8, or 16");
   if (nbit<1 || nbit>32)
-    throw invalid_argument("RosPrintBvi::ctor: nbit must be in 1,..,32");
+    throw Rexception("RosPrintBvi::<ctor>",
+                     "Bad args: nbit must be in 1,..,32");
 }
 
 //------------------------------------------+-----------------------------------
@@ -139,9 +148,5 @@ void RosPrintBvi::Convert(char* pbuf) const
   return;
 }
 
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_RosPrintBvi_NoInline))
-#define inline
-#include "RosPrintBvi.ipp"
-#undef  inline
-#endif
+} // end namespace Retro
+

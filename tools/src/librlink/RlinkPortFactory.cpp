@@ -1,6 +1,6 @@
-// $Id: RlinkPortFactory.cpp 465 2012-12-27 21:29:38Z mueller $
+// $Id: RlinkPortFactory.cpp 492 2013-02-24 22:14:47Z mueller $
 //
-// Copyright 2011-2012 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-02-23   492   1.2    use RparseUrl
 // 2012-12-26   465   1.1    add cuff: support
 // 2011-03-27   374   1.0    Initial version
 // 2011-01-15   356   0.1    First draft
@@ -20,36 +21,40 @@
 
 /*!
   \file
-  \version $Id: RlinkPortFactory.cpp 465 2012-12-27 21:29:38Z mueller $
+  \version $Id: RlinkPortFactory.cpp 492 2013-02-24 22:14:47Z mueller $
   \brief   Implemenation of RlinkPortFactory.
 */
 
-#include "RlinkPortFactory.hpp"
+#include "librtools/RparseUrl.hpp"
+
 #include "RlinkPortFifo.hpp"
 #include "RlinkPortTerm.hpp"
 #include "RlinkPortCuff.hpp"
 
+#include "RlinkPortFactory.hpp"
+
 using namespace std;
-using namespace Retro;
 
 /*!
   \class Retro::RlinkPortFactory
-  \brief FIXME_text
+  \brief FIXME_docs
 */
 
+// all method definitions in namespace Retro
+namespace Retro {
+
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 RlinkPort* Retro::RlinkPortFactory::New(const std::string& url, RerrMsg& emsg)
 {
-  size_t dpos = url.find_first_of(':');
-  if (dpos == string::npos) {
+  string scheme = RparseUrl::FindScheme(url);
+  
+  if (scheme.length() == 0) { 
     emsg.Init("RlinkPortFactory::New()", 
-              string("no scheme specified in url \"" + url + string("\"")));
+              string("no scheme specified in url '" + url + string("'")));
     return 0;
   }
-
-  string scheme = url.substr(0,dpos);      // get scheme without ':' delim
 
   if        (scheme == "fifo") {
     return new RlinkPortFifo();
@@ -64,7 +69,7 @@ RlinkPort* Retro::RlinkPortFactory::New(const std::string& url, RerrMsg& emsg)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 RlinkPort* RlinkPortFactory::Open(const std::string& url, RerrMsg& emsg)
 {
@@ -76,10 +81,4 @@ RlinkPort* RlinkPortFactory::Open(const std::string& url, RerrMsg& emsg)
   return 0;
 }
 
-
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_RlinkPortFactory_NoInline))
-#define inline
-//#include "RlinkPortFactory.ipp"
-#undef  inline
-#endif
+} // end namespace Retro

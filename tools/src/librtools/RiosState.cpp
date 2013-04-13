@@ -1,4 +1,4 @@
-// $Id: RiosState.cpp 359 2011-02-06 22:37:43Z mueller $
+// $Id: RiosState.cpp 488 2013-02-16 18:49:47Z mueller $
 //
 // Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,14 +19,13 @@
 
 /*!
   \file
-  \version $Id: RiosState.cpp 359 2011-02-06 22:37:43Z mueller $
+  \version $Id: RiosState.cpp 488 2013-02-16 18:49:47Z mueller $
   \brief   Implemenation of RiosState.
 */
 
 #include "RiosState.hpp"
 
 using namespace std;
-using namespace Retro;
 
 /*!
   \class Retro::RiosState
@@ -34,6 +33,9 @@ using namespace Retro;
 */
 
 //------------------------------------------+-----------------------------------
+// all method definitions in namespace Retro
+namespace Retro {
+
 //! Construct with stream.
 
 RiosState::RiosState(ios& stream)
@@ -153,9 +155,4 @@ void RiosState::SetFormat(const char* form, int prec)
   }
 }
 
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_RiosState_NoInline))
-#define inline
-#include "RiosState.ipp"
-#undef  inline
-#endif
+} // end namespace Retro

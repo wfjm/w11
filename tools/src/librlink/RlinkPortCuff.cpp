@@ -1,4 +1,4 @@
-// $Id: RlinkPortCuff.cpp 467 2013-01-02 19:49:05Z mueller $
+// $Id: RlinkPortCuff.cpp 504 2013-04-13 15:37:24Z mueller $
 //
 // Copyright 2012-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,16 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-02-23   492   1.1    use RparseUrl
+// 2013-02-10   485   1.0.3  add static const defs
+// 2013-02-03   481   1.0.2  use Rexception
 // 2013-01-02   467   1.0.1  get cleanup code right; add USBErrorName()
 // 2012-12-26   465   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RlinkPortCuff.cpp 467 2013-01-02 19:49:05Z mueller $
+  \version $Id: RlinkPortCuff.cpp 504 2013-04-13 15:37:24Z mueller $
   \brief   Implemenation of RlinkPortCuff.
 */
 
@@ -28,18 +31,32 @@
 #include <sys/time.h>
 #include <time.h>
 #include <stdio.h>
+#include <string.h>
 
-#include <stdexcept>
+#include <iostream>
+#include <sstream>
 
 #include "RlinkPortCuff.hpp"
 
+#include "librtools/Rexception.hpp"
+
 using namespace std;
-using namespace Retro;
 
 /*!
   \class Retro::RlinkPortCuff
-  \brief FIXME_text
+  \brief FIXME_docs
 */
+
+// all method definitions in namespace Retro
+namespace Retro {
+
+//------------------------------------------+-----------------------------------
+// constants definitions
+
+const size_t RlinkPortCuff::kUSBBufferSize;
+const int    RlinkPortCuff::kUSBWriteEP;
+const int    RlinkPortCuff::kUSBReadEP;
+const size_t RlinkPortCuff::kUSBReadQueue;
 
 //------------------------------------------+-----------------------------------
 //! Default constructor
@@ -69,7 +86,7 @@ RlinkPortCuff::~RlinkPortCuff()
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 bool RlinkPortCuff::Open(const std::string& url, RerrMsg& emsg)
 {
@@ -77,7 +94,7 @@ bool RlinkPortCuff::Open(const std::string& url, RerrMsg& emsg)
 
   if (IsOpen()) Close();
 
-  if (!ParseUrl(url, "|trace|", emsg)) return false;
+  if (!fUrl.Set(url, "|trace|", emsg)) return false;
 
   // initialize USB context
   irc = libusb_init(&fpUsbContext);
@@ -104,14 +121,12 @@ bool RlinkPortCuff::Open(const std::string& url, RerrMsg& emsg)
   fUsbDevCount = libusb_get_device_list(fpUsbContext, &fpUsbDevList);  
 
   // determine USB path name
-  if (fPath.length() == 0) {
-    char* env_vid = getenv("RETRO_FX2_VID");
-    char* env_pid = getenv("RETRO_FX2_PID");
-    if (env_vid && strlen(env_vid) == 4 &&
-        env_pid && strlen(env_pid) == 4) {
-      fPath  = env_vid;
-      fPath += ":";
-      fPath += env_pid;
+  if (fUrl.Path().length() == 0) {
+    char* env_vid = ::getenv("RETRO_FX2_VID");
+    char* env_pid = ::getenv("RETRO_FX2_PID");
+    if (env_vid && ::strlen(env_vid) == 4 &&
+        env_pid && ::strlen(env_pid) == 4) {
+      fUrl.SetPath(string(env_vid) + string(":") + string(env_pid));
     } else {
       emsg.Init("RlinkPortCuff::Open()", 
                 string("RETRO_FX2_VID/PID not or ill defined"));
@@ -123,12 +138,12 @@ bool RlinkPortCuff::Open(const std::string& url, RerrMsg& emsg)
   // connect to USB device
   libusb_device* mydev = 0;
   // path syntax: /bus/dev
-  if (fPath.length()==8 && fPath[0]=='/' && fPath[4]=='/') {
-    string busnam = fPath.substr(1,3);
-    string devnam = fPath.substr(5,3);
+  if (fUrl.Path().length()==8 && fUrl.Path()[0]=='/' && fUrl.Path()[4]=='/') {
+    string busnam = fUrl.Path().substr(1,3);
+    string devnam = fUrl.Path().substr(5,3);
     char* endptr;
-    uint8_t busnum = strtol(busnam.c_str(), &endptr, 10);
-    uint8_t devnum = strtol(devnam.c_str(), &endptr, 10);
+    uint8_t busnum = ::strtol(busnam.c_str(), &endptr, 10);
+    uint8_t devnum = ::strtol(devnam.c_str(), &endptr, 10);
     for (ssize_t idev=0; idev<fUsbDevCount; idev++) {
       libusb_device* udev = fpUsbDevList[idev];
       if (libusb_get_bus_number(udev) == busnum &&
@@ -137,12 +152,12 @@ bool RlinkPortCuff::Open(const std::string& url, RerrMsg& emsg)
       }
     }
   // path syntax: vend:prod
-  } else if (fPath.length()==9 && fPath[4]==':') {
-    string vennam = fPath.substr(0,4);
-    string pronam = fPath.substr(5,4);
+  } else if (fUrl.Path().length()==9 && fUrl.Path()[4]==':') {
+    string vennam = fUrl.Path().substr(0,4);
+    string pronam = fUrl.Path().substr(5,4);
     char* endptr;
-    uint16_t vennum = strtol(vennam.c_str(), &endptr, 16);
-    uint16_t pronum = strtol(pronam.c_str(), &endptr, 16);
+    uint16_t vennum = ::strtol(vennam.c_str(), &endptr, 16);
+    uint16_t pronum = ::strtol(pronam.c_str(), &endptr, 16);
     for (ssize_t idev=0; idev<fUsbDevCount; idev++) {
       libusb_device* udev = fpUsbDevList[idev];
       libusb_device_descriptor devdsc;
@@ -153,14 +168,14 @@ bool RlinkPortCuff::Open(const std::string& url, RerrMsg& emsg)
     }
   } else {
     emsg.Init("RlinkPortCuff::Open()", 
-              string("invalid usb path '") + fPath +
+              string("invalid usb path '") + fUrl.Path() +
               "', not '/bus/dev' or 'vend:prod'");
     Cleanup();
     return false;
   }
   if (mydev == 0) {
     emsg.Init("RlinkPortCuff::Open()", 
-              string("no usb device '") + fPath + "', found'");
+              string("no usb device '") + fUrl.Path() + "', found'");
     Cleanup();
     return false;
   }
@@ -169,18 +184,18 @@ bool RlinkPortCuff::Open(const std::string& url, RerrMsg& emsg)
   if (irc) {
     fpUsbDevHdl = 0;
     emsg.Init("RlinkPortCuff::Open()", 
-              string("opening usb device '") + fPath + "', failed: " +
+              string("opening usb device '") + fUrl.Path() + "', failed: " +
               string(USBErrorName(irc)));
     Cleanup();
     return false;
   }
-  if (TraceOn()) cout << "libusb_open ok for '" << fPath << "'" << endl;
+  if (TraceOn()) cout << "libusb_open ok for '" << fUrl.Path() << "'" << endl;
 
   // claim USB device
   irc = libusb_claim_interface(fpUsbDevHdl, 0);
   if (irc) {
     emsg.Init("RlinkPortCuff::Open()", 
-              string("failed to claim '") + fPath + "': " +
+              string("failed to claim '") + fUrl.Path() + "': " +
               string(USBErrorName(irc)));
     Cleanup();
     return false;
@@ -208,7 +223,7 @@ bool RlinkPortCuff::Open(const std::string& url, RerrMsg& emsg)
   for (const libusb_pollfd** p = plist; *p !=0; p++) {
     PollfdAdd((*p)->fd, (*p)->events);
   }
-  free(plist);
+  ::free(plist);
   libusb_set_pollfd_notifiers(fpUsbContext, ThunkPollfdAdd,
                               ThunkPollfdRemove, this);
 
@@ -220,7 +235,7 @@ bool RlinkPortCuff::Open(const std::string& url, RerrMsg& emsg)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 void RlinkPortCuff::Close()
 {
@@ -235,7 +250,7 @@ void RlinkPortCuff::Close()
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 void RlinkPortCuff::Cleanup()
 {
@@ -246,8 +261,8 @@ void RlinkPortCuff::Cleanup()
   // use timed join, throw in case driver doesn't stop
   if (fDriverThread.get_id() != boost::thread::id()) {
     if (!fDriverThread.timed_join(boost::posix_time::milliseconds(500))) {
-      throw runtime_error("RlinkPortCuff::Cleanup(): "
-                          "driver thread failed to stop");
+      throw Rexception("RlinkPortCuff::Cleanup()",
+                       "driver thread failed to stop");
     }
   }
 
@@ -278,14 +293,14 @@ void RlinkPortCuff::Cleanup()
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 bool RlinkPortCuff::OpenPipe(int& fdread, int& fdwrite, RerrMsg& emsg)
 {
   int irc;
   int pipefd[2];
 
-  irc = pipe(pipefd);
+  irc = ::pipe(pipefd);
   if (irc < 0) {
     emsg.InitErrno("RlinkPortCuff::OpenPipe()", 
                    string("pipe() failed: "),
@@ -300,7 +315,7 @@ bool RlinkPortCuff::OpenPipe(int& fdread, int& fdwrite, RerrMsg& emsg)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 // executed in separate boost thread !!
 void RlinkPortCuff::Driver()
@@ -373,7 +388,7 @@ void RlinkPortCuff::Driver()
       DriverEventUSB();
     }
     if (fWriteQueuePending.size() + fReadQueuePending.size())
-      throw runtime_error("RlinkPortCuff::Driver(): cleanup timeout");
+      throw Rexception("RlinkPortCuff::Driver()", "cleanup timeout");
 
     fLoopState = kLoopStateStopped;
     if (TraceOn()) cout << "cleanup ended" << endl;
@@ -390,7 +405,7 @@ void RlinkPortCuff::Driver()
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 void RlinkPortCuff::DriverEventWritePipe()
 {
@@ -417,7 +432,7 @@ void RlinkPortCuff::DriverEventWritePipe()
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 void RlinkPortCuff::DriverEventUSB()
 {
@@ -433,7 +448,7 @@ void RlinkPortCuff::DriverEventUSB()
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 libusb_transfer* RlinkPortCuff::NewWriteTransfer()
 {
@@ -461,48 +476,48 @@ libusb_transfer* RlinkPortCuff::NewWriteTransfer()
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 bool RlinkPortCuff::TraceOn()
 {
-  if (!UrlFindOpt("trace")) return false;
+  if (!fUrl.FindOpt("trace")) return false;
   struct timeval tv;
   struct timezone tz;
   struct tm tmval;
 
-  gettimeofday(&tv, &tz);
-  localtime_r(&tv.tv_sec, &tmval);
+  ::gettimeofday(&tv, &tz);
+  ::localtime_r(&tv.tv_sec, &tmval);
   char buf[20];
-  snprintf(buf, 20, "%02d:%02d:%02d.%06d: ", 
-           tmval.tm_hour, tmval.tm_min, tmval.tm_sec, (int) tv.tv_usec);
+  ::snprintf(buf, 20, "%02d:%02d:%02d.%06d: ", 
+             tmval.tm_hour, tmval.tm_min, tmval.tm_sec, (int) tv.tv_usec);
   cout << buf;
   return true;
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 void RlinkPortCuff::BadSysCall(const char* meth, const char* text, int rc)
 {
-  char buf[1024];
-  snprintf(buf, 1024, "%s : %s failed with rc=%d errno=%d: %s",
-           meth, text, rc, errno, strerror(errno));
-  throw runtime_error(buf);
+  stringstream ss;
+  ss << rc;
+  throw Rexception(meth, string(text)+string(" failed with rc=")+ss.str(),
+                   errno);
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 void RlinkPortCuff::BadUSBCall(const char* meth, const char* text, int rc)
 {
-  char buf[1024];
-  snprintf(buf, 1024, "%s : %s failed with rc=%d: %s",
-           meth, text, rc, USBErrorName(rc));
-  throw runtime_error(buf);  
+  stringstream ss;
+  ss << rc;
+  throw Rexception(meth, string(text)+string(" failed with rc=")+ss.str()+
+                   string(" : ")+string(USBErrorName(rc)));
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 void RlinkPortCuff::CheckUSBTransfer(const char* meth, libusb_transfer *t)
 {
@@ -516,13 +531,13 @@ void RlinkPortCuff::CheckUSBTransfer(const char* meth, libusb_transfer *t)
   if (etext == 0) return;
 
   char buf[1024];
-  snprintf(buf, 1024, "%s : transfer failure on ep=%d: %s",
-           meth, (int)(t->endpoint&(~0x80)), etext);
-  throw runtime_error(buf);  
+  ::snprintf(buf, 1024, "%s : transfer failure on ep=%d: %s",
+             meth, (int)(t->endpoint&(~0x80)), etext);
+  throw Rexception(meth, buf);
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 const char* RlinkPortCuff::USBErrorName(int rc)
 {
@@ -564,7 +579,7 @@ const char* RlinkPortCuff::USBErrorName(int rc)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 void RlinkPortCuff::PollfdAdd(int fd, short events)
 {
@@ -578,7 +593,7 @@ void RlinkPortCuff::PollfdAdd(int fd, short events)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 void RlinkPortCuff::PollfdRemove(int fd)
 {
@@ -594,7 +609,7 @@ void RlinkPortCuff::PollfdRemove(int fd)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 void RlinkPortCuff::USBWriteDone(libusb_transfer* t)
 {
@@ -603,8 +618,8 @@ void RlinkPortCuff::USBWriteDone(libusb_transfer* t)
   if (fWriteQueuePending.size() && t == fWriteQueuePending.front()) 
     fWriteQueuePending.pop_front();
   else 
-    throw logic_error("RlinkPortCuff::USBWriteDone: "
-                      "fWriteQueuePending disordered");
+    throw Rexception("RlinkPortCuff::USBWriteDone()",
+                     "BugCheck: fWriteQueuePending disordered");
 
   if (fLoopState == kLoopStateRunning) {
     CheckUSBTransfer("RlinkPortCuff::USBWriteDone()", t);
@@ -618,7 +633,7 @@ void RlinkPortCuff::USBWriteDone(libusb_transfer* t)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 void RlinkPortCuff::USBReadDone(libusb_transfer* t)
 {
@@ -627,8 +642,8 @@ void RlinkPortCuff::USBReadDone(libusb_transfer* t)
   if (fReadQueuePending.size() && t == fReadQueuePending.front())
     fReadQueuePending.pop_front();
   else 
-    throw logic_error("RlinkPortCuff::USBReadDone: "
-                      "fReadQueuePending disordered");
+    throw Rexception("RlinkPortCuff::USBReadDone()",
+                     "BugCheck: fReadQueuePending disordered");
 
   if (fLoopState == kLoopStateRunning) {
     CheckUSBTransfer("RlinkPortCuff::USBReadDone()", t);
@@ -654,7 +669,7 @@ void RlinkPortCuff::USBReadDone(libusb_transfer* t)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 void RlinkPortCuff::ThunkPollfdAdd(int fd, short events, void* udata)
 {
@@ -664,7 +679,7 @@ void RlinkPortCuff::ThunkPollfdAdd(int fd, short events, void* udata)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 void RlinkPortCuff::ThunkPollfdRemove(int fd, void* udata)
 {
@@ -674,7 +689,7 @@ void RlinkPortCuff::ThunkPollfdRemove(int fd, void* udata)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 void RlinkPortCuff::ThunkUSBWriteDone(libusb_transfer* t)
 {
@@ -684,7 +699,7 @@ void RlinkPortCuff::ThunkUSBWriteDone(libusb_transfer* t)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 void RlinkPortCuff::ThunkUSBReadDone(libusb_transfer* t)
 {
@@ -693,9 +708,4 @@ void RlinkPortCuff::ThunkUSBReadDone(libusb_transfer* t)
   return;
 }
 
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_RlinkPortCuff_NoInline))
-#define inline
-//#include "RlinkPortCuff.ipp"
-#undef  inline
-#endif
+} // end namespace Retro

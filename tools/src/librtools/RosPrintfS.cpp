@@ -1,4 +1,4 @@
-// $Id: RosPrintfS.cpp 364 2011-02-26 08:33:01Z mueller $
+// $Id: RosPrintfS.cpp 488 2013-02-16 18:49:47Z mueller $
 //
 // Copyright 2000-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: RosPrintfS.cpp 364 2011-02-26 08:33:01Z mueller $
+  \version $Id: RosPrintfS.cpp 488 2013-02-16 18:49:47Z mueller $
   \brief   Implemenation of RosPrintfS .
 */
 
@@ -30,12 +30,14 @@
 #include "RosPrintfS.hpp"
 
 using namespace std;
-using namespace Retro;
 
 /*!
   \class RosPrintfS
   \brief Print object for scalar values . **
 */
+
+// all method definitions in namespace Retro
+namespace Retro {
 
 //------------------------------------------+-----------------------------------
 /*!
@@ -136,3 +138,5 @@ template class RosPrintfS<double>;
 
 template class RosPrintfS<const char *>;
 template class RosPrintfS<const void *>;
+
+} // end namespace Retro

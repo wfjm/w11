@@ -1,6 +1,6 @@
 #! /usr/bin/env tclsh
 # -*- tcl -*-
-# $Id: ti_rri 467 2013-01-02 19:49:05Z mueller $
+# $Id: ti_rri 504 2013-04-13 15:37:24Z mueller $
 #
 # Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -15,6 +15,9 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2013-04-12   504   1.1.4  add --pack; trailing '-' argv implies --int
+# 2013-02-05   482   1.1.3  stop server is rls found
+# 2013-01-27   478   1.1.2  use 'exec sh -c $cmd &' for --run implementation
 # 2013-01-02   467   1.1.1  call rlc close only when really open
 # 2012-12-27   465   1.1    add --cuff support
 # 2012-02-09   457   1.0.4  disable autoexec
@@ -25,6 +28,7 @@
 # 2011-03-19   371   0.1    First draft
 #
 #
+# --pack=pname,...
 # --fifo[=name,opts,...]
 # --term[=name,baud,opts,...]
 # --cuff[=name,...]
@@ -41,6 +45,7 @@
 #
 
 array set opts { 
+    pack_  ""
     fifo   0
     fifo_  ""
     term   0
@@ -72,6 +77,9 @@ proc exit_cleanup {} {
   global opts
   global runpid
 
+  # check for rlink server, stop it
+  if { [info commands rls] eq "rls" } { rls server -stop }
+
   # now close rlink connection
   if { $opts(fifo) || $opts(term) || $opts(cuff) } {
     if { [rlc open] ne "" } { rlc close }
@@ -91,6 +99,7 @@ foreach arg $argv {
     continue
   }
   switch -regexp -- $arg {
+    ^--?pack=.+$  { regexp -- {=(.*)} $arg dummy opts(pack_) }
     ^--?fifo=?.*$ { set opts(fifo) 1; regexp -- {=(.*)} $arg dummy opts(fifo_) }
     ^--?term=?.*$ { set opts(term) 1; regexp -- {=(.*)} $arg dummy opts(term_) }
     ^--?cuff=?.*$ { set opts(cuff) 1; regexp -- {=(.*)} $arg dummy opts(cuff_) }
@@ -109,11 +118,21 @@ foreach arg $argv {
   }
 }
 
+# check whether last element in clist is plain '-'
+if { [llength clist] } {
+  if { [lindex $clist end] eq "-" } {
+    set opts(int) 1
+    set clist [lrange $clist 0 end-1]
+  }
+}
+
 if { $opts(help) } {
   # use {} as defimiter here to avoid that escaping of all [] 
   puts {usage: ti_rri [OPTION]... [COMMAND]...}
   puts {}
   puts {Options:}
+  puts {  --pack=PLIST   load, with package require, additional packages}
+  puts {                   PLIST is comma separated list of package names}
   puts {  --run=CMD      exec's CMD as subprocess before the rlink port opened}
   puts {                 useful to start test benches, usually via 'tbw'}
   puts {  --fifo[=ARGS]  open fifo type rlink port. Optional arguments are:}
@@ -173,6 +192,7 @@ if {![info exists env(RETROBASE)]} {
   return 1
 }
 
+# check consistency of connection open options
 set nopen 0;
 if { $opts(fifo) } { incr nopen }
 if { $opts(term) } { incr nopen }
@@ -191,6 +211,15 @@ package require rutiltpp
 package require rlinktpp
 
 rlinkconnect rlc
+rlinkserver rls rlc
+
+# load additional packages (if -pack given)
+if { $opts(pack_) ne "" } {
+  foreach pack [split $opts(pack_) ","] {
+    package require $pack
+  }
+}
+
 
 # setup logging
 if { $opts(log_) ne "-" } {
@@ -201,8 +230,11 @@ rlc config -logdumplevel  $opts(dmpl_)
 rlc config -logtracelevel $opts(tiol_)
 
 # first start, if specified with --run, the test bench
+# exec sh -c $cmd is used to execute a shell command including [], '',""
+# in a direct exec the tcl expansion logic will interfere...
+#
 if { $opts(run_) ne "" } {
-  if { [catch {eval "exec $opts(run_) &" } runpid] } {
+  if { [catch {exec sh -c $opts(run_) &} runpid] } {
     puts "-E: failed to execute \"$opts(run_)\" with error message\n  $runpid"
     puts "aborting..."
     return 1

@@ -1,4 +1,4 @@
-// $Id: Rtcl.ipp 365 2011-02-28 07:28:26Z mueller $
+// $Id: Rtcl.ipp 488 2013-02-16 18:49:47Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,11 +19,11 @@
 
 /*!
   \file
-  \version $Id: Rtcl.ipp 365 2011-02-28 07:28:26Z mueller $
+  \version $Id: Rtcl.ipp 488 2013-02-16 18:49:47Z mueller $
   \brief   Implemenation (inline) of Rtcl.
 */
 
-// all method definitions in namespace Retro (avoid using in includes...)
+// all method definitions in namespace Retro
 namespace Retro {
 
 //------------------------------------------+-----------------------------------

@@ -1,4 +1,4 @@
-// $Id: RlinkPacketBuf.ipp 375 2011-04-02 07:56:47Z mueller $
+// $Id: RlinkPacketBuf.ipp 488 2013-02-16 18:49:47Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,11 +19,11 @@
 
 /*!
   \file
-  \version $Id: RlinkPacketBuf.ipp 375 2011-04-02 07:56:47Z mueller $
+  \version $Id: RlinkPacketBuf.ipp 488 2013-02-16 18:49:47Z mueller $
   \brief   Implemenation (inline) of class RlinkPacketBuf.
 */
 
-// all method definitions in namespace Retro (avoid using in includes...)
+// all method definitions in namespace Retro
 namespace Retro {
 
 //------------------------------------------+-----------------------------------

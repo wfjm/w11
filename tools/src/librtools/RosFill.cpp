@@ -1,4 +1,4 @@
-// $Id: RosFill.cpp 364 2011-02-26 08:33:01Z mueller $
+// $Id: RosFill.cpp 488 2013-02-16 18:49:47Z mueller $
 //
 // Copyright 2000-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,14 +20,13 @@
 
 /*!
   \file
-  \version $Id: RosFill.cpp 364 2011-02-26 08:33:01Z mueller $
+  \version $Id: RosFill.cpp 488 2013-02-16 18:49:47Z mueller $
   \brief   Implemenation of RosFill .
 */
 
 #include "RosFill.hpp"
 
 using namespace std;
-using namespace Retro;
 
 /*! 
   \class Retro::RosFill 
@@ -60,13 +59,16 @@ void xyz::Dump(ostream& os, int indent) const
   This finally produces a nicely structured output.
 */
 
+// all method definitions in namespace Retro
+namespace Retro {
+
 //------------------------------------------+-----------------------------------
 /*! 
   \relates RosFill
   \brief ostream insertion operator.
 */
 
-std::ostream& Retro::operator<<(std::ostream& os, const RosFill& obj)
+std::ostream& operator<<(std::ostream& os, const RosFill& obj)
 {
   for (int i=0; i<obj.Count(); i++) os.put(obj.Fill());
   return os;
@@ -78,15 +80,10 @@ std::ostream& Retro::operator<<(std::ostream& os, const RosFill& obj)
   \brief string insertion operator.
 */
 
-std::string& Retro::operator<<(std::string& os, const RosFill& obj)
+std::string& operator<<(std::string& os, const RosFill& obj)
 {
   for (int i=0; i<obj.Count(); i++) os.push_back(obj.Fill());
   return os;
 }
 
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_RosFill_NoInline))
-#define inline
-#include "RosFill.ipp"
-#undef  inline
-#endif
+} // end namespace Retro

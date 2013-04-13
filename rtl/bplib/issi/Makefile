@@ -1,4 +1,4 @@
-# $Id: Makefile 405 2011-08-14 08:16:28Z mueller $
+# $Id: Makefile 477 2013-01-27 14:07:10Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -16,5 +16,7 @@ include $(RETROBASE)/rtl/make/generic_ghdl.mk
 #
 VBOM_all = $(wildcard *.vbom)
 #
+ifndef DONTINCDEP
 include $(VBOM_all:.vbom=.dep_ghdl)
+endif
 #

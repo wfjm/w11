@@ -1,4 +1,4 @@
-# $Id: util.tcl 375 2011-04-02 07:56:47Z mueller $
+# $Id: util.tcl 502 2013-04-02 19:29:30Z mueller $
 #
 # Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -64,7 +64,7 @@ namespace eval rutil {
   }
 
   #
-  # regdsc_print: print regsiter descriptor
+  # regdsc_print: print register descriptor
   #
   proc regdsc_print {name} {
     upvar $name rdsc

@@ -1,4 +1,4 @@
-// $Id: RerrMsg.ipp 365 2011-02-28 07:28:26Z mueller $
+// $Id: RerrMsg.ipp 488 2013-02-16 18:49:47Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,11 +19,11 @@
 
 /*!
   \file
-  \version $Id: RerrMsg.ipp 365 2011-02-28 07:28:26Z mueller $
+  \version $Id: RerrMsg.ipp 488 2013-02-16 18:49:47Z mueller $
   \brief   Implemenation (inline) of RerrMsg.
 */
 
-// all method definitions in namespace Retro (avoid using in includes...)
+// all method definitions in namespace Retro
 namespace Retro {
 
 //------------------------------------------+-----------------------------------

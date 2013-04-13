@@ -1,4 +1,4 @@
--- $Id: rlinklib.vhd 466 2012-12-30 13:26:55Z mueller $
+-- $Id: rlinklib.vhd 495 2013-03-06 17:13:48Z mueller $
 --
 -- Copyright 2007-2012 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -56,7 +56,7 @@ use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.rblib.all;
-use work.serport.all;
+use work.serportlib.all;
 
 package rlinklib is
 
@@ -79,7 +79,7 @@ constant c_rlink_cmd_init : slv3 := "110";
 
 constant c_rlink_iint_rbf_anena:    integer := 15;         -- anena flag
 constant c_rlink_iint_rbf_itoena:   integer := 14;         -- itoena flag
-subtype  c_rlink_iint_rbf_itoval is integer range 7 downto 0; -- command code
+subtype  c_rlink_iint_rbf_itoval is integer range 7 downto 0; -- itoval value
 
 subtype  c_rlink_cmd_rbf_seq is  integer range 7 downto 3; -- sequence number
 subtype  c_rlink_cmd_rbf_code is integer range 2 downto 0; -- command code

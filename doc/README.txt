@@ -1,4 +1,4 @@
-# $Id: README.txt 472 2013-01-06 14:39:10Z mueller $
+# $Id: README.txt 504 2013-04-13 15:37:24Z mueller $
 
 Release notes for w11a
 
@@ -7,7 +7,6 @@ Release notes for w11a
   1. Documentation
   2. Files
   3. Change Log
-
 
 1. Documentation -------------------------------------------------------------
 
@@ -58,6 +57,9 @@ Release notes for w11a
    rtl/vlib/xlib                  - Xilinx specific components
    rtl/w11a                     - w11a core
    tools                        helper programs
+   tools/asm-11                 - pdp-11 assembler code
+   tools/asm-11/tests             - test bench for asm-11
+   tools/asm-11/tests-err         - test bench for asm-11 (error check part)
    tools/bin                    - scripts and binaries
    tools/dox                    - Doxygen documentation configuration
    tools/make                   - make includes
@@ -71,9 +73,50 @@ Release notes for w11a
    tools/src/librtcltools         - support classes to implement Tcl bindings
    tools/src/librtools            - general support classes and methods
    tools/src/librutiltpp          - Tcl support commands implemented in C++
+   tools/src/librw11              - w11 over rlink interface
+   tools/src/librwxxtpp           - C++ to tcl binding for w11 over rlink iface
+   tools/tbench                 - w11 CPU test bench
    tools/tcl                    - Tcl scripts
 
 3. Change Log ----------------------------------------------------------------
+
+- trunk (2013-06-13: svn rev 19(oc) 505(wfjm); untagged w11a_V0.562) +++++++++
+
+  - Summary
+    - V0.53 introduced a new C++ and Tcl based backend server, but only the
+      very basic rlink handling layer. This step release add now many support
+      classes for interfacing to w11 system designs, and the associated Tcl
+      bindings.
+    - add 'asm-11', a simple, Macro-11 syntax subset combatible, assembler. 
+      Can be used stand-alone to generate 'absolute loader' format files,
+      but also integrates tightly into the Tcl environment and is used as
+      building block in the creation of CPU test benches.
+    - use now doxygen 1.8.3.1, generate c++,tcl, and vhdl source docs
+      See section 9. in INSTALL.txt for details.
+
+  - New features
+    - new directory trees for
+      - tools/asm-11              - asm-11 code
+      - tools/asm-11/tests          - test bench for asm-11
+      - tools/asm-11/tests-err      - test bench for asm-11 (error check part)
+      - tools/src/librw11         - w11 over rlink interface
+      - tools/src/librwxxtpp      - C++ to tcl binding for w11 over rlink iface
+      - tools/tbench              - w11 CPU test bench
+    - new modules
+      - tools/bin
+        - asm-11         - simple, Macro-11 syntax subset compatible, assembler
+        - asm-11_expect  - expect checker for asm-11 test bench
+      - tools/dox
+        - *.Doxyfile     - new descriptors c++,tcl,vhdl docs
+        - make_dox       - driver script to generate c++,tcl,vhdl doxygen docs
+
+  - Changes
+    - vhdl module renames:
+        vlib/serport               -> vlib/serportlib
+    - vhdl module splits:
+        bplib/bpgen/bpgenlib       -> bpgenlib + bpgenrbuslib
+    - C++ class splits
+        librtcltools/RtclProxyBase -> RtclCmdBase + RtclProxyBase
 
 - trunk (2013-01-06: svn rev 18(oc) 472(wfjm); untagged w11a_V0.561) +++++++++
 

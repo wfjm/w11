@@ -1,4 +1,4 @@
-# $Id: Makefile 467 2013-01-02 19:49:05Z mueller $
+# $Id: Makefile 477 2013-01-27 14:07:10Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -13,7 +13,7 @@ EXE_all  = tb_nexys2_dummy
 EXE_all += tb_nexys2_fusp_dummy
 EXE_all += tb_nexys2_fusp_cuff_dummy
 #
-ISE_PATH = xc3s1200e-fg320-4
+include $(RETROBASE)/rtl/make/xflow_default_nexys2.mk
 #
 .PHONY : all all_ssim all_tsim clean
 #
@@ -31,8 +31,10 @@ include $(RETROBASE)/rtl/make/generic_xflow.mk
 #
 VBOM_all = $(wildcard *.vbom)
 #
+ifndef DONTINCDEP
 include $(VBOM_all:.vbom=.dep_xst)
 include $(VBOM_all:.vbom=.dep_ghdl)
 include $(VBOM_all:.vbom=.dep_isim)
 include $(wildcard *.o.dep_ghdl)
+endif
 #

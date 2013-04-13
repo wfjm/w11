@@ -1,4 +1,4 @@
-// $Id: RlinkCommandExpect.ipp 375 2011-04-02 07:56:47Z mueller $
+// $Id: RlinkCommandExpect.ipp 488 2013-02-16 18:49:47Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,15 +19,15 @@
 
 /*!
   \file
-  \version $Id: RlinkCommandExpect.ipp 375 2011-04-02 07:56:47Z mueller $
+  \version $Id: RlinkCommandExpect.ipp 488 2013-02-16 18:49:47Z mueller $
   \brief   Implemenation (inline) of class RlinkCommandExpect.
 */
 
-// all method definitions in namespace Retro (avoid using in includes...)
+// all method definitions in namespace Retro
 namespace Retro {
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline void RlinkCommandExpect::SetStatus(uint8_t stat, uint8_t statmsk)
 {
@@ -37,7 +37,7 @@ inline void RlinkCommandExpect::SetStatus(uint8_t stat, uint8_t statmsk)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline void RlinkCommandExpect::SetData(uint16_t data, uint16_t datamsk)
 {
@@ -47,7 +47,7 @@ inline void RlinkCommandExpect::SetData(uint16_t data, uint16_t datamsk)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline void RlinkCommandExpect::SetBlock(const std::vector<uint16_t>& block)
 {
@@ -56,7 +56,7 @@ inline void RlinkCommandExpect::SetBlock(const std::vector<uint16_t>& block)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline void RlinkCommandExpect::SetBlock(
                    const std::vector<uint16_t>& block,
@@ -68,7 +68,7 @@ inline void RlinkCommandExpect::SetBlock(
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline uint8_t RlinkCommandExpect::StatusValue() const
 {
@@ -76,7 +76,7 @@ inline uint8_t RlinkCommandExpect::StatusValue() const
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline uint8_t RlinkCommandExpect::StatusMask() const
 {
@@ -84,7 +84,7 @@ inline uint8_t RlinkCommandExpect::StatusMask() const
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline uint16_t RlinkCommandExpect::DataValue() const
 {
@@ -92,7 +92,7 @@ inline uint16_t RlinkCommandExpect::DataValue() const
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline uint16_t RlinkCommandExpect::DataMask() const
 {
@@ -100,7 +100,7 @@ inline uint16_t RlinkCommandExpect::DataMask() const
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline const std::vector<uint16_t>& RlinkCommandExpect::BlockValue() const
 {
@@ -108,7 +108,7 @@ inline const std::vector<uint16_t>& RlinkCommandExpect::BlockValue() const
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline const std::vector<uint16_t>& RlinkCommandExpect::BlockMask() const
 {
@@ -116,7 +116,7 @@ inline const std::vector<uint16_t>& RlinkCommandExpect::BlockMask() const
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline bool RlinkCommandExpect::StatusCheck(uint8_t val) const
 {
@@ -124,7 +124,7 @@ inline bool RlinkCommandExpect::StatusCheck(uint8_t val) const
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline bool RlinkCommandExpect::DataCheck(uint16_t val) const
 {
@@ -132,7 +132,7 @@ inline bool RlinkCommandExpect::DataCheck(uint16_t val) const
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline bool RlinkCommandExpect::StatusIsChecked() const
 {
@@ -140,7 +140,7 @@ inline bool RlinkCommandExpect::StatusIsChecked() const
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline bool RlinkCommandExpect::DataIsChecked() const
 {

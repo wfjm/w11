@@ -1,0 +1,208 @@
+#!/usr/bin/perl -w
+# $Id: ticonv_pdpcp 504 2013-04-13 15:37:24Z mueller $
+#
+# Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+#
+# This program is free software; you may redistribute and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 2, or at your option any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# for complete details.
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2013-04-12   504   1.0.2  renamed from pi2ti_pdpcp; fix [rm]wi handling
+#                           use wtcpu command; use wibrbbe command;
+# 2013-02-05   483   1.0.1  make cpucmd parametrizable
+# 2013-02-02   480   1.0    Initial version
+#
+
+use 5.005;                                  # require Perl 5.005 or higher
+use strict;                                 # require strict checking
+
+use Getopt::Long;
+
+my %opts = ();
+
+GetOptions(\%opts  ) || exit 1;
+
+if (scalar(@ARGV) != 2) {
+  print STDERR "%ticonv_pdpcp-E: usage: ticonv_pdpcp <cpucmd> <filename>\n";
+  exit 1;
+}
+
+my $cpu  = $ARGV[0];
+my $fnam = $ARGV[1];
+open IFILE, $fnam or die "failed to open '$fnam'";
+
+while (<IFILE>) {
+  chomp;
+  s/--.*//;                                 # drop all -- style comments
+  s/\s*$//;                                 # drop traing blanks
+  next if m/^#/;
+
+  # print "$_\n";
+
+  my $cmd = $_;
+
+  $cmd =~ s/^rsp/rr6/;			    # rsp -> rr6
+  $cmd =~ s/^rpc/rr7/;			    # rpc -> rr7
+  $cmd =~ s/^wsp/wr6/;			    # wsp -> wr6
+  $cmd =~ s/^wpc/wr7/;			    # wpc -> wr7
+
+  # C... comments -> write to rlc log --------------------------------
+  if ($cmd =~ /^C(.*)/) {
+    my $msg = $1;
+    $msg =~ s/"/'/g;
+    $msg =~ s/\[/\{/g;
+    $msg =~ s/\]/\}/g;
+    print "rlc log \"C $msg\"\n";
+
+  # .tocmd,.tostp,.togo,.cerr,.merr -> ignore, like pi_rri -----------
+  } elsif ($cmd =~ /^\.(tocmd|tostp|togo|[cm]err)\s+(\d*)/) {
+    print "# $cmd currently ignored\n";
+
+  # .mode mode -> accept only 'pdpcp', quit otherwise ----------------
+  } elsif ($cmd =~ /^\.mode\s+(.*)/) {
+    if ($1 ne "pdpcp") {
+      print "# FAIL: $cmd not supported\n";
+      exit 1;
+    }
+
+  # .rlmon,.rbmon ----------------------------------------------------
+  } elsif ($cmd =~ /^\.(r[lb]mon)\s+(\d)/) {
+    print "rlc oob -$1 $2\n";
+
+  # .scntl -----------------------------------------------------------
+  } elsif ($cmd =~ /^\.scntl\s+(\d+)\s+(\d)/) {
+    print "rlc oob -sbcntl $1 $2\n";
+
+  # .anena (0|1) -> rlc exec -init -----------------------------------
+  } elsif ($cmd =~ /^\.anena\s+(\d)/) {
+    my $dat = $1 ? '[regbld rlink::INIT anena]' : '0';
+    print "rlc exec -init 0xff $dat\n";
+    print "rlc exec -attn\n";
+
+  # .reset -----------------------------------------------------------
+  } elsif ($cmd =~ /^\.reset/) {
+    print "rlc exec -init 0 1\n";
+
+  # (write) data type commands: wrx,wps,wal,wah,wm,wmi,stapc ---
+  # Note: 'stapc' must be decoeded before 'sta' !!
+  # Note: 'wibrb' must be handled separately
+  # Note: 'wmi' must be matched before 'wm'
+  } elsif ($cmd =~ /^(wr[0-7]|wps|wal|wah|wmi|wm|stapc)\s+([0-7]+)/) {
+    print "$cpu cp -$1 0$2\n";
+
+  # (write) data type commands: wibrb ---
+  } elsif ($cmd =~ /^(wibrb)\s+([0-7]+)/) {
+    my $base = oct($2);
+    my $be   = $base & 0x3;
+    if ($be == 0) {
+      print "$cpu cp -wibrb 0$2\n";
+    } else {
+      printf "$cpu cp -wibrbbe 0%6.6o %o\n", $base&0177700, $be;
+    }
+
+  # (read) [d=data] type commands: rrx,rps,rm,rmi --------------------
+  # Note: 'rmi' must be matched before 'rm'
+  } elsif ($cmd =~ /^(rr[0-7]|rps|rmi|rm)/) {
+    print "$cpu cp -$1 ";
+    add_edata($');
+    print "\n";
+
+  # bwm n ------------------------------------------------------------
+  } elsif ($cmd =~ /^bwm\s+(\d+)/) {
+    my $nw = $1;
+    print "$cpu cp -bwm {";
+    for (my $i=0; $i<$nw;) {
+      my $dat = <IFILE>;
+      $dat =~ s/--.*//;
+      $dat =~ s/\s*//g;
+      next if $dat =~ m/^#/;
+      print " 0$dat";
+      $i++;
+    }
+    print "}\n";
+
+  # brm n ------------------------------------------------------------
+  } elsif ($cmd =~ /^brm\s+(\d+)/) {
+    my $nw = $1;
+    print "$cpu cp -brm $1";
+    my @data;
+    my @mask;
+    my $domask;
+    for (my $i=0; $i<$nw;) {
+      my $dat = <IFILE>;
+      $dat =~ s/--.*//;
+      $dat =~ s/\s*//g;
+      next if $dat =~ m/^#/;
+      if ($dat =~ m/d=([0-7]+)/ ) {
+        push @data, "0$1";
+        push @mask, "0";
+      } elsif ($dat =~ m/d=-/) {
+        push @data, "0";
+        push @mask, "0177777";
+        $domask = 1;
+      } else {
+        exit 1;
+      }
+      $i++;
+    }
+    print " -edata {", join(" ",@data), "} ";
+    print " {", join(" ",@mask), "} " if $domask;
+    print "\n";
+
+  # wibr off data ---------------------------------------------------
+  } elsif ($cmd =~ /^(wibr)\s+([0-7]+)\s+([0-7]+)/) {
+    print "$cpu cp -$1 0$2 0$3";
+    print "\n";
+
+  # ribr off [d=data] ------------------------------------------------
+  } elsif ($cmd =~ /^(ribr)\s+([0-7]+)/) {
+    print "$cpu cp -$1 0$2";
+    add_edata($');
+    print "\n";
+
+  # simple action commands: sta,sto,cont,step,rst --------------------
+  } elsif ($cmd =~ /^(sta|sto|cont|step|rst)/) {
+    my %cmdmap = (sta  => 'start',
+                  sto  => 'stop',
+                  cont => 'continue',
+                  step => 'step',
+                  rst  => 'reset');
+    printf "$cpu cp -%s", $cmdmap{$1};
+    print "\n";
+
+  # wtgo -> wtcpu ----------------------------------------------------
+  } elsif ($cmd =~ /^(wtgo)/) {
+    print "$cpu wtcpu 10.";
+    print "\n";
+
+  # wtlam apat -------------------------------------------------------
+  # Note: apat currently ignored !!
+  } elsif ($cmd =~ /^(wtlam)/) {
+    print "$cpu wtcpu 10.";
+    print "\n";
+
+  # currently unimplemented commands ... -----------------------------
+  } elsif ($cmd =~ /^(\.wait|\.sdef)/) {
+    print "## TODO... $cmd\n";
+
+  } else {
+    print "# FAIL: no match for '$cmd'\n";
+    exit 1;
+  }
+
+}
+
+sub add_edata {
+  my ($crest) = @_;
+  $crest =~ s/\s+//;
+  if ($crest =~ m/d=([0-7]+)/) {
+    print " -edata 0$1";
+  }
+}

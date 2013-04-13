@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: dorri 435 2011-12-04 20:15:25Z mueller $
+# $Id: dorri 503 2013-04-06 19:44:13Z mueller $
 #
 #  Revision History:
 # Date         Rev Version  Comment
@@ -22,7 +22,7 @@ sub print_usage;
 autoflush STDOUT 1;             # autoflush, so noting lost on exec later
 
 my $opt_b;
-my $opt_io;
+my $opt_io = '';
 my $opt_tmu;
 my $pirri;
 my $val_cmax="3";

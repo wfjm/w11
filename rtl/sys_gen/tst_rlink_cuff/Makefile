@@ -1,4 +1,4 @@
-# $Id: Makefile 466 2012-12-30 13:26:55Z mueller $
+# $Id: Makefile 477 2013-01-27 14:07:10Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -7,7 +7,7 @@
 VBOM_all = $(wildcard *.vbom)
 NGC_all  = $(VBOM_all:.vbom=.ngc)
 #
-ISE_PATH = xc3s1200e-fg320-4
+include $(RETROBASE)/rtl/make/xflow_default_nexys2.mk
 #
 .PHONY : all clean realclean
 #
@@ -20,5 +20,7 @@ clean : ise_clean
 #
 include $(RETROBASE)/rtl/make/generic_xflow.mk
 #
+ifndef DONTINCDEP
 include $(VBOM_all:.vbom=.dep_xst)
+endif
 #

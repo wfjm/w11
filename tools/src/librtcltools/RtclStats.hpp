@@ -1,6 +1,6 @@
-// $Id: RtclStats.hpp 365 2011-02-28 07:28:26Z mueller $
+// $Id: RtclStats.hpp 495 2013-03-06 17:13:48Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-03-06   495   1.0.1  Rename Exec->Collect
 // 2011-02-26   364   1.0    Initial version
 // 2011-02-20   363   0.1    fFirst draft
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RtclStats.hpp 365 2011-02-28 07:28:26Z mueller $
+  \version $Id: RtclStats.hpp 495 2013-03-06 17:13:48Z mueller $
   \brief   Declaration of class RtclStats.
 */
 
@@ -49,13 +50,12 @@ namespace Retro {
       };
     
       static bool     GetArgs(RtclArgs& args, Context& cntx);
-      static bool     Exec(RtclArgs& args, Context& cntx, const Rstats& stats);
+      static bool     Collect(RtclArgs& args, const Context& cntx, 
+                              const Rstats& stats);
   };
 
 } // end namespace Retro
 
-#if !(defined(Retro_NoInline) || defined(Retro_RtclStats_NoInline))
 //#include "RtclStats.ipp"
-#endif
 
 #endif

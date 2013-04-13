@@ -1,7 +1,7 @@
 # libs
 ../../slvtypes.vhd
 ../../simlib/simlib.vhd
-../serport.vhd
+../serportlib.vbom
 # components
 ../../simlib/simclk.vbom
 ../../simlib/simclkcnt.vbom

@@ -1,4 +1,4 @@
--- $Id: rlink_sp1c.vhd 437 2011-12-09 19:38:07Z mueller $
+-- $Id: rlink_sp1c.vhd 476 2013-01-26 22:23:53Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -39,7 +39,7 @@ use ieee.numeric_std.all;
 use work.slvtypes.all;
 use work.rblib.all;
 use work.rlinklib.all;
-use work.serport.all;
+use work.serportlib.all;
 
 entity rlink_sp1c is                    -- rlink_core8+serport_1clock combo
   generic (

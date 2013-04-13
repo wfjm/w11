@@ -6,7 +6,7 @@
 ../../../vlib/slvtypes.vhd
 ../../../vlib/rlink/rlinklib.vbom
 ../../../vlib/rlink/tb/rlinktblib.vhd
-../../../vlib/serport/serport.vhd
+../../../vlib/serport/serportlib.vbom
 ../s3boardlib.vbom
 ../../../vlib/simlib/simlib.vhd
 ../../../vlib/simlib/simbus.vhd

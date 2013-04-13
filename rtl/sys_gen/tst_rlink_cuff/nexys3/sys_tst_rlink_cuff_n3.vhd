@@ -1,4 +1,4 @@
--- $Id: sys_tst_rlink_cuff_n3.vhd 469 2013-01-05 12:29:44Z mueller $
+-- $Id: sys_tst_rlink_cuff_n3.vhd 476 2013-01-26 22:23:53Z mueller $
 --
 -- Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -74,6 +74,7 @@ use work.slvtypes.all;
 use work.xlib.all;
 use work.genlib.all;
 use work.bpgenlib.all;
+use work.bpgenrbuslib.all;
 use work.rblib.all;
 use work.fx2lib.all;
 use work.nxcramlib.all;

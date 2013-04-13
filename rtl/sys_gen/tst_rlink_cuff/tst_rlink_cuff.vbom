@@ -3,7 +3,7 @@
 ../../vlib/genlib/genlib.vhd
 ../../vlib/rbus/rblib.vhd
 ../../vlib/rlink/rlinklib.vbom
-../../vlib/serport/serport.vhd
+../../vlib/serport/serportlib.vbom
 ../../bplib/fx2lib/fx2lib.vhd
 ${sys_conf := nexys2/as/sys_conf.vhd}
 # components

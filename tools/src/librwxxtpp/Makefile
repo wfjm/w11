@@ -1,0 +1,66 @@
+# $Id: Makefile 504 2013-04-13 15:37:24Z mueller $
+#
+#  Revision History: 
+# Date         Rev Version  Comment
+# 2013-02-01   479   1.0.1  correct so name (no digits allowed in tcl load...)
+# 2013-01-27   478   1.0    Initial version
+#---
+#
+# Name of the sharable library
+#
+SONAME     = rwxxtpp
+SOMAJV     = 1
+SOMINV     = 0
+#
+# Compile and Link search paths
+#
+include ../checkpath_cpp.mk
+#
+INCLFLAGS  = -I${RETROBASE}/tools/src -I${TCLINC} -I${BOOSTINC}
+LDLIBS     = -L${RETROBASE}/tools/lib -lrtools -lrtcltools 
+LDLIBS    +=   -lrlink -lrw11
+LDLIBS    +=   -lrlinktpp
+#
+# Object files to be included
+#
+OBJ_all    = Rwxxtpp_Init.o RtclRw11.o 
+OBJ_all   +=   RtclRw11Cpu.o RtclRw11CpuW11a.o
+OBJ_all   +=   RtclRw11Cntl.o RtclRw11CntlFactory.o 
+OBJ_all   +=   RtclRw11Unit.o
+OBJ_all   +=   RtclRw11UnitTerm.o
+OBJ_all   +=   RtclRw11CntlDL11.o RtclRw11UnitDL11.o
+# 
+DEP_all    = $(OBJ_all:.o=.dep)
+#
+#- generic part ----------------------------------------------------------------
+#
+SOFILE     = lib$(SONAME).so
+SOFILEV    = lib$(SONAME).so.$(SOMAJV)
+SOFILEVV   = lib$(SONAME).so.$(SOMAJV).$(SOMINV)
+#
+include $(RETROBASE)/tools/make/generic_cpp.mk
+include $(RETROBASE)/tools/make/generic_dep.mk
+include $(RETROBASE)/tools/make/generic_so.mk
+include $(RETROBASE)/tools/make/dontincdep.mk
+#
+# The magic autodependcy include
+#
+ifndef DONTINCDEP
+include $(DEP_all)
+endif
+#
+# cleanup phonies:
+#
+.PHONY    : clean cleandep distclean
+clean     :
+	@ rm -f $(OBJ_all)
+	@ echo "Object files removed"
+#
+cleandep  :
+	@ rm -f $(DEP_all)
+	@ echo "Dependency files removed"
+#
+distclean : clean cleandep
+	@ rm -f $(SOPATH)/lib$(SONAME).a $(SOPATH)/lib$(SONAME).so*
+	@ echo "Libraries removed"
+#

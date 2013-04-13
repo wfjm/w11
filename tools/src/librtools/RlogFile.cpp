@@ -1,6 +1,6 @@
-// $Id: RlogFile.cpp 365 2011-02-28 07:28:26Z mueller $
+// $Id: RlogFile.cpp 492 2013-02-24 22:14:47Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,34 +13,46 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-02-23   492   2.1    add Name(), keep log file name; add Dump()
+// 2013-02-22   491   2.0    add Write(),IsNew(), RlogMsg iface; use lockable
 // 2011-01-30   357   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RlogFile.cpp 365 2011-02-28 07:28:26Z mueller $
+  \version $Id: RlogFile.cpp 492 2013-02-24 22:14:47Z mueller $
   \brief   Implemenation of RlogFile.
 */
 
 #include <sys/time.h>
 
-#include "RlogFile.hpp"
+#include "boost/thread/locks.hpp"
+
+#include "RosFill.hpp"
 #include "RosPrintf.hpp"
+#include "RlogMsg.hpp"
+
+#include "RlogFile.hpp"
 
 using namespace std;
-using namespace Retro;
 
 /*!
   \class Retro::RlogFile
   \brief FIXME_docs
 */
 
+// all method definitions in namespace Retro
+namespace Retro {
+
 //------------------------------------------+-----------------------------------
 //! Default constructor
 
 RlogFile::RlogFile()
   : fpExtStream(0),
-    fIntStream()
+    fIntStream(),
+    fNew(true),
+    fName(),
+    fMutex()
 {
   ClearTime();
 }
@@ -48,10 +60,15 @@ RlogFile::RlogFile()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-RlogFile::RlogFile(std::ostream* os)
+RlogFile::RlogFile(std::ostream* os, const std::string& name)
   : fpExtStream(os),
-    fIntStream()
-{}
+    fIntStream(),
+    fNew(false),
+    fName(name),
+    fMutex()
+{
+  ClearTime();
+}
 
 //------------------------------------------+-----------------------------------
 //! Destructor
@@ -64,7 +81,9 @@ RlogFile::~RlogFile()
 
 bool RlogFile::Open(std::string name)
 {
+  fNew = false;
   fpExtStream = 0;
+  fName = name;
   fIntStream.open(name.c_str());
   return fIntStream.is_open();
 }
@@ -81,49 +100,102 @@ void RlogFile::Close()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RlogFile::UseStream(std::ostream* os)
+void RlogFile::UseStream(std::ostream* os, const std::string& name)
 {
+  fNew = false;
   if (fIntStream.is_open()) Close();
   fpExtStream = os;
+  fName = name;
   return;
 }
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-std::ostream& RlogFile::operator()(char c)
+void RlogFile::Write(const std::string& str, char tag)
 {
-  struct timeval tval;
-  gettimeofday(&tval, 0);
+  ostream& os = fpExtStream ? *fpExtStream : fIntStream;
 
-  struct tm tymd;
-  localtime_r(&tval.tv_sec, &tymd);
+  boost::lock_guard<RlogFile> lock(*this);
 
-  ostream& os = operator()();
-  
-  if (tymd.tm_year != fTagYear  ||
-      tymd.tm_mon  != fTagMonth ||
-      tymd.tm_mday != fTagDay) {
+  if (tag) {
+    struct timeval tval;
+    gettimeofday(&tval, 0);
 
-    os << "-+- " 
-       << RosPrintf(tymd.tm_year+1900,"d",4) << "-"
-       << RosPrintf(tymd.tm_mon,"d0",2) << "-"
-       << RosPrintf(tymd.tm_mday,"d0",2) << " -+- \n";
+    struct tm tymd;
+    localtime_r(&tval.tv_sec, &tymd);
 
-    fTagYear  = tymd.tm_year;
-    fTagMonth = tymd.tm_mon;
-    fTagDay   = tymd.tm_mday;
+    if (tymd.tm_year != fTagYear  ||
+        tymd.tm_mon  != fTagMonth ||
+        tymd.tm_mday != fTagDay) {
+
+      os << "-+- " 
+         << RosPrintf(tymd.tm_year+1900,"d",4) << "-"
+         << RosPrintf(tymd.tm_mon,"d0",2) << "-"
+         << RosPrintf(tymd.tm_mday,"d0",2) << " -+- \n";
+
+      fTagYear  = tymd.tm_year;
+      fTagMonth = tymd.tm_mon;
+      fTagDay   = tymd.tm_mday;
+    }
+
+    int usec = (int)(tval.tv_usec/1000);
+
+    os << "-" << tag << "- "
+       << RosPrintf(tymd.tm_hour,"d0",2) << ":"
+       << RosPrintf(tymd.tm_min,"d0",2) << ":"
+       << RosPrintf(tymd.tm_sec,"d0",2) << "."
+       << RosPrintf(usec,"d0",3) << " : ";
   }
 
-  int usec = (int)(tval.tv_usec/1000);
+  os << str;
+  if (str[str.length()-1] != '\n') os << endl;
 
-  os << "-" << c << "- "
-     << RosPrintf(tymd.tm_hour,"d0",2) << ":"
-     << RosPrintf(tymd.tm_min,"d0",2) << ":"
-     << RosPrintf(tymd.tm_sec,"d0",2) << "."
-     << RosPrintf(usec,"d0",3) << " : ";
+  return;
+}
 
-  return os;
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void RlogFile::Dump(std::ostream& os, int ind, const char* text) const
+{
+  RosFill bl(ind);
+  os << bl << (text?text:"--") << "RlogFile @ " << this << endl;
+  os << bl << "  fpExtStream:     " << fpExtStream << endl;
+  os << bl << "  fIntStream.isopen " << fIntStream.is_open() << endl;
+  os << bl << "  fNew             " << fNew << endl;
+  os << bl << "  fName            " << fName << endl;
+  os << bl << "  fTagYr,Mo,Dy     " << fTagYear << ", " << fTagMonth
+                                    << ", " << fTagDay << endl;
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void RlogFile::lock()
+{
+  fMutex.lock();
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void RlogFile::unlock()
+{
+  fMutex.unlock();
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+RlogFile& RlogFile::operator<<(const RlogMsg& lmsg)
+{
+  string str = lmsg.String();
+  if (str.length() > 0) Write(str, lmsg.Tag());
+  return *this;
 }
 
 //------------------------------------------+-----------------------------------
@@ -137,9 +209,4 @@ void RlogFile::ClearTime()
   return;
 }
 
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_RlogFile_NoInline))
-#define inline
-#include "RlogFile.ipp"
-#undef  inline
-#endif
+} // end namespace Retro

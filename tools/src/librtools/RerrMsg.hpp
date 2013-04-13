@@ -1,6 +1,6 @@
-// $Id: RerrMsg.hpp 359 2011-02-06 22:37:43Z mueller $
+// $Id: RerrMsg.hpp 493 2013-03-01 21:02:33Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-01-12   474   1.2    add meth+text and meth+text+errnum ctors
 // 2011-02-06   359   1.1    use references in interface
 // 2011-01-15   356   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RerrMsg.hpp 359 2011-02-06 22:37:43Z mueller $
+  \version $Id: RerrMsg.hpp 493 2013-03-01 21:02:33Z mueller $
   \brief   Declaration of class RerrMsg.
 */
 
@@ -36,6 +37,9 @@ namespace Retro {
     public:
                     RerrMsg();
                     RerrMsg(const RerrMsg& rhs);
+                    RerrMsg(const std::string& meth, const std::string& text);
+                    RerrMsg(const std::string& meth, const std::string& text,
+                            int errnum);
                     ~RerrMsg();
 
       void          Init(const std::string& meth, const std::string& text);
@@ -56,7 +60,7 @@ namespace Retro {
       const std::string& Text() const;
       std::string   Message() const;
 
-      void          Grab(RerrMsg& rhs);
+      void          Swap(RerrMsg& rhs);
 
       RerrMsg&      operator=(const RerrMsg& rhs);
                     operator std::string() const;
@@ -70,8 +74,6 @@ namespace Retro {
 
 } // end namespace Retro
 
-#if !(defined(Retro_NoInline) || defined(Retro_RerrMsg_NoInline))
 #include "RerrMsg.ipp"
-#endif
 
 #endif

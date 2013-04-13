@@ -1,7 +1,7 @@
 # libs
 ../../slvtypes.vhd
 ../../comlib/comlib.vhd
-../../serport/serport.vhd
+../../serport/serportlib.vbom
 ../../rbus/rblib.vhd
 ../rlinklib.vbom
 ../../simlib/simlib.vhd

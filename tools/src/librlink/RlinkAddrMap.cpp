@@ -1,6 +1,6 @@
-// $Id: RlinkAddrMap.cpp 434 2011-12-02 19:17:38Z mueller $
+// $Id: RlinkAddrMap.cpp 492 2013-02-24 22:14:47Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-02-03   481   1.0.2  use Rexception
 // 2011-11-28   434   1.0.1  Print(): use proper cast for lp64 compatibility
 // 2011-03-06   367   1.0    Initial version
 // 2011-03-05   366   0.1    First draft
@@ -20,25 +21,27 @@
 
 /*!
   \file
-  \version $Id: RlinkAddrMap.cpp 434 2011-12-02 19:17:38Z mueller $
+  \version $Id: RlinkAddrMap.cpp 492 2013-02-24 22:14:47Z mueller $
   \brief   Implemenation of class RlinkAddrMap.
  */
 
-#include <stdexcept>
 #include <algorithm>
 
 #include "RlinkAddrMap.hpp"
 
 #include "librtools/RosFill.hpp"
 #include "librtools/RosPrintf.hpp"
+#include "librtools/Rexception.hpp"
 
 using namespace std;
-using namespace Retro;
 
 /*!
   \class Retro::RlinkAddrMap
-  \brief FIXME_text
+  \brief FIXME_docs
 */
+
+// all method definitions in namespace Retro
+namespace Retro {
 
 //------------------------------------------+-----------------------------------
 //! Default constructor
@@ -90,9 +93,11 @@ bool RlinkAddrMap::Erase(const std::string& name)
 
   fMaxLength = 0;                           // force recalculate
   if (fNameMap.erase(name) == 0)
-    throw logic_error("RlinkAddrMap::Erase: fNameMap erase failed");
+    throw Rexception("RlinkAddrMap::Erase()", 
+                     "BugCheck: fNameMap erase failed");
   if (fAddrMap.erase(it->second) == 0)
-    throw logic_error("RlinkAddrMap::Erase: fAddrMap erase failed");
+    throw Rexception("RlinkAddrMap::Erase()", 
+                     "BugCheck: fAddrMap erase failed");
   
   return true;
 }
@@ -107,9 +112,11 @@ bool RlinkAddrMap::Erase(uint16_t addr)
 
   fMaxLength = 0;                           // force recalculate
   if (fAddrMap.erase(addr) == 0)
-    throw logic_error("RlinkAddrMap::Erase: fAddrMap erase failed");
+    throw Rexception("RlinkAddrMap::Erase()", 
+                     "BugCheck: fAddrMap erase failed");
   if (fNameMap.erase(it->second) == 0)
-    throw logic_error("RlinkAddrMap::Erase: fNameMap erase failed");
+    throw Rexception("RlinkAddrMap::Erase()", 
+                     "BugCheck: fNameMap erase failed");
   
   return true;
 }
@@ -181,10 +188,4 @@ void RlinkAddrMap::Dump(std::ostream& os, int ind, const char* text) const
   return;
 }
 
-
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_RlinkAddrMap_NoInline))
-#define inline
-#include "RlinkAddrMap.ipp"
-#undef  inline
-#endif
+} // end namespace Retro

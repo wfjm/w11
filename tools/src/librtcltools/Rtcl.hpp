@@ -1,6 +1,6 @@
-// $Id: Rtcl.hpp 369 2011-03-13 22:39:26Z mueller $
+// $Id: Rtcl.hpp 486 2013-02-10 22:34:43Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-01-06   473   1.0.4  add NewListIntObj(const uint(8|16)_t, ...)
 // 2011-03-13   369   1.0.3  add NewListIntObj(vector<uint8_t>)
 // 2011-03-12   368   1.0.2  use namespace Rtcl
 // 2011-03-05   366   1.0.1  add AppendResultNewLines()
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: Rtcl.hpp 369 2011-03-13 22:39:26Z mueller $
+  \version $Id: Rtcl.hpp 486 2013-02-10 22:34:43Z mueller $
   \brief   Declaration of class Rtcl.
 */
 
@@ -42,6 +43,8 @@ namespace Retro {
     Tcl_Obj*        NewLinesObj(const std::string& str);
     Tcl_Obj*        NewLinesObj(std::ostringstream& sos);
 
+    Tcl_Obj*        NewListIntObj(const uint8_t* data, size_t size);
+    Tcl_Obj*        NewListIntObj(const uint16_t* data, size_t size);
     Tcl_Obj*        NewListIntObj(const std::vector<uint8_t>& vec);
     Tcl_Obj*        NewListIntObj(const std::vector<uint16_t>& vec);
 
@@ -58,8 +61,6 @@ namespace Retro {
   
 } // end namespace Retro
 
-#if !(defined(Retro_NoInline) || defined(Retro_Rtcl_NoInline))
 #include "Rtcl.ipp"
-#endif
 
 #endif

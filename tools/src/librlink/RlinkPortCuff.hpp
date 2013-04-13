@@ -1,4 +1,4 @@
-// $Id: RlinkPortCuff.hpp 467 2013-01-02 19:49:05Z mueller $
+// $Id: RlinkPortCuff.hpp 502 2013-04-02 19:29:30Z mueller $
 //
 // Copyright 2012-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPortCuff.hpp 467 2013-01-02 19:49:05Z mueller $
+  \version $Id: RlinkPortCuff.hpp 502 2013-04-02 19:29:30Z mueller $
   \brief   Declaration of class RlinkPortCuff.
 */
 
@@ -30,10 +30,12 @@
 #include "RlinkPort.hpp"
 
 #include <poll.h>
+#include <libusb-1.0/libusb.h>
 
 #include <vector>
-#include "boost/thread.hpp"
-#include <libusb-1.0/libusb.h>
+#include <deque>
+
+#include "boost/thread/thread.hpp"
 
 namespace Retro {
 
@@ -46,7 +48,7 @@ namespace Retro {
       virtual bool  Open(const std::string& url, RerrMsg& emsg);
       virtual void  Close();
 
-    // some constants
+    // some constants (also defined in cpp)
       static const size_t kUSBBufferSize  = 4096;  //!< USB buffer size
       static const int    kUSBWriteEP     = 4   ;  //!< USB write endpoint
       static const int    kUSBReadEP      = 6   ;  //!< USB read endpoint
@@ -109,8 +111,6 @@ namespace Retro {
   
 } // end namespace Retro
 
-#if !(defined(Retro_NoInline) || defined(Retro_RlinkPortCuff_NoInline))
 //#include "RlinkPortCuff.ipp"
-#endif
 
 #endif

@@ -1,6 +1,6 @@
-// $Id: RtclClassBase.hpp 380 2011-04-25 18:14:52Z mueller $
+// $Id: RtclClassBase.hpp 486 2013-02-10 22:34:43Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: RtclClassBase.hpp 380 2011-04-25 18:14:52Z mueller $
+  \version $Id: RtclClassBase.hpp 486 2013-02-10 22:34:43Z mueller $
   \brief   Declaration of class RtclClassBase.
 */
 
@@ -35,14 +35,16 @@ namespace Retro {
 
   class RtclClassBase : private boost::noncopyable {
     public:
-      static const int kOK  = TCL_OK;
-      static const int kERR = TCL_ERROR;
 
       explicit      RtclClassBase(const std::string& type = std::string());
       virtual       ~RtclClassBase();
 
       const std::string& Type() const;
       Tcl_Command        Token() const;
+
+    // some constants (also defined in cpp)
+      static const int kOK  = TCL_OK;       //<!
+      static const int kERR = TCL_ERROR;    //<!
 
     protected:
       void          SetType(const std::string& type);
@@ -71,8 +73,6 @@ namespace Retro {
   
 } // end namespace Retro
 
-#if !(defined(Retro_NoInline) || defined(Retro_RtclClassBase_NoInline))
 #include "RtclClassBase.ipp"
-#endif
 
 #endif

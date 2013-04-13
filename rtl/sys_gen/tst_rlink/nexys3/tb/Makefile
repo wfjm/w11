@@ -1,4 +1,4 @@
-# $Id: Makefile 433 2011-11-27 22:04:39Z mueller $
+# $Id: Makefile 477 2013-01-27 14:07:10Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -6,11 +6,7 @@
 #
 EXE_all = tb_tst_rlink_n3
 #
-ISE_BOARD = nexys3
-ISE_PATH  = xc6slx16-csg324-2
-#
-XFLOWOPT_SYN = syn_s6_speed.opt
-XFLOWOPT_IMP = imp_s6_speed.opt
+include $(RETROBASE)/rtl/make/xflow_default_nexys3.mk
 #
 .PHONY : all all_ssim all_tsim clean
 #
@@ -28,7 +24,9 @@ include $(RETROBASE)/rtl/make/generic_xflow.mk
 #
 VBOM_all = $(wildcard *.vbom)
 #
+ifndef DONTINCDEP
 include $(VBOM_all:.vbom=.dep_xst)
 include $(VBOM_all:.vbom=.dep_ghdl)
 include $(wildcard *.o.dep_ghdl)
+endif
 #

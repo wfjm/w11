@@ -1,6 +1,6 @@
-// $Id: RtclArgs.hpp 373 2011-03-26 08:54:27Z mueller $
+// $Id: RtclArgs.hpp 495 2013-03-06 17:13:48Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,10 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-03-05   495   1.0.8  add SetResult(bool)
+// 2013-03-02   494   1.0.7  add Quit() method
+// 2013-02-12   487   1.0.6  add CurrentArg() method
+// 2013-02-01   479   1.0.5  add Objv() method
 // 2011-03-26   373   1.0.4  add GetArg(flt/dbl), SetResult(str,sos,int,dbl)
 // 2011-03-13   369   1.0.3  add GetArg(vector<unit8_t>)
 // 2011-03-06   367   1.0.2  add min to GetArg(unsigned); add Config() methods;
@@ -25,7 +29,7 @@
 
 /*!
   \file
-  \version $Id: RtclArgs.hpp 373 2011-03-26 08:54:27Z mueller $
+  \version $Id: RtclArgs.hpp 495 2013-03-06 17:13:48Z mueller $
   \brief   Declaration of class RtclArgs.
 */
 
@@ -64,6 +68,7 @@ namespace Retro {
 
       Tcl_Interp*       Interp() const;
       int               Objc() const;
+      Tcl_Obj* const *  Objv() const;
       Tcl_Obj*          Objv(size_t ind) const;
 
       bool              GetArg(const char* name, Tcl_Obj*& pval);
@@ -102,6 +107,8 @@ namespace Retro {
       bool              NextOpt(std::string& val, RtclNameSet& optset);
       bool              OptValid() const;
 
+      Tcl_Obj*          CurrentArg() const;
+
       bool              AllDone();
       size_t            NDone() const;
       size_t            NOptMiss() const;
@@ -110,6 +117,7 @@ namespace Retro {
 
       void              SetResult(const std::string& str);
       void              SetResult(std::ostringstream& sos);
+      void              SetResult(bool val);
       void              SetResult(int val);
       void              SetResult(double val);
       void              SetResult(Tcl_Obj* pobj);
@@ -119,6 +127,8 @@ namespace Retro {
       void              AppendResult(std::ostringstream& sos);
       void              AppendResultLines(const std::string& str);
       void              AppendResultLines(std::ostringstream& sos);
+
+      int               Quit(const std::string& str);
 
       Tcl_Obj*          operator[](size_t ind) const;
 
@@ -144,8 +154,6 @@ namespace Retro {
 
 } // end namespace Retro
 
-#if !(defined(Retro_NoInline) || defined(Retro_RtclArgs_NoInline))
 #include "RtclArgs.ipp"
-#endif
 
 #endif

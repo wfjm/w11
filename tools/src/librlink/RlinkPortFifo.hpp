@@ -1,4 +1,4 @@
-// $Id: RlinkPortFifo.hpp 375 2011-04-02 07:56:47Z mueller $
+// $Id: RlinkPortFifo.hpp 486 2013-02-10 22:34:43Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPortFifo.hpp 375 2011-04-02 07:56:47Z mueller $
+  \version $Id: RlinkPortFifo.hpp 486 2013-02-10 22:34:43Z mueller $
   \brief   Declaration of class RlinkPortFifo.
 */
 
@@ -46,8 +46,6 @@ namespace Retro {
   
 } // end namespace Retro
 
-#if !(defined(Retro_NoInline) || defined(Retro_RlinkPortFifo_NoInline))
 //#include "RlinkPortFifo.ipp"
-#endif
 
 #endif

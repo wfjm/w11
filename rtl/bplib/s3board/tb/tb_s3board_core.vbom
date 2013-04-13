@@ -1,6 +1,6 @@
 # libs
 ../../../vlib/slvtypes.vhd
-../../../vlib/serport/serport.vhd
+../../../vlib/serport/serportlib.vbom
 ../../../vlib/simlib/simbus.vhd
 # components
 ../../../vlib/serport/serport_uart_rx.vbom

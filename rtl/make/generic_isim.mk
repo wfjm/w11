@@ -1,7 +1,8 @@
-# $Id: generic_isim.mk 405 2011-08-14 08:16:28Z mueller $
+# $Id: generic_isim.mk 477 2013-01-27 14:07:10Z mueller $
 #
 #  Revision History: 
-# Date         Rev Version Comment
+# Date         Rev Version  Comment
+# 2013-01-27   477   1.2.1  use dontincdep.mk to suppress .dep include on clean
 # 2011-08-13   405   1.2    renamed, moved to rtl/make;
 # 2010-04-26   284   1.1    add _[sft]sim support
 # 2009-11-22   252   1.0    Initial version
@@ -34,6 +35,8 @@ FUSE = fuse
 #
 %.dep_isim: %.vbom
 	vbomconv --dep_isim $< > $@
+#
+include $(RETROBASE)/rtl/make/dontincdep.mk
 #
 .PHONY: isim_clean isim_tmp_clean
 #

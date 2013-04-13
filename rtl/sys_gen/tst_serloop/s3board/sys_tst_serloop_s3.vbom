@@ -4,7 +4,7 @@
 ../../../vlib/genlib/genlib.vhd
 ../../../bplib/bpgen/bpgenlib.vbom
 ../tst_serlooplib.vbom
-../../../vlib/serport/serport.vhd
+../../../vlib/serport/serportlib.vbom
 ../../../bplib/s3board/s3boardlib.vbom
 ${sys_conf := sys_conf.vhd}
 # components

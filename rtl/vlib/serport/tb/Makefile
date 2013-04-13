@@ -1,4 +1,4 @@
-# $Id: Makefile 444 2011-12-25 10:04:58Z mueller $
+# $Id: Makefile 477 2013-01-27 14:07:10Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -10,6 +10,9 @@
 EXE_all  = tb_serport_uart_rx 
 EXE_all += tb_serport_uart_rxtx 
 EXE_all += tb_serport_autobaud
+#
+# reference board for test synthesis is Spartan-6 based Nexys3
+include $(RETROBASE)/rtl/make/xflow_default_nexys3.mk
 #
 .PHONY : all all_ssim all_tsim clean
 #
@@ -27,7 +30,9 @@ include $(RETROBASE)/rtl/make/generic_xflow.mk
 #
 VBOM_all = $(wildcard *.vbom)
 #
+ifndef DONTINCDEP
 include $(VBOM_all:.vbom=.dep_xst)
 include $(VBOM_all:.vbom=.dep_ghdl)
 include $(VBOM_all:.vbom=.dep_isim)
+endif
 #

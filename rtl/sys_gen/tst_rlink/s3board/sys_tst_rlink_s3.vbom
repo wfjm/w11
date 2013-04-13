@@ -1,10 +1,11 @@
 # libs
 ../../../vlib/slvtypes.vhd
 ../../../vlib/genlib/genlib.vhd
-../../../vlib/serport/serport.vhd
+../../../vlib/serport/serportlib.vbom
 ../../../vlib/rbus/rblib.vhd
 ../../../vlib/rlink/rlinklib.vbom
 ../../../bplib/bpgen/bpgenlib.vbom
+../../../bplib/bpgen/bpgenrbuslib.vbom
 ../../../bplib/s3board/s3boardlib.vbom
 ${sys_conf := sys_conf.vhd}
 # components

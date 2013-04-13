@@ -1,6 +1,6 @@
-// $Id: RtclRlinkConnect.hpp 434 2011-12-02 19:17:38Z mueller $
+// $Id: RtclRlinkConnect.hpp 492 2013-02-24 22:14:47Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-02-23   492   1.0.3  use RlogFile.Name(); use Context().ErrorCount()
+// 2013-01-06   473   1.0.2  add M_rawio
 // 2011-11-28   434   1.0.1  ConfigBase(): use uint32_t for lp64 compatibility
 // 2011-03-27   374   1.0    Initial version
 // 2011-02-11   360   0.1    First draft
@@ -20,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RtclRlinkConnect.hpp 434 2011-12-02 19:17:38Z mueller $
+  \version $Id: RtclRlinkConnect.hpp 492 2013-02-24 22:14:47Z mueller $
   \brief   Declaration of class RtclRlinkConnect.
 */
 
@@ -40,7 +42,7 @@ namespace Retro {
   class RtclRlinkConnect : public RtclProxyOwned<RlinkConnect> {
     public:
                     RtclRlinkConnect(Tcl_Interp* interp, const char* name);
-                    ~RtclRlinkConnect();
+                   ~RtclRlinkConnect();
 
     protected:
       int           M_open(RtclArgs& args);
@@ -50,6 +52,7 @@ namespace Retro {
       int           M_errcnt(RtclArgs& args);
       int           M_wtlam(RtclArgs& args);
       int           M_oob(RtclArgs& args);
+      int           M_rawio(RtclArgs& args);
       int           M_stats(RtclArgs& args);
       int           M_log(RtclArgs& args);
       int           M_print(RtclArgs& args);
@@ -66,14 +69,10 @@ namespace Retro {
 
     protected:
       RtclOPtr      fCmdnameObj[8];
-      size_t        fErrCnt;
-      std::string   fLogFileName;
   };
   
 } // end namespace Retro
 
-#if !(defined(Retro_NoInline) || defined(Retro_RtclRlinkConnect_NoInline))
 //#include "RtclRlinkConnect.ipp"
-#endif
 
 #endif

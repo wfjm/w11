@@ -1,4 +1,4 @@
-# $Id: Makefile 472 2013-01-06 14:39:10Z mueller $
+# $Id: Makefile 489 2013-02-17 10:58:02Z mueller $
 #
 # 'Meta Makefile' for whole retro project
 #   allows to make all synthesis targets
@@ -52,12 +52,18 @@ SIM_all += rtl/w11a/tb
 .PHONY : $(SYN_all) $(SIM_all)
 #
 all :
-	@echo "no default action defined, use"
-	@echo "  make -j 4 all_sim"
-	@echo "  make -j 4 all_syn"
-	@echo "  make clean"
-	@echo "  make clean_sim"
-	@echo "  make clean_syn"
+	@echo "no default action defined."
+	@echo "  for VHDL simulation/synthesis use:"
+	@echo "    make -j 4 all_sim"
+	@echo "    make -j 4 all_syn"
+	@echo "    make clean"
+	@echo "    make clean_sim"
+	@echo "    make clean_syn"
+	@echo "  for tool/documentation generation use:"
+	@echo "    make -j 4 all_lib"
+	@echo "    make clean_lib"
+	@echo "    make all_tcl"
+	@echo "    make all_dox"
 #
 #
 clean : clean_sim clean_syn
@@ -85,3 +91,15 @@ $(SIM_all):
 $(SYN_all):
 	$(MAKE) -j 1 -C $@
 #
+all_lib :
+	$(MAKE) -C tools/src
+clean_lib :
+	$(MAKE) -C tools/src distclean
+#
+all_tcl :
+	(cd tools/tcl; setup_packages)
+#
+all_dox :
+	(cd tools/dox; make_doxy)
+#
+all_all : all_sim all_syn all_lib all_tcl

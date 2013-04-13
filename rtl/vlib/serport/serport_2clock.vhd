@@ -1,4 +1,4 @@
--- $Id: serport_2clock.vhd 438 2011-12-11 23:40:52Z mueller $
+-- $Id: serport_2clock.vhd 476 2013-01-26 22:23:53Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -41,7 +41,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 use work.slvtypes.all;
-use work.serport.all;
+use work.serportlib.all;
 use work.genlib.all;
 use work.memlib.all;
 

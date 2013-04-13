@@ -1,6 +1,6 @@
-// $Id: Rtcl.cpp 369 2011-03-13 22:39:26Z mueller $
+// $Id: Rtcl.cpp 488 2013-02-16 18:49:47Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-01-06   473   1.0.4  add NewListIntObj(const uint(8|16)_t, ...)
 // 2011-03-13   369   1.0.2  add NewListIntObj(vector<uint8_t>)
 // 2011-03-05   366   1.0.1  add AppendResultNewLines()
 // 2011-02-26   364   1.0    Initial version
@@ -21,19 +22,21 @@
 
 /*!
   \file
-  \version $Id: Rtcl.cpp 369 2011-03-13 22:39:26Z mueller $
+  \version $Id: Rtcl.cpp 488 2013-02-16 18:49:47Z mueller $
   \brief   Implemenation of Rtcl.
 */
 
 #include "Rtcl.hpp"
 
 using namespace std;
-using namespace Retro;
 
 /*!
   \class Retro::Rtcl
   \brief FIXME_docs
 */
+
+// all method definitions in namespace Retro
+namespace Retro {
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
@@ -49,15 +52,15 @@ Tcl_Obj* Rtcl::NewLinesObj(const std::string& str)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-Tcl_Obj* Rtcl::NewListIntObj(const std::vector<uint8_t>& vec)
+Tcl_Obj* Rtcl::NewListIntObj(const uint8_t* data, size_t size)
 {
-  if (vec.size() == 0) return Tcl_NewListObj(0, NULL);
+  if (size == 0) return Tcl_NewListObj(0, NULL);
   
   vector<Tcl_Obj*> vobj;
-  vobj.reserve(vec.size());
+  vobj.reserve(size);
   
-  for (size_t i=0; i<vec.size(); i++) {
-    vobj.push_back(Tcl_NewIntObj((int)vec[i]));
+  for (size_t i=0; i<size; i++) {
+    vobj.push_back(Tcl_NewIntObj((int)data[i]));
   }
   return Tcl_NewListObj(vobj.size(), vobj.data());
 }
@@ -65,17 +68,33 @@ Tcl_Obj* Rtcl::NewListIntObj(const std::vector<uint8_t>& vec)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-Tcl_Obj* Rtcl::NewListIntObj(const std::vector<uint16_t>& vec)
+Tcl_Obj* Rtcl::NewListIntObj(const uint16_t* data, size_t size)
 {
-  if (vec.size() == 0) return Tcl_NewListObj(0, NULL);
+  if (size == 0) return Tcl_NewListObj(0, NULL);
   
   vector<Tcl_Obj*> vobj;
-  vobj.reserve(vec.size());
+  vobj.reserve(size);
   
-  for (size_t i=0; i<vec.size(); i++) {
-    vobj.push_back(Tcl_NewIntObj((int)vec[i]));
+  for (size_t i=0; i<size; i++) {
+    vobj.push_back(Tcl_NewIntObj((int)data[i]));
   }
   return Tcl_NewListObj(vobj.size(), vobj.data());
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+Tcl_Obj* Rtcl::NewListIntObj(const std::vector<uint8_t>& vec)
+{
+  return NewListIntObj(vec.data(), vec.size());
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+Tcl_Obj* Rtcl::NewListIntObj(const std::vector<uint16_t>& vec)
+{
+  return NewListIntObj(vec.data(), vec.size());
 }
 
 //------------------------------------------+-----------------------------------
@@ -91,8 +110,8 @@ bool Rtcl::SetVar(Tcl_Interp* interp, const std::string& varname, Tcl_Obj* pobj)
     if (pos_pbeg == string::npos || pos_pbeg == 0 ||  
         pos_pend == string::npos || pos_pend != varname.length()-1 ||
         pos_pend-pos_pbeg <= 1) {
-      Tcl_AppendResult(interp, "illformed array name \"", varname.c_str(), 
-                       "\"", NULL);
+      Tcl_AppendResult(interp, "illformed array name '", varname.c_str(), 
+                       "'", NULL);
       return false;
     }
     string arrname(varname.substr(0,pos_pbeg));
@@ -144,9 +163,4 @@ void Rtcl::SetResult(Tcl_Interp* interp, const std::string& str)
   return;
 }
 
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_Rtcl_NoInline))
-#define inline
-#include "Rtcl.ipp"
-#undef  inline
-#endif
+} // end namespace Retro

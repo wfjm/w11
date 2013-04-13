@@ -1,6 +1,6 @@
-// $Id: RtclContext.cpp 368 2011-03-12 09:58:53Z mueller $
+// $Id: RtclContext.cpp 492 2013-02-24 22:14:47Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-02-03   481   1.0.3  use Rexception
+// 2013-01-12   474   1.0.2  add FindProxy() method
 // 2011-03-12   368   1.0.1  drop fExitSeen, get exit handling right
 // 2011-02-18   362   1.0    Initial version
 // 2011-02-13   361   0.1    First draft
@@ -20,25 +22,28 @@
 
 /*!
   \file
-  \version $Id: RtclContext.cpp 368 2011-03-12 09:58:53Z mueller $
+  \version $Id: RtclContext.cpp 492 2013-02-24 22:14:47Z mueller $
   \brief   Implemenation of RtclContext.
 */
 
-#include <stdexcept>
 #include <iostream>
 
 #include "RtclContext.hpp"
 
+#include "librtools/Rexception.hpp"
+
 using namespace std;
-using namespace Retro;
 
 /*!
   \class Retro::RtclContext
   \brief FIXME_docs
 */
 
-typedef std::pair<Retro::RtclContext::cset_it_t, bool>  cset_ins_t;
-typedef std::pair<Retro::RtclContext::pset_it_t, bool>  pset_ins_t;
+// all method definitions in namespace Retro
+namespace Retro {
+
+typedef std::pair<RtclContext::cset_it_t, bool>  cset_ins_t;
+typedef std::pair<RtclContext::pset_it_t, bool>  pset_ins_t;
 
 RtclContext::xmap_t RtclContext::fMapContext;
 
@@ -64,7 +69,8 @@ void RtclContext::RegisterClass(RtclClassBase* pobj)
 {
   cset_ins_t ret = fSetClass.insert(pobj);
   if (ret.second == false)                  // or use !(ret.second)
-    throw logic_error("RtclContext::RegisterClass: duplicate pointer");
+    throw Rexception("RtclContext::RegisterClass()",
+                     "Bad args: duplicate pointer");
   return;
 }
 
@@ -84,7 +90,8 @@ void RtclContext::RegisterProxy(RtclProxyBase* pobj)
 {
   pset_ins_t ret = fSetProxy.insert(pobj);
   if (ret.second == false)                  // or use !(ret.second)
-    throw logic_error("RtclContext::RegisterProxy: duplicate pointer");
+    throw Rexception("RtclContext::RegisterProxy()",
+                     "Bad args: duplicate pointer");
   return;
 }
 
@@ -119,7 +126,6 @@ bool RtclContext::CheckProxy(RtclProxyBase* pobj, const string& type)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-
 void RtclContext::ListProxy(std::vector<RtclProxyBase*>& list,
                             const std::string& type)
 {
@@ -130,6 +136,21 @@ void RtclContext::ListProxy(std::vector<RtclProxyBase*>& list,
     }
   }
   return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+RtclProxyBase* RtclContext::FindProxy(const std::string& type, 
+                                      const std::string& name)
+{
+  for (pset_it_t it = fSetProxy.begin(); it != fSetProxy.end(); it++) {
+    if (type.length() == 0 || (*it)->Type()==type) {
+      const char* cmdname = Tcl_GetCommandName(fInterp, (*it)->Token());
+      if (name == cmdname) return *it;
+    }
+  }
+  return 0;
 }
 
 //------------------------------------------+-----------------------------------
@@ -169,9 +190,4 @@ void RtclContext::ThunkTclExitProc(ClientData cdata)
   return;
 }
 
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_RtclContext_NoInline))
-#define inline
-#include "RtclContext.ipp"
-#undef  inline
-#endif
+} // end namespace Retro

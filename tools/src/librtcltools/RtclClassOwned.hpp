@@ -1,4 +1,4 @@
-// $Id: RtclClassOwned.hpp 365 2011-02-28 07:28:26Z mueller $
+// $Id: RtclClassOwned.hpp 482 2013-02-05 15:53:09Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,7 @@
 
 /*!
   \file
-  \version $Id: RtclClassOwned.hpp 365 2011-02-28 07:28:26Z mueller $
+  \version $Id: RtclClassOwned.hpp 482 2013-02-05 15:53:09Z mueller $
   \brief   Declaration of class RtclClassOwned.
 */
 
@@ -39,7 +39,7 @@ namespace Retro {
     public:
 
       explicit      RtclClassOwned(const std::string& type = std::string());
-                    ~RtclClassOwned();
+                   ~RtclClassOwned();
 
       int           ClassCmdCreate(Tcl_Interp* interp, int objc, 
                                    Tcl_Obj* const objv[]);    

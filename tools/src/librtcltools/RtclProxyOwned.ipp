@@ -1,6 +1,6 @@
-// $Id: RtclProxyOwned.ipp 365 2011-02-28 07:28:26Z mueller $
+// $Id: RtclProxyOwned.ipp 491 2013-02-23 12:41:18Z mueller $
 // 
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-02-05   482   1.1    use shared_ptr to TO*; add ObjPtr();
 // 2011-02-13   361   1.0    Initial version
 // 2011-02-11   360   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -20,10 +21,15 @@
 /*!
   \file
   \version $Id:  
-  \brief   Implemenation (inline) of class RtclProxyOwned.
+  \brief   Implemenation (all inline) of class RtclProxyOwned.
 */
 
-// all method definitions in namespace Retro (avoid using in includes...)
+/*!
+  \class Retro::RtclProxyOwned
+  \brief FIXME_docs
+*/
+
+// all method definitions in namespace Retro
 namespace Retro {
 
 //------------------------------------------+-----------------------------------
@@ -32,7 +38,7 @@ namespace Retro {
 template <class TO>
 inline RtclProxyOwned<TO>::RtclProxyOwned()
   : RtclProxyBase(),
-    fpObj(0)
+    fspObj()
 {}
 
 //------------------------------------------+-----------------------------------
@@ -41,7 +47,7 @@ inline RtclProxyOwned<TO>::RtclProxyOwned()
 template <class TO>
 inline RtclProxyOwned<TO>::RtclProxyOwned(const std::string& type)
   : RtclProxyBase(type),
-    fpObj(0)
+    fspObj()
 {}
 
 //------------------------------------------+-----------------------------------
@@ -52,7 +58,7 @@ inline RtclProxyOwned<TO>::RtclProxyOwned(const std::string& type,
                                           Tcl_Interp* interp, const char* name, 
                                           TO* pobj)
   : RtclProxyBase(type),
-    fpObj(pobj)
+    fspObj(pobj)
 {
   CreateObjectCmd(interp, name);
 }
@@ -62,9 +68,7 @@ inline RtclProxyOwned<TO>::RtclProxyOwned(const std::string& type,
 
 template <class TO>
 inline RtclProxyOwned<TO>::~RtclProxyOwned()
-{
-  delete fpObj;
-}
+{}
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
@@ -72,7 +76,16 @@ inline RtclProxyOwned<TO>::~RtclProxyOwned()
 template <class TO>
 inline TO& RtclProxyOwned<TO>::Obj()
 {
-  return *fpObj;
+  return *fspObj;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+template <class TO>
+inline const boost::shared_ptr<TO>& RtclProxyOwned<TO>::ObjSPtr()
+{
+  return fspObj;
 }
 
 } // end namespace Retro

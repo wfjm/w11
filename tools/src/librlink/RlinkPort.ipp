@@ -1,6 +1,6 @@
-// $Id: RlinkPort.ipp 375 2011-04-02 07:56:47Z mueller $
+// $Id: RlinkPort.ipp 492 2013-02-24 22:14:47Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,17 +13,19 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-02-23   492   1.2    use RparseUrl
+// 2013-02-22   491   1.1    use new RlogFile/RlogMsg interfaces
 // 2011-03-27   375   1.0    Initial version
 // 2011-01-15   356   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RlinkPort.ipp 375 2011-04-02 07:56:47Z mueller $
+  \version $Id: RlinkPort.ipp 492 2013-02-24 22:14:47Z mueller $
   \brief   Implemenation (inline) of RlinkPort.
 */
 
-// all method definitions in namespace Retro (avoid using in includes...)
+// all method definitions in namespace Retro
 namespace Retro {
 
 //------------------------------------------+-----------------------------------
@@ -37,33 +39,9 @@ inline bool RlinkPort::IsOpen() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline const std::string& RlinkPort::Url() const
+inline const Retro::RparseUrl& RlinkPort::Url() const
 {
   return fUrl;
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-inline const std::string& RlinkPort::UrlScheme() const
-{
-  return fScheme;
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-inline const std::string& RlinkPort::UrlPath() const
-{
-  return fPath;
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-inline const RlinkPort::omap_t& RlinkPort::UrlOpts() const
-{
-  return fOptMap;
 }
 
 //------------------------------------------+-----------------------------------
@@ -85,9 +63,9 @@ inline int RlinkPort::FdWrite() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline void RlinkPort::SetLogFile(RlogFile* log)
+inline void RlinkPort::SetLogFile(const boost::shared_ptr<RlogFile>& splog)
 {
-  fpLogFile = log;
+  fspLog = splog;
   return;
 }
 

@@ -1,4 +1,4 @@
--- $Id: tst_rlink_cuff.vhd 467 2013-01-02 19:49:05Z mueller $
+-- $Id: tst_rlink_cuff.vhd 476 2013-01-26 22:23:53Z mueller $
 --
 -- Copyright 2012-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -41,7 +41,7 @@ use work.slvtypes.all;
 use work.genlib.all;
 use work.rblib.all;
 use work.rlinklib.all;
-use work.serport.all;
+use work.serportlib.all;
 use work.fx2lib.all;
 use work.sys_conf.all;
 

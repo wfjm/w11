@@ -1,6 +1,6 @@
-// $Id: RtclArgs.cpp 374 2011-03-27 17:02:47Z mueller $
+// $Id: RtclArgs.cpp 492 2013-02-24 22:14:47Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-02-12   487   1.0.6  add CurrentArg() method
+// 2013-02-03   481   1.0.5  use Rexception
 // 2011-03-26   373   1.0.4  add GetArg(float/double)
 // 2011-03-13   369   1.0.3  add GetArg(vector<unit8_t>); NextOpt clear NOptMiss
 // 2011-03-06   367   1.0.2  add Config() methods;
@@ -24,7 +26,7 @@
 
 /*!
   \file
-  \version $Id: RtclArgs.cpp 374 2011-03-27 17:02:47Z mueller $
+  \version $Id: RtclArgs.cpp 492 2013-02-24 22:14:47Z mueller $
   \brief   Implemenation of RtclArgs.
 */
 
@@ -34,18 +36,20 @@
 #include <ctype.h>
 #include <stdarg.h>
 
-#include <stdexcept>
-
 #include "RtclArgs.hpp"
+
 #include "Rtcl.hpp"
+#include "librtools/Rexception.hpp"
 
 using namespace std;
-using namespace Retro;
 
 /*!
   \class Retro::RtclArgs
   \brief FIXME_docs
 */
+
+// all method definitions in namespace Retro
+namespace Retro {
 
 //------------------------------------------+-----------------------------------
 //! Default constructor
@@ -76,7 +80,7 @@ RtclArgs::RtclArgs(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[],
     fArgErr(false)
 {
   if (objc < 0)
-    throw invalid_argument("RtclArgs::ctor: objc must be >= 0");
+    throw Rexception("RtclArgs::<ctor>","Bad args: objc must be >= 0");
 }
 
 //------------------------------------------+-----------------------------------
@@ -104,7 +108,7 @@ RtclArgs::~RtclArgs()
 Tcl_Obj* RtclArgs::Objv(size_t ind) const
 {
   if (ind >= (size_t)fObjc)
-    throw out_of_range("RtclArgs::Objv: index out-of-range");
+    throw Rexception("RtclArgs::Objv()","Bad args: index out-of-range");
   return fObjv[ind];
 }
 
@@ -403,12 +407,24 @@ bool RtclArgs::NextOpt(std::string& val, RtclNameSet& optset)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
+Tcl_Obj* RtclArgs::CurrentArg() const
+{
+  if (fNDone == 0)
+    throw Rexception("RtclArgs::CurrentArg()",
+                     "Bad state: no argument processed yet");
+
+  return fObjv[fNDone-1];
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
 bool RtclArgs::AllDone()
 {
   if (fArgErr || fOptErr) return false;
   if (fNDone < fObjc) {
-    AppendResult("-E: superfluous arguments, first one \"",
-                 Tcl_GetString(fObjv[fNDone]), "\"", NULL);
+    AppendResult("-E: superfluous arguments, first one '",
+                 Tcl_GetString(fObjv[fNDone]), "'", NULL);
     return false;
   }
   return true;
@@ -466,7 +482,7 @@ bool RtclArgs::NextArg(const char* name, Tcl_Obj*& pobj)
 
   if (fNDone == fObjc) {
     if (!isopt) {
-      AppendResult("-E: required argument \"", name, "\" missing", NULL);
+      AppendResult("-E: required argument '", name, "' missing", NULL);
       fArgErr = true;
       return false;
     }
@@ -520,7 +536,7 @@ bool RtclArgs::NextArgList(const char* name, int& objc, Tcl_Obj**& objv,
 void RtclArgs::ConfigNameCheck(const char* name)
 {
   if (name==0 || name[0]!='?' || name[1]!='?')
-    throw invalid_argument("RtclArgs::Config(): name must start with ??");
+    throw Rexception("RtclArgs::Config()","Bad args: name must start with ??");
   return;
 }
 
@@ -531,17 +547,12 @@ bool RtclArgs::ConfigReadCheck()
 {
   if (fNConfigRead != 0) {
     SetResult(Tcl_NewObj());
-    AppendResult("-E: only one config read allowed per command, \"", 
-                 PeekArgString(-1), "\" is second", NULL);
+    AppendResult("-E: only one config read allowed per command, '", 
+                 PeekArgString(-1), "' is second", NULL);
     return false;
   }
   fNConfigRead += 1;
   return true;
 }
 
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_RtclArgs_NoInline))
-#define inline
-#include "RtclArgs.ipp"
-#undef  inline
-#endif
+} // end namespace Retro

@@ -1,4 +1,4 @@
-// $Id: RosPrintBvi.ipp 367 2011-03-06 20:07:18Z mueller $
+// $Id: RosPrintBvi.ipp 488 2013-02-16 18:49:47Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -18,11 +18,11 @@
 
 /*!
   \file
-  \version $Id: RosPrintBvi.ipp 367 2011-03-06 20:07:18Z mueller $
+  \version $Id: RosPrintBvi.ipp 488 2013-02-16 18:49:47Z mueller $
   \brief   Implemenation (inline) of RosPrintBvi.
 */
 
-// all method definitions in namespace Retro (avoid using in includes...)
+// all method definitions in namespace Retro
 namespace Retro {
 
 //------------------------------------------+-----------------------------------

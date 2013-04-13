@@ -1,4 +1,4 @@
-// $Id: RosPrintBvi.hpp 366 2011-03-05 14:55:15Z mueller $
+// $Id: RosPrintBvi.hpp 486 2013-02-10 22:34:43Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -18,7 +18,7 @@
 
 /*!
   \file
-  \version $Id: RosPrintBvi.hpp 366 2011-03-05 14:55:15Z mueller $
+  \version $Id: RosPrintBvi.hpp 486 2013-02-10 22:34:43Z mueller $
   \brief   Declaration of class RosPrintBvi .
 */
 
@@ -55,8 +55,6 @@ namespace Retro {
 
 } // end namespace Retro
 
-#if !(defined(Retro_NoInline) || defined(Retro_RosPrintBvi_NoInline))
 #include "RosPrintBvi.ipp"
-#endif
 
 #endif

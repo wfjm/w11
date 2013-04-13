@@ -1,4 +1,4 @@
--- $Id: sys_w11a_n3.vhd 440 2011-12-18 20:08:09Z mueller $
+-- $Id: sys_w11a_n3.vhd 476 2013-01-26 22:23:53Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -88,10 +88,11 @@ use ieee.numeric_std.all;
 use work.slvtypes.all;
 use work.xlib.all;
 use work.genlib.all;
-use work.serport.all;
+use work.serportlib.all;
 use work.rblib.all;
 use work.rlinklib.all;
 use work.bpgenlib.all;
+use work.bpgenrbuslib.all;
 use work.nxcramlib.all;
 use work.iblib.all;
 use work.ibdlib.all;

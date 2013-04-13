@@ -1,4 +1,4 @@
--- $Id: tst_serloop_hiomap.vhd 441 2011-12-20 17:01:16Z mueller $
+-- $Id: tst_serloop_hiomap.vhd 476 2013-01-26 22:23:53Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -81,7 +81,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 use work.slvtypes.all;
-use work.serport.all;
+use work.serportlib.all;
 use work.tst_serlooplib.all;
 
 -- ----------------------------------------------------------------------------

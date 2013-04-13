@@ -1,4 +1,4 @@
--- $Id: tb_s3board_core.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: tb_s3board_core.vhd 476 2013-01-26 22:23:53Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -35,7 +35,7 @@ use ieee.std_logic_textio.all;
 use std.textio.all;
 
 use work.slvtypes.all;
-use work.serport.all;
+use work.serportlib.all;
 use work.simbus.all;
 
 entity tb_s3board_core is

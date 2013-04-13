@@ -1,6 +1,6 @@
-// $Id: RlinkPortFifo.cpp 466 2012-12-30 13:26:55Z mueller $
+// $Id: RlinkPortFifo.cpp 492 2013-02-24 22:14:47Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 y Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-02-23   492   1.1    use RparseUrl
 // 2011-03-27   374   1.0    Initial version
 // 2011-01-15   356   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RlinkPortFifo.cpp 466 2012-12-30 13:26:55Z mueller $
+  \version $Id: RlinkPortFifo.cpp 492 2013-02-24 22:14:47Z mueller $
   \brief   Implemenation of RlinkPortFifo.
 */
 
@@ -31,12 +32,14 @@
 #include "RlinkPortFifo.hpp"
 
 using namespace std;
-using namespace Retro;
 
 /*!
   \class Retro::RlinkPortFifo
-  \brief FIXME_text
+  \brief FIXME_docs
 */
+
+// all method definitions in namespace Retro
+namespace Retro {
 
 //------------------------------------------+-----------------------------------
 //! Default constructor
@@ -55,21 +58,21 @@ RlinkPortFifo::~RlinkPortFifo()
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 bool RlinkPortFifo::Open(const std::string& url, RerrMsg& emsg)
 {
   if (IsOpen()) Close();
 
-  if (!ParseUrl(url, "|keep|", emsg)) return false;
+  if (!fUrl.Set(url, "|keep|", emsg)) return false;
 
   // Note: _rx fifo must be opened before the _tx fifo, otherwise the test
   //       bench might close with EOF on read prematurely (is a race condition).
 
-  fFdWrite = OpenFifo(UrlPath() + "_rx", true, emsg);
+  fFdWrite = OpenFifo(fUrl.Path() + "_rx", true, emsg);
   if (fFdWrite < 0) return false;
   
-  fFdRead = OpenFifo(UrlPath() + "_tx", false, emsg);
+  fFdRead = OpenFifo(fUrl.Path() + "_tx", false, emsg);
   if (fFdRead < 0) {
     close(fFdWrite);
     fFdWrite = -1;
@@ -82,7 +85,7 @@ bool RlinkPortFifo::Open(const std::string& url, RerrMsg& emsg)
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 int RlinkPortFifo::OpenFifo(const std::string& name, bool snd, RerrMsg& emsg)
 {
@@ -94,7 +97,7 @@ int RlinkPortFifo::OpenFifo(const std::string& name, bool snd, RerrMsg& emsg)
   if (irc == 0) {
     if ((stat_fifo.st_mode & S_IFIFO) == 0) {
       emsg.Init("RlinkPortFifo::OpenFiFo()",
-                string("\"") + name + string("\" exists but is not a pipe"));
+                string("'") + name + string("' exists but is not a pipe"));
       return -1;
     }
   } else {
@@ -102,7 +105,7 @@ int RlinkPortFifo::OpenFifo(const std::string& name, bool snd, RerrMsg& emsg)
     irc = mkfifo(name.c_str(), mode);
     if (irc != 0) {
       emsg.InitErrno("RlinkPortFifo::OpenFifo()", 
-                     string("mkfifo() for \"") + name + string("\" failed: "),
+                     string("mkfifo() for '") + name + string("' failed: "),
                      errno);
       return -1;
     }    
@@ -111,7 +114,7 @@ int RlinkPortFifo::OpenFifo(const std::string& name, bool snd, RerrMsg& emsg)
   irc = open(name.c_str(), snd ? O_WRONLY : O_RDONLY);
   if (irc < 0) {
     emsg.InitErrno("RlinkPortFifo::OpenFifo()", 
-                   string("open() for \"") + name + string("\" failed: "),
+                   string("open() for '") + name + string("' failed: "),
                    errno);
     return -1;
   }
@@ -119,9 +122,4 @@ int RlinkPortFifo::OpenFifo(const std::string& name, bool snd, RerrMsg& emsg)
   return irc;
 }
 
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_RlinkPortFifo_NoInline))
-#define inline
-//#include "RlinkPortFifo.ipp"
-#undef  inline
-#endif
+} // end namespace Retro

@@ -1,7 +1,8 @@
-# $Id: generic_ghdl.mk 405 2011-08-14 08:16:28Z mueller $
+# $Id: generic_ghdl.mk 477 2013-01-27 14:07:10Z mueller $
 #
 #  Revision History: 
-# Date         Rev Version Comment
+# Date         Rev Version  Comment
+# 2013-01-27   477   1.3.1  use dontincdep.mk to suppress .dep include on clean
 # 2011-08-13   405   1.3    renamed, moved to rtl/make;
 # 2007-11-04    95   1.2.2  fix find statement in ghdl_tmp_clean
 # 2007-11-02    94   1.2.1  don't delete cext_*.o in ghdl_tmp_clean
@@ -32,6 +33,8 @@ LINK.vhd = $(GHDL) -e $(GHDLIEEE)
 #
 %.dep_ghdl: %.vbom
 	vbomconv --dep_ghdl $< > $@
+#
+include $(RETROBASE)/rtl/make/dontincdep.mk
 #
 .PHONY: ghdl_clean ghdl_tmp_clean
 #

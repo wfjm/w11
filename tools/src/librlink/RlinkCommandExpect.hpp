@@ -1,4 +1,4 @@
-// $Id: RlinkCommandExpect.hpp 375 2011-04-02 07:56:47Z mueller $
+// $Id: RlinkCommandExpect.hpp 492 2013-02-24 22:14:47Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: RlinkCommandExpect.hpp 375 2011-04-02 07:56:47Z mueller $
+  \version $Id: RlinkCommandExpect.hpp 492 2013-02-24 22:14:47Z mueller $
   \brief   Declaration of class RlinkCommandExpect.
 */
 
@@ -44,7 +44,7 @@ namespace Retro {
                     RlinkCommandExpect(uint8_t stat, uint8_t statmsk,
                                        const std::vector<uint16_t>& block,
                                        const std::vector<uint16_t>& blockmsk);
-                    ~RlinkCommandExpect();
+                   ~RlinkCommandExpect();
 
       void          SetStatus(uint8_t stat, uint8_t statmsk=0);
       void          SetData(uint16_t data, uint16_t datamsk=0);
@@ -68,7 +68,6 @@ namespace Retro {
       bool          DataIsChecked() const;
       bool          BlockIsChecked(size_t ind) const;
 
-
       void          Dump(std::ostream& os, int ind=0, const char* text=0) const;
     
     protected: 
@@ -82,8 +81,6 @@ namespace Retro {
   
 } // end namespace Retro
 
-#if !(defined(Retro_NoInline) || defined(Retro_RlinkCommandExpect_NoInline))
 #include "RlinkCommandExpect.ipp"
-#endif
 
 #endif

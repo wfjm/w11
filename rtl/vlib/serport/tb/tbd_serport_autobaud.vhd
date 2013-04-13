@@ -1,4 +1,4 @@
--- $Id: tbd_serport_autobaud.vhd 417 2011-10-22 10:30:29Z mueller $
+-- $Id: tbd_serport_autobaud.vhd 476 2013-01-26 22:23:53Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -47,7 +47,7 @@ use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.genlib.all;
-use work.serport.all;
+use work.serportlib.all;
 
 entity tbd_serport_autobaud is          -- serial port autobaud [tb design]
   port (

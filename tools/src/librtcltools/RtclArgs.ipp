@@ -1,6 +1,6 @@
-// $Id: RtclArgs.ipp 373 2011-03-26 08:54:27Z mueller $
+// $Id: RtclArgs.ipp 495 2013-03-06 17:13:48Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,9 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-03-05   495   1.0.8  add SetResult(bool)
+// 2013-03-02   494   1.0.7  add Quit() method
+// 2013-02-01   479   1.0.5  add Objv() method
 // 2011-03-26   373   1.0.2  add SetResult(string)
 // 2011-03-05   366   1.0.1  add NDone(), NOptMiss(), SetResult();
 // 2011-02-26   364   1.0    Initial version
@@ -21,13 +24,13 @@
 
 /*!
   \file
-  \version $Id: RtclArgs.ipp 373 2011-03-26 08:54:27Z mueller $
+  \version $Id: RtclArgs.ipp 495 2013-03-06 17:13:48Z mueller $
   \brief   Implemenation (inline) of RtclArgs.
 */
 
 #include "Rtcl.hpp"
 
-// all method definitions in namespace Retro (avoid using in includes...)
+// all method definitions in namespace Retro
 namespace Retro {
 
 //------------------------------------------+-----------------------------------
@@ -44,6 +47,14 @@ inline Tcl_Interp* RtclArgs::Interp() const
 inline int RtclArgs::Objc() const
 {
   return fObjc;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline Tcl_Obj* const * RtclArgs::Objv() const
+{
+  return fObjv;
 }
 
 //------------------------------------------+-----------------------------------
@@ -85,6 +96,15 @@ inline void RtclArgs::SetResult(const std::string& str)
 inline void RtclArgs::SetResult(std::ostringstream& sos)
 {
   Rtcl::SetResult(fpInterp, sos);
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline void RtclArgs::SetResult(bool val)
+{
+  Tcl_SetObjResult(fpInterp, Tcl_NewBooleanObj(val));
   return;
 }
 
@@ -140,6 +160,15 @@ inline void RtclArgs::AppendResultLines(std::ostringstream& sos)
 {
   AppendResultLines(sos.str());
   return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline int RtclArgs::Quit(const std::string& str)
+{
+  Tcl_AppendResult(fpInterp, str.c_str(), NULL);
+  return TCL_ERROR;
 }
 
 //------------------------------------------+-----------------------------------

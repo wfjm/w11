@@ -1,4 +1,4 @@
-# $Id: Makefile 444 2011-12-25 10:04:58Z mueller $
+# $Id: Makefile 477 2013-01-27 14:07:10Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -13,7 +13,7 @@ EXE_all  = tb_s3board_dummy
 EXE_all += tb_s3board_fusp_dummy 
 EXE_all += tb_s3_sram_memctl
 #
-ISE_PATH = xc3s1000-ft256-4
+include $(RETROBASE)/rtl/make/xflow_default_s3board.mk
 #
 .PHONY : all all_ssim all_tsim clean
 #
@@ -31,8 +31,10 @@ include $(RETROBASE)/rtl/make/generic_xflow.mk
 #
 VBOM_all = $(wildcard *.vbom)
 #
+ifndef DONTINCDEP
 include $(VBOM_all:.vbom=.dep_xst)
 include $(VBOM_all:.vbom=.dep_ghdl)
 include $(VBOM_all:.vbom=.dep_isim)
 include $(wildcard *.o.dep_ghdl)
+endif
 #

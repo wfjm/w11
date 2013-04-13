@@ -1,4 +1,4 @@
-// $Id: Rutiltpp_Init.cpp 374 2011-03-27 17:02:47Z mueller $
+// $Id: Rutiltpp_Init.cpp 485 2013-02-10 18:57:55Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2011-03-20   372   1.0.2  renamed ..tcl -> ..tpp
+// 2013-02-10   485   1.0.2  remove Tcl_InitStubs()
+// 2011-03-20   372   1.0.1  renamed ..tcl -> ..tpp
 // 2011-03-19   371   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rutiltpp_Init.cpp 374 2011-03-27 17:02:47Z mueller $
+  \version $Id: Rutiltpp_Init.cpp 485 2013-02-10 18:57:55Z mueller $
   \brief   Implemenation of Rutiltpp_Init .
 */
 
@@ -37,10 +38,6 @@ extern "C" int Rutiltpp_Init(Tcl_Interp* interp)
 {
   int irc;
 
-  // use stubs
-  const char* vers = Tcl_InitStubs(interp, TCL_VERSION, 0);
-  if (vers == NULL) return TCL_ERROR;
-  
   // declare package name and version
   irc = Tcl_PkgProvide(interp, "rutiltpp", "1.0.0");
   if (irc != TCL_OK) return irc;
@@ -51,8 +48,8 @@ extern "C" int Rutiltpp_Init(Tcl_Interp* interp)
     return TCL_OK;
 
   } catch (exception& e) {
-    Tcl_AppendResult(interp, "-E: exception caught in Rutiltpp_Init: \"", 
-                     e.what(), "\"", NULL);
+    Tcl_AppendResult(interp, "-E: exception caught in Rutiltpp_Init: '", 
+                     e.what(), "'", NULL);
   }
   return TCL_ERROR;
 }

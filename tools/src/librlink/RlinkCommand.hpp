@@ -1,6 +1,6 @@
-// $Id: RlinkCommand.hpp 375 2011-04-02 07:56:47Z mueller $
+// $Id: RlinkCommand.hpp 495 2013-03-06 17:13:48Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-06   495   1.0.1  add RlinkContext to Print() args; drop oper<<()
 // 2011-03-27   374   1.0    Initial version
 // 2011-01-09   354   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RlinkCommand.hpp 375 2011-04-02 07:56:47Z mueller $
+  \version $Id: RlinkCommand.hpp 495 2013-03-06 17:13:48Z mueller $
   \brief   Declaration of class RlinkCommand.
 */
 
@@ -32,13 +33,17 @@
 #include <vector>
 #include <ostream>
 
-#include "RlinkCommandExpect.hpp"
-#include "RlinkAddrMap.hpp"
 #include "librtools/Rtools.hpp"
+
+#include "RlinkContext.hpp"
+#include "RlinkAddrMap.hpp"
+#include "RlinkCommandExpect.hpp"
+
+#include "librtools/Rbits.hpp"
 
 namespace Retro {
 
-  class RlinkCommand {
+  class RlinkCommand : public Rbits {
     public:
                     RlinkCommand();
                     RlinkCommand(const RlinkCommand& rhs);
@@ -86,9 +91,9 @@ namespace Retro {
       size_t        RcvSize() const;
       RlinkCommandExpect* Expect() const;
 
-      void          Print(std::ostream& os, const RlinkAddrMap* pamap=0, 
-                          size_t abase=16, size_t dbase=16, 
-                          size_t sbase=16) const;
+      void          Print(std::ostream& os, const RlinkContext& cntx,
+                          const RlinkAddrMap* pamap=0, size_t abase=16, 
+                          size_t dbase=16, size_t sbase=16) const;
       void          Dump(std::ostream& os, int ind=0, const char* text=0) const;
 
       static const char* CommandName(uint8_t cmd);
@@ -96,7 +101,7 @@ namespace Retro {
 
       RlinkCommand& operator=(const RlinkCommand& rhs);
 
-    // some constants
+    // some constants (also defined in cpp)
       static const uint8_t  kCmdRreg = 0;   //!< command code read register
       static const uint8_t  kCmdRblk = 1;   //!< command code read block
       static const uint8_t  kCmdWreg = 2;   //!< command code write register
@@ -122,7 +127,21 @@ namespace Retro {
       static const uint32_t kFlagChkStat= 1u<<12; //!< stat expect check failed
       static const uint32_t kFlagChkData= 1u<<13; //!< data expect check failed
 
-      static const uint32_t kFlagVol    = 1<<16; //!< volatile
+      static const uint32_t kFlagVol    = 1u<<16; //!< volatile
+
+      static const uint8_t  kStat_M_Stat  = 0xe0; //!< stat: external stat bits
+      static const uint8_t  kStat_V_Stat  = 5; 
+      static const uint8_t  kStat_B_Stat  = 0x07; 
+      static const uint8_t  kStat_M_Attn  = kBBit04;//!< stat: attn flags set
+      static const uint8_t  kStat_M_Cerr  = kBBit03;//!< stat: attn flags set
+      static const uint8_t  kStat_M_Derr  = kBBit02;//!< stat: attn flags set
+      static const uint8_t  kStat_M_RbNak = kBBit01;//!< stat: attn flags set
+      static const uint8_t  kStat_M_RbErr = kBBit00;//!< stat: attn flags set
+
+      static const uint16_t kRbaddr_IInt  = 0xff;   //!< iint: rbus address
+      static const uint16_t kIInt_M_AnEna = kWBit15;//!< iint: attn notify
+      static const uint16_t kIInt_M_ItoEna= kWBit14;//!< iint: attn/idle timeout
+      static const uint16_t kIInt_M_ItoVal= 0x00ff; //!< iint: attn/idle timeout
 
     protected: 
       void          SetCmdSimple(uint8_t cmd, uint16_t addr, uint16_t data);
@@ -140,14 +159,9 @@ namespace Retro {
       size_t        fRcvSize;               //!< receive size for command
       RlinkCommandExpect* fpExpect;         //!< pointer to expect container
   };
-
-  std::ostream& operator<<(std::ostream& os, const RlinkCommand& obj);
-
   
 } // end namespace Retro
 
-#if !(defined(Retro_NoInline) || defined(Retro_RlinkCommand_NoInline))
 #include "RlinkCommand.ipp"
-#endif
 
 #endif

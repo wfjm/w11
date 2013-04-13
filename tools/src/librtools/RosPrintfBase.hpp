@@ -1,4 +1,4 @@
-// $Id: RosPrintfBase.hpp 364 2011-02-26 08:33:01Z mueller $
+// $Id: RosPrintfBase.hpp 486 2013-02-10 22:34:43Z mueller $
 //
 // Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: RosPrintfBase.hpp 364 2011-02-26 08:33:01Z mueller $
+  \version $Id: RosPrintfBase.hpp 486 2013-02-10 22:34:43Z mueller $
   \brief   Declaration of RosPrintfBase class .
 */
 
@@ -50,8 +50,6 @@ namespace Retro {
 
 } // end namespace Retro
 
-#if !(defined(Retro_NoInline) || defined(Retro_RosPrintfBase_NoInline))
 #include "RosPrintfBase.ipp"
-#endif
 
 #endif

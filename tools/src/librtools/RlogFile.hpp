@@ -1,6 +1,6 @@
-// $Id: RlogFile.hpp 380 2011-04-25 18:14:52Z mueller $
+// $Id: RlogFile.hpp 492 2013-02-24 22:14:47Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,15 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-02-23   492   2.1    add Name(), keep log file name; add Dump()
+// 2013-02-22   491   2.0    add Write(),IsNew(), RlogMsg iface; use lockable
 // 2011-04-24   380   1.0.1  use boost::noncopyable (instead of private dcl's)
 // 2011-01-30   357   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RlogFile.hpp 380 2011-04-25 18:14:52Z mueller $
+  \version $Id: RlogFile.hpp 492 2013-02-24 22:14:47Z mueller $
   \brief   Declaration of class RlogFile.
 */
 
@@ -31,37 +33,51 @@
 #include <fstream>
 
 #include "boost/utility.hpp"
+#include "boost/thread/mutex.hpp"
 
 namespace Retro {
+
+  class RlogMsg;                            // forw decl to avoid circular incl
 
   class RlogFile : private boost::noncopyable {
     public:
                     RlogFile();
-      explicit      RlogFile(std::ostream* os);
-                    ~RlogFile();
+      explicit      RlogFile(std::ostream* os, const std::string& name = "");
+                   ~RlogFile();
 
+      bool          IsNew() const;
       bool          Open(std::string name);
       void          Close();
-      void          UseStream(std::ostream* os);
+      void          UseStream(std::ostream* os, const std::string& name = "");
+      const std::string&  Name() const;
 
-      std::ostream& operator()();
-      std::ostream& operator()(char c);
+      void          Write(const std::string& str, char tag = 0);
+
+      void          Dump(std::ostream& os, int ind=0, const char* text=0) const;
+
+      // provide boost Lockable interface
+      void          lock();
+      void          unlock();
+
+      RlogFile&     operator<<(const RlogMsg& lmsg);
 
     protected:
+      std::ostream& Stream();
       void          ClearTime();
 
     protected:
       std::ostream* fpExtStream;            //!< pointer to external stream
       std::ofstream fIntStream;             //!< internal stream
+      bool          fNew;                   //!< true if never opened or used
+      std::string   fName;                  //!< log file name
       int           fTagYear;               //!< year of last time tag
       int           fTagMonth;              //!< month of last time tag
       int           fTagDay;                //!< day of last time tag
+      boost::mutex  fMutex;                 //!< mutex to lock file
   };
   
 } // end namespace Retro
 
-#if !(defined(Retro_NoInline) || defined(Retro_RlogFile_NoInline))
 #include "RlogFile.ipp"
-#endif
 
 #endif

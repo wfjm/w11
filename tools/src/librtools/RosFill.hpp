@@ -1,4 +1,4 @@
-// $Id: RosFill.hpp 364 2011-02-26 08:33:01Z mueller $
+// $Id: RosFill.hpp 486 2013-02-10 22:34:43Z mueller $
 //
 // Copyright 2000-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: RosFill.hpp 364 2011-02-26 08:33:01Z mueller $
+  \version $Id: RosFill.hpp 486 2013-02-10 22:34:43Z mueller $
   \brief   Declaration of class RosFill .
 */
 
@@ -50,8 +50,6 @@ namespace Retro {
 
 } // end namespace Retro
 
-#if !(defined(Retro_NoInline) || defined(Retro_RosFill_NoInline))
 #include "RosFill.ipp"
-#endif
 
 #endif

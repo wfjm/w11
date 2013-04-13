@@ -1,6 +1,6 @@
-// $Id: RlinkCommandList.ipp 375 2011-04-02 07:56:47Z mueller $
+// $Id: RlinkCommandList.ipp 495 2013-03-06 17:13:48Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,38 +13,27 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-06   495   1.0.1  add RlinkContext to Print() args; drop oper<<()
 // 2011-03-05   366   1.0    Initial version
 // 2011-01-15   355   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RlinkCommandList.ipp 375 2011-04-02 07:56:47Z mueller $
+  \version $Id: RlinkCommandList.ipp 495 2013-03-06 17:13:48Z mueller $
   \brief   Implemenation (inline) of class RlinkCommandList.
 */
 
 
-// all method definitions in namespace Retro (avoid using in includes...)
+// all method definitions in namespace Retro
 namespace Retro {
 
 //------------------------------------------+-----------------------------------
-//! FIXME_text
+//! FIXME_docs
 
 inline size_t RlinkCommandList::Size() const
 {
   return fList.size();
-}
-
-//------------------------------------------+-----------------------------------
-/*! 
-  \relates RlinkCommandList
-  \brief ostream insertion operator.
-*/
-
-inline std::ostream& operator<<(std::ostream& os, const RlinkCommandList& obj)
-{
-  obj.Print(os);
-  return os;
 }
 
 } // end namespace Retro

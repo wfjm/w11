@@ -1,6 +1,6 @@
-// $Id: RtclRlinkConnect.cpp 434 2011-12-02 19:17:38Z mueller $
+// $Id: RtclRlinkConnect.cpp 495 2013-03-06 17:13:48Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,11 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-02-23   492   1.1.6  use RlogFile.Name(); use Context().ErrorCount()
+// 2013-02-22   491   1.1.5  use new RlogFile/RlogMsg interfaces
+// 2013-02-02   480   1.1.4  allow empty exec commands
+// 2013-01-27   478   1.1.3  use RtclRlinkPort::DoRawio on M_rawio
+// 2013-01-06   473   1.1.2  add M_rawio: rawio -write|-read
 // 2011-11-28   434   1.1.1  ConfigBase(): use uint32_t for lp64 compatibility
 // 2011-04-23   380   1.1    use boost/bind instead of RmethDsc
 // 2011-04-17   376   1.0.1  M_wtlam: now correct log levels
@@ -22,13 +27,12 @@
 
 /*!
   \file
-  \version $Id: RtclRlinkConnect.cpp 434 2011-12-02 19:17:38Z mueller $
+  \version $Id: RtclRlinkConnect.cpp 495 2013-03-06 17:13:48Z mueller $
   \brief   Implemenation of class RtclRlinkConnect.
  */
 
 #include <ctype.h>
 
-#include <stdexcept>
 #include <iostream>
 
 #include "boost/bind.hpp"
@@ -38,25 +42,28 @@
 #include "librtcltools/RtclNameSet.hpp"
 #include "librtcltools/RtclStats.hpp"
 #include "librtools/RosPrintf.hpp"
+#include "librtools/RlogMsg.hpp"
 #include "librlink/RlinkCommandList.hpp"
+#include "RtclRlinkPort.hpp"
+
 #include "RtclRlinkConnect.hpp"
 
 using namespace std;
-using namespace Retro;
 
 /*!
   \class Retro::RtclRlinkConnect
   \brief FIXME_docs
 */
 
+// all method definitions in namespace Retro
+namespace Retro {
+
 //------------------------------------------+-----------------------------------
 //! Default constructor
 
 RtclRlinkConnect::RtclRlinkConnect(Tcl_Interp* interp, const char* name)
   : RtclProxyOwned<RlinkConnect>("RlinkConnect", interp, name, 
-                                 new RlinkConnect()),
-    fErrCnt(0),
-    fLogFileName("-")
+                                 new RlinkConnect())
 {
   AddMeth("open",     boost::bind(&RtclRlinkConnect::M_open,    this, _1));
   AddMeth("close",    boost::bind(&RtclRlinkConnect::M_close,   this, _1));
@@ -65,6 +72,7 @@ RtclRlinkConnect::RtclRlinkConnect(Tcl_Interp* interp, const char* name)
   AddMeth("errcnt",   boost::bind(&RtclRlinkConnect::M_errcnt,  this, _1));
   AddMeth("wtlam",    boost::bind(&RtclRlinkConnect::M_wtlam,   this, _1));
   AddMeth("oob",      boost::bind(&RtclRlinkConnect::M_oob,     this, _1));
+  AddMeth("rawio",    boost::bind(&RtclRlinkConnect::M_rawio,   this, _1));
   AddMeth("stats",    boost::bind(&RtclRlinkConnect::M_stats,   this, _1));
   AddMeth("log",      boost::bind(&RtclRlinkConnect::M_log,     this, _1));
   AddMeth("print",    boost::bind(&RtclRlinkConnect::M_print,   this, _1));
@@ -95,12 +103,9 @@ int RtclRlinkConnect::M_open(RtclArgs& args)
 
   RerrMsg emsg;
   if (args.NOptMiss() == 0) {               // open path
-    if (!Obj().Open(path, emsg)) {
-      args.AppendResult(emsg.Message());
-      return kERR;
-    }
+    if (!Obj().Open(path, emsg)) return args.Quit(emsg);
   } else {                                  // open 
-    string name = Obj().IsOpen() ? Obj().Port()->Url() : string();
+    string name = Obj().IsOpen() ? Obj().Port()->Url().Url() : string();
     args.SetResult(name);
   }
   return kOK;
@@ -112,11 +117,7 @@ int RtclRlinkConnect::M_open(RtclArgs& args)
 int RtclRlinkConnect::M_close(RtclArgs& args)
 {
   if (!args.AllDone()) return kERR;
-
-  if (!Obj().IsOpen()) {
-    args.AppendResult("-E: port not open", NULL);
-    return kERR;
-  }
+  if (!Obj().IsOpen()) return args.Quit("-E: port not open");
   Obj().Close();
   return kOK;
 }
@@ -263,27 +264,20 @@ int RtclRlinkConnect::M_exec(RtclArgs& args)
   if (varprint == "-") nact += 1;
   if (vardump  == "-") nact += 1;
   if (varlist  == "-") nact += 1;
-  if (nact > 1) {
-    args.AppendResult("-E: more that one of -print,-dump,-list without ",
-                      "target variable found", NULL);
-    return kERR;
-  }
+  if (nact > 1) 
+    return args.Quit(
+      "-E: more that one of -print,-dump,-list without target variable found");
 
   if (!args.AllDone()) return kERR;
+  if (clist.Size() == 0) return kOK;
 
   RerrMsg emsg;
   
-  if (!Obj().Exec(clist, emsg)) {
-    args.AppendResult(emsg.Message());
-    return kERR;
-  }
+  if (!Obj().Exec(clist, emsg)) return args.Quit(emsg);
 
   for (size_t icmd=0; icmd<clist.Size(); icmd++) {
     RlinkCommand& cmd = clist[icmd];
     
-    if (cmd.TestFlagAny(RlinkCommand::kFlagChkStat)) fErrCnt += 1;
-    if (cmd.TestFlagAny(RlinkCommand::kFlagChkData)) fErrCnt += 1;
-
     if (icmd<vardata.size() && !vardata[icmd].empty()) {
       RtclOPtr pres;
       vector<uint16_t> retstat;
@@ -317,8 +311,8 @@ int RtclRlinkConnect::M_exec(RtclArgs& args)
   if (!varprint.empty()) {
     ostringstream sos;
     const RlinkConnect::LogOpts& logopts = Obj().GetLogOpts();
-    clist.Print(sos, &Obj().AddrMap(), logopts.baseaddr, logopts.basedata, 
-                logopts.basestat);
+    clist.Print(sos, Obj().Context(), &Obj().AddrMap(), logopts.baseaddr, 
+                logopts.basedata, logopts.basestat);
     RtclOPtr pobj = Rtcl::NewLinesObj(sos);
     if (!Rtcl::SetVarOrResult(args.Interp(), varprint, pobj)) return kERR;
   }
@@ -388,9 +382,8 @@ int RtclRlinkConnect::M_amap(RtclArgs& args)
       if(addrmap.Find(addr, tstname)) {
         args.SetResult(tstname);
       } else {
-        args.AppendResult("-E: address \"", args.PeekArgString(-1), 
-                          "\" not mapped", NULL);
-        return kERR;
+        return args.Quit(string("-E: address '") + args.PeekArgString(-1) +
+                         "' not mapped");
       }
 
     } else if (opt == "-testname") {        // amap -testname name
@@ -411,33 +404,23 @@ int RtclRlinkConnect::M_amap(RtclArgs& args)
       int      tstint;
       if (!args.GetArg("name", name)) return kERR;
       // enforce that the name is not a valid representation of an int
-      if (Tcl_GetIntFromObj(NULL, args[args.NDone()-1], &tstint) == kOK) {
-        args.AppendResult("-E: name should not look like an int but \"", 
-                          name.c_str(), "\" does", NULL);
-        return kERR;
-      }
+      if (Tcl_GetIntFromObj(NULL, args[args.NDone()-1], &tstint) == kOK) 
+        return args.Quit(string("-E: name should not look like an int but '")+
+                         name + "' does");
       if (!args.GetArg("addr", addr, 0x00ff)) return kERR;
       if (!args.AllDone()) return kERR;
-      if (addrmap.Find(name, tstaddr)) {
-        args.AppendResult("-E: mapping already defined for \"", name.c_str(),
-                          "\"", NULL);
-        return kERR;
-      }
-      if (addrmap.Find(addr, tstname)) {
-        args.AppendResult("-E: mapping already defined for address \"", 
-                          args.PeekArgString(-1), "\"", NULL);
-        return kERR;
-      }
+      if (addrmap.Find(name, tstaddr)) 
+        return args.Quit(string("-E: mapping already defined for '")+name+"'");
+      if (addrmap.Find(addr, tstname)) 
+        return args.Quit(string("-E: mapping already defined for address '") +
+                         args.PeekArgString(-1) + "'");
       Obj().AddrMapInsert(name, addr);
 
     } else if (opt == "-erase") {           // amap -erase name
       if (!args.GetArg("name", name)) return kERR;
       if (!args.AllDone()) return kERR;
-      if (!Obj().AddrMapErase(name)) {
-        args.AppendResult("-E: no mapping defined for \"", name.c_str(),
-                          "\"", NULL);
-        return kERR;
-      }
+      if (!Obj().AddrMapErase(name)) 
+        return args.Quit(string("-E: no mapping defined for '") + name + "'");
 
     } else if (opt == "-clear") {           // amap -clear
       if (!args.AllDone()) return kERR;
@@ -458,9 +441,7 @@ int RtclRlinkConnect::M_amap(RtclArgs& args)
       if(addrmap.Find(name, tstaddr)) {
         args.SetResult(int(tstaddr));
       } else {
-        args.AppendResult("-E: no mapping defined for \"", name.c_str(), 
-                          "\"", NULL);
-        return kERR;
+        return args.Quit(string("-E: no mapping defined for '") + name + "'");
       }
 
     } else {                                // amap
@@ -493,8 +474,8 @@ int RtclRlinkConnect::M_errcnt(RtclArgs& args)
   }
   if (!args.AllDone()) return kERR;
 
-  args.SetResult(int(fErrCnt));
-  if (fclear) fErrCnt = 0;
+  args.SetResult(int(Obj().Context().ErrorCount()));
+  if (fclear) Obj().Context().ClearErrorCount();
 
   return kOK;
 }
@@ -512,22 +493,23 @@ int RtclRlinkConnect::M_wtlam(RtclArgs& args)
   double twait = Obj().WaitAttn(tout, emsg);
 
   if (twait == -2.) {
-    args.AppendResult(emsg.Message());
-    return kERR;
+    return args.Quit(emsg);
   } else if (twait == -1.) {
     if (Obj().GetLogOpts().printlevel >= 1) {
-      Obj().LogFile()() << "-- wtlam to=" << RosPrintf(tout, "f", 0,3)
-                        << " FAIL timeout" << endl;
-      fErrCnt += 1;
+      RlogMsg lmsg(Obj().LogFile());
+      lmsg << "-- wtlam to=" << RosPrintf(tout, "f", 0,3)
+           << " FAIL timeout" << endl;
+      Obj().Context().IncErrorCount();
       args.SetResult(tout);
       return kOK;
     }
   }
 
   if (Obj().GetLogOpts().printlevel >= 3) {
-    Obj().LogFile()() << "-- wtlam to=" << RosPrintf(tout, "f", 0,3)
-                      << "  T=" << RosPrintf(twait, "f", 0,3)
-                      << "  OK" << endl;
+    RlogMsg lmsg(Obj().LogFile());
+    lmsg << "-- wtlam to=" << RosPrintf(tout, "f", 0,3)
+         << "  T=" << RosPrintf(twait, "f", 0,3)
+         << "  OK" << endl;
   }
   
   args.SetResult(twait);
@@ -551,46 +533,43 @@ int RtclRlinkConnect::M_oob(RtclArgs& args)
       if (!args.GetArg("val", data, 1)) return kERR;
       if (!args.AllDone()) return kERR;
       addr = 15;                              // rlmon on bit 15
-      if (!Obj().SndOob(0x00, (addr<<8)+data, emsg)) {
-        args.AppendResult(emsg.Message());
-        return kERR;
-      }
+      if (!Obj().SndOob(0x00, (addr<<8)+data, emsg)) return args.Quit(emsg);
 
     } else if (opt == "-rbmon") {           // oob -rbmon (0|1)
       if (!args.GetArg("val", data, 1)) return kERR;
       if (!args.AllDone()) return kERR;
       addr = 14;                              // rbmon on bit 14
-      if (!Obj().SndOob(0x00, (addr<<8)+data, emsg)) {
-        args.AppendResult(emsg.Message());
-        return kERR;
-      }
+      if (!Obj().SndOob(0x00, (addr<<8)+data, emsg)) return args.Quit(emsg);
 
     } else if (opt == "-sbcntl") {          // oob -sbcntl bit (0|1)
       if (!args.GetArg("bit", addr, 15)) return kERR;
       if (!args.GetArg("val", data,  1)) return kERR;
       if (!args.AllDone()) return kERR;
-      if (!Obj().SndOob(0x00, (addr<<8)+data, emsg)) {
-        args.AppendResult(emsg.Message());
-        return kERR;
-      }
+      if (!Obj().SndOob(0x00, (addr<<8)+data, emsg)) return args.Quit(emsg);
 
     } else if (opt == "-sbdata") {          // oob -sbdata addr val
       if (!args.GetArg("bit", addr, 0x0ff)) return kERR;
       if (!args.GetArg("val", data)) return kERR;
       if (!args.AllDone()) return kERR;
-      if (!Obj().SndOob(addr, data, emsg)) {
-        args.AppendResult(emsg.Message());
-        return kERR;
-      }
+      if (!Obj().SndOob(addr, data, emsg)) return args.Quit(emsg);
     }
   } else {
-     args.AppendResult("-E: missing option, one of "
-                       "-rlmon,-rbmon,-sbcntl,-sbdata",
-                       NULL);
-     return kERR;
+    return args.Quit(
+      "-E: missing option, one of -rlmon,-rbmon,-sbcntl,-sbdata");
   }
 
   return kOK;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+int RtclRlinkConnect::M_rawio(RtclArgs& args)
+{
+  size_t errcnt = 0;
+  int rc = RtclRlinkPort::DoRawio(args, Obj().Port(), errcnt);
+  Obj().Context().IncErrorCount(errcnt);
+  return rc;
 }
 
 //------------------------------------------+-----------------------------------
@@ -600,9 +579,9 @@ int RtclRlinkConnect::M_stats(RtclArgs& args)
 {
   RtclStats::Context cntx;
   if (!RtclStats::GetArgs(args, cntx)) return kERR;
-  if (!RtclStats::Exec(args, cntx, Obj().Stats())) return kERR;
+  if (!RtclStats::Collect(args, cntx, Obj().Stats())) return kERR;
   if (Obj().Port()) {
-    if (!RtclStats::Exec(args, cntx, Obj().Port()->Stats())) return kERR;
+    if (!RtclStats::Collect(args, cntx, Obj().Port()->Stats())) return kERR;
   }
   return kOK;
 }
@@ -618,7 +597,7 @@ int RtclRlinkConnect::M_log(RtclArgs& args)
   if (Obj().GetLogOpts().printlevel != 0 ||
       Obj().GetLogOpts().dumplevel  != 0 ||
       Obj().GetLogOpts().tracelevel != 0) {
-    Obj().LogFile()() << "# " << msg << endl;
+    Obj().LogFile().Write(string("# ") + msg);
   }
   return kOK;
 }
@@ -665,7 +644,7 @@ int RtclRlinkConnect::M_config(RtclArgs& args)
     sos << "-baseaddr " << RosPrintf(logopts.baseaddr, "d")
         << " -basedata " << RosPrintf(logopts.basedata, "d")
         << " -basestat " << RosPrintf(logopts.basestat, "d")
-        << " -logfile {" << fLogFileName << "}"
+        << " -logfile {" << Obj().LogFile().Name() << "}"
         << " -logprintlevel " << RosPrintf(logopts.printlevel, "d")
         << " -logdumplevel " << RosPrintf(logopts.dumplevel, "d")
         << " -logtracelevel " << RosPrintf(logopts.tracelevel, "d");
@@ -688,17 +667,16 @@ int RtclRlinkConnect::M_config(RtclArgs& args)
       if (args.NOptMiss() == 0) Obj().SetLogOpts(logopts);
 
     } else if (opt == "-logfile") {         // -logfile ?name ------------------
-      if (!args.Config("??name", fLogFileName)) return false;
+      string name;
+      if (!args.Config("??name", name)) return false;
       if (args.NOptMiss() == 0) {             // new filename ?
-        if (fLogFileName == "-") {
-          Obj().LogUseStream(&cout);
+        if (name == "-" || name == "<cout>") {
+          Obj().LogUseStream(&cout, "<cout>");
         } else {
-          if (!Obj().LogOpen(fLogFileName)) {
-            args.AppendResult("-E: open failed for \"", 
-                              fLogFileName.c_str(), "\", using stdout", NULL);
-            Obj().LogUseStream(&cout);
-            fLogFileName = "-";
-            return kERR;
+          if (!Obj().LogOpen(name)) {
+            Obj().LogUseStream(&cout, "<cout>");
+            return args.Quit(string("-E: open failed for '") + name +
+                             "', using stdout");
           }
         }
       }
@@ -733,7 +711,7 @@ int RtclRlinkConnect::M_default(RtclArgs& args)
   sos << "print base:  " << "addr " << RosPrintf(logopts.baseaddr, "d", 2)
       << "  data " << RosPrintf(logopts.basedata, "d", 2)
       << "  stat " << RosPrintf(logopts.basestat, "d", 2) << endl;
-  sos << "logfile:     " << fLogFileName
+  sos << "logfile:     " << Obj().LogFile().Name()
       << "   printlevel " << logopts.printlevel
       << "   dumplevel " << logopts.dumplevel;
 
@@ -756,8 +734,8 @@ bool RtclRlinkConnect::GetAddr(RtclArgs& args, RlinkConnect& conn,
     if (tstint >= 0 && tstint <= 0x00ff) {
       addr = (uint16_t)tstint;
     } else {
-      args.AppendResult("-E: value \"", Tcl_GetString(pobj), 
-                        "\" for \"addr\" out of range 0...0x00ff", NULL);
+      args.AppendResult("-E: value '", Tcl_GetString(pobj), 
+                        "' for 'addr' out of range 0...0x00ff", NULL);
       return false;
     }
   // if a name is given 
@@ -767,8 +745,8 @@ bool RtclRlinkConnect::GetAddr(RtclArgs& args, RlinkConnect& conn,
     if (Obj().AddrMap().Find(name, tstaddr)) {
       addr = tstaddr;
     } else {
-      args.AppendResult("-E: no address mapping known for \"", 
-                        Tcl_GetString(pobj), "\"", NULL);
+      args.AppendResult("-E: no address mapping known for '", 
+                        Tcl_GetString(pobj), "'", NULL);
       return false;
     }
   }
@@ -789,8 +767,8 @@ bool RtclRlinkConnect::GetVarName(RtclArgs& args, const char* argname,
   if (name.length()) {                      // if variable defined
     char c = name[0];
     if (isdigit(c) || c=='+' || c=='-' ) {  // check for mistaken number
-      args.AppendResult("-E: invalid variable name \"", name.c_str(), 
-                        "\": looks like a number", NULL);
+      args.AppendResult("-E: invalid variable name '", name.c_str(), 
+                        "': looks like a number", NULL);
       return false;
     }
   }
@@ -807,8 +785,9 @@ bool RtclRlinkConnect::ConfigBase(RtclArgs& args, uint32_t& base)
   uint32_t tmp = base;
   if (!args.Config("??base", tmp, 16, 2)) return false;
   if (tmp != base && tmp != 2 && tmp !=8 && tmp != 16) {
-    args.AppendResult("-E: base must be 2, 8, or 16, found \"",
-                      args.PeekArgString(-1), "\"", NULL);
+    args.AppendResult("-E: base must be 2, 8, or 16, found '",
+                      args.PeekArgString(-1), "'", NULL);
+    return false;
   }
   base = tmp;
   return true;
@@ -822,15 +801,11 @@ bool RtclRlinkConnect::ClistNonEmpty(RtclArgs& args,
                                      const RlinkCommandList& clist)
 {
   if (clist.Size() == 0) {
-    args.AppendResult("-E: -volatile not allowed on empty command list", NULL);
+    args.AppendResult("-E: -edata, -estat, or -volatile "
+                      "not allowed on empty command list", NULL);
     return false;
   }
   return true;
 }
 
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_RtclRlinkConnect_NoInline))
-#define inline
-//#include "RtclRlinkConnect.ipp"
-#undef  inline
-#endif
+} // end namespace Retro

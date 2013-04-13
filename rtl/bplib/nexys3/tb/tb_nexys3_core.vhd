@@ -1,4 +1,4 @@
--- $Id: tb_nexys3_core.vhd 432 2011-11-25 20:16:28Z mueller $
+-- $Id: tb_nexys3_core.vhd 476 2013-01-26 22:23:53Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -33,7 +33,7 @@ use ieee.std_logic_textio.all;
 use std.textio.all;
 
 use work.slvtypes.all;
-use work.serport.all;
+use work.serportlib.all;
 use work.simbus.all;
 
 entity tb_nexys3_core is

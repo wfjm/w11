@@ -1,4 +1,4 @@
-// $Id: RtclProxyBase.ipp 365 2011-02-28 07:28:26Z mueller $
+// $Id: RtclProxyBase.ipp 488 2013-02-16 18:49:47Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,17 +13,18 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-02-08   484   1.0.1  add CommandName()
 // 2011-02-20   363   1.0    Initial version
 // 2011-02-13   361   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclProxyBase.ipp 365 2011-02-28 07:28:26Z mueller $
+  \version $Id: RtclProxyBase.ipp 488 2013-02-16 18:49:47Z mueller $
   \brief   Implemenation (inline) of RtclProxyBase.
 */
 
-// all method definitions in namespace Retro (avoid using in includes...)
+// all method definitions in namespace Retro
 namespace Retro {
 
 //------------------------------------------+-----------------------------------

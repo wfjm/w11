@@ -1,4 +1,4 @@
-// $Id: RlinkPacketBuf.cpp 469 2013-01-05 12:29:44Z mueller $
+// $Id: RlinkPacketBuf.cpp 492 2013-02-24 22:14:47Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-02-03   481   1.0.3  use Rexception
+// 2013-01-13   474   1.0.2  add PollAttn() method
 // 2013-01-04   469   1.0.1  SndOob(): Add filler 0 to ensure escape state
 // 2011-04-02   375   1.0    Initial version
 // 2011-03-05   366   0.1    First draft
@@ -20,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPacketBuf.cpp 469 2013-01-05 12:29:44Z mueller $
+  \version $Id: RlinkPacketBuf.cpp 492 2013-02-24 22:14:47Z mueller $
   \brief   Implemenation of class RlinkPacketBuf.
  */
 
@@ -29,21 +31,22 @@
 // debug
 #include <iostream>
 
-#include <stdexcept>
-
 #include "RlinkPacketBuf.hpp"
 
 #include "librtools/RosFill.hpp"
 #include "librtools/RosPrintf.hpp"
 #include "librtools/RosPrintBvi.hpp"
+#include "librtools/Rexception.hpp"
 
 using namespace std;
-using namespace Retro;
 
 /*!
   \class Retro::RlinkPacketBuf
   \brief FIXME_docs
 */
+
+// all method definitions in namespace Retro
+namespace Retro {
 
 //------------------------------------------+-----------------------------------
 // constants definitions
@@ -150,7 +153,8 @@ bool RlinkPacketBuf::RcvPacket(RlinkPort* port, size_t nrcv, float timeout,
   while (!(eopseen|nakseen)) {              // try till eop or nak received
     size_t   nread = nrcv - fPktBuf.size();
     // FIXME_code: if the 'enough data' handling below correct ?
-    if (nread < 0) return true;
+    if (nread < 0)  return true;
+    
     if (!sopseen) nread += 1;
     if (!eopseen) nread += 1;
 
@@ -202,8 +206,9 @@ bool RlinkPacketBuf::RcvPacket(RlinkPort* port, size_t nrcv, float timeout,
           fNdrop += 1;
         }
       }
-    }
-  }
+    } // for (int i=0; i<irc; i++)
+
+  } // while (!(eopseen|nakseen))
 
   return true;
 }
@@ -214,7 +219,7 @@ bool RlinkPacketBuf::RcvPacket(RlinkPort* port, size_t nrcv, float timeout,
 double RlinkPacketBuf::WaitAttn(RlinkPort* port, double timeout, RerrMsg& emsg)
 {
   if (timeout <= 0.)
-    throw invalid_argument("RlinkPacketBuf::WaitAttn(): timeout <= 0.");
+    throw Rexception("RlinkPacketBuf::WaitAttn()", "Bad args: timeout <= 0.");
 
   struct timeval tval;
   gettimeofday(&tval, 0);
@@ -256,6 +261,40 @@ double RlinkPacketBuf::WaitAttn(RlinkPort* port, double timeout, RerrMsg& emsg)
   }
 
   return timeout - trest;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+int RlinkPacketBuf::PollAttn(RlinkPort* port, RerrMsg& emsg)
+{
+  Init();
+
+  int irc = RcvRaw(port, 128, 0., emsg);
+
+  if (irc <= 0) {
+    if (irc == RlinkPort::kTout) {
+      SetFlagBit(kFlagTout);
+      return 0;
+    } else {
+      return -2;
+    }
+  }
+
+  for (size_t i=0; i<(size_t)irc; i++) {
+    uint8_t c = fRawBuf[i];
+    if (c == kCommaAttn) {
+      fNattn += 1;
+      SetFlagBit(kFlagAttnSeen);
+      break;
+    } else if (c == kCommaIdle) {
+      fNidle += 1;
+    } else {
+      fNdrop += 1;
+    }
+  }
+
+  return fNattn;
 }
 
 //------------------------------------------+-----------------------------------
@@ -332,7 +371,7 @@ void RlinkPacketBuf::Dump(std::ostream& os, int ind, const char* text) const
 bool RlinkPacketBuf::SndRaw(RlinkPort* port, RerrMsg& emsg)
 {
   if (port==0 || !port->IsOpen())
-    throw logic_error("RlinkPacketBuf::SndRaw(): port not open");
+    throw Rexception("RlinkPacketBuf::SndRaw()", "Bad state: port not open");
 
   fRawBufSize = fRawBuf.size();
   int irc = port->Write(fRawBuf.data(), fRawBuf.size(), emsg);
@@ -352,7 +391,7 @@ int RlinkPacketBuf::RcvRaw(RlinkPort* port, size_t size, float timeout,
                            RerrMsg& emsg)
 {
   if (port==0 || !port->IsOpen())
-    throw logic_error("RlinkPacketBuf::RcvRaw(): port not open");
+    throw Rexception("RlinkPacketBuf::RcvRaw()", "Bad state: port not open");
 
   if (fRawBuf.size() < fRawBufSize+size) fRawBuf.resize(fRawBufSize+size);
   int irc = port->Read(fRawBuf.data()+fRawBufSize, size, timeout, emsg);
@@ -367,9 +406,4 @@ int RlinkPacketBuf::RcvRaw(RlinkPort* port, size_t size, float timeout,
   return irc;
 }
 
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_RlinkPacketBuf_NoInline))
-#define inline
-#include "RlinkPacketBuf.ipp"
-#undef  inline
-#endif
+} // end namespace Retro

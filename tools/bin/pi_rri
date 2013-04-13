@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: pi_rri 440 2011-12-18 20:08:09Z mueller $
+# $Id: pi_rri 499 2013-03-24 20:26:18Z mueller $
 #
 # Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -944,7 +944,7 @@ my $serv11_init_anena  = 0x8000;       # enable attn
 #   -> {inithdl}     address of controler init handler
 #   -> {usethdl}     address of unit setup handler
 #   -> {attdethdl}   address of attach/detach handler
-#   -> {attnhdl}     address og attention handler
+#   -> {attnhdl}     address of attention handler
 #   -> {reglist}     register list (array of regdsc's)
 #   -> {regtbl}      register table (by name, created by ...)
 #   -> {partbl}      parameter table (array of pardsc's)
@@ -2765,9 +2765,9 @@ sub pdpcp_cexec {
   }
 
   $cmd =~ s/^rsp/rr6/;			    # rsp -> rr6
-  $cmd =~ s/^rpc/rr7/;			    # rsp -> rr7
+  $cmd =~ s/^rpc/rr7/;			    # rpc -> rr7
   $cmd =~ s/^wsp/wr6/;			    # wsp -> wr6
-  $cmd =~ s/^wpc/wr7/;			    # wsp -> wr7
+  $cmd =~ s/^wpc/wr7/;			    # wpc -> wr7
 
   $cmd_line = $cmd;
   $cmd_rest = "";
@@ -2825,7 +2825,7 @@ sub pdpcp_cexec {
     my $delay = int $1;
     rri_cmdlist_do();			     # flush before waiting
     for (my $i = 0; $i < $delay; $i++) {
-      raw_snd9(D9IDLE); 
+      raw_snd9(D9IDLE);
     }
 
   } elsif ($cmd =~ /^\.cclst/) {             # .cclst ------------------------
@@ -3561,6 +3561,10 @@ sub serv11_cexec_ldabs {
 
     return if $rc != 1;
     my $byt = ord($buf);
+
+    #printf "+++1 cn=%3d byt=%3.3o cnt=%4d addr=%6.6o sum=%3.3o\n",
+    #  $chrnum, $byt&0377, $bytcnt, $ldaddr, $chksum;
+
     $chksum = ($chksum + $byt) & 0377;
 
     if ($chrnum == 0) {		           # in blank tape

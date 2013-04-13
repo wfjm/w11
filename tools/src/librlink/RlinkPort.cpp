@@ -1,6 +1,6 @@
-// $Id: RlinkPort.cpp 466 2012-12-30 13:26:55Z mueller $
+// $Id: RlinkPort.cpp 492 2013-02-24 22:14:47Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,11 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-02-23   492   1.2    use RparseUrl
+// 2013-02-22   491   1.1    use new RlogFile/RlogMsg interfaces
+// 2013-02-10   485   1.0.5  add static const defs
+// 2013-02-03   481   1.0.4  use Rexception
+// 2013-01-27   477   1.0.3  add RawRead(),RawWrite() methods
 // 2012-12-28   466   1.0.2  allow Close() even when not open
 // 2012-12-26   465   1.0.1  add CloseFd() method
 // 2011-03-27   375   1.0    Initial version
@@ -21,50 +26,60 @@
 
 /*!
   \file
-  \version $Id: RlinkPort.cpp 466 2012-12-30 13:26:55Z mueller $
+  \version $Id: RlinkPort.cpp 492 2013-02-24 22:14:47Z mueller $
   \brief   Implemenation of RlinkPort.
 */
 
 #include <errno.h>
 #include <unistd.h>
 #include <poll.h>
+#include <sys/time.h>
 
-#include <stdexcept>
 #include <iostream>
-
-#include "RlinkPort.hpp"
 
 #include "librtools/RosFill.hpp"
 #include "librtools/RosPrintf.hpp"
 #include "librtools/RosPrintBvi.hpp"
+#include "librtools/Rexception.hpp"
+#include "librtools/RlogMsg.hpp"
+
+#include "RlinkPort.hpp"
 
 using namespace std;
-using namespace Retro;
 
 /*!
   \class Retro::RlinkPort
   \brief FIXME_docs
 */
 
+// all method definitions in namespace Retro
+namespace Retro {
+
+//------------------------------------------+-----------------------------------
+// constants definitions
+
+const int  RlinkPort::kEof;
+const int  RlinkPort::kTout;
+const int  RlinkPort::kErr;
+   
 //------------------------------------------+-----------------------------------
 //! Default constructor
 
 RlinkPort::RlinkPort()
   : fIsOpen(false),
     fUrl(),
-    fScheme(),
-    fPath(),
-    fOptMap(),
     fFdRead(-1),
     fFdWrite(-1),
-    fpLogFile(0),
+    fspLog(),
     fTraceLevel(0),
     fStats()
 {
-  fStats.Define(kStatNPortWrite, "NPortWrite", "Port::Write() calls");
-  fStats.Define(kStatNPortRead,  "NPortRead",  "Port::Read() calls");
-  fStats.Define(kStatNPortTxByt, "NPortTxByt", "Port Tx raw bytes send");
-  fStats.Define(kStatNPortRxByt, "NPortRxByt", "Port Rx raw bytes rcvd");
+  fStats.Define(kStatNPortWrite,    "NPortWrite", "Port::Write() calls");
+  fStats.Define(kStatNPortRead,     "NPortRead",  "Port::Read() calls");
+  fStats.Define(kStatNPortTxByt,    "NPortTxByt", "Port Tx bytes send");
+  fStats.Define(kStatNPortRxByt,    "NPortRxByt", "Port Rx bytes rcvd");
+  fStats.Define(kStatNPortRawWrite, "NPortRawWrite", "Port::RawWrite() calls");
+  fStats.Define(kStatNPortRawRead,  "NPortRawRead",  "Port::RawRead() calls");
 }
 
 //------------------------------------------+-----------------------------------
@@ -87,10 +102,7 @@ void RlinkPort::Close()
   CloseFd(fFdRead);
 
   fIsOpen  = false;
-  fUrl.clear();
-  fScheme.clear();
-  fPath.clear();
-  fOptMap.clear();
+  fUrl.Clear();
     
   return;
 }
@@ -101,11 +113,11 @@ void RlinkPort::Close()
 int RlinkPort::Read(uint8_t* buf, size_t size, double timeout, RerrMsg& emsg)
 {
   if (!IsOpen())
-    throw logic_error("RlinkPort::Read(): port not open");
+    throw Rexception("RlinkPort::Read()","Bad state: port not open");
   if (buf == 0) 
-    throw invalid_argument("RlinkPort::Read(): buf==NULL");
+    throw Rexception("RlinkPort::Read()","Bad args: buf==NULL");
   if (size == 0) 
-    throw invalid_argument("RlinkPort::Read(): size==0");
+    throw Rexception("RlinkPort::Read()","Bad args: size==0");
 
   fStats.Inc(kStatNPortRead);
 
@@ -117,22 +129,21 @@ int RlinkPort::Read(uint8_t* buf, size_t size, double timeout, RerrMsg& emsg)
     irc = read(fFdRead, (void*) buf, size);
     if (irc < 0 && errno != EINTR) {
       emsg.InitErrno("RlinkPort::Read()", "read() failed : ", errno);
-      if (fpLogFile && fTraceLevel>0) (*fpLogFile)('E') << emsg << endl;
+      if (fspLog && fTraceLevel>0) fspLog->Write(emsg.Message(), 'E');
       return kErr;
     }
   }
 
-  if (fpLogFile && fTraceLevel>0) {
-    ostream& os = (*fpLogFile)();
-    (*fpLogFile)('I') << "port  read nchar=" << RosPrintf(irc,"d",4);
+  if (fspLog && fTraceLevel>0) {
+    RlogMsg lmsg(*fspLog, 'I');
+    lmsg << "port  read nchar=" << RosPrintf(irc,"d",4);
     if (fTraceLevel>1) {
       size_t ncol = (80-5-6)/(2+1);
       for (int i=0; i<irc; i++) {
-        if ((i%ncol)==0) os << "\n     " << RosPrintf(i,"d",4) << ": ";
-        os << RosPrintBvi(buf[i],16) << " ";
+        if ((i%ncol)==0) lmsg << "\n     " << RosPrintf(i,"d",4) << ": ";
+        lmsg << RosPrintBvi(buf[i],16) << " ";
       }
     }
-    os << endl;
   } 
 
   fStats.Inc(kStatNPortRxByt, double(irc));
@@ -146,25 +157,24 @@ int RlinkPort::Read(uint8_t* buf, size_t size, double timeout, RerrMsg& emsg)
 int RlinkPort::Write(const uint8_t* buf, size_t size, RerrMsg& emsg)
 {
   if (!IsOpen()) 
-    throw logic_error("RlinkPort::Write(): port not open");
+    throw Rexception("RlinkPort::Write()","Bad state: port not open");
   if (buf == 0) 
-    throw invalid_argument("RlinkPort::Write(): buf==NULL");
+    throw Rexception("RlinkPort::Write()","Bad args: buf==NULL");
   if (size == 0) 
-    throw invalid_argument("RlinkPort::Write(): size==0");
+    throw Rexception("RlinkPort::Write()","Bad args: size==0");
 
   fStats.Inc(kStatNPortWrite);
 
-  if (fpLogFile && fTraceLevel>0) {
-    ostream& os = (*fpLogFile)();
-    (*fpLogFile)('I') << "port write nchar=" << RosPrintf(size,"d",4);
+  if (fspLog && fTraceLevel>0) {
+    RlogMsg lmsg(*fspLog, 'I');
+    lmsg << "port write nchar=" << RosPrintf(size,"d",4);
     if (fTraceLevel>1) {
       size_t ncol = (80-5-6)/(2+1);
       for (size_t i=0; i<size; i++) {
-        if ((i%ncol)==0) os << "\n     " << RosPrintf(i,"d",4) << ": ";
-        os << RosPrintBvi(buf[i],16) << " ";
+        if ((i%ncol)==0) lmsg << "\n     " << RosPrintf(i,"d",4) << ": ";
+        lmsg << RosPrintBvi(buf[i],16) << " ";
       }
     }
-    os << endl;
   }
 
   size_t ndone = 0;
@@ -174,7 +184,7 @@ int RlinkPort::Write(const uint8_t* buf, size_t size, RerrMsg& emsg)
       irc = write(fFdWrite, (void*) (buf+ndone), size-ndone);
       if (irc < 0 && errno != EINTR) {
         emsg.InitErrno("RlinkPort::Write()", "write() failed : ", errno);
-        if (fpLogFile && fTraceLevel>0) (*fpLogFile)('E') << emsg << endl;
+        if (fspLog && fTraceLevel>0) fspLog->Write(emsg.Message(), 'E');
         return kErr;
       }
     }
@@ -193,9 +203,9 @@ int RlinkPort::Write(const uint8_t* buf, size_t size, RerrMsg& emsg)
 bool RlinkPort::PollRead(double timeout)
 {
   if (! IsOpen())
-    throw logic_error("RlinkPort::PollRead(): port not open");
+    throw Rexception("RlinkPort::PollRead()","Bad state: port not open");
   if (timeout < 0.)
-    throw invalid_argument("RlinkPort::PollRead(): timeout < 0");
+    throw Rexception("RlinkPort::PollRead()","Bad args: timeout < 0");
 
   int ito = 1000.*timeout + 0.1;
 
@@ -208,38 +218,57 @@ bool RlinkPort::PollRead(double timeout)
   while (irc < 0) {
     irc = poll(fds, 1, ito);
     if (irc < 0 && errno != EINTR)
-      throw logic_error("RlinkPort::PollRead(): poll failed: rc<0");
+      throw Rexception("RlinkPort::PollRead()","poll() failed: rc<0: ", errno);
   }
 
   if (irc == 0) return false;
 
   if (fds[0].revents == POLLERR)
-    throw logic_error("RlinkPort::PollRead(): poll failed: POLLERR");
+    throw Rexception("RlinkPort::PollRead()", "poll() failed: POLLERR");
 
   return true;
 }
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
-
-bool RlinkPort::UrlFindOpt(const std::string& name) const
+int RlinkPort::RawRead(uint8_t* buf, size_t size, bool exactsize,
+                       double timeout, double& tused, RerrMsg& emsg)
 {
-  omap_cit_t it = fOptMap.find(name);
-  if (it == fOptMap.end()) return false;
-  return true;
-}
+  if (timeout <= 0.)
+    throw Rexception("RlinkPort::RawRead()", "Bad args: timeout <= 0.");
+  if (size <= 0)
+    throw Rexception("RlinkPort::RawRead()", "Bad args: size <= 0");
 
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
+  fStats.Inc(kStatNPortRawRead);
+  tused = 0.;
 
-bool RlinkPort::UrlFindOpt(const std::string& name, std::string& value) const
-{
-  omap_cit_t it = fOptMap.find(name);
-  if (it == fOptMap.end()) return false;
+  struct timeval tval;
+  gettimeofday(&tval, 0);
+  double tbeg  = double(tval.tv_sec) + 1.e-6*double(tval.tv_usec);
+  double trest = timeout;
 
-  value = it->second;
+  size_t ndone = 0;
+  while (trest>0. && ndone<size) {
+    int irc = Read(buf+ndone, size-ndone, trest, emsg);
+    gettimeofday(&tval, 0);
+    double tend  = double(tval.tv_sec) + 1.e-6*double(tval.tv_usec);
+    tused = tend - tbeg;
+    if (irc <= 0) return irc;
+    if (!exactsize) break;
+
+    trest -= (tend-tbeg);
+    ndone += irc;
+  }
   
-  return true;
+  return (int)ndone;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+int RlinkPort::RawWrite(const uint8_t* buf, size_t size, RerrMsg& emsg)
+{
+  fStats.Inc(kStatNPortRawWrite);  
+  return Write(buf, size, emsg);
 }
 
 //------------------------------------------+-----------------------------------
@@ -251,111 +280,13 @@ void RlinkPort::Dump(std::ostream& os, int ind, const char* text) const
   os << bl << (text?text:"--") << "RlinkPort @ " << this << endl;
 
   os << bl << "  fIsOpen:         " << (int)fIsOpen << endl;
-  os << bl << "  fUrl:            " << fUrl << endl;
-  os << bl << "  fScheme:         " << fScheme << endl;
-  os << bl << "  fPath:           " << fPath << endl;
-  os << bl << "  fOptMap:         " << endl;
-  for (omap_cit_t it=fOptMap.begin(); it!=fOptMap.end(); it++) {
-    os << bl << "    " << RosPrintf((it->first).c_str(), "-s",8)
-       << " : " << it->second << endl;
-  }
+  fUrl.Dump(os, ind+2, "fUrl: ");
   os << bl << "  fFdRead:         " << fFdRead << endl;
   os << bl << "  fFdWrite:        " << fFdWrite << endl;
+  os << bl << "  fspLog:          " << fspLog.get() << endl;
+  os << bl << "  fTraceLevel:     " << fTraceLevel << endl;
   fStats.Dump(os, ind+2, "fStats: ");
   return;
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-bool RlinkPort::ParseUrl(const std::string& url, const std::string& optlist, 
-                         RerrMsg& emsg)
-{
-  fUrl.clear();
-  fScheme.clear();
-  fPath.clear();
-  fOptMap.clear();
-  
-  size_t pdel = url.find_first_of(':');
-  if (pdel == string::npos) {
-    emsg.Init("RlinkPort::ParseUrl()",
-              string("no scheme specified in url \"") + url + string("\""));
-    return false;
-  }
-
-  fUrl = url;
-  fScheme = url.substr(0, pdel);
-
-  size_t odel = url.find_first_of('?', pdel);
-  if (odel == string::npos) {               // no options
-    if (url.length() > pdel+1) fPath = url.substr(pdel+1);
-
-  } else {                                  // options to process
-    fPath = url.substr(pdel+1,odel-(pdel+1));
-    string key;
-    string val;
-    bool   hasval = false;
-
-    for (size_t i=odel+1; i<url.length(); i++) {
-      char c = url[i];
-      if (c == ';') {
-        if (!AddOpt(key, val, hasval, optlist, emsg)) return false;
-        key.clear();
-        val.clear();
-        hasval = false;
-      } else {
-        if (!hasval) {
-          if (c == '=') {
-            hasval = true;
-          } else 
-            key.push_back(c);
-        } else {
-          if (c == '\\') {
-            if (i+1 >= url.length()) {
-              emsg.Init("RlinkPort::ParseUrl()",
-                        string("invalid trailing \\ in url \"") + url + 
-                        string("\""));
-              return false;
-            }
-            i += 1;
-            switch (url[i]) {
-              case '\\' : c = '\\'; break;
-              case ';'  : c = ';';  break;
-              default   : emsg.Init("RlinkPort::ParseUrl()",
-                                    string("invalid \\ escape in url \"") + 
-                                    url + string("\""));
-                          return false;
-            }
-          }
-          val.push_back(c);
-        }
-      }
-    }
-    if (key.length() || hasval) {
-      if (!AddOpt(key, val, hasval, optlist, emsg)) return false;
-    }
-  }
-
-  return true;
-}
-//
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-bool RlinkPort::AddOpt(const std::string& key, const std::string& val, 
-                       bool hasval, const std::string& optlist, RerrMsg& emsg)
-{
-  string lkey = "|";
-  lkey += key;
-  if (hasval) lkey += "=";
-  lkey += "|";
-  if (optlist.find(lkey) == string::npos) {
-    emsg.Init("RlinkPort::AddOpt()", 
-              string("invalid field name \"") + lkey + string("\""));
-  }
-
-  fOptMap.insert(omap_val_t(key, hasval ? val : "1"));
-  return true;
 }
 
 //------------------------------------------+-----------------------------------
@@ -370,9 +301,4 @@ void RlinkPort::CloseFd(int& fd)
   return;
 }
 
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_RlinkPort_NoInline))
-#define inline
-#include "RlinkPort.ipp"
-#undef  inline
-#endif
+} // end namespace Retro

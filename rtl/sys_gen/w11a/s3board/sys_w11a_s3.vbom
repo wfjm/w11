@@ -1,7 +1,7 @@
 # libs
 ../../../vlib/slvtypes.vhd
 ../../../vlib/genlib/genlib.vhd
-../../../vlib/serport/serport.vhd
+../../../vlib/serport/serportlib.vbom
 ../../../vlib/rbus/rblib.vhd
 ../../../vlib/rlink/rlinklib.vbom
 ../../../bplib/bpgen/bpgenlib.vbom

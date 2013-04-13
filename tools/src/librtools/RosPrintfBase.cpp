@@ -1,4 +1,4 @@
-// $Id: RosPrintfBase.cpp 403 2011-08-06 17:36:22Z mueller $
+// $Id: RosPrintfBase.cpp 488 2013-02-16 18:49:47Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -18,7 +18,7 @@
 
 /*!
   \file
-  \version $Id: RosPrintfBase.cpp 403 2011-08-06 17:36:22Z mueller $
+  \version $Id: RosPrintfBase.cpp 488 2013-02-16 18:49:47Z mueller $
   \brief   Implemenation of RosPrintfBase .
 */
 
@@ -27,7 +27,9 @@
 #include "RosPrintfBase.hpp"
 
 using namespace std;
-using namespace Retro;
+
+// all method definitions in namespace Retro
+namespace Retro {
 
 //------------------------------------------+-----------------------------------
 /*!
@@ -35,7 +37,7 @@ using namespace Retro;
   \brief string insertion
 */
 
-std::string& Retro::operator<<(std::string& os, const RosPrintfBase& obj)
+std::string& operator<<(std::string& os, const RosPrintfBase& obj)
 {
   std::ostringstream sos;
   obj.ToStream(sos);
@@ -43,9 +45,4 @@ std::string& Retro::operator<<(std::string& os, const RosPrintfBase& obj)
   return os;
 }
 
-//------------------------------------------+-----------------------------------
-#if (defined(Retro_NoInline) || defined(Retro_RosPrintfBase_NoInline))
-#define inline
-#include "RosPrintfBase.ipp"
-#undef  inline
-#endif
+} // end namespace Retro

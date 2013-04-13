@@ -1,6 +1,6 @@
 # libs
 ../slvtypes.vhd
-serport.vhd
+serportlib.vbom
 ../genlib/genlib.vhd
 ../memlib/memlib.vhd
 # components

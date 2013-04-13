@@ -1,7 +1,8 @@
-# $Id: Makefile 465 2012-12-27 21:29:38Z mueller $
+# $Id: Makefile 492 2013-02-24 22:14:47Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2013-02-01   479   1.1.1  use checkpath_cpp.mk
 # 2011-07-31   401   1.1    rename realclean->distclean
 # 2011-07-01   386   1.0.1  add BOOSTINC
 # 2011-01-09   354   1.0    Initial version (adopted from CTB...)
@@ -15,17 +16,23 @@ SOMINV     = 0
 #
 # Compile and Link search paths
 #
+include ../checkpath_cpp.mk
+#
 INCLFLAGS  = -I${RETROBASE}/tools/src -I${BOOSTINC}
-LDLIBS     = -lboost_thread -lusb-1.0 -L${RETROBASE}/tools/lib -lrtools
+LDLIBS     = -lusb-1.0
+LDLIBS    += -L${BOOSTLIB} -lboost_thread
+LDLIBS    += -L${RETROBASE}/tools/lib -lrtools
 #
 # Object files to be included
 #
-OBJ_all    = RlinkAddrMap.o \
-             RlinkCommand.o RlinkCommandExpect.o RlinkCommandList.o \
-	     RlinkConnect.o \
-	     RlinkCrc8.o RlinkPacketBuf.o \
-	     RlinkPort.o RlinkPortFactory.o \
-	     RlinkPortFifo.o RlinkPortTerm.o RlinkPortCuff.o 
+OBJ_all    = RlinkAddrMap.o 
+OBJ_all   += RlinkCommand.o RlinkCommandExpect.o RlinkCommandList.o 
+OBJ_all   += RlinkConnect.o RlinkContext.o  RlinkChannel.o 
+OBJ_all   += RlinkCrc8.o RlinkPacketBuf.o 
+OBJ_all   += RlinkPort.o RlinkPortFactory.o 
+OBJ_all   += RlinkPortFifo.o RlinkPortTerm.o RlinkPortCuff.o 
+OBJ_all   += RtimerFd.o ReventFd.o ReventLoop.o 
+OBJ_all   += RlinkServer.o RlinkServerEventLoop.o 
 #
 DEP_all    = $(OBJ_all:.o=.dep)
 #
@@ -38,10 +45,13 @@ SOFILEVV   = lib$(SONAME).so.$(SOMAJV).$(SOMINV)
 include $(RETROBASE)/tools/make/generic_cpp.mk
 include $(RETROBASE)/tools/make/generic_dep.mk
 include $(RETROBASE)/tools/make/generic_so.mk
+include $(RETROBASE)/tools/make/dontincdep.mk
 #
 # The magic autodependcy include
 #
+ifndef DONTINCDEP
 include $(DEP_all)
+endif
 #
 # cleanup phonies:
 #

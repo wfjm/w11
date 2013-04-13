@@ -1,4 +1,4 @@
-// $Id: RosPrintf.ipp 358 2011-02-05 09:45:14Z mueller $
+// $Id: RosPrintf.ipp 488 2013-02-16 18:49:47Z mueller $
 //
 // Copyright 2000-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,9 +19,12 @@
 
 /*!
   \file
-  \version $Id: RosPrintf.ipp 358 2011-02-05 09:45:14Z mueller $
+  \version $Id: RosPrintf.ipp 488 2013-02-16 18:49:47Z mueller $
   \brief   Implemenation (inline) of RosPrintf.
 */
+
+// all method definitions in namespace Retro
+namespace Retro {
 
 //------------------------------------------+-----------------------------------
 /*!
@@ -41,10 +44,10 @@
   \param prec   precision
 */
 
-inline Retro::RosPrintfS<char> 
-  Retro::RosPrintf(char value, const char* form, int width, int prec)
+inline RosPrintfS<char> 
+  RosPrintf(char value, const char* form, int width, int prec)
 {
-  return Retro::RosPrintfS<char>(value, form, width, prec);
+  return RosPrintfS<char>(value, form, width, prec);
 }
 
 //------------------------------------------+-----------------------------------
@@ -61,10 +64,10 @@ inline Retro::RosPrintfS<char>
   \param prec   precision
 */
 
-inline Retro::RosPrintfS<int> 
-  Retro::RosPrintf(signed char value, const char* form, int width, int prec)
+inline RosPrintfS<int> 
+  RosPrintf(signed char value, const char* form, int width, int prec)
 {
-  return Retro::RosPrintfS<int>(value, form, width, prec);
+  return RosPrintfS<int>(value, form, width, prec);
 }
 
 //------------------------------------------+-----------------------------------
@@ -81,10 +84,10 @@ inline Retro::RosPrintfS<int>
   \param prec   precision
 */
 
-inline Retro::RosPrintfS<unsigned int> 
-  Retro::RosPrintf(unsigned char value, const char* form, int width, int prec)
+inline RosPrintfS<unsigned int> 
+  RosPrintf(unsigned char value, const char* form, int width, int prec)
 {
-  return Retro::RosPrintfS<unsigned int>(value, form, width, prec);
+  return RosPrintfS<unsigned int>(value, form, width, prec);
 }
 
 //------------------------------------------+-----------------------------------
@@ -101,10 +104,10 @@ inline Retro::RosPrintfS<unsigned int>
   \param prec   precision
 */
 
-inline Retro::RosPrintfS<int> 
-  Retro::RosPrintf(short value, const char* form, int width, int prec)
+inline RosPrintfS<int> 
+  RosPrintf(short value, const char* form, int width, int prec)
 {
-  return Retro::RosPrintfS<int>(value, form, width, prec);
+  return RosPrintfS<int>(value, form, width, prec);
 }
 
 //------------------------------------------+-----------------------------------
@@ -121,10 +124,10 @@ inline Retro::RosPrintfS<int>
   \param prec   precision
 */
 
-inline Retro::RosPrintfS<unsigned int> 
-  Retro::RosPrintf(unsigned short value, const char* form, int width, int prec)
+inline RosPrintfS<unsigned int> 
+  RosPrintf(unsigned short value, const char* form, int width, int prec)
 {
-  return Retro::RosPrintfS<unsigned int>(value, form, width, prec);
+  return RosPrintfS<unsigned int>(value, form, width, prec);
 }
 
 //------------------------------------------+-----------------------------------
@@ -141,10 +144,10 @@ inline Retro::RosPrintfS<unsigned int>
   \param prec   precision
 */
 
-inline Retro::RosPrintfS<int> 
-  Retro::RosPrintf(int value, const char* form, int width, int prec)
+inline RosPrintfS<int> 
+  RosPrintf(int value, const char* form, int width, int prec)
 {
-  return Retro::RosPrintfS<int>(value, form, width, prec);
+  return RosPrintfS<int>(value, form, width, prec);
 }
 
 //------------------------------------------+-----------------------------------
@@ -161,10 +164,10 @@ inline Retro::RosPrintfS<int>
   \param prec   precision
 */
 
-inline Retro::RosPrintfS<unsigned int> 
-  Retro::RosPrintf(unsigned int value, const char* form, int width, int prec)
+inline RosPrintfS<unsigned int> 
+  RosPrintf(unsigned int value, const char* form, int width, int prec)
 {
-  return Retro::RosPrintfS<unsigned int>(value, form, width, prec);
+  return RosPrintfS<unsigned int>(value, form, width, prec);
 }
 
 //------------------------------------------+-----------------------------------
@@ -181,10 +184,10 @@ inline Retro::RosPrintfS<unsigned int>
   \param prec   precision
 */
 
-inline Retro::RosPrintfS<long> 
-  Retro::RosPrintf(long value, const char* form, int width, int prec)
+inline RosPrintfS<long> 
+  RosPrintf(long value, const char* form, int width, int prec)
 {
-  return Retro::RosPrintfS<long>(value, form, width, prec);
+  return RosPrintfS<long>(value, form, width, prec);
 }
 
 //------------------------------------------+-----------------------------------
@@ -201,10 +204,10 @@ inline Retro::RosPrintfS<long>
   \param prec   precision
 */
 
-inline Retro::RosPrintfS<unsigned long> 
-  Retro::RosPrintf(unsigned long value, const char* form, int width, int prec)
+inline RosPrintfS<unsigned long> 
+  RosPrintf(unsigned long value, const char* form, int width, int prec)
 {
-  return Retro::RosPrintfS<unsigned long>(value, form, width, prec);
+  return RosPrintfS<unsigned long>(value, form, width, prec);
 }
 
 //------------------------------------------+-----------------------------------
@@ -221,10 +224,10 @@ inline Retro::RosPrintfS<unsigned long>
   \param prec   precision
 */
 
-inline Retro::RosPrintfS<double> 
-  Retro::RosPrintf(double value, const char* form, int width, int prec)
+inline RosPrintfS<double> 
+  RosPrintf(double value, const char* form, int width, int prec)
 {
-  return Retro::RosPrintfS<double>(value, form, width, prec);
+  return RosPrintfS<double>(value, form, width, prec);
 }
 
 //------------------------------------------+-----------------------------------
@@ -241,10 +244,10 @@ inline Retro::RosPrintfS<double>
   \param prec   precision
 */
 
-inline Retro::RosPrintfS<const char*> 
-  Retro::RosPrintf(const char* value, const char* form, int width, int prec)
+inline RosPrintfS<const char*> 
+  RosPrintf(const char* value, const char* form, int width, int prec)
 {
-  return Retro::RosPrintfS<const char*>(value, form, width, prec);
+  return RosPrintfS<const char*>(value, form, width, prec);
 }
 
 //------------------------------------------+-----------------------------------
@@ -261,9 +264,10 @@ inline Retro::RosPrintfS<const char*>
   \param prec   precision
 */
 
-inline Retro::RosPrintfS<const void*> 
-  Retro::RosPrintf(const void* value, const char* form, int width, int prec)
+inline RosPrintfS<const void*> 
+  RosPrintf(const void* value, const char* form, int width, int prec)
 {
-  return Retro::RosPrintfS<const void*>(value, form, width, prec);
+  return RosPrintfS<const void*>(value, form, width, prec);
 }
 
+} // end namespace Retro

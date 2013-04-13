@@ -1,4 +1,4 @@
-// $Id: Rstats.hpp 364 2011-02-26 08:33:01Z mueller $
+// $Id: Rstats.hpp 495 2013-03-06 17:13:48Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -18,7 +18,7 @@
 
 /*!
   \file
-  \version $Id: Rstats.hpp 364 2011-02-26 08:33:01Z mueller $
+  \version $Id: Rstats.hpp 495 2013-03-06 17:13:48Z mueller $
   \brief   Declaration of class Rstats .
 */
 
@@ -67,17 +67,15 @@ namespace Retro {
       std::vector<std::string> fName;       //!< counter name
       std::vector<std::string> fText;       //!< counter text
       std::uint32_t fHash;                  //!< hash value for name+text
-      std::string fFormat;                  //!< default format for Print
-      int fWidth;                           //!< default width for Print
-      int fPrec;                            //!< default precision for Print
+      std::string   fFormat;                //!< default format for Print
+      int           fWidth;                 //!< default width for Print
+      int           fPrec;                  //!< default precision for Print
   };
 
   std::ostream&	    operator<<(std::ostream& os, const Rstats& obj);
 
 } // end namespace Retro
 
-#if !(defined(Retro_NoInline) || defined(Retro_Rstats_NoInline))
 #include "Rstats.ipp"
-#endif
 
 #endif

@@ -1,7 +1,8 @@
-# $Id: Makefile 401 2011-07-31 21:02:33Z mueller $
+# $Id: Makefile 493 2013-03-01 21:02:33Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2013-02-01   479   1.1.1  use checkpath_cpp.mk
 # 2011-07-31   401   1.1    rename realclean->distclean
 # 2011-03-27   374   1.0.1  removed Rnamed (obsolete now)
 # 2011-01-15   357   1.0    Initial version (adopted from CTB...)
@@ -15,15 +16,18 @@ SOMINV     = 0
 #
 # Compile and Link search paths
 #
-INCLFLAGS  = 
-LDLIBS     = 
+include ../checkpath_cpp.mk
+#
+INCLFLAGS  = -I${BOOSTINC}
+LDLIBS     = -L${BOOSTLIB} -lboost_thread
 #
 # Object files to be included
 #
 OBJ_all    = RerrMsg.o RosFill.o RosPrintBvi.o RosPrintfBase.o RosPrintfS.o \
-	     RiosState.o \
-             RlogFile.o RlogStd.o \
-             Rstats.o Rtools.o
+	     RiosState.o Rbits.o \
+             RlogFile.o RlogFileCatalog.o RlogMsg.o \
+             Rstats.o Rtools.o \
+	     Rexception.o RparseUrl.o
 #
 DEP_all    = $(OBJ_all:.o=.dep)
 #
@@ -36,10 +40,13 @@ SOFILEVV   = lib$(SONAME).so.$(SOMAJV).$(SOMINV)
 include $(RETROBASE)/tools/make/generic_cpp.mk
 include $(RETROBASE)/tools/make/generic_dep.mk
 include $(RETROBASE)/tools/make/generic_so.mk
+include $(RETROBASE)/tools/make/dontincdep.mk
 #
 # The magic autodependcy include
 #
+ifndef DONTINCDEP
 include $(DEP_all)
+endif
 #
 # cleanup phonies:
 #

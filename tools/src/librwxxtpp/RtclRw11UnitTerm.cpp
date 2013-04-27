@@ -1,4 +1,4 @@
-// $Id: RtclRw11UnitTerm.cpp 504 2013-04-13 15:37:24Z mueller $
+// $Id: RtclRw11UnitTerm.cpp 511 2013-04-27 13:51:46Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-04-26   511   1.0.1  add M_type
 // 2013-03-03   494   1.0    Initial version
 // 2013-03-01   493   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclRw11UnitTerm.cpp 504 2013-04-13 15:37:24Z mueller $
+  \version $Id: RtclRw11UnitTerm.cpp 511 2013-04-27 13:51:46Z mueller $
   \brief   Implemenation of RtclRw11UnitTerm.
 */
 
@@ -42,16 +43,30 @@ RtclRw11UnitTerm::RtclRw11UnitTerm(RtclRw11Unit* ptcl, Rw11UnitTerm* pobj)
   : fpTcl(ptcl),
     fpObj(pobj)
 {
+  ptcl->AddMeth("type",  boost::bind(&RtclRw11UnitTerm::M_type,    this, _1));
+
   RtclGetList& gets = ptcl->GetList();
   RtclSetList& sets = ptcl->SetList();
 
   gets.Add<const string&> ("channelid",  
                             boost::bind(&Rw11UnitTerm::ChannelId,  pobj));
-  gets.Add<bool>          ("rcv7bit",  
-                            boost::bind(&Rw11UnitTerm::Rcv7bit,  pobj));
+  gets.Add<bool>          ("to7bit",  
+                            boost::bind(&Rw11UnitTerm::To7bit,  pobj));
+  gets.Add<bool>          ("toenpc",  
+                            boost::bind(&Rw11UnitTerm::ToEnpc,  pobj));
+  gets.Add<bool>          ("ti7bit",  
+                            boost::bind(&Rw11UnitTerm::Ti7bit,  pobj));
+  gets.Add<const string&> ("log",  
+                            boost::bind(&Rw11UnitTerm::Log,  pobj));
 
-  sets.Add<bool>          ("rcv7bit",  
-                            boost::bind(&Rw11UnitTerm::SetRcv7bit,pobj, _1));
+  sets.Add<bool>          ("to7bit",  
+                            boost::bind(&Rw11UnitTerm::SetTo7bit,pobj, _1));
+  sets.Add<bool>          ("toenpc",  
+                            boost::bind(&Rw11UnitTerm::SetToEnpc,pobj, _1));
+  sets.Add<bool>          ("ti7bit",  
+                            boost::bind(&Rw11UnitTerm::SetTi7bit,pobj, _1));
+  sets.Add<const string&> ("log",  
+                            boost::bind(&Rw11UnitTerm::SetLog,pobj, _1));
 }
 
 //------------------------------------------+-----------------------------------
@@ -60,5 +75,19 @@ RtclRw11UnitTerm::RtclRw11UnitTerm(RtclRw11Unit* ptcl, Rw11UnitTerm* pobj)
 RtclRw11UnitTerm::~RtclRw11UnitTerm()
 {}
 
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+int RtclRw11UnitTerm::M_type(RtclArgs& args)
+{
+  string text;
+  if (!args.GetArg("text", text)) return TCL_ERROR;
+
+  if (!args.AllDone()) return TCL_ERROR;
+
+  fpObj->RcvCallback((const uint8_t*)text.data(), text.size());
+
+  return TCL_OK;
+}
 
 } // end namespace Retro

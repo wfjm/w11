@@ -1,4 +1,4 @@
-# $Id: README.txt 504 2013-04-13 15:37:24Z mueller $
+# $Id: README.txt 511 2013-04-27 13:51:46Z mueller $
 
 Release notes for w11a
 
@@ -80,7 +80,35 @@ Release notes for w11a
 
 3. Change Log ----------------------------------------------------------------
 
-- trunk (2013-06-13: svn rev 19(oc) 505(wfjm); untagged w11a_V0.562) +++++++++
+- trunk (2013-04-27: svn rev 20(oc) 511(wfjm); untagged w11a_V0.57)  +++++++++
+
+  - Summary
+    - new C++ and Tcl based backend server supports now RK11 handling
+    - w11a systems operate with rlink over USB on nexsy2 and nexsy3 boards.
+      See w11a_os_guide.txt for details
+
+  - New features
+    - new modules
+      - rtl/bplib/fx2rlink      - new vhdl lib with rlink over fx2 modules
+        - ioleds_sp1c_fx2         - io activity leds for rlink_sp1c_fx2
+        - rlink_sp1c_fx2          - rlink over serport + fx2 combo
+      - tools/src/librw11
+        - Rw11*RK11               - classes for RK11 disk handling
+        - Rw11*Disk*              - classes for Virtual disk handling
+      - tools/src/librwxxtpp
+        - RtclRw11*RK11           - tcl iface for RK11 disk handling
+        - RtclRw11*Disk*          - tcl iface for Virtual disk handling
+    - new files
+      - rtl/sys_gen/w11a/tb/torri - quick starter for new backend
+
+  - Changes
+    - tcl module renames:
+        tools/tcl/rw11a  -> tools/tcl/rw11
+
+  - Bug fixes
+    - tools/src/ReventLoop: poll list update logic in DoPoll() corrected
+
+- trunk (2013-04-13: svn rev 19(oc) 505(wfjm); untagged w11a_V0.562) +++++++++
 
   - Summary
     - V0.53 introduced a new C++ and Tcl based backend server, but only the

@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.hpp 495 2013-03-06 17:13:48Z mueller $
+// $Id: RlinkConnect.hpp 509 2013-04-21 20:46:20Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-04-21   509   1.3.3  add SndAttn() method
 // 2013-03-05   495   1.3.2  add Exec() without emsg (will send emsg to LogFile)
 // 2013-03-01   493   1.3.1  add Server(Active..|SignalAttn)() methods
 // 2013-02-23   492   1.3    use scoped_ptr for Port; Close allways allowed
@@ -30,7 +31,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.hpp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: RlinkConnect.hpp 509 2013-04-21 20:46:20Z mueller $
   \brief   Declaration of class \c RlinkConnect.
 */
 
@@ -108,6 +109,7 @@ namespace Retro {
       double        WaitAttn(double timeout, RerrMsg& emsg);
       int           PollAttn(RerrMsg& emsg);
       bool          SndOob(uint16_t addr, uint16_t data, RerrMsg& emsg);
+      bool          SndAttn(RerrMsg& emsg);
 
       bool          AddrMapInsert(const std::string& name, uint16_t addr);
       bool          AddrMapErase(const std::string& name);

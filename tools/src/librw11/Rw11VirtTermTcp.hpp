@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTermTcp.hpp 504 2013-04-13 15:37:24Z mueller $
+// $Id: Rw11VirtTermTcp.hpp 508 2013-04-20 18:43:28Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-04-20   508   1.0.1  add fSndPreConQue handling
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-13   488   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -20,12 +21,14 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtTermTcp.hpp 504 2013-04-13 15:37:24Z mueller $
+  \version $Id: Rw11VirtTermTcp.hpp 508 2013-04-20 18:43:28Z mueller $
   \brief   Declaration of class Rw11VirtTermTcp.
 */
 
 #ifndef included_Retro_Rw11VirtTermTcp
 #define included_Retro_Rw11VirtTermTcp 1
+
+#include <deque>
 
 #include "Rw11VirtTerm.hpp"
 
@@ -45,7 +48,9 @@ namespace Retro {
 
     // statistics counter indices
       enum stats {
-        kStatNVTListenPoll = Rw11VirtTerm::kDimStat,
+        kStatNVTPreConSave = Rw11VirtTerm::kDimStat,
+        kStatNVTPreConDrop,
+        kStatNVTListenPoll,
         kStatNVTAccept,
         kStatNVTRcvRaw,
         kStatNVTSndRaw,
@@ -54,6 +59,7 @@ namespace Retro {
 
     protected:
 
+      bool          Connected() const;
       int           ListenPollHandler(const pollfd& pfd);
       int           RcvPollHandler(const pollfd& pfd);
 
@@ -79,6 +85,8 @@ namespace Retro {
       static const uint8_t  kOpt_TTYP  =  24;
       static const uint8_t  kOpt_LINE  =  34;
 
+      static const size_t   kPreConQue_limit = 65536;
+
       enum telnet_state {
         ts_Closed = 0,
         ts_Listen,
@@ -94,10 +102,11 @@ namespace Retro {
       int           fFd;
       telnet_state  fState;
       bool          fTcpTrace;
+      std::deque<uint8_t> fSndPreConQue;
   };
   
 } // end namespace Retro
 
-//#include "Rw11VirtTermTcp.ipp"
+#include "Rw11VirtTermTcp.ipp"
 
 #endif

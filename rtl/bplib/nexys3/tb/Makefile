@@ -1,10 +1,11 @@
-# $Id: Makefile 477 2013-01-27 14:07:10Z mueller $
+# $Id: Makefile 509 2013-04-21 20:46:20Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
 # 2011-11-26   432   1.0    Initial version
 #
-EXE_all = tb_nexys3_fusp_dummy 
+EXE_all  = tb_nexys3_fusp_dummy
+EXE_all += tb_nexys3_fusp_cuff_dummy 
 #
 include $(RETROBASE)/rtl/make/xflow_default_nexys3.mk
 #

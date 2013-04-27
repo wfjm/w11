@@ -1,4 +1,4 @@
-// $Id: ReventLoop.cpp 495 2013-03-06 17:13:48Z mueller $
+// $Id: ReventLoop.cpp 511 2013-04-27 13:51:46Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-04-27   511   1.1.3  BUGFIX: logic in DoCall() fixed (loop range)
 // 2013-03-05   495   1.1.2  add exception catcher to EventLoop
 // 2013-03-01   493   1.1.1  DoCall(): remove handler on negative return
 // 2013-02-22   491   1.1    use new RlogFile/RlogMsg interfaces
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: ReventLoop.cpp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: ReventLoop.cpp 511 2013-04-27 13:51:46Z mueller $
   \brief   Implemenation of class ReventLoop.
 */
 
@@ -228,7 +229,7 @@ int ReventLoop::DoPoll(int timeout)
 
     if (fspLog && fTraceLevel >= 1) {
       RlogMsg lmsg(*fspLog, 'I');
-      lmsg << "eloop: redo pollfd list, size=" << fPollFd.size() << endl;
+      lmsg << "eloop: redo pollfd list, size=" << fPollDsc.size() << endl;
     }
   }
   
@@ -258,8 +259,8 @@ int ReventLoop::DoPoll(int timeout)
 
 void ReventLoop::DoCall(void)
 {
-  for (size_t i=0; i<fPollDsc.size(); i++) {
-    if (fPollFd[i].revents) {
+  for (size_t i=0; i<fPollFd.size(); i++) {
+    if (fPollFd[i].revents) {      
       int irc = fPollHdl[i](fPollFd[i]);
       // remove handler negative return (nothrow=true to prevent remove race)
       if (irc < 0) {

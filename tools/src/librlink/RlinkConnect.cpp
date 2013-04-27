@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.cpp 495 2013-03-06 17:13:48Z mueller $
+// $Id: RlinkConnect.cpp 509 2013-04-21 20:46:20Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-04-21   509   1.3.2  add SndAttn() method
 // 2013-03-01   493   1.3.1  add Server(Active..|SignalAttn)() methods
 // 2013-02-23   492   1.3    use scoped_ptr for Port; Close allways allowed
 //                           use RlinkContext, add Context(), Exec(..., cntx)
@@ -27,7 +28,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.cpp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: RlinkConnect.cpp 509 2013-04-21 20:46:20Z mueller $
   \brief   Implemenation of RlinkConnect.
 */
 
@@ -574,8 +575,18 @@ int RlinkConnect::PollAttn(RerrMsg& emsg)
 
 bool RlinkConnect::SndOob(uint16_t addr, uint16_t data, RerrMsg& emsg)
 {
+  boost::lock_guard<RlinkConnect> lock(*this);
   fStats.Inc(kStatNSndOob);
   return fTxPkt.SndOob(fpPort.get(), addr, data, emsg);
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+bool RlinkConnect::SndAttn(RerrMsg& emsg)
+{
+  boost::lock_guard<RlinkConnect> lock(*this);
+  return fTxPkt.SndAttn(fpPort.get(), emsg);
 }
 
 //------------------------------------------+-----------------------------------

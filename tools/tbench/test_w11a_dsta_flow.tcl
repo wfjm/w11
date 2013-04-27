@@ -1,4 +1,4 @@
-# $Id: test_w11a_dsta_flow.tcl 502 2013-04-02 19:29:30Z mueller $
+# $Id: test_w11a_dsta_flow.tcl 510 2013-04-26 16:14:57Z mueller $
 #
 # Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
@@ -51,20 +51,20 @@ data:   .blkw   2*7.
         .word   177777
 }
 
-rw11a::asmrun  $cpu sym [list r0 $sym(sub00) \
-                              r1 $sym(sub10) \
-                              r2 $sym(psub2) \
-                              r3 [expr {$sym(sub30)+2}] \
-                              r4 $sym(psub4e) \
-                              r5 $sym(data) ]
-rw11a::asmwait $cpu sym 1.0
-rw11a::asmtreg $cpu [list r0 $sym(sub00) \
+rw11::asmrun  $cpu sym [list r0 $sym(sub00) \
+                             r1 $sym(sub10) \
+                             r2 $sym(psub2) \
+                             r3 [expr {$sym(sub30)+2}] \
+                             r4 $sym(psub4e) \
+                             r5 $sym(data) ]
+rw11::asmwait $cpu sym 1.0
+rw11::asmtreg $cpu [list r0 $sym(sub00) \
                           r1 [expr {$sym(sub10)+2}] \
                           r2 [expr {$sym(psub2)+4}]  \
                           r3 $sym(sub30) \
                           r4 $sym(psub4) \
                           r5 [expr {$sym(data) + 7*2*2}] ]
-rw11a::asmtmem $cpu $sym(data) [list \
+rw11::asmtmem $cpu $sym(data) [list \
                                   0100 $sym(start:100$) \
                                   0110 $sym(start:110$) \
                                   0120 $sym(start:120$) \
@@ -105,17 +105,17 @@ data:   .blkw   2*5.
         .word   177777
 }
 
-rw11a::asmrun  $cpu sym [list r0 [expr {$sym(sub00)-020}] \
+rw11::asmrun  $cpu sym [list r0 [expr {$sym(sub00)-020}] \
                               r1 [expr {$sym(psub10)-040}] \
                               r5 $sym(data) ]
-rw11a::asmwait $cpu sym 1.0
-rw11a::asmtreg $cpu [list r0 [expr {$sym(sub00)-020}] \
-                          r1 [expr {$sym(psub10)-040}] \
-                          r2 0  \
-                          r3 0 \
-                          r4 0 \
-                          r5 [expr {$sym(data) + 5*2*2}] ]
-rw11a::asmtmem $cpu $sym(data) [list \
+rw11::asmwait $cpu sym 1.0
+rw11::asmtreg $cpu [list r0 [expr {$sym(sub00)-020}] \
+                         r1 [expr {$sym(psub10)-040}] \
+                         r2 0 \
+                         r3 0 \
+                         r4 0 \
+                         r5 [expr {$sym(data) + 5*2*2}] ]
+rw11::asmtmem $cpu $sym(data) [list \
                                   01100 $sym(start:1100$) \
                                   01110 $sym(start:1110$) \
                                   01120 $sym(start:1120$) \

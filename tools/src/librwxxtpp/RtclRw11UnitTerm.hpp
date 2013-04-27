@@ -1,4 +1,4 @@
-// $Id: RtclRw11UnitTerm.hpp 504 2013-04-13 15:37:24Z mueller $
+// $Id: RtclRw11UnitTerm.hpp 511 2013-04-27 13:51:46Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-04-26   511   1.0.1  add M_type
 // 2013-03-03   494   1.0    Initial version
 // 2013-03-01   493   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11UnitTerm.hpp 504 2013-04-13 15:37:24Z mueller $
+  \version $Id: RtclRw11UnitTerm.hpp 511 2013-04-27 13:51:46Z mueller $
   \brief   Declaration of class RtclRw11UnitTerm.
 */
 
@@ -39,6 +40,7 @@ namespace Retro {
                    ~RtclRw11UnitTerm();
 
     protected:
+      int           M_type(RtclArgs& args);
 
     protected:
       RtclRw11Unit* fpTcl;

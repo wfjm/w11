@@ -1,4 +1,4 @@
-// $Id: RtclRw11CntlFactory.cpp 495 2013-03-06 17:13:48Z mueller $
+// $Id: RtclRw11CntlFactory.cpp 504 2013-04-13 15:37:24Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11CntlFactory.cpp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: RtclRw11CntlFactory.cpp 504 2013-04-13 15:37:24Z mueller $
   \brief   Implemenation of global function RtclRw11CntlFactory.
 */
 
@@ -28,7 +28,7 @@
 #include "RtclRw11CntlFactory.hpp"
 
 #include "RtclRw11CntlDL11.hpp"
-//#include "RtclRw11CntlRK11.hpp"
+#include "RtclRw11CntlRK11.hpp"
 
 using namespace std;
 
@@ -49,10 +49,10 @@ int RtclRw11CntlFactory(RtclArgs& args, RtclRw11Cpu& cpu)
     if(pobj->FactoryCmdConfig(args, cpu) != TCL_OK) return TCL_ERROR;
     pobj.release();
     
-//  } else if (type == "rk11") {              // rk11 --------------------------
-//    unique_ptr<RtclRw11CntlRK11> pobj(new RtclRw11CntlRK11());
-//    if(pobj->FactoryCmdConfig(args, cpu) != TCL_OK) return TCL_ERROR;
-//    pobj.release();
+  } else if (type == "rk11") {              // rk11 --------------------------
+    unique_ptr<RtclRw11CntlRK11> pobj(new RtclRw11CntlRK11());
+    if(pobj->FactoryCmdConfig(args, cpu) != TCL_OK) return TCL_ERROR;
+    pobj.release();
     
   } else {                                  // unknown cntl type -------------
     return args.Quit(string("-E: unknown controller type '") + type + "'");

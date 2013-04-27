@@ -28,7 +28,9 @@ OBJ_all   +=   RtclRw11Cpu.o RtclRw11CpuW11a.o
 OBJ_all   +=   RtclRw11Cntl.o RtclRw11CntlFactory.o 
 OBJ_all   +=   RtclRw11Unit.o
 OBJ_all   +=   RtclRw11UnitTerm.o
+OBJ_all   +=   RtclRw11UnitDisk.o
 OBJ_all   +=   RtclRw11CntlDL11.o RtclRw11UnitDL11.o
+OBJ_all   +=   RtclRw11CntlRK11.o RtclRw11UnitRK11.o
 # 
 DEP_all    = $(OBJ_all:.o=.dep)
 #

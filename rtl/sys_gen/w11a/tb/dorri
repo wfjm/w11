@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: dorri 503 2013-04-06 19:44:13Z mueller $
+# $Id: dorri 510 2013-04-26 16:14:57Z mueller $
 #
 #  Revision History:
 # Date         Rev Version  Comment
@@ -139,7 +139,7 @@ if ($opt_io eq "f") {
 } elsif ($opt_io eq "t") {
   push @arglist, "--term=$val_term";
 } else {
-  print STDERR "dorri-E: neither -s3/-n2/-n3 nor -t specified\n";
+  print STDERR "dorri-E: neither -s3/-n2/-n3 nor -t or -u specified\n";
   print_usage();
   exit 1;
 }

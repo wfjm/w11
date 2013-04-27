@@ -1,4 +1,4 @@
--- $Id: tb_nexys2_fusp_cuff.vhd 476 2013-01-26 22:23:53Z mueller $
+-- $Id: tb_nexys2_fusp_cuff.vhd 509 2013-04-21 20:46:20Z mueller $
 --
 -- Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -22,7 +22,7 @@
 --                 tb_nexys2_core
 --                 serport/serport_uart_rxtx
 --                 fx2lib/tb/fx2_2fifo_core
---                 nexys2_fusp_aif [UUT]
+--                 nexys2_fusp_cuff_aif [UUT]
 --
 -- To test:        generic, any nexys2_fusp_cuff_aif target
 --

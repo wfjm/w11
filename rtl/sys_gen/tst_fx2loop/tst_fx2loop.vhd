@@ -1,6 +1,6 @@
--- $Id: tst_fx2loop.vhd 453 2012-01-15 17:51:18Z mueller $
+-- $Id: tst_fx2loop.vhd 510 2013-04-26 16:14:57Z mueller $
 --
--- Copyright 2011-2012 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -24,6 +24,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2013-04-24   510   1.0.1  fix sensitivity list of proc_next
 -- 2012-01-15   453   1.0    Initial version
 -- 2011-12-26   445   0.5    First draft
 ------------------------------------------------------------------------------
@@ -162,7 +163,8 @@ begin
   end process proc_regs;
 
   proc_next: process (R_REGS, CE_MSEC, HIO_CNTL, FX2_MONI,
-                      RXWDATA, RXWVAL, TXWBUSY, TX2WBUSY)
+                      RXWDATA, RXWVAL, TXWBUSY, TX2WBUSY,
+                      RXHOLD_L, TXBUSY, TX2BUSY)
 
     variable r : regs_type := regs_init;
     variable n : regs_type := regs_init;

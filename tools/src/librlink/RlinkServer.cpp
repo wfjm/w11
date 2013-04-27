@@ -1,4 +1,4 @@
-// $Id: RlinkServer.cpp 495 2013-03-06 17:13:48Z mueller $
+// $Id: RlinkServer.cpp 509 2013-04-21 20:46:20Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-04-21   509   1.0.1  add Resume(), reorganize server start handling
 // 2013-03-06   495   1.0    Initial version
 // 2013-01-12   474   0.5    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RlinkServer.cpp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: RlinkServer.cpp 509 2013-04-21 20:46:20Z mueller $
   \brief   Implemenation of RlinkServer.
 */
 
@@ -219,27 +220,7 @@ void RlinkServer::RemovePollHandler(int fd)
 
 void RlinkServer::Start()
 {
-  if (IsActive())
-    throw Rexception("RlinkServer::Start()", 
-                     "Bad state: server thread already running");
-  if (!fspConn->IsOpen())
-    throw Rexception("RlinkServer::Start()", 
-                     "Bad state: RlinkConnect not open");
-
-  // enable attn comma send
-  RlinkCommandList clist;
-  clist.AddInit(RlinkCommand::kRbaddr_IInt, RlinkCommand::kIInt_M_AnEna);
-  Exec(clist);
-
-  // setup poll handler for Rlink traffic
-  int rlinkfd = fspConn->Port()->FdRead();
-  if (!fELoop.TestPollHandler(rlinkfd, POLLIN))
-    fELoop.AddPollHandler(boost::bind(&RlinkServer::RlinkHandler, this, _1), 
-                          rlinkfd, POLLIN);
-  
-  // and start server thread
-  fServerThread = boost::thread(boost::bind(&RlinkServerEventLoop::EventLoop,
-                                            &fELoop));
+  StartOrResume(false);
   return;
 }
 
@@ -251,6 +232,15 @@ void RlinkServer::Stop()
   fELoop.Stop();
   Wakeup();
   fServerThread.join();
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void RlinkServer::Resume()
+{    
+  StartOrResume(true);
   return;
 }
 
@@ -348,6 +338,46 @@ void RlinkServer::Dump(std::ostream& os, int ind, const char* text) const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
+void RlinkServer::StartOrResume(bool resume)
+{
+  if (IsActive())
+    throw Rexception("RlinkServer::StartOrResume()", 
+                     "Bad state: server thread already running");
+  if (!fspConn->IsOpen())
+    throw Rexception("RlinkServer::StartOrResume()", 
+                     "Bad state: RlinkConnect not open");
+
+  boost::lock_guard<RlinkConnect> lock(Connect());
+  // enable attn comma send
+  RlinkCommandList clist;
+  if (!resume) clist.AddAttn();
+  clist.AddInit(RlinkCommand::kRbaddr_IInt, RlinkCommand::kIInt_M_AnEna);
+  Exec(clist);
+
+  // setup poll handler for Rlink traffic
+  int rlinkfd = fspConn->Port()->FdRead();
+  if (!fELoop.TestPollHandler(rlinkfd, POLLIN))
+    fELoop.AddPollHandler(boost::bind(&RlinkServer::RlinkHandler, this, _1), 
+                          rlinkfd, POLLIN);
+  
+  // and start server thread
+  fServerThread = boost::thread(boost::bind(&RlinkServerEventLoop::EventLoop,
+                                            &fELoop));
+
+  if (resume) {
+    RerrMsg emsg;
+    if (!Connect().SndAttn(emsg)) {
+      RlogMsg lmsg(LogFile(), 'E');
+      lmsg << "attn send for server resume failed:" << emsg;
+    }
+  }
+
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
 void RlinkServer::CallAttnHandler()
 {
   if (fAttnSeen) {
@@ -402,8 +432,8 @@ void RlinkServer::CallActnHandler()
 
   int irc = fActnList.front()();
 
-  // if irc>1 requeue to end, otherwise drop
-  if (irc > 1) {
+  // if irc>0 requeue to end, otherwise drop
+  if (irc > 0) {
     fActnList.splice(fActnList.end(), fActnList, fActnList.begin());
   } else {
     fActnList.pop_front();

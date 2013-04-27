@@ -1,4 +1,4 @@
-// $Id: RlinkPacketBuf.hpp 486 2013-02-10 22:34:43Z mueller $
+// $Id: RlinkPacketBuf.hpp 509 2013-04-21 20:46:20Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-04-21   509   1.0.2  add SndAttn() method
 // 2013-01-13   474   1.0.1  add PollAttn() method
 // 2011-04-02   375   1.0    Initial version
 // 2011-03-05   366   0.1    First draft
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPacketBuf.hpp 486 2013-02-10 22:34:43Z mueller $
+  \version $Id: RlinkPacketBuf.hpp 509 2013-04-21 20:46:20Z mueller $
   \brief   Declaration of class RlinkPacketBuf.
 */
 
@@ -57,6 +58,7 @@ namespace Retro {
       bool          SndOob(RlinkPort* port, uint16_t addr, uint16_t data, 
                            RerrMsg& emsg);
       bool          SndKeep(RlinkPort* port, RerrMsg& emsg);
+      bool          SndAttn(RlinkPort* port, RerrMsg& emsg);
     
       bool          CheckSize(size_t nbyte) const;
       uint8_t       Get8WithCrc();

@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTermTcp.cpp 504 2013-04-13 15:37:24Z mueller $
+// $Id: Rw11VirtTermTcp.cpp 508 2013-04-20 18:43:28Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-04-20   508   1.0.1  add fSndPreConQue handling
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-13   488   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11VirtTermTcp.cpp 504 2013-04-13 15:37:24Z mueller $
+  \version $Id: Rw11VirtTermTcp.cpp 508 2013-04-20 18:43:28Z mueller $
   \brief   Implemenation of Rw11VirtTermTcp.
 */
 
@@ -70,6 +71,8 @@ const uint8_t  Rw11VirtTermTcp::kOpt_SGA;
 const uint8_t  Rw11VirtTermTcp::kOpt_TTYP;  
 const uint8_t  Rw11VirtTermTcp::kOpt_LINE;  
 
+const size_t   Rw11VirtTermTcp::kPreConQue_limit;
+
 //------------------------------------------+-----------------------------------
 //! Default constructor
 
@@ -78,13 +81,18 @@ Rw11VirtTermTcp::Rw11VirtTermTcp(Rw11Unit* punit)
     fFdListen(-1),
     fFd(-1),
     fState(ts_Closed),
-    fTcpTrace(false)
+    fTcpTrace(false),
+    fSndPreConQue()
 {
+  fStats.Define(kStatNVTPreConSave , "NVTPreConSave" ,
+                "VT snd bytes saved prior connect");
+  fStats.Define(kStatNVTPreConDrop , "NVTPreConDrop" ,
+                "VT snd bytes dropped prior connect");
   fStats.Define(kStatNVTListenPoll , "NVTListenPoll" ,
-                "ListenPollHandler() calls");
-  fStats.Define(kStatNVTAccept,      "NVTAccept",     "socket accepts");
-  fStats.Define(kStatNVTRcvRaw,      "NVTRcvRaw",     "raw bytes received");
-  fStats.Define(kStatNVTSndRaw,      "NVTSndRaw",     "raw bytes send");
+                "VT ListenPollHandler() calls");
+  fStats.Define(kStatNVTAccept,      "NVTAccept",     "VT socket accepts");
+  fStats.Define(kStatNVTRcvRaw,      "NVTRcvRaw",     "VT raw bytes received");
+  fStats.Define(kStatNVTSndRaw,      "NVTSndRaw",     "VT raw bytes send");
 }
 
 //------------------------------------------+-----------------------------------
@@ -96,7 +104,7 @@ Rw11VirtTermTcp::~Rw11VirtTermTcp()
     Server().RemovePollHandler(fFdListen);
     close(fFdListen);
   }
-  if (fFd > 2) {
+  if (Connected()) {
     Server().RemovePollHandler(fFd);
     close(fFd);
   }
@@ -182,6 +190,17 @@ bool Rw11VirtTermTcp::Snd(const uint8_t* data, size_t count, RerrMsg& emsg)
   fStats.Inc(kStatNVTSnd);
   const uint8_t* pdata = data;
   const uint8_t* pdataend = data+count;
+  if (count == 0) return true;              // quit if nothing to do
+
+  if (!Connected()) {                       // if not connected keep last chars
+    for (size_t i=0; i<count; i++) fSndPreConQue.push_back(data[i]);
+    fStats.Inc(kStatNVTPreConSave, double(count));
+    while (fSndPreConQue.size() > kPreConQue_limit) {
+      fSndPreConQue.pop_front();
+      fStats.Inc(kStatNVTPreConDrop);
+    }
+    return true;
+  }
 
   uint8_t  obuf[1024];
   while (pdata < pdataend) {
@@ -231,6 +250,7 @@ void Rw11VirtTermTcp::Dump(std::ostream& os, int ind, const char* text) const
   }
   os << bl << "  fState:          " << t_state    << endl;
   os << bl << "  fTcpTrace:       " << fTcpTrace  << endl;
+  os << bl << "  fSndPreConQue.size" << fSndPreConQue.size()  << endl;
   Rw11VirtTerm::Dump(os, ind, " ^");
   return;
 }
@@ -265,15 +285,29 @@ int Rw11VirtTermTcp::ListenPollHandler(const pollfd& pfd)
 
   int nerr = 0;
 
+  // send initial negotiation WILLs and DOs
   if (write(fFd, buf_1, sizeof(buf_1)) < 0) nerr += 1;
   if (write(fFd, buf_2, sizeof(buf_2)) < 0) nerr += 1;
   if (write(fFd, buf_3, sizeof(buf_3)) < 0) nerr += 1;
   if (write(fFd, buf_4, sizeof(buf_4)) < 0) nerr += 1;
   if (write(fFd, buf_5, sizeof(buf_5)) < 0) nerr += 1;
+
+  // send connect message
   if (nerr==0) {
     stringstream msg;
     msg << "\r\nconnect on port " << fChannelId 
         << " for " << Unit().Name() << "\r\n\r\n";
+    string str = msg.str();
+    if (write(fFd, str.c_str(), str.length()) < 0) nerr += 1;
+  }
+
+  // send chars buffered while attached but not connected
+  if (nerr==0 && fSndPreConQue.size()) {
+    stringstream msg;
+    while (!fSndPreConQue.empty()) {
+      msg << char(fSndPreConQue.front());
+      fSndPreConQue.pop_front();
+    }
     string str = msg.str();
     if (write(fFd, str.c_str(), str.length()) < 0) nerr += 1;
   }

@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.cpp 504 2013-04-13 15:37:24Z mueller $
+// $Id: Rw11Cpu.cpp 506 2013-04-14 21:54:03Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-04-14   506   1.0.1  add AddLalh(),AddRMem(),AddWMem()
 // 2013-04-12   504   1.0    Initial version
 // 2013-01-27   478   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11Cpu.cpp 504 2013-04-13 15:37:24Z mueller $
+  \version $Id: Rw11Cpu.cpp 506 2013-04-14 21:54:03Z mueller $
   \brief   Implemenation of Rw11Cpu.
 */
 #include <stdlib.h>
@@ -93,6 +94,10 @@ const uint16_t  Rw11Cpu::kCp_cpurust_vecfet;
 const uint16_t  Rw11Cpu::kCp_cpurust_recrsv;
 const uint16_t  Rw11Cpu::kCp_cpurust_sfail;
 const uint16_t  Rw11Cpu::kCp_cpurust_vfail;
+
+const uint16_t  Rw11Cpu::kCp_ah_m_addr;
+const uint16_t  Rw11Cpu::kCp_ah_m_22bit;
+const uint16_t  Rw11Cpu::kCp_ah_m_ubmap;
 
 //------------------------------------------+-----------------------------------
 //! Constructor
@@ -257,6 +262,51 @@ int Rw11Cpu::AddWibr(RlinkCommandList& clist, uint16_t ibaddr, uint16_t data)
 {
   uint16_t ibroff = (ibaddr & 077)/2;
   return clist.AddWreg(fBase+kCp_addr_ibr + ibroff, data);
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+int Rw11Cpu::AddLalh(RlinkCommandList& clist, uint32_t addr, uint16_t mode)
+{
+  uint16_t al = uint16_t(addr);
+  uint16_t ah = uint16_t(addr>>16) & kCp_ah_m_addr;
+  ah |= mode & (kCp_ah_m_22bit|kCp_ah_m_ubmap);
+  int ind = clist.AddWreg(fBase+kCp_addr_al, al);
+  clist.AddWreg(fBase+kCp_addr_ah, ah);
+  return ind;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+int Rw11Cpu::AddRMem(RlinkCommandList& clist, uint32_t addr,
+                     uint16_t* buf, size_t size, uint16_t mode)
+{
+  int ind = AddLalh(clist, addr, mode);
+  while (size > 0) {
+    size_t bsize = (size>256) ? 256 : size;
+    clist.AddRblk(fBase+kCp_addr_memi, buf, bsize);
+    buf  += bsize;
+    size -= bsize;
+  }
+  return ind;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+int Rw11Cpu::AddWMem(RlinkCommandList& clist, uint32_t addr,
+                     const uint16_t* buf, size_t size, uint16_t mode)
+{
+  int ind = AddLalh(clist, addr, mode);
+  while (size > 0) {
+    size_t bsize = (size>256) ? 256 : size;
+    clist.AddWblk(fBase+kCp_addr_memi, buf, bsize);
+    buf  += bsize;
+    size -= bsize;
+  }
+  return ind;
 }
 
 //------------------------------------------+-----------------------------------

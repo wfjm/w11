@@ -1,6 +1,6 @@
--- $Id: sys_conf_sim.vhd 433 2011-11-27 22:04:39Z mueller $
+-- $Id: sys_conf_sim.vhd 509 2013-04-21 20:46:20Z mueller $
 --
--- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,6 +19,7 @@
 -- Tool versions:  xst 11.4, 13.1; ghdl 0.26-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2013-04-21   509   1.2    add fx2 settings
 -- 2011-11-27   433   1.1.1  use /1*1 to skip dcm in sim, _ssim fails with dcm
 -- 2010-11-27   341   1.1    add dcm and memctl related constants (clksys=58)
 -- 2010-05-28   295   1.0    Initial version (cloned from _s3)
@@ -41,6 +42,10 @@ package sys_conf is
   constant sys_conf_memctl_writedelay : positive := 4;
 
   constant sys_conf_ser2rri_cdinit : integer := 1-1;   -- 1 cycle/bit in sim
+
+  -- fx2 settings: petowidth=10 -> 2^10 30 MHz clocks -> ~33 usec
+  constant sys_conf_fx2_petowidth  : positive := 10;
+  constant sys_conf_fx2_ccwidth  : positive := 5;
   
   constant sys_conf_hio_debounce : boolean := false;   -- no debouncers
     

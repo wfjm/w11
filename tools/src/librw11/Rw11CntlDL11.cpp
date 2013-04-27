@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDL11.cpp 504 2013-04-13 15:37:24Z mueller $
+// $Id: Rw11CntlDL11.cpp 508 2013-04-20 18:43:28Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,20 +13,24 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-04-20   508   1.0.1  add trace support
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-05   483   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11CntlDL11.cpp 504 2013-04-13 15:37:24Z mueller $
+  \version $Id: Rw11CntlDL11.cpp 508 2013-04-20 18:43:28Z mueller $
   \brief   Implemenation of Rw11CntlDL11.
 */
 
 #include "boost/bind.hpp"
 
 #include "librtools/RosFill.hpp"
+#include "librtools/RosPrintBvi.hpp"
+#include "librtools/RosPrintf.hpp"
 #include "librtools/Rexception.hpp"
+#include "librtools/RlogMsg.hpp"
 
 #include "Rw11CntlDL11.hpp"
 
@@ -141,6 +145,8 @@ void Rw11CntlDL11::Dump(std::ostream& os, int ind, const char* text) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11CntlDL11 @ " << this << endl;
+  os << bl << "  fPC_xbuf:        " << fPC_xbuf << endl;
+
   Rw11CntlBase<Rw11UnitDL11,1>::Dump(os, ind, " ^");
   return;
 }
@@ -160,6 +166,42 @@ int Rw11CntlDL11::AttnHandler(const RlinkServer::AttnArgs& args)
   uint8_t ochr = xbuf & kXBUF_M_XBUF;
   bool xval = xbuf & kXBUF_M_XVAL;
   bool rrdy = xbuf & kXBUF_M_RRDY;
+
+  if (fTraceLevel>0) {
+    RlogMsg lmsg(LogFile());
+    lmsg << "-I DL11." << Name()
+         << " xbuf=" << RosPrintBvi(xbuf,8)
+         << " xval=" << xval
+         << " rrdy=" << rrdy
+         << " rcvq=" << RosPrintf(fspUnit[0]->RcvQueueSize(),"d",3);
+    if (xval) {
+      lmsg << " char=";
+      if (ochr>=040 && ochr<0177) {
+        lmsg << "'" << char(ochr) << "'";
+      } else {
+        lmsg << RosPrintBvi(ochr,8);
+        lmsg << " " << ((ochr&0200) ? "|" : " ");
+        uint8_t ochr7 = ochr & 0177;
+        if (ochr7 < 040) {
+          switch (ochr7) {
+          case 010: lmsg << "BS"; break;
+          case 011: lmsg << "HT"; break;
+          case 012: lmsg << "LF"; break;
+          case 013: lmsg << "VT"; break;
+          case 014: lmsg << "FF"; break;
+          case 015: lmsg << "CR"; break;
+          default:  lmsg << "^" << char('A'+ochr7);
+          }
+        } else {
+          if (ochr7 < 0177) {
+            lmsg << "'" << char(ochr7) << "'";
+          } else {
+            lmsg << "DEL";
+          }
+        }
+      }
+    }
+  }
 
   if (xval) {
     fspUnit[0]->Snd(&ochr, 1);

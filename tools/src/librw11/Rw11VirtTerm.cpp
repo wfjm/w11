@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTerm.cpp 504 2013-04-13 15:37:24Z mueller $
+// $Id: Rw11VirtTerm.cpp 508 2013-04-20 18:43:28Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,7 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtTerm.cpp 504 2013-04-13 15:37:24Z mueller $
+  \version $Id: Rw11VirtTerm.cpp 508 2013-04-20 18:43:28Z mueller $
   \brief   Implemenation of Rw11VirtTerm.
 */
 #include <memory>
@@ -49,10 +49,10 @@ Rw11VirtTerm::Rw11VirtTerm(Rw11Unit* punit)
     fChannelId(),
     fRcvCb()
 {
-  fStats.Define(kStatNVTRcvPoll,     "NVTRcvPoll",   "RcvPollHandler() calls");
-  fStats.Define(kStatNVTSnd,         "NVTSnd",       "Snd() calls");
-  fStats.Define(kStatNVTRcvByt,      "NVTRcvByt",    "bytes received");
-  fStats.Define(kStatNVTSndByt,      "NVTSndByt",    "bytes send");
+  fStats.Define(kStatNVTRcvPoll,     "NVTRcvPoll", "VT RcvPollHandler() calls");
+  fStats.Define(kStatNVTSnd,         "NVTSnd",       "VT Snd() calls");
+  fStats.Define(kStatNVTRcvByt,      "NVTRcvByt",    "VT bytes received");
+  fStats.Define(kStatNVTSndByt,      "NVTSndByt",    "VT bytes send");
 }
 
 //------------------------------------------+-----------------------------------

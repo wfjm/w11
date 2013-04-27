@@ -1,4 +1,4 @@
-// $Id: Rw11Cntl.hpp 495 2013-03-06 17:13:48Z mueller $
+// $Id: Rw11Cntl.hpp 508 2013-04-20 18:43:28Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cntl.hpp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: Rw11Cntl.hpp 508 2013-04-20 18:43:28Z mueller $
   \brief   Declaration of class Rw11Cntl.
 */
 
@@ -105,7 +105,7 @@ namespace Retro {
       bool          fEnable;                //!< enable flag
       bool          fStarted;               //!< true if Start() called
       Rw11Probe     fProbe;                 //!< controller probe context
-      uint32_t      fTraceLevel;            //!< trace level; 0=off;1=attn
+      uint32_t      fTraceLevel;            //!< trace level; 0=off;1=cntl
       RlinkCommandList fPrimClist;          //!< clist for attn primary info 
       Rstats        fStats;                 //!< statistics
   };

@@ -1,6 +1,6 @@
 #! /usr/bin/env tclsh
 # -*- tcl -*-
-# $Id: ti_rri 504 2013-04-13 15:37:24Z mueller $
+# $Id: ti_rri 511 2013-04-27 13:51:46Z mueller $
 #
 # Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -15,6 +15,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2013-04-26   510   1.1.5  reorganize readline startup
 # 2013-04-12   504   1.1.4  add --pack; trailing '-' argv implies --int
 # 2013-02-05   482   1.1.3  stop server is rls found
 # 2013-01-27   478   1.1.2  use 'exec sh -c $cmd &' for --run implementation
@@ -43,6 +44,8 @@
 #   tcl cmds 
 #   @...tcl
 #
+
+set tirri_interactive 0
 
 array set opts { 
     pack_  ""
@@ -73,7 +76,7 @@ set auto_noexec 1
 #   must be in a proc so that it can be called from tclreadline
 #   must be defined before ::tclreadline::Loop called (all after ignored...)
 #
-proc exit_cleanup {} {
+proc tirri_exit {{doexit 1}} {
   global opts
   global runpid
 
@@ -89,6 +92,10 @@ proc exit_cleanup {} {
   #             but no wait available in tcl (grr...)
   if { "$runpid" ne ""  } {
     after 100;                          # currently just wait 100ms
+  }
+  if { $doexit } {
+    puts {};                            # \n to ensure shell prompt on new line
+    exit
   }
   return
 }
@@ -289,7 +296,31 @@ if { $opts(cuff) } {
 # setup simulation mode default
 set rlink::sim_mode [rlink::isfifo]
 
+# if tclsh runs a script given on the command line or is invoked
+# like here via a shebang the tcl_interactive is always set to 0
+# so we have to check whether stdin/stdout is a terminal and set
+# tcl_interactive accordingly
+
+# FIXME_code: fstat not available (grr...), currently just assume istty
+set tcl_interactive 1
+
+# determine whether interactive mode, if yes, initialize readline
+if {$opts(int) || [llength $clist] == 0 } {
+  set tirri_interactive 1
+
+  package require tclreadline
+  namespace eval tclreadline {
+    proc prompt1 {} {
+      set version [info tclversion]
+      return "ti_rri > "
+    }
+  }
+  ::tclreadline::readline eofchar {::tirri_exit; puts {}; exit}
+}
+
+# now execute all commands and scripts given as start-up arguments
 foreach cmd $clist {
+  # puts "executing: $cmd"
   # handle @filename commands
   if { [regexp {^@(.+)} $cmd dummy filename] } {
     # handle @file.tcl --> source tcl file
@@ -318,28 +349,11 @@ foreach cmd $clist {
   }
 }
 
-# if tclsh runs a script given on the command line or is invoked
-# like here via a shebang the tcl_interactive is always set to 0
-# so we have to check whether stdin/stdout is a terminal and set
-# tcl_interactive accordingly
 
-# FIXME_code: fstat not available (grr...), currently just assume istty
-set tcl_interactive 1
-
-if { $opts(int) || [llength $clist] == 0 } {
-  if {$tcl_interactive} {
-    package require tclreadline
-    namespace eval tclreadline {
-      proc prompt1 {} {
-        set version [info tclversion]
-        return "ti_rri > "
-      }
-    }
-    ::tclreadline::readline eofchar {::exit_cleanup; puts {}; exit}
-    ::tclreadline::Loop
-  }
+if { $tirri_interactive } {
+  ::tclreadline::Loop
 } else {
-  exit_cleanup
+  tirri_exit 0
 }
 
 return 0

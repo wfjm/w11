@@ -1,6 +1,6 @@
--- $Id: sys_w11a_n3.vhd 476 2013-01-26 22:23:53Z mueller $
+-- $Id: sys_w11a_n3.vhd 509 2013-04-21 20:46:20Z mueller $
 --
--- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,7 +19,8 @@
 --                 vlib/genlib/clkdivce
 --                 bplib/bpgen/bp_rs232_2l4l_iob
 --                 bplib/bpgen/sn_humanio_rbus
---                 vlib/rlink/rlink_sp1c
+--                 bplib/fx2rlink/rlink_sp1c_fx2
+--                 bplib/fx2rlink/ioleds_sp1c_fx2
 --                 vlib/rri/rb_sres_or_3
 --                 w11a/pdp11_core_rbus
 --                 w11a/pdp11_core
@@ -40,11 +41,13 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2013-04-21   509 13.3    O76d xc6slx16-2  1516 3274  140 1184 ok: now + FX2 !
 -- 2011-12-18   440 13.1    O40d xc6slx16-2  1441 3161   96 1084 ok: LP+PC+DL+II
 -- 2011-11-20   430 13.1    O40d xc6slx16-2  1412 3206   84 1063 ok: LP+PC+DL+II
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2013-04-21   509   1.4    added fx2 (cuff) support
 -- 2011-12-18   440   1.0.4  use rlink_sp1c
 -- 2011-12-04   435   1.0.3  increase ATOWIDTH 6->7 (saw i/o timeouts on wblks)
 -- 2011-11-26   433   1.0.2  use nx_cram_(dummy|memctl_as) now
@@ -57,7 +60,9 @@
 --
 -- Usage of Nexys 3 Switches, Buttons, LEDs:
 --
---    SWI(7:2): no function (only connected to sn_humanio_rbus)
+--    SWI(7:3): no function (only connected to sn_humanio_rbus)
+--       (2)    0 -> int/ext RS242 port for rlink
+--              1 -> use USB interface for rlink
 --    SWI(1):   1 enable XON
 --    SWI(0):   0 -> main board RS232 port
 --              1 -> Pmod B/top RS232 port
@@ -75,10 +80,17 @@
 --                (3:0) cpurust code
 --                  (4) '1'
 --
---    DP(3):    not SER_MONI.txok       (shows tx back preasure)
---    DP(2):    SER_MONI.txact          (shows tx activity)
---    DP(1):    not SER_MONI.rxok       (shows rx back preasure)
---    DP(0):    SER_MONI.rxact          (shows rx activity)
+--    DP(3:0) shows IO activity
+--            if SWI(2)=0 (serport)
+--                  (3):    not SER_MONI.txok       (shows tx back preasure)
+--                  (2):    SER_MONI.txact          (shows tx activity)
+--                  (1):    not SER_MONI.rxok       (shows rx back preasure)
+--                  (0):    SER_MONI.rxact          (shows rx activity)
+--            if SWI(2)=1 (fx2-usb)
+--                  (3):    RB_SRES.busy            (shows rbus back preasure)
+--                  (2):    RLB_TXBUSY              (shows tx back preasure)
+--                  (1):    RLB_TXENA               (shows tx activity)
+--                  (0):    RLB_RXVAL               (shows rx activity)
 --
 
 library ieee;
@@ -91,6 +103,8 @@ use work.genlib.all;
 use work.serportlib.all;
 use work.rblib.all;
 use work.rlinklib.all;
+use work.fx2lib.all;
+use work.fx2rlinklib.all;
 use work.bpgenlib.all;
 use work.bpgenrbuslib.all;
 use work.nxcramlib.all;
@@ -102,7 +116,7 @@ use work.sys_conf.all;
 -- ----------------------------------------------------------------------------
 
 entity sys_w11a_n3 is                   -- top level
-                                        -- implements nexys3_fusp_aif
+                                        -- implements nexys3_fusp_cuff_aif
   port (
     I_CLK100 : in slbit;                -- 100 MHz clock
     I_RXD : in slbit;                   -- receive data (board view)
@@ -127,7 +141,15 @@ entity sys_w11a_n3 is                   -- top level
     O_FUSP_RTS_N : out slbit;           -- fusp: rs232 rts_n
     I_FUSP_CTS_N : in slbit;            -- fusp: rs232 cts_n
     I_FUSP_RXD : in slbit;              -- fusp: rs232 rx
-    O_FUSP_TXD : out slbit              -- fusp: rs232 tx
+    O_FUSP_TXD : out slbit;             -- fusp: rs232 tx
+    I_FX2_IFCLK : in slbit;             -- fx2: interface clock
+    O_FX2_FIFO : out slv2;              -- fx2: fifo address
+    I_FX2_FLAG : in slv4;               -- fx2: fifo flags
+    O_FX2_SLRD_N : out slbit;           -- fx2: read enable    (act.low)
+    O_FX2_SLWR_N : out slbit;           -- fx2: write enable   (act.low)
+    O_FX2_SLOE_N : out slbit;           -- fx2: output enable  (act.low)
+    O_FX2_PKTEND_N : out slbit;         -- fx2: packet end     (act.low)
+    IO_FX2_DATA : inout slv8            -- fx2: data lines
   );
 end sys_w11a_n3;
 
@@ -149,7 +171,9 @@ architecture syn of sys_w11a_n3 is
   signal RB_LAM  : slv16 := (others=>'0');
   signal RB_STAT : slv3  := (others=>'0');
   
+  signal RLB_MONI : rlb_moni_type := rlb_moni_init;
   signal SER_MONI : serport_moni_type := serport_moni_init;
+  signal FX2_MONI : fx2ctl_moni_type  := fx2ctl_moni_init;
 
   signal RB_MREQ     : rb_mreq_type := rb_mreq_init;
   signal RB_SRES     : rb_sres_type := rb_sres_init;
@@ -279,13 +303,15 @@ begin
       O_SEG_N => O_SEG_N
     );
 
-  RLINK : rlink_sp1c
+  RLINK : rlink_sp1c_fx2
     generic map (
       ATOWIDTH     => 7,                -- 128 cycles access timeout
       ITOWIDTH     => 6,                --  64 periods max idle timeout
       CPREF        => c_rlink_cpref,
       IFAWIDTH     => 5,                --  32 word input fifo
       OFAWIDTH     => 5,                --  32 word output fifo
+      PETOWIDTH    => sys_conf_fx2_petowidth,
+      CCWIDTH      => sys_conf_fx2_ccwidth,
       ENAPIN_RLMON => sbcntl_sbf_rlmon,
       ENAPIN_RBMON => sbcntl_sbf_rbmon,
       CDWIDTH      => 13,
@@ -298,6 +324,7 @@ begin
       RESET    => RESET,
       ENAXON   => SWI(1),
       ENAESC   => SWI(1),
+      ENAFX2   => SWI(2),
       RXSD     => RXD,
       TXSD     => TXD,
       CTS_N    => CTS_N,
@@ -307,7 +334,17 @@ begin
       RB_LAM   => RB_LAM,
       RB_STAT  => RB_STAT,
       RL_MONI  => open,
-      SER_MONI => SER_MONI
+      RLB_MONI => RLB_MONI,
+      SER_MONI => SER_MONI,
+      FX2_MONI => FX2_MONI,
+      I_FX2_IFCLK    => I_FX2_IFCLK,
+      O_FX2_FIFO     => O_FX2_FIFO,
+      I_FX2_FLAG     => I_FX2_FLAG,
+      O_FX2_SLRD_N   => O_FX2_SLRD_N,
+      O_FX2_SLWR_N   => O_FX2_SLWR_N,
+      O_FX2_SLOE_N   => O_FX2_SLOE_N,
+      O_FX2_PKTEND_N => O_FX2_PKTEND_N,
+      IO_FX2_DATA    => IO_FX2_DATA
     );
 
   RB_SRES_OR : rb_sres_or_3
@@ -522,12 +559,19 @@ begin
       );
   end generate IBD_MAXI;
     
-  DSP_DAT(15 downto 0) <= DISPREG;
+  IOLEDS : ioleds_sp1c_fx2
+    port map (
+      CLK      => CLK,
+      CE_USEC  => CE_USEC,
+      RESET    => CPU_RESET,
+      ENAFX2   => SWI(2),
+      RB_SRES  => RB_SRES,
+      RLB_MONI => RLB_MONI,
+      SER_MONI => SER_MONI,
+      IOLEDS   => DSP_DP
+    );
 
-  DSP_DP(3) <= not SER_MONI.txok;
-  DSP_DP(2) <= SER_MONI.txact;
-  DSP_DP(1) <= not SER_MONI.rxok;
-  DSP_DP(0) <= SER_MONI.rxact;
+  DSP_DAT(15 downto 0) <= DISPREG;
 
   proc_led: process (MEM_ACT_W, MEM_ACT_R, CP_STAT, DM_STAT_DP.psw)
     variable iled : slv8 := (others=>'0');

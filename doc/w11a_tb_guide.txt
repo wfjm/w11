@@ -1,4 +1,4 @@
-# $Id: w11a_tb_guide.txt 504 2013-04-13 15:37:24Z mueller $
+# $Id: w11a_tb_guide.txt 511 2013-04-27 13:51:46Z mueller $
 
 Guide to running w11a test benches
 
@@ -161,7 +161,7 @@ Guide to running w11a test benches
 
 4. Available system tests benches -----------------------------------------
 
-4a. serport tester -- --------------------------------------------
+4a. serport tester ---------------------------------------------------
 
    The sys_tst_serloop design is a test target for validating the serial
    link UART stack. Send and receive throughput as well as loop-back tests
@@ -248,9 +248,9 @@ Guide to running w11a test benches
 
      cd $RETROBASE/rtl/sys_gen/w11a/s3board/tb
      make tb_w11a_s3
-     time ti_rri --pack=rw11a --run="tbw tb_w11a_s3" --fifo --logl=3 -- \
-         "rw11a::setup_cpu" \
-         "rw11a::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat" |\
+     time ti_rri --pack=rw11 --run="tbw tb_w11a_s3" --fifo --logl=3 -- \
+         "rw11::setup_cpu" \
+         "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat" |\
        tee tb_w11a_s3_stim2_dsim.log | egrep "(-[EFW]:|FAIL|PEND|DONE)"
      -> 10225140.0 ns 511247: DONE 
      -> real 0m52.105s  user 0m0.260s  sys 0m0.132s
@@ -259,9 +259,9 @@ Guide to running w11a test benches
 
      cd $RETROBASE/rtl/sys_gen/w11a/nexys2/tb
      make tb_w11a_n2
-     time ti_rri --pack=rw11a --run="tbw tb_w11a_n2" --fifo --logl=3 -- \
-         "rw11a::setup_cpu" \
-         "rw11a::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat" |\
+     time ti_rri --pack=rw11 --run="tbw tb_w11a_n2" --fifo --logl=3 -- \
+         "rw11::setup_cpu" \
+         "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat" |\
        tee tb_w11a_n2_stim2_dsim.log | egrep "(-[EFW]:|FAIL|PEND|DONE)"
      -> 10278380.0 ns 513908: DONE 
      -> real 1m26.388s  user 0m0.312s  sys 0m0.156s
@@ -270,9 +270,9 @@ Guide to running w11a test benches
 
      cd $RETROBASE/rtl/sys_gen/w11a/nexys3/tb
      make tb_w11a_n3
-     time ti_rri --pack=rw11a --run="tbw tb_w11a_n3" --fifo --logl=3 -- \
-         "rw11a::setup_cpu" \
-         "rw11a::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat" |\
+     time ti_rri --pack=rw11 --run="tbw tb_w11a_n3" --fifo --logl=3 -- \
+         "rw11::setup_cpu" \
+         "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat" |\
        tee tb_w11a_n3_stim2_dsim.log | egrep "(-[EFW]:|FAIL|PEND|DONE)"
      -> 5167410.0 ns 516720: DONE 
      -> real 1m26.611s   user 0m0.248s   sys 0m0.196s
@@ -284,8 +284,8 @@ Guide to running w11a test benches
 
      cd $RETROBASE/rtl/sys_gen/w11a/nexys2/tb
      make tb_w11a_n2
-     time ti_rri --pack=rw11a --run="tbw tb_w11a_n2" --fifo --logl=3 -- \
-         "rw11a::setup_cpu" "rw11a::tbench @w11a_all.dat" | \
+     time ti_rri --pack=rw11 --run="tbw tb_w11a_n2" --fifo --logl=3 -- \
+         "rw11::setup_cpu" "rw11::tbench @w11a_all.dat" | \
        tee w11a_tbench_dsim.log | egrep "(-[EFW]:|FAIL|PASS|DONE)"
      -> 904180.0 ns  45198: DONE 
      -> real 0m5.739s   user 0m0.576s   sys 0m0.076s

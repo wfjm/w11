@@ -1,4 +1,4 @@
-# $Id: INSTALL.txt 504 2013-04-13 15:37:24Z mueller $
+# $Id: INSTALL.txt 511 2013-04-27 13:51:46Z mueller $
 
 Guide to install and build w11a systems, test benches and support software
 
@@ -311,6 +311,10 @@ Guide to install and build w11a systems, test benches and support software
 
     make <sys>.iconfig
 
+  For boards with a Cypress FX2 USB controller load the bitfile directly with
+
+    make <sys>.jconfig
+
   If only the xst or par output is wanted just use
 
     make <sys>.ngc
@@ -336,7 +340,7 @@ Guide to install and build w11a systems, test benches and support software
 
     make <sys>.iconfig
 
-  For using the Cypress FX2 USB controlle on Digilent Nexys2, Nexys3 and
+  For using the Cypress FX2 USB controller on Digilent Nexys2, Nexys3 and
   Atlys boards just connect the USB cable and
 
     make <sys>.jconfig

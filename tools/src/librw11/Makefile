@@ -25,9 +25,12 @@ OBJ_all    = Rw11.o Rw11Cpu.o Rw11CpuW11a.o
 OBJ_all   +=   Rw11Probe.o
 OBJ_all   +=   Rw11Cntl.o Rw11Unit.o
 OBJ_all   +=   Rw11UnitTerm.o 
+OBJ_all   +=   Rw11UnitDisk.o 
 OBJ_all   +=   Rw11CntlDL11.o Rw11UnitDL11.o 
+OBJ_all   +=   Rw11CntlRK11.o Rw11UnitRK11.o
 OBJ_all   +=   Rw11Virt.o 
 OBJ_all   +=   Rw11VirtTerm.o Rw11VirtTermPty.o Rw11VirtTermTcp.o 
+OBJ_all   +=   Rw11VirtDisk.o Rw11VirtDiskFile.o 
 #
 DEP_all    = $(OBJ_all:.o=.dep)
 #

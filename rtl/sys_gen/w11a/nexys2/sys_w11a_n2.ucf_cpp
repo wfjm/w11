@@ -1,7 +1,8 @@
-## $Id: sys_w11a_n2.ucf_cpp 336 2010-11-06 18:28:27Z mueller $
+## $Id: sys_w11a_n2.ucf_cpp 509 2013-04-21 20:46:20Z mueller $
 ##
 ## Revision History: 
 ## Date         Rev Version  Comment
+## 2013-04-20   509   1.1    add fx2 support
 ## 2010-11-06   336   1.0.1  rename input pin CLK -> I_CLK50
 ## 2010-05-26   295   1.0    Initial version
 ##
@@ -18,3 +19,8 @@ OFFSET = OUT 20 ns  AFTER "I_CLK50";
 ## Pmod B0 - RS232 
 ##
 #include "bplib/nexys2/nexys2_pins_pmb0_rs232.ucf"
+##
+## Cypress FX2
+##
+#include "bplib/nexys2/nexys2_pins_fx2.ucf"
+#include "bplib/nexys2/nexys2_time_fx2_ic.ucf"

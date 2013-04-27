@@ -1,4 +1,4 @@
-// $Id: RlinkPacketBuf.cpp 492 2013-02-24 22:14:47Z mueller $
+// $Id: RlinkPacketBuf.cpp 509 2013-04-21 20:46:20Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-04-21   509   1.0.4  add SndAttn() method
 // 2013-02-03   481   1.0.3  use Rexception
 // 2013-01-13   474   1.0.2  add PollAttn() method
 // 2013-01-04   469   1.0.1  SndOob(): Add filler 0 to ensure escape state
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPacketBuf.cpp 492 2013-02-24 22:14:47Z mueller $
+  \version $Id: RlinkPacketBuf.cpp 509 2013-04-21 20:46:20Z mueller $
   \brief   Implemenation of class RlinkPacketBuf.
  */
 
@@ -326,8 +327,21 @@ bool RlinkPacketBuf::SndKeep(RlinkPort* port, RerrMsg& emsg)
   Init();
 
   fRawBuf.clear();
-  fRawBuf.push_back(kSymEsc);                       // ESC
-  fRawBuf.push_back(kSymEsc);                       // ESC
+  fRawBuf.push_back(kSymEsc);               // ESC
+  fRawBuf.push_back(kSymEsc);               // ESC
+
+  return SndRaw(port, emsg);
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+bool RlinkPacketBuf::SndAttn(RlinkPort* port, RerrMsg& emsg)
+{
+  Init();
+
+  fRawBuf.clear();
+  fRawBuf.push_back(kCommaAttn);            // Attn
 
   return SndRaw(port, emsg);
 }

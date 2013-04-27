@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.cpp 504 2013-04-13 15:37:24Z mueller $
+// $Id: RtclRw11Cpu.cpp 511 2013-04-27 13:51:46Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-04-26   511   1.0.1  add M_show
 // 2013-04-02   502   1.0    Initial version
 // 2013-02-02   480   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclRw11Cpu.cpp 504 2013-04-13 15:37:24Z mueller $
+  \version $Id: RtclRw11Cpu.cpp 511 2013-04-27 13:51:46Z mueller $
   \brief   Implemenation of RtclRw11Cpu.
 */
 
@@ -34,6 +35,7 @@
 #include <sstream>
 
 #include "boost/bind.hpp"
+#include "boost/thread/locks.hpp"
 
 #include "librtools/RerrMsg.hpp"
 #include "librtools/RlogMsg.hpp"
@@ -81,6 +83,7 @@ RtclRw11Cpu::RtclRw11Cpu(const std::string& type)
   AddMeth("get",      boost::bind(&RtclRw11Cpu::M_get,     this, _1));
   AddMeth("set",      boost::bind(&RtclRw11Cpu::M_set,     this, _1));
   AddMeth("stats",    boost::bind(&RtclRw11Cpu::M_stats,   this, _1));
+  AddMeth("show",     boost::bind(&RtclRw11Cpu::M_show,    this, _1));
   AddMeth("dump",     boost::bind(&RtclRw11Cpu::M_dump,    this, _1));
   AddMeth("$default", boost::bind(&RtclRw11Cpu::M_default, this, _1));
 }
@@ -813,6 +816,166 @@ int RtclRw11Cpu::M_set(RtclArgs& args)
   // synchronize with server thread
   boost::lock_guard<RlinkConnect> lock(Obj().Connect());
   return fSets.M_set(args);
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+int RtclRw11Cpu::M_show(RtclArgs& args)
+{
+  static RtclNameSet optset("-pcps|-r0r5|-mmu|-ubmap"
+                            );  
+
+  string opt;
+  uint16_t base = Obj().Base();
+  ostringstream sos;
+  RerrMsg emsg;
+
+  const char* mode[4]  = {"k","s","?","u"};
+  const char* rust[16] = {"init",     "HALTed",   "reset",   "stopped",
+                          "stepped",  "suspend",  "0110",    "..run..",
+                          "F:vecfet", "F:redstk", "1010",    "1011",
+                          "F:seq",    "F:vmbox" , "1101",    "1111"};
+
+  while (args.NextOpt(opt, optset)) {
+    if (opt == "-pcps") {
+      RlinkCommandList clist;
+      size_t i_pc   = clist.AddRreg(base + Rw11Cpu::kCp_addr_pc);
+      size_t i_sp   = clist.AddRreg(base + Rw11Cpu::kCp_addr_r0+6);
+      size_t i_psw  = clist.AddRreg(base + Rw11Cpu::kCp_addr_psw);
+      size_t i_stat = clist.AddRreg(base + Rw11Cpu::kCp_addr_stat);
+      if (!Server().Exec(clist, emsg)) return args.Quit(emsg);
+      uint16_t psw  = clist[i_psw].Data();
+      uint16_t stat = clist[i_stat].Data();
+      uint16_t psw_cm    = (psw>>14) & 003;
+      uint16_t psw_pm    = (psw>>12) & 003;
+      uint16_t psw_set   = (psw>>11) & 001;
+      uint16_t psw_pri   = (psw>>5)  & 007;
+      uint16_t psw_tbit  = (psw>>4)  & 001;
+      uint16_t psw_nzvc  = (psw)     & 017;
+      uint16_t stat_rust = (stat>>4) & 017;
+      sos << "PC=" << RosPrintBvi(clist[i_pc].Data(),8)
+          << " SP=" << RosPrintBvi(clist[i_sp].Data(),8)
+          << " PS=" << RosPrintBvi(psw,8)
+          << " cm,pm=" << mode[psw_cm] << "," << mode[psw_pm]
+          << " s,p,t=" << psw_set << "," << psw_pri << "," << psw_tbit
+          << " NZVC=" << RosPrintBvi(psw_nzvc,2,4)
+          << " rust=" << RosPrintBvi(stat_rust,8,4) << " " << rust[stat_rust]
+          << endl;
+
+    } else if (opt == "-r0r5") {
+      RlinkCommandList clist;
+      for (size_t i=0; i<6; i++) clist.AddRreg(base + Rw11Cpu::kCp_addr_r0+i);
+      if (!Server().Exec(clist, emsg)) return args.Quit(emsg);
+      sos << "R0-R5:";
+      for (size_t i=0; i<6; i++) sos << "  " << RosPrintBvi(clist[i].Data(),8);
+      sos << endl;
+
+    } else if (opt == "-mmu") {
+      uint16_t mmr[4];
+      uint16_t asr[3][32];
+      const char* pmode[3] = {"km","sm","um"};
+      const char* acf[8] = {"nres ",
+                            "r -r ",
+                            "r    ",
+                            "011  ",
+                            "rw-rw",
+                            "rw- w",
+                            "rw   ",
+                            "111  "};
+      {
+        boost::lock_guard<RlinkConnect> lock(Connect());
+        RlinkCommandList clist;
+        clist.AddWreg(base + Rw11Cpu::kCp_addr_al, 0177572);
+        clist.AddRblk(base + Rw11Cpu::kCp_addr_memi, mmr, 3);
+        clist.AddWreg(base + Rw11Cpu::kCp_addr_al, 0172516);
+        clist.AddRblk(base + Rw11Cpu::kCp_addr_memi, mmr+3, 1);
+        if (!Server().Exec(clist, emsg)) return args.Quit(emsg);
+        clist.Clear();
+        clist.AddWreg(base + Rw11Cpu::kCp_addr_al, 0172300);
+        clist.AddRblk(base + Rw11Cpu::kCp_addr_memi, asr[0], 32);
+        clist.AddWreg(base + Rw11Cpu::kCp_addr_al, 0172200);
+        clist.AddRblk(base + Rw11Cpu::kCp_addr_memi, asr[1], 32);
+        clist.AddWreg(base + Rw11Cpu::kCp_addr_al, 0177600);
+        clist.AddRblk(base + Rw11Cpu::kCp_addr_memi, asr[2], 32);
+        if (!Server().Exec(clist, emsg)) return args.Quit(emsg);
+      }
+      uint16_t mmr1_0_reg = (mmr[1]    ) & 07;
+       int16_t mmr1_0_val = (mmr[1]>> 3) & 37;
+      uint16_t mmr1_1_reg = (mmr[1]>> 8) & 07;
+       int16_t mmr1_1_val = (mmr[1]>>11) & 37;
+      uint16_t mmr3_ubmap = (mmr[3]>> 5) & 01;
+      uint16_t mmr3_22bit = (mmr[3]>> 4) & 01;
+      uint16_t mmr3_d_km  = (mmr[3]>> 2) & 01;
+      uint16_t mmr3_d_sm  = (mmr[3]>> 1) & 01;
+      uint16_t mmr3_d_um  = (mmr[3]    ) & 01;
+      sos << "mmu:" << endl;
+      sos << "mmr0=" << RosPrintBvi(mmr[0],8) << endl;
+      if (mmr1_0_val & 020) mmr1_0_val |= 0177740;
+      if (mmr1_1_val & 020) mmr1_1_val |= 0177740;
+      sos << "mmr1=" << RosPrintBvi(mmr[1],8);
+      if (mmr1_0_val) sos << "  r" << mmr1_0_reg 
+                          << ":" << RosPrintf(mmr1_0_val,"d",3);
+      if (mmr1_1_val) sos << "  r" << mmr1_1_reg 
+                          << ":" << RosPrintf(mmr1_1_val,"d",3);
+      sos << endl;
+      sos << "mmr2=" << RosPrintBvi(mmr[2],8) << endl;
+      sos << "mmr3=" << RosPrintBvi(mmr[3],8) 
+          << "  ubmap=" << mmr3_ubmap
+          << "  22bit=" << mmr3_22bit
+          << "  d-space k,s,u=" << mmr3_d_km 
+          << "," << mmr3_d_sm << "," << mmr3_d_um << endl;
+      for (size_t m=0; m<3; m++) {
+        sos << pmode[m] << "   "
+            << " I pdr slf aw d acf     I par"
+            << "    "
+            << " D pdr slf aw d acf     D par" << endl;
+        for (size_t i=0; i<=7; i++) {
+          sos << "   " << i << " ";
+          for (size_t s=0; s<=1; s++) {
+            if (s!=0) sos << "    ";
+            uint16_t pdr = asr[m][i   +8*s];
+            uint16_t par = asr[m][i+16+8*s];
+            uint16_t pdr_slf = (pdr>>8) & 0177;
+            uint16_t pdr_a   = (pdr>>7) & 01;
+            uint16_t pdr_w   = (pdr>>6) & 01;
+            uint16_t pdr_e   = (pdr>>3) & 01;
+            uint16_t pdr_acf = (pdr)    & 07;
+            sos<< RosPrintBvi(pdr,8)
+               << " " << RosPrintf(pdr_slf,"d",3)
+               << " " << pdr_a << pdr_w
+               << " " << (pdr_e ? "d" : "u")
+               << " " << acf[pdr_acf]
+               << "  " << RosPrintBvi(par,8);
+          }
+          sos << endl;
+        }
+      }
+
+    } else if (opt == "-ubmap") {
+      uint16_t ubmap[64];
+      RlinkCommandList clist;
+      clist.AddWreg(base + Rw11Cpu::kCp_addr_al, 0170200);
+      clist.AddRblk(base + Rw11Cpu::kCp_addr_memi, ubmap, 64);
+      if (!Server().Exec(clist, emsg)) return args.Quit(emsg);
+      sos << "unibus map:" << endl;
+      for (size_t i = 0; i<=7; i++) {
+        for (size_t j = 0; j <= 030; j+=010) {
+          size_t k = 2*(i+j);
+          uint32_t data = uint32_t(ubmap[k]) | (uint32_t(ubmap[k+1]))<<16;
+          if (j!=0) sos << "  ";
+          sos << RosPrintBvi(j+i,8,5) << " "
+              << RosPrintBvi(data,8,22);
+        }
+        sos << endl;
+      }
+    }
+  }
+
+  if (!args.AllDone()) return kERR;
+  args.SetResult(sos);
+
+  return kOK;
 }
 
 //------------------------------------------+-----------------------------------

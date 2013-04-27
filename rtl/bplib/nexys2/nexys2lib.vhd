@@ -1,6 +1,6 @@
--- $Id: nexys2lib.vhd 467 2013-01-02 19:49:05Z mueller $
+-- $Id: nexys2lib.vhd 509 2013-04-21 20:46:20Z mueller $
 --
--- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free

@@ -1,4 +1,4 @@
-// $Id: RtclRlinkServer.cpp 495 2013-03-06 17:13:48Z mueller $
+// $Id: RtclRlinkServer.cpp 510 2013-04-26 16:14:57Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-04-26   510   1.0.4  change M_attn, now -info instead of -show
+// 2013-04-21   509   1.0.3  add server -resume
 // 2013-02-05   483   1.0.2  ClassCmdConfig: use RtclArgs
 // 2013-02-05   482   1.0.1  add shared_ptr to RlinkConnect object
 // 2013-01-12   474   1.0    Initial version
@@ -20,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RtclRlinkServer.cpp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: RtclRlinkServer.cpp 510 2013-04-26 16:14:57Z mueller $
   \brief   Implemenation of class RtclRlinkServer.
  */
 
@@ -107,7 +109,7 @@ int RtclRlinkServer::ClassCmdConfig(RtclArgs& args)
 
 int RtclRlinkServer::M_server(RtclArgs& args)
 {
-  static RtclNameSet optset("-start|-stop|-test|-trace");
+  static RtclNameSet optset("-start|-stop|-resume|-test|-trace");
   string opt;
   if (args.NextOpt(opt, optset)) {
     if        (opt == "-start") {           // server -start
@@ -116,6 +118,9 @@ int RtclRlinkServer::M_server(RtclArgs& args)
     } else if (opt == "-stop") {            // server -stop
       if (!args.AllDone()) return kERR;
       Obj().Stop();
+    } else if (opt == "-resume") {          // server -resume
+      if (!args.AllDone()) return kERR;
+      Obj().Resume();
     } else if (opt == "-test") {            // server -test
       if (!args.AllDone()) return kERR;
       args.SetResult(Obj().IsActive());
@@ -143,7 +148,7 @@ int RtclRlinkServer::M_server(RtclArgs& args)
 
 int RtclRlinkServer::M_attn(RtclArgs& args)
 {
-  static RtclNameSet optset("-add|-remove|-show|-test|-list");
+  static RtclNameSet optset("-add|-remove|-info|-test|-list");
 
   Tcl_Interp* interp = args.Interp();
 
@@ -181,8 +186,23 @@ int RtclRlinkServer::M_attn(RtclArgs& args)
       return args.Quit(string("-E: no handler defined for '") +
                        args.PeekArgString(-1) + "'");
 
-    // common handling for -show, -test
-    } else if (opt == "-show" ||opt == "-test") {// attn -(show|test) mask
+    } else if (opt == "-info") {            // attn -info mask
+      uint16_t mask=0;
+      if (!args.GetArg("mask", mask)) return kERR;
+      if (!args.AllDone()) return kERR;
+      RtclOPtr pres(Tcl_NewListObj(0,0));
+      for (alist_it_t it = fAttnHdl.begin(); it != fAttnHdl.end(); it++) {
+        if ((*it)->Mask() & mask) {
+          RtclOPtr pele(Tcl_NewListObj(0,0));
+          Tcl_ListObjAppendElement(NULL, pele, Tcl_NewIntObj((*it)->Mask()) );
+          Tcl_ListObjAppendElement(NULL, pele, (*it)->Script() );
+          Tcl_ListObjAppendElement(NULL, pres, pele);
+        }
+      }
+      args.SetResult(pres);
+      return kOK;
+
+    } else if (opt == "-test") {            // attn -test mask
       uint16_t mask=0;
       if (!args.GetArg("mask", mask)) return kERR;
       if (!args.AllDone()) return kERR;
@@ -190,12 +210,8 @@ int RtclRlinkServer::M_attn(RtclArgs& args)
       for (alist_it_t it = fAttnHdl.begin(); it != fAttnHdl.end(); it++) {
         if ((*it)->Mask() & mask) {
           nhdl += 1;
-          if (opt == "-show") {      // attn -show mask
-            args.SetResult((*it)->Script());
-          } else if (opt == "-test") {      // attn -test mask
-            int rc = Tcl_EvalObjEx(interp, (*it)->Script(), TCL_EVAL_GLOBAL);
-            if (rc != kOK) return rc;
-          }
+          int rc = Tcl_EvalObjEx(interp, (*it)->Script(), TCL_EVAL_GLOBAL);
+          if (rc != kOK) return rc;
         }
       }
       if (nhdl) return kOK;

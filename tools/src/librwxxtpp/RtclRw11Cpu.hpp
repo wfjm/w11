@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.hpp 504 2013-04-13 15:37:24Z mueller $
+// $Id: RtclRw11Cpu.hpp 511 2013-04-27 13:51:46Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-04-26   511   1.0.1  add M_show
 // 2013-04-02   502   1.0    Initial version
 // 2013-02-02   480   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Cpu.hpp 504 2013-04-13 15:37:24Z mueller $
+  \version $Id: RtclRw11Cpu.hpp 511 2013-04-27 13:51:46Z mueller $
   \brief   Declaration of class RtclRw11Cpu.
 */
 
@@ -60,6 +61,7 @@ namespace Retro {
       int           M_boot(RtclArgs& args);
       int           M_get(RtclArgs& args);
       int           M_set(RtclArgs& args);
+      int           M_show(RtclArgs& args);
       int           M_stats(RtclArgs& args);
       int           M_dump(RtclArgs& args);
       int           M_default(RtclArgs& args);

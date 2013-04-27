@@ -1,6 +1,6 @@
--- $Id: tb_w11a_n3.vhd 432 2011-11-25 20:16:28Z mueller $
+-- $Id: tb_w11a_n3.vhd 509 2013-04-21 20:46:20Z mueller $
 --
--- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -13,7 +13,7 @@
 --
 ------------------------------------------------------------------------------
 -- Module Name:    tb_w11a_n3
--- Description:    Configuration for tb_w11a_n3 for tb_nexys3_fusp
+-- Description:    Configuration for tb_w11a_n3 for tb_nexys3_fusp_cuff
 --
 -- Dependencies:   sys_w11a_n3
 --
@@ -26,13 +26,14 @@
 -- 
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2013-04-21   509   1.1    now based on tb_nexys3_fusp_cuff
 -- 2011-11-25   432   1.0    Initial version (cloned from _n2)
 ------------------------------------------------------------------------------
 
-configuration tb_w11a_n3 of tb_nexys3_fusp is
+configuration tb_w11a_n3 of tb_nexys3_fusp_cuff is
 
   for sim
-    for all : nexys3_fusp_aif
+    for all : nexys3_fusp_cuff_aif
       use entity work.sys_w11a_n3;
     end for;
   end for;

@@ -1,6 +1,6 @@
--- $Id: rlinklib.vhd 495 2013-03-06 17:13:48Z mueller $
+-- $Id: rlinklib.vhd 509 2013-04-21 20:46:20Z mueller $
 --
--- Copyright 2007-2012 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,6 +20,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2013-04-21   509   3.3.2  add rlb_moni record definition
 -- 2012-12-29   466   3.3.1  add rlink_rlbmux
 -- 2011-12-23   444   3.3    CLK_CYCLE now integer
 -- 2011-12-21   442   3.2.1  retire old, deprecated interfaces
@@ -99,6 +100,16 @@ end record rl_moni_type;
 
 constant rl_moni_init : rl_moni_type :=
   ('0','0','0');                        -- eop,attn,lamp
+
+type rlb_moni_type is record            -- rlink 8b monitor port
+  rxval : slbit;                        -- data in valid
+  rxhold : slbit;                       -- data in hold
+  txena : slbit;                        -- data out enable
+  txbusy : slbit;                       -- data out busy
+end record rlb_moni_type;
+
+constant rlb_moni_init : rlb_moni_type :=
+  ('0','0','0','0');                    -- rxval,rxhold,txena,txbusy
 
 -- ise 13.1 xst can bug check if generic defaults in a package are defined via 
 -- 'slv(to_unsigned())'. The conv_ construct prior to numeric_std was ok.

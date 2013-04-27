@@ -1,4 +1,4 @@
-# $Id: test_w11a_dstw_word_flow.tcl 502 2013-04-02 19:29:30Z mueller $
+# $Id: test_w11a_dstw_word_flow.tcl 510 2013-04-26 16:14:57Z mueller $
 #
 # Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
@@ -38,19 +38,19 @@ pdata5: .word   data5,data5+2
 pdat5e:
 }
 
-rw11a::asmrun  $cpu sym [list r1 $sym(data1) \
+rw11::asmrun  $cpu sym [list r1 $sym(data1) \
                               r2 $sym(data2) \
                               r3 $sym(pdata3) \
                               r4 $sym(data4e) \
                               r5 $sym(pdat5e) ]
-rw11a::asmwait $cpu sym 1.0
-rw11a::asmtreg $cpu [list r0 0100 \
-                          r1 $sym(data1) \
-                          r2 [expr {$sym(data2)  + 4}] \
-                          r3 [expr {$sym(pdata3) + 4}] \
-                          r4 [expr {$sym(data4e) - 4}] \
-                          r5 [expr {$sym(pdat5e) - 4}] ]
-rw11a::asmtmem $cpu $sym(data1) {0110 0120 0121 0130 0131 0140 0141 0150 0151}
+rw11::asmwait $cpu sym 1.0
+rw11::asmtreg $cpu [list r0 0100 \
+                         r1 $sym(data1) \
+                         r2 [expr {$sym(data2)  + 4}] \
+                         r3 [expr {$sym(pdata3) + 4}] \
+                         r4 [expr {$sym(data4e) - 4}] \
+                         r5 [expr {$sym(pdat5e) - 4}] ]
+rw11::asmtmem $cpu $sym(data1) {0110 0120 0121 0130 0131 0140 0141 0150 0151}
 
 
 
@@ -74,7 +74,7 @@ pdata1: .word   data1
 pdata3: .word   data3
 }
 
-rw11a::asmrun  $cpu sym [list r0 [expr {$sym(data0)-020}] \
-                              r1 [expr {$sym(pdata1)-040}]  ]
-rw11a::asmwait $cpu sym 1.0
-rw11a::asmtmem $cpu $sym(data0) {0200 0210 0220 0230 0240}
+rw11::asmrun  $cpu sym [list r0 [expr {$sym(data0)-020}] \
+                             r1 [expr {$sym(pdata1)-040}]  ]
+rw11::asmwait $cpu sym 1.0
+rw11::asmtmem $cpu $sym(data0) {0200 0210 0220 0230 0240}

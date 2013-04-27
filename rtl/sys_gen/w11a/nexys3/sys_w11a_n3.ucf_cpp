@@ -1,7 +1,8 @@
-## $Id: sys_w11a_n3.ucf_cpp 430 2011-11-20 20:48:39Z mueller $
+## $Id: sys_w11a_n3.ucf_cpp 509 2013-04-21 20:46:20Z mueller $
 ##
 ## Revision History: 
 ## Date         Rev Version  Comment
+## 2013-04-21   509   1.1    add fx2 support
 ## 2011-11-20   430   1.0    Initial version
 ##
 
@@ -17,3 +18,8 @@ OFFSET = OUT 20 ns  AFTER "I_CLK100";
 ## Pmod B0 - RS232 
 ##
 #include "bplib/nexys3/nexys3_pins_pmb0_rs232.ucf"
+##
+## Cypress FX2
+##
+#include "bplib/nexys3/nexys3_pins_fx2.ucf"
+#include "bplib/nexys3/nexys3_time_fx2_ic.ucf"

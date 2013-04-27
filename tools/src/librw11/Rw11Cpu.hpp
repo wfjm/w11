@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.hpp 504 2013-04-13 15:37:24Z mueller $
+// $Id: Rw11Cpu.hpp 506 2013-04-14 21:54:03Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-04-14   506   1.0.1  add AddLalh(),AddRMem(),AddWMem()
 // 2013-04-12   504   1.0    Initial version
 // 2013-01-27   478   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cpu.hpp 504 2013-04-13 15:37:24Z mueller $
+  \version $Id: Rw11Cpu.hpp 506 2013-04-14 21:54:03Z mueller $
   \brief   Declaration of class Rw11Cpu.
 */
 
@@ -55,6 +56,7 @@ namespace Retro {
       typedef cmap_t::const_iterator   cmap_cit_t;
       typedef cmap_t::value_type       cmap_val_t;
 
+
       explicit      Rw11Cpu(const std::string& type);
       virtual      ~Rw11Cpu();
 
@@ -81,6 +83,15 @@ namespace Retro {
       int           AddRibr(RlinkCommandList& clist, uint16_t ibaddr);
       int           AddWibr(RlinkCommandList& clist, uint16_t ibaddr,
                             uint16_t data);
+
+      int           AddLalh(RlinkCommandList& clist, uint32_t addr, 
+                            uint16_t mode=kCp_ah_m_22bit);
+      int           AddRMem(RlinkCommandList& clist, uint32_t addr,
+                            uint16_t* buf, size_t size, 
+                            uint16_t mode=kCp_ah_m_22bit);
+      int           AddWMem(RlinkCommandList& clist, uint32_t addr,
+                            const uint16_t* buf, size_t size, 
+                            uint16_t mode=kCp_ah_m_22bit);
 
       bool          MemRead(uint16_t addr, std::vector<uint16_t>& data, 
                             size_t nword, RerrMsg& emsg);
@@ -144,6 +155,10 @@ namespace Retro {
       static const uint16_t  kCp_cpurust_recrsv = 0x9;  //!< rec red-stack halt
       static const uint16_t  kCp_cpurust_sfail  = 0xa;  //!< sequencer failure
       static const uint16_t  kCp_cpurust_vfail  = 0xb;  //!< vmbox failure
+
+      static const uint16_t  kCp_ah_m_addr  = 0x003f;  //!< 
+      static const uint16_t  kCp_ah_m_22bit = kWBit06; //!< 
+      static const uint16_t  kCp_ah_m_ubmap = kWBit07; //!<
 
     private:
                     Rw11Cpu() {}            //!< default ctor blocker

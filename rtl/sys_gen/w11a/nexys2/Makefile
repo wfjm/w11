@@ -1,7 +1,8 @@
-# $Id: Makefile 477 2013-01-27 14:07:10Z mueller $
+# $Id: Makefile 509 2013-04-21 20:46:20Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2013-04-20   509   1.2    add fx2 support
 # 2011-08-13   405   1.1    use includes from rtl/make
 # 2010-05-28   295   1.0    Initial version (derived from _s3 version)
 #
@@ -9,6 +10,7 @@ VBOM_all  = $(wildcard *.vbom)
 BIT_all   = $(VBOM_all:.vbom=.bit)
 #
 include $(RETROBASE)/rtl/make/xflow_default_nexys2.mk
+FX2_FILE  = nexys2_jtag_2fifo_ic.ihx
 #
 .PHONY : all clean
 #

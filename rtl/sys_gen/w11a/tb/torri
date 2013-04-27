@@ -1,0 +1,229 @@
+#!/usr/bin/perl -w
+# $Id: torri 511 2013-04-27 13:51:46Z mueller $
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2013-04-26   510   1.0    Initial version (derived from dorri)
+#
+
+use 5.005;                                  # require Perl 5.005 or higher
+use strict;                                 # require strict checking
+use FileHandle;
+
+sub print_usage;
+
+autoflush STDOUT 1;             # autoflush, so noting lost on exec later
+
+my $opt_b;
+my $opt_io = '';
+my $opt_f = '';
+my $opt_tmu;
+my $tirri;
+my $val_term;
+my $val_tb_s3='tbw ../s3board/tb/tb_w11a_s3';
+my $val_tb_n2='tbw ../nexys2/tb/tb_w11a_n2';
+my $val_tb_n3='tbw ../nexys3/tb/tb_w11a_n3';
+my $val_tb;
+my $val_e;
+
+my @arglist;
+
+#
+# process torri options
+#
+while (scalar(@ARGV)) {
+  my $curarg = $ARGV[0];
+
+  if ($curarg =~ m{^-b$} ) {		    # -b
+    $opt_b = 1;
+    shift @ARGV;
+
+  } elsif ($curarg =~ m{^-tmu$} ) {	    # -tmu
+    $opt_tmu = 1;
+    shift @ARGV;
+
+  } elsif ($curarg =~ m{^-s3$} ) {	    # -s3
+    $opt_io = 'f';
+    $val_tb = $val_tb_s3;
+    shift @ARGV;
+
+  } elsif ($curarg =~ m{^-n2$} ) {	    # -n2
+    $opt_io = 'f';
+    $val_tb = $val_tb_n2;
+    shift @ARGV;
+
+  } elsif ($curarg =~ m{^-n3$} ) {	    # -n3
+    $opt_io = 'f';
+    $val_tb = $val_tb_n3;
+    shift @ARGV;
+
+  } elsif ($curarg =~ m{^-f(s\d?|u)$} ) {    # -f[su]
+    $opt_f = $1;
+    shift @ARGV;
+
+  } elsif ($curarg =~ m{^-t([su])(\d?),?} ) {	# -t[su]...
+    my $devnam = ($1 eq 's') ? '/dev/ttyS' : '/dev/ttyUSB';
+    my $devnum = $2;
+    my ($dev,$baud,$opt1,$opt2) = split /,/,$curarg;
+    $baud  = '115k' unless defined $baud;
+
+    if ($baud !~ m{^\d*k?$}) {
+      print STDERR "torri-E: invalid format of -ts or -tu option\n";
+      exit 1;
+    }
+
+    $opt_io = 't';
+    $val_term = sprintf '%s%d,%s', $devnam, $devnum, $baud;
+    $val_term .= ",$opt1" if defined $opt1;
+    $val_term .= ",$opt2" if defined $opt2;
+    shift @ARGV;
+
+  } elsif ($curarg =~ m{^-u$} )  {          # -u
+    $opt_io = 'u';
+    shift @ARGV;
+
+  } elsif ($curarg =~ m{^-e$} ) {	    # -e <file>
+    print STDERR "torri-W: multiple -e options, only last taken\n"
+      if defined $val_e;
+    shift @ARGV;
+    if (scalar(@ARGV) == 0 || $ARGV[0] =~ m{^-}) {
+      print STDERR "torri-E: no file name after -e option\n";
+      exit 1;
+    } else {
+      $val_e = shift @ARGV;
+      if (not -r $val_e) {
+	print STDERR "torri-E: file '$val_e' not found\n";
+	exit 1;
+      }
+    }
+  } else {
+    last;
+  }
+}
+
+#
+# check that either -s3/n2/n3 or -t or -u given
+# setup pi_rri options for either case
+#
+
+if ($opt_io eq 'f') {
+  push @arglist, '--fifo';
+  push @arglist, "--run=$val_tb";
+} elsif ($opt_io eq 't') {
+  push @arglist, "--term=$val_term";
+} elsif ($opt_io eq 'u') {
+  push @arglist, '--cuff';
+} else {
+  print STDERR "torri-E: neither -s3/-n2/-n3 nor -t or -u specified\n";
+  print_usage();
+  exit 1;
+}
+
+#
+# setup all other ti_rri options
+#
+
+push @arglist, '--logl=2';
+push @arglist, '--int' unless $opt_b;
+push @arglist, '--pack=rw11';
+push @arglist, '--';
+
+#
+# actions prior to first exec
+#   setup tmu ect
+#   setup access path --> handle -f options
+#
+if ($opt_io eq 'f') {
+  if ($opt_tmu) {
+    push @arglist, 'rlc oob -sbcntl 13   1';
+  }
+  if ($opt_f eq 'u') {
+    push @arglist, 'rlc oob -sbdata  8 0x2';
+    push @arglist, 'rlc oob -sbdata 16 0x4';
+  }
+
+}
+
+#
+# initialize w11 cpu system
+#
+push @arglist, 'rw11::setup_sys';
+
+#
+# handle -e option
+#
+
+if (defined $val_e) {
+  if ($val_e =~ m/\.mac$/) {
+    push @arglist, "cpu0 ldasm -file $val_e -sym ldasm_sym -lst ldasm_lst";
+  } else {
+    push @arglist, "cpu0 ldabs $val_e";
+  }
+  push @arglist, 'rw11::cpumon';
+  push @arglist, 'rw11::cpucons';
+  push @arglist, 'cpu0 cp -stapc 0200';
+}
+
+#
+# all remaining commands
+#
+
+while (scalar(@ARGV)) {
+  my $curarg = shift @ARGV;
+  if ($curarg =~ m{^@(.*)$} && ! -r $1) {
+    print STDERR "torri-E: file '$1' not found\n";
+    exit 1;
+  }
+  push @arglist,$curarg;
+}
+
+#
+# find ti_rri executable
+#
+
+$tirri=`which ti_rri`;
+chomp $tirri;
+if ($tirri eq '' || ! -e $tirri) {
+  print STDERR "torri-E: failed to locate ti_rri\n";
+  exit 1;
+}
+
+#
+# print command file
+#
+if (1) {
+ print 'ti_rri ', join (' ', map {(m{\s}) ? "\"$_\"" : $_} @arglist) , "\n";
+}
+
+#
+# and do it
+#
+exec $tirri, @arglist
+  or die "failed to exec: $!";
+
+exit 1;
+
+# ----------------------------------------------------------------------------
+sub print_usage {
+  print "usage: torri <setup options> <ti_rri opts and cmds>...\n";
+  print "  setup options for ghdl simulation runs:\n";
+  print "    -s3       start tb_w11a_s3 simulation\n";
+  print "    -n2       start tb_w11a_n2 simulation\n";
+  print "    -n3       start tb_w11a_n3 simulation\n";
+  print "    -f..      simulation communication options\n";
+  print "      -fu       use cuff data path\n";
+  print "    -tmu      activate trace and monitoring unit\n";
+  print "  setup options for FPGA connects:\n";
+  print "    -u        use --cuff connect\n";
+  print "    -t..      use --term connect\n";
+  print "      -ts*[,opts]   use /dev/ttyS*   (* is device number)\n";
+  print "      -tu*[,opts]   use /dev/ttyUSB* (* is device number)\n";
+  print "                    opts can be ',break', ',xon'\n";
+  print "  common options:\n";
+  print "    -e <file> load and execute file\n";
+  print "                file type '.mac': on the fly compile with asm-11\n";
+  print "                any other file type: assume lda format\n";
+  print "\n";
+  print "  either one of -s3,-n2, or -n3 must be given -> sim run\n";
+  print "  or one of -t or -u must be given            -> fpga run\n";
+}

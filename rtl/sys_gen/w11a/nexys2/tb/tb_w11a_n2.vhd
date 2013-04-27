@@ -1,6 +1,6 @@
--- $Id: tb_w11a_n2.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: tb_w11a_n2.vhd 509 2013-04-21 20:46:20Z mueller $
 --
--- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -13,7 +13,7 @@
 --
 ------------------------------------------------------------------------------
 -- Module Name:    tb_w11a_n2
--- Description:    Configuration for tb_w11a_n2 for tb_nexys2_fusp
+-- Description:    Configuration for tb_w11a_n2 for tb_nexys2_fusp_cuff
 --
 -- Dependencies:   sys_w11a_n2
 --
@@ -26,13 +26,14 @@
 -- 
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2013-04-21   509   1.1    now based on tb_nexys2_fusp_cuff
 -- 2010-05-26   295   1.0    Initial version (cloned from _s3)
 ------------------------------------------------------------------------------
 
-configuration tb_w11a_n2 of tb_nexys2_fusp is
+configuration tb_w11a_n2 of tb_nexys2_fusp_cuff is
 
   for sim
-    for all : nexys2_fusp_aif
+    for all : nexys2_fusp_cuff_aif
       use entity work.sys_w11a_n2;
     end for;
   end for;

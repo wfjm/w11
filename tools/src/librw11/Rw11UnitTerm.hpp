@@ -1,4 +1,4 @@
-// $Id: Rw11UnitTerm.hpp 504 2013-04-13 15:37:24Z mueller $
+// $Id: Rw11UnitTerm.hpp 508 2013-04-20 18:43:28Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-04-20   508   1.0.1  add 7bit and non-printable masking; add log file
 // 2013-04-13   504   1.0    Initial version
 // 2013-02-19   490   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -20,13 +21,15 @@
 
 /*!
   \file
-  \version $Id: Rw11UnitTerm.hpp 504 2013-04-13 15:37:24Z mueller $
+  \version $Id: Rw11UnitTerm.hpp 508 2013-04-20 18:43:28Z mueller $
   \brief   Declaration of class Rw11UnitTerm.
 */
 
 #ifndef included_Retro_Rw11UnitTerm
 #define included_Retro_Rw11UnitTerm 1
 
+#include <iostream>
+#include <fstream>
 #include <deque>
 
 #include "Rw11VirtTerm.hpp"
@@ -42,8 +45,15 @@ namespace Retro {
 
       const std::string& ChannelId() const;
 
-      void          SetRcv7bit(bool rcv7bit);
-      bool          Rcv7bit() const;
+      void          SetTo7bit(bool to7bit);
+      void          SetToEnpc(bool toenpc);
+      void          SetTi7bit(bool ti7bit);
+      bool          To7bit() const;
+      bool          ToEnpc() const;
+      bool          Ti7bit() const;
+
+      void          SetLog(const std::string& fname);
+      const std::string&  Log() const;
 
       virtual bool  RcvQueueEmpty();
       virtual size_t RcvQueueSize();
@@ -57,12 +67,25 @@ namespace Retro {
 
       virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
 
+    // statistics counter indices
+      enum stats {
+        kStatNPreAttDrop = Rw11Unit::kDimStat,
+        kDimStat
+      };
+    
     protected:
       virtual void  AttachSetup();
 
     protected:
-      bool          fRcv7bit;               //<! discard parity bit on input
+      bool          fTo7bit;                //<! discard parity bit on output
+      bool          fToEnpc;                //<! escape non-printabls on output
+      bool          fTi7bit;                //<! discard parity bit on input
       std::deque<uint8_t>  fRcvQueue;       //<! input queue
+      std::string   fLogFname;              //<! log file name
+      std::ofstream fLogStream;             //<! log file stream
+      bool          fLogOptCrlf;            //<! log file: crlf option given
+      bool          fLogCrPend;             //<! log file: cr pending
+      bool          fLogLfLast;             //<! log file: lf was last char
   };
   
 } // end namespace Retro

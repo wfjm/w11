@@ -1,6 +1,6 @@
--- $Id: ibdr_lp11.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: ibdr_lp11.vhd 515 2013-05-04 17:28:59Z mueller $
 --
--- Copyright 2009-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2009-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,7 +18,7 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.2, 9.1, 9.2, 10.1, 12.1, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 10.1, 12.1, 13.3; ghdl 0.18-0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -27,6 +27,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2013-05-04   515   1.3    BUGFIX: r.err was cleared in racc read !
 -- 2011-11-18   427   1.2.2  now numeric_std clean
 -- 2010-10-23   335   1.2.1  rename RRI_LAM->RB_LAM;
 -- 2010-10-17   333   1.2    use ibus V2 interface
@@ -119,6 +120,7 @@ begin
     variable ibreq : slbit := '0';
     variable ibrd : slbit := '0';
     variable ibw0 : slbit := '0';
+    variable ibw1 : slbit := '0';
     variable ilam : slbit := '0';
   begin
 
@@ -129,6 +131,7 @@ begin
     ibreq := IB_MREQ.re or IB_MREQ.we;
     ibrd  := IB_MREQ.re;
     ibw0  := IB_MREQ.we and IB_MREQ.be0;
+    ibw1  := IB_MREQ.we and IB_MREQ.be1;
     ilam  := '0';
     
     -- ibus address decoder
@@ -158,7 +161,9 @@ begin
               end if;
             end if;
           else                          -- rri
-            n.err := IB_MREQ.din(csr_ibf_err);
+            if ibw1 = '1' then
+              n.err := IB_MREQ.din(csr_ibf_err);
+            end if;
           end if;
 
         when ibaddr_buf =>              -- BUF -- data buffer ----------------

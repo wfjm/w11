@@ -1,4 +1,4 @@
-// $Id: Rw11UnitTerm.hpp 508 2013-04-20 18:43:28Z mueller $
+// $Id: Rw11UnitTerm.hpp 515 2013-05-04 17:28:59Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-03   515   1.1    use AttachDone(),DetachCleanup(),DetachDone()
 // 2013-04-20   508   1.0.1  add 7bit and non-printable masking; add log file
 // 2013-04-13   504   1.0    Initial version
 // 2013-02-19   490   0.1    First draft
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: Rw11UnitTerm.hpp 508 2013-04-20 18:43:28Z mueller $
+  \version $Id: Rw11UnitTerm.hpp 515 2013-05-04 17:28:59Z mueller $
   \brief   Declaration of class Rw11UnitTerm.
 */
 
@@ -74,7 +75,7 @@ namespace Retro {
       };
     
     protected:
-      virtual void  AttachSetup();
+      virtual void  AttachDone();
 
     protected:
       bool          fTo7bit;                //<! discard parity bit on output

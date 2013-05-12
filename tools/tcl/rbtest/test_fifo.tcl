@@ -1,6 +1,6 @@
-# $Id: test_fifo.tcl 375 2011-04-02 07:56:47Z mueller $
+# $Id: test_fifo.tcl 516 2013-05-05 21:24:52Z mueller $
 #
-# Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -77,7 +77,7 @@ namespace eval rbtest {
     rlc log "  test 3b: fifo write error (write 17, read 16)"
     set blk {}
     for { set i 0 } { $i < 17 } { incr i } {
-      lappend blk [expr $i | ( $i << 8 ) ]
+      lappend blk [expr {$i | ( $i << 8 ) }]
     }
     rlc exec -estatdef $esdval $esdmsk \
       -wblk te.fifo $blk -estat [regbld rlink::STAT rberr] $esdmsk \
@@ -124,10 +124,10 @@ namespace eval rbtest {
       set valc [regbld rbtest::CNTL [list nbusy $nbusy]]
       rlc exec -estatdef $esdval $esdmsk \
         -wreg te.cntl $valc \
-        -wreg te.fifo [expr $nbusy | ( $nbusy << 8 ) ] \
-        -rreg te.attn -edata [expr $nbusy + 1 ] \
-        -rreg te.fifo -edata [expr $nbusy | ( $nbusy << 8 ) ] \
-        -rreg te.attn -edata [expr $nbusy + 1 ]
+        -wreg te.fifo [expr {$nbusy | ( $nbusy << 8 ) }] \
+        -rreg te.attn -edata [expr {$nbusy + 1 }] \
+        -rreg te.fifo -edata [expr {$nbusy | ( $nbusy << 8 ) }] \
+        -rreg te.attn -edata [expr {$nbusy + 1 }]
     }
     #
     #-------------------------------------------------------------------------
@@ -135,8 +135,8 @@ namespace eval rbtest {
     for {set i 0} {$i < 8} {incr i} {
       set blk {}
       for {set j 0} {$j < 16} {incr j} {
-        set bcode [expr 32 * $i + 2 * $j]
-        lappend blk [expr ( $bcode << 8 ) | ( $bcode + 1 )]
+        set bcode [expr {32 * $i + 2 * $j}]
+        lappend blk [expr {( $bcode << 8 ) | ( $bcode + 1 )}]
       }
       rlc exec -estatdef $esdval $esdmsk \
         -wblk te.fifo $blk \

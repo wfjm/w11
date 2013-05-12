@@ -1,4 +1,4 @@
-// $Id: ReventLoop.hpp 494 2013-03-03 21:50:07Z mueller $
+// $Id: ReventLoop.hpp 513 2013-05-01 14:02:06Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-01   513   1.1.1  fTraceLevel now uint32_t
 // 2013-02-22   491   1.1    use new RlogFile/RlogMsg interfaces
 // 2013-01-11   473   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: ReventLoop.hpp 494 2013-03-03 21:50:07Z mueller $
+  \version $Id: ReventLoop.hpp 513 2013-05-01 14:02:06Z mueller $
   \brief   Declaration of class \c ReventLoop.
 */
 
@@ -55,8 +56,8 @@ namespace Retro {
       void          RemovePollHandler(int fd);
 
       void          SetLogFile(const boost::shared_ptr<RlogFile>& splog);
-      void          SetTraceLevel(size_t level);
-      size_t        TraceLevel() const;
+      void          SetTraceLevel(uint32_t level);
+      uint32_t      TraceLevel() const;
 
       void          Stop();
       virtual void  EventLoop();
@@ -84,7 +85,7 @@ namespace Retro {
       std::vector<PollDsc>   fPollDsc;
       std::vector<pollfd>    fPollFd;
       std::vector<pollhdl_t> fPollHdl;
-      size_t        fTraceLevel;            //!< trace level
+      uint32_t      fTraceLevel;            //!< trace level
       boost::shared_ptr<RlogFile>  fspLog;  //!< log file ptr
 };
   

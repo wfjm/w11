@@ -1,4 +1,4 @@
-// $Id: RtclRlinkServer.cpp 510 2013-04-26 16:14:57Z mueller $
+// $Id: RtclRlinkServer.cpp 513 2013-05-01 14:02:06Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-01   513   1.0.5  TraceLevel now uint32_t
 // 2013-04-26   510   1.0.4  change M_attn, now -info instead of -show
 // 2013-04-21   509   1.0.3  add server -resume
 // 2013-02-05   483   1.0.2  ClassCmdConfig: use RtclArgs
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: RtclRlinkServer.cpp 510 2013-04-26 16:14:57Z mueller $
+  \version $Id: RtclRlinkServer.cpp 513 2013-05-01 14:02:06Z mueller $
   \brief   Implemenation of class RtclRlinkServer.
  */
 
@@ -125,10 +126,10 @@ int RtclRlinkServer::M_server(RtclArgs& args)
       if (!args.AllDone()) return kERR;
       args.SetResult(Obj().IsActive());
     } else if (opt == "-trace") {           // server -trace ...
-      int level;
+      uint32_t level;
       if (!args.GetArg("?level", level)) return kERR;
       if (args.NOptMiss()==0) {             // server -trace level
-        Obj().SetTraceLevel((size_t)level);
+        Obj().SetTraceLevel(level);
       } else {                              // server -trace
         args.SetResult((int)Obj().TraceLevel());
       }

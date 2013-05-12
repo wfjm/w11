@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDiskFile.cpp 509 2013-04-21 20:46:20Z mueller $
+// $Id: Rw11VirtDiskFile.cpp 516 2013-05-05 21:24:52Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,7 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtDiskFile.cpp 509 2013-04-21 20:46:20Z mueller $
+  \version $Id: Rw11VirtDiskFile.cpp 516 2013-05-05 21:24:52Z mueller $
   \brief   Implemenation of Rw11VirtDiskFile.
 */
 
@@ -70,16 +70,14 @@ bool Rw11VirtDiskFile::Open(const std::string& url, RerrMsg& emsg)
   int fd = ::open(fUrl.Path().c_str(), wpro ? O_RDONLY : O_RDWR);
   if (fd < 0) {
     emsg.InitErrno("Rw11VirtDiskFile::Open()", 
-                   string("open() for '") + fUrl.Path() + string("' failed: "),
-                   errno);
+                   string("open() for '") + fUrl.Path() + "' failed: ", errno);
     return false;
   }
 
   struct stat sbuf;
   if (::fstat(fd, &sbuf) < 0) {
     emsg.InitErrno("Rw11VirtDiskFile::Open()", 
-                   string("stat() for '") + fUrl.Path() + string("' failed: "),
-                   errno);
+                   string("stat() for '") + fUrl.Path() + "' failed: ", errno);
     return false;
   }
 
@@ -138,8 +136,7 @@ bool Rw11VirtDiskFile::Write(size_t lba, size_t nblk, const uint8_t* data,
 
   ssize_t irc = ::write(fFd, data, nbyt);
   if (irc < ssize_t(nbyt)) {
-    emsg.InitErrno("Rw11VirtDiskFile::Write()", string("write() failed: "),
-                   errno);
+    emsg.InitErrno("Rw11VirtDiskFile::Write()", "write() failed: ", errno);
     return false;
   }
 
@@ -154,8 +151,7 @@ bool Rw11VirtDiskFile::Write(size_t lba, size_t nblk, const uint8_t* data,
 bool Rw11VirtDiskFile::Seek(size_t seekpos, RerrMsg& emsg)
 {
   if (::lseek(fFd, seekpos, SEEK_SET) < 0) {
-    emsg.InitErrno("Rw11VirtDiskFile::Seek()", string("seek() failed: "),
-                   errno);
+    emsg.InitErrno("Rw11VirtDiskFile::Seek()", "seek() failed: ", errno);
     return false;
   }
 

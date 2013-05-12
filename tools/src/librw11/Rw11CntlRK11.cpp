@@ -1,4 +1,4 @@
-// $Id: Rw11CntlRK11.cpp 509 2013-04-21 20:46:20Z mueller $
+// $Id: Rw11CntlRK11.cpp 515 2013-05-04 17:28:59Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -21,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlRK11.cpp 509 2013-04-21 20:46:20Z mueller $
+  \version $Id: Rw11CntlRK11.cpp 515 2013-05-04 17:28:59Z mueller $
   \brief   Implemenation of Rw11CntlRK11.
 */
 
@@ -224,30 +224,30 @@ bool Rw11CntlRK11::BootCode(size_t unit, std::vector<uint16_t>& code,
                             uint16_t& aload, uint16_t& astart)
 {
   uint16_t kBOOT_START = 02000;
-  uint16_t bootcode[] = { // rk05 boot loader - from simh pdp11_rk.c 
-    0042113,                   //  "KD"
-    0012706, kBOOT_START,      //  MOV #boot_start, SP
-    0012700, uint16_t(unit),   //  MOV #unit, R0        ; unit number
-    0010003,                   // #  MOV R0, R3
-    0000303,                   // #  SWAB R3
-    0006303,                   // #  ASL R3
-    0006303,                   // #  ASL R3
-    0006303,                   // #  ASL R3
-    0006303,                   // #  ASL R3
-    0006303,                   // #  ASL R3
-    0012701, 0177412,          // #  MOV #RKDA, R1        ; rkda
-    0010311,                   // #  MOV R3, (R1)         ; load da
-    0005041,                   // #  CLR -(R1)            ; clear ba
-    0012741, 0177000,          // #  MOV #-256.*2, -(R1)  ; load wc
-    0012741, 0000005,          // #  MOV #READ+GO, -(R1)  ; read & go
-    0005002,                   // #  CLR R2
-    0005003,                   // #  CLR R3
-    0012704, uint16_t(kBOOT_START+020),  // #  MOV #START+20, R4
-    0005005,                   // #  CLR R5
-    0105711,                   // #  TSTB (R1)
-    0100376,                   // #  BPL .-4
-    0105011,                   // #  CLRB (R1)
-    0005007                    // #  CLR PC     (5007)
+  uint16_t bootcode[] = {      // rk05 boot loader - from simh pdp11_rk.c 
+    0042113,                   // "KD"
+    0012706, kBOOT_START,      // MOV #boot_start, SP
+    0012700, uint16_t(unit),   // MOV #unit, R0        ; unit number
+    0010003,                   // MOV R0, R3
+    0000303,                   // SWAB R3
+    0006303,                   // ASL R3
+    0006303,                   // ASL R3
+    0006303,                   // ASL R3
+    0006303,                   // ASL R3
+    0006303,                   // ASL R3
+    0012701, 0177412,          // MOV #RKDA, R1        ; rkda
+    0010311,                   // MOV R3, (R1)         ; load da
+    0005041,                   // CLR -(R1)            ; clear ba
+    0012741, 0177000,          // MOV #-256.*2, -(R1)  ; load wc
+    0012741, 0000005,          // MOV #READ+GO, -(R1)  ; read & go
+    0005002,                   // CLR R2
+    0005003,                   // CLR R3
+    0012704, uint16_t(kBOOT_START+020),  // MOV #START+20, R4
+    0005005,                   // CLR R5
+    0105711,                   // TSTB (R1)
+    0100376,                   // BPL .-4
+    0105011,                   // CLRB (R1)
+    0005007                    // CLR PC     (5007)
   };
   
   code.clear();

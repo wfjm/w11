@@ -1,4 +1,4 @@
-// $Id: Rw11UnitVirt.ipp 504 2013-04-13 15:37:24Z mueller $
+// $Id: Rw11UnitVirt.ipp 515 2013-05-04 17:28:59Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-03   515   1.1    use AttachDone(),DetachCleanup(),DetachDone()
 // 2013-03-03   494   1.0    Initial version
 // 2013-02-05   483   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11UnitVirt.ipp 504 2013-04-13 15:37:24Z mueller $
+  \version $Id: Rw11UnitVirt.ipp 515 2013-05-04 17:28:59Z mueller $
   \brief   Implemenation (inline) of Rw11UnitVirt.
 */
 
@@ -70,9 +71,9 @@ inline bool Rw11UnitVirt<TV>::Attach(const std::string& url, RerrMsg& emsg)
 {
   // synchronize with server thread
   boost::lock_guard<RlinkConnect> lock(Connect());
-  if (fpVirt) DetachCleanup();
+  if (fpVirt) Detach();
   fpVirt.reset(TV::New(url, this, emsg));
-  if (fpVirt) AttachSetup();
+  if (fpVirt) AttachDone();
   return fpVirt;
 }
 
@@ -84,8 +85,10 @@ inline void Rw11UnitVirt<TV>::Detach()
 {
   // synchronize with server thread
   boost::lock_guard<RlinkConnect> lock(Connect());
-  if (fpVirt) DetachCleanup();
+  if (!fpVirt) return;
+  DetachCleanup();
   fpVirt.reset();
+  DetachDone();
   return;
 }
 

@@ -1,4 +1,4 @@
-# $Id: util.tcl 376 2011-04-17 12:24:07Z mueller $
+# $Id: util.tcl 516 2013-05-05 21:24:52Z mueller $
 #
 # Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -73,9 +73,9 @@ namespace eval tst_rlink {
       rlc close
       rlc open "term:$rldev?baud=${baud};break"
       rlc exec -rreg hi.dsp hidsp
-      set mhz [expr double($baud*$hidsp) / 1.e6]
+      set mhz [expr {double($baud*$hidsp) / 1.e6}]
       append rval [format "\n%7d  0x%4.4x   %6d  %6.2f" \
-                     $baud $hidsp [expr $hidsp + 1] $mhz]
+                     $baud $hidsp [expr {$hidsp + 1}] $mhz]
     }
 
     rlc close

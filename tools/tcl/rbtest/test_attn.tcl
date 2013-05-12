@@ -1,6 +1,6 @@
-# $Id: test_attn.tcl 375 2011-04-02 07:56:47Z mueller $
+# $Id: test_attn.tcl 516 2013-05-05 21:24:52Z mueller $
 #
-# Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -36,8 +36,8 @@ namespace eval rbtest {
     #
     set apats {}
     for {set i 0} {$i < 16} {incr i} {
-      set apat [expr 1 << $i]
-      if {[expr $apat & $attnmsk]} {lappend apats $apat}
+      set apat [expr {1 << $i}]
+      if {[expr {$apat & $attnmsk}]} {lappend apats $apat}
     }
     #
     set errcnt 0

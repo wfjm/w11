@@ -1,4 +1,4 @@
-// $Id: RlinkServer.ipp 495 2013-03-06 17:13:48Z mueller $
+// $Id: RlinkServer.ipp 513 2013-05-01 14:02:06Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-01   513   1.0.1  fTraceLevel now uint32_t
 // 2013-03-06   495   1.0    Initial version
 // 2013-01-12   474   0.5    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RlinkServer.ipp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: RlinkServer.ipp 513 2013-05-01 14:02:06Z mueller $
   \brief   Implemenation (inline) of RlinkServer.
 */
 
@@ -77,7 +78,7 @@ inline bool RlinkServer::Exec(RlinkCommandList& clist)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline size_t RlinkServer::TraceLevel() const
+inline uint32_t RlinkServer::TraceLevel() const
 {
   return fTraceLevel;
 }

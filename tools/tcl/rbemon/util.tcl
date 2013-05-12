@@ -1,6 +1,6 @@
-# $Id: util.tcl 376 2011-04-17 12:24:07Z mueller $
+# $Id: util.tcl 516 2013-05-05 21:24:52Z mueller $
 #
-# Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -33,10 +33,10 @@ namespace eval rbemon {
   # setup: amap definitions for rbd_eyemon
   # 
   proc setup {base} {
-    rlc amap -insert em.cntl [expr $base + 0x00]
-    rlc amap -insert em.rdiv [expr $base + 0x01]
-    rlc amap -insert em.addr [expr $base + 0x02]
-    rlc amap -insert em.data [expr $base + 0x03]
+    rlc amap -insert em.cntl [expr {$base + 0x00}]
+    rlc amap -insert em.rdiv [expr {$base + 0x01}]
+    rlc amap -insert em.addr [expr {$base + 0x02}]
+    rlc amap -insert em.data [expr {$base + 0x03}]
   }
   #
   # init: reset rbd_eyemon (stop monitor, clear rdiv and addr)
@@ -52,12 +52,12 @@ namespace eval rbemon {
   proc clear {} {
     set clrbit [regbld rbemon::CNTL clr]
     rlc exec -rreg em.cntl cur_cntl
-    rlc exec -wreg em.cntl [expr $cur_cntl | $clrbit]
+    rlc exec -wreg em.cntl [expr {$cur_cntl | $clrbit}]
     set clrrun $clrbit
     set npoll 0
     while {$clrrun != 0} {
       rlc exec -rreg em.cntl cur_cntl
-      set clrrun [expr $cur_cntl & $clrbit]
+      set clrrun [expr {$cur_cntl & $clrbit}]
       incr npoll 1
       if {$npoll > 10} {
         error "-E: rbemon::clear failed, CNTL.clr didn't go back to 0"
@@ -89,16 +89,16 @@ namespace eval rbemon {
     set addr 0
     set rval {}
     while {$nval > 0} {
-      set nblk [expr $nval << 1]
+      set nblk [expr {$nval << 1}]
       if {$nblk > 256} {set nblk 256}
       rlc exec \
         -wreg em.addr $addr \
         -rblk em.data $nblk rawdat
       foreach {dl dh} $rawdat {
-        lappend rval [expr ( $dh << 16 ) | $dl]
+        lappend rval [expr {( $dh << 16 ) | $dl}]
       }
       incr addr $nblk
-      set nval [expr $nval - ( $nblk >> 1 ) ]
+      set nval [expr {$nval - ( $nblk >> 1 ) }]
     }
     return $rval
   }

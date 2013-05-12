@@ -1,4 +1,4 @@
-// $Id: RlinkPortFactory.cpp 492 2013-02-24 22:14:47Z mueller $
+// $Id: RlinkPortFactory.cpp 516 2013-05-05 21:24:52Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -21,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPortFactory.cpp 492 2013-02-24 22:14:47Z mueller $
+  \version $Id: RlinkPortFactory.cpp 516 2013-05-05 21:24:52Z mueller $
   \brief   Implemenation of RlinkPortFactory.
 */
 
@@ -52,7 +52,7 @@ RlinkPort* Retro::RlinkPortFactory::New(const std::string& url, RerrMsg& emsg)
   
   if (scheme.length() == 0) { 
     emsg.Init("RlinkPortFactory::New()", 
-              string("no scheme specified in url '" + url + string("'")));
+              string("no scheme specified in url '" + url + "'"));
     return 0;
   }
 

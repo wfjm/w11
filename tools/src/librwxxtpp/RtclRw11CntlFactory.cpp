@@ -1,4 +1,4 @@
-// $Id: RtclRw11CntlFactory.cpp 504 2013-04-13 15:37:24Z mueller $
+// $Id: RtclRw11CntlFactory.cpp 515 2013-05-04 17:28:59Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-01   513   1.0.1  add LP11
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-09   489   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclRw11CntlFactory.cpp 504 2013-04-13 15:37:24Z mueller $
+  \version $Id: RtclRw11CntlFactory.cpp 515 2013-05-04 17:28:59Z mueller $
   \brief   Implemenation of global function RtclRw11CntlFactory.
 */
 
@@ -29,6 +30,8 @@
 
 #include "RtclRw11CntlDL11.hpp"
 #include "RtclRw11CntlRK11.hpp"
+#include "RtclRw11CntlLP11.hpp"
+#include "RtclRw11CntlPC11.hpp"
 
 using namespace std;
 
@@ -51,6 +54,16 @@ int RtclRw11CntlFactory(RtclArgs& args, RtclRw11Cpu& cpu)
     
   } else if (type == "rk11") {              // rk11 --------------------------
     unique_ptr<RtclRw11CntlRK11> pobj(new RtclRw11CntlRK11());
+    if(pobj->FactoryCmdConfig(args, cpu) != TCL_OK) return TCL_ERROR;
+    pobj.release();
+    
+  } else if (type == "lp11") {              // lp11 --------------------------
+    unique_ptr<RtclRw11CntlLP11> pobj(new RtclRw11CntlLP11());
+    if(pobj->FactoryCmdConfig(args, cpu) != TCL_OK) return TCL_ERROR;
+    pobj.release();
+    
+  } else if (type == "pc11") {              // pc11 --------------------------
+    unique_ptr<RtclRw11CntlPC11> pobj(new RtclRw11CntlPC11());
     if(pobj->FactoryCmdConfig(args, cpu) != TCL_OK) return TCL_ERROR;
     pobj.release();
     

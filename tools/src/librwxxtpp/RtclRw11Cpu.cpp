@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.cpp 511 2013-04-27 13:51:46Z mueller $
+// $Id: RtclRw11Cpu.cpp 513 2013-05-01 14:02:06Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Cpu.cpp 511 2013-04-27 13:51:46Z mueller $
+  \version $Id: RtclRw11Cpu.cpp 513 2013-05-01 14:02:06Z mueller $
   \brief   Implemenation of RtclRw11Cpu.
 */
 
@@ -823,7 +823,7 @@ int RtclRw11Cpu::M_set(RtclArgs& args)
 
 int RtclRw11Cpu::M_show(RtclArgs& args)
 {
-  static RtclNameSet optset("-pcps|-r0r5|-mmu|-ubmap"
+  static RtclNameSet optset("-pcps|-r0ps|-mmu|-ubmap"
                             );  
 
   string opt;
@@ -838,10 +838,9 @@ int RtclRw11Cpu::M_show(RtclArgs& args)
                           "F:seq",    "F:vmbox" , "1101",    "1111"};
 
   while (args.NextOpt(opt, optset)) {
-    if (opt == "-pcps") {
+    if (opt == "-pcps" || opt == "-r0ps") {
       RlinkCommandList clist;
       size_t i_pc   = clist.AddRreg(base + Rw11Cpu::kCp_addr_pc);
-      size_t i_sp   = clist.AddRreg(base + Rw11Cpu::kCp_addr_r0+6);
       size_t i_psw  = clist.AddRreg(base + Rw11Cpu::kCp_addr_psw);
       size_t i_stat = clist.AddRreg(base + Rw11Cpu::kCp_addr_stat);
       if (!Server().Exec(clist, emsg)) return args.Quit(emsg);
@@ -854,14 +853,36 @@ int RtclRw11Cpu::M_show(RtclArgs& args)
       uint16_t psw_tbit  = (psw>>4)  & 001;
       uint16_t psw_nzvc  = (psw)     & 017;
       uint16_t stat_rust = (stat>>4) & 017;
-      sos << "PC=" << RosPrintBvi(clist[i_pc].Data(),8)
-          << " SP=" << RosPrintBvi(clist[i_sp].Data(),8)
-          << " PS=" << RosPrintBvi(psw,8)
+      uint16_t regs[8];
+      regs[7] = clist[i_pc].Data();
+      bool r0ps = opt == "-r0ps";
+
+      if (r0ps) {
+        clist.Clear();
+        for (size_t i=0; i<7; i++) clist.AddRreg(base + Rw11Cpu::kCp_addr_r0+i);
+        if (!Server().Exec(clist, emsg)) return args.Quit(emsg);
+        for (size_t i=0; i<7; i++) regs[i] = clist[i].Data();
+      }
+
+      if (r0ps)  sos << "Processor registers and status:" << endl;
+      if (!r0ps) sos << "  PC: " << RosPrintBvi(regs[7],8);
+      sos << "  PS: " << RosPrintBvi(psw,8)
           << " cm,pm=" << mode[psw_cm] << "," << mode[psw_pm]
           << " s,p,t=" << psw_set << "," << psw_pri << "," << psw_tbit
           << " NZVC=" << RosPrintBvi(psw_nzvc,2,4)
-          << " rust=" << RosPrintBvi(stat_rust,8,4) << " " << rust[stat_rust]
+          << "  rust: " << RosPrintBvi(stat_rust,8,4) << " " << rust[stat_rust]
           << endl;
+
+      if (r0ps) {
+        sos << "  R0: " << RosPrintBvi(regs[0],8)
+            << "  R1: " << RosPrintBvi(regs[1],8)
+            << "  R2: " << RosPrintBvi(regs[2],8)
+            << "  R3: " << RosPrintBvi(regs[3],8) << endl;
+        sos << "  R4: " << RosPrintBvi(regs[4],8)
+            << "  R5: " << RosPrintBvi(regs[5],8)
+            << "  SP: " << RosPrintBvi(regs[6],8)
+            << "  PC: " << RosPrintBvi(regs[7],8) << endl;
+      }
 
     } else if (opt == "-r0r5") {
       RlinkCommandList clist;
@@ -964,7 +985,7 @@ int RtclRw11Cpu::M_show(RtclArgs& args)
           size_t k = 2*(i+j);
           uint32_t data = uint32_t(ubmap[k]) | (uint32_t(ubmap[k+1]))<<16;
           if (j!=0) sos << "  ";
-          sos << RosPrintBvi(j+i,8,5) << " "
+          sos << RosPrintBvi(uint32_t(j+i),8,5) << " "
               << RosPrintBvi(data,8,22);
         }
         sos << endl;

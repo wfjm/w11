@@ -1,4 +1,4 @@
-// $Id: ReventLoop.ipp 491 2013-02-23 12:41:18Z mueller $
+// $Id: ReventLoop.ipp 513 2013-05-01 14:02:06Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-01   513   1.1.1  fTraceLevel now uint32_t
 // 2013-02-22   491   1.1    use new RlogFile/RlogMsg interfaces
 // 2013-01-11   473   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: ReventLoop.ipp 491 2013-02-23 12:41:18Z mueller $
+  \version $Id: ReventLoop.ipp 513 2013-05-01 14:02:06Z mueller $
   \brief   Implemenation (inline) of class ReventLoop.
 */
 
@@ -47,7 +48,7 @@ inline void ReventLoop::SetLogFile(const boost::shared_ptr<RlogFile>& splog)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline void ReventLoop::SetTraceLevel(size_t level)
+inline void ReventLoop::SetTraceLevel(uint32_t level)
 {
   fTraceLevel = level;
   return;
@@ -56,7 +57,7 @@ inline void ReventLoop::SetTraceLevel(size_t level)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline size_t ReventLoop::TraceLevel() const
+inline uint32_t ReventLoop::TraceLevel() const
 {
   return fTraceLevel;
 }

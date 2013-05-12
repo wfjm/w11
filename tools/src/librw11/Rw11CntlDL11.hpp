@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDL11.hpp 504 2013-04-13 15:37:24Z mueller $
+// $Id: Rw11CntlDL11.hpp 516 2013-05-05 21:24:52Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-04   516   1.0.1  add RxRlim support (receive interrupt rate limit)
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-05   483   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlDL11.hpp 504 2013-04-13 15:37:24Z mueller $
+  \version $Id: Rw11CntlDL11.hpp 516 2013-05-05 21:24:52Z mueller $
   \brief   Declaration of class Rw11CntlDL11.
 */
 
@@ -42,13 +43,17 @@ namespace Retro {
 
       virtual void  Start();
 
+      virtual void  UnitSetup(size_t ind);
       void          Wakeup();
+
+      void          SetRxRlim(uint16_t rlim);
+      uint16_t      RxRlim() const;
 
       virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
 
     // some constants (also defined in cpp)
-      static const uint16_t kIbaddr = 0177560; //!< RK11 default address
-      static const int      kLam    = 1;       //!< RK11 default lam 
+      static const uint16_t kIbaddr = 0177560; //!< DL11 default address
+      static const int      kLam    = 1;       //!< DL11 default lam 
 
       static const uint16_t kRCSR = 000; //!< RCSR register address offset
       static const uint16_t kRBUF = 002; //!< RBUF register address offset
@@ -59,17 +64,21 @@ namespace Retro {
       static const bool     kProbeInt = true;  //!< probe int active
       static const bool     kProbeRem = true;  //!< probr rem active
 
-      static const uint16_t kRCSR_M_RDONE = kWBit07;
-      static const uint16_t kXCSR_M_XRDY  = kWBit07;
-      static const uint16_t kXBUF_M_RRDY  = kWBit09;
-      static const uint16_t kXBUF_M_XVAL  = kWBit08;
-      static const uint16_t kXBUF_M_XBUF  = 0xff;
+      static const uint16_t kRCSR_M_RXRLIM = 0070000;
+      static const uint16_t kRCSR_V_RXRLIM = 12;
+      static const uint16_t kRCSR_B_RXRLIM = 007;
+      static const uint16_t kRCSR_M_RDONE  = kWBit07;
+      static const uint16_t kXCSR_M_XRDY   = kWBit07;
+      static const uint16_t kXBUF_M_RRDY   = kWBit09;
+      static const uint16_t kXBUF_M_XVAL   = kWBit08;
+      static const uint16_t kXBUF_M_XBUF   = 0xff;
 
     protected:
       int           AttnHandler(const RlinkServer::AttnArgs& args);
     
     protected:
       size_t        fPC_xbuf;               //!< PrimClist: xbuf index
+      uint16_t      fRxRlim;                //!< rx interrupt rate limit
   };
   
 } // end namespace Retro

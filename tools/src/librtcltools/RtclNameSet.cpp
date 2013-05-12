@@ -1,4 +1,4 @@
-// $Id: RtclNameSet.cpp 492 2013-02-24 22:14:47Z mueller $
+// $Id: RtclNameSet.cpp 516 2013-05-05 21:24:52Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,7 @@
 
 /*!
   \file
-  \version $Id: RtclNameSet.cpp 492 2013-02-24 22:14:47Z mueller $
+  \version $Id: RtclNameSet.cpp 516 2013-05-05 21:24:52Z mueller $
   \brief   Implemenation of RtclNameSet.
 */
 
@@ -64,7 +64,7 @@ RtclNameSet::RtclNameSet(const std::string& nset)
         if (ret.second == false)                  // or use !(ret.second)
           throw Rexception("RtclNameSet::<ctor>", "Bad args: " +
                            string("duplicate name '") + name + 
-                           string("' in set '") + nset + string("'"));
+                           "' in set '" + nset + "'");
     }
     if (iend == string::npos) break;
     ibeg = iend+1;

@@ -1,6 +1,6 @@
-# $Id: test_rbtest_sim.tcl 376 2011-04-17 12:24:07Z mueller $
+# $Id: test_rbtest_sim.tcl 516 2013-05-05 21:24:52Z mueller $
 #
-# Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -62,7 +62,7 @@ namespace eval rbemon {
        ] {
       set bdata {}
       for {set i 0} {$i < $bsize} {incr i} {
-        lappend bdata [expr ( $pat << 8 ) | $pat]
+        lappend bdata [expr {( $pat << 8 ) | $pat}]
       }
 
       rbemon::clear

@@ -1,4 +1,4 @@
-// $Id: RlinkPort.ipp 492 2013-02-24 22:14:47Z mueller $
+// $Id: RlinkPort.ipp 513 2013-05-01 14:02:06Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-01   513   1.2.1  fTraceLevel now uint32_t
 // 2013-02-23   492   1.2    use RparseUrl
 // 2013-02-22   491   1.1    use new RlogFile/RlogMsg interfaces
 // 2011-03-27   375   1.0    Initial version
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPort.ipp 492 2013-02-24 22:14:47Z mueller $
+  \version $Id: RlinkPort.ipp 513 2013-05-01 14:02:06Z mueller $
   \brief   Implemenation (inline) of RlinkPort.
 */
 
@@ -72,7 +73,7 @@ inline void RlinkPort::SetLogFile(const boost::shared_ptr<RlogFile>& splog)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline void RlinkPort::SetTraceLevel(size_t level)
+inline void RlinkPort::SetTraceLevel(uint32_t level)
 {
   fTraceLevel = level;
   return;
@@ -81,7 +82,7 @@ inline void RlinkPort::SetTraceLevel(size_t level)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline size_t RlinkPort::TraceLevel() const
+inline uint32_t RlinkPort::TraceLevel() const
 {
   return fTraceLevel;
 }

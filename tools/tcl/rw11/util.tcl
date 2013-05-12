@@ -1,4 +1,4 @@
-# $Id: util.tcl 510 2013-04-26 16:14:57Z mueller $
+# $Id: util.tcl 517 2013-05-09 21:34:45Z mueller $
 #
 # Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2013-05-09   517   1.1.2  add setup_(tt|lp|pp|ostr) device setup procs
 # 2013-04-26   510   1.1.1  split, asm* and tbench* into separate files
 # 2013-04-01   501   1.1    add regdsc's and asm* procs
 # 2013-02-02   380   1.0    Initial version
@@ -55,8 +56,107 @@ namespace eval rw11 {
     cpu0 add dl11
     cpu0 add dl11 -base 0176500 -lam 2
     cpu0 add rk11
+    cpu0 add lp11
+    cpu0 add pc11
     rlw start
     return ""
+  }
+
+  #
+  # setup_tt: setup terminals
+  # 
+  proc setup_tt {{cpu "cpu0"} {optlist {}}} {
+    # process and check options
+    array set optref { ndl 2 dlrlim 0 ndz 0 to7bit 0 app 0 nbck 1}
+    rutil::optlist2arr opt optref $optlist
+
+    # check option values
+    if {$opt(ndl) < 1 || $opt(ndl) > 2} {
+      error "ndl option must be 1 or 2"
+    }
+    if {$opt(ndz) != 0} {
+      error "ndz option must be 0 (till dz11 support is added)"
+    }
+
+    # setup attach url options
+    set urlopt "?crlf"
+    if {$opt(app) != 0} {
+      append urlopt ";app"
+    }
+    if {$opt(nbck) != 0} {
+      append urlopt ";bck=$opt(nbck)"
+    }
+
+    # setup list if DL11 controllers
+    set dllist {}
+    lappend dllist "tta" "8000"
+    if {$opt(ndl) == 2} {
+      lappend dllist "ttb" "8001"
+    }
+
+    # handle DL11 controllers
+    foreach {cntl port} $dllist {
+      set unit "${cntl}0"
+      ${cpu}${unit} att "tcp:?port=${port}"
+      ${cpu}${unit} set log "tirri_${unit}.log${urlopt}"
+      if {$opt(dlrlim) != 0} {
+        ${cpu}${cntl} set rxrlim 7
+      }
+      if {$opt(to7bit) != 0} {
+        ${cpu}${unit} set to7bit 1
+      }
+    }
+    return ""
+  }
+
+  #
+  # setup_ostr: setup Ostream device (currently lp or pp)
+  # 
+  proc setup_ostr {cpu unit optlist} {
+    # process and check options
+    array set optref { app 0 nbck 1}
+    rutil::optlist2arr opt optref $optlist
+
+    # setup attach url options
+    set urloptlist {}
+    if {$opt(app) != 0} {
+      append urloptlist "app"
+    }
+    if {$opt(nbck) != 0} {
+      append urloptlist "bck=$opt(nbck)"
+    }
+    set urlopt ""
+    if {[llength $urloptlist] > 0} {
+      append urlopt "?"
+      append urlopt [join $urloptlist ";"]
+    }
+
+    # handle unit
+    ${cpu}${unit} att "tirri_${unit}.dat${urlopt}"
+    return ""
+  }
+
+  #
+  # setup_lp: setup printer
+  # 
+  proc setup_lp {{cpu "cpu0"} {optlist {}}} {
+    # process and check options
+    array set optref { nlp 1 app 0 nbck 1}
+    rutil::optlist2arr opt optref $optlist
+    if {$opt(nlp) != 0} {
+      setup_ostr $cpu "lpa0" [list app $opt(app) nbck $opt(nbck)]
+    }
+  }
+  #
+  # setup_pp: setup paper puncher
+  # 
+  proc setup_pp {{cpu "cpu0"} {optlist {}}} {
+    # process and check options
+    array set optref { npc 1 app 0 nbck 1}
+    rutil::optlist2arr opt optref $optlist
+    if {$opt(npc) != 0} {
+      setup_ostr $cpu "pp" [list app $opt(app) nbck $opt(nbck)]
+    }
   }
 
   #

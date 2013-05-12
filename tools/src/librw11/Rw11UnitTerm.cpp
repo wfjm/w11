@@ -1,4 +1,4 @@
-// $Id: Rw11UnitTerm.cpp 508 2013-04-20 18:43:28Z mueller $
+// $Id: Rw11UnitTerm.cpp 516 2013-05-05 21:24:52Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-03   515   1.1    use AttachDone(),DetachCleanup(),DetachDone()
 // 2013-04-13   504   1.0    Initial version
 // 2013-02-19   490   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11UnitTerm.cpp 508 2013-04-20 18:43:28Z mueller $
+  \version $Id: Rw11UnitTerm.cpp 516 2013-05-05 21:24:52Z mueller $
   \brief   Implemenation of Rw11UnitTerm.
 */
 
@@ -93,7 +94,9 @@ void Rw11UnitTerm::SetLog(const std::string& fname)
 
   RparseUrl purl;
   RerrMsg emsg;
-  if (!purl.Set(fname, "|app|crlf|", emsg)) 
+  if (!purl.Set(fname, "|app|bck=|crlf|", emsg)) 
+    throw Rexception(emsg);
+  if (!Rtools::CreateBackupFile(purl, emsg))
     throw Rexception(emsg);
 
   ios_base::openmode mode = ios_base::out;
@@ -309,7 +312,7 @@ void Rw11UnitTerm::Dump(std::ostream& os, int ind, const char* text) const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11UnitTerm::AttachSetup()
+void Rw11UnitTerm::AttachDone()
 {
   fpVirt->SetupRcvCallback(boost::bind(&Rw11UnitTerm::RcvCallback,
                                            this, _1, _2));

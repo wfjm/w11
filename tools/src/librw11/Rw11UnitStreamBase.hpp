@@ -1,4 +1,4 @@
-// $Id: Rw11UnitBase.hpp 495 2013-03-06 17:13:48Z mueller $
+// $Id: Rw11UnitStreamBase.hpp 515 2013-05-04 17:28:59Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,49 +13,45 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2013-03-06   495   1.0    Initial version
-// 2013-02-14   488   0.1    First draft
+// 2013-05-04   515   1.0    Initial version
+// 2013-05-01   513   0.1    First draft
 // ---------------------------------------------------------------------------
 
 
 /*!
   \file
-  \version $Id: Rw11UnitBase.hpp 495 2013-03-06 17:13:48Z mueller $
-  \brief   Declaration of class Rw11UnitBase.
+  \version $Id: Rw11UnitStreamBase.hpp 515 2013-05-04 17:28:59Z mueller $
+  \brief   Declaration of class Rw11UnitStreamBase.
 */
 
-#ifndef included_Retro_Rw11UnitBase
-#define included_Retro_Rw11UnitBase 1
+#ifndef included_Retro_Rw11UnitStreamBase
+#define included_Retro_Rw11UnitStreamBase 1
 
-#include "boost/scoped_ptr.hpp"
-
-#include "Rw11Unit.hpp"
+#include "Rw11UnitStream.hpp"
 
 namespace Retro {
 
-  template <class TC, class TV>
-  class Rw11UnitBase : public Rw11Unit {
+  template <class TC>
+  class Rw11UnitStreamBase : public Rw11UnitStream {
     public:
 
-                    Rw11UnitBase(TC* pcntl, size_t index);
-                   ~Rw11UnitBase();
+                    Rw11UnitStreamBase(TC* pcntl, size_t index);
+                   ~Rw11UnitStreamBase();
 
       TC&           Cntl() const;
-      TV*           Virt() const;
-
-      virtual bool  Attach(const std::string& url, RerrMsg& emsg);
-      virtual void  Detach();
 
       virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
 
     protected:
-      TC*           fpCntl;
-      boost::scoped_ptr<TV> fpVirt;
+      virtual void  AttachDone();
+      virtual void  DetachDone();
 
+    protected:
+      TC*           fpCntl;
   };
   
 } // end namespace Retro
 
-#include "Rw11UnitBase.ipp"
+#include "Rw11UnitStreamBase.ipp"
 
 #endif

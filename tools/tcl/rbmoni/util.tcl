@@ -1,6 +1,6 @@
-# $Id: util.tcl 375 2011-04-02 07:56:47Z mueller $
+# $Id: util.tcl 516 2013-05-05 21:24:52Z mueller $
 #
-# Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -41,10 +41,10 @@ namespace eval rbmoni {
   # setup: amap definitions for rbd_rbmon
   # 
   proc setup {{base 0x00fc}} {
-    rlc amap -insert rm.cntl [expr $base + 0x00]
-    rlc amap -insert rm.alim [expr $base + 0x01]
-    rlc amap -insert rm.addr [expr $base + 0x02]
-    rlc amap -insert rm.data [expr $base + 0x03]
+    rlc amap -insert rm.cntl [expr {$base + 0x00}]
+    rlc amap -insert rm.alim [expr {$base + 0x01}]
+    rlc amap -insert rm.addr [expr {$base + 0x02}]
+    rlc amap -insert rm.data [expr {$base + 0x03}]
   }
   #
   # init: reset rbd_rbmon (stop, reset alim)
@@ -83,25 +83,25 @@ namespace eval rbmoni {
     if {$nent > $nval} {set nent $nval}
     if {$nent == 0} { return {} }
 
-    set caddr [expr ( $laddr - $nent ) & $amax]
+    set caddr [expr {( $laddr - $nent ) & $amax}]
     rlc exec -wreg rm.addr [regbld rbmoni::ADDR [list laddr $caddr]]
 
     set rval {}
 
     while {$nent > 0} {
-      set nblk [expr $nent << 2]
+      set nblk [expr {$nent << 2}]
       if {$nblk > 256} {set nblk 256}
       rlc exec -rblk rm.data $nblk rawdat
 
       foreach {d0 d1 d2 d3} $rawdat {
         set eflag  [regget rbmoni::DAT3(flags) $d3]
         set eaddr  [regget rbmoni::DAT3(addr)  $d3]
-        set edly   [expr ( [regget rbmoni::DAT0(ndlymsb) $d0] << 16 ) | $d1]
+        set edly   [expr {( [regget rbmoni::DAT0(ndlymsb) $d0] << 16 ) | $d1 }]
         set enbusy [regget rbmoni::DAT0(nbusy) $d0]
         lappend rval [list $eflag $eaddr $d2 $edly $enbusy]
       }
 
-      set nent [expr $nent - ( $nblk >> 2 ) ]
+      set nent [expr {$nent - ( $nblk >> 2 ) }]
     }
 
     rlc exec -wreg rm.addr $raddr
@@ -123,7 +123,7 @@ namespace eval rbmoni {
 
     set rval {}
 
-    set eind [expr 1 - [llength $mondat]]
+    set eind [expr {1 - [llength $mondat] }]
     append rval " ind  addr       data  delay nbusy     ac bs er na to in we"
 
     foreach {ele} $mondat {
@@ -165,7 +165,7 @@ namespace eval rbmoni {
     set uedat {}
     set uemsk {}
 
-    set m0 [expr 0xffff & ~[regget rbmoni::DAT0(nbusy) -1] ]
+    set m0 [expr {0xffff & ~[regget rbmoni::DAT0(nbusy) -1] }]
     set d1 0x0000
     set m1 0xffff
     set m3 0x0000

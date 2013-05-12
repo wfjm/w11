@@ -1,4 +1,4 @@
-// $Id: RlinkPortCuff.cpp 504 2013-04-13 15:37:24Z mueller $
+// $Id: RlinkPortCuff.cpp 516 2013-05-05 21:24:52Z mueller $
 //
 // Copyright 2012-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -22,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPortCuff.cpp 504 2013-04-13 15:37:24Z mueller $
+  \version $Id: RlinkPortCuff.cpp 516 2013-05-05 21:24:52Z mueller $
   \brief   Implemenation of RlinkPortCuff.
 */
 
@@ -126,10 +126,10 @@ bool RlinkPortCuff::Open(const std::string& url, RerrMsg& emsg)
     char* env_pid = ::getenv("RETRO_FX2_PID");
     if (env_vid && ::strlen(env_vid) == 4 &&
         env_pid && ::strlen(env_pid) == 4) {
-      fUrl.SetPath(string(env_vid) + string(":") + string(env_pid));
+      fUrl.SetPath(string(env_vid) + ":" + string(env_pid));
     } else {
       emsg.Init("RlinkPortCuff::Open()", 
-                string("RETRO_FX2_VID/PID not or ill defined"));
+                "RETRO_FX2_VID/PID not or ill defined");
       Cleanup();
       return false;
     }
@@ -302,9 +302,7 @@ bool RlinkPortCuff::OpenPipe(int& fdread, int& fdwrite, RerrMsg& emsg)
 
   irc = ::pipe(pipefd);
   if (irc < 0) {
-    emsg.InitErrno("RlinkPortCuff::OpenPipe()", 
-                   string("pipe() failed: "),
-                   errno);
+    emsg.InitErrno("RlinkPortCuff::OpenPipe()", "pipe() failed: ", errno);
     return false;
   }
   
@@ -501,7 +499,7 @@ void RlinkPortCuff::BadSysCall(const char* meth, const char* text, int rc)
 {
   stringstream ss;
   ss << rc;
-  throw Rexception(meth, string(text)+string(" failed with rc=")+ss.str(),
+  throw Rexception(meth, string(text) + " failed with rc=" + ss.str(),
                    errno);
 }
 
@@ -512,8 +510,8 @@ void RlinkPortCuff::BadUSBCall(const char* meth, const char* text, int rc)
 {
   stringstream ss;
   ss << rc;
-  throw Rexception(meth, string(text)+string(" failed with rc=")+ss.str()+
-                   string(" : ")+string(USBErrorName(rc)));
+  throw Rexception(meth, string(text) + " failed with rc=" + ss.str() +
+                   " : " + string(USBErrorName(rc)));
 }
 
 //------------------------------------------+-----------------------------------

@@ -1,4 +1,4 @@
-# $Id: INSTALL.txt 511 2013-04-27 13:51:46Z mueller $
+# $Id: INSTALL.txt 512 2013-04-28 07:44:02Z mueller $
 
 Guide to install and build w11a systems, test benches and support software
 
@@ -373,6 +373,11 @@ Guide to install and build w11a systems, test benches and support software
 
         cd $RETROBASE/rtl/sys_gen/tst_rlink_cuff/nexys2/ic
         make sys_tst_rlink_cuff_ic_n2.bit
+
+     b. for Digilent Nexys3 board
+
+        cd $RETROBASE/rtl/sys_gen/tst_rlink_cuff/nexys3/ic
+        make sys_tst_rlink_cuff_ic_n3.bit
 
   3. w11a systems
      a. for Digilent S3BOARD

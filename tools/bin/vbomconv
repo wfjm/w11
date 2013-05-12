@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: vbomconv 456 2012-02-05 22:19:44Z mueller $
+# $Id: vbomconv 518 2013-05-12 16:45:02Z mueller $
 #
 # Copyright 2007-2012 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -251,7 +251,7 @@ if (exists $opts{ghdl_i} || exists $opts{ghdl_i_cmd}) {
   #     architecture <arch> of <entity> at nn( nn) + nn on nn;
 
   if (-r "work-obj93.cf") {
-    open (WFILE, "work-obj93.cf") or 
+    open (WFILE, "work-obj93.cf") or
       die "can't open for read work-obj93.cf: $!";
     while (<WFILE>) {
       if (m{^file \. \"(.*?)\"}) {

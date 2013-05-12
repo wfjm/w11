@@ -1,7 +1,8 @@
-# $Id: generic_so.mk 354 2011-01-09 22:38:53Z mueller $
+# $Id: generic_so.mk 515 2013-05-04 17:28:59Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2013-05-03   515   1.0.1  use 'mkdir -p' to prevent aborts with -j 4
 # 2011-01-09   354   1.0    Initial version (from wrepo/make/generic_so.mk)
 #---
 #
@@ -28,7 +29,7 @@ libs : $(SOPATH)/$(AFILE) $(SOPATH)/$(SOFILEVV)
 # Build the sharable library
 #
 $(SOPATH)/$(SOFILEVV) : $(OBJ_all)
-	if [ ! -d $(SOPATH) ]; then mkdir $(SOPATH); fi
+	if [ ! -d $(SOPATH) ]; then mkdir -p $(SOPATH); fi
 	$(CXX) -shared -Wl,-soname,$(SOFILEV) -o $(SOPATH)/$(SOFILEVV) \
 		$(OBJ_all) $(LDLIBS)
 	(cd $(SOPATH); rm -f $(SOFILE)   $(SOFILEV))
@@ -38,6 +39,6 @@ $(SOPATH)/$(SOFILEVV) : $(OBJ_all)
 # Build an archive
 #
 $(SOPATH)/$(AFILE) : $(OBJ_all)
-	if [ ! -d $(SOPATH) ]; then mkdir $(SOPATH); fi
+	if [ ! -d $(SOPATH) ]; then mkdir -p $(SOPATH); fi
 	ar -scruv $(SOPATH)/$(AFILE) $?
 #

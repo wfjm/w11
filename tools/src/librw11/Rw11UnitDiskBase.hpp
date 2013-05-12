@@ -1,4 +1,4 @@
-// $Id: Rw11UnitDiskBase.hpp 509 2013-04-21 20:46:20Z mueller $
+// $Id: Rw11UnitDiskBase.hpp 515 2013-05-04 17:28:59Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-03   515   1.1    use AttachDone(),DetachCleanup(),DetachDone()
 // 2013-04-14   506   1.0    Initial version
 // 2013-02-22   490   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11UnitDiskBase.hpp 509 2013-04-21 20:46:20Z mueller $
+  \version $Id: Rw11UnitDiskBase.hpp 515 2013-05-04 17:28:59Z mueller $
   \brief   Declaration of class Rw11UnitDiskBase.
 */
 
@@ -43,8 +44,8 @@ namespace Retro {
       virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
 
     protected:
-      virtual void  AttachSetup();
-      virtual void  DetachCleanup();
+      virtual void  AttachDone();
+      virtual void  DetachDone();
 
     protected:
       TC*           fpCntl;

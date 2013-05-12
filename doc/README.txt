@@ -1,4 +1,4 @@
-# $Id: README.txt 511 2013-04-27 13:51:46Z mueller $
+# $Id: README.txt 518 2013-05-12 16:45:02Z mueller $
 
 Release notes for w11a
 
@@ -35,7 +35,7 @@ Release notes for w11a
    rtl/ibus                     - ibus devices (UNIBUS peripherals)
    rtl/sys_gen                  - top level designs
    rtl/sys_gen/tst_fx2loop        - top level designs for Cypress FX2 tester
-     nexys2                         - systems for Nexsy2
+     nexys2,nexys3                 - systems for Nexsy2,Nexsy3
    rtl/sys_gen/tst_rlink          - top level designs for an rlink tester
      nexys2,nexys3,s3board          - systems for Nexsy2,Nexsy3,S3BOARD
    rtl/sys_gen/tst_rlink_cuff     - top level designs for rlink over FX2 tester
@@ -67,6 +67,8 @@ Release notes for w11a
    tools/fx2/bin                  - pre-build firmware images in .ihx format
    tools/fx2/src                  - C and asm sources
    tools/fx2/sys                  - udev rules for USB on fpga eval boards
+   tools/oskit                  - setup files for Operation System kits
+   tools/oskit/...                - several PDP-11 system kits available
    tools/src                    - C++ sources for rlink backend software
    tools/src/librlink             - basic rlink interface
    tools/src/librlinktpp          - C++ to tcl binding for rlink interface
@@ -79,6 +81,39 @@ Release notes for w11a
    tools/tcl                    - Tcl scripts
 
 3. Change Log ----------------------------------------------------------------
+
+- trunk (2013-05-12: svn rev 21(oc) 518(wfjm); untagged w11a_V0.58)  +++++++++
+
+  - Summary
+    - C++ and Tcl based backend server now fully functional, supports with 
+        DL11, RK11, LP11 and PC11 all devices available in w11a designs
+    - the old perl based backend server (pi_rri) is obsolete and removed
+    - operating system kits reorganized
+
+  - New features
+    - new directory trees for
+      - tools/oskit               - operating system kits
+    - new modules
+      - tools/src/librw11
+        - Rw11*LP11               - classes for LP11 printer handling
+        - Rw11*PC11               - classes for PC11 paper tape handling
+        - Rw11*Stream*            - classes for Virtual stream handling
+      - tools/src/librwxxtpp
+        - RtclRw11*LP11           - tcl iface for LP11 printer handling
+        - RtclRw11*PC11           - tcl iface for PC11 paper tape handling
+        - RtclRw11*Stream*        - tcl iface for Virtual Stream handling
+
+  - Changes
+    - renames
+      - the w11 backend quick starter now named ti_w11 and under tools/bin
+        (was rtl/sys_gen/w11a/tb/torri)
+      - all operating system image related material now under 
+        tools/oskit (was under rtl/sys_gen/w11a/tb)
+
+  - Bug fixes
+    - rtl/ibus/ibdr_lp11  - err flag logic fixed, was cleared in ibus racc read
+    - rtl/ibus/ibdr_pc11  - rbuf logic fixed. Was broken since ibus V2 update
+                              in V0.51! Went untested because pc11 rarely used.
 
 - trunk (2013-04-27: svn rev 20(oc) 511(wfjm); untagged w11a_V0.57)  +++++++++
 

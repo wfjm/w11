@@ -1,8 +1,9 @@
 #!/usr/bin/perl -w
-# $Id: torri 511 2013-04-27 13:51:46Z mueller $
+# $Id: ti_w11 516 2013-05-05 21:24:52Z mueller $
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2013-05-05   516   1.1    renamed to ti_w11
 # 2013-04-26   510   1.0    Initial version (derived from dorri)
 #
 
@@ -14,22 +15,24 @@ sub print_usage;
 
 autoflush STDOUT 1;             # autoflush, so noting lost on exec later
 
+my $sysbase = "$ENV{RETROBASE}/rtl/sys_gen/w11a";
+
 my $opt_b;
 my $opt_io = '';
 my $opt_f = '';
 my $opt_tmu;
 my $tirri;
 my $val_term;
-my $val_tb_s3='tbw ../s3board/tb/tb_w11a_s3';
-my $val_tb_n2='tbw ../nexys2/tb/tb_w11a_n2';
-my $val_tb_n3='tbw ../nexys3/tb/tb_w11a_n3';
+my $val_tb_s3 = "tbw $sysbase/s3board/tb/tb_w11a_s3";
+my $val_tb_n2 = "tbw $sysbase/nexys2/tb/tb_w11a_n2";
+my $val_tb_n3 = "tbw $sysbase/nexys3/tb/tb_w11a_n3";
 my $val_tb;
 my $val_e;
 
 my @arglist;
 
 #
-# process torri options
+# process ti_w11 options
 #
 while (scalar(@ARGV)) {
   my $curarg = $ARGV[0];
@@ -68,7 +71,7 @@ while (scalar(@ARGV)) {
     $baud  = '115k' unless defined $baud;
 
     if ($baud !~ m{^\d*k?$}) {
-      print STDERR "torri-E: invalid format of -ts or -tu option\n";
+      print STDERR "ti_w11-E: invalid format of -ts or -tu option\n";
       exit 1;
     }
 
@@ -83,16 +86,16 @@ while (scalar(@ARGV)) {
     shift @ARGV;
 
   } elsif ($curarg =~ m{^-e$} ) {	    # -e <file>
-    print STDERR "torri-W: multiple -e options, only last taken\n"
+    print STDERR "ti_w11-W: multiple -e options, only last taken\n"
       if defined $val_e;
     shift @ARGV;
     if (scalar(@ARGV) == 0 || $ARGV[0] =~ m{^-}) {
-      print STDERR "torri-E: no file name after -e option\n";
+      print STDERR "ti_w11-E: no file name after -e option\n";
       exit 1;
     } else {
       $val_e = shift @ARGV;
       if (not -r $val_e) {
-	print STDERR "torri-E: file '$val_e' not found\n";
+	print STDERR "ti_w11-E: file '$val_e' not found\n";
 	exit 1;
       }
     }
@@ -114,7 +117,7 @@ if ($opt_io eq 'f') {
 } elsif ($opt_io eq 'u') {
   push @arglist, '--cuff';
 } else {
-  print STDERR "torri-E: neither -s3/-n2/-n3 nor -t or -u specified\n";
+  print STDERR "ti_w11-E: neither -s3/-n2/-n3 nor -t or -u specified\n";
   print_usage();
   exit 1;
 }
@@ -171,7 +174,7 @@ if (defined $val_e) {
 while (scalar(@ARGV)) {
   my $curarg = shift @ARGV;
   if ($curarg =~ m{^@(.*)$} && ! -r $1) {
-    print STDERR "torri-E: file '$1' not found\n";
+    print STDERR "ti_w11-E: file '$1' not found\n";
     exit 1;
   }
   push @arglist,$curarg;
@@ -184,7 +187,7 @@ while (scalar(@ARGV)) {
 $tirri=`which ti_rri`;
 chomp $tirri;
 if ($tirri eq '' || ! -e $tirri) {
-  print STDERR "torri-E: failed to locate ti_rri\n";
+  print STDERR "ti_w11-E: failed to locate ti_rri\n";
   exit 1;
 }
 
@@ -205,7 +208,7 @@ exit 1;
 
 # ----------------------------------------------------------------------------
 sub print_usage {
-  print "usage: torri <setup options> <ti_rri opts and cmds>...\n";
+  print "usage: ti_w11 <setup options> <ti_rri opts and cmds>...\n";
   print "  setup options for ghdl simulation runs:\n";
   print "    -s3       start tb_w11a_s3 simulation\n";
   print "    -n2       start tb_w11a_n2 simulation\n";

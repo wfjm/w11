@@ -1,4 +1,4 @@
-// $Id: RlinkPort.hpp 492 2013-02-24 22:14:47Z mueller $
+// $Id: RlinkPort.hpp 513 2013-05-01 14:02:06Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-01   513   1.2.1  fTraceLevel now uint32_t
 // 2013-02-23   492   1.2    use RparseUrl
 // 2013-02-22   491   1.1    use new RlogFile/RlogMsg interfaces
 // 2013-01-27   477   1.0.3  add RawRead(),RawWrite() methods
@@ -25,7 +26,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPort.hpp 492 2013-02-24 22:14:47Z mueller $
+  \version $Id: RlinkPort.hpp 513 2013-05-01 14:02:06Z mueller $
   \brief   Declaration of class RlinkPort.
 */
 
@@ -69,8 +70,8 @@ namespace Retro {
       int           FdWrite() const;
 
       void          SetLogFile(const boost::shared_ptr<RlogFile>& splog);
-      void          SetTraceLevel(size_t level);
-      size_t        TraceLevel() const;
+      void          SetTraceLevel(uint32_t level);
+      uint32_t      TraceLevel() const;
 
       const Rstats& Stats() const;
 
@@ -101,7 +102,7 @@ namespace Retro {
       int           fFdRead;                //!< fd for read
       int           fFdWrite;               //!< fd for write
       boost::shared_ptr<RlogFile>  fspLog;  //!< log file ptr
-      size_t        fTraceLevel;            //!< trace level
+      uint32_t      fTraceLevel;            //!< trace level
       Rstats        fStats;                 //!< statistics
   };
   

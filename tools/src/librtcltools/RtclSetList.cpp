@@ -1,4 +1,4 @@
-// $Id: RtclSetList.cpp 492 2013-02-24 22:14:47Z mueller $
+// $Id: RtclSetList.cpp 516 2013-05-05 21:24:52Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -18,7 +18,7 @@
 
 /*!
   \file
-  \version $Id: RtclSetList.cpp 492 2013-02-24 22:14:47Z mueller $
+  \version $Id: RtclSetList.cpp 516 2013-05-05 21:24:52Z mueller $
   \brief   Implemenation of class RtclSetList.
 */
 
@@ -64,8 +64,8 @@ void RtclSetList::Add(const std::string& name, RtclSetBase* pset)
   typedef std::pair<Retro::RtclSetList::map_it_t, bool>  map_ins_t;
   map_ins_t ret = fMap.insert(map_val_t(name, pset));
   if (ret.second == false) 
-     throw Rexception("RtclSetList::Add:", "Bad args: " +
-                     string("duplicate name: ") + name);
+    throw Rexception("RtclSetList::Add:", 
+                     string("Bad args: duplicate name: '") + name + "'");
   return;
 }
 

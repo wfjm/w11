@@ -1,6 +1,6 @@
-# $Id: test_stat.tcl 375 2011-04-02 07:56:47Z mueller $
+# $Id: test_stat.tcl 516 2013-05-05 21:24:52Z mueller $
 #
-# Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -41,8 +41,8 @@ namespace eval rbtest {
     #-------------------------------------------------------------------------
     rlc log "  test 1: verify connection of cntl stat bits to stat return"
     for {set i 0} {$i < 3} {incr i} {
-      set spat [expr 1 << $i]
-      if {[expr $spat & $statmsk]} {
+      set spat [expr {1 << $i}]
+      if {[expr {$spat & $statmsk}]} {
         set cntl [regbld rbtest::CNTL [list stat $spat]]
         rlc exec \
           -wreg te.cntl $cntl \

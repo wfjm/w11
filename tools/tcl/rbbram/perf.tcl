@@ -1,4 +1,4 @@
-# $Id: perf.tcl 469 2013-01-05 12:29:44Z mueller $
+# $Id: perf.tcl 516 2013-05-05 21:24:52Z mueller $
 #
 # Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -40,9 +40,9 @@ namespace eval rbbram {
       set wbuf3 {}
       for {set i 0} {$i < $nblk} {incr i} {
         lappend wbuf0 $i
-        lappend wbuf1 [expr 0x1000 + $i]
-        lappend wbuf2 [expr 0x2000 + $i]
-        lappend wbuf3 [expr 0x3000 + $i]
+        lappend wbuf1 [expr {0x1000 + $i}]
+        lappend wbuf2 [expr {0x2000 + $i}]
+        lappend wbuf3 [expr {0x3000 + $i}]
       }
 
       set pval {}
@@ -55,9 +55,9 @@ namespace eval rbbram {
         rlc exec \
           -wreg br.cntl $addr  \
           -wblk br.data $wbuf0
-        set trun [expr [clock clicks -milliseconds] - $tbeg]
+        set trun [expr {[clock clicks -milliseconds] - $tbeg}]
         if {$trun > $tmax} { break }
-        set addr [expr ( $addr + $nblk ) & $amax]
+        set addr [expr {( $addr + $nblk ) & $amax}]
       }
       lappend pval 1 $i $trun
 
@@ -70,9 +70,9 @@ namespace eval rbbram {
           -wreg br.cntl $addr  \
           -wblk br.data $wbuf0 \
           -wblk br.data $wbuf1
-        set trun [expr [clock clicks -milliseconds] - $tbeg]
+        set trun [expr {[clock clicks -milliseconds] - $tbeg}]
         if {$trun > $tmax} { break }
-        set addr [expr ( $addr + 2 * $nblk ) & $amax]
+        set addr [expr {( $addr + 2 * $nblk ) & $amax}]
       }
       lappend pval 2 $i $trun
 
@@ -87,9 +87,9 @@ namespace eval rbbram {
           -wblk br.data $wbuf1 \
           -wblk br.data $wbuf2 \
           -wblk br.data $wbuf3 
-        set trun [expr [clock clicks -milliseconds] - $tbeg]
+        set trun [expr {[clock clicks -milliseconds] - $tbeg}]
         if {$trun > $tmax} { break }
-        set addr [expr ( $addr + 4 * $nblk ) & $amax]
+        set addr [expr {( $addr + 4 * $nblk ) & $amax}]
       }
       lappend pval 4 $i $trun
 
@@ -101,9 +101,9 @@ namespace eval rbbram {
         rlc exec \
           -wreg br.cntl $addr \
           -rblk br.data $nblk rbuf0
-        set trun [expr [clock clicks -milliseconds] - $tbeg]
+        set trun [expr {[clock clicks -milliseconds] - $tbeg}]
         if {$trun > $tmax} { break }
-        set addr [expr ( $addr + $nblk ) & $amax]
+        set addr [expr {( $addr + $nblk ) & $amax}]
       }
       lappend pval 1 $i $trun
 
@@ -116,9 +116,9 @@ namespace eval rbbram {
           -wreg br.cntl $addr \
           -rblk br.data $nblk rbuf0 \
           -rblk br.data $nblk rbuf1
-        set trun [expr [clock clicks -milliseconds] - $tbeg]
+        set trun [expr {[clock clicks -milliseconds] - $tbeg}]
         if {$trun > $tmax} { break }
-        set addr [expr ( $addr + 2 * $nblk ) & $amax]
+        set addr [expr {( $addr + 2 * $nblk ) & $amax}]
       }
       lappend pval 2 $i $trun
 
@@ -133,16 +133,16 @@ namespace eval rbbram {
           -rblk br.data $nblk rbuf1 \
           -rblk br.data $nblk rbuf2 \
           -rblk br.data $nblk rbuf3
-        set trun [expr [clock clicks -milliseconds] - $tbeg]
+        set trun [expr {[clock clicks -milliseconds] - $tbeg}]
         if {$trun > $tmax} { break }
-        set addr [expr ( $addr + 4 * $nblk ) & $amax]
+        set addr [expr {( $addr + 4 * $nblk ) & $amax}]
       }
       lappend pval 4 $i $trun
 
       set oline [format "\n%4d" $nblk]
       foreach {nr i trun} $pval {
-        set ms [expr double($trun) / double($nr*$i)]
-        set kb [expr double(2*$nr*$i*$nblk) / double($trun)]
+        set ms [expr {double($trun) / double($nr*$i)}]
+        set kb [expr {double(2*$nr*$i*$nblk) / double($trun)}]
         if { $ms < 9.94 } {
           append oline [format " %5.2f" $ms]
         } else {

@@ -1,4 +1,4 @@
-// $Id: RtclRw11CntlDL11.cpp 504 2013-04-13 15:37:24Z mueller $
+// $Id: RtclRw11CntlDL11.cpp 516 2013-05-05 21:24:52Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-04   516   1.0.1  add RxRlim support (receive interrupt rate limit)
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-02   480   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclRw11CntlDL11.cpp 504 2013-04-13 15:37:24Z mueller $
+  \version $Id: RtclRw11CntlDL11.cpp 516 2013-05-05 21:24:52Z mueller $
   \brief   Implemenation of RtclRw11CntlDL11.
 */
 
@@ -44,7 +45,11 @@ namespace Retro {
 RtclRw11CntlDL11::RtclRw11CntlDL11()
   : RtclRw11CntlBase<Rw11CntlDL11>("Rw11CntlDL11")
 {
-  //Rw11CntlDL11* pobj = &Obj();
+  Rw11CntlDL11* pobj = &Obj();
+  fGets.Add<uint16_t>  ("rxrlim", 
+                        boost::bind(&Rw11CntlDL11::RxRlim,  pobj));
+  fSets.Add<uint16_t>  ("rxrlim",
+                        boost::bind(&Rw11CntlDL11::SetRxRlim,pobj, _1));
 }
 
 //------------------------------------------+-----------------------------------

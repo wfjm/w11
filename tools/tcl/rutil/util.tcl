@@ -1,6 +1,6 @@
-# $Id: util.tcl 502 2013-04-02 19:29:30Z mueller $
+# $Id: util.tcl 517 2013-05-09 21:34:45Z mueller $
 #
-# Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2013-05-09   517   1.0.1  add optlist2arr
 # 2011-03-27   374   1.0    Initial version
 # 2011-03-19   372   0.1    First draft
 #
@@ -22,6 +23,23 @@ package provide rutil 1.0
 package require rutiltpp
 
 namespace eval rutil {
+  #
+  # optlist2arr: process options arguments given as key value list
+  #
+  proc optlist2arr {outarrname refarrname optlist} {
+    upvar $outarrname outarr
+    upvar $refarrname refarr
+    array set outarr [array get refarr]
+    foreach {key value} $optlist {
+      if {[info exists outarr($key)]} {
+        set outarr($key) $value
+      } else {
+        error "key $key not valid in optlist"
+      }
+    }
+    return ""
+  }
+
   #
   # regdsc: setup a register descriptor
   #
@@ -46,18 +64,18 @@ namespace eval rutil {
         error "error in field dsc \"$arg\": length > start position" 
       }
       
-      set mskb [expr ( 1 << $flen ) - 1]
-      set mskf [expr $mskb << ( $fbeg - ( $flen - 1 ) )]
+      set mskb [expr {( 1 << $flen ) - 1}]
+      set mskf [expr {$mskb << ( $fbeg - ( $flen - 1 ) )}]
       set rdsc($fnam) [list $fbeg $flen $mskb $mskf $popt]
       
       if {$fbegmax < $fbeg} {set fbegmax $fbeg}
-      set mskftot [expr $mskftot | $mskf]
+      set mskftot [expr {$mskftot | $mskf}]
     }
 
     set rdsc(-n) [lsort -decreasing -command regdsc_sort \
                     [array names rdsc -regexp {^[^-]}] ]
     
-    set rdsc(-w) [expr $fbegmax + 1]
+    set rdsc(-w) [expr {$fbegmax + 1}]
     set rdsc(-m) $mskftot
 
     return ""
@@ -85,7 +103,7 @@ namespace eval rutil {
       set line "  "
       append line [format "%8s" $fnam]
       if {$flen > 1} {
-        append line [format "  %2d:%2d" $fbeg [expr $fbeg - $flen + 1]]
+        append line [format "  %2d:%2d" $fbeg [expr {$fbeg - $flen + 1}]]
       } else {
         append line [format "     %2d" $fbeg]
       }
@@ -98,7 +116,7 @@ namespace eval rutil {
 
   proc regdsc_sort {a b} {
     upvar rdsc urdsc
-    return [expr [lindex $urdsc($a) 0] - [lindex $urdsc($b) 0]]
+    return [expr {[lindex $urdsc($a) 0] - [lindex $urdsc($b) 0] }]
   }
 
   #
@@ -123,7 +141,7 @@ namespace eval rutil {
           error "error in field specifier \"$arg\": no value and flen>1"
         }
         set mskf [lindex $rdsc($fnam) 3]
-        set rval [expr $rval | $mskf]
+        set rval [expr {$rval | $mskf}]
 
       } else {
         set fval [lindex $arg 1]
@@ -133,12 +151,12 @@ namespace eval rutil {
             error "error in field specifier \"$arg\": value > $mskb"
           }
         } else {
-          if {$fval < [expr - $mskb]} {
+          if {$fval < [expr {- $mskb}]} {
             error "error in field specifier \"$arg\": value < [expr -$mskb]"
           }
-          set fval [expr $fval & $mskb]
+          set fval [expr {$fval & $mskb}]
         }
-        set rval [expr $rval | $fval << ( $fbeg - ( $flen - 1 ) )]
+        set rval [expr {$rval | $fval << ( $fbeg - ( $flen - 1 ) )}]
       }
 
     }
@@ -153,7 +171,7 @@ namespace eval rutil {
     set fbeg [lindex $fdsc 0]
     set flen [lindex $fdsc 1]
     set mskb [lindex $fdsc 2]
-    return [expr ( $val >> ( $fbeg - ( $flen - 1 ) ) ) & $mskb]
+    return [expr {( $val >> ( $fbeg - ( $flen - 1 ) ) ) & $mskb}]
   }
 
   #

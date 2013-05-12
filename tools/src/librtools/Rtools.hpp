@@ -1,4 +1,4 @@
-// $Id: Rtools.hpp 486 2013-02-10 22:34:43Z mueller $
+// $Id: Rtools.hpp 516 2013-05-05 21:24:52Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-04   516   1.0.3  add CreateBackupFile(), String2Long()
 // 2013-02-13   481   1.0.2  remove ThrowLogic(), ThrowRuntime()
 // 2011-04-10   376   1.0.1  add ThrowLogic(), ThrowRuntime()
 // 2011-03-12   368   1.0    Initial version
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rtools.hpp 486 2013-02-10 22:34:43Z mueller $
+  \version $Id: Rtools.hpp 516 2013-05-05 21:24:52Z mueller $
   \brief   Declaration of class Rtools .
 */
 
@@ -29,6 +30,9 @@
 
 #include <cstdint>
 #include <string>
+
+#include "RerrMsg.hpp"
+#include "RparseUrl.hpp"
 
 namespace Retro {
 
@@ -40,6 +44,15 @@ namespace Retro {
   namespace Rtools {
     std::string     Flags2String(uint32_t flags, const RflagName* fnam, 
                                  char delim='|');
+
+    bool            String2Long(const std::string& str, long& res, 
+                                RerrMsg& emsg, int base=10);
+    bool            String2Long(const std::string& str, unsigned long& res, 
+                                RerrMsg& emsg, int base=10);
+    
+    bool            CreateBackupFile(const std::string& fname, size_t nbackup, 
+                                     RerrMsg& emsg);
+    bool            CreateBackupFile(const RparseUrl& purl, RerrMsg& emsg);
   };
 
 } // end namespace Retro

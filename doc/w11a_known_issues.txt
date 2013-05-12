@@ -1,4 +1,4 @@
-# $Id: w11a_known_issues.txt 317 2010-07-22 19:36:56Z mueller $
+# $Id: w11a_known_issues.txt 516 2013-05-05 21:24:52Z mueller $
 
 Summary of known issues for w11a CPU and systems
 
@@ -34,7 +34,7 @@ Summary of known issues for w11a CPU and systems
      device would see it. The w11a doesn't implement this remapping, an access
      in the range 17000000:17757777 causes a NXM fault.
 
-   All four points relate to very 11/70 specific behaviour, not operating system
+   All four points relate to very 11/70 specific behaviour, no operating system
    depends on them, therefore they are considered acceptable implementation
    differences
 

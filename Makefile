@@ -1,4 +1,4 @@
-# $Id: Makefile 489 2013-02-17 10:58:02Z mueller $
+# $Id: Makefile 513 2013-05-01 14:02:06Z mueller $
 #
 # 'Meta Makefile' for whole retro project
 #   allows to make all synthesis targets
@@ -6,6 +6,7 @@
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2013-05-01   513   1.0.6  add clean_sim_tmp and clean_syn_tmp targets
 # 2012-12-29   466   1.0.5  add tst_rlink_cuff
 # 2011-12-26   445   1.0.4  add tst_fx2loop
 # 2011-12-23   444   1.0.3  enforce -j 1 in sub-makes
@@ -15,6 +16,8 @@
 #
 SYN_all += rtl/sys_gen/tst_fx2loop/nexys2/ic
 SYN_all += rtl/sys_gen/tst_fx2loop/nexys2/ic3
+SYN_all += rtl/sys_gen/tst_fx2loop/nexys3/ic
+SYN_all += rtl/sys_gen/tst_fx2loop/nexys3/ic3
 SYN_all += rtl/sys_gen/tst_rlink/nexys2
 SYN_all += rtl/sys_gen/tst_rlink/nexys3
 SYN_all += rtl/sys_gen/tst_rlink/s3board
@@ -38,6 +41,7 @@ SIM_all += rtl/sys_gen/tst_rlink/nexys2/tb
 SIM_all += rtl/sys_gen/tst_rlink/nexys3/tb
 SIM_all += rtl/sys_gen/tst_rlink/s3board/tb
 SIM_all += rtl/sys_gen/tst_rlink_cuff/nexys2/ic/tb
+SIM_all += rtl/sys_gen/tst_rlink_cuff/nexys3/ic/tb
 SIM_all += rtl/sys_gen/tst_serloop/nexys2/tb
 SIM_all += rtl/sys_gen/tst_serloop/nexys3/tb
 SIM_all += rtl/sys_gen/tst_serloop/s3board/tb
@@ -48,7 +52,8 @@ SIM_all += rtl/vlib/rlink/tb
 SIM_all += rtl/vlib/serport/tb
 SIM_all += rtl/w11a/tb
 #
-.PHONY : all clean clean_sim clean_sym all_sim all_syn
+.PHONY : all all_sim all_syn
+.PHONY : clean clean_sim clean_sim_tmp clean_sym clean_sym_tmp 
 .PHONY : $(SYN_all) $(SIM_all)
 #
 all :
@@ -59,6 +64,8 @@ all :
 	@echo "    make clean"
 	@echo "    make clean_sim"
 	@echo "    make clean_syn"
+	@echo "    make clean_sim_tmp"
+	@echo "    make clean_syn_tmp"
 	@echo "  for tool/documentation generation use:"
 	@echo "    make -j 4 all_lib"
 	@echo "    make clean_lib"
@@ -72,6 +79,11 @@ clean_sim :
 	for dir in $(SIM_all); do $(MAKE) -C $$dir clean; done
 clean_syn :
 	for dir in $(SYN_all); do $(MAKE) -C $$dir clean; done
+#
+clean_sim_tmp :
+	for dir in $(SIM_all); do $(MAKE) -C $$dir ghdl_tmp_clean; done
+clean_syn_tmp :
+	for dir in $(SYN_all); do $(MAKE) -C $$dir ise_tmp_clean; done
 #
 all_sim	: $(SIM_all)
 #

@@ -1,6 +1,6 @@
-# $Id: test_rbtest.tcl 375 2011-04-02 07:56:47Z mueller $
+# $Id: test_rbtest.tcl 516 2013-05-05 21:24:52Z mueller $
 #
-# Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -81,7 +81,7 @@ namespace eval rbmoni {
       rlc exec -estatdef $esdval $esdmsk \
         -wreg rm.addr $addr \
         -rreg rm.data -edata [lindex $edat $addr] [lindex $emsk $addr] \
-        -rreg rm.addr -edata [expr $addr + 1]
+        -rreg rm.addr -edata [expr {$addr + 1}]
     }
     #
     #-------------------------------------------------------------------------
@@ -89,9 +89,9 @@ namespace eval rbmoni {
     foreach addr {0x1 0x3 0x5 0x6 0x4 0x2 0x0} {
       rlc exec -estatdef $esdval $esdmsk \
         -wreg rm.addr $addr \
-        -rblk rm.data 2 -edata [lrange $edat $addr [expr $addr + 1] ] \
-                               [lrange $emsk $addr [expr $addr + 1] ] \
-        -rreg rm.addr -edata [expr $addr + 2]
+        -rblk rm.data 2 -edata [lrange $edat $addr [expr {$addr + 1}] ] \
+                               [lrange $emsk $addr [expr {$addr + 1}] ] \
+        -rreg rm.addr -edata [expr {$addr + 2}]
     }
     #
     #-------------------------------------------------------------------------

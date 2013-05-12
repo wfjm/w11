@@ -1,4 +1,4 @@
-# configure tb_nexsy2_fusp with sys_tst_rlink_n2 target;
+# configure tb_nexsy2_fusp_cuff with sys_tst_rlink_cuff_n2 target;
 # use vhdl configure file (tb_tst_rlink_cuff_ic_n2.vhd) to allow
 # that all configurations will co-exist in work library
 ${nexys2_fusp_cuff_aif := ../sys_tst_rlink_cuff_ic_n2.vbom}

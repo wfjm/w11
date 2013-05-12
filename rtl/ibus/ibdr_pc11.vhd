@@ -1,6 +1,6 @@
--- $Id: ibdr_pc11.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: ibdr_pc11.vhd 515 2013-05-04 17:28:59Z mueller $
 --
--- Copyright 2009-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2009-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,7 +18,7 @@
 -- Dependencies:   -
 -- Test bench:     xxdp: zpcae0
 -- Target Devices: generic
--- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.3; ghdl 0.18-0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -27,6 +27,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2013-05-04   515   1.3    BUGFIX: r.rbuf was immediately cleared ! Was broken
+--                             since ibus V2 update, never tested afterwards...
 -- 2011-11-18   427   1.2.2  now numeric_std clean
 -- 2010-10-23   335   1.2.1  rename RRI_LAM->RB_LAM;
 -- 2010-10-17   333   1.2    use ibus V2 interface
@@ -215,8 +217,8 @@ begin
           idout(r.rbuf'range)   := r.rbuf;
 
           if IB_MREQ.racc = '0' then    -- cpu ---------------------
-            if true then                  -- !! PC11 is unusual !!
-              n.rdone := '0';             -- any read or write will clear done
+            if ibreq = '1' then           -- !! PC11 is unusual !!
+              n.rdone := '0';             -- *any* read or write will clear done
               n.rbuf  := (others=>'0');   -- and the reader buffer 
               n.rintreq := '0';           -- also interrupt is canceled
             end if;

@@ -1,6 +1,6 @@
-# $Id: util.tcl 406 2011-08-14 21:06:44Z mueller $
+# $Id: util.tcl 516 2013-05-05 21:24:52Z mueller $
 #
-# Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -35,10 +35,10 @@ namespace eval rbs3hio {
   # setup: amap definitions for s3_humanio_rbus
   # 
   proc setup {base} {
-    rlc amap -insert hi.cntl [expr $base + 0x00]
-    rlc amap -insert hi.swi  [expr $base + 0x01]
-    rlc amap -insert hi.led  [expr $base + 0x02]
-    rlc amap -insert hi.dsp  [expr $base + 0x03]
+    rlc amap -insert hi.cntl [expr {$base + 0x00}]
+    rlc amap -insert hi.swi  [expr {$base + 0x01}]
+    rlc amap -insert hi.led  [expr {$base + 0x02}]
+    rlc amap -insert hi.dsp  [expr {$base + 0x03}]
   }
 
   #
@@ -65,8 +65,8 @@ namespace eval rbs3hio {
     append rval "\n  led:  [pbvi b8 $led]"
     set dspval ""
     for {set i 3} {$i >= 0} {incr i -1} {
-      set digval [expr ( $r_dsp >> ( 4 * $i ) ) & 0x0f]
-      set digdp  [expr ( $dp >> $i ) & 0x01]
+      set digval [expr {( $r_dsp >> ( 4 * $i ) ) & 0x0f}]
+      set digdp  [expr {( $dp >> $i ) & 0x01}]
       append dspval [format "%x" $digval]
       if {$digdp} {append dspval "."} else {append dspval " "}
     }
@@ -84,7 +84,7 @@ namespace eval rbs3hio {
                               [list swien $swien]  ]
 
     foreach ledval {0x0f 0xf0 0xff} {
-      set dpval [expr $ledval & 0x0f]
+      set dpval [expr {$ledval & 0x0f}]
       set hiled  [regbld rbs3hio::LED [list led $ledval] [list dp $dpval]]
       rlc exec \
         -wreg hi.led $hiled \
@@ -93,8 +93,8 @@ namespace eval rbs3hio {
     }
 
     for {set i 0} {$i <= 0xf} {incr i} {
-      set ledval [expr ( $i << 4 ) | $i]
-      set dspval [expr ( $ledval << 8 ) | $ledval]
+      set ledval [expr {( $i << 4 ) | $i}]
+      set dspval [expr {( $ledval << 8 ) | $ledval}]
       set hiled  [regbld rbs3hio::LED [list led $ledval] [list dp $i]]
       rlc exec \
         -wreg hi.led $hiled \
@@ -104,14 +104,14 @@ namespace eval rbs3hio {
 
     set ledval 0x01
     for {set i 0} {$i < 32} {incr i} {
-      set dpval [expr $ledval & 0x0f]
+      set dpval [expr {$ledval & 0x0f}]
       set hiled  [regbld rbs3hio::LED [list led $ledval] [list dp $dpval]]
       rlc exec \
         -wreg hi.led $hiled \
         -wreg hi.dsp $i
       after 50
-      set ledval [expr $ledval << 1]
-      if {$ledval & 0x100} {set ledval [expr ( $ledval & 0xff ) | 0x01]}
+      set ledval [expr {$ledval << 1}]
+      if {$ledval & 0x100} {set ledval [expr {( $ledval & 0xff ) | 0x01}] }
     }
 
     rlc exec \

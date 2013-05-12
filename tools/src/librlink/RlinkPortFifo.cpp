@@ -1,4 +1,4 @@
-// $Id: RlinkPortFifo.cpp 492 2013-02-24 22:14:47Z mueller $
+// $Id: RlinkPortFifo.cpp 516 2013-05-05 21:24:52Z mueller $
 //
 // Copyright 2011-2013 y Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPortFifo.cpp 492 2013-02-24 22:14:47Z mueller $
+  \version $Id: RlinkPortFifo.cpp 516 2013-05-05 21:24:52Z mueller $
   \brief   Implemenation of RlinkPortFifo.
 */
 
@@ -97,7 +97,7 @@ int RlinkPortFifo::OpenFifo(const std::string& name, bool snd, RerrMsg& emsg)
   if (irc == 0) {
     if ((stat_fifo.st_mode & S_IFIFO) == 0) {
       emsg.Init("RlinkPortFifo::OpenFiFo()",
-                string("'") + name + string("' exists but is not a pipe"));
+                string("'") + name + "' exists but is not a pipe");
       return -1;
     }
   } else {
@@ -105,7 +105,7 @@ int RlinkPortFifo::OpenFifo(const std::string& name, bool snd, RerrMsg& emsg)
     irc = mkfifo(name.c_str(), mode);
     if (irc != 0) {
       emsg.InitErrno("RlinkPortFifo::OpenFifo()", 
-                     string("mkfifo() for '") + name + string("' failed: "),
+                     string("mkfifo() for '") + name + "' failed: ",
                      errno);
       return -1;
     }    
@@ -114,7 +114,7 @@ int RlinkPortFifo::OpenFifo(const std::string& name, bool snd, RerrMsg& emsg)
   irc = open(name.c_str(), snd ? O_WRONLY : O_RDONLY);
   if (irc < 0) {
     emsg.InitErrno("RlinkPortFifo::OpenFifo()", 
-                   string("open() for '") + name + string("' failed: "),
+                   string("open() for '") + name + "' failed: ",
                    errno);
     return -1;
   }

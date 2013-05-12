@@ -1,4 +1,4 @@
--- $Id: sys_tst_rlink_cuff_n3.vhd 476 2013-01-26 22:23:53Z mueller $
+-- $Id: sys_tst_rlink_cuff_n3.vhd 512 2013-04-28 07:44:02Z mueller $
 --
 -- Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -32,7 +32,7 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri ctl/MHz
--- 2013-01-04   469 13.3    O76d xc3s1200e-4  ???  ???? ??? ???? p ??.? ic2/ 50
+-- 2013-01-04   469 13.3    O76d xc6slx16-2   ???  ???? ??? ???? p ??.? ic2/ 50
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

@@ -1,4 +1,4 @@
-// $Id: RtclGetList.cpp 492 2013-02-24 22:14:47Z mueller $
+// $Id: RtclGetList.cpp 516 2013-05-05 21:24:52Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -18,7 +18,7 @@
 
 /*!
   \file
-  \version $Id: RtclGetList.cpp 492 2013-02-24 22:14:47Z mueller $
+  \version $Id: RtclGetList.cpp 516 2013-05-05 21:24:52Z mueller $
   \brief   Implemenation of class RtclGetList.
 */
 
@@ -64,8 +64,8 @@ void RtclGetList::Add(const std::string& name, RtclGetBase* pget)
   typedef std::pair<Retro::RtclGetList::map_it_t, bool>  map_ins_t;
   map_ins_t ret = fMap.insert(map_val_t(name, pget));
   if (ret.second == false) 
-     throw Rexception("RtclGetList::Add:", "Bad args: " +
-                     string("duplicate name: ") + name);
+     throw Rexception("RtclGetList::Add:", 
+                      string("Bad args: duplicate name: '") + name + "'");
   return;
 }
 

@@ -1,4 +1,4 @@
-// $Id: Rw11Unit.ipp 495 2013-03-06 17:13:48Z mueller $
+// $Id: Rw11Unit.ipp 513 2013-05-01 14:02:06Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-01   513   1.0.1  add fAttachOpts, (Set)AttachOpts()
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-13   488   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11Unit.ipp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: Rw11Unit.ipp 513 2013-05-01 14:02:06Z mueller $
   \brief   Implemenation (inline) of Rw11Unit.
 */
 
@@ -40,6 +41,23 @@ inline size_t Rw11Unit::Index() const
 inline std::string Rw11Unit::Name() const
 {
   return fpCntlBase->UnitName(fIndex);
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline void Rw11Unit::SetAttachOpts(const std::string& opts)
+{
+  fAttachOpts = opts;
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline const std::string& Rw11Unit::AttachOpts() const
+{
+  return fAttachOpts;
 }
 
 //------------------------------------------+-----------------------------------

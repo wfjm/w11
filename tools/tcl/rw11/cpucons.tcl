@@ -1,4 +1,4 @@
-# $Id: cpucons.tcl 511 2013-04-27 13:51:46Z mueller $
+# $Id: cpucons.tcl 512 2013-04-28 07:44:02Z mueller $
 #
 # Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -50,10 +50,10 @@ namespace eval rw11 {
       }
 
       #
-      # '?' show current PC and PS and R0-R5
+      # '?' show current PC and PS and R0-R6
       # 
       proc "?" {} {
-        return [cpu0 show -pcps -r0r5]
+        return [cpu0 show -r0ps]
       }
 
       #

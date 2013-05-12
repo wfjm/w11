@@ -1,6 +1,6 @@
-# $Id: test_regs.tcl 440 2011-12-18 20:08:09Z mueller $
+# $Id: test_regs.tcl 516 2013-05-05 21:24:52Z mueller $
 #
-# Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -65,13 +65,13 @@ namespace eval rbemon {
     #
     #-------------------------------------------------------------------------
     rlc log "  test 2: verify addr increments on data reads"
-    foreach addr [list 0x0 0x011 [expr $amax - 1]] {
+    foreach addr [list 0x0 0x011 [expr {$amax - 1}]] {
       rlc exec -estatdef $esdval $esdmsk \
         -wreg em.addr $addr \
         -rreg em.data \
-        -rreg em.addr -edata [expr ( $addr + 1 ) & $amax] \
+        -rreg em.addr -edata [expr {( $addr + 1 ) & $amax}] \
         -rreg em.data \
-        -rreg em.addr -edata [expr ( $addr + 2 ) & $amax]
+        -rreg em.addr -edata [expr {( $addr + 2 ) & $amax}]
     }
     #
     #-------------------------------------------------------------------------

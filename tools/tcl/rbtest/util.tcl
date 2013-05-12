@@ -1,6 +1,6 @@
-# $Id: util.tcl 375 2011-04-02 07:56:47Z mueller $
+# $Id: util.tcl 516 2013-05-05 21:24:52Z mueller $
 #
-# Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -33,10 +33,10 @@ namespace eval rbtest {
   # setup: amap definitions for rbd_tester
   # 
   proc setup {{base 0x00f0}} {
-    rlc amap -insert te.cntl [expr $base + 0x00]
-    rlc amap -insert te.data [expr $base + 0x01]
-    rlc amap -insert te.fifo [expr $base + 0x02]
-    rlc amap -insert te.attn [expr $base + 0x03]
+    rlc amap -insert te.cntl [expr {$base + 0x00}]
+    rlc amap -insert te.data [expr {$base + 0x01}]
+    rlc amap -insert te.fifo [expr {$base + 0x02}]
+    rlc amap -insert te.attn [expr {$base + 0x03}]
   }
   #
   # init: reset rbd_tester (clear via init)
@@ -56,7 +56,7 @@ namespace eval rbtest {
       -rreg te.attn ncyc
     rlc exec -estatdef 0 $esdmsk \
       -wreg te.cntl $sav_cntl
-    return [expr $ncyc - 1]
+    return [expr {$ncyc - 1}]
   }
   #
   # probe: determine rbd_tester environment (max nbusy, stat and attn wiring)
@@ -75,9 +75,9 @@ namespace eval rbtest {
     set wrerr {}
     set rderr {}
     for {set i 3} { $i < 8 } {incr i} {
-      set nbusy0 [expr ( 1 << $i )]
+      set nbusy0 [expr {( 1 << $i )}]
       for {set j -1} { $j <= 1 } {incr j} {
-        set nbusy [expr $nbusy0 + $j]
+        set nbusy [expr {$nbusy0 + $j}]
         set valc  [regbld rbtest::CNTL [list nbusy $nbusy]]
         rlc exec \
           -wreg te.cntl $valc  -estat $esdval $esdmsk\
@@ -97,7 +97,7 @@ namespace eval rbtest {
     # probe stat wiring
     #
     for {set i 0} { $i < 3 } {incr i} {
-      set valc [regbld rbtest::CNTL [list stat [expr 1 << $i]]]
+      set valc [regbld rbtest::CNTL [list stat [expr {1 << $i}]]]
       rlc exec -estatdef $esdval $esdmsk \
         -wreg te.cntl $valc \
         -rreg te.data dummy statrd
@@ -110,7 +110,7 @@ namespace eval rbtest {
     rlc exec -attn
     for {set i 0} { $i < 16 } {incr i} {
       rlc exec -estatdef $esdval $esdmskatt \
-        -wreg te.attn [expr 1 << $i] \
+        -wreg te.attn [expr {1 << $i}] \
         -attn attnpat
       lappend rattn [list $i $attnpat]
     }
@@ -158,7 +158,7 @@ namespace eval rbtest {
   #
   proc print_bitind {pat} {
     for {set i 0} { $i < 16 } {incr i} {
-      if {[expr $pat & [expr 1 << $i]]} { return $i}
+      if {[expr {$pat & [expr {1 << $i}] }] } { return $i}
     }
     return -1
   }

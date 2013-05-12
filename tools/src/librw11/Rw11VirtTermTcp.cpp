@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTermTcp.cpp 508 2013-04-20 18:43:28Z mueller $
+// $Id: Rw11VirtTermTcp.cpp 516 2013-05-05 21:24:52Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-05   516   1.0.2  fix mistakes in emsg generation with errno
 // 2013-04-20   508   1.0.1  add fSndPreConQue handling
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-13   488   0.1    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtTermTcp.cpp 508 2013-04-20 18:43:28Z mueller $
+  \version $Id: Rw11VirtTermTcp.cpp 516 2013-05-05 21:24:52Z mueller $
   \brief   Implemenation of Rw11VirtTermTcp.
 */
 
@@ -215,8 +216,8 @@ bool Rw11VirtTermTcp::Snd(const uint8_t* data, size_t count, RerrMsg& emsg)
     if (irc < 0) {
       RlogMsg lmsg(LogFile(),'E');
       RerrMsg emsg("Rw11VirtTermTcp::Snd", 
-                   string("write() for port ") + fChannelId +
-                   string(" failed: ", errno));
+                   string("write() for port ") + fChannelId + " failed: ", 
+                   errno);
       lmsg << emsg;
     } else {
       fStats.Inc(kStatNVTSndRaw, double(irc));
@@ -268,8 +269,8 @@ int Rw11VirtTermTcp::ListenPollHandler(const pollfd& pfd)
   if (fFd < 0) {
     RlogMsg lmsg(LogFile(),'E');
     RerrMsg emsg("Rw11VirtTermTcp::ListenPollHandler", 
-                 string("accept() for port ") + fChannelId +
-                 string(" failed: ", errno));
+                 string("accept() for port ") + fChannelId + " failed: ", 
+                 errno);
     lmsg << emsg;    
     // FIXME_code: proper error handling
     return 0;
@@ -317,8 +318,8 @@ int Rw11VirtTermTcp::ListenPollHandler(const pollfd& pfd)
     fFd = -1;
     RlogMsg lmsg(LogFile(),'E');
     RerrMsg emsg("Rw11VirtTermTcp::ListenPollHandler", 
-                 string("initial write()s for port ") + fChannelId +
-                 string(" failed: ", errno));
+                 string("initial write()s for port ") + fChannelId + 
+                 " failed: ", errno);
     lmsg << emsg;    
     return 0;
   }
@@ -408,8 +409,8 @@ int Rw11VirtTermTcp::RcvPollHandler(const pollfd& pfd)
     if (irc < 0) {
       RlogMsg lmsg(LogFile(),'E');
       RerrMsg emsg("Rw11VirtTermTcp::ListenPollHandler", 
-                   string("read() for port ") + fChannelId +
-                   string(" failed: ", errno));
+                   string("read() for port ") + fChannelId + " failed: ", 
+                   errno);
       lmsg << emsg;
     }
     if (fTcpTrace) {

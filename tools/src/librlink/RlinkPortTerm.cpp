@@ -1,4 +1,4 @@
-// $Id: RlinkPortTerm.cpp 494 2013-03-03 21:50:07Z mueller $
+// $Id: RlinkPortTerm.cpp 516 2013-05-05 21:24:52Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -25,7 +25,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPortTerm.cpp 494 2013-03-03 21:50:07Z mueller $
+  \version $Id: RlinkPortTerm.cpp 516 2013-05-05 21:24:52Z mueller $
   \brief   Implemenation of RlinkPortTerm.
 */
 
@@ -114,7 +114,7 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
     if (baud=="4000000" || baud=="4000k" || baud=="4M") speed = B4000000;
     if (speed == B0) {
       emsg.Init("RlinkPortTerm::Open()", 
-                string("invalid baud rate '") + baud + string("' specified"));
+                string("invalid baud rate '") + baud + "' specified");
       return false;
     }
   }
@@ -124,23 +124,22 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
   fd = open(fUrl.Path().c_str(), O_RDWR|O_NOCTTY);
   if (fd < 0) {
     emsg.InitErrno("RlinkPortTerm::Open()", 
-                   string("open() for '") + fUrl.Path() + string("' failed: "),
+                   string("open() for '") + fUrl.Path() + "' failed: ",
                    errno);
     return false;
   }
 
   if (!isatty(fd)) {
     emsg.Init("RlinkPortTerm::Open()", 
-              string("isatty() check for '") + fUrl.Path() + 
-              string("' failed: not a TTY"));
+              string("isatty() check for '") + fUrl.Path() +
+              "' failed: not a TTY");
     close(fd);
     return false;
   }
 
   if (tcgetattr(fd, &fTiosOld) != 0) {
     emsg.InitErrno("RlinkPortTerm::Open()", 
-                   string("tcgetattr() for '") + fUrl.Path() + 
-                   string("' failed: "),
+                   string("tcgetattr() for '") + fUrl.Path() + "' failed: ",
                    errno);
     close(fd);
     return false;
@@ -174,7 +173,7 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
 
   if (cfsetspeed(&fTiosNew, speed) != 0) {
     emsg.InitErrno("RlinkPortTerm::Open()", 
-                   string("cfsetspeed() for '") + baud + string("' failed: "),
+                   string("cfsetspeed() for '") + baud + "' failed: ",
                    errno);
     close(fd);
     return false;
@@ -198,8 +197,7 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
 
   if (tcsetattr(fd, TCSANOW, &fTiosNew) != 0) {
     emsg.InitErrno("RlinkPortTerm::Open()", 
-                   string("tcsetattr() for '") + fUrl.Path() + 
-                   string("' failed: "),
+                   string("tcsetattr() for '") + fUrl.Path() + "' failed: ",
                    errno);
     close(fd);
     return false;
@@ -212,9 +210,8 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
   struct termios tios;
   if (tcgetattr(fd, &tios) != 0) {
     emsg.InitErrno("RlinkPortTerm::Open()", 
-                   string("2nd tcgetattr() for '") + fUrl.Path() + 
-                   string("' failed: "), 
-                   errno);
+                   string("2nd tcgetattr() for '") + fUrl.Path() +
+                   "' failed: ", errno);
     close(fd);
     return false;
   }
@@ -232,8 +229,7 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
 
   if (pmsg) {
     emsg.Init("RlinkPortTerm::Open()",
-              string("tcsetattr() failed to set") +
-                string(pmsg));
+              string("tcsetattr() failed to set") + string(pmsg));
     close(fd);
     return false;
   }
@@ -246,7 +242,7 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
     if (tcsendbreak(fd, 0) != 0) {
       emsg.InitErrno("RlinkPortTerm::Open()", 
                      string("tcsendbreak() for '") + fUrl.Path() + 
-                     string("' failed: "), errno);
+                     "' failed: ", errno);
       Close();
       return false;
     }

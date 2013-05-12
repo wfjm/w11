@@ -1,4 +1,4 @@
-// $Id: RlinkServer.hpp 509 2013-04-21 20:46:20Z mueller $
+// $Id: RlinkServer.hpp 513 2013-05-01 14:02:06Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-01   513   1.0.2  fTraceLevel now uint32_t
 // 2013-04-21   509   1.0.1  add Resume(), reorganize server start handling
 // 2013-03-06   495   1.0    Initial version
 // 2013-01-12   474   0.5    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RlinkServer.hpp 509 2013-04-21 20:46:20Z mueller $
+  \version $Id: RlinkServer.hpp 513 2013-05-01 14:02:06Z mueller $
   \brief   Declaration of class \c RlinkServer.
 */
 
@@ -99,8 +100,8 @@ namespace Retro {
       bool          IsActiveInside() const;
       bool          IsActiveOutside() const;
 
-      void          SetTraceLevel(size_t level);
-      size_t        TraceLevel() const;
+      void          SetTraceLevel(uint32_t level);
+      uint32_t      TraceLevel() const;
 
       const Rstats& Stats() const;
 
@@ -169,7 +170,7 @@ namespace Retro {
       boost::thread fServerThread;
       bool          fAttnSeen;
       uint16_t      fAttnPatt;
-      size_t        fTraceLevel;            //!< trace level
+      uint32_t      fTraceLevel;            //!< trace level
       Rstats        fStats;                 //!< statistics
 };
   

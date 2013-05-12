@@ -1,4 +1,4 @@
-// $Id: Rw11Unit.hpp 495 2013-03-06 17:13:48Z mueller $
+// $Id: Rw11Unit.hpp 515 2013-05-04 17:28:59Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-03   515   1.1    use AttachDone(),DetachCleanup(),DetachDone()
+// 2013-05-01   513   1.0.1  add fAttachOpts, (Set)AttachOpts()
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-13   488   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -20,12 +22,14 @@
 
 /*!
   \file
-  \version $Id: Rw11Unit.hpp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: Rw11Unit.hpp 515 2013-05-04 17:28:59Z mueller $
   \brief   Declaration of class Rw11Unit.
 */
 
 #ifndef included_Retro_Rw11Unit
 #define included_Retro_Rw11Unit 1
+
+#include <string>
 
 #include "boost/utility.hpp"
 
@@ -47,6 +51,9 @@ namespace Retro {
       size_t        Index() const;
       std::string   Name() const;
 
+      void          SetAttachOpts(const std::string& opts);
+      const std::string& AttachOpts() const;
+
       Rw11Cntl&     CntlBase() const;
       Rw11Cpu&      Cpu() const;
       Rw11&         W11() const;
@@ -66,8 +73,9 @@ namespace Retro {
       };    
 
     protected:
-      virtual void  AttachSetup();
+      virtual void  AttachDone();
       virtual void  DetachCleanup();
+      virtual void  DetachDone();
 
     private:
                     Rw11Unit() {}           //!< default ctor blocker
@@ -75,6 +83,7 @@ namespace Retro {
     protected:
       Rw11Cntl*     fpCntlBase;             //!< plain Rw11Cntl ptr
       size_t        fIndex;                 //!< unit number
+      std::string   fAttachOpts;            //!< unit context options for attach
       Rstats        fStats;                 //!< statistics
   };
   

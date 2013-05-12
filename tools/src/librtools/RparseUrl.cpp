@@ -1,4 +1,4 @@
-// $Id: RparseUrl.cpp 492 2013-02-24 22:14:47Z mueller $
+// $Id: RparseUrl.cpp 516 2013-05-05 21:24:52Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,7 @@
 
 /*!
   \file
-  \version $Id: RparseUrl.cpp 492 2013-02-24 22:14:47Z mueller $
+  \version $Id: RparseUrl.cpp 516 2013-05-05 21:24:52Z mueller $
   \brief   Implemenation of RparseUrl.
 */
 
@@ -97,8 +97,7 @@ bool RparseUrl::Set(const std::string& url, const std::string& optlist,
           if (c == '\\') {
             if (i+1 >= url.length()) {
               emsg.Init("RparseUrl::ParseUrl()",
-                        string("invalid trailing \\ in url '") + url + 
-                        string("'"));
+                        string("invalid trailing \\ in url '") + url + "'");
               return false;
             }
             i += 1;
@@ -107,7 +106,7 @@ bool RparseUrl::Set(const std::string& url, const std::string& optlist,
               case ';'  : c = ';';  break;
               default   : emsg.Init("RparseUrl::ParseUrl()",
                                     string("invalid \\ escape in url '") + 
-                                    url + string("'"));
+                                    url + "'");
                           return false;
             }
           }
@@ -208,7 +207,8 @@ bool RparseUrl::AddOpt(const std::string& key, const std::string& val,
   lkey += "|";
   if (optlist.find(lkey) == string::npos) {
     emsg.Init("RparseUrl::AddOpt()", 
-              string("invalid field name '") + lkey + string("'"));
+              string("invalid field name '") + lkey + "'; allowed: '" +
+              optlist + "'");
     return false;
   }
 

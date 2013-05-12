@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDL11.cpp 508 2013-04-20 18:43:28Z mueller $
+// $Id: Rw11CntlDL11.cpp 516 2013-05-05 21:24:52Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-04   516   1.0.2  add RxRlim support (receive interrupt rate limit)
 // 2013-04-20   508   1.0.1  add trace support
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-05   483   0.1    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlDL11.cpp 508 2013-04-20 18:43:28Z mueller $
+  \version $Id: Rw11CntlDL11.cpp 516 2013-05-05 21:24:52Z mueller $
   \brief   Implemenation of Rw11CntlDL11.
 */
 
@@ -59,6 +60,9 @@ const uint16_t Rw11CntlDL11::kProbeOff;
 const bool     Rw11CntlDL11::kProbeInt;
 const bool     Rw11CntlDL11::kProbeRem;
 
+const uint16_t Rw11CntlDL11::kRCSR_M_RXRLIM;
+const uint16_t Rw11CntlDL11::kRCSR_V_RXRLIM;
+const uint16_t Rw11CntlDL11::kRCSR_B_RXRLIM;
 const uint16_t Rw11CntlDL11::kRCSR_M_RDONE;
 const uint16_t Rw11CntlDL11::kXCSR_M_XRDY;
 const uint16_t Rw11CntlDL11::kXBUF_M_RRDY;
@@ -70,7 +74,8 @@ const uint16_t Rw11CntlDL11::kXBUF_M_XBUF;
 
 Rw11CntlDL11::Rw11CntlDL11()
   : Rw11CntlBase<Rw11UnitDL11,1>("dl11"),
-    fPC_xbuf(0)
+    fPC_xbuf(0),
+    fRxRlim(0)
 {
   // must here because Unit have a back-pointer (not available at Rw11CntlBase)
   for (size_t i=0; i<NUnit(); i++) {
@@ -117,6 +122,20 @@ void Rw11CntlDL11::Start()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
+void Rw11CntlDL11::UnitSetup(size_t ind)
+{
+  Rw11Cpu& cpu  = Cpu();
+  uint16_t rcsr = (fRxRlim<<kRCSR_V_RXRLIM) & kRCSR_M_RXRLIM;
+  RlinkCommandList clist;
+  cpu.AddIbrb(clist, fBase);
+  cpu.AddWibr(clist, fBase+kRCSR, rcsr);
+  Server().Exec(clist);
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
 void Rw11CntlDL11::Wakeup()
 {
   if (!fspUnit[0]->RcvQueueEmpty()) {
@@ -141,11 +160,33 @@ void Rw11CntlDL11::Wakeup()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
+void Rw11CntlDL11::SetRxRlim(uint16_t rlim)
+{
+  if (rlim > kRCSR_B_RXRLIM)
+    throw Rexception("Rw11CntlDL11::SetRxRlim","Bad args: rlim too large");
+
+  fRxRlim = rlim;
+  UnitSetup(0);
+  return;
+}
+  
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+uint16_t Rw11CntlDL11::RxRlim() const
+{
+  return fRxRlim;
+}
+  
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
 void Rw11CntlDL11::Dump(std::ostream& os, int ind, const char* text) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11CntlDL11 @ " << this << endl;
   os << bl << "  fPC_xbuf:        " << fPC_xbuf << endl;
+  os << bl << "  fRxRlim:         " << fRxRlim  << endl;
 
   Rw11CntlBase<Rw11UnitDL11,1>::Dump(os, ind, " ^");
   return;

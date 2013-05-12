@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.cpp 506 2013-04-14 21:54:03Z mueller $
+// $Id: Rw11Cpu.cpp 516 2013-05-05 21:24:52Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cpu.cpp 506 2013-04-14 21:54:03Z mueller $
+  \version $Id: Rw11Cpu.cpp 516 2013-05-05 21:24:52Z mueller $
   \brief   Implemenation of Rw11Cpu.
 */
 #include <stdlib.h>
@@ -399,7 +399,7 @@ bool Rw11Cpu::LoadAbs(const std::string& fname, RerrMsg& emsg, bool trace)
 
   if (fd < 0) {
     emsg.InitErrno("Rw11Cpu::LoadAbs()", string("open() for '") + fname + 
-                   string("' failed: "), errno);
+                   "' failed: ", errno);
     return false;
   }
   
@@ -590,8 +590,7 @@ bool Rw11Cpu::Boot(const std::string& uname, RerrMsg& emsg)
   }
 
   if (!TestCntl(cname)) {
-    emsg.Init("Rw11Cpu::Boot", string("controller '") + cname + 
-              string("' not known"));
+    emsg.Init("Rw11Cpu::Boot", string("controller '") + cname + "' not known");
     return false;
   }
 
@@ -605,7 +604,7 @@ bool Rw11Cpu::Boot(const std::string& uname, RerrMsg& emsg)
 
   if (!cntl.BootCode(uind, code, aload, astart) || code.size()==0) {
     emsg.Init("Rw11Cpu::Boot", string("boot not supported for controller '") 
-              + cname + string("'"));
+              + cname + "'");
     return false;
   }
 

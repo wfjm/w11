@@ -1,4 +1,4 @@
-# $Id: util.tcl 517 2013-05-09 21:34:45Z mueller $
+# $Id: util.tcl 553 2014-03-17 06:40:08Z mueller $
 #
 # Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-03-07   553   1.1.3  move definitions to defs.tcl
 # 2013-05-09   517   1.1.2  add setup_(tt|lp|pp|ostr) device setup procs
 # 2013-04-26   510   1.1.1  split, asm* and tbench* into separate files
 # 2013-04-01   501   1.1    add regdsc's and asm* procs
@@ -25,17 +26,6 @@ package require rlink
 package require rwxxtpp
 
 namespace eval rw11 {
-  #
-  # setup cp interface register descriptions for w11a
-  #
-  regdsc CP_CNTL {func 3 0}
-  regdsc CP_STAT {rust 7 4} {halt 3} {go 2} {merr 1} {err 0}
-  regdsc CP_IBRB {base 12 7} {bw 1 2}
-  #
-  # setup w11a register descriptions
-  #
-  regdsc PSW {cmode 15 2} {pmode 13 2} {rset 11} {pri 7 3} {tflag 3} {cc 3 4}
-
   #
   # setup_cpu: create w11 cpu system
   # 

@@ -1,6 +1,6 @@
 #! /usr/bin/env tclsh
 # -*- tcl -*-
-# $Id: ti_rri 511 2013-04-27 13:51:46Z mueller $
+# $Id: ti_rri 522 2013-05-24 17:50:29Z mueller $
 #
 # Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -15,6 +15,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2013-05-19   521   1.1.6  setup proper interactive handling; add --run reap
 # 2013-04-26   510   1.1.5  reorganize readline startup
 # 2013-04-12   504   1.1.4  add --pack; trailing '-' argv implies --int
 # 2013-02-05   482   1.1.3  stop server is rls found
@@ -90,8 +91,9 @@ proc tirri_exit {{doexit 1}} {
 
   # FIXME_code: should sync here with -run process run-down
   #             but no wait available in tcl (grr...)
-  if { "$runpid" ne ""  } {
+  if { "$runpid" ne "" } {
     after 100;                          # currently just wait 100ms
+    rutil::waitpid $runpid
   }
   if { $doexit } {
     puts {};                            # \n to ensure shell prompt on new line
@@ -144,43 +146,14 @@ if { $opts(help) } {
   puts {                 useful to start test benches, usually via 'tbw'}
   puts {  --fifo[=ARGS]  open fifo type rlink port. Optional arguments are:}
   puts {                   --fifo=[NAME[,OPTS]]}
-  puts {                     NAME  fifo name prefix, default 'rlink_cext_fifo'}
-  puts {                     OPTS  further options (comma separated list):}
-  puts {                             keep  fifo is kept open on exit}
   puts {  --term[=ARGS]  open term type rlink port. Optional arguments are:}
   puts {                   --term=[NAME[,BAUD[,OPTS]]]}
-  puts {                     NAME  tty device name, default 'USB0'}
-  puts {                           if not starting with '/' the name is}
-  puts {                           prefixed with '/dev/tty'}
-  puts {                     BAUD  serial port baud rate, default '115k'}
-  puts {                           allowed baud rate settings are:}
-  puts {                             2400, 4800, 9600, 19200, 19k, 38400, 38k}
-  puts {                             57600, 57k, 115200, 115k, 230400, 230k}
-  puts {                             460800, 460k, 500000, 500k, 921600, 921k}
-  puts {                             1000000, 1000k, 1M, 1500000, 1500k}
-  puts {                             2000000, 2000k, 2M, 2500000, 2500k}
-  puts {                             3000000, 3000k, 3M, 4000000, 4000k, 4M}
-  puts {                     OPTS  further options (comma separated list):}
-  puts {                             break  send a break, do autobaud}
-  puts {                             cts    hardware flow control (cts/rts)}
-  puts {                             xon    software flow control (xon/xoff)}
   puts {  --cuff[=ARGS]  open cuff type rlink port. Optional arguments are:}
   puts {                   --cuff=[NAME[,OPTS]]}
-  puts {                     NAME  USB path, default derived from environment}
-  puts {                             variables RETRO_FX2_VID and RETRO_FX2_PID}
-  puts {                     OPTS  further options (comma separated list):}
-  puts {                             trace  trace USB activities}
   puts {  --log=FILE     set log file name. Default is to write to stdout.}
-  puts {  --logl=LVL     set log level, default is '2' allowed values:}
-  puts {                   0 no logging}
-  puts {                   1 log rlink commands with communication errors}
-  puts {                   2 log rlink commands with failed checks}
-  puts {                   3 log all rlink commands}
+  puts {  --logl=LVL     set log level, default is '2' allowed values 0-3.}
   puts {  --dmpl=LVL     set dump level, default is '0', values like logl}
-  puts {  --tiol=LVL     set i/o trace level, default is '0', allowed values:}
-  puts {                   0 no i/o trace}
-  puts {                   1 trace buffer activities}
-  puts {                   2 trace character activities}
+  puts {  --tiol=LVL     set i/o trace level, default is '0', allowed 0-2.}
   puts {  --int          enter interactive mode even when commands given}
   puts {  --help         display this help and exit}
   puts {  --             all following arguments are treated as tcl commands}
@@ -210,13 +183,19 @@ if { $nopen > 1 } {
   return 1
 }
 
+# setup auto path
 lappend auto_path [file join $env(RETROBASE) tools tcl]
 lappend auto_path [file join $env(RETROBASE) tools lib]
 
-package require rlink
+# setup default packages
 package require rutiltpp
 package require rlinktpp
+package require rlink
 
+# setup signal handling
+rutil::sigaction -init
+
+# setup connect and server objects
 rlinkconnect rlc
 rlinkserver rls rlc
 
@@ -301,11 +280,10 @@ set rlink::sim_mode [rlink::isfifo]
 # so we have to check whether stdin/stdout is a terminal and set
 # tcl_interactive accordingly
 
-# FIXME_code: fstat not available (grr...), currently just assume istty
-set tcl_interactive 1
+set tcl_interactive [rutil::isatty STDIN]
 
 # determine whether interactive mode, if yes, initialize readline
-if {$opts(int) || [llength $clist] == 0 } {
+if {$tcl_interactive && ($opts(int) || [llength $clist] == 0) } {
   set tirri_interactive 1
 
   package require tclreadline
@@ -349,8 +327,7 @@ foreach cmd $clist {
   }
 }
 
-
-if { $tirri_interactive } {
+if { $tcl_interactive && $tirri_interactive } {
   ::tclreadline::Loop
 } else {
   tirri_exit 0

@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: set_ftdi_lat.1 321 2010-08-01 19:43:39Z mueller $
+.\"  $Id: set_ftdi_lat.1 547 2013-12-29 13:10:07Z mueller $
 .\"
-.\" Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2010-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH SET_FTDI_LAT 1 2010-07-24 "Retro Project" "Retro Project Manual"
+.TH SET_FTDI_LAT 1 2013-12-26 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 set_ftdi_lat \- set latency timer in FTDI USB UART or FIFO
@@ -19,51 +19,48 @@ set_ftdi_lat \- set latency timer in FTDI USB UART or FIFO
 .
 .\" ------------------------------------------------------------------
 .SH DESCRIPTION
+\fBNote:\fP command is obsolete when kernel 2.6.32 or newer is used.
+See NOTES section.
+.
+.PP
 FTDI USB UART or FIFO adapters of type FT232, FT245, and other similar
 models have a latency timer which controls the maximal time between reception
 of a byte by the UART or FIFO and the emission of a USB frame. The default
-is 16 msec and can lead to unsatisfactory response times.
+is 16 msec on kernels prior to 2.6.32 and can lead to unsatisfactory 
+response times.
 The 
 .B set_ftdi_lat
-script allows to set this latency timer via a node in the
-.I /sys
+script allows to set this latency timer via a node in the \fI/sys\fP
 virtual file system, specifically
 .IP "" 4
 .I /sys/bus/usb-serial/devices/ttyUSBn/latency_timer
 .
 .PP
-The first optional argument
-.I dev
-allows to specify the device name in the form
-.I USBn
-with the default
-.IR USB0 .
-The second optional argument
-.I
-time
-allows to specify the new value of the latency timer, given in msec. 
-Default is 1 msec.
-.
+The first optional argument \fIdev\fP allows to specify the device name 
+in the form \fIUSBn\fP with the default \fIUSB0\fP. The second optional
+argument \fItime\fP allows to specify the new value of the latency timer,
+given in msec. Default is 1 msec.
 .
 .\" ------------------------------------------------------------------
 .SH EXIT STATUS
-If device
-.RI tty dev
-is not found or the entry in
-.I /sys
-is not writable an exit status 1 is returned.
+If device tty\fIdev\fP is not found or the entry in \fI/sys\fP is not 
+writable an exit status 1 is returned.
 
 .\" ------------------------------------------------------------------
 .SH EXAMPLES
-In general the command is given via 
-.BR sudo ,
-like
+In general the command is given via \fBsudo\fP(8) like
+
 .EX
     sudo set_ftdi_lat USB0 1
 .EE
 .\" ------------------------------------------------------------------
 .SH "SEE ALSO"
-.BR sudo (1)
+.BR sudo (8)
+.
+.\" ------------------------------------------------------------------
+.SH NOTES
+For linux kernel 2.6.32 or newer the default is 1 ms already. On all 
+up-to-date systems therefore no need to use this command.
 .
 .\" ------------------------------------------------------------------
 .SH AUTHOR

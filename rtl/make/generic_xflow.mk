@@ -1,7 +1,8 @@
-# $Id: generic_xflow.mk 477 2013-01-27 14:07:10Z mueller $
+# $Id: generic_xflow.mk 539 2013-10-13 17:06:35Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2013-10-12   539   1.9    use xtwi; support trce tsi file; use -C for cpp
 # 2013-01-27   477   1.8    remove defaults for ISE_(BOARD|PATH) and XFLOWOPT_*
 #                           use dontincdep.mk to suppress .dep include on clean
 # 2013-01-05   470   1.7.6  remove '-r' from all non-dir clean rm's
@@ -85,7 +86,7 @@ XFLOW    = xflow -p ${ISE_PATH}
 	if [ -r ${RETROBASE}/rtl/make/${XFLOWOPT_SYN} ]; then \
 		cp ${RETROBASE}/rtl/make/${XFLOWOPT_SYN} ./ise; fi
 	if [ -r ${XFLOWOPT_SYN} ]; then cp ${XFLOWOPT_SYN} ./ise; fi
-	${XFLOW} -wd ise -synth ${XFLOWOPT_SYN} \
+	xtwi ${XFLOW} -wd ise -synth ${XFLOWOPT_SYN} \
 	  -g top_entity:`vbomconv --get_top $<` $*.prj 
 	(cd ./ise; chmod -x *.* )
 	if [ -r ./ise/$*.ngc ]; then cp -p ./ise/$*.ngc .; fi
@@ -107,7 +108,7 @@ XFLOW    = xflow -p ${ISE_PATH}
 	if [ -r ${RETROBASE}/rtl/make/${XFLOWOPT_SYN} ]; then \
 		cp ${RETROBASE}/rtl/make/${XFLOWOPT_SYN} ./ise; fi
 	if [ -r ${XFLOWOPT_SYN} ]; then cp ${XFLOWOPT_SYN} ./ise; fi
-	${XFLOW} -wd ise -synth ${XFLOWOPT_SYN} \
+	xtwi ${XFLOW} -wd ise -synth ${XFLOWOPT_SYN} \
 	  -g top_entity:`vbomconv --get_top $<` $*.prj 
 	(cd ./ise; chmod -x *.* )
 	if [ -r ./ise/$*.ngc ]; then cp -p ./ise/$*.ngc .; fi
@@ -128,6 +129,7 @@ XFLOW    = xflow -p ${ISE_PATH}
 #            %_map.log  map log file                  (renamed %_map.mrp)
 #            %_par.log  par log file                  (renamed %.par)
 #            %_pad.log  pad file                      (renamed %_pad.txt)
+#            %_tsi.log  trce tsi file                 (renamed %.tsi)
 #            %_twr.log  trce log file                 (renamed %.twr)
 #
 %.ncd %.pcf: %.ngc
@@ -137,7 +139,7 @@ XFLOW    = xflow -p ${ISE_PATH}
 	if [ -r ${RETROBASE}/rtl/make/${XFLOWOPT_IMP} ]; then \
 		cp ${RETROBASE}/rtl/make/${XFLOWOPT_IMP} ./ise; fi
 	if [ -r ${XFLOWOPT_IMP} ]; then cp -p ${XFLOWOPT_IMP} ./ise; fi
-	${XFLOW} -wd ise -implement ${XFLOWOPT_IMP} $<
+	xtwi ${XFLOW} -wd ise -implement ${XFLOWOPT_IMP} $<
 	(cd ./ise; chmod -x *.* )
 	if [ -r ./ise/$*.ncd ]; then cp -p ./ise/$*.ncd .; fi
 	if [ -r ./ise/$*.pcf ]; then cp -p ./ise/$*.pcf .; fi
@@ -146,6 +148,7 @@ XFLOW    = xflow -p ${ISE_PATH}
 	if [ -r ./ise/$*.par ]; then cp -p ./ise/$*.par ./$*_par.log; fi
 	if [ -r ./ise/$*_pad.txt ]; then cp -p ./ise/$*_pad.txt ./$*_pad.log; fi
 	if [ -r ./ise/$*.twr ]; then cp -p ./ise/$*.twr ./$*_twr.log; fi
+	if [ -r ./ise/$*.tsi ]; then cp -p ./ise/$*.tsi ./$*_tsi.log; fi
 	@ if [ -r $*.mfset ]; then \
 	  echo "=============================================================";\
 	  echo "*     Translate Diagnostic Summary                          *";\
@@ -171,7 +174,7 @@ XFLOW    = xflow -p ${ISE_PATH}
 %.bit: %.ncd
 	if [ ! -d ./ise ]; then mkdir ./ise; fi
 	if [ -r $*.ncd ]; then cp -p $*.ncd ./ise; fi
-	(cd ./ise; bitgen -l -w -m -g ReadBack -g UserId:${ISE_USERID} -intstyle xflow $*.ncd)
+	(cd ./ise; xtwi bitgen -l -w -m -g ReadBack -g UserId:${ISE_USERID} -intstyle xflow $*.ncd)
 	(cd ./ise; chmod -x *.* )
 	if [ -r ./ise/$*.bit ]; then cp -p ./ise/$*.bit .; fi
 	if [ -r ./ise/$*.msk ]; then cp -p ./ise/$*.msk .; fi
@@ -189,7 +192,7 @@ XFLOW    = xflow -p ${ISE_PATH}
 #   output:  %.svf
 #
 %.svf: %.bit
-	config_wrapper --board=${ISE_BOARD} --path=${ISE_PATH} bit2svf $*.bit
+	xtwi config_wrapper --board=${ISE_BOARD} --path=${ISE_PATH} bit2svf $*.bit
 
 #
 # Configure FPGA with impact
@@ -197,7 +200,7 @@ XFLOW    = xflow -p ${ISE_PATH}
 #   output:  .PHONY
 #
 %.iconfig: %.bit
-	config_wrapper --board=${ISE_BOARD} --path=${ISE_PATH} iconfig $*.bit
+	xtwi config_wrapper --board=${ISE_BOARD} --path=${ISE_PATH} iconfig $*.bit
 
 #
 # Configure FPGA with jtag
@@ -210,7 +213,7 @@ endif
 #
 %.jconfig: %.svf
 	fx2load_wrapper --board=${ISE_BOARD} ${FX2LOAD_OPT}
-	config_wrapper --board=${ISE_BOARD} --path=${ISE_PATH} jconfig $*.svf
+	xtwi config_wrapper --board=${ISE_BOARD} --path=${ISE_PATH} jconfig $*.svf
 
 #
 # Print log file summary
@@ -239,7 +242,7 @@ endif
 %_ssim.vhd: %.ngc
 	if [ ! -d ./ise ]; then mkdir ./ise; fi
 	if [ -r $*.ngc ]; then cp -p $*.ngc ./ise; fi
-	(cd ise; netgen -sim  -intstyle xflow -ofmt vhdl -w $*.ngc)
+	(cd ise; xtwi netgen -sim  -intstyle xflow -ofmt vhdl -w $*.ngc)
 	(cd ./ise; chmod -x *.* )
 	if [ -r ./ise/$*.vhd ]; then cp -p ./ise/$*.vhd ./$*_ssim.vhd; fi
 	if [ -r ./ise/$*.nlf ]; then cp -p ./ise/$*.nlf ./$*_ngn_ssim.log; fi
@@ -253,7 +256,7 @@ endif
 %_fsim.vhd: %.ngc
 	if [ ! -d ./ise ]; then mkdir ./ise; fi
 	if [ -r $*.ngc ]; then cp -p $*.ngc ./ise; fi
-	(cd ise; ngdbuild -p ${ISE_PATH} -nt timestamp -intstyle xflow \
+	(cd ise; xtwi ngdbuild -p ${ISE_PATH} -nt timestamp -intstyle xflow \
 	$*.ngc $*.ngd)
 	(cd ise; netgen -sim -intstyle xflow -ofmt vhdl -w $*.ngd)
 	(cd ./ise; chmod -x *.* )
@@ -275,7 +278,7 @@ endif
 	if [ ! -d ./ise ]; then mkdir ./ise; fi
 	if [ -r $*.ncd ]; then cp -p $*.ncd ./ise; fi
 	if [ -r $*.pcf ]; then cp -p $*.pcf ./ise; fi
-	(cd ise; netgen -ofmt vhdl -sim -w -intstyle xflow -pcf \
+	(cd ise; xtwi netgen -ofmt vhdl -sim -w -intstyle xflow -pcf \
 	$*.pcf $*.ncd $*_tsim.vhd )
 	(cd ./ise; chmod -x *.* )
 	if [ -r ./ise/$*_tsim.vhd ]; then cp -p ./ise/$*_tsim.vhd .; fi
@@ -292,12 +295,12 @@ endif
 # generate cpp'ed ucf files from ucf_cpp
 #
 %.ucf : %.ucf_cpp
-	cpp -I${RETROBASE}/rtl $*.ucf_cpp $*.ucf
+	cpp -C -I${RETROBASE}/rtl $*.ucf_cpp $*.ucf
 #
 # generate nested dependency rules for cpp'ed ucf files from ucf_cpp
 #
 %.dep_ucf_cpp : %.ucf_cpp
-	cpp -I${RETROBASE}/rtl -MM $*.ucf_cpp |\
+	cpp -C -I${RETROBASE}/rtl -MM $*.ucf_cpp |\
             sed 's/\.o:/\.ucf:/' > $*.dep_ucf_cpp
 #
 include $(RETROBASE)/rtl/make/dontincdep.mk
@@ -320,6 +323,7 @@ ise_clean: ise_tmp_clean
 	rm -f *_par.log
 	rm -f *_pad.log
 	rm -f *_twr.log
+	rm -f *_tsi.log
 	rm -f *_bgn.log
 	rm -f *_ngn_[sft]sim.log
 	rm -f *_svn.log

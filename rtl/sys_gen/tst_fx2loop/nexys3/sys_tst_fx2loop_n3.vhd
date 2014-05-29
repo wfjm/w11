@@ -1,4 +1,4 @@
--- $Id: sys_tst_fx2loop_n3.vhd 514 2013-05-03 16:11:23Z mueller $
+-- $Id: sys_tst_fx2loop_n3.vhd 538 2013-10-06 17:21:25Z mueller $
 --
 -- Copyright 2012-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -15,7 +15,7 @@
 -- Module Name:    sys_tst_fx2loop_n3 - syn
 -- Description:    test of Cypress EZ-USB FX2 controller
 --
--- Dependencies:   vlib/xlib/dcm_sfs
+-- Dependencies:   vlib/xlib/s6_cmt_sfs
 --                 vlib/genlib/clkdivce
 --                 bpgen/sn_humanio
 --                 tst_fx2loop_hiomap
@@ -28,7 +28,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 13.3, 14.5; ghdl 0.29
+-- Tool versions:  xst 13.3, 14.5, 14.6; ghdl 0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri ctl/MHz
@@ -45,6 +45,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2013-10-06   538   1.1    pll support, use clksys_vcodivide ect
 -- 2013-04-24   510   1.0.1  CLKDIV.CDUWIDTH now 8, support >127 sysclk
 -- 2012-04-09   461   1.0    Initial version (derived from sys_tst_fx2loop_n2)
 ------------------------------------------------------------------------------
@@ -137,11 +138,15 @@ begin
     report "assert sys_conf_clksys on MHz grid"
     severity failure;
 
-  DCM : dcm_sfs
+  GEN_CLKSYS : s6_cmt_sfs
     generic map (
-      CLKFX_DIVIDE   => sys_conf_clkfx_divide,
-      CLKFX_MULTIPLY => sys_conf_clkfx_multiply,
-      CLKIN_PERIOD   => 10.0)
+      VCO_DIVIDE     => sys_conf_clksys_vcodivide,
+      VCO_MULTIPLY   => sys_conf_clksys_vcomultiply,
+      OUT_DIVIDE     => sys_conf_clksys_outdivide,
+      CLKIN_PERIOD   => 10.0,
+      CLKIN_JITTER   => 0.01,
+      STARTUP_WAIT   => false,
+      GEN_TYPE       => sys_conf_clksys_gentype)
     port map (
       CLKIN   => I_CLK100,
       CLKFX   => CLK,

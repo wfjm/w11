@@ -1,9 +1,10 @@
 FLOWTYPE = FPGA_SYNTHESIS;
 #
-# $Id: syn_s3_speed.opt 405 2011-08-14 08:16:28Z mueller $
+# $Id: syn_s3_speed.opt 540 2013-10-13 18:42:50Z mueller $
 #
 #  Revision History: 
-# Date         Rev Version Comment
+# Date         Rev Version  Comment
+# 2013-10-05   540   1.2    use -shreg_extract NO to avoid shreg capture flops
 # 2011-08-13   405   1.1    renamed, moved to rtl/make;
 # 2007-07-20    67   1.0    Initial version
 #
@@ -31,6 +32,8 @@ ParamFile: <design>_xst.scr
 "-p <partname>";                  # Target Device
 "-opt_mode SPEED";                # Optimization Criteria # AREA or SPEED
 "-opt_level 2";                   # Optimization Effort Criteria: 2=High
+## "-shreg_min_size 3";           # not available for Spartan-3 !!
+"-shreg_extract NO";              # --> switch shreg extrtaction off instead
 "-uc <design>.xcf";               # Constraint File name
 #
 # The following are HDL Options

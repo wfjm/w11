@@ -1,9 +1,11 @@
 FLOWTYPE = FPGA;
 #
-# $Id: imp_s3_speed.opt 405 2011-08-14 08:16:28Z mueller $
+# $Id: imp_s3_speed.opt 539 2013-10-13 17:06:35Z mueller $
 #
 #  Revision History: 
-# Date         Rev Version Comment
+# Date         Rev Version  Comment
+# 2013-10-11   539   1.2.1  use -fastpaths, -u, -tsi for trce
+# 2013-10-05   537   1.2    use -detail for map
 # 2011-08-13   405   1.1    renamed, moved to rtl/make;
 # 2007-07-20    67   1.0    Initial version
 #
@@ -33,6 +35,7 @@ End Program ngdbuild
 Program map
 -o <design>_map.ncd;     # Output Mapped ncd file
 -intstyle xflow;         # Message Reporting Style: ise, xflow, or silent
+-detail;                 # detailed map report
 <inputdir><design>.ngd;  # Input NGD file
 <inputdir><design>.pcf;  # Physical constraints file
 END Program map
@@ -76,9 +79,11 @@ END Program par
 #
 Program post_par_trce
 -v 3;                        # Produce verbose timing report
-#-e 3;                       # Produce error report (limit 3 items/constraint)
+-fastpaths;                  # report fastest paths/verbose hold paths
+-u 25;                       # report unconstrained paths
 -intstyle xflow;             # Message Reporting Style: ise, xflow, or silent
 -xml <design>.twx;           # Output XML version of the timing report
+-tsi <design>.tsi;           # produce timing specification interaction report
 <inputdir><design>.ncd;      # Input placed and routed ncd
 <inputdir><design>.pcf;      # Physical constraints file
 END Program post_par_trce

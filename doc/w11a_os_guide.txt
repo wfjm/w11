@@ -1,4 +1,4 @@
-# $Id: w11a_os_guide.txt 518 2013-05-12 16:45:02Z mueller $
+# $Id: w11a_os_guide.txt 547 2013-12-29 13:10:07Z mueller $
 
 Guide to run operating system images on w11a systems
 
@@ -120,7 +120,7 @@ Guide to run operating system images on w11a systems
    - setup vt100 emulator window for 2nd DL11
 
        cd $RETROBASE/tools/oskit/<oskit-name>
-       telnet_starter -d -s DL1 &
+       telnet_starter -s -d DL1 &
 
        {Note: the -s ensures that the port numbers used by simh are taken!}
 

@@ -1,7 +1,8 @@
-## $Id: nexys2_time_fx2_ic.ucf 448 2012-01-02 21:55:11Z mueller $
+## $Id: nexys2_time_fx2_ic.ucf 537 2013-10-06 09:06:23Z mueller $
 ##
 ## Revision History: 
 ## Date         Rev Version  Comment
+## 2013-10-05   537   1.1    add VALID for hold time check
 ## 2012-01-01   448   1.0    Initial version
 ##
 ## timing rules for a 30 MHz internal clock design:
@@ -22,5 +23,5 @@ NET "I_FX2_IFCLK" CLOCK_DEDICATED_ROUTE = FALSE;
 ##
 NET "I_FX2_IFCLK" TNM_NET = "I_FX2_IFCLK";
 TIMESPEC "TS_I_FX2_IFCLK" = PERIOD "I_FX2_IFCLK" 33.34 ns HIGH 50 %;
-OFFSET =  IN 2.5 ns BEFORE "I_FX2_IFCLK";
-OFFSET = OUT  10 ns  AFTER "I_FX2_IFCLK";
+OFFSET =  IN 2.5 ns VALID 33 ns BEFORE "I_FX2_IFCLK";
+OFFSET = OUT  10 ns VALID 33 ns  AFTER "I_FX2_IFCLK";

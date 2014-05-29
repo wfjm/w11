@@ -1,4 +1,4 @@
--- $Id: sys_conf_sim.vhd 509 2013-04-21 20:46:20Z mueller $
+-- $Id: sys_conf_sim.vhd 538 2013-10-06 17:21:25Z mueller $
 --
 -- Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,9 +16,10 @@
 -- Description:    Definitions for sys_w11a_n3 (for simulation)
 --
 -- Dependencies:   -
--- Tool versions:  xst 13.1; ghdl 0.29
+-- Tool versions:  xst 13.1, 14.6; ghdl 0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2013-10-06   538   1.3    pll support, use clksys_vcodivide ect
 -- 2013-04-21   509   1.2    add fx2 settings
 -- 2011-11-25   432   1.0    Initial version (cloned from _n3)
 ------------------------------------------------------------------------------
@@ -30,14 +31,14 @@ use work.slvtypes.all;
 
 package sys_conf is
 
-  constant sys_conf_clkfx_divide : positive   :=  1;
-  constant sys_conf_clkfx_multiply : positive :=  1;   -- no dcm in sim...
---  constant sys_conf_clkfx_divide : positive   :=   5;
---  constant sys_conf_clkfx_multiply : positive :=   4;   -- ==> 80 MHz
+  constant sys_conf_clksys_vcodivide   : positive :=  25;
+  constant sys_conf_clksys_vcomultiply : positive :=  18;   -- dcm   72 MHz
+  constant sys_conf_clksys_outdivide   : positive :=   1;   -- sys   72 MHz
+  constant sys_conf_clksys_gentype     : string   := "DCM";
 
-  constant sys_conf_memctl_read0delay : positive := 6;   -- for 100 MHz
+  constant sys_conf_memctl_read0delay : positive := 4;   -- for <75 MHz
   constant sys_conf_memctl_read1delay : positive := sys_conf_memctl_read0delay;
-  constant sys_conf_memctl_writedelay : positive := 7;
+  constant sys_conf_memctl_writedelay : positive := 5;
 
   constant sys_conf_ser2rri_cdinit : integer := 1-1;   -- 1 cycle/bit in sim
   
@@ -61,7 +62,8 @@ package sys_conf is
   -- derived constants
 
   constant sys_conf_clksys : integer :=
-    (100000000/sys_conf_clkfx_divide)*sys_conf_clkfx_multiply;
+    ((100000000/sys_conf_clksys_vcodivide)*sys_conf_clksys_vcomultiply) /
+    sys_conf_clksys_outdivide;
   constant sys_conf_clksys_mhz : integer := sys_conf_clksys/1000000;
 
 end package sys_conf;

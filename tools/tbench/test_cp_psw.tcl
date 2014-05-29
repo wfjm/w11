@@ -1,4 +1,4 @@
-# $Id: test_cp_psw.tcl 502 2013-04-02 19:29:30Z mueller $
+# $Id: test_cp_psw.tcl 552 2014-03-02 23:02:00Z mueller $
 #
 # Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
@@ -16,6 +16,7 @@
 # This test not only verifies psw, but also all basic access methods
 #
 
+# ----------------------------------------------------------------------------
 rlc log "test_cp_psw: test psw access via all methods"
 rlc log "  write/read via cp"
 foreach w { 000000 000017 } {

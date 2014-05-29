@@ -1,6 +1,6 @@
--- $Id: pdp11_core_rbus.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: pdp11_core_rbus.vhd 553 2014-03-17 06:40:08Z mueller $
 --
--- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -68,6 +68,9 @@
 -- bbb00011       psw         r/w/-  processor status word access
 -- bbb00100       al          r/w/-  address register, low
 -- bbb00101       ah          r/w/-  address register, high
+--              7   ubm       r/w/-    ubmap access
+--              6   p22       r/w/-    22bit access
+--           5: 0   addr      r/w/-    addr(21:16)  
 -- bbb00110       mem         r/w/-  memory access
 -- bbb00111       memi        r/w/-  memory access, inc address
 -- bbb01rrr       gpr[]       r/w/-  general purpose regs

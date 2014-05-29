@@ -1,4 +1,4 @@
-; $Id: 211bsd_rk_boot.scmd 517 2013-05-09 21:34:45Z mueller $
+; $Id: 211bsd_rk_boot.scmd 519 2013-05-12 20:44:16Z mueller $
 ;
 ; Setup file for 211bsd RK based system
 ;

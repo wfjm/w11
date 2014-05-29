@@ -1,16 +1,21 @@
-# $Id: test_w11a_inst_traps.tcl 510 2013-04-26 16:14:57Z mueller $
+# $Id: test_w11a_inst_traps.tcl 552 2014-03-02 23:02:00Z mueller $
 #
-# Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2014-03-01   552   1.0.1  check that unused regs stay 0; use stack:; check sp;
 # 2013-04-01   502   1.0    Initial version
 #
 # Test trap type instructions: bpt,iot, emt nn, trap nn
 #
 
+# ----------------------------------------------------------------------------
 rlc log "test_w11a_inst_traps: test trap type instructions"
+
+# code register pre/post conditions beyond defaults
+#   r5   #data   -> #data+6*5*2
 $cpu ldasm -lst lst -sym sym {
         . = 14
         .word   h.bpt           ; vec 14: bpt
@@ -26,6 +31,7 @@ $cpu ldasm -lst lst -sym sym {
         psw = 177776
 ;
         . = 1000
+stack:
 start:  mov     #350,@#psw
         bpt
 350$:   mov     #351,@#psw
@@ -41,8 +47,8 @@ start:  mov     #350,@#psw
 355$:   halt
 stop:
 ;
-h.bpt:  mov     @#psw,(r5)+
-        mov     #1014,(r5)+
+h.bpt:  mov     @#psw,(r5)+             ; record psw
+        mov     #1014,(r5)+             ; record trap id
         br      iexit
 h.iot:  mov     @#psw,(r5)+
         mov     #1020,(r5)+
@@ -53,20 +59,25 @@ h.emt:  mov     @#psw,(r5)+
 h.trp:  mov     @#psw,(r5)+
         mov     #1034,(r5)+
 ;
-iexit:  mov     (sp),r4
-        mov     r4,(r5)+
-        mov     2(sp),(r5)+
-        mov     -2(r4),(r5)+
+iexit:  mov     (sp),r4                 ; get stack PC
+        mov     r4,(r5)+                ; record PC
+        mov     2(sp),(r5)+             ; record stack PS
+        mov     -2(r4),(r5)+            ; record opcode of trap
         rti
+;
 data:   .blkw   6.*5.
         .word   177777
 }
 
 rw11::asmrun  $cpu sym [list r5 $sym(data) ]
 rw11::asmwait $cpu sym 1.0
-rw11::asmtreg $cpu [list r0 0 r1 0 r2 0 r3 0 \
-                    r5 [expr {$sym(data) + 6*5*2}] \
-                    sp $sym(start) ]
+rw11::asmtreg $cpu [list r0 0 \
+                         r1 0 \
+                         r2 0 \
+                         r3 0 \
+                         r5 [expr {$sym(data) + 6*5*2}] \
+                         sp $sym(stack) ]
+
 # data: trap ps; trap id; stack-pc;    stack-ps   opcode
 rw11::asmtmem $cpu $sym(data) \
   [list 000340   001014 $sym(start:350$) 000350   0000003 \

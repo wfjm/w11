@@ -1,4 +1,4 @@
--- $Id: tb_nexys3_fusp_cuff.vhd 509 2013-04-21 20:46:20Z mueller $
+-- $Id: tb_nexys3_fusp_cuff.vhd 538 2013-10-06 17:21:25Z mueller $
 --
 -- Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -17,7 +17,7 @@
 --
 -- Dependencies:   simlib/simclk
 --                 simlib/simclkcnt
---                 xlib/dcm_sfs
+--                 xlib/s6_cmt_sfs
 --                 rlink/tb/tbcore_rlink
 --                 tb_nexys3_core
 --                 serport/serport_uart_rxtx
@@ -27,10 +27,11 @@
 -- To test:        generic, any nexys3_fusp_cuff_aif target
 --
 -- Target Devices: generic
--- Tool versions:  xst 13.1; ghdl 0.29
+-- Tool versions:  xst 13.1, 14.6; ghdl 0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2013-10-06   538   1.1    pll support, use clksys_vcodivide ect
 -- 2013-04-21   509   1.0    Initial version (derived from tb_nexys3_fusp and
 --                                            tb_nexys2_fusp_cuff)
 ------------------------------------------------------------------------------
@@ -147,11 +148,15 @@ begin
   
   SB_CLKSTOP <= CLK_STOP;
 
-  DCM_COM : dcm_sfs
+  CLKGEN_COM : s6_cmt_sfs
     generic map (
-      CLKFX_DIVIDE   => sys_conf_clkfx_divide,
-      CLKFX_MULTIPLY => sys_conf_clkfx_multiply,
-      CLKIN_PERIOD   => 10.0)
+      VCO_DIVIDE   => sys_conf_clksys_vcodivide,
+      VCO_MULTIPLY => sys_conf_clksys_vcomultiply,
+      OUT_DIVIDE   => sys_conf_clksys_outdivide,
+      CLKIN_PERIOD => 10.0,
+      CLKIN_JITTER => 0.01,
+      STARTUP_WAIT => false,
+      GEN_TYPE     => sys_conf_clksys_gentype)
     port map (
       CLKIN   => CLKOSC,
       CLKFX   => CLKCOM,

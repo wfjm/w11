@@ -1,4 +1,4 @@
-// $Id: RosPrintfS.cpp 488 2013-02-16 18:49:47Z mueller $
+// $Id: RosPrintfS.cpp 531 2013-08-16 19:34:32Z mueller $
 //
 // Copyright 2000-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: RosPrintfS.cpp 488 2013-02-16 18:49:47Z mueller $
+  \version $Id: RosPrintfS.cpp 531 2013-08-16 19:34:32Z mueller $
   \brief   Implemenation of RosPrintfS .
 */
 
@@ -127,7 +127,7 @@ void RosPrintfS<const void *>::ToStream(std::ostream& os) const
 //!!  1.  This specialization is printing signed and unsigned char types and
 //!!	  implements the `c' conversion format,
 
-// finally do an explicit instantiation of the required CTBioState
+// finally do an explicit instantiation of the required RosPrintfS
 
 template class RosPrintfS<char>;
 template class RosPrintfS<int>;

@@ -1,6 +1,6 @@
--- $Id: xlib.vhd 432 2011-11-25 20:16:28Z mueller $
+-- $Id: xlib.vhd 538 2013-10-06 17:21:25Z mueller $
 --
--- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,11 @@
 -- Description:    Xilinx specific components
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2, 9.1, 9.2, 13.1, 14.5, 14.6; ghdl 0.18-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2013-10-06   538   1.0.10 add s6_cmt_sfs
+-- 2013-09-28   535   1.0.9  add s7_cmt_sfs
 -- 2011-11-24   432   1.0.8  add iob_oddr2_simple
 -- 2011-11-17   426   1.0.7  rename dcm_sp_sfs -> dcm_sfs; remove family generic
 -- 2011-11-10   423   1.0.6  add family generic for dcm_sp_sfs
@@ -171,12 +173,44 @@ end component;
 component dcm_sfs is                    -- DCM for simple frequency synthesis
   generic (
     CLKFX_DIVIDE : positive := 2;       -- FX clock divide (1-32)
-    CLKFX_MULTIPLY : positive := 2;     -- FX clock divide (2-32)
+    CLKFX_MULTIPLY : positive := 2;     -- FX clock multiply (2-32) (1->no DCM)
     CLKIN_PERIOD : real := 20.0);       -- CLKIN period (def is 20.0 ns)
   port (
     CLKIN : in slbit;                   -- clock input
     CLKFX : out slbit;                  -- clock output (synthesized freq.) 
     LOCKED : out slbit                  -- dcm locked
+  );
+end component;
+
+component s7_cmt_sfs is                 -- 7-Series CMT for simple freq. synth.
+  generic (
+    VCO_DIVIDE : positive := 1;         -- vco clock divide
+    VCO_MULTIPLY : positive := 1;       -- vco clock multiply 
+    OUT_DIVIDE : positive := 1;         -- output divide
+    CLKIN_PERIOD : real := 10.0;        -- CLKIN period (def is 10.0 ns)
+    CLKIN_JITTER : real := 0.01;        -- CLKIN jitter (def is 10 ps)
+    STARTUP_WAIT : boolean := false;    -- hold FPGA startup till LOCKED
+    GEN_TYPE : string := "PLL");        -- PLL or MMCM
+  port (
+    CLKIN : in slbit;                   -- clock input
+    CLKFX : out slbit;                  -- clock output (synthesized freq.) 
+    LOCKED : out slbit                  -- pll/mmcm locked
+  );
+end component;
+
+component s6_cmt_sfs is                 -- Spartan-6 CMT for simple freq. synth.
+  generic (
+    VCO_DIVIDE : positive := 1;         -- vco clock divide
+    VCO_MULTIPLY : positive := 1;       -- vco clock multiply 
+    OUT_DIVIDE : positive := 1;         -- output divide
+    CLKIN_PERIOD : real := 10.0;        -- CLKIN period (def is 10.0 ns)
+    CLKIN_JITTER : real := 0.01;        -- CLKIN jitter (def is 10 ps)
+    STARTUP_WAIT : boolean := false;    -- hold FPGA startup till LOCKED
+    GEN_TYPE : string := "PLL");        -- PLL or DCM
+  port (
+    CLKIN : in slbit;                   -- clock input
+    CLKFX : out slbit;                  -- clock output (synthesized freq.) 
+    LOCKED : out slbit                  -- pll/mmcm locked
   );
 end component;
 

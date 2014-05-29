@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: vbomconv 518 2013-05-12 16:45:02Z mueller $
+# $Id: vbomconv 543 2013-11-03 22:43:41Z mueller $
 #
-# Copyright 2007-2012 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2007-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2013-10-20   543   1.10   add --viv_vhdl
 # 2012-02-05   456   1.9.4  redo filename substitution (= and :); add --get_top
 # 2012-01-02   448   1.9.3  use in ghdl_m -fexplicit also when simprim used
 # 2011-11-27   433   1.9.2  use in ghdl_m -fexplicit when unisim used
@@ -57,6 +58,7 @@ my %opts = ();
 GetOptions(\%opts, "help", "trace", "ise_path=s",
 	           "dep_xst", "dep_ghdl", "dep_isim",
                    "xst_prj", "isim_prj",
+                   "viv_vhdl",
 	           "ghdl_a", "ghdl_a_cmd",
 	           "ghdl_i", "ghdl_i_cmd",
 	           "ghdl_m", "ghdl_m_cmd",
@@ -341,6 +343,16 @@ if (exists $opts{isim_prj}) {
   foreach (@file_list) {
     print "vhdl work $_\n";
   }
+}
+
+# --viv_vhdl ---------------------------------------------------------
+
+if (exists $opts{viv_vhdl}) {
+  print "read_vhdl {\n";
+  foreach (@file_list) {
+    print "    $_\n";
+  }
+  print "}\n";
 }
 
 # --dep_xst ----------------------------------------------------------
@@ -813,6 +825,7 @@ sub print_help {
   print "  --dep_isim       generate isim dependencies for make (on stdout)\n";
   print "  --xst_prj        generate xst project file (on stdout)\n";
   print "  --isim_prj       generate isim project file (on stdout)\n";
+  print "  --viv_vhdl       generate vivado read_vhdl command (on stdout)\n";
   print "  --ghdl_a         generate and execute ghdl -a  (analyse)\n";
   print "  --ghdl_a_cmd     like ghdl_a, but only print command, no exec\n";
   print "  --ghdl_i         generate and execute ghdl -i  (inspect)\n";

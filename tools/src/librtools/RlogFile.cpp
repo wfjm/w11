@@ -1,4 +1,4 @@
-// $Id: RlogFile.cpp 492 2013-02-24 22:14:47Z mueller $
+// $Id: RlogFile.cpp 539 2013-10-13 17:06:35Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-10-11   539   2.1.1  fix date print (month was off by one)
 // 2013-02-23   492   2.1    add Name(), keep log file name; add Dump()
 // 2013-02-22   491   2.0    add Write(),IsNew(), RlogMsg iface; use lockable
 // 2011-01-30   357   1.0    Initial version
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RlogFile.cpp 492 2013-02-24 22:14:47Z mueller $
+  \version $Id: RlogFile.cpp 539 2013-10-13 17:06:35Z mueller $
   \brief   Implemenation of RlogFile.
 */
 
@@ -120,10 +121,10 @@ void RlogFile::Write(const std::string& str, char tag)
 
   if (tag) {
     struct timeval tval;
-    gettimeofday(&tval, 0);
+    ::gettimeofday(&tval, 0);
 
     struct tm tymd;
-    localtime_r(&tval.tv_sec, &tymd);
+    ::localtime_r(&tval.tv_sec, &tymd);
 
     if (tymd.tm_year != fTagYear  ||
         tymd.tm_mon  != fTagMonth ||
@@ -131,7 +132,7 @@ void RlogFile::Write(const std::string& str, char tag)
 
       os << "-+- " 
          << RosPrintf(tymd.tm_year+1900,"d",4) << "-"
-         << RosPrintf(tymd.tm_mon,"d0",2) << "-"
+         << RosPrintf(tymd.tm_mon+1,"d0",2) << "-"
          << RosPrintf(tymd.tm_mday,"d0",2) << " -+- \n";
 
       fTagYear  = tymd.tm_year;

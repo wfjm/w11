@@ -1,4 +1,4 @@
-// $Id: Rtools.cpp 516 2013-05-05 21:24:52Z mueller $
+// $Id: Rtools.cpp 521 2013-05-20 22:16:45Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -21,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rtools.cpp 516 2013-05-05 21:24:52Z mueller $
+  \version $Id: Rtools.cpp 521 2013-05-20 22:16:45Z mueller $
   \brief   Implemenation of Rtools .
 */
 
@@ -70,6 +70,7 @@ std::string Flags2String(uint32_t flags, const RflagName* fnam, char delim)
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
+
 bool String2Long(const std::string& str, long& res, RerrMsg& emsg, int base)
 {
   char* endptr;
@@ -84,6 +85,7 @@ bool String2Long(const std::string& str, long& res, RerrMsg& emsg, int base)
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
+
 bool String2Long(const std::string& str, unsigned long& res,
                  RerrMsg& emsg, int base)
 {

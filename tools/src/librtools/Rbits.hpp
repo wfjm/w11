@@ -1,6 +1,6 @@
-// $Id: Rbits.hpp 493 2013-03-01 21:02:33Z mueller $
+// $Id: Rbits.hpp 530 2013-08-09 21:25:04Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -18,7 +18,7 @@
 
 /*!
   \file
-  \version $Id: Rbits.hpp 493 2013-03-01 21:02:33Z mueller $
+  \version $Id: Rbits.hpp 530 2013-08-09 21:25:04Z mueller $
   \brief   Declaration of class Rbits .
 */
 

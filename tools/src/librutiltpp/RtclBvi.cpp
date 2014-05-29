@@ -1,4 +1,4 @@
-// $Id: RtclBvi.cpp 488 2013-02-16 18:49:47Z mueller $
+// $Id: RtclBvi.cpp 521 2013-05-20 22:16:45Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: RtclBvi.cpp 488 2013-02-16 18:49:47Z mueller $
+  \version $Id: RtclBvi.cpp 521 2013-05-20 22:16:45Z mueller $
   \brief   Implemenation of RtclBvi.
 */
 
@@ -107,12 +107,12 @@ Tcl_Obj* RtclBvi::DoConv(Tcl_Interp* interp, ConvMode mode, Tcl_Obj* val,
     int lval = strlen(pval);
 
     // strip leading blanks
-    while (pval[0]!=0 && isblank(pval[0])) {
+    while (pval[0]!=0 && ::isblank(pval[0])) {
       pval++;
       lval--;
     }
     // strip trailing blanks
-    while (lval>0 && isblank(pval[lval-1])) {
+    while (lval>0 && ::isblank(pval[lval-1])) {
       lval--;
     }
 
@@ -145,10 +145,10 @@ Tcl_Obj* RtclBvi::DoConv(Tcl_Interp* interp, ConvMode mode, Tcl_Obj* val,
     char* eptr=0;
 
     if (base==10 && pval[0]=='-') {
-      lres = (unsigned long) strtol(pval, &eptr, base);
+      lres = (unsigned long) ::strtol(pval, &eptr, base);
       if (nbit<32) lres &= (1ul<<nbit)-1;
     } else {
-      lres = strtoul(pval, &eptr, base);
+      lres = ::strtoul(pval, &eptr, base);
     }
 
     if (eptr != pval+lval) {

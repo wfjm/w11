@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: make_doxy 488 2013-02-16 18:49:47Z mueller $
+# $Id: make_doxy 523 2013-05-26 21:54:55Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -35,6 +35,6 @@ doxygen w11_vhd_all.Doxyfile  2>&1 | tee w11_vhd_all.dox_log
 #
 echo ""
 echo "to view use"
-echo "  firefox $RETRODOXY/w11/cpp/html/index.html &"
-echo "  firefox $RETRODOXY/w11/tcl/html/index.html &"
-echo "  firefox $RETRODOXY/w11/vhd/html/index.html &"
+echo "  firefox $RETRODOXY/doxy/w11/cpp/html/index.html &"
+echo "  firefox $RETRODOXY/doxy/w11/tcl/html/index.html &"
+echo "  firefox $RETRODOXY/doxy/w11/vhd/html/index.html &"

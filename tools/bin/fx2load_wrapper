@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: fx2load_wrapper 470 2013-01-05 17:28:46Z mueller $
+# $Id: fx2load_wrapper 547 2013-12-29 13:10:07Z mueller $
 #
 # Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -203,7 +203,7 @@ sub run_command {
 #-------------------------------------------------------------------------------
 
 sub print_help {
-  print "usage: fx2load_wrapper [--board=b] [--file=f] <opts>\n";
+  print "usage: fx2load_wrapper [--board=b] [--file=f] [OPTIONS]\n";
   print "  --help           this message\n";
   print "  --dry_run        print command only\n";
   print "  --force          reload even when proper firmware detected\n";

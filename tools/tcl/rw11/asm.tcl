@@ -1,6 +1,6 @@
-# $Id: asm.tcl 510 2013-04-26 16:14:57Z mueller $
+# $Id: asm.tcl 552 2014-03-02 23:02:00Z mueller $
 #
-# Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-03-01   552   1.0.1  BUGFIX: asmwait checks now pc if stop: defined
 # 2013-04-26   510   1.0    Initial version (extracted from util.tcl)
 #
 
@@ -68,7 +69,7 @@ namespace eval rw11 {
   proc asmwait {cpu symName {tout 10.}} {
     upvar 1 $symName sym
     set dt [$cpu wtcpu -reset $tout]
-    if {$dt >= 0 && [info exists $sym(stop)]} {
+    if {$dt >= 0 && [info exists sym(stop)]} {
       $cpu cp -rpc -edata $sym(stop)
     }
     return $dt

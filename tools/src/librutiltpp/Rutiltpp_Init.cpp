@@ -1,6 +1,6 @@
-// $Id: Rutiltpp_Init.cpp 485 2013-02-10 18:57:55Z mueller $
+// $Id: Rutiltpp_Init.cpp 521 2013-05-20 22:16:45Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-17   512   1.0.3  add RtclSystem::CreateCmds()
 // 2013-02-10   485   1.0.2  remove Tcl_InitStubs()
 // 2011-03-20   372   1.0.1  renamed ..tcl -> ..tpp
 // 2011-03-19   371   1.0    Initial version
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rutiltpp_Init.cpp 485 2013-02-10 18:57:55Z mueller $
+  \version $Id: Rutiltpp_Init.cpp 521 2013-05-20 22:16:45Z mueller $
   \brief   Implemenation of Rutiltpp_Init .
 */
 
@@ -28,6 +29,7 @@
 
 #include <stdexcept>
 
+#include "RtclSystem.hpp"
 #include "RtclBvi.hpp"
 
 using namespace std;
@@ -44,6 +46,7 @@ extern "C" int Rutiltpp_Init(Tcl_Interp* interp)
 
   try {
     // register general commands
+    RtclSystem::CreateCmds(interp);
     RtclBvi::CreateCmds(interp);
     return TCL_OK;
 

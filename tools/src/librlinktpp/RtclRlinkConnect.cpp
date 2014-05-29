@@ -1,4 +1,4 @@
-// $Id: RtclRlinkConnect.cpp 495 2013-03-06 17:13:48Z mueller $
+// $Id: RtclRlinkConnect.cpp 521 2013-05-20 22:16:45Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -27,7 +27,7 @@
 
 /*!
   \file
-  \version $Id: RtclRlinkConnect.cpp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: RtclRlinkConnect.cpp 521 2013-05-20 22:16:45Z mueller $
   \brief   Implemenation of class RtclRlinkConnect.
  */
 
@@ -303,7 +303,7 @@ int RtclRlinkConnect::M_exec(RtclArgs& args)
     }
 
     if (icmd<varstat.size() && !varstat[icmd].empty()) {
-      RtclOPtr pres = Tcl_NewIntObj((int)cmd.Status());
+      RtclOPtr pres(Tcl_NewIntObj((int)cmd.Status()));
       if (!Rtcl::SetVar(interp, varstat[icmd], pres)) return kERR;
     }
   }
@@ -313,23 +313,23 @@ int RtclRlinkConnect::M_exec(RtclArgs& args)
     const RlinkConnect::LogOpts& logopts = Obj().GetLogOpts();
     clist.Print(sos, Obj().Context(), &Obj().AddrMap(), logopts.baseaddr, 
                 logopts.basedata, logopts.basestat);
-    RtclOPtr pobj = Rtcl::NewLinesObj(sos);
+    RtclOPtr pobj(Rtcl::NewLinesObj(sos));
     if (!Rtcl::SetVarOrResult(args.Interp(), varprint, pobj)) return kERR;
   }
 
   if (!vardump.empty()) {
     ostringstream sos;
     clist.Dump(sos, 0);
-    RtclOPtr pobj = Rtcl::NewLinesObj(sos);
+    RtclOPtr pobj(Rtcl::NewLinesObj(sos));
     if (!Rtcl::SetVarOrResult(args.Interp(), vardump, pobj)) return kERR;
   }
 
   if (!varlist.empty()) {
-    RtclOPtr prlist = Tcl_NewListObj(0, NULL);
+    RtclOPtr prlist(Tcl_NewListObj(0, NULL));
     for (size_t icmd=0; icmd<clist.Size(); icmd++) {
       RlinkCommand& cmd(clist[icmd]);
     
-      RtclOPtr pres = Tcl_NewListObj(0, NULL);
+      RtclOPtr pres(Tcl_NewListObj(0, NULL));
       Tcl_ListObjAppendElement(NULL, pres, fCmdnameObj[cmd.Command()]);
       Tcl_ListObjAppendElement(NULL, pres, Tcl_NewIntObj((int)cmd.Request()));
       Tcl_ListObjAppendElement(NULL, pres, Tcl_NewIntObj((int)cmd.Flags()));
@@ -445,7 +445,7 @@ int RtclRlinkConnect::M_amap(RtclArgs& args)
       }
 
     } else {                                // amap
-      RtclOPtr plist = Tcl_NewListObj(0, NULL);
+      RtclOPtr plist(Tcl_NewListObj(0, NULL));
       const RlinkAddrMap::amap_t amap = addrmap.Amap();
       for (RlinkAddrMap::amap_cit_t it=amap.begin(); it!=amap.end(); it++) {
         Tcl_Obj* tpair[2];

@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTermTcp.cpp 516 2013-05-05 21:24:52Z mueller $
+// $Id: Rw11VirtTermTcp.cpp 521 2013-05-20 22:16:45Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-17   512   1.0.3  use Rtools::String2Long
 // 2013-05-05   516   1.0.2  fix mistakes in emsg generation with errno
 // 2013-04-20   508   1.0.1  add fSndPreConQue handling
 // 2013-03-06   495   1.0    Initial version
@@ -21,11 +22,10 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtTermTcp.cpp 516 2013-05-05 21:24:52Z mueller $
+  \version $Id: Rw11VirtTermTcp.cpp 521 2013-05-20 22:16:45Z mueller $
   \brief   Implemenation of Rw11VirtTermTcp.
 */
 
-#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -126,8 +126,8 @@ bool Rw11VirtTermTcp::Open(const std::string& url, RerrMsg& emsg)
 
   string port;
   fUrl.FindOpt("port",port);
-  int portno = atoi(port.c_str());
-  // FIXME_code: error handling ...
+  unsigned long portno;
+  if (!Rtools::String2Long(port, portno, emsg)) return false;
 
   protoent* pe = getprotobyname("tcp");
   if (pe == 0) {

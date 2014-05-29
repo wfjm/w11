@@ -1,6 +1,6 @@
--- $Id: pdp11_sequencer.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: pdp11_sequencer.vhd 556 2014-05-29 19:01:39Z mueller $
 --
--- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,10 +18,11 @@
 -- Dependencies:   ib_sel
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2-14.7; viv 2014.1; ghdl 0.18-0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-04-20   554   1.5    now vivado compatible (add dummy assigns in procs)
 -- 2011-11-18   427   1.4.2  now numeric_std clean
 -- 2010-10-23   335   1.4.1  use ib_sel
 -- 2010-10-17   333   1.4    use ibus V2 interface
@@ -412,6 +413,8 @@ begin
                           nstatus : inout cpustat_type;
                           mok     : out boolean) is
     begin
+      nstate  := nstate;                -- dummy to add driver (vivado)
+      nstatus := nstatus;               -- "
       mok := false;
       if VM_STAT.ack = '1' then
         mok := true;
@@ -429,6 +432,7 @@ begin
                               isdef   : in slbit;
                               regnum  : in slv3) is
     begin
+      ndpcntl := ndpcntl;               -- dummy to add driver (vivado)
       if bytop='0' or isdef='1' or
          regnum=c_gpr_pc or regnum=c_gpr_sp then
         ndpcntl.ounit_const := "000000010";
@@ -503,6 +507,8 @@ begin
                                 nvmcntl  : inout vm_cntl_type;
                                 nmmumoni : inout mmu_moni_type) is
     begin
+      ndpcntl := ndpcntl;               -- dummy to add driver (vivado)
+      nvmcntl := nvmcntl;               -- "
       nmmumoni.idone := '1';
       if unsigned(INT_PRI) > unsigned(PSW.pri) then
         nstate := s_idle;

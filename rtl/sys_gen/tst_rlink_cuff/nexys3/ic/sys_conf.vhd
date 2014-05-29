@@ -1,4 +1,4 @@
--- $Id: sys_conf.vhd 469 2013-01-05 12:29:44Z mueller $
+-- $Id: sys_conf.vhd 538 2013-10-06 17:21:25Z mueller $
 --
 -- Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,9 +16,10 @@
 -- Description:    Definitions for sys_tst_rlink_cuff_ic_n3 (for synthesis)
 --
 -- Dependencies:   -
--- Tool versions:  xst 13.3; ghdl 0.29
+-- Tool versions:  xst 13.3, 14.6; ghdl 0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2013-10-06   538   1.1    pll support, use clksys_vcodivide ect
 -- 2013-01-04   469   1.0    Initial version 
 ------------------------------------------------------------------------------
 
@@ -29,8 +30,10 @@ use work.slvtypes.all;
 
 package sys_conf is
 
-  constant sys_conf_clkfx_divide : positive   :=  1;
-  constant sys_conf_clkfx_multiply : positive :=  1;
+  constant sys_conf_clksys_vcodivide   : positive :=   1;
+  constant sys_conf_clksys_vcomultiply : positive :=   1;   -- dcm  100 MHz
+  constant sys_conf_clksys_outdivide   : positive :=   1;   -- sys  100 MHz
+  constant sys_conf_clksys_gentype     : string   := "DCM";
 
   constant sys_conf_ser2rri_defbaud : integer := 115200;   -- default 115k baud
   constant sys_conf_hio_debounce : boolean := true;    -- instantiate debouncers
@@ -53,7 +56,8 @@ package sys_conf is
   -- derived constants
   
   constant sys_conf_clksys : integer :=
-    (100000000/sys_conf_clkfx_divide)*sys_conf_clkfx_multiply;
+    ((100000000/sys_conf_clksys_vcodivide)*sys_conf_clksys_vcomultiply) /
+    sys_conf_clksys_outdivide;
   constant sys_conf_clksys_mhz : integer := sys_conf_clksys/1000000;
 
   constant sys_conf_ser2rri_cdinit : integer :=

@@ -1,4 +1,4 @@
-// $Id: ReventFd.cpp 488 2013-02-16 18:49:47Z mueller $
+// $Id: ReventFd.cpp 529 2013-08-02 17:15:43Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,7 @@
 
 /*!
   \file
-  \version $Id: ReventFd.cpp 488 2013-02-16 18:49:47Z mueller $
+  \version $Id: ReventFd.cpp 529 2013-08-02 17:15:43Z mueller $
   \brief   Implemenation of class ReventFd.
 */
 
@@ -46,7 +46,7 @@ namespace Retro {
 
 ReventFd::ReventFd()
 {
-  fFd = eventfd(0,0);                    // ini value = 0; no flags
+  fFd = ::eventfd(0,0);                    // ini value = 0; no flags
   if (fFd < 0) 
     throw Rexception("ReventFd::ctor", "eventfd() failed: ", errno);
 }
@@ -56,7 +56,7 @@ ReventFd::ReventFd()
 
 ReventFd::~ReventFd()
 {
-  close(fFd);
+  ::close(fFd);
 }
 
 //------------------------------------------+-----------------------------------
@@ -65,7 +65,7 @@ ReventFd::~ReventFd()
 int ReventFd::SignalFd(int fd)
 {
   uint64_t one(1);
-  int irc = write(fd, &one, sizeof(one));
+  int irc = ::write(fd, &one, sizeof(one));
   return irc;
 }
 
@@ -75,7 +75,7 @@ int ReventFd::SignalFd(int fd)
 int ReventFd::WaitFd(int fd)
 {
   uint64_t buf;
-  int irc = read(fd, &buf, sizeof(buf));
+  int irc = ::read(fd, &buf, sizeof(buf));
   return (irc <= 0) ? irc : (int)buf;
 }
 

@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.cpp 509 2013-04-21 20:46:20Z mueller $
+// $Id: RlinkConnect.cpp 521 2013-05-20 22:16:45Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -28,7 +28,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.cpp 509 2013-04-21 20:46:20Z mueller $
+  \version $Id: RlinkConnect.cpp 521 2013-05-20 22:16:45Z mueller $
   \brief   Implemenation of RlinkConnect.
 */
 
@@ -233,7 +233,7 @@ bool RlinkConnect::Exec(RlinkCommandList& clist, RlinkContext& cntx,
     if (cmd.Command() == RlinkCommand::kCmdAttn && ServerActiveOutside())
       throw Rexception("RlinkConnect::Exec()", 
                        "attn command not allowed outside avtice server");
-
+    
     cmd.ClearFlagBit(RlinkCommand::kFlagSend   | RlinkCommand::kFlagDone |
                      RlinkCommand::kFlagPktBeg | RlinkCommand::kFlagPktEnd |
                      RlinkCommand::kFlagRecov  | RlinkCommand::kFlagResend |

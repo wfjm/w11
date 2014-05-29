@@ -1,4 +1,4 @@
-# $Id: test_cp_cpubasics.tcl 504 2013-04-13 15:37:24Z mueller $
+# $Id: test_cp_cpubasics.tcl 552 2014-03-02 23:02:00Z mueller $
 #
 # Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
@@ -13,8 +13,11 @@
 #  3. single step code via -step
 #
 
+# ----------------------------------------------------------------------------
 rlc log "test_cp_cpubasics: Test very basic cpu interface gymnastics"
 rlc log "  load code via lsasm"
+
+#
 $cpu ldasm -lst lst -sym sym {
         . = 1000
 start:  inc   r2

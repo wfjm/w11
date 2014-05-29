@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: telnet_wrapper 516 2013-05-05 21:24:52Z mueller $
+# $Id: telnet_wrapper 547 2013-12-29 13:10:07Z mueller $
 #
 # Copyright 2009-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 # for complete details.
 #
 #  Revision History:
+# Date         Rev  Vers    Comment
 # 2009-11-07   246   1.0    Initial version
 #
 

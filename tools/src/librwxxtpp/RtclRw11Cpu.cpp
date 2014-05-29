@@ -1,6 +1,6 @@
-// $Id: RtclRw11Cpu.cpp 513 2013-05-01 14:02:06Z mueller $
+// $Id: RtclRw11Cpu.cpp 552 2014-03-02 23:02:00Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-03-02   552   1.0.3  M_cp: add -ral and -rah options (addr reg readback)
+// 2013-05-19   521   1.0.2  M_cp: merge -wibrb|-wibrbbe again; add -wa
 // 2013-04-26   511   1.0.1  add M_show
 // 2013-04-02   502   1.0    Initial version
 // 2013-02-02   480   0.1    First draft
@@ -20,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Cpu.cpp 513 2013-05-01 14:02:06Z mueller $
+  \version $Id: RtclRw11Cpu.cpp 552 2014-03-02 23:02:00Z mueller $
   \brief   Implemenation of RtclRw11Cpu.
 */
 
@@ -111,9 +113,10 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
                             "-wr|-wr0|-wr1|-wr2|-wr3|-wr4|-wr5|-wr6|-wr7|"
                             "-rsp|-rpc|-wsp|-wpc|"
                             "-rps|-wps|"
-                            "-wal|-wah|-rm|-rmi|-wm|-wmi|-brm|-bwm|"
+                            "-ral|-rah|-wal|-wah|-wa|"
+                            "-rm|-rmi|-wm|-wmi|-brm|-bwm|"
                             "-stapc|-start|-stop|-continue|-step|-reset|"
-                            "-ribrb|-wibrb|-wibrbbe|-ribr|-wibr|"
+                            "-ribrb|-wibrb|-ribr|-wibr|"
                             "-rconf|-rstat|"
                             "-edata|-estat|-estatdef"
                             );
@@ -174,6 +177,16 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       clist.AddWreg(base + Rw11Cpu::kCp_addr_psw, data);
 
+    } else if (opt == "-ral") {             // -ral ?varData ?varStat --------
+      if (!GetVarName(args, "??varData", lsize, vardata)) return kERR;
+      if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
+      clist.AddRreg(base + Rw11Cpu::kCp_addr_al);
+
+    } else if (opt == "-rah") {             // -rah ?varData ?varStat --------
+      if (!GetVarName(args, "??varData", lsize, vardata)) return kERR;
+      if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
+      clist.AddRreg(base + Rw11Cpu::kCp_addr_ah);
+
     } else if (opt == "-wal") {             // -wal data ?varStat ------------
       uint16_t data;
       if (!args.GetArg("al", data)) return kERR;
@@ -185,6 +198,25 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       if (!args.GetArg("ah", data)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       clist.AddWreg(base + Rw11Cpu::kCp_addr_ah, data);
+
+    } else if (opt == "-wa") {              // -wa addr ?varStat [-p22 -ubm]--
+      uint32_t addr;
+      if (!args.GetArg("addr", addr, 017777776)) return kERR;
+      if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
+      uint16_t al = addr;
+      uint16_t ah = (addr>>16);
+      static RtclNameSet suboptset("-p22|-ubm");
+      string subopt;
+      while (args.NextSubOpt(subopt, suboptset)>=0) { // loop for sub-options
+        if (!args.OptValid()) return kERR;
+        if (subopt == "-p22") {             // -p22 
+          ah |= Rw11Cpu::kCp_ah_m_22bit;
+        } else if (subopt == "-ubm") {      // -ubm 
+          ah |= Rw11Cpu::kCp_ah_m_ubmap;
+        }
+      }
+      clist.AddWreg(base + Rw11Cpu::kCp_addr_al, al);
+      if (ah!=0) clist.AddWreg(base + Rw11Cpu::kCp_addr_ah, ah);
 
     } else if (opt == "-rm" ||              // -rm(i) ?varData ?varStat ------
                opt == "-rmi") {
@@ -250,22 +282,23 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       clist.AddRreg(base + Rw11Cpu::kCp_addr_ibrb);
 
-    } else if (opt == "-wibrb") {           // -wibrb base ?varStat ----------
+    } else if (opt == "-wibrb") {           // -wibrb base ?varStat [-be be] -
       uint16_t data;
       if (!args.GetArg("base", data)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
-      data &= 0177700;                        // clear byte enables 
-      clist.AddWreg(base + Rw11Cpu::kCp_addr_ibrb, data);
 
-    } else if (opt == "-wibrbbe") {         // -wibrbbe base be ?varStat -----
-      uint16_t data;
-      uint16_t be;
-      if (!args.GetArg("base", data)) return kERR;
-      if (!args.GetArg("be", be, 0x3)) return kERR;
-      if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
-      data &= 0177700;                        // clear byte enables from base
-      if (be == 0) be = 0x3;                  // map be 0 -> be 3
-      data |= be;                             // set byte enables 
+      data &= 0177700;                      // clear byte enables
+      static RtclNameSet suboptset("-be");
+      string subopt;
+      while (args.NextSubOpt(subopt, suboptset)>=0) { // loop for sub-options
+        if (!args.OptValid()) return kERR;
+        if (subopt == "-be") {                // -be be 
+          uint16_t be;
+          if (!args.GetArg("be", be, 0x3)) return kERR;
+          if (be == 0) be = 0x3;                  // map be 0 -> be 3
+          data |= be;                             // set byte enables
+        }
+      }
       clist.AddWreg(base + Rw11Cpu::kCp_addr_ibrb, data);
 
     } else if (opt == "-ribr") {           // -ribr off ?varData ?varStat ----
@@ -275,7 +308,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       clist.AddRreg(base + Rw11Cpu::kCp_addr_ibr + off/2);
 
-    } else if (opt == "-wibr") {           // -wibrb off data ?varStat --------
+    } else if (opt == "-wibr") {           // -wibr off data ?varStat --------
       uint16_t off;
       uint16_t data;
       if (!args.GetArg("off",  off, 63)) return kERR;
@@ -380,7 +413,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
     }
 
     if (icmd<varstat.size() && !varstat[icmd].empty()) {
-      RtclOPtr pres = Tcl_NewIntObj((int)cmd.Status());
+      RtclOPtr pres(Tcl_NewIntObj((int)cmd.Status()));
       if (!Rtcl::SetVar(interp, varstat[icmd], pres)) return kERR;
     }
   }
@@ -691,7 +724,7 @@ int RtclRw11Cpu::M_ldasm(RtclArgs& args)
         string key = line.substr(0,dpos);
         string val= line.substr(dpos+4);
         if (!Tcl_SetVar2Ex(interp, varsym.c_str(), key.c_str(),
-                           Tcl_NewIntObj((int)strtol(val.c_str(),NULL,8)),
+                           Tcl_NewIntObj((int)::strtol(val.c_str(),NULL,8)),
                            TCL_LEAVE_ERR_MSG)) return kERR;
       } else {
         return args.Quit(string("bad sym spec: ") + line);
@@ -703,7 +736,7 @@ int RtclRw11Cpu::M_ldasm(RtclArgs& args)
         if (line.length() != 10) 
           return args.Quit(string("bad dat spec: ") + line);
         dtyp = line[0];
-        dot  = (uint16_t)strtol(line.c_str()+2,NULL,8);
+        dot  = (uint16_t)::strtol(line.c_str()+2,NULL,8);
       } else if (line[0] == '}') {
         dtyp = ' ';
       } else {
@@ -711,7 +744,7 @@ int RtclRw11Cpu::M_ldasm(RtclArgs& args)
         string dat;
         while (datstream >> dat) {
           //cout << "+++1 " << dtyp << ":" << dat << endl;
-          uint16_t val = (uint16_t)strtol(dat.c_str(),NULL,8);
+          uint16_t val = (uint16_t)::strtol(dat.c_str(),NULL,8);
           if (dtyp == 'w') {
             cmap[dot] = val;
             dot += 2;

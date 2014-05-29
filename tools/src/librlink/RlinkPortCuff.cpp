@@ -1,4 +1,4 @@
-// $Id: RlinkPortCuff.cpp 516 2013-05-05 21:24:52Z mueller $
+// $Id: RlinkPortCuff.cpp 524 2013-06-30 19:10:30Z mueller $
 //
 // Copyright 2012-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-17   521   1.1.1  use Rtools::String2Long
 // 2013-02-23   492   1.1    use RparseUrl
 // 2013-02-10   485   1.0.3  add static const defs
 // 2013-02-03   481   1.0.2  use Rexception
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPortCuff.cpp 516 2013-05-05 21:24:52Z mueller $
+  \version $Id: RlinkPortCuff.cpp 524 2013-06-30 19:10:30Z mueller $
   \brief   Implemenation of RlinkPortCuff.
 */
 
@@ -39,6 +40,7 @@
 #include "RlinkPortCuff.hpp"
 
 #include "librtools/Rexception.hpp"
+#include "librtools/Rtools.hpp"
 
 using namespace std;
 
@@ -141,9 +143,13 @@ bool RlinkPortCuff::Open(const std::string& url, RerrMsg& emsg)
   if (fUrl.Path().length()==8 && fUrl.Path()[0]=='/' && fUrl.Path()[4]=='/') {
     string busnam = fUrl.Path().substr(1,3);
     string devnam = fUrl.Path().substr(5,3);
-    char* endptr;
-    uint8_t busnum = ::strtol(busnam.c_str(), &endptr, 10);
-    uint8_t devnum = ::strtol(devnam.c_str(), &endptr, 10);
+    unsigned long busnum;
+    unsigned long devnum;
+    if (!Rtools::String2Long(busnam, busnum, emsg) ||
+        !Rtools::String2Long(devnam, devnum, emsg)) {
+      Cleanup();
+      return false;
+    }
     for (ssize_t idev=0; idev<fUsbDevCount; idev++) {
       libusb_device* udev = fpUsbDevList[idev];
       if (libusb_get_bus_number(udev) == busnum &&
@@ -155,9 +161,13 @@ bool RlinkPortCuff::Open(const std::string& url, RerrMsg& emsg)
   } else if (fUrl.Path().length()==9 && fUrl.Path()[4]==':') {
     string vennam = fUrl.Path().substr(0,4);
     string pronam = fUrl.Path().substr(5,4);
-    char* endptr;
-    uint16_t vennum = ::strtol(vennam.c_str(), &endptr, 16);
-    uint16_t pronum = ::strtol(pronam.c_str(), &endptr, 16);
+    unsigned long vennum;
+    unsigned long pronum;
+    if (!Rtools::String2Long(vennam, vennum, emsg, 16) ||
+        !Rtools::String2Long(pronam, pronum, emsg, 16)) {
+      Cleanup();
+      return false;
+    }
     for (ssize_t idev=0; idev<fUsbDevCount; idev++) {
       libusb_device* udev = fpUsbDevList[idev];
       libusb_device_descriptor devdsc;
@@ -173,6 +183,7 @@ bool RlinkPortCuff::Open(const std::string& url, RerrMsg& emsg)
     Cleanup();
     return false;
   }
+
   if (mydev == 0) {
     emsg.Init("RlinkPortCuff::Open()", 
               string("no usb device '") + fUrl.Path() + "', found'");
@@ -330,7 +341,7 @@ void RlinkPortCuff::Driver()
       t->type       = LIBUSB_TRANSFER_TYPE_BULK;
       t->timeout    = 0;
       t->status     = LIBUSB_TRANSFER_COMPLETED;
-      t->buffer     = (unsigned char*) malloc(kUSBBufferSize);
+      t->buffer     = (unsigned char*) ::malloc(kUSBBufferSize);
       t->length     = kUSBBufferSize;
       t->actual_length = 0;
       t->callback   = ThunkUSBReadDone;
@@ -346,7 +357,7 @@ void RlinkPortCuff::Driver()
     if (TraceOn()) cout << "event loop started" << endl;
     fLoopState = kLoopStateRunning;
     while(fLoopState == kLoopStateRunning) {
-      int irc = poll(fPollFds.data(), fPollFds.size(), 1000);
+      int irc = ::poll(fPollFds.data(), fPollFds.size(), 1000);
       if (irc==-1 && errno==EINTR) continue;
       if (irc!=0 && TraceOn()) {
         cout << "poll() -> " << irc << " :";
@@ -379,7 +390,7 @@ void RlinkPortCuff::Driver()
 
     while(fLoopState == kLoopStateStopping &&
           fWriteQueuePending.size() + fReadQueuePending.size() > 0) {
-      int irc = poll(fPollFds.data()+1, fPollFds.size()-1, 1000);
+      int irc = ::poll(fPollFds.data()+1, fPollFds.size()-1, 1000);
       if (irc==-1 && errno==EINTR) continue;
       if (irc==0) break;
       if (irc < 0) BadSysCall("RlinkPortCuff::Driver()", "poll()", irc);
@@ -395,7 +406,7 @@ void RlinkPortCuff::Driver()
     cout << "exception caught in RlinkPortCuff::Driver(): '" << e.what() 
          << "'" << endl;
     // close read pipe at driver end -> that causes main thread to respond
-    close(fFdReadDriver);
+    ::close(fFdReadDriver);
     fFdReadDriver = -1;
   }
 
@@ -409,7 +420,7 @@ void RlinkPortCuff::DriverEventWritePipe()
 {
   libusb_transfer* t = NewWriteTransfer();
 
-  ssize_t ircs = read(fFdWriteDriver, t->buffer, kUSBBufferSize);
+  ssize_t ircs = ::read(fFdWriteDriver, t->buffer, kUSBBufferSize);
   if (TraceOn()) cout << "write pipe read() -> " << ircs << endl;
   if (ircs < 0) BadSysCall("RlinkPortCuff::DriverEventWritePipe()",
                            "read()", ircs);
@@ -461,7 +472,7 @@ libusb_transfer* RlinkPortCuff::NewWriteTransfer()
     t->endpoint   = (unsigned char) (kUSBWriteEP);
     t->type       = LIBUSB_TRANSFER_TYPE_BULK;
     t->timeout    = 1000;
-    t->buffer     = (unsigned char*) malloc(kUSBBufferSize);
+    t->buffer     = (unsigned char*) ::malloc(kUSBBufferSize);
     t->callback   = ThunkUSBWriteDone;
     t->user_data  = this;
   }
@@ -647,7 +658,8 @@ void RlinkPortCuff::USBReadDone(libusb_transfer* t)
     CheckUSBTransfer("RlinkPortCuff::USBReadDone()", t);
     fStats.Inc(kStatNUSBRead);
     if (t->actual_length>0) {
-      ssize_t ircs = write(fFdReadDriver, t->buffer, (size_t) t->actual_length);
+      ssize_t ircs = ::write(fFdReadDriver, t->buffer, 
+                             (size_t) t->actual_length);
       if (ircs < 0) BadSysCall("RlinkPortCuff::USBReadDone()",
                                "write()", ircs);
     }

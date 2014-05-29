@@ -1,6 +1,6 @@
--- $Id: sys_tst_rlink_n3.vhd 476 2013-01-26 22:23:53Z mueller $
+-- $Id: sys_tst_rlink_n3.vhd 538 2013-10-06 17:21:25Z mueller $
 --
--- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -15,7 +15,7 @@
 -- Module Name:    sys_tst_rlink_n3 - syn
 -- Description:    rlink tester design for nexys3
 --
--- Dependencies:   vlib/xlib/dcm_sfs
+-- Dependencies:   vlib/xlib/s6_cmt_sfs
 --                 vlib/genlib/clkdivce
 --                 bplib/bpgen/bp_rs232_2l4l_iob
 --                 bplib/bpgen/sn_humanio_rbus
@@ -27,7 +27,7 @@
 -- Test bench:     tb/tb_tst_rlink_n3
 --
 -- Target Devices: generic
--- Tool versions:  xst 13.1; ghdl 0.29
+-- Tool versions:  xst 13.1, 14.6; ghdl 0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -36,6 +36,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2013-10-06   538   1.2    pll support, use clksys_vcodivide ect
 -- 2011-12-18   440   1.1.1  use [rt]xok for DSP_DP
 -- 2011-12-11   438   1.1    use now rbd_tst_rlink and rlink_sp1c
 -- 2011-11-26   433   1.0    Initial version (derived from sys_tst_rlink_n2)
@@ -145,11 +146,15 @@ begin
 
   RESET <= '0';                         -- so far not used
   
-  DCM : dcm_sfs
+  GEN_CLKSYS : s6_cmt_sfs
     generic map (
-      CLKFX_DIVIDE   => sys_conf_clkfx_divide,
-      CLKFX_MULTIPLY => sys_conf_clkfx_multiply,
-      CLKIN_PERIOD   => 10.0)
+      VCO_DIVIDE     => sys_conf_clksys_vcodivide,
+      VCO_MULTIPLY   => sys_conf_clksys_vcomultiply,
+      OUT_DIVIDE     => sys_conf_clksys_outdivide,
+      CLKIN_PERIOD   => 10.0,
+      CLKIN_JITTER   => 0.01,
+      STARTUP_WAIT   => false,
+      GEN_TYPE       => sys_conf_clksys_gentype)
     port map (
       CLKIN   => I_CLK100,
       CLKFX   => CLK,

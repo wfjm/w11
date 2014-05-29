@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: telnet_starter 314 2010-07-09 17:38:41Z mueller $
+# $Id: telnet_starter 547 2013-12-29 13:10:07Z mueller $
 #
 # Copyright 2009-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 # for complete details.
 #
 #  Revision History:
+# Date         Rev  Vers    Comment
 # 2010-07-04   312   1.0.3  correct telnet_wrapper path
 # 2010-04-26   284   1.0.2  add error check for GetOptions
 # 2009-11-08   248   1.0.1  proper -h handling & text; add -t support;

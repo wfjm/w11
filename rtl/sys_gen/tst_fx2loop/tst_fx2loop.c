@@ -1,6 +1,6 @@
-/* $Id: tst_fx2loop.c 465 2012-12-27 21:29:38Z mueller $ */
+/* $Id: tst_fx2loop.c 530 2013-08-09 21:25:04Z mueller $ */
 /*
- * Copyright 2011-2012 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+ * Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
  *
  * This program is free software; you may redistribute and/or modify it under
  * the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
  *
  * Revision History: 
  * Date         Rev Version  Comment
+ * 2013-08-09   530   2.1.2  -read: write up to 9 nstead of 7 words
  * 2012-04-09   461   2.1.1  fix loop back code: fix run-down, add pipe drain
  * 2012-03-24   460   2.1    add message loop back code (preliminary)
  * 2012-03-10   459   2.0    re-write for asynchronous libusb interface
@@ -436,7 +437,7 @@ void do_read(int ep)
     prt_time();
     printf("read  %4d word:", ntrans/2);
     int nprt = ntrans/2;
-    if (nprt > 7) nprt = 7;
+    if (nprt > 9) nprt = 9;
     for (i = 0; i < nprt; i++)  printf(" %4.4x", (uint16_t)buf[i]);
     printf("\n");
     if (nsigint>0) break;

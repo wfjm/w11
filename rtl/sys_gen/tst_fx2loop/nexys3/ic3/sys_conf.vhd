@@ -1,4 +1,4 @@
--- $Id: sys_conf.vhd 510 2013-04-26 16:14:57Z mueller $
+-- $Id: sys_conf.vhd 538 2013-10-06 17:21:25Z mueller $
 --
 -- Copyright 2012-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,9 +16,10 @@
 -- Description:    Definitions for sys_tst_fx2loop_ic3_n3 (for synthesis)
 --
 -- Dependencies:   -
--- Tool versions:  xst 13.3, 14.5; ghdl 0.29
+-- Tool versions:  xst 13.3, 14.5, 14.6; ghdl 0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2013-10-06   538   1.2    pll support, use clksys_vcodivide ect
 -- 2012-04-25   510   1.1    use 3/2 clock-> 150 MHz sysclk
 -- 2012-04-09   461   1.0    Initial version 
 ------------------------------------------------------------------------------
@@ -30,8 +31,10 @@ use work.slvtypes.all;
 
 package sys_conf is
 
-  constant sys_conf_clkfx_divide : positive   :=  2;
-  constant sys_conf_clkfx_multiply : positive :=  3;
+  constant sys_conf_clksys_vcodivide   : positive :=   2;
+  constant sys_conf_clksys_vcomultiply : positive :=   3;   -- dcm  150 MHz
+  constant sys_conf_clksys_outdivide   : positive :=   1;   -- sys  150 MHz
+  constant sys_conf_clksys_gentype     : string   := "DCM";
 
   constant sys_conf_fx2_type : string := "ic3";
 
@@ -53,7 +56,8 @@ package sys_conf is
   -- derived constants
   
   constant sys_conf_clksys : integer :=
-    (100000000/sys_conf_clkfx_divide)*sys_conf_clkfx_multiply;
+    ((100000000/sys_conf_clksys_vcodivide)*sys_conf_clksys_vcomultiply) /
+    sys_conf_clksys_outdivide;
   constant sys_conf_clksys_mhz : integer := sys_conf_clksys/1000000;
 
 end package sys_conf;

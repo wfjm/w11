@@ -1,4 +1,4 @@
-# $Id: Makefile 479 2013-02-01 18:09:49Z mueller $
+# $Id: Makefile 529 2013-08-02 17:15:43Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -21,11 +21,12 @@ SOMINV     = 0
 include ../checkpath_cpp.mk
 #
 INCLFLAGS  = -I${RETROBASE}/tools/src -I${TCLINC} -I${BOOSTINC}
-LDLIBS     = -L${RETROBASE}/tools/lib -lrtcltools
+LDLIBS     = -lpthread
+LDLIBS    += -L${RETROBASE}/tools/lib -lrtcltools
 #
 # Object files to be included
 #
-OBJ_all    = Rutiltpp_Init.o RtclBvi.o
+OBJ_all    = Rutiltpp_Init.o RtclBvi.o RtclSystem.o RtclSignalAction.o
 # 
 DEP_all    = $(OBJ_all:.o=.dep)
 #
@@ -40,7 +41,7 @@ include $(RETROBASE)/tools/make/generic_dep.mk
 include $(RETROBASE)/tools/make/generic_so.mk
 include $(RETROBASE)/tools/make/dontincdep.mk
 #
-# The magic autodependcy include
+# The magic auto-dependency include
 #
 ifndef DONTINCDEP
 include $(DEP_all)

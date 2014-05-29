@@ -1,4 +1,4 @@
-// $Id: RtclArgs.cpp 492 2013-02-24 22:14:47Z mueller $
+// $Id: RtclArgs.cpp 521 2013-05-20 22:16:45Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-19   521   1.0.7  add NextSubOpt() method, pass optset's as const
 // 2013-02-12   487   1.0.6  add CurrentArg() method
 // 2013-02-03   481   1.0.5  use Rexception
 // 2011-03-26   373   1.0.4  add GetArg(float/double)
@@ -26,7 +27,7 @@
 
 /*!
   \file
-  \version $Id: RtclArgs.cpp 492 2013-02-24 22:14:47Z mueller $
+  \version $Id: RtclArgs.cpp 521 2013-05-20 22:16:45Z mueller $
   \brief   Implemenation of RtclArgs.
 */
 
@@ -394,7 +395,7 @@ bool RtclArgs::NextOpt(std::string& val)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-bool RtclArgs::NextOpt(std::string& val, RtclNameSet& optset)
+bool RtclArgs::NextOpt(std::string& val, const RtclNameSet& optset)
 {
   val.clear();
   string opt;
@@ -402,6 +403,35 @@ bool RtclArgs::NextOpt(std::string& val, RtclNameSet& optset)
 
   fOptErr = !optset.Check(fpInterp, val, opt);
   return !fOptErr;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+//  irc = 1 -> match
+//        0 -> ambiguous match  --> tcl err
+//       -1 -> no match         --> no tcl err
+
+int RtclArgs::NextSubOpt(std::string& val, const RtclNameSet& optset)
+{
+  val.clear();
+  fNOptMiss = 0;
+  fOptErr = false;
+
+  if (fNDone == fObjc) return -1;
+
+  const char* str = PeekArgString(0);
+  
+  // does next arg look like an option
+  if (str[0]=='-' && str[1]  && str[1]!='-' && !isdigit(str[1])) {
+    // and matches one of optset
+    int irc = optset.CheckMatch(fpInterp, val, string(str), false);
+    if (irc >= 0) {
+      fNDone += 1;
+      fOptErr = (irc == 0);
+      return irc;
+    }
+  }
+  return -1;
 }
 
 //------------------------------------------+-----------------------------------

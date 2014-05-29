@@ -1,4 +1,4 @@
-// $Id: RtclRw11CntlBase.ipp 504 2013-04-13 15:37:24Z mueller $
+// $Id: RtclRw11CntlBase.ipp 521 2013-05-20 22:16:45Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11CntlBase.ipp 504 2013-04-13 15:37:24Z mueller $
+  \version $Id: RtclRw11CntlBase.ipp 521 2013-05-20 22:16:45Z mueller $
   \brief   Implemenation (all inline) of RtclRw11CntlBase.
 */
 
@@ -96,7 +96,7 @@ int RtclRw11CntlBase<TO>::M_bootcode(RtclArgs& args)
   uint16_t aload;
   uint16_t astart;
   if (Obj().BootCode(unit, code, aload, astart)) {
-    RtclOPtr pres = Tcl_NewListObj(0, NULL);
+    RtclOPtr pres(Tcl_NewListObj(0, NULL));
     Tcl_ListObjAppendElement(NULL, pres, Tcl_NewIntObj((int)aload));
     Tcl_ListObjAppendElement(NULL, pres, Tcl_NewIntObj((int)astart));
     Tcl_ListObjAppendElement(NULL, pres, Rtcl::NewListIntObj(code));

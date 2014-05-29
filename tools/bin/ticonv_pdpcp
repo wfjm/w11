@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: ticonv_pdpcp 504 2013-04-13 15:37:24Z mueller $
+# $Id: ticonv_pdpcp 521 2013-05-20 22:16:45Z mueller $
 #
 # Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2013-05-19   521   1.0.3  use -be subopt of -wibrb
 # 2013-04-12   504   1.0.2  renamed from pi2ti_pdpcp; fix [rm]wi handling
 #                           use wtcpu command; use wibrbbe command;
 # 2013-02-05   483   1.0.1  make cpucmd parametrizable
@@ -104,7 +105,7 @@ while (<IFILE>) {
     if ($be == 0) {
       print "$cpu cp -wibrb 0$2\n";
     } else {
-      printf "$cpu cp -wibrbbe 0%6.6o %o\n", $base&0177700, $be;
+      printf "$cpu cp -wibrb 0%6.6o -be %o\n", $base&0177700, $be;
     }
 
   # (read) [d=data] type commands: rrx,rps,rm,rmi --------------------

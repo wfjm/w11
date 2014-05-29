@@ -1,4 +1,4 @@
-# $Id: Makefile 479 2013-02-01 18:09:49Z mueller $
+# $Id: Makefile 530 2013-08-09 21:25:04Z mueller $
 #
 # Top level makefile, using the recipe found in
 #    http://www.lackof.org/taggart/hacking/make-example/
@@ -22,13 +22,13 @@ DIRS += librwxxtpp
 #
 BUILDDIRS = $(DIRS:%=build-%)
 CLEANDIRS = $(DIRS:%=clean-%)
-REALCDIRS = $(DIRS:%=distc-%)
+DISTCDIRS = $(DIRS:%=distc-%)
 #
 .PHONY: all clean distclean
 .PHONY: $(DIRS)
 .PHONY: $(BUILDDIRS)
 .PHONY: $(CLEANDIRS)
-.PHONY: $(REALCDIRS)
+.PHONY: $(DISTCDIRS)
 #
 # build 'all' rule
 #
@@ -52,6 +52,6 @@ $(CLEANDIRS):
 #
 # distclean rule
 #
-distclean: $(REALCDIRS)
-$(REALCDIRS): 
+distclean: $(DISTCDIRS)
+$(DISTCDIRS): 
 	$(MAKE) -C $(@:distc-%=%) distclean

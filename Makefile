@@ -1,4 +1,4 @@
-# $Id: Makefile 513 2013-05-01 14:02:06Z mueller $
+# $Id: Makefile 538 2013-10-06 17:21:25Z mueller $
 #
 # 'Meta Makefile' for whole retro project
 #   allows to make all synthesis targets
@@ -6,6 +6,7 @@
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2013-09-28   535   1.0.7  add nexys4 port for sys_gen/tst_sram,w11a
 # 2013-05-01   513   1.0.6  add clean_sim_tmp and clean_syn_tmp targets
 # 2012-12-29   466   1.0.5  add tst_rlink_cuff
 # 2011-12-26   445   1.0.4  add tst_fx2loop

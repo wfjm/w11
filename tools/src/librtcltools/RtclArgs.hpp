@@ -1,4 +1,4 @@
-// $Id: RtclArgs.hpp 495 2013-03-06 17:13:48Z mueller $
+// $Id: RtclArgs.hpp 521 2013-05-20 22:16:45Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-19   521   1.0.9  add NextSubOpt() method, pass optset's as const
 // 2013-03-05   495   1.0.8  add SetResult(bool)
 // 2013-03-02   494   1.0.7  add Quit() method
 // 2013-02-12   487   1.0.6  add CurrentArg() method
@@ -29,7 +30,7 @@
 
 /*!
   \file
-  \version $Id: RtclArgs.hpp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: RtclArgs.hpp 521 2013-05-20 22:16:45Z mueller $
   \brief   Declaration of class RtclArgs.
 */
 
@@ -104,7 +105,8 @@ namespace Retro {
                                uint32_t max=uint32_max, uint32_t min=0);
     
       bool              NextOpt(std::string& val);
-      bool              NextOpt(std::string& val, RtclNameSet& optset);
+      bool              NextOpt(std::string& val, const RtclNameSet& optset);
+      int               NextSubOpt(std::string& val, const RtclNameSet& optset);
       bool              OptValid() const;
 
       Tcl_Obj*          CurrentArg() const;

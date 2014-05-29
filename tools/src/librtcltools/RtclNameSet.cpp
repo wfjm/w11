@@ -1,4 +1,4 @@
-// $Id: RtclNameSet.cpp 516 2013-05-05 21:24:52Z mueller $
+// $Id: RtclNameSet.cpp 521 2013-05-20 22:16:45Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-19   521   1.1    add CheckMatch()
 // 2013-02-03   481   1.0.1  use Rexception
 // 2011-02-20   363   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclNameSet.cpp 516 2013-05-05 21:24:52Z mueller $
+  \version $Id: RtclNameSet.cpp 521 2013-05-20 22:16:45Z mueller $
   \brief   Implemenation of RtclNameSet.
 */
 
@@ -80,22 +81,36 @@ RtclNameSet::~RtclNameSet()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-bool RtclNameSet:: Check(Tcl_Interp* interp, std::string& rval,
-                         const std::string& tval) const
+bool RtclNameSet::Check(Tcl_Interp* interp, std::string& rval,
+                        const std::string& tval) const
+{
+  return CheckMatch(interp, rval, tval, true) > 0;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+//  irc = 1 -> match
+//        0 -> ambiguous match  --> tcl err
+//       -1 -> no match         --> tcl err if misserr
+
+int RtclNameSet::CheckMatch(Tcl_Interp* interp, std::string& rval,
+                            const std::string& tval, bool misserr) const
 {
   rval.clear();
   nset_cit_t it = fSet.lower_bound(tval);
 
   // no leading substring match
   if (it==fSet.end() || tval!=it->substr(0,tval.length())) {
-    Tcl_AppendResult(interp, "-E: bad option '", tval.c_str(),
-                     "': must be ", NULL);
-    const char* delim = "";
-    for (nset_cit_t it1=fSet.begin(); it1!=fSet.end(); it1++) {
-      Tcl_AppendResult(interp, delim, it1->c_str(), NULL);
-      delim = ",";
+    if (misserr) {
+      Tcl_AppendResult(interp, "-E: bad option '", tval.c_str(),
+                       "': must be ", NULL);
+      const char* delim = "";
+      for (nset_cit_t it1=fSet.begin(); it1!=fSet.end(); it1++) {
+        Tcl_AppendResult(interp, delim, it1->c_str(), NULL);
+        delim = ",";
+      }
     }
-    return false;
+    return -1;
   }
 
   // check for ambiguous substring match
@@ -111,12 +126,12 @@ bool RtclNameSet:: Check(Tcl_Interp* interp, std::string& rval,
         Tcl_AppendResult(interp, delim, it1->c_str(), NULL);
         delim = ",";
       }
-      return false;
+      return 0;
     }
   }
   
   rval = *it;  
-  return true;
+  return 1;
 }
 
 } // end namespace Retro

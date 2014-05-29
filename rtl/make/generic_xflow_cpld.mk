@@ -1,7 +1,8 @@
-# $Id: generic_xflow_cpld.mk 470 2013-01-05 17:28:46Z mueller $
+# $Id: generic_xflow_cpld.mk 539 2013-10-13 17:06:35Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2013-10-12   539   1.2    use xtwi
 # 2013-01-05   470   1.1.1  remove '-r' from all non-dir clean rm's
 # 2011-08-13   405   1.1    renamed, moved to rtl/make;
 # 2010-03-13   268   1.0    Initial version, cloned from .xflow Rev 252
@@ -45,7 +46,7 @@ XFLOW    = xflow -p ${ISE_PATH}
 	(cd ./ise; touch $*.xcf)
 	if [ -r  $*.xcf ]; then cp $*.xcf ./ise; fi
 	if [ -r ${XFLOWOPT_SYN} ]; then cp ${XFLOWOPT_SYN} ./ise; fi
-	${XFLOW} -wd ise -synth ${XFLOWOPT_SYN} $*.prj 
+	xtwi ${XFLOW} -wd ise -synth ${XFLOWOPT_SYN} $*.prj 
 	(cd ./ise; chmod -x *.* )
 	if [ -r ./ise/$*.ngc ]; then cp -p ./ise/$*.ngc .; fi
 	if [ -r ./ise/$*_xst.log ]; then cp -p ./ise/$*_xst.log .; fi
@@ -63,7 +64,7 @@ XFLOW    = xflow -p ${ISE_PATH}
 	(cd ./ise; touch $*.xcf)
 	if [ -r  $*.xcf ]; then cp $*.xcf ./ise; fi
 	if [ -r ${XFLOWOPT_SYN} ]; then cp ${XFLOWOPT_SYN} ./ise; fi
-	${XFLOW} -wd ise -synth ${XFLOWOPT_SYN} $*.prj 
+	xtwi ${XFLOW} -wd ise -synth ${XFLOWOPT_SYN} $*.prj 
 	(cd ./ise; chmod -x *.* )
 	if [ -r ./ise/$*.ngc ]; then cp -p ./ise/$*.ngc .; fi
 	if [ -r ./ise/$*_xst.log ]; then cp -p ./ise/$*_xst.log .; fi
@@ -90,7 +91,7 @@ XFLOW    = xflow -p ${ISE_PATH}
 	if [ -r $*.ngc ]; then cp -p $*.ngc ./ise; fi
 	if [ -r $*.ucf ]; then cp -p $*.ucf ./ise; fi
 	if [ -r ${XFLOWOPT_IMP} ]; then cp -p ${XFLOWOPT_IMP} ./ise; fi
-	${XFLOW} -wd ise -fit ${XFLOWOPT_IMP} $<
+	xtwi ${XFLOW} -wd ise -fit ${XFLOWOPT_IMP} $<
 	(cd ./ise; chmod -x *.* )
 	if [ -r ./ise/$*.ncd ]; then cp -p ./ise/$*.ncd .; fi
 	if [ -r ./ise/$*.jed ]; then cp -p ./ise/$*.jed .; fi

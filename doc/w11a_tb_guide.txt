@@ -1,4 +1,4 @@
-# $Id: w11a_tb_guide.txt 511 2013-04-27 13:51:46Z mueller $
+# $Id: w11a_tb_guide.txt 547 2013-12-29 13:10:07Z mueller $
 
 Guide to running w11a test benches
 
@@ -36,7 +36,7 @@ Guide to running w11a test benches
        - 'tbw' is a small perl script setting up a symbolic link to the
          stimulus file, the default extracted from the file tbw.dat, if
          an optional file name is give this one will be used instead.
-       - 'tee' ensured that the full log is saved
+       - 'tee' ensures that the full log is saved
        - 'egrep' filters FAIL and DONE lines, a successful run will
          produce a single DONE line
 
@@ -253,7 +253,7 @@ Guide to running w11a test benches
          "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat" |\
        tee tb_w11a_s3_stim2_dsim.log | egrep "(-[EFW]:|FAIL|PEND|DONE)"
      -> 10225140.0 ns 511247: DONE 
-     -> real 0m52.105s  user 0m0.260s  sys 0m0.132s
+     -> real 0m52.105s   user 0m51.871s   sys 0m0.376s
 
    - sys_w11a_n2 test bench
 
@@ -264,7 +264,7 @@ Guide to running w11a test benches
          "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat" |\
        tee tb_w11a_n2_stim2_dsim.log | egrep "(-[EFW]:|FAIL|PEND|DONE)"
      -> 10278380.0 ns 513908: DONE 
-     -> real 1m26.388s  user 0m0.312s  sys 0m0.156s
+     -> real 1m2.951s   user 1m2.628s   sys 0m0.532s
 
    - sys_w11a_n3 test bench
 
@@ -275,7 +275,7 @@ Guide to running w11a test benches
          "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat" |\
        tee tb_w11a_n3_stim2_dsim.log | egrep "(-[EFW]:|FAIL|PEND|DONE)"
      -> 5167410.0 ns 516720: DONE 
-     -> real 1m26.611s   user 0m0.248s   sys 0m0.196s
+     -> real 1m5.322s   user 1m5.072s   sys 0m0.500s
 
    A new, modular w11a test bench is under construction. So far it is very
    incomplete. This very preliminary version can be executed with
@@ -288,4 +288,5 @@ Guide to running w11a test benches
          "rw11::setup_cpu" "rw11::tbench @w11a_all.dat" | \
        tee w11a_tbench_dsim.log | egrep "(-[EFW]:|FAIL|PASS|DONE)"
      -> 904180.0 ns  45198: DONE 
-     -> real 0m5.739s   user 0m0.576s   sys 0m0.076s
+     -> real 0m5.539s   user 0m5.748s   sys 0m0.204s
+

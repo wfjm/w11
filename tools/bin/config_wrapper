@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: config_wrapper 467 2013-01-02 19:49:05Z mueller $
+# $Id: config_wrapper 534 2013-09-22 21:37:24Z mueller $
 #
 # Copyright 2010-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2013-09-21   534   1.1.8  add nexys4 support
 # 2013-01-02   467   1.1.7  jconfig: prepend '0x' to support 'jtag #2007'
 # 2012-02-11   457   1.1.6  jconfig: use RETRO_FX2_VID/PID for USB VID/PID
 # 2011-12-03   435   1.1.5  add nexys3 support;
@@ -47,6 +48,7 @@ if (not defined $opts{path}) {
   $opts{path}  = "xc3s1000"  if $opts{board} eq "s3board";
   $opts{path}  = "xc3s1200e" if $opts{board} eq "nexys2";
   $opts{path}  = "xc6slx16"  if $opts{board} eq "nexys3";
+  $opts{path}  = "xc7a100t"  if $opts{board} eq "nexys4";
   $opts{path}  = "xc6slx45"  if $opts{board} eq "atlys";
   $opts{path}  = "xc6slx45t" if $opts{board} eq "sp605";
 }
@@ -93,6 +95,10 @@ if ($board eq "s3board" && $ipath eq "xc3s200") {           # S3BOARD-200
   @plist = ($ipath);
   $pfpga = 1;
 
+} elsif ($board eq "nexys4" && $ipath eq "xc7a100t") {      # nexys4
+  @plist = ($ipath);
+  $pfpga = 1;
+
 } elsif ($board eq "atlys" && $ipath eq "xc6slx45") {       # atlys
   @plist = ($ipath);
   $pfpga = 1;
@@ -112,6 +118,7 @@ foreach my $part (@plist) {
   elsif ($part =~ m/^xc3s\d*$/)  { push @blist, "spartan3/data" }   # s-3
   elsif ($part =~ m/^xc3s\d*e$/) { push @blist, "spartan3e/data" }  # s-3e
   elsif ($part =~ m/^xc6slx\d*t?$/) { push @blist, "spartan6/data" }# s-6 lx
+  elsif ($part =~ m/^xc7a\d*t?$/) { push @blist, "artix7/data" }    # 7-a
   elsif ($part =~ m/^xccace$/)   { push @blist, "acempm/data" }     # sys-ace
   else {
     print STDERR "config_wrapper-E: no bsdl path known for $part\n";

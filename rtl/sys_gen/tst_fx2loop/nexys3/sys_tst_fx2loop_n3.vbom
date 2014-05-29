@@ -14,8 +14,8 @@
 ../../../bplib/nxcramlib/nxcramlib.vhd
 ${sys_conf}
 # components
-[xst,isim]../../../vlib/xlib/dcm_sfs_unisim_s3e.vbom
-[ghdl]../../../vlib/xlib/dcm_sfs_gsim.vbom
+[xst,isim]../../../vlib/xlib/s6_cmt_sfs_unisim.vbom
+[ghdl]../../../vlib/xlib/s6_cmt_sfs_gsim.vbom
 ../../../vlib/genlib/clkdivce.vbom
 ../../../bplib/bpgen/sn_humanio.vbom
 ../tst_fx2loop_hiomap.vbom

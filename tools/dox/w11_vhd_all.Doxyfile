@@ -5,10 +5,10 @@
 #---------------------------------------------------------------------------
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = w11 - vhd
-PROJECT_NUMBER         = 0.57
-PROJECT_BRIEF          = "Backend server for Rlink and w11"
+PROJECT_NUMBER         = 0.60
+PROJECT_BRIEF          = "W11 CPU core and support modules"
 PROJECT_LOGO           =
-OUTPUT_DIRECTORY       = $(RETRODOXY)/w11/vhd
+OUTPUT_DIRECTORY       = $(RETRODOXY)/doxy/w11/vhd
 CREATE_SUBDIRS         = NO
 OUTPUT_LANGUAGE        = English
 BRIEF_MEMBER_DESC      = YES
@@ -262,7 +262,7 @@ SKIP_FUNCTION_MACROS   = YES
 # Configuration::additions related to external references
 #---------------------------------------------------------------------------
 TAGFILES               =
-GENERATE_TAGFILE       =
+GENERATE_TAGFILE       = $(RETRODOXY)/w11/vhd/vhd.tag
 ALLEXTERNALS           = NO
 EXTERNAL_GROUPS        = YES
 PERL_PATH              = /usr/bin/perl

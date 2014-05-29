@@ -1,4 +1,4 @@
-# $Id: Makefile 504 2013-04-13 15:37:24Z mueller $
+# $Id: Makefile 529 2013-08-02 17:15:43Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -28,7 +28,7 @@ include $(RETROBASE)/tools/make/generic_cpp.mk
 include $(RETROBASE)/tools/make/generic_dep.mk
 include $(RETROBASE)/tools/make/dontincdep.mk
 #
-# The magic autodependcy include
+# The magic auto-dependency include
 #
 ifndef DONTINCDEP
 include $(DEP_all)

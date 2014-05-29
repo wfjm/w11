@@ -1,4 +1,4 @@
-; $Id: test_0040_asci.mac 501 2013-03-30 13:53:39Z mueller $
+; $Id: test_0040_asci.mac 548 2014-01-12 09:48:47Z mueller $
 ;
 ; test .ascii/.asciz
 ; 
@@ -8,14 +8,14 @@
         .asect
         .blkw   400
          
-        .ascii  /foobar/
-        .asciz  /fooba/
+        .ascii  /foobar/        ;;!! 001000:
+        .asciz  /fooba/         ;;!! 001006:
 
-a0:     .ascii  /test/
-a1:     .asciz  /test1/
+a0:     .ascii  /test/          ;;!! 001014:
+a1:     .asciz  /test1/         ;;!! 001020:
 
-a2:     .ascii  <CR><LF>/test/
-a3:     .asciz  /test/<CR><LF>
+a2:     .ascii  <CR><LF>/test/  ;;!! 001026:
+a3:     .asciz  /test/<CR><LF>  ;;!! 001034:
 
 a4:     .asciz  <CR><LF>/retro/<CR><LF>|computing|
 a5:     .ascii  /Hello World!/

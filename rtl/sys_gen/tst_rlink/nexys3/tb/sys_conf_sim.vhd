@@ -1,6 +1,6 @@
--- $Id: sys_conf_sim.vhd 433 2011-11-27 22:04:39Z mueller $
+-- $Id: sys_conf_sim.vhd 538 2013-10-06 17:21:25Z mueller $
 --
--- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Definitions for sys_tst_rlink_n3 (for simulation)
 --
 -- Dependencies:   -
--- Tool versions:  xst 13.1; ghdl 0.29
+-- Tool versions:  xst 13.1, 14.6; ghdl 0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2013-10-06   538   1.1    pll support, use clksys_vcodivide ect
 -- 2011-11-26   433   1.0    Initial version
 ------------------------------------------------------------------------------
 
@@ -29,8 +30,10 @@ use work.slvtypes.all;
 
 package sys_conf is
 
-  constant sys_conf_clkfx_divide : positive   := 1;
-  constant sys_conf_clkfx_multiply : positive := 1;
+  constant sys_conf_clksys_vcodivide   : positive :=   1;
+  constant sys_conf_clksys_vcomultiply : positive :=   1;   -- dcm  100 MHz
+  constant sys_conf_clksys_outdivide   : positive :=   1;   -- sys  100 MHz
+  constant sys_conf_clksys_gentype     : string   := "DCM";
 
   constant sys_conf_ser2rri_cdinit : integer := 1-1;   -- 1 cycle/bit in sim
 
@@ -39,7 +42,8 @@ package sys_conf is
   -- derived constants
   
   constant sys_conf_clksys : integer :=
-    (100000000/sys_conf_clkfx_divide)*sys_conf_clkfx_multiply;
+    ((100000000/sys_conf_clksys_vcodivide)*sys_conf_clksys_vcomultiply) /
+    sys_conf_clksys_outdivide;
   constant sys_conf_clksys_mhz : integer := sys_conf_clksys/1000000;
 
 end package sys_conf;

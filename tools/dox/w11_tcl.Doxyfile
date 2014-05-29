@@ -5,10 +5,10 @@
 #---------------------------------------------------------------------------
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = w11 - tcl
-PROJECT_NUMBER         = 0.57
+PROJECT_NUMBER         = 0.60
 PROJECT_BRIEF          = "Backend server for Rlink and w11"
 PROJECT_LOGO           =
-OUTPUT_DIRECTORY       = $(RETRODOXY)/w11/tcl
+OUTPUT_DIRECTORY       = $(RETRODOXY)/doxy/w11/tcl
 CREATE_SUBDIRS         = NO
 OUTPUT_LANGUAGE        = English
 BRIEF_MEMBER_DESC      = YES
@@ -102,10 +102,11 @@ INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          = *.tcl \
                          *.dox
 RECURSIVE              = YES
-EXCLUDE                =
+EXCLUDE                = 
 EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = */.svn* \
-                         */tests/*
+                         */tests/* \
+                         */pkgIndex.tcl
 EXCLUDE_SYMBOLS        =
 EXAMPLE_PATH           =
 EXAMPLE_PATTERNS       =
@@ -259,7 +260,7 @@ SKIP_FUNCTION_MACROS   = YES
 # Configuration::additions related to external references
 #---------------------------------------------------------------------------
 TAGFILES               =
-GENERATE_TAGFILE       =
+GENERATE_TAGFILE       = $(RETRODOXY)/w11/tcl/tcl.tag
 ALLEXTERNALS           = NO
 EXTERNAL_GROUPS        = YES
 PERL_PATH              = /usr/bin/perl

@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: asm-11 503 2013-04-06 19:44:13Z mueller $
+# $Id: asm-11 547 2013-12-29 13:10:07Z mueller $
 #
 # Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -2447,8 +2447,8 @@ sub savestr1 {
 #-------------------------------------------------------------------------------
 
 sub print_help {
-  print "usage: asm-11 <file>\n";
-  print "  --I path      adds path to the .include search path\n";
+  print "usage: asm-11 [OPTIONS]... [FILE]...\n";
+  print "  --I=path      adds path to the .include search path\n";
   print "  --lst         create listing (default file name)\n";
   print "  --olst=fnam   create listing (concrete file name)\n";
   print "  --lda         create absolute loader output (default file name)\n";

@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.cpp 516 2013-05-05 21:24:52Z mueller $
+// $Id: Rw11Cpu.cpp 521 2013-05-20 22:16:45Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cpu.cpp 516 2013-05-05 21:24:52Z mueller $
+  \version $Id: Rw11Cpu.cpp 521 2013-05-20 22:16:45Z mueller $
   \brief   Implemenation of Rw11Cpu.
 */
 #include <stdlib.h>
@@ -582,7 +582,7 @@ bool Rw11Cpu::Boot(const std::string& uname, RerrMsg& emsg)
     char c = uname[i];
     if (c >= '0' && c <= '9') {
       string unum = cname.substr(i);
-      uind = atoi(unum.c_str());
+      uind = ::atoi(unum.c_str());
       break;
     } else {
       cname.push_back(c);

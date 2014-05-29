@@ -1,4 +1,4 @@
-// $Id: RlogFileCatalog.cpp 493 2013-03-01 21:02:33Z mueller $
+// $Id: RlogFileCatalog.cpp 521 2013-05-20 22:16:45Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -18,7 +18,7 @@
 
 /*!
   \file
-  \version $Id: RlogFileCatalog.cpp 493 2013-03-01 21:02:33Z mueller $
+  \version $Id: RlogFileCatalog.cpp 521 2013-05-20 22:16:45Z mueller $
   \brief   Implemenation of RlogFileCatalog.
 */
 
@@ -41,7 +41,7 @@ namespace Retro {
 
 RlogFileCatalog& RlogFileCatalog::Obj()
 {
-  static RlogFileCatalog obj;
+  static RlogFileCatalog obj;               // lazy creation singleton
   return obj;
 }
 

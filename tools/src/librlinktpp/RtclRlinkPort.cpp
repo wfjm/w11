@@ -1,4 +1,4 @@
-// $Id: RtclRlinkPort.cpp 495 2013-03-06 17:13:48Z mueller $
+// $Id: RtclRlinkPort.cpp 521 2013-05-20 22:16:45Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: RtclRlinkPort.cpp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: RtclRlinkPort.cpp 521 2013-05-20 22:16:45Z mueller $
   \brief   Implemenation of class RtclRlinkPort.
  */
 
@@ -303,7 +303,7 @@ int RtclRlinkPort::DoRawio(RtclArgs& args, RlinkPort* pport, size_t& errcnt)
     if (irc == RlinkPort::kErr) return args.Quit("-E: timeout on -rblk");
     if (irc != (int)rdata.size()) return args.Quit(emsg);
     if (rvname.length()) {
-      RtclOPtr pres = Rtcl::NewListIntObj(rdata);
+      RtclOPtr pres(Rtcl::NewListIntObj(rdata));
       if(!Rtcl::SetVar(args.Interp(), rvname, pres)) return kERR;
     }
     if (edata.size()) {

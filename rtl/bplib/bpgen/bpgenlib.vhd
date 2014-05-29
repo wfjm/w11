@@ -1,4 +1,4 @@
--- $Id: bpgenlib.vhd 476 2013-01-26 22:23:53Z mueller $
+-- $Id: bpgenlib.vhd 534 2013-09-22 21:37:24Z mueller $
 --
 -- Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  12.1, 13.3; ghdl 0.26-0.29
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2013-09-21   534   1.1.1  add bp_rs232_4l4l_iob
 -- 2013-01-26   476   1.1    moved rbus depended components to bpgenrbuslib
 -- 2013-01-06   472   1.0.7  add sn_humanio_demu_rbus
 -- 2011-11-16   426   1.0.6  now numeric_std clean
@@ -75,6 +76,28 @@ component bp_rs232_2l4l_iob is          -- iob's for dual 2l+4l rs232, w/ select
     RTS_N : in slbit;                   -- request to send (act. low)
     I_RXD0 : in slbit;                  -- pad-i: p0: receive data (board view)
     O_TXD0 : out slbit;                 -- pad-o: p0: transmit data (board view)
+    I_RXD1 : in slbit;                  -- pad-i: p1: receive data (board view)
+    O_TXD1 : out slbit;                 -- pad-o: p1: transmit data (board view)
+    I_CTS1_N : in slbit;                -- pad-i: p1: clear to send   (act. low)
+    O_RTS1_N : out slbit                -- pad-o: p1: request to send (act. low)
+  );
+end component;
+
+component bp_rs232_4l4l_iob is          -- iob's for dual 4l+4l rs232, w/ select
+  generic (
+    RELAY : boolean := false);          -- add a relay stage towards IOB's
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit := '0';            -- reset
+    SEL : in slbit;                     -- select, '0' for port 0
+    RXD : out slbit;                    -- receive data (board view)
+    TXD : in slbit;                     -- transmit data (board view)
+    CTS_N : out slbit;                  -- clear to send   (act. low)
+    RTS_N : in slbit;                   -- request to send (act. low)
+    I_RXD0 : in slbit;                  -- pad-i: p0: receive data (board view)
+    O_TXD0 : out slbit;                 -- pad-o: p0: transmit data (board view)
+    I_CTS0_N : in slbit;                -- pad-i: p0: clear to send   (act. low)
+    O_RTS0_N : out slbit;               -- pad-o: p0: request to send (act. low)
     I_RXD1 : in slbit;                  -- pad-i: p1: receive data (board view)
     O_TXD1 : out slbit;                 -- pad-o: p1: transmit data (board view)
     I_CTS1_N : in slbit;                -- pad-i: p1: clear to send   (act. low)

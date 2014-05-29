@@ -1,4 +1,4 @@
--- $Id: sys_tst_rlink_cuff_n3.vhd 512 2013-04-28 07:44:02Z mueller $
+-- $Id: sys_tst_rlink_cuff_n3.vhd 538 2013-10-06 17:21:25Z mueller $
 --
 -- Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -15,7 +15,7 @@
 -- Module Name:    sys_tst_rlink_cuff_n3 - syn
 -- Description:    rlink tester design for nexys3 with fx2 interface
 --
--- Dependencies:   vlib/xlib/dcm_sfs
+-- Dependencies:   vlib/xlib/s6_cmt_sfs
 --                 vlib/genlib/clkdivce
 --                 bplib/bpgen/bp_rs232_2l4l_iob
 --                 bplib/bpgen/sn_humanio_rbus
@@ -28,7 +28,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 13.3; ghdl 0.29
+-- Tool versions:  xst 13.3, 14.6; ghdl 0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri ctl/MHz
@@ -36,6 +36,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2013-10-06   538   1.1    pll support, use clksys_vcodivide ect
 -- 2012-12-29   466   1.0    Initial version; derived from sys_tst_rlink_cuff_n2
 --                           and sys_tst_fx2loop_n3
 ------------------------------------------------------------------------------
@@ -164,11 +165,15 @@ begin
     report "assert sys_conf_clksys on MHz grid"
     severity failure;
 
-  DCM : dcm_sfs
+  GEN_CLKSYS : s6_cmt_sfs
     generic map (
-      CLKFX_DIVIDE   => sys_conf_clkfx_divide,
-      CLKFX_MULTIPLY => sys_conf_clkfx_multiply,
-      CLKIN_PERIOD   => 10.0)
+      VCO_DIVIDE     => sys_conf_clksys_vcodivide,
+      VCO_MULTIPLY   => sys_conf_clksys_vcomultiply,
+      OUT_DIVIDE     => sys_conf_clksys_outdivide,
+      CLKIN_PERIOD   => 10.0,
+      CLKIN_JITTER   => 0.01,
+      STARTUP_WAIT   => false,
+      GEN_TYPE       => sys_conf_clksys_gentype)
     port map (
       CLKIN   => I_CLK100,
       CLKFX   => CLK,

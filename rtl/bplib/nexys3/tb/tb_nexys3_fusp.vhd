@@ -1,6 +1,6 @@
--- $Id: tb_nexys3_fusp.vhd 476 2013-01-26 22:23:53Z mueller $
+-- $Id: tb_nexys3_fusp.vhd 538 2013-10-06 17:21:25Z mueller $
 --
--- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -17,7 +17,7 @@
 --
 -- Dependencies:   simlib/simclk
 --                 simlib/simclkcnt
---                 xlib/dcm_sfs
+--                 xlib/s6_cmt_sfs
 --                 rlink/tb/tbcore_rlink
 --                 tb_nexys3_core
 --                 serport/serport_uart_rxtx
@@ -26,10 +26,11 @@
 -- To test:        generic, any nexys3_fusp_aif target
 --
 -- Target Devices: generic
--- Tool versions:  xst 13.1; ghdl 0.29
+-- Tool versions:  xst 13.1, 14.6; ghdl 0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2013-10-06   538   1.2    pll support, use clksys_vcodivide ect
 -- 2011-12-23   444   1.1    new system clock scheme, new tbcore_rlink iface
 -- 2011-11-25   432   1.0    Initial version (derived from tb_nexys2_fusp)
 ------------------------------------------------------------------------------
@@ -123,11 +124,15 @@ begin
       CLK_STOP => CLK_STOP
     );
   
-  DCM_COM : dcm_sfs
+  CLKGEN_COM : s6_cmt_sfs
     generic map (
-      CLKFX_DIVIDE   => sys_conf_clkfx_divide,
-      CLKFX_MULTIPLY => sys_conf_clkfx_multiply,
-      CLKIN_PERIOD   => 10.0)
+      VCO_DIVIDE   => sys_conf_clksys_vcodivide,
+      VCO_MULTIPLY => sys_conf_clksys_vcomultiply,
+      OUT_DIVIDE   => sys_conf_clksys_outdivide,
+      CLKIN_PERIOD => 10.0,
+      CLKIN_JITTER => 0.01,
+      STARTUP_WAIT => false,
+      GEN_TYPE     => sys_conf_clksys_gentype)
     port map (
       CLKIN   => CLKOSC,
       CLKFX   => CLKCOM,

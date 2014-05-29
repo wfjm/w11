@@ -1,4 +1,4 @@
-$ Id: $
+$Id: README_iso_jtag.txt 525 2013-07-06 12:19:39Z mueller $
 
 usb_jtag using Cypress FX2 chip
 ===============================

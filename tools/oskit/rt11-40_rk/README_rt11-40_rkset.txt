@@ -1,4 +1,4 @@
-# $Id:  $
+# $Id: README_rt11-40_rkset.txt 519 2013-05-12 20:44:16Z mueller $
 
 Notes on oskit: RT-11 V4.0 system on RK05 volumes
 

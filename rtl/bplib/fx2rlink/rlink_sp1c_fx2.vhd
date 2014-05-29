@@ -1,4 +1,4 @@
--- $Id:  $
+-- $Id: rlink_sp1c_fx2.vhd 525 2013-07-06 12:19:39Z mueller $
 --
 -- Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --

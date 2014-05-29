@@ -1,4 +1,4 @@
--- $Id: sys_w11a_n3.vhd 509 2013-04-21 20:46:20Z mueller $
+-- $Id: sys_w11a_n3.vhd 538 2013-10-06 17:21:25Z mueller $
 --
 -- Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -15,7 +15,7 @@
 -- Module Name:    sys_w11a_n3 - syn
 -- Description:    w11a test design for nexys3
 --
--- Dependencies:   vlib/xlib/dcm_sfs
+-- Dependencies:   vlib/xlib/s6_cmt_sfs
 --                 vlib/genlib/clkdivce
 --                 bplib/bpgen/bp_rs232_2l4l_iob
 --                 bplib/bpgen/sn_humanio_rbus
@@ -37,7 +37,7 @@
 -- Test bench:     tb/tb_sys_w11a_n3
 --
 -- Target Devices: generic
--- Tool versions:  xst 13.1; ghdl 0.29
+-- Tool versions:  xst 13.1, 14.6; ghdl 0.29
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -47,6 +47,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2013-10-06   538   1.5    pll support, use clksys_vcodivide ect
 -- 2013-04-21   509   1.4    added fx2 (cuff) support
 -- 2011-12-18   440   1.0.4  use rlink_sp1c
 -- 2011-12-04   435   1.0.3  increase ATOWIDTH 6->7 (saw i/o timeouts on wblks)
@@ -241,11 +242,15 @@ begin
     report "assert sys_conf_clksys on MHz grid"
     severity failure;
   
-  DCM : dcm_sfs
+  GEN_CLKSYS : s6_cmt_sfs
     generic map (
-      CLKFX_DIVIDE   => sys_conf_clkfx_divide,
-      CLKFX_MULTIPLY => sys_conf_clkfx_multiply,
-      CLKIN_PERIOD   => 10.0)
+      VCO_DIVIDE     => sys_conf_clksys_vcodivide,
+      VCO_MULTIPLY   => sys_conf_clksys_vcomultiply,
+      OUT_DIVIDE     => sys_conf_clksys_outdivide,
+      CLKIN_PERIOD   => 10.0,
+      CLKIN_JITTER   => 0.01,
+      STARTUP_WAIT   => false,
+      GEN_TYPE       => sys_conf_clksys_gentype)
     port map (
       CLKIN   => I_CLK100,
       CLKFX   => CLK,

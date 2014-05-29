@@ -1,4 +1,4 @@
--- $Id: bp_rs232_2l4l_iob.vhd 426 2011-11-18 18:14:08Z mueller $
+-- $Id: bp_rs232_2l4l_iob.vhd 534 2013-09-22 21:37:24Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,7 +13,7 @@
 --
 ------------------------------------------------------------------------------
 -- Module Name:    bp_rs232_2l4l_iob - syn
--- Description:    iob's for internal + external rs232, with select
+-- Description:    iob's for internal(2line) + external(4line) rs232, with select
 --
 -- Dependencies:   bp_rs232_2line_iob
 --                 bp_rs232_4line_iob

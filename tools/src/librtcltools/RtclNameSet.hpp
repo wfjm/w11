@@ -1,6 +1,6 @@
-// $Id: RtclNameSet.hpp 488 2013-02-16 18:49:47Z mueller $
+// $Id: RtclNameSet.hpp 521 2013-05-20 22:16:45Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-19   521   1.1    add CheckMatch()
 // 2011-02-20   363   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 
 /*!
   \file
-  \version $Id: RtclNameSet.hpp 488 2013-02-16 18:49:47Z mueller $
+  \version $Id: RtclNameSet.hpp 521 2013-05-20 22:16:45Z mueller $
   \brief   Declaration of class RtclNameSet.
 */
 
@@ -43,10 +44,12 @@ namespace Retro {
 
                         RtclNameSet();
                         RtclNameSet(const std::string& nset);
-                        ~RtclNameSet();
+                       ~RtclNameSet();
 
     bool                Check(Tcl_Interp* interp, std::string& rval, 
                               const std::string& tval) const;
+    int                 CheckMatch(Tcl_Interp* interp, std::string& rval, 
+                                   const std::string& tval, bool misserr) const;
 
     protected:  
       nset_t            fSet;

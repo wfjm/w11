@@ -1,4 +1,4 @@
-// $Id: RtclAttnShuttle.cpp 495 2013-03-06 17:13:48Z mueller $
+// $Id: RtclAttnShuttle.cpp 521 2013-05-20 22:16:45Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,17 +13,18 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2013-05-20   521   1.0.1  Setup proper Tcl channel options
 // 2013-03-01   493   1.0    Initial version
 // 2013-01-12   475   0.5    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclAttnShuttle.cpp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: RtclAttnShuttle.cpp 521 2013-05-20 22:16:45Z mueller $
   \brief   Implemenation of class RtclAttnShuttle.
  */
 
-#include "errno.h"
+#include <errno.h>
 
 #include "boost/bind.hpp"
 
@@ -47,14 +48,14 @@ namespace Retro {
 RtclAttnShuttle::RtclAttnShuttle(uint16_t mask, Tcl_Obj* pobj)
   : fpServ(0),
     fpInterp(0),
-    fFdPipeRead(0),
-    fFdPipeWrite(0),
+    fFdPipeRead(-1),
+    fFdPipeWrite(-1),
     fShuttleChn(0),
     fMask(mask),
     fpScript(pobj)
 {
   int pipefd[2];
-  int irc = pipe(pipefd);
+  int irc = ::pipe(pipefd);
   if (irc < 0) 
     throw Rexception("RtclAttnShuttle::<ctor>", "pipe() failed: ", errno);
   fFdPipeRead  = pipefd[0];
@@ -67,8 +68,8 @@ RtclAttnShuttle::RtclAttnShuttle(uint16_t mask, Tcl_Obj* pobj)
 RtclAttnShuttle::~RtclAttnShuttle()
 {
   Remove();
-  close(fFdPipeWrite);
-  close(fFdPipeRead);
+  ::close(fFdPipeWrite);
+  ::close(fFdPipeRead);
 }
 
 //------------------------------------------+-----------------------------------
@@ -83,9 +84,15 @@ void RtclAttnShuttle::Add(RlinkServer* pserv, Tcl_Interp* interp)
 
   // connect to Tcl
   fShuttleChn = Tcl_MakeFileChannel((ClientData)fFdPipeRead, TCL_READABLE);
+
+  Tcl_SetChannelOption(NULL, fShuttleChn, "-buffersize", "64");
+  Tcl_SetChannelOption(NULL, fShuttleChn, "-encoding", "binary");
+  Tcl_SetChannelOption(NULL, fShuttleChn, "-translation", "binary");
+
   Tcl_CreateChannelHandler(fShuttleChn, TCL_READABLE, 
                            (Tcl_FileProc*) ThunkTclChannelHandler,
                            (ClientData) this);
+
   fpInterp = interp;
   return;
 }
@@ -118,7 +125,7 @@ void RtclAttnShuttle::Remove()
 int RtclAttnShuttle::AttnHandler(const RlinkServer::AttnArgs& args)
 {
   uint16_t apat = args.fAttnPatt & args.fAttnMask;
-  int irc = write(fFdPipeWrite, (void*) &apat, sizeof(apat));
+  int irc = ::write(fFdPipeWrite, (void*) &apat, sizeof(apat));
   if (irc < 0) 
     throw Rexception("RtclAttnShuttle::AttnHandler()",
                      "write() failed: ", errno);

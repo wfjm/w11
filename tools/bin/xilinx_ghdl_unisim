@@ -1,7 +1,8 @@
 #!/bin/sh
-# $Id: xilinx_ghdl_unisim 248 2009-11-08 22:51:38Z mueller $
+# $Id: xilinx_ghdl_unisim 547 2013-12-29 13:10:07Z mueller $
 #
 #  Revision History:
+# Date         Rev  Vers    Comment
 # 2009-11-08   248   1.1    adopt to ISE 11.1, use VITAL models from ./primitive
 # 2007-10-26    92   1.0    Initial version
 #

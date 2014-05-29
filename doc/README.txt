@@ -1,4 +1,4 @@
-# $Id: README.txt 518 2013-05-12 16:45:02Z mueller $
+# $Id: README.txt 556 2014-05-29 19:01:39Z mueller $
 
 Release notes for w11a
 
@@ -82,7 +82,57 @@ Release notes for w11a
 
 3. Change Log ----------------------------------------------------------------
 
-- trunk (2013-05-12: svn rev 21(oc) 518(wfjm); untagged w11a_V0.58)  +++++++++
+- trunk (2014-05-29: svn rev 22(oc) 556(wfjm); untagged w11a_V0.581)  ++++++++
+  - summary
+    - new reference system
+      - Switched from ISE 13.3 to 14.7.
+      - map/par behaviour changed, unfortunately unfavorably for w11a. 
+        On Nexys3 no timing closure anymore for 80 MHz, only 72 MHz can 
+        be achieved now.
+    - new man pages (in doc/man/man1/)
+    - support for Spartan-6 CMTs in PLL and DCM mode
+
+  - New features
+    - new modules
+      - rtl/vlib/xlib
+        - s6_cmt_sfs_unisim       - Spartan-6 CMT for simple frequency synthesis
+        - s6_cmt_sfs_gsim         - dito, simple ghdl simulation model
+      - tools/src/librutiltpp
+        - RtclSignalAction        - Tcl signal handler
+        - RtclSystem              - Tcl Unix system interface
+    - new files
+      - tools/bin/create_disk     - creates a disk container file
+      - tools/bin/xtwi            - Xilinx Tool Wrapper script for ISE
+      - tools/tcl/rw11/defs.tcl   - w11a definitions
+
+  - Changes
+    - rtl/make
+      - imp_*.opt                 - use -fastpaths, -u, -tsi for trce
+      - imp_s6_speed.opt          - adopt for ISE 14.x
+      - generic_xflow.mk          - use xtwi; trce tsi file; use -C for cpp
+      - generic_isim.mk           - use xtwi
+      - generic_xflow_cpld.mk     - use xtwi
+    - rtl/sys_gen/*/nexys3
+      - .../sys_*.vhd             - pll support, use clksys_vcodivide ect
+    - rtl/sys_gen/w11a/nexys3
+      - sys_conf.vhd              - use 72 MHz, no closure in ISE 14.x for 80
+    - rtl/bplib/nexys(2|3)
+      - nexys(2|3)_time_fx2_ic.ucf - add VALID for hold time check
+    - tools/src/librwxxtpp
+      - RtclRw11Cpu               - cp command options modified
+    - tools/bin
+      - vbomconv                  - add --viv_vhdl (for Vivado)
+    - tools/tcl/rw11
+      - util.tcl                  - move definitions to defs.tcl
+
+  - Bug fixes
+    - tools/src/librtools/RlogFile - fix date print (month was off by one)
+    - tools/tcl/rw11/asm.tcl      - asmwait checks now pc if stop: defined
+
+  - Other updates
+    - INSTALL_ghdl.txt - text reflects current situation on ghdl packages
+
+- trunk (2013-05-12: svn rev 21(oc) 518+(wfjm); untagged w11a_V0.58)  ++++++++
 
   - Summary
     - C++ and Tcl based backend server now fully functional, supports with 

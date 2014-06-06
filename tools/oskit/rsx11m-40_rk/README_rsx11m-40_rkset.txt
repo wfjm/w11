@@ -1,4 +1,4 @@
-# $Id: README_rsx11m-40_rkset.txt 518 2013-05-12 16:45:02Z mueller $
+# $Id: README_rsx11m-40_rkset.txt 558 2014-06-01 22:20:51Z mueller $
 
 Notes on oskit: RSX-11M V4.0 system on RK05 volumes
 
@@ -12,16 +12,16 @@ Notes on oskit: RSX-11M V4.0 system on RK05 volumes
 
    See notes, especially on legal terms, in $RETROBASE/doc/w11a_os_guide.txt
 
-   Also read README_license.txt !!
+   Also read README_license.txt which is included in the oskit !!
 
 2. Installation ------------------------------------------------------
 
    - A disk set is available from
-       http://www.retro11.de/data/oc_w11/rsx11m-40_rkset.tgz
+       http://www.retro11.de/data/oc_w11/oskits/rsx11m-40_rkset.tgz
      Download, unpack and copy the disk images (*.dsk), e.g.
 
        cd $RETROBASE/tools/oskit/rsx11m-40_rk
-       wget http://www.retro11.de/data/oc_w11/rsx11m-40_rkset.tgz
+       wget http://www.retro11.de/data/oc_w11/oskits/rsx11m-40_rkset.tgz
        tar -xzf rsx11m-40_rkset.tgz
 
 3. Usage -------------------------------------------------------------

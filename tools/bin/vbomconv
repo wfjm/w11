@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: vbomconv 543 2013-11-03 22:43:41Z mueller $
+# $Id: vbomconv 558 2014-06-01 22:20:51Z mueller $
 #
 # Copyright 2007-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -835,5 +835,6 @@ sub print_help {
   print "  --xst_export=s   export all xst source files into directory s\n";
   print "  --ghdl_export=s  export all ghdl source files into directory s\n";
   print "  --isim_export=s  export all isim source files into directory s\n";
+  print "  --get_top        return top level entity name\n";
   print "  --flist          list all files touched by vbom for all tags\n";
 }

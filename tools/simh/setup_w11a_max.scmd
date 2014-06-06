@@ -1,11 +1,11 @@
-; $Id: setup_w11a_max.scmd 518 2013-05-12 16:45:02Z mueller $
+; $Id: setup_w11a_max.scmd 559 2014-06-06 21:26:47Z mueller $
 ;
 ; Setup file for 'maximal' w11a configuration under simh 3.8 and above
 ;
-; This setup reflects the planned w11a system on a Nexys[234] board
+; This setup reflects the full w11a system on a Nexys[234] board
 ;   --> 4 MByte, 2 DL11, DZ+LP+PC, RK05+RL02+RP06+TM11, DEUNA
 ;
-; 11/70 CPU no FPP, 1 MByte memory
+; 11/70 CPU no FPP, 4 MByte memory
 ; 2 DL11
 ; 1 DZ11
 ; 1 LP11

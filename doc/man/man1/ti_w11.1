@@ -1,0 +1,89 @@
+.\"  -*- nroff -*-
+.\"  $Id: ti_w11.1 550 2014-02-03 08:16:57Z mueller $
+.\"
+.\" Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" 
+.\" ------------------------------------------------------------------
+.
+.TH TI_W11 1 2013-05-20 "Retro Project" "Retro Project Manual"
+.\" ------------------------------------------------------------------
+.SH NAME
+ti_w11 \- Quick starter for \fBti_rri\fP with \fBw11\fP CPU designs
+.\" ------------------------------------------------------------------
+.SH SYNOPSIS
+.
+.SY ti_w11
+.OP OPTIONS
+.OP "ti_rri options and commands"
+.YS
+.
+.\" ------------------------------------------------------------------
+.SH DESCRIPTION
+Generates the \fBti_rri\fP(1) commands for starting the \fBrri\fP backend
+in standard configurations with \fBw11\fP CPU designs. Connections to
+FPGA boards as well as to \fPghdl\fP based simulations are supported.
+
+Since \fBti_w11\fP is only a quick starter for \fBti_rri\fP(1) this man page
+will only describe briefly the \fBti_w11\fP specific options, for any further
+detail consult the \fBti_rri\fP(1) man page.
+
+\fBti_w11\fP will print the generated \fBti_rri\fP(1) command to stdout before
+executing it.
+.
+.\" ------------------------------------------------------------------
+.SH OPTIONS
+.SS "setup options for FPGA connects"
+.IP \fB-u\fP
+use \fB\-\-cuff\fP connect (USB via Cypress FX2)
+.IP \fB-t\fIDN\fR[,\fIopts\fP]
+use \fB\-\-term\fP connect, \fID\fP specifies device name, \fIN\fP
+specified the device number, and \fIopts\fP the addtional options
+a \fB\-\-term\fP can hold (e.g. break or xon). \fID\fP is mapped as
+.RS
+.PD 0
+.IP \fBs\fP 4
+use /dev/ttyS*  (* is device number \fIN\fP)
+.IP \fBu\fP 4
+use /dev/ttyUSB*  (* is device number \fIN\fP)
+.PD
+.RE
+.
+.SS "setup options for ghdl simulation runs"
+.IP \fB-s3\fP
+start \fItb_w11a_s3\fP simulation (w11a on S3BOARD)
+.IP \fB-n2\fP
+start \fItb_w11a_n2\fP simulation (w11a on Nexys2 board)
+.IP \fB-n3\fP
+start \fItb_w11a_n3\fP simulation (w11a on Nexys3 board)
+.
+.SS "common options"
+.IP \fB-e "\fR=\fIfile"\fR
+load and execute \fIfile\fP. If the file type is '.mac' the file will
+be on the fly compiled with \fBasm-11\fP(1), for all other file types
+it is assumed that the are in \fBlda\fP(5) format.
+.
+.\" ------------------------------------------------------------------
+.SH EXAMPLES
+.IP "\fBti_w11 -u @211bsd_rk_boot.tcl\fR" 4
+Assumes a FPGA board, with a \fBw11\fP CPU design already configured,
+is connected via USB. \fBti_rri\fP(1) will be started and the given
+boot script executed.
+
+.IP "\fBti_w11 -n3 -e $RETROBASE/tools/asm-11/w11/sys/dl11/simple_out.mac\fR"
+Will start the \fItb_w11a_n3 test\fP bench in \fBghdl\fP(1), on the fly 
+compile the \fIsimple_out.mac\fP test program with \fBasm-11\fP(1), load 
+and execute it. This little test code just produces
+.EX
+   Hello world!
+   Hello world!
+.EE
+forever, just abort with ^C if you have seen enough.
+.
+.\" ------------------------------------------------------------------
+.SH "SEE ALSO"
+.BR ti_rri (1),
+.BR asm-11 (1)
+
+.\" ------------------------------------------------------------------
+.SH AUTHOR
+Walter F.J. Mueller <W.F.J.Mueller@gsi.de>

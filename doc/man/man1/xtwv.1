@@ -1,0 +1,54 @@
+.\"  -*- nroff -*-
+.\"  $Id: xtwv.1 558 2014-06-01 22:20:51Z mueller $
+.\"
+.\" Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" 
+.\" ------------------------------------------------------------------
+.
+.TH XTWV 1 2014-04-21 "Retro Project" "Retro Project Manual"
+.\" ------------------------------------------------------------------
+.SH NAME
+xtwv \- Xilinx Tool Wrapper script for Vivado
+.\" ------------------------------------------------------------------
+.SH SYNOPSIS
+.
+.SY xtwv 
+.OP COMMAND
+.YS
+.
+.\" ------------------------------------------------------------------
+.SH DESCRIPTION
+The Xilinx Vivado setup script redefines PATH and potentially LD_LIBRARY_PATH. 
+The Vivado tools run fine in this environment, but other installed programs
+on the system might fail. \fBxtwv\fP helps to keep the Vivado environment
+separate from the normal working environment.
+
+The environment variable XTWV_PATH must be setup to the install path 
+of the Vivado version to be used. 
+
+\fBxtwv\fP uses XTWV_PATH to locate the Vivado setup script, sources it, 
+and execs the \fICOMMAND\fP. This way \fICOMMAND\fP is executed in the
+Vivado environment, while the login shell stays clean.
+
+.
+.\" ------------------------------------------------------------------
+.SH ENVIRONMENT
+.TP 4
+.B BXTWV_PATH
+Install path of Vivado
+.
+.\" ------------------------------------------------------------------
+.SH FILES
+.TP 4
+$XTWV_PATH/settings32.sh
+.TQ
+$XTWV_PATH/settings64.sh
+Vivado setup script located and sourced on 32 or 64 bit systems
+.
+.\" ------------------------------------------------------------------
+.SH "SEE ALSO"
+.BR xtwi (1)
+.
+.\" ------------------------------------------------------------------
+.SH AUTHOR
+Walter F.J. Mueller <W.F.J.Mueller@gsi.de>

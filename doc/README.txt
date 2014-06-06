@@ -1,4 +1,4 @@
-# $Id: README.txt 556 2014-05-29 19:01:39Z mueller $
+$Id: README.txt 559 2014-06-06 21:26:47Z mueller $
 
 Release notes for w11a
 
@@ -22,6 +22,7 @@ Release notes for w11a
 2. Files ---------------------------------------------------------------------
 
    doc                          Documentation
+   doc/man                        man pages for retro11 commands
    rtl                          VHDL sources
    rtl/bplib                    - board and component support libs
    rtl/bplib/atlys                - for Digilent Atlys board
@@ -82,10 +83,40 @@ Release notes for w11a
 
 3. Change Log ----------------------------------------------------------------
 
+- w11a_V0.50 -> w11a_V0.60 cummulative summary of key changes
+  - revised ibus protocol V2  (in w11a_V0.51)
+  - revised rbus protocol V3  (in w11a_V0.52)
+  - backend server rewritten in C++ and Tcl (in w11a_V0.53 and w11a_V0.562)
+  - add Nexys3 port of w11a (in w11a_V0.54)
+  - add Cypress FX2 support (in w11a_V0.56 and w11a_V0.57)
+  - added LP11,PC11 support (in w11a_V0.58)
+  - reference system now ISE 14.7 and Ubuntu 12.04 64 bit, ghdl 0.31
+  - many code cleanups; use numeric_std
+  - many documentation improvements
+  - development status upgraded to beta (from alpha)
+
+- trunk (2014-06-06: svn rev 23(oc) 559+(wfjm); tagged w11a_V0.60)   +++++++++
+
+  - Summary
+    - many documentation updates; no functional changes
+
+  - New features
+    - Tarballs with ready to use bit files and and all logfiles from the tool 
+      chain can be downloaded from
+        http://www.retro11.de/data/oc_w11/bitkits/
+      This area is organized in folders for different releases. The tarball 
+      file names contain information about release, Xlinix tool, and design.
+
+  - Changes
+    - documentation updates
+    - URL of oskits changed, they are now unter
+        http://www.retro11.de/data/oc_w11/oskits
+
 - trunk (2014-05-29: svn rev 22(oc) 556(wfjm); untagged w11a_V0.581)  ++++++++
-  - summary
+
+  - Summary
     - new reference system
-      - Switched from ISE 13.3 to 14.7.
+      - switched from ISE 13.3 to 14.7.
       - map/par behaviour changed, unfortunately unfavorably for w11a. 
         On Nexys3 no timing closure anymore for 80 MHz, only 72 MHz can 
         be achieved now.

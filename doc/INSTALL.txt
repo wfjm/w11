@@ -1,4 +1,4 @@
-# $Id: INSTALL.txt 512 2013-04-28 07:44:02Z mueller $
+# $Id: INSTALL.txt 559 2014-06-06 21:26:47Z mueller $
 
 Guide to install and build w11a systems, test benches and support software
 
@@ -29,15 +29,30 @@ Guide to install and build w11a systems, test benches and support software
   All instructions below assume that the project files reside in a
   working directory with the name represented as <wdir>
 
-  To download latest tagged version (V0.5) of w11a
+  - to download latest snapshot of trunk
 
-    cd <wdir>
-    svn co http://opencores.org/ocsvn/w11/w11/tags/w11a_V0.5
+      cd <wdir>
+      svn co http://opencores.org/ocsvn/w11/w11/trunk
 
-  To download latest snapshot of trunk
+  - to download tagged verions (from major releases)
+    list available svn tags
+      
+      svn ls http://opencores.org/ocsvn/w11/w11/tags
 
-    cd <wdir>
-    svn co http://opencores.org/ocsvn/w11/w11/trunk
+    and download one of them
+
+      cd <wdir>
+      svn co http://opencores.org/ocsvn/w11/w11/tags/<tag>
+
+  - to download specific svn revision (from minor releases)
+    determine desired svn revsion from list given on
+      http://opencores.org/project,w11,overview
+
+    and download 
+
+      cd <wdir>
+      svn co -r <rev> http://opencores.org/ocsvn/w11/w11/trunk
+
 
 2. System requirements ----------------------------------------------------
   
@@ -107,6 +122,10 @@ Guide to install and build w11a systems, test benches and support software
     export RETROBASE=<wdir>
     export PATH=$PATH:$RETROBASE/tools/bin
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$RETROBASE/tools/lib
+
+  To access the man pages update also the MANPATH
+
+    export MANPATH=$MANPATH:$RETROBASE/doc/man
 
   In most cases the boost library version coming with the distribution will
   work, similar for Tcl, in those cases simply use
@@ -352,18 +371,32 @@ Guide to install and build w11a systems, test benches and support software
 
 8c. Available systems ------------------------------------------------
 
-  Note: Currently ready to build versions exist for 
-          Digilent S3BOARD (-1000 FPGA version)
-          Digilent Nexys2 board (-1200 FPGA version)
-          Digilent Nexys3 board
+  Currently ready to build versions exist for 
+    - Digilent S3BOARD (-1000 FPGA version)
+    - Digilent Nexys2 board (-1200 FPGA version)
+    - Digilent Nexys3 board
+
+  Tarballs with ready to use bit file and and all logfiles from the tool
+  chain can be downloaded from
+    http://www.retro11.de/data/oc_w11/bitkits/
+  This area is organized in folders for different releases. The tarball
+  file names contain information about release, Xlinix tool, and design:
+    <release>_<tool>_<design>.tgz
+
+  To build the designs locally use
 
   1. rlink tester
-     a. for Digilent Nexys2 board
+     a. for Digilent S3BOARD
+
+        cd $RETROBASE/rtl/sys_gen/tst_rlink/s3board
+        make sys_tst_rlink_s3.bit
+
+     b. for Digilent Nexys2 board
 
         cd $RETROBASE/rtl/sys_gen/tst_rlink/nexys2
         make sys_tst_rlink_n2.bit
 
-     b. for Digilent Nexys3 board
+     c. for Digilent Nexys3 board
 
         cd $RETROBASE/rtl/sys_gen/tst_rlink/nexys3
         make sys_tst_rlink_n3.bit

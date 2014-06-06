@@ -1,4 +1,4 @@
-# $Id: README_unix_v5_rkset.txt 518 2013-05-12 16:45:02Z mueller $
+# $Id: README_unix_v5_rkset.txt 558 2014-06-01 22:20:51Z mueller $
 
 Notes on oskit: Unix V5 system on RK05 volumes
 
@@ -22,11 +22,11 @@ Notes on oskit: Unix V5 system on RK05 volumes
 2. Installation ------------------------------------------------------
 
    - A disk set is available from
-       http://www.retro11.de/data/oc_w11/unix_v5_rkset.tgz
+       http://www.retro11.de/data/oc_w11/oskits/unix_v5_rkset.tgz
      Download, unpack and copy the disk images (*.dsk), e.g.
 
        cd $RETROBASE/tools/oskit/unix-v5_rk
-       wget http://www.retro11.de/data/oc_w11/unix_v5_rkset.tgz
+       wget http://www.retro11.de/data/oc_w11/oskits/unix_v5_rkset.tgz
        tar -xzf unix_v5_rkset.tgz
 
 3. Usage -------------------------------------------------------------

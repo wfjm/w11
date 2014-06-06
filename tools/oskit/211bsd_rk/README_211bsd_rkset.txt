@@ -1,4 +1,4 @@
-# $Id: README_211bsd_rkset.txt 518 2013-05-12 16:45:02Z mueller $
+# $Id: README_211bsd_rkset.txt 558 2014-06-01 22:20:51Z mueller $
 
 Notes on oskit: 2.11BSD system on RK05 volumes
 
@@ -22,11 +22,11 @@ Notes on oskit: 2.11BSD system on RK05 volumes
 2. Installation ------------------------------------------------------
 
    - A disk set is available from
-       http://www.retro11.de/data/oc_w11/211bsd_rkset.tgz
+       http://www.retro11.de/data/oc_w11/oskits/211bsd_rkset.tgz
      Download, unpack and copy the disk images (*.dsk), e.g.
 
        cd $RETROBASE/tools/oskit/211bsd_rk/
-       wget http://www.retro11.de/data/oc_w11/211bsd_rkset.tgz
+       wget http://www.retro11.de/data/oc_w11/oskits/211bsd_rkset.tgz
        tar -xzf 211bsd_rkset.tgz
 
 3. Usage -------------------------------------------------------------

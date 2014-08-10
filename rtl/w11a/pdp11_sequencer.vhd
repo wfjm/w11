@@ -1,4 +1,4 @@
--- $Id: pdp11_sequencer.vhd 556 2014-05-29 19:01:39Z mueller $
+-- $Id: pdp11_sequencer.vhd 569 2014-07-13 14:36:32Z mueller $
 --
 -- Copyright 2006-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,10 +18,13 @@
 -- Dependencies:   ib_sel
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.2-14.7; viv 2014.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2-14.7; viv 2014.1; ghdl 0.18-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-07-12   569   1.5.1  rename s_opg_div_zero -> s_opg_div_quit;
+--                           use DP_STAT.div_quit; set munit_s_div_sr;
+--                           BUGFIX: s_opg_div_sr: check for late div_quit
 -- 2014-04-20   554   1.5    now vivado compatible (add dummy assigns in procs)
 -- 2011-11-18   427   1.4.2  now numeric_std clean
 -- 2010-10-23   335   1.4.1  use ib_sel
@@ -181,7 +184,7 @@ architecture syn of pdp11_sequencer is
     s_opg_div_cr,
     s_opg_div_sq,
     s_opg_div_sr,
-    s_opg_div_zero,
+    s_opg_div_quit,
     s_opg_ash,
     s_opg_ash_cn,
     s_opg_ashc,
@@ -1708,8 +1711,8 @@ begin
         ndpcntl.dsrc_sel := c_dpath_dsrc_res;     -- DSRC = DRES
         ndpcntl.dtmp_sel := c_dpath_dtmp_drese;   -- DTMP = DRESE
         nstate := s_opg_div_cn;
-        if DP_STAT.div_zero='1' or DP_STAT.div_ovfl='1' then
-          nstate := s_opg_div_zero;
+        if DP_STAT.div_quit = '1' then
+          nstate := s_opg_div_quit;
         else
           ndpcntl.dsrc_we := '1';                 -- update DSRC
           ndpcntl.dtmp_we := '1';                 -- update DTMP
@@ -1718,14 +1721,14 @@ begin
           nstate := s_opg_div_cr;
         end if;
 
-      when s_opg_div_cr =>              -- DIV (reminder correction)
+      when s_opg_div_cr =>              -- DIV (remainder correction)
         ndpcntl.munit_s_div_cr := '1';
         ndpcntl.dres_sel := R_IDSTAT.res_sel;     -- DRES = choice of idec
         ndpcntl.dsrc_sel := c_dpath_dsrc_res;     -- DSRC = DRES
         ndpcntl.dsrc_we := DP_STAT.div_cr;        -- update DSRC
         nstate := s_opg_div_sq;
         
-      when s_opg_div_sq =>              -- DIV (store quotient)
+      when s_opg_div_sq =>              -- DIV (correct and store quotient)
         ndpcntl.ounit_asel := c_ounit_asel_dtmp;  -- OUNIT A=DTMP
         ndpcntl.ounit_const := "00000000"&DP_STAT.div_cq;-- OUNIT const = Q corr.
         ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B=const (q cor)
@@ -1736,16 +1739,21 @@ begin
         ndpcntl.dtmp_we := '1';                   -- update DTMP (Q)
         nstate := s_opg_div_sr;
 
-      when s_opg_div_sr =>              -- DIV (store reminder)
+      when s_opg_div_sr =>              -- DIV (store remainder)
+        ndpcntl.munit_s_div_sr := '1';
         ndpcntl.ounit_asel := c_ounit_asel_dsrc;  -- OUNIT A=DSRC
         ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B=const (0)
         ndpcntl.dres_sel := c_dpath_res_ounit;    -- DRES = OUNIT
         ndpcntl.gpr_adst := SRCREG(2 downto 1) & "1";-- write odd reg !
         ndpcntl.gpr_we := '1';
         ndpcntl.psr_ccwe := '1';
-        do_fork_next(nstate, nstatus, nmmumoni);
-
-      when s_opg_div_zero =>            -- DIV (/0 or 0/ abort)
+        if DP_STAT.div_quit = '1' then
+          nstate := s_opg_div_quit;
+        else
+          do_fork_next(nstate, nstatus, nmmumoni);
+        end if;
+        
+      when s_opg_div_quit =>            -- DIV (0/ or /0 or V=1 aborts)
         ndpcntl.psr_ccwe := '1';
         do_fork_next(nstate, nstatus, nmmumoni);
 

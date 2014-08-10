@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: create_disk 522 2013-05-24 17:50:29Z mueller $
+# $Id: create_disk 562 2014-06-15 17:23:18Z mueller $
 #
-# Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-06-14   562   1.1    BUGFIX: repair --boot; add RM02,RM05,RP04,RP07
 # 2013-05-20   521   1.0    First draft
 #
 
@@ -32,7 +33,7 @@ GetOptions(\%opts, "help", "typ=s", "ini=s", "bad", "boot"
 
 sub do_inipatt;
 sub do_badtable;
-sub do_noboot;
+sub do_boot;
 sub print_help;
 
 # disk type table
@@ -40,7 +41,11 @@ my %disktype = (
   RK05 => {cyl=> 203, hd=>   2, sec=>  12, bps=> 512, bad=>0},
   RL01 => {cyl=> 256, hd=>   2, sec=>  40, bps=> 256, bad=>1},
   RL02 => {cyl=> 512, hd=>   2, sec=>  40, bps=> 256, bad=>1},
-  RP06 => {cyl=> 815, hd=>  19, sec=>  22, bps=> 512, bad=>1}
+  RM02 => {cyl=> 823, hd=>   5, sec=>  32, bps=> 512, bad=>1},
+  RM05 => {cyl=> 823, hd=>  19, sec=>  32, bps=> 512, bad=>1},
+  RP04 => {cyl=> 411, hd=>  19, sec=>  22, bps=> 512, bad=>1},
+  RP06 => {cyl=> 815, hd=>  19, sec=>  22, bps=> 512, bad=>1},
+  RP07 => {cyl=> 630, hd=>  32, sec=>  50, bps=> 512, bad=>1}
 );
 
 autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
@@ -101,7 +106,7 @@ do_inipatt if $opts{ini};
 do_badtable if $opts{bad};
 
 # write dummy boot block
-do_noboot if $opts{noboot};
+do_boot if $opts{boot};
 
 #-------------------------------------------------------------------------------
 
@@ -183,7 +188,7 @@ sub do_badtable {
 
 #-------------------------------------------------------------------------------
 
-sub do_noboot {
+sub do_boot {
   my @dat;
 
   push @dat, 0012700, 0000100;    #         start:  mov     #text, r0
@@ -219,7 +224,7 @@ sub do_noboot {
   $buf .= "\r\n";
 
   # NOTE: the text above almost fills the first 512 bytes !!
-  #       don't any more text, all has been said anyway   !!
+  #       don't add more text, all has been said anyway   !!
 
   $rc = $fh->seek(0100, SEEK_SET);
   if (not $rc) {die "seek failed: $!";}

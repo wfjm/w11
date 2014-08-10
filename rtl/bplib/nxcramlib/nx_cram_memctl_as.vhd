@@ -1,4 +1,4 @@
--- $Id: nx_cram_memctl_as.vhd 433 2011-11-27 22:04:39Z mueller $
+-- $Id: nx_cram_memctl_as.vhd 563 2014-06-22 15:49:09Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -44,7 +44,7 @@
 -- Notes:
 --  1. READ1DELAY of 2 is needed even though the timing of the memory suggests
 --     that 1 cycle is enough (T_apa is 20 ns, so 40 ns round trip is ok). A
---     short READ1 delay works in sim, but not on fpga where the data od the
+--     short READ1 delay works in sim, but not on fpga where the data of the
 --     ADDR(0)=0 cycle is re-read (see notes_tst_sram_n2.txt).
 --     tb_n2_cram_memctl_as_ISim_tsim works with full sdf even when T_apa is
 --     40ns or 50 ns, only T_apa 60 ns fails !
@@ -55,7 +55,7 @@
 --     low-Z delay by the IOB and internal memory delays. No clash.
 --  3. There is a hidden 'bus-turn-around' cycle for a read->write change.
 --     MEM_OE goes 1->0 on s_rdget1->s_wrinit and the memory will go high-z with
---     some dekal. FPGA_OE goes 0->1 in the next cycle at s_wrinit->s_wrwait0.
+--     some delay. FPGA_OE goes 0->1 in the next cycle at s_wrinit->s_wrwait0.
 --     Again no clash due to the 1 cycle delay.
 --
 -- Nominal timings:

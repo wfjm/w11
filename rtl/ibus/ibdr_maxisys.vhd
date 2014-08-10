@@ -1,6 +1,6 @@
--- $Id: ibdr_maxisys.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: ibdr_maxisys.vhd 565 2014-06-28 12:54:08Z mueller $
 --
--- Copyright 2009-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2009-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -17,6 +17,7 @@
 --
 -- Dependencies:   ibd_iist
 --                 ibd_kw11l
+--                 ibdr_rl11
 --                 ibdr_rk11
 --                 ibdr_dl11
 --                 ibdr_pc11
@@ -27,15 +28,19 @@
 --                 ib_intmap
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2014-06-08   561 14.7  131013 xc6slx16-2   380  748   18  266 s  7.1 +RL11
+-- 2014-06-08   560 14.7  131013 xc6slx16-2   311  615    8  216 s  7.1
 -- 2010-10-17   333 12.1    M53d xc3s1000-4   312 1058   16  617 s 10.3
 -- 2010-10-17   314 12.1    M53d xc3s1000-4   300 1094   16  626 s 10.4
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-06-27   565   1.2.1  temporarily hide RL11
+-- 2014-06-08   561   1.2    add rl11
 -- 2011-11-18   427   1.1.2  now numeric_std clean
 -- 2010-10-23   335   1.1.1  rename RRI_LAM->RB_LAM;
 -- 2010-06-11   303   1.1    use IB_MREQ.racc instead of RRI_REQ
@@ -231,6 +236,21 @@ begin
       EI_REQ  => EI_REQ_KW11L,
       EI_ACK  => EI_ACK_KW11L
     );
+
+--  RL11: if true  generate
+--  begin
+--    I0 : ibdr_rl11
+--      port map (
+--        CLK     => CLK,
+--        CE_MSEC => CE_MSEC,
+--        BRESET  => BRESET,
+--        RB_LAM  => RB_LAM_RL11,
+--        IB_MREQ => IB_MREQ,
+--        IB_SRES => IB_SRES_RL11,
+--        EI_REQ  => EI_REQ_RL11,
+--        EI_ACK  => EI_ACK_RL11
+--      );
+--  end generate RL11;
 
   RK11: if true generate
   begin

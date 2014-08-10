@@ -1,4 +1,4 @@
-# $Id: w11a_all.dat 552 2014-03-02 23:02:00Z mueller $
+# $Id: w11a_all.dat 569 2014-07-13 14:36:32Z mueller $
 #
 ## steering file for all w11a tests
 #
@@ -12,3 +12,6 @@ test_w11a_dstw_word_flow.tcl
 test_w11a_dstm_word_flow.tcl
 test_w11a_dsta_flow.tcl
 test_w11a_inst_traps.tcl
+#
+test_w11a_div.tcl
+#

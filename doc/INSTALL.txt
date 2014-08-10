@@ -1,4 +1,4 @@
-# $Id: INSTALL.txt 559 2014-06-06 21:26:47Z mueller $
+# $Id: INSTALL.txt 576 2014-08-02 12:24:28Z mueller $
 
 Guide to install and build w11a systems, test benches and support software
 
@@ -15,13 +15,16 @@ Guide to install and build w11a systems, test benches and support software
        b. Setup Tcl packages
        c. Rebuild Cypress FX2 firmware
   6.  The build system
+  6    a. Setting up Xilinx environment with xtwi
   7.  Building test benches
        a. General instructions
        b. Available test benches
   8.  Building systems
        a. General instructions
-       b. Configuring FPGAs
-       c. Available systems
+       b. Configuring FPGAs (via make flow)
+       c. Configuring FPGAs (directly via config_wrapper)
+       d. Available systems
+       e. Available bitkits with bit and log files
   9.  Generate Doxygen based source code view
 
 1. Download ---------------------------------------------------------------
@@ -178,11 +181,11 @@ Guide to install and build w11a systems, test benches and support software
 
   Two helper scripts will create these libraries:
 
-    <setup WebPack, e.g. source .../ISE_DS/settings32.sh>  
+    <setup XTWI_PATH, see section 6a.> 
 
     cd $RETROBASE
-    xilinx_ghdl_unisim
-    xilinx_ghdl_simprim
+    xtwi xilinx_ghdl_unisim
+    xtwi xilinx_ghdl_simprim
 
   If you have several WebPack versions installed, repeat for each version.
 
@@ -203,6 +206,13 @@ Guide to install and build w11a systems, test benches and support software
 
     cd $RETROBASE/tools/src
     make -j 4
+
+  Default is to compile with -O2 and without -g. These options can be
+  overwritten with the CXXOPTFLAGS enviromnent variable (or make opion).
+  To build with -O3 optimize use
+    make -j 4 CXXOPTFLAGS=-O3
+  To build a debug version with full symbol table use
+    make -j 4 CXXOPTFLAGS=-g
 
   To cleanup, e.g. before a re-build
     
@@ -259,27 +269,42 @@ Guide to install and build w11a systems, test benches and support software
   files, often in proper compilation order (libraries before components).
   The different tools have different formats of these 'project files'.
 
-  The build system employed in this project is based on 
-     "VHDL bill of material" or 'vbom' files
-  which list for each vhdl source file the libraries and sources for
-  the instantiated components, the later via their vbom, and last but
-  not least the name of the vhdl source file. All file name are relative
-  to the current directory. A recursive traversal through all vbom's gives
-  for each vhld module all sources needed to compile it. The vbomconv script 
-  in tools/bin does this, and generates depending on options
-   - make dependency files
-   - ISE xst project files
-   - ISE ISim project files
-   - ghdl commands for analysis, inspection and make step
+  The build system employed in this project is based on manifest files called
+     'vbom' or "VHDL bill of material" files
+  which list for each vhdl source file the libraries and sources for the
+  instantiated components, the later via their vbom, and last but not least
+  the name of the vhdl source file. 
+  All file name are relative to the current directory. A recursive traversal 
+  through all vbom's gives for each vhld module all sources needed to compile
+  it. The vbomconv script in tools/bin does this, and generates depending on 
+  options
+    - make dependency files
+    - ISE xst project files
+    - ISE ISim project files
+    - ghdl commands for analysis, inspection and make step
 
   The master make files contain pattern rules like
     %.ngc  : %.vbom           -- synthesize with xst
     %      : %.vbom           -- build functional model test bench
   which encapsulate all the vbomconf magic
 
-  A full w11a is build from more than 80 source files, test benches from
+  A full w11a is build from about 100 source files, test benches from
   even more. Using the vbom's a large number of designs can be easily
   maintained.
+
+6a. Setting up Xilinx environment with xtwi --------------------------
+
+  The Xilinx ISE setup script redefines PATH and LD_LIBRARY_PATH. The ISE 
+  tools run fine in this environment, but other installed programs on the
+  system  can (and actually do) fail. 
+
+  The build system uses a small wrapper script called xtwi to encapsulate
+  the Xilinx environment. It expects that the environment variable XTWI_PATH 
+  is setup to the install path of the  ISE version to be used. Without the 
+  /ISE_DS/ which is added by the ISE installation procedure !
+
+  Note: don't run the ISE setup scripts ..../settings(32|64).sh in your 
+    working shell. Setup only XTWI_PATH !
 
 7. Building test benches --------------------------------------------------
 
@@ -311,6 +336,8 @@ Guide to install and build w11a systems, test benches and support software
 
 8a. General instructions ---------------------------------------------
 
+  First ensure that XTWI_PATH is setup, see section 6a.
+
   To generate a bit file for a system named <sys> all is needed is
 
     make <sys>.bit
@@ -334,6 +361,11 @@ Guide to install and build w11a systems, test benches and support software
 
     make <sys>.jconfig
 
+  If a svf file is required for configuring the FPGA a svf can be created
+  from a bit file with
+
+    make <sys>.svf
+
   If only the xst or par output is wanted just use
 
     make <sys>.ngc
@@ -349,7 +381,7 @@ Guide to install and build w11a systems, test benches and support software
 
   after a re-build.
 
-8b. Configuring FPGAs ------------------------------------------------
+8b. Configuring FPGAs (via make flow) --------------------------------
 
   The make flow supports also loading the bitstream into FPGAs, either
   via Xilinx Impact, or via the Cypress FX2 USB controller is available.
@@ -369,19 +401,22 @@ Guide to install and build w11a systems, test benches and support software
   .bit file, and configure the FPGA. In case the bit file is out-of-date
   the whole design will be re-implemented before.
 
-8c. Available systems ------------------------------------------------
+8c. Configuring FPGAs (directly via config_wrapper) ------------------
+
+  The make flow described above uses two scripts
+    config_wrapper              # must be used with xtwi !
+    fx2load_wrapper
+  which can be used directly for loading available bit or svf files into
+  the FPGA. For detailed documentation see the respective man pages.
+
+  Examples for the supported boards are given in section 8e.
+
+8d. Available systems ------------------------------------------------
 
   Currently ready to build versions exist for 
     - Digilent S3BOARD (-1000 FPGA version)
     - Digilent Nexys2 board (-1200 FPGA version)
     - Digilent Nexys3 board
-
-  Tarballs with ready to use bit file and and all logfiles from the tool
-  chain can be downloaded from
-    http://www.retro11.de/data/oc_w11/bitkits/
-  This area is organized in folders for different releases. The tarball
-  file names contain information about release, Xlinix tool, and design:
-    <release>_<tool>_<design>.tgz
 
   To build the designs locally use
 
@@ -427,6 +462,39 @@ Guide to install and build w11a systems, test benches and support software
 
         cd $RETROBASE/rtl/sys_gen/w11a/nexys3
         make sys_w11a_n3.bit
+
+8e. Available bitkits with bit and log files -------------------------
+
+  Tarballs with ready to use bit files and all logfiles from the tool 
+  chain can be downloaded from
+    http://www.retro11.de/data/oc_w11/bitkits/
+  This area is organized in folders for different releases. The tarball
+  file names contain information about release, Xlinix tool, and design:
+    <release>_<tool>_<design>.tgz
+
+  These designs can be loaded with config_wrapper into the FPGA. The
+  procedures for the supported boards are given below.
+
+  Notes:
+    1. XTWI_PATH and RETROBASE environment variables must be defined.
+    2. config_wrapper bit2svf is only needed once to create the svf files.
+    3. fx2load_wrapper is needed once after each board power on.
+
+  a. for Digilent S3BOARD (using ISE Impact)
+
+       xtwi config_wrapper --board=s3board iconfig <design>.bit
+
+  b. for Digilent Nexys2 board (using Cypress FX2 USB controller)
+
+       xtwi config_wrapper --board=nexys2 bit2svf <design>.bit
+       fx2load_wrapper     --board=nexys2 --file=nexys2_jtag_2fifo_ic.ihx
+       xtwi config_wrapper --board=nexys2 jconfig <design>.svf
+
+  c. for Digilent Nexys3 board (using Cypress FX2 USB controller)
+
+       xtwi config_wrapper --board=nexys3 bit2svf <design>.bit
+       fx2load_wrapper     --board=nexys3 --file=nexys3_jtag_2fifo_ic.ihx
+       xtwi config_wrapper --board=nexys3 jconfig <design>.svf
 
 9. Generate Doxygen based source code view --------------------------------
 

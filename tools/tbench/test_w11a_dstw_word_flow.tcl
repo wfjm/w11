@@ -1,10 +1,11 @@
-# $Id: test_w11a_dstw_word_flow.tcl 552 2014-03-02 23:02:00Z mueller $
+# $Id: test_w11a_dstw_word_flow.tcl 575 2014-07-27 20:55:41Z mueller $
 #
 # Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2014-07-27   575   1.0.2  drop tout value from asmwait, reply on asmwait_tout
 # 2014-03-01   552   1.0.1  check that unused regs stay 0
 # 2013-03-31   502   1.0    Initial version
 #
@@ -54,7 +55,7 @@ rw11::asmrun  $cpu sym [list r1 $sym(data1) \
                              r3 $sym(pdata3) \
                              r4 $sym(data4e) \
                              r5 $sym(pdat5e) ]
-rw11::asmwait $cpu sym 1.0
+rw11::asmwait $cpu sym 
 rw11::asmtreg $cpu [list r0 0100 \
                          r1 $sym(data1) \
                          r2 [expr {$sym(data2)  + 4}] \
@@ -91,7 +92,7 @@ pdata3: .word   data3
 
 rw11::asmrun  $cpu sym [list r0 [expr {$sym(data0)-020}] \
                              r1 [expr {$sym(pdata1)-040}]  ]
-rw11::asmwait $cpu sym 1.0
+rw11::asmwait $cpu sym 
 rw11::asmtreg $cpu [list r0 [expr {$sym(data0)-020}] \
                          r1 [expr {$sym(pdata1)-040}] \
                          r2 0 \

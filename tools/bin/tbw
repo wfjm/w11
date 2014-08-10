@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: tbw 420 2011-11-06 21:25:54Z mueller $
+# $Id: tbw 575 2014-07-27 20:55:41Z mueller $
 #
-# Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-07-27   575   1.2.4  use xtwi to start ISim models
 # 2011-11-06   420   1.2.3  fix tbw.dat parsing (allow / in file names)
 # 2010-05-23   294   1.2.2  handle tb_code's in non-local directories
 # 2010-04-18   279   1.2.1  add -help and more text to print_usage()
@@ -236,7 +237,7 @@ foreach my $dsc (@file_dsc) {
 #
 
 if ($is_isim_run) {                         # handle for isim 'run all'
-  my $cmd = $tb_code . " " . join " ",@ARGV;
+  my $cmd = "xtwi" . " " . $tb_code . " " . join " ",@ARGV;
   open (ISIM_RUN, "| $cmd")
     or die "failed to open process pipe to isim: $!";
   print ISIM_RUN "run all\n";

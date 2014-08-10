@@ -1,4 +1,4 @@
-# $Id: generic_cpp.mk 434 2011-12-02 19:17:38Z mueller $
+# $Id: generic_cpp.mk 576 2014-08-02 12:24:28Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -13,8 +13,6 @@
 #   -O      optimize
 #   -fPIC   position independent code
 #   -Wall   all warnings
-#
-#   -g      request debugging info
 #
 ifdef CCCOMMAND
 CC = $(CCCOMMAND)
@@ -31,8 +29,6 @@ CFLAGS     = -Wall -fPIC $(CCOPTFLAGS) $(INCLFLAGS)
 #   -O      optimize
 #   -fPIC   position independent code
 #   -Wall   all warnings
-#
-#   -g      request debugging info
 #
 ifdef  CXXCOMMAND
 CXX = $(CXXCOMMAND)

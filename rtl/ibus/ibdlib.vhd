@@ -1,6 +1,6 @@
--- $Id: ibdlib.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: ibdlib.vhd 561 2014-06-09 17:22:50Z mueller $
 --
--- Copyright 2008-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Definitions for ibus devices
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-06-08   561   1.2    fix rl11 declaration
 -- 2011-11-18   427   1.1.2  now numeric_std clean
 -- 2010-10-23   335   1.1.1  rename RRI_LAM->RB_LAM;
 -- 2010-06-11   303   1.1    use IB_MREQ.racc instead of RRI_REQ
@@ -127,6 +128,7 @@ component ibdr_rl11 is                  -- ibus dev(rem): RL11
                                         -- fixed address: 174400
   port (
     CLK : in slbit;                     -- clock
+    CE_MSEC : in slbit;                 -- msec pulse
     BRESET : in slbit;                  -- ibus reset
     RB_LAM : out slbit;                 -- remote attention
     IB_MREQ : in ib_mreq_type;          -- ibus request

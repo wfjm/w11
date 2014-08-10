@@ -1,6 +1,6 @@
-# $Id: util.tcl 553 2014-03-17 06:40:08Z mueller $
+# $Id: util.tcl 575 2014-07-27 20:55:41Z mueller $
 #
-# Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,9 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-07-26   575   1.2.2  run_pdpcp: add tout argument
+# 2014-06-27   565   1.2.1  temporarily hide RL11
+# 2014-06-08   561   1.2    setup_sys: add RL11
 # 2014-03-07   553   1.1.3  move definitions to defs.tcl
 # 2013-05-09   517   1.1.2  add setup_(tt|lp|pp|ostr) device setup procs
 # 2013-04-26   510   1.1.1  split, asm* and tbench* into separate files
@@ -46,6 +49,7 @@ namespace eval rw11 {
     cpu0 add dl11
     cpu0 add dl11 -base 0176500 -lam 2
     cpu0 add rk11
+  ##  cpu0 add rl11
     cpu0 add lp11
     cpu0 add pc11
     rlw start
@@ -152,9 +156,9 @@ namespace eval rw11 {
   #
   # run_pdpcp: execute pdpcp type command file
   #
-  proc run_pdpcp {fname {cpu "cpu0"}} {
+  proc run_pdpcp {fname {tout 10.} {cpu "cpu0"}} {
     rlc errcnt -clear
-    set code [exec ticonv_pdpcp $cpu $fname]
+    set code [exec ticonv_pdpcp --tout=$tout $cpu $fname]
     eval $code
     set errcnt [rlc errcnt]
     if { $errcnt } {

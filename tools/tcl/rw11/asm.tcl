@@ -1,4 +1,4 @@
-# $Id: asm.tcl 552 2014-03-02 23:02:00Z mueller $
+# $Id: asm.tcl 575 2014-07-27 20:55:41Z mueller $
 #
 # Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,8 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-07-26   575   1.0.3  add asmwait_tout variable, use in asmwait
+# 2014-07-10   568   1.0.2  add errcnt return for asmtreg and asmtmem
 # 2014-03-01   552   1.0.1  BUGFIX: asmwait checks now pc if stop: defined
 # 2013-04-26   510   1.0    Initial version (extracted from util.tcl)
 #
@@ -23,6 +25,8 @@ package require rlink
 package require rwxxtpp
 
 namespace eval rw11 {
+
+  variable asmwait_tout 10.
 
   #
   # asmrun: run a program loaded with ldasm
@@ -66,8 +70,12 @@ namespace eval rw11 {
   #
   # asmwait: wait for completion of a program loaded with ldasm
   # 
-  proc asmwait {cpu symName {tout 10.}} {
+  proc asmwait {cpu symName {tout 0.}} {
     upvar 1 $symName sym
+    variable asmwait_tout
+    if {$tout <= 0.} {          # if not specified
+      set tout $asmwait_tout;   # use default value
+    }
     set dt [$cpu wtcpu -reset $tout]
     if {$dt >= 0 && [info exists sym(stop)]} {
       $cpu cp -rpc -edata $sym(stop)
@@ -84,8 +92,9 @@ namespace eval rw11 {
     foreach key [lsort [array names defs]] {
       append cpcmd " -r$key -edata $defs($key)"
     }
+    set errbeg [rlc errcnt]
     eval $cpu cp $cpcmd
-    return ""
+    return [expr [rlc errcnt] - $errbeg]
   }
 
   #
@@ -96,8 +105,9 @@ namespace eval rw11 {
     if {$nw == 0} {
       error "asmtreg called with empty list"
     }
+    set errbeg [rlc errcnt]
     $cpu cp -wal $base -brm $nw -edata $list
-    return ""
+    return [expr [rlc errcnt] - $errbeg]
   }
 
 }

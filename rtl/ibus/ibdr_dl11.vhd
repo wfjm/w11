@@ -1,4 +1,4 @@
--- $Id: ibdr_dl11.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: ibdr_dl11.vhd 569 2014-07-13 14:36:32Z mueller $
 --
 -- Copyright 2008-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -36,7 +36,7 @@
 -- 2008-08-22   161   1.0.6  use iblib; add EI_ACK_* to proc_next sens. list
 -- 2008-05-09   144   1.0.5  use intreq flop, use EI_ACK
 -- 2008-03-22   128   1.0.4  rename xdone -> xval (no functional change)
--- 2008-01-27   115   1.0.3  bugfix: set ilam when rbuf read by cpu;
+-- 2008-01-27   115   1.0.3  BUGFIX: set ilam when rbuf read by cpu;
 --                           add xdone and rrdy bits to rri xbuf read
 -- 2008-01-20   113   1.0.2  fix maint mode logic (proper double buffer now)
 -- 2008-01-20   112   1.0.1  use BRESET

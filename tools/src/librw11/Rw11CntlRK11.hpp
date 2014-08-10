@@ -1,6 +1,6 @@
-// $Id: Rw11CntlRK11.hpp 509 2013-04-21 20:46:20Z mueller $
+// $Id: Rw11CntlRK11.hpp 562 2014-06-15 17:23:18Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-06-14   562   1.0.1  Add stats definitions
 // 2013-04-20   508   1.0    Initial version
 // 2013-02-10   485   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlRK11.hpp 509 2013-04-21 20:46:20Z mueller $
+  \version $Id: Rw11CntlRK11.hpp 562 2014-06-15 17:23:18Z mueller $
   \brief   Declaration of class Rw11CntlRK11.
 */
 
@@ -125,6 +126,23 @@ namespace Retro {
       static const uint16_t kRKMR_M_SBCLR = kWBit10;
       static const uint16_t kRKMR_M_CRESET= kWBit09;
       static const uint16_t kRKMR_M_FDONE = kWBit08;
+
+    // statistics counter indices
+      enum stats {
+        kStatNFuncCreset = Rw11Cntl::kDimStat,
+        kStatNFuncWrite,
+        kStatNFuncRead,
+        kStatNFuncWchk,
+        kStatNFuncSeek,
+        kStatNFuncRchk,
+        kStatNFuncDreset,
+        kStatNFuncWlock,
+        kStatNRdmaWrite,
+        kStatNRdmaRead,
+        kStatNRdmaWchk,
+        kStatNRdmaRchk,
+        kDimStat
+      };    
 
     protected:
       int           AttnHandler(const RlinkServer::AttnArgs& args);

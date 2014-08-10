@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: vbomconv 558 2014-06-01 22:20:51Z mueller $
+# $Id: vbomconv 575 2014-07-27 20:55:41Z mueller $
 #
-# Copyright 2007-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-07-26   575   1.10.1 use XTWI_PATH now (ise/vivado switch done later)
 # 2013-10-20   543   1.10   add --viv_vhdl
 # 2012-02-05   456   1.9.4  redo filename substitution (= and :); add --get_top
 # 2012-01-02   448   1.9.3  use in ghdl_m -fexplicit also when simprim used
@@ -220,8 +221,8 @@ if (exists $opts{ghdl_a} || exists $opts{ghdl_a_cmd}) {
   foreach (@file_list) {
     my $file = $_;
     my $cmd = "ghdl -a";
-    $cmd .= ' -P$XILINX/ghdl/unisim'  if $has_unisim;
-    $cmd .= ' -P$XILINX/ghdl/simprim' if $has_simprim;
+    $cmd .= ' -P$XTWI_PATH/ISE_DS/ISE/ghdl/unisim'  if $has_unisim;
+    $cmd .= ' -P$XTWI_PATH/ISE_DS/ISE/ghdl/simprim' if $has_simprim;
     $cmd .= " --ieee=synopsys";
     $cmd .= " $file";
     print "$cmd\n";
@@ -305,8 +306,8 @@ if (exists $opts{ghdl_m} || exists $opts{ghdl_m_cmd} ) {
   $cmd .= " -o $stem";
                                     # -fexplicit needed for ISE 13.1,13.3
   $cmd .= ' -fexplicit'             if $has_unisim or $has_simprim;
-  $cmd .= ' -P$XILINX/ghdl/unisim'  if $has_unisim;
-  $cmd .= ' -P$XILINX/ghdl/simprim' if $has_simprim;
+  $cmd .= ' -P$XTWI_PATH/ISE_DS/ISE/ghdl/unisim'  if $has_unisim;
+  $cmd .= ' -P$XTWI_PATH/ISE_DS/ISE/ghdl/simprim' if $has_simprim;
   $cmd .= " --ieee=synopsys";
   $cmd .= " --no-vital-checks"      if $is_ssim or $is_fsim or $is_tsim;
 

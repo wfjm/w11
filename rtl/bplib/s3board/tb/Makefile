@@ -1,7 +1,8 @@
-# $Id: Makefile 477 2013-01-27 14:07:10Z mueller $
+# $Id: Makefile 575 2014-07-27 20:55:41Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2014-07-27   545   1.3.1  make reference board configurable via XTW_BOARD
 # 2011-08-13   405   1.3    use includes from rtl/make
 # 2010-05-16   291   1.2.2  rename tb_memctl_s3sram->tb_s3_sram_memctl
 # 2010-05-01   286   1.2.1  add tb_s3board_usp_dummy
@@ -13,7 +14,10 @@ EXE_all  = tb_s3board_dummy
 EXE_all += tb_s3board_fusp_dummy 
 EXE_all += tb_s3_sram_memctl
 #
-include $(RETROBASE)/rtl/make/xflow_default_s3board.mk
+ifndef XTW_BOARD
+  XTW_BOARD=s3board
+endif
+include $(RETROBASE)/rtl/make/xflow_default_$(XTW_BOARD).mk
 #
 .PHONY : all all_ssim all_tsim clean
 #

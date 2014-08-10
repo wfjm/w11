@@ -1,7 +1,8 @@
-# $Id: Makefile 477 2013-01-27 14:07:10Z mueller $
+# $Id: Makefile 575 2014-07-27 20:55:41Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2014-07-27   545   1.2.2  make reference board configurable via XTW_BOARD
 # 2013-01-01   467   1.2.1  add tb_nexys2_fusp_cuff_dummy
 # 2011-11-26   433   1.2    remove tb_n2_cram_memctl_as (moved to nxcramlib)
 # 2011-08-13   405   1.1    use includes from rtl/make
@@ -13,7 +14,10 @@ EXE_all  = tb_nexys2_dummy
 EXE_all += tb_nexys2_fusp_dummy
 EXE_all += tb_nexys2_fusp_cuff_dummy
 #
-include $(RETROBASE)/rtl/make/xflow_default_nexys2.mk
+ifndef XTW_BOARD
+  XTW_BOARD=nexys2
+endif
+include $(RETROBASE)/rtl/make/xflow_default_$(XTW_BOARD).mk
 #
 .PHONY : all all_ssim all_tsim clean
 #

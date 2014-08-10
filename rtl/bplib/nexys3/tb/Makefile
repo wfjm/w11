@@ -1,13 +1,17 @@
-# $Id: Makefile 509 2013-04-21 20:46:20Z mueller $
+# $Id: Makefile 575 2014-07-27 20:55:41Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2014-07-27   545   1.0.1  make reference board configurable via XTW_BOARD
 # 2011-11-26   432   1.0    Initial version
 #
 EXE_all  = tb_nexys3_fusp_dummy
 EXE_all += tb_nexys3_fusp_cuff_dummy 
 #
-include $(RETROBASE)/rtl/make/xflow_default_nexys3.mk
+ifndef XTW_BOARD
+  XTW_BOARD=nexys3
+endif
+include $(RETROBASE)/rtl/make/xflow_default_$(XTW_BOARD).mk
 #
 .PHONY : all all_ssim all_tsim clean
 #

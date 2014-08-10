@@ -1,4 +1,4 @@
--- $Id: sys_w11a_n3.vhd 538 2013-10-06 17:21:25Z mueller $
+-- $Id: sys_w11a_n3.vhd 561 2014-06-09 17:22:50Z mueller $
 --
 -- Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -37,10 +37,12 @@
 -- Test bench:     tb/tb_sys_w11a_n3
 --
 -- Target Devices: generic
--- Tool versions:  xst 13.1, 14.6; ghdl 0.29
+-- Tool versions:  xst 13.1-14.7; ghdl 0.29-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2014-06-08   561 14.7  131013 xc6slx16-2  1531 3500  142 1165 ok: +RL11
+-- 2014-05-29   556 14.7  131013 xc6slx16-2  1459 3342  128 1154 ok:
 -- 2013-04-21   509 13.3    O76d xc6slx16-2  1516 3274  140 1184 ok: now + FX2 !
 -- 2011-12-18   440 13.1    O40d xc6slx16-2  1441 3161   96 1084 ok: LP+PC+DL+II
 -- 2011-11-20   430 13.1    O40d xc6slx16-2  1412 3206   84 1063 ok: LP+PC+DL+II

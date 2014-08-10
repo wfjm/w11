@@ -1,7 +1,8 @@
-# $Id: Makefile 477 2013-01-27 14:07:10Z mueller $
+# $Id: Makefile 575 2014-07-27 20:55:41Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2014-07-27   545   1.2.1  make reference board configurable via XTW_BOARD
 # 2011-08-13   405   1.2    use includes from rtl/make
 # 2007-12-09   100   1.1.1  drop ISE_p definition
 # 2007-06-03    47   1.1    use Makefile.xflow
@@ -11,7 +12,10 @@ VBOM_all = $(wildcard *.vbom)
 NGC_all  = $(VBOM_all:.vbom=.ngc)
 #
 # reference board for test synthesis is Spartan-6 based Nexys3
-include $(RETROBASE)/rtl/make/xflow_default_nexys3.mk
+ifndef XTW_BOARD
+  XTW_BOARD=nexys3
+endif
+include $(RETROBASE)/rtl/make/xflow_default_$(XTW_BOARD).mk
 #
 .PHONY : all clean
 #

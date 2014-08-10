@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: asm-11 547 2013-12-29 13:10:07Z mueller $
+# $Id: asm-11 575 2014-07-27 20:55:41Z mueller $
 #
-# Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-07-26   575   1.0.3  add 'call' and 'return' to pst (as in macro-11)
 # 2013-04-07   503   1.0.2  list dot for .even,.dot,.blkb,.blkw
 # 2013-04-01   502   1.0.1  BUGFIX: -2(r0),@-2(r0) was broken, parser fixed
 #                           add -lsm (lsmem format) output; add implicit .word
@@ -127,6 +128,7 @@ my %pst = (
  'mfpt'   => {typ=>'op', val=>0000007, fmt=>'-'  },
  'jmp'    => {typ=>'op', val=>0000100, fmt=>'g'  },
  'rts'    => {typ=>'op', val=>0000200, fmt=>'r'  },
+ 'return' => {typ=>'op', val=>0000207, fmt=>'-'  }, # alias for rts pc
  'spl'    => {typ=>'op', val=>0000230, fmt=>'n3' },
  'nop'    => {typ=>'op', val=>0000240, fmt=>'-'  },
  'clc'    => {typ=>'op', val=>0000241, fmt=>'-'  },
@@ -148,6 +150,7 @@ my %pst = (
  'bgt'    => {typ=>'op', val=>0003000, fmt=>'s8' },
  'ble'    => {typ=>'op', val=>0003400, fmt=>'s8' },
  'jsr'    => {typ=>'op', val=>0004000, fmt=>'rg' },
+ 'call'   => {typ=>'op', val=>0004700, fmt=>'g'  }, # alias for jsr pc,<dst>
  'clr'    => {typ=>'op', val=>0005000, fmt=>'g'  },
  'com'    => {typ=>'op', val=>0005100, fmt=>'g'  },
  'inc'    => {typ=>'op', val=>0005200, fmt=>'g'  },

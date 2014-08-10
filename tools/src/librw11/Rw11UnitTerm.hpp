@@ -1,4 +1,4 @@
-// $Id: Rw11UnitTerm.hpp 515 2013-05-04 17:28:59Z mueller $
+// $Id: Rw11UnitTerm.hpp 570 2014-07-20 19:05:11Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -22,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: Rw11UnitTerm.hpp 515 2013-05-04 17:28:59Z mueller $
+  \version $Id: Rw11UnitTerm.hpp 570 2014-07-20 19:05:11Z mueller $
   \brief   Declaration of class Rw11UnitTerm.
 */
 
@@ -79,7 +79,7 @@ namespace Retro {
 
     protected:
       bool          fTo7bit;                //<! discard parity bit on output
-      bool          fToEnpc;                //<! escape non-printabls on output
+      bool          fToEnpc;                //<! escape non-printables on output
       bool          fTi7bit;                //<! discard parity bit on input
       std::deque<uint8_t>  fRcvQueue;       //<! input queue
       std::string   fLogFname;              //<! log file name

@@ -1,6 +1,6 @@
-// $Id: RlinkConnect.cpp 521 2013-05-20 22:16:45Z mueller $
+// $Id: RlinkConnect.cpp 575 2014-07-27 20:55:41Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-07-27   575   1.3.3  ExecPart(): increase packet tout from 5 to 15 sec
 // 2013-04-21   509   1.3.2  add SndAttn() method
 // 2013-03-01   493   1.3.1  add Server(Active..|SignalAttn)() methods
 // 2013-02-23   492   1.3    use scoped_ptr for Port; Close allways allowed
@@ -28,7 +29,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.cpp 521 2013-05-20 22:16:45Z mueller $
+  \version $Id: RlinkConnect.cpp 575 2014-07-27 20:55:41Z mueller $
   \brief   Implemenation of RlinkConnect.
 */
 
@@ -401,7 +402,7 @@ bool RlinkConnect::ExecPart(RlinkCommandList& clist, size_t ibeg, size_t iend,
 
   fRxPkt.Init();
   // FIXME_code: parametrize timeout
-  if (!fRxPkt.RcvPacket(fpPort.get(), nrcvtot, 5.0, emsg)) return false;
+  if (!fRxPkt.RcvPacket(fpPort.get(), nrcvtot, 15.0, emsg)) return false;
 
   // FIXME_code: handle timeout properly
   if (fRxPkt.TestFlag(RlinkPacketBuf::kFlagTout)) {

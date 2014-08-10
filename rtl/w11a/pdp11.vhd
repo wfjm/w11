@@ -1,6 +1,6 @@
--- $Id: pdp11.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: pdp11.vhd 569 2014-07-13 14:36:32Z mueller $
 --
--- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,12 @@
 -- Description:    Definitions for pdp11 components
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
+--
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-07-12   569   1.4.9  dpath_stat_type: merge div_zero+div_ovfl to div_quit
+--                           dpath_cntl_type: add munit_s_div_sr
 -- 2011-11-18   427   1.4.8  now numeric_std clean
 -- 2010-12-30   351   1.4.7  rename pdp11_core_rri->pdp11_core_rbus; use rblib
 -- 2010-10-23   335   1.4.6  rename RRI_LAM->RB_LAM;
@@ -162,6 +165,7 @@ package pdp11 is
     munit_s_div : slbit;                -- munit s_opg_div state
     munit_s_div_cn : slbit;             -- munit s_opg_div_cn state
     munit_s_div_cr : slbit;             -- munit s_opg_div_cr state
+    munit_s_div_sr : slbit;             -- munit s_opg_div_sr state
     munit_s_ash : slbit;                -- munit s_opg_ash state
     munit_s_ash_cn : slbit;             -- munit s_opg_ash_cn state
     munit_s_ashc : slbit;               -- munit s_opg_ashc state
@@ -180,7 +184,7 @@ package pdp11 is
     "00",'0',"000000000","00",'0',      -- ounit
     "00","00","00",'0',"000",'0',       -- aunit
     "0000",'0',                         -- lunit
-    "00",'0','0','0','0','0','0','0',   -- munit
+    "00",'0','0','0','0','0','0','0','0',-- munit
     '0',"000","000","00",'0'            -- rest
   );
      
@@ -211,10 +215,9 @@ package pdp11 is
   type dpath_stat_type is record        -- data path status
     ccout_z : slbit;                    -- current effective Z cc flag
     shc_tc : slbit;                     -- last shc cycle (shc==0)
-    div_cr : slbit;                     -- division: reminder correction needed
+    div_cr : slbit;                     -- division: remainder correction needed
     div_cq : slbit;                     -- division: quotient correction needed
-    div_zero : slbit;                   -- division: divident or divisor zero
-    div_ovfl : slbit;                   -- division: overflow
+    div_quit : slbit;                   -- division: abort (0/ or /0 or V=1)
   end record dpath_stat_type;
   
   constant dpath_stat_init : dpath_stat_type := (others=>'0');
@@ -790,18 +793,18 @@ component pdp11_munit is                -- mul/div unit for data (munit)
     DTMP : in slv16;                    -- 'tmp' data in
     GPR_DSRC : in slv16;                -- 'src' data from GPR
     FUNC : in slv2;                     -- function
-    S_DIV : in slbit;                   -- s_opg_div state
-    S_DIV_CN : in slbit;                -- s_opg_div_cn state
-    S_DIV_CR : in slbit;                -- s_opg_div_cr state
+    S_DIV : in slbit;                   -- s_opg_div state    (load dd_low)
+    S_DIV_CN : in slbit;                -- s_opg_div_cn state (1st..16th cycle)
+    S_DIV_CR : in slbit;                -- s_opg_div_cr state (remainder corr.)
+    S_DIV_SR : in slbit;                -- s_opg_div_sr state (store remainder)
     S_ASH : in slbit;                   -- s_opg_ash state
     S_ASH_CN : in slbit;                -- s_opg_ash_cn state
     S_ASHC : in slbit;                  -- s_opg_ashc state
     S_ASHC_CN : in slbit;               -- s_opg_ashc_cn state
     SHC_TC : out slbit;                 -- last shc cycle (shc==0)
-    DIV_CR : out slbit;                 -- division: reminder correction needed
+    DIV_CR : out slbit;                 -- division: remainder correction needed
     DIV_CQ : out slbit;                 -- division: quotient correction needed
-    DIV_ZERO : out slbit;               -- division: divident or divisor zero
-    DIV_OVFL : out slbit;               -- division: overflow
+    DIV_QUIT : out slbit;               -- division: abort (0/ or /0 or V=1)
     DOUT : out slv16;                   -- data output
     DOUTE : out slv16;                  -- data output extra
     CCOUT : out slv4                    -- condition codes out

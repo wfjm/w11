@@ -1,6 +1,6 @@
-// $Id: RtclSignalAction.cpp 521 2013-05-20 22:16:45Z mueller $
+// $Id: RtclSignalAction.cpp 577 2014-08-03 20:49:42Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,18 +13,20 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-08-02   577   1.0.1  add include unistd.h  (write+pipe dcl)
 // 2013-05-17   521   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclSignalAction.cpp 521 2013-05-20 22:16:45Z mueller $
+  \version $Id: RtclSignalAction.cpp 577 2014-08-03 20:49:42Z mueller $
   \brief   Implemenation of class RtclSignalAction.
  */
 
 #include <errno.h>
 #include <signal.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <iostream>
 

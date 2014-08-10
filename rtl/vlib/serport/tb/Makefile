@@ -1,7 +1,8 @@
-# $Id: Makefile 477 2013-01-27 14:07:10Z mueller $
+# $Id: Makefile 575 2014-07-27 20:55:41Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2014-07-27   545   1.3.1  make reference board configurable via XTW_BOARD
 # 2011-08-13   405   1.3    use includes from rtl/make
 # 2009-11-21   252   1.2    add ISim support
 # 2007-11-26    98   1.1    use make includes
@@ -12,7 +13,10 @@ EXE_all += tb_serport_uart_rxtx
 EXE_all += tb_serport_autobaud
 #
 # reference board for test synthesis is Spartan-6 based Nexys3
-include $(RETROBASE)/rtl/make/xflow_default_nexys3.mk
+ifndef XTW_BOARD
+  XTW_BOARD=nexys3
+endif
+include $(RETROBASE)/rtl/make/xflow_default_$(XTW_BOARD).mk
 #
 .PHONY : all all_ssim all_tsim clean
 #

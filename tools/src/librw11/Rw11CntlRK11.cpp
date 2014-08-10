@@ -1,8 +1,8 @@
-// $Id: Rw11CntlRK11.cpp 515 2013-05-04 17:28:59Z mueller $
+// $Id: Rw11CntlRK11.cpp 562 2014-06-15 17:23:18Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
-//   the boot code from the simh project and Copyright Robert M Supnik
+//   the boot code is from the simh project and Copyright Robert M Supnik
 // 
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -15,13 +15,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-06-14   562   1.0.1  Add stats
 // 2013-04-20   508   1.0    Initial version
 // 2013-02-10   485   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11CntlRK11.cpp 515 2013-05-04 17:28:59Z mueller $
+  \version $Id: Rw11CntlRK11.cpp 562 2014-06-15 17:23:18Z mueller $
   \brief   Implemenation of Rw11CntlRK11.
 */
 
@@ -148,6 +149,19 @@ Rw11CntlRK11::Rw11CntlRK11()
   for (size_t i=0; i<NUnit(); i++) {
     fspUnit[i].reset(new Rw11UnitRK11(this, i));
   }
+
+  fStats.Define(kStatNFuncCreset , "NFuncCreset"  , "func CRESET");
+  fStats.Define(kStatNFuncWrite  , "NFuncWrite"   , "func WRITE");
+  fStats.Define(kStatNFuncRead   , "NFuncRead"    , "func READ");
+  fStats.Define(kStatNFuncWchk   , "NFuncWchk"    , "func WCHK");
+  fStats.Define(kStatNFuncSeek   , "NFuncSeek"    , "func SEEK");
+  fStats.Define(kStatNFuncRchk   , "NFuncRchk"    , "func RCHK");
+  fStats.Define(kStatNFuncDreset , "NFuncDreset"  , "func DRESET");
+  fStats.Define(kStatNFuncWlock  , "NFuncWlock "  , "func WLOCK");
+  fStats.Define(kStatNRdmaWrite  , "NRdmaWrite"   , "rdma WRITE");
+  fStats.Define(kStatNRdmaRead   , "NRdmaRead"    , "rdma READ");
+  fStats.Define(kStatNRdmaWchk   , "NRdmaWchk"    , "rdma WCHK");
+  fStats.Define(kStatNRdmaRchk   , "NRdmaRchk"    , "rdma RCHK");
 }
 
 //------------------------------------------+-----------------------------------
@@ -171,7 +185,7 @@ void Rw11CntlRK11::Config(const std::string& name, uint16_t base, int lam)
 void Rw11CntlRK11::Start()
 {
   if (fStarted || fLam<0 || !fEnable || !fProbe.Found())
-    throw Rexception("Rw11CntlDL11::Start",
+    throw Rexception("Rw11CntlRK11::Start",
                      "Bad state: started, no lam, not enable, not found");
 
   // setup primary info clist
@@ -224,7 +238,7 @@ bool Rw11CntlRK11::BootCode(size_t unit, std::vector<uint16_t>& code,
                             uint16_t& aload, uint16_t& astart)
 {
   uint16_t kBOOT_START = 02000;
-  uint16_t bootcode[] = {      // rk05 boot loader - from simh pdp11_rk.c 
+  uint16_t bootcode[] = {      // rk11 boot loader - from simh pdp11_rk.c (v3.9)
     0042113,                   // "KD"
     0012706, kBOOT_START,      // MOV #boot_start, SP
     0012700, uint16_t(unit),   // MOV #unit, R0        ; unit number
@@ -242,7 +256,7 @@ bool Rw11CntlRK11::BootCode(size_t unit, std::vector<uint16_t>& code,
     0012741, 0000005,          // MOV #READ+GO, -(R1)  ; read & go
     0005002,                   // CLR R2
     0005003,                   // CLR R3
-    0012704, uint16_t(kBOOT_START+020),  // MOV #START+20, R4
+    0012704, uint16_t(kBOOT_START+020),  // MOV #START+20, R4 ; ?? unclear ??
     0005005,                   // CLR R5
     0105711,                   // TSTB (R1)
     0100376,                   // BPL .-4
@@ -376,11 +390,13 @@ int Rw11CntlRK11::AttnHandler(const RlinkServer::AttnArgs& args)
 
   // now handle the functions
   if (fu == kRKCS_CRESET) {                 // Control reset -----------------
+    fStats.Inc(kStatNFuncCreset);
     cpu.AddWibr(clist, fBase+kRKMR, kRKMR_M_CRESET);
     fRd_busy  = false;
 
   } else if (fu == kRKCS_WRITE) {           // Write -------------------------
                                             //   Note: WRITE+FMT is just WRITE
+    fStats.Inc(kStatNFuncWrite);
     if (se >= unit.NSector())   rker |= kRKER_M_NXS;
     if (cy >= unit.NCylinder()) rker |= kRKER_M_NXC;
     if (unit.WProt())           rker |= kRKER_M_WLO;
@@ -388,18 +404,21 @@ int Rw11CntlRK11::AttnHandler(const RlinkServer::AttnArgs& args)
     queue = true;
 
   } else if (fu == kRKCS_READ) {            // Read --------------------------
+    fStats.Inc(kStatNFuncRead);
     if (se >= unit.NSector())   rker |= kRKER_M_NXS;
     if (cy >= unit.NCylinder()) rker |= kRKER_M_NXC;
     if (rkcs & kRKCS_M_IBA) rker |= kRKER_M_DRE;  // not yet supported FIXME
     queue = true;
     
   } else if (fu == kRKCS_WCHK) {            // Write Check -------------------
+    fStats.Inc(kStatNFuncWchk);
     if (se >= unit.NSector())   rker |= kRKER_M_NXS;
     if (cy >= unit.NCylinder()) rker |= kRKER_M_NXC;
     if (rkcs & kRKCS_M_IBA) rker |= kRKER_M_DRE;  // not yet supported FIXME
     queue = true;
 
   } else if (fu == kRKCS_SEEK) {            // Seek --------------------------
+    fStats.Inc(kStatNFuncSeek);
     if (se >= unit.NSector())   rker |= kRKER_M_NXS;
     if (cy >= unit.NCylinder()) rker |= kRKER_M_NXC;
     if (rker) {
@@ -417,16 +436,19 @@ int Rw11CntlRK11::AttnHandler(const RlinkServer::AttnArgs& args)
     }
 
   } else if (fu == kRKCS_RCHK) {            // Read Check --------------------
+    fStats.Inc(kStatNFuncRchk);
     if (se >= unit.NSector())   rker |= kRKER_M_NXS;
     if (cy >= unit.NCylinder()) rker |= kRKER_M_NXC;
     if (rkcs & kRKCS_M_IBA) rker |= kRKER_M_DRE;  // not yet supported FIXME
     queue = true;
 
   } else if (fu == kRKCS_DRESET) {          // Drive Reset -------------------
+    fStats.Inc(kStatNFuncDreset);
     cpu.AddWibr(clist, fBase+kRKMR, kRKMR_M_FDONE);
     cpu.AddWibr(clist, fBase+kRKMR, 1u<<dr);   // issue seek done
     
   } else if (fu == kRKCS_WLOCK) {           // Write Lock --------------------
+    fStats.Inc(kStatNFuncWlock);
     rkds |= kRKDS_M_WPS;                    // set RKDS write protect flag
     unit.SetRkds(rkds);
     unit.SetWProt(true);
@@ -472,6 +494,7 @@ int Rw11CntlRK11::RdmaHandler()
 
   if (fu == kRKCS_WRITE) {                  // Write -------------------------
                                             //   Note: WRITE+FMT is like WRITE
+    fStats.Inc(kStatNRdmaWrite);
     RlinkCommandList clist;
     size_t bsize = (fRd_nwrd>256) ? 256 : fRd_nwrd;
     cpu.AddRMem(clist, fRd_addr, (uint16_t*) buf, bsize,
@@ -494,6 +517,7 @@ int Rw11CntlRK11::RdmaHandler()
       return 1;                           // requeue
     
   } else if (fu == kRKCS_READ) {
+    fStats.Inc(kStatNRdmaRead);
     if ((fRd_rkcs&kRKCS_M_FMT) == 0) {      // Read --------------------------
       RerrMsg emsg;
       bool rc = unit.VirtRead(fRd_lba, 1, buf, emsg);
@@ -533,6 +557,7 @@ int Rw11CntlRK11::RdmaHandler()
     }
     
   } else if (fu == kRKCS_WCHK) {            // Write Check -------------------
+    fStats.Inc(kStatNRdmaWchk);
     uint16_t bufmem[256];
     RlinkCommandList clist;
     size_t bsize = (fRd_nwrd>256) ? 256 : fRd_nwrd;
@@ -565,6 +590,7 @@ int Rw11CntlRK11::RdmaHandler()
 
   } else if (fu == kRKCS_RCHK) {            // Read Check --------------------
     // Note: no DMA transfer done; done here to keep logic similar to read
+    fStats.Inc(kStatNRdmaRchk);
     size_t bsize = (fRd_nwrd>256) ? 256 : fRd_nwrd;
     fRd_nwrd -= bsize;
     fRd_addr += 2*bsize;
@@ -573,7 +599,7 @@ int Rw11CntlRK11::RdmaHandler()
       return 1;                           // requeue
 
   } else {
-    throw Rexception("Rw11CntlDL11::RdmaHandler",
+    throw Rexception("Rw11CntlRK11::RdmaHandler",
                      "Bad state: bad function code");
   }
 

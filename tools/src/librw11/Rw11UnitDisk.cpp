@@ -1,4 +1,4 @@
-// $Id: Rw11UnitDisk.cpp 509 2013-04-21 20:46:20Z mueller $
+// $Id: Rw11UnitDisk.cpp 561 2014-06-09 17:22:50Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,7 @@
 
 /*!
   \file
-  \version $Id: Rw11UnitDisk.cpp 509 2013-04-21 20:46:20Z mueller $
+  \version $Id: Rw11UnitDisk.cpp 561 2014-06-09 17:22:50Z mueller $
   \brief   Implemenation of Rw11UnitDisk.
 */
 
@@ -62,7 +62,7 @@ Rw11UnitDisk::~Rw11UnitDisk()
 
 void Rw11UnitDisk::SetType(const std::string& type)
 {
-  throw Rexception("Rw11UnitDisk::<ctor>", 
+  throw Rexception("Rw11UnitDisk::SetType", 
                    string("Bad args: only type '") + fType + "' supported");
   return;
 }

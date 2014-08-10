@@ -1,6 +1,6 @@
-// $Id: RlinkCommandList.hpp 495 2013-03-06 17:13:48Z mueller $
+// $Id: RlinkCommandList.hpp 576 2014-08-02 12:24:28Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-08-02   576   1.1    rename LastExpect->SetLastExpect
 // 2013-05-06   495   1.0.1  add RlinkContext to Print() args; drop oper<<()
 // 2011-03-05   366   1.0    Initial version
 // 2011-01-09   354   0.1    First draft
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RlinkCommandList.hpp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: RlinkCommandList.hpp 576 2014-08-02 12:24:28Z mueller $
   \brief   Declaration of class RlinkCommandList.
 */
 
@@ -60,8 +61,8 @@ namespace Retro {
       size_t        AddAttn();
       size_t        AddInit(uint16_t addr, uint16_t data);
 
-      void          LastVolatile();
-      void          LastExpect(RlinkCommandExpect* exp);
+      void          LastVolatile();         // deprecated !!
+      void          SetLastExpect(RlinkCommandExpect* exp);
     
       void          Clear();
       size_t        Size() const;

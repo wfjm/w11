@@ -1,4 +1,4 @@
-# $Id: Makefile 529 2013-08-02 17:15:43Z mueller $
+# $Id: Makefile 561 2014-06-09 17:22:50Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -28,9 +28,9 @@ OBJ_all   +=   Rw11UnitTerm.o
 OBJ_all   +=   Rw11UnitDisk.o 
 OBJ_all   +=   Rw11UnitStream.o 
 OBJ_all   +=   Rw11CntlDL11.o Rw11UnitDL11.o 
-OBJ_all   +=   Rw11CntlRK11.o Rw11UnitRK11.o
 OBJ_all   +=   Rw11CntlLP11.o Rw11UnitLP11.o 
 OBJ_all   +=   Rw11CntlPC11.o Rw11UnitPC11.o 
+OBJ_all   +=   Rw11CntlRK11.o Rw11UnitRK11.o
 OBJ_all   +=   Rw11Virt.o 
 OBJ_all   +=   Rw11VirtTerm.o Rw11VirtTermPty.o Rw11VirtTermTcp.o 
 OBJ_all   +=   Rw11VirtDisk.o Rw11VirtDiskFile.o 

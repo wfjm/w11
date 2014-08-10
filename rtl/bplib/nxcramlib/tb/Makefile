@@ -1,12 +1,16 @@
-# $Id: Makefile 477 2013-01-27 14:07:10Z mueller $
+# $Id: Makefile 575 2014-07-27 20:55:41Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2014-07-27   545   1.0.1  make reference board configurable via XTW_BOARD
 # 2011-11-26   433   1.0    Initial version (cloned)
 #
 EXE_all = tb_nx_cram_memctl_as
 #
-include $(RETROBASE)/rtl/make/xflow_default_nexys2.mk
+ifndef XTW_BOARD
+  XTW_BOARD=nexys2
+endif
+include $(RETROBASE)/rtl/make/xflow_default_$(XTW_BOARD).mk
 #
 .PHONY : all all_ssim all_tsim clean
 #

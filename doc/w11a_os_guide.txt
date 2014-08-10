@@ -1,4 +1,4 @@
-# $Id: w11a_os_guide.txt 547 2013-12-29 13:10:07Z mueller $
+# $Id: w11a_os_guide.txt 563 2014-06-22 15:49:09Z mueller $
 
 Guide to run operating system images on w11a systems
 
@@ -162,12 +162,14 @@ Guide to run operating system images on w11a systems
    Legal and license issues:
 
      Unfortunately there is no general hobbyist license for DEC operating 
-     systems for PDP-11 computers. The 'Mentec license' commonly understood 
+     systems for PDP-11 computers. The 'Mentec license' is commonly understood 
      to cover the some older versions of DEC operating systems, for example
        - RT-11 V5.3 or prior
        - RSX-11M V4.3 or prior
        - RSX-11M PLUS V3.0 or prior
-     on software simulators, most notably on the 'simh' suite. 
+     on a simulator. It is commonly assumed that the license terms cover the
+     usage of the PDP11 simulator from the 'simh' suite. Usage of the e11
+     simulator is not covered according to the author of e11.
 
      HOWEVER: THIS LICENSE DOES NOT COVER THE USAGE OF THESE HISTORIC DEC 
               OPERATING SYSTEMS ON ANY 'REAL HARDWARE' IMPLEMENTATION OF A 

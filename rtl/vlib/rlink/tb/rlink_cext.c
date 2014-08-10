@@ -1,6 +1,6 @@
-/* $Id: rlink_cext.c 366 2011-03-05 14:55:15Z mueller $
+/* $Id: rlink_cext.c 575 2014-07-27 20:55:41Z mueller $
  *
- * Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+ * Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
  *
  * This program is free software; you may redistribute and/or modify it under
  * the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@
  *
  *  Revision History: 
  * Date         Rev  Vers    Comment
+ * 2014-07-27   575   1.3.2  add ssize_t -> int casts to avoid warnings
+ *                           add fflush(stdout) after standart open/close msgs
  * 2011-03-05   366   1.3.1  add RLINK_CEXT_TRACE=2 trace level
  * 2010-12-29   351   1.3    rename cext_rriext -> rlink_cext; rename functions
  *                           cext_* -> rlink_cext_* and fifo file names
@@ -80,7 +82,7 @@ static void rlink_cext_doread()
   ssize_t nbyte;
   nbyte = read(fd_rx, buf, 1);
   if (io_trace > 1) {
-    printf("rlink_cext-I: read   rc=%d", nbyte);
+    printf("rlink_cext-I: read   rc=%d", (int)nbyte);
     if (nbyte < 0) printf(" errno=%d %s", errno, strerror(errno));
     printf("\n");
   }
@@ -123,12 +125,16 @@ int rlink_cext_getbyte(int clk)
       return -2;
     }
     printf("rlink_cext-I: connected to rlink_cext_fifo_rx\n");
+    fflush(stdout);
+    
     fd_tx = open("rlink_cext_fifo_tx", O_WRONLY);
     if (fd_tx <= 0) {
       perror("rlink_cext-E: failed to open rlink_cext_fifo_tx");
       return -2;
     }
     printf("rlink_cext-I: connected to rlink_cext_fifo_tx\n");
+    fflush(stdout);
+
     nidle = 0;
     ncesc = 0;
     nside = -1;
@@ -154,6 +160,7 @@ int rlink_cext_getbyte(int clk)
     if (qr_eof != 0) {		            /* EOF seen */
       if (ncesc >= 2) {			    /*  two+ CESC seen  ? */
 	printf("rlink_cext-I: seen EOF, wait for reconnect\n");
+        fflush(stdout);
 	close(fd_rx);
 	close(fd_tx);
 	fd_rx = -1;
@@ -163,7 +170,9 @@ int rlink_cext_getbyte(int clk)
       }
     
       printf("rlink_cext-I: seen EOF, schedule clock stop and exit\n");
+      fflush(stdout);
       return -1;			    /* signal EOF seen */
+
     } else if (qr_err == EAGAIN) {          /* nothing read, return idle */
       if (nidle < 8 || (nidle%1024)==0) {
 	irc = sched_yield();
@@ -223,7 +232,7 @@ int rlink_cext_putbyte(int dat)
   buf[0] = (unsigned char) dat;
   nbyte = write(fd_tx, buf, 1);
   if (io_trace > 1) {
-    printf("rlink_cext-I: write  rc=%d", nbyte);
+    printf("rlink_cext-I: write  rc=%d", (int)nbyte);
     if (nbyte < 0) printf(" errno=%d %s", errno, strerror(errno));
     printf("\n");
   }

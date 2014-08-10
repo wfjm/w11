@@ -1,8 +1,9 @@
 #!/usr/bin/perl -w
-# $Id: ti_w11 516 2013-05-05 21:24:52Z mueller $
+# $Id: ti_w11 570 2014-07-20 19:05:11Z mueller $
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-07-13   570   1.2    bugfix: split options args into ti_rri opts and cmds
 # 2013-05-05   516   1.1    renamed to ti_w11
 # 2013-04-26   510   1.0    Initial version (derived from dorri)
 #
@@ -105,6 +106,28 @@ while (scalar(@ARGV)) {
 }
 
 #
+# process remaining arguments, separate ti_rri options and commands
+#
+
+# handle options (all starting with -)
+my @tiopts;
+while (scalar(@ARGV)) {
+  last unless $ARGV[0] =~ m{^--};
+  push @tiopts, shift @ARGV;
+}
+
+# handle comands
+my @ticmds;
+while (scalar(@ARGV)) {
+  my $curarg = shift @ARGV;
+  if ($curarg =~ m{^@(.*)$} && ! -r $1) {
+    print STDERR "ti_w11-E: file '$1' not found\n";
+    exit 1;
+  }
+  push @ticmds,$curarg;
+}
+
+#
 # check that either -s3/n2/n3 or -t or -u given
 # setup pi_rri options for either case
 #
@@ -129,6 +152,7 @@ if ($opt_io eq 'f') {
 push @arglist, '--logl=2';
 push @arglist, '--int' unless $opt_b;
 push @arglist, '--pack=rw11';
+push @arglist, @tiopts;                     # add options from ARGV
 push @arglist, '--';
 
 #
@@ -144,7 +168,6 @@ if ($opt_io eq 'f') {
     push @arglist, 'rlc oob -sbdata  8 0x2';
     push @arglist, 'rlc oob -sbdata 16 0x4';
   }
-
 }
 
 #
@@ -167,18 +190,7 @@ if (defined $val_e) {
   push @arglist, 'cpu0 cp -stapc 0200';
 }
 
-#
-# all remaining commands
-#
-
-while (scalar(@ARGV)) {
-  my $curarg = shift @ARGV;
-  if ($curarg =~ m{^@(.*)$} && ! -r $1) {
-    print STDERR "ti_w11-E: file '$1' not found\n";
-    exit 1;
-  }
-  push @arglist,$curarg;
-}
+push @arglist, @ticmds;                     # add commands from ARGV
 
 #
 # find ti_rri executable

@@ -1,6 +1,6 @@
--- $Id: pdp11_munit.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: pdp11_munit.vhd 577 2014-08-03 20:49:42Z mueller $
 --
--- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,9 +18,20 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
+--
+-- Synthesized (xst):
+-- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2014-07-12   569 14.7 131013  xc6slx16-2    30  154    0   46 s  6.8
+-- 2014-07-11   568 14.7 131013  xc6slx16-2    28  123    0   47 s  5.6
+--
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-08-05   578   1.2.3  fix proc_div sensitivity list
+-- 2014-08-03   577   1.2.2  use DTMP_POS rather signed(Q)>0 (xst bug for S-3)
+-- 2014-07-26   575   1.2.1  fix proc_omux sensitivity list
+-- 2014-07-12   569   1.2    merge DIV_ZERO+DIV_OVFL to DIV_QUIT; add S_DIV_SR
+--                           BUGFIX: fix divide logic, dr+q max neg issues
 -- 2011-11-18   427   1.1.1  now numeric_std clean
 -- 2010-09-18   300   1.1    renamed from mbox
 -- 2007-06-14    56   1.0.1  Use slvtypes.all
@@ -44,18 +55,18 @@ entity pdp11_munit is                   -- mul/div unit for data (munit)
     DTMP : in slv16;                    -- 'tmp' data in
     GPR_DSRC : in slv16;                -- 'src' data from GPR
     FUNC : in slv2;                     -- function
-    S_DIV : in slbit;                   -- s_opg_div state
-    S_DIV_CN : in slbit;                -- s_opg_div_cn state
-    S_DIV_CR : in slbit;                -- s_opg_div_cr state
+    S_DIV : in slbit;                   -- s_opg_div state    (load dd_low)
+    S_DIV_CN : in slbit;                -- s_opg_div_cn state (1st..16th cycle)
+    S_DIV_CR : in slbit;                -- s_opg_div_cr state (remainder corr.)
+    S_DIV_SR : in slbit;                -- s_opg_div_sr state (store remainder)
     S_ASH : in slbit;                   -- s_opg_ash state
     S_ASH_CN : in slbit;                -- s_opg_ash_cn state
     S_ASHC : in slbit;                  -- s_opg_ashc state
     S_ASHC_CN : in slbit;               -- s_opg_ashc_cn state
     SHC_TC : out slbit;                 -- last shc cycle (shc==0)
-    DIV_CR : out slbit;                 -- division: reminder correction needed
+    DIV_CR : out slbit;                 -- division: remainder correction needed
     DIV_CQ : out slbit;                 -- division: quotient correction needed
-    DIV_ZERO : out slbit;               -- division: divident or divisor zero
-    DIV_OVFL : out slbit;               -- division: overflow
+    DIV_QUIT : out slbit;               -- division: abort (0/ or /0 or V=1)
     DOUT : out slv16;                   -- data output
     DOUTE : out slv16;                  -- data output extra
     CCOUT : out slv4                    -- condition codes out
@@ -66,6 +77,8 @@ architecture syn of pdp11_munit is
 
   signal R_DD_L : slv16 := (others=>'0'); -- divident, low order part
   signal R_DDO_LT : slbit := '0';         -- original sign bit of divident
+  signal R_MAXFIX : slbit := '0';         -- maxfix flag for division
+  signal R_QO_LT : slbit := '0';          -- expected q sign for division
   signal R_DIV_V : slbit := '0';          -- V flag for division
   signal R_SHC : slv6 := (others=>'0');   -- shift counter for div and ash/c
   signal R_C1 : slbit := '0';             -- first cycle indicator
@@ -75,6 +88,8 @@ architecture syn of pdp11_munit is
 
   signal NEXT_DD_L : slv16 := (others=>'0');
   signal NEXT_DDO_LT : slbit := '0';
+  signal NEXT_MAXFIX : slbit := '0';
+  signal NEXT_QO_LT : slbit := '0';
   signal NEXT_DIV_V : slbit := '0';
   signal NEXT_SHC : slv6 := (others=>'0');
   signal NEXT_C1 : slbit := '0';
@@ -85,9 +100,11 @@ architecture syn of pdp11_munit is
   signal SHC_TC_L : slbit := '0';
 
   signal DDST_ZERO : slbit := '0';
+  signal DDST_NMAX : slbit := '0';
   signal DSRC_ZERO : slbit := '0';
   signal DSRC_ONES : slbit := '0';
   signal DTMP_ZERO : slbit := '0';
+  signal DTMP_POS  : slbit := '0';
 
   signal DOUT_DIV : slv16 := (others=>'0');
   signal DOUTE_DIV : slv16 := (others=>'0');
@@ -103,6 +120,8 @@ begin
     if rising_edge(CLK) then
       R_DD_L   <= NEXT_DD_L;
       R_DDO_LT <= NEXT_DDO_LT;
+      R_MAXFIX <= NEXT_MAXFIX;
+      R_QO_LT  <= NEXT_QO_LT;
       R_DIV_V  <= NEXT_DIV_V;
       R_SHC    <= NEXT_SHC;
       R_C1     <= NEXT_C1;
@@ -116,12 +135,17 @@ begin
   begin
     
     DDST_ZERO <= '0';
+    DDST_NMAX <= '0';
     DSRC_ZERO <= '0';
     DSRC_ONES <= '0';
     DTMP_ZERO <= '0';
+    DTMP_POS  <= '0';
 
     if unsigned(DDST) = 0 then
       DDST_ZERO <= '1';
+    end if;
+    if DDST = "1000000000000000" then
+      DDST_NMAX <= '1';
     end if;
     if unsigned(DSRC) = 0 then
       DSRC_ZERO <= '1';
@@ -131,6 +155,9 @@ begin
     end if;
     if unsigned(DTMP) = 0 then
       DTMP_ZERO <= '1';
+    end if;
+    if signed(DTMP) > 0 then
+      DTMP_POS  <= '1';
     end if;
                      
   end process proc_comm;
@@ -168,13 +195,17 @@ begin
   end process proc_shc;
   
   proc_div: process (DDST, DSRC, DTMP, GPR_DSRC, DR, DD_H, Q,
-                     R_DD_L, R_DDO_LT, R_DIV_V, R_SHC, R_C1, 
-                     S_DIV, S_DIV_CN, S_DIV_CR,
-                     DDST_ZERO, DSRC_ZERO, DTMP_ZERO)
-    
+                     R_DD_L, R_DDO_LT, R_MAXFIX, R_QO_LT, R_DIV_V, R_SHC, R_C1, 
+                     S_DIV, S_DIV_CN, S_DIV_CR, S_DIV_SR,
+                     DDST_ZERO, DDST_NMAX, DSRC_ZERO, DTMP_ZERO, DTMP_POS)
+
+    variable div_zero : slbit := '0';
+    variable div_ovfl : slbit := '0';
     variable shftdd : slbit := '0';
     variable subadd : slbit := '0';
 
+    variable dd_le : slbit := '0';
+    variable dd_ge : slbit := '0';
     variable dd_gt : slbit := '0';
     
     variable qbit :   slbit := '0';
@@ -188,10 +219,12 @@ begin
     
     NEXT_DD_L   <= R_DD_L;
     NEXT_DDO_LT <= R_DDO_LT;
+    NEXT_MAXFIX <= R_MAXFIX;
+    NEXT_QO_LT  <= R_QO_LT;
     NEXT_DIV_V  <= R_DIV_V;
 
-    DIV_ZERO <= '0';
-    DIV_OVFL <= '0';
+    div_zero := '0';
+    div_ovfl := '0';
 
     qbit_1 := not (DR(15) xor DD_H(15)); -- !(dr<0 ^ dd_h<0)
     
@@ -204,8 +237,6 @@ begin
     
     if R_C1 = '1' then
       subadd := qbit_1;
-      DIV_ZERO <= DDST_ZERO or
-                  (DSRC_ZERO and DTMP_ZERO); -- note: DTMP here still dd_low !
     else
       subadd := Q(0);
     end if;
@@ -214,6 +245,16 @@ begin
       dd_h_new := slv(signed(dd_h_old) + signed(DR));
     else
       dd_h_new := slv(signed(dd_h_old) - signed(DR));
+    end if;
+
+    dd_le := '0';
+    if signed(dd_h_new) <= 0 then
+      dd_le := '1';                     -- set if dd_new_h <= 0
+    end if;
+    
+    dd_ge := '0';
+    if signed(dd_h_new) >= -1 then
+      dd_ge := '1';                     -- set if dd_new_h >= -1
     end if;
 
     dd_gt := '0';
@@ -227,19 +268,59 @@ begin
     if R_DDO_LT = '0' then
       qbit_n := DR(15) xor not dd_h_new(15);  -- b_dr_lt ^ !b_dd_lt
     else
-      qbit_n := DR(15) xor dd_gt;             -- b_dr_lt ^  b_dd_gt
+      if R_MAXFIX = '0' then
+        qbit_n := DR(15) xor dd_gt;             -- b_dr_lt ^  b_dd_gt
+      else
+        qbit_n := dd_h_new(15);                 -- b_dd_lt
+      end if;
     end if;    
     
     if S_DIV = '1' then
       NEXT_DDO_LT <= DD_H(15);
-      NEXT_DD_L <= GPR_DSRC;
+      NEXT_DD_L   <= GPR_DSRC;
+      NEXT_MAXFIX <= '0';
+      if DDST_NMAX = '1' and GPR_DSRC = "0000000000000000" then
+        NEXT_MAXFIX <= '1';                   -- b_dr_nmax && (ddi_l == 0)
+      end if;
+      NEXT_QO_LT <= DD_H(15) xor DR(15);      -- b_di_lt ^ b_dr_lt
     end if;
     
     if R_C1 = '1' then
-      NEXT_DIV_V <= (DD_H(15) xor DD_H(14)) or
-                    (DD_H(15) xor (DR(15) xor qbit_n));
-      DIV_OVFL <= (DD_H(15) xor DD_H(14)) or               --??? cleanup
-                    (DD_H(15) xor (DR(15) xor qbit_n));    --??? cleanup
+      div_zero := DDST_ZERO or
+                  (DSRC_ZERO and DTMP_ZERO); -- note: DTMP here still dd_low !
+
+      if DDST_NMAX='0' and (DD_H(15) xor DD_H(14)) = '1' then
+        div_ovfl := '1';                 -- !b_dr_nmax && (b_di_31 != b_di_30)
+      end if;
+
+      if R_DDO_LT = '0' then            -- if (!b_di_lt)
+        if R_QO_LT = '0' then             -- if (!b_qo_lt)
+          if dd_h_new(15) = '0' then        -- if (!b_dd_lt)
+            div_ovfl := '1';
+          end if;
+        else                              -- else
+          if dd_le = '0' then               -- if (!b_dd_le)
+            div_ovfl := '1';
+          end if;
+        end if;
+      else
+        if R_QO_LT = '0' then            -- if (!b_qo_lt)
+          if dd_gt = '0' then               -- if (!b_dd_gt)
+            div_ovfl := '1';            
+          end if;
+        else                              -- else
+          if dd_ge = '0' then               -- if (!b_dd_ge)
+            div_ovfl := '1';            
+          end if;
+        end if;
+      end if;
+      NEXT_DIV_V <= div_ovfl;
+      
+    elsif S_DIV_SR = '1' then
+      if R_QO_LT='1' and DTMP_POS='1' then
+        div_ovfl := '1';
+      end if;
+      NEXT_DIV_V <= div_ovfl;
     end if;
 
     if S_DIV_CN = '1' then
@@ -252,9 +333,12 @@ begin
       qbit := qbit_1;
     end if;
 
-    DIV_CR <= not (R_DDO_LT xor
-                   (DR(15) xor Q(0)));  --!(b_ddo_lt ^ (b_dr_lt ^ b_qbit));
-    DIV_CQ <= R_DDO_LT xor DR(15);      -- b_ddo_lt ^ b_dr_lt;
+    DIV_QUIT   <= div_zero or div_ovfl;
+    
+    DIV_CR <= R_MAXFIX or       -- b_maxfix | (!(b_ddo_lt ^ (b_dr_lt ^ b_qbit)))
+              (not (R_DDO_LT xor (DR(15) xor Q(0))));
+    DIV_CQ <= R_MAXFIX or       -- b_maxfix | (b_ddo_lt ^ b_dr_lt)
+              (R_DDO_LT xor DR(15));
     
     DOUT_DIV  <= dd_h_new;
     DOUTE_DIV <= Q(14 downto 0) & qbit;
@@ -293,7 +377,7 @@ begin
   end process proc_ash;  
 
   proc_omux: process (DSRC, DDST, DTMP, FUNC,
-                      R_ASH_V, R_ASH_C, R_SHC, R_DIV_V,
+                      R_ASH_V, R_ASH_C, R_SHC, R_DIV_V, R_QO_LT,
                       DOUT_DIV, DOUTE_DIV,
                       DSRC_ZERO, DSRC_ONES, DTMP_ZERO, DDST_ZERO)
     
@@ -366,7 +450,7 @@ begin
           CCOUT(3) <= '0';                    -- N=0 if div/0
           CCOUT(2) <= '1';                    -- Z=1 if div/0
         elsif R_DIV_V = '1' then
-          CCOUT(3) <= DSRC(15) xor DDST(15);  -- N (from unchanged reg)
+          CCOUT(3) <= R_QO_LT;                -- N (send expected sign)
           CCOUT(2) <= '0';                    -- Z (from unchanged reg) ??? veri
         else
           CCOUT(3) <= DTMP(15);               -- N (from Q (DTMP))

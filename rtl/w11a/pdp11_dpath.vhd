@@ -1,6 +1,6 @@
--- $Id: pdp11_dpath.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: pdp11_dpath.vhd 569 2014-07-13 14:36:32Z mueller $
 --
--- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -24,9 +24,11 @@
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
+--
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-07-12   569   1.2.3  use DIV_QUIT and S_DIV_SR for pdp11_munit
 -- 2011-11-18   427   1.2.2  now numeric_std clean
 -- 2010-09-18   300   1.2.1  rename (adlm)box->(oalm)unit
 -- 2010-06-13   305   1.2    rename CPDIN -> CP_DIN; add CP_DOUT out port;
@@ -190,6 +192,7 @@ begin
     S_DIV     => CNTL.munit_s_div,
     S_DIV_CN  => CNTL.munit_s_div_cn,
     S_DIV_CR  => CNTL.munit_s_div_cr,
+    S_DIV_SR  => CNTL.munit_s_div_sr,
     S_ASH     => CNTL.munit_s_ash,
     S_ASH_CN  => CNTL.munit_s_ash_cn,
     S_ASHC    => CNTL.munit_s_ashc,
@@ -197,8 +200,7 @@ begin
     SHC_TC    => STAT.shc_tc,
     DIV_CR    => STAT.div_cr,
     DIV_CQ    => STAT.div_cq,
-    DIV_ZERO  => STAT.div_zero,
-    DIV_OVFL  => STAT.div_ovfl,
+    DIV_QUIT  => STAT.div_quit,
     DOUT      => MUNIT_DOUT,
     DOUTE     => DRESE,
     CCOUT     => MUNIT_CCOUT

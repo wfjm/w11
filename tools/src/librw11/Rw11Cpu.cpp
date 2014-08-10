@@ -1,6 +1,6 @@
-// $Id: Rw11Cpu.cpp 521 2013-05-20 22:16:45Z mueller $
+// $Id: Rw11Cpu.cpp 576 2014-08-02 12:24:28Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-08-02   576   1.0.2  adopt rename of LastExpect->SetLastExpect
 // 2013-04-14   506   1.0.1  add AddLalh(),AddRMem(),AddWMem()
 // 2013-04-12   504   1.0    Initial version
 // 2013-01-27   478   0.1    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cpu.cpp 521 2013-05-20 22:16:45Z mueller $
+  \version $Id: Rw11Cpu.cpp 576 2014-08-02 12:24:28Z mueller $
   \brief   Implemenation of Rw11Cpu.
 */
 #include <stdlib.h>
@@ -363,12 +364,12 @@ bool Rw11Cpu::ProbeCntl(Rw11Probe& dsc)
     if (dsc.fProbeInt) {
       clist.AddWreg(fBase+kCp_addr_al,  dsc.fAddr);
       iib = clist.AddRreg(fBase+kCp_addr_mem);
-      clist.LastExpect(new RlinkCommandExpect(0,0xff)); // disable stat checking
+      clist.SetLastExpect(new RlinkCommandExpect(0,0xff)); // disable stat check
     }
     if (dsc.fProbeRem) {
       AddIbrb(clist, dsc.fAddr);
       irb = AddRibr(clist, dsc.fAddr);
-      clist.LastExpect(new RlinkCommandExpect(0,0xff)); // disable stat checking
+      clist.SetLastExpect(new RlinkCommandExpect(0,0xff)); // disable stat check
     }
 
     Server().Exec(clist);

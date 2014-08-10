@@ -1,10 +1,11 @@
-# $Id: test_w11a_dsta_flow.tcl 552 2014-03-02 23:02:00Z mueller $
+# $Id: test_w11a_dsta_flow.tcl 575 2014-07-27 20:55:41Z mueller $
 #
 # Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2014-07-27   575   1.0.2  drop tout value from asmwait, reply on asmwait_tout
 # 2014-03-01   552   1.0.1  use stack:; check sp;
 # 2013-03-31   502   1.0    Initial version
 #
@@ -69,7 +70,7 @@ rw11::asmrun  $cpu sym [list r0 $sym(sub00) \
                              r3 [expr {$sym(sub30)+2}] \
                              r4 $sym(psub4e) \
                              r5 $sym(data) ]
-rw11::asmwait $cpu sym 1.0
+rw11::asmwait $cpu sym 
 rw11::asmtreg $cpu [list r0 $sym(sub00) \
                          r1 [expr {$sym(sub10)+2}] \
                          r2 [expr {$sym(psub2)+4}]  \
@@ -129,7 +130,7 @@ data:   .blkw   2*5.
 rw11::asmrun  $cpu sym [list r0 [expr {$sym(sub00)-020}] \
                              r1 [expr {$sym(psub10)-040}] \
                              r5 $sym(data) ]
-rw11::asmwait $cpu sym 1.0
+rw11::asmwait $cpu sym 
 rw11::asmtreg $cpu [list r0 [expr {$sym(sub00)-020}] \
                          r1 [expr {$sym(psub10)-040}] \
                          r2 0 \

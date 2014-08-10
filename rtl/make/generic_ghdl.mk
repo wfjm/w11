@@ -1,7 +1,8 @@
-# $Id: generic_ghdl.mk 477 2013-01-27 14:07:10Z mueller $
+# $Id: generic_ghdl.mk 575 2014-07-27 20:55:41Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2014-07-26   575   1.3.2  use XTWI_PATH now (ise/vivado switch done later)
 # 2013-01-27   477   1.3.1  use dontincdep.mk to suppress .dep include on clean
 # 2011-08-13   405   1.3    renamed, moved to rtl/make;
 # 2007-11-04    95   1.2.2  fix find statement in ghdl_tmp_clean
@@ -11,8 +12,8 @@
 # 2007-06-10    52   1.0    Initial version
 #
 GHDLIEEE = --ieee=synopsys
-GHDLUNISIM = -P$(XILINX)/ghdl/unisim
-GHDLSIMPRIM = -P$(XILINX)/ghdl/simprim
+GHDLUNISIM = -P$(XTWI_PATH)/ISE_DS/ISE/ghdl/unisim
+GHDLSIMPRIM = -P$(XTWI_PATH)/ISE_DS/ISE/ghdl/simprim
 GHDL = ghdl
 COMPILE.vhd = $(GHDL) -a $(GHDLIEEE)
 LINK.vhd = $(GHDL) -e $(GHDLIEEE)

@@ -1,6 +1,6 @@
-# $Id: util.tcl 517 2013-05-09 21:34:45Z mueller $
+# $Id: util.tcl 569 2014-07-13 14:36:32Z mueller $
 #
-# Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-07-12   569   1.0.2  add sxt16 and sxt32
 # 2013-05-09   517   1.0.1  add optlist2arr
 # 2011-03-27   374   1.0    Initial version
 # 2011-03-19   372   0.1    First draft
@@ -24,7 +25,7 @@ package require rutiltpp
 
 namespace eval rutil {
   #
-  # optlist2arr: process options arguments given as key value list
+  # optlist2arr: process options arguments given as key value list -----------
   #
   proc optlist2arr {outarrname refarrname optlist} {
     upvar $outarrname outarr
@@ -41,7 +42,7 @@ namespace eval rutil {
   }
 
   #
-  # regdsc: setup a register descriptor
+  # regdsc: setup a register descriptor --------------------------------------
   #
   proc regdsc {name args} {
     upvar $name rdsc
@@ -82,7 +83,7 @@ namespace eval rutil {
   }
 
   #
-  # regdsc_print: print register descriptor
+  # regdsc_print: print register descriptor ----------------------------------
   #
   proc regdsc_print {name} {
     upvar $name rdsc
@@ -120,7 +121,7 @@ namespace eval rutil {
   }
 
   #
-  # regbld: build a register value from a list of fields
+  # regbld: build a register value from a list of fields ---------------------
   #
   proc regbld {name args} {
     upvar $name rdsc
@@ -164,7 +165,7 @@ namespace eval rutil {
   }
 
   #
-  # regget: extract field from a register value
+  # regget: extract field from a register value ------------------------------
   #
   proc regget {name val} {
     upvar $name fdsc
@@ -175,7 +176,7 @@ namespace eval rutil {
   }
 
   #
-  # regtxt: convert register value to a text string 
+  # regtxt: convert register value to a text string --------------------------
   #
   proc regtxt {name val} {
     upvar $name rdsc
@@ -198,12 +199,35 @@ namespace eval rutil {
     return $rval
   }
   #
-  # errcnt2txt: returns "PASS" if 0 and "FAIL" otherwise
+  # errcnt2txt: returns "PASS" if 0 and "FAIL" otherwise ---------------------
   #
   proc errcnt2txt {errcnt} {
     if {$errcnt} {return "FAIL"}
     return "PASS"
   }
+  #
+  # sxt16: 16 bit sign extend ------------------------------------------------
+  #
+  proc sxt16 {val} {
+    if {$val & 0x8000} {                    # bit 15 set ?
+      set val [expr $val | ~ 077777];       # --> set bits 15 and higher
+    }
+    return $val
+  }
+
+  #
+  # sxt32: 32 bit sign extend ------------------------------------------------
+  #
+  proc sxt32 {val} {
+    if {$val & 0x80000000} {                # bit 31 set ?
+      set val [expr $val | ~ 017777777777]; # --> set bits 31 and higher
+    }
+    return $val
+  }
+
+  #
+  # ! export reg... procs to global scope ------------------------------------
+  #
 
   namespace export regdsc
   namespace export regdsc_print

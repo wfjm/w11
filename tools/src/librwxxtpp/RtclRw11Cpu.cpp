@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.cpp 552 2014-03-02 23:02:00Z mueller $
+// $Id: RtclRw11Cpu.cpp 576 2014-08-02 12:24:28Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-08-02   576   1.0.4  bugfix: redo estatdef logic; avoid LastExpect()
 // 2014-03-02   552   1.0.3  M_cp: add -ral and -rah options (addr reg readback)
 // 2013-05-19   521   1.0.2  M_cp: merge -wibrb|-wibrbbe again; add -wa
 // 2013-04-26   511   1.0.1  add M_show
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Cpu.cpp 552 2014-03-02 23:02:00Z mueller $
+  \version $Id: RtclRw11Cpu.cpp 576 2014-08-02 12:24:28Z mueller $
   \brief   Implemenation of RtclRw11Cpu.
 */
 
@@ -330,7 +331,8 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       if (lsize == 0) 
         return args.Quit("-E: -edata not allowed on empty command list");
       if (clist[lsize-1].Expect()==0) {
-        clist.LastExpect(new RlinkCommandExpect());
+        clist[lsize-1].SetExpect(new RlinkCommandExpect(estatdef_val, 
+                                                        estatdef_msk));
       }
       if (clist[lsize-1].Command() == RlinkCommand::kCmdRblk) {
         vector<uint16_t> data;
@@ -356,7 +358,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       if (!args.GetArg("??mask", mask)) return kERR;
       if (args.NOptMiss() == 2)  mask = 0xff;
       if (clist[lsize-1].Expect()==0) {
-        clist.LastExpect(new RlinkCommandExpect());
+        clist[lsize-1].SetExpect(new RlinkCommandExpect());
       }
       clist[lsize-1].Expect()->SetStatus(stat, mask);
 
@@ -371,15 +373,16 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
 
     }
 
-    if (lsize != clist.Size()) {            // cmd added to clist (ind=lsize!)
-      if (estatdef_msk != 0xff) {           // estatdef defined
-        if (clist[lsize].Expect()==0) {
-          clist.LastExpect(new RlinkCommandExpect());
+    if (estatdef_msk != 0xff &&             // estatdef defined
+        lsize != clist.Size()) {            // and cmd added to clist
+      for (size_t i=lsize; i<clist.Size(); i++) { // loop over new cmds
+        if (clist[i].Expect()==0) {               // if no stat
+          clist[i].SetExpect(new RlinkCommandExpect(estatdef_val, 
+                                                    estatdef_msk));
         }
-        clist[lsize].Expect()->SetStatus(estatdef_val, estatdef_msk); 
       }
     }
-  
+
   }
 
   if (!args.AllDone()) return kERR;

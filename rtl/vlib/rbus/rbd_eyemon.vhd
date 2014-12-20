@@ -1,6 +1,6 @@
--- $Id: rbd_eyemon.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: rbd_eyemon.vhd 593 2014-09-14 22:21:33Z mueller $
 --
--- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,7 +20,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 12.1, 13.1; ghdl 0.29
+-- Tool versions:  xst 12.1-14.7; ghdl 0.29-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -29,6 +29,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-09-13   593   4.1    no default rbus addess anymore, def=0
+-- 2014-08-15   583   4.0    rb_mreq addr now 16 bit
 -- 2011-11-19   427   1.0.3  now numeric_std clean
 -- 2011-04-02   375   1.0.2  handle back-to-back chars properly (in sim..)
 -- 2010-12-31   352   1.0.1  simplify irb_ack logic
@@ -37,18 +39,18 @@
 --
 -- rbus registers:
 --
--- Address   Bits Name        r/w/f  Function
--- bbbbbb00       cntl        r/w/-  Control register
---             03   ena01     r/w/-    track 0->1 rxsd transitions
---             02   ena10     r/w/-    track 1->0 rxsd transitions
---             01   clr       r/-/f    w: writing a 1 starts memory clear
+-- Addr   Bits  Name        r/w/f  Function
+--   00         cntl        r/w/-  Control register
+--          03    ena01     r/w/-    track 0->1 rxsd transitions
+--          02    ena10     r/w/-    track 1->0 rxsd transitions
+--          01    clr       r/-/f    w: writing a 1 starts memory clear
 --                                     r: 1 indicates clr in progress (512 cyc)
---             00   go        r/w/-    enables monitor
--- bbbbbb01  7:00 rdiv        r/w/-  Sample rate divider
--- bbbbbb10       addr        r/w/-  Address register
---           9:01   laddr     r/w/     line address
---             00   waddr     r/w/     word address
--- bbbbbb11 15:00 data        r/-/-  Data register
+--          00    go        r/w/-    enables monitor
+--   01   7:00  rdiv        r/w/-  Sample rate divider
+--   10         addr        r/w/-  Address register
+--        9:01    laddr     r/w/     line address
+--          00    waddr     r/w/     word address
+--   11  15:00  data        r/-/-  Data register
 --
 --     data format:
 --     word 1  counter msb's
@@ -65,8 +67,8 @@ use work.rblib.all;
 
 entity rbd_eyemon is                    -- rbus dev: eye monitor for serport's
   generic (
-    RB_ADDR : slv8 := slv(to_unsigned(2#11111000#,8));
-    RDIV : slv8 := slv(to_unsigned(0,8)));
+    RB_ADDR : slv16 := (others=>'0');
+    RDIV : slv8 := (others=>'0'));
   port (
     CLK  : in slbit;                    -- clock
     RESET : in slbit;                   -- reset
@@ -203,7 +205,7 @@ begin
 
     -- rbus address decoder
     n.rbsel := '0';
-    if RB_MREQ.aval='1' and RB_MREQ.addr(7 downto 2)=RB_ADDR(7 downto 2) then
+    if RB_MREQ.aval='1' and RB_MREQ.addr(15 downto 2)=RB_ADDR(15 downto 2) then
       n.rbsel := '1';
       ibramen := '1';
     end if;

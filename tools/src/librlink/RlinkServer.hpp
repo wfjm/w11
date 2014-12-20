@@ -1,6 +1,6 @@
-// $Id: RlinkServer.hpp 513 2013-05-01 14:02:06Z mueller $
+// $Id: RlinkServer.hpp 607 2014-11-30 20:02:48Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-11-30   607   2.0    re-organize for rlink v4
 // 2013-05-01   513   1.0.2  fTraceLevel now uint32_t
 // 2013-04-21   509   1.0.1  add Resume(), reorganize server start handling
 // 2013-03-06   495   1.0    Initial version
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RlinkServer.hpp 513 2013-05-01 14:02:06Z mueller $
+  \version $Id: RlinkServer.hpp 607 2014-11-30 20:02:48Z mueller $
   \brief   Declaration of class \c RlinkServer.
 */
 
@@ -94,7 +95,7 @@ namespace Retro {
       void          Stop();
       void          Resume();
       void          Wakeup();
-      void          SignalAttn();
+      void          SignalAttnNotify(uint16_t apat);
 
       bool          IsActive() const;
       bool          IsActiveInside() const;
@@ -110,27 +111,27 @@ namespace Retro {
 
     // statistics counter indices
       enum stats {
-        kStatNEloopWait = 0,
-        kStatNEloopPoll,
-        kStatNWakeupEvt,
-        kStatNRlinkEvt,
-        kStatNAttnRead, 
-        kStatNAttn00,
-        kStatNAttn01,
-        kStatNAttn02,
-        kStatNAttn03,
-        kStatNAttn04,
-        kStatNAttn05,
-        kStatNAttn06,
-        kStatNAttn07,
-        kStatNAttn08,
-        kStatNAttn09,
-        kStatNAttn10,
-        kStatNAttn11,
-        kStatNAttn12,
-        kStatNAttn13,
-        kStatNAttn14,
-        kStatNAttn15,
+        kStatNEloopWait = 0,                //!< event loop turns (wait)
+        kStatNEloopPoll,                    //!< event loop turns (poll)
+        kStatNWakeupEvt,                    //!< Wakeup events
+        kStatNRlinkEvt,                     //!< Rlink data events
+        kStatNAttnRead,                     //!< Attn read commands
+        kStatNAttn00,                       //!< Attn bit  0 set
+        kStatNAttn01,                       //!< Attn bit  1 set
+        kStatNAttn02,                       //!< Attn bit  2 set
+        kStatNAttn03,                       //!< Attn bit  3 set
+        kStatNAttn04,                       //!< Attn bit  4 set
+        kStatNAttn05,                       //!< Attn bit  5 set
+        kStatNAttn06,                       //!< Attn bit  6 set
+        kStatNAttn07,                       //!< Attn bit  7 set
+        kStatNAttn08,                       //!< Attn bit  8 set
+        kStatNAttn09,                       //!< Attn bit  9 set
+        kStatNAttn10,                       //!< Attn bit 10 set
+        kStatNAttn11,                       //!< Attn bit 11 set
+        kStatNAttn12,                       //!< Attn bit 12 set
+        kStatNAttn13,                       //!< Attn bit 13 set
+        kStatNAttn14,                       //!< Attn bit 14 set
+        kStatNAttn15,                       //!< Attn bit 15 set
         kDimStat
       };
 
@@ -168,8 +169,8 @@ namespace Retro {
       ReventFd      fWakeupEvent;
       RlinkServerEventLoop fELoop;
       boost::thread fServerThread;
-      bool          fAttnSeen;
-      uint16_t      fAttnPatt;
+      uint16_t      fAttnPatt;              //!< current attn pattern
+      uint16_t      fAttnNotiPatt;          //!< attn notifier pattern
       uint32_t      fTraceLevel;            //!< trace level
       Rstats        fStats;                 //!< statistics
 };

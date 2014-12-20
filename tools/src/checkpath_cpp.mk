@@ -1,7 +1,8 @@
-# $Id: checkpath_cpp.mk 504 2013-04-13 15:37:24Z mueller $
+# $Id: checkpath_cpp.mk 602 2014-11-08 21:42:47Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2014-11-08   602   1.1    add default for TCLLIB
 # 2013-03-01   493   1.0.1  fix logic
 # 2013-02-01   479   1.0    Initial version
 #
@@ -31,4 +32,10 @@ endif
 #
 ifndef BOOSTLIB
 BOOSTLIB = /usr/lib
+endif
+#
+# define TCLLIB, if needed
+#
+ifndef TCLLIB
+TCLLIB = /usr/lib
 endif

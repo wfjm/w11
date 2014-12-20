@@ -1,6 +1,6 @@
-// $Id: RlinkPort.cpp 492 2013-02-24 22:14:47Z mueller $
+// $Id: RlinkPort.cpp 611 2014-12-10 23:23:58Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,10 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-10   611   1.2.4  add time stamps for Read/Write for logs
+// 2014-11-29   607   1.2.3  BUGFIX: fix time handling on RawRead()
+// 2014-11-23   606   1.2.2  use Rtools::TimeOfDayAsDouble()
+// 2014-08-22   584   1.2.1  use nullptr
 // 2013-02-23   492   1.2    use RparseUrl
 // 2013-02-22   491   1.1    use new RlogFile/RlogMsg interfaces
 // 2013-02-10   485   1.0.5  add static const defs
@@ -26,14 +30,13 @@
 
 /*!
   \file
-  \version $Id: RlinkPort.cpp 492 2013-02-24 22:14:47Z mueller $
+  \version $Id: RlinkPort.cpp 611 2014-12-10 23:23:58Z mueller $
   \brief   Implemenation of RlinkPort.
 */
 
 #include <errno.h>
 #include <unistd.h>
 #include <poll.h>
-#include <sys/time.h>
 
 #include <iostream>
 
@@ -42,6 +45,7 @@
 #include "librtools/RosPrintBvi.hpp"
 #include "librtools/Rexception.hpp"
 #include "librtools/RlogMsg.hpp"
+#include "librtools/Rtools.hpp"
 
 #include "RlinkPort.hpp"
 
@@ -72,6 +76,8 @@ RlinkPort::RlinkPort()
     fFdWrite(-1),
     fspLog(),
     fTraceLevel(0),
+    fTsLastRead(-1.),
+    fTsLastWrite(-1.),
     fStats()
 {
   fStats.Define(kStatNPortWrite,    "NPortWrite", "Port::Write() calls");
@@ -115,7 +121,7 @@ int RlinkPort::Read(uint8_t* buf, size_t size, double timeout, RerrMsg& emsg)
   if (!IsOpen())
     throw Rexception("RlinkPort::Read()","Bad state: port not open");
   if (buf == 0) 
-    throw Rexception("RlinkPort::Read()","Bad args: buf==NULL");
+    throw Rexception("RlinkPort::Read()","Bad args: buf==nullptr");
   if (size == 0) 
     throw Rexception("RlinkPort::Read()","Bad args: size==0");
 
@@ -126,7 +132,7 @@ int RlinkPort::Read(uint8_t* buf, size_t size, double timeout, RerrMsg& emsg)
 
   int irc = -1;
   while (irc < 0) {
-    irc = read(fFdRead, (void*) buf, size);
+    irc = ::read(fFdRead, (void*) buf, size);
     if (irc < 0 && errno != EINTR) {
       emsg.InitErrno("RlinkPort::Read()", "read() failed : ", errno);
       if (fspLog && fTraceLevel>0) fspLog->Write(emsg.Message(), 'E');
@@ -137,6 +143,12 @@ int RlinkPort::Read(uint8_t* buf, size_t size, double timeout, RerrMsg& emsg)
   if (fspLog && fTraceLevel>0) {
     RlogMsg lmsg(*fspLog, 'I');
     lmsg << "port  read nchar=" << RosPrintf(irc,"d",4);
+    double now = Rtools::TimeOfDayAsDouble();
+    if (fTsLastRead  > 0.) 
+      lmsg << "  dt_rd=" << RosPrintf(now-fTsLastRead,"f",8,6);
+    if (fTsLastWrite > 0.) 
+      lmsg << "  dt_wr=" << RosPrintf(now-fTsLastWrite,"f",8,6);
+    fTsLastRead = now;
     if (fTraceLevel>1) {
       size_t ncol = (80-5-6)/(2+1);
       for (int i=0; i<irc; i++) {
@@ -159,7 +171,7 @@ int RlinkPort::Write(const uint8_t* buf, size_t size, RerrMsg& emsg)
   if (!IsOpen()) 
     throw Rexception("RlinkPort::Write()","Bad state: port not open");
   if (buf == 0) 
-    throw Rexception("RlinkPort::Write()","Bad args: buf==NULL");
+    throw Rexception("RlinkPort::Write()","Bad args: buf==nullptr");
   if (size == 0) 
     throw Rexception("RlinkPort::Write()","Bad args: size==0");
 
@@ -168,6 +180,12 @@ int RlinkPort::Write(const uint8_t* buf, size_t size, RerrMsg& emsg)
   if (fspLog && fTraceLevel>0) {
     RlogMsg lmsg(*fspLog, 'I');
     lmsg << "port write nchar=" << RosPrintf(size,"d",4);
+    double now = Rtools::TimeOfDayAsDouble();
+    if (fTsLastRead  > 0.) 
+      lmsg << "  dt_rd=" << RosPrintf(now-fTsLastRead,"f",8,6);
+    if (fTsLastWrite > 0.) 
+      lmsg << "  dt_wr=" << RosPrintf(now-fTsLastWrite,"f",8,6);
+    fTsLastWrite = now;
     if (fTraceLevel>1) {
       size_t ncol = (80-5-6)/(2+1);
       for (size_t i=0; i<size; i++) {
@@ -181,7 +199,7 @@ int RlinkPort::Write(const uint8_t* buf, size_t size, RerrMsg& emsg)
   while (ndone < size) {
     int irc = -1;
     while (irc < 0) {
-      irc = write(fFdWrite, (void*) (buf+ndone), size-ndone);
+      irc = ::write(fFdWrite, (void*) (buf+ndone), size-ndone);
       if (irc < 0 && errno != EINTR) {
         emsg.InitErrno("RlinkPort::Write()", "write() failed : ", errno);
         if (fspLog && fTraceLevel>0) fspLog->Write(emsg.Message(), 'E');
@@ -216,7 +234,7 @@ bool RlinkPort::PollRead(double timeout)
 
   int irc = -1;
   while (irc < 0) {
-    irc = poll(fds, 1, ito);
+    irc = ::poll(fds, 1, ito);
     if (irc < 0 && errno != EINTR)
       throw Rexception("RlinkPort::PollRead()","poll() failed: rc<0: ", errno);
   }
@@ -242,21 +260,17 @@ int RlinkPort::RawRead(uint8_t* buf, size_t size, bool exactsize,
   fStats.Inc(kStatNPortRawRead);
   tused = 0.;
 
-  struct timeval tval;
-  gettimeofday(&tval, 0);
-  double tbeg  = double(tval.tv_sec) + 1.e-6*double(tval.tv_usec);
-  double trest = timeout;
+  double tnow = Rtools::TimeOfDayAsDouble();
+  double tend = tnow + timeout;
+  double tbeg = tnow;
 
   size_t ndone = 0;
-  while (trest>0. && ndone<size) {
-    int irc = Read(buf+ndone, size-ndone, trest, emsg);
-    gettimeofday(&tval, 0);
-    double tend  = double(tval.tv_sec) + 1.e-6*double(tval.tv_usec);
-    tused = tend - tbeg;
+  while (tnow < tend && ndone<size) {
+    int irc = Read(buf+ndone, size-ndone, tend-tnow, emsg);
+    tnow  = Rtools::TimeOfDayAsDouble();
+    tused = tnow - tbeg;
     if (irc <= 0) return irc;
     if (!exactsize) break;
-
-    trest -= (tend-tbeg);
     ndone += irc;
   }
   
@@ -285,6 +299,7 @@ void RlinkPort::Dump(std::ostream& os, int ind, const char* text) const
   os << bl << "  fFdWrite:        " << fFdWrite << endl;
   os << bl << "  fspLog:          " << fspLog.get() << endl;
   os << bl << "  fTraceLevel:     " << fTraceLevel << endl;
+  //FIXME_code: fTsLastRead, fTsLastWrite not yet in Dump (get formatter...)
   fStats.Dump(os, ind+2, "fStats: ");
   return;
 }
@@ -295,7 +310,7 @@ void RlinkPort::Dump(std::ostream& os, int ind, const char* text) const
 void RlinkPort::CloseFd(int& fd)
 {
   if (fd >= 0) {
-    close(fd);
+    ::close(fd);
     fd  = -1;
   }
   return;

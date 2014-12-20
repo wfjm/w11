@@ -1,4 +1,4 @@
-// $Id: RlinkAddrMap.cpp 492 2013-02-24 22:14:47Z mueller $
+// $Id: RlinkAddrMap.cpp 603 2014-11-09 22:50:26Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -21,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RlinkAddrMap.cpp 492 2013-02-24 22:14:47Z mueller $
+  \version $Id: RlinkAddrMap.cpp 603 2014-11-09 22:50:26Z mueller $
   \brief   Implemenation of class RlinkAddrMap.
  */
 
@@ -170,7 +170,7 @@ void RlinkAddrMap::Print(std::ostream& os, int ind) const
   RosFill bl(ind);
   for (amap_cit_t it=fAddrMap.begin(); it!=fAddrMap.end(); it++) {
     os << bl << RosPrintf((it->second).c_str(), "-s",maxlen)
-       << " : " << RosPrintf(it->first, "$x0", 4)
+       << " : " << RosPrintf(it->first, "$x0", 6)
        << "  " << RosPrintf(it->first, "o0", 6) << endl;
   }
 

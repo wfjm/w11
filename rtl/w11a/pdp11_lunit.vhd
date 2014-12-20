@@ -1,6 +1,6 @@
--- $Id: pdp11_lunit.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: pdp11_lunit.vhd 581 2014-08-10 21:48:46Z mueller $
 --
--- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,9 +18,10 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-08-10   581   1.1.2  use c_cc_f_*
 -- 2011-11-18   427   1.1.1  now numeric_std clean
 -- 2010-09-18   300   1.1    renamed from lbox
 -- 2008-03-30   131   1.0.2  BUGFIX: SXT clears V condition code
@@ -67,10 +68,10 @@ begin
     alias DSRC_H : slv8 is DSRC(15 downto 8);
     alias DDST_L : slv8 is DDST(7 downto 0);
     alias DDST_H : slv8 is DDST(15 downto 8);
-    alias NI : slbit is CCIN(3);
-    alias ZI : slbit is CCIN(2);
-    alias VI : slbit is CCIN(1);
-    alias CI : slbit is CCIN(0);
+    alias NI : slbit is CCIN(c_cc_f_n);
+    alias ZI : slbit is CCIN(c_cc_f_z);
+    alias VI : slbit is CCIN(c_cc_f_v);
+    alias CI : slbit is CCIN(c_cc_f_c);
     alias iout_l : slv8 is iout(7 downto 0);
     alias iout_h : slv8 is iout(15 downto 8);
 

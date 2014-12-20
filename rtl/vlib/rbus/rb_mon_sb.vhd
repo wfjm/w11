@@ -1,6 +1,6 @@
--- $Id: rb_mon_sb.vhd 444 2011-12-25 10:04:58Z mueller $
+-- $Id: rb_mon_sb.vhd 589 2014-08-30 12:43:16Z mueller $
 --
--- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,10 +19,11 @@
 --                 simlib/simclkcnt
 --                 rb_mon
 -- Test bench:     -
--- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-08-28   588   4.0    use new rlink v4 iface and 4 bit STAT
 -- 2011-12-23   444   3.1    use simclkcnt instead of simbus global
 -- 2010-12-22   346   3.0    renamed rritb_rbmon_sb -> rb_mon_sb
 -- 2010-06-05   301   2.0.2  renamed _rpmon -> _rbmon
@@ -52,7 +53,7 @@ entity rb_mon_sb is                     -- simbus wrapper for rbus monitor
     RB_MREQ : in rb_mreq_type;          -- rbus: request
     RB_SRES : in rb_sres_type;          -- rbus: response
     RB_LAM : in slv16 := (others=>'0'); -- rbus: look at me
-    RB_STAT : in slv3                   -- rbus: status flags
+    RB_STAT : in slv4                   -- rbus: status flags
   );
 end rb_mon_sb;
 

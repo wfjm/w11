@@ -1,4 +1,4 @@
-/* $Id: main.c 472 2013-01-06 14:39:10Z mueller $ */
+/* $Id: main.c 606 2014-11-24 07:08:51Z mueller $ */
 /*
  * Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
  * Code was forked from ixo-jtag.svn.sourceforge.net on 2011-07-17
@@ -355,6 +355,10 @@ void main(void)
   // EE and FF are active high. In nexys2 boards they are active low
   // All config regs should be set (even when power on defaults are
   // use, but this one especially....
+
+  // no SYNCHDELAY here because a subroutine call follows, slow enough
+  // !! if more regs will be touched here add SYNCHDELAYs !!
+
   FIFOPINPOLAR = 0;
 
   usb_jtag_init();

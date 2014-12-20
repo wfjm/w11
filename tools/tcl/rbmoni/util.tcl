@@ -1,6 +1,6 @@
-# $Id: util.tcl 516 2013-05-05 21:24:52Z mueller $
+# $Id: util.tcl 603 2014-11-09 22:50:26Z mueller $
 #
-# Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-11-09   603   2.0    use rlink v4 address layout
 # 2011-03-27   374   1.0    Initial version
 # 2011-03-13   369   0.1    First draft
 #
@@ -40,7 +41,7 @@ namespace eval rbmoni {
   #
   # setup: amap definitions for rbd_rbmon
   # 
-  proc setup {{base 0x00fc}} {
+  proc setup {{base 0xffe8}} {
     rlc amap -insert rm.cntl [expr {$base + 0x00}]
     rlc amap -insert rm.alim [expr {$base + 0x01}]
     rlc amap -insert rm.addr [expr {$base + 0x02}]

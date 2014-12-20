@@ -1,6 +1,6 @@
-// $Id: RlinkPortCuff.cpp 524 2013-06-30 19:10:30Z mueller $
+// $Id: RlinkPortCuff.cpp 584 2014-08-22 19:38:12Z mueller $
 //
-// Copyright 2012-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2012-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-08-22   584   1.1.2  use nullptr
 // 2013-05-17   521   1.1.1  use Rtools::String2Long
 // 2013-02-23   492   1.1    use RparseUrl
 // 2013-02-10   485   1.0.3  add static const defs
@@ -23,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPortCuff.cpp 524 2013-06-30 19:10:30Z mueller $
+  \version $Id: RlinkPortCuff.cpp 584 2014-08-22 19:38:12Z mueller $
   \brief   Implemenation of RlinkPortCuff.
 */
 
@@ -293,7 +294,7 @@ void RlinkPortCuff::Cleanup()
       libusb_free_device_list(fpUsbDevList, 1);
       fpUsbDevList = 0;
     }
-    libusb_set_pollfd_notifiers(fpUsbContext, NULL, NULL, NULL);
+    libusb_set_pollfd_notifiers(fpUsbContext, nullptr, nullptr, nullptr);
     libusb_exit(fpUsbContext);
     fpUsbContext = 0;
   }
@@ -449,7 +450,7 @@ void RlinkPortCuff::DriverEventUSB()
   tv.tv_sec  = 0;
   tv.tv_usec = 0;
   int irc = libusb_handle_events_timeout(fpUsbContext, &tv);
-  //setting the timeval pointer to NULL should work, but doesn't (in 1.0.6)
+  //setting the timeval pointer to nullptr should work, but doesn't (in 1.0.6)
   //rc = libusb_handle_events_timeout(pUsbContext, 0);
   if (irc) BadUSBCall("RlinkPortCuff::DriverEventUSB()", 
                       "libusb_handle_events_timeout()", irc);

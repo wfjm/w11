@@ -1,6 +1,6 @@
-// $Id: RtclGetList.cpp 516 2013-05-05 21:24:52Z mueller $
+// $Id: RtclGetList.cpp 584 2014-08-22 19:38:12Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,12 +13,13 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-08-22   584   1.0.1  use nullptr
 // 2013-02-12   487   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclGetList.cpp 516 2013-05-05 21:24:52Z mueller $
+  \version $Id: RtclGetList.cpp 584 2014-08-22 19:38:12Z mueller $
   \brief   Implemenation of class RtclGetList.
 */
 
@@ -83,10 +84,10 @@ int RtclGetList::M_get(RtclArgs& args)
   // complain if not found
   if (it == fMap.end() || pname != it->first.substr(0,pname.length())) {
     Tcl_AppendResult(interp, "-E: unknown property '", pname.c_str(), 
-                     "': must be ", NULL);
+                     "': must be ", nullptr);
     const char* delim = "";
     for (map_cit_t it1=fMap.begin(); it1!=fMap.end(); it1++) {
-      Tcl_AppendResult(interp, delim, it1->first.c_str(), NULL);
+      Tcl_AppendResult(interp, delim, it1->first.c_str(), nullptr);
       delim = ",";
     }
     return TCL_ERROR;
@@ -97,11 +98,11 @@ int RtclGetList::M_get(RtclArgs& args)
   it1++;
   if (it1!=fMap.end() && pname==it1->first.substr(0,pname.length())) {
     Tcl_AppendResult(interp, "-E: ambiguous property name '", pname.c_str(),
-                     "': must be ", NULL);
+                     "': must be ", nullptr);
     const char* delim = "";
     for (it1=it; it1!=fMap.end() &&
            pname==it1->first.substr(0,pname.length()); it1++) {
-      Tcl_AppendResult(interp, delim, it1->first.c_str(), NULL);
+      Tcl_AppendResult(interp, delim, it1->first.c_str(), nullptr);
       delim = ",";
     }
 

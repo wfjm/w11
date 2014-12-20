@@ -1,6 +1,6 @@
--- $Id: sys_w11a_n2.vhd 561 2014-06-09 17:22:50Z mueller $
+-- $Id: sys_w11a_n2.vhd 614 2014-12-20 15:00:45Z mueller $
 --
--- Copyright 2010-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -41,6 +41,7 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2014-12-20   614 14.7  131013 xc3s1200e-4 1714 4896  366 3125 ok: -RL11,rlv4
 -- 2014-06-08   561 14.7  131013 xc3s1200e-4 1626 4821  360 3052 ok: +RL11
 -- 2014-06-01   558 14.7  131013 xc3s1200e-4 1561 4597  334 2901 ok: 
 -- 2013-04-20   509 13.3    O76d xc3s1200e-4 1541 4598  334 2889 ok: now + FX2 !
@@ -68,6 +69,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-08-28   588   1.6    use new rlink v4 iface generics and 4 bit STAT
+-- 2014-08-15   583   1.5    rb_mreq addr now 16 bit
 -- 2013-04-20   509   1.4    added fx2 (cuff) support; ATOWIDTH=7
 -- 2011-12-23   444   1.3    remove clksys output hack
 -- 2011-12-18   440   1.2.7  use rlink_sp1c
@@ -209,7 +212,7 @@ architecture syn of sys_w11a_n2 is
   signal DSP_DP  : slv4  := (others=>'0');
 
   signal RB_LAM  : slv16 := (others=>'0');
-  signal RB_STAT : slv3  := (others=>'0');
+  signal RB_STAT : slv4  := (others=>'0');
 
   signal RLB_MONI : rlb_moni_type := rlb_moni_init;
   signal SER_MONI : serport_moni_type := serport_moni_init;
@@ -271,9 +274,9 @@ architecture syn of sys_w11a_n2 is
 
   signal DISPREG : slv16 := (others=>'0');
 
-  constant rbaddr_core0 : slv8 := "00000000";
-  constant rbaddr_ibus  : slv8 := "10000000";
-  constant rbaddr_hio   : slv8 := "11000000";
+  constant rbaddr_core0 : slv16 := "0000000000000000";
+  constant rbaddr_ibus  : slv16 := "0000000010000000";
+  constant rbaddr_hio   : slv16 := "0000000011000000";
 
 begin
 
@@ -344,9 +347,9 @@ begin
 
   RLINK : rlink_sp1c_fx2
     generic map (
-      ATOWIDTH     => 7,                -- 128 cycles access timeout
-      ITOWIDTH     => 6,                --  64 periods max idle timeout
-      CPREF        => c_rlink_cpref,
+      BTOWIDTH     => 7,                -- 128 cycles access timeout
+      RTAWIDTH     => 12,
+      SYSID        => (others=>'0'),
       IFAWIDTH     => 5,                --  32 word input fifo
       OFAWIDTH     => 5,                --  32 word output fifo
       PETOWIDTH    => sys_conf_fx2_petowidth,

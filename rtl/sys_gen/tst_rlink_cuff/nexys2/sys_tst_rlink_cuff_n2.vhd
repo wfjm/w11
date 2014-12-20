@@ -1,6 +1,6 @@
--- $Id: sys_tst_rlink_cuff_n2.vhd 476 2013-01-26 22:23:53Z mueller $
+-- $Id: sys_tst_rlink_cuff_n2.vhd 614 2014-12-20 15:00:45Z mueller $
 --
--- Copyright 2012-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2012-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -28,10 +28,11 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 13.3; ghdl 0.29
+-- Tool versions:  xst 13.3-14.7; ghdl 0.29-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri ctl/MHz
+-- 2014-12-20   614 14.7  131013 xc3s1200e-4 1023  2160 192 1486 p 16.0 ic2/ 50
 -- 2013-01-04   469 13.3    O76d xc3s1200e-4  846  1798 160 1215 p 16.3 ic2/ 50
 -- 2012-12-29   466 13.3    O76d xc3s1200e-4  808  1739 160 1172 p 16.3 as2/ 50
 -- 2013-01-02   467 13.3    O76d xc3s1200e-4  843  1792 160 1209 p 15.2 ic2/ 50
@@ -39,6 +40,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-08-15   583   1.1    rb_mreq addr now 16 bit
 -- 2012-12-29   466   1.0    Initial version; derived from sys_tst_fx2loop_n2
 --                           the now obsoleted sys_tst_rlink_n2_cuff design
 ------------------------------------------------------------------------------
@@ -158,7 +160,7 @@ architecture syn of sys_tst_rlink_cuff_n2 is
   signal FX2_TX2AFULL : slbit := '0';
   signal FX2_MONI  : fx2ctl_moni_type := fx2ctl_moni_init;
 
-  constant rbaddr_hio   : slv8 := "11000000"; -- 110000xx
+  constant rbaddr_hio   : slv16 := "0000000011000000"; -- 110000xx
 
 begin
 

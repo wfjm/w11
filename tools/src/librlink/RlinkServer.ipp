@@ -1,6 +1,6 @@
-// $Id: RlinkServer.ipp 513 2013-05-01 14:02:06Z mueller $
+// $Id: RlinkServer.ipp 610 2014-12-09 22:44:43Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-11-30   607   2.0    re-organize for rlink v4
 // 2013-05-01   513   1.0.1  fTraceLevel now uint32_t
 // 2013-03-06   495   1.0    Initial version
 // 2013-01-12   474   0.5    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RlinkServer.ipp 513 2013-05-01 14:02:06Z mueller $
+  \version $Id: RlinkServer.ipp 610 2014-12-09 22:44:43Z mueller $
   \brief   Implemenation (inline) of RlinkServer.
 */
 
@@ -96,7 +97,7 @@ inline const Rstats& RlinkServer::Stats() const
 
 inline bool RlinkServer::AttnPending() const
 {    
-  return fAttnSeen || fAttnPatt;
+  return fAttnNotiPatt | fAttnPatt;
 }
 
 //------------------------------------------+-----------------------------------

@@ -1,6 +1,6 @@
-# $Id: util.tcl 516 2013-05-05 21:24:52Z mueller $
+# $Id: util.tcl 603 2014-11-09 22:50:26Z mueller $
 #
-# Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-11-09   603   2.0    use rlink v4 address layout and iface with 8 regs
 # 2011-03-27   374   1.0    Initial version
 # 2011-03-13   369   0.1    Frist draft
 #
@@ -27,16 +28,20 @@ namespace eval rbtest {
   #
   # setup register descriptions for rbd_tester
   # 
-  regdsc CNTL {nofifo 15} {stat 14 3} {nbusy 9 10}
+  regdsc CNTL {wchk 15} {nbusy 9 10}
   regdsc INIT {fifo 2} {data 1} {cntl 0}
   #
   # setup: amap definitions for rbd_tester
   # 
-  proc setup {{base 0x00f0}} {
+  proc setup {{base 0xffe0}} {
     rlc amap -insert te.cntl [expr {$base + 0x00}]
-    rlc amap -insert te.data [expr {$base + 0x01}]
-    rlc amap -insert te.fifo [expr {$base + 0x02}]
-    rlc amap -insert te.attn [expr {$base + 0x03}]
+    rlc amap -insert te.stat [expr {$base + 0x01}]
+    rlc amap -insert te.attn [expr {$base + 0x02}]
+    rlc amap -insert te.ncyc [expr {$base + 0x03}]
+    rlc amap -insert te.data [expr {$base + 0x04}]
+    rlc amap -insert te.dinc [expr {$base + 0x05}]
+    rlc amap -insert te.fifo [expr {$base + 0x06}]
+    rlc amap -insert te.lnak [expr {$base + 0x07}]
   }
   #
   # init: reset rbd_tester (clear via init)
@@ -46,14 +51,18 @@ namespace eval rbtest {
   }
   #
   # nbusymax: returns maximal nbusy value not causing timeout
-  # 
+  #   set te.cntl nbusy to max
+  #   do read to te.data (will fail, check stat)
+  #   get cycle count from te.ncyc --> this minus one is nbusymax
+  #   restore te.cntl
+
   proc nbusymax {} {
     set esdmsk [regbld rlink::STAT {stat -1} attn]
     rlc exec -estatdef 0 $esdmsk \
       -rreg te.cntl sav_cntl \
       -wreg te.cntl [regbld rbtest::CNTL {nbusy -1}] \
       -rreg te.data -estat [regbld rlink::STAT rbnak] $esdmsk \
-      -rreg te.attn ncyc
+      -rreg te.ncyc ncyc
     rlc exec -estatdef 0 $esdmsk \
       -wreg te.cntl $sav_cntl
     return [expr {$ncyc - 1}]
@@ -96,10 +105,9 @@ namespace eval rbtest {
     #
     # probe stat wiring
     #
-    for {set i 0} { $i < 3 } {incr i} {
-      set valc [regbld rbtest::CNTL [list stat [expr {1 << $i}]]]
+    for {set i 0} { $i < 4 } {incr i} {
       rlc exec -estatdef $esdval $esdmsk \
-        -wreg te.cntl $valc \
+        -wreg te.stat [expr {1 << $i}] \
         -rreg te.data dummy statrd
       lappend rstat [list $i [regget rlink::STAT(stat) $statrd]]
     }
@@ -137,17 +145,17 @@ namespace eval rbtest {
     append rval \
       "\nnbusy:  read max [lindex $rbusy 1 2] --> WIDTH=[lindex $rbusy 1 0]"
     #
-    for {set i 0} { $i < 3 } {incr i} {
+    for {set i 0} { $i < 4 } {incr i} {
       set rcvpat [lindex $rstat $i 1]
       set rcvind [print_bitind $rcvpat]
-      append rval [format "\nstat:  te.cntl line %2d --> design %2d %s" \
-            $i $rcvind [pbvi b3 $rcvpat]]
+      append rval [format "\nstat:  te.stat line %2d --> design  %2d  %s" \
+            $i $rcvind [pbvi b4 $rcvpat]]
     }
     #
     for {set i 0} { $i < 16 } {incr i} {
       set rcvpat [lindex $rattn $i 1]
       set rcvind [print_bitind $rcvpat]
-      append rval [format "\nattn:  te.attn line %2d --> design %2d %s" \
+      append rval [format "\nattn:  te.attn line %2d --> design  %2d  %s" \
             $i $rcvind [pbvi b16 $rcvpat]]
     }
     return $rval

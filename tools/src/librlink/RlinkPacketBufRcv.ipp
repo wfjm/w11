@@ -1,6 +1,6 @@
-// $Id: RlinkCrc8.ipp 488 2013-02-16 18:49:47Z mueller $
+// $Id: RlinkPacketBufRcv.ipp 606 2014-11-24 07:08:51Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,56 +13,65 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2011-02-27   365   1.0    Initial version
-// 2011-01-15   355   0.1    First draft
+// 2014-11-23   606   1.0    Initial version
+// 2014-11-02   600   0.1    First draft (re-organize PacketBuf for rlink v4)
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RlinkCrc8.ipp 488 2013-02-16 18:49:47Z mueller $
-  \brief   Implemenation (inline) of class RlinkCrc8.
+  \version $Id: RlinkPacketBufRcv.ipp 606 2014-11-24 07:08:51Z mueller $
+  \brief   Implemenation (inline) of class RlinkPacketBuf.
 */
 
 // all method definitions in namespace Retro
 namespace Retro {
 
 //------------------------------------------+-----------------------------------
-//! Default constructor
-
-inline RlinkCrc8::RlinkCrc8()
-  : fCrc(0)
-{}
-
-//------------------------------------------+-----------------------------------
-//! Destructor
-
-inline RlinkCrc8::~RlinkCrc8()
-{}
-
-//------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline void RlinkCrc8::Clear()
+inline bool RlinkPacketBufRcv::CheckSize(size_t nbyte) const
 {
-  fCrc = 0;
-  return;
+  return fPktBuf.size()-fNDone >= nbyte;
 }
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline void RlinkCrc8::AddData(uint8_t data)
+inline void RlinkPacketBufRcv::GetWithCrc(uint8_t& data)
 {
-  fCrc = fCrc8Table[fCrc ^ data];
-  return;
+  data = fPktBuf[fNDone++];
+  fCrc.AddData(data);
 }
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline uint8_t RlinkCrc8::Crc() const
+inline void RlinkPacketBufRcv::GetWithCrc(uint16_t& data)
 {
-  return fCrc;
+  uint8_t datl = fPktBuf[fNDone++];
+  uint8_t dath = fPktBuf[fNDone++];
+  fCrc.AddData(datl);
+  fCrc.AddData(dath);
+  data = uint16_t(datl) | (uint16_t(dath) << 8);
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline bool RlinkPacketBufRcv::CheckCrc()
+{
+  uint8_t  datl = fPktBuf[fNDone++];
+  uint8_t  dath = fPktBuf[fNDone++];
+  uint16_t data = uint16_t(datl) | (uint16_t(dath) << 8);
+  return data == fCrc.Crc();
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline int RlinkPacketBufRcv::NakIndex() const
+{
+  return fNakIndex;
 }
 
 } // end namespace Retro

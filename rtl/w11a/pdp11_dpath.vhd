@@ -1,4 +1,4 @@
--- $Id: pdp11_dpath.vhd 569 2014-07-13 14:36:32Z mueller $
+-- $Id: pdp11_dpath.vhd 581 2014-08-10 21:48:46Z mueller $
 --
 -- Copyright 2006-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -28,6 +28,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-08-10   581   1.2.4  use c_cc_f_*
 -- 2014-07-12   569   1.2.3  use DIV_QUIT and S_DIV_SR for pdp11_munit
 -- 2011-11-18   427   1.2.2  now numeric_std clean
 -- 2010-09-18   300   1.2.1  rename (adlm)box->(oalm)unit
@@ -161,7 +162,7 @@ begin
   AUNIT : pdp11_aunit port map (
     DSRC   => R_DSRC,
     DDST   => R_DDST,
-    CI     => CCIN(0),
+    CI     => CCIN(c_cc_f_c),
     SRCMOD => CNTL.aunit_srcmod,
     DSTMOD => CNTL.aunit_dstmod,
     CIMOD  => CNTL.aunit_cimod,
@@ -208,7 +209,7 @@ begin
 
   CCIN <= PSW.cc;
 
-  OUNIT_CCOUT <= OUNIT_NZOUT & "0" & CCIN(0); -- clear v, keep c
+  OUNIT_CCOUT <= OUNIT_NZOUT & "0" & CCIN(c_cc_f_c); -- clear v, keep c
   
   proc_dres_sel: process (OUNIT_DOUT, AUNIT_DOUT, LUNIT_DOUT, MUNIT_DOUT,
                           VM_DOUT, R_IREG, CP_DIN, CNTL)
@@ -320,7 +321,7 @@ begin
     end case;
   end process proc_vmaddr_sel;
 
-  STAT.ccout_z <= CCOUT(2);             -- current Z cc flag
+  STAT.ccout_z <= CCOUT(c_cc_f_z);      -- current Z cc flag
     
   PSWOUT  <= PSW;
   PCOUT   <= GPR_PC;

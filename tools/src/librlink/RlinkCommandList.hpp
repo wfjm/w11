@@ -1,4 +1,4 @@
-// $Id: RlinkCommandList.hpp 576 2014-08-02 12:24:28Z mueller $
+// $Id: RlinkCommandList.hpp 606 2014-11-24 07:08:51Z mueller $
 //
 // Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-11-23   606   1.2    new rlink v4 iface
 // 2014-08-02   576   1.1    rename LastExpect->SetLastExpect
 // 2013-05-06   495   1.0.1  add RlinkContext to Print() args; drop oper<<()
 // 2011-03-05   366   1.0    Initial version
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: RlinkCommandList.hpp 576 2014-08-02 12:24:28Z mueller $
+  \version $Id: RlinkCommandList.hpp 606 2014-11-24 07:08:51Z mueller $
   \brief   Declaration of class RlinkCommandList.
 */
 
@@ -57,12 +58,16 @@ namespace Retro {
       size_t        AddWreg(uint16_t addr, uint16_t data);
       size_t        AddWblk(uint16_t addr, std::vector<uint16_t> block);
       size_t        AddWblk(uint16_t addr, const uint16_t* block, size_t size);
-      size_t        AddStat();
+      size_t        AddLabo();
       size_t        AddAttn();
       size_t        AddInit(uint16_t addr, uint16_t data);
 
-      void          LastVolatile();         // deprecated !!
       void          SetLastExpect(RlinkCommandExpect* exp);
+    
+      void          ClearLaboIndex();
+      void          SetLaboIndex(int ind);
+      int           LaboIndex() const;
+      bool          LaboActive() const;
     
       void          Clear();
       size_t        Size() const;
@@ -78,7 +83,8 @@ namespace Retro {
       const RlinkCommand& operator[](size_t ind) const;
 
     protected: 
-      std::vector<RlinkCommand*> fList;     //!< vector of commands 
+      std::vector<RlinkCommand*> fList;     //!< vector of commands
+      int           fLaboIndex;             //!< index of active labo (-1 if no)
   };
 
 } // end namespace Retro

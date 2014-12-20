@@ -1,6 +1,6 @@
-// $Id: RlogFile.cpp 539 2013-10-13 17:06:35Z mueller $
+// $Id: RlogFile.cpp 611 2014-12-10 23:23:58Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-10   611   2.1.2  timestamp now usec precision (was msec)
 // 2013-10-11   539   2.1.1  fix date print (month was off by one)
 // 2013-02-23   492   2.1    add Name(), keep log file name; add Dump()
 // 2013-02-22   491   2.0    add Write(),IsNew(), RlogMsg iface; use lockable
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RlogFile.cpp 539 2013-10-13 17:06:35Z mueller $
+  \version $Id: RlogFile.cpp 611 2014-12-10 23:23:58Z mueller $
   \brief   Implemenation of RlogFile.
 */
 
@@ -140,13 +141,11 @@ void RlogFile::Write(const std::string& str, char tag)
       fTagDay   = tymd.tm_mday;
     }
 
-    int usec = (int)(tval.tv_usec/1000);
-
     os << "-" << tag << "- "
        << RosPrintf(tymd.tm_hour,"d0",2) << ":"
        << RosPrintf(tymd.tm_min,"d0",2) << ":"
        << RosPrintf(tymd.tm_sec,"d0",2) << "."
-       << RosPrintf(usec,"d0",3) << " : ";
+       << RosPrintf((int)tval.tv_usec,"d0",6) << " : ";
   }
 
   os << str;

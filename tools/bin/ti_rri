@@ -1,8 +1,8 @@
-#! /usr/bin/env tclsh
+#! /usr/bin/env tclshcpp
 # -*- tcl -*-
-# $Id: ti_rri 522 2013-05-24 17:50:29Z mueller $
+# $Id: ti_rri 601 2014-11-07 22:44:43Z mueller $
 #
-# Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -15,6 +15,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-11-07   601   1.2    use tclshcpp (C++ based) rather tclsh
 # 2013-05-19   521   1.1.6  setup proper interactive handling; add --run reap
 # 2013-04-26   510   1.1.5  reorganize readline startup
 # 2013-04-12   504   1.1.4  add --pack; trailing '-' argv implies --int

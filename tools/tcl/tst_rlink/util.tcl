@@ -1,6 +1,6 @@
-# $Id: util.tcl 516 2013-05-05 21:24:52Z mueller $
+# $Id: util.tcl 603 2014-11-09 22:50:26Z mueller $
 #
-# Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-11-09   603   2.0    use rlink v4 address layout
 # 2011-04-17   376   1.0.1  add proc scan_baud
 # 2011-04-02   375   1.0    Initial version
 # 2011-03-19   372   0.1    First draft
@@ -33,13 +34,14 @@ namespace eval tst_rlink {
   # 
   proc setup {} {
     rlc amap -clear;                    # clear first to allow re-run
-    rbmoni::setup  [bvi b 11111100]
-    rbemon::setup  [bvi b 11111000]
-    rbbram::setup  [bvi b 11110100]
-    rbtest::setup  [bvi b 11110000]
-    rlc amap -insert timer.1 [bvi b 11100001]
-    rlc amap -insert timer.0 [bvi b 11100000]
-    rbs3hio::setup [bvi b 11000000]
+    rlink::setup;
+    rbtest::setup  0xffe0;
+    rbmoni::setup  0xffe8;
+    rbemon::setup  0xffd0;
+    rbbram::setup  0xfe00;
+    rlc amap -insert timer.1 0xfe11;
+    rlc amap -insert timer.0 0xfe10;
+    rbs3hio::setup 0xfef0;
   }
 
   #
@@ -47,11 +49,11 @@ namespace eval tst_rlink {
   #
   proc init {} {
     rlink::init;                        # reset rlink
-    rbtest::init
-    rbbram::init
-    rbmoni::init
-    rbs3hio::init
-    rbemon::init
+    rbtest::init;
+    rbmoni::init;
+    rbbram::init;
+    rbemon::init;
+    rbs3hio::init;
     rlink::init;                        # re-reset rlink
   }
 

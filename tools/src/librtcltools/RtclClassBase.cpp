@@ -1,6 +1,6 @@
-// $Id: RtclClassBase.cpp 488 2013-02-16 18:49:47Z mueller $
+// $Id: RtclClassBase.cpp 584 2014-08-22 19:38:12Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-08-22   584   1.0.4  use nullptr
 // 2013-02-10   485   1.0.3  add static const defs
 // 2013-01-13   474   1.0.2  TclClassCmd(): check for existing Rtclproxy names
 // 2011-03-05   366   1.0.1  use AppendResultNewLines() in exception catcher
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: RtclClassBase.cpp 488 2013-02-16 18:49:47Z mueller $
+  \version $Id: RtclClassBase.cpp 584 2014-08-22 19:38:12Z mueller $
   \brief   Implemenation of RtclClassBase.
 */
 
@@ -103,7 +104,7 @@ int RtclClassBase::TclClassCmd(Tcl_Interp* interp, int objc,
   if (pprox) {
     Tcl_AppendResult(interp, "-E: command name '", name, 
                      "' exists already as RtclProxy of type '", 
-                     pprox->Type().c_str(), "'", NULL);
+                     pprox->Type().c_str(), "'", nullptr);
     return kERR;
 
   }
@@ -119,7 +120,7 @@ int RtclClassBase::ClassCmdList(Tcl_Interp* interp)
 {
   std::vector<RtclProxyBase*> list;
   RtclContext::Find(interp).ListProxy(list, Type());
-  RtclOPtr rlist(Tcl_NewListObj(0, NULL));
+  RtclOPtr rlist(Tcl_NewListObj(0, nullptr));
 
   for (size_t i=0; i<list.size(); i++) {
     const char* cmdname = Tcl_GetCommandName(interp, list[i]->Token());
@@ -139,26 +140,26 @@ int RtclClassBase::ClassCmdDelete(Tcl_Interp* interp, const char* name)
 {
   Tcl_CmdInfo cinfo;
   if (Tcl_GetCommandInfo(interp, name, &cinfo) == 0) {
-    Tcl_AppendResult(interp, "-E: unknown command name '", name, "'", NULL);
+    Tcl_AppendResult(interp, "-E: unknown command name '", name, "'", nullptr);
     return kERR;
   }
   
   RtclContext& cntx = RtclContext::Find(interp);
   if (!cntx.CheckProxy((RtclProxyBase*) cinfo.objClientData)) {
     Tcl_AppendResult(interp, "-E: command '", name, "' is not a RtclProxy", 
-                     NULL);
+                     nullptr);
     return kERR;
   }
   if (!cntx.CheckProxy((RtclProxyBase*) cinfo.objClientData, Type())) {
     Tcl_AppendResult(interp, "-E: command '", name, 
                      "' is not a RtclProxy of type '", 
-                     Type().c_str(), "'", NULL);
+                     Type().c_str(), "'", nullptr);
     return kERR;
   }
 
   int irc = Tcl_DeleteCommand(interp, name);
   if (irc != kOK) Tcl_AppendResult(interp, "-E: failed to delete '", name, 
-                                   "'", NULL);
+                                   "'", nullptr);
   return irc;
 }
 
@@ -170,7 +171,7 @@ int RtclClassBase::ThunkTclClassCmd(ClientData cdata, Tcl_Interp* interp,
 {
   if (!cdata) {
     Tcl_AppendResult(interp, "-E: BUG! ThunkTclClassCmd called with cdata == 0",
-                     NULL);
+                     nullptr);
     return kERR;
   }
   
@@ -179,7 +180,7 @@ int RtclClassBase::ThunkTclClassCmd(ClientData cdata, Tcl_Interp* interp,
   } catch (exception& e) {
     Rtcl::AppendResultNewLines(interp);
     Tcl_AppendResult(interp, "-E: exception caught in ThunkTclClassCmd: '", 
-                     e.what(), "'", NULL);
+                     e.what(), "'", nullptr);
   }
   return kERR;
 }

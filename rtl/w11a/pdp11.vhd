@@ -1,4 +1,4 @@
--- $Id: pdp11.vhd 569 2014-07-13 14:36:32Z mueller $
+-- $Id: pdp11.vhd 589 2014-08-30 12:43:16Z mueller $
 --
 -- Copyright 2006-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,6 +20,9 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-08-28   588   1.5.1  use new rlink v4 iface and 4 bit STAT
+-- 2014-08-15   583   1.5    rb_mreq addr now 16 bit
+-- 2014-08-10:  581   1.4.10 add c_cc_f_* field defs for condition code array
 -- 2014-07-12   569   1.4.9  dpath_stat_type: merge div_zero+div_ovfl to div_quit
 --                           dpath_cntl_type: add munit_s_div_sr
 -- 2011-11-18   427   1.4.8  now numeric_std clean
@@ -101,6 +104,11 @@ package pdp11 is
     tflag : slbit;                      -- trace flag
     cc : slv4;                          -- condition codes (NZVC).
   end record psw_type;
+
+  constant c_cc_f_n: integer := 3;      -- condition code: n
+  constant c_cc_f_z: integer := 2;      -- condition code: z
+  constant c_cc_f_v: integer := 1;      -- condition code: v
+  constant c_cc_f_c: integer := 0;      -- condition code: c
 
   constant psw_init : psw_type := (
     "00","00",                          -- cmode, pmode  (=kernel)
@@ -1074,14 +1082,14 @@ end component;
 
 component pdp11_core_rbus is            -- core to rbus interface
   generic (
-    RB_ADDR_CORE : slv8 := slv(to_unsigned(2#00000000#,8));
-    RB_ADDR_IBUS : slv8 := slv(to_unsigned(2#10000000#,8)));
+    RB_ADDR_CORE : slv16 := slv(to_unsigned(2#0000000000000000#,16));
+    RB_ADDR_IBUS : slv16 := slv(to_unsigned(2#0000000010000000#,16)));
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- reset
     RB_MREQ : in rb_mreq_type;          -- rbus: request
     RB_SRES : out rb_sres_type;         -- rbus: response
-    RB_STAT : out slv3;                 -- rbus: status flags
+    RB_STAT : out slv4;                 -- rbus: status flags
     RB_LAM : out slbit;                 -- remote attention
     CPU_RESET : out slbit;              -- cpu master reset
     CP_CNTL : out cp_cntl_type;         -- console control port

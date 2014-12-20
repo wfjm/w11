@@ -1,6 +1,6 @@
-// $Id: RlinkCommand.ipp 495 2013-03-06 17:13:48Z mueller $
+// $Id: RlinkCommand.ipp 600 2014-11-02 22:33:02Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-11-02   600   1.2    new rlink v4 iface
 // 2013-05-06   495   1.0.1  add RlinkContext to Print() args; drop oper<<()
 // 2011-03-27   374   1.0    Initial version
 // 2011-01-15   355   0.1    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RlinkCommand.ipp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: RlinkCommand.ipp 600 2014-11-02 22:33:02Z mueller $
   \brief   Implemenation (inline) of class RlinkCommand.
 */
 
@@ -48,9 +49,9 @@ inline void RlinkCommand::CmdWreg(uint16_t addr, uint16_t data)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline void RlinkCommand::CmdStat()
+inline void RlinkCommand::CmdLabo()
 {
-  SetCommand(kCmdStat);
+  SetCommand(kCmdLabo);
   return;
 }
 
@@ -93,9 +94,9 @@ inline void RlinkCommand::SetData(uint16_t data)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline void RlinkCommand::SetStatRequest(uint8_t ccmd)
+inline void RlinkCommand::SetBlockDone(uint16_t dcnt)
 {
-  fStatRequest = ccmd;
+  fBlockDone = dcnt;
   return;
 }
 
@@ -218,9 +219,9 @@ inline size_t RlinkCommand::BlockSize() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline uint8_t RlinkCommand::StatRequest() const
+inline size_t RlinkCommand::BlockDone() const
 {
-  return fStatRequest;
+  return fBlockDone;
 }
 
 //------------------------------------------+-----------------------------------

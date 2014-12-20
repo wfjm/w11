@@ -1,4 +1,4 @@
--- $Id: pdp11_munit.vhd 577 2014-08-03 20:49:42Z mueller $
+-- $Id: pdp11_munit.vhd 581 2014-08-10 21:48:46Z mueller $
 --
 -- Copyright 2006-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -27,6 +27,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-08-10   581   1.2.4  rename NEXT_ to N_; use c_cc_f_*
 -- 2014-08-05   578   1.2.3  fix proc_div sensitivity list
 -- 2014-08-03   577   1.2.2  use DTMP_POS rather signed(Q)>0 (xst bug for S-3)
 -- 2014-07-26   575   1.2.1  fix proc_omux sensitivity list
@@ -86,16 +87,16 @@ architecture syn of pdp11_munit is
   signal R_ASH_V : slbit := '0';          -- V flag for ash/c
   signal R_ASH_C : slbit := '0';          -- C flag for ash/c
 
-  signal NEXT_DD_L : slv16 := (others=>'0');
-  signal NEXT_DDO_LT : slbit := '0';
-  signal NEXT_MAXFIX : slbit := '0';
-  signal NEXT_QO_LT : slbit := '0';
-  signal NEXT_DIV_V : slbit := '0';
-  signal NEXT_SHC : slv6 := (others=>'0');
-  signal NEXT_C1 : slbit := '0';
-  signal NEXT_MSBO : slbit := '0';
-  signal NEXT_ASH_V : slbit := '0';
-  signal NEXT_ASH_C : slbit := '0';
+  signal N_DD_L : slv16 := (others=>'0');
+  signal N_DDO_LT : slbit := '0';
+  signal N_MAXFIX : slbit := '0';
+  signal N_QO_LT : slbit := '0';
+  signal N_DIV_V : slbit := '0';
+  signal N_SHC : slv6 := (others=>'0');
+  signal N_C1 : slbit := '0';
+  signal N_MSBO : slbit := '0';
+  signal N_ASH_V : slbit := '0';
+  signal N_ASH_C : slbit := '0';
 
   signal SHC_TC_L : slbit := '0';
 
@@ -118,16 +119,16 @@ begin
   proc_regs: process (CLK)
   begin
     if rising_edge(CLK) then
-      R_DD_L   <= NEXT_DD_L;
-      R_DDO_LT <= NEXT_DDO_LT;
-      R_MAXFIX <= NEXT_MAXFIX;
-      R_QO_LT  <= NEXT_QO_LT;
-      R_DIV_V  <= NEXT_DIV_V;
-      R_SHC    <= NEXT_SHC;
-      R_C1     <= NEXT_C1;
-      R_MSBO   <= NEXT_MSBO;
-      R_ASH_V  <= NEXT_ASH_V;
-      R_ASH_C  <= NEXT_ASH_C;
+      R_DD_L   <= N_DD_L;
+      R_DDO_LT <= N_DDO_LT;
+      R_MAXFIX <= N_MAXFIX;
+      R_QO_LT  <= N_QO_LT;
+      R_DIV_V  <= N_DIV_V;
+      R_SHC    <= N_SHC;
+      R_C1     <= N_C1;
+      R_MSBO   <= N_MSBO;
+      R_ASH_V  <= N_ASH_V;
+      R_ASH_C  <= N_ASH_C;
     end if;
   end process proc_regs;
   
@@ -166,25 +167,25 @@ begin
                      S_DIV, S_DIV_CN, S_ASH, S_ASH_CN, S_ASHC, S_ASHC_CN)
   begin
     
-    NEXT_SHC    <= R_SHC;
-    NEXT_C1     <= R_C1;
+    N_SHC    <= R_SHC;
+    N_C1     <= R_C1;
 
     if S_ASH='1' or S_ASHC='1' then
-      NEXT_SHC <= DDST(5 downto 0);
-      NEXT_C1 <= '1';
+      N_SHC <= DDST(5 downto 0);
+      N_C1 <= '1';
     end if;
     if S_DIV = '1' then
-      NEXT_SHC <= "001111";
-      NEXT_C1 <= '1';
+      N_SHC <= "001111";
+      N_C1 <= '1';
     end if;
 
     if S_DIV_CN='1' or S_ASH_CN='1' or S_ASHC_CN='1' then
       if R_SHC(5) = '0' then
-        NEXT_SHC <= slv(unsigned(R_SHC) - 1);
+        N_SHC <= slv(unsigned(R_SHC) - 1);
       else
-        NEXT_SHC <= slv(unsigned(R_SHC) + 1);
+        N_SHC <= slv(unsigned(R_SHC) + 1);
       end if;
-      NEXT_C1 <= '0';
+      N_C1 <= '0';
     end if;
 
     SHC_TC_L <= '0';
@@ -217,11 +218,11 @@ begin
     
   begin
     
-    NEXT_DD_L   <= R_DD_L;
-    NEXT_DDO_LT <= R_DDO_LT;
-    NEXT_MAXFIX <= R_MAXFIX;
-    NEXT_QO_LT  <= R_QO_LT;
-    NEXT_DIV_V  <= R_DIV_V;
+    N_DD_L   <= R_DD_L;
+    N_DDO_LT <= R_DDO_LT;
+    N_MAXFIX <= R_MAXFIX;
+    N_QO_LT  <= R_QO_LT;
+    N_DIV_V  <= R_DIV_V;
 
     div_zero := '0';
     div_ovfl := '0';
@@ -276,13 +277,13 @@ begin
     end if;    
     
     if S_DIV = '1' then
-      NEXT_DDO_LT <= DD_H(15);
-      NEXT_DD_L   <= GPR_DSRC;
-      NEXT_MAXFIX <= '0';
+      N_DDO_LT <= DD_H(15);
+      N_DD_L   <= GPR_DSRC;
+      N_MAXFIX <= '0';
       if DDST_NMAX = '1' and GPR_DSRC = "0000000000000000" then
-        NEXT_MAXFIX <= '1';                   -- b_dr_nmax && (ddi_l == 0)
+        N_MAXFIX <= '1';                   -- b_dr_nmax && (ddi_l == 0)
       end if;
-      NEXT_QO_LT <= DD_H(15) xor DR(15);      -- b_di_lt ^ b_dr_lt
+      N_QO_LT <= DD_H(15) xor DR(15);      -- b_di_lt ^ b_dr_lt
     end if;
     
     if R_C1 = '1' then
@@ -314,17 +315,17 @@ begin
           end if;
         end if;
       end if;
-      NEXT_DIV_V <= div_ovfl;
+      N_DIV_V <= div_ovfl;
       
     elsif S_DIV_SR = '1' then
       if R_QO_LT='1' and DTMP_POS='1' then
         div_ovfl := '1';
       end if;
-      NEXT_DIV_V <= div_ovfl;
+      N_DIV_V <= div_ovfl;
     end if;
 
     if S_DIV_CN = '1' then
-      NEXT_DD_L <= R_DD_L(14 downto 0) & '0';
+      N_DD_L <= R_DD_L(14 downto 0) & '0';
     end if;
 
     if S_DIV_CN = '1' then
@@ -349,27 +350,27 @@ begin
                      S_ASH, S_ASH_CN, S_ASHC, S_ASHC_CN, SHC_TC_L)
   begin
     
-    NEXT_MSBO   <= R_MSBO;
-    NEXT_ASH_V  <= R_ASH_V;
-    NEXT_ASH_C  <= R_ASH_C;
+    N_MSBO   <= R_MSBO;
+    N_ASH_V  <= R_ASH_V;
+    N_ASH_C  <= R_ASH_C;
 
     if S_ASH='1' or S_ASHC='1' then
-      NEXT_MSBO <= DSRC(15);
-      NEXT_ASH_V <= '0';
-      NEXT_ASH_C <= '0';
+      N_MSBO <= DSRC(15);
+      N_ASH_V <= '0';
+      N_ASH_C <= '0';
     end if;
     
     if (S_ASH_CN='1' or S_ASHC_CN='1') and SHC_TC_L='0' then
       if R_SHC(5) = '0' then            -- left shift
         if (R_MSBO xor DSRC(14))='1' then
-          NEXT_ASH_V <= '1';
+          N_ASH_V <= '1';
         end if;
-        NEXT_ASH_C <= DSRC(15);
+        N_ASH_C <= DSRC(15);
       else                              -- right shift
         if FUNC = c_munit_func_ash then
-          NEXT_ASH_C <= DSRC(0);
+          N_ASH_C <= DSRC(0);
         else
-          NEXT_ASH_C <= DTMP(0);
+          N_ASH_C <= DTMP(0);
         end if;
       end if;    
     end if;
@@ -440,36 +441,36 @@ begin
     
     case FUNC is
       when c_munit_func_mul =>
-        CCOUT(3) <= DSRC(15);               -- N
-        CCOUT(2) <= DSRC_ZERO and DTMP_ZERO;-- Z
-        CCOUT(1) <= '0';                    -- V=0
-        CCOUT(0) <= mul_c;                  -- C
+        CCOUT(c_cc_f_n) <= DSRC(15);                -- N
+        CCOUT(c_cc_f_z) <= DSRC_ZERO and DTMP_ZERO; -- Z
+        CCOUT(c_cc_f_v) <= '0';                     -- V=0
+        CCOUT(c_cc_f_c) <= mul_c;                   -- C
 
       when c_munit_func_div =>
         if DDST_ZERO = '1' then
-          CCOUT(3) <= '0';                    -- N=0 if div/0
-          CCOUT(2) <= '1';                    -- Z=1 if div/0
+          CCOUT(c_cc_f_n) <= '0';             -- N=0 if div/0
+          CCOUT(c_cc_f_z) <= '1';             -- Z=1 if div/0
         elsif R_DIV_V = '1' then
-          CCOUT(3) <= R_QO_LT;                -- N (send expected sign)
-          CCOUT(2) <= '0';                    -- Z (from unchanged reg) ??? veri
+          CCOUT(c_cc_f_n) <= R_QO_LT;         -- N (send expected sign)
+          CCOUT(c_cc_f_z) <= '0';             -- Z (from unchanged reg) ??? veri
         else
-          CCOUT(3) <= DTMP(15);               -- N (from Q (DTMP))
-          CCOUT(2) <= DTMP_ZERO;              -- Z (from Q (DTMP)) ??? verify
+          CCOUT(c_cc_f_n) <= DTMP(15);        -- N (from Q (DTMP))
+          CCOUT(c_cc_f_z) <= DTMP_ZERO;       -- Z (from Q (DTMP)) ??? verify
         end if;
-        CCOUT(1) <= R_DIV_V or DDST_ZERO;     -- V
-        CCOUT(0) <= DDST_ZERO;                -- C (dst=0)
+        CCOUT(c_cc_f_v) <= R_DIV_V or DDST_ZERO;  -- V
+        CCOUT(c_cc_f_c) <= DDST_ZERO;             -- C (dst=0)
 
       when c_munit_func_ash =>
-        CCOUT(3) <= DSRC(15);               -- N
-        CCOUT(2) <= DSRC_ZERO;              -- Z
-        CCOUT(1) <= R_ASH_V;                -- V
-        CCOUT(0) <= R_ASH_C;                -- C
+        CCOUT(c_cc_f_n) <= DSRC(15);           -- N
+        CCOUT(c_cc_f_z) <= DSRC_ZERO;          -- Z
+        CCOUT(c_cc_f_v) <= R_ASH_V;            -- V
+        CCOUT(c_cc_f_c) <= R_ASH_C;            -- C
 
       when c_munit_func_ashc =>
-        CCOUT(3) <= DSRC(15);               -- N
-        CCOUT(2) <= DSRC_ZERO and DTMP_ZERO;-- Z
-        CCOUT(1) <= R_ASH_V;                -- V
-        CCOUT(0) <= R_ASH_C;                -- C
+        CCOUT(c_cc_f_n) <= DSRC(15);               -- N
+        CCOUT(c_cc_f_z) <= DSRC_ZERO and DTMP_ZERO;-- Z
+        CCOUT(c_cc_f_v) <= R_ASH_V;                -- V
+        CCOUT(c_cc_f_c) <= R_ASH_C;                -- C
 
       when others => null;
     end case;        

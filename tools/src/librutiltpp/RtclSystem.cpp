@@ -1,6 +1,6 @@
-// $Id: RtclSystem.cpp 521 2013-05-20 22:16:45Z mueller $
+// $Id: RtclSystem.cpp 584 2014-08-22 19:38:12Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,12 +13,13 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-08-22   584   1.0.1  use nullptr
 // 2013-05-17   521   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclSystem.cpp 521 2013-05-20 22:16:45Z mueller $
+  \version $Id: RtclSystem.cpp 584 2014-08-22 19:38:12Z mueller $
   \brief   Implemenation of RtclSystem.
 */
 
@@ -58,11 +59,11 @@ static const int kERR = TCL_ERROR;
 void RtclSystem::CreateCmds(Tcl_Interp* interp)
 {
   Tcl_CreateObjCommand(interp, "rutil::isatty", Isatty, 
-                       (ClientData) 0, NULL);
+                       (ClientData) 0, nullptr);
   Tcl_CreateObjCommand(interp, "rutil::sigaction", SignalAction, 
-                       (ClientData) 0, NULL);
+                       (ClientData) 0, nullptr);
   Tcl_CreateObjCommand(interp, "rutil::waitpid", WaitPid, 
-                       (ClientData) 0, NULL);
+                       (ClientData) 0, nullptr);
   return;
 }
 
@@ -150,14 +151,15 @@ int RtclSystem::SignalAction(ClientData cdata, Tcl_Interp* interp,
           Tcl_Obj* pobj;
           if (pact->GetAction(siglist[i], pobj, emsg)) {
             RtclOPtr pele(Tcl_NewListObj(0,0));
-            Tcl_ListObjAppendElement(NULL, pele, 
+            Tcl_ListObjAppendElement(nullptr, pele, 
                      Tcl_NewStringObj(signum2nam(siglist[i]),-1));
             if (pobj) {
-              Tcl_ListObjAppendElement(NULL, pele, pobj);
+              Tcl_ListObjAppendElement(nullptr, pele, pobj);
             } else {
-              Tcl_ListObjAppendElement(NULL, pele, Tcl_NewStringObj("{}",-1));
+              Tcl_ListObjAppendElement(nullptr, pele, 
+                                       Tcl_NewStringObj("{}",-1));
             }
-            Tcl_ListObjAppendElement(NULL, pres, pele);
+            Tcl_ListObjAppendElement(nullptr, pres, pele);
           }
         }
         args.SetResult(pres);

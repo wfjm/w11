@@ -1,5 +1,5 @@
 /* -*- c++ -*- */
-/* $Id: fx2regs.h 395 2011-07-17 22:02:55Z mueller $ */
+/* $Id: fx2regs.h 604 2014-11-16 22:33:09Z mueller $ */
 /*-----------------------------------------------------------------------------
  * FX2 register definitions
  *-----------------------------------------------------------------------------
@@ -20,6 +20,7 @@
  */
 
 /*
+// original Cypress disclaimer
 //-----------------------------------------------------------------------------
 //   File:      FX2regs.h
 //   Contents:   EZ-USB FX2 register declarations and bit mask definitions.
@@ -28,11 +29,19 @@
 // $Date: 2006-09-13 14:30:04 -0700 (Wed, 13 Sep 2006) $
 // $Revision: 3534 $
 //
-//
 //   Copyright (c) 2000 Cypress Semiconductor, All rights reserved
 //-----------------------------------------------------------------------------
 */
 
+/*
+ * Revision History in retro projects
+ * 
+ * Date         Rev Version  Comment
+ * 2014-11-16   604   1.1    add sdcc 3.x migration support
+ * 2011-07-17   394   1.0    Initial version (from ixo-jtag/usb_jtag Rev 204)
+ *
+ *-----------------------------------------------------------------------------
+ */
 
 #ifndef FX2REGS_H   /* Header Sentry */
 #define FX2REGS_H
@@ -59,10 +68,19 @@
 // to cut off the end of the line, "_at_   0x7B40;", which is not wanted.
 */
 
+/*
+ * Note on sdcc 3.x compatibility:
+ *   Only the _AT_ macro is touched in the original Cypress sources.
+ *   all other keyword mappings are done via pre-processor defines.
+ */
 
 #ifdef ALLOCATE_EXTERN
 #define EXTERN
+#ifdef SDCC3XCOMPAT
+#define _AT_(a) __at a
+#else
 #define _AT_(a) at a
+#endif
 #else
 #define EXTERN extern
 #define _AT_ ;/ ## /

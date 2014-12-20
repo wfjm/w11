@@ -1,4 +1,4 @@
--- $Id: pdp11_core_rbus.vhd 553 2014-03-17 06:40:08Z mueller $
+-- $Id: pdp11_core_rbus.vhd 591 2014-09-06 17:45:38Z mueller $
 --
 -- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,9 +19,11 @@
 -- Test bench:     tb/tb_rlink_tba_pdp11core
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
 -- Revision History: -
 -- Date         Rev Version  Comment
+-- 2014-09-05   591   1.3    use new rlink v4 iface and 4 bit STAT
+-- 2014-08-15   583   1.2    rb_mreq addr now 16 bit
 -- 2011-11-18   427   1.1.1  now numeric_std clean
 -- 2010-12-29   351   1.1    renamed from pdp11_core_rri; ported to rbv3
 -- 2010-10-23   335   1.2.3  rename RRI_LAM->RB_LAM;
@@ -92,14 +94,14 @@ use work.pdp11.all;
 
 entity pdp11_core_rbus is               -- core to rbus interface
   generic (
-    RB_ADDR_CORE : slv8 := slv(to_unsigned(2#00000000#,8));
-    RB_ADDR_IBUS : slv8 := slv(to_unsigned(2#10000000#,8)));
+    RB_ADDR_CORE : slv16 := slv(to_unsigned(2#0000000000000000#,16));
+    RB_ADDR_IBUS : slv16 := slv(to_unsigned(2#0000000010000000#,16)));
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- reset
     RB_MREQ : in rb_mreq_type;          -- rbus: request
     RB_SRES : out rb_sres_type;         -- rbus: response
-    RB_STAT : out slv3;                 -- rbus: status flags
+    RB_STAT : out slv4;                 -- rbus: status flags
     RB_LAM : out slbit;                 -- remote attention
     CPU_RESET : out slbit;              -- cpu master reset
     CP_CNTL : out cp_cntl_type;         -- console control port
@@ -199,7 +201,7 @@ architecture syn of pdp11_core_rbus is
     icpureset := '0';
 
     -- look for init's against the rbus base address, generate subsystem resets
-    if RB_MREQ.init='1' and RB_MREQ.we='1' and RB_MREQ.addr=RB_ADDR_CORE then
+    if RB_MREQ.init='1' and RB_MREQ.addr=RB_ADDR_CORE then
       icpureset := RB_MREQ.din(0);
     end if;    
 
@@ -207,10 +209,10 @@ architecture syn of pdp11_core_rbus is
     n.rbseli := '0';
     n.rbselc := '0';
     if RB_MREQ.aval='1' then
-      if RB_MREQ.addr(7 downto 5)=RB_ADDR_CORE(7 downto 5) then
+      if RB_MREQ.addr(15 downto 5)=RB_ADDR_CORE(15 downto 5) then
         n.rbselc := '1';
       end if;
-      if RB_MREQ.addr(7 downto 5)=RB_ADDR_IBUS(7 downto 5) then
+      if RB_MREQ.addr(15 downto 5)=RB_ADDR_IBUS(15 downto 5) then
         n.rbseli := '1';
       end if;
     end if;
@@ -401,9 +403,10 @@ architecture syn of pdp11_core_rbus is
     RB_SRES.busy <= irb_busy;
     RB_SRES.dout <= irb_dout;
     
-    RB_STAT(0) <= CP_STAT.cpugo;
-    RB_STAT(1) <= CP_STAT.cpuhalt or CP_STAT.cpurust(CP_STAT.cpurust'left);
+    RB_STAT(3) <= '0';
     RB_STAT(2) <= CP_STAT.cmderr  or CP_STAT.cmdmerr;
+    RB_STAT(1) <= CP_STAT.cpuhalt or CP_STAT.cpurust(CP_STAT.cpurust'left);
+    RB_STAT(0) <= CP_STAT.cpugo;
 
     RB_LAM     <= irb_lam;
 

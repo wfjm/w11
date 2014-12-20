@@ -1,7 +1,8 @@
-# $Id: Makefile 477 2013-01-27 14:07:10Z mueller $
+# $Id: Makefile 602 2014-11-08 21:42:47Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2014-11-08   602   1.3    rename realclean->distclean
 # 2013-01-05   470   1.2    fix LDLIBS (must come after objs)
 # 2012-02-26   458   1.1    add tst_fx2loop_si
 # 2011-12-26   445   1.0    Initial version
@@ -11,7 +12,7 @@ NGC_all  = $(VBOM_all:.vbom=.ngc)
 #
 include $(RETROBASE)/rtl/make/xflow_default_nexys2.mk
 #
-.PHONY : all clean realclean
+.PHONY : all clean distclean
 #
 all : tst_fx2loop tst_fx2loop_si
 #
@@ -19,7 +20,7 @@ clean : ise_clean
 	rm -f tst_fx2loop
 	rm -f tst_fx2loop_si
 #
-realclean :
+distclean :
 	rm -f tst_fx2loop tst_fx2loop_si
 #
 CFLAGS = -Wall -O2 -g
@@ -32,6 +33,7 @@ tst_fx2loop_si : tst_fx2loop_si.c
 #
 #----
 #
+include $(RETROBASE)/tools/make/dontincdep.mk
 include $(RETROBASE)/rtl/make/generic_xflow.mk
 #
 ifndef DONTINCDEP

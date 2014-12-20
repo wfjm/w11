@@ -1,7 +1,8 @@
-# $Id: Makefile 561 2014-06-09 17:22:50Z mueller $
+# $Id: Makefile 602 2014-11-08 21:42:47Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2014-11-08   602   1.0.2  add  TCLLIB/TCLLIBNAME to LDLIBS
 # 2013-02-01   479   1.0.1  correct so name (no digits allowed in tcl load...)
 # 2013-01-27   478   1.0    Initial version
 #---
@@ -17,7 +18,8 @@ SOMINV     = 0
 include ../checkpath_cpp.mk
 #
 INCLFLAGS  = -I${RETROBASE}/tools/src -I${TCLINC} -I${BOOSTINC}
-LDLIBS     = -L${RETROBASE}/tools/lib -lrtools -lrtcltools 
+LDLIBS     = -L$(TCLLIB) -l$(TCLLIBNAME)
+LDLIBS    += -L${RETROBASE}/tools/lib -lrtools -lrtcltools 
 LDLIBS    +=   -lrlink -lrw11
 LDLIBS    +=   -lrlinktpp
 #

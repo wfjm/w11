@@ -1,6 +1,6 @@
-# $Id: test_fifo.tcl 516 2013-05-05 21:24:52Z mueller $
+# $Id: test_fifo.tcl 603 2014-11-09 22:50:26Z mueller $
 #
-# Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-11-09   603   2.0    use rlink v4 address layout and iface
 # 2011-03-27   374   1.0    Initial version
 # 2011-03-13   369   0.1    First draft
 #
@@ -84,50 +85,29 @@ namespace eval rbtest {
       -rblk te.fifo 16 -edata [lrange $blk 0 15]
     #
     #-------------------------------------------------------------------------
-    rlc log "  test 4a: verify that init 100 clears fifo ant not cntl&data"
+    rlc log "  test 4a: verify that init 100 clears fifo and not cntl&data"
     # check fifo empty; write a value; clear fifo via init; check fifo empty
     # check that cntl and data not affected
     rlc exec -estatdef $esdval $esdmsk \
-      -wreg te.cntl [regbld rbtest::CNTL {stat 0x7}] \
+      -wreg te.cntl [regbld rbtest::CNTL {nbusy 0x1}] \
       -wreg te.data 0x1234 \
       -rreg te.fifo -estat [regbld rlink::STAT rberr] $esdmsk \
       -wreg te.fifo 0x4321 \
       -init te.cntl [regbld rbtest::INIT fifo] \
       -rreg te.fifo -estat [regbld rlink::STAT rberr] $esdmsk \
-      -rreg te.cntl -edata [regbld rbtest::CNTL {stat 0x7}] \
+      -rreg te.cntl -edata [regbld rbtest::CNTL {nbusy 0x1}] \
       -rreg te.data -edata 0x1234
     #
-    #
-    rlc log "  test 4b: verify fifo clear via nofifo flag in cntl"
-    # write a value; set and clear nofifo flag in cntl; ckeck fifo empty
-    rlc exec -estatdef $esdval $esdmsk \
-      -wreg te.fifo 0x4321 \
-      -wreg te.cntl [regbld rbtest::CNTL nofifo] \
-      -wreg te.cntl 0x0000 \
-      -rreg te.fifo -estat [regbld rlink::STAT rberr] $esdmsk
-    #
     #-------------------------------------------------------------------------
-    rlc log "  test 5: verify that nofifo causes a rbnak on fifo access"
-    # write fifo; set nofifo in cntl; write/read fifo(->rbnak);
-    #   clr nofifo in cntl; read fifo(->rberr)
-    rlc exec -estatdef $esdval $esdmsk \
-      -wreg te.fifo 0x12ab \
-      -wreg te.cntl [regbld rbtest::CNTL nofifo] \
-      -wreg te.fifo 0x12cd -estat [regbld rlink::STAT rbnak] $esdmsk \
-      -rreg te.fifo        -estat [regbld rlink::STAT rbnak] $esdmsk \
-      -wreg te.cntl 0x0000 \
-      -rreg te.fifo        -estat [regbld rlink::STAT rberr] $esdmsk
-    #
-    #-------------------------------------------------------------------------
-    rlc log "  test 6: test that te.attn returns # of cycles for te.fifo w&r"
+    rlc log "  test 6: test that te.ncyc returns # of cycles for te.fifo w&r"
     foreach nbusy {0x03 0x07 0x0f 0x1f 0x00} {
       set valc [regbld rbtest::CNTL [list nbusy $nbusy]]
       rlc exec -estatdef $esdval $esdmsk \
         -wreg te.cntl $valc \
         -wreg te.fifo [expr {$nbusy | ( $nbusy << 8 ) }] \
-        -rreg te.attn -edata [expr {$nbusy + 1 }] \
+        -rreg te.ncyc -edata [expr {$nbusy + 1 }] \
         -rreg te.fifo -edata [expr {$nbusy | ( $nbusy << 8 ) }] \
-        -rreg te.attn -edata [expr {$nbusy + 1 }]
+        -rreg te.ncyc -edata [expr {$nbusy + 1 }]
     }
     #
     #-------------------------------------------------------------------------
@@ -141,32 +121,6 @@ namespace eval rbtest {
       rlc exec -estatdef $esdval $esdmsk \
         -wblk te.fifo $blk \
         -rblk te.fifo [llength $blk] -edata $blk
-    }
-    #
-    # -------------------------------------------------------------------------
-    rlc log "  test 8: verify stat command after te.data wblk & rblk"
-    set blk {0x1234 0x2345}
-    set rlist [rlc exec -rlist -estatdef $esdval $esdmsk \
-                 -wblk te.fifo $blk \
-                 -stat ]
-    #puts $rlist
-    #rlist like: {wblk 99 23 0} {stat 4 39 0 99 65279}
-    set xreg_ccode [lindex $rlist 0 1]
-    set stat_ccode [lindex $rlist 1 4]
-    if {$xreg_ccode != $stat_ccode} {
-      rlc log " ---- stat ccmd mismatch, d=[pbvi o8 $xreg_ccode]! D=[pbvi o8 $stat_ccode] FAIL"
-      incr errcnt
-    }
-    set rlist [rlc exec -rlist -estatdef $esdval $esdmsk \
-                 -rblk te.fifo [llength $blk] -edata $blk \
-                 -stat -edata 0x2345]
-    #puts $rlist
-    #{rblk 97 23 0 {4660 9029}} {stat 12 39 0 97 9029}
-    set xreg_ccode [lindex $rlist 0 1]
-    set stat_ccode [lindex $rlist 1 4]
-    if {$xreg_ccode != $stat_ccode} {
-      rlc log " ---- stat ccmd mismatch, d=[pbvi o8 $xreg_ccode]! D=[pbvi o8 $stat_ccode] FAIL"
-      incr errcnt
     }
     #
     #-------------------------------------------------------------------------

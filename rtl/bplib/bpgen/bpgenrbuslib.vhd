@@ -1,6 +1,6 @@
--- $Id: bpgenrbuslib.vhd 476 2013-01-26 22:23:53Z mueller $
+-- $Id: bpgenrbuslib.vhd 583 2014-08-16 07:40:12Z mueller $
 --
--- Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Generic Board/Part components using rbus
 -- 
 -- Dependencies:   -
--- Tool versions:  12.1, 13.3; ghdl 0.26-0.29
+-- Tool versions:  12.1-14.7; ghdl 0.26-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-08-15   583   1.1    rb_mreq addr now 16 bit
 -- 2013-01-26   476   1.0    Initial version (extracted from bpgenlib)
 ------------------------------------------------------------------------------
 
@@ -37,7 +38,7 @@ component bp_swibtnled_rbus is          -- swi,btn,led handling /w rbus icept
     BWIDTH : positive := 4;             -- BTN port width
     LWIDTH : positive := 4;             -- LED port width
     DEBOUNCE : boolean := true;         -- instantiate debouncer for SWI,BTN
-    RB_ADDR : slv8 := slv(to_unsigned(2#10000000#,8)));
+    RB_ADDR : slv16 := slv(to_unsigned(2#0000000010000000#,16)));
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit := '0';            -- reset
@@ -57,7 +58,7 @@ component sn_humanio_rbus is            -- human i/o handling /w rbus intercept
   generic (
     BWIDTH : positive := 4;             -- BTN port width
     DEBOUNCE : boolean := true;         -- instantiate debouncer for SWI,BTN
-    RB_ADDR : slv8 := slv(to_unsigned(2#10000000#,8)));
+    RB_ADDR : slv16 := slv(to_unsigned(2#0000000010000000#,16)));
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit := '0';            -- reset
@@ -80,7 +81,7 @@ end component;
 component sn_humanio_demu_rbus is       -- human i/o swi,btn,led only /w rbus
   generic (
     DEBOUNCE : boolean := true;         -- instantiate debouncer for SWI,BTN
-    RB_ADDR : slv8 := slv(to_unsigned(2#10000000#,8)));
+    RB_ADDR : slv16 := slv(to_unsigned(2#0000000010000000#,16)));
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit := '0';            -- reset

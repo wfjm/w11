@@ -1,6 +1,6 @@
--- $Id: rblib.vhd 444 2011-12-25 10:04:58Z mueller $
+-- $Id: rblib.vhd 593 2014-09-14 22:21:33Z mueller $
 --
--- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,10 +16,12 @@
 -- Description:    Definitions for rbus interface and bus entities
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-09-14   593   4.0    use new rlink v4 iface and 4 bit STAT
+-- 2014-08-15   583   3.5    rb_mreq addr now 16 bit
 -- 2011-12-23   444   3.1    CLK_CYCLE now integer
 -- 2011-08-13   405   3.0.3  add in direction for  FADDR,SEL ports
 -- 2010-12-26   349   3.0.2  add rb_sel
@@ -42,7 +44,7 @@ type rb_mreq_type is record             -- rbus - master request
   re   : slbit;                         -- read enable
   we   : slbit;                         -- write enable
   init : slbit;                         -- init
-  addr : slv8;                          -- address
+  addr : slv16;                         -- address
   din  : slv16;                         -- data (input to slave)
 end record rb_mreq_type;
 
@@ -64,7 +66,7 @@ constant rb_sres_init : rb_sres_type :=
 
 component rb_sel is                     -- rbus address select logic
   generic (
-    RB_ADDR : slv8;                     -- rbus address base
+    RB_ADDR : slv16;                    -- rbus address base
     SAWIDTH : natural := 0);            -- device subaddress space width
   port (
     CLK : in slbit;                     -- clock
@@ -105,7 +107,7 @@ component rbus_aif is                   -- rbus, abstract interface
     RB_MREQ : in rb_mreq_type;          -- rbus: request
     RB_SRES : out rb_sres_type;         -- rbus: response
     RB_LAM : out slv16;                 -- rbus: look at me
-    RB_STAT : out slv3                  -- rbus: status flags
+    RB_STAT : out slv4                  -- rbus: status flags
   );
 end component;
 
@@ -162,7 +164,7 @@ component rb_sres_or_mon is             -- rbus result or monitor
 end component;
 
 -- simbus sb_cntl field usage for rbus
-constant sbcntl_sbf_rbmon : integer := 14;
+constant sbcntl_sbf_rbmon : integer := 13;
 
 component rb_mon is                     -- rbus monitor
   generic (
@@ -174,7 +176,7 @@ component rb_mon is                     -- rbus monitor
     RB_MREQ : in rb_mreq_type;          -- rbus: request
     RB_SRES : in rb_sres_type;          -- rbus: response
     RB_LAM : in slv16 := (others=>'0'); -- rbus: look at me
-    RB_STAT : in slv3                   -- rbus: status flags
+    RB_STAT : in slv4                   -- rbus: status flags
   ); 
 end component;
 
@@ -187,7 +189,7 @@ component rb_mon_sb is                  -- simbus wrapper for rbus monitor
     RB_MREQ : in rb_mreq_type;          -- rbus: request
     RB_SRES : in rb_sres_type;          -- rbus: response
     RB_LAM : in slv16 := (others=>'0'); -- rbus: look at me
-    RB_STAT : in slv3                   -- rbus: status flags
+    RB_STAT : in slv4                   -- rbus: status flags
   );
 end component;
 

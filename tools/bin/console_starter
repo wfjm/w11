@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: telnet_starter 547 2013-12-29 13:10:07Z mueller $
+# $Id: console_starter 581 2014-08-10 21:48:46Z mueller $
 #
-# Copyright 2009-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2009-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev  Vers    Comment
+# 2014-08-10   581   1.1    rename to console_starter
 # 2010-07-04   312   1.0.3  correct telnet_wrapper path
 # 2010-04-26   284   1.0.2  add error check for GetOptions
 # 2009-11-08   248   1.0.1  proper -h handling & text; add -t support;
@@ -30,7 +31,7 @@ GetOptions(\%opts, "h", "t:s", "d:s", "s", "w", "l")
   or die "bad options";
 
 if (exists $opts{h}) {
-  print "usage: telnet_starter [-h] [-t type] [-d type] [-s] [-w] [-l]\n";
+  print "usage: console_starter [-h] [-t type] [-d type] [-s] [-w] [-l]\n";
   print "  -h       help, print this text and quit\n";
   print "  -t term  set terminal type, vt100 or vt52 (def: vt100)\n";
   print "  -d dev   set device type, DLx or DZx for x'the line (def: DL0)\n";

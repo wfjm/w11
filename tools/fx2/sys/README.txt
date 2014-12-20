@@ -1,6 +1,19 @@
-# $Id: README.txt 446 2011-12-29 23:27:48Z mueller $
+# $Id: README.txt 604 2014-11-16 22:33:09Z mueller $
 
-to setup udev rules do
+This directory contains udev rules which ensure that the Cypress FX2 on
+  - Digilent Nexys2
+  - Digilent Nexys3
+  - Digilent Atlys
+
+is read/write accessible for user land processes, either in
+  - original power on state          (thus Digilent VID/PID)
+  - after custom firmware is loaded  (thus VOTI VID/PID)
+
+!! The rules assume that eligible user accounts are in group plugdev.
+!! Check with the 'groups' command whether your account is in group plugdev,
+!! in not, add this group to your accounts groups list.
+
+To setup udev rules do
 
   sudo cp -a 99-retro-usb-permissions.rules /etc/udev/rules.d/
   sudo chown root:root /etc/udev/rules.d/99-retro-usb-permissions.rules

@@ -1,6 +1,6 @@
-// $Id: RtclBvi.cpp 521 2013-05-20 22:16:45Z mueller $
+// $Id: RtclBvi.cpp 584 2014-08-22 19:38:12Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-08-22   584   1.0.2  use nullptr
 // 2011-11-28   434   1.0.1  DoCmd(): use intptr_t cast for lp64 compatibility
 // 2011-03-27   374   1.0    Initial version
 // 2011-02-13   361   0.1    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RtclBvi.cpp 521 2013-05-20 22:16:45Z mueller $
+  \version $Id: RtclBvi.cpp 584 2014-08-22 19:38:12Z mueller $
   \brief   Implemenation of RtclBvi.
 */
 
@@ -51,8 +52,8 @@ static const int kERR = TCL_ERROR;
 
 void RtclBvi::CreateCmds(Tcl_Interp* interp)
 {
-  Tcl_CreateObjCommand(interp,  "bvi", DoCmd, (ClientData) kStr2Int, NULL);
-  Tcl_CreateObjCommand(interp, "pbvi", DoCmd, (ClientData) kInt2Str, NULL);
+  Tcl_CreateObjCommand(interp,  "bvi", DoCmd, (ClientData) kStr2Int, nullptr);
+  Tcl_CreateObjCommand(interp, "pbvi", DoCmd, (ClientData) kInt2Str, nullptr);
   return;
 }
 
@@ -77,7 +78,7 @@ int RtclBvi::DoCmd(ClientData cdata, Tcl_Interp* interp, int objc,
       return kERR;
     }
     
-    RtclOPtr rlist(Tcl_NewListObj(0, NULL));
+    RtclOPtr rlist(Tcl_NewListObj(0, nullptr));
 
     for (int i=0; i<lobjc; i++) {
       RtclOPtr rval(DoConv(interp, mode, lobjv[i], form, nbit));
@@ -120,7 +121,7 @@ Tcl_Obj* RtclBvi::DoConv(Tcl_Interp* interp, ConvMode mode, Tcl_Obj* val,
     if (lval>3 && pval[1]=='"' && pval[lval-1]=='"') {
       if (strchr("bBoOdDxX", pval[0]) == 0) {
         Tcl_AppendResult(interp, "-E: bad prefix in c'dddd' format string", 
-                         NULL);
+                         nullptr);
         return 0;
       }
       form = pval[0];
@@ -153,13 +154,13 @@ Tcl_Obj* RtclBvi::DoConv(Tcl_Interp* interp, ConvMode mode, Tcl_Obj* val,
 
     if (eptr != pval+lval) {
       Tcl_AppendResult(interp, "-E: conversion error in '", 
-                       Tcl_GetString(val), "'", NULL);
+                       Tcl_GetString(val), "'", nullptr);
       return 0;
     }
 
     if (lres > (1ul<<nbit)-1) {
       Tcl_AppendResult(interp, "-E: too many bits defined in '", 
-                       Tcl_GetString(val), "'", NULL);
+                       Tcl_GetString(val), "'", nullptr);
       return 0;
     }
 
@@ -197,7 +198,7 @@ Tcl_Obj* RtclBvi::DoConv(Tcl_Interp* interp, ConvMode mode, Tcl_Obj* val,
 
   } else {
     Tcl_AppendResult(interp, "-E: BUG! bad cdata in RtclBvi::DoConv() call", 
-                     NULL);
+                     nullptr);
   }
   return 0;
 }
@@ -239,12 +240,12 @@ bool RtclBvi::CheckFormat(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[],
         nbit = 10*nbit + ((*opt) - '0');
         if (nbit > 32) {
           Tcl_AppendResult(interp, "-E: invalid bvi format '", opt, "'", 
-                           " bit count > 32", NULL);
+                           " bit count > 32", nullptr);
           return false;
         }
       } else {
         Tcl_AppendResult(interp, "-E: invalid bvi format '", opt, "'", 
-                         " allowed: [bBoOxXl][0-9]*", NULL);
+                         " allowed: [bBoOxXl][0-9]*", nullptr);
         return false;
       }
       break;

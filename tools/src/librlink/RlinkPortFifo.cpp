@@ -1,4 +1,4 @@
-// $Id: RlinkPortFifo.cpp 516 2013-05-05 21:24:52Z mueller $
+// $Id: RlinkPortFifo.cpp 607 2014-11-30 20:02:48Z mueller $
 //
 // Copyright 2011-2013 y Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPortFifo.cpp 516 2013-05-05 21:24:52Z mueller $
+  \version $Id: RlinkPortFifo.cpp 607 2014-11-30 20:02:48Z mueller $
   \brief   Implemenation of RlinkPortFifo.
 */
 
@@ -102,7 +102,7 @@ int RlinkPortFifo::OpenFifo(const std::string& name, bool snd, RerrMsg& emsg)
     }
   } else {
     mode_t mode = S_IRUSR | S_IWUSR;        // user read and write allowed
-    irc = mkfifo(name.c_str(), mode);
+    irc = ::mkfifo(name.c_str(), mode);
     if (irc != 0) {
       emsg.InitErrno("RlinkPortFifo::OpenFifo()", 
                      string("mkfifo() for '") + name + "' failed: ",
@@ -111,7 +111,7 @@ int RlinkPortFifo::OpenFifo(const std::string& name, bool snd, RerrMsg& emsg)
     }    
   }
 
-  irc = open(name.c_str(), snd ? O_WRONLY : O_RDONLY);
+  irc = ::open(name.c_str(), snd ? O_WRONLY : O_RDONLY);
   if (irc < 0) {
     emsg.InitErrno("RlinkPortFifo::OpenFifo()", 
                    string("open() for '") + name + "' failed: ",

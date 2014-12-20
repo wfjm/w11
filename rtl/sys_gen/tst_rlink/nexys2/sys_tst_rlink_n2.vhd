@@ -1,6 +1,6 @@
--- $Id: sys_tst_rlink_n2.vhd 476 2013-01-26 22:23:53Z mueller $
+-- $Id: sys_tst_rlink_n2.vhd 614 2014-12-20 15:00:45Z mueller $
 --
--- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -27,10 +27,11 @@
 -- Test bench:     tb/tb_tst_rlink_n2
 --
 -- Target Devices: generic
--- Tool versions:  xst 12.1, 13.1; ghdl 0.29
+-- Tool versions:  xst 12.1-14.7; ghdl 0.29-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2014-12-20   614 14.7  131013 xc3s1200e-4  914 1951  128 1321 t 15.7
 -- 2012-12-27   453 13.3    O76d xc3s1200e-4  754 1605   96 1057 t 14.5
 -- 2011-12-18   440 13.1    O40d xc3s1200e-4  754 1605   96 1057 t 16.8
 -- 2011-06-26   385 12.1    M53d xc3s1200e-4  688 1500   68  993 t 16.2
@@ -39,6 +40,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-11-09   603   1.4    use new rlink v4 iface and 4 bit STAT
+-- 2014-08-15   583   1.3    rb_mreq addr now 16 bit
 -- 2011-12-23   444   1.2    remove clksys output hack
 -- 2011-12-18   440   1.1.6  use now rbd_tst_rlink and rlink_sp1c
 -- 2011-11-26   433   1.1.5  use nx_cram_dummy now
@@ -138,12 +141,12 @@ architecture syn of sys_tst_rlink_n2 is
   signal RB_SRES_TST : rb_sres_type := rb_sres_init;
 
   signal RB_LAM  : slv16 := (others=>'0');
-  signal RB_STAT : slv3  := (others=>'0');
+  signal RB_STAT : slv4  := (others=>'0');
   
   signal SER_MONI : serport_moni_type := serport_moni_init;
   signal STAT    : slv8  := (others=>'0');
 
-  constant rbaddr_hio   : slv8 := "11000000"; -- 110000xx
+  constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/4: 1111 1110 1111 00xx
 
 begin
 
@@ -216,9 +219,9 @@ begin
 
   RLINK : rlink_sp1c
     generic map (
-      ATOWIDTH     => 6,
-      ITOWIDTH     => 6,
-      CPREF        => c_rlink_cpref,
+      BTOWIDTH     => 6,
+      RTAWIDTH     => 12,
+      SYSID        => (others=>'0'),
       IFAWIDTH     => 5,
       OFAWIDTH     => 5,
       ENAPIN_RLMON => sbcntl_sbf_rlmon,

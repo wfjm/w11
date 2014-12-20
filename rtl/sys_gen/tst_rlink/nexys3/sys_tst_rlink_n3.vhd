@@ -1,6 +1,6 @@
--- $Id: sys_tst_rlink_n3.vhd 538 2013-10-06 17:21:25Z mueller $
+-- $Id: sys_tst_rlink_n3.vhd 614 2014-12-20 15:00:45Z mueller $
 --
--- Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -27,15 +27,18 @@
 -- Test bench:     tb/tb_tst_rlink_n3
 --
 -- Target Devices: generic
--- Tool versions:  xst 13.1, 14.6; ghdl 0.29
+-- Tool versions:  xst 13.1-14.7; ghdl 0.29-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2014-12-20   614 13.1  131013 xc6slx16-2   917 1379   64  513 t  8.9
 -- 2011-12-18   440 13.1    O40d xc6slx16-2   752 1258   48  439 t  7.9
 -- 2011-11-26   433 13.1    O40d xc6slx16-2   722 1199   36  423 t  9.7
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-11-09   603   1.4    use new rlink v4 iface and 4 bit STAT
+-- 2014-08-15   583   1.3    rb_mreq addr now 16 bit
 -- 2013-10-06   538   1.2    pll support, use clksys_vcodivide ect
 -- 2011-12-18   440   1.1.1  use [rt]xok for DSP_DP
 -- 2011-12-11   438   1.1    use now rbd_tst_rlink and rlink_sp1c
@@ -131,12 +134,12 @@ architecture syn of sys_tst_rlink_n3 is
   signal RB_SRES_TST : rb_sres_type := rb_sres_init;
 
   signal RB_LAM  : slv16 := (others=>'0');
-  signal RB_STAT : slv3  := (others=>'0');
+  signal RB_STAT : slv4  := (others=>'0');
   
   signal SER_MONI : serport_moni_type := serport_moni_init;
   signal STAT    : slv8  := (others=>'0');
 
-  constant rbaddr_hio   : slv8 := "11000000"; -- 110000xx
+  constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/4: 1111 1110 1111 00xx
 
 begin
 
@@ -214,9 +217,9 @@ begin
 
   RLINK : rlink_sp1c
     generic map (
-      ATOWIDTH     => 6,
-      ITOWIDTH     => 6,
-      CPREF        => c_rlink_cpref,
+      BTOWIDTH     => 6,
+      RTAWIDTH     => 12,
+      SYSID        => (others=>'0'),
       IFAWIDTH     => 5,
       OFAWIDTH     => 5,
       ENAPIN_RLMON => sbcntl_sbf_rlmon,

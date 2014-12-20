@@ -1,6 +1,6 @@
--- $Id: comlib.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: comlib.vhd 596 2014-10-17 19:50:07Z mueller $
 --
--- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,11 @@
 -- Description:    communication components
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-09-27   595   1.6    add crc16 (using CRC-CCITT polynomial)
+-- 2014-09-14   593   1.5    new iface for cdata2byte and byte2cdata
 -- 2011-09-17   410   1.4    now numeric_std clean; use for crc8 'A6' polynomial
 --                           of Koopman et al.; crc8_update(_tbl) now function
 -- 2011-07-30   400   1.3    added byte2word, word2byte
@@ -65,41 +67,51 @@ component word2byte is                  -- 1 word -> 2 byte stream converter
   );
 end component;
 
+constant c_cdata_escape  : slv8 := "11001010"; -- char escape
+constant c_cdata_fill    : slv8 := "11010101"; -- char fill
+constant c_cdata_xon     : slv8 := "00010001"; -- char xon:  ^Q = hex 11
+constant c_cdata_xoff    : slv8 := "00010011"; -- char xoff: ^S = hex 13
+constant c_cdata_ec_xon  : slv3 := "100";      -- escape code: xon
+constant c_cdata_ec_xoff : slv3 := "101";      -- escape code: xoff
+constant c_cdata_ec_fill : slv3 := "110";      -- escape code: fill
+constant c_cdata_ec_esc  : slv3 := "111";      -- escape code: escape
+constant c_cdata_ed_pref : slv2 := "01";       -- edata: prefix
+subtype  c_cdata_edf_pref is  integer range 7 downto 6; -- edata pref field
+subtype  c_cdata_edf_eci  is  integer range 5 downto 3; -- edata  inv field
+subtype  c_cdata_edf_ec   is  integer range 2 downto 0; -- edata code field
+
 component cdata2byte is                 -- 9bit comma,data -> byte stream
-  generic (
-    CPREF : slv4 :=  "1000";            -- comma prefix
-    NCOMM : positive :=  4);            -- number of comma chars
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- reset
-    DI : in slv9;                       -- input data; bit 8 = komma flag
-    ENA : in slbit;                     -- write enable
-    BUSY : out slbit;                   -- write port hold    
+    ESCXON : in slbit;                  -- enable xon/xoff escaping
+    ESCFILL : in slbit;                 -- enable fill escaping
+    DI : in slv9;                       -- input data; bit 8 = comma flag
+    ENA : in slbit;                     -- input data enable
+    BUSY : out slbit;                   -- input data busy    
     DO : out slv8;                      -- output data
-    VAL : out slbit;                    -- read valid
-    HOLD : in slbit                     -- read hold
+    VAL : out slbit;                    -- output data valid
+    HOLD : in slbit                     -- output data hold
   );
 end component;
 
 component byte2cdata is                 -- byte stream -> 9bit comma,data
-  generic (
-    CPREF : slv4 :=  "1000";            -- comma prefix
-    NCOMM : positive :=  4);            -- number of comma chars
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- reset
     DI : in slv8;                       -- input data
-    ENA : in slbit;                     -- write enable
-    BUSY : out slbit;                   -- write port hold    
-    DO : out slv9;                      -- output data; bit 8 = komma flag
-    VAL : out slbit;                    -- read valid
-    HOLD : in slbit                     -- read hold
+    ENA : in slbit;                     -- input data enable
+    ERR : in slbit;                     -- input data error
+    BUSY : out slbit;                   -- input data busy
+    DO : out slv9;                      -- output data; bit 8 = comma flag
+    VAL : out slbit;                    -- output data valid
+    HOLD : in slbit                     -- output data hold
   );
 end component;
 
 component crc8 is                       -- crc-8 generator, checker
   generic (
-    INIT: slv8 :=  "00000000");         -- initial state of crc register
+    INIT: slv8 := "00000000");          -- initial state of crc register
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- reset
@@ -109,15 +121,37 @@ component crc8 is                       -- crc-8 generator, checker
   );
 end component;
 
+component crc16 is                      -- crc-16 generator, checker
+  generic (
+    INIT: slv16 := (others=>'0'));      -- initial state of crc register
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit;                   -- reset
+    ENA : in slbit;                     -- update enable
+    DI : in slv8;                       -- input data
+    CRC : out slv16                     -- crc code
+  );
+end component;
+
   function crc8_update     (crc : in slv8; data : in slv8) return slv8;
   function crc8_update_tbl (crc : in slv8; data : in slv8) return slv8;
+
+  function crc16_update     (crc : in slv16; data : in slv8) return slv16;
+  function crc16_update_tbl (crc : in slv16; data : in slv8) return slv16;
 
 end package comlib;
 
 -- ----------------------------------------------------------------------------
 
 package body comlib is
-  
+
+  -- crc8_update and crc8_update_tbl implement the 'A6' polynomial of
+  -- Koopman and Chakravarty
+  --    x^8 + x^6 + x^3 + x^2 + 1   (0xa6)
+  -- see
+  -- http://dx.doi.org/10.1109%2FDSN.2004.1311885
+  -- http://www.ece.cmu.edu/~koopman/roses/dsn04/koopman04_crc_poly_embedded.pdf
+  --
   function crc8_update (crc: in slv8; data: in slv8) return slv8 is
     variable t : slv8 := (others=>'0');
     variable n : slv8 := (others=>'0');
@@ -182,4 +216,88 @@ package body comlib is
     
   end function crc8_update_tbl;
   
+  -- crc16_update and crc16_update_tbl implement the CCITT polynomial
+  --    x^16 + x^12 + x^5 + 1   (0x1021)
+  --
+  function crc16_update (crc: in slv16; data: in slv8) return slv16 is
+    variable n : slv16 := (others=>'0');
+    variable t : slv8  := (others=>'0');
+ begin
+
+   t := data xor crc(15 downto 8);
+   
+   n(0)  := t(4) xor t(0);
+   n(1)  := t(5) xor t(1);
+   n(2)  := t(6) xor t(2);
+   n(3)  := t(7) xor t(3);
+   n(4)  := t(4);
+   n(5)  := t(5) xor t(4) xor t(0);
+   n(6)  := t(6) xor t(5) xor t(1);
+   n(7)  := t(7) xor t(6) xor t(2);
+
+   n(8)  := t(7) xor t(3)          xor crc(0);
+   n(9)  := t(4)                   xor crc(1);
+   n(10) := t(5)                   xor crc(2);
+   n(11) := t(6)                   xor crc(3);
+   n(12) := t(7) xor t(4) xor t(0) xor crc(4);
+   n(13) := t(5) xor t(1)          xor crc(5);
+   n(14) := t(6) xor t(2)          xor crc(6);
+   n(15) := t(7) xor t(3)          xor crc(7);
+    
+   return n;
+    
+  end function crc16_update;
+  
+  function crc16_update_tbl (crc: in slv16; data: in slv8) return slv16 is
+    
+    type crc16_tbl_type is array (0 to 255) of integer;
+    variable crc16_tbl : crc16_tbl_type :=        
+      (    0,  4129,  8258, 12387, 16516, 20645, 24774, 28903,
+       33032, 37161, 41290, 45419, 49548, 53677, 57806, 61935,
+        4657,   528, 12915,  8786, 21173, 17044, 29431, 25302,
+       37689, 33560, 45947, 41818, 54205, 50076, 62463, 58334,
+        9314, 13379,  1056,  5121, 25830, 29895, 17572, 21637,
+       42346, 46411, 34088, 38153, 58862, 62927, 50604, 54669,
+       13907,  9842,  5649,  1584, 30423, 26358, 22165, 18100,
+       46939, 42874, 38681, 34616, 63455, 59390, 55197, 51132,
+       18628, 22757, 26758, 30887,  2112,  6241, 10242, 14371,
+       51660, 55789, 59790, 63919, 35144, 39273, 43274, 47403,
+       23285, 19156, 31415, 27286,  6769,  2640, 14899, 10770,
+       56317, 52188, 64447, 60318, 39801, 35672, 47931, 43802,
+       27814, 31879, 19684, 23749, 11298, 15363,  3168,  7233,
+       60846, 64911, 52716, 56781, 44330, 48395, 36200, 40265,
+       32407, 28342, 24277, 20212, 15891, 11826,  7761,  3696,
+       65439, 61374, 57309, 53244, 48923, 44858, 40793, 36728,
+       37256, 33193, 45514, 41451, 53516, 49453, 61774, 57711,
+        4224,   161, 12482,  8419, 20484, 16421, 28742, 24679,
+       33721, 37784, 41979, 46042, 49981, 54044, 58239, 62302,
+         689,  4752,  8947, 13010, 16949, 21012, 25207, 29270,
+       46570, 42443, 38312, 34185, 62830, 58703, 54572, 50445,
+       13538,  9411,  5280,  1153, 29798, 25671, 21540, 17413,
+       42971, 47098, 34713, 38840, 59231, 63358, 50973, 55100,
+        9939, 14066,  1681,  5808, 26199, 30326, 17941, 22068,
+       55628, 51565, 63758, 59695, 39368, 35305, 47498, 43435,
+       22596, 18533, 30726, 26663,  6336,  2273, 14466, 10403,
+       52093, 56156, 60223, 64286, 35833, 39896, 43963, 48026,
+       19061, 23124, 27191, 31254,  2801,  6864, 10931, 14994,
+       64814, 60687, 56684, 52557, 48554, 44427, 40424, 36297,
+       31782, 27655, 23652, 19525, 15522, 11395,  7392,  3265,
+       61215, 65342, 53085, 57212, 44955, 49082, 36825, 40952,
+       28183, 32310, 20053, 24180, 11923, 16050,  3793,  7920
+      );
+
+    variable ch : slv16 := (others=>'0');
+    variable  t : slv8  := (others=>'0');
+    variable td : integer := 0;
+    
+  begin
+
+    -- (crc<<8) ^ crc16_tbl[((crc>>8) ^ data) & 0x00ff]
+    ch := crc(7 downto 0) & "00000000";
+    t  := data xor crc(15 downto 8);
+    td := crc16_tbl(to_integer(unsigned(t)));
+    return ch xor slv(to_unsigned(td, 16));
+    
+  end function crc16_update_tbl;
+   
 end package body comlib;

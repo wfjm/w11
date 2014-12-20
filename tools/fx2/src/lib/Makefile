@@ -1,23 +1,44 @@
-# $Id: Makefile 394 2011-07-17 17:03:19Z mueller $
+# $Id: Makefile 604 2014-11-16 22:33:09Z mueller $
+
+#
+# Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Code was forked from ixo-jtag.svn.sourceforge.net on 2011-07-17
+#
+# - original copyright and licence disclaimer --------------------------------
+# - Copyright 2007 Kolja Waschk, ixo.de
+# - This code is part of usbjtag. usbjtag is free software;
 #-----------------------------------------------------------------------------
-# Makefile for FX2 library code
-#-----------------------------------------------------------------------------
-# Copyright (C) 2007 Kolja Waschk, ixo.de
-#-----------------------------------------------------------------------------
-# This code is part of usbjtag. usbjtag is free software; you can redistribute
-# it and/or modify it under the terms of the GNU General Public License as
-# published by the Free Software Foundation; either version 2 of the License,
-# or (at your option) any later version. usbjtag is distributed in the hope
-# that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.  You should have received a
-# copy of the GNU General Public License along with this program in the file
-# COPYING; if not, write to the Free Software Foundation, Inc., 51 Franklin
-# St, Fifth Floor, Boston, MA  02110-1301  USA
+# 
+# This program is free software; you may redistribute and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 2, or at your option any later version.
+# 
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# for complete details.
 #-----------------------------------------------------------------------------
 
-CC=sdcc
+
+#-----------------------------------------------------------------------------
+# Makefile for FX2 library code
+#
+# Revision History in retro projects
+# 
+# Date         Rev Version  Comment
+# 2014-11-16   604   1.1    add sdcc 3.x migration support
+# 2011-07-17   394   1.0    Initial version (from ixo-jtag/usb_jtag Rev 204)
+#
+#-----------------------------------------------------------------------------
+
+#
+# defs for sdcc 2.9 to 3.x transition handling -------------------------
+#
+include ../sdccdefs.mk
+
 CFLAGS+=-mmcs51 --no-xinit-opt -I.
+CFLAGS+=${CC29COMPOPT}
+
 CPPFLAGS+=
 OBJS=delay.rel fx2utils.rel i2c.rel isr.rel timer.rel usb_common.rel
 AR=sdcclib

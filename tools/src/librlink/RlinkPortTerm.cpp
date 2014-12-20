@@ -1,4 +1,4 @@
-// $Id: RlinkPortTerm.cpp 516 2013-05-05 21:24:52Z mueller $
+// $Id: RlinkPortTerm.cpp 607 2014-11-30 20:02:48Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -25,7 +25,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPortTerm.cpp 516 2013-05-05 21:24:52Z mueller $
+  \version $Id: RlinkPortTerm.cpp 607 2014-11-30 20:02:48Z mueller $
   \brief   Implemenation of RlinkPortTerm.
 */
 
@@ -137,11 +137,11 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
     return false;
   }
 
-  if (tcgetattr(fd, &fTiosOld) != 0) {
+  if (::tcgetattr(fd, &fTiosOld) != 0) {
     emsg.InitErrno("RlinkPortTerm::Open()", 
                    string("tcgetattr() for '") + fUrl.Path() + "' failed: ",
                    errno);
-    close(fd);
+    ::close(fd);
     return false;
   }
 
@@ -171,7 +171,7 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
 
   fTiosNew.c_lflag = 0;
 
-  if (cfsetspeed(&fTiosNew, speed) != 0) {
+  if (::cfsetspeed(&fTiosNew, speed) != 0) {
     emsg.InitErrno("RlinkPortTerm::Open()", 
                    string("cfsetspeed() for '") + baud + "' failed: ",
                    errno);
@@ -195,11 +195,11 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
     fTiosNew.c_cc[VSTOP]  = kc_xoff;        // setup XOFF -> ^S   
   }
 
-  if (tcsetattr(fd, TCSANOW, &fTiosNew) != 0) {
+  if (::tcsetattr(fd, TCSANOW, &fTiosNew) != 0) {
     emsg.InitErrno("RlinkPortTerm::Open()", 
                    string("tcsetattr() for '") + fUrl.Path() + "' failed: ",
                    errno);
-    close(fd);
+    ::close(fd);
     return false;
   }
 
@@ -208,11 +208,11 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
   // and verified.
 
   struct termios tios;
-  if (tcgetattr(fd, &tios) != 0) {
+  if (::tcgetattr(fd, &tios) != 0) {
     emsg.InitErrno("RlinkPortTerm::Open()", 
                    string("2nd tcgetattr() for '") + fUrl.Path() +
                    "' failed: ", errno);
-    close(fd);
+    ::close(fd);
     return false;
   }
 
@@ -221,8 +221,8 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
   if (tios.c_oflag != fTiosNew.c_oflag) pmsg = "c_oflag";
   if (tios.c_cflag != fTiosNew.c_cflag) pmsg = "c_cflag";
   if (tios.c_lflag != fTiosNew.c_lflag) pmsg = "c_lflag";
-  if (cfgetispeed(&tios) != speed)      pmsg = "ispeed";
-  if (cfgetospeed(&tios) != speed)      pmsg = "ospeed";
+  if (::cfgetispeed(&tios) != speed)      pmsg = "ispeed";
+  if (::cfgetospeed(&tios) != speed)      pmsg = "ospeed";
   for (int i=0; i<NCCS; i++) {
     if (tios.c_cc[i] != fTiosNew.c_cc[i]) pmsg = "c_cc char";
   }
@@ -230,7 +230,7 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
   if (pmsg) {
     emsg.Init("RlinkPortTerm::Open()",
               string("tcsetattr() failed to set") + string(pmsg));
-    close(fd);
+    ::close(fd);
     return false;
   }
 
@@ -265,8 +265,8 @@ void RlinkPortTerm::Close()
   if (!IsOpen()) return;
 
   if (fFdWrite >= 0) {
-    tcflush(fFdWrite, TCIOFLUSH);
-    tcsetattr(fFdWrite, TCSANOW, &fTiosOld);
+    ::tcflush(fFdWrite, TCIOFLUSH);
+    ::tcsetattr(fFdWrite, TCSANOW, &fTiosOld);
   }
   RlinkPort::Close();
 

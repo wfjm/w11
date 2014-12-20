@@ -1,6 +1,6 @@
-// $Id: Rtools.hpp 516 2013-05-05 21:24:52Z mueller $
+// $Id: Rtools.hpp 611 2014-12-10 23:23:58Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-11-23   606   1.0.4  add TimeOfDayAsDouble()
 // 2013-05-04   516   1.0.3  add CreateBackupFile(), String2Long()
 // 2013-02-13   481   1.0.2  remove ThrowLogic(), ThrowRuntime()
 // 2011-04-10   376   1.0.1  add ThrowLogic(), ThrowRuntime()
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: Rtools.hpp 516 2013-05-05 21:24:52Z mueller $
+  \version $Id: Rtools.hpp 611 2014-12-10 23:23:58Z mueller $
   \brief   Declaration of class Rtools .
 */
 
@@ -53,6 +54,8 @@ namespace Retro {
     bool            CreateBackupFile(const std::string& fname, size_t nbackup, 
                                      RerrMsg& emsg);
     bool            CreateBackupFile(const RparseUrl& purl, RerrMsg& emsg);
+
+    double          TimeOfDayAsDouble();
   };
 
 } // end namespace Retro

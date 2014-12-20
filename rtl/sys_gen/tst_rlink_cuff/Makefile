@@ -1,4 +1,4 @@
-# $Id: Makefile 477 2013-01-27 14:07:10Z mueller $
+# $Id: Makefile 602 2014-11-08 21:42:47Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -9,7 +9,7 @@ NGC_all  = $(VBOM_all:.vbom=.ngc)
 #
 include $(RETROBASE)/rtl/make/xflow_default_nexys2.mk
 #
-.PHONY : all clean realclean
+.PHONY : all clean
 #
 all : $(NGC_all)
 #
@@ -18,6 +18,7 @@ clean : ise_clean
 #
 #----
 #
+include $(RETROBASE)/tools/make/dontincdep.mk
 include $(RETROBASE)/rtl/make/generic_xflow.mk
 #
 ifndef DONTINCDEP

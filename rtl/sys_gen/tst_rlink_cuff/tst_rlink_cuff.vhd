@@ -1,6 +1,6 @@
--- $Id: tst_rlink_cuff.vhd 476 2013-01-26 22:23:53Z mueller $
+-- $Id: tst_rlink_cuff.vhd 593 2014-09-14 22:21:33Z mueller $
 --
--- Copyright 2012-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2012-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -25,10 +25,11 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 13.3; ghdl 0.29
+-- Tool versions:  xst 13.3-14.7; ghdl 0.29-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-08-28   588   1.1    use new rlink v4 iface generics and 4 bit STAT
 -- 2013-01-02   467   1.0.1  use 64 usec led pulse width
 -- 2012-12-29   466   1.0    Initial version
 ------------------------------------------------------------------------------
@@ -84,7 +85,7 @@ architecture syn of tst_rlink_cuff is
   signal RB_SRES_TST : rb_sres_type := rb_sres_init;
 
   signal RB_LAM  : slv16 := (others=>'0');
-  signal RB_STAT : slv3  := (others=>'0');
+  signal RB_STAT : slv4  := (others=>'0');
 
   signal SER_MONI : serport_moni_type := serport_moni_init;
   signal STAT     : slv8  := (others=>'0');
@@ -117,9 +118,9 @@ begin
 
   RLCORE : rlink_core8
     generic map (
-      ATOWIDTH     => 6,
-      ITOWIDTH     => 6,
-      CPREF        => c_rlink_cpref,
+      BTOWIDTH     => 6,
+      RTAWIDTH     => 12,
+      SYSID        => (others=>'0'),
       ENAPIN_RLMON => sbcntl_sbf_rlmon,
       ENAPIN_RBMON => sbcntl_sbf_rbmon)
     port map (

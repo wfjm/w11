@@ -1,4 +1,4 @@
-# $Id: w11a_known_issues.txt 570 2014-07-20 19:05:11Z mueller $
+# $Id: w11a_known_issues.txt 589 2014-08-30 12:43:16Z mueller $
 
 Summary of known issues for w11a CPU and systems
 
@@ -22,7 +22,7 @@ Summary of known issues for w11a CPU and systems
 
    - A 'red stack violation' looses PSW, a 0 is pushed in stack.
 
-   - The 'instrution complete flag' in SSR0 is not implemented, it is 
+   - The 'instruction complete flag' in SSR0 is not implemented, it is 
      permanently '0', SSR2 will not record vector addresses in case of a
      vector fetch fault. Recovery of vector fetch faults is therefore not
      possible, but only 11/45 and 11/70 supported this, no OS used that, and

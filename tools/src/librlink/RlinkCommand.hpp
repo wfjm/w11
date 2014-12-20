@@ -1,6 +1,6 @@
-// $Id: RlinkCommand.hpp 495 2013-03-06 17:13:48Z mueller $
+// $Id: RlinkCommand.hpp 609 2014-12-07 19:35:25Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-06   609   1.2    new rlink v4 iface
 // 2013-05-06   495   1.0.1  add RlinkContext to Print() args; drop oper<<()
 // 2011-03-27   374   1.0    Initial version
 // 2011-01-09   354   0.1    First draft
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RlinkCommand.hpp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: RlinkCommand.hpp 609 2014-12-07 19:35:25Z mueller $
   \brief   Declaration of class RlinkCommand.
 */
 
@@ -47,7 +48,7 @@ namespace Retro {
     public:
                     RlinkCommand();
                     RlinkCommand(const RlinkCommand& rhs);
-                    ~RlinkCommand();
+                   ~RlinkCommand();
  
       void          CmdRreg(uint16_t addr);
       void          CmdRblk(uint16_t addr, size_t size);
@@ -55,7 +56,7 @@ namespace Retro {
       void          CmdWreg(uint16_t addr, uint16_t data);
       void          CmdWblk(uint16_t addr, const std::vector<uint16_t>& block);
       void          CmdWblk(uint16_t addr, const uint16_t* pblock, size_t size);
-      void          CmdStat();
+      void          CmdLabo();
       void          CmdAttn();
       void          CmdInit(uint16_t addr, uint16_t data);
 
@@ -66,7 +67,7 @@ namespace Retro {
       void          SetBlockWrite(const std::vector<uint16_t>& block);
       void          SetBlockRead(size_t size) ;
       void          SetBlockExt(uint16_t* pblock, size_t size);
-      void          SetStatRequest(uint8_t ccmd);
+      void          SetBlockDone(uint16_t dcnt);
       void          SetStatus(uint8_t stat);
       void          SetFlagBit(uint32_t mask);
       void          ClearFlagBit(uint32_t mask);
@@ -83,7 +84,7 @@ namespace Retro {
       uint16_t*        BlockPointer();
       const uint16_t*  BlockPointer() const;
       size_t        BlockSize() const;
-      uint8_t       StatRequest() const;
+      size_t        BlockDone() const;
       uint8_t       Status() const;
       uint32_t      Flags() const;
       bool          TestFlagAny(uint32_t mask) const;
@@ -106,42 +107,30 @@ namespace Retro {
       static const uint8_t  kCmdRblk = 1;   //!< command code read block
       static const uint8_t  kCmdWreg = 2;   //!< command code write register
       static const uint8_t  kCmdWblk = 3;   //!< command code write block
-      static const uint8_t  kCmdStat = 4;   //!< command code get status
+      static const uint8_t  kCmdLabo = 4;   //!< command code list abort
       static const uint8_t  kCmdAttn = 5;   //!< command code get attention
       static const uint8_t  kCmdInit = 6;   //!< command code send initialize
 
       static const uint32_t kFlagInit   = 1u<<0;  //!< cmd,addr,data setup
       static const uint32_t kFlagSend   = 1u<<1;  //!< command send
       static const uint32_t kFlagDone   = 1u<<2;  //!< command done
+      static const uint32_t kFlagLabo   = 1u<<3;  //!< command labo'ed
 
       static const uint32_t kFlagPktBeg = 1u<<4;  //!< command first in packet
       static const uint32_t kFlagPktEnd = 1u<<5;  //!< command last in packet
-      static const uint32_t kFlagRecov  = 1u<<6;  //!< command stat recovered
-      static const uint32_t kFlagResend = 1u<<7;  //!< command resend recovered
 
       static const uint32_t kFlagErrNak = 1u<<8;  //!< error: nak abort
-      static const uint32_t kFlagErrMiss= 1u<<9;  //!< error: missing data
-      static const uint32_t kFlagErrCmd = 1u<<10; //!< error: cmd or nblk check
-      static const uint32_t kFlagErrCrc = 1u<<11; //!< error: crc check
+      static const uint32_t kFlagErrDec = 1u<<9;  //!< error: decode error
 
       static const uint32_t kFlagChkStat= 1u<<12; //!< stat expect check failed
       static const uint32_t kFlagChkData= 1u<<13; //!< data expect check failed
 
-      static const uint32_t kFlagVol    = 1u<<16; //!< volatile
-
-      static const uint8_t  kStat_M_Stat  = 0xe0; //!< stat: external stat bits
-      static const uint8_t  kStat_V_Stat  = 5; 
-      static const uint8_t  kStat_B_Stat  = 0x07; 
-      static const uint8_t  kStat_M_Attn  = kBBit04;//!< stat: attn flags set
-      static const uint8_t  kStat_M_Cerr  = kBBit03;//!< stat: attn flags set
-      static const uint8_t  kStat_M_Derr  = kBBit02;//!< stat: attn flags set
+      static const uint8_t  kStat_M_Stat  = 0xf0; //!< stat: external stat bits
+      static const uint8_t  kStat_V_Stat  = 4; 
+      static const uint8_t  kStat_B_Stat  = 0x0f; 
+      static const uint8_t  kStat_M_Attn  = kBBit03;//!< stat: attn flags set
       static const uint8_t  kStat_M_RbNak = kBBit01;//!< stat: attn flags set
       static const uint8_t  kStat_M_RbErr = kBBit00;//!< stat: attn flags set
-
-      static const uint16_t kRbaddr_IInt  = 0xff;   //!< iint: rbus address
-      static const uint16_t kIInt_M_AnEna = kWBit15;//!< iint: attn notify
-      static const uint16_t kIInt_M_ItoEna= kWBit14;//!< iint: attn/idle timeout
-      static const uint16_t kIInt_M_ItoVal= 0x00ff; //!< iint: attn/idle timeout
 
     protected: 
       void          SetCmdSimple(uint8_t cmd, uint16_t addr, uint16_t data);
@@ -153,7 +142,7 @@ namespace Retro {
       std::vector<uint16_t> fBlock;         //!< data vector for blk commands 
       uint16_t*     fpBlockExt;             //!< external data for blk commands
       size_t        fBlockExtSize;          //!< transfer size if data external
-      uint8_t       fStatRequest;           //!< stat command ccmd return field
+      size_t        fBlockDone;             //!< valid transfer count
       uint8_t       fStatus;                //!< rlink command status
       uint32_t      fFlags;                 //!< state bits
       size_t        fRcvSize;               //!< receive size for command

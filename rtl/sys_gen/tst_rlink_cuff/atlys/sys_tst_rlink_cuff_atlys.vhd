@@ -1,6 +1,6 @@
--- $Id: sys_tst_rlink_cuff_atlys.vhd 476 2013-01-26 22:23:53Z mueller $
+-- $Id: sys_tst_rlink_cuff_atlys.vhd 583 2014-08-16 07:40:12Z mueller $
 --
--- Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -27,7 +27,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 13.3; ghdl 0.29
+-- Tool versions:  xst 13.3-14.7; ghdl 0.29-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri ctl/MHz
@@ -35,6 +35,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-08-15   583   1.1    rb_mreq addr now 16 bit
 -- 2013-01-06   472   1.0    Initial version; derived from sys_tst_rlink_cuff_n3
 --                           and sys_tst_fx2loop_atlys
 ------------------------------------------------------------------------------
@@ -140,7 +141,7 @@ architecture syn of sys_tst_rlink_cuff_atlys is
   signal FX2_TX2AFULL : slbit := '0';
   signal FX2_MONI  : fx2ctl_moni_type := fx2ctl_moni_init;
 
-  constant rbaddr_hio   : slv8 := "11000000"; -- 110000xx
+  constant rbaddr_hio   : slv16 := "0000000011000000"; -- 110000xx
 
 begin
 

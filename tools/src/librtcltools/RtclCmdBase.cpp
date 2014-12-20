@@ -1,6 +1,6 @@
-// $Id: RtclCmdBase.cpp 516 2013-05-05 21:24:52Z mueller $
+// $Id: RtclCmdBase.cpp 584 2014-08-22 19:38:12Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-08-22   584   1.0.3  use nullptr
 // 2013-02-10   485   1.0.2  add static const defs
 // 2013-02-05   483   1.0.1  remove 'unknown specified, full match only' logic
 // 2013-02-02   480   1.0    Initial version (refactored out from ProxyBase)
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RtclCmdBase.cpp 516 2013-05-05 21:24:52Z mueller $
+  \version $Id: RtclCmdBase.cpp 584 2014-08-22 19:38:12Z mueller $
   \brief   Implemenation of RtclCmdBase.
 */
 
@@ -94,11 +95,11 @@ int RtclCmdBase::DispatchCmd(RtclArgs& args)
     }
     
     Tcl_AppendResult(interp, "-E: bad option '", name.c_str(),
-                     "': must be ", NULL);
+                     "': must be ", nullptr);
     const char* delim = "";
     for (mmap_cit_t it1=fMapMeth.begin(); it1!=fMapMeth.end(); it1++) {
       if (it1->first.c_str()[0] != '$') {
-        Tcl_AppendResult(interp, delim, it1->first.c_str(), NULL);
+        Tcl_AppendResult(interp, delim, it1->first.c_str(), nullptr);
         delim = ",";
       }        
     }
@@ -111,11 +112,11 @@ int RtclCmdBase::DispatchCmd(RtclArgs& args)
     it1++;
     if (it1!=fMapMeth.end() && name==it1->first.substr(0,name.length())) {
       Tcl_AppendResult(interp, "-E: ambiguous option '", 
-                       name.c_str(), "': must be ", NULL);
+                       name.c_str(), "': must be ", nullptr);
       const char* delim = "";
       for (it1=it_match; it1!=fMapMeth.end() &&
              name==it1->first.substr(0,name.length()); it1++) {
-        Tcl_AppendResult(interp, delim, it1->first.c_str(), NULL);
+        Tcl_AppendResult(interp, delim, it1->first.c_str(), nullptr);
         delim = ",";
       }
       return kERR;

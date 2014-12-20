@@ -1,6 +1,6 @@
--- $Id: rlinktblib.vhd 444 2011-12-25 10:04:58Z mueller $
+-- $Id: rlinktblib.vhd 595 2014-09-28 08:47:45Z mueller $
 --
--- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,11 @@
 -- Description:    rlink test environment components
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-08-28   588   4.0    now full rlink v4 iface and 4 bit STAT
+-- 2014-08-15   583   3.5    rb_mreq addr now 16 bit
 -- 2011-12-23   444   3.1    new clock iface for tbcore_rlink; drop .._dcm
 -- 2010-12-29   351   3.0.1  add rbtba_aif;
 -- 2010-12-24   347   3.0    rename rritblib->rlinktblib, CP_*->RL_*;
@@ -54,8 +56,8 @@ package rlinktblib is
 type rlink_tba_cntl_type is record      -- rlink_tba control
   cmd : slv3;                           -- command code
   ena : slbit;                          -- command enable
-  addr : slv8;                          -- address
-  cnt : slv8;                           -- block size
+  addr : slv16;                         -- address
+  cnt : slv16;                          -- block size
   eop : slbit;                          -- end packet after current command
 end record rlink_tba_cntl_type;
 
@@ -71,12 +73,14 @@ type rlink_tba_stat_type is record      -- rlink_tba status
   ack : slbit;                          -- command acknowledge
   err : slbit;                          -- command error flag
   stat : slv8;                          -- status flags
-  braddr : slv8;                        -- block read address  (for wblk)
+  braddr : slv16;                       -- block read address  (for wblk)
   bre : slbit;                          -- block read enable   (for wblk)
-  bwaddr : slv8;                        -- block write address (for rblk)
+  bwaddr : slv16;                       -- block write address (for rblk)
   bwe : slbit;                          -- block write enable  (for rblk)
-  attnpend : slbit;                     -- attn pending
-  attnint : slbit;                      -- attn interrupt
+  dcnt : slv16;                         -- block done count
+  apend : slbit;                        -- attn pending (from stat)
+  ano : slbit;                          -- attn notify seen
+  apat : slv16;                         -- attn pattern
 end record rlink_tba_stat_type;
 
 constant rlink_tba_stat_init : rlink_tba_stat_type := (
@@ -86,7 +90,10 @@ constant rlink_tba_stat_init : rlink_tba_stat_type := (
            '0',                         -- bre
            (others=>'0'),               -- bwaddr
            '0',                         -- bwe
-           '0','0');                    -- attnpend, attnint
+           (others=>'0'),               -- dcnt
+           '0','0',                     -- apend, ano
+           (others=>'0')                -- apat
+         );
 
 component rlink_tba is                  -- rlink test bench adapter
   port (
@@ -114,14 +121,14 @@ component rbtba_aif is                  -- rbus tba, abstract interface
     RB_MREQ_re : in slbit;              -- rbus: request - re
     RB_MREQ_we : in slbit;              -- rbus: request - we
     RB_MREQ_initt : in slbit;           -- rbus: request - init; avoid name coll
-    RB_MREQ_addr : in slv8;             -- rbus: request - addr
+    RB_MREQ_addr : in slv16;            -- rbus: request - addr
     RB_MREQ_din : in slv16;             -- rbus: request - din
     RB_SRES_ack : out slbit;            -- rbus: response - ack
     RB_SRES_busy : out slbit;           -- rbus: response - busy
     RB_SRES_err : out slbit;            -- rbus: response - err
     RB_SRES_dout : out slv16;           -- rbus: response - dout
     RB_LAM : out slv16;                 -- rbus: look at me
-    RB_STAT : out slv3                  -- rbus: status flags
+    RB_STAT : out slv4                  -- rbus: status flags
   );
 end component;
 

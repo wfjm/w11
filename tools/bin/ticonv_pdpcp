@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: ticonv_pdpcp 576 2014-08-02 12:24:28Z mueller $
+# $Id: ticonv_pdpcp 609 2014-12-07 19:35:25Z mueller $
 #
 # Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,7 +14,8 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
-# 2014-07-31   576   1.1    add -cmax option (default = 3); support .sdef
+# 2014-12-07   609   1.2    use rlink::anena (for rlink v4)
+# 2014-07-31   576   1.1    add --cmax option (default = 3); support .sdef
 # 2014-07-26   575   1.0.4  add --tout option (sets wtcpu timeout)
 # 2013-05-19   521   1.0.3  use -be subopt of -wibrb
 # 2013-04-12   504   1.0.2  renamed from pi2ti_pdpcp; fix [rm]wi handling
@@ -105,11 +106,10 @@ while (<IFILE>) {
     cmdlist_do();
     print "rlc oob -sbcntl $1 $2\n";
 
-  # .anena (0|1) -> rlc exec -init -----------------------------------
+  # .anena (0|1) -> rlink::anena n -----------------------------------
   } elsif ($cmd =~ /^\.anena\s+(\d)$/) {
     cmdlist_do();
-    my $dat = $1 ? '[regbld rlink::INIT anena]' : '0';
-    print "rlc exec -init 0xff $dat\n";
+    print "rlink::anena $1\n";
     print "rlc exec -attn\n";
 
   # .reset -----------------------------------------------------------

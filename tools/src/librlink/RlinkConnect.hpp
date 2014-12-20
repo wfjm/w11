@@ -1,6 +1,6 @@
-// $Id: RlinkConnect.hpp 509 2013-04-21 20:46:20Z mueller $
+// $Id: RlinkConnect.hpp 611 2014-12-10 23:23:58Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-10   611   2.0    re-organize for rlink v4
 // 2013-04-21   509   1.3.3  add SndAttn() method
 // 2013-03-05   495   1.3.2  add Exec() without emsg (will send emsg to LogFile)
 // 2013-03-01   493   1.3.1  add Server(Active..|SignalAttn)() methods
@@ -31,7 +32,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.hpp 509 2013-04-21 20:46:20Z mueller $
+  \version $Id: RlinkConnect.hpp 611 2014-12-10 23:23:58Z mueller $
   \brief   Declaration of class \c RlinkConnect.
 */
 
@@ -54,15 +55,18 @@
 
 #include "RlinkPort.hpp"
 #include "RlinkCommandList.hpp"
-#include "RlinkPacketBuf.hpp"
+#include "RlinkPacketBufSnd.hpp"
+#include "RlinkPacketBufRcv.hpp"
 #include "RlinkAddrMap.hpp"
 #include "RlinkContext.hpp"
+
+#include "librtools/Rbits.hpp"
 
 namespace Retro {
 
   class RlinkServer;                        // forw decl to avoid circular incl
 
-  class RlinkConnect : private boost::noncopyable {
+  class RlinkConnect : public Rbits, private boost::noncopyable {
     public:
       struct LogOpts {
         uint32_t      baseaddr;
@@ -93,7 +97,6 @@ namespace Retro {
       bool          ServerActive() const;
       bool          ServerActiveInside() const;
       bool          ServerActiveOutside() const;
-      void          ServerSignalAttn();
 
       // provide boost Lockable interface
       void          lock();
@@ -106,8 +109,7 @@ namespace Retro {
       bool          Exec(RlinkCommandList& clist);
       bool          Exec(RlinkCommandList& clist, RlinkContext& cntx);
 
-      double        WaitAttn(double timeout, RerrMsg& emsg);
-      int           PollAttn(RerrMsg& emsg);
+      double        WaitAttn(double timeout, uint16_t& apat, RerrMsg& emsg);
       bool          SndOob(uint16_t addr, uint16_t data, RerrMsg& emsg);
       bool          SndAttn(RerrMsg& emsg);
 
@@ -118,6 +120,8 @@ namespace Retro {
 
       const RlinkAddrMap& AddrMap() const;
       const Rstats& Stats() const;
+      const Rstats& SndStats() const;
+      const Rstats& RcvStats() const;
 
       void          SetLogOpts(const LogOpts& opts);
       const LogOpts&  GetLogOpts() const;
@@ -131,33 +135,52 @@ namespace Retro {
       void          Print(std::ostream& os) const;
       void          Dump(std::ostream& os, int ind=0, const char* text=0) const;
 
+      void          HandleUnsolicitedData();
+
+    // some constants (also defined in cpp)
+      static const uint16_t kRbaddr_RLCNTL = 0xffff; //!< rlink core reg RLCNTL
+      static const uint16_t kRbaddr_RLSTAT = 0xfffe; //!< rlink core reg RLSTAT
+      static const uint16_t kRbaddr_RLID1  = 0xfffd; //!< rlink core reg RLID1
+      static const uint16_t kRbaddr_RLID0  = 0xfffc; //!< rlink core reg RLID0
+
+      static const uint16_t kRLCNTL_M_AnEna = kWBit15;//!< RLCNTL: an  enable
+      static const uint16_t kRLCNTL_M_AtoEna= kWBit14;//!< RLCNTL: ato enable
+      static const uint16_t kRLCNTL_M_AtoVal= 0x00ff; //!< RLCNTL: ato value
+
+      static const uint16_t kRLSTAT_V_LCmd  =  8;     //!< RLSTAT: lcmd
+      static const uint16_t kRLSTAT_B_LCmd  = 0x00ff; //!< RLSTAT: lcmd
+      static const uint16_t kRLSTAT_M_BAbo  = kWBit07;//!< RLSTAT: babo
+      static const uint16_t kRLSTAT_M_RBSize= 0x0007; //!< RLSTAT: rbuf size
+
+      static const uint16_t kSBCNTL_V_RLMON = 15; //!< SBCNTL: rlmon enable bit
+      static const uint16_t kSBCNTL_V_RLBMON= 14; //!< SBCNTL: rlbmon enable bit
+      static const uint16_t kSBCNTL_V_RBMON = 13; //!< SBCNTL: rbmon enable bit
+
     // statistics counter indices
       enum stats {
-        kStatNExec = 0,
-        kStatNSplitVol,
-        kStatNExecPart,
-        kStatNCmd,
-        kStatNRreg,
-        kStatNRblk,
-        kStatNWreg,
-        kStatNWblk,
-        kStatNStat,
-        kStatNAttn,
-        kStatNInit,
-        kStatNRblkWord,
-        kStatNWblkWord,
-        kStatNTxPktByt,
-        kStatNTxEsc,
-        kStatNRxPktByt,
-        kStatNRxEsc,
-        kStatNRxAttn,
-        kStatNRxIdle,
-        kStatNRxDrop,
-        kStatNExpData,
-        kStatNExpStat,
-        kStatNChkData,
-        kStatNChkStat,
-        kStatNSndOob,
+        kStatNExec = 0,                     //!< Exec() calls
+        kStatNExecPart,                     //!< ExecPart() calls
+        kStatNCmd,                          //!< commands executed
+        kStatNRreg,                         //!< rreg commands
+        kStatNRblk,                         //!< rblk commands
+        kStatNWreg,                         //!< wreg commands
+        kStatNWblk,                         //!< wblk commands
+        kStatNLabo,                         //!< labo commands
+        kStatNAttn,                         //!< attn commands
+        kStatNInit,                         //!< init commands
+        kStatNRblkWord,                     //!< words rcvd with rblk
+        kStatNWblkWord,                     //!< words send with wblk
+        kStatNTxPktByt,                     //!< Tx packet bytes send
+        kStatNRxPktByt,                     //!< Rx packet bytes rcvd
+        kStatNExpData,                      //!< Expect() for data defined
+        kStatNExpStat,                      //!< Expect() for stat defined"
+        kStatNChkData,                      //!< expect data failed
+        kStatNChkStat,                      //!< expect stat failed
+        kStatNSndOob,                       //!< SndOob() calls
+        kStatNErrMiss,                      //!< decode: missing data
+        kStatNErrCmd,                       //!< decode: command mismatch
+        kStatNErrLen,                       //!< decode: length mismatch
+        kStatNErrCrc,                       //!< decode: crc mismatch
         kDimStat
       };
 
@@ -165,18 +188,30 @@ namespace Retro {
       bool          ExecPart(RlinkCommandList& clist, size_t ibeg, size_t iend, 
                              RerrMsg& emsg, RlinkContext& cntx);
 
+      void          EncodeRequest(RlinkCommandList& clist, size_t ibeg, 
+                                  size_t iend);
+      int           DecodeResponse(RlinkCommandList& clist, size_t ibeg, 
+                                   size_t iend, RlinkContext& cntx);
+      bool          DecodeAttnNotify(uint16_t& apat);
+      bool          ReadResponse(double timeout, RerrMsg& emsg);
+      void          AcceptResponse();
+      void          ProcessUnsolicitedData();
+      void          ProcessAttnNotify();
+
     protected: 
       boost::scoped_ptr<RlinkPort> fpPort;  //!< ptr to port
       RlinkServer*  fpServ;                 //!< ptr to server (optional)
       uint8_t       fSeqNumber[8];          //!< command sequence number
-      RlinkPacketBuf fTxPkt;                //!< transmit packet buffer
-      RlinkPacketBuf fRxPkt;                //!< receive packet buffer
+      RlinkPacketBufSnd fSndPkt;            //!< send    packet buffer
+      RlinkPacketBufRcv fRcvPkt;            //!< receive packet buffer
       RlinkContext  fContext;               //!< default context
       RlinkAddrMap  fAddrMap;               //!< name<->address mapping
       Rstats        fStats;                 //!< statistics
       LogOpts       fLogOpts;               //!< log options
       boost::shared_ptr<RlogFile> fspLog;   //!< log file ptr
       boost::recursive_mutex fConnectMutex; //!< mutex to lock whole connect
+      uint16_t      fAttnNotiPatt;          //!< attn notifier pattern
+      double        fTsLastAttnNoti;        //!< time stamp last attn notify
   };
   
 } // end namespace Retro

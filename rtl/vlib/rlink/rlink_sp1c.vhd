@@ -1,6 +1,6 @@
--- $Id: rlink_sp1c.vhd 476 2013-01-26 22:23:53Z mueller $
+-- $Id: rlink_sp1c.vhd 610 2014-12-09 22:44:43Z mueller $
 --
--- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -21,7 +21,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 13.1; ghdl 0.29
+-- Tool versions:  xst 13.1-14.7; ghdl 0.29-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri ifa ofa
@@ -29,6 +29,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-08-28   588   4.0    use rlink v4 iface, 4 bit STAT
 -- 2011-12-09   437   1.0    Initial version 
 ------------------------------------------------------------------------------
 
@@ -43,20 +44,21 @@ use work.serportlib.all;
 
 entity rlink_sp1c is                    -- rlink_core8+serport_1clock combo
   generic (
-    ATOWIDTH : positive :=  5;          -- access timeout counter width
-    ITOWIDTH : positive :=  6;          -- idle timeout counter width
-    CPREF : slv4 := c_rlink_cpref;      -- comma prefix
+    BTOWIDTH : positive :=  5;          -- rbus timeout counter width
+    RTAWIDTH : positive :=  12;         -- retransmit buffer address width
+    SYSID : slv32 := (others=>'0');     -- rlink system id
     IFAWIDTH : natural :=  5;           -- input fifo address width  (0=none)
     OFAWIDTH : natural :=  5;           -- output fifo address width (0=none)
-    ENAPIN_RLMON : integer := sbcntl_sbf_rlmon;  -- SB_CNTL for rlmon (-1=none)
-    ENAPIN_RBMON : integer := sbcntl_sbf_rbmon;  -- SB_CNTL for rbmon (-1=none)
+    ENAPIN_RLMON : integer := -1;       -- SB_CNTL for rlmon  (-1=none)
+    ENAPIN_RLBMON: integer := -1;       -- SB_CNTL for rlbmon (-1=none)
+    ENAPIN_RBMON : integer := -1;       -- SB_CNTL for rbmon  (-1=none)
     CDWIDTH : positive := 13;           -- clk divider width
     CDINIT : natural   := 15);          -- clk divider initial/reset setting
   port (
     CLK  : in slbit;                    -- clock
     CE_USEC : in slbit;                 -- 1 usec clock enable
     CE_MSEC : in slbit;                 -- 1 msec clock enable
-    CE_INT : in slbit := '0';           -- rri ito time unit clock enable
+    CE_INT : in slbit := '0';           -- rri ato time unit clock enable
     RESET  : in slbit;                  -- reset
     ENAXON : in slbit;                  -- enable xon/xoff handling
     ENAESC : in slbit;                  -- enable xon/xoff escaping
@@ -67,7 +69,7 @@ entity rlink_sp1c is                    -- rlink_core8+serport_1clock combo
     RB_MREQ : out rb_mreq_type;         -- rbus: request
     RB_SRES : in rb_sres_type;          -- rbus: response
     RB_LAM : in slv16;                  -- rbus: look at me
-    RB_STAT : in slv3;                  -- rbus: status flags
+    RB_STAT : in slv4;                  -- rbus: status flags
     RL_MONI : out rl_moni_type;         -- rlink_core: monitor port
     SER_MONI : out serport_moni_type    -- serport: monitor port
   );
@@ -87,10 +89,11 @@ begin
   
   CORE : rlink_core8
     generic map (
-      ATOWIDTH     => ATOWIDTH,
-      ITOWIDTH     => ITOWIDTH,
-      CPREF        => CPREF,
+      BTOWIDTH     => BTOWIDTH,
+      RTAWIDTH     => RTAWIDTH,
+      SYSID        => SYSID,
       ENAPIN_RLMON => ENAPIN_RLMON,
+      ENAPIN_RLBMON=> ENAPIN_RLBMON,
       ENAPIN_RBMON => ENAPIN_RBMON)
     port map (
       CLK        => CLK,

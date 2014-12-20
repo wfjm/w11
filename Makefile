@@ -1,4 +1,4 @@
-# $Id: Makefile 562 2014-06-15 17:23:18Z mueller $
+# $Id: Makefile 613 2014-12-20 08:47:50Z mueller $
 #
 # 'Meta Makefile' for whole retro project
 #   allows to make all synthesis targets
@@ -50,6 +50,7 @@ SIM_all += rtl/sys_gen/tst_serloop/s3board/tb
 SIM_all += rtl/sys_gen/w11a/nexys2/tb
 SIM_all += rtl/sys_gen/w11a/nexys3/tb
 SIM_all += rtl/sys_gen/w11a/s3board/tb
+SIM_all += rtl/vlib/comlib/tb
 SIM_all += rtl/vlib/rlink/tb
 SIM_all += rtl/vlib/serport/tb
 SIM_all += rtl/w11a/tb
@@ -59,17 +60,17 @@ SIM_all += rtl/w11a/tb
 .PHONY : $(SYN_all) $(SIM_all)
 #
 all :
-	@echo "no default action defined."
+	@echo "No default action defined:"
 	@echo "  for VHDL simulation/synthesis use:"
-	@echo "    make -j 4 all_sim"
-	@echo "    make -j 4 all_syn"
+	@echo "    make -j `nproc` all_sim"
+	@echo "    make -j `nproc` all_syn"
 	@echo "    make clean"
 	@echo "    make clean_sim"
 	@echo "    make clean_syn"
 	@echo "    make clean_sim_tmp"
 	@echo "    make clean_syn_tmp"
 	@echo "  for tool/documentation generation use:"
-	@echo "    make -j 4 all_lib"
+	@echo "    make -j `nproc` all_lib"
 	@echo "    make clean_lib"
 	@echo "    make all_tcl"
 	@echo "    make all_dox"

@@ -1,6 +1,6 @@
-# $Id: test_attn.tcl 516 2013-05-05 21:24:52Z mueller $
+# $Id: test_attn.tcl 603 2014-11-09 22:50:26Z mueller $
 #
-# Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-11-09   603   2.0    use rlink v4 address layout and iface
 # 2011-03-27   374   1.0    Initial version
 # 2011-03-20   372   0.1    First Draft
 #
@@ -53,9 +54,9 @@ namespace eval rbtest {
     foreach apat $apats {
       rlc exec -estatdef $esdval $esdmsk \
         -wreg te.attn $apat \
-        -rreg te.attn -estat [regbld rlink::STAT attn] \
+        -rreg te.cntl -estat [regbld rlink::STAT attn] \
         -attn         -edata $apat \
-        -rreg te.attn -estat 0x0
+        -rreg te.cntl -estat 0x0
     }
 
     #
@@ -68,12 +69,12 @@ namespace eval rbtest {
 
     #
     #-------------------------------------------------------------------------
-    rlc log "  test 3: verify that <attn> comma is send"
-    set apat [lindex $apats 0]
-    rlc exec -init 0xff [regbld rlink::INIT anena] -estat $esdval $esdmsk 
-    rlc exec -wreg te.attn $apat -estat $esdval $esdmsk
-    rlc wtlam 1.
-    rlc exec -attn -edata $apat -estat $esdval $esdmsk
+    #rlc log "  test 3: verify that <attn> comma is send"
+    #set apat [lindex $apats 0]
+    #rlc exec -init 0xff [regbld rlink::INIT anena] -estat $esdval $esdmsk 
+    #rlc exec -wreg te.attn $apat -estat $esdval $esdmsk
+    #rlc wtlam 1.
+    #rlc exec -attn -edata $apat -estat $esdval $esdmsk
 
     #
     #-------------------------------------------------------------------------

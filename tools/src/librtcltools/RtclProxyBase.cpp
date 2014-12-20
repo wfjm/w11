@@ -1,6 +1,6 @@
-// $Id: RtclProxyBase.cpp 488 2013-02-16 18:49:47Z mueller $
+// $Id: RtclProxyBase.cpp 584 2014-08-22 19:38:12Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-08-22   584   1.4.3  use nullptr
 // 2013-02-09   485   1.4.2  add CommandName()
 // 2013-02-05   483   1.4.1  ClassCmdConfig: use RtclArgs
 // 2013-02-02   480   1.4    factor out RtclCmdBase base class
@@ -26,7 +27,7 @@
 
 /*!
   \file
-  \version $Id: RtclProxyBase.cpp 488 2013-02-16 18:49:47Z mueller $
+  \version $Id: RtclProxyBase.cpp 584 2014-08-22 19:38:12Z mueller $
   \brief   Implemenation of RtclProxyBase.
 */
 
@@ -125,7 +126,7 @@ int RtclProxyBase::ThunkTclObjectCmd(ClientData cdata, Tcl_Interp* interp,
 {
   if (!cdata) {
     Tcl_AppendResult(interp, "-E: BUG! ThunkTclObjectCmd called with cdata==0",
-                     NULL);
+                     nullptr);
     return TCL_ERROR;
   }
   
@@ -133,7 +134,7 @@ int RtclProxyBase::ThunkTclObjectCmd(ClientData cdata, Tcl_Interp* interp,
     return ((RtclProxyBase*) cdata)->TclObjectCmd(interp, objc, objv);
   } catch (exception& e) {
     Rtcl::AppendResultNewLines(interp);
-    Tcl_AppendResult(interp, "-E: exception caught '", e.what(), "'", NULL);
+    Tcl_AppendResult(interp, "-E: exception caught '", e.what(), "'", nullptr);
   }
   return TCL_ERROR;
 }

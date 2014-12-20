@@ -1,6 +1,6 @@
-// $Id: RlinkCommand.cpp 495 2013-03-06 17:13:48Z mueller $
+// $Id: RlinkCommand.cpp 609 2014-12-07 19:35:25Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-06   609   1.2    new rlink v4 iface
+// 2014-08-15   583   1.1    rb_mreq addr now 16 bit
 // 2013-05-06   495   1.0.2  add RlinkContext to Print() args
 // 2013-02-03   481   1.0.1  use Rexception
 // 2011-03-27   374   1.0    Initial version
@@ -21,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: RlinkCommand.cpp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: RlinkCommand.cpp 609 2014-12-07 19:35:25Z mueller $
   \brief   Implemenation of class RlinkCommand.
  */
 
@@ -54,38 +56,27 @@ const uint8_t  RlinkCommand::kCmdRreg;
 const uint8_t  RlinkCommand::kCmdRblk;
 const uint8_t  RlinkCommand::kCmdWreg;
 const uint8_t  RlinkCommand::kCmdWblk;
-const uint8_t  RlinkCommand::kCmdStat;
+const uint8_t  RlinkCommand::kCmdLabo;
 const uint8_t  RlinkCommand::kCmdAttn;
 const uint8_t  RlinkCommand::kCmdInit;
 
 const uint32_t RlinkCommand::kFlagInit;
 const uint32_t RlinkCommand::kFlagSend;
 const uint32_t RlinkCommand::kFlagDone;
+const uint32_t RlinkCommand::kFlagLabo;
 const uint32_t RlinkCommand::kFlagPktBeg;
 const uint32_t RlinkCommand::kFlagPktEnd;
-const uint32_t RlinkCommand::kFlagRecov;
-const uint32_t RlinkCommand::kFlagResend;
 const uint32_t RlinkCommand::kFlagErrNak;
-const uint32_t RlinkCommand::kFlagErrMiss;
-const uint32_t RlinkCommand::kFlagErrCmd;
-const uint32_t RlinkCommand::kFlagErrCrc;
+const uint32_t RlinkCommand::kFlagErrDec;
 const uint32_t RlinkCommand::kFlagChkStat;
 const uint32_t RlinkCommand::kFlagChkData;
-const uint32_t RlinkCommand::kFlagVol;
 
 const uint8_t RlinkCommand::kStat_M_Stat;
 const uint8_t RlinkCommand::kStat_V_Stat;
 const uint8_t RlinkCommand::kStat_B_Stat;
 const uint8_t RlinkCommand::kStat_M_Attn;
-const uint8_t RlinkCommand::kStat_M_Cerr;
-const uint8_t RlinkCommand::kStat_M_Derr;
 const uint8_t RlinkCommand::kStat_M_RbNak;
 const uint8_t RlinkCommand::kStat_M_RbErr;
-
-const uint16_t RlinkCommand::kRbaddr_IInt;
-const uint16_t RlinkCommand::kIInt_M_AnEna;
-const uint16_t RlinkCommand::kIInt_M_ItoEna;
-const uint16_t RlinkCommand::kIInt_M_ItoVal;
 
 //------------------------------------------+-----------------------------------
 //! Default constructor
@@ -97,7 +88,7 @@ RlinkCommand::RlinkCommand()
     fBlock(),
     fpBlockExt(0), 
     fBlockExtSize(0), 
-    fStatRequest(0), 
+    fBlockDone(0), 
     fStatus(0), 
     fFlags(0),
     fRcvSize(0),
@@ -114,7 +105,7 @@ RlinkCommand::RlinkCommand(const RlinkCommand& rhs)
     fBlock(rhs.fBlock),
     fpBlockExt(rhs.fpBlockExt), 
     fBlockExtSize(rhs.fBlockExtSize), 
-    fStatRequest(rhs.fStatRequest), 
+    fBlockDone(rhs.fBlockDone), 
     fStatus(rhs.fStatus), 
     fFlags(rhs.fFlags),
     fRcvSize(rhs.fRcvSize),
@@ -176,18 +167,17 @@ void RlinkCommand::SetCommand(uint8_t cmd, uint16_t addr, uint16_t data)
 {
   if (cmd > kCmdInit) 
     throw Rexception("RlinkCommand::SetCommand()", "Bad args: invalid cmd");
-  if (addr > 0xff) 
-    throw Rexception("RlinkCommand::SetCommand()", "Bad args: invalid addr");
-  fRequest = cmd;
-  fAddress = addr;
-  fData    = data;
+  fRequest   = cmd;
+  fAddress   = addr;
+  fData      = data;
   fpBlockExt    = 0;
   fBlockExtSize = 0;
-  fStatus  = 0;
-  fFlags   = kFlagInit;
-  fRcvSize = 0;
+  fBlockDone = 0;
+  fStatus    = 0;
+  fFlags     = kFlagInit;
+  fRcvSize   = 0;
   delete fpExpect;
-  fpExpect = 0;
+  fpExpect   = 0;
   return;
 }
 
@@ -196,8 +186,6 @@ void RlinkCommand::SetCommand(uint8_t cmd, uint16_t addr, uint16_t data)
 
 void RlinkCommand::SetAddress(uint16_t addr)
 {
-  if (addr > 0xff) 
-    throw Rexception("RlinkCommand::SetAddress()", "Bad args: invalid addr");
   fAddress = addr;
   return;
 }
@@ -207,12 +195,13 @@ void RlinkCommand::SetAddress(uint16_t addr)
 
 void RlinkCommand::SetBlockWrite(const std::vector<uint16_t>& block)
 {
-  if (block.size() == 0 || block.size() > 256) 
+  if (block.size() == 0 || block.size() > 65535) 
     throw Rexception("RlinkCommand::SetBlockWrite()",
                      "Bad args: invalid block size");
   fBlock = block;
   fpBlockExt    = 0;
   fBlockExtSize = 0;
+  fBlockDone    = 0;
   return;
 }
 
@@ -221,13 +210,14 @@ void RlinkCommand::SetBlockWrite(const std::vector<uint16_t>& block)
 
 void RlinkCommand::SetBlockRead(size_t size)
 {
-  if (size == 0 || size > 256) 
+  if (size == 0 || size > 65535) 
     throw Rexception("RlinkCommand::SetBlockRead()",
                      "Bad args: invalid block size");
   fBlock.clear();
   fBlock.resize(size);
   fpBlockExt    = 0;
   fBlockExtSize = 0;
+  fBlockDone    = 0;
   return;
 }
 
@@ -239,11 +229,12 @@ void RlinkCommand::SetBlockExt(uint16_t* pblock, size_t size)
   if (pblock == 0) 
     throw Rexception("RlinkCommand::SetBlockExt()",
                      "Bad args: pblock is null");
-  if (size == 0 || size > 256) 
+  if (size == 0 || size > 65535) 
     throw Rexception("RlinkCommand::SetBlockExt()",
                      "Bad args: invalid block size");
   fpBlockExt    = pblock;
   fBlockExtSize = size;
+  fBlockDone    = 0;
   return;
 }
 
@@ -269,12 +260,12 @@ void RlinkCommand::Print(std::ostream& os, const RlinkContext& cntx,
   // separator + command mnemonic, code and flags
   // separator:  ++  first in packet
   //             --  non-first in packet
-  //             -=  non-first in packet (marked volatile)
+  //             ??  FIXME: separator for labo canceled commands 
   const char* sep = "??";
   if (TestFlagAny(kFlagPktBeg)) {
     sep = "++";
   } else {
-    sep = TestFlagAny(kFlagVol) ? "-=" : "--";
+    sep = "--";
   }
   
   os << sep << " " << CommandName(ccode)
@@ -296,12 +287,12 @@ void RlinkCommand::Print(std::ostream& os, const RlinkContext& cntx,
 
   // data field (scalar)
   if (ccode== kCmdRreg || ccode==kCmdWreg ||
-      ccode== kCmdStat || ccode==kCmdAttn ||
+      ccode== kCmdLabo || ccode==kCmdAttn ||
       ccode== kCmdInit) {
     os << " d=" << RosPrintBvi(fData, dbase);    
 
     if (fpExpect &&
-        (ccode==kCmdRreg || ccode==kCmdStat || ccode==kCmdAttn)) {
+        (ccode==kCmdRreg || ccode==kCmdLabo || ccode==kCmdAttn)) {
       if (TestFlagAny(kFlagChkData)) {
         os << "#";
         os << " D=" << RosPrintBvi(fpExpect->DataValue(), dbase);
@@ -322,11 +313,6 @@ void RlinkCommand::Print(std::ostream& os, const RlinkContext& cntx,
     os << " n=" << RosPrintf(BlockSize(), "d", 3); 
   }
 
-  // ccmd field
-  if (ccode == kCmdStat) {
-    os << " c=" << RosPrintBvi(fStatRequest, 8);    
-  }
-  
   // status field
   os << " s=" << RosPrintBvi(fStatus, sbase);
   uint8_t scval  = fpExpect ? fpExpect->StatusValue() : cntx.StatusValue();
@@ -349,11 +335,9 @@ void RlinkCommand::Print(std::ostream& os, const RlinkContext& cntx,
     } else {
       os << " OK";
     }
-    if (TestFlagAny(kFlagRecov|kFlagResend)) os << " WARN: retried";
   } else if (TestFlagAny(kFlagSend)) {
     os << " FAIL: "
-       << Rtools::Flags2String(fFlags&(kFlagErrNak|kFlagErrMiss|
-                                       kFlagErrCmd|kFlagErrCrc),
+       << Rtools::Flags2String(fFlags&(kFlagErrNak|kFlagErrDec),
                                FlagNames(),',');
   } else {
     os << " PEND";
@@ -429,10 +413,10 @@ void RlinkCommand::Dump(std::ostream& os, int ind, const char* text) const
      << " " << CommandName(Command()) << endl;
   os << bl << "  fAddress:        " << RosPrintBvi(fAddress,0) << endl;
   os << bl << "  fData:           " << RosPrintBvi(fData,0) << endl;
-  os << bl << "  fBlock.size:     " << RosPrintf(fBlock.size(),"d",3) << endl;
+  os << bl << "  fBlock.size:     " << RosPrintf(fBlock.size(),"d",4) << endl;
   os << bl << "  fpBlockExt:      " << fpBlockExt << endl;
-  os << bl << "  fBlockExtSize:   " << RosPrintf(fBlockExtSize,"d",3) << endl;
-  os << bl << "  fStatRequest:    " << RosPrintBvi(fStatRequest,0) << endl;
+  os << bl << "  fBlockExtSize:   " << RosPrintf(fBlockExtSize,"d",4) << endl;
+  os << bl << "  fBlockDone:      " << RosPrintf(fBlockDone,"d",4) << endl;
   os << bl << "  fStatus:         " << RosPrintBvi(fStatus,0) << endl;
   os << bl << "  fFlags:          " << RosPrintBvi(fFlags,16,24)
            << "  " << Rtools::Flags2String(fFlags, FlagNames()) << endl;
@@ -457,7 +441,7 @@ void RlinkCommand::Dump(std::ostream& os, int ind, const char* text) const
 const char* RlinkCommand::CommandName(uint8_t cmd)
 {
   static const char* cmdname[8] = {"rreg","rblk","wreg","wblk",
-                                   "stat","attn","init","????"};
+                                   "labo","attn","init","????"};
   
   return cmdname[cmd&0x7];
 }
@@ -471,14 +455,11 @@ const Retro::RflagName* RlinkCommand::FlagNames()
   static Retro::RflagName fnam[] = {
     {kFlagChkData, "ChkData"},
     {kFlagChkStat, "ChkStat"},
-    {kFlagErrCrc,  "ErrCrc"},
-    {kFlagErrCmd,  "ErrCmd"},
-    {kFlagErrMiss, "ErrMiss"},
+    {kFlagErrDec,  "ErrDec"},
     {kFlagErrNak,  "ErrNak"},
-    {kFlagResend,  "Resend"},
-    {kFlagRecov,   "Recov"},
     {kFlagPktEnd,  "PktEnd"},
     {kFlagPktBeg,  "PktBeg"},
+    {kFlagLabo,    "Labo"},
     {kFlagDone,    "Done"},
     {kFlagSend,    "Send"},
     {kFlagInit,    "Init"},
@@ -499,7 +480,7 @@ RlinkCommand& RlinkCommand::operator=(const RlinkCommand& rhs)
   fBlock        = rhs.fBlock;
   fpBlockExt    = rhs.fpBlockExt; 
   fBlockExtSize = rhs.fBlockExtSize; 
-  fStatRequest  = rhs.fStatRequest;
+  fBlockDone    = rhs.fBlockDone; 
   fStatus       = rhs.fStatus; 
   fFlags        = rhs.fFlags;
   fRcvSize      = rhs.fRcvSize;

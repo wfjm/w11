@@ -1,6 +1,6 @@
--- $Id: tb_rlink.vhd 444 2011-12-25 10:04:58Z mueller $
+-- $Id: tb_rlink.vhd 596 2014-10-17 19:50:07Z mueller $
 --
--- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,8 +19,6 @@
 --                 simlib/simclkcnt
 --                 genlib/clkdivce
 --                 rbus/tbd_tester
---                 rbus/rb_mon
---                 rlink/rlink_mon
 --                 tbd_rlink_gen [UUT]
 --
 -- To test:        rlink_core     (via tbd_rlink_direct)
@@ -28,10 +26,14 @@
 --                 rlink_serport  (via tbd_rlink_serport)
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-10-12   596   4.1    use readgen_ea; add get_cmd_ea; labo instead of stat
+--                           add txblk,rxblk,rxrbeg,rxrend,rxcbs,anmsg commands
+-- 2014-08-28   588   4.0    now rlink v4 iface -> txcac has 16 bit; 4 bit STAT
+-- 2014-08-15   583   3.5    rb_mreq addr now 16 bit; adopt txca,txcad,txcac
 -- 2011-12-23   444   3.1    use new simclk/simclkcnt
 -- 2011-11-19   427   3.0.7  fix crc8_update_tbl usage; now numeric_std clean
 -- 2010-12-29   351   3.0.6  use new rbd_tester addr 111100xx (from 111101xx)
@@ -61,37 +63,61 @@
 ------------------------------------------------------------------------------
 -- command set:
 --   .reset                               assert RESET for 1 clk
---   .rlmon ien                           enable rlink monitor
+--   .rlmon ien                           enable rlink monitor (9 bit)
+--   .rlbmo ien                           enable rlink monitor (8 bit)
 --   .rbmon ien                           enable rbus monitor
---   .wait n                              wait n clks
---   .iowt n                              wait n clks for rlink i/o; auto-extend
---   .attn dat(16)                        pulse attn lines with dat
+--   .wait  n                             wait n clks
+--   .iowt  n                             wait n clks for rlink i/o; auto-extend
+--   .attn  dat(16)                       pulse attn lines with dat
+--
+-- - high level ---
+--   anmsg apat                           attn notify message
+--   sop                                  start packet
+--   eop                                  end packet
+--   rreg  seq  addr  data  stat          rreg cmd
+--   wreg  seq  addr  data  stat          wreg cmd
+--   init  seq  addr  data  stat          init cmd
+--   attn  seq        data  stat          attn cmd
+--   labo  seq        data  stat          labo cmd
+--   rblks seq  addr  nblk  data  stat    rblk cmd (with seq)
+--   wblks seq  addr  nblk  data  stat    wblk cmd (with seq)
+--   rblkd seq  addr  ndone  stat         rblk cmd (with data list)
+--   wblkd seq  addr  ndone  stat         wblk cmd (with data list)
+--   .dclr                                clear data list
+--   .dwrd  data                          add word to data list
+--   .dseq  nblk  data                    add sequence to data list
+--
+-- - low level ---
+--   txcrc                                send crc
+--   txbad                                send bad (inverted) crc
+--   txc    cmd(8)                        send cmd - crc
+--   txca   cmd(8) addr(16)               send cmd - al ah - crcl crch
+--   txcad  cmd(8) addr(16) dat(16)       send cmd - al ah - dl dh - crcl crch
+--   txcac  cmd(8) addr(16) cnt(16)       send cmd - al ah - cl ch - crcl crch
+--   txoof  dat(9)                        send out-of-frame symbol
+--   rxcrc                                expect crc
+--   rxcs   cmd(8) stat(8)                expect cmd - stat - crcl crch
+--   rxcds  cmd(8) dat(16) stat(8)        expect cmd - dl dh - stat - crcl crch
+--   rxcbs  cmd(8)  dat(8) stat(8)        expect cmd - dl - stat - crcl crch
+--   rxrbeg cmd(8) cnt(16)                expect cmd - cl ch 
+--   rxrend dcnt(16)                      expect dcl dch - stat - crcl crch
+--   rxoof  dat(9)                        expect out-of-frame symbol
+--
+-- - raw level ---
 --   txsop                                send <sop>
 --   txeop                                send <eop>
 --   txnak                                send <nak>
---   txidle                               send <idle>
 --   txattn                               send <attn>
---   tx8   dat(8)                         send  8 bit value
---   tx16  dat(16)                        send 16 bit value
---   txcrc                                send crc
---   txbad                                send bad (inverted) crc
---   txc   cmd(8)                         send cmd - crc
---   txca  cmd(8) addr(8)                 send cmd - addr - crc
---   txcad cmd(8) addr(8) dat(16)         send cmd - addr - dl dh - crc
---   txcac cmd(8) addr(8) cnt(8)          send cmd - addr - cnt - crc
---   txoof dat(9)                         send out-of-frame symbol
+--   tx8    dat(8)                        send  8 bit value
+--   tx16   dat(16)                       send 16 bit value
+--   txblk  n start                       send n 16 values
 --   rxsop                                reset rx list; expect sop
 --   rxeop                                expect <eop>
 --   rxnak                                expect <nak>
---   rxidle                               expect <idle>
 --   rxattn                               expect <attn>
---   rx8   dat(8)                         expect  8 bit value
---   rx16  dat(16)                        expect 16 bit value
---   rxcrc                                expect crc
---   rxcs  cmd(8) stat(8)                 expect cmd - stat - crc
---   rxcds cmd(8) dat(16) stat(8)         expect cmd - dl dh - stat - crc
---   rxccd cmd(8) ccmd(8) dat(16) stat(8) expect cmd - ccmd - dl dh - stat - crc
---   rxoof dat(9)                         expect out-of-frame symbol
+--   rx8    dat(8)                        expect  8 bit value
+--   rx16   dat(16)                       expect 16 bit value
+--   rxblk  n start                       expect n 16 values
 --
 ------------------------------------------------------------------------------
 
@@ -108,12 +134,19 @@ use work.rblib.all;
 use work.rbdlib.all;
 use work.rlinklib.all;
 use work.simlib.all;
+use work.simbus.all;
 
 entity tb_rlink is
 end tb_rlink;
 
 architecture sim of tb_rlink is
   
+  constant d_f_cflag   : integer := 8;                -- d9: comma flag
+  subtype  d_f_data   is integer range  7 downto  0;  -- d9: data field
+
+  subtype  f_byte1    is integer range 15 downto 8;
+  subtype  f_byte0    is integer range  7 downto 0;
+
   signal CLK : slbit := '0';
   signal CE_USEC : slbit := '0';
   signal CE_MSEC : slbit := '0';
@@ -128,7 +161,7 @@ architecture sim of tb_rlink is
   signal RB_MREQ_re : slbit := '0';
   signal RB_MREQ_we : slbit := '0';
   signal RB_MREQ_initt: slbit := '0';
-  signal RB_MREQ_addr : slv8 := (others=>'0');
+  signal RB_MREQ_addr : slv16 := (others=>'0');
   signal RB_MREQ_din : slv16 := (others=>'0');
   signal RB_SRES_ack : slbit := '0';
   signal RB_SRES_busy : slbit := '0';
@@ -137,11 +170,8 @@ architecture sim of tb_rlink is
   signal RB_LAM_TBENCH : slv16 := (others=>'0');
   signal RB_LAM_TESTER : slv16 := (others=>'0');
   signal RB_LAM : slv16 := (others=>'0');
-  signal RB_STAT : slv3 := (others=>'0');
+  signal RB_STAT : slv4 := (others=>'0');
   signal TXRXACT : slbit := '0';
-
-  signal RLMON_EN : slbit := '0';
-  signal RBMON_EN : slbit := '0';
 
   signal RB_MREQ : rb_mreq_type := rb_mreq_init;
   signal RB_SRES : rb_sres_type := rb_sres_init;
@@ -149,13 +179,18 @@ architecture sim of tb_rlink is
   signal CLK_STOP : slbit := '0';
   signal CLK_CYCLE : integer := 0;
 
+  constant rxlist_size  : positive := 4096;  -- size of rxlist
+  constant txlist_size  : positive := 4096;  -- size of txlist
+  constant datlist_size : positive := 2048;  -- size of datlist
+
   constant slv9_zero  : slv9  := (others=>'0');
   constant slv16_zero : slv16 := (others=>'0');
-  
-  type slv9_array_type  is array (0 to 255) of slv9;
-  type slv16_array_type is array (0 to 255) of slv16;
 
-  shared variable sv_rxlist : slv9_array_type := (others=>slv9_zero);
+  type rxlist_array_type  is array (0 to rxlist_size-1)  of slv9;
+  type txlist_array_type  is array (0 to txlist_size-1)  of slv9;
+  type datlist_array_type is array (0 to datlist_size-1) of slv16;
+
+  shared variable sv_rxlist : rxlist_array_type := (others=>slv9_zero);
   shared variable sv_nrxlist : natural := 0;
   shared variable sv_rxind : natural := 0;
 
@@ -180,14 +215,14 @@ component tbd_rlink_gen is              -- rlink, generic tb design interface
     RB_MREQ_re : out slbit;             -- rbus: request - re
     RB_MREQ_we : out slbit;             -- rbus: request - we
     RB_MREQ_initt: out slbit;           -- rbus: request - init; avoid name coll
-    RB_MREQ_addr : out slv8;            -- rbus: request - addr
+    RB_MREQ_addr : out slv16;           -- rbus: request - addr
     RB_MREQ_din : out slv16;            -- rbus: request - din
     RB_SRES_ack : in slbit;             -- rbus: response - ack
     RB_SRES_busy : in slbit;            -- rbus: response - busy
     RB_SRES_err : in slbit;             -- rbus: response - err
     RB_SRES_dout : in slv16;            -- rbus: response - dout
     RB_LAM : in slv16;                  -- rbus: look at me
-    RB_STAT : in slv3;                  -- rbus: status flags
+    RB_STAT : in slv4;                  -- rbus: status flags
     TXRXACT : out slbit                 -- txrx active flag
   );
 end component;
@@ -230,7 +265,7 @@ begin
 
   RBTEST : rbd_tester
     generic map (
-      RB_ADDR => slv(to_unsigned(2#11110000#,8)))
+      RB_ADDR => slv(to_unsigned(16#ffe0#,16)))
     port map (
       CLK      => CLK,
       RESET    => '0',
@@ -242,34 +277,6 @@ begin
 
   RB_LAM <= RB_LAM_TESTER or RB_LAM_TBENCH;
     
-  RLMON : rlink_mon
-    generic map (
-      DWIDTH => RL_DI'length)
-    port map (
-      CLK       => CLK,
-      CLK_CYCLE => CLK_CYCLE,
-      ENA       => RLMON_EN,
-      RL_DI     => RL_DI,
-      RL_ENA    => RL_ENA,
-      RL_BUSY   => RL_BUSY,
-      RL_DO     => RL_DO,
-      RL_VAL    => RL_VAL,
-      RL_HOLD   => RL_HOLD
-    );
-
-  RBMON : rb_mon
-    generic map (
-      DBASE  => 2)
-    port map (
-      CLK       => CLK,
-      CLK_CYCLE => CLK_CYCLE,
-      ENA       => RBMON_EN,
-      RB_MREQ   => RB_MREQ,
-      RB_SRES   => RB_SRES,
-      RB_LAM    => RB_LAM,
-      RB_STAT   => RB_STAT
-    );
-
   UUT : tbd_rlink_gen
     port map (
       CLK          => CLK,
@@ -302,64 +309,279 @@ begin
     variable iline : line;
     variable oline : line;
     variable ien   : slbit := '0';
-    variable icmd  : slv8 := (others=>'0');
-    variable iaddr : slv8 := (others=>'0');
-    variable icnt  : slv8 := (others=>'0');
-    variable istat : slv3 := (others=>'0');
+    variable icmd  : slv8  := (others=>'0');
+    variable iaddr : slv16 := (others=>'0');
+    variable icnt  : slv16 := (others=>'0');
+    variable ibabo : slv8  := (others=>'0');
+    variable istat : slv8  := (others=>'0');
     variable iattn : slv16 := (others=>'0');
     variable idata : slv16 := (others=>'0');
+    variable idat8 : slv8  := (others=>'0');
     variable ioof  : slv9 := (others=>'0');
+    variable iblkval : slv16 := (others=>'0');
+    variable iblkmsk : slv16 := (others=>'0');
+    variable nblk  : natural := 1;
+    variable ndone : natural := 1;
+    variable rxlabo : boolean := false;
     variable ok : boolean;
     variable dname : string(1 to 6) := (others=>' ');
     variable idelta : integer := 0;
     variable iowait : integer := 0;
-    variable txcrc,rxcrc : slv8 := (others=>'0');
-    variable txlist : slv9_array_type := (others=>slv9_zero);
+    variable txcrc,rxcrc : slv16 := (others=>'0');
+    variable txlist : txlist_array_type := (others=>slv9_zero);
     variable ntxlist : natural := 0;
-
-    procedure do_tx8 (data : inout slv8)  is
+    variable datlist : datlist_array_type := (others=>slv16_zero);
+    variable ndatlist : natural := 0;
+    
+    -- read command line  helpers ------------------------------------
+    procedure get_cmd_ea (              -- ---- get_cmd_ea -----------
+      L : inout line;
+      icmd : out slv8)  is
+      variable cname : string(1 to 4) := (others=>' ');
+      variable ival : natural;
+      variable ok : boolean;
+      variable cmd : slv3;
+      variable dat : slv8;
     begin
-      txlist(ntxlist) := '0' & data;
+      readword_ea(L, cname);
+      ival := 0;
+      readoptchar(L, ',', ok);
+      if ok then
+        readint_ea(L, ival, 0, 31);
+      end if;
+      case cname is
+        when  "rreg" => cmd := c_rlink_cmd_rreg;
+        when  "rblk" => cmd := c_rlink_cmd_rblk;
+        when  "wreg" => cmd := c_rlink_cmd_wreg;
+        when  "wblk" => cmd := c_rlink_cmd_wblk;
+        when  "labo" => cmd := c_rlink_cmd_labo;
+        when  "attn" => cmd := c_rlink_cmd_attn;
+        when  "init" => cmd := c_rlink_cmd_init;
+        when others =>
+          report "unknown cmd code" severity failure;
+      end case;
+      dat := (others=>'0');
+      dat(c_rlink_cmd_rbf_seq)  := slv(to_unsigned(ival,5));
+      dat(c_rlink_cmd_rbf_code) := cmd;
+      icmd := dat;
+    end procedure get_cmd_ea;
+    
+    procedure get_seq_ea (              -- ---- get_seq_ea -----------
+      L : inout line;
+      code : in slv3;
+      icmd : out slv8)  is
+      variable ival : natural;
+      variable dat : slv8;
+    begin
+      readint_ea(L, ival, 0, 31);
+      dat := (others=>'0');
+      dat(c_rlink_cmd_rbf_seq)  := slv(to_unsigned(ival,5));
+      dat(c_rlink_cmd_rbf_code) := code;
+      icmd := dat;
+    end procedure get_seq_ea;
+    
+    -- tx helpers ----------------------------------------------------
+    procedure do_tx9 (data : in slv9)  is -- ---- do_tx9 -------------
+    begin
+      txlist(ntxlist) := data;
       ntxlist := ntxlist + 1;
-      txcrc := crc8_update_tbl(txcrc, data);
+    end procedure do_tx9;
+    
+    procedure do_tx8 (data : in slv8)  is -- ---- do_tx8 -------------
+    begin
+      do_tx9('0' & data);
+      txcrc := crc16_update_tbl(txcrc, data);
     end procedure do_tx8;
     
-    procedure do_tx16 (data : inout slv16)  is
+    procedure do_tx16 (data : in slv16)  is -- ---- do_tx16 ----------
     begin
-      do_tx8(data( 7 downto 0));
-      do_tx8(data(15 downto 8));
+      do_tx8(data( f_byte0));
+      do_tx8(data(f_byte1));
     end procedure do_tx16;
 
-    procedure do_rx8 (data : inout slv8)  is
+    procedure do_txcrc is               -- ---- do_txcrc -------------
     begin
-      sv_rxlist(sv_nrxlist) := '0' & data;
-      sv_nrxlist := sv_nrxlist + 1;
-      rxcrc := crc8_update_tbl(rxcrc, data);
-    end procedure do_rx8;
-
-    procedure do_rx16 (data : inout slv16)  is
-    begin
-      do_rx8(data( 7 downto 0));
-      do_rx8(data(15 downto 8));
-    end procedure do_rx16;
+      do_tx9('0' & txcrc(f_byte0));
+      do_tx9('0' & txcrc(f_byte1));
+    end procedure do_txcrc;
             
-    procedure checkmiss_rx is
+    procedure do_txsop is               -- ---- do_txsop -------------
+    begin
+      do_tx9(c_rlink_dat_sop);
+      txcrc := (others=>'0');
+    end procedure do_txsop;
+
+    procedure do_txeop is               -- ---- do_txeop -------------
+    begin
+      do_tx9(c_rlink_dat_eop);
+    end procedure do_txeop;
+            
+    procedure do_txc (icmd  : in slv8) is -- ---- do_txc -------------
+    begin
+      do_tx8(icmd);
+      do_txcrc;
+    end procedure do_txc;
+
+    procedure do_txca (                 -- ---- do_txca --------------
+      icmd  : in slv8; 
+      iaddr : in slv16) is 
+    begin
+      do_tx8(icmd);
+      do_tx16(iaddr);
+      do_txcrc;
+    end procedure do_txca;
+
+    procedure do_txcad (                -- ---- do_txcad -------------
+      icmd  : in slv8; 
+      iaddr : in slv16;
+      idata : in slv16) is 
+    begin
+      do_tx8(icmd);
+      do_tx16(iaddr);
+      do_tx16(idata);
+      do_txcrc;
+    end procedure do_txcad;
+
+    procedure do_txblks (               -- ---- do_txblks ------------
+      nblk  : in natural; 
+      start : in slv16) is
+      variable idata : slv16;
+    begin
+      idata := start;
+      for i in 1 to nblk loop
+        do_tx16(idata);
+        idata := slv(unsigned(idata) + 1);
+      end loop;
+    end procedure do_txblks;
+
+    -- rx helpers ----------------------------------------------------
+    procedure checkmiss_rx is           -- ---- checkmiss_rx ---------
     begin
       if sv_rxind < sv_nrxlist then
         for i in sv_rxind to sv_nrxlist-1 loop
           writetimestamp(oline, CLK_CYCLE, ": moni ");
-          write(oline, string'("  FAIL MISSING DATA="));
-          write(oline, sv_rxlist(i)(8));
+          write(oline, string'("             FAIL MISSING DATA="));
+          write(oline, sv_rxlist(i)(d_f_cflag));
           write(oline, string'(" "));
-          write(oline, sv_rxlist(i)(7 downto 0));
+          write(oline, sv_rxlist(i)(f_byte0));
           writeline(output, oline);
         end loop;
 
       end if;
     end procedure checkmiss_rx;
             
+    procedure do_rx9 (data : in slv9)  is -- ---- do_rx9 -------------
+    begin
+      sv_rxlist(sv_nrxlist) := data;
+      sv_nrxlist := sv_nrxlist + 1;
+    end procedure do_rx9;
+
+    procedure do_rx8 (data : in slv8)  is -- ---- do_rx8 -------------
+    begin
+      if not rxlabo then
+        do_rx9('0' & data);
+        rxcrc := crc16_update_tbl(rxcrc, data);        
+      end if;
+    end procedure do_rx8;
+
+    procedure do_rx16 (data : in slv16)  is -- ---- do_rx16 ----------
+    begin
+      do_rx8(data(f_byte0));
+      do_rx8(data(f_byte1));
+    end procedure do_rx16;
+            
+    procedure do_rxattn is              -- ---- do_rxattn ------------
+    begin
+      do_rx9(c_rlink_dat_attn);
+      rxcrc := (others=>'0');
+    end procedure do_rxattn;
+
+    procedure do_rxcrc is               -- ---- do_rxcrc -------------
+    begin
+      if not rxlabo then
+        do_rx9('0' & rxcrc(f_byte0));
+        do_rx9('0' & rxcrc(f_byte1));
+      end if;
+    end procedure do_rxcrc;
+            
+    procedure do_rxsop is               -- ---- do_rxsop -------------
+    begin
+      checkmiss_rx;
+      sv_nrxlist := 0;
+      sv_rxind   := 0;
+      rxcrc      := (others=>'0');
+      do_rx9(c_rlink_dat_sop);
+    end procedure do_rxsop;
+
+    procedure do_rxeop is               -- ---- do_rxeop -------------
+    begin
+      do_rx9(c_rlink_dat_eop);
+    end procedure do_rxeop;
+
+    procedure do_rxcs (                 -- ---- do_rxcs ----------
+      icmd  : in slv8;
+      istat : in slv8) is                                      
+    begin
+      do_rx8(icmd);
+      do_rx8(istat);
+      do_rxcrc;
+    end procedure do_rxcs;
+
+    procedure do_rxcds (                -- ---- do_rxcds ----------
+      icmd  : in slv8;
+      idata : in slv16;
+      istat : in slv8) is                                      
+    begin
+      do_rx8(icmd);
+      do_rx16(idata);
+      do_rx8(istat);
+      do_rxcrc;
+    end procedure do_rxcds;
+
+    procedure do_rxcbs (                -- ---- do_rxcbs ----------
+      icmd  : in slv8;
+      ibabo : in slv8;
+      istat : in slv8) is                                      
+    begin
+      do_rx8(icmd);
+      do_rx8(ibabo);
+      do_rx8(istat);
+      do_rxcrc;
+    end procedure do_rxcbs;
+
+    procedure do_rxrbeg (              -- ---- do_rxrbeg -------------
+      icmd  : in slv8;
+      nblk  : in natural) is
+    begin
+      do_rx8(icmd);
+      do_rx16(slv(to_unsigned(nblk,16)));
+    end procedure do_rxrbeg;
+
+    procedure do_rxrend (              -- ---- do_rxrend -------------
+      nblk  : in natural;
+      istat  : in slv8) is
+    begin
+      do_rx16(slv(to_unsigned(nblk,16)));
+      do_rx8(istat);  
+      do_rxcrc;
+    end procedure do_rxrend;
+
+    procedure do_rxblks (               -- ---- do_rxblks ------------
+      nblk  : in natural; 
+      start : in slv16) is
+      variable idata : slv16;
+    begin
+      idata := start;
+      for i in 1 to nblk loop
+        do_rx16(idata);
+        idata := slv(unsigned(idata) + 1);
+      end loop;
+    end procedure do_rxblks;
+
   begin
-    
+
+    SB_CNTL <= (others=>'0');
+
     wait for clock_offset - setup_time;
 
     file_loop: while not endfile(fstim) loop
@@ -383,12 +605,17 @@ begin
 
           when ".rlmon" =>              -- .rlmon
             read_ea(iline, ien);
-            RLMON_EN <= ien;
+            SB_CNTL(sbcntl_sbf_rlmon) <= ien;
+            wait for 2*clock_period;      -- wait for monitor to start
+
+          when ".rlbmo" =>              -- .rlbmo
+            read_ea(iline, ien);
+            SB_CNTL(sbcntl_sbf_rlbmon) <= ien;
             wait for 2*clock_period;      -- wait for monitor to start
 
           when ".rbmon" =>              -- .rbmon
             read_ea(iline, ien);
-            RBMON_EN <= ien;
+            SB_CNTL(sbcntl_sbf_rbmon) <= ien;
             wait for 2*clock_period;      -- wait for monitor to start
 
           when ".wait " =>              -- .wait
@@ -399,10 +626,10 @@ begin
             read_ea(iline, iowait);
             idelta := iowait;
             while idelta > 0 loop       -- until time has expired
-              if TXRXACT = '1' then     -- if any io activity
-                idelta := iowait;       -- restart timer
+              if TXRXACT = '1' then       -- if any io activity
+                idelta := iowait;         -- restart timer
               else
-                idelta := idelta - 1;   -- otherwise count down time
+                idelta := idelta - 1;     -- otherwise count down time
               end if;
               wait for clock_period;
             end loop;
@@ -414,150 +641,240 @@ begin
             RB_LAM_TBENCH <= (others=>'0');
 
           when "txsop " =>              -- txsop   send sop
-            txlist(0) := c_rlink_dat_sop;
-            ntxlist := 1;
-            txcrc := (others=>'0');
+            do_txsop;
           when "txeop " =>              -- txeop   send eop
-            txlist(0) := c_rlink_dat_eop;
-            ntxlist := 1;
-            txcrc := (others=>'0');
+            do_txeop;
 
           when "txnak " =>              -- txnak   send nak
-            txlist(0) := c_rlink_dat_nak;
-            ntxlist := 1;
-            txcrc := (others=>'0');
-
-          when "txidle" =>              -- txidle  send idle
-            txlist(0) := c_rlink_dat_idle;
-            ntxlist := 1;
+            do_tx9(c_rlink_dat_nak);
           when "txattn" =>              -- txattn  send attn
-            txlist(0) := c_rlink_dat_attn;
-            ntxlist := 1;
+            do_tx9(c_rlink_dat_attn);
 
           when "tx8   " =>              -- tx8     send 8 bit value
-            read_ea(iline, iaddr);
-            ntxlist := 0;
-            do_tx8(iaddr);
+            readgen_ea(iline, idat8, 2);
+            do_tx8(idat8);
           when "tx16  " =>              -- tx16    send 16 bit value
-            read_ea(iline, idata);
-            ntxlist := 0;
+            readgen_ea(iline, idata, 2);
             do_tx16(idata);
 
+          when "txblk " =>              -- txblk   send n 16 bit values
+            read_ea(iline, nblk);
+            readgen_ea(iline, idata, 2);
+            do_txblks(nblk, idata);
+            
           when "txcrc " =>              -- txcrc   send crc  
-            txlist(0) := '0' & txcrc;
-            ntxlist := 1;
-
-          when "txbad " =>              -- txbad   send bad crc  
-            txlist(0) := '0' & (not txcrc);
-            ntxlist := 1;
+            do_txcrc;
+            
+          when "txbad " =>              -- txbad   send bad crc
+            do_tx9('0' & (not txcrc(f_byte0)));
+            do_tx9('0' & (not txcrc(f_byte1)));
 
           when "txc   " =>              -- txc     send: cmd crc
-            read_ea(iline, icmd);
-            ntxlist := 0;
-            do_tx8(icmd);
-            txlist(ntxlist) := '0' & txcrc;
-            ntxlist := ntxlist + 1;
+            get_cmd_ea(iline, icmd);
+            do_txc(icmd);
 
           when "txca  " =>              -- txc     send: cmd addr crc
-            read_ea(iline, icmd);
-            read_ea(iline, iaddr);
-            ntxlist := 0;
-            do_tx8(icmd);
-            do_tx8(iaddr);
-            txlist(ntxlist) := '0' & txcrc;
-            ntxlist := ntxlist + 1;
+            get_cmd_ea(iline, icmd);
+            readgen_ea(iline, iaddr, 2);
+            do_txca(icmd, iaddr);
 
           when "txcad " =>              -- txc     send: cmd addr data crc
-            read_ea(iline, icmd);
-            read_ea(iline, iaddr);
-            read_ea(iline, idata);
-            ntxlist := 0;
-            do_tx8(icmd);
-            do_tx8(iaddr);
-            do_tx16(idata);
-            txlist(ntxlist) := '0' & txcrc;
-            ntxlist := ntxlist + 1;
+            get_cmd_ea(iline, icmd);
+            readgen_ea(iline, iaddr, 2);
+            readgen_ea(iline, idata, 2);
+            do_txcad(icmd, iaddr, idata);
 
           when "txcac " =>              -- txc     send: cmd addr cnt crc
-            read_ea(iline, icmd);
-            read_ea(iline, iaddr);
-            read_ea(iline, icnt);
-            ntxlist := 0;
-            do_tx8(icmd);
-            do_tx8(iaddr);
-            do_tx8(icnt);
-            txlist(ntxlist) := '0' & txcrc;
-            ntxlist := ntxlist + 1;
+            get_cmd_ea(iline, icmd);
+            readgen_ea(iline, iaddr, 2);
+            readgen_ea(iline, icnt, 2);
+            do_txcad(icmd, iaddr, icnt);
 
           when "txoof " =>              -- txoof   send out-of-frame symbol
-            read_ea(iline, txlist(0));
+            readgen_ea(iline, txlist(0), 2);
             ntxlist := 1;
             
           when "rxsop " =>              -- rxsop   expect sop
-            checkmiss_rx;
-            sv_rxlist(0) := c_rlink_dat_sop;
-            sv_nrxlist := 1;
-            sv_rxind := 0;
-            rxcrc := (others=>'0');
+            do_rxsop;
           when "rxeop " =>              -- rxeop   expect eop
-            sv_rxlist(sv_nrxlist) := c_rlink_dat_eop;
-            sv_nrxlist := sv_nrxlist + 1;
-
+            do_rxeop;
+            
           when "rxnak " =>              -- rxnak   expect nak
-            sv_rxlist(sv_nrxlist) := c_rlink_dat_nak;
-            sv_nrxlist := sv_nrxlist + 1;
-          when "rxidle" =>              -- rxidle  expect idle
-            sv_rxlist(sv_nrxlist) := c_rlink_dat_idle;
-            sv_nrxlist := sv_nrxlist + 1;
+            do_rx9(c_rlink_dat_nak);
           when "rxattn" =>              -- rxattn  expect attn
-            sv_rxlist(sv_nrxlist) := c_rlink_dat_attn;
-            sv_nrxlist := sv_nrxlist + 1;
+            do_rxattn;
 
           when "rx8   " =>              -- rx8     expect 8 bit value
-            read_ea(iline, iaddr);
-            do_rx8(iaddr);
+            readgen_ea(iline, idat8, 2);
+            do_rx8(idat8);
           when "rx16  " =>              -- rx16    expect 16 bit value
-            read_ea(iline, idata);
+            readgen_ea(iline, idata, 2);
             do_rx16(idata);
+
+          when "rxblk " =>              -- rxblk   expect n 16 bit values
+            read_ea(iline, nblk);
+            readgen_ea(iline, idata, 2);
+            do_rxblks(nblk, idata);
 
           when "rxcrc " =>              -- rxcrc   expect crc
-            sv_rxlist(sv_nrxlist) := '0' & rxcrc;
-            sv_nrxlist := sv_nrxlist+1;
+            do_rxcrc;
 
           when "rxcs  " =>              -- rxcs    expect: cmd stat crc
-            read_ea(iline, icmd);
-            read_ea(iline, iaddr);
-            do_rx8(icmd);
-            do_rx8(iaddr);
-            sv_rxlist(sv_nrxlist) := '0' & rxcrc;
-            sv_nrxlist := sv_nrxlist + 1;
+            get_cmd_ea(iline, icmd);
+            readgen_ea(iline, istat, 2);
+            do_rxcs(icmd, istat);
 
           when "rxcds " =>              -- rxcsd   expect: cmd data stat crc
-            read_ea(iline, icmd);
-            read_ea(iline, idata); 
-            read_ea(iline, iaddr);
-            do_rx8(icmd);
-            do_rx16(idata);
-            do_rx8(iaddr);
-            sv_rxlist(sv_nrxlist) := '0' & rxcrc;
-            sv_nrxlist := sv_nrxlist + 1;
+            get_cmd_ea(iline, icmd);
+            readgen_ea(iline, idata, 2); 
+            readgen_ea(iline, istat, 2);
+            do_rxcds(icmd, idata, istat);
 
-          when "rxccd " =>              -- rxccd   expect: cmd ccmd dat stat crc
-            read_ea(iline, icmd);
-            read_ea(iline, icnt);
-            read_ea(iline, idata); 
-            read_ea(iline, iaddr);
-            do_rx8(icmd);
-            do_rx8(icnt);
-            do_rx16(idata);
-            do_rx8(iaddr);
-            sv_rxlist(sv_nrxlist) := '0' & rxcrc;
-            sv_nrxlist := sv_nrxlist + 1;
+          when "rxcbs " =>              -- rxcsd   expect: cmd babo stat crc
+            get_cmd_ea(iline, icmd);
+            readgen_ea(iline, ibabo, 2); 
+            readgen_ea(iline, istat, 2);
+            do_rxcbs(icmd, ibabo, istat);
 
+          when "rxrbeg" =>              -- rxrbeg  expect: cmd - cl ch
+            get_cmd_ea(iline, icmd);
+            read_ea(iline, nblk);
+            do_rxrbeg(icmd, nblk);
+
+          when "rxrend" =>              -- rxrend  expect: dcl dch - stat - crc
+            read_ea(iline, nblk); 
+            readgen_ea(iline, istat, 2);
+            do_rxrend(nblk, istat);
+            
           when "rxoof " =>              -- rxoof   expect: out-of-frame symbol
-            read_ea(iline, ioof);
+            readgen_ea(iline, ioof, 2);
             sv_rxlist(sv_nrxlist) := ioof;
             sv_nrxlist := sv_nrxlist + 1;
+
+          when "anmsg " =>              -- anmsg
+            readgen_ea(iline, idata, 2);               -- apat
+            do_rxattn;
+            do_rx16(idata);
+            do_rxcrc;
+            do_rxeop;
+            
+          when "sop   " =>              -- sop
+            do_rxsop;
+            do_txsop;
+            rxlabo := false;
+          when "eop   " =>              -- eop
+            do_rxeop;
+            do_txeop;
+
+          when "rreg  " =>              -- rreg   seq  addr  data  stat
+            get_seq_ea(iline, c_rlink_cmd_rreg, icmd); -- seq
+            readgen_ea(iline, iaddr, 2);               -- addr
+            readgen_ea(iline, idata, 2);               -- data
+            readgen_ea(iline, istat, 2);               -- stat
+            do_rxcds(icmd, idata, istat);   -- rx: cmd dl sh stat ccsr
+            do_txca (icmd, iaddr);          -- tx: cmd al ah ccsr
+            
+          when "wreg  " =>              -- wreg  seq  addr  data  stat
+            get_seq_ea(iline, c_rlink_cmd_wreg, icmd); -- seq
+            readgen_ea(iline, iaddr, 2);               -- addr
+            readgen_ea(iline, idata, 2);               -- data
+            readgen_ea(iline, istat, 2);               -- stat
+            do_rxcs (icmd, istat);          -- rx: cmd stat ccsr
+            do_txcad(icmd, iaddr, idata);   -- tx: cmd al ah dl dh ccsr
+
+          when "init  " =>              -- init  seq  addr  data  stat
+            get_seq_ea(iline, c_rlink_cmd_init, icmd); -- seq
+            readgen_ea(iline, iaddr, 2);               -- addr
+            readgen_ea(iline, idata, 2);               -- data
+            readgen_ea(iline, istat, 2);               -- stat
+            do_rxcs (icmd, istat);          -- rx: cmd stat ccsr
+            do_txcad(icmd, iaddr, idata);   -- tx: cmd al ah dl dh ccsr
+
+          when "attn  " =>              -- attn  seq  data  stat
+            get_seq_ea(iline, c_rlink_cmd_attn, icmd); -- seq
+            readgen_ea(iline, idata, 2);               -- data
+            readgen_ea(iline, istat, 2);               -- stat
+            do_rxcds (icmd, idata, istat);  -- rx: cmd dl dh stat ccsr
+            do_txc   (icmd);                -- tx: cmd ccsr
+
+          when "labo  " =>              -- labo  seq  babo  stat
+            get_seq_ea(iline, c_rlink_cmd_labo, icmd); -- seq
+            readgen_ea(iline, ibabo, 2);               -- babo
+            readgen_ea(iline, istat, 2);               -- stat
+            do_rxcbs (icmd, ibabo, istat);  -- rx: cmd dl stat ccsr
+            do_txc   (icmd);                -- tx: cmd ccsr
+            rxlabo := ibabo /= x"00";       -- set rxlabo flag
+            
+          when "rblks " =>              -- rblks seq  addr  nblk  data  stat
+            get_seq_ea(iline, c_rlink_cmd_rblk, icmd); -- seq
+            readgen_ea(iline, iaddr, 2);               -- addr
+            read_ea(iline, nblk);                      -- nblk
+            readgen_ea(iline, idata, 2);               -- start
+            readgen_ea(iline, istat, 2);               -- stat
+            do_rxrbeg(icmd, nblk);                --rx: cmd cl ch
+            do_rxblks(nblk, idata);               --     nblk*(dl dh)
+            do_rxrend(nblk, istat);               --     dcl dch stat ccrc
+            do_txcad(icmd, iaddr,                 -- tx: cmd al ah cl ch ccrc
+                     slv(to_unsigned(nblk,16)));
+                    
+          when "wblks " =>              -- wblks seq  addr  nblk  data  stat
+            get_seq_ea(iline, c_rlink_cmd_wblk, icmd); -- seq
+            readgen_ea(iline, iaddr, 2);               -- addr
+            read_ea(iline, nblk);                      -- nblk
+            readgen_ea(iline, idata, 2);               -- start
+            readgen_ea(iline, istat, 2);               -- stat
+            do_rxcds(icmd,                        -- rx: cmd dcl dch stat ccsr
+                     slv(to_unsigned(nblk,16)),
+                     istat);
+            do_txcad(icmd, iaddr,                 -- tx: cmd al ah cl ch ccrc
+                     slv(to_unsigned(nblk,16)));  
+            do_txblks(nblk, idata);               --     nblk*(dl dh)
+            do_txcrc;                             --     dcrc
+                    
+          when "rblkd " =>              -- rblkd seq  addr  ndone  stat 
+            get_seq_ea(iline, c_rlink_cmd_rblk, icmd); -- seq
+            readgen_ea(iline, iaddr, 2);               -- addr
+            read_ea(iline, ndone);                     -- ndone
+            readgen_ea(iline, istat, 2);               -- stat
+            do_rxrbeg(icmd, ndatlist);            --rx: cmd cl ch
+            for i in 0 to ndatlist-1 loop
+              do_rx16(datlist(i));                --    nblk*(dl dh)
+            end loop;  -- i
+            do_rxrend(ndone, istat);              --     dcl dch stat ccrc
+            do_txcad(icmd, iaddr,                 -- tx: cmd al ah cl ch ccrc
+                     slv(to_unsigned(ndatlist,16)));
+                    
+          when "wblkd " =>              -- wblkd seq  addr  ndone  stat
+            get_seq_ea(iline, c_rlink_cmd_wblk, icmd); -- seq
+            readgen_ea(iline, iaddr, 2);               -- addr
+            read_ea(iline, ndone);                     -- ndone
+            readgen_ea(iline, istat, 2);               -- stat
+            do_rxcds(icmd,                        -- rx: cmd dcl dch stat ccsr
+                     slv(to_unsigned(ndone,16)),
+                     istat);
+            do_txcad(icmd, iaddr,                 -- tx: cmd al ah cl ch ccrc
+                     slv(to_unsigned(ndatlist,16)));  
+            for i in 0 to ndatlist-1 loop
+              do_tx16(datlist(i));                --    nblk*(dl dh)
+            end loop;  -- i
+            do_txcrc;                             --     dcrc
+                    
+          when ".dclr " =>              -- .dclr
+            ndatlist := 0;
+
+          when ".dwrd " =>              -- .dwrd data
+            readgen_ea(iline, idata, 2);
+            datlist(ndatlist) := idata;
+            ndatlist := ndatlist + 1;
+
+          when ".dseq " =>              -- .dseq nblk start
+            read_ea(iline, nblk);
+            readgen_ea(iline, idata, 2);
+            for i in 1 to nblk loop
+              datlist(ndatlist) := idata;
+              ndatlist := ndatlist + 1;
+              idata := slv(unsigned(idata) + 1);
+            end loop;
 
           when others =>                -- bad command
             write(oline, string'("?? unknown command: "));
@@ -570,6 +887,7 @@ begin
         report "failed to find command" severity failure;
       end if;
 
+      testempty_ea(iline);
       next file_loop when ntxlist=0;
       
       for i in 0 to ntxlist-1 loop
@@ -578,12 +896,10 @@ begin
         RL_ENA <= '1';
 
         writetimestamp(oline, CLK_CYCLE, ": stim");
-        write(oline, txlist(i)(8), right, 3);
-        write(oline, txlist(i)(7 downto 0), right, 9);
-        if txlist(i)(8) = '1' then
+        write(oline, txlist(i)(d_f_cflag), right, 3);
+        write(oline, txlist(i)(d_f_data), right, 9);
+        if txlist(i)(d_f_cflag) = '1' then
           case txlist(i) is
-            when c_rlink_dat_idle =>
-              write(oline, string'(" (idle)"));
             when c_rlink_dat_sop =>
               write(oline, string'(" (sop) "));
             when c_rlink_dat_eop =>
@@ -634,12 +950,10 @@ begin
 
       if RL_VAL = '1' then
         writetimestamp(oline, CLK_CYCLE, ": moni");
-        write(oline, RL_DO(8), right, 3);
-        write(oline, RL_DO(7 downto 0), right, 9);
-        if RL_DO(8) = '1' then
+        write(oline, RL_DO(d_f_cflag), right, 3);
+        write(oline, RL_DO(d_f_data), right, 9);
+        if RL_DO(d_f_cflag) = '1' then
           case RL_DO is
-            when c_rlink_dat_idle =>
-              write(oline, string'(" (idle)"));
             when c_rlink_dat_sop =>
               write(oline, string'(" (sop) "));
             when c_rlink_dat_eop =>
@@ -659,8 +973,8 @@ begin
               write(oline, string'(" OK"));
             else
               write(oline, string'(" FAIL, exp="));
-              write(oline, sv_rxlist(sv_rxind)(8), right, 2);
-              write(oline, sv_rxlist(sv_rxind)(7 downto 0), right, 9);
+              write(oline, sv_rxlist(sv_rxind)(d_f_cflag), right, 2);
+              write(oline, sv_rxlist(sv_rxind)(d_f_data),  right, 9);
             end if;
             sv_rxind := sv_rxind + 1;
           else

@@ -1,6 +1,6 @@
-# $Id: Makefile 461 2012-04-09 21:17:54Z mueller $
+# $Id: Makefile 604 2014-11-16 22:33:09Z mueller $
 #
-# Copyright 2011-2012 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # Code was forked from ixo-jtag.svn.sourceforge.net on 2011-07-17
 #
 # - original copyright and licence disclaimer --------------------------------
@@ -22,6 +22,7 @@
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2014-11-16   604   2.0    add sdcc 3.x migration
 # 2012-04-09   461   1.5.1  fixed nexys3_jtag_3fifo_ic.ihx rule,used _2fifo code
 # 2012-02-11   457   1.5    re-organize VID/PID and descriptor handling
 # 2012-01-02   448   1.4    add support for sync fifo w/ int. clock (_ic)
@@ -48,6 +49,8 @@
 #       (for instance because someone else did not follow the previous rule).
 #   See also http://www.voti.nl/pids/pidfaq.html
 #
+# Define default VID/PID -----------------------------------------------
+#
 ifndef RETRO_FX2_VID
 RETRO_FX2_VID = 16c0
 endif
@@ -57,15 +60,18 @@ endif
 #
 DEFVIDPID=-DUSE_VID=0x${RETRO_FX2_VID} -DUSE_PID=0x${RETRO_FX2_PID}
 #
-# compiler and assembler flags
+# defs for sdcc 2.9 to 3.x transition handling -------------------------
+#
+include sdccdefs.mk
+#
+# compiler and assembler flags -----------------------------------------
 #
 LIBDIR=lib
 LIB=libfx2.lib
 
-CC=sdcc
 CFLAGS+=-mmcs51 --no-xinit-opt -I${LIBDIR}
+CFLAGS+=${CC29COMPOPT}
 
-AS=asx8051
 ASFLAGS+=-plosgff
 
 LDFLAGS=--code-loc 0x0000 --code-size 0x1800
@@ -165,7 +171,7 @@ LIB_REL=$(LIBDIR)/$(LIB)
 # rules to compile all code
 #
 $(LIBDIR)/$(LIB) :
-	make -C $(LIBDIR)
+	make -C $(LIBDIR) $(MAKELIBOPT)
 
 eeprom.rel : eeprom.c eeprom.h
 main.rel : main.c hardware.h eeprom.h
@@ -210,7 +216,7 @@ nexys3_jtag_3fifo_ic.ihx : $(COM_REL) dscr_nexys3_jtag_3fifo_ic.rel \
 
 clean :
 	make -C ${LIBDIR} clean
-	rm -f *.lst *.asm *.lib *.sym *.rel *.mem *.map *.rst *.lnk
+	rm -f *.lst *.asm *.lib *.sym *.rel *.mem *.map *.rst *.lnk *.lk
 	rm -f dscr_*.a51
 
 distclean : clean

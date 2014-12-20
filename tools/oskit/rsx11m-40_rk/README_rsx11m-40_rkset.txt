@@ -1,4 +1,4 @@
-# $Id: README_rsx11m-40_rkset.txt 558 2014-06-01 22:20:51Z mueller $
+# $Id: README_rsx11m-40_rkset.txt 580 2014-08-10 15:47:10Z mueller $
 
 Notes on oskit: RSX-11M V4.0 system on RK05 volumes
 
@@ -78,6 +78,10 @@ Notes on oskit: RSX-11M V4.0 system on RK05 volumes
 
      Now you are at the MCR prompt and can exercise the system.
 
-     At end is important to shutdown properly with a 'run $shutup'.
+     You can also login on the 2nd DL11, possible accounts are
+       >hel 1,1             ; password root
+       >hel 200,201         ; password test
+
+     At the end it is important to shutdown properly with a 'run $shutup'.
      The simululaor (or the rlink backend) can be stopped when the
      CPU has halted.

@@ -1,6 +1,6 @@
--- $Id: rlinklib.vhd 509 2013-04-21 20:46:20Z mueller $
+-- $Id: rlinklib.vhd 610 2014-12-09 22:44:43Z mueller $
 --
--- Copyright 2007-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,10 +16,12 @@
 -- Description:    Definitions for rlink interface and bus entities
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1, 13.3; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-10-12   596   4.0    now rlink v4.0 iface, 4 bit STAT
+-- 2014-08-15   583   3.5    rb_mreq addr now 16 bit
 -- 2013-04-21   509   3.3.2  add rlb_moni record definition
 -- 2012-12-29   466   3.3.1  add rlink_rlbmux
 -- 2011-12-23   444   3.3    CLK_CYCLE now integer
@@ -61,36 +63,35 @@ use work.serportlib.all;
 
 package rlinklib is
 
-constant c_rlink_cpref : slv4 := "1000";  -- default comma prefix
-constant c_rlink_ncomm : positive := 4;   -- number commas (sop,eop,nak,attn)
-
-constant c_rlink_dat_idle : slv9 := "100000000";
-constant c_rlink_dat_sop  : slv9 := "100000001";
-constant c_rlink_dat_eop  : slv9 := "100000010";
-constant c_rlink_dat_nak  : slv9 := "100000011";
-constant c_rlink_dat_attn : slv9 := "100000100";
+constant c_rlink_dat_sop  : slv9 := "100000000";
+constant c_rlink_dat_eop  : slv9 := "100000001";
+constant c_rlink_dat_nak  : slv9 := "100000010";
+constant c_rlink_dat_attn : slv9 := "100000011";
 
 constant c_rlink_cmd_rreg : slv3 := "000";
 constant c_rlink_cmd_rblk : slv3 := "001";
 constant c_rlink_cmd_wreg : slv3 := "010";
 constant c_rlink_cmd_wblk : slv3 := "011";
-constant c_rlink_cmd_stat : slv3 := "100";
+constant c_rlink_cmd_labo : slv3 := "100";
 constant c_rlink_cmd_attn : slv3 := "101";
 constant c_rlink_cmd_init : slv3 := "110";
-
-constant c_rlink_iint_rbf_anena:    integer := 15;         -- anena flag
-constant c_rlink_iint_rbf_itoena:   integer := 14;         -- itoena flag
-subtype  c_rlink_iint_rbf_itoval is integer range 7 downto 0; -- itoval value
 
 subtype  c_rlink_cmd_rbf_seq is  integer range 7 downto 3; -- sequence number
 subtype  c_rlink_cmd_rbf_code is integer range 2 downto 0; -- command code
 
-subtype  c_rlink_stat_rbf_stat is integer range 7 downto 5;  -- ext status bits
-constant c_rlink_stat_rbf_attn:   integer := 4;  -- attention flags set
-constant c_rlink_stat_rbf_cerr:   integer := 3;  -- command error
-constant c_rlink_stat_rbf_derr:   integer := 2;  -- data error
+subtype  c_rlink_stat_rbf_stat is integer range 7 downto 4;  -- ext status bits
+constant c_rlink_stat_rbf_attn:   integer := 3;  -- attention flags set
 constant c_rlink_stat_rbf_rbnak:  integer := 1;  -- rbus no ack or timeout
 constant c_rlink_stat_rbf_rberr:  integer := 0;  -- rbus err bit set
+
+constant c_rlink_nakcode_ccrc   : slv3 := "000"; -- cmd crc error
+constant c_rlink_nakcode_dcrc   : slv3 := "001"; -- data crc error
+constant c_rlink_nakcode_frame  : slv3 := "010"; -- framing error
+constant c_rlink_nakcode_unused : slv3 := "011"; -- <unused code>
+constant c_rlink_nakcode_cmd    : slv3 := "100"; -- bad cmd
+constant c_rlink_nakcode_cnt    : slv3 := "101"; -- bad cnt
+constant c_rlink_nakcode_rtovfl : slv3 := "110"; -- rtbuf ovfl
+constant c_rlink_nakcode_rtwblk : slv3 := "111"; -- rtbuf ovfl in wblk
 
 type rl_moni_type is record             -- rlink_core monitor port
   eop  : slbit;                         -- eop send in last cycle
@@ -111,23 +112,21 @@ end record rlb_moni_type;
 constant rlb_moni_init : rlb_moni_type :=
   ('0','0','0','0');                    -- rxval,rxhold,txena,txbusy
 
--- ise 13.1 xst can bug check if generic defaults in a package are defined via 
--- 'slv(to_unsigned())'. The conv_ construct prior to numeric_std was ok.
--- As workaround the ibus default addresses are defined here as constant.
-constant rbaddr_rlink_serport : slv8 := slv(to_unsigned(2#11111110#,8));
-
--- this definition logically belongs into the 'for test benches' section'
--- must be here because it is needed as generic default in rlink_core8
--- simbus sb_cntl field usage for rlink
-constant sbcntl_sbf_rlmon : integer := 15;
+-- these definitions logically belongs into the 'for test benches' section'
+-- it is here for convenience to simplify instantiations.
+constant sbcntl_sbf_rlmon  : integer := 15;
+constant sbcntl_sbf_rlbmon : integer := 14;
 
 component rlink_core is                 -- rlink core with 9bit iface
   generic (
-    ATOWIDTH : positive :=  5;          -- access timeout counter width
-    ITOWIDTH : positive :=  6);         -- idle timeout counter width
+    BTOWIDTH : positive :=  5;          -- rbus timeout counter width
+    RTAWIDTH : positive :=  12;         -- retransmit buffer address width
+    SYSID : slv32 := (others=>'0');     -- rlink system id
+    ENAPIN_RLMON : integer := -1;       -- SB_CNTL for rlmon  (-1=none)
+    ENAPIN_RBMON : integer := -1);      -- SB_CNTL for rbmon  (-1=none)
   port (
     CLK  : in slbit;                    -- clock
-    CE_INT : in slbit := '0';           -- rlink ito time unit clock enable
+    CE_INT : in slbit := '0';           -- rlink ato time unit clock enable
     RESET  : in slbit;                  -- reset
     RL_DI : in slv9;                    -- rlink 9b: data in
     RL_ENA : in slbit;                  -- rlink 9b: data enable
@@ -139,14 +138,14 @@ component rlink_core is                 -- rlink core with 9bit iface
     RB_MREQ : out rb_mreq_type;         -- rbus: request
     RB_SRES : in rb_sres_type;          -- rbus: response
     RB_LAM : in slv16;                  -- rbus: look at me
-    RB_STAT : in slv3                   -- rbus: status flags
+    RB_STAT : in slv4                   -- rbus: status flags
   );
 end component;
 
 component rlink_aif is                  -- rlink, abstract interface
   port (
     CLK  : in slbit;                    -- clock
-    CE_INT : in slbit := '0';           -- rlink ito time unit clock enable
+    CE_INT : in slbit := '0';           -- rlink ato time unit clock enable
     RESET  : in slbit :='0';            -- reset
     RL_DI : in slv9;                    -- rlink 9b: data in
     RL_ENA : in slbit;                  -- rlink 9b: data enable
@@ -159,14 +158,15 @@ end component;
 
 component rlink_core8 is                -- rlink core with 8bit iface
   generic (
-    ATOWIDTH : positive :=  5;          -- access timeout counter width
-    ITOWIDTH : positive :=  6;          -- idle timeout counter width
-    CPREF : slv4 := c_rlink_cpref;      -- comma prefix
-    ENAPIN_RLMON : integer := sbcntl_sbf_rlmon;  -- SB_CNTL for rlmon (-1=none)
-    ENAPIN_RBMON : integer := sbcntl_sbf_rbmon); -- SB_CNTL for rbmon (-1=none)
+    BTOWIDTH : positive :=  5;          -- rbus timeout counter width
+    RTAWIDTH : positive :=  12;         -- retransmit buffer address width
+    SYSID : slv32 := (others=>'0');     -- rlink system id
+    ENAPIN_RLMON : integer := -1;       -- SB_CNTL for rlmon  (-1=none)
+    ENAPIN_RLBMON: integer := -1;       -- SB_CNTL for rlbmon (-1=none)
+    ENAPIN_RBMON : integer := -1);      -- SB_CNTL for rbmon  (-1=none)
   port (
     CLK  : in slbit;                    -- clock
-    CE_INT : in slbit := '0';           -- rlink ito time unit clock enable
+    CE_INT : in slbit := '0';           -- rlink ato time unit clock enable
     RESET  : in slbit;                  -- reset
     RLB_DI : in slv8;                   -- rlink 8b: data in
     RLB_ENA : in slbit;                 -- rlink 8b: data enable
@@ -178,7 +178,7 @@ component rlink_core8 is                -- rlink core with 8bit iface
     RB_MREQ : out rb_mreq_type;         -- rbus: request
     RB_SRES : in rb_sres_type;          -- rbus: response
     RB_LAM : in slv16;                  -- rbus: look at me
-    RB_STAT : in slv3                   -- rbus: status flags
+    RB_STAT : in slv4                   -- rbus: status flags
   );
 end component;
 
@@ -212,20 +212,21 @@ end component;
 
 component rlink_sp1c is                 -- rlink_core8+serport_1clock combo
   generic (
-    ATOWIDTH : positive :=  5;          -- access timeout counter width
-    ITOWIDTH : positive :=  6;          -- idle timeout counter width
-    CPREF : slv4 := c_rlink_cpref;      -- comma prefix
+    BTOWIDTH : positive :=  5;          -- rbus timeout counter width
+    RTAWIDTH : positive :=  12;         -- retransmit buffer address width
+    SYSID : slv32 := (others=>'0');     -- rlink system id
     IFAWIDTH : natural :=  5;           -- input fifo address width  (0=none)
     OFAWIDTH : natural :=  5;           -- output fifo address width (0=none)
-    ENAPIN_RLMON : integer := sbcntl_sbf_rlmon;  -- SB_CNTL for rlmon (-1=none)
-    ENAPIN_RBMON : integer := sbcntl_sbf_rbmon;  -- SB_CNTL for rbmon (-1=none)
+    ENAPIN_RLMON : integer := -1;       -- SB_CNTL for rlmon  (-1=none)
+    ENAPIN_RLBMON: integer := -1;       -- SB_CNTL for rlbmon (-1=none)
+    ENAPIN_RBMON : integer := -1;       -- SB_CNTL for rbmon  (-1=none)
     CDWIDTH : positive := 13;           -- clk divider width
     CDINIT : natural   := 15);          -- clk divider initial/reset setting
   port (
     CLK  : in slbit;                    -- clock
     CE_USEC : in slbit;                 -- 1 usec clock enable
     CE_MSEC : in slbit;                 -- 1 msec clock enable
-    CE_INT : in slbit := '0';           -- rri ito time unit clock enable
+    CE_INT : in slbit := '0';           -- rri ato time unit clock enable
     RESET  : in slbit;                  -- reset
     ENAXON : in slbit;                  -- enable xon/xoff handling
     ENAESC : in slbit;                  -- enable xon/xoff escaping
@@ -236,7 +237,7 @@ component rlink_sp1c is                 -- rlink_core8+serport_1clock combo
     RB_MREQ : out rb_mreq_type;         -- rbus: request
     RB_SRES : in rb_sres_type;          -- rbus: response
     RB_LAM : in slv16;                  -- rbus: look at me
-    RB_STAT : in slv3;                  -- rbus: status flags
+    RB_STAT : in slv4;                  -- rbus: status flags
     RL_MONI : out rl_moni_type;         -- rlink_core: monitor port
     SER_MONI : out serport_moni_type    -- serport: monitor port
   );

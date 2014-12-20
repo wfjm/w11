@@ -1,7 +1,7 @@
 ;;; -*- asm -*-
-;;; $Id: dscr_gen.A51 457 2012-02-12 22:34:20Z mueller $ 
+;;; $Id: dscr_gen.A51 605 2014-11-18 22:34:44Z mueller $ 
 ;;;
-;;; Copyright 2011-2012 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;;; Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;;; Code was forked from ixo-jtag.svn.sourceforge.net on 2011-07-17
 ;;;
 ;;;- original copyright and licence disclaimer ---------------------------------
@@ -56,6 +56,7 @@
 ;;; Revision History:
 ;;;
 ;;; Date         Rev Version  Comment
+;;; 2014-11-18   605   2.2    BUGFIX: correct string 0 descriptor
 ;;; 2012-02-11   457   2.1    iVendor string now reflects firmware file name;
 ;;;                           iSerial string now 00000000;
 ;;;                           VID/PID now via USE_VID/USE_PID defines
@@ -357,8 +358,6 @@ _string_descriptors_end:
 _str0::
 str0:   .db        str0_end - str0
         .db        DSCR_STRING
-        .db        0
-        .db        0
         .db        <0x0409          ; magic code for US English (LSB)
         .db        >0x0409          ; magic code for US English (MSB)
 str0_end:

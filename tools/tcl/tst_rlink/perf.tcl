@@ -1,6 +1,6 @@
-# $Id: perf.tcl 516 2013-05-05 21:24:52Z mueller $
+# $Id: perf.tcl 606 2014-11-24 07:08:51Z mueller $
 #
-# Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-11-23   606   2.0    use new rlink v4 iface
 # 2011-04-17   376   1.0    Initial version
 #
 
@@ -27,7 +28,7 @@ namespace eval tst_rlink {
 
     set rval "delay  latency"
 
-    rlc exec -init 0xff [regbld rlink::INIT anena]
+    rlink::anena 1;             # enable attn notify
 
     for {set dly 250} {$dly <= 10000} {incr dly 250} {
       rlc exec \
@@ -49,7 +50,7 @@ namespace eval tst_rlink {
       append rval [format "\n%5d   %6.2f" $dly $ms]
     }
 
-    rlc exec -init 0xff [regbld rlink::INIT {anena 0}]
+    rlink::anena 0;             # disable attn notify
 
     return $rval
   }

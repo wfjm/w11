@@ -1,4 +1,4 @@
--- $Id:  $
+-- $Id: s6_cmt_sfs_unisim.vhd 601 2014-11-07 22:44:43Z mueller $
 --
 -- Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --

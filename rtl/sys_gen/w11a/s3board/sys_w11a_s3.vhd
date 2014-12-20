@@ -1,6 +1,6 @@
--- $Id: sys_w11a_s3.vhd 561 2014-06-09 17:22:50Z mueller $
+-- $Id: sys_w11a_s3.vhd 614 2014-12-20 15:00:45Z mueller $
 --
--- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -39,6 +39,7 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2014-12-20   614 14.7  131013 xc3s1000-4  1455 4523  302 2807 OK: -RL11,rlv4
 -- 2014-06-08   561 14.7  131013 xc3s1000-4  1374 4580  286 2776 OK: +RL11
 -- 2014-06-01   558 14.7  131013 xc3s1000-4  1301 4306  270 2614 OK: 
 -- 2011-12-21   442 13.1    O40d xc3s1000-4  1301 4307  270 2613 OK: LP+PC+DL+II
@@ -75,6 +76,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-08-28   588   1.6    use new rlink v4 iface and 4 bit STAT
+-- 2014-08-15   583   1.5    rb_mreq addr now 16 bit
 -- 2011-12-21   442   1.4.4  use rlink_sp1c; hio led usage now a for n2/n3
 -- 2011-11-19   427   1.4.3  now numeric_std clean
 -- 2011-07-09   391   1.4.2  use now bp_rs232_2l4l_iob
@@ -209,7 +212,7 @@ architecture syn of sys_w11a_s3 is
   signal DSP_DP  : slv4  := (others=>'0');
 
   signal RB_LAM  : slv16 := (others=>'0');
-  signal RB_STAT : slv3  := (others=>'0');
+  signal RB_STAT : slv4  := (others=>'0');
 
   signal SER_MONI : serport_moni_type := serport_moni_init;
 
@@ -266,9 +269,9 @@ architecture syn of sys_w11a_s3 is
 
   signal DISPREG : slv16 := (others=>'0');
 
-  constant rbaddr_core0 : slv8 := "00000000";
-  constant rbaddr_ibus  : slv8 := "10000000";
-  constant rbaddr_hio   : slv8 := "11000000";
+  constant rbaddr_core0 : slv16 := "0000000000000000";
+  constant rbaddr_ibus  : slv16 := "0000000010000000";
+  constant rbaddr_hio   : slv16 := "0000000011000000";
 
 begin
 
@@ -323,9 +326,9 @@ begin
 
   RLINK : rlink_sp1c
     generic map (
-      ATOWIDTH     => 6,                --  64 cycles access timeout
-      ITOWIDTH     => 6,                --  64 periods max idle timeout
-      CPREF        => c_rlink_cpref,
+      BTOWIDTH     => 6,                --  64 cycles access timeout
+      RTAWIDTH     => 12,
+      SYSID        => (others=>'0'),
       IFAWIDTH     => 5,                --  32 word input fifo
       OFAWIDTH     => 5,                --  32 word output fifo
       ENAPIN_RLMON => sbcntl_sbf_rlmon,

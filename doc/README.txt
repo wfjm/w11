@@ -1,4 +1,4 @@
-$Id: README.txt 579 2014-08-08 20:39:46Z mueller $
+$Id: README.txt 614 2014-12-20 15:00:45Z mueller $
 
 Release notes for w11a
 
@@ -21,7 +21,87 @@ Release notes for w11a
 
 2. Change Log ----------------------------------------------------------------
 
-- trunk (2014-08-08: svn rev 25(oc) 579(wfjm); tagged w11a_V0.61)  ++++++++++
+- trunk (2014-12-20: svn rev 27(oc) 614(wfjm); untagged w11a_V0.62)  +++++++++
+
+  - Summary
+    - migrate to rlink protocol version 4
+      - Goals for rlink v4
+        - 16 bit addresses (instead of 8 bit)
+        - more robust encoding, support for error recovery at transport level
+        - add features to reduce round trips
+          - improved attention handling
+          - new 'list abort' command
+      - For further details see README_Rlink_V4.txt
+    - use own C++ based tcl shell tclshcpp instead of tclsh
+
+    Notes:
+      1. rlink protocol, core, and backend are updated in this release
+      2. error recovery in backend not yet implemented
+      3. the designs using rlink are still essentially unchanged
+      4. the new rlink v4 features will be exploited in upcoming releases
+
+  - New reference system
+    The development and test system was upgraded from Kubuntu 12.04 to 14.04.
+    The version of several key tools and libraries changed:
+       linux kernel    3.13.0   (was  3.2.0) 
+       gcc/g++         4.8.2    (was  4.6.3)
+       boost           1.54     (was  1.46.1)
+       libusb          1.0.17   (was  1.0.9)
+       perl            5.18.2   (was  5.14.2)
+       tcl             8.5.15   (was  8.5.11)
+       sdcc            3.3.0    (was  2.9.0)
+       doxygen         1.8.7    {installed from sources; Ub 14.04 has 1.8.6}
+
+    Notes:
+      1. still using tcl 8.5 (even though 8.6 is now default in Ub 14.04)
+      2. sdcc 3.x is not source compatible with sdcc 2.9. The Makefile
+         allows to use both, see tools/fx2/src/README.txt .
+      3. don't use doxygen 1.8.8, it fails to generate vhdl docs
+
+  - New features
+    - new environment variables TCLLIB and TCLLIBNAME. TCLLIBNAME must be
+      defined, and hold the library name matching the Tcl version already
+      specified with TCLINC.
+    - new modules
+      - rtl/vlib/comlib/crc16     - 16 bit crc generator (replaces crc8)
+      - tools/src/tclshcpp/*      - new tclshcpp shell
+
+  - Changes
+    - rtl/vlib/comlib
+      - byte2cdata,cdata2byte     - re-write, commas now 2 byte sequences
+    - rtl/vlib/rlink
+      - rlink_core                - re-write for rlink v4
+    - rtl/*/*                     - use new rlink v4 iface and 4 bit STAT
+    - rtl/vlib/rbus/rbd*          - new addresses in 16 bit rlink space
+    - rtl/vlib/simlib/simlib      - add simfifo_*, wait_*, writetrace
+    - tools/bin/
+      - fx2load_wrapper           - use _ic instead of _as as default firmware
+      - ti_rri                    - use tclshcpp (C++ based) rather tclsh
+    - tools/fx2/bin/*.ihx         - recompiled with sdcc 3.3.0 + bugfixes
+    - tools/fx2/src/Makefile      - support sdcc 3.3.0
+    - tools/src/
+      - */*.cpp                   - adopt for rlink v4; use nullptr 
+      - librlink/RlinkCrc16       - 16 crc, replaces RlinkCrc8
+      - librlink/RlinkConnect     - many changes for rlink v4
+      - librlink/RlinkPacketBuf*  - re-write for for rlink v4
+    - tools/tcl/*/*.tcl           - adopt for rlink v4
+    - renames:
+      - tools/bin/telnet_starter  -> tools/bin/console_starter
+
+  - Bug fixes
+    - tools/fx2/src
+      - dscr_gen.A51              - correct string 0 descriptor
+      - lib/syncdelay.h           - handle triple nop now properly
+
+  - Known issues
+    - rlink v4 error recovery not yet implemented, will crash on error
+    - command lists aren't split to fit in retransmit buffer size
+      {both issues not relevant for w11 backend over USB usage because the
+       backend produces proper command lists and the USB channel is error free}
+    - the rbus monitor (rbd_rbmon) not yet handling 16 bit addresses and
+      therefore of limited use
+
+- trunk (2014-08-08: svn rev 25(oc) 579(wfjm); tagged w11a_V0.61)  +++++++++++
 
   - Summary
     - The div instruction gave wrong results in some corner cases when either

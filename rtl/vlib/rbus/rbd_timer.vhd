@@ -1,6 +1,6 @@
--- $Id: rbd_timer.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: rbd_timer.vhd 593 2014-09-14 22:21:33Z mueller $
 --
--- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,7 +20,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 12.1, 13.1; ghdl 0.29
+-- Tool versions:  xst 12.1-14.7; ghdl 0.29-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -28,15 +28,16 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-08-15   583   4.0    rb_mreq addr now 16 bit
 -- 2011-11-19   427   1.0.1  now numeric_std clean
 -- 2010-12-29   351   1.0    Initial version 
 ------------------------------------------------------------------------------
 --
 -- rbus registers:
 --
--- Address   Bits Name        r/w/f  Function
--- bbbbbbbb       time        r/w/-  Timer register
---                                   w: if > 0 timer is running
+-- Addr   Bits  Name        r/w/f  Function
+--    0         time        r/w/-  Timer register
+--                                 w: if > 0 timer is running
 --
 
 library ieee;
@@ -48,7 +49,7 @@ use work.rblib.all;
 
 entity rbd_timer is                     -- rbus dev: usec precision timer
   generic (
-    RB_ADDR : slv8 := slv(to_unsigned(2#00000000#,8)));
+    RB_ADDR : slv16 := (others=>'0'));
   port (
     CLK  : in slbit;                    -- clock
     CE_USEC : in slbit;                 -- usec pulse

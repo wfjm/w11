@@ -1,6 +1,6 @@
--- $Id: sn_humanio_demu_rbus.vhd 472 2013-01-06 14:39:10Z mueller $
+-- $Id: sn_humanio_demu_rbus.vhd 583 2014-08-16 07:40:12Z mueller $
 --
--- Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,7 +20,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 13.3; ghdl 0.0.29
+-- Tool versions:  xst 13.3-14.7; ghdl 0.0.29-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -28,6 +28,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-08-15   583   1.1    rb_mreq addr now 16 bit
 -- 2013-01-06   472   1.0    Initial version (cloned from sn_humanio_rbus
 ------------------------------------------------------------------------------
 --
@@ -68,7 +69,7 @@ use work.bpgenlib.all;
 entity sn_humanio_demu_rbus is          -- human i/o swi,btn,led only /w rbus
   generic (
     DEBOUNCE : boolean := true;         -- instantiate debouncer for SWI,BTN
-    RB_ADDR : slv8 := slv(to_unsigned(2#10000000#,8)));
+    RB_ADDR : slv16 := slv(to_unsigned(2#0000000010000000#,16)));
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit := '0';            -- reset
@@ -206,7 +207,7 @@ begin
 
     -- rbus address decoder
     n.rbsel := '0';
-    if RB_MREQ.aval='1' and RB_MREQ.addr(7 downto 2)=RB_ADDR(7 downto 2) then
+    if RB_MREQ.aval='1' and RB_MREQ.addr(15 downto 2)=RB_ADDR(15 downto 2) then
       n.rbsel := '1';
     end if;
 

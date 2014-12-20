@@ -1,6 +1,6 @@
-// $Id: Rtcl.cpp 488 2013-02-16 18:49:47Z mueller $
+// $Id: Rtcl.cpp 584 2014-08-22 19:38:12Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-08-22   584   1.0.5  use nullptr
 // 2013-01-06   473   1.0.4  add NewListIntObj(const uint(8|16)_t, ...)
 // 2011-03-13   369   1.0.2  add NewListIntObj(vector<uint8_t>)
 // 2011-03-05   366   1.0.1  add AppendResultNewLines()
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: Rtcl.cpp 488 2013-02-16 18:49:47Z mueller $
+  \version $Id: Rtcl.cpp 584 2014-08-22 19:38:12Z mueller $
   \brief   Implemenation of Rtcl.
 */
 
@@ -54,7 +55,7 @@ Tcl_Obj* Rtcl::NewLinesObj(const std::string& str)
 
 Tcl_Obj* Rtcl::NewListIntObj(const uint8_t* data, size_t size)
 {
-  if (size == 0) return Tcl_NewListObj(0, NULL);
+  if (size == 0) return Tcl_NewListObj(0, nullptr);
   
   vector<Tcl_Obj*> vobj;
   vobj.reserve(size);
@@ -70,7 +71,7 @@ Tcl_Obj* Rtcl::NewListIntObj(const uint8_t* data, size_t size)
 
 Tcl_Obj* Rtcl::NewListIntObj(const uint16_t* data, size_t size)
 {
-  if (size == 0) return Tcl_NewListObj(0, NULL);
+  if (size == 0) return Tcl_NewListObj(0, nullptr);
   
   vector<Tcl_Obj*> vobj;
   vobj.reserve(size);
@@ -111,7 +112,7 @@ bool Rtcl::SetVar(Tcl_Interp* interp, const std::string& varname, Tcl_Obj* pobj)
         pos_pend == string::npos || pos_pend != varname.length()-1 ||
         pos_pend-pos_pbeg <= 1) {
       Tcl_AppendResult(interp, "illformed array name '", varname.c_str(), 
-                       "'", NULL);
+                       "'", nullptr);
       return false;
     }
     string arrname(varname.substr(0,pos_pbeg));
@@ -120,7 +121,7 @@ bool Rtcl::SetVar(Tcl_Interp* interp, const std::string& varname, Tcl_Obj* pobj)
     pret = Tcl_SetVar2Ex(interp, arrname.c_str(), elename.c_str(), pobj, 
                          TCL_LEAVE_ERR_MSG);
   } else {
-    pret = Tcl_SetVar2Ex(interp, varname.c_str(), NULL, pobj, 
+    pret = Tcl_SetVar2Ex(interp, varname.c_str(), nullptr, pobj, 
                          TCL_LEAVE_ERR_MSG);
   }
 
@@ -149,7 +150,7 @@ void Rtcl::AppendResultNewLines(Tcl_Interp* interp)
   // that allows to append output from multiple AppendResultLines properly
   const char* res =  Tcl_GetStringResult(interp);
   if (res && res[0]) {
-    Tcl_AppendResult(interp, "\n", NULL);
+    Tcl_AppendResult(interp, "\n", nullptr);
   }
   return;
 }

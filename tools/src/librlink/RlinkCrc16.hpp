@@ -1,6 +1,6 @@
-// $Id: RlinkCrc8.hpp 486 2013-02-10 22:34:43Z mueller $
+// $Id: RlinkCrc16.hpp 602 2014-11-08 21:42:47Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,42 +13,41 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2011-02-27   365   1.0    Initial version
-// 2011-01-15   355   0.1    First draft
+// 2014-11-08   602   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 
 /*!
   \file
-  \version $Id: RlinkCrc8.hpp 486 2013-02-10 22:34:43Z mueller $
-  \brief   Declaration of class \c RlinkCrc8.
+  \version $Id: RlinkCrc16.hpp 602 2014-11-08 21:42:47Z mueller $
+  \brief   Declaration of class \c RlinkCrc16.
 */
 
-#ifndef included_Retro_RlinkCrc8
-#define included_Retro_RlinkCrc8 1
+#ifndef included_Retro_RlinkCrc16
+#define included_Retro_RlinkCrc16 1
 
 #include <cstdint>
 #include <vector>
 
 namespace Retro {
 
-  class RlinkCrc8 {
+  class RlinkCrc16 {
     public:
-                    RlinkCrc8();
-                   ~RlinkCrc8();
+                    RlinkCrc16();
+                   ~RlinkCrc16();
 
       void          Clear();
       void          AddData(uint8_t data);
-      uint8_t       Crc() const;    
+      uint16_t      Crc() const;    
 
     protected: 
 
-      uint8_t       fCrc;                   //!< current crc value
-      static const uint8_t fCrc8Table[256];   // doxed in cpp
+      uint16_t      fCrc;                   //!< current crc value
+      static const uint16_t fCrc16Table[256];   // doxed in cpp
   };
   
 } // end namespace Retro
 
-#include "RlinkCrc8.ipp"
+#include "RlinkCrc16.ipp"
 
 #endif

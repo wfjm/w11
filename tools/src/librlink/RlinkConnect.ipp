@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.ipp 495 2013-03-06 17:13:48Z mueller $
+// $Id: RlinkConnect.ipp 604 2014-11-16 22:33:09Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -24,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.ipp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: RlinkConnect.ipp 604 2014-11-16 22:33:09Z mueller $
   \brief   Implemenation (inline) of RlinkConnect.
 */
 
@@ -132,6 +132,22 @@ inline const RlinkAddrMap& RlinkConnect::AddrMap() const
 inline const Rstats& RlinkConnect::Stats() const
 {
   return fStats;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline const Rstats& RlinkConnect::SndStats() const
+{
+  return fSndPkt.Stats();
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline const Rstats& RlinkConnect::RcvStats() const
+{
+  return fRcvPkt.Stats();
 }
 
 //------------------------------------------+-----------------------------------

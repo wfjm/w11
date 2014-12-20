@@ -1,6 +1,6 @@
-// $Id: RtclArgs.cpp 521 2013-05-20 22:16:45Z mueller $
+// $Id: RtclArgs.cpp 584 2014-08-22 19:38:12Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-08-22   584   1.0.8  use nullptr
 // 2013-05-19   521   1.0.7  add NextSubOpt() method, pass optset's as const
 // 2013-02-12   487   1.0.6  add CurrentArg() method
 // 2013-02-03   481   1.0.5  use Rexception
@@ -27,7 +28,7 @@
 
 /*!
   \file
-  \version $Id: RtclArgs.cpp 521 2013-05-20 22:16:45Z mueller $
+  \version $Id: RtclArgs.cpp 584 2014-08-22 19:38:12Z mueller $
   \brief   Implemenation of RtclArgs.
 */
 
@@ -454,7 +455,7 @@ bool RtclArgs::AllDone()
   if (fArgErr || fOptErr) return false;
   if (fNDone < fObjc) {
     AppendResult("-E: superfluous arguments, first one '",
-                 Tcl_GetString(fObjv[fNDone]), "'", NULL);
+                 Tcl_GetString(fObjv[fNDone]), "'", nullptr);
     return false;
   }
   return true;
@@ -475,7 +476,7 @@ const char* RtclArgs::PeekArgString(int rind) const
 
 void RtclArgs::AppendResult(const char* str, ...)
 {
-  Tcl_AppendResult(fpInterp, str, NULL);
+  Tcl_AppendResult(fpInterp, str, nullptr);
   va_list ap;
   va_start (ap, str);
   Tcl_AppendResultVA(fpInterp, ap);
@@ -491,9 +492,9 @@ void RtclArgs::AppendResultLines(const std::string& str)
   Rtcl::AppendResultNewLines(fpInterp);
 
   if (str.length()>0 && str[str.length()-1]=='\n') {
-    Tcl_AppendResult(fpInterp, str.substr(0,str.length()-1).c_str(), NULL);
+    Tcl_AppendResult(fpInterp, str.substr(0,str.length()-1).c_str(), nullptr);
   } else {
-    Tcl_AppendResult(fpInterp, str.c_str(), NULL);
+    Tcl_AppendResult(fpInterp, str.c_str(), nullptr);
   }
   return;
 }
@@ -512,7 +513,7 @@ bool RtclArgs::NextArg(const char* name, Tcl_Obj*& pobj)
 
   if (fNDone == fObjc) {
     if (!isopt) {
-      AppendResult("-E: required argument '", name, "' missing", NULL);
+      AppendResult("-E: required argument '", name, "' missing", nullptr);
       fArgErr = true;
       return false;
     }
@@ -578,7 +579,7 @@ bool RtclArgs::ConfigReadCheck()
   if (fNConfigRead != 0) {
     SetResult(Tcl_NewObj());
     AppendResult("-E: only one config read allowed per command, '", 
-                 PeekArgString(-1), "' is second", NULL);
+                 PeekArgString(-1), "' is second", nullptr);
     return false;
   }
   fNConfigRead += 1;

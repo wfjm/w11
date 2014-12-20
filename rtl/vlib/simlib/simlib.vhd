@@ -1,6 +1,6 @@
--- $Id: simlib.vhd 444 2011-12-25 10:04:58Z mueller $
+-- $Id: simlib.vhd 599 2014-10-25 13:43:56Z mueller $
 --
--- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,10 +18,13 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-10-25   599   2.1.1  add wait_* procedures; writeoptint: no dat clear
+-- 2014-10-18   597   2.1    add simfifo_*, writetrace procedures
+-- 2014-09-06   591   2.0.1  add readint_ea() with range check
 -- 2011-12-23   444   2.0    drop CLK_CYCLE from simclk,simclkv; use integer for
 --                           simclkcnt(CLK_CYCLE),writetimestamp(clkcyc);
 -- 2011-11-18   427   1.3.8  now numeric_std clean
@@ -112,6 +115,12 @@ procedure read_ea(
   L: inout line;
   value: out time);
 
+procedure readint_ea(
+  L: inout line;
+  value: out integer;
+  imin : in integer := integer'low;
+  imax : in integer := integer'high);
+
 procedure read_ea(
   L: inout line;
   value: out std_logic);
@@ -197,10 +206,83 @@ procedure writegen(                     -- write slv in generic base (arb. lth)
   field: in width:=0;                   -- field width
   base: in integer:= 2);                -- default base
 
-procedure writetimestamp(
-  L: inout line;
-  clkcyc: in integer;
-  str : in string := null_string);
+procedure writetimestamp(               -- write time stamp
+  L: inout line;                        -- line
+  str : in string := null_string);      -- 1st string field
+
+procedure writetimestamp(               -- write time stamp w/ clk cycle
+  L: inout line;                        -- line
+  clkcyc: in integer;                   -- cycle number
+  str : in string := null_string);      -- 1st string field
+
+procedure writeoptint(                  -- write int if > 0
+  L: inout line;                        -- line
+  str : in string;                      -- string
+  dat : in integer;                     -- int value
+  field: in width:=0);                  -- field width
+
+procedure writetrace(                   -- debug trace - plain
+  str : in string);                     -- string
+procedure writetrace(                   -- debug trace - int
+  str : in string;                      -- string
+  dat : in integer);                    -- value
+procedure writetrace(                   -- debug trace - slbit
+  str : in string;                      -- string
+  dat : in slbit);                      -- value
+procedure writetrace(                   -- debug trace - slv
+  str : in string;                      -- string
+  dat : in slv);                        -- value
+  
+type clock_dsc is record                -- clock descriptor
+  period : time;                        -- clock period
+  hold   : time;                        -- hold time  = clock yo stim time
+  setup  : time;                        -- setup time = moni to clock time
+end record;
+
+procedure wait_nextstim(                -- wait for next stim time
+  signal clk : in slbit;                -- clock
+  constant clk_dsc : in clock_dsc;      -- clock descriptor
+  constant cnt : in positive := 1);     -- number of cycles to wait
+
+procedure wait_nextmoni(                -- wait for next moni time
+  signal clk : in slbit;                -- clock
+  constant clk_dsc : in clock_dsc;      -- clock descriptor
+  constant cnt : in positive := 1);     -- number of cycles to wait
+
+procedure wait_stim2moni(               -- wait from stim to moni time
+  signal clk : in slbit;                -- clock
+  constant clk_dsc : in clock_dsc);     -- clock descriptor
+
+procedure wait_untilsignal(             -- wait until signal
+  signal clk : in slbit;                -- clock
+  constant clk_dsc : in clock_dsc;      -- clock descriptor
+  signal sig : in slbit;                -- signal
+  constant val : in slbit;              -- value
+  variable cnt : out natural);          -- cycle count
+
+type simfifo_type is array (natural range <>, natural range<>) of std_logic;
+
+procedure simfifo_put(                  -- add item to simfifo
+  cnt : inout natural;                  -- fifo element count
+  arr : inout simfifo_type;             -- fifo data array
+  din : in std_logic_vector;            -- element to add
+  val : in slbit := '1');               -- valid flag
+
+procedure simfifo_get(                  -- get item from simfifo
+  cnt : inout natural;                  -- fifo element count
+  arr : inout simfifo_type;             -- fifo data array
+  dout: out std_logic_vector);          -- element retrieved
+
+procedure simfifo_writetest(            -- test value against simfifo and write
+  L: inout line;                        -- line
+  cnt : inout natural;                  -- fifo element count
+  arr : inout simfifo_type;             -- fifo data array
+  dat : in std_logic_vector);           -- data to test
+
+procedure simfifo_dump(                 -- dump simfifo
+  cnt : inout natural;                  -- fifo element count
+  arr : inout simfifo_type;             -- fifo data array
+  str : in string := null_string);      -- header text
 
 -- ----------------------------------------------------------------------------
 
@@ -635,6 +717,27 @@ end procedure read_ea;
 
 -- -------------------------------------
 
+procedure readint_ea(
+  L: inout line;
+  value: out integer;
+  imin : in integer := integer'low;
+  imax : in integer := integer'high) is
+
+  variable dat : integer := 0;
+  
+begin
+  
+  read_ea(L, dat);
+  assert dat>=imin and dat<=imax
+    report "readint_ea range check: " &
+            integer'image(dat) & " not in " &
+            integer'image(imin) & ":" & integer'image(imax)
+    severity failure;
+  value := dat;
+end procedure readint_ea;
+
+-- -------------------------------------
+
 procedure read_ea(
   L: inout line;
   value: out std_logic) is
@@ -1062,8 +1165,7 @@ end procedure writegen;
 
 procedure writetimestamp(
   L: inout line;
-  clkcyc: in integer;
-  str: in string := null_string) is
+  str : in string := null_string) is
 
   variable t_nsec  : integer := 0;
   variable t_psec  : integer := 0;
@@ -1075,18 +1177,316 @@ begin
   t_psec  := (now - t_nsec * 1 ns) / 1 ps;
   t_dnsec := t_psec/100;
   
-  -- write(L, now, right, 12);
   write(L, t_nsec, right, 8);
   write(L,'.');
   write(L, t_dnsec, right, 1);
   write(L, string'(" ns"));
   
+  if str /= null_string then
+    write(L, str);
+  end if;
+
+end procedure writetimestamp;
+
+-- -------------------------------------
+
+procedure writetimestamp(
+  L: inout line;
+  clkcyc: in integer;
+  str: in string := null_string) is
+
+
+begin
+
+  writetimestamp(L);
   write(L, clkcyc, right, 7);
   if str /= null_string then
     write(L, str);
   end if;
 
 end procedure writetimestamp;
+
+-- -------------------------------------
+
+procedure writeoptint(                  -- write int if > 0
+  L: inout line;                        -- line
+  str : in string;                      -- string
+  dat : in integer;                     -- int value
+  field: in width:=0) is                -- field width
+
+begin
+
+  if dat > 0 then
+    write(L, str);
+    write(L, dat, right, field);
+  end if;
+
+end procedure writeoptint;
+
+-- -------------------------------------
+
+procedure writetrace(                   -- debug trace - plain
+  str: in string) is                    -- string
+
+  variable oline : line;
+
+begin
+
+  writetimestamp(oline, " ++ ");
+  write(oline, str);
+  writeline(output, oline);
+
+end procedure writetrace;
+
+-- -------------------------------------
+
+procedure writetrace(                   -- debug trace - int
+  str: in string;                       -- string
+  dat : in integer) is                  -- value
+
+  variable oline : line;
+
+begin
+
+  writetimestamp(oline, " ++ ");
+  write(oline, str);
+  write(oline, dat);
+  writeline(output, oline);
+
+end procedure writetrace;
+
+-- -------------------------------------
+
+procedure writetrace(                   -- debug trace - slbit
+  str: in string;                       -- string
+  dat : in slbit) is                    -- value
+
+  variable oline : line;
+
+begin
+
+  writetimestamp(oline, " ++ ");
+  write(oline, str);
+  write(oline, dat);
+  writeline(output, oline);
+
+end procedure writetrace;
+
+-- -------------------------------------
+
+procedure writetrace(                   -- debug trace - slv
+  str: in string;                       -- string
+  dat : in slv) is                      -- value
+
+  variable oline : line;
+
+begin
+
+  writetimestamp(oline, " ++ ");
+  write(oline, str);
+  write(oline, dat);
+  writeline(output, oline);
+
+end procedure writetrace;
+
+-- -------------------------------------
+
+procedure wait_nextstim(                -- wait for next stim time
+  signal clk : in slbit;                -- clock
+  constant clk_dsc : in clock_dsc;      -- clock descriptor
+  constant cnt : in positive := 1) is   -- number of cycles to wait
+
+begin
+
+  for i in 1 to cnt loop
+    wait until rising_edge(clk);
+    wait for clk_dsc.hold;
+  end loop;  -- i
+
+end procedure wait_nextstim;
+
+-- -------------------------------------
+
+procedure wait_nextmoni(                -- wait for next moni time
+  signal clk : in slbit;                -- clock
+  constant clk_dsc : in clock_dsc;      -- clock descriptor
+  constant cnt : in positive := 1) is   -- number of cycles to wait
+
+begin
+
+  for i in 1 to cnt loop
+    wait until rising_edge(clk);
+    wait for clk_dsc.period - clk_dsc.setup;
+  end loop;  -- i
+
+end procedure wait_nextmoni;
+
+-- -------------------------------------
+
+procedure wait_stim2moni(               -- wait from stim to moni time
+  signal clk : in slbit;                -- clock
+  constant clk_dsc : in clock_dsc) is   -- clock descriptor
+
+begin
+
+  wait for clk_dsc.period - clk_dsc.hold - clk_dsc.setup;
+
+end procedure wait_stim2moni;
+
+-- -------------------------------------
+
+procedure wait_untilsignal(             -- wait until signal
+  signal clk : in slbit;                -- clock
+  constant clk_dsc : in clock_dsc;      -- clock descriptor
+  signal sig : in slbit;                -- signal
+  constant val : in slbit;              -- value
+  variable cnt : out natural) is        -- cycle count
+
+  variable cnt_l : natural := 0;
+begin
+
+  cnt_l := 0;
+  while val /= sig loop
+    wait_nextmoni(clk, clk_dsc);
+    cnt_l := cnt_l + 1;
+  end loop;
+  cnt := cnt_l;
+  
+end procedure wait_untilsignal;
+
+-- -------------------------------------
+
+procedure simfifo_put(                  -- add item to simfifo
+  cnt : inout natural;                  -- fifo element count
+  arr : inout simfifo_type;             -- fifo data array
+  din : in std_logic_vector;            -- element to add
+  val : in slbit := '1') is             -- valid flag
+
+  variable din_imax : integer := din'length-1;
+begin
+
+  if val = '0' then
+    return;
+  end if;
+  
+  assert cnt < arr'high(1)
+    report "simfifo_put: fifo full"
+    severity failure;
+  assert arr'length(2) = din'length and
+         arr'ascending(2) = din'ascending
+    report "simfifo_put: arr,din range mismatch"
+    severity failure;
+
+  for i in 0 to din_imax loop
+    arr(cnt, arr'low(2)+i) := din(din'low+i);
+  end loop;  -- i
+  cnt := cnt + 1;
+  
+end procedure simfifo_put;
+
+-- -------------------------------------
+
+procedure simfifo_get(                  -- get item from simfifo
+  cnt : inout natural;                  -- fifo element count
+  arr : inout simfifo_type;             -- fifo data array
+  dout : out std_logic_vector) is       -- element retrieved
+
+  variable dout_imax : integer := dout'length-1;
+begin
+
+  assert cnt > 0
+    report "simfifo_put: fifo empty"
+    severity failure;
+  assert arr'length(2) = dout'length and
+         arr'ascending(2) = dout'ascending
+    report "simfifo_put: arr,din range mismatch"
+    severity failure;
+
+  for i in 0 to dout_imax loop
+    dout(dout'low+i) := arr(0, arr'low(2)+i);
+  end loop;  -- i
+  cnt := cnt - 1;
+  if cnt > 0 then
+    for i in 1 to cnt loop
+      for j in 0 to dout_imax loop
+        arr(i-1, arr'low(2)+j) := arr(i, arr'low(2)+j);
+      end loop;  -- j
+    end loop;  -- i
+  end if;
+  
+end procedure simfifo_get;
+
+-- -------------------------------------
+
+procedure simfifo_writetest(            -- test value against simfifo and write
+  L: inout line;                        -- line
+  cnt : inout natural;                  -- fifo element count
+  arr : inout simfifo_type;             -- fifo data array
+  dat : in std_logic_vector) is         -- data to test
+
+  variable refdata : slv(dat'range);
+  
+begin
+
+  if cnt = 0 then
+    write(L, string'("  FAIL: UNEXPECTED"));
+  else
+    simfifo_get(cnt, arr, refdata);
+    write(L, string'("  CHECK: "));
+    if dat = refdata then
+      write(L, string'("OK"));
+    else
+      write(L, string'("FAIL, EXP= "));
+      write(L, refdata);
+    end if;
+  end if;
+
+end procedure simfifo_writetest;
+
+-- -------------------------------------
+
+procedure simfifo_dump(                 -- dump simfifo
+  cnt : inout natural;                  -- fifo element count
+  arr : inout simfifo_type;             -- fifo data array
+  str: in string := null_string) is     -- header text
+
+  variable oline : line;
+  variable data : slv(arr'range(2));
+  
+begin
+
+  writetimestamp(oline, " ++ ");
+  if str /= null_string then
+    write(oline, str);
+  end if;
+  write(oline, string'("  cnt= "));
+  write(oline, cnt);
+  write(oline, string'("  of "));
+  write(oline, arr'high(1));
+  write(oline, string'("; drange="));
+  write(oline, arr'left(2));
+  if arr'ascending(2) then
+    write(oline, string'(" to "));
+  else
+    write(oline, string'(" downto "));
+  end if;
+  write(oline, arr'right(2));
+  writeline(output, oline);
+
+  if cnt > 0 then
+    for i in 0 to cnt-1 loop
+      for j in data'range loop
+        data(j) := arr(i,j);
+      end loop;  -- j
+      write(oline, string'("               - "));
+      write(oline, i, right, 2); 
+      write(oline, string'(" "));
+      write(oline, data);
+      writeline(output, oline);
+    end loop;  -- i
+  end if;
+
+end procedure simfifo_dump;
 
 end package body simlib;
 

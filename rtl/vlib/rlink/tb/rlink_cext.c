@@ -1,4 +1,4 @@
-/* $Id: rlink_cext.c 575 2014-07-27 20:55:41Z mueller $
+/* $Id: rlink_cext.c 602 2014-11-08 21:42:47Z mueller $
  *
  * Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
  *
@@ -13,6 +13,7 @@
  *
  *  Revision History: 
  * Date         Rev  Vers    Comment
+ * 2014-11-02   602   2.0    sideband handling for rlink v4; count EAGAINs
  * 2014-07-27   575   1.3.2  add ssize_t -> int casts to avoid warnings
  *                           add fflush(stdout) after standart open/close msgs
  * 2011-03-05   366   1.3.1  add RLINK_CEXT_TRACE=2 trace level
@@ -36,8 +37,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define CPREF 0x80
-#define CESC  (CPREF|0x0f)
+/* kSymEsc = 0xCA = 1100 1010 (bin) */
+#define CESC  (0xCA)
 #define QRBUFSIZE 1024
 
 static int fd_rx = -1;
@@ -51,18 +52,6 @@ static int  qr_pw  = 0;
 static int  qr_nb  = 0;
 static int  qr_eof = 0;
 static int  qr_err = EAGAIN;
-
-/* returns:
- *   <0          if error
- *   >=0 <=0xff  normal data
- *   == 0x100    idle
- *   0x1aahhll   if side band message seen
- *
- */
-
-/* returns
-   0 if EGAIN or 
- */
 
 static void rlink_cext_dotrace(const char *text, int dat)
 {
@@ -78,13 +67,23 @@ static void rlink_cext_dotrace(const char *text, int dat)
 
 static void rlink_cext_doread()
 {
+  static int  neagain = 0;
+  
   char buf[1];
   ssize_t nbyte;
   nbyte = read(fd_rx, buf, 1);
   if (io_trace > 1) {
-    printf("rlink_cext-I: read   rc=%d", (int)nbyte);
-    if (nbyte < 0) printf(" errno=%d %s", errno, strerror(errno));
-    printf("\n");
+    if (nbyte < 0 && errno == EAGAIN) {
+      neagain += 1;
+    } else {
+      if (neagain) {
+        printf("rlink_cext-I: reads with EAGAIN: %d seen\n", neagain);
+        neagain = 0;
+      }
+      printf("rlink_cext-I: read   rc=%d", (int)nbyte);
+      if (nbyte < 0) printf(" errno=%d %s", errno, strerror(errno));
+      printf("\n");
+    }
   }
 
   if (nbyte < 0) {
@@ -104,6 +103,14 @@ static void rlink_cext_doread()
     }
   }
 }
+
+/* returns:
+ *   <0          if error
+ *   >=0 <=0xff  normal data
+ *   == 0x100    idle
+ *   0x01aahhll   if side band message seen
+ *
+ */
 
 int rlink_cext_getbyte(int clk)
 {
@@ -139,16 +146,23 @@ int rlink_cext_getbyte(int clk)
     ncesc = 0;
     nside = -1;
 
+    /* determine trace level from RLINK_CEXT_TRACE: */
+    /*  "1"  trace bytes read and written */
+    /*  "2"  trace also read() and write() calls */
     io_trace = 0;
     env_val = getenv("RLINK_CEXT_TRACE");
     if (env_val) {
       printf("rlink_cext-I: seen RLINK_CEXT_TRACE=%s\n", env_val);
-      if (strcmp(env_val, "1") == 0) {
-        printf("rlink_cext-I: set trace level to 1\n");
+      if (strcmp(env_val, "0") == 0) {
+        printf("rlink_cext-I: set trace level to 0 (off)\n");
+      } else if (strcmp(env_val, "1") == 0) {
+        printf("rlink_cext-I: set trace level to 1 (bytes)\n");
         io_trace = 1;
       } else if (strcmp(env_val, "2") == 0) {
-        printf("rlink_cext-I: set trace level to 2\n");
+        printf("rlink_cext-I: set trace level to 2 (bytes + calls)\n");
         io_trace = 2;
+      } else {
+        printf("rlink_cext-E: invalid RLINK_CEXT_TRACE value; ignored\n");
       }
     }
     
@@ -204,18 +218,34 @@ int rlink_cext_getbyte(int clk)
     return tdat;
   case 0:				    /* 2nd CESC, return it */
     nside += 1;
+    odat = 0x01000000;                      /* init odat */
     return tdat;
-  case 1:				    /* get ADDR byte */
+
+  /* decode oob data as formated by RlinkPacketBufSnd::SndOob() */
+  /* odat format:  0x01aadddd */
+  case 1:				    /* get ADDR(3:0) */
     nside += 1;
-    odat = 0x1000000 | (tdat<<16);
+    odat  |= (tdat&0x0f)<<16;
     return 0x100;
-  case 2:				    /* get DL byte */
+  case 2:				    /* get ADDR(7:4) */
     nside += 1;
-    odat |= tdat;
+    odat  |= (tdat&0x0f)<<20;
     return 0x100;
-  case 3:				    /* get DH byte */
-    nside = -1;
-    odat |= tdat<<8;
+  case 3:				    /* get data( 3: 0) */
+    nside += 1;
+    odat  |= (tdat&0x0f);
+    return 0x100;
+  case 4:				    /* get data( 7: 4) */
+    nside += 1;
+    odat  |= (tdat&0x0f)<<4;
+    return 0x100;
+  case 5:				    /* get data(11: 8) */
+    nside += 1;
+    odat  |= (tdat&0x0f)<<8;
+    return 0x100;
+  case 6:				    /* get data(15:12) */
+    nside  = -1;
+    odat  |= (tdat&0x0f)<<12;
     return odat;
   }  
 }

@@ -1,6 +1,6 @@
-// $Id: Rtools.cpp 521 2013-05-20 22:16:45Z mueller $
+// $Id: Rtools.cpp 606 2014-11-24 07:08:51Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,9 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-11-23   606   1.0.4  add TimeOfDayAsDouble()
+// 2014-11-08   602   1.0.5  add (int) cast in snprintf to match %d type
+// 2014-08-22   584   1.0.4  use nullptr
 // 2013-05-04   516   1.0.3  add CreateBackupFile()
 // 2013-02-13   481   1.0.2  remove Throw(Logic|Runtime)(); use Rexception
 // 2011-04-10   376   1.0.1  add ThrowLogic(), ThrowRuntime()
@@ -21,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: Rtools.cpp 521 2013-05-20 22:16:45Z mueller $
+  \version $Id: Rtools.cpp 606 2014-11-24 07:08:51Z mueller $
   \brief   Implemenation of Rtools .
 */
 
@@ -29,6 +32,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <unistd.h>
 
 #include <iostream>
@@ -54,8 +58,8 @@ namespace Rtools {
 
 std::string Flags2String(uint32_t flags, const RflagName* fnam, char delim)
 {
-  if (fnam == 0)
-    throw Rexception("Rtools::Flags2String()","Bad args: fnam==NULL");
+  if (fnam == nullptr)
+    throw Rexception("Rtools::Flags2String()","Bad args: fnam==nullptr");
 
   string rval;
   while (fnam->mask) {
@@ -120,7 +124,7 @@ bool CreateBackupFile(const std::string& fname, size_t nbackup, RerrMsg& emsg)
   fnames.push_back(fname);
   for (size_t i=1; i<=nbackup; i++) {
     char fnum[4];
-    snprintf(fnum, 4, "%d", i);
+    snprintf(fnum, 4, "%d", (int)i);
     fnames.push_back(fbase + "_" + fnum + fext);
   }
   
@@ -169,6 +173,28 @@ bool CreateBackupFile(const RparseUrl& purl, RerrMsg& emsg)
   }
   return true;
 }
+
+//------------------------------------------+-----------------------------------
+//! Returns the time-of-day as \c double value
+/*!
+  Calls \c gettimeofday() and returns the current time as a \c double.
+  This is convenient for calculations with time values.
+
+  \returns time is seconds as \a double with micro second resolution.
+  \throws Rexception in case \c gettimeofday() fails.
+ */
+
+double TimeOfDayAsDouble()
+{
+  struct timeval tval;
+  int irc = ::gettimeofday(&tval, 0);
+  if (irc < 0) {
+    throw Rexception("Rtools::TimeOfDayAsDouble()",
+                     "gettimeofday failed with ", errno);
+  }
   
+  return double(tval.tv_sec) + 1.e-6*double(tval.tv_usec);
+}
+
 } // end namespace Rtools
 } // end namespace Retro

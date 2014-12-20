@@ -1,6 +1,6 @@
--- $Id: rlink_core8.vhd 440 2011-12-18 20:08:09Z mueller $
+-- $Id: rlink_core8.vhd 612 2014-12-20 08:12:06Z mueller $
 --
--- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,20 +18,21 @@
 -- Dependencies:   rlink_core
 --                 comlib/byte2cdata
 --                 comlib/cdata2byte
---                 rlink_mon_sb    [sim only]
---                 rbus/rb_mon_sb  [sim only]
+--                 rlink_mon_sb    [sim only, for 8bit level]
 --
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 13.1; ghdl 0.29
+-- Tool versions:  xst 13.1-14.7; ghdl 0.29-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2014-12-05   596 14.7  131013 xc6slx16-2   352  492   24  176 s  7.0 ver 4.0
 -- 2011-12-09   437 13.1    O40d xc3s1000-4   184  403    0  244 s  9.1
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-10-12   596   4.0    now rlink v4 iface, 4 bit STAT
 -- 2011-12-09   437   1.0    Initial version
 ------------------------------------------------------------------------------
 
@@ -46,14 +47,15 @@ use work.rlinklib.all;
 
 entity rlink_core8 is                   -- rlink core with 8bit interface
   generic (
-    ATOWIDTH : positive :=  5;          -- access timeout counter width
-    ITOWIDTH : positive :=  6;          -- idle timeout counter width
-    CPREF : slv4 := c_rlink_cpref;      -- comma prefix
-    ENAPIN_RLMON : integer := sbcntl_sbf_rlmon;  -- SB_CNTL for rlmon (-1=none)
-    ENAPIN_RBMON : integer := sbcntl_sbf_rbmon); -- SB_CNTL for rbmon (-1=none)
+    BTOWIDTH : positive :=  5;          -- rbus timeout counter width
+    RTAWIDTH : positive :=  12;         -- retransmit buffer address width
+    SYSID : slv32 := (others=>'0');     -- rlink system id
+    ENAPIN_RLMON : integer := -1;       -- SB_CNTL for rlmon  (-1=none)
+    ENAPIN_RLBMON: integer := -1;       -- SB_CNTL for rlbmon (-1=none)
+    ENAPIN_RBMON : integer := -1);      -- SB_CNTL for rbmon  (-1=none)
   port (
     CLK  : in slbit;                    -- clock
-    CE_INT : in slbit := '0';           -- rlink ito time unit clock enable
+    CE_INT : in slbit := '0';           -- rlink ato time unit clock enable
     RESET  : in slbit;                  -- reset
     RLB_DI : in slv8;                   -- rlink 8b: data in
     RLB_ENA : in slbit;                 -- rlink 8b: data enable
@@ -65,7 +67,7 @@ entity rlink_core8 is                   -- rlink core with 8bit interface
     RB_MREQ : out rb_mreq_type;         -- rbus: request
     RB_SRES : in rb_sres_type;          -- rbus: response
     RB_LAM : in slv16;                  -- rbus: look at me
-    RB_STAT : in slv3                   -- rbus: status flags
+    RB_STAT : in slv4                   -- rbus: status flags
   );
 end entity rlink_core8;  
 
@@ -78,14 +80,19 @@ architecture syn of rlink_core8 is
   signal RL_DO   : slv9 := (others=>'0');
   signal RL_VAL  : slbit := '0';
   signal RL_HOLD : slbit := '0';
-  signal RB_MREQ_L : rb_mreq_type := rb_mreq_init;  -- local, readable RB_MREQ
+  signal RLB_BUSY_L : slbit := '0';
+  signal RLB_DO_L   : slv8  := (others=>'0');
+  signal RLB_VAL_L  : slbit := '0';
 
 begin
 
   RL : rlink_core
     generic map (
-      ATOWIDTH => ATOWIDTH,
-      ITOWIDTH => ITOWIDTH)
+      BTOWIDTH => BTOWIDTH,
+      RTAWIDTH => RTAWIDTH,
+      SYSID    => SYSID,
+      ENAPIN_RLMON => ENAPIN_RLMON,
+      ENAPIN_RBMON => ENAPIN_RBMON)
     port map (
       CLK      => CLK,
       CE_INT   => CE_INT,
@@ -97,25 +104,21 @@ begin
       RL_VAL   => RL_VAL,
       RL_HOLD  => RL_HOLD,
       RL_MONI  => RL_MONI,
-      RB_MREQ  => RB_MREQ_L,
+      RB_MREQ  => RB_MREQ,
       RB_SRES  => RB_SRES,
       RB_LAM   => RB_LAM,
       RB_STAT  => RB_STAT
     );
 
-  RB_MREQ <= RB_MREQ_L;
-
 -- RLB -> RL converter (DI handling) -------------
   B2CD : byte2cdata                     -- byte stream -> 9bit comma,data
-    generic map (
-      CPREF => CPREF,
-      NCOMM => c_rlink_ncomm)
     port map (
       CLK   => CLK,
       RESET => RESET,
       DI    => RLB_DI,
       ENA   => RLB_ENA,
-      BUSY  => RLB_BUSY,
+      ERR   => '0',
+      BUSY  => RLB_BUSY_L,
       DO    => RL_DI,
       VAL   => RL_ENA,
       HOLD  => RL_BUSY
@@ -123,52 +126,41 @@ begin
 
 -- RL -> RLB converter (DO handling) -------------
   CD2B : cdata2byte                     -- 9bit comma,data -> byte stream
-    generic map (
-      CPREF => CPREF,
-      NCOMM => c_rlink_ncomm)
     port map (
-      CLK   => CLK,
-      RESET => RESET,
-      DI    => RL_DO,
-      ENA   => RL_VAL,
-      BUSY  => RL_HOLD,
-      DO    => RLB_DO,
-      VAL   => RLB_VAL,
-      HOLD  => RLB_HOLD
+      CLK     => CLK,
+      RESET   => RESET,
+      ESCXON  => '0',
+      ESCFILL => '0',
+      DI      => RL_DO,
+      ENA     => RL_VAL,
+      BUSY    => RL_HOLD,
+      DO      => RLB_DO_L,
+      VAL     => RLB_VAL_L,
+      HOLD    => RLB_HOLD
     );
+
+  RLB_BUSY <= RLB_BUSY_L;
+  RLB_DO   <= RLB_DO_L;
+  RLB_VAL  <= RLB_VAL_L;
   
 -- synthesis translate_off
 
-  RLMON: if ENAPIN_RLMON >= 0  generate
+  RLBMON: if ENAPIN_RLBMON >= 0  generate
     MON : rlink_mon_sb
       generic map (
-        DWIDTH => RL_DI'length,
-        ENAPIN => ENAPIN_RLMON)
+        DWIDTH => RLB_DI'length,
+        ENAPIN => ENAPIN_RLBMON)
       port map (
         CLK     => CLK,
-        RL_DI   => RL_DI,
-        RL_ENA  => RL_ENA,
-        RL_BUSY => RL_BUSY,
-        RL_DO   => RL_DO,
-        RL_VAL  => RL_VAL,
-        RL_HOLD => RL_HOLD
+        RL_DI   => RLB_DI,
+        RL_ENA  => RLB_ENA,
+        RL_BUSY => RLB_BUSY_L,
+        RL_DO   => RLB_DO_L,
+        RL_VAL  => RLB_VAL_L,
+        RL_HOLD => RLB_HOLD
       );
-  end generate RLMON;
+  end generate RLBMON;
 
-  RBMON: if ENAPIN_RBMON >= 0  generate
-    MON : rb_mon_sb
-      generic map (
-        DBASE  => 8,
-        ENAPIN => ENAPIN_RBMON)
-      port map (
-        CLK     => CLK,
-        RB_MREQ => RB_MREQ_L,
-        RB_SRES => RB_SRES,
-        RB_LAM  => RB_LAM,
-        RB_STAT => RB_STAT
-      );
-  end generate RBMON;
-  
 -- synthesis translate_on
 
 end syn;

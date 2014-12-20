@@ -1,6 +1,6 @@
--- $Id: cdata2byte.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: cdata2byte.vhd 596 2014-10-17 19:50:07Z mueller $
 --
--- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,10 +18,11 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-10-12   596   2.0    re-write, commas now 2 byte sequences
 -- 2011-11-19   427   1.0.2  now numeric_std clean
 -- 2007-10-12    88   1.0.1  avoid ieee.std_logic_unsigned, use cast to unsigned
 -- 2007-06-30    62   1.0    Initial version 
@@ -32,52 +33,43 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 use work.slvtypes.all;
+use work.comlib.all;
 
 entity cdata2byte is                    -- 9bit comma,data -> byte stream
-  generic (
-    CPREF : slv4 :=  "1000";            -- comma prefix
-    NCOMM : positive :=  4);            -- number of comma chars
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- reset
+    ESCXON : in slbit;                  -- enable xon/xoff escaping
+    ESCFILL : in slbit;                 -- enable fill escaping
     DI : in slv9;                       -- input data; bit 8 = comma flag
-    ENA : in slbit;                     -- write enable
-    BUSY : out slbit;                   -- write port hold    
+    ENA : in slbit;                     -- input data enable
+    BUSY : out slbit;                   -- input data busy    
     DO : out slv8;                      -- output data
-    VAL : out slbit;                    -- read valid
-    HOLD : in slbit                     -- read hold
+    VAL : out slbit;                    -- output data valid
+    HOLD : in slbit                     -- output data hold
   );
 end cdata2byte;
 
 
 architecture syn of cdata2byte is
 
-  type state_type is (
-    s_idle,
-    s_data,
-    s_comma,
-    s_escape,
-    s_edata
-  );
-
   type regs_type is record
-    data : slv8;                        -- current data
-    state : state_type;                 -- state
+    data : slv8;                        -- data
+    ecode : slv3;                       -- ecode
+    dataval : slbit;                    -- data valid
+    ecodeval : slbit;                   -- ecode valid
   end record regs_type;
 
   constant regs_init : regs_type := (
-    (others=>'0'),
-    s_idle
+    (others=>'0'),                      -- data
+    (others=>'0'),                      -- ecode
+    '0','0'                             -- dataval,ecodeval
   );
 
   signal R_REGS : regs_type := regs_init;  -- state registers
   signal N_REGS : regs_type := regs_init;  -- next value state regs
 
 begin
-
-  assert NCOMM <= 14
-    report "assert(NCOMM <= 14)"
-    severity FAILURE;
 
   proc_regs: process (CLK)
   begin
@@ -92,79 +84,83 @@ begin
 
   end process proc_regs;
 
-  proc_next: process (R_REGS, DI, ENA, HOLD)
+  proc_next: process (R_REGS, DI, ENA, HOLD, ESCXON, ESCFILL)
 
     variable r : regs_type := regs_init;
     variable n : regs_type := regs_init;
 
-    variable ido : slv8 := (others=>'0');
-    variable ival : slbit := '0';
-    variable ibusy : slbit := '0';
+    variable idata  : slv8 := (others=>'0');
+    variable iecode : slv3 := (others=>'0');
+    variable iesc   : slbit := '0';
+    variable ibusy  : slbit := '0';
     
   begin
 
     r := R_REGS;
     n := R_REGS;
 
-    ido := r.data;
-    ival := '0';
+    -- data path logic
+    iesc   := '0';
+    iecode := '0' & DI(1 downto 0);
+    if DI(8) = '1' then
+      iesc   := '1';
+    else
+      case DI(7 downto 0) is
+        when c_cdata_xon =>
+          if ESCXON = '1' then
+            iesc   := '1';
+            iecode := c_cdata_ec_xon;
+          end if;
+        when c_cdata_xoff =>
+          if ESCXON = '1' then
+            iesc   := '1';
+            iecode := c_cdata_ec_xoff;
+          end if;
+        when c_cdata_fill =>
+          if ESCFILL = '1' then
+            iesc   := '1';
+            iecode := c_cdata_ec_fill;
+          end if;
+        when c_cdata_escape =>
+          iesc   := '1';
+          iecode := c_cdata_ec_esc;
+        when others => null;
+      end case;
+    end if;
+
+    if iesc = '0' then
+      idata := DI(7 downto 0);
+    else
+      idata := c_cdata_escape;
+    end if;
+
+    -- control path logic
     ibusy := '1';
-    
-    case r.state is
-      
-      when s_idle =>
+    if HOLD = '0' then
+      n.dataval := '0';
+      if r.ecodeval = '1' then
+        n.data(c_cdata_edf_pref) := c_cdata_ed_pref;
+        n.data(c_cdata_edf_eci)  := not r.ecode;
+        n.data(c_cdata_edf_ec )  := r.ecode;
+        n.dataval  := '1';
+        n.ecodeval := '0';
+      else
         ibusy := '0';
         if ENA = '1' then
-          n.data := DI(7 downto 0);
-          n.state := s_data;
-          if DI(8) = '1' then
-            n.state := s_comma;
-          else
-            if DI(7 downto 4)=CPREF  and
-              (DI(3 downto 0)="1111"  or
-               unsigned(DI(3 downto 0))<=NCOMM) then
-              n.state := s_escape;
-            end if;
-          end if;
+          n.data     := idata;
+          n.dataval  := '1';
+          n.ecode    := iecode;
+          n.ecodeval := iesc;
         end if;
-
-      when s_data =>
-        ival := '1';
-        if HOLD = '0' then
-          n.state := s_idle;
-        end if;
-
-      when s_comma =>
-        ido := CPREF & r.data(3 downto 0);
-        ival := '1';
-        if HOLD = '0' then
-          n.state := s_idle;
-        end if;
-
-      when s_escape =>
-        ido := CPREF & "1111";
-        ival := '1';
-        if HOLD = '0' then
-          n.state := s_edata;
-        end if;
-
-      when s_edata =>
-        ido := (not CPREF) & r.data(3 downto 0);
-        ival := '1';
-        if HOLD = '0' then
-          n.state := s_idle;
-        end if;
-
-      when others => null;
-    end case;
+      end if;
+    end if;
 
     N_REGS <= n;
 
-    DO   <= ido;
-    VAL  <= ival;
+    DO   <= r.data;
+    VAL  <= r.dataval;
     BUSY <= ibusy;
     
   end process proc_next;
-
 
 end syn;

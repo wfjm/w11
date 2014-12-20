@@ -1,6 +1,6 @@
--- $Id: tbu_rlink_sp1c.vhd 442 2011-12-23 10:03:28Z mueller $
+-- $Id: tbu_rlink_sp1c.vhd 593 2014-09-14 22:21:33Z mueller $
 --
--- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -32,10 +32,12 @@
 -- 2007-10-27    92  8.2.03 I34  xc3s1000-4   283  594   18  323 s 10.3
 -- 2007-10-27    92  8.1.03 I27  xc3s1000-4   285  596   18    - s 9.32
 --
--- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-08-31   590   4.0    now full rlink v4 iface, 4 bit STAT
+-- 2014-08-15   583   3.5    rb_mreq addr now 16 bit
 -- 2011-12-22   442   3.2    renamed and retargeted to test rlink_sp1c
 -- 2011-11-19   427   3.1.2  now numeric_std clean
 -- 2010-12-28   350   3.1.1  use CLKDIV/CDINIT=0;
@@ -76,14 +78,14 @@ entity tbu_rlink_sp1c is                -- rlink core+serport combo
     RB_MREQ_re : out slbit;             -- rbus: request - re
     RB_MREQ_we : out slbit;             -- rbus: request - we
     RB_MREQ_initt: out slbit;           -- rbus: request - init; avoid name coll
-    RB_MREQ_addr : out slv8;            -- rbus: request - addr
+    RB_MREQ_addr : out slv16;           -- rbus: request - addr
     RB_MREQ_din : out slv16;            -- rbus: request - din
     RB_SRES_ack : in slbit;             -- rbus: response - ack
     RB_SRES_busy : in slbit;            -- rbus: response - busy
     RB_SRES_err : in slbit;             -- rbus: response - err
     RB_SRES_dout : in slv16;            -- rbus: response - dout
     RB_LAM : in slv16;                  -- rbus: look at me
-    RB_STAT : in slv3                   -- rbus: status flags
+    RB_STAT : in slv4                   -- rbus: status flags
   );
 end entity tbu_rlink_sp1c;
 
@@ -119,13 +121,14 @@ begin
 
   RLINK : rlink_sp1c
     generic map (
-      ATOWIDTH     => 5,
-      ITOWIDTH     => 6,
-      CPREF        => c_rlink_cpref,
+      BTOWIDTH     =>  5,
+      RTAWIDTH     => 11,
+      SYSID        => x"76543210",
       IFAWIDTH     => 5,
       OFAWIDTH     => 5,
-      ENAPIN_RLMON => -1,               -- no monitors (both are instantiated in
-      ENAPIN_RBMON => -1,               --   tbd_rlink_sp1c for ssim avail.)
+      ENAPIN_RLMON => sbcntl_sbf_rlmon,
+      ENAPIN_RLBMON=> sbcntl_sbf_rlbmon,
+      ENAPIN_RBMON => sbcntl_sbf_rbmon,
       CDWIDTH      => 15,
       CDINIT       => c_cdinit)
     port map (

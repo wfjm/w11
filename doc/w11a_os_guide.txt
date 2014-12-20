@@ -1,4 +1,4 @@
-# $Id: w11a_os_guide.txt 563 2014-06-22 15:49:09Z mueller $
+# $Id: w11a_os_guide.txt 581 2014-08-10 21:48:46Z mueller $
 
 Guide to run operating system images on w11a systems
 
@@ -76,8 +76,8 @@ Guide to run operating system images on w11a systems
    - setup vt100 emulator windows
 
        cd $RETROBASE/tools/oskit/<oskit-name>
-       telnet_starter -d DL0 &
-       telnet_starter -d DL1 &
+       console_starter -d DL0 &
+       console_starter -d DL1 &
 
    - setup rlink connection using ti_rri backend server via the ti_w11 
      quick start wrapper script. Ensure that all 8 switches on the board
@@ -120,7 +120,7 @@ Guide to run operating system images on w11a systems
    - setup vt100 emulator window for 2nd DL11
 
        cd $RETROBASE/tools/oskit/<oskit-name>
-       telnet_starter -s -d DL1 &
+       console_starter -s -d DL1 &
 
        {Note: the -s ensures that the port numbers used by simh are taken!}
 

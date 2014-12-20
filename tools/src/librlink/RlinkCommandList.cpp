@@ -1,4 +1,4 @@
-// $Id: RlinkCommandList.cpp 576 2014-08-02 12:24:28Z mueller $
+// $Id: RlinkCommandList.cpp 606 2014-11-24 07:08:51Z mueller $
 //
 // Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-11-23   606   1.2    new rlink v4 iface
 // 2014-08-02   576   1.1    rename LastExpect->SetLastExpect
 // 2013-05-06   495   1.0.3  add RlinkContext to Print() args
 // 2013-02-03   481   1.0.2  use Rexception
@@ -23,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: RlinkCommandList.cpp 576 2014-08-02 12:24:28Z mueller $
+  \version $Id: RlinkCommandList.cpp 606 2014-11-24 07:08:51Z mueller $
   \brief   Implemenation of class RlinkCommandList.
  */
 
@@ -52,7 +53,8 @@ namespace Retro {
 //! Default constructor
 
 RlinkCommandList::RlinkCommandList()
-  : fList() 
+  : fList(),
+    fLaboIndex(-1)
 {
   fList.reserve(16);                        // should prevent most re-alloc's
 }
@@ -168,10 +170,10 @@ size_t RlinkCommandList::AddWblk(uint16_t addr, const uint16_t* block,
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-size_t RlinkCommandList::AddStat()
+size_t RlinkCommandList::AddLabo()
 {
   RlinkCommand* pcmd = new RlinkCommand();
-  pcmd->CmdStat();
+  pcmd->CmdLabo();
   return AddCommand(pcmd);
 }
 
@@ -198,19 +200,6 @@ size_t RlinkCommandList::AddInit(uint16_t addr, uint16_t data)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RlinkCommandList::LastVolatile()
-{
-  size_t ncmd = fList.size();
-  if (ncmd == 0)
-    throw Rexception("RlinkCommandList::LastVolatile()", 
-                     "Bad state: list empty");
-  fList[ncmd-1]->SetFlagBit(RlinkCommand::kFlagVol);
-  return;
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
 void RlinkCommandList::SetLastExpect(RlinkCommandExpect* pexp)
 {
   size_t ncmd = fList.size();
@@ -226,8 +215,9 @@ void RlinkCommandList::SetLastExpect(RlinkCommandExpect* pexp)
 
 void RlinkCommandList::Clear()
 {
-  
+  foreach_ (RlinkCommand* pcmd, fList) { delete pcmd; }
   fList.clear();
+  fLaboIndex = -1;
   return;
 }
 
@@ -252,6 +242,7 @@ void RlinkCommandList::Dump(std::ostream& os, int ind, const char* text) const
   RosFill bl(ind);
   os << bl << (text?text:"--") << "RlinkCommandList @ " << this << endl;
 
+  os << bl << "  fLaboIndex:      " << fLaboIndex << endl;
   for (size_t i=0; i<Size(); i++) {
     string pref("fList[");
     pref << RosPrintf(i) << RosPrintf("]: ");

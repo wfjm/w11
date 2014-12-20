@@ -1,4 +1,4 @@
-# $Id: Makefile 529 2013-08-02 17:15:43Z mueller $
+# $Id: Makefile 601 2014-11-07 22:44:43Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -9,7 +9,8 @@
 include ../checkpath_cpp.mk
 #
 INCLFLAGS  = -I${TCLINC} -I${RETROBASE}/tools/src
-LDLIBS     = -ltcl -lreadline
+LDLIBS     = -lreadline
+LDLIBS    += -L$(TCLLIB) -l$(TCLLIBNAME) -lreadline
 LDLIBS    += -L${RETROBASE}/tools/lib -lrtcltools
 LDLIBS    +=   -lrutiltpp -lrlinktpp -lrwxxtpp
 #LDLIBS    +=   -lrusbtpp

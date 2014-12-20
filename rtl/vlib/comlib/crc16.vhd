@@ -1,6 +1,6 @@
--- $Id: crc8.vhd 410 2011-09-18 11:23:09Z mueller $
+-- $Id: crc16.vhd 595 2014-09-28 08:47:45Z mueller $
 --
--- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -12,32 +12,23 @@
 -- for complete details.
 --
 ------------------------------------------------------------------------------
--- Module Name:    crc8 - syn
--- Description:    8bit CRC generator, use 'A6' polynomial of Koopman and
---                 Chakravarty. Has HD=3 for up to 247 bits and optimal HD=2
---                 error detection for longer messages:
+-- Module Name:    crc16 - syn
+-- Description:    16bit CRC generator, use CCITT polynomial
+--                      x^16 + x^12 + x^5 + 1   (0x1021)
 --
---                      x^8 + x^6 + x^3 + x^2 + 1   (0xa6)
---
---                 It is irreducible, and can be implemented with <= 37 xor's
---                 This polynomial is described in
---                   http://dx.doi.org/10.1109%2FDSN.2004.1311885
 --
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.2, 9.1, 9.2,.., 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 14.7; ghdl 0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
--- 2011-09-17   410 13.1    O40d xc3s1200e-4    8   25    -   13   (A6 polynom)
--- 2011-09-17   409 13.1    O40d xc3s1200e-4    8   18    -   10   (SAE J1850)
+-- 2014-09-27   595 14.7  131013 xc6slx16-2    16   16    -    4
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2011-09-17   409   1.1    use now 'A6' polynomial of Koopman et al.
--- 2011-08-14   406   1.0.1  remove superfluous variable r
--- 2007-07-08    65   1.0    Initial version 
+-- 2014-09-27   595   1.0    Initial version 
 ------------------------------------------------------------------------------
 
 library ieee;
@@ -46,21 +37,21 @@ use ieee.std_logic_1164.all;
 use work.slvtypes.all;
 use work.comlib.all;
 
-entity crc8 is                          -- crc-8 generator, checker
+entity crc16 is                         -- crc-16 generator, checker
   generic (
-    INIT: slv8 :=  "00000000");         -- initial state of crc register
+    INIT: slv16 := (others=>'0'));      -- initial state of crc register
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- reset
     ENA : in slbit;                     -- update enable
     DI : in slv8;                       -- input data
-    CRC : out slv8                      -- crc code
+    CRC : out slv16                     -- crc code
   );
-end crc8;
+end crc16;
 
 
-architecture syn of crc8 is
-  signal R_CRC : slv8 := INIT;         -- state registers
+architecture syn of crc16 is
+  signal R_CRC : slv16 := INIT;         -- state registers
 begin
 
   proc_regs: process (CLK)
@@ -71,7 +62,7 @@ begin
         R_CRC <= INIT;
       else
         if ENA = '1' then
-          R_CRC <= crc8_update(R_CRC, DI);
+          R_CRC <= crc16_update(R_CRC, DI);
         end if;
       end if;
     end if;

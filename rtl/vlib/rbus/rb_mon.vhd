@@ -1,6 +1,6 @@
--- $Id: rb_mon.vhd 444 2011-12-25 10:04:58Z mueller $
+-- $Id: rb_mon.vhd 599 2014-10-25 13:43:56Z mueller $
 --
--- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -17,10 +17,14 @@
 --
 -- Dependencies:   -
 -- Test bench:     -
--- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-10-25   599   4.1.1  use writeoptint()
+-- 2014-09-03   591   4.1    add burst counter; add state checker
+-- 2014-08-30   589   4.0    use hex for addr; 4 bit STAT; monitor ACK=0
+-- 2014-08-15   583   3.5    rb_mreq addr now 16 bit
 -- 2011-12-23   444   3.1    CLK_CYCLE now integer
 -- 2011-11-19   427   3.0.1  now numeric_std clean
 -- 2010-12-22   346   3.0    renamed rritb_rbmon -> rb_mon
@@ -55,7 +59,7 @@ entity rb_mon is                        -- rbus monitor (for tb's)
     RB_MREQ : in rb_mreq_type;          -- rbus: request
     RB_SRES : in rb_sres_type;          -- rbus: response
     RB_LAM : in slv16 := (others=>'0'); -- rbus: look at me
-    RB_STAT : in slv3                   -- rbus: status flags
+    RB_STAT : in slv4                   -- rbus: status flags
   );
 end rb_mon;
 
@@ -66,27 +70,29 @@ begin
 
   proc_moni: process
     variable oline : line;
-    variable nhold : integer := 0;
+    variable nhold  : integer := 0;
+    variable nburst : integer := 0;
     variable data : slv16 := (others=>'0');
     variable tag : string(1 to 8) := (others=>' ');
     variable err : slbit := '0';
+    variable r_sel : slbit := '0';
 
     procedure write_data(L: inout line;
                          tag: in string;
                          data: in slv16;
-                         nhold: in integer := 0;
+                         nhold:  in integer := 0;
+                         nburst: in integer := 0;
                          cond: in boolean := false;
                          ctxt: in string := " ") is
     begin
       writetimestamp(L, CLK_CYCLE, tag);
-      write(L, RB_MREQ.addr, right, 10);
-      write(L, string'(" "));
+      writehex(L, RB_MREQ.addr, right, 4);
+      write(L, string'("  "));
       writegen(L, data, right, 0, DBASE);
+      write(L, string'("  "));
       write(L, RB_STAT, right, 4);
-      if nhold > 0 then
-        write(L, string'("  nhold="));
-        write(L, nhold);
-      end if;
+      writeoptint(L, "  hold=", nhold,  2);
+      writeoptint(L, "  b=",    nburst, 2);
       if cond then
         write(L, ctxt);
       end if;
@@ -103,7 +109,11 @@ begin
 
       wait until rising_edge(CLK);      -- check at end of clock cycle
 
-      if RB_MREQ.aval='1' and (RB_MREQ.re='1' or RB_MREQ.we='1') then
+      if RB_MREQ.aval='1' and r_sel='0' then
+        nburst := 0;
+      end if;
+
+      if RB_MREQ.re='1' or RB_MREQ.we='1' then
         if RB_SRES.err = '1' then
           err := '1';
         end if;
@@ -121,31 +131,137 @@ begin
             tag  :=  ": rbwe  ";
           end if;
 
-          write_data(oline, tag, data, nhold, err='1', "  ERR='1'");
+          if RB_SRES.ack = '1' then
+            write_data(oline, tag, data, nhold, nburst, err='1', "  ERR='1'");
+          else
+            write_data(oline, tag, data, nhold, nburst, true,    "  ACK='0'");
+          end if;
+          nburst := nburst + 1;
           nhold := 0;
         end if;
         
       else
         if nhold > 0 then
-          write_data(oline, tag, data, nhold, true, "  TIMEOUT");
+          write_data(oline, tag, data, nhold, nburst, true, "  TIMEOUT");
         end if;
         nhold := 0;
         err := '0';
       end if;
 
       if RB_MREQ.init = '1' then                     -- init
-        if RB_MREQ.we = '1' then
-          write_data(oline, ": rbini ", RB_MREQ.din);  -- external
-        else
-          write_data(oline, ": rbint ", RB_MREQ.din);  -- internal
-        end if;
+        write_data(oline, ": rbini ", RB_MREQ.din);
       end if;
 
       if unsigned(RB_LAM) /= 0 then
-        write_data(oline, ": rblam ", RB_LAM, 0, true, "  RB_LAM active");
+        write_data(oline, ": rblam ", RB_LAM, 0, 0, true, "  RB_LAM active");
       end if;
-                  
+
+      r_sel := RB_MREQ.aval;
+
     end loop;
   end process proc_moni;
+
+  proc_check: process (CLK)
+    variable r_sel  : slbit := '0';
+    variable r_addr : slv16 := (others=>'0');
+    variable idump  : boolean := false;
+    variable oline : line;
+  begin
+
+    if rising_edge(CLK) then
+      idump := false;
+      
+      -- check that addr doesn't change after 1st aval cycle
+      if r_sel='1' and RB_MREQ.addr /= r_addr then
+        writetimestamp(oline, CLK_CYCLE,
+          ": FAIL rb_mon: addr changed after aval; initial addr=");
+        writehex(oline, r_addr, right, 4);
+        writeline(output, oline);
+        idump := true;
+      end if;
+
+      -- check that we,re don't come together in core select time
+      --   (aval and r_sel) and not at all outside
+      if RB_MREQ.aval='1' and r_sel='1' then
+        if RB_MREQ.we='1' and RB_MREQ.re='1' then
+          writetimestamp(oline, CLK_CYCLE,
+            ": FAIL rb_mon: we and re both active");
+          writeline(output, oline);
+          idump := true;
+        end if;
+        if RB_MREQ.init='1' then
+          writetimestamp(oline, CLK_CYCLE,
+            ": FAIL rb_mon: init seen inside select");
+          writeline(output, oline);
+          idump := true;          
+        end if;
+      else
+        if RB_MREQ.we='1' or RB_MREQ.re='1' then
+          writetimestamp(oline, CLK_CYCLE,
+            ": FAIL rb_mon: no select and we,re seen");
+          writeline(output, oline);
+          idump := true;
+        end if;
+      end if;
+      
+      -- check that init not seen when aval or select is active
+      if RB_MREQ.aval='1' or r_sel='1' then
+        if RB_MREQ.init='1' then
+          writetimestamp(oline, CLK_CYCLE,
+            ": FAIL rb_mon: init seen inside aval or select");
+          writeline(output, oline);
+          idump := true;          
+        end if;
+      end if;
+
+      -- check that SRES isn't touched unless aval or select is active
+      if RB_MREQ.aval='0' and r_sel='0' then
+        if RB_SRES.dout/=x"0000" or RB_SRES.busy='1' or
+           RB_SRES.ack='1' or RB_SRES.err='1' then
+          writetimestamp(oline, CLK_CYCLE,
+            ": FAIL rb_mon: SRES driven outside aval or select");
+          writeline(output, oline);
+          idump := true;
+        end if;
+      end if;
+
+      -- dump rbus state in case of any error seen above
+      if idump then
+        write(oline, string'("   FAIL: MREQ aval="));
+        write(oline, RB_MREQ.aval, right, 1);
+        write(oline, string'(" re="));
+        write(oline, RB_MREQ.re  , right, 1);
+        write(oline, string'(" we="));
+        write(oline, RB_MREQ.we  , right, 1);
+        write(oline, string'(" init="));
+        write(oline, RB_MREQ.init, right, 1);
+        write(oline, string'(" sel="));
+        write(oline, r_sel       , right, 1);
+        write(oline, string'(" addr="));
+        writehex(oline, RB_MREQ.addr, right, 4);
+        write(oline, string'(" din="));
+        writehex(oline, RB_MREQ.din,  right, 4);
+        writeline(output, oline);
+        
+        write(oline, string'("   FAIL: SRES ack="));
+        write(oline, RB_SRES.ack , right, 1);
+        write(oline, string'(" busy="));
+        write(oline, RB_SRES.busy, right, 1);
+        write(oline, string'(" err="));
+        write(oline, RB_SRES.err , right, 1);
+        write(oline, string'(" dout="));
+        writehex(oline, RB_SRES.dout, right, 4);
+        writeline(output, oline);
+      end if;
+
+      -- keep track of select state and latch current addr
+      if RB_MREQ.aval='1' and r_sel='0' then  -- if 1st cycle of aval
+        r_addr := RB_MREQ.addr;                     -- latch addr
+      end if;
+      -- select simply aval if last cycle (assume all addr are valid)
+      r_sel := RB_MREQ.aval;
+    end if;
+    
+  end process proc_check;
   
 end sim;

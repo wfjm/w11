@@ -1,22 +1,32 @@
 /* -*- c++ -*- */
-/* $Id: syncdelay.h 395 2011-07-17 22:02:55Z mueller $ */
-/*-----------------------------------------------------------------------------
- * Synchronization delay for FX2 access to specific registers
- *-----------------------------------------------------------------------------
- * Code taken from USRP2 firmware (GNU Radio Project), version 3.0.2,
+/* $Id: syncdelay.h 604 2014-11-16 22:33:09Z mueller $ */
+/*
+ * Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+ * Code was forked from USRP2 firmware (GNU Radio Project), version 3.0.2
+ *
+ * - original copyright and licence disclaimers -------------------------------
  * Copyright 2003 Free Software Foundation, Inc.
+ * This code is part of usbjtag.
  *-----------------------------------------------------------------------------
- * This code is part of usbjtag. usbjtag is free software; you can redistribute
- * it and/or modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the License,
- * or (at your option) any later version. usbjtag is distributed in the hope
- * that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.  You should have received a
- * copy of the GNU General Public License along with this program in the file
- * COPYING; if not, write to the Free Software Foundation, Inc., 51 Franklin
- * St, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * This program is free software; you may redistribute and/or modify it under
+ * the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 2, or at your option any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for complete details.
+ *  
  *-----------------------------------------------------------------------------
+ *
+ * Synchronization delay for FX2 access to specific registers
+ *
+ * Revision History:
+ * 
+ * Date         Rev Version  Comment
+ * 2014-11-16   604   1.1    BUGFIX: handle triple nop properly
+ * 2011-07-17   394   1.0    Initial version (from ixo-jtag/usb_jtag Rev 204)
  */
 
 #ifndef _SYNCDELAY_H_
@@ -58,8 +68,7 @@
 /*
  * FIXME ensure that the peep hole optimizer isn't screwing us
  */
-#define	SYNCDELAY	_asm nop; nop; nop; _endasm
+#define	SYNCDELAY	NOP; NOP; NOP
 #define	NOP		_asm nop; _endasm
-
 
 #endif /* _SYNCDELAY_H_ */

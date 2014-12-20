@@ -1,6 +1,6 @@
-// $Id: RtclStats.cpp 495 2013-03-06 17:13:48Z mueller $
+// $Id: RtclStats.cpp 584 2014-08-22 19:38:12Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-08-22   584   1.0.2  use nullptr
 // 2013-03-06   495   1.0.1  Rename Exec->Collect
 // 2011-02-26   364   1.0    Initial version
 // 2011-02-20   363   0.1    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RtclStats.cpp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: RtclStats.cpp 584 2014-08-22 19:38:12Z mueller $
   \brief   Implemenation of RtclStats.
 */
 
@@ -111,13 +112,13 @@ bool RtclStats::Collect(RtclArgs& args, const Context& cntx,
     for (size_t i=0; i<stats.Size(); i++) {
       const string& name(stats.Name(i));
       RtclOPtr ptup(Tcl_NewListObj(0,0));
-      Tcl_ListObjAppendElement(NULL, ptup, 
+      Tcl_ListObjAppendElement(nullptr, ptup, 
                                Tcl_NewDoubleObj(stats.Value(i)));
-      Tcl_ListObjAppendElement(NULL, ptup, 
+      Tcl_ListObjAppendElement(nullptr, ptup, 
                                Tcl_NewStringObj(name.data(), name.length()));
       if (cntx.opt == "-lall") {
         const string& text(stats.Text(i));
-        Tcl_ListObjAppendElement(NULL, ptup, 
+        Tcl_ListObjAppendElement(nullptr, ptup, 
                                  Tcl_NewStringObj(text.data(), text.length()));
       }
       if (Tcl_ListObjAppendElement(interp, plist, ptup) != TCL_OK) return false;
@@ -145,7 +146,7 @@ bool RtclStats::Collect(RtclArgs& args, const Context& cntx,
 
   } else {
     args.AppendResult("-E: BUG! RtclStats::Collect: bad option '", 
-                      cntx.opt.c_str(), "'", NULL);
+                      cntx.opt.c_str(), "'", nullptr);
     return false;
   }
   

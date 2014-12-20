@@ -1,4 +1,4 @@
-# $Id: util.tcl 575 2014-07-27 20:55:41Z mueller $
+# $Id: util.tcl 607 2014-11-30 20:02:48Z mueller $
 #
 # Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -34,8 +34,9 @@ namespace eval rw11 {
   # 
   proc setup_cpu {} {
     rlc config -basestat 2 -baseaddr 8 -basedata 8
-    rw11 rlw rls w11a 1
-    cpu0 cp -reset;                     # reset CPU
+    rlink::setup;               # basic rlink defs
+    rw11 rlw rls w11a 1;        # create 1 w11a cpu
+    cpu0 cp -reset;             # reset CPU
     return ""
   }
 

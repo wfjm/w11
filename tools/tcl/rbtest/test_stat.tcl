@@ -1,6 +1,6 @@
-# $Id: test_stat.tcl 516 2013-05-05 21:24:52Z mueller $
+# $Id: test_stat.tcl 603 2014-11-09 22:50:26Z mueller $
 #
-# Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-11-09   603   2.0    use rlink v4 address layout and iface
 # 2011-03-27   374   1.0    Initial version
 # 2011-03-20   372   0.1    First Draft
 #
@@ -25,7 +26,7 @@ package require rlink
 
 namespace eval rbtest {
   #
-  # Test with stat connectivity of the cntl register.
+  # Test with stat connectivity of the stat register.
   #
   proc test_stat {{statmsk 0x0}} {
     # quit if nothing to do...
@@ -40,13 +41,12 @@ namespace eval rbtest {
     #
     #-------------------------------------------------------------------------
     rlc log "  test 1: verify connection of cntl stat bits to stat return"
-    for {set i 0} {$i < 3} {incr i} {
+    for {set i 0} {$i < 4} {incr i} {
       set spat [expr {1 << $i}]
       if {[expr {$spat & $statmsk}]} {
-        set cntl [regbld rbtest::CNTL [list stat $spat]]
         rlc exec \
-          -wreg te.cntl $cntl \
-          -rreg te.cntl -edata $cntl \
+          -wreg te.stat $spat \
+          -rreg te.stat -edata $spat \
             -estat [regbld rlink::STAT [list stat $spat]]
       }
     }

@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: fx2load_wrapper 547 2013-12-29 13:10:07Z mueller $
+# $Id: fx2load_wrapper 604 2014-11-16 22:33:09Z mueller $
 #
-# Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-08-10   581   1.1    use _ic instead of _as as default firmware
 # 2012-02-11   457   1.0.1  use RETRO_FX2_VID/PID; check iProduct string
 # 2011-12-29   446   1.0    Initial version
 #
@@ -38,9 +39,9 @@ if (not defined $opts{board}) {
   $opts{board} = "nexys2";
 }
 if (not defined $opts{file}) {
-  $opts{file} = "nexys2_jtag_2fifo_as.ihx" if $opts{board} eq "nexys2";
-  $opts{file} = "nexys3_jtag_2fifo_as.ihx" if $opts{board} eq "nexys3";
-  $opts{file} = "nexys3_jtag_2fifo_as.ihx" if $opts{board} eq "atlys";
+  $opts{file} = "nexys2_jtag_2fifo_ic.ihx" if $opts{board} eq "nexys2";
+  $opts{file} = "nexys3_jtag_2fifo_ic.ihx" if $opts{board} eq "nexys3";
+  $opts{file} = "nexys3_jtag_2fifo_ic.ihx" if $opts{board} eq "atlys";
 }
 if (not defined $opts{ihx_path}) {
   unless (exists $ENV{RETROBASE}) {
@@ -212,7 +213,6 @@ sub print_help {
   print "  --file=f         ihx file to load (default 2fifo_as)\n";
   print "  --ihx_path=p     path to ihx files\n";
 }
-
 
 #-------------------------------------------------------------------------------
 

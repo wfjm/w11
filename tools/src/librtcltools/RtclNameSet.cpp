@@ -1,6 +1,6 @@
-// $Id: RtclNameSet.cpp 521 2013-05-20 22:16:45Z mueller $
+// $Id: RtclNameSet.cpp 584 2014-08-22 19:38:12Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-08-22   584   1.1.1  use nullptr
 // 2013-05-19   521   1.1    add CheckMatch()
 // 2013-02-03   481   1.0.1  use Rexception
 // 2011-02-20   363   1.0    Initial version
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RtclNameSet.cpp 521 2013-05-20 22:16:45Z mueller $
+  \version $Id: RtclNameSet.cpp 584 2014-08-22 19:38:12Z mueller $
   \brief   Implemenation of RtclNameSet.
 */
 
@@ -103,10 +104,10 @@ int RtclNameSet::CheckMatch(Tcl_Interp* interp, std::string& rval,
   if (it==fSet.end() || tval!=it->substr(0,tval.length())) {
     if (misserr) {
       Tcl_AppendResult(interp, "-E: bad option '", tval.c_str(),
-                       "': must be ", NULL);
+                       "': must be ", nullptr);
       const char* delim = "";
       for (nset_cit_t it1=fSet.begin(); it1!=fSet.end(); it1++) {
-        Tcl_AppendResult(interp, delim, it1->c_str(), NULL);
+        Tcl_AppendResult(interp, delim, it1->c_str(), nullptr);
         delim = ",";
       }
     }
@@ -119,11 +120,11 @@ int RtclNameSet::CheckMatch(Tcl_Interp* interp, std::string& rval,
     it1++;
     if (it1!=fSet.end() && tval==it1->substr(0,tval.length())) {
       Tcl_AppendResult(interp, "-E: ambiguous option '", tval.c_str(),
-                       "': must be ", NULL);
+                       "': must be ", nullptr);
       const char* delim = "";
       for (it1=it; it1!=fSet.end() &&
              tval==it1->substr(0,tval.length()); it1++) {
-        Tcl_AppendResult(interp, delim, it1->c_str(), NULL);
+        Tcl_AppendResult(interp, delim, it1->c_str(), nullptr);
         delim = ",";
       }
       return 0;

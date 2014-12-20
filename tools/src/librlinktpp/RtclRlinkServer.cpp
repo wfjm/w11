@@ -1,6 +1,6 @@
-// $Id: RtclRlinkServer.cpp 513 2013-05-01 14:02:06Z mueller $
+// $Id: RtclRlinkServer.cpp 584 2014-08-22 19:38:12Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-08-22   584   1.0.6  use nullptr
 // 2013-05-01   513   1.0.5  TraceLevel now uint32_t
 // 2013-04-26   510   1.0.4  change M_attn, now -info instead of -show
 // 2013-04-21   509   1.0.3  add server -resume
@@ -23,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: RtclRlinkServer.cpp 513 2013-05-01 14:02:06Z mueller $
+  \version $Id: RtclRlinkServer.cpp 584 2014-08-22 19:38:12Z mueller $
   \brief   Implemenation of class RtclRlinkServer.
  */
 
@@ -195,9 +196,10 @@ int RtclRlinkServer::M_attn(RtclArgs& args)
       for (alist_it_t it = fAttnHdl.begin(); it != fAttnHdl.end(); it++) {
         if ((*it)->Mask() & mask) {
           RtclOPtr pele(Tcl_NewListObj(0,0));
-          Tcl_ListObjAppendElement(NULL, pele, Tcl_NewIntObj((*it)->Mask()) );
-          Tcl_ListObjAppendElement(NULL, pele, (*it)->Script() );
-          Tcl_ListObjAppendElement(NULL, pres, pele);
+          Tcl_ListObjAppendElement(nullptr, pele, 
+                                   Tcl_NewIntObj((*it)->Mask()) );
+          Tcl_ListObjAppendElement(nullptr, pele, (*it)->Script() );
+          Tcl_ListObjAppendElement(nullptr, pres, pele);
         }
       }
       args.SetResult(pres);

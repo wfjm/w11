@@ -1,6 +1,6 @@
--- $Id: tbd_rlink_sp1c.vhd 476 2013-01-26 22:23:53Z mueller $
+-- $Id: tbd_rlink_sp1c.vhd 596 2014-10-17 19:50:07Z mueller $
 --
--- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -28,10 +28,11 @@
 -- To test:        rlink_sp1c
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-08-28   588   4.0    use new rlink v4 iface and 4 bit STAT
 -- 2011-12-23   444   3.2    use simclkcnt instead of simbus global
 -- 2011-12-22   442   3.1    renamed and retargeted to tbu_rlink_sp1c
 -- 2011-11-19   427   3.0.5  now numeric_std clean
@@ -84,14 +85,14 @@ entity tbd_rlink_sp1c is                -- rlink_sp1c tb design
     RB_MREQ_re : out slbit;             -- rbus: request - re
     RB_MREQ_we : out slbit;             -- rbus: request - we
     RB_MREQ_initt : out slbit;          -- rbus: request - init; avoid name coll
-    RB_MREQ_addr : out slv8;            -- rbus: request - addr
+    RB_MREQ_addr : out slv16;           -- rbus: request - addr
     RB_MREQ_din : out slv16;            -- rbus: request - din
     RB_SRES_ack : in slbit;             -- rbus: response - ack
     RB_SRES_busy : in slbit;            -- rbus: response - busy
     RB_SRES_err : in slbit;             -- rbus: response - err
     RB_SRES_dout : in slv16;            -- rbus: response - dout
     RB_LAM : in slv16;                  -- rbus: look at me
-    RB_STAT : in slv3;                  -- rbus: status flags
+    RB_STAT : in slv4;                  -- rbus: status flags
     TXRXACT : out slbit                 -- txrx active flag
   );
 end entity tbd_rlink_sp1c;
@@ -129,20 +130,20 @@ component tbu_rlink_sp1c is             -- rlink core+serport combo
     RB_MREQ_re : out slbit;             -- rbus: request - re
     RB_MREQ_we : out slbit;             -- rbus: request - we
     RB_MREQ_initt : out slbit;          -- rbus: request - init; avoid name coll
-    RB_MREQ_addr : out slv8;            -- rbus: request - addr
+    RB_MREQ_addr : out slv16;           -- rbus: request - addr
     RB_MREQ_din : out slv16;            -- rbus: request - din
     RB_SRES_ack : in slbit;             -- rbus: response - ack
     RB_SRES_busy : in slbit;            -- rbus: response - busy
     RB_SRES_err : in slbit;             -- rbus: response - err
     RB_SRES_dout : in slv16;            -- rbus: response - dout
     RB_LAM : in slv16;                  -- rbus: look at me
-    RB_STAT : in slv3                   -- rbus: status flags
+    RB_STAT : in slv4                   -- rbus: status flags
   );
 end component;
 
 begin
 
-  UUT : tbu_rlink_sp1c
+  TBU : tbu_rlink_sp1c
     port map (
       CLK          => CLK,
       CE_INT       => CE_INT,
@@ -197,14 +198,12 @@ begin
   TXRXACT <= RXACT or TXBUSY;
   
   B2CD : byte2cdata                     -- byte stream -> 9bit comma,data
-    generic map (
-      CPREF => c_rlink_cpref,
-      NCOMM => c_rlink_ncomm)
     port map (
       CLK   => CLK,
       RESET => RESET,
       DI    => RXDATA,
       ENA   => RXVAL,
+      ERR   => '0',
       BUSY  => open,
       DO    => RL_DO,
       VAL   => RL_VAL,
@@ -212,18 +211,17 @@ begin
     );
 
   CD2B : cdata2byte                     -- 9bit comma,data -> byte stream
-    generic map (
-      CPREF => c_rlink_cpref,
-      NCOMM => c_rlink_ncomm)
     port map (
-      CLK   => CLK,
-      RESET => RESET,
-      DI    => RL_DI,
-      ENA   => RL_ENA,
-      BUSY  => RL_BUSY,
-      DO    => TXDATA,
-      VAL   => TXENA,
-      HOLD  => TXBUSY
+      CLK     => CLK,
+      RESET   => RESET,
+      ESCXON  => '0',
+      ESCFILL => '0',
+      DI      => RL_DI,
+      ENA     => RL_ENA,
+      BUSY    => RL_BUSY,
+      DO      => TXDATA,
+      VAL     => TXENA,
+      HOLD    => TXBUSY
     );
   
   CLKCNT : simclkcnt port map (CLK => CLK, CLK_CYCLE => CLK_CYCLE);

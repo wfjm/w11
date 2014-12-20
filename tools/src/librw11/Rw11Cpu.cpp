@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.cpp 576 2014-08-02 12:24:28Z mueller $
+// $Id: Rw11Cpu.cpp 602 2014-11-08 21:42:47Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -21,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cpu.cpp 576 2014-08-02 12:24:28Z mueller $
+  \version $Id: Rw11Cpu.cpp 602 2014-11-08 21:42:47Z mueller $
   \brief   Implemenation of Rw11Cpu.
 */
 #include <stdlib.h>
@@ -416,7 +416,7 @@ bool Rw11Cpu::LoadAbs(const std::string& fname, RerrMsg& emsg, bool trace)
   };
 
   typedef std::map<uint16_t, uint16_t> obmap_t;
-  typedef obmap_t::iterator         obmap_it_t;
+  //typedef obmap_t::iterator         obmap_it_t;
   typedef obmap_t::const_iterator   obmap_cit_t;
   typedef obmap_t::value_type       obmap_val_t;
 

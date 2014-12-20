@@ -1,6 +1,6 @@
-// $Id: RlinkPort.hpp 513 2013-05-01 14:02:06Z mueller $
+// $Id: RlinkPort.hpp 611 2014-12-10 23:23:58Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-10   611   1.2.2  add time stamps for Read/Write for logs
 // 2013-05-01   513   1.2.1  fTraceLevel now uint32_t
 // 2013-02-23   492   1.2    use RparseUrl
 // 2013-02-22   491   1.1    use new RlogFile/RlogMsg interfaces
@@ -26,7 +27,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPort.hpp 513 2013-05-01 14:02:06Z mueller $
+  \version $Id: RlinkPort.hpp 611 2014-12-10 23:23:58Z mueller $
   \brief   Declaration of class RlinkPort.
 */
 
@@ -78,9 +79,9 @@ namespace Retro {
       virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
 
     // some constants (also defined in cpp)
-      static const int  kEof  = 0;          //<!
-      static const int  kTout = -1;         //<!
-      static const int  kErr  = -2;         //<1
+      static const int  kEof  =  0;         //<! return code: end-of-file 
+      static const int  kTout = -1;         //<! return code: time out
+      static const int  kErr  = -2;         //<! return code: IO error
 
     // statistics counter indices
       enum stats {
@@ -103,6 +104,8 @@ namespace Retro {
       int           fFdWrite;               //!< fd for write
       boost::shared_ptr<RlogFile>  fspLog;  //!< log file ptr
       uint32_t      fTraceLevel;            //!< trace level
+      double        fTsLastRead;            //!< time stamp last write
+      double        fTsLastWrite;           //!< time stamp last write
       Rstats        fStats;                 //!< statistics
   };
   

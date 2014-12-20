@@ -1,6 +1,6 @@
-// $Id: RtclAttnShuttle.cpp 521 2013-05-20 22:16:45Z mueller $
+// $Id: RtclAttnShuttle.cpp 602 2014-11-08 21:42:47Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-11-08   602   1.0.3  cast int first to ptrdiff_t, than to ClientData
+// 2014-08-22   584   1.0.2  use nullptr
 // 2013-05-20   521   1.0.1  Setup proper Tcl channel options
 // 2013-03-01   493   1.0    Initial version
 // 2013-01-12   475   0.5    First draft
@@ -20,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RtclAttnShuttle.cpp 521 2013-05-20 22:16:45Z mueller $
+  \version $Id: RtclAttnShuttle.cpp 602 2014-11-08 21:42:47Z mueller $
   \brief   Implemenation of class RtclAttnShuttle.
  */
 
@@ -83,11 +85,13 @@ void RtclAttnShuttle::Add(RlinkServer* pserv, Tcl_Interp* interp)
   fpServ = pserv;
 
   // connect to Tcl
-  fShuttleChn = Tcl_MakeFileChannel((ClientData)fFdPipeRead, TCL_READABLE);
+  // cast first to ptrdiff_t to promote to proper int size
+  fShuttleChn = Tcl_MakeFileChannel((ClientData)(ptrdiff_t)fFdPipeRead, 
+                                    TCL_READABLE);
 
-  Tcl_SetChannelOption(NULL, fShuttleChn, "-buffersize", "64");
-  Tcl_SetChannelOption(NULL, fShuttleChn, "-encoding", "binary");
-  Tcl_SetChannelOption(NULL, fShuttleChn, "-translation", "binary");
+  Tcl_SetChannelOption(nullptr, fShuttleChn, "-buffersize", "64");
+  Tcl_SetChannelOption(nullptr, fShuttleChn, "-encoding", "binary");
+  Tcl_SetChannelOption(nullptr, fShuttleChn, "-translation", "binary");
 
   Tcl_CreateChannelHandler(fShuttleChn, TCL_READABLE, 
                            (Tcl_FileProc*) ThunkTclChannelHandler,
@@ -141,7 +145,8 @@ void RtclAttnShuttle::TclChannelHandler(int mask)
   Tcl_ReadRaw(fShuttleChn, (char*) &apat, sizeof(apat));
   // FIXME_code: handle return code
 
-  Tcl_SetVar2Ex(fpInterp, "Rlink_attnbits", NULL, Tcl_NewIntObj((int)apat), 0);
+  Tcl_SetVar2Ex(fpInterp, "Rlink_attnbits", nullptr, 
+                Tcl_NewIntObj((int)apat), 0);
   // FIXME_code: handle return code
 
   Tcl_EvalObjEx(fpInterp, fpScript, TCL_EVAL_GLOBAL);

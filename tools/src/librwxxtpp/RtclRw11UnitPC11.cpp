@@ -1,6 +1,6 @@
-// $Id: RtclRw11UnitPC11.cpp 515 2013-05-04 17:28:59Z mueller $
+// $Id: RtclRw11UnitPC11.cpp 584 2014-08-22 19:38:12Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,12 +13,13 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-08-22   584   1.0.1  use nullptr
 // 2013-05-03   515   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclRw11UnitPC11.cpp 515 2013-05-04 17:28:59Z mueller $
+  \version $Id: RtclRw11UnitPC11.cpp 584 2014-08-22 19:38:12Z mueller $
   \brief   Implemenation of RtclRw11UnitPC11.
 */
 
@@ -54,7 +55,8 @@ RtclRw11UnitPC11::RtclRw11UnitPC11(Tcl_Interp* interp,
     if (unitcmd.length() == 8 && unitcmd.substr(4,3) == "pca") {
       string alias = unitcmd.substr(0,4);
       alias += (ind==Rw11CntlPC11::kUnit_PR) ? "pr" : "pp";
-      Tcl_CreateAlias(interp, alias.c_str(), interp, unitcmd.c_str(), 0, NULL);
+      Tcl_CreateAlias(interp, alias.c_str(), interp, unitcmd.c_str(), 
+                      0, nullptr);
     }
   }
 }

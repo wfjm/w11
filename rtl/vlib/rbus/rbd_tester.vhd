@@ -1,6 +1,6 @@
--- $Id: rbd_tester.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: rbd_tester.vhd 593 2014-09-14 22:21:33Z mueller $
 --
--- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,15 +20,19 @@
 -- Test bench:     rlink/tb/tb_rlink (used as test target)
 --
 -- Target Devices: generic
--- Tool versions:  xst 12.1, 13.1; ghdl 0.29
+-- Tool versions:  xst 12.1-14.7; ghdl 0.29-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2014-08-31   590 14.7  131013 xc6slx16-2    74  162   16   73 s  5.8 ver 4.1
 -- 2010-12-12   344 12.1    M53d xc3s1000-4    78  204   32  133 s  8.0
 -- 2010-12-04   343 12.1    M53d xc3s1000-4    75  214   32  136 s  9.3
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-09-05   591   4.1    use new iface with 8 regs
+-- 2014-08-30   589   4.0    use new rlink v4 iface and 4 bit STAT
+-- 2014-08-15   583   3.5    rb_mreq addr now 16 bit
 -- 2011-11-19   427   1.0.4  now numeric_std clean
 -- 2010-12-31   352   1.0.3  simplify irb_ack logic
 -- 2010-12-29   351   1.0.2  default addr 111101xx->111100xx
@@ -38,16 +42,17 @@
 --
 -- rbus registers:
 --
--- Address   Bits Name        r/w/f  Function
--- bbbbbb00       cntl        r/w/-  Control register
---             15   nofifo    r/w/-    a 1 disables fifo, to test delayed aborts
---          14:12   stat      r/w/-    echo'ed on RB_STAT
---          11:00   nbusy     r/w/-    busy cycles (for data and fifo access)
--- bbbbbb01 15:00 data        r/w/-  Data register (just w/r reg, no function)
--- bbbbbb10 15:00 fifo        r/w/-  Fifo interface register
--- bbbbbb11       attn        r/w/-  Attn/Length register
---          15:00                    w: ping RB_LAM lines
---           9:00                    r: return cycle length of last access
+-- Addr   Bits  Name        r/w/f  Function
+--  000         cntl        r/w/-  Control register
+--          15    wchk      r/w/-    write check seen (cleared on data write)
+--       09:00    nbusy     r/w/-    busy cycles (for data,dinc,fifo,lnak)
+--  001  03:00  stat        r/w/-  status send to RB_STAT
+--  010         attn        -/w/f  Attn register: ping RB_LAM lines
+--  011  09:00  ncyc        r/-/-  return cycle length of last access
+--  100         data        r/w/-  Data register (plain read/write)
+--  101         dinc        r/w/-  Data register (autoinc and write check)
+--  110         fifo        r/w/-  Fifo interface register
+--  111         lnak        r/w/-  delayed ack deassert
 -- 
 
 library ieee;
@@ -61,14 +66,14 @@ use work.rblib.all;
 entity rbd_tester is                    -- rbus dev: rbus tester
                                         -- complete rrirp_aif interface
   generic (
-    RB_ADDR : slv8 := slv(to_unsigned(2#11110000#,8)));
+    RB_ADDR : slv16 := slv(to_unsigned(16#ffe0#,16)));
   port (
     CLK  : in slbit;                    -- clock
     RESET : in slbit;                   -- reset
     RB_MREQ : in rb_mreq_type;          -- rbus: request
     RB_SRES : out rb_sres_type;         -- rbus: response
     RB_LAM : out slv16;                 -- rbus: look at me
-    RB_STAT : out slv3                  -- rbus: status flags
+    RB_STAT : out slv4                  -- rbus: status flags
   );
 end entity rbd_tester;
 
@@ -77,13 +82,16 @@ architecture syn of rbd_tester is
 
   constant awidth : positive := 4;      -- fifo address width
 
-  constant rbaddr_cntl : slv2 := "00";  -- cntl address offset
-  constant rbaddr_data : slv2 := "01";  -- data address offset
-  constant rbaddr_fifo : slv2 := "10";  -- fifo address offset
-  constant rbaddr_attn : slv2 := "11";  -- attn address offset
+  constant rbaddr_cntl : slv3 := "000";  -- cntl address offset
+  constant rbaddr_stat : slv3 := "001";  -- stat address offset
+  constant rbaddr_attn : slv3 := "010";  -- attn address offset
+  constant rbaddr_ncyc : slv3 := "011";  -- ncyc address offset
+  constant rbaddr_data : slv3 := "100";  -- data address offset
+  constant rbaddr_dinc : slv3 := "101";  -- dinc address offset
+  constant rbaddr_fifo : slv3 := "110";  -- fifo address offset
+  constant rbaddr_lnak : slv3 := "111";  -- lnak address offset
 
-  constant cntl_rbf_nofifo  : integer := 15;
-  subtype  cntl_rbf_stat    is integer range 14 downto 12;
+  constant cntl_rbf_wchk    : integer := 15;
   subtype  cntl_rbf_nbusy   is integer range  9 downto  0;
 
   constant init_rbf_cntl  : integer :=  0;
@@ -92,8 +100,8 @@ architecture syn of rbd_tester is
   
   type regs_type is record              -- state registers
     rbsel : slbit;                      -- rbus select
-    nofifo : slbit;                     -- disable fifo flag
-    stat : slv3;                        -- stat setting
+    wchk : slbit;                       -- write check flag
+    stat : slv4;                        -- stat setting
     nbusy : slv10;                      -- nbusy setting
     data : slv16;                       -- data register
     act_1 : slbit;                      -- rbsel and (re or we) in last cycle
@@ -103,8 +111,7 @@ architecture syn of rbd_tester is
   end record regs_type;
 
   constant regs_init : regs_type := (
-    '0',                                -- rbsel
-    '0',                                -- nofifo
+    '0','0',                            -- rbsel, wchk
     (others=>'0'),                      -- stat
     (others=>'0'),                      -- nbusy
     (others=>'0'),                      -- data
@@ -193,7 +200,7 @@ begin
 
     -- rbus address decoder
     n.rbsel := '0';
-    if RB_MREQ.aval='1' and RB_MREQ.addr(7 downto 2)=RB_ADDR(7 downto 2) then
+    if RB_MREQ.aval='1' and RB_MREQ.addr(15 downto 3)=RB_ADDR(15 downto 3) then
 
       n.rbsel := '1';
 
@@ -218,55 +225,73 @@ begin
       
       irb_ack := irbena;                  -- ack all (some rejects later)
 
-      case RB_MREQ.addr(1 downto 0) is
+      case RB_MREQ.addr(2 downto 0) is
 
         when rbaddr_cntl =>
           if RB_MREQ.we='1' then 
-            n.nofifo := RB_MREQ.din(cntl_rbf_nofifo);
-            n.stat   := RB_MREQ.din(cntl_rbf_stat);
+            n.wchk   := RB_MREQ.din(cntl_rbf_wchk);
             n.nbusy  := RB_MREQ.din(cntl_rbf_nbusy);
-            if r.nofifo='1' and RB_MREQ.din(cntl_rbf_nofifo)='0' then
-              ififo_reset := '1';
-            end if;
+          end if;
+          
+        when rbaddr_stat =>
+          if RB_MREQ.we='1' then 
+            n.stat   := RB_MREQ.din(r.stat'range);
+          end if;
+          
+        when rbaddr_attn =>
+          if RB_MREQ.we = '1' then      -- on we
+            irblam := RB_MREQ.din;        -- ping lam lines 
+          elsif RB_MREQ.re = '1'  then  -- on re
+            irb_err := '1';               -- reject
+          end if;
+          
+        when rbaddr_ncyc =>
+          if RB_MREQ.we = '1' then      -- on we
+            irb_err := '1';               -- reject
           end if;
           
         when rbaddr_data =>
           irb_busy := irbena and isbusy;
           if RB_MREQ.we='1' and isbusy='0' then
+            n.wchk := '0';
             n.data := RB_MREQ.din;
           end if;
           
-        when rbaddr_fifo =>
-          if r.nofifo = '0' then            -- if fifo enabled
-            irb_busy := irbena and isbusy;
-            if RB_MREQ.re='1' and isbusy='0' then
-              if FIFO_EMPTY = '1' then
-                irb_err := '1';
-              else
-                ififo_re := '1';
-              end if;
-            end if;
-            if RB_MREQ.we='1' and isbusy='0' then
-              if FIFO_FULL = '1' then
-                irb_err := '1';
-              else
-                ififo_we := '1';
-              end if;
-            end if;
-
-          else                              -- else: if fifo disabled
-            irb_ack := '0';                   -- nak it
-            if isbusy = '1' then              -- or do a delayed nak
-              irb_ack  := irbena;
-              irb_busy := irbena;
+        when rbaddr_dinc =>
+          irb_busy := irbena and isbusy;
+          if RB_MREQ.we = '1' then
+            if r.data /= RB_MREQ.din then
+              n.wchk := '1';
             end if;
           end if;
-
-        when rbaddr_attn =>
-          if RB_MREQ.we = '1' then
-            irblam := RB_MREQ.din;
+          if (RB_MREQ.re='1' or RB_MREQ.we='1') and isbusy='0' then
+            n.data := slv(unsigned(r.data) + 1);
           end if;
           
+        when rbaddr_fifo =>
+          irb_busy := irbena and isbusy;
+          if RB_MREQ.re='1' and isbusy='0' then
+            if FIFO_EMPTY = '1' then
+              irb_err := '1';
+            else
+              ififo_re := '1';
+            end if;
+          end if;
+          if RB_MREQ.we='1' and isbusy='0' then
+            if FIFO_FULL = '1' then
+              irb_err := '1';
+            else
+              ififo_we := '1';
+            end if;
+          end if;
+
+        when rbaddr_lnak =>
+          irb_ack := '0';                   -- nak it
+          if isbusy = '1' then              -- or do a delayed nak
+            irb_ack  := irbena;
+            irb_busy := irbena;
+          end if;
+
         when others => null;
       end case;
     end if;
@@ -276,31 +301,36 @@ begin
     --   send data only when busy=0 and err=0
     --   this extra logic allows to debug rlink state machine
     if r.rbsel = '1' then
+      irb_dout := "0101010101010101";   -- drive this pattern when selected
       if RB_MREQ.re='1' and irb_busy='0' and irb_err='0' then
-        case RB_MREQ.addr(1 downto 0) is
+        case RB_MREQ.addr(2 downto 0) is
           when rbaddr_cntl =>
-            irb_dout(cntl_rbf_stat)   := r.stat;
-            irb_dout(cntl_rbf_nofifo) := r.nofifo;
+            irb_dout := (others=>'0');
+            irb_dout(cntl_rbf_wchk)   := r.wchk;
             irb_dout(cntl_rbf_nbusy)  := r.nbusy;
-          when rbaddr_data =>
+          when rbaddr_stat =>
+            irb_dout := (others=>'0');
+            irb_dout(r.stat'range) := r.stat;
+          when rbaddr_attn => null;
+          when rbaddr_ncyc =>
+            irb_dout := (others=>'0');
+            irb_dout(r.cntcyc'range) := r.ncyc;
+          when rbaddr_data | rbaddr_dinc =>
             irb_dout := r.data;
           when rbaddr_fifo =>
-            if r.nofifo='0' and FIFO_EMPTY = '0' then
+            if FIFO_EMPTY = '0' then
               irb_dout := FIFO_DO;
             end if;
-          when rbaddr_attn =>
-            irb_dout(r.cntcyc'range) := r.ncyc;
+          when rbaddr_lnak => null;
           when others => null;
         end case;
-      else
-        irb_dout := "0101010101010101";
       end if;
     end if;
 
     -- init transactions
-    if RB_MREQ.init='1' and RB_MREQ.we='1' and RB_MREQ.addr=RB_ADDR then
+    if RB_MREQ.init='1' and RB_MREQ.addr=RB_ADDR then
       if RB_MREQ.din(init_rbf_cntl) = '1' then
-        n.nofifo := '0';
+        n.wchk   := '0';
         n.stat   := (others=>'0');
         n.nbusy  := (others=>'0');
       end if;

@@ -1,6 +1,6 @@
-// $Id: Rw11VirtTermTcp.cpp 521 2013-05-20 22:16:45Z mueller $
+// $Id: Rw11VirtTermTcp.cpp 584 2014-08-22 19:38:12Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-08-22   584   1.0.4  use nullptr
 // 2013-05-17   512   1.0.3  use Rtools::String2Long
 // 2013-05-05   516   1.0.2  fix mistakes in emsg generation with errno
 // 2013-04-20   508   1.0.1  add fSndPreConQue handling
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtTermTcp.cpp 521 2013-05-20 22:16:45Z mueller $
+  \version $Id: Rw11VirtTermTcp.cpp 584 2014-08-22 19:38:12Z mueller $
   \brief   Implemenation of Rw11VirtTermTcp.
 */
 
@@ -264,7 +265,7 @@ int Rw11VirtTermTcp::ListenPollHandler(const pollfd& pfd)
   // bail-out and cancel handler if poll returns an error event
   if (pfd.revents & (~pfd.events)) return -1;
 
-  fFd = accept(fFdListen, NULL, 0);
+  fFd = accept(fFdListen, nullptr, 0);
 
   if (fFd < 0) {
     RlogMsg lmsg(LogFile(),'E');

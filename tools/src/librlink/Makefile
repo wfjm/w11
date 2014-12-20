@@ -1,4 +1,4 @@
-# $Id: Makefile 529 2013-08-02 17:15:43Z mueller $
+# $Id: Makefile 602 2014-11-08 21:42:47Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -28,7 +28,8 @@ LDLIBS    += -L${RETROBASE}/tools/lib -lrtools
 OBJ_all    = RlinkAddrMap.o 
 OBJ_all   += RlinkCommand.o RlinkCommandExpect.o RlinkCommandList.o 
 OBJ_all   += RlinkConnect.o RlinkContext.o  RlinkChannel.o 
-OBJ_all   += RlinkCrc8.o RlinkPacketBuf.o 
+OBJ_all   += RlinkCrc16.o 
+OBJ_all   += RlinkPacketBuf.o RlinkPacketBufSnd.o RlinkPacketBufRcv.o 
 OBJ_all   += RlinkPort.o RlinkPortFactory.o 
 OBJ_all   += RlinkPortFifo.o RlinkPortTerm.o RlinkPortCuff.o 
 OBJ_all   += RtimerFd.o ReventFd.o ReventLoop.o 

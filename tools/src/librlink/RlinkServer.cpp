@@ -1,6 +1,6 @@
-// $Id: RlinkServer.cpp 513 2013-05-01 14:02:06Z mueller $
+// $Id: RlinkServer.cpp 611 2014-12-10 23:23:58Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-11   611   2.0    re-organize for rlink v4
 // 2013-05-01   513   1.0.2  fTraceLevel now uint32_t
 // 2013-04-21   509   1.0.1  add Resume(), reorganize server start handling
 // 2013-03-06   495   1.0    Initial version
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RlinkServer.cpp 513 2013-05-01 14:02:06Z mueller $
+  \version $Id: RlinkServer.cpp 611 2014-12-10 23:23:58Z mueller $
   \brief   Implemenation of RlinkServer.
 */
 
@@ -58,8 +59,8 @@ RlinkServer::RlinkServer()
     fWakeupEvent(),
     fELoop(this),
     fServerThread(),
-    fAttnSeen(false),
     fAttnPatt(0),
+    fAttnNotiPatt(0),
     fTraceLevel(0),
     fStats()
 {
@@ -261,16 +262,25 @@ void RlinkServer::Wakeup()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RlinkServer::SignalAttn()
+void RlinkServer::SignalAttnNotify(uint16_t apat)
 {    
-  boost::lock_guard<RlinkConnect> lock(*fspConn);
-  fAttnSeen = true;
+  // only called under lock !!
+  if (apat & fAttnNotiPatt) {
+    RlogMsg lmsg(LogFile(), 'W');
+    lmsg << "SignalAttnNotify: redundant notify: "
+         << "  have=" << RosPrintBvi(fAttnNotiPatt,16)
+         << "  apat=" << RosPrintBvi(apat,16);
+  }
+  fAttnNotiPatt |= apat;
   Wakeup();
   return;
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_docs
+//! Indicates whether server is active.
+/*!
+  \returns \c true if server active.
+ */
 
 bool RlinkServer::IsActive() const
 {    
@@ -278,7 +288,10 @@ bool RlinkServer::IsActive() const
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_docs
+//! Indicates whether server is active and caller is inside server thread.
+/*!
+  \returns \c true if server active and method is called from server thread.
+ */
 
 bool RlinkServer::IsActiveInside() const
 {
@@ -286,7 +299,11 @@ bool RlinkServer::IsActiveInside() const
 }
 
 //------------------------------------------+-----------------------------------
-//! FIXME_docs
+//! Indicates whether server is active and caller is outside server thread.
+/*!
+  \returns \c true if server active and method is called from a thread
+           other than the server thread.
+ */
 
 bool RlinkServer::IsActiveOutside() const
 {
@@ -330,8 +347,8 @@ void RlinkServer::Dump(std::ostream& os, int ind, const char* text) const
   os << bl << "  fActnList.size:  " << fActnList.size() << endl;
   fELoop.Dump(os, ind+2, "fELoop");
   os << bl << "  fServerThread:   " << fServerThread.get_id() << endl;
-  os << bl << "  fAttnSeen:       " << fAttnSeen << endl;
   os << bl << "  fAttnPatt:       " << RosPrintBvi(fAttnPatt,16) << endl;
+  os << bl << "  fAttnNotiPatt:   " << RosPrintBvi(fAttnNotiPatt,16) << endl;
   fStats.Dump(os, ind+2, "fStats: ");
   return;
 }
@@ -349,10 +366,10 @@ void RlinkServer::StartOrResume(bool resume)
                      "Bad state: RlinkConnect not open");
 
   boost::lock_guard<RlinkConnect> lock(Connect());
-  // enable attn comma send
+  // enable attn notify send
   RlinkCommandList clist;
   if (!resume) clist.AddAttn();
-  clist.AddInit(RlinkCommand::kRbaddr_IInt, RlinkCommand::kIInt_M_AnEna);
+  clist.AddWreg(RlinkConnect::kRbaddr_RLCNTL, RlinkConnect::kRLCNTL_M_AnEna);
   Exec(clist);
 
   // setup poll handler for Rlink traffic
@@ -381,8 +398,17 @@ void RlinkServer::StartOrResume(bool resume)
 
 void RlinkServer::CallAttnHandler()
 {
-  if (fAttnSeen) {
+  // FIXME_code: this is still V3 logic
+  //             notifier pattern is ignored, only that one was received is used
+  if (fAttnNotiPatt) {
     boost::lock_guard<RlinkConnect> lock(*fspConn);
+    uint16_t onoti = fAttnNotiPatt;
+
+    // Clear fAttnNotiPatt before clist is issued ! This avoids a race
+    // in case the attn read is followed immediately by a notify which
+    // is signaled during Exec().
+    fAttnNotiPatt = 0;
+
     RlinkCommandList clist;
     clist.AddAttn();
     fStats.Inc(kStatNAttnRead);
@@ -390,10 +416,17 @@ void RlinkServer::CallAttnHandler()
     // FIXME_code: handle errors: bool ok = 
     uint16_t nattn = clist[0].Data();
     fAttnPatt |= nattn;
+
+    if (onoti & (~nattn)) {                 // bits in notify not in attn ?
+      RlogMsg lmsg(LogFile(), 'W');
+      lmsg << "CallAttnHandler: missing lams in attn: "
+           << "  attn=" << RosPrintBvi(nattn,16)
+           << "  noti=" << RosPrintBvi(onoti,16);
+    }
+    
     for (size_t i=0; i<16; i++) {
       if (nattn & (uint16_t(1)<<i)) fStats.Inc(kStatNAttn00+i);
     }
-    fAttnSeen = false;
   }
   
   // multiple handlers may be called for one attn bit
@@ -471,13 +504,7 @@ int RlinkServer::RlinkHandler(const pollfd& pfd)
   // bail-out and cancel handler if poll returns an error event
   if (pfd.revents & (~pfd.events)) return -1;
 
-  boost::lock_guard<RlinkConnect> lock(*fspConn);
-  RerrMsg emsg;
-  int irc = fspConn->PollAttn(emsg);
-  if (irc > 0) {
-    fAttnSeen = true;
-  }
-
+  fspConn->HandleUnsolicitedData();
   return 0;
 }
 

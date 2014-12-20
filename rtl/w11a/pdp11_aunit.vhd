@@ -1,6 +1,6 @@
--- $Id: pdp11_aunit.vhd 330 2010-09-19 17:43:53Z mueller $
+-- $Id: pdp11_aunit.vhd 581 2014-08-10 21:48:46Z mueller $
 --
--- Copyright 2006-2007 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,9 +18,10 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.26
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-08-10   581   1.1.1  use c_cc_f_*
 -- 2010-09-18   300   1.1    renamed from abox
 -- 2007-06-14    56   1.0.1  Use slvtypes.all
 -- 2007-05-12    26   1.0    Initial version 
@@ -89,10 +90,10 @@ begin
     variable dst_msb : slbit := '0';    -- msb from dst (bit 15 or 7)
     variable sum_msb : slbit := '0';    -- msb from sum (bit 15 or 7)
 
-    alias NO : slbit is CCOUT(3);
-    alias ZO : slbit is CCOUT(2);
-    alias VO : slbit is CCOUT(1);
-    alias CO : slbit is CCOUT(0);
+    alias NO : slbit is CCOUT(c_cc_f_n);
+    alias ZO : slbit is CCOUT(c_cc_f_z);
+    alias VO : slbit is CCOUT(c_cc_f_v);
+    alias CO : slbit is CCOUT(c_cc_f_c);
       
     -- procedure do_add8_ci_co: 8 bit adder with carry in and carry out
     --   implemented following the recommended pattern for XST ISE V8.1

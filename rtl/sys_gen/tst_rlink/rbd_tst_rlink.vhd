@@ -1,6 +1,6 @@
--- $Id: rbd_tst_rlink.vhd 438 2011-12-11 23:40:52Z mueller $
+-- $Id: rbd_tst_rlink.vhd 603 2014-11-09 22:50:26Z mueller $
 --
--- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -26,16 +26,18 @@
 -- Test bench:     nexys3/tb/tb_tst_rlink_n3
 --
 -- Target Devices: generic
--- Tool versions:  xst 13.1; ghdl 0.29
+-- Tool versions:  xst 13.1-14.7; ghdl 0.29-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-11-09   603   4.0    use new rlink v4 iface and 4 bit STAT
+-- 2014-08-15   583   3.5    rb_mreq addr now 16 bit
 -- 2011-11-11   351   1.0    Initial version (derived from tst_rlink)
 ------------------------------------------------------------------------------
 -- Usage of STAT signal:
 --   STAT(0):   timer 0 busy 
 --   STAT(1):   timer 1 busy 
---   STAT(2:7): unused
+--   STAT(2:3): unused
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -55,7 +57,7 @@ entity rbd_tst_rlink is                 -- rbus device for tst_rlink
     RB_MREQ : in rb_mreq_type;          -- rbus: request
     RB_SRES : out rb_sres_type;         -- rbus: response
     RB_LAM : out slv16;                 -- rbus: look at me
-    RB_STAT : out slv3;                 -- rbus: status flags
+    RB_STAT : out slv4;                 -- rbus: status flags
     RB_SRES_TOP : in rb_sres_type;      -- top-level rb_sres, for rbd_mon
     RXSD : in slbit;                    -- serport rxsd, for rbd_emon
     RXACT : in slbit;                   -- serport rxact, for rbd_emon
@@ -81,12 +83,12 @@ architecture syn of rbd_tst_rlink is
   signal TIM1_DONE : slbit := '0';
   signal TIM1_BUSY : slbit := '0';
 
-  constant rbaddr_mon   : slv8 := "11111100"; -- 111111xx
-  constant rbaddr_emon  : slv8 := "11111000"; -- 111110xx
-  constant rbaddr_bram  : slv8 := "11110100"; -- 111101xx
-  constant rbaddr_test  : slv8 := "11110000"; -- 111100xx
-  constant rbaddr_tim1  : slv8 := "11100001"; -- 11100001
-  constant rbaddr_tim0  : slv8 := "11100000"; -- 11100000
+  constant rbaddr_mon   : slv16 := x"ffe8"; -- ffe8/8: 1111 1111 1110 1xxx
+  constant rbaddr_test  : slv16 := x"ffe0"; -- ffe0/8: 1111 1111 1110 0xxx
+  constant rbaddr_emon  : slv16 := x"ffd0"; -- ffd0/4: 1111 1111 1101 00xx
+  constant rbaddr_tim1  : slv16 := x"fe11"; -- fe11/1: 1111 1110 0001 0001
+  constant rbaddr_tim0  : slv16 := x"fe10"; -- fe10/1: 1111 1110 0001 0000
+  constant rbaddr_bram  : slv16 := x"fe00"; -- fe00/2: 1111 1110 0000 00xx
   
 begin
 

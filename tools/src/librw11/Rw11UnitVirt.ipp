@@ -1,6 +1,6 @@
-// $Id: Rw11UnitVirt.ipp 515 2013-05-04 17:28:59Z mueller $
+// $Id: Rw11UnitVirt.ipp 600 2014-11-02 22:33:02Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-11-02   600   1.1.1  add (bool) cast, needed in 4.8.2
 // 2013-05-03   515   1.1    use AttachDone(),DetachCleanup(),DetachDone()
 // 2013-03-03   494   1.0    Initial version
 // 2013-02-05   483   0.1    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11UnitVirt.ipp 515 2013-05-04 17:28:59Z mueller $
+  \version $Id: Rw11UnitVirt.ipp 600 2014-11-02 22:33:02Z mueller $
   \brief   Implemenation (inline) of Rw11UnitVirt.
 */
 
@@ -74,7 +75,7 @@ inline bool Rw11UnitVirt<TV>::Attach(const std::string& url, RerrMsg& emsg)
   if (fpVirt) Detach();
   fpVirt.reset(TV::New(url, this, emsg));
   if (fpVirt) AttachDone();
-  return fpVirt;
+  return (bool)fpVirt;
 }
 
 //------------------------------------------+-----------------------------------

@@ -1,6 +1,6 @@
-# $Id: tbench.tcl 510 2013-04-26 16:14:57Z mueller $
+# $Id: tbench.tcl 607 2014-11-30 20:02:48Z mueller $
 #
-# Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-11-30   607   2.0    use new rlink v4 iface
 # 2013-04-26   510   1.0    Initial version (extracted from util.tcl)
 #
 
@@ -27,7 +28,7 @@ namespace eval rw11 {
   # tbench: driver for tbench scripts
   #
   proc tbench {fname} {
-    rlc exec -init 0xff [regbld rlink::INIT anena]
+    rlink::anena 1;             # enable attn notify
     set errcnt [tbench_list $fname]
     return $errcnt
   }

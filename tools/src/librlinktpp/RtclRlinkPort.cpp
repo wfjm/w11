@@ -1,6 +1,6 @@
-// $Id: RtclRlinkPort.cpp 521 2013-05-20 22:16:45Z mueller $
+// $Id: RtclRlinkPort.cpp 584 2014-08-22 19:38:12Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-08-22   584   1.0.3  use nullptr
 // 2013-02-23   492   1.0.2  use RlogFile.Name();
 // 2013-02-22   491   1.0.1  use new RlogFile/RlogMsg interfaces
 // 2013-01-27   478   1.0    Initial version
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RtclRlinkPort.cpp 521 2013-05-20 22:16:45Z mueller $
+  \version $Id: RtclRlinkPort.cpp 584 2014-08-22 19:38:12Z mueller $
   \brief   Implemenation of class RtclRlinkPort.
  */
 
@@ -244,7 +245,7 @@ int RtclRlinkPort::M_default(RtclArgs& args)
 bool RtclRlinkPort::TestOpen(RtclArgs& args)
 {
   if (fpObj) return true;
-  args.AppendResult("-E: port not open", NULL);
+  args.AppendResult("-E: port not open", nullptr);
   return false;
 }
 

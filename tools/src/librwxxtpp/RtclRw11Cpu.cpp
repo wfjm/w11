@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.cpp 576 2014-08-02 12:24:28Z mueller $
+// $Id: RtclRw11Cpu.cpp 607 2014-11-30 20:02:48Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,9 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2014-08-02   576   1.0.4  bugfix: redo estatdef logic; avoid LastExpect()
+// 2014-11-30   607   1.1    new rlink v4 iface
+// 2014-08-22   584   1.0.5  use nullptr
+// 2014-08-02   576   1.0.4  BUGFIX: redo estatdef logic; avoid LastExpect()
 // 2014-03-02   552   1.0.3  M_cp: add -ral and -rah options (addr reg readback)
 // 2013-05-19   521   1.0.2  M_cp: merge -wibrb|-wibrbbe again; add -wa
 // 2013-04-26   511   1.0.1  add M_show
@@ -23,7 +25,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Cpu.cpp 576 2014-08-02 12:24:28Z mueller $
+  \version $Id: RtclRw11Cpu.cpp 607 2014-11-30 20:02:48Z mueller $
   \brief   Implemenation of RtclRw11Cpu.
 */
 
@@ -445,7 +447,9 @@ int RtclRw11Cpu::M_wtcpu(RtclArgs& args)
 
   if (!Server().IsActive()) {               // server is not active
     RerrMsg emsg;
-    twait = Connect().WaitAttn(tout, emsg);
+    uint16_t apat;
+    // FIXME_code: make apat accessible in  tcl
+    twait = Connect().WaitAttn(tout, apat, emsg);
     if (twait == -2.) {                     // wait failed, quit
       return args.Quit(emsg);
     }
@@ -632,7 +636,7 @@ int RtclRw11Cpu::M_ldasm(RtclArgs& args)
     } else {
       argv.push_back("-");
     }
-    argv.push_back(NULL);
+    argv.push_back(nullptr);
     
     ::dup2(pipe_tcl2asm[0], STDIN_FILENO);
     ::dup2(pipe_asm2tcl[1], STDOUT_FILENO);
@@ -664,7 +668,7 @@ int RtclRw11Cpu::M_ldasm(RtclArgs& args)
   ::close(pipe_tcl2asm[1]);
   
   FILE* fp = ::fdopen(pipe_asm2tcl[0], "r");
-  if (fp == NULL) {
+  if (fp == nullptr) {
     ::close(pipe_asm2tcl[0]);
     return args.Quit(RerrMsg("RtclRw11Cpu::M_ldasm" , 
                              "fdopen() failed: ", errno));
@@ -672,7 +676,7 @@ int RtclRw11Cpu::M_ldasm(RtclArgs& args)
 
   vector<string> ilines;
   while(true) {
-    char* pline = NULL;
+    char* pline = nullptr;
     size_t nchar;
     if (::getline(&pline, &nchar, fp) < 0) break;
     //cout << "+++2:" << pline;
@@ -700,7 +704,7 @@ int RtclRw11Cpu::M_ldasm(RtclArgs& args)
 
   typedef map<uint16_t, uint16_t>  cmap_t;
   typedef cmap_t::iterator         cmap_it_t;
-  typedef cmap_t::value_type       cmap_val_t;
+  //typedef cmap_t::value_type       cmap_val_t;
 
   cmap_t   cmap;
   uint16_t dot = 0;
@@ -727,7 +731,7 @@ int RtclRw11Cpu::M_ldasm(RtclArgs& args)
         string key = line.substr(0,dpos);
         string val= line.substr(dpos+4);
         if (!Tcl_SetVar2Ex(interp, varsym.c_str(), key.c_str(),
-                           Tcl_NewIntObj((int)::strtol(val.c_str(),NULL,8)),
+                           Tcl_NewIntObj((int)::strtol(val.c_str(),nullptr,8)),
                            TCL_LEAVE_ERR_MSG)) return kERR;
       } else {
         return args.Quit(string("bad sym spec: ") + line);
@@ -739,7 +743,7 @@ int RtclRw11Cpu::M_ldasm(RtclArgs& args)
         if (line.length() != 10) 
           return args.Quit(string("bad dat spec: ") + line);
         dtyp = line[0];
-        dot  = (uint16_t)::strtol(line.c_str()+2,NULL,8);
+        dot  = (uint16_t)::strtol(line.c_str()+2,nullptr,8);
       } else if (line[0] == '}') {
         dtyp = ' ';
       } else {
@@ -747,7 +751,7 @@ int RtclRw11Cpu::M_ldasm(RtclArgs& args)
         string dat;
         while (datstream >> dat) {
           //cout << "+++1 " << dtyp << ":" << dat << endl;
-          uint16_t val = (uint16_t)::strtol(dat.c_str(),NULL,8);
+          uint16_t val = (uint16_t)::strtol(dat.c_str(),nullptr,8);
           if (dtyp == 'w') {
             cmap[dot] = val;
             dot += 2;
@@ -1111,7 +1115,7 @@ bool RtclRw11Cpu::GetVarName(RtclArgs& args, const char* argname,
     char c = name[0];
     if (isdigit(c) || c=='+' || c=='-' ) {  // check for mistaken number
       args.AppendResult("-E: invalid variable name '", name.c_str(), 
-                        "': looks like a number", NULL);
+                        "': looks like a number", nullptr);
       return false;
     }
   }

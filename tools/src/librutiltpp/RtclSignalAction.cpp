@@ -1,4 +1,4 @@
-// $Id: RtclSignalAction.cpp 577 2014-08-03 20:49:42Z mueller $
+// $Id: RtclSignalAction.cpp 602 2014-11-08 21:42:47Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,15 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-11-08   602   1.0.3  cast int first to ptrdiff_t, than to ClientData
+// 2014-08-22   584   1.0.2  use nullptr
 // 2014-08-02   577   1.0.1  add include unistd.h  (write+pipe dcl)
 // 2013-05-17   521   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclSignalAction.cpp 577 2014-08-03 20:49:42Z mueller $
+  \version $Id: RtclSignalAction.cpp 602 2014-11-08 21:42:47Z mueller $
   \brief   Implemenation of class RtclSignalAction.
  */
 
@@ -125,7 +127,7 @@ bool RtclSignalAction::ClearAction(int signum, RerrMsg& emsg)
     return false;
   }
 
-  if (::sigaction(signum, &fOldAction[signum], NULL) != 0) {
+  if (::sigaction(signum, &fOldAction[signum], nullptr) != 0) {
     emsg.InitErrno("RtclSignalAction::ClearAction",
                    "sigaction() failed: ", errno);
     return false;
@@ -165,7 +167,8 @@ void RtclSignalAction::TclChannelHandler(int mask)
   Tcl_Read(fShuttleChn, (char*) &signum, sizeof(signum));
   // FIXME_code: handle return code
 
-  Tcl_SetVar2Ex(fpInterp, "Rutil_signum", NULL, Tcl_NewIntObj((int)signum), 0);
+  Tcl_SetVar2Ex(fpInterp, "Rutil_signum", nullptr, 
+                Tcl_NewIntObj((int)signum), 0);
   // FIXME_code: handle return code
 
   if ((Tcl_Obj*)fpScript[(int)signum]) {
@@ -236,11 +239,13 @@ RtclSignalAction::RtclSignalAction(Tcl_Interp* interp)
   fFdPipeRead  = pipefd[0];
   fFdPipeWrite = pipefd[1];
 
-  fShuttleChn = Tcl_MakeFileChannel((ClientData)fFdPipeRead, TCL_READABLE);
+  // cast first to ptrdiff_t to promote to proper int size
+  fShuttleChn = Tcl_MakeFileChannel((ClientData)(ptrdiff_t)fFdPipeRead, 
+                                    TCL_READABLE);
 
-  Tcl_SetChannelOption(NULL, fShuttleChn, "-buffersize", "64");
-  Tcl_SetChannelOption(NULL, fShuttleChn, "-encoding", "binary");
-  Tcl_SetChannelOption(NULL, fShuttleChn, "-translation", "binary");
+  Tcl_SetChannelOption(nullptr, fShuttleChn, "-buffersize", "64");
+  Tcl_SetChannelOption(nullptr, fShuttleChn, "-encoding", "binary");
+  Tcl_SetChannelOption(nullptr, fShuttleChn, "-translation", "binary");
 
   Tcl_CreateChannelHandler(fShuttleChn, TCL_READABLE, 
                            (Tcl_FileProc*) ThunkTclChannelHandler,

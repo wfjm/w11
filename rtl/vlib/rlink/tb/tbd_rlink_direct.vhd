@@ -1,6 +1,6 @@
--- $Id: tbd_rlink_direct.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: tbd_rlink_direct.vhd 594 2014-09-21 12:29:33Z mueller $
 --
--- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,6 +18,8 @@
 --                 (no records, no generic port).
 --
 -- Dependencies:   rlink_core
+--                 rbus/rb_mon
+--                 rlink/rlink_mon
 --
 -- To test:        rlink_core
 --
@@ -31,10 +33,12 @@
 -- 2007-10-27    92  8.2.03 I34  xc3s1000-4   153  302    0  162 s 7.65
 -- 2007-10-27    92  8.1.03 I27  xc3s1000-4   138  306    0    - s 7.64
 --
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.1-14.7; ghdl 0.18-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-09-19   594   4.0    now rlink v4.0 iface, 4 bit STAT
+-- 2014-08-15   583   3.5    rb_mreq addr now 16 bit
 -- 2010-12-25   348   3.0.2  drop RL_FLUSH, add RL_MONI for rlink_core
 -- 2010-12-24   347   3.0.1  rename: CP_*->RL->*
 -- 2010-12-05   343   3.0    rri->rlink renames; port to rbus V3 protocol;
@@ -50,6 +54,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.rblib.all;
@@ -73,14 +78,14 @@ entity tbd_rlink_direct is              -- rlink_core only tb design
     RB_MREQ_re : out slbit;             -- rbus: request - re
     RB_MREQ_we : out slbit;             -- rbus: request - we
     RB_MREQ_initt : out slbit;          -- rbus: request - init; avoid name coll
-    RB_MREQ_addr : out slv8;            -- rbus: request - addr
+    RB_MREQ_addr : out slv16;           -- rbus: request - addr
     RB_MREQ_din : out slv16;            -- rbus: request - din
     RB_SRES_ack : in slbit;             -- rbus: response - ack
     RB_SRES_busy : in slbit;            -- rbus: response - busy
     RB_SRES_err : in slbit;             -- rbus: response - err
     RB_SRES_dout : in slv16;            -- rbus: response - dout
     RB_LAM : in slv16;                  -- rbus: look at me
-    RB_STAT : in slv3;                  -- rbus: status flags
+    RB_STAT : in slv4;                  -- rbus: status flags
     TXRXACT : out slbit                 -- txrx active flag
   );
 end entity tbd_rlink_direct;
@@ -105,11 +110,14 @@ begin
   RB_SRES.busy <= RB_SRES_busy;
   RB_SRES.err  <= RB_SRES_err;
   RB_SRES.dout <= RB_SRES_dout;
-  
+
   UUT : rlink_core
     generic map (
-      ATOWIDTH => 5,
-      ITOWIDTH => 6)
+      BTOWIDTH =>  5,
+      RTAWIDTH =>  11,
+      SYSID    => x"76543210",
+      ENAPIN_RLMON => sbcntl_sbf_rlmon,
+      ENAPIN_RBMON => sbcntl_sbf_rbmon)
     port map (
       CLK      => CLK,
       CE_INT   => CE_INT,
@@ -128,5 +136,5 @@ begin
     );
 
   TXRXACT <= '0';
-  
+    
 end syn;

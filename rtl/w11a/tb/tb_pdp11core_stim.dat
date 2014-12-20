@@ -1,7 +1,8 @@
-# $Id: tb_pdp11core_stim.dat 569 2014-07-13 14:36:32Z mueller $
+# $Id: tb_pdp11core_stim.dat 614 2014-12-20 15:00:45Z mueller $
 #
 # Revision History: 
 # Date         Rev Version  Comment
+# 2014-12-20   614   2.4    adopted to rlink v4
 # 2014-07-13   569   2.3    after ECO-026: correct test 31.1 wrong V=1 cases
 #                           correct test 37.2: 2 V=1 cases have regs now updated
 # 2010-06-20   308   2.2.1  add wibrb, ribr, wibr based tests
@@ -221,7 +222,7 @@ C     with wm/rm
 wal     140000
 wah     000177
 .merr 1
-.sdef s=10000001
+.sdef s=01000001
 wm      000000 
 rm    d=-      
 .merr 0
@@ -232,7 +233,7 @@ C     with bwm/brm
 wal     140000
 wah     000177
 .merr 1
-.sdef s=10000001
+.sdef s=01000001
 bwm     2
         000000
         000000
@@ -242,7 +243,7 @@ bwm     2
 wal     140000
 wah     000177
 .merr 1
-.sdef s=10000001
+.sdef s=01000001
 brm     2
       d=-
       d=-
@@ -253,7 +254,7 @@ C   test access error handling to IB space (use 00160000)
 C     with wm/rm
 wal     160000
 .merr 1
-.sdef s=10000001
+.sdef s=01000001
 wm      000000 
 rm    d=-      
 .merr 0
@@ -262,7 +263,7 @@ C     with bwm/brm
 #
 wal     160000
 .merr 1
-.sdef s=10000001
+.sdef s=01000001
 bwm     2
         000000
         000000
@@ -271,7 +272,7 @@ bwm     2
 #
 wal     160000
 .merr 1
-.sdef s=10000001
+.sdef s=01000001
 brm     2
       d=-
       d=-
@@ -841,7 +842,9 @@ stapc   003500    -- start @ 3500
 rpc   d=003502    -- ! should hang here ...
 .wait 20          --   let it go
 rpc   d=003502    -- ! should hang here ...
+.sdef s=00001000
 sto
+.sdef s=00000000,01110000
 wtlam d=000001    --   harvest attn due to go 1->0 transition of sto command
 rpc   d=003502    -- ! should stay there ...
 #
@@ -910,7 +913,9 @@ brm     8
       d=073574
       d=073576
 #
+.sdef s=00001000
 sto
+.sdef s=00000000,01110000
 wtlam d=000001    --   harvest attn due to go 1->0 transition of sto command
 rpc   d=003542    -- !
 #[[on]]

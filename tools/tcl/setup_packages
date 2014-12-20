@@ -1,7 +1,11 @@
-#! /usr/bin/env tclsh
-# $Id: setup_packages 510 2013-04-26 16:14:57Z mueller $
+#! /usr/bin/env tclshcpp
+# $Id: setup_packages 601 2014-11-07 22:44:43Z mueller $
 #
-pkg_mkIndex -verbose ../lib libr*tpp.so
+pkg_mkIndex -verbose ../lib \
+            librlinktpp.so \
+            librusbtpp.so \
+            librutiltpp.so \
+            librwxxtpp.so
 #
 pkg_mkIndex -verbose rutil   *.tcl
 pkg_mkIndex -verbose rlink   *.tcl

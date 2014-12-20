@@ -1,4 +1,4 @@
-// $Id: w11a_seq_flow.DOT 343 2010-12-05 21:24:38Z mueller $
+// $Id: w11a_seq_flow.DOT 584 2014-08-22 19:38:12Z mueller $
 //
 // The create pdf use
 //
@@ -41,7 +41,7 @@ digraph G {
 	fontsize=FSZlabel;
 	fontcolor=blue;
 	labelloc="t";
-	label="W11A Sequencer (Rev 230)";
+	label="W11A Sequencer (Rev 569)";
 
 //	aspect="0.7,500";
 //	ratio="0.7";
@@ -230,7 +230,7 @@ digraph G {
 	opg_div_cr    [fillcolor=COLsoper];
 	opg_div_sq    [fillcolor=COLsoper];
 	opg_div_sr    [fillcolor=COLsoper];
-	opg_div_zero  [fillcolor=COLsoper];
+	opg_div_quit  [fillcolor=COLsoper];
 	opg_ash       [fillcolor=COLsoper];
 	opg_ash_cn    [fillcolor=COLsoper];
 	opg_ashc      [fillcolor=COLsoper];
@@ -546,7 +546,7 @@ digraph G {
 	opg_div -> opg_div_cn;
 
 // opg_div_cn
-	opg_div_cn -> opg_div_zero;
+	opg_div_cn -> opg_div_quit;
 	opg_div_cn -> opg_div_cr [color=COLtflow];
 	opg_div_cn -> opg_div_cn;
 
@@ -557,10 +557,11 @@ digraph G {
 	opg_div_sq -> opg_div_sr [color=COLtflow];
 
 // opg_div_sr
+	opg_div_sr -> opg_div_quit;
 	do_fork_next(opg_div_sr)
 
-// opg_div_zero
-	do_fork_next(opg_div_zero)
+// opg_div_quit
+	do_fork_next(opg_div_quit)
 
 // opg_ash
 	opg_ash -> opg_ash_cn [color=COLtflow];
@@ -838,7 +839,7 @@ digraph G {
 		opg_div_cr;
 		opg_div_sq;
 		opg_div_sr;
-		opg_div_zero;
+		opg_div_quit;
 		fontsize=FSZgraph;
 		fontcolor=blue;
  		label = "DIV flow";

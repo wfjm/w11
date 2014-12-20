@@ -1,4 +1,4 @@
-# $Id: INSTALL.txt 576 2014-08-02 12:24:28Z mueller $
+# $Id: INSTALL.txt 604 2014-11-16 22:33:09Z mueller $
 
 Guide to install and build w11a systems, test benches and support software
 
@@ -110,14 +110,16 @@ Guide to install and build w11a systems, test benches and support software
   server) requires
 
     - the definition of the environment variables:
-      - RETROBASE: must refer to the installation root directory
-      - TCLINC:    pathname for includes of Tcl runtime library
+      - RETROBASE:  must refer to the installation root directory
+      - TCLINC:     pathname for includes of Tcl runtime library
+      - TCLLIBNAME: name of Tcl runtime library
       - RETRO_FX2_VID and RETRO_FX2_PID: default USB VID/PID, see below
     - that the tools binary directory is in the path
     - that the tools library directory is in the library path
     - optional environment variables:
-      - BOOSTINC:  pathname for includes of boost library
-      - BOOSTLIB:  pathname for libraries of boost library
+      - TCLLIB:     pathname for libraries of Tcl
+      - BOOSTINC:   pathname for includes of boost library
+      - BOOSTLIB:   pathname for libraries of boost library
         {Note: Either both must be undefined, or both must be defined}
     
   For bash and alike use
@@ -134,6 +136,7 @@ Guide to install and build w11a systems, test benches and support software
   work, similar for Tcl, in those cases simply use
 
     export TCLINC=/usr/include/tcl8.5
+    export TCLLIBNAME=tcl8.5
 
   and don't setup BOOSTINC and BOOSTLIB.
 
@@ -259,7 +262,12 @@ Guide to install and build w11a systems, test benches and support software
     make clean
     make
     make install
- 
+
+  Note: The default build assumes that sdcc with a version 3.x is installed.
+        In case sdcc 2.x is installed use
+           make SDCC29=1
+        instead. See also tools/fx2/src/README.txt in the 
+
   Please read README_USB_VID-PID.txt carefully to understand the usage
   of USB VID and PID.
 
@@ -487,13 +495,13 @@ Guide to install and build w11a systems, test benches and support software
   b. for Digilent Nexys2 board (using Cypress FX2 USB controller)
 
        xtwi config_wrapper --board=nexys2 bit2svf <design>.bit
-       fx2load_wrapper     --board=nexys2 --file=nexys2_jtag_2fifo_ic.ihx
+       fx2load_wrapper     --board=nexys2
        xtwi config_wrapper --board=nexys2 jconfig <design>.svf
 
   c. for Digilent Nexys3 board (using Cypress FX2 USB controller)
 
        xtwi config_wrapper --board=nexys3 bit2svf <design>.bit
-       fx2load_wrapper     --board=nexys3 --file=nexys3_jtag_2fifo_ic.ihx
+       fx2load_wrapper     --board=nexys3
        xtwi config_wrapper --board=nexys3 jconfig <design>.svf
 
 9. Generate Doxygen based source code view --------------------------------

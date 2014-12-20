@@ -2,4 +2,4 @@
 ../slvtypes.vhd
 comlib.vhd
 # design
-crc8.vhd
+crc16.vhd

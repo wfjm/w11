@@ -1,25 +1,25 @@
 .\"  -*- nroff -*-
-.\"  $Id: telnet_starter.1 550 2014-02-03 08:16:57Z mueller $
+.\"  $Id: console_starter.1 581 2014-08-10 21:48:46Z mueller $
 .\"
-.\" Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH TELNET_STARTER 1 2010-07-09 "Retro Project" "Retro Project Manual"
+.TH CONSOLE_STARTER 1 2010-07-09 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
-telnet_starter \- setup vt52/vt100 emulator windows for ti_rri or simh
+console_starter \- setup vt52/vt100 emulator windows for ti_rri or simh
 .\" ------------------------------------------------------------------
 .SH SYNOPSIS
 .
-.SY telnet_starter
+.SY console_starter
 .OP \-t term
 .OP \-d dev
 .OP \-s
 .OP \-w
 .OP \-l
 .
-.SY telnet_starter
+.SY console_starter
 .B \-\-h
 .YS
 .
@@ -103,18 +103,15 @@ print full help text and exit.
 .SH EXIT STATUS
 In case of an error an exit status 1 is returned.
 .
-.\" ------------------------------------------------------------------
-.SH BUGS
-Stupid name, it's not telnet but a terminal emulator which is started.
 .
 .\" ------------------------------------------------------------------
 .SH EXAMPLES
-.IP "\fBtelnet_starter -d DL0 &\fR" 4
+.IP "\fBconsole_starter -d DL0 &\fR" 4
 Creates a background process with a \fBxterm\fP in VT100 emulation mode
 with a 80x24 screen size which will try to connect to the primary DL11 
 emulator port of \fBti_rri\fP.
 .
-.IP "\fBtelnet_starter -t vt52 -d DL1 -s &\fR"
+.IP "\fBconsole_starter -t vt52 -d DL1 -s &\fR"
 Creates a background process with a \fBxterm\fP in VT52 emulation mode
 with a 80x24 screen size which will try to connect to the secondary DL11 
 emulator port of a \fBsimh\fP suite CPU emulator.

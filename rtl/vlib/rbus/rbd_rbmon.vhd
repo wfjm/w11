@@ -1,6 +1,6 @@
--- $Id: rbd_rbmon.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: rbd_rbmon.vhd 593 2014-09-14 22:21:33Z mueller $
 --
--- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,7 +20,7 @@
 -- Test bench:     rlink/tb/tb_rlink_tba_ttcombo
 --
 -- Target Devices: generic
--- Tool versions:  xst 12.1, 13.1; ghdl 0.29
+-- Tool versions:  xst 12.1-14.7; ghdl 0.29-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -28,6 +28,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-09-13   593   4.1    change default address -> ffe8
+-- 2014-08-15   583   4.0    rb_mreq addr now 16 bit
 -- 2011-11-19   427   1.0.3  now numeric_std clean
 -- 2011-03-27   374   1.0.2  rename ncyc -> nbusy because it counts busy cycles
 -- 2010-12-31   352   1.0.1  simplify irb_ack logic
@@ -72,7 +74,7 @@ use work.rblib.all;
 
 entity rbd_rbmon is                     -- rbus dev: rbus monitor
   generic (
-    RB_ADDR : slv8 := slv(to_unsigned(2#11111100#,8));
+    RB_ADDR : slv16 := slv(to_unsigned(16#ffe8#,16));
     AWIDTH : positive := 9);
   port (
     CLK  : in slbit;                    -- clock
@@ -242,7 +244,7 @@ begin
     
     -- rbus address decoder
     n.rbsel := '0';
-    if RB_MREQ.aval='1' and RB_MREQ.addr(7 downto 2)=RB_ADDR(7 downto 2) then
+    if RB_MREQ.aval='1' and RB_MREQ.addr(15 downto 2)=RB_ADDR(15 downto 2) then
       n.rbsel := '1';
       ibramen := '1';
     end if;
@@ -323,8 +325,8 @@ begin
     
     rbtake := '0';
     if RB_MREQ.aval='1' and irbena='1' then              -- aval and (re or we)
-      if unsigned(RB_MREQ.addr)>=unsigned(r.lolim) and   -- and in addr window
-         unsigned(RB_MREQ.addr)<=unsigned(r.hilim) and
+      if unsigned(RB_MREQ.addr(7 downto 0))>=unsigned(r.lolim) and   -- and in addr window
+         unsigned(RB_MREQ.addr(7 downto 0))<=unsigned(r.hilim) and
          r.rbsel='0' then                                -- and not self
         rbtake := '1';
       end if;
@@ -334,7 +336,7 @@ begin
     end if;
 
     if rbtake = '1' then                -- if capture active
-      n.rbaddr := RB_MREQ.addr;           -- keep track of some state
+      n.rbaddr := RB_MREQ.addr(7 downto 0);       -- keep track of some state
       n.rbinit := RB_MREQ.init;
       n.rbwe   := RB_MREQ.we;
       if RB_MREQ.init='1' or RB_MREQ.we='1' then  -- for write/init of din

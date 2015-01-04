@@ -1,6 +1,6 @@
-// $Id: RlinkConnect.ipp 604 2014-11-16 22:33:09Z mueller $
+// $Id: RlinkConnect.ipp 626 2015-01-03 14:41:37Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-01-01   626   2.1    full rlink v4 implementation
 // 2013-03-05   495   1.2.1  add Exec() without emsg (will send emsg to LogFile)
 // 2013-02-23   492   1.2    use scoped_ptr for Port; Close allways allowed
 //                           use RlinkContext, add Context(), Exec(..., cntx)
@@ -24,7 +25,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.ipp 604 2014-11-16 22:33:09Z mueller $
+  \version $Id: RlinkConnect.ipp 626 2015-01-03 14:41:37Z mueller $
   \brief   Implemenation (inline) of RlinkConnect.
 */
 
@@ -84,6 +85,34 @@ inline bool RlinkConnect::Exec(RlinkCommandList& clist, RerrMsg& emsg)
 inline bool RlinkConnect::Exec(RlinkCommandList& clist)
 {
   return Exec(clist, fContext);
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+inline uint32_t RlinkConnect::SysId() const
+{
+  return fSysId;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+inline size_t RlinkConnect::RbufSize() const
+{
+  return fRbufSize;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+inline size_t RlinkConnect::BlockSizeMax() const
+{
+  return (fRbufSize-kRbufBlkDelta)/2;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+inline size_t RlinkConnect::BlockSizePrudent() const
+{
+  return (fRbufSize-kRbufPrudentDelta)/2;
 }
 
 //------------------------------------------+-----------------------------------

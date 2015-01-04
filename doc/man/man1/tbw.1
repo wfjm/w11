@@ -1,7 +1,7 @@
 .\"  -*- nroff -*-
-.\"  $Id: tbw.1 550 2014-02-03 08:16:57Z mueller $
+.\"  $Id: tbw.1 620 2014-12-25 10:48:35Z mueller $
 .\"
-.\" Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
@@ -14,6 +14,7 @@ tbw \- wrapper script to start ghdl based VHDL test benches
 .
 .SY tbw
 .I TBPROG
+.RI [ OPTIONS ]
 .RI [ FILEDEF ]...
 .RI [ GHDL-OPTIONS ]...
 .
@@ -65,6 +66,17 @@ In this case the communication between test bench and the controlling
 bench might open in addition a configuration file. This setup is also
 defined via the \fItbw.dat\fP file, for details see section FILES.
 .
+.\" ------------------------------------------------------------------
+.SH OPTIONS
+The options \fB\-run\fP, \fB\-fifo\fP and \fB\-verbose\fP are processed
+by tbw itself. If more than one is given they must be in this order.
+.IP \fB\-run\fR
+Used for _ISim tb's, runs the tb with a 'run all' command.
+.IP \fB\-fifo\fR
+Forces usage of rlink_cext fifo, will ignore tbw.dat
+.IP \fB\-verbose\fR
+show the used tag,value settings before execution
+
 .\" ------------------------------------------------------------------
 .SH GHDL OPTIONS
 All options are passed on to the test bench executable. The list of
@@ -168,7 +180,7 @@ produce a single \fIDONE\fP line
 
 .SS Test benches controlled with \fBti_rri\fP
 In these cases the test bench is started via \fBti_rri\fP using the
-\fB\-\-run\fP and \fB\-\-fifo\fP options. Also here Usually a pipe with 
+\fB\-\-run\fP and \fB\-\-fifo\fP options. Also here usually a pipe with 
 \fBtee\fP and \fBegrep\fP is used, a typical example is
 
 .EX

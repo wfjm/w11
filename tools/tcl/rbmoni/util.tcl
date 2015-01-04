@@ -1,4 +1,4 @@
-# $Id: util.tcl 603 2014-11-09 22:50:26Z mueller $
+# $Id: util.tcl 619 2014-12-23 13:17:41Z mueller $
 #
 # Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-12-23   619   3.0    rbd_rbmon reorganized, supports now 16 bit addresses
 # 2014-11-09   603   2.0    use rlink v4 address layout
 # 2011-03-27   374   1.0    Initial version
 # 2011-03-13   369   0.1    First draft
@@ -27,59 +28,65 @@ namespace eval rbmoni {
   #
   # setup register descriptions for rbd_rbmon
   #
-  regdsc CNTL {go 0}
-  regdsc ALIM {hilim 15 8} {lolim 7 8}
-  regdsc ADDR {wrap 15} {addr 10 11 "-"} {laddr 10 9} {waddr 1 2}
+  regdsc CNTL {wena 2} {stop 1} {start 0}
+  regdsc STAT {bsize 15 3} {wrap 0}
+  regdsc ADDR {laddr 15 14} {waddr 1 2}
   #
-  regdsc DAT3 {flags 15 8 "-"} {ack 15} {busy 14} {err 13} {nak 12} {tout 11} \
-    {init 9} {we 8} {addr 7 8}
-  regdsc DAT0 {ndlymsb 15 4} {nbusy 11 12}
+  regdsc DAT3 {flags 15 8 "-"} {burst 15} {tout 14} {nak 13} {ack 12} \
+              {busy 11} {err 10} {we 9} {init 8} {ndlymsb 7 8}
+  regdsc DAT2 {ndlylsb 15 6} {nbusy  9 10}
   #
   # 'pseudo register', describes 1st word in return list element of rbmoni::read
-  # must have same bit sequence as DAT3(flags)
-  regdsc FLAGS {ack 7} {busy 6} {err 5} {nak 4} {tout 3} {init 1} {we 0} 
+  # same bits as DAT3(flags) (but shifted positions) plus bnext
+  regdsc FLAGS {bnext 8} {burst 7} {tout 6} {nak 5} {ack 4} \
+               {busy 3} {err 2} {we 1} {init 0}
   #
   # setup: amap definitions for rbd_rbmon
   # 
   proc setup {{base 0xffe8}} {
-    rlc amap -insert rm.cntl [expr {$base + 0x00}]
-    rlc amap -insert rm.alim [expr {$base + 0x01}]
-    rlc amap -insert rm.addr [expr {$base + 0x02}]
-    rlc amap -insert rm.data [expr {$base + 0x03}]
+    rlc amap -insert rm.cntl  [expr {$base + 0x00}]
+    rlc amap -insert rm.stat  [expr {$base + 0x01}]
+    rlc amap -insert rm.hilim [expr {$base + 0x02}]
+    rlc amap -insert rm.lolim [expr {$base + 0x03}]
+    rlc amap -insert rm.addr  [expr {$base + 0x04}]
+    rlc amap -insert rm.data  [expr {$base + 0x05}]
   }
   #
   # init: reset rbd_rbmon (stop, reset alim)
   # 
   proc init {} {
     rlc exec \
-      -wreg rm.cntl 0x0000 \
-      -wreg rm.alim [regbld rbmoni::ALIM {hilim 0xff} {lolim 0x00}] \
+      -wreg rm.cntl [regbld rbmoni::CNTL stop] \
+      -wreg rm.hilim  0xfffb \
+      -wreg rm.lolim  0x0000 \
       -wreg rm.addr 0x0000
   }
   #
   # start: start the rbmon
   #
-  proc start {} {
-    rlc exec -wreg rm.cntl [regbld rbmoni::CNTL go]
+  proc start {{wena 0}} {
+    rlc exec -wreg rm.cntl [regbld rbmoni::CNTL start [list wena $wena]]
   }
   #
   # stop: stop the rbmon
   #
   proc stop {} {
-    rlc exec -wreg rm.cntl 0x0000
+    rlc exec -wreg rm.cntl [regbld rbmoni::CNTL stop]
   }
   #
   # read: read nent last entries (by default all)
   #
   proc read {{nent -1}} {
-    set amax  [regget rbmoni::ADDR(laddr) -1]
-    if {$nent == -1} { set nent $amax }
+    rlc exec -rreg rm.addr raddr \
+             -rreg rm.stat rstat
 
-    rlc exec -rreg rm.addr raddr
+    set bsize [regget rbmoni::STAT(bsize) $rstat]
+    set amax  [expr {( 512 << $bsize ) - 1}]
+    if {$nent == -1} { set nent $amax }
 
     set laddr [regget rbmoni::ADDR(laddr) $raddr]
     set nval  $laddr
-    if {[regget rbmoni::ADDR(wrap) $raddr]} { set nval $amax }
+    if {[regget rbmoni::STAT(wrap) $rstat]} { set nval $amax }
 
     if {$nent > $nval} {set nent $nval}
     if {$nent == 0} { return {} }
@@ -89,23 +96,37 @@ namespace eval rbmoni {
 
     set rval {}
 
-    while {$nent > 0} {
-      set nblk [expr {$nent << 2}]
+    set nrest $nent
+    while {$nrest > 0} {
+      set nblk [expr {$nrest << 2}]
       if {$nblk > 256} {set nblk 256}
       rlc exec -rblk rm.data $nblk rawdat
 
       foreach {d0 d1 d2 d3} $rawdat {
         set eflag  [regget rbmoni::DAT3(flags) $d3]
-        set eaddr  [regget rbmoni::DAT3(addr)  $d3]
-        set edly   [expr {( [regget rbmoni::DAT0(ndlymsb) $d0] << 16 ) | $d1 }]
-        set enbusy [regget rbmoni::DAT0(nbusy) $d0]
-        lappend rval [list $eflag $eaddr $d2 $edly $enbusy]
+        set edelay [expr {( [regget rbmoni::DAT3(ndlymsb) $d3] << 6 ) | 
+                            [regget rbmoni::DAT2(ndlylsb) $d2] }]
+        set enbusy [regget rbmoni::DAT2(nbusy) $d2]
+        set edata  $d1
+        set eaddr  $d0
+        lappend rval [list $eflag $eaddr $edata $edelay $enbusy]
       }
 
-      set nent [expr {$nent - ( $nblk >> 2 ) }]
+      set nrest [expr {$nrest - ( $nblk >> 2 ) }]
     }
 
     rlc exec -wreg rm.addr $raddr
+
+    set mbnext [regbld rbmoni::FLAGS bnext]
+    set mburst [regbld rbmoni::FLAGS burst]
+
+    # now set bnext flag when burst is set in following entry
+    for {set i 1} {$i < $nent} {incr i} {
+      if {[lindex $rval $i 0] & int($mburst)} {
+        set i1 [expr {$i - 1} ]
+        lset rval $i1 0 [expr {[lindex $rval $i1 0] | $mbnext}]
+      }
+    }
 
     return $rval
   }
@@ -123,33 +144,63 @@ namespace eval rbmoni {
     }
 
     set rval {}
+    set edlymax 16383
 
     set eind [expr {1 - [llength $mondat] }]
-    append rval " ind  addr       data  delay nbusy     ac bs er na to in we"
+    append rval \
+      "  ind  addr       data  delay nbsy     flags  bu to na ac bs er mode"
+
+    set mbnext [regbld rbmoni::FLAGS bnext]
+    set mburst [regbld rbmoni::FLAGS burst]
+    set mtout  [regbld rbmoni::FLAGS tout ]
+    set mnak   [regbld rbmoni::FLAGS nak  ]
+    set mack   [regbld rbmoni::FLAGS ack  ]
+    set mbusy  [regbld rbmoni::FLAGS busy ]
+    set merr   [regbld rbmoni::FLAGS err  ]
+    set mwe    [regbld rbmoni::FLAGS we   ]
+    set minit  [regbld rbmoni::FLAGS init ]
+    set mblk   [expr {$mbnext | $mburst}]
 
     foreach {ele} $mondat {
       foreach {eflag eaddr edata edly enbusy} $ele { break }
-      set fack [regget rbmoni::FLAGS(ack)  $eflag]
-      set fbsy [regget rbmoni::FLAGS(busy) $eflag]
-      set ferr [regget rbmoni::FLAGS(err)  $eflag]
-      set fnak [regget rbmoni::FLAGS(nak)  $eflag]
-      set fto  [regget rbmoni::FLAGS(tout) $eflag]
-      set fini [regget rbmoni::FLAGS(init) $eflag]
-      set fwe  [regget rbmoni::FLAGS(we)   $eflag]
-      set ename ""
-      set comment ""
-      if {$ferr} {append comment " err=1!"}
-      if {$fini} {
-        append comment " init"
+
+      set fburst [expr {$eflag & $mburst}]
+      set ftout  [expr {$eflag & $mtout} ]
+      set fnak   [expr {$eflag & $mnak}  ]
+      set fack   [expr {$eflag & $mack}  ]
+      set fbusy  [expr {$eflag & $mbusy} ]
+      set ferr   [expr {$eflag & $merr}  ]
+      set fwe    [expr {$eflag & $mwe}   ]
+      set finit  [expr {$eflag & $minit} ]
+
+      set pburst [expr {$fburst ? "bu" : "  "}]
+      set ptout  [expr {$ftout  ? "to" : "  "}]
+      set pnak   [expr {$fnak   ? "na" : "  "}]
+      set pack   [expr {$fack   ? "ac" : "  "}]
+      set pbusy  [expr {$fbusy  ? "bs" : "  "}]
+      set perr   [expr {$ferr   ? "er" : "  "}]
+      set pmode  "????"
+      if {$finit} {
+        set pmode  "init"
       } else {
-        if {$fnak} {append comment " nak=1!"}
+        if {$fwe} {
+          set pmode  [expr {$eflag & $mblk ? "wblk" : "wreg"}]
+        } else {
+          set pmode  [expr {$eflag & $mblk ? "rblk" : "rreg"}]
+        }
       }
-      if {$fto}  {append comment " tout=1!"}
+
+      set pedly [expr {$edly!=$edlymax ? [format "%5d" $edly] : "   --"}]
+      set ename  [format "%4.4x" $eaddr]
+      set comment ""
+      if {$ferr}            {append comment " ERR=1!"}
+      if {!$finit && $fnak} {append comment " NAK=1!"}
+      if {$ftout}           {append comment " TOUT=1!"}
       if {[rlc amap -testaddr $eaddr]} {set ename [rlc amap -name $eaddr]}
       append rval [format \
-        "\n%4d  %-10s %4.4x %6d  %4d  %2.2x  %d  %d  %d  %d  %d  %d  %d %s" \
-        $eind $ename $edata $edly $enbusy $eflag \
-        $fack $fbsy $ferr $fnak $fto $fini $fwe $comment]
+      "\n%5d  %-10s %4.4x  %5s %4d  %s  %s %s %s %s %s %s %s  %s" \
+        $eind $ename $edata $pedly $enbusy [pbvi b8 $eflag] \
+        $pburst $ptout $pnak $pack $pbusy $perr $pmode $comment]
       incr eind
     }
 
@@ -166,22 +217,23 @@ namespace eval rbmoni {
     set uedat {}
     set uemsk {}
 
-    set m0 [expr {0xffff & ~[regget rbmoni::DAT0(nbusy) -1] }]
-    set d1 0x0000
-    set m1 0xffff
-    set m3 0x0000
+    set m3 [regbld rbmoni::DAT3 {ndlymsb -1}]
+    set m2 [regbld rbmoni::DAT2 {ndlylsb -1}]
+    set m1 0
+    set m0 0
 
     foreach line $args {
       foreach {eflags eaddr edata enbusy} $line { break }
-      set d0 [regbld rbmoni::DAT0 [list nbusy $enbusy]]
+      set d3 [regbld rbmoni::DAT3 [list flags $eflags]]
+      set d2 [regbld rbmoni::DAT2 [list nbusy $enbusy]]
       if {$edata ne ""} {
-        set m2 0x0000
-        set d2 $edata
+        set m1 0x0000
+        set d1 $edata
       } else {
-        set m2 0xffff
-        set d2 0x0000
+        set m1 0xffff
+        set d1 0x0000
       }
-      set d3 [regbld rbmoni::DAT3 [list flags $eflags] [list addr $eaddr]]
+      set d0 $eaddr
 
       lappend uedat $d0 $d1 $d2 $d3
       lappend uemsk $m0 $m1 $m2 $m3

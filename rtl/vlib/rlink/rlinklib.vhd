@@ -1,4 +1,4 @@
--- $Id: rlinklib.vhd 610 2014-12-09 22:44:43Z mueller $
+-- $Id: rlinklib.vhd 617 2014-12-21 14:18:53Z mueller $
 --
 -- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,6 +20,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-12-21   617   4.1    use stat(2) to signal rbus timeout
 -- 2014-10-12   596   4.0    now rlink v4.0 iface, 4 bit STAT
 -- 2014-08-15   583   3.5    rb_mreq addr now 16 bit
 -- 2013-04-21   509   3.3.2  add rlb_moni record definition
@@ -81,7 +82,8 @@ subtype  c_rlink_cmd_rbf_code is integer range 2 downto 0; -- command code
 
 subtype  c_rlink_stat_rbf_stat is integer range 7 downto 4;  -- ext status bits
 constant c_rlink_stat_rbf_attn:   integer := 3;  -- attention flags set
-constant c_rlink_stat_rbf_rbnak:  integer := 1;  -- rbus no ack or timeout
+constant c_rlink_stat_rbf_rbtout: integer := 2;  -- rbus timeout
+constant c_rlink_stat_rbf_rbnak:  integer := 1;  -- rbus no ack
 constant c_rlink_stat_rbf_rberr:  integer := 0;  -- rbus err bit set
 
 constant c_rlink_nakcode_ccrc   : slv3 := "000"; -- cmd crc error

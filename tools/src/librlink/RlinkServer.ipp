@@ -1,4 +1,4 @@
-// $Id: RlinkServer.ipp 610 2014-12-09 22:44:43Z mueller $
+// $Id: RlinkServer.ipp 625 2014-12-30 16:17:45Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-30   625   2.1    adopt to Rlink V4 attn logic
 // 2014-11-30   607   2.0    re-organize for rlink v4
 // 2013-05-01   513   1.0.1  fTraceLevel now uint32_t
 // 2013-03-06   495   1.0    Initial version
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RlinkServer.ipp 610 2014-12-09 22:44:43Z mueller $
+  \version $Id: RlinkServer.ipp 625 2014-12-30 16:17:45Z mueller $
   \brief   Implemenation (inline) of RlinkServer.
 */
 
@@ -108,7 +109,6 @@ inline bool RlinkServer::ActnPending() const
   return !fActnList.empty();
 }
 
-
 //==========================================+===================================
 // AttnArgs sub class
 
@@ -123,8 +123,8 @@ inline bool RlinkServer::ActnPending() const
 inline RlinkServer::AttnArgs::AttnArgs()
   : fAttnPatt(0),
     fAttnMask(0), 
-    fpClist(0), 
-    fOffset(0)
+    fAttnHarvest(0),
+    fHarvestDone(false) 
 {}
 
 //------------------------------------------+-----------------------------------
@@ -133,19 +133,8 @@ inline RlinkServer::AttnArgs::AttnArgs()
 inline RlinkServer::AttnArgs::AttnArgs(uint16_t apatt, uint16_t amask)
   : fAttnPatt(apatt),
     fAttnMask(amask), 
-    fpClist(0), 
-    fOffset(0)
-{}
-
-//------------------------------------------+-----------------------------------
-//! Constructor
-
-inline RlinkServer::AttnArgs::AttnArgs(uint16_t apatt, uint16_t amask,
-                                       RlinkCommandList* pclist, size_t offset)
-  : fAttnPatt(apatt),
-    fAttnMask(amask), 
-    fpClist(pclist), 
-    fOffset(offset)
+    fAttnHarvest(0),
+    fHarvestDone(false)
 {}
 
 //==========================================+===================================

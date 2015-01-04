@@ -1,6 +1,6 @@
-// $Id: RtclRw11.cpp 513 2013-05-01 14:02:06Z mueller $
+// $Id: RtclRw11.cpp 621 2014-12-26 21:20:05Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-25   621   1.1    adopt to 4k word ibus window
 // 2013-03-06   495   1.0    Initial version
 // 2013-01-27   478   0.1    First Draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclRw11.cpp 513 2013-05-01 14:02:06Z mueller $
+  \version $Id: RtclRw11.cpp 621 2014-12-26 21:20:05Z mueller $
   \brief   Implemenation of class RtclRw11.
  */
 
@@ -100,7 +101,7 @@ int RtclRw11::ClassCmdConfig(RtclArgs& args)
   if (type == "w11a") {                  // w11a --------------------------
     RtclRw11CpuW11a* pobj = new RtclRw11CpuW11a(args.Interp(), "cpu0");
     // configure cpu
-    pobj->Obj().Setup(0,0);                 // ind=0,base=0
+    pobj->Obj().Setup(0,0,0x4000);          // ind=0,base=0,ibase=0x4000
     // install in w11
     Obj().AddCpu(dynamic_pointer_cast<Rw11Cpu>(pobj->ObjSPtr()));
 

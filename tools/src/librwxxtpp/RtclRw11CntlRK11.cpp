@@ -1,4 +1,4 @@
-// $Id: RtclRw11CntlRK11.cpp 509 2013-04-21 20:46:20Z mueller $
+// $Id: RtclRw11CntlRK11.cpp 627 2015-01-04 11:36:37Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11CntlRK11.cpp 509 2013-04-21 20:46:20Z mueller $
+  \version $Id: RtclRw11CntlRK11.cpp 627 2015-01-04 11:36:37Z mueller $
   \brief   Implemenation of RtclRw11CntlRK11.
 */
 
@@ -43,7 +43,13 @@ namespace Retro {
 
 RtclRw11CntlRK11::RtclRw11CntlRK11()
   : RtclRw11CntlBase<Rw11CntlRK11>("Rw11CntlRK11")
-{}
+{  
+  Rw11CntlRK11* pobj = &Obj();
+  fGets.Add<size_t>  ("chunksize", 
+                      boost::bind(&Rw11CntlRK11::ChunkSize,    pobj));
+  fSets.Add<size_t>  ("chunksize",
+                      boost::bind(&Rw11CntlRK11::SetChunkSize, pobj, _1));
+}
 
 //------------------------------------------+-----------------------------------
 //! Destructor
@@ -90,5 +96,18 @@ int RtclRw11CntlRK11::FactoryCmdConfig(RtclArgs& args, RtclRw11Cpu& cpu)
 
   return kOK;
 }
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+int RtclRw11CntlRK11::M_stats(RtclArgs& args)
+{
+  RtclStats::Context cntx;
+  if (!RtclStats::GetArgs(args, cntx)) return kERR;
+  if (!RtclStats::Collect(args, cntx, Obj().Stats())) return kERR;
+  if (!RtclStats::Collect(args, cntx, Obj().RdmaStats())) return kERR;
+  return kOK;
+}
+
 
 } // end namespace Retro

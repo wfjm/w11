@@ -1,9 +1,10 @@
 #!/usr/bin/perl -w
-# $Id: ti_w11 570 2014-07-20 19:05:11Z mueller $
+# $Id: ti_w11 619 2014-12-23 13:17:41Z mueller $
 #
 #  Revision History:
 # Date         Rev Version  Comment
-# 2014-07-13   570   1.2    bugfix: split options args into ti_rri opts and cmds
+# 2014-12-23   619   1.2.1  use -fifo tbw option for test bench starts
+# 2014-07-13   570   1.2    BUGFIX: split options args into ti_rri opts and cmds
 # 2013-05-05   516   1.1    renamed to ti_w11
 # 2013-04-26   510   1.0    Initial version (derived from dorri)
 #
@@ -24,9 +25,9 @@ my $opt_f = '';
 my $opt_tmu;
 my $tirri;
 my $val_term;
-my $val_tb_s3 = "tbw $sysbase/s3board/tb/tb_w11a_s3";
-my $val_tb_n2 = "tbw $sysbase/nexys2/tb/tb_w11a_n2";
-my $val_tb_n3 = "tbw $sysbase/nexys3/tb/tb_w11a_n3";
+my $val_tb_s3 = "tbw $sysbase/s3board/tb/tb_w11a_s3 -fifo";
+my $val_tb_n2 = "tbw $sysbase/nexys2/tb/tb_w11a_n2 -fifo";
+my $val_tb_n3 = "tbw $sysbase/nexys3/tb/tb_w11a_n3 -fifo";
 my $val_tb;
 my $val_e;
 

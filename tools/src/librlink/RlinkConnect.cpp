@@ -1,6 +1,6 @@
-// $Id: RlinkConnect.cpp 611 2014-12-10 23:23:58Z mueller $
+// $Id: RlinkConnect.cpp 626 2015-01-03 14:41:37Z mueller $
 //
-// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-01-01   626   2.1    full rlink v4 implementation
 // 2014-12-10   611   2.0    re-organize for rlink v4
 // 2014-08-26   587   1.5    start accept rlink v4 protocol (partially...)
 // 2014-08-15   583   1.4    rb_mreq addr now 16 bit
@@ -32,7 +33,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.cpp 611 2014-12-10 23:23:58Z mueller $
+  \version $Id: RlinkConnect.cpp 626 2015-01-03 14:41:37Z mueller $
   \brief   Implemenation of RlinkConnect.
 */
 
@@ -82,6 +83,9 @@ const uint16_t RlinkConnect::kSBCNTL_V_RLMON;
 const uint16_t RlinkConnect::kSBCNTL_V_RLBMON;
 const uint16_t RlinkConnect::kSBCNTL_V_RBMON;  
 
+const uint16_t RlinkConnect::kRbufBlkDelta;
+const uint16_t RlinkConnect::kRbufPrudentDelta;
+
 //------------------------------------------+-----------------------------------
 //! Default constructor
 
@@ -97,7 +101,9 @@ RlinkConnect::RlinkConnect()
     fspLog(new RlogFile(&cout, "<cout>")),
     fConnectMutex(),
     fAttnNotiPatt(0),
-    fTsLastAttnNoti(-1)
+    fTsLastAttnNoti(-1),
+    fSysId(0xffffffff),
+    fRbufSize(0)
 {
   for (size_t i=0; i<8; i++) fSeqNumber[i] = 0;
  
@@ -114,11 +120,11 @@ RlinkConnect::RlinkConnect()
   fStats.Define(kStatNInit,     "NInit",     "init commands");
   fStats.Define(kStatNRblkWord, "NRblkWord", "words rcvd with rblk");
   fStats.Define(kStatNWblkWord, "NWblkWord", "words send with wblk");
-  fStats.Define(kStatNTxPktByt, "NTxPktByt", "Tx packet bytes send");
-  fStats.Define(kStatNRxPktByt, "NRxPktByt", "Rx packet bytes rcvd");
   fStats.Define(kStatNExpData,  "NExpData",  "Expect() for data defined");
+  fStats.Define(kStatNExpDone,  "NExpDone",  "Expect() for done defined");
   fStats.Define(kStatNExpStat,  "NExpStat",  "Expect() for stat defined");
   fStats.Define(kStatNChkData,  "NChkData",  "expect data failed");
+  fStats.Define(kStatNChkDone,  "NChkData",  "expect done failed");
   fStats.Define(kStatNChkStat,  "NChkStat",  "expect stat failed");
   fStats.Define(kStatNSndOob,   "NSndOob",   "SndOob() calls");
   fStats.Define(kStatNErrMiss,  "NErrMiss",  "decode: missing data");
@@ -147,6 +153,24 @@ bool RlinkConnect::Open(const std::string& name, RerrMsg& emsg)
 
   fpPort->SetLogFile(fspLog);
   fpPort->SetTraceLevel(fLogOpts.tracelevel);
+
+  RlinkCommandList clist;
+  clist.AddRreg(kRbaddr_RLSTAT);
+  clist.AddRreg(kRbaddr_RLID1);
+  clist.AddRreg(kRbaddr_RLID0);
+
+  if (!Exec(clist, emsg)) {
+    Close();
+    return false;
+  }
+
+  uint16_t rlstat = clist[0].Data();
+  uint16_t rlid1  = clist[1].Data();
+  uint16_t rlid0  = clist[2].Data();
+
+  fRbufSize = size_t(1) << (10 + (rlstat & kRLSTAT_M_RBSize));
+  fSysId    = uint32_t(rlid1)<<16 | uint32_t(rlid0);
+
   return true;
 }
 
@@ -299,7 +323,8 @@ bool RlinkConnect::Exec(RlinkCommandList& clist, RlinkContext& cntx,
     RlinkCommand& cmd = clist[i];
     
     bool checkfound = cmd.TestFlagAny(RlinkCommand::kFlagChkStat | 
-                                      RlinkCommand::kFlagChkData);
+                                      RlinkCommand::kFlagChkData |
+                                      RlinkCommand::kFlagChkDone);
     bool errorfound = cmd.TestFlagAny(RlinkCommand::kFlagErrNak | 
                                       RlinkCommand::kFlagErrDec);
     checkseen |= checkfound;
@@ -571,7 +596,6 @@ bool RlinkConnect::ExecPart(RlinkCommandList& clist, size_t ibeg, size_t iend,
 
   // FIXME_code: handle send fail properly;
   if (!fSndPkt.SndPacket(fpPort.get(), emsg)) return false;
-  fStats.Inc(kStatNTxPktByt, double(fSndPkt.PktSize()));
 
   // FIXME_code: handle recoveries
   // FIXME_code: use proper value for timeout
@@ -777,8 +801,13 @@ int RlinkConnect::DecodeResponse(RlinkCommandList& clist, size_t ibeg,
     // expect handling
     if (cmd.Expect()) {                     // expect object attached ?
       RlinkCommandExpect& expect = *cmd.Expect();
-      if (expect.DataIsChecked() || 
-          expect.BlockValue().size()>0) fStats.Inc(kStatNExpData);
+      if (ccode==RlinkCommand::kCmdRblk || 
+          ccode==RlinkCommand::kCmdWblk) {
+        if (expect.BlockValue().size()>0) fStats.Inc(kStatNExpData);
+        if (expect.DoneIsChecked()) fStats.Inc(kStatNExpDone);
+      } else {
+        if (expect.DataIsChecked()) fStats.Inc(kStatNExpData);
+      }
       if (expect.StatusIsChecked())     fStats.Inc(kStatNExpStat);
 
       if (ccode==RlinkCommand::kCmdRreg || 
@@ -795,6 +824,13 @@ int RlinkConnect::DecodeResponse(RlinkCommandList& clist, size_t ibeg,
           cmd.SetFlagBit(RlinkCommand::kFlagChkData);
         }
       }
+      if (ccode==RlinkCommand::kCmdRblk || 
+          ccode==RlinkCommand::kCmdWblk) {        
+        if (!expect.DoneCheck(cmd.BlockDone())) {
+          fStats.Inc(kStatNChkDone);
+          cmd.SetFlagBit(RlinkCommand::kFlagChkDone);
+        }
+     }
       if (!expect.StatusCheck(cmd.Status())) {
         fStats.Inc(kStatNChkStat);
         cmd.SetFlagBit(RlinkCommand::kFlagChkStat);

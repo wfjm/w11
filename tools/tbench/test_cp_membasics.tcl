@@ -1,4 +1,4 @@
-# $Id: test_cp_membasics.tcl 552 2014-03-02 23:02:00Z mueller $
+# $Id: test_cp_membasics.tcl 621 2014-12-26 21:20:05Z mueller $
 #
 # Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
@@ -70,5 +70,3 @@ $cpu cp -wal 02200 \
 
 $cpu cp -wal 02200 \
         -brm 4 -edata {007700 007710 007720 007730}
-
-

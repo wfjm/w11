@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: ticonv_pdpcp 609 2014-12-07 19:35:25Z mueller $
+# $Id: ticonv_pdpcp 622 2014-12-28 20:45:26Z mueller $
 #
 # Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-12-27   622   1.2.1  use wmembe now
 # 2014-12-07   609   1.2    use rlink::anena (for rlink v4)
 # 2014-07-31   576   1.1    add --cmax option (default = 3); support .sdef
 # 2014-07-26   575   1.0.4  add --tout option (sets wtcpu timeout)
@@ -124,14 +125,15 @@ while (<IFILE>) {
   } elsif ($cmd =~ /^(wr[0-7]|wps|wal|wah|wmi|wm|stapc)\s+([0-7]+)$/) {
     push @cmdlist, "-$1 0$2";
 
-  # (write) data type commands: wibrb ---
-  } elsif ($cmd =~ /^(wibrb)\s+([0-7]+)/) {
-    my $base = oct($2);
-    my $be   = $base & 0x3;
-    if ($be == 0) {
-      push @cmdlist, "-wibrb 0$2";
+  # (write) data type commands: wmembe ---
+  } elsif ($cmd =~ /^wmembe\s+([01]+)/) {
+    my $val   = oct("0b$1");
+    my $be    = $val & 0x3;
+    my $stick = $val & 0x4;
+    if ($stick == 0) {
+      push @cmdlist, "-wmembe $be";
     } else {
-      push @cmdlist, sprintf "-wibrb 0%6.6o -be %o", $base&0177700, $be;
+      push @cmdlist, "-wmembe $be -stick";
     }
 
   # (read) [d=data] type commands: rrx,rps,rm,rmi --------------------

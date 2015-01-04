@@ -1,6 +1,6 @@
-// $Id: Rw11CntlLP11.cpp 515 2013-05-04 17:28:59Z mueller $
+// $Id: Rw11CntlLP11.cpp 625 2014-12-30 16:17:45Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,15 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-30   625   1.2    adopt to Rlink V4 attn logic
+// 2014-12-25   621   1.1    adopt to 4k word ibus window
 // 2013-05-04   515   1.0    Initial version
 // 2013-05-01   513   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11CntlLP11.cpp 515 2013-05-04 17:28:59Z mueller $
+  \version $Id: Rw11CntlLP11.cpp 625 2014-12-30 16:17:45Z mueller $
   \brief   Implemenation of Rw11CntlLP11.
 */
 
@@ -67,7 +69,7 @@ Rw11CntlLP11::Rw11CntlLP11()
   : Rw11CntlBase<Rw11UnitLP11,1>("lp11"),
     fPC_buf(0)
 {
-  // must here because Unit have a back-pointer (not available at Rw11CntlBase)
+  // must be here because Units have a back-ptr (not available at Rw11CntlBase)
   for (size_t i=0; i<NUnit(); i++) {
     fspUnit[i].reset(new Rw11UnitLP11(this, i));
   }
@@ -97,9 +99,14 @@ void Rw11CntlLP11::Start()
     throw Rexception("Rw11CntlLP11::Start",
                      "Bad state: started, no lam, not enable, not found");
   
+  // add device register address ibus and rbus mappings
+  // done here because now Cntl bound to Cpu and Cntl probed
+  Cpu().AllAddrMapInsert(Name()+".csr", Base() + kCSR);
+  Cpu().AllAddrMapInsert(Name()+".buf", Base() + kBUF);
+
   // setup primary info clist
   fPrimClist.Clear();
-  Cpu().AddIbrb(fPrimClist, fBase);
+  fPrimClist.AddAttn();
   fPC_buf = Cpu().AddRibr(fPrimClist, fBase+kBUF);
 
   // add attn handler
@@ -136,14 +143,12 @@ void Rw11CntlLP11::Dump(std::ostream& os, int ind, const char* text) const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-int Rw11CntlLP11::AttnHandler(const RlinkServer::AttnArgs& args)
+int Rw11CntlLP11::AttnHandler(RlinkServer::AttnArgs& args)
 {
-  RlinkCommandList* pclist;
-  size_t off;
-  
-  GetPrimInfo(args, pclist, off);
+  fStats.Inc(kStatNAttnHdl);
+  Server().GetAttnInfo(args, fPrimClist);
 
-  uint16_t buf = (*pclist)[off+fPC_buf].Data();
+  uint16_t buf = fPrimClist[fPC_buf].Data();
   bool val     = buf & kBUF_M_VAL;
   uint8_t ochr = buf & kBUF_M_BUF;
 
@@ -186,7 +191,6 @@ void Rw11CntlLP11::SetOnline(bool online)
   Rw11Cpu& cpu  = Cpu();
   uint16_t csr  = online ? 0 : kCSR_M_ERROR;
   RlinkCommandList clist;
-  cpu.AddIbrb(clist, fBase);
   cpu.AddWibr(clist, fBase+kCSR, csr);
   Server().Exec(clist);
   return;

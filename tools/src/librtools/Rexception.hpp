@@ -1,6 +1,6 @@
-// $Id: Rexception.hpp 487 2013-02-12 19:14:38Z mueller $
+// $Id: Rexception.hpp 625 2014-12-30 16:17:45Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,14 +13,15 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2013-02-12   487   1.0,1  add ErrMsg() getter
+// 2014-12-30   625   1.1    add ctor(meth,text,emsg)
+// 2013-02-12   487   1.0.1  add ErrMsg() getter
 // 2013-01-12   474   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 
 /*!
   \file
-  \version $Id: Rexception.hpp 487 2013-02-12 19:14:38Z mueller $
+  \version $Id: Rexception.hpp 625 2014-12-30 16:17:45Z mueller $
   \brief   Declaration of class Rexception.
 */
 
@@ -42,6 +43,8 @@ namespace Retro {
                                const std::string& text);
                     Rexception(const std::string& meth, 
                                const std::string& text, int errnum);
+                    Rexception(const std::string& meth, 
+                               const std::string& text, const RerrMsg& errmsg);
                    ~Rexception() throw();
 
       const char*  what() const throw();

@@ -1,0 +1,116 @@
+#!/bin/bash
+# $Id: tbrun_tbwrri 622 2014-12-28 20:45:26Z mueller $
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2014-12-27   622   1.0    Initial version
+#
+
+docmd ()
+{
+  echo "$1"
+  if [[ -z "$optdry" ]] ; then
+    eval "$1"
+  fi
+}
+
+optdry=""
+optlsuf=""
+optstack=""
+optghw=""
+opttbw=""
+optpack=""
+optrri=""
+optpcom=""
+optcuff=""
+
+# handle options
+while (( $# > 0 )) ; do
+  case $1 in
+    -dry|--dry)     optdry=$1    ; shift 1 ;;
+    -lsuf|--lsuf)   optlsuf=$2   ; shift 2 ;;
+    -stack|--stack) optstack=$2  ; shift 2 ;;
+    -ghw|--ghw)     optghw=$2    ; shift 2 ;;
+    -tbw|--tbw)     opttbw=$2    ; shift 2 ;;
+    -pack|--pack)   optpack=$2   ; shift 2 ;;
+    -rri|--rri)     optrri=$2    ; shift 2 ;;
+    -cuff|--cuff)   optcuff=$1   ; shift 1 ;;
+    -pcom|--pcom)   optpcom=$1   ; shift 1 ;;
+    -*)             echo "tbrun_tbwrri-E: invalid option '$1'"; exit 1 ;;
+    *)     break;;
+  esac
+done
+
+# complain if no tbench defined
+if (( $# == 0 )) ; then
+  echo "Usage: tbrun_tbwrri [opts] testbench rricmds..."
+  echo "  Options:"
+  echo "  --dry             dry run, print commands, don't execute"
+  echo "  --lsuf  suff      use '_<suff>.log' as suffix for log file"
+  echo "  --stack nnn       use <nnn> as ghdl stack size"
+  echo "  --ghw   fname     write ghw file with name '<fname>.ghw"
+  echo "  --tbw   opts      append <opts> to tbw command"
+  echo "  --pack  plist     add '--pack=<=plist>' option to ti_rri"
+  echo "  --rri   opts      append <opts> to ti_rri command"
+  echo "  --cuff            use cuff and not serport"
+  echo "  --pcom            print test comments"
+  exit 1
+fi
+
+tbench=$1
+shift 1
+
+tbenchname=$(basename $tbench)
+tbenchpath=$(dirname  $tbench)
+
+# check for ghdl with _ssim, _fsim, _tsim
+isghdlxsim=""
+if [[ $tbench =~ _[sft]sim$ ]] ; then
+  isghdlxsim=true
+  logsuff=""
+fi
+
+# issue makes
+if [[ -n "$isghdlxsim" ]] ; then docmd "make -C $tbenchpath ghdl_tmp_clean"; fi
+docmd "make -C $tbenchpath $tbenchname"
+exitstat=$?
+if [[ -n "$isghdlxsim" ]] ; then docmd "make -C $tbenchpath ghdl_tmp_clean"; fi
+
+if (( $exitstat > 0 )) ; then exit $exitstat; fi
+
+# determine logfile name
+logsuff="_dsim"
+if [[ $tbenchname =~ _[sft]sim$ ]] ; then logsuff=""; fi
+if [[ -n "$optlsuf" ]] ;             then logsuff="_$optlsuf"; fi
+
+logfile="${tbenchname}${logsuff}.log"
+
+# now build actual test command
+cmd="time ti_rri --run=\"tbw $tbench -fifo"
+if [[ -n "$opttbw" ]] ; then    cmd+=" $opttbw"; fi
+if [[ -n "$optstack" ]] ; then  cmd+=" --stack-max-size=$optstack"; fi
+if [[ -n "$optghw" ]] ; then    cmd+=" --wave=$optghw.ghw"; fi
+cmd+=" 2>&1 | ghdl_assert_filter\""
+cmd+=" --fifo --logl=3"
+if [[ -n "$optpack" ]] ; then   cmd+=" --pack=$optpack"; fi
+if [[ -n "$optrri" ]] ; then    cmd+=" $optrri"; fi
+cmd+=" --"
+
+if [[ -n "$optcuff" ]] ; then
+  cmd+=" \"rlc oob -sbdata  8 0x2\" \"rlc oob -sbdata 16 0x4\""
+fi
+
+while (( $# > 0 )) ; do
+  cmd+=" "
+  if [[ $1 =~ " " ]] ; then cmd+="\""; fi
+  cmd+="$1"
+  if [[ $1 =~ " " ]] ; then cmd+="\""; fi
+  shift 1
+done
+cmd+=" | tee $logfile"
+
+pcomtag=""
+if [[ -n "$optpcom" ]] ; then pcomtag="^\#|"; fi
+# FAIL, PASS, DONE come from tbs
+cmd+=" | egrep \"(${pcomtag}-[EFW]:|FAIL|PASS|DONE)\""
+docmd "$cmd"

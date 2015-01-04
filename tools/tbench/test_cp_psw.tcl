@@ -1,17 +1,18 @@
-# $Id: test_cp_psw.tcl 552 2014-03-02 23:02:00Z mueller $
+# $Id: test_cp_psw.tcl 621 2014-12-26 21:20:05Z mueller $
 #
-# Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2014-12-26   621   1.0.1  adopt to 4k word ibus window
 # 2013-03-31   502   1.0    Initial version
 #
 # Test that psw is writable and readable via various ways
 #  1. direct cp access
 #  2. via 16bit memory addressing
 #  3. via 22bit memory addressing
-#  4. via ibr mapping
+#  4. via ibr window
 #
 # This test not only verifies psw, but also all basic access methods
 #
@@ -41,10 +42,8 @@ foreach w { 000000 000017 } {
 }
 
 rlc log "  write/read via ibr window"
-$cpu cp -wibrb 0177700 \
-        -ribrb -edata 0017700
 foreach w { 000000 000017 } {
-  $cpu cp -wibr 076 $w \
-          -ribr 076 -edata $w \
-          -rps      -edata $w
+  $cpu cp -wibr 0177776 $w \
+          -ribr 0177776 -edata $w \
+          -rps          -edata $w
 }

@@ -1,4 +1,4 @@
--- $Id: pdp11_core_rbus.vhd 591 2014-09-06 17:45:38Z mueller $
+-- $Id: pdp11_core_rbus.vhd 621 2014-12-26 21:20:05Z mueller $
 --
 -- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,8 +20,15 @@
 --
 -- Target Devices: generic
 -- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
+--
+-- Synthesized (xst):
+-- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2014-12-21   591 14.7  131013 xc6slx16-2    52  118    0   58 s  4.9
+--
 -- Revision History: -
 -- Date         Rev Version  Comment
+-- 2014-12-26   621   1.4    use full size 4k word ibus window
+-- 2014-12-21   617   1.3.1  use separate RB_STAT bits for cmderr and cmdmerr
 -- 2014-09-05   591   1.3    use new rlink v4 iface and 4 bit STAT
 -- 2014-08-15   583   1.2    rb_mreq addr now 16 bit
 -- 2011-11-18   427   1.1.1  now numeric_std clean
@@ -49,37 +56,36 @@
 --
 -- rbus registers:
 --
--- Address   Bits Name        r/w/i  Function
+--  Addr   Bits  Name        r/w/f  Function
 --
--- bbb00000       conf        r/w/-  cpu configuration (e.g. cpu type)
+-- 00000         conf        r/w/-  cpu configuration (e.g. cpu type)
 --                                   (currently unused, all bits MBZ)
--- bbb00001       cntl        -/f/-  cpu control
---            3:0   func               function code
+-- 00001         cntl        -/f/-  cpu control
+--         3:00    func               function code
 --                                       0000: noop
 --                                       0001: start
 --                                       0010: stop
 --                                       0011: continue
 --                                       0100: step
 --                                       1111: reset (soft)
--- bbb00010       stat        r/-/-  cpu status
---           7:04   cpurust   r/-/-    cp_stat: cpurust
---              3   cpuhalt   r/-/-    cp_stat: cpuhalt
---              2   cpugo     r/-/-    cp_stat: cpugo
---              1   cmdmerr   r/-/-    cp_stat: cmdmerr
---              0   cmderr    r/-/-    cp_stat: cmderr
--- bbb00011       psw         r/w/-  processor status word access
--- bbb00100       al          r/w/-  address register, low
--- bbb00101       ah          r/w/-  address register, high
---              7   ubm       r/w/-    ubmap access
---              6   p22       r/w/-    22bit access
---           5: 0   addr      r/w/-    addr(21:16)  
--- bbb00110       mem         r/w/-  memory access
--- bbb00111       memi        r/w/-  memory access, inc address
--- bbb01rrr       gpr[]       r/w/-  general purpose regs
--- bbb10000       ibrb        r/w/-  ibr base address
---          12:06   base      r/w/-    ibr window base address
---           1:00   we        r/w/-    byte enables (00 equivalent to 11)
--- www-----       ibr[]       r/w/-  ibr window (32 words)
+-- 00010         stat        r/-/-  cpu status
+--         7:04    cpurust   r/-/-    cp_stat: cpurust
+--            3    cpuhalt   r/-/-    cp_stat: cpuhalt
+--            2    cpugo     r/-/-    cp_stat: cpugo
+--            1    cmdmerr   r/-/-    cp_stat: cmdmerr
+--            0    cmderr    r/-/-    cp_stat: cmderr
+-- 00011         psw         r/w/-  processor status word access
+-- 00100         al          r/w/-  address register, low
+-- 00101         ah          r/w/-  address register, high
+--            7    ubm       r/w/-    ubmap access
+--            6    p22       r/w/-    22bit access
+--         5:00    addr      r/w/-    addr(21:16)  
+-- 00110         mem         r/w/-  memory access
+-- 00111         memi        r/w/-  memory access, inc address
+-- 01rrr         gpr[]       r/w/-  general purpose regs
+-- 10000         membe       r/w/-  memory write byte enables
+--            3    stick     r/w/-    sticky flag
+--         1:00    be        r/w/-    byte enables
 --
 
 library ieee;
@@ -94,8 +100,8 @@ use work.pdp11.all;
 
 entity pdp11_core_rbus is               -- core to rbus interface
   generic (
-    RB_ADDR_CORE : slv16 := slv(to_unsigned(2#0000000000000000#,16));
-    RB_ADDR_IBUS : slv16 := slv(to_unsigned(2#0000000010000000#,16)));
+    RB_ADDR_CORE : slv16 := slv(to_unsigned(16#0000#,16));
+    RB_ADDR_IBUS : slv16 := slv(to_unsigned(16#4000#,16)));
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- reset
@@ -131,9 +137,8 @@ architecture syn of pdp11_core_rbus is
     addr : slv22_1;                     -- address register
     ena_22bit : slbit;                  -- 22bit enable
     ena_ubmap : slbit;                  -- ubmap enable
-    ibrbase : slv(c_ibrb_ibf_base);     -- ibr base address
-    ibrbe : slv2;                       -- ibr byte enables
-    ibrberet : slv2;                    -- ibr byte enables (for readback)
+    membe : slv2;                       -- memory write byte enables
+    membestick : slbit;                 -- memory write byte enables sticky
     doinc : slbit;                      -- at cmdack: do addr reg inc
     waitstep : slbit;                   -- at cmdack: wait for cpu step complete
   end record regs_type;
@@ -146,7 +151,7 @@ architecture syn of pdp11_core_rbus is
     '0',                                -- cpugo_1
     (others=>'0'),                      -- addr
     '0','0',                            -- ena_22bit, ena_ubmap
-    (others=>'0'),"00","00",            -- ibrbase, ibrbe, ibrberet
+    "11",'0',                           -- membe,membestick
     '0','0'                             -- doinc, waitstep
   );
 
@@ -212,7 +217,7 @@ architecture syn of pdp11_core_rbus is
       if RB_MREQ.addr(15 downto 5)=RB_ADDR_CORE(15 downto 5) then
         n.rbselc := '1';
       end if;
-      if RB_MREQ.addr(15 downto 5)=RB_ADDR_IBUS(15 downto 5) then
+      if RB_MREQ.addr(15 downto 12)=RB_ADDR_IBUS(15 downto 12) then
         n.rbseli := '1';
       end if;
     end if;
@@ -253,21 +258,21 @@ architecture syn of pdp11_core_rbus is
                 end if;
               end if;
                 
-            when c_rbaddr_stat =>         -- stat -------------------------
+            when c_rbaddr_stat =>           -- stat ------------------
               irb_dout(c_stat_rbf_cmderr)  := CP_STAT.cmderr;
               irb_dout(c_stat_rbf_cmdmerr) := CP_STAT.cmdmerr;
               irb_dout(c_stat_rbf_cpugo)   := CP_STAT.cpugo;
               irb_dout(c_stat_rbf_cpuhalt) := CP_STAT.cpuhalt;
               irb_dout(c_stat_rbf_cpurust) := CP_STAT.cpurust;
 
-            when c_rbaddr_psw  =>         -- psw --------------------------
+            when c_rbaddr_psw  =>           -- psw -------------------
               if irbena = '1' then
                 n.cpfunc    := c_cpfunc_rpsw;
                 n.cpfunc(0) := RB_MREQ.we;
                 icpreq := '1';
               end if;
               
-            when c_rbaddr_al   =>         -- al ---------------------------
+            when c_rbaddr_al   =>           -- al --------------------
               irb_dout(c_al_rbf_addr) := r.addr(c_al_rbf_addr);
               if RB_MREQ.we = '1' then
                 n.addr      := (others=>'0'); -- write to al clears ah !!
@@ -276,7 +281,7 @@ architecture syn of pdp11_core_rbus is
                 n.addr(c_al_rbf_addr) := RB_MREQ.din(c_al_rbf_addr);
               end if;
 
-            when c_rbaddr_ah   =>         -- ah ---------------------------
+            when c_rbaddr_ah   =>           -- ah --------------------
               irb_dout(c_ah_rbf_ena_ubmap) := r.ena_ubmap;
               irb_dout(c_ah_rbf_ena_22bit) := r.ena_22bit;
               irb_dout(c_ah_rbf_addr)      := r.addr(21 downto 16);
@@ -286,14 +291,14 @@ architecture syn of pdp11_core_rbus is
                 n.ena_ubmap          := RB_MREQ.din(c_ah_rbf_ena_ubmap);
               end if;
 
-            when c_rbaddr_mem  =>         -- mem -----------------
+            when c_rbaddr_mem  =>           -- mem -------------------
               if irbena = '1' then
                 n.cpfunc    := c_cpfunc_rmem;
                 n.cpfunc(0) := RB_MREQ.we;
                 icpreq   := '1';
               end if;
               
-            when c_rbaddr_memi  =>        -- memi ----------------
+            when c_rbaddr_memi  =>          -- memi ------------------
               if irbena = '1' then
                 n.cpfunc    := c_cpfunc_rmem;
                 n.cpfunc(0) := RB_MREQ.we;
@@ -304,24 +309,19 @@ architecture syn of pdp11_core_rbus is
             when c_rbaddr_r0 | c_rbaddr_r1 |
                  c_rbaddr_r2 | c_rbaddr_r3 |
                  c_rbaddr_r4 | c_rbaddr_r5 |
-                 c_rbaddr_sp | c_rbaddr_pc =>      -- r* ------------------
+                 c_rbaddr_sp | c_rbaddr_pc =>  -- r* -----------------
               if irbena = '1' then
                 n.cpfunc    := c_cpfunc_rreg;
                 n.cpfunc(0) := RB_MREQ.we;
                 icpreq   := '1';
               end if;
               
-            when c_rbaddr_ibrb  =>        -- ibrb ----------------
-              irb_dout(c_ibrb_ibf_base) := r.ibrbase;
-              irb_dout(c_ibrb_ibf_be)   := r.ibrberet;
+            when c_rbaddr_membe  =>         -- membe -----------------
+              irb_dout(c_membe_rbf_be)    := r.membe;
+              irb_dout(c_membe_rbf_stick) := r.membestick;
               if RB_MREQ.we = '1' then
-                n.ibrbase  := RB_MREQ.din(c_ibrb_ibf_base);
-                n.ibrberet := RB_MREQ.din(c_ibrb_ibf_be);
-                if RB_MREQ.din(c_ibrb_ibf_be) = "00" then -- both be=0 ?
-                  n.ibrbe := "11";
-                else                               -- otherwise take 2 LSB's
-                  n.ibrbe := RB_MREQ.din(c_ibrb_ibf_be);
-                end if;
+                n.membe      := RB_MREQ.din(c_membe_rbf_be);
+                n.membestick := RB_MREQ.din(c_membe_rbf_stick);
               end if;
               
             when others =>
@@ -341,11 +341,19 @@ architecture syn of pdp11_core_rbus is
         n.cpreq := '0';                   -- cpreq only for 1 cycle
 
         if (r.rbselc or r.rbseli)='0' or irbena='0' then -- rbus cycle abort
+          if r.cpfunc = c_cpfunc_wmem and   -- if wmem command
+               r.membestick = '0' then        --   and be's not sticky
+            n.membe := "11";                  -- re-enable both bytes
+          end if;
           n.state := s_idle;              -- quit
         else
           irb_dout := CP_DOUT;
           irb_err  := CP_STAT.cmderr or CP_STAT.cmdmerr;
           if CP_STAT.cmdack = '1' then       -- normal cycle end
+            if r.cpfunc = c_cpfunc_wmem and   -- if wmem command
+                 r.membestick = '0' then        --   and be's not sticky
+              n.membe := "11";                  -- re-enable both bytes
+            end if;
             if r.doinc = '1' then
               n.addr := slv(unsigned(r.addr) + 1);
             end if;
@@ -374,19 +382,18 @@ architecture syn of pdp11_core_rbus is
       when others => null;
     end case;
 
-    icpaddr := cp_addr_init;
-    icpaddr.addr      := r.addr;
-    icpaddr.racc      := '0';
-    icpaddr.be        := "11";
-    icpaddr.ena_22bit := r.ena_22bit;
-    icpaddr.ena_ubmap := r.ena_ubmap;
+    icpaddr    := cp_addr_init;
+    icpaddr.be := r.membe;
       
-    if r.rbseli = '1' and irbena = '1' then
-      icpaddr.addr(15 downto 13)    := "111";
-      icpaddr.addr(c_ibrb_ibf_base) := r.ibrbase;
-      icpaddr.addr(5 downto 1)      := RB_MREQ.addr(4 downto 0);
+    if r.rbseli = '0' then              -- access via cp
+      icpaddr.addr      := r.addr;
+      icpaddr.racc      := '0';
+      icpaddr.ena_22bit := r.ena_22bit;
+      icpaddr.ena_ubmap := r.ena_ubmap;
+    else                                -- access via ibus window
+      icpaddr.addr(15 downto 13) := "111";
+      icpaddr.addr(12 downto 1)  := RB_MREQ.addr(11 downto 0);
       icpaddr.racc      := '1';
-      icpaddr.be        := r.ibrbe;
       icpaddr.ena_22bit := '0';
       icpaddr.ena_ubmap := '0';
     end if;
@@ -403,8 +410,8 @@ architecture syn of pdp11_core_rbus is
     RB_SRES.busy <= irb_busy;
     RB_SRES.dout <= irb_dout;
     
-    RB_STAT(3) <= '0';
-    RB_STAT(2) <= CP_STAT.cmderr  or CP_STAT.cmdmerr;
+    RB_STAT(3) <= CP_STAT.cmderr;
+    RB_STAT(2) <= CP_STAT.cmdmerr;
     RB_STAT(1) <= CP_STAT.cpuhalt or CP_STAT.cpurust(CP_STAT.cpurust'left);
     RB_STAT(0) <= CP_STAT.cpugo;
 

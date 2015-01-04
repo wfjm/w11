@@ -1,6 +1,6 @@
--- $Id: sys_conf_sim.vhd 538 2013-10-06 17:21:25Z mueller $
+-- $Id: sys_conf_sim.vhd 619 2014-12-23 13:17:41Z mueller $
 --
--- Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Definitions for sys_w11a_n3 (for simulation)
 --
 -- Dependencies:   -
--- Tool versions:  xst 13.1, 14.6; ghdl 0.29
+-- Tool versions:  xst 13.1-14.7; ghdl 0.29-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-12-22   619   1.3.1  add _rbmon_awidth
 -- 2013-10-06   538   1.3    pll support, use clksys_vcodivide ect
 -- 2013-04-21   509   1.2    add fx2 settings
 -- 2011-11-25   432   1.0    Initial version (cloned from _n3)
@@ -41,7 +42,9 @@ package sys_conf is
   constant sys_conf_memctl_writedelay : positive := 5;
 
   constant sys_conf_ser2rri_cdinit : integer := 1-1;   -- 1 cycle/bit in sim
-  
+
+  constant sys_conf_rbmon_awidth : integer := 9; -- use 0 to disable rbmon
+
   -- fx2 settings: petowidth=10 -> 2^10 30 MHz clocks -> ~33 usec
   constant sys_conf_fx2_petowidth  : positive := 10;
   constant sys_conf_fx2_ccwidth  : positive := 5;

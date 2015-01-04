@@ -1,4 +1,4 @@
-// $Id: RlinkPacketBufRcv.hpp 607 2014-11-30 20:02:48Z mueller $
+// $Id: RlinkPacketBufRcv.hpp 621 2014-12-26 21:20:05Z mueller $
 //
 // Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-25   621   1.0.1  Reorganize packet send/revd stats
 // 2014-11-30   607   1.0    Initial version 
 // 2014-11-02   600   0.1    First draft (re-organize PacketBuf for rlink v4)
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPacketBufRcv.hpp 607 2014-11-30 20:02:48Z mueller $
+  \version $Id: RlinkPacketBufRcv.hpp 621 2014-12-26 21:20:05Z mueller $
   \brief   Declaration of class RlinkPacketBuf.
 */
 
@@ -63,7 +64,8 @@ namespace Retro {
 
    // statistics counter indices
       enum stats {
-        kStatNRxDrop=0,                     //!< Rx bytes dropped
+        kStatNRxPktByt=0,                   //!< Rx packet bytes rcvd
+        kStatNRxDrop,                       //!< Rx bytes dropped
         kStatNRxSop,                        //!< Rx SOP commas seen
         kStatNRxEop,                        //!< Rx EOP commas seen
         kStatNRxNak,                        //!< Rx NAK commas seen

@@ -1,4 +1,4 @@
--- $Id: rlink_core.vhd 614 2014-12-20 15:00:45Z mueller $
+-- $Id: rlink_core.vhd 620 2014-12-25 10:48:35Z mueller $
 --
 -- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -38,6 +38,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-12-21   617   4.1    use stat(_rbf_rbtout) to signal rbus timeout
 -- 2014-12-20   614   4.0    largely rewritten; 2 FSMs; v3 protocol; 4 bit STAT
 -- 2014-08-15   583   3.5    rb_mreq addr now 16 bit; add s_rxaddrl state
 -- 2011-11-19   427   3.1.3  now numeric_std clean
@@ -184,8 +185,8 @@ entity rlink_core is                    -- rlink core with 9bit interface
 end entity rlink_core;  
 
 architecture syn of rlink_core is
-
-  constant rbaddr : slv16:= "1111111111111100";   -- core config base (top 4)
+   -- core config registers (top 4 in rbus space)
+  constant rbaddr : slv16 := x"fffc";    -- fffc/4: 1111 1111 1111 11xx
   constant rbaddr_cntl : slv2 := "11";   -- cntl address offset
   constant rbaddr_stat : slv2 := "10";   -- stat address offset
   constant rbaddr_id1  : slv2 := "01";   -- id1  address offset
@@ -345,7 +346,8 @@ architecture syn of rlink_core is
     rbre : slbit;                       -- rbus re signal
     rbwe : slbit;                       -- rbus we signal
     rbdout : slv16;                     -- rbus dout
-    rbnak: slbit;                       -- rbus no ack or timeout
+    rbtout: slbit;                      -- rbus timeout
+    rbnak: slbit;                       -- rbus no ack
     rberr : slbit;                      -- rbus err bit set
     blkabo : slbit;                     -- blk abort
     cnt : slv(cntawidth-1 downto 0);    -- word count for rblk and wblk
@@ -363,7 +365,7 @@ architecture syn of rlink_core is
     sb_idle,                            -- state
     '0','0','0','0',                    -- rbinit,rbaval,rbre,rbwe
     (others=>'0'),                      -- rbdout
-    '0','0',                            -- rbnak,rberr
+    '0','0','0',                        -- rbtout,rbnak,rberr
     '0',                                -- blkabo
     cnt_zero,                           -- cnt
     cnt_zero,                           -- dcnt
@@ -1116,7 +1118,7 @@ begin
         n.state := sl_txdcntl;            -- next: send dcnt lsb
 
       when sl_txdcntl =>                -- sl_txdcntl: send dcnt lsb ---------
-        n.babo := R_BREGS.rbnak or R_BREGS.rberr;  -- remember blk abort
+        n.babo := R_BREGS.blkabo;         -- remember blk abort
         ido := '0' & R_BREGS.dcnt(f_byte0); -- send dcnt lsb
         ival := '1';
         if RL_HOLD = '0' then             -- wait for accept
@@ -1152,10 +1154,11 @@ begin
         n.state := sl_txcntl;             -- next: send cnt lsb (holding attn)
         
       when sl_txstat =>                 -- sl_txstat: send status ------------
-        ido(c_rlink_stat_rbf_stat)  := R_BREGS.stat;
-        ido(c_rlink_stat_rbf_attn)  := has_attn;
-        ido(c_rlink_stat_rbf_rbnak) := R_BREGS.rbnak;
-        ido(c_rlink_stat_rbf_rberr) := R_BREGS.rberr;
+        ido(c_rlink_stat_rbf_stat)   := R_BREGS.stat;
+        ido(c_rlink_stat_rbf_attn)   := has_attn;
+        ido(c_rlink_stat_rbf_rbtout) := R_BREGS.rbtout;
+        ido(c_rlink_stat_rbf_rbnak)  := R_BREGS.rbnak;
+        ido(c_rlink_stat_rbf_rberr)  := R_BREGS.rberr;
         ival := '1';
         if RL_HOLD  ='0' then             -- wait for accept
           irtwea := '1';
@@ -1343,8 +1346,9 @@ begin
       when sb_idle =>                   -- sb_idle: wait for cmd ------------
         if L2B_GO = '1' then              -- if cmd seen 
           n.stat := RB_STAT;                -- always latch external status bits
-          n.rbnak := '0';
-          n.rberr := '0';
+          n.rbtout := '0';
+          n.rbnak  := '0';
+          n.rberr  := '0';
           n.blkabo := '0';
           n.dathpend := '0';
           dcnt_clear := '1';
@@ -1379,13 +1383,13 @@ begin
         n.rbaval := '1';                  -- extend aval
         bto_go := '1';                    -- activate rbus timeout counter
         if RB_SRES_TOT.err = '1' then       -- latch rbus error flag
-          n.rberr := '1';
+          n.rberr  := '1';
           n.blkabo := '1';
         end if;
         n.rbdout := RB_SRES_TOT.dout;       -- latch data (follow till valid)
         if RB_SRES_TOT.busy='0' or bto_end='1' then -- wait non-busy or timeout
           if RB_SRES_TOT.busy='1' and bto_end='1' then -- if timeout and busy
-            n.rbnak := '1';                   -- set rbus nak flag
+            n.rbtout := '1';                    -- set rbus timeout flag
             n.blkabo := '1';
           elsif RB_SRES_TOT.ack = '0' then    -- if non-busy and no ack
             n.rbnak := '1';                     -- set rbus nak flag            
@@ -1458,12 +1462,12 @@ begin
         n.rbaval := '1';                  -- extend aval
         bto_go := '1';                    -- activate rbus timeout counter
         if RB_SRES_TOT.err = '1' then     -- latch rbus error flag
-          n.rberr := '1';
+          n.rberr  := '1';
           n.blkabo := '1';
         end if;
         if RB_SRES_TOT.busy='0' or bto_end='1' then -- wait non-busy or timeout
           if RB_SRES_TOT.busy='1' and bto_end='1' then -- if timeout and busy
-            n.rbnak := '1';                    -- set rbus nak flag
+            n.rbtout := '1';                     -- set rbus timeout flag
             n.blkabo := '1';
           elsif RB_SRES_TOT.ack='0' then       -- if non-busy and no ack
             n.rbnak := '1';                      -- set rbus nak flag            

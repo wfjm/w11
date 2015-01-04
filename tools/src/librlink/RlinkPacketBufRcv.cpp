@@ -1,4 +1,4 @@
-// $Id: RlinkPacketBufRcv.cpp 607 2014-11-30 20:02:48Z mueller $
+// $Id: RlinkPacketBufRcv.cpp 621 2014-12-26 21:20:05Z mueller $
 //
 // Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-25   621   1.0.1  Reorganize packet send/revd stats
 // 2014-11-30   607   1.0    Initial version
 // 2014-11-02   600   0.1    First draft (re-organize PacketBuf for rlink v4)
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RlinkPacketBufRcv.cpp 607 2014-11-30 20:02:48Z mueller $
+  \version $Id: RlinkPacketBufRcv.cpp 621 2014-12-26 21:20:05Z mueller $
   \brief   Implemenation of class RlinkPacketBuf.
  */
 
@@ -55,6 +56,7 @@ RlinkPacketBufRcv::RlinkPacketBufRcv()
     fDropData()
 {
   // Statistic setup
+  fStats.Define(kStatNRxPktByt, "NRxPktByt", "Rx packet bytes rcvd");
   fStats.Define(kStatNRxDrop,   "NRxDrop",   "Rx bytes dropped");
   fStats.Define(kStatNRxSop,    "NRxSop",    "Rx SOP commas seen");
   fStats.Define(kStatNRxEop,    "NRxEop",    "Rx EOP commas seen");
@@ -272,6 +274,7 @@ void RlinkPacketBufRcv::ProcessDataFill()
       case kEcEop:                          // EOP seen
         SetFlagBit(kFlagEopSeen);           // -> set eop and return
         fRcvState = kRcvDone;
+        fStats.Inc(kStatNRxPktByt, double(PktSize()));
         return;
         
       case kEcNak:                          // NAK seen

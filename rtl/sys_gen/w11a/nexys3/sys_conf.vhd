@@ -1,6 +1,6 @@
--- $Id: sys_conf.vhd 538 2013-10-06 17:21:25Z mueller $
+-- $Id: sys_conf.vhd 621 2014-12-26 21:20:05Z mueller $
 --
--- Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,11 @@
 -- Description:    Definitions for sys_w11a_n3 (for synthesis)
 --
 -- Dependencies:   -
--- Tool versions:  xst 13.1, 14.6; ghdl 0.29
+-- Tool versions:  xst 13.1-14.7; ghdl 0.29-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-12-26   621   1.2.2  use 68 MHz, get occasional problems with 72 MHz
+-- 2014-12-22   619   1.2.1  add _rbmon_awidth
 -- 2013-10-06   538   1.2    pll support, use clksys_vcodivide ect
 -- 2013-10-05   537   1.1.1  use 72 MHz, no closure w/ ISE 14.x for 80 anymore
 -- 2013-04-21   509   1.1    add fx2 settings
@@ -43,8 +45,8 @@ use work.slvtypes.all;
 package sys_conf is
 
   constant sys_conf_clksys_vcodivide   : positive :=  25;
-  constant sys_conf_clksys_vcomultiply : positive :=  18;   -- dcm   72 MHz
-  constant sys_conf_clksys_outdivide   : positive :=   1;   -- sys   72 MHz
+  constant sys_conf_clksys_vcomultiply : positive :=  17;   -- dcm   68 MHz
+  constant sys_conf_clksys_outdivide   : positive :=   1;   -- sys   68 MHz
   constant sys_conf_clksys_gentype     : string   := "DCM";
   
   constant sys_conf_memctl_read0delay : positive := 4;
@@ -52,6 +54,8 @@ package sys_conf is
   constant sys_conf_memctl_writedelay : positive := 5;
 
   constant sys_conf_ser2rri_defbaud : integer := 115200;   -- default 115k baud
+
+  constant sys_conf_rbmon_awidth : integer := 9; -- use 0 to disable rbmon
 
   -- fx2 settings: petowidth=10 -> 2^10 30 MHz clocks -> ~33 usec
   constant sys_conf_fx2_petowidth  : positive := 10;

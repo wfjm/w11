@@ -1,6 +1,6 @@
-// $Id: RtclRw11CntlRK11.hpp 509 2013-04-21 20:46:20Z mueller $
+// $Id: RtclRw11CntlRK11.hpp 627 2015-01-04 11:36:37Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-01-03   627   1.1    add local M_stat
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-08   484   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11CntlRK11.hpp 509 2013-04-21 20:46:20Z mueller $
+  \version $Id: RtclRw11CntlRK11.hpp 627 2015-01-04 11:36:37Z mueller $
   \brief   Declaration of class RtclRw11CntlRK11.
 */
 
@@ -38,6 +39,9 @@ namespace Retro {
                    ~RtclRw11CntlRK11();
 
       virtual int   FactoryCmdConfig(RtclArgs& args, RtclRw11Cpu& cpu);
+
+    protected:
+      virtual int   M_stats(RtclArgs& args);
   };
   
 } // end namespace Retro

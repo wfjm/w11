@@ -4,6 +4,7 @@
 ../../../vlib/genlib/genlib.vhd
 ../../../vlib/serport/serportlib.vbom
 ../../../vlib/rbus/rblib.vhd
+../../../vlib/rbus/rbdlib.vhd
 ../../../vlib/rlink/rlinklib.vbom
 ../../../bplib/fx2lib/fx2lib.vhd
 ../../../bplib/fx2rlink/fx2rlinklib.vbom
@@ -22,7 +23,8 @@ sys_conf = sys_conf.vhd
 ../../../bplib/bpgen/sn_humanio_rbus.vbom
 ../../../bplib/fx2rlink/rlink_sp1c_fx2.vbom
 ../../../bplib/fx2rlink/ioleds_sp1c_fx2.vbom
-../../../vlib/rbus/rb_sres_or_3.vbom
+../../../vlib/rbus/rb_sres_or_4.vbom
+../../../vlib/rbus/rbd_rbmon.vbom
 ../../../w11a/pdp11_core_rbus.vbom
 ../../../w11a/pdp11_core.vbom
 ../../../w11a/pdp11_bram.vbom

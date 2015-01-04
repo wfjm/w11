@@ -1,11 +1,11 @@
-# $Id: rsx11m-40_rk_boot.tcl 525 2013-07-06 12:19:39Z mueller $
+# $Id: rsx11m-40_rk_boot.tcl 622 2014-12-28 20:45:26Z mueller $
 #
 # Setup file for RSX11-M V4.0 RK05 based system
 #
 # Usage:
 #   
-# telnet_starter -d DL0 &
-# telnet_starter -d DL1 &
+# console_starter -d DL0 &
+# console_starter -d DL1 &
 # ti_w11 -xxx @rsx11m-40_rk_boot.tcl     ( -xxx depends on sim or fpga connect)
 #
 

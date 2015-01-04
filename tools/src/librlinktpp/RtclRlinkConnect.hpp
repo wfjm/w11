@@ -1,6 +1,6 @@
-// $Id: RtclRlinkConnect.hpp 492 2013-02-24 22:14:47Z mueller $
+// $Id: RtclRlinkConnect.hpp 628 2015-01-04 16:22:09Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-01-04   628   1.0.4  add M_get
 // 2013-02-23   492   1.0.3  use RlogFile.Name(); use Context().ErrorCount()
 // 2013-01-06   473   1.0.2  add M_rawio
 // 2011-11-28   434   1.0.1  ConfigBase(): use uint32_t for lp64 compatibility
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: RtclRlinkConnect.hpp 492 2013-02-24 22:14:47Z mueller $
+  \version $Id: RtclRlinkConnect.hpp 628 2015-01-04 16:22:09Z mueller $
   \brief   Declaration of class RtclRlinkConnect.
 */
 
@@ -34,6 +35,7 @@
 
 #include "librtcltools/RtclOPtr.hpp"
 #include "librtcltools/RtclProxyOwned.hpp"
+#include "librtcltools/RtclGetList.hpp"
 
 #include "librlink/RlinkConnect.hpp"
 
@@ -58,9 +60,10 @@ namespace Retro {
       int           M_print(RtclArgs& args);
       int           M_dump(RtclArgs& args);
       int           M_config(RtclArgs& args);
+      int           M_get(RtclArgs& args);
       int           M_default(RtclArgs& args);
 
-      bool          GetAddr(RtclArgs& args, RlinkConnect& conn, uint16_t& addr);
+      bool          GetAddr(RtclArgs& args, uint16_t& addr);
       bool          GetVarName(RtclArgs& args, const char* argname, 
                                size_t nind, std::vector<std::string>& varname);
       bool          ConfigBase(RtclArgs& args, uint32_t& base);
@@ -69,6 +72,7 @@ namespace Retro {
 
     protected:
       RtclOPtr      fCmdnameObj[8];
+      RtclGetList   fGets;
   };
   
 } // end namespace Retro

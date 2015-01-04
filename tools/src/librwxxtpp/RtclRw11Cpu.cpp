@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.cpp 607 2014-11-30 20:02:48Z mueller $
+// $Id: RtclRw11Cpu.cpp 628 2015-01-04 16:22:09Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-29   623   1.1.2  add M_amap; M_cp: add -print and -dump
+// 2014-12-20   616   1.1.1  M_cp: add -edone for BlockDone checking
 // 2014-11-30   607   1.1    new rlink v4 iface
 // 2014-08-22   584   1.0.5  use nullptr
 // 2014-08-02   576   1.0.4  BUGFIX: redo estatdef logic; avoid LastExpect()
@@ -25,7 +27,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Cpu.cpp 607 2014-11-30 20:02:48Z mueller $
+  \version $Id: RtclRw11Cpu.cpp 628 2015-01-04 16:22:09Z mueller $
   \brief   Implemenation of RtclRw11Cpu.
 */
 
@@ -74,9 +76,11 @@ namespace Retro {
 
 RtclRw11Cpu::RtclRw11Cpu(const std::string& type)
   : RtclProxyBase(type),
-    fGets()
+    fGets(),
+    fSets()
 {
   AddMeth("add",      boost::bind(&RtclRw11Cpu::M_add,     this, _1));
+  AddMeth("amap",     boost::bind(&RtclRw11Cpu::M_amap,    this, _1));
   AddMeth("cp",       boost::bind(&RtclRw11Cpu::M_cp,      this, _1));
   AddMeth("wtcpu",    boost::bind(&RtclRw11Cpu::M_wtcpu,   this, _1));
   AddMeth("deposit",  boost::bind(&RtclRw11Cpu::M_deposit, this, _1));
@@ -110,6 +114,101 @@ int RtclRw11Cpu::M_add(RtclArgs& args)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
+int RtclRw11Cpu::M_amap(RtclArgs& args)
+{
+  static RtclNameSet optset("-name|-testname|-testaddr|-insert|-erase|-print");
+
+  const RlinkAddrMap& addrmap = Obj().IAddrMap();
+
+  string opt;
+  string name;
+  uint16_t addr=0;
+
+  if (args.NextOpt(opt, optset)) {
+    if        (opt == "-name") {            // amap -name addr
+      if (!args.GetArg("addr", addr)) return kERR;
+      if (!args.AllDone()) return kERR;
+      string   tstname;
+      if(addrmap.Find(addr, tstname)) {
+        args.SetResult(tstname);
+      } else {
+        return args.Quit(string("-E: address '") + args.PeekArgString(-1) +
+                         "' not mapped");
+      }
+
+    } else if (opt == "-testname") {        // amap -testname name
+      if (!args.GetArg("name", name)) return kERR;
+      if (!args.AllDone()) return kERR;
+      uint16_t tstaddr;
+      args.SetResult(int(addrmap.Find(name, tstaddr)));
+
+    } else if (opt == "-testaddr") {        // amap -testaddr addr
+      if (!args.GetArg("addr", addr)) return kERR;
+      if (!args.AllDone()) return kERR;
+      string   tstname;
+      args.SetResult(int(addrmap.Find(addr, tstname)));
+
+    } else if (opt == "-insert") {          // amap -insert name addr
+      uint16_t tstaddr;
+      string   tstname;
+      int      tstint;
+      if (!args.GetArg("name", name)) return kERR;
+      // enforce that the name is not a valid representation of an int
+      if (Tcl_GetIntFromObj(nullptr, args[args.NDone()-1], &tstint) == kOK) 
+        return args.Quit(string("-E: name should not look like an int but '")+
+                         name + "' does");
+      if (!args.GetArg("addr", addr)) return kERR;
+      if (!args.AllDone()) return kERR;
+      if (addrmap.Find(name, tstaddr)) 
+        return args.Quit(string("-E: mapping already defined for '")+name+"'");
+      if (addrmap.Find(addr, tstname)) 
+        return args.Quit(string("-E: mapping already defined for address '") +
+                         args.PeekArgString(-1) + "'");
+      Obj().IAddrMapInsert(name, addr);
+
+    } else if (opt == "-erase") {           // amap -erase name
+      if (!args.GetArg("name", name)) return kERR;
+      if (!args.AllDone()) return kERR;
+      if (!Obj().IAddrMapErase(name)) 
+        return args.Quit(string("-E: no mapping defined for '") + name + "'");
+
+    } else if (opt == "-print") {           // amap -print
+      if (!args.AllDone()) return kERR;
+      ostringstream sos;
+      addrmap.Print(sos);
+      args.AppendResultLines(sos);
+    }
+    
+  } else {
+    if (!args.OptValid()) return kERR;
+    if (!args.GetArg("?name", name)) return kERR;
+    if (args.NOptMiss()==0) {               // amap name
+      uint16_t tstaddr;
+      if(addrmap.Find(name, tstaddr)) {
+        args.SetResult(int(tstaddr));
+      } else {
+        return args.Quit(string("-E: no mapping defined for '") + name + "'");
+      }
+
+    } else {                                // amap
+      RtclOPtr plist(Tcl_NewListObj(0, nullptr));
+      const RlinkAddrMap::amap_t amap = addrmap.Amap();
+      for (RlinkAddrMap::amap_cit_t it=amap.begin(); it!=amap.end(); it++) {
+        Tcl_Obj* tpair[2];
+        tpair[0] = Tcl_NewIntObj(it->first);
+        tpair[1] = Tcl_NewStringObj((it->second).c_str(),(it->second).length());
+        Tcl_ListObjAppendElement(nullptr, plist, Tcl_NewListObj(2, tpair));
+      }
+      args.SetResult(plist);
+    }
+  }
+  
+  return kOK;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
 int RtclRw11Cpu::M_cp(RtclArgs& args)
 {
   static RtclNameSet optset("-rr|-rr0|-rr1|-rr2|-rr3|-rr4|-rr5|-rr6|-rr7|"
@@ -119,19 +218,21 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
                             "-ral|-rah|-wal|-wah|-wa|"
                             "-rm|-rmi|-wm|-wmi|-brm|-bwm|"
                             "-stapc|-start|-stop|-continue|-step|-reset|"
-                            "-ribrb|-wibrb|-ribr|-wibr|"
+                            "-rmembe|-wmembe|-ribr|-wibr|"
                             "-rconf|-rstat|"
-                            "-edata|-estat|-estatdef"
-                            );
+                            "-edata|-edone|-estat|-estatdef|"
+                            "-print|-dump|");
 
   Tcl_Interp* interp = args.Interp();
 
   RlinkCommandList clist;
   string opt;
-  uint16_t base = Obj().Base();
+  uint16_t base  = Obj().Base();
 
   vector<string> vardata;
   vector<string> varstat;
+  string varprint;
+  string vardump;
 
   uint8_t estatdef_val = 0x00;
   uint8_t estatdef_msk = 0xff;
@@ -223,7 +324,8 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
 
     } else if (opt == "-rm" ||              // -rm(i) ?varData ?varStat ------
                opt == "-rmi") {
-      uint16_t addr = opt=="-rm" ? Rw11Cpu::kCp_addr_mem : Rw11Cpu::kCp_addr_memi;
+      uint16_t addr = opt=="-rm" ? Rw11Cpu::kCp_addr_mem : 
+                                   Rw11Cpu::kCp_addr_memi;
       if (!GetVarName(args, "??varData", lsize, vardata)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       clist.AddRreg(base + addr);
@@ -280,44 +382,41 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       clist.AddWreg(base + Rw11Cpu::kCp_addr_cntl, Rw11Cpu::kCp_func_reset);
 
-    } else if (opt == "-ribrb") {           // -ribrb ?varData ?varStat ------
+    } else if (opt == "-rmembe") {          // -rmembe ?varData ?varStat ------
       if (!GetVarName(args, "??varData", lsize, vardata)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
-      clist.AddRreg(base + Rw11Cpu::kCp_addr_ibrb);
+      clist.AddRreg(base + Rw11Cpu::kCp_addr_membe);
 
-    } else if (opt == "-wibrb") {           // -wibrb base ?varStat [-be be] -
-      uint16_t data;
-      if (!args.GetArg("base", data)) return kERR;
+    } else if (opt == "-wmembe") {          // -wmembe be ?varStat [-stick] -
+      uint16_t be;
+      bool     stick = false;
+      if (!args.GetArg("be", be, 3)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
 
-      data &= 0177700;                      // clear byte enables
-      static RtclNameSet suboptset("-be");
+      static RtclNameSet suboptset("-stick");
       string subopt;
       while (args.NextSubOpt(subopt, suboptset)>=0) { // loop for sub-options
         if (!args.OptValid()) return kERR;
-        if (subopt == "-be") {                // -be be 
-          uint16_t be;
-          if (!args.GetArg("be", be, 0x3)) return kERR;
-          if (be == 0) be = 0x3;                  // map be 0 -> be 3
-          data |= be;                             // set byte enables
+        if (subopt == "-stick") {            // -stick
+          stick = true;
         }
       }
-      clist.AddWreg(base + Rw11Cpu::kCp_addr_ibrb, data);
+      Obj().AddMembe(clist, be, stick);
 
     } else if (opt == "-ribr") {           // -ribr off ?varData ?varStat ----
-      uint16_t off;
-      if (!args.GetArg("off",  off, 63)) return kERR;
+      uint16_t ibaddr;
+      if (!GetIAddr(args, ibaddr)) return kERR;
       if (!GetVarName(args, "??varData", lsize, vardata)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
-      clist.AddRreg(base + Rw11Cpu::kCp_addr_ibr + off/2);
+      Obj().AddRibr(clist, ibaddr);
 
     } else if (opt == "-wibr") {           // -wibr off data ?varStat --------
-      uint16_t off;
+      uint16_t ibaddr;
       uint16_t data;
-      if (!args.GetArg("off",  off, 63)) return kERR;
-      if (!args.GetArg("data", data)) return kERR;
+      if (!GetIAddr(args, ibaddr)) return kERR;
+      if (!args.GetArg("data",   data)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
-      clist.AddWreg(base + Rw11Cpu::kCp_addr_ibr + off/2, data);
+      Obj().AddWibr(clist, ibaddr, data);
 
     } else if (opt == "-rconf") {           // -rconf ?varData ?varStat ------
       if (!GetVarName(args, "??varData", lsize, vardata)) return kERR;
@@ -351,6 +450,23 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
         clist[lsize-1].Expect()->SetData(data, mask);
       }
 
+    } else if (opt == "-edone") {           // -edone done --------------------
+      if (lsize == 0) 
+        return args.Quit("-E: -edone not allowed on empty command list");
+      uint16_t done=0;
+      if (!args.GetArg("done", done)) return kERR;
+      if (clist[lsize-1].Expect()==0) {
+        clist[lsize-1].SetExpect(new RlinkCommandExpect(estatdef_val, 
+                                                        estatdef_msk));
+      }
+      uint8_t cmd = clist[lsize-1].Command();
+      if (cmd == RlinkCommand::kCmdRblk ||
+          cmd == RlinkCommand::kCmdWblk) {
+        clist[lsize-1].Expect()->SetDone(done);
+      } else {
+        return args.Quit("-E: -edone allowed only after -rblk,-wblk");
+      }
+
     } else if (opt == "-estat") {           // -estat ?stat ?mask -------------
       if (lsize == 0) 
         return args.Quit("-E: -estat not allowed on empty command list");
@@ -373,6 +489,12 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       estatdef_val = stat;
       estatdef_msk = mask;
 
+    } else if (opt == "-print") {           // -print ?varRes -----------------
+      varprint = "-";
+      if (!args.GetArg("??varRes", varprint)) return kERR;
+    } else if (opt == "-dump") {            // -dump ?varRes ------------------
+      vardump = "-";
+      if (!args.GetArg("??varRes", vardump)) return kERR;
     }
 
     if (estatdef_msk != 0xff &&             // estatdef defined
@@ -387,6 +509,13 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
 
   }
 
+  int nact = 0;
+  if (varprint == "-") nact += 1;
+  if (vardump  == "-") nact += 1;
+  if (nact > 1) 
+    return args.Quit(
+      "-E: more that one of -print,-dump without target variable found");
+
   if (!args.AllDone()) return kERR;
   if (clist.Size() == 0) return kOK;
 
@@ -398,6 +527,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
   // FIXME_code: is this a good idea ??
   if (!Connect().Exec(clist, emsg)) return args.Quit(emsg);
 
+  // FIXME: this code is a 1-to-1 copy from RtclRlinkConnect ! put into a method
   for (size_t icmd=0; icmd<clist.Size(); icmd++) {
     RlinkCommand& cmd = clist[icmd];
     
@@ -407,6 +537,8 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       RtclOPtr pele;
       switch (cmd.Command()) {
         case RlinkCommand::kCmdRreg:
+        case RlinkCommand::kCmdAttn:
+        case RlinkCommand::kCmdLabo:
           pres = Tcl_NewIntObj((int)cmd.Data());
           break;
 
@@ -421,6 +553,22 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       RtclOPtr pres(Tcl_NewIntObj((int)cmd.Status()));
       if (!Rtcl::SetVar(interp, varstat[icmd], pres)) return kERR;
     }
+  }
+
+  if (!varprint.empty()) {
+    ostringstream sos;
+    const RlinkConnect::LogOpts& logopts = Connect().GetLogOpts();
+    clist.Print(sos, Connect().Context(), &Connect().AddrMap(), 
+                logopts.baseaddr, logopts.basedata, logopts.basestat);
+    RtclOPtr pobj(Rtcl::NewLinesObj(sos));
+    if (!Rtcl::SetVarOrResult(args.Interp(), varprint, pobj)) return kERR;
+  }
+
+  if (!vardump.empty()) {
+    ostringstream sos;
+    clist.Dump(sos, 0);
+    RtclOPtr pobj(Rtcl::NewLinesObj(sos));
+    if (!Rtcl::SetVarOrResult(args.Interp(), vardump, pobj)) return kERR;
   }
 
   return kOK;
@@ -1099,6 +1247,41 @@ void RtclRw11Cpu::SetupGetSet()
   fGets.Add<size_t>       ("index", boost::bind(&Rw11Cpu::Index, pobj));
   fGets.Add<uint16_t>     ("base",  boost::bind(&Rw11Cpu::Base, pobj));
   return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+bool RtclRw11Cpu::GetIAddr(RtclArgs& args, uint16_t& ibaddr)
+{
+  Tcl_Obj* pobj=0;
+  if (!args.GetArg("ibaddr", pobj)) return kERR;
+
+  int tstint;
+  // if a number is given..
+  if (Tcl_GetIntFromObj(nullptr, pobj, &tstint) == kOK) {
+    if (tstint >= 0 && tstint <= 0xffff && (tstint & 0x1) == 0) {
+      ibaddr = (uint16_t)tstint;
+    } else {
+      args.AppendResult("-E: value '", Tcl_GetString(pobj), 
+                        "' for 'addr' odd number or out of range 0...0xffff", 
+                        nullptr);
+      return false;
+    }
+  // if a name is given 
+  } else {
+    string name(Tcl_GetString(pobj));
+    uint16_t tstaddr;
+    if (Obj().IAddrMap().Find(name, tstaddr)) {
+      ibaddr = tstaddr;
+    } else {
+      args.AppendResult("-E: no address mapping known for '", 
+                        Tcl_GetString(pobj), "'", nullptr);
+      return false;
+    }
+  }
+
+  return true;
 }
 
 //------------------------------------------+-----------------------------------

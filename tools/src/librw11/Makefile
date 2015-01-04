@@ -1,4 +1,4 @@
-# $Id: Makefile 561 2014-06-09 17:22:50Z mueller $
+# $Id: Makefile 626 2015-01-03 14:41:37Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -35,6 +35,7 @@ OBJ_all   +=   Rw11Virt.o
 OBJ_all   +=   Rw11VirtTerm.o Rw11VirtTermPty.o Rw11VirtTermTcp.o 
 OBJ_all   +=   Rw11VirtDisk.o Rw11VirtDiskFile.o 
 OBJ_all   +=   Rw11VirtStream.o 
+OBJ_all   +=   Rw11Rdma.o Rw11RdmaDisk.o 
 #
 DEP_all    = $(OBJ_all:.o=.dep)
 #

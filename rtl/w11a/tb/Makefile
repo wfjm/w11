@@ -1,7 +1,8 @@
-# $Id: Makefile 575 2014-07-27 20:55:41Z mueller $
+# $Id: Makefile 621 2014-12-26 21:20:05Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2014_12_26   621   1.4.2  use tbrun_tbw for check_* targets
 # 2014-07-27   545   1.4.1  make reference board configurable via XTW_BOARD
 # 2011-08-13   405   1.4    use includes from rtl/make
 # 2010-12-30   351   1.3    retire tb_rripdp_pdp11core tb_rriext_pdp11core
@@ -51,16 +52,12 @@ endif
 	grep FAIL  $*.simh_log
 
 check_dsim: tb_pdp11core tb_pdp11core_stim.dat
-	time tbw tb_pdp11core |\
-	   tee tb_pdp11core_dsim.log |\
-	   egrep "(FAIL|DONE)" || true
+	tbrun_tbw tb_pdp11core || true
 	@ echo "# diff to reference"
 	diff tb_pdp11core_out_ref.dat tb_pdp11core_dsim.log
 
 check_ssim: tb_pdp11core_ssim tb_pdp11core_stim.dat
-	time tbw tb_pdp11core_ssim |\
-	   tee tb_pdp11core_ssim.log |\
-	   egrep "(FAIL|DONE)" || true
+	tbrun_tbw tb_pdp11core_ssim || true
 	@ echo "# diff to reference"
 	diff tb_pdp11core_out_ref.dat tb_pdp11core_ssim.log
 

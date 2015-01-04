@@ -1,4 +1,4 @@
-// $Id: RlinkPacketBufSnd.hpp 606 2014-11-24 07:08:51Z mueller $
+// $Id: RlinkPacketBufSnd.hpp 621 2014-12-26 21:20:05Z mueller $
 //
 // Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-25   621   1.0.1  Reorganize packet send/revd stats
 // 2014-11-14   604   1.0    Initial version
 // 2014-11-02   600   0.1    First draft (re-organize PacketBuf for rlink v4)
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPacketBufSnd.hpp 606 2014-11-24 07:08:51Z mueller $
+  \version $Id: RlinkPacketBufSnd.hpp 621 2014-12-26 21:20:05Z mueller $
   \brief   Declaration of class RlinkPacketBufSnd.
 */
 
@@ -61,7 +62,8 @@ namespace Retro {
  
    // statistics counter indices
       enum stats {
-         kStatNTxEsc = 0
+        kStatNTxPktByt=0,                   //!< Tx packet bytes send
+        kStatNTxEsc                         //!< Tx data escapes
       };
 
     protected:

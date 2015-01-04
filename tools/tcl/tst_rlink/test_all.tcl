@@ -1,4 +1,4 @@
-# $Id: test_all.tcl 603 2014-11-09 22:50:26Z mueller $
+# $Id: test_all.tcl 618 2014-12-21 23:05:48Z mueller $
 #
 # Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -33,8 +33,8 @@ namespace eval tst_rlink {
     #
     set errcnt 0
     incr errcnt [rbtest::test_all 0xf 0xfffc]
-    ##incr errcnt [rbmoni::test_regs]
-    ##incr errcnt [rbmoni::test_rbtest]
+    incr errcnt [rbmoni::test_regs]
+    incr errcnt [rbmoni::test_rbtest]
 
     puts "tst_rlink::test_all errcnt = $errcnt --> [rutil::errcnt2txt $errcnt]"
 

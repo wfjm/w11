@@ -1,4 +1,4 @@
-# $Id: perf.tcl 606 2014-11-24 07:08:51Z mueller $
+# $Id: perf.tcl 622 2014-12-28 20:45:26Z mueller $
 #
 # Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -36,14 +36,14 @@ namespace eval tst_rlink {
         -wreg timer.1 0 
       rlc exec -attn
 
-      set tbeg [clock clicks -milliseconds]
+      set tbeg [clock milliseconds]
       rlc exec -wreg timer.0 $dly
       for {set i 1} {1} {incr i} {
         rlc wtlam 1.
         rlc exec \
           -attn \
           -wreg timer.0 $dly
-        set trun [expr {[clock clicks -milliseconds] - $tbeg}]
+        set trun [expr {[clock milliseconds] - $tbeg}]
         if {$trun > $tmax} { break }
       }
       set ms [expr {double($trun) / double($i)}]

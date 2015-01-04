@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: create_disk.1 550 2014-02-03 08:16:57Z mueller $
+.\"  $Id: create_disk.1 622 2014-12-28 20:45:26Z mueller $
 .\"
 .\" Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -52,8 +52,7 @@ creates a disk with all sectors zero'ed. This is the default when no
 creates a disk with all data bytes set to 0xff.
 .IP \fBdead\fP
 creates a disk with an alternating 0xdead 0xbeaf pattern. Can be helpful
-to diagnose whether an operating system access previously in initialized
-parts of a disk.
+to diagnose whether an operating system accesses uninitialized parts of a disk.
 .IP \fBtest\fP
 creates a disk with a unique test pattern in each sector. The whole disk
 is initialized with groups of 8 16bit words (in PDP-11 little endian) with

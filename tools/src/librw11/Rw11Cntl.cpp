@@ -1,6 +1,6 @@
-// $Id: Rw11Cntl.cpp 495 2013-03-06 17:13:48Z mueller $
+// $Id: Rw11Cntl.cpp 625 2014-12-30 16:17:45Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-30   625   1.1    adopt to Rlink V4 attn logic
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-05   483   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11Cntl.cpp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: Rw11Cntl.cpp 625 2014-12-30 16:17:45Z mueller $
   \brief   Implemenation of Rw11Cntl.
 */
 
@@ -56,7 +57,6 @@ Rw11Cntl::Rw11Cntl(const std::string& type)
     fStats()
 {
   fStats.Define(kStatNAttnHdl,  "NAttnHdl",  "AttnHandler() calls");
-  fStats.Define(kStatNPrimFused,"NPrimFused","PrimInfo fused with attn cmd");
   fStats.Define(kStatNAttnNoAct,"NAttnNoAct","AttnHandler() no action return");
 }
 
@@ -152,30 +152,6 @@ void Rw11Cntl::ConfigCntl(const std::string& name, uint16_t base, int lam,
   fProbe.fProbeInt = probeint;
   fProbe.fProbeRem = proberem;
   return;
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-void Rw11Cntl::GetPrimInfo(const RlinkServer::AttnArgs& args,
-                           RlinkCommandList*& pclist, size_t& offset)
-{
-  fStats.Inc(kStatNAttnHdl);
-
-  if (args.fpClist) {
-    fStats.Inc(kStatNPrimFused);
-    pclist = args.fpClist;
-    offset = args.fOffset;
-
-  } else {
-    Server().Exec(fPrimClist);
-    // FIXME_code: handle errors
-    pclist = &fPrimClist;
-    offset = 0;
-  }
-  
-  return;
-}
-  
+}  
 
 } // end namespace Retro

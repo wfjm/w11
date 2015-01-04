@@ -1,11 +1,11 @@
-# $Id: 211bsd_rk_boot.tcl 517 2013-05-09 21:34:45Z mueller $
+# $Id: 211bsd_rk_boot.tcl 622 2014-12-28 20:45:26Z mueller $
 #
 # Setup file for 211bsd RK05 based system
 #
 # Usage:
 #   
-# telnet_starter -d DL0 &
-# telnet_starter -d DL1 &
+# console_starter -d DL0 &
+# console_starter -d DL1 &
 # ti_w11 -xxx @211bsd_rk_boot.tcl        ( -xxx depends on sim or fpga connect)
 #
 

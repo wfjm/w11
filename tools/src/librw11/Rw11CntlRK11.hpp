@@ -1,6 +1,6 @@
-// $Id: Rw11CntlRK11.hpp 562 2014-06-15 17:23:18Z mueller $
+// $Id: Rw11CntlRK11.hpp 627 2015-01-04 11:36:37Z mueller $
 //
-// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-01-03   627   2.0    use Rw11RdmaDisk
+// 2014-12-29   623   1.1    adopt to Rlink V4 attn logic
 // 2014-06-14   562   1.0.1  Add stats definitions
 // 2013-04-20   508   1.0    Initial version
 // 2013-02-10   485   0.1    First draft
@@ -21,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlRK11.hpp 562 2014-06-15 17:23:18Z mueller $
+  \version $Id: Rw11CntlRK11.hpp 627 2015-01-04 11:36:37Z mueller $
   \brief   Declaration of class Rw11CntlRK11.
 */
 
@@ -30,6 +32,7 @@
 
 #include "Rw11CntlBase.hpp"
 #include "Rw11UnitRK11.hpp"
+#include "Rw11RdmaDisk.hpp"
 
 namespace Retro {
 
@@ -47,6 +50,11 @@ namespace Retro {
                              uint16_t& aload, uint16_t& astart);
 
       virtual void  UnitSetup(size_t ind);
+
+      void          SetChunkSize(size_t chunk);
+      size_t        ChunkSize() const;
+
+      const Rstats& RdmaStats() const;
 
       virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
 
@@ -129,26 +137,28 @@ namespace Retro {
 
     // statistics counter indices
       enum stats {
-        kStatNFuncCreset = Rw11Cntl::kDimStat,
-        kStatNFuncWrite,
-        kStatNFuncRead,
-        kStatNFuncWchk,
-        kStatNFuncSeek,
-        kStatNFuncRchk,
-        kStatNFuncDreset,
-        kStatNFuncWlock,
-        kStatNRdmaWrite,
-        kStatNRdmaRead,
-        kStatNRdmaWchk,
-        kStatNRdmaRchk,
+        kStatNFuncCreset = Rw11Cntl::kDimStat, //!< func CRESET
+        kStatNFuncWrite,                    //!< func WRITE
+        kStatNFuncRead,                     //!< func READ
+        kStatNFuncWchk,                     //!< func WCHK
+        kStatNFuncSeek,                     //!< func SEEK
+        kStatNFuncRchk,                     //!< func RCHK
+        kStatNFuncDreset,                   //!< func DRESET
+        kStatNFuncWlock,                    //!< func WLOCK
         kDimStat
       };    
 
     protected:
-      int           AttnHandler(const RlinkServer::AttnArgs& args);
-      int           RdmaHandler();
+      int           AttnHandler(RlinkServer::AttnArgs& args);
+      void          RdmaPreExecCB(int stat, size_t nword,
+                                  RlinkCommandList& clist);
+      void          RdmaPostExecCB(int stat, size_t ndone,
+                                   RlinkCommandList& clist, size_t ncmd);
       void          LogRker(uint16_t rker);
-    
+      void          AddErrorExit(RlinkCommandList& clist, uint16_t rker);
+      void          AddNormalExit(RlinkCommandList& clist, size_t ndone,
+                                  uint16_t rker=0);
+
     protected:
       size_t        fPC_rkwc;               //!< PrimClist: rkwc index
       size_t        fPC_rkba;               //!< PrimClist: rkba index
@@ -156,17 +166,18 @@ namespace Retro {
       size_t        fPC_rkmr;               //!< PrimClist: rkmr index
       size_t        fPC_rkcs;               //!< PrimClist: rkcs index
 
-      bool          fRd_busy;               //!< Rdma: busy flag
       uint16_t      fRd_rkcs;               //!< Rdma: request rkcs
       uint16_t      fRd_rkda;               //!< Rdma: request rkda
       uint32_t      fRd_addr;               //!< Rdma: current addr
       uint32_t      fRd_lba;                //!< Rdma: current lba
       uint32_t      fRd_nwrd;               //!< Rdma: current nwrd
+      uint16_t      fRd_fu;                 //!< Rdma: request fu code
       bool          fRd_ovr;                //!< Rdma: overrun condition found
+      Rw11RdmaDisk  fRdma;                  //!< Rdma controller
   };
   
 } // end namespace Retro
 
-//#include "Rw11CntlRK11.ipp"
+#include "Rw11CntlRK11.ipp"
 
 #endif

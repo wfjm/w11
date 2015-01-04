@@ -1,4 +1,4 @@
-# $Id: util.tcl 569 2014-07-13 14:36:32Z mueller $
+# $Id: util.tcl 619 2014-12-23 13:17:41Z mueller $
 #
 # Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-12-23   619   1.0.3  regget: add check for unknown field descriptor
 # 2014-07-12   569   1.0.2  add sxt16 and sxt32
 # 2013-05-09   517   1.0.1  add optlist2arr
 # 2011-03-27   374   1.0    Initial version
@@ -169,6 +170,9 @@ namespace eval rutil {
   #
   proc regget {name val} {
     upvar $name fdsc
+    if {! [info exists fdsc] } {
+      error "register field descriptor \"$name\" unknown"
+    }
     set fbeg [lindex $fdsc 0]
     set flen [lindex $fdsc 1]
     set mskb [lindex $fdsc 2]

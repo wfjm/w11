@@ -1,6 +1,6 @@
-// $Id: Rw11Cpu.ipp 504 2013-04-13 15:37:24Z mueller $
+// $Id: Rw11Cpu.ipp 621 2014-12-26 21:20:05Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,14 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-25   621   1.1    Adopt for 4k word ibus window; add IAddrMap
 // 2013-04-12   504   1.0    Initial version
 // 2013-01-27   478   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11Cpu.ipp 502 2013-04-02 19:29:30Z mu./librwxxtpp/Rwxxtpp_Init.cpp
-eller $
+  \version $Id: Rw11Cpu.ipp 621 2014-12-26 21:20:05Z mueller $
   \brief   Implemenation (inline) of Rw11Cpu.
 */
 
@@ -86,6 +86,14 @@ inline uint16_t Rw11Cpu::Base() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
+inline uint16_t Rw11Cpu::IBase() const
+{
+  return fIBase;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
 inline uint16_t Rw11Cpu::CpuStat() const
 {
   return fCpuStat;
@@ -97,6 +105,54 @@ inline uint16_t Rw11Cpu::CpuStat() const
 inline bool Rw11Cpu::CpuGo() const
 {
   return fCpuGo;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline uint16_t Rw11Cpu::IbusRemoteAddr(uint16_t ibaddr) const
+{
+  return fIBase + (ibaddr & 017777)/2;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline bool Rw11Cpu::IAddrMapInsert(const std::string& name, uint16_t ibaddr)
+{
+  return fIAddrMap.Insert(name, ibaddr);
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline bool Rw11Cpu::IAddrMapErase(const std::string& name)
+{
+  return fIAddrMap.Erase(name);
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline bool Rw11Cpu::IAddrMapErase(uint16_t ibaddr)
+{
+  return fIAddrMap.Erase(ibaddr);
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline void Rw11Cpu::IAddrMapClear()
+{
+  return fIAddrMap.Clear();
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline const RlinkAddrMap& Rw11Cpu::IAddrMap() const
+{
+  return fIAddrMap;
 }
 
 //------------------------------------------+-----------------------------------

@@ -1,4 +1,4 @@
-# $Id: util.tcl 609 2014-12-07 19:35:25Z mueller $
+# $Id: util.tcl 617 2014-12-21 14:18:53Z mueller $
 #
 # Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-12-21   617   2.0.1  add rbtout definition in STAT
 # 2014-12-07   609   2.0    use new rlink v4 iface; remove SINIT again
 # 2014-08-09   580   1.0.2  add run_rri
 # 2011-08-06   403   1.0.1  add SINT and SINIT defs for serport init
@@ -25,7 +26,7 @@ package provide rlink 1.0
 package require rutil 1.0
 
 namespace eval rlink {
-  regdsc STAT   {stat 7 4} {attn 3} {rbnak 1} {rberr 0}
+  regdsc STAT   {stat 7 4} {attn 3} {rbtout 2} {rbnak 1} {rberr 0}
   regdsc RLCNTL {anena 15} {atoena 14} {atoval 7 8}
   regdsc RLSTAT {lcmd 15 8} {babo 7} {rbsize 2 3}
   #

@@ -1,6 +1,6 @@
-# $Id: perf.tcl 609 2014-12-07 19:35:25Z mueller $
+# $Id: perf.tcl 622 2014-12-28 20:45:26Z mueller $
 #
-# Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-12-27   622   1.1.1  don't use read buffers in rblk speed test
 # 2014-12-06   609   1.1    test 512,1024,2000 word wblk/rbld; retra buffer cut
 # 2013-01-04   469   1.0.2  perf_blk: add optional 2nd arg: trace
 # 2012-12-27   465   1.0.1  adopt format, cover small ms and large kb 
@@ -37,7 +38,7 @@ namespace eval rbbram {
 "\n      ms/r  kB/s  ms/r  kB/s  ms/r  kB/s  ms/r  kB/s  ms/r  kB/s  ms/r  kB/s"
 
     #  256 512 1024
-    foreach nblk {1 2 4 8 16 32 64 128 256 512 1024 2000} {
+    foreach nblk {1 2 4 8 16 32 64 128 256 512 768 1024 1536 2000} {
       set wbuf0 {}
       set wbuf1 {}
       set wbuf2 {}
@@ -53,13 +54,13 @@ namespace eval rbbram {
 
       # single wblk
       if {$trace} { puts "1 wblk for $nblk" }
-      set tbeg [clock clicks -milliseconds]
+      set tbeg [clock milliseconds]
       set addr 0x0000
       for {set i 1} {1} {incr i} {
         rlc exec \
           -wreg br.cntl $addr  \
           -wblk br.data $wbuf0
-        set trun [expr {[clock clicks -milliseconds] - $tbeg}]
+        set trun [expr {[clock milliseconds] - $tbeg}]
         if {$trun > $tmax} { break }
         set addr [expr {( $addr + $nblk ) & $amax}]
       }
@@ -67,14 +68,14 @@ namespace eval rbbram {
 
       # double wblk
       if {$trace} { puts "2 wblk for $nblk" }
-      set tbeg [clock clicks -milliseconds]
+      set tbeg [clock milliseconds]
       set addr 0x0000
       for {set i 1} {1} {incr i} {
         rlc exec \
           -wreg br.cntl $addr  \
           -wblk br.data $wbuf0 \
           -wblk br.data $wbuf1
-        set trun [expr {[clock clicks -milliseconds] - $tbeg}]
+        set trun [expr {[clock milliseconds] - $tbeg}]
         if {$trun > $tmax} { break }
         set addr [expr {( $addr + 2 * $nblk ) & $amax}]
       }
@@ -82,7 +83,7 @@ namespace eval rbbram {
 
       # quad wblk
       if {$trace} { puts "4 wblk for $nblk" }
-      set tbeg [clock clicks -milliseconds]
+      set tbeg [clock milliseconds]
       set addr 0x0000
       for {set i 1} {1} {incr i} {
         rlc exec \
@@ -91,7 +92,7 @@ namespace eval rbbram {
           -wblk br.data $wbuf1 \
           -wblk br.data $wbuf2 \
           -wblk br.data $wbuf3 
-        set trun [expr {[clock clicks -milliseconds] - $tbeg}]
+        set trun [expr {[clock milliseconds] - $tbeg}]
         if {$trun > $tmax} { break }
         set addr [expr {( $addr + 4 * $nblk ) & $amax}]
       }
@@ -99,13 +100,13 @@ namespace eval rbbram {
 
       # single rblk
       if {$trace} { puts "1 rblk for $nblk" }
-      set tbeg [clock clicks -milliseconds]
+      set tbeg [clock milliseconds]
       set addr 0x0000
       for {set i 1} {1} {incr i} {
         rlc exec \
           -wreg br.cntl $addr \
-          -rblk br.data $nblk rbuf0
-        set trun [expr {[clock clicks -milliseconds] - $tbeg}]
+          -rblk br.data $nblk
+        set trun [expr {[clock milliseconds] - $tbeg}]
         if {$trun > $tmax} { break }
         set addr [expr {( $addr + $nblk ) & $amax}]
       }
@@ -114,14 +115,14 @@ namespace eval rbbram {
       # double rblk
       if {2*$nblk <= $rbmax} {
         if {$trace} { puts "2 rblk for $nblk" }
-        set tbeg [clock clicks -milliseconds]
+        set tbeg [clock milliseconds]
         set addr 0x0000
         for {set i 1} {1} {incr i} {
           rlc exec \
             -wreg br.cntl $addr \
-            -rblk br.data $nblk rbuf0 \
-            -rblk br.data $nblk rbuf1
-          set trun [expr {[clock clicks -milliseconds] - $tbeg}]
+            -rblk br.data $nblk \
+            -rblk br.data $nblk
+          set trun [expr {[clock milliseconds] - $tbeg}]
           if {$trun > $tmax} { break }
         set addr [expr {( $addr + 2 * $nblk ) & $amax}]
         }
@@ -133,16 +134,16 @@ namespace eval rbbram {
       # quad rblk
       if {4*$nblk <= $rbmax} {
         if {$trace} { puts "4 rblk for $nblk" }
-        set tbeg [clock clicks -milliseconds]
+        set tbeg [clock milliseconds]
         set addr 0x0000
         for {set i 1} {1} {incr i} {
           rlc exec \
             -wreg br.cntl $addr \
-            -rblk br.data $nblk rbuf0 \
-            -rblk br.data $nblk rbuf1 \
-            -rblk br.data $nblk rbuf2 \
-            -rblk br.data $nblk rbuf3
-          set trun [expr {[clock clicks -milliseconds] - $tbeg}]
+            -rblk br.data $nblk \
+            -rblk br.data $nblk \
+            -rblk br.data $nblk \
+            -rblk br.data $nblk 
+          set trun [expr {[clock milliseconds] - $tbeg}]
           if {$trun > $tmax} { break }
           set addr [expr {( $addr + 4 * $nblk ) & $amax}]
         }

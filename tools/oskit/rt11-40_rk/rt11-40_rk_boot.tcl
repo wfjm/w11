@@ -1,10 +1,10 @@
-# $Id: rt11-40_rk_boot.tcl 517 2013-05-09 21:34:45Z mueller $
+# $Id: rt11-40_rk_boot.tcl 622 2014-12-28 20:45:26Z mueller $
 #
 # Setup file for RT-11 V4.0 RK05 based system
 #
 # Usage:
 #   
-# telnet_starter -d DL0 &
+# console_starter -d DL0 &
 # ti_w11 -xxx @rt11-40_rk_boot.tcl     ( -xxx depends on sim or fpga connect)
 #
 

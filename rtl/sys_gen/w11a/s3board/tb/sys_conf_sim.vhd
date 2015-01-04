@@ -1,6 +1,6 @@
--- $Id: sys_conf_sim.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: sys_conf_sim.vhd 619 2014-12-23 13:17:41Z mueller $
 --
--- Copyright 2007-2008 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Definitions for sys_w11a_s3 (for simulation)
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1-14.7; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-12-22   619   1.1.2  add _rbmon_awidth
 -- 2010-05-05   288   1.1.1  add sys_conf_hio_debounce
 -- 2008-02-23   118   1.1    add memory config
 -- 2007-09-23    84   1.0    Initial version 
@@ -33,7 +34,8 @@ package sys_conf is
 
   constant sys_conf_hio_debounce : boolean := false;   -- no debouncers
   constant sys_conf_ser2rri_cdinit : integer := 1-1;   -- 1 cycle/bit in sim
-  
+  constant sys_conf_rbmon_awidth : integer := 9; -- use 0 to disable rbmon
+
   constant sys_conf_bram           : integer :=  0;      -- no bram, use cache
   constant sys_conf_bram_awidth    : integer := 14;      -- bram size (16 kB)
   constant sys_conf_mem_losize     : integer := 8#037777#; --   1 MByte

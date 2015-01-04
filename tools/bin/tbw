@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: tbw 575 2014-07-27 20:55:41Z mueller $
+# $Id: tbw 619 2014-12-23 13:17:41Z mueller $
 #
-# Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,8 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-01-04   629   1.2.6  BUGFIX: setup proper dsc values after -fifo
+# 2014-12-23   619   1.2.5  add -fifo and -verbose options
 # 2014-07-27   575   1.2.4  use xtwi to start ISim models
 # 2011-11-06   420   1.2.3  fix tbw.dat parsing (allow / in file names)
 # 2010-05-23   294   1.2.2  handle tb_code's in non-local directories
@@ -44,6 +46,8 @@ use FileHandle;
 my $tb_code;
 my $is_isim;
 my $is_isim_run;
+my $is_fifo;
+my $is_verbose;
 
 my @args_pos;			# list of positional args
 my @args_nam;			# list of named args
@@ -84,6 +88,18 @@ if ($tb_code_stem =~ /_ISim$/) {            # is it an ISim executable ?
   }
 }
 
+if (scalar(@ARGV) && $ARGV[0] eq "-fifo") {
+  push @file_dsc, {tag=>'rlink_cext_fifo_rx', val=>'<fifo>'};
+  push @file_dsc, {tag=>'rlink_cext_fifo_tx', val=>'<fifo>'};
+  push @file_dsc, {tag=>'rlink_cext_conf',    val=>'<null>'};
+  $is_fifo = 1;
+  shift @ARGV;
+}
+if (scalar(@ARGV) && $ARGV[0] eq "-verbose") {
+  $is_verbose = 1;
+  shift @ARGV;
+}
+
 if (not -e $tb_code) {
   print "tbw-E: $tb_code not existing or not executable\n";
   print_usage;
@@ -97,7 +113,7 @@ if (not -e $tb_code) {
 my $tbwdat_file = "tbw.dat";
 $tbwdat_file = "$tb_code_path/tbw.dat" unless (-r "tbw.dat");
 
-if (-r $tbwdat_file) {
+if ((!$is_fifo) && -r $tbwdat_file) {
   my $ok = 0;
   my $done = 0;
 
@@ -121,20 +137,17 @@ if (-r $tbwdat_file) {
 }
 
 #
-# if no matching stanza found, setup default _stim linkage
+# if no tbw.dat or no matching stanza found, setup defaults
 #
 
-unless (scalar (@file_dsc)) {
-  push @file_dsc, {tag=>$tb_code_stem . "_stim",
-		   val=>$tb_code_stem . "_stim.dat"};
-}
-
-if (0) {
-  foreach my $dsc (@file_dsc) {
-    my $tag = $dsc->{tag};
-    my $val = $dsc->{val};
-    printf "    %s = %s\n", $tag, $val;
+if (!$is_fifo) {
+  unless (scalar (@file_dsc)) {
+    push @file_dsc, {tag=>$tb_code_stem . "_stim",
+                     val=>$tb_code_stem . "_stim.dat"};
   }
+} else {
+  push @file_dsc, {tag=>"rlink_cext_fifo_rx",
+                   val=>"<fifo>"};
 }
 
 #
@@ -172,6 +185,14 @@ if (0) {
       }
       $ind += 1;
     }
+  }
+}
+
+if ($is_verbose) {
+  foreach my $dsc (@file_dsc) {
+    my $tag = $dsc->{tag};
+    my $val = $dsc->{val};
+    printf "    %s = %s\n", $tag, $val;
   }
 }
 
@@ -252,14 +273,17 @@ if ($is_isim_run) {                         # handle for isim 'run all'
 
 # ----------------------------------------------------------------------------
 sub print_usage {
-  print "usage: tbw <tb_code>  [-run] [filedefs] [opts]\n";
-  print "  -run for _ISim tb's, runs the tb with a 'run all' command\n";
+  print "usage: tbw <tb_code>  [opts] [filedefs] [ghdl-opts]\n";
+  print "  opts\n";
+  print "    -run      for _ISim tb's, runs the tb with a 'run all' command\n";
+  print "    -fifo     use rlink_cext fifo, ignore tbw.dat\n";
+  print "    -verbose  show the used tag,value settings before execution\n";
   print "  filedefs define tb input, either filename in tbw.dat order or\n";
   print "    tag=name or tag=[<content>] pairs with tag matching one in in\n";
   print "    tbw.dat. The [<content>] form allows to give data inline, e.g.\n";
   print "    like \"_conf=[.rpmon 1]\"\n";
-  print "  opts are all other options starting with a '-', they are passed\n";
-  print "    to the testbench. Some useful ghdl options are:\n";
+  print "  ghdl-opts are all other options starting with a '-', they are\n";
+  print "     passed to the testbench. Some useful ghdl options are:\n";
   print "      --wave=x.ghw\n";
   print "      --stack-max-size=16384\n";
   print "      --stop-time=1ns  --disp-time  --trace-processes\n";

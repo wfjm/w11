@@ -1,6 +1,6 @@
-// $Id: RtclRw11Cpu.hpp 511 2013-04-27 13:51:46Z mueller $
+// $Id: RtclRw11Cpu.hpp 621 2014-12-26 21:20:05Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-25   621   1.0.2  add M_amap
 // 2013-04-26   511   1.0.1  add M_show
 // 2013-04-02   502   1.0    Initial version
 // 2013-02-02   480   0.1    First draft
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Cpu.hpp 511 2013-04-27 13:51:46Z mueller $
+  \version $Id: RtclRw11Cpu.hpp 621 2014-12-26 21:20:05Z mueller $
   \brief   Declaration of class RtclRw11Cpu.
 */
 
@@ -51,6 +52,7 @@ namespace Retro {
 
     protected:
       int           M_add(RtclArgs& args);
+      int           M_amap(RtclArgs& args);
       int           M_cp(RtclArgs& args);
       int           M_wtcpu(RtclArgs& args);
       int           M_deposit(RtclArgs& args);
@@ -71,6 +73,7 @@ namespace Retro {
       RlinkServer&  Server();
       RlinkConnect& Connect();
 
+      bool          GetIAddr(RtclArgs& args, uint16_t& ibaddr);
       bool          GetVarName(RtclArgs& args, const char* argname, 
                                size_t nind, std::vector<std::string>& varname);
 

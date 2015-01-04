@@ -1,6 +1,6 @@
-# $Id: cpucons.tcl 512 2013-04-28 07:44:02Z mueller $
+# $Id: cpucons.tcl 626 2015-01-03 14:41:37Z mueller $
 #
-# Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-01-02   626   1.0.1  BUGFIX: proc "<": use \r to signal <ENTER>
 # 2013-04-26   510   1.0    Initial version
 #
 
@@ -70,7 +71,7 @@ namespace eval rw11 {
       # 
       proc "<" {args} {
         set str [join $args " "]
-        append str "\n"
+        append str "\r"
         cpu0tta0 type $str
         return ""
       }

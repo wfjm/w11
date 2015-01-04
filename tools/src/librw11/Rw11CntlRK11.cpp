@@ -1,6 +1,6 @@
-// $Id: Rw11CntlRK11.cpp 562 2014-06-15 17:23:18Z mueller $
+// $Id: Rw11CntlRK11.cpp 628 2015-01-04 16:22:09Z mueller $
 //
-// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
 //   the boot code is from the simh project and Copyright Robert M Supnik
 // 
@@ -15,6 +15,9 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-01-04   628   2.0    use Rw11RdmaDisk
+// 2014-12-30   625   1.2    adopt to Rlink V4 attn logic
+// 2014-12-25   621   1.1    adopt to 4k word ibus window
 // 2014-06-14   562   1.0.1  Add stats
 // 2013-04-20   508   1.0    Initial version
 // 2013-02-10   485   0.1    First draft
@@ -22,7 +25,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlRK11.cpp 562 2014-06-15 17:23:18Z mueller $
+  \version $Id: Rw11CntlRK11.cpp 628 2015-01-04 16:22:09Z mueller $
   \brief   Implemenation of Rw11CntlRK11.
 */
 
@@ -137,15 +140,18 @@ Rw11CntlRK11::Rw11CntlRK11()
     fPC_rkda(0),
     fPC_rkmr(0),
     fPC_rkcs(0),
-    fRd_busy(false),
     fRd_rkcs(0),
     fRd_rkda(0),
     fRd_addr(0),
     fRd_lba(0),
     fRd_nwrd(0),
-    fRd_ovr(false)
+    fRd_fu(0),
+    fRd_ovr(false),
+    fRdma(this,
+          boost::bind(&Rw11CntlRK11::RdmaPreExecCB,  this, _1, _2, _3),
+          boost::bind(&Rw11CntlRK11::RdmaPostExecCB, this, _1, _2, _3, _4))
 {
-  // must here because Unit have a back-pointer (not available at Rw11CntlBase)
+  // must be here because Units have a back-ptr (not available at Rw11CntlBase)
   for (size_t i=0; i<NUnit(); i++) {
     fspUnit[i].reset(new Rw11UnitRK11(this, i));
   }
@@ -158,10 +164,6 @@ Rw11CntlRK11::Rw11CntlRK11()
   fStats.Define(kStatNFuncRchk   , "NFuncRchk"    , "func RCHK");
   fStats.Define(kStatNFuncDreset , "NFuncDreset"  , "func DRESET");
   fStats.Define(kStatNFuncWlock  , "NFuncWlock "  , "func WLOCK");
-  fStats.Define(kStatNRdmaWrite  , "NRdmaWrite"   , "rdma WRITE");
-  fStats.Define(kStatNRdmaRead   , "NRdmaRead"    , "rdma READ");
-  fStats.Define(kStatNRdmaWchk   , "NRdmaWchk"    , "rdma WCHK");
-  fStats.Define(kStatNRdmaRchk   , "NRdmaRchk"    , "rdma RCHK");
 }
 
 //------------------------------------------+-----------------------------------
@@ -188,9 +190,19 @@ void Rw11CntlRK11::Start()
     throw Rexception("Rw11CntlRK11::Start",
                      "Bad state: started, no lam, not enable, not found");
 
+  // add device register address ibus and rbus mappings
+  // done here because now Cntl bound to Cpu and Cntl probed
+  Cpu().AllAddrMapInsert(Name()+".ds", Base() + kRKDS);
+  Cpu().AllAddrMapInsert(Name()+".er", Base() + kRKER);
+  Cpu().AllAddrMapInsert(Name()+".cs", Base() + kRKCS);
+  Cpu().AllAddrMapInsert(Name()+".wc", Base() + kRKWC);
+  Cpu().AllAddrMapInsert(Name()+".ba", Base() + kRKBA);
+  Cpu().AllAddrMapInsert(Name()+".da", Base() + kRKDA);
+  Cpu().AllAddrMapInsert(Name()+".mr", Base() + kRKMR);
+
   // setup primary info clist
   fPrimClist.Clear();
-  Cpu().AddIbrb(fPrimClist, fBase);
+  fPrimClist.AddAttn();
   fPC_rkwc = Cpu().AddRibr(fPrimClist, fBase+kRKWC);
   fPC_rkba = Cpu().AddRibr(fPrimClist, fBase+kRKBA);
   fPC_rkda = Cpu().AddRibr(fPrimClist, fBase+kRKDA);
@@ -224,7 +236,6 @@ void Rw11CntlRK11::UnitSetup(size_t ind)
       rkds |= kRKDS_M_WPS;
   }
   unit.SetRkds(rkds);
-  cpu.AddIbrb(clist, fBase);
   cpu.AddWibr(clist, fBase+kRKDS, rkds);
   Server().Exec(clist);
 
@@ -283,14 +294,14 @@ void Rw11CntlRK11::Dump(std::ostream& os, int ind, const char* text) const
   os << bl << "  fPC_rkda:        " << fPC_rkda << endl;
   os << bl << "  fPC_rkmr:        " << fPC_rkmr << endl;
   os << bl << "  fPC_rkcs:        " << fPC_rkcs << endl;
-  os << bl << "  fRd_busy:        " << fRd_busy << endl;
   os << bl << "  fRd_rkcs:        " << fRd_rkcs << endl;
   os << bl << "  fRd_rkda:        " << fRd_rkda << endl;
   os << bl << "  fRd_addr:        " << fRd_addr << endl;
   os << bl << "  fRd_lba:         " << fRd_lba  << endl;
   os << bl << "  fRd_nwrd:        " << fRd_nwrd << endl;
+  os << bl << "  fRd_fu:          " << fRd_fu  << endl;
   os << bl << "  fRd_ovr:         " << fRd_ovr  << endl;
-
+  fRdma.Dump(os, ind+2, "fRdma: ");
   Rw11CntlBase<Rw11UnitRK11,8>::Dump(os, ind, " ^");
   return;
 }
@@ -298,18 +309,16 @@ void Rw11CntlRK11::Dump(std::ostream& os, int ind, const char* text) const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-int Rw11CntlRK11::AttnHandler(const RlinkServer::AttnArgs& args)
+int Rw11CntlRK11::AttnHandler(RlinkServer::AttnArgs& args)
 {
-  RlinkCommandList* pclist;
-  size_t off;
-  
-  GetPrimInfo(args, pclist, off);  
+  fStats.Inc(kStatNAttnHdl);
+  Server().GetAttnInfo(args, fPrimClist);
 
-  uint16_t rkwc = (*pclist)[off+fPC_rkwc].Data();
-  uint16_t rkba = (*pclist)[off+fPC_rkba].Data();
-  uint16_t rkda = (*pclist)[off+fPC_rkda].Data();
-  //uint16_t rkmr = (*pclist)[off+fPC_rkmr].Data();
-  uint16_t rkcs = (*pclist)[off+fPC_rkcs].Data();
+  uint16_t rkwc = fPrimClist[fPC_rkwc].Data();
+  uint16_t rkba = fPrimClist[fPC_rkba].Data();
+  uint16_t rkda = fPrimClist[fPC_rkda].Data();
+  //uint16_t rkmr = fPrimClist[fPC_rkmr].Data();
+  uint16_t rkcs = fPrimClist[fPC_rkcs].Data();
 
   uint16_t se   =  rkda                 & kRKDA_B_SC;
   uint16_t hd   = (rkda>>kRKDA_V_SUR)   & kRKDA_B_SUR;
@@ -347,10 +356,12 @@ int Rw11CntlRK11::AttnHandler(const RlinkServer::AttnArgs& args)
 
   if (fTraceLevel>0) {
     RlogMsg lmsg(LogFile());
+    static const char* fumnemo[8] = {"cr","w ","r ","wc","sk","rc","dr","wl"};
+    
     lmsg << "-I RK11 cs=" << RosPrintBvi(rkcs,8)
          << " da=" << RosPrintBvi(rkda,8)
          << " ad=" << RosPrintBvi(addr,8,18)
-         << " fu=" << fu
+         << " fu=" << fumnemo[fu&0x7]
          << " dchs=" << dr 
          << "," << RosPrintf(cy,"d",3) 
          << "," << hd 
@@ -386,13 +397,20 @@ int Rw11CntlRK11::AttnHandler(const RlinkServer::AttnArgs& args)
   // if found, truncate request length
   bool ovr = lba + nblk > unit.NBlock();
   if (ovr) nwrd = (unit.NBlock()-lba) * (unit.BlockSize()/2);
-  bool queue = false;
+
+  // remember request parameters for call back
+  fRd_rkcs  = rkcs;
+  fRd_rkda  = rkda;
+  fRd_addr  = addr;
+  fRd_lba   = lba;
+  fRd_nwrd  = nwrd;
+  fRd_ovr   = ovr;
+  fRd_fu    = fu;
 
   // now handle the functions
   if (fu == kRKCS_CRESET) {                 // Control reset -----------------
     fStats.Inc(kStatNFuncCreset);
     cpu.AddWibr(clist, fBase+kRKMR, kRKMR_M_CRESET);
-    fRd_busy  = false;
 
   } else if (fu == kRKCS_WRITE) {           // Write -------------------------
                                             //   Note: WRITE+FMT is just WRITE
@@ -400,22 +418,40 @@ int Rw11CntlRK11::AttnHandler(const RlinkServer::AttnArgs& args)
     if (se >= unit.NSector())   rker |= kRKER_M_NXS;
     if (cy >= unit.NCylinder()) rker |= kRKER_M_NXC;
     if (unit.WProt())           rker |= kRKER_M_WLO;
-    if (rkcs & kRKCS_M_IBA) rker |= kRKER_M_DRE;  // not yet supported FIXME
-    queue = true;
+    if (rkcs & kRKCS_M_IBA) rker |= kRKER_M_DRE;  // IBA not supported
+    if (rker) {
+      AddErrorExit(clist, rker);
+    } else {
+      fRdma.QueueDiskWrite(addr, nwrd, 
+                           Rw11Cpu::kCp_ah_m_22bit|Rw11Cpu::kCp_ah_m_ubmap,
+                           lba, &unit);
+    }
 
   } else if (fu == kRKCS_READ) {            // Read --------------------------
     fStats.Inc(kStatNFuncRead);
     if (se >= unit.NSector())   rker |= kRKER_M_NXS;
     if (cy >= unit.NCylinder()) rker |= kRKER_M_NXC;
-    if (rkcs & kRKCS_M_IBA) rker |= kRKER_M_DRE;  // not yet supported FIXME
-    queue = true;
-    
+    if (rkcs & kRKCS_M_IBA) rker |= kRKER_M_DRE;  // IBA not supported
+    if (rker) {
+      AddErrorExit(clist, rker);
+    } else {
+      fRdma.QueueDiskRead(addr, nwrd, 
+                          Rw11Cpu::kCp_ah_m_22bit|Rw11Cpu::kCp_ah_m_ubmap,
+                          lba, &unit);
+    }
+
   } else if (fu == kRKCS_WCHK) {            // Write Check -------------------
     fStats.Inc(kStatNFuncWchk);
     if (se >= unit.NSector())   rker |= kRKER_M_NXS;
     if (cy >= unit.NCylinder()) rker |= kRKER_M_NXC;
-    if (rkcs & kRKCS_M_IBA) rker |= kRKER_M_DRE;  // not yet supported FIXME
-    queue = true;
+    if (rkcs & kRKCS_M_IBA) rker |= kRKER_M_DRE;  // IBA not supported
+    if (rker) {
+      AddErrorExit(clist, rker);
+    } else {
+      fRdma.QueueDiskWriteCheck(addr, nwrd, 
+                                Rw11Cpu::kCp_ah_m_22bit|Rw11Cpu::kCp_ah_m_ubmap,
+                                lba, &unit);
+    }
 
   } else if (fu == kRKCS_SEEK) {            // Seek --------------------------
     fStats.Inc(kStatNFuncSeek);
@@ -439,9 +475,13 @@ int Rw11CntlRK11::AttnHandler(const RlinkServer::AttnArgs& args)
     fStats.Inc(kStatNFuncRchk);
     if (se >= unit.NSector())   rker |= kRKER_M_NXS;
     if (cy >= unit.NCylinder()) rker |= kRKER_M_NXC;
-    if (rkcs & kRKCS_M_IBA) rker |= kRKER_M_DRE;  // not yet supported FIXME
-    queue = true;
-
+    if (rkcs & kRKCS_M_IBA) rker |= kRKER_M_DRE;  // IBA not supported
+    if (rker) {
+      AddErrorExit(clist, rker);
+    } else {
+      AddNormalExit(clist, nwrd, 0);        // no action, virt disks don't err
+    }
+    
   } else if (fu == kRKCS_DRESET) {          // Drive Reset -------------------
     fStats.Inc(kStatNFuncDreset);
     cpu.AddWibr(clist, fBase+kRKMR, kRKMR_M_FDONE);
@@ -456,185 +496,66 @@ int Rw11CntlRK11::AttnHandler(const RlinkServer::AttnArgs& args)
     cpu.AddWibr(clist, fBase+kRKMR, kRKMR_M_FDONE);
   }
 
-  if (queue) {                             // to be handled in RdmaHandlder
-    if (rker) {                              // abort on case of errors
-      cpu.AddWibr(clist, fBase+kRKER, rker);
-      cpu.AddWibr(clist, fBase+kRKMR, kRKMR_M_FDONE);
-      LogRker(rker);
-    } else {                                 // or queue action 
-      fRd_busy  = true;
-      fRd_rkcs  = rkcs;
-      fRd_rkda  = rkda;
-      fRd_addr  = addr;
-      fRd_lba   = lba;
-      fRd_nwrd  = nwrd;
-      fRd_ovr   = ovr;
-      Server().QueueAction(boost::bind(&Rw11CntlRK11::RdmaHandler, this));
-    }
-
-  } else {                                  // handled here
-    Server().Exec(clist);
+  if (clist.Size()) {                       // if handled directly
+    Server().Exec(clist);                   // doit
   }
-
   return 0;
 }
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-int Rw11CntlRK11::RdmaHandler()
+void Rw11CntlRK11::RdmaPreExecCB(int stat, size_t nword,
+                                 RlinkCommandList& clist)
 {
+  // if last chunk and not doing WCHK add a labo and normal exit csr update
+  if (stat == Rw11Rdma::kStatusBusyLast && fRd_fu != kRKCS_WCHK) {
+    clist.AddLabo();
+    AddNormalExit(clist, nword, 0);
+  }
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rw11CntlRK11::RdmaPostExecCB(int stat, size_t ndone,
+                                  RlinkCommandList& clist, size_t ncmd)
+{
+  if (stat == Rw11Rdma::kStatusBusy) return;
+
   uint16_t rker = 0;
-  uint16_t fu   = (fRd_rkcs>>kRKCS_V_FUNC)  & kRKCS_B_FUNC;
-  uint16_t dr   = (fRd_rkda>>kRKDA_V_DRSEL) & kRKDA_B_DRSEL;
-  Rw11UnitRK11& unit = *fspUnit[dr];
-  Rw11Cpu& cpu = Cpu();
 
-  uint8_t buf[512];
-
-  if (fu == kRKCS_WRITE) {                  // Write -------------------------
-                                            //   Note: WRITE+FMT is like WRITE
-    fStats.Inc(kStatNRdmaWrite);
-    RlinkCommandList clist;
-    size_t bsize = (fRd_nwrd>256) ? 256 : fRd_nwrd;
-    cpu.AddRMem(clist, fRd_addr, (uint16_t*) buf, bsize,
-                Rw11Cpu::kCp_ah_m_22bit|Rw11Cpu::kCp_ah_m_ubmap);
-    Server().Exec(clist);
-    // FIXME_code: handle rdma I/O error
-    RerrMsg emsg;
-    bool rc = unit.VirtWrite(fRd_lba, 1, buf, emsg);
-    if (!rc) {
-      RlogMsg lmsg(LogFile());
-      lmsg << emsg;
-      rker |= kRKER_M_CSE;              // forward disk I/O error
-    }
-    if (rker == 0) {
-      fRd_nwrd -= bsize;
-      fRd_addr += 2*bsize;
-      fRd_lba  += 1;
-    }
-    if (rker==0 && fRd_nwrd>0)            // not error and not yet done
-      return 1;                           // requeue
-    
-  } else if (fu == kRKCS_READ) {
-    fStats.Inc(kStatNRdmaRead);
-    if ((fRd_rkcs&kRKCS_M_FMT) == 0) {      // Read --------------------------
-      RerrMsg emsg;
-      bool rc = unit.VirtRead(fRd_lba, 1, buf, emsg);
-      if (!rc) {
-        RlogMsg lmsg(LogFile());
-        lmsg << emsg;
-        rker |= kRKER_M_CSE;              // forward disk I/O error
+  // handle write check
+  if (fRd_fu == kRKCS_WCHK) {
+    size_t nwcok = fRdma.WriteCheck(ndone);
+    if (nwcok != ndone) {                   // if mismatch found
+      rker |= kRKER_M_WCE;                  // set error flag
+      if (fRd_rkcs & kRKCS_M_SSE) {         // if 'stop-on-soft' requested
+        ndone = nwcok;                      // truncate word count
       }
-
-      if (rker == 0) {
-        RlinkCommandList clist;
-        size_t bsize = (fRd_nwrd>256) ? 256 : fRd_nwrd;
-        cpu.AddWMem(clist, fRd_addr, (uint16_t*) buf, bsize,
-                    Rw11Cpu::kCp_ah_m_22bit|Rw11Cpu::kCp_ah_m_ubmap);
-        Server().Exec(clist);
-        // FIXME_code: handle rdma I/O error
-        fRd_nwrd -= bsize;
-        fRd_addr += 2*bsize;
-        fRd_lba  += 1;
-      }
-      if (rker==0 && fRd_nwrd>0)            // not error and not yet done
-        return 1;                           // requeue
- 
-    } else {                                // Read Format -------------------
-      uint16_t cy = fRd_lba / (unit.NHead()*unit.NSector());
-      uint16_t da = cy<<kRKDA_V_CYL;
-      RlinkCommandList clist;
-      cpu.AddWMem(clist, fRd_addr, &da, 1,
-                  Rw11Cpu::kCp_ah_m_22bit|Rw11Cpu::kCp_ah_m_ubmap);
-      Server().Exec(clist);
-      // FIXME_code: handle rdma I/O error
-      fRd_nwrd -= 1;
-      fRd_addr += 2;
-      fRd_lba  += 1;
-      if (rker==0 && fRd_nwrd>0)            // not error and not yet done
-        return 1;                           // requeue
     }
-    
-  } else if (fu == kRKCS_WCHK) {            // Write Check -------------------
-    fStats.Inc(kStatNRdmaWchk);
-    uint16_t bufmem[256];
-    RlinkCommandList clist;
-    size_t bsize = (fRd_nwrd>256) ? 256 : fRd_nwrd;
-    cpu.AddRMem(clist, fRd_addr, bufmem, bsize,
-                Rw11Cpu::kCp_ah_m_22bit|Rw11Cpu::kCp_ah_m_ubmap);
-    Server().Exec(clist);
-    // FIXME_code: handle rdma I/O error
-    RerrMsg emsg;
-    bool rc = unit.VirtRead(fRd_lba, 1, buf, emsg);
-    if (!rc) {
-      RlogMsg lmsg(LogFile());
-      lmsg << emsg;
-      rker |= kRKER_M_CSE;              // forward disk I/O error
-    }
-    if (rker == 0) {
-      uint16_t* pmem = bufmem;
-      uint16_t* pdsk = (uint16_t*) &buf;
-      for (size_t i=0; i<bsize; i++) {
-        if (*pmem++ != *pdsk++) rker |= kRKER_M_WCE;
-      }
-      fRd_nwrd -= bsize;
-      fRd_addr += 2*bsize;
-      fRd_lba  += 1;
-    }
-    // determine abort criterion
-    bool stop = (rker & ~kRKER_M_WCE) != 0 ||
-                ((rker & kRKER_M_WCE) && (fRd_rkcs & kRKCS_M_SSE));
-    if (!stop && fRd_nwrd>0)                // not error and not yet done
-      return 1;                             // requeue
+  }
+  
+  // handle Rdma aborts
+  if (stat == Rw11Rdma::kStatusFailRdma) rker |= kRKER_M_NXM;
 
-  } else if (fu == kRKCS_RCHK) {            // Read Check --------------------
-    // Note: no DMA transfer done; done here to keep logic similar to read
-    fStats.Inc(kStatNRdmaRchk);
-    size_t bsize = (fRd_nwrd>256) ? 256 : fRd_nwrd;
-    fRd_nwrd -= bsize;
-    fRd_addr += 2*bsize;
-    fRd_lba  += 1;
-    if (rker==0 && fRd_nwrd>0)            // not error and not yet done
-      return 1;                           // requeue
-
-  } else {
-    throw Rexception("Rw11CntlRK11::RdmaHandler",
-                     "Bad state: bad function code");
+  // check for fused csr updates
+  if (clist.Size() > ncmd) {
+    uint8_t  ccode = clist[ncmd].Command();
+    uint16_t cdata = clist[ncmd].Data();
+    if (ccode != RlinkCommand::kCmdLabo || (rker != 0 && cdata == 0))
+      throw Rexception("Rw11CntlRK11::RdmaPostExecCB",
+                       "Bad state: Labo not found or missed abort");
+    if (cdata == 0) return;
   }
 
-  // common handling for dma transfer completion
-  if (fRd_ovr) rker |= kRKER_M_OVR;
+  // finally to RK11 register update
+  RlinkCommandList clist1;
+  AddNormalExit(clist1, ndone, rker);
+  Server().Exec(clist1);
 
-  RlinkCommandList clist;
-  
-  uint16_t ba   = fRd_addr & 0177776;       // get lower 16 bits
-  uint16_t mex  = (fRd_addr>>16) & 03;      // get upper  2 bits
-  uint16_t cs   = (fRd_rkcs & ~kRKCS_M_MEX) | (mex << kRKCS_V_MEX);
-  uint16_t se;
-  uint16_t hd;
-  uint16_t cy;
-  unit.Lba2Chs(fRd_lba, cy,hd,se);
-  uint16_t da   = (fRd_rkda & kRKDA_M_DRSEL) | (cy<<kRKDA_V_CYL) |
-                  (hd<<kRKDA_V_SUR) | se;
-
-  cpu.AddIbrb(clist, fBase);
-  if (rker) {
-    cpu.AddWibr(clist, fBase+kRKER, rker);
-    LogRker(rker);
-  }
-  cpu.AddWibr(clist, fBase+kRKWC, uint16_t((-fRd_nwrd)&0177777));
-  cpu.AddWibr(clist, fBase+kRKBA, ba);
-  cpu.AddWibr(clist, fBase+kRKDA, da);
-  if (cs != fRd_rkcs) 
-    cpu.AddWibr(clist, fBase+kRKCS, cs);
-  cpu.AddWibr(clist, fBase+kRKMR, kRKMR_M_FDONE);
-  
-  Server().Exec(clist);
-
-  fRd_busy  = false;
-
-  return 0;
+  return;
 }
 
 //------------------------------------------+-----------------------------------
@@ -645,5 +566,61 @@ void Rw11CntlRK11::LogRker(uint16_t rker)
   RlogMsg lmsg(LogFile());
   lmsg << "-E RK11 er=" << RosPrintBvi(rker,8) << "  ERROR ABORT";
 }
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rw11CntlRK11::AddErrorExit(RlinkCommandList& clist, uint16_t rker)
+{
+  Rw11Cpu& cpu = Cpu();
+  cpu.AddWibr(clist, fBase+kRKER, rker);
+  cpu.AddWibr(clist, fBase+kRKMR, kRKMR_M_FDONE);
+  LogRker(rker);
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rw11CntlRK11::AddNormalExit(RlinkCommandList& clist, size_t ndone,
+                                 uint16_t rker)
+{
+  Rw11Cpu& cpu  = Cpu();
+  uint16_t dr   = (fRd_rkda>>kRKDA_V_DRSEL) & kRKDA_B_DRSEL;
+  Rw11UnitRK11& unit = *fspUnit[dr];
+  size_t bszwrd = unit.BlockSize()/2;         // block size in words
+
+  size_t nblk   = (ndone+bszwrd-1)/bszwrd;
+
+  uint32_t addr = fRd_addr + 2*ndone;
+  size_t   lba  = fRd_lba  + nblk;
+  uint32_t nrest = fRd_nwrd - ndone;
+
+  uint16_t ba   = addr & 0177776;           // get lower 16 bits
+  uint16_t mex  = (addr>>16) & 03;          // get upper  2 bits
+  uint16_t cs   = (fRd_rkcs & ~kRKCS_M_MEX) | (mex << kRKCS_V_MEX);
+  uint16_t se;
+  uint16_t hd;
+  uint16_t cy;
+  unit.Lba2Chs(lba, cy,hd,se);
+  uint16_t da   = (fRd_rkda & kRKDA_M_DRSEL) | (cy<<kRKDA_V_CYL) |
+                  (hd<<kRKDA_V_SUR) | se;
+
+  if (fRd_ovr) rker |= kRKER_M_OVR;
+
+  if (rker) {
+    cpu.AddWibr(clist, fBase+kRKER, rker);
+    LogRker(rker);
+  }
+  cpu.AddWibr(clist, fBase+kRKWC, uint16_t((-nrest)&0177777));
+  cpu.AddWibr(clist, fBase+kRKBA, ba);
+  cpu.AddWibr(clist, fBase+kRKDA, da);
+  if (cs != fRd_rkcs) 
+    cpu.AddWibr(clist, fBase+kRKCS, cs);
+  cpu.AddWibr(clist, fBase+kRKMR, kRKMR_M_FDONE);
+
+  return;
+}
+
 
 } // end namespace Retro

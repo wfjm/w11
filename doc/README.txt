@@ -21,6 +21,62 @@ Release notes for w11a
 
 2. Change Log ----------------------------------------------------------------
 
+- trunk (2015-01-04: svn rev 28(oc) 629(wfjm); untagged w11a_V0.63)  +++++++++
+
+  - Summary
+    - the w11a rbus interface used so far a narrow dynamically adjusted 
+      rbus->ibus window. Replaces with a 4k word window for whole IO page.
+    - utilize rlink protocol version 4 features in w11a backend
+      - use attn notifies to dispatch attn handlers
+      - use larger blocks (7*512 rather 1*512 bytes) for rdma transfers
+      - use labo and merge csr updates with last block transfer
+      - this combined reduces the number of round trips by a factor 2 to 3, 
+        and in some cases the throughput accordingly.
+
+  - Remarks on reference system
+    - still using tcl 8.5 (even though 8.6 is now default in Ub 14.04)
+    - don't use doxygen 1.8.8 and 1.8.9, it fails to generate vhdl docs
+
+  - New features
+    - new modules
+      - tools/bin
+        - ghdl_assert_filter      - filter to suppress startup warnings
+        - tbrun_tbw               - wrapper for tbw based test benches
+        - tbrun_tbwrri            - wrapper for ti_rri + tbw based test benches
+      - tools/src/librw11
+        - Rw11Rdma                - Rdma engine base class
+        - Rw11RdmaDisk            - Rdma engine for disk emulation
+
+  - Changes
+    - rtl/vlib/rlink
+      - rlink_core                - use 4th stat bit to signal rbus timeout
+    - rtl/vlib/rbus
+      - rbd_rbmon                 - reorganized, supports now 16 bit addresses
+    - rtl/w11a
+      - pdp11_core_rbus           - use full size 4k word ibus window
+    - tools/bin/tbw               - add -fifo and -verbose options
+    - tools/src/librtools
+      - Rexception                - add ctor from RerrMsg
+    - tools/src/librlink
+      - RlinkCommandExpect        - rblk/wblk done counts now expectable
+      - RlinkConnect              - cleanups and minor enhancements
+      - RlinkServer               - use attn notifies to dispatch handlers
+    - tools/src/librw11
+      - Rw11CntlRK11              - re-organize, use now Rw11RdmaDisk
+      - Rw11Cpu                   - add ibus address map
+    - tools/src/librwxxtpp
+      - RtclRw11CntlRK11          - add get/set for ChunkSize
+      - RtclRw11Cpu               - add amap sub-command for ibus map access
+
+  - Resolved known issues from V0.62
+    - the rbus monitor (rbd_rbmon) has been updated to handle 16 bit addresses
+
+  - Known issues
+    - (V0.62): rlink v4 error recovery not yet implemented, will crash on error
+    - (V0.62): command lists aren't split to fit in retransmit buffer size
+      {both issues not relevant for w11 backend over USB usage because the
+       backend produces proper command lists and the USB channel is error free}
+
 - trunk (2014-12-20: svn rev 27(oc) 614(wfjm); untagged w11a_V0.62)  +++++++++
 
   - Summary

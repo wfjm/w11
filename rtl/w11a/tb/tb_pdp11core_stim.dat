@@ -1,7 +1,8 @@
-# $Id: tb_pdp11core_stim.dat 614 2014-12-20 15:00:45Z mueller $
+# $Id: tb_pdp11core_stim.dat 621 2014-12-26 21:20:05Z mueller $
 #
 # Revision History: 
 # Date         Rev Version  Comment
+# 2014-12-26   621   2.5    adopt wmembe,ribr,wibr emulation to new 4k window
 # 2014-12-20   614   2.4    adopted to rlink v4
 # 2014-07-13   569   2.3    after ECO-026: correct test 31.1 wrong V=1 cases
 #                           correct test 37.2: 2 V=1 cases have regs now updated
@@ -114,12 +115,11 @@ rps   d=000000
 #
 C     via ibr (ibrb 177700)
 #
-wibrb   177700
-wibr 76 000017    -- set all cc flags in psw
-ribr 76 d=000017  -- ! psw
+wibr 177776 000017    -- set all cc flags in psw
+ribr 177776 d=000017  -- ! psw
 rps   d=000017
-wibr 76 000000    -- set all cc flags in psw
-ribr 76 d=000000  -- ! psw
+wibr 177776 000000    -- set all cc flags in psw
+ribr 177776 d=000000  -- ! psw
 rps   d=000000
 #
 C   write register set 1, sm,um stack
@@ -177,37 +177,36 @@ brm     3
 #
 C   read IB space via ibr: MMU SAR supervisor mode (16 bit regs)
 #
-wibrb   172200
-ribr 40 d=012340
-ribr 42 d=012342
-ribr 44 d=012344
+ribr 172240 d=012340
+ribr 172242 d=012342
+ribr 172244 d=012344
 #
 C   byte write IB space via ibr: MMU SAR supervisor mode (16 bit regs)
 #
-wibrb   172201    -- write low byte
-wibr 40 177000
-wibr 42 177002
-wibr 44 177004
+wmembe  101    -- write low byte (set sticky flag)
+wibr 172240 177000
+wibr 172242 177002
+wibr 172244 177004
 wal     172240    -- ! verify
 brm     3
       d=012000
       d=012002
       d=012004
 #
-wibrb   172202    -- write high byte
-wibr 40 000377
-wibr 42 022377
-wibr 44 044377
+wmembe  110    -- write high byte (set sticky flag)
+wibr 172240 000377
+wibr 172242 022377
+wibr 172244 044377
 wal     172240    -- ! verify
 brm     3
       d=000000
       d=022002
       d=044004
 #
-wibrb   172203    -- write high and low byte (both be set)
-wibr 40 012340
-wibr 42 012342
-wibr 44 012344
+wmembe  011       -- write high and low byte
+wibr 172240 012340
+wibr 172242 012342
+wibr 172244 012344
 wal     172240    -- ! verify
 brm     3
       d=012340

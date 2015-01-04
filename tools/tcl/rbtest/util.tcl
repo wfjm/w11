@@ -1,4 +1,4 @@
-# $Id: util.tcl 603 2014-11-09 22:50:26Z mueller $
+# $Id: util.tcl 617 2014-12-21 14:18:53Z mueller $
 #
 # Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-12-21   617   2.0.1  use rbtout stat bit for timeout
 # 2014-11-09   603   2.0    use rlink v4 address layout and iface with 8 regs
 # 2011-03-27   374   1.0    Initial version
 # 2011-03-13   369   0.1    Frist draft
@@ -61,7 +62,7 @@ namespace eval rbtest {
     rlc exec -estatdef 0 $esdmsk \
       -rreg te.cntl sav_cntl \
       -wreg te.cntl [regbld rbtest::CNTL {nbusy -1}] \
-      -rreg te.data -estat [regbld rlink::STAT rbnak] $esdmsk \
+      -rreg te.data -estat [regbld rlink::STAT rbtout] $esdmsk \
       -rreg te.ncyc ncyc
     rlc exec -estatdef 0 $esdmsk \
       -wreg te.cntl $sav_cntl
@@ -71,10 +72,10 @@ namespace eval rbtest {
   # probe: determine rbd_tester environment (max nbusy, stat and attn wiring)
   #
   proc probe {} {
-    set esdval    0x00
-    set esdmsk    [regbld rlink::STAT {stat -1}]
-    set esdmsknak [regbld rlink::STAT {stat -1} rbnak]
-    set esdmskatt [regbld rlink::STAT {stat -1} attn]
+    set esdval     0x00
+    set esdmsk     [regbld rlink::STAT {stat -1}]
+    set esdmsktout [regbld rlink::STAT {stat -1} rbtout]
+    set esdmskattn [regbld rlink::STAT {stat -1} attn]
     set rbusy {}
     set rstat {}
     set rattn {}
@@ -90,8 +91,8 @@ namespace eval rbtest {
         set valc  [regbld rbtest::CNTL [list nbusy $nbusy]]
         rlc exec \
           -wreg te.cntl $valc  -estat $esdval $esdmsk\
-          -wreg te.data 0x0000 statwr -estat $esdval $esdmsknak \
-          -rreg te.data dummy  statrd -estat $esdval $esdmsknak
+          -wreg te.data 0x0000 statwr -estat $esdval $esdmsktout \
+          -rreg te.data dummy  statrd -estat $esdval $esdmsktout
         if {[llength $wrerr] == 0 && [regget rlink::STAT(rbnak) $statwr] != 0} {
           lappend wrerr $i $j $nbusy
         }
@@ -117,7 +118,7 @@ namespace eval rbtest {
     #
     rlc exec -attn
     for {set i 0} { $i < 16 } {incr i} {
-      rlc exec -estatdef $esdval $esdmskatt \
+      rlc exec -estatdef $esdval $esdmskattn \
         -wreg te.attn [expr {1 << $i}] \
         -attn attnpat
       lappend rattn [list $i $attnpat]

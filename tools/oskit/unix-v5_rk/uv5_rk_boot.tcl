@@ -1,10 +1,10 @@
-# $Id: uv5_rk_boot.tcl 517 2013-05-09 21:34:45Z mueller $
+# $Id: uv5_rk_boot.tcl 622 2014-12-28 20:45:26Z mueller $
 #
 # Setup file for Unix V5 RK05 based system
 #
 # Usage:
 #   
-# telnet_starter -d DL0 &
+# console_starter -d DL0 &
 # ti_w11 -xxx @uv5_boot.tcl              ( -xxx depends on sim or fpga connect)
 
 # setup w11 cpu

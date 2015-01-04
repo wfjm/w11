@@ -1,6 +1,6 @@
-// $Id: Rw11.cpp 504 2013-04-13 15:37:24Z mueller $
+// $Id: Rw11.cpp 625 2014-12-30 16:17:45Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-30   625   1.1    adopt to Rlink V4 attn logic
 // 2013-03-06   495   1.0    Initial version
 // 2013-01-27   478   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11.cpp 504 2013-04-13 15:37:24Z mueller $
+  \version $Id: Rw11.cpp 625 2014-12-30 16:17:45Z mueller $
   \brief   Implemenation of Rw11.
 */
 
@@ -133,8 +134,10 @@ void Rw11::Dump(std::ostream& os, int ind, const char* text) const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-int Rw11::AttnHandler(const RlinkServer::AttnArgs& args)
+int Rw11::AttnHandler(RlinkServer::AttnArgs& args)
 {
+  Server().GetAttnInfo(args);
+
   for (size_t i=0; i<fNCpu; i++) fspCpu[i]->W11AttnHandler();
   return 0;
 }

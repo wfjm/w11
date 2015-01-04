@@ -1,6 +1,6 @@
-// $Id: Rw11CntlPC11.hpp 515 2013-05-04 17:28:59Z mueller $
+// $Id: Rw11CntlPC11.hpp 623 2014-12-29 19:11:40Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-29   623   1.1    adopt to Rlink V4 attn logic
 // 2013-05-03   515   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 
 /*!
   \file
-  \version $Id: Rw11CntlPC11.hpp 515 2013-05-04 17:28:59Z mueller $
+  \version $Id: Rw11CntlPC11.hpp 623 2014-12-29 19:11:40Z mueller $
   \brief   Declaration of class Rw11CntlPC11.
 */
 
@@ -71,7 +72,7 @@ namespace Retro {
       static const uint16_t kPBUF_M_BUF   = 0377;
 
     protected:
-      int           AttnHandler(const RlinkServer::AttnArgs& args);
+      int           AttnHandler(RlinkServer::AttnArgs& args);
       void          SetOnline(size_t ind, bool online);
     
     protected:

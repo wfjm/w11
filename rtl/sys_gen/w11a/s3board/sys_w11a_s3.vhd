@@ -1,4 +1,4 @@
--- $Id: sys_w11a_s3.vhd 614 2014-12-20 15:00:45Z mueller $
+-- $Id: sys_w11a_s3.vhd 620 2014-12-25 10:48:35Z mueller $
 --
 -- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,7 +19,8 @@
 --                 bplib/bpgen/bp_rs232_2l4l_iob
 --                 bplib/bpgen/sn_humanio
 --                 vlib/rlink/rlink_sp1c
---                 vlib/rbus/rb_sres_or_2
+--                 vlib/rbus/rb_sres_or_3
+--                 vlib/rbus/rbd_rbmon
 --                 w11a/pdp11_core_rbus
 --                 w11a/pdp11_core
 --                 w11a/pdp11_bram
@@ -39,6 +40,7 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2014-12-22   619 14.7  131013 xc3s1000-4  1569 4768  302 2994 OK: +rbmon
 -- 2014-12-20   614 14.7  131013 xc3s1000-4  1455 4523  302 2807 OK: -RL11,rlv4
 -- 2014-06-08   561 14.7  131013 xc3s1000-4  1374 4580  286 2776 OK: +RL11
 -- 2014-06-01   558 14.7  131013 xc3s1000-4  1301 4306  270 2614 OK: 
@@ -76,6 +78,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-12-24   620   1.6.2  relocate ibus window and hio rbus address
+-- 2014-12-22   619   1.6.1  add rbus monitor rbd_rbmon
 -- 2014-08-28   588   1.6    use new rlink v4 iface and 4 bit STAT
 -- 2014-08-15   583   1.5    rb_mreq addr now 16 bit
 -- 2011-12-21   442   1.4.4  use rlink_sp1c; hio led usage now a for n2/n3
@@ -162,6 +166,7 @@ use work.slvtypes.all;
 use work.genlib.all;
 use work.serportlib.all;
 use work.rblib.all;
+use work.rbdlib.all;
 use work.rlinklib.all;
 use work.bpgenlib.all;
 use work.s3boardlib.all;
@@ -220,6 +225,7 @@ architecture syn of sys_w11a_s3 is
   signal RB_SRES     : rb_sres_type := rb_sres_init;
   signal RB_SRES_CPU : rb_sres_type := rb_sres_init;
   signal RB_SRES_IBD : rb_sres_type := rb_sres_init;
+  signal RB_SRES_RBMON : rb_sres_type := rb_sres_init;
 
   signal RESET   : slbit := '0';
   signal CE_USEC : slbit := '0';
@@ -269,9 +275,10 @@ architecture syn of sys_w11a_s3 is
 
   signal DISPREG : slv16 := (others=>'0');
 
-  constant rbaddr_core0 : slv16 := "0000000000000000";
-  constant rbaddr_ibus  : slv16 := "0000000010000000";
-  constant rbaddr_hio   : slv16 := "0000000011000000";
+  constant rbaddr_rbmon : slv16 := x"ffe8"; -- ffe8/0008: 1111 1111 1110 1xxx
+  constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/0004: 1111 1110 1111 00xx
+  constant rbaddr_ibus0 : slv16 := x"4000"; -- 4000/1000: 0100 xxxx xxxx xxxx
+  constant rbaddr_core0 : slv16 := x"0000"; -- 0000/0020: 0000 0000 000x xxxx
 
 begin
 
@@ -355,17 +362,33 @@ begin
       SER_MONI => SER_MONI
     );
    
-  RB_SRES_OR : rb_sres_or_2
+  RB_SRES_OR : rb_sres_or_3
     port map (
       RB_SRES_1  => RB_SRES_CPU,
       RB_SRES_2  => RB_SRES_IBD,
+      RB_SRES_3  => RB_SRES_RBMON,
       RB_SRES_OR => RB_SRES
     );
   
+  RBMON : if sys_conf_rbmon_awidth > 0 generate
+  begin
+    RBMON : rbd_rbmon
+      generic map (
+        RB_ADDR => rbaddr_rbmon,
+        AWIDTH  => sys_conf_rbmon_awidth)
+      port map (
+        CLK         => CLK,
+        RESET       => RESET,
+        RB_MREQ     => RB_MREQ,
+        RB_SRES     => RB_SRES_RBMON,
+        RB_SRES_SUM => RB_SRES
+      );
+  end generate RBMON;
+
   RP2CP : pdp11_core_rbus
     generic map (
       RB_ADDR_CORE => rbaddr_core0,
-      RB_ADDR_IBUS => rbaddr_ibus)
+      RB_ADDR_IBUS => rbaddr_ibus0)
     port map (
       CLK       => CLK,
       RESET     => RESET,

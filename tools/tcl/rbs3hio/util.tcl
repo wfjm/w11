@@ -1,4 +1,4 @@
-# $Id: util.tcl 516 2013-05-05 21:24:52Z mueller $
+# $Id: util.tcl 620 2014-12-25 10:48:35Z mueller $
 #
 # Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -34,7 +34,7 @@ namespace eval rbs3hio {
   #
   # setup: amap definitions for s3_humanio_rbus
   # 
-  proc setup {base} {
+  proc setup {{base 0xfef0}} {
     rlc amap -insert hi.cntl [expr {$base + 0x00}]
     rlc amap -insert hi.swi  [expr {$base + 0x01}]
     rlc amap -insert hi.led  [expr {$base + 0x02}]

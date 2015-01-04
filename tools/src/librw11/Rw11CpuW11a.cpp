@@ -1,6 +1,6 @@
-// $Id: Rw11CpuW11a.cpp 504 2013-04-13 15:37:24Z mueller $
+// $Id: Rw11CpuW11a.cpp 621 2014-12-26 21:20:05Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-25   621   1.1    adopt to 4k word ibus window
 // 2013-03-03   494   1.0    Initial version
 // 2013-01-27   478   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11CpuW11a.cpp 504 2013-04-13 15:37:24Z mueller $
+  \version $Id: Rw11CpuW11a.cpp 621 2014-12-26 21:20:05Z mueller $
   \brief   Implemenation of Rw11CpuW11a.
 */
 
@@ -53,10 +54,11 @@ Rw11CpuW11a::~Rw11CpuW11a()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11CpuW11a::Setup(size_t ind, uint16_t base)
+void Rw11CpuW11a::Setup(size_t ind, uint16_t base, uint16_t ibase)
 {
   fIndex = ind;
   fBase  = base;
+  fIBase = ibase;
   return;
 }
 

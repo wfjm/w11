@@ -1,4 +1,4 @@
-// $Id: RlinkCommand.hpp 609 2014-12-07 19:35:25Z mueller $
+// $Id: RlinkCommand.hpp 617 2014-12-21 14:18:53Z mueller $
 //
 // Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-21   617   1.2.2  use kStat_M_RbTout for rbus timeout
+// 2014-12-20   616   1.2.1  add kFlagChkDone
 // 2014-12-06   609   1.2    new rlink v4 iface
 // 2013-05-06   495   1.0.1  add RlinkContext to Print() args; drop oper<<()
 // 2011-03-27   374   1.0    Initial version
@@ -22,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: RlinkCommand.hpp 609 2014-12-07 19:35:25Z mueller $
+  \version $Id: RlinkCommand.hpp 617 2014-12-21 14:18:53Z mueller $
   \brief   Declaration of class RlinkCommand.
 */
 
@@ -124,13 +126,15 @@ namespace Retro {
 
       static const uint32_t kFlagChkStat= 1u<<12; //!< stat expect check failed
       static const uint32_t kFlagChkData= 1u<<13; //!< data expect check failed
+      static const uint32_t kFlagChkDone= 1u<<14; //!< done expect check failed
 
-      static const uint8_t  kStat_M_Stat  = 0xf0; //!< stat: external stat bits
-      static const uint8_t  kStat_V_Stat  = 4; 
-      static const uint8_t  kStat_B_Stat  = 0x0f; 
-      static const uint8_t  kStat_M_Attn  = kBBit03;//!< stat: attn flags set
-      static const uint8_t  kStat_M_RbNak = kBBit01;//!< stat: attn flags set
-      static const uint8_t  kStat_M_RbErr = kBBit00;//!< stat: attn flags set
+      static const uint8_t  kStat_M_Stat   = 0xf0; //!< stat: external stat bits
+      static const uint8_t  kStat_V_Stat   = 4; 
+      static const uint8_t  kStat_B_Stat   = 0x0f; 
+      static const uint8_t  kStat_M_Attn   = kBBit03;//!< stat: attn   flag set
+      static const uint8_t  kStat_M_RbTout = kBBit02;//!< stat: rbtout flag set
+      static const uint8_t  kStat_M_RbNak  = kBBit01;//!< stat: rbnak  flag set
+      static const uint8_t  kStat_M_RbErr  = kBBit00;//!< stat: rberr  flag set
 
     protected: 
       void          SetCmdSimple(uint8_t cmd, uint16_t addr, uint16_t data);

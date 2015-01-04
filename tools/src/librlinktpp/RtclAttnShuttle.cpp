@@ -1,4 +1,4 @@
-// $Id: RtclAttnShuttle.cpp 602 2014-11-08 21:42:47Z mueller $
+// $Id: RtclAttnShuttle.cpp 625 2014-12-30 16:17:45Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-30   625   1.1    adopt to Rlink V4 attn logic
 // 2014-11-08   602   1.0.3  cast int first to ptrdiff_t, than to ClientData
 // 2014-08-22   584   1.0.2  use nullptr
 // 2013-05-20   521   1.0.1  Setup proper Tcl channel options
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: RtclAttnShuttle.cpp 602 2014-11-08 21:42:47Z mueller $
+  \version $Id: RtclAttnShuttle.cpp 625 2014-12-30 16:17:45Z mueller $
   \brief   Implemenation of class RtclAttnShuttle.
  */
 
@@ -126,13 +127,16 @@ void RtclAttnShuttle::Remove()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-int RtclAttnShuttle::AttnHandler(const RlinkServer::AttnArgs& args)
+int RtclAttnShuttle::AttnHandler(RlinkServer::AttnArgs& args)
 {
+  fpServ->GetAttnInfo(args);
+
   uint16_t apat = args.fAttnPatt & args.fAttnMask;
   int irc = ::write(fFdPipeWrite, (void*) &apat, sizeof(apat));
   if (irc < 0) 
     throw Rexception("RtclAttnShuttle::AttnHandler()",
                      "write() failed: ", errno);
+  
   return 0;
 }
 

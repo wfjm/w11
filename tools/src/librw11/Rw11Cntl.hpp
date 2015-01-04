@@ -1,6 +1,6 @@
-// $Id: Rw11Cntl.hpp 508 2013-04-20 18:43:28Z mueller $
+// $Id: Rw11Cntl.hpp 625 2014-12-30 16:17:45Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-30   625   1.1    adopt to Rlink V4 attn logic
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-05   483   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cntl.hpp 508 2013-04-20 18:43:28Z mueller $
+  \version $Id: Rw11Cntl.hpp 625 2014-12-30 16:17:45Z mueller $
   \brief   Declaration of class Rw11Cntl.
 */
 
@@ -82,7 +83,6 @@ namespace Retro {
     // statistics counter indices
       enum stats {
         kStatNAttnHdl = 0,
-        kStatNPrimFused,
         kStatNAttnNoAct,
         kDimStat
       };    
@@ -90,8 +90,6 @@ namespace Retro {
     protected:
       void          ConfigCntl(const std::string& name, uint16_t base, int lam,
                                uint16_t probeoff, bool probeint, bool proberem);
-      void          GetPrimInfo(const RlinkServer::AttnArgs& args,
-                                RlinkCommandList*& pclist, size_t& offset);
 
     private:
                     Rw11Cntl() {}           //!< default ctor blocker

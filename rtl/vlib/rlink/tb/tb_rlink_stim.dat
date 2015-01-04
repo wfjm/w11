@@ -1,7 +1,8 @@
-# $Id: tb_rlink_stim.dat 596 2014-10-17 19:50:07Z mueller $
+# $Id: tb_rlink_stim.dat 617 2014-12-21 14:18:53Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2014-12-21   617   4.0.1  rlink signals now tout and nak on separate stat bits
 # 2014-10-12   596   4.0    rewritten for rlink v4
 # ...                       all history v1->v3 droped
 # 2007-06-17    58   1.0    Initial version
@@ -316,36 +317,36 @@ C Test A3.11: check nbusy (use nbusy=3ff -> will cause time out)
 C    with data
 sop
 wreg    0  x"ffe0"  x"03ff"  00000000       -- cntl := (nbusy=1023)
-wreg    1  x"ffe4"  x"1234"  00000010       -- data := 1234
+wreg    1  x"ffe4"  x"1234"  00000100       -- data := 1234
 rreg    2  x"ffe3"  x"0020"  00000000       -- ncyc >? 0020  (ncyc=TO(32))
-rreg    3  x"ffe4"  x"5555"  00000010       -- data >? 5555
+rreg    3  x"ffe4"  x"5555"  00000100       -- data >? 5555
 rreg    4  x"ffe3"  x"0020"  00000000       -- ncyc >? 0020  (ncyc=TO(32))
 eop
 .iowt 10
 #
 C    with dinc
 sop
-wreg    0  x"ffe5"  x"1234"  00000010       -- dinc := 1234
+wreg    0  x"ffe5"  x"1234"  00000100       -- dinc := 1234
 rreg    1  x"ffe3"  x"0020"  00000000       -- ncyc >? 0020  (ncyc=TO(32))
-rreg    2  x"ffe5"  x"5555"  00000010       -- dinc >? 5555
+rreg    2  x"ffe5"  x"5555"  00000100       -- dinc >? 5555
 rreg    3  x"ffe3"  x"0020"  00000000       -- ncyc >? 0020  (ncyc=TO(32))
 eop
 .iowt 10
 #
 C    with fifo
 sop
-wreg    0  x"ffe6"  x"3300"  00000010       -- fifo := 3300
+wreg    0  x"ffe6"  x"3300"  00000100       -- fifo := 3300
 rreg    1  x"ffe3"  x"0020"  00000000       -- ncyc >? 0020  (ncyc=TO(32))
-rreg    2  x"ffe6"  x"5555"  00000010       -- fifo >? 5555
+rreg    2  x"ffe6"  x"5555"  00000100       -- fifo >? 5555
 rreg    3  x"ffe3"  x"0020"  00000000       -- ncyc >? 0020  (ncyc=TO(32))
 eop
 .iowt 10
 #
 C    with lnak
 sop
-wreg    0  x"ffe7"  x"aaaa"  00000010       -- lnak := aaaa  {nak=1}
+wreg    0  x"ffe7"  x"aaaa"  00000100       -- lnak := aaaa  {nak=1}
 rreg    1  x"ffe3"  x"0020"  00000000       -- ncyc >? 0020  (ncyc=TO(32))
-rreg    2  x"ffe7"  x"5555"  00000010       -- lnak >? 5555  {nak=1}
+rreg    2  x"ffe7"  x"5555"  00000100       -- lnak >? 5555  {nak=1}
 rreg    3  x"ffe3"  x"0020"  00000000       -- ncyc >? 0020  (ncyc=TO(32))
 eop
 .iowt 10

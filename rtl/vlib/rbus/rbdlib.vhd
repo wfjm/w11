@@ -1,4 +1,4 @@
--- $Id: rbdlib.vhd 603 2014-11-09 22:50:26Z mueller $
+-- $Id: rbdlib.vhd 620 2014-12-25 10:48:35Z mueller $
 --
 -- Copyright 2010-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -43,11 +43,8 @@ use work.rblib.all;
 
 package rbdlib is
   
--- ise 13.1 xst can bug check if generic defaults in a package are defined via 
--- 'slv(to_unsigned())'. The conv_ construct prior to numeric_std was ok.
--- As workaround the ibus default addresses are defined here as constant.
-constant rbaddr_tester : slv16 := slv(to_unsigned(16#ffe0#,16));
-constant rbaddr_rbmon  : slv16 := slv(to_unsigned(16#ffe8#,16));
+constant rbaddr_rbmon  : slv16 := x"ffe8"; -- ffe8/8: 1111 1111 1110 1xxx
+constant rbaddr_tester : slv16 := x"ffe0"; -- ffe0/8: 1111 1111 1110 0xxx
 
 component rbd_tester is                 -- rbus dev: rbus tester
                                         -- complete rbus_aif interface

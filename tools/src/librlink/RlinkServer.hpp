@@ -1,4 +1,4 @@
-// $Id: RlinkServer.hpp 607 2014-11-30 20:02:48Z mueller $
+// $Id: RlinkServer.hpp 625 2014-12-30 16:17:45Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-30   625   2.1    adopt to Rlink V4 attn logic
 // 2014-11-30   607   2.0    re-organize for rlink v4
 // 2013-05-01   513   1.0.2  fTraceLevel now uint32_t
 // 2013-04-21   509   1.0.1  add Resume(), reorganize server start handling
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: RlinkServer.hpp 607 2014-11-30 20:02:48Z mueller $
+  \version $Id: RlinkServer.hpp 625 2014-12-30 16:17:45Z mueller $
   \brief   Declaration of class \c RlinkServer.
 */
 
@@ -52,19 +53,17 @@ namespace Retro {
     public:
 
       struct AttnArgs {
-        uint16_t    fAttnPatt;
-        uint16_t    fAttnMask;
-        RlinkCommandList* fpClist;
-        size_t      fOffset;
+        uint16_t    fAttnPatt;              //<! in: current attention pattern
+        uint16_t    fAttnMask;              //<! in: handler attention mask
+        uint16_t    fAttnHarvest;           //<! out: harvested attentions
+        bool        fHarvestDone;           //<! out: set true when harvested
                     AttnArgs();
                     AttnArgs(uint16_t apatt, uint16_t amask);
-                    AttnArgs(uint16_t apatt, uint16_t amask, 
-                             RlinkCommandList* pclist, size_t off);
       };
 
-      typedef ReventLoop::pollhdl_t                  pollhdl_t;
-      typedef boost::function<int(const AttnArgs&)>  attnhdl_t;
-      typedef boost::function<int()>                 actnhdl_t;
+      typedef ReventLoop::pollhdl_t            pollhdl_t;
+      typedef boost::function<int(AttnArgs&)>  attnhdl_t;
+      typedef boost::function<int()>           actnhdl_t;
 
       explicit      RlinkServer();
       virtual      ~RlinkServer();
@@ -81,9 +80,10 @@ namespace Retro {
       void          AddAttnHandler(const attnhdl_t& attnhdl, uint16_t mask,
                                    void* cdata = 0);
       void          RemoveAttnHandler(uint16_t mask, void* cdata = 0);
+      void          GetAttnInfo(AttnArgs& args, RlinkCommandList& clist);
+      void          GetAttnInfo(AttnArgs& args);
 
       void          QueueAction(const actnhdl_t& actnhdl);
-
 
       void          AddPollHandler(const pollhdl_t& pollhdl,
                                    int fd, short events=POLLIN);
@@ -115,7 +115,9 @@ namespace Retro {
         kStatNEloopPoll,                    //!< event loop turns (poll)
         kStatNWakeupEvt,                    //!< Wakeup events
         kStatNRlinkEvt,                     //!< Rlink data events
-        kStatNAttnRead,                     //!< Attn read commands
+        kStatNAttnHdl,                      //<! Attn handler calls
+        kStatNAttnNoti,                     //<! Attn notifies processed
+        kStatNAttnHarv,                     //<! Attn handler restarts
         kStatNAttn00,                       //!< Attn bit  0 set
         kStatNAttn01,                       //!< Attn bit  1 set
         kStatNAttn02,                       //!< Attn bit  2 set

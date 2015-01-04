@@ -1,6 +1,6 @@
-// $Id: RtclRlinkConnect.cpp 609 2014-12-07 19:35:25Z mueller $
+// $Id: RtclRlinkConnect.cpp 628 2015-01-04 16:22:09Z mueller $
 //
-// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-01-04   628   1.3.2  add M_get
+// 2014-12-20   616   1.3.1  M_exec: add -edone for BlockDone checking
 // 2014-12-06   609   1.3    new rlink v4 iface
 // 2014-08-22   584   1.2.1  use nullptr
 // 2014-08-15   583   1.2    rb_mreq addr now 16 bit
@@ -31,7 +33,7 @@
 
 /*!
   \file
-  \version $Id: RtclRlinkConnect.cpp 609 2014-12-07 19:35:25Z mueller $
+  \version $Id: RtclRlinkConnect.cpp 628 2015-01-04 16:22:09Z mueller $
   \brief   Implemenation of class RtclRlinkConnect.
  */
 
@@ -40,6 +42,7 @@
 #include <iostream>
 
 #include "boost/bind.hpp"
+#include "boost/thread/locks.hpp"
 
 #include "librtcltools/Rtcl.hpp"
 #include "librtcltools/RtclOPtr.hpp"
@@ -67,7 +70,8 @@ namespace Retro {
 
 RtclRlinkConnect::RtclRlinkConnect(Tcl_Interp* interp, const char* name)
   : RtclProxyOwned<RlinkConnect>("RlinkConnect", interp, name, 
-                                 new RlinkConnect())
+                                 new RlinkConnect()),
+    fGets()
 {
   AddMeth("open",     boost::bind(&RtclRlinkConnect::M_open,    this, _1));
   AddMeth("close",    boost::bind(&RtclRlinkConnect::M_close,   this, _1));
@@ -82,11 +86,22 @@ RtclRlinkConnect::RtclRlinkConnect(Tcl_Interp* interp, const char* name)
   AddMeth("print",    boost::bind(&RtclRlinkConnect::M_print,   this, _1));
   AddMeth("dump",     boost::bind(&RtclRlinkConnect::M_dump,    this, _1));
   AddMeth("config",   boost::bind(&RtclRlinkConnect::M_config,  this, _1));
+  AddMeth("get",      boost::bind(&RtclRlinkConnect::M_get,     this, _1));
   AddMeth("$default", boost::bind(&RtclRlinkConnect::M_default, this, _1));
 
   for (size_t i=0; i<8; i++) {
     fCmdnameObj[i] = Tcl_NewStringObj(RlinkCommand::CommandName(i), -1);
   }
+
+  RlinkConnect* pobj = &Obj();
+  fGets.Add<uint32_t>  ("sysid", 
+                        boost::bind(&RlinkConnect::SysId, pobj));
+  fGets.Add<size_t>    ("rbufsize", 
+                        boost::bind(&RlinkConnect::RbufSize, pobj));
+  fGets.Add<size_t>    ("bsizemax", 
+                        boost::bind(&RlinkConnect::BlockSizeMax, pobj));
+  fGets.Add<size_t>    ("bsizeprudent", 
+                        boost::bind(&RlinkConnect::BlockSizePrudent, pobj));
 }
 
 //------------------------------------------+-----------------------------------
@@ -132,8 +147,8 @@ int RtclRlinkConnect::M_close(RtclArgs& args)
 int RtclRlinkConnect::M_exec(RtclArgs& args)
 {
   static RtclNameSet optset("-rreg|-rblk|-wreg|-wblk|-labo|-attn|-init|"
-                            "-edata|-estat|-estatdef|"
-                            "-volatile|-print|-dump|-rlist");
+                            "-edata|-edone|-estat|-estatdef|"
+                            "-print|-dump|-rlist");
 
   Tcl_Interp* interp = args.Interp();
 
@@ -154,30 +169,30 @@ int RtclRlinkConnect::M_exec(RtclArgs& args)
     
     size_t lsize = clist.Size();
     if        (opt == "-rreg") {            // -rreg addr ?varData ?varStat ---
-      if (!GetAddr(args, Obj(), addr)) return kERR;
+      if (!GetAddr(args, addr)) return kERR;
       if (!GetVarName(args, "??varData", lsize, vardata)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       clist.AddRreg(addr);
 
     } else if (opt == "-rblk") {            // -rblk addr size ?varData ?varStat
       int32_t bsize;
-      if (!GetAddr(args, Obj(), addr)) return kERR;
-      if (!args.GetArg("bsize", bsize, 1, 2048)) return kERR;
+      if (!GetAddr(args, addr)) return kERR;
+      if (!args.GetArg("bsize", bsize, 1, Obj().BlockSizeMax())) return kERR;
       if (!GetVarName(args, "??varData", lsize, vardata)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       clist.AddRblk(addr, (size_t) bsize);
 
     } else if (opt == "-wreg") {            // -wreg addr data ?varStat -------
       uint16_t data;
-      if (!GetAddr(args, Obj(), addr)) return kERR;
+      if (!GetAddr(args, addr)) return kERR;
       if (!args.GetArg("data", data)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       clist.AddWreg(addr, data);
 
     } else if (opt == "-wblk") {            // -wblk addr block ?varStat ------
       vector<uint16_t> block;
-      if (!GetAddr(args, Obj(), addr)) return kERR;
-      if (!args.GetArg("data", block, 1, 2048)) return kERR;
+      if (!GetAddr(args, addr)) return kERR;
+      if (!args.GetArg("data", block, 1, Obj().BlockSizeMax())) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       clist.AddWblk(addr, block);
 
@@ -193,7 +208,7 @@ int RtclRlinkConnect::M_exec(RtclArgs& args)
 
     } else if (opt == "-init") {            // -init addr data ?varStat -------
       uint16_t data;
-      if (!GetAddr(args, Obj(), addr)) return kERR;
+      if (!GetAddr(args, addr)) return kERR;
       if (!args.GetArg("data", data)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       clist.AddInit(addr, data);
@@ -217,6 +232,22 @@ int RtclRlinkConnect::M_exec(RtclArgs& args)
         if (!args.GetArg("data", data)) return kERR;
         if (!args.GetArg("??mask", mask)) return kERR;
         clist[lsize-1].Expect()->SetData(data, mask);
+      }
+
+    } else if (opt == "-edone") {           // -edone done --------------------
+      if (!ClistNonEmpty(args, clist)) return kERR;
+      uint16_t done=0;
+      if (!args.GetArg("done", done)) return kERR;
+      if (clist[lsize-1].Expect()==0) {
+        clist[lsize-1].SetExpect(new RlinkCommandExpect(estatdef_val, 
+                                                        estatdef_msk));
+      }
+      uint8_t cmd = clist[lsize-1].Command();
+      if (cmd == RlinkCommand::kCmdRblk ||
+          cmd == RlinkCommand::kCmdWblk) {
+        clist[lsize-1].Expect()->SetDone(done);
+      } else {
+        return args.Quit("-E: -edone allowed only after -rblk,-wblk");
       }
 
     } else if (opt == "-estat") {           // -estat ?stat ?mask -------------
@@ -269,7 +300,7 @@ int RtclRlinkConnect::M_exec(RtclArgs& args)
   if (varlist  == "-") nact += 1;
   if (nact > 1) 
     return args.Quit(
-      "-E: more that one of -print,-dump,-list without target variable found");
+      "-E: more that one of -print,-dump,-rlist without target variable found");
 
   if (!args.AllDone()) return kERR;
   if (clist.Size() == 0) return kOK;
@@ -712,6 +743,16 @@ int RtclRlinkConnect::M_config(RtclArgs& args)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
+int RtclRlinkConnect::M_get(RtclArgs& args)
+{
+  // synchronize with server thread (really needed ??)
+  boost::lock_guard<RlinkConnect> lock(Obj());
+  return fGets.M_get(args);
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
 int RtclRlinkConnect::M_default(RtclArgs& args)
 {
   if (!args.AllDone()) return kERR;
@@ -732,8 +773,7 @@ int RtclRlinkConnect::M_default(RtclArgs& args)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-bool RtclRlinkConnect::GetAddr(RtclArgs& args, RlinkConnect& conn, 
-                               uint16_t& addr)
+bool RtclRlinkConnect::GetAddr(RtclArgs& args, uint16_t& addr)
 {
   Tcl_Obj* pobj=0;
   if (!args.GetArg("addr", pobj)) return kERR;
@@ -811,7 +851,7 @@ bool RtclRlinkConnect::ClistNonEmpty(RtclArgs& args,
                                      const RlinkCommandList& clist)
 {
   if (clist.Size() == 0) {
-    args.AppendResult("-E: -edata, -estat, or -volatile "
+    args.AppendResult("-E: -edata, -edone, or -estat "
                       "not allowed on empty command list", nullptr);
     return false;
   }

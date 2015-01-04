@@ -1,4 +1,4 @@
-# $Id: test_data.tcl 603 2014-11-09 22:50:26Z mueller $
+# $Id: test_data.tcl 617 2014-12-21 14:18:53Z mueller $
 #
 # Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-12-21   617   2.0.1  use rbtout stat bit for timeout
 # 2014-11-09   603   2.0    use rlink v4 address layout and iface
 # 2011-03-27   374   1.0    Initial version
 # 2011-03-13   369   0.1    First Draft
@@ -71,8 +72,8 @@ namespace eval rbtest {
       -wreg te.data 0xdead \
       -rreg te.data -edata 0xdead \
       -wreg te.cntl [regbld rbtest::CNTL {nbusy 0x3ff}] \
-      -wreg te.data 0xbeaf -estat [regbld rlink::STAT rbnak] $esdmsk \
-      -rreg te.data        -estat [regbld rlink::STAT rbnak] $esdmsk \
+      -wreg te.data 0xbeaf -estat [regbld rlink::STAT rbtout] $esdmsk \
+      -rreg te.data        -estat [regbld rlink::STAT rbtout] $esdmsk \
       -wreg te.cntl 0x0000 \
       -rreg te.data -edata 0xdead -edata 0xdead
     #

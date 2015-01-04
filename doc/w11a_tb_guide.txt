@@ -1,4 +1,4 @@
-# $Id: w11a_tb_guide.txt 609 2014-12-07 19:35:25Z mueller $
+# $Id: w11a_tb_guide.txt 622 2014-12-28 20:45:26Z mueller $
 
 Guide to running w11a test benches
 
@@ -53,98 +53,81 @@ Guide to running w11a test benches
      all the rest is handled by the build environment.
      An example of a post-synthesis model is given for the w11a core test.
 
+   - for convenience a wrapper script 'tbrun_tbw' is used to generate the 
+     tbw|tee|egrep pipe. This script also checks with 'make' whether the
+     test bench is up-to-date or must be (re)-compiled.
+
 2. Available unit tests benches -------------------------------------------
 
-   In the following the available tests are listed with 
-     - the 'make' command to build them
-     - the pipe setup to run them
-     - the expected output (the run time measured on a 3 GHz system)
+   In the following the available tests are listed with their tbrun_tbw which
+     - will call 'make' to build them
+     - and create the pipe setup to run them
+   and the expected output (the run time measured on a 3 GHz system)
 
    - serport receiver test
      cd $RETROBASE/rtl/vlib/serport/tb
-     make tb_serport_uart_rx
-     time tbw tb_serport_uart_rx |\
-       tee tb_serport_uart_rx_dsim.log | egrep "(FAIL|DONE)"
+     tbrun_tbw tb_serport_uart_rx 
      -> 1269955.0 ns  63488: DONE 
      -> real 0m01.178s   user 0m01.172s   sys 0m00.020s
 
    - serport receiver/transmitter test
-     make tb_serport_uart_rxtx
-     time tbw tb_serport_uart_rxtx |\
-       tee tb_serport_uart_rxtx_dsim.log | egrep "(FAIL|DONE)"
+     tbrun_tbw tb_serport_uart_rxtx
      -> 52335.0 ns   2607: DONE 
      -> real 0m00.094s   user 0m00.092s   sys 0m00.008s
 
    - serport autobauder test
-     make tb_serport_autobaud
-     time tbw tb_serport_autobaud |\
-       tee tb_serport_autobaud_dsim.log | egrep "(FAIL|DONE)"
+     tbrun_tbw tb_serport_autobaud
      -> 367475.0 ns  18364: DONE 
      -> real 0m00.610s   user 0m00.612s   sys 0m00.004s
  
    - 9 bit comma,data to Byte stream converter test
      cd $RETROBASE/rtl/vlib/comlib/tb
-     make tb_cdata2byte
-     time tbw tb_cdata2byte |\
-       tee tb_cdata2byte_dsim.log | egrep "(FAIL|DONE)"
+     tbrun_tbw tb_cdata2byte
     -> 7261.0 ns    354: DONE 
     -> real 0m0.385s   user 0m0.041s   sys  0m0.006s
 
    - rlink core test
 
      cd $RETROBASE/rtl/vlib/rlink/tb
-     make tb_rlink_direct
-     time tbw tb_rlink_direct |\
-       tee tb_rlink_direct_dsim.log | egrep "(FAIL|DONE)"
+     tbrun_tbw tb_rlink_direct
      -> 78975.0 ns   3939: DONE 
      -> real 0m00.508s   user 0m00.262s   sys 0m00.028s
 
    - rlink core test via serial port interface
 
      cd $RETROBASE/rtl/vlib/rlink/tb
-     make tb_rlink_sp1c
-     time tbw tb_rlink_sp1c tb_rlink_sp1c_stim.dat |\
-       tee tb_rlink_sp1c_stim2_dsim.log | egrep "(FAIL|DONE)"
+     tbrun_tbw --lsuf stim2_dsim   tb_rlink_sp1c tb_rlink_sp1c_stim.dat
      -> 27595.0 ns   1370: DONE 
      -> real 0m0.250s   user 0m0.108s   sys 0m0.011s
 
-     time tbw tb_rlink_sp1c tb_rlink_stim.dat |\
-       tee tb_rlink_sp1c_dsim.log | egrep "(FAIL|DONE)"
+     tbrun_tbw --lsuf stim1_dsim   tb_rlink_sp1c tb_rlink_stim.dat
      -> 420295.0 ns  21005: DONE 
      -> real  0m02.271s   user  0m01.360s   sys  0m00.040s
 
    - w11a core test (using behavioural model)
 
      cd $RETROBASE/rtl/w11a/tb
-     make tb_pdp11core
-     time tbw tb_pdp11core |\
-       tee tb_pdp11core_dsim.log | egrep "(FAIL|DONE)"
+     tbrun_tbw tb_pdp11core
      -> 1220255.0 ns  61073: DONE 
      -> real 0m10.736s   user 0m10.713s   sys 0m00.060s
 
    - w11a core test (using post-synthesis model)
 
-     make ghdl_tmp_clean && make tb_pdp11core_ssim
-     time tbw tb_pdp11core_ssim |\
-       tee tb_pdp11core_ssim.log | egrep "(FAIL|DONE)"
+     tbrun_tbw tb_pdp11core_ssim
      -> 1220255.0 ns  61073: DONE 
      -> real 1m09.738s   user 1m09.588s   sys 0m00.096s
 
    - s3board sram controller test 
 
      cd $RETROBASE/rtl/bplib/s3board/tb
-     make tb_s3_sram_memctl
-     time tbw tb_s3_sram_memctl |\
-       tee tb_s3_sram_memctl_dsim.log | egrep "(FAIL|DONE)"
+     tbrun_tbw tb_s3_sram_memctl
      -> 5015.0 ns    241: DONE 
      -> real 0m00.113s   user 0m00.068s   sys 0m00.016s
 
    - nexys2/nexys3 cram controller test 
 
      cd $RETROBASE/rtl/bplib/nxcramlib/tb
-     make tb_nx_cram_memctl_as
-     time tbw tb_nx_cram_memctl_as |\
-       tee tb_nx_cram_memctl_as_dsim.log | egrep "(FAIL|DONE)"
+     tbrun_tbw tb_nx_cram_memctl_as
      -> 24272.5 ns   1204: DONE 
      -> real 0m00.343s   user 0m00.248s   sys 0m00.100s
 
@@ -174,33 +157,25 @@ Guide to running w11a test benches
    - sys_tst_serloop_s3 test bench
 
      cd $RETROBASE/rtl/sys_gen/tst_serloop/s3board/tb
-     make tb_tst_serloop_s3
-     time tbw tb_tst_serloop_s3 |\
-       tee tb_tst_serloop_s3_dsim.log | egrep "(FAIL|DONE)"
+     tbrun_tbw tb_tst_serloop_s3
      -> 301353.3 ns  18068: DONE 
      -> real 0m1.422s   user 0m1.372s   sys 0m0.024s
 
    - sys_tst_serloop_n2 test bench
 
      cd $RETROBASE/rtl/sys_gen/tst_serloop/nexys2/tb
-     make tb_tst_serloop1_n2
-     time tbw tb_tst_serloop1_n2 |\
-       tee tb_tst_serloop1_n2_dsim.log | egrep "(FAIL|DONE)"
+     tbrun_tbw tb_tst_serloop1_n2
      -> 361560.0 ns  18068: DONE
      -> real 0m1.341s   user 0m1.340s   sys 0m0.016s
 
-     make tb_tst_serloop2_n2
-     time tbw tb_tst_serloop2_n2 |\
-       tee tb_tst_serloop2_n2_dsim.log | egrep "(FAIL|DONE)"
+     tbrun_tbw tb_tst_serloop2_n2
      -> 304353.3 ns  18248: DONE
      -> real 0m1.933s   user 0m1.924s   sys 0m0.024s
 
    - sys_tst_serloop_n3 test bench
 
      cd $RETROBASE/rtl/sys_gen/tst_serloop/nexys3/tb
-     make tb_tst_serloop1_n3
-     time tbw tb_tst_serloop1_n3 |\
-       tee tb_tst_serloop1_n3_dsim.log | egrep "(FAIL|DONE)"
+     tbrun_tbw tb_tst_serloop1_n3
      -> 361560.0 ns  18068: DONE
      -> real 0m1.371s   user 0m1.372s   sys 0m0.016s
 
@@ -212,32 +187,26 @@ Guide to running w11a test benches
    - sys_tst_rlink_s3 test bench
 
      cd $RETROBASE/rtl/sys_gen/tst_rlink/s3board/tb
-     make tb_tst_rlink_s3
-     time ti_rri --run="tbw tb_tst_rlink_s3" --fifo --logl=3 -- \
-       "package require tst_rlink" "tst_rlink::setup" "tst_rlink::test_all" |\
-       tee tb_tst_rlink_s3_dsim.log | egrep "(-[EFW]:|FAIL|PEND|DONE)"
-     -> 672560.0 ns  33618: DONE 
-     -> user 0m03.355s
+     tbrun_tbwrri --pack tst_rlink   tb_tst_rlink_s3 \
+         "tst_rlink::setup"  "tst_rlink::test_all" 
+     -> 1377680.0 ns  68874: DONE 
+     -> real 0m6.876s   user 0m6.790s   sys  0m0.060s
 
    - sys_tst_rlink_n2 test bench
 
      cd $RETROBASE/rtl/sys_gen/tst_rlink/nexys2/tb
-     make tb_tst_rlink_n2
-     time ti_rri --run="tbw tb_tst_rlink_n2" --fifo --logl=3 -- \
-       "package require tst_rlink" "tst_rlink::setup" "tst_rlink::test_all" |\
-       tee tb_tst_rlink_n2_dsim.log | egrep "(-[EFW]:|FAIL|PEND|DONE)"
-     -> 674740.0 ns  33726: DONE
-     -> user 0m03.362s
+     tbrun_tbwrri --pack tst_rlink   tb_tst_rlink_n2 \
+         "tst_rlink::setup"  "tst_rlink::test_all"
+     ->  1378200.0 ns  68899: DONE 
+     -> real 0m10.320s   user 0m10.110s   sys  0m0.204s
 
    - sys_tst_rlink_n3 test bench
 
      cd $RETROBASE/rtl/sys_gen/tst_rlink/nexys3/tb
-     make tb_tst_rlink_n3
-     time ti_rri --run="tbw tb_tst_rlink_n3" --fifo --logl=3 -- \
-       "package require tst_rlink" "tst_rlink::setup" "tst_rlink::test_all" |\
-       tee tb_tst_rlink_n3_dsim.log | egrep "(-[EFW]:|FAIL|PEND|DONE)"
-     -> 336390.0 ns  33618: DONE 
-     -> user 0m03.434s
+     tbrun_tbwrri --pack tst_rlink   tb_tst_rlink_n3 \
+         "tst_rlink::setup"  "tst_rlink::test_all"
+     -> 689210.0 ns  68900: DONE 
+     -> real 0m7.098s   user 0m6.874s   sys  0m0.191s
 
 4c. w11a systems -----------------------------------------------------
 
@@ -248,38 +217,37 @@ Guide to running w11a test benches
    backend process and thus scheduling of backend vs. ghdl process
    can affect the result.
 
+   For convenience a wrapper script 'tbrun_tbwrri' is used to generate the 
+   required quite long ti_rri command. Like for 'tbrun_tbw' the script also
+   checks with 'make' whether the test bench is up-to-date or must be 
+   (re)-compiled.
+
    - sys_w11a_s3 test bench
 
      cd $RETROBASE/rtl/sys_gen/w11a/s3board/tb
-     make tb_w11a_s3
-     time ti_rri --pack=rw11 --run="tbw tb_w11a_s3" --fifo --logl=3 -- \
+     tbrun_tbwrri --pack rw11   tb_w11a_s3 \
          "rw11::setup_cpu" \
-         "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat" |\
-       tee tb_w11a_s3_stim2_dsim.log | egrep "(-[EFW]:|FAIL|PEND|DONE)"
+         "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat"
      -> 9864500.0 ns 493215: DONE
      -> real 0m59.728s   user 0m58.586s   sys 0m0.576s
 
    - sys_w11a_n2 test bench
 
      cd $RETROBASE/rtl/sys_gen/w11a/nexys2/tb
-     make tb_w11a_n2
-     time ti_rri --pack=rw11 --run="tbw tb_w11a_n2" --fifo --logl=3 -- \
+     tbrun_tbwrri --pack rw11 --cuff   tb_w11a_n2 \
          "rw11::setup_cpu" \
-         "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat" |\
-       tee tb_w11a_n2_stim2_dsim.log | egrep "(-[EFW]:|FAIL|PEND|DONE)"
-     -> 9880260.0 ns 494002: DONE
-     -> real 1m10.632s   user 1m09.824s   sys 0m0.599s
+         "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat"
+     -> 3809180.0 ns 190448: DONE 
+     -> real 0m55.733s   user 0m55.504s   sys 0m0.592s
 
    - sys_w11a_n3 test bench
 
      cd $RETROBASE/rtl/sys_gen/w11a/nexys3/tb
-     make tb_w11a_n3
-     time ti_rri --pack=rw11 --run="tbw tb_w11a_n3" --fifo --logl=3 -- \
+     tbrun_tbwrri --pack rw11 --cuff   tb_w11a_n3 \
          "rw11::setup_cpu" \
-         "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat" |\
-       tee tb_w11a_n3_stim2_dsim.log | egrep "(-[EFW]:|FAIL|PEND|DONE)"
-     -> 6915376.6 ns 497892: DONE
-     -> real 1m07.862s   user 1m07.695s   sys 0m0.427s
+         "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat"
+     -> 279834.9 ns 236133: DONE 
+     -> real 0m59.998s   user 0m59.676s   sys 0m0.618s
 
    A new, modular w11a test bench is under construction. So far it is very
    incomplete. This very preliminary version can be executed with
@@ -287,10 +255,8 @@ Guide to running w11a test benches
    - sys_w11a_n2 test bench
 
      cd $RETROBASE/rtl/sys_gen/w11a/nexys2/tb
-     make tb_w11a_n2
-     time ti_rri --pack=rw11 --run="tbw tb_w11a_n2" --fifo --logl=3 -- \
-         "rw11::setup_cpu" "rw11::tbench @w11a_all.dat" | \
-       tee w11a_tbench_dsim.log | egrep "(-[EFW]:|FAIL|PASS|DONE)"
-     -> 7081280.0 ns 354053: DONE
-     -> real 0m43.742s   user 0m44.084s   sys 0m0.379s
+     tbrun_tbwrri --lsuf tbench_dsim --pack rw11 --cuff   tb_w11a_n2 \
+        "rw11::setup_cpu" "rw11::tbench @w11a_all.dat"
+     -> 2638820.0 ns 131930: DONE 
+     -> real 0m24.890s   user 0m25.286s   sys 0m0.439s
 

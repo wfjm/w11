@@ -1,6 +1,6 @@
--- $Id: sys_conf_sim.vhd 509 2013-04-21 20:46:20Z mueller $
+-- $Id: sys_conf_sim.vhd 619 2014-12-23 13:17:41Z mueller $
 --
--- Copyright 2010-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Definitions for sys_w11a_n2 (for simulation)
 --
 -- Dependencies:   -
--- Tool versions:  xst 11.4, 13.1; ghdl 0.26-0.29
+-- Tool versions:  xst 11.4-14.7; ghdl 0.26-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-12-22   619   1.2.1  add _rbmon_awidth
 -- 2013-04-21   509   1.2    add fx2 settings
 -- 2011-11-27   433   1.1.1  use /1*1 to skip dcm in sim, _ssim fails with dcm
 -- 2010-11-27   341   1.1    add dcm and memctl related constants (clksys=58)
@@ -42,6 +43,8 @@ package sys_conf is
   constant sys_conf_memctl_writedelay : positive := 4;
 
   constant sys_conf_ser2rri_cdinit : integer := 1-1;   -- 1 cycle/bit in sim
+
+  constant sys_conf_rbmon_awidth : integer := 9; -- use 0 to disable rbmon
 
   -- fx2 settings: petowidth=10 -> 2^10 30 MHz clocks -> ~33 usec
   constant sys_conf_fx2_petowidth  : positive := 10;

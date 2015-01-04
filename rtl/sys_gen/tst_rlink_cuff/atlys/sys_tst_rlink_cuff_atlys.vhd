@@ -1,4 +1,4 @@
--- $Id: sys_tst_rlink_cuff_atlys.vhd 583 2014-08-16 07:40:12Z mueller $
+-- $Id: sys_tst_rlink_cuff_atlys.vhd 620 2014-12-25 10:48:35Z mueller $
 --
 -- Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -35,6 +35,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-12-24   620   1.1.1  relocate hio rbus address
 -- 2014-08-15   583   1.1    rb_mreq addr now 16 bit
 -- 2013-01-06   472   1.0    Initial version; derived from sys_tst_rlink_cuff_n3
 --                           and sys_tst_fx2loop_atlys
@@ -141,7 +142,7 @@ architecture syn of sys_tst_rlink_cuff_atlys is
   signal FX2_TX2AFULL : slbit := '0';
   signal FX2_MONI  : fx2ctl_moni_type := fx2ctl_moni_init;
 
-  constant rbaddr_hio   : slv16 := "0000000011000000"; -- 110000xx
+  constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/4: 1111 1110 1111 00xx
 
 begin
 

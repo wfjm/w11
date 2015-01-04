@@ -1,6 +1,6 @@
-// $Id: RlinkCommand.cpp 609 2014-12-07 19:35:25Z mueller $
+// $Id: RlinkCommand.cpp 628 2015-01-04 16:22:09Z mueller $
 //
-// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,9 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-01-04   628   1.2.3  Print(): adopt large nblk;
+// 2014-12-21   617   1.2.2  use kStat_M_RbTout for rbus timeout
+// 2014-12-20   616   1.2.1  Print(): display BlockDone; add kFlagChkDone
 // 2014-12-06   609   1.2    new rlink v4 iface
 // 2014-08-15   583   1.1    rb_mreq addr now 16 bit
 // 2013-05-06   495   1.0.2  add RlinkContext to Print() args
@@ -23,7 +26,7 @@
 
 /*!
   \file
-  \version $Id: RlinkCommand.cpp 609 2014-12-07 19:35:25Z mueller $
+  \version $Id: RlinkCommand.cpp 628 2015-01-04 16:22:09Z mueller $
   \brief   Implemenation of class RlinkCommand.
  */
 
@@ -70,11 +73,13 @@ const uint32_t RlinkCommand::kFlagErrNak;
 const uint32_t RlinkCommand::kFlagErrDec;
 const uint32_t RlinkCommand::kFlagChkStat;
 const uint32_t RlinkCommand::kFlagChkData;
+const uint32_t RlinkCommand::kFlagChkDone;
 
 const uint8_t RlinkCommand::kStat_M_Stat;
 const uint8_t RlinkCommand::kStat_V_Stat;
 const uint8_t RlinkCommand::kStat_B_Stat;
 const uint8_t RlinkCommand::kStat_M_Attn;
+const uint8_t RlinkCommand::kStat_M_RbTout;
 const uint8_t RlinkCommand::kStat_M_RbNak;
 const uint8_t RlinkCommand::kStat_M_RbErr;
 
@@ -260,7 +265,7 @@ void RlinkCommand::Print(std::ostream& os, const RlinkContext& cntx,
   // separator + command mnemonic, code and flags
   // separator:  ++  first in packet
   //             --  non-first in packet
-  //             ??  FIXME: separator for labo canceled commands 
+  //             ??  FIXME_code: separator for labo canceled commands 
   const char* sep = "??";
   if (TestFlagAny(kFlagPktBeg)) {
     sep = "++";
@@ -309,8 +314,23 @@ void RlinkCommand::Print(std::ostream& os, const RlinkContext& cntx,
     }
   }
 
+  // block length field
   if (ccode== kCmdRblk || ccode==kCmdWblk) {
-    os << " n=" << RosPrintf(BlockSize(), "d", 3); 
+    os << " n=" << RosPrintf(BlockSize(), "d", 4)
+       << (BlockSize()==BlockDone() ? "=" : ">")
+       << RosPrintf(BlockDone(), "d", 4);
+    if (fpExpect) {
+      if (TestFlagAny(kFlagChkDone)) {
+        os << "#";
+        os << " N=" << RosPrintf(fpExpect->DoneValue(), "d", 4);
+      } else if (fpExpect->DoneIsChecked()) {
+        os << "!";
+      } else {
+        os << " ";
+      }
+    } else {
+      os << " ";
+    }
   }
 
   // status field
@@ -328,9 +348,9 @@ void RlinkCommand::Print(std::ostream& os, const RlinkContext& cntx,
   }
 
   if (TestFlagAny(kFlagDone)) {
-    if (TestFlagAny(kFlagChkStat|kFlagChkData)) {
+    if (TestFlagAny(kFlagChkStat|kFlagChkData|kFlagChkDone)) {
       os << " FAIL: " 
-         << Rtools::Flags2String(fFlags&(kFlagChkStat|kFlagChkData),
+         << Rtools::Flags2String(fFlags&(kFlagChkStat|kFlagChkData|kFlagChkDone),
                                  FlagNames(),',');
     } else {
       os << " OK";
@@ -354,7 +374,7 @@ void RlinkCommand::Print(std::ostream& os, const RlinkContext& cntx,
     const uint16_t* pdat = BlockPointer();
 
     for (size_t i=0; i<size; i++) {
-      if (i%ncol == 0) os << "\n    " << RosPrintf(i,"d",3) << ": ";
+      if (i%ncol == 0) os << "\n    " << RosPrintf(i,"d",4) << ": ";
       os << RosPrintBvi(pdat[i], dbase);
       if (dcheck) {
         if (!fpExpect->BlockCheck(i, pdat[i])) {
@@ -373,7 +393,7 @@ void RlinkCommand::Print(std::ostream& os, const RlinkContext& cntx,
       const vector<uint16_t>& emskvec = fpExpect->BlockMask();
       for (size_t i=0; i<size; i++) {
         if (!fpExpect->BlockCheck(i, pdat[i])) {
-          os << "\n      FAIL d[" << RosPrintf(i,"d",3) << "]: "
+          os << "\n      FAIL d[" << RosPrintf(i,"d",4) << "]: "
              << RosPrintBvi(pdat[i], dbase) << "#"
              << "  D=" << RosPrintBvi(evalvec[i], dbase);
           if (i < emskvec.size() && emskvec[i]!=0x0000) {
@@ -389,7 +409,7 @@ void RlinkCommand::Print(std::ostream& os, const RlinkContext& cntx,
     size_t size = BlockSize();
     size_t ncol = (80-4-5)/(dwidth+2);
     for (size_t i=0; i<size; i++) {
-      if (i%ncol == 0) os << "\n    " << RosPrintf(i,"d",3) << ": ";
+      if (i%ncol == 0) os << "\n    " << RosPrintf(i,"d",4) << ": ";
       os << RosPrintBvi(pdat[i], dbase) << "  ";
     }
   }
@@ -454,6 +474,7 @@ const Retro::RflagName* RlinkCommand::FlagNames()
   // use msb first order, will also be printing order
   static Retro::RflagName fnam[] = {
     {kFlagChkData, "ChkData"},
+    {kFlagChkDone, "ChkDone"},
     {kFlagChkStat, "ChkStat"},
     {kFlagErrDec,  "ErrDec"},
     {kFlagErrNak,  "ErrNak"},

@@ -1,4 +1,4 @@
-// $Id: RlinkPacketBufSnd.cpp 606 2014-11-24 07:08:51Z mueller $
+// $Id: RlinkPacketBufSnd.cpp 621 2014-12-26 21:20:05Z mueller $
 //
 // Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-25   621   1.0.1  Reorganize packet send/revd stats
 // 2014-11-15   604   1.0    Initial version
 // 2014-11-02   600   0.1    First draft (re-organize PacketBuf for rlink v4)
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RlinkPacketBufSnd.cpp 606 2014-11-24 07:08:51Z mueller $
+  \version $Id: RlinkPacketBufSnd.cpp 621 2014-12-26 21:20:05Z mueller $
   \brief   Implemenation of class RlinkPacketBuf.
  */
 
@@ -49,6 +50,7 @@ RlinkPacketBufSnd::RlinkPacketBufSnd()
   : fRawBuf()
 {
   // Statistic setup
+  fStats.Define(kStatNTxPktByt, "NTxPktByt", "Tx packet bytes send");
   fStats.Define(kStatNTxEsc,    "NTxEsc",    "Tx data escapes");
 }
 
@@ -108,8 +110,9 @@ bool RlinkPacketBufSnd::SndPacket(RlinkPort* port, RerrMsg& emsg)
   PutRawEsc(kEcEop);                        // <EOP>
   fStats.Inc(kStatNTxEsc   , double(nesc));
 
-  return SndRaw(port, emsg);
-  
+  bool sndok = SndRaw(port, emsg);
+  if (sndok) fStats.Inc(kStatNTxPktByt, double(PktSize()));
+  return sndok;
 }
 
 //------------------------------------------+-----------------------------------

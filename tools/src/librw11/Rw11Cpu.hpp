@@ -1,6 +1,6 @@
-// $Id: Rw11Cpu.hpp 506 2013-04-14 21:54:03Z mueller $
+// $Id: Rw11Cpu.hpp 626 2015-01-03 14:41:37Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-01-01   626   1.1    Adopt for rlink v4 and 4k ibus window; add IAddrMap
 // 2013-04-14   506   1.0.1  add AddLalh(),AddRMem(),AddWMem()
 // 2013-04-12   504   1.0    Initial version
 // 2013-01-27   478   0.1    First draft
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cpu.hpp 506 2013-04-14 21:54:03Z mueller $
+  \version $Id: Rw11Cpu.hpp 626 2015-01-03 14:41:37Z mueller $
   \brief   Declaration of class Rw11Cpu.
 */
 
@@ -39,6 +40,7 @@
 #include "librtools/Rstats.hpp"
 #include "librtools/RerrMsg.hpp"
 #include "librlink/RlinkConnect.hpp"
+#include "librlink/RlinkAddrMap.hpp"
 
 #include "Rw11Probe.hpp"
 
@@ -69,6 +71,7 @@ namespace Retro {
       const std::string&   Type() const;
       size_t        Index() const;
       uint16_t      Base() const;
+      uint16_t      IBase() const;
 
       void          AddCntl(const boost::shared_ptr<Rw11Cntl>& spcntl);
       bool          TestCntl(const std::string& name) const;
@@ -79,7 +82,8 @@ namespace Retro {
 
       std::string   NextCntlName(const std::string& base) const;
 
-      int           AddIbrb(RlinkCommandList& clist, uint16_t ibaddr);
+      int           AddMembe(RlinkCommandList& clist, uint16_t be, 
+                             bool stick=false);
       int           AddRibr(RlinkCommandList& clist, uint16_t ibaddr);
       int           AddWibr(RlinkCommandList& clist, uint16_t ibaddr,
                             uint16_t data);
@@ -88,10 +92,12 @@ namespace Retro {
                             uint16_t mode=kCp_ah_m_22bit);
       int           AddRMem(RlinkCommandList& clist, uint32_t addr,
                             uint16_t* buf, size_t size, 
-                            uint16_t mode=kCp_ah_m_22bit);
+                            uint16_t mode=kCp_ah_m_22bit, 
+                            bool singleblk=false);
       int           AddWMem(RlinkCommandList& clist, uint32_t addr,
                             const uint16_t* buf, size_t size, 
-                            uint16_t mode=kCp_ah_m_22bit);
+                            uint16_t mode=kCp_ah_m_22bit,
+                            bool singleblk=false);
 
       bool          MemRead(uint16_t addr, std::vector<uint16_t>& data, 
                             size_t nword, RerrMsg& emsg);
@@ -110,6 +116,15 @@ namespace Retro {
       bool          CpuGo() const;
       uint16_t      CpuStat() const;
 
+      uint16_t      IbusRemoteAddr(uint16_t ibaddr) const;
+      void          AllAddrMapInsert(const std::string& name, uint16_t ibaddr);
+
+      bool          IAddrMapInsert(const std::string& name, uint16_t ibaddr);
+      bool          IAddrMapErase(const std::string& name);
+      bool          IAddrMapErase(uint16_t ibaddr);
+      void          IAddrMapClear();
+      const RlinkAddrMap& IAddrMap() const;
+
       void          W11AttnHandler();
 
       const Rstats& Stats() const;
@@ -126,8 +141,7 @@ namespace Retro {
       static const uint16_t  kCp_addr_memi  = 0x0007; //!< 
       static const uint16_t  kCp_addr_r0    = 0x0008; //!< 
       static const uint16_t  kCp_addr_pc    = 0x000f; //!< 
-      static const uint16_t  kCp_addr_ibrb  = 0x0010; //!< 
-      static const uint16_t  kCp_addr_ibr   = 0x0080; //!< 
+      static const uint16_t  kCp_addr_membe = 0x0010; //!< 
 
       static const uint16_t  kCp_func_noop  = 0x0000; //!< 
       static const uint16_t  kCp_func_start = 0x0001; //!< 
@@ -160,6 +174,9 @@ namespace Retro {
       static const uint16_t  kCp_ah_m_22bit = kWBit06; //!< 
       static const uint16_t  kCp_ah_m_ubmap = kWBit07; //!<
 
+      static const uint16_t  kCp_membe_m_stick = kWBit02; //!< 
+      static const uint16_t  kCp_membe_m_be    = 0x0003;  //!< 
+
     private:
                     Rw11Cpu() {}            //!< default ctor blocker
 
@@ -168,11 +185,13 @@ namespace Retro {
       std::string   fType;
       size_t        fIndex;
       uint16_t      fBase;
+      uint16_t      fIBase;
       bool          fCpuGo;
       uint16_t      fCpuStat;
       boost::mutex               fCpuGoMutex;
       boost::condition_variable  fCpuGoCond;
       cmap_t        fCntlMap;               //!< name->cntl map
+      RlinkAddrMap  fIAddrMap;              //!< ibus name<->address mapping
       Rstats        fStats;                 //!< statistics
   };
   

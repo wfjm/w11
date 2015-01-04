@@ -1,6 +1,6 @@
-// $Id: RtclAttnShuttle.hpp 495 2013-03-06 17:13:48Z mueller $
+// $Id: RtclAttnShuttle.hpp 625 2014-12-30 16:17:45Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-30   625   1.1    adopt to Rlink V4 attn logic
 // 2013-03-01   493   1.0    Initial version
 // 2013-01-14   475   0.5    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclAttnShuttle.hpp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: RtclAttnShuttle.hpp 625 2014-12-30 16:17:45Z mueller $
   \brief   Declaration of class RtclAttnShuttle.
 */
 
@@ -47,7 +48,7 @@ namespace Retro {
       void          Remove();
 
     protected:
-      int           AttnHandler(const RlinkServer::AttnArgs& args);
+      int           AttnHandler(RlinkServer::AttnArgs& args);
       void          TclChannelHandler(int mask);
       static void   ThunkTclChannelHandler(ClientData cdata, int mask);
 

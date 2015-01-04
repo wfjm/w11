@@ -1,4 +1,4 @@
-# $Id: test_regs.tcl 375 2011-04-02 07:56:47Z mueller $
+# $Id: test_regs.tcl 622 2014-12-28 20:45:26Z mueller $
 #
 # Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2014-12-27   622   2.0    rbd_rbmon reorganized, supports now 16 bit addresses
 # 2011-03-27   374   1.0    Initial version
 # 2011-03-13   369   0.1    First Draft
 #
@@ -38,27 +39,34 @@ namespace eval rbmoni {
     #
     #-------------------------------------------------------------------------
     rlc log "  test 1: write/read cntl"
-    foreach val [list [regbld rbmoni::CNTL go] 0x0] {
+    rlc exec -estatdef $esdval $esdmsk \
+      -wreg rm.cntl [regbld rbmoni::CNTL start] \
+      -rreg rm.cntl -edata [regbld rbmoni::CNTL start] \
+      -wreg rm.cntl [regbld rbmoni::CNTL stop] \
+      -rreg rm.cntl -edata 0 \
+      -wreg rm.cntl [regbld rbmoni::CNTL start wena] \
+      -rreg rm.cntl -edata [regbld rbmoni::CNTL start wena] \
+      -wreg rm.cntl [regbld rbmoni::CNTL stop] \
+      -rreg rm.cntl -edata 0 
+    #
+    #-------------------------------------------------------------------------
+    rlc log "  test 2: read stat"
+    rlc exec -estatdef $esdval $esdmsk \
+      -rreg rm.stat rstat
+    set bsize [regget rbmoni::STAT(bsize) $rstat]
+    set amax  [expr {( 512 << $bsize ) - 1}]
+    #
+    #-------------------------------------------------------------------------
+    rlc log "  test 3: write/read hilim/lolim"
+    foreach {lolim hilim} {0xffff 0x0000 \
+                           0x0000 0xfffb} {
       rlc exec -estatdef $esdval $esdmsk \
-        -wreg rm.cntl $val \
-        -rreg rm.cntl -edata $val
+        -wreg rm.lolim $lolim -wreg rm.hilim $hilim \
+        -rreg rm.lolim -edata $lolim -rreg rm.hilim -edata $hilim
     }
     #
     #-------------------------------------------------------------------------
-    rlc log "  test 2: write/read alim"
-    foreach val [list [regbld rbmoni::ALIM {hilim 0x00} {lolim 0x00}] \
-                      [regbld rbmoni::ALIM {hilim 0xff} {lolim 0xff}] \
-                      [regbld rbmoni::ALIM {hilim 0x00} {lolim 0xff}] \
-                      [regbld rbmoni::ALIM {hilim 0xff} {lolim 0x00}]
-                ] {
-      rlc exec -estatdef $esdval $esdmsk \
-        -wreg rm.alim $val \
-        -rreg rm.alim -edata $val
-    }
-    #
-    #-------------------------------------------------------------------------
-    rlc log "  test 3: write/read addr"
-    set amax [regget rbmoni::ADDR(laddr) -1]
+    rlc log "  test 4: write/read addr"
     foreach {laddr waddr} [list 0x0000 0 0x0000 3 $amax 0 $amax 3] {
       set addr [regbld rbmoni::ADDR [list laddr $laddr] [list waddr $waddr]]
       rlc exec -estatdef $esdval $esdmsk \
@@ -67,16 +75,16 @@ namespace eval rbmoni {
     }
     #
     #-------------------------------------------------------------------------
-    rlc log "  test 4: verify that cntl.go 0->1 clear addr"
+    rlc log "  test 5: verify that cntl.go 0->1 clear addr"
     rlc exec -estatdef $esdval $esdmsk \
-      -wreg rm.cntl 0x0 \
+      -wreg rm.cntl [regbld rbmoni::CNTL stop] \
       -rreg rm.cntl -edata 0x0 \
       -wreg rm.addr [regbld rbmoni::ADDR [list laddr $amax]] \
       -rreg rm.addr -edata [regbld rbmoni::ADDR [list laddr $amax]] \
-      -wreg rm.cntl [regbld rbmoni::CNTL go] \
-      -rreg rm.cntl -edata [regbld rbmoni::CNTL go] \
+      -wreg rm.cntl [regbld rbmoni::CNTL start] \
+      -rreg rm.cntl -edata [regbld rbmoni::CNTL start] \
       -rreg rm.addr -edata 0x00 \
-      -wreg rm.cntl 0x0 \
+      -wreg rm.cntl [regbld rbmoni::CNTL stop] \
       -rreg rm.cntl -edata 0x0
     #
     #-------------------------------------------------------------------------

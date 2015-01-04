@@ -1,6 +1,6 @@
-// $Id: RlinkConnect.hpp 611 2014-12-10 23:23:58Z mueller $
+// $Id: RlinkConnect.hpp 626 2015-01-03 14:41:37Z mueller $
 //
-// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,9 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-01-01   626   2.1    full rlink v4 implementation
+// 2014-12-25   621   2.0.2  Reorganize packet send/revd stats
+// 2014-12-20   616   2.0.1  add BlockDone expect checks
 // 2014-12-10   611   2.0    re-organize for rlink v4
 // 2013-04-21   509   1.3.3  add SndAttn() method
 // 2013-03-05   495   1.3.2  add Exec() without emsg (will send emsg to LogFile)
@@ -32,7 +35,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.hpp 611 2014-12-10 23:23:58Z mueller $
+  \version $Id: RlinkConnect.hpp 626 2015-01-03 14:41:37Z mueller $
   \brief   Declaration of class \c RlinkConnect.
 */
 
@@ -113,12 +116,17 @@ namespace Retro {
       bool          SndOob(uint16_t addr, uint16_t data, RerrMsg& emsg);
       bool          SndAttn(RerrMsg& emsg);
 
+      uint32_t      SysId() const;
+      size_t        RbufSize() const;
+      size_t        BlockSizeMax() const;
+      size_t        BlockSizePrudent() const;
+
       bool          AddrMapInsert(const std::string& name, uint16_t addr);
       bool          AddrMapErase(const std::string& name);
       bool          AddrMapErase(uint16_t addr);
       void          AddrMapClear();
-
       const RlinkAddrMap& AddrMap() const;
+
       const Rstats& Stats() const;
       const Rstats& SndStats() const;
       const Rstats& RcvStats() const;
@@ -156,6 +164,12 @@ namespace Retro {
       static const uint16_t kSBCNTL_V_RLBMON= 14; //!< SBCNTL: rlbmon enable bit
       static const uint16_t kSBCNTL_V_RBMON = 13; //!< SBCNTL: rbmon enable bit
 
+      // space beyond data for rblk =  8 :cmd(1) cnt(2) dcnt(2) stat(1) crc(2)
+      //                   and wblk =  3 :cmd(1) cnt(2)
+      static const uint16_t kRbufBlkDelta=16; //!< rbuf needed for rblk or wblk
+      // 512 byte are enough space for a prudent amount of non-blk commands
+      static const uint16_t kRbufPrudentDelta=512; //!< Rbuf space reserve
+
     // statistics counter indices
       enum stats {
         kStatNExec = 0,                     //!< Exec() calls
@@ -170,11 +184,11 @@ namespace Retro {
         kStatNInit,                         //!< init commands
         kStatNRblkWord,                     //!< words rcvd with rblk
         kStatNWblkWord,                     //!< words send with wblk
-        kStatNTxPktByt,                     //!< Tx packet bytes send
-        kStatNRxPktByt,                     //!< Rx packet bytes rcvd
         kStatNExpData,                      //!< Expect() for data defined
-        kStatNExpStat,                      //!< Expect() for stat defined"
+        kStatNExpDone,                      //!< Expect() for done defined
+        kStatNExpStat,                      //!< Expect() for stat defined
         kStatNChkData,                      //!< expect data failed
+        kStatNChkDone,                      //!< expect done failed
         kStatNChkStat,                      //!< expect stat failed
         kStatNSndOob,                       //!< SndOob() calls
         kStatNErrMiss,                      //!< decode: missing data
@@ -212,6 +226,8 @@ namespace Retro {
       boost::recursive_mutex fConnectMutex; //!< mutex to lock whole connect
       uint16_t      fAttnNotiPatt;          //!< attn notifier pattern
       double        fTsLastAttnNoti;        //!< time stamp last attn notify
+      uint32_t      fSysId;                 //!< SYSID of connected device
+      size_t        fRbufSize;              //!< Rbuf size (in bytes)
   };
   
 } // end namespace Retro

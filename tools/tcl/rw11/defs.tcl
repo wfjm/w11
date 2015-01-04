@@ -1,4 +1,4 @@
-# $Id: defs.tcl 553 2014-03-17 06:40:08Z mueller $
+# $Id: defs.tcl 621 2014-12-26 21:20:05Z mueller $
 #
 # Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -27,7 +27,6 @@ namespace eval rw11 {
   #
   regdsc CP_CNTL {func 3 0}
   regdsc CP_STAT {rust 7 4} {halt 3} {go 2} {merr 1} {err 0}
-  regdsc CP_IBRB {base 12 7} {bw 1 2}
   regdsc CP_AH   {ubm 7} {p22 6} {addr 5 6}
   #
   # setup w11a register descriptions -----------------------------------------

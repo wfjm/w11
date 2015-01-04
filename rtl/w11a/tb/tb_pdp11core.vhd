@@ -1,6 +1,6 @@
--- $Id: tb_pdp11core.vhd 444 2011-12-25 10:04:58Z mueller $
+-- $Id: tb_pdp11core.vhd 621 2014-12-26 21:20:05Z mueller $
 --
--- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -22,10 +22,11 @@
 -- To test:        pdp11_core
 --
 -- Target Devices: generic
--- Tool versions:  ghdl 0.18-0.29; ISim 11.3
+-- Tool versions:  ghdl 0.18-0.31; ISim 14.7
 --
 -- Verified (with tb_pdp11core_stim.dat):
 -- Date         Rev  Code  ghdl  ise          Target     Comment
+-- 2014-12-23   620  -     0.31  14.7 131013  -          u:ok
 -- 2010-12-30   351  -     0.29  -            -          u:ok
 -- 2010-12-30   351  _ssim 0.29  12.1   M53d  xc3s1000   u:ok
 -- 2010-06-20   308  -     0.29  -            -          u:ok
@@ -46,6 +47,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-12-26   621   1.4.1  adopt wmembe,ribr,wibr emulation to new 4k window
 -- 2011-12-23   444   1.4    use new simclk/simclkcnt
 -- 2011-11-18   427   1.3.2  now numeric_std clean
 -- 2011-01-02   352   1.3.1  rename .cpmon->.rlmon
@@ -180,6 +182,7 @@ begin
     variable irnum : slv3  := (others=>'0');
     variable idin  : slv16 := (others=>'0');
     variable imsk  : slv16 := (others=>'1');
+    variable idin3 : slv3  := (others=>'0');
     variable ichk  : boolean := false;
     variable idosta: slbit  := '0';
 
@@ -198,15 +201,14 @@ begin
     variable ien    : slbit := '0';
     variable ibit   : integer := 0;
     variable imemi  : boolean := false;
-    variable ioff   : slv6 := (others=>'0');
+    variable iaddr  : slv16 := (others=>'0');
     variable idoibr : boolean := false;
 
     variable r_addr : slv22_1 := (others=>'0');
     variable r_ena_22bit : slbit := '0';
     variable r_ena_ubmap : slbit := '0';
-    variable r_ibrbase : slv(c_ibrb_ibf_base) := (others=>'0');
-    variable r_ibrbe : slv2 := (others=>'0');
-
+    variable r_membe : slv2     := "11";
+    variable r_membestick : slbit := '0';
     
   begin
 
@@ -312,7 +314,7 @@ begin
             when ".rbmon" =>            -- .rbmon (ignore it)
               readempty(iline);
 
-            when ".scntl" =>              -- .scntl
+            when ".scntl" =>            -- .scntl
               read_ea(iline, ibit);
               read_ea(iline, ien);
               assert (ibit>=SB_CNTL'low and ibit<=SB_CNTL'high)
@@ -365,7 +367,7 @@ begin
               irnum := slv(to_unsigned(rind, 3));
               readoct_ea(iline, idin);
 
-            -- Note: there are no field definitions for wal, wah, wibrb because
+            -- Note: there are no field definitions for wal, wah, wmembe because
             --       there is no corresponding cp command. Therefore the
             --       rbus field definitions are used here
             when "wal   " =>            -- wal
@@ -385,14 +387,10 @@ begin
               testempty_ea(iline);
               next file_loop;
 
-            when "wibrb " =>            -- wibrb
-              readoct_ea(iline, idin);
-              r_ibrbase := idin(c_ibrb_ibf_base);
-              if idin(c_ibrb_ibf_be) /= "00" then
-                r_ibrbe   := idin(c_ibrb_ibf_be);
-              else
-                r_ibrbe   := "11";
-              end if;
+            when "wmembe" =>            -- wmembe
+              read_ea(iline, idin3);
+              r_membestick := idin3(c_membe_rbf_stick);
+              r_membe      := idin3(c_membe_rbf_be);
               testempty_ea(iline);
               next file_loop;
 
@@ -415,12 +413,12 @@ begin
             when "ribr  " =>            -- ribr
               ifunc  := c_cpfunc_rmem;
               idoibr := true;
-              readoct_ea(iline, ioff);
+              readoct_ea(iline, iaddr);
               readtagval2_ea(iline, "d", ichk, idin, imsk, 8);
             when "wibr  " =>            -- wibr
               ifunc  := c_cpfunc_wmem;
               idoibr := true;
-              readoct_ea(iline, ioff);
+              readoct_ea(iline, iaddr);
               readoct_ea(iline, idin);
 
             when "rps   " =>            -- rps
@@ -471,12 +469,11 @@ begin
 
       end if;
       
+      CP_ADDR_be <= r_membe;
       if idoibr then
-        CP_ADDR_addr(15 downto 13)    <= "111";
-        CP_ADDR_addr(c_ibrb_ibf_base) <= r_ibrbase;
-        CP_ADDR_addr(5 downto 1)      <= ioff(5 downto 1);
+        CP_ADDR_addr(15 downto 13) <= "111";
+        CP_ADDR_addr(12 downto 1)  <= iaddr(12 downto 1);
         CP_ADDR_racc      <= '1';
-        CP_ADDR_be        <= r_ibrbe;
         CP_ADDR_ena_22bit <= '0';
         CP_ADDR_ena_ubmap <= '0';
       else
@@ -527,8 +524,13 @@ begin
         idelta := idelta - 1;
       end loop;
 
-      if imemi then                    -- rmi or wmi seen ? then inc ar
+      if imemi then                     -- rmi or wmi seen ? then inc ar
         r_addr := slv(unsigned(r_addr) + 1);
+      end if;
+
+      if ifunc = c_cpfunc_wmem and      -- emulate be sticky logic of rbus iface
+         r_membestick = '0' then
+        r_membe := "11";
       end if;
       
       write(oline, dcycle, right, 4);

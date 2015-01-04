@@ -1,4 +1,4 @@
--- $Id: pdp11.vhd 589 2014-08-30 12:43:16Z mueller $
+-- $Id: pdp11.vhd 621 2014-12-26 21:20:05Z mueller $
 --
 -- Copyright 2006-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -562,7 +562,7 @@ package pdp11 is
 
   type cp_addr_type is record           -- control port address
     addr : slv22_1;                     -- address
-    racc : slbit;                       -- ibr access
+    racc : slbit;                       -- ibus remote access
     be : slv2;                          -- byte enables
     ena_22bit : slbit;                  -- enable 22 bit mode
     ena_ubmap : slbit;                  -- enable unibus mapper
@@ -650,12 +650,12 @@ package pdp11 is
   constant c_rbaddr_sp   : slv5 := "01110"; -- R/W gpr 6 (sp)
   constant c_rbaddr_pc   : slv5 := "01111"; -- R/W gpr 7 (pc)
   
-  constant c_rbaddr_ibrb : slv5 := "10000"; -- R/W ibr base address
+  constant c_rbaddr_membe: slv5 := "10000"; -- R/W memory write byte enables
 
-  subtype  c_al_rbf_addr       is integer range 15 downto 1;  -- al: address
-  constant c_ah_rbf_ena_ubmap: integer :=  7;                 -- ah: ubmap
-  constant c_ah_rbf_ena_22bit: integer :=  6;                 -- ah: 22bit
-  subtype  c_ah_rbf_addr       is integer range  5 downto 0;  -- ah: address
+  subtype  c_al_rbf_addr        is integer range 15 downto 1;  -- al: address
+  constant c_ah_rbf_ena_ubmap:  integer :=  7;                 -- ah: ubmap
+  constant c_ah_rbf_ena_22bit:  integer :=  6;                 -- ah: 22bit
+  subtype  c_ah_rbf_addr        is integer range  5 downto 0;  -- ah: address
 
   constant c_stat_rbf_cmderr:   integer := 0;  -- stat field: cmderr
   constant c_stat_rbf_cmdmerr:  integer := 1;  -- stat field: cmdmerr
@@ -663,9 +663,9 @@ package pdp11 is
   constant c_stat_rbf_cpuhalt:  integer := 3;  -- stat field: cpuhalt
   subtype  c_stat_rbf_cpurust   is integer range  7 downto  4;  -- cpurust
 
-  subtype  c_ibrb_ibf_base     is integer range 12 downto 6; -- ibrb: base addr
-  subtype  c_ibrb_ibf_be       is integer range  1 downto 0; -- ibrb: be's
-  
+  subtype  c_membe_rbf_be       is integer range  1 downto 0; -- membe: be's
+  constant c_membe_rbf_stick:   integer := 2;  -- membe: sticky flag
+
 -- -------------------------------------
   
 component pdp11_gpr is                  -- general purpose registers
@@ -1082,8 +1082,8 @@ end component;
 
 component pdp11_core_rbus is            -- core to rbus interface
   generic (
-    RB_ADDR_CORE : slv16 := slv(to_unsigned(2#0000000000000000#,16));
-    RB_ADDR_IBUS : slv16 := slv(to_unsigned(2#0000000010000000#,16)));
+    RB_ADDR_CORE : slv16 := slv(to_unsigned(16#0000#,16));
+    RB_ADDR_IBUS : slv16 := slv(to_unsigned(16#4000#,16)));
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- reset

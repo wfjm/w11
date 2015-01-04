@@ -1,4 +1,4 @@
-# $Id: util.tcl 516 2013-05-05 21:24:52Z mueller $
+# $Id: util.tcl 620 2014-12-25 10:48:35Z mueller $
 #
 # Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -32,7 +32,7 @@ namespace eval rbemon {
   #
   # setup: amap definitions for rbd_eyemon
   # 
-  proc setup {base} {
+  proc setup {{base 0xffd0}} {
     rlc amap -insert em.cntl [expr {$base + 0x00}]
     rlc amap -insert em.rdiv [expr {$base + 0x01}]
     rlc amap -insert em.addr [expr {$base + 0x02}]

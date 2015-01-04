@@ -1,4 +1,4 @@
-// $Id: RlinkServer.cpp 611 2014-12-10 23:23:58Z mueller $
+// $Id: RlinkServer.cpp 628 2015-01-04 16:22:09Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2014-12-30   625   2.1    adopt to Rlink V4 attn logic
+// 2014-12-21   617   2.0.1  use kStat_M_RbTout for rbus timeout
 // 2014-12-11   611   2.0    re-organize for rlink v4
 // 2013-05-01   513   1.0.2  fTraceLevel now uint32_t
 // 2013-04-21   509   1.0.1  add Resume(), reorganize server start handling
@@ -22,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: RlinkServer.cpp 611 2014-12-10 23:23:58Z mueller $
+  \version $Id: RlinkServer.cpp 628 2015-01-04 16:22:09Z mueller $
   \brief   Implemenation of RlinkServer.
 */
 
@@ -65,7 +67,9 @@ RlinkServer::RlinkServer()
     fStats()
 {
   fContext.SetStatus(0,
-             ~(RlinkCommand::kStat_M_RbNak|RlinkCommand::kStat_M_RbErr));
+             ~(RlinkCommand::kStat_M_RbTout |
+               RlinkCommand::kStat_M_RbNak  |
+               RlinkCommand::kStat_M_RbErr));
 
   fELoop.AddPollHandler(boost::bind(&RlinkServer::WakeupHandler, this, _1), 
                         fWakeupEvent, POLLIN);
@@ -75,7 +79,9 @@ RlinkServer::RlinkServer()
   fStats.Define(kStatNEloopPoll,"NEloopPoll","event loop turns (poll)");
   fStats.Define(kStatNWakeupEvt,"NWakeupEvt","Wakeup events");
   fStats.Define(kStatNRlinkEvt, "NRlinkEvt", "Rlink data events");
-  fStats.Define(kStatNAttnRead, "NAttnRead", "Attn read commands");
+  fStats.Define(kStatNAttnHdl  ,"NAttnHdl"  ,"Attn handler calls");
+  fStats.Define(kStatNAttnNoti ,"NAttnNoti" ,"Attn notifies processed");
+  fStats.Define(kStatNAttnHarv ,"NAttnHarv" ,"Attn handler restarts");
   fStats.Define(kStatNAttn00,   "NAttn00",   "Attn bit  0 set");
   fStats.Define(kStatNAttn01,   "NAttn01",   "Attn bit  1 set");
   fStats.Define(kStatNAttn02,   "NAttn02",   "Attn bit  2 set");
@@ -141,6 +147,36 @@ void RlinkServer::AddAttnHandler(const attnhdl_t& attnhdl, uint16_t mask,
   }
   fAttnDsc.push_back(AttnDsc(attnhdl, id));
 
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void RlinkServer::GetAttnInfo(AttnArgs& args, RlinkCommandList& clist)
+{
+  RlinkCommand& cmd0 = clist[0];
+  if (cmd0.Command() != RlinkCommand::kCmdAttn)
+    throw Rexception("RlinkServer::GetAttnInfo", "clist did't start with attn");
+
+  RerrMsg emsg;
+  if (!Exec(clist, emsg))
+    throw Rexception("RlinkServer::GetAttnInfo", "Exec() failed: ", emsg);
+
+  args.fAttnHarvest = cmd0.Data();
+  args.fHarvestDone = true;
+
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void RlinkServer::GetAttnInfo(AttnArgs& args)
+{
+  RlinkCommandList clist;
+  clist.AddAttn();
+  GetAttnInfo(args, clist);
   return;
 }
 
@@ -267,9 +303,9 @@ void RlinkServer::SignalAttnNotify(uint16_t apat)
   // only called under lock !!
   if (apat & fAttnNotiPatt) {
     RlogMsg lmsg(LogFile(), 'W');
-    lmsg << "SignalAttnNotify: redundant notify: "
-         << "  have=" << RosPrintBvi(fAttnNotiPatt,16)
-         << "  apat=" << RosPrintBvi(apat,16);
+    lmsg << "SignalAttnNotify: redundant notify:"
+         << " have=" << RosPrintBvi(fAttnNotiPatt,16)
+         << " apat=" << RosPrintBvi(apat,16);
   }
   fAttnNotiPatt |= apat;
   Wakeup();
@@ -398,58 +434,60 @@ void RlinkServer::StartOrResume(bool resume)
 
 void RlinkServer::CallAttnHandler()
 {
-  // FIXME_code: this is still V3 logic
-  //             notifier pattern is ignored, only that one was received is used
+  fStats.Inc(kStatNAttnHdl);
+
+  // if notifier pending, transfer it to current attn pattern
   if (fAttnNotiPatt) {
     boost::lock_guard<RlinkConnect> lock(*fspConn);
-    uint16_t onoti = fAttnNotiPatt;
-
-    // Clear fAttnNotiPatt before clist is issued ! This avoids a race
-    // in case the attn read is followed immediately by a notify which
-    // is signaled during Exec().
+    fStats.Inc(kStatNAttnNoti);
+    fAttnPatt |= fAttnNotiPatt;    
     fAttnNotiPatt = 0;
-
-    RlinkCommandList clist;
-    clist.AddAttn();
-    fStats.Inc(kStatNAttnRead);
-    Exec(clist);
-    // FIXME_code: handle errors: bool ok = 
-    uint16_t nattn = clist[0].Data();
-    fAttnPatt |= nattn;
-
-    if (onoti & (~nattn)) {                 // bits in notify not in attn ?
-      RlogMsg lmsg(LogFile(), 'W');
-      lmsg << "CallAttnHandler: missing lams in attn: "
-           << "  attn=" << RosPrintBvi(nattn,16)
-           << "  noti=" << RosPrintBvi(onoti,16);
-    }
-    
-    for (size_t i=0; i<16; i++) {
-      if (nattn & (uint16_t(1)<<i)) fStats.Inc(kStatNAttn00+i);
-    }
   }
-  
-  // multiple handlers may be called for one attn bit
+
+  // do stats for pending attentions
+  for (size_t i=0; i<16; i++) {
+    if (fAttnPatt & (uint16_t(1)<<i)) fStats.Inc(kStatNAttn00+i);
+  }
+
+  // now call handlers, multiple handlers may be called for one attn bit
+  uint16_t hnext = 0;
   uint16_t hdone = 0;
   for (size_t i=0; i<fAttnDsc.size(); i++) {
     uint16_t hmatch = fAttnPatt & fAttnDsc[i].fId.fMask;
     if (hmatch) {
       AttnArgs args(fAttnPatt, fAttnDsc[i].fId.fMask);
-      // FIXME_code: return code not used, yet
       boost::lock_guard<RlinkConnect> lock(*fspConn);
+
+      // FIXME_code: return code not used, yet
       fAttnDsc[i].fHandler(args);
+      if (!args.fHarvestDone)
+        Rexception("RlinkServer::CallAttnHandler()",
+                     "Handler didn't set fHarvestDone");
+
+      uint16_t hnew = args.fAttnHarvest & ~fAttnDsc[i].fId.fMask;
+      hnext |= hnew;
       hdone |= hmatch;
     }
   }
   fAttnPatt &= ~hdone;                      // clear handled bits
 
-  if (fAttnPatt && fTraceLevel>0) {
-    RlogMsg lmsg(LogFile(), 'I');
-    lmsg << "eloop: unhandled attn, mask="
-         << RosPrintBvi(fAttnPatt,16) << endl;
+  // if there are any unhandled attenions, do default handling which will
+  // ensure that attention harvest is done
+  if (fAttnPatt) {
+    AttnArgs args(fAttnPatt, fAttnPatt);
+    GetAttnInfo(args);
+    hnext |= args.fAttnHarvest & ~fAttnPatt;
+    if (fTraceLevel>0) {
+      RlogMsg lmsg(LogFile(), 'I');
+      lmsg << "eloop: unhandled attn, mask="
+           << RosPrintBvi(fAttnPatt,16) << endl;
+    }
   }
   
-  fAttnPatt = 0;
+  // finally replace current attn pattern by the attentions found during
+  // harvest and not yet handled
+  fAttnPatt = hnext;
+  if (fAttnPatt) fStats.Inc(kStatNAttnHarv);
 
   return;
 }

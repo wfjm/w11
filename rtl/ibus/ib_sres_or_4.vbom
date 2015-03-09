@@ -2,6 +2,6 @@
 ../vlib/slvtypes.vhd
 iblib.vhd
 # components
-[ghdl,isim]ib_sres_or_mon.vbom
+[sim]ib_sres_or_mon.vbom
 # design
 ib_sres_or_4.vhd

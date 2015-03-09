@@ -36,6 +36,7 @@ OBJ_all   +=   RtclRw11CntlDL11.o RtclRw11UnitDL11.o
 OBJ_all   +=   RtclRw11CntlLP11.o RtclRw11UnitLP11.o
 OBJ_all   +=   RtclRw11CntlPC11.o RtclRw11UnitPC11.o
 OBJ_all   +=   RtclRw11CntlRK11.o RtclRw11UnitRK11.o
+OBJ_all   +=   RtclRw11CntlRL11.o RtclRw11UnitRL11.o
 # 
 DEP_all    = $(OBJ_all:.o=.dep)
 #

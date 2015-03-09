@@ -1,4 +1,4 @@
--- $Id: ibdlib.vhd 561 2014-06-09 17:22:50Z mueller $
+-- $Id: ibdlib.vhd 641 2015-02-01 22:12:15Z mueller $
 --
 -- Copyright 2008-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,7 +16,7 @@
 -- Description:    Definitions for ibus devices
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2014-06-08   561   1.2    fix rl11 declaration

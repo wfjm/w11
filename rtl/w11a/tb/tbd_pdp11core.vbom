@@ -10,6 +10,6 @@ ${sys_conf := ../sys_conf.vhd}
 ../pdp11_core.vbom
 ../pdp11_bram.vbom
 ../../ibus/ibdr_minisys.vbom
-[ghdl,isim]../pdp11_tmu_sb.vbom
+[sim]../pdp11_tmu_sb.vbom
 # design
 tbd_pdp11core.vhd

@@ -1,4 +1,4 @@
--- $Id: rlink_rlbmux.vhd 466 2012-12-30 13:26:55Z mueller $
+-- $Id: rlink_rlbmux.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2012- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -17,7 +17,7 @@
 --
 -- Dependencies:   -
 -- Test bench:     -
--- Tool versions:  xst 13.3; ghdl 0.29
+-- Tool versions:  xst 13.3-14.7; ghdl 0.29-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

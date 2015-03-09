@@ -1,4 +1,4 @@
--- $Id: ibdr_rk11.vhd 561 2014-06-09 17:22:50Z mueller $
+-- $Id: ibdr_rk11.vhd 641 2015-02-01 22:12:15Z mueller $
 --
 -- Copyright 2008-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,7 +18,7 @@
 -- Dependencies:   ram_1swar_gen
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri

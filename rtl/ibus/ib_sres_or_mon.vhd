@@ -1,4 +1,4 @@
--- $Id: ib_sres_or_mon.vhd 336 2010-11-06 18:28:27Z mueller $
+-- $Id: ib_sres_or_mon.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -17,7 +17,7 @@
 --
 -- Dependencies:   -
 -- Test bench:     -
--- Tool versions:  ghdl 0.29
+-- Tool versions:  ghdl 0.29-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

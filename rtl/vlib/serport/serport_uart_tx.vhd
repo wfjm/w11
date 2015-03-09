@@ -1,4 +1,4 @@
--- $Id: serport_uart_tx.vhd 417 2011-10-22 10:30:29Z mueller $
+-- $Id: serport_uart_tx.vhd 641 2015-02-01 22:12:15Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,7 +18,7 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_serport_uart_rxtx
 -- Target Devices: generic
--- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
+-- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2011-10-22   417   1.0.4  now numeric_std clean

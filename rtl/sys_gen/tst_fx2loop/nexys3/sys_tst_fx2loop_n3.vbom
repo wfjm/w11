@@ -1,6 +1,5 @@
 # this is the vbom for the 'generic' top level entity
 # to be referenced in the vbom's of the specific systems
-#   ./as/sys_tst_fx2loop_as_n3
 #   ./ic/sys_tst_fx2loop_ic_n3
 #   ./ic3/sys_tst_fx2loop_ic3_n3
 #
@@ -14,13 +13,12 @@
 ../../../bplib/nxcramlib/nxcramlib.vhd
 ${sys_conf}
 # components
-[xst,isim]../../../vlib/xlib/s6_cmt_sfs_unisim.vbom
+[xst,vsyn,isim,vsim]../../../vlib/xlib/s6_cmt_sfs_unisim.vbom
 [ghdl]../../../vlib/xlib/s6_cmt_sfs_gsim.vbom
 ../../../vlib/genlib/clkdivce.vbom
 ../../../bplib/bpgen/sn_humanio.vbom
 ../tst_fx2loop_hiomap.vbom
 ../tst_fx2loop.vbom
-../../../bplib/fx2lib/fx2_2fifoctl_as.vbom
 ../../../bplib/fx2lib/fx2_2fifoctl_ic.vbom
 ../../../bplib/fx2lib/fx2_3fifoctl_ic.vbom
 ../../../bplib/nxcramlib/nx_cram_dummy.vbom

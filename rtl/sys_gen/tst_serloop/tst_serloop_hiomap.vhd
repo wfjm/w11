@@ -1,4 +1,4 @@
--- $Id: tst_serloop_hiomap.vhd 476 2013-01-26 22:23:53Z mueller $
+-- $Id: tst_serloop_hiomap.vhd 641 2015-02-01 22:12:15Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,7 +19,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 13.1; ghdl 0.29
+-- Tool versions:  ise 13.1-14.7; viv 2014.4; ghdl 0.29-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

@@ -1,4 +1,4 @@
-// $Id: RlinkPacketBufRcv.cpp 621 2014-12-26 21:20:05Z mueller $
+// $Id: RlinkPacketBufRcv.cpp 632 2015-01-11 12:30:03Z mueller $
 //
 // Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPacketBufRcv.cpp 621 2014-12-26 21:20:05Z mueller $
+  \version $Id: RlinkPacketBufRcv.cpp 632 2015-01-11 12:30:03Z mueller $
   \brief   Implemenation of class RlinkPacketBuf.
  */
 
@@ -77,7 +77,7 @@ RlinkPacketBufRcv::~RlinkPacketBufRcv()
 
 int RlinkPacketBufRcv::ReadData(RlinkPort* port, double timeout, RerrMsg& emsg)
 {
-  if (port == 0) 
+  if (port == nullptr) 
     throw Rexception("RlinkPacketBufRcv::ReadData()", 
                      "Bad state: port not open");
   if (fRawBufDone != fRawBufSize)

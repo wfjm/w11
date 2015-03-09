@@ -1,6 +1,6 @@
-// $Id: RtclRlinkPort.cpp 584 2014-08-22 19:38:12Z mueller $
+// $Id: RtclRlinkPort.cpp 632 2015-01-11 12:30:03Z mueller $
 //
-// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-01-09   632   1.0.4  add M_get, M_set, remove M_config
 // 2014-08-22   584   1.0.3  use nullptr
 // 2013-02-23   492   1.0.2  use RlogFile.Name();
 // 2013-02-22   491   1.0.1  use new RlogFile/RlogMsg interfaces
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RtclRlinkPort.cpp 584 2014-08-22 19:38:12Z mueller $
+  \version $Id: RtclRlinkPort.cpp 632 2015-01-11 12:30:03Z mueller $
   \brief   Implemenation of class RtclRlinkPort.
  */
 
@@ -56,8 +57,8 @@ namespace Retro {
 
 RtclRlinkPort::RtclRlinkPort(Tcl_Interp* interp, const char* name)
   : RtclProxyBase("RlinkPort"),
-    fpObj(0),
-    fspLog(new RlogFile(&cout, "<cout>")),
+    fpObj(nullptr),
+    fspLog(new RlogFile(&cout)),
     fTraceLevel(0),
     fErrCnt(0)
 {
@@ -69,8 +70,11 @@ RtclRlinkPort::RtclRlinkPort(Tcl_Interp* interp, const char* name)
   AddMeth("stats",    boost::bind(&RtclRlinkPort::M_stats,   this, _1));
   AddMeth("log",      boost::bind(&RtclRlinkPort::M_log,     this, _1));
   AddMeth("dump",     boost::bind(&RtclRlinkPort::M_dump,    this, _1));
-  AddMeth("config",   boost::bind(&RtclRlinkPort::M_config,  this, _1));
+  AddMeth("get",      boost::bind(&RtclRlinkPort::M_get,     this, _1));
+  AddMeth("set",      boost::bind(&RtclRlinkPort::M_set,     this, _1));
   AddMeth("$default", boost::bind(&RtclRlinkPort::M_default, this, _1));
+
+  SetupGetSet();
 }
 
 //------------------------------------------+-----------------------------------
@@ -95,6 +99,7 @@ int RtclRlinkPort::M_open(RtclArgs& args)
   if (args.NOptMiss() == 0) {               // open path
     delete fpObj;
     fpObj = RlinkPortFactory::Open(path, emsg);
+    SetupGetSet();
     if (!fpObj) return args.Quit(emsg);
     fpObj->SetLogFile(fspLog);
     fpObj->SetTraceLevel(fTraceLevel);
@@ -113,6 +118,8 @@ int RtclRlinkPort::M_close(RtclArgs& args)
   if (!args.AllDone()) return kERR;
   if (!TestOpen(args)) return kERR;
   delete fpObj;
+  fpObj = nullptr;
+  SetupGetSet();
   return kOK;
 }
 
@@ -186,42 +193,17 @@ int RtclRlinkPort::M_dump(RtclArgs& args)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-int RtclRlinkPort::M_config(RtclArgs& args)
+int RtclRlinkPort::M_get(RtclArgs& args)
 {
-  static RtclNameSet optset("-logfile|-logtracelevel");
+  return fGets.M_get(args);
+}
 
-  if (args.NDone() == (size_t)args.Objc()) {
-    ostringstream sos;
-    sos << " -logfile {" << fspLog->Name() << "}"
-        << " -logtracelevel " << RosPrintf(fTraceLevel, "d");
-    args.AppendResult(sos);
-    return kOK;
-  }
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
 
-  string opt;
-  while (args.NextOpt(opt, optset)) {
-    if        (opt == "-logfile") {         // -logfile ?name ------------------
-      string name;
-      if (!args.Config("??name", name)) return false;
-      if (args.NOptMiss() == 0) {             // new filename ?
-        if (name == "-" || name == "<cout>") {
-          fspLog->UseStream(&cout, "<cout>");
-        } else {
-          if (!fspLog->Open(name)) {
-            fspLog->UseStream(&cout, "<cout>");
-            return args.Quit(string("-E: open failed for '") + name +
-                             "', using stdout");
-          }
-        }
-      }
-    } else if (opt == "-logtracelevel") {   // -logtracelevel ?loglevel --------
-      if (!args.Config("??loglevel", fTraceLevel, 3)) return false;
-      if (fpObj) fpObj->SetTraceLevel(fTraceLevel);
-    }
-  }
-
-  if (!args.AllDone()) return kERR;
-  return kOK;
+int RtclRlinkPort::M_set(RtclArgs& args)
+{
+  return fSets.M_set(args);
 }
 
 //------------------------------------------+-----------------------------------
@@ -242,11 +224,54 @@ int RtclRlinkPort::M_default(RtclArgs& args)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
+void RtclRlinkPort::SetupGetSet()
+{
+  fGets.Clear();
+  fSets.Clear();
+
+  fGets.Add<const string&>  ("logfile", 
+                        boost::bind(&RtclRlinkPort::LogFileName, this));
+  fSets.Add<const string&>  ("logfile", 
+                        boost::bind(&RtclRlinkPort::SetLogFileName, this, _1));
+
+  if (fpObj == nullptr) return;
+
+  fGets.Add<uint32_t>  ("tracelevel", 
+                        boost::bind(&RlinkPort::TraceLevel, fpObj));
+  fSets.Add<uint32_t>  ("tracelevel", 
+                        boost::bind(&RlinkPort::SetTraceLevel, fpObj, _1));
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
 bool RtclRlinkPort::TestOpen(RtclArgs& args)
 {
   if (fpObj) return true;
   args.AppendResult("-E: port not open", nullptr);
   return false;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void RtclRlinkPort::SetLogFileName(const std::string& name)
+{
+  RerrMsg emsg;
+  if (!fspLog->Open(name, emsg)) {
+    fspLog->UseStream(&cout);
+    throw Rexception("RtclRlinkPort::SetLogFile", 
+                     emsg.Text() + "', using stdout");
+  }
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline std::string RtclRlinkPort::LogFileName() const
+{
+  return fspLog->Name();
 }
 
 //------------------------------------------+-----------------------------------

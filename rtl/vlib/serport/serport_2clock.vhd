@@ -1,6 +1,6 @@
--- $Id: serport_2clock.vhd 476 2013-01-26 22:23:53Z mueller $
+-- $Id: serport_2clock.vhd 641 2015-02-01 22:12:15Z mueller $
 --
--- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -22,7 +22,7 @@
 --                 memlib/fifo_2c_dram
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 13.1; ghdl 0.29
+-- Tool versions:  ise 13.1-14.7; ghdl 0.29-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -30,6 +30,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-02-01   641   1.1    add CLKDIV_F for autobaud;
 -- 2011-12-10   438   1.0.2  internal reset on abact
 -- 2011-12-09   437   1.0.1  rename stat->moni port
 -- 2011-11-13   424   1.0    Initial version
@@ -175,21 +176,22 @@ begin
     CDWIDTH => CDWIDTH,
     CDINIT  => CDINIT)
   port map (
-    CLK      => CLKS,
-    CE_MSEC  => CES_MSEC,
-    RESET    => RESET_CLKS,
-    RXSD     => RXSD,
-    RXDATA   => UART_RXDATA,
-    RXVAL    => UART_RXVAL,
-    RXERR    => RXERR,
-    RXACT    => RXACT,
-    TXSD     => TXSD,
-    TXDATA   => UART_TXDATA,
-    TXENA    => UART_TXENA,
-    TXBUSY   => UART_TXBUSY,
-    ABACT    => ABACT,
-    ABDONE   => ABDONE,
-    ABCLKDIV => ABCLKDIV
+    CLK        => CLKS,
+    CE_MSEC    => CES_MSEC,
+    RESET      => RESET_CLKS,
+    RXSD       => RXSD,
+    RXDATA     => UART_RXDATA,
+    RXVAL      => UART_RXVAL,
+    RXERR      => RXERR,
+    RXACT      => RXACT,
+    TXSD       => TXSD,
+    TXDATA     => UART_TXDATA,
+    TXENA      => UART_TXENA,
+    TXBUSY     => UART_TXBUSY,
+    ABACT      => ABACT,
+    ABDONE     => ABDONE,
+    ABCLKDIV   => ABCLKDIV,
+    ABCLKDIV_F => open
   );
 
   RESET_INT <= RESET_CLKS or ABACT;

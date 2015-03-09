@@ -1,4 +1,4 @@
--- $Id: pdp11_tmu.vhd 444 2011-12-25 10:04:58Z mueller $
+-- $Id: pdp11_tmu.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2008-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,7 +19,7 @@
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ghdl 0.18-0.29
+-- Tool versions:  ghdl 0.18-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

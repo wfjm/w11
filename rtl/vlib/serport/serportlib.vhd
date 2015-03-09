@@ -1,6 +1,6 @@
--- $Id: serportlib.vhd 476 2013-01-26 22:23:53Z mueller $
+-- $Id: serportlib.vhd 641 2015-02-01 22:12:15Z mueller $
 --
--- Copyright 2007-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,10 +16,11 @@
 -- Description:    serial port interface components
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.29
+-- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-02-01   641   1.3    add CLKDIV_F for autobaud;
 -- 2013-01-26   476   1.2.6  renamed package to serportlib
 -- 2011-12-09   437   1.2.5  rename stat->moni port
 -- 2011-10-23   419   1.2.4  remove serport_clkdiv_ consts;
@@ -109,7 +110,8 @@ component serport_uart_rxtx_ab is       -- serial port uart: rx+tx+autobaud
     TXBUSY : out slbit;                 -- transmit busy
     ABACT : out slbit;                  -- autobaud active; if 1 clkdiv invalid
     ABDONE : out slbit;                 -- autobaud resync done
-    ABCLKDIV : out slv(CDWIDTH-1 downto 0) -- autobaud clock divider setting
+    ABCLKDIV : out slv(CDWIDTH-1 downto 0); -- autobaud clock divider setting
+    ABCLKDIV_F : out slv3                   -- autobaud clock divider fraction
   );
 end component;
 
@@ -123,6 +125,7 @@ component serport_uart_autobaud is      -- serial port uart: autobauder
     RESET : in slbit;                   -- reset
     RXSD : in slbit;                    -- receive serial data (uart view)
     CLKDIV : out slv(CDWIDTH-1 downto 0); -- clock divider setting
+    CLKDIV_F: out slv3;                   -- clock divider fractional part
     ACT : out slbit;                    -- active; if 1 clkdiv is invalid
     DONE : out slbit                    -- resync done
   );
@@ -169,6 +172,7 @@ type serport_moni_type is record        -- serport monitor port
   abact : slbit;                        -- autobauder active;if 1 clkdiv invalid
   abdone : slbit;                       -- autobauder resync done
   abclkdiv : slv16;                     -- autobauder clock divider
+  abclkdiv_f : slv3;                    -- autobauder clock divider fraction
   rxok : slbit;                         -- rx channel ok
   txok : slbit;                         -- tx channel ok
 end record serport_moni_type;
@@ -178,6 +182,7 @@ constant serport_moni_init : serport_moni_type := (
   '0','0',                              -- rxact,txact
   '0','0',                              -- abact,abdone
   (others=>'0'),                        -- abclkdiv
+  (others=>'0'),                        -- abclkdiv_f
   '0','0'                               -- rxok,txok
 );
 

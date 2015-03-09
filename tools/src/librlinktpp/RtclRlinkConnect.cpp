@@ -1,4 +1,4 @@
-// $Id: RtclRlinkConnect.cpp 628 2015-01-04 16:22:09Z mueller $
+// $Id: RtclRlinkConnect.cpp 631 2015-01-09 21:36:51Z mueller $
 //
 // Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2015-01-04   628   1.3.2  add M_get
+// 2015-01-06   631   1.3.2  add M_get, M_set, remove M_config
 // 2014-12-20   616   1.3.1  M_exec: add -edone for BlockDone checking
 // 2014-12-06   609   1.3    new rlink v4 iface
 // 2014-08-22   584   1.2.1  use nullptr
@@ -33,7 +33,7 @@
 
 /*!
   \file
-  \version $Id: RtclRlinkConnect.cpp 628 2015-01-04 16:22:09Z mueller $
+  \version $Id: RtclRlinkConnect.cpp 631 2015-01-09 21:36:51Z mueller $
   \brief   Implemenation of class RtclRlinkConnect.
  */
 
@@ -71,7 +71,8 @@ namespace Retro {
 RtclRlinkConnect::RtclRlinkConnect(Tcl_Interp* interp, const char* name)
   : RtclProxyOwned<RlinkConnect>("RlinkConnect", interp, name, 
                                  new RlinkConnect()),
-    fGets()
+    fGets(),
+    fSets()
 {
   AddMeth("open",     boost::bind(&RtclRlinkConnect::M_open,    this, _1));
   AddMeth("close",    boost::bind(&RtclRlinkConnect::M_close,   this, _1));
@@ -85,8 +86,8 @@ RtclRlinkConnect::RtclRlinkConnect(Tcl_Interp* interp, const char* name)
   AddMeth("log",      boost::bind(&RtclRlinkConnect::M_log,     this, _1));
   AddMeth("print",    boost::bind(&RtclRlinkConnect::M_print,   this, _1));
   AddMeth("dump",     boost::bind(&RtclRlinkConnect::M_dump,    this, _1));
-  AddMeth("config",   boost::bind(&RtclRlinkConnect::M_config,  this, _1));
   AddMeth("get",      boost::bind(&RtclRlinkConnect::M_get,     this, _1));
+  AddMeth("set",      boost::bind(&RtclRlinkConnect::M_set,     this, _1));
   AddMeth("$default", boost::bind(&RtclRlinkConnect::M_default, this, _1));
 
   for (size_t i=0; i<8; i++) {
@@ -94,6 +95,20 @@ RtclRlinkConnect::RtclRlinkConnect(Tcl_Interp* interp, const char* name)
   }
 
   RlinkConnect* pobj = &Obj();
+  fGets.Add<uint32_t>  ("baseaddr", 
+                        boost::bind(&RlinkConnect::LogBaseAddr, pobj));
+  fGets.Add<uint32_t>  ("basedata", 
+                        boost::bind(&RlinkConnect::LogBaseData, pobj));
+  fGets.Add<uint32_t>  ("basestat", 
+                        boost::bind(&RlinkConnect::LogBaseStat, pobj));
+  fGets.Add<uint32_t>  ("printlevel", 
+                        boost::bind(&RlinkConnect::PrintLevel, pobj));
+  fGets.Add<uint32_t>  ("dumplevel", 
+                        boost::bind(&RlinkConnect::DumpLevel, pobj));
+  fGets.Add<uint32_t>  ("tracelevel", 
+                        boost::bind(&RlinkConnect::TraceLevel, pobj));
+  fGets.Add<const string&>  ("logfile", 
+                        boost::bind(&RlinkConnect::LogFileName, pobj));
   fGets.Add<uint32_t>  ("sysid", 
                         boost::bind(&RlinkConnect::SysId, pobj));
   fGets.Add<size_t>    ("rbufsize", 
@@ -102,6 +117,21 @@ RtclRlinkConnect::RtclRlinkConnect(Tcl_Interp* interp, const char* name)
                         boost::bind(&RlinkConnect::BlockSizeMax, pobj));
   fGets.Add<size_t>    ("bsizeprudent", 
                         boost::bind(&RlinkConnect::BlockSizePrudent, pobj));
+
+  fSets.Add<uint32_t>  ("baseaddr", 
+                        boost::bind(&RlinkConnect::SetLogBaseAddr, pobj, _1));
+  fSets.Add<uint32_t>  ("basedata", 
+                        boost::bind(&RlinkConnect::SetLogBaseData, pobj, _1));
+  fSets.Add<uint32_t>  ("basestat", 
+                        boost::bind(&RlinkConnect::SetLogBaseStat, pobj, _1));
+  fSets.Add<uint32_t>  ("printlevel", 
+                        boost::bind(&RlinkConnect::SetPrintLevel, pobj, _1));
+  fSets.Add<uint32_t>  ("dumplevel", 
+                        boost::bind(&RlinkConnect::SetDumpLevel, pobj, _1));
+  fSets.Add<uint32_t>  ("tracelevel", 
+                        boost::bind(&RlinkConnect::SetTraceLevel, pobj, _1));
+  fSets.Add<const string&>  ("logfile", 
+                        boost::bind(&RlinkConnect::SetLogFileName, pobj, _1));
 }
 
 //------------------------------------------+-----------------------------------
@@ -337,9 +367,8 @@ int RtclRlinkConnect::M_exec(RtclArgs& args)
 
   if (!varprint.empty()) {
     ostringstream sos;
-    const RlinkConnect::LogOpts& logopts = Obj().GetLogOpts();
-    clist.Print(sos, Obj().Context(), &Obj().AddrMap(), logopts.baseaddr, 
-                logopts.basedata, logopts.basestat);
+    clist.Print(sos, Obj().Context(), &Obj().AddrMap(), Obj().LogBaseAddr(), 
+                Obj().LogBaseData(), Obj().LogBaseStat());
     RtclOPtr pobj(Rtcl::NewLinesObj(sos));
     if (!Rtcl::SetVarOrResult(args.Interp(), varprint, pobj)) return kERR;
   }
@@ -528,7 +557,7 @@ int RtclRlinkConnect::M_wtlam(RtclArgs& args)
   if (twait == -2.) {                       // IO error
     return args.Quit(emsg);
   } else if (twait == -1.) {                // timeout
-    if (Obj().GetLogOpts().printlevel >= 1) {
+    if (Obj().PrintLevel() >= 1) {
       RlogMsg lmsg(Obj().LogFile());
       lmsg << "-- wtlam to=" << RosPrintf(tout, "f", 0,3)
            << " FAIL timeout" << endl;
@@ -538,7 +567,7 @@ int RtclRlinkConnect::M_wtlam(RtclArgs& args)
     }
   }
 
-  if (Obj().GetLogOpts().printlevel >= 3) {
+  if (Obj().PrintLevel() >= 3) {
     RlogMsg lmsg(Obj().LogFile());
     lmsg << "-- wtlam to=" << RosPrintf(tout, "f", 0,3)
          << "  T=" << RosPrintf(twait, "f", 0,3)
@@ -635,9 +664,9 @@ int RtclRlinkConnect::M_log(RtclArgs& args)
   string msg;
   if (!args.GetArg("msg", msg)) return kERR;
   if (!args.AllDone()) return kERR;
-  if (Obj().GetLogOpts().printlevel != 0 ||
-      Obj().GetLogOpts().dumplevel  != 0 ||
-      Obj().GetLogOpts().tracelevel != 0) {
+  if (Obj().PrintLevel() != 0 ||
+      Obj().DumpLevel()  != 0 ||
+      Obj().TraceLevel() != 0) {
     Obj().LogFile().Write(string("# ") + msg);
   }
   return kOK;
@@ -672,77 +701,6 @@ int RtclRlinkConnect::M_dump(RtclArgs& args)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-int RtclRlinkConnect::M_config(RtclArgs& args)
-{
-  static RtclNameSet optset("-baseaddr|-basedata|-basestat|"
-                            "-logfile|-logprintlevel|-logdumplevel|"
-                            "-logtracelevel");
- 
-  RlinkConnect::LogOpts logopts = Obj().GetLogOpts();
-
-  if (args.NDone() == (size_t)args.Objc()) {
-    ostringstream sos;
-    sos << "-baseaddr " << RosPrintf(logopts.baseaddr, "d")
-        << " -basedata " << RosPrintf(logopts.basedata, "d")
-        << " -basestat " << RosPrintf(logopts.basestat, "d")
-        << " -logfile {" << Obj().LogFile().Name() << "}"
-        << " -logprintlevel " << RosPrintf(logopts.printlevel, "d")
-        << " -logdumplevel " << RosPrintf(logopts.dumplevel, "d")
-        << " -logtracelevel " << RosPrintf(logopts.tracelevel, "d");
-    args.AppendResult(sos);
-    return kOK;
-  }
-
-  string opt;
-  while (args.NextOpt(opt, optset)) {
-    if        (opt == "-baseaddr") {        // -baseaddr ?base -----------------
-      if (!ConfigBase(args, logopts.baseaddr)) return kERR;
-      if (args.NOptMiss() == 0) Obj().SetLogOpts(logopts);
-
-    } else if (opt == "-basedata") {        // -basedata ?base -----------------
-      if (!ConfigBase(args, logopts.basedata)) return kERR;
-      if (args.NOptMiss() == 0) Obj().SetLogOpts(logopts);
-
-    } else if (opt == "-basestat") {        // -basestat ?base -----------------
-      if (!ConfigBase(args, logopts.basestat)) return kERR;
-      if (args.NOptMiss() == 0) Obj().SetLogOpts(logopts);
-
-    } else if (opt == "-logfile") {         // -logfile ?name ------------------
-      string name;
-      if (!args.Config("??name", name)) return false;
-      if (args.NOptMiss() == 0) {             // new filename ?
-        if (name == "-" || name == "<cout>") {
-          Obj().LogUseStream(&cout, "<cout>");
-        } else {
-          if (!Obj().LogOpen(name)) {
-            Obj().LogUseStream(&cout, "<cout>");
-            return args.Quit(string("-E: open failed for '") + name +
-                             "', using stdout");
-          }
-        }
-      }
-
-    } else if (opt == "-logprintlevel") {   // -logprintlevel ?loglevel --------
-      if (!args.Config("??loglevel", logopts.printlevel, 3)) return false;
-      if (args.NOptMiss() == 0) Obj().SetLogOpts(logopts);
-
-    } else if (opt == "-logdumplevel") {    // -logdumplevel ?loglevel ---------
-      if (!args.Config("??loglevel", logopts.dumplevel, 3)) return false;
-      if (args.NOptMiss() == 0) Obj().SetLogOpts(logopts);
-
-    } else if (opt == "-logtracelevel") {   // -logtracelevel ?loglevel --------
-      if (!args.Config("??loglevel", logopts.tracelevel, 3)) return false;
-      if (args.NOptMiss() == 0) Obj().SetLogOpts(logopts);
-    }
-  }
-
-  if (!args.AllDone()) return kERR;
-  return kOK;
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
 int RtclRlinkConnect::M_get(RtclArgs& args)
 {
   // synchronize with server thread (really needed ??)
@@ -753,18 +711,27 @@ int RtclRlinkConnect::M_get(RtclArgs& args)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
+int RtclRlinkConnect::M_set(RtclArgs& args)
+{
+  // synchronize with server thread (really needed ??)
+  boost::lock_guard<RlinkConnect> lock(Obj());
+  return fSets.M_set(args);
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
 int RtclRlinkConnect::M_default(RtclArgs& args)
 {
   if (!args.AllDone()) return kERR;
   ostringstream sos;
-  const RlinkConnect::LogOpts& logopts = Obj().GetLogOpts();
 
-  sos << "print base:  " << "addr " << RosPrintf(logopts.baseaddr, "d", 2)
-      << "  data " << RosPrintf(logopts.basedata, "d", 2)
-      << "  stat " << RosPrintf(logopts.basestat, "d", 2) << endl;
+  sos << "print base:  " << "addr " << RosPrintf(Obj().LogBaseAddr(), "d", 2)
+      << "  data " << RosPrintf(Obj().LogBaseData(), "d", 2)
+      << "  stat " << RosPrintf(Obj().LogBaseStat(), "d", 2) << endl;
   sos << "logfile:     " << Obj().LogFile().Name()
-      << "   printlevel " << logopts.printlevel
-      << "   dumplevel " << logopts.dumplevel;
+      << "   printlevel " << Obj().PrintLevel()
+      << "   dumplevel " << Obj().DumpLevel();
 
   args.AppendResultLines(sos);
   return kOK;

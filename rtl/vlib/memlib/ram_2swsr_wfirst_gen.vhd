@@ -1,4 +1,4 @@
--- $Id: ram_2swsr_wfirst_gen.vhd 422 2011-11-10 18:44:06Z mueller $
+-- $Id: ram_2swsr_wfirst_gen.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -22,7 +22,7 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic Spartan, Virtex
--- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2011-11-08   422   1.0.4  now numeric_std clean

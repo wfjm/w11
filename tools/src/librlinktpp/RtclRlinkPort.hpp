@@ -1,6 +1,6 @@
-// $Id: RtclRlinkPort.hpp 492 2013-02-24 22:14:47Z mueller $
+// $Id: RtclRlinkPort.hpp 632 2015-01-11 12:30:03Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-01-09   632   1.0.2  add M_get, M_set, remove M_config
 // 2013-02-23   492   1.0.1  use RlogFile.Name();
 // 2013-01-27   478   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclRlinkPort.hpp 492 2013-02-24 22:14:47Z mueller $
+  \version $Id: RtclRlinkPort.hpp 632 2015-01-11 12:30:03Z mueller $
   \brief   Declaration of class RtclRlinkPort.
 */
 
@@ -31,9 +32,11 @@
 
 #include "boost/shared_ptr.hpp"
 
-#include "librtcltools/RtclProxyBase.hpp"
-
 #include "librtools/RlogFile.hpp"
+#include "librtcltools/RtclProxyBase.hpp"
+#include "librtcltools/RtclGetList.hpp"
+#include "librtcltools/RtclSetList.hpp"
+
 #include "librlink/RlinkPort.hpp"
 
 namespace Retro {
@@ -53,10 +56,14 @@ namespace Retro {
       int           M_stats(RtclArgs& args);
       int           M_log(RtclArgs& args);
       int           M_dump(RtclArgs& args);
-      int           M_config(RtclArgs& args);
+      int           M_get(RtclArgs& args);
+      int           M_set(RtclArgs& args);
       int           M_default(RtclArgs& args);
 
+      void          SetupGetSet();
       bool          TestOpen(RtclArgs& args);
+      void          SetLogFileName(const std::string& name);
+      std::string   LogFileName() const;
 
       static int    DoRawio(RtclArgs& args, RlinkPort* pport, size_t& errcnt);
 
@@ -65,6 +72,8 @@ namespace Retro {
       boost::shared_ptr<RlogFile> fspLog;   //!< port log file
       uint32_t      fTraceLevel;            //!< 0=off,1=buf,2=char
       size_t        fErrCnt;                //!< error count
+      RtclGetList   fGets;
+      RtclSetList   fSets;
   };
   
 } // end namespace Retro

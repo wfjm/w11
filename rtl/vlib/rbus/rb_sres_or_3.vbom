@@ -2,6 +2,6 @@
 ../slvtypes.vhd
 rblib.vhd
 # components
-[ghdl,isim]rb_sres_or_mon.vbom
+[sim]rb_sres_or_mon.vbom
 # design
 rb_sres_or_3.vhd

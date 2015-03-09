@@ -1,4 +1,4 @@
-// $Id: Rw11Cntl.cpp 625 2014-12-30 16:17:45Z mueller $
+// $Id: Rw11Cntl.cpp 631 2015-01-09 21:36:51Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cntl.cpp 625 2014-12-30 16:17:45Z mueller $
+  \version $Id: Rw11Cntl.cpp 631 2015-01-09 21:36:51Z mueller $
   \brief   Implemenation of Rw11Cntl.
 */
 
@@ -44,7 +44,7 @@ namespace Retro {
 //! Constructor
 
 Rw11Cntl::Rw11Cntl(const std::string& type)
-  : fpCpu(0),
+  : fpCpu(nullptr),
     fType(type),
     fName(),
     fBase(0),

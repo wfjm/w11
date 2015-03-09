@@ -1,4 +1,4 @@
--- $Id: pdp11.vhd 621 2014-12-26 21:20:05Z mueller $
+-- $Id: pdp11.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2006-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,10 +16,12 @@
 -- Description:    Definitions for pdp11 components
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-02-20   649   1.5.3  add pdp11_statleds
+-- 2015-02-08   644   1.5.2  add pdp11_bram_memctl
 -- 2014-08-28   588   1.5.1  use new rlink v4 iface and 4 bit STAT
 -- 2014-08-15   583   1.5    rb_mreq addr now 16 bit
 -- 2014-08-10:  581   1.4.10 add c_cc_f_* field defs for condition code array
@@ -1077,6 +1079,60 @@ component pdp11_bram is                 -- BRAM based ext. memory dummy
     GRESET : in slbit;                  -- global reset
     EM_MREQ : in em_mreq_type;          -- em request
     EM_SRES : out em_sres_type          -- em response
+  );
+end component;
+
+component pdp11_bram_memctl is          -- BRAM based memctl
+  generic (
+    MAWIDTH : positive := 4;            -- mux address width
+    NBLOCK : positive := 11);           -- write delay in clock cycles
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit;                   -- reset
+    REQ   : in slbit;                   -- request
+    WE    : in slbit;                   -- write enable
+    BUSY : out slbit;                   -- controller busy
+    ACK_R : out slbit;                  -- acknowledge read
+    ACK_W : out slbit;                  -- acknowledge write
+    ACT_R : out slbit;                  -- signal active read
+    ACT_W : out slbit;                  -- signal active write
+    ADDR : in slv20;                    -- address
+    BE : in slv4;                       -- byte enable
+    DI : in slv32;                      -- data in  (memory view)
+    DO : out slv32                      -- data out (memory view)
+  );
+end component;
+
+component pdp11_statleds is             -- status leds
+  port (
+    MEM_ACT_R : in slbit;               -- memory active read
+    MEM_ACT_W : in slbit;               -- memory active write
+    CP_STAT : in cp_stat_type;          -- console port status
+    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status
+    STATLEDS : out slv8                 -- 8 bit CPU status 
+  );
+end component;
+
+component pdp11_ledmux is               -- hio led mux
+  generic (
+    LWIDTH : positive := 8);            -- led width
+  port (
+    SEL : in slbit;                     -- select (0=stat;1=dr)
+    STATLEDS : in slv8;                 -- 8 bit CPU status
+    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status
+    LED : out slv(LWIDTH-1 downto 0)    -- hio leds
+  );
+end component;
+
+component pdp11_dspmux is               -- hio dsp mux
+  generic (
+    DCWIDTH : positive := 2);           -- digit counter width (2 or 3)
+  port (
+    SEL : in slv2;                      -- select
+    ABCLKDIV : in slv16;                -- serport clock divider
+    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status
+    DISPREG : in slv16;                 -- display register
+    DSP_DAT : out slv(4*(2**DCWIDTH)-1 downto 0)  -- display data
   );
 end component;
 

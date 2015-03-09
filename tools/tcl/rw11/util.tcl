@@ -1,6 +1,6 @@
-# $Id: util.tcl 607 2014-11-30 20:02:48Z mueller $
+# $Id: util.tcl 632 2015-01-11 12:30:03Z mueller $
 #
-# Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-01-09   632   1.2.3  setup_sys: use rlc set; setup_sys: add rl11
 # 2014-07-26   575   1.2.2  run_pdpcp: add tout argument
 # 2014-06-27   565   1.2.1  temporarily hide RL11
 # 2014-06-08   561   1.2    setup_sys: add RL11
@@ -33,7 +34,9 @@ namespace eval rw11 {
   # setup_cpu: create w11 cpu system
   # 
   proc setup_cpu {} {
-    rlc config -basestat 2 -baseaddr 8 -basedata 8
+    rlc set baseaddr 16
+    rlc set basedata  8
+    rlc set basestat  2
     rlink::setup;               # basic rlink defs
     rw11 rlw rls w11a 1;        # create 1 w11a cpu
     cpu0 cp -reset;             # reset CPU
@@ -50,7 +53,7 @@ namespace eval rw11 {
     cpu0 add dl11
     cpu0 add dl11 -base 0176500 -lam 2
     cpu0 add rk11
-  ##  cpu0 add rl11
+    cpu0 add rl11
     cpu0 add lp11
     cpu0 add pc11
     rlw start

@@ -1,4 +1,4 @@
-// $Id: RtclBvi.cpp 584 2014-08-22 19:38:12Z mueller $
+// $Id: RtclBvi.cpp 632 2015-01-11 12:30:03Z mueller $
 //
 // Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -21,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RtclBvi.cpp 584 2014-08-22 19:38:12Z mueller $
+  \version $Id: RtclBvi.cpp 632 2015-01-11 12:30:03Z mueller $
   \brief   Implemenation of RtclBvi.
 */
 
@@ -73,7 +73,7 @@ int RtclBvi::DoCmd(ClientData cdata, Tcl_Interp* interp, int objc,
 
   if (list) {
     int lobjc = 0;
-    Tcl_Obj** lobjv = 0;
+    Tcl_Obj** lobjv = nullptr;
     if (Tcl_ListObjGetElements(interp, objv[2], &lobjc, &lobjv) != kOK) {
       return kERR;
     }

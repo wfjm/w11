@@ -1,4 +1,4 @@
--- $Id: tbd_nx_cram_memctl_as.vhd 433 2011-11-27 22:04:39Z mueller $
+-- $Id: tbd_nx_cram_memctl_as.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -27,7 +27,7 @@
 -- 2010-06-03   299  11.4   L68  xc3s1200e-4   91  122    0  107 t 11.4 
 -- 2010-05-30   297  11.4   L68  xc3s1200e-4   91   99    0   95 t 13.1 
 --
--- Tool versions:  xst 11.4, 13.1; ghdl 0.26-0.29
+-- Tool versions:  xst 11.4-14.7; ghdl 0.26-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2011-11-26   433   1.2    renamed from tbd_n2_cram_memctl_as

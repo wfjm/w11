@@ -1,6 +1,6 @@
--- $Id: fx2lib.vhd 453 2012-01-15 17:51:18Z mueller $
+-- $Id: fx2lib.vhd 638 2015-01-25 22:01:38Z mueller $
 --
--- Copyright 2011-2012 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,10 +16,11 @@
 -- Description:    Cypress ez-usb fx2 support
 -- 
 -- Dependencies:   -
--- Tool versions:  xst 12.1, 13.1, 13.3; ghdl 0.26-0.29
+-- Tool versions:  xst 12.1-14.7; ghdl 0.26-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-01-25   638   1.4    retire fx2_2fifoctl_as
 -- 2012-01-14   453   1.3    use afull/aempty logic instead of exporting size
 -- 2012-01-03   449   1.2.1  reorganize fx2ctl_moni; hardcode ep's
 -- 2012-01-01   448   1.2    add fx2_2fifoctl_ic
@@ -65,43 +66,6 @@ package fx2lib is
 
 
 -- -------------------------------------
-component fx2_2fifoctl_as is            -- EZ-USB FX2 driver (2 fifo; async)
-  generic (
-    RXFAWIDTH : positive :=  5;         -- receive  fifo address width
-    TXFAWIDTH : positive :=  5;         -- transmit fifo address width
-    PETOWIDTH : positive :=  7;         -- packet end time-out counter width
-    CCWIDTH :   positive :=  5;         -- chunk counter width
-    RXAEMPTY_THRES : natural := 1;      -- threshold for rx aempty flag
-    TXAFULL_THRES  : natural := 1;      -- threshold for tx afull flag
-    RDPWLDELAY : positive := 5;         -- slrd low  delay in clock cycles
-    RDPWHDELAY : positive := 5;         -- slrd high delay in clock cycles
-    WRPWLDELAY : positive := 5;         -- slwr low  delay in clock cycles
-    WRPWHDELAY : positive := 7;         -- slwr high delay in clock cycles
-    FLAGDELAY  : positive := 2);        -- flag delay in clock cycles
-  port (
-    CLK : in slbit;                     -- clock
-    CE_USEC : in slbit;                 -- 1 usec clock enable
-    RESET : in slbit := '0';            -- reset
-    RXDATA : out slv8;                  -- receive data out
-    RXVAL : out slbit;                  -- receive data valid
-    RXHOLD : in slbit;                  -- receive data hold
-    RXAEMPTY : out slbit;               -- receive almost empty flag
-    TXDATA : in slv8;                   -- transmit data in
-    TXENA : in slbit;                   -- transmit data enable
-    TXBUSY : out slbit;                 -- transmit data busy
-    TXAFULL : out slbit;                -- transmit almost full flag
-    MONI : out fx2ctl_moni_type;        -- monitor port data
-    I_FX2_IFCLK : in slbit;             -- fx2: interface clock
-    O_FX2_FIFO : out slv2;              -- fx2: fifo address
-    I_FX2_FLAG : in slv4;               -- fx2: fifo flags
-    O_FX2_SLRD_N : out slbit;           -- fx2: read enable    (act.low)
-    O_FX2_SLWR_N : out slbit;           -- fx2: write enable   (act.low)
-    O_FX2_SLOE_N : out slbit;           -- fx2: output enable  (act.low)
-    O_FX2_PKTEND_N : out slbit;         -- fx2: packet end     (act.low)
-    IO_FX2_DATA : inout slv8            -- fx2: data lines
-  );
-end component;
-
 component fx2_2fifoctl_ic is            -- EZ-USB FX2 driver (2 fifo; int clk)
   generic (
     RXFAWIDTH : positive :=  5;         -- receive  fifo address width

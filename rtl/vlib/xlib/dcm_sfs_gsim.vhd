@@ -1,4 +1,4 @@
--- $Id: dcm_sfs_gsim.vhd 426 2011-11-18 18:14:08Z mueller $
+-- $Id: dcm_sfs_gsim.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,7 +19,7 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic Spartan-3A,-3E
--- Tool versions:  xst 12.1, 13.1; ghdl 0.29
+-- Tool versions:  xst 12.1-14.7; ghdl 0.29-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

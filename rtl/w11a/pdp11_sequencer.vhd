@@ -1,6 +1,6 @@
--- $Id: pdp11_sequencer.vhd 569 2014-07-13 14:36:32Z mueller $
+-- $Id: pdp11_sequencer.vhd 643 2015-02-07 17:41:53Z mueller $
 --
--- Copyright 2006-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,10 +18,11 @@
 -- Dependencies:   ib_sel
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.2-14.7; viv 2014.1; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.1; ghdl 0.18-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-02-07   643   1.5.2  s_op_wait: load R0 in DSRC for DR emulation
 -- 2014-07-12   569   1.5.1  rename s_opg_div_zero -> s_opg_div_quit;
 --                           use DP_STAT.div_quit; set munit_s_div_sr;
 --                           BUGFIX: s_opg_div_sr: check for late div_quit
@@ -1481,6 +1482,10 @@ begin
         end if;
 
       when s_op_wait =>                 -- WAIT
+        ndpcntl.gpr_asrc := "000";      -- load R0 in DSRC for DR emulation
+        ndpcntl.dsrc_sel := c_dpath_dsrc_src;
+        ndpcntl.dsrc_we := '1';
+ 
         nstate := s_op_wait;            -- spin here
         if is_kmode = '0' then          -- but act as nop if not in kernel
           nstate := s_idle;

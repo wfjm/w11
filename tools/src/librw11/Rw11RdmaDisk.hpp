@@ -1,4 +1,4 @@
-// $Id: Rw11RdmaDisk.hpp 628 2015-01-04 16:22:09Z mueller $
+// $Id: Rw11RdmaDisk.hpp 648 2015-02-20 20:16:21Z mueller $
 //
 // Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,7 @@
 
 /*!
   \file
-  \version $Id: Rw11RdmaDisk.hpp 628 2015-01-04 16:22:09Z mueller $
+  \version $Id: Rw11RdmaDisk.hpp 648 2015-02-20 20:16:21Z mueller $
   \brief   Declaration of class Rw11RdmaDisk.
 */
 
@@ -47,7 +47,7 @@ namespace Retro {
                                         uint16_t mode, uint32_t lba, 
                                         Rw11UnitDisk* punit);
 
-      size_t        WriteCheck(size_t ndone); 
+      size_t        WriteCheck(size_t nwdone); 
 
       virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
 
@@ -69,7 +69,7 @@ namespace Retro {
       void          SetupDisk(size_t size, uint32_t lba, Rw11UnitDisk* punit, 
                               Rw11RdmaDisk::func func);
       virtual void  PreRdmaHook();
-      virtual void  PostRdmaHook(size_t ndone);
+      virtual void  PostRdmaHook(size_t nwdone);
 
     protected:
       std::vector<uint16_t>  fBuf;          //!< data buffer

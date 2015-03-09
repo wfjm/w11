@@ -1,4 +1,4 @@
--- $Id: tbd_serport_autobaud.vhd 476 2013-01-26 22:23:53Z mueller $
+-- $Id: tbd_serport_autobaud.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -34,7 +34,7 @@
 -- 2007-10-27    92  8.2.03 I34  xc3s1000-4   153  338    0  178 s 9.45
 -- 2007-10-27    92  8.1.03 I27  xc3s1000-4   152  293    0    - s 9.40
 --
--- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2008-01-20   112   1.0.1  rename clkgen->clkdivce

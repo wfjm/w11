@@ -1,8 +1,8 @@
 #! /usr/bin/env tclshcpp
 # -*- tcl -*-
-# $Id: ti_rri 601 2014-11-07 22:44:43Z mueller $
+# $Id: ti_rri 631 2015-01-09 21:36:51Z mueller $
 #
-# Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -15,6 +15,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-01-09   631   1.2.1  use rlc get/set rather config
 # 2014-11-07   601   1.2    use tclshcpp (C++ based) rather tclsh
 # 2013-05-19   521   1.1.6  setup proper interactive handling; add --run reap
 # 2013-04-26   510   1.1.5  reorganize readline startup
@@ -210,11 +211,11 @@ if { $opts(pack_) ne "" } {
 
 # setup logging
 if { $opts(log_) ne "-" } {
-  rlc config -logfile       $opts(log_)
+  rlc set logfile       $opts(log_)
 }
-rlc config -logprintlevel $opts(logl_)
-rlc config -logdumplevel  $opts(dmpl_)
-rlc config -logtracelevel $opts(tiol_)
+rlc set printlevel $opts(logl_)
+rlc set dumplevel  $opts(dmpl_)
+rlc set tracelevel $opts(tiol_)
 
 # first start, if specified with --run, the test bench
 # exec sh -c $cmd is used to execute a shell command including [], '',""

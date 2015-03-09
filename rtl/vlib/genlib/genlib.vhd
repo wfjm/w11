@@ -1,4 +1,4 @@
--- $Id: genlib.vhd 466 2012-12-30 13:26:55Z mueller $
+-- $Id: genlib.vhd 641 2015-02-01 22:12:15Z mueller $
 --
 -- Copyright 2007-2012 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,7 +16,7 @@
 -- Description:    some general purpose components
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 13.3; ghdl 0.18-0.29
+-- Tool versions:  ise 8.1-14.7; viv 2014.4; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2012-12-29   466   1.0.9  add led_pulse_stretch

@@ -1,4 +1,4 @@
-// $Id: RtclRlinkServer.cpp 584 2014-08-22 19:38:12Z mueller $
+// $Id: RtclRlinkServer.cpp 632 2015-01-11 12:30:03Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -24,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: RtclRlinkServer.cpp 584 2014-08-22 19:38:12Z mueller $
+  \version $Id: RtclRlinkServer.cpp 632 2015-01-11 12:30:03Z mueller $
   \brief   Implemenation of class RtclRlinkServer.
  */
 
@@ -94,7 +94,7 @@ int RtclRlinkServer::ClassCmdConfig(RtclArgs& args)
   // locate RlinkConnect proxy and object -> setup Server->Connect linkage
   RtclProxyBase* pprox = RtclContext::Find(args.Interp()).FindProxy(
                             "RlinkConnect", parent);
-  if (pprox == 0) 
+  if (pprox == nullptr) 
     return args.Quit(string("-E: object '") + parent + 
                      "' not found or not type RlinkConnect");
 
@@ -192,10 +192,10 @@ int RtclRlinkServer::M_attn(RtclArgs& args)
       uint16_t mask=0;
       if (!args.GetArg("mask", mask)) return kERR;
       if (!args.AllDone()) return kERR;
-      RtclOPtr pres(Tcl_NewListObj(0,0));
+      RtclOPtr pres(Tcl_NewListObj(0,nullptr));
       for (alist_it_t it = fAttnHdl.begin(); it != fAttnHdl.end(); it++) {
         if ((*it)->Mask() & mask) {
-          RtclOPtr pele(Tcl_NewListObj(0,0));
+          RtclOPtr pele(Tcl_NewListObj(0,nullptr));
           Tcl_ListObjAppendElement(nullptr, pele, 
                                    Tcl_NewIntObj((*it)->Mask()) );
           Tcl_ListObjAppendElement(nullptr, pele, (*it)->Script() );

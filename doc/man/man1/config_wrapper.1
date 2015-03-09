@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: config_wrapper.1 580 2014-08-10 15:47:10Z mueller $
+.\"  $Id: config_wrapper.1 651 2015-02-26 21:32:15Z mueller $
 .\"
 .\" Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -116,6 +116,9 @@ Cypress FX2 USB controller emulating an Altera USB-Blaster cable.
 Path to current XILINX ISE installation. Required by all sub commands,
 mainly to locate the \fI.bsdl\fP files which describe the JTAG commands
 of all devices in the JTAG chain.
+.br
+Best is to use \fBconfig_wrapper\fP with the \fBxtwi\fP(1) wrapper, this will
+automatically define this environment variable.
 .
 .\" ------------------------------------------------------------------
 .SH EXAMPLES
@@ -131,7 +134,8 @@ Configures a Nexys3 board with \fItest.svf\fP using \fBjtag\fP(1).
 .\" ------------------------------------------------------------------
 .SH "SEE ALSO"
 .BR jtag (1),
-.BR fx2load_wrapper (1)
+.BR fx2load_wrapper (1),
+.BR xtwi (1)
 
 .\" ------------------------------------------------------------------
 .SH AUTHOR

@@ -1,6 +1,6 @@
--- $Id: serport_uart_autobaud.vhd 417 2011-10-22 10:30:29Z mueller $
+-- $Id: serport_uart_autobaud.vhd 641 2015-02-01 22:12:15Z mueller $
 --
--- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,9 +18,10 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_serport_autobaud
 -- Target Devices: generic
--- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 13.1; ghdl 0.18-0.29
+-- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-02-01   641   1.1    add CLKDIV_F
 -- 2011-10-22   417   1.0.4  now numeric_std clean
 -- 2010-04-18   279   1.0.3  change ccnt start value to -3, better rounding
 -- 2007-10-14    89   1.0.2  all instantiation with CDINIT=0
@@ -44,6 +45,7 @@ entity serport_uart_autobaud is         -- serial port uart: autobauder
     RESET : in slbit;                   -- reset
     RXSD : in slbit;                    -- receive serial data (uart view)
     CLKDIV : out slv(CDWIDTH-1 downto 0); -- clock divider setting
+    CLKDIV_F: out slv3;                   -- clock divider fractional part
     ACT : out slbit;                    -- active; if 1 clkdiv is invalid
     DONE : out slbit                    -- resync done
   );
@@ -163,11 +165,12 @@ begin
       when others => null;              -- -----------------------------------
     end case;
     
-    N_REGS <= n;
+    N_REGS   <= n;
     
-    CLKDIV <= r.ccnt(CDWIDTH-1+3 downto 3);
-    ACT    <= iact or RESET;
-    DONE   <= idone;
+    CLKDIV   <= r.ccnt(CDWIDTH-1+3 downto 3);
+    CLKDIV_F <= r.ccnt(2 downto 0);
+    ACT      <= iact or RESET;
+    DONE     <= idone;
     
   end process proc_next;
   

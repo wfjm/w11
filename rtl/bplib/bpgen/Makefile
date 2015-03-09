@@ -1,7 +1,8 @@
-# $Id: Makefile 575 2014-07-27 20:55:41Z mueller $
+# $Id: Makefile 639 2015-01-30 18:12:19Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2015-01-24   637   1.1.2  use nexys3 as default XTW_BOARD
 # 2014-07-27   545   1.1.1  make reference board configurable via XTW_BOARD
 # 2011-08-13   405   1.1    use includes from rtl/make
 # 2007-12-09   100   1.0.1  drop ISE_p definition
@@ -11,9 +12,9 @@ VBOM_all = $(wildcard *.vbom)
 NGC_all  = $(VBOM_all:.vbom=.ngc)
 #
 ifndef XTW_BOARD
-  XTW_BOARD=s3board
+  XTW_BOARD=nexys3
 endif
-include $(RETROBASE)/rtl/make/xflow_default_$(XTW_BOARD).mk
+include $(RETROBASE)/rtl/make_ise/xflow_default_$(XTW_BOARD).mk
 #
 .PHONY : all clean
 #
@@ -23,7 +24,7 @@ clean : ise_clean
 #
 #----
 #
-include $(RETROBASE)/rtl/make/generic_xflow.mk
+include $(RETROBASE)/rtl/make_ise/generic_xflow.mk
 #
 ifndef DONTINCDEP
 include $(VBOM_all:.vbom=.dep_xst)

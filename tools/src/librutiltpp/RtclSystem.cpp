@@ -1,4 +1,4 @@
-// $Id: RtclSystem.cpp 584 2014-08-22 19:38:12Z mueller $
+// $Id: RtclSystem.cpp 632 2015-01-11 12:30:03Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,7 @@
 
 /*!
   \file
-  \version $Id: RtclSystem.cpp 584 2014-08-22 19:38:12Z mueller $
+  \version $Id: RtclSystem.cpp 632 2015-01-11 12:30:03Z mueller $
   \brief   Implemenation of RtclSystem.
 */
 
@@ -145,7 +145,7 @@ int RtclSystem::SignalAction(ClientData cdata, Tcl_Interp* interp,
         return kOK;
 
       } else if (opt == "-info") {          // -info
-        RtclOPtr pres(Tcl_NewListObj(0,0));
+        RtclOPtr pres(Tcl_NewListObj(0,nullptr));
         int siglist[] = {SIGHUP,SIGINT,SIGTERM,SIGUSR1,SIGUSR2};
         for (size_t i=0; i<sizeof(siglist)/sizeof(int); i++) {
           Tcl_Obj* pobj;
@@ -201,7 +201,7 @@ int RtclSystem::SignalAction(ClientData cdata, Tcl_Interp* interp,
     Tcl_Obj* pobj;
     if (!pact->GetAction(signum, pobj, emsg))
       return args.Quit("no handler defined");
-    if (pobj == 0) pobj = Tcl_NewStringObj("{}",-1);
+    if (pobj == nullptr) pobj = Tcl_NewStringObj("{}",-1);
     args.SetResult(pobj);
   }
 

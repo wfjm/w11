@@ -1,4 +1,4 @@
--- $Id: s3boardlib.vhd 426 2011-11-18 18:14:08Z mueller $
+-- $Id: s3boardlib.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,7 +16,7 @@
 -- Description:    S3BOARD components
 -- 
 -- Dependencies:   -
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 11.4, 12.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.1-14.7; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2011-07-09   391   1.3.5  move s3_rs232_iob_int_ext to bpgenlib

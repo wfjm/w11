@@ -1,4 +1,4 @@
--- $Id: ib_sel.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: ib_sel.vhd 641 2015-02-01 22:12:15Z mueller $
 --
 -- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,7 +18,7 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 12.1; ghdl 0.29
+-- Tool versions:  ise 12.1-14.7; viv 2014.4; ghdl 0.29-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

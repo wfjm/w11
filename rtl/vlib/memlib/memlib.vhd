@@ -1,4 +1,4 @@
--- $Id: memlib.vhd 424 2011-11-13 16:38:23Z mueller $
+-- $Id: memlib.vhd 641 2015-02-01 22:12:15Z mueller $
 --
 -- Copyright 2006-2007 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -17,7 +17,7 @@
 --                 asynchronus rams; Fifo's.
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
+-- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2008-03-08   123   1.0.3  add ram_2swsr_xfirst_gen_unisim

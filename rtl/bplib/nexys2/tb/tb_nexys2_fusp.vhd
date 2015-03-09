@@ -1,4 +1,4 @@
--- $Id: tb_nexys2_fusp.vhd 476 2013-01-26 22:23:53Z mueller $
+-- $Id: tb_nexys2_fusp.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -26,7 +26,7 @@
 -- To test:        generic, any nexys2_fusp_aif target
 --
 -- Target Devices: generic
--- Tool versions:  xst 11.4, 12.1, 13.1; ghdl 0.26-0.29
+-- Tool versions:  xst 11.4-14.7; ghdl 0.26-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

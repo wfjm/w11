@@ -1,6 +1,6 @@
-// $Id: RtclRw11CntlRK11.cpp 627 2015-01-04 11:36:37Z mueller $
+// $Id: RtclRw11CntlRK11.cpp 632 2015-01-11 12:30:03Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-01-04   627   1.1    add Get/Set for chunksize
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-02   480   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclRw11CntlRK11.cpp 627 2015-01-04 11:36:37Z mueller $
+  \version $Id: RtclRw11CntlRK11.cpp 632 2015-01-11 12:30:03Z mueller $
   \brief   Implemenation of RtclRw11CntlRK11.
 */
 

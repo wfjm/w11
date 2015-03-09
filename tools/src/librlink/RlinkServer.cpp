@@ -1,6 +1,6 @@
-// $Id: RlinkServer.cpp 628 2015-01-04 16:22:09Z mueller $
+// $Id: RlinkServer.cpp 632 2015-01-11 12:30:03Z mueller $
 //
-// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-01-10   632   2.2    Exec() without emsg now void, will throw
 // 2014-12-30   625   2.1    adopt to Rlink V4 attn logic
 // 2014-12-21   617   2.0.1  use kStat_M_RbTout for rbus timeout
 // 2014-12-11   611   2.0    re-organize for rlink v4
@@ -24,7 +25,7 @@
 
 /*!
   \file
-  \version $Id: RlinkServer.cpp 628 2015-01-04 16:22:09Z mueller $
+  \version $Id: RlinkServer.cpp 632 2015-01-11 12:30:03Z mueller $
   \brief   Implemenation of RlinkServer.
 */
 
@@ -159,9 +160,7 @@ void RlinkServer::GetAttnInfo(AttnArgs& args, RlinkCommandList& clist)
   if (cmd0.Command() != RlinkCommand::kCmdAttn)
     throw Rexception("RlinkServer::GetAttnInfo", "clist did't start with attn");
 
-  RerrMsg emsg;
-  if (!Exec(clist, emsg))
-    throw Rexception("RlinkServer::GetAttnInfo", "Exec() failed: ", emsg);
+  Exec(clist);
 
   args.fAttnHarvest = cmd0.Data();
   args.fHarvestDone = true;

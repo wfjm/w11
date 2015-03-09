@@ -1,6 +1,6 @@
--- $Id: rlinklib.vhd 617 2014-12-21 14:18:53Z mueller $
+-- $Id: rlinklib.vhd 649 2015-02-21 21:10:16Z mueller $
 --
--- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,10 +16,11 @@
 -- Description:    Definitions for rlink interface and bus entities
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2014-02-21   649   4.1.1  add ioleds_sp1c
 -- 2014-12-21   617   4.1    use stat(2) to signal rbus timeout
 -- 2014-10-12   596   4.0    now rlink v4.0 iface, 4 bit STAT
 -- 2014-08-15   583   3.5    rb_mreq addr now 16 bit
@@ -242,6 +243,16 @@ component rlink_sp1c is                 -- rlink_core8+serport_1clock combo
     RB_STAT : in slv4;                  -- rbus: status flags
     RL_MONI : out rl_moni_type;         -- rlink_core: monitor port
     SER_MONI : out serport_moni_type    -- serport: monitor port
+  );
+end component;
+
+--
+-- io activity leds
+--
+component ioleds_sp1c                   -- io activity leds for rlink_sp1c
+  port (
+    SER_MONI : in serport_moni_type;    -- ser: monitor port
+    IOLEDS : out slv4                   -- 4 bit IO monitor (e.g. for DSP_DP)
   );
 end component;
 

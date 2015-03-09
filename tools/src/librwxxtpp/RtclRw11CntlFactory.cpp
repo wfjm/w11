@@ -1,6 +1,6 @@
-// $Id: RtclRw11CntlFactory.cpp 565 2014-06-28 12:54:08Z mueller $
+// $Id: RtclRw11CntlFactory.cpp 630 2015-01-04 22:43:32Z mueller $
 //
-// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-01-04   630   1.1.2  RL11 back in
 // 2014-06-27   565   1.1.1  temporarily hide RL11
 // 2014-06-08   561   1.1.0  add RL11
 // 2013-05-01   513   1.0.1  add LP11
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11CntlFactory.cpp 565 2014-06-28 12:54:08Z mueller $
+  \version $Id: RtclRw11CntlFactory.cpp 630 2015-01-04 22:43:32Z mueller $
   \brief   Implemenation of global function RtclRw11CntlFactory.
 */
 
@@ -32,7 +33,7 @@
 
 #include "RtclRw11CntlDL11.hpp"
 #include "RtclRw11CntlRK11.hpp"
-//#include "RtclRw11CntlRL11.hpp"
+#include "RtclRw11CntlRL11.hpp"
 #include "RtclRw11CntlLP11.hpp"
 #include "RtclRw11CntlPC11.hpp"
 
@@ -60,10 +61,10 @@ int RtclRw11CntlFactory(RtclArgs& args, RtclRw11Cpu& cpu)
     if(pobj->FactoryCmdConfig(args, cpu) != TCL_OK) return TCL_ERROR;
     pobj.release();
     
-//  } else if (type == "rl11") {              // rl11 --------------------------
-//    unique_ptr<RtclRw11CntlRL11> pobj(new RtclRw11CntlRL11());
-//    if(pobj->FactoryCmdConfig(args, cpu) != TCL_OK) return TCL_ERROR;
-//    pobj.release();
+  } else if (type == "rl11") {              // rl11 --------------------------
+    unique_ptr<RtclRw11CntlRL11> pobj(new RtclRw11CntlRL11());
+    if(pobj->FactoryCmdConfig(args, cpu) != TCL_OK) return TCL_ERROR;
+    pobj.release();
     
   } else if (type == "lp11") {              // lp11 --------------------------
     unique_ptr<RtclRw11CntlLP11> pobj(new RtclRw11CntlLP11());

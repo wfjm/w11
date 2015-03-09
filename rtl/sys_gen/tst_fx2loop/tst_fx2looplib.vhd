@@ -1,4 +1,4 @@
--- $Id: tst_fx2looplib.vhd 453 2012-01-15 17:51:18Z mueller $
+-- $Id: tst_fx2looplib.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2011-2012 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,7 +16,7 @@
 -- Description:    Definitions for tst_fx2loop records and helpers
 --
 -- Dependencies:   -
--- Tool versions:  xst 13.3; ghdl 0.29
+-- Tool versions:  xst 13.3-14.7; ghdl 0.29-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2012-01-15   453   1.1    drop pecnt, add rxhold,(tx|tx2)busy in hio_stat

@@ -3,7 +3,7 @@
 ../memlib/memlib.vhd
 rblib.vhd
 # components
-[ghdl,isim]../memlib/ram_2swsr_wfirst_gen.vbom
-[xst]../memlib/ram_2swsr_wfirst_gen_unisim.vbom
+[sim]../memlib/ram_2swsr_wfirst_gen.vbom
+[xst,vsyn]../memlib/ram_2swsr_wfirst_gen_unisim.vbom
 # design
 rbd_eyemon.vhd

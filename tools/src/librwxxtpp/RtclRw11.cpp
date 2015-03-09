@@ -1,4 +1,4 @@
-// $Id: RtclRw11.cpp 621 2014-12-26 21:20:05Z mueller $
+// $Id: RtclRw11.cpp 632 2015-01-11 12:30:03Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11.cpp 621 2014-12-26 21:20:05Z mueller $
+  \version $Id: RtclRw11.cpp 632 2015-01-11 12:30:03Z mueller $
   \brief   Implemenation of class RtclRw11.
  */
 
@@ -80,7 +80,7 @@ int RtclRw11::ClassCmdConfig(RtclArgs& args)
   RtclProxyBase* pprox = RtclContext::Find(args.Interp()).FindProxy(
                            "RlinkServer", parent);
 
-  if (pprox == 0) 
+  if (pprox == nullptr) 
     return args.Quit(string("-E: object '") + parent +
                      "' not found or not type RlinkServer");
 

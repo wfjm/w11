@@ -1,4 +1,4 @@
--- $Id: s3_sram_memctl.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: s3_sram_memctl.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -21,7 +21,7 @@
 -- Test bench:     tb/tb_s3_sram_memctl
 --                 fw_gen/tst_sram/s3board/tb/tb_tst_sram_s3
 -- Target Devices: generic
--- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -124,7 +124,7 @@ architecture syn of s3_sram_memctl is
   end record regs_type;
 
   constant regs_init : regs_type := (
-    s_idle,
+    s_idle,                             -- state
     '0'                                 -- ackr
   );
     

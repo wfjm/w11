@@ -1,6 +1,6 @@
-// $Id: RtclGetList.cpp 584 2014-08-22 19:38:12Z mueller $
+// $Id: RtclGetList.cpp 631 2015-01-09 21:36:51Z mueller $
 //
-// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-01-08   631   1.1    add Clear(), add '?' (key list) and '*' (kv list)
 // 2014-08-22   584   1.0.1  use nullptr
 // 2013-02-12   487   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclGetList.cpp 584 2014-08-22 19:38:12Z mueller $
+  \version $Id: RtclGetList.cpp 631 2015-01-09 21:36:51Z mueller $
   \brief   Implemenation of class RtclGetList.
 */
 
@@ -29,6 +30,7 @@
 
 #include "RtclGet.hpp"
 #include "RtclGetList.hpp"
+#include "RtclOPtr.hpp"
 
 using namespace std;
 
@@ -73,12 +75,42 @@ void RtclGetList::Add(const std::string& name, RtclGetBase* pget)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
+void RtclGetList::Clear()
+{
+  fMap.clear();
+  return;
+}
+  
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
 int RtclGetList::M_get(RtclArgs& args)
 {
-  string pname;
-  if (!args.GetArg("pname", pname)) return TCL_ERROR;
-
   Tcl_Interp* interp = args.Interp();
+  string pname("*");
+  if (!args.GetArg("??pname", pname)) return TCL_ERROR;
+  if (!args.AllDone()) return TCL_ERROR;
+
+  if (pname == "?") {
+    RtclOPtr rlist(Tcl_NewListObj(0,nullptr));
+    for (const auto& kv : fMap) {
+      RtclOPtr pele(Tcl_NewStringObj(kv.first.c_str(), -1));
+      Tcl_ListObjAppendElement(nullptr, rlist, pele);
+    }
+    Tcl_SetObjResult(interp, rlist);
+    return TCL_OK;
+
+  } else if (pname == "*") {
+    RtclOPtr rlist(Tcl_NewListObj(0,nullptr));
+    for (const auto& kv : fMap) {
+      RtclOPtr pele(Tcl_NewStringObj(kv.first.c_str(), -1));
+      Tcl_ListObjAppendElement(nullptr, rlist, pele);
+      Tcl_ListObjAppendElement(nullptr, rlist, kv.second->operator()());
+    }
+    Tcl_SetObjResult(interp, rlist);
+    return TCL_OK;
+  }
+  
   map_cit_t it = fMap.lower_bound(pname);
 
   // complain if not found
@@ -108,8 +140,6 @@ int RtclGetList::M_get(RtclArgs& args)
 
     return TCL_ERROR;
   }
-
-  if (!args.AllDone()) return TCL_ERROR;
 
   args.SetResult((it->second)->operator()());
   return TCL_OK;

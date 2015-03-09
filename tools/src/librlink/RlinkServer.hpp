@@ -1,6 +1,6 @@
-// $Id: RlinkServer.hpp 625 2014-12-30 16:17:45Z mueller $
+// $Id: RlinkServer.hpp 632 2015-01-11 12:30:03Z mueller $
 //
-// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-01-10   632   2.2    Exec() without emsg now void, will throw
 // 2014-12-30   625   2.1    adopt to Rlink V4 attn logic
 // 2014-11-30   607   2.0    re-organize for rlink v4
 // 2013-05-01   513   1.0.2  fTraceLevel now uint32_t
@@ -23,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: RlinkServer.hpp 625 2014-12-30 16:17:45Z mueller $
+  \version $Id: RlinkServer.hpp 632 2015-01-11 12:30:03Z mueller $
   \brief   Declaration of class \c RlinkServer.
 */
 
@@ -75,11 +76,11 @@ namespace Retro {
       RlinkContext& Context();  
 
       bool          Exec(RlinkCommandList& clist, RerrMsg& emsg);
-      bool          Exec(RlinkCommandList& clist);
+      void          Exec(RlinkCommandList& clist);
 
       void          AddAttnHandler(const attnhdl_t& attnhdl, uint16_t mask,
-                                   void* cdata = 0);
-      void          RemoveAttnHandler(uint16_t mask, void* cdata = 0);
+                                   void* cdata = nullptr);
+      void          RemoveAttnHandler(uint16_t mask, void* cdata = nullptr);
       void          GetAttnInfo(AttnArgs& args, RlinkCommandList& clist);
       void          GetAttnInfo(AttnArgs& args);
 

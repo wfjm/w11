@@ -1,4 +1,4 @@
--- $Id: nx_cram_dummy.vhd 433 2011-11-27 22:04:39Z mueller $
+-- $Id: nx_cram_dummy.vhd 641 2015-02-01 22:12:15Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,7 +18,7 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 11.4, 13.1; ghdl 0.26-0.29
+-- Tool versions:  ise 11.4-14.7; viv 2014.4; ghdl 0.26-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2011-11-26   433   1.2    renamed from n2_cram_dummy

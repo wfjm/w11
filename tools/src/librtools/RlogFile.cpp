@@ -1,6 +1,6 @@
-// $Id: RlogFile.cpp 611 2014-12-10 23:23:58Z mueller $
+// $Id: RlogFile.cpp 631 2015-01-09 21:36:51Z mueller $
 //
-// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-01-08   631   2.2    Open(): now with RerrMsg and cout/cerr support
 // 2014-12-10   611   2.1.2  timestamp now usec precision (was msec)
 // 2013-10-11   539   2.1.1  fix date print (month was off by one)
 // 2013-02-23   492   2.1    add Name(), keep log file name; add Dump()
@@ -22,11 +23,12 @@
 
 /*!
   \file
-  \version $Id: RlogFile.cpp 611 2014-12-10 23:23:58Z mueller $
+  \version $Id: RlogFile.cpp 631 2015-01-09 21:36:51Z mueller $
   \brief   Implemenation of RlogFile.
 */
 
 #include <sys/time.h>
+#include <errno.h>
 
 #include "boost/thread/locks.hpp"
 
@@ -50,7 +52,7 @@ namespace Retro {
 //! Default constructor
 
 RlogFile::RlogFile()
-  : fpExtStream(0),
+  : fpExtStream(nullptr),
     fIntStream(),
     fNew(true),
     fName(),
@@ -66,7 +68,7 @@ RlogFile::RlogFile(std::ostream* os, const std::string& name)
   : fpExtStream(os),
     fIntStream(),
     fNew(false),
-    fName(name),
+    fName(BuildinStreamName(os, name)),
     fMutex()
 {
   ClearTime();
@@ -81,12 +83,25 @@ RlogFile::~RlogFile()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-bool RlogFile::Open(std::string name)
+bool RlogFile::Open(std::string name, RerrMsg& emsg)
 {
+  std::ostream* os = nullptr;
+  if      (name == "<cout>" || name == "-") os = &cout;
+  else if (name == "<cerr>") os = &cerr;
+  else if (name == "<clog>") os = &clog;
+  if (os) {
+    UseStream(os);
+    return true;
+  }
+
   fNew = false;
-  fpExtStream = 0;
+  fpExtStream = nullptr;
   fName = name;
   fIntStream.open(name.c_str());
+  if (!fIntStream.is_open()) 
+    emsg.InitErrno("RlogFile::Open", 
+                   string("open for '") + name + "' failed: ",
+                   errno);
   return fIntStream.is_open();
 }
 
@@ -107,7 +122,7 @@ void RlogFile::UseStream(std::ostream* os, const std::string& name)
   fNew = false;
   if (fIntStream.is_open()) Close();
   fpExtStream = os;
-  fName = name;
+  fName = BuildinStreamName(os, name);
   return;
 }
 
@@ -209,4 +224,17 @@ void RlogFile::ClearTime()
   return;
 }
 
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+  std::string RlogFile::BuildinStreamName(std::ostream* os,
+                                          const std::string& str)
+{
+  if (str.size())  return str;
+  if (os == &cout) return string("<cout>");
+  if (os == &cerr) return string("<cerr>");
+  if (os == &clog) return string("<clog>");
+  return string("<?stream?>");
+}
+  
 } // end namespace Retro

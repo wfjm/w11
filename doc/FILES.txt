@@ -1,4 +1,4 @@
-$Id: FILES.txt 577 2014-08-03 20:49:42Z mueller $
+$Id: FILES.txt 645 2015-02-13 21:44:03Z mueller $
 
 Short description of the directory layout, what is where ?
 
@@ -7,27 +7,33 @@ Short description of the directory layout, what is where ?
    rtl                          VHDL sources
    rtl/bplib                    - board and component support libs
    rtl/bplib/atlys                - for Digilent Atlys board
+   rtl/bplib/basys3               - for Digilent Basys3 board
    rtl/bplib/fx2lib               - for Cypress FX2 USB interface controller
    rtl/bplib/issi                 - for ISSI parts
    rtl/bplib/micron               - for Micron parts
    rtl/bplib/nexys2               - for Digilent Nexsy2 board
    rtl/bplib/nexys3               - for Digilent Nexsy3 board
+   rtl/bplib/nexys4               - for Digilent Nexsy4 board
    rtl/bplib/nxcramlib            - for CRAM part used in Nexys2/3
-   rtl/bplib/s3board              - for Digilent S3BOARD
+   rtl/bplib/s3board              - for Digilent S3board
    rtl/ibus                     - ibus devices (UNIBUS peripherals)
    rtl/sys_gen                  - top level designs
    rtl/sys_gen/tst_fx2loop        - top level designs for Cypress FX2 tester
      nexys2,nexys3                 - systems for Nexsy2,Nexsy3
    rtl/sys_gen/tst_rlink          - top level designs for an rlink tester
-     nexys2,nexys3,s3board          - systems for Nexsy2,Nexsy3,S3BOARD
+     nexys2,nexys3,s3board          - systems for Nexsy2,Nexsy3,S3board
+     basys3,nexys4                  - systems for Basys3,Nexys4
    rtl/sys_gen/tst_rlink_cuff     - top level designs for rlink over FX2 tester
      nexys2,nexys3,atlys            - systems for Atlys,Nexsy2,Nexsy3
    rtl/sys_gen/tst_serloop        - top level designs for serport loop tester
-     nexys2,nexys3,s3board          - systems for Nexsy2,Nexsy3,S3BOARD
+     nexys2,nexys3,s3board          - systems for Nexsy2,Nexsy3,S3board
+     nexys4                         - systems for Nexys4
    rtl/sys_gen/tst_snhumanio      - top level designs for human I/O tester
-     atlys,nexys2,nexys3,s3board    - systems for Atlys,Nexsy2,Nexsy3,S3BOARD
+     atlys,nexys2,nexys3,s3board    - systems for Atlys,Nexsy2,Nexsy3,S3board
+     basys3,nexys4                  - systems for Basys3,Nexys4
    rtl/sys_gen/w11a               - top level designs for w11a SoC
-     nexys2,nexys3,s3board          - w11a systems for Nexsy2,Nexsy3,S3BOARD
+     nexys2,nexys3,s3board          - w11a systems for Nexsy2,Nexsy3,S3board
+     basys3,nexys4                  - systems for Basys3,Nexys4
    rtl/vlib                     - VHDL component libs
    rtl/vlib/comlib                - communication
    rtl/vlib/genlib                - general
@@ -44,7 +50,8 @@ Short description of the directory layout, what is where ?
    tools/asm-11/tests-err         - test bench for asm-11 (error check part)
    tools/bin                    - scripts and binaries
    tools/dox                    - Doxygen documentation configuration
-   tools/make                   - make includes
+   tools/make_ise               - make includes for ISE
+   tools/make_viv               - make includes for Vivado
    tools/fx2                    - Firmware for Cypress FX2 USB Interface
    tools/fx2/bin                  - pre-build firmware images in .ihx format
    tools/fx2/src                  - C and asm sources

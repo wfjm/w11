@@ -1,4 +1,4 @@
--- $Id: iblib.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: iblib.vhd 641 2015-02-01 22:12:15Z mueller $
 --
 -- Copyright 2008-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,7 +16,7 @@
 -- Description:    Definitions for ibus interface and bus entities
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+-- Tool versions:  ise 8.1-14.7; viv 2014.4; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2010-10-23   335   2.0.1  add ib_sel; add ib_sres_or_mon

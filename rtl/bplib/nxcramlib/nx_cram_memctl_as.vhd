@@ -1,4 +1,4 @@
--- $Id: nx_cram_memctl_as.vhd 563 2014-06-22 15:49:09Z mueller $
+-- $Id: nx_cram_memctl_as.vhd 644 2015-02-08 22:56:54Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -21,7 +21,7 @@
 -- Test bench:     tb/tb_nx_cram_memctl_as
 --                 sys_gen/tst_sram/nexys2/tb/tb_tst_sram_n2
 -- Target Devices: generic
--- Tool versions:  xst 11.4, 13.1; ghdl 0.26
+-- Tool versions:  ise 11.4-14.7; viv 2014.4; ghdl 0.26-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -182,7 +182,7 @@ architecture syn of nx_cram_memctl_as is
   end record regs_type;
 
   constant regs_init : regs_type := (
-    s_idle,                             --
+    s_idle,                             -- state
     '0',                                -- ackr
     '0',                                -- addr0
     "00",                               -- be2nd

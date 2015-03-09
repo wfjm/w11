@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.hpp 626 2015-01-03 14:41:37Z mueller $
+// $Id: RlinkConnect.hpp 632 2015-01-11 12:30:03Z mueller $
 //
 // Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2015-01-01   626   2.1    full rlink v4 implementation
+// 2015-01-06   631   2.1    full rlink v4 implementation
 // 2014-12-25   621   2.0.2  Reorganize packet send/revd stats
 // 2014-12-20   616   2.0.1  add BlockDone expect checks
 // 2014-12-10   611   2.0    re-organize for rlink v4
@@ -35,7 +35,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.hpp 626 2015-01-03 14:41:37Z mueller $
+  \version $Id: RlinkConnect.hpp 632 2015-01-11 12:30:03Z mueller $
   \brief   Declaration of class \c RlinkConnect.
 */
 
@@ -71,19 +71,6 @@ namespace Retro {
 
   class RlinkConnect : public Rbits, private boost::noncopyable {
     public:
-      struct LogOpts {
-        uint32_t      baseaddr;
-        uint32_t      basedata;
-        uint32_t      basestat;
-        uint32_t      printlevel;           // 0=off,1=err,2=chk,3=all
-        uint32_t      dumplevel;            // 0=off,1=err,2=chk,3=all
-        uint32_t      tracelevel;           // 0=off,1=buf,2=char
-
-                      LogOpts()
-                        : baseaddr(16), basedata(16), basestat(16),
-                          printlevel(0), dumplevel(0), tracelevel(0)
-                      {}
-      };
 
                     RlinkConnect();
                    ~RlinkConnect();
@@ -109,8 +96,8 @@ namespace Retro {
       bool          Exec(RlinkCommandList& clist, RerrMsg& emsg);
       bool          Exec(RlinkCommandList& clist, RlinkContext& cntx,
                          RerrMsg& emsg);
-      bool          Exec(RlinkCommandList& clist);
-      bool          Exec(RlinkCommandList& clist, RlinkContext& cntx);
+      void          Exec(RlinkCommandList& clist);
+      void          Exec(RlinkCommandList& clist, RlinkContext& cntx);
 
       double        WaitAttn(double timeout, uint16_t& apat, RerrMsg& emsg);
       bool          SndOob(uint16_t addr, uint16_t data, RerrMsg& emsg);
@@ -131,14 +118,28 @@ namespace Retro {
       const Rstats& SndStats() const;
       const Rstats& RcvStats() const;
 
-      void          SetLogOpts(const LogOpts& opts);
-      const LogOpts&  GetLogOpts() const;
+      void          SetLogBaseAddr(uint32_t base);
+      void          SetLogBaseData(uint32_t base);
+      void          SetLogBaseStat(uint32_t base);
+      void          SetPrintLevel(uint32_t lvl);
+      void          SetDumpLevel(uint32_t lvl);
+      void          SetTraceLevel(uint32_t lvl);
 
-      bool          LogOpen(const std::string& name);
+      uint32_t      LogBaseAddr() const;
+      uint32_t      LogBaseData() const;
+      uint32_t      LogBaseStat() const;
+      uint32_t      PrintLevel() const;
+      uint32_t      DumpLevel() const;
+      uint32_t      TraceLevel() const;
+
+      bool          LogOpen(const std::string& name, RerrMsg& emsg);
       void          LogUseStream(std::ostream* pstr, 
                                  const std::string& name = "");
       RlogFile&     LogFile() const;
       const boost::shared_ptr<RlogFile>&   LogFileSPtr() const;
+
+      void          SetLogFileName(const std::string& name);
+      std::string   LogFileName() const;
 
       void          Print(std::ostream& os) const;
       void          Dump(std::ostream& os, int ind=0, const char* text=0) const;
@@ -221,7 +222,12 @@ namespace Retro {
       RlinkContext  fContext;               //!< default context
       RlinkAddrMap  fAddrMap;               //!< name<->address mapping
       Rstats        fStats;                 //!< statistics
-      LogOpts       fLogOpts;               //!< log options
+      uint32_t      fLogBaseAddr;           //!< log: base for addr
+      uint32_t      fLogBaseData;           //!< log: base for data
+      uint32_t      fLogBaseStat;           //!< log: base for stat
+      uint32_t      fPrintLevel;            //!< print 0=off,1=err,2=chk,3=all
+      uint32_t      fDumpLevel;             //!< dump  0=off,1=err,2=chk,3=all
+      uint32_t      fTraceLevel;            //!< trace 0=off,1=buf,2=char
       boost::shared_ptr<RlogFile> fspLog;   //!< log file ptr
       boost::recursive_mutex fConnectMutex; //!< mutex to lock whole connect
       uint16_t      fAttnNotiPatt;          //!< attn notifier pattern

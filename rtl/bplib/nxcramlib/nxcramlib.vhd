@@ -1,4 +1,4 @@
--- $Id: nxcramlib.vhd 433 2011-11-27 22:04:39Z mueller $
+-- $Id: nxcramlib.vhd 641 2015-02-01 22:12:15Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,7 +16,7 @@
 -- Description:    Nexys 2/3 CRAM drivers
 -- 
 -- Dependencies:   -
--- Tool versions:  xst 11.4, 12.1, 13.1; ghdl 0.26-0.29
+-- Tool versions:  ise 11.4-14.7; viv 2014.4; ghdl 0.26-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

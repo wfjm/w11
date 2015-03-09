@@ -1,4 +1,4 @@
-# $Id: Makefile 575 2014-07-27 20:55:41Z mueller $
+# $Id: Makefile 639 2015-01-30 18:12:19Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -12,7 +12,7 @@ NGC_all  = $(VBOM_all:.vbom=.ngc)
 ifndef XTW_BOARD
   XTW_BOARD=nexys2
 endif
-include $(RETROBASE)/rtl/make/xflow_default_$(XTW_BOARD).mk
+include $(RETROBASE)/rtl/make_ise/xflow_default_$(XTW_BOARD).mk
 #
 .PHONY : all clean
 #
@@ -22,7 +22,7 @@ clean : ise_clean
 #
 #----
 #
-include $(RETROBASE)/rtl/make/generic_xflow.mk
+include $(RETROBASE)/rtl/make_ise/generic_xflow.mk
 #
 ifndef DONTINCDEP
 include $(VBOM_all:.vbom=.dep_xst)

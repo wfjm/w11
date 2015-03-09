@@ -1,4 +1,4 @@
--- $Id: pdp11_sim.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: pdp11_sim.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2006-2007 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,7 +16,7 @@
 -- Description:    Definitions for simulations
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1-14.7; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2007-10-12    88   1.0.2  avoid ieee.std_logic_unsigned, use cast to unsigned

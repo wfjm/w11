@@ -1,6 +1,6 @@
--- $Id: bpgenlib.vhd 534 2013-09-22 21:37:24Z mueller $
+-- $Id: bpgenlib.vhd 637 2015-01-25 18:36:40Z mueller $
 --
--- Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Generic Board/Part components
 -- 
 -- Dependencies:   -
--- Tool versions:  12.1, 13.3; ghdl 0.26-0.29
+-- Tool versions:  ise 12.1-14.7; viv 2014.4; ghdl 0.26-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-01-24   637   1.1.2  add generics to sn_humanio and sn_7segctl
 -- 2013-09-21   534   1.1.1  add bp_rs232_4l4l_iob
 -- 2013-01-26   476   1.1    moved rbus depended components to bpgenrbuslib
 -- 2013-01-06   472   1.0.7  add sn_humanio_demu_rbus
@@ -124,36 +125,40 @@ component bp_swibtnled is               -- generic SWI, BTN and LED handling
   );
 end component;
 
-component sn_4x7segctl is               -- Quad 7 segment display controller
+component sn_7segctl is                 -- 7 segment display controller
   generic (
+    DCWIDTH : positive := 2;            -- digit counter width (2 or 3)
     CDWIDTH : positive := 6);           -- clk divider width (must be >= 5)
   port (
     CLK : in slbit;                     -- clock
-    DIN : in slv16;                     -- data
-    DP : in slv4;                       -- decimal points
-    ANO_N : out slv4;                   -- anodes    (act.low)
-    SEG_N : out slv8                    -- segements (act.low)
+    DIN : in slv(4*(2**DCWIDTH)-1 downto 0);  -- data                16 or 32
+    DP : in slv((2**DCWIDTH)-1 downto 0);     -- decimal points       4 or  8
+    ANO_N : out slv((2**DCWIDTH)-1 downto 0); -- anodes    (act.low)  4 or  8
+    SEG_N : out slv8                          -- segements (act.low)
   );
 end component;
 
 component sn_humanio is                 -- human i/o handling: swi,btn,led,dsp
   generic (
+    SWIDTH : positive := 8;             -- SWI port width
     BWIDTH : positive := 4;             -- BTN port width
+    LWIDTH : positive := 8;             -- LED port width
+    DCWIDTH : positive := 2;            -- digit counter width (2 or 3)
     DEBOUNCE : boolean := true);        -- instantiate debouncer for SWI,BTN
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit := '0';            -- reset
     CE_MSEC : in slbit;                 -- 1 ms clock enable
-    SWI : out slv8;                     -- switch settings, debounced
+    SWI : out slv(SWIDTH-1 downto 0);   -- switch settings, debounced
     BTN : out slv(BWIDTH-1 downto 0);   -- button settings, debounced
-    LED : in slv8;                      -- led data
-    DSP_DAT : in slv16;                 -- display data
-    DSP_DP : in slv4;                   -- display decimal points
-    I_SWI : in slv8;                    -- pad-i: switches
+    LED : in slv(LWIDTH-1 downto 0);    -- led data
+    DSP_DAT : in slv(4*(2**DCWIDTH)-1 downto 0);   -- display data
+    DSP_DP : in slv((2**DCWIDTH)-1 downto 0);      -- display decimal points
+    I_SWI : in slv(SWIDTH-1 downto 0);  -- pad-i: switches
     I_BTN : in slv(BWIDTH-1 downto 0);  -- pad-i: buttons
-    O_LED : out slv8;                   -- pad-o: leds
-    O_ANO_N : out slv4;                 -- pad-o: 7 seg disp: anodes   (act.low)
-    O_SEG_N : out slv8                  -- pad-o: 7 seg disp: segments (act.low)
+    O_LED : out slv(LWIDTH-1 downto 0); -- pad-o: leds
+    O_ANO_N : out slv((2**DCWIDTH)-1 downto 0); -- pad-o: disp: anodes (act.low)
+    O_SEG_N : out slv8                        -- pad-o: disp: segments (act.low)
   );
 end component;
 

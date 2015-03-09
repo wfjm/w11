@@ -1,4 +1,4 @@
--- $Id: s3board_fusp_dummy.vhd 336 2010-11-06 18:28:27Z mueller $
+-- $Id: s3board_fusp_dummy.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,7 +18,7 @@
 -- Dependencies:   -
 -- To test:        tb_s3board_fusp
 -- Target Devices: generic
--- Tool versions:  xst 11.4; ghdl 0.26
+-- Tool versions:  xst 11.4-14.7; ghdl 0.26-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2010-11-06   336   1.0.3  rename input pin CLK -> I_CLK50

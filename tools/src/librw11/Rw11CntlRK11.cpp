@@ -1,4 +1,4 @@
-// $Id: Rw11CntlRK11.cpp 628 2015-01-04 16:22:09Z mueller $
+// $Id: Rw11CntlRK11.cpp 647 2015-02-17 22:35:36Z mueller $
 //
 // Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -15,6 +15,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-02-17   647   2.0.1  use Nwrd2Nblk(); BUGFIX: revise RdmaPostExecCB()
 // 2015-01-04   628   2.0    use Rw11RdmaDisk
 // 2014-12-30   625   1.2    adopt to Rlink V4 attn logic
 // 2014-12-25   621   1.1    adopt to 4k word ibus window
@@ -25,7 +26,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlRK11.cpp 628 2015-01-04 16:22:09Z mueller $
+  \version $Id: Rw11CntlRK11.cpp 647 2015-02-17 22:35:36Z mueller $
   \brief   Implemenation of Rw11CntlRK11.
 */
 
@@ -102,15 +103,16 @@ const uint16_t Rw11CntlRK11::kRKCS_V_MEX;
 const uint16_t Rw11CntlRK11::kRKCS_B_MEX;
 const uint16_t Rw11CntlRK11::kRKCS_V_FUNC;
 const uint16_t Rw11CntlRK11::kRKCS_B_FUNC;
-const uint16_t Rw11CntlRK11::kRKCS_CRESET;
-const uint16_t Rw11CntlRK11::kRKCS_WRITE;
-const uint16_t Rw11CntlRK11::kRKCS_READ;
-const uint16_t Rw11CntlRK11::kRKCS_WCHK;
-const uint16_t Rw11CntlRK11::kRKCS_SEEK;
-const uint16_t Rw11CntlRK11::kRKCS_RCHK;
-const uint16_t Rw11CntlRK11::kRKCS_DRESET;
-const uint16_t Rw11CntlRK11::kRKCS_WLOCK;
 const uint16_t Rw11CntlRK11::kRKCS_M_GO;
+
+const uint16_t Rw11CntlRK11::kFUNC_CRESET;
+const uint16_t Rw11CntlRK11::kFUNC_WRITE;
+const uint16_t Rw11CntlRK11::kFUNC_READ;
+const uint16_t Rw11CntlRK11::kFUNC_WCHK;
+const uint16_t Rw11CntlRK11::kFUNC_SEEK;
+const uint16_t Rw11CntlRK11::kFUNC_RCHK;
+const uint16_t Rw11CntlRK11::kFUNC_DRESET;
+const uint16_t Rw11CntlRK11::kFUNC_WLOCK;
 
 const uint16_t Rw11CntlRK11::kRKDA_M_DRSEL;
 const uint16_t Rw11CntlRK11::kRKDA_V_DRSEL;
@@ -148,7 +150,7 @@ Rw11CntlRK11::Rw11CntlRK11()
     fRd_fu(0),
     fRd_ovr(false),
     fRdma(this,
-          boost::bind(&Rw11CntlRK11::RdmaPreExecCB,  this, _1, _2, _3),
+          boost::bind(&Rw11CntlRK11::RdmaPreExecCB,  this, _1, _2, _3, _4),
           boost::bind(&Rw11CntlRK11::RdmaPostExecCB, this, _1, _2, _3, _4))
 {
   // must be here because Units have a back-ptr (not available at Rw11CntlBase)
@@ -349,7 +351,7 @@ int Rw11CntlRK11::AttnHandler(RlinkServer::AttnArgs& args)
   RlinkCommandList clist;
 
   uint32_t lba  = unit.Chs2Lba(cy,hd,se);
-  uint32_t nblk = (2*nwrd+unit.BlockSize()-1)/unit.BlockSize();
+  uint32_t nblk = unit.Nwrd2Nblk(nwrd);
 
   uint16_t rker = 0;
   uint16_t rkds = unit.Rkds();
@@ -371,12 +373,12 @@ int Rw11CntlRK11::AttnHandler(RlinkServer::AttnArgs& args)
   }
 
   // check for general abort conditions
-  if (fu != kRKCS_CRESET &&                 // function not control reset
+  if (fu != kFUNC_CRESET &&                 // function not control reset
       (!unit.Virt())) {                     //   and drive not attached
     rker = kRKER_M_NXD;                     //   --> abort with NXD error
 
-  } else if (fu != kRKCS_WRITE &&           // function neither write
-             fu != kRKCS_READ &&            //   nor read
+  } else if (fu != kFUNC_WRITE &&           // function neither write
+             fu != kFUNC_READ &&            //   nor read
              (rkcs & (kRKCS_M_FMT|kRKCS_M_RWA))) { // and FMT or RWA set 
     rker = kRKER_M_PGE;                     //   --> abort with PGE error
   } else if (rkcs & kRKCS_M_RWA) {          // RWA not supported
@@ -385,7 +387,7 @@ int Rw11CntlRK11::AttnHandler(RlinkServer::AttnArgs& args)
   
   if (rker) {
     cpu.AddWibr(clist, fBase+kRKER, rker);
-    if (fu == kRKCS_SEEK || fu == kRKCS_DRESET) 
+    if (fu == kFUNC_SEEK || fu == kFUNC_DRESET) 
       cpu.AddWibr(clist, fBase+kRKMR, kRKMR_M_SBCLR | (1u<<dr));
     cpu.AddWibr(clist, fBase+kRKMR, kRKMR_M_FDONE);
     LogRker(rker);
@@ -393,7 +395,7 @@ int Rw11CntlRK11::AttnHandler(RlinkServer::AttnArgs& args)
     return 0;
   }
 
-  // check for overrun (read/write beyond cylinder 203
+  // check for overrun (read/write beyond cylinder 203)
   // if found, truncate request length
   bool ovr = lba + nblk > unit.NBlock();
   if (ovr) nwrd = (unit.NBlock()-lba) * (unit.BlockSize()/2);
@@ -408,11 +410,11 @@ int Rw11CntlRK11::AttnHandler(RlinkServer::AttnArgs& args)
   fRd_fu    = fu;
 
   // now handle the functions
-  if (fu == kRKCS_CRESET) {                 // Control reset -----------------
+  if (fu == kFUNC_CRESET) {                 // Control reset -----------------
     fStats.Inc(kStatNFuncCreset);
     cpu.AddWibr(clist, fBase+kRKMR, kRKMR_M_CRESET);
 
-  } else if (fu == kRKCS_WRITE) {           // Write -------------------------
+  } else if (fu == kFUNC_WRITE) {           // Write -------------------------
                                             //   Note: WRITE+FMT is just WRITE
     fStats.Inc(kStatNFuncWrite);
     if (se >= unit.NSector())   rker |= kRKER_M_NXS;
@@ -427,7 +429,7 @@ int Rw11CntlRK11::AttnHandler(RlinkServer::AttnArgs& args)
                            lba, &unit);
     }
 
-  } else if (fu == kRKCS_READ) {            // Read --------------------------
+  } else if (fu == kFUNC_READ) {            // Read --------------------------
     fStats.Inc(kStatNFuncRead);
     if (se >= unit.NSector())   rker |= kRKER_M_NXS;
     if (cy >= unit.NCylinder()) rker |= kRKER_M_NXC;
@@ -440,7 +442,7 @@ int Rw11CntlRK11::AttnHandler(RlinkServer::AttnArgs& args)
                           lba, &unit);
     }
 
-  } else if (fu == kRKCS_WCHK) {            // Write Check -------------------
+  } else if (fu == kFUNC_WCHK) {            // Write Check -------------------
     fStats.Inc(kStatNFuncWchk);
     if (se >= unit.NSector())   rker |= kRKER_M_NXS;
     if (cy >= unit.NCylinder()) rker |= kRKER_M_NXC;
@@ -453,7 +455,7 @@ int Rw11CntlRK11::AttnHandler(RlinkServer::AttnArgs& args)
                                 lba, &unit);
     }
 
-  } else if (fu == kRKCS_SEEK) {            // Seek --------------------------
+  } else if (fu == kFUNC_SEEK) {            // Seek --------------------------
     fStats.Inc(kStatNFuncSeek);
     if (se >= unit.NSector())   rker |= kRKER_M_NXS;
     if (cy >= unit.NCylinder()) rker |= kRKER_M_NXC;
@@ -471,7 +473,7 @@ int Rw11CntlRK11::AttnHandler(RlinkServer::AttnArgs& args)
       cpu.AddWibr(clist, fBase+kRKMR, 1u<<dr); // issue seek done
     }
 
-  } else if (fu == kRKCS_RCHK) {            // Read Check --------------------
+  } else if (fu == kFUNC_RCHK) {            // Read Check --------------------
     fStats.Inc(kStatNFuncRchk);
     if (se >= unit.NSector())   rker |= kRKER_M_NXS;
     if (cy >= unit.NCylinder()) rker |= kRKER_M_NXC;
@@ -482,12 +484,12 @@ int Rw11CntlRK11::AttnHandler(RlinkServer::AttnArgs& args)
       AddNormalExit(clist, nwrd, 0);        // no action, virt disks don't err
     }
     
-  } else if (fu == kRKCS_DRESET) {          // Drive Reset -------------------
+  } else if (fu == kFUNC_DRESET) {          // Drive Reset -------------------
     fStats.Inc(kStatNFuncDreset);
     cpu.AddWibr(clist, fBase+kRKMR, kRKMR_M_FDONE);
     cpu.AddWibr(clist, fBase+kRKMR, 1u<<dr);   // issue seek done
     
-  } else if (fu == kRKCS_WLOCK) {           // Write Lock --------------------
+  } else if (fu == kFUNC_WLOCK) {           // Write Lock --------------------
     fStats.Inc(kStatNFuncWlock);
     rkds |= kRKDS_M_WPS;                    // set RKDS write protect flag
     unit.SetRkds(rkds);
@@ -505,13 +507,13 @@ int Rw11CntlRK11::AttnHandler(RlinkServer::AttnArgs& args)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11CntlRK11::RdmaPreExecCB(int stat, size_t nword,
+void Rw11CntlRK11::RdmaPreExecCB(int stat, size_t nwdone, size_t nwnext,
                                  RlinkCommandList& clist)
 {
   // if last chunk and not doing WCHK add a labo and normal exit csr update
-  if (stat == Rw11Rdma::kStatusBusyLast && fRd_fu != kRKCS_WCHK) {
+  if (stat == Rw11Rdma::kStatusBusyLast && fRd_fu != kFUNC_WCHK) {
     clist.AddLabo();
-    AddNormalExit(clist, nword, 0);
+    AddNormalExit(clist, nwdone+nwnext, 0);
   }
   return;
 }
@@ -527,7 +529,7 @@ void Rw11CntlRK11::RdmaPostExecCB(int stat, size_t ndone,
   uint16_t rker = 0;
 
   // handle write check
-  if (fRd_fu == kRKCS_WCHK) {
+  if (fRd_fu == kFUNC_WCHK) {
     size_t nwcok = fRdma.WriteCheck(ndone);
     if (nwcok != ndone) {                   // if mismatch found
       rker |= kRKER_M_WCE;                  // set error flag
@@ -588,9 +590,8 @@ void Rw11CntlRK11::AddNormalExit(RlinkCommandList& clist, size_t ndone,
   Rw11Cpu& cpu  = Cpu();
   uint16_t dr   = (fRd_rkda>>kRKDA_V_DRSEL) & kRKDA_B_DRSEL;
   Rw11UnitRK11& unit = *fspUnit[dr];
-  size_t bszwrd = unit.BlockSize()/2;         // block size in words
 
-  size_t nblk   = (ndone+bszwrd-1)/bszwrd;
+  size_t nblk   = unit.Nwrd2Nblk(ndone);
 
   uint32_t addr = fRd_addr + 2*ndone;
   size_t   lba  = fRd_lba  + nblk;

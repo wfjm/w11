@@ -1,4 +1,4 @@
-$Id: README.txt 614 2014-12-20 15:00:45Z mueller $
+$Id: README.txt 655 2015-03-04 20:35:21Z mueller $
 
 Release notes for w11a
 
@@ -20,6 +20,152 @@ Release notes for w11a
     * w11a_known_issues.txt: known differences, limitations and issues
 
 2. Change Log ----------------------------------------------------------------
+
+- trunk (2015-03-01: svn rev 29(oc) 655(wfjm); untagged w11a_V0.64)  +++++++++
+
+  - Preface
+    - The w11 project started on a Spartan-3 based Digilent S3board, and soon 
+      moved on to a Nexys2 with much better connectivity. Next step was the
+      Spartan-6 based Nexys3. Now is time to continue with 7-Series FPGAs.
+    - When Vivado started in 2013 it was immediately clear that the architecture
+      is far superior to ISE. But tests with the first versions were sobering,
+      the w11a design either didn't compile at all, or produced faulty synthesis
+      results. In 2014 Vivado matured, and the current version 2014.4 works
+      fine with the w11a code base.
+    - The original Nexys4 board allowed to quickly port Nexys3 version because 
+      both have the same memory chip. The newer Nexys4 DDR will be addressed 
+      later.
+    - The BRAM capacity of FPGAs increased significantly over time. The low
+      cost Basys3 board with the second smallest Artix-7 (XC7A35T) has 200 KB 
+      BRAM. That allows to implement a purely BRAM based w11a system with
+      176 kB memory. Not enough for 2.11BSD, but for many other less demanding
+      OS available for a PDP11.
+    - The Nexyx4 and Basys3 have 16 LEDs. Not quite the 'blinking lights'
+      console of the classic 11/45 and 11/70, but enough to display the
+      well known OS typical light patterns the veterans remember so well.
+    - With a new design tool, a new FPGA generation, two new boards, and a
+      new interface for the rlink connection that some of the code and tools
+      base had to be re-organized.
+    - Last but not least: finally access to a bit bigger disks: RL11 support
+    - Many changes, some known issues, some rough edges may still lurke around
+
+  - Summary
+    - added support for Vivado
+    - added support for Nexys4 and Basys3 boards
+    - added RL11 disk support
+    - lots of documentation updated
+
+  - New features
+    - new directory trees for
+      - rtl/bplib/basys3            - support for Digilent Basys3 board
+      - rtl/bplib/nexys4            - support for Digilent Nexys4 board
+      - rtl/make_viv                - make includes for Vivado
+    - new files
+      - tools/bin/xviv_ghdl_unisim  - ghdl compile Vivado UNISIM & UNIMACRO libs
+    - new modules
+      - rtl/ibus/ibdr_rl11          - ibus controller for RL11
+      - rtl/vlib/rlink/ioleds_sp1c  - io activity leds for rlink+serport_1clk
+      - rtl/vlib/xlib
+        - s7_cmt_sfs_gsim             - Series-7 CMT: simple vhdl model
+        - s7_cmt_sfs_unisim           - Series-7 CMT: wrapper for UNISIM
+      - rtl/w11a
+        - pdp11_bram_memctl           - simple BRAM based memctl
+        - pdp11_dspmux                - mux for hio display
+        - pdp11_ledmux                - mux for hio leds
+        - pdp11_statleds              - status led generator
+      - tools/src/librw11/
+        - Rw11*RL11                   - classes for RL11 disk handling
+      - tools/src/librwxxtpp
+        - RtclRw11*RL11               - tcl iface for RL11 disk handling
+    - new systems
+      - rtl/sys_gen/tst_rlink       - rlink tester
+        - basys3/sys_tst_rlink_b3     - for Basys3
+        - nexys4/sys_tst_rlink_n4     - for Nexys4
+      - rtl/sys_gen/tst_serloop     - serport loop tester
+        - nexys4/sys_tst_serloop_n4   - for Nexys4
+      - rtl/sys_gen/tst_snhumanio   - human I/O tester
+        - basys3/sys_tst_snhumanio_b3 - for Basys3
+        - nexys4/sys_tst_snhumanio_n4 - for Nexys4
+      - rtl/sys_gen/w11a            - w11a
+        - basys3/sys_w11a_b3          - small BRAM only (176 kB memory)
+        - nexys4/sys_w11a_n4          - with full 4 MB memory using cram
+    - new oskits
+      - tools/oskit/211bsd_rl       - new oskit for 2.11BSD on RL02
+      - tools/oskit/rt11-53_rl      - new oskit for RT11 V5.3 on RL02
+      - tools/oskit/xxdp_rl         - new oskit for XXDP 22 and 25 on RL02
+ 
+  - Changes
+    - renames
+      - ensure that old ISE and new Vivado co-exists, ensure telling names
+        - rtl/make                        -> make_ise
+        - rtl/bplib/bpgen/sn_4x7segctl    -> sn_7segctl
+        - tools/bin/isemsg_filter         -> xise_msg_filter
+        - tools/bin/xilinx_ghdl_unisim    -> xise_ghdl_unisim
+        - tools/bin/xilinx_ghdl_simprim   -> xise_ghdl_simprim
+
+    - retired files
+      - rtl/bplib/fx2lib
+        - fx2_2fifoctl_as    - obsolete, wasn't actively used since long
+      - tools/bin
+        - set_ftdi_lat       - obsolete, since kernel 2.6.32 the default is 1 ms
+        - xilinx_vhdl_chop   - obsolete, since ISE 11 sources come chopped
+
+    - functional changes
+      - $RETROBASE/Makefile           - re-structured, many new targets
+      - rtl/bplib/bpgen
+        - sn_7segctl                  - handle also 8 digit displays
+        - sn_humanio                  - configurable SWI and DSP width
+        - sn_humanio_rbus             - configurable SWI and DSP width
+      - rtl/vlib/serport
+        - serport_1clock              - export fractional part of divider
+      - rtl/ibus
+        - ibdr_maxisys                - add RL11 (ibdr_rl11)
+      - rtl/sys_gen/w11a/*
+        - sys_w11a_*                  - use new led and dsp control modules
+      - tools/src/librlink
+        - RlinkConnect                - drop LogOpts, indivitual getter/setter
+        - RlinkPortTerm               - support custom baud rates (5M,6M,10M,12M)
+      - tools/src/librtcltools
+        - RtclGetList                 - add '?' (key list) and '*' (kv list)
+        - RtclSetList                 - add '?' (key list) 
+        - RlogFile                    - Open(): now with cout/cerr support
+      - tools/src/librlinktpp
+        - RtclRlinkConnect            - drop config cmd, use get/set cmd
+        - RtclRlinkPort               - drop config cmd, use get/set cmd
+      - tools/src/librw11
+        - Rw11Rdma                    - PreExecCB() with nwdone and nwnext
+        - Rw11UnitDisk                - add Nwrd2Nblk()
+      - tools/src/librwxxtpp
+        - RtclRw11CntlFactory         - add RL11 support
+      - tools/bin
+        - xise_ghdl_unisim            - handle also UNIMACRO lib
+        - vbomconv                    - handle Vivado flows too
+
+  - Bug fixes
+    - tools/src/librw11
+      - Rw11CntlRK11                  - revise RdmaPostExecCB() logic
+
+  - Known issues
+    - V0.64-7: ghdl simulated OS boots via ti_w11 (-n4 ect options) fail due to
+        a flow control issue (likely since V0.63).
+    - V0.64-6: IO delays still unconstraint in vivado. All critical IOs use
+        explicitly IOB flops, thus timing well defined.
+    - V0.64-5: w11a_tb_guide.txt covers only ISE based tests (see also V0.64-4).
+    - V0.64-4: No support for the Vivado simulator (xsim) yet. With ghdl only
+        functional simulations, post synthesis (_ssim) fails to compile.
+    - V0.64-3: Highest baud rate with basys3 and nexys4 is 10 MBaud. 10 MBaud 
+        is not supported according to FTDI, but works. 12 MBaud in next release.
+    - V0.64-2: rlink throughput on basys3/nexys4 limited by serial port stack 
+        round trip times. Will be overcome by libusb based custom driver.
+    - V0.64-1: The large default transfer size for disk accesses leads to bad
+        throughput in the DL11 emulation for low speed links, like the
+        460kBaud the S3board is limited too. Will be overcome by a DL11
+        controller with more buffering.
+    - V0.62-2: rlink v4 error recovery not yet implemented, will crash on error
+    - V0.62-1: Command lists aren't split to fit in retransmit buffer size
+        {last two issues not relevant for w11 backend over USB usage because 
+        the backend produces proper command lists and the USB channel is 
+        usually error free}
 
 - trunk (2015-01-04: svn rev 28(oc) 629(wfjm); untagged w11a_V0.63)  +++++++++
 
@@ -214,5 +360,5 @@ Release notes for w11a
   - basic set of peripherals: kw11l, dl11, lp11, pc11, rk11/rk05
   - just for fun: iist (not fully implemented and tested yet)
   - two complete system configurations with 
-    - for a Digilent S3BOARD    rtl/sys_gen/w11a/s3board/sys_w11a_s3
+    - for a Digilent S3board    rtl/sys_gen/w11a/s3board/sys_w11a_s3
     - for a Digilent Nexys2     rtl/sys_gen/w11a/nexys2/sys_w11a_n2

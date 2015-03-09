@@ -1,4 +1,4 @@
--- $Id: crc16.vhd 595 2014-09-28 08:47:45Z mueller $
+-- $Id: crc16.vhd 641 2015-02-01 22:12:15Z mueller $
 --
 -- Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,7 +20,7 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 14.7; ghdl 0.31
+-- Tool versions:  ise 14.7; viv 2014.4; ghdl 0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri

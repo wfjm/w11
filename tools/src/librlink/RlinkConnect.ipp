@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.ipp 626 2015-01-03 14:41:37Z mueller $
+// $Id: RlinkConnect.ipp 632 2015-01-11 12:30:03Z mueller $
 //
 // Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2015-01-01   626   2.1    full rlink v4 implementation
+// 2015-01-06   631   2.1    full rlink v4 implementation
 // 2013-03-05   495   1.2.1  add Exec() without emsg (will send emsg to LogFile)
 // 2013-02-23   492   1.2    use scoped_ptr for Port; Close allways allowed
 //                           use RlinkContext, add Context(), Exec(..., cntx)
@@ -25,7 +25,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.ipp 626 2015-01-03 14:41:37Z mueller $
+  \version $Id: RlinkConnect.ipp 632 2015-01-11 12:30:03Z mueller $
   \brief   Implemenation (inline) of RlinkConnect.
 */
 
@@ -82,9 +82,10 @@ inline bool RlinkConnect::Exec(RlinkCommandList& clist, RerrMsg& emsg)
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
-inline bool RlinkConnect::Exec(RlinkCommandList& clist)
+inline void RlinkConnect::Exec(RlinkCommandList& clist)
 {
-  return Exec(clist, fContext);
+  Exec(clist, fContext);
+  return;
 }
 
 //------------------------------------------+-----------------------------------
@@ -182,9 +183,49 @@ inline const Rstats& RlinkConnect::RcvStats() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline const RlinkConnect::LogOpts& RlinkConnect::GetLogOpts() const
+inline uint32_t RlinkConnect::LogBaseAddr() const
 {
-  return fLogOpts;
+  return fLogBaseAddr;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline uint32_t RlinkConnect::LogBaseData() const
+{
+  return fLogBaseData;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline uint32_t RlinkConnect::LogBaseStat() const
+{
+  return fLogBaseStat;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline uint32_t RlinkConnect::PrintLevel() const
+{
+  return fPrintLevel;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline uint32_t RlinkConnect::DumpLevel() const
+{
+  return fDumpLevel;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline uint32_t RlinkConnect::TraceLevel() const
+{
+  return fTraceLevel;
 }
 
 //------------------------------------------+-----------------------------------
@@ -201,6 +242,14 @@ inline RlogFile& RlinkConnect::LogFile() const
 inline const boost::shared_ptr<RlogFile>& RlinkConnect::LogFileSPtr() const
 {
   return fspLog;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline std::string RlinkConnect::LogFileName() const
+{
+  return LogFile().Name();
 }
 
 

@@ -1,4 +1,4 @@
--- $Id: tb_s3board_fusp.vhd 476 2013-01-26 22:23:53Z mueller $
+-- $Id: tb_s3board_fusp.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -25,7 +25,7 @@
 -- To test:        generic, any s3board_fusp_aif target
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2011-12-23   444   3.1    new system clock scheme, new tbcore_rlink iface

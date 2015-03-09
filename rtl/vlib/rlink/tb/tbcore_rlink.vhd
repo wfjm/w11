@@ -1,4 +1,4 @@
--- $Id: tbcore_rlink.vhd 469 2013-01-05 12:29:44Z mueller $
+-- $Id: tbcore_rlink.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2010-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,7 +20,7 @@
 -- To test:        generic, any rlink_cext based target
 --
 -- Target Devices: generic
--- Tool versions:  xst 11.4, 13.1; ghdl 0.26-0.29
+-- Tool versions:  xst 11.4-14.7; ghdl 0.26-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2013-01-04   469   3.1.2  use 1ns wait for .sinit to allow simbus debugging

@@ -1,4 +1,7 @@
-# $Id: w11a_tb_guide.txt 622 2014-12-28 20:45:26Z mueller $
+# $Id: w11a_tb_guide.txt 654 2015-03-01 18:45:38Z mueller $
+
+Note: Only ISE based test benches are currently documented !
+      The Vivado test environemnt is still in it's infancy !
 
 Guide to running w11a test benches
 

@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.cpp 628 2015-01-04 16:22:09Z mueller $
+// $Id: RtclRw11Cpu.cpp 631 2015-01-09 21:36:51Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -27,7 +27,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Cpu.cpp 628 2015-01-04 16:22:09Z mueller $
+  \version $Id: RtclRw11Cpu.cpp 631 2015-01-09 21:36:51Z mueller $
   \brief   Implemenation of RtclRw11Cpu.
 */
 
@@ -557,9 +557,9 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
 
   if (!varprint.empty()) {
     ostringstream sos;
-    const RlinkConnect::LogOpts& logopts = Connect().GetLogOpts();
     clist.Print(sos, Connect().Context(), &Connect().AddrMap(), 
-                logopts.baseaddr, logopts.basedata, logopts.basestat);
+                Connect().LogBaseAddr(), Connect().LogBaseData(), 
+                Connect().LogBaseStat());
     RtclOPtr pobj(Rtcl::NewLinesObj(sos));
     if (!Rtcl::SetVarOrResult(args.Interp(), varprint, pobj)) return kERR;
   }
@@ -612,7 +612,7 @@ int RtclRw11Cpu::M_wtcpu(RtclArgs& args)
   } 
 
   if (twait < 0.) {                         // timeout
-    if (Connect().GetLogOpts().printlevel >= 1) {
+    if (Connect().PrintLevel() >= 1) {
       RlogMsg lmsg(Connect().LogFile());
       lmsg << "-- wtcpu to=" << RosPrintf(tout, "f", 0,3) << " FAIL timeout";
     }
@@ -625,7 +625,7 @@ int RtclRw11Cpu::M_wtcpu(RtclArgs& args)
       if (!Connect().Exec(clist, emsg)) return args.Quit(emsg);
     }
   } else {                                  // no timeout
-    if (Connect().GetLogOpts().printlevel >= 3) {
+    if (Connect().PrintLevel() >= 3) {
       RlogMsg lmsg(Connect().LogFile());
       lmsg << "-- wtcpu to=" << RosPrintf(tout, "f", 0,3)
            << "  T=" << RosPrintf(twait, "f", 0,3)

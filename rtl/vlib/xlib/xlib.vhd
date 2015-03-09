@@ -1,4 +1,4 @@
--- $Id: xlib.vhd 538 2013-10-06 17:21:25Z mueller $
+-- $Id: xlib.vhd 641 2015-02-01 22:12:15Z mueller $
 --
 -- Copyright 2007-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,7 +16,7 @@
 -- Description:    Xilinx specific components
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.2, 9.1, 9.2, 13.1, 14.5, 14.6; ghdl 0.18-0.29
+-- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2013-10-06   538   1.0.10 add s6_cmt_sfs

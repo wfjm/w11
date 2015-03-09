@@ -1,4 +1,4 @@
--- $Id: iob_reg_io_gen.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: iob_reg_io_gen.vhd 641 2015-02-01 22:12:15Z mueller $
 --
 -- Copyright 2007-2008 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,7 +18,7 @@
 -- Dependencies:   iob_keeper_gen                 [sim only]
 -- Test bench:     -
 -- Target Devices: generic Spartan, Virtex
--- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
+-- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2008-05-22   149   1.0.4  use internally TE to match OBUFT T polarity

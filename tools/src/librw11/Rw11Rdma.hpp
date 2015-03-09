@@ -1,4 +1,4 @@
-// $Id: Rw11Rdma.hpp 627 2015-01-04 11:36:37Z mueller $
+// $Id: Rw11Rdma.hpp 648 2015-02-20 20:16:21Z mueller $
 //
 // Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-02-17   647   1.1    PreExecCB with nwdone and nwnext
 // 2015-01-04   627   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 
 /*!
   \file
-  \version $Id: Rw11Rdma.hpp 627 2015-01-04 11:36:37Z mueller $
+  \version $Id: Rw11Rdma.hpp 648 2015-02-20 20:16:21Z mueller $
   \brief   Declaration of class Rw11Rdma.
 */
 
@@ -40,9 +41,10 @@ namespace Retro {
   class Rw11Rdma : public Rbits, private boost::noncopyable {
     public:
 
-      typedef boost::function<void(int,size_t,RlinkCommandList&)>  precb_t;
-      typedef boost::function<void(int,size_t,RlinkCommandList&,
-                                   size_t)>  postcb_t;
+      typedef boost::function<void(int,size_t,size_t,
+                                   RlinkCommandList&)>  precb_t;
+      typedef boost::function<void(int,size_t,
+                                   RlinkCommandList&,size_t)>  postcb_t;
 
                     Rw11Rdma(Rw11Cntl* pcntl, const precb_t& precb, 
                              const postcb_t& postcb);
@@ -92,7 +94,7 @@ namespace Retro {
                               size_t size, uint16_t mode);
       int           RdmaHandler();
       virtual void  PreRdmaHook();
-      virtual void  PostRdmaHook(size_t ndone);
+      virtual void  PostRdmaHook(size_t nwdone);
 
     protected:
       Rw11Cntl*     fpCntlBase;             //!< plain Rw11Cntl ptr

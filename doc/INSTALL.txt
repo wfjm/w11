@@ -1,4 +1,4 @@
-# $Id: INSTALL.txt 604 2014-11-16 22:33:09Z mueller $
+# $Id: INSTALL.txt 654 2015-03-01 18:45:38Z mueller $
 
 Guide to install and build w11a systems, test benches and support software
 
@@ -6,23 +6,14 @@ Guide to install and build w11a systems, test benches and support software
   
   1.  Download
   2.  System requirements
-  3.  Setup system environment
-       a. Setup environment variables
-       b. Setup USB access
+  3.  Setup environment variables
   4.  Compile UNISIM/SIMPRIM libraries for ghdl
   5.  Compile and install the support software
        a. Compile sharable libraries
        b. Setup Tcl packages
-       c. Rebuild Cypress FX2 firmware
   6.  The build system
-  6    a. Setting up Xilinx environment with xtwi
   7.  Building test benches
-       a. General instructions
-       b. Available test benches
   8.  Building systems
-       a. General instructions
-       b. Configuring FPGAs (via make flow)
-       c. Configuring FPGAs (directly via config_wrapper)
        d. Available systems
        e. Available bitkits with bit and log files
   9.  Generate Doxygen based source code view
@@ -56,7 +47,6 @@ Guide to install and build w11a systems, test benches and support software
       cd <wdir>
       svn co -r <rev> http://opencores.org/ocsvn/w11/w11/trunk
 
-
 2. System requirements ----------------------------------------------------
   
   This project contains not only VHDL code but also support software. Therefore
@@ -64,7 +54,7 @@ Guide to install and build w11a systems, test benches and support software
   list gives the Ubuntu/Debian package names, but mapping this to other
   distributions should be straight forward. 
 
-  - building the bit files for the FPGAs requires a Xilinx WebPACK installation
+  - building the bit files requires a Xilinx ISE WebPACK installation
 
   - building and using the RLink backend software requires:
     - full C/C++ development chain (gcc,g++,cpp,make)
@@ -75,24 +65,15 @@ Guide to install and build w11a systems, test benches and support software
     - libusb 1.0 (>= 1.0.6)
       -> package: libusb-1.0-0-dev
     - Perl (>= 5.10)  (usually included in base installations)
-    - Tcl  (>= 8.4), with tclreadline support
+    - Tcl  (>= 8.5), with tclreadline support
       -> package: tcl tcl-dev tcllib tclreadline
-
-  - the download contains pre-build firmware images for the Cypress FX2
-    USB Interface. Re-building them requires
-    - Small Device C Compiler
-      -> package: sdcc sdcc-ucsim
-
-  - for FX2 firmware download and jtag programming over USB one needs
-    - fxload
-      -> package: fxload
-    - urjtag
-      -> package: urjtag   for Ubuntu 12.04
-      -> see INSTALL_urjtag.txt for other distributions !!
 
   - for VHDL simulations one needs
     - ghdl
       -> see INSTALL_ghdl.txt for the unfortunately gory details
+
+  - additional requirements for using Cypress FX (on Nexys2/3) see
+    INSTALL_fx2_support.txt
 
   - for doxygen documentation an up-to-date installation of doxygen is
     required, version 1.8.3.1 or later
@@ -101,13 +82,11 @@ Guide to install and build w11a systems, test benches and support software
     - gtkwave
       -> package: gtkwave
 
-3. Setup system environment -----------------------------------------------
-
-3a. Setup environment variables --------------------------------------
+3. Setup environment variables --------------------------------------------
 
   The make flow for building test benches (ghdl and ISim based) and systems
-  (Xilinx xst based) as well as the support software (mainly the rlink backend
-  server) requires
+  (Xilinx ISE xst based) as well as the support software (mainly the rlink
+  backend server) requires
 
     - the definition of the environment variables:
       - RETROBASE:  must refer to the installation root directory
@@ -143,32 +122,7 @@ Guide to install and build w11a systems, test benches and support software
   After that building functional model based test benches will work. If you 
   want to also build post-xst or post-par test benches read next section.
 
-  If the Cypress USB controller available on Digilent Nexys2, Nexys3 and
-  Atlys boards is used the default USB VID and PID is defined by two
-  environment variables. For internal lab use one can use
-
-    export RETRO_FX2_VID=16c0
-    export RETRO_FX2_PID=03ef
-
-  !! Carefully read the disclaimer about usage of USB VID/PID numbers  !!
-  !! in the file README_USB-VID-PID.txt. You'll be responsible for any !!
-  !! misuse of the defaults provided with the project sources.         !!
-  !! Usage of this VID/PID in any commercial product is forbidden.     !!
-
-3b. Setup USB access -------------------------------------------------
-
-  For using the Cypress FX2 USB interface on Digilent Nexys2, Nexys3 and
-  Atlys boards 'udev' rules must be setup to allow user level access to
-  these devices. A set of rules is provided under
-
-    $RETROBASE/tools/fx2/sys
-
-  Follow the 'README.txt' file in this directory.
-
-  Notes:
-  - the provided udev rules use the VID/PID for 'internal lab use' as
-    described above. If other VID/PID used the file must be modified.
-  - your user account must be in group 'plugdev' (should be the default).
+  For Cypress FX2 (on Nexys2/3) related setup see INSTALL_fx2_support.txt
 
 4. Compile UNISIM/SIMPRIM libraries for ghdl ------------------------------
 
@@ -176,7 +130,7 @@ Guide to install and build w11a systems, test benches and support software
   the gate level models derived after the xst, map or par step. In this
   case ghdl has to link against a compiled UNISIM or SIMPRIM library.
 
-  To make handling of the parallel installion of several WebPack versions
+  To make handling of the parallel installion of several ISE WebPack versions
   easy the compiled libraries are stored in sub-directories under $XILINX:
 
      $XILINX/ghdl/unisim
@@ -187,8 +141,8 @@ Guide to install and build w11a systems, test benches and support software
     <setup XTWI_PATH, see section 6a.> 
 
     cd $RETROBASE
-    xtwi xilinx_ghdl_unisim
-    xtwi xilinx_ghdl_simprim
+    xise_ghdl_unisim
+    xise_ghdl_simprim
 
   If you have several WebPack versions installed, repeat for each version.
 
@@ -196,14 +150,20 @@ Guide to install and build w11a systems, test benches and support software
 
 5a. Compile sharable libraries ---------------------------------------
 
+  Note: some c++11 features are used in the code
+    - N2343: decltype (used by boost bind)  -> since gcc 4.3
+    - N2431: nullptr                        -> since gcc 4.6
+    - N2930: range based for                -> since gcc 4.6
+    - N1984: auto-types variables           -> since gcc 4.4 
+
   Required tools and libraries:
-    g++    >= 4.3    (decltype support assumed in usage of boost::bind)
+    g++    >= 4.6    (see c++11 usage above)
     boost  >= 1.35   (boost::thread api changed, new one is used)
     linusb >= 1.0.5  (timerfd support)
 
   Build was tested under:
-    ubuntu lucid (12.04 LTS):  gcc 4.6.3  boost 1.46.1  libusb 1.0.9
-    debian squezze (6.0.6):    gcc 4.4.5  boost 1.46.1  libusb 1.0.8
+    ubuntu precise (14.04 LTS):  gcc 4.8.2  boost 1.54    libusb 1.0.17
+    debian wheezy  (7.0.8):      gcc 4.7.2  boost 1.49    libusb 1.0.11
 
   To build all sharable libraries
 
@@ -248,228 +208,60 @@ Guide to install and build w11a systems, test benches and support software
     ln -s $RETROBASE/tools/tcl/.tclshrc .
     ln -s $RETROBASE/tools/tcl/.wishrc  .
 
-5c. Rebuild Cypress FX2 firmware -------------------------------------
-
-  The download includes pre-build firmware images for the Cypress FX2
-  USB interface used on the Digilent Nexys2, Nexys3 and Atlys Boards.
-  These firmware images are under
-
-    $RETROBASE/tools/fx2/bin
-
-  To re-build them, e.g. because a different USB VID/PID is to be used
-
-    cd $RETROBASE/tools/fx2/src
-    make clean
-    make
-    make install
-
-  Note: The default build assumes that sdcc with a version 3.x is installed.
-        In case sdcc 2.x is installed use
-           make SDCC29=1
-        instead. See also tools/fx2/src/README.txt in the 
-
-  Please read README_USB_VID-PID.txt carefully to understand the usage
-  of USB VID and PID.
-
 6. The build system -------------------------------------------------------
 
-  Simulation and synthesis tools usually need a list of the VHDL source
-  files, often in proper compilation order (libraries before components).
-  The different tools have different formats of these 'project files'.
-
-  The build system employed in this project is based on manifest files called
-     'vbom' or "VHDL bill of material" files
-  which list for each vhdl source file the libraries and sources for the
-  instantiated components, the later via their vbom, and last but not least
-  the name of the vhdl source file. 
-  All file name are relative to the current directory. A recursive traversal 
-  through all vbom's gives for each vhld module all sources needed to compile
-  it. The vbomconv script in tools/bin does this, and generates depending on 
-  options
-    - make dependency files
-    - ISE xst project files
-    - ISE ISim project files
-    - ghdl commands for analysis, inspection and make step
-
-  The master make files contain pattern rules like
-    %.ngc  : %.vbom           -- synthesize with xst
-    %      : %.vbom           -- build functional model test bench
-  which encapsulate all the vbomconf magic
-
-  A full w11a is build from about 100 source files, test benches from
-  even more. Using the vbom's a large number of designs can be easily
-  maintained.
-
-6a. Setting up Xilinx environment with xtwi --------------------------
-
-  The Xilinx ISE setup script redefines PATH and LD_LIBRARY_PATH. The ISE 
-  tools run fine in this environment, but other installed programs on the
-  system  can (and actually do) fail. 
-
-  The build system uses a small wrapper script called xtwi to encapsulate
-  the Xilinx environment. It expects that the environment variable XTWI_PATH 
-  is setup to the install path of the  ISE version to be used. Without the 
-  /ISE_DS/ which is added by the ISE installation procedure !
-
-  Note: don't run the ISE setup scripts ..../settings(32|64).sh in your 
-    working shell. Setup only XTWI_PATH !
+  The generation of
+    - FPGA firmware (e.g. .bit files)
+    - test benches  (e.g. simulator images)
+  is based on make flows. 
+  
+  Two design tools are currently supported
+    - Xilinx Vivado
+      - Artix-7 based board (Basys3, Nexys4)
+      - see README_buildsystem_Vivado.txt
+    - Xilinx ISE 
+      - Spartan-3 and Spartan-6 based boards (S3board, Nexys2, Nexys3)
+      - see README_buildsystem_ISE.txt
 
 7. Building test benches --------------------------------------------------
 
-7a. General instructions ---------------------------------------------
+  General instructions are in
+    - README_buildsystem_Vivado.txt (for Basys3, Nexys4)
+    - README_buildsystem_ISE.txt    (for S3board, Nexys2, Nexys3)
 
-  To compile a test bench named <tbench> all is needed is
+  For available test benches see w11a_tb_guide.txt
 
-    make <tbench>
+8. Building systems and configuring FPGAs ---------------------------------
 
-  The make file will use <tbench>.vbom, create all make dependency files,
-  and generate the needed ghdl commands.
-
-  In many cases the test benches can also be compiled against the gate
-  level models derived after the xst, map or par step. To compile them
-
-    make ghdl_tmp_clean
-    make <tbench>_ssim                  # for post-xst
-    make <tbench>_fsim                  # for post-map
-    make <tbench>_tsim                  # for post-par
-
-  The 'make ghdl_tmp_clean' is needed to flush the ghdl work area from
-  the compilation remains of earlier functional model compiles.
-
-7b. Available test benches -------------------------------------------
-
-  See file w11a_tb_guide.txt
-
-8. Building systems -------------------------------------------------------
-
-8a. General instructions ---------------------------------------------
-
-  First ensure that XTWI_PATH is setup, see section 6a.
-
-  To generate a bit file for a system named <sys> all is needed is
-
-    make <sys>.bit
-
-  The make file will use <sys>.vbom, create all make dependency files, build 
-  the ucf file with cpp, and run the synthesis flow (xst, ngdbuild, par, trce).
-  The log files will be named
-
-      <sys>_xst.log        # xst log file
-      <sys>_tra.log        # translate (ngdbuild) log file (renamed %.bld)
-      <sys>_map.log        # map log file                  (renamed %_map.mrp)
-      <sys>_par.log        # par log file                  (renamed %.par)
-      <sys>_pad.log        # pad file                      (renamed %_pad.txt)
-      <sys>_twr.log        # trce log file                 (renamed %.twr)
-  
-  To load the bitfile with WebPack impact into the target board use
-
-    make <sys>.iconfig
-
-  For boards with a Cypress FX2 USB controller load the bitfile directly with
-
-    make <sys>.jconfig
-
-  If a svf file is required for configuring the FPGA a svf can be created
-  from a bit file with
-
-    make <sys>.svf
-
-  If only the xst or par output is wanted just use
-
-    make <sys>.ngc
-    make <sys>.ncd
-
-  A simple 'message filter' system is also integrated into the make build flow.
-  For many (though not all) systems a .mfset file has been provided which
-  defines the xst,par and bitgen messages which are considered ok. To see
-  only the remaining message extracted from the vaious .log files simply
-  use the make target
-
-    make <sys>.mfsum
-
-  after a re-build.
-
-8b. Configuring FPGAs (via make flow) --------------------------------
-
-  The make flow supports also loading the bitstream into FPGAs, either
-  via Xilinx Impact, or via the Cypress FX2 USB controller is available.
-
-  For Xilinx Impact a Xilinx USB Cable II has to be properly setup, than
-  simply use
-
-    make <sys>.iconfig
-
-  For using the Cypress FX2 USB controller on Digilent Nexys2, Nexys3 and
-  Atlys boards just connect the USB cable and
-
-    make <sys>.jconfig
-
-  This will automatically check and optionaly re-load the FX2 firmware
-  to a version matching the FPGA design, generate a .svf file from the
-  .bit file, and configure the FPGA. In case the bit file is out-of-date
-  the whole design will be re-implemented before.
-
-8c. Configuring FPGAs (directly via config_wrapper) ------------------
-
-  The make flow described above uses two scripts
-    config_wrapper              # must be used with xtwi !
-    fx2load_wrapper
-  which can be used directly for loading available bit or svf files into
-  the FPGA. For detailed documentation see the respective man pages.
-
-  Examples for the supported boards are given in section 8e.
+  General instructions are in
+    - README_buildsystem_Vivado.txt (for Basys3, Nexys4)
+    - README_buildsystem_ISE.txt    (for S3board, Nexys2, Nexys3)
 
 8d. Available systems ------------------------------------------------
 
-  Currently ready to build versions exist for 
-    - Digilent S3BOARD (-1000 FPGA version)
-    - Digilent Nexys2 board (-1200 FPGA version)
-    - Digilent Nexys3 board
+  Ready to build designs are organized in the directories
+
+    $RETROBASE/rtl/sys_gen/<design>/<board>
+
+  with <design>
+    w11a            w11a system
+    tst_rlink       rlink over serial link tester
+    tst_rlink_cuff  rlink over FX2 interface tester
+
+  and <board>
+    basys3          b3: Digilent Basys3 board
+    nexys4          n4: Digilent Nexys4 board (cellular RAM version)
+    nexys3          n3: Digilent Nexys3 board
+    nexys2          n2: Digilent Nexys2 board (-1200 FPGA version)
+    s3board         s3: Digilent S3board (-1000 FPGA version)
 
   To build the designs locally use
 
-  1. rlink tester
-     a. for Digilent S3BOARD
+     cd $RETROBASE/rtl/sys_gen/<design>/<board>
+     make sys_<dtype>_<btype>.bit
 
-        cd $RETROBASE/rtl/sys_gen/tst_rlink/s3board
-        make sys_tst_rlink_s3.bit
-
-     b. for Digilent Nexys2 board
-
-        cd $RETROBASE/rtl/sys_gen/tst_rlink/nexys2
-        make sys_tst_rlink_n2.bit
-
-     c. for Digilent Nexys3 board
-
-        cd $RETROBASE/rtl/sys_gen/tst_rlink/nexys3
-        make sys_tst_rlink_n3.bit
-
-  2. rlink over USB tester
-     a. for Digilent Nexys2 board
-
-        cd $RETROBASE/rtl/sys_gen/tst_rlink_cuff/nexys2/ic
-        make sys_tst_rlink_cuff_ic_n2.bit
-
-     b. for Digilent Nexys3 board
-
-        cd $RETROBASE/rtl/sys_gen/tst_rlink_cuff/nexys3/ic
-        make sys_tst_rlink_cuff_ic_n3.bit
-
-  3. w11a systems
-     a. for Digilent S3BOARD
-     
-        cd $RETROBASE/rtl/sys_gen/w11a/s3board
-        make sys_w11a_s3.bit
-
-     b. for Digilent Nexys2 board
-
-        cd $RETROBASE/rtl/sys_gen/w11a/nexys2
-        make sys_w11a_n2.bit
-
-     c. for Digilent Nexys3 board
-
-        cd $RETROBASE/rtl/sys_gen/w11a/nexys3
-        make sys_w11a_n3.bit
+  with in most cases <dtype> = <design> and <code> = 2 letter abriviation for 
+  the board, e.g. n4 for nexys4.
 
 8e. Available bitkits with bit and log files -------------------------
 
@@ -480,29 +272,35 @@ Guide to install and build w11a systems, test benches and support software
   file names contain information about release, Xlinix tool, and design:
     <release>_<tool>_<design>.tgz
 
-  These designs can be loaded with config_wrapper into the FPGA. The
-  procedures for the supported boards are given below.
+  - Vivado based designs:
+      These designs can be loaded with the Vivado hardware server into the FPGA.
 
-  Notes:
-    1. XTWI_PATH and RETROBASE environment variables must be defined.
-    2. config_wrapper bit2svf is only needed once to create the svf files.
-    3. fx2load_wrapper is needed once after each board power on.
+  - ISE based designs:
 
-  a. for Digilent S3BOARD (using ISE Impact)
+      These designs can be loaded with config_wrapper into the FPGA. The
+      procedures for the supported boards are given below.
 
-       xtwi config_wrapper --board=s3board iconfig <design>.bit
+      Notes:
+        1. XTWI_PATH and RETROBASE environment variables must be defined.
+        2. config_wrapper bit2svf is only needed once to create the svf files.
+        3. fx2load_wrapper is needed once after each board power on.
 
-  b. for Digilent Nexys2 board (using Cypress FX2 USB controller)
+    a. for Digilent Nexys3 board (using Cypress FX2 USB controller)
+
+       xtwi config_wrapper --board=nexys3 bit2svf <design>.bit
+       fx2load_wrapper     --board=nexys3
+       xtwi config_wrapper --board=nexys3 jconfig <design>.svf
+
+    b. for Digilent Nexys2 board (using Cypress FX2 USB controller)
 
        xtwi config_wrapper --board=nexys2 bit2svf <design>.bit
        fx2load_wrapper     --board=nexys2
        xtwi config_wrapper --board=nexys2 jconfig <design>.svf
 
-  c. for Digilent Nexys3 board (using Cypress FX2 USB controller)
+    c. for Digilent S3board (using ISE Impact)
 
-       xtwi config_wrapper --board=nexys3 bit2svf <design>.bit
-       fx2load_wrapper     --board=nexys3
-       xtwi config_wrapper --board=nexys3 jconfig <design>.svf
+       xtwi config_wrapper --board=s3board iconfig <design>.bit
+
 
 9. Generate Doxygen based source code view --------------------------------
 

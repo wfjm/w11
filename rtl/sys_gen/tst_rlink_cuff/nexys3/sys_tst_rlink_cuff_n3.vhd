@@ -1,6 +1,6 @@
--- $Id: sys_tst_rlink_cuff_n3.vhd 620 2014-12-25 10:48:35Z mueller $
+-- $Id: sys_tst_rlink_cuff_n3.vhd 638 2015-01-25 22:01:38Z mueller $
 --
--- Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,7 +19,6 @@
 --                 vlib/genlib/clkdivce
 --                 bplib/bpgen/bp_rs232_2l4l_iob
 --                 bplib/bpgen/sn_humanio_rbus
---                 bplib/fx2lib/fx2_2fifoctl_as   [sys_conf_fx2_type="as2"]
 --                 bplib/fx2lib/fx2_2fifoctl_ic   [sys_conf_fx2_type="ic2"]
 --                 bplib/fx2lib/fx2_3fifoctl_ic   [sys_conf_fx2_type="ic3"]
 --                 tst_rlink_cuff
@@ -36,6 +35,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-01-25   638   1.2.2  retire fx2_2fifoctl_as
 -- 2014-12-24   620   1.2.1  relocate hio rbus address
 -- 2014-08-15   583   1.2    rb_mreq addr now 16 bit
 -- 2013-10-06   538   1.1    pll support, use clksys_vcodivide ect
@@ -232,44 +232,6 @@ begin
       O_ANO_N => O_ANO_N,
       O_SEG_N => O_SEG_N
     );
-
-  FX2_CNTL_AS : if sys_conf_fx2_type = "as2" generate
-    CNTL : fx2_2fifoctl_as
-      generic map (
-        RXFAWIDTH  => 5,
-        TXFAWIDTH  => 5,
-        CCWIDTH    => sys_conf_fx2_ccwidth,
-        RXAEMPTY_THRES => 1,
-        TXAFULL_THRES  => 1,
-        PETOWIDTH  => sys_conf_fx2_petowidth,
-        RDPWLDELAY => sys_conf_fx2_rdpwldelay,
-        RDPWHDELAY => sys_conf_fx2_rdpwhdelay,
-        WRPWLDELAY => sys_conf_fx2_wrpwldelay,
-        WRPWHDELAY => sys_conf_fx2_wrpwhdelay,
-        FLAGDELAY  => sys_conf_fx2_flagdelay)
-      port map (
-        CLK      => CLK,
-        CE_USEC  => CE_USEC,
-        RESET    => RESET,
-        RXDATA   => FX2_RXDATA,
-        RXVAL    => FX2_RXVAL,
-        RXHOLD   => FX2_RXHOLD,
-        RXAEMPTY => FX2_RXAEMPTY,
-        TXDATA   => FX2_TXDATA,
-        TXENA    => FX2_TXENA,
-        TXBUSY   => FX2_TXBUSY,
-        TXAFULL  => FX2_TXAFULL,
-        MONI           => FX2_MONI,
-        I_FX2_IFCLK    => I_FX2_IFCLK,
-        O_FX2_FIFO     => O_FX2_FIFO,
-        I_FX2_FLAG     => I_FX2_FLAG,
-        O_FX2_SLRD_N   => O_FX2_SLRD_N,
-        O_FX2_SLWR_N   => O_FX2_SLWR_N,
-        O_FX2_SLOE_N   => O_FX2_SLOE_N,
-        O_FX2_PKTEND_N => O_FX2_PKTEND_N,
-        IO_FX2_DATA    => IO_FX2_DATA
-      );
-  end generate FX2_CNTL_AS;
 
   FX2_CNTL_IC : if sys_conf_fx2_type = "ic2" generate
     CNTL : fx2_2fifoctl_ic

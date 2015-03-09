@@ -1,4 +1,4 @@
--- $Id: ibdr_minisys.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: ibdr_minisys.vhd 641 2015-02-01 22:12:15Z mueller $
 --
 -- Copyright 2008-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -23,7 +23,7 @@
 --                 ib_intmap
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
+-- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri

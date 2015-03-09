@@ -1,4 +1,4 @@
--- $Id: ram_1swsr_xfirst_gen_unisim.vhd 406 2011-08-14 21:06:44Z mueller $
+-- $Id: ram_1swsr_xfirst_gen_unisim.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2008-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,7 +19,7 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: Spartan-3, Virtex-2,-4
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2,.., 13.1; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1-14.7; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2011-08-14   406   1.0.2  cleaner code for L_DI initialization

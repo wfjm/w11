@@ -1,4 +1,4 @@
--- $Id: iob_reg_o_gen.vhd 426 2011-11-18 18:14:08Z mueller $
+-- $Id: iob_reg_o_gen.vhd 641 2015-02-01 22:12:15Z mueller $
 --
 -- Copyright 2007- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,7 +18,7 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic Spartan, Virtex
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  ise 8.1-14.7; viv 2014.4; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2007-12-16   101   1.0.1  add INIT generic port

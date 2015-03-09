@@ -1,4 +1,4 @@
--- $Id: ram_1swar_gen_unisim.vhd 314 2010-07-09 17:38:41Z mueller $
+-- $Id: ram_1swar_gen_unisim.vhd 641 2015-02-01 22:12:15Z mueller $
 --
 -- Copyright 2008- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,7 +20,7 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic Spartan, Virtex
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  ise 8.1-14.7; viv 2014.4; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2008-03-08   123   1.0.1  use shorter label names

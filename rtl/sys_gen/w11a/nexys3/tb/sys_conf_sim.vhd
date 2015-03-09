@@ -1,6 +1,6 @@
--- $Id: sys_conf_sim.vhd 619 2014-12-23 13:17:41Z mueller $
+-- $Id: sys_conf_sim.vhd 647 2015-02-17 22:35:36Z mueller $
 --
--- Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,6 +19,7 @@
 -- Tool versions:  xst 13.1-14.7; ghdl 0.29-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-02-15   647   1.4    drop bram and minisys options
 -- 2014-12-22   619   1.3.1  add _rbmon_awidth
 -- 2013-10-06   538   1.3    pll support, use clksys_vcodivide ect
 -- 2013-04-21   509   1.2    add fx2 settings
@@ -51,15 +52,9 @@ package sys_conf is
 
   constant sys_conf_hio_debounce : boolean := false;   -- no debouncers
     
-  constant sys_conf_bram           : integer :=  0;      -- no bram, use cache
-  constant sys_conf_bram_awidth    : integer := 14;      -- bram size (16 kB)
   constant sys_conf_mem_losize     : integer := 8#167777#; --   4 MByte
 --constant sys_conf_mem_losize     : integer := 8#003777#; -- 128 kByte (debug)
 
---  constant sys_conf_bram           : integer :=  1;      --  bram only 
---  constant sys_conf_bram_awidth    : integer := 16;      -- bram size (64 kB)
---  constant sys_conf_mem_losize     : integer := 8#001777#; -- 64 kByte
-  
   constant sys_conf_cache_fmiss    : slbit   := '0';     -- cache enabled
 
   -- derived constants

@@ -1,4 +1,4 @@
-# $Id: Makefile 595 2014-09-28 08:47:45Z mueller $
+# $Id: Makefile 639 2015-01-30 18:12:19Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -17,7 +17,7 @@ clean : ghdl_clean
 #
 #-----
 #
-include $(RETROBASE)/rtl/make/generic_ghdl.mk
+include $(RETROBASE)/rtl/make_ise/generic_ghdl.mk
 #
 VBOM_all = $(wildcard *.vbom)
 #

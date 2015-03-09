@@ -1,4 +1,4 @@
-// $Id: RlinkPort.hpp 611 2014-12-10 23:23:58Z mueller $
+// $Id: RlinkPort.hpp 632 2015-01-11 12:30:03Z mueller $
 //
 // Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -27,7 +27,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPort.hpp 611 2014-12-10 23:23:58Z mueller $
+  \version $Id: RlinkPort.hpp 632 2015-01-11 12:30:03Z mueller $
   \brief   Declaration of class RlinkPort.
 */
 
@@ -72,6 +72,7 @@ namespace Retro {
 
       void          SetLogFile(const boost::shared_ptr<RlogFile>& splog);
       void          SetTraceLevel(uint32_t level);
+
       uint32_t      TraceLevel() const;
 
       const Rstats& Stats() const;

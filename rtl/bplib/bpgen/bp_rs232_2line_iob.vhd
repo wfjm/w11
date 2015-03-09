@@ -1,4 +1,4 @@
--- $Id: bp_rs232_2line_iob.vhd 426 2011-11-18 18:14:08Z mueller $
+-- $Id: bp_rs232_2line_iob.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -21,7 +21,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 11.4, 12.1; ghdl 0.26-0.29
+-- Tool versions:  xst 11.4-14.7; viv 2014.4; ghdl 0.26-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

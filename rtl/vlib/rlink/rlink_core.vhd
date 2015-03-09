@@ -1,4 +1,4 @@
--- $Id: rlink_core.vhd 620 2014-12-25 10:48:35Z mueller $
+-- $Id: rlink_core.vhd 641 2015-02-01 22:12:15Z mueller $
 --
 -- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -28,7 +28,7 @@
 --                 tb/tb_rlink_tba_ttcombo
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri

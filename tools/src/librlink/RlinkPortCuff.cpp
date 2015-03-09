@@ -1,4 +1,4 @@
-// $Id: RlinkPortCuff.cpp 584 2014-08-22 19:38:12Z mueller $
+// $Id: RlinkPortCuff.cpp 632 2015-01-11 12:30:03Z mueller $
 //
 // Copyright 2012-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -24,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPortCuff.cpp 584 2014-08-22 19:38:12Z mueller $
+  \version $Id: RlinkPortCuff.cpp 632 2015-01-11 12:30:03Z mueller $
   \brief   Implemenation of RlinkPortCuff.
 */
 
@@ -68,10 +68,10 @@ RlinkPortCuff::RlinkPortCuff()
   : RlinkPort(),
     fFdReadDriver(-1),
     fFdWriteDriver(-1),
-    fpUsbContext(0),
-    fpUsbDevList(0),
+    fpUsbContext(nullptr),
+    fpUsbDevList(nullptr),
     fUsbDevCount(0),
-    fpUsbDevHdl(0),
+    fpUsbDevHdl(nullptr),
     fLoopState(kLoopStateStopped)
 {
   fStats.Define(kStatNPollAddCB,    "kStatNPollAddCB",    "USB poll add cb");
@@ -139,7 +139,7 @@ bool RlinkPortCuff::Open(const std::string& url, RerrMsg& emsg)
   }
 
   // connect to USB device
-  libusb_device* mydev = 0;
+  libusb_device* mydev = nullptr;
   // path syntax: /bus/dev
   if (fUrl.Path().length()==8 && fUrl.Path()[0]=='/' && fUrl.Path()[4]=='/') {
     string busnam = fUrl.Path().substr(1,3);
@@ -185,7 +185,7 @@ bool RlinkPortCuff::Open(const std::string& url, RerrMsg& emsg)
     return false;
   }
 
-  if (mydev == 0) {
+  if (mydev == nullptr) {
     emsg.Init("RlinkPortCuff::Open()", 
               string("no usb device '") + fUrl.Path() + "', found'");
     Cleanup();
@@ -194,7 +194,7 @@ bool RlinkPortCuff::Open(const std::string& url, RerrMsg& emsg)
 
   irc = libusb_open(mydev, &fpUsbDevHdl);
   if (irc) {
-    fpUsbDevHdl = 0;
+    fpUsbDevHdl = nullptr;
     emsg.Init("RlinkPortCuff::Open()", 
               string("opening usb device '") + fUrl.Path() + "', failed: " +
               string(USBErrorName(irc)));
@@ -288,15 +288,15 @@ void RlinkPortCuff::Cleanup()
     if (fpUsbDevHdl) {
       libusb_release_interface(fpUsbDevHdl, 0);
       libusb_close(fpUsbDevHdl);
-      fpUsbDevHdl = 0;
+      fpUsbDevHdl = nullptr;
     }
     if (fpUsbDevList) {
       libusb_free_device_list(fpUsbDevList, 1);
-      fpUsbDevList = 0;
+      fpUsbDevList = nullptr;
     }
     libusb_set_pollfd_notifiers(fpUsbContext, nullptr, nullptr, nullptr);
     libusb_exit(fpUsbContext);
-    fpUsbContext = 0;
+    fpUsbContext = nullptr;
   }
 
   fPollFds.clear();
@@ -462,7 +462,7 @@ void RlinkPortCuff::DriverEventUSB()
 
 libusb_transfer* RlinkPortCuff::NewWriteTransfer()
 {
-  libusb_transfer* t = 0;
+  libusb_transfer* t = nullptr;
   if (!fWriteQueueFree.empty()) {
     t = fWriteQueueFree.front();
     fWriteQueueFree.pop_front();
@@ -531,7 +531,7 @@ void RlinkPortCuff::BadUSBCall(const char* meth, const char* text, int rc)
 
 void RlinkPortCuff::CheckUSBTransfer(const char* meth, libusb_transfer *t)
 {
-  const char* etext = 0;
+  const char* etext = nullptr;
   
   if (t->status == LIBUSB_TRANSFER_ERROR)     etext = "ERROR";
   if (t->status == LIBUSB_TRANSFER_STALL)     etext = "STALL";

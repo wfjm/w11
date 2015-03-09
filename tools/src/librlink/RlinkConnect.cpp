@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.cpp 626 2015-01-03 14:41:37Z mueller $
+// $Id: RlinkConnect.cpp 632 2015-01-11 12:30:03Z mueller $
 //
 // Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2015-01-01   626   2.1    full rlink v4 implementation
+// 2015-01-06   631   2.1    full rlink v4 implementation
 // 2014-12-10   611   2.0    re-organize for rlink v4
 // 2014-08-26   587   1.5    start accept rlink v4 protocol (partially...)
 // 2014-08-15   583   1.4    rb_mreq addr now 16 bit
@@ -33,7 +33,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.cpp 626 2015-01-03 14:41:37Z mueller $
+  \version $Id: RlinkConnect.cpp 632 2015-01-11 12:30:03Z mueller $
   \brief   Implemenation of RlinkConnect.
 */
 
@@ -91,19 +91,24 @@ const uint16_t RlinkConnect::kRbufPrudentDelta;
 
 RlinkConnect::RlinkConnect()
   : fpPort(),
-    fpServ(0),
+    fpServ(nullptr),
     fSndPkt(),
     fRcvPkt(),
     fContext(),
     fAddrMap(),
     fStats(),
-    fLogOpts(),
-    fspLog(new RlogFile(&cout, "<cout>")),
+    fLogBaseAddr(16),
+    fLogBaseData(16),
+    fLogBaseStat(16),
+    fPrintLevel(0),
+    fDumpLevel(0),
+    fTraceLevel(0),
+    fspLog(new RlogFile(&cout)),
     fConnectMutex(),
     fAttnNotiPatt(0),
     fTsLastAttnNoti(-1),
     fSysId(0xffffffff),
-    fRbufSize(0)
+    fRbufSize(2048)
 {
   for (size_t i=0; i<8; i++) fSeqNumber[i] = 0;
  
@@ -152,7 +157,7 @@ bool RlinkConnect::Open(const std::string& name, RerrMsg& emsg)
   if (!fpPort) return false;
 
   fpPort->SetLogFile(fspLog);
-  fpPort->SetTraceLevel(fLogOpts.tracelevel);
+  fpPort->SetTraceLevel(fTraceLevel);
 
   RlinkCommandList clist;
   clist.AddRreg(kRbaddr_RLSTAT);
@@ -335,12 +340,12 @@ bool RlinkConnect::Exec(RlinkCommandList& clist, RlinkContext& cntx,
   size_t loglevel = 3;
   if (checkseen) loglevel = 2;
   if (errorseen) loglevel = 1;
-  if (loglevel <= fLogOpts.printlevel) {
+  if (loglevel <= fPrintLevel) {
     RlogMsg lmsg(*fspLog);
-    clist.Print(lmsg(), cntx, &AddrMap(), fLogOpts.baseaddr, fLogOpts.basedata,
-                fLogOpts.basestat);
+    clist.Print(lmsg(), cntx, &AddrMap(), fLogBaseAddr, fLogBaseData,
+                fLogBaseStat);
   }
-  if (loglevel <= fLogOpts.dumplevel) {
+  if (loglevel <= fDumpLevel) {
     RlogMsg lmsg(*fspLog);
     clist.Dump(lmsg(), 0);
   }
@@ -351,17 +356,19 @@ bool RlinkConnect::Exec(RlinkCommandList& clist, RlinkContext& cntx,
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-bool RlinkConnect::Exec(RlinkCommandList& clist, RlinkContext& cntx)
+void RlinkConnect::Exec(RlinkCommandList& clist, RlinkContext& cntx)
 {
   RerrMsg emsg;
   bool rc = Exec(clist, cntx, emsg);
   if (!rc) {
-    RlogMsg lmsg(*fspLog, 'E');
+    RlogMsg lmsg(*fspLog, 'F');
     lmsg << emsg << endl;
     lmsg << "Dump of failed clist:" << endl;
     clist.Dump(lmsg(), 0);    
   }
-  return rc;
+  if (!rc)
+    throw Rexception("RlinkConnect::Exec", "Exec() failed: ", emsg);
+  return;
 }
 
 //------------------------------------------+-----------------------------------
@@ -466,30 +473,74 @@ bool RlinkConnect::SndAttn(RerrMsg& emsg)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RlinkConnect::SetLogOpts(const LogOpts& opts)
+void RlinkConnect::SetLogBaseAddr(uint32_t base)
 {
-  if (opts.baseaddr!=2 && opts.baseaddr!=8 && opts.baseaddr!=16)
-    throw Rexception("RlinkConnect::SetLogOpts()",
-                     "Bad args: baseaddr != 2,8,16");
-  if (opts.basedata!=2 && opts.basedata!=8 && opts.basedata!=16)
-    throw Rexception("RlinkConnect::SetLogOpts()",
-                     "Bad args: basedata != 2,8,16");
-  if (opts.basestat!=2 && opts.basestat!=8 && opts.basestat!=16)
-    throw Rexception("RlinkConnect::SetLogOpts()",
-                     "Bad args: basestat != 2,8,16");
-
-  fLogOpts = opts;
-  if (fpPort) fpPort->SetTraceLevel(opts.tracelevel);
+  if (base!=2 && base!=8 && base!=16)
+    throw Rexception("RlinkConnect::SetLogBaseAddr()",
+                     "Bad args: base != 2,8,16");
+  fLogBaseAddr = base;
   return;
 }
+  
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void RlinkConnect::SetLogBaseData(uint32_t base)
+{
+  if (base!=2 && base!=8 && base!=16)
+    throw Rexception("RlinkConnect::SetLogBaseData()",
+                     "Bad args: base != 2,8,16");
+  fLogBaseData = base;
+  return;
+}
+  
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void RlinkConnect::SetLogBaseStat(uint32_t base)
+{
+  if (base!=2 && base!=8 && base!=16)
+    throw Rexception("RlinkConnect::SetLogBaseStat()",
+                     "Bad args: base != 2,8,16");
+  fLogBaseStat = base;
+  return;
+}
+  
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void RlinkConnect::SetPrintLevel(uint32_t lvl)
+{
+  fPrintLevel = lvl;
+  return;
+}
+  
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void RlinkConnect::SetDumpLevel(uint32_t lvl)
+{
+  fDumpLevel = lvl;
+  return;
+}
+  
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void RlinkConnect::SetTraceLevel(uint32_t lvl)
+{
+  fTraceLevel = lvl;
+  if (fpPort) fpPort->SetTraceLevel(lvl);
+  return;
+}  
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-bool RlinkConnect::LogOpen(const std::string& name)
+bool RlinkConnect::LogOpen(const std::string& name, RerrMsg& emsg)
 {
-  if (!fspLog->Open(name)) {
-    fspLog->UseStream(&cout, "<cout>");
+  if (!fspLog->Open(name, emsg)) {
+    fspLog->UseStream(&cout);
     return false;
   }
   return true;
@@ -501,6 +552,19 @@ bool RlinkConnect::LogOpen(const std::string& name)
 void RlinkConnect::LogUseStream(std::ostream* pstr, const std::string& name)
 {
   fspLog->UseStream(pstr, name);
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void RlinkConnect::SetLogFileName(const std::string& name)
+{
+  RerrMsg emsg;
+  if (!LogOpen(name, emsg)) {
+    throw Rexception("RlinkConnect::SetLogFile", 
+                     emsg.Text() + "', using stdout");
+  }  
   return;
 }
 
@@ -537,12 +601,12 @@ void RlinkConnect::Dump(std::ostream& os, int ind, const char* text) const
   fContext.Dump(os, ind+2, "fContext: ");
   fAddrMap.Dump(os, ind+2, "fAddrMap: ");
   fStats.Dump(os, ind+2, "fStats: ");
-  os << bl << "  fLogOpts.baseaddr   " << fLogOpts.baseaddr << endl;
-  os << bl << "          .basedata   " << fLogOpts.basedata << endl;
-  os << bl << "          .basestat   " << fLogOpts.basestat << endl;
-  os << bl << "          .printlevel " << fLogOpts.printlevel << endl;
-  os << bl << "          .dumplevel  " << fLogOpts.dumplevel << endl;
-  os << bl << "          .tracelevel " << fLogOpts.tracelevel << endl;
+  os << bl << "  fLogBaseAddr:    " << fLogBaseAddr << endl;
+  os << bl << "  fLogBaseData:    " << fLogBaseData << endl;
+  os << bl << "  fLogBaseStat:    " << fLogBaseStat << endl;
+  os << bl << "  fPrintLevel:     " << fPrintLevel << endl;
+  os << bl << "  fDumpLevel       " << fDumpLevel << endl;
+  os << bl << "  fTraceLevel      " << fTraceLevel << endl;
   fspLog->Dump(os, ind+2, "fspLog: ");
   os << bl << "  fAttnNotiPatt: " << RosPrintBvi(fAttnNotiPatt,16) << endl;
   //FIXME_code: fTsLastAttnNoti not yet in Dump (get formatter...)
@@ -1016,7 +1080,7 @@ void RlinkConnect::ProcessAttnNotify()
     }
   }
 
-  if (ok && fLogOpts.printlevel == 3) {
+  if (ok && fPrintLevel == 3) {
      RlogMsg lmsg(*fspLog, 'I');
      lmsg << "ATTN notify apat = " << RosPrintf(apat,"x0",4)
           << "  lams =";

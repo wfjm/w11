@@ -1,6 +1,6 @@
-# $Id: Makefile 604 2014-11-16 22:33:09Z mueller $
+# $Id: Makefile 638 2015-01-25 22:01:38Z mueller $
 #
-# Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # Code was forked from ixo-jtag.svn.sourceforge.net on 2011-07-17
 #
 # - original copyright and licence disclaimer --------------------------------
@@ -22,6 +22,7 @@
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2015-01-25   638   2.1    retire _as versions (old async interface)
 # 2014-11-16   604   2.0    add sdcc 3.x migration
 # 2012-04-09   461   1.5.1  fixed nexys3_jtag_3fifo_ic.ihx rule,used _2fifo code
 # 2012-02-11   457   1.5    re-organize VID/PID and descriptor handling
@@ -95,13 +96,9 @@ LDFLAGS+=-L ${LIBDIR}
 # primary target rules
 #
 ALLIHX  =nexys2_jtag.ihx
-ALLIHX +=nexys2_jtag_2fifo_as.ihx 
-ALLIHX +=nexys2_jtag_3fifo_as.ihx
 ALLIHX +=nexys2_jtag_2fifo_ic.ihx 
 ALLIHX +=nexys2_jtag_3fifo_ic.ihx
 ALLIHX +=nexys3_jtag.ihx
-ALLIHX +=nexys3_jtag_2fifo_as.ihx 
-ALLIHX +=nexys3_jtag_3fifo_as.ihx
 ALLIHX +=nexys3_jtag_2fifo_ic.ihx 
 ALLIHX +=nexys3_jtag_3fifo_ic.ihx
 
@@ -118,10 +115,6 @@ CPPA51=cpp -P -x assembler-with-cpp
 
 dscr_nexys2_jtag.a51 : dscr_gen.A51
 	$(CPPA51) $(DEFVIDPID) -DUSE_NEXYS2 $< > $@
-dscr_nexys2_jtag_2fifo_as.a51 : dscr_gen.A51
-	$(CPPA51) $(DEFVIDPID) -DUSE_NEXYS2 -DUSE_2FIFO -DUSE_AS $< > $@
-dscr_nexys2_jtag_3fifo_as.a51 : dscr_gen.A51
-	$(CPPA51) $(DEFVIDPID) -DUSE_NEXYS2 -DUSE_3FIFO -DUSE_AS $< > $@
 dscr_nexys2_jtag_2fifo_ic.a51 : dscr_gen.A51
 	$(CPPA51) $(DEFVIDPID) -DUSE_NEXYS2 -DUSE_2FIFO -DUSE_IC $< > $@
 dscr_nexys2_jtag_3fifo_ic.a51 : dscr_gen.A51
@@ -129,10 +122,6 @@ dscr_nexys2_jtag_3fifo_ic.a51 : dscr_gen.A51
 
 dscr_nexys3_jtag.a51 : dscr_gen.A51
 	$(CPPA51) $(DEFVIDPID) -DUSE_NEXYS3 $< > $@
-dscr_nexys3_jtag_2fifo_as.a51 : dscr_gen.A51
-	$(CPPA51) $(DEFVIDPID) -DUSE_NEXYS3 -DUSE_2FIFO -DUSE_AS $< > $@
-dscr_nexys3_jtag_3fifo_as.a51 : dscr_gen.A51
-	$(CPPA51) $(DEFVIDPID) -DUSE_NEXYS3 -DUSE_3FIFO -DUSE_AS $< > $@
 dscr_nexys3_jtag_2fifo_ic.a51 : dscr_gen.A51
 	$(CPPA51) $(DEFVIDPID) -DUSE_NEXYS3 -DUSE_2FIFO -DUSE_IC $< > $@
 dscr_nexys3_jtag_3fifo_ic.a51 : dscr_gen.A51
@@ -143,11 +132,6 @@ dscr_nexys3_jtag_3fifo_ic.a51 : dscr_gen.A51
 usb_fifo_init_jtag.rel : usb_fifo_init.c
 	$(CC) -c $(CFLAGS)  $< -o $@
 #
-usb_fifo_init_jtag_2fifo_as.rel : usb_fifo_init.c
-	$(CC) -c $(CFLAGS) -DUSE_2FIFO $< -o $@
-usb_fifo_init_jtag_3fifo_as.rel : usb_fifo_init.c
-	$(CC) -c $(CFLAGS) -DUSE_3FIFO $< -o $@
-#
 usb_fifo_init_jtag_2fifo_ic.rel : usb_fifo_init.c
 	$(CC) -c $(CFLAGS) -DUSE_2FIFO -DUSE_IC30 $< -o $@
 usb_fifo_init_jtag_3fifo_ic.rel : usb_fifo_init.c
@@ -156,9 +140,6 @@ usb_fifo_init_jtag_3fifo_ic.rel : usb_fifo_init.c
 COM_REL=vectors.rel main.rel eeprom.rel startup.rel
 #
 I0_REL=usb_fifo_init_jtag.rel
-#
-IAS2_REL=usb_fifo_init_jtag_2fifo_as.rel
-IAS3_REL=usb_fifo_init_jtag_3fifo_as.rel
 #
 IIC2_REL=usb_fifo_init_jtag_2fifo_ic.rel
 IIC3_REL=usb_fifo_init_jtag_3fifo_ic.rel
@@ -185,11 +166,6 @@ $(N3_REL) : hw_nexys3.c hardware.h
 nexys2_jtag.ihx :          $(COM_REL) dscr_nexys2_jtag.rel \
 				$(N2_REL) $(I0_REL)   $(LIB_REL)
 #
-nexys2_jtag_2fifo_as.ihx : $(COM_REL) dscr_nexys2_jtag_2fifo_as.rel \
-				$(N2_REL) $(IAS2_REL) $(LIB_REL)
-nexys2_jtag_3fifo_as.ihx : $(COM_REL) dscr_nexys2_jtag_3fifo_as.rel \
-				$(N2_REL) $(IAS3_REL) $(LIB_REL)
-#
 nexys2_jtag_2fifo_ic.ihx : $(COM_REL) dscr_nexys2_jtag_2fifo_ic.rel \
 				$(N2_REL) $(IIC2_REL) $(LIB_REL)
 nexys2_jtag_3fifo_ic.ihx : $(COM_REL) dscr_nexys2_jtag_3fifo_ic.rel \
@@ -199,11 +175,6 @@ nexys2_jtag_3fifo_ic.ihx : $(COM_REL) dscr_nexys2_jtag_3fifo_ic.rel \
 #
 nexys3_jtag.ihx :          $(COM_REL) dscr_nexys3_jtag.rel \
 				$(N3_REL) $(I0_REL)   $(LIB_REL)
-#
-nexys3_jtag_2fifo_as.ihx : $(COM_REL) dscr_nexys3_jtag_2fifo_as.rel \
-				$(N3_REL) $(IAS2_REL) $(LIB_REL)
-nexys3_jtag_3fifo_as.ihx : $(COM_REL) dscr_nexys3_jtag_3fifo_as.rel \
-				$(N3_REL) $(IAS3_REL) $(LIB_REL)
 #
 nexys3_jtag_2fifo_ic.ihx : $(COM_REL) dscr_nexys3_jtag_2fifo_ic.rel \
 				$(N3_REL) $(IIC2_REL) $(LIB_REL)

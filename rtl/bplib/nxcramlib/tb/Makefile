@@ -1,16 +1,17 @@
-# $Id: Makefile 575 2014-07-27 20:55:41Z mueller $
+# $Id: Makefile 639 2015-01-30 18:12:19Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2015-01-24   637   1.0.2  use nexys3 as default XTW_BOARD
 # 2014-07-27   545   1.0.1  make reference board configurable via XTW_BOARD
 # 2011-11-26   433   1.0    Initial version (cloned)
 #
 EXE_all = tb_nx_cram_memctl_as
 #
 ifndef XTW_BOARD
-  XTW_BOARD=nexys2
+  XTW_BOARD=nexys3
 endif
-include $(RETROBASE)/rtl/make/xflow_default_$(XTW_BOARD).mk
+include $(RETROBASE)/rtl/make_ise/xflow_default_$(XTW_BOARD).mk
 #
 .PHONY : all all_ssim all_tsim clean
 #
@@ -22,9 +23,9 @@ clean : ise_clean ghdl_clean isim_clean
 #
 #-----
 #
-include $(RETROBASE)/rtl/make/generic_ghdl.mk
-include $(RETROBASE)/rtl/make/generic_isim.mk
-include $(RETROBASE)/rtl/make/generic_xflow.mk
+include $(RETROBASE)/rtl/make_ise/generic_ghdl.mk
+include $(RETROBASE)/rtl/make_ise/generic_isim.mk
+include $(RETROBASE)/rtl/make_ise/generic_xflow.mk
 #
 VBOM_all = $(wildcard *.vbom)
 #

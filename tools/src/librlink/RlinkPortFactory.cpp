@@ -1,4 +1,4 @@
-// $Id: RlinkPortFactory.cpp 516 2013-05-05 21:24:52Z mueller $
+// $Id: RlinkPortFactory.cpp 632 2015-01-11 12:30:03Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -21,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPortFactory.cpp 516 2013-05-05 21:24:52Z mueller $
+  \version $Id: RlinkPortFactory.cpp 632 2015-01-11 12:30:03Z mueller $
   \brief   Implemenation of RlinkPortFactory.
 */
 
@@ -74,7 +74,7 @@ RlinkPort* Retro::RlinkPortFactory::New(const std::string& url, RerrMsg& emsg)
 RlinkPort* RlinkPortFactory::Open(const std::string& url, RerrMsg& emsg)
 {
   RlinkPort* pport = New(url, emsg);
-  if (pport == 0) return 0;
+  if (pport == nullptr) return 0;
 
   if (pport->Open(url, emsg)) return pport;
   delete pport;

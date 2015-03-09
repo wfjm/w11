@@ -1,4 +1,4 @@
--- $Id: sys_conf.vhd 472 2013-01-06 14:39:10Z mueller $
+-- $Id: sys_conf.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,7 +16,7 @@
 -- Description:    Definitions for sys_tst_rlink_cuff_ic_atlys (for synthesis)
 --
 -- Dependencies:   -
--- Tool versions:  xst 13.3; ghdl 0.29
+-- Tool versions:  xst 13.3-14.7; ghdl 0.29-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2013-01-06   472   1.0    Initial version 

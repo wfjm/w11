@@ -1,4 +1,4 @@
--- $Id: fx2_2fifo_core.vhd 469 2013-01-05 12:29:44Z mueller $
+-- $Id: fx2_2fifo_core.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,7 +18,7 @@
 -- Dependencies:   memlib/fifo_2c_dram
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 13.3; ghdl 0.29
+-- Tool versions:  xst 13.3-14.7; ghdl 0.29-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2013-01-04   469   1.0    Initial version

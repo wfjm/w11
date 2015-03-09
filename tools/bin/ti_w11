@@ -1,8 +1,12 @@
 #!/usr/bin/perl -w
-# $Id: ti_w11 619 2014-12-23 13:17:41Z mueller $
+# $Id: ti_w11 654 2015-03-01 18:45:38Z mueller $
+#
+# Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-01-02   640   1.2.2  BUGFIX: allow 'M' unit in baud rates
 # 2014-12-23   619   1.2.1  use -fifo tbw option for test bench starts
 # 2014-07-13   570   1.2    BUGFIX: split options args into ti_rri opts and cmds
 # 2013-05-05   516   1.1    renamed to ti_w11
@@ -15,7 +19,7 @@ use FileHandle;
 
 sub print_usage;
 
-autoflush STDOUT 1;             # autoflush, so noting lost on exec later
+autoflush STDOUT 1;             # autoflush, so nothing lost on exec later
 
 my $sysbase = "$ENV{RETROBASE}/rtl/sys_gen/w11a";
 
@@ -25,9 +29,12 @@ my $opt_f = '';
 my $opt_tmu;
 my $tirri;
 my $val_term;
-my $val_tb_s3 = "tbw $sysbase/s3board/tb/tb_w11a_s3 -fifo";
-my $val_tb_n2 = "tbw $sysbase/nexys2/tb/tb_w11a_n2 -fifo";
-my $val_tb_n3 = "tbw $sysbase/nexys3/tb/tb_w11a_n3 -fifo";
+my $val_tb_s3  = "tbw $sysbase/s3board/tb/tb_w11a_s3 -fifo";
+my $val_tb_n2  = "tbw $sysbase/nexys2/tb/tb_w11a_n2 -fifo";
+my $val_tb_n3  = "tbw $sysbase/nexys3/tb/tb_w11a_n3 -fifo";
+my $val_tb_b3  = "tbw $sysbase/basys3/tb/tb_w11a_b3 -fifo";
+my $val_tb_n4  = "tbw $sysbase/nexys4/tb/tb_w11a_n4 -fifo";
+my $val_tb_bn4 = "tbw $sysbase/nexys4_bram/tb/tb_w11a_br_n4 -fifo";
 my $val_tb;
 my $val_e;
 
@@ -62,6 +69,21 @@ while (scalar(@ARGV)) {
     $val_tb = $val_tb_n3;
     shift @ARGV;
 
+  } elsif ($curarg =~ m{^-b4$} ) {	    # -b3
+    $opt_io = 'f';
+    $val_tb = $val_tb_b3;
+    shift @ARGV;
+
+  } elsif ($curarg =~ m{^-n4$} ) {	    # -n4
+    $opt_io = 'f';
+    $val_tb = $val_tb_n4;
+    shift @ARGV;
+
+  } elsif ($curarg =~ m{^-bn4$} ) {	    # -bn4
+    $opt_io = 'f';
+    $val_tb = $val_tb_bn4;
+    shift @ARGV;
+
   } elsif ($curarg =~ m{^-f(s\d?|u)$} ) {    # -f[su]
     $opt_f = $1;
     shift @ARGV;
@@ -72,7 +94,7 @@ while (scalar(@ARGV)) {
     my ($dev,$baud,$opt1,$opt2) = split /,/,$curarg;
     $baud  = '115k' unless defined $baud;
 
-    if ($baud !~ m{^\d*k?$}) {
+    if ($baud !~ m{^\d*[kM]?$}) {
       print STDERR "ti_w11-E: invalid format of -ts or -tu option\n";
       exit 1;
     }
@@ -129,7 +151,7 @@ while (scalar(@ARGV)) {
 }
 
 #
-# check that either -s3/n2/n3 or -t or -u given
+# check that either -(s3|n2|n3|n4|bn4) or -t or -u given
 # setup pi_rri options for either case
 #
 
@@ -141,7 +163,7 @@ if ($opt_io eq 'f') {
 } elsif ($opt_io eq 'u') {
   push @arglist, '--cuff';
 } else {
-  print STDERR "ti_w11-E: neither -s3/-n2/-n3 nor -t or -u specified\n";
+  print STDERR "ti_w11-E: neither -(s3|n2|n3|b3|n4|bn4) nor -t or -u specified\n";
   print_usage();
   exit 1;
 }
@@ -223,9 +245,12 @@ exit 1;
 sub print_usage {
   print "usage: ti_w11 <setup options> <ti_rri opts and cmds>...\n";
   print "  setup options for ghdl simulation runs:\n";
-  print "    -s3       start tb_w11a_s3 simulation\n";
-  print "    -n2       start tb_w11a_n2 simulation\n";
+  print "    -b3       start tb_w11a_b3 simulation\n";
+  print "    -n4       start tb_w11a_n4 simulation\n";
+  print "    -bn4      start tb_w11a_br_n4 simulation\n";
   print "    -n3       start tb_w11a_n3 simulation\n";
+  print "    -n2       start tb_w11a_n2 simulation\n";
+  print "    -s3       start tb_w11a_s3 simulation\n";
   print "    -f..      simulation communication options\n";
   print "      -fu       use cuff data path\n";
   print "    -tmu      activate trace and monitoring unit\n";
@@ -240,6 +265,6 @@ sub print_usage {
   print "                file type '.mac': on the fly compile with asm-11\n";
   print "                any other file type: assume lda format\n";
   print "\n";
-  print "  either one of -s3,-n2, or -n3 must be given -> sim run\n";
+  print "  either one of -s3,-n2,-n3,-b3,-n4,-bn4  must be given -> sim run\n";
   print "  or one of -t or -u must be given            -> fpga run\n";
 }

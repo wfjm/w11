@@ -1,4 +1,4 @@
-# $Id: util.tcl 620 2014-12-25 10:48:35Z mueller $
+# $Id: util.tcl 643 2015-02-07 17:41:53Z mueller $
 #
 # Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-02-07   642   1.1    add print()
 # 2011-04-17   376   1.0.1  add proc read
 # 2011-04-02   375   1.0    Initial version
 #
@@ -102,5 +103,24 @@ namespace eval rbemon {
     }
     return $rval
   }
-  
+  #
+  # print: pretty print eyemon data
+  #
+  proc print {{nval 512}} {
+    set edat [read $nval]
+    set emax 0
+    foreach {dat} $edat {
+      if {$dat > $emax} {set emax $dat}
+    }
+    set lemax [expr {$emax > 0 ? log($emax) : 1.}]
+    set rval " ind        data"
+    set i 0
+    foreach {dat} $edat {
+      append rval [format "\n%4d : %9d :" $i $dat]
+      set nh [expr {$dat > 0 ?  60. * log($dat) / $lemax : 0 }]
+      for {set j 1} {$j < $nh} {incr j} { append rval "=" }
+      incr i
+    }
+    return $rval
+  }
 }

@@ -1,6 +1,6 @@
-// $Id: RlogFile.hpp 492 2013-02-24 22:14:47Z mueller $
+// $Id: RlogFile.hpp 631 2015-01-09 21:36:51Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-01-08   631   2.2    Open(): now with RerrMsg and cout/cerr support
 // 2013-02-23   492   2.1    add Name(), keep log file name; add Dump()
 // 2013-02-22   491   2.0    add Write(),IsNew(), RlogMsg iface; use lockable
 // 2011-04-24   380   1.0.1  use boost::noncopyable (instead of private dcl's)
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RlogFile.hpp 492 2013-02-24 22:14:47Z mueller $
+  \version $Id: RlogFile.hpp 631 2015-01-09 21:36:51Z mueller $
   \brief   Declaration of class RlogFile.
 */
 
@@ -35,6 +36,8 @@
 #include "boost/utility.hpp"
 #include "boost/thread/mutex.hpp"
 
+#include "RerrMsg.hpp"
+
 namespace Retro {
 
   class RlogMsg;                            // forw decl to avoid circular incl
@@ -46,7 +49,7 @@ namespace Retro {
                    ~RlogFile();
 
       bool          IsNew() const;
-      bool          Open(std::string name);
+      bool          Open(std::string name, RerrMsg& emsg);
       void          Close();
       void          UseStream(std::ostream* os, const std::string& name = "");
       const std::string&  Name() const;
@@ -64,6 +67,7 @@ namespace Retro {
     protected:
       std::ostream& Stream();
       void          ClearTime();
+      std::string   BuildinStreamName(std::ostream* os, const std::string& str);
 
     protected:
       std::ostream* fpExtStream;            //!< pointer to external stream

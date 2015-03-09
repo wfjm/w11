@@ -1,6 +1,6 @@
--- $Id: ibdr_maxisys.vhd 565 2014-06-28 12:54:08Z mueller $
+-- $Id: ibdr_maxisys.vhd 641 2015-02-01 22:12:15Z mueller $
 --
--- Copyright 2009-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2009-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -28,24 +28,25 @@
 --                 ib_intmap
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
--- 2014-06-08   561 14.7  131013 xc6slx16-2   380  748   18  266 s  7.1 +RL11
+-- 2015-01-04   630 14.7  131013 xc6slx16-2   388  761   20  265 s  8.0 +RL11
 -- 2014-06-08   560 14.7  131013 xc6slx16-2   311  615    8  216 s  7.1
 -- 2010-10-17   333 12.1    M53d xc3s1000-4   312 1058   16  617 s 10.3
 -- 2010-10-17   314 12.1    M53d xc3s1000-4   300 1094   16  626 s 10.4
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-01-04   630   1.2.1  RL11 back in
 -- 2014-06-27   565   1.2.1  temporarily hide RL11
 -- 2014-06-08   561   1.2    add rl11
 -- 2011-11-18   427   1.1.2  now numeric_std clean
--- 2010-10-23   335   1.1.1  rename RRI_LAM->RB_LAM;
+-- 2010-10-23   335   1.1.1  rename RRI_LAM->RB_LAM
 -- 2010-06-11   303   1.1    use IB_MREQ.racc instead of RRI_REQ
 -- 2009-07-12   233   1.0.4  reorder ports; add RESET, CE_USEC to _dl11
--- 2009-06-20   227   1.0.3  rename generate labels.
+-- 2009-06-20   227   1.0.3  rename generate labels
 -- 2009-06-07   224   1.0.2  add iist_mreq and iist_sres interfaces
 -- 2009-06-01   221   1.0.1  add CE_USEC; add RESET to kw11l; add _pc11, _iist
 -- 2009-05-24   219   1.0    Initial version
@@ -237,20 +238,20 @@ begin
       EI_ACK  => EI_ACK_KW11L
     );
 
---  RL11: if true  generate
---  begin
---    I0 : ibdr_rl11
---      port map (
---        CLK     => CLK,
---        CE_MSEC => CE_MSEC,
---        BRESET  => BRESET,
---        RB_LAM  => RB_LAM_RL11,
---        IB_MREQ => IB_MREQ,
---        IB_SRES => IB_SRES_RL11,
---        EI_REQ  => EI_REQ_RL11,
---        EI_ACK  => EI_ACK_RL11
---      );
---  end generate RL11;
+  RL11: if true  generate
+  begin
+    I0 : ibdr_rl11
+      port map (
+        CLK     => CLK,
+        CE_MSEC => CE_MSEC,
+        BRESET  => BRESET,
+        RB_LAM  => RB_LAM_RL11,
+        IB_MREQ => IB_MREQ,
+        IB_SRES => IB_SRES_RL11,
+        EI_REQ  => EI_REQ_RL11,
+        EI_ACK  => EI_ACK_RL11
+      );
+  end generate RL11;
 
   RK11: if true generate
   begin

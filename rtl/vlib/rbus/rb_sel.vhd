@@ -1,4 +1,4 @@
--- $Id: rb_sel.vhd 583 2014-08-16 07:40:12Z mueller $
+-- $Id: rb_sel.vhd 641 2015-02-01 22:12:15Z mueller $
 --
 -- Copyright 2010-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,7 +18,7 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 12.1-14.7; ghdl 0.29-0.31
+-- Tool versions:  ise 12.1-14.7; viv 2014.4; ghdl 0.29-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.cpp 626 2015-01-03 14:41:37Z mueller $
+// $Id: Rw11Cpu.cpp 632 2015-01-11 12:30:03Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -23,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cpu.cpp 626 2015-01-03 14:41:37Z mueller $
+  \version $Id: Rw11Cpu.cpp 632 2015-01-11 12:30:03Z mueller $
   \brief   Implemenation of Rw11Cpu.
 */
 #include <stdlib.h>
@@ -109,7 +109,7 @@ const uint16_t  Rw11Cpu::kCp_membe_m_be;
 //! Constructor
 
 Rw11Cpu::Rw11Cpu(const std::string& type)
-  : fpW11(0),
+  : fpW11(nullptr),
     fType(type),
     fIndex(0),
     fBase(0),
@@ -436,7 +436,6 @@ bool Rw11Cpu::ProbeCntl(Rw11Probe& dsc)
     }
 
     Server().Exec(clist);
-    // FIXME_code: handle errors
 
     if (dsc.fProbeInt) {
       dsc.fFoundInt = (clist[iib].Status() & 
@@ -751,8 +750,8 @@ void Rw11Cpu::W11AttnHandler()
 {
   RlinkCommandList clist;
   clist.AddRreg(fBase+kCp_addr_stat);
-  if (Server().Exec(clist)) 
-    SetCpuGoDown(clist[0].Data());
+  Server().Exec(clist);
+  SetCpuGoDown(clist[0].Data());
   return;
 }
 

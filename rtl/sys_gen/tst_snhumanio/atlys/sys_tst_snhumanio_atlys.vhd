@@ -1,4 +1,4 @@
--- $Id: sys_tst_snhumanio_atlys.vhd 439 2011-12-16 21:56:04Z mueller $
+-- $Id: sys_tst_snhumanio_atlys.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -22,7 +22,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 13.1; ghdl 0.29
+-- Tool versions:  xst 13.1-14.7; ghdl 0.29-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri

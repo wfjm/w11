@@ -1,6 +1,6 @@
--- $Id: sys_conf.vhd 619 2014-12-23 13:17:41Z mueller $
+-- $Id: sys_conf.vhd 647 2015-02-17 22:35:36Z mueller $
 --
--- Copyright 2010-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,6 +19,8 @@
 -- Tool versions:  xst 11.4-14.7; ghdl 0.26-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-02-15   647   1.3    drop bram and minisys options
+-- 2015-01-04   630   1.2.2  use clksys=54 (no closure after rlink r4 + RL11)
 -- 2014-12-22   619   1.2.1  add _rbmon_awidth
 -- 2013-04-21   509   1.2    add fx2 settings
 -- 2011-11-19   428   1.1.1  use clksys=56 (58 no closure after numeric_std...)
@@ -40,7 +42,7 @@ use work.slvtypes.all;
 package sys_conf is
 
   constant sys_conf_clkfx_divide : positive   :=  25;
-  constant sys_conf_clkfx_multiply : positive :=  28;   -- ==> 56 MHz
+  constant sys_conf_clkfx_multiply : positive :=  27;   -- ==> 54 MHz
 
   constant sys_conf_memctl_read0delay : positive := 3;
   constant sys_conf_memctl_read1delay : positive := sys_conf_memctl_read0delay;
@@ -56,15 +58,9 @@ package sys_conf is
 
   constant sys_conf_hio_debounce : boolean := true;    -- instantiate debouncers
 
-  constant sys_conf_bram           : integer :=  0;      -- no bram, use cache
-  constant sys_conf_bram_awidth    : integer := 14;      -- bram size (16 kB)
   constant sys_conf_mem_losize     : integer := 8#167777#; --   4 MByte
 --constant sys_conf_mem_losize     : integer := 8#003777#; -- 128 kByte (debug)
 
---  constant sys_conf_bram           : integer :=  1;      --  bram only 
---  constant sys_conf_bram_awidth    : integer := 15;      -- bram size (32 kB)
---  constant sys_conf_mem_losize     : integer := 8#000777#; -- 32 kByte
-  
   constant sys_conf_cache_fmiss    : slbit   := '0';     -- cache enabled
 
   -- derived constants

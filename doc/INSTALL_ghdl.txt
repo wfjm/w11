@@ -1,4 +1,4 @@
-# $Id: INSTALL_ghdl.txt 537 2013-10-06 09:06:23Z mueller $
+# $Id: INSTALL_ghdl.txt 651 2015-02-26 21:32:15Z mueller $
 
 The w11 project uses the open source VHDL simulator
 
@@ -6,18 +6,18 @@ The w11 project uses the open source VHDL simulator
 
 It used to be part of most distributions. Unfortunately the Debian maintainer 
 for ghdl refused at some point to integrate ghdl into Debian Etch. Therefore
-ghdl was part of Debian Lenny, and again of Debian Squeeze, and is missing
-again in Debian Wheezy (the current 'stable').
+ghdl was part of Debian 5 "Lenny", and again of Debian 6 "Squeeze", and is 
+missing again in Debian 7 "Wheezy" (the current 'stable').
 
 The glitch at Debian unfortunately lead to the removal of ghdl from Ubuntu, 
-which is based on Debian. Ubuntu Lucid (10.04) and up to Oneiric (11.10) 
-included ghdl, the currently maintained versions Precise (12.04 LTS) and 
-alter don't.
+which is based on Debian. Ubuntu 10.04 "Lucid" up to 11.10 "Oneiric" included 
+ghdl, the currently maintained versions 12.04 LTS "Precise", 14.04 LTS "Trusty"
+and 14.10 "Utopic" unfortunately don't.
 
 To install ghdl on an up-to-date Debian or Ubuntu systems you have the
-following options {as of early October 2013}:
+following options {as of early February 2015}:
 
-- Ubuntu Precise, Quantal, and Raring
+- Ubuntu Precise and Trusty
 
   Thanks to Peter Gavin Ubuntu packages for GHDL are available from his PPA
   'Personal Package Archives', see
@@ -39,9 +39,9 @@ following options {as of early October 2013}:
 
   There are also Ubuntu packages, but Joris focus is clearly on Debian.
 
-Only Debian and Ubuntu are actively used by the w11a developer. The 
-situation for other linux distributions is therefore just taken from
-the respective web sites:
+Only Debian and Ubuntu are actively used by the w11a developer. The situation 
+for other Linux distributions is therefore just taken from the respective web 
+sites {status October 2013}:
 
 - Suse
   For Suse 12.2 and 12.3 un-official ghdl packages are available, but they

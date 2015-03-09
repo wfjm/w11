@@ -1,4 +1,4 @@
--- $Id: sys_conf2_sim.vhd 441 2011-12-20 17:01:16Z mueller $
+-- $Id: sys_conf2_sim.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,7 +16,7 @@
 -- Description:    Definitions for sys_tst_serloop2_n2 (for test bench)
 --
 -- Dependencies:   -
--- Tool versions:  xst 11.4; ghdl 0.26
+-- Tool versions:  xst 11.4-14.7; ghdl 0.26-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2011-11-13   424   1.0    Initial version 

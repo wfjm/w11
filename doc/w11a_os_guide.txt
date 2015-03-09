@@ -1,4 +1,4 @@
-# $Id: w11a_os_guide.txt 581 2014-08-10 21:48:46Z mueller $
+# $Id: w11a_os_guide.txt 654 2015-03-01 18:45:38Z mueller $
 
 Guide to run operating system images on w11a systems
 
@@ -14,59 +14,74 @@ Guide to run operating system images on w11a systems
 
 1. I/O emulation setup ----------------------------------------------------
 
-   All UNIBUS peripherals which exchange data (currently DL11, LP11, PC11, RK11)
-   are currently emulated via a backend process. The communication between 
-   FPGA board and backend server can be via
+   All UNIBUS peripherals which exchange data (currently DL11, LP11, PC11, RK11,
+   and RL11) are currently emulated via a backend process. The communication 
+   between FPGA board and backend server can be via
 
+   - Serial port
+     - via an integrated USB-UART bridge
+       - on basys3 and nexys4 with a FT2232HQ, allows up to 12M Baud
+       - on nexys3 with a FT232R, allows up to 2M Baud
+     - via RS232 port, as on s3board and nexys2
+       - using a serial port (/dev/ttySx) is limited to 115 kBaud on most PCs.
+       - using a USB-RS232 adapter was tested up to 460k Baud. 
+   
    - Direct USB connection using a Cypress FX2 USB controller
      - is supported on the nexys2 and nexys3 FPGA boards
      - much faster than serial port connections (see below)
      - also allows to configure the FPGA over the same USB connection
 
-   - Serial port
-     - via direct (/dev/ttySx) or via a USB-RS232 adapter. A direct connection
-       is limited to 115k Baud on most PCs, while a connection via a USB-RS232 
-       adapter was tested up to 460k Baud. A USB-RS232 adapter is thus highly 
-       recommended
-     - via integrated USB-RS232 adapter, like on nexys3 board. This is much 
-       faster, allows bitrates up to 2 M Baud.
-    
-     Notes: - A USB-RS232 cable with a FTDI FT232R chip, like the cable offered
-              by FTDI as US232R-100 works fine.
-            - A USB-RS232 cable with a Prolific Technology PL2303 chip simply
-              never gave reliable connections for higher Baud rates.
-            - The rest assumes that a USB-RS232 cable with FTDI chip is used
-            - A 460k Baud connection gives in practice a disk throughput of 
-              about 20 kB/s. This allows to test the system but is a bit slow 
-              to real usage.  In an OS with good disk caching like 2.11BSD the 
-              impact of such a 'slow disk' is actually smaller than the bare 
-              numbers suggest.
-            - On older linux kernels (prior 2.6.32) it is essential to set the
-              latency timer for the FTDI USB-RS232 cable to 1 ms (from the 
-              power up default of 16 ms), e.g. with
-                sudo $RETROBASE/tools/bin/set_ftdi_lat USB0 1
-              For linux kernel 2.6.32 or newer the default is 1 ms already.
+   Notes: 
+   - A 10M Baud connection, like on a nexys4, gives disk access rates and 
+     throughputs much better than the real hardware of the 70's and is well 
+     suitable for practical usage.
+   - In an OS with good disk caching like 2.11BSD the impact of disk speed
+     is actually smaller than the bare numbers suggest.
+   - A 460k Baud connection gives in practice a disk throughput of ~20 kB/s. 
+     This allows to test the system but is a bit slow for real usage.
+   - USB-RS232 cables with a FTDI FT232R chip work fine, tests with Prolific 
+     Technology PL2303 based cable never gave reliable connections for higher 
+     Baud rates.
 
+   Recommended setup for best performance (boards ordered by vintage):
+
+       Board   Channel/Interface      nom. speed      peak transfer rate
+
+      basys3   USB-UART bridge        10M Baud              910 kB/sec
+      nexys4   USB-UART bridge        10M Baud              910 kb/sec
+      nexys3   Cypress FX2 USB        USB2.0 speed        30000 kB/sec
+      nexys2   Cypress FX2 USB        USB2.0 speed        30000 kB/sec
+     s3board   RS232+USB-RS232 cable  460k Baud              41 kB/sec
+    
 2. FPGA Board setup -------------------------------------------------------
 
-   - Using Cypress FX2 USB controller for configuration and rlink communication
-     - for nexys2
-       - connect USB cable to mini-USB connector (between RS232 and PS/2 port)
-     - for nexys3
-       - connect USB cable to micro-USB connector labeled 'USB PROG'
+   Recommended setups
 
-   - Using serial port for rlink communication
-     - for s3board and nexys2
-       - connect the USB-RS232 cable to the RS232 port
-     - for nexys3
-       - connect USB cable to the micro-USB connector 'UART' 
-         (next to the 5 buttons)
-     - connect a JTAG programmer (e.g. Xilinx USB Cable II) to JTAG pins
+   - Basys3
+     - connect USB cable to micro-USB connector labeled 'PROG'
+     - to configure via vivado hardware server
+         make <sys>.vconfig
 
-   - Configure the FPGA
-     - if Cypress FX2 port is connected load design with
+   - Nexys4
+     - connect USB cable to micro-USB connector labeled 'PROG'
+     - to configure via vivado hardware server
+         make <sys>.vconfig
+
+   - Nexys3
+     - use Cypress FX for configure and and rlink communication
+     - connect USB cable to micro-USB connector labeled 'USB PROG'
+     - to configure via FX2 and jtag tool
          make <sys>.jconfig
-     - otherwise use impact with
+
+   - Nexys2
+     - connect USB cable to mini-USB connector (between RS232 and PS/2 port)
+     - to configure via FX2 and jtag tool
+         make <sys>.jconfig
+
+   - S3board
+     - connect the USB-RS232 cable to the RS232 port
+     - connect a JTAG programmer (e.g. Xilinx USB Cable II) to JTAG pins
+     - to configure via ISE Impact
          make <sys>.iconfig
 
 3. Rlink and Backend Server setup -----------------------------------------
@@ -84,17 +99,55 @@ Guide to run operating system images on w11a systems
      are in the indicated positions (SWI=...). The concrete boot script
      name <boot-script> is given in the following sections
 
-     [for n2,n3 over fx2:]
-       SWI = 00000100
-       ti_w11 -u     @<oskit-name>_boot.tcl
+     - for b3 over serial
+         SWI = 00000000 00101010
+         ti_w11 -tu<dn>,10M,break,xon  @<oskit-name>_boot.tcl
 
-     [for s3,n2 over serial:]
-       SWI = 00000010
-       ti_w11 -tu0,460k,break,xon   @<oskit-name>_boot.tcl
-     [for n3 over serial:]
-       SWI = 00000010
-       ti_w11 -tu0,2M,break,xon     @<oskit-name>_boot.tcl
+         NOTE: the basys3 w11a has only 176 kB memory (all from BRAMS!)
+               unix-v5 works fine. XXDP, RT11 and RSX-11M should work.
+               211bsd will not boot, either most RSX-11M+ systems.
+
+     - for n4 over serial
+         SWI = 00000000 00101000
+         ti_w11 -tu<dn>,10M,break,cts  @<oskit-name>_boot.tcl
+
+     - for n2,n3 over fx2
+         SWI = 00101100
+         ti_w11 -u @<oskit-name>_boot.tcl
+
+     - for s3 serial
+         SWI = 00101010
+         ti_w11 -tu<dn>,460k,break,xon @<oskit-name>_boot.tcl
    
+     Notes: 
+     - on <dn>, the serial device number
+       - check with 'ls /dev/ttyUSB*' to see what is available
+       - <dn> is typically '1' if only a single basys3 or nexys4 is connected
+         Initially two ttyUSB devices show up, the lower is for FPGA config
+         and will disappear when Vivado hardware server is used once. The
+         upper provides the data connection.
+       - <dn> is typically '0' if only a single USB-RS232 cable is connected
+
+     - on LED display
+       - is controlled by SWI(3)
+           0 -> system status
+           1 -> DR emulation --> OS specific light patterns
+
+     - on Hex display
+       - is controlled by SWI(5:4)
+       - boards with a 4 digit display
+           00 -> serial link rate divider
+           01 -> PC
+           10 -> DISPREG
+           11 -> DR emulation
+       - boards with 8 digit display
+         - SWI(5) select for DSP(7:4) display
+             0 -> serial link rate divider
+             1 -> PC
+         - SWI(4) select for DSP(3:0) display
+             0 -> DISPREG
+             1 -> DR emulation
+
 4. simh simulator setup ---------------------------------------------------
 
    Sometimes it is good to compare the w11a behaviour with the PDP-11 software
@@ -103,7 +156,7 @@ Guide to run operating system images on w11a systems
    Under $RETROBASE/tools/simh two setup files are provided with configure
    simh to reflect the w11a setup as close as possible:
    - setup_w11a_min.scmd
-     Very close the current w11a state when it runs on an S3BOARD
+     Very close the current w11a state when it runs on an s3board
      - processor: 11/70, no FPP, 1 Mbyte
      - periphery:   2 DL11, LP11, RK11, PC11
    - setup_w11a_max.scmd
@@ -153,7 +206,8 @@ Guide to run operating system images on w11a systems
 
      - unix-v5_rk: Unix V5 System on RK05
      - 211bsd_rk:  2.11BSD system on RK05
-   
+     - 211bsd_rl:  2.11BSD system on RL02
+
    For further details consult the README_<oskit-name>set.txt file in the
    oskit directory.
 
@@ -186,11 +240,13 @@ Guide to run operating system images on w11a systems
      out the W11A and let the author know whether is works as it should.
      For convenience the boot scripts are also included ( <kit>.tcl ).
 
-   Three oskits are currently provided
+   Several osskits are currently provided
 
-     - rsx11m-31_rk: RSX-11M V3.1 on RK05
-     - rsx11m-40_rk: RSX-11M V4.0 on RK05
-     - rt11-40_rk:   RT-11 V4.0   on RK05
+     - rsx11m-31_rk: RSX-11M V3.1    on RK05
+     - rsx11m-40_rk: RSX-11M V4.0    on RK05
+     - rt11-40_rk:   RT-11 V4.0      on RK05
+     - rt11-53_rl:   RT-11 V5.3      on RL02
+     - xxdp_rl:      XXDP 22 and 25  on RL02
 
    For further details consult the README_<oskit-name>set.txt file in the
    oskit directory.

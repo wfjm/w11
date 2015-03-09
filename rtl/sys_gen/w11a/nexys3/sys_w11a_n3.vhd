@@ -1,6 +1,6 @@
--- $Id: sys_w11a_n3.vhd 620 2014-12-25 10:48:35Z mueller $
+-- $Id: sys_w11a_n3.vhd 652 2015-02-28 12:18:08Z mueller $
 --
--- Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,19 +20,19 @@
 --                 bplib/bpgen/bp_rs232_2l4l_iob
 --                 bplib/bpgen/sn_humanio_rbus
 --                 bplib/fx2rlink/rlink_sp1c_fx2
---                 bplib/fx2rlink/ioleds_sp1c_fx2
 --                 vlib/rbus/rb_sres_or_4
 --                 vlib/rbus/rbd_rbmon
 --                 w11a/pdp11_core_rbus
 --                 w11a/pdp11_core
---                 w11a/pdp11_bram
---                 vlib/nxcramlib/nx_cram_dummy
 --                 w11a/pdp11_cache
 --                 w11a/pdp11_mem70
 --                 bplib/nxcramlib/nx_cram_memctl_as
 --                 ibus/ib_sres_or_2
---                 ibus/ibdr_minisys
 --                 ibus/ibdr_maxisys
+--                 bplib/fx2rlink/ioleds_sp1c_fx2
+--                 w11a/pdp11_statleds
+--                 w11a/pdp11_ledmux
+--                 w11a/pdp11_dspmux
 --                 w11a/pdp11_tmu_sb           [sim only]
 --
 -- Test bench:     tb/tb_sys_w11a_n3
@@ -42,6 +42,7 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2014-02-21   649 14.7  131013 xc6slx16-2  1819 3905  160 1380 ok: +RL11
 -- 2014-12-22   619 14.7  131013 xc6slx16-2  1742 3767  150 1350 ok: +rbmon
 -- 2014-12-20   614 14.7  131013 xc6slx16-2  1640 3692  150 1297 ok: -RL11,rlv4
 -- 2014-06-08   561 14.7  131013 xc6slx16-2  1531 3500  142 1165 ok: +RL11
@@ -52,6 +53,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-02-21   649   1.8.1  use ioleds_sp1c,pdp11_(statleds,ledmux,dspmux)
+-- 2015-02-15   647   1.8    drop bram and minisys options
 -- 2014-12-24   620   1.7.2  relocate ibus window and hio rbus address
 -- 2014-12-22   619   1.7.1  add rbus monitor rbd_rbmon
 -- 2014-08-28   588   1.7    use new rlink v4 iface generics and 4 bit STAT
@@ -70,25 +73,37 @@
 --
 -- Usage of Nexys 3 Switches, Buttons, LEDs:
 --
---    SWI(7:3): no function (only connected to sn_humanio_rbus)
+--    SWI(7:6): no function (only connected to sn_humanio_rbus)
+--       (5:4):  select DSP
+--                 00 abclkdiv & abclkdiv_f
+--                 01 PC
+--                 10 DISPREG
+--                 11 DR emulation
+--       (3):    select LED display
+--                 0 overall status
+--                 1 DR emulation
 --       (2)    0 -> int/ext RS242 port for rlink
 --              1 -> use USB interface for rlink
---    SWI(1):   1 enable XON
---    SWI(0):   0 -> main board RS232 port
+--       (1):   1 enable XON
+--       (0):   0 -> main board RS232 port
 --              1 -> Pmod B/top RS232 port
 --    
---    LED(7)    MEM_ACT_W
---       (6)    MEM_ACT_R
---       (5)    cmdbusy (all rlink access, mostly rdma)
---       (4:0): if cpugo=1 show cpu mode activity
+--    LEDs if SWI(3) = 1
+--      (7:0)    DR emulation; shows R0(lower 8 bits) during wait like 11/45+70
+--
+--    LEDs if SWI(3) = 0
+--        (7)    MEM_ACT_W
+--        (6)    MEM_ACT_R
+--        (5)    cmdbusy (all rlink access, mostly rdma)
+--      (4:0)    if cpugo=1 show cpu mode activity
 --                  (4) kernel mode, pri>0
 --                  (3) kernel mode, pri=0
 --                  (2) kernel mode, wait
 --                  (1) supervisor mode
 --                  (0) user mode
 --              if cpugo=0 shows cpurust
---                (3:0) cpurust code
 --                  (4) '1'
+--                (3:0) cpurust code
 --
 --    DP(3:0) shows IO activity
 --            if SWI(2)=0 (serport)
@@ -242,6 +257,8 @@ architecture syn of sys_w11a_n3 is
   signal DM_STAT_SY : dm_stat_sy_type := dm_stat_sy_init;
 
   signal DISPREG : slv16 := (others=>'0');
+  signal STATLEDS :  slv8 := (others=>'0');
+  signal ABCLKDIV : slv16 := (others=>'0');
 
   constant rbaddr_rbmon : slv16 := x"ffe8"; -- ffe8/0008: 1111 1111 1110 1xxx
   constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/0004: 1111 1110 1111 00xx
@@ -407,7 +424,7 @@ begin
       CP_DOUT   => CP_DOUT      
     );
 
-  CORE : pdp11_core
+  W11A : pdp11_core
     port map (
       CLK       => CLK,
       RESET     => CPU_RESET,
@@ -429,123 +446,73 @@ begin
       DM_STAT_CO => DM_STAT_CO
     );  
 
-  MEM_BRAM: if sys_conf_bram > 0 generate
-    signal HM_VAL_BRAM : slbit := '0';
-  begin
-    
-    MEM : pdp11_bram
-      generic map (
-        AWIDTH => sys_conf_bram_awidth)
-      port map (
-        CLK     => CLK,
-        GRESET  => CPU_RESET,
-        EM_MREQ => EM_MREQ,
-        EM_SRES => EM_SRES
-      );
+  CACHE: pdp11_cache
+    port map (
+      CLK       => CLK,
+      GRESET    => CPU_RESET,
+      EM_MREQ   => EM_MREQ,
+      EM_SRES   => EM_SRES,
+      FMISS     => CACHE_FMISS,
+      CHIT      => CACHE_CHIT,
+      MEM_REQ   => MEM_REQ,
+      MEM_WE    => MEM_WE,
+      MEM_BUSY  => MEM_BUSY,
+      MEM_ACK_R => MEM_ACK_R,
+      MEM_ADDR  => MEM_ADDR,
+      MEM_BE    => MEM_BE,
+      MEM_DI    => MEM_DI,
+      MEM_DO    => MEM_DO
+    );
 
-    HM_VAL_BRAM <= not EM_MREQ.we;        -- assume hit if read, miss if write
-      
-    MEM70: pdp11_mem70
-      port map (
-        CLK         => CLK,
-        CRESET      => BRESET,
-        HM_ENA      => EM_MREQ.req,
-        HM_VAL      => HM_VAL_BRAM,
-        CACHE_FMISS => MEM70_FMISS,
-        IB_MREQ     => IB_MREQ,
-        IB_SRES     => IB_SRES_MEM70
-      );
+  MEM70: pdp11_mem70
+    port map (
+      CLK         => CLK,
+      CRESET      => BRESET,
+      HM_ENA      => HM_ENA,
+      HM_VAL      => CACHE_CHIT,
+      CACHE_FMISS => MEM70_FMISS,
+      IB_MREQ     => IB_MREQ,
+      IB_SRES     => IB_SRES_MEM70
+    );
 
-    SRAM_PROT : nx_cram_dummy           -- connect CRAM to protection dummy
-      port map (
-        O_MEM_CE_N  => O_MEM_CE_N,
-        O_MEM_BE_N  => O_MEM_BE_N,
-        O_MEM_WE_N  => O_MEM_WE_N,
-        O_MEM_OE_N  => O_MEM_OE_N,
-        O_MEM_ADV_N => O_MEM_ADV_N,
-        O_MEM_CLK   => O_MEM_CLK,
-        O_MEM_CRE   => O_MEM_CRE,
-        I_MEM_WAIT  => I_MEM_WAIT,
-        O_MEM_ADDR  => O_MEM_ADDR,
-        IO_MEM_DATA => IO_MEM_DATA
-      );
+  HM_ENA      <= EM_SRES.ack_r or EM_SRES.ack_w;
+  CACHE_FMISS <= MEM70_FMISS or sys_conf_cache_fmiss;
+  
+  MEM_ADDR_EXT <= "00" & MEM_ADDR;    -- just use lower 4 MB (of 16 MB)
 
-      O_PPCM_CE_N  <= '1';              -- keep parallel PCM memory disabled
-      O_PPCM_RST_N <= '1';              --
-    
-  end generate MEM_BRAM;
+  SRAM_CTL: nx_cram_memctl_as
+    generic map (
+      READ0DELAY => sys_conf_memctl_read0delay,
+      READ1DELAY => sys_conf_memctl_read1delay,
+      WRITEDELAY => sys_conf_memctl_writedelay)
+    port map (
+      CLK         => CLK,
+      RESET       => CPU_RESET,
+      REQ         => MEM_REQ,
+      WE          => MEM_WE,
+      BUSY        => MEM_BUSY,
+      ACK_R       => MEM_ACK_R,
+      ACK_W       => open,
+      ACT_R       => MEM_ACT_R,
+      ACT_W       => MEM_ACT_W,
+      ADDR        => MEM_ADDR_EXT,
+      BE          => MEM_BE,
+      DI          => MEM_DI,
+      DO          => MEM_DO,
+      O_MEM_CE_N  => O_MEM_CE_N,
+      O_MEM_BE_N  => O_MEM_BE_N,
+      O_MEM_WE_N  => O_MEM_WE_N,
+      O_MEM_OE_N  => O_MEM_OE_N,
+      O_MEM_ADV_N => O_MEM_ADV_N,
+      O_MEM_CLK   => O_MEM_CLK,
+      O_MEM_CRE   => O_MEM_CRE,
+      I_MEM_WAIT  => I_MEM_WAIT,
+      O_MEM_ADDR  => O_MEM_ADDR,
+      IO_MEM_DATA => IO_MEM_DATA
+    );
 
-  MEM_SRAM: if sys_conf_bram = 0 generate
-    
-    CACHE: pdp11_cache
-      port map (
-        CLK       => CLK,
-        GRESET    => CPU_RESET,
-        EM_MREQ   => EM_MREQ,
-        EM_SRES   => EM_SRES,
-        FMISS     => CACHE_FMISS,
-        CHIT      => CACHE_CHIT,
-        MEM_REQ   => MEM_REQ,
-        MEM_WE    => MEM_WE,
-        MEM_BUSY  => MEM_BUSY,
-        MEM_ACK_R => MEM_ACK_R,
-        MEM_ADDR  => MEM_ADDR,
-        MEM_BE    => MEM_BE,
-        MEM_DI    => MEM_DI,
-        MEM_DO    => MEM_DO
-      );
-
-    MEM70: pdp11_mem70
-      port map (
-        CLK         => CLK,
-        CRESET      => BRESET,
-        HM_ENA      => HM_ENA,
-        HM_VAL      => CACHE_CHIT,
-        CACHE_FMISS => MEM70_FMISS,
-        IB_MREQ     => IB_MREQ,
-        IB_SRES     => IB_SRES_MEM70
-      );
-
-    HM_ENA      <= EM_SRES.ack_r or EM_SRES.ack_w;
-    CACHE_FMISS <= MEM70_FMISS or sys_conf_cache_fmiss;
-
-    MEM_ADDR_EXT <= "00" & MEM_ADDR;    -- just use lower 4 MB (of 16 MB)
-
-    SRAM_CTL: nx_cram_memctl_as
-      generic map (
-        READ0DELAY => sys_conf_memctl_read0delay,
-        READ1DELAY => sys_conf_memctl_read1delay,
-        WRITEDELAY => sys_conf_memctl_writedelay)
-      port map (
-        CLK         => CLK,
-        RESET       => CPU_RESET,
-        REQ         => MEM_REQ,
-        WE          => MEM_WE,
-        BUSY        => MEM_BUSY,
-        ACK_R       => MEM_ACK_R,
-        ACK_W       => open,
-        ACT_R       => MEM_ACT_R,
-        ACT_W       => MEM_ACT_W,
-        ADDR        => MEM_ADDR_EXT,
-        BE          => MEM_BE,
-        DI          => MEM_DI,
-        DO          => MEM_DO,
-        O_MEM_CE_N  => O_MEM_CE_N,
-        O_MEM_BE_N  => O_MEM_BE_N,
-        O_MEM_WE_N  => O_MEM_WE_N,
-        O_MEM_OE_N  => O_MEM_OE_N,
-        O_MEM_ADV_N => O_MEM_ADV_N,
-        O_MEM_CLK   => O_MEM_CLK,
-        O_MEM_CRE   => O_MEM_CRE,
-        I_MEM_WAIT  => I_MEM_WAIT,
-        O_MEM_ADDR  => O_MEM_ADDR,
-        IO_MEM_DATA => IO_MEM_DATA
-      );
-
-      O_PPCM_CE_N  <= '1';              -- keep parallel PCM memory disabled
-      O_PPCM_RST_N <= '1';              --
-    
-  end generate MEM_SRAM;
+  O_PPCM_CE_N  <= '1';              -- keep parallel PCM memory disabled
+  O_PPCM_RST_N <= '1';              --
   
   IB_SRES_OR : ib_sres_or_2
     port map (
@@ -554,45 +521,23 @@ begin
       IB_SRES_OR => IB_SRES
     );
 
-  IBD_MINI : if false generate
-  begin
-    IBDR_SYS : ibdr_minisys
-      port map (
-        CLK      => CLK,
-        CE_USEC  => CE_USEC,
-        CE_MSEC  => CE_MSEC,
-        RESET    => CPU_RESET,
-        BRESET   => BRESET,
-        RB_LAM   => RB_LAM(15 downto 1),
-        IB_MREQ  => IB_MREQ,
-        IB_SRES  => IB_SRES_IBDR,
-        EI_ACKM  => EI_ACKM,
-        EI_PRI   => EI_PRI,
-        EI_VECT  => EI_VECT,
-        DISPREG  => DISPREG
-      );
-  end generate IBD_MINI;
-  
-  IBD_MAXI : if true generate
-  begin
-    IBDR_SYS : ibdr_maxisys
-      port map (
-        CLK      => CLK,
-        CE_USEC  => CE_USEC,
-        CE_MSEC  => CE_MSEC,
-        RESET    => CPU_RESET,
-        BRESET   => BRESET,
-        RB_LAM   => RB_LAM(15 downto 1),
-        IB_MREQ  => IB_MREQ,
-        IB_SRES  => IB_SRES_IBDR,
-        EI_ACKM  => EI_ACKM,
-        EI_PRI   => EI_PRI,
-        EI_VECT  => EI_VECT,
-        DISPREG  => DISPREG
-      );
-  end generate IBD_MAXI;
+  IBDR_SYS : ibdr_maxisys
+    port map (
+      CLK      => CLK,
+      CE_USEC  => CE_USEC,
+      CE_MSEC  => CE_MSEC,
+      RESET    => CPU_RESET,
+      BRESET   => BRESET,
+      RB_LAM   => RB_LAM(15 downto 1),
+      IB_MREQ  => IB_MREQ,
+      IB_SRES  => IB_SRES_IBDR,
+      EI_ACKM  => EI_ACKM,
+      EI_PRI   => EI_PRI,
+      EI_VECT  => EI_VECT,
+      DISPREG  => DISPREG
+    );
     
-  IOLEDS : ioleds_sp1c_fx2
+  LED_IO : ioleds_sp1c_fx2
     port map (
       CLK      => CLK,
       CE_USEC  => CE_USEC,
@@ -603,38 +548,38 @@ begin
       SER_MONI => SER_MONI,
       IOLEDS   => DSP_DP
     );
+  
+  LED_CPU : pdp11_statleds
+    port map (
+      MEM_ACT_R  => MEM_ACT_R,
+      MEM_ACT_W  => MEM_ACT_W,
+      CP_STAT    => CP_STAT,
+      DM_STAT_DP => DM_STAT_DP,
+      STATLEDS   => STATLEDS
+    );
+  
+  LED_MUX : pdp11_ledmux
+    generic map (
+      LWIDTH => LED'length)
+    port map (
+      SEL        => SWI(3),
+      STATLEDS   => STATLEDS,
+      DM_STAT_DP => DM_STAT_DP,
+      LED        => LED
+    );
+    
+  ABCLKDIV <= SER_MONI.abclkdiv(11 downto 0) & '0' & SER_MONI.abclkdiv_f;
 
-  DSP_DAT(15 downto 0) <= DISPREG;
-
-  proc_led: process (MEM_ACT_W, MEM_ACT_R, CP_STAT, DM_STAT_DP.psw)
-    variable iled : slv8 := (others=>'0');
-  begin
-    iled := (others=>'0');
-    iled(7) := MEM_ACT_W;
-    iled(6) := MEM_ACT_R;
-    iled(5) := CP_STAT.cmdbusy;
-    if CP_STAT.cpugo = '1' then
-      case DM_STAT_DP.psw.cmode is
-        when c_psw_kmode =>
-          if CP_STAT.cpuwait = '1' then
-            iled(2) := '1';
-          elsif unsigned(DM_STAT_DP.psw.pri) = 0 then
-            iled(3) := '1';
-          else
-            iled(4) := '1';
-          end if;
-        when c_psw_smode =>
-          iled(1) := '1';
-        when c_psw_umode =>
-          iled(0) := '1';
-        when others => null;
-      end case;
-    else
-      iled(4) := '1';
-      iled(3 downto 0) := CP_STAT.cpurust;
-    end if;
-    LED <= iled;
-  end process;
+  DSP_MUX : pdp11_dspmux
+    generic map (
+      DCWIDTH => 2)
+    port map (
+      SEL        => SWI(5 downto 4),
+      ABCLKDIV   => ABCLKDIV,
+      DM_STAT_DP => DM_STAT_DP,
+      DISPREG    => DISPREG,
+      DSP_DAT    => DSP_DAT
+    );
       
 -- synthesis translate_off
   DM_STAT_SY.emmreq <= EM_MREQ;

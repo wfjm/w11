@@ -1,4 +1,4 @@
--- $Id: ib_sres_or_2.vhd 335 2010-10-24 22:24:23Z mueller $
+-- $Id: ib_sres_or_2.vhd 641 2015-02-01 22:12:15Z mueller $
 --
 -- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,7 +18,7 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2, 12.1; ghdl 0.18-0.29
+-- Tool versions:  ise 8.1-14.7; viv 2014.4; ghdl 0.18-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

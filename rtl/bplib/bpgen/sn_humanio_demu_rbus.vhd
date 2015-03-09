@@ -1,4 +1,4 @@
--- $Id: sn_humanio_demu_rbus.vhd 583 2014-08-16 07:40:12Z mueller $
+-- $Id: sn_humanio_demu_rbus.vhd 637 2015-01-25 18:36:40Z mueller $
 --
 -- Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -69,7 +69,7 @@ use work.bpgenlib.all;
 entity sn_humanio_demu_rbus is          -- human i/o swi,btn,led only /w rbus
   generic (
     DEBOUNCE : boolean := true;         -- instantiate debouncer for SWI,BTN
-    RB_ADDR : slv16 := slv(to_unsigned(2#0000000010000000#,16)));
+    RB_ADDR : slv16 := slv(to_unsigned(16#fef0#,16)));
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit := '0';            -- reset

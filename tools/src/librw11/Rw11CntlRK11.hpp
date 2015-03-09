@@ -1,4 +1,4 @@
-// $Id: Rw11CntlRK11.hpp 627 2015-01-04 11:36:37Z mueller $
+// $Id: Rw11CntlRK11.hpp 647 2015-02-17 22:35:36Z mueller $
 //
 // Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -23,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlRK11.hpp 627 2015-01-04 11:36:37Z mueller $
+  \version $Id: Rw11CntlRK11.hpp 647 2015-02-17 22:35:36Z mueller $
   \brief   Declaration of class Rw11CntlRK11.
 */
 
@@ -107,15 +107,16 @@ namespace Retro {
       static const uint16_t kRKCS_B_MEX  = 0003;
       static const uint16_t kRKCS_V_FUNC = 1;
       static const uint16_t kRKCS_B_FUNC = 0007;
-      static const uint16_t kRKCS_CRESET = 0;
-      static const uint16_t kRKCS_WRITE  = 1;
-      static const uint16_t kRKCS_READ   = 2;
-      static const uint16_t kRKCS_WCHK   = 3;
-      static const uint16_t kRKCS_SEEK   = 4;
-      static const uint16_t kRKCS_RCHK   = 5;
-      static const uint16_t kRKCS_DRESET = 6;
-      static const uint16_t kRKCS_WLOCK  = 7;
       static const uint16_t kRKCS_M_GO   = kWBit00;
+
+      static const uint16_t kFUNC_CRESET = 0;
+      static const uint16_t kFUNC_WRITE  = 1;
+      static const uint16_t kFUNC_READ   = 2;
+      static const uint16_t kFUNC_WCHK   = 3;
+      static const uint16_t kFUNC_SEEK   = 4;
+      static const uint16_t kFUNC_RCHK   = 5;
+      static const uint16_t kFUNC_DRESET = 6;
+      static const uint16_t kFUNC_WLOCK  = 7;
 
       static const uint16_t kRKDA_M_DRSEL= 0160000;
       static const uint16_t kRKDA_V_DRSEL= 13;
@@ -150,7 +151,7 @@ namespace Retro {
 
     protected:
       int           AttnHandler(RlinkServer::AttnArgs& args);
-      void          RdmaPreExecCB(int stat, size_t nword,
+      void          RdmaPreExecCB(int stat, size_t nwdone, size_t nwnext,
                                   RlinkCommandList& clist);
       void          RdmaPostExecCB(int stat, size_t ndone,
                                    RlinkCommandList& clist, size_t ncmd);

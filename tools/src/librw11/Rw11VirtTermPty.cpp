@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTermPty.cpp 504 2013-04-13 15:37:24Z mueller $
+// $Id: Rw11VirtTermPty.cpp 632 2015-01-11 12:30:03Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,7 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtTermPty.cpp 504 2013-04-13 15:37:24Z mueller $
+  \version $Id: Rw11VirtTermPty.cpp 632 2015-01-11 12:30:03Z mueller $
   \brief   Implemenation of Rw11VirtTermPty.
 */
 #define _XOPEN_SOURCE 600
@@ -89,7 +89,7 @@ bool Rw11VirtTermPty::Open(const std::string& url, RerrMsg& emsg)
   }
   
   char* pname = ptsname(fd);
-  if (pname == 0) {
+  if (pname == nullptr) {
     emsg.InitErrno("Rw11VirtTermPty::Open", "ptsname() failed: ", errno);
     close(fd);
     return false;

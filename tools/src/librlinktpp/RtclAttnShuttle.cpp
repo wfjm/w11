@@ -1,4 +1,4 @@
-// $Id: RtclAttnShuttle.cpp 625 2014-12-30 16:17:45Z mueller $
+// $Id: RtclAttnShuttle.cpp 631 2015-01-09 21:36:51Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -23,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: RtclAttnShuttle.cpp 625 2014-12-30 16:17:45Z mueller $
+  \version $Id: RtclAttnShuttle.cpp 631 2015-01-09 21:36:51Z mueller $
   \brief   Implemenation of class RtclAttnShuttle.
  */
 
@@ -49,8 +49,8 @@ namespace Retro {
 //! constructor
 
 RtclAttnShuttle::RtclAttnShuttle(uint16_t mask, Tcl_Obj* pobj)
-  : fpServ(0),
-    fpInterp(0),
+  : fpServ(nullptr),
+    fpInterp(nullptr),
     fFdPipeRead(-1),
     fFdPipeWrite(-1),
     fShuttleChn(0),
@@ -110,7 +110,7 @@ void RtclAttnShuttle::Remove()
   // disconnect from RlinkServer
   if (fpServ) {
     fpServ->RemoveAttnHandler(fMask, (void*)this);
-    fpServ = 0;
+    fpServ = nullptr;
   }
   // disconnect from Tcl
   if (fpInterp) {
@@ -118,7 +118,7 @@ void RtclAttnShuttle::Remove()
                              (Tcl_FileProc*) ThunkTclChannelHandler,
                              (ClientData) this);
     Tcl_Close(fpInterp, fShuttleChn);
-    fpInterp = 0;
+    fpInterp = nullptr;
   }
   
   return;

@@ -1,4 +1,4 @@
--- $Id: pdp11_dpath.vhd 581 2014-08-10 21:48:46Z mueller $
+-- $Id: pdp11_dpath.vhd 641 2015-02-01 22:12:15Z mueller $
 --
 -- Copyright 2006-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -24,7 +24,7 @@
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

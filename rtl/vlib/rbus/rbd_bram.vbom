@@ -3,7 +3,7 @@
 ../memlib/memlib.vhd
 rblib.vhd
 # components
-[ghdl,isim]../memlib/ram_1swsr_wfirst_gen.vbom
-[xst]../memlib/ram_1swsr_wfirst_gen_unisim.vbom
+[sim]../memlib/ram_1swsr_wfirst_gen.vbom
+[xst,vsyn]../memlib/ram_1swsr_wfirst_gen_unisim.vbom
 # design
 rbd_bram.vhd

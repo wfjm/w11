@@ -1,6 +1,6 @@
-// $Id: RtclGetList.hpp 488 2013-02-16 18:49:47Z mueller $
+// $Id: RtclGetList.hpp 631 2015-01-09 21:36:51Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,12 +13,13 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-01-08   631   1.1    add Clear()
 // 2013-02-12   487   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclGetList.hpp 488 2013-02-16 18:49:47Z mueller $
+  \version $Id: RtclGetList.hpp 631 2015-01-09 21:36:51Z mueller $
   \brief   Declaration of class \c RtclGetList.
 */
 
@@ -50,10 +51,8 @@ namespace Retro {
       void          Add(const std::string& name, 
                         const boost::function<TP()>& get);
 
+      void          Clear();
       int           M_get(RtclArgs& args);
-
-    protected: 
-
 
     protected: 
       typedef std::map<std::string, RtclGetBase*> map_t;

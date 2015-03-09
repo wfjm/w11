@@ -1,4 +1,4 @@
-// $Id: RtclArgs.cpp 584 2014-08-22 19:38:12Z mueller $
+// $Id: RtclArgs.cpp 632 2015-01-11 12:30:03Z mueller $
 //
 // Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -28,7 +28,7 @@
 
 /*!
   \file
-  \version $Id: RtclArgs.cpp 584 2014-08-22 19:38:12Z mueller $
+  \version $Id: RtclArgs.cpp 632 2015-01-11 12:30:03Z mueller $
   \brief   Implemenation of RtclArgs.
 */
 
@@ -57,7 +57,7 @@ namespace Retro {
 //! Default constructor
 
 RtclArgs::RtclArgs()
-  : fpInterp(0),
+  : fpInterp(nullptr),
     fObjc(0),
     fObjv(0),
     fNDone(0),
@@ -278,7 +278,7 @@ bool RtclArgs::GetArg(const char* name, std::vector<uint8_t>& val,
                       size_t lmin, size_t lmax)
 {
   int objc = 0;
-  Tcl_Obj** objv = 0;
+  Tcl_Obj** objv = nullptr;
   if (!NextArgList(name, objc, objv, lmin, lmax)) return false;
   if (objv==0) return true;
 
@@ -309,7 +309,7 @@ bool RtclArgs::GetArg(const char* name, std::vector<uint16_t>& val,
                       size_t lmin, size_t lmax)
 {
   int objc = 0;
-  Tcl_Obj** objv = 0;
+  Tcl_Obj** objv = nullptr;
   if (!NextArgList(name, objc, objv, lmin, lmax)) return false;
   if (objv==0) return true;
 
@@ -504,7 +504,7 @@ void RtclArgs::AppendResultLines(const std::string& str)
 
 bool RtclArgs::NextArg(const char* name, Tcl_Obj*& pobj)
 {
-  pobj = 0;
+  pobj = nullptr;
   
   bool isopt    = name[0] == '?';
   bool isoptopt = isopt && (name[1] == '?');
@@ -542,8 +542,8 @@ bool RtclArgs::NextArgList(const char* name, int& objc, Tcl_Obj**& objv,
                            size_t lmin, size_t lmax)
 {
   objc = 0;
-  objv = 0;
-  Tcl_Obj* pobj = 0;
+  objv = nullptr;
+  Tcl_Obj* pobj = nullptr;
   if (!NextArg(name, pobj)) return false;
   if (pobj==0) return true;
 

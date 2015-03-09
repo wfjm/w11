@@ -1,4 +1,4 @@
--- $Id: fifo_1c_dram_raw.vhd 421 2011-11-07 21:23:50Z mueller $
+-- $Id: fifo_1c_dram_raw.vhd 641 2015-02-01 22:12:15Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,7 +20,7 @@
 --
 -- Test bench:     tb/tb_fifo_1c_dram
 -- Target Devices: generic Spartan, Virtex
--- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
+-- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2011-11-07   421   1.0.2  now numeric_std clean

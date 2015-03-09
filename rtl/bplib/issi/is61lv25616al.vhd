@@ -1,4 +1,4 @@
--- $Id: is61lv25616al.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: is61lv25616al.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -21,7 +21,7 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.2, 9.1, 9.2, 13.1; ghdl 0.18-0.29
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2011-11-19   427   1.0.2  now numeric_std clean

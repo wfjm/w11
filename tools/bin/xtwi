@@ -1,5 +1,8 @@
 #!/bin/bash
-# $Id: xtwi 544 2013-11-10 22:42:16Z mueller $
+# $Id: xtwi 641 2015-02-01 22:12:15Z mueller $
+#
+# Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 # Xilinx Tool Wrapper script for ISE:
 #   define XTWI_PATH

@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: xtwi.1 558 2014-06-01 22:20:51Z mueller $
+.\"  $Id: xtwi.1 651 2015-02-26 21:32:15Z mueller $
 .\"
 .\" Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -45,6 +45,16 @@ $XTWI_PATH/ISE_DS/settings32.sh
 .TQ
 $XTWI_PATH/ISE_DS/settings64.sh
 ISE setup script located and sourced on 32 or 64 bit systems
+.
+.\" ------------------------------------------------------------------
+.SH EXAMPLES
+.IP "\fBxtwi netgen -sim  -intstyle xflow -ofmt vhdl -w test.ngc" 4
+Starts the ISE netlister and generates a vhdl model from \fItest.ngc\fP.
+.
+.\" ------------------------------------------------------------------
+.SH "NOTES"
+If both ISE and Vivado are used \fBxtwi\fP and \fBxtwv\fP(1) offer a convenient
+way to have both tools available in one session without interference.
 .
 .\" ------------------------------------------------------------------
 .SH "SEE ALSO"

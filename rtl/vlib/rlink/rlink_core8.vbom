@@ -7,6 +7,6 @@ rlinklib.vbom
 rlink_core.vbom
 ../comlib/byte2cdata.vbom
 ../comlib/cdata2byte.vbom
-[ghdl,isim]rlink_mon_sb.vbom
+[sim]rlink_mon_sb.vbom
 # design
 rlink_core8.vhd

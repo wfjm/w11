@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTermTcp.cpp 584 2014-08-22 19:38:12Z mueller $
+// $Id: Rw11VirtTermTcp.cpp 632 2015-01-11 12:30:03Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -23,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtTermTcp.cpp 584 2014-08-22 19:38:12Z mueller $
+  \version $Id: Rw11VirtTermTcp.cpp 632 2015-01-11 12:30:03Z mueller $
   \brief   Implemenation of Rw11VirtTermTcp.
 */
 
@@ -131,7 +131,7 @@ bool Rw11VirtTermTcp::Open(const std::string& url, RerrMsg& emsg)
   if (!Rtools::String2Long(port, portno, emsg)) return false;
 
   protoent* pe = getprotobyname("tcp");
-  if (pe == 0) {
+  if (pe == nullptr) {
     emsg.Init("Rw11VirtTermTcp::Open","getprotobyname(\"tcp\") failed");
     return false;
   }

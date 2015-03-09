@@ -1,4 +1,4 @@
--- $Id: gray2bin_gen.vhd 418 2011-10-23 20:11:40Z mueller $
+-- $Id: gray2bin_gen.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2007- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,7 +18,7 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_debounce_gen
 -- Target Devices: generic
--- Tool versions:  xst 8.1, 8.2, 9.1, 9.2; ghdl 0.18-0.25
+-- Tool versions:  xst 8.1-14.7; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version    Comment
 -- 2007-12-26   106   1.0      Initial version 

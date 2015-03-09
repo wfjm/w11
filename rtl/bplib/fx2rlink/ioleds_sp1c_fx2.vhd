@@ -1,4 +1,4 @@
--- $Id: ioleds_sp1c_fx2.vhd 509 2013-04-21 20:46:20Z mueller $
+-- $Id: ioleds_sp1c_fx2.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -15,12 +15,12 @@
 -- Module Name:    ioleds_sp1c_fx2 - syn
 -- Description:    io activity leds for rlink+serport_1clk+fx2_ic combo
 --
--- Dependencies:   
+-- Dependencies:   genlib/led_pulse_stretch
 --
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 13.1; ghdl 0.29
+-- Tool versions:  xst 13.1-14.7; ghdl 0.29-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

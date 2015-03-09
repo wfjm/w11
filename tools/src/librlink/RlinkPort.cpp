@@ -1,4 +1,4 @@
-// $Id: RlinkPort.cpp 611 2014-12-10 23:23:58Z mueller $
+// $Id: RlinkPort.cpp 632 2015-01-11 12:30:03Z mueller $
 //
 // Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -30,7 +30,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPort.cpp 611 2014-12-10 23:23:58Z mueller $
+  \version $Id: RlinkPort.cpp 632 2015-01-11 12:30:03Z mueller $
   \brief   Implemenation of RlinkPort.
 */
 
@@ -120,7 +120,7 @@ int RlinkPort::Read(uint8_t* buf, size_t size, double timeout, RerrMsg& emsg)
 {
   if (!IsOpen())
     throw Rexception("RlinkPort::Read()","Bad state: port not open");
-  if (buf == 0) 
+  if (buf == nullptr) 
     throw Rexception("RlinkPort::Read()","Bad args: buf==nullptr");
   if (size == 0) 
     throw Rexception("RlinkPort::Read()","Bad args: size==0");
@@ -170,7 +170,7 @@ int RlinkPort::Write(const uint8_t* buf, size_t size, RerrMsg& emsg)
 {
   if (!IsOpen()) 
     throw Rexception("RlinkPort::Write()","Bad state: port not open");
-  if (buf == 0) 
+  if (buf == nullptr) 
     throw Rexception("RlinkPort::Write()","Bad args: buf==nullptr");
   if (size == 0) 
     throw Rexception("RlinkPort::Write()","Bad args: size==0");

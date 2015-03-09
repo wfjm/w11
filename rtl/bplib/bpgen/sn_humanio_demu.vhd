@@ -1,4 +1,4 @@
--- $Id: sn_humanio_demu.vhd 414 2011-10-11 19:38:12Z mueller $
+-- $Id: sn_humanio_demu.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,7 +20,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 13.1; ghdl 0.29
+-- Tool versions:  xst 13.1-14.7; ghdl 0.29-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri

@@ -28,7 +28,11 @@ sys_conf = sys_conf.vhd
 ../../../ibus/ib_sres_or_2.vbom
 ../../../ibus/ibdr_minisys.vbom
 ../../../ibus/ibdr_maxisys.vbom
-[ghdl,isim]../../../w11a/pdp11_tmu_sb.vbom
+../../../vlib/rlink/ioleds_sp1c.vbom
+../../../w11a/pdp11_statleds.vbom
+../../../w11a/pdp11_ledmux.vbom
+../../../w11a/pdp11_dspmux.vbom
+[sim]../../../w11a/pdp11_tmu_sb.vbom
 # design
 sys_w11a_s3.vhd
 @ucf_cpp: sys_w11a_s3.ucf

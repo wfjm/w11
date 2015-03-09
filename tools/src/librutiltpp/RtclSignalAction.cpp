@@ -1,4 +1,4 @@
-// $Id: RtclSignalAction.cpp 602 2014-11-08 21:42:47Z mueller $
+// $Id: RtclSignalAction.cpp 631 2015-01-09 21:36:51Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -21,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RtclSignalAction.cpp 602 2014-11-08 21:42:47Z mueller $
+  \version $Id: RtclSignalAction.cpp 631 2015-01-09 21:36:51Z mueller $
   \brief   Implemenation of class RtclSignalAction.
  */
 
@@ -46,7 +46,7 @@ using namespace std;
 // all method definitions in namespace Retro
 namespace Retro {
 
-RtclSignalAction* RtclSignalAction::fpObj = 0;
+RtclSignalAction* RtclSignalAction::fpObj = nullptr;
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
@@ -132,7 +132,7 @@ bool RtclSignalAction::ClearAction(int signum, RerrMsg& emsg)
                    "sigaction() failed: ", errno);
     return false;
   }  
-  fpScript[signum] = 0;
+  fpScript[signum] = nullptr;
   fActionSet[signum] = false;
   return true;
 }
@@ -211,7 +211,7 @@ void RtclSignalAction::ThunkTclChannelHandler(ClientData cdata, int mask)
 void RtclSignalAction::ThunkTclExitProc(ClientData cdata)
 {
   delete fpObj;
-  fpObj = 0;
+  fpObj = nullptr;
   return;
 }
 

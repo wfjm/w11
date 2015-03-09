@@ -1,4 +1,4 @@
-// $Id: Rw11RdmaDisk.cpp 628 2015-01-04 16:22:09Z mueller $
+// $Id: Rw11RdmaDisk.cpp 648 2015-02-20 20:16:21Z mueller $
 //
 // Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -18,7 +18,7 @@
 
 /*!
   \file
-  \version $Id: Rw11RdmaDisk.cpp 628 2015-01-04 16:22:09Z mueller $
+  \version $Id: Rw11RdmaDisk.cpp 648 2015-02-20 20:16:21Z mueller $
   \brief   Implemenation of Rw11RdmaDisk.
 */
 
@@ -97,12 +97,12 @@ void Rw11RdmaDisk::QueueDiskWriteCheck(uint32_t addr, size_t size,
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-size_t Rw11RdmaDisk::WriteCheck(size_t ndone)
+size_t Rw11RdmaDisk::WriteCheck(size_t nwdone)
 {
-  if (ndone == 0) return 0;
+  if (nwdone == 0) return 0;
 
   size_t bszwrd = fpUnit->BlockSize()/2;    // block size in words
-  size_t nblk   = (ndone+bszwrd-1)/bszwrd;
+  size_t nblk   = (nwdone+bszwrd-1)/bszwrd;
   size_t dsize  = nblk*bszwrd;
   
   std::vector<uint16_t>  dbuf(dsize);
@@ -114,14 +114,14 @@ size_t Rw11RdmaDisk::WriteCheck(size_t ndone)
   
   uint16_t* pdsk = dbuf.data();
   uint16_t* pmem = fBuf.data();
-  for (size_t i=0; i<ndone; i++) {
+  for (size_t i=0; i<nwdone; i++) {
     if (*pdsk++ != *pmem++) {
       fStats.Inc(kStatNWChkFail);
       return i;
     }
   }
 
-  return ndone;
+  return nwdone;
 }
   
 //------------------------------------------+-----------------------------------
@@ -180,19 +180,19 @@ void Rw11RdmaDisk::PreRdmaHook()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11RdmaDisk::PostRdmaHook(size_t ndone)
+void Rw11RdmaDisk::PostRdmaHook(size_t nwdone)
 {
-  if (ndone == 0) return;                   //  quit if rdma failed early
+  if (nwdone == 0) return;                  // quit if rdma failed early
   if (fFunc != kFuncWrite) return;          // quit unless write request
 
   size_t bszwrd = fpUnit->BlockSize()/2;    // block size in words
-  size_t nblock = (ndone+bszwrd-1)/bszwrd;
-  size_t npad   = nblock*bszwrd - ndone;
+  size_t nblock = (nwdone+bszwrd-1)/bszwrd;
+  size_t npad   = nblock*bszwrd - nwdone;
 
   // if an incomplete block was read, pad it with hex dead
   if (npad) {
     fStats.Inc(kStatNWritePadded);
-    uint16_t* p = fBuf.data()+ndone;
+    uint16_t* p = fBuf.data()+nwdone;
     for (size_t i=0; i<npad; i++) *p++ = 0xdead;
   }
 

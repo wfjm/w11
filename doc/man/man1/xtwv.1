@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: xtwv.1 558 2014-06-01 22:20:51Z mueller $
+.\"  $Id: xtwv.1 651 2015-02-26 21:32:15Z mueller $
 .\"
 .\" Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -18,7 +18,7 @@ xtwv \- Xilinx Tool Wrapper script for Vivado
 .
 .\" ------------------------------------------------------------------
 .SH DESCRIPTION
-The Xilinx Vivado setup script redefines PATH and potentially LD_LIBRARY_PATH. 
+The Xilinx Vivado setup script redefines PATH and LD_LIBRARY_PATH. 
 The Vivado tools run fine in this environment, but other installed programs
 on the system might fail. \fBxtwv\fP helps to keep the Vivado environment
 separate from the normal working environment.
@@ -44,6 +44,19 @@ $XTWV_PATH/settings32.sh
 .TQ
 $XTWV_PATH/settings64.sh
 Vivado setup script located and sourced on 32 or 64 bit systems
+.
+.\" ------------------------------------------------------------------
+.SH EXAMPLES
+.IP "\fBxtwv vivado -mode batch -source test.tcl" 4
+Starts vivado in batch mode and executes the script \fItest.tcl\fP.
+.
+.\" ------------------------------------------------------------------
+.SH "NOTES"
+Vivado is a lot less intrusive as ISE, but it's still a good precaution to
+wrap calls of Vivado tools with \fBxtwv\fP.
+.br
+If both Vivado and ISE are used \fBxtwv\fP and \fBxtwi\fP(1) offer a convenient
+way to have both tools available in one session without interference.
 .
 .\" ------------------------------------------------------------------
 .SH "SEE ALSO"

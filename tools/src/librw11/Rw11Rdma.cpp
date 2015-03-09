@@ -1,4 +1,4 @@
-// $Id: Rw11Rdma.cpp 627 2015-01-04 11:36:37Z mueller $
+// $Id: Rw11Rdma.cpp 648 2015-02-20 20:16:21Z mueller $
 //
 // Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,12 +13,13 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-02-17   647   1.1    PreExecCB with nwdone and nwnext
 // 2015-01-04   627   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11Rdma.cpp 627 2015-01-04 11:36:37Z mueller $
+  \version $Id: Rw11Rdma.cpp 648 2015-02-20 20:16:21Z mueller $
   \brief   Implemenation of Rw11Rdma.
 */
 
@@ -168,33 +169,32 @@ int Rw11Rdma::RdmaHandler()
     PreRdmaHook();
   }
 
-  size_t nword = min(fNWordRest, fNWordMax);
+  size_t nwnext = min(fNWordRest, fNWordMax);
   if (fIsWMem) {
     fStats.Inc(kStatNRdmaWMem);
-    Cpu().AddWMem(clist, fAddr, fpBlock, nword, fMode, true);
+    Cpu().AddWMem(clist, fAddr, fpBlock, nwnext, fMode, true);
   } else {
     fStats.Inc(kStatNRdmaRMem);
-    Cpu().AddRMem(clist, fAddr, fpBlock, nword, fMode, true);
+    Cpu().AddRMem(clist, fAddr, fpBlock, nwnext, fMode, true);
   }
   size_t ncmd = clist.Size();
   
-  if (nword == fNWordRest) fStatus = kStatusBusyLast;
+  if (nwnext == fNWordRest) fStatus = kStatusBusyLast;
   
-  fPreExecCB(fStatus, nword, clist);
+  fPreExecCB(fStatus, fNWordDone, nwnext, clist);
   if (clist.Size() != ncmd) fStats.Inc(kStatNExtClist);
 
-  // FIXME_code: check return code
   Server().Exec(clist);
 
-  size_t nworddone = clist[ncmd-1].BlockDone();
+  size_t nwdone = clist[ncmd-1].BlockDone();
   
-  fAddr      += 2*nworddone;
-  fNWordRest -= nworddone;
-  fNWordDone += nworddone;
-  fpBlock    += nworddone;
+  fAddr      += 2*nwdone;
+  fNWordRest -= nwdone;
+  fNWordDone += nwdone;
+  fpBlock    += nwdone;
 
   bool islast = false;
-  if (nword != nworddone) {
+  if (nwnext != nwdone) {
     fStats.Inc(kStatNFailRdma);
     fStatus = kStatusFailRdma;
     islast  = true;
@@ -227,7 +227,7 @@ void Rw11Rdma::PreRdmaHook()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11Rdma::PostRdmaHook(size_t ndone)
+void Rw11Rdma::PostRdmaHook(size_t nwdone)
 {
   return;
 }

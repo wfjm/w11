@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tbw 619 2014-12-23 13:17:41Z mueller $
+# $Id: tbw 642 2015-02-06 18:53:12Z mueller $
 #
 # Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -55,7 +55,7 @@ my @file_dsc;			# file descriptors from tbw.dat
 
 sub print_usage;
 
-autoflush STDOUT 1;		# autoflush, so noting lost on exec later
+autoflush STDOUT 1;		# autoflush, so nothing lost on exec later
 
 if (scalar(@ARGV) && $ARGV[0] =~ /^-*help$/) { # -help or --help given
   print_usage;

@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: ti_rri.1 558 2014-06-01 22:20:51Z mueller $
+.\"  $Id: ti_rri.1 653 2015-03-01 12:53:01Z mueller $
 .\"
-.\" Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH TI_RRI 1 2013-05-20 "Retro Project" "Retro Project Manual"
+.TH TI_RRI 1 2015-01-28 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 ti_rri \- \fBRlink\fP Backend Server
@@ -103,7 +103,10 @@ serial port baud rate, default is '115k'. Allowed baud rate settings are:
 460800, 460k, 500000, 500k, 921600, 921k,
 1000000, 1000k, 1M, 1500000, 1500k,
 2000000, 2000k, 2M, 2500000, 2500k,
-3000000, 3000k, 3M, 4000000, 4000k, 4M
+3000000, 3000k, 3M, 4000000, 4000k, 4M,
+5000000, 5000k, 5M, 6000000, 6000k, 6M,
+1000000, 10000k, 10M, 12000000, 12000k, 12M
+
 .PD
 .RE
 .IP \fBopts\fP
@@ -197,6 +200,10 @@ with eval.
 .
 .\" ------------------------------------------------------------------
 .SH EXAMPLES
+.IP "\fBti_rri --fifo --run='tbw tb_tst_rlink_n3'" 4
+Starts the \fBghdl\fP(1) test bench 'tb_tst_rlink_n3' located in CWD via 
+\fBtbw\fP(1). It is assumed that the local \fItbw.dat\fP file configures
+fifo communication for the test bench.
 
 .\" ------------------------------------------------------------------
 .SH "SEE ALSO"

@@ -1,4 +1,4 @@
--- $Id: sys_tst_snhumanio_n3.vhd 433 2011-11-27 22:04:39Z mueller $
+-- $Id: sys_tst_snhumanio_n3.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -23,7 +23,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 13.1; ghdl 0.29
+-- Tool versions:  xst 13.1-14.7; ghdl 0.29-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -33,7 +33,7 @@
 -- Date         Rev Version  Comment
 -- 2011-11-27   433   1.0    Initial version
 ------------------------------------------------------------------------------
--- Usage of Nexys 2 Switches, Buttons, LEDs:
+-- Usage of Nexys 3 Switches, Buttons, LEDs:
 --
 
 library ieee;

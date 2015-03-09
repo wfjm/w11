@@ -1,4 +1,4 @@
--- $Id: pdp11_mem70.vhd 427 2011-11-19 21:04:11Z mueller $
+-- $Id: pdp11_mem70.vhd 644 2015-02-08 22:56:54Z mueller $
 --
 -- Copyright 2008-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,7 +18,7 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  xst 8.2, 9.1, 9.2, 12.1, 13.1; ghdl 0.18-0.29
+-- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
@@ -83,7 +83,7 @@ architecture syn of pdp11_mem70 is
   constant regs_init : regs_type := (
     '0','0','0','0',                    -- ibsel_*
     (others=>'0'),                      -- hm_data
-    "00","00",                          -- cr_freq,_fmiss
+    "00","00",                          -- cr_frep,_fmiss
     '0','0'                             -- dis(u)trap
   );
 

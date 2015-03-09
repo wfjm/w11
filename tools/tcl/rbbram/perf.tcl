@@ -1,4 +1,4 @@
-# $Id: perf.tcl 622 2014-12-28 20:45:26Z mueller $
+# $Id: perf.tcl 643 2015-02-07 17:41:53Z mueller $
 #
 # Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-02-07   643   1.1.2  perf_blk(): use proper rbmax, add nmax argument
 # 2014-12-27   622   1.1.1  don't use read buffers in rblk speed test
 # 2014-12-06   609   1.1    test 512,1024,2000 word wblk/rbld; retra buffer cut
 # 2013-01-04   469   1.0.2  perf_blk: add optional 2nd arg: trace
@@ -26,8 +27,8 @@ namespace eval rbbram {
   #
   # perf_blk: determine wblk/rblk write performance
   # 
-  proc perf_blk {{tmax 1000} {trace 0}} {
-    set rbmax 2000;             # FIXME_code: get proper buffer max
+  proc perf_blk {{tmax 1000} {trace 0} {nmax 2000}} {
+    set rbmax [expr {[rlc get bsizemax] - 32}]
 
     if {$tmax < 1} { error "-E: perf_blk: tmax argument must be >= 1" }
 
@@ -39,6 +40,7 @@ namespace eval rbbram {
 
     #  256 512 1024
     foreach nblk {1 2 4 8 16 32 64 128 256 512 768 1024 1536 2000} {
+      if {$nblk > $nmax} {break}
       set wbuf0 {}
       set wbuf1 {}
       set wbuf2 {}

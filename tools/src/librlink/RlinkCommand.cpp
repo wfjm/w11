@@ -1,4 +1,4 @@
-// $Id: RlinkCommand.cpp 628 2015-01-04 16:22:09Z mueller $
+// $Id: RlinkCommand.cpp 643 2015-02-07 17:41:53Z mueller $
 //
 // Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2015-01-04   628   1.2.3  Print(): adopt large nblk;
+// 2015-02-07   642   1.2.3  Print()+Dump(): adopt for large nblk;
 // 2014-12-21   617   1.2.2  use kStat_M_RbTout for rbus timeout
 // 2014-12-20   616   1.2.1  Print(): display BlockDone; add kFlagChkDone
 // 2014-12-06   609   1.2    new rlink v4 iface
@@ -26,7 +26,7 @@
 
 /*!
   \file
-  \version $Id: RlinkCommand.cpp 628 2015-01-04 16:22:09Z mueller $
+  \version $Id: RlinkCommand.cpp 643 2015-02-07 17:41:53Z mueller $
   \brief   Implemenation of class RlinkCommand.
  */
 
@@ -91,13 +91,13 @@ RlinkCommand::RlinkCommand()
     fAddress(0), 
     fData(0),
     fBlock(),
-    fpBlockExt(0), 
+    fpBlockExt(nullptr), 
     fBlockExtSize(0), 
     fBlockDone(0), 
     fStatus(0), 
     fFlags(0),
     fRcvSize(0),
-    fpExpect(0)
+    fpExpect(nullptr)
 {}
 
 //------------------------------------------+-----------------------------------
@@ -114,7 +114,7 @@ RlinkCommand::RlinkCommand(const RlinkCommand& rhs)
     fStatus(rhs.fStatus), 
     fFlags(rhs.fFlags),
     fRcvSize(rhs.fRcvSize),
-    fpExpect(rhs.fpExpect ? new RlinkCommandExpect(*rhs.fpExpect) : 0)
+    fpExpect(rhs.fpExpect ? new RlinkCommandExpect(*rhs.fpExpect) : nullptr)
 {}
 
 //------------------------------------------+-----------------------------------
@@ -175,14 +175,14 @@ void RlinkCommand::SetCommand(uint8_t cmd, uint16_t addr, uint16_t data)
   fRequest   = cmd;
   fAddress   = addr;
   fData      = data;
-  fpBlockExt    = 0;
+  fpBlockExt    = nullptr;
   fBlockExtSize = 0;
   fBlockDone = 0;
   fStatus    = 0;
   fFlags     = kFlagInit;
   fRcvSize   = 0;
   delete fpExpect;
-  fpExpect   = 0;
+  fpExpect   = nullptr;
   return;
 }
 
@@ -204,7 +204,7 @@ void RlinkCommand::SetBlockWrite(const std::vector<uint16_t>& block)
     throw Rexception("RlinkCommand::SetBlockWrite()",
                      "Bad args: invalid block size");
   fBlock = block;
-  fpBlockExt    = 0;
+  fpBlockExt    = nullptr;
   fBlockExtSize = 0;
   fBlockDone    = 0;
   return;
@@ -220,7 +220,7 @@ void RlinkCommand::SetBlockRead(size_t size)
                      "Bad args: invalid block size");
   fBlock.clear();
   fBlock.resize(size);
-  fpBlockExt    = 0;
+  fpBlockExt    = nullptr;
   fBlockExtSize = 0;
   fBlockDone    = 0;
   return;
@@ -445,7 +445,7 @@ void RlinkCommand::Dump(std::ostream& os, int ind, const char* text) const
     size_t ncol  = max(1, (80-ind-4-5)/(4+1));
     os << bl << "  block data:";
     for (size_t i=0; i<BlockSize(); i++) {
-      if (i%ncol == 0) os << "\n" << bl << "    " << RosPrintf(i,"d",3) << ": ";
+      if (i%ncol == 0) os << "\n" << bl << "    " << RosPrintf(i,"d",4) << ": ";
       os << RosPrintBvi(BlockPointer()[i],16) << " ";
     }
     os << endl;

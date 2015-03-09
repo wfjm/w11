@@ -1,4 +1,4 @@
--- $Id: pdp11_core_rbus.vhd 621 2014-12-26 21:20:05Z mueller $
+-- $Id: pdp11_core_rbus.vhd 641 2015-02-01 22:12:15Z mueller $
 --
 -- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,7 +19,7 @@
 -- Test bench:     tb/tb_rlink_tba_pdp11core
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri

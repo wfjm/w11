@@ -1,6 +1,6 @@
--- $Id: serport_uart_rxtx_ab.vhd 476 2013-01-26 22:23:53Z mueller $
+-- $Id: serport_uart_rxtx_ab.vhd 641 2015-02-01 22:12:15Z mueller $
 --
--- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,7 +19,7 @@
 --                 serport_uart_rxtx
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 12.1, 13.1; ghdl 0.18-0.29
+-- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -27,6 +27,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-02-01   641   1.2    add CLKDIV_F for autobaud;
 -- 2011-10-22   417   1.1.1  now numeric_std clean
 -- 2010-12-26   348   1.1    add ABCLKDIV port for clock divider setting
 -- 2007-06-24    60   1.0    Initial version 
@@ -58,13 +59,15 @@ entity serport_uart_rxtx_ab is          -- serial port uart: rx+tx+autobaud
     TXBUSY : out slbit;                 -- transmit busy
     ABACT : out slbit;                  -- autobaud active; if 1 clkdiv invalid
     ABDONE : out slbit;                 -- autobaud resync done
-    ABCLKDIV : out slv(CDWIDTH-1 downto 0) -- autobaud clock divider setting
+    ABCLKDIV : out slv(CDWIDTH-1 downto 0); -- autobaud clock divider setting
+    ABCLKDIV_F : out slv3                   -- autobaud clock divider fraction
   );
 end serport_uart_rxtx_ab;
 
 architecture syn of serport_uart_rxtx_ab is
   
   signal CLKDIV : slv(CDWIDTH-1 downto 0) := slv(to_unsigned(0, CDWIDTH));
+  signal CLKDIV_F : slv3 := (others=>'0');
   signal ABACT_L : slbit := '0';        -- local readable copy of ABACT
   signal UART_RESET : slbit := '0';
   
@@ -75,19 +78,21 @@ begin
       CDWIDTH => CDWIDTH,
       CDINIT  => CDINIT)
     port map (
-      CLK     => CLK,
-      CE_MSEC => CE_MSEC,
-      RESET   => RESET,
-      RXSD    => RXSD,
-      CLKDIV  => CLKDIV,
-      ACT     => ABACT_L,
-      DONE    => ABDONE
+      CLK      => CLK,
+      CE_MSEC  => CE_MSEC,
+      RESET    => RESET,
+      RXSD     => RXSD,
+      CLKDIV   => CLKDIV,
+      CLKDIV_F => CLKDIV_F,
+      ACT      => ABACT_L,
+      DONE     => ABDONE
     );
 
   UART_RESET <= ABACT_L or RESET;
   ABACT      <= ABACT_L;
   ABCLKDIV   <= CLKDIV;
-  
+  ABCLKDIV_F <= CLKDIV_F;
+
   RXTX : serport_uart_rxtx
     generic map (
       CDWIDTH => CDWIDTH)

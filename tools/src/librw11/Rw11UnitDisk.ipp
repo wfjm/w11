@@ -1,6 +1,6 @@
-// $Id: Rw11UnitDisk.ipp 509 2013-04-21 20:46:20Z mueller $
+// $Id: Rw11UnitDisk.ipp 647 2015-02-17 22:35:36Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-02-18   647   1.0.1  add Nwrd2Nblk()
 // 2013-04-19   507   1.0    Initial version
 // 2013-02-19   490   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11UnitDisk.ipp 509 2013-04-21 20:46:20Z mueller $
+  \version $Id: Rw11UnitDisk.ipp 647 2015-02-17 22:35:36Z mueller $
   \brief   Implemenation (inline) of Rw11UnitDisk.
 */
 
@@ -94,6 +95,13 @@ inline void Rw11UnitDisk::Lba2Chs(uint32_t lba, uint16_t& cy, uint16_t& hd,
   return;
 }
 
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline uint32_t Rw11UnitDisk::Nwrd2Nblk(uint32_t nwrd)
+{
+  return (2*nwrd+BlockSize()-1) / BlockSize();
+}
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs

@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: ticonv_pdpcp 622 2014-12-28 20:45:26Z mueller $
+# $Id: ticonv_pdpcp 646 2015-02-15 12:04:55Z mueller $
 #
 # Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -42,7 +42,7 @@ sub add_edata;
 my @cmdlist;
 
 if (scalar(@ARGV) != 2) {
-  print STDERR "%ticonv_pdpcp-E: usage: ticonv_pdpcp <cpucmd> <filename>\n";
+  print STDERR "ticonv_pdpcp-E: usage: ticonv_pdpcp <cpucmd> <filename>\n";
   exit 1;
 }
 

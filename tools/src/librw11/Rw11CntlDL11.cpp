@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDL11.cpp 625 2014-12-30 16:17:45Z mueller $
+// $Id: Rw11CntlDL11.cpp 632 2015-01-11 12:30:03Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -23,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlDL11.cpp 625 2014-12-30 16:17:45Z mueller $
+  \version $Id: Rw11CntlDL11.cpp 632 2015-01-11 12:30:03Z mueller $
   \brief   Implemenation of Rw11CntlDL11.
 */
 
@@ -150,14 +150,12 @@ void Rw11CntlDL11::Wakeup()
     RlinkCommandList clist;
     size_t ircsr = Cpu().AddRibr(clist, fBase+kRCSR);
     Server().Exec(clist);
-    // FIXME_code: handle errors
     uint16_t rcsr = clist[ircsr].Data();
     if ((rcsr & kRCSR_M_RDONE) == 0) {      // RBUF not full
       uint8_t ichr = fspUnit[0]->RcvNext();
       clist.Clear();
       Cpu().AddWibr(clist, fBase+kRBUF, ichr);
       Server().Exec(clist);
-      // FIXME_code: handle errors
     }
   }
 
@@ -258,7 +256,6 @@ int Rw11CntlDL11::AttnHandler(RlinkServer::AttnArgs& args)
     RlinkCommandList clist;
     Cpu().AddWibr(clist, fBase+kRBUF, ichr);
     Server().Exec(clist);
-    // FIXME_code: handle errors
   }
 
   return 0;

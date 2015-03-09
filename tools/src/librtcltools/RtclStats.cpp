@@ -1,4 +1,4 @@
-// $Id: RtclStats.cpp 584 2014-08-22 19:38:12Z mueller $
+// $Id: RtclStats.cpp 631 2015-01-09 21:36:51Z mueller $
 //
 // Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -21,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RtclStats.cpp 584 2014-08-22 19:38:12Z mueller $
+  \version $Id: RtclStats.cpp 631 2015-01-09 21:36:51Z mueller $
   \brief   Implemenation of RtclStats.
 */
 
@@ -111,7 +111,7 @@ bool RtclStats::Collect(RtclArgs& args, const Context& cntx,
   } else if (cntx.opt == "-lpair" || cntx.opt == "-lall") { // -lpair -lall ---
     for (size_t i=0; i<stats.Size(); i++) {
       const string& name(stats.Name(i));
-      RtclOPtr ptup(Tcl_NewListObj(0,0));
+      RtclOPtr ptup(Tcl_NewListObj(0,nullptr));
       Tcl_ListObjAppendElement(nullptr, ptup, 
                                Tcl_NewDoubleObj(stats.Value(i)));
       Tcl_ListObjAppendElement(nullptr, ptup, 

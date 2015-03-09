@@ -1,4 +1,4 @@
-# $Id: Makefile 477 2013-01-27 14:07:10Z mueller $
+# $Id: Makefile 639 2015-01-30 18:12:19Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -8,7 +8,7 @@
 VBOM_all  = $(wildcard *.vbom)
 BIT_all   = $(VBOM_all:.vbom=.bit)
 #
-include $(RETROBASE)/rtl/make/xflow_default_nexys2.mk
+include $(RETROBASE)/rtl/make_ise/xflow_default_nexys2.mk
 FX2_FILE  = nexys2_jtag_2fifo_ic.ihx
 #
 .PHONY : all clean
@@ -20,8 +20,8 @@ clean : ise_clean
 #
 #----
 #
-include $(RETROBASE)/rtl/make/generic_xflow.mk
-include $(RETROBASE)/rtl/make/generic_ghdl.mk
+include $(RETROBASE)/rtl/make_ise/generic_xflow.mk
+include $(RETROBASE)/rtl/make_ise/generic_ghdl.mk
 #
 ifndef DONTINCDEP
 include $(VBOM_all:.vbom=.dep_xst)

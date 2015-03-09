@@ -1,4 +1,4 @@
--- $Id: tb_s3board_core.vhd 476 2013-01-26 22:23:53Z mueller $
+-- $Id: tb_s3board_core.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,7 +20,7 @@
 -- To test:        generic, any s3board target
 --
 -- Target Devices: generic
--- Tool versions:  xst 11.4, 13.1; ghdl 0.26-0.29
+-- Tool versions:  xst 11.4-14.7; ghdl 0.26-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2011-11-19   427   1.0.2  now numeric_std clean

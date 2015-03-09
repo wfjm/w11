@@ -1,4 +1,4 @@
-// $Id: RlogFileCatalog.cpp 521 2013-05-20 22:16:45Z mueller $
+// $Id: RlogFileCatalog.cpp 631 2015-01-09 21:36:51Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -18,7 +18,7 @@
 
 /*!
   \file
-  \version $Id: RlogFileCatalog.cpp 521 2013-05-20 22:16:45Z mueller $
+  \version $Id: RlogFileCatalog.cpp 631 2015-01-09 21:36:51Z mueller $
   \brief   Implemenation of RlogFileCatalog.
 */
 
@@ -74,8 +74,8 @@ void RlogFileCatalog::Delete(const std::string& name)
 
 RlogFileCatalog::RlogFileCatalog()
 {
-  FindOrCreate("cout")->UseStream(&cout, "<cout>");
-  FindOrCreate("cerr")->UseStream(&cerr, "<cerr>");
+  FindOrCreate("cout")->UseStream(&cout);
+  FindOrCreate("cerr")->UseStream(&cerr);
 }
 
 //------------------------------------------+-----------------------------------

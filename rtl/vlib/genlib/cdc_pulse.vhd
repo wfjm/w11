@@ -1,4 +1,4 @@
--- $Id: cdc_pulse.vhd 426 2011-11-18 18:14:08Z mueller $
+-- $Id: cdc_pulse.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,7 +18,7 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 13.1; ghdl 0.29
+-- Tool versions:  xst 13.1-14.7; ghdl 0.29-0.31
 -- Revision History: 
 -- Date         Rev Version    Comment
 -- 2011-11-09   422   1.0      Initial version

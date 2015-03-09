@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: ti_w11.1 620 2014-12-25 10:48:35Z mueller $
+.\"  $Id: ti_w11.1 654 2015-03-01 18:45:38Z mueller $
 .\"
-.\" Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH TI_W11 1 2013-05-20 "Retro Project" "Retro Project Manual"
+.TH TI_W11 1 2015-02-22 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 ti_w11 \- Quick starter for \fBti_rri\fP with \fBw11\fP CPU designs
@@ -49,12 +49,18 @@ use /dev/ttyUSB*  (* is device number \fIN\fP)
 .RE
 .
 .SS "setup options for ghdl simulation runs"
-.IP \fB-s3\fP
-start \fItb_w11a_s3\fP simulation (w11a on S3BOARD)
-.IP \fB-n2\fP
-start \fItb_w11a_n2\fP simulation (w11a on Nexys2 board)
+.PD 0
+.IP \fB-b3\fP
+start \fItb_w11a_b3\fP simulation (w11a on Basys3 board)
+.IP \fB-n4\fP
+start \fItb_w11a_n4\fP simulation (w11a on Nexys4 board)
 .IP \fB-n3\fP
 start \fItb_w11a_n3\fP simulation (w11a on Nexys3 board)
+.IP \fB-n2\fP
+start \fItb_w11a_n2\fP simulation (w11a on Nexys2 board)
+.IP \fB-s3\fP
+start \fItb_w11a_s3\fP simulation (w11a on S3board)
+.PD
 .
 .SS "common options"
 .IP \fB-e "\fR=\fIfile"\fR
@@ -65,9 +71,18 @@ it is assumed that they are in \fBlda\fP(5) format.
 .\" ------------------------------------------------------------------
 .SH EXAMPLES
 .IP "\fBti_w11 -u @211bsd_rk_boot.tcl\fR" 4
-Assumes a FPGA board, with a \fBw11\fP CPU design already configured,
-is connected via USB. \fBti_rri\fP(1) will be started and the given
-boot script executed.
+Assumes a FPGA board with a \fBw11\fP CPU design already configured.
+Connected via USB, communication via Cypress FX2.
+\fBti_rri\fP(1) will be started and the given boot script executed.
+Typical way to start Nexys2 and Nexys3 boards.
+
+.IP "\fBti_w11 -tu2,10M,break,cts @211bsd_rl_boot.tcl\fR" 4
+Assumes a FPGA board with a \fBw11\fP CPU design already configured.
+Connected via USB, communication via an USB UART. In this case the
+device \fI/dev/ttyUSB2\fP will be used, with \fI10 MBaud\fP, \fIbreak\fP to
+trigger auto-bauding, and \fIcts\fP to use hardware handshake.
+\fBti_rri\fP(1) will be started and the given boot script executed.
+Typical way to start Nexys4 boards.
 
 .IP "\fBti_w11 -n3 -e $RETROBASE/tools/asm-11/w11/sys/dl11/simple_out.mac\fR"
 Will start the \fItb_w11a_n3\fP test bench in \fBghdl\fP(1), on the fly 

@@ -1,4 +1,4 @@
--- $Id: serport_uart_rxtx.vhd 476 2013-01-26 22:23:53Z mueller $
+-- $Id: serport_uart_rxtx.vhd 641 2015-02-01 22:12:15Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,7 +19,7 @@
 --                 serport_uart_tx
 -- Test bench:     tb/tb_serport_uart_rxtx
 -- Target Devices: generic
--- Tool versions:  xst 8.2, 9.1, 9.2, 11.4, 13.1; ghdl 0.18-0.29
+-- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
 -- Revision History:
 -- Date         Rev Version  Comment
 -- 2007-06-24    60   1.0    Initial version 

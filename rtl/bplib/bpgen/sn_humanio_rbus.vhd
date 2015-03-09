@@ -1,6 +1,6 @@
--- $Id: sn_humanio_rbus.vhd 583 2014-08-16 07:40:12Z mueller $
+-- $Id: sn_humanio_rbus.vhd 640 2015-02-01 09:56:53Z mueller $
 --
--- Copyright 2010-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,10 +20,13 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 11.4-14.7; ghdl 0.26-0.31
+-- Tool versions:  ise 11.4-14.7; viv 2014.4; ghdl 0.26-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2015-01-28   639 14.7  131013 xc6slx16-2   253  223    0   97 s  3.6 ns (n4)
+-- 2015-01-28   639 14.7  131013 xc6slx16-2   141  120    0   42 s  3.5 ns (n2)
+-- 2015-01-25   583 14.7  131013 xc6slx16-2   140  120    0   46 s  3.5 ns
 -- 2011-08-14   406 12.1    M53d xc3s1000-4   142  156    0  123 s  5.1 ns 
 -- 2011-08-07   404 12.1    M53d xc3s1000-4   142  157    0  124 s  5.1 ns 
 -- 2010-12-29   351 12.1    M53d xc3s1000-4    93  138    0  111 s  6.8 ns 
@@ -31,6 +34,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-01-31   640   2.0    add SWIDTH,LWIDTH,DCWIDTH, change register layout
 -- 2014-08-15   583   1.3    rb_mreq addr now 16 bit
 -- 2011-11-19   427   1.2.1  now numeric_std clean
 -- 2011-08-14   406   1.2    common register layout with bp_swibtnled_rbus
@@ -43,26 +47,36 @@
 --
 -- rbus registers:
 --
--- Address   Bits Name        r/w/f  Function
--- bbbbbb00       cntl        r/w/-  Control register and BTN access
---           x:08   btn       r/w/-    r: return hio BTN status
---                                     w: ored with hio BTN to drive BTN
---              3   dsp_en    r/w/-    if 1 display data will be driven by rbus
---              2   dp_en     r/w/-    if 1 display dp's will be driven by rbus
---              1   led_en    r/w/-    if 1 LED will be driven by rri
---              0   swi_en    r/w/-    if 1 SWI will be driven by rri
---
--- bbbbbb01  7:00   swi       r/w/-    r: return hio SWI status
---                                     w: will drive SWI when swi_en=1
---
--- bbbbbb10         led       r/w/-  Interface to LED and DSP_DP
---          15:12     dp      r/w/-    r: returns DSP_DP status
---                                     w: will drive display dp's when dp_en=1
---           7:00     led     r/w/-    r: returns LED status
---                                     w: will drive led's when led_en=1
---
--- bbbbbb11 15:00   dsp       r/w/-    r: return hio DSP_DAT status
---                                     w: will drive DSP_DAT when dsp_en=1
+-- Addr   Bits  Name        r/w/f  Function
+--  000         stat        r/-/-  Status register
+--        14:12   hdig      r/-/-    display size as (2**DCWIDTH)-1
+--        11:08   hled      r/-/-    led     size as LWIDTH-1
+--         7:04   hbtn      r/-/-    button  size as BWIDTH-1
+--         3:00   hswi      r/-/-    switch  size as SWIDTH-1
+--         
+--  001         cntl        r/w/-  Control register
+--            4   dsp1_en   r/w/-    if 1 display msb will be driven by rbus
+--            3   dsp0_en   r/w/-    if 1 display lsb will be driven by rbus
+--            2   dp_en     r/w/-    if 1 display dp's will be driven by rbus
+--            1   led_en    r/w/-    if 1 LED will be driven by rbus
+--            0   swi_en    r/w/-    if 1 SWI will be driven by rbus
+--            
+--  010    x:00 btn         r/-/f    r: return hio BTN status
+--                                   w: will pulse BTN
+--                                   
+--  011    x:00 swi         r/w/-    r: return hio SWI status
+--                                   w: will drive SWI when swi_en=1
+--                                   
+--  100    x:00 led         r/w/-    r: return hio LED status
+--                                   w: will drive LED when led_en=1
+--                                   
+--  101    x:00 dp          r/w/-    r: return hio DSP_DP status
+--                                   w: will drive dp's when dp_en=1
+--                                   
+--  110   15:00 dsp0        r/w/-    r: return hio DSP_DAT lsb status
+--                                   w: will drive DSP_DAT lsb when dsp_en=1
+--  111   15:00 dsp1        r/w/-    r: return hio DSP_DAT msb status
+--                                   w: will drive DSP_DAT msb when dsp_en=1
 --
 
 library ieee;
@@ -77,25 +91,28 @@ use work.bpgenlib.all;
 
 entity sn_humanio_rbus is               -- human i/o handling /w rbus intercept
   generic (
+    SWIDTH : positive := 8;             -- SWI port width
     BWIDTH : positive := 4;             -- BTN port width
+    LWIDTH : positive := 8;             -- LED port width
+    DCWIDTH : positive := 2;            -- digit counter width (2 or 3)
     DEBOUNCE : boolean := true;         -- instantiate debouncer for SWI,BTN
-    RB_ADDR : slv16 := slv(to_unsigned(2#0000000010000000#,16)));
+    RB_ADDR : slv16 := slv(to_unsigned(16#fef0#,16)));
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit := '0';            -- reset
     CE_MSEC : in slbit;                 -- 1 ms clock enable
     RB_MREQ : in rb_mreq_type;          -- rbus: request
     RB_SRES : out rb_sres_type;         -- rbus: response
-    SWI : out slv8;                     -- switch settings, debounced
+    SWI : out slv(SWIDTH-1 downto 0);   -- switch settings, debounced
     BTN : out slv(BWIDTH-1 downto 0);   -- button settings, debounced
-    LED : in slv8;                      -- led data
-    DSP_DAT : in slv16;                 -- display data
-    DSP_DP : in slv4;                   -- display decimal points
-    I_SWI : in slv8;                    -- pad-i: switches
+    LED : in slv(LWIDTH-1 downto 0);    -- led data
+    DSP_DAT : in slv(4*(2**DCWIDTH)-1 downto 0);   -- display data
+    DSP_DP : in slv((2**DCWIDTH)-1 downto 0);      -- display decimal points
+    I_SWI : in slv(SWIDTH-1 downto 0);  -- pad-i: switches
     I_BTN : in slv(BWIDTH-1 downto 0);  -- pad-i: buttons
-    O_LED : out slv8;                   -- pad-o: leds
-    O_ANO_N : out slv4;                 -- pad-o: 7 seg disp: anodes   (act.low)
-    O_SEG_N : out slv8                  -- pad-o: 7 seg disp: segments (act.low)
+    O_LED : out slv(LWIDTH-1 downto 0); -- pad-o: leds
+    O_ANO_N : out slv((2**DCWIDTH)-1 downto 0); -- pad-o: disp: anodes (act.low)
+    O_SEG_N : out slv8                         -- pad-o: disp: segments (act.low)
   );
 end sn_humanio_rbus;
 
@@ -103,68 +120,100 @@ architecture syn of sn_humanio_rbus is
   
   type regs_type is record
     rbsel : slbit;                      -- rbus select
-    swi : slv8;                         -- rbus swi
+    swi : slv(SWIDTH-1 downto 0);       -- rbus swi
     btn : slv(BWIDTH-1 downto 0);       -- rbus btn
-    led : slv8;                         -- rbus led
-    dsp_dat : slv16;                    -- rbus dsp_dat
-    dsp_dp  : slv4;                     -- rbus dsp_dp
-    ledin : slv8;                       -- led from design
-    swieff : slv8;                      -- effective swi
+    led : slv(LWIDTH-1 downto 0);        -- rbus led
+    dsp_dat : slv(4*(2**DCWIDTH)-1 downto 0); -- rbus dsp_dat
+    dsp_dp  : slv((2**DCWIDTH)-1 downto 0);   -- rbus dsp_dp
+    ledin : slv(LWIDTH-1 downto 0);     -- led from design
+    swieff : slv(SWIDTH-1 downto 0);    -- effective swi
     btneff : slv(BWIDTH-1 downto 0);    -- effective btn
-    ledeff : slv8;                      -- effective led
-    dpeff : slv4;                       -- effective dsp_dp
-    dateff : slv16;                     -- effective dsp_dat
+    ledeff : slv(LWIDTH-1 downto 0);    -- effective led
+    dateff : slv(4*(2**DCWIDTH)-1 downto 0);  -- effective dsp_dat
+    dpeff : slv((2**DCWIDTH)-1 downto 0);     -- effective dsp_dp
     swi_en : slbit;                     -- enable: swi from rbus
     led_en : slbit;                     -- enable: led from rbus
-    dsp_en : slbit;                     -- enable: dsp_dat from rbus
+    dsp0_en : slbit;                    -- enable: dsp_dat lsb from rbus
+    dsp1_en : slbit;                    -- enable: dsp_dat msb from rbus
     dp_en : slbit;                      -- enable: dsp_dp  from rbus
   end record regs_type;
 
+  constant swizero : slv(SWIDTH-1 downto 0) := (others=>'0');
   constant btnzero : slv(BWIDTH-1 downto 0) := (others=>'0');
-  
+  constant ledzero : slv(LWIDTH-1 downto 0) := (others=>'0');
+  constant dpzero  : slv((2**DCWIDTH)-1 downto 0) := (others=>'0');
+  constant datzero : slv(4*(2**DCWIDTH)-1 downto 0) := (others=>'0');
+
   constant regs_init : regs_type := (
     '0',                                -- rbsel
-    (others=>'0'),                      -- swi
+    swizero,                            -- swi
     btnzero,                            -- btn
-    (others=>'0'),                      -- led
-    (others=>'0'),                      -- dsp_dat
-    (others=>'0'),                      -- dsp_dp
-    (others=>'0'),                      -- ledin
-    (others=>'0'),                      -- swieff
+    ledzero,                            -- led
+    datzero,                            -- dsp_dat
+    dpzero,                             -- dsp_dp
+    ledzero,                            -- ledin
+    swizero,                            -- swieff
     btnzero,                            -- btneff
-    (others=>'0'),                      -- ledeff
-    (others=>'0'),                      -- dpeff
-    (others=>'0'),                      -- dateff
-    '0','0','0','0'                     -- (swi|led|dsp|dp)_en
+    ledzero,                            -- ledeff
+    datzero,                            -- dateff
+    dpzero,                             -- dpeff
+    '0','0','0','0','0'                 -- (swi|led|dsp0|dsp1|dp)_en
   );
 
   signal R_REGS : regs_type := regs_init;  -- state registers
   signal N_REGS : regs_type := regs_init;  -- next value state regs
 
-  subtype  cntl_rbf_btn      is integer range BWIDTH+8-1 downto 8;
-  constant cntl_rbf_dsp_en:  integer :=  3;
+  subtype  stat_rbf_hdig     is integer range 14 downto 12;
+  subtype  stat_rbf_hled     is integer range 11 downto  8;
+  subtype  stat_rbf_hbtn     is integer range  7 downto  4;
+  subtype  stat_rbf_hswi     is integer range  3 downto  0;
+
+  constant cntl_rbf_dsp1_en: integer :=  4;
+  constant cntl_rbf_dsp0_en: integer :=  3;
   constant cntl_rbf_dp_en:   integer :=  2;
   constant cntl_rbf_led_en:  integer :=  1;
   constant cntl_rbf_swi_en:  integer :=  0;
-  subtype  led_rbf_dp      is integer range 15 downto 12;
-  subtype  led_rbf_led     is integer range  7 downto  0;
 
-  constant rbaddr_cntl:  slv2 := "00";  --  0    r/w/-
-  constant rbaddr_swi:   slv2 := "01";  --  1    r/w/-
-  constant rbaddr_led:   slv2 := "10";  --  2    r/w/-
-  constant rbaddr_dsp:   slv2 := "11";  --  3    r/w/-
+  constant rbaddr_stat:  slv3 := "000";  --  0    r/-/-
+  constant rbaddr_cntl:  slv3 := "001";  --  0    r/w/-
+  constant rbaddr_btn:   slv3 := "010";  --  1    r/-/f
+  constant rbaddr_swi:   slv3 := "011";  --  1    r/w/-
+  constant rbaddr_led:   slv3 := "100";  --  2    r/w/-
+  constant rbaddr_dp:    slv3 := "101";  --  3    r/w/-
+  constant rbaddr_dsp0:  slv3 := "110";  --  4    r/w/-
+  constant rbaddr_dsp1:  slv3 := "111";  --  5    r/w/-
 
-  signal HIO_SWI : slv8 := (others=>'0');
+  subtype  dspdat_msb is integer range 4*(2**DCWIDTH)-1 downto 4*(2**DCWIDTH)-16;
+  subtype  dspdat_lsb is integer range 15 downto 0;
+  
+  signal HIO_SWI : slv(SWIDTH-1 downto  0) := (others=>'0');
   signal HIO_BTN : slv(BWIDTH-1 downto  0) := (others=>'0');
-  signal HIO_LED : slv8 := (others=>'0');
-  signal HIO_DSP_DAT : slv16 := (others=>'0');
-  signal HIO_DSP_DP  : slv4 := (others=>'0');
+  signal HIO_LED : slv(LWIDTH-1 downto  0) := (others=>'0');
+  signal HIO_DSP_DAT : slv(4*(2**DCWIDTH)-1 downto 0) := (others=>'0');
+  signal HIO_DSP_DP  : slv((2**DCWIDTH)-1 downto 0)   := (others=>'0');
 
 begin
 
+  assert SWIDTH<=16 
+    report "assert (SWIDTH<=16)"
+    severity failure;
+  assert BWIDTH<=8
+    report "assert (BWIDTH<=8)"
+    severity failure;
+  assert LWIDTH<=16
+    report "assert (LWIDTH<=16)"
+    severity failure;
+
+  assert DCWIDTH=2 or DCWIDTH=3
+  report "assert(DCWIDTH=2 or DCWIDTH=3): unsupported DCWIDTH"
+  severity FAILURE;
+
   HIO : sn_humanio
     generic map (
+      SWIDTH   => SWIDTH,
       BWIDTH   => BWIDTH,
+      LWIDTH   => LWIDTH,
+      DCWIDTH  => DCWIDTH,
       DEBOUNCE => DEBOUNCE)
     port map (
       CLK     => CLK,
@@ -224,7 +273,7 @@ begin
 
     -- rbus address decoder
     n.rbsel := '0';
-    if RB_MREQ.aval='1' and RB_MREQ.addr(15 downto 2)=RB_ADDR(15 downto 2) then
+    if RB_MREQ.aval='1' and RB_MREQ.addr(15 downto 3)=RB_ADDR(15 downto 3) then
       n.rbsel := '1';
     end if;
 
@@ -232,20 +281,35 @@ begin
     if r.rbsel = '1' then
       irb_ack := irbena;                  -- ack all accesses
 
-      case RB_MREQ.addr(1 downto 0) is
-
-        when rbaddr_cntl =>
-          irb_dout(cntl_rbf_btn)    := HIO_BTN;
-          irb_dout(cntl_rbf_dsp_en) := r.dsp_en;
-          irb_dout(cntl_rbf_dp_en)  := r.dp_en;
-          irb_dout(cntl_rbf_led_en) := r.led_en;
-          irb_dout(cntl_rbf_swi_en) := r.swi_en;
+      case RB_MREQ.addr(2 downto 0) is
+        
+        when rbaddr_stat =>
+          irb_dout(stat_rbf_hdig)  := slv(to_unsigned((2**DCWIDTH)-1,3));
+          irb_dout(stat_rbf_hled)  := slv(to_unsigned(LWIDTH-1,4));
+          irb_dout(stat_rbf_hbtn)  := slv(to_unsigned(BWIDTH-1,4));
+          irb_dout(stat_rbf_hswi)  := slv(to_unsigned(SWIDTH-1,4));
           if RB_MREQ.we = '1' then
-            n.btn    := RB_MREQ.din(cntl_rbf_btn);
-            n.dsp_en := RB_MREQ.din(cntl_rbf_dsp_en);
-            n.dp_en  := RB_MREQ.din(cntl_rbf_dp_en);
-            n.led_en := RB_MREQ.din(cntl_rbf_led_en);
-            n.swi_en := RB_MREQ.din(cntl_rbf_swi_en);
+            irb_ack := '0';
+          end if;
+          
+        when rbaddr_cntl =>
+          irb_dout(cntl_rbf_dsp1_en) := r.dsp1_en;
+          irb_dout(cntl_rbf_dsp0_en) := r.dsp0_en;
+          irb_dout(cntl_rbf_dp_en)   := r.dp_en;
+          irb_dout(cntl_rbf_led_en)  := r.led_en;
+          irb_dout(cntl_rbf_swi_en)  := r.swi_en;
+          if RB_MREQ.we = '1' then
+            n.dsp1_en := RB_MREQ.din(cntl_rbf_dsp1_en);
+            n.dsp0_en := RB_MREQ.din(cntl_rbf_dsp0_en);
+            n.dp_en   := RB_MREQ.din(cntl_rbf_dp_en);
+            n.led_en  := RB_MREQ.din(cntl_rbf_led_en);
+            n.swi_en  := RB_MREQ.din(cntl_rbf_swi_en);
+          end if;
+          
+        when rbaddr_btn =>
+          irb_dout(HIO_BTN'range) := HIO_BTN;
+          if RB_MREQ.we = '1' then
+            n.btn    := RB_MREQ.din(n.btn'range);
           end if;
           
         when rbaddr_swi =>
@@ -255,20 +319,30 @@ begin
           end if;
           
         when rbaddr_led =>
-          irb_dout(led_rbf_dp)  := HIO_DSP_DP;
-          irb_dout(led_rbf_led) := r.ledin;
+          irb_dout(r.ledin'range) := r.ledin;
           if RB_MREQ.we = '1' then
-            n.dsp_dp := RB_MREQ.din(led_rbf_dp);
-            n.led    := RB_MREQ.din(led_rbf_led);
+            n.led := RB_MREQ.din(n.led'range);
           end if;
           
-        when rbaddr_dsp =>
-          irb_dout := HIO_DSP_DAT;
+        when rbaddr_dp =>
+          irb_dout(HIO_DSP_DP'range) := HIO_DSP_DP;
           if RB_MREQ.we = '1' then
-            n.dsp_dat := RB_MREQ.din;
+            n.dsp_dp := RB_MREQ.din(n.dsp_dp'range);
+          end if;
+          
+        when rbaddr_dsp0 =>
+          irb_dout := HIO_DSP_DAT(dspdat_lsb);
+          if RB_MREQ.we = '1' then
+            n.dsp_dat(dspdat_lsb) := RB_MREQ.din;
           end if;
 
-        when others => null;
+        when rbaddr_dsp1 =>
+          irb_dout := HIO_DSP_DAT(dspdat_msb);
+          if RB_MREQ.we = '1' then
+            n.dsp_dat(dspdat_msb) := RB_MREQ.din;
+          end if;
+
+        when others => null;          
       end case;
 
     end if;
@@ -293,10 +367,18 @@ begin
       n.dpeff  := r.dsp_dp;
     end if;
     
-    if r.dsp_en = '0' then
-      n.dateff := DSP_DAT;
+    if r.dsp0_en = '0' then
+      n.dateff(dspdat_lsb) := DSP_DAT(dspdat_lsb);
     else
-      n.dateff := r.dsp_dat;
+      n.dateff(dspdat_lsb) := r.dsp_dat(dspdat_lsb);
+    end if;
+    
+    if DCWIDTH=3 then
+      if r.dsp1_en = '0' then
+        n.dateff(dspdat_msb) := DSP_DAT(dspdat_msb);
+      else
+        n.dateff(dspdat_msb) := r.dsp_dat(dspdat_msb);
+      end if;
     end if;
     
     N_REGS       <= n;

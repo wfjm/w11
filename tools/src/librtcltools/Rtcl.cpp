@@ -1,4 +1,4 @@
-// $Id: Rtcl.cpp 584 2014-08-22 19:38:12Z mueller $
+// $Id: Rtcl.cpp 632 2015-01-11 12:30:03Z mueller $
 //
 // Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -23,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: Rtcl.cpp 584 2014-08-22 19:38:12Z mueller $
+  \version $Id: Rtcl.cpp 632 2015-01-11 12:30:03Z mueller $
   \brief   Implemenation of Rtcl.
 */
 
@@ -103,7 +103,7 @@ Tcl_Obj* Rtcl::NewListIntObj(const std::vector<uint16_t>& vec)
 
 bool Rtcl::SetVar(Tcl_Interp* interp, const std::string& varname, Tcl_Obj* pobj)
 {
-  Tcl_Obj* pret = 0;
+  Tcl_Obj* pret = nullptr;
   
   size_t pos_pbeg = varname.find_first_of('(');
   size_t pos_pend = varname.find_first_of(')');

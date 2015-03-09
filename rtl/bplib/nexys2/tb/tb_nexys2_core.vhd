@@ -1,4 +1,4 @@
--- $Id: tb_nexys2_core.vhd 476 2013-01-26 22:23:53Z mueller $
+-- $Id: tb_nexys2_core.vhd 649 2015-02-21 21:10:16Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,7 +20,7 @@
 -- To test:        generic, any nexys2 target
 --
 -- Target Devices: generic
--- Tool versions:  xst 11.4, 13.1; ghdl 0.26-0.29
+-- Tool versions:  xst 11.4-14.7; ghdl 0.26-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2011-11-26   433   1.1.1  remove O_FLA_CE_N from tb_nexys2_core

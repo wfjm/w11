@@ -1,6 +1,6 @@
-// $Id: RlinkPortTerm.cpp 607 2014-11-30 20:02:48Z mueller $
+// $Id: RlinkPortTerm.cpp 641 2015-02-01 22:12:15Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-02-01   641   1.2    support custom baud rates (5M,6M,10M,12M)
 // 2013-02-23   492   1.1    use RparseUrl
 // 2011-12-18   440   1.0.4  add kStatNPort stats; Open(): autoadd /dev/tty,
 //                           BUGFIX: Open(): set VSTART, VSTOP
@@ -25,7 +26,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPortTerm.cpp 607 2014-11-30 20:02:48Z mueller $
+  \version $Id: RlinkPortTerm.cpp 641 2015-02-01 22:12:15Z mueller $
   \brief   Implemenation of RlinkPortTerm.
 */
 
@@ -35,6 +36,8 @@
 #include <errno.h>
 #include <unistd.h>
 #include <termios.h>
+#include <sys/ioctl.h>
+#include <linux/serial.h>
 
 #include "RlinkPortTerm.hpp"
 
@@ -90,6 +93,7 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
   }
 
   speed_t speed = B115200;
+  unsigned long nsbaud = 0;
   string baud;
   if (fUrl.FindOpt("baud", baud)) {
     speed = B0;
@@ -112,10 +116,19 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
     if (baud=="3000000" || baud=="3000k" || baud=="3M") speed = B3000000;
     if (baud=="3500000" || baud=="3500k")               speed = B3500000;
     if (baud=="4000000" || baud=="4000k" || baud=="4M") speed = B4000000;
+
+    // now handle non-standart baud rates
     if (speed == B0) {
-      emsg.Init("RlinkPortTerm::Open()", 
-                string("invalid baud rate '") + baud + "' specified");
-      return false;
+      if (baud== "5000000" || baud== "5000k" || baud== "5M") nsbaud =  5000000;
+      if (baud== "6000000" || baud== "6000k" || baud== "6M") nsbaud =  6000000;
+      if (baud== "6666666" || baud== "6666k")                nsbaud =  6666666;
+      if (baud=="10000000" || baud=="10000k" || baud=="10M") nsbaud = 10000000;
+      if (baud=="12000000" || baud=="12000k" || baud=="12M") nsbaud = 12000000;
+      if (nsbaud == 0) {
+        emsg.Init("RlinkPortTerm::Open()", 
+                  string("invalid baud rate '") + baud + "' specified");
+        return false;
+      }
     }
   }
 
@@ -143,6 +156,22 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
                    errno);
     ::close(fd);
     return false;
+  }
+
+  struct serial_struct sioctl;
+  int cdivisor = 0;
+  
+  if (nsbaud != 0) {
+    if (::ioctl(fd, TIOCGSERIAL, &sioctl) < 0) {
+      emsg.InitErrno("RlinkPortTerm::Open()", 
+                     string("ioctl(TIOCGSERIAL) for '")+fUrl.Path()+"' failed: ",
+                     errno);
+      ::close(fd);
+      return false;
+    }
+    double fcdivisor = double(sioctl.baud_base) / double(nsbaud);
+    cdivisor = fcdivisor + 0.5;
+    speed    = B38400;
   }
 
   bool use_cts = fUrl.FindOpt("cts");
@@ -177,6 +206,18 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
                    errno);
     close(fd);
     return false;
+  }
+
+  if (cdivisor != 0) {
+    sioctl.flags          |= ASYNC_SPD_CUST;
+    sioctl.custom_divisor  = cdivisor;
+    if (::ioctl(fd, TIOCSSERIAL, &sioctl) < 0) {
+      emsg.InitErrno("RlinkPortTerm::Open()", 
+                     string("ioctl(TIOCSSERIAL) for '")+fUrl.Path()+"' failed: ",
+                     errno);
+      ::close(fd);
+      return false;
+    }
   }
 
   fTiosNew.c_cc[VEOF]   = 0;                // undef
@@ -227,7 +268,8 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
     if (tios.c_cc[i] != fTiosNew.c_cc[i]) pmsg = "c_cc char";
   }
 
-  if (pmsg) {
+  // FIXME_code: why does readback fail for 38400 ?
+  if (speed != B38400 && pmsg) {
     emsg.Init("RlinkPortTerm::Open()",
               string("tcsetattr() failed to set") + string(pmsg));
     ::close(fd);

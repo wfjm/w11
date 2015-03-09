@@ -1,6 +1,6 @@
--- $Id: sys_w11a_s3.vhd 620 2014-12-25 10:48:35Z mueller $
+-- $Id: sys_w11a_s3.vhd 652 2015-02-28 12:18:08Z mueller $
 --
--- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -31,6 +31,10 @@
 --                 ibus/ib_sres_or_2
 --                 ibus/ibdr_minisys
 --                 ibus/ibdr_maxisys
+--                 vlib/rlink/ioleds_sp1c
+--                 w11a/pdp11_statleds
+--                 w11a/pdp11_ledmux
+--                 w11a/pdp11_dspmux
 --                 w11a/pdp11_tmu_sb           [sim only]
 --
 -- Test bench:     tb/tb_sys_w11a_s3
@@ -40,6 +44,7 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2015-02-21   649 14.7  131013 xc3s1000-4  1643 5124  318 3176 OK: +RL11
 -- 2014-12-22   619 14.7  131013 xc3s1000-4  1569 4768  302 2994 OK: +rbmon
 -- 2014-12-20   614 14.7  131013 xc3s1000-4  1455 4523  302 2807 OK: -RL11,rlv4
 -- 2014-06-08   561 14.7  131013 xc3s1000-4  1374 4580  286 2776 OK: +RL11
@@ -78,6 +83,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-02-21   649   1.7    use ioleds_sp1c,pdp11_(statleds,ledmux,dspmux)
 -- 2014-12-24   620   1.6.2  relocate ibus window and hio rbus address
 -- 2014-12-22   619   1.6.1  add rbus monitor rbd_rbmon
 -- 2014-08-28   588   1.6    use new rlink v4 iface and 4 bit STAT
@@ -134,23 +140,37 @@
 --
 -- Usage of S3BOARD Switches, Buttons, LEDs:
 --
---    SWI(7:2): no function (only connected to sn_humanio_rbus)
---    SWI(1):   1 enable XON
---    SWI(0):   0 -> main board RS232 port
+--    SWI(7:6): no function (only connected to sn_humanio_rbus)
+--       (5:4):  select DSP
+--                 00 abclkdiv & abclkdiv_f
+--                 01 PC
+--                 10 DISPREG
+--                 11 DR emulation
+--       (3):    select LED display
+--                 0 overall status
+--                 1 DR emulation
+--       (2)    0 -> int/ext RS242 port for rlink
+--              1 -> use USB interface for rlink
+--       (1):   1 enable XON
+--       (0):   0 -> main board RS232 port
 --              1 -> Pmod B/top RS232 port
---    
---    LED(7)    MEM_ACT_W
---       (6)    MEM_ACT_R
---       (5)    cmdbusy (all rlink access, mostly rdma)
---       (4:0): if cpugo=1 show cpu mode activity
+--
+--    LEDs if SWI(3) = 1
+--      (7:0)    DR emulation; shows R0(lower 8 bits) during wait like 11/45+70
+--
+--    LEDs if SWI(3) = 0
+--        (7)    MEM_ACT_W
+--        (6)    MEM_ACT_R
+--        (5)    cmdbusy (all rlink access, mostly rdma)
+--      (4:0)    if cpugo=1 show cpu mode activity
 --                  (4) kernel mode, pri>0
 --                  (3) kernel mode, pri=0
 --                  (2) kernel mode, wait
 --                  (1) supervisor mode
 --                  (0) user mode
 --              if cpugo=0 shows cpurust
---                (3:0) cpurust code
 --                  (4) '1'
+--                (3:0) cpurust code
 --
 --    DP(3):    not SER_MONI.txok       (shows tx back preasure)
 --    DP(2):    SER_MONI.txact          (shows tx activity)
@@ -274,6 +294,8 @@ architecture syn of sys_w11a_s3 is
   signal DM_STAT_SY : dm_stat_sy_type := dm_stat_sy_init;
 
   signal DISPREG : slv16 := (others=>'0');
+  signal STATLEDS :  slv8 := (others=>'0');
+  signal ABCLKDIV : slv16 := (others=>'0');
 
   constant rbaddr_rbmon : slv16 := x"ffe8"; -- ffe8/0008: 1111 1111 1110 1xxx
   constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/0004: 1111 1110 1111 00xx
@@ -404,7 +426,7 @@ begin
       CP_DOUT   => CP_DOUT      
     );
 
-  CORE : pdp11_core
+  W11A : pdp11_core
     port map (
       CLK       => CLK,
       RESET     => CPU_RESET,
@@ -565,43 +587,44 @@ begin
         EI_VECT  => EI_VECT,
         DISPREG  => DISPREG);
   end generate IBD_MAXI;
-    
-  DSP_DAT(15 downto 0) <= DISPREG;
 
-  DSP_DP(3) <= not SER_MONI.txok;
-  DSP_DP(2) <= SER_MONI.txact;
-  DSP_DP(1) <= not SER_MONI.rxok;
-  DSP_DP(0) <= SER_MONI.rxact;
+  LED_IO : ioleds_sp1c
+    port map (
+      SER_MONI => SER_MONI,
+      IOLEDS   => DSP_DP
+    );
+
+  LED_CPU : pdp11_statleds
+    port map (
+      MEM_ACT_R  => MEM_ACT_R,
+      MEM_ACT_W  => MEM_ACT_W,
+      CP_STAT    => CP_STAT,
+      DM_STAT_DP => DM_STAT_DP,
+      STATLEDS   => STATLEDS
+    );
   
-  proc_led: process (MEM_ACT_W, MEM_ACT_R, CP_STAT, DM_STAT_DP.psw)
-    variable iled : slv8 := (others=>'0');
-  begin
-    iled := (others=>'0');
-    iled(7) := MEM_ACT_W;
-    iled(6) := MEM_ACT_R;
-    iled(5) := CP_STAT.cmdbusy;
-    if CP_STAT.cpugo = '1' then
-      case DM_STAT_DP.psw.cmode is
-        when c_psw_kmode =>
-          if CP_STAT.cpuwait = '1' then
-            iled(2) := '1';
-          elsif unsigned(DM_STAT_DP.psw.pri) = 0 then
-            iled(3) := '1';
-          else
-            iled(4) := '1';
-          end if;
-        when c_psw_smode =>
-          iled(1) := '1';
-        when c_psw_umode =>
-          iled(0) := '1';
-        when others => null;
-      end case;
-    else
-      iled(4) := '1';
-      iled(3 downto 0) := CP_STAT.cpurust;
-    end if;
-    LED <= iled;
-  end process;
+  LED_MUX : pdp11_ledmux
+    generic map (
+      LWIDTH => LED'length)
+    port map (
+      SEL        => SWI(3),
+      STATLEDS   => STATLEDS,
+      DM_STAT_DP => DM_STAT_DP,
+      LED        => LED
+    );
+    
+  ABCLKDIV <= SER_MONI.abclkdiv(11 downto 0) & '0' & SER_MONI.abclkdiv_f;
+
+  DSP_MUX : pdp11_dspmux
+    generic map (
+      DCWIDTH => 2)
+    port map (
+      SEL        => SWI(5 downto 4),
+      ABCLKDIV   => ABCLKDIV,
+      DM_STAT_DP => DM_STAT_DP,
+      DISPREG    => DISPREG,
+      DSP_DAT    => DSP_DAT
+    );
       
 -- synthesis translate_off
   DM_STAT_SY.emmreq <= EM_MREQ;

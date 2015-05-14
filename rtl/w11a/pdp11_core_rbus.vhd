@@ -1,6 +1,6 @@
--- $Id: pdp11_core_rbus.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: pdp11_core_rbus.vhd 677 2015-05-09 21:52:32Z mueller $
 --
--- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -27,6 +27,7 @@
 --
 -- Revision History: -
 -- Date         Rev Version  Comment
+-- 2015-05-09   677   1.5    start/stop/suspend overhaul; reset overhaul
 -- 2014-12-26   621   1.4    use full size 4k word ibus window
 -- 2014-12-21   617   1.3.1  use separate RB_STAT bits for cmderr and cmdmerr
 -- 2014-09-05   591   1.3    use new rlink v4 iface and 4 bit STAT
@@ -65,12 +66,16 @@
 --                                       0000: noop
 --                                       0001: start
 --                                       0010: stop
---                                       0011: continue
---                                       0100: step
---                                       1111: reset (soft)
+--                                       0011: step
+--                                       0100: creset
+--                                       0101: breset
+--                                       0110: suspend
+--                                       0111: resume
 -- 00010         stat        r/-/-  cpu status
+--            9    suspext   r/-/-    cp_stat: statext
+--            8    suspint   r/-/-    cp_stat: statint
 --         7:04    cpurust   r/-/-    cp_stat: cpurust
---            3    cpuhalt   r/-/-    cp_stat: cpuhalt
+--            3    cpususp   r/-/-    cp_stat: cpususp
 --            2    cpugo     r/-/-    cp_stat: cpugo
 --            1    cmdmerr   r/-/-    cp_stat: cmdmerr
 --            0    cmderr    r/-/-    cp_stat: cmderr
@@ -109,7 +114,7 @@ entity pdp11_core_rbus is               -- core to rbus interface
     RB_SRES : out rb_sres_type;         -- rbus: response
     RB_STAT : out slv4;                 -- rbus: status flags
     RB_LAM : out slbit;                 -- remote attention
-    CPU_RESET : out slbit;              -- cpu master reset
+    GRESET : out slbit;                 -- general reset
     CP_CNTL : out cp_cntl_type;         -- console control port
     CP_ADDR : out cp_addr_type;         -- console address port
     CP_DIN : out slv16;                 -- console data in
@@ -131,6 +136,7 @@ architecture syn of pdp11_core_rbus is
     state : state_type;                 -- state
     rbselc : slbit;                     -- rbus select for core
     rbseli : slbit;                     -- rbus select for ibus
+    rbinit : slbit;                     -- rbus init seen (1 cycle pulse)
     cpreq : slbit;                      -- cp request flag
     cpfunc : slv5;                      -- cp function
     cpugo_1 : slbit;                    -- prev cycle cpugo
@@ -146,6 +152,7 @@ architecture syn of pdp11_core_rbus is
   constant regs_init : regs_type := (
     s_idle,                             -- state
     '0','0',                            -- rbselc,rbseli
+    '0',                                -- rbinit
     '0',                                -- cpreq
     (others=>'0'),                      -- cpfunc
     '0',                                -- cpugo_1
@@ -186,7 +193,6 @@ architecture syn of pdp11_core_rbus is
     variable irbena   : slbit := '0';
 
     variable icpreq    : slbit := '0';
-    variable icpureset : slbit := '0';
     variable icpaddr   : cp_addr_type := cp_addr_init;
     
   begin
@@ -203,11 +209,12 @@ architecture syn of pdp11_core_rbus is
     irbena  := RB_MREQ.re or RB_MREQ.we;
 
     icpreq    := '0';
-    icpureset := '0';
 
-    -- look for init's against the rbus base address, generate subsystem resets
+    -- generate single cycle pulse in case init against rbus base address seen
+    -- is used to generate some state machine resets via GRESET
+    n.rbinit := '0';
     if RB_MREQ.init='1' and RB_MREQ.addr=RB_ADDR_CORE then
-      icpureset := RB_MREQ.din(0);
+      n.rbinit := RB_MREQ.din(0);
     end if;    
 
     -- rbus address decoder
@@ -259,11 +266,13 @@ architecture syn of pdp11_core_rbus is
               end if;
                 
             when c_rbaddr_stat =>           -- stat ------------------
-              irb_dout(c_stat_rbf_cmderr)  := CP_STAT.cmderr;
-              irb_dout(c_stat_rbf_cmdmerr) := CP_STAT.cmdmerr;
-              irb_dout(c_stat_rbf_cpugo)   := CP_STAT.cpugo;
-              irb_dout(c_stat_rbf_cpuhalt) := CP_STAT.cpuhalt;
+              irb_dout(c_stat_rbf_suspext) := CP_STAT.suspext;
+              irb_dout(c_stat_rbf_suspint) := CP_STAT.suspint;
               irb_dout(c_stat_rbf_cpurust) := CP_STAT.cpurust;
+              irb_dout(c_stat_rbf_cpususp) := CP_STAT.cpususp;
+              irb_dout(c_stat_rbf_cpugo)   := CP_STAT.cpugo;
+              irb_dout(c_stat_rbf_cmdmerr) := CP_STAT.cmdmerr;
+              irb_dout(c_stat_rbf_cmderr)  := CP_STAT.cmderr;
 
             when c_rbaddr_psw  =>           -- psw -------------------
               if irbena = '1' then
@@ -412,12 +421,12 @@ architecture syn of pdp11_core_rbus is
     
     RB_STAT(3) <= CP_STAT.cmderr;
     RB_STAT(2) <= CP_STAT.cmdmerr;
-    RB_STAT(1) <= CP_STAT.cpuhalt or CP_STAT.cpurust(CP_STAT.cpurust'left);
+    RB_STAT(1) <= CP_STAT.cpususp;
     RB_STAT(0) <= CP_STAT.cpugo;
 
     RB_LAM     <= irb_lam;
 
-    CPU_RESET  <= icpureset;
+    GRESET     <= R_REGS.rbinit;
     
     CP_CNTL.req  <= r.cpreq;
     CP_CNTL.func <= r.cpfunc;

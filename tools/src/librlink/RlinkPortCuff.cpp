@@ -1,6 +1,6 @@
-// $Id: RlinkPortCuff.cpp 632 2015-01-11 12:30:03Z mueller $
+// $Id: RlinkPortCuff.cpp 666 2015-04-12 21:17:54Z mueller $
 //
-// Copyright 2012-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2012-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-04-12   666   1.1.3  add noinit attribute
 // 2014-08-22   584   1.1.2  use nullptr
 // 2013-05-17   521   1.1.1  use Rtools::String2Long
 // 2013-02-23   492   1.1    use RparseUrl
@@ -24,7 +25,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPortCuff.cpp 632 2015-01-11 12:30:03Z mueller $
+  \version $Id: RlinkPortCuff.cpp 666 2015-04-12 21:17:54Z mueller $
   \brief   Implemenation of RlinkPortCuff.
 */
 
@@ -97,7 +98,7 @@ bool RlinkPortCuff::Open(const std::string& url, RerrMsg& emsg)
 
   if (IsOpen()) Close();
 
-  if (!fUrl.Set(url, "|trace|", emsg)) return false;
+  if (!fUrl.Set(url, "|trace|noinit|", emsg)) return false;
 
   // initialize USB context
   irc = libusb_init(&fpUsbContext);

@@ -1,4 +1,4 @@
--- $Id: s7_cmt_sfs_gsim.vhd 554 2014-04-21 14:01:51Z mueller $
+-- $Id: s7_cmt_sfs_gsim.vhd 675 2015-05-08 21:05:08Z mueller $
 --
 -- Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,7 +19,7 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic Series-7
--- Tool versions:  xst 14.5; viv 2014.1; ghdl 0.29
+-- Tool versions:  xst 14.5; viv 2014.4; ghdl 0.29
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

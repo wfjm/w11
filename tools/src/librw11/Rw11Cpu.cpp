@@ -1,6 +1,6 @@
-// $Id: Rw11Cpu.cpp 632 2015-01-11 12:30:03Z mueller $
+// $Id: Rw11Cpu.cpp 675 2015-05-08 21:05:08Z mueller $
 //
-// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,10 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-05-08   675   1.2.3  w11a start/stop/suspend overhaul
+// 2015-04-25   668   1.2.2  add AddRbibr(), AddWbibr()
+// 2015-04-03   661   1.2.1  add kStat_M_* defs
+// 2015-03-21   659   1.2    add RAddrMap
 // 2015-01-01   626   1.1    Adopt for rlink v4 and 4k ibus window
 // 2014-12-21   617   1.0.3  use kStat_M_RbTout for rbus timeout
 // 2014-08-02   576   1.0.2  adopt rename of LastExpect->SetLastExpect
@@ -23,7 +27,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cpu.cpp 632 2015-01-11 12:30:03Z mueller $
+  \version $Id: Rw11Cpu.cpp 675 2015-05-08 21:05:08Z mueller $
   \brief   Implemenation of Rw11Cpu.
 */
 #include <stdlib.h>
@@ -58,52 +62,60 @@ namespace Retro {
 //------------------------------------------+-----------------------------------
 // constants definitions
 
-const uint16_t  Rw11Cpu::kCp_addr_conf;  
-const uint16_t  Rw11Cpu::kCp_addr_cntl;  
-const uint16_t  Rw11Cpu::kCp_addr_stat;  
-const uint16_t  Rw11Cpu::kCp_addr_psw;  
-const uint16_t  Rw11Cpu::kCp_addr_al;  
-const uint16_t  Rw11Cpu::kCp_addr_ah;  
-const uint16_t  Rw11Cpu::kCp_addr_mem;  
-const uint16_t  Rw11Cpu::kCp_addr_memi;  
-const uint16_t  Rw11Cpu::kCp_addr_r0;  
-const uint16_t  Rw11Cpu::kCp_addr_pc;  
-const uint16_t  Rw11Cpu::kCp_addr_membe;  
+const uint16_t  Rw11Cpu::kCPCONF;  
+const uint16_t  Rw11Cpu::kCPCNTL;  
+const uint16_t  Rw11Cpu::kCPSTAT;  
+const uint16_t  Rw11Cpu::kCPPSW;  
+const uint16_t  Rw11Cpu::kCPAL;  
+const uint16_t  Rw11Cpu::kCPAH;  
+const uint16_t  Rw11Cpu::kCPMEM;  
+const uint16_t  Rw11Cpu::kCPMEMI;  
+const uint16_t  Rw11Cpu::kCPR0;  
+const uint16_t  Rw11Cpu::kCPPC;  
+const uint16_t  Rw11Cpu::kCPMEMBE;  
 
-const uint16_t  Rw11Cpu::kCp_func_noop;  
-const uint16_t  Rw11Cpu::kCp_func_start;  
-const uint16_t  Rw11Cpu::kCp_func_stop;  
-const uint16_t  Rw11Cpu::kCp_func_cont;  
-const uint16_t  Rw11Cpu::kCp_func_step;  
-const uint16_t  Rw11Cpu::kCp_func_reset; 
+const uint16_t  Rw11Cpu::kCPFUNC_NOOP;  
+const uint16_t  Rw11Cpu::kCPFUNC_START;  
+const uint16_t  Rw11Cpu::kCPFUNC_STOP;  
+const uint16_t  Rw11Cpu::kCPFUNC_STEP;  
+const uint16_t  Rw11Cpu::kCPFUNC_CRESET;  
+const uint16_t  Rw11Cpu::kCPFUNC_BRESET; 
+const uint16_t  Rw11Cpu::kCPFUNC_SUSPEND; 
+const uint16_t  Rw11Cpu::kCPFUNC_RESUME; 
 
-const uint16_t  Rw11Cpu::kCp_stat_m_cpurust;
-const uint16_t  Rw11Cpu::kCp_stat_v_cpurust;
-const uint16_t  Rw11Cpu::kCp_stat_b_cpurust;
-const uint16_t  Rw11Cpu::kCp_stat_m_cpuhalt;
-const uint16_t  Rw11Cpu::kCp_stat_m_cpugo;
-const uint16_t  Rw11Cpu::kCp_stat_m_cmdmerr;
-const uint16_t  Rw11Cpu::kCp_stat_m_cmderr;
+const uint16_t  Rw11Cpu::kCPSTAT_M_SuspExt;
+const uint16_t  Rw11Cpu::kCPSTAT_M_SuspInt;
+const uint16_t  Rw11Cpu::kCPSTAT_M_CpuRust;
+const uint16_t  Rw11Cpu::kCPSTAT_V_CpuRust;
+const uint16_t  Rw11Cpu::kCPSTAT_B_CpuRust;
+const uint16_t  Rw11Cpu::kCPSTAT_M_CpuSusp;
+const uint16_t  Rw11Cpu::kCPSTAT_M_CpuGo;
+const uint16_t  Rw11Cpu::kCPSTAT_M_CmdMErr;
+const uint16_t  Rw11Cpu::kCPSTAT_M_CmdErr;
 
-const uint16_t  Rw11Cpu::kCp_cpurust_init;
-const uint16_t  Rw11Cpu::kCp_cpurust_halt;
-const uint16_t  Rw11Cpu::kCp_cpurust_reset;
-const uint16_t  Rw11Cpu::kCp_cpurust_stop;
-const uint16_t  Rw11Cpu::kCp_cpurust_step;
-const uint16_t  Rw11Cpu::kCp_cpurust_susp;
-const uint16_t  Rw11Cpu::kCp_cpurust_runs;
-const uint16_t  Rw11Cpu::kCp_cpurust_vecfet;
-const uint16_t  Rw11Cpu::kCp_cpurust_recrsv;
-const uint16_t  Rw11Cpu::kCp_cpurust_sfail;
-const uint16_t  Rw11Cpu::kCp_cpurust_vfail;
+const uint16_t  Rw11Cpu::kCPURUST_INIT;
+const uint16_t  Rw11Cpu::kCPURUST_HALT;
+const uint16_t  Rw11Cpu::kCPURUST_RESET;
+const uint16_t  Rw11Cpu::kCPURUST_STOP;
+const uint16_t  Rw11Cpu::kCPURUST_STEP;
+const uint16_t  Rw11Cpu::kCPURUST_SUSP;
+const uint16_t  Rw11Cpu::kCPURUST_RUNS;
+const uint16_t  Rw11Cpu::kCPURUST_VECFET;
+const uint16_t  Rw11Cpu::kCPURUST_RECRSV;
+const uint16_t  Rw11Cpu::kCPURUST_SFAIL;
+const uint16_t  Rw11Cpu::kCPURUST_VFAIL;
 
-const uint16_t  Rw11Cpu::kCp_ah_m_addr;
-const uint16_t  Rw11Cpu::kCp_ah_m_22bit;
-const uint16_t  Rw11Cpu::kCp_ah_m_ubmap;
+const uint16_t  Rw11Cpu::kCPAH_M_ADDR;
+const uint16_t  Rw11Cpu::kCPAH_M_22BIT;
+const uint16_t  Rw11Cpu::kCPAH_M_UBMAP;
 
-const uint16_t  Rw11Cpu::kCp_membe_m_stick;
-const uint16_t  Rw11Cpu::kCp_membe_m_be;
-  
+const uint16_t  Rw11Cpu::kCPMEMBE_M_STICK;
+const uint16_t  Rw11Cpu::kCPMEMBE_M_BE;
+
+const uint8_t   Rw11Cpu::kStat_M_CmdErr;
+const uint8_t   Rw11Cpu::kStat_M_CmdMErr;
+const uint8_t   Rw11Cpu::kStat_M_CpuHalt;
+const uint8_t   Rw11Cpu::kStat_M_CpuGo;
 
 //------------------------------------------+-----------------------------------
 //! Constructor
@@ -120,6 +132,7 @@ Rw11Cpu::Rw11Cpu(const std::string& type)
     fCpuGoCond(),
     fCntlMap(),
     fIAddrMap(),
+    fRAddrMap(),
     fStats()
 {}
 
@@ -136,70 +149,66 @@ void Rw11Cpu::Setup(Rw11* pw11)
 {
   fpW11 = pw11;
   // add control port address rbus mappings
-  //   name base: 'cn.', where n is cpu index
-  string cbase = "c";
-  cbase += '0'+Index();
-  cbase += '.';
-  Connect().AddrMapInsert(cbase+"conf", Base()+kCp_addr_conf);
-  Connect().AddrMapInsert(cbase+"cntl", Base()+kCp_addr_cntl);
-  Connect().AddrMapInsert(cbase+"stat", Base()+kCp_addr_stat);
-  Connect().AddrMapInsert(cbase+"psw" , Base()+kCp_addr_psw);
-  Connect().AddrMapInsert(cbase+"al"  , Base()+kCp_addr_al);
-  Connect().AddrMapInsert(cbase+"ah"  , Base()+kCp_addr_ah);
-  Connect().AddrMapInsert(cbase+"mem" , Base()+kCp_addr_mem);
-  Connect().AddrMapInsert(cbase+"memi", Base()+kCp_addr_memi);
-  Connect().AddrMapInsert(cbase+"r0"  , Base()+kCp_addr_r0);
-  Connect().AddrMapInsert(cbase+"r1"  , Base()+kCp_addr_r0+1);
-  Connect().AddrMapInsert(cbase+"r2"  , Base()+kCp_addr_r0+2);
-  Connect().AddrMapInsert(cbase+"r3"  , Base()+kCp_addr_r0+3);
-  Connect().AddrMapInsert(cbase+"r4"  , Base()+kCp_addr_r0+4);
-  Connect().AddrMapInsert(cbase+"r5"  , Base()+kCp_addr_r0+5);
-  Connect().AddrMapInsert(cbase+"sp"  , Base()+kCp_addr_r0+6);
-  Connect().AddrMapInsert(cbase+"pc"  , Base()+kCp_addr_r0+7);
-  Connect().AddrMapInsert(cbase+"membe",Base()+kCp_addr_membe);
+  AllRAddrMapInsert("conf" , Base()+kCPCONF);
+  AllRAddrMapInsert("cntl" , Base()+kCPCNTL);
+  AllRAddrMapInsert("stat" , Base()+kCPSTAT);
+  AllRAddrMapInsert("psw"  , Base()+kCPPSW);
+  AllRAddrMapInsert("al"   , Base()+kCPAL);
+  AllRAddrMapInsert("ah"   , Base()+kCPAH);
+  AllRAddrMapInsert("mem"  , Base()+kCPMEM);
+  AllRAddrMapInsert("memi" , Base()+kCPMEMI);
+  AllRAddrMapInsert("r0"   , Base()+kCPR0);
+  AllRAddrMapInsert("r1"   , Base()+kCPR0+1);
+  AllRAddrMapInsert("r2"   , Base()+kCPR0+2);
+  AllRAddrMapInsert("r3"   , Base()+kCPR0+3);
+  AllRAddrMapInsert("r4"   , Base()+kCPR0+4);
+  AllRAddrMapInsert("r5"   , Base()+kCPR0+5);
+  AllRAddrMapInsert("sp"   , Base()+kCPR0+6);
+  AllRAddrMapInsert("pc"   , Base()+kCPR0+7);
+  AllRAddrMapInsert("membe",Base()+kCPMEMBE);
 
   // add cpu register address ibus and rbus mappings
-  AllAddrMapInsert("psw"    , 0177776);
-  AllAddrMapInsert("stklim" , 0177774);
-  AllAddrMapInsert("pirq"   , 0177772);
-  AllAddrMapInsert("mbrk"   , 0177770);
-  AllAddrMapInsert("cpuerr" , 0177766);
-  AllAddrMapInsert("sysid"  , 0177764);
-  AllAddrMapInsert("hisize" , 0177762);
-  AllAddrMapInsert("losize" , 0177760);
+  AllIAddrMapInsert("psw"    , 0177776);
+  AllIAddrMapInsert("stklim" , 0177774);
+  AllIAddrMapInsert("pirq"   , 0177772);
+  AllIAddrMapInsert("mbrk"   , 0177770);
+  AllIAddrMapInsert("cpuerr" , 0177766);
+  AllIAddrMapInsert("sysid"  , 0177764);
+  AllIAddrMapInsert("hisize" , 0177762);
+  AllIAddrMapInsert("losize" , 0177760);
 
-  AllAddrMapInsert("hm"     , 0177752);
-  AllAddrMapInsert("maint"  , 0177750);
-  AllAddrMapInsert("cntrl"  , 0177746);
-  AllAddrMapInsert("syserr" , 0177744);
-  AllAddrMapInsert("hiaddr" , 0177742);
-  AllAddrMapInsert("loaddr" , 0177740);
+  AllIAddrMapInsert("hm"     , 0177752);
+  AllIAddrMapInsert("maint"  , 0177750);
+  AllIAddrMapInsert("cntrl"  , 0177746);
+  AllIAddrMapInsert("syserr" , 0177744);
+  AllIAddrMapInsert("hiaddr" , 0177742);
+  AllIAddrMapInsert("loaddr" , 0177740);
 
-  AllAddrMapInsert("ssr2"   , 0177576);
-  AllAddrMapInsert("ssr1"   , 0177574);
-  AllAddrMapInsert("ssr0"   , 0177572);
+  AllIAddrMapInsert("ssr2"   , 0177576);
+  AllIAddrMapInsert("ssr1"   , 0177574);
+  AllIAddrMapInsert("ssr0"   , 0177572);
 
-  AllAddrMapInsert("sdreg"  , 0177570);
+  AllIAddrMapInsert("sdreg"  , 0177570);
 
-  AllAddrMapInsert("ssr3"   , 0172516);
+  AllIAddrMapInsert("ssr3"   , 0172516);
 
   // add mmu segment register files
   string sdr = "sdr";
   string sar = "sar";
   for (char i=0; i<8; i++) {
     char ichar = '0'+i;
-    AllAddrMapInsert(sdr+"ki."+ichar, 0172300+2*i);
-    AllAddrMapInsert(sdr+"kd."+ichar, 0172320+2*i);
-    AllAddrMapInsert(sar+"ki."+ichar, 0172340+2*i);
-    AllAddrMapInsert(sar+"kd."+ichar, 0172360+2*i);
-    AllAddrMapInsert(sdr+"si."+ichar, 0172200+2*i);
-    AllAddrMapInsert(sdr+"sd."+ichar, 0172220+2*i);
-    AllAddrMapInsert(sar+"si."+ichar, 0172240+2*i);
-    AllAddrMapInsert(sar+"sd."+ichar, 0172260+2*i);
-    AllAddrMapInsert(sdr+"ui."+ichar, 0177600+2*i);
-    AllAddrMapInsert(sdr+"ud."+ichar, 0177620+2*i);
-    AllAddrMapInsert(sar+"ui."+ichar, 0177640+2*i);
-    AllAddrMapInsert(sar+"ud."+ichar, 0177660+2*i);
+    AllIAddrMapInsert(sdr+"ki."+ichar, 0172300+2*i);
+    AllIAddrMapInsert(sdr+"kd."+ichar, 0172320+2*i);
+    AllIAddrMapInsert(sar+"ki."+ichar, 0172340+2*i);
+    AllIAddrMapInsert(sar+"kd."+ichar, 0172360+2*i);
+    AllIAddrMapInsert(sdr+"si."+ichar, 0172200+2*i);
+    AllIAddrMapInsert(sdr+"sd."+ichar, 0172220+2*i);
+    AllIAddrMapInsert(sar+"si."+ichar, 0172240+2*i);
+    AllIAddrMapInsert(sar+"sd."+ichar, 0172260+2*i);
+    AllIAddrMapInsert(sdr+"ui."+ichar, 0177600+2*i);
+    AllIAddrMapInsert(sdr+"ud."+ichar, 0177620+2*i);
+    AllIAddrMapInsert(sar+"ui."+ichar, 0177640+2*i);
+    AllIAddrMapInsert(sar+"ud."+ichar, 0177660+2*i);
   }
 
   return;
@@ -289,9 +298,9 @@ std::string Rw11Cpu::NextCntlName(const std::string& base) const
 
 int Rw11Cpu::AddMembe(RlinkCommandList& clist, uint16_t be, bool stick)
 {
-  uint16_t data = be & kCp_membe_m_be;
-  if (stick) data |= kCp_membe_m_stick;
-  return clist.AddWreg(fBase+kCp_addr_membe, data);
+  uint16_t data = be & kCPMEMBE_M_BE;
+  if (stick) data |= kCPMEMBE_M_STICK;
+  return clist.AddWreg(fBase+kCPMEMBE, data);
 }
 
 //------------------------------------------+-----------------------------------
@@ -318,14 +327,35 @@ int Rw11Cpu::AddWibr(RlinkCommandList& clist, uint16_t ibaddr, uint16_t data)
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
+int Rw11Cpu::AddRbibr(RlinkCommandList& clist, uint16_t ibaddr, size_t size)
+{
+  if ((ibaddr & 0160001) != 0160000) 
+    throw Rexception("Rw11Cpu::AddRbibr", "ibaddr out of IO page or odd");
+  
+  return clist.AddRblk(IbusRemoteAddr(ibaddr), size);
+}
+  
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+int Rw11Cpu::AddWbibr(RlinkCommandList& clist, uint16_t ibaddr, 
+                      std::vector<uint16_t> block)
+{
+  if ((ibaddr & 0160001) != 0160000) 
+    throw Rexception("Rw11Cpu::AddWbibr", "ibaddr out of IO page or odd");
+  
+  return clist.AddWblk(IbusRemoteAddr(ibaddr), block);
+}
+  
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
 
 int Rw11Cpu::AddLalh(RlinkCommandList& clist, uint32_t addr, uint16_t mode)
 {
   uint16_t al = uint16_t(addr);
-  uint16_t ah = uint16_t(addr>>16) & kCp_ah_m_addr;
-  ah |= mode & (kCp_ah_m_22bit|kCp_ah_m_ubmap);
-  int ind = clist.AddWreg(fBase+kCp_addr_al, al);
-  clist.AddWreg(fBase+kCp_addr_ah, ah);
+  uint16_t ah = uint16_t(addr>>16) & kCPAH_M_ADDR;
+  ah |= mode & (kCPAH_M_22BIT|kCPAH_M_UBMAP);
+  int ind = clist.AddWreg(fBase+kCPAL, al);
+  clist.AddWreg(fBase+kCPAH, ah);
   return ind;
 }
 
@@ -343,7 +373,7 @@ int Rw11Cpu::AddRMem(RlinkCommandList& clist, uint32_t addr, uint16_t* buf,
   int ind = AddLalh(clist, addr, mode);
   while (size > 0) {
     size_t bsize = (size>blkmax) ? blkmax : size;
-    clist.AddRblk(fBase+kCp_addr_memi, buf, bsize);
+    clist.AddRblk(fBase+kCPMEMI, buf, bsize);
     buf  += bsize;
     size -= bsize;
   }
@@ -365,7 +395,7 @@ int Rw11Cpu::AddWMem(RlinkCommandList& clist, uint32_t addr,
   int ind = AddLalh(clist, addr, mode);
   while (size > 0) {
     size_t bsize = (size>blkmax) ? blkmax : size;
-    clist.AddWblk(fBase+kCp_addr_memi, buf, bsize);
+    clist.AddWblk(fBase+kCPMEMI, buf, bsize);
     buf  += bsize;
     size -= bsize;
   }
@@ -384,8 +414,8 @@ bool Rw11Cpu::MemRead(uint16_t addr, std::vector<uint16_t>& data,
   while (nword>ndone) {
     size_t nblk = min(blkmax, nword-ndone);
     RlinkCommandList clist;
-    clist.AddWreg(fBase+kCp_addr_al, addr+2*ndone);
-    clist.AddRblk(fBase+kCp_addr_memi, data.data()+ndone, nblk);
+    clist.AddWreg(fBase+kCPAL, addr+2*ndone);
+    clist.AddRblk(fBase+kCPMEMI, data.data()+ndone, nblk);
     if (!Server().Exec(clist, emsg)) return false;
     ndone += nblk;
   }
@@ -404,8 +434,8 @@ bool Rw11Cpu::MemWrite(uint16_t addr, const std::vector<uint16_t>& data,
   while (nword>ndone) {
     size_t nblk = min(blkmax, nword-ndone);
     RlinkCommandList clist;
-    clist.AddWreg(fBase+kCp_addr_al, addr+2*ndone);
-    clist.AddWblk(fBase+kCp_addr_memi, data.data()+ndone, nblk);
+    clist.AddWreg(fBase+kCPAL, addr+2*ndone);
+    clist.AddWblk(fBase+kCPMEMI, data.data()+ndone, nblk);
     if (!Server().Exec(clist, emsg)) return false;
     ndone += nblk;
   }
@@ -426,13 +456,13 @@ bool Rw11Cpu::ProbeCntl(Rw11Probe& dsc)
     int iib = -1;
     int irb = -1;
     if (dsc.fProbeInt) {
-      clist.AddWreg(fBase+kCp_addr_al,  dsc.fAddr);
-      iib = clist.AddRreg(fBase+kCp_addr_mem);
-      clist.SetLastExpect(new RlinkCommandExpect(0,0xff)); // disable stat check
+      clist.AddWreg(fBase+kCPAL,  dsc.fAddr);
+      iib = clist.AddRreg(fBase+kCPMEM);
+      clist.SetLastExpectStatus(0,0);       // disable stat check
     }
     if (dsc.fProbeRem) {
       irb = AddRibr(clist, dsc.fAddr);
-      clist.SetLastExpect(new RlinkCommandExpect(0,0xff)); // disable stat check
+      clist.SetLastExpectStatus(0,0);       // disable stat check
     }
 
     Server().Exec(clist);
@@ -678,8 +708,10 @@ bool Rw11Cpu::Boot(const std::string& uname, RerrMsg& emsg)
   if (!MemWrite(aload, code, emsg)) return false;
   
   RlinkCommandList clist;
-  clist.AddWreg(fBase+kCp_addr_pc, astart);
-  clist.AddWreg(fBase+kCp_addr_cntl, kCp_func_start);
+  clist.AddWreg(fBase+kCPCNTL, kCPFUNC_STOP);   // stop, just in case 
+  clist.AddWreg(fBase+kCPCNTL, kCPFUNC_CRESET); // init cpu and bus
+  clist.AddWreg(fBase+kCPPC, astart);           // load PC
+  clist.AddWreg(fBase+kCPCNTL, kCPFUNC_START);  // and start
   SetCpuGoUp();
   if (!Server().Exec(clist, emsg)) return false;
 
@@ -703,7 +735,7 @@ void Rw11Cpu::SetCpuGoUp()
 
 void Rw11Cpu::SetCpuGoDown(uint16_t stat)
 {
-  if ((stat & kCp_stat_m_cpugo) == 0) {
+  if ((stat & kCPSTAT_M_CpuGo) == 0) {
     boost::lock_guard<boost::mutex> lock(fCpuGoMutex);
     fCpuGo   = false;
     fCpuStat = stat;
@@ -732,14 +764,36 @@ double Rw11Cpu::WaitCpuGoDown(double tout)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11Cpu::AllAddrMapInsert(const std::string& name, uint16_t ibaddr)
+void Rw11Cpu::AllIAddrMapInsert(const std::string& name, uint16_t ibaddr)
 {
-  string rbname = "i";
-  rbname += '0'+Index();
-  rbname += '.';
-  rbname += name;
-  Connect().AddrMapInsert(rbname, IbusRemoteAddr(ibaddr));
   IAddrMapInsert(name, ibaddr);
+  uint16_t rbaddr = IbusRemoteAddr(ibaddr);
+  RAddrMapInsert(name, rbaddr);
+
+  // add ix. to name in common Connect AddrMap to keep name unique
+  string cname = "i";
+  cname += '0'+Index();
+  cname += '.';
+  cname += name;
+  Connect().AddrMapInsert(cname, rbaddr);
+
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rw11Cpu::AllRAddrMapInsert(const std::string& name, uint16_t rbaddr)
+{
+  RAddrMapInsert(name, rbaddr);
+
+  // add cx. to name in common Connect AddrMap to keep name unique
+  string cname = "c";
+  cname += '0'+Index();
+  cname += '.';
+  cname += name;
+  Connect().AddrMapInsert(cname, rbaddr);
+
   return;
 }
 
@@ -749,7 +803,7 @@ void Rw11Cpu::AllAddrMapInsert(const std::string& name, uint16_t ibaddr)
 void Rw11Cpu::W11AttnHandler()
 {
   RlinkCommandList clist;
-  clist.AddRreg(fBase+kCp_addr_stat);
+  clist.AddRreg(fBase+kCPSTAT);
   Server().Exec(clist);
   SetCpuGoDown(clist[0].Data());
   return;
@@ -776,6 +830,7 @@ void Rw11Cpu::Dump(std::ostream& os, int ind, const char* text) const
        << " : " << it->second << endl;
   }
   fIAddrMap.Dump(os, ind+2, "fIAddrMap: ");
+  fRAddrMap.Dump(os, ind+2, "fRAddrMap: ");
   fStats.Dump(os, ind+2, "fStats: ");
   return;
 }

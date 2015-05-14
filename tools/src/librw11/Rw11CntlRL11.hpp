@@ -1,4 +1,4 @@
-// $Id: Rw11CntlRL11.hpp 653 2015-03-01 12:53:01Z mueller $
+// $Id: Rw11CntlRL11.hpp 665 2015-04-07 07:13:49Z mueller $
 //
 // Copyright 2014-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlRL11.hpp 653 2015-03-01 12:53:01Z mueller $
+  \version $Id: Rw11CntlRL11.hpp 665 2015-04-07 07:13:49Z mueller $
   \brief   Declaration of class Rw11CntlRL11.
 */
 
@@ -59,10 +59,10 @@ namespace Retro {
       static const uint16_t kIbaddr = 0174400; //!< RL11 default address
       static const int      kLam    = 5;       //!< RL11 default lam
 
-      static const uint16_t kRLCS = 000; //!< RLCS register address offset
-      static const uint16_t kRLBA = 002; //!< RLBA register address offset
-      static const uint16_t kRLDA = 004; //!< RLDA register address offset
-      static const uint16_t kRLMP = 006; //!< RLMP register address offset
+      static const uint16_t kRLCS = 000; //!< RLCS reg offset
+      static const uint16_t kRLBA = 002; //!< RLBA reg offset
+      static const uint16_t kRLDA = 004; //!< RLDA reg offset
+      static const uint16_t kRLMP = 006; //!< RLMP reg offset
 
       static const uint16_t kProbeOff = kRLCS; //!< probe address offset (rlcs)
       static const bool     kProbeInt = true;  //!< probe int active

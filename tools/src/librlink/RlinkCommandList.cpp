@@ -1,6 +1,6 @@
-// $Id: RlinkCommandList.cpp 606 2014-11-24 07:08:51Z mueller $
+// $Id: RlinkCommandList.cpp 661 2015-04-03 18:28:41Z mueller $
 //
-// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-04-02   661   1.3    expect logic: add SetLastExpect methods
 // 2014-11-23   606   1.2    new rlink v4 iface
 // 2014-08-02   576   1.1    rename LastExpect->SetLastExpect
 // 2013-05-06   495   1.0.3  add RlinkContext to Print() args
@@ -24,7 +25,7 @@
 
 /*!
   \file
-  \version $Id: RlinkCommandList.cpp 606 2014-11-24 07:08:51Z mueller $
+  \version $Id: RlinkCommandList.cpp 661 2015-04-03 18:28:41Z mueller $
   \brief   Implemenation of class RlinkCommandList.
  */
 
@@ -200,13 +201,81 @@ size_t RlinkCommandList::AddInit(uint16_t addr, uint16_t data)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
+void RlinkCommandList::SetLastExpectStatus(uint8_t stat, uint8_t statmsk)
+{
+  if (fList.empty())
+    throw Rexception("RlinkCommandList::SetLastExpectStatus()",
+                     "Bad state: list empty");
+  fList.back()->SetExpectStatus(stat, statmsk);
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void RlinkCommandList::SetLastExpectData(uint16_t data, uint16_t datamsk)
+{
+  if (fList.empty())
+    throw Rexception("RlinkCommandList::SetLastExpectData()",
+                     "Bad state: list empty");
+  RlinkCommand& cmd = *fList.back();
+  if (!cmd.Expect()) cmd.SetExpect(new RlinkCommandExpect());
+  cmd.Expect()->SetData(data, datamsk);
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void RlinkCommandList::SetLastExpectDone(uint16_t done)
+{
+  if (fList.empty())
+    throw Rexception("RlinkCommandList::SetLastExpectDone()",
+                     "Bad state: list empty");
+  RlinkCommand& cmd = *fList.back();
+  if (!cmd.Expect()) cmd.SetExpect(new RlinkCommandExpect());
+  cmd.Expect()->SetDone(done);
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void RlinkCommandList::SetLastExpectBlock(const std::vector<uint16_t>& block)
+{
+  if (fList.empty())
+    throw Rexception("RlinkCommandList::SetLastExpectBlock()",
+                     "Bad state: list empty");
+  RlinkCommand& cmd = *fList.back();
+  if (!cmd.Expect()) cmd.SetExpect(new RlinkCommandExpect());
+  cmd.Expect()->SetBlock(block);
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+  void RlinkCommandList::SetLastExpectBlock(const std::vector<uint16_t>& block,
+                                        const std::vector<uint16_t>& blockmsk)
+{
+  if (fList.empty())
+    throw Rexception("RlinkCommandList::SetLastExpectBlock()",
+                     "Bad state: list empty");
+  RlinkCommand& cmd = *fList.back();
+  if (!cmd.Expect()) cmd.SetExpect(new RlinkCommandExpect());
+  cmd.Expect()->SetBlock(block, blockmsk);
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
 void RlinkCommandList::SetLastExpect(RlinkCommandExpect* pexp)
 {
-  size_t ncmd = fList.size();
-  if (ncmd == 0)
+  if (fList.empty())
     throw Rexception("RlinkCommandList::SetLastExpect()",
                      "Bad state: list empty");
-  fList[ncmd-1]->SetExpect(pexp);
+  fList.back()->SetExpect(pexp);
   return;
 }
 
@@ -224,12 +293,12 @@ void RlinkCommandList::Clear()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RlinkCommandList::Print(std::ostream& os, const RlinkContext& cntx,
+void RlinkCommandList::Print(std::ostream& os, 
                              const RlinkAddrMap* pamap, size_t abase, 
                              size_t dbase, size_t sbase) const
 {
   foreach_ (RlinkCommand* pcmd, fList) {
-    pcmd->Print(os, cntx, pamap, abase, dbase, sbase);
+    pcmd->Print(os, pamap, abase, dbase, sbase);
   }
   return;
 }

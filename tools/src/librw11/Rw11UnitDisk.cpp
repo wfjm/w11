@@ -1,4 +1,4 @@
-// $Id: Rw11UnitDisk.cpp 561 2014-06-09 17:22:50Z mueller $
+// $Id: Rw11UnitDisk.cpp 659 2015-03-22 23:15:51Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-03-21   659   1.0.1  add fEnabled, Enabled()
 // 2013-04-19   507   1.0    Initial version
 // 2013-02-19   490   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11UnitDisk.cpp 561 2014-06-09 17:22:50Z mueller $
+  \version $Id: Rw11UnitDisk.cpp 659 2015-03-22 23:15:51Z mueller $
   \brief   Implemenation of Rw11UnitDisk.
 */
 
@@ -43,6 +44,7 @@ namespace Retro {
 Rw11UnitDisk::Rw11UnitDisk(Rw11Cntl* pcntl, size_t index)
   : Rw11UnitVirt<Rw11VirtDisk>(pcntl, index),
     fType(),
+    fEnabled(false),
     fNCyl(0),
     fNHead(0),
     fNSect(0),
@@ -101,6 +103,7 @@ void Rw11UnitDisk::Dump(std::ostream& os, int ind, const char* text) const
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11UnitDisk @ " << this << endl;
   os << bl << "  fType:           " << fType  << endl;
+  os << bl << "  fEnabled:        " << fEnabled << endl;
   os << bl << "  fNCyl:           " << fNCyl  << endl;
   os << bl << "  fNHead:          " << fNHead << endl;
   os << bl << "  fNSect:          " << fNSect << endl;

@@ -1,6 +1,6 @@
--- $Id: ibdr_rk11.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: ibdr_rk11.vhd 672 2015-05-02 21:58:28Z mueller $
 --
--- Copyright 2008-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -29,6 +29,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-05-01   672   1.3    BUGFIX: interrupt after dreset,seek command start
 -- 2011-11-18   427   1.2.2  now numeric_std clean
 -- 2010-10-23   335   1.2.1  rename RRI_LAM->RB_LAM;
 -- 2010-10-17   333   1.2    use ibus V2 interface
@@ -111,6 +112,15 @@ architecture syn of ibdr_rk11 is
   constant rkmr_ibf_creset: integer :=  9;                  -- control reset
   constant rkmr_ibf_fdone : integer :=  8;                  -- func done
   subtype  rkmr_ibf_sdone   is integer range  7 downto  0;  -- seek done
+
+  constant func_creset : slv3 := "000";   -- func: control reset
+  constant func_write  : slv3 := "001";   -- func: write
+  constant func_read   : slv3 := "010";   -- func: read
+  constant func_wchk   : slv3 := "011";   -- func: write check
+  constant func_seek   : slv3 := "100";   -- func: seek
+  constant func_rchk   : slv3 := "101";   -- func: read check
+  constant func_dreset : slv3 := "110";   -- func: drive reset
+  constant func_wlock  : slv3 := "111";   -- func: write lock
 
   type state_type is (
     s_idle,
@@ -340,7 +350,7 @@ begin
 
           if ibw0 = '1' then
             n.ide   := IB_MREQ.din(rkcs_ibf_ide);   -- mirror ide bit
-            if n.ide = '0' then                     -- if IE 0 or set to 0
+            if n.ide = '0' then                     -- if IE set to 0
               n.fireq := '0';                         -- cancel all pending
               n.sireq := (others=>'0');               -- interrupt requests
             end if;
@@ -353,21 +363,23 @@ begin
                 n.wce := '0';
                 n.fireq := '0';                           -- cancel pend. int
 
-                if unsigned(IB_MREQ.din(rkcs_ibf_func))=0 then -- control reset?
+                if IB_MREQ.din(rkcs_ibf_func)=func_creset then -- control reset?
                   n.creset := '1';                        -- handle locally
                 else
                   ilam  := '1';                           -- issue lam
                 end if;
                 
-                if unsigned(IB_MREQ.din(rkcs_ibf_func))=4 or   -- if seek
-                   unsigned(IB_MREQ.din(rkcs_ibf_func))=6 then -- or drive reset
-                  n.sbusy(to_integer(unsigned(r.drsel))) := '1'; -- set busy
+                if IB_MREQ.din(rkcs_ibf_func)=func_seek or   -- if seek
+                   IB_MREQ.din(rkcs_ibf_func)=func_dreset then -- or drive reset
+                  n.sbusy(to_integer(unsigned(r.drsel))) := '1'; -- drive busy
+                  if n.ide = '1' then                         -- if enabled
+                    n.fireq := '1';                              -- interrupt !
+                  end if;
                 end if;
 
               end if;
             else                                      -- GO=0
-              if r.ide = '0' and                        -- if ide now 0
-                 IB_MREQ.din(rkcs_ibf_ide)='1' and      -- and is set to 1
+              if r.ide='0' and n.ide='1' and          -- if IDE 0->1 transition
                  r.rdy='1' then                         -- and controller ready
                 n.fireq := '1';                           -- issue interrupt
               end if;

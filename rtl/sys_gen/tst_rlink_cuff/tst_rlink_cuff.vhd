@@ -1,6 +1,6 @@
--- $Id: tst_rlink_cuff.vhd 593 2014-09-14 22:21:33Z mueller $
+-- $Id: tst_rlink_cuff.vhd 666 2015-04-12 21:17:54Z mueller $
 --
--- Copyright 2012-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2012-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -29,6 +29,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-04-11   666   1.2    rearrange XON handling
 -- 2014-08-28   588   1.1    use new rlink v4 iface generics and 4 bit STAT
 -- 2013-01-02   467   1.0.1  use 64 usec led pulse width
 -- 2012-12-29   466   1.0    Initial version
@@ -127,6 +128,8 @@ begin
       CLK        => CLK,
       CE_INT     => CE_MSEC,
       RESET      => RESET,
+      ESCXON     => SWI(1),
+      ESCFILL    => '0',
       RLB_DI     => RLB_DI,
       RLB_ENA    => RLB_ENA,
       RLB_BUSY   => RLB_BUSY,
@@ -174,7 +177,7 @@ begin
       CE_MSEC  => CE_MSEC,
       RESET    => RESET,
       ENAXON   => SWI(1),
-      ENAESC   => SWI(1),
+      ENAESC   => '0',                  -- escaping now in rlink_core8
       RXDATA   => SER_RXDATA,
       RXVAL    => SER_RXVAL,
       RXHOLD   => SER_RXHOLD,

@@ -1,4 +1,4 @@
-# $Id: README_unix_v5_rkset.txt 558 2014-06-01 22:20:51Z mueller $
+# $Id: README_unix_v5_rkset.txt 680 2015-05-14 13:29:46Z mueller $
 
 Notes on oskit: Unix V5 system on RK05 volumes
 
@@ -33,7 +33,8 @@ Notes on oskit: Unix V5 system on RK05 volumes
 
    - Start backend server and boot system (see section 3 in w11a_os_guide.txt)
        boot script:  uv5_rk_boot.tcl
-       example:      ti_w11 -u @uv5_rk_boot.tcl
+       example:      ti_w11 <opt> @uv5_rk_boot.tcl
+                     where <opt> is the proper option set for the board.
 
    - Hit <ENTER> in the xterm window to connect to backend server.
      The boot dialog in the console xterm window will look like

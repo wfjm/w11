@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: ti_rri.1 653 2015-03-01 12:53:01Z mueller $
+.\"  $Id: ti_rri.1 666 2015-04-12 21:17:54Z mueller $
 .\"
 .\" Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH TI_RRI 1 2015-01-28 "Retro Project" "Retro Project Manual"
+.TH TI_RRI 1 2015-04-12 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 ti_rri \- \fBRlink\fP Backend Server
@@ -76,12 +76,15 @@ name prefix for the named pipe file names. Default is 'rlink_cext_fifo'.
 Two fifo's are generated, one with a '_tx' and one with a '_tx' appended
 to the name prefix.
 .IP \fBopts\fP
-comma separated list of further options for the fifo port:
+comma separated list of further fifo port options:
 .RS
 .PD 0
-.TP
-.B keep
+.IP \fBkeep\fP
 fifo is kept open on exit
+.IP \fBxon\fP
+software flow control (xon/xoff)
+.IP \fBnoinit\fP
+defer link initialization (debug or test benches)
 .PD
 .RE
 .RE
@@ -110,7 +113,7 @@ serial port baud rate, default is '115k'. Allowed baud rate settings are:
 .PD
 .RE
 .IP \fBopts\fP
-comma separated list of further options for the serial port connection:
+comma separated list of further term port options:
 .RS
 .PD 0
 .IP \fBbreak\fP
@@ -119,6 +122,8 @@ send a break, do autobaud
 hardware flow control (cts/rts)
 .IP \fBxon\fP
 software flow control (xon/xoff)
+.IP \fBnoinit\fP
+defer link initialization (debug or test benches)
 .PD
 .RE
 .RE
@@ -131,11 +136,13 @@ open a USB via Cypress FX2 type \fBrlink\fP port. Optional arguments are
 USB path, default derived from environment variables RETRO_FX2_VID and 
 RETRO_FX2_PID.
 .IP \fBopts\fP
-comma separated list of further options for the fifo port:
+comma separated list of further cuff port options:
 .RS
 .PD 0
 .IP \fBtrace\fP
 trace USB activities
+.IP \fBnoinit\fP
+defer link initialization (debug or test benches)
 .PD
 .RE
 .RE

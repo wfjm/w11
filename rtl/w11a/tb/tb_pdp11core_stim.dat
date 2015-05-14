@@ -1,7 +1,8 @@
-# $Id: tb_pdp11core_stim.dat 621 2014-12-26 21:20:05Z mueller $
+# $Id: tb_pdp11core_stim.dat 675 2015-05-08 21:05:08Z mueller $
 #
 # Revision History: 
 # Date         Rev Version  Comment
+# 2015-05-08   675   2.6    start/stop/suspend overhaul
 # 2014-12-26   621   2.5    adopt wmembe,ribr,wibr emulation to new 4k window
 # 2014-12-20   614   2.4    adopted to rlink v4
 # 2014-07-13   569   2.3    after ECO-026: correct test 31.1 wrong V=1 cases
@@ -249,9 +250,10 @@ brm     2
 .merr 0
 .sdef s=00000000,01110000
 #
-C   test access error handling to IB space (use 00160000)
+C   test access error handling to IB space (use 00160016)
+C   (is above ibd_ibmon decoded range, and below other debug stuff)
 C     with wm/rm
-wal     160000
+wal     160016
 .merr 1
 .sdef s=01000001
 wm      000000 
@@ -260,7 +262,7 @@ rm    d=-
 .sdef s=00000000,01110000
 C     with bwm/brm
 #
-wal     160000
+wal     160016
 .merr 1
 .sdef s=01000001
 bwm     2
@@ -269,7 +271,7 @@ bwm     2
 .merr 0
 .sdef s=00000000,01110000
 #
-wal     160000
+wal     160016
 .merr 1
 .sdef s=01000001
 brm     2
@@ -358,12 +360,12 @@ bwm     3
         077002    -- sob r0,-2
         000000    -- halt
 #
-C Exec code 1 (very basics: cont,start; 'simple' instructions)
+C Exec code 1 (very basics: start; 'simple' instructions)
 C Exec test 1.1 (sec+clc+halt)
 #
 wpc     002100    -- pc=2100
 wps     000010    -- psw: set N flag
-cont              -- cont @ 2100
+sta               -- start @ 2100
 wtgo    
 rpc   d=002106    -- ! pc
 rps   d=000001    -- ! N cleared, C set now
@@ -371,6 +373,7 @@ rps   d=000001    -- ! N cleared, C set now
 C Exec test 1.2 (4 *inc R2, starting from -2)
 #
 wr2     177776    -- r2=-2
+cres
 stapc   002120    -- start @ 2120
 wtgo    
 rr2   d=000002    -- ! r2=2
@@ -379,6 +382,7 @@ rpc   d=002132    -- ! pc
 C Exec test 1.3 (dec r3; bne -2; halt)
 #
 wr3     000002    -- r3=2
+cres
 stapc   002140    -- start @ 2140
 wtgo    
 rr3   d=000000    -- ! r3=0
@@ -388,6 +392,7 @@ C Exec test 1.4 (inc r1; sob r0,-2; halt)
 #
 wr0     000002    -- r0=2
 wr1     000000    -- r1=0
+cres
 stapc   002160    -- start @ 2160
 wtgo    
 rr0   d=000000    -- ! r0=0
@@ -406,6 +411,7 @@ bwm     4
 C Exec code 2 (bpt against trap catcher @14)
 #
 wsp     001400    -- sp=1400
+cres
 stapc   002200    -- start @ 2200
 wtgo    
 rsp   d=001374    -- ! sp
@@ -438,6 +444,7 @@ C Exec code 3 (bpt against trap handler doing inc r0; rtt)
 wr0     000000    -- r0=0
 wr1     000000    -- r1=0
 wsp     001400    -- sp=1400
+cres
 stapc   002300    -- start @ 2300
 wtgo    
 rr0   d=000001    -- ! r0
@@ -463,6 +470,7 @@ wal     001374    -- setup stack with rtt return frame setting T flag
 bwm     2
         002402    --   start address
         000020    --   set T flag in PSW
+cres
 stapc   002400    -- start @ 2400 -> rtt -> 2402 from stack
 wtgo    
 rr0   d=000002    -- ! r0
@@ -470,7 +478,7 @@ rr1   d=000002    -- ! r1
 rsp   d=001400    -- ! sp
 rpc   d=002410    -- ! pc
 #
-rst               -- console reset (to clear T flag)
+cres              -- console reset (to clear T flag)
 wal     000014    -- vector: 14 -> trap catcher again
 bwm     2
         000016    --   PC:16
@@ -505,6 +513,7 @@ wr3     000000    -- r3=0
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   002500    -- start @ 2500
 wtgo    
 rr0   d=002544    -- ! r0
@@ -542,6 +551,7 @@ wr3     000000    -- r3=0
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   002600    -- start @ 2600
 wtgo    
 rr0   d=002540    -- ! r0
@@ -593,6 +603,7 @@ wr3     002760    -- r3=2760
 wr4     002774    -- r4=2774
 wr5     000666    -- r5=666
 wsp     001400    -- sp=1400
+cres
 stapc   002700    -- start @ 2700
 wtgo    
 rr0   d=002750    -- ! r0
@@ -654,6 +665,7 @@ wr2     003070    -- r2=3070
 wr3     003060    -- r3=3060
 wr4     003074    -- r4=3074
 wsp     001400    -- sp=1400
+cres
 stapc   003000    -- start @ 3000
 wtgo    
 rr0   d=003050    -- ! r0
@@ -737,6 +749,7 @@ wr3     003242    -- r3=3242
 wr4     003144    -- r4=3144
 wr5     003160    -- r5=3160
 wsp     001400    -- sp=1400
+cres
 stapc   003100    -- start @ 3100
 wtgo    
 rr0   d=003210    -- ! r0=3210
@@ -795,6 +808,7 @@ wr0     177776    -- r0=177776
 wr1     177777    -- r1=177777
 wr5     003400    -- r5=3400
 wsp     001400    -- sp=1400
+cres
 stapc   003300    -- start @ 3300
 wtgo    
 rr5   d=003424    -- ! r5=3424
@@ -836,6 +850,7 @@ bwm     2
 #
 C Exec code 13.1a (run WAIT)
 #
+cres
 stapc   003500    -- start @ 3500
 .wait 20          --   let it go
 rpc   d=003502    -- ! should hang here ...
@@ -860,6 +875,7 @@ rpc   d=003510    -- !
 #
 C Exec code 13.2 (test bwm/brm while CPU busy looping)
 wr0     000000    --   r0=0
+cres
 stapc   003520    -- start @ 3520
 #
 wal     003560    -- write data while CPU active
@@ -889,6 +905,7 @@ rpc   d=003526    -- !
 #
 C Exec code 13.3 (test bwm/brm while CPU on WAIT)
 #
+cres
 stapc   003540    -- start @ 3540
 #
 wal     003560    -- write data while CPU active
@@ -967,6 +984,7 @@ wr2     000033    -- r2=33
 wr3     000044    -- r3=44
 wr5     003700    -- r5=3700
 wsp     001400    -- sp=140
+cres
 stapc   003600    -- start @ 3600
 wtgo    
 rr5   d=003720    -- ! r5=3720
@@ -1077,6 +1095,7 @@ rr1   d=004044    -- ! r1
 C Exec test 16.1 (check CRESET of PSW, SSR0, SSR3 after start)
 #
 wps     000000    -- psw:  set pri=0
+cres
 stapc   004030    -- start @ 4030  (just HALT, testing console reset)
 wtgo    
 rpc   d=004032    -- ! pc=4032
@@ -1185,6 +1204,7 @@ wal     001374    -- setup stack with rtt return frame setting T flag
 bwm     2
         004100    --   start address (code 17 @ 4100)
         000020    --   set T flag in PSW
+cres
 stapc   004274    -- start @ 4274 -> rtt -> 4100 from stack
 wtgo    
 rr1   d=004711    -- ! r1=4711
@@ -1261,7 +1281,7 @@ brm     31
       d=000020    -- ! mem(4572)=0000; xor r1,(r4)+ (#4711,   #070707)
       d=000024    -- ! mem(4574)=0Z00; sxt (r4)+    (#111111 with N=0)
 #
-rst               -- console reset (to clear T flag)
+cres              -- console reset (to clear T flag)
 wal     000014    -- vector: 14 -> trap catcher again
 bwm     2
         000016    --   PC:16
@@ -1293,7 +1313,7 @@ bwm     4
 #----------
 C Exec code 20 (check CPUERR and error handling)
 C Exec test 20.1 (odd address abort)
-rst               -- console reset
+cres              -- console reset
 wps     000000    -- psw: clear
 wal     001374    -- clean stack
 bwm     2
@@ -1931,7 +1951,7 @@ C Exec code 22 (MMU ; run user mode code with I/D)
 wr5     005260    -- r5=5260
 wsp     001400    -- sp=1400
 wpc     005000    -- pc=5000
-cont              -- cont @ 5000
+sta               -- start @ 5000
 wtgo    
 rsp   d=001372    -- ! sp
 rpc   d=005030    -- ! pc (halt in TRAP handler)
@@ -2131,6 +2151,7 @@ wr1     000005    -- r1=5
 wr2     177776    -- r2=177776 (PS address)
 wr5     006300    -- r5=6300   (output data)
 wsp     001400    -- sp=1400
+cres
 stapc   005700    -- start @ 5700
 wtgo    
 rr0   d=006212    -- ! r0
@@ -2158,6 +2179,7 @@ wr1     000003    -- r1=3
 wr2     177776    -- r2=177776 (PS address)
 wr5     006330    -- sp=6330   (output data)
 wsp     001400    -- sp=1400
+cres
 stapc   005720    -- start @ 5720
 wtgo    
 rr0   d=006226    -- ! r0
@@ -2181,6 +2203,7 @@ wr1     000007    -- r1=7
 wr2     177776    -- r2=177776 (PS address)
 wr5     006344    -- sp=6344   (output data)
 wsp     001400    -- sp=1400
+cres
 stapc   005740    -- start @ 5740
 wtgo    
 rr0   d=006264    -- ! r0
@@ -2249,6 +2272,7 @@ C Exec code 24 (test MARK instruction)
 wr0     006470    -- r0=6470
 wr5     123456    -- r5=123456
 wsp     001400    -- sp=1400
+cres
 stapc   006400    -- start @ 6400
 wtgo    
 rr0   d=006476    -- ! r0=6476 (3 words written)
@@ -2338,6 +2362,7 @@ wal     001374    -- setup stack with rtt return frame setting T flag
 bwm     2
         006500    --   start address (code 25 @ 6500)
         000020    --   set T flag in PSW
+cres
 stapc   006564    -- start @ 6564 -> rtt -> 6500 from stack
 wtgo    
 rr1   d=000123    -- ! r1=123    
@@ -2394,7 +2419,7 @@ brm     21
       d=000020    -- ! mem(6674)=0000; aslb (r4)+    (#020)   
       d=000023    -- ! mem(6676)=00VC; aslb (r4)+    (#220)   
 #
-rst               -- console reset (to clear T flag)
+cres              -- console reset (to clear T flag)
 wal     000014    -- vector: 14 -> trap catcher again
 bwm     2
         000016    --   PC:16
@@ -2495,6 +2520,7 @@ C Exec test 26.1 (test src-dst update hazards with (r0)+,(r0)+ ect):
 wr0     007060    -- r0=7060   (input data for (r0)+...)
 wr1     007100    -- r1=7100   (input data for -(r1)...)
 wsp     001400    -- sp=1400
+cres
 stapc   006700    -- start @ 6700
 wtgo    
 rr0   d=007070    -- ! r0
@@ -2515,6 +2541,7 @@ brm     4
 C Exec test 26.2 (test indexed mode with pc (mode 67)):
 #
 wsp     001400    -- sp=1400
+cres
 stapc   006720    -- start @ 6720
 wtgo    
 rpc   d=006736    -- ! pc
@@ -2528,6 +2555,7 @@ C Exec test 26.3 (test (pc)+ as dst):
 #
 wr0     000111    -- r0=0111
 wsp     001400    -- sp=1400
+cres
 stapc   006750    -- start @ 6750
 wtgo    
 rr0   d=000112    -- ! r0
@@ -2549,6 +2577,7 @@ wr1     000110    -- r1=0110
 wr2     000120    -- r2=0120
 wr3     000130    -- r3=0130
 wsp     001400    -- sp=1400
+cres
 stapc   007000    -- start @ 7000
 wtgo    
 rr0   d=000101    -- ! r0
@@ -2565,6 +2594,7 @@ C Exec test 26.5 (test pc as dst in mov and add):
 #
 wr1     000000    -- r1=0
 wsp     001400    -- sp=1400
+cres
 stapc   007020    -- start @ 7020
 wtgo    
 rr1   d=000002    -- ! r1
@@ -2688,6 +2718,7 @@ wr1     007500    -- r1=7500   (output data)
 wr2     000014    -- r2=14     (test count)
 wr3     177776    -- r3=177776 (#PSW)
 wsp     001400    -- sp=1400
+cres
 stapc   007100    -- start @ 7100
 wtgo    
 rr0   d=007260    -- ! r0
@@ -2727,6 +2758,7 @@ wr1     007600    -- r1=7600   (output data)
 wr2     000012    -- r2=12     (test count)
 wr3     177776    -- r3=177776 (#PSW)
 wsp     001400    -- sp=1400
+cres
 stapc   007120    -- start @ 7120
 wtgo    
 rr0   d=007374    -- ! r0
@@ -2772,6 +2804,7 @@ wr1     007740    -- r1=7740   (output data)
 wr2     000003    -- r2=3      (test count)
 wr3     177776    -- r3=177776 (#PSW)
 wsp     001400    -- sp=1400
+cres
 stapc   007150    -- start @ 7150
 wtgo    
 rr0   d=007454    -- ! r0
@@ -2846,6 +2879,7 @@ wr1     010300    -- r1=10300  (output data)
 wr2     000010    -- r2=10     (test count)
 wr3     177776    -- r3=177776 (#PSW)
 wsp     001400    -- sp=1400
+cres
 stapc   010200    -- start @ 10200
 wtgo    
 rr0   d=010300    -- ! r0
@@ -2886,6 +2920,7 @@ wr2     000010    -- r2=10     (test count)
 wr3     000000    -- r3=0            
 wr4     000000    -- r4=0            
 wsp     001400    -- sp=1400
+cres
 stapc   010220    -- start @ 10220
 wtgo    
 rr0   d=010300    -- ! r0
@@ -3053,10 +3088,10 @@ wr1     010700    -- r1=10700  (output data)
 wr2     000025    -- r2=25     (test count)
 wr3     177776    -- r3=177776 (#PSW)
 wsp     001400    -- sp=1400
-rst               -- console reset  ; do reset; cont to start with 
+cres              -- console reset  ; do reset; cont to start with 
 wps     000000    -- clear psw      ; psw cc code dump below
 wpc     010400    -- pc=10400
-cont              -- cont @ 10400
+sta               -- start @ 10400
 wtgo    
 rr0   d=010676    -- ! r0
 rr1   d=011076    -- ! r1
@@ -3138,6 +3173,7 @@ wr0     010500    -- r0=10500  (input data from DIV)
 wr1     010700    -- r1=10700  (output data from DIV)
 wr5     000016    -- r5=16     (test count)
 wsp     001400    -- sp=1400
+cres
 stapc   010420    -- start @ 10420
 wtgo    
 rr0   d=010624    -- ! r0
@@ -3217,6 +3253,7 @@ wr3     177772    -- r3=177772 (#PIRQ)
 wr4     177776    -- r4=177776 (#PSW)
 wr5     011220    -- r1=11220  (output data)
 wsp     001400    -- sp=1400
+cres
 stapc   011100    -- start @ 11100
 wtgo    
 rr5   d=011300    -- ! r5
@@ -3339,6 +3376,7 @@ C Exec test 33.1 (adc)
 wr0     011300    -- r0=11300 
 wr1     000003    -- r1=3
 wsp     001400    -- sp=1400
+cres
 stapc   011200    -- start @ 11200
 wtgo    
 rr0   d=011322    -- ! r0=11322 
@@ -3360,6 +3398,7 @@ C Exec test 33.2 (sbc)
 wr0     011324    -- r0=11324 
 wr1     000003    -- r1=3
 wsp     001400    -- sp=1400
+cres
 stapc   011220    -- start @ 11220
 wtgo    
 rr0   d=011346    -- ! r0=11346 
@@ -3381,6 +3420,7 @@ C Exec test 33.3 (adcb)
 wr0     011350    -- r0=11350 
 wr1     000003    -- r1=3
 wsp     001400    -- sp=1400
+cres
 stapc   011240    -- start @ 11240
 wtgo    
 rr0   d=011364    -- ! r0=11364 
@@ -3399,6 +3439,7 @@ C Exec test 33.4 (sbcb)
 wr0     011364    -- r0=11364 
 wr1     000003    -- r1=3
 wsp     001400    -- sp=1400
+cres
 stapc   011260    -- start @ 11260
 wtgo    
 rr0   d=011400    -- ! r0=11400 
@@ -3488,6 +3529,7 @@ bwm     8
 #
 C Exec code 34 (11/34 self test code)
 # D  RE RQ FU  DAT
+cres
 stapc   011400    -- start @ 11400
 wtgo    
 rr0   d=000000    -- ! r0
@@ -3636,6 +3678,7 @@ bwm     117
 #
 C Exec code 35 (11/70 self test code)
 # D  RE RQ FU  DAT
+cres
 stapc   011600    -- start @ 11600
 wtgo    
 rpc   d=012152    -- ! pc
@@ -3696,6 +3739,7 @@ wr3     000013    -- r3=13       -> test count
 wr4     036000    -- r4=36000    -> input area
 wr5     037000    -- r5=37000    -> output area
 wsp     001400    -- sp=1400 
+cres
 stapc   012200    -- start @ 12200
 wtgo    
 rpc   d=012216    -- ! pc
@@ -3803,6 +3847,7 @@ wr3     000023    -- r3=23       -> test count
 wr4     036000    -- r4=36000    -> input area
 wr5     037000    -- r5=37000    -> output area
 wsp     001400    -- sp=1400 
+cres
 stapc   012300    -- start @ 12300
 wtgo    
 rpc   d=012322    -- ! pc
@@ -3934,6 +3979,7 @@ wr3     000021    -- r3=21 (17.) -> test count
 wr4     036000    -- r4=36000    -> input area
 wr5     037000    -- r5=37000    -> output area
 wsp     001400    -- sp=1400 
+cres
 stapc   012300    -- start @ 12300
 wtgo    
 rpc   d=012322    -- ! pc
@@ -4185,6 +4231,7 @@ wr3     000062    -- r3=62       -> test count
 wr4     036000    -- r4=36000    -> input area
 wr5     037000    -- r5=37000    -> output area
 wsp     001400    -- sp=1400 
+cres
 stapc   012400    -- start @ 12400
 wtgo    
 rpc   d=012436    -- ! pc
@@ -4546,6 +4593,7 @@ wr3     000057    -- r3=57 (47.)
 wr4     036000    -- r4=36000
 wr5     037000    -- r5=37000
 wsp     001400    -- sp=1400 
+cres
 stapc   012500    -- start @ 12500
 wtgo    
 rpc   d=012546    -- ! pc
@@ -4918,6 +4966,7 @@ wr3     000067    -- r3=67 (55.) -> test count
 wr4     036000    -- r4=36000    -> input area
 wr5     037000    -- r5=37000    -> output area
 wsp     001400    -- sp=1400 
+cres
 stapc   012600    -- start @ 12600
 wtgo    
 rpc   d=012636    -- ! pc
@@ -5095,6 +5144,7 @@ C Exec code 43 (Begemot MARK test)
 C Exec test 43.1 (basics)
 # D  RE RQ FU  DAT
 wsp     001400    -- sp=1400 
+cres
 stapc   012700    -- start @ 12700
 wtgo    
 rpc   d=012734    -- ! pc
@@ -5111,6 +5161,7 @@ brm     5
 C Exec test 43.2 (MARK with max. # of args)
 # D  RE RQ FU  DAT
 wsp     001400    -- sp=1400 
+cres
 stapc   012740    -- start @ 12740
 wtgo    
 rpc   d=012764    -- ! pc
@@ -5155,7 +5206,7 @@ bwm     2
 C Exec code 44 (Implementation variations)
 C test 44.1: OPR R,(R)+ : incremented before {J11} or after {70} use as source
 #
-rst               -- console reset
+cres              -- console reset
 wps     000000    -- clear psw
 wr4     001600    -- r4=1600 
 wsp     001400    -- sp=1400
@@ -5242,7 +5293,7 @@ bwm     2
         000020    --   set T flag in PSW
 wsp     001374    -- sp=1374
 wpc     013020    -- pc=13020
-cont              -- cont (rtt)
+sta               -- start (rtt)
 wtgo    
 rpc   d=000020    -- ! pc=20 ; T-trap executed
 rsp   d=001374    -- ! sp=1374
@@ -5250,7 +5301,7 @@ wal     001374    -- check stack
 brm     2
       d=013072    --   trap address: address after noop expected for 11/70
       d=000020    --   PSW
-rst               -- console reset (to clear T flag)
+cres              -- console reset (to clear T flag)
 #
 C test 44.11: If RTI sets T bit, T trap occurs immediately {70,J11}
 #
@@ -5260,7 +5311,7 @@ bwm     2
         000020    --   set T flag in PSW
 wsp     001374    -- sp=1374
 wpc     013024    -- pc=13024
-cont              -- cont (rti)
+sta               -- start (rti)
 wtgo    
 rpc   d=000020    -- ! pc=20 ; T-trap executed
 rsp   d=001374    -- ! sp=1374
@@ -5268,7 +5319,7 @@ wal     001374    -- check stack
 brm     2
       d=013070    --   trap address: address of noop expected for 11/70
       d=000020    --   PSW
-rst               -- console reset (to clear T flag)
+cres              -- console reset (to clear T flag)
 #
 C test 44.14: Direct access to PSW can {05..20} / cannot {others} set T bit
 #
@@ -5291,7 +5342,7 @@ wal     000000    -- check emergency stack
 brm     2
       d=013034    -- ! PC of abort					[[s:0]]
       d=000000    -- ! PS of abort (currently gets lost...)
-rst               -- console reset (to clear CPUERR reg)
+cres              -- console reset (to clear CPUERR reg)
 wal     000000    -- clean tainted memory
 bwm     2
         000000    --
@@ -5308,12 +5359,13 @@ wmi     077400    --   slf=127; ed=0(up); acf=0 (non resident)
 #
 C test 44.28: If PC->bad memory, PC incremented {others} / not inc'ed {35,40}
 #
+cres
 wal     177572    -- SSR0
 wmi     000001    --   set enable bit
 wr4     100000    -- r4=100000
 wsp     001400    -- sp=1400
 wpc     013034    -- pc=13034
-cont              -- cont (jmp (r4))
+sta               -- start (jmp (r4))
 wtgo    
 rpc   d=000254    -- ! pc=254 ; trap 240 ; Note: halt is executed, was cont !
 rsp   d=001374    -- ! sp=1374
@@ -5321,7 +5373,7 @@ wal     001374    -- check stack
 brm     2
       d=100002    --   trap address: PC inc'ed expected for 11/70   [[s:100000]]
       d=000340    --   PSW
-rst               -- console reset (to clear CPUERR reg)
+cres              -- console reset (to clear CPUERR reg)
 #
 # simh notes:
 # 1. simh reads instruction, later increments PC. Thus PC not inc'ed in simh.
@@ -5342,7 +5394,7 @@ wal     177572    -- check SSR0/1
 brm     2
       d=100011    -- ! SSR0: (abo_nonres=1,seg=4,ena=1) see note    [[s:100211]]
       d=000021    -- ! SSR1: ra=1,2
-rst               -- console reset (to clear CPUERR reg)
+cres              -- console reset (to clear CPUERR reg)
 #
 C test 44.29/30b: If R->bad in mode 2, R inc'ed {others} / or not {4,34,44}
 C                 test for srcr chain (mov (r1)+,r0)
@@ -5360,7 +5412,7 @@ wal     177572    -- check SSR0/1
 brm     2
       d=100011    -- ! SSR0: (abo_nonres=1,seg=4,ena=1) see note    [[s:100211]]
       d=000021    -- ! SSR1: ra=1,2
-rst               -- console reset (to clear CPUERR reg)
+cres              -- console reset (to clear CPUERR reg)
 #
 C test 44.29/30c: If R->bad in mode 2, R inc'ed {others} / or not {4,34,44}
 C                 test for dstr chain (inc (r1)+)
@@ -5378,7 +5430,7 @@ wal     177572    -- check SSR0/1
 brm     2
       d=100011    -- ! SSR0: (abo_nonres=1,seg=4,ena=1) see note    [[s:100211]]
       d=000021    -- ! SSR1: ra=1,2
-rst               -- console reset (to clear CPUERR reg)
+cres              -- console reset (to clear CPUERR reg)
 C test 44.29/30d: If R->bad in mode 2, R inc'ed {others} / or not {4,34,44}
 C                 test for dsta chain (mtpd (r1)+)
 #
@@ -5397,7 +5449,7 @@ wal     177572    -- check SSR0/1
 brm     2
       d=100011    -- ! SSR0: (abo_nonres=1,seg=4,ena=1) see note    [[s:100211]]
       d=010426    -- ! SSR1: rb=1,2; ra=6,2
-rst               -- console reset (to clear CPUERR reg)
+cres              -- console reset (to clear CPUERR reg)
 #
 # simh notes:
 # 1. simh first pops, than writes to destination, reversing ra,rb in SSR1
@@ -5428,7 +5480,7 @@ wal     001374    -- check stack
 brm     2
       d=013044    -- ! PC after failed instruction		    [[s:013042]]
       d=100000    -- ! PS
-rst               -- console reset (to clear CPUERR reg, PSW)
+cres              -- console reset (to clear CPUERR reg, PSW)
 #
 # simh notes:
 # 1. simh saves PC of failed instruction on stack, not PC after instruction
@@ -5449,7 +5501,7 @@ brm     2
       d=170000    -- ! PS
 wal     177766    -- check CPUERR
 rm    d=000200    -- ! CPUERR: (illhalt=1)
-rst               -- console reset (to clear CPUERR reg, PSW)
+cres              -- console reset (to clear CPUERR reg, PSW)
 #
 C test 44.44: PDR bit<0> implemented {70} or not {others}
 #
@@ -5488,7 +5540,7 @@ wal     172300    -- kernel I space DR, reset segment 0 and 1
 bwm     2
         077406    --   slf=127; ed=0(up); acf=6(w/r)
         077406    --   slf=127; ed=0(up); acf=6(w/r)
-rst               -- console reset (to clear CPUERR reg)
+cres              -- console reset (to clear CPUERR reg)
 #
 C test 44.46: Full PAR implemented {44,70,J11} or not {others}
 #
@@ -5547,7 +5599,7 @@ brm     3
       d=000001    -- ! SSR0: (ena=1)
       d=000000    -- ! SSR1: ra=none
       d=000016    -- ! SSR2: PC of halt
-rst               -- console reset (to clear CPUERR reg, PSW)
+cres              -- console reset (to clear CPUERR reg, PSW)
 #
 # simh notes:
 # 1. when simh steps over a BPT,IOT,..., the PC is pointing after the
@@ -5588,7 +5640,7 @@ rpc   d=013050    -- ! pc=next
 rsp   d=001376    -- ! sp=1376
 wal     001376    -- check stack
 rmi   d=013046    -- ! it returns PC  like 11/70 unpredictable 		[[s:0]]
-rst               -- console reset (to clear CPUERR reg)
+cres              -- console reset (to clear CPUERR reg)
 #
 # simh note:
 # 1. simh returns 0 here, just unpredictable in a different way ...
@@ -5625,7 +5677,7 @@ wps     144000    -- psw: cm=user(11),set=1
 rsp   d=110601    -- ! usp						[[usp]]
 # --> all preset values intact; -> mtpd thus noop --> like 11/70 unpredictable
 #
-rst               -- console reset (to clear CPUERR reg)
+cres              -- console reset (to clear CPUERR reg)
 #
 # simh notes on MMR0:
 # 1. simh doesn't freeze MMR0 bit 7, the instr.compl. bit is set again after
@@ -5646,6 +5698,7 @@ bwm     5
 C Exec code 45 (mmr1 and instructions with implicit stack push/pop)
 C test 45.1: mtpd (r1)+
 #
+cres
 wal     177572    -- SSR0
 wmi     000001    --   set enable bit
 wal     001376    -- setup stack with value for mtpd
@@ -5664,7 +5717,7 @@ brm     3
       d=013100    -- ! SSR2: PC of mtpd
 wal     030000    -- check target memory
 rm    d=123456    -- ! 
-rst               -- console reset
+cres              -- console reset
 #
 C test 45.2: mfpd (r1)+
 #
@@ -5686,7 +5739,7 @@ wal     001376    -- check stack
 rmi   d=123456    -- ! 
 wal     030000    -- clear tainted target memory
 wm      000000    --  
-rst               -- console reset
+cres              -- console reset
 #
 C test 45.3: jsr pc,(r1)+ and rts pc
 #
@@ -5714,7 +5767,7 @@ brm     3
       d=000001    -- ! SSR0: (seg=0,ena=1)
       d=000026    -- ! SSR1: ra=6,2					[[s:0]]
       d=013110    -- ! SSR2: PC of rts
-rst               -- console reset
+cres              -- console reset
 #
 # simh notes:
 # 1. simh reads stack and incremets sp later. In case of an MMU abort on
@@ -5799,6 +5852,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -5829,6 +5883,7 @@ wr3     037000    -- r3=37000
 wr4     001400    -- r4=1400
 wr5     001402    -- r5=1402
 wsp     001400    -- sp=1400
+cres
 stapc   013220    -- start @ 13220 (1op mem)
 wtgo    
 rpc   d=013240    -- ! pc=halt
@@ -5859,6 +5914,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -5889,6 +5945,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -5919,6 +5976,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -5949,6 +6007,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -5979,6 +6038,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -6009,6 +6069,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -6039,6 +6100,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -6069,6 +6131,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -6099,6 +6162,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -6129,6 +6193,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -6159,6 +6224,7 @@ wr3     037000    -- r3=37000
 wr4     001400    -- r4=1400
 wr5     001402    -- r5=1402
 wsp     001400    -- sp=1400
+cres
 stapc   013220    -- start @ 13220 (1op mem)
 wtgo    
 rpc   d=013240    -- ! pc=halt
@@ -6198,6 +6264,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -6232,6 +6299,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -6266,6 +6334,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -6300,6 +6369,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -6334,6 +6404,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -6368,6 +6439,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -6402,6 +6474,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -6436,6 +6509,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -6478,6 +6552,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013240    -- start @ 13240 (2op reg)
 wtgo    
 rpc   d=013262    -- ! pc=halt
@@ -6504,6 +6579,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013240    -- start @ 13240 (2op reg)
 wtgo    
 rpc   d=013262    -- ! pc=halt
@@ -6530,6 +6606,7 @@ wr3     037000    -- r3=37000
 wr4     001400    -- r4=1400
 wr5     001402    -- r5=1402
 wsp     001400    -- sp=1400
+cres
 stapc   013270    -- start @ 13270 (2op mem)
 wtgo    
 rpc   d=013312    -- ! pc=halt
@@ -6570,6 +6647,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013240    -- start @ 13240 (2op reg)
 wtgo    
 rpc   d=013262    -- ! pc=halt
@@ -6602,6 +6680,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013240    -- start @ 13240 (2op reg)
 wtgo    
 rpc   d=013262    -- ! pc=halt
@@ -6634,6 +6713,7 @@ wr3     037000    -- r3=37000
 wr4     001400    -- r4=1400
 wr5     001402    -- r5=1402
 wsp     001400    -- sp=1400
+cres
 stapc   013270    -- start @ 13270 (2op mem)
 wtgo    
 rpc   d=013312    -- ! pc=halt
@@ -6666,6 +6746,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013240    -- start @ 13240 (2op reg)
 wtgo    
 rpc   d=013262    -- ! pc=halt
@@ -6698,6 +6779,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013240    -- start @ 13240 (2op reg)
 wtgo    
 rpc   d=013262    -- ! pc=halt
@@ -6730,6 +6812,7 @@ wr3     037000    -- r3=37000
 wr4     001400    -- r4=1400
 wr5     001402    -- r5=1402
 wsp     001400    -- sp=1400
+cres
 stapc   013270    -- start @ 13270 (2op mem)
 wtgo    
 rpc   d=013312    -- ! pc=halt
@@ -6762,6 +6845,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013240    -- start @ 13240 (2op reg)
 wtgo    
 rpc   d=013262    -- ! pc=halt
@@ -6794,6 +6878,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013240    -- start @ 13240 (2op reg)
 wtgo    
 rpc   d=013262    -- ! pc=halt
@@ -6826,6 +6911,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013240    -- start @ 13240 (2op reg)
 wtgo    
 rpc   d=013262    -- ! pc=halt
@@ -6858,6 +6944,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013240    -- start @ 13240 (2op reg)
 wtgo    
 rpc   d=013262    -- ! pc=halt
@@ -6930,6 +7017,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013240    -- start @ 13240 (2op reg)
 wtgo    
 rpc   d=013262    -- ! pc=halt
@@ -6988,6 +7076,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013240    -- start @ 13240 (2op reg)
 wtgo    
 rpc   d=013262    -- ! pc=halt
@@ -7046,6 +7135,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013240    -- start @ 13240 (2op reg)
 wtgo    
 rpc   d=013262    -- ! pc=halt
@@ -7115,6 +7205,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -7161,6 +7252,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -7191,6 +7283,7 @@ wr3     037000    -- r3=37000
 wr4     001400    -- r4=1400
 wr5     001402    -- r5=1402
 wsp     001400    -- sp=1400
+cres
 stapc   013220    -- start @ 13220 (1op mem)
 wtgo    
 rpc   d=013240    -- ! pc=halt
@@ -7221,6 +7314,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -7251,6 +7345,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -7281,6 +7376,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -7311,6 +7407,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -7341,6 +7438,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -7371,6 +7469,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -7401,6 +7500,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -7431,6 +7531,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -7461,6 +7562,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -7491,6 +7593,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -7521,6 +7624,7 @@ wr3     037000    -- r3=37000
 wr4     001400    -- r4=1400
 wr5     001402    -- r5=1402
 wsp     001400    -- sp=1400
+cres
 stapc   013220    -- start @ 13220 (1op mem)
 wtgo    
 rpc   d=013240    -- ! pc=halt
@@ -7560,6 +7664,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -7594,6 +7699,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -7628,6 +7734,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -7662,6 +7769,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -7696,6 +7804,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -7730,6 +7839,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -7764,6 +7874,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -7798,6 +7909,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013200    -- start @ 13200 (1op reg)
 wtgo    
 rpc   d=013220    -- ! pc=halt
@@ -7840,6 +7952,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013240    -- start @ 13240 (2op reg)
 wtgo    
 rpc   d=013262    -- ! pc=halt
@@ -7866,6 +7979,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013240    -- start @ 13240 (2op reg)
 wtgo    
 rpc   d=013262    -- ! pc=halt
@@ -7892,6 +8006,7 @@ wr3     037000    -- r3=37000
 wr4     001400    -- r4=1400
 wr5     001402    -- r5=1402
 wsp     001400    -- sp=1400
+cres
 stapc   013270    -- start @ 13270 (2op mem)
 wtgo    
 rpc   d=013312    -- ! pc=halt
@@ -7932,6 +8047,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013240    -- start @ 13240 (2op reg)
 wtgo    
 rpc   d=013262    -- ! pc=halt
@@ -7964,6 +8080,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013240    -- start @ 13240 (2op reg)
 wtgo    
 rpc   d=013262    -- ! pc=halt
@@ -7996,6 +8113,7 @@ wr3     037000    -- r3=37000
 wr4     001400    -- r4=1400
 wr5     001402    -- r5=1402
 wsp     001400    -- sp=1400
+cres
 stapc   013270    -- start @ 13270 (2op mem)
 wtgo    
 rpc   d=013312    -- ! pc=halt
@@ -8028,6 +8146,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013240    -- start @ 13240 (2op reg)
 wtgo    
 rpc   d=013262    -- ! pc=halt
@@ -8060,6 +8179,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013240    -- start @ 13240 (2op reg)
 wtgo    
 rpc   d=013262    -- ! pc=halt
@@ -8092,6 +8212,7 @@ wr3     037000    -- r3=37000
 wr4     001400    -- r4=1400
 wr5     001402    -- r5=1402
 wsp     001400    -- sp=1400
+cres
 stapc   013270    -- start @ 13270 (2op mem)
 wtgo    
 rpc   d=013312    -- ! pc=halt
@@ -8124,6 +8245,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013240    -- start @ 13240 (2op reg)
 wtgo    
 rpc   d=013262    -- ! pc=halt
@@ -8156,6 +8278,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013240    -- start @ 13240 (2op reg)
 wtgo    
 rpc   d=013262    -- ! pc=halt
@@ -8228,6 +8351,7 @@ wr3     037000    -- r3=37000
 wr4     000000    -- r4=0
 wr5     000000    -- r5=0
 wsp     001400    -- sp=1400
+cres
 stapc   013240    -- start @ 13240 (2op reg)
 wtgo    
 rpc   d=013262    -- ! pc=halt
@@ -8321,6 +8445,7 @@ wr1     000000    -- r1=0
 wr2     000000    -- r2=0
 wr3     005201    -- r3= inc r1
 wr4     005202    -- r4= inc r2
+cres
 stapc   013402    -- start @ 13402
 wtgo    
 rpc   d=013434    -- ! pc
@@ -8352,6 +8477,7 @@ brm     13
 C Exec test 47.1 (pipeline tester adapted from KDJ11A.MAC, test 121, p. 70)
 #
 wr1     013474    -- r1=13474  (alternate halt)
+cres
 stapc   013440    -- start @ 13440
 wtgo    
 rpc   d=013472    -- ! pc
@@ -8399,7 +8525,7 @@ bwm     17
 C Exec code 50 (check that all reserved instructions trap to 10)
 C   Test odd address abort
 #
-rst               -- console reset
+cres              -- console reset
 wps     000000    -- clear psw
 wal     001374    -- clean stack
 bwm     2

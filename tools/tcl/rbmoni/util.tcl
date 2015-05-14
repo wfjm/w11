@@ -1,6 +1,6 @@
-# $Id: util.tcl 619 2014-12-23 13:17:41Z mueller $
+# $Id: util.tcl 661 2015-04-03 18:28:41Z mueller $
 #
-# Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-04-03   661   3.1    drop estatdef; invert mask in raw_edata
 # 2014-12-23   619   3.0    rbd_rbmon reorganized, supports now 16 bit addresses
 # 2014-11-09   603   2.0    use rlink v4 address layout
 # 2011-03-27   374   1.0    Initial version
@@ -217,20 +218,20 @@ namespace eval rbmoni {
     set uedat {}
     set uemsk {}
 
-    set m3 [regbld rbmoni::DAT3 {ndlymsb -1}]
-    set m2 [regbld rbmoni::DAT2 {ndlylsb -1}]
-    set m1 0
-    set m0 0
+    set m3 [rutil::com16 [regbld rbmoni::DAT3 {ndlymsb -1}]]; # all but ndlymsb
+    set m2 [rutil::com16 [regbld rbmoni::DAT2 {ndlylsb -1}]]; # all but ndlylsb
+    set m1 0xffff
+    set m0 0xffff
 
     foreach line $args {
       foreach {eflags eaddr edata enbusy} $line { break }
       set d3 [regbld rbmoni::DAT3 [list flags $eflags]]
       set d2 [regbld rbmoni::DAT2 [list nbusy $enbusy]]
       if {$edata ne ""} {
-        set m1 0x0000
+        set m1 0xffff
         set d1 $edata
       } else {
-        set m1 0xffff
+        set m1 0x0000
         set d1 0x0000
       }
       set d0 $eaddr
@@ -247,7 +248,7 @@ namespace eval rbmoni {
   #
   proc raw_check {edat emsk} {
 
-    rlc exec -estatdef 0x0 [regbld rlink::STAT {stat -1}] \
+    rlc exec \
       -rreg rm.addr -edata [llength $edat] \
       -wreg rm.addr 0 \
       -rblk rm.data [llength $edat] -edata $edat $emsk \

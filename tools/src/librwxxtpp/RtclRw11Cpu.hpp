@@ -1,6 +1,6 @@
-// $Id: RtclRw11Cpu.hpp 621 2014-12-26 21:20:05Z mueller $
+// $Id: RtclRw11Cpu.hpp 661 2015-04-03 18:28:41Z mueller $
 //
-// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-04-03   661   1.0.4  add ClistNonEmpty()
+// 2015-03-21   659   1.0.3  rename M_amap->M_imap; add M_rmap; add GetRAddr()
 // 2014-12-25   621   1.0.2  add M_amap
 // 2013-04-26   511   1.0.1  add M_show
 // 2013-04-02   502   1.0    Initial version
@@ -22,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Cpu.hpp 621 2014-12-26 21:20:05Z mueller $
+  \version $Id: RtclRw11Cpu.hpp 661 2015-04-03 18:28:41Z mueller $
   \brief   Declaration of class RtclRw11Cpu.
 */
 
@@ -52,7 +54,8 @@ namespace Retro {
 
     protected:
       int           M_add(RtclArgs& args);
-      int           M_amap(RtclArgs& args);
+      int           M_imap(RtclArgs& args);
+      int           M_rmap(RtclArgs& args);
       int           M_cp(RtclArgs& args);
       int           M_wtcpu(RtclArgs& args);
       int           M_deposit(RtclArgs& args);
@@ -74,8 +77,11 @@ namespace Retro {
       RlinkConnect& Connect();
 
       bool          GetIAddr(RtclArgs& args, uint16_t& ibaddr);
+      bool          GetRAddr(RtclArgs& args, uint16_t& rbaddr);
       bool          GetVarName(RtclArgs& args, const char* argname, 
                                size_t nind, std::vector<std::string>& varname);
+      bool          ClistNonEmpty(RtclArgs& args, 
+                                  const RlinkCommandList& clist);
 
     protected:
       RtclGetList   fGets;

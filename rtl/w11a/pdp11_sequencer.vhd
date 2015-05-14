@@ -1,4 +1,4 @@
--- $Id: pdp11_sequencer.vhd 643 2015-02-07 17:41:53Z mueller $
+-- $Id: pdp11_sequencer.vhd 679 2015-05-13 17:38:46Z mueller $
 --
 -- Copyright 2006-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,10 +18,11 @@
 -- Dependencies:   ib_sel
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.1; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-05-10   678   1.6    start/stop/suspend overhaul; reset overhaul
 -- 2015-02-07   643   1.5.2  s_op_wait: load R0 in DSRC for DR emulation
 -- 2014-07-12   569   1.5.1  rename s_opg_div_zero -> s_opg_div_quit;
 --                           use DP_STAT.div_quit; set munit_s_div_sr;
@@ -76,7 +77,7 @@ use work.pdp11.all;
 entity pdp11_sequencer is               -- CPU sequencer
   port (
     CLK : in slbit;                     -- clock
-    GRESET : in slbit;                  -- global reset
+    GRESET : in slbit;                  -- general reset
     PSW : in psw_type;                  -- processor status
     PC : in slv16;                      -- program counter
     IREG : in slv16;                    -- IREG
@@ -86,13 +87,18 @@ entity pdp11_sequencer is               -- CPU sequencer
     VM_STAT : in vm_stat_type;          -- virtual memory status port
     INT_PRI : in slv3;                  -- interrupt priority
     INT_VECT : in slv9_2;               -- interrupt vector
-    CRESET : out slbit;                 -- console reset
-    BRESET : out slbit;                 -- ibus reset
+    INT_ACK : out slbit;                -- interrupt acknowledge
+    CRESET : out slbit;                 -- cpu reset
+    BRESET : out slbit;                 -- bus reset
     MMU_MONI : out mmu_moni_type;       -- mmu monitor port
     DP_CNTL : out dpath_cntl_type;      -- data path control
     VM_CNTL : out vm_cntl_type;         -- virtual memory control port
     CP_STAT : out cp_stat_type;         -- console port status
-    INT_ACK : out slbit;                -- interrupt acknowledge
+    ESUSP_O : out slbit;                -- external suspend output
+    ESUSP_I : in slbit;                 -- external suspend input
+    ITIMER : out slbit;                 -- instruction timer
+    EBREAK : in slbit;                  -- execution break
+    DBREAK : in slbit;                  -- data break
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type          -- ibus response    
   );
@@ -311,15 +317,11 @@ begin
   proc_next: process (R_STATE, R_STATUS, PSW, PC, CP_CNTL,
                       ID_STAT, R_IDSTAT, IREG, VM_STAT, DP_STAT,
                       R_CPUERR, R_VMSTAT, IB_MREQ, IBSEL_CPUERR,
-                      INT_PRI, INT_VECT)
+                      INT_PRI, INT_VECT, ESUSP_I, EBREAK, DBREAK)
     
     variable nstate : state_type;
     variable nstatus : cpustat_type := cpustat_init;
     variable ncpuerr : cpuerr_type := cpuerr_init;
-
-    variable ncreset : slbit := '0';
-    variable nbreset : slbit := '0';
-    variable nintack : slbit := '0';
 
     variable ndpcntl : dpath_cntl_type := dpath_cntl_init;
     variable nvmcntl : vm_cntl_type := vm_cntl_init;
@@ -498,10 +500,12 @@ begin
             R_STATUS.trap_ysv='1' or nstatus.trap_ysv='1' or
             PSW.tflag='1' then
         nstate := s_trap_disp;
-      elsif R_STATUS.cpugo='1' and not R_STATUS.cmdbusy='1' then
-        nstate := s_ifetch;
+      elsif R_STATUS.cpugo='1' and        -- running
+            R_STATUS.cpususp='0' and      --   and not suspended
+            not R_STATUS.cmdbusy='1' then --   and no cmd pending
+        nstate := s_ifetch;                               -- fetch next
       else
-        nstate := s_idle;
+        nstate := s_idle;                                 -- otherwise idle
       end if;
     end procedure do_fork_next;
     
@@ -520,13 +524,15 @@ begin
             R_STATUS.trap_ysv='1' or nstatus.trap_ysv='1' or
             PSW.tflag='1' then
         nstate := s_trap_disp;
-      elsif R_STATUS.cpugo='1' and not R_STATUS.cmdbusy='1' then
-        nvmcntl.req := '1';
-        ndpcntl.gpr_pcinc := '1';
-        nmmumoni.istart := '1';          
-        nstate := s_ifetch_w;
+      elsif R_STATUS.cpugo='1' and       -- running
+            R_STATUS.cpususp='0' and      --   and not suspended
+            not R_STATUS.cmdbusy='1' then --   and no cmd pending
+        nvmcntl.req := '1';                 -- read next instruction
+        ndpcntl.gpr_pcinc := '1';           -- inc PC
+        nmmumoni.istart := '1';             -- signal istart to MMU
+        nstate := s_ifetch_w;               -- next: wait for fetched instruction
       else
-        nstate := s_idle;
+        nstate := s_idle;                   -- otherwise idle
       end if;
     end procedure do_fork_next_pref;
     
@@ -552,10 +558,20 @@ begin
     ncpuerr := R_CPUERR;
 
     nstatus.cpuwait := '0';             -- wait flag 0 unless set in s_op_wait
+
+    -- itimer pulse logic:
+    --   if neither running nor suspended --> free run, set itimer = 1
+    --   otherwise clear to ensure single cycle pulses generated by
+    --   s_idecode or s_op_wait
+    if R_STATUS.cpugo='0' and R_STATUS.cpususp='0' then
+      nstatus.itimer := '1';            
+    else
+      nstatus.itimer := '0';
+    end if;
     
-    ncreset := '0';
-    nbreset := '0';
-    nintack := '0';
+    nstatus.creset := '0';              -- ensure single cycle pulse
+    nstatus.breset := '0';              -- dito
+    nstatus.intack := '0';              -- dito
     
     nidstat := R_IDSTAT;
 
@@ -669,55 +685,76 @@ begin
         if R_STATUS.cmdbusy = '1' then
           case R_STATUS.cpfunc is
 
-            when c_cpfunc_noop =>       -- noop : no operation --------
+            when c_cpfunc_noop =>       -- noop : no operation -------
               nstatus.cmdack   := '1';
               nstate := s_idle;                  
 
-            when c_cpfunc_sta =>        -- sta  : cpu start -----------
-              ncreset          := '1';
+            when c_cpfunc_start =>      -- start : cpu start ---------
               nstatus.cmdack   := '1';
-              nstatus.cpugo    := '1';
-              nstatus.cpuhalt  := '0';
-              nstatus.cpurust  := c_cpurust_runs;
-              nstatus.waitsusp := '0';
+              if R_STATUS.cpugo = '1' then -- if already running
+                nstatus.cmderr := '1';       -- reject
+              else                         -- if not running
+                nstatus.cpugo    := '1';     -- start cpu
+                nstatus.cpurust  := c_cpurust_runs;
+                nstatus.waitsusp := '0';
+              end if;
               nstate := s_idle;                  
 
-            when c_cpfunc_sto =>        -- sto  : cpu stop ------------
+            when c_cpfunc_stop =>       -- stop : cpu stop -----------
               nstatus.cmdack   := '1';
               nstatus.cpugo    := '0';
               nstatus.cpurust  := c_cpurust_stop;
               nstatus.waitsusp := '0';
               nstate := s_idle;                  
 
-            when c_cpfunc_cont =>       -- cont : cpu continue --------
-              nstatus.cmdack   := '1';
-              nstatus.cpugo    := '1';
-              nstatus.cpuhalt  := '0';
-              nstatus.cpurust  := c_cpurust_runs;
-              nstatus.waitsusp := '0';
-              nstate := s_idle;                  
-
-            when c_cpfunc_step =>       -- step : cpu step ------------
+            when c_cpfunc_step =>       -- step : cpu step -----------
               nstatus.cmdack   := '1';
               nstatus.cpustep  := '1';
-              nstatus.cpuhalt  := '0';
               nstatus.cpurust  := c_cpurust_step;
               nstatus.waitsusp := '0';
               if int_pending = '1' then
-                nintack := '1';
+                nstatus.intack  := '1';
                 nstatus.intvect := INT_VECT;
                 nstate := s_int_ext;
               else
                 nstate := s_ifetch;
               end if;
 
-            when c_cpfunc_rst =>        -- rst  : cpu reset (soft) ----
-              ncreset := '1';
+            when c_cpfunc_creset =>     -- creset : cpu reset --------
               nstatus.cmdack   := '1';
-              nstatus.cpugo    := '0';
-              nstatus.cpuhalt  := '0';
-              nstatus.cpurust  := c_cpurust_reset;
-              nstatus.waitsusp := '0';
+              if R_STATUS.cpugo = '1' then -- if already running
+                nstatus.cmderr := '1';       -- reject
+              else                         -- if not running
+                nstatus.creset  := '1';      --  do cpu reset
+                nstatus.breset  := '1';      -- and bus reset !
+                nstatus.suspint := '0';      -- clear suspend
+                nstatus.cpurust := c_cpurust_init;
+              end if;
+              nstate := s_idle;                  
+
+            when c_cpfunc_breset =>     -- breset : bus reset --------
+              nstatus.cmdack   := '1';
+              if R_STATUS.cpugo = '1' then -- if already running
+                nstatus.cmderr := '1';       -- reject
+              else                         -- if not running
+                nstatus.breset := '1';        -- do bus reset only
+              end if;
+              nstate := s_idle;                  
+
+            when c_cpfunc_suspend =>    -- suspend : cpu suspend -----
+              nstatus.cmdack   := '1';
+              nstatus.suspint  := '1';
+              nstatus.cpurust  := c_cpurust_susp;
+              nstate := s_idle;                  
+
+            when c_cpfunc_resume =>     -- resume : cpu resume -------
+              nstatus.cmdack   := '1';
+              nstatus.suspint  := '0';
+              if R_STATUS.cpugo = '1' then
+                nstatus.cpurust  := c_cpurust_runs;
+              else
+                nstatus.cpurust  := c_cpurust_stop;
+              end if;  
               nstate := s_idle;                  
 
             when c_cpfunc_rreg =>       -- rreg : read register ------
@@ -768,13 +805,14 @@ begin
           nstatus.waitsusp := '0';
           nstate := s_op_wait;          
 
-        elsif R_STATUS.cpugo = '1' then
-          if int_pending = '1' then
-            nintack := '1';
-            nstatus.intvect := INT_VECT;
-            nstate := s_int_ext;
+        elsif R_STATUS.cpugo = '1' and    -- running
+              R_STATUS.cpususp='0' then   --   and not suspended
+          if int_pending = '1' then         -- interrupt pending
+            nstatus.intack  := '1';           -- acknowledle it
+            nstatus.intvect := INT_VECT;      -- latch vector address
+            nstate := s_int_ext;              -- and handle
           else
-            nstate := s_ifetch;
+            nstate := s_ifetch;               -- otherwise fetch intruction
           end if;
           
         end if;
@@ -829,6 +867,7 @@ begin
         end if;
         
       when s_idecode =>
+        nstatus.itimer := '1';          -- signal instruction started
         nidstat := ID_STAT;             -- register decode status
         if ID_STAT.force_srcsp = '1' then
           ndpcntl.gpr_asrc := c_gpr_sp;
@@ -842,7 +881,8 @@ begin
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_pc;       -- VA = PC
         
         if ID_STAT.do_pref_dec='1' and PSW.tflag='0' and int_pending='0' and
-           R_STATUS.cpugo='1' and not R_STATUS.cmdbusy='1'
+           R_STATUS.cpugo='1' and R_STATUS.cpususp='0' and
+           not R_STATUS.cmdbusy='1'
         then          
           nvmcntl.req := '1';
           ndpcntl.gpr_pcinc := '1';                    -- (pc)++
@@ -1473,7 +1513,6 @@ begin
         if is_kmode = '1' then          -- if in kernel mode execute
           nmmumoni.idone := '1';
           nstatus.cpugo := '0';
-          nstatus.cpuhalt := '1';
           nstatus.cpurust := c_cpurust_halt;
           nstate := s_idle;
         else                            -- otherwise trap
@@ -1485,7 +1524,7 @@ begin
         ndpcntl.gpr_asrc := "000";      -- load R0 in DSRC for DR emulation
         ndpcntl.dsrc_sel := c_dpath_dsrc_src;
         ndpcntl.dsrc_we := '1';
- 
+         
         nstate := s_op_wait;            -- spin here
         if is_kmode = '0' then          -- but act as nop if not in kernel
           nstate := s_idle;
@@ -1497,7 +1536,8 @@ begin
           nstate := s_idle;
         else
           nstatus.cpuwait := '1';       -- if spinning here, signal with cpuwait
-        end if;
+          nstatus.itimer  := '1';       -- itimer will stay 1 during a WAIT
+       end if;
 
       when s_op_trap =>                 -- traps
         lvector := "0000" & R_IDSTAT.trap_vec; -- vector
@@ -1505,7 +1545,7 @@ begin
         
       when s_op_reset =>                -- RESET
         if is_kmode = '1' then          -- if in kernel mode execute
-          nbreset := '1';
+          nstatus.breset := '1';          -- issue bus reset
         end if;
         nstate := s_idle;
         
@@ -2255,6 +2295,18 @@ begin
 
     end case;
 
+    if DBREAK = '1' then                -- handle BREAK
+      nstatus.suspint :='1';
+    end if;
+    nstatus.suspext := ESUSP_I;
+
+    -- handle cpususp transitions 
+    if nstatus.suspint='1' or nstatus.suspext='1' then
+      nstatus.cpususp := '1';
+    elsif R_STATUS.suspint='0' and R_STATUS.suspext='0' then
+      nstatus.cpususp := '0';
+    end if;
+    
     if nstatus.cmdack = '1' then        -- cmdack in next cycle ? Yes we test
                                            -- nstatus here !!
       nstatus.cmdbusy := '0';
@@ -2266,9 +2318,11 @@ begin
     N_CPUERR <= ncpuerr;
     N_IDSTAT <= nidstat;
     
-    CRESET <= ncreset;
-    BRESET <= nbreset;
-    INT_ACK <= nintack;
+    INT_ACK <= R_STATUS.intack;
+    CRESET  <= R_STATUS.creset;
+    BRESET  <= R_STATUS.breset;
+    ESUSP_O <= R_STATUS.suspint;     -- FIXME_code: handle masking later
+    ITIMER  <= R_STATUS.itimer;
     
     DP_CNTL <= ndpcntl;
     VM_CNTL <= nvmcntl;
@@ -2288,9 +2342,11 @@ begin
     CP_STAT.cmdmerr <= R_STATUS.cmdmerr;
     CP_STAT.cpugo   <= R_STATUS.cpugo;
     CP_STAT.cpustep <= R_STATUS.cpustep;
-    CP_STAT.cpuhalt <= R_STATUS.cpuhalt;
     CP_STAT.cpuwait <= R_STATUS.cpuwait;
+    CP_STAT.cpususp <= R_STATUS.cpususp;
     CP_STAT.cpurust <= R_STATUS.cpurust;
+    CP_STAT.suspint <= R_STATUS.suspint;
+    CP_STAT.suspext <= R_STATUS.suspext;
   end process proc_cpstat;
   
 end syn;

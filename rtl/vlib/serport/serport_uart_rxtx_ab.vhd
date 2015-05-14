@@ -1,4 +1,4 @@
--- $Id: serport_uart_rxtx_ab.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: serport_uart_rxtx_ab.vhd 666 2015-04-12 21:17:54Z mueller $
 --
 -- Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -23,6 +23,7 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2015-04-12   666 14.7  131013 xc6slx16-2   100  142    0   48 s  6.2
 -- 2010-12-25   348 12.1    M53d xc3s1000-4    99  197    -  124 s  9.8
 --
 -- Revision History: 

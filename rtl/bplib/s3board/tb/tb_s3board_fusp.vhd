@@ -1,6 +1,6 @@
--- $Id: tb_s3board_fusp.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: tb_s3board_fusp.vhd 666 2015-04-12 21:17:54Z mueller $
 --
--- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,7 +20,7 @@
 --                 rlink/tb/tbcore_rlink
 --                 tb_s3board_core
 --                 s3board_fusp_aif [UUT]
---                 serport/serport_uart_rxtx
+--                 serport/serport_master
 --
 -- To test:        generic, any s3board_fusp_aif target
 --
@@ -28,6 +28,7 @@
 -- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-04-12   666   1.3    use serport_master instead of serport_uart_rxtx
 -- 2011-12-23   444   3.1    new system clock scheme, new tbcore_rlink iface
 -- 2011-11-19   427   3.0.1  now numeric_std clean
 -- 2010-12-30   351   3.0    use rlink/tb now
@@ -100,7 +101,8 @@ architecture sim of tb_s3board_fusp is
   signal CTS_N : slbit := '0';
   signal RTS_N : slbit := '0';
   
-  signal R_PORTSEL : slbit := '0';
+  signal R_PORTSEL_SER : slbit := '0';       -- if 1 use alternate serport
+  signal R_PORTSEL_XON : slbit := '0';       -- if 1 use xon/xoff
 
   constant sbaddr_portsel: slv8 := slv(to_unsigned( 8,8));
 
@@ -167,29 +169,33 @@ begin
       O_FUSP_TXD   => O_FUSP_TXD
     );
 
-  UART : serport_uart_rxtx
+  SERMSTR : serport_master
     generic map (
       CDWIDTH => CLKDIV'length)
     port map (
-      CLK    => CLK,
-      RESET  => UART_RESET,
-      CLKDIV => CLKDIV,
-      RXSD   => UART_RXD,
-      RXDATA => RXDATA,
-      RXVAL  => RXVAL,
-      RXERR  => RXERR,
-      RXACT  => RXACT,
-      TXSD   => UART_TXD,
-      TXDATA => TXDATA,
-      TXENA  => TXENA,
-      TXBUSY => TXBUSY
+      CLK     => CLK,
+      RESET   => UART_RESET,
+      CLKDIV  => CLKDIV,
+      ENAXON  => R_PORTSEL_XON,
+      ENAESC  => '0',
+      RXDATA  => RXDATA,
+      RXVAL   => RXVAL,
+      RXERR   => RXERR,
+      RXOK    => '1',
+      TXDATA  => TXDATA,
+      TXENA   => TXENA,
+      TXBUSY  => TXBUSY,
+      RXSD    => UART_RXD,
+      TXSD    => UART_TXD,
+      RXRTS_N => RTS_N,
+      TXCTS_N => CTS_N
     );
 
-  proc_port_mux: process (R_PORTSEL, UART_TXD, CTS_N,
+  proc_port_mux: process (R_PORTSEL_SER, UART_TXD, CTS_N,
                           O_TXD, O_FUSP_TXD, O_FUSP_RTS_N)
   begin
 
-    if R_PORTSEL = '0' then             -- use main board rs232, no flow cntl
+    if R_PORTSEL_SER = '0' then           -- use main board rs232, no flow cntl
       I_RXD        <= UART_TXD;           -- write port 0 inputs
       UART_RXD     <= O_TXD;              -- get port 0 outputs
       RTS_N        <= '0';
@@ -225,7 +231,8 @@ begin
   begin
     if SB_VAL'event and to_x01(SB_VAL)='1' then
       if SB_ADDR = sbaddr_portsel then
-        R_PORTSEL <= to_x01(SB_DATA(0));
+        R_PORTSEL_SER <= to_x01(SB_DATA(0));
+        R_PORTSEL_XON <= to_x01(SB_DATA(1));
       end if;
     end if;
   end process proc_simbus;

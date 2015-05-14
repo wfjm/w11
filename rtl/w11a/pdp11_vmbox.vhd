@@ -1,6 +1,6 @@
--- $Id: pdp11_vmbox.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: pdp11_vmbox.vhd 677 2015-05-09 21:52:32Z mueller $
 --
--- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -27,6 +27,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-04-04   662   1.6.4  atowidth now 6 (was 5) to support ibdr_rprm reset
 -- 2011-11-18   427   1.6.3  now numeric_std clean
 -- 2010-10-23   335   1.6.2  add r.paddr_iopage, use ib_sel
 -- 2010-10-22   334   1.6.1  deassert ibus be's at end-cycle; fix rmw logic
@@ -74,9 +75,9 @@ use work.sys_conf.all;
 entity pdp11_vmbox is                   -- virtual memory
   port (
     CLK : in slbit;                     -- clock
-    GRESET : in slbit;                  -- global reset
-    CRESET : in slbit;                  -- console reset
-    BRESET : in slbit;                  -- ibus reset
+    GRESET : in slbit;                  -- general reset
+    CRESET : in slbit;                  -- cpu reset
+    BRESET : in slbit;                  -- bus reset
     CP_ADDR : in cp_addr_type;          -- console port address
     VM_CNTL : in vm_cntl_type;          -- vm control port
     VM_ADDR : in slv16;                 -- vm address
@@ -96,7 +97,7 @@ end pdp11_vmbox;
 architecture syn of pdp11_vmbox is
 
   constant ibaddr_slim : slv16 := slv(to_unsigned(8#177774#,16)); 
-  constant atowidth : natural := 5;     -- size of access timeout counter
+  constant atowidth : natural := 6;     -- size of access timeout counter
   
   type state_type is (
     s_idle,                             -- s_idle: wait for vm_cntl request

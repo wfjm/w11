@@ -1,6 +1,6 @@
-// $Id: RlinkCommandExpect.ipp 616 2014-12-21 10:09:25Z mueller $
+// $Id: RlinkCommandExpect.ipp 661 2015-04-03 18:28:41Z mueller $
 //
-// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-04-02   661   1.2    expect logic: remove stat from Expect, invert mask
 // 2014-12-20   616   1.1    add Done count methods (for rblk/wblk)
 // 2011-03-12   368   1.0    Initial version
 // 2011-01-15   355   0.1    First draft
@@ -20,22 +21,12 @@
 
 /*!
   \file
-  \version $Id: RlinkCommandExpect.ipp 616 2014-12-21 10:09:25Z mueller $
+  \version $Id: RlinkCommandExpect.ipp 661 2015-04-03 18:28:41Z mueller $
   \brief   Implemenation (inline) of class RlinkCommandExpect.
 */
 
 // all method definitions in namespace Retro
 namespace Retro {
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-inline void RlinkCommandExpect::SetStatus(uint8_t stat, uint8_t statmsk)
-{
-  fStatusVal = stat;
-  fStatusMsk = statmsk;
-  return;
-}
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
@@ -53,7 +44,7 @@ inline void RlinkCommandExpect::SetData(uint16_t data, uint16_t datamsk)
 inline void RlinkCommandExpect::SetDone(uint16_t done, bool check)
 {
   fDataVal = done;
-  fDataMsk = check ? 0 : 0xffff;
+  fDataMsk = check ? 0xffff : 0x0;
   return;
 }
 
@@ -76,22 +67,6 @@ inline void RlinkCommandExpect::SetBlock(
   fBlockVal = block;
   fBlockMsk = blockmsk;
   return;
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-inline uint8_t RlinkCommandExpect::StatusValue() const
-{
-  return fStatusVal;
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-inline uint8_t RlinkCommandExpect::StatusMask() const
-{
-  return fStatusMsk;
 }
 
 //------------------------------------------+-----------------------------------
@@ -137,17 +112,9 @@ inline const std::vector<uint16_t>& RlinkCommandExpect::BlockMask() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline bool RlinkCommandExpect::StatusCheck(uint8_t val) const
-{
-  return (val|fStatusMsk) == (fStatusVal|fStatusMsk);
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
 inline bool RlinkCommandExpect::DataCheck(uint16_t val) const
 {
-  return (val|fDataMsk) == (fDataVal|fDataMsk);
+  return (val & fDataMsk) == fDataVal;
 }
 
 //------------------------------------------+-----------------------------------
@@ -161,17 +128,9 @@ inline bool RlinkCommandExpect::DoneCheck(uint16_t val) const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline bool RlinkCommandExpect::StatusIsChecked() const
-{
-  return fStatusMsk != 0xff;
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
 inline bool RlinkCommandExpect::DataIsChecked() const
 {
-  return fDataMsk != 0xffff;
+  return fDataMsk != 0x0;
 }
 
 //------------------------------------------+-----------------------------------
@@ -179,7 +138,7 @@ inline bool RlinkCommandExpect::DataIsChecked() const
 
 inline bool RlinkCommandExpect::DoneIsChecked() const
 {
-  return fDataMsk == 0;
+  return fDataMsk != 0x0;
 }
 
 } // end namespace Retro

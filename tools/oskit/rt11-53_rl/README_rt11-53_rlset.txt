@@ -29,7 +29,8 @@ Notes on oskit: RT-11 V5.3 system on a RL02 volume
    - Start them in simulator
        pdp11 rt11-53_rl_boot.scmd
      or ONLY IF YOU HAVE A VALID LICENSE on w11a
-       ti_w11 -u @rt11-53_rl_boot.tcl
+       ti_w11 <opt> @rt11-53_rl_boot.tcl
+     where <opt> is the proper option set for the board.
 
    - Hit <ENTER> in the xterm window to connect to simh or backend server.
      The boot dialog in the console xterm window will look like

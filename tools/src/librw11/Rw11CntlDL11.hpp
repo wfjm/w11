@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDL11.hpp 623 2014-12-29 19:11:40Z mueller $
+// $Id: Rw11CntlDL11.hpp 665 2015-04-07 07:13:49Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -22,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlDL11.hpp 623 2014-12-29 19:11:40Z mueller $
+  \version $Id: Rw11CntlDL11.hpp 665 2015-04-07 07:13:49Z mueller $
   \brief   Declaration of class Rw11CntlDL11.
 */
 
@@ -56,10 +56,10 @@ namespace Retro {
       static const uint16_t kIbaddr = 0177560; //!< DL11 default address
       static const int      kLam    = 1;       //!< DL11 default lam 
 
-      static const uint16_t kRCSR = 000; //!< RCSR register address offset
-      static const uint16_t kRBUF = 002; //!< RBUF register address offset
-      static const uint16_t kXCSR = 004; //!< XCSR register address offset
-      static const uint16_t kXBUF = 006; //!< XBUF register address offset
+      static const uint16_t kRCSR = 000; //!< RCSR reg offset
+      static const uint16_t kRBUF = 002; //!< RBUF reg offset
+      static const uint16_t kXCSR = 004; //!< XCSR reg offset
+      static const uint16_t kXBUF = 006; //!< XBUF reg offset
 
       static const uint16_t kProbeOff = kRCSR; //!< probe address offset (rcsr)
       static const bool     kProbeInt = true;  //!< probe int active

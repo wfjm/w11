@@ -1,6 +1,6 @@
--- $Id: tb_nexys2_fusp_cuff.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: tb_nexys2_fusp_cuff.vhd 666 2015-04-12 21:17:54Z mueller $
 --
--- Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,7 +20,7 @@
 --                 xlib/dcm_sfs
 --                 rlink/tb/tbcore_rlink_dcm
 --                 tb_nexys2_core
---                 serport/serport_uart_rxtx
+--                 serport/serport_master
 --                 fx2lib/tb/fx2_2fifo_core
 --                 nexys2_fusp_cuff_aif [UUT]
 --
@@ -31,6 +31,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-04-12   666   1.2    use serport_master instead of serport_uart_rxtx
 -- 2013-01-03   469   1.1    add fx2 model and data path
 -- 2013-01-01   467   1.0    Initial version (derived from tb_nexys2_fusp)
 ------------------------------------------------------------------------------
@@ -126,6 +127,7 @@ architecture sim of tb_nexys2_fusp_cuff is
   signal RTS_N : slbit := '0';
 
   signal R_PORTSEL_SER : slbit := '0';       -- if 1 use alternate serport
+  signal R_PORTSEL_XON : slbit := '0';       -- if 1 use xon/xoff
   signal R_PORTSEL_FX2 : slbit := '0';       -- if 1 use fx2
 
   constant sbaddr_portsel: slv8 := slv(to_unsigned( 8,8));
@@ -221,22 +223,26 @@ begin
       IO_FX2_DATA    => IO_FX2_DATA
     );
 
-  UART : serport_uart_rxtx
+  SERMSTR : serport_master
     generic map (
       CDWIDTH => CLKDIV'length)
     port map (
-      CLK    => CLKCOM,
-      RESET  => UART_RESET,
-      CLKDIV => CLKDIV,
-      RXSD   => UART_RXD,
-      RXDATA => UART_RXDATA,
-      RXVAL  => UART_RXVAL,
-      RXERR  => UART_RXERR,
-      RXACT  => UART_RXACT,
-      TXSD   => UART_TXD,
-      TXDATA => UART_TXDATA,
-      TXENA  => UART_TXENA,
-      TXBUSY => UART_TXBUSY
+      CLK     => CLKCOM,
+      RESET   => UART_RESET,
+      CLKDIV  => CLKDIV,
+      ENAXON  => R_PORTSEL_XON,
+      ENAESC  => '0',
+      RXDATA  => UART_RXDATA,
+      RXVAL   => UART_RXVAL,
+      RXERR   => UART_RXERR,
+      RXOK    => '1',
+      TXDATA  => UART_TXDATA,
+      TXENA   => UART_TXENA,
+      TXBUSY  => UART_TXBUSY,
+      RXSD    => UART_RXD,
+      TXSD    => UART_TXD,
+      RXRTS_N => RTS_N,
+      TXCTS_N => CTS_N
     );
 
   FX2 : entity work.fx2_2fifo_core
@@ -321,7 +327,8 @@ begin
     if SB_VAL'event and to_x01(SB_VAL)='1' then
       if SB_ADDR = sbaddr_portsel then
         R_PORTSEL_SER <= to_x01(SB_DATA(0));
-        R_PORTSEL_FX2 <= to_x01(SB_DATA(1));
+        R_PORTSEL_XON <= to_x01(SB_DATA(1));
+        R_PORTSEL_FX2 <= to_x01(SB_DATA(2));
       end if;
     end if;
   end process proc_simbus;

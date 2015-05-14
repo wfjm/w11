@@ -1,5 +1,5 @@
 #! /usr/bin/env tclshcpp
-# $Id: setup_packages 601 2014-11-07 22:44:43Z mueller $
+# $Id: setup_packages 668 2015-04-25 14:31:19Z mueller $
 #
 pkg_mkIndex -verbose ../lib \
             librlinktpp.so \
@@ -7,14 +7,17 @@ pkg_mkIndex -verbose ../lib \
             librutiltpp.so \
             librwxxtpp.so
 #
-pkg_mkIndex -verbose rutil   *.tcl
-pkg_mkIndex -verbose rlink   *.tcl
-pkg_mkIndex -verbose rbtest  *.tcl
-pkg_mkIndex -verbose rbmoni  *.tcl
-pkg_mkIndex -verbose rbbram  *.tcl
-pkg_mkIndex -verbose rbs3hio *.tcl
-pkg_mkIndex -verbose rbemon  *.tcl
+pkg_mkIndex -verbose rutil    *.tcl
+pkg_mkIndex -verbose rlink    *.tcl
+pkg_mkIndex -verbose rbtest   *.tcl
+pkg_mkIndex -verbose rbmoni   *.tcl
+pkg_mkIndex -verbose rbbram   *.tcl
+pkg_mkIndex -verbose rbs3hio  *.tcl
+pkg_mkIndex -verbose rbemon   *.tcl
 #
-pkg_mkIndex -verbose rw11    *.tcl
+pkg_mkIndex -verbose rw11     *.tcl
+#
+pkg_mkIndex -verbose ibd_ibmon *.tcl
+pkg_mkIndex -verbose ibd_rhrp  *.tcl
 #
 pkg_mkIndex -verbose tst_rlink    *.tcl

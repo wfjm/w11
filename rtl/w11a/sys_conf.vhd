@@ -1,6 +1,6 @@
--- $Id: sys_conf.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: sys_conf.vhd 672 2015-05-02 21:58:28Z mueller $
 --
--- Copyright 2007-2008 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -13,12 +13,13 @@
 --
 ------------------------------------------------------------------------------
 -- Package Name:   sys_conf
--- Description:    Default definitions for pdp11core (for simple test benches)
+-- Description:    Default definitions
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.1-14.7; ghdl 0.18-0.31
+-- Tool versions:  xst 8.1-14.7; viv 2014.4; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-05-01   672   1.1    adopt to pdp11_sys70
 -- 2008-02-23   118   1.0    Initial version 
 ------------------------------------------------------------------------------
 
@@ -29,19 +30,12 @@ use work.slvtypes.all;
 
 package sys_conf is
 
+  constant sys_conf_cache_fmiss    : slbit   := '0';      -- cache enabled
+  
   constant sys_conf_bram_awidth    : integer := 15;       -- 32 kB BRAM
   constant sys_conf_mem_losize     : integer := 8#000777#;-- 32 kByte
---  constant sys_conf_bram_awidth    : integer := 14;       -- 16 kB BRAM
---  constant sys_conf_mem_losize     : integer := 8#000377#;-- 16 kByte
+
+  constant sys_conf_ibmon_awidth : integer := 9; -- use 0 to disable ibmon
 
 end package sys_conf;
 
--- Note: mem_losize holds 16 MSB of the PA of the addressable memory
---        2 211 111 111 110 000 000 000
---        1 098 765 432 109 876 543 210
---
---        0 000 000 011 111 111 000 000  -> 00037777  --> 14bit --> 16 kByte
---        0 000 000 011 111 111 000 000  -> 00077777  --> 15bit --> 32 kByte
---        0 011 111 111 111 111 000 000  -> 03777777  --> 20bit -->  1 MByte
---        1 110 111 111 111 111 000 000  -> 16777777  --> 22bit -->  4 MByte
---                                          upper 256 kB excluded for 11/70 UB

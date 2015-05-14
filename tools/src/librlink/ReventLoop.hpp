@@ -1,6 +1,6 @@
-// $Id: ReventLoop.hpp 513 2013-05-01 14:02:06Z mueller $
+// $Id: ReventLoop.hpp 662 2015-04-05 08:02:54Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-04-04   662   1.2    BUGFIX: fix race in Stop(), add UnStop,StopPending
 // 2013-05-01   513   1.1.1  fTraceLevel now uint32_t
 // 2013-02-22   491   1.1    use new RlogFile/RlogMsg interfaces
 // 2013-01-11   473   1.0    Initial version
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: ReventLoop.hpp 513 2013-05-01 14:02:06Z mueller $
+  \version $Id: ReventLoop.hpp 662 2015-04-05 08:02:54Z mueller $
   \brief   Declaration of class \c ReventLoop.
 */
 
@@ -60,6 +61,8 @@ namespace Retro {
       uint32_t      TraceLevel() const;
 
       void          Stop();
+      void          UnStop();
+      bool          StopPending();
       virtual void  EventLoop();
 
       virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
@@ -79,7 +82,7 @@ namespace Retro {
           fHandler(hdl),fFd(fd),fEvents(evts)  {}
       };
 
-      bool          fLoopActive;
+      bool          fStopPending;
       bool          fUpdatePoll;
       boost::mutex  fPollDscMutex;
       std::vector<PollDsc>   fPollDsc;

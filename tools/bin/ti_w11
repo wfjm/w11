@@ -1,11 +1,13 @@
 #!/usr/bin/perl -w
-# $Id: ti_w11 654 2015-03-01 18:45:38Z mueller $
+# $Id: ti_w11 680 2015-05-14 13:29:46Z mueller $
 #
 # Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-05-14   680   1.3.1  use now -f1,-f1e,-f2,-f2e (fx now f1e)
+# 2015-04-13   667   1.3    rename -fu->-fc, add -f2,-fx; setup good defaults
 # 2015-01-02   640   1.2.2  BUGFIX: allow 'M' unit in baud rates
 # 2014-12-23   619   1.2.1  use -fifo tbw option for test bench starts
 # 2014-07-13   570   1.2    BUGFIX: split options args into ti_rri opts and cmds
@@ -23,6 +25,7 @@ autoflush STDOUT 1;             # autoflush, so nothing lost on exec later
 
 my $sysbase = "$ENV{RETROBASE}/rtl/sys_gen/w11a";
 
+my $opt_dry;
 my $opt_b;
 my $opt_io = '';
 my $opt_f = '';
@@ -46,7 +49,11 @@ my @arglist;
 while (scalar(@ARGV)) {
   my $curarg = $ARGV[0];
 
-  if ($curarg =~ m{^-b$} ) {		    # -b
+  if ($curarg =~ m{^-dry$} ) {		    # -dry
+    $opt_dry = 1;
+    shift @ARGV;
+
+  } elsif ($curarg =~ m{^-b$} ) {	    # -b
     $opt_b = 1;
     shift @ARGV;
 
@@ -54,37 +61,43 @@ while (scalar(@ARGV)) {
     $opt_tmu = 1;
     shift @ARGV;
 
-  } elsif ($curarg =~ m{^-s3$} ) {	    # -s3
+  } elsif ($curarg =~ m{^-s3$} ) {	    # -s3 (use -f2 by default)
     $opt_io = 'f';
+    $opt_f  = '2';
     $val_tb = $val_tb_s3;
     shift @ARGV;
 
-  } elsif ($curarg =~ m{^-n2$} ) {	    # -n2
+  } elsif ($curarg =~ m{^-n2$} ) {	    # -n2 (use -fc by default)
     $opt_io = 'f';
+    $opt_f  = 'c';
     $val_tb = $val_tb_n2;
     shift @ARGV;
 
-  } elsif ($curarg =~ m{^-n3$} ) {	    # -n3
+  } elsif ($curarg =~ m{^-n3$} ) {	    # -n3 (use -fc by default)
     $opt_io = 'f';
+    $opt_f  = 'c';
     $val_tb = $val_tb_n3;
     shift @ARGV;
 
-  } elsif ($curarg =~ m{^-b4$} ) {	    # -b3
+  } elsif ($curarg =~ m{^-b3$} ) {	    # -b3 (use -f1x by default)
     $opt_io = 'f';
+    $opt_f  = '1x';
     $val_tb = $val_tb_b3;
     shift @ARGV;
 
-  } elsif ($curarg =~ m{^-n4$} ) {	    # -n4
+  } elsif ($curarg =~ m{^-n4$} ) {	    # -n4 (prim serport fine)
     $opt_io = 'f';
+    $opt_f  = '1';
     $val_tb = $val_tb_n4;
     shift @ARGV;
 
-  } elsif ($curarg =~ m{^-bn4$} ) {	    # -bn4
+  } elsif ($curarg =~ m{^-bn4$} ) {	    # -bn4 (prim serport fine)
     $opt_io = 'f';
+    $opt_f  = '1';
     $val_tb = $val_tb_bn4;
     shift @ARGV;
 
-  } elsif ($curarg =~ m{^-f(s\d?|u)$} ) {    # -f[su]
+  } elsif ($curarg =~ m{^-f(c|1|1x|2|2x)$} ) { # -f..
     $opt_f = $1;
     shift @ARGV;
 
@@ -152,18 +165,20 @@ while (scalar(@ARGV)) {
 
 #
 # check that either -(s3|n2|n3|n4|bn4) or -t or -u given
-# setup pi_rri options for either case
+# setup options for either case
 #
 
 if ($opt_io eq 'f') {
-  push @arglist, '--fifo';
+  my $fifoopts = ",noinit";                 # fifo always with deferred init
+  $fifoopts .= ",xon" if $opt_f eq 'x';
+  push @arglist, "--fifo=$fifoopts";
   push @arglist, "--run=$val_tb";
 } elsif ($opt_io eq 't') {
   push @arglist, "--term=$val_term";
 } elsif ($opt_io eq 'u') {
   push @arglist, '--cuff';
 } else {
-  print STDERR "ti_w11-E: neither -(s3|n2|n3|b3|n4|bn4) nor -t or -u specified\n";
+  print STDERR "ti_w11-E: neither -(s3|n2|n3|b3|n4|bn4) nor -t,-u specified\n";
   print_usage();
   exit 1;
 }
@@ -187,11 +202,25 @@ if ($opt_io eq 'f') {
   if ($opt_tmu) {
     push @arglist, 'rlc oob -sbcntl 13   1';
   }
-  if ($opt_f eq 'u') {
-    push @arglist, 'rlc oob -sbdata  8 0x2';
-    push @arglist, 'rlc oob -sbdata 16 0x4';
+  if ($opt_f eq 'c') {
+    push @arglist, 'rlc oob -sbdata  8 0x4'; # portsel = 0100 -> fx2
+    push @arglist, 'rlc oob -sbdata 16 0x4'; # swi     = 0100 -> fx2
+  } elsif ($opt_f eq '1x') {
+    push @arglist, 'rlc oob -sbdata  8 0x2'; # portsel = 0010 -> 1st ser XON
+    push @arglist, 'rlc oob -sbdata 16 0x2'; # swi     = 0010 -> 1st ser XON
+  } elsif ($opt_f eq '2') {
+    push @arglist, 'rlc oob -sbdata  8 0x1'; # portsel = 0001 -> 2nd ser
+    push @arglist, 'rlc oob -sbdata 16 0x1'; # swi     = 0001 -> 2nd ser
+  } elsif ($opt_f eq '2x') {
+    push @arglist, 'rlc oob -sbdata  8 0x3'; # portsel = 0011 -> 2nd ser XON
+    push @arglist, 'rlc oob -sbdata 16 0x3'; # swi     = 0011 -> 2nd ser XON
   }
 }
+
+#
+# --fifo always uses deferred init, so add a rlc init after the oob's
+#
+push @arglist, 'rlc init' if $opt_io eq 'f';
 
 #
 # initialize w11 cpu system
@@ -227,12 +256,16 @@ if ($tirri eq '' || ! -e $tirri) {
 }
 
 #
-# print command file
+# print command line
 #
 if (1) {
  print 'ti_rri ', join (' ', map {(m{\s}) ? "\"$_\"" : $_} @arglist) , "\n";
 }
 
+#
+# if dry run, stop here
+#
+exit 0 if $opt_dry;
 #
 # and do it
 #
@@ -245,14 +278,18 @@ exit 1;
 sub print_usage {
   print "usage: ti_w11 <setup options> <ti_rri opts and cmds>...\n";
   print "  setup options for ghdl simulation runs:\n";
-  print "    -b3       start tb_w11a_b3 simulation\n";
+  print "    -b3       start tb_w11a_b3 simulation (default: -f1x)\n";
   print "    -n4       start tb_w11a_n4 simulation\n";
   print "    -bn4      start tb_w11a_br_n4 simulation\n";
-  print "    -n3       start tb_w11a_n3 simulation\n";
-  print "    -n2       start tb_w11a_n2 simulation\n";
-  print "    -s3       start tb_w11a_s3 simulation\n";
+  print "    -n3       start tb_w11a_n3 simulation (default: -fc)\n";
+  print "    -n2       start tb_w11a_n2 simulation (default: -fc)\n";
+  print "    -s3       start tb_w11a_s3 simulation (default: -f2)\n";
   print "    -f..      simulation communication options\n";
-  print "      -fu       use cuff data path\n";
+  print "      -fc       use fx2 data path (cuff)\n";
+  print "      -f1       use 1st serport\n";
+  print "      -f1x      use 1st serport with xon\n";
+  print "      -f2       use 2nd serport   (fusp)\n";
+  print "      -f2x      use 2nd serport with xon\n";
   print "    -tmu      activate trace and monitoring unit\n";
   print "  setup options for FPGA connects:\n";
   print "    -u        use --cuff connect\n";

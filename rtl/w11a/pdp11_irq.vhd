@@ -1,4 +1,4 @@
--- $Id: pdp11_irq.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: pdp11_irq.vhd 677 2015-05-09 21:52:32Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -48,7 +48,7 @@ use work.pdp11.all;
 entity pdp11_irq is                     -- interrupt requester
   port (
     CLK : in slbit;                     -- clock
-    BRESET : in slbit;                  -- ibus reset
+    BRESET : in slbit;                  -- bus reset
     INT_ACK : in slbit;                 -- interrupt acknowledge from CPU
     EI_PRI : in slv3;                   -- external interrupt priority
     EI_VECT : in slv9_2;                -- external interrupt vector

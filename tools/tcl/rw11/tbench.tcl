@@ -1,6 +1,6 @@
-# $Id: tbench.tcl 607 2014-11-30 20:02:48Z mueller $
+# $Id: tbench.tcl 676 2015-05-09 16:31:54Z mueller $
 #
-# Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-05-09   676   2.1    use 'rlc log -bare' instead of 'puts'
 # 2014-11-30   607   2.0    use new rlink v4 iface
 # 2013-04-26   510   1.0    Initial version (extracted from util.tcl)
 #
@@ -43,7 +44,7 @@ namespace eval rw11 {
       set fh [open "$::env(RETROBASE)/tools/tbench/$fname"]
       while {[gets $fh line] >= 0} {
         if {[string match "#*" $line]} {
-          if {[string match "##*" $line]} { puts $line }
+          if {[string match "##*" $line]} { rlc log -bare $line }
         } elseif {[string match "@*" $line]} {
           incr errcnt [tbench_list $line]
         } else {
@@ -54,7 +55,7 @@ namespace eval rw11 {
     } else {
       incr errcnt [tbench_step $lname]
     }
-    puts [format "%s: %s" $lname [rutil::errcnt2txt $errcnt]]
+    rlc log -bare [format "%s: %s" $lname [rutil::errcnt2txt $errcnt]]
     return $errcnt
   }
 
@@ -66,7 +67,7 @@ namespace eval rw11 {
     set cpu cpu0
     source "$::env(RETROBASE)/tools/tbench/$fname"
     set errcnt [rlc errcnt]
-    puts [format "%s: %s" $fname [rutil::errcnt2txt $errcnt]]
+    rlc log -bare [format "%s: %s" $fname [rutil::errcnt2txt $errcnt]]
     return $errcnt
   }
 

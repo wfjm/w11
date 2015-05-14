@@ -1,4 +1,4 @@
--- $Id: pdp11_statleds.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: pdp11_statleds.vhd 677 2015-05-09 21:52:32Z mueller $
 --
 -- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -51,7 +51,7 @@ entity pdp11_statleds is                -- status leds
     MEM_ACT_R : in slbit;               -- memory active read
     MEM_ACT_W : in slbit;               -- memory active write
     CP_STAT : in cp_stat_type;          -- console port status
-    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status
+    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - dpath
     STATLEDS : out slv8                 -- 8 bit CPU status 
   );
 end pdp11_statleds;

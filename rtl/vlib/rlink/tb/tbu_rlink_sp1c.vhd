@@ -1,6 +1,6 @@
--- $Id: tbu_rlink_sp1c.vhd 593 2014-09-14 22:21:33Z mueller $
+-- $Id: tbu_rlink_sp1c.vhd 666 2015-04-12 21:17:54Z mueller $
 --
--- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -36,6 +36,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-04-11   666   4.1    rename ENAESC->ESCFILL
 -- 2014-08-31   590   4.0    now full rlink v4 iface, 4 bit STAT
 -- 2014-08-15   583   3.5    rb_mreq addr now 16 bit
 -- 2011-12-22   442   3.2    renamed and retargeted to test rlink_sp1c
@@ -138,7 +139,7 @@ begin
       CE_INT   => CE_INT,
       RESET    => RESET,
       ENAXON   => '0',
-      ENAESC   => '0',
+      ESCFILL  => '0',
       RXSD     => RXSD,
       TXSD     => TXSD,
       CTS_N    => CTS_N,

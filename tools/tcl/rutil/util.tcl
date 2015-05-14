@@ -1,6 +1,6 @@
-# $Id: util.tcl 619 2014-12-23 13:17:41Z mueller $
+# $Id: util.tcl 661 2015-04-03 18:28:41Z mueller $
 #
-# Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-03-28   660   1,0,4  add com8 and com16
 # 2014-12-23   619   1.0.3  regget: add check for unknown field descriptor
 # 2014-07-12   569   1.0.2  add sxt16 and sxt32
 # 2013-05-09   517   1.0.1  add optlist2arr
@@ -202,6 +203,7 @@ namespace eval rutil {
     }
     return $rval
   }
+
   #
   # errcnt2txt: returns "PASS" if 0 and "FAIL" otherwise ---------------------
   #
@@ -209,6 +211,7 @@ namespace eval rutil {
     if {$errcnt} {return "FAIL"}
     return "PASS"
   }
+
   #
   # sxt16: 16 bit sign extend ------------------------------------------------
   #
@@ -227,6 +230,20 @@ namespace eval rutil {
       set val [expr $val | ~ 017777777777]; # --> set bits 31 and higher
     }
     return $val
+  }
+
+  #
+  # com8: 8 bit complement ---------------------------------------------------
+  #
+  proc com8 {val} {
+    return [expr (~$val) & 0xff]
+  }
+
+  #
+  # com16: 16 bit complement ------------------------------------------------
+  #
+  proc com16 {val} {
+    return [expr (~$val) & 0xffff]
   }
 
   #

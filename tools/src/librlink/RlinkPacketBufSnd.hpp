@@ -1,6 +1,6 @@
-// $Id: RlinkPacketBufSnd.hpp 621 2014-12-26 21:20:05Z mueller $
+// $Id: RlinkPacketBufSnd.hpp 666 2015-04-12 21:17:54Z mueller $
 //
-// Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-04-11   666   1.1    handle xon/xoff escaping, add (Set)XonEscape()
 // 2014-12-25   621   1.0.1  Reorganize packet send/revd stats
 // 2014-11-14   604   1.0    Initial version
 // 2014-11-02   600   0.1    First draft (re-organize PacketBuf for rlink v4)
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPacketBufSnd.hpp 621 2014-12-26 21:20:05Z mueller $
+  \version $Id: RlinkPacketBufSnd.hpp 666 2015-04-12 21:17:54Z mueller $
   \brief   Declaration of class RlinkPacketBufSnd.
 */
 
@@ -38,6 +39,9 @@ namespace Retro {
 
                     RlinkPacketBufSnd();
                     ~RlinkPacketBufSnd();
+
+      void          SetXonEscape(bool xon);
+      bool          XonEscape() const;
 
       void          Init();
 
@@ -63,13 +67,15 @@ namespace Retro {
    // statistics counter indices
       enum stats {
         kStatNTxPktByt=0,                   //!< Tx packet bytes send
-        kStatNTxEsc                         //!< Tx data escapes
+        kStatNTxEsc,                        //!< Tx esc escapes
+        kStatNTxXEsc                        //!< Tx xon escapes
       };
 
     protected:
       bool          SndRaw(RlinkPort* port, RerrMsg& emsg);
 
     protected:
+      bool          fXonEscape;             //!< escape XON/XOFF
       std::vector<uint8_t> fRawBuf;         //!< raw data buffer
   };
   

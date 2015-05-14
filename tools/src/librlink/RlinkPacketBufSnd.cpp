@@ -1,6 +1,6 @@
-// $Id: RlinkPacketBufSnd.cpp 621 2014-12-26 21:20:05Z mueller $
+// $Id: RlinkPacketBufSnd.cpp 666 2015-04-12 21:17:54Z mueller $
 //
-// Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-04-11   666   1.1    handle xon/xoff escaping, add (Set)XonEscape()
 // 2014-12-25   621   1.0.1  Reorganize packet send/revd stats
 // 2014-11-15   604   1.0    Initial version
 // 2014-11-02   600   0.1    First draft (re-organize PacketBuf for rlink v4)
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPacketBufSnd.cpp 621 2014-12-26 21:20:05Z mueller $
+  \version $Id: RlinkPacketBufSnd.cpp 666 2015-04-12 21:17:54Z mueller $
   \brief   Implemenation of class RlinkPacketBuf.
  */
 
@@ -47,11 +48,13 @@ namespace Retro {
 //! Default constructor
 
 RlinkPacketBufSnd::RlinkPacketBufSnd()
-  : fRawBuf()
+  : fXonEscape(false),
+    fRawBuf()
 {
   // Statistic setup
   fStats.Define(kStatNTxPktByt, "NTxPktByt", "Tx packet bytes send");
-  fStats.Define(kStatNTxEsc,    "NTxEsc",    "Tx data escapes");
+  fStats.Define(kStatNTxEsc,    "NTxEsc",    "Tx esc escapes");
+  fStats.Define(kStatNTxXEsc,   "NTxXEsc",   "Tx xon escapes");
 }
 
 //------------------------------------------+-----------------------------------
@@ -88,7 +91,8 @@ void RlinkPacketBufSnd::PutWithCrc(const uint16_t* pdata, size_t count)
 
 bool RlinkPacketBufSnd::SndPacket(RlinkPort* port, RerrMsg& emsg)
 {
-  size_t nesc = 0;
+  size_t nesc  = 0;
+  size_t nxesc = 0;
 
   fRawBuf.reserve(2*fPktBuf.size()+4);      // max. size of raw data
   fRawBuf.clear();
@@ -99,16 +103,32 @@ bool RlinkPacketBufSnd::SndPacket(RlinkPort* port, RerrMsg& emsg)
   uint8_t* pi = fPktBuf.data();
   for (size_t i=0; i<ni; i++) {
     uint8_t c = *pi++;
+
     if (c == kSymEsc) {
       PutRawEsc(kEcEsc);
       nesc += 1;
-    } else {
-      fRawBuf.push_back(c);
+      continue;
     }
+
+    if (fXonEscape) {
+      if (c == kSymXon) {
+        PutRawEsc(kEcXon);
+        nxesc += 1;
+        continue;
+      }
+      if (c == kSymXoff) {
+        PutRawEsc(kEcXoff);
+        nxesc += 1;
+        continue;
+      }
+    }
+
+    fRawBuf.push_back(c);
   }
 
   PutRawEsc(kEcEop);                        // <EOP>
-  fStats.Inc(kStatNTxEsc   , double(nesc));
+  fStats.Inc(kStatNTxEsc,    double(nesc));
+  fStats.Inc(kStatNTxXEsc,   double(nxesc));
 
   bool sndok = SndRaw(port, emsg);
   if (sndok) fStats.Inc(kStatNTxPktByt, double(PktSize()));
@@ -132,6 +152,8 @@ bool RlinkPacketBufSnd::SndOob(RlinkPort* port, uint16_t addr, uint16_t data,
   fRawBuf.push_back(uint8_t((data>>4)  & 0x000f));  // DATA ( 7: 4)
   fRawBuf.push_back(uint8_t((data>>8)  & 0x000f));  // DATA (11: 8)
   fRawBuf.push_back(uint8_t((data>>12) & 0x000f));  // DATA (15:12)
+  fRawBuf.push_back(0);                 // send two filler zero's to ensure that
+  fRawBuf.push_back(0);                 // comma handlers are in ground state
 
   return SndRaw(port, emsg);
 }
@@ -193,6 +215,8 @@ void RlinkPacketBufSnd::Dump(std::ostream& os, int ind, const char* text) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "RlinkPacketBufSnd @ " << this << endl;
+
+  os << bl << "  fXonEscape:      " << fXonEscape << endl;
 
   size_t rawbufsize = fRawBuf.size();
   os << bl << "  fRawBuf(size): " << RosPrintf(rawbufsize,"d",4);

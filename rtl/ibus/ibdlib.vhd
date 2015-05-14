@@ -1,4 +1,4 @@
--- $Id: ibdlib.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: ibdlib.vhd 678 2015-05-10 16:23:02Z mueller $
 --
 -- Copyright 2008-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,8 @@
 -- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-05-09   676   1.3    start/stop/suspend overhaul
+-- 2015-03-13   658   1.2.1  add rprm declaration (later renaned to rhrp)
 -- 2014-06-08   561   1.2    fix rl11 declaration
 -- 2011-11-18   427   1.1.2  now numeric_std clean
 -- 2010-10-23   335   1.1.1  rename RRI_LAM->RB_LAM;
@@ -95,7 +97,7 @@ component ibd_iist is                   -- ibus dev(loc): IIST
   );
 end component;
 
-component ibd_kw11p is                  -- ibus dev(loc): KW11-P (line clock)
+component ibd_kw11p is                  -- ibus dev(loc): KW11-P (prog clock)
                                         -- fixed address: 172540
   port (
     CLK : in slbit;                     -- clock
@@ -103,6 +105,7 @@ component ibd_kw11p is                  -- ibus dev(loc): KW11-P (line clock)
     CE_MSEC : in slbit;                 -- msec pulse
     RESET : in slbit;                   -- system reset
     BRESET : in slbit;                  -- ibus reset
+    CPUSUSP : in slbit;                 -- cpu suspended
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response
     EI_REQ : out slbit;                 -- interrupt request
@@ -117,6 +120,22 @@ component ibd_kw11l is                  -- ibus dev(loc): KW11-L (line clock)
     CE_MSEC : in slbit;                 -- msec pulse
     RESET : in slbit;                   -- system reset
     BRESET : in slbit;                  -- ibus reset
+    CPUSUSP : in slbit;                 -- cpu suspended
+    IB_MREQ : in ib_mreq_type;          -- ibus request
+    IB_SRES : out ib_sres_type;         -- ibus response
+    EI_REQ : out slbit;                 -- interrupt request
+    EI_ACK : in slbit                   -- interrupt acknowledge
+  );
+end component;
+
+component ibdr_rhrp is                  -- ibus dev(rem): RH+RP
+                                        -- fixed address: 174400
+  port (
+    CLK : in slbit;                     -- clock
+    CE_USEC : in slbit;                 -- usec pulse
+    BRESET : in slbit;                  -- ibus reset
+    ITIMER : in slbit;                  -- instruction timer
+    RB_LAM : out slbit;                 -- remote attention
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response
     EI_REQ : out slbit;                 -- interrupt request
@@ -265,6 +284,8 @@ component ibdr_maxisys is               -- ibus(rem) full system
     CE_MSEC : in slbit;                 -- msec pulse
     RESET : in slbit;                   -- reset
     BRESET : in slbit;                  -- ibus reset
+    ITIMER : in slbit;                  -- instruction timer
+    CPUSUSP : in slbit;                 -- cpu suspended
     RB_LAM : out slv16_1;               -- remote attention vector
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response

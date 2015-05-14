@@ -1,6 +1,6 @@
--- $Id: tbd_pdp11core.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: tbd_pdp11core.vhd 674 2015-05-04 16:17:40Z mueller $
 --
--- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -41,6 +41,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-05-03   674   1.6    start/stop/suspend overhaul
 -- 2011-11-18   427   1.5.1  now numeric_std clean
 -- 2010-12-30   351   1.5    rename tbd_pdp11_core -> tbd_pdp11core
 -- 2010-10-23   335   1.4.2  rename RRI_LAM->RB_LAM;
@@ -91,9 +92,12 @@ entity tbd_pdp11core is               -- full core [no records]
     CP_STAT_cmderr : out slbit;       -- console status port
     CP_STAT_cmdmerr : out slbit;      -- console status port
     CP_STAT_cpugo : out slbit;        -- console status port
-    CP_STAT_cpuhalt : out slbit;      -- console status port
     CP_STAT_cpustep : out slbit;      -- console status port
+    CP_STAT_cpuwait : out slbit;      -- console status port
+    CP_STAT_cpususp : out slbit;      -- console status port
     CP_STAT_cpurust : out slv4;       -- console status port
+    CP_STAT_suspint : out slbit;      -- console status port
+    CP_STAT_suspext : out slbit;      -- console status port
     CP_DOUT : out slv16               -- console data out
   );
 end tbd_pdp11core;
@@ -140,9 +144,12 @@ begin
   CP_STAT_cmderr  <= CP_STAT.cmderr;
   CP_STAT_cmdmerr <= CP_STAT.cmdmerr;
   CP_STAT_cpugo   <= CP_STAT.cpugo;
-  CP_STAT_cpuhalt <= CP_STAT.cpuhalt;
   CP_STAT_cpustep <= CP_STAT.cpustep;
+  CP_STAT_cpuwait <= CP_STAT.cpuwait;
+  CP_STAT_cpususp <= CP_STAT.cpususp;
   CP_STAT_cpurust <= CP_STAT.cpurust;
+  CP_STAT_suspint <= CP_STAT.suspint;
+  CP_STAT_suspext <= CP_STAT.suspext;
 
   CLKDIV : clkdivce
     generic map (
@@ -164,6 +171,11 @@ begin
       CP_DIN  => CP_DIN,
       CP_STAT => CP_STAT,
       CP_DOUT => CP_DOUT,
+      ESUSP_O => open,                  -- not tested
+      ESUSP_I => '0',                   -- dito
+      ITIMER  => open,                  -- dito
+      EBREAK  => '0',                   -- dito
+      DBREAK  => '0',                   -- dito
       EI_PRI  => EI_PRI,
       EI_VECT => EI_VECT,
       EI_ACKM => EI_ACKM,

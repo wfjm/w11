@@ -1,6 +1,6 @@
-// $Id: RlinkCommand.ipp 600 2014-11-02 22:33:02Z mueller $
+// $Id: RlinkCommand.ipp 661 2015-04-03 18:28:41Z mueller $
 //
-// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-04-02   661   1.3    expect logic: add stat check, Print() without cntx
 // 2014-11-02   600   1.2    new rlink v4 iface
 // 2013-05-06   495   1.0.1  add RlinkContext to Print() args; drop oper<<()
 // 2011-03-27   374   1.0    Initial version
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RlinkCommand.ipp 600 2014-11-02 22:33:02Z mueller $
+  \version $Id: RlinkCommand.ipp 661 2015-04-03 18:28:41Z mueller $
   \brief   Implemenation (inline) of class RlinkCommand.
 */
 
@@ -133,6 +134,28 @@ inline void RlinkCommand::ClearFlagBit(uint32_t mask)
 inline void RlinkCommand::SetRcvSize(size_t rsize)
 {
   fRcvSize = rsize;
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline void RlinkCommand::SetExpectStatus(uint8_t stat, uint8_t statmsk)
+{
+  fExpectStatusSet = true;
+  fExpectStatusVal = stat;
+  fExpectStatusMsk = statmsk;
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline void RlinkCommand::SetExpectStatusDefault(uint8_t stat, uint8_t statmsk)
+{
+  fExpectStatusSet = false;
+  fExpectStatusVal = stat;
+  fExpectStatusMsk = statmsk;
   return;
 }
 
@@ -270,6 +293,46 @@ inline size_t RlinkCommand::RcvSize() const
 inline RlinkCommandExpect* RlinkCommand::Expect() const
 {
   return fpExpect;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline uint8_t RlinkCommand::ExpectStatusValue() const
+{
+  return fExpectStatusVal;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline uint8_t RlinkCommand::ExpectStatusMask() const
+{
+  return fExpectStatusMsk;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline bool RlinkCommand::ExpectStatusSet() const
+{
+  return fExpectStatusSet;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline bool RlinkCommand::StatusCheck() const
+{
+  return (fStatus & fExpectStatusMsk) == fExpectStatusVal;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline bool RlinkCommand::StatusIsChecked() const
+{
+  return fExpectStatusMsk != 0x0;
 }
 
 } // end namespace Retro

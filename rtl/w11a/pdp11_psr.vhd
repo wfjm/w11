@@ -1,4 +1,4 @@
--- $Id: pdp11_psr.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: pdp11_psr.vhd 677 2015-05-09 21:52:32Z mueller $
 --
 -- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -47,7 +47,7 @@ use work.pdp11.all;
 entity pdp11_psr is                     -- processor status word register
   port (
     CLK : in slbit;                     -- clock
-    CRESET : in slbit;                  -- console reset
+    CRESET : in slbit;                  -- cpu reset
     DIN : in slv16;                     -- input data
     CCIN : in slv4;                     -- cc input
     CCWE : in slbit;                    -- enable update cc

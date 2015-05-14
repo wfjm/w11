@@ -1,4 +1,4 @@
--- $Id: ibdr_minisys.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: ibdr_minisys.vhd 676 2015-05-09 16:31:54Z mueller $
 --
 -- Copyright 2008-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -142,6 +142,7 @@ begin
       CE_MSEC => CE_MSEC,
       RESET   => RESET,
       BRESET  => BRESET,
+      CPUSUSP => '0',
       IB_MREQ => IB_MREQ,
       IB_SRES => IB_SRES_KW11L,
       EI_REQ  => EI_REQ_KW11L,

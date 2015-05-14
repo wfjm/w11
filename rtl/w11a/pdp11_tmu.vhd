@@ -1,6 +1,6 @@
--- $Id: pdp11_tmu.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: pdp11_tmu.vhd 677 2015-05-09 21:52:32Z mueller $
 --
--- Copyright 2008-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -23,6 +23,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-05-03   674   1.2    start/stop/suspend overhaul
 -- 2011-12-23   444   1.1    use local clkcycle count instead of simbus global
 -- 2011-11-18   427   1.0.7  now numeric_std clean
 -- 2010-10-17   333   1.0.6  use ibus V2 interface
@@ -51,10 +52,10 @@ entity pdp11_tmu is                     -- trace and monitor unit
   port (
     CLK : in slbit;                     -- clock
     ENA : in slbit := '0';              -- enable trace output
-    DM_STAT_DP : in dm_stat_dp_type;    -- DM dpath
-    DM_STAT_VM : in dm_stat_vm_type;    -- DM vmbox
-    DM_STAT_CO : in dm_stat_co_type;    -- DM core
-    DM_STAT_SY : in dm_stat_sy_type     -- DM system
+    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - dpath
+    DM_STAT_VM : in dm_stat_vm_type;    -- debug and monitor status - vmbox
+    DM_STAT_CO : in dm_stat_co_type;    -- debug and monitor status - core
+    DM_STAT_SY : in dm_stat_sy_type     -- debug and monitor status - system
   );
 end pdp11_tmu;
 
@@ -116,7 +117,9 @@ begin
         write(oline, string'(" vm.ibsres.dout:o"));
 
         write(oline, string'(" co.cpugo:b"));
-        write(oline, string'(" co.cpuhalt:b"));
+        write(oline, string'(" co.cpususp:b"));
+        write(oline, string'(" co.suspint:b"));
+        write(oline, string'(" co.suspext:b"));
 
         write(oline, string'(" sy.emmreq.req:b"));
         write(oline, string'(" sy.emmreq.we:b"));
@@ -202,7 +205,9 @@ begin
         writeoct(oline, DM_STAT_VM.ibsres.dout, right, 7);
 
         write(oline,    DM_STAT_CO.cpugo, right, 2);
-        write(oline,    DM_STAT_CO.cpuhalt, right, 2);
+        write(oline,    DM_STAT_CO.cpususp, right, 2);
+        write(oline,    DM_STAT_CO.suspint, right, 2);
+        write(oline,    DM_STAT_CO.suspext, right, 2);
 
         write(oline,    DM_STAT_SY.emmreq.req, right, 2);
         write(oline,    DM_STAT_SY.emmreq.we, right, 2);

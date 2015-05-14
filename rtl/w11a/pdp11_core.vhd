@@ -1,6 +1,6 @@
--- $Id: pdp11_core.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: pdp11_core.vhd 677 2015-05-09 21:52:32Z mueller $
 --
--- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,7 +20,7 @@
 --                 pdp11_decode
 --                 pdp11_sequencer
 --                 pdp11_irq
---                 pdp11_sys70
+--                 pdp11_reg70
 --                 ibus/ib_sres_or_4
 --
 -- Test bench:     tb/tb_pdp11core
@@ -30,6 +30,8 @@
 -- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-05-09   679   1.4    start/stop/suspend overhaul; reset overhaul
+-- 2015-04-30   670   1.3.2  rename pdp11_sys70 -> pdp11_reg70
 -- 2011-11-18   427   1.3.1  now numeric_std clean
 -- 2010-06-13   305   1.3    add CP_ADDR in port; drop R_CPDIN, R_CPOUT; _vmbox
 --                           CP_ADDR now from in port; dpath CP_DIN now from in
@@ -69,14 +71,20 @@ entity pdp11_core is                    -- full processor core
     CP_DIN : in slv16;                  -- console data in
     CP_STAT : out cp_stat_type;         -- console status port
     CP_DOUT : out slv16;                -- console data out
+    ESUSP_O : out slbit;                -- external suspend output
+    ESUSP_I : in slbit;                 -- external suspend input
+    ITIMER : out slbit;                 -- instruction timer
+    EBREAK : in slbit;                  -- execution break
+    DBREAK : in slbit;                  -- data break
     EI_PRI : in slv3;                   -- external interrupt priority
     EI_VECT : in slv9_2;                -- external interrupt vector
     EI_ACKM : out slbit;                -- external interrupt acknowledge
     EM_MREQ : out em_mreq_type;         -- external memory: request
     EM_SRES : in em_sres_type;          -- external memory: response
-    BRESET : out slbit;                 -- ibus reset
-    IB_MREQ_M : out ib_mreq_type;       -- inbus master request (master)
-    IB_SRES_M : in ib_sres_type;        -- inbus slave response (master)
+    CRESET : out slbit;                 -- cpu reset
+    BRESET : out slbit;                 -- bus reset
+    IB_MREQ_M : out ib_mreq_type;       -- ibus master request (master)
+    IB_SRES_M : in ib_sres_type;        -- ibus slave response (master)
     DM_STAT_DP : out dm_stat_dp_type;   -- debug and monitor status - dpath
     DM_STAT_VM : out dm_stat_vm_type;   -- debug and monitor status - vmbox
     DM_STAT_CO : out dm_stat_co_type    -- debug and monitor status - core
@@ -86,10 +94,8 @@ end pdp11_core;
 architecture syn of pdp11_core is
 
   signal GRESET : slbit := '0';
-  signal CRESET : slbit := '0';
+  signal CRESET_L : slbit := '0';
   signal BRESET_L : slbit := '0';
-  signal SEQ_CRESET : slbit := '0';
-  signal SEQ_BRESET : slbit := '0';
   signal VM_CNTL : vm_cntl_type := vm_cntl_init;
   signal VM_STAT : vm_stat_type := vm_stat_init;
   signal MMU_MONI : mmu_moni_type := mmu_moni_init;
@@ -118,14 +124,12 @@ architecture syn of pdp11_core is
 begin
 
   GRESET   <= RESET;
-  CRESET   <= RESET or SEQ_CRESET;
-  BRESET_L <= RESET or SEQ_CRESET or SEQ_BRESET;
   
   VMBOX : pdp11_vmbox
     port map (
       CLK       => CLK,
       GRESET    => GRESET,
-      CRESET    => CRESET,
+      CRESET    => CRESET_L,
       BRESET    => BRESET_L,
       CP_ADDR   => CP_ADDR,
       VM_CNTL   => VM_CNTL,
@@ -145,7 +149,7 @@ begin
   DPATH : pdp11_dpath
     port map (
       CLK     => CLK,
-      CRESET  => CRESET,
+      CRESET  => CRESET_L,
       CNTL    => DP_CNTL,
       STAT    => DP_STAT,
       CP_DIN  => CP_DIN,
@@ -180,13 +184,18 @@ begin
       VM_STAT   => VM_STAT,
       INT_PRI   => INT_PRI,
       INT_VECT  => INT_VECT,
-      CRESET    => SEQ_CRESET,
-      BRESET    => SEQ_BRESET,
+      INT_ACK   => INT_ACK,
+      CRESET    => CRESET_L,
+      BRESET    => BRESET_L,
       MMU_MONI  => MMU_MONI,
       DP_CNTL   => DP_CNTL,
       VM_CNTL   => VM_CNTL,
       CP_STAT   => CP_STAT_L,
-      INT_ACK   => INT_ACK,
+      ESUSP_O   => ESUSP_O,
+      ESUSP_I   => ESUSP_I,
+      ITIMER    => ITIMER,
+      EBREAK    => EBREAK,
+      DBREAK    => DBREAK,
       IB_MREQ   => IB_MREQ,
       IB_SRES   => IB_SRES_SEQ
     );
@@ -205,10 +214,10 @@ begin
       IB_SRES => IB_SRES_IRQ
     );
 
-  SYS70 : pdp11_sys70
+  REG70 : pdp11_reg70
     port map (
       CLK     => CLK,
-      CRESET  => CRESET,
+      CRESET  => CRESET_L,
       IB_MREQ => IB_MREQ,
       IB_SRES => IB_SRES_SYS
     );
@@ -226,10 +235,13 @@ begin
   
   CP_STAT <= CP_STAT_L;
 
+  CRESET  <= CRESET_L;
   BRESET  <= BRESET_L;
   
-  DM_STAT_CO.cpugo       <= CP_STAT_L.cpugo;
-  DM_STAT_CO.cpuhalt     <= CP_STAT_L.cpuhalt;
+  DM_STAT_CO.cpugo    <= CP_STAT_L.cpugo;
+  DM_STAT_CO.cpususp  <= CP_STAT_L.cpususp;
+  DM_STAT_CO.suspint  <= CP_STAT_L.suspint;
+  DM_STAT_CO.suspext  <= CP_STAT_L.suspext;
 
 end syn;
 

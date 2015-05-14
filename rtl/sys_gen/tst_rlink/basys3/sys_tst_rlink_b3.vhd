@@ -1,4 +1,4 @@
--- $Id: sys_tst_rlink_b3.vhd 640 2015-02-01 09:56:53Z mueller $
+-- $Id: sys_tst_rlink_b3.vhd 672 2015-05-02 21:58:28Z mueller $
 --
 -- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -34,6 +34,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-04-11   666   1.0.1  rearrange XON handling
 -- 2015-01-16   636   1.0    Initial version (derived from sys_tst_rlink_n3)
 ------------------------------------------------------------------------------
 -- Usage of Basys 3 Switches, Buttons, LEDs:
@@ -193,7 +194,9 @@ begin
       ENAPIN_RLMON => sbcntl_sbf_rlmon,
       ENAPIN_RBMON => sbcntl_sbf_rbmon,
       CDWIDTH      => 15,
-      CDINIT       => sys_conf_ser2rri_cdinit)
+      CDINIT       => sys_conf_ser2rri_cdinit,
+      RBMON_AWIDTH => 0,
+      RBMON_RBADDR => x"ffe8")
     port map (
       CLK      => CLK,
       CE_USEC  => CE_USEC,
@@ -201,7 +204,7 @@ begin
       CE_INT   => CE_MSEC,
       RESET    => RESET,
       ENAXON   => SWI(1),
-      ENAESC   => SWI(1),
+      ESCFILL  => '0',
       RXSD     => RXD,
       TXSD     => TXD,
       CTS_N    => '0',

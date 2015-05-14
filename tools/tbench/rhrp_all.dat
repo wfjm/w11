@@ -1,0 +1,8 @@
+# $Id: rhrp_all.dat 668 2015-04-25 14:31:19Z mueller $
+#
+## steering file for all rhrp tests
+#
+test_rhrp_basics.tcl
+test_rhrp_regs.tcl
+test_rhrp_func_reg.tcl
+test_rhrp_int.tcl

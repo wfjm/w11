@@ -1,4 +1,4 @@
-# $Id: README_xxdp_rlset.txt 652 2015-02-28 12:18:08Z mueller $
+# $Id: README_xxdp_rlset.txt 680 2015-05-14 13:29:46Z mueller $
 
 Notes on oskit: XXDP V2.2 and V2.5 system on RL02 volumes
 
@@ -38,7 +38,7 @@ Notes on oskit: XXDP V2.2 and V2.5 system on RL02 volumes
      or on w11a
        ti_w11 <opt> @xxdp22_rl_boot.tcl
        ti_w11 <opt> @xxdp25_rl_boot.tcl
-     where opt is the proper option set for the board.
+     where <opt> is the proper option set for the board.
 
    - Hit <ENTER> in the xterm window to connect to simh or backend server.
      The boot dialog in the console xterm window will look like

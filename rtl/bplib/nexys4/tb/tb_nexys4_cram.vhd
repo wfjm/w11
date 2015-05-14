@@ -1,4 +1,4 @@
--- $Id: tb_nexys4_cram.vhd 643 2015-02-07 17:41:53Z mueller $
+-- $Id: tb_nexys4_cram.vhd 666 2015-04-12 21:17:54Z mueller $
 --
 -- Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,7 +20,7 @@
 --                 rlink/tb/tbcore_rlink
 --                 xlib/s7_cmt_sfs
 --                 tb_nexys4_core
---                 serport/serport_uart_rxtx
+--                 serport/serport_master
 --                 nexys4_cram_aif [UUT]
 --                 vlib/parts/micron/mt45w8mw16b
 --
@@ -31,6 +31,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-04-12   666   1.2    use serport_master instead of serport_uart_rxtx
 -- 2015-02-01   641   1.1    separate I_BTNRST_N
 -- 2013-09-28   535   1.0.1  use proper clock manager
 -- 2013-09-21   534   1.0    Initial version (derived from tb_nexys3)
@@ -95,6 +96,10 @@ architecture sim of tb_nexys4_cram is
   signal I_MEM_WAIT  : slbit := '0';
   signal O_MEM_ADDR  : slv23 := (others=>'Z');
   signal IO_MEM_DATA : slv16 := (others=>'0');
+
+  signal R_PORTSEL_XON : slbit := '0';       -- if 1 use xon/xoff
+
+  constant sbaddr_portsel: slv8 := slv(to_unsigned( 8,8));
 
   constant clock_period : time :=  10 ns;
   constant clock_offset : time := 200 ns;
@@ -187,22 +192,26 @@ begin
       DATA  => IO_MEM_DATA
     );
   
-  UART : serport_uart_rxtx
+  SERMSTR : serport_master
     generic map (
       CDWIDTH => CLKDIV'length)
     port map (
-      CLK    => CLKCOM,
-      RESET  => RESET,
-      CLKDIV => CLKDIV,
-      RXSD   => O_TXD,
-      RXDATA => RXDATA,
-      RXVAL  => RXVAL,
-      RXERR  => RXERR,
-      RXACT  => RXACT,
-      TXSD   => I_RXD,
-      TXDATA => TXDATA,
-      TXENA  => TXENA,
-      TXBUSY => TXBUSY
+      CLK     => CLKCOM,
+      RESET   => RESET,
+      CLKDIV  => CLKDIV,
+      ENAXON  => R_PORTSEL_XON,
+      ENAESC  => '0',
+      RXDATA  => RXDATA,
+      RXVAL   => RXVAL,
+      RXERR   => RXERR,
+      RXOK    => '1',
+      TXDATA  => TXDATA,
+      TXENA   => TXENA,
+      TXBUSY  => TXBUSY,
+      RXSD    => O_TXD,
+      TXSD    => I_RXD,
+      RXRTS_N => I_CTS_N,
+      TXCTS_N => O_RTS_N
     );
 
   proc_moni: process

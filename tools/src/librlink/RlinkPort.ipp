@@ -1,6 +1,6 @@
-// $Id: RlinkPort.ipp 513 2013-05-01 14:02:06Z mueller $
+// $Id: RlinkPort.ipp 666 2015-04-12 21:17:54Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-04-11   666   1.3    add fXon, XonEnable()
 // 2013-05-01   513   1.2.1  fTraceLevel now uint32_t
 // 2013-02-23   492   1.2    use RparseUrl
 // 2013-02-22   491   1.1    use new RlogFile/RlogMsg interfaces
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPort.ipp 513 2013-05-01 14:02:06Z mueller $
+  \version $Id: RlinkPort.ipp 666 2015-04-12 21:17:54Z mueller $
   \brief   Implemenation (inline) of RlinkPort.
 */
 
@@ -43,6 +44,14 @@ inline bool RlinkPort::IsOpen() const
 inline const Retro::RparseUrl& RlinkPort::Url() const
 {
   return fUrl;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline bool RlinkPort::XonEnable() const
+{
+  return fXon;
 }
 
 //------------------------------------------+-----------------------------------

@@ -1,4 +1,4 @@
--- $Id: pdp11_tmu_sb.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: pdp11_tmu_sb.vhd 677 2015-05-09 21:52:32Z mueller $
 --
 -- Copyright 2009- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -36,10 +36,10 @@ entity pdp11_tmu_sb is                  -- trace and mon. unit; simbus wrapper
     ENAPIN : integer := 13);            -- SB_CNTL signal to use for enable
   port (
     CLK : in slbit;                     -- clock
-    DM_STAT_DP : in dm_stat_dp_type;    -- DM dpath
-    DM_STAT_VM : in dm_stat_vm_type;    -- DM vmbox
-    DM_STAT_CO : in dm_stat_co_type;    -- DM core
-    DM_STAT_SY : in dm_stat_sy_type     -- DM system
+    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - dpath
+    DM_STAT_VM : in dm_stat_vm_type;    -- debug and monitor status - vmbox
+    DM_STAT_CO : in dm_stat_co_type;    -- debug and monitor status - core
+    DM_STAT_SY : in dm_stat_sy_type     -- debug and monitor status - system
   );
 end pdp11_tmu_sb;
 

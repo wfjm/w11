@@ -1,4 +1,4 @@
-// $Id: Rw11CntlPC11.hpp 623 2014-12-29 19:11:40Z mueller $
+// $Id: Rw11CntlPC11.hpp 665 2015-04-07 07:13:49Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlPC11.hpp 623 2014-12-29 19:11:40Z mueller $
+  \version $Id: Rw11CntlPC11.hpp 665 2015-04-07 07:13:49Z mueller $
   \brief   Declaration of class Rw11CntlPC11.
 */
 
@@ -53,10 +53,10 @@ namespace Retro {
       static const uint16_t kIbaddr = 0177550; //!< PC11 default address
       static const int      kLam    = 10;      //!< PC11 default lam 
 
-      static const uint16_t kRCSR = 000;  //!< RCSR register address offset
-      static const uint16_t kRBUF = 002;  //!< RBUF register address offset
-      static const uint16_t kPCSR = 004;  //!< PCSR register address offset
-      static const uint16_t kPBUF = 006;  //!< PBUF register address offset
+      static const uint16_t kRCSR = 000;  //!< RCSR reg offset
+      static const uint16_t kRBUF = 002;  //!< RBUF reg offset
+      static const uint16_t kPCSR = 004;  //!< PCSR reg offset
+      static const uint16_t kPBUF = 006;  //!< PBUF reg offset
 
       static const uint16_t kUnit_PR   = 0;   //<! unit number of paper reader 
       static const uint16_t kUnit_PP   = 1;   //<! unit number of paper puncher 

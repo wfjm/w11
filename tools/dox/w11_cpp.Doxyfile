@@ -5,7 +5,7 @@
 #---------------------------------------------------------------------------
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "w11 - cpp"
-PROJECT_NUMBER         = 0.64
+PROJECT_NUMBER         = 0.65
 PROJECT_BRIEF          = "Backend server for Rlink and w11"
 PROJECT_LOGO           =
 OUTPUT_DIRECTORY       = $(RETRODOXY)/w11/cpp

@@ -1,4 +1,4 @@
-// $Id: Rw11CntlRK11.cpp 647 2015-02-17 22:35:36Z mueller $
+// $Id: Rw11CntlRK11.cpp 669 2015-04-26 21:20:32Z mueller $
 //
 // Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -26,7 +26,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlRK11.cpp 647 2015-02-17 22:35:36Z mueller $
+  \version $Id: Rw11CntlRK11.cpp 669 2015-04-26 21:20:32Z mueller $
   \brief   Implemenation of Rw11CntlRK11.
 */
 
@@ -194,13 +194,13 @@ void Rw11CntlRK11::Start()
 
   // add device register address ibus and rbus mappings
   // done here because now Cntl bound to Cpu and Cntl probed
-  Cpu().AllAddrMapInsert(Name()+".ds", Base() + kRKDS);
-  Cpu().AllAddrMapInsert(Name()+".er", Base() + kRKER);
-  Cpu().AllAddrMapInsert(Name()+".cs", Base() + kRKCS);
-  Cpu().AllAddrMapInsert(Name()+".wc", Base() + kRKWC);
-  Cpu().AllAddrMapInsert(Name()+".ba", Base() + kRKBA);
-  Cpu().AllAddrMapInsert(Name()+".da", Base() + kRKDA);
-  Cpu().AllAddrMapInsert(Name()+".mr", Base() + kRKMR);
+  Cpu().AllIAddrMapInsert(Name()+".ds", Base() + kRKDS);
+  Cpu().AllIAddrMapInsert(Name()+".er", Base() + kRKER);
+  Cpu().AllIAddrMapInsert(Name()+".cs", Base() + kRKCS);
+  Cpu().AllIAddrMapInsert(Name()+".wc", Base() + kRKWC);
+  Cpu().AllIAddrMapInsert(Name()+".ba", Base() + kRKBA);
+  Cpu().AllIAddrMapInsert(Name()+".da", Base() + kRKDA);
+  Cpu().AllIAddrMapInsert(Name()+".mr", Base() + kRKMR);
 
   // setup primary info clist
   fPrimClist.Clear();
@@ -364,11 +364,11 @@ int Rw11CntlRK11::AttnHandler(RlinkServer::AttnArgs& args)
          << " da=" << RosPrintBvi(rkda,8)
          << " ad=" << RosPrintBvi(addr,8,18)
          << " fu=" << fumnemo[fu&0x7]
-         << " dchs=" << dr 
+         << " pa=" << dr 
          << "," << RosPrintf(cy,"d",3) 
          << "," << hd 
          << "," << RosPrintf(se,"d",2)
-         << " lba,nw=" << RosPrintf(lba,"d",4) 
+         << " la,nw=" << RosPrintf(lba,"d",4) 
          << "," << RosPrintf(nwrd,"d",5);
   }
 
@@ -425,7 +425,7 @@ int Rw11CntlRK11::AttnHandler(RlinkServer::AttnArgs& args)
       AddErrorExit(clist, rker);
     } else {
       fRdma.QueueDiskWrite(addr, nwrd, 
-                           Rw11Cpu::kCp_ah_m_22bit|Rw11Cpu::kCp_ah_m_ubmap,
+                           Rw11Cpu::kCPAH_M_22BIT|Rw11Cpu::kCPAH_M_UBMAP,
                            lba, &unit);
     }
 
@@ -438,7 +438,7 @@ int Rw11CntlRK11::AttnHandler(RlinkServer::AttnArgs& args)
       AddErrorExit(clist, rker);
     } else {
       fRdma.QueueDiskRead(addr, nwrd, 
-                          Rw11Cpu::kCp_ah_m_22bit|Rw11Cpu::kCp_ah_m_ubmap,
+                          Rw11Cpu::kCPAH_M_22BIT|Rw11Cpu::kCPAH_M_UBMAP,
                           lba, &unit);
     }
 
@@ -451,7 +451,7 @@ int Rw11CntlRK11::AttnHandler(RlinkServer::AttnArgs& args)
       AddErrorExit(clist, rker);
     } else {
       fRdma.QueueDiskWriteCheck(addr, nwrd, 
-                                Rw11Cpu::kCp_ah_m_22bit|Rw11Cpu::kCp_ah_m_ubmap,
+                                Rw11Cpu::kCPAH_M_22BIT|Rw11Cpu::kCPAH_M_UBMAP,
                                 lba, &unit);
     }
 

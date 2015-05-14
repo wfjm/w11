@@ -1,4 +1,4 @@
-// $Id: Rw11CntlLP11.hpp 623 2014-12-29 19:11:40Z mueller $
+// $Id: Rw11CntlLP11.hpp 665 2015-04-07 07:13:49Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlLP11.hpp 623 2014-12-29 19:11:40Z mueller $
+  \version $Id: Rw11CntlLP11.hpp 665 2015-04-07 07:13:49Z mueller $
   \brief   Declaration of class Rw11CntlLP11.
 */
 
@@ -50,8 +50,8 @@ namespace Retro {
       static const uint16_t kIbaddr = 0177514; //!< LP11 default address
       static const int      kLam    = 8;       //!< LP11 default lam 
 
-      static const uint16_t kCSR = 000;  //!< CSR register address offset
-      static const uint16_t kBUF = 002;  //!< BUF register address offset
+      static const uint16_t kCSR = 000;  //!< CSR reg offset
+      static const uint16_t kBUF = 002;  //!< BUF reg offset
 
       static const uint16_t kProbeOff = kCSR;  //!< probe address offset (rcsr)
       static const bool     kProbeInt = true;  //!< probe int active

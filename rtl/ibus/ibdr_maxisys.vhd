@@ -1,4 +1,4 @@
--- $Id: ibdr_maxisys.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: ibdr_maxisys.vhd 679 2015-05-13 17:38:46Z mueller $
 --
 -- Copyright 2009-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -17,6 +17,7 @@
 --
 -- Dependencies:   ibd_iist
 --                 ibd_kw11l
+--                 ibdr_rhrp
 --                 ibdr_rl11
 --                 ibdr_rk11
 --                 ibdr_dl11
@@ -32,6 +33,7 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2015-04-06   664 14.7  131013 xc6slx16-2   559 1068   29  410 s  9.1 +RHRP
 -- 2015-01-04   630 14.7  131013 xc6slx16-2   388  761   20  265 s  8.0 +RL11
 -- 2014-06-08   560 14.7  131013 xc6slx16-2   311  615    8  216 s  7.1
 -- 2010-10-17   333 12.1    M53d xc3s1000-4   312 1058   16  617 s 10.3
@@ -39,9 +41,13 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-05-10   678   1.3    start/stop/suspend overhaul
+-- 2015-04-06   664   1.2.3  rename RPRM to RHRP
+-- 2015-03-14   658   1.2.2  add RPRM; rearrange intmap (+rhrp,tm11,-kw11-l)
+--                           use sys_conf, make most devices configurable
 -- 2015-01-04   630   1.2.1  RL11 back in
 -- 2014-06-27   565   1.2.1  temporarily hide RL11
--- 2014-06-08   561   1.2    add rl11
+-- 2014-06-08   561   1.2    add RL11
 -- 2011-11-18   427   1.1.2  now numeric_std clean
 -- 2010-10-23   335   1.1.1  rename RRI_LAM->RB_LAM
 -- 2010-06-11   303   1.1    use IB_MREQ.racc instead of RRI_REQ
@@ -56,15 +62,15 @@
 -- full system setup
 --
 -- ibbase  vec  pri  slot attn  sror device name
--- 
--- 172540  104   ?7 14 17    -  1/1  KW11-P
--- 177500  260    6 13 16    -  1/2  IIST
--- 177546  100    6 12 15    -  1/3  KW11-L
+--
+-- 172540  104   ?7    17    -  1/1  KW11-P
+-- 177500  260    6 15 16    -  1/2  IIST
+-- 177546  100    6 14 15    -  1/3  KW11-L
 -- 174510  120    5    14    9  1/4  DEUNA
--- 176700  254    5    13    6  2/1  RH70/RP06
--- 174400  160    5 11 12    5  2/2  RL11
--- 177400  220    5 10 11    4  2/3  RK11
--- 172520  224    5    10    7  2/4  TM11
+-- 176700  254    5 13 13    6  2/1  RHRP
+-- 174400  160    5 12 12    5  2/2  RL11
+-- 177400  220    5 11 11    4  2/3  RK11
+-- 172520  224    5 10 10    7  2/4  TM11
 -- 160100  310?   5  9  9    3  3/1  DZ11-RX
 --         314?   5  8  8    ^       DZ11-TX
 -- 177560  060    4  7  7    1  3/2  DL11-RX  1st
@@ -84,6 +90,7 @@ use ieee.numeric_std.all;
 use work.slvtypes.all;
 use work.iblib.all;
 use work.ibdlib.all;
+use work.sys_conf.all;
 
 -- ----------------------------------------------------------------------------
 entity ibdr_maxisys is                  -- ibus(rem) full system
@@ -93,6 +100,8 @@ entity ibdr_maxisys is                  -- ibus(rem) full system
     CE_MSEC : in slbit;                 -- msec pulse
     RESET : in slbit;                   -- reset
     BRESET : in slbit;                  -- ibus reset
+    ITIMER : in slbit;                  -- instruction timer
+    CPUSUSP : in slbit;                 -- cpu suspended
     RB_LAM : out slv16_1;               -- remote attention vector
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response
@@ -106,12 +115,12 @@ end ibdr_maxisys;
 architecture syn of ibdr_maxisys is
 
   constant conf_intmap : intmap_array_type :=
-    (intmap_init,                       -- line 15
-     (8#104#,6),                        -- line 14  KW11-P
-     (8#260#,6),                        -- line 13  IIST
-     (8#100#,6),                        -- line 12  KW11-L
-     (8#160#,5),                        -- line 11  RL11
-     (8#220#,5),                        -- line 10  RK11
+    ((8#260#,6),                        -- line 15  IIST
+     (8#100#,6),                        -- line 14  KW11-L
+     (8#254#,5),                        -- line 13  RHRP
+     (8#160#,5),                        -- line 12  RL11
+     (8#220#,5),                        -- line 11  RK11
+     (8#224#,5),                        -- line 10  TM11
      (8#310#,5),                        -- line  9  DZ11-RX
      (8#314#,5),                        -- line  8  DZ11-TX
      (8#060#,4),                        -- line  7  DL11-RX 1st
@@ -121,11 +130,11 @@ architecture syn of ibdr_maxisys is
      (8#070#,4),                        -- line  3  PC11-PTR
      (8#074#,4),                        -- line  2  PC11-PTP
      (8#200#,4),                        -- line  1  LP11
-     intmap_init                        -- line  0
+     intmap_init                        -- line  0  (must be unused!)
      );
 
   signal RB_LAM_DENUA  : slbit := '0';
-  signal RB_LAM_RP06   : slbit := '0';
+  signal RB_LAM_RHRP   : slbit := '0';
   signal RB_LAM_RL11   : slbit := '0';
   signal RB_LAM_RK11   : slbit := '0';
   signal RB_LAM_TM11   : slbit := '0';
@@ -139,7 +148,7 @@ architecture syn of ibdr_maxisys is
   signal IB_SRES_KW11P  : ib_sres_type := ib_sres_init;
   signal IB_SRES_KW11L  : ib_sres_type := ib_sres_init;
   signal IB_SRES_DEUNA  : ib_sres_type := ib_sres_init;
-  signal IB_SRES_RP06   : ib_sres_type := ib_sres_init;
+  signal IB_SRES_RHRP   : ib_sres_type := ib_sres_init;
   signal IB_SRES_RL11   : ib_sres_type := ib_sres_init;
   signal IB_SRES_RK11   : ib_sres_type := ib_sres_init;
   signal IB_SRES_TM11   : ib_sres_type := ib_sres_init;
@@ -162,7 +171,7 @@ architecture syn of ibdr_maxisys is
   signal EI_REQ_KW11P    : slbit := '0';
   signal EI_REQ_KW11L    : slbit := '0';
   signal EI_REQ_DEUNA    : slbit := '0';
-  signal EI_REQ_RP06     : slbit := '0';
+  signal EI_REQ_RHRP     : slbit := '0';
   signal EI_REQ_RL11     : slbit := '0';
   signal EI_REQ_RK11     : slbit := '0';
   signal EI_REQ_TM11     : slbit := '0';
@@ -180,7 +189,7 @@ architecture syn of ibdr_maxisys is
   signal EI_ACK_KW11P    : slbit := '0';
   signal EI_ACK_KW11L    : slbit := '0';
   signal EI_ACK_DEUNA    : slbit := '0';
-  signal EI_ACK_RP06     : slbit := '0';
+  signal EI_ACK_RHRP     : slbit := '0';
   signal EI_ACK_RL11     : slbit := '0';
   signal EI_ACK_RK11     : slbit := '0';
   signal EI_ACK_TM11     : slbit := '0';
@@ -201,7 +210,7 @@ architecture syn of ibdr_maxisys is
 
 begin
 
-  IIST: if true generate
+  IIST: if sys_conf_ibd_iist generate
   begin
     I0 : ibd_iist
       port map (
@@ -232,13 +241,30 @@ begin
       CE_MSEC => CE_MSEC,
       RESET   => RESET,
       BRESET  => BRESET,
+      CPUSUSP => CPUSUSP,
       IB_MREQ => IB_MREQ,
       IB_SRES => IB_SRES_KW11L,
       EI_REQ  => EI_REQ_KW11L,
       EI_ACK  => EI_ACK_KW11L
     );
 
-  RL11: if true  generate
+  RHRP: if sys_conf_ibd_rhrp generate
+  begin
+    I0 : ibdr_rhrp
+      port map (
+        CLK     => CLK,
+        CE_USEC => CE_USEC,
+        BRESET  => BRESET,
+        ITIMER  => ITIMER,
+        RB_LAM  => RB_LAM_RHRP,
+        IB_MREQ => IB_MREQ,
+        IB_SRES => IB_SRES_RHRP,
+        EI_REQ  => EI_REQ_RHRP,
+        EI_ACK  => EI_ACK_RHRP
+      );
+  end generate RHRP;
+
+  RL11: if sys_conf_ibd_rl11 generate
   begin
     I0 : ibdr_rl11
       port map (
@@ -253,7 +279,7 @@ begin
       );
   end generate RL11;
 
-  RK11: if true generate
+  RK11: if sys_conf_ibd_rk11 generate
   begin
     I0 : ibdr_rk11
       port map (
@@ -283,7 +309,7 @@ begin
       EI_ACK_TX => EI_ACK_DL11TX_0
     );
   
-  DL11_1: if true generate
+  DL11_1: if sys_conf_ibd_dl11_1 generate
   begin
     I0 : ibdr_dl11
       generic map (
@@ -303,7 +329,7 @@ begin
       );
   end generate DL11_1;
 
-  PC11: if true generate
+  PC11: if sys_conf_ibd_pc11 generate
   begin
     I0 : ibdr_pc11
       port map (
@@ -320,7 +346,7 @@ begin
       );
   end generate PC11;
 
-  LP11: if true generate
+  LP11: if sys_conf_ibd_lp11 generate
   begin
     I0 : ibdr_lp11
       port map (
@@ -355,7 +381,7 @@ begin
 
   SRES_OR_2 : ib_sres_or_4
     port map (
-      IB_SRES_1  => IB_SRES_RP06,
+      IB_SRES_1  => IB_SRES_RHRP,
       IB_SRES_2  => IB_SRES_RL11,
       IB_SRES_3  => IB_SRES_RK11,
       IB_SRES_4  => IB_SRES_TM11,
@@ -398,11 +424,12 @@ begin
       EI_VECT => EI_VECT
     );
    
-  EI_REQ(14) <= EI_REQ_KW11P;
-  EI_REQ(13) <= EI_REQ_IIST;
-  EI_REQ(12) <= EI_REQ_KW11L;
-  EI_REQ(11) <= EI_REQ_RL11;
-  EI_REQ(10) <= EI_REQ_RK11;
+  EI_REQ(15) <= EI_REQ_IIST;
+  EI_REQ(14) <= EI_REQ_KW11L;
+  EI_REQ(13) <= EI_REQ_RHRP;
+  EI_REQ(12) <= EI_REQ_RL11;
+  EI_REQ(11) <= EI_REQ_RK11;
+  EI_REQ(10) <= EI_REQ_TM11;
   EI_REQ( 9) <= EI_REQ_DZ11RX;
   EI_REQ( 8) <= EI_REQ_DZ11TX;
   EI_REQ( 7) <= EI_REQ_DL11RX_0;
@@ -413,11 +440,12 @@ begin
   EI_REQ( 2) <= EI_REQ_PC11PTP;
   EI_REQ( 1) <= EI_REQ_LP11;
 
-  EI_ACK_KW11P    <= EI_ACK(14);
-  EI_ACK_IIST     <= EI_ACK(13);
-  EI_ACK_KW11L    <= EI_ACK(12);
-  EI_ACK_RL11     <= EI_ACK(11);
-  EI_ACK_RK11     <= EI_ACK(10);
+  EI_ACK_IIST     <= EI_ACK(15);
+  EI_ACK_KW11L    <= EI_ACK(14);
+  EI_ACK_RHRP     <= EI_ACK(13);
+  EI_ACK_RL11     <= EI_ACK(12);
+  EI_ACK_RK11     <= EI_ACK(11);
+  EI_ACK_TM11     <= EI_ACK(10);
   EI_ACK_DZ11RX   <= EI_ACK( 9);
   EI_ACK_DZ11TX   <= EI_ACK( 8);
   EI_ACK_DL11RX_0 <= EI_ACK( 7);
@@ -433,7 +461,7 @@ begin
   RB_LAM( 9) <= RB_LAM_DENUA;
   RB_LAM( 8) <= RB_LAM_LP11;
   RB_LAM( 7) <= RB_LAM_TM11;
-  RB_LAM( 6) <= RB_LAM_RP06;
+  RB_LAM( 6) <= RB_LAM_RHRP;
   RB_LAM( 5) <= RB_LAM_RL11;
   RB_LAM( 4) <= RB_LAM_RK11;
   RB_LAM( 3) <= RB_LAM_DZ11;

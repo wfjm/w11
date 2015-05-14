@@ -1,4 +1,4 @@
-# $Id: README_rsx11m-31_rkset.txt 558 2014-06-01 22:20:51Z mueller $
+# $Id: README_rsx11m-31_rkset.txt 680 2015-05-14 13:29:46Z mueller $
 
 Notes on oskit: RSX-11M V3.1 system on RK05 volumes
 
@@ -29,7 +29,8 @@ Notes on oskit: RSX-11M V3.1 system on RK05 volumes
    - Start them in simulator
        pdp11 rsx11m-31_rk_boot.scmd
      or ONLY IF YOU HAVE A VALID LICENSE on w11a
-       ti_w11 -u @rsx11m-31_rk_boot.tcl
+       ti_w11 <opt> @rsx11m-31_rk_boot.tcl
+     where <opt> is the proper option set for the board.
 
    - Hit <ENTER> in the xterm window to connect to simh or backend server.
      The boot dialog in the console xterm window will look like

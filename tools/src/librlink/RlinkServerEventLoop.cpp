@@ -1,6 +1,6 @@
-// $Id: RlinkServerEventLoop.cpp 495 2013-03-06 17:13:48Z mueller $
+// $Id: RlinkServerEventLoop.cpp 662 2015-04-05 08:02:54Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-04-04   662   1.2    BUGFIX: fix race in Stop(), use StopPending()
 // 2013-03-05   495   1.1.1  add exception catcher to EventLoop
 // 2013-02-22   491   1.1    use new RlogFile/RlogMsg interfaces
 // 2013-01-12   474   1.0    Initial Version
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RlinkServerEventLoop.cpp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: RlinkServerEventLoop.cpp 662 2015-04-05 08:02:54Z mueller $
   \brief   Implemenation of RlinkServerEventLoop.
 */
 
@@ -59,13 +60,12 @@ RlinkServerEventLoop::~RlinkServerEventLoop()
 
 void RlinkServerEventLoop::EventLoop()
 {
-  fLoopActive = true;
   fUpdatePoll = true;
 
   if (fspLog && fTraceLevel>0) fspLog->Write("eloop: starting", 'I');
 
   try {
-    while (fLoopActive) {
+    while (!StopPending()) {
       int timeout = (fpServer->AttnPending() || 
                      fpServer->ActnPending()) ? 0 : -1;
       int irc = DoPoll(timeout);

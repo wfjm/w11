@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cntl.hpp 627 2015-01-04 11:36:37Z mueller $
+// $Id: RtclRw11Cntl.hpp 660 2015-03-29 22:10:16Z mueller $
 //
 // Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-03-27   660   1.1.1  add M_start
 // 2015-01-03   627   1.1    M_stats now virtual
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-08   484   0.1    First draft
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Cntl.hpp 627 2015-01-04 11:36:37Z mueller $
+  \version $Id: RtclRw11Cntl.hpp 660 2015-03-29 22:10:16Z mueller $
   \brief   Declaration of class RtclRw11Cntl.
 */
 
@@ -53,6 +54,7 @@ namespace Retro {
       int           M_get(RtclArgs& args);
       int           M_set(RtclArgs& args);
       int           M_probe(RtclArgs& args);
+      int           M_start(RtclArgs& args);
       virtual int   M_stats(RtclArgs& args);
       int           M_dump(RtclArgs& args);
       int           M_default(RtclArgs& args);

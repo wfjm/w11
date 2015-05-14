@@ -3,9 +3,9 @@
 ../../../vlib/genlib/genlib.vhd
 ../../../vlib/serport/serportlib.vbom
 ../../../vlib/rbus/rblib.vhd
-../../../vlib/rbus/rbdlib.vhd
 ../../../vlib/rlink/rlinklib.vbom
 ../../../bplib/bpgen/bpgenlib.vbom
+../../../bplib/bpgen/bpgenrbuslib.vbom
 ../../../bplib/s3board/s3boardlib.vbom
 ../../../ibus/iblib.vhd
 ../../../ibus/ibdlib.vhd
@@ -14,25 +14,14 @@ sys_conf = sys_conf.vhd
 # components
 ../../../vlib/genlib/clkdivce.vbom
 ../../../bplib/bpgen/bp_rs232_2l4l_iob.vbom
-../../../bplib/bpgen/sn_humanio.vbom
 ../../../vlib/rlink/rlink_sp1c.vbom
-../../../vlib/rbus/rb_sres_or_3.vbom
-../../../vlib/rbus/rbd_rbmon.vbom
-../../../w11a/pdp11_core_rbus.vbom
-../../../w11a/pdp11_core.vbom
-../../../w11a/pdp11_bram.vbom
-../../../bplib/s3board/s3_sram_dummy.vbom
-../../../w11a/pdp11_cache.vbom
-../../../w11a/pdp11_mem70.vbom
-../../../bplib/s3board/s3_sram_memctl.vbom
-../../../ibus/ib_sres_or_2.vbom
-../../../ibus/ibdr_minisys.vbom
+../../../w11a/pdp11_sys70.vbom
 ../../../ibus/ibdr_maxisys.vbom
+../../../bplib/s3board/s3_sram_memctl.vbom
 ../../../vlib/rlink/ioleds_sp1c.vbom
-../../../w11a/pdp11_statleds.vbom
-../../../w11a/pdp11_ledmux.vbom
-../../../w11a/pdp11_dspmux.vbom
-[sim]../../../w11a/pdp11_tmu_sb.vbom
+../../../w11a/pdp11_hio70.vbom
+../../../bplib/bpgen/sn_humanio_rbus.vbom
+../../../vlib/rbus/rb_sres_or_2.vbom
 # design
 sys_w11a_s3.vhd
 @ucf_cpp: sys_w11a_s3.ucf

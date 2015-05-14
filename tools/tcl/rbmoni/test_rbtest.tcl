@@ -1,6 +1,6 @@
-# $Id: test_rbtest.tcl 619 2014-12-23 13:17:41Z mueller $
+# $Id: test_rbtest.tcl 661 2015-04-03 18:28:41Z mueller $
 #
-# Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-04-03   661   2.1    drop estatdef; fix test 5 (wrong regs accessed)
 # 2014-12-22   619   2.0    adopt to new rbd_rbmon and rlink v4
 # 2011-03-27   374   1.0    Initial version
 # 2011-03-13   369   0.1    First Draft
@@ -30,8 +31,6 @@ namespace eval rbmoni {
   # Basic tests with rbtester registers
   #
   proc test_rbtest {{print 0}} {
-    set esdval 0x00
-    set esdmsk [regbld rlink::STAT {stat -1}]
     #
     set errcnt 0
     rlc errcnt -clear
@@ -57,7 +56,7 @@ namespace eval rbmoni {
     set vtedata 0x1234
 
     # write/read te.stat and te.data with rbmoni on; check that 4 lines aquired
-    rlc exec -estatdef $esdval $esdmsk \
+    rlc exec \
       -wreg rm.cntl [regbld rbmoni::CNTL start] \
       -wreg te.stat $vtestat  \
       -wreg te.data $vtedata  \
@@ -79,7 +78,7 @@ namespace eval rbmoni {
     #
     #-------------------------------------------------------------------------
     rlc log "  test 1a: read all in one rblk"
-    rlc exec -estatdef $esdval $esdmsk \
+    rlc exec \
       -wreg rm.addr 0x0000 \
       -rblk rm.data 16 -edata $edat $emsk \
       -rreg rm.addr -edata 16
@@ -89,7 +88,7 @@ namespace eval rbmoni {
     rlc log "  test 1b: random address with rreg"
     foreach addr {0x1 0x3 0x5 0x7 0x6 0x4 0x2 0x0 \
                   0x9 0xb 0xd 0xf 0xe 0xc 0xa 0x8} {
-      rlc exec -estatdef $esdval $esdmsk \
+      rlc exec \
         -wreg rm.addr $addr \
         -rreg rm.data -edata [lindex $edat $addr] [lindex $emsk $addr] \
         -rreg rm.addr -edata [expr {$addr + 1}]
@@ -100,7 +99,7 @@ namespace eval rbmoni {
     rlc log "  test 1c: random address with rblk length 2"
     foreach addr {0x1 0x3 0x5 0x7 0x6 0x4 0x2 0x0 \
                   0x9 0xb 0xd     0xe 0xc 0xa 0x8} {
-      rlc exec -estatdef $esdval $esdmsk \
+      rlc exec \
         -wreg rm.addr $addr \
         -rblk rm.data 2 -edata [lrange $edat $addr [expr {$addr + 1}] ] \
                                [lrange $emsk $addr [expr {$addr + 1}] ] \
@@ -117,7 +116,7 @@ namespace eval rbmoni {
       [list [regbld rbmoni::FLAGS ack   ] $atedata $vtedata 0]
     #
     rbmoni::start
-    rlc exec -estatdef $esdval $esdmsk \
+    rlc exec \
       -wreg te.data $vtedata \
       -rreg te.data -edata $vtedata
     rbmoni::stop
@@ -139,7 +138,7 @@ namespace eval rbmoni {
       [list [regbld rbmoni::FLAGS ack      we] $atecntl 0         0] 
     #
     rbmoni::start
-    rlc exec -estatdef $esdval $esdmsk \
+    rlc exec \
       -wreg te.cntl $nbusy_1 \
       -wreg te.data $vtedata \
       -wreg te.cntl $nbusy_4 \
@@ -163,7 +162,7 @@ namespace eval rbmoni {
       [list [regbld rbmoni::FLAGS ack           we] $atecntl 0         0] 
     #
     rbmoni::start
-    rlc exec -estatdef $esdval $esdmsk \
+    rlc exec \
       -wreg te.cntl $vtecntl \
       -wreg te.data $vtedata      -estat [regbld rlink::STAT rbtout] \
       -rreg te.data -edata 0x5555 -estat [regbld rlink::STAT rbtout] \
@@ -182,7 +181,7 @@ namespace eval rbmoni {
       [list [regbld rbmoni::FLAGS      nak   ] $atelnak {}        0]
     #
     rbmoni::start
-    rlc exec -estatdef $esdval $esdmsk \
+    rlc exec \
       -wreg te.lnak $vtelnak      -estat [regbld rlink::STAT rbnak] \
       -rreg te.lnak               -estat [regbld rlink::STAT rbnak] 
     rbmoni::stop
@@ -202,7 +201,7 @@ namespace eval rbmoni {
       [list [regbld rbmoni::FLAGS ack          we] $atecntl 0         0] 
     #
     rbmoni::start
-    rlc exec -estatdef $esdval $esdmsk \
+    rlc exec \
       -wreg te.cntl $vtecntl \
       -wreg te.lnak $vtelnak      -estat [regbld rlink::STAT rbnak] \
       -rreg te.lnak               -estat [regbld rlink::STAT rbnak] \
@@ -222,7 +221,7 @@ namespace eval rbmoni {
       [list [regbld rbmoni::FLAGS ack err   ] $atefifo {}        0] 
     #
     rbmoni::start
-    rlc exec -estatdef $esdval $esdmsk \
+    rlc exec \
       -wreg te.fifo $vtefifo \
       -rreg te.fifo -edata $vtefifo \
       -rreg te.fifo -estat [regbld rlink::STAT rberr]
@@ -244,11 +243,11 @@ namespace eval rbmoni {
       [list [regbld rbmoni::FLAGS ack          we] $atecntl 0         0] 
     #
     rbmoni::start
-    rlc exec -estatdef $esdval $esdmsk \
+    rlc exec \
       -wreg te.cntl $vtecntl \
       -wreg te.fifo $vtefifo \
       -rreg te.fifo -edata $vtefifo \
-      -rreg te.fifo -estat [regbld rlink::STAT rberr] \
+      -rreg te.fifo -estaterr \
       -wreg te.cntl 0x0
     rbmoni::stop
     if {$print} {puts [print]}
@@ -266,7 +265,7 @@ namespace eval rbmoni {
       [list [regbld rbmoni::FLAGS ack        ] $atecntl 0        0]
     #
     rbmoni::start
-    rlc exec -estatdef $esdval $esdmsk \
+    rlc exec \
       -wreg te.cntl $vtecntl \
       -init te.cntl $vteinit \
       -rreg te.cntl -edata 0
@@ -293,7 +292,7 @@ namespace eval rbmoni {
       [list [regbld rbmoni::FLAGS       nak    init] $atecntl $vteinit  0]
     #
     rbmoni::start
-    rlc exec -estatdef $esdval $esdmsk \
+    rlc exec \
       -init te.cntl $vteinit \
       -wblk te.fifo $vtefifo \
       -wreg te.cntl $nbusy_2 \
@@ -310,7 +309,7 @@ namespace eval rbmoni {
     rlc exec -wreg rm.lolim $atencyc \
              -wreg rm.hilim $atedinc
 
-    # now access all regs, but only ncyc,data,dinc should be recorded
+    # now access all regs (except attn,lnak), but only ncyc,data,dinc recorded
     raw_edata edat emsk \
       [list [regbld rbmoni::FLAGS ack   ] $atencyc 0x0001 0] \
       [list [regbld rbmoni::FLAGS ack we] $atedata 0x2345 0] \
@@ -320,14 +319,12 @@ namespace eval rbmoni {
     rbmoni::start
     rlc exec -rreg te.cntl \
              -rreg te.stat \
-             -rreg te.attn \
              -rreg te.ncyc \
              -wreg te.data 0x2345 \
              -wreg te.fifo 0xbeaf \
              -rreg te.dinc -edata 0x2345 \
              -rreg te.fifo -edata 0xbeaf \
-             -rreg te.data -edata 0x2346 \
-             -rreg te.lnak
+             -rreg te.data -edata 0x2346 
     rbmoni::stop
     if {$print} {puts [print]}
     raw_check $edat $emsk

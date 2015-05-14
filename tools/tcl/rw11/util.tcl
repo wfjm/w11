@@ -1,4 +1,4 @@
-# $Id: util.tcl 632 2015-01-11 12:30:03Z mueller $
+# $Id: util.tcl 675 2015-05-08 21:05:08Z mueller $
 #
 # Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,7 +13,10 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
-# 2015-01-09   632   1.2.3  setup_sys: use rlc set; setup_sys: add rl11
+# 2015-05-08   675   1.3.2  w11a start/stop/suspend overhaul
+# 2015-03-28   660   1.3.1  add setup_cntl
+# 2015-03-21   659   1.3    setup_sys: add RPRM (later renamed to RHRP)
+# 2015-01-09   632   1.2.3  setup_sys: use rlc set; setup_sys: add RL11
 # 2014-07-26   575   1.2.2  run_pdpcp: add tout argument
 # 2014-06-27   565   1.2.1  temporarily hide RL11
 # 2014-06-08   561   1.2    setup_sys: add RL11
@@ -31,7 +34,17 @@ package require rwxxtpp
 
 namespace eval rw11 {
   #
-  # setup_cpu: create w11 cpu system
+  # setup register descriptions for rw11 -------------------------------------
+  #
+  # rlink stat usage for rw11
+  regdsc STAT   {cmderr 7} {cmdmerr 6} {cpususp 5} {cpugo 4} \
+                {attn 3} {rbtout 2} {rbnak 1} {rberr 0}
+
+  # check cmderr and rb(tout|nak|err) 
+  variable STAT_DEFMASK [regbld rw11::STAT cmderr rbtout rbnak rberr]
+
+  #
+  # setup_cpu: create w11 cpu system -----------------------------------------
   # 
   proc setup_cpu {} {
     rlc set baseaddr 16
@@ -39,12 +52,12 @@ namespace eval rw11 {
     rlc set basestat  2
     rlink::setup;               # basic rlink defs
     rw11 rlw rls w11a 1;        # create 1 w11a cpu
-    cpu0 cp -reset;             # reset CPU
+    cpu0 cp -creset;            # reset CPU
     return ""
   }
 
   #
-  # setup_sys: create full system
+  # setup_sys: create full system --------------------------------------------
   # 
   proc setup_sys {} {
     if {[info commands rlw] eq ""} {
@@ -54,6 +67,7 @@ namespace eval rw11 {
     cpu0 add dl11 -base 0176500 -lam 2
     cpu0 add rk11
     cpu0 add rl11
+    cpu0 add rhrp
     cpu0 add lp11
     cpu0 add pc11
     rlw start
@@ -61,7 +75,7 @@ namespace eval rw11 {
   }
 
   #
-  # setup_tt: setup terminals
+  # setup_tt: setup terminals ------------------------------------------------
   # 
   proc setup_tt {{cpu "cpu0"} {optlist {}}} {
     # process and check options
@@ -108,7 +122,7 @@ namespace eval rw11 {
   }
 
   #
-  # setup_ostr: setup Ostream device (currently lp or pp)
+  # setup_ostr: setup Ostream device (currently lp or pp) --------------------
   # 
   proc setup_ostr {cpu unit optlist} {
     # process and check options
@@ -135,7 +149,7 @@ namespace eval rw11 {
   }
 
   #
-  # setup_lp: setup printer
+  # setup_lp: setup printer --------------------------------------------------
   # 
   proc setup_lp {{cpu "cpu0"} {optlist {}}} {
     # process and check options
@@ -146,7 +160,7 @@ namespace eval rw11 {
     }
   }
   #
-  # setup_pp: setup paper puncher
+  # setup_pp: setup paper puncher --------------------------------------------
   # 
   proc setup_pp {{cpu "cpu0"} {optlist {}}} {
     # process and check options
@@ -158,7 +172,7 @@ namespace eval rw11 {
   }
 
   #
-  # run_pdpcp: execute pdpcp type command file
+  # run_pdpcp: execute pdpcp type command file -------------------------------
   #
   proc run_pdpcp {fname {tout 10.} {cpu "cpu0"}} {
     rlc errcnt -clear
@@ -169,6 +183,25 @@ namespace eval rw11 {
       puts [format "run_pdpcp: FAIL after %d errors" $errcnt]
     }
     return $errcnt
+  }
+
+  #
+  # setup_cntl: setup a controller (used for I/O test benches) ---------------
+  #
+  proc setup_cntl {cpu ctype cname} {
+    if {![rlw get started]} {   # start rlw, if needed
+      rlw start
+      rls server -stop
+    }
+
+    set ccmd ${cpu}${cname};    # build controller command
+    if {[info commands $ccmd] eq ""} { # create controller, if needed
+      $cpu add $ctype
+    }
+    if {![$ccmd get started]} { # start it, if needed
+      $ccmd start
+    }
+    return ""
   }
 
 }

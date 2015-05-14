@@ -1,4 +1,4 @@
-// $Id: RlinkServer.cpp 632 2015-01-11 12:30:03Z mueller $
+// $Id: RlinkServer.cpp 662 2015-04-05 08:02:54Z mueller $
 //
 // Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-04-04   662   1.2    BUGFIX: fix race in Stop(), use UnStop()
 // 2015-01-10   632   2.2    Exec() without emsg now void, will throw
 // 2014-12-30   625   2.1    adopt to Rlink V4 attn logic
 // 2014-12-21   617   2.0.1  use kStat_M_RbTout for rbus timeout
@@ -25,7 +26,7 @@
 
 /*!
   \file
-  \version $Id: RlinkServer.cpp 632 2015-01-11 12:30:03Z mueller $
+  \version $Id: RlinkServer.cpp 662 2015-04-05 08:02:54Z mueller $
   \brief   Implemenation of RlinkServer.
 */
 
@@ -67,10 +68,9 @@ RlinkServer::RlinkServer()
     fTraceLevel(0),
     fStats()
 {
-  fContext.SetStatus(0,
-             ~(RlinkCommand::kStat_M_RbTout |
-               RlinkCommand::kStat_M_RbNak  |
-               RlinkCommand::kStat_M_RbErr));
+  fContext.SetStatus(0, RlinkCommand::kStat_M_RbTout |
+                        RlinkCommand::kStat_M_RbNak  |
+                        RlinkCommand::kStat_M_RbErr);
 
   fELoop.AddPollHandler(boost::bind(&RlinkServer::WakeupHandler, this, _1), 
                         fWakeupEvent, POLLIN);
@@ -414,6 +414,7 @@ void RlinkServer::StartOrResume(bool resume)
                           rlinkfd, POLLIN);
   
   // and start server thread
+  fELoop.UnStop();
   fServerThread = boost::thread(boost::bind(&RlinkServerEventLoop::EventLoop,
                                             &fELoop));
 

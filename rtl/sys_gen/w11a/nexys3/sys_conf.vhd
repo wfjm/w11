@@ -1,4 +1,4 @@
--- $Id: sys_conf.vhd 647 2015-02-17 22:35:36Z mueller $
+-- $Id: sys_conf.vhd 672 2015-05-02 21:58:28Z mueller $
 --
 -- Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  xst 13.1-14.7; ghdl 0.29-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-03-14   658   1.4    add sys_conf_ibd_* definitions
 -- 2015-02-15   647   1.3    drop bram and minisys options
 -- 2014-12-26   621   1.2.2  use 68 MHz, get occasional problems with 72 MHz
 -- 2014-12-22   619   1.2.1  add _rbmon_awidth
@@ -45,32 +46,50 @@ use work.slvtypes.all;
 
 package sys_conf is
 
+  -- configure clocks --------------------------------------------------------
   constant sys_conf_clksys_vcodivide   : positive :=  25;
   constant sys_conf_clksys_vcomultiply : positive :=  17;   -- dcm   68 MHz
   constant sys_conf_clksys_outdivide   : positive :=   1;   -- sys   68 MHz
   constant sys_conf_clksys_gentype     : string   := "DCM";
   
-  constant sys_conf_memctl_read0delay : positive := 4;
-  constant sys_conf_memctl_read1delay : positive := sys_conf_memctl_read0delay;
-  constant sys_conf_memctl_writedelay : positive := 5;
-
+  -- configure rlink and hio interfaces --------------------------------------
   constant sys_conf_ser2rri_defbaud : integer := 115200;   -- default 115k baud
-
-  constant sys_conf_rbmon_awidth : integer := 9; -- use 0 to disable rbmon
+  constant sys_conf_hio_debounce : boolean := true;    -- instantiate debouncers
 
   -- fx2 settings: petowidth=10 -> 2^10 30 MHz clocks -> ~33 usec
   constant sys_conf_fx2_petowidth  : positive := 10;
   constant sys_conf_fx2_ccwidth  : positive := 5;
 
-  constant sys_conf_hio_debounce : boolean := true;    -- instantiate debouncers
+  -- configure memory controller ---------------------------------------------
+  constant sys_conf_memctl_read0delay : positive := 4;
+  constant sys_conf_memctl_read1delay : positive := sys_conf_memctl_read0delay;
+  constant sys_conf_memctl_writedelay : positive := 5;
 
+  -- configure debug and monitoring units ------------------------------------
+  constant sys_conf_rbmon_awidth : integer := 9; -- use 0 to disable rbmon
+  constant sys_conf_ibmon_awidth : integer := 9; -- use 0 to disable ibmon
+
+  -- configure w11 cpu core --------------------------------------------------
   constant sys_conf_mem_losize     : integer := 8#167777#; --   4 MByte
---constant sys_conf_mem_losize     : integer := 8#003777#; -- 128 kByte (debug)
 
   constant sys_conf_cache_fmiss    : slbit   := '0';     -- cache enabled
 
-  -- derived constants
+  -- configure w11 system devices --------------------------------------------
+  -- configure character and communication devices
+  -- configure character and communication devices
+  constant sys_conf_ibd_dl11_1 : boolean := true;  -- 2nd DL11
+  constant sys_conf_ibd_pc11   : boolean := true;  -- PC11
+  constant sys_conf_ibd_lp11   : boolean := true;  -- LP11
 
+  -- configure mass storage devices
+  constant sys_conf_ibd_rk11   : boolean := true;  -- RK11
+  constant sys_conf_ibd_rl11   : boolean := true;  -- RL11
+  constant sys_conf_ibd_rhrp   : boolean := true;  -- RHRP
+
+  -- configure other devices
+  constant sys_conf_ibd_iist   : boolean := true;  -- IIST
+
+  -- derived constants =======================================================
   constant sys_conf_clksys : integer :=
     ((100000000/sys_conf_clksys_vcodivide)*sys_conf_clksys_vcomultiply) /
     sys_conf_clksys_outdivide;
@@ -80,15 +99,3 @@ package sys_conf is
     (sys_conf_clksys/sys_conf_ser2rri_defbaud)-1;
   
 end package sys_conf;
-
--- Note: mem_losize holds 16 MSB of the PA of the addressable memory
---        2 211 111 111 110 000 000 000
---        1 098 765 432 109 876 543 210
---
---        0 000 000 011 111 111 000 000  -> 00037777  --> 14bit -->  16 kByte
---        0 000 000 111 111 111 000 000  -> 00077777  --> 15bit -->  32 kByte
---        0 000 001 111 111 111 000 000  -> 00177777  --> 16bit -->  64 kByte
---        0 000 011 111 111 111 000 000  -> 00377777  --> 17bit --> 128 kByte
---        0 011 111 111 111 111 000 000  -> 03777777  --> 20bit -->   1 MByte
---        1 110 111 111 111 111 000 000  -> 16777777  --> 22bit -->   4 MByte
---                                          upper 256 kB excluded for 11/70 UB

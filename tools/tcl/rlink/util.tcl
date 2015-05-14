@@ -1,4 +1,4 @@
-# $Id: util.tcl 617 2014-12-21 14:18:53Z mueller $
+# $Id: util.tcl 661 2015-04-03 18:28:41Z mueller $
 #
 # Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -27,9 +27,11 @@ package require rutil 1.0
 
 namespace eval rlink {
   regdsc STAT   {stat 7 4} {attn 3} {rbtout 2} {rbnak 1} {rberr 0}
+  variable STAT_DEFMASK [regbld rlink::STAT rbtout rbnak rberr]
+
   regdsc RLCNTL {anena 15} {atoena 14} {atoval 7 8}
   regdsc RLSTAT {lcmd 15 8} {babo 7} {rbsize 2 3}
-  #
+
   # 'pseudo register', describes 3rd word in return list element for -rlist
   regdsc FLAGS {vol 16} \
     {chkdata 13} {chkstat 12} \

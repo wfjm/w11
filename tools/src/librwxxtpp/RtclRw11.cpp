@@ -1,6 +1,6 @@
-// $Id: RtclRw11.cpp 632 2015-01-11 12:30:03Z mueller $
+// $Id: RtclRw11.cpp 660 2015-03-29 22:10:16Z mueller $
 //
-// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-03-28   660   1.0.1  add M_get
 // 2014-12-25   621   1.1    adopt to 4k word ibus window
 // 2013-03-06   495   1.0    Initial version
 // 2013-01-27   478   0.1    First Draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11.cpp 632 2015-01-11 12:30:03Z mueller $
+  \version $Id: RtclRw11.cpp 660 2015-03-29 22:10:16Z mueller $
   \brief   Implemenation of class RtclRw11.
  */
 
@@ -55,11 +56,17 @@ namespace Retro {
 
 RtclRw11::RtclRw11(Tcl_Interp* interp, const char* name)
   : RtclProxyOwned<Rw11>("Rw11", interp, name, new Rw11()),
-    fspServ()
+    fspServ(),
+    fGets()
 {
+  AddMeth("get",      boost::bind(&RtclRw11::M_get,     this, _1));
   AddMeth("start",    boost::bind(&RtclRw11::M_start,   this, _1));
   AddMeth("dump",     boost::bind(&RtclRw11::M_dump,    this, _1));
   AddMeth("$default", boost::bind(&RtclRw11::M_default, this, _1));
+
+  Rw11* pobj = &Obj();
+  fGets.Add<bool>              ("started",boost::bind(&Rw11::IsStarted, pobj));  
+
 }
 
 //------------------------------------------+-----------------------------------
@@ -115,10 +122,20 @@ int RtclRw11::ClassCmdConfig(RtclArgs& args)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
+int RtclRw11::M_get(RtclArgs& args)
+{
+  // synchronize with server thread
+  boost::lock_guard<RlinkConnect> lock(Obj().Connect());
+  return fGets.M_get(args);
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
 int RtclRw11::M_start(RtclArgs& args)
 {
   if (!args.AllDone()) return kERR;
-  if (Obj().IsStarted()) return args.Quit("already started");
+  if (Obj().IsStarted()) return args.Quit("-E: already started");
   Obj().Start();
   return kOK;
 }

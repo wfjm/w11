@@ -1,6 +1,6 @@
-# $Id: test_data.tcl 617 2014-12-21 14:18:53Z mueller $
+# $Id: test_data.tcl 661 2015-04-03 18:28:41Z mueller $
 #
-# Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-04-03   661   2.1    drop estatdef, use estattout
 # 2014-12-21   617   2.0.1  use rbtout stat bit for timeout
 # 2014-11-09   603   2.0    use rlink v4 address layout and iface
 # 2011-03-27   374   1.0    Initial version
@@ -32,8 +33,6 @@ namespace eval rbtest {
   # rbd_tester is embedded in the design (e.g. stat and attn connections)
   #
   proc test_data {} {
-    set esdval 0x00
-    set esdmsk [regbld rlink::STAT {stat -1}]
     #
     set errcnt 0
     rlc errcnt -clear
@@ -50,14 +49,14 @@ namespace eval rbtest {
                                    te.stat 0x0000 0x0000 \
                                    te.data 0xffff 0xffff \
                                    te.data 0x0000 0x0000 ] {
-      rlc exec -wreg $addr $valw -estat $esdval $esdmsk
-      rlc exec -rreg $addr -edata $valr -estat $esdval $esdmsk
+      rlc exec -wreg $addr $valw
+      rlc exec -rreg $addr -edata $valr
     }    
     #
     #
     rlc log "  test 1b: as test 1a, use clists, check cntl,stat,data distinct"
     foreach {valc vals vald} [list 0x1 0x2 0x3 0x0 0x0 0x0] {
-      rlc exec -estatdef $esdval $esdmsk \
+      rlc exec \
         -wreg te.cntl $valc \
         -wreg te.stat $vals \
         -wreg te.data $vald \
@@ -68,19 +67,19 @@ namespace eval rbtest {
     #
     #-------------------------------------------------------------------------
     rlc log "  test 2: verify that large nbusy causes timeout"
-    rlc exec -estatdef $esdval $esdmsk \
+    rlc exec \
       -wreg te.data 0xdead \
       -rreg te.data -edata 0xdead \
       -wreg te.cntl [regbld rbtest::CNTL {nbusy 0x3ff}] \
-      -wreg te.data 0xbeaf -estat [regbld rlink::STAT rbtout] $esdmsk \
-      -rreg te.data        -estat [regbld rlink::STAT rbtout] $esdmsk \
+      -wreg te.data 0xbeaf -estattout \
+      -rreg te.data        -estattout \
       -wreg te.cntl 0x0000 \
-      -rreg te.data -edata 0xdead -edata 0xdead
+      -rreg te.data -edata 0xdead
     #
     # -------------------------------------------------------------------------
     rlc log "  test 3a: verify that init 001 clears cntl,stat and not data"
     set valc [regbld rbtest::CNTL {nbusy 1}]
-    rlc exec -estatdef $esdval $esdmsk \
+    rlc exec \
       -wreg te.cntl $valc \
       -wreg te.stat 0x0002 \
       -wreg te.data 0x1234 \
@@ -90,7 +89,7 @@ namespace eval rbtest {
       -wreg te.data 0x1234
     rlc log "  test 3b: verify that init 010 clears data and not cntl,stat"
     set valc [regbld rbtest::CNTL {nbusy 2}]
-    rlc exec -estatdef $esdval $esdmsk \
+    rlc exec \
       -wreg te.cntl $valc \
       -wreg te.stat 0x0003 \
       -wreg te.data 0x4321 \
@@ -99,7 +98,7 @@ namespace eval rbtest {
       -rreg te.stat -edata 0x0003 \
       -wreg te.data 0x0
     rlc log "  test 3c: verify that init 011 clears data and cntl,stat"
-    rlc exec -estatdef $esdval $esdmsk \
+    rlc exec \
       -wreg te.cntl [regbld rbtest::CNTL {nbusy 3}] \
       -wreg te.stat 0x0004 \
       -wreg te.data 0xabcd \
@@ -112,7 +111,7 @@ namespace eval rbtest {
     rlc log "  test 4: test that te.ncyc returns # of cycles for te.data w&r"
     foreach nbusy {0x03 0x07 0x0f 0x1f 0x00} {
       set valc [regbld rbtest::CNTL [list nbusy $nbusy]]
-      rlc exec -estatdef $esdval $esdmsk \
+      rlc exec \
         -wreg te.cntl $valc \
         -wreg te.data [expr {$nbusy | ( $nbusy << 8 ) }] \
         -rreg te.ncyc -edata [expr {$nbusy + 1 }] \

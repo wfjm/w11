@@ -1,4 +1,4 @@
-// $Id: Rw11UnitRL11.cpp 653 2015-03-01 12:53:01Z mueller $
+// $Id: Rw11UnitRL11.cpp 659 2015-03-22 23:15:51Z mueller $
 //
 // Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,12 +13,13 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-03-21   659   1.0.1  BUGFIX: SetType(): set fType;
 // 2014-06-08   561   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11UnitRL11.cpp 653 2015-03-01 12:53:01Z mueller $
+  \version $Id: Rw11UnitRL11.cpp 659 2015-03-22 23:15:51Z mueller $
   \brief   Implemenation of Rw11UnitRL11.
 */
 
@@ -50,6 +51,7 @@ Rw11UnitRL11::Rw11UnitRL11(Rw11CntlRL11* pcntl, size_t index)
 {
   // setup disk geometry: rl01 and rl02 supported, default rl02
   fType    = "rl02";
+  fEnabled = true;
   fNCyl    = 512;
   fNHead   =   2;
   fNSect   =  40;
@@ -81,6 +83,8 @@ void Rw11UnitRL11::SetType(const std::string& type)
     throw Rexception("Rw11UnitRL11::SetType", 
                      string("Bad args: only types 'rl01' and 'rl02' supported"));
   }
+
+  fType    = type;
   fNBlock  = fNCyl*fNHead*fNSect;
   return;
 }

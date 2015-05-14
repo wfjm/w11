@@ -1,6 +1,6 @@
-// $Id: RlinkCommandList.hpp 606 2014-11-24 07:08:51Z mueller $
+// $Id: RlinkCommandList.hpp 661 2015-04-03 18:28:41Z mueller $
 //
-// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-04-02   661   1.3    expect logic: add SetLastExpect methods
 // 2014-11-23   606   1.2    new rlink v4 iface
 // 2014-08-02   576   1.1    rename LastExpect->SetLastExpect
 // 2013-05-06   495   1.0.1  add RlinkContext to Print() args; drop oper<<()
@@ -23,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: RlinkCommandList.hpp 606 2014-11-24 07:08:51Z mueller $
+  \version $Id: RlinkCommandList.hpp 661 2015-04-03 18:28:41Z mueller $
   \brief   Declaration of class RlinkCommandList.
 */
 
@@ -62,6 +63,12 @@ namespace Retro {
       size_t        AddAttn();
       size_t        AddInit(uint16_t addr, uint16_t data);
 
+      void          SetLastExpectStatus(uint8_t stat, uint8_t statmsk=0xff);
+      void          SetLastExpectData(uint16_t data, uint16_t datamsk=0xffff);
+      void          SetLastExpectDone(uint16_t done);
+      void          SetLastExpectBlock(const std::vector<uint16_t>& block);
+      void          SetLastExpectBlock(const std::vector<uint16_t>& block,
+                                       const std::vector<uint16_t>& blockmsk);
       void          SetLastExpect(RlinkCommandExpect* exp);
     
       void          ClearLaboIndex();
@@ -72,9 +79,9 @@ namespace Retro {
       void          Clear();
       size_t        Size() const;
 
-      void          Print(std::ostream& os, const RlinkContext& cntx,
-                          const RlinkAddrMap* pamap=0, size_t abase=16, 
-                          size_t dbase=16, size_t sbase=16) const;
+      void          Print(std::ostream& os, const RlinkAddrMap* pamap=0, 
+                          size_t abase=16, size_t dbase=16, 
+                          size_t sbase=16) const;
       void          Dump(std::ostream& os, int ind=0, const char* text=0) const;
 
       RlinkCommandList& operator=(const RlinkCommandList& rhs);

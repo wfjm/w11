@@ -1,4 +1,4 @@
-// $Id: RtclRlinkConnect.hpp 631 2015-01-09 21:36:51Z mueller $
+// $Id: RtclRlinkConnect.hpp 666 2015-04-12 21:17:54Z mueller $
 //
 // Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-04-12   666   1.0.5  add M_init
 // 2015-01-06   631   1.0.4  add M_get, M_set, remove M_config
 // 2013-02-23   492   1.0.3  use RlogFile.Name(); use Context().ErrorCount()
 // 2013-01-06   473   1.0.2  add M_rawio
@@ -23,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: RtclRlinkConnect.hpp 631 2015-01-09 21:36:51Z mueller $
+  \version $Id: RtclRlinkConnect.hpp 666 2015-04-12 21:17:54Z mueller $
   \brief   Declaration of class RtclRlinkConnect.
 */
 
@@ -50,6 +51,7 @@ namespace Retro {
     protected:
       int           M_open(RtclArgs& args);
       int           M_close(RtclArgs& args);
+      int           M_init(RtclArgs& args);
       int           M_exec(RtclArgs& args);
       int           M_amap(RtclArgs& args);
       int           M_errcnt(RtclArgs& args);

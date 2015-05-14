@@ -1,4 +1,4 @@
--- $Id: serport_1clock.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: serport_1clock.vhd 666 2015-04-12 21:17:54Z mueller $
 --
 -- Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -25,10 +25,12 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2015-04-12   666 14.7  131013 xc6slx16-2   171  239   32   94 s  6.3
 -- 2011-11-13   424 13.1    O40d xc3s1000-4   157  337   64  232 s  9.9
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-04-11   666   1.1.1  add sim assertions for RXOVR and RXERR
 -- 2015-02-01   641   1.1    add CLKDIV_F for autobaud;
 -- 2011-12-10   438   1.0.2  internal reset on abact
 -- 2011-12-09   437   1.0.1  rename stat->moni port
@@ -251,4 +253,22 @@ begin
     MONI.abclkdiv_f <= ABCLKDIV_F;
   end process proc_abclkdiv;
 
+-- synthesis translate_off
+
+  proc_check: process (CLK)
+  begin
+    if rising_edge(CLK) then
+      assert RXOVR = '0'
+        report "serport_1clock-W: RXOVR = " & slbit'image(RXOVR) &
+               "; data loss in receive fifo"
+        severity warning;
+      assert RXERR = '0'
+        report "serport_1clock-W: RXERR = " & slbit'image(RXERR) &
+               "; spurious receive error"
+        severity warning;
+    end if;
+  end process proc_check;
+
+-- synthesis translate_on
+  
 end syn;

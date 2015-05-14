@@ -1,6 +1,6 @@
-// $Id: RlinkPort.cpp 632 2015-01-11 12:30:03Z mueller $
+// $Id: RlinkPort.cpp 666 2015-04-12 21:17:54Z mueller $
 //
-// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-04-11   666   1.3    add fXon, XonEnable()
 // 2014-12-10   611   1.2.4  add time stamps for Read/Write for logs
 // 2014-11-29   607   1.2.3  BUGFIX: fix time handling on RawRead()
 // 2014-11-23   606   1.2.2  use Rtools::TimeOfDayAsDouble()
@@ -30,7 +31,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPort.cpp 632 2015-01-11 12:30:03Z mueller $
+  \version $Id: RlinkPort.cpp 666 2015-04-12 21:17:54Z mueller $
   \brief   Implemenation of RlinkPort.
 */
 
@@ -72,6 +73,7 @@ const int  RlinkPort::kErr;
 RlinkPort::RlinkPort()
   : fIsOpen(false),
     fUrl(),
+    fXon(false),
     fFdRead(-1),
     fFdWrite(-1),
     fspLog(),
@@ -295,6 +297,7 @@ void RlinkPort::Dump(std::ostream& os, int ind, const char* text) const
 
   os << bl << "  fIsOpen:         " << (int)fIsOpen << endl;
   fUrl.Dump(os, ind+2, "fUrl: ");
+  os << bl << "  fXon:            " << fXon << endl;
   os << bl << "  fFdRead:         " << fFdRead << endl;
   os << bl << "  fFdWrite:        " << fFdWrite << endl;
   os << bl << "  fspLog:          " << fspLog.get() << endl;

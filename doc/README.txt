@@ -1,4 +1,4 @@
-$Id: README.txt 655 2015-03-04 20:35:21Z mueller $
+$Id: README.txt 680 2015-05-14 13:29:46Z mueller $
 
 Release notes for w11a
 
@@ -13,6 +13,7 @@ Release notes for w11a
   in the doc directory, specifically
 
     * README.txt: release notes
+    * README_known_issues.txt: known issues
     * INSTALL.txt: installation and building test benches and systems
     * FILES.txt: short description of the directory layout, what is where ?
     * w11a_tb_guide.txt: running test benches
@@ -20,6 +21,127 @@ Release notes for w11a
     * w11a_known_issues.txt: known differences, limitations and issues
 
 2. Change Log ----------------------------------------------------------------
+
+- trunk (2015-05-14: svn rev 30(oc) 681(wfjm); untagged w11a_V0.65)  +++++++++
+  - Preface
+
+    - With small RK05 or RL02 sized disks only quite reduced OS setups could
+      be booted, full featured systems were beyond reach. Now finally large
+      disks are available, with a RH70 + RP/RM disk controller emulation. It
+      supports up to four disks and allows now to run full featured 211bsd
+      or rsx-11mplus systems.
+
+    - to track down issues with ibus devices a 'ibus monitor' was added, it can
+      record in the default setup up to 511 ibus transactions. An address filter
+      allows to select accesses of one device. The ibd_ibmon tcl package
+      contains the appropriate support scripts.
+
+    - several cleanups
+      - factor out common blocks on sys_w11a_* systems: the core+rbus+cache
+        logic of single cpu systems now contained in pdp11_sys70, and the
+        human I/O for digilent boards now in pdp11_hio70.
+      - cpu start/stop logic cleanup: new command set with simple commands.
+        Add also a new suspend/resume mechanism, which allows to hold the cpu 
+        without leaving the 'run state'. While suspended all timers are frozen.
+        Very helpful when debugging, will be the basis for a hardware break
+        point logic in a later release.
+      - xon/xoff consolidation: escaping now done in cdata2byte/byte2cdata in
+        FPGA and in RlinkPacketBufSnd/RlinkPacketBufRcv in backend. The extra
+        escaping level in serport_xonrx/serport_xontx isn't used anymore, the 
+        special code in RlinkPortTerm has been removed. This allows to use 
+        xon/xoff flow control also in simulation links via RlinkPortFifo.
+      - status check cleanup: it is very helpful to have a default status check
+        and an easy way to modify it cases where some error flags are expected
+        (e.g. on device polls). In the old logic status and data checks were
+        done via RlinkCommandExpect. The new logic reflects that status checks
+        are the normal case, and store the status check pattern in RlinkCommand.
+        The meaning of expect masks for status and data is inverted, now a '1'
+        means that the bit is checked (before it meant the bit is ignored).
+        The default status check pattern is still in RlinkContext, but will be
+        copied to RlinkCommand when the list is processed. RlinkCommandExpect
+        handles now only data checks.
+
+    - and bug fixes
+      - rk11 cleanup: since the first days 211bsd autoconfig printed
+           rk ? csr 177400 vector 220 didn't interrupt
+        for boots from a RK11 it didn't have consequences, but when booted from
+        a RL,RP, or RM disk this prevents that the RK11 disks are configured.
+        Was caused by a missing interrupt after device reset. Now fixed.
+
+  - Summary
+    - added RH70/RP/RM big disk support
+    - many cleanups
+
+  - New features
+    - new directory trees for
+      - tools/asm-11/lib          - definitions and macros for asm-11
+    - new modules
+      - rtl/vlib/serport
+        - serport_master          - serial port module, master side
+      - rtl/ibus/ibd_ibmon        - ibus monitor
+      - rtl/w11a/pdp11_sys70      - 11/70 system - single core +rbus,debug,cache
+      - rtl/w11a/pdp11_hio70      - hio led and dsp for sys70
+      - tools/src/librw11
+        - Rw11(Cntl|Unit)RHRP       - Controller/Unit for RHRP
+      - tools/tbench
+        - test_rhrp_*               - test tbench for RHRP
+    - new oskits
+      - tools/oskit/211bsd_rp     - new oskit for 2.11BSD on RP06
+      - tools/oskit/rsx11mp-30_rp - new oskit for RSX-11Mplus V3.0 on RP06
+
+  - Changes
+    - renames
+      - rtl/w11a/pdp11_sys70 -> pdp11_reg70 (_sys70 now different function)
+    - functional changes
+      - rtl/bplib/*/tb/tb_*       - use serport_master instead of 
+                                      serport_uart_rxtx, allow xon/xoff
+      - rtl/bplib/fx2rlink
+        - rlink_sp1c_fx2          - add rbd_rbmon (optional via generics)
+      - rtl/vlib/rlink/rlink_sp1c - add rbd_rbmon (optional via generics)
+      - rtl/ibus/ibd_kw11l        - freeze timer when cpu suspended
+      - tools/bin/tbrun_tbwrri    - add --fusp,--xon
+      - tools/bin/ti_w11          - rename -fu->-fc, add -f2,-fx; setup defaults
+      - tools/bin/librlink
+        - RlinkCommandList          - add SetLastExpect() methods
+        - RlinkPort                 - add XonEnable()
+        - RlinkPortCuff             - add noinit attribute
+        - RlinkPort(Fifo|Term)      - add xon,noinit attributes
+     - tools/src/librw11
+       - Rw11Cpu                    - add AddRbibr(), AddWbibr(), RAddrMap()
+     - tools/bin/librlinktpp
+        - RtclRlinkConnect          - errcnt: add -increment
+                                      log: add -bare,-info..
+                                      wtlam: allow tout=0 for attn cleanup
+                                      init: new command
+                                      exec: drop -estatdef
+        - RtclRlinkServer           - get/set interface added
+     - tools/src/librwxxtpp
+       - RtclRw11Cntl               - start: new command
+       - RtclRw11Cpu                - cp: add -rbibr, wbibr, -rreg,...,-init
+                                    - cp: add -estat(err|nak|tout), drop estatdef
+                                    - rename amap->imap; add rmap
+
+  - Bug fixes
+    - rtl/ibus
+      - ibdr_rk11                 - interrupt after dreset and seek command start
+    - tools/src/librlink
+      - RlinkConnect                - WaitAttn(): return 0. (not -1.) if poll
+      - RlinkServer                 - Stop(): fix race in (could hang)
+
+  - Known issues
+    - all issues: see README_known_issues.txt
+    - resolved issues: -- none --
+    - new issues:
+      - V0.65-1: ti_rri sometimes crashes in normal rundown (exit or ^D) when
+          a cuff: type rlink is active. One gets
+            terminate called after throwing an instance of 'Retro::Rexception'
+              what():  RlinkPortCuff::Cleanup(): driver thread failed to stop
+          doesn't affect normal operation, will be fixed in upcoming release.
+      - V0.65-2: some exotic RH70/RP/RM features and conditions not implemented
+         - last block transfered flag (in DS)
+         - CS2.BAI currently ignored and not handled
+         - read or write 'with header' gives currently ILF
+         All this isn't used by any OS, so in practice not relevant.
 
 - trunk (2015-03-01: svn rev 29(oc) 655(wfjm); untagged w11a_V0.64)  +++++++++
 

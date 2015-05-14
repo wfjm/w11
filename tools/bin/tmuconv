@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: tmuconv 334 2010-10-23 08:24:24Z mueller $
+# $Id: tmuconv 676 2015-05-09 16:31:54Z mueller $
 #
-# Copyright 2008-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2008-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -55,7 +55,9 @@
 #   vm.ibsres.busy:b
 #   vm.ibsres.dout:o
 #   co.cpugo:b
-#   co.cpuhalt:b
+#   co.cpususp:b
+#   co.suspint:b
+#   co.suspext:b
 #   sy.emmreq.req:b
 #   sy.emmreq.we:b
 #   sy.emmreq.be:b
@@ -314,6 +316,28 @@ my %pdp11_regs = (			    # use simh naming convention
      177414=> "rk.mr ",
      177416=> "rk.db ",
      177060=> "xor.cs",                     # XOR Tester
+     176700=> "rpa.cs1",
+     176702=> "rpa.wc ",
+     176704=> "rpa.ba ",
+     176706=> "rpa.da ",
+     176710=> "rpa.cs2",
+     176712=> "rpa.ds ",
+     176714=> "rpa.er1",
+     176716=> "rpa.as ",
+     176720=> "rpa.la ",
+     176722=> "rpa.db ",
+     176724=> "rpa.mr1",
+     176726=> "rpa.dt ",
+     176730=> "rpa.sn ",
+     176732=> "rpa.of ",
+     176734=> "rpa.dc ",
+     176736=> "rpa.m13",
+     176740=> "rpa.m14",
+     176742=> "rpa.m15",
+     176744=> "rpa.ec1",
+     176746=> "rpa.ec2",
+     176750=> "rpa.bae",
+     176752=> "rpa.cs3",
      176500=> "ti2.cs",
      176502=> "ti2.bu",
      176504=> "to2.cs",
@@ -797,20 +821,20 @@ sub code2mnemo {
 	  $sign = "-";
 	}
 	return sprintf "$name .%s%d.", $sign, abs(2*$off);
-	
+
       } elsif ($type eq "sob")  {
 	my $reg = ($code>>6) & 07;
 	my $off = $code & 077;
 	return sprintf "$name r%d,.-%d.", $reg, 2*$off;
-	
+
       } elsif ($type eq "trap") {
 	my $off = $code & 0377;
 	return sprintf "$name %3.3o", $off;
-	
+
       } elsif ($type eq "spl")  {
 	my $off = $code & 07;
 	return sprintf "$name %d", $off;
-	
+
       } elsif ($type eq "ccop")  {
 	my $cc = $code & 017;
 	return "nop" if ($cc == 0);
@@ -823,17 +847,17 @@ sub code2mnemo {
 	if ($code & 002) { $str .= $del . $name . "v", $del = "+" }
 	if ($code & 001) { $str .= $del . $name . "c", $del = "+" }
 	return $str;
-	
+
       } elsif ($type eq "jsr")  {
 	my $reg = ($code>>6) & 07;
 	my $dst = $code & 077;
 	my $dst_str = regmod($dst);
 	return "$name r$reg,$dst_str";
-	
+
       } elsif ($type eq "mark") {
 	my $off = $code & 077;
 	return sprintf "$name %3.3o", $off;
-	
+
       } elsif ($type eq "rfpp") {
 	my $reg = ($code>>6) & 03;
 	my $dst = $code & 077;

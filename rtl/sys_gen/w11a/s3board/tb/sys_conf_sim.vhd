@@ -1,6 +1,6 @@
--- $Id: sys_conf_sim.vhd 619 2014-12-23 13:17:41Z mueller $
+-- $Id: sys_conf_sim.vhd 672 2015-05-02 21:58:28Z mueller $
 --
--- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,6 +19,7 @@
 -- Tool versions:  xst 8.1-14.7; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-03-14   658   1.2    add sys_conf_ibd_* definitions
 -- 2014-12-22   619   1.1.2  add _rbmon_awidth
 -- 2010-05-05   288   1.1.1  add sys_conf_hio_debounce
 -- 2008-02-23   118   1.1    add memory config
@@ -32,10 +33,15 @@ use work.slvtypes.all;
 
 package sys_conf is
 
-  constant sys_conf_hio_debounce : boolean := false;   -- no debouncers
+  -- configure rlink and hio interfaces --------------------------------------
   constant sys_conf_ser2rri_cdinit : integer := 1-1;   -- 1 cycle/bit in sim
-  constant sys_conf_rbmon_awidth : integer := 9; -- use 0 to disable rbmon
+  constant sys_conf_hio_debounce : boolean := false;   -- no debouncers
 
+  -- configure debug and monitoring units ------------------------------------
+  constant sys_conf_rbmon_awidth : integer := 9; -- use 0 to disable rbmon
+  constant sys_conf_ibmon_awidth : integer := 9; -- use 0 to disable ibmon
+
+  -- configure w11 cpu core --------------------------------------------------
   constant sys_conf_bram           : integer :=  0;      -- no bram, use cache
   constant sys_conf_bram_awidth    : integer := 14;      -- bram size (16 kB)
   constant sys_conf_mem_losize     : integer := 8#037777#; --   1 MByte
@@ -47,16 +53,19 @@ package sys_conf is
   
   constant sys_conf_cache_fmiss    : slbit   := '0';     -- cache enabled
 
+  -- configure w11 system devices --------------------------------------------
+  -- configure character and communication devices
+  constant sys_conf_ibd_dl11_1 : boolean := true;  -- 2nd DL11
+  constant sys_conf_ibd_pc11   : boolean := true;  -- PC11
+  constant sys_conf_ibd_lp11   : boolean := true;  -- LP11
+
+  -- configure mass storage devices
+  constant sys_conf_ibd_rk11   : boolean := true;  -- RK11
+  constant sys_conf_ibd_rl11   : boolean := true;  -- RL11
+  constant sys_conf_ibd_rhrp   : boolean := true;  -- RHRP
+
+  -- configure other devices
+  constant sys_conf_ibd_iist   : boolean := true;  -- IIST
+
 end package sys_conf;
 
--- Note: mem_losize holds 16 MSB of the PA of the addressable memory
---        2 211 111 111 110 000 000 000
---        1 098 765 432 109 876 543 210
---
---        0 000 000 011 111 111 000 000  -> 00037777  --> 14bit -->  16 kByte
---        0 000 000 111 111 111 000 000  -> 00077777  --> 15bit -->  32 kByte
---        0 000 001 111 111 111 000 000  -> 00177777  --> 16bit -->  64 kByte
---        0 000 011 111 111 111 000 000  -> 00377777  --> 17bit --> 128 kByte
---        0 011 111 111 111 111 000 000  -> 03777777  --> 20bit -->   1 MByte
---        1 110 111 111 111 111 000 000  -> 16777777  --> 22bit -->   4 MByte
---                                          upper 256 kB excluded for 11/70 UB

@@ -1,4 +1,4 @@
--- $Id: pdp11_dpath.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: pdp11_dpath.vhd 677 2015-05-09 21:52:32Z mueller $
 --
 -- Copyright 2006-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -59,7 +59,7 @@ use work.pdp11.all;
 entity pdp11_dpath is                   -- CPU datapath
   port (
     CLK : in slbit;                     -- clock
-    CRESET : in slbit;                  -- console reset
+    CRESET : in slbit;                  -- cpu reset
     CNTL : in dpath_cntl_type;          -- control interface
     STAT : out dpath_stat_type;         -- status interface
     CP_DIN : in slv16;                  -- console port data in

@@ -1,4 +1,4 @@
-// $Id: RlinkCommand.cpp 643 2015-02-07 17:41:53Z mueller $
+// $Id: RlinkCommand.cpp 662 2015-04-05 08:02:54Z mueller $
 //
 // Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-04-02   661   1.3    expect logic: add stat check, Print() without cntx
 // 2015-02-07   642   1.2.3  Print()+Dump(): adopt for large nblk;
 // 2014-12-21   617   1.2.2  use kStat_M_RbTout for rbus timeout
 // 2014-12-20   616   1.2.1  Print(): display BlockDone; add kFlagChkDone
@@ -26,7 +27,7 @@
 
 /*!
   \file
-  \version $Id: RlinkCommand.cpp 643 2015-02-07 17:41:53Z mueller $
+  \version $Id: RlinkCommand.cpp 662 2015-04-05 08:02:54Z mueller $
   \brief   Implemenation of class RlinkCommand.
  */
 
@@ -97,6 +98,9 @@ RlinkCommand::RlinkCommand()
     fStatus(0), 
     fFlags(0),
     fRcvSize(0),
+    fExpectStatusSet(false),
+    fExpectStatusVal(0),
+    fExpectStatusMsk(0x0),
     fpExpect(nullptr)
 {}
 
@@ -114,6 +118,9 @@ RlinkCommand::RlinkCommand(const RlinkCommand& rhs)
     fStatus(rhs.fStatus), 
     fFlags(rhs.fFlags),
     fRcvSize(rhs.fRcvSize),
+    fExpectStatusSet(rhs.fExpectStatusSet),
+    fExpectStatusVal(rhs.fExpectStatusVal),
+    fExpectStatusMsk(rhs.fExpectStatusMsk),
     fpExpect(rhs.fpExpect ? new RlinkCommandExpect(*rhs.fpExpect) : nullptr)
 {}
 
@@ -256,24 +263,24 @@ void RlinkCommand::SetExpect(RlinkCommandExpect* pexp)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RlinkCommand::Print(std::ostream& os, const RlinkContext& cntx,
+void RlinkCommand::Print(std::ostream& os,
                          const RlinkAddrMap* pamap, size_t abase, 
                          size_t dbase, size_t sbase) const
 {
   uint8_t ccode = Command();
   
   // separator + command mnemonic, code and flags
-  // separator:  ++  first in packet
-  //             --  non-first in packet
-  //             ??  FIXME_code: separator for labo canceled commands 
-  const char* sep = "??";
-  if (TestFlagAny(kFlagPktBeg)) {
-    sep = "++";
-  } else {
-    sep = "--";
-  }
-  
-  os << sep << " " << CommandName(ccode)
+  // separator:  ++     first in packet
+  //             --     non-first in packet
+  //             -! +!  labo with abort
+  //             -. +.  labo canceled command
+
+  char sep0 = TestFlagAny(kFlagPktBeg) ? '+' : '-';
+  char sep1 = sep0;
+  if (ccode==kCmdLabo && fData) sep1 = '!'; // indicate aborting labo
+  if (TestFlagAny(kFlagLabo))   sep1 = '.'; // indicate aborted command
+
+  os << sep0 << sep1 << " " << CommandName(ccode)
      << " (" << RosPrintBvi(Request(), 8)
      << ","  << RosPrintBvi(fFlags, 16, 20)
      << ")";
@@ -290,6 +297,12 @@ void RlinkCommand::Print(std::ostream& os, const RlinkContext& cntx,
     }
   }
 
+  // don't write more that command and address for canceled commands
+  if (TestFlagAny(kFlagLabo)) {
+    os << " CANCELED" << endl;
+    return;
+  }
+
   // data field (scalar)
   if (ccode== kCmdRreg || ccode==kCmdWreg ||
       ccode== kCmdLabo || ccode==kCmdAttn ||
@@ -301,7 +314,7 @@ void RlinkCommand::Print(std::ostream& os, const RlinkContext& cntx,
       if (TestFlagAny(kFlagChkData)) {
         os << "#";
         os << " D=" << RosPrintBvi(fpExpect->DataValue(), dbase);
-        if (fpExpect->DataMask() != 0x0000)  {
+        if (fpExpect->DataMask() != 0xffff)  {
           os << "," << RosPrintBvi(fpExpect->DataMask(), dbase);
         }
       } else if (fpExpect->DataIsChecked()) {
@@ -335,16 +348,14 @@ void RlinkCommand::Print(std::ostream& os, const RlinkContext& cntx,
 
   // status field
   os << " s=" << RosPrintBvi(fStatus, sbase);
-  uint8_t scval  = fpExpect ? fpExpect->StatusValue() : cntx.StatusValue();
-  uint8_t scmsk  = fpExpect ? fpExpect->StatusMask()  : cntx.StatusMask();
   if (TestFlagAny(kFlagChkStat)) {
     os << "#";
-    os << " S=" << RosPrintBvi(scval, sbase);
-    if (scmsk != 0x00) {
-      os << "," << RosPrintBvi(scmsk, sbase);
+    os << " S=" << RosPrintBvi(fExpectStatusVal, sbase);
+    if (fExpectStatusMsk != 0xff) {
+      os << "," << RosPrintBvi(fExpectStatusMsk, sbase);
     }
   } else {
-    os << ( scmsk != 0xff ? "!" : " " );
+    os << (StatusIsChecked() ? (ExpectStatusSet() ? "|" : "!") : " " );
   }
 
   if (TestFlagAny(kFlagDone)) {
@@ -396,7 +407,7 @@ void RlinkCommand::Print(std::ostream& os, const RlinkContext& cntx,
           os << "\n      FAIL d[" << RosPrintf(i,"d",4) << "]: "
              << RosPrintBvi(pdat[i], dbase) << "#"
              << "  D=" << RosPrintBvi(evalvec[i], dbase);
-          if (i < emskvec.size() && emskvec[i]!=0x0000) {
+          if (i < emskvec.size() && emskvec[i]!=0xffff) {
             os << "," << RosPrintBvi(emskvec[i], dbase);
           }
         }
@@ -450,8 +461,10 @@ void RlinkCommand::Dump(std::ostream& os, int ind, const char* text) const
     }
     os << endl;
   }
+  os << bl << "  fExpectStatusVal:" << RosPrintBvi(fExpectStatusVal,0) << endl;
+  os << bl << "  fExpectStatusMsk:" << RosPrintBvi(fExpectStatusMsk,0) << endl;
   if (fpExpect) fpExpect->Dump(os, ind+2, "fpExpect: ");
-  
+
   return;
 }
 
@@ -495,18 +508,21 @@ const Retro::RflagName* RlinkCommand::FlagNames()
 RlinkCommand& RlinkCommand::operator=(const RlinkCommand& rhs)
 {
   if (&rhs == this) return *this;
-  fRequest      = rhs.fRequest;
-  fAddress      = rhs.fAddress; 
-  fData         = rhs.fData;
-  fBlock        = rhs.fBlock;
-  fpBlockExt    = rhs.fpBlockExt; 
-  fBlockExtSize = rhs.fBlockExtSize; 
-  fBlockDone    = rhs.fBlockDone; 
-  fStatus       = rhs.fStatus; 
-  fFlags        = rhs.fFlags;
-  fRcvSize      = rhs.fRcvSize;
+  fRequest         = rhs.fRequest;
+  fAddress         = rhs.fAddress; 
+  fData            = rhs.fData;
+  fBlock           = rhs.fBlock;
+  fpBlockExt       = rhs.fpBlockExt; 
+  fBlockExtSize    = rhs.fBlockExtSize; 
+  fBlockDone       = rhs.fBlockDone; 
+  fStatus          = rhs.fStatus; 
+  fFlags           = rhs.fFlags;
+  fRcvSize         = rhs.fRcvSize;
+  fExpectStatusSet = rhs.fExpectStatusSet;
+  fExpectStatusVal = rhs.fExpectStatusVal;
+  fExpectStatusMsk = rhs.fExpectStatusMsk;
   delete fpExpect;
-  fpExpect      = rhs.fpExpect ? new RlinkCommandExpect(*rhs.fpExpect) : 0;
+  fpExpect         = rhs.fpExpect ? new RlinkCommandExpect(*rhs.fpExpect) : 0;
   return *this;
 }
 

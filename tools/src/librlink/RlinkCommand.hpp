@@ -1,6 +1,6 @@
-// $Id: RlinkCommand.hpp 617 2014-12-21 14:18:53Z mueller $
+// $Id: RlinkCommand.hpp 661 2015-04-03 18:28:41Z mueller $
 //
-// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-04-02   661   1.3    expect logic: add stat check, Print() without cntx
 // 2014-12-21   617   1.2.2  use kStat_M_RbTout for rbus timeout
 // 2014-12-20   616   1.2.1  add kFlagChkDone
 // 2014-12-06   609   1.2    new rlink v4 iface
@@ -24,7 +25,7 @@
 
 /*!
   \file
-  \version $Id: RlinkCommand.hpp 617 2014-12-21 14:18:53Z mueller $
+  \version $Id: RlinkCommand.hpp 661 2015-04-03 18:28:41Z mueller $
   \brief   Declaration of class RlinkCommand.
 */
 
@@ -74,7 +75,10 @@ namespace Retro {
       void          SetFlagBit(uint32_t mask);
       void          ClearFlagBit(uint32_t mask);
       void          SetRcvSize(size_t rsize);
+
       void          SetExpect(RlinkCommandExpect* pexp);
+      void          SetExpectStatus(uint8_t stat, uint8_t statmsk=0xff);
+      void          SetExpectStatusDefault(uint8_t stat=0, uint8_t statmsk=0x0);
 
       uint8_t       Request() const;
       uint8_t       Command() const;
@@ -92,11 +96,17 @@ namespace Retro {
       bool          TestFlagAny(uint32_t mask) const;
       bool          TestFlagAll(uint32_t mask) const;
       size_t        RcvSize() const;
-      RlinkCommandExpect* Expect() const;
 
-      void          Print(std::ostream& os, const RlinkContext& cntx,
-                          const RlinkAddrMap* pamap=0, size_t abase=16, 
-                          size_t dbase=16, size_t sbase=16) const;
+      RlinkCommandExpect* Expect() const;
+      uint8_t       ExpectStatusValue() const;
+      uint8_t       ExpectStatusMask() const;
+      bool          ExpectStatusSet() const;
+      bool          StatusCheck() const;
+      bool          StatusIsChecked() const;
+
+      void          Print(std::ostream& os, const RlinkAddrMap* pamap=0, 
+                          size_t abase=16, size_t dbase=16, 
+                          size_t sbase=16) const;
       void          Dump(std::ostream& os, int ind=0, const char* text=0) const;
 
       static const char* CommandName(uint8_t cmd);
@@ -150,6 +160,9 @@ namespace Retro {
       uint8_t       fStatus;                //!< rlink command status
       uint32_t      fFlags;                 //!< state bits
       size_t        fRcvSize;               //!< receive size for command
+      bool          fExpectStatusSet;       //!< stat chk set explicitely
+      uint8_t       fExpectStatusVal;       //!< status value
+      uint8_t       fExpectStatusMsk;       //!< status mask
       RlinkCommandExpect* fpExpect;         //!< pointer to expect container
   };
   

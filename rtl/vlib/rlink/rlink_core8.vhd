@@ -1,4 +1,4 @@
--- $Id: rlink_core8.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: rlink_core8.vhd 666 2015-04-12 21:17:54Z mueller $
 --
 -- Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -32,6 +32,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-04-11   666   4.1    add ESCXON,ESCFILL in signals, for cdata2byte
 -- 2014-10-12   596   4.0    now rlink v4 iface, 4 bit STAT
 -- 2011-12-09   437   1.0    Initial version
 ------------------------------------------------------------------------------
@@ -57,6 +58,8 @@ entity rlink_core8 is                   -- rlink core with 8bit interface
     CLK  : in slbit;                    -- clock
     CE_INT : in slbit := '0';           -- rlink ato time unit clock enable
     RESET  : in slbit;                  -- reset
+    ESCXON : in slbit;                  -- enable xon/xoff escaping
+    ESCFILL : in slbit;                 -- enable fill escaping
     RLB_DI : in slv8;                   -- rlink 8b: data in
     RLB_ENA : in slbit;                 -- rlink 8b: data enable
     RLB_BUSY : out slbit;               -- rlink 8b: data busy
@@ -129,8 +132,8 @@ begin
     port map (
       CLK     => CLK,
       RESET   => RESET,
-      ESCXON  => '0',
-      ESCFILL => '0',
+      ESCXON  => ESCXON,
+      ESCFILL => ESCFILL,
       DI      => RL_DO,
       ENA     => RL_VAL,
       BUSY    => RL_HOLD,

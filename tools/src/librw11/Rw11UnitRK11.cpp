@@ -1,4 +1,4 @@
-// $Id: Rw11UnitRK11.cpp 509 2013-04-21 20:46:20Z mueller $
+// $Id: Rw11UnitRK11.cpp 659 2015-03-22 23:15:51Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,7 @@
 
 /*!
   \file
-  \version $Id: Rw11UnitRK11.cpp 509 2013-04-21 20:46:20Z mueller $
+  \version $Id: Rw11UnitRK11.cpp 659 2015-03-22 23:15:51Z mueller $
   \brief   Implemenation of Rw11UnitRK11.
 */
 
@@ -49,6 +49,7 @@ Rw11UnitRK11::Rw11UnitRK11(Rw11CntlRK11* pcntl, size_t index)
 {
   // setup disk geometry: only rk05 supported, no rk05f !
   fType    = "rk05";
+  fEnabled = true;
   fNCyl    = 203;
   fNHead   =   2;
   fNSect   =  12;

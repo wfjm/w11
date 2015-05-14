@@ -1,6 +1,6 @@
-// $Id: RlinkPortFifo.cpp 607 2014-11-30 20:02:48Z mueller $
+// $Id: RlinkPortFifo.cpp 666 2015-04-12 21:17:54Z mueller $
 //
-// Copyright 2011-2013 y Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-04-12   666   1.2    add xon,noinit attributes
 // 2013-02-23   492   1.1    use RparseUrl
 // 2011-03-27   374   1.0    Initial version
 // 2011-01-15   356   0.1    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPortFifo.cpp 607 2014-11-30 20:02:48Z mueller $
+  \version $Id: RlinkPortFifo.cpp 666 2015-04-12 21:17:54Z mueller $
   \brief   Implemenation of RlinkPortFifo.
 */
 
@@ -64,7 +65,7 @@ bool RlinkPortFifo::Open(const std::string& url, RerrMsg& emsg)
 {
   if (IsOpen()) Close();
 
-  if (!fUrl.Set(url, "|keep|", emsg)) return false;
+  if (!fUrl.Set(url, "|keep|xon|noinit|", emsg)) return false;
 
   // Note: _rx fifo must be opened before the _tx fifo, otherwise the test
   //       bench might close with EOF on read prematurely (is a race condition).
@@ -79,7 +80,8 @@ bool RlinkPortFifo::Open(const std::string& url, RerrMsg& emsg)
     return false;
   }
 
-  fIsOpen  = true;
+  fXon = fUrl.FindOpt("xon");
+  fIsOpen = true;
 
   return true;
 }

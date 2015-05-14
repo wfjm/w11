@@ -1,6 +1,6 @@
 FLOWTYPE = FPGA_SYNTHESIS;
 #
-# $Id: syn_s3_speed.opt 540 2013-10-13 18:42:50Z mueller $
+# $Id: syn_s3_speed.opt 672 2015-05-02 21:58:28Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -33,8 +33,13 @@ ParamFile: <design>_xst.scr
 "-opt_mode SPEED";                # Optimization Criteria # AREA or SPEED
 "-opt_level 2";                   # Optimization Effort Criteria: 2=High
 ## "-shreg_min_size 3";           # not available for Spartan-3 !!
-"-shreg_extract NO";              # --> switch shreg extrtaction off instead
+"-shreg_extract NO";              # --> switch shreg extraction off instead
 "-uc <design>.xcf";               # Constraint File name
+## Note:
+##   "-use_new_parser yes";
+## solves some nasty 'INTERNAL_ERROR:Xst:cmain.c:3464:1.56' problems, but
+## leads to other problems later on (un-routable designs ect).
+## Therefore currently not used.
 #
 # The following are HDL Options
 #

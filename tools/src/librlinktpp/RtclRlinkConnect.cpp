@@ -1,4 +1,4 @@
-// $Id: RtclRlinkConnect.cpp 631 2015-01-09 21:36:51Z mueller $
+// $Id: RtclRlinkConnect.cpp 676 2015-05-09 16:31:54Z mueller $
 //
 // Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,11 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-05-09   676   1.4.3  M_errcnt: add -increment; M_log: add -bare,-info..
+// 2015-04-19   668   1.4.2  M_wtlam: allow tout=0 for pending attn cleanup
+// 2015-04-12   666   1.4.1  add M_init
+// 2015-04-03   661   1.4    expect logic: drop estatdef, use LastExpect..
+// 2015-03-28   660   1.3.3  add stat* getter/setter; M_exec: add -estaterr ect
 // 2015-01-06   631   1.3.2  add M_get, M_set, remove M_config
 // 2014-12-20   616   1.3.1  M_exec: add -edone for BlockDone checking
 // 2014-12-06   609   1.3    new rlink v4 iface
@@ -33,7 +38,7 @@
 
 /*!
   \file
-  \version $Id: RtclRlinkConnect.cpp 631 2015-01-09 21:36:51Z mueller $
+  \version $Id: RtclRlinkConnect.cpp 676 2015-05-09 16:31:54Z mueller $
   \brief   Implemenation of class RtclRlinkConnect.
  */
 
@@ -76,6 +81,7 @@ RtclRlinkConnect::RtclRlinkConnect(Tcl_Interp* interp, const char* name)
 {
   AddMeth("open",     boost::bind(&RtclRlinkConnect::M_open,    this, _1));
   AddMeth("close",    boost::bind(&RtclRlinkConnect::M_close,   this, _1));
+  AddMeth("init",     boost::bind(&RtclRlinkConnect::M_init,    this, _1));
   AddMeth("exec",     boost::bind(&RtclRlinkConnect::M_exec,    this, _1));
   AddMeth("amap",     boost::bind(&RtclRlinkConnect::M_amap,    this, _1));
   AddMeth("errcnt",   boost::bind(&RtclRlinkConnect::M_errcnt,  this, _1));
@@ -94,7 +100,9 @@ RtclRlinkConnect::RtclRlinkConnect(Tcl_Interp* interp, const char* name)
     fCmdnameObj[i] = Tcl_NewStringObj(RlinkCommand::CommandName(i), -1);
   }
 
-  RlinkConnect* pobj = &Obj();
+  // attributes of RlinkConnect
+  RlinkConnect* pobj  = &Obj();
+
   fGets.Add<uint32_t>  ("baseaddr", 
                         boost::bind(&RlinkConnect::LogBaseAddr, pobj));
   fGets.Add<uint32_t>  ("basedata", 
@@ -109,6 +117,9 @@ RtclRlinkConnect::RtclRlinkConnect(Tcl_Interp* interp, const char* name)
                         boost::bind(&RlinkConnect::TraceLevel, pobj));
   fGets.Add<const string&>  ("logfile", 
                         boost::bind(&RlinkConnect::LogFileName, pobj));
+
+  fGets.Add<uint32_t>  ("initdone", 
+                        boost::bind(&RlinkConnect::LinkInitDone, pobj));
   fGets.Add<uint32_t>  ("sysid", 
                         boost::bind(&RlinkConnect::SysId, pobj));
   fGets.Add<size_t>    ("rbufsize", 
@@ -132,6 +143,20 @@ RtclRlinkConnect::RtclRlinkConnect(Tcl_Interp* interp, const char* name)
                         boost::bind(&RlinkConnect::SetTraceLevel, pobj, _1));
   fSets.Add<const string&>  ("logfile", 
                         boost::bind(&RlinkConnect::SetLogFileName, pobj, _1));
+
+  // attributes of buildin RlinkContext
+  RlinkContext* pcntx = &Obj().Context();
+  fGets.Add<bool>      ("statchecked", 
+                        boost::bind(&RlinkContext::StatusIsChecked, pcntx));
+  fGets.Add<uint8_t>   ("statvalue", 
+                        boost::bind(&RlinkContext::StatusValue, pcntx));
+  fGets.Add<uint8_t>   ("statmask", 
+                        boost::bind(&RlinkContext::StatusMask, pcntx));
+
+  fSets.Add<uint8_t>   ("statvalue", 
+                        boost::bind(&RlinkContext::SetStatusValue, pcntx, _1));
+  fSets.Add<uint8_t>   ("statmask", 
+                        boost::bind(&RlinkContext::SetStatusMask, pcntx, _1));
 }
 
 //------------------------------------------+-----------------------------------
@@ -174,10 +199,24 @@ int RtclRlinkConnect::M_close(RtclArgs& args)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
+int RtclRlinkConnect::M_init(RtclArgs& args)
+{
+  if (!args.AllDone()) return kERR;
+  if (!Obj().IsOpen()) return args.Quit("-E: port not open");
+  if (Obj().LinkInitDone()) return args.Quit("-E: already initialized");
+  RerrMsg emsg;
+  if (!Obj().LinkInit(emsg)) return args.Quit(emsg);
+  return kOK;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
 int RtclRlinkConnect::M_exec(RtclArgs& args)
 {
   static RtclNameSet optset("-rreg|-rblk|-wreg|-wblk|-labo|-attn|-init|"
-                            "-edata|-edone|-estat|-estatdef|"
+                            "-edata|-edone|-estat|"
+                            "-estaterr|-estatnak|-estattout|"
                             "-print|-dump|-rlist");
 
   Tcl_Interp* interp = args.Interp();
@@ -191,9 +230,6 @@ int RtclRlinkConnect::M_exec(RtclArgs& args)
   string varprint;
   string vardump;
   string varlist;
-
-  uint8_t estatdef_val = 0x00;
-  uint8_t estatdef_msk = 0xff;
 
   while (args.NextOpt(opt, optset)) {
     
@@ -245,62 +281,54 @@ int RtclRlinkConnect::M_exec(RtclArgs& args)
 
     } else if (opt == "-edata") {           // -edata data ?mask --------------
       if (!ClistNonEmpty(args, clist)) return kERR;
-      if (clist[lsize-1].Expect()==0) {
-        clist[lsize-1].SetExpect(new RlinkCommandExpect(estatdef_val, 
-                                                        estatdef_msk));
-      }
       if (clist[lsize-1].Command() == RlinkCommand::kCmdRblk) {
         vector<uint16_t> data;
         vector<uint16_t> mask;
         size_t bsize = clist[lsize-1].BlockSize();
         if (!args.GetArg("data", data, 0, bsize)) return kERR;
         if (!args.GetArg("??mask", mask, 0, bsize)) return kERR;
-        clist[lsize-1].Expect()->SetBlock(data, mask);
+        clist.SetLastExpectBlock(data, mask);
       } else {
         uint16_t data=0;
-        uint16_t mask=0;
+        uint16_t mask=0xffff;
         if (!args.GetArg("data", data)) return kERR;
         if (!args.GetArg("??mask", mask)) return kERR;
-        clist[lsize-1].Expect()->SetData(data, mask);
+        clist.SetLastExpectData(data, mask);
       }
 
     } else if (opt == "-edone") {           // -edone done --------------------
       if (!ClistNonEmpty(args, clist)) return kERR;
       uint16_t done=0;
       if (!args.GetArg("done", done)) return kERR;
-      if (clist[lsize-1].Expect()==0) {
-        clist[lsize-1].SetExpect(new RlinkCommandExpect(estatdef_val, 
-                                                        estatdef_msk));
-      }
       uint8_t cmd = clist[lsize-1].Command();
       if (cmd == RlinkCommand::kCmdRblk ||
           cmd == RlinkCommand::kCmdWblk) {
-        clist[lsize-1].Expect()->SetDone(done);
+        clist.SetLastExpectDone(done);
       } else {
         return args.Quit("-E: -edone allowed only after -rblk,-wblk");
       }
 
-    } else if (opt == "-estat") {           // -estat ?stat ?mask -------------
+    } else if (opt == "-estat") {           // -estat stat ?mask --------------
       if (!ClistNonEmpty(args, clist)) return kERR;
       uint8_t stat=0;
-      uint8_t mask=0;
-      if (!args.GetArg("??stat", stat)) return kERR;
+      uint8_t mask=0xff;
+      if (!args.GetArg("stat", stat))   return kERR;
       if (!args.GetArg("??mask", mask)) return kERR;
-      if (args.NOptMiss() == 2)  mask = 0xff;
-      if (clist[lsize-1].Expect()==0) {
-        clist[lsize-1].SetExpect(new RlinkCommandExpect());
-      }
-      clist[lsize-1].Expect()->SetStatus(stat, mask);
+      clist.SetLastExpectStatus(stat, mask);
 
-    } else if (opt == "-estatdef") {        // -estatdef ?stat ?mask -----------
-      uint8_t stat=0;
-      uint8_t mask=0;
-      if (!args.GetArg("??stat", stat)) return kERR;
-      if (!args.GetArg("??mask", mask)) return kERR;
-      if (args.NOptMiss() == 2)  mask = 0xff;
-      estatdef_val = stat;
-      estatdef_msk = mask;
-
+    } else if (opt == "-estaterr" ||        // -estaterr ----------------------
+               opt == "-estatnak" ||        // -estatnak ----------------------
+               opt == "-estattout") {       // -estattout ---------------------
+      if (!ClistNonEmpty(args, clist)) return kERR;
+      uint8_t val = 0;
+      uint8_t msk = RlinkCommand::kStat_M_RbTout |
+                    RlinkCommand::kStat_M_RbNak  |
+                    RlinkCommand::kStat_M_RbErr;
+      if (opt == "-estaterr")  val = RlinkCommand::kStat_M_RbErr;
+      if (opt == "-estatnak")  val = RlinkCommand::kStat_M_RbNak;
+      if (opt == "-estattout") val = RlinkCommand::kStat_M_RbTout;
+      clist.SetLastExpectStatus(val, msk);
+      
     } else if (opt == "-print") {           // -print ?varRes -----------------
       varprint = "-";
       if (!args.GetArg("??varRes", varprint)) return kERR;
@@ -312,17 +340,7 @@ int RtclRlinkConnect::M_exec(RtclArgs& args)
       if (!args.GetArg("??varRes", varlist)) return kERR;
     }
 
-    if (estatdef_msk != 0xff &&             // estatdef defined
-        lsize != clist.Size()) {            // and cmd added to clist
-      for (size_t i=lsize; i<clist.Size(); i++) { // loop over new cmds
-        if (clist[i].Expect()==0) {               // if no stat
-          clist[i].SetExpect(new RlinkCommandExpect(estatdef_val, 
-                                                    estatdef_msk));
-        }
-      }
-    }
-
-  }
+  } // while (args.NextOpt(opt, optset))
 
   int nact = 0;
   if (varprint == "-") nact += 1;
@@ -367,7 +385,7 @@ int RtclRlinkConnect::M_exec(RtclArgs& args)
 
   if (!varprint.empty()) {
     ostringstream sos;
-    clist.Print(sos, Obj().Context(), &Obj().AddrMap(), Obj().LogBaseAddr(), 
+    clist.Print(sos, &Obj().AddrMap(), Obj().LogBaseAddr(), 
                 Obj().LogBaseData(), Obj().LogBaseStat());
     RtclOPtr pobj(Rtcl::NewLinesObj(sos));
     if (!Rtcl::SetVarOrResult(args.Interp(), varprint, pobj)) return kERR;
@@ -518,17 +536,20 @@ int RtclRlinkConnect::M_amap(RtclArgs& args)
 
 int RtclRlinkConnect::M_errcnt(RtclArgs& args)
 {
-  static RtclNameSet optset("-clear");
+  static RtclNameSet optset("-clear|-increment");
   string opt;
-  bool fclear = false;
+  bool fclr = false;
+  bool finc = false;
   
   while (args.NextOpt(opt, optset)) {
-    if (opt == "-clear") fclear = true;
+    if (opt == "-clear")     fclr = true;
+    if (opt == "-increment") finc = true;
   }
   if (!args.AllDone()) return kERR;
 
+  if (finc) Obj().Context().IncErrorCount();
   args.SetResult(int(Obj().Context().ErrorCount()));
-  if (fclear) Obj().Context().ClearErrorCount();
+  if (fclr) Obj().Context().ClearErrorCount();
 
   return kOK;
 }
@@ -540,7 +561,7 @@ int RtclRlinkConnect::M_wtlam(RtclArgs& args)
 {
   double tout;
   string rvn_apat;
-  if (!args.GetArg("tout", tout, 0.001)) return kERR;
+  if (!args.GetArg("tout", tout, 0.0)) return kERR;
   if (!args.GetArg("??varApat", rvn_apat)) return kERR;
   if (!args.AllDone()) return kERR;
 
@@ -569,9 +590,14 @@ int RtclRlinkConnect::M_wtlam(RtclArgs& args)
 
   if (Obj().PrintLevel() >= 3) {
     RlogMsg lmsg(Obj().LogFile());
-    lmsg << "-- wtlam to=" << RosPrintf(tout, "f", 0,3)
-         << "  T=" << RosPrintf(twait, "f", 0,3)
-         << "  OK" << endl;
+    lmsg << "-- wtlam  apat=" << RosPrintf(apat,"x0",4);
+    if (tout == 0.) {
+      lmsg << "  to=0 harvest only";
+    } else {
+      lmsg << "  to=" << RosPrintf(tout, "f", 0,3)
+           << "  T=" << RosPrintf(twait, "f", 0,3);
+    }
+    lmsg << "  OK" << endl;
   }
   
   args.SetResult(twait);
@@ -661,13 +687,29 @@ int RtclRlinkConnect::M_stats(RtclArgs& args)
 
 int RtclRlinkConnect::M_log(RtclArgs& args)
 {
+  static RtclNameSet optset("-bare|-info|-warn|-error|-fatal");
+  string opt;
+  bool fbare = false;
+  char tag   = 0;
+  while (args.NextOpt(opt, optset)) {
+    if (opt == "-bare")  fbare = true;
+    if (opt == "-info")  tag = 'I';
+    if (opt == "-warn")  tag = 'W';
+    if (opt == "-error") tag = 'E';
+    if (opt == "-fatal") tag = 'F';
+  }
+
   string msg;
   if (!args.GetArg("msg", msg)) return kERR;
   if (!args.AllDone()) return kERR;
   if (Obj().PrintLevel() != 0 ||
       Obj().DumpLevel()  != 0 ||
       Obj().TraceLevel() != 0) {
-    Obj().LogFile().Write(string("# ") + msg);
+    if (tag || fbare) {
+      Obj().LogFile().Write(msg, tag);
+    } else {
+      Obj().LogFile().Write(string("# ") + msg);
+    }
   }
   return kOK;
 }
@@ -809,7 +851,6 @@ bool RtclRlinkConnect::ConfigBase(RtclArgs& args, uint32_t& base)
   base = tmp;
   return true;
 }
-
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs

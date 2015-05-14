@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: create_disk 562 2014-06-15 17:23:18Z mueller $
+# $Id: create_disk 679 2015-05-13 17:38:46Z mueller $
 #
 # Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-04-06   665   1.1.1  add alias RM03 (for RM02) and RP05 (for RP04)
 # 2014-06-14   562   1.1    BUGFIX: repair --boot; add RM02,RM05,RP04,RP07
 # 2013-05-20   521   1.0    First draft
 #
@@ -69,6 +70,10 @@ if (-e $fnam) {
 }
 
 my $typ = uc($opts{typ});
+
+$typ = "RM02" if defined $typ && $typ eq "RM03"; # RM03 is equivalent to RM02
+$typ = "RP04" if defined $typ && $typ eq "RP05"; # RM05 is equivalent to RP04
+
 unless (defined $typ && exists $disktype{$typ}) {
   print STDERR "create_disk-E: no or invalid --typ specification, use --help\n";
   exit 1;
@@ -213,12 +218,12 @@ sub do_boot {
   $buf .= "++======================================++\r\n";
   $buf .= "\r\n";
   $buf .= "Disk image created with 'create_disk --typ=$typ':\r\n";
-  $buf .= sprintf "  number of cylinders:     %6d\r\n", $cyl;
-  $buf .= sprintf "  tracks per cylinder:     %6d\r\n", $hd;
-  $buf .= sprintf "  sectors per track:       %6d\r\n", $sec;
-  $buf .= sprintf "  block size:              %6d\r\n", $bps;
-  $buf .= sprintf "  total number of sectors: %6d\r\n", $nblk;
-  $buf .= sprintf "  capacity in kByte:       %6d\r\n", $cap/1024;
+  $buf .= sprintf "  number of cylinders:    %7d\r\n", $cyl;
+  $buf .= sprintf "  tracks per cylinder:    %7d\r\n", $hd;
+  $buf .= sprintf "  sectors per track:      %7d\r\n", $sec;
+  $buf .= sprintf "  block size:             %7d\r\n", $bps;
+  $buf .= sprintf "  total number of sectors:%7d\r\n", $nblk;
+  $buf .= sprintf "  capacity in kByte:      %7d\r\n", $cap/1024;
   $buf .= "\r\n";
   $buf .= "CPU WILL HALT\r\n";
   $buf .= "\r\n";
@@ -259,6 +264,10 @@ sub print_help {
       ($cyl*$hd*$sec), ($cyl*$hd*$sec*$bps)/1024,
       ($disktype{$typ}{bad} ? 'yes' : ' no');
   }
+
+  print "\n";
+  print "  RM03 is accepted as an alias for RM02 (same capacity)\n";
+  print "  RP05 is accepted as an alias for RP04 (same capacity)\n";
 
   print "\n";
   print "currently supported initialization patterns:\n";

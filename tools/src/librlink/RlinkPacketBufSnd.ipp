@@ -1,6 +1,6 @@
-// $Id: RlinkPacketBufSnd.ipp 606 2014-11-24 07:08:51Z mueller $
+// $Id: RlinkPacketBufSnd.ipp 666 2015-04-12 21:17:54Z mueller $
 //
-// Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-04-11   666   1.1    handle xon/xoff escaping, add (Set)XonEscape()
 // 2014-11-08   602   1.0    Initial version
 // 2014-11-02   600   0.1    First draft (re-organize PacketBuf for rlink v4)
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RlinkPacketBufSnd.ipp 606 2014-11-24 07:08:51Z mueller $
+  \version $Id: RlinkPacketBufSnd.ipp 666 2015-04-12 21:17:54Z mueller $
   \brief   Implemenation (inline) of class RlinkPacketBuf.
 */
 
@@ -34,6 +35,23 @@ inline void RlinkPacketBufSnd::PutWithCrc(uint8_t data)
   fPktBuf.push_back(data);
   fCrc.AddData(data);
   return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline void RlinkPacketBufSnd::SetXonEscape(bool xon)
+{
+  fXonEscape = xon;
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline bool RlinkPacketBufSnd::XonEscape() const
+{
+  return fXonEscape;
 }
 
 //------------------------------------------+-----------------------------------

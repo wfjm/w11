@@ -1,6 +1,6 @@
-// $Id: RlinkPort.hpp 632 2015-01-11 12:30:03Z mueller $
+// $Id: RlinkPort.hpp 666 2015-04-12 21:17:54Z mueller $
 //
-// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-04-11   666   1.3    add fXon, XonEnable()
 // 2014-12-10   611   1.2.2  add time stamps for Read/Write for logs
 // 2013-05-01   513   1.2.1  fTraceLevel now uint32_t
 // 2013-02-23   492   1.2    use RparseUrl
@@ -27,7 +28,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPort.hpp 632 2015-01-11 12:30:03Z mueller $
+  \version $Id: RlinkPort.hpp 666 2015-04-12 21:17:54Z mueller $
   \brief   Declaration of class RlinkPort.
 */
 
@@ -66,6 +67,7 @@ namespace Retro {
       bool          IsOpen() const;
 
       const RparseUrl&  Url() const;
+      bool          XonEnable() const;
 
       int           FdRead() const;
       int           FdWrite() const;
@@ -101,6 +103,7 @@ namespace Retro {
     protected:
       bool          fIsOpen;                //!< is open flag
       RparseUrl     fUrl;                   //!< parsed url
+      bool          fXon;                   //!< xon attribute set 
       int           fFdRead;                //!< fd for read
       int           fFdWrite;               //!< fd for write
       boost::shared_ptr<RlogFile>  fspLog;  //!< log file ptr

@@ -1,6 +1,6 @@
-// $Id: RlinkContext.hpp 492 2013-02-24 22:14:47Z mueller $
+// $Id: RlinkContext.hpp 661 2015-04-03 18:28:41Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-03-28   660   1.1    add SetStatus(Value|Mask)()
 // 2013-02-23   492   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 
 /*!
   \file
-  \version $Id: RlinkContext.hpp 492 2013-02-24 22:14:47Z mueller $
+  \version $Id: RlinkContext.hpp 661 2015-04-03 18:28:41Z mueller $
   \brief   Declaration of class RlinkContext.
 */
 
@@ -35,7 +36,10 @@ namespace Retro {
                     RlinkContext();
                    ~RlinkContext();
 
-      void          SetStatus(uint8_t stat, uint8_t statmsk=0);
+      void          SetStatus(uint8_t stat, uint8_t statmsk=0xff);
+
+      void          SetStatusValue(uint8_t stat);
+      void          SetStatusMask(uint8_t statmsk);
 
       uint8_t       StatusValue() const;
       uint8_t       StatusMask() const;

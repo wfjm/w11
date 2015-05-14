@@ -1,4 +1,4 @@
--- $Id: pdp11_mmu_ssr12.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: pdp11_mmu_ssr12.vhd 677 2015-05-09 21:52:32Z mueller $
 --
 -- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -47,7 +47,7 @@ use work.pdp11.all;
 entity pdp11_mmu_ssr12 is               -- mmu register ssr1 and ssr2
   port (
     CLK : in slbit;                     -- clock
-    CRESET : in slbit;                  -- console reset
+    CRESET : in slbit;                  -- cpu reset
     TRACE : in slbit;                   -- trace enable
     MONI : in mmu_moni_type;            -- MMU monitor port data
     IB_MREQ : in ib_mreq_type;          -- ibus request

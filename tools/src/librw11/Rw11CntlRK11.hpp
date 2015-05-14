@@ -1,4 +1,4 @@
-// $Id: Rw11CntlRK11.hpp 647 2015-02-17 22:35:36Z mueller $
+// $Id: Rw11CntlRK11.hpp 665 2015-04-07 07:13:49Z mueller $
 //
 // Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -23,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlRK11.hpp 647 2015-02-17 22:35:36Z mueller $
+  \version $Id: Rw11CntlRK11.hpp 665 2015-04-07 07:13:49Z mueller $
   \brief   Declaration of class Rw11CntlRK11.
 */
 
@@ -62,13 +62,13 @@ namespace Retro {
       static const uint16_t kIbaddr = 0177400; //!< RK11 default address
       static const int      kLam    = 4;       //!< RK11 default lam
 
-      static const uint16_t kRKDS = 000; //!< RKDS register address offset
-      static const uint16_t kRKER = 002; //!< RKER register address offset
-      static const uint16_t kRKCS = 004; //!< RKCS register address offset
-      static const uint16_t kRKWC = 006; //!< RKWC register address offset
-      static const uint16_t kRKBA = 010; //!< RKBA register address offset
-      static const uint16_t kRKDA = 012; //!< RKDA register address offset
-      static const uint16_t kRKMR = 014; //!< RKMR register address offset
+      static const uint16_t kRKDS = 000; //!< RKDS reg offset
+      static const uint16_t kRKER = 002; //!< RKER reg offset
+      static const uint16_t kRKCS = 004; //!< RKCS reg offset
+      static const uint16_t kRKWC = 006; //!< RKWC reg offset
+      static const uint16_t kRKBA = 010; //!< RKBA reg offset
+      static const uint16_t kRKDA = 012; //!< RKDA reg offset
+      static const uint16_t kRKMR = 014; //!< RKMR reg offset
 
       static const uint16_t kProbeOff = kRKCS; //!< probe address offset (rkcs)
       static const bool     kProbeInt = true;  //!< probe int active

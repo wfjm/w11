@@ -1,4 +1,4 @@
--- $Id: rlinklib.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: rlinklib.vhd 672 2015-05-02 21:58:28Z mueller $
 --
 -- Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,7 +20,10 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2014-02-21   649   4.1.1  add ioleds_sp1c
+--
+-- 2015-04-11   666   4.1.2  rlink_core8: add ESC(XON|FILL);
+--                           rlink_sp1c: rename ENAESC->ESCFILL
+-- 2015-02-21   649   4.1.1  add ioleds_sp1c
 -- 2014-12-21   617   4.1    use stat(2) to signal rbus timeout
 -- 2014-10-12   596   4.0    now rlink v4.0 iface, 4 bit STAT
 -- 2014-08-15   583   3.5    rb_mreq addr now 16 bit
@@ -171,6 +174,8 @@ component rlink_core8 is                -- rlink core with 8bit iface
     CLK  : in slbit;                    -- clock
     CE_INT : in slbit := '0';           -- rlink ato time unit clock enable
     RESET  : in slbit;                  -- reset
+    ESCXON : in slbit := '0';           -- enable xon/xoff escaping
+    ESCFILL : in slbit := '0';          -- enable fill escaping
     RLB_DI : in slv8;                   -- rlink 8b: data in
     RLB_ENA : in slbit;                 -- rlink 8b: data enable
     RLB_BUSY : out slbit;               -- rlink 8b: data busy
@@ -224,15 +229,17 @@ component rlink_sp1c is                 -- rlink_core8+serport_1clock combo
     ENAPIN_RLBMON: integer := -1;       -- SB_CNTL for rlbmon (-1=none)
     ENAPIN_RBMON : integer := -1;       -- SB_CNTL for rbmon  (-1=none)
     CDWIDTH : positive := 13;           -- clk divider width
-    CDINIT : natural   := 15);          -- clk divider initial/reset setting
+    CDINIT : natural   := 15;           -- clk divider initial/reset setting
+    RBMON_AWIDTH : natural := 0;        -- rbmon: buffer size, (0=none)
+    RBMON_RBADDR : slv16 := slv(to_unsigned(16#ffe8#,16))); -- rbmon: base addr
   port (
     CLK  : in slbit;                    -- clock
     CE_USEC : in slbit;                 -- 1 usec clock enable
     CE_MSEC : in slbit;                 -- 1 msec clock enable
     CE_INT : in slbit := '0';           -- rri ato time unit clock enable
     RESET  : in slbit;                  -- reset
-    ENAXON : in slbit;                  -- enable xon/xoff handling
-    ENAESC : in slbit;                  -- enable xon/xoff escaping
+    ENAXON : in slbit := '0';           -- enable xon/xoff handling
+    ESCFILL : in slbit := '0';          -- enable fill escaping
     RXSD : in slbit;                    -- receive serial data      (board view)
     TXSD : out slbit;                   -- transmit serial data     (board view)
     CTS_N : in slbit := '0';            -- clear to send   (act.low, board view)

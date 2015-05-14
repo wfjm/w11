@@ -1,6 +1,6 @@
--- $Id: rbd_rbmon.vhd 620 2014-12-25 10:48:35Z mueller $
+-- $Id: rbd_rbmon.vhd 672 2015-05-02 21:58:28Z mueller $
 --
--- Copyright 2010-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -30,6 +30,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-05-02   672   5.0.1  use natural for AWIDTH to work around a ghdl issue
 -- 2014-12-22   619   5.0    reorganized, supports now 16 bit addresses
 -- 2014-09-13   593   4.1    change default address -> ffe8
 -- 2014-08-15   583   4.0    rb_mreq addr now 16 bit (but only 8 bit recorded)
@@ -45,9 +46,10 @@
 --          01    stop      r/w/f    writing 1 stops  moni
 --          00    start     r/w/f    writing 1 starts moni and clears addr
 --  001         stat        r/w/-  Status register
+--       15:13    bsize     r/-/-    buffer size (AWIDTH-9)
 --          00    wrap      r/-/-    line address wrapped (cleared on go)
---  010         hilim       r/w/-  upper address limit (def: 0xfffb)
---  011         lolim       r/w/-  lower address limit (def: 0x0000)
+--  010         hilim       r/w/-  upper address limit, inclusive (def: 0xfffb)
+--  011         lolim       r/w/-  lower address limit, inclusive (def: 0x0000)
 --  100         addr        r/w/-  Address register
 --        *:02    laddr     r/w/-    line address
 --       01:00    waddr     r/w/-    word address
@@ -78,10 +80,14 @@ use work.slvtypes.all;
 use work.memlib.all;
 use work.rblib.all;
 
+-- Note: AWIDTH has type natural to allow AWIDTH=0 can be used in if generates
+--       to control the instantiation. ghdl checks even for not instantiated
+--       entities the validity of generics, that's why natural needed here ....
+
 entity rbd_rbmon is                     -- rbus dev: rbus monitor
   generic (
     RB_ADDR : slv16 := slv(to_unsigned(16#ffe8#,16));
-    AWIDTH : positive := 9);
+    AWIDTH : natural := 9);
   port (
     CLK  : in slbit;                    -- clock
     RESET : in slbit;                   -- reset

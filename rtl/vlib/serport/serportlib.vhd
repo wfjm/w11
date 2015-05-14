@@ -1,4 +1,4 @@
--- $Id: serportlib.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: serportlib.vhd 666 2015-04-12 21:17:54Z mueller $
 --
 -- Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,10 +20,11 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2015-02-01   641   1.3    add CLKDIV_F for autobaud;
+-- 2015-04-11   666   1.3.1  add serport_master
+-- 2015-02-01   641   1.3    add CLKDIV_F for autobaud
 -- 2013-01-26   476   1.2.6  renamed package to serportlib
 -- 2011-12-09   437   1.2.5  rename stat->moni port
--- 2011-10-23   419   1.2.4  remove serport_clkdiv_ consts;
+-- 2011-10-23   419   1.2.4  remove serport_clkdiv_ consts
 -- 2011-10-22   417   1.2.3  add serport_xon(rx|tx) defs
 -- 2011-10-14   416   1.2.2  add c_serport defs
 -- 2010-12-26   348   1.2.1  add ABCLKDIV to serport_uart_rxtx_ab
@@ -236,6 +237,29 @@ component serport_2clock is             -- serial port module, 2 clock domain
     TXSD : out slbit;                   -- S|transmit serial data (uart view)
     RXRTS_N : out slbit;                -- S|receive rts (uart view, act.low)
     TXCTS_N : in slbit                  -- S|transmit cts (uart view, act.low)
+  );
+end component;
+
+component serport_master is             -- serial port module, master side
+  generic (
+    CDWIDTH : positive := 13);          -- clk divider width
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit;                   -- reset
+    CLKDIV : in slv(CDWIDTH-1 downto 0); -- clock divider setting
+    ENAXON : in slbit := '0';           -- enable xon/xoff handling
+    ENAESC : in slbit := '0';           -- enable xon/xoff escaping
+    RXDATA : out slv8;                  -- receiver data out
+    RXVAL : out slbit;                  -- receiver data valid
+    RXERR : out slbit;                  -- receiver data error (frame error)
+    RXOK : in slbit := '1';             -- rx channel ok
+    TXDATA : in slv8;                   -- transmit data in
+    TXENA : in slbit;                   -- transmit data enable
+    TXBUSY : out slbit;                 -- transmit busy
+    RXSD : in slbit;                    -- receive serial data (uart view)
+    TXSD : out slbit;                   -- transmit serial data (uart view)
+    RXRTS_N : out slbit;                -- receive rts (uart view, act.low)
+    TXCTS_N : in slbit :='0'            -- transmit cts (uart view, act.low)
   );
 end component;
 

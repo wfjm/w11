@@ -1,4 +1,4 @@
--- $Id: sys_w11a_n3.vhd 652 2015-02-28 12:18:08Z mueller $
+-- $Id: sys_w11a_n3.vhd 677 2015-05-09 21:52:32Z mueller $
 --
 -- Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,22 +18,14 @@
 -- Dependencies:   vlib/xlib/s6_cmt_sfs
 --                 vlib/genlib/clkdivce
 --                 bplib/bpgen/bp_rs232_2l4l_iob
---                 bplib/bpgen/sn_humanio_rbus
 --                 bplib/fx2rlink/rlink_sp1c_fx2
---                 vlib/rbus/rb_sres_or_4
---                 vlib/rbus/rbd_rbmon
---                 w11a/pdp11_core_rbus
---                 w11a/pdp11_core
---                 w11a/pdp11_cache
---                 w11a/pdp11_mem70
---                 bplib/nxcramlib/nx_cram_memctl_as
---                 ibus/ib_sres_or_2
+--                 w11a/pdp11_sys70
 --                 ibus/ibdr_maxisys
+--                 bplib/nxcramlib/nx_cram_memctl_as
 --                 bplib/fx2rlink/ioleds_sp1c_fx2
---                 w11a/pdp11_statleds
---                 w11a/pdp11_ledmux
---                 w11a/pdp11_dspmux
---                 w11a/pdp11_tmu_sb           [sim only]
+--                 w11a/pdp11_hio70
+--                 bplib/bpgen/sn_humanio_rbus
+--                 vlib/rbus/rb_sres_or_2
 --
 -- Test bench:     tb/tb_sys_w11a_n3
 --
@@ -42,7 +34,9 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
--- 2014-02-21   649 14.7  131013 xc6slx16-2  1819 3905  160 1380 ok: +RL11
+-- 2015-04-25   668 14.7  131013 xc6slx16-2  2101 4420  167 1520 ok: +ibmon 66%
+-- 2015-04-06   664 14.7  131013 xc6slx16-2  1991 4350  167 1489 ok: +RHRP  65%
+-- 2015-02-21   649 14.7  131013 xc6slx16-2  1819 3905  160 1380 ok: +RL11
 -- 2014-12-22   619 14.7  131013 xc6slx16-2  1742 3767  150 1350 ok: +rbmon
 -- 2014-12-20   614 14.7  131013 xc6slx16-2  1640 3692  150 1297 ok: -RL11,rlv4
 -- 2014-06-08   561 14.7  131013 xc6slx16-2  1531 3500  142 1165 ok: +RL11
@@ -53,6 +47,10 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-05-09   677   2.1    start/stop/suspend overhaul; reset overhaul
+-- 2015-05-01   672   2.0    use pdp11_sys70 and pdp11_hio70
+-- 2015-04-24   668   1.8.3  added ibd_ibmon
+-- 2015-04-11   666   1.8.2  rearrange XON handling
 -- 2015-02-21   649   1.8.1  use ioleds_sp1c,pdp11_(statleds,ledmux,dspmux)
 -- 2015-02-15   647   1.8    drop bram and minisys options
 -- 2014-12-24   620   1.7.2  relocate ibus window and hio rbus address
@@ -127,7 +125,6 @@ use work.xlib.all;
 use work.genlib.all;
 use work.serportlib.all;
 use work.rblib.all;
-use work.rbdlib.all;
 use work.rlinklib.all;
 use work.fx2lib.all;
 use work.fx2rlinklib.all;
@@ -183,53 +180,38 @@ architecture syn of sys_w11a_n3 is
 
   signal CLK :   slbit := '0';
 
+  signal RESET   : slbit := '0';
+  signal CE_USEC : slbit := '0';
+  signal CE_MSEC : slbit := '0';
+
   signal RXD :   slbit := '1';
   signal TXD :   slbit := '0';
   signal RTS_N : slbit := '0';
   signal CTS_N : slbit := '0';
     
-  signal SWI     : slv8  := (others=>'0');
-  signal BTN     : slv5  := (others=>'0');
-  signal LED     : slv8  := (others=>'0');  
-  signal DSP_DAT : slv16 := (others=>'0');
-  signal DSP_DP  : slv4  := (others=>'0');
+  signal RB_MREQ       : rb_mreq_type := rb_mreq_init;
+  signal RB_SRES       : rb_sres_type := rb_sres_init;
+  signal RB_SRES_CPU   : rb_sres_type := rb_sres_init;
+  signal RB_SRES_HIO   : rb_sres_type := rb_sres_init;
 
   signal RB_LAM  : slv16 := (others=>'0');
   signal RB_STAT : slv4  := (others=>'0');
-  
+
   signal RLB_MONI : rlb_moni_type := rlb_moni_init;
   signal SER_MONI : serport_moni_type := serport_moni_init;
   signal FX2_MONI : fx2ctl_moni_type  := fx2ctl_moni_init;
 
-  signal RB_MREQ       : rb_mreq_type := rb_mreq_init;
-  signal RB_SRES       : rb_sres_type := rb_sres_init;
-  signal RB_SRES_CPU   : rb_sres_type := rb_sres_init;
-  signal RB_SRES_IBD   : rb_sres_type := rb_sres_init;
-  signal RB_SRES_HIO   : rb_sres_type := rb_sres_init;
-  signal RB_SRES_RBMON : rb_sres_type := rb_sres_init;
-
-  signal RESET   : slbit := '0';
-  signal CE_USEC : slbit := '0';
-  signal CE_MSEC : slbit := '0';
-
-  signal CPU_RESET : slbit := '0';
-  signal CP_CNTL : cp_cntl_type := cp_cntl_init;
-  signal CP_ADDR : cp_addr_type := cp_addr_init;
-  signal CP_DIN  : slv16 := (others=>'0');
-  signal CP_STAT : cp_stat_type := cp_stat_init;
-  signal CP_DOUT : slv16 := (others=>'0');
+  signal GRESET  : slbit := '0';        -- general reset (from rbus)
+  signal CRESET  : slbit := '0';        -- cpu reset     (from cp)
+  signal BRESET  : slbit := '0';        -- bus reset     (from cp or cpu)
+  signal ITIMER  : slbit := '0';
 
   signal EI_PRI  : slv3   := (others=>'0');
   signal EI_VECT : slv9_2 := (others=>'0');
   signal EI_ACKM : slbit  := '0';
   
-  signal EM_MREQ : em_mreq_type := em_mreq_init;
-  signal EM_SRES : em_sres_type := em_sres_init;
-  
-  signal HM_ENA      : slbit := '0';
-  signal MEM70_FMISS : slbit := '0';
-  signal CACHE_FMISS : slbit := '0';
-  signal CACHE_CHIT  : slbit := '0';
+  signal CP_STAT : cp_stat_type := cp_stat_init;
+  signal DM_STAT_DP : dm_stat_dp_type := dm_stat_dp_init;
 
   signal MEM_REQ   : slbit := '0';
   signal MEM_WE    : slbit := '0';
@@ -244,26 +226,21 @@ architecture syn of sys_w11a_n3 is
 
   signal MEM_ADDR_EXT : slv22 := (others=>'0');
 
-  signal BRESET  : slbit := '0';
   signal IB_MREQ : ib_mreq_type := ib_mreq_init;
-  signal IB_SRES : ib_sres_type := ib_sres_init;
-
-  signal IB_SRES_MEM70 : ib_sres_type := ib_sres_init;
-  signal IB_SRES_IBDR  : ib_sres_type := ib_sres_init;
-
-  signal DM_STAT_DP : dm_stat_dp_type := dm_stat_dp_init;
-  signal DM_STAT_VM : dm_stat_vm_type := dm_stat_vm_init;
-  signal DM_STAT_CO : dm_stat_co_type := dm_stat_co_init;
-  signal DM_STAT_SY : dm_stat_sy_type := dm_stat_sy_init;
+  signal IB_SRES_IBDR : ib_sres_type := ib_sres_init;
 
   signal DISPREG : slv16 := (others=>'0');
   signal STATLEDS :  slv8 := (others=>'0');
   signal ABCLKDIV : slv16 := (others=>'0');
 
+  signal SWI     : slv8  := (others=>'0');
+  signal BTN     : slv5  := (others=>'0');
+  signal LED     : slv8  := (others=>'0');  
+  signal DSP_DAT : slv16 := (others=>'0');
+  signal DSP_DP  : slv4  := (others=>'0');
+  
   constant rbaddr_rbmon : slv16 := x"ffe8"; -- ffe8/0008: 1111 1111 1110 1xxx
   constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/0004: 1111 1110 1111 00xx
-  constant rbaddr_ibus0 : slv16 := x"4000"; -- 4000/1000: 0100 xxxx xxxx xxxx
-  constant rbaddr_core0 : slv16 := x"0000"; -- 0000/0020: 0000 0000 000x xxxx
 
 begin
 
@@ -271,7 +248,7 @@ begin
     report "assert sys_conf_clksys on MHz grid"
     severity failure;
   
-  GEN_CLKSYS : s6_cmt_sfs
+  GEN_CLKSYS : s6_cmt_sfs               -- clock generator -------------------
     generic map (
       VCO_DIVIDE     => sys_conf_clksys_vcodivide,
       VCO_MULTIPLY   => sys_conf_clksys_vcomultiply,
@@ -286,7 +263,7 @@ begin
       LOCKED  => open
     );
 
-  CLKDIV : clkdivce
+  CLKDIV : clkdivce                     -- usec/msec clock divider -----------
     generic map (
       CDUWIDTH => 7,
       USECDIV  => sys_conf_clksys_mhz,
@@ -297,7 +274,7 @@ begin
       CE_MSEC => CE_MSEC
     );
 
-  IOB_RS232 : bp_rs232_2l4l_iob
+  IOB_RS232 : bp_rs232_2l4l_iob         -- serport iob/switch ----------------
     port map (
       CLK      => CLK,
       RESET    => '0',
@@ -314,30 +291,7 @@ begin
       O_RTS1_N => O_FUSP_RTS_N
     );
 
-  HIO : sn_humanio_rbus
-    generic map (
-      BWIDTH   => 5,
-      DEBOUNCE => sys_conf_hio_debounce,
-      RB_ADDR  => rbaddr_hio)
-    port map (
-      CLK     => CLK,
-      RESET   => RESET,
-      CE_MSEC => CE_MSEC,
-      RB_MREQ => RB_MREQ,
-      RB_SRES => RB_SRES_HIO,
-      SWI     => SWI,                   
-      BTN     => BTN,                   
-      LED     => LED,                   
-      DSP_DAT => DSP_DAT,               
-      DSP_DP  => DSP_DP,
-      I_SWI   => I_SWI,                 
-      I_BTN   => I_BTN,
-      O_LED   => O_LED,
-      O_ANO_N => O_ANO_N,
-      O_SEG_N => O_SEG_N
-    );
-
-  RLINK : rlink_sp1c_fx2
+  RLINK : rlink_sp1c_fx2                -- rlink for serport + fx2 -----------
     generic map (
       BTOWIDTH     => 7,                -- 128 cycles access timeout
       RTAWIDTH     => 12,
@@ -349,7 +303,9 @@ begin
       ENAPIN_RLMON => sbcntl_sbf_rlmon,
       ENAPIN_RBMON => sbcntl_sbf_rbmon,
       CDWIDTH      => 13,
-      CDINIT       => sys_conf_ser2rri_cdinit)
+      CDINIT       => sys_conf_ser2rri_cdinit,
+      RBMON_AWIDTH => sys_conf_rbmon_awidth,
+      RBMON_RBADDR => rbaddr_rbmon)
     port map (
       CLK      => CLK,
       CE_USEC  => CE_USEC,
@@ -357,7 +313,6 @@ begin
       CE_INT   => CE_MSEC,
       RESET    => RESET,
       ENAXON   => SWI(1),
-      ENAESC   => SWI(1),
       ENAFX2   => SWI(2),
       RXSD     => RXD,
       TXSD     => TXD,
@@ -381,113 +336,63 @@ begin
       IO_FX2_DATA    => IO_FX2_DATA
     );
 
-  RB_SRES_OR : rb_sres_or_4
+  SYS70 : pdp11_sys70                   -- 1 cpu system ----------------------
     port map (
-      RB_SRES_1  => RB_SRES_CPU,
-      RB_SRES_2  => RB_SRES_IBD,
-      RB_SRES_3  => RB_SRES_HIO,
-      RB_SRES_4  => RB_SRES_RBMON,
-      RB_SRES_OR => RB_SRES
-    );
-  
-  RBMON : if sys_conf_rbmon_awidth > 0 generate
-  begin
-    RBMON : rbd_rbmon
-      generic map (
-        RB_ADDR => rbaddr_rbmon,
-        AWIDTH  => sys_conf_rbmon_awidth)
-      port map (
-        CLK         => CLK,
-        RESET       => RESET,
-        RB_MREQ     => RB_MREQ,
-        RB_SRES     => RB_SRES_RBMON,
-        RB_SRES_SUM => RB_SRES
-      );
-  end generate RBMON;
-
-  RB2CP : pdp11_core_rbus
-    generic map (
-      RB_ADDR_CORE => rbaddr_core0,
-      RB_ADDR_IBUS => rbaddr_ibus0)
-    port map (
-      CLK       => CLK,
-      RESET     => RESET,
-      RB_MREQ   => RB_MREQ,
-      RB_SRES   => RB_SRES_CPU,
-      RB_STAT   => RB_STAT,
-      RB_LAM    => RB_LAM(0),
-      CPU_RESET => CPU_RESET,
-      CP_CNTL   => CP_CNTL,
-      CP_ADDR   => CP_ADDR,
-      CP_DIN    => CP_DIN,
-      CP_STAT   => CP_STAT,
-      CP_DOUT   => CP_DOUT      
+      CLK        => CLK,
+      RESET      => RESET,
+      RB_MREQ    => RB_MREQ,
+      RB_SRES    => RB_SRES_CPU,
+      RB_STAT    => RB_STAT,
+      RB_LAM_CPU => RB_LAM(0),
+      GRESET     => GRESET,
+      CRESET     => CRESET,
+      BRESET     => BRESET,
+      CP_STAT    => CP_STAT,
+      EI_PRI     => EI_PRI,
+      EI_VECT    => EI_VECT,
+      EI_ACKM    => EI_ACKM,
+      ITIMER     => ITIMER,
+      IB_MREQ    => IB_MREQ,
+      IB_SRES    => IB_SRES_IBDR,
+      MEM_REQ    => MEM_REQ,
+      MEM_WE     => MEM_WE,
+      MEM_BUSY   => MEM_BUSY,
+      MEM_ACK_R  => MEM_ACK_R,
+      MEM_ADDR   => MEM_ADDR,
+      MEM_BE     => MEM_BE,
+      MEM_DI     => MEM_DI,
+      MEM_DO     => MEM_DO,
+      DM_STAT_DP => DM_STAT_DP
     );
 
-  W11A : pdp11_core
+  IBDR_SYS : ibdr_maxisys               -- IO system -------------------------
     port map (
-      CLK       => CLK,
-      RESET     => CPU_RESET,
-      CP_CNTL   => CP_CNTL,
-      CP_ADDR   => CP_ADDR,
-      CP_DIN    => CP_DIN,
-      CP_STAT   => CP_STAT,
-      CP_DOUT   => CP_DOUT,
-      EI_PRI    => EI_PRI,
-      EI_VECT   => EI_VECT,
-      EI_ACKM   => EI_ACKM,
-      EM_MREQ   => EM_MREQ,
-      EM_SRES   => EM_SRES,
-      BRESET    => BRESET,
-      IB_MREQ_M => IB_MREQ,
-      IB_SRES_M => IB_SRES,
-      DM_STAT_DP => DM_STAT_DP,
-      DM_STAT_VM => DM_STAT_VM,
-      DM_STAT_CO => DM_STAT_CO
-    );  
-
-  CACHE: pdp11_cache
-    port map (
-      CLK       => CLK,
-      GRESET    => CPU_RESET,
-      EM_MREQ   => EM_MREQ,
-      EM_SRES   => EM_SRES,
-      FMISS     => CACHE_FMISS,
-      CHIT      => CACHE_CHIT,
-      MEM_REQ   => MEM_REQ,
-      MEM_WE    => MEM_WE,
-      MEM_BUSY  => MEM_BUSY,
-      MEM_ACK_R => MEM_ACK_R,
-      MEM_ADDR  => MEM_ADDR,
-      MEM_BE    => MEM_BE,
-      MEM_DI    => MEM_DI,
-      MEM_DO    => MEM_DO
+      CLK      => CLK,
+      CE_USEC  => CE_USEC,
+      CE_MSEC  => CE_MSEC,
+      RESET    => GRESET,
+      BRESET   => BRESET,
+      ITIMER   => ITIMER,
+      CPUSUSP  => CP_STAT.cpususp,
+      RB_LAM   => RB_LAM(15 downto 1),
+      IB_MREQ  => IB_MREQ,
+      IB_SRES  => IB_SRES_IBDR,
+      EI_ACKM  => EI_ACKM,
+      EI_PRI   => EI_PRI,
+      EI_VECT  => EI_VECT,
+      DISPREG  => DISPREG
     );
-
-  MEM70: pdp11_mem70
-    port map (
-      CLK         => CLK,
-      CRESET      => BRESET,
-      HM_ENA      => HM_ENA,
-      HM_VAL      => CACHE_CHIT,
-      CACHE_FMISS => MEM70_FMISS,
-      IB_MREQ     => IB_MREQ,
-      IB_SRES     => IB_SRES_MEM70
-    );
-
-  HM_ENA      <= EM_SRES.ack_r or EM_SRES.ack_w;
-  CACHE_FMISS <= MEM70_FMISS or sys_conf_cache_fmiss;
-  
+    
   MEM_ADDR_EXT <= "00" & MEM_ADDR;    -- just use lower 4 MB (of 16 MB)
 
-  SRAM_CTL: nx_cram_memctl_as
+  SRAM_CTL: nx_cram_memctl_as           -- memory controller -----------------
     generic map (
       READ0DELAY => sys_conf_memctl_read0delay,
       READ1DELAY => sys_conf_memctl_read1delay,
       WRITEDELAY => sys_conf_memctl_writedelay)
     port map (
       CLK         => CLK,
-      RESET       => CPU_RESET,
+      RESET       => GRESET,
       REQ         => MEM_REQ,
       WE          => MEM_WE,
       BUSY        => MEM_BUSY,
@@ -513,35 +418,12 @@ begin
 
   O_PPCM_CE_N  <= '1';              -- keep parallel PCM memory disabled
   O_PPCM_RST_N <= '1';              --
-  
-  IB_SRES_OR : ib_sres_or_2
-    port map (
-      IB_SRES_1  => IB_SRES_MEM70,
-      IB_SRES_2  => IB_SRES_IBDR,
-      IB_SRES_OR => IB_SRES
-    );
 
-  IBDR_SYS : ibdr_maxisys
+  LED_IO : ioleds_sp1c_fx2              -- hio leds from serport or fx2 ------
     port map (
       CLK      => CLK,
       CE_USEC  => CE_USEC,
-      CE_MSEC  => CE_MSEC,
-      RESET    => CPU_RESET,
-      BRESET   => BRESET,
-      RB_LAM   => RB_LAM(15 downto 1),
-      IB_MREQ  => IB_MREQ,
-      IB_SRES  => IB_SRES_IBDR,
-      EI_ACKM  => EI_ACKM,
-      EI_PRI   => EI_PRI,
-      EI_VECT  => EI_VECT,
-      DISPREG  => DISPREG
-    );
-    
-  LED_IO : ioleds_sp1c_fx2
-    port map (
-      CLK      => CLK,
-      CE_USEC  => CE_USEC,
-      RESET    => CPU_RESET,
+      RESET    => GRESET,
       ENAFX2   => SWI(2),
       RB_SRES  => RB_SRES,
       RLB_MONI => RLB_MONI,
@@ -549,53 +431,53 @@ begin
       IOLEDS   => DSP_DP
     );
   
-  LED_CPU : pdp11_statleds
+  ABCLKDIV <= SER_MONI.abclkdiv(11 downto 0) & '0' & SER_MONI.abclkdiv_f;
+
+  HIO70 : pdp11_hio70                   -- hio from sys70 --------------------
+    generic map (
+      LWIDTH => LED'length,
+      DCWIDTH => 2)
     port map (
+      SEL_LED    => SWI(3),
+      SEL_DSP    => SWI(5 downto 4),
       MEM_ACT_R  => MEM_ACT_R,
       MEM_ACT_W  => MEM_ACT_W,
       CP_STAT    => CP_STAT,
       DM_STAT_DP => DM_STAT_DP,
-      STATLEDS   => STATLEDS
-    );
-  
-  LED_MUX : pdp11_ledmux
-    generic map (
-      LWIDTH => LED'length)
-    port map (
-      SEL        => SWI(3),
-      STATLEDS   => STATLEDS,
-      DM_STAT_DP => DM_STAT_DP,
-      LED        => LED
-    );
-    
-  ABCLKDIV <= SER_MONI.abclkdiv(11 downto 0) & '0' & SER_MONI.abclkdiv_f;
-
-  DSP_MUX : pdp11_dspmux
-    generic map (
-      DCWIDTH => 2)
-    port map (
-      SEL        => SWI(5 downto 4),
       ABCLKDIV   => ABCLKDIV,
-      DM_STAT_DP => DM_STAT_DP,
       DISPREG    => DISPREG,
+      LED        => LED,
       DSP_DAT    => DSP_DAT
     );
-      
--- synthesis translate_off
-  DM_STAT_SY.emmreq <= EM_MREQ;
-  DM_STAT_SY.emsres <= EM_SRES;
-  DM_STAT_SY.chit   <= CACHE_CHIT;
-  
-  TMU : pdp11_tmu_sb
+
+  HIO : sn_humanio_rbus                 -- hio manager -----------------------
     generic map (
-      ENAPIN => 13)
+      BWIDTH   => 5,
+      DEBOUNCE => sys_conf_hio_debounce,
+      RB_ADDR  => rbaddr_hio)
     port map (
-      CLK        => CLK,
-      DM_STAT_DP => DM_STAT_DP,
-      DM_STAT_VM => DM_STAT_VM,
-      DM_STAT_CO => DM_STAT_CO,
-      DM_STAT_SY => DM_STAT_SY
+      CLK     => CLK,
+      RESET   => RESET,
+      CE_MSEC => CE_MSEC,
+      RB_MREQ => RB_MREQ,
+      RB_SRES => RB_SRES_HIO,
+      SWI     => SWI,                   
+      BTN     => BTN,                   
+      LED     => LED,                   
+      DSP_DAT => DSP_DAT,               
+      DSP_DP  => DSP_DP,
+      I_SWI   => I_SWI,                 
+      I_BTN   => I_BTN,
+      O_LED   => O_LED,
+      O_ANO_N => O_ANO_N,
+      O_SEG_N => O_SEG_N
     );
--- synthesis translate_on
+
+  RB_SRES_OR : rb_sres_or_2             -- rbus or ---------------------------
+    port map (
+      RB_SRES_1  => RB_SRES_CPU,
+      RB_SRES_2  => RB_SRES_HIO,
+      RB_SRES_OR => RB_SRES
+    );
   
 end syn;

@@ -1,4 +1,4 @@
-# $Id: w11a_os_guide.txt 654 2015-03-01 18:45:38Z mueller $
+# $Id: w11a_os_guide.txt 680 2015-05-14 13:29:46Z mueller $
 
 Guide to run operating system images on w11a systems
 
@@ -202,11 +202,13 @@ Guide to run operating system images on w11a systems
 
      can be freely distributed and used for non-commercial purposes.   
 
-   Two oskits are currently provided:
+   Several oskits are provided:
 
      - unix-v5_rk: Unix V5 System on RK05
-     - 211bsd_rk:  2.11BSD system on RK05
-     - 211bsd_rl:  2.11BSD system on RL02
+
+     - 211bsd_rk:  2.11BSD system on RK05  (very elementary subset)
+     - 211bsd_rl:  2.11BSD system on RL02  (small subset)
+     - 211bsd_rp:  2.11BSD system on RP06  (full system)
 
    For further details consult the README_<oskit-name>set.txt file in the
    oskit directory.
@@ -240,13 +242,17 @@ Guide to run operating system images on w11a systems
      out the W11A and let the author know whether is works as it should.
      For convenience the boot scripts are also included ( <kit>.tcl ).
 
-   Several osskits are currently provided
+   Several oskits are provided:
 
-     - rsx11m-31_rk: RSX-11M V3.1    on RK05
-     - rsx11m-40_rk: RSX-11M V4.0    on RK05
-     - rt11-40_rk:   RT-11 V4.0      on RK05
-     - rt11-53_rl:   RT-11 V5.3      on RL02
-     - xxdp_rl:      XXDP 22 and 25  on RL02
+     - rsx11m-31_rk:   RSX-11M V3.1    on RK05
+     - rsx11m-40_rk:   RSX-11M V4.0    on RK05
+
+     - rsx11mp-30_rp:  RSX-11M+ V3.0   on RP06
+
+     - rt11-40_rk:     RT-11 V4.0      on RK05
+     - rt11-53_rl:     RT-11 V5.3      on RL02
+
+     - xxdp_rl:        XXDP 22 and 25  on RL02
 
    For further details consult the README_<oskit-name>set.txt file in the
    oskit directory.

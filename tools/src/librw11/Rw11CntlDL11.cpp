@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDL11.cpp 632 2015-01-11 12:30:03Z mueller $
+// $Id: Rw11CntlDL11.cpp 659 2015-03-22 23:15:51Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -23,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlDL11.cpp 632 2015-01-11 12:30:03Z mueller $
+  \version $Id: Rw11CntlDL11.cpp 659 2015-03-22 23:15:51Z mueller $
   \brief   Implemenation of Rw11CntlDL11.
 */
 
@@ -111,10 +111,10 @@ void Rw11CntlDL11::Start()
   
   // add device register address ibus and rbus mappings
   // done here because now Cntl bound to Cpu and Cntl probed
-  Cpu().AllAddrMapInsert(Name()+".rcsr", Base() + kRCSR);
-  Cpu().AllAddrMapInsert(Name()+".rbuf", Base() + kRBUF);
-  Cpu().AllAddrMapInsert(Name()+".xcsr", Base() + kXCSR);
-  Cpu().AllAddrMapInsert(Name()+".xbuf", Base() + kXBUF);
+  Cpu().AllIAddrMapInsert(Name()+".rcsr", Base() + kRCSR);
+  Cpu().AllIAddrMapInsert(Name()+".rbuf", Base() + kRBUF);
+  Cpu().AllIAddrMapInsert(Name()+".xcsr", Base() + kXCSR);
+  Cpu().AllIAddrMapInsert(Name()+".xbuf", Base() + kXBUF);
 
   // setup primary info clist
   fPrimClist.Clear();

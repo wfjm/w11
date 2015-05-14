@@ -1,4 +1,4 @@
-// $Id: Rw11UnitDisk.ipp 647 2015-02-17 22:35:36Z mueller $
+// $Id: Rw11UnitDisk.ipp 659 2015-03-22 23:15:51Z mueller $
 //
 // Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-03-21   659   1.0.2  add fEnabled, Enabled()
 // 2015-02-18   647   1.0.1  add Nwrd2Nblk()
 // 2013-04-19   507   1.0    Initial version
 // 2013-02-19   490   0.1    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11UnitDisk.ipp 647 2015-02-17 22:35:36Z mueller $
+  \version $Id: Rw11UnitDisk.ipp 659 2015-03-22 23:15:51Z mueller $
   \brief   Implemenation (inline) of Rw11UnitDisk.
 */
 
@@ -33,6 +34,14 @@ namespace Retro {
 inline const std::string& Rw11UnitDisk::Type() const
 {
   return fType;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline bool Rw11UnitDisk::Enabled() const
+{
+  return fEnabled;
 }
 
 //------------------------------------------+-----------------------------------

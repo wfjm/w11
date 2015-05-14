@@ -1,4 +1,4 @@
-# $Id: test_cp_membasics.tcl 621 2014-12-26 21:20:05Z mueller $
+# $Id: test_cp_membasics.tcl 676 2015-05-09 16:31:54Z mueller $
 #
 # Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
@@ -14,7 +14,7 @@
 #
 
 # ----------------------------------------------------------------------------
-rlc log "test_cp_membasics: Test very basic memory interface gymnastics"
+rlc log "test_cp_membasics: Test very basic memory interface gymnastics ------"
 
 # --------------------------------------------------------------------
 rlc log "  write/read address register"

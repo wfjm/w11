@@ -46,6 +46,7 @@ Short description of the directory layout, what is where ?
    rtl/w11a                     - w11a core
    tools                        helper programs
    tools/asm-11                 - pdp-11 assembler code
+   tools/asm-11/lib               - definitions and macros for asm-11
    tools/asm-11/tests             - test bench for asm-11
    tools/asm-11/tests-err         - test bench for asm-11 (error check part)
    tools/bin                    - scripts and binaries

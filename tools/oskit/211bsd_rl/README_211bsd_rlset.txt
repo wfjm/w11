@@ -1,4 +1,4 @@
-# $Id: README_211bsd_rlset.txt 633 2015-01-11 22:58:48Z mueller $
+# $Id: README_211bsd_rlset.txt 680 2015-05-14 13:29:46Z mueller $
 
 Notes on oskit: 2.11BSD system on RL02 volumes
 
@@ -33,7 +33,8 @@ Notes on oskit: 2.11BSD system on RL02 volumes
 
    - Start backend server and boot system (see section 3 in w11a_os_guide.txt)
        boot script:  211bsd_rl_boot.tcl
-       example:      ti_w11 -u @211bsd_rl_boot.tcl
+       example:      ti_w11 <opt> @211bsd_rl_boot.tcl
+                     where <opt> is the proper option set for the board.
 
    - Hit <ENTER> in the xterm window to connnect to backend server.
      The boot dialog in the console xterm window will look like
@@ -55,10 +56,10 @@ Notes on oskit: 2.11BSD system on RL02 volumes
 
        dz ? csr 160100 vector 310 skipped:  No CSR.
        lp 0 csr 177514 vector 200 attached
-       rk ? csr 177400 vector 220 didn't interrupt.
+       rk 0 csr 177400 vector 220 attached
        rl 0 csr 174400 vector 160 attached
        tm ? csr 172520 vector 224 skipped:  No CSR.
-       xp ? csr 176700 vector 254 skipped:  No CSR.
+       xp 0 csr 176700 vector 254 attached
        cn 1 csr 176500 vector 300 attached
        erase, kill ^U, intr ^C
 

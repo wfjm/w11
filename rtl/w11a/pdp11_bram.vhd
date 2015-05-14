@@ -1,4 +1,4 @@
--- $Id: pdp11_bram.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: pdp11_bram.vhd 677 2015-05-09 21:52:32Z mueller $
 --
 -- Copyright 2008-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -40,7 +40,7 @@ entity pdp11_bram is                   -- cache
     AWIDTH : positive := 14);           -- address width
   port (
     CLK : in slbit;                     -- clock
-    GRESET : in slbit;                  -- global reset
+    GRESET : in slbit;                  -- general reset
     EM_MREQ : in em_mreq_type;          -- em request
     EM_SRES : out em_sres_type          -- em response
   );

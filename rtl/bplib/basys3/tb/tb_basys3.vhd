@@ -1,4 +1,4 @@
--- $Id: tb_basys3.vhd 648 2015-02-20 20:16:21Z mueller $
+-- $Id: tb_basys3.vhd 666 2015-04-12 21:17:54Z mueller $
 --
 -- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,7 +20,7 @@
 --                 rlink/tb/tbcore_rlink
 --                 xlib/s7_cmt_sfs
 --                 tb_basys3_core
---                 serport/serport_uart_rxtx
+--                 serport/serport_master
 --                 basys3_aif [UUT]
 --
 -- To test:        generic, any basys3_aif target
@@ -30,6 +30,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-04-12   666   1.1    use serport_master instead of serport_uart_rxtx
 -- 2015-02-18   648   1.0    Initial version (derived from tb_nexys4)
 ------------------------------------------------------------------------------
 
@@ -77,6 +78,10 @@ architecture sim of tb_basys3 is
   signal O_LED : slv16 := (others=>'0');
   signal O_ANO_N : slv4 := (others=>'0');
   signal O_SEG_N : slv8 := (others=>'0');
+
+  signal R_PORTSEL_XON : slbit := '0';       -- if 1 use xon/xoff
+
+  constant sbaddr_portsel: slv8 := slv(to_unsigned( 8,8));
 
   constant clock_period : time :=  10 ns;
   constant clock_offset : time := 200 ns;
@@ -138,22 +143,26 @@ begin
       O_SEG_N     => O_SEG_N
     );
   
-  UART : serport_uart_rxtx
+  SERMSTR : serport_master
     generic map (
       CDWIDTH => CLKDIV'length)
     port map (
-      CLK    => CLKCOM,
-      RESET  => RESET,
-      CLKDIV => CLKDIV,
-      RXSD   => O_TXD,
-      RXDATA => RXDATA,
-      RXVAL  => RXVAL,
-      RXERR  => RXERR,
-      RXACT  => RXACT,
-      TXSD   => I_RXD,
-      TXDATA => TXDATA,
-      TXENA  => TXENA,
-      TXBUSY => TXBUSY
+      CLK     => CLKCOM,
+      RESET   => RESET,
+      CLKDIV  => CLKDIV,
+      ENAXON  => R_PORTSEL_XON,
+      ENAESC  => '0',
+      RXDATA  => RXDATA,
+      RXVAL   => RXVAL,
+      RXERR   => RXERR,
+      RXOK    => '1',
+      TXDATA  => TXDATA,
+      TXENA   => TXENA,
+      TXBUSY  => TXBUSY,
+      RXSD    => O_TXD,
+      TXSD    => I_RXD,
+      RXRTS_N => open,
+      TXCTS_N => '0'
     );
 
   proc_moni: process
@@ -171,5 +180,14 @@ begin
     end loop;
     
   end process proc_moni;
+
+  proc_simbus: process (SB_VAL)
+  begin
+    if SB_VAL'event and to_x01(SB_VAL)='1' then
+      if SB_ADDR = sbaddr_portsel then
+        R_PORTSEL_XON <= to_x01(SB_DATA(1));
+      end if;
+    end if;
+  end process proc_simbus;
 
 end sim;

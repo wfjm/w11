@@ -1,6 +1,6 @@
--- $Id: sys_tst_rlink_s3.vhd 614 2014-12-20 15:00:45Z mueller $
+-- $Id: sys_tst_rlink_s3.vhd 672 2015-05-02 21:58:28Z mueller $
 --
--- Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -35,6 +35,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-04-11   666   1.2.1  rearrange XON handling
 -- 2014-11-09   603   1.2    use new rlink v4 iface and 4 bit STAT
 -- 2014-08-15   583   1.1    rb_mreq addr now 16 bit
 -- 2011-12-22   442   1.0    Initial version (derived from sys_tst_rlink_n2)
@@ -198,7 +199,9 @@ begin
       ENAPIN_RLMON => sbcntl_sbf_rlmon,
       ENAPIN_RBMON => sbcntl_sbf_rbmon,
       CDWIDTH      => 15,
-      CDINIT       => sys_conf_ser2rri_cdinit)
+      CDINIT       => sys_conf_ser2rri_cdinit,
+      RBMON_AWIDTH => 0,
+      RBMON_RBADDR => x"ffe8")
     port map (
       CLK      => CLK,
       CE_USEC  => CE_USEC,
@@ -206,7 +209,7 @@ begin
       CE_INT   => CE_MSEC,
       RESET    => RESET,
       ENAXON   => SWI(1),
-      ENAESC   => SWI(1),
+      ESCFILL  => '0',
       RXSD     => RXD,
       TXSD     => TXD,
       CTS_N    => CTS_N,

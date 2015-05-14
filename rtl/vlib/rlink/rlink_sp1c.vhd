@@ -1,6 +1,6 @@
--- $Id: rlink_sp1c.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: rlink_sp1c.vhd 672 2015-05-02 21:58:28Z mueller $
 --
--- Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -17,6 +17,8 @@
 --
 -- Dependencies:   rlink_core8
 --                 serport/serport_1clock
+--                 rbus/rbd_rbmon
+--                 rbus/rb_sres_or_2
 --
 -- Test bench:     -
 --
@@ -25,10 +27,13 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri ifa ofa
+-- 2015-05-02   672 14.7  131013 xc6slx16-2   495  671   56  255 s  8.8   -   -
 -- 2011-12-09   437 13.1    O40d xc3s1000-4   337  733   64  469 s  9.8   -   -
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-05-02   672   4.2    add rbd_rbmon (optional via generics)
+-- 2015-04-11   666   4.1    rename ENAESC->ESCFILL, rearrange XON handling
 -- 2014-08-28   588   4.0    use rlink v4 iface, 4 bit STAT
 -- 2011-12-09   437   1.0    Initial version 
 ------------------------------------------------------------------------------
@@ -39,6 +44,7 @@ use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.rblib.all;
+use work.rbdlib.all;
 use work.rlinklib.all;
 use work.serportlib.all;
 
@@ -53,7 +59,9 @@ entity rlink_sp1c is                    -- rlink_core8+serport_1clock combo
     ENAPIN_RLBMON: integer := -1;       -- SB_CNTL for rlbmon (-1=none)
     ENAPIN_RBMON : integer := -1;       -- SB_CNTL for rbmon  (-1=none)
     CDWIDTH : positive := 13;           -- clk divider width
-    CDINIT : natural   := 15);          -- clk divider initial/reset setting
+    CDINIT : natural   := 15;           -- clk divider initial/reset setting
+    RBMON_AWIDTH : natural := 0;        -- rbmon: buffer size, (0=none)
+    RBMON_RBADDR : slv16 := slv(to_unsigned(16#ffe8#,16))); -- rbmon: base addr
   port (
     CLK  : in slbit;                    -- clock
     CE_USEC : in slbit;                 -- 1 usec clock enable
@@ -61,7 +69,7 @@ entity rlink_sp1c is                    -- rlink_core8+serport_1clock combo
     CE_INT : in slbit := '0';           -- rri ato time unit clock enable
     RESET  : in slbit;                  -- reset
     ENAXON : in slbit;                  -- enable xon/xoff handling
-    ENAESC : in slbit;                  -- enable xon/xoff escaping
+    ESCFILL : in slbit;                 -- enable fill escaping
     RXSD : in slbit;                    -- receive serial data      (board view)
     TXSD : out slbit;                   -- transmit serial data     (board view)
     CTS_N : in slbit := '0';            -- clear to send   (act.low, board view)
@@ -85,9 +93,13 @@ architecture syn of rlink_sp1c is
   signal RLB_VAL : slbit := '0';
   signal RLB_HOLD : slbit := '0';
 
+  signal RB_MREQ_M     : rb_mreq_type := rb_mreq_init;
+  signal RB_SRES_M     : rb_sres_type := rb_sres_init;
+  signal RB_SRES_RBMON : rb_sres_type := rb_sres_init;
+
 begin
   
-  CORE : rlink_core8
+  CORE : rlink_core8                    -- rlink master ----------------------
     generic map (
       BTOWIDTH     => BTOWIDTH,
       RTAWIDTH     => RTAWIDTH,
@@ -99,6 +111,8 @@ begin
       CLK        => CLK,
       CE_INT     => CE_INT,
       RESET      => RESET,
+      ESCXON     => ENAXON,
+      ESCFILL    => ESCFILL,
       RLB_DI     => RLB_DI,
       RLB_ENA    => RLB_ENA,
       RLB_BUSY   => RLB_BUSY,
@@ -106,13 +120,13 @@ begin
       RLB_VAL    => RLB_VAL,
       RLB_HOLD   => RLB_HOLD,
       RL_MONI    => RL_MONI,
-      RB_MREQ    => RB_MREQ,
-      RB_SRES    => RB_SRES,
+      RB_MREQ    => RB_MREQ_M,
+      RB_SRES    => RB_SRES_M,
       RB_LAM     => RB_LAM,
       RB_STAT    => RB_STAT
     );
   
-  SERPORT : serport_1clock
+  SERPORT : serport_1clock              -- serport interface -----------------
     generic map (
       CDWIDTH   => CDWIDTH,
       CDINIT    => CDINIT,
@@ -123,7 +137,7 @@ begin
       CE_MSEC  => CE_MSEC,
       RESET    => RESET,
       ENAXON   => ENAXON,
-      ENAESC   => ENAESC,
+      ENAESC   => '0',                  -- escaping now in rlink_core8
       RXDATA   => RLB_DI,
       RXVAL    => RLB_ENA,
       RXHOLD   => RLB_BUSY,
@@ -137,4 +151,28 @@ begin
       TXCTS_N  => CTS_N
     );
   
+  RBMON : if RBMON_AWIDTH > 0 generate  -- rbus monitor --------------
+  begin
+    I0 : rbd_rbmon
+      generic map (
+        RB_ADDR => RBMON_RBADDR,
+        AWIDTH  => RBMON_AWIDTH)
+      port map (
+        CLK         => CLK,
+        RESET       => RESET,
+        RB_MREQ     => RB_MREQ_M,
+        RB_SRES     => RB_SRES_RBMON,
+        RB_SRES_SUM => RB_SRES_M
+      );
+  end generate RBMON;
+
+  RB_SRES_OR : rb_sres_or_2             -- rbus or ---------------------------
+    port map (
+      RB_SRES_1  => RB_SRES,
+      RB_SRES_2  => RB_SRES_RBMON,
+      RB_SRES_OR => RB_SRES_M
+    );
+
+  RB_MREQ         <= RB_MREQ_M;         -- setup output signals
+
 end syn;

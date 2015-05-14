@@ -1,4 +1,4 @@
--- $Id: sys_tst_rlink_n4.vhd 643 2015-02-07 17:41:53Z mueller $
+-- $Id: sys_tst_rlink_n4.vhd 672 2015-05-02 21:58:28Z mueller $
 --
 -- Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -34,6 +34,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-04-11   666   1.4.1  rearrange XON handling
 -- 2015-02-06   643   1.4    factor out memory
 -- 2015-02-01   641   1.3.1  separate I_BTNRST_N; autobaud on msb of display
 -- 2015-01-31   640   1.3    drop fusp iface; use new sn_hio
@@ -208,7 +209,9 @@ begin
       ENAPIN_RLMON => sbcntl_sbf_rlmon,
       ENAPIN_RBMON => sbcntl_sbf_rbmon,
       CDWIDTH      => 15,
-      CDINIT       => sys_conf_ser2rri_cdinit)
+      CDINIT       => sys_conf_ser2rri_cdinit,
+      RBMON_AWIDTH => 0,
+      RBMON_RBADDR => x"ffe8")
     port map (
       CLK      => CLK,
       CE_USEC  => CE_USEC,
@@ -216,7 +219,7 @@ begin
       CE_INT   => CE_MSEC,
       RESET    => RESET,
       ENAXON   => SWI(1),
-      ENAESC   => SWI(1),
+      ESCFILL  => '0',
       RXSD     => RXD,
       TXSD     => TXD,
       CTS_N    => CTS_N,

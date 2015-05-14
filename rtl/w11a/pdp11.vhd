@@ -1,6 +1,6 @@
--- $Id: pdp11.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: pdp11.vhd 677 2015-05-09 21:52:32Z mueller $
 --
--- Copyright 2006-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,6 +20,9 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-05-09   677   1.6    start/stop/suspend overhaul; reset overhaul
+-- 2015-05-01   672   1.5.5  add pdp11_sys70, sys_hio70
+-- 2015-04-30   670   1.5.4  rename pdp11_sys70 -> pdp11_reg70
 -- 2015-02-20   649   1.5.3  add pdp11_statleds
 -- 2015-02-08   644   1.5.2  add pdp11_bram_memctl
 -- 2014-08-28   588   1.5.1  use new rlink v4 iface and 4 bit STAT
@@ -343,12 +346,18 @@ package pdp11 is
     cmdmerr : slbit;                    -- command memory access error
     cpugo   : slbit;                    -- CPU go state
     cpustep : slbit;                    -- CPU step flag
-    cpuhalt : slbit;                    -- CPU halt flag
+    cpususp : slbit;                    -- CPU susp flag
     cpuwait : slbit;                    -- CPU wait flag
     cpurust : slv4;                     -- CPU run status
+    suspint : slbit;                    -- internal suspend flag
+    suspext : slbit;                    -- external suspend flag
     cpfunc  : slv5;                     -- current control port function
     cprnum  : slv3;                     -- current control port register number
     waitsusp : slbit;                   -- WAIT instruction suspended
+    itimer : slbit;                     -- ITIMER pulse
+    creset : slbit;                     -- CRESET pulse
+    breset : slbit;                     -- BRESET pulse
+    intack : slbit;                     -- INT_ACK pulse
     intvect  : slv9_2;                  -- current interrupt vector
     trap_mmu : slbit;                   -- mmu trace trap pending
     trap_ysv : slbit;                   -- ysv trap pending
@@ -358,11 +367,13 @@ package pdp11 is
   end record cpustat_type;
 
   constant cpustat_init : cpustat_type := (
-    '0','0','0','0',                    -- cmd..
-    '0','0','0','0',                    -- cpu..
+    '0','0','0','0',                    -- cmdbusy,cmdack,cmderr,cmdmerr
+    '0','0','0','0',                    -- cpugo,cpustep,cpususp,cpuwait
     c_cpurust_init,                     -- cpurust
+    '0','0',                            -- suspint,suspext
     "00000","000",                      -- cpfunc, cprnum
     '0',                                -- waitsusp
+    '0','0','0','0',                    -- itimer,creset,breset,intack
     (others=>'0'),                      -- intvect 
     '0','0','0',                        -- trap_(mmu|ysv), prefdone
     '0','0'                             -- do_gprwe, do_intrsv
@@ -529,18 +540,21 @@ package pdp11 is
     rnum : slv3;                        -- register number
   end record cp_cntl_type;
 
-  constant c_cpfunc_noop : slv5 := "00000";  -- noop : no operation
-  constant c_cpfunc_sta  : slv5 := "00001";  -- sta  : cpu start
-  constant c_cpfunc_sto  : slv5 := "00010";  -- sto  : cpu stop 
-  constant c_cpfunc_cont : slv5 := "00011";  -- cont : cpu continue
-  constant c_cpfunc_step : slv5 := "00100";  -- step : cpu step 
-  constant c_cpfunc_rst  : slv5 := "01111";  -- rst  : cpu reset (soft)
-  constant c_cpfunc_rreg : slv5 := "10000";  -- rreg : read register
-  constant c_cpfunc_wreg : slv5 := "10001";  -- wreg : write register
-  constant c_cpfunc_rpsw : slv5 := "10010";  -- rpsw : read psw
-  constant c_cpfunc_wpsw : slv5 := "10011";  -- wpsw : write psw
-  constant c_cpfunc_rmem : slv5 := "10100";  -- rmem : read memory
-  constant c_cpfunc_wmem : slv5 := "10101";  -- wmem : write memory
+  constant c_cpfunc_noop    : slv5 := "00000";  -- noop : no operation
+  constant c_cpfunc_start   : slv5 := "00001";  -- sta  : cpu start
+  constant c_cpfunc_stop    : slv5 := "00010";  -- sto  : cpu stop 
+  constant c_cpfunc_step    : slv5 := "00011";  -- cont : cpu step
+  constant c_cpfunc_creset  : slv5 := "00100";  -- step : cpu cpu reset
+  constant c_cpfunc_breset  : slv5 := "00101";  -- rst  : cpu bus reset
+  constant c_cpfunc_suspend : slv5 := "00110";  -- rst  : cpu suspend
+  constant c_cpfunc_resume  : slv5 := "00111";  -- rst  : cpu resume
+
+  constant c_cpfunc_rreg    : slv5 := "10000";  -- rreg : read register
+  constant c_cpfunc_wreg    : slv5 := "10001";  -- wreg : write register
+  constant c_cpfunc_rpsw    : slv5 := "10010";  -- rpsw : read psw
+  constant c_cpfunc_wpsw    : slv5 := "10011";  -- wpsw : write psw
+  constant c_cpfunc_rmem    : slv5 := "10100";  -- rmem : read memory
+  constant c_cpfunc_wmem    : slv5 := "10101";  -- wmem : write memory
 
   constant cp_cntl_init : cp_cntl_type := ('0',c_cpfunc_noop,"000");
 
@@ -551,15 +565,18 @@ package pdp11 is
     cmdmerr : slbit;                    -- command memory access error
     cpugo : slbit;                      -- CPU go state
     cpustep : slbit;                    -- CPU step flag
-    cpuhalt : slbit;                    -- CPU halt flag
     cpuwait : slbit;                    -- CPU wait flag
+    cpususp : slbit;                    -- CPU susp flag
     cpurust : slv4;                     -- CPU run status
+    suspint : slbit;                    -- internal suspend
+    suspext : slbit;                    -- external suspend
   end record cp_stat_type;
 
   constant cp_stat_init : cp_stat_type := (
     '0','0','0','0',                    -- cmd...
     '0','0','0','0',                    -- cpu...
-    (others=>'0')                       -- cpurust
+    (others=>'0'),                      -- cpurust
+    '0','0'                             -- susp...
   );
 
   type cp_addr_type is record           -- control port address
@@ -619,10 +636,15 @@ package pdp11 is
 
   type dm_stat_co_type is record        -- debug and monitor status - core
     cpugo : slbit;                      -- cpugo state flag
-    cpuhalt : slbit;                    -- cpuhalt state flag
+    cpususp : slbit;                    -- cpususp state flag
+    suspint : slbit;                    -- suspint state flag
+    suspext : slbit;                    -- suspext state flag
   end record dm_stat_co_type;
 
-  constant dm_stat_co_init : dm_stat_co_type := ('0','0');
+  constant dm_stat_co_init : dm_stat_co_type := (
+    '0','0',                            -- cpu...
+    '0','0'                             -- susp...
+  );
 
   type dm_stat_sy_type is record        -- debug and monitor status - system
     emmreq : em_mreq_type;              -- external memory: request
@@ -630,7 +652,11 @@ package pdp11 is
     chit : slbit;                       -- cache hit
   end record dm_stat_sy_type;
 
-  constant dm_stat_sy_init : dm_stat_sy_type := (em_mreq_init,em_sres_init,'0');
+  constant dm_stat_sy_init : dm_stat_sy_type := (
+    em_mreq_init,                       -- emmreq
+    em_sres_init,                       -- emsres
+    '0'                                 -- chit
+  );
 
 -- rbus interface definitions ------------------------------------------------
 
@@ -659,11 +685,13 @@ package pdp11 is
   constant c_ah_rbf_ena_22bit:  integer :=  6;                 -- ah: 22bit
   subtype  c_ah_rbf_addr        is integer range  5 downto 0;  -- ah: address
 
-  constant c_stat_rbf_cmderr:   integer := 0;  -- stat field: cmderr
-  constant c_stat_rbf_cmdmerr:  integer := 1;  -- stat field: cmdmerr
-  constant c_stat_rbf_cpugo:    integer := 2;  -- stat field: cpugo
-  constant c_stat_rbf_cpuhalt:  integer := 3;  -- stat field: cpuhalt
+  constant c_stat_rbf_suspext:  integer := 9;  -- stat field: suspext
+  constant c_stat_rbf_suspint:  integer := 8;  -- stat field: suspint
   subtype  c_stat_rbf_cpurust   is integer range  7 downto  4;  -- cpurust
+  constant c_stat_rbf_cpususp:  integer := 3;  -- stat field: cpususp
+  constant c_stat_rbf_cpugo:    integer := 2;  -- stat field: cpugo
+  constant c_stat_rbf_cmdmerr:  integer := 1;  -- stat field: cmdmerr
+  constant c_stat_rbf_cmderr:   integer := 0;  -- stat field: cmderr
 
   subtype  c_membe_rbf_be       is integer range  1 downto 0; -- membe: be's
   constant c_membe_rbf_stick:   integer := 2;  -- membe: sticky flag
@@ -694,7 +722,7 @@ constant c_gpr_pc : slv3 := "111";      -- register number of PC
 component pdp11_psr is                  -- processor status word register
   port (
     CLK : in slbit;                     -- clock
-    CRESET : in slbit;                  -- console reset
+    CRESET : in slbit;                  -- cpu reset
     DIN : in slv16;                     -- input data
     CCIN : in slv4;                     -- cc input
     CCWE : in slbit;                    -- enable update cc
@@ -843,7 +871,7 @@ end component;
 component pdp11_mmu_ssr12 is            -- mmu register ssr1 and ssr2
   port (
     CLK : in slbit;                     -- clock
-    CRESET : in slbit;                  -- console reset
+    CRESET : in slbit;                  -- cpu reset
     TRACE : in slbit;                   -- trace enable
     MONI : in mmu_moni_type;            -- MMU monitor port data
     IB_MREQ : in ib_mreq_type;          -- ibus request
@@ -854,8 +882,8 @@ end component;
 component pdp11_mmu is                  -- mmu - memory management unit
   port (
     CLK : in slbit;                     -- clock
-    CRESET : in slbit;                  -- console reset
-    BRESET : in slbit;                  -- ibus reset
+    CRESET : in slbit;                  -- cpu reset
+    BRESET : in slbit;                  -- bus reset
     CNTL : in mmu_cntl_type;            -- control port
     VADDR : in slv16;                   -- virtual address
     MONI : in mmu_moni_type;            -- monitor port
@@ -869,9 +897,9 @@ end component;
 component pdp11_vmbox is                -- virtual memory
   port (
     CLK : in slbit;                     -- clock
-    GRESET : in slbit;                  -- global reset
-    CRESET : in slbit;                  -- console reset
-    BRESET : in slbit;                  -- ibus reset
+    GRESET : in slbit;                  -- general reset
+    CRESET : in slbit;                  -- cpu reset
+    BRESET : in slbit;                  -- bus reset
     CP_ADDR : in cp_addr_type;          -- console port address
     VM_CNTL : in vm_cntl_type;          -- vm control port
     VM_ADDR : in slv16;                 -- vm address
@@ -891,7 +919,7 @@ end component;
 component pdp11_dpath is                -- CPU datapath
   port (
     CLK : in slbit;                     -- clock
-    CRESET : in slbit;                  -- console reset
+    CRESET : in slbit;                  -- cpu reset
     CNTL : in dpath_cntl_type;          -- control interface
     STAT : out dpath_stat_type;         -- status interface
     CP_DIN : in slv16;                  -- console port data in
@@ -904,7 +932,7 @@ component pdp11_dpath is                -- CPU datapath
     VM_DIN : out slv16;                 -- virt. memory data in
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response
-    DM_STAT_DP : out dm_stat_dp_type    -- debug and monitor status
+    DM_STAT_DP : out dm_stat_dp_type    -- debug and monitor status - dpath
   );
 end component;
 
@@ -918,7 +946,7 @@ end component;
 component pdp11_sequencer is            -- cpu sequencer
   port (
     CLK : in slbit;                     -- clock
-    GRESET : in slbit;                  -- global reset
+    GRESET : in slbit;                  -- general reset
     PSW : in psw_type;                  -- processor status
     PC : in slv16;                      -- program counter
     IREG : in slv16;                    -- IREG
@@ -928,13 +956,18 @@ component pdp11_sequencer is            -- cpu sequencer
     VM_STAT : in vm_stat_type;          -- virtual memory status port
     INT_PRI : in slv3;                  -- interrupt priority
     INT_VECT : in slv9_2;               -- interrupt vector
-    CRESET : out slbit;                 -- console reset
-    BRESET : out slbit;                 -- ibus reset
+    INT_ACK : out slbit;                -- interrupt acknowledge
+    CRESET : out slbit;                 -- cpu reset
+    BRESET : out slbit;                 -- bus reset
     MMU_MONI : out mmu_moni_type;       -- mmu monitor port
     DP_CNTL : out dpath_cntl_type;      -- data path control
     VM_CNTL : out vm_cntl_type;         -- virtual memory control port
     CP_STAT : out cp_stat_type;         -- console port status
-    INT_ACK : out slbit;                -- interrupt acknowledge
+    ESUSP_O : out slbit;                -- external suspend output
+    ESUSP_I : in slbit;                 -- external suspend input
+    ITIMER : out slbit;                 -- instruction timer
+    EBREAK : in slbit;                  -- execution break
+    DBREAK : in slbit;                  -- data break
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type          -- ibus response    
   );
@@ -943,7 +976,7 @@ end component;
 component pdp11_irq is                  -- interrupt requester
   port (
     CLK : in slbit;                     -- clock
-    BRESET : in slbit;                  -- ibus reset
+    BRESET : in slbit;                  -- bus reset
     INT_ACK : in slbit;                 -- interrupt acknowledge from CPU
     EI_PRI : in slv3;                   -- external interrupt priority
     EI_VECT : in slv9_2;                -- external interrupt vector
@@ -966,10 +999,10 @@ component pdp11_ubmap is                -- 11/70 unibus mapper
   );
 end component;
 
-component pdp11_sys70 is                -- 11/70 memory system registers
+component pdp11_reg70 is                -- 11/70 memory system registers
   port (
     CLK : in slbit;                     -- clock
-    CRESET : in slbit;                  -- console reset
+    CRESET : in slbit;                  -- cpu reset
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type          -- ibus response
   );
@@ -978,7 +1011,7 @@ end component;
 component pdp11_mem70 is                -- 11/70 memory system registers
   port (
     CLK : in slbit;                     -- clock
-    CRESET : in slbit;                  -- console reset
+    CRESET : in slbit;                  -- cpu reset
     HM_ENA : in slbit;                  -- hit/miss enable
     HM_VAL : in slbit;                  -- hit/miss value
     CACHE_FMISS : out slbit;            -- cache force miss
@@ -990,7 +1023,7 @@ end component;
 component pdp11_cache is                -- cache
   port (
     CLK : in slbit;                     -- clock
-    GRESET : in slbit;                  -- global reset
+    GRESET : in slbit;                  -- general reset
     EM_MREQ : in em_mreq_type;          -- em request
     EM_SRES : out em_sres_type;         -- em response
     FMISS : in slbit;                   -- force miss
@@ -1015,12 +1048,18 @@ component pdp11_core is                 -- full processor core
     CP_DIN : in slv16;                  -- console data in
     CP_STAT : out cp_stat_type;         -- console status port
     CP_DOUT : out slv16;                -- console data out
+    ESUSP_O : out slbit;                -- external suspend output
+    ESUSP_I : in slbit;                 -- external suspend input
+    ITIMER : out slbit;                 -- instruction timer
+    EBREAK : in slbit;                  -- execution break
+    DBREAK : in slbit;                  -- data break
     EI_PRI : in slv3;                   -- external interrupt priority
     EI_VECT : in slv9_2;                -- external interrupt vector
     EI_ACKM : out slbit;                -- external interrupt acknowledge
     EM_MREQ : out em_mreq_type;         -- external memory: request
     EM_SRES : in em_sres_type;          -- external memory: response
-    BRESET : out slbit;                 -- ibus reset
+    CRESET : out slbit;                 -- cpu reset
+    BRESET : out slbit;                 -- bus reset
     IB_MREQ_M : out ib_mreq_type;       -- ibus master request (master)
     IB_SRES_M : in ib_sres_type;        -- ibus slave response (master)
     DM_STAT_DP : out dm_stat_dp_type;   -- debug and monitor status - dpath
@@ -1033,10 +1072,10 @@ component pdp11_tmu is                  -- trace and monitor unit
   port (
     CLK : in slbit;                     -- clock
     ENA : in slbit := '0';              -- enable trace output
-    DM_STAT_DP : in dm_stat_dp_type;    -- DM dpath
-    DM_STAT_VM : in dm_stat_vm_type;    -- DM vmbox
-    DM_STAT_CO : in dm_stat_co_type;    -- DM core
-    DM_STAT_SY : in dm_stat_sy_type     -- DM system
+    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - dpath
+    DM_STAT_VM : in dm_stat_vm_type;    -- debug and monitor status - vmbox
+    DM_STAT_CO : in dm_stat_co_type;    -- debug and monitor status - core
+    DM_STAT_SY : in dm_stat_sy_type     -- debug and monitor status - system
   );
 end component;
 
@@ -1045,10 +1084,10 @@ component pdp11_tmu_sb is               -- trace and mon. unit; simbus wrapper
     ENAPIN : integer := 13);            -- SB_CNTL signal to use for enable
    port (
     CLK : in slbit;                     -- clock
-    DM_STAT_DP : in dm_stat_dp_type;    -- DM dpath
-    DM_STAT_VM : in dm_stat_vm_type;    -- DM vmbox
-    DM_STAT_CO : in dm_stat_co_type;    -- DM core
-    DM_STAT_SY : in dm_stat_sy_type     -- DM system
+    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - dpath
+    DM_STAT_VM : in dm_stat_vm_type;    -- debug and monitor status - vmbox
+    DM_STAT_CO : in dm_stat_co_type;    -- debug and monitor status - core
+    DM_STAT_SY : in dm_stat_sy_type     -- debug and monitor status - system
   );
 end component;
 
@@ -1057,7 +1096,7 @@ component pdp11_du_drv is               -- display unit low level driver
     CDWIDTH : positive :=  3);          -- clock divider width
   port (
     CLK : in slbit;                     -- clock
-    GRESET : in slbit;                  -- global reset
+    GRESET : in slbit;                  -- general reset
     ROW0 : in slv22;                    -- led row 0 (22 leds, top)
     ROW1 : in slv16;                    -- led row 1 (16 leds)
     ROW2 : in slv16;                    -- led row 2 (16 leds)
@@ -1076,7 +1115,7 @@ component pdp11_bram is                 -- BRAM based ext. memory dummy
     AWIDTH : positive := 14);           -- address width
   port (
     CLK : in slbit;                     -- clock
-    GRESET : in slbit;                  -- global reset
+    GRESET : in slbit;                  -- general reset
     EM_MREQ : in em_mreq_type;          -- em request
     EM_SRES : out em_sres_type          -- em response
   );
@@ -1108,7 +1147,7 @@ component pdp11_statleds is             -- status leds
     MEM_ACT_R : in slbit;               -- memory active read
     MEM_ACT_W : in slbit;               -- memory active write
     CP_STAT : in cp_stat_type;          -- console port status
-    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status
+    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - dpath
     STATLEDS : out slv8                 -- 8 bit CPU status 
   );
 end component;
@@ -1119,7 +1158,7 @@ component pdp11_ledmux is               -- hio led mux
   port (
     SEL : in slbit;                     -- select (0=stat;1=dr)
     STATLEDS : in slv8;                 -- 8 bit CPU status
-    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status
+    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - dpath
     LED : out slv(LWIDTH-1 downto 0)    -- hio leds
   );
 end component;
@@ -1130,7 +1169,7 @@ component pdp11_dspmux is               -- hio dsp mux
   port (
     SEL : in slv2;                      -- select
     ABCLKDIV : in slv16;                -- serport clock divider
-    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status
+    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - dpath
     DISPREG : in slv16;                 -- display register
     DSP_DAT : out slv(4*(2**DCWIDTH)-1 downto 0)  -- display data
   );
@@ -1147,12 +1186,60 @@ component pdp11_core_rbus is            -- core to rbus interface
     RB_SRES : out rb_sres_type;         -- rbus: response
     RB_STAT : out slv4;                 -- rbus: status flags
     RB_LAM : out slbit;                 -- remote attention
-    CPU_RESET : out slbit;              -- cpu master reset
+    GRESET : out slbit;                 -- general reset
     CP_CNTL : out cp_cntl_type;         -- console control port
     CP_ADDR : out cp_addr_type;         -- console address port
     CP_DIN : out slv16;                 -- console data in
     CP_STAT : in cp_stat_type;          -- console status port
     CP_DOUT : in slv16                  -- console data out
+  );
+end component;
+
+component pdp11_sys70 is                -- 11/70 system 1 core +rbus,debug,cache
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit;                   -- reset
+    RB_MREQ : in rb_mreq_type;          -- rbus request  (slave)
+    RB_SRES : out rb_sres_type;         -- rbus response
+    RB_STAT : out slv4;                 -- rbus status flags
+    RB_LAM_CPU : out slbit;             -- rbus lam (cpu)
+    GRESET : out slbit;                 -- general reset (from rbus)
+    CRESET : out slbit;                 -- cpu reset     (from cp)
+    BRESET : out slbit;                 -- bus reset     (from cp or cpu)
+    CP_STAT : out cp_stat_type;         -- console port status
+    EI_PRI  : in slv3;                  -- external interrupt priority
+    EI_VECT : in slv9_2;                -- external interrupt vector
+    EI_ACKM : out slbit;                -- external interrupt acknowledge
+    ITIMER : out slbit;                 -- instruction timer
+    IB_MREQ : out ib_mreq_type;         -- ibus request  (master)
+    IB_SRES : in ib_sres_type;          -- ibus response (from IO system)
+    MEM_REQ : out slbit;                -- memory: request
+    MEM_WE : out slbit;                 -- memory: write enable
+    MEM_BUSY : in slbit;                -- memory: controller busy
+    MEM_ACK_R : in slbit;               -- memory: acknowledge read
+    MEM_ADDR : out slv20;               -- memory: address
+    MEM_BE : out slv4;                  -- memory: byte enable
+    MEM_DI : out slv32;                 -- memory: data in  (memory view)
+    MEM_DO : in slv32;                  -- memory: data out (memory view)
+    DM_STAT_DP : out dm_stat_dp_type    -- debug and monitor status - dpath
+  );
+end component;
+
+component pdp11_hio70 is                -- hio led and dsp for sys70
+  generic (
+    LWIDTH : positive := 8;             -- led width
+    DCWIDTH : positive := 2);           -- digit counter width (2 or 3)
+  port (
+    SEL_LED : in slbit;                 -- led select (0=stat;1=dr)
+    SEL_DSP : in slv2;                  -- dsp select
+    MEM_ACT_R : in slbit;               -- memory active read
+    MEM_ACT_W : in slbit;               -- memory active write
+    CP_STAT : in cp_stat_type;          -- console port status
+    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status
+    ABCLKDIV : in slv16;                -- serport clock divider
+    DISPREG : in slv16;                 -- display register
+    LED : out slv(LWIDTH-1 downto 0);   -- hio leds
+    DSP_DAT : out slv(4*(2**DCWIDTH)-1 downto 0)  -- display data
   );
 end component;
 

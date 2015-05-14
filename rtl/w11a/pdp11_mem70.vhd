@@ -1,4 +1,4 @@
--- $Id: pdp11_mem70.vhd 644 2015-02-08 22:56:54Z mueller $
+-- $Id: pdp11_mem70.vhd 677 2015-05-09 21:52:32Z mueller $
 --
 -- Copyright 2008-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -43,7 +43,7 @@ use work.sys_conf.all;
 entity pdp11_mem70 is                   -- 11/70 memory system registers
   port (
     CLK : in slbit;                     -- clock
-    CRESET : in slbit;                  -- console reset
+    CRESET : in slbit;                  -- cpu reset
     HM_ENA : in slbit;                  -- hit/miss enable
     HM_VAL : in slbit;                  -- hit/miss value
     CACHE_FMISS : out slbit;            -- cache force miss

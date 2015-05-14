@@ -1,6 +1,6 @@
--- $Id: fx2rlinklib.vhd 610 2014-12-09 22:44:43Z mueller $
+-- $Id: fx2rlinklib.vhd 672 2015-05-02 21:58:28Z mueller $
 --
--- Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,6 +20,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-04-11   666   1.2    rlink_sp1c_fx2: drop ENAESC
 -- 2014-08-28   588   1.1    use new rlink v4 iface generics and 4 bit STAT
 -- 2013-04-20   509   1.0    Initial version 
 ------------------------------------------------------------------------------
@@ -53,7 +54,9 @@ component rlink_sp1c_fx2 is             -- rlink_core8+serport_1clk+fx2_ic combo
     ENAPIN_RLBMON: integer := -1;       -- SB_CNTL for rlbmon (-1=none)
     ENAPIN_RBMON : integer := -1;       -- SB_CNTL for rbmon  (-1=none)
     CDWIDTH : positive := 13;           -- clk divider width
-    CDINIT : natural   := 15);          -- clk divider initial/reset setting
+    CDINIT : natural   := 15;           -- clk divider initial/reset setting
+    RBMON_AWIDTH : natural := 0;        -- rbmon: buffer size (0=none)
+    RBMON_RBADDR : slv16 := slv(to_unsigned(16#ffe8#,16))); -- rbmon: base addr
   port (
     CLK  : in slbit;                    -- clock
     CE_USEC : in slbit;                 -- 1 usec clock enable
@@ -61,7 +64,6 @@ component rlink_sp1c_fx2 is             -- rlink_core8+serport_1clk+fx2_ic combo
     CE_INT : in slbit := '0';           -- rri ato time unit clock enable
     RESET  : in slbit;                  -- reset
     ENAXON : in slbit;                  -- enable xon/xoff handling
-    ENAESC : in slbit;                  -- enable xon/xoff escaping
     ENAFX2 : in slbit;                  -- enable fx2 usage
     RXSD : in slbit;                    -- receive serial data      (board view)
     TXSD : out slbit;                   -- transmit serial data     (board view)

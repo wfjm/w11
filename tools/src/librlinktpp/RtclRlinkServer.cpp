@@ -1,6 +1,6 @@
-// $Id: RtclRlinkServer.cpp 632 2015-01-11 12:30:03Z mueller $
+// $Id: RtclRlinkServer.cpp 662 2015-04-05 08:02:54Z mueller $
 //
-// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-04-04   662   1.1    add M_get, M_set; remove 'server -trace'
 // 2014-08-22   584   1.0.6  use nullptr
 // 2013-05-01   513   1.0.5  TraceLevel now uint32_t
 // 2013-04-26   510   1.0.4  change M_attn, now -info instead of -show
@@ -24,7 +25,7 @@
 
 /*!
   \file
-  \version $Id: RtclRlinkServer.cpp 632 2015-01-11 12:30:03Z mueller $
+  \version $Id: RtclRlinkServer.cpp 662 2015-04-05 08:02:54Z mueller $
   \brief   Implemenation of class RtclRlinkServer.
  */
 
@@ -63,14 +64,40 @@ namespace Retro {
 RtclRlinkServer::RtclRlinkServer(Tcl_Interp* interp, const char* name)
   : RtclProxyOwned<RlinkServer>("RlinkServer", interp, name, 
                                 new RlinkServer()),
-    fspConn()
+    fspConn(),
+    fGets(),
+    fSets()
 {
   AddMeth("server",   boost::bind(&RtclRlinkServer::M_server,  this, _1));
   AddMeth("attn",     boost::bind(&RtclRlinkServer::M_attn,    this, _1));
   AddMeth("stats",    boost::bind(&RtclRlinkServer::M_stats,   this, _1));
   AddMeth("print",    boost::bind(&RtclRlinkServer::M_print,   this, _1));
   AddMeth("dump",     boost::bind(&RtclRlinkServer::M_dump,    this, _1));
+  AddMeth("get",      boost::bind(&RtclRlinkServer::M_get,     this, _1));
+  AddMeth("set",      boost::bind(&RtclRlinkServer::M_set,     this, _1));
   AddMeth("$default", boost::bind(&RtclRlinkServer::M_default, this, _1));
+
+  // attributes of RlinkConnect
+  RlinkServer* pobj  = &Obj();
+  fGets.Add<uint32_t>  ("tracelevel", 
+                        boost::bind(&RlinkServer::TraceLevel, pobj));
+
+  fSets.Add<uint32_t>  ("tracelevel", 
+                        boost::bind(&RlinkServer::SetTraceLevel, pobj, _1));
+
+  // attributes of buildin RlinkContext
+  RlinkContext* pcntx = &Obj().Context();
+  fGets.Add<bool>      ("statchecked", 
+                        boost::bind(&RlinkContext::StatusIsChecked, pcntx));
+  fGets.Add<uint8_t>   ("statvalue", 
+                        boost::bind(&RlinkContext::StatusValue, pcntx));
+  fGets.Add<uint8_t>   ("statmask", 
+                        boost::bind(&RlinkContext::StatusMask, pcntx));
+
+  fSets.Add<uint8_t>   ("statvalue", 
+                        boost::bind(&RlinkContext::SetStatusValue, pcntx, _1));
+  fSets.Add<uint8_t>   ("statmask", 
+                        boost::bind(&RlinkContext::SetStatusMask, pcntx, _1));
 }
 
 //------------------------------------------+-----------------------------------
@@ -111,7 +138,7 @@ int RtclRlinkServer::ClassCmdConfig(RtclArgs& args)
 
 int RtclRlinkServer::M_server(RtclArgs& args)
 {
-  static RtclNameSet optset("-start|-stop|-resume|-test|-trace");
+  static RtclNameSet optset("-start|-stop|-resume|-test");
   string opt;
   if (args.NextOpt(opt, optset)) {
     if        (opt == "-start") {           // server -start
@@ -126,14 +153,6 @@ int RtclRlinkServer::M_server(RtclArgs& args)
     } else if (opt == "-test") {            // server -test
       if (!args.AllDone()) return kERR;
       args.SetResult(Obj().IsActive());
-    } else if (opt == "-trace") {           // server -trace ...
-      uint32_t level;
-      if (!args.GetArg("?level", level)) return kERR;
-      if (args.NOptMiss()==0) {             // server -trace level
-        Obj().SetTraceLevel(level);
-      } else {                              // server -trace
-        args.SetResult((int)Obj().TraceLevel());
-      }
     }
     
   } else {                                  // server
@@ -278,6 +297,26 @@ int RtclRlinkServer::M_dump(RtclArgs& args)
   Obj().Dump(sos, 0);
   args.SetResult(sos);
   return kOK;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+int RtclRlinkServer::M_get(RtclArgs& args)
+{
+  // synchronize with server thread (really needed ??)
+  boost::lock_guard<RlinkConnect> lock(Obj().Connect());
+  return fGets.M_get(args);
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+int RtclRlinkServer::M_set(RtclArgs& args)
+{
+  // synchronize with server thread (really needed ??)
+  boost::lock_guard<RlinkConnect> lock(Obj().Connect());
+  return fSets.M_set(args);
 }
 
 //------------------------------------------+-----------------------------------

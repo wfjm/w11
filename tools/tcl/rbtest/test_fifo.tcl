@@ -1,6 +1,6 @@
-# $Id: test_fifo.tcl 603 2014-11-09 22:50:26Z mueller $
+# $Id: test_fifo.tcl 662 2015-04-05 08:02:54Z mueller $
 #
-# Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-04-03   661   2.1    drop estatdef; use estaterr
 # 2014-11-09   603   2.0    use rlink v4 address layout and iface
 # 2011-03-27   374   1.0    Initial version
 # 2011-03-13   369   0.1    First draft
@@ -29,8 +30,6 @@ namespace eval rbtest {
   # Basic tests with cntl and fifo registers.
   #
   proc test_fifo {} {
-    set esdval 0x00
-    set esdmsk [regbld rlink::STAT {stat -1}]
     #
     set errcnt 0
     rlc errcnt -clear
@@ -42,11 +41,11 @@ namespace eval rbtest {
     #-------------------------------------------------------------------------
     rlc log "  test 1: fifo write/read with wreg/rreg"
     # single word
-    rlc exec -estatdef $esdval $esdmsk \
+    rlc exec \
       -wreg te.fifo 0x0000 \
-      -rreg te.fifo -estat 0x0000
+      -rreg te.fifo -estat 0x00
     # three words
-    rlc exec -estatdef $esdval $esdmsk \
+    rlc exec \
       -wreg te.fifo 0xdead \
       -wreg te.fifo 0xbeaf \
       -wreg te.fifo 0x1234 \
@@ -55,24 +54,24 @@ namespace eval rbtest {
       -rreg te.fifo -edata 0x1234 
     #
     #-------------------------------------------------------------------------
-    rlc log "  test 2: fifo write/read with wblk/rblk"
+    rlc log "  test 2: fifo write/read with wblk/rblk and -edone"
     # two words
     set blk {0x1111 0x2222}
-    rlc exec -estatdef $esdval $esdmsk \
-      -wblk te.fifo $blk \
-      -rblk te.fifo [llength $blk] -edata $blk
+    rlc exec \
+      -wblk te.fifo $blk -edone [llength $blk] \
+      -rblk te.fifo [llength $blk] -edata $blk -edone [llength $blk]
     # six words
     set blk {0x3333 0x4444 0x5555 0x6666 0x7777 0x8888}
-    rlc exec -estatdef $esdval $esdmsk \
-      -wblk te.fifo $blk \
-      -rblk te.fifo [llength $blk] -edata $blk
+    rlc exec \
+      -wblk te.fifo $blk -edone [llength $blk] \
+      -rblk te.fifo [llength $blk] -edata $blk -edone [llength $blk]
     #
     #-------------------------------------------------------------------------
-    rlc log "  test 3a: fifo read error (write 3, read 4)"
+    rlc log "  test 3a: fifo read error (write 3, read 4) and -edone"
     set blk {0xdead 0xbeaf 0x1234}
-    rlc exec -estatdef $esdval $esdmsk \
-      -wblk te.fifo $blk \
-      -rblk te.fifo 4 -edata $blk -estat [regbld rlink::STAT rberr] $esdmsk
+    rlc exec \
+      -wblk te.fifo $blk -edone [llength $blk] \
+      -rblk te.fifo 4 -edata $blk -edone 3 -estaterr
     #
     #
     rlc log "  test 3b: fifo write error (write 17, read 16)"
@@ -80,21 +79,21 @@ namespace eval rbtest {
     for { set i 0 } { $i < 17 } { incr i } {
       lappend blk [expr {$i | ( $i << 8 ) }]
     }
-    rlc exec -estatdef $esdval $esdmsk \
-      -wblk te.fifo $blk -estat [regbld rlink::STAT rberr] $esdmsk \
-      -rblk te.fifo 16 -edata [lrange $blk 0 15]
+    rlc exec \
+      -wblk te.fifo $blk -edone 16 -estaterr \
+      -rblk te.fifo 16 -edata [lrange $blk 0 15] -edone 16
     #
     #-------------------------------------------------------------------------
     rlc log "  test 4a: verify that init 100 clears fifo and not cntl&data"
     # check fifo empty; write a value; clear fifo via init; check fifo empty
     # check that cntl and data not affected
-    rlc exec -estatdef $esdval $esdmsk \
+    rlc exec \
       -wreg te.cntl [regbld rbtest::CNTL {nbusy 0x1}] \
       -wreg te.data 0x1234 \
-      -rreg te.fifo -estat [regbld rlink::STAT rberr] $esdmsk \
+      -rreg te.fifo -estaterr \
       -wreg te.fifo 0x4321 \
       -init te.cntl [regbld rbtest::INIT fifo] \
-      -rreg te.fifo -estat [regbld rlink::STAT rberr] $esdmsk \
+      -rreg te.fifo -estaterr \
       -rreg te.cntl -edata [regbld rbtest::CNTL {nbusy 0x1}] \
       -rreg te.data -edata 0x1234
     #
@@ -102,7 +101,7 @@ namespace eval rbtest {
     rlc log "  test 6: test that te.ncyc returns # of cycles for te.fifo w&r"
     foreach nbusy {0x03 0x07 0x0f 0x1f 0x00} {
       set valc [regbld rbtest::CNTL [list nbusy $nbusy]]
-      rlc exec -estatdef $esdval $esdmsk \
+      rlc exec \
         -wreg te.cntl $valc \
         -wreg te.fifo [expr {$nbusy | ( $nbusy << 8 ) }] \
         -rreg te.ncyc -edata [expr {$nbusy + 1 }] \
@@ -118,7 +117,7 @@ namespace eval rbtest {
         set bcode [expr {32 * $i + 2 * $j}]
         lappend blk [expr {( $bcode << 8 ) | ( $bcode + 1 )}]
       }
-      rlc exec -estatdef $esdval $esdmsk \
+      rlc exec \
         -wblk te.fifo $blk \
         -rblk te.fifo [llength $blk] -edata $blk
     }

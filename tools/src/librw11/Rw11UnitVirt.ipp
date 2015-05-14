@@ -1,6 +1,6 @@
-// $Id: Rw11UnitVirt.ipp 600 2014-11-02 22:33:02Z mueller $
+// $Id: Rw11UnitVirt.ipp 680 2015-05-14 13:29:46Z mueller $
 //
-// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-05-13   680   1.2    Attach(): check for Enabled()
 // 2014-11-02   600   1.1.1  add (bool) cast, needed in 4.8.2
 // 2013-05-03   515   1.1    use AttachDone(),DetachCleanup(),DetachDone()
 // 2013-03-03   494   1.0    Initial version
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: Rw11UnitVirt.ipp 600 2014-11-02 22:33:02Z mueller $
+  \version $Id: Rw11UnitVirt.ipp 680 2015-05-14 13:29:46Z mueller $
   \brief   Implemenation (inline) of Rw11UnitVirt.
 */
 
@@ -73,6 +74,10 @@ inline bool Rw11UnitVirt<TV>::Attach(const std::string& url, RerrMsg& emsg)
   // synchronize with server thread
   boost::lock_guard<RlinkConnect> lock(Connect());
   if (fpVirt) Detach();
+  if (!Enabled()) {
+    emsg.Init("Rw11UnitVirt::Attach","unit not enabled");
+    return false;
+  }
   fpVirt.reset(TV::New(url, this, emsg));
   if (fpVirt) AttachDone();
   return (bool)fpVirt;

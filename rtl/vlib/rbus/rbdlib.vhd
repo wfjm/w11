@@ -1,4 +1,4 @@
--- $Id: rbdlib.vhd 620 2014-12-25 10:48:35Z mueller $
+-- $Id: rbdlib.vhd 672 2015-05-02 21:58:28Z mueller $
 --
 -- Copyright 2010-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -63,7 +63,7 @@ end component;
 component rbd_rbmon is                  -- rbus dev: rbus monitor
   generic (
     RB_ADDR : slv16 := rbaddr_rbmon;
-    AWIDTH : positive := 9);
+    AWIDTH : natural := 9);
   port (
     CLK  : in slbit;                    -- clock
     RESET : in slbit;                   -- reset

@@ -1,6 +1,6 @@
--- $Id: ibd_kw11l.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: ibd_kw11l.vhd 676 2015-05-09 16:31:54Z mueller $
 --
--- Copyright 2008-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -27,6 +27,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-05-09   676   1.2    add CPUSUSP, freeze timer when cpu suspended
 -- 2011-11-18   427   1.1.1  now numeric_std clean
 -- 2010-10-17   333   1.1    use ibus V2 interface
 -- 2009-06-01   221   1.0.5  BUGFIX: add RESET; don't clear tcnt on ibus reset
@@ -52,6 +53,7 @@ entity ibd_kw11l is                     -- ibus dev(loc): KW11-L (line clock)
     CE_MSEC : in slbit;                 -- msec pulse
     RESET : in slbit;                   -- system reset
     BRESET : in slbit;                  -- ibus reset
+    CPUSUSP : in slbit;                 -- cpu suspended
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response
     EI_REQ : out slbit;                 -- interrupt request
@@ -104,7 +106,7 @@ begin
     end if;
   end process proc_regs;
 
-  proc_next : process (R_REGS, IB_MREQ, CE_MSEC, EI_ACK)
+  proc_next : process (R_REGS, IB_MREQ, CE_MSEC, CPUSUSP, EI_ACK)
     variable r : regs_type := regs_init;
     variable n : regs_type := regs_init;
     variable idout : slv16 := (others=>'0');
@@ -142,7 +144,7 @@ begin
     end if;
     
     -- other state changes
-    if CE_MSEC = '1' then
+    if CE_MSEC='1' and CPUSUSP='0' then     -- on msec and not suspended
       n.tcnt := slv(unsigned(r.tcnt) + 1);
       if unsigned(r.tcnt) = tdivide-1 then
         n.tcnt := (others=>'0');

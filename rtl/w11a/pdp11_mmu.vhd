@@ -1,4 +1,4 @@
--- $Id: pdp11_mmu.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: pdp11_mmu.vhd 677 2015-05-09 21:52:32Z mueller $
 --
 -- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -61,8 +61,8 @@ use work.pdp11.all;
 entity pdp11_mmu is                     -- mmu - memory management unit
   port (
     CLK : in slbit;                     -- clock
-    CRESET : in slbit;                  -- console reset
-    BRESET : in slbit;                  -- ibus reset
+    CRESET : in slbit;                  -- cpu reset
+    BRESET : in slbit;                  -- bus reset
     CNTL : in mmu_cntl_type;            -- control port
     VADDR : in slv16;                   -- virtual address
     MONI : in mmu_moni_type;            -- monitor port

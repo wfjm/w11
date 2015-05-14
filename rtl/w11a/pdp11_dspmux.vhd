@@ -1,4 +1,4 @@
--- $Id: pdp11_dspmux.vhd 652 2015-02-28 12:18:08Z mueller $
+-- $Id: pdp11_dspmux.vhd 677 2015-05-09 21:52:32Z mueller $
 --
 -- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -56,7 +56,7 @@ entity pdp11_dspmux is               -- hio dsp mux
   port (
     SEL : in slv2;                      -- select
     ABCLKDIV : in slv16;                -- serport clock divider
-    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status
+    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - dpath
     DISPREG : in slv16;                 -- display register
     DSP_DAT : out slv(4*(2**DCWIDTH)-1 downto 0)   -- display data
   );

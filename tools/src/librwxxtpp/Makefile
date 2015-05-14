@@ -1,4 +1,4 @@
-# $Id: Makefile 602 2014-11-08 21:42:47Z mueller $
+# $Id: Makefile 664 2015-04-06 12:02:17Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -37,6 +37,7 @@ OBJ_all   +=   RtclRw11CntlLP11.o RtclRw11UnitLP11.o
 OBJ_all   +=   RtclRw11CntlPC11.o RtclRw11UnitPC11.o
 OBJ_all   +=   RtclRw11CntlRK11.o RtclRw11UnitRK11.o
 OBJ_all   +=   RtclRw11CntlRL11.o RtclRw11UnitRL11.o
+OBJ_all   +=   RtclRw11CntlRHRP.o RtclRw11UnitRHRP.o
 # 
 DEP_all    = $(OBJ_all:.o=.dep)
 #

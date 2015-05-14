@@ -1,4 +1,4 @@
-# $Id: util.tcl 617 2014-12-21 14:18:53Z mueller $
+# $Id: util.tcl 661 2015-04-03 18:28:41Z mueller $
 #
 # Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -58,13 +58,13 @@ namespace eval rbtest {
   #   restore te.cntl
 
   proc nbusymax {} {
-    set esdmsk [regbld rlink::STAT {stat -1} attn]
-    rlc exec -estatdef 0 $esdmsk \
+    set esdmsk [regbld rlink::STAT rbtout rbnak rberr]
+    rlc exec \
       -rreg te.cntl sav_cntl \
       -wreg te.cntl [regbld rbtest::CNTL {nbusy -1}] \
       -rreg te.data -estat [regbld rlink::STAT rbtout] $esdmsk \
       -rreg te.ncyc ncyc
-    rlc exec -estatdef 0 $esdmsk \
+    rlc exec \
       -wreg te.cntl $sav_cntl
     return [expr {$ncyc - 1}]
   }
@@ -72,10 +72,7 @@ namespace eval rbtest {
   # probe: determine rbd_tester environment (max nbusy, stat and attn wiring)
   #
   proc probe {} {
-    set esdval     0x00
-    set esdmsk     [regbld rlink::STAT {stat -1}]
-    set esdmsktout [regbld rlink::STAT {stat -1} rbtout]
-    set esdmskattn [regbld rlink::STAT {stat -1} attn]
+    set esdmsktout [regbld rlink::STAT rbnak rberr]
     set rbusy {}
     set rstat {}
     set rattn {}
@@ -90,9 +87,9 @@ namespace eval rbtest {
         set nbusy [expr {$nbusy0 + $j}]
         set valc  [regbld rbtest::CNTL [list nbusy $nbusy]]
         rlc exec \
-          -wreg te.cntl $valc  -estat $esdval $esdmsk\
-          -wreg te.data 0x0000 statwr -estat $esdval $esdmsktout \
-          -rreg te.data dummy  statrd -estat $esdval $esdmsktout
+          -wreg te.cntl $valc \
+          -wreg te.data 0x0000 statwr -estat 0x0 $esdmsktout \
+          -rreg te.data dummy  statrd -estat 0x0 $esdmsktout
         if {[llength $wrerr] == 0 && [regget rlink::STAT(rbnak) $statwr] != 0} {
           lappend wrerr $i $j $nbusy
         }
@@ -107,7 +104,7 @@ namespace eval rbtest {
     # probe stat wiring
     #
     for {set i 0} { $i < 4 } {incr i} {
-      rlc exec -estatdef $esdval $esdmsk \
+      rlc exec \
         -wreg te.stat [expr {1 << $i}] \
         -rreg te.data dummy statrd
       lappend rstat [list $i [regget rlink::STAT(stat) $statrd]]
@@ -118,7 +115,7 @@ namespace eval rbtest {
     #
     rlc exec -attn
     for {set i 0} { $i < 16 } {incr i} {
-      rlc exec -estatdef $esdval $esdmskattn \
+      rlc exec \
         -wreg te.attn [expr {1 << $i}] \
         -attn attnpat
       lappend rattn [list $i $attnpat]

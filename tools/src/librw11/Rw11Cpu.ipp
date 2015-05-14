@@ -1,6 +1,6 @@
-// $Id: Rw11Cpu.ipp 621 2014-12-26 21:20:05Z mueller $
+// $Id: Rw11Cpu.ipp 659 2015-03-22 23:15:51Z mueller $
 //
-// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-03-21   659   1.2    add RAddrMap
 // 2014-12-25   621   1.1    Adopt for 4k word ibus window; add IAddrMap
 // 2013-04-12   504   1.0    Initial version
 // 2013-01-27   478   0.1    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cpu.ipp 621 2014-12-26 21:20:05Z mueller $
+  \version $Id: Rw11Cpu.ipp 659 2015-03-22 23:15:51Z mueller $
   \brief   Implemenation (inline) of Rw11Cpu.
 */
 
@@ -153,6 +154,46 @@ inline void Rw11Cpu::IAddrMapClear()
 inline const RlinkAddrMap& Rw11Cpu::IAddrMap() const
 {
   return fIAddrMap;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline bool Rw11Cpu::RAddrMapInsert(const std::string& name, uint16_t ibaddr)
+{
+  return fRAddrMap.Insert(name, ibaddr);
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline bool Rw11Cpu::RAddrMapErase(const std::string& name)
+{
+  return fRAddrMap.Erase(name);
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline bool Rw11Cpu::RAddrMapErase(uint16_t ibaddr)
+{
+  return fRAddrMap.Erase(ibaddr);
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline void Rw11Cpu::RAddrMapClear()
+{
+  return fRAddrMap.Clear();
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline const RlinkAddrMap& Rw11Cpu::RAddrMap() const
+{
+  return fRAddrMap;
 }
 
 //------------------------------------------+-----------------------------------

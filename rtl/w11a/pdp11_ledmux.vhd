@@ -1,4 +1,4 @@
--- $Id: pdp11_ledmux.vhd 652 2015-02-28 12:18:08Z mueller $
+-- $Id: pdp11_ledmux.vhd 677 2015-05-09 21:52:32Z mueller $
 --
 -- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -41,7 +41,7 @@ entity pdp11_ledmux is                  -- hio led mux
   port (
     SEL : in slbit;                     -- select (0=stat;1=dr)
     STATLEDS : in slv8;                 -- 8 bit CPU status
-    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status
+    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - dpath
     LED : out slv(LWIDTH-1 downto 0)    -- hio leds
   );
 end pdp11_ledmux;

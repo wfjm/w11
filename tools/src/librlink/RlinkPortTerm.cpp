@@ -1,4 +1,4 @@
-// $Id: RlinkPortTerm.cpp 641 2015-02-01 22:12:15Z mueller $
+// $Id: RlinkPortTerm.cpp 666 2015-04-12 21:17:54Z mueller $
 //
 // Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-04-12   666   1.3    drop xon/xoff excaping; add noinit attribute
 // 2015-02-01   641   1.2    support custom baud rates (5M,6M,10M,12M)
 // 2013-02-23   492   1.1    use RparseUrl
 // 2011-12-18   440   1.0.4  add kStatNPort stats; Open(): autoadd /dev/tty,
@@ -26,7 +27,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPortTerm.cpp 641 2015-02-01 22:12:15Z mueller $
+  \version $Id: RlinkPortTerm.cpp 666 2015-04-12 21:17:54Z mueller $
   \brief   Implemenation of RlinkPortTerm.
 */
 
@@ -58,17 +59,13 @@ namespace Retro {
 // constants definitions
 const uint8_t RlinkPortTerm::kc_xon;
 const uint8_t RlinkPortTerm::kc_xoff;
-const uint8_t RlinkPortTerm::kc_xesc;
 
 //------------------------------------------+-----------------------------------
 //! Default constructor
 
 RlinkPortTerm::RlinkPortTerm()
   : RlinkPort()
-{
-  fStats.Define(kStatNPortTxXesc, "NPortTxXesc", "Tx XESC escapes");
-  fStats.Define(kStatNPortRxXesc, "NPortRxXesc", "Rx XESC escapes");
-}
+{}
 
 //------------------------------------------+-----------------------------------
 //! Destructor
@@ -85,7 +82,7 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
 {
   Close();
 
-  if (!fUrl.Set(url, "|baud=|break|cts|xon|", emsg)) return false;
+  if (!fUrl.Set(url, "|baud=|break|cts|xon|noinit|", emsg)) return false;
 
   // if path doesn't start with a '/' prepend a '/dev/tty'
   if (fUrl.Path().substr(0,1) != "/") {
@@ -176,8 +173,7 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
 
   bool use_cts = fUrl.FindOpt("cts");
   bool use_xon = fUrl.FindOpt("xon");
-  fUseXon = use_xon;
-  fPendXesc = false;
+  fXon = use_xon;
 
   fTiosNew = fTiosOld;
 
@@ -315,78 +311,6 @@ void RlinkPortTerm::Close()
   return;
 }
   
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-int RlinkPortTerm::Read(uint8_t* buf, size_t size, double timeout, 
-                        RerrMsg& emsg)
-{
-  int irc;
-  if (fUseXon) {
-    uint8_t* po = buf;
-    if (fRxBuf.size() < size) fRxBuf.resize(size);
-
-    // repeat read until at least one byte returned (or an error occurs)
-    // this avoids that the Read() returns with 0 in case only one byte is
-    // seen and this is a kc_xesc. At most two iterations possible because
-    // in 2nd iteration fPendXesc must be set and thus po pushed.
-    while (po == buf) {
-      irc = RlinkPort::Read(fRxBuf.data(), size, timeout, emsg);
-      if (irc <= 0) break;
-      uint8_t* pi = fRxBuf.data();
-      for (int i=0; i<irc; i++) {
-        uint8_t c = *pi++;
-        if (fPendXesc) {
-          *po++ = ~c;
-          fPendXesc = false;
-        } else if (c == kc_xesc) {
-          fStats.Inc(kStatNPortRxXesc);
-          fPendXesc = true;
-        } else {
-          *po++ = c;
-        }
-      }
-      irc = po - buf;                       // set irc to # of unescaped bytes
-    }
-
-  } else {
-    irc = RlinkPort::Read(buf, size, timeout, emsg);
-  }
-
-  return irc;
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-int RlinkPortTerm::Write(const uint8_t* buf, size_t size, RerrMsg& emsg)
-{
-  int irc = 0;
-  
-  if (fUseXon) {
-    fTxBuf.clear();
-    const uint8_t* pc = buf;
-    
-    for (size_t i=0; i<size; i++) {
-      uint8_t c = *pc++;
-      if (c==kc_xon || c==kc_xoff || c==kc_xesc) {
-        fStats.Inc(kStatNPortTxXesc);
-        fTxBuf.push_back(kc_xesc);
-        fTxBuf.push_back(~c);
-      } else {
-        fTxBuf.push_back(c);
-      }
-    }
-    int irce = RlinkPort::Write(fTxBuf.data(), fTxBuf.size(), emsg);
-    if (irce == (int)fTxBuf.size()) irc = size;
-  } else {
-    irc = RlinkPort::Write(buf, size, emsg);
-  }
-
-  /* tcdrain(fFdWrite);*/
-  return irc;
-}
-
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 

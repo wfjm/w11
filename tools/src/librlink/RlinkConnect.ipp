@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.ipp 632 2015-01-11 12:30:03Z mueller $
+// $Id: RlinkConnect.ipp 666 2015-04-12 21:17:54Z mueller $
 //
 // Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-04-12   666   2.2    add LinkInit,LinkInitDone; transfer xon
 // 2015-01-06   631   2.1    full rlink v4 implementation
 // 2013-03-05   495   1.2.1  add Exec() without emsg (will send emsg to LogFile)
 // 2013-02-23   492   1.2    use scoped_ptr for Port; Close allways allowed
@@ -25,7 +26,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.ipp 632 2015-01-11 12:30:03Z mueller $
+  \version $Id: RlinkConnect.ipp 666 2015-04-12 21:17:54Z mueller $
   \brief   Implemenation (inline) of RlinkConnect.
 */
 
@@ -46,6 +47,14 @@ inline bool RlinkConnect::IsOpen() const
 inline RlinkPort* RlinkConnect::Port() const
 {
   return fpPort.get();
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline bool RlinkConnect::LinkInitDone() const
+{
+  return fLinkInitDone;
 }
 
 //------------------------------------------+-----------------------------------

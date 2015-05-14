@@ -1,6 +1,6 @@
-# $Id: test_attn.tcl 603 2014-11-09 22:50:26Z mueller $
+# $Id: test_attn.tcl 661 2015-04-03 18:28:41Z mueller $
 #
-# Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-04-03   661   2.1    drop estatdef (stat err check default now)
 # 2014-11-09   603   2.0    use rlink v4 address layout and iface
 # 2011-03-27   374   1.0    Initial version
 # 2011-03-20   372   0.1    First Draft
@@ -32,9 +33,6 @@ namespace eval rbtest {
     # quit if nothing to do...
     if {$attnmsk == 0} {return 0}
     #
-    set esdval 0x00
-    set esdmsk [regbld rlink::STAT {stat -1} attn]
-    #
     set apats {}
     for {set i 0} {$i < 16} {incr i} {
       set apat [expr {1 << $i}]
@@ -52,7 +50,7 @@ namespace eval rbtest {
     #-------------------------------------------------------------------------
     rlc log "  test 1: verify connection of attn bits"
     foreach apat $apats {
-      rlc exec -estatdef $esdval $esdmsk \
+      rlc exec \
         -wreg te.attn $apat \
         -rreg te.cntl -estat [regbld rlink::STAT attn] \
         -attn         -edata $apat \
@@ -63,9 +61,9 @@ namespace eval rbtest {
     #-------------------------------------------------------------------------
     rlc log "  test 2: verify that attn flags accumulate"
     foreach apat $apats {
-      rlc exec -wreg te.attn $apat -estat $esdval $esdmsk 
+      rlc exec -wreg te.attn $apat 
     }
-    rlc exec -attn -edata $attnmsk -estat $esdval $esdmsk 
+    rlc exec -attn -edata $attnmsk
 
     #
     #-------------------------------------------------------------------------

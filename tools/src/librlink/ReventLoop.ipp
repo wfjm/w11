@@ -1,6 +1,6 @@
-// $Id: ReventLoop.ipp 513 2013-05-01 14:02:06Z mueller $
+// $Id: ReventLoop.ipp 662 2015-04-05 08:02:54Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-04-04   662   1.2    BUGFIX: fix race in Stop(), add UnStop,StopPending
 // 2013-05-01   513   1.1.1  fTraceLevel now uint32_t
 // 2013-02-22   491   1.1    use new RlogFile/RlogMsg interfaces
 // 2013-01-11   473   1.0    Initial version
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: ReventLoop.ipp 513 2013-05-01 14:02:06Z mueller $
+  \version $Id: ReventLoop.ipp 662 2015-04-05 08:02:54Z mueller $
   \brief   Implemenation (inline) of class ReventLoop.
 */
 
@@ -32,8 +33,25 @@ namespace Retro {
 
 inline void ReventLoop::Stop()
 {
-  fLoopActive = false;
+  fStopPending = true;
   return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline void ReventLoop::UnStop()
+{
+  fStopPending = false;
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline bool ReventLoop::StopPending()
+{
+  return fStopPending;
 }
 
 //------------------------------------------+-----------------------------------

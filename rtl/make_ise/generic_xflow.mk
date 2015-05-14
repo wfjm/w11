@@ -1,10 +1,11 @@
-# $Id: generic_xflow.mk 646 2015-02-15 12:04:55Z mueller $
+# $Id: generic_xflow.mk 672 2015-05-02 21:58:28Z mueller $
 #
 # Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2015-05-02   672   1.11   ucf_cpp handling: remove -C (gcc 4.8 stdc-predef.h)
 # 2015-02-06   643   1.10   use make_ise; rename xise_msg_filter <- isemsg_filter
 #                           drop --ise_path from vbomconv;
 # 2013-10-12   539   1.9    use xtwi; support trce tsi file; use -C for cpp
@@ -300,12 +301,12 @@ endif
 # generate cpp'ed ucf files from ucf_cpp
 #
 %.ucf : %.ucf_cpp
-	cpp -C -I${RETROBASE}/rtl $*.ucf_cpp $*.ucf
+	cpp -I${RETROBASE}/rtl $*.ucf_cpp $*.ucf
 #
 # generate nested dependency rules for cpp'ed ucf files from ucf_cpp
 #
 %.dep_ucf_cpp : %.ucf_cpp
-	cpp -C -I${RETROBASE}/rtl -MM $*.ucf_cpp |\
+	cpp -I${RETROBASE}/rtl -MM $*.ucf_cpp |\
             sed 's/\.o:/\.ucf:/' > $*.dep_ucf_cpp
 #
 # Cleanup

@@ -1,6 +1,6 @@
-// $Id: RtclRw11UnitDisk.cpp 509 2013-04-21 20:46:20Z mueller $
+// $Id: RtclRw11UnitDisk.cpp 680 2015-05-14 13:29:46Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,15 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-05-14   680   1.1.1  fGets: remove enabled, now in RtclRw11UnitBase
+// 2015-03-21   659   1.1    fGets: add enabled
 // 2013-04-19   507   1.0    Initial version
 // 2013-02-22   490   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclRw11UnitDisk.cpp 509 2013-04-21 20:46:20Z mueller $
+  \version $Id: RtclRw11UnitDisk.cpp 680 2015-05-14 13:29:46Z mueller $
   \brief   Implemenation of RtclRw11UnitDisk.
 */
 

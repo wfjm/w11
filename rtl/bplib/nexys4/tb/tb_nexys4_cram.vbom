@@ -19,7 +19,7 @@ ${sys_conf := sys_conf_sim.vhd}
 ../../../vlib/xlib/s7_cmt_sfs_gsim.vbom
 tb_nexys4_core.vbom
 ../../micron/mt45w8mw16b.vbom
-../../../vlib/serport/serport_uart_rxtx.vbom
+../../../vlib/serport/serport_master.vbom
 ${nexys4_cram_aif := nexys4_cram_dummy.vbom}
 # design
 tb_nexys4_cram.vhd

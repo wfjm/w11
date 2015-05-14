@@ -1,4 +1,4 @@
-# $Id: test_cp_gpr.tcl 552 2014-03-02 23:02:00Z mueller $
+# $Id: test_cp_gpr.tcl 676 2015-05-09 16:31:54Z mueller $
 #
 # Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
@@ -14,7 +14,7 @@
 #
 
 # ----------------------------------------------------------------------------
-rlc log "test_cp_gpr: test cp access to general purpose registers"
+rlc log "test_cp_gpr: test cp access to general purpose registers ------------"
 rlc log "  write set 0"
 $cpu cp -wps 0000000
 $cpu cp -wr0 0000001 \

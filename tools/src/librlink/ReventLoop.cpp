@@ -1,6 +1,6 @@
-// $Id: ReventLoop.cpp 511 2013-04-27 13:51:46Z mueller $
+// $Id: ReventLoop.cpp 662 2015-04-05 08:02:54Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-04-04   662   1.2    BUGFIX: fix race in Stop(), add UnStop,StopPending
 // 2013-04-27   511   1.1.3  BUGFIX: logic in DoCall() fixed (loop range)
 // 2013-03-05   495   1.1.2  add exception catcher to EventLoop
 // 2013-03-01   493   1.1.1  DoCall(): remove handler on negative return
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: ReventLoop.cpp 511 2013-04-27 13:51:46Z mueller $
+  \version $Id: ReventLoop.cpp 662 2015-04-05 08:02:54Z mueller $
   \brief   Implemenation of class ReventLoop.
 */
 
@@ -54,7 +55,7 @@ namespace Retro {
 //! FIXME_docs
 
 ReventLoop::ReventLoop()
-  : fLoopActive(false),
+  : fStopPending(false),
     fUpdatePoll(false),
     fPollDscMutex(),
     fPollDsc(),
@@ -161,11 +162,10 @@ void ReventLoop::RemovePollHandler(int fd)
 
 void ReventLoop::EventLoop()
 {
-  fLoopActive = true;
   fUpdatePoll = true;
 
   try {
-    while (fLoopActive) {   
+    while (!StopPending()) {   
       int irc = DoPoll();
       if (fPollFd.size() == 0) break;
       if (irc>0) DoCall();
@@ -188,7 +188,7 @@ void ReventLoop::Dump(std::ostream& os, int ind, const char* text) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "ReventLoop @ " << this << endl;
-  os << bl << "  fLoopActive:     " << fLoopActive << endl;
+  os << bl << "  fStopPending:    " << fStopPending << endl;
   os << bl << "  fUpdatePoll:     " << fUpdatePoll << endl;
   {
     boost::lock_guard<boost::mutex> lock(((ReventLoop*)this)->fPollDscMutex);

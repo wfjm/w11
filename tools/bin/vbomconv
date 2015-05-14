@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: vbomconv 646 2015-02-15 12:04:55Z mueller $
+# $Id: vbomconv 672 2015-05-02 21:58:28Z mueller $
 #
 # Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -383,6 +383,7 @@ if (exists $opts{ghdl_m} || exists $opts{ghdl_m_cmd} ) {
 # --xst_prj ----------------------------------------------------------
 
 if (exists $opts{xst_prj}) {
+  ## $xst_writevhdl = 0; # needed in case "-use_new_parser yes" used
   foreach (@srcfile_list) {
     if ($xst_writevhdl) {
       print "vhdl work $_\n";

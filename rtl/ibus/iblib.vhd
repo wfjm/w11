@@ -1,6 +1,6 @@
--- $Id: iblib.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: iblib.vhd 672 2015-05-02 21:58:28Z mueller $
 --
--- Copyright 2008-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,6 +19,7 @@
 -- Tool versions:  ise 8.1-14.7; viv 2014.4; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-04-24   668   2.1    add ibd_ibmon
 -- 2010-10-23   335   2.0.1  add ib_sel; add ib_sres_or_mon
 -- 2010-10-17   333   2.0    ibus V2 interface: use aval,re,we,rmw
 -- 2010-06-11   303   1.1    added racc,cacc signals to ib_mreq_type
@@ -28,6 +29,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 
@@ -130,6 +132,19 @@ component ib_intmap is                  -- external interrupt mapper
     EI_ACK : out slv16_1;               -- interrupt acknowledge (to requestor)
     EI_PRI : out slv3;                  -- interrupt priority
     EI_VECT : out slv9_2                -- interrupt vector
+  );
+end component;
+
+component ibd_ibmon is                  -- ibus dev: ibus monitor
+  generic (
+    IB_ADDR : slv16 := slv(to_unsigned(8#160000#,16));
+    AWIDTH : natural := 9);
+  port (
+    CLK  : in slbit;                    -- clock
+    RESET : in slbit;                   -- reset
+    IB_MREQ : in ib_mreq_type;          -- ibus: request
+    IB_SRES : out ib_sres_type;         -- ibus: response
+    IB_SRES_SUM : in ib_sres_type       -- ibus: response (sum for monitor)
   );
 end component;
 

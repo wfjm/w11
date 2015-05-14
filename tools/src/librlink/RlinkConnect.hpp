@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.hpp 632 2015-01-11 12:30:03Z mueller $
+// $Id: RlinkConnect.hpp 666 2015-04-12 21:17:54Z mueller $
 //
 // Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-04-12   666   2.3    add LinkInit,LinkInitDone; transfer xon
+// 2015-04-02   661   2.2    expect logic: stat expect in Command, invert mask
 // 2015-01-06   631   2.1    full rlink v4 implementation
 // 2014-12-25   621   2.0.2  Reorganize packet send/revd stats
 // 2014-12-20   616   2.0.1  add BlockDone expect checks
@@ -35,7 +37,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.hpp 632 2015-01-11 12:30:03Z mueller $
+  \version $Id: RlinkConnect.hpp 666 2015-04-12 21:17:54Z mueller $
   \brief   Declaration of class \c RlinkConnect.
 */
 
@@ -80,6 +82,9 @@ namespace Retro {
       bool          IsOpen() const;
       RlinkPort*    Port() const;
 
+      bool          LinkInit(RerrMsg& emsg);
+      bool          LinkInitDone() const;
+    
       RlinkContext& Context();  
 
       void          SetServer(RlinkServer* pserv);
@@ -185,9 +190,10 @@ namespace Retro {
         kStatNInit,                         //!< init commands
         kStatNRblkWord,                     //!< words rcvd with rblk
         kStatNWblkWord,                     //!< words send with wblk
-        kStatNExpData,                      //!< Expect() for data defined
-        kStatNExpDone,                      //!< Expect() for done defined
-        kStatNExpStat,                      //!< Expect() for stat defined
+        kStatNExpData,                      //!< expect for data defined
+        kStatNExpDone,                      //!< expect for done defined
+        kStatNExpStat,                      //!< expect for stat explicit
+        kStatNNoExpStat,                    //!< no expect for stat
         kStatNChkData,                      //!< expect data failed
         kStatNChkDone,                      //!< expect done failed
         kStatNChkStat,                      //!< expect stat failed
@@ -201,12 +207,12 @@ namespace Retro {
 
     protected: 
       bool          ExecPart(RlinkCommandList& clist, size_t ibeg, size_t iend, 
-                             RerrMsg& emsg, RlinkContext& cntx);
+                             RerrMsg& emsg);
 
       void          EncodeRequest(RlinkCommandList& clist, size_t ibeg, 
                                   size_t iend);
-      int           DecodeResponse(RlinkCommandList& clist, size_t ibeg, 
-                                   size_t iend, RlinkContext& cntx);
+      int           DecodeResponse(RlinkCommandList& clist, size_t ibeg,
+                                   size_t iend);
       bool          DecodeAttnNotify(uint16_t& apat);
       bool          ReadResponse(double timeout, RerrMsg& emsg);
       void          AcceptResponse();
@@ -215,6 +221,8 @@ namespace Retro {
 
     protected: 
       boost::scoped_ptr<RlinkPort> fpPort;  //!< ptr to port
+      bool          fLinkInitDeferred;      //!< noinit attr seen on Open
+      bool          fLinkInitDone;          //!< LinkInit done
       RlinkServer*  fpServ;                 //!< ptr to server (optional)
       uint8_t       fSeqNumber[8];          //!< command sequence number
       RlinkPacketBufSnd fSndPkt;            //!< send    packet buffer

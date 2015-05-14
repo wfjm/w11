@@ -1,6 +1,6 @@
--- $Id: tb_pdp11core.vhd 621 2014-12-26 21:20:05Z mueller $
+-- $Id: tb_pdp11core.vhd 675 2015-05-08 21:05:08Z mueller $
 --
--- Copyright 2006-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -47,6 +47,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-05-08   675   1.5    start/stop/suspend overhaul
 -- 2014-12-26   621   1.4.1  adopt wmembe,ribr,wibr emulation to new 4k window
 -- 2011-12-23   444   1.4    use new simclk/simclkcnt
 -- 2011-11-18   427   1.3.2  now numeric_std clean
@@ -114,8 +115,11 @@ architecture sim of tb_pdp11core is
   signal CP_STAT_cmdmerr : slbit := '0';
   signal CP_STAT_cpugo : slbit := '0';
   signal CP_STAT_cpustep : slbit := '0';
-  signal CP_STAT_cpuhalt : slbit := '0';
+  signal CP_STAT_cpuwait : slbit := '0';
+  signal CP_STAT_cpususp : slbit := '0';
   signal CP_STAT_cpurust : slv4 := (others=>'0');
+  signal CP_STAT_suspint : slbit := '0';
+  signal CP_STAT_suspext : slbit := '0';
   signal CP_DOUT : slv16 := (others=>'0');
 
   signal CLK_STOP : slbit := '0';
@@ -164,8 +168,11 @@ begin
       CP_STAT_cmdmerr => CP_STAT_cmdmerr,
       CP_STAT_cpugo   => CP_STAT_cpugo,
       CP_STAT_cpustep => CP_STAT_cpustep,
-      CP_STAT_cpuhalt => CP_STAT_cpuhalt,
+      CP_STAT_cpuwait => CP_STAT_cpuwait,
+      CP_STAT_cpususp => CP_STAT_cpususp,
       CP_STAT_cpurust => CP_STAT_cpurust,
+      CP_STAT_suspint => CP_STAT_suspint,
+      CP_STAT_suspext => CP_STAT_suspext,
       CP_DOUT         => CP_DOUT
     );
   
@@ -327,7 +334,7 @@ begin
               end if;
 
             when others =>              -- bad directive
-              write(oline, string'("?? unknown directive: "));
+              write(oline, string'("-E: unknown directive: "));
               write(oline, dname);
               writeline(output, oline);
               report "aborting" severity failure;
@@ -438,16 +445,20 @@ begin
               idosta := '1';              -- request 'sta' to be done next
 
             when "sta   " =>            -- sta
-              ifunc := c_cpfunc_sta;
+              ifunc := c_cpfunc_start;
             when "sto   " =>            -- sto
-              ifunc := c_cpfunc_sto;
-            when "cont  " =>            -- cont
-              ifunc := c_cpfunc_cont;
+              ifunc := c_cpfunc_stop;
             when "step  " =>            -- step
               ifunc := c_cpfunc_step;
               iwtstp := true;
-            when "rst   " =>            -- rst
-              ifunc := c_cpfunc_rst;
+            when "cres  " =>            -- cres
+              ifunc := c_cpfunc_creset;
+            when "bres  " =>            -- bres
+              ifunc := c_cpfunc_breset;
+            when "susp  " =>            -- susp
+              ifunc := c_cpfunc_suspend;
+            when "resu  " =>            -- resu
+              ifunc := c_cpfunc_resume;
 
             when "wtgo  " =>            -- wtgo
               iwtgo := true;
@@ -458,7 +469,7 @@ begin
               next file_loop;
 
             when others =>              -- bad directive
-              write(oline, string'("?? unknown directive: "));
+              write(oline, string'("-E: unknown directive: "));
               write(oline, dname);
               writeline(output, oline);
               report "aborting" severity failure;
@@ -553,11 +564,13 @@ begin
             else
               write(oline, string'("wmem"));
             end if;
-          when c_cpfunc_sta  => write(oline, string'("sta "));
-          when c_cpfunc_sto  => write(oline, string'("sto "));
-          when c_cpfunc_cont => write(oline, string'("cont"));
-          when c_cpfunc_step => write(oline, string'("step"));
-          when c_cpfunc_rst  => write(oline, string'("rst "));
+          when c_cpfunc_start   => write(oline, string'("sta "));
+          when c_cpfunc_stop    => write(oline, string'("sto "));
+          when c_cpfunc_step    => write(oline, string'("step"));
+          when c_cpfunc_creset  => write(oline, string'("cres"));
+          when c_cpfunc_breset  => write(oline, string'("bres"));
+          when c_cpfunc_suspend => write(oline, string'("susp"));
+          when c_cpfunc_resume  => write(oline, string'("resu"));
           when others =>
             write(oline, string'("?"));
             writeoct(oline, ifunc, right, 2);
@@ -575,8 +588,11 @@ begin
       write(oline, R_CP_STAT.cmdmerr, right, 2);
       writeoct(oline, R_CP_DOUT, right, 8);
       write(oline, R_CP_STAT.cpugo, right, 3);
-      write(oline, R_CP_STAT.cpustep, right, 2);
-      write(oline, R_CP_STAT.cpuhalt, right, 2);
+      write(oline, R_CP_STAT.cpustep, right, 1);
+      write(oline, R_CP_STAT.cpuwait, right, 1);
+      write(oline, R_CP_STAT.cpususp, right, 1);
+      write(oline, R_CP_STAT.suspint, right, 1);
+      write(oline, R_CP_STAT.suspext, right, 1);
       writeoct(oline, R_CP_STAT.cpurust, right, 3);
 
       if R_WAITOK = '1' then
@@ -667,8 +683,11 @@ begin
       R_CP_STAT.cmdmerr <= CP_STAT_cmdmerr;
       R_CP_STAT.cpugo   <= CP_STAT_cpugo;
       R_CP_STAT.cpustep <= CP_STAT_cpustep;
-      R_CP_STAT.cpuhalt <= CP_STAT_cpuhalt;
+      R_CP_STAT.cpuwait <= CP_STAT_cpuwait;
+      R_CP_STAT.cpususp <= CP_STAT_cpususp;
       R_CP_STAT.cpurust <= CP_STAT_cpurust;
+      R_CP_STAT.suspint <= CP_STAT_suspint;
+      R_CP_STAT.suspext <= CP_STAT_suspext;
       R_CP_DOUT <= CP_DOUT;
       
     end loop;

@@ -1,6 +1,6 @@
--- $Id: rlink_sp1c_fx2.vhd 610 2014-12-09 22:44:43Z mueller $
+-- $Id: rlink_sp1c_fx2.vhd 672 2015-05-02 21:58:28Z mueller $
 --
--- Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,18 +19,23 @@
 --                 serport/serport_1clock
 --                 rlinklib/rlink_rlbmux
 --                 fx2lib/fx2_2fifoctl_ic
+--                 rbus/rbd_rbmon
+--                 rbus/rb_sres_or_2
 --
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 13.1-14.7; ghdl 0.29-0.31
+-- Tool versions:  xst 13.1-14.7; viv 2014.4; ghdl 0.29-0.31
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri ifa ofa
+-- 2015-05-02   672 14.7  131013 xc6slx16-2   618  875   90  340 s  7.2   -   -
 -- 2013-04-20   509 13.3    O76d xc3s1200e-4  441  903  128  637 s  8.7   -   -
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-05-02   672   1.3    add rbd_rbmon (optional via generics)
+-- 2015-04-11   666   1.2    drop ENAESC, rearrange XON handling
 -- 2014-08-28   588   1.1    use new rlink v4 iface generics and 4 bit STAT
 -- 2013-04-20   509   1.0    Initial version (derived from rlink_sp1c)
 ------------------------------------------------------------------------------
@@ -41,6 +46,7 @@ use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.rblib.all;
+use work.rbdlib.all;
 use work.rlinklib.all;
 use work.serportlib.all;
 use work.fx2lib.all;
@@ -58,7 +64,9 @@ entity rlink_sp1c_fx2 is                -- rlink_core8+serport_1clk+fx2_ic combo
     ENAPIN_RLBMON: integer := -1;       -- SB_CNTL for rlbmon (-1=none)
     ENAPIN_RBMON : integer := -1;       -- SB_CNTL for rbmon  (-1=none)
     CDWIDTH : positive := 13;           -- clk divider width
-    CDINIT : natural   := 15);          -- clk divider initial/reset setting
+    CDINIT : natural   := 15;           -- clk divider initial/reset setting
+    RBMON_AWIDTH : natural := 0;        -- rbmon: buffer size, (0=none)
+    RBMON_RBADDR : slv16 := slv(to_unsigned(16#ffe8#,16))); -- rbmon: base addr
   port (
     CLK  : in slbit;                    -- clock
     CE_USEC : in slbit;                 -- 1 usec clock enable
@@ -66,7 +74,6 @@ entity rlink_sp1c_fx2 is                -- rlink_core8+serport_1clk+fx2_ic combo
     CE_INT : in slbit := '0';           -- rri ato time unit clock enable
     RESET  : in slbit;                  -- reset
     ENAXON : in slbit;                  -- enable xon/xoff handling
-    ENAESC : in slbit;                  -- enable xon/xoff escaping
     ENAFX2 : in slbit;                  -- enable fx2 usage
     RXSD : in slbit;                    -- receive serial data      (board view)
     TXSD : out slbit;                   -- transmit serial data     (board view)
@@ -117,9 +124,13 @@ architecture syn of rlink_sp1c_fx2 is
   signal FX2_TXBUSY   : slbit := '0';
   signal FX2_TXAFULL  : slbit := '0';
 
+  signal RB_MREQ_M     : rb_mreq_type := rb_mreq_init;
+  signal RB_SRES_M     : rb_sres_type := rb_sres_init;
+  signal RB_SRES_RBMON : rb_sres_type := rb_sres_init;
+
 begin
   
-  CORE : rlink_core8
+  CORE : rlink_core8                    -- rlink master ----------------------
     generic map (
       BTOWIDTH     => BTOWIDTH,
       RTAWIDTH     => RTAWIDTH,
@@ -131,6 +142,8 @@ begin
       CLK        => CLK,
       CE_INT     => CE_INT,
       RESET      => RESET,
+      ESCXON     => ENAXON,
+      ESCFILL    => '0',                -- not used in FX2 enabled boards
       RLB_DI     => RLB_DI,
       RLB_ENA    => RLB_ENA,
       RLB_BUSY   => RLB_BUSY,
@@ -138,13 +151,13 @@ begin
       RLB_VAL    => RLB_VAL,
       RLB_HOLD   => RLB_HOLD,
       RL_MONI    => RL_MONI,
-      RB_MREQ    => RB_MREQ,
-      RB_SRES    => RB_SRES,
+      RB_MREQ    => RB_MREQ_M,
+      RB_SRES    => RB_SRES_M,
       RB_LAM     => RB_LAM,
       RB_STAT    => RB_STAT
     );
   
-  SERPORT : serport_1clock
+  SERPORT : serport_1clock              -- serport interface -----------------
     generic map (
       CDWIDTH   => CDWIDTH,
       CDINIT    => CDINIT,
@@ -155,7 +168,7 @@ begin
       CE_MSEC  => CE_MSEC,
       RESET    => RESET,
       ENAXON   => ENAXON,
-      ENAESC   => ENAESC,
+      ENAESC   => '0',                  -- escaping now in rlink_core8
       RXDATA   => SER_RXDATA,
       RXVAL    => SER_RXVAL,
       RXHOLD   => SER_RXHOLD,
@@ -169,7 +182,7 @@ begin
       TXCTS_N  => CTS_N
     );
   
-  RLBMUX : rlink_rlbmux
+  RLBMUX : rlink_rlbmux                 -- rlink control mux -----------------
     port map (
       SEL       => ENAFX2,
       RLB_DI    => RLB_DI,
@@ -192,7 +205,12 @@ begin
       P1_TXBUSY => FX2_TXBUSY
     );
 
-  FX2CNTL : fx2_2fifoctl_ic
+  RLB_MONI.rxval  <= RLB_VAL;
+  RLB_MONI.rxhold <= RLB_HOLD;
+  RLB_MONI.txena  <= RLB_ENA;
+  RLB_MONI.txbusy <= RLB_BUSY;
+
+  FX2CNTL : fx2_2fifoctl_ic             -- FX2 interface ---------------------
     generic map (
       RXFAWIDTH  => 5,
       TXFAWIDTH  => 5,
@@ -222,9 +240,28 @@ begin
       IO_FX2_DATA    => IO_FX2_DATA
     );
 
-  RLB_MONI.rxval  <= RLB_VAL;
-  RLB_MONI.rxhold <= RLB_HOLD;
-  RLB_MONI.txena  <= RLB_ENA;
-  RLB_MONI.txbusy <= RLB_BUSY;
+  RBMON : if RBMON_AWIDTH > 0 generate  -- rbus monitor --------------
+  begin
+    I0 : rbd_rbmon
+      generic map (
+        RB_ADDR => RBMON_RBADDR,
+        AWIDTH  => RBMON_AWIDTH)
+      port map (
+        CLK         => CLK,
+        RESET       => RESET,
+        RB_MREQ     => RB_MREQ_M,
+        RB_SRES     => RB_SRES_RBMON,
+        RB_SRES_SUM => RB_SRES_M
+      );
+  end generate RBMON;
+
+  RB_SRES_OR : rb_sres_or_2             -- rbus or ---------------------------
+    port map (
+      RB_SRES_1  => RB_SRES,
+      RB_SRES_2  => RB_SRES_RBMON,
+      RB_SRES_OR => RB_SRES_M
+    );
+
+  RB_MREQ         <= RB_MREQ_M;         -- setup output signals
   
 end syn;

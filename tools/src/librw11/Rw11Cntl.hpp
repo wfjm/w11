@@ -1,6 +1,6 @@
-// $Id: Rw11Cntl.hpp 625 2014-12-30 16:17:45Z mueller $
+// $Id: Rw11Cntl.hpp 682 2015-05-15 18:35:29Z mueller $
 //
-// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-05-15   680   1.1.1  add NUnit() as virtual
 // 2014-12-30   625   1.1    adopt to Rlink V4 attn logic
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-05   483   0.1    First draft
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cntl.hpp 625 2014-12-30 16:17:45Z mueller $
+  \version $Id: Rw11Cntl.hpp 682 2015-05-15 18:35:29Z mueller $
   \brief   Declaration of class Rw11Cntl.
 */
 
@@ -69,6 +70,7 @@ namespace Retro {
       virtual void  Start();
       bool          IsStarted() const;
 
+      virtual size_t NUnit() const;
       virtual bool  BootCode(size_t unit, std::vector<uint16_t>& code, 
                              uint16_t& aload, uint16_t& astart);
 

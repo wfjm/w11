@@ -1,4 +1,4 @@
-# $Id: w11a_tb_guide.txt 660 2015-03-29 22:10:16Z mueller $
+# $Id: w11a_tb_guide.txt 687 2015-06-05 09:03:34Z mueller $
 
 Note: Only ISE based test benches are currently documented !
       The Vivado test environemnt is still in it's infancy !
@@ -259,7 +259,12 @@ Guide to running w11a test benches
 
      cd $RETROBASE/rtl/sys_gen/w11a/nexys2/tb
      tbrun_tbwrri --lsuf tbench_dsim --pack rw11 --cuff  tb_w11a_n2 \
-        "rw11::setup_cpu" "rw11::tbench @w11a_all.dat"
-     -> 2638820.0 ns 131930: DONE 
-     -> real 0m24.890s   user 0m25.286s   sys 0m0.439s
+        "rw11::setup_cpu" "rw11::tbench @cpu_all.dat"
+     -> 2847860.0 ns 142382: DONE 
+     -> real 0m33.013s   user 0m31.870s   sys 0m0.569s
+
+     tbrun_tbwrri --lsuf tbench_dsim --pack rw11 --cuff  tb_w11a_n2 \
+        "rw11::setup_cpu" "rw11::tbench @dev_all.dat"
+     -> 1058440.0 ns  52911: DONE
+     -> real 0m15.249s   user 0m15.195s   sys 0m0.236s
 

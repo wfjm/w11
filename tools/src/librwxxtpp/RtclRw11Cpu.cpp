@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.cpp 675 2015-05-08 21:05:08Z mueller $
+// $Id: RtclRw11Cpu.cpp 682 2015-05-15 18:35:29Z mueller $
 //
 // Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -33,7 +33,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Cpu.cpp 675 2015-05-08 21:05:08Z mueller $
+  \version $Id: RtclRw11Cpu.cpp 682 2015-05-15 18:35:29Z mueller $
   \brief   Implemenation of RtclRw11Cpu.
 */
 
@@ -1125,7 +1125,7 @@ int RtclRw11Cpu::M_ldasm(RtclArgs& args)
     if (!Rtcl::SetVar(interp, varlst, Rtcl::NewLinesObj(los))) return kERR;
   }
 
-  // now, finally, iterate of cmap and write code to memory
+  // now, finally, iterate over cmap and write code to memory
 
   vector<uint16_t> block;
   uint16_t base = 0;

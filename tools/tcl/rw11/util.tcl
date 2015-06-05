@@ -1,4 +1,4 @@
-# $Id: util.tcl 675 2015-05-08 21:05:08Z mueller $
+# $Id: util.tcl 683 2015-05-17 21:54:35Z mueller $
 #
 # Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,8 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-05-17   683   1.3.4  setup_sys: add TM11
+# 2015-05-15   682   1.3.3  BUGFIX: setup_cpu: fix cpu reset (now -stop -creset)
 # 2015-05-08   675   1.3.2  w11a start/stop/suspend overhaul
 # 2015-03-28   660   1.3.1  add setup_cntl
 # 2015-03-21   659   1.3    setup_sys: add RPRM (later renamed to RHRP)
@@ -52,7 +54,7 @@ namespace eval rw11 {
     rlc set basestat  2
     rlink::setup;               # basic rlink defs
     rw11 rlw rls w11a 1;        # create 1 w11a cpu
-    cpu0 cp -creset;            # reset CPU
+    cpu0 cp -stop -creset;      # stop and reset CPU
     return ""
   }
 
@@ -68,6 +70,7 @@ namespace eval rw11 {
     cpu0 add rk11
     cpu0 add rl11
     cpu0 add rhrp
+    cpu0 add tm11
     cpu0 add lp11
     cpu0 add pc11
     rlw start

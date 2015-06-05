@@ -1,4 +1,4 @@
-// $Id: ReventLoop.cpp 662 2015-04-05 08:02:54Z mueller $
+// $Id: ReventLoop.cpp 686 2015-06-04 21:08:08Z mueller $
 //
 // Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -23,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: ReventLoop.cpp 662 2015-04-05 08:02:54Z mueller $
+  \version $Id: ReventLoop.cpp 686 2015-06-04 21:08:08Z mueller $
   \brief   Implemenation of class ReventLoop.
 */
 
@@ -242,7 +242,7 @@ int ReventLoop::DoPoll(int timeout)
 
   if (fspLog && fTraceLevel >= 2) {
     RlogMsg lmsg(*fspLog, 'I');
-    lmsg << "eloop: poll(): ";
+    lmsg << "eloop: poll(): rc=" << irc;
     for (size_t i=0; i<fPollFd.size(); i++) {
       if (fPollFd[i].revents == 0) continue;
       lmsg << " (" << fPollFd[i].fd 

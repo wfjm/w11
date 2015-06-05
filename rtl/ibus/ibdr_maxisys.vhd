@@ -1,4 +1,4 @@
--- $Id: ibdr_maxisys.vhd 679 2015-05-13 17:38:46Z mueller $
+-- $Id: ibdr_maxisys.vhd 683 2015-05-17 21:54:35Z mueller $
 --
 -- Copyright 2009-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,6 +20,7 @@
 --                 ibdr_rhrp
 --                 ibdr_rl11
 --                 ibdr_rk11
+--                 ibdr_tm11
 --                 ibdr_dl11
 --                 ibdr_pc11
 --                 ibdr_lp11
@@ -41,6 +42,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-05-15   683   1.3.1  add TM11
 -- 2015-05-10   678   1.3    start/stop/suspend overhaul
 -- 2015-04-06   664   1.2.3  rename RPRM to RHRP
 -- 2015-03-14   658   1.2.2  add RPRM; rearrange intmap (+rhrp,tm11,-kw11-l)
@@ -293,6 +295,20 @@ begin
         EI_ACK  => EI_ACK_RK11
       );
   end generate RK11;
+
+  TM11: if sys_conf_ibd_tm11 generate
+  begin
+    I0 : ibdr_tm11
+      port map (
+        CLK     => CLK,
+        BRESET  => BRESET,
+        RB_LAM  => RB_LAM_TM11,
+        IB_MREQ => IB_MREQ,
+        IB_SRES => IB_SRES_TM11,
+        EI_REQ  => EI_REQ_TM11,
+        EI_ACK  => EI_ACK_TM11
+      );
+  end generate TM11;
 
   DL11_0 : ibdr_dl11
     port map (

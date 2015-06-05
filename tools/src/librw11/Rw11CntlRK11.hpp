@@ -1,4 +1,4 @@
-// $Id: Rw11CntlRK11.hpp 665 2015-04-07 07:13:49Z mueller $
+// $Id: Rw11CntlRK11.hpp 686 2015-06-04 21:08:08Z mueller $
 //
 // Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -23,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlRK11.hpp 665 2015-04-07 07:13:49Z mueller $
+  \version $Id: Rw11CntlRK11.hpp 686 2015-06-04 21:08:08Z mueller $
   \brief   Declaration of class Rw11CntlRK11.
 */
 
@@ -102,6 +102,7 @@ namespace Retro {
       static const uint16_t kRKCS_M_FMT  = kWBit10;
       static const uint16_t kRKCS_M_RWA  = kWBit09;
       static const uint16_t kRKCS_M_SSE  = kWBit08;
+      static const uint16_t kRKCS_M_RDY  = kWBit07;
       static const uint16_t kRKCS_M_MEX  = 000060;
       static const uint16_t kRKCS_V_MEX  = 4;
       static const uint16_t kRKCS_B_MEX  = 0003;

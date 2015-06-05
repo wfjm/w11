@@ -1,4 +1,4 @@
-# $Id: Makefile 650 2015-02-22 21:39:47Z mueller $
+# $Id: Makefile 682 2015-05-15 18:35:29Z mueller $
 #
 # 'Meta Makefile' for whole retro project
 #   allows to make all synthesis targets
@@ -121,7 +121,7 @@ default :
 	@echo "    make -j `nproc` all_sim_ise"
 	@echo "    make -j `nproc` all_syn_ise"
 	@echo "    make -j `nproc` all_sim_viv"
-	@echo "    make -j `nproc` all_syn_viv"
+	@echo "    make -j 1 all_syn_viv"
 	@echo "    make clean"
 	@echo "    make clean_sim_ise"
 	@echo "    make clean_syn_ise"

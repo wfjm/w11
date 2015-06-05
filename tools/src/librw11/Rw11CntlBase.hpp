@@ -1,4 +1,4 @@
-// $Id: Rw11CntlBase.hpp 495 2013-03-06 17:13:48Z mueller $
+// $Id: Rw11CntlBase.hpp 682 2015-05-15 18:35:29Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlBase.hpp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: Rw11CntlBase.hpp 682 2015-05-15 18:35:29Z mueller $
   \brief   Declaration of class Rw11CntlBase.
 */
 
@@ -40,7 +40,7 @@ namespace Retro {
       explicit      Rw11CntlBase(const std::string& type);
                    ~Rw11CntlBase();
 
-      size_t        NUnit() const;
+      virtual size_t NUnit() const;
       TU&           Unit(size_t index) const;
       const boost::shared_ptr<TU>& UnitSPtr(size_t index) const;
 

@@ -58,7 +58,7 @@ Notes on oskit: 2.11BSD system on RK05 volumes
        lp 0 csr 177514 vector 200 attached
        rk 0 csr 177400 vector 220 attached
        rl 0 csr 174400 vector 160 attached
-       tm ? csr 172520 vector 224 skipped:  No CSR.
+       tm 0 csr 172520 vector 224 attached
        xp 0 csr 176700 vector 254 attached
        cn 1 csr 176500 vector 300 attached
        erase, kill ^U, intr ^C

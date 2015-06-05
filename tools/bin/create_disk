@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: create_disk 679 2015-05-13 17:38:46Z mueller $
+# $Id: create_disk 686 2015-06-04 21:08:08Z mueller $
 #
 # Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-06-04   686   1.1.2  use sysseek rather seek; add RM80
 # 2015-04-06   665   1.1.1  add alias RM03 (for RM02) and RP05 (for RP04)
 # 2014-06-14   562   1.1    BUGFIX: repair --boot; add RM02,RM05,RP04,RP07
 # 2013-05-20   521   1.0    First draft
@@ -44,6 +45,7 @@ my %disktype = (
   RL02 => {cyl=> 512, hd=>   2, sec=>  40, bps=> 256, bad=>1},
   RM02 => {cyl=> 823, hd=>   5, sec=>  32, bps=> 512, bad=>1},
   RM05 => {cyl=> 823, hd=>  19, sec=>  32, bps=> 512, bad=>1},
+  RM80 => {cyl=> 559, hd=>  14, sec=>  31, bps=> 512, bad=>1},
   RP04 => {cyl=> 411, hd=>  19, sec=>  22, bps=> 512, bad=>1},
   RP06 => {cyl=> 815, hd=>  19, sec=>  22, bps=> 512, bad=>1},
   RP07 => {cyl=> 630, hd=>  32, sec=>  50, bps=> 512, bad=>1}
@@ -97,8 +99,8 @@ my $fh = new FileHandle;
 sysopen($fh, $fnam, O_RDWR|O_CREAT)
   or die "failed to create '$fnam': $!";
 
-# seek to end, wrte 1 byte at end
-my $rc = $fh->seek($cap-1, SEEK_SET);
+# seek to end, write 1 byte at end
+my $rc = sysseek($fh, $cap-1, SEEK_SET);
 if (not $rc) {die "seek failed: $!";}
 my $buf = pack('C1',0);
 $rc = syswrite($fh, $buf, length($buf));
@@ -118,7 +120,7 @@ do_boot if $opts{boot};
 sub do_inipatt {
   my $ini = $opts{ini};
 
-  if ($ini eq 'zero' ||$ini eq 'ones' || $ini eq 'dead') {
+  if ($ini eq 'zero' || $ini eq 'ones' || $ini eq 'dead') {
     my @dat;
     for (my $i=0; $i<$bps/4; $i++) {
       push @dat, 0,0            if $ini eq 'zero';
@@ -271,7 +273,7 @@ sub print_help {
 
   print "\n";
   print "currently supported initialization patterns:\n";
-  print "  zero  all zero (the default anyway if no -ini given)\n";
+  print "  zero  all zero (will cause explicit disk space allocation)\n";
   print "  ones  all ones\n";
   print "  dead  alternating 0xdead 0xbeaf pattern\n";
   print "  test  writes unique groups of 8 16bit words\n";

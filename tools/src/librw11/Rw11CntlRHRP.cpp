@@ -1,4 +1,4 @@
-// $Id: Rw11CntlRHRP.cpp 680 2015-05-14 13:29:46Z mueller $
+// $Id: Rw11CntlRHRP.cpp 686 2015-06-04 21:08:08Z mueller $
 //
 // Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -15,13 +15,15 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-06-04   686   1.0.2  check for spurious lams
+// 2015-05-24   684   1.0.1  fixed rpcs2 update for wcheck and nem aborts
 // 2015-05-14   680   1.0    Initial version
 // 2015-03-21   659   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11CntlRHRP.cpp 680 2015-05-14 13:29:46Z mueller $
+  \version $Id: Rw11CntlRHRP.cpp 686 2015-06-04 21:08:08Z mueller $
   \brief   Implemenation of Rw11CntlRHRP.
 */
 
@@ -457,6 +459,16 @@ int Rw11CntlRHRP::AttnHandler(RlinkServer::AttnArgs& args)
   if (rpcs3 & kRPCS3_M_RPACKDONE) fStats.Inc(kStatNFuncPack);
   if (rpcs3 & kRPCS3_M_RSEEKDONE) fStats.Inc(kStatNFuncSeek);
 
+  // check for spurious interrupts (either RDY=1 or RDY=0 and rdma busy)
+  if ((rpcs1 & kRPCS1_M_RDY) || fRdma.IsActive()) {
+    RlogMsg lmsg(LogFile());
+    lmsg << "-E RHRP   err "
+         << " cs=" << RosPrintBvi(rpcs1,8)
+         << " spurious lam: "
+         << (fRdma.IsActive() ? "RDY=0 and Rdma busy" : "RDY=1");
+    return 0;
+  }
+
   // check for overrun (read/write beyond last track
   // if found, truncate request length
   bool ovr = lba + nblk > unit.NBlock();
@@ -556,14 +568,14 @@ void Rw11CntlRHRP::RdmaPostExecCB(int stat, size_t ndone,
   if (fRd_fu == kFUNC_WCD) {
     size_t nwcok = fRdma.WriteCheck(ndone);
     if (nwcok != ndone) {                   // if mismatch found
-      rpcs2 = kRPCS2_M_WCE;
-      if (ndone & 0x1) rpcs2 = kRPCS2_M_RWCO; // failed in odd word !
+      rpcs2 |= kRPCS2_M_WCE;
+      if (ndone & 0x1) rpcs2 |= kRPCS2_M_RWCO; // failed in odd word !
       ndone = nwcok;                        // truncate word count
     }
   }
 
   // handle Rdma aborts
-  if (stat == Rw11Rdma::kStatusFailRdma) rpcs2 = kRPCS2_M_NEM;
+  if (stat == Rw11Rdma::kStatusFailRdma) rpcs2 |= kRPCS2_M_NEM;
 
   // check for fused csr updates
   if (clist.Size() > ncmd) {

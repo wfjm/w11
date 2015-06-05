@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDiskFile.cpp 516 2013-05-05 21:24:52Z mueller $
+// $Id: Rw11VirtDiskFile.cpp 684 2015-05-24 14:10:59Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,7 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtDiskFile.cpp 516 2013-05-05 21:24:52Z mueller $
+  \version $Id: Rw11VirtDiskFile.cpp 684 2015-05-24 14:10:59Z mueller $
   \brief   Implemenation of Rw11VirtDiskFile.
 */
 
@@ -148,6 +148,20 @@ bool Rw11VirtDiskFile::Write(size_t lba, size_t nblk, const uint8_t* data,
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
+void Rw11VirtDiskFile::Dump(std::ostream& os, int ind, const char* text) const
+{
+  RosFill bl(ind);
+  os << bl << (text?text:"--") << "Rw11VirtDiskFile @ " << this << endl;
+
+  os << bl << "  fFd:             " << fFd << endl;
+  os << bl << "  fSize:           " << fSize << endl;
+  Rw11VirtDisk::Dump(os, ind, " ^");
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
 bool Rw11VirtDiskFile::Seek(size_t seekpos, RerrMsg& emsg)
 {
   if (::lseek(fFd, seekpos, SEEK_SET) < 0) {
@@ -156,19 +170,6 @@ bool Rw11VirtDiskFile::Seek(size_t seekpos, RerrMsg& emsg)
   }
 
   return true;
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-void Rw11VirtDiskFile::Dump(std::ostream& os, int ind, const char* text) const
-{
-  RosFill bl(ind);
-  os << bl << (text?text:"--") << "Rw11VirtDiskFile @ " << this << endl;
-
-  os << bl << "  fFd:             " << fFd << endl;
-  Rw11VirtDisk::Dump(os, ind, " ^");
-  return;
 }
 
 } // end namespace Retro

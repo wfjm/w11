@@ -1,4 +1,4 @@
--- $Id: ram_2swsr_xfirst_gen_unisim.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: ram_2swsr_xfirst_gen_unisim.vhd 686 2015-06-04 21:08:08Z mueller $
 --
 -- Copyright 2008-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --

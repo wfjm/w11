@@ -1,4 +1,4 @@
-# $Id: Makefile 664 2015-04-06 12:02:17Z mueller $
+# $Id: Makefile 683 2015-05-17 21:54:35Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -31,6 +31,7 @@ OBJ_all   +=   RtclRw11Cntl.o RtclRw11CntlFactory.o
 OBJ_all   +=   RtclRw11Unit.o
 OBJ_all   +=   RtclRw11UnitTerm.o
 OBJ_all   +=   RtclRw11UnitDisk.o
+OBJ_all   +=   RtclRw11UnitTape.o
 OBJ_all   +=   RtclRw11UnitStream.o
 OBJ_all   +=   RtclRw11CntlDL11.o RtclRw11UnitDL11.o
 OBJ_all   +=   RtclRw11CntlLP11.o RtclRw11UnitLP11.o
@@ -38,7 +39,8 @@ OBJ_all   +=   RtclRw11CntlPC11.o RtclRw11UnitPC11.o
 OBJ_all   +=   RtclRw11CntlRK11.o RtclRw11UnitRK11.o
 OBJ_all   +=   RtclRw11CntlRL11.o RtclRw11UnitRL11.o
 OBJ_all   +=   RtclRw11CntlRHRP.o RtclRw11UnitRHRP.o
-# 
+OBJ_all   +=   RtclRw11CntlTM11.o RtclRw11UnitTM11.o
+#
 DEP_all    = $(OBJ_all:.o=.dep)
 #
 #- generic part ----------------------------------------------------------------

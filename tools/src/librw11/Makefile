@@ -1,4 +1,4 @@
-# $Id: Makefile 664 2015-04-06 12:02:17Z mueller $
+# $Id: Makefile 685 2015-05-25 12:18:36Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -26,6 +26,7 @@ OBJ_all   +=   Rw11Probe.o
 OBJ_all   +=   Rw11Cntl.o Rw11Unit.o
 OBJ_all   +=   Rw11UnitTerm.o 
 OBJ_all   +=   Rw11UnitDisk.o 
+OBJ_all   +=   Rw11UnitTape.o 
 OBJ_all   +=   Rw11UnitStream.o 
 OBJ_all   +=   Rw11CntlDL11.o Rw11UnitDL11.o 
 OBJ_all   +=   Rw11CntlLP11.o Rw11UnitLP11.o 
@@ -33,9 +34,11 @@ OBJ_all   +=   Rw11CntlPC11.o Rw11UnitPC11.o
 OBJ_all   +=   Rw11CntlRL11.o Rw11UnitRL11.o
 OBJ_all   +=   Rw11CntlRK11.o Rw11UnitRK11.o
 OBJ_all   +=   Rw11CntlRHRP.o Rw11UnitRHRP.o
+OBJ_all   +=   Rw11CntlTM11.o Rw11UnitTM11.o
 OBJ_all   +=   Rw11Virt.o 
 OBJ_all   +=   Rw11VirtTerm.o Rw11VirtTermPty.o Rw11VirtTermTcp.o 
 OBJ_all   +=   Rw11VirtDisk.o Rw11VirtDiskFile.o 
+OBJ_all   +=   Rw11VirtTape.o Rw11VirtTapeTap.o 
 OBJ_all   +=   Rw11VirtStream.o 
 OBJ_all   +=   Rw11Rdma.o Rw11RdmaDisk.o 
 #

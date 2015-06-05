@@ -1,4 +1,4 @@
-# $Id: 211bsd_rp_boot.tcl 679 2015-05-13 17:38:46Z mueller $
+# $Id: 211bsd_rp_boot.tcl 686 2015-06-04 21:08:08Z mueller $
 #
 # Setup file for 211bsd RP06 based system
 #

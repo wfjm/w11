@@ -1,6 +1,6 @@
--- $Id: ibdlib.vhd 678 2015-05-10 16:23:02Z mueller $
+-- $Id: ibdlib.vhd 682 2015-05-15 18:35:29Z mueller $
 --
--- Copyright 2008-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free

@@ -1,4 +1,4 @@
--- $Id: sys_conf_sim.vhd 672 2015-05-02 21:58:28Z mueller $
+-- $Id: sys_conf_sim.vhd 683 2015-05-17 21:54:35Z mueller $
 --
 -- Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -70,6 +70,7 @@ package sys_conf is
   constant sys_conf_ibd_rk11   : boolean := true;  -- RK11
   constant sys_conf_ibd_rl11   : boolean := true;  -- RL11
   constant sys_conf_ibd_rhrp   : boolean := true;  -- RHRP
+  constant sys_conf_ibd_tm11   : boolean := true;  -- TM11
 
   -- configure other devices
   constant sys_conf_ibd_iist   : boolean := true;  -- IIST

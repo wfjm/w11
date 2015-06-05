@@ -1,4 +1,4 @@
--- $Id: sys_w11a_n4.vhd 677 2015-05-09 21:52:32Z mueller $
+-- $Id: sys_w11a_n4.vhd 686 2015-06-04 21:08:08Z mueller $
 --
 -- Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -33,9 +33,11 @@
 -- Tool versions:  ise 14.5-14.7; viv 2014.4; ghdl 0.29-0.31
 --
 -- Synthesized:
--- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
--- 2015-02-22   650 2014.4  xc7a100t-1   1606  3652   146   3.5  1158  80 MHz
--- 2015-02-22   650 i 17.7  xc7a100t-1   1670  3564   124        1508  80 MHz
+-- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic MHz
+-- 2015-06-04   686 2014.4  xc7a100t-1   2111  4541   162   7.5  1469  80 +TM11
+-- 2015-05-14   680 2014.4  xc7a100t-1   2030  4459   162   7.5  1427  80
+-- 2015-02-22   650 2014.4  xc7a100t-1   1606  3652   146   3.5  1158  80
+-- 2015-02-22   650 i 17.7  xc7a100t-1   1670  3564   124        1508  80
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.cpp 675 2015-05-08 21:05:08Z mueller $
+// $Id: Rw11Cpu.cpp 682 2015-05-15 18:35:29Z mueller $
 //
 // Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-05-15   682   1.2.4  BUGFIX: Boot(): extract unit number properly
+//                           Boot(): stop cpu before load, check unit number
 // 2015-05-08   675   1.2.3  w11a start/stop/suspend overhaul
 // 2015-04-25   668   1.2.2  add AddRbibr(), AddWbibr()
 // 2015-04-03   661   1.2.1  add kStat_M_* defs
@@ -27,7 +29,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cpu.cpp 675 2015-05-08 21:05:08Z mueller $
+  \version $Id: Rw11Cpu.cpp 682 2015-05-15 18:35:29Z mueller $
   \brief   Implemenation of Rw11Cpu.
 */
 #include <stdlib.h>
@@ -678,7 +680,7 @@ bool Rw11Cpu::Boot(const std::string& uname, RerrMsg& emsg)
   for (size_t i=0; i<uname.length(); i++) {
     char c = uname[i];
     if (c >= '0' && c <= '9') {
-      string unum = cname.substr(i);
+      string unum = uname.substr(i);
       uind = ::atoi(unum.c_str());
       break;
     } else {
@@ -691,9 +693,11 @@ bool Rw11Cpu::Boot(const std::string& uname, RerrMsg& emsg)
     return false;
   }
 
-  // FIXME_code: unit number not checked. Cntl doesn't even know about ...
-
   Rw11Cntl& cntl = Cntl(cname);
+  if (uind >= cntl.NUnit()) {
+    emsg.Init("Rw11Cpu::Boot", string("unit number '") + uname + "' invalid");
+    return false;
+  }
 
   vector<uint16_t> code;
   uint16_t aload = 0;
@@ -705,11 +709,17 @@ bool Rw11Cpu::Boot(const std::string& uname, RerrMsg& emsg)
     return false;
   }
 
+  // stop and reset cpu, just in case
+  RlinkCommandList clist;
+  clist.AddWreg(fBase+kCPCNTL, kCPFUNC_STOP);   // stop cpu
+  clist.AddWreg(fBase+kCPCNTL, kCPFUNC_CRESET); // init cpu and bus
+  if (!Server().Exec(clist, emsg)) return false;
+
+  // load boot code
   if (!MemWrite(aload, code, emsg)) return false;
   
-  RlinkCommandList clist;
-  clist.AddWreg(fBase+kCPCNTL, kCPFUNC_STOP);   // stop, just in case 
-  clist.AddWreg(fBase+kCPCNTL, kCPFUNC_CRESET); // init cpu and bus
+  // and start cpu at boot loader start address
+  clist.Clear();
   clist.AddWreg(fBase+kCPPC, astart);           // load PC
   clist.AddWreg(fBase+kCPCNTL, kCPFUNC_START);  // and start
   SetCpuGoUp();

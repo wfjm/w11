@@ -1,4 +1,4 @@
-// $Id: Rw11Cntl.cpp 631 2015-01-09 21:36:51Z mueller $
+// $Id: Rw11Cntl.cpp 682 2015-05-15 18:35:29Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cntl.cpp 631 2015-01-09 21:36:51Z mueller $
+  \version $Id: Rw11Cntl.cpp 682 2015-05-15 18:35:29Z mueller $
   \brief   Implemenation of Rw11Cntl.
 */
 
@@ -92,6 +92,14 @@ void Rw11Cntl::Start()
 {
   fStarted = true;
   return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+size_t Rw11Cntl::NUnit() const
+{
+  return 0;                                 // real values from devived classes
 }
 
 //------------------------------------------+-----------------------------------

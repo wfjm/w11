@@ -1,4 +1,4 @@
-$Id: README.txt 680 2015-05-14 13:29:46Z mueller $
+$Id: README.txt 687 2015-06-05 09:03:34Z mueller $
 
 Release notes for w11a
 
@@ -21,6 +21,77 @@ Release notes for w11a
     * w11a_known_issues.txt: known differences, limitations and issues
 
 2. Change Log ----------------------------------------------------------------
+
+- trunk (2015-06-05: svn rev 31(oc) 687(wfjm); untagged w11a_V0.66)  +++++++++
+  - Preface
+    
+    - Since the previous release a full set of small, medium and large sized 
+      disks (RK,RL,RP/RM) is available, covering all use cases. Still missing
+      was a tape system, which allows to install systems from distribution tapes
+      but is also very handy for data exchange. This release adds a TM11/TU10
+      tape controller emulation. This is much simpler to implement than a 
+      massbus based TU16 or TU78 controller. Because storage is emulated there
+      is neither a speed nor a capacity advantage of 1600 or 6250 bpi drives,
+      so for all practical purposes the simple 800 bpi TU10 drive emulation is
+      fully adequate.
+      The TM11/TU10 was tested under 211bsd with creating a tape distribution
+      kit and building a RP06 based system from such a tape. A 211bsd_tm
+      oskit is provided with a recipe to restore a RP06 from tape.
+
+    - bug fixes
+      - the ti_rri event loop aborted under heavy load with three devices, seen
+        when RP disk, TM tape and DL11 run simultaneously. Was caused by a race
+        condition in attention handling and dispatching.
+      - the boot command failed when cpu was running and the unit not decoded
+        properly, so boots from units other then 0 failed.
+
+  - Summary
+    - added TM11/TU10 tape support
+
+  - New features
+    - new modules
+      - rtl/ibus/ibdr_rm11        - ibus controller for RM11
+      - tools/bin
+        - file2tap                  - create a tap container from disk files
+        - tap2file                  - split a tap container into disk files
+      - tools/src/librw11
+        - Rw11(Cntl|Unit)TM11     - Controller/Unit for TM11
+        - Rw11UnitTape(|Base)     - support for tape units
+        - Rw11VirtTape(|Tap)      - virtual tapes (generic and tap containers)
+      - tools/tcl/rw11
+        - tbench.tcl                - support sub directories and return in tests
+    - new oskits
+      - tools/oskit/211bsd_tm     - 2.11BSD tape distribution kit (for RP06)
+
+  - Changes
+    - renames
+      - tools/tbench              - the text benches were re-organized and 
+                                    grouped now in sub directories:
+                                      cp    for w11a control port
+                                      w11a  for w11a CPU tests
+                                      rhrp  for RHRP device tests
+                                      tm11  for TM11 device tests
+    - functional changes
+      - tools/bin/create_disk       - add RM80 support
+
+  - Bug fixes
+    - tools/src/librlink
+      - RlinkServer                  - fix race condition in attention handling
+    - tools/src/librw11
+      - Rw11Cpu                      - stop cpu before load, proper unit handling
+
+  - Known issues
+    - all issues: see README_known_issues.txt
+    - resolved issues: -- none --
+    - new issues:
+      - V0.66-1: the TM11 controller transfers data byte wise (all disk do it
+          16bit word wise) and allows for odd byte length transfers. Odd length
+          transfers are currently not supported and rejected as invalid command.
+          Odd byte length records aren't used by OS, if at all, so in practice
+          this limitation isn't relevant.
+      - V0.66-2: using two RP06 drives in parallel under 211bsd leads to a 
+          hangup of the system after a short time. Currently only operation
+          of a single drive works reliably.
 
 - trunk (2015-05-14: svn rev 30(oc) 681(wfjm); untagged w11a_V0.65)  +++++++++
   - Preface
@@ -79,6 +150,7 @@ Release notes for w11a
       - rtl/vlib/serport
         - serport_master          - serial port module, master side
       - rtl/ibus/ibd_ibmon        - ibus monitor
+      - rtl/ibus/ibdr_rhrp        - ibus controller for RH70 plus RP/RM drives
       - rtl/w11a/pdp11_sys70      - 11/70 system - single core +rbus,debug,cache
       - rtl/w11a/pdp11_hio70      - hio led and dsp for sys70
       - tools/src/librw11

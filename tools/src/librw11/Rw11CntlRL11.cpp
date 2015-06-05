@@ -1,4 +1,4 @@
-// $Id: Rw11CntlRL11.cpp 669 2015-04-26 21:20:32Z mueller $
+// $Id: Rw11CntlRL11.cpp 686 2015-06-04 21:08:08Z mueller $
 //
 // Copyright 2014-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -16,6 +16,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-06-04   686   1.0.2  check for spurious lams
 // 2015-03-04   655   1.0.1  use original boot code again
 // 2015-03-01   653   1.0    Initial version
 // 2014-06-08   561   0.1    First draft
@@ -23,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlRL11.cpp 669 2015-04-26 21:20:32Z mueller $
+  \version $Id: Rw11CntlRL11.cpp 686 2015-06-04 21:08:08Z mueller $
   \brief   Implemenation of Rw11CntlRL11.
 */
 
@@ -438,6 +439,16 @@ int Rw11CntlRL11::AttnHandler(RlinkServer::AttnArgs& args)
          << ",";
     if (nwrd==65536) lmsg << " (0)"; else lmsg << RosPrintf(nwrd,"d",4);
     if (ovr) lmsg << "!";
+  }
+
+  // check for spurious interrupts (either RDY=1 or RDY=0 and rdma busy)
+  if ((rlcs & kRLCS_M_CRDY) || fRdma.IsActive()) {
+    RlogMsg lmsg(LogFile());
+    lmsg << "-E RL11   err "
+         << " cr=" << RosPrintBvi(rlcs,8)
+         << " spurious lam: "
+         << (fRdma.IsActive() ? "RDY=0 and Rdma busy" : "RDY=1");
+    return 0;
   }
 
   // remember request parameters for call back and error exit handling

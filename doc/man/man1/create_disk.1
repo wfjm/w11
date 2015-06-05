@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: create_disk.1 622 2014-12-28 20:45:26Z mueller $
+.\"  $Id: create_disk.1 686 2015-06-04 21:08:08Z mueller $
 .\"
-.\" Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH CREATE_DISK 1 2013-05-20 "Retro Project" "Retro Project Manual"
+.TH CREATE_DISK 1 2015-06-04 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 create_disk \- create disk container file for ti_w11
@@ -43,11 +43,16 @@ option.
 determines whether the container file will be initialized with specific
 data pattern. Note that the \fB\-\-bad\fP and \fB\-\-boot\fP options will 
 overwrite the last track or the first sector(s) respectively.
+The default without \fB\-\-ini\fR is to create a container with all zero data.
+It is implemented by writing a single zero byte after positioning with 
+\fBlseek\fR(2) to the desired end. This creates a file with 'holes' and defers 
+the actual allocation of disk space to the point when sectors are written. 
 Allowed values for \fIpat\fP are
 .RS
 .IP \fBzero\fP
-creates a disk with all sectors zero'ed. This is the default when no
-\fB\-\-ini\fP option is given.
+creates a disk with all sectors zero'ed. In this case zero's are explicitely
+written. The explicit allocation of disk space is the main effect of this
+option.
 .IP \fBones\fP
 creates a disk with all data bytes set to 0xff.
 .IP \fBdead\fP

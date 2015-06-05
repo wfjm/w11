@@ -1,4 +1,4 @@
-// $Id: RlinkServer.cpp 662 2015-04-05 08:02:54Z mueller $
+// $Id: RlinkServer.cpp 686 2015-06-04 21:08:08Z mueller $
 //
 // Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-06-05   686   1.2.1  BUGFIX: CallAttnHandler(): fix race in hnext
 // 2015-04-04   662   1.2    BUGFIX: fix race in Stop(), use UnStop()
 // 2015-01-10   632   2.2    Exec() without emsg now void, will throw
 // 2014-12-30   625   2.1    adopt to Rlink V4 attn logic
@@ -26,7 +27,7 @@
 
 /*!
   \file
-  \version $Id: RlinkServer.cpp 662 2015-04-05 08:02:54Z mueller $
+  \version $Id: RlinkServer.cpp 686 2015-06-04 21:08:08Z mueller $
   \brief   Implemenation of RlinkServer.
 */
 
@@ -435,11 +436,20 @@ void RlinkServer::StartOrResume(bool resume)
 void RlinkServer::CallAttnHandler()
 {
   fStats.Inc(kStatNAttnHdl);
+  if (fTraceLevel>0) {
+    RlogMsg lmsg(LogFile());
+    lmsg << "-I attnhdl-beg: patt=" << RosPrintBvi(fAttnPatt,8);
+  }
 
   // if notifier pending, transfer it to current attn pattern
   if (fAttnNotiPatt) {
     boost::lock_guard<RlinkConnect> lock(*fspConn);
     fStats.Inc(kStatNAttnNoti);
+    if (fTraceLevel>0) {
+      RlogMsg lmsg(LogFile());
+      lmsg << "-I attnhdl-add: patt=" << RosPrintBvi(fAttnPatt,8)
+           << " noti=" << RosPrintBvi(fAttnNotiPatt,8);
+    }
     fAttnPatt |= fAttnNotiPatt;    
     fAttnNotiPatt = 0;
   }
@@ -458,15 +468,32 @@ void RlinkServer::CallAttnHandler()
       AttnArgs args(fAttnPatt, fAttnDsc[i].fId.fMask);
       boost::lock_guard<RlinkConnect> lock(*fspConn);
 
+      if (fTraceLevel>0) {
+        RlogMsg lmsg(LogFile());
+        lmsg << "-I attnhdl-bef: patt=" << RosPrintBvi(fAttnPatt,8)
+             << " hmat=" << RosPrintBvi(hmatch,8);
+      }
+
       // FIXME_code: return code not used, yet
       fAttnDsc[i].fHandler(args);
       if (!args.fHarvestDone)
         Rexception("RlinkServer::CallAttnHandler()",
-                     "Handler didn't set fHarvestDone");
+                   "Handler didn't set fHarvestDone");
 
       uint16_t hnew = args.fAttnHarvest & ~fAttnDsc[i].fId.fMask;
-      hnext |= hnew;
-      hdone |= hmatch;
+      hnext |=  hnew;
+      hnext &= ~hmatch;      // FIXME_code: this is a patch
+                             //   works for single lam handlers only
+                             //   ok for now, but will not work in general !!
+      hdone |=  hmatch;
+
+      if (fTraceLevel>0) {
+        RlogMsg lmsg(LogFile());
+        lmsg << "-I attnhdl-aft: patt=" << RosPrintBvi(fAttnPatt,8)
+             << " done=" << RosPrintBvi(hdone,8)
+             << " next=" << RosPrintBvi(hnext,8);
+      }
+
     }
   }
   fAttnPatt &= ~hdone;                      // clear handled bits

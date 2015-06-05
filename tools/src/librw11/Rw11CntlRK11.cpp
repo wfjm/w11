@@ -1,4 +1,4 @@
-// $Id: Rw11CntlRK11.cpp 669 2015-04-26 21:20:32Z mueller $
+// $Id: Rw11CntlRK11.cpp 686 2015-06-04 21:08:08Z mueller $
 //
 // Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -15,6 +15,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-06-04   686   2.0.2  check for spurious lams
 // 2015-02-17   647   2.0.1  use Nwrd2Nblk(); BUGFIX: revise RdmaPostExecCB()
 // 2015-01-04   628   2.0    use Rw11RdmaDisk
 // 2014-12-30   625   1.2    adopt to Rlink V4 attn logic
@@ -26,7 +27,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlRK11.cpp 669 2015-04-26 21:20:32Z mueller $
+  \version $Id: Rw11CntlRK11.cpp 686 2015-06-04 21:08:08Z mueller $
   \brief   Implemenation of Rw11CntlRK11.
 */
 
@@ -98,6 +99,7 @@ const uint16_t Rw11CntlRK11::kRKCS_M_IBA;
 const uint16_t Rw11CntlRK11::kRKCS_M_FMT;
 const uint16_t Rw11CntlRK11::kRKCS_M_RWA;
 const uint16_t Rw11CntlRK11::kRKCS_M_SSE;
+const uint16_t Rw11CntlRK11::kRKCS_M_RDY;
 const uint16_t Rw11CntlRK11::kRKCS_M_MEX;
 const uint16_t Rw11CntlRK11::kRKCS_V_MEX;
 const uint16_t Rw11CntlRK11::kRKCS_B_MEX;
@@ -370,6 +372,16 @@ int Rw11CntlRK11::AttnHandler(RlinkServer::AttnArgs& args)
          << "," << RosPrintf(se,"d",2)
          << " la,nw=" << RosPrintf(lba,"d",4) 
          << "," << RosPrintf(nwrd,"d",5);
+  }
+
+  // check for spurious interrupts (either RDY=1 or RDY=0 and rdma busy)
+  if ((rkcs & kRKCS_M_RDY) || fRdma.IsActive()) {
+    RlogMsg lmsg(LogFile());
+    lmsg << "-E RK11   err "
+         << " cr=" << RosPrintBvi(rkcs,8)
+         << " spurious lam: "
+         << (fRdma.IsActive() ? "RDY=0 and Rdma busy" : "RDY=1");
+    return 0;
   }
 
   // check for general abort conditions

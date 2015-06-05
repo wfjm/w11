@@ -1,4 +1,4 @@
--- $Id: ibdr_rhrp.vhd 680 2015-05-14 13:29:46Z mueller $
+-- $Id: ibdr_rhrp.vhd 682 2015-05-15 18:35:29Z mueller $
 --
 -- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -27,6 +27,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-05-15   682   1.0.1  correct ibsel range select logic
 -- 2015-05-14   680   1.0    Initial version
 -- 2015-03-15   658   0.1    First draft
 ------------------------------------------------------------------------------
@@ -463,7 +464,6 @@ begin
     variable iomux  : slv4  := (others=>'0');   -- omux select
     variable iamap  : slv5  := (others=>'0');   -- mem mapped address
     variable imask  : slv16 := (others=>'0');   -- implemented bits mask
-    variable inxr   : slbit := '0';             -- non-existent register 
     variable imbreg : slbit := '0';             -- massbus register
     variable inormr : slbit := '0';             -- inhibit rmr protect
 
@@ -506,7 +506,6 @@ begin
     iomux  := (others=>'0');
     iamap  := (others=>'0');
     imask  := (others=>'1');            -- default: all bits ok
-    inxr   := '0';
     imbreg := '0';
     inormr := '0';
 
@@ -527,7 +526,7 @@ begin
     n.ibsel := '0';
     if IB_MREQ.aval = '1' and
        IB_MREQ.addr(12 downto 6) = ibaddr_rhrp(12 downto 6) and
-       unsigned(ibaddr_rhrp(5 downto 0)) <= unsigned(ibaddr_cs3) then
+       unsigned(IB_MREQ.addr(5 downto 1)) <= unsigned(ibaddr_cs3) then
       n.ibsel := '1';
     end if;
     
@@ -710,8 +709,9 @@ begin
             when ibaddr_cs3  =>             -- RxCS3 control reg 3 
               iomux  := omux_cs3;
               
-            when others =>                  -- unknown register
-              inxr := '1';
+            when others => null;            -- doesn't happen, ibsel only for
+                                            -- subrange up to cs3, and all
+                                            -- 22 regs are decoded above
               
           end case; -- case IB_MREQ.addr
           n.amap   := iamap;
@@ -767,15 +767,11 @@ begin
             end if;
             
           elsif IB_MREQ.re = '1' then   -- read request
-            if inxr = '1' then            -- unknown register
-              ibreq := '0';               -- suppress ack & hold --> ibus err
+            if ibrem='0' and imbreg='1' and ined='1' then   
+              n.cs2ned := '1';            -- signal error
             else
-              if ibrem='0' and imbreg='1' and ined='1' then   
-                n.cs2ned := '1';            -- signal error
-              else
-                ibhold  := '1';
-                n.state := s_read;
-              end if;
+              ibhold  := '1';
+              n.state := s_read;
             end if;
 
           end if; --  if IB_MREQ.we .. elsif IB_MREQ.re 

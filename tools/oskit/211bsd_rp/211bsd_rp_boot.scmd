@@ -1,4 +1,4 @@
-; $Id: 211bsd_rp_boot.scmd 666 2015-04-12 21:17:54Z mueller $
+; $Id: 211bsd_rp_boot.scmd 686 2015-06-04 21:08:08Z mueller $
 ;
 ; Setup file for 211bsd RP06 based system
 ;
@@ -19,6 +19,5 @@ set rl2 rl02
 set rl3 rl02
 ;
 att rp0 211bsd_rp.dsk
-att rk6 rk_home.dsk
 ;
 boo rp0

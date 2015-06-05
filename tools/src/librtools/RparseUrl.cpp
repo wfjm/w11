@@ -1,6 +1,6 @@
-// $Id: RparseUrl.cpp 516 2013-05-05 21:24:52Z mueller $
+// $Id: RparseUrl.cpp 686 2015-06-04 21:08:08Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-06-04   686   1.0.2  Set(): add check that optlist is enclosed by '|'
 // 2013-02-23   492   1.0.1  add static FindScheme(); allow no or empty scheme
 // 2013-02-03   481   1.0    Initial version, extracted from RlinkPort
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RparseUrl.cpp 516 2013-05-05 21:24:52Z mueller $
+  \version $Id: RparseUrl.cpp 686 2015-06-04 21:08:08Z mueller $
   \brief   Implemenation of RparseUrl.
 */
 
@@ -67,6 +68,15 @@ bool RparseUrl::Set(const std::string& url, const std::string& optlist,
   fPath.clear();
   fOptMap.clear();
 
+  // check that optlist is empty or starts and ends with '|'
+  if (optlist.length() > 0 && 
+        (optlist.length()<2 || 
+         optlist[0]!='|' || optlist[optlist.length()-1]!='|') ) {
+    emsg.Init("RparseUrl::Set()", string("optlist \"") + optlist + 
+                                         "\" not enclosed in '|'"); 
+    return false;
+  }
+
   size_t pdel = fScheme.length();
   if (pdel == 0 && url.length()>0 && url[0] != ':') pdel = -1;
   size_t odel = url.find_first_of('?', fScheme.length());
@@ -96,7 +106,7 @@ bool RparseUrl::Set(const std::string& url, const std::string& optlist,
         } else {
           if (c == '\\') {
             if (i+1 >= url.length()) {
-              emsg.Init("RparseUrl::ParseUrl()",
+              emsg.Init("RparseUrl::Set()",
                         string("invalid trailing \\ in url '") + url + "'");
               return false;
             }
@@ -104,7 +114,7 @@ bool RparseUrl::Set(const std::string& url, const std::string& optlist,
             switch (url[i]) {
               case '\\' : c = '\\'; break;
               case ';'  : c = ';';  break;
-              default   : emsg.Init("RparseUrl::ParseUrl()",
+              default   : emsg.Init("RparseUrl::Set()",
                                     string("invalid \\ escape in url '") + 
                                     url + "'");
                           return false;

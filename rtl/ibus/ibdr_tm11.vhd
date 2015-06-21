@@ -1,4 +1,4 @@
--- $Id: ibdr_tm11.vhd 686 2015-06-04 21:08:08Z mueller $
+-- $Id: ibdr_tm11.vhd 690 2015-06-07 18:23:51Z mueller $
 --
 -- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -127,7 +127,7 @@ architecture syn of ibdr_tm11 is
     srpae: slbit;                       -- sr: parity error
     srrle: slbit;                       -- sr: record length error
     srbte: slbit;                       -- sr: bad tape error
-    srnxm: slbit;                       -- sr: non-existant memory
+    srnxm: slbit;                       -- sr: non-existent memory
     sreof: slv4;                        -- sr: eof-of-file
     sreot: slv4;                        -- sr: eof-of-tape
     sronl: slv4;                        -- sr: online

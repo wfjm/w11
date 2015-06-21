@@ -1,4 +1,4 @@
-; $Id:  $
+; $Id: 211bsd_tm_rp06_boot.scmd 690 2015-06-07 18:23:51Z mueller $
 ;
 ; Setup file for creating a 211bsd RP06 system from a TM11 dist kit
 ;

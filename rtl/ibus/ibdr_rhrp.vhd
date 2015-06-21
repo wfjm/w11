@@ -1,4 +1,4 @@
--- $Id: ibdr_rhrp.vhd 682 2015-05-15 18:35:29Z mueller $
+-- $Id: ibdr_rhrp.vhd 692 2015-06-21 11:53:24Z mueller $
 --
 -- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -22,11 +22,15 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2015-06-20   692 14.7  131013 xc6slx16-2   212  406    8  142 s  8.7
 -- 2015-05-14   680 14.7  131013 xc6slx16-2   211  408    8  131 s  8.8
 -- 2015-04-06   664 14.7  131013 xc6slx16-2   177  331    8  112 s  8.7
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-06-20   692   1.0.3  BUGFIX: fix func-go when drive/init busy checks
+-- 2015-06-05   690   1.0.2  use 'not unit' for lsb of rpsn to avoid SI detect
+--                           BUGFIX: set rmr only for write to busy unit
 -- 2015-05-15   682   1.0.1  correct ibsel range select logic
 -- 2015-05-14   680   1.0    Initial version
 -- 2015-03-15   658   0.1    First draft
@@ -147,6 +151,7 @@ architecture syn of ibdr_rhrp is
   constant func_pres  : slv5 := "01000";   -- func: readin preset
   constant func_pack  : slv5 := "01001";   -- func: pack acknowledge
   constant func_sear  : slv5 := "01100";   -- func: search
+  constant func_xfer  : slv5 := "10100";   -- used to check for xfer type funcs
   constant func_wcd   : slv5 := "10100";   -- func: write check data
   constant func_wchd  : slv5 := "10101";   -- func: write check header&data
   constant func_write : slv5 := "11000";   -- func: write 
@@ -169,8 +174,8 @@ architecture syn of ibdr_rhrp is
 
   constant cs2_ibf_rwco  : integer := 15;     -- rem: write check odd word
   constant cs2_ibf_wce   : integer := 14;     -- write check error
-  constant cs2_ibf_ned   : integer := 12;     -- non-existant drive
-  constant cs2_ibf_nem   : integer := 11;     -- non-existant memory
+  constant cs2_ibf_ned   : integer := 12;     -- non-existent drive
+  constant cs2_ibf_nem   : integer := 11;     -- non-existent memory
   constant cs2_ibf_pge   : integer := 10;     -- programming error
   constant cs2_ibf_mxf   : integer :=  9;     -- missed transfer
   constant cs2_ibf_or    : integer :=  7;     -- output ready
@@ -269,6 +274,7 @@ architecture syn of ibdr_rhrp is
     s_wmem,                             -- wmem: write mem (DA,MR1,OF,DC,MR2)
     s_wmembe,                           -- wmem: write mem with be (WC,BA,DB)
     s_whr,                              -- whr:  write hr (holding reg only)
+    s_funcchk,                          -- funcchk: check function go
     s_funcgo,                           -- funcgo: handle function go
     s_chkdc,                            -- chkdc: handle dc check
     s_chkda,                            -- chksa: handle da check
@@ -297,8 +303,8 @@ architecture syn of ibdr_rhrp is
     ffunc   : slv5;                     -- func code (frozen on ext func go)
     fxfer   : slbit;                    -- func is xfer
     cs2wce  : slbit;                    -- cs2: write check error
-    cs2ned  : slbit;                    -- cs2: non-existant drive
-    cs2nem  : slbit;                    -- cs2: non-existant memory
+    cs2ned  : slbit;                    -- cs2: non-existent drive
+    cs2nem  : slbit;                    -- cs2: non-existent memory
     cs2pge  : slbit;                    -- cs2: programming error
     cs2mxf  : slbit;                    -- cs2: missed transfer
     cs2pat  : slbit;                    -- cs2: parity test
@@ -330,7 +336,7 @@ architecture syn of ibdr_rhrp is
     poredone: slbit;                    -- cs3 rem: port rel done
     packdone: slbit;                    -- cs3 rem: pack ack done
     seardone: slbit;                    -- cs3 rem: search   done
-    ned     : slbit;                    -- current drive non-existant
+    ned     : slbit;                    -- current drive non-existent
     cerm    : slbit;                    -- current eff. drive rm controller
     dtyp    : slv6;                     -- current drive type (5:0)
     camax   : slv10;                    -- current max cylinder address
@@ -473,7 +479,7 @@ begin
     variable itamax : slv5  := (others=>'0');   -- max track    address
     variable isamax : slv6  := (others=>'0');   -- max sector   address
 
-    variable ined   : slbit := '0';     -- non-existanrt drive
+    variable ined   : slbit := '0';     -- non-existent drive
     variable icerm  : slbit := '0';     -- effectiv drive is rm
 
     variable iclrreg : slbit := '0';    -- clr enable
@@ -590,7 +596,7 @@ begin
           n.tamax := itamax;
           n.samax := isamax;
 
-          -- consider drive non-existant if not 'DPR' or unit>=4 selected
+          -- consider drive non-existent if not 'DPR' or unit>=4 selected
           if r.dsdpr(to_integer(unsigned(r.cs2unit))) = '0' or
              r.cs2unit2 = '1' then
             ined := '1';
@@ -759,9 +765,14 @@ begin
             -- some general error catchers
             if ibrem = '0' and imbreg='1' then     -- local massbus write
                                                    --   for cs1: imbreg=0 !!
+              -- write to non-existent drives
               if ined = '1' then
                 n.cs2ned := '1';
-              elsif inormr='0' and r.cs1rdy='0' then  -- rmr prot reg and RDY=0
+              -- write to a busy unit, can be a search/seek or a transfer
+              elsif inormr='0' and                   -- rmr protected reg
+                (r.dspip(to_integer(unsigned(r.cs2unit)))='1' or -- busy pip
+                 (r.cs1rdy='0' and (r.funit = r.cs2unit))        -- busy xfer
+                ) then  
                 n.state := s_setrmr;
               end if;
             end if;
@@ -826,17 +837,16 @@ begin
               n.ireq := '1';                         -- issue software interrupt
             end if;
             
-            if r.cs1rdy = '1' then              -- controller ready
-              if r.ned = '0' and                     -- drive on
-                 IB_MREQ.din(cs1_ibf_go) = '1' then  -- GO bit set
-                ibhold  := '1';
-                n.state := s_funcgo;
-              end if;             
-            else                                -- cntl not rdy
-              n.cs2pge := '1';                    -- issue program error
-            end if; 
+            if r.ned = '0' and                     -- drive on
+               IB_MREQ.din(cs1_ibf_go) = '1' then  -- GO bit set
+              ibhold  :=    '1';
+              n.state := s_funcchk;
+            end if;             
 
+            -- FIXME_code: that's likely not fully correct, cs1 func bits are
+            --   stored before all error checks are done...
             imem_we0 := IB_MREQ.be0;            -- remember func field per unit
+
             if r.ned = '1' then                 -- loc access and drive off
               n.cs2ned := '1';                    -- signal error
             end if;
@@ -1008,6 +1018,22 @@ begin
           imem_we1 := '1';          
         end if;
         
+      when s_funcchk =>                 -- funcchk: check function go --------
+        n.state := s_idle;                -- in general return to s_idle
+        if r.cs1rdy = '0' and
+           unsigned(IB_MREQ.din(cs1_ibf_func)) >= unsigned(func_xfer) then
+          n.cs2pge := '1';                    --  issue program error
+        elsif IB_MREQ.din(cs1_ibf_func) = func_dclr then
+          n.eunit   := r.cs2unit;              -- for follow-up states
+          n.clrmode := clrmode_fdclr;
+          n.state   := s_oot_clr0;             -- OOT state, no hold!
+        elsif r.dserp(to_integer(unsigned(r.cs2unit))) = '1' then
+          n.er1ilf(to_integer(unsigned(r.cs2unit))) := '1';
+        else
+          ibhold  := '1';
+          n.state := s_funcgo; 
+        end if;
+        
       when s_funcgo =>                  -- funcgo: handle function go --------
         n.state := s_idle;                -- in general return to s_idle
         n.dsata(to_integer(unsigned(r.cs2unit))) := '0';
@@ -1031,10 +1057,7 @@ begin
             end if;
             n.dsata(to_integer(unsigned(r.cs2unit))) := '1';
              
-          when func_dclr  =>                   -- func: drive clear -------
-            n.eunit   := r.cs2unit;              -- for follow-up states
-            n.clrmode := clrmode_fdclr;
-            n.state   := s_oot_clr0;             -- OOT state, no hold!
+       -- when func_dclr  =>  now handled in funcchk !!
             
           when func_offs  |                    -- func: offset ------------
                func_retc  =>                   -- func: return to center --
@@ -1236,13 +1259,20 @@ begin
             --   digit 3: always 1
             --   digit 2: 1 if RM type; 0 if RP type
             --   digit 1: 0-3 based on encoded drive type
-            --   digit 0: 0-3 taken from unit
+            --   digit 0: 0-3 taken as complement of unit
+            -- Note: the 3lsb are the *complement* of the unit number because
+            --       211bsd driver code contains a hack to detect SI and CDC
+            --       drives. For those drives the drive type is encode in the
+            --       sn register, and one convention is that the 3 lsb of sn
+            --       equal the unit numnber. To prevent that the SI/CDC hacks
+            --       are actived the 3lsb are set as complement of the unit !
             idout(12) := '1';
             idout(8)  := r.dtrm(to_integer(unsigned(r.eunit)));
             idout(5)  := r.dte1(to_integer(unsigned(r.eunit)));
             idout(4)  := r.dte0(to_integer(unsigned(r.eunit)));
-            idout(1)  := r.eunit(1);
-            idout(0)  := r.eunit(0);
+            idout(2)  := '1';
+            idout(1)  := not r.eunit(1);
+            idout(0)  := not r.eunit(0);
             
           when omux_bae =>                -- omux: bae reg ---------------
             idout(bae_ibf_bae) := r.bae;

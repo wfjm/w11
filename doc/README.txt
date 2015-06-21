@@ -1,4 +1,4 @@
-$Id: README.txt 687 2015-06-05 09:03:34Z mueller $
+$Id: README.txt 693 2015-06-21 14:02:46Z mueller $
 
 Release notes for w11a
 
@@ -21,6 +21,67 @@ Release notes for w11a
     * w11a_known_issues.txt: known differences, limitations and issues
 
 2. Change Log ----------------------------------------------------------------
+
+- w11a_V0.60 -> w11a_V0.70 cummulative summary of key changes
+  - Bugfix for DIV instruction  (in w11a_V0.61, see ECO-026-div.txt)
+  - revised rbus protocol V4    (in w11a_V0.62, see README_Rlink_V4.txt)
+  - add basic Vivado support    (in w11a_V0.64)
+  - add Nexys4 and Basys3 port of w11a (in w11a_V0.64)
+  - add RH70+RP/RM disk support (in w11a_V0.65)
+  - add TM11/TY10 tape support  (in w11a_V0.66)
+  - reference system now ISE 14.7, Vivado 2014.4; Ubuntu 14.04 64 bit, ghdl 0.31
+
+- trunk (2015-06-21: svn rev 33(oc) 693(wfjm); tagged w11a_V0.70)  +++++++++++
+  - Preface
+    - resolved known issue V0.66-2: operation with multiple RP or RM disks
+      under 211bsd works now. Issue was caused by a faulty error check.
+    - resolved bug tracker issue 2015-06-06: the tm11 offline function works
+      now as expected. Issue was caused by de-referencing a null pointer.
+    - resolved bug tracker request 2015-06-05: the values returned as drive 
+      serial number were interpreted by 211bsd standalone code as a signature
+      of SI drives, which made disk partitioning a bit cumbersome. Changed the
+      scheme used to generate drive serial numbers such that they never match
+      these 3rd party drive characteristics. The 211bsd installation on a
+      RM05 is documented with the 211bsd_tm oskit.
+    - the w11a designs grow larger, filling the FPGA's on Nexys2 and Nexys3
+      to ~50% (n2) or 67% (n3). To reach timing closure without fine tuning
+      constraints the cpu clock had to be reduced to
+        sys_w11a_n2  now 52 MHz (was 54 MHz)
+        sys_w11a_n3  now 64 MHz (was 68 MHz)
+
+    - w11a has now a complete set of mass storage peripherals. This is a good
+      reason of a major release, thus go for version V0.70.
+
+    - there are many known issues, and in many cases only core functionality
+      used by operating systems has been implemented. The missing parts will
+      be implemented in the upcoming releases towards V0.80, also much more
+      intensive testing, especially with maindecs (aka xxdp) will be done.
+
+  - Summary
+    - rhrp and tm11 bug fixes
+    - no major functionality added
+
+  - New features
+
+  - Changes
+    - renames
+      - tools/oskit/211bsd_tm/211bsd_tm_boot.* -> 211bsd_tm_rp06_boot.*
+    - functional changes
+      - rtl/ibus/ibdr_rhrp        - modify sn register to avoid 211bsd issues
+      - tools/bin/create_disk     - support RM80 disks
+      - tools/tcl/rutil/util.tcl  - add dohook
+      - tools/oskit/*/*_boot.tcl  - add preinithook and preboothook
+
+  - Bug fixes
+    - rtl/ibus/ibdr_rhrp          - set er1.rmr only when unit busy
+                                  - set cs2.pge only when controller busy
+    - tools/src/librw11
+      - Rw11CntlTM11              - fix crash when offline function was executed
+
+  - Known issues
+    - all issues: see README_known_issues.txt
+    - resolved issues:
+      - V0.66-2: operation with multiple RP/RM drives works now under 211bsd
 
 - trunk (2015-06-05: svn rev 31(oc) 687(wfjm); untagged w11a_V0.66)  +++++++++
   - Preface

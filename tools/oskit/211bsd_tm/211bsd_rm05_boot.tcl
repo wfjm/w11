@@ -1,12 +1,12 @@
-# $Id: 211bsd_rl_boot.tcl 689 2015-06-05 14:33:18Z mueller $
+# $Id: 211bsd_rm05_boot.tcl 690 2015-06-07 18:23:51Z mueller $
 #
-# Setup file for 211bsd RL02 based system
+# Setup file for 211bsd RM05 based system
 #
 # Usage:
 #   
 # console_starter -d DL0 &
 # console_starter -d DL1 &
-# ti_w11 -xxx @211bsd_rl_boot.tcl        ( -xxx depends on sim or fpga connect)
+# ti_w11 -xxx @211bsd_rp_boot.tcl        ( -xxx depends on sim or fpga connect)
 #
 
 # setup w11 cpu
@@ -18,11 +18,13 @@ rw11::setup_tt "cpu0" {to7bit 1}
 rw11::setup_lp 
 
 # mount disks
-cpu0rla0 att 211bsd_rl_root.dsk
-cpu0rla1 att 211bsd_rl_usr.dsk
+cpu0rpa0 set type rm05
+cpu0rpa1 set type rm05
+
+cpu0rpa0 att 211bsd_rm05.dsk
 
 # and boot
 rutil::dohook "preboothook"
 rw11::cpumon
 rw11::cpucons
-cpu0 boot rla0
+cpu0 boot rpa0

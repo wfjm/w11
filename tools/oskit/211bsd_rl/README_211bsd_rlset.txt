@@ -1,4 +1,4 @@
-# $Id: README_211bsd_rlset.txt 680 2015-05-14 13:29:46Z mueller $
+# $Id: README_211bsd_rlset.txt 688 2015-06-05 13:15:10Z mueller $
 
 Notes on oskit: 2.11BSD system on RL02 volumes
 

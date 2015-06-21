@@ -1,4 +1,4 @@
-// $Id: Rw11CntlTM11.cpp 686 2015-06-04 21:08:08Z mueller $
+// $Id: Rw11CntlTM11.cpp 690 2015-06-07 18:23:51Z mueller $
 //
 // Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -15,13 +15,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-06-06   690   1.0.1  BUGFIX: AddFastExit() check for Virt() defined
 // 2015-06-04   686   1.0    Initial version
 // 2015-05-17   683   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11CntlTM11.cpp 686 2015-06-04 21:08:08Z mueller $
+  \version $Id: Rw11CntlTM11.cpp 690 2015-06-07 18:23:51Z mueller $
   \brief   Implemenation of Rw11CntlTM11.
 */
 
@@ -239,20 +240,20 @@ bool Rw11CntlTM11::BootCode(size_t unit, std::vector<uint16_t>& code,
     0046524,                   // boot_start: "TM" 
     0012706, kBOOT_START,      // mov #boot_start, sp 
     0012700, uint16_t(unit),   // mov #unit_num, r0 
-    0012701, 0172526,          // mov #172526, r1      ; mtcma 
-    0005011,                   // clr (r1) 
-    0012741, 0177777,          // mov #-1, -(r1)       ; mtbrc 
+    0012701, 0172526,          // mov #172526, r1      ; #tmba
+    0005011,                   // clr (r1)             ; tmba = 0
+    0012741, 0177777,          // mov #-1, -(r1)       ; tmbc = -1
     0010002,                   // mov r0,r2 
     0000302,                   // swab r2 
     0062702, 0060011,          // add #60011, r2 
-    0010241,                   // mov r2, -(r1)        ; space + go 
-    0105711,                   // tstb (r1)            ; mtc 
+    0010241,                   // mov r2, -(r1)        ; tmcr = space + go 
+    0105711,                   // tstb (r1)            ; test tmcr.rdy
     0100376,                   // bpl .-2 
-    0010002,                   // mov r0,r2 
+    0010002,                   // mov r0,r2            ; note: tmbc=0 now
     0000302,                   // swab r2 
-    0062702, 0060003,          // add #60003, r2 
-    0010211,                   // mov r2, (r1)         ; read + go 
-    0105711,                   // tstb (r1)            ; mtc 
+    0062702, 0060003,          // add #60003, r2       ; note: tmbc still = 0!
+    0010211,                   // mov r2, (r1)         ; tmcr = read + go 
+    0105711,                   // tstb (r1)            ; test tmcr.rdy
     0100376,                   // bpl .-2 
     0005002,                   // clr r2 
     0005003,                   // clr r3 
@@ -313,6 +314,9 @@ int Rw11CntlTM11::AttnHandler(RlinkServer::AttnArgs& args)
 
   uint32_t addr = uint32_t(ea)<<16 | uint32_t(tmba);
 
+  // Note: a zero tmbc translates into nbyt=64k !
+  //       correct behaviour, the boot loaded actually issues a read
+  //       with tmbc=0 to read the boot block into memory !!
   uint32_t nbyt = (~uint32_t(tmbc)&0xffff) + 1; // transfer size in bytes
 
   //Rw11Cpu& cpu = Cpu();
@@ -503,11 +507,17 @@ void Rw11CntlTM11::AddFastExit(RlinkCommandList& clist, int opcode, size_t ndone
   Rw11Cpu& cpu = Cpu();
 
   uint16_t tmcr = 0;
-  uint16_t tmds = kTMRL_M_ONL;
-  if (unit.Virt()->WProt()) tmds |= kTMRL_M_WRL;
-  if (unit.Virt()->Bot())   tmds |= kTMRL_M_BOT;
-  if (unit.Virt()->Eot())   tmds |= kTMRL_M_EOT;
+  uint16_t tmds = 0;
 
+  // AddFastExit() is also called after UNLOAD, which calls unit.Detach()
+  // So unlike in all other cases, Virt() may be 0, so check on this
+  if (unit.Virt()) {
+    tmds |= kTMRL_M_ONL;
+    if (unit.Virt()->WProt()) tmds |= kTMRL_M_WRL;
+    if (unit.Virt()->Bot())   tmds |= kTMRL_M_BOT;
+    if (unit.Virt()->Eot())   tmds |= kTMRL_M_EOT;
+  }
+  
   switch (opcode) {
 
   case Rw11VirtTape::kOpCodeOK: 
@@ -540,8 +550,9 @@ void Rw11CntlTM11::AddFastExit(RlinkCommandList& clist, int opcode, size_t ndone
          << (err ? "   err " :"    ok ")
          << " un=" << unum
          << " cr=" << RosPrintBvi(tmcr,8)
-         << " ds=" << RosPrintBvi(tmds,8) 
-         << " bc=" << RosPrintBvi(tmbc,8);
+         << "          "
+         << " bc=" << RosPrintBvi(tmbc,8)
+         << " ds=" << RosPrintBvi(tmds,8);
   }
 
   return;

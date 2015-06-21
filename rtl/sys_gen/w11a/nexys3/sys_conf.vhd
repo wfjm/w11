@@ -1,4 +1,4 @@
--- $Id: sys_conf.vhd 683 2015-05-17 21:54:35Z mueller $
+-- $Id: sys_conf.vhd 692 2015-06-21 11:53:24Z mueller $
 --
 -- Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  xst 13.1-14.7; ghdl 0.29-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-06-21   692   1.4.1  use clksys=64 (no closure after rhrp fixes)
 -- 2015-03-14   658   1.4    add sys_conf_ibd_* definitions
 -- 2015-02-15   647   1.3    drop bram and minisys options
 -- 2014-12-26   621   1.2.2  use 68 MHz, get occasional problems with 72 MHz
@@ -48,8 +49,8 @@ package sys_conf is
 
   -- configure clocks --------------------------------------------------------
   constant sys_conf_clksys_vcodivide   : positive :=  25;
-  constant sys_conf_clksys_vcomultiply : positive :=  17;   -- dcm   68 MHz
-  constant sys_conf_clksys_outdivide   : positive :=   1;   -- sys   68 MHz
+  constant sys_conf_clksys_vcomultiply : positive :=  16;   -- dcm   64 MHz
+  constant sys_conf_clksys_outdivide   : positive :=   1;   -- sys   64 MHz
   constant sys_conf_clksys_gentype     : string   := "DCM";
   
   -- configure rlink and hio interfaces --------------------------------------

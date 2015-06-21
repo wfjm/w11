@@ -1,4 +1,4 @@
-// $Id: Rw11CntlTM11.hpp 686 2015-06-04 21:08:08Z mueller $
+// $Id: Rw11CntlTM11.hpp 690 2015-06-07 18:23:51Z mueller $
 //
 // Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlTM11.hpp 686 2015-06-04 21:08:08Z mueller $
+  \version $Id: Rw11CntlTM11.hpp 690 2015-06-07 18:23:51Z mueller $
   \brief   Declaration of class Rw11CntlTM11.
 */
 
@@ -76,7 +76,7 @@ namespace Retro {
       static const uint16_t kTMSR_M_EOT  = kWBit10; //!< EOT: end-of-tape seen
       static const uint16_t kTMSR_M_RLE  = kWBit09; //!< RLE: record lgth error
       static const uint16_t kTMSR_M_BTE  = kWBit08; //!< BTE: bad tape error
-      static const uint16_t kTMSR_M_NXM  = kWBit07; //!< NXM: non-existant mem
+      static const uint16_t kTMSR_M_NXM  = kWBit07; //!< NXM: non-existent mem
       static const uint16_t kTMSR_M_ONL  = kWBit06; //!< ONL: online
       static const uint16_t kTMSR_M_BOT  = kWBit05; //!< BOT: at begin-of-tape
       static const uint16_t kTMSR_M_WRL  = kWBit02; //!< WRL: write locked

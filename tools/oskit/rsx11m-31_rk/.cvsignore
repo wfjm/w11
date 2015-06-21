@@ -1,4 +1,5 @@
 *.dat
 *.dsk
 *.log
+*hook.tcl
 *license.txt

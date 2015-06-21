@@ -1,4 +1,4 @@
-# $Id: util.tcl 678 2015-05-10 16:23:02Z mueller $
+# $Id: util.tcl 690 2015-06-07 18:23:51Z mueller $
 #
 # Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-06-06   690   1.0.1  rdump: all online units now shown by default
 # 2015-03-21   659   1.0    Initial version
 #
 
@@ -54,7 +55,8 @@ namespace eval ibd_rhrp {
   regdsc DA  {ta 12 5 2d} {sa 5 6 2d}
   regdsc CS2 {wce 14} {ned 12} {nem 11} {pge 10} {or 7} {ir 6} \
     {clr 5} {pat 4} {bai 3} {unit 2 3 d}
-  regdsc DS  {ata 15} {erp 14} {mol 12} {wrl 11} {lbt 10} {dpr 8} {dry 7} {vv 6}
+  regdsc DS  {ata 15} {erp 14} {pip 13} {mol 12} {wrl 11} {lbt 10} {dpr 8} \
+    {dry 7} {vv 6} {om 0}
   regdsc ER1 {uns 14} {iae 10} {aoe 9} {rmr 2} {ilf 0}
   regdsc AS  {u3 3} {u2 2} {u1 1} {u0 0}
   regdsc LA  {sc 11 6 2d}
@@ -108,7 +110,7 @@ namespace eval ibd_rhrp {
   #
   # rdump: register dump - rem view ------------------------------------------
   #
-  proc rdump {{cpu "cpu0"} {unit 0}} {
+  proc rdump {{cpu "cpu0"} {unit -1}} {
     set rval {}
     $cpu cp -ribr "rpa.cs1" cs1 \
             -ribr "rpa.wc"  wc \
@@ -131,19 +133,35 @@ namespace eval ibd_rhrp {
     append rval [format "\n  ba:  %6.6o"     $ba]
     append rval [format "\n  bae: %6.6o  ea=%8.8o" $bae [expr {($bae<<16)|$ba}] ]
 
-    $cpu cp -wibr "rpa.cs1" [rcs1_wunit $unit] \
-            -ribr "rpa.da"  da  \
-            -ribr "rpa.ds"  ds  \
-            -ribr "rpa.er1" er1  \
-            -ribr "rpa.as"  as  \
-            -ribr "rpa.la"  la  \
-            -ribr "rpa.mr1" mr1 \
-            -ribr "rpa.dt"  dt  \
-            -ribr "rpa.sn"  sn  \
-            -ribr "rpa.of"  of  \
-            -ribr "rpa.dc"  dc 
+    $cpu cp -wibr "rpa.cs1" [rcs1_wunit 0] \
+            -ribr "rpa.ds"  ds0  \
+            -wibr "rpa.cs1" [rcs1_wunit 1] \
+            -ribr "rpa.ds"  ds1  \
+            -wibr "rpa.cs1" [rcs1_wunit 2] \
+            -ribr "rpa.ds"  ds2  \
+            -wibr "rpa.cs1" [rcs1_wunit 3] \
+            -ribr "rpa.ds"  ds3  
 
-    append rval "\nUnit $unit registers:"
+    set dslist [list $ds0 $ds1 $ds2 $ds3]
+
+    set ulist [expr {$unit & 0x03} ]
+    if {$unit < 0} { set ulist {0 1 2 3} }
+
+    foreach u $ulist {
+      set ds [lindex $dslist $u]
+      if {$u == $unit || [regget ibd_rhrp::DS(mol) $ds] } {
+        $cpu cp -wibr "rpa.cs1" [rcs1_wunit $u] \
+                -ribr "rpa.da"  da  \
+                -ribr "rpa.er1" er1 \
+                -ribr "rpa.as"  as  \
+                -ribr "rpa.la"  la  \
+                -ribr "rpa.mr1" mr1 \
+                -ribr "rpa.dt"  dt  \
+                -ribr "rpa.sn"  sn  \
+                -ribr "rpa.of"  of  \
+                -ribr "rpa.dc"  dc 
+
+    append rval "\nUnit $u registers:"
     append rval [format "\n  da:  %6.6o  %s" $da  [regtxt ibd_rhrp::DA  $da ]]
     append rval [format "\n  ds:  %6.6o  %s" $ds  [regtxt ibd_rhrp::DS  $ds ]]
     append rval [format "\n  er1: %6.6o  %s" $er1 [regtxt ibd_rhrp::ER1 $er1]]
@@ -159,6 +177,13 @@ namespace eval ibd_rhrp {
     append rval [format "\n  sn:  %6.6o  sn=%s" $sn $sntxt]
     append rval [format "\n  of:  %6.6o  %s" $of  [regtxt ibd_rhrp::OF  $of ]]
     append rval [format "\n  dc:  %6.6o  dc:%s" $dc [format "%3d" $dc]]
+
+      } else {
+        append rval [format "\nUnit $u offline or disabled: mol:%d dpr:%s" \
+                      [regget ibd_rhrp::DS(mol) $ds] \
+                      [regget ibd_rhrp::DS(dpr) $ds] ]
+      }
+    }
 
     return $rval
   }

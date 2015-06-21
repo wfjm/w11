@@ -1,10 +1,11 @@
-# $Id: test_rhrp_int.tcl 683 2015-05-17 21:54:35Z mueller $
+# $Id: test_rhrp_int.tcl 692 2015-06-21 11:53:24Z mueller $
 #
 # Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2015-06-20   692   1.1.1  de-configure all drives at begin
 # 2015-05-04   674   1.1    w11a start/stop/suspend overhaul
 # 2015-03-29   667   1.0    Initial version
 #
@@ -19,6 +20,16 @@ ibd_rhrp::setup
 
 rlc set statmask  $rw11::STAT_DEFMASK
 rlc set statvalue 0
+
+# de-configure all drives (and clear errros and reset vv)
+$cpu cp -wibr rpa.cs1 [ibd_rhrp::rcs1_wunit 0] \
+        -wibr rpa.ds  [regbld ibd_rhrp::DS erp vv] \
+        -wibr rpa.cs1 [ibd_rhrp::rcs1_wunit 1] \
+        -wibr rpa.ds  [regbld ibd_rhrp::DS erp vv] \
+        -wibr rpa.cs1 [ibd_rhrp::rcs1_wunit 2] \
+        -wibr rpa.ds  [regbld ibd_rhrp::DS erp vv] \
+        -wibr rpa.cs1 [ibd_rhrp::rcs1_wunit 3] \
+        -wibr rpa.ds  [regbld ibd_rhrp::DS erp vv] 
 
 # configure drives
 $cpu cp -wibr rpa.cs1 [ibd_rhrp::rcs1_wunit 0] \

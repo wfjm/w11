@@ -1,4 +1,4 @@
-# $Id: rsx11m-40_rk_boot.tcl 622 2014-12-28 20:45:26Z mueller $
+# $Id: rsx11m-40_rk_boot.tcl 689 2015-06-05 14:33:18Z mueller $
 #
 # Setup file for RSX11-M V4.0 RK05 based system
 #
@@ -10,6 +10,7 @@
 #
 
 # setup w11 cpu
+rutil::dohook "preinithook"
 puts [rlw]
 
 # setup tt,lp,pp (enable rx rate limiter on old DEC OS)
@@ -23,6 +24,7 @@ cpu0rka1 att RSX11M_V4.0_SYSTEM1.dsk
 cpu0rka2 att RSX11M_USER.dsk
 
 # and boot
+rutil::dohook "preboothook"
 rw11::cpumon
 rw11::cpucons
 cpu0 boot rka0

@@ -1,4 +1,4 @@
-# $Id: rsx11mp-30_rp_boot.tcl 679 2015-05-13 17:38:46Z mueller $
+# $Id: rsx11mp-30_rp_boot.tcl 689 2015-06-05 14:33:18Z mueller $
 #
 # Setup file for RSX11-M+ V3.0 RP06 based system
 #
@@ -10,6 +10,7 @@
 #
 
 # setup w11 cpu
+rutil::dohook "preinithook"
 puts [rlw]
 
 # setup tt,lp (211bsd uses parity -> use 7 bit mode)
@@ -23,6 +24,7 @@ cpu0rpa1 set type rp06
 cpu0rpa0 att rsx11mp-30.dsk
 
 # and boot
+rutil::dohook "preboothook"
 rw11::cpumon
 rw11::cpucons
 cpu0 boot rpa0

@@ -1,4 +1,4 @@
-# $Id: 211bsd_rk_boot.tcl 622 2014-12-28 20:45:26Z mueller $
+# $Id: 211bsd_rk_boot.tcl 689 2015-06-05 14:33:18Z mueller $
 #
 # Setup file for 211bsd RK05 based system
 #
@@ -10,6 +10,7 @@
 #
 
 # setup w11 cpu
+rutil::dohook "preinithook"
 puts [rlw]
 
 # setup tt,lp (211bsd uses parity -> use 7 bit mode)
@@ -24,6 +25,7 @@ cpu0rka3 att 211bsd_rk_bin.dsk
 cpu0rka4 att 211bsd_rk_usr.dsk
 
 # and boot
+rutil::dohook "preboothook"
 rw11::cpumon
 rw11::cpucons
 cpu0 boot rka0

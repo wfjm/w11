@@ -3,5 +3,6 @@
 *.log
 *.tap
 *.tgz
+*hook.tcl
 *license.txt
 *license.pdf

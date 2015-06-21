@@ -1,4 +1,4 @@
-; $Id: defs_rp.mac 667 2015-04-18 20:16:05Z mueller $
+; $Id: defs_rp.mac 691 2015-06-15 21:22:08Z mueller $
 ; Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ; License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 ;
@@ -40,7 +40,7 @@
         rp.fcl=000010           ; drive clear
         rp.fse=000030           ; search
         rp.fwr=000060           ; write
-        rp.fwr=000070           ; read
+        rp.frd=000070           ; read
         rp.go =000001
 ;
 ; symbol definitions for rp.ds

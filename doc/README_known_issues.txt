@@ -1,4 +1,4 @@
-$Id: README_known_issues.txt 687 2015-06-05 09:03:34Z mueller $
+$Id: README_known_issues.txt 693 2015-06-21 14:02:46Z mueller $
 
 Known issues for this release.
 The case id indicates the release when the issue was first recognized.
@@ -8,9 +8,6 @@ The case id indicates the release when the issue was first recognized.
     are currently not supported and rejected as invalid command. Odd byte 
     length records aren't used by OS, if at all, so in practice this limitation 
     isn't relevant.
-- V0.66-2: using two RP06 drives in parallel under 211bsd leads to a hangup of 
-    the system after a short time. Currently only operation of a single drive
-    works reliably.
 
 - V0.65-1: ti_rri sometimes crashes in normal rundown (exit or ^D) when
     a cuff: type rlink is active. One gets

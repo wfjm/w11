@@ -1,4 +1,4 @@
--- $Id: sys_w11a_n3.vhd 686 2015-06-04 21:08:08Z mueller $
+-- $Id: sys_w11a_n3.vhd 692 2015-06-21 11:53:24Z mueller $
 --
 -- Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -34,6 +34,7 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2015-06-21   692 14.7  131013 xc6slx16-2  2192 4518  161 1584 ok: rhrp fixes
 -- 2015-06-04   686 14.7  131013 xc6slx16-2  2189 4492  161 1543 ok: +TM11  67%
 -- 2015-05-14   680 14.7  131013 xc6slx16-2  2120 4443  161 1546 ok: +ibmon 67%
 -- 2015-04-06   664 14.7  131013 xc6slx16-2  1991 4350  167 1489 ok: +RHRP  65%

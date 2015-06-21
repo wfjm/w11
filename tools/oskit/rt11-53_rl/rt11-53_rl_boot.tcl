@@ -9,6 +9,7 @@
 #
 
 # setup w11 cpu
+rutil::dohook "preinithook"
 puts [rlw]
 
 # setup tt,lp,pp (single console; enable rx rate limiter on old DEC OS)
@@ -20,6 +21,7 @@ rw11::setup_pp
 cpu0rla0 att RT11_V5.3_SYSTEM.dsk
 
 # and boot
+rutil::dohook "preboothook"
 rw11::cpumon
 rw11::cpucons
 cpu0 boot rla0

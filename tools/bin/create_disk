@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: create_disk 686 2015-06-04 21:08:08Z mueller $
+# $Id: create_disk 692 2015-06-21 11:53:24Z mueller $
 #
 # Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,7 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
-# 2015-06-04   686   1.1.2  use sysseek rather seek; add RM80
+# 2015-06-21   692   1.1.2  use sysseek rather seek; add RM80
 # 2015-04-06   665   1.1.1  add alias RM03 (for RM02) and RP05 (for RP04)
 # 2014-06-14   562   1.1    BUGFIX: repair --boot; add RM02,RM05,RP04,RP07
 # 2013-05-20   521   1.0    First draft
@@ -43,10 +43,10 @@ my %disktype = (
   RK05 => {cyl=> 203, hd=>   2, sec=>  12, bps=> 512, bad=>0},
   RL01 => {cyl=> 256, hd=>   2, sec=>  40, bps=> 256, bad=>1},
   RL02 => {cyl=> 512, hd=>   2, sec=>  40, bps=> 256, bad=>1},
-  RM02 => {cyl=> 823, hd=>   5, sec=>  32, bps=> 512, bad=>1},
+  RM03 => {cyl=> 823, hd=>   5, sec=>  32, bps=> 512, bad=>1},
   RM05 => {cyl=> 823, hd=>  19, sec=>  32, bps=> 512, bad=>1},
   RM80 => {cyl=> 559, hd=>  14, sec=>  31, bps=> 512, bad=>1},
-  RP04 => {cyl=> 411, hd=>  19, sec=>  22, bps=> 512, bad=>1},
+  RP05 => {cyl=> 411, hd=>  19, sec=>  22, bps=> 512, bad=>1},
   RP06 => {cyl=> 815, hd=>  19, sec=>  22, bps=> 512, bad=>1},
   RP07 => {cyl=> 630, hd=>  32, sec=>  50, bps=> 512, bad=>1}
 );
@@ -73,8 +73,8 @@ if (-e $fnam) {
 
 my $typ = uc($opts{typ});
 
-$typ = "RM02" if defined $typ && $typ eq "RM03"; # RM03 is equivalent to RM02
-$typ = "RP04" if defined $typ && $typ eq "RP05"; # RM05 is equivalent to RP04
+$typ = "RM03" if defined $typ && $typ eq "RM02"; # RM02 is equivalent to RM03
+$typ = "RP05" if defined $typ && $typ eq "RP04"; # RM04 is equivalent to RP05
 
 unless (defined $typ && exists $disktype{$typ}) {
   print STDERR "create_disk-E: no or invalid --typ specification, use --help\n";
@@ -128,7 +128,7 @@ sub do_inipatt {
       push @dat, 0xdead,0xbeaf  if $ini eq 'dead';
     }
     my $buf = pack('v*',@dat);
-    my $rc = $fh->seek(0, SEEK_SET);
+    my $rc = sysseek($fh, 0, SEEK_SET);
     if (not $rc) {die "seek failed: $!";}
     for (my $i=0; $i<$nblk; $i++) {
       $rc = syswrite($fh, $buf, length($buf));
@@ -140,7 +140,7 @@ sub do_inipatt {
     my $cur_sec = 0;
     my $cur_trk = 0;
     my $cur_cyl = 0;
-    my $rc = $fh->seek(0, SEEK_SET);
+    my $rc = sysseek($fh, 0, SEEK_SET);
     if (not $rc) {die "seek failed: $!";}
     for (my $i=0; $i<$nblk; $i++) {
       my @dat;
@@ -183,7 +183,7 @@ sub do_badtable {
   my $buf = pack('v*',@dat);
 
   my $pos = $cap - $sec*$bps;               # position of last track
-  my $rc = $fh->seek($pos, SEEK_SET);
+  my $rc = sysseek($fh, $pos, SEEK_SET);
   if (not $rc) {die "seek failed: $!";}
   my $nsec = ($sec > 10) ? 10 : $sec;       # write last track, at most 10 sec
   for (my $i=0; $i<$nsec; $i++) {
@@ -208,7 +208,7 @@ sub do_boot {
   push @dat, 0000000;             #         3$:     halt
 
   my $buf = pack('v*',@dat);
-  my $rc = $fh->seek(0, SEEK_SET);
+  my $rc = sysseek($fh, 0, SEEK_SET);
   if (not $rc) {die "seek failed: $!";}
   $rc = syswrite($fh, $buf, length($buf));
   if ($rc<=0) {die "write failed: $!";}
@@ -233,7 +233,7 @@ sub do_boot {
   # NOTE: the text above almost fills the first 512 bytes !!
   #       don't add more text, all has been said anyway   !!
 
-  $rc = $fh->seek(0100, SEEK_SET);
+  $rc = sysseek($fh ,0100, SEEK_SET);
   if (not $rc) {die "seek failed: $!";}
   $rc = syswrite($fh, $buf, length($buf));
   if ($rc<=0) {die "write failed: $!";}
@@ -268,8 +268,8 @@ sub print_help {
   }
 
   print "\n";
-  print "  RM03 is accepted as an alias for RM02 (same capacity)\n";
-  print "  RP05 is accepted as an alias for RP04 (same capacity)\n";
+  print "  RM02 is accepted as an alias for RM03 (same capacity)\n";
+  print "  RP04 is accepted as an alias for RP05 (same capacity)\n";
 
   print "\n";
   print "currently supported initialization patterns:\n";

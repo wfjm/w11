@@ -1,4 +1,4 @@
-# $Id: util.tcl 661 2015-04-03 18:28:41Z mueller $
+# $Id: util.tcl 689 2015-06-05 14:33:18Z mueller $
 #
 # Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,7 +13,8 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
-# 2015-03-28   660   1,0,4  add com8 and com16
+# 2015-06-05   688   1.0.5  add dohook
+# 2015-03-28   660   1.0.4  add com8 and com16
 # 2014-12-23   619   1.0.3  regget: add check for unknown field descriptor
 # 2014-07-12   569   1.0.2  add sxt16 and sxt32
 # 2013-05-09   517   1.0.1  add optlist2arr
@@ -240,10 +241,22 @@ namespace eval rutil {
   }
 
   #
-  # com16: 16 bit complement ------------------------------------------------
+  # com16: 16 bit complement -------------------------------------------------
   #
   proc com16 {val} {
     return [expr (~$val) & 0xffff]
+  }
+
+  #
+  # dohook: source a hook script if is defined -------------------------------
+  #
+  proc dohook {name} {
+    set fname "${name}.tcl"
+    if {[file readable $fname]} {
+      puts "dohook: $fname"
+      source $fname
+    }
+    return
   }
 
   #

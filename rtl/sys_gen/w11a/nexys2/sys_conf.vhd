@@ -1,4 +1,4 @@
--- $Id: sys_conf.vhd 683 2015-05-17 21:54:35Z mueller $
+-- $Id: sys_conf.vhd 692 2015-06-21 11:53:24Z mueller $
 --
 -- Copyright 2010-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  xst 11.4-14.7; ghdl 0.26-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-06-21   692   1.4.1  use clksys=52 (no closure after rhrp fixes)
 -- 2015-03-14   658   1.4    add sys_conf_ibd_* definitions
 -- 2015-02-15   647   1.3    drop bram and minisys options
 -- 2015-01-04   630   1.2.2  use clksys=54 (no closure after rlink r4 + RL11)
@@ -44,7 +45,7 @@ package sys_conf is
 
   -- configure clocks --------------------------------------------------------
   constant sys_conf_clkfx_divide : positive   :=  25;
-  constant sys_conf_clkfx_multiply : positive :=  27;   -- ==> 54 MHz
+  constant sys_conf_clkfx_multiply : positive :=  26;   -- ==> 52 MHz
 
   -- configure rlink and hio interfaces --------------------------------------
   constant sys_conf_ser2rri_defbaud : integer := 115200;   -- default 115k baud

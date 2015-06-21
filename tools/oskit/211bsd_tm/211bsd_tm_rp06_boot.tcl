@@ -1,12 +1,13 @@
-# $Id: 211bsd_rp_boot.tcl 689 2015-06-05 14:33:18Z mueller $
+# $Id: 211bsd_tm_rp06_boot.tcl 690 2015-06-07 18:23:51Z mueller $
 #
-# Setup file for 211bsd RP06 based system
+# Setup file for creating a 211bsd RP06 system from a TM11 dist kit
 #
 # Usage:
 #   
 # console_starter -d DL0 &
 # console_starter -d DL1 &
-# ti_w11 -xxx @211bsd_rp_boot.tcl        ( -xxx depends on sim or fpga connect)
+# create_disk --typ=rp06 --bad 211bsd_rp06.dsk
+# ti_w11 -xxx @211bsd_tm_boot.tcl        ( -xxx depends on sim or fpga connect)
 #
 
 # setup w11 cpu
@@ -21,10 +22,13 @@ rw11::setup_lp
 cpu0rpa0 set type rp06
 cpu0rpa1 set type rp06
 
-cpu0rpa0 att 211bsd_rp.dsk
+cpu0rpa0 att 211bsd_rp06.dsk
+
+# mount tapes
+cpu0tma0 att 211bsd_tm.tap?wpro
 
 # and boot
 rutil::dohook "preboothook"
 rw11::cpumon
 rw11::cpucons
-cpu0 boot rpa0
+cpu0 boot tma0

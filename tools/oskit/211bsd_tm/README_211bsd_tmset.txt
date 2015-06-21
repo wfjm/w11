@@ -8,6 +8,7 @@ Notes on oskit: 2.11BSD system on a TM11 tape distribution kit
     2.  Installation
     3.  Usage
     4.  Install 211bsd from tape on a RP06 disk
+    5.  Install 211bsd from tape on a RM05 disk
 
 1. General remarks ---------------------------------------------------
 
@@ -32,14 +33,21 @@ Notes on oskit: 2.11BSD system on a TM11 tape distribution kit
 
 3. Usage -------------------------------------------------------------
 
-   - This is a tape distribution kit and tailoed to be installed on RP06 disks.
-     So first step is to create a disk image which will hold the system
+   - This is a tape distribution kit and tailoed to be installed on massbus
+     disks of RP or RM type. The 211bsd system doesn't contain a ready to 
+     used boot block for RP07 disks, while RM03 and RP05 disks are too small 
+     for a full 211bsd system. Therefore RP06 and RM05 disks are the supported
+     disk types.
+
+     So first step is to create a disk image, use one of
 
        create_disk --typ=rp06 --bad 211bsd_rp06.dsk
+       create_disk --typ=rm05 --bad 211bsd_rm05.dsk
 
    - Start backend server and boot system (see section 3 in w11a_os_guide.txt)
-       boot script:  211bsd_tm_boot.tcl
-       example:      ti_w11 <opt> @211bsd_tm_boot.tcl
+       boot script:  211bsd_tm_rp06_boot.tcl or
+                     211bsd_tm_rm05_boot.tcl
+       example:      ti_w11 <opt> @211bsd_tm_rp06_boot.tcl
                      where <opt> is the proper option set for the board.
 
    - Hit <ENTER> in the xterm window to connnect to backend server.
@@ -225,7 +233,7 @@ End of tape
   
   erase, kill ^U, intr ^C
 
-!! make system bootable
+!! make system bootable {!! different for RM05 !!} 
 # dd if=/mdec/hpuboot of=/dev/rxp0a count=1
   1+0 records in
   1+0 records out
@@ -272,3 +280,59 @@ on ti_w11 prompt
 : ## <cr>
 
 from now on like for README_211bsd_rpset.txt
+
+5. Install 211bsd from tape on a RM05 disk ---------------------------
+
+  The procedure is very similar to an RP06 install, the only differences are
+  - disk partitioning (creating disklabel)
+  - setup of boot block
+  - initializing the 'c' file system
+
+  In the following only these differences are briefly summarized:
+
+  - use 211bsd_tm_rm05_boot.tcl (instead of 211bsd_tm_rp06_boot.tcl)
+  
+  - in disklabel use different sizes and offsets
+
+       'a' size [500384]:         ## 34c
+       'b' offset [0]:            ## 34c
+       'b' size [0]:              ## 13c
+       'c' offset [0]:            ## 47c
+       'c' size [0]:              ## 775c
+       
+  - the final 'd' or display in disklabel show show
+
+      type: SMD
+      disk: SMD
+      label: DEFAULT
+      flags:
+      bytes/sector: 512
+      sectors/track: 32
+      tracks/cylinder: 19
+      sectors/cylinder: 608
+      cylinders: 823
+      rpm: 3600
+      drivedata: 0 0 0 0 0 
+
+      3 partitions:
+      #        size   offset    fstype   [fsize bsize]
+        a:    20672        0   2.11BSD    1024 1024      # (Cyl. 0 - 33)
+        b:     7904    20672      swap                   # (Cyl. 34 - 46)
+        c:   471200    28576   2.11BSD    1024 1024      # (Cyl. 47 - 821)
+
+  - after first boot write the correct boot block
+
+      # dd if=/mdec/rm05uboot of=/dev/rxp0a count=1
+
+    Note: the boot code has the disk geometry hard coded, so using the right
+    one is essential. RP06 uses hpuboot, while RM05 uses rm05uboot !!
+
+  - to create file system on partition c use
+
+      # /sbin/mkfs -m 2 -n 304 -i 4096 -s 235600 /dev/rxp0c
+
+  - the final system should give a 'df' output like
+
+      Filesystem  1K-blocks     Used    Avail Capacity  Mounted on
+      root            10173     4503     5670    44%    /
+      /dev/xp0c      231917    87043   144874    38%    /usr

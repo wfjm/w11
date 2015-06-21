@@ -1,4 +1,4 @@
-# $Id: uv5_rk_boot.tcl 622 2014-12-28 20:45:26Z mueller $
+# $Id: uv5_rk_boot.tcl 689 2015-06-05 14:33:18Z mueller $
 #
 # Setup file for Unix V5 RK05 based system
 #
@@ -8,6 +8,7 @@
 # ti_w11 -xxx @uv5_boot.tcl              ( -xxx depends on sim or fpga connect)
 
 # setup w11 cpu
+rutil::dohook "preinithook"
 puts [rlw]
 
 # setup tt,lp (uses only 1 console; uses parity -> use 7 bit mode)
@@ -18,6 +19,7 @@ rw11::setup_lp
 cpu0rka0 att unix_v5_rk.dsk
 
 # and boot
+rutil::dohook "preboothook"
 rw11::cpumon
 rw11::cpucons
 cpu0 boot rka0

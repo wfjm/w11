@@ -1,10 +1,11 @@
-# $Id: test_tm11_int.tcl 683 2015-05-17 21:54:35Z mueller $
+# $Id: test_tm11_int.tcl 704 2015-07-25 14:18:03Z mueller $
 #
 # Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2015-07-25   704   1.0.1  tmpproc_dotest: use args rather opts
 # 2015-05-17   683   1.0    Initial version
 #
 # Test interrupt response 
@@ -88,25 +89,23 @@ vh.tm:  mov     #obuf,r0        ; store regs in obuf
 ##puts $lst
 
 # define tmpproc for readback checks
-proc tmpproc_dotest {cpu symName opts} {
+proc tmpproc_dotest {cpu symName args} {
   upvar 1 $symName sym
 
   set tout 10.;                   # FIXME_code: parameter ??
 
 # setup defs hash, first defaults, than write over concrete run values  
-  array set defs { i.cr     0 \
-                   i.bc     0 \
-                   i.ba     0 \
-                   o.sr     0 \
-                   o.cr     0 \
-                   o.bc     0 \
-                   o.ba     0 \
-                   do.lam   0
-                 }
-  array set defs $opts
+  args2opts opts {i.cr     0 \
+                  i.bc     0 \
+                  i.ba     0 \
+                  o.sr     0 \
+                  o.cr     0 \
+                  o.bc     0 \
+                  o.ba     0 \
+                  do.lam   0 } {*}$args
 
   # build ibuf
-  set ibuf [list $defs(i.bc) $defs(i.ba) $defs(i.cr)] 
+  set ibuf [list $opts(i.bc) $opts(i.ba) $opts(i.cr)] 
 
   # setup write ibuf, setup stack, and start cpu at start:
   $cpu cp -wal   $sym(ibuf) \
@@ -115,7 +114,7 @@ proc tmpproc_dotest {cpu symName opts} {
           -stapc $sym(start)
 
   # here do minimal lam handling (harvest + send DONE)
-  if {$defs(do.lam)} {
+  if {$opts(do.lam)} {
     rlc wtlam $tout apat
     $cpu cp -attn \
             -wibr tma.cs [ibd_rhrp::cr_func $ibd_tm11::RFUNC_DONE]
@@ -128,15 +127,15 @@ proc tmpproc_dotest {cpu symName opts} {
           -rsp   -edata $sym(stack) \
           -wal   $sym(obuf) \
           -rmi   -edata 1   \
-          -rmi   -edata $defs(o.sr) \
-          -rmi   -edata $defs(o.cr) \
-          -rmi   -edata $defs(o.bc) \
-          -rmi   -edata $defs(o.ba) \
+          -rmi   -edata $opts(o.sr) \
+          -rmi   -edata $opts(o.cr) \
+          -rmi   -edata $opts(o.bc) \
+          -rmi   -edata $opts(o.ba) \
           -wal   $sym(fbuf) \
-          -rmi   -edata $defs(o.sr) \
-          -rmi   -edata $defs(o.cr) \
-          -rmi   -edata $defs(o.bc) \
-          -rmi   -edata $defs(o.ba)   
+          -rmi   -edata $opts(o.sr) \
+          -rmi   -edata $opts(o.cr) \
+          -rmi   -edata $opts(o.bc) \
+          -rmi   -edata $opts(o.ba)   
 
   return ""
 }
@@ -148,7 +147,7 @@ rlc exec -attn
 # -- Section A ---------------------------------------------------------------
 rlc log "    A1.1 set cr.ie=1 -> software interrupt -------------"
 
-set opts [list \
+tmpproc_dotest $cpu sym \
             i.cr   [regbld ibd_tm11::CR ie] \
             i.bc   0xff00  \
             i.ba   0x8800  \
@@ -156,7 +155,5 @@ set opts [list \
             o.cr   [regbld ibd_tm11::CR rdy ie] \
             o.bc   0xff00 \
             o.ba   0x8800
-         ]
 
-tmpproc_dotest $cpu sym $opts
 

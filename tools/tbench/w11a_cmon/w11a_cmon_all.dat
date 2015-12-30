@@ -1,0 +1,7 @@
+# $Id: w11a_cmon_all.dat 701 2015-07-19 12:58:29Z mueller $
+#
+## steering file for all w11a_cmon tests
+#
+test_cmon_regs.tcl
+test_cmon_imon.tcl
+#

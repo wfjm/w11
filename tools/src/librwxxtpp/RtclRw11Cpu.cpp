@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.cpp 682 2015-05-15 18:35:29Z mueller $
+// $Id: RtclRw11Cpu.cpp 718 2015-12-26 15:59:48Z mueller $
 //
 // Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,10 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-12-26   718   1.2.8  use BlockSizeMax() for 'cp -b[rw]m' and 'ldasm' 
+// 2015-07-12   700   1.2.4  use ..CpuAct instead ..CpuGo (new active based lam);
+//                           add probe and map setup for optional cpu components
+// 2015-06-27   695   1.2.3  M_get: add ibase getter
 // 2015-05-04   674   1.2.2  w11a start/stop/suspend overhaul
 // 2015-04-25   668   1.2.1  M_cp: add -rbibr, wbibr; GetRAddr: drop odd check
 // 2015-04-03   661   1.2    expect logic: drop estatdef, use LastExpect..
@@ -33,7 +37,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Cpu.cpp 682 2015-05-15 18:35:29Z mueller $
+  \version $Id: RtclRw11Cpu.cpp 718 2015-12-26 15:59:48Z mueller $
   \brief   Implemenation of RtclRw11Cpu.
 */
 
@@ -345,7 +349,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
   string varprint;
   string vardump;
 
-  bool setcpugo = false;
+  bool setcpuact = false;
 
   while (args.NextOpt(opt, optset)) {
     size_t lsize = clist.Size();
@@ -517,21 +521,21 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
 
     } else if (opt == "-brm") {             // -brm size ?varData ?varStat ---
       int32_t bsize;
-      if (!args.GetArg("bsize", bsize, 1, 256)) return kERR;
+      if (!args.GetArg("bsize", bsize, 1, Connect().BlockSizeMax())) return kERR;
       if (!GetVarName(args, "??varData", lsize, vardata)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       clist.AddRblk(base + Rw11Cpu::kCPMEMI, (size_t) bsize);
 
     } else if (opt == "-bwm") {             // -bwm block ?varStat -----------
       vector<uint16_t> block;
-      if (!args.GetArg("data", block, 1, 256)) return kERR;
+      if (!args.GetArg("data", block, 1, Connect().BlockSizeMax())) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       clist.AddWblk(base + Rw11Cpu::kCPMEMI, block);
     
     } else if (opt == "-start") {           // -start ?varStat ---------------
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       clist.AddWreg(base + Rw11Cpu::kCPCNTL, Rw11Cpu::kCPFUNC_START);
-      setcpugo = true;
+      setcpuact = true;
 
     } else if (opt == "-stop") {            // -stop ?varStat ----------------
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
@@ -556,6 +560,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
     } else if (opt == "-resume") {          // -resume ?varStat --------------
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       clist.AddWreg(base + Rw11Cpu::kCPCNTL, Rw11Cpu::kCPFUNC_RESUME);
+      setcpuact = true;
 
     } else if (opt == "-stapc") {           // -stapc addr ?varStat ----------
       uint16_t data;
@@ -565,7 +570,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       clist.AddWreg(base + Rw11Cpu::kCPCNTL, Rw11Cpu::kCPFUNC_CRESET);
       clist.AddWreg(base + Rw11Cpu::kCPPC, data);
       clist.AddWreg(base + Rw11Cpu::kCPCNTL, Rw11Cpu::kCPFUNC_START);
-      setcpugo = true;
+      setcpuact = true;
 
     } else if (opt == "-rmembe") {          // -rmembe ?varData ?varStat ------
       if (!GetVarName(args, "??varData", lsize, vardata)) return kERR;
@@ -707,7 +712,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
   if (clist.Size() == 0) return kOK;
 
   // signal cpugo up before clist executed to prevent races
-  if (setcpugo) Obj().SetCpuGoUp();
+  if (setcpuact) Obj().SetCpuActUp();
 
   RerrMsg emsg;
   // this one intentionally on Connect() to allow mixing of rlc + w11 commands
@@ -795,7 +800,7 @@ int RtclRw11Cpu::M_wtcpu(RtclArgs& args)
     }
 
   } else {                                  // server is active
-    twait = Obj().WaitCpuGoDown(tout);
+    twait = Obj().WaitCpuActDown(tout);
   } 
 
   if (twait < 0.) {                         // timeout
@@ -1135,7 +1140,7 @@ int RtclRw11Cpu::M_ldasm(RtclArgs& args)
   for (cmap_it_t it=cmap.begin(); it!=cmap.end(); it++) {
     //cout << "+++2 mem[" << RosPrintf(it->first, "o0", 6)
     //     << "]=" << RosPrintf(it->second, "o0", 6) << endl;
-    if (dot != it->first || block.size() == 256) {
+    if (dot != it->first || block.size() >= Connect().BlockSizeMax()) {
       if (block.size()) {
         if (!Obj().MemWrite(base, block, emsg)) return args.Quit(emsg);
         block.clear();
@@ -1208,7 +1213,7 @@ int RtclRw11Cpu::M_show(RtclArgs& args)
 
   const char* mode[4]  = {"k","s","?","u"};
   const char* rust[16] = {"init",     "HALTed",   "reset",   "stopped",
-                          "stepped",  "suspend",  "0110",    "..run..",
+                          "stepped",  "suspend",  "hbpt",    "..run..",
                           "F:vecfet", "F:redstk", "1010",    "1011",
                           "F:seq",    "F:vmbox" , "1101",    "1111"};
 
@@ -1430,9 +1435,14 @@ int RtclRw11Cpu::M_default(RtclArgs& args)
 void RtclRw11Cpu::SetupGetSet()
 {
   Rw11Cpu* pobj = &Obj();
-  fGets.Add<const string&>("type",  boost::bind(&Rw11Cpu::Type, pobj));
-  fGets.Add<size_t>       ("index", boost::bind(&Rw11Cpu::Index, pobj));
-  fGets.Add<uint16_t>     ("base",  boost::bind(&Rw11Cpu::Base, pobj));
+  fGets.Add<const string&>("type",     boost::bind(&Rw11Cpu::Type,     pobj));
+  fGets.Add<size_t>       ("index",    boost::bind(&Rw11Cpu::Index,    pobj));
+  fGets.Add<uint16_t>     ("base",     boost::bind(&Rw11Cpu::Base,     pobj));
+  fGets.Add<uint16_t>     ("ibase",    boost::bind(&Rw11Cpu::IBase,    pobj));
+  fGets.Add<bool>         ("hasscnt",  boost::bind(&Rw11Cpu::HasScnt,  pobj));
+  fGets.Add<bool>         ("hascmon",  boost::bind(&Rw11Cpu::HasCmon,  pobj));
+  fGets.Add<uint16_t>     ("hashbpt",  boost::bind(&Rw11Cpu::HasHbpt,  pobj));
+  fGets.Add<bool>         ("hasibmon", boost::bind(&Rw11Cpu::HasIbmon, pobj));
   return;
 }
 

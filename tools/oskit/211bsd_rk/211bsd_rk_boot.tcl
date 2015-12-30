@@ -1,4 +1,4 @@
-# $Id: 211bsd_rk_boot.tcl 689 2015-06-05 14:33:18Z mueller $
+# $Id: 211bsd_rk_boot.tcl 704 2015-07-25 14:18:03Z mueller $
 #
 # Setup file for 211bsd RK05 based system
 #
@@ -14,7 +14,7 @@ rutil::dohook "preinithook"
 puts [rlw]
 
 # setup tt,lp (211bsd uses parity -> use 7 bit mode)
-rw11::setup_tt "cpu0" {to7bit 1}
+rw11::setup_tt "cpu0" to7bit 1
 rw11::setup_lp 
 
 # mount disks

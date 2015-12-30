@@ -1,6 +1,6 @@
-# $Id: defs.tcl 621 2014-12-26 21:20:05Z mueller $
+# $Id: defs.tcl 719 2015-12-27 09:45:43Z mueller $
 #
-# Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2014-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-12-26   719   1.0.2  add regmap_add defs; add CNTRL def
+# 2015-09-06   710   1.0.1  regdsc PSW: add silent n,z,v,c; *mode syms; fix tflag
 # 2014-03-07   553   1.0    Initial version (extracted from util.tcl)
 #
 
@@ -20,20 +22,24 @@ package provide rw11 1.0
 
 package require rlink
 package require rwxxtpp
+package require rw11util
 
 namespace eval rw11 {
   #
   # setup cp interface register descriptions for w11a -----------------------
   #
   regdsc CP_CNTL {func 3 0}
-  regdsc CP_STAT {rust 7 4} {halt 3} {go 2} {merr 1} {err 0}
+  regdsc CP_STAT {suspext 9} {suspint 8} {rust 7 4} \
+                 {susp 3} {go 2} {merr 1} {err 0}
   regdsc CP_AH   {ubm 7} {p22 6} {addr 5 6}
   #
   # setup w11a register descriptions -----------------------------------------
   #
   # PSW - processor status word --------------------------------------
   set A_PSW 0177776
-  regdsc PSW {cmode 15 2} {pmode 13 2} {rset 11} {pri 7 3} {tflag 3} {cc 3 4}
+  regdsc PSW {cmode 15 2 "s:k:s:x:u"} {pmode 13 2 "s:k:s:x:u"} \
+             {rset 11} {pri 7 3 "d"} {tflag 4} {cc 3 4} \
+             {n 3 1 "-"} {z 2 1 "-"} {v 1 1 "-"} {c 0 1 "-"}
   #
   # SSR0 - MMU Segment Status Register #0 ----------------------------
   set A_SSR0     0177572
@@ -68,6 +74,22 @@ namespace eval rw11 {
   # CPUERR - CPU Error Register -------------------------------------
   set A_CPUERR   0177766
   regdsc CPUERR {illhlt 7} {adderr 6} {nxm 5} {iobto 4} {ysv 3} {rsv 2}
+  #
+  # CNTRL - Memory System Control Register -------------------------
+  set A_CNTRL    0177746
+  regdsc CNTRL  {frep 5 2} {fmiss 3 2} {disutrap 1} {distrap 0}
+  #
+  # setup regmap
+  #
+  rw11util::regmap_add rw11 psw       {?? PSW}
+  rw11util::regmap_add rw11 ssr0      {?? SSR0}
+  rw11util::regmap_add rw11 ssr1      {?? SSR1}
+  rw11util::regmap_add rw11 ssr3      {?? SSR3}
+  rw11util::regmap_add rw11 sdr???.?  {?? SDR}
+  rw11util::regmap_add rw11 pirq      {?? PIRQ}
+  rw11util::regmap_add rw11 cpuerr    {?? CPUERR}
+  #
+  rw11util::regmap_add rw11 cntrl     {?? CNTRL}
   #
   # other w11a definitions ---------------------------------------------------
   # Interrupt vectors -----------------------------------------------

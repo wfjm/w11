@@ -1,4 +1,4 @@
-# $Id: util.tcl 690 2015-06-07 18:23:51Z mueller $
+# $Id: util.tcl 719 2015-12-27 09:45:43Z mueller $
 #
 # Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-12-26   719   1.0.2  add regmap_add defs
 # 2015-06-06   690   1.0.1  rdump: all online units now shown by default
 # 2015-03-21   659   1.0    Initial version
 #
@@ -20,14 +21,17 @@
 package provide ibd_rhrp 1.0
 
 package require rlink
+package require rw11util
 package require rw11
 
 namespace eval ibd_rhrp {
+
   #
   # setup register descriptions for ibd_rhrp ---------------------------------
   #
-  regdsc CS1 {sc 15} {tre 14} {dva 11} {bae 9 2} \
-    {rdy 7} {ie 6} {func 5 5} {go 0}
+  regdsc CS1 {sc 15} {tre 14} {dva 11} {bae 9 2} {rdy 7} {ie 6} \
+    {func 5 5 "s:NOOP:UNL:SEEK:RECAL:DCLR:PORE:OFFS:RETC:PRES:PACK:FU12:FU13:SEAR:FU15:FU16:FU17:FU20:FU21:FU22:FU23:WCD:WCHD:FU26:FU27:WRITE:WHD:FU32:FU33:READ:RHD:FU36:FU37"} \
+    {go 0}
   variable FUNC_NOOP   [bvi b5 "00000"]
   variable FUNC_UNL    [bvi b5 "00001"]
   variable FUNC_SEEK   [bvi b5 "00010"]
@@ -46,20 +50,22 @@ namespace eval ibd_rhrp {
   variable FUNC_READ   [bvi b5 "11100"]
   variable FUNC_RHD    [bvi b5 "11101"]
 
-  regdsc RCS1  {val 15 8} {func 5 5} {go 0}
+  regdsc RCS1  {val 15 8} \
+    {func 5 5 "s:FU00:WUNIT:CUNIT:DONE:WIDLY:FU05:FU06:FU07:FU10:FU11:FU12:FU13:FU14:FU15:FU16:FU17:FU20:FU21:FU22:FU23:FU24:FU25:FU26:FU27:FU30:FU31:FU32:FU33:FU34:FU35:FU36:FU37"} \
+    {go 0}
   variable RFUNC_WUNIT [bvi b5 "00001"]
   variable RFUNC_CUNIT [bvi b5 "00010"]
   variable RFUNC_DONE  [bvi b5 "00011"]
   variable RFUNC_WIDLY [bvi b5 "00100"]
 
-  regdsc DA  {ta 12 5 2d} {sa 5 6 2d}
+  regdsc DA  {ta 12 5 d} {sa 5 6 d}
   regdsc CS2 {wce 14} {ned 12} {nem 11} {pge 10} {or 7} {ir 6} \
     {clr 5} {pat 4} {bai 3} {unit 2 3 d}
   regdsc DS  {ata 15} {erp 14} {pip 13} {mol 12} {wrl 11} {lbt 10} {dpr 8} \
     {dry 7} {vv 6} {om 0}
   regdsc ER1 {uns 14} {iae 10} {aoe 9} {rmr 2} {ilf 0}
   regdsc AS  {u3 3} {u2 2} {u1 1} {u0 0}
-  regdsc LA  {sc 11 6 2d}
+  regdsc LA  {sc 11 6 d}
   regdsc OF  {fmt 12} {eci 11} {hci 10} {odi 7} {off 6 7}
 
   variable DTE_RP04    [bvi b3 "000"]
@@ -77,10 +83,21 @@ namespace eval ibd_rhrp {
   variable DT_RP07    020042
 
   regdsc SN  {d3 15 4 d} {d2 11 4 d} {d1 7 4 d} {d0 3 4 d}
-  regdsc OF  {odi 7}
   regdsc DC  {dc 9 10 d}
 
   regdsc CS3 {ie 6}
+
+  rw11util::regmap_add ibd_rhrp rp?.cs1 {l? CS1 rr CS1 rw RCS1}
+  rw11util::regmap_add ibd_rhrp rp?.da  {?? DA}
+  rw11util::regmap_add ibd_rhrp rp?.cs2 {?? CS2}
+  rw11util::regmap_add ibd_rhrp rp?.ds  {?? DS}
+  rw11util::regmap_add ibd_rhrp rp?.er1 {?? ER1}
+  rw11util::regmap_add ibd_rhrp rp?.as  {?? AS}
+  rw11util::regmap_add ibd_rhrp rp?.la  {?? LA}
+  rw11util::regmap_add ibd_rhrp rp?.of  {?? OF}
+  rw11util::regmap_add ibd_rhrp rp?.sn  {?? SN}
+  rw11util::regmap_add ibd_rhrp rp?.dc  {?? DC}
+  rw11util::regmap_add ibd_rhrp rp?.cs3 {?? CS3}
 
   variable ANUM 6
 

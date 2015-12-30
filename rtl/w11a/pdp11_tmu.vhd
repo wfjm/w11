@@ -1,4 +1,4 @@
--- $Id: pdp11_tmu.vhd 677 2015-05-09 21:52:32Z mueller $
+-- $Id: pdp11_tmu.vhd 697 2015-07-05 14:23:26Z mueller $
 --
 -- Copyright 2008-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -23,6 +23,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-07-03   697   1.2.1  adapt to new DM_STAT_SY/DM_STAT_VM
 -- 2015-05-03   674   1.2    start/stop/suspend overhaul
 -- 2011-12-23   444   1.1    use local clkcycle count instead of simbus global
 -- 2011-11-18   427   1.0.7  now numeric_std clean
@@ -85,6 +86,7 @@ begin
       
       if R_FIRST = '1' then
         R_FIRST <= '0';
+        -- sequence of field desciptors must equal the sequence of writes later
         write(oline, string'("#"));
         write(oline, string'(" clkcycle:d"));
         write(oline, string'(" cpu:o"));
@@ -115,21 +117,21 @@ begin
         write(oline, string'(" vm.ibsres.ack:b"));
         write(oline, string'(" vm.ibsres.busy:b"));
         write(oline, string'(" vm.ibsres.dout:o"));
+        write(oline, string'(" vm.emmreq.req:b"));
+        write(oline, string'(" vm.emmreq.we:b"));
+        write(oline, string'(" vm.emmreq.be:b"));
+        write(oline, string'(" vm.emmreq.cancel:b"));
+        write(oline, string'(" vm.emmreq.addr:o"));
+        write(oline, string'(" vm.emmreq.din:o"));
+        write(oline, string'(" vm.emsres.ack_r:b"));
+        write(oline, string'(" vm.emsres.ack_w:b"));
+        write(oline, string'(" vm.emsres.dout:o"));
 
         write(oline, string'(" co.cpugo:b"));
         write(oline, string'(" co.cpususp:b"));
         write(oline, string'(" co.suspint:b"));
         write(oline, string'(" co.suspext:b"));
 
-        write(oline, string'(" sy.emmreq.req:b"));
-        write(oline, string'(" sy.emmreq.we:b"));
-        write(oline, string'(" sy.emmreq.be:b"));
-        write(oline, string'(" sy.emmreq.cancel:b"));
-        write(oline, string'(" sy.emmreq.addr:o"));
-        write(oline, string'(" sy.emmreq.din:o"));
-        write(oline, string'(" sy.emsres.ack_r:b"));
-        write(oline, string'(" sy.emsres.ack_w:b"));
-        write(oline, string'(" sy.emsres.dout:o"));
         write(oline, string'(" sy.chit:b"));
 
         writeline(ofile, oline);
@@ -147,15 +149,15 @@ begin
       ibaddr(DM_STAT_VM.ibmreq.addr'range) := DM_STAT_VM.ibmreq.addr;
 
       emaddr := (others=>'0');
-      emaddr(DM_STAT_SY.emmreq.addr'range) := DM_STAT_SY.emmreq.addr;
+      emaddr(DM_STAT_VM.emmreq.addr'range) := DM_STAT_VM.emmreq.addr;
 
       wcycle := false;
       if dp_ireg_we_last='1' or
          DM_STAT_DP.gpr_we='1' or
-         DM_STAT_SY.emmreq.req='1' or
-         DM_STAT_SY.emsres.ack_r='1' or
-         DM_STAT_SY.emsres.ack_w='1' or
-         DM_STAT_SY.emmreq.cancel='1' or
+         DM_STAT_VM.emmreq.req='1' or
+         DM_STAT_VM.emsres.ack_r='1' or
+         DM_STAT_VM.emsres.ack_w='1' or
+         DM_STAT_VM.emmreq.cancel='1' or
          DM_STAT_VM.ibmreq.re='1' or
          DM_STAT_VM.ibmreq.we='1' or
          DM_STAT_VM.ibsres.ack='1'
@@ -174,6 +176,7 @@ begin
       end if;
 
       if wcycle then
+        -- sequence of writes must equal the sequence of field desciptors above
         write(oline, clkcycle, right, 9);
         write(oline, string'(" 0"));
         writeoct(oline, DM_STAT_DP.pc,   right, 7);
@@ -204,20 +207,21 @@ begin
         write(oline,    DM_STAT_VM.ibsres.busy, right, 2);
         writeoct(oline, DM_STAT_VM.ibsres.dout, right, 7);
 
+        write(oline,    DM_STAT_VM.emmreq.req, right, 2);
+        write(oline,    DM_STAT_VM.emmreq.we, right, 2);
+        write(oline,    DM_STAT_VM.emmreq.be, right, 3);
+        write(oline,    DM_STAT_VM.emmreq.cancel, right, 2);
+        writeoct(oline, emaddr, right, 9);
+        writeoct(oline, DM_STAT_VM.emmreq.din, right, 7);
+        write(oline,    DM_STAT_VM.emsres.ack_r, right, 2);
+        write(oline,    DM_STAT_VM.emsres.ack_w, right, 2);
+        writeoct(oline, DM_STAT_VM.emsres.dout, right, 7);
+
         write(oline,    DM_STAT_CO.cpugo, right, 2);
         write(oline,    DM_STAT_CO.cpususp, right, 2);
         write(oline,    DM_STAT_CO.suspint, right, 2);
         write(oline,    DM_STAT_CO.suspext, right, 2);
-
-        write(oline,    DM_STAT_SY.emmreq.req, right, 2);
-        write(oline,    DM_STAT_SY.emmreq.we, right, 2);
-        write(oline,    DM_STAT_SY.emmreq.be, right, 3);
-        write(oline,    DM_STAT_SY.emmreq.cancel, right, 2);
-        writeoct(oline, emaddr, right, 9);
-        writeoct(oline, DM_STAT_SY.emmreq.din, right, 7);
-        write(oline,    DM_STAT_SY.emsres.ack_r, right, 2);
-        write(oline,    DM_STAT_SY.emsres.ack_w, right, 2);
-        writeoct(oline, DM_STAT_SY.emsres.dout, right, 7);
+        
         write(oline,    DM_STAT_SY.chit, right, 2);
 
         writeline(ofile, oline);

@@ -1,4 +1,4 @@
--- $Id: sys_conf.vhd 692 2015-06-21 11:53:24Z mueller $
+-- $Id: sys_conf.vhd 698 2015-07-05 21:20:18Z mueller $
 --
 -- Copyright 2010-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  xst 11.4-14.7; ghdl 0.26-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-06-26   695   1.4.2  add sys_conf_(dmscnt|dmhbpt*|dmcmon*)
 -- 2015-06-21   692   1.4.1  use clksys=52 (no closure after rhrp fixes)
 -- 2015-03-14   658   1.4    add sys_conf_ibd_* definitions
 -- 2015-02-15   647   1.3    drop bram and minisys options
@@ -56,8 +57,11 @@ package sys_conf is
   constant sys_conf_fx2_ccwidth  : positive := 5;
 
   -- configure debug and monitoring units ------------------------------------
-  constant sys_conf_rbmon_awidth : integer := 9; -- use 0 to disable rbmon
-  constant sys_conf_ibmon_awidth : integer := 9; -- use 0 to disable ibmon
+  constant sys_conf_rbmon_awidth  : integer := 9; -- use 0 to disable
+  constant sys_conf_ibmon_awidth  : integer := 9; -- use 0 to disable
+  constant sys_conf_dmscnt        : boolean := true;
+  constant sys_conf_dmhbpt_nunit  : integer := 2; -- use 0 to disable
+  constant sys_conf_dmcmon_awidth : integer := 9; -- use 0 to disable
 
   -- configure memory controller ---------------------------------------------
   constant sys_conf_memctl_read0delay : positive := 3;

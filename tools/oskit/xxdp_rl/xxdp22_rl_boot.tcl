@@ -1,4 +1,4 @@
-# $Id: xxdp22_rl_boot.tcl 689 2015-06-05 14:33:18Z mueller $
+# $Id: xxdp22_rl_boot.tcl 704 2015-07-25 14:18:03Z mueller $
 #
 # Setup file for XXDP V2.2 RL02 based system
 #
@@ -13,7 +13,7 @@ rutil::dohook "preinithook"
 puts [rlw]
 
 # setup tt,lp,pp (single console; enable rx rate limiter on old DEC OS)
-rw11::setup_tt "cpu0" {ndl 1 dlrlim 5 to7bit 1}
+rw11::setup_tt "cpu0" ndl 1 dlrlim 5 to7bit 1
 rw11::setup_lp 
 rw11::setup_pp
 

@@ -1,4 +1,4 @@
--- $Id: sys_conf.vhd 683 2015-05-17 21:54:35Z mueller $
+-- $Id: sys_conf.vhd 698 2015-07-05 21:20:18Z mueller $
 --
 -- Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  xst 8.1-14.7; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-06-26   695   1.2.1  add sys_conf_(dmscnt|dmhbpt*|dmcmon*)
 -- 2015-03-14   658   1.2    add sys_conf_ibd_* definitions
 -- 2014-12-22   619   1.1.2  add _rbmon_awidth
 -- 2010-05-05   288   1.1.1  add sys_conf_hio_debounce
@@ -38,8 +39,11 @@ package sys_conf is
   constant sys_conf_hio_debounce : boolean := true;    -- instantiate debouncers
 
   -- configure debug and monitoring units ------------------------------------
-  constant sys_conf_rbmon_awidth : integer := 9; -- use 0 to disable rbmon
-  constant sys_conf_ibmon_awidth : integer := 9; -- use 0 to disable ibmon
+  constant sys_conf_rbmon_awidth  : integer := 9; -- use 0 to disable
+  constant sys_conf_ibmon_awidth  : integer := 9; -- use 0 to disable
+  constant sys_conf_dmscnt        : boolean := true;
+  constant sys_conf_dmhbpt_nunit  : integer := 2; -- use 0 to disable
+  constant sys_conf_dmcmon_awidth : integer := 9; -- use 0 to disable
 
   -- configure w11 cpu core --------------------------------------------------
   constant sys_conf_mem_losize     : integer := 8#037777#; --   1 MByte

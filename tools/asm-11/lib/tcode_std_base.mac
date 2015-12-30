@@ -1,0 +1,37 @@
+; $Id: tcode_std_base.mac 710 2015-08-31 06:19:56Z mueller $
+; Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory 
+;
+; Default tcode base code for simple tests
+;
+        .include        |lib/tcode_std_start.mac|
+;
+        clr     @pdreg          ; clear display reg
+        jmp     loop1
+;
+; IOT handler
+;   called at end of each test
+;   increments tstno and updates display register
+;
+vh.iot: inc     tstno           ; bump test number
+                                ; setup display reg
+        movb    tstno,swdreg    ;    low byte: test number
+        movb    runno,swdreg+1  ;   high byte: pass number
+        mov     swdreg,@pdreg   ; write display reg (is noop when sw dreg used)
+        rtt
+;
+loop:   bit     #bit00,@psreg   ; test 'loop bit'
+        bne     1$
+        jmp     stop
+
+1$:     reset                   ; re-reset CPU for each pass
+        mov     #stack,sp       ; re-init  SP
+        clr     tstno           ; reset test counter
+        inc     runno           ; bump  pass counter
+; 
+        .include        |lib/vec_cpucatch_reset.mac|
+        .include        |lib/vec_devcatch_reset.mac|
+; 
+loop1:  
+        mov     #vh.iot,v..iot  ; setup IOT trap handler
+        mov     #cp.pr7,v..iot+2

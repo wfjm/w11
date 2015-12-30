@@ -11,6 +11,10 @@ pdp11_cache.vbom
 pdp11_mem70.vbom
 ../ibus/ibd_ibmon.vbom
 ../ibus/ib_sres_or_3.vbom
+pdp11_dmscnt.vbom
+pdp11_dmcmon.vbom
+pdp11_dmhbpt.vbom
+../vlib/rbus/rb_sres_or_4.vbom
 [sim]pdp11_tmu_sb.vbom
 # design
 pdp11_sys70.vhd

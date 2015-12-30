@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: asm-11 659 2015-03-22 23:15:51Z mueller $
+# $Id: asm-11 712 2015-11-01 22:53:45Z mueller $
 #
-# Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-11-01   712   1.0.4  BUGFIX: fix '.' handling in instructions
 # 2014-07-26   575   1.0.3  add 'call' and 'return' to pst (as in macro-11)
 # 2013-04-07   503   1.0.2  list dot for .even,.dot,.blkb,.blkw
 # 2013-04-01   502   1.0.1  BUGFIX: -2(r0),@-2(r0) was broken, parser fixed
@@ -75,6 +76,7 @@ sub pass2_lst_beg;
 sub pass2_lst_end;
 sub pass2_lst_line;
 sub out_w;
+sub out_wop;
 sub out_b;
 sub out_opcode;
 sub out_opcode_n;
@@ -313,6 +315,7 @@ my $pass;
 
 my @t_pushback;
 
+my $defincdot = 0;                          # defered increment for '.'
 my $out_dot;                                # current . for output
 my @out_data;                               # output data
 my $out_start = 1;                          # absolute start address
@@ -1148,6 +1151,7 @@ sub setdot {
   $lst{'.'}->{val} = $val;
   $psect{$cur_psect}{dot} = $val;
   $psect{$cur_psect}{dotmax} = $val if $psect{$cur_psect}{dotmax} < $val;
+  ## printf "-- setdot %6.6o\n", $val if $opts{tparse};
   return;
 }
 
@@ -1163,6 +1167,7 @@ sub incdot {
 #-------------------------------------------------------------------------------
 
 sub getdot {
+  ## printf "-- getdot %6.6o\n", $lst{'.'}{val} if $opts{tparse};
   return $lst{'.'}{val};
 }
 
@@ -1767,6 +1772,9 @@ sub pass2_out {
       die "BUGCHECK: unknown opfmt '$opfmt'";
     }
 
+    incdot($defincdot);                     # inc '.' after instruction done !
+    $defincdot = 0;
+
   # generate data
   } elsif ($$rl{typ} eq 'data') {
     if ($$rl{oper} eq '.word' || $$rl{oper} eq '.byte' ) {
@@ -1952,6 +1960,15 @@ sub out_w {
 
 #-------------------------------------------------------------------------------
 
+sub out_wop {
+  my ($rl,$word) = @_;
+  push @{$$rl{outw}}, $word;
+  $defincdot += 2;
+  return;
+}
+
+#-------------------------------------------------------------------------------
+
 sub out_b {
   my ($rl,$byte) = @_;
   push @{$$rl{outb}}, $byte;
@@ -1963,7 +1980,7 @@ sub out_b {
 
 sub out_opcode {
   my ($rl,$code) = @_;
-  out_w($rl, $code);
+  out_wop($rl, $code);
   return;
 }
 
@@ -1983,7 +2000,7 @@ sub out_opcode_n {
     $val &= $mask;
     add_err($rl, 'T');
   }
-  out_w($rl, $code|$val);
+  out_wop($rl, $code|$val);
   return;
 }
 
@@ -2015,7 +2032,7 @@ sub out_opcode_o {
     }
     $off &= 0077;
   }
-  out_w($rl, $code|$off);
+  out_wop($rl, $code|$off);
   return;
 }
 
@@ -2028,14 +2045,14 @@ sub out_opdata {
 
   my $val = eval_exp($rl,$ebeg,$eend);
   unless (defined $val) {
-    out_w($rl, 0);
+    out_wop($rl, 0);
     add_err($rl, 'U');
     return;
   }
-  if ($mod>=6 && $reg==7) {
-    $val = ($val - (getdot()+2)) & 0177777;
+  if ($mod>=6 && $reg==7) {                 # handle pc relative offsets
+    $val = ($val - (getdot()+$defincdot+2)) & 0177777;
   }
-  out_w($rl, $val);
+  out_wop($rl, $val);
   return;
 }
 

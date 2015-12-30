@@ -1,4 +1,4 @@
-# $Id: util.tcl 668 2015-04-25 14:31:19Z mueller $
+# $Id: util.tcl 722 2015-12-30 19:45:46Z mueller $
 #
 # Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,8 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-12-28   721   1.0.2  add regmap_add defs; add symbolic register dump
+# 2015-07-25   704   1.0.1  start: use args and args2opts
 # 2015-04-25   668   1.0    Initial version
 #
 
@@ -20,6 +22,7 @@ package provide ibd_ibmon 1.0
 
 package require rutil
 package require rlink
+package require rw11util
 
 namespace eval ibd_ibmon {
   #
@@ -37,9 +40,13 @@ namespace eval ibd_ibmon {
   # 'pseudo register', describes 1st word in return list element of read proc
   #  all flag bits from DAT3 and DAT0
   regdsc FLAGS {burst 11} {tout 10} {nak 9} {ack 8} \
-               {busy 7} {cacc 5} {racc 4} {rmw 3} {be1 2} {be0 1} {we 0} 
+               {busy 7} {cacc 5} {racc 4} {rmw 3} {be1 2} {be0 1} {we 0}   
   #
-  # setup: amap definitions for rbd_rbmon
+  rw11util::regmap_add ibd_ibmon im.cntl {r? CNTL}
+  rw11util::regmap_add ibd_ibmon im.stat {r? STAT}
+  rw11util::regmap_add ibd_ibmon im.addr {r? ADDR}
+  #
+  # setup: amap definitions for ibd_ibmon
   # 
   proc setup {{cpu "cpu0"} {base 0160000}} {
     $cpu imap -insert im.cntl  [expr {$base + 000}]
@@ -50,7 +57,7 @@ namespace eval ibd_ibmon {
     $cpu imap -insert im.data  [expr {$base + 012}]
   }
   #
-  # init: reset rbd_rbmon (stop, reset alim)
+  # init: reset ibd_ibmon (stop, reset alim)
   # 
   proc init {{cpu "cpu0"}} {
     $cpu cp \
@@ -60,20 +67,19 @@ namespace eval ibd_ibmon {
       -wibr im.addr 0x0000
   }
   #
-  # start: start the rbmon
+  # start: start the ibmon
   #
-  proc start {{cpu "cpu0"} {opts {}}} {
-    array set defs { conena 1 remena 1 locena 1 wena 1 }
-    array set defs $opts
+  proc start {{cpu "cpu0"} args} {
+    args2opts opts { conena 1 remena 1 locena 1 wena 1 } {*}$args
     $cpu cp -wibr im.cntl [regbld ibd_ibmon::CNTL start \
-                              [list   wena $defs(wena)] \
-                              [list locena $defs(locena)] \
-                              [list remena $defs(remena)] \
-                              [list conena $defs(conena)] \
+                              [list   wena $opts(wena)] \
+                              [list locena $opts(locena)] \
+                              [list remena $opts(remena)] \
+                              [list conena $opts(conena)] \
                              ]
   }
   #
-  # stop: stop the rbmon
+  # stop: stop the ibmon
   #
   proc stop {{cpu "cpu0"}} {
     $cpu cp -wibr im.cntl [regbld ibd_ibmon::CNTL stop]
@@ -169,7 +175,7 @@ namespace eval ibd_ibmon {
 
     set eind [expr {1 - [llength $mondat] }]
     append rval \
-      "  ind  addr         data  delay nbsy  btnab-crm10w  acc-mode"
+      "  ind  addr         data  delay nbsy  btnab-crm10w  acc-mod"
 
     set mtout  [regbld ibd_ibmon::FLAGS tout ]
     set mnak   [regbld ibd_ibmon::FLAGS nak  ]
@@ -216,15 +222,26 @@ namespace eval ibd_ibmon {
       if {$fracc} { set pacc "rem"}
 
       set pedly [expr {$edly!=$edlymax ? [format "%5d" $edly] : "   --"}]
+
       set ename  [format "%6.6o" $eaddr]
+      set etext  ""
+      if {[$cpu imap -testaddr $eaddr]} {
+        set ename [$cpu imap -name $eaddr]
+        set eam   "l${prw}"
+        if {$fracc} { set eam "r${prw}"}
+        set etext [rw11util::regmap_txt $ename $eam $edata]
+      }
+
       set comment ""
       if {$fnak}   {append comment " NAK=1!"}
       if {$ftout}  {append comment " TOUT=1!"}
-      if {[$cpu imap -testaddr $eaddr]} {set ename [$cpu imap -name $eaddr]}
+
       append rval [format \
-      "\n%5d  %-10s %6.6o  %5s %4d  %s  %s %s  %s" \
+      "\n%5d  %-10s %6.6o  %5s %4d  %s %s %s" \
         $eind $ename $edata $pedly $enbusy [pbvi b12 $eflag] \
-        $prmw $pacc $comment]
+        $prmw $pacc]
+      if {$etext ne ""}   {append rval "  $etext"}
+      if {$comment ne ""} {append rval "  $comment"}
       incr eind
     }
 

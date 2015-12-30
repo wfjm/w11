@@ -1,4 +1,4 @@
-# $Id: INSTALL.txt 654 2015-03-01 18:45:38Z mueller $
+# $Id: INSTALL.txt 722 2015-12-30 19:45:46Z mueller $
 
 Guide to install and build w11a systems, test benches and support software
 
@@ -65,7 +65,7 @@ Guide to install and build w11a systems, test benches and support software
     - libusb 1.0 (>= 1.0.6)
       -> package: libusb-1.0-0-dev
     - Perl (>= 5.10)  (usually included in base installations)
-    - Tcl  (>= 8.5), with tclreadline support
+    - Tcl  (>= 8.6), with tclreadline support
       -> package: tcl tcl-dev tcllib tclreadline
 
   - for VHDL simulations one needs
@@ -114,8 +114,8 @@ Guide to install and build w11a systems, test benches and support software
   In most cases the boost library version coming with the distribution will
   work, similar for Tcl, in those cases simply use
 
-    export TCLINC=/usr/include/tcl8.5
-    export TCLLIBNAME=tcl8.5
+    export TCLINC=/usr/include/tcl8.6
+    export TCLLIBNAME=tcl8.6
 
   and don't setup BOOSTINC and BOOSTLIB.
 

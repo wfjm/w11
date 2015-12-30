@@ -1,4 +1,4 @@
-# $Id: test_rhrp_regs.tcl 692 2015-06-21 11:53:24Z mueller $
+# $Id: test_rhrp_regs.tcl 705 2015-07-26 21:25:42Z mueller $
 #
 # Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
@@ -87,7 +87,7 @@ foreach bae {077 071 000} {
 rlc log "    A1.4: rem write bae, read l+r bae+cs1.bae ----------"
 
 foreach bae {077 071 000} {
-  set cs1val [regbld ibd_rhrp::CS1 [list bae [expr {$bae & 03}]]]
+  set cs1val [regbldkv ibd_rhrp::CS1 bae [expr {$bae & 03}] ]
   $cpu cp -wibr rpa.bae $bae \
           -ribr rpa.bae -edata $bae \
           -ribr rpa.cs1 -edata $cs1val $cs1msk \
@@ -100,7 +100,7 @@ rlc log "    A1.5: loc write cs1.bae, read l+r bae+cs1.bae ------"
 $cpu cp -wibr rpa.bae 070;      # set 3 lbs of bae
 
 foreach cs1bae {03 01 00} {
-  set cs1val [regbld ibd_rhrp::CS1 [list bae $cs1bae]]
+  set cs1val [regbldkv ibd_rhrp::CS1 bae $cs1bae]
   set bae    [expr {070 | $cs1bae}]
   $cpu cp -wma  rpa.cs1 $cs1val \
           -rma  rpa.bae -edata $bae \
@@ -202,8 +202,8 @@ set tbl {     0  007  006  00123 \
         }
 
 foreach {unit ta sa dc} $tbl {
-  $cpu cp -wma  rpa.cs2 [regbld ibd_rhrp::CS2 [list unit $unit]] \
-          -wma  rpa.da  [regbld ibd_rhrp::DA [list ta $ta] [list sa $sa]] \
+  $cpu cp -wma  rpa.cs2 [regbldkv ibd_rhrp::CS2 unit $unit] \
+          -wma  rpa.da  [regbldkv ibd_rhrp::DA ta $ta  sa $sa] \
           -wma  rpa.dc  $dc 
 }
 
@@ -225,7 +225,7 @@ set tbl {     0  005  004  00234 \
 
 foreach {unit ta sa dc} $tbl {
   $cpu cp -wibr rpa.cs1 [ibd_rhrp::rcs1_wunit $unit] \
-          -wibr rpa.da  [regbld ibd_rhrp::DA [list ta $ta] [list sa $sa]] \
+          -wibr rpa.da  [regbldkv ibd_rhrp::DA ta $ta  sa $sa] \
           -wibr rpa.dc  $dc 
 }
 

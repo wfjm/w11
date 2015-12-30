@@ -1,6 +1,6 @@
--- $Id: nx_cram_memctl_as.vhd 644 2015-02-08 22:56:54Z mueller $
+-- $Id: nx_cram_memctl_as.vhd 718 2015-12-26 15:59:48Z mueller $
 --
--- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -31,6 +31,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-12-26   718   1.2.1  BUGFIX: do_dispatch(): always define imem_oe
 -- 2011-11-26   433   1.2    renamed from n2_cram_memctl_as
 -- 2011-11-19   432   1.1    remove O_FLA_CE_N port
 -- 2011-11-19   427   1.0.5  now numeric_std clean
@@ -74,6 +75,9 @@
 --         82.19- 89.74   5   6     <-- 85                     85  10  17
 --         89.74- 95.89   6   6     <-- 90,95                  95  10  19
 --         95.89-102.56   6   7     <-- 100                   100   1   2
+--   remark added 2015-12-26
+--   - for sys_w11a_n3 one gets in simulation errors for 72 MHz and RD=4 !!
+--   - so far unclear whether controller or memory model is wrong !!
 --
 -- Timing of some signals:
 --
@@ -364,6 +368,7 @@ begin
           iaddr0  := '1';                   -- access word 1 
           imem_be := BE(3 downto 2);        -- set be's for 1st cycle
         end if;
+        imem_oe := '0';                   -- oe=0
         nstate := s_wrinit;               -- next: write init part
       end if;
     end procedure do_dispatch;
@@ -394,7 +399,7 @@ begin
     if unsigned(r.cntdly) /= 0 then
       n.cntdly := slv(unsigned(r.cntdly) - 1);
     end if;
-    
+
     case r.state is
       when s_idle =>                    -- s_idle: wait for req
         if REQ = '1' then                 -- if IO requested

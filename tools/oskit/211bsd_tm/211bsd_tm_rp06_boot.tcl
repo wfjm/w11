@@ -1,4 +1,4 @@
-# $Id: 211bsd_tm_rp06_boot.tcl 690 2015-06-07 18:23:51Z mueller $
+# $Id: 211bsd_tm_rp06_boot.tcl 704 2015-07-25 14:18:03Z mueller $
 #
 # Setup file for creating a 211bsd RP06 system from a TM11 dist kit
 #
@@ -15,7 +15,7 @@ rutil::dohook "preinithook"
 puts [rlw]
 
 # setup tt,lp (211bsd uses parity -> use 7 bit mode)
-rw11::setup_tt "cpu0" {to7bit 1}
+rw11::setup_tt "cpu0" to7bit 1
 rw11::setup_lp 
 
 # mount disks

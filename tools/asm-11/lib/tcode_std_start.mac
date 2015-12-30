@@ -1,0 +1,63 @@
+; $Id: tcode_std_start.mac 712 2015-11-01 22:53:45Z mueller $
+; Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory 
+;
+; Default tcode startup code
+;
+        .include        |lib/defs_bits.mac|
+        .include        |lib/defs_cpu.mac|
+        .include        |lib/defs_nzvc.mac|
+;
+        .include        |lib/vec_cpucatch.mac|
+        .include        |lib/vec_devcatch.mac|
+;
+        . = 000200
+        jmp     @#start
+;
+        . = 002000
+stack:  
+;
+dostop: halt                    ; successful halt address is 2002  !!
+stop:   br      dostop          ; no restart after successful halt !!
+;
+psreg:  .word   cp.dsr          ; pointer to switch  reg (default->hardware)
+pdreg:  .word   cp.dsr          ; pointer to display reg (default->hardware)
+swsreg: .word   0               ; software switch  reg
+swdreg: .word   0               ; software display reg
+;
+tstno:  .word   0               ; test number
+runno:  .word   0               ; run number
+;
+;
+start:  reset                   ; general reset
+        mov     #stack,sp       ; setup stack
+;
+        mov     #v..lp+2,v..lp  ; setup LP11 vector catcher
+        clr     v..lp
+;
+        tst     swsreg          ; software switch reg setup ?
+        bne     200$            ; if yes use software swi and disp reg
+;
+        mov     #100$,v..iit    ; setup IIT handler
+        mov     #cp.pr7,v..iit+2
+;
+        mov     200$,r5         ; setup failed probe code pointer
+        mov     @#cp.dsr,r0     ; test switch register
+        clr     @#cp.dsr        ; test display register
+        br      300$
+;
+; IIT handler for probing. Simply use r5 as return address
+;   -->   successful probes simply fall through
+;   --> unsuccessful probes branch to address given in r5
+;
+100$:   mov     r5,(sp)
+        rti
+;
+; setup software swi and disp reg
+;
+200$:   mov     #swsreg,psreg
+        mov     #swdreg,pdreg
+;
+300$:   mov     #v..iit+2,v..iit ; reset to iit vector catcher
+        clr     v..iit+2
+;

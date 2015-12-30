@@ -1,10 +1,11 @@
-# $Id: test_rhrp_int2.tcl 692 2015-06-21 11:53:24Z mueller $
+# $Id: test_rhrp_int2.tcl 705 2015-07-26 21:25:42Z mueller $
 #
 # Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2015-07-25   704   1.0.1  tmpproc_dotest: use args rather opts
 # 2015-05-20   692   1.0    Initial version
 #
 # Test interrupt response 
@@ -183,16 +184,14 @@ vh.rp:  clrb    @#rp.cs2        ;   cs2 (unit=0)
 ##puts $lst
 
 # define tmpproc for readback checks
-proc tmpproc_dotest {cpu symName opts} {
+proc tmpproc_dotest {cpu symName args} {
   upvar 1 $symName sym
 
   set tout 10.;                   # FIXME_code: parameter ??
 
 # setup defs hash, first defaults, than write over concrete run values  
-  array set defs { i.nseek  0 \
-                   i.idly   0 
-                 }
-  array set defs $opts
+  args2opts opts {i.nseek  0 \
+                  i.idly   0 }  {*}$args
 
   set fread [list func $ibd_rhrp::FUNC_READ]
   set fsear [list func $ibd_rhrp::FUNC_SEAR]
@@ -201,8 +200,8 @@ proc tmpproc_dotest {cpu symName opts} {
   # build ibuf
   set ibuf {}
   lappend ibuf 01 0100 [regbld ibd_rhrp::CS1 ie $fread go]
-  lappend ibuf $defs(i.nseek)
-  for {set i 1} {$i<=$defs(i.nseek)} {incr i} {
+  lappend ibuf $opts(i.nseek)
+  for {set i 1} {$i<=$opts(i.nseek)} {incr i} {
     set da [expr { 010 + $i}]
     set dc [expr {0100 + $i}]
     lappend ibuf $da $dc [regbld ibd_rhrp::CS1 ie $fsear go]
@@ -210,9 +209,8 @@ proc tmpproc_dotest {cpu symName opts} {
   }
 
   # setup idly, write ibuf, setup stack, and start cpu at start:
-  $cpu cp -wibr rpa.cs1 [regbld ibd_rhrp::RCS1 \
-                           [list val $defs(i.idly)] \
-                           [list func $ibd_rhrp::RFUNC_WIDLY] ] \
+  $cpu cp -wibr rpa.cs1 [regbldkv ibd_rhrp::RCS1 \
+                           val $opts(i.idly) func WIDLY ] \
           -wal   $sym(ibuf) \
           -bwm   $ibuf \
           -wsp   $sym(stack) \
@@ -253,7 +251,7 @@ proc tmpproc_dotest {cpu symName opts} {
 
   # check setup search
   set mskcs1sc [rutil::com16 [regbld ibd_rhrp::CS1 sc]]
-  for {set i 1} {$i<=$defs(i.nseek)} {incr i} {
+  for {set i 1} {$i<=$opts(i.nseek)} {incr i} {
     set osscs1 [regbld ibd_rhrp::CS1 dva ie $fsear]
     set osscs2 [regbld ibd_rhrp::CS2 or ir [list unit $i]]
     set ossds  [regbld ibd_rhrp::DS  pip mol dpr vv]
@@ -266,7 +264,7 @@ proc tmpproc_dotest {cpu symName opts} {
   }
 
   # check interrupt xfer
-  set sc [expr {$defs(i.nseek) > 0}]
+  set sc [expr {$opts(i.nseek) > 0}]
   set oixcs1 [regbld ibd_rhrp::CS1 [list sc $sc] dva rdy $fread]
   set oixcs2 [regbld ibd_rhrp::CS2 or ir]
   set oixds  [regbld ibd_rhrp::DS  mol dpr dry vv]
@@ -280,7 +278,7 @@ proc tmpproc_dotest {cpu symName opts} {
 
   # check interrupt search
   set oisas  $as
-  for {set i 1} {$i<=$defs(i.nseek)} {incr i} {
+  for {set i 1} {$i<=$opts(i.nseek)} {incr i} {
     set oiscs1 [regbld ibd_rhrp::CS1 [list sc $sc] dva rdy $fsear]
     set oiscs2 [regbld ibd_rhrp::CS2 or ir [list unit $i]]
     set oisds  [regbld ibd_rhrp::DS ata mol dpr dry vv]
@@ -305,33 +303,17 @@ rlc exec -attn
 
 rlc log "  A1: test without search -----------------------------------"
 
-set opts [list \
-            i.nseek 0 \
-            i.idly  0
-         ]
-tmpproc_dotest $cpu sym $opts
+tmpproc_dotest $cpu sym  i.nseek 0  i.idly  0
 
 rlc log "  A2: test with 1 search ------------------------------------"
 
-set opts [list \
-            i.nseek 1 \
-            i.idly  10
-         ]
-tmpproc_dotest $cpu sym $opts
+tmpproc_dotest $cpu sym  i.nseek 1  i.idly  10
 
 rlc log "  A2: test with 2 search ------------------------------------"
 
-set opts [list \
-            i.nseek 2 \
-            i.idly  10
-         ]
-tmpproc_dotest $cpu sym $opts
+tmpproc_dotest $cpu sym  i.nseek 2  i.idly  10
 
 rlc log "  A2: test with 3 search ------------------------------------"
 
-set opts [list \
-            i.nseek 3 \
-            i.idly  10
-         ]
-tmpproc_dotest $cpu sym $opts
+tmpproc_dotest $cpu sym  i.nseek 3  i.idly  10
 

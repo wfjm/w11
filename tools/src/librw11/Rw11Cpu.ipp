@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.ipp 659 2015-03-22 23:15:51Z mueller $
+// $Id: Rw11Cpu.ipp 700 2015-07-12 19:28:31Z mueller $
 //
 // Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-07-12   700   1.2.1  use ..CpuAct instead ..CpuGo (new active based lam)
 // 2015-03-21   659   1.2    add RAddrMap
 // 2014-12-25   621   1.1    Adopt for 4k word ibus window; add IAddrMap
 // 2013-04-12   504   1.0    Initial version
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cpu.ipp 659 2015-03-22 23:15:51Z mueller $
+  \version $Id: Rw11Cpu.ipp 700 2015-07-12 19:28:31Z mueller $
   \brief   Implemenation (inline) of Rw11Cpu.
 */
 
@@ -95,6 +96,38 @@ inline uint16_t Rw11Cpu::IBase() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
+inline bool Rw11Cpu::HasScnt() const
+{
+  return fHasScnt;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline bool Rw11Cpu::HasCmon() const
+{
+  return fHasCmon;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline uint16_t Rw11Cpu::HasHbpt() const
+{
+  return fHasHbpt;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline bool Rw11Cpu::HasIbmon() const
+{
+  return fHasIbmon;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
 inline uint16_t Rw11Cpu::CpuStat() const
 {
   return fCpuStat;
@@ -103,9 +136,9 @@ inline uint16_t Rw11Cpu::CpuStat() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline bool Rw11Cpu::CpuGo() const
+inline bool Rw11Cpu::CpuAct() const
 {
-  return fCpuGo;
+  return fCpuAct;
 }
 
 //------------------------------------------+-----------------------------------

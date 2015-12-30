@@ -1,4 +1,4 @@
-# $Id: test_w11a_srcr_word_flow.tcl 683 2015-05-17 21:54:35Z mueller $
+# $Id: test_w11a_srcr_word_flow.tcl 704 2015-07-25 14:18:03Z mueller $
 #
 # Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
@@ -31,15 +31,15 @@ lpc:    halt
 stop:
 }
 
-rw11::asmrun  $cpu sym [list r0 01234]
+rw11::asmrun  $cpu sym r0 01234
 rw11::asmwait $cpu sym 
-rw11::asmtreg $cpu [list r0 01234 \
-                          r1 01234 \
-                          r2 $sym(stack) \
-                          r3 $sym(lpc) \
-                          r4 0 \
-                          r5 0 \
-                          sp $sym(stack) ]
+rw11::asmtreg $cpu     r0 01234 \
+                       r1 01234 \
+                       r2 $sym(stack) \
+                       r3 $sym(lpc) \
+                       r4 0 \
+                       r5 0 \
+                       sp $sym(stack)
 
 # ----------------------------------------------------------------------------
 rlc log "  (r0),(r0)+,-(r0) (mode=1,2,4)"
@@ -65,14 +65,14 @@ data:   .word   1001
         .word   1002
 }
 
-rw11::asmrun  $cpu sym [list r0 $sym(data)]
+rw11::asmrun  $cpu sym r0 $sym(data)
 rw11::asmwait $cpu sym 
-rw11::asmtreg $cpu [list r0 $sym(data) \
-                         r1 001001 \
-                         r2 001001 \
-                         r3 001002 \
-                         r4 001002 \
-                         r5 001001 ]
+rw11::asmtreg $cpu     r0 $sym(data) \
+                       r1 001001 \
+                       r2 001001 \
+                       r3 001002 \
+                       r4 001002 \
+                       r5 001001
 
 # ----------------------------------------------------------------------------
 rlc log "  @(r0)+,@-(r0)  (mode=3,5)"
@@ -101,14 +101,14 @@ data0:  .word   2001
 data1:  .word   2002
 }
 
-rw11::asmrun  $cpu sym [list r0 $sym(pdata)]
+rw11::asmrun  $cpu sym r0 $sym(pdata)
 rw11::asmwait $cpu sym 
-rw11::asmtreg $cpu [list r0 $sym(pdata) \
-                         r1 002001 \
-                         r2 002002 \
-                         r3 [expr {$sym(pdata)+4}] \
-                         r4 002002 \
-                         r5 002001 ]
+rw11::asmtreg $cpu     r0 $sym(pdata) \
+                       r1 002001 \
+                       r2 002002 \
+                       r3 [expr {$sym(pdata)+4}] \
+                       r4 002002 \
+                       r5 002001
 
 # ----------------------------------------------------------------------------
 rlc log "  nn(r0),@nn(r0)  (mode=6,7)"
@@ -138,14 +138,14 @@ data0:  .word   003002
 data1:  .word   003004
 }
 
-rw11::asmrun  $cpu sym [list r0 $sym(data)]
+rw11::asmrun  $cpu sym r0 $sym(data)
 rw11::asmwait $cpu sym 
-rw11::asmtreg $cpu [list r0 $sym(data) \
-                         r1 003001 \
-                         r2 003002 \
-                         r3 003003 \
-                         r4 003004 \
-                         r5 0 ]
+rw11::asmtreg $cpu     r0 $sym(data) \
+                       r1 003001 \
+                       r2 003002 \
+                       r3 003003 \
+                       r4 003004 \
+                       r5 0
 
 # ----------------------------------------------------------------------------
 rlc log "  #nn,@#nn,var,@var  (mode=27,37,67,77)"
@@ -171,11 +171,11 @@ data3:  .word   004003
 data4:  .word   004004
 }
 
-rw11::asmrun  $cpu sym {}
+rw11::asmrun  $cpu sym 
 rw11::asmwait $cpu sym 
-rw11::asmtreg $cpu [list r0 0 \
-                         r1 004001 \
-                         r2 004002 \
-                         r3 004003 \
-                         r4 004004 \
-                         r5 0 ]
+rw11::asmtreg $cpu     r0 0 \
+                       r1 004001 \
+                       r2 004002 \
+                       r3 004003 \
+                       r4 004004 \
+                       r5 0

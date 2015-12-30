@@ -1,6 +1,6 @@
--- $Id: pdp11_dpath.vhd 677 2015-05-09 21:52:32Z mueller $
+-- $Id: pdp11_dpath.vhd 702 2015-07-19 17:36:09Z mueller $
 --
--- Copyright 2006-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -28,6 +28,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-07-19   702   1.2.5  set new DM_STAT_DP fields
 -- 2014-08-10   581   1.2.4  use c_cc_f_*
 -- 2014-07-12   569   1.2.3  use DIV_QUIT and S_DIV_SR for pdp11_munit
 -- 2011-11-18   427   1.2.2  now numeric_std clean
@@ -331,12 +332,17 @@ begin
 
   DM_STAT_DP.pc        <= GPR_PC;
   DM_STAT_DP.psw       <= PSW;
+  DM_STAT_DP.psr_we    <= CNTL.psr_we;
   DM_STAT_DP.ireg      <= R_IREG;
   DM_STAT_DP.ireg_we   <= CNTL.ireg_we;
   DM_STAT_DP.dsrc      <= R_DSRC;
+  DM_STAT_DP.dsrc_we   <= CNTL.dsrc_we;
   DM_STAT_DP.ddst      <= R_DDST;
+  DM_STAT_DP.ddst_we   <= CNTL.ddst_we;
   DM_STAT_DP.dtmp      <= R_DTMP;
+  DM_STAT_DP.dtmp_we   <= CNTL.dtmp_we;
   DM_STAT_DP.dres      <= DRES;
+  DM_STAT_DP.cpdout_we <= CNTL.cpdout_we;
   DM_STAT_DP.gpr_adst  <= CNTL.gpr_adst;
   DM_STAT_DP.gpr_mode  <= CNTL.gpr_mode;
   DM_STAT_DP.gpr_bytop <= CNTL.gpr_bytop;

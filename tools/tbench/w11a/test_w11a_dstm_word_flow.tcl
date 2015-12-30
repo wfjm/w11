@@ -1,4 +1,4 @@
-# $Id: test_w11a_dstm_word_flow.tcl 683 2015-05-17 21:54:35Z mueller $
+# $Id: test_w11a_dstm_word_flow.tcl 704 2015-07-25 14:18:03Z mueller $
 #
 # Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
@@ -50,19 +50,19 @@ pdata5: .word   data5,data5+2
 pdat5e:
 }
 
-rw11::asmrun  $cpu sym [list r0 010 \
-                             r1 $sym(data1) \
-                             r2 $sym(data2) \
-                             r3 $sym(pdata3) \
-                             r4 $sym(data4e) \
-                             r5 $sym(pdat5e) ]
+rw11::asmrun  $cpu sym r0 010 \
+                       r1 $sym(data1) \
+                       r2 $sym(data2) \
+                       r3 $sym(pdata3) \
+                       r4 $sym(data4e) \
+                       r5 $sym(pdat5e)
 rw11::asmwait $cpu sym 
-rw11::asmtreg $cpu [list r0 011 \
-                         r1 $sym(data1) \
-                         r2 [expr {$sym(data2)  + 4}] \
-                         r3 [expr {$sym(pdata3) + 4}] \
-                         r4 [expr {$sym(data4e) - 4}] \
-                         r5 [expr {$sym(pdat5e) - 4}] ]
+rw11::asmtreg $cpu     r0 011 \
+                       r1 $sym(data1) \
+                       r2 [expr {$sym(data2)  + 4}] \
+                       r3 [expr {$sym(pdata3) + 4}] \
+                       r4 [expr {$sym(data4e) - 4}] \
+                       r5 [expr {$sym(pdat5e) - 4}]
 rw11::asmtmem $cpu $sym(data1) {021 031 032 041 042 051 052 061 062}
 
 # ----------------------------------------------------------------------------
@@ -91,13 +91,13 @@ pdata1: .word   data1
 pdata3: .word   data3
 }
 
-rw11::asmrun  $cpu sym [list r0 [expr {$sym(data0)-020}] \
-                             r1 [expr {$sym(pdata1)-040}]  ]
+rw11::asmrun  $cpu sym r0 [expr {$sym(data0)-020}] \
+                       r1 [expr {$sym(pdata1)-040}]
 rw11::asmwait $cpu sym 
-rw11::asmtreg $cpu [list r0 [expr {$sym(data0)-020}] \
-                         r1 [expr {$sym(pdata1)-040}] \
-                         r2 0 \
-                         r3 0 \
-                         r4 0 \
-                         r5 0 ]
+rw11::asmtreg $cpu     r0 [expr {$sym(data0)-020}] \
+                       r1 [expr {$sym(pdata1)-040}] \
+                       r2 0 \
+                       r3 0 \
+                       r4 0 \
+                       r5 0
 rw11::asmtmem $cpu $sym(data0) {0201 0211 0221 0231 0241}

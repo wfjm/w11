@@ -1,4 +1,4 @@
--- $Id: pdp11_sequencer.vhd 679 2015-05-13 17:38:46Z mueller $
+-- $Id: pdp11_sequencer.vhd 708 2015-08-03 06:41:43Z mueller $
 --
 -- Copyright 2006-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -22,6 +22,11 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-08-02   708   1.6.5  BUGFIX: proper trap_mmu and trap_ysv handling
+-- 2015-08-01   707   1.6.4  set dm_idone in s_(trap_10|op_trap); add dm_vfetch
+-- 2015-07-19   702   1.6.3  add DM_STAT_SE, drop SNUM port
+-- 2015-07-10   700   1.6.2  use c_cpurust_hbpt
+-- 2015-06-26   695   1.6.1  add SNUM (state number) port
 -- 2015-05-10   678   1.6    start/stop/suspend overhaul; reset overhaul
 -- 2015-02-07   643   1.5.2  s_op_wait: load R0 in DSRC for DR emulation
 -- 2014-07-12   569   1.5.1  rename s_opg_div_zero -> s_opg_div_quit;
@@ -97,10 +102,10 @@ entity pdp11_sequencer is               -- CPU sequencer
     ESUSP_O : out slbit;                -- external suspend output
     ESUSP_I : in slbit;                 -- external suspend input
     ITIMER : out slbit;                 -- instruction timer
-    EBREAK : in slbit;                  -- execution break
-    DBREAK : in slbit;                  -- data break
+    HBPT : in slbit;                    -- hardware bpt
     IB_MREQ : in ib_mreq_type;          -- ibus request
-    IB_SRES : out ib_sres_type          -- ibus response    
+    IB_SRES : out ib_sres_type;         -- ibus response    
+    DM_STAT_SE : out dm_stat_se_type    -- debug and monitor status - sequencer
   );
 end pdp11_sequencer;
 
@@ -317,7 +322,7 @@ begin
   proc_next: process (R_STATE, R_STATUS, PSW, PC, CP_CNTL,
                       ID_STAT, R_IDSTAT, IREG, VM_STAT, DP_STAT,
                       R_CPUERR, R_VMSTAT, IB_MREQ, IBSEL_CPUERR,
-                      INT_PRI, INT_VECT, ESUSP_I, EBREAK, DBREAK)
+                      INT_PRI, INT_VECT, ESUSP_I, HBPT)
     
     variable nstate : state_type;
     variable nstatus : cpustat_type := cpustat_init;
@@ -341,6 +346,9 @@ begin
     variable is_dstkstack1246 : slbit := '0'; -- dest is k-stack & mode= 1,2,4,6
 
     variable int_pending : slbit := '0';     -- an interrupt is pending
+
+    variable idm_idone   : slbit := '0';     -- idone  for dm_stat_se
+    variable idm_vfetch  : slbit := '0';     -- vfetch for dm_stat_se
     
     alias SRCMOD : slv2 is IREG(11 downto 10); -- src register mode high
     alias SRCDEF : slbit is IREG(9);           -- src register mode defered
@@ -424,9 +432,13 @@ begin
       mok := false;
       if VM_STAT.ack = '1' then
         mok := true;
-        nstatus.trap_mmu := VM_STAT.trap_mmu;
-        if R_CPUERR.ysv = '0' then      -- ysv trap when cpuerr not yet set
-          nstatus.trap_ysv := VM_STAT.trap_ysv;
+        if VM_STAT.trap_mmu = '1' then  -- remember trap_mmu, may happen on any
+          nstatus.trap_mmu := '1';      --   memory access of an instruction
+        end if;
+        if VM_STAT.trap_ysv = '1' then  -- remember trap_ysv (on any access)
+          if R_CPUERR.ysv = '0' then      -- ysv trap when cpuerr not yet set
+            nstatus.trap_ysv := '1';
+          end if;
         end if;
       elsif VM_STAT.err='1' or VM_STAT.fail='1' then
         nstate := s_vmerr;
@@ -583,6 +595,9 @@ begin
     if unsigned(INT_PRI) > unsigned(PSW.pri) then
       int_pending := '1';
     end if;
+
+    idm_idone  := '0';
+    idm_vfetch := '0';
     
     imemok := false;
 
@@ -1297,7 +1312,8 @@ begin
         nstate := s_dstw_def_w;
         do_memcheck(nstate, nstatus, imemok);
         if imemok then
-          do_fork_next(nstate, nstatus, nmmumoni);
+          idm_idone := '1';                        -- instruction done
+          do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
         end if;
 
       when s_dstw_inc =>
@@ -1337,7 +1353,8 @@ begin
         nstatus.do_gprwe := '0';
         do_memcheck(nstate, nstatus, imemok);
         if imemok then
-          do_fork_next(nstate, nstatus, nmmumoni);
+          idm_idone := '1';                        -- instruction done
+          do_fork_next(nstate, nstatus, nmmumoni); -- fetch next
         end if;
 
       when s_dstw_incdef_w =>
@@ -1510,6 +1527,7 @@ begin
   -- instruction operate states -----------------------------------------------
 
       when s_op_halt =>                 -- HALT
+        idm_idone := '1';               -- instruction done
         if is_kmode = '1' then          -- if in kernel mode execute
           nmmumoni.idone := '1';
           nstatus.cpugo := '0';
@@ -1540,6 +1558,7 @@ begin
        end if;
 
       when s_op_trap =>                 -- traps
+        idm_idone := '1';                      -- instruction done
         lvector := "0000" & R_IDSTAT.trap_vec; -- vector
         do_start_int(nstate, ndpcntl, lvector);
         
@@ -1568,12 +1587,14 @@ begin
         do_memcheck(nstate, nstatus, imemok);
         if imemok then          
           ndpcntl.gpr_we := '1';                  -- load R with (SP)+
-          do_fork_next(nstate, nstatus, nmmumoni);
+          idm_idone := '1';                       -- instruction done
+          do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
         end if;
         
       when s_op_spl =>                  -- SPL
         ndpcntl.dres_sel := c_dpath_res_ireg;    -- DRES = IREG
         ndpcntl.psr_func := c_psr_func_wspl;
+        idm_idone := '1';                        -- instruction done
         if is_kmode = '1' then                   -- active only in kernel mode
           ndpcntl.psr_we := '1';
           nstate := s_ifetch;                    -- unconditionally fetch next
@@ -1587,7 +1608,8 @@ begin
         ndpcntl.dres_sel := c_dpath_res_ireg;    -- DRES = IREG
         ndpcntl.psr_func := c_psr_func_wcc;
         ndpcntl.psr_we := '1';
-        do_fork_next(nstate, nstatus, nmmumoni);
+        idm_idone := '1';                        -- instruction done
+        do_fork_next(nstate, nstatus, nmmumoni); -- fetch next
         
       when s_op_br =>                   -- BR
         nvmcntl.dspace := '0';                   -- prepare do_fork_next_pref
@@ -1617,6 +1639,7 @@ begin
         end case;
 
         ndpcntl.gpr_adst := c_gpr_pc;
+        idm_idone := '1';               -- instruction done
         if brcond = brcode(0) then      -- this coding creates redundant code
           ndpcntl.gpr_we := '1';        --   but synthesis optimizes this way !
           do_fork_next(nstate, nstatus, nmmumoni);
@@ -1654,7 +1677,8 @@ begin
         do_memcheck(nstate, nstatus, imemok);
         if imemok then          
           ndpcntl.gpr_we := '1';                 -- load R5 with (sp)+
-          do_fork_next(nstate, nstatus, nmmumoni);
+          idm_idone := '1';                      -- instruction done
+          do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
         end if;
         
       when s_op_sob =>                  -- SOB (dec)
@@ -1665,11 +1689,12 @@ begin
         ndpcntl.gpr_adst := SRCREG;
         ndpcntl.gpr_we := '1';
 
-        if DP_STAT.ccout_z = '0' then   -- if z=0 branch, if z=1 fall thru
+        if DP_STAT.ccout_z = '0' then        -- if z=0 branch, if z=1 fall thru
           nstate := s_op_sob1;
         else
           --do_fork_next_pref(nstate, ndpcntl, nvmcntl, nmmumoni);
-          do_fork_next(nstate, nstatus, nmmumoni);
+          idm_idone := '1';                  -- instruction done
+          do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
         end if;
         
       when s_op_sob1 =>                 -- SOB (br) 
@@ -1679,7 +1704,8 @@ begin
         ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
         ndpcntl.gpr_adst := c_gpr_pc;
         ndpcntl.gpr_we := '1';
-        do_fork_next(nstate, nstatus, nmmumoni);
+        idm_idone := '1';                        -- instruction done
+        do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
 
       when s_opg_gen =>
         nvmcntl.dspace := '0';                   -- prepare do_fork_next_pref
@@ -1700,6 +1726,7 @@ begin
         if R_IDSTAT.is_rmwop = '1' then
           do_memwrite(nstate, nvmcntl, s_opg_gen_rmw_w, macc=>'1');
         else           
+          idm_idone := '1';                      -- instruction done
           if R_STATUS.prefdone = '1' then
             nstatus.prefdone :='0';
             nstate := s_ifetch_w;
@@ -1721,7 +1748,8 @@ begin
         nstate := s_opg_gen_rmw_w;
         do_memcheck(nstate, nstatus, imemok);
         if imemok then
-          do_fork_next(nstate, nstatus, nmmumoni);
+          idm_idone := '1';                      -- instruction done
+          do_fork_next(nstate, nstatus, nmmumoni); -- fetch next
         end if;
 
       when s_opg_mul =>                 -- MUL (oper)
@@ -1741,7 +1769,8 @@ begin
         ndpcntl.gpr_adst := SRCREG(2 downto 1) & "1";-- write odd reg !
         ndpcntl.gpr_we := '1';
         ndpcntl.psr_ccwe := '1';
-        do_fork_next(nstate, nstatus, nmmumoni);
+        idm_idone := '1';                        -- instruction done
+        do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
         
       when s_opg_div =>                 -- DIV (load dd_low)
         ndpcntl.munit_s_div := '1';
@@ -1795,12 +1824,14 @@ begin
         if DP_STAT.div_quit = '1' then
           nstate := s_opg_div_quit;
         else
-          do_fork_next(nstate, nstatus, nmmumoni);
+          idm_idone := '1';                       -- instruction done
+          do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
         end if;
         
       when s_opg_div_quit =>            -- DIV (0/ or /0 or V=1 aborts)
         ndpcntl.psr_ccwe := '1';
-        do_fork_next(nstate, nstatus, nmmumoni);
+        idm_idone := '1';               -- instruction done
+        do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
 
       when s_opg_ash =>                 -- ASH (load shc)
         ndpcntl.munit_s_ash := '1';
@@ -1822,6 +1853,7 @@ begin
           ndpcntl.dres_sel := c_dpath_res_ounit;  -- DRES = OUNIT
           ndpcntl.gpr_we := '1';
           ndpcntl.psr_ccwe := '1';
+          idm_idone := '1';                       -- instruction done
           do_fork_next_pref(nstate, nstatus, ndpcntl, nvmcntl, nmmumoni);
         end if;
           
@@ -1857,7 +1889,8 @@ begin
         ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
         ndpcntl.gpr_adst := SRCREG(2 downto 1) & "1";-- write odd reg !
         ndpcntl.gpr_we := '1';
-        do_fork_next(nstate, nstatus, nmmumoni);
+        idm_idone := '1';                        -- instruction done
+        do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
 
   -- dsta mode operations -----------------------------------------------------
 
@@ -1918,7 +1951,8 @@ begin
         ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
         ndpcntl.gpr_adst := c_gpr_pc;
         ndpcntl.gpr_we := '1';                     -- load PC with dsta
-        do_fork_next(nstate, nstatus, nmmumoni);
+        idm_idone := '1';                          -- instruction done
+        do_fork_next(nstate, nstatus, nmmumoni);   -- fetch next
 
       when s_opa_jmp =>
         ndpcntl.ounit_asel := c_ounit_asel_ddst;   -- OUNIT A=DDST
@@ -1929,7 +1963,8 @@ begin
           nstate := s_trap_10;                     -- trap 10 like 11/70
         else
           ndpcntl.gpr_we := '1';                   -- load PC with dsta
-          do_fork_next(nstate, nstatus, nmmumoni);
+          idm_idone := '1';                        -- instruction done
+          do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
         end if;
 
       when s_opa_mtp =>
@@ -1965,7 +2000,8 @@ begin
         ndpcntl.psr_ccwe := '1';                  -- set cc (from ounit too)
         ndpcntl.gpr_mode := PSW.pmode;            -- load reg in pmode
         ndpcntl.gpr_we := '1';
-        do_fork_next(nstate, nstatus, nmmumoni);
+        idm_idone := '1';                         -- instruction done
+        do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
 
       when s_opa_mtp_mem =>
         ndpcntl.ounit_asel := c_ounit_asel_dtmp;  -- OUNIT A = DTMP
@@ -1983,7 +2019,8 @@ begin
         nstate := s_opa_mtp_mem_w;
         do_memcheck(nstate, nstatus, imemok);
         if imemok then
-          do_fork_next(nstate, nstatus, nmmumoni);
+          idm_idone := '1';                       -- instruction done
+          do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
         end if;
 
       when s_opa_mfp_reg =>
@@ -2044,7 +2081,8 @@ begin
         nstate := s_opa_mfp_push_w;
         do_memcheck(nstate, nstatus, imemok);
         if imemok then
-          do_fork_next(nstate, nstatus, nmmumoni);
+          idm_idone := '1';                       -- instruction done
+          do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
         end if;
 
   -- trap and interrupt handling states ---------------------------------------
@@ -2054,6 +2092,7 @@ begin
         do_start_int(nstate, ndpcntl, lvector);
 
       when s_trap_10 =>
+        idm_idone := '1';               -- instruction done
         lvector := "0000010";           -- vector (10)
         do_start_int(nstate, ndpcntl, lvector);
 
@@ -2076,6 +2115,7 @@ begin
         do_start_int(nstate, ndpcntl, lvector);
 
       when s_int_getpc =>
+        idm_vfetch := '1';              -- signal vfetch
         nvmcntl.mode := c_psw_kmode;    -- fetch PC from kernel D space
         do_memread_srcinc(nstate, ndpcntl, nvmcntl, s_int_getpc_w, nmmumoni);
 
@@ -2223,8 +2263,9 @@ begin
         ndpcntl.dres_sel := c_dpath_res_ounit;    -- DRES = OUNIT
         ndpcntl.gpr_adst := c_gpr_pc;
         ndpcntl.gpr_we := '1';                    -- load new PC
+        idm_idone := '1';                         -- instruction done
         if R_IDSTAT.op_rtt = '1' then             -- if RTT instruction
-          nstate := s_ifetch;                       --   force fetch
+          nstate := s_ifetch;                       -- force fetch
         else                                      -- otherwise RTI
           do_fork_next(nstate, nstatus, nmmumoni);
         end if;
@@ -2295,7 +2336,8 @@ begin
 
     end case;
 
-    if DBREAK = '1' then                -- handle BREAK
+    if HBPT = '1' then                  -- handle hardware bpt
+      nstatus.cpurust := c_cpurust_hbpt;
       nstatus.suspint :='1';
     end if;
     nstatus.suspext := ESUSP_I;
@@ -2330,7 +2372,11 @@ begin
     nmmumoni.regnum := ndpcntl.gpr_adst;
     nmmumoni.delta  := ndpcntl.ounit_const(3 downto 0);
     MMU_MONI <= nmmumoni;
-    
+
+    DM_STAT_SE.istart <= nmmumoni.istart;
+    DM_STAT_SE.idone  <= idm_idone;
+    DM_STAT_SE.vfetch <= idm_vfetch;
+      
   end process proc_next;
 
   proc_cpstat : process (R_STATUS)
@@ -2348,6 +2394,144 @@ begin
     CP_STAT.suspint <= R_STATUS.suspint;
     CP_STAT.suspext <= R_STATUS.suspext;
   end process proc_cpstat;
-  
+
+  proc_snum : process (R_STATE)
+    variable isnum : slv8 := (others=>'0');
+  begin
+    isnum := (others=>'0');
+    case R_STATE is
+      -- STATE2SNUM mapper begin
+      when s_idle           => isnum := x"00";
+      when s_cp_regread     => isnum := x"01";
+      when s_cp_rps         => isnum := x"02";
+      when s_cp_memr_w      => isnum := x"03";
+      when s_cp_memw_w      => isnum := x"04";
+      when s_ifetch         => isnum := x"05";
+      when s_ifetch_w       => isnum := x"06";
+      when s_idecode        => isnum := x"07";
+      
+      when s_srcr_def       => isnum := x"08";
+      when s_srcr_def_w     => isnum := x"09";
+      when s_srcr_inc       => isnum := x"0a";
+      when s_srcr_inc_w     => isnum := x"0b";
+      when s_srcr_dec       => isnum := x"0c";
+      when s_srcr_dec1      => isnum := x"0d";
+      when s_srcr_ind       => isnum := x"0e";
+      when s_srcr_ind1_w    => isnum := x"0f";
+      when s_srcr_ind2      => isnum := x"10";
+      when s_srcr_ind2_w    => isnum := x"11";
+
+      when s_dstr_def       => isnum := x"12";
+      when s_dstr_def_w     => isnum := x"13";
+      when s_dstr_inc       => isnum := x"14";
+      when s_dstr_inc_w     => isnum := x"15";
+      when s_dstr_dec       => isnum := x"16";
+      when s_dstr_dec1      => isnum := x"17";
+      when s_dstr_ind       => isnum := x"18";
+      when s_dstr_ind1_w    => isnum := x"19";
+      when s_dstr_ind2      => isnum := x"1a";
+      when s_dstr_ind2_w    => isnum := x"1b";
+
+      when s_dstw_def       => isnum := x"1c";
+      when s_dstw_def_w     => isnum := x"1d";
+      when s_dstw_inc       => isnum := x"1e";
+      when s_dstw_inc_w     => isnum := x"1f";
+      when s_dstw_incdef_w  => isnum := x"20";
+      when s_dstw_dec       => isnum := x"21";
+      when s_dstw_dec1      => isnum := x"22";
+      when s_dstw_ind       => isnum := x"23";
+      when s_dstw_ind_w     => isnum := x"24";
+      when s_dstw_def246    => isnum := x"25";
+
+      when s_dsta_inc       => isnum := x"26";
+      when s_dsta_incdef_w  => isnum := x"27";
+      when s_dsta_dec       => isnum := x"28";
+      when s_dsta_dec1      => isnum := x"29";
+      when s_dsta_ind       => isnum := x"2a";
+      when s_dsta_ind_w     => isnum := x"2b";
+
+      when s_op_halt        => isnum := x"2c";
+      when s_op_wait        => isnum := x"2d";
+      when s_op_trap        => isnum := x"2e";
+      when s_op_reset       => isnum := x"2f";
+      when s_op_rts         => isnum := x"30";
+      when s_op_rts_pop     => isnum := x"31";
+      when s_op_rts_pop_w   => isnum := x"32";
+      when s_op_spl         => isnum := x"33";
+      when s_op_mcc         => isnum := x"34";
+      when s_op_br          => isnum := x"35";
+      when s_op_mark        => isnum := x"36";
+      when s_op_mark1       => isnum := x"37";
+      when s_op_mark_pop    => isnum := x"38";
+      when s_op_mark_pop_w  => isnum := x"39";
+      when s_op_sob         => isnum := x"3a";
+      when s_op_sob1        => isnum := x"3b";
+
+      when s_opg_gen        => isnum := x"3c";
+      when s_opg_gen_rmw_w  => isnum := x"3d";
+      when s_opg_mul        => isnum := x"3e";
+      when s_opg_mul1       => isnum := x"3f";
+      when s_opg_div        => isnum := x"40";
+      when s_opg_div_cn     => isnum := x"41";
+      when s_opg_div_cr     => isnum := x"42";
+      when s_opg_div_sq     => isnum := x"43";
+      when s_opg_div_sr     => isnum := x"44";
+      when s_opg_div_quit   => isnum := x"45";
+      when s_opg_ash        => isnum := x"46";
+      when s_opg_ash_cn     => isnum := x"47";
+      when s_opg_ashc       => isnum := x"48";
+      when s_opg_ashc_cn    => isnum := x"49";
+      when s_opg_ashc_wl    => isnum := x"4a";
+
+      when s_opa_jsr        => isnum := x"4b";
+      when s_opa_jsr1       => isnum := x"4c";
+      when s_opa_jsr_push   => isnum := x"4d";
+      when s_opa_jsr_push_w => isnum := x"4e";
+      when s_opa_jsr2       => isnum := x"4f";
+      when s_opa_jmp        => isnum := x"50";
+      when s_opa_mtp        => isnum := x"51";
+      when s_opa_mtp_pop_w  => isnum := x"52";
+      when s_opa_mtp_reg    => isnum := x"53";
+      when s_opa_mtp_mem    => isnum := x"54";
+      when s_opa_mtp_mem_w  => isnum := x"55";
+      when s_opa_mfp_reg    => isnum := x"56";
+      when s_opa_mfp_mem    => isnum := x"57";
+      when s_opa_mfp_mem_w  => isnum := x"58";
+      when s_opa_mfp_dec    => isnum := x"59";
+      when s_opa_mfp_push   => isnum := x"5a";
+      when s_opa_mfp_push_w => isnum := x"5b";
+    
+      when s_trap_4         => isnum := x"5c";
+      when s_trap_10        => isnum := x"5d";
+      when s_trap_disp      => isnum := x"5e";
+
+      when s_int_ext        => isnum := x"5f";
+
+      when s_int_getpc      => isnum := x"60";
+      when s_int_getpc_w    => isnum := x"61";
+      when s_int_getps      => isnum := x"62";
+      when s_int_getps_w    => isnum := x"63";
+      when s_int_getsp      => isnum := x"64";
+      when s_int_decsp      => isnum := x"65";
+      when s_int_pushps     => isnum := x"66";
+      when s_int_pushps_w   => isnum := x"67";
+      when s_int_pushpc     => isnum := x"68";
+      when s_int_pushpc_w   => isnum := x"69";
+
+      when s_rti_getpc      => isnum := x"6a";
+      when s_rti_getpc_w    => isnum := x"6b";
+      when s_rti_getps      => isnum := x"6c";
+      when s_rti_getps_w    => isnum := x"6d";
+      when s_rti_newpc      => isnum := x"6e";
+    
+      when s_vmerr          => isnum := x"6f";
+      when s_cpufail        => isnum := x"70";
+
+      -- STATE2SNUM mapper end
+      when others           => isnum := x"ff";
+    end case;
+    DM_STAT_SE.snum   <= isnum;
+  end process proc_snum;
+
 end syn;
  

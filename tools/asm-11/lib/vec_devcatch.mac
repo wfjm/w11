@@ -1,0 +1,82 @@
+; $Id: vec_devcatch.mac 710 2015-08-31 06:19:56Z mueller $
+; Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
+;
+; vector catcher for device interrupts (subset used by w11)
+; 
+;   w11 device summary from ibdr_maxisys.vhd:
+;
+;   ibbase  vec  pri  slot attn  sror device name
+;   177560  060    4  7  7    1  3/2  DL11-RX  1st
+;           064    4  6  6    ^       DL11-TX  1st
+;   177550  070    4  3  3   10  4/1  PC11/PTR
+;           074    4  2  2    ^       PC11/PTP
+;   177546  100    6 14 15    -  1/3  KW11-L
+;   172540  104    7    17    -  1/1  KW11-P
+;   174510  120    5    14    9  1/4  DEUNA
+;   174400  160    5 12 12    5  2/2  RL11
+;   177514  200    4  1  1    8  4/2  LP11
+;   177400  220    5 11 11    4  2/3  RK11
+;   172520  224    5 10 10    7  2/4  TM11
+;   176700  254    5 13 13    6  2/1  RHRP
+;   177500  260    6 15 16    -  1/2  IIST
+;   176500  300    4  5  5    2  3/3  DL11-RX  2nd
+;           304    4  4  4    ^       DL11-TX  2nd
+;   160100  310?   5  9  9    3  3/1  DZ11-RX
+;           314?   5  8  8    ^       DZ11-TX
+;
+        . = 000060
+v..dlr: .word   v..dlr+2        ; vec  60 (DL11-RX  1st)
+        .word   0
+v..dlt: .word   v..dlt+2        ; vec  64 (DL11-TX  1st)
+        .word   0
+;
+v..ptr: .word   v..ptr+2        ; vec  70 (PC11/PTR)
+        .word   0
+v..ptp: .word   v..ptp+2        ; vec  74 (PC11/PTP)
+        .word   0
+;
+        . = 000100
+v..kwl: .word   v..kwl+2        ; vec 100 (KW11-L)
+        .word   0
+v..kwp: .word   v..kwp+2        ; vec 104 (KW11-P)
+        .word   0
+;
+        . = 000120
+v..deu: .word   v..deu+2        ; vec 120 (DEUNA)
+        .word   0
+;
+        . = 000160
+v..rl:  .word   v..rl+2         ; vec 120 (RL11)
+        .word   0
+;
+; Note on vector 200
+;   MAINDECs use 200 also as default start address. This vector catcher
+;   might therefore be overwritten later by startup code of test programs.
+;
+        . = 000200
+v..lp:  .word   v..lp+2         ; vec 200 (LP11)
+        .word   0
+;
+        . = 000220
+v..rk:  .word   v..rk+2         ; vec 220 (RK11)
+        .word   0
+v..tm:  .word   v..tm+2         ; vec 224 (TM11)
+        .word   0
+;
+        . = 000254
+v..rp:  .word   v..rp+2         ; vec 254 (RHRP)
+        .word   0
+v..iis: .word   v..iis+2        ; vec 250 (IIST)
+        .word   0
+;
+        . = 000300
+v..d2r: .word   v..d2r+2        ; vec 300 (DL11-RX  2nd)
+        .word   0
+v..d2t: .word   v..d2t+2        ; vec 304 (DL11-TX  2nd)
+        .word   0
+v..dzr: .word   v..dzr+2        ; vec 310 (DZ11-RX)
+        .word   0
+v..dzt: .word   v..dzt+2        ; vec 314 (DZ11-TX)
+        .word   0
+;

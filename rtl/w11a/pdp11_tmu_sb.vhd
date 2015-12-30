@@ -1,6 +1,6 @@
--- $Id: pdp11_tmu_sb.vhd 677 2015-05-09 21:52:32Z mueller $
+-- $Id: pdp11_tmu_sb.vhd 712 2015-11-01 22:53:45Z mueller $
 --
--- Copyright 2009- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2009-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,6 +20,7 @@
 -- Tool versions:  xst 8.1-14.7; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-11-01   712   1.0.1  use sbcntl_sbf_tmu
 -- 2009-05-10   214   1.0    Initial version 
 ------------------------------------------------------------------------------
 
@@ -33,7 +34,7 @@ use work.pdp11.all;
 
 entity pdp11_tmu_sb is                  -- trace and mon. unit; simbus wrapper
   generic (
-    ENAPIN : integer := 13);            -- SB_CNTL signal to use for enable
+    ENAPIN : integer := sbcntl_sbf_tmu); -- SB_CNTL for tmu
   port (
     CLK : in slbit;                     -- clock
     DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - dpath

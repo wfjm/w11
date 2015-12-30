@@ -1,4 +1,4 @@
-# $Id: test_w11a_div.tcl 683 2015-05-17 21:54:35Z mueller $
+# $Id: test_w11a_div.tcl 704 2015-07-25 14:18:03Z mueller $
 #
 # Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
@@ -92,7 +92,7 @@ namespace eval rw11 {
                    $ddh $ddl $dr16 $n $z $v $c $q16 $r16 $ddi $dri $qi $ri ]
     }
 
-    rw11::asmrun  $cpu sym [list r0 $ddh r1 $ddl r2 $dr16]
+    rw11::asmrun  $cpu sym r0 $ddh r1 $ddl r2 $dr16
     rw11::asmwait $cpu sym 
 
     if {!$v && !$c} {           # test q and r only when V=0 C=0 expected
@@ -100,7 +100,7 @@ namespace eval rw11 {
     }
     lappend treglist r3 $nzvc
 
-    set errcnt [rw11::asmtreg $cpu $treglist]
+    set errcnt [rw11::asmtreg $cpu {*}$treglist]
 
     if {$errcnt} {
       puts [format \

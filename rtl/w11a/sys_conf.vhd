@@ -1,4 +1,4 @@
--- $Id: sys_conf.vhd 672 2015-05-02 21:58:28Z mueller $
+-- $Id: sys_conf.vhd 695 2015-06-28 11:22:52Z mueller $
 --
 -- Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  xst 8.1-14.7; viv 2014.4; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-06-26   695   1.1.1  add sys_conf_dmscnt
 -- 2015-05-01   672   1.1    adopt to pdp11_sys70
 -- 2008-02-23   118   1.0    Initial version 
 ------------------------------------------------------------------------------
@@ -36,6 +37,7 @@ package sys_conf is
   constant sys_conf_mem_losize     : integer := 8#000777#;-- 32 kByte
 
   constant sys_conf_ibmon_awidth : integer := 9; -- use 0 to disable ibmon
+  constant sys_conf_dmscnt       : boolean := true;
 
 end package sys_conf;
 

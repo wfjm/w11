@@ -1,4 +1,4 @@
--- $Id: pdp11.vhd 677 2015-05-09 21:52:32Z mueller $
+-- $Id: pdp11.vhd 712 2015-11-01 22:53:45Z mueller $
 --
 -- Copyright 2006-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,6 +20,11 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-11-01   712   1.6.5  define sbcntl_sbf_tmu := 12; use for pdp11_tmu_sb
+-- 2015-07-19   702   1.6.4  change DM_STAT_(DP|CO); add DM_STAT_SE
+-- 2015-07-10   700   1.6.3  define c_cpurust_hbpt;
+-- 2015-07-04   697   1.6.2  add pdp11_dm(hbpt|cmon); change DM_STAT_(SY|VM|CO)
+-- 2015-06-26   695   1.6.1  add pdp11_dmscnt (add support)
 -- 2015-05-09   677   1.6    start/stop/suspend overhaul; reset overhaul
 -- 2015-05-01   672   1.5.5  add pdp11_sys70, sys_hio70
 -- 2015-04-30   670   1.5.4  rename pdp11_sys70 -> pdp11_reg70
@@ -333,6 +338,7 @@ package pdp11 is
   constant c_cpurust_stop   : slv4 := "0011";  -- cpu was stopped
   constant c_cpurust_step   : slv4 := "0100";  -- cpu was stepped
   constant c_cpurust_susp   : slv4 := "0101";  -- cpu was suspended
+  constant c_cpurust_hbpt   : slv4 := "0110";  -- cpu had hardware bpt
   constant c_cpurust_runs   : slv4 := "0111";  -- cpu running
   constant c_cpurust_vecfet : slv4 := "1000";  -- vector fetch error halt
   constant c_cpurust_recrsv : slv4 := "1001";  -- recursive red-stack halt
@@ -595,22 +601,32 @@ package pdp11 is
 
 -- debug and monitoring port definitions -------------------------------------
 
-  type dm_cntl_type is record           -- debug and monitor control
-    dum1 : slbit;                       -- dummy 1
-    dum2 : slbit;                       -- dummy 2
-  end record dm_cntl_type;
+  type dm_stat_se_type is record        -- debug and monitor status - sequencer
+    istart : slbit;                     -- instruction start
+    idone  : slbit;                     -- instruction done
+    vfetch : slbit;                     -- vector fetch
+    snum : slv8;                        -- current state number
+  end record dm_stat_se_type;
 
-  constant dm_cntl_init : dm_cntl_type := (others=>'0');
-
+  constant dm_stat_se_init : dm_stat_se_type := (
+    '0','0','0',                        -- istart,idone,vfetch
+    (others=>'0')                       -- snum
+  );
+  
   type dm_stat_dp_type is record        -- debug and monitor status - dpath
     pc : slv16;                         -- pc
     psw : psw_type;                     -- psw
+    psr_we: slbit;                      -- psr_we
     ireg : slv16;                       -- ireg
     ireg_we : slbit;                    -- ireg we
     dsrc : slv16;                       -- dsrc register
+    dsrc_we: slbit;                     -- dsrc we
     ddst : slv16;                       -- ddst register
+    ddst_we : slbit;                    -- ddst we
     dtmp : slv16;                       -- dtmp register
+    dtmp_we : slbit;                    -- dtmp we
     dres : slv16;                       -- dres bus
+    cpdout_we : slbit;                  -- cpdout we
     gpr_adst : slv3;                    -- gpr dst regsiter
     gpr_mode : slv2;                    -- gpr mode
     gpr_bytop : slbit;                  -- gpr bytop
@@ -619,43 +635,62 @@ package pdp11 is
 
   constant dm_stat_dp_init : dm_stat_dp_type := (
     (others=>'0'),                      -- pc
-    psw_init,                           -- psw
-    (others=>'0'),'0',                  -- ireg, ireg_we
-    (others=>'0'),(others=>'0'),        -- dsrc, ddst
-    (others=>'0'),(others=>'0'),        -- dtmp, dres
+    psw_init,'0',                       -- psw,psr_we
+    (others=>'0'),'0',                  -- ireg,ireg_we
+    (others=>'0'),'0',                  -- dsrc,dsrc_we
+    (others=>'0'),'0',                  -- ddst,ddst_we
+    (others=>'0'),'0',                  -- dtmp,dtmp_we
+    (others=>'0'),                      -- dres
+    '0',                                -- cpdout_we
     (others=>'0'),(others=>'0'),        -- gpr_adst, gpr_mode
     '0','0'                             -- gpr_bytop, gpr_we
   );
 
   type dm_stat_vm_type is record        -- debug and monitor status - vmbox
-    ibmreq : ib_mreq_type;              -- ibus master request
-    ibsres : ib_sres_type;              -- ibus slave response
+    vmcntl : vm_cntl_type;              -- vmbox: control
+    vmaddr : slv16;                     -- vmbox: address
+    vmdin  : slv16;                     -- vmbox: data in
+    vmstat : vm_stat_type;              -- vmbox: status
+    vmdout : slv16;                     -- vmbox: data out
+    ibmreq : ib_mreq_type;              -- ibus: request
+    ibsres : ib_sres_type;              -- ibus: response
+    emmreq : em_mreq_type;              -- external memory: request
+    emsres : em_sres_type;              -- external memory: response
   end record dm_stat_vm_type;
 
-  constant dm_stat_vm_init : dm_stat_vm_type := (ib_mreq_init,ib_sres_init);
+  constant dm_stat_vm_init : dm_stat_vm_type := (
+    vm_cntl_init,                       -- vmcntl
+    (others=>'0'),                      -- vmaddr
+    (others=>'0'),                      -- vmdin
+    vm_stat_init,                       -- vmstat
+    (others=>'0'),                      -- vmdout
+    ib_mreq_init,                       -- ibmreq
+    ib_sres_init,                       -- ibsres
+    em_mreq_init,                       -- emmreq
+    em_sres_init                        -- emsres
+    );
 
   type dm_stat_co_type is record        -- debug and monitor status - core
     cpugo : slbit;                      -- cpugo state flag
+    cpustep : slbit;                    -- cpustep state flag
     cpususp : slbit;                    -- cpususp state flag
     suspint : slbit;                    -- suspint state flag
     suspext : slbit;                    -- suspext state flag
   end record dm_stat_co_type;
 
   constant dm_stat_co_init : dm_stat_co_type := (
-    '0','0',                            -- cpu...
+    '0','0','0',                        -- cpu...
     '0','0'                             -- susp...
   );
 
   type dm_stat_sy_type is record        -- debug and monitor status - system
-    emmreq : em_mreq_type;              -- external memory: request
-    emsres : em_sres_type;              -- external memory: response
     chit : slbit;                       -- cache hit
+    dummy : slbit;                      -- ... sorry records must have two ...
   end record dm_stat_sy_type;
 
   constant dm_stat_sy_init : dm_stat_sy_type := (
-    em_mreq_init,                       -- emmreq
-    em_sres_init,                       -- emsres
-    '0'                                 -- chit
+    '0',                                -- chit
+    '0'
   );
 
 -- rbus interface definitions ------------------------------------------------
@@ -966,10 +1001,10 @@ component pdp11_sequencer is            -- cpu sequencer
     ESUSP_O : out slbit;                -- external suspend output
     ESUSP_I : in slbit;                 -- external suspend input
     ITIMER : out slbit;                 -- instruction timer
-    EBREAK : in slbit;                  -- execution break
-    DBREAK : in slbit;                  -- data break
+    HBPT : in slbit;                    -- hardware bpt
     IB_MREQ : in ib_mreq_type;          -- ibus request
-    IB_SRES : out ib_sres_type          -- ibus response    
+    IB_SRES : out ib_sres_type;         -- ibus response    
+    DM_STAT_SE : out dm_stat_se_type    -- debug and monitor status - sequencer
   );
 end component;
 
@@ -1051,8 +1086,7 @@ component pdp11_core is                 -- full processor core
     ESUSP_O : out slbit;                -- external suspend output
     ESUSP_I : in slbit;                 -- external suspend input
     ITIMER : out slbit;                 -- instruction timer
-    EBREAK : in slbit;                  -- execution break
-    DBREAK : in slbit;                  -- data break
+    HBPT : in slbit;                    -- hardware bpt
     EI_PRI : in slv3;                   -- external interrupt priority
     EI_VECT : in slv9_2;                -- external interrupt vector
     EI_ACKM : out slbit;                -- external interrupt acknowledge
@@ -1062,6 +1096,7 @@ component pdp11_core is                 -- full processor core
     BRESET : out slbit;                 -- bus reset
     IB_MREQ_M : out ib_mreq_type;       -- ibus master request (master)
     IB_SRES_M : in ib_sres_type;        -- ibus slave response (master)
+    DM_STAT_SE : out dm_stat_se_type;   -- debug and monitor status - sequencer
     DM_STAT_DP : out dm_stat_dp_type;   -- debug and monitor status - dpath
     DM_STAT_VM : out dm_stat_vm_type;   -- debug and monitor status - vmbox
     DM_STAT_CO : out dm_stat_co_type    -- debug and monitor status - core
@@ -1079,9 +1114,13 @@ component pdp11_tmu is                  -- trace and monitor unit
   );
 end component;
 
+-- this definition logically belongs into a 'for test benches' section'
+-- it is here for convenience to simplify instantiations.
+constant sbcntl_sbf_tmu  : integer := 12;
+
 component pdp11_tmu_sb is               -- trace and mon. unit; simbus wrapper
   generic (
-    ENAPIN : integer := 13);            -- SB_CNTL signal to use for enable
+    ENAPIN : integer := sbcntl_sbf_tmu); -- SB_CNTL for tmu
    port (
     CLK : in slbit;                     -- clock
     DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - dpath
@@ -1240,6 +1279,70 @@ component pdp11_hio70 is                -- hio led and dsp for sys70
     DISPREG : in slv16;                 -- display register
     LED : out slv(LWIDTH-1 downto 0);   -- hio leds
     DSP_DAT : out slv(4*(2**DCWIDTH)-1 downto 0)  -- display data
+  );
+end component;
+
+component pdp11_dmscnt is               -- debug&moni: state counter
+  generic (
+    RB_ADDR : slv16 := slv(to_unsigned(16#0040#,16)));
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit;                   -- reset
+    RB_MREQ : in rb_mreq_type;          -- rbus: request
+    RB_SRES : out rb_sres_type;         -- rbus: response
+    DM_STAT_SE : in dm_stat_se_type;    -- debug and monitor status - sequencer
+    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - data path
+    DM_STAT_CO : in dm_stat_co_type     -- debug and monitor status - core
+  );
+end component;
+
+component pdp11_dmcmon is               -- debug&moni: cpu monitor
+  generic (
+    RB_ADDR : slv16 := slv(to_unsigned(16#0048#,16));
+    AWIDTH : natural := 8);
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit;                   -- reset
+    RB_MREQ : in rb_mreq_type;          -- rbus: request
+    RB_SRES : out rb_sres_type;         -- rbus: response
+    DM_STAT_SE : in dm_stat_se_type;    -- debug and monitor status - sequencer
+    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - data path
+    DM_STAT_VM : in dm_stat_vm_type;    -- debug and monitor status - vmbox
+    DM_STAT_CO : in dm_stat_co_type     -- debug and monitor status - core
+  );
+end component;
+
+component pdp11_dmhbpt is               -- debug&moni: hardware breakpoint
+  generic (
+    RB_ADDR : slv16 := slv(to_unsigned(16#0050#,16));
+    NUNIT : natural := 2);
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit;                   -- reset
+    RB_MREQ : in rb_mreq_type;          -- rbus: request
+    RB_SRES : out rb_sres_type;         -- rbus: response
+    DM_STAT_SE : in dm_stat_se_type;    -- debug and monitor status - sequencer
+    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - data path
+    DM_STAT_VM : in dm_stat_vm_type;    -- debug and monitor status - vmbox
+    DM_STAT_CO : in dm_stat_co_type;    -- debug and monitor status - core
+    HBPT : out slbit                    -- hw break flag
+  );
+end component;
+
+component pdp11_dmhbpt_unit is          -- dmhbpt - indivitial unit
+  generic (
+    RB_ADDR : slv16 := slv(to_unsigned(16#0050#,16));
+    INDEX : natural := 0);
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit;                   -- reset
+    RB_MREQ : in rb_mreq_type;          -- rbus: request
+    RB_SRES : out rb_sres_type;         -- rbus: response
+    DM_STAT_SE : in dm_stat_se_type;    -- debug and monitor status - sequencer
+    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - data path
+    DM_STAT_VM : in dm_stat_vm_type;    -- debug and monitor status - vmbox
+    DM_STAT_CO : in dm_stat_co_type;    -- debug and monitor status - core
+    HBPT : out slbit                    -- hw break flag
   );
 end component;
 

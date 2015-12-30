@@ -1,6 +1,6 @@
--- $Id: tbcore_rlink.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: tbcore_rlink.vhd 712 2015-11-01 22:53:45Z mueller $
 --
--- Copyright 2010-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -23,6 +23,7 @@
 -- Tool versions:  xst 11.4-14.7; ghdl 0.26-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-11-01   712   3.1.3  proc_stim: drive SB_CNTL from start to avoid 'U'
 -- 2013-01-04   469   3.1.2  use 1ns wait for .sinit to allow simbus debugging
 -- 2011-12-25   445   3.1.1  add SB_ init drivers to avoid SB_VAL='U' at start
 -- 2011-12-23   444   3.1    redo clock handling, remove simclk, CLK now input
@@ -176,7 +177,8 @@ begin
     SB_VAL  <= 'Z';
     SB_ADDR <= (others=>'Z');
     SB_DATA <= (others=>'Z');
-
+    SB_CNTL <= (others=>'Z');
+    
     -- wait for 10 clock cycles (design run up)
     for i in 0 to 9 loop
       wait until rising_edge(CLK);

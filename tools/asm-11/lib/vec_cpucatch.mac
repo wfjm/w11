@@ -1,8 +1,8 @@
-; $Id: vec_cpucatch.mac 503 2013-04-06 19:44:13Z mueller $
+; $Id: vec_cpucatch.mac 710 2015-08-31 06:19:56Z mueller $
 ; Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ; License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 ;
-; vector catcher for the basic cpu interrupts
+; vector catcher for basic cpu interrupts
 ; 
         . = 000004
 v..iit: .word   v..iit+2        ; vec   4 

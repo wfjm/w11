@@ -1,4 +1,4 @@
-# $Id: util.tcl 683 2015-05-17 21:54:35Z mueller $
+# $Id: util.tcl 722 2015-12-30 19:45:46Z mueller $
 #
 # Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,8 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-12-30   721   1.3.6  BUGFIX: setup_ostr: adopt to use args2opts
+# 2015-07-25   704   1.3.5  use args2opts
 # 2015-05-17   683   1.3.4  setup_sys: add TM11
 # 2015-05-15   682   1.3.3  BUGFIX: setup_cpu: fix cpu reset (now -stop -creset)
 # 2015-05-08   675   1.3.2  w11a start/stop/suspend overhaul
@@ -80,10 +82,9 @@ namespace eval rw11 {
   #
   # setup_tt: setup terminals ------------------------------------------------
   # 
-  proc setup_tt {{cpu "cpu0"} {optlist {}}} {
+  proc setup_tt {{cpu "cpu0"} args} {
     # process and check options
-    array set optref { ndl 2 dlrlim 0 ndz 0 to7bit 0 app 0 nbck 1}
-    rutil::optlist2arr opt optref $optlist
+    args2opts opt {ndl 2 dlrlim 0 ndz 0 to7bit 0 app 0 nbck 1} {*}$args
 
     # check option values
     if {$opt(ndl) < 1 || $opt(ndl) > 2} {
@@ -127,10 +128,9 @@ namespace eval rw11 {
   #
   # setup_ostr: setup Ostream device (currently lp or pp) --------------------
   # 
-  proc setup_ostr {cpu unit optlist} {
+  proc setup_ostr {cpu unit args} {
     # process and check options
-    array set optref { app 0 nbck 1}
-    rutil::optlist2arr opt optref $optlist
+    args2opts opt {app 0 nbck 1} {*}$args
 
     # setup attach url options
     set urloptlist {}
@@ -154,23 +154,21 @@ namespace eval rw11 {
   #
   # setup_lp: setup printer --------------------------------------------------
   # 
-  proc setup_lp {{cpu "cpu0"} {optlist {}}} {
+  proc setup_lp {{cpu "cpu0"} args} {
     # process and check options
-    array set optref { nlp 1 app 0 nbck 1}
-    rutil::optlist2arr opt optref $optlist
+    args2opts opt {nlp 1 app 0 nbck 1} {*}$args
     if {$opt(nlp) != 0} {
-      setup_ostr $cpu "lpa0" [list app $opt(app) nbck $opt(nbck)]
+      setup_ostr $cpu "lpa0" app $opt(app) nbck $opt(nbck)
     }
   }
   #
   # setup_pp: setup paper puncher --------------------------------------------
   # 
-  proc setup_pp {{cpu "cpu0"} {optlist {}}} {
+  proc setup_pp {{cpu "cpu0"} args} {
     # process and check options
-    array set optref { npc 1 app 0 nbck 1}
-    rutil::optlist2arr opt optref $optlist
+    args2opts opt {npc 1 app 0 nbck 1} {*}$args
     if {$opt(npc) != 0} {
-      setup_ostr $cpu "pp" [list app $opt(app) nbck $opt(nbck)]
+      setup_ostr $cpu "pp" app $opt(app) nbck $opt(nbck)
     }
   }
 
@@ -207,4 +205,18 @@ namespace eval rw11 {
     return ""
   }
 
+  #
+  # ps2txt: convert ps to text -----------------------------------------------
+  #
+  proc ps2txt {ps} {
+    reggetkv rw11::PSW  $ps "ps_" cmode pmode rset pri tflag n z v c
+    set p_cmode [lindex {k s ? u} $ps_cmode]
+    set p_pmode [lindex {k s ? u} $ps_pmode]    
+    set p_tflag [expr {$ps_tflag ? "t" : "-"}]
+    set p_cc    [expr {$ps_n ? "n" : "."}]
+    append p_cc [expr {$ps_z ? "z" : "."}]
+    append p_cc [expr {$ps_v ? "v" : "."}]
+    append p_cc [expr {$ps_c ? "c" : "."}]
+    return "${p_cmode}${p_pmode}${ps_rset}${ps_pri}${p_tflag}${p_cc}"
+  }
 }

@@ -1,4 +1,4 @@
-# $Id: test_rhrp_basics.tcl 683 2015-05-17 21:54:35Z mueller $
+# $Id: test_rhrp_basics.tcl 705 2015-07-26 21:25:42Z mueller $
 #
 # Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
@@ -101,12 +101,12 @@ rlc log "    A4.2: readback dt rem and loc; check cs2.ned -------"
 set dsmsk  [regbld ibd_rhrp::DS  dpr]
 set cs2msk [regbld ibd_rhrp::CS2 ned {unit 3}]
 foreach {unit dpr dte dt} $tbl {
-  set dsval  [regbld ibd_rhrp::DS [list dpr $dpr]]
-  set cs2val [regbld ibd_rhrp::CS2 [list ned [expr {1-$dpr}]] [list unit $unit]]
+  set dsval  [regbldkv ibd_rhrp::DS dpr $dpr]
+  set cs2val [regbldkv ibd_rhrp::CS2  ned [expr {1-$dpr}]  unit $unit]
   $cpu cp -wibr rpa.cs1 [ibd_rhrp::rcs1_wunit $unit] \
           -ribr rpa.ds  -edata $dsval $dsmsk \
           -ribr rpa.dt  -edata $dte \
-          -wma  rpa.cs2 [regbld ibd_rhrp::CS2 [list unit $unit]] \
+          -wma  rpa.cs2 [regbldkv ibd_rhrp::CS2 unit $unit] \
           -wma  rpa.cs1 [regbld ibd_rhrp::CS1 tre] \
           -rma  rpa.dt  -edata $dt \
           -rma  rpa.cs2 -edata $cs2val $cs2msk
@@ -191,8 +191,8 @@ rlc log "    A7.1: loc read dt for unit 3-7 ; check cs2.unit+ned"
 
 set cs2msk [regbld ibd_rhrp::CS2 ned {unit -1}]
 foreach {unit} {4 5 6 7} {
-  set cs2val [regbld ibd_rhrp::CS2 ned [list unit $unit]] 
-  $cpu cp -wma  rpa.cs2 [regbld ibd_rhrp::CS2 [list unit $unit]] \
+  set cs2val [regbldkv ibd_rhrp::CS2  ned 1 unit $unit] 
+  $cpu cp -wma  rpa.cs2 [regbldkv ibd_rhrp::CS2 unit $unit] \
           -wma  rpa.cs1 [regbld ibd_rhrp::CS1 tre] \
           -rma  rpa.dt  -edata 0 \
           -rma  rpa.cs2 -edata $cs2val $cs2msk

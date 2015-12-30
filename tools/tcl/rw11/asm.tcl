@@ -1,6 +1,6 @@
-# $Id: asm.tcl 575 2014-07-27 20:55:41Z mueller $
+# $Id: asm.tcl 704 2015-07-25 14:18:03Z mueller $
 #
-# Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-07-25   704   1.0.4  asmrun,asmtreg,asmtmem: use args in proc definition
 # 2014-07-26   575   1.0.3  add asmwait_tout variable, use in asmwait
 # 2014-07-10   568   1.0.2  add errcnt return for asmtreg and asmtmem
 # 2014-03-01   552   1.0.1  BUGFIX: asmwait checks now pc if stop: defined
@@ -31,38 +32,37 @@ namespace eval rw11 {
   #
   # asmrun: run a program loaded with ldasm
   # 
-  proc asmrun {cpu symName opts} {
+  proc asmrun {cpu symName args} {
     upvar 1 $symName sym
-    array set defs {r0 0 r1 0 r2 0 r3 0 r4 0 r5 0}
-    array set defs $opts
+    array set opts {r0 0 r1 0 r2 0 r3 0 r4 0 r5 0}
+    array set opts $args
 
-    if {![info exists defs(pc)]} {
+    if {![info exists opts(pc)]} {
       if {[info exists sym(start)]} {
-        set defs(pc) $sym(start)
+        set opts(pc) $sym(start)
       } else {
         error "neither opts(pc) nor sym(start) given"
       }
     }
 
-    if {![info exists defs(sp)]} {
+    if {![info exists opts(sp)]} {
       if {[info exists sym(stack)]} {
-        set defs(sp) $sym(stack)
+        set opts(sp) $sym(stack)
       } elseif {[info exists sym(start)]} {
-        set defs(sp) $sym(start)
+        set opts(sp) $sym(start)
       } else {
         error "neither opts(sp) nor sym(stack) or sym(start) given"
       }
     }
 
-    $cpu cp -wr0 $defs(r0) \
-            -wr1 $defs(r1) \
-            -wr2 $defs(r2) \
-            -wr3 $defs(r3) \
-            -wr4 $defs(r4) \
-            -wr5 $defs(r5) 
-
-    $cpu cp -wsp $defs(sp) \
-            -stapc $defs(pc)
+    $cpu cp -wr0 $opts(r0) \
+            -wr1 $opts(r1) \
+            -wr2 $opts(r2) \
+            -wr3 $opts(r3) \
+            -wr4 $opts(r4) \
+            -wr5 $opts(r5) \
+            -wsp $opts(sp) \
+            -stapc $opts(pc)
 
     return ""
   }
@@ -86,27 +86,32 @@ namespace eval rw11 {
   #
   # asmtreg: test registers after running a program loaded with ldasm
   # 
-  proc asmtreg {cpu opts} {
-    array set defs $opts
-    set cpcmd ""
-    foreach key [lsort [array names defs]] {
-      append cpcmd " -r$key -edata $defs($key)"
+  proc asmtreg {cpu args} {
+    array set opts $args
+    set clist {}
+    foreach key [lsort [array names opts]] {
+      lappend clist "-r${key}" -edata $opts($key)
     }
     set errbeg [rlc errcnt]
-    eval $cpu cp $cpcmd
+    $cpu cp {*}$clist
     return [expr [rlc errcnt] - $errbeg]
   }
 
   #
   # asmtmem: test memory after running a program loaded with ldasm
   # 
-  proc asmtmem {cpu base list} {
-    set nw [llength $list]
-    if {$nw == 0} {
-      error "asmtreg called with empty list"
+  proc asmtmem {cpu args} {
+    set clist {}
+    foreach {base vlist} $args {
+      set nw [llength $vlist]
+      if {$nw == 0} {
+        error "asmtreg called with empty value list"
+      }
+      lappend clist -wal $base
+      lappend clist -brm $nw -edata $vlist
     }
     set errbeg [rlc errcnt]
-    $cpu cp -wal $base -brm $nw -edata $list
+    $cpu cp {*}$clist
     return [expr [rlc errcnt] - $errbeg]
   }
 

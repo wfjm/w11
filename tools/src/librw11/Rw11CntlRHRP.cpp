@@ -1,4 +1,4 @@
-// $Id: Rw11CntlRHRP.cpp 686 2015-06-04 21:08:08Z mueller $
+// $Id: Rw11CntlRHRP.cpp 720 2015-12-28 14:52:45Z mueller $
 //
 // Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -15,6 +15,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-12-28   720   1.0.3  use octal for er1= printouts
 // 2015-06-04   686   1.0.2  check for spurious lams
 // 2015-05-24   684   1.0.1  fixed rpcs2 update for wcheck and nem aborts
 // 2015-05-14   680   1.0    Initial version
@@ -23,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlRHRP.cpp 686 2015-06-04 21:08:08Z mueller $
+  \version $Id: Rw11CntlRHRP.cpp 720 2015-12-28 14:52:45Z mueller $
   \brief   Implemenation of Rw11CntlRHRP.
 */
 
@@ -612,7 +613,7 @@ void Rw11CntlRHRP::AddErrorExit(RlinkCommandList& clist, uint16_t rper1)
     lmsg << "-I RHRP"
          << "   err "
          << " cs1=" << RosPrintBvi(fRd_rpcs1,8)
-         << " er1=" << RosPrintBvi(rper1,2,16);
+         << " er1=" << RosPrintBvi(rper1,8);
   }
 
   return;
@@ -662,8 +663,8 @@ void Rw11CntlRHRP::AddNormalExit(RlinkCommandList& clist, size_t ndone,
     if (rper1 || rpcs2) {
       lmsg << "-I RHRP"
            << "   err "
-           << " er1=" << RosPrintBvi(rper1,2,16)
-           << " cs2=" << RosPrintBvi(rpcs2,2,8)
+           << " er1=" << RosPrintBvi(rper1,8)
+           << " cs2=" << RosPrintBvi(rpcs2,8,8)
            << endl;
     }
     lmsg << "-I RHRP"

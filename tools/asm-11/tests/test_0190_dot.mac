@@ -1,0 +1,29 @@
+; $Id: test_0190_dot.mac 712 2015-11-01 22:53:45Z mueller $
+;
+; test dot '.' handling
+;    '.' refers in MACRO-11 (RT11 V4.0) to
+;        - address of opcode in case of instructions
+;        - current address in case of .word lists
+;
+        .asect
+        .blkw   400 
+
+; use . in branches
+
+        br      .               ;;!! 000777
+        br      .+2             ;;!! 000400
+        br      .+4             ;;!! 000401
+        bcc     .+4             ;;!! 103001
+
+; use . in immedate (refers to address of instruction)
+
+        mov     #.,r0           ;;!! 001010: 012700 001010
+        cmp     #.,#.           ;;!! 001014: 022727 001014 001014
+
+; use . in .word lists (refers to current address
+
+        .word   .               ;;!! 001022: 001022
+        .word   .,.             ;;!! 001024: 001024 001026
+        .word   .,0,.           ;;!! 001030: 001030 000000 001034 
+
+        .end

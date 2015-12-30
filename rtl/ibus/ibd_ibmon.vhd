@@ -1,4 +1,4 @@
--- $Id: ibd_ibmon.vhd 672 2015-05-02 21:58:28Z mueller $
+-- $Id: ibd_ibmon.vhd 697 2015-07-05 14:23:26Z mueller $
 --
 -- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -278,7 +278,7 @@ begin
     n.ibsel := '0';
     if IB_MREQ.aval='1' and IB_MREQ.addr(12 downto 4)=IB_ADDR(12 downto 4) then
       n.ibsel := '1';
-      ibramen := '1';
+      ibramen := '1';                   -- ensures bram read before ibus read
     end if;
 
     -- ibus transactions (react only on console (this includes racc))

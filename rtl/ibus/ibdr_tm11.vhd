@@ -1,4 +1,4 @@
--- $Id: ibdr_tm11.vhd 690 2015-06-07 18:23:51Z mueller $
+-- $Id: ibdr_tm11.vhd 695 2015-06-28 11:22:52Z mueller $
 --
 -- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -27,6 +27,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-06-27   695   1.0.1  add missing BESET to sensitivity list
 -- 2015-06-04   686   1.0    Initial version
 -- 2015-05-15   682   0.1    First draft 
 ------------------------------------------------------------------------------
@@ -183,7 +184,7 @@ begin
     end if;
   end process proc_regs;
 
-  proc_next : process (R_REGS, IB_MREQ, EI_ACK)
+  proc_next : process (R_REGS, IB_MREQ, EI_ACK, BRESET)
     variable r : regs_type := regs_init;
     variable n : regs_type := regs_init;
     variable ibhold : slbit := '0';

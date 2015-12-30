@@ -1,0 +1,22 @@
+; $Id: defs_nzvc.mac 710 2015-08-31 06:19:56Z mueller $
+; Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory 
+;
+; definitions for condition code combinations
+;
+        cp0000=000000           ; N=0 Z=0 V=0 C=0
+        cp000c=000001           ; N=0 Z=0 V=0 C=1
+        cp00v0=000002           ; N=0 Z=0 V=1 C=0
+        cp00vc=000003           ; N=0 Z=0 V=1 C=1
+        cp0z00=000004           ; N=0 Z=1 V=0 C=0
+        cp0z0c=000005           ; N=0 Z=1 V=0 C=1
+        cp0zv0=000006           ; N=0 Z=1 V=1 C=0
+        cp0zvc=000007           ; N=0 Z=1 V=1 C=1
+        cpn000=000010           ; N=1 Z=0 V=0 C=0
+        cpn00c=000011           ; N=1 Z=0 V=0 C=1
+        cpn0v0=000012           ; N=1 Z=0 V=1 C=0
+        cpn0vc=000013           ; N=1 Z=0 V=1 C=1
+        cpnz00=000014           ; N=1 Z=1 V=0 C=0
+        cpnz0c=000015           ; N=1 Z=1 V=0 C=1
+        cpnzv0=000016           ; N=1 Z=1 V=1 C=0
+        cpnzvc=000017           ; N=1 Z=1 V=1 C=1

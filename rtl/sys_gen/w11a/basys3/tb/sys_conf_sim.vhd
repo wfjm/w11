@@ -1,4 +1,4 @@
--- $Id: sys_conf_sim.vhd 683 2015-05-17 21:54:35Z mueller $
+-- $Id: sys_conf_sim.vhd 698 2015-07-05 21:20:18Z mueller $
 --
 -- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  viv 2014.4; ghdl 0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-06-26   695   1.1.1  add sys_conf_(dmscnt|dmhbpt*|dmcmon*)
 -- 2015-03-14   658   1.1    add sys_conf_ibd_* definitions
 -- 2015-02-21   649   1.0    Initial version
 ------------------------------------------------------------------------------
@@ -50,8 +51,11 @@ package sys_conf is
   constant sys_conf_memctl_nblock  : positive := 11;
 
   -- configure debug and monitoring units ------------------------------------
-  constant sys_conf_rbmon_awidth : integer := 0; -- no rbmon to save BRAMs
-  constant sys_conf_ibmon_awidth : integer := 0; -- no ibmon to save BRAMs
+  constant sys_conf_rbmon_awidth  : integer := 0; -- no rbmon to save BRAMs
+  constant sys_conf_ibmon_awidth  : integer := 0; -- no ibmon to save BRAMs
+  constant sys_conf_dmscnt        : boolean := true;
+  constant sys_conf_dmhbpt_nunit  : integer := 2; -- use 0 to disable
+  constant sys_conf_dmcmon_awidth : integer := 0; -- no dmcmon to save BRAMs
 
   -- configure w11 cpu core --------------------------------------------------
   -- sys_conf_mem_losize is highest 64 byte MMU block number

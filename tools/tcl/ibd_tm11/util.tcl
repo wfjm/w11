@@ -1,4 +1,4 @@
-# $Id:  $
+# $Id: util.tcl 719 2015-12-27 09:45:43Z mueller $
 #
 # Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,12 +13,14 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-12-26   719   1.0.1  add regmap_add defs
 # 2015-05-17   683   1.0    Initial version
 #
 
 package provide ibd_tm11 1.0
 
 package require rlink
+package require rw11util
 package require rw11
 
 namespace eval ibd_tm11 {
@@ -30,7 +32,9 @@ namespace eval ibd_tm11 {
     {onl 6} {bot 5} {wrl 2} {rew 1} {tur 0}
 
   regdsc CR {err 15} {den 14 2} {ini 12} {pevn 11} {unit 10 3} \
-    {rdy 7} {ie 6} {ea 5 2} {func 3 3} {go 0}
+    {rdy 7} {ie 6} {ea 5 2} \
+    {func 3 3 "s:UNLOAD:READ:WRITE:WEOF:SFORW:SBACK:WRTEG:REWIND"} \
+    {go 0}
   variable FUNC_UNLOAD [bvi b3 "000"]
   variable FUNC_READ   [bvi b3 "001"]
   variable FUNC_WRITE  [bvi b3 "010"]
@@ -40,12 +44,17 @@ namespace eval ibd_tm11 {
   variable FUNC_WRTEG  [bvi b3 "110"]
   variable FUNC_REWIND [bvi b3 "111"]
 
-  regdsc RCR {icmd 15} {pae 12} {rle 9} {bte 8} {nxm 7} \
-    {unit 5 2} {func 3 3} {go 0}
+  regdsc RCR {icmd 15} {pae 12} {rle 9} {bte 8} {nxm 7} {unit 5 2} \
+    {func 3 3 "s:FU0:WUNIT:DONE:FU3:FU4:FU5:FU6:FU7"} \
+    {go 0}
   variable RFUNC_WUNIT [bvi b3 "001"]
   variable RFUNC_DONE  [bvi b3 "010"]
 
   regdsc RRL {eof 10} {eot 9} {onl 8} {bot 7} {wrl 6} {rew 5} {unit 2 2}
+
+  rw11util::regmap_add ibd_tm11 tm?.sr {?? SR}
+  rw11util::regmap_add ibd_tm11 tm?.cr {l? CR rr CR rw RCR}
+  rw11util::regmap_add ibd_tm11 tm?.rl {r? RRL}
 
   variable ANUM 7
 

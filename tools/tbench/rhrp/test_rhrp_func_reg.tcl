@@ -1,4 +1,4 @@
-# $Id: test_rhrp_func_reg.tcl 692 2015-06-21 11:53:24Z mueller $
+# $Id: test_rhrp_func_reg.tcl 705 2015-07-26 21:25:42Z mueller $
 #
 # Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
@@ -122,7 +122,7 @@ rlc log "  D1.3: rem status check: attn + state -----------------"
 rlc exec -attn -edata $attnmsk
 
 # check rdy=0 ie=0 func=read
-set cs1val [regbld ibd_rhrp::CS1 [list func $ibd_rhrp::FUNC_READ]]
+set cs1val [regbldkv ibd_rhrp::CS1 func READ]
 set cs1msk [regbld ibd_rhrp::CS1 rdy ie {func -1}]
 # expect ds mol=1 dpr=1 dry=0
 set dsval  [regbld ibd_rhrp::DS mol dpr]
@@ -149,7 +149,7 @@ $cpu cp -wibr rpa.ba  $ba \
 rlc log "  D1.5: loc check: cs1.rdy=1, ds.dry=1 -----------------"
 
 # expect cs1 sc=0 tre=0 dva=1 rdy=1 ie=0 func=read go=0
-set cs1val [regbld ibd_rhrp::CS1 dva rdy [list func $ibd_rhrp::FUNC_READ]]
+set cs1val [regbldkv ibd_rhrp::CS1  dva 1  rdy 1  func READ]
 # expect ds ata=0 mol=1 dpr=1 dry=1
 set dsval  [regbld ibd_rhrp::DS mol dpr dry]
 

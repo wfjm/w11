@@ -1,4 +1,4 @@
-# $Id: tbench.tcl 683 2015-05-17 21:54:35Z mueller $
+# $Id: tbench.tcl 702 2015-07-19 17:36:09Z mueller $
 #
 # Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -62,6 +62,7 @@ namespace eval rw11 {
     }
 
     if {![file readable "$tbase/$fname"]} {
+      puts "-E: file $tbase/$fname not found or readable"
       error "-E: file $tbase/$fname not found or readable"
     }
 

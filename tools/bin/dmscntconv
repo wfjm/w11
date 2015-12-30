@@ -1,0 +1,182 @@
+#!/usr/bin/perl -w
+# $Id: dmscntconv 721 2015-12-29 17:50:50Z mueller $
+#
+# Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+#
+# This program is free software; you may redistribute and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 2, or at your option any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# for complete details.
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2015-12-28   721   1.0.1  adopt to new syntax of STATE2SNUM mapper
+# 2015-06-27   695   1.0    Initial version
+#
+
+use 5.14.0;                                 # require Perl 5.14 or higher
+use strict;                                 # require strict checking
+
+use Getopt::Long;
+
+my %opts = ();
+
+GetOptions(\%opts, "help", "src=s")
+  or die "bad options";
+
+sub print_help;
+sub do_src;
+sub do_file;
+
+my @snum2nam;
+my %snam2num;
+my %dat_all;
+my %dat_km;
+my %dat_um;
+
+autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
+
+if (exists $opts{help}) {
+  print_help;
+  exit 0;
+}
+
+if (scalar(@ARGV) == 0) {
+  print STDERR "dmscntconv-E: no input file specified\n";
+  print_help;
+  exit 1;
+}
+
+$opts{src} = $ENV{RETROBASE} . "/rtl/w11a/pdp11_sequencer.vhd"
+  unless defined $opts{src};
+
+do_src($opts{src});
+
+foreach my $file (@ARGV) {
+  do_file($file);
+}
+
+print "#sn state                      all          km         usm" .
+      "    all%    km%   usm%\n";
+
+my $sum_all = 0;
+my $sum_km  = 0;
+my $sum_um  = 0;
+
+foreach (keys %dat_all) {
+  $sum_all += $dat_all{$_};
+  $sum_km  += $dat_km{$_};
+  $sum_um  += $dat_um{$_};
+}
+
+my $div_all = ($sum_all>0.) ? $sum_all : 1.;
+my $div_km  = ($sum_km >0.) ? $sum_km  : 1.;
+my $div_um  = ($sum_um >0.) ? $sum_um  : 1.;
+
+printf "#   sum_all            %11.0f %11.0f %11.0f  %6.2f %6.2f %6.2f\n",
+    $sum_all, $sum_km, $sum_um,
+    100., 100.*($sum_km/$sum_all), 100.*($sum_um/$sum_all);
+
+for (my $snum=0; $snum<scalar(@snum2nam); $snum++) {
+  my $snam = $snum2nam[$snum];
+  next unless defined $snam;
+  my $pc_all = 100. * ($dat_all{$snam} / $div_all);
+  my $pc_km  = 100. * ($dat_km{$snam}  / $div_all);
+  my $pc_um  = 100. * ($dat_um{$snam}  / $div_all);
+  printf " %2.2x %-18s %11.0f %11.0f %11.0f  %6.2f %6.2f %6.2f\n",
+    $snum, $snam, $dat_all{$snam}, $dat_km{$snam}, $dat_um{$snam},
+    $pc_all, $pc_km, $pc_um;
+}
+
+
+#-------------------------------------------------------------------------------
+
+sub do_src {
+  my ($file) = @_;
+
+  open SFILE,"<$file" or die "failed to open $file";
+
+  my $begin_seen;
+  while (<SFILE>) {
+    chomp;
+    if (m/^\s*-- STATE2SNUM mapper begin/) {
+      $begin_seen = 1;
+      next;
+    }
+    next unless $begin_seen;
+    last if m/^\s*-- STATE2SNUM mapper end/;
+    next if m/^\s*$/;
+    if (m/^\s+when
+          \s+(\w+)
+          \s+=>\s*isnum\s*:=
+          \s*x"([[:xdigit:]]+)";/x) {
+      my $snam=$1;
+      my $snum=hex($2);
+      $snum2nam[$snum] = $snam;
+      $snam2num{$snam} = $snum;
+    } else {
+      printf STDERR "bad line: $_\n";
+    }
+
+  }
+
+  close SFILE;
+}
+
+#-------------------------------------------------------------------------------
+
+sub do_file {
+  my ($file) = @_;
+
+  %dat_km  = ();
+  %dat_um  = ();
+  %dat_all = ();
+
+  open IFILE,"<$file" or die "failed to open $file";
+
+  while (<IFILE>) {
+    chomp;
+    next if m/^#/;
+    if (m/^\s*([[:xdigit:]]+)
+          \s+([[:xdigit:]]+)
+          \s+([[:xdigit:]]+)
+          \s+([[:xdigit:]]+)\s*$/x) {
+      my $sn = hex($1);
+      my $d2  = hex($2);
+      my $d1  = hex($3);
+      my $d0  = hex($4);
+      my $cnt = 1. * $d0;
+      $cnt += 65536. * $d1;
+      $cnt += 65536.*65536.* $d2;
+      my $snum = $sn % 256;
+      my $km   = $sn < 256;
+      my $snam = $snum2nam[$snum];
+      if (defined $snam) {
+        $dat_all{$snam} += $cnt;
+        if ($km) {
+          $dat_km{$snam}  += $cnt;
+        } else {
+          $dat_um{$snam}  += $cnt;
+        }
+      } else {
+        printf STDERR "bad snum: $_\n" if $cnt;
+      }
+    } else {
+      printf STDERR "bad line: $_\n";
+    }
+  }
+
+  close IFILE;
+
+}
+
+#-------------------------------------------------------------------------------
+
+sub print_help {
+  print "usage: dmscntconv [--src=source] file\n";
+  print "  --help           this message\n";
+}

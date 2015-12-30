@@ -1,4 +1,4 @@
--- $Id: tbd_pdp11core.vhd 674 2015-05-04 16:17:40Z mueller $
+-- $Id: tbd_pdp11core.vhd 712 2015-11-01 22:53:45Z mueller $
 --
 -- Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -41,6 +41,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-11-01   712   1.6.2  use sbcntl_sbf_tmu
+-- 2015-07-03   697   1.6.1  adapt to new DM_STAT_(SY|VM)
 -- 2015-05-03   674   1.6    start/stop/suspend overhaul
 -- 2011-11-18   427   1.5.1  now numeric_std clean
 -- 2010-12-30   351   1.5    rename tbd_pdp11_core -> tbd_pdp11core
@@ -174,8 +176,7 @@ begin
       ESUSP_O => open,                  -- not tested
       ESUSP_I => '0',                   -- dito
       ITIMER  => open,                  -- dito
-      EBREAK  => '0',                   -- dito
-      DBREAK  => '0',                   -- dito
+      HBPT    => '0',                   -- dito
       EI_PRI  => EI_PRI,
       EI_VECT => EI_VECT,
       EI_ACKM => EI_ACKM,
@@ -215,15 +216,12 @@ begin
       DISPREG  => open
     );  
 
--- synthesis translate_off
-
-  DM_STAT_SY.emmreq <= EM_MREQ;
-  DM_STAT_SY.emsres <= EM_SRES;
   DM_STAT_SY.chit   <= '0';
-  
+
+-- synthesis translate_off
   TMU : pdp11_tmu_sb
     generic map (
-      ENAPIN => 13)
+      ENAPIN => sbcntl_sbf_tmu)
      port map (
       CLK        => CLK,
       DM_STAT_DP => DM_STAT_DP,

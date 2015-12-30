@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.cpp 682 2015-05-15 18:35:29Z mueller $
+// $Id: Rw11Cpu.cpp 719 2015-12-27 09:45:43Z mueller $
 //
 // Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,9 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-12-26   719   1.2.5  BUGFIX: IM* correct register offset definitions
+// 2015-07-12   700   1.2.5  use ..CpuAct instead ..CpuGo (new active based lam);
+//                           add probe and map setup for optional cpu components
 // 2015-05-15   682   1.2.4  BUGFIX: Boot(): extract unit number properly
 //                           Boot(): stop cpu before load, check unit number
 // 2015-05-08   675   1.2.3  w11a start/stop/suspend overhaul
@@ -29,7 +32,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cpu.cpp 682 2015-05-15 18:35:29Z mueller $
+  \version $Id: Rw11Cpu.cpp 719 2015-12-27 09:45:43Z mueller $
   \brief   Implemenation of Rw11Cpu.
 */
 #include <stdlib.h>
@@ -101,6 +104,7 @@ const uint16_t  Rw11Cpu::kCPURUST_RESET;
 const uint16_t  Rw11Cpu::kCPURUST_STOP;
 const uint16_t  Rw11Cpu::kCPURUST_STEP;
 const uint16_t  Rw11Cpu::kCPURUST_SUSP;
+const uint16_t  Rw11Cpu::kCPURUST_HBPT;
 const uint16_t  Rw11Cpu::kCPURUST_RUNS;
 const uint16_t  Rw11Cpu::kCPURUST_VECFET;
 const uint16_t  Rw11Cpu::kCPURUST_RECRSV;
@@ -116,8 +120,39 @@ const uint16_t  Rw11Cpu::kCPMEMBE_M_BE;
 
 const uint8_t   Rw11Cpu::kStat_M_CmdErr;
 const uint8_t   Rw11Cpu::kStat_M_CmdMErr;
-const uint8_t   Rw11Cpu::kStat_M_CpuHalt;
+const uint8_t   Rw11Cpu::kStat_M_CpuSusp;
 const uint8_t   Rw11Cpu::kStat_M_CpuGo;
+
+const uint16_t  Rw11Cpu::kSCBASE;
+const uint16_t  Rw11Cpu::kSCCNTL;
+const uint16_t  Rw11Cpu::kSCADDR;
+const uint16_t  Rw11Cpu::kSCDATA;
+
+const uint16_t  Rw11Cpu::kCMBASE;
+const uint16_t  Rw11Cpu::kCMCNTL;
+const uint16_t  Rw11Cpu::kCMSTAT;
+const uint16_t  Rw11Cpu::kCMADDR;
+const uint16_t  Rw11Cpu::kCMDATA;
+const uint16_t  Rw11Cpu::kCMIADDR;
+const uint16_t  Rw11Cpu::kCMIPC;
+const uint16_t  Rw11Cpu::kCMIREG;
+const uint16_t  Rw11Cpu::kCMIMAL;
+
+const uint16_t  Rw11Cpu::kHBBASE;
+const uint16_t  Rw11Cpu::kHBSIZE;
+const uint16_t  Rw11Cpu::kHBNMAX;
+const uint16_t  Rw11Cpu::kHBCNTL;
+const uint16_t  Rw11Cpu::kHBSTAT;
+const uint16_t  Rw11Cpu::kHBHILIM;
+const uint16_t  Rw11Cpu::kHBLOLIM;
+
+const uint16_t  Rw11Cpu::kIMBASE;
+const uint16_t  Rw11Cpu::kIMCNTL;
+const uint16_t  Rw11Cpu::kIMSTAT;
+const uint16_t  Rw11Cpu::kIMHILIM;
+const uint16_t  Rw11Cpu::kIMLOLIM;
+const uint16_t  Rw11Cpu::kIMADDR;
+const uint16_t  Rw11Cpu::kIMDATA;
 
 //------------------------------------------+-----------------------------------
 //! Constructor
@@ -128,10 +163,14 @@ Rw11Cpu::Rw11Cpu(const std::string& type)
     fIndex(0),
     fBase(0),
     fIBase(0x4000),
-    fCpuGo(0),
+    fHasScnt(false),
+    fHasCmon(false),
+    fHasHbpt(0),
+    fHasIbmon(false),
+    fCpuAct(0),
     fCpuStat(0),
-    fCpuGoMutex(),
-    fCpuGoCond(),
+    fCpuActMutex(),
+    fCpuActCond(),
     fCntlMap(),
     fIAddrMap(),
     fRAddrMap(),
@@ -150,69 +189,8 @@ Rw11Cpu::~Rw11Cpu()
 void Rw11Cpu::Setup(Rw11* pw11)
 {
   fpW11 = pw11;
-  // add control port address rbus mappings
-  AllRAddrMapInsert("conf" , Base()+kCPCONF);
-  AllRAddrMapInsert("cntl" , Base()+kCPCNTL);
-  AllRAddrMapInsert("stat" , Base()+kCPSTAT);
-  AllRAddrMapInsert("psw"  , Base()+kCPPSW);
-  AllRAddrMapInsert("al"   , Base()+kCPAL);
-  AllRAddrMapInsert("ah"   , Base()+kCPAH);
-  AllRAddrMapInsert("mem"  , Base()+kCPMEM);
-  AllRAddrMapInsert("memi" , Base()+kCPMEMI);
-  AllRAddrMapInsert("r0"   , Base()+kCPR0);
-  AllRAddrMapInsert("r1"   , Base()+kCPR0+1);
-  AllRAddrMapInsert("r2"   , Base()+kCPR0+2);
-  AllRAddrMapInsert("r3"   , Base()+kCPR0+3);
-  AllRAddrMapInsert("r4"   , Base()+kCPR0+4);
-  AllRAddrMapInsert("r5"   , Base()+kCPR0+5);
-  AllRAddrMapInsert("sp"   , Base()+kCPR0+6);
-  AllRAddrMapInsert("pc"   , Base()+kCPR0+7);
-  AllRAddrMapInsert("membe",Base()+kCPMEMBE);
-
-  // add cpu register address ibus and rbus mappings
-  AllIAddrMapInsert("psw"    , 0177776);
-  AllIAddrMapInsert("stklim" , 0177774);
-  AllIAddrMapInsert("pirq"   , 0177772);
-  AllIAddrMapInsert("mbrk"   , 0177770);
-  AllIAddrMapInsert("cpuerr" , 0177766);
-  AllIAddrMapInsert("sysid"  , 0177764);
-  AllIAddrMapInsert("hisize" , 0177762);
-  AllIAddrMapInsert("losize" , 0177760);
-
-  AllIAddrMapInsert("hm"     , 0177752);
-  AllIAddrMapInsert("maint"  , 0177750);
-  AllIAddrMapInsert("cntrl"  , 0177746);
-  AllIAddrMapInsert("syserr" , 0177744);
-  AllIAddrMapInsert("hiaddr" , 0177742);
-  AllIAddrMapInsert("loaddr" , 0177740);
-
-  AllIAddrMapInsert("ssr2"   , 0177576);
-  AllIAddrMapInsert("ssr1"   , 0177574);
-  AllIAddrMapInsert("ssr0"   , 0177572);
-
-  AllIAddrMapInsert("sdreg"  , 0177570);
-
-  AllIAddrMapInsert("ssr3"   , 0172516);
-
-  // add mmu segment register files
-  string sdr = "sdr";
-  string sar = "sar";
-  for (char i=0; i<8; i++) {
-    char ichar = '0'+i;
-    AllIAddrMapInsert(sdr+"ki."+ichar, 0172300+2*i);
-    AllIAddrMapInsert(sdr+"kd."+ichar, 0172320+2*i);
-    AllIAddrMapInsert(sar+"ki."+ichar, 0172340+2*i);
-    AllIAddrMapInsert(sar+"kd."+ichar, 0172360+2*i);
-    AllIAddrMapInsert(sdr+"si."+ichar, 0172200+2*i);
-    AllIAddrMapInsert(sdr+"sd."+ichar, 0172220+2*i);
-    AllIAddrMapInsert(sar+"si."+ichar, 0172240+2*i);
-    AllIAddrMapInsert(sar+"sd."+ichar, 0172260+2*i);
-    AllIAddrMapInsert(sdr+"ui."+ichar, 0177600+2*i);
-    AllIAddrMapInsert(sdr+"ud."+ichar, 0177620+2*i);
-    AllIAddrMapInsert(sar+"ui."+ichar, 0177640+2*i);
-    AllIAddrMapInsert(sar+"ud."+ichar, 0177660+2*i);
-  }
-
+  SetupStd();
+  SetupOpt();
   return;
 }
 
@@ -722,7 +700,7 @@ bool Rw11Cpu::Boot(const std::string& uname, RerrMsg& emsg)
   clist.Clear();
   clist.AddWreg(fBase+kCPPC, astart);           // load PC
   clist.AddWreg(fBase+kCPCNTL, kCPFUNC_START);  // and start
-  SetCpuGoUp();
+  SetCpuActUp();
   if (!Server().Exec(clist, emsg)) return false;
 
   return true;
@@ -731,25 +709,25 @@ bool Rw11Cpu::Boot(const std::string& uname, RerrMsg& emsg)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11Cpu::SetCpuGoUp()
+void Rw11Cpu::SetCpuActUp()
 {
-  boost::lock_guard<boost::mutex> lock(fCpuGoMutex);
-  fCpuGo   = true;
+  boost::lock_guard<boost::mutex> lock(fCpuActMutex);
+  fCpuAct  = true;
   fCpuStat = 0;
-  fCpuGoCond.notify_all();
+  fCpuActCond.notify_all();
   return;
 }  
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11Cpu::SetCpuGoDown(uint16_t stat)
+void Rw11Cpu::SetCpuActDown(uint16_t stat)
 {
-  if ((stat & kCPSTAT_M_CpuGo) == 0) {
-    boost::lock_guard<boost::mutex> lock(fCpuGoMutex);
-    fCpuGo   = false;
+  if ((stat & kCPSTAT_M_CpuGo) == 0 || (stat & kCPSTAT_M_CpuSusp) != 0 ) {
+    boost::lock_guard<boost::mutex> lock(fCpuActMutex);
+    fCpuAct  = false;
     fCpuStat = stat;
-    fCpuGoCond.notify_all();
+    fCpuActCond.notify_all();
   }
   return;
 }  
@@ -757,15 +735,15 @@ void Rw11Cpu::SetCpuGoDown(uint16_t stat)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-double Rw11Cpu::WaitCpuGoDown(double tout)
+double Rw11Cpu::WaitCpuActDown(double tout)
 {
   boost::system_time t0(boost::get_system_time());
   boost::system_time timeout(boost::posix_time::max_date_time);
   if (tout > 0.) 
     timeout = t0 + boost::posix_time::microseconds((long)1E6 * tout);  
-  boost::unique_lock<boost::mutex> lock(fCpuGoMutex);
-  while (fCpuGo) {
-    if (!fCpuGoCond.timed_wait(lock, timeout)) return -1.;
+  boost::unique_lock<boost::mutex> lock(fCpuActMutex);
+  while (fCpuAct) {
+    if (!fCpuActCond.timed_wait(lock, timeout)) return -1.;
   }
   boost::posix_time::time_duration dt = boost::get_system_time() - t0;
   return double(dt.ticks()) / dt.ticks_per_second();
@@ -815,7 +793,7 @@ void Rw11Cpu::W11AttnHandler()
   RlinkCommandList clist;
   clist.AddRreg(fBase+kCPSTAT);
   Server().Exec(clist);
-  SetCpuGoDown(clist[0].Data());
+  SetCpuActDown(clist[0].Data());
   return;
 }
 
@@ -832,7 +810,11 @@ void Rw11Cpu::Dump(std::ostream& os, int ind, const char* text) const
   os << bl << "  fIndex:          " << fIndex << endl;
   os << bl << "  fBase:           " << RosPrintf(fBase,"$x0",4) << endl;
   os << bl << "  fIBase:          " << RosPrintf(fIBase,"$x0",4) << endl;
-  os << bl << "  fCpuGo:          " << fCpuGo << endl;
+  os << bl << "  fHasScnt:        " << fHasScnt << endl;
+  os << bl << "  fHasCmon:        " << fHasCmon << endl;
+  os << bl << "  fHasHbpt:        " << fHasHbpt << endl;
+  os << bl << "  fHasIbmon:       " << fHasIbmon << endl;
+  os << bl << "  fCpuAct:         " << fCpuAct << endl;
   os << bl << "  fCpuStat:        " << RosPrintf(fCpuStat,"$x0",4) << endl;
   os << bl << "  fCntlMap:        " << endl;
   for (cmap_cit_t it=fCntlMap.begin(); it!=fCntlMap.end(); it++) {
@@ -844,5 +826,152 @@ void Rw11Cpu::Dump(std::ostream& os, int ind, const char* text) const
   fStats.Dump(os, ind+2, "fStats: ");
   return;
 }
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rw11Cpu::SetupStd()
+{
+  // add control port address rbus mappings
+  AllRAddrMapInsert("conf" , Base()+kCPCONF);
+  AllRAddrMapInsert("cntl" , Base()+kCPCNTL);
+  AllRAddrMapInsert("stat" , Base()+kCPSTAT);
+  AllRAddrMapInsert("psw"  , Base()+kCPPSW);
+  AllRAddrMapInsert("al"   , Base()+kCPAL);
+  AllRAddrMapInsert("ah"   , Base()+kCPAH);
+  AllRAddrMapInsert("mem"  , Base()+kCPMEM);
+  AllRAddrMapInsert("memi" , Base()+kCPMEMI);
+  AllRAddrMapInsert("r0"   , Base()+kCPR0);
+  AllRAddrMapInsert("r1"   , Base()+kCPR0+1);
+  AllRAddrMapInsert("r2"   , Base()+kCPR0+2);
+  AllRAddrMapInsert("r3"   , Base()+kCPR0+3);
+  AllRAddrMapInsert("r4"   , Base()+kCPR0+4);
+  AllRAddrMapInsert("r5"   , Base()+kCPR0+5);
+  AllRAddrMapInsert("sp"   , Base()+kCPR0+6);
+  AllRAddrMapInsert("pc"   , Base()+kCPR0+7);
+  AllRAddrMapInsert("membe", Base()+kCPMEMBE);
+
+  // add cpu register address ibus and rbus mappings
+  AllIAddrMapInsert("psw"    , 0177776);
+  AllIAddrMapInsert("stklim" , 0177774);
+  AllIAddrMapInsert("pirq"   , 0177772);
+  AllIAddrMapInsert("mbrk"   , 0177770);
+  AllIAddrMapInsert("cpuerr" , 0177766);
+  AllIAddrMapInsert("sysid"  , 0177764);
+  AllIAddrMapInsert("hisize" , 0177762);
+  AllIAddrMapInsert("losize" , 0177760);
+
+  AllIAddrMapInsert("hm"     , 0177752);
+  AllIAddrMapInsert("maint"  , 0177750);
+  AllIAddrMapInsert("cntrl"  , 0177746);
+  AllIAddrMapInsert("syserr" , 0177744);
+  AllIAddrMapInsert("hiaddr" , 0177742);
+  AllIAddrMapInsert("loaddr" , 0177740);
+
+  AllIAddrMapInsert("ssr2"   , 0177576);
+  AllIAddrMapInsert("ssr1"   , 0177574);
+  AllIAddrMapInsert("ssr0"   , 0177572);
+
+  AllIAddrMapInsert("sdreg"  , 0177570);
+
+  AllIAddrMapInsert("ssr3"   , 0172516);
+
+  // add mmu segment register files
+  string sdr = "sdr";
+  string sar = "sar";
+  for (char i=0; i<8; i++) {
+    char ichar = '0'+i;
+    AllIAddrMapInsert(sdr+"ki."+ichar, 0172300+2*i);
+    AllIAddrMapInsert(sdr+"kd."+ichar, 0172320+2*i);
+    AllIAddrMapInsert(sar+"ki."+ichar, 0172340+2*i);
+    AllIAddrMapInsert(sar+"kd."+ichar, 0172360+2*i);
+    AllIAddrMapInsert(sdr+"si."+ichar, 0172200+2*i);
+    AllIAddrMapInsert(sdr+"sd."+ichar, 0172220+2*i);
+    AllIAddrMapInsert(sar+"si."+ichar, 0172240+2*i);
+    AllIAddrMapInsert(sar+"sd."+ichar, 0172260+2*i);
+    AllIAddrMapInsert(sdr+"ui."+ichar, 0177600+2*i);
+    AllIAddrMapInsert(sdr+"ud."+ichar, 0177620+2*i);
+    AllIAddrMapInsert(sar+"ui."+ichar, 0177640+2*i);
+    AllIAddrMapInsert(sar+"ud."+ichar, 0177660+2*i);
+  }
+
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rw11Cpu::SetupOpt()
+{
+  // probe optional components: dmscnt, dmcmon, dmhbpt and ibmon
+  RlinkCommandList clist;
+
+  int isc =  clist.AddRreg(Base()+kSCBASE+kSCCNTL);
+  clist.SetLastExpectStatus(0,0);        // disable stat check
+
+  int icm =  clist.AddRreg(Base()+kCMBASE+kCMCNTL);
+  clist.SetLastExpectStatus(0,0); 
+
+  int ihb[kHBNMAX];
+  for (int i=0; i<kHBNMAX; i++) {
+    ihb[i] =  clist.AddRreg(Base()+kHBBASE+i*kHBSIZE+kHBCNTL);
+    clist.SetLastExpectStatus(0,0); 
+  }
+  int iim = AddRibr(clist, kIMBASE+kIMCNTL);
+  clist.SetLastExpectStatus(0,0); 
+
+  Connect().Exec(clist);
+
+  uint8_t statmsk = RlinkCommand::kStat_M_RbTout |
+                    RlinkCommand::kStat_M_RbNak  |
+                    RlinkCommand::kStat_M_RbErr;
+  
+  fHasScnt = (clist[isc].Status() & statmsk) == 0;
+  if (fHasScnt) {
+    uint16_t base = Base() + kSCBASE;
+    AllRAddrMapInsert("sc.cntl" , base + kSCCNTL);
+    AllRAddrMapInsert("sc.addr" , base + kSCADDR);
+    AllRAddrMapInsert("sc.data" , base + kSCDATA);
+  }
+
+  fHasCmon = (clist[icm].Status() & statmsk) == 0;
+  if (fHasCmon) {
+    uint16_t base = Base() + kCMBASE;
+    AllRAddrMapInsert("cm.cntl"  , base + kCMCNTL);
+    AllRAddrMapInsert("cm.stat"  , base + kCMSTAT);
+    AllRAddrMapInsert("cm.addr"  , base + kCMADDR);
+    AllRAddrMapInsert("cm.data"  , base + kCMDATA);
+    AllRAddrMapInsert("cm.iaddr" , base + kCMIADDR);
+    AllRAddrMapInsert("cm.ipc"   , base + kCMIPC);
+    AllRAddrMapInsert("cm.ireg"  , base + kCMIREG);
+    AllRAddrMapInsert("cm.imal"  , base + kCMIMAL);
+  }
+  
+  fHasHbpt = 0;
+  for (int i=0; i<kHBNMAX; i++) {
+    if ((clist[ihb[i]].Status() & statmsk) != 0) break;
+    fHasHbpt += 1;
+    uint16_t base = Base() + kHBBASE + i*kHBSIZE;
+    std::string pref = "hb";
+    pref += '0'+i;
+    AllRAddrMapInsert(pref+".cntl"  , base + kHBCNTL);
+    AllRAddrMapInsert(pref+".stat"  , base + kHBSTAT);
+    AllRAddrMapInsert(pref+".hilim" , base + kHBHILIM);
+    AllRAddrMapInsert(pref+".lolim" , base + kHBLOLIM);
+  }
+
+  fHasIbmon = (clist[iim].Status() & statmsk) == 0;
+  if (fHasIbmon) {
+    AllIAddrMapInsert("im.cntl",  kIMBASE + kIMCNTL);
+    AllIAddrMapInsert("im.stat",  kIMBASE + kIMSTAT);
+    AllIAddrMapInsert("im.hilim", kIMBASE + kIMHILIM);
+    AllIAddrMapInsert("im.lolim", kIMBASE + kIMLOLIM);
+    AllIAddrMapInsert("im.addr",  kIMBASE + kIMADDR);
+    AllIAddrMapInsert("im.data",  kIMBASE + kIMDATA);
+  }
+
+  return;
+}
+
 
 } // end namespace Retro

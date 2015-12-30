@@ -1,0 +1,29 @@
+; $Id: vec_cpucatch_reset.mac 710 2015-08-31 06:19:56Z mueller $
+; Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
+;
+; re-write vector catcher for basic cpu interrupts
+; 
+        mov     #v..iit+2,v..iit ; vec   4 
+        clr     v..iit+2
+        mov     #v..rit+2,v..rit ; vec  10 
+        clr     v..rit+2
+; 
+        mov     #v..bpt+2,v..bpt ; vec  14 (T bit; BPT)
+        clr     v..bpt+2
+        mov     #v..iot+2,v..iot ; vec  20 (IOT)
+        clr     v..iot+2
+        mov     #v..pwr+2,v..pwr ; vec  24 (Power fail, not used)
+        clr     v..pwr+2
+        mov     #v..emt+2,v..emt ; vec  30 (EMT)
+        clr     v..emt+2
+        mov     #v..trp+2,v..trp ; vec  34 (TRAP)
+        clr     v..trp+2
+; 
+        mov     #v..pir+2,v..pir ; vec 240 (PIRQ)
+        clr     v..pir+2
+        mov     #v..fpp+2,v..fpp ; vec 244 (FPP)
+        clr     v..fpp+2
+        mov     #v..mmu+2,v..mmu ; vec 250 (MMU)
+        clr     v..mmu+2
+; 

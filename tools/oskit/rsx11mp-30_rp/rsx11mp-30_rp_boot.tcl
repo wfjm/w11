@@ -1,4 +1,4 @@
-# $Id: rsx11mp-30_rp_boot.tcl 689 2015-06-05 14:33:18Z mueller $
+# $Id: rsx11mp-30_rp_boot.tcl 704 2015-07-25 14:18:03Z mueller $
 #
 # Setup file for RSX11-M+ V3.0 RP06 based system
 #
@@ -14,7 +14,7 @@ rutil::dohook "preinithook"
 puts [rlw]
 
 # setup tt,lp (211bsd uses parity -> use 7 bit mode)
-rw11::setup_tt "cpu0" {to7bit 1}
+rw11::setup_tt "cpu0" to7bit 1
 rw11::setup_lp 
 
 # mount disks

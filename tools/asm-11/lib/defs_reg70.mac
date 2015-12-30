@@ -1,0 +1,30 @@
+; $Id: defs_reg70.mac 707 2015-08-02 12:10:42Z mueller $
+; Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory 
+;
+; definitions for 11/70 CPU registers (as in defs_reg70.das)
+;
+        stklim = 177774
+        pirq   = 177772
+        mbrk   = 177770
+        cpuerr = 177766
+        sysid  = 177764
+        hisize = 177762
+        losize = 177760
+        ubmap  = 170200
+;
+        ms.hm  = 177752
+        ms.mai = 177750
+        ms.ctl = 177746
+        ms.err = 177744
+        ms.ehi = 177742
+        ms.elo = 177740
+;
+; symbol definitions for cpuerr
+;
+        cp.hlt = 000200
+        cp.aer = 000100
+        cp.nxm = 000040
+        cp.ito = 000020
+        cp.ysv = 000010
+        cp.rsv = 000004

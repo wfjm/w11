@@ -1,6 +1,6 @@
--- $Id: rlink_core.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: rlink_core.vhd 718 2015-12-26 15:59:48Z mueller $
 --
--- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -32,12 +32,14 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2015-12-26   718 14.7  131013 xc6slx16-2   312  460   16  150 s  7.0 ver 4.1
 -- 2014-12-20   614 14.7  131013 xc6slx16-2   310  453   16  146 s  6.8 ver 4.0
 -- 2014-08-13   581 14.7  131013 xc6slx16-2   160  230    0   73 s  6.0 ver 3.0
 -- 2014-08-13   581 14.7  131013 xc3s1000-4   160  358    0  221 s  8.9 ver 3.0
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-12-26   718   4.1.1  add proc_sres: strip 'x' from RB_SRES.dout
 -- 2014-12-21   617   4.1    use stat(_rbf_rbtout) to signal rbus timeout
 -- 2014-12-20   614   4.0    largely rewritten; 2 FSMs; v3 protocol; 4 bit STAT
 -- 2014-08-15   583   3.5    rb_mreq addr now 16 bit; add s_rxaddrl state
@@ -416,9 +418,10 @@ architecture syn of rlink_core is
 
   signal RBSEL : slbit := '0';
 
-  signal RB_MREQ_L    : rb_mreq_type := rb_mreq_init;  -- internal mreq
-  signal RB_SRES_CONF : rb_sres_type := rb_sres_init;  -- config sres
-  signal RB_SRES_TOT  : rb_sres_type := rb_sres_init;  -- total  sres
+  signal RB_MREQ_L     : rb_mreq_type := rb_mreq_init;  -- internal mreq
+  signal RB_SRES_CLEAN : rb_sres_type := rb_sres_init;  -- cleaned rb_sres
+  signal RB_SRES_CONF  : rb_sres_type := rb_sres_init;  -- config sres
+  signal RB_SRES_TOT   : rb_sres_type := rb_sres_init;  -- total  sres
 
   signal RL_BUSY_L : slbit := '0';
   signal RL_DO_L   : slv9  := (others=>'0');
@@ -500,10 +503,30 @@ begin
 
   RB_SRES_OR : rb_sres_or_2
     port map (
-      RB_SRES_1  => RB_SRES,
+      RB_SRES_1  => RB_SRES_CLEAN,
       RB_SRES_2  => RB_SRES_CONF,
       RB_SRES_OR => RB_SRES_TOT
     );
+
+  proc_sres: process (RB_SRES)
+    variable sres : rb_sres_type := rb_sres_init;
+    variable datax01 : slv16 := (others=>'0');
+    variable data01  : slv16 := (others=>'0');
+  begin
+    sres.ack  := to_x01(RB_SRES.ack);
+    sres.busy := to_x01(RB_SRES.busy);
+    sres.err  := to_x01(RB_SRES.err);
+    sres.dout := to_x01(RB_SRES.dout);
+
+    if sres.ack = '1' and sres.busy = '0' and is_x(sres.dout) then
+      assert false
+        report "rlink_core: seen 'x' in rb_sres.data"
+        severity warning;
+      sres.dout := (others=>'1');
+    end if;
+
+    RB_SRES_CLEAN <= sres;
+  end process proc_sres;
 
   proc_regs: process (CLK)
   begin

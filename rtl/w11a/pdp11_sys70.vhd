@@ -1,4 +1,4 @@
--- $Id: pdp11_sys70.vhd 677 2015-05-09 21:52:32Z mueller $
+-- $Id: pdp11_sys70.vhd 712 2015-11-01 22:53:45Z mueller $
 --
 -- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -21,6 +21,8 @@
 --                 w11a/pdp11_mem70
 --                 ibus/ibd_ibmon
 --                 ibus/ib_sres_or_3
+--                 w11a/pdp11_dmscnt
+--                 rbus/rb_sres_or_4
 --                 w11a/pdp11_tmu_sb           [sim only]
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
@@ -29,6 +31,10 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-11-01   712   1.1.4  use sbcntl_sbf_tmu
+-- 2015-07-19   702   1.1.3  use DM_STAT_SE
+-- 2015-07-04   697   1.1.2  change DM_STAT_SY setup; add dmcmon, dmhbpt;
+-- 2015-06-26   695   1.1.1  add pdp11_dmscnt support
 -- 2015-05-09   677   1.1    start/stop/suspend overhaul; reset overhaul
 -- 2015-05-01   672   1.0    Initial version (extracted from sys_w11a_*)
 ------------------------------------------------------------------------------
@@ -77,7 +83,10 @@ end pdp11_sys70;
 
 architecture syn of pdp11_sys70 is
   
-  signal RB_SRES_CPU   : rb_sres_type := rb_sres_init;
+  signal RB_SRES_CORE   : rb_sres_type := rb_sres_init;
+  signal RB_SRES_DMSCNT : rb_sres_type := rb_sres_init;
+  signal RB_SRES_DMHBPT : rb_sres_type := rb_sres_init;
+  signal RB_SRES_DMCMON : rb_sres_type := rb_sres_init;
 
   signal CP_CNTL : cp_cntl_type := cp_cntl_init;
   signal CP_ADDR : cp_addr_type := cp_addr_init;
@@ -97,6 +106,9 @@ architecture syn of pdp11_sys70 is
   signal CACHE_FMISS : slbit := '0';
   signal CACHE_CHIT  : slbit := '0';
 
+  signal HBPT        : slbit := '0';
+
+  signal DM_STAT_SE   : dm_stat_se_type := dm_stat_se_init;
   signal DM_STAT_DP_L : dm_stat_dp_type := dm_stat_dp_init;
   signal DM_STAT_VM   : dm_stat_vm_type := dm_stat_vm_init;
   signal DM_STAT_CO   : dm_stat_co_type := dm_stat_co_init;
@@ -120,7 +132,7 @@ begin
       CLK       => CLK,
       RESET     => RESET,
       RB_MREQ   => RB_MREQ,
-      RB_SRES   => RB_SRES_CPU,
+      RB_SRES   => RB_SRES_CORE,
       RB_STAT   => RB_STAT,
       RB_LAM    => RB_LAM_CPU,
       GRESET    => GRESET_L,
@@ -143,8 +155,7 @@ begin
       ESUSP_O   => open,
       ESUSP_I   => '0',
       ITIMER    => ITIMER,
-      EBREAK    => '0',
-      DBREAK    => '0',
+      HBPT      => HBPT,
       EI_PRI    => EI_PRI,
       EI_VECT   => EI_VECT,
       EI_ACKM   => EI_ACKM,
@@ -154,6 +165,7 @@ begin
       BRESET    => BRESET_L,
       IB_MREQ_M => IB_MREQ_M,
       IB_SRES_M => IB_SRES_M,
+      DM_STAT_SE => DM_STAT_SE,
       DM_STAT_DP => DM_STAT_DP_L,
       DM_STAT_VM => DM_STAT_VM,
       DM_STAT_CO => DM_STAT_CO
@@ -214,7 +226,67 @@ begin
       IB_SRES_OR => IB_SRES_M
     );
 
-  RB_SRES    <= RB_SRES_CPU;        -- currently single rbus device
+  DMSCNT : if sys_conf_dmscnt generate
+  begin
+    I0: pdp11_dmscnt
+      generic map (
+        RB_ADDR => slv(to_unsigned(16#0040#,16)))
+      port map (
+        CLK         => CLK,
+        RESET       => RESET,
+        RB_MREQ     => RB_MREQ,
+        RB_SRES     => RB_SRES_DMSCNT,
+        DM_STAT_SE  => DM_STAT_SE,
+        DM_STAT_DP  => DM_STAT_DP_L,
+        DM_STAT_CO  => DM_STAT_CO
+      );
+  end generate DMSCNT;
+
+  DMCMON : if sys_conf_dmcmon_awidth > 0 generate
+  begin
+    I0: pdp11_dmcmon
+      generic map (
+        RB_ADDR => slv(to_unsigned(16#0048#,16)))
+      port map (
+        CLK         => CLK,
+        RESET       => RESET,
+        RB_MREQ     => RB_MREQ,
+        RB_SRES     => RB_SRES_DMCMON,
+        DM_STAT_SE  => DM_STAT_SE,
+        DM_STAT_DP  => DM_STAT_DP_L,
+        DM_STAT_VM  => DM_STAT_VM,
+        DM_STAT_CO  => DM_STAT_CO
+      );
+  end generate DMCMON;
+
+  DMHBPT : if sys_conf_dmhbpt_nunit > 0 generate
+  begin
+    I0: pdp11_dmhbpt
+      generic map (
+        RB_ADDR => slv(to_unsigned(16#0050#,16)),
+        NUNIT   => sys_conf_dmhbpt_nunit)
+      port map (
+        CLK         => CLK,
+        RESET       => RESET,
+        RB_MREQ     => RB_MREQ,
+        RB_SRES     => RB_SRES_DMHBPT,
+        DM_STAT_SE  => DM_STAT_SE,
+        DM_STAT_DP  => DM_STAT_DP_L,
+        DM_STAT_VM  => DM_STAT_VM,
+        DM_STAT_CO  => DM_STAT_CO,
+        HBPT        => HBPT
+      );
+  end generate DMHBPT;
+
+  RB_SRES_OR : rb_sres_or_4
+    port map (
+      RB_SRES_1  => RB_SRES_CORE,
+      RB_SRES_2  => RB_SRES_DMSCNT,
+      RB_SRES_3  => RB_SRES_DMHBPT,
+      RB_SRES_4  => RB_SRES_DMCMON,
+      RB_SRES_OR => RB_SRES
+    );
+
   IB_MREQ    <= IB_MREQ_M;          -- setup output signals
   GRESET     <= GRESET_L;
   CRESET     <= CRESET_L;
@@ -222,14 +294,13 @@ begin
   CP_STAT    <= CP_STAT_L;
   DM_STAT_DP <= DM_STAT_DP_L;
   
--- synthesis translate_off
-  DM_STAT_SY.emmreq <= EM_MREQ;
-  DM_STAT_SY.emsres <= EM_SRES;
   DM_STAT_SY.chit   <= CACHE_CHIT;
+
+-- synthesis translate_off
   
   TMU : pdp11_tmu_sb
     generic map (
-      ENAPIN => 13)
+      ENAPIN => sbcntl_sbf_tmu)
     port map (
       CLK        => CLK,
       DM_STAT_DP => DM_STAT_DP_L,

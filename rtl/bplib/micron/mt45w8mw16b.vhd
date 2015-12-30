@@ -1,6 +1,6 @@
--- $Id: mt45w8mw16b.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: mt45w8mw16b.vhd 718 2015-12-26 15:59:48Z mueller $
 --
--- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -26,6 +26,7 @@
 -- Tool versions:  xst 11.4-14.7; ghdl 0.26-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-12-26   718   1.3.3  BUGFIX: initialize L_ADDR with all '1', see comment
 -- 2011-11-19   427   1.3.2  now numeric_std clean
 -- 2010-06-03   299   1.3.1  improved timing model (WE cycle, robust T_apa)
 -- 2010-06-03   298   1.3    add timing model again
@@ -124,7 +125,7 @@ architecture sim of mt45w8mw16b is
   signal R_BCR_BW    : slbit := '1';    -- bw:   def: no wrap
   signal R_BCR_BL    : slv3  := "111";  -- bl:   def: continuous
   
-  signal L_ADDR : slv23 := (others=>'0');
+  signal L_ADDR : slv23 := (others=>'1'); -- all '1' for propper 1st access
   signal DOUT_VAL_EN : slbit := '0';
   signal DOUT_VAL_AA : slbit := '0';
   signal DOUT_VAL_PA : slbit := '0';
@@ -154,8 +155,16 @@ begin
     end if;
   end process proc_adv;
 
+  -- Notes:
+  --  1. the row change (t_aa) and column change (t_apa) timing depends on the
+  --     recognition of address changes and of page changes. To keep the logic
+  --     simple L_ADDR and addr_last are initialized with all '1'. This gives
+  --     proper behaviour unless the very first access uses the very last
+  --     address. In w11a systems, with use only 4 MB, this can't happen, in
+  --     most other use cases this is very unlikely.
+  
   proc_dout_val: process (CE, OE, WE, BE_L, BE_U, ADV, L_ADDR)
-    variable addr_last : slv23 := (others=>'1');
+    variable addr_last : slv23 := (others=>'1');-- all '1' for propper 1st access
   begin
     if (CE'event   and CE='1') or
        (BE_L'event and BE_L='1') or

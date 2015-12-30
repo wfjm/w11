@@ -1,4 +1,4 @@
--- $Id: sys_conf_sim.vhd 683 2015-05-17 21:54:35Z mueller $
+-- $Id: sys_conf_sim.vhd 718 2015-12-26 15:59:48Z mueller $
 --
 -- Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,8 @@
 -- Tool versions:  xst 13.1-14.7; ghdl 0.29-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-12-26   718   1.5.2  use clksys=64 (as since r692 in sys_conf.vhd)
+-- 2015-06-26   695   1.5.1  add sys_conf_(dmscnt|dmhbpt*|dmcmon*)
 -- 2015-03-14   658   1.5    add sys_conf_ibd_* definitions
 -- 2015-02-15   647   1.4    drop bram and minisys options
 -- 2014-12-22   619   1.3.1  add _rbmon_awidth
@@ -36,8 +38,8 @@ package sys_conf is
 
   -- configure clocks --------------------------------------------------------
   constant sys_conf_clksys_vcodivide   : positive :=  25;
-  constant sys_conf_clksys_vcomultiply : positive :=  18;   -- dcm   72 MHz
-  constant sys_conf_clksys_outdivide   : positive :=   1;   -- sys   72 MHz
+  constant sys_conf_clksys_vcomultiply : positive :=  16;   -- dcm   64 MHz
+  constant sys_conf_clksys_outdivide   : positive :=   1;   -- sys   64 MHz
   constant sys_conf_clksys_gentype     : string   := "DCM";
 
   -- configure rlink and hio interfaces --------------------------------------
@@ -49,13 +51,16 @@ package sys_conf is
   constant sys_conf_fx2_ccwidth  : positive := 5;
     
   -- configure memory controller ---------------------------------------------
-  constant sys_conf_memctl_read0delay : positive := 4;   -- for <75 MHz
+  constant sys_conf_memctl_read0delay : positive := 4;   -- for <75 MHz (???)
   constant sys_conf_memctl_read1delay : positive := sys_conf_memctl_read0delay;
   constant sys_conf_memctl_writedelay : positive := 5;
 
   -- configure debug and monitoring units ------------------------------------
-  constant sys_conf_rbmon_awidth : integer := 9; -- use 0 to disable rbmon
-  constant sys_conf_ibmon_awidth : integer := 9; -- use 0 to disable rbmon
+  constant sys_conf_rbmon_awidth  : integer := 9; -- use 0 to disable
+  constant sys_conf_ibmon_awidth  : integer := 9; -- use 0 to disable
+  constant sys_conf_dmscnt        : boolean := true;
+  constant sys_conf_dmhbpt_nunit  : integer := 2; -- use 0 to disable
+  constant sys_conf_dmcmon_awidth : integer := 9; -- use 0 to disable
 
   -- configure w11 cpu core --------------------------------------------------
   constant sys_conf_mem_losize     : integer := 8#167777#; --   4 MByte

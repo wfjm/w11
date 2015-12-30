@@ -1,4 +1,4 @@
--- $Id: pdp11_core.vhd 677 2015-05-09 21:52:32Z mueller $
+-- $Id: pdp11_core.vhd 702 2015-07-19 17:36:09Z mueller $
 --
 -- Copyright 2006-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -30,6 +30,9 @@
 -- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-07-19   702   1.4.2  add DM_STAT_SE port; re-arrange DM_STAT_CO usage
+-- 2015-07-05   697   1.4.1  wire istart,istop,cpustep to DM_STAT_CO
+-- 2015-06-26   695   1.4.1  connect SNUM (current state number)
 -- 2015-05-09   679   1.4    start/stop/suspend overhaul; reset overhaul
 -- 2015-04-30   670   1.3.2  rename pdp11_sys70 -> pdp11_reg70
 -- 2011-11-18   427   1.3.1  now numeric_std clean
@@ -74,8 +77,7 @@ entity pdp11_core is                    -- full processor core
     ESUSP_O : out slbit;                -- external suspend output
     ESUSP_I : in slbit;                 -- external suspend input
     ITIMER : out slbit;                 -- instruction timer
-    EBREAK : in slbit;                  -- execution break
-    DBREAK : in slbit;                  -- data break
+    HBPT : in slbit;                    -- hardware bpt
     EI_PRI : in slv3;                   -- external interrupt priority
     EI_VECT : in slv9_2;                -- external interrupt vector
     EI_ACKM : out slbit;                -- external interrupt acknowledge
@@ -85,6 +87,7 @@ entity pdp11_core is                    -- full processor core
     BRESET : out slbit;                 -- bus reset
     IB_MREQ_M : out ib_mreq_type;       -- ibus master request (master)
     IB_SRES_M : in ib_sres_type;        -- ibus slave response (master)
+    DM_STAT_SE : out dm_stat_se_type;   -- debug and monitor status - sequencer
     DM_STAT_DP : out dm_stat_dp_type;   -- debug and monitor status - dpath
     DM_STAT_VM : out dm_stat_vm_type;   -- debug and monitor status - vmbox
     DM_STAT_CO : out dm_stat_co_type    -- debug and monitor status - core
@@ -112,6 +115,7 @@ architecture syn of pdp11_core is
   signal INT_VECT : slv9_2 := (others=>'0'); 
   signal CP_STAT_L : cp_stat_type := cp_stat_init;
   signal INT_ACK : slbit := '0';
+  signal SNUM : slv8 := (others=>'0'); 
 
   signal IB_SRES_DP : ib_sres_type := ib_sres_init;
   signal IB_SRES_SEQ : ib_sres_type := ib_sres_init;
@@ -194,10 +198,10 @@ begin
       ESUSP_O   => ESUSP_O,
       ESUSP_I   => ESUSP_I,
       ITIMER    => ITIMER,
-      EBREAK    => EBREAK,
-      DBREAK    => DBREAK,
+      HBPT      => HBPT,
       IB_MREQ   => IB_MREQ,
-      IB_SRES   => IB_SRES_SEQ
+      IB_SRES   => IB_SRES_SEQ,
+      DM_STAT_SE => DM_STAT_SE
     );
 
   IRQ : pdp11_irq
@@ -239,6 +243,7 @@ begin
   BRESET  <= BRESET_L;
   
   DM_STAT_CO.cpugo    <= CP_STAT_L.cpugo;
+  DM_STAT_CO.cpustep  <= CP_STAT_L.cpustep;
   DM_STAT_CO.cpususp  <= CP_STAT_L.cpususp;
   DM_STAT_CO.suspint  <= CP_STAT_L.suspint;
   DM_STAT_CO.suspext  <= CP_STAT_L.suspext;

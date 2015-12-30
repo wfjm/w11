@@ -1,10 +1,11 @@
-# $Id: test_cp_cpubasics.tcl 683 2015-05-17 21:54:35Z mueller $
+# $Id: test_cp_cpubasics.tcl 702 2015-07-19 17:36:09Z mueller $
 #
 # Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2015-07-19   702   1.1.1  ignore attn in stat checks
 # 2015-05-09   676   1.1    w11a start/stop/suspend overhaul
 # 2013-03-31   502   1.0    Initial version
 #
@@ -91,25 +92,26 @@ stop:
 
 set statgo   [regbld rw11::STAT cpugo]
 set statgosu [regbld rw11::STAT cpususp cpugo]
+set statmask [rutil::com8 [regbld rw11::STAT attn]]; # check all but attn
 
 rlc log "    execute via -stapc, check cpugo and that r2 increments"
 $cpu cp -wr2 00000 \
         -stapc $sym(start) \
-        -rr2 rr2_1 -estat $statgo \
-        -rr2 rr2_2 -estat $statgo
+        -rr2 rr2_1 -estat $statgo $statmask \
+        -rr2 rr2_2 -estat $statgo $statmask
 tmpproc_checkr2inc $rr2_1
 tmpproc_checkr2inc [expr {$rr2_2 - $rr2_1}]
 
 rlc log "    suspend, check cpususp=1 and that r2 doesn't increment"
 $cpu cp -suspend \
         -wr2 00000 \
-        -rr2 -edata 0 -estat $statgosu \
-        -rr2 -edata 0 -estat $statgosu
+        -rr2 -edata 0 -estat $statgosu $statmask \
+        -rr2 -edata 0 -estat $statgosu $statmask
 
 rlc log "    resume, check cpususp=0 and that r2 increments again"
 $cpu cp -resume \
-        -rr2 rr2_1 -estat $statgo \
-        -rr2 rr2_2 -estat $statgo
+        -rr2 rr2_1 -estat $statgo $statmask \
+        -rr2 rr2_2 -estat $statgo $statmask
 tmpproc_checkr2inc $rr2_1
 tmpproc_checkr2inc [expr {$rr2_2 - $rr2_1}]
 

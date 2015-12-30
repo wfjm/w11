@@ -1,4 +1,4 @@
--- $Id: pdp11_core_rbus.vhd 677 2015-05-09 21:52:32Z mueller $
+-- $Id: pdp11_core_rbus.vhd 700 2015-07-12 19:28:31Z mueller $
 --
 -- Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -27,6 +27,7 @@
 --
 -- Revision History: -
 -- Date         Rev Version  Comment
+-- 2015-07-10   700   1.5.1  add cpuact logic, redefine lam as cpuact 1->0
 -- 2015-05-09   677   1.5    start/stop/suspend overhaul; reset overhaul
 -- 2014-12-26   621   1.4    use full size 4k word ibus window
 -- 2014-12-21   617   1.3.1  use separate RB_STAT bits for cmderr and cmdmerr
@@ -127,7 +128,7 @@ end pdp11_core_rbus;
 architecture syn of pdp11_core_rbus is
 
   type state_type is (
-    s_idle,                             -- s_idle: wait for rp access
+    s_idle,                             -- s_idle: wait for rbus access
     s_cpwait,                           -- s_cpwait: wait for cp port ack
     s_cpstep                            -- s_cpstep: wait for cpustep done
   );
@@ -139,7 +140,7 @@ architecture syn of pdp11_core_rbus is
     rbinit : slbit;                     -- rbus init seen (1 cycle pulse)
     cpreq : slbit;                      -- cp request flag
     cpfunc : slv5;                      -- cp function
-    cpugo_1 : slbit;                    -- prev cycle cpugo
+    cpuact_1 : slbit;                   -- prev cycle cpuact
     addr : slv22_1;                     -- address register
     ena_22bit : slbit;                  -- 22bit enable
     ena_ubmap : slbit;                  -- ubmap enable
@@ -155,7 +156,7 @@ architecture syn of pdp11_core_rbus is
     '0',                                -- rbinit
     '0',                                -- cpreq
     (others=>'0'),                      -- cpfunc
-    '0',                                -- cpugo_1
+    '0',                                -- cpuact_1
     (others=>'0'),                      -- addr
     '0','0',                            -- ena_22bit, ena_ubmap
     "11",'0',                           -- membe,membestick
@@ -192,6 +193,7 @@ architecture syn of pdp11_core_rbus is
     variable irb_lam  : slbit := '0';
     variable irbena   : slbit := '0';
 
+    variable icpuact  : slbit := '0';
     variable icpreq    : slbit := '0';
     variable icpaddr   : cp_addr_type := cp_addr_init;
     
@@ -407,8 +409,9 @@ architecture syn of pdp11_core_rbus is
       icpaddr.ena_ubmap := '0';
     end if;
     
-    n.cpugo_1 := CP_STAT.cpugo;         -- delay cpugo 
-    if CP_STAT.cpugo='0' and r.cpugo_1='1' then  -- cpugo 1 -> 0 transition ?
+    icpuact := CP_STAT.cpugo and not CP_STAT.suspint;
+    n.cpuact_1 := icpuact;              -- delay cpuact
+    if (r.cpuact_1='1' and icpuact='0') then       -- cpuact 1 -> 0
       irb_lam := '1';
     end if;
     

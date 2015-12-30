@@ -1,0 +1,57 @@
+; $Id: defs_mmu.mac 707 2015-08-02 12:10:42Z mueller $
+; Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory 
+;
+; definitions for mmu registers (as in defs_mmu.das)
+;
+        ssr0 = 177572
+        ssr1 = 177574
+        ssr2 = 177576
+        ssr3 = 172516
+;
+        uipdr = 177600                  ; usr i page dsc base
+        udpdr = 177620                  ; usr d page dsc base
+        udpdr = 177620                  ; usr d page dsc base
+        uipar = 177640                  ; usr i page addr base
+        udpar = 177660                  ; usr d page addr base
+        sipdr = 172200                  ; sup i page dsc base
+        sdpdr = 172220                  ; sup d page dsc base
+        sipar = 172240                  ; sup i page addr base
+        sdpar = 172260                  ; sup d page addr base
+        kipdr = 172300                  ; ker i page dsc base
+        kdpdr = 172320                  ; ker d page dsc base
+        kipar = 172340                  ; ker i page addr base
+        kdpar = 172360                  ; ker d page addr base
+;
+; symbol definitions for ssr0
+;
+        m0.anr = 100000
+        m0.ale = 040000
+        m0.ard = 020000
+        m0.trp = 010000
+        m0.ent = 001000
+        m0.mai = 000400
+        m0.ico = 000200
+        m0.dsp = 000020
+        m0.ena = 000001
+;
+; symbol definitions for ssr3
+;
+        m3.eub = 000040
+        m3.e22 = 000020
+        m3.dkm = 000004
+        m3.dsm = 000002
+        m3.dum = 000001
+;
+; symbol definitions for pdr regs
+;
+        md.aia = 000200
+        md.aiw = 000100
+        md.dwn = 000010
+        md.an7 = 000007
+        md.arw = 000006
+        md.atw = 000005
+        md.atr = 000004
+        md.an3 = 000003
+        md.aro = 000002
+        md.art = 000001

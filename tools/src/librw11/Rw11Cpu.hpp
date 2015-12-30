@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.hpp 675 2015-05-08 21:05:08Z mueller $
+// $Id: Rw11Cpu.hpp 721 2015-12-29 17:50:50Z mueller $
 //
 // Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,9 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2015-12-28   721   1.2.5  BUGFIX: IM* correct register offset definitions
+// 2015-07-12   700   1.2.4  use ..CpuAct instead ..CpuGo (new active based lam);
+//                           add probe and map setup for optional cpu components
 // 2015-05-08   675   1.2.3  w11a start/stop/suspend overhaul
 // 2015-04-25   668   1.2.2  add AddRbibr(), AddWbibr()
 // 2015-04-03   661   1.2.1  add kStat_M_* defs
@@ -26,7 +29,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cpu.hpp 675 2015-05-08 21:05:08Z mueller $
+  \version $Id: Rw11Cpu.hpp 721 2015-12-29 17:50:50Z mueller $
   \brief   Declaration of class Rw11Cpu.
 */
 
@@ -77,6 +80,11 @@ namespace Retro {
       uint16_t      Base() const;
       uint16_t      IBase() const;
 
+      bool          HasScnt() const;
+      bool          HasCmon() const;
+      uint16_t      HasHbpt() const;
+      bool          HasIbmon() const;
+
       void          AddCntl(const boost::shared_ptr<Rw11Cntl>& spcntl);
       bool          TestCntl(const std::string& name) const;
       void          ListCntl(std::vector<std::string>& list) const;
@@ -119,10 +127,10 @@ namespace Retro {
                             bool trace=false);
       bool          Boot(const std::string& uname, RerrMsg& emsg);
 
-      void          SetCpuGoUp();
-      void          SetCpuGoDown(uint16_t stat);
-      double        WaitCpuGoDown(double tout);
-      bool          CpuGo() const;
+      void          SetCpuActUp();
+      void          SetCpuActDown(uint16_t stat);
+      double        WaitCpuActDown(double tout);
+      bool          CpuAct() const;
       uint16_t      CpuStat() const;
 
       uint16_t      IbusRemoteAddr(uint16_t ibaddr) const;
@@ -184,6 +192,7 @@ namespace Retro {
       static const uint16_t  kCPURUST_STOP   = 0x3;  //!< cpu was stopped
       static const uint16_t  kCPURUST_STEP   = 0x4;  //!< cpu was stepped
       static const uint16_t  kCPURUST_SUSP   = 0x5;  //!< cpu was suspended
+      static const uint16_t  kCPURUST_HBPT   = 0x6;  //!< cpu hardware bpt
       static const uint16_t  kCPURUST_RUNS   = 0x7;  //!< cpu running
       static const uint16_t  kCPURUST_VECFET = 0x8;  //!< vector fetch halt
       static const uint16_t  kCPURUST_RECRSV = 0x9;  //!< rec red-stack halt
@@ -200,8 +209,44 @@ namespace Retro {
     // defs for the four status bits defined by w11 rbus iface
       static const uint8_t   kStat_M_CmdErr  = kBBit07; //!< stat: cmderr  flag
       static const uint8_t   kStat_M_CmdMErr = kBBit06; //!< stat: cmdmerr flag
-      static const uint8_t   kStat_M_CpuHalt = kBBit05; //!< stat: cpuhalt flag
+      static const uint8_t   kStat_M_CpuSusp = kBBit05; //!< stat: cpususp flag
       static const uint8_t   kStat_M_CpuGo   = kBBit04; //!< stat: cpugo   flag
+
+    // defs for optional w11 components
+      static const uint16_t  kSCBASE  = 0x0040;   //!< DMSCNT reg base offset
+      static const uint16_t  kSCCNTL  = 0x0000;   //!< SC.CNTL  reg offset
+      static const uint16_t  kSCADDR  = 0x0001;   //!< SC.ADDR  reg offset
+      static const uint16_t  kSCDATA  = 0x0002;   //!< SC.DATA  reg offset
+
+      static const uint16_t  kCMBASE  = 0x0048;   //!< DMCMON reg base offset
+      static const uint16_t  kCMCNTL  = 0x0000;   //!< CM.CNTL  reg offset
+      static const uint16_t  kCMSTAT  = 0x0001;   //!< CM.STAT  reg offset
+      static const uint16_t  kCMADDR  = 0x0002;   //!< CM.ADDR  reg offset
+      static const uint16_t  kCMDATA  = 0x0003;   //!< CM.DATA  reg offset
+      static const uint16_t  kCMIADDR = 0x0004;   //!< CM.IADDR reg offset
+      static const uint16_t  kCMIPC   = 0x0005;   //!< CM.IPC   reg offset
+      static const uint16_t  kCMIREG  = 0x0006;   //!< CM.IREG  reg offset
+      static const uint16_t  kCMIMAL  = 0x0007;   //!< CM.IMAL  reg offset
+
+      static const uint16_t  kHBBASE  = 0x0050;   //!< DMHBPT reg base offset
+      static const uint16_t  kHBSIZE  = 0x0004;   //!< DMHBPT unit size
+      static const uint16_t  kHBNMAX  = 0x0004;   //!< DMHBPT max number units
+      static const uint16_t  kHBCNTL  = 0x0000;   //!< HB.CNTL  reg offset
+      static const uint16_t  kHBSTAT  = 0x0001;   //!< HB.STAT  reg offset
+      static const uint16_t  kHBHILIM = 0x0002;   //!< HB.HILIM reg offset
+      static const uint16_t  kHBLOLIM = 0x0003;   //!< HB.LOLIM reg offset
+
+      static const uint16_t  kIMBASE  = 0160000;  //!< Ibmon ibus address
+      static const uint16_t  kIMCNTL  = 0x0000;   //!< IM.CNTL  reg offset
+      static const uint16_t  kIMSTAT  = 0x0002;   //!< IM.STAT  reg offset
+      static const uint16_t  kIMHILIM = 0x0004;   //!< IM.HILIM reg offset
+      static const uint16_t  kIMLOLIM = 0x0006;   //!< IM.LOLIM reg offset
+      static const uint16_t  kIMADDR  = 0x0008;   //!< IM.ADDR  reg offset
+      static const uint16_t  kIMDATA  = 0x000a;   //!< IM.DATA  reg offset
+
+    protected:
+      void          SetupStd();
+      void          SetupOpt();
 
     private:
                     Rw11Cpu() {}            //!< default ctor blocker
@@ -212,10 +257,14 @@ namespace Retro {
       size_t        fIndex;
       uint16_t      fBase;
       uint16_t      fIBase;
-      bool          fCpuGo;
+      bool          fHasScnt;               //!< has dmscnt (state counter) 
+      bool          fHasCmon;               //!< has dmcmon (cpu monitor)
+      uint16_t      fHasHbpt;               //!< has dmhbpt (hardware breakpoint)
+      bool          fHasIbmon;              //!< has ibmon  (ibus monitor)
+      bool          fCpuAct;
       uint16_t      fCpuStat;
-      boost::mutex               fCpuGoMutex;
-      boost::condition_variable  fCpuGoCond;
+      boost::mutex               fCpuActMutex;
+      boost::condition_variable  fCpuActCond;
       cmap_t        fCntlMap;               //!< name->cntl map
       RlinkAddrMap  fIAddrMap;              //!< ibus name<->address mapping
       RlinkAddrMap  fRAddrMap;              //!< rbus name<->address mapping

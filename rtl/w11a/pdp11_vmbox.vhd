@@ -1,4 +1,4 @@
--- $Id: pdp11_vmbox.vhd 677 2015-05-09 21:52:32Z mueller $
+-- $Id: pdp11_vmbox.vhd 697 2015-07-05 14:23:26Z mueller $
 --
 -- Copyright 2006-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -27,6 +27,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2015-07-03   697   1.6.5  much wider DM_STAT_VM
 -- 2015-04-04   662   1.6.4  atowidth now 6 (was 5) to support ibdr_rprm reset
 -- 2011-11-18   427   1.6.3  now numeric_std clean
 -- 2010-10-23   335   1.6.2  add r.paddr_iopage, use ib_sel
@@ -167,9 +168,14 @@ architecture syn of pdp11_vmbox is
   signal UBMAP_MREQ : slbit := '0';
   signal UBMAP_ADDR_PM : slv22_1 := (others=>'0');
 
+  signal VM_STAT_L : vm_stat_type := vm_stat_init; -- vm status    (local)
+  signal VM_DOUT_L : slv16 := (others=>'0');       -- vm data out  (local)
+
   signal IB_MREQ : ib_mreq_type := ib_mreq_init; -- ibus request  (local)
   signal IB_SRES : ib_sres_type := ib_sres_init; -- ibus response (local)
   signal IB_SRES_INT : ib_sres_type := ib_sres_init; -- ibus response (cpu)
+
+  signal EM_MREQ_L : em_mreq_type := em_mreq_init; -- ext mem: request (local)
   
 begin
 
@@ -668,17 +674,27 @@ begin
     IB_MREQ.addr <= r.paddr(12 downto 1);
     IB_MREQ.din  <= r.mdin;
     
-    VM_DOUT  <= ivm_dout;    
-    VM_STAT  <= ivm_stat;
-    MMU_CNTL <= immu_cntl;
+    VM_STAT_L <= ivm_stat;
+    VM_DOUT_L <= ivm_dout;    
+    MMU_CNTL  <= immu_cntl;
 
-    EM_MREQ  <= iem_mreq;
-    
+    EM_MREQ_L  <= iem_mreq;
+
   end process proc_next;   
 
+  VM_STAT   <= VM_STAT_L;
+  VM_DOUT   <= VM_DOUT_L;
   IB_MREQ_M <= IB_MREQ;                 -- external drive master port
-
+  EM_MREQ   <= EM_MREQ_L;
+  
+  DM_STAT_VM.vmcntl <= VM_CNTL;
+  DM_STAT_VM.vmaddr <= VM_ADDR;
+  DM_STAT_VM.vmdin  <= VM_DIN;
+  DM_STAT_VM.vmstat <= VM_STAT_L;
+  DM_STAT_VM.vmdout <= VM_DOUT_L;
   DM_STAT_VM.ibmreq <= IB_MREQ;
   DM_STAT_VM.ibsres <= IB_SRES;
+  DM_STAT_VM.emmreq <= EM_MREQ_L;
+  DM_STAT_VM.emsres <= EM_SRES;
 
 end syn;

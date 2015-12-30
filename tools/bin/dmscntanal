@@ -1,0 +1,488 @@
+#!/usr/bin/perl -w
+# $Id: dmscntanal 721 2015-12-29 17:50:50Z mueller $
+#
+# Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+#
+# This program is free software; you may redistribute and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 2, or at your option any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# for complete details.
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2015-06-28   696   1.0    Initial version
+#
+
+use 5.14.0;                                 # require Perl 5.14 or higher
+use strict;                                 # require strict checking
+
+use Getopt::Long;
+
+my %opts = ();
+
+GetOptions(\%opts, "help", "raw")
+  or die "bad options";
+
+sub print_help;
+sub read_file;
+sub show_raw;
+sub add_groups;
+sub group_new;
+
+my @snum2nam;
+my %snam2num;
+my %dat_all;
+my %dat_km;
+my %dat_um;
+my $sum_all;
+my $sum_km;
+my $sum_um;
+
+autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
+
+if (exists $opts{help}) {
+  print_help;
+  exit 0;
+}
+
+foreach my $file (@ARGV) {
+  read_file($file);
+  add_groups();
+  show_raw() if exists $opts{raw};
+  show_frac();
+}
+
+#-------------------------------------------------------------------------------
+
+sub read_file {
+  my ($file) = @_;
+
+  %dat_km   = ();
+  %dat_um   = ();
+  %dat_all  = ();
+  @snum2nam = ();
+  %snam2num = ();
+  $sum_all = 0;
+  $sum_km  = 0;
+  $sum_um  = 0;
+
+  open IFILE,"<$file" or die "failed to open $file";
+
+  while (<IFILE>) {
+    chomp;
+    next if m/^#/;
+    if (m/^\s*([[:xdigit:]]+)
+          \s+(\w+)
+          \s+(\d+)
+          \s+(\d+)
+          \s+(\d+)/x) {
+      my $snum = hex($1);
+      my $snam = $2;
+      my $all  = 1. * "$3.";
+      my $km   = 1. * "$4.";
+      my $um   = 1. * "$5.";
+
+      $snum2nam[$snum] = $snam;
+      $snam2num{$snam} = $snum;
+
+      $dat_all{$snam} += $all;
+      $dat_km{$snam}  += $km;
+      $dat_um{$snam}  += $um;
+
+      $sum_all += $all;
+      $sum_km  += $km;
+      $sum_um  += $um;
+
+    } else {
+      printf STDERR "bad line: $_\n";
+    }
+  }
+
+  close IFILE;
+
+}
+
+#-------------------------------------------------------------------------------
+
+sub show_raw {
+  print "#\n";
+  print "#sn state                      all          km         usm" .
+        "    all%    km%   usm%\n";
+  printf "#   sum_all            %11.0f %11.0f %11.0f  %6.2f %6.2f %6.2f\n",
+    $sum_all, $sum_km, $sum_um,
+      get_frac(100., $sum_all, $sum_all),
+      get_frac(100., $sum_km,  $sum_all),
+      get_frac(100., $sum_um,  $sum_all);
+
+  for (my $snum=0; $snum<scalar(@snum2nam); $snum++) {
+    my $snam = $snum2nam[$snum];
+    next unless defined $snam;
+    printf "%3.3x %-18s %11.0f %11.0f %11.0f  %6.2f %6.2f %6.2f\n",
+      $snum, $snam, $dat_all{$snam}, $dat_km{$snam}, $dat_um{$snam},
+        get_frac(100., $dat_all{$snam}, $sum_all),
+        get_frac(100., $dat_km{$snam},  $sum_km),
+        get_frac(100., $dat_um{$snam}, $sum_um);
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub show_frac {
+  print "#\n";
+  print "#   Ratio                       all       km      usm\n";
+  print_frac('%','cycles busy',           'g_sum_exec',   'g_sum');
+  print_frac('%','cycles cpmem',          'g_cp_mem',     'g_sum');
+  print_frac('%','cycles wextra',         'g_all_wextra', 'g_sum_exec');
+  print_frac('%','cycles jsr+rts',        'g_op_jsrrts',  'g_sum_exec');
+  print_frac('%','cycles int+rti',        'g_intrti',     'g_sum_exec');
+  print_frac('%','ifetch/idecode',        's_ifetch',     's_idecode');
+  print_frac('%','flow cntl/idecode',     'g_flow',       's_idecode');
+  print_frac('%','  br/idecode',          's_op_br',      's_idecode');
+  print_frac('%','  sob/idecode',         's_op_sob',     's_idecode');
+  print_frac('%','  jmp/idecode',         's_opa_jmp',    's_idecode');
+  print_frac('%','  jsr/idecode',         's_opa_jsr',    's_idecode');
+  print_frac('%','  rts/idecode',         's_op_rts',     's_idecode');
+  print_frac(' ','cycles/idecode (cpi)',  'g_sum_exec',   's_idecode');
+  print_frac(' ','  fetdec/idecode',      'g_ifetdec',    's_idecode');
+  print_frac(' ','  srcr/idecode',        'g_srcr',       's_idecode');
+  print_frac(' ','  dstr/idecode',        'g_dstr',       's_idecode');
+  print_frac(' ','  dstw/idecode',        'g_dstw',       's_idecode');
+  print_frac(' ','  dsta/idecode',        'g_dsta',       's_idecode');
+  print_frac(' ','ifetch_w/ifetch',       's_ifetch_w',   's_ifetch');
+  print_frac(' ','wextra/idecode',        'g_all_wextra', 's_idecode');
+}
+
+#-------------------------------------------------------------------------------
+
+sub print_frac {
+  my ($pre,$text,$nom,$denom) = @_;
+
+  die "print_frac: bad key '$nom'"    unless defined $snam2num{$nom};
+  die "print_frac: bad key '$denom'"  unless defined $snam2num{$denom};
+
+  my $fact = ($pre eq '%') ? 100. : 1.;
+  printf "    %-22s  %7.2f%s %7.2f%s %7.2f%s\n",
+    $text,
+    get_frac($fact, $dat_all{$nom}, $dat_all{$denom}), $pre,
+    get_frac($fact, $dat_km{$nom},  $dat_km{$denom}),  $pre,
+    get_frac($fact, $dat_um{$nom},  $dat_um{$denom}),  $pre;
+}
+
+#-------------------------------------------------------------------------------
+
+sub get_frac {
+  my ($fact,$nom,$denom) = @_;
+  $denom = 1. unless $denom > 0.;
+  return $fact*($nom/$denom);
+}
+
+#-------------------------------------------------------------------------------
+
+sub add_groups {
+  group_new(0x100, 'g_sum');
+  $dat_all{g_sum} = $sum_all;
+  $dat_km{g_sum}  = $sum_km;
+  $dat_um{g_sum}  = $sum_um;
+
+  group_new(0x110, 'g_cp',
+            's_cp_regread',
+            's_cp_rps',
+            's_cp_memr_w',
+            's_cp_memw_w');
+
+  group_new(0x111, 'g_cp_mem',
+            's_idle',
+            's_cp_memr_w',
+            's_cp_memw_w',
+            '-',
+            's_int_ext');
+
+  group_new(0x112, 'g_ifetdec',
+            's_ifetch',
+            's_ifetch_w',
+            's_idecode');
+
+  group_new(0x113, 'g_srcr',
+            's_srcr_def',
+            's_srcr_def_w',
+            's_srcr_inc',
+            's_srcr_inc_w',
+            's_srcr_dec',
+            's_srcr_dec1',
+            's_srcr_ind',
+            's_srcr_ind1_w',
+            's_srcr_ind2',
+            's_srcr_ind2_w');
+
+  group_new(0x114, 'g_dstr',
+            's_dstr_def',
+            's_dstr_def_w',
+            's_dstr_inc',
+            's_dstr_inc_w',
+            's_dstr_dec',
+            's_dstr_dec1',
+            's_dstr_ind',
+            's_dstr_ind1_w',
+            's_dstr_ind2',
+            's_dstr_ind2_w');
+
+  group_new(0x115, 'g_dstw',
+            's_dstw_def',
+            's_dstw_def_w',
+            's_dstw_inc',
+            's_dstw_inc_w',
+            's_dstw_incdef_w',
+            's_dstw_dec',
+            's_dstw_dec1',
+            's_dstw_ind',
+            's_dstw_ind_w',
+            's_dstw_def246');
+
+  group_new(0x116, 'g_dsta',
+            's_dsta_inc',
+            's_dsta_incdef_w',
+            's_dsta_dec',
+            's_dsta_dec1',
+            's_dsta_ind',
+            's_dsta_ind_w');
+
+  group_new(0x120, 'g_op_rts',
+            's_op_rts',
+            's_op_rts_pop',
+            's_op_rts_pop_w');
+
+  group_new(0x121, 'g_op_sob',
+            's_op_sob',
+            's_op_sob1');
+
+  group_new(0x122, 'g_op_gen',
+            's_opg_gen',
+            's_opg_gen_rmw_w');
+
+  group_new(0x123, 'g_op_mul',
+            's_opg_mul',
+            's_opg_mul1');
+
+  group_new(0x124, 'g_op_div',
+            's_opg_div',
+            's_opg_div_cn',
+            's_opg_div_cr',
+            's_opg_div_sq',
+            's_opg_div_sr',
+            's_opg_div_quit');
+
+  group_new(0x125, 'g_op_ash',
+            's_opg_ash',
+            's_opg_ash_cn');
+
+  group_new(0x126, 'g_op_ashc',
+            's_opg_ashc',
+            's_opg_ashc_cn',
+            's_opg_ashc_wl');
+
+  group_new(0x127, 'g_op_jsr',
+            's_opa_jsr',
+            's_opa_jsr1',
+            's_opa_jsr_push',
+            's_opa_jsr_push_w',
+            's_opa_jsr2');
+
+  group_new(0x128, 'g_op_mtp',
+            's_opa_mtp',
+            's_opa_mtp_pop_w',
+            's_opa_mtp_reg',
+            's_opa_mtp_mem',
+            's_opa_mtp_mem_w');
+
+  group_new(0x129, 'g_op_mfp',
+            's_opa_mfp_reg',
+            's_opa_mfp_mem',
+            's_opa_mfp_mem_w',
+            's_opa_mfp_dec',
+            's_opa_mfp_push',
+            's_opa_mfp_push_w');
+
+  group_new(0x12a, 'g_int',
+            's_int_ext',
+            's_int_getpc',
+            's_int_getpc_w',
+            's_int_getps',
+            's_int_getps_w',
+            's_int_getsp',
+            's_int_decsp',
+            's_int_pushps',
+            's_int_pushps_w',
+            's_int_pushpc',
+            's_int_pushpc_w');
+
+  group_new(0x12b, 'g_rti',
+            's_rti_getpc',
+            's_rti_getpc_w',
+            's_rti_getps',
+            's_rti_getps_w',
+            's_rti_newpc');
+
+  group_new(0x130, 'g_op_jsrrts',
+            'g_op_jsr',
+            'g_op_rts');
+
+  group_new(0x131, 'g_flow',
+            's_op_br',
+            's_op_sob',
+            's_opa_jmp',
+            's_opa_jsr',
+            's_op_rts');
+
+  group_new(0x13a, 'g_intrti',
+            'g_int',
+            'g_rti');
+
+  group_new(0x101, 'g_sum_noidle',
+            'g_sum',
+            '-',
+            'g_cp_mem',
+            's_op_wait');
+
+  group_new(0x102, 'g_sum_exec',
+            'g_sum_noidle',
+            '-',
+            'g_int',
+            'g_rti');
+
+  group_new(0x140, 'g_ifetch_wextra',
+            's_ifetch_w',
+            '-',
+            's_ifetch');
+
+  group_new(0x141, 'g_srcr_wextra',
+            's_srcr_def_w',
+            's_srcr_inc_w',
+            's_srcr_ind1_w',
+            's_srcr_ind2_w',
+            '-',
+            's_srcr_def',
+            's_srcr_inc',
+            's_srcr_ind',
+            's_srcr_ind2');
+
+  group_new(0x142, 'g_dstr_wextra',
+            's_dstr_def_w',
+            's_dstr_inc_w',
+            's_dstr_ind1_w',
+            's_dstr_ind2_w',
+            '-',
+            's_dstr_def',
+            's_dstr_inc',
+            's_dstr_ind',
+            's_dstr_ind2');
+
+  group_new(0x143, 'g_dstw_wextra',
+            's_dstw_def_w',
+            's_dstw_inc_w',
+            's_dstw_incdef_w',
+            's_dstw_ind_w',
+            '-',
+            's_dstw_def',
+            's_dstw_inc',
+            's_dstw_ind',
+            's_dstw_def246');
+
+  group_new(0x144, 'g_dsta_wextra',
+            's_dsta_incdef_w',
+            's_dsta_ind_w',
+            '-',
+            's_dsta_inc',
+            's_dsta_ind');
+
+  group_new(0x145, 'g_op_rts_wextra',
+            's_op_rts_pop_w',
+            '-',
+            's_op_rts_pop');
+
+  group_new(0x146, 'g_op_jsr_wextra',
+            's_opa_jsr_push_w',
+            '-',
+            's_opa_jsr_push');
+
+  group_new(0x147, 'g_op_mtp_wextra',
+            's_opa_mtp_pop_w',
+            's_opa_mtp_mem_w',
+            '-',
+            's_opa_mtp',
+            's_opa_mtp_mem');
+
+  group_new(0x148, 'g_op_mfp_wextra',
+            's_opa_mfp_mem_w',
+            's_opa_mfp_push_w',
+            '-',
+            's_opa_mfp_mem',
+            's_opa_mfp_push');
+
+  group_new(0x149, 'g_int_wextra',
+            's_int_getpc_w',
+            's_int_getps_w',
+            's_int_pushps_w',
+            's_int_pushpc_w',
+            '-',
+            's_int_getpc',
+            's_int_getps',
+            's_int_pushps',
+            's_int_pushpc');
+
+  group_new(0x14a, 'g_rti_wextra',
+            's_rti_getpc_w',
+            's_rti_getps_w',
+            '-',
+            's_rti_getpc',
+            's_rti_getps');
+
+  group_new(0x14f, 'g_all_wextra',
+            'g_ifetch_wextra',
+            'g_srcr_wextra',
+            'g_dstr_wextra',
+            'g_dstw_wextra',
+            'g_dsta_wextra',
+            'g_op_rts_wextra',
+            'g_op_jsr_wextra',
+            'g_op_mtp_wextra',
+            'g_op_mfp_wextra',
+            'g_int_wextra',
+            'g_rti_wextra');
+}
+
+#-------------------------------------------------------------------------------
+
+sub group_new {
+  my $snum = shift @_;
+  my $snam = shift @_;
+
+  die "group_new: bad snum '$snum'" if defined $snum2nam[$snum];
+  die "group_new: bad snam '$snam'" if defined $snam2num{$snam};
+
+  $snum2nam[$snum] = $snam;
+  $snam2num{$snam} = $snum;
+  $dat_all{$snam} = 0;
+  $dat_km{$snam}  = 0;
+  $dat_um{$snam}  = 0;
+  my $sign = 1.;
+
+  foreach my $val (@_) {
+    if ($val eq '+') { $sign =  1.; next;}
+    if ($val eq '-') { $sign = -1.; next;}
+    die "bad action '$val'" unless defined $snam2num{$val};
+    $dat_all{$snam} += $sign * $dat_all{$val};
+    $dat_km{$snam}  += $sign * $dat_km{$val};
+    $dat_um{$snam}  += $sign * $dat_um{$val};
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub print_help {
+  print "usage: dmscntanal file\n";
+  print "  --help           this message\n";
+}

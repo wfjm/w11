@@ -1,4 +1,4 @@
-# $Id: test_w11a_inst_traps.tcl 683 2015-05-17 21:54:35Z mueller $
+# $Id: test_w11a_inst_traps.tcl 704 2015-07-25 14:18:03Z mueller $
 #
 # Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
@@ -70,14 +70,14 @@ data:   .blkw   6.*5.
         .word   177777
 }
 
-rw11::asmrun  $cpu sym [list r5 $sym(data) ]
+rw11::asmrun  $cpu sym r5 $sym(data)
 rw11::asmwait $cpu sym 
-rw11::asmtreg $cpu [list r0 0 \
-                         r1 0 \
-                         r2 0 \
-                         r3 0 \
-                         r5 [expr {$sym(data) + 6*5*2}] \
-                         sp $sym(stack) ]
+rw11::asmtreg $cpu     r0 0 \
+                       r1 0 \
+                       r2 0 \
+                       r3 0 \
+                       r5 [expr {$sym(data) + 6*5*2}] \
+                       sp $sym(stack)
 
 # data: trap ps; trap id; stack-pc;    stack-ps   opcode
 rw11::asmtmem $cpu $sym(data) \

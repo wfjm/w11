@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tmuconv 676 2015-05-09 16:31:54Z mueller $
+# $Id: tmuconv 712 2015-11-01 22:53:45Z mueller $
 #
 # Copyright 2008-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,10 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-11-01   712   1.1.1  BUGFIX: fix '.' handling for br/sob instructions
+#                           BUGFIX: correct xor (now r,dst, and not src,r)
+#                           br/sob offsets now octal; assume --t_id if no opts
+# 2015-07-03   697   1.1    adapt to new DM_STAT_(SY|VM); add rhrp vector
 # 2010-10-22   334   1.0.9  adapt to ibus V2 signals: req,we,dip->aval,re,we,rmw
 # 2010-06-26   309   1.0.8  add ibimres.cacc/racc handling
 # 2010-04-26   284   1.0.7  add error check for GetOptions
@@ -54,19 +58,19 @@
 #   vm.ibsres.ack:b
 #   vm.ibsres.busy:b
 #   vm.ibsres.dout:o
+#   vm.emmreq.req:b
+#   vm.emmreq.we:b
+#   vm.emmreq.be:b
+#   vm.emmreq.cancel:b
+#   vm.emmreq.addr:o
+#   vm.emmreq.din:o
+#   vm.emsres.ack_r:b
+#   vm.emsres.ack_w:b
+#   vm.emsres.dout:o
 #   co.cpugo:b
 #   co.cpususp:b
 #   co.suspint:b
 #   co.suspext:b
-#   sy.emmreq.req:b
-#   sy.emmreq.we:b
-#   sy.emmreq.be:b
-#   sy.emmreq.cancel:b
-#   sy.emmreq.addr:o
-#   sy.emmreq.din:o
-#   sy.emsres.ack_r:b
-#   sy.emsres.ack_w:b
-#   sy.emsres.dout:o
 #   sy.chit:b
 #
 
@@ -126,15 +130,16 @@ my $ind_vm_ibsres_ack;
 my $ind_vm_ibsres_busy;
 my $ind_vm_ibsres_dout;
 
-my $ind_sy_emmreq_req;
-my $ind_sy_emmreq_we;
-my $ind_sy_emmreq_be;
-my $ind_sy_emmreq_cancel;
-my $ind_sy_emmreq_addr;
-my $ind_sy_emmreq_din;
-my $ind_sy_emsres_ack_r;
-my $ind_sy_emsres_ack_w;
-my $ind_sy_emsres_dout;
+my $ind_vm_emmreq_req;
+my $ind_vm_emmreq_we;
+my $ind_vm_emmreq_be;
+my $ind_vm_emmreq_cancel;
+my $ind_vm_emmreq_addr;
+my $ind_vm_emmreq_din;
+my $ind_vm_emsres_ack_r;
+my $ind_vm_emsres_ack_w;
+my $ind_vm_emsres_dout;
+
 my $ind_sy_chit;
 
 my @pdp11_opcode_tbl = (
@@ -151,7 +156,7 @@ my @pdp11_opcode_tbl = (
     {code=>0000230, mask=>0000007, name=>"spl ", type=>"spl"},
     {code=>0000240, mask=>0000017, name=>"cl",   type=>"ccop"},
     {code=>0000260, mask=>0000017, name=>"se",   type=>"ccop"},
-    {code=>0000300, mask=>0000077, name=>"swap", type=>"1arg"},
+    {code=>0000300, mask=>0000077, name=>"swab", type=>"1arg"},
     {code=>0000400, mask=>0000377, name=>"br  ", type=>"br"},
     {code=>0001000, mask=>0000377, name=>"bne ", type=>"br"},
     {code=>0001400, mask=>0000377, name=>"beq ", type=>"br"},
@@ -159,7 +164,7 @@ my @pdp11_opcode_tbl = (
     {code=>0002400, mask=>0000377, name=>"blt ", type=>"br"},
     {code=>0003000, mask=>0000377, name=>"bgt ", type=>"br"},
     {code=>0003400, mask=>0000377, name=>"ble ", type=>"br"},
-    {code=>0004000, mask=>0000777, name=>"jsr ", type=>"jsr"},
+    {code=>0004000, mask=>0000777, name=>"jsr ", type=>"rsrc"},
     {code=>0005000, mask=>0000077, name=>"clr ", type=>"1arg"},
     {code=>0005100, mask=>0000077, name=>"com ", type=>"1arg"},
     {code=>0005200, mask=>0000077, name=>"inc ", type=>"1arg"},
@@ -189,7 +194,7 @@ my @pdp11_opcode_tbl = (
     {code=>0071000, mask=>0000777, name=>"div ", type=>"rdst"},
     {code=>0072000, mask=>0000777, name=>"ash ", type=>"rdst"},
     {code=>0073000, mask=>0000777, name=>"ashc", type=>"rdst"},
-    {code=>0074000, mask=>0000777, name=>"xor ", type=>"rdst"},
+    {code=>0074000, mask=>0000777, name=>"xor ", type=>"rsrc"},
     {code=>0077000, mask=>0000777, name=>"sob ", type=>"sob"},
     {code=>0100000, mask=>0000377, name=>"bpl ", type=>"br"},
     {code=>0100400, mask=>0000377, name=>"bmi ", type=>"br"},
@@ -294,10 +299,10 @@ my %pdp11_regs = (			    # use simh naming convention
      177574=> "mmr1",
      177572=> "mmr0",
      177570=> "sdreg",			    # not a simh name !!
-     177560=> "ti.csr",
-     177562=> "ti.buf",
-     177564=> "to.csr",
-     177566=> "to.buf",
+     177560=> "tia.csr",
+     177562=> "tia.buf",
+     177564=> "toa.csr",
+     177566=> "toa.buf",
      177550=> "pr.csr",
      177552=> "pr.buf",
      177554=> "pp.csr",
@@ -316,32 +321,32 @@ my %pdp11_regs = (			    # use simh naming convention
      177414=> "rk.mr ",
      177416=> "rk.db ",
      177060=> "xor.cs",                     # XOR Tester
-     176700=> "rpa.cs1",
-     176702=> "rpa.wc ",
-     176704=> "rpa.ba ",
-     176706=> "rpa.da ",
-     176710=> "rpa.cs2",
-     176712=> "rpa.ds ",
-     176714=> "rpa.er1",
-     176716=> "rpa.as ",
-     176720=> "rpa.la ",
-     176722=> "rpa.db ",
-     176724=> "rpa.mr1",
-     176726=> "rpa.dt ",
-     176730=> "rpa.sn ",
-     176732=> "rpa.of ",
-     176734=> "rpa.dc ",
-     176736=> "rpa.m13",
-     176740=> "rpa.m14",
-     176742=> "rpa.m15",
-     176744=> "rpa.ec1",
-     176746=> "rpa.ec2",
-     176750=> "rpa.bae",
-     176752=> "rpa.cs3",
-     176500=> "ti2.cs",
-     176502=> "ti2.bu",
-     176504=> "to2.cs",
-     176506=> "to2.bu",
+     176700=> "rp.cs1",
+     176702=> "rp.wc ",
+     176704=> "rp.ba ",
+     176706=> "rp.da ",
+     176710=> "rp.cs2",
+     176712=> "rp.ds ",
+     176714=> "rp.er1",
+     176716=> "rp.as ",
+     176720=> "rp.la ",
+     176722=> "rp.db ",
+     176724=> "rp.mr1",
+     176726=> "rp.dt ",
+     176730=> "rp.sn ",
+     176732=> "rp.of ",
+     176734=> "rp.dc ",
+     176736=> "rp.m13",
+     176740=> "rp.m14",
+     176742=> "rp.m15",
+     176744=> "rp.ec1",
+     176746=> "rp.ec2",
+     176750=> "rp.bae",
+     176752=> "rp.cs3",
+     176500=> "tib.cs",
+     176502=> "tib.bu",
+     176504=> "tob.cs",
+     176506=> "tob.bu",
      174400=> "rl.cs ",
      174402=> "rl.ba ",
      174404=> "rl.da ",
@@ -349,12 +354,12 @@ my %pdp11_regs = (			    # use simh naming convention
      172540=> "kp.csr",
      172542=> "kp.buf",
      172544=> "kp.cnt",
-     172520=> "tm.mts",
-     172522=> "tm.mtc",
-     172524=> "tm.brc",
-     172526=> "tm.cma",
-     172530=> "tm.mtd",
-     172532=> "tm.rda",
+     172520=> "tm.sr",
+     172522=> "tm.cr",
+     172524=> "tm.bc",
+     172526=> "tm.ba",
+     172530=> "tm.db",
+     172532=> "tm.rl",
      172516=> "mmr3",
      172200=> "sipdr0",
      172202=> "sipdr1",
@@ -433,6 +438,16 @@ if (exists $opts{help}) {
   exit 0;
 }
 
+my $nopts = 0;                              # count options
+$nopts += 1 if $opts{dump};
+$nopts += 1 if $opts{cdump};
+$nopts += 1 if $opts{t_id};
+$nopts += 1 if $opts{t_ru};
+$nopts += 1 if $opts{t_em};
+$nopts += 1 if $opts{t_ib};
+
+$opts{t_id} = 1 if $nopts == 0;             # if no opts, assume t_id
+
 foreach my $file (@ARGV) {
   do_file($file);
 }
@@ -505,15 +520,16 @@ sub do_file {
       $ind_vm_ibsres_busy   = $name{'vm.ibsres.busy'}->{ind};
       $ind_vm_ibsres_dout   = $name{'vm.ibsres.dout'}->{ind};
 
-      $ind_sy_emmreq_req    = $name{'sy.emmreq.req'}->{ind};
-      $ind_sy_emmreq_we     = $name{'sy.emmreq.we'}->{ind};
-      $ind_sy_emmreq_be     = $name{'sy.emmreq.be'}->{ind};
-      $ind_sy_emmreq_cancel = $name{'sy.emmreq.cancel'}->{ind};
-      $ind_sy_emmreq_addr   = $name{'sy.emmreq.addr'}->{ind};
-      $ind_sy_emmreq_din    = $name{'sy.emmreq.din'}->{ind};
-      $ind_sy_emsres_ack_r  = $name{'sy.emsres.ack_r'}->{ind};
-      $ind_sy_emsres_ack_w  = $name{'sy.emsres.ack_w'}->{ind};
-      $ind_sy_emsres_dout   = $name{'sy.emsres.dout'}->{ind};
+      $ind_vm_emmreq_req    = $name{'vm.emmreq.req'}->{ind};
+      $ind_vm_emmreq_we     = $name{'vm.emmreq.we'}->{ind};
+      $ind_vm_emmreq_be     = $name{'vm.emmreq.be'}->{ind};
+      $ind_vm_emmreq_cancel = $name{'vm.emmreq.cancel'}->{ind};
+      $ind_vm_emmreq_addr   = $name{'vm.emmreq.addr'}->{ind};
+      $ind_vm_emmreq_din    = $name{'vm.emmreq.din'}->{ind};
+      $ind_vm_emsres_ack_r  = $name{'vm.emsres.ack_r'}->{ind};
+      $ind_vm_emsres_ack_w  = $name{'vm.emsres.ack_w'}->{ind};
+      $ind_vm_emsres_dout   = $name{'vm.emsres.dout'}->{ind};
+
       $ind_sy_chit          = $name{'sy.chit'}->{ind};
 
     } else {
@@ -591,7 +607,7 @@ sub do_file {
 	  my $code = code2mnemo($ireg);
 	  $id_str = sprintf "       %6.6o %6.6o %6.6o  %s",
 	                    $pc, $psw, $ireg, $code;
-	  $id_str .= " " x (20-length($code));
+	  $id_str .= " " x (22-length($code));
 	  $id_str .= sprintf " (%d)",$cyc_curr-$idec_cyc;
 	  $idec_cyc = $cyc_curr;
 	}
@@ -641,40 +657,40 @@ sub do_file {
       }
 #
 # handle t_em
-#   uses cycles with sy_emmreq_req = '1'
-#                    sy_emsres_ack_r = '1'
-#                    sy_emsres_ack_w = '1'
-#                    sy_emsreq_cancel = '1'
+#   uses cycles with vm_emmreq_req = '1'
+#                    vm_emsres_ack_r = '1'
+#                    vm_emsres_ack_w = '1'
+#                    vm_emsreq_cancel = '1'
 #
       if (exists $opts{t_em}) {
-	if ($val_curr[$ind_sy_emmreq_req]) {
+	if ($val_curr[$ind_vm_emmreq_req]) {
 	  $emreq_cyc = $cyc_curr;
 	  $emreq_str = sprintf "%s %s %8.8o",
-	                 ($val_curr[$ind_sy_emmreq_we] ? "w" : "r"),
-	                 $val_curr[$ind_sy_emmreq_be],
-	                 $val_curr[$ind_sy_emmreq_addr];
-	  $emcurr_we   = $val_curr[$ind_sy_emmreq_we];
-	  $emcurr_addr = $val_curr[$ind_sy_emmreq_addr];
+	                 ($val_curr[$ind_vm_emmreq_we] ? "w" : "r"),
+	                 $val_curr[$ind_vm_emmreq_be],
+	                 $val_curr[$ind_vm_emmreq_addr];
+	  $emcurr_we   = $val_curr[$ind_vm_emmreq_we];
+	  $emcurr_addr = $val_curr[$ind_vm_emmreq_addr];
 	  if ($emcurr_we) {
-	    $emreq_str .= sprintf " %6.6o", $val_curr[$ind_sy_emmreq_din];
+	    $emreq_str .= sprintf " %6.6o", $val_curr[$ind_vm_emmreq_din];
 	  } else {
 	    $emreq_str .= " " x 7;
 	  }
 	}
-	if ($val_curr[$ind_sy_emsres_ack_r] ||
-	    $val_curr[$ind_sy_emsres_ack_w] ||
-	    $val_curr[$ind_sy_emmreq_cancel]) {
+	if ($val_curr[$ind_vm_emsres_ack_r] ||
+	    $val_curr[$ind_vm_emsres_ack_w] ||
+	    $val_curr[$ind_vm_emmreq_cancel]) {
 	  $emres_str = sprintf "%s%s%s%s",
-	    $val_curr[$ind_sy_emmreq_cancel],
-	    $val_curr[$ind_sy_emsres_ack_r],
-	    $val_curr[$ind_sy_emsres_ack_w],
+	    $val_curr[$ind_vm_emmreq_cancel],
+	    $val_curr[$ind_vm_emsres_ack_r],
+	    $val_curr[$ind_vm_emsres_ack_w],
 	    $val_curr[$ind_sy_chit];
-	  if ($val_curr[$ind_sy_emmreq_cancel]) {
+	  if ($val_curr[$ind_vm_emmreq_cancel]) {
 	    $emreq_str .= " cancel";
 	    $emcurr_we = undef;
 	  } else {
-	    if ($val_curr[$ind_sy_emsres_ack_r]) {
-	      $emreq_str .= sprintf " %6.6o", $val_curr[$ind_sy_emsres_dout];
+	    if ($val_curr[$ind_vm_emsres_ack_r]) {
+	      $emreq_str .= sprintf " %6.6o", $val_curr[$ind_vm_emsres_dout];
 	    } else {
 	      $emreq_str .= " " x 7;
 	    }
@@ -703,6 +719,7 @@ sub do_file {
 		$emtyp_str .= " 240 PIRQ"       if ($emlast_addr == 0240);
 		$emtyp_str .= " 244 FPP exp"    if ($emlast_addr == 0244);
 		$emtyp_str .= " 250 MMU trap"   if ($emlast_addr == 0250);
+		$emtyp_str .= " 254 RHRP"       if ($emlast_addr == 0254);
 		$emtyp_str .= " 260 IIST"       if ($emlast_addr == 0260);
 		$emtyp_str .= " 300 DL11-2-TTI" if ($emlast_addr == 0300);
 		$emtyp_str .= " 304 DL11-2-TTO" if ($emlast_addr == 0304);
@@ -814,18 +831,29 @@ sub code2mnemo {
 	return "$name $reg_str";
 
       } elsif ($type eq "br")   {
+        # Note: in MACRO-11 syntax . refers to the address of the instruction
+        #       the opcode has offset relative to PC after instruction fetch
+        #       so   000776  --> br .-2
+        #            000777  --> br .
+        #            000400  --> br .+2
+        #
 	my $off  = $code & 0177;
-	my $sign = "+";
-	if ($code & 0200) {
-	  $off  = -(((~$off) & 0177)+1);
+	my $sign = "?";
+	if ($code & 0200) {                 # negative offsets
 	  $sign = "-";
-	}
-	return sprintf "$name .%s%d.", $sign, abs(2*$off);
+	  $off  = ((~$off) & 0177)+1;
+          $off  = $off - 1;                   # refer to address of instruction
+	} else {                            # positive offsets
+	  $sign = "+";
+          $off  = $off + 1;                   # refer to address of instruction
+        }
+	return sprintf "$name .%s%o", $sign, abs(2*$off);
 
       } elsif ($type eq "sob")  {
+        # Note: like in br type instructions, asm syntax and opcode differ by one
 	my $reg = ($code>>6) & 07;
 	my $off = $code & 077;
-	return sprintf "$name r%d,.-%d.", $reg, 2*$off;
+	return sprintf "$name r%d,.-%o", $reg, 2*($off-1);
 
       } elsif ($type eq "trap") {
 	my $off = $code & 0377;
@@ -848,7 +876,7 @@ sub code2mnemo {
 	if ($code & 001) { $str .= $del . $name . "c", $del = "+" }
 	return $str;
 
-      } elsif ($type eq "jsr")  {
+      } elsif ($type eq "rsrc")  {
 	my $reg = ($code>>6) & 07;
 	my $dst = $code & 077;
 	my $dst_str = regmod($dst);

@@ -1,4 +1,4 @@
-# $Id: Makefile 639 2015-01-30 18:12:19Z mueller $
+# $Id: Makefile 733 2016-02-20 12:24:13Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -11,7 +11,7 @@ EXE_all += tb_nexys3_fusp_cuff_dummy
 ifndef XTW_BOARD
   XTW_BOARD=nexys3
 endif
-include $(RETROBASE)/rtl/make_ise/xflow_default_$(XTW_BOARD).mk
+include ${RETROBASE}/rtl/make_ise/xflow_default_$(XTW_BOARD).mk
 #
 .PHONY : all all_ssim all_tsim clean
 #
@@ -23,9 +23,9 @@ clean : ise_clean ghdl_clean isim_clean
 #
 #-----
 #
-include $(RETROBASE)/rtl/make_ise/generic_ghdl.mk
-include $(RETROBASE)/rtl/make_ise/generic_isim.mk
-include $(RETROBASE)/rtl/make_ise/generic_xflow.mk
+include ${RETROBASE}/rtl/make_ise/generic_ghdl.mk
+include ${RETROBASE}/rtl/make_ise/generic_isim.mk
+include ${RETROBASE}/rtl/make_ise/generic_xflow.mk
 #
 VBOM_all = $(wildcard *.vbom)
 #

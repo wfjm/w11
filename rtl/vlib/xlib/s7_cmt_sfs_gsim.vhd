@@ -1,4 +1,4 @@
--- $Id: s7_cmt_sfs_gsim.vhd 675 2015-05-08 21:05:08Z mueller $
+-- $Id: s7_cmt_sfs_gsim.vhd 734 2016-02-20 22:43:20Z mueller $
 --
 -- Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,12 +19,15 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic Series-7
--- Tool versions:  xst 14.5; viv 2014.4; ghdl 0.29
+-- Tool versions:  xst 14.5-14.7; viv 2014.4-2015.4; ghdl 0.29-0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2013-09-28   535   1.0    Initial version (derived from dcm_sfs_gsim)
 ------------------------------------------------------------------------------
+-- Note: for test bench usage a copy of s7_cmt_sfs_gsim, with _tb instead
+--       of _gsim in file name, has been created in the /tb sub folder.
+--       Ensure to update the copy when this file is changed !!
 
 library ieee;
 use ieee.std_logic_1164.all;

@@ -1,0 +1,92 @@
+.\"  -*- nroff -*-
+.\"  $Id: tbrun_tbw.1 745 2016-03-18 22:10:34Z mueller $
+.\"
+.\" Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" 
+.\" ------------------------------------------------------------------
+.
+.TH TBRUN_TBW 1 2016-03-18 "Retro Project" "Retro Project Manual"
+.\" ------------------------------------------------------------------
+.SH NAME
+tbrun_tbw \- \fBtbw\fP based test bench starter
+.\" ------------------------------------------------------------------
+.SH SYNOPSIS
+.
+.SY tbrun_tbw
+.OP OPTIONS
+.I  TBENCH
+.OP STIMFILE
+.YS
+.
+.\" ------------------------------------------------------------------
+.SH DESCRIPTION
+\fBtbrun_tbw\fP is a convenience script for starting \fBtbw\fP(1) based
+test benches. It will
+
+.RS 2
+.PD 0
+.IP "-" 2
+issue a \fBmake\fP(1) command to (re)-build \fITBENCH\fP.
+.IP "-"
+build a \fBtbw\fP(1) command, using \fISTIMFILE\fP if specified.
+.IP "-"
+create a shell pipe to which runs tbw and handles the output with
+.IP "  -" 4
+\fBghdl_assert_filter\fP(1) to suppress irrelevant diagnostics
+created by \fBghdl\fP(1) and it's IEEE libs
+.IP "  -"
+\fBtee\fP(1) to save the output to a log file. The log file
+name is build as "<TBENCH>_<lsuf>.log"
+.IP "  -"
+\fBegrep\fP(1) to filter out only essential lines to stdout
+.PD
+.RE
+.PP
+.
+.\" ------------------------------------------------------------------
+.SH OPTIONS
+Note: \fBtbrun_tbw\fP is implemented as shell script. If options have an
+argument it is separated white space and not by '='! So write '--ghw\ xxx'
+and not '--ghw=xxx' !
+.
+.\" -- --dry -------------------------------------
+.IP \fB\-\-dry\fP
+dry run, prints the commands but doesn't execute
+.
+.\" -- --lsuf ------------------------------------
+.IP \fB\-\-lsuf\ \fIsuff\fR
+use '_\fIsuff\fR.log' as suffix for log file. Default is '_dsim.log'
+.
+.\" -- --stack -----------------------------------
+.IP \fB\-\-stack\ \fInnn\fR
+use \fInnn\fP as \fBghdl\fP(1) stack size
+.
+.\" -- --ghw fname -------------------------------
+.IP \fB\-\-ghw\ \fIfname\fR
+write a ghw file with name '\fIfname\fP.ghw'
+.
+.\" -- --tbw opts --------------------------------
+.IP \fB\-\-tbw\ \fIopts\fR
+append \fIopts\fP to the \fBtbw\fP(1) command
+.
+.\" ------------------------------------------------------------------
+.SH EXAMPLES
+.IP "\fBtbrun_tbw tb_serport_uart_rx" 4
+Simplest default case, will execute
+.EX
+   make  tb_serport_uart_rx
+   time tbw tb_serport_uart_rx 2>&1 |\\
+     ghdl_assert_filter |\\
+     tee tb_serport_uart_rx_dsim.log |\\
+     egrep "(-[EFW]:|ERROR|FAIL|PASS|DONE)"
+.EE
+
+.\" ------------------------------------------------------------------
+.SH "SEE ALSO"
+.BR tbw (1),
+.BR ghdl_assert_filter (1),
+.BR ghdl (1)
+
+.\" ------------------------------------------------------------------
+.SH AUTHOR
+Walter F.J. Mueller <W.F.J.Mueller@gsi.de>

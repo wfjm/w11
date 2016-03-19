@@ -1,6 +1,6 @@
--- $Id: sys_conf.vhd 698 2015-07-05 21:20:18Z mueller $
+-- $Id: sys_conf.vhd 742 2016-03-13 14:40:19Z mueller $
 --
--- Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Definitions for sys_w11a_n4 (for synthesis)
 --
 -- Dependencies:   -
--- Tool versions:  ise 14.5-14.7; viv 2014.4; ghdl 0.29-0.31
+-- Tool versions:  ise 14.5-14.7; viv 2014.4-2015.4; ghdl 0.29-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-03-13   742   1.2.2  add sysmon_bus
 -- 2015-06-26   695   1.2.1  add sys_conf_(dmscnt|dmhbpt*|dmcmon*)
 -- 2015-03-14   658   1.2    add sys_conf_ibd_* definitions
 -- 2015-02-07   643   1.1    drop bram and minisys options
@@ -67,6 +68,7 @@ package sys_conf is
   constant sys_conf_dmscnt        : boolean := true;
   constant sys_conf_dmhbpt_nunit  : integer := 2; -- use 0 to disable
   constant sys_conf_dmcmon_awidth : integer := 9; -- use 0 to disable
+  constant sys_conf_rbd_sysmon    : boolean := true;  -- SYSMON(XADC)
 
   -- configure w11 cpu core --------------------------------------------------
   constant sys_conf_mem_losize     : integer := 8#167777#; --   4 MByte

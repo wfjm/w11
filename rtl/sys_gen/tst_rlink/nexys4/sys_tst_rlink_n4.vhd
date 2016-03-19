@@ -1,6 +1,6 @@
--- $Id: sys_tst_rlink_n4.vhd 672 2015-05-02 21:58:28Z mueller $
+-- $Id: sys_tst_rlink_n4.vhd 743 2016-03-13 16:42:31Z mueller $
 --
--- Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -21,19 +21,27 @@
 --                 bplib/bpgen/sn_humanio_rbus
 --                 vlib/rlink/rlink_sp1c
 --                 rbd_tst_rlink
+--                 bplib/bpgen/rgbdrv_master
+--                 bplib/bpgen/rgbdrv_analog_rbus
+--                 bplib/sysmon/sysmonx_rbus_base
 --                 vlib/rbus/rb_sres_or_2
+--                 vlib/rbus/rb_sres_or_4
 --
 -- Test bench:     tb/tb_tst_rlink_n4
 --
 -- Target Devices: generic
--- Tool versions:  ise 14.5-14.7; viv 2014.4; ghdl 0.29-0.31
+-- Tool versions:  ise 14.5-14.7; viv 2014.4-2015.4; ghdl 0.29-0.33
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
--- 2015-01-31   640 2014.4  xc7a100t-1    990  1360    64     0   495  
+-- 2016-03-13   743 2015.4  xc7a100t-1   1124  1463    64   4.5   567 +XADC
+-- 2016-02-20   734 2015.4  xc7a100t-1   1080  1424    64   4.5   502 +RGB
+-- 2015-01-31   640 2014.4  xc7a100t-1    990  1360    64   4.5   495  
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-03-12   741   1.5    add sysmon_rbus
+-- 2016-02-20   734   1.4.2  add rgbdrv_analog_rbus for two rgb leds
 -- 2015-04-11   666   1.4.1  rearrange XON handling
 -- 2015-02-06   643   1.4    factor out memory
 -- 2015-02-01   641   1.3.1  separate I_BTNRST_N; autobaud on msb of display
@@ -50,8 +58,8 @@
 --
 --    LED(7):   SER_MONI.abact
 --    LED(6:2): no function (only connected to sn_humanio_rbus)
---    LED(0):   timer 0 busy 
 --    LED(1):   timer 1 busy 
+--    LED(0):   timer 0 busy 
 --
 --    DSP:      SER_MONI.clkdiv         (from auto bauder)
 --    DP(3):    not SER_MONI.txok       (shows tx back preasure)
@@ -71,6 +79,7 @@ use work.rblib.all;
 use work.rlinklib.all;
 use work.bpgenlib.all;
 use work.bpgenrbuslib.all;
+use work.sysmonrbuslib.all;
 use work.sys_conf.all;
 
 -- ----------------------------------------------------------------------------
@@ -115,8 +124,12 @@ architecture syn of sys_tst_rlink_n4 is
 
   signal RB_MREQ : rb_mreq_type := rb_mreq_init;
   signal RB_SRES : rb_sres_type := rb_sres_init;
-  signal RB_SRES_HIO : rb_sres_type := rb_sres_init;
-  signal RB_SRES_TST : rb_sres_type := rb_sres_init;
+  signal RB_SRES_HIO    : rb_sres_type := rb_sres_init;
+  signal RB_SRES_TST    : rb_sres_type := rb_sres_init;
+  signal RB_SRES_RGB0   : rb_sres_type := rb_sres_init;
+  signal RB_SRES_RGB1   : rb_sres_type := rb_sres_init;
+  signal RB_SRES_RGB    : rb_sres_type := rb_sres_init;
+  signal RB_SRES_SYSMON : rb_sres_type := rb_sres_init;
 
   signal RB_LAM  : slv16 := (others=>'0');
   signal RB_STAT : slv4  := (others=>'0');
@@ -124,7 +137,13 @@ architecture syn of sys_tst_rlink_n4 is
   signal SER_MONI : serport_moni_type := serport_moni_init;
   signal STAT    : slv8  := (others=>'0');
 
-  constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/4: 1111 1110 1111 0xxx
+  signal RGBCNTL : slv3  := (others=>'0');
+  signal DIMCNTL : slv12 := (others=>'0');
+
+  constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/0008: 1111 1110 1111 0xxx
+  constant rbaddr_rgb0  : slv16 := x"fc00"; -- fe00/0004: 1111 1100 0000 00xx
+  constant rbaddr_rgb1  : slv16 := x"fc04"; -- fe04/0004: 1111 1100 0000 01xx
+  constant rbaddr_sysmon: slv16 := x"fb00"; -- fb00/0080: 1111 1011 0xxx xxxx
 
 begin
 
@@ -210,8 +229,8 @@ begin
       ENAPIN_RBMON => sbcntl_sbf_rbmon,
       CDWIDTH      => 15,
       CDINIT       => sys_conf_ser2rri_cdinit,
-      RBMON_AWIDTH => 0,
-      RBMON_RBADDR => x"ffe8")
+      RBMON_AWIDTH => 0,                -- must be 0, rbmon in rbd_tst_rlink
+      RBMON_RBADDR => (others=>'0'))
     port map (
       CLK      => CLK,
       CE_USEC  => CE_USEC,
@@ -247,10 +266,75 @@ begin
       STAT        => STAT
     );
 
-  RB_SRES_OR1 : rb_sres_or_2
+  RGBMSTR : rgbdrv_master
+    generic map (
+      DWIDTH => DIMCNTL'length)
+    port map (
+      CLK      => CLK,
+      RESET    => RESET,
+      CE_USEC  => CE_USEC,
+      RGBCNTL  => RGBCNTL,
+      DIMCNTL  => DIMCNTL
+    );
+
+  RGB0 : rgbdrv_analog_rbus
+    generic map (
+      DWIDTH   => DIMCNTL'length,
+      RB_ADDR  => rbaddr_rgb0)
+    port map (
+      CLK      => CLK,
+      RESET    => RESET,
+      RB_MREQ  => RB_MREQ,
+      RB_SRES  => RB_SRES_RGB0,
+      RGBCNTL  => RGBCNTL,
+      DIMCNTL  => DIMCNTL,
+      O_RGBLED => O_RGBLED0
+    );
+
+  RGB1 : rgbdrv_analog_rbus
+    generic map (
+      DWIDTH   => DIMCNTL'length,
+      RB_ADDR  => rbaddr_rgb1)
+    port map (
+      CLK      => CLK,
+      RESET    => RESET,
+      RB_MREQ  => RB_MREQ,
+      RB_SRES  => RB_SRES_RGB1,
+      RGBCNTL  => RGBCNTL,
+      DIMCNTL  => DIMCNTL,
+      O_RGBLED => O_RGBLED1
+    );
+
+
+  SMRB : if sys_conf_rbd_sysmon  generate    
+    I0: sysmonx_rbus_base
+      generic map (                     -- use default INIT_ (Vccint=1.00)
+        CLK_MHZ  => sys_conf_clksys_mhz,
+        RB_ADDR  => rbaddr_sysmon)
+      port map (
+        CLK      => CLK,
+        RESET    => RESET,
+        RB_MREQ  => RB_MREQ,
+        RB_SRES  => RB_SRES_SYSMON,
+        ALM      => open,
+        OT       => open,
+        TEMP     => open
+      );
+  end generate SMRB;
+
+  RB_SRES_ORRGB : rb_sres_or_2
+    port map (
+      RB_SRES_1  => RB_SRES_RGB0,
+      RB_SRES_2  => RB_SRES_RGB1,
+      RB_SRES_OR => RB_SRES_RGB
+    );
+
+  RB_SRES_OR1 : rb_sres_or_4
     port map (
       RB_SRES_1  => RB_SRES_HIO,
       RB_SRES_2  => RB_SRES_TST,
+      RB_SRES_3  => RB_SRES_RGB,
+      RB_SRES_4  => RB_SRES_SYSMON,
       RB_SRES_OR => RB_SRES
     );
 
@@ -270,10 +354,6 @@ begin
   LED(7) <= SER_MONI.abact;
   LED(6 downto 2)  <= (others=>'0');
   LED(1) <= STAT(1);
-  LED(0) <= STAT(0);
-   
-  -- setup unused outputs in nexys4
-  O_RGBLED0 <= (others=>'0');
-  O_RGBLED1 <= (others=>not I_BTNRST_N);
+  LED(0) <= STAT(0);   
 
 end syn;

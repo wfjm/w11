@@ -1,4 +1,4 @@
-# $Id: generic_ghdl.mk 646 2015-02-15 12:04:55Z mueller $
+# $Id: generic_ghdl.mk 733 2016-02-20 12:24:13Z mueller $
 #
 # Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
@@ -16,7 +16,7 @@
 # 2007-06-10    52   1.0    Initial version
 #
 GHDLIEEE    = --ieee=synopsys
-GHDLXLPATH  = $(XTWI_PATH)/ISE_DS/ISE/ghdl
+GHDLXLPATH  = ${XTWI_PATH}/ISE_DS/ISE/ghdl
 #
 % : %.vbom
 	vbomconv --ghdl_i $<
@@ -35,7 +35,7 @@ GHDLXLPATH  = $(XTWI_PATH)/ISE_DS/ISE/ghdl
 %.dep_ghdl: %.vbom
 	vbomconv --dep_ghdl $< > $@
 #
-include $(RETROBASE)/rtl/make_ise/dontincdep.mk
+include ${RETROBASE}/rtl/make_ise/dontincdep.mk
 #
 .PHONY: ghdl_clean ghdl_tmp_clean
 #

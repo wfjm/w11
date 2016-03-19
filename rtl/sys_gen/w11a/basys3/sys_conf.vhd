@@ -1,6 +1,6 @@
--- $Id: sys_conf.vhd 698 2015-07-05 21:20:18Z mueller $
+-- $Id: sys_conf.vhd 742 2016-03-13 14:40:19Z mueller $
 --
--- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Definitions for sys_w11a_b3 (for synthesis)
 --
 -- Dependencies:   -
--- Tool versions:  viv 2014.4; ghdl 0.31
+-- Tool versions:  viv 2014.4-2015.4; ghdl 0.31-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-03-13   742   1.1.2  add sysmon_bus; use 72 MHz, no tc otherwise
 -- 2015-06-26   695   1.1.1  add sys_conf_(dmscnt|dmhbpt*|dmcmon*)
 -- 2015-03-14   658   1.1    add sys_conf_ibd_* definitions
 -- 2015-02-08   644   1.0    Initial version (derived from _n4 version)
@@ -32,9 +33,9 @@ use work.slvtypes.all;
 package sys_conf is
 
   -- configure clocks --------------------------------------------------------
-  constant sys_conf_clksys_vcodivide   : positive :=   1;
-  constant sys_conf_clksys_vcomultiply : positive :=   8;   -- vco  800 MHz
-  constant sys_conf_clksys_outdivide   : positive :=  10;   -- sys   80 MHz
+  constant sys_conf_clksys_vcodivide   : positive :=   5;   -- f     20 Mhz
+  constant sys_conf_clksys_vcomultiply : positive :=  36;   -- vco  720 MHz
+  constant sys_conf_clksys_outdivide   : positive :=  10;   -- sys   72 MHz
   constant sys_conf_clksys_gentype     : string   := "MMCM";
   -- single clock design, clkser = clksys
   constant sys_conf_clkser_vcodivide   : positive := sys_conf_clksys_vcodivide;
@@ -56,6 +57,7 @@ package sys_conf is
   constant sys_conf_dmscnt        : boolean := true;
   constant sys_conf_dmhbpt_nunit  : integer := 2; -- use 0 to disable
   constant sys_conf_dmcmon_awidth : integer := 0; -- no dmcmon to save BRAMs
+  constant sys_conf_rbd_sysmon    : boolean := true;  -- SYSMON(XADC)
 
   -- configure w11 cpu core --------------------------------------------------
   -- sys_conf_mem_losize is highest 64 byte MMU block number

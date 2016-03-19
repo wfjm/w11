@@ -1,6 +1,6 @@
--- $Id: rblib.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: rblib.vhd 741 2016-03-12 23:49:03Z mueller $
 --
--- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,10 +16,11 @@
 -- Description:    Definitions for rbus interface and bus entities
 --
 -- Dependencies:   -
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2015.4; ghdl 0.18-0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-03-12   741   4.1    add rb_sres_6
 -- 2014-09-14   593   4.0    use new rlink v4 iface and 4 bit STAT
 -- 2014-08-15   583   3.5    rb_mreq addr now 16 bit
 -- 2011-12-23   444   3.1    CLK_CYCLE now integer
@@ -99,6 +100,17 @@ component rb_sres_or_4 is               -- rbus result or, 4 input
     RB_SRES_OR : out rb_sres_type       -- rb_sres or'ed output
   );
 end component;
+component rb_sres_or_6 is               -- rbus result or, 6 input
+  port (
+    RB_SRES_1  :  in rb_sres_type;                 -- rb_sres input 1
+    RB_SRES_2  :  in rb_sres_type := rb_sres_init; -- rb_sres input 2
+    RB_SRES_3  :  in rb_sres_type := rb_sres_init; -- rb_sres input 3
+    RB_SRES_4  :  in rb_sres_type := rb_sres_init; -- rb_sres input 4
+    RB_SRES_5  :  in rb_sres_type := rb_sres_init; -- rb_sres input 5
+    RB_SRES_6  :  in rb_sres_type := rb_sres_init; -- rb_sres input 6
+    RB_SRES_OR : out rb_sres_type       -- rb_sres or'ed output
+  );
+end component;
 
 component rbus_aif is                   -- rbus, abstract interface
   port (
@@ -156,10 +168,12 @@ end component;
 
 component rb_sres_or_mon is             -- rbus result or monitor
   port (
-    RB_SRES_1  :  in rb_sres_type;      -- rb_sres input 1
-    RB_SRES_2  :  in rb_sres_type;      -- rb_sres input 2
+    RB_SRES_1  :  in rb_sres_type;                 -- rb_sres input 1
+    RB_SRES_2  :  in rb_sres_type;                 -- rb_sres input 2
     RB_SRES_3  :  in rb_sres_type := rb_sres_init; -- rb_sres input 3
-    RB_SRES_4  :  in rb_sres_type := rb_sres_init  -- rb_sres input 4
+    RB_SRES_4  :  in rb_sres_type := rb_sres_init; -- rb_sres input 4
+    RB_SRES_5  :  in rb_sres_type := rb_sres_init; -- rb_sres input 5
+    RB_SRES_6  :  in rb_sres_type := rb_sres_init  -- rb_sres input 6
   );
 end component;
 

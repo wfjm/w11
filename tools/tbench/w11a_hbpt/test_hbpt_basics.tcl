@@ -1,10 +1,11 @@
-# $Id: test_hbpt_basics.tcl 722 2015-12-30 19:45:46Z mueller $
+# $Id: test_hbpt_basics.tcl 724 2016-01-03 22:53:53Z mueller $
 #
-# Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2016-01-02   724   1.0.2  use s: defs for CP_STAT(rust)
 # 2015-12-30   721   1.0.1  BUGFIX: add missing wtcpu in mfpd/mtpd tests
 # 2015-07-11   700   1.0    Initial version
 #
@@ -63,14 +64,14 @@ rw11::hb_set cpu0 0 i $sym(I1)
 rw11::asmrun  $cpu sym
 $cpu wtcpu -reset $rw11::asmwait_tout
 $cpu cp -rreg  "hb0.stat" -edata [regbld rw11::HB_STAT irseen] \
-        -rstat -edata [regbld rw11::CP_STAT suspint {rust 06} susp go] \
+        -rstat -edata [regbld rw11::CP_STAT suspint {rust hbpt} susp go] \
         -rpc   -edata $sym(I2) \
         -rr0   -edata 1
 
 rlc log "    A2.2: step after ir break --------------------------"
 $cpu cp -step
 $cpu cp -rreg  "hb0.stat" -edata [regbld rw11::HB_STAT irseen] \
-        -rstat -edata [regbld rw11::CP_STAT suspint {rust 04} susp go] \
+        -rstat -edata [regbld rw11::CP_STAT suspint {rust step} susp go] \
         -rpc   -edata $sym(I3) \
         -rr0   -edata 2
 
@@ -85,14 +86,14 @@ rw11::hb_set cpu0 0 i $sym(I2) $sym(I3)
 rw11::asmrun  $cpu sym
 $cpu wtcpu -reset $rw11::asmwait_tout
 $cpu cp -rreg  "hb0.stat" -edata [regbld rw11::HB_STAT irseen] \
-        -rstat -edata [regbld rw11::CP_STAT suspint {rust 06} susp go] \
+        -rstat -edata [regbld rw11::CP_STAT suspint {rust hbpt} susp go] \
         -rpc   -edata $sym(I3) \
         -rr0   -edata 2
 
 rlc log "    A3.2: resume, should re-break ----------------------"
 $cpu cp -resume
 $cpu wtcpu -reset $rw11::asmwait_tout
-$cpu cp -rstat -edata [regbld rw11::CP_STAT suspint {rust 06} susp go] \
+$cpu cp -rstat -edata [regbld rw11::CP_STAT suspint {rust hbpt} susp go] \
         -rpc   -edata $sym(I4) \
         -rr0   -edata 3
 
@@ -107,7 +108,7 @@ rw11::hb_set cpu0 0 r $sym(a)
 rw11::asmrun  $cpu sym
 $cpu wtcpu -reset $rw11::asmwait_tout
 $cpu cp -rreg  "hb0.stat" -edata [regbld rw11::HB_STAT drseen] \
-        -rstat -edata [regbld rw11::CP_STAT suspint {rust 06} susp go] \
+        -rstat -edata [regbld rw11::CP_STAT suspint {rust hbpt} susp go] \
         -rpc   -edata $sym(I5) \
         -rr1   -edata 0123
 
@@ -117,7 +118,7 @@ rw11::hb_set cpu0 0 r $sym(pd)
 $cpu cp -resume
 $cpu wtcpu -reset $rw11::asmwait_tout
 $cpu cp -rreg  "hb0.stat" -edata [regbld rw11::HB_STAT drseen] \
-        -rstat -edata [regbld rw11::CP_STAT suspint {rust 06} susp go] \
+        -rstat -edata [regbld rw11::CP_STAT suspint {rust hbpt} susp go] \
         -rpc   -edata $sym(I8) \
         -rr2   -edata 0234
 
@@ -127,7 +128,7 @@ rw11::hb_set cpu0 0 w $sym(c)
 rw11::asmrun  $cpu sym
 $cpu wtcpu -reset $rw11::asmwait_tout
 $cpu cp -rreg  "hb0.stat" -edata [regbld rw11::HB_STAT dwseen] \
-        -rstat -edata [regbld rw11::CP_STAT suspint {rust 06} susp go] \
+        -rstat -edata [regbld rw11::CP_STAT suspint {rust hbpt} susp go] \
         -rpc   -edata $sym(I7) \
         -rr2   -edata 0234
 
@@ -137,7 +138,7 @@ rw11::hb_set cpu0 0 w $sym(d)
 $cpu cp -resume
 $cpu wtcpu -reset $rw11::asmwait_tout
 $cpu cp -rreg  "hb0.stat" -edata [regbld rw11::HB_STAT dwseen] \
-        -rstat -edata [regbld rw11::CP_STAT suspint {rust 06} susp go] \
+        -rstat -edata [regbld rw11::CP_STAT suspint {rust hbpt} susp go] \
         -rpc   -edata $sym(I8) \
         -rr2   -edata 0234
 
@@ -242,7 +243,7 @@ rw11::asmrun  $cpu sym
 
 $cpu wtcpu -reset $rw11::asmwait_tout
 $cpu cp -rreg  "hb0.stat" -edata [regbld rw11::HB_STAT dwseen] \
-        -rstat -edata [regbld rw11::CP_STAT suspint {rust 06} susp go] \
+        -rstat -edata [regbld rw11::CP_STAT suspint {rust hbpt} susp go] \
         -rpc   -edata $sym(I3)
 
 rlc log "    C3.1: kernel dr break on mfpd (pm=user) -> no bpt --"
@@ -263,7 +264,7 @@ rw11::hb_set cpu0 0 ur [expr $sym(c)]
 rw11::asmrun  $cpu sym
 $cpu wtcpu -reset $rw11::asmwait_tout
 $cpu cp -rreg  "hb0.stat" -edata [regbld rw11::HB_STAT drseen] \
-        -rstat -edata [regbld rw11::CP_STAT suspint {rust 06} susp go] \
+        -rstat -edata [regbld rw11::CP_STAT suspint {rust hbpt} susp go] \
         -rpc   -edata $sym(I5)
 
 rlc log "    C4.1: kernel dw break on mtpd (pm=user) -> no bpt --"
@@ -284,6 +285,6 @@ rw11::hb_set cpu0 0 uw [expr $sym(d)]
 rw11::asmrun  $cpu sym
 $cpu wtcpu -reset $rw11::asmwait_tout
 $cpu cp -rreg  "hb0.stat" -edata [regbld rw11::HB_STAT dwseen] \
-        -rstat -edata [regbld rw11::CP_STAT suspint {rust 06} susp go] \
+        -rstat -edata [regbld rw11::CP_STAT suspint {rust hbpt} susp go] \
         -rpc   -edata $sym(I7)
 

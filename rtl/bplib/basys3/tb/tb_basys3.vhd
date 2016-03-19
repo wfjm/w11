@@ -1,6 +1,6 @@
--- $Id: tb_basys3.vhd 666 2015-04-12 21:17:54Z mueller $
+-- $Id: tb_basys3.vhd 734 2016-02-20 22:43:20Z mueller $
 --
--- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -17,19 +17,22 @@
 --
 -- Dependencies:   simlib/simclk
 --                 simlib/simclkcnt
---                 rlink/tb/tbcore_rlink
---                 xlib/s7_cmt_sfs
+--                 rlink/tbcore/tbcore_rlink
+--                 xlib/tb/s7_cmt_sfs_tb
 --                 tb_basys3_core
---                 serport/serport_master
+--                 serport/tb/serport_master_tb
 --                 basys3_aif [UUT]
 --
 -- To test:        generic, any basys3_aif target
 --
 -- Target Devices: generic
--- Tool versions:  viv 2014.4; ghdl 0.31
+-- Tool versions:  viv 2014.4-2015.4; ghdl 0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-02-20   734   1.1.3  use s7_cmt_sfs_tb to avoid xsim conflict
+-- 2016-02-13   730   1.1.2  direct instantiation of tbcore_rlink
+-- 2016-01-03   724   1.1.1  use serport/tb/serport_master_tb
 -- 2015-04-12   666   1.1    use serport_master instead of serport_uart_rxtx
 -- 2015-02-18   648   1.0    Initial version (derived from tb_nexys4)
 ------------------------------------------------------------------------------
@@ -42,8 +45,6 @@ use std.textio.all;
 
 use work.slvtypes.all;
 use work.rlinklib.all;
-use work.rlinktblib.all;
-use work.serportlib.all;
 use work.xlib.all;
 use work.basys3lib.all;
 use work.simlib.all;
@@ -97,7 +98,7 @@ begin
       CLK_STOP => CLK_STOP
     );
   
-  CLKGEN_COM : s7_cmt_sfs
+  CLKGEN_COM : entity work.s7_cmt_sfs_tb
     generic map (
       VCO_DIVIDE   => sys_conf_clkser_vcodivide,
       VCO_MULTIPLY => sys_conf_clkser_vcomultiply,
@@ -105,7 +106,7 @@ begin
       CLKIN_PERIOD => 10.0,
       CLKIN_JITTER => 0.01,
       STARTUP_WAIT => false,
-      GEN_TYPE     => sys_conf_clksys_gentype)
+      GEN_TYPE     => sys_conf_clkser_gentype)
     port map (
       CLKIN   => CLKOSC,
       CLKFX   => CLKCOM,
@@ -114,7 +115,7 @@ begin
 
   CLKCNT : simclkcnt port map (CLK => CLKCOM, CLK_CYCLE => CLKCOM_CYCLE);
 
-  TBCORE : tbcore_rlink
+  TBCORE : entity work.tbcore_rlink
     port map (
       CLK      => CLKCOM,
       CLK_STOP => CLK_STOP,
@@ -125,7 +126,7 @@ begin
       TX_ENA   => RXVAL
     );
 
-  N4CORE : entity work.tb_basys3_core
+  B3CORE : entity work.tb_basys3_core
     port map (
       I_SWI       => I_SWI,
       I_BTN       => I_BTN
@@ -143,7 +144,7 @@ begin
       O_SEG_N     => O_SEG_N
     );
   
-  SERMSTR : serport_master
+  SERMSTR : entity work.serport_master_tb
     generic map (
       CDWIDTH => CLKDIV'length)
     port map (

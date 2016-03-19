@@ -1,10 +1,10 @@
 # -*- tcl -*-
-# $Id: basys3_pins.xdc 640 2015-02-01 09:56:53Z mueller $
+# $Id: basys3_pins.xdc 726 2016-01-31 23:02:31Z mueller $
 #
 # Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
-# Pin locks for Basys 3 core functionality
+# Pin locks for Digilent Basys 3 core functionality
 #  - USB UART
 #  - human I/O (switches, buttons, leds, display)
 #

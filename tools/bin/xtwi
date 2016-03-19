@@ -1,7 +1,7 @@
 #!/bin/bash
-# $Id: xtwi 641 2015-02-01 22:12:15Z mueller $
+# $Id: xtwi 735 2016-02-26 22:17:42Z mueller $
 #
-# Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 # Xilinx Tool Wrapper script for ISE:
@@ -10,6 +10,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2016-02-21   735   1.1    use BARE_PATH ect to provide clean environment
 # 2013-10-12   539   1.0    Initial version
 #
 # Note: For Xilinx ISE installations with an install path <ipath> holds
@@ -29,6 +30,18 @@ then
   then
     echo "XTWI_PATH not defined"
     exit 1
+  fi
+
+  # provide clean environment when BARE_PATH ect defined
+  #   add only $RETROBASE/tools/bin to path
+  if [ -n "$BARE_PATH" ]
+  then
+    export PATH=$BARE_PATH:$RETROBASE/tools/bin
+    unset LD_LIBRARY_PATH
+    if [ -n "$BARE_LD_LIBRARY_PATH" ]
+    then
+      export LD_LIBRARY_PATH=$BARE_LD_LIBRARY_PATH
+    fi 
   fi
 
   # check whether 32 or 64 bit system (uname -m gives 'i686' or 'x86_64')

@@ -1,6 +1,6 @@
--- $Id: rb_sres_or_mon.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: rb_sres_or_mon.vhd 743 2016-03-13 16:42:31Z mueller $
 --
--- Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -17,10 +17,11 @@
 --
 -- Dependencies:   -
 -- Test bench:     -
--- Tool versions:  ghdl 0.29-0.31
+-- Tool versions:  viv 2014.4-2015.4; ghdl 0.29-0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-03-13   743   3.1    now with 6 inputs; add RB_SRES_OR_MON_FAIL marker
 -- 2010-12-23   347   3.0    rename rritb_sres_or_mon->rb_sres_or_mon
 -- 2010-10-28   336   1.0.1  log errors only if now>0ns (drop startup glitches)
 -- 2010-06-26   309   1.0    Initial version 
@@ -41,11 +42,15 @@ entity rb_sres_or_mon is                -- rbus result or monitor
     RB_SRES_1  :  in rb_sres_type;                 -- rb_sres input 1
     RB_SRES_2  :  in rb_sres_type;                 -- rb_sres input 2
     RB_SRES_3  :  in rb_sres_type := rb_sres_init; -- rb_sres input 3
-    RB_SRES_4  :  in rb_sres_type := rb_sres_init  -- rb_sres input 4
+    RB_SRES_4  :  in rb_sres_type := rb_sres_init; -- rb_sres input 4
+    RB_SRES_5  :  in rb_sres_type := rb_sres_init; -- rb_sres input 5
+    RB_SRES_6  :  in rb_sres_type := rb_sres_init  -- rb_sres input 6
   );
 end rb_sres_or_mon;
 
 architecture sim of rb_sres_or_mon is
+
+  signal RB_SRES_OR_MON_FAIL : slbit := '0';
   
 begin
 
@@ -67,23 +72,33 @@ begin
     if RB_SRES_2.ack  /= '0' then nack  := nack  + 1;  end if;
     if RB_SRES_3.ack  /= '0' then nack  := nack  + 1;  end if;
     if RB_SRES_4.ack  /= '0' then nack  := nack  + 1;  end if;
+    if RB_SRES_5.ack  /= '0' then nack  := nack  + 1;  end if;
+    if RB_SRES_6.ack  /= '0' then nack  := nack  + 1;  end if;
 
     if RB_SRES_1.busy /= '0' then nbusy := nbusy + 1;  end if;
     if RB_SRES_2.busy /= '0' then nbusy := nbusy + 1;  end if;
     if RB_SRES_3.busy /= '0' then nbusy := nbusy + 1;  end if;
     if RB_SRES_4.busy /= '0' then nbusy := nbusy + 1;  end if;
+    if RB_SRES_5.busy /= '0' then nbusy := nbusy + 1;  end if;
+    if RB_SRES_6.busy /= '0' then nbusy := nbusy + 1;  end if;
 
     if RB_SRES_1.err  /= '0' then nerr  := nerr  + 1;  end if;
     if RB_SRES_2.err  /= '0' then nerr  := nerr  + 1;  end if;
     if RB_SRES_3.err  /= '0' then nerr  := nerr  + 1;  end if;
     if RB_SRES_4.err  /= '0' then nerr  := nerr  + 1;  end if;
+    if RB_SRES_5.err  /= '0' then nerr  := nerr  + 1;  end if;
+    if RB_SRES_6.err  /= '0' then nerr  := nerr  + 1;  end if;
 
     if RB_SRES_1.dout /= dzero then ndout := ndout + 1;  end if;
     if RB_SRES_2.dout /= dzero then ndout := ndout + 1;  end if;
     if RB_SRES_3.dout /= dzero then ndout := ndout + 1;  end if;
     if RB_SRES_4.dout /= dzero then ndout := ndout + 1;  end if;
+    if RB_SRES_5.dout /= dzero then ndout := ndout + 1;  end if;
+    if RB_SRES_6.dout /= dzero then ndout := ndout + 1;  end if;
 
+    RB_SRES_OR_MON_FAIL <= '0';
     if now > 0 ns and (nack>1 or nbusy>1 or nerr>1 or ndout>1) then
+      RB_SRES_OR_MON_FAIL <= '1';
       write(oline, now, right, 12);
       if nack > 1 then
         write(oline, string'(" #ack="));

@@ -13,8 +13,8 @@
 ../../../bplib/nxcramlib/nxcramlib.vhd
 ${sys_conf}
 # components
-[xst,vsyn,isim,vsim]../../../vlib/xlib/s6_cmt_sfs_unisim.vbom
-[ghdl]../../../vlib/xlib/s6_cmt_sfs_gsim.vbom
+[xst,vsyn]../../../vlib/xlib/s6_cmt_sfs_unisim.vbom
+[ghdl,isim,vsim]../../../vlib/xlib/s6_cmt_sfs_gsim.vbom
 ../../../vlib/genlib/clkdivce.vbom
 ../../../bplib/bpgen/sn_humanio.vbom
 ../tst_fx2loop_hiomap.vbom

@@ -1,4 +1,4 @@
--- $Id: basys3lib.vhd 635 2015-01-16 17:37:08Z mueller $
+-- $Id: basys3lib.vhd 726 2016-01-31 23:02:31Z mueller $
 --
 -- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -12,7 +12,7 @@
 -- for complete details.
 --
 ------------------------------------------------------------------------------
--- Package Name:   basys3ib
+-- Package Name:   basys3lib
 -- Description:    Basys 3 components
 -- 
 -- Dependencies:   -

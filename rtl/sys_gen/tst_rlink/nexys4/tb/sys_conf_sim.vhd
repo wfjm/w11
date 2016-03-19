@@ -1,6 +1,6 @@
--- $Id: sys_conf_sim.vhd 648 2015-02-20 20:16:21Z mueller $
+-- $Id: sys_conf_sim.vhd 743 2016-03-13 16:42:31Z mueller $
 --
--- Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Definitions for sys_tst_rlink_n4 (for simulation)
 --
 -- Dependencies:   -
--- Tool versions:  xst 14.5-14.7; viv 2014.4; ghdl 0.29-0.31
+-- Tool versions:  xst 14.5-14.7; viv 2014.4-2015.4; ghdl 0.29-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-03-12   741   1.1    add sysmon_rbus
 -- 2013-09-28   535   1.0    Initial version
 ------------------------------------------------------------------------------
 
@@ -29,6 +30,7 @@ use work.slvtypes.all;
 
 package sys_conf is
 
+  -- configure clocks --------------------------------------------------------
   constant sys_conf_clksys_vcodivide   : positive :=   1;
   constant sys_conf_clksys_vcomultiply : positive :=   1;   -- vco  --- MHz
   constant sys_conf_clksys_outdivide   : positive :=   1;   -- sys  100 MHz
@@ -39,11 +41,14 @@ package sys_conf is
   constant sys_conf_clkser_outdivide   : positive := sys_conf_clksys_outdivide;
   constant sys_conf_clkser_gentype     : string   := sys_conf_clksys_gentype;
 
+  -- configure rlink and hio interfaces --------------------------------------
   constant sys_conf_ser2rri_cdinit : integer := 1-1;   -- 1 cycle/bit in sim
-
   constant sys_conf_hio_debounce : boolean := false;   -- no debouncers
 
-  -- derived constants
+  -- configure further units -------------------------------------------------
+  constant sys_conf_rbd_sysmon    : boolean := true;  -- SYSMON(XADC)
+
+  -- derived constants =======================================================
   
   constant sys_conf_clksys : integer :=
     ((100000000/sys_conf_clksys_vcodivide)*sys_conf_clksys_vcomultiply) /

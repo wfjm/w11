@@ -1,4 +1,4 @@
-# $Id: Makefile 602 2014-11-08 21:42:47Z mueller $
+# $Id: Makefile 733 2016-02-20 12:24:13Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -43,10 +43,10 @@ SOFILE     = lib$(SONAME).so
 SOFILEV    = lib$(SONAME).so.$(SOMAJV)
 SOFILEVV   = lib$(SONAME).so.$(SOMAJV).$(SOMINV)
 #
-include $(RETROBASE)/tools/make/generic_cpp.mk
-include $(RETROBASE)/tools/make/generic_dep.mk
-include $(RETROBASE)/tools/make/generic_so.mk
-include $(RETROBASE)/tools/make/dontincdep.mk
+include ${RETROBASE}/tools/make/generic_cpp.mk
+include ${RETROBASE}/tools/make/generic_dep.mk
+include ${RETROBASE}/tools/make/generic_so.mk
+include ${RETROBASE}/tools/make/dontincdep.mk
 #
 # The magic auto-dependency include
 #

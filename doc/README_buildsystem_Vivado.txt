@@ -1,4 +1,4 @@
-# $Id: README_buildsystem_Vivado.txt 651 2015-02-26 21:32:15Z mueller $
+# $Id: README_buildsystem_Vivado.txt 745 2016-03-18 22:10:34Z mueller $
 
 Guide to the Build System (Xilinx Vivado Version)
 
@@ -10,6 +10,7 @@ Guide to the Build System (Xilinx Vivado Version)
        b. Compile UNISIM/UNIMACRO libraries for ghdl
   3.  Building test benches
        a. With ghdl
+       b. With Vivado xsim
   4.  Building systems
   5.  Configuring FPGAs (via make flow)
   6.  Note on ISE
@@ -127,6 +128,28 @@ Guide to the Build System (Xilinx Vivado Version)
   - post synthesis or optimize models currently very often fail to compile
     in ghdl due to a bug in the ghdl code generator.
 
+3b. With Vivado xsim -------------------------------------------------
+
+  To compile a Vivado xsim based test bench named <tbench> all is needed is
+
+    make <tbench>_XSim
+
+  The make file will use <tbench>.vbom, create all make dependency files,
+  and generate the needed Vivado xsim project files and commands.
+
+  In many cases the test benches can also be compiled against the gate
+  level models derived after the synthesis, optimize or routing step.
+
+    make <tbench>_XSim_ssim             # for post-synthesis
+    make <tbench>_XSim_osim             # for post-optimize
+    make <tbench>_XSim_tsim             # for post-routing
+
+  Notes:
+  - xsim currently (as of Vivado 2015.4) crashes when DPI is used in a mixed 
+    vhdl verilog context. 
+    Since DPI is used in the rlink simulation all system test benches with
+    an rlink interface, thus most, will only run with ghdl and not with XSim.
+ 
 4. Building systems -------------------------------------------------------
 
   To generate a bit file for a system named <sys> all is needed is

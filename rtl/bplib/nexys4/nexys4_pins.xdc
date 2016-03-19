@@ -1,5 +1,5 @@
 # -*- tcl -*-
-# $Id: nexys4_pins.xdc 643 2015-02-07 17:41:53Z mueller $
+# $Id: nexys4_pins.xdc 726 2016-01-31 23:02:31Z mueller $
 #
 # Pin locks for Nexys 4 core functionality
 #  - USB UART
@@ -94,6 +94,7 @@ set_property SLEW SLOW           [get_ports {O_LED[*]}]
 set_property PACKAGE_PIN k5  [get_ports {O_RGBLED0[0]}]
 set_property PACKAGE_PIN f13 [get_ports {O_RGBLED0[1]}]
 set_property PACKAGE_PIN f6  [get_ports {O_RGBLED0[2]}]
+
 set_property PACKAGE_PIN k6  [get_ports {O_RGBLED1[0]}]
 set_property PACKAGE_PIN h6  [get_ports {O_RGBLED1[1]}]
 set_property PACKAGE_PIN l16 [get_ports {O_RGBLED1[2]}]

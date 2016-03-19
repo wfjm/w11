@@ -1,11 +1,1 @@
-_impactbatch.log
 sys_tst_rlink_n4.ucf
-*.dep_ucf_cpp
-*.svf
-.Xil
-project_mflow
-*.jou
-*.log
-*.rpt
-*.dcp
-*.dep_*

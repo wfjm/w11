@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: xtwi.1 651 2015-02-26 21:32:15Z mueller $
+.\"  $Id: xtwi.1 746 2016-03-19 13:08:36Z mueller $
 .\"
-.\" Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2014-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH XTWI 1 2013-11-10 "Retro Project" "Retro Project Manual"
+.TH XTWI 1 2016-03-19 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 xtwi \- Xilinx Tool Wrapper script for ISE
@@ -31,12 +31,32 @@ by the ISE installation procedure.
 and execs the \fICOMMAND\fP. This way \fICOMMAND\fP is executed in the
 ISE environment, while the login shell stays clean.
 
+\fBxtwi\fP can also setup a clean environment when BARE_PATH and
+BARE_LD_LIBRARY_PATH are defined.
+
 .
 .\" ------------------------------------------------------------------
 .SH ENVIRONMENT
 .TP 4
 .B XTWI_PATH
 Install path of ISE, without the /ISE_DS/ appended by ISE installation 
+.
+.TP 
+.B BARE_PATH
+Optional. If defined \fBxtwi\fP will set
+.EX
+   export PATH=$BARE_PATH:$RETROBASE/tools/bin
+.EE
+LD_LIBRARY_PATH will be unset unless BARE_LD_LIBRARY_PATH is 
+defined too.
+.
+.TP 
+.B BARE_LD_LIBRARY_PATH
+Optional. If defined \fBxtwi\fP will set
+.EX
+   export LD_LIBRARY_PATH=$BARE_LD_LIBRARY_PATH
+.EE
+Used only when BARE_PATH is defined.
 .
 .\" ------------------------------------------------------------------
 .SH FILES

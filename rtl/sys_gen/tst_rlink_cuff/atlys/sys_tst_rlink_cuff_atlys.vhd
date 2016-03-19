@@ -1,4 +1,4 @@
--- $Id: sys_tst_rlink_cuff_atlys.vhd 638 2015-01-25 22:01:38Z mueller $
+-- $Id: sys_tst_rlink_cuff_atlys.vhd 734 2016-02-20 22:43:20Z mueller $
 --
 -- Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -51,8 +51,8 @@
 --
 --    LED(7)    SER_MONI.abact
 --       (6:2)  no function (only connected to sn_humanio_demu_rbus)
---       (0)    timer 0 busy 
 --       (1)    timer 1 busy 
+--       (0)    timer 0 busy 
 --
 --    DSP:      SER_MONI.clkdiv         (from auto bauder)
 --    for SWI(2)='0' (serport)
@@ -142,7 +142,7 @@ architecture syn of sys_tst_rlink_cuff_atlys is
   signal FX2_TX2AFULL : slbit := '0';
   signal FX2_MONI  : fx2ctl_moni_type := fx2ctl_moni_init;
 
-  constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/4: 1111 1110 1111 00xx
+  constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/0008: 1111 1110 1111 0xxx
 
 begin
 

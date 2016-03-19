@@ -1,6 +1,6 @@
--- $Id: bpgenlib.vhd 637 2015-01-25 18:36:40Z mueller $
+-- $Id: bpgenlib.vhd 737 2016-02-28 09:07:18Z mueller $
 --
--- Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Generic Board/Part components
 -- 
 -- Dependencies:   -
--- Tool versions:  ise 12.1-14.7; viv 2014.4; ghdl 0.26-0.31
+-- Tool versions:  ise 12.1-14.7; viv 2014.4-2015.4; ghdl 0.26-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-02-27   737   1.2    add rgbdrv entity
 -- 2015-01-24   637   1.1.2  add generics to sn_humanio and sn_7segctl
 -- 2013-09-21   534   1.1.1  add bp_rs232_4l4l_iob
 -- 2013-01-26   476   1.1    moved rbus depended components to bpgenrbuslib
@@ -177,6 +178,62 @@ component sn_humanio_demu is            -- human i/o handling: swi,btn,led only
     I_SWI : in slv8;                    -- pad-i: switches
     I_BTN : in slv6;                    -- pad-i: buttons
     O_LED : out slv8                    -- pad-o: leds
+  );
+end component;
+
+component rgbdrv_master is              -- rgbled driver: master
+  generic (
+    DWIDTH : positive := 8);            -- dimmer width
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit := '0';            -- reset
+    CE_USEC : in slbit;                 -- 1 us clock enable
+    RGBCNTL : out slv3;                   -- rgb control
+    DIMCNTL : out slv(DWIDTH-1 downto 0)  -- dim control
+  );
+end component;
+
+component rgbdrv_analog is              -- rgbled driver: analog channel
+  generic (
+    DWIDTH : positive := 8);            -- dimmer width
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit := '0';            -- reset
+    RGBCNTL : in slv3;                  -- rgb control
+    DIMCNTL : in slv(DWIDTH-1 downto 0);-- dim control
+    DIMR : in slv(DWIDTH-1 downto 0);   -- dim red
+    DIMG : in slv(DWIDTH-1 downto 0);   -- dim green
+    DIMB : in slv(DWIDTH-1 downto 0);   -- dim blue
+    O_RGBLED : out slv3                 -- pad-o: rgb led
+  );
+end component;
+
+component rgbdrv_binary is              -- rgbled driver: binary channel
+  generic (
+    DWIDTH : positive := 8);            -- dimmer width
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit := '0';            -- reset
+    RGBCNTL : in slv3;                  -- rgb control
+    DIMCNTL : in slv(DWIDTH-1 downto 0);-- dim control
+    DIM : in slv(DWIDTH-1 downto 0);    -- dim
+    ENARGB : in slv3;                   -- enable [0] red  [1] green [2] blue
+    O_RGBLED : out slv3                 -- pad-o: rgb led
+  );
+end component;
+
+component rgbdrv_3x4mux is              -- rgbled driver: mux three 4bit inputs
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit := '0';            -- reset
+    CE_USEC : in slbit;                 -- 1 us clock enable
+    DATR : in slv4;                     -- red   data
+    DATG : in slv4;                     -- green data
+    DATB : in slv4;                     -- blue  data
+    O_RGBLED0 : out slv3;               -- pad-o: rgb led 0
+    O_RGBLED1 : out slv3;               -- pad-o: rgb led 1
+    O_RGBLED2 : out slv3;               -- pad-o: rgb led 2
+    O_RGBLED3 : out slv3                -- pad-o: rgb led 3
   );
 end component;
 

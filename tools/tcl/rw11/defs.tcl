@@ -1,6 +1,6 @@
-# $Id: defs.tcl 719 2015-12-27 09:45:43Z mueller $
+# $Id: defs.tcl 724 2016-01-03 22:53:53Z mueller $
 #
-# Copyright 2014-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2014-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2016-01-02   724   1.0.3  add s: defs for CP_STAT(rust)
 # 2015-12-26   719   1.0.2  add regmap_add defs; add CNTRL def
 # 2015-09-06   710   1.0.1  regdsc PSW: add silent n,z,v,c; *mode syms; fix tflag
 # 2014-03-07   553   1.0    Initial version (extracted from util.tcl)
@@ -29,8 +30,23 @@ namespace eval rw11 {
   # setup cp interface register descriptions for w11a -----------------------
   #
   regdsc CP_CNTL {func 3 0}
-  regdsc CP_STAT {suspext 9} {suspint 8} {rust 7 4} \
+
+  regdsc CP_STAT {suspext 9} {suspint 8} \
+                 {rust 7 4 "s:init:halt:reset:stop:step:susp:hbpt:runs:vecfet:recrsv:s1010:s1011:sfail:vfail:s1110:s1111"} \
                  {susp 3} {go 2} {merr 1} {err 0}
+  variable RUST_INIT   [bvi b4 "0000"]
+  variable RUST_HALT   [bvi b4 "0001"]
+  variable RUST_RESET  [bvi b4 "0010"]
+  variable RUST_STOP   [bvi b4 "0011"]
+  variable RUST_STEP   [bvi b4 "0100"]
+  variable RUST_SUSP   [bvi b4 "0101"]
+  variable RUST_HBPT   [bvi b4 "0110"]
+  variable RUST_RUNS   [bvi b4 "0111"]
+  variable RUST_VECFET [bvi b4 "1000"]
+  variable RUST_RECRSV [bvi b4 "1001"]
+  variable RUST_SFAIL  [bvi b4 "1100"]
+  variable RUST_VFAIL  [bvi b4 "1101"]
+
   regdsc CP_AH   {ubm 7} {p22 6} {addr 5 6}
   #
   # setup w11a register descriptions -----------------------------------------

@@ -1,4 +1,4 @@
-# $Id: Makefile 646 2015-02-15 12:04:55Z mueller $
+# $Id: Makefile 733 2016-02-20 12:24:13Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -7,7 +7,7 @@
 VBOM_all  = $(wildcard *.vbom)
 BIT_all   = $(VBOM_all:.vbom=.bit)
 #
-include $(RETROBASE)/rtl/make_viv/viv_default_nexys4.mk
+include ${RETROBASE}/rtl/make_viv/viv_default_nexys4.mk
 #
 .PHONY : all clean
 #
@@ -17,7 +17,7 @@ clean : viv_clean
 #
 #----
 #
-include $(RETROBASE)/rtl/make_viv/generic_vivado.mk
+include ${RETROBASE}/rtl/make_viv/generic_vivado.mk
 #
 ifndef DONTINCDEP
 include $(VBOM_all:.vbom=.dep_vsyn)

@@ -1,9 +1,3 @@
 tb_w11a_n4
-tb_w11a_n4_[sft]sim
-rlink_cext_fifo_rx
-rlink_cext_fifo_tx
-rlink_cext_conf
-tmu_ofile
 sys_w11a_n4.ucf
-*.dep_ucf_cpp
-*.dep_*
+sysmon_stim

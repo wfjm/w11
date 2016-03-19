@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: ti_w11.1 712 2015-11-01 22:53:45Z mueller $
+.\"  $Id: ti_w11.1 745 2016-03-18 22:10:34Z mueller $
 .\"
 .\" Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -51,15 +51,19 @@ use /dev/ttyUSB*  (* is device number \fIN\fP)
 .SS "setup options for ghdl simulation runs"
 .PD 0
 .IP \fB-b3\fP
-start \fItb_w11a_b3\fP simulation (w11a on Basys3, default \fB-f1x\fP)
+start \fItb_w11a_b3\fP simulation (Basys3, default \fB-fx\fP)
 .IP \fB-n4\fP
-start \fItb_w11a_n4\fP simulation (w11a on Nexys4)
+start \fItb_w11a_n4\fP simulation (Nexys4)
+.IP \fB-bn4\fP
+start \fItb_w11a_br_n4\fP simulation (Nexys4, BRAM only)
+.IP \fB-bar\fP
+start \fItb_w11a_br_arty\fP simulation (Arty, BRAM only, default \fB-fx\fP)
 .IP \fB-n3\fP
-start \fItb_w11a_n3\fP simulation (w11a on Nexys3, default \fB-fc\fP)
+start \fItb_w11a_n3\fP simulation (Nexys3, default \fB-fc\fP)
 .IP \fB-n2\fP
-start \fItb_w11a_n2\fP simulation (w11a on Nexys2, default \fB-fc\fP)
+start \fItb_w11a_n2\fP simulation (Nexys2, default \fB-fc\fP)
 .IP \fB-s3\fP
-start \fItb_w11a_s3\fP simulation (w11a on S3board, default \fB-f2\fP)
+start \fItb_w11a_s3\fP simulation (S3board, default \fB-f2\fP)
 .PD
 .IP \fB-f\fIm\fR
 select communication mode for simulation. The \fB-f\fIm\fR can be used after
@@ -69,14 +73,16 @@ for mode \fIm\fP are
 .PD 0
 .IP \fBc\fP 4
 use Cypress FX2 data path (cuff, only for -n2 and -n3)
+.IP \fBx\fP 4
+use 1st serport with hardwired xon (for -b3 and -arty)
 .IP \fB1\fP 4
 use 1st serport
 .IP \fB1x\fP 4
-use 1st serport with xon
+use 1st serport with switched xon
 .IP \fB2\fP 4
 use 2nd serport (fusp, only for -s3,-n2,-n3)
 .IP \fB2x\fP 4
-use 2nd serport with xon
+use 2nd serport with switched xon
 .PD
 .RE
 .IP \fB-tmu\fP
@@ -91,6 +97,8 @@ activate ghw wave file writing
 load and execute \fIfile\fP. If the file type is '.mac' the file will
 be on the fly compiled with \fBasm-11\fP(1), for all other file types
 it is assumed that they are in \fBlda\fP(5) format.
+.IP \fB-dry\fR
+dry run, prints the commands but doesn't execute
 .
 .\" ------------------------------------------------------------------
 .SH EXAMPLES

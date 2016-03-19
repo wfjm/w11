@@ -1,5 +1,2 @@
-*.gz
 *.dat
-*.dsk
-*.log
 *hook.tcl

@@ -1,0 +1,6 @@
+# libs
+../../vlib/slvtypes.vhd
+../../vlib/rbus/rblib.vhd
+# components
+# design
+sysmon_rbus_core.vhd

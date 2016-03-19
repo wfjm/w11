@@ -1,6 +1,6 @@
--- $Id: sys_w11a_n4.vhd 686 2015-06-04 21:08:08Z mueller $
+-- $Id: sys_w11a_n4.vhd 742 2016-03-13 14:40:19Z mueller $
 --
--- Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -25,15 +25,17 @@
 --                 bplib/fx2rlink/ioleds_sp1c
 --                 w11a/pdp11_hio70
 --                 bplib/bpgen/sn_humanio_rbus
---                 vlib/rbus/rb_sres_or_2
+--                 bplib/sysmon/sysmonx_rbus_base
+--                 vlib/rbus/rb_sres_or_3
 --
 -- Test bench:     tb/tb_sys_w11a_n4
 --
 -- Target Devices: generic
--- Tool versions:  ise 14.5-14.7; viv 2014.4; ghdl 0.29-0.31
+-- Tool versions:  ise 14.5-14.7; viv 2014.4-2015.4; ghdl 0.29-0.33
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic MHz
+-- 2016-03-13   742 2015.4  xc7a100t-1   2536  4868   178  10.5  1542  80 +XADC
 -- 2015-06-04   686 2014.4  xc7a100t-1   2111  4541   162   7.5  1469  80 +TM11
 -- 2015-05-14   680 2014.4  xc7a100t-1   2030  4459   162   7.5  1427  80
 -- 2015-02-22   650 2014.4  xc7a100t-1   1606  3652   146   3.5  1158  80
@@ -41,6 +43,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-03-13   742   2.2    add sysmon_rbus
 -- 2015-05-09   677   2.1    start/stop/suspend overhaul; ; reset overhaul
 -- 2015-05-01   672   2.0    use pdp11_sys70 and pdp11_hio70
 -- 2015-04-11   666   1.4.2  rearrange XON handling
@@ -113,6 +116,7 @@ use work.rblib.all;
 use work.rlinklib.all;
 use work.bpgenlib.all;
 use work.bpgenrbuslib.all;
+use work.sysmonrbuslib.all;
 use work.nxcramlib.all;
 use work.iblib.all;
 use work.ibdlib.all;
@@ -163,10 +167,11 @@ architecture syn of sys_w11a_n4 is
   signal RTS_N : slbit := '0';
   signal CTS_N : slbit := '0';
     
-  signal RB_MREQ       : rb_mreq_type := rb_mreq_init;
-  signal RB_SRES       : rb_sres_type := rb_sres_init;
-  signal RB_SRES_CPU   : rb_sres_type := rb_sres_init;
-  signal RB_SRES_HIO   : rb_sres_type := rb_sres_init;
+  signal RB_MREQ        : rb_mreq_type := rb_mreq_init;
+  signal RB_SRES        : rb_sres_type := rb_sres_init;
+  signal RB_SRES_CPU    : rb_sres_type := rb_sres_init;
+  signal RB_SRES_HIO    : rb_sres_type := rb_sres_init;
+  signal RB_SRES_SYSMON : rb_sres_type := rb_sres_init;
 
   signal RB_LAM  : slv16 := (others=>'0');
   signal RB_STAT : slv4  := (others=>'0');
@@ -212,7 +217,8 @@ architecture syn of sys_w11a_n4 is
   signal DSP_DP  : slv8  := (others=>'0');
 
   constant rbaddr_rbmon : slv16 := x"ffe8"; -- ffe8/0008: 1111 1111 1110 1xxx
-  constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/0004: 1111 1110 1111 00xx
+  constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/0008: 1111 1110 1111 0xxx
+  constant rbaddr_sysmon: slv16 := x"fb00"; -- fb00/0080: 1111 1011 0xxx xxxx
 
 begin
 
@@ -423,10 +429,27 @@ begin
       O_SEG_N => O_SEG_N
     );
   
-  RB_SRES_OR : rb_sres_or_2             -- rbus or ---------------------------
+  SMRB : if sys_conf_rbd_sysmon  generate    
+    I0: sysmonx_rbus_base
+      generic map (                     -- use default INIT_ (Vccint=1.00)
+        CLK_MHZ  => sys_conf_clksys_mhz,
+        RB_ADDR  => rbaddr_sysmon)
+      port map (
+        CLK      => CLK,
+        RESET    => RESET,
+        RB_MREQ  => RB_MREQ,
+        RB_SRES  => RB_SRES_SYSMON,
+        ALM      => open,
+        OT       => open,
+        TEMP     => open
+      );
+  end generate SMRB;
+
+  RB_SRES_OR : rb_sres_or_3             -- rbus or ---------------------------
     port map (
       RB_SRES_1  => RB_SRES_CPU,
       RB_SRES_2  => RB_SRES_HIO,
+      RB_SRES_3  => RB_SRES_SYSMON,
       RB_SRES_OR => RB_SRES
     );
   

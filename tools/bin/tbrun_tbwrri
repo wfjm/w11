@@ -1,11 +1,12 @@
 #!/bin/bash
-# $Id: tbrun_tbwrri 666 2015-04-12 21:17:54Z mueller $
+# $Id: tbrun_tbwrri 745 2016-03-18 22:10:34Z mueller $
 #
-# Copyright 2014-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2014-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2016-03-18   745   1.2    use --sxon and --hxon instead of --xon
 # 2015-04-11   666   1.1    add --fusp,--xon
 # 2014-12-27   622   1.0    Initial version
 #
@@ -36,7 +37,8 @@ optrri=""
 optpcom=""
 optcuff=""
 optfusp=""
-optxon=""
+optsxon=""
+opthxon=""
 
 # handle options
 while (( $# > 0 )) ; do
@@ -50,7 +52,8 @@ while (( $# > 0 )) ; do
     -rri|--rri)     optrri=$2    ; chkval $2 ; shift 2 ;;
     -cuff|--cuff)   optcuff=$1   ;             shift 1 ;;
     -fusp|--fusp)   optfusp=$1   ;             shift 1 ;;
-    -xon|--xon)     optxon=$1    ;             shift 1 ;;
+    -sxon|--sxon)   optsxon=$1   ;             shift 1 ;;
+    -hxon|--hxon)   opthxon=$1   ;             shift 1 ;;
     -pcom|--pcom)   optpcom=$1   ;             shift 1 ;;
     -\?|-h*|--h*)   opthelp=$1   ;             shift 1 ;;
     -*)             echo "tbrun_tbwrri-E: invalid option '$1'"; exit 1 ;;
@@ -71,19 +74,21 @@ if [[ -n "$opthelp" || $# -eq 0 ]] ; then
   echo "  --rri   opts      append <opts> to ti_rri command"
   echo "  --cuff            use cuff and not serport"
   echo "  --fusp            use 2nd serport"
-  echo "  --xon             use xon with 1st serport"
+  echo "  --sxon            use xon with 1st serport (via SWI(1))"
+  echo "  --hxon            use xon with 1st serport (hardwired)"
   echo "  --pcom            print test comments"
   exit 1
 fi
 
-# check that only one of --cuff --fusp or --xon given
+# check that only one of --cuff --fusp or --?xon given
 ncfxcount=0
 if [[ -n "$optcuff" ]] ; then ncfxcount=$(($ncfxcount+1)); fi
 if [[ -n "$optfusp" ]] ; then ncfxcount=$(($ncfxcount+1)); fi
-if [[ -n "$optxon" ]]  ; then ncfxcount=$(($ncfxcount+1)); fi
+if [[ -n "$opthxon" ]] ; then ncfxcount=$(($ncfxcount+1)); fi
+if [[ -n "$optsxon" ]] ; then ncfxcount=$(($ncfxcount+1)); fi
 
 if (( $ncfxcount > 1 )) ; then
-  echo "tbrun_tbwrri-E: only one of --cuff,-fusp,--xon allowed"
+  echo "tbrun_tbwrri-E: only one of --cuff,-fusp,--sxon,--hxon allowed"
   exit 1 
 fi
 
@@ -125,10 +130,11 @@ if [[ -n "$optghw" ]] ; then
 fi
 cmd+=" 2>&1 | ghdl_assert_filter\""
 
-# Note: the following ensurs that we always have 'fifo=,<options' with an
+# Note: the following ensurs that we always have 'fifo=,<options>' with an
 #       empty first field (the default fifo name)
 fifoopts=""
-if [[ -n "$optxon" ]] ; then    fifoopts+=",xon"; fi
+if [[ -n "$opthxon" ]] ; then   fifoopts+=",xon"; fi
+if [[ -n "$optsxon" ]] ; then   fifoopts+=",xon"; fi
 if (( $ncfxcount > 0 )) ; then  fifoopts+=",noinit"; fi
 
 if [[ -n "$fifoopts" ]] ; then
@@ -154,7 +160,7 @@ if [[ -n "$optfusp" ]] ; then
   cmd+=" \"rlc oob -sbdata 16 0x1\""    # swi     = 0001 -> 2nd ser
 fi
 
-if [[ -n "$optxon" ]] ; then
+if [[ -n "$optsxon" ]] ; then
   cmd+=" \"rlc oob -sbdata  8 0x2\""    # portsel = 0010 -> 1st ser XON
   cmd+=" \"rlc oob -sbdata 16 0x2\""    # swi     = 0010 -> 1st ser XON
 fi

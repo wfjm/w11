@@ -1,4 +1,4 @@
--- $Id: sys_w11a_s3.vhd 686 2015-06-04 21:08:08Z mueller $
+-- $Id: sys_w11a_s3.vhd 734 2016-02-20 22:43:20Z mueller $
 --
 -- Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -275,7 +275,7 @@ architecture syn of sys_w11a_s3 is
   signal ABCLKDIV : slv16 := (others=>'0');
 
   constant rbaddr_rbmon : slv16 := x"ffe8"; -- ffe8/0008: 1111 1111 1110 1xxx
-  constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/0004: 1111 1110 1111 00xx
+  constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/0008: 1111 1110 1111 0xxx
 
 begin
 

@@ -1,6 +1,6 @@
--- $Id: sys_w11a_b3.vhd 686 2015-06-04 21:08:08Z mueller $
+-- $Id: sys_w11a_b3.vhd 745 2016-03-18 22:10:34Z mueller $
 --
--- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -25,21 +25,25 @@
 --                 vlib/rlink/ioleds_sp1c
 --                 w11a/pdp11_hio70
 --                 bplib/bpgen/sn_humanio_rbus
---                 vlib/rbus/rb_sres_or_2
+--                 bplib/sysmon/sysmonx_rbus_base
+--                 vlib/rbus/rb_sres_or_3
 --
 -- Test bench:     tb/tb_sys_w11a_b3
 --
 -- Target Devices: generic
--- Tool versions:  viv 2014.4; ghdl 0.31
+-- Tool versions:  viv 2014.4-2015.4; ghdl 0.31-0.33
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2016-03-13   742 2015.4  xc7a35t-1    2135  4420   162  48.5  1396 +XADC
 -- 2015-06-04   686 2014.4  xc7a35t-1    1919  4372   162  47.5  1408 +TM11 17%
 -- 2015-05-14   680 2014.4  xc7a35t-1    1837  4304   162  47.5  1354 +RHRP 17%
 -- 2015-02-21   649 2014.4  xc7a35t-1    1637  3767   146  47.5  1195  
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-03-18   745   2.2.1  hardwire XON=1
+-- 2016-03-13   742   2.2    add sysmon_rbus
 -- 2015-05-09   677   2.1    start/stop/suspend overhaul; reset overhaul
 -- 2015-05-01   672   2.0    use pdp11_sys70 and pdp11_hio70
 -- 2015-04-11   666   1.1.1  rearrange XON handling
@@ -62,7 +66,7 @@
 --                 0 overall status
 --                 1 DR emulation
 --    SWI(2):    unused-reserved (USB port select)
---    SWI(1):    1 enable XON
+--    SWI(1):    unused-reserved (XON, is hardwired to '1')
 --    SWI(0):    unused-reserved (serial port select)
 --    
 --    LEDs if SWI(3) = 1
@@ -103,6 +107,7 @@ use work.rblib.all;
 use work.rlinklib.all;
 use work.bpgenlib.all;
 use work.bpgenrbuslib.all;
+use work.sysmonrbuslib.all;
 use work.iblib.all;
 use work.ibdlib.all;
 use work.pdp11.all;
@@ -135,10 +140,11 @@ architecture syn of sys_w11a_b3 is
   signal RXD :   slbit := '1';
   signal TXD :   slbit := '0';
     
-  signal RB_MREQ       : rb_mreq_type := rb_mreq_init;
-  signal RB_SRES       : rb_sres_type := rb_sres_init;
-  signal RB_SRES_CPU   : rb_sres_type := rb_sres_init;
-  signal RB_SRES_HIO   : rb_sres_type := rb_sres_init;
+  signal RB_MREQ        : rb_mreq_type := rb_mreq_init;
+  signal RB_SRES        : rb_sres_type := rb_sres_init;
+  signal RB_SRES_CPU    : rb_sres_type := rb_sres_init;
+  signal RB_SRES_HIO    : rb_sres_type := rb_sres_init;
+  signal RB_SRES_SYSMON : rb_sres_type := rb_sres_init;
 
   signal RB_LAM  : slv16 := (others=>'0');
   signal RB_STAT : slv4  := (others=>'0');
@@ -181,7 +187,8 @@ architecture syn of sys_w11a_b3 is
   signal DSP_DP  : slv4  := (others=>'0');
 
   constant rbaddr_rbmon : slv16 := x"ffe8"; -- ffe8/0008: 1111 1111 1110 1xxx
-  constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/0004: 1111 1110 1111 00xx
+  constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/0008: 1111 1110 1111 0xxx
+  constant rbaddr_sysmon: slv16 := x"fb00"; -- fb00/0080: 1111 1011 0xxx xxxx
 
 begin
 
@@ -243,7 +250,7 @@ begin
       CE_MSEC  => CE_MSEC,
       CE_INT   => CE_MSEC,
       RESET    => RESET,
-      ENAXON   => SWI(1),
+      ENAXON   => '1',
       ESCFILL  => '0',
       RXSD     => RXD,
       TXSD     => TXD,
@@ -376,10 +383,27 @@ begin
       O_SEG_N => O_SEG_N
     );
 
-    RB_SRES_OR : rb_sres_or_2             -- rbus or ---------------------------
+  SMRB : if sys_conf_rbd_sysmon  generate    
+    I0: sysmonx_rbus_base
+      generic map (                     -- use default INIT_ (Vccint=1.00)
+        CLK_MHZ  => sys_conf_clksys_mhz,
+        RB_ADDR  => rbaddr_sysmon)
+      port map (
+        CLK      => CLK,
+        RESET    => RESET,
+        RB_MREQ  => RB_MREQ,
+        RB_SRES  => RB_SRES_SYSMON,
+        ALM      => open,
+        OT       => open,
+        TEMP     => open
+      );
+  end generate SMRB;
+
+  RB_SRES_OR : rb_sres_or_3             -- rbus or ---------------------------
     port map (
       RB_SRES_1  => RB_SRES_CPU,
       RB_SRES_2  => RB_SRES_HIO,
+      RB_SRES_3  => RB_SRES_SYSMON,
       RB_SRES_OR => RB_SRES
     );
   

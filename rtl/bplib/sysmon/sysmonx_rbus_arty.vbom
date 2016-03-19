@@ -1,0 +1,9 @@
+# libs
+../../vlib/slvtypes.vhd
+../../vlib/rbus/rblib.vhd
+sysmonrbuslib.vbom
+@lib:unisim
+# components
+sysmon_rbus_core.vbom
+# design
+sysmonx_rbus_arty.vhd

@@ -1,4 +1,4 @@
--- $Id: pdp11_hio70.vhd 672 2015-05-02 21:58:28Z mueller $
+-- $Id: pdp11_hio70.vhd 737 2016-02-28 09:07:18Z mueller $
 --
 -- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -15,10 +15,12 @@
 -- Module Name:    pdp11_hio70 - syn
 -- Description:    pdp11: hio led and dsp for sys70
 --
--- Dependencies:   -
+-- Dependencies:   pdp11_statleds
+--                 pdp11_ledmux
+--                 pdp11_dspmux
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  ise 14.7; viv 2014.4; ghdl 0.31
+-- Tool versions:  ise 14.7; viv 2014.4-2015.4; ghdl 0.31
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

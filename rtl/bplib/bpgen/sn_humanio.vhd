@@ -1,4 +1,4 @@
--- $Id: sn_humanio.vhd 637 2015-01-25 18:36:40Z mueller $
+-- $Id: sn_humanio.vhd 731 2016-02-14 21:07:14Z mueller $
 --
 -- Copyright 2010-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -93,7 +93,7 @@ begin
     generic map (DWIDTH => 8)
     port map (CLK => CLK, CE => '1', DO => N_SEG_N, PAD => O_SEG_N);
 
- HIO : bp_swibtnled
+  HIO : bp_swibtnled
     generic map (
       SWIDTH   => SWIDTH,
       BWIDTH   => BWIDTH,

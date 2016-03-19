@@ -1,4 +1,4 @@
-# $Id: generic_so.mk 515 2013-05-04 17:28:59Z mueller $
+# $Id: generic_so.mk 733 2016-02-20 12:24:13Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -15,7 +15,7 @@
 #   SOMINV    minor version number
 #
 ifndef SOPATH
-SOPATH     = $(RETROBASE)/tools/lib
+SOPATH     = ${RETROBASE}/tools/lib
 endif
 #
 SOFILE     = lib$(SONAME).so

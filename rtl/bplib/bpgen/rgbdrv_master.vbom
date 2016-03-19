@@ -1,0 +1,5 @@
+# libs
+../../vlib/slvtypes.vhd
+# components
+# design
+rgbdrv_master.vhd

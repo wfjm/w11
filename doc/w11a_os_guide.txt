@@ -1,4 +1,4 @@
-# $Id: w11a_os_guide.txt 680 2015-05-14 13:29:46Z mueller $
+# $Id: w11a_os_guide.txt 745 2016-03-18 22:10:34Z mueller $
 
 Guide to run operating system images on w11a systems
 
@@ -20,7 +20,7 @@ Guide to run operating system images on w11a systems
 
    - Serial port
      - via an integrated USB-UART bridge
-       - on basys3 and nexys4 with a FT2232HQ, allows up to 12M Baud
+       - on arty, basys3, and nexys4 with a FT2232HQ, allows up to 12M Baud
        - on nexys3 with a FT232R, allows up to 2M Baud
      - via RS232 port, as on s3board and nexys2
        - using a serial port (/dev/ttySx) is limited to 115 kBaud on most PCs.
@@ -45,17 +45,23 @@ Guide to run operating system images on w11a systems
 
    Recommended setup for best performance (boards ordered by vintage):
 
-       Board   Channel/Interface      nom. speed      peak transfer rate
+      Board    Channel/Interface        nom. speed      peak transfer rate
 
-      basys3   USB-UART bridge        10M Baud              910 kB/sec
-      nexys4   USB-UART bridge        10M Baud              910 kb/sec
-      nexys3   Cypress FX2 USB        USB2.0 speed        30000 kB/sec
-      nexys2   Cypress FX2 USB        USB2.0 speed        30000 kB/sec
-     s3board   RS232+USB-RS232 cable  460k Baud              41 kB/sec
+      arty     USB-UART bridge          10M Baud              910 kB/sec
+      basys3   USB-UART bridge          10M Baud              910 kB/sec
+      nexys4   USB-UART bridge          10M Baud              910 kb/sec
+      nexys3   Cypress FX2 USB          USB2.0 speed        30000 kB/sec
+      nexys2   Cypress FX2 USB          USB2.0 speed        30000 kB/sec
+      s3board   RS232+USB-RS232 cable   460k Baud              41 kB/sec
     
 2. FPGA Board setup -------------------------------------------------------
 
    Recommended setups
+
+   - Arty
+     - connect USB cable to micro-USB connector labeled 'J10'
+     - to configure via vivado hardware server
+         make <sys>.vconfig
 
    - Basys3
      - connect USB cable to micro-USB connector labeled 'PROG'
@@ -99,16 +105,24 @@ Guide to run operating system images on w11a systems
      are in the indicated positions (SWI=...). The concrete boot script
      name <boot-script> is given in the following sections
 
-     - for b3 over serial
-         SWI = 00000000 00101010
+     - for arty over serial
+         SWI = 0110                (gives console light emulation...)
          ti_w11 -tu<dn>,10M,break,xon  @<oskit-name>_boot.tcl
+
+         NOTE: the arty w11a has currently only 176 kB memory (all from BRAMS!)
+               unix-v5 works fine. XXDP, RT11 and RSX-11M should work.
+               211bsd will not boot, either most RSX-11M+ systems.
+
+     - for b3 over serial
+         SWI = 00000000 00101000   (gives console light display on LEDS)
+         ti_w11 -tu<dn>,12M,break,xon  @<oskit-name>_boot.tcl
 
          NOTE: the basys3 w11a has only 176 kB memory (all from BRAMS!)
                unix-v5 works fine. XXDP, RT11 and RSX-11M should work.
                211bsd will not boot, either most RSX-11M+ systems.
 
      - for n4 over serial
-         SWI = 00000000 00101000
+         SWI = 00000000 00101000   (gives console light display on LEDS)
          ti_w11 -tu<dn>,10M,break,cts  @<oskit-name>_boot.tcl
 
      - for n2,n3 over fx2
@@ -122,10 +136,10 @@ Guide to run operating system images on w11a systems
      Notes: 
      - on <dn>, the serial device number
        - check with 'ls /dev/ttyUSB*' to see what is available
-       - <dn> is typically '1' if only a single basys3 or nexys4 is connected
-         Initially two ttyUSB devices show up, the lower is for FPGA config
-         and will disappear when Vivado hardware server is used once. The
-         upper provides the data connection.
+       - <dn> is typically '1' if a single FT2232HQ based boardis connected,
+         like a arty, basys3, or nexys4. Initially two ttyUSB devices show up, 
+         the lower is for FPGA config and will disappear when Vivado hardware
+         server is used once. The upper provides the data connection.
        - <dn> is typically '0' if only a single USB-RS232 cable is connected
 
      - on LED display

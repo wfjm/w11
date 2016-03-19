@@ -1,4 +1,4 @@
-$Id: README.txt 722 2015-12-30 19:45:46Z mueller $
+$Id: README.txt 746 2016-03-19 13:08:36Z mueller $
 
 Release notes for w11a
 
@@ -21,6 +21,108 @@ Release notes for w11a
     * w11a_known_issues.txt: known differences, limitations and issues
 
 2. Change Log ----------------------------------------------------------------
+
+- trunk (2016-03-19: svn rev 35(oc) 746(wfjm); untagged w11a_V0.72)  +++++++++
+  - Preface
+    - The new low-cost Digilent Arty board is a very attractive platform.
+      The DDR3 memory will take some time to integrate, in this release thus
+      only designs using the BRAMs.
+    - added support for the Vivado simulator. Simple test benches work fine.
+      Rlink based test benches don't work due to a bug in Vivado 2015.4.
+    - A rather esoteric CPU bug was fixed in release V0.71 but forgotten to
+      mention in the README. See ECO-027-trap_mmu.txt for details.
+
+  - Summary
+    - added Arty support. The w11a design uses BRAMs as memory, like the
+      Basys3 version. This gives 176 KByte memory, not enough for 2.11BSD, 
+      but for many other less demanding OS available for a PDP11.
+    - added support for SYSMON/XADC (see README_xadc.txt)
+    - Vivado flow is now default for test benches of components and all Artix
+      based systems. If applicable an ISE flow is available under Makefile.ise
+      (resolves known issues V0.64-4 and V0.64-5).
+    - re-factored tbcore_rlink to support DPI and VHPI
+    - Vivado supports with DPI (from SystemVerilog) a mechanism to call
+      external C code. The rlink test bench code so far relies on VHPI, which
+      is supported by ghdl, but not by ISE ISim or Vivado xsim. The code was
+      restructured and can use now DPI or VHPI to support both ghdl and
+      Vivado. Unfortunately has Vivado 2015.4 a bug, DPI doesn't work in a
+      mixed vhdl-verilog language environment (see Known issues), so the
+      code base is there, but utilization will habe to wait.
+    - Vivado synthesis by default keeps hierarchy. This leads to doubly defined
+      modules if a component is used in both test bench and unit under test.
+      To avoid this copies of s7_cmt_sfs and some serport_* modules were
+      created and are now used in the test benches.
+
+  - New features
+    - new directory trees for
+      - rtl/bplib/arty              - board support files for arty
+      - rtl/bplib/sysmon            - driver + rbus iface for SYSMON/XADC
+      - rtl/vlib/rlink/tbcore       - new location for rlink tb iface code
+      - tools/tcl/rbsysmon          - sysmon/xadc support
+    - new modules
+      - rtl/bplib/bpgen
+        - rgbdrv_*                  - driver + rbus iface for 3 color RGBLED
+      - rtl/vlib/rlink/tbcore 
+        - rlink_cext_iface_dpi.sv     - DPI based cext iface
+        - rlink_cext_iface_vhpi.vhd   - VHPI based cext iface
+        - rlink_cext_dpi.c            - dpi to vhpi adapter
+      - rtl/vlib/serport/tb
+        - serport_uart_*_tb           - added copies for tb usage
+      - rtl/vlib/xlib/tb
+        - s7_cmt_sfs_tb               - added copy for tb usage
+      - 
+    - new files
+      - doc/man/man1
+        - tbrun_tbw.1               - man file for tbrun_tbw
+        - tbrun_tbwrri.1            - man file for tbrun_tbwrri
+    - new systems
+      - rtl/sys_gen/tst_rlink       - rlink tester
+        - arty/sys_tst_rlink_arty     - for Arty
+      - rtl/sys_gen/w11a            - w11a
+        - arty_bram/sys_w11a_br_arty  - for Arty (BRAM only, 176 MByte)
+
+  - Changes
+    - */.cvsignore                  - all ignore files re-organized
+    - */tb/Makefile                 - Vivado now default, keep Makefile.ise
+    - rtl/bplib/*/tb/tb_*.vhd       - use s7_cmt_sfs_tb and serport_master_tb
+    - rtl/vlib/comlib
+      - comlib.vhd                  - add work-around for vivado 2015.4 issue
+    - rtl/vlib/rbus
+      - rb_sres_or_mon              - supports 6 inputs now
+    - rtl/vlib/serport
+      - serport_master              - moved to tb, _tb appended to name
+    - rtl/vlib/rlink/tbcore
+      - tbcore_rlink                - re-structured to use rlink_cext_iface
+    - rtl/sys_gen/...
+      - sys_tst_rlink_b3            - hardwire XON=1, support XADC
+      - sys_tst_rlink_n4            - support XADC and RGBLEDs
+      - sys_w11a_b3                 - hardwire XON=1, support XADC; 72 MHz now
+      - sys_w11a_n4                 - support XADC
+    - tools/bin
+      - tbrun_tbw                   - add vivado xsim and Makefile.ise support
+      - tbrun_tbwrri                - use --sxon and --hxon instead of --xon
+      - tbw                         - add XSim support
+      - ti_w11                      - add arty support, add -fx
+      - vbomconv                    - add [ise,viv]; add @uut tag handling;
+                                      add preliminary --(vsyn|vsim)_export;
+                                      add vivado xsim support;
+      - xtwi,xtwv                   - add BARE_PATH to provide clean environment
+
+  - Bug fixes
+    - tools/tcl/rutil
+      - regdsc.tcl                  - regdsc: fix variable name in error msg
+
+  - Known issues
+    - all issues: see README_known_issues.txt
+    - resolved issues:
+      - V0.64-4: support added for Vivado xsim. See however issue V0.72-1+2.
+      - V0.64-5: w11a_tb_guide.txt covers xsim tests too.
+
+    - new issues:
+      - V0.72-1: Vivado 2015.4 xelab crashes when DPI is used in a mxied
+          vhdl-verilog language environment. This prevents currently to
+          build a xsim simulation model for rlink based test benches.
+      - V0.72-2: xsim simulations with timing annotation not yet available.
 
 - trunk (2015-12-30: svn rev 34(oc) 722(wfjm); untagged w11a_V0.71)  +++++++++
   - Preface

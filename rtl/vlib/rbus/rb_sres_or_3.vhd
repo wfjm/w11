@@ -1,4 +1,4 @@
--- $Id: rb_sres_or_3.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: rb_sres_or_3.vhd 741 2016-03-12 23:49:03Z mueller $
 --
 -- Copyright 2008-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,7 +18,7 @@
 -- Dependencies:   rb_sres_or_mon    [sim only]
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  ise 8.1-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.1-14.7; viv 2014.4-2015.4; ghdl 0.18-0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

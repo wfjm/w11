@@ -1,4 +1,4 @@
-# $Id: Makefile 639 2015-01-30 18:12:19Z mueller $
+# $Id: Makefile 733 2016-02-20 12:24:13Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -7,13 +7,13 @@
 # 2010-04-24   282   1.1.3  use %.impact rule, all=BIT_all now
 # 2009-11-20   251   1.1.2  add .mcs rule
 # 2009-07-26   236   1.1.1  add program: rule
-# 2007-11-26    98   1.1    include $(RETROBASE)/vlib/Makefile.(ghdl|xflow)
+# 2007-11-26    98   1.1    include ${RETROBASE}/vlib/Makefile.(ghdl|xflow)
 # 2007-07-08    65   1.0    Initial version
 #
 VBOM_all  = $(wildcard *.vbom)
 BIT_all   = $(VBOM_all:.vbom=.bit)
 #
-include $(RETROBASE)/rtl/make_ise/xflow_default_s3board.mk
+include ${RETROBASE}/rtl/make_ise/xflow_default_s3board.mk
 #
 .PHONY : all clean
 #
@@ -29,8 +29,8 @@ sys_w11a_s3.mcs : sys_w11a_s3.bit
 #
 #----
 #
-include $(RETROBASE)/rtl/make_ise/generic_xflow.mk
-include $(RETROBASE)/rtl/make_ise/generic_ghdl.mk
+include ${RETROBASE}/rtl/make_ise/generic_xflow.mk
+include ${RETROBASE}/rtl/make_ise/generic_ghdl.mk
 #
 ifndef DONTINCDEP
 include $(VBOM_all:.vbom=.dep_xst)

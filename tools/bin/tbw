@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: tbw 642 2015-02-06 18:53:12Z mueller $
+# $Id: tbw 727 2016-02-07 13:58:47Z mueller $
 #
-# Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2016-02-06   727   1.3    add XSim support
 # 2015-01-04   629   1.2.6  BUGFIX: setup proper dsc values after -fifo
 # 2014-12-23   619   1.2.5  add -fifo and -verbose options
 # 2014-07-27   575   1.2.4  use xtwi to start ISim models
@@ -46,6 +47,7 @@ use FileHandle;
 my $tb_code;
 my $is_isim;
 my $is_isim_run;
+my $is_xsim;
 my $is_fifo;
 my $is_verbose;
 
@@ -77,7 +79,7 @@ if ($tb_code =~ m|^(.*)/(.*)$|) {
 }
 
 my $tb_code_stem = $tb_code_name;
-$tb_code_stem =~ s/_[fst]sim$//;            # drop _ssim,_fsim, or _tsim
+$tb_code_stem =~ s/_[fost]sim$//;           # drop _ssim,_fsim, _osim, or _tsim
 
 if ($tb_code_stem =~ /_ISim$/) {            # is it an ISim executable ?
   $is_isim = 1;
@@ -87,6 +89,15 @@ if ($tb_code_stem =~ /_ISim$/) {            # is it an ISim executable ?
     shift @ARGV;
   }
 }
+
+if ($tb_code_stem =~ /_XSim$/) {            # is it an XSim executable ?
+  $is_xsim = 1;
+  $tb_code_stem =~ s/_XSim$//;              # drop _XSim
+  if (scalar(@ARGV) && $ARGV[0] eq "-run") { # map -run to '-R'
+    $ARGV[0] = "-R";
+  }
+}
+
 
 if (scalar(@ARGV) && $ARGV[0] eq "-fifo") {
   push @file_dsc, {tag=>'rlink_cext_fifo_rx', val=>'<fifo>'};

@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: vbomconv 672 2015-05-02 21:58:28Z mueller $
+# $Id: vbomconv 734 2016-02-20 22:43:20Z mueller $
 #
-# Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,9 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2016-02-20   734   1.14   add [ise,viv]; add preliminary --(vsyn|vsim)_export;
+# 2016-02-14   731   1.13   add @uut tag handling;
+# 2016-02-07   728   1.12   add vivado xsim support; protect for empty xdc set
 # 2015-02-15   646   1.11   add vivado support: add -xlpath, use instead
 #                           of XTWI_PATH; drop --ise_path; add @lib:unimacro;
 #                           drop --viv_vhdl; add --vsyn_prj, --dep_vsyn;
@@ -61,21 +64,27 @@ use Getopt::Long;
 my %opts = ();
 
 GetOptions(\%opts, "help", "trace", "xlpath=s",
-	           "dep_ghdl", "dep_xst", "dep_isim", "dep_vsyn",
-                   "xst_prj", "isim_prj",
-                   "vsyn_prj",
+	           "dep_ghdl",
+                   "dep_xst",  "dep_isim",
+                   "dep_vsyn", "dep_vsim",
+                   "xst_prj",  "isim_prj",
+                   "vsyn_prj", "vsim_prj",
 	           "ghdl_a", "ghdl_a_cmd",
 	           "ghdl_i", "ghdl_i_cmd",
 	           "ghdl_m", "ghdl_m_cmd",
 	           "ghdl_export=s",
 	           "xst_export=s",
                    "isim_export=s",
+                   "vsyn_export=s",
+                   "vsim_export=s",
                    "get_top",
                    "flist") || exit 1;
 
 sub print_help;
 sub read_vbom;
 sub scan_vbom;
+sub do_synsim;
+sub scan_synsim;
 sub copy_edir;
 sub write_vbomdep;
 sub canon_fname;
@@ -83,11 +92,15 @@ sub canon_fname;
 my @vbom_queue;                             # list of pending vbom's
 my @srcfile_list;                           # list of sources in compile order
 my @xdcfile_list;                           # list of xdc files
+my @srcfile_list_vhd;                       # all vhdl sources
+my @srcfile_list_v;                         # all (system) verilog sources
+my @srcfile_list_c;                         # all C sources
 my %vbom_files;                             # key=vbom; val=full file list
 my %vbom_xdc;                               # key=vbom; val=xdc spec list
 my %vbom_done;                              # key=vbom; val=done flags
 my %vbom_rank;                              # key=vbom; val=vbom ranks
 my %srcfile_rank;                           # key=source file; val=file rank
+my %srcfile_synsim;                         # key=source file; val=syn or sim
 my %para_tbl;                               # substitution table
 my @ucf_cpp_list;
 my $is_ghdl = 0;                            # ghdl simulation target
@@ -96,17 +109,22 @@ my $is_isim = 0;                            # ISim simulation target
 my $is_vsyn = 0;                            # vivado synthesis target
 my $is_vsim = 0;                            # vivado simulation target
 my $is_sim  = 0;                            # simulation target (generic)
+my $is_ise  = 0;                            # ISE    target
+my $is_viv  = 0;                            # vivado target
 my $is_any  = 0;                            # ignore tags (for --flist)
 my $nactions = 0;                           # number of action commands
 my $top_vbom;                               # top level vbom (from argv)
+my $eff_vbom;                               # effective vbom ([fot]sim->ssim map)
 my $stem;                                   # stem of $top_vbom
 my $top;                                    # top level entity name
 my $top_done = 0;                           # @top seen
+my $uut;                                    # uut level name
 my $has_unisim;                             # @lib:unisim seen or implied
 my $has_unimacro;                           # @lib:unimacro seen
 my $has_simprim;                            # @lib:simprim seen or implied
 my $is_ssim;
 my $is_fsim;
+my $is_osim;
 my $is_tsim;
 my $do_trace = exists $opts{trace};
 my $level = 0;                              # vbom nesting level
@@ -133,22 +151,27 @@ if (scalar(@ARGV) != 1) {
 
 foreach (keys %opts) {
   $nactions += 1 unless ($_ eq "trace" || $_ eq "xlpath");
-  $is_ghdl = 1   if ($_ eq "dep_ghdl");
-  $is_ghdl = 1   if ($_ =~ /^ghdl_/);
+  $is_ghdl = 1   if $_ eq "dep_ghdl";
+  $is_ghdl = 1   if $_ =~ /^ghdl_/;
 
-  $is_xst  = 1   if ($_ eq "dep_xst");
-  $is_xst  = 1   if ($_ =~ /^xst_/);
+  $is_xst  = 1   if $_ eq "dep_xst";
+  $is_xst  = 1   if $_ =~ /^xst_/;
 
-  $is_isim = 1   if ($_ eq "dep_isim");
-  $is_isim = 1   if ($_ =~ /^isim_/);
+  $is_isim = 1   if $_ eq "dep_isim";
+  $is_isim = 1   if $_ =~ /^isim_/;
 
-  $is_vsyn = 1   if ($_ eq "dep_vsyn");
-  $is_vsyn = 1   if ($_ =~ /^vsyn_/);
+  $is_vsyn = 1   if $_ eq "dep_vsyn";
+  $is_vsyn = 1   if $_ =~ /^vsyn_/;
 
-  $is_any  = 1   if ($_ eq "flist");
+  $is_vsim = 1   if $_ eq "dep_vsim";
+  $is_vsim = 1   if $_ =~ /^vsim_/;
+
+  $is_any  = 1   if $_ eq "flist";
 }
 
 $is_sim = $is_ghdl | $is_isim | $is_vsim;
+$is_ise = $is_xst  | $is_isim;
+$is_viv = $is_vsyn | $is_vsim;
 
 print STDERR "-- [ghdl] active\n" if $do_trace && $is_ghdl;
 print STDERR "-- [xst] active\n"  if $do_trace && $is_xst;
@@ -156,6 +179,8 @@ print STDERR "-- [isim] active\n" if $do_trace && $is_isim;
 print STDERR "-- [vsyn] active\n" if $do_trace && $is_vsyn;
 print STDERR "-- [vsim] active\n" if $do_trace && $is_vsim;
 print STDERR "-- [sim] active\n"  if $do_trace && $is_sim;
+print STDERR "-- [ise] active\n"  if $do_trace && $is_ise;
+print STDERR "-- [viv] active\n"  if $do_trace && $is_viv;
 
 if ($nactions > 1) {
   print STDERR "vbomconv-E: only one action qualifier allowed\n\n";
@@ -173,24 +198,20 @@ $stem =~ s{\..*$}{};
 $top = $stem;
 $top =~ s{^.*/}{};
 
-# now prepare virtual _fsim and _tsim vbom's
+# now prepare virtual _fsim, _osim, and _tsim vbom's
 # they are inferred from the _ssim vbom's
 
-if ($top_vbom =~ m{_ssim\.vbom$}) { # detect _ssim
-  $is_ssim = 1;
-}
-if ($top_vbom =~ m{_fsim\.vbom$}) { # map _fsim -> _ssim
-  $is_fsim = 1;
-  $top_vbom =~ s{_fsim\.vbom$}{_ssim.vbom};
-}
-if ($top_vbom =~ m{_tsim\.vbom$}) { # map _tsim -> _ssim
-  $is_tsim = 1;
-  $top_vbom =~ s{_tsim\.vbom$}{_ssim.vbom};
-}
+$is_ssim = 1 if $top_vbom =~ m{_ssim\.vbom$}; # detect _ssim
+$is_fsim = 1 if $top_vbom =~ m{_fsim\.vbom$}; # detect _fsim
+$is_osim = 1 if $top_vbom =~ m{_osim\.vbom$}; # detect _osim
+$is_tsim = 1 if $top_vbom =~ m{_tsim\.vbom$}; # detect _tsim
+
+$eff_vbom = $top_vbom;
+$eff_vbom =~ s{_[fot]sim\.vbom$}{_ssim.vbom}; # map [fot]sim -> ssim
 
 # traverse all vbom's start with command line argument
 
-push @vbom_queue, $top_vbom;
+push @vbom_queue, $eff_vbom;
 
 while (@vbom_queue) {
   my $cur_vbom = shift @vbom_queue;
@@ -199,8 +220,11 @@ while (@vbom_queue) {
 
 # traverse internal vbom representation to build file table
 
-$vbom_rank{$top_vbom} = {min=>1, max=>1};
-scan_vbom($top_vbom);
+$vbom_rank{$eff_vbom} = {min=>1, max=>1};
+scan_vbom($eff_vbom);
+
+# separate sym (uut) and sim (tb) parts
+do_synsim($uut);
 
 # sort file table, build file list (decreasing rank)
 #   sort first by decreasing rank and second by filename
@@ -229,6 +253,19 @@ foreach (@vbomfile_list_min) {
   push @xdcfile_list, @{$vbom_xdc{$_}} if exists $vbom_xdc{$_};
 }
 
+# now split source list according to languages
+foreach (@srcfile_list) {
+  if (m/\.vhd$/) {
+    push @srcfile_list_vhd, $_;
+  } elsif (m/\.(v|sv)$/) {
+    push @srcfile_list_v, $_;
+  } elsif (m/\.c$/) {
+    push @srcfile_list_c, $_;
+#  } else {
+#    print STDERR "unknown file type $_\n";
+  }
+}
+
 # now generate output and actions, depending on options given
 
 # --trace ------------------------------------------------------------
@@ -251,12 +288,13 @@ if ($do_trace) {
   print STDERR "\n";
   print STDERR "final srcfile_rank table (sort by rank):\n";
   foreach (sort {$b->[0] <=> $a->[0] || $a->[1] cmp $b->[1]} @srcpair_list) {
-    printf STDERR "  %5d  %s\n", $_->[0], $_->[1];
+    printf STDERR "  %5d %s %s\n", $_->[0], $srcfile_synsim{$_->[1]}, $_->[1];
   }
 
   print STDERR "\n";
   print STDERR "properties:\n";
   print STDERR "  \@top: $top\n";
+  print STDERR "  \@uut: $uut\n" if defined $uut;
 }
 
 # --ghdh_a -- ghdl analysis command ----------------------------------
@@ -363,7 +401,7 @@ if (exists $opts{ghdl_m} || exists $opts{ghdl_m_cmd} ) {
   $cmd .= " -P$xlpath/unimacro"  if $has_unimacro;
   $cmd .= " -P$xlpath/simprim"   if $has_simprim;
   $cmd .= " --ieee=synopsys";
-  $cmd .= " --no-vital-checks"      if $is_ssim or $is_fsim or $is_tsim;
+  $cmd .= " --no-vital-checks"   if $is_ssim or $is_fsim or $is_osim or $is_tsim;
 
   foreach (@srcfile_list) {
     next unless /\.c$/;		# C source ?
@@ -431,10 +469,97 @@ if (exists $opts{vsyn_prj}) {
   print "}\n";
   print "\n";
 
-  print "set obj [get_filesets constrs_1]\n";
-  print "add_files -norecurse -fileset \$obj \$xdc_files\n";
+  # add_files does not allow adding an empty set, so protect
+  if (scalar @xdcfile_list) {
+    print "set obj [get_filesets constrs_1]\n";
+    print "add_files -norecurse -fileset \$obj \$xdc_files\n";
+  }
 
   print "\n";
+}
+
+# --vsim_prj ---------------------------------------------------------
+
+if (exists $opts{vsim_prj}) {
+  print "#!/bin/sh\n";
+  print "#\n";
+  print "# generated by vbomconv -vsim_prj $top_vbom\n";
+  print "#\n";
+
+  # compile verilog before vhdl !
+  # currently verilog only used for DPI interface code
+  # xvhdl relies in strict compilation order, also across languages, and fails
+  # when a not yet compiles module is instantiated via entiry work....
+
+  if (scalar @srcfile_list_v) {
+    print "# ---------- xvlog step\n";
+    my $tfile_xvlog_prj = "tmp_${stem}_xvlog.prj";
+    print "cat > $tfile_xvlog_prj <<tmp_xvlog_end_token\n";
+    foreach (@srcfile_list_v) {
+      my $type = (m/\.v$/) ? "verilog" : "sv     ";
+      print "$type work $_\n";
+    }
+    print "tmp_xvlog_end_token\n";
+    print "#\n";
+
+    my $opts_xvlog = "-m64 --relax";
+    print "xtwv xvlog $opts_xvlog -prj $tfile_xvlog_prj 2>&1 |\\\n";
+    print "  tee xvlog_${stem}.log\n";
+    print "rm -f $tfile_xvlog_prj\n";
+    print "#\n";
+  }
+
+  if (scalar @srcfile_list_vhd) {
+    print "# ---------- xvhdl step\n";
+    my $tfile_xvhdl_prj = "tmp_${stem}_xvhdl.prj";
+    print "cat > $tfile_xvhdl_prj <<tmp_xvhdl_end_token\n";
+    foreach (@srcfile_list_vhd) {
+      print "vhdl work $_\n";
+    }
+    print "tmp_xvhdl_end_token\n";
+    print "#\n";
+
+    my $opts_xvhdl = "-m64 --relax";
+    print "xtwv xvhdl $opts_xvhdl -prj $tfile_xvhdl_prj 2>&1 |\\\n";
+    print "  tee xvhdl_${stem}.log\n";
+    print "rm -f $tfile_xvhdl_prj\n";
+    print "#\n";
+  }
+
+  if (scalar @srcfile_list_c) {
+    print "# ---------- xsc step\n";
+    print "xtwv xsc";
+    foreach (@srcfile_list_c) {
+      print "  \\\n   $_";
+    }
+    print "\n";
+    print "#\n";
+  }
+
+  print "# ---------- xelab step\n";
+  print "xtwv xelab --relax --debug typical --mt auto -m64 \\\n";
+  print "  -L work \\\n";
+  if (scalar @srcfile_list_c) {
+    print "  --sv_lib dpi \\\n";
+  }
+  print "  --snapshot $stem work.$top \\\n";
+  print "  -log xelab_${stem}.log\n";
+  print "\n";
+
+  print "# ---------- create forwarder\n";
+  my $fname_forwarder = "${stem}_XSim";
+  $fname_forwarder =~ s/_([sot]sim)_XSim/_XSim_$1/;
+  print "if [ -x \"xsim.dir/${stem}/xsimk\" ]\n";
+  print "then\n";
+  print "#\n";
+  print "cat > $fname_forwarder <<forwarder_end_token\n";
+  print "#!/bin/sh\n";
+  # Note: double escape \"\\\$\@\" needed to ensure file contains "$@"
+  print "exec xtwv xsim ${stem} \"\\\$\@\"\n";
+  print "forwarder_end_token\n";
+  print "#\n";
+  print "chmod +x $fname_forwarder\n";
+  print "fi\n";
 }
 
 # --dep_ghdl ---------------------------------------------------------
@@ -442,14 +567,17 @@ if (exists $opts{vsyn_prj}) {
 if (exists $opts{dep_ghdl}) {
 
   my $stem_fsim = $stem;
+  my $stem_osim = $stem;
   my $stem_tsim = $stem;
   $stem_fsim =~ s/_ssim$/_fsim/;
+  $stem_osim =~ s/_ssim$/_osim/;
   $stem_tsim =~ s/_ssim$/_tsim/;
 
   print "#\n";
   print "$stem : $stem.dep_ghdl\n";
   if ($is_ssim) {
     print "$stem_fsim : $stem.dep_ghdl\n";
+    print "$stem_osim : $stem.dep_ghdl\n";
     print "$stem_tsim : $stem.dep_ghdl\n";
   }
   print "#\n";
@@ -473,6 +601,7 @@ if (exists $opts{dep_ghdl}) {
 
   if ($is_ssim) {
 
+    print "#\n";
     foreach (@srcfile_list) {
       my $file = $_;		# copy to break alias for following s///
       if (/\.c$/) {
@@ -484,6 +613,19 @@ if (exists $opts{dep_ghdl}) {
       print "$stem_fsim : $file\n";
     }
 
+    print "#\n";
+    foreach (@srcfile_list) {
+      my $file = $_;		# copy to break alias for following s///
+      if (/\.c$/) {
+	$file =~ s{^.*/}{};	# remove directory path
+	$file =~ s/\.c$/.o/;    # depend on object file for C sources
+      } else {
+	$file =~ s/_ssim\.vhd$/_osim.vhd/;
+      }
+      print "$stem_osim : $file\n";
+    }
+
+    print "#\n";
     foreach (@srcfile_list) {
       my $file = $_;		# copy to break alias for following s///
       if (/\.c$/) {
@@ -552,12 +694,14 @@ if (exists $opts{dep_isim}) {
 
   if ($is_ssim) {
 
+    print "#\n";
     foreach (@srcfile_list) {
       my $file = $_;		# copy to break alias for following s///
       $file =~ s/_ssim\.vhd$/_fsim.vhd/;
       print "$stem_fsim_isim : $file\n";
     }
 
+    print "#\n";
     foreach (@srcfile_list) {
       my $file = $_;		# copy to break alias for following s///
       $file =~ s/_ssim\.vhd$/_tsim.vhd/;
@@ -590,6 +734,51 @@ if (exists $opts{dep_vsyn}) {
     print "${stem}_rou.dcp : $_\n";
   }
   write_vbomdep("$stem.dep_vsyn");
+}
+
+# --dep_vsim ---------------------------------------------------------
+
+if (exists $opts{dep_vsim}) {
+  my $stem_vsim = $stem . "_XSim";
+
+  $stem_vsim =~ s/_ssim_XSim$/_XSim_ssim/ if ($is_ssim);
+
+  my $stem_osim_vsim = $stem_vsim;
+  my $stem_tsim_vsim = $stem_vsim;
+  $stem_osim_vsim =~ s/_ssim$/_osim/;
+  $stem_tsim_vsim =~ s/_ssim$/_tsim/;
+
+  print "#\n";
+  print "$stem_vsim : $stem.dep_vsim\n";
+  if ($is_ssim) {
+    print "$stem_osim_vsim : $stem.dep_vsim\n";
+    print "$stem_tsim_vsim : $stem.dep_vsim\n";
+  }
+  print "#\n";
+
+  foreach (@srcfile_list) {
+    print "$stem_vsim : $_\n";
+  }
+
+  if ($is_ssim) {
+
+    print "#\n";
+    foreach (@srcfile_list) {
+      my $file = $_;		# copy to break alias for following s///
+      $file =~ s/_ssim\.vhd$/_osim.vhd/;
+      print "$stem_osim_vsim : $file\n";
+    }
+
+    print "#\n";
+    foreach (@srcfile_list) {
+      my $file = $_;		# copy to break alias for following s///
+      $file =~ s/_ssim\.vhd$/_tsim.v/;
+      print "$stem_tsim_vsim : $file\n";
+    }
+#
+  }
+
+  write_vbomdep("$stem.dep_vsim");
 }
 
 # --ghdl_export or xst_export or isim_export -------------------------
@@ -630,14 +819,111 @@ if (exists $opts{ghdl_export}  or
       die "can't write open $edir/$stem.xcf: $!";
     close(XFILE);
 
-    foreach(glob("*.xcf")) { copy_edir($_, $edir); }
+    foreach (glob("*.xcf")) { copy_edir($_, $edir); }
 
     if (-r "$stem.ucf_cpp") {
       system "/bin/sh", "-c", "make $stem.ucf";
     }
 
-    foreach(glob("*.ucf")) { copy_edir($_, $edir); }
+    foreach (glob("*.ucf")) { copy_edir($_, $edir); }
   }
+
+}
+
+# --vsyn_export or vsim_export ---------------------------------------
+
+if (exists $opts{vsyn_export}  or
+    exists $opts{vsim_export}) {
+  my $edir;
+  $edir = $opts{vsyn_export} if exists $opts{vsyn_export};
+  $edir = $opts{vsim_export} if exists $opts{vsim_export};
+
+  if (not -d $edir) {
+    print STDERR "vbomconv-I: create target directory $edir\n";
+    system("mkdir -p $edir") == 0 or die "mkdir failed: $?";
+  } else {
+    print STDERR "vbomconv-I: target directory $edir already exists\n";
+  }
+
+  my @filist;
+  push @filist, @srcfile_list;
+  push @filist, @xdcfile_list;
+  my @fl_syn;
+  my @fl_sim;
+  my @fl_xdc;
+
+  foreach my $fi (@filist) {
+    my $fname  = $fi;
+    my $fdpath = ".";
+    if ($fi =~ m{(.*)/(.*)}) {
+      $fname  = $2;
+      $fdpath = $1;
+    }
+
+    copy_edir($fi, $edir);
+
+    if ($fname =~ m{\.(vhd|sv)$}) {          # .vhd or .sv
+      if ($srcfile_synsim{$fi} eq 'syn') {
+        push @fl_syn, $fname;
+      } else {
+        push @fl_sim, $fname;
+      }
+    } elsif ($fname =~ m{\.c}) {             # .c
+      printf "+++2 $fi\n";
+      push @fl_sim, $fname;
+    } elsif ($fname =~ m{\.xdc}) {           # .xdc
+      push @fl_xdc, $fname;
+    } else {
+    print STDERR "vbomconv-W: file $fname not procesed (unknown type)\n";
+    }
+  }
+
+  open(TFILE, ">$edir/$stem.tcl") or die "can't write open $edir/$stem.tcl: $!";
+
+  print TFILE "#\n";
+  print TFILE "# setup file lists\n";
+  print TFILE "#\n";
+
+  print TFILE "set syn_files {\n";
+  foreach (@fl_syn) {
+    print TFILE "  $_\n";
+  }
+  print TFILE "}\n";
+  print TFILE "\n";
+
+  print TFILE "set sim_files {\n";
+  foreach (@fl_sim) {
+    print TFILE "  $_\n";
+  }
+  print TFILE "}\n";
+  print TFILE "\n";
+
+  print TFILE "set xdc_files {\n";
+  foreach (@fl_xdc) {
+    print TFILE "  $_\n";
+  }
+  print TFILE "}\n";
+  print TFILE "\n";
+
+  print  TFILE 'set obj [get_filesets sources_1]' . "\n";
+  print  TFILE 'add_files -norecurse -fileset $obj $syn_files' . "\n";
+  printf TFILE 'set_property "top" "%s" $obj' . "\n", $top;
+  print  TFILE "\n";
+
+  if (scalar @fl_sim) {
+    print  TFILE 'set obj [get_filesets sim_1]' . "\n";
+    print  TFILE 'add_files -norecurse -fileset $obj $sim_files' . "\n";
+    print  TFILE "\n";
+  }
+
+  if (scalar @fl_xdc) {
+    print  TFILE 'set obj [get_filesets constrs_1]' . "\n";
+    print  TFILE 'add_files -norecurse -fileset $obj $xdc_files' . "\n";
+    print  TFILE "\n";
+  }
+
+  close(TFILE);
+
 
 }
 
@@ -756,13 +1042,15 @@ sub read_vbom {
       my $keep = $is_any;
       ## print STDERR "+++1 |$qual|$name|$vbom|\n";
       foreach my $pref (split /,/,$qual) {
-        if ($pref =~ /^(ghdl|xst|isim|vsyn|vsim|sim)$/) {
+        if ($pref =~ /^(ghdl|xst|isim|vsyn|vsim|sim|ise|viv)$/) {
           $keep = 1 if ($pref eq "ghdl" && $is_ghdl);
           $keep = 1 if ($pref eq "xst"  && $is_xst);
           $keep = 1 if ($pref eq "isim" && $is_isim);
           $keep = 1 if ($pref eq "vsyn" && $is_vsyn);
           $keep = 1 if ($pref eq "vsim" && $is_vsim);
           $keep = 1 if ($pref eq "sim"  && $is_sim);
+          $keep = 1 if ($pref eq "ise"  && $is_ise);
+          $keep = 1 if ($pref eq "viv"  && $is_viv);
         } else {
           print STDERR "vbomconv-W: unknown tag [$pref] in $vbom_file\n";
         }
@@ -776,6 +1064,7 @@ sub read_vbom {
 
     my $tag;
     my $val = $_;
+    my $uut_seen;
 
     # detect tag:val lines
     if (m{^\s*(.*?)\s*:\s*(.*?)\s*$}) {
@@ -785,14 +1074,17 @@ sub read_vbom {
       # process @top:<entity> lines
       if ($tag eq '@top') {
         $top = $val unless $top_done;
+        next;
 
       # process @ucf_cpp:<file> lines
       } elsif ($tag eq '@ucf_cpp') {
         push @ucf_cpp_list, $val;
+        next;
 
       # process @xdc:<file> lines
       } elsif ($tag eq '@xdc') {
         push @{$vbom_xdc{$vbom}}, canon_fname($vbom_path, $val);
+        next;
 
       # process @lib:<name> lines
       } elsif ($tag eq '@lib') {
@@ -806,18 +1098,27 @@ sub read_vbom {
           print STDERR "vbomconv-E: invalid lib type \'$tag\' in $vbom_file\n";
           exit 1;
         }
+        next;
+
+      # process @uut:<file> lines
+      } elsif ($tag eq '@uut') {
+        $uut_seen = 1;
+        # Note: fall through in this case, process as normal file name
+        #       actual @uut tag handling later with canonized file names.
 
       # catch invalid @ tags
       } else {
         print STDERR "vbomconv-E: invalid \'$tag:\' line in $vbom_file\n";
         exit 1;
       }
-      next;
+
     }
 
-    # now do _fsim, _tsim mapping
+    # now do _fsim, _osim, _tsim mapping
     $val =~ s{_ssim\.vhd$}{_fsim.vhd} if $is_fsim;
-    $val =~ s{_ssim\.vhd$}{_tsim.vhd} if $is_tsim;
+    $val =~ s{_ssim\.vhd$}{_osim.vhd} if $is_osim;
+    $val =~ s{_ssim\.vhd$}{_tsim.vhd} if $is_tsim && $is_ise; # ISE
+    $val =~ s{_ssim\.vhd$}{_tsim.v}   if $is_tsim && $is_viv; # Vivado
 
     # process normal .vhd or .vbom file lines
     # canonize file name unless not already done by filename substitution
@@ -828,8 +1129,17 @@ sub read_vbom {
       $fullname = canon_fname($vbom_path, $val);
     }
 
+    # process @uut tag here, with canonized file names
+    if ($uut_seen) {
+      if (defined $uut) {
+        print STDERR "vbomconv-E: duplicate \@uut:, 1st '$uut' 2nd '$val'\n";
+        exit 1;
+      }
+      $uut = $fullname;
+    }
+
     # determine whether additional libs needed
-    if ($fullname =~ m{_ssim\.vhd$}) {	    # ends in _ssim.vhd
+    if ($fullname =~ m{_[so]sim\.vhd$}) {   # ends in _ssim.vhd or _osim.vhd
       $has_unisim = 1;
     }
     if ($fullname =~ m{_[ft]sim\.vhd$}) {   # ends in _fsim.vhd or _tsim.vhd
@@ -871,10 +1181,9 @@ sub scan_vbom {
     $vbom_rank{$vbom} = {min=>$level, max=>$level};
   }
 
-  foreach (@{$vbom_files{$vbom}}) {
-    my $file = $_;
+  foreach my $file (@{$vbom_files{$vbom}}) {
     $rank -= 1;
-    if (m{\.vbom$}) {
+    if ($file =~ m{\.vbom$}) {
       scan_vbom($file);
     } else {
       if (exists $srcfile_rank{$file}) {
@@ -894,6 +1203,42 @@ sub scan_vbom {
   print STDERR "<-- $level: $vbom\n" if $do_trace;
   $level -= 1;
 
+}
+
+#-------------------------------------------------------------------------------
+
+sub do_synsim {
+  my ($uut) = @_;
+
+  # all is syn if no @uut defined; preset with sim when @uut defined
+  my $def = (defined $uut) ? 'sim' : 'syn';
+  foreach my $file (keys %srcfile_rank) {
+    $srcfile_synsim{$file} = $def;
+  }
+  return unless defined $uut;
+
+  # if @uut seen separate them
+  if (defined $uut) {
+    if ($uut =~ m{\.vbom}) {            # uut is vbom (functional sim)
+      scan_synsim($uut);
+    } else {                            # uut is file (post syn sim)
+      $srcfile_synsim{$uut} = 'syn';
+    }
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub scan_synsim {
+  my ($vbom) = @_;
+
+  foreach my $file (@{$vbom_files{$vbom}}) {
+    if ($file =~ m{\.vbom$}) {
+      scan_synsim($file);
+    } else {
+      $srcfile_synsim{$file} = 'syn';
+    }
+  }
 }
 
 #-------------------------------------------------------------------------------
@@ -959,6 +1304,8 @@ sub print_help {
   print "  --ghdl_export=s  export all ghdl source files into directory s\n";
   print "  --xst_export=s   export all xst source files into directory s\n";
   print "  --isim_export=s  export all isim source files into directory s\n";
+  print "  --vsyn_export=s  export all vsyn source files into directory s\n";
+  print "  --vsim_export=s  export all vsim source files into directory s\n";
   print "  --get_top        return top level entity name\n";
   print "  --flist          list all files touched by vbom for all tags\n";
 }

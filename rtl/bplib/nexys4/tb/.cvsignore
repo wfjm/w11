@@ -2,4 +2,3 @@ tb_nexys4_dummy
 tb_nexys4_cram_dummy
 nexys4_dummy.ucf
 nexys4_cram_dummy.ucf
-*.dep_ucf_cpp

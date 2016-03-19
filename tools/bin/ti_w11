@@ -1,11 +1,12 @@
 #!/usr/bin/perl -w
-# $Id: ti_w11 712 2015-11-01 22:53:45Z mueller $
+# $Id: ti_w11 745 2016-03-18 22:10:34Z mueller $
 #
-# Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2016-03-18   745   1.3.3  add arty support, add -fx
 # 2015-11-01   712   1.3.2  use sb_cntl pin 12 for tmu; add -ghw option
 # 2015-05-14   680   1.3.1  use now -f1,-f1e,-f2,-f2e (fx now f1e)
 # 2015-04-13   667   1.3    rename -fu->-fc, add -f2,-fx; setup good defaults
@@ -29,7 +30,7 @@ my $sysbase = "$ENV{RETROBASE}/rtl/sys_gen/w11a";
 my $opt_dry;
 my $opt_b;
 my $opt_io = '';
-my $opt_f = '';
+my $opt_f  = '';
 my $opt_tmu;
 my $opt_ghw;
 my $tirri;
@@ -40,6 +41,7 @@ my $val_tb_n3  = "tbw $sysbase/nexys3/tb/tb_w11a_n3 -fifo";
 my $val_tb_b3  = "tbw $sysbase/basys3/tb/tb_w11a_b3 -fifo";
 my $val_tb_n4  = "tbw $sysbase/nexys4/tb/tb_w11a_n4 -fifo";
 my $val_tb_bn4 = "tbw $sysbase/nexys4_bram/tb/tb_w11a_br_n4 -fifo";
+my $val_tb_bar = "tbw $sysbase/arty_bram/tb/tb_w11a_br_arty -fifo";
 my $val_tb;
 my $val_e;
 
@@ -85,9 +87,9 @@ while (scalar(@ARGV)) {
     $val_tb = $val_tb_n3;
     shift @ARGV;
 
-  } elsif ($curarg =~ m{^-b3$} ) {	    # -b3 (use -f1x by default)
+  } elsif ($curarg =~ m{^-b3$} ) {	    # -b3 (use -fx by default)
     $opt_io = 'f';
-    $opt_f  = '1x';
+    $opt_f  = 'x';
     $val_tb = $val_tb_b3;
     shift @ARGV;
 
@@ -103,7 +105,13 @@ while (scalar(@ARGV)) {
     $val_tb = $val_tb_bn4;
     shift @ARGV;
 
-  } elsif ($curarg =~ m{^-f(c|1|1x|2|2x)$} ) { # -f..
+  } elsif ($curarg =~ m{^-bar$} ) {	    # -bar (use -fx by default)
+    $opt_io = 'f';
+    $opt_f  = 'x';
+    $val_tb = $val_tb_bar;
+    shift @ARGV;
+
+  } elsif ($curarg =~ m{^-f(c|x|1|1x|2|2x)$} ) { # -f..
     $opt_f = $1;
     shift @ARGV;
 
@@ -176,7 +184,7 @@ while (scalar(@ARGV)) {
 
 if ($opt_io eq 'f') {
   my $fifoopts = ",noinit";                 # fifo always with deferred init
-  $fifoopts .= ",xon" if $opt_f eq 'x';
+  $fifoopts .= ",xon" if $opt_f =~ m/x$/;
   push @arglist, "--fifo=$fifoopts";
   my $run_opts = "";
   if ($opt_ghw) {
@@ -190,7 +198,7 @@ if ($opt_io eq 'f') {
 } elsif ($opt_io eq 'u') {
   push @arglist, '--cuff';
 } else {
-  print STDERR "ti_w11-E: neither -(s3|n2|n3|b3|n4|bn4) nor -t,-u specified\n";
+  print STDERR "ti_w11-E: neither -(s3|n2|...) nor -t,-u specified\n";
   print_usage();
   exit 1;
 }
@@ -290,18 +298,20 @@ exit 1;
 sub print_usage {
   print "usage: ti_w11 <setup options> <ti_rri opts and cmds>...\n";
   print "  setup options for ghdl simulation runs:\n";
-  print "    -b3       start tb_w11a_b3 simulation (default: -f1x)\n";
+  print "    -b3       start tb_w11a_b3 simulation (default: -fx)\n";
   print "    -n4       start tb_w11a_n4 simulation\n";
   print "    -bn4      start tb_w11a_br_n4 simulation\n";
+  print "    -bar      start tb_w11a_br_arty simulation (default: -fx)\n";
   print "    -n3       start tb_w11a_n3 simulation (default: -fc)\n";
   print "    -n2       start tb_w11a_n2 simulation (default: -fc)\n";
   print "    -s3       start tb_w11a_s3 simulation (default: -f2)\n";
   print "    -f..      simulation communication options\n";
   print "      -fc       use fx2 data path (cuff)\n";
+  print "      -fx       use 1st serport with hardwired xon\n";
   print "      -f1       use 1st serport\n";
-  print "      -f1x      use 1st serport with xon\n";
+  print "      -f1x      use 1st serport with switched xon\n";
   print "      -f2       use 2nd serport   (fusp)\n";
-  print "      -f2x      use 2nd serport with xon\n";
+  print "      -f2x      use 2nd serport with switched xon\n";
   print "    -tmu      activate trace and monitoring unit\n";
   print "  setup options for FPGA connects:\n";
   print "    -u        use --cuff connect\n";

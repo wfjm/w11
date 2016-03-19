@@ -1,6 +1,6 @@
--- $Id: tb_s3board_fusp.vhd 666 2015-04-12 21:17:54Z mueller $
+-- $Id: tb_s3board_fusp.vhd 730 2016-02-13 16:22:03Z mueller $
 --
--- Copyright 2010-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -17,10 +17,10 @@
 --
 -- Dependencies:   simlib/simclk
 --                 simlib/simclkcnt
---                 rlink/tb/tbcore_rlink
+--                 rlink/tbcore/tbcore_rlink
 --                 tb_s3board_core
 --                 s3board_fusp_aif [UUT]
---                 serport/serport_master
+--                 serport/tb/serport_master_tb
 --
 -- To test:        generic, any s3board_fusp_aif target
 --
@@ -28,6 +28,8 @@
 -- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-02-13   730   1.3.2  direct instantiation of tbcore_rlink
+-- 2016-01-03   724   1.3.1  use serport/tb/serport_master_tb
 -- 2015-04-12   666   1.3    use serport_master instead of serport_uart_rxtx
 -- 2011-12-23   444   3.1    new system clock scheme, new tbcore_rlink iface
 -- 2011-11-19   427   3.0.1  now numeric_std clean
@@ -47,8 +49,6 @@ use std.textio.all;
 
 use work.slvtypes.all;
 use work.rlinklib.all;
-use work.rlinktblib.all;
-use work.serportlib.all;
 use work.s3boardlib.all;
 use work.simlib.all;
 use work.simbus.all;
@@ -122,7 +122,7 @@ begin
   
   CLKCNT : simclkcnt port map (CLK => CLK, CLK_CYCLE => CLK_CYCLE);
 
-  TBCORE : tbcore_rlink
+  TBCORE : entity work.tbcore_rlink
     port map (
       CLK      => CLK,
       CLK_STOP => CLK_STOP,
@@ -169,7 +169,7 @@ begin
       O_FUSP_TXD   => O_FUSP_TXD
     );
 
-  SERMSTR : serport_master
+  SERMSTR : entity work.serport_master_tb
     generic map (
       CDWIDTH => CLKDIV'length)
     port map (

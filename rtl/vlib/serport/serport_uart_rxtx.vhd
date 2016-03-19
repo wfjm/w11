@@ -1,6 +1,6 @@
--- $Id: serport_uart_rxtx.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: serport_uart_rxtx.vhd 734 2016-02-20 22:43:20Z mueller $
 --
--- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -24,6 +24,9 @@
 -- Date         Rev Version  Comment
 -- 2007-06-24    60   1.0    Initial version 
 ------------------------------------------------------------------------------
+-- Note: for test bench usage a copy of all serport_* entities, with _tb
+--       appended to the name, has been created in the /tb sub folder.
+--       Ensure to update the copy when this file is changed !!
 
 library ieee;
 use ieee.std_logic_1164.all;

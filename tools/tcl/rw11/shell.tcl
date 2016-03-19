@@ -1,4 +1,4 @@
-# $Id: shell.tcl 717 2015-12-25 17:38:09Z mueller $
+# $Id: shell.tcl 724 2016-01-03 22:53:53Z mueller $
 #
 # Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -198,7 +198,7 @@ namespace eval rw11 {
       if {$i > 0} {append rval "\n"}
       append rval [$shell_cpu show -pcps]
       $shell_cpu cp -rstat stat
-      if {[regget rw11::CP_STAT(rust) $stat] != 4} {break}
+      if {[regget rw11::CP_STAT(rust) $stat] != $rw11::RUST_STEP} {break}
     }
     return $rval
   }

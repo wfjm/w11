@@ -1,6 +1,6 @@
--- $Id: sys_tst_rlink_n3.vhd 672 2015-05-02 21:58:28Z mueller $
+-- $Id: sys_tst_rlink_n3.vhd 743 2016-03-13 16:42:31Z mueller $
 --
--- Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -27,11 +27,12 @@
 -- Test bench:     tb/tb_tst_rlink_n3
 --
 -- Target Devices: generic
--- Tool versions:  xst 13.1-14.7; ghdl 0.29-0.31
+-- Tool versions:  xst 13.1-14.7; ghdl 0.29-0.33
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
--- 2014-12-20   614 13.1  131013 xc6slx16-2   917 1379   64  513 t  8.9
+-- 2016-03-13   743 14.7  131013 xc6slx16-2   950 1380   70  504
+-- 2014-12-20   614 14.7  131013 xc6slx16-2   917 1379   64  513 t  8.9
 -- 2011-12-18   440 13.1    O40d xc6slx16-2   752 1258   48  439 t  7.9
 -- 2011-11-26   433 13.1    O40d xc6slx16-2   722 1199   36  423 t  9.7
 --
@@ -54,8 +55,8 @@
 --
 --    LED(7):   SER_MONI.abact
 --    LED(6:2): no function (only connected to sn_humanio_rbus)
---    LED(0):   timer 0 busy 
 --    LED(1):   timer 1 busy 
+--    LED(0):   timer 0 busy 
 --
 --    DSP:      SER_MONI.clkdiv         (from auto bauder)
 --    DP(3):    not SER_MONI.txok       (shows tx back preasure)
@@ -140,7 +141,7 @@ architecture syn of sys_tst_rlink_n3 is
   signal SER_MONI : serport_moni_type := serport_moni_init;
   signal STAT    : slv8  := (others=>'0');
 
-  constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/4: 1111 1110 1111 00xx
+  constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/0008: 1111 1110 1111 0xxx
 
 begin
 
@@ -227,8 +228,8 @@ begin
       ENAPIN_RBMON => sbcntl_sbf_rbmon,
       CDWIDTH      => 15,
       CDINIT       => sys_conf_ser2rri_cdinit,
-      RBMON_AWIDTH => 0,
-      RBMON_RBADDR => x"ffe8")
+      RBMON_AWIDTH => 0,                -- must be 0, rbmon in rbd_tst_rlink
+      RBMON_RBADDR => (others=>'0'))
     port map (
       CLK      => CLK,
       CE_USEC  => CE_USEC,

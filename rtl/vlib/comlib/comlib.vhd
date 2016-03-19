@@ -1,6 +1,6 @@
--- $Id: comlib.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: comlib.vhd 746 2016-03-19 13:08:36Z mueller $
 --
--- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    communication components
 --
 -- Dependencies:   -
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2015.4; ghdl 0.18-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-03-13   744   1.6.1  crc16_update_tbl: work around XSim 2015.4 issue
 -- 2014-09-27   595   1.6    add crc16 (using CRC-CCITT polynomial)
 -- 2014-09-14   593   1.5    new iface for cdata2byte and byte2cdata
 -- 2011-09-17   410   1.4    now numeric_std clean; use for crc8 'A6' polynomial
@@ -287,6 +288,7 @@ package body comlib is
       );
 
     variable ch : slv16 := (others=>'0');
+    variable cu : slv16 := (others=>'0');
     variable  t : slv8  := (others=>'0');
     variable td : integer := 0;
     
@@ -296,7 +298,13 @@ package body comlib is
     ch := crc(7 downto 0) & "00000000";
     t  := data xor crc(15 downto 8);
     td := crc16_tbl(to_integer(unsigned(t)));
-    return ch xor slv(to_unsigned(td, 16));
+    cu := slv(to_unsigned(td, 16));
+    ch := ch xor cu;
+    return ch;
+
+--  original code was simply
+--    return ch xor slv(to_unsigned(td, 16));
+--  vivado 2015.4 xsim failed on this, issue worked around by equivalent code 
     
   end function crc16_update_tbl;
    

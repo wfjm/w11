@@ -1,6 +1,6 @@
--- $Id: tb_nexys3_fusp_cuff.vhd 666 2015-04-12 21:17:54Z mueller $
+-- $Id: tb_nexys3_fusp_cuff.vhd 730 2016-02-13 16:22:03Z mueller $
 --
--- Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,9 +18,9 @@
 -- Dependencies:   simlib/simclk
 --                 simlib/simclkcnt
 --                 xlib/s6_cmt_sfs
---                 rlink/tb/tbcore_rlink
+--                 rlink/tbcore/tbcore_rlink
 --                 tb_nexys3_core
---                 serport/serport_master
+--                 serport/tb/serport_master_tb
 --                 fx2lib/tb/fx2_2fifo_core
 --                 nexys3_fusp_cuff_aif [UUT]
 --
@@ -31,6 +31,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-02-13   730   1.2.2  direct instantiation of tbcore_rlink
+-- 2016-01-03   724   1.2.1  use serport/tb/serport_master_tb
 -- 2015-04-12   666   1.2    use serport_master instead of serport_uart_rxtx
 -- 2013-10-06   538   1.1    pll support, use clksys_vcodivide ect
 -- 2013-04-21   509   1.0    Initial version (derived from tb_nexys3_fusp and
@@ -45,8 +47,6 @@ use std.textio.all;
 
 use work.slvtypes.all;
 use work.rlinklib.all;
-use work.rlinktblib.all;
-use work.serportlib.all;
 use work.xlib.all;
 use work.nexys3lib.all;
 use work.simlib.all;
@@ -166,7 +166,7 @@ begin
 
   CLKCNT : simclkcnt port map (CLK => CLKCOM, CLK_CYCLE => CLKCOM_CYCLE);
 
-  TBCORE : tbcore_rlink
+  TBCORE : entity work.tbcore_rlink
     port map (
       CLK      => CLKCOM,
       CLK_STOP => CLK_STOP,
@@ -229,7 +229,7 @@ begin
       IO_FX2_DATA    => IO_FX2_DATA
     );
 
-  SERMSTR : serport_master
+  SERMSTR : entity work.serport_master_tb
     generic map (
       CDWIDTH => CLKDIV'length)
     port map (

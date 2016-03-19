@@ -1,6 +1,6 @@
--- $Id: sys_conf.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: sys_conf.vhd 743 2016-03-13 16:42:31Z mueller $
 --
--- Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -30,16 +30,17 @@ use work.slvtypes.all;
 
 package sys_conf is
 
+  -- configure clocks --------------------------------------------------------
   constant sys_conf_clksys_vcodivide   : positive :=   1;
   constant sys_conf_clksys_vcomultiply : positive :=   1;   -- dcm  100 MHz
   constant sys_conf_clksys_outdivide   : positive :=   1;   -- sys  100 MHz
   constant sys_conf_clksys_gentype     : string   := "DCM";
 
+  -- configure rlink and hio interfaces --------------------------------------
   constant sys_conf_ser2rri_defbaud : integer := 115200;   -- default 115k baud
-
   constant sys_conf_hio_debounce : boolean := true;    -- instantiate debouncers
 
-  -- derived constants
+  -- derived constants =======================================================
 
   constant sys_conf_clksys : integer :=
     ((100000000/sys_conf_clksys_vcodivide)*sys_conf_clksys_vcomultiply) /

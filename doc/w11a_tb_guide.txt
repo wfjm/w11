@@ -1,7 +1,10 @@
-# $Id: w11a_tb_guide.txt 722 2015-12-30 19:45:46Z mueller $
+# $Id: w11a_tb_guide.txt 745 2016-03-18 22:10:34Z mueller $
 
-Note: Only ISE based test benches are currently documented !
-      The Vivado test environemnt is still in it's infancy !
+Note: - Ghdl is used to all functional simulations
+      - Optionally Vivado xsim can be used (with some limitations)
+      - For post synthesis or post implementation simulations either
+        Ghdl or Vivado xsim (with some limitations) can be used.
+      - ISE isim is also available, but considered legacy support
 
 Guide to running w11a test benches
 
@@ -45,15 +48,26 @@ Guide to running w11a test benches
 
    - Most tests can be run against 
        - the functional model
-       - gate level models at three stages
+
+       - gate level models at three stages (vivado flow)
+         - the post synthesis model     (from *_syn.dcp)
+         - the post optimization model  (from *_opt.dcp)
+         - the post routing  model      (from *_rou.dcp)
+         This is simply done using
+           make <testbench>_ssim       for post-synthesis
+           make <testbench>_osim       for post-optimization
+           make <testbench>_tsim       for post-routing
+
+       - gate level models at three stages (ISE flow)
          - the post-xst model   (produced by netgen from ngc xst output)
          - the post-map model   (produced by netgen from ncd ngdbuild output)
          - the post-par model   (produced by netgen from ncd par output)
-     This is simply done using
-        make <testbench>_ssim       for post-xst
-        make <testbench>_fsim       for post-map
-        make <testbench>_tsim       for post-par
-     all the rest is handled by the build environment.
+         This is simply done using
+           make <testbench>_ssim       for post-xst
+           make <testbench>_fsim       for post-map
+           make <testbench>_tsim       for post-par
+
+     All the rest is handled by the build environment.
      An example of a post-synthesis model is given for the w11a core test.
 
    - for convenience a wrapper script 'tbrun_tbw' is used to generate the 
@@ -71,68 +85,69 @@ Guide to running w11a test benches
      cd $RETROBASE/rtl/vlib/serport/tb
      tbrun_tbw tb_serport_uart_rx 
      -> 1269955.0 ns  63488: DONE 
-     -> real 0m01.178s   user 0m01.172s   sys 0m00.020s
+     -> real 0m0.444s   user 0m0.453s   sys  0m0.007s
 
    - serport receiver/transmitter test
      tbrun_tbw tb_serport_uart_rxtx
      -> 52335.0 ns   2607: DONE 
-     -> real 0m00.094s   user 0m00.092s   sys 0m00.008s
+     -> real 0m0.074s   user 0m0.077s   sys  0m0.010s
 
    - serport autobauder test
      tbrun_tbw tb_serport_autobaud
      -> 367475.0 ns  18364: DONE 
-     -> real 0m00.610s   user 0m00.612s   sys 0m00.004s
+     -> real 0m0.247s   user 0m0.258s   sys  0m0.007s
+
  
    - 9 bit comma,data to Byte stream converter test
      cd $RETROBASE/rtl/vlib/comlib/tb
      tbrun_tbw tb_cdata2byte
-    -> 7261.0 ns    354: DONE 
-    -> real 0m0.385s   user 0m0.041s   sys  0m0.006s
+     -> 7261.0 ns    354: DONE 
+     -> real 0m0.042s   user 0m0.042s   sys  0m0.019s
 
    - rlink core test
 
      cd $RETROBASE/rtl/vlib/rlink/tb
      tbrun_tbw tb_rlink_direct
      -> 78975.0 ns   3939: DONE 
-     -> real 0m00.508s   user 0m00.262s   sys 0m00.028s
+     -> real 0m0.225s   user 0m0.226s   sys  0m0.025s
 
    - rlink core test via serial port interface
 
      cd $RETROBASE/rtl/vlib/rlink/tb
      tbrun_tbw --lsuf stim2_dsim   tb_rlink_sp1c tb_rlink_sp1c_stim.dat
      -> 27595.0 ns   1370: DONE 
-     -> real 0m0.250s   user 0m0.108s   sys 0m0.011s
+     -> real 0m0.098s   user 0m0.111s   sys  0m0.007s
 
      tbrun_tbw --lsuf stim1_dsim   tb_rlink_sp1c tb_rlink_stim.dat
      -> 420295.0 ns  21005: DONE 
-     -> real  0m02.271s   user  0m01.360s   sys  0m00.040s
+     -> real 0m0.942s   user 0m0.947s   sys  0m0.012s
 
    - w11a core test (using behavioural model)
 
      cd $RETROBASE/rtl/w11a/tb
      tbrun_tbw tb_pdp11core
-     -> 1220255.0 ns  61073: DONE 
-     -> real 0m10.736s   user 0m10.713s   sys 0m00.060s
+     -> 225355.0 ns  61258: DONE 
+     -> real 0m6.280s   user 0m6.284s   sys  0m0.018s
 
-   - w11a core test (using post-synthesis model)
+   - w11a core test (using Vivado post-synthesis model)
 
      tbrun_tbw tb_pdp11core_ssim
-     -> 1220255.0 ns  61073: DONE 
-     -> real 1m09.738s   user 1m09.588s   sys 0m00.096s
+     -> 225355.0 ns  61258: DONE 
+     -> real 2m4.138s   user 2m4.063s   sys  0m0.050s
 
    - s3board sram controller test 
 
      cd $RETROBASE/rtl/bplib/s3board/tb
      tbrun_tbw tb_s3_sram_memctl
      -> 5015.0 ns    241: DONE 
-     -> real 0m00.113s   user 0m00.068s   sys 0m00.016s
+     -> real 0m0.107s   user 0m0.055s   sys  0m0.020s
 
    - nexys2/nexys3 cram controller test 
 
      cd $RETROBASE/rtl/bplib/nxcramlib/tb
      tbrun_tbw tb_nx_cram_memctl_as
      -> 24272.5 ns   1204: DONE 
-     -> real 0m00.343s   user 0m00.248s   sys 0m00.100s
+     -> real 0m0.189s   user 0m0.149s   sys  0m0.055s
 
 3. System tests benches ---------------------------------------------------
 
@@ -162,62 +177,112 @@ Guide to running w11a test benches
      cd $RETROBASE/rtl/sys_gen/tst_serloop/s3board/tb
      tbrun_tbw tb_tst_serloop_s3
      -> 301353.3 ns  18068: DONE 
-     -> real 0m1.422s   user 0m1.372s   sys 0m0.024s
+     -> real 0m0.765s   user 0m0.781s   sys  0m0.013s
 
    - sys_tst_serloop_n2 test bench
 
      cd $RETROBASE/rtl/sys_gen/tst_serloop/nexys2/tb
      tbrun_tbw tb_tst_serloop1_n2
      -> 361560.0 ns  18068: DONE
-     -> real 0m1.341s   user 0m1.340s   sys 0m0.016s
+     -> real 0m0.994s   user 0m0.991s   sys  0m0.022s
 
      tbrun_tbw tb_tst_serloop2_n2
      -> 304353.3 ns  18248: DONE
-     -> real 0m1.933s   user 0m1.924s   sys 0m0.024s
+     -> real 0m1.543s   user 0m1.561s   sys  0m0.007s
 
    - sys_tst_serloop_n3 test bench
 
      cd $RETROBASE/rtl/sys_gen/tst_serloop/nexys3/tb
      tbrun_tbw tb_tst_serloop1_n3
      -> 361560.0 ns  18068: DONE
-     -> real 0m1.371s   user 0m1.372s   sys 0m0.016s
+     -> real 0m0.740s   user 0m0.755s   sys  0m0.012s
 
 4b. rlink tester -----------------------------------------------------
 
-   The sys_tst_rlink design is a test target for validating the rlink
-   and rbus functionality at all levels.
+   The sys_tst_rlink design is a test target for validating the rlink and 
+   rbus functionality at all levels.
 
-   - sys_tst_rlink_s3 test bench
+   - Artix based systems
 
-     cd $RETROBASE/rtl/sys_gen/tst_rlink/s3board/tb
-     tbrun_tbwrri --pack tst_rlink   tb_tst_rlink_s3 \
-         "tst_rlink::setup"  "tst_rlink::test_all" 
-     -> 1377680.0 ns  68874: DONE 
-     -> real 0m6.876s   user 0m6.790s   sys  0m0.060s
+     - sys_tst_rlink_arty test bench
+  
+       cd $RETROBASE/rtl/sys_gen/tst_rlink/arty/tb
+       tbrun_tbwrri --hxon --pack tst_rlink   tb_tst_rlink_arty \
+           "tst_rlink::setup"  "tst_rlink::test_all"
+       -> 764400.0 ns  76419: DONE
+       -> real 0m9.323s   user 0m9.233s   sys  0m0.080s
 
-   - sys_tst_rlink_n2 test bench
+     - sys_tst_rlink_b3 test bench
+  
+       cd $RETROBASE/rtl/sys_gen/tst_rlink/basys3/tb
+       tbrun_tbwrri --hxon --pack tst_rlink   tb_tst_rlink_b3 \
+           "tst_rlink::setup"  "tst_rlink::test_all"
+       -> 763900.0 ns  76369: DONE
+       -> real 0m6.804s   user 0m6.696s   sys  0m0.085s
+  
+     - sys_tst_rlink_n4 test bench
+  
+       cd $RETROBASE/rtl/sys_gen/tst_rlink/nexys4/tb
+       tbrun_tbwrri --pack tst_rlink   tb_tst_rlink_n4 \
+           "tst_rlink::setup"  "tst_rlink::test_all"
+       -> 758010.0 ns  75780: DONE
+       -> real 0m10.198s   user 0m10.081s   sys  0m0.104s
 
-     cd $RETROBASE/rtl/sys_gen/tst_rlink/nexys2/tb
-     tbrun_tbwrri --pack tst_rlink   tb_tst_rlink_n2 \
+
+   - Spartan based systems
+
+     - sys_tst_rlink_n3 test bench
+  
+       cd $RETROBASE/rtl/sys_gen/tst_rlink/nexys3/tb
+       tbrun_tbwrri --fusp --pack tst_rlink   tb_tst_rlink_n3 \
+           "tst_rlink::setup"  "tst_rlink::test_all"
+       -> 763770.0 ns  76356: DONE
+       -> real 0m5.955s   user 0m5.834s   sys  0m0.094s
+
+     - sys_tst_rlink_n2 test bench
+  
+       cd $RETROBASE/rtl/sys_gen/tst_rlink/nexys2/tb
+       tbrun_tbwrri --fusp --pack tst_rlink   tb_tst_rlink_n2 \
+           "tst_rlink::setup"  "tst_rlink::test_all"
+       -> 1526860.0 ns  76332: DONE
+       -> real 0m8.607s   user 0m8.448s   sys  0m0.150s
+  
+     - sys_tst_rlink_s3 test bench
+  
+       cd $RETROBASE/rtl/sys_gen/tst_rlink/s3board/tb
+       tbrun_tbwrri --fusp --pack tst_rlink   tb_tst_rlink_s3 \
+           "tst_rlink::setup"  "tst_rlink::test_all" 
+       -> 1526540.0 ns  76317: DONE
+       -> real 0m5.650s   user 0m5.571s   sys  0m0.052s
+
+4c. rlink tester, Cypress FX2 based version --------------------------
+
+   The sys_tst_rlink_cuff design is a test target for validating the rlink and 
+   rbus functionality at all levels over the Cypress FX2 USB interface which
+   is provided by the Nexys2 abd Nexys3 boards.
+
+   - sys_tst_rlink_cuff_ic_n3 test bench
+
+     cd $RETROBASE/rtl/sys_gen/tst_rlink_cuff/nexys3/ic/tb
+     tbrun_tbwrri --cuff --pack tst_rlink   tb_tst_rlink_cuff_ic_n3 \
          "tst_rlink::setup"  "tst_rlink::test_all"
-     ->  1378200.0 ns  68899: DONE 
-     -> real 0m10.320s   user 0m10.110s   sys  0m0.204s
+     -> 440440.0 ns  44023: DONE
+     -> real 0m4.062s   user 0m3.922s   sys  0m0.111s
 
-   - sys_tst_rlink_n3 test bench
+   - sys_tst_rlink_cuff_ic_n2 test bench
 
-     cd $RETROBASE/rtl/sys_gen/tst_rlink/nexys3/tb
-     tbrun_tbwrri --pack tst_rlink   tb_tst_rlink_n3 \
+     cd $RETROBASE/rtl/sys_gen/tst_rlink_cuff/nexys2/ic/tb
+     tbrun_tbwrri --cuff --pack tst_rlink   tb_tst_rlink_cuff_ic_n2 \
          "tst_rlink::setup"  "tst_rlink::test_all"
-     -> 689210.0 ns  68900: DONE 
-     -> real 0m7.098s   user 0m6.874s   sys  0m0.191s
+     -> 466940.0 ns  23336: DONE
+     -> real 0m2.831s   user 0m2.696s   sys  0m0.101s
 
-4c. w11a systems -----------------------------------------------------
+4d. w11a systems -----------------------------------------------------
 
-   The stimulus file used in the w11a core test can be executed in the
-   full system context (both s3board and nexys2 versions) with the 
-   following commands. Note that the cycle number printed in the DONE
-   line can now vary slightly because the response time of the rlink
-   backend process and thus scheduling of backend vs. ghdl process
+   The stimulus file used in the w11a core test can be executed in the full
+   system context with the following commands. Note that the cycle number 
+   printed in the DONE line can now vary slightly because the response time of
+   the rlink backend process and thus scheduling of backend vs. ghdl process
    can affect the result.
 
    For convenience a wrapper script 'tbrun_tbwrri' is used to generate the 
@@ -225,32 +290,43 @@ Guide to running w11a test benches
    checks with 'make' whether the test bench is up-to-date or must be 
    (re)-compiled.
 
-   - sys_w11a_s3 test bench
+   - Artix based systems
 
-     cd $RETROBASE/rtl/sys_gen/w11a/s3board/tb
-     tbrun_tbwrri --pack rw11   tb_w11a_s3 \
-         "rw11::setup_cpu" \
-         "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat"
-     -> 9864500.0 ns 493215: DONE
-     -> real 0m59.728s   user 0m58.586s   sys 0m0.576s
+       cd $RETROBASE/rtl/sys_gen/w11a/nexys4/tb
+       tbrun_tbwrri --pack rw11  tb_w11a_n4 \
+           "rw11::setup_cpu" \
+           "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat"
+       -> 6681310.0 ns 534488: DONE
+       -> real 1m26.253s   user 1m26.139s   sys  0m0.430s
 
-   - sys_w11a_n2 test bench
+   - Spartan based systems
+     - sys_w11a_n3 test bench
+  
+       cd $RETROBASE/rtl/sys_gen/w11a/nexys3/tb
+       tbrun_tbwrri --cuff --pack rw11  tb_w11a_n3 \
+           "rw11::setup_cpu" \
+           "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat"
+       -> 3614866.2 ns 231338: DONE
+       -> real 0m47.290s   user 0m46.975s   sys  0m0.537s
 
-     cd $RETROBASE/rtl/sys_gen/w11a/nexys2/tb
-     tbrun_tbwrri --pack rw11 --cuff   tb_w11a_n2 \
-         "rw11::setup_cpu" \
-         "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat"
-     -> 3809180.0 ns 190448: DONE 
-     -> real 0m55.733s   user 0m55.504s   sys 0m0.592s
-
-   - sys_w11a_n3 test bench
-
-     cd $RETROBASE/rtl/sys_gen/w11a/nexys3/tb
-     tbrun_tbwrri --pack rw11 --cuff   tb_w11a_n3 \
-         "rw11::setup_cpu" \
-         "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat"
-     -> 279834.9 ns 236133: DONE 
-     -> real 0m59.998s   user 0m59.676s   sys 0m0.618s
+     - sys_w11a_n2 test bench
+  
+       cd $RETROBASE/rtl/sys_gen/w11a/nexys2/tb
+       tbrun_tbwrri --cuff --pack rw11  tb_w11a_n2 \
+           "rw11::setup_cpu" \
+           "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat"
+       -> 4007500.0 ns 200364: DONE 
+       -> real 0m43.803s   user 0m43.698s   sys  0m0.400s
+  
+     - sys_w11a_s3 test bench
+  
+       cd $RETROBASE/rtl/sys_gen/w11a/s3board/tb
+       tbrun_tbwrri --fusp --pack rw11  tb_w11a_s3 \
+           "rw11::setup_cpu" \
+           "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat"
+       -> 10526060.0 ns 526293: DONE
+       -> real 1m13.659s   user 1m13.467s   sys  0m0.431s
+  
 
    A new, modular w11a test bench is under construction. So far it is very
    incomplete. This very preliminary version can be executed with
@@ -258,14 +334,13 @@ Guide to running w11a test benches
    - sys_w11a_n2 test bench
 
      cd $RETROBASE/rtl/sys_gen/w11a/nexys2/tb
-     tbrun_tbwrri --lsuf tbench_dsim --pack rw11 --cuff  tb_w11a_n2 \
+     tbrun_tbwrri  --cuff --lsuf tbench_dsim --pack rw11  tb_w11a_n2 \
         "rw11::setup_cpu" "rw11::tbench @cpu_all.dat"
-     -> 3204500.0 ns 160214: DONE 
-     -> real 0m44.753s   user 0m45.361s   sys  0m0.616s
+     -> 3280220.0 ns 164000: DONE
+     -> real 0m30.190s   user 0m30.843s   sys  0m0.577s
 
-     tbrun_tbwrri --lsuf tbench_dsim --pack rw11 --cuff  tb_w11a_n2 \
+     tbrun_tbwrri --cuff --lsuf tbench_dsim --pack rw11  tb_w11a_n2 \
         "rw11::setup_cpu" "rw11::tbench @dev_all.dat"
-     -> 1369960.0 ns  68487: DONE
-     -> real 0m21.399s   user 0m21.480s   sys 0m0.254s
-
+     -> 1387300.0 ns  69354: DONE
+     -> real 0m14.298s   user 0m14.314s   sys  0m0.240s
 

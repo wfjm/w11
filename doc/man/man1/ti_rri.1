@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: ti_rri.1 666 2015-04-12 21:17:54Z mueller $
+.\"  $Id: ti_rri.1 742 2016-03-13 14:40:19Z mueller $
 .\"
-.\" Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH TI_RRI 1 2015-04-12 "Retro Project" "Retro Project Manual"
+.TH TI_RRI 1 2016-03-13 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 ti_rri \- \fBRlink\fP Backend Server
@@ -87,7 +87,12 @@ software flow control (xon/xoff)
 defer link initialization (debug or test benches)
 .PD
 .RE
+
+Note: in general the default pipe names are used, thus \fIname\fP is almost
+never specified. If only options are given an empty \fIname\fP field must be
+specified like in \fB\-\-fifo=,xon\fP.
 .RE
+
 .
 .\" -- --term ------------------------------------
 .IP \fB\-\-term\fR[=\fIname\fR[,\fIbaud\fR[,\fIopts\fR]]]
@@ -207,10 +212,15 @@ with eval.
 .
 .\" ------------------------------------------------------------------
 .SH EXAMPLES
-.IP "\fBti_rri --fifo --run='tbw tb_tst_rlink_n3'" 4
-Starts the \fBghdl\fP(1) test bench 'tb_tst_rlink_n3' located in CWD via 
+.IP "\fBti_rri --fifo --run='tbw tb_tst_rlink_n4'" 4
+Starts the \fBghdl\fP(1) test bench 'tb_tst_rlink_n4' located in CWD via 
 \fBtbw\fP(1). It is assumed that the local \fItbw.dat\fP file configures
 fifo communication for the test bench.
+.
+.IP "\fBti_rri --fifo=,xon --run='tbw tb_tst_rlink_arty'" 4
+Like above, starts arty rather n4 test bench. The rlink is operated with
+software flow control. Note the comma in front of \fIxon\fP, required to
+ensure that default pipe name is used !
 
 .\" ------------------------------------------------------------------
 .SH "SEE ALSO"

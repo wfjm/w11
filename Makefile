@@ -1,4 +1,4 @@
-# $Id: Makefile 682 2015-05-15 18:35:29Z mueller $
+# $Id: Makefile 745 2016-03-18 22:10:34Z mueller $
 #
 # 'Meta Makefile' for whole retro project
 #   allows to make all synthesis targets
@@ -6,6 +6,7 @@
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2016-02-19   732   1.2.1  remove dispunit syn and sim entries
 # 2015-02-01   640   1.2    add vivado targets, separate from ise targets
 # 2015-01-25   638   1.1    drop as type fx2 targets
 # 2014-06-14   562   1.0.8  suspend nexys4 syn targets
@@ -47,8 +48,6 @@ SYN_ise += rtl/sys_gen/tst_serloop/nexys3
 SYN_ise += rtl/sys_gen/tst_snhumanio/nexys3
 SYN_ise += rtl/sys_gen/w11a/nexys3
 
-#     xc2 ----------------------------------------
-
 #   Vivado based targets, by board type --------------------
 #     Basys3 -------------------------------------
 SYN_viv += rtl/sys_gen/tst_snhumanio/basys3
@@ -61,6 +60,10 @@ SYN_viv += rtl/sys_gen/tst_rlink/nexys4
 SYN_viv += rtl/sys_gen/tst_serloop/nexys4
 SYN_viv += rtl/sys_gen/tst_snhumanio/nexys4
 SYN_viv += rtl/sys_gen/w11a/nexys4
+
+#     Arty ---------------------------------------
+SYN_viv += rtl/sys_gen/tst_rlink/arty
+SYN_viv += rtl/sys_gen/w11a/arty_bram
 
 # Simulation targets -------------------------------------------------
 #   ISE flow -----------------------------------------------
@@ -89,17 +92,21 @@ SIM_ise += rtl/sys_gen/tst_rlink_cuff/nexys3/ic/tb
 SIM_ise += rtl/sys_gen/tst_serloop/nexys3/tb
 SIM_ise += rtl/sys_gen/w11a/nexys3/tb
 
-#     xc2 ----------------------------------------
-
 #   Vivado flow --------------------------------------------
 #     Basys3 -------------------------------------
 SIM_viv += rtl/sys_gen/tst_rlink/basys3/tb
 #SIM_viv += rtl/sys_gen/tst_serloop/basys3/tb
 SIM_viv += rtl/sys_gen/w11a/basys3/tb
+
 #     Nexys4 -------------------------------------
 SIM_viv += rtl/sys_gen/tst_rlink/nexys4/tb
 SIM_viv += rtl/sys_gen/tst_serloop/nexys4/tb
 SIM_viv += rtl/sys_gen/w11a/nexys4/tb
+
+#     Arty ---------------------------------------
+SIM_viv += rtl/sys_gen/tst_rlink/arty/tb
+SIM_viv += rtl/sys_gen/w11a/arty_bram/tb
+
 #
 .PHONY : default
 .PHONY : all all_ise all_viv

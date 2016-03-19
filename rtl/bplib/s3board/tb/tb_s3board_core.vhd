@@ -1,6 +1,6 @@
--- $Id: tb_s3board_core.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: tb_s3board_core.vhd 724 2016-01-03 22:53:53Z mueller $
 --
--- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -35,7 +35,6 @@ use ieee.std_logic_textio.all;
 use std.textio.all;
 
 use work.slvtypes.all;
-use work.serportlib.all;
 use work.simbus.all;
 
 entity tb_s3board_core is

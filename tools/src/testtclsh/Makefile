@@ -1,4 +1,4 @@
-# $Id: Makefile 601 2014-11-07 22:44:43Z mueller $
+# $Id: Makefile 733 2016-02-20 12:24:13Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -10,7 +10,7 @@ include ../checkpath_cpp.mk
 #
 INCLFLAGS  = -I${TCLINC} -I${RETROBASE}/tools/src
 LDLIBS     = -lreadline
-LDLIBS    += -L$(TCLLIB) -l$(TCLLIBNAME) -lreadline
+LDLIBS    += -L${TCLLIB} -l${TCLLIBNAME} -lreadline
 LDLIBS    += -L${RETROBASE}/tools/lib -lrtcltools
 LDLIBS    +=   -lrutiltpp -lrlinktpp -lrwxxtpp
 #LDLIBS    +=   -lrusbtpp
@@ -25,9 +25,9 @@ testtclsh : $(OBJ_all)
 
 #- generic part ----------------------------------------------------------------
 #
-include $(RETROBASE)/tools/make/generic_cpp.mk
-include $(RETROBASE)/tools/make/generic_dep.mk
-include $(RETROBASE)/tools/make/dontincdep.mk
+include ${RETROBASE}/tools/make/generic_cpp.mk
+include ${RETROBASE}/tools/make/generic_dep.mk
+include ${RETROBASE}/tools/make/dontincdep.mk
 #
 # The magic auto-dependency include
 #

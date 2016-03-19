@@ -1,4 +1,4 @@
-# $Id: regdsc.tcl 705 2015-07-26 21:25:42Z mueller $
+# $Id: regdsc.tcl 724 2016-01-03 22:53:53Z mueller $
 #
 # Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2016-01-03   724   1.1.1  BUGFIX: regdsc: fix variable name in error msg
 # 2015-07-24   705   1.1    add regbldkv,reggetkv; regtxt: add {all 0} arg
 #                           add s:.. ptyp to support symbolic field values
 # 2015-06-26   695   1.0    Initial version (with reg* procs from util.tcl)
@@ -56,7 +57,7 @@ namespace eval rutil {
         }
         foreach nam $popt {
           if {![string match {[A-Za-z]*} $nam]} {
-            error "regdsc-E: bad name \"$name\" for for \"$rdscName:$fnam\""
+            error "regdsc-E: bad name \"$nam\" for for \"$rdscName:$fnam\""
           }
           set nlen [string length $nam]
           if {$nlen > $plen} {set plen $nlen}

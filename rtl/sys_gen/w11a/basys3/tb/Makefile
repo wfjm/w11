@@ -1,4 +1,4 @@
-# $Id: Makefile 649 2015-02-21 21:10:16Z mueller $
+# $Id: Makefile 733 2016-02-20 12:24:13Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -6,7 +6,7 @@
 #
 EXE_all = tb_w11a_b3
 #
-include $(RETROBASE)/rtl/make_viv/viv_default_basys3.mk
+include ${RETROBASE}/rtl/make_viv/viv_default_basys3.mk
 #
 .PHONY : all all_ssim clean
 #
@@ -17,8 +17,8 @@ clean : viv_clean ghdl_clean
 #
 #-----
 #
-include $(RETROBASE)/rtl/make_viv/generic_vivado.mk
-include $(RETROBASE)/rtl/make_viv/generic_ghdl.mk
+include ${RETROBASE}/rtl/make_viv/generic_vivado.mk
+include ${RETROBASE}/rtl/make_viv/generic_ghdl.mk
 #
 VBOM_all = $(wildcard *.vbom)
 #

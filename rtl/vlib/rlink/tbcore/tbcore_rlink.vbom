@@ -1,0 +1,12 @@
+# libs
+../../slvtypes.vhd
+../../simlib/simlib.vhd
+../../simlib/simbus.vhd
+../../rbus/rblib.vhd
+../rlinklib.vbom
+# components
+../../simlib/simclkcnt.vbom
+[ghdl]rlink_cext_iface_vhpi.vbom
+[viv]rlink_cext_iface_dpi.vbom
+# design
+tbcore_rlink.vhd

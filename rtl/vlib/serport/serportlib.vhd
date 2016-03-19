@@ -1,6 +1,6 @@
--- $Id: serportlib.vhd 666 2015-04-12 21:17:54Z mueller $
+-- $Id: serportlib.vhd 724 2016-01-03 22:53:53Z mueller $
 --
--- Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -32,6 +32,9 @@
 -- 2007-10-22    88   1.1    renames (in prev revs); remove std_logic_unsigned
 -- 2007-06-03    45   1.0    Initial version 
 ------------------------------------------------------------------------------
+-- Note: for test bench usage a copy of all serport_* entities, with -tb
+--       appended to the name, has been created in the /tb sub folder.
+--       Ensure to update the copy when this file is changed !!
 
 library ieee;
 use ieee.std_logic_1164.all;

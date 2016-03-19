@@ -1,4 +1,4 @@
-# $Id: generic_xflow.mk 672 2015-05-02 21:58:28Z mueller $
+# $Id: generic_xflow.mk 733 2016-02-20 12:24:13Z mueller $
 #
 # Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
@@ -311,7 +311,7 @@ endif
 #
 # Cleanup
 #
-include $(RETROBASE)/rtl/make_ise/dontincdep.mk
+include ${RETROBASE}/rtl/make_ise/dontincdep.mk
 #
 .PHONY : ise_clean ise_tmp_clean
 #

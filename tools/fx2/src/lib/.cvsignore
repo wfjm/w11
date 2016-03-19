@@ -1,7 +1,6 @@
 *.asm
 *.ihx
 *.lnk
-*.lst
 *.map
 *.mem
 *.rel

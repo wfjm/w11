@@ -1,0 +1,5 @@
+# libs
+../../slvtypes.vhd
+serportlib_tb.vhd
+# design
+serport_xontx_tb.vhd

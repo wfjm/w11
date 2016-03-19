@@ -16,7 +16,7 @@
 ../../simlib/simclkcnt.vbom
 ../../genlib/clkdivce.vbom
 ../../rbus/rbd_tester.vbom
-${tbd_rlink_gen := tbd_rlink_direct.vbom}
+@uut: ${uut := tbd_rlink_direct.vbom}
 # design
 tb_rlink.vhd
 @top:tb_rlink

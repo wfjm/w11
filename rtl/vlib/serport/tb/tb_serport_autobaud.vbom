@@ -5,6 +5,6 @@
 # components
 ../../simlib/simclk.vbom
 ../../simlib/simclkcnt.vbom
-${tbd_serport_autobaud := tbd_serport_autobaud.vbom}
+@uut: ${uut := tbd_serport_autobaud.vbom}
 # design
 tb_serport_autobaud.vhd

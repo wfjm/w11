@@ -1,4 +1,4 @@
-# $Id: Makefile 601 2014-11-07 22:44:43Z mueller $
+# $Id: Makefile 733 2016-02-20 12:24:13Z mueller $
 #
 
 #
@@ -11,9 +11,9 @@
 include ../checkpath_cpp.mk
 #
 INCLFLAGS  = -I${TCLINC}
-LDLIBS    += -L$(TCLLIB) -l$(TCLLIBNAME)
+LDLIBS    += -L${TCLLIB} -l${TCLLIBNAME}
 #
-BINPATH    = $(RETROBASE)/tools/bin
+BINPATH    = ${RETROBASE}/tools/bin
 #
 # Object files to be included
 #
@@ -28,9 +28,9 @@ $(BINPATH)/tclshcpp : $(OBJ_all)
 
 #- generic part ----------------------------------------------------------------
 #
-include $(RETROBASE)/tools/make/generic_cpp.mk
-include $(RETROBASE)/tools/make/generic_dep.mk
-include $(RETROBASE)/tools/make/dontincdep.mk
+include ${RETROBASE}/tools/make/generic_cpp.mk
+include ${RETROBASE}/tools/make/generic_dep.mk
+include ${RETROBASE}/tools/make/dontincdep.mk
 #
 # The magic auto-dependency include
 #

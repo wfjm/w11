@@ -1,0 +1,6 @@
+# libs
+../../../vlib/slvtypes.vhd
+../../../w11a/pdp11.vbom
+# components
+# design
+pdp11_hio70_arty.vhd

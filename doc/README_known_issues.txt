@@ -1,7 +1,12 @@
-$Id: README_known_issues.txt 693 2015-06-21 14:02:46Z mueller $
+$Id: README_known_issues.txt 746 2016-03-19 13:08:36Z mueller $
 
 Known issues for this release.
 The case id indicates the release when the issue was first recognized.
+
+- V0.72-2: xsim simulations with timing annotation not yet available.
+- V0.72-1: Vivado 2015.4 xelab crashes when DPI is used in a mxied vhdl-verilog
+    language environment. This prevents currently to build a xsim simulation 
+    model for rlink based test benches.
 
 - V0.66-1: the TM11 controller transfers data byte wise (all disk do it 16bit 
     word wise) and allows for odd byte length transfers. Odd length transfers
@@ -24,9 +29,6 @@ The case id indicates the release when the issue was first recognized.
     flow control issue (likely since V0.63).
 - V0.64-6: IO delays still unconstraint in vivado. All critical IOs use
     explicitly IOB flops, thus timing well defined.
-- V0.64-5: w11a_tb_guide.txt covers only ISE based tests (see also V0.64-4).
-- V0.64-4: No support for the Vivado simulator (xsim) yet. With ghdl only
-    functional simulations, post synthesis (_ssim) fails to compile.
 - V0.64-3: Highest baud rate with basys3 and nexys4 is 10 MBaud. 10 MBaud is
     not supported according to FTDI, but works. 12 MBaud in an upcoming release.
 - V0.64-2: rlink throughput on basys3/nexys4 limited by serial port stack 

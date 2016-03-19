@@ -1,6 +1,6 @@
--- $Id: tb_nexys4_cram.vhd 666 2015-04-12 21:17:54Z mueller $
+-- $Id: tb_nexys4_cram.vhd 734 2016-02-20 22:43:20Z mueller $
 --
--- Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -17,10 +17,10 @@
 --
 -- Dependencies:   simlib/simclk
 --                 simlib/simclkcnt
---                 rlink/tb/tbcore_rlink
---                 xlib/s7_cmt_sfs
+--                 rlink/tbcore/tbcore_rlink
+--                 xlib/tb/s7_cmt_sfs_tb
 --                 tb_nexys4_core
---                 serport/serport_master
+--                 serport/tb/serport_master_tb
 --                 nexys4_cram_aif [UUT]
 --                 vlib/parts/micron/mt45w8mw16b
 --
@@ -31,6 +31,9 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-02-20   734   1.2.3  use s7_cmt_sfs_tb to avoid xsim conflict
+-- 2016-02-13   730   1.2.2  direct instantiation of tbcore_rlink
+-- 2016-01-03   724   1.2.1  use serport/tb/serport_master_tb
 -- 2015-04-12   666   1.2    use serport_master instead of serport_uart_rxtx
 -- 2015-02-01   641   1.1    separate I_BTNRST_N
 -- 2013-09-28   535   1.0.1  use proper clock manager
@@ -45,8 +48,6 @@ use std.textio.all;
 
 use work.slvtypes.all;
 use work.rlinklib.all;
-use work.rlinktblib.all;
-use work.serportlib.all;
 use work.xlib.all;
 use work.nexys4lib.all;
 use work.simlib.all;
@@ -115,7 +116,7 @@ begin
       CLK_STOP => CLK_STOP
     );
   
-  CLKGEN_COM : s7_cmt_sfs
+  CLKGEN_COM : entity work.s7_cmt_sfs_tb
     generic map (
       VCO_DIVIDE   => sys_conf_clkser_vcodivide,
       VCO_MULTIPLY => sys_conf_clkser_vcomultiply,
@@ -123,7 +124,7 @@ begin
       CLKIN_PERIOD => 10.0,
       CLKIN_JITTER => 0.01,
       STARTUP_WAIT => false,
-      GEN_TYPE     => sys_conf_clksys_gentype)
+      GEN_TYPE     => sys_conf_clkser_gentype)
     port map (
       CLKIN   => CLKOSC,
       CLKFX   => CLKCOM,
@@ -132,7 +133,7 @@ begin
 
   CLKCNT : simclkcnt port map (CLK => CLKCOM, CLK_CYCLE => CLKCOM_CYCLE);
 
-  TBCORE : tbcore_rlink
+  TBCORE : entity work.tbcore_rlink
     port map (
       CLK      => CLKCOM,
       CLK_STOP => CLK_STOP,
@@ -192,7 +193,7 @@ begin
       DATA  => IO_MEM_DATA
     );
   
-  SERMSTR : serport_master
+  SERMSTR : entity work.serport_master_tb
     generic map (
       CDWIDTH => CLKDIV'length)
     port map (

@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: xtwv.1 651 2015-02-26 21:32:15Z mueller $
+.\"  $Id: xtwv.1 746 2016-03-19 13:08:36Z mueller $
 .\"
-.\" Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2014-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH XTWV 1 2014-04-21 "Retro Project" "Retro Project Manual"
+.TH XTWV 1 2016-03-19 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 xtwv \- Xilinx Tool Wrapper script for Vivado
@@ -30,12 +30,32 @@ of the Vivado version to be used.
 and execs the \fICOMMAND\fP. This way \fICOMMAND\fP is executed in the
 Vivado environment, while the login shell stays clean.
 
+\fBxtwi\fP can also setup a clean environment when BARE_PATH and
+BARE_LD_LIBRARY_PATH are defined.
+
 .
 .\" ------------------------------------------------------------------
 .SH ENVIRONMENT
 .TP 4
 .B BXTWV_PATH
 Install path of Vivado
+.
+.TP 
+.B BARE_PATH
+Optional. If defined \fBxtwi\fP will set
+.EX
+   export PATH=$BARE_PATH:$RETROBASE/tools/bin
+.EE
+LD_LIBRARY_PATH will be unset unless BARE_LD_LIBRARY_PATH is 
+defined too.
+.
+.TP 
+.B BARE_LD_LIBRARY_PATH
+Optional. If defined \fBxtwi\fP will set
+.EX
+   export LD_LIBRARY_PATH=$BARE_LD_LIBRARY_PATH
+.EE
+Used only when BARE_PATH is defined.
 .
 .\" ------------------------------------------------------------------
 .SH FILES

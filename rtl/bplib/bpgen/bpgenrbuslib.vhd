@@ -1,6 +1,6 @@
--- $Id: bpgenrbuslib.vhd 637 2015-01-25 18:36:40Z mueller $
+-- $Id: bpgenrbuslib.vhd 734 2016-02-20 22:43:20Z mueller $
 --
--- Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Generic Board/Part components using rbus
 -- 
 -- Dependencies:   -
--- Tool versions:  ise 12.1-14.7; viv 2014.4; ghdl 0.26-0.31
+-- Tool versions:  ise 12.1-14.7; viv 2014.4-2015.4; ghdl 0.26-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-02-20   734   1.3    add rgbdrv_analog_rbus
 -- 2015-01-25   637   1.2    add generics to sn_humanio_rbus
 -- 2014-08-15   583   1.1    rb_mreq addr now 16 bit
 -- 2013-01-26   476   1.0    Initial version (extracted from bpgenlib)
@@ -100,6 +101,21 @@ component sn_humanio_demu_rbus is       -- human i/o swi,btn,led only /w rbus
     I_SWI : in slv8;                    -- pad-i: switches
     I_BTN : in slv6;                    -- pad-i: buttons
     O_LED : out slv8                    -- pad-o: leds
+  );
+end component;
+
+component rgbdrv_analog_rbus is         -- rgb analog from rbus
+  generic (
+    DWIDTH : positive := 8;             -- dimmer width
+    RB_ADDR : slv16 := slv(to_unsigned(16#0000#,16)));
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit := '0';            -- reset
+    RB_MREQ : in rb_mreq_type;          -- rbus: request
+    RB_SRES : out rb_sres_type;         -- rbus: response
+    RGBCNTL : in slv3;                  -- rgb control
+    DIMCNTL : in slv(DWIDTH-1 downto 0);-- dim control
+    O_RGBLED : out slv3                 -- pad-o: rgb led
   );
 end component;
 

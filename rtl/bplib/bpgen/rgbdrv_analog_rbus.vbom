@@ -1,0 +1,8 @@
+# libs
+../../vlib/slvtypes.vhd
+../../vlib/rbus/rblib.vhd
+bpgenlib.vbom
+# components
+rgbdrv_analog.vbom
+# design
+rgbdrv_analog_rbus.vhd

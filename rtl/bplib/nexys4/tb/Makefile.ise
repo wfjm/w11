@@ -1,4 +1,5 @@
-# $Id: Makefile.ise 648 2015-02-20 20:16:21Z mueller $
+# -*- makefile-gmake -*-
+# $Id: Makefile.ise 733 2016-02-20 12:24:13Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -12,7 +13,7 @@ EXE_all  = tb_nexys4_dummy tb_nexys4_cram_dummy
 ifndef XTW_BOARD
   XTW_BOARD=nexys4
 endif
-include $(RETROBASE)/rtl/make_ise/xflow_default_$(XTW_BOARD).mk
+include ${RETROBASE}/rtl/make_ise/xflow_default_$(XTW_BOARD).mk
 #
 .PHONY : all all_ssim all_tsim clean
 #
@@ -24,9 +25,9 @@ clean : ise_clean ghdl_clean isim_clean
 #
 #-----
 #
-include $(RETROBASE)/rtl/make_ise/generic_ghdl.mk
-include $(RETROBASE)/rtl/make_ise/generic_isim.mk
-include $(RETROBASE)/rtl/make_ise/generic_xflow.mk
+include ${RETROBASE}/rtl/make_ise/generic_ghdl.mk
+include ${RETROBASE}/rtl/make_ise/generic_isim.mk
+include ${RETROBASE}/rtl/make_ise/generic_xflow.mk
 #
 VBOM_all = $(wildcard *.vbom)
 #

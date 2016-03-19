@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: tbw.1 620 2014-12-25 10:48:35Z mueller $
+.\"  $Id: tbw.1 727 2016-02-07 13:58:47Z mueller $
 .\"
-.\" Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH TBW 1 2011-11-06 "Retro Project" "Retro Project Manual"
+.TH TBW 1 2016-02-06 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 tbw \- wrapper script to start ghdl based VHDL test benches
@@ -71,7 +71,8 @@ defined via the \fItbw.dat\fP file, for details see section FILES.
 The options \fB\-run\fP, \fB\-fifo\fP and \fB\-verbose\fP are processed
 by tbw itself. If more than one is given they must be in this order.
 .IP \fB\-run\fR
-Used for _ISim tb's, runs the tb with a 'run all' command.
+Used for _ISim or _XSim tb's, ensures that simulation runs till end. Will
+issue a 'run all' command for ISim and a '-R' option for XSim.
 .IP \fB\-fifo\fR
 Forces usage of rlink_cext fifo, will ignore tbw.dat
 .IP \fB\-verbose\fR

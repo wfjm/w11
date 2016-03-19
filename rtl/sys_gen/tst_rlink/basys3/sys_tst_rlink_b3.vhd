@@ -1,6 +1,6 @@
--- $Id: sys_tst_rlink_b3.vhd 672 2015-05-02 21:58:28Z mueller $
+-- $Id: sys_tst_rlink_b3.vhd 745 2016-03-18 22:10:34Z mueller $
 --
--- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -15,38 +15,43 @@
 -- Module Name:    sys_tst_rlink_b3 - syn
 -- Description:    rlink tester design for basys3
 --
--- Dependencies:   vlib/xlib/s6_cmt_sfs
+-- Dependencies:   vlib/xlib/s7_cmt_sfs
 --                 vlib/genlib/clkdivce
 --                 bplib/bpgen/bp_rs232_2line_iob
 --                 bplib/bpgen/sn_humanio_rbus
 --                 vlib/rlink/rlink_sp1c
 --                 rbd_tst_rlink
---                 vlib/rbus/rb_sres_or_2
+--                 bplib/sysmon/sysmonx_rbus_base
+--                 vlib/rbus/rb_sres_or_3
 --
 -- Test bench:     tb/tb_tst_rlink_b3
 --
 -- Target Devices: generic
--- Tool versions:  viv 2014.4; ghdl 0.31
+-- Tool versions:  viv 2014.4-2015.4; ghdl 0.31-0.33
 --
 -- Synthesized (xst):
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2016-03-13   743 2015.4  xc7a35t-1     988  1372    64   4.5   503 +XADC
 -- 2015-01-30   636 2014.4  xc7a35t-1     946  1319    64   4.5   476  
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-03-18   745   1.1.1  hardwire XON=1
+-- 2016-03-12   741   1.1    add sysmon_rbus
+-- 2016-02-26   735   1.0.2  use s7_cmt_sfs
 -- 2015-04-11   666   1.0.1  rearrange XON handling
 -- 2015-01-16   636   1.0    Initial version (derived from sys_tst_rlink_n3)
 ------------------------------------------------------------------------------
 -- Usage of Basys 3 Switches, Buttons, LEDs:
 --
 --    SWI(7:2): no function (only connected to sn_humanio_rbus)
---    SWI(1):   1 enable XON
+--    SWI(1):   -unused-
 --    SWI(0):   -unused-
 --
 --    LED(7):   SER_MONI.abact
 --    LED(6:2): no function (only connected to sn_humanio_rbus)
---    LED(0):   timer 0 busy 
 --    LED(1):   timer 1 busy 
+--    LED(0):   timer 0 busy 
 --
 --    DSP:      SER_MONI.clkdiv         (from auto bauder)
 --    DP(3):    not SER_MONI.txok       (shows tx back preasure)
@@ -66,6 +71,7 @@ use work.rblib.all;
 use work.rlinklib.all;
 use work.bpgenlib.all;
 use work.bpgenrbuslib.all;
+use work.sysmonrbuslib.all;
 use work.sys_conf.all;
 
 -- ----------------------------------------------------------------------------
@@ -90,8 +96,6 @@ architecture syn of sys_tst_rlink_b3 is
 
   signal RXD :   slbit := '1';
   signal TXD :   slbit := '0';
-  signal RTS_N : slbit := '0';
-  signal CTS_N : slbit := '0';
     
   signal SWI     : slv16 := (others=>'0');
   signal BTN     : slv5  := (others=>'0');
@@ -105,8 +109,9 @@ architecture syn of sys_tst_rlink_b3 is
 
   signal RB_MREQ : rb_mreq_type := rb_mreq_init;
   signal RB_SRES : rb_sres_type := rb_sres_init;
-  signal RB_SRES_HIO : rb_sres_type := rb_sres_init;
-  signal RB_SRES_TST : rb_sres_type := rb_sres_init;
+  signal RB_SRES_HIO    : rb_sres_type := rb_sres_init;
+  signal RB_SRES_TST    : rb_sres_type := rb_sres_init;
+  signal RB_SRES_SYSMON : rb_sres_type := rb_sres_init;
 
   signal RB_LAM  : slv16 := (others=>'0');
   signal RB_STAT : slv4  := (others=>'0');
@@ -114,7 +119,8 @@ architecture syn of sys_tst_rlink_b3 is
   signal SER_MONI : serport_moni_type := serport_moni_init;
   signal STAT    : slv8  := (others=>'0');
 
-  constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/4: 1111 1110 1111 00xx
+  constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/0008: 1111 1110 1111 0xxx
+  constant rbaddr_sysmon: slv16 := x"fb00"; -- fb00/0080: 1111 1011 0xxx xxxx
 
 begin
 
@@ -124,7 +130,7 @@ begin
 
   RESET <= '0';                         -- so far not used
   
-  GEN_CLKSYS : s6_cmt_sfs
+  GEN_CLKSYS : s7_cmt_sfs
     generic map (
       VCO_DIVIDE     => sys_conf_clksys_vcodivide,
       VCO_MULTIPLY   => sys_conf_clksys_vcomultiply,
@@ -195,15 +201,15 @@ begin
       ENAPIN_RBMON => sbcntl_sbf_rbmon,
       CDWIDTH      => 15,
       CDINIT       => sys_conf_ser2rri_cdinit,
-      RBMON_AWIDTH => 0,
-      RBMON_RBADDR => x"ffe8")
+      RBMON_AWIDTH => 0,                -- must be 0, rbmon in rbd_tst_rlink
+      RBMON_RBADDR => (others=>'0'))
     port map (
       CLK      => CLK,
       CE_USEC  => CE_USEC,
       CE_MSEC  => CE_MSEC,
       CE_INT   => CE_MSEC,
       RESET    => RESET,
-      ENAXON   => SWI(1),
+      ENAXON   => '1',
       ESCFILL  => '0',
       RXSD     => RXD,
       TXSD     => TXD,
@@ -232,10 +238,27 @@ begin
       STAT        => STAT
     );
 
-  RB_SRES_OR1 : rb_sres_or_2
+  SMRB : if sys_conf_rbd_sysmon  generate    
+    I0: sysmonx_rbus_base
+      generic map (                     -- use default INIT_ (Vccint=1.00)
+        CLK_MHZ  => sys_conf_clksys_mhz,
+        RB_ADDR  => rbaddr_sysmon)
+      port map (
+        CLK      => CLK,
+        RESET    => RESET,
+        RB_MREQ  => RB_MREQ,
+        RB_SRES  => RB_SRES_SYSMON,
+        ALM      => open,
+        OT       => open,
+        TEMP     => open
+      );
+  end generate SMRB;
+
+  RB_SRES_OR1 : rb_sres_or_3
     port map (
       RB_SRES_1  => RB_SRES_HIO,
       RB_SRES_2  => RB_SRES_TST,
+      RB_SRES_3  => RB_SRES_SYSMON,
       RB_SRES_OR => RB_SRES
     );
 

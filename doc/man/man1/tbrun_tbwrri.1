@@ -1,0 +1,126 @@
+.\"  -*- nroff -*-
+.\"  $Id: tbrun_tbwrri.1 745 2016-03-18 22:10:34Z mueller $
+.\"
+.\" Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" 
+.\" ------------------------------------------------------------------
+.
+.TH TBRUN_TBWRRI 1 2016-03-18 "Retro Project" "Retro Project Manual"
+.\" ------------------------------------------------------------------
+.SH NAME
+tbrun_tbw \- \fBti_rri\fP plus \fBtbw\fP based test bench starter
+.\" ------------------------------------------------------------------
+.SH SYNOPSIS
+.
+.SY tbrun_tbwrri
+.OP OPTIONS
+.I  TBENCH
+.OP COMMANDS
+.YS
+.
+.\" ------------------------------------------------------------------
+.SH DESCRIPTION
+\fBtbrun_tbwrri\fP is a convenience script for starting \fBti_rri\fP(1) plus 
+\fBtbw\fP(1) based test benches. It will
+
+.RS 2
+.PD 0
+.IP "-" 2
+issue a \fBmake\fP(1) command to (re)-build \fITBENCH\fP.
+.IP "-"
+build a \fBtbw\fP(1) command to start \fITBENCH\fP.
+.IP "-"
+build a \fBti_rri\fP(1) command which starts \fBtbw\fP via \fB\-\-run\fP
+.IP "-"
+create a ti_rri command list with
+.IP "  -" 4
+setup commands resulting from \fB\-\-cuff\fP, \fB\-\-fusp\fP, ...
+.IP "  -"
+all optional \fICOMMANDS\fP
+.IP "-" 2
+create shell pipes to filter the output with
+.IP "  -" 4
+\fBghdl_assert_filter\fP(1) to suppress irrelevant diagnostics
+created by \fBghdl\fP(1) and it's IEEE libs
+.IP "  -"
+\fBtee\fP(1) to save the output to a log file. The log file
+name is build as "<TBENCH>_<lsuf>.log"
+.IP "  -"
+\fBegrep\fP(1) to filter out only essential lines to stdout
+.PD
+.RE
+.PP
+.
+.\" ------------------------------------------------------------------
+.SH OPTIONS
+Note: \fBtbrun_tbwrri\fP is implemented as shell script. If options have an
+argument it is separated white space and not by '='! So write '--ghw\ xxx'
+and not '--ghw=xxx' !
+.
+.\" -- --dry -------------------------------------
+.IP \fB\-\-dry\fP
+dry run, prints the commands but doesn't execute
+.
+.\" -- --lsuf ------------------------------------
+.IP \fB\-\-lsuf\ \fIsuff\fR
+use '_\fIsuff\fR.log' as suffix for log file. Default is '_dsim.log'
+.
+.\" -- --stack -----------------------------------
+.IP \fB\-\-stack\ \fInnn\fR
+use \fInnn\fP as \fBghdl\fP(1) stack size
+.
+.\" -- --ghw fname -------------------------------
+.IP \fB\-\-ghw\ \fIfname\fR
+write a ghw file with name '\fIfname\fP.ghw'
+.
+.\" -- --tbw opts --------------------------------
+.IP \fB\-\-tbw\ \fIopts\fR
+append \fIopts\fP to the \fBtbw\fP command
+.
+.\" -- --rri opts --------------------------------
+.IP \fB\-\-rri\ \fIopts\fR
+append \fIopts\fP to the \fBti_rri\fP command
+.
+.\" -- --pack plist ------------------------------
+.IP \fB\-\-pack\ \fIplist\fR
+add a '\-\-pack=\fIplist\fR' option to \fBti_rri\fP command
+.
+.\" -- --cuff ------------------------------------
+.IP \fB\-\-cuff\fR
+use Cypress FX2 instead of serport, will generate appropriate 'rlc oob' commands.
+For nexys2 and nexys3 designs.
+.
+.\" -- --fusp ------------------------------------
+.IP \fB\-\-fusp\fR
+use 2nd serport, will generate appropriate 'rlc oob' commands.
+For s3board, nexys2, and nexys3 designs.
+.
+.\" -- --sxon ------------------------------------
+.IP \fB\-\-sxon\fR
+switched\ XON: enable XON flow control with SWI(1), will generate appropriate 
+'rlc oob' commands and ti_rri \-\-fifo options. 
+For nexys4 designs.
+.
+.\" -- --hxon ------------------------------------
+.IP \fB\-\-hxon\fR
+hardwired\ XON: will generate appropriate \fBti_rri\fP \fB\-\-fifo\fP options. 
+For basys3 and arty designs.
+.
+.\" -- --pcom ------------------------------------
+.IP \fB\-\-pcom\fR
+enables that test bench comments are passed to stdout.
+.
+.\" -- --help ------------------------------------
+.IP \fB\-\-help\fR
+print help message and quit.
+.
+.\" ------------------------------------------------------------------
+.SH "SEE ALSO"
+.BR tbw (1),
+.BR ti_rri (1),
+.BR ghdl_assert_filter (1),
+.BR ghdl (1)
+
+.\" ------------------------------------------------------------------
+.SH AUTHOR
+Walter F.J. Mueller <W.F.J.Mueller@gsi.de>

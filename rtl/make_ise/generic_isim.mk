@@ -1,4 +1,4 @@
-# $Id: generic_isim.mk 642 2015-02-06 18:53:12Z mueller $
+# $Id: generic_isim.mk 733 2016-02-20 12:24:13Z mueller $
 #
 # Copyright 2009-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
@@ -40,7 +40,7 @@ FUSE = fuse
 %.dep_isim: %.vbom
 	vbomconv --dep_isim $< > $@
 #
-include $(RETROBASE)/rtl/make_ise/dontincdep.mk
+include ${RETROBASE}/rtl/make_ise/dontincdep.mk
 #
 .PHONY: isim_clean isim_tmp_clean
 #

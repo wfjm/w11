@@ -1,4 +1,4 @@
-# $Id: Makefile 639 2015-01-30 18:12:19Z mueller $
+# $Id: Makefile 733 2016-02-20 12:24:13Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -10,7 +10,7 @@
 VBOM_all = $(wildcard *.vbom)
 NGC_all  = $(VBOM_all:.vbom=.ngc)
 #
-include $(RETROBASE)/rtl/make_ise/xflow_default_nexys2.mk
+include ${RETROBASE}/rtl/make_ise/xflow_default_nexys2.mk
 #
 .PHONY : all clean distclean
 #
@@ -33,7 +33,7 @@ tst_fx2loop_si : tst_fx2loop_si.c
 #
 #----
 #
-include $(RETROBASE)/rtl/make_ise/generic_xflow.mk
+include ${RETROBASE}/rtl/make_ise/generic_xflow.mk
 #
 ifndef DONTINCDEP
 include $(VBOM_all:.vbom=.dep_xst)

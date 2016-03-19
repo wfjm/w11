@@ -1,0 +1,8 @@
+# libs
+../../slvtypes.vhd
+# components
+serport_uart_rxtx_tb.vbom
+serport_xonrx_tb.vbom
+serport_xontx_tb.vbom
+# design
+serport_master_tb.vhd

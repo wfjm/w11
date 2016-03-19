@@ -1,4 +1,4 @@
-# $Id: Makefile 683 2015-05-17 21:54:35Z mueller $
+# $Id: Makefile 733 2016-02-20 12:24:13Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -18,7 +18,7 @@ SOMINV     = 0
 include ../checkpath_cpp.mk
 #
 INCLFLAGS  = -I${RETROBASE}/tools/src -I${TCLINC} -I${BOOSTINC}
-LDLIBS     = -L$(TCLLIB) -l$(TCLLIBNAME)
+LDLIBS     = -L${TCLLIB} -l${TCLLIBNAME}
 LDLIBS    += -L${RETROBASE}/tools/lib -lrtools -lrtcltools 
 LDLIBS    +=   -lrlink -lrw11
 LDLIBS    +=   -lrlinktpp
@@ -49,10 +49,10 @@ SOFILE     = lib$(SONAME).so
 SOFILEV    = lib$(SONAME).so.$(SOMAJV)
 SOFILEVV   = lib$(SONAME).so.$(SOMAJV).$(SOMINV)
 #
-include $(RETROBASE)/tools/make/generic_cpp.mk
-include $(RETROBASE)/tools/make/generic_dep.mk
-include $(RETROBASE)/tools/make/generic_so.mk
-include $(RETROBASE)/tools/make/dontincdep.mk
+include ${RETROBASE}/tools/make/generic_cpp.mk
+include ${RETROBASE}/tools/make/generic_dep.mk
+include ${RETROBASE}/tools/make/generic_so.mk
+include ${RETROBASE}/tools/make/dontincdep.mk
 #
 # The magic auto-dependency include
 #

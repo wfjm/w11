@@ -1,6 +1,6 @@
--- $Id: sys_tst_rlink_n2.vhd 672 2015-05-02 21:58:28Z mueller $
+-- $Id: sys_tst_rlink_n2.vhd 743 2016-03-13 16:42:31Z mueller $
 --
--- Copyright 2010-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -27,10 +27,11 @@
 -- Test bench:     tb/tb_tst_rlink_n2
 --
 -- Target Devices: generic
--- Tool versions:  xst 12.1-14.7; ghdl 0.29-0.31
+-- Tool versions:  xst 12.1-14.7; ghdl 0.29-0.33
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2016-03-06   743 14.7  131013 xc3s1200e-4  933 2007  128 1348 
 -- 2014-12-20   614 14.7  131013 xc3s1200e-4  914 1951  128 1321 t 15.7
 -- 2012-12-27   453 13.3    O76d xc3s1200e-4  754 1605   96 1057 t 14.5
 -- 2011-12-18   440 13.1    O40d xc3s1200e-4  754 1605   96 1057 t 16.8
@@ -62,8 +63,8 @@
 --
 --    LED(7)    SER_MONI.abact
 --       (6:2)  no function (only connected to sn_humanio_rbus)
---       (0)    timer 0 busy 
 --       (1)    timer 1 busy 
+--       (0)    timer 0 busy 
 --
 --    DSP:      SER_MONI.clkdiv         (from auto bauder)
 --    DP(3)     not SER_MONI.txok       (shows tx back preasure)
@@ -147,7 +148,7 @@ architecture syn of sys_tst_rlink_n2 is
   signal SER_MONI : serport_moni_type := serport_moni_init;
   signal STAT    : slv8  := (others=>'0');
 
-  constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/4: 1111 1110 1111 00xx
+  constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/0008: 1111 1110 1111 0xxx
 
 begin
 
@@ -229,8 +230,8 @@ begin
       ENAPIN_RBMON => sbcntl_sbf_rbmon,
       CDWIDTH      => 15,
       CDINIT       => sys_conf_ser2rri_cdinit,
-      RBMON_AWIDTH => 0,
-      RBMON_RBADDR => x"ffe8")
+      RBMON_AWIDTH => 0,                -- must be 0, rbmon in rbd_tst_rlink
+      RBMON_RBADDR => (others=>'0'))
     port map (
       CLK      => CLK,
       CE_USEC  => CE_USEC,

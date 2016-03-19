@@ -1,4 +1,4 @@
-# $Id: generic_vivado.mk 646 2015-02-15 12:04:55Z mueller $
+# $Id: generic_vivado.mk 733 2016-02-20 12:24:13Z mueller $
 #
 # Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
@@ -18,16 +18,16 @@ endif
 # ensure that default tools and flows are defined
 #
 ifndef VIV_INIT
-VIV_INIT = $(RETROBASE)/rtl/make_viv/viv_init.tcl
+VIV_INIT = ${RETROBASE}/rtl/make_viv/viv_init.tcl
 endif
 ifndef VIV_BUILD_FLOW
-VIV_BUILD_FLOW = $(RETROBASE)/rtl/make_viv/viv_default_build.tcl
+VIV_BUILD_FLOW = ${RETROBASE}/rtl/make_viv/viv_default_build.tcl
 endif
 ifndef VIV_CONFIG_FLOW
-VIV_CONFIG_FLOW = $(RETROBASE)/rtl/make_viv/viv_default_config.tcl
+VIV_CONFIG_FLOW = ${RETROBASE}/rtl/make_viv/viv_default_config.tcl
 endif
 ifndef VIV_MODEL_FLOW
-VIV_MODEL_FLOW = $(RETROBASE)/rtl/make_viv/viv_default_model.tcl
+VIV_MODEL_FLOW = ${RETROBASE}/rtl/make_viv/viv_default_model.tcl
 endif
 #
 # $@ first target
@@ -123,7 +123,7 @@ vivado :
 #
 # Cleanup
 #
-include $(RETROBASE)/rtl/make_viv/dontincdep.mk
+include ${RETROBASE}/rtl/make_viv/dontincdep.mk
 #
 .PHONY : viv_clean viv_tmp_clean
 #

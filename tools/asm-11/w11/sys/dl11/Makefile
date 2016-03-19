@@ -1,4 +1,4 @@
-# $Id: Makefile 525 2013-07-06 12:19:39Z mueller $
+# $Id: Makefile 733 2016-02-20 12:24:13Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -9,7 +9,7 @@ MAC_all = $(wildcard *.mac)
 LDA_all = $(MAC_all:.mac=.lda)
 COF_all = $(MAC_all:.mac=.cof)
 #
-include $(RETROBASE)/tools/make/generic_asm11.mk
+include ${RETROBASE}/tools/make/generic_asm11.mk
 #
 .PHONY : alllda allcof alllst clean
 #

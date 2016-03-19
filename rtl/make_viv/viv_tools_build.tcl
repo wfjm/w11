@@ -1,10 +1,11 @@
-# $Id: viv_tools_build.tcl 649 2015-02-21 21:10:16Z mueller $
+# $Id: viv_tools_build.tcl 738 2016-03-06 13:02:53Z mueller $
 #
 # Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2016-02-28   649   1.1.1  add 2015.4 specific setups
 # 2015-02-21   649   1.1    add 2014.4 specific setups
 # 2015-02-14   646   1.0    Initial version
 #
@@ -72,6 +73,11 @@ proc rvtb_default_build {stem step} {
       # suppress nonsense "cannot add Board Part xilinx.com:kc705..." messages
       # set here to avoid messages during create_project
       set_msg_config -suppress -id {Board 49-26} 
+    }
+    "2015.4" {
+      # enable vhdl asserts, see http://www.xilinx.com/support/answers/65415.html
+      set_param synth.elaboration.rodinMoreOptions \
+        {rt::set_parameter ignoreVhdlAssertStmts false}
     }
   }
 

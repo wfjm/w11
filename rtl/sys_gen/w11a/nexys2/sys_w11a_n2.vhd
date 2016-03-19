@@ -1,4 +1,4 @@
--- $Id: sys_w11a_n2.vhd 692 2015-06-21 11:53:24Z mueller $
+-- $Id: sys_w11a_n2.vhd 734 2016-02-20 22:43:20Z mueller $
 --
 -- Copyright 2010-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -277,7 +277,7 @@ architecture syn of sys_w11a_n2 is
   signal ABCLKDIV : slv16 := (others=>'0');
 
   constant rbaddr_rbmon : slv16 := x"ffe8"; -- ffe8/0008: 1111 1111 1110 1xxx
-  constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/0004: 1111 1110 1111 00xx
+  constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/0008: 1111 1110 1111 0xxx
 
 begin
 

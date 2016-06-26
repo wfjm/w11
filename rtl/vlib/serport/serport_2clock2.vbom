@@ -1,0 +1,15 @@
+# libs
+../slvtypes.vhd
+serportlib.vbom
+../cdclib/cdclib.vhd
+../memlib/memlib.vhd
+# components
+../cdclib/cdc_pulse.vbom
+../cdclib/cdc_signal_s1.vbom
+../cdclib/cdc_vector_s0.vbom
+serport_uart_rxtx_ab.vbom
+serport_xonrx.vbom
+serport_xontx.vbom
+../memlib/fifo_2c_dram2.vbom
+# design
+serport_2clock2.vhd

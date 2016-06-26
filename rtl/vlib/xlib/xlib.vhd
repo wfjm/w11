@@ -1,6 +1,6 @@
--- $Id: xlib.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: xlib.vhd 758 2016-04-02 18:01:39Z mueller $
 --
--- Copyright 2007-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Xilinx specific components
 --
 -- Dependencies:   -
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2015.4; ghdl 0.18-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-04-02   758   1.0.11 add usr_access_unisim
 -- 2013-10-06   538   1.0.10 add s6_cmt_sfs
 -- 2013-09-28   535   1.0.9  add s7_cmt_sfs
 -- 2011-11-24   432   1.0.8  add iob_oddr2_simple
@@ -211,6 +212,12 @@ component s6_cmt_sfs is                 -- Spartan-6 CMT for simple freq. synth.
     CLKIN : in slbit;                   -- clock input
     CLKFX : out slbit;                  -- clock output (synthesized freq.) 
     LOCKED : out slbit                  -- pll/mmcm locked
+  );
+end component;
+
+component usr_access_unisim is          -- wrapper for USR_ACCESS family
+  port (
+    DATA : out slv32                    -- usr_access register value
   );
 end component;
 

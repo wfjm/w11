@@ -1,4 +1,4 @@
-# $Id: README_buildsystem_Vivado.txt 745 2016-03-18 22:10:34Z mueller $
+# $Id: README_buildsystem_Vivado.txt 779 2016-06-26 15:37:16Z mueller $
 
 Guide to the Build System (Xilinx Vivado Version)
 
@@ -12,8 +12,9 @@ Guide to the Build System (Xilinx Vivado Version)
        a. With ghdl
        b. With Vivado xsim
   4.  Building systems
-  5.  Configuring FPGAs (via make flow)
-  6.  Note on ISE
+  5.  Building vivado projects, creating gate level models
+  6.  Configuring FPGAs (via make flow)
+  7.  Note on ISE
 
 1. Concept ----------------------------------------------------------------
 
@@ -102,8 +103,7 @@ Guide to the Build System (Xilinx Vivado Version)
 
 3. Building test benches --------------------------------------------------
 
-  The build flows currently supports only ghdl.
-  Support for the Vivado simulator XSim will be added in a future release.
+  The build flows currently supports ghdl and the vivado simulator xsim.
 
 3a. With ghdl --------------------------------------------------------
 
@@ -115,18 +115,29 @@ Guide to the Build System (Xilinx Vivado Version)
   and generate the needed ghdl commands.
 
   In some cases the test benches can also be compiled against the gate
-  level models derived after the synthesis or optimize step. To compile them
+  level models derived after the synthesis or optimize step. 
+  Vivado only generated functional (UNISIM based) models in vhdl. Timing
+  (SIMPRIM based) models are only available on verilog. The combination
+  vivado + ghdl is therefore limited to functional model simulation.
+
+  To compile them
 
     make ghdl_tmp_clean
-    make <tbench>_ssim                  # for post synthesis {see Notes}
-    make <tbench>_osim                  # for post optimize  {see Notes}
+    make <tbench>_ssim                  # for post synthesis functional
+    make <tbench>_osim                  # for post optimize  functional
+    make <tbench>_rsim                  # for post routing   functional
 
-  The 'make ghdl_tmp_clean' is needed to flush the ghdl work area from
-  the compilation remains of earlier functional model compiles.
+  Individual working directories are used for the different models
+    ghdl.bsim        for bahavioral model
+    ghdl.ssim        for post synthesis
+    ghdl.osim        for post optimize
+    ghdl.rsim        for post routing
+  and can co-exist. The 'make ghdl_tmp_clean' can be used to flush the ghdl
+  work areas, but in general this is not needed (since V0.73).
 
   Notes:
-  - post synthesis or optimize models currently very often fail to compile
-    in ghdl due to a bug in the ghdl code generator.
+  - Many post-synthesis functional currently fail due to startup and 
+    initialization problems (see issue V0.73-2).
 
 3b. With Vivado xsim -------------------------------------------------
 
@@ -139,16 +150,25 @@ Guide to the Build System (Xilinx Vivado Version)
 
   In many cases the test benches can also be compiled against the gate
   level models derived after the synthesis, optimize or routing step.
+  Vivado supports functional (UNISIM based) models in vhdl and in verilog,
+  and timing (SIMPRIM based) models only in verilog. Since practice showed
+  that verilog models compile and execute faster, verilog is used for both 
+  functional and timing models.
 
-    make <tbench>_XSim_ssim             # for post-synthesis
-    make <tbench>_XSim_osim             # for post-optimize
-    make <tbench>_XSim_tsim             # for post-routing
+    make <tbench>_XSim_ssim             # for post-synthesis functional
+    make <tbench>_XSim_osim             # for post-optimize  functional
+    make <tbench>_XSim_rsim             # for post-routing   functional
+
+    make <tbench>_XSim_esim             # for post-synthesis timing
+    make <tbench>_XSim_psim             # for post-optimize  timing
+    make <tbench>_XSim_tsim             # for post-routing   timing
 
   Notes:
-  - xsim currently (as of Vivado 2015.4) crashes when DPI is used in a mixed 
-    vhdl verilog context. 
-    Since DPI is used in the rlink simulation all system test benches with
-    an rlink interface, thus most, will only run with ghdl and not with XSim.
+  - as of vivado 2016.2 xelab shows sometimes extremely long build times, 
+    especially for generated post-synthesis vhdl models (see issue V0.73-1).
+  - Many post-synthesis functional and especially post-routing timing 
+    simulations currently fail due to startup and initialization problems
+    (see issue V0.73-2).
  
 4. Building systems -------------------------------------------------------
 
@@ -191,16 +211,48 @@ Guide to the Build System (Xilinx Vivado Version)
     make <sys>_opt.dcp
     make <sys>_rou.dcp
 
-5. Configuring FPGAs ------------------------------------------------------
+5. Building vivado projects, creating gate level models -------------------
+
+  Vivado is used in 'project mode', whenever one of the targets mentioned
+  above is build a vivado project is freshly created in the directory
+    project_mflow
+  with the project file
+    project_mflow/project_mflow.xpr
+
+  There are many make targets which
+    - just create the project
+    - start vivado in gui mode to inspect the most recent project
+    - create gate level models
+
+  Specifically
+
+    make <sys>.vivado          # create vivado project from <sys>.vbom
+    make vivado                # open project in project_mflow
+    
+    make <sys>_ssim.vhd        # post-synthesis functional model (vhdl)
+    make <sys>_osim.vhd        # post-optimize  functional model (vhdl)
+    make <sys>_rsim.vhd        # post-routing   functional model (vhdl)
+
+    make <sys>_ssim.v          # post-synthesis functional model (verilog)
+    make <sys>_osim.v          # post-optimize  functional model (verilog)
+    make <sys>_rsim.v          # post-routing   functional model (verilog)
+
+    make <sys>_esim.v          # post-synthesis timing model (verilog)
+    make <sys>_psim.v          # post-optimize  timing model (verilog)
+    make <sys>_tsim.v          # post-routing   timing model (verilog)
+
+  For timing model verilog file an associated sdf file is also generated.
+
+6. Configuring FPGAs ------------------------------------------------------
 
   The make flow supports also loading the bitstream into FPGAs via the
   Vivado hardware server. Simply use
 
     make <sys>.vconfig
 
-  Note: works with Basys3 and Nexys4, only one board must connected.
+  Note: works with Arty, Basys3, and Nexys4, only one board must connected.
 
-6. Note on ISE ------------------------------------------------------------
+7. Note on ISE ------------------------------------------------------------
 
   The development for Nexys4 started with ISE, but has now fully moved to
   Vivado. The make files for the ISE build flows have been kept for comparison
@@ -208,6 +260,8 @@ Guide to the Build System (Xilinx Vivado Version)
   one can still start with a 
 
     make -f Makefile.ise  <target>
+  or
+    makeise <target>
 
   an ISE based build. To be used for tool comparisons, the ISE generated bit 
   files were never tested in an FPGA.

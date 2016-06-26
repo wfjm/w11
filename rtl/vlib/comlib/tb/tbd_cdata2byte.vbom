@@ -6,3 +6,4 @@
 ../byte2cdata.vbom
 # design
 tbd_cdata2byte.vhd
+@xdc:../../generic_clk_100mhz.xdc

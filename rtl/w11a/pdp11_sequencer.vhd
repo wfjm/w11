@@ -1,6 +1,6 @@
--- $Id: pdp11_sequencer.vhd 708 2015-08-03 06:41:43Z mueller $
+-- $Id: pdp11_sequencer.vhd 768 2016-05-26 16:47:00Z mueller $
 --
--- Copyright 2006-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,10 +18,12 @@
 -- Dependencies:   ib_sel
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.1; ghdl 0.18-0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-05-26   768   1.6.6  don't init N_REGS (vivado fix for fsm inference)
+--                           proc_snum conditional (vivado fsm workaround)
 -- 2015-08-02   708   1.6.5  BUGFIX: proper trap_mmu and trap_ysv handling
 -- 2015-08-01   707   1.6.4  set dm_idone in s_(trap_10|op_trap); add dm_vfetch
 -- 2015-07-19   702   1.6.3  add DM_STAT_SE, drop SNUM port
@@ -76,6 +78,7 @@ use ieee.numeric_std.all;
 use work.slvtypes.all;
 use work.iblib.all;
 use work.pdp11.all;
+use work.sys_conf.all;
 
 -- ----------------------------------------------------------------------------
 
@@ -248,8 +251,11 @@ architecture syn of pdp11_sequencer is
     s_cpufail
   );
 
-  signal R_STATE : state_type := s_idle;  -- state register
-  signal N_STATE : state_type := s_idle;
+  signal R_STATE : state_type := s_idle;-- state register
+  signal N_STATE : state_type;          -- don't init (vivado fix for fsm infer)
+
+  attribute fsm_encoding : string;
+  attribute fsm_encoding of R_STATE : signal is "one_hot";  
 
   signal R_STATUS : cpustat_type := cpustat_init;
   signal N_STATUS : cpustat_type := cpustat_init;
@@ -2395,143 +2401,148 @@ begin
     CP_STAT.suspext <= R_STATUS.suspext;
   end process proc_cpstat;
 
-  proc_snum : process (R_STATE)
-    variable isnum : slv8 := (others=>'0');
+  -- state number creation logic is conditional, only done when monitor
+  -- enabled. Due to sythnesis impact in vivado
+  SNUM : if sys_conf_dmscnt generate
   begin
-    isnum := (others=>'0');
-    case R_STATE is
-      -- STATE2SNUM mapper begin
-      when s_idle           => isnum := x"00";
-      when s_cp_regread     => isnum := x"01";
-      when s_cp_rps         => isnum := x"02";
-      when s_cp_memr_w      => isnum := x"03";
-      when s_cp_memw_w      => isnum := x"04";
-      when s_ifetch         => isnum := x"05";
-      when s_ifetch_w       => isnum := x"06";
-      when s_idecode        => isnum := x"07";
-      
-      when s_srcr_def       => isnum := x"08";
-      when s_srcr_def_w     => isnum := x"09";
-      when s_srcr_inc       => isnum := x"0a";
-      when s_srcr_inc_w     => isnum := x"0b";
-      when s_srcr_dec       => isnum := x"0c";
-      when s_srcr_dec1      => isnum := x"0d";
-      when s_srcr_ind       => isnum := x"0e";
-      when s_srcr_ind1_w    => isnum := x"0f";
-      when s_srcr_ind2      => isnum := x"10";
-      when s_srcr_ind2_w    => isnum := x"11";
-
-      when s_dstr_def       => isnum := x"12";
-      when s_dstr_def_w     => isnum := x"13";
-      when s_dstr_inc       => isnum := x"14";
-      when s_dstr_inc_w     => isnum := x"15";
-      when s_dstr_dec       => isnum := x"16";
-      when s_dstr_dec1      => isnum := x"17";
-      when s_dstr_ind       => isnum := x"18";
-      when s_dstr_ind1_w    => isnum := x"19";
-      when s_dstr_ind2      => isnum := x"1a";
-      when s_dstr_ind2_w    => isnum := x"1b";
-
-      when s_dstw_def       => isnum := x"1c";
-      when s_dstw_def_w     => isnum := x"1d";
-      when s_dstw_inc       => isnum := x"1e";
-      when s_dstw_inc_w     => isnum := x"1f";
-      when s_dstw_incdef_w  => isnum := x"20";
-      when s_dstw_dec       => isnum := x"21";
-      when s_dstw_dec1      => isnum := x"22";
-      when s_dstw_ind       => isnum := x"23";
-      when s_dstw_ind_w     => isnum := x"24";
-      when s_dstw_def246    => isnum := x"25";
-
-      when s_dsta_inc       => isnum := x"26";
-      when s_dsta_incdef_w  => isnum := x"27";
-      when s_dsta_dec       => isnum := x"28";
-      when s_dsta_dec1      => isnum := x"29";
-      when s_dsta_ind       => isnum := x"2a";
-      when s_dsta_ind_w     => isnum := x"2b";
-
-      when s_op_halt        => isnum := x"2c";
-      when s_op_wait        => isnum := x"2d";
-      when s_op_trap        => isnum := x"2e";
-      when s_op_reset       => isnum := x"2f";
-      when s_op_rts         => isnum := x"30";
-      when s_op_rts_pop     => isnum := x"31";
-      when s_op_rts_pop_w   => isnum := x"32";
-      when s_op_spl         => isnum := x"33";
-      when s_op_mcc         => isnum := x"34";
-      when s_op_br          => isnum := x"35";
-      when s_op_mark        => isnum := x"36";
-      when s_op_mark1       => isnum := x"37";
-      when s_op_mark_pop    => isnum := x"38";
-      when s_op_mark_pop_w  => isnum := x"39";
-      when s_op_sob         => isnum := x"3a";
-      when s_op_sob1        => isnum := x"3b";
-
-      when s_opg_gen        => isnum := x"3c";
-      when s_opg_gen_rmw_w  => isnum := x"3d";
-      when s_opg_mul        => isnum := x"3e";
-      when s_opg_mul1       => isnum := x"3f";
-      when s_opg_div        => isnum := x"40";
-      when s_opg_div_cn     => isnum := x"41";
-      when s_opg_div_cr     => isnum := x"42";
-      when s_opg_div_sq     => isnum := x"43";
-      when s_opg_div_sr     => isnum := x"44";
-      when s_opg_div_quit   => isnum := x"45";
-      when s_opg_ash        => isnum := x"46";
-      when s_opg_ash_cn     => isnum := x"47";
-      when s_opg_ashc       => isnum := x"48";
-      when s_opg_ashc_cn    => isnum := x"49";
-      when s_opg_ashc_wl    => isnum := x"4a";
-
-      when s_opa_jsr        => isnum := x"4b";
-      when s_opa_jsr1       => isnum := x"4c";
-      when s_opa_jsr_push   => isnum := x"4d";
-      when s_opa_jsr_push_w => isnum := x"4e";
-      when s_opa_jsr2       => isnum := x"4f";
-      when s_opa_jmp        => isnum := x"50";
-      when s_opa_mtp        => isnum := x"51";
-      when s_opa_mtp_pop_w  => isnum := x"52";
-      when s_opa_mtp_reg    => isnum := x"53";
-      when s_opa_mtp_mem    => isnum := x"54";
-      when s_opa_mtp_mem_w  => isnum := x"55";
-      when s_opa_mfp_reg    => isnum := x"56";
-      when s_opa_mfp_mem    => isnum := x"57";
-      when s_opa_mfp_mem_w  => isnum := x"58";
-      when s_opa_mfp_dec    => isnum := x"59";
-      when s_opa_mfp_push   => isnum := x"5a";
-      when s_opa_mfp_push_w => isnum := x"5b";
-    
-      when s_trap_4         => isnum := x"5c";
-      when s_trap_10        => isnum := x"5d";
-      when s_trap_disp      => isnum := x"5e";
-
-      when s_int_ext        => isnum := x"5f";
-
-      when s_int_getpc      => isnum := x"60";
-      when s_int_getpc_w    => isnum := x"61";
-      when s_int_getps      => isnum := x"62";
-      when s_int_getps_w    => isnum := x"63";
-      when s_int_getsp      => isnum := x"64";
-      when s_int_decsp      => isnum := x"65";
-      when s_int_pushps     => isnum := x"66";
-      when s_int_pushps_w   => isnum := x"67";
-      when s_int_pushpc     => isnum := x"68";
-      when s_int_pushpc_w   => isnum := x"69";
-
-      when s_rti_getpc      => isnum := x"6a";
-      when s_rti_getpc_w    => isnum := x"6b";
-      when s_rti_getps      => isnum := x"6c";
-      when s_rti_getps_w    => isnum := x"6d";
-      when s_rti_newpc      => isnum := x"6e";
-    
-      when s_vmerr          => isnum := x"6f";
-      when s_cpufail        => isnum := x"70";
-
-      -- STATE2SNUM mapper end
-      when others           => isnum := x"ff";
-    end case;
-    DM_STAT_SE.snum   <= isnum;
-  end process proc_snum;
-
+    proc_snum : process (R_STATE)
+      variable isnum : slv8 := (others=>'0');
+    begin
+      isnum := (others=>'0');
+      case R_STATE is
+        -- STATE2SNUM mapper begin
+        when s_idle           => isnum := x"00";
+        when s_cp_regread     => isnum := x"01";
+        when s_cp_rps         => isnum := x"02";
+        when s_cp_memr_w      => isnum := x"03";
+        when s_cp_memw_w      => isnum := x"04";
+        when s_ifetch         => isnum := x"05";
+        when s_ifetch_w       => isnum := x"06";
+        when s_idecode        => isnum := x"07";
+                                 
+        when s_srcr_def       => isnum := x"08";
+        when s_srcr_def_w     => isnum := x"09";
+        when s_srcr_inc       => isnum := x"0a";
+        when s_srcr_inc_w     => isnum := x"0b";
+        when s_srcr_dec       => isnum := x"0c";
+        when s_srcr_dec1      => isnum := x"0d";
+        when s_srcr_ind       => isnum := x"0e";
+        when s_srcr_ind1_w    => isnum := x"0f";
+        when s_srcr_ind2      => isnum := x"10";
+        when s_srcr_ind2_w    => isnum := x"11";
+                                 
+        when s_dstr_def       => isnum := x"12";
+        when s_dstr_def_w     => isnum := x"13";
+        when s_dstr_inc       => isnum := x"14";
+        when s_dstr_inc_w     => isnum := x"15";
+        when s_dstr_dec       => isnum := x"16";
+        when s_dstr_dec1      => isnum := x"17";
+        when s_dstr_ind       => isnum := x"18";
+        when s_dstr_ind1_w    => isnum := x"19";
+        when s_dstr_ind2      => isnum := x"1a";
+        when s_dstr_ind2_w    => isnum := x"1b";
+                                 
+        when s_dstw_def       => isnum := x"1c";
+        when s_dstw_def_w     => isnum := x"1d";
+        when s_dstw_inc       => isnum := x"1e";
+        when s_dstw_inc_w     => isnum := x"1f";
+        when s_dstw_incdef_w  => isnum := x"20";
+        when s_dstw_dec       => isnum := x"21";
+        when s_dstw_dec1      => isnum := x"22";
+        when s_dstw_ind       => isnum := x"23";
+        when s_dstw_ind_w     => isnum := x"24";
+        when s_dstw_def246    => isnum := x"25";
+                                 
+        when s_dsta_inc       => isnum := x"26";
+        when s_dsta_incdef_w  => isnum := x"27";
+        when s_dsta_dec       => isnum := x"28";
+        when s_dsta_dec1      => isnum := x"29";
+        when s_dsta_ind       => isnum := x"2a";
+        when s_dsta_ind_w     => isnum := x"2b";
+                                 
+        when s_op_halt        => isnum := x"2c";
+        when s_op_wait        => isnum := x"2d";
+        when s_op_trap        => isnum := x"2e";
+        when s_op_reset       => isnum := x"2f";
+        when s_op_rts         => isnum := x"30";
+        when s_op_rts_pop     => isnum := x"31";
+        when s_op_rts_pop_w   => isnum := x"32";
+        when s_op_spl         => isnum := x"33";
+        when s_op_mcc         => isnum := x"34";
+        when s_op_br          => isnum := x"35";
+        when s_op_mark        => isnum := x"36";
+        when s_op_mark1       => isnum := x"37";
+        when s_op_mark_pop    => isnum := x"38";
+        when s_op_mark_pop_w  => isnum := x"39";
+        when s_op_sob         => isnum := x"3a";
+        when s_op_sob1        => isnum := x"3b";
+                                 
+        when s_opg_gen        => isnum := x"3c";
+        when s_opg_gen_rmw_w  => isnum := x"3d";
+        when s_opg_mul        => isnum := x"3e";
+        when s_opg_mul1       => isnum := x"3f";
+        when s_opg_div        => isnum := x"40";
+        when s_opg_div_cn     => isnum := x"41";
+        when s_opg_div_cr     => isnum := x"42";
+        when s_opg_div_sq     => isnum := x"43";
+        when s_opg_div_sr     => isnum := x"44";
+        when s_opg_div_quit   => isnum := x"45";
+        when s_opg_ash        => isnum := x"46";
+        when s_opg_ash_cn     => isnum := x"47";
+        when s_opg_ashc       => isnum := x"48";
+        when s_opg_ashc_cn    => isnum := x"49";
+        when s_opg_ashc_wl    => isnum := x"4a";
+                                 
+        when s_opa_jsr        => isnum := x"4b";
+        when s_opa_jsr1       => isnum := x"4c";
+        when s_opa_jsr_push   => isnum := x"4d";
+        when s_opa_jsr_push_w => isnum := x"4e";
+        when s_opa_jsr2       => isnum := x"4f";
+        when s_opa_jmp        => isnum := x"50";
+        when s_opa_mtp        => isnum := x"51";
+        when s_opa_mtp_pop_w  => isnum := x"52";
+        when s_opa_mtp_reg    => isnum := x"53";
+        when s_opa_mtp_mem    => isnum := x"54";
+        when s_opa_mtp_mem_w  => isnum := x"55";
+        when s_opa_mfp_reg    => isnum := x"56";
+        when s_opa_mfp_mem    => isnum := x"57";
+        when s_opa_mfp_mem_w  => isnum := x"58";
+        when s_opa_mfp_dec    => isnum := x"59";
+        when s_opa_mfp_push   => isnum := x"5a";
+        when s_opa_mfp_push_w => isnum := x"5b";
+                                 
+        when s_trap_4         => isnum := x"5c";
+        when s_trap_10        => isnum := x"5d";
+        when s_trap_disp      => isnum := x"5e";
+                                 
+        when s_int_ext        => isnum := x"5f";
+                                 
+        when s_int_getpc      => isnum := x"60";
+        when s_int_getpc_w    => isnum := x"61";
+        when s_int_getps      => isnum := x"62";
+        when s_int_getps_w    => isnum := x"63";
+        when s_int_getsp      => isnum := x"64";
+        when s_int_decsp      => isnum := x"65";
+        when s_int_pushps     => isnum := x"66";
+        when s_int_pushps_w   => isnum := x"67";
+        when s_int_pushpc     => isnum := x"68";
+        when s_int_pushpc_w   => isnum := x"69";
+                                 
+        when s_rti_getpc      => isnum := x"6a";
+        when s_rti_getpc_w    => isnum := x"6b";
+        when s_rti_getps      => isnum := x"6c";
+        when s_rti_getps_w    => isnum := x"6d";
+        when s_rti_newpc      => isnum := x"6e";
+                                 
+        when s_vmerr          => isnum := x"6f";
+        when s_cpufail        => isnum := x"70";
+                                 
+        -- STATE2SNUM mapper end
+        when others           => isnum := x"ff";
+      end case;
+      DM_STAT_SE.snum   <= isnum;
+    end process proc_snum;
+  end generate SNUM;
+  
 end syn;
  

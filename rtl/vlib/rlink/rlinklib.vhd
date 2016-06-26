@@ -1,6 +1,6 @@
--- $Id: rlinklib.vhd 672 2015-05-02 21:58:28Z mueller $
+-- $Id: rlinklib.vhd 755 2016-03-28 17:59:59Z mueller $
 --
--- Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,11 +16,12 @@
 -- Description:    Definitions for rlink interface and bus entities
 --
 -- Dependencies:   -
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2015.4; ghdl 0.18-0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
 --
+-- 2016-03-28   755   4.2    add rlink_sp2c
 -- 2015-04-11   666   4.1.2  rlink_core8: add ESC(XON|FILL);
 --                           rlink_sp1c: rename ENAESC->ESCFILL
 -- 2015-02-21   649   4.1.1  add ioleds_sp1c
@@ -253,6 +254,42 @@ component rlink_sp1c is                 -- rlink_core8+serport_1clock combo
   );
 end component;
 
+component rlink_sp2c is                 -- rlink_core8+serport_2clock2 combo
+  generic (
+    BTOWIDTH : positive :=  5;          -- rbus timeout counter width
+    RTAWIDTH : positive :=  12;         -- retransmit buffer address width
+    SYSID : slv32 := (others=>'0');     -- rlink system id
+    IFAWIDTH : natural :=  5;           -- input fifo address width  (0=none)
+    OFAWIDTH : natural :=  5;           -- output fifo address width (0=none)
+    ENAPIN_RLMON : integer := -1;       -- SB_CNTL for rlmon  (-1=none)
+    ENAPIN_RLBMON: integer := -1;       -- SB_CNTL for rlbmon (-1=none)
+    ENAPIN_RBMON : integer := -1;       -- SB_CNTL for rbmon  (-1=none)
+    CDWIDTH : positive := 13;           -- clk divider width
+    CDINIT : natural   := 15;           -- clk divider initial/reset setting
+    RBMON_AWIDTH : natural := 0;        -- rbmon: buffer size, (0=none)
+    RBMON_RBADDR : slv16 := slv(to_unsigned(16#ffe8#,16))); -- rbmon: base addr
+  port (
+    CLK  : in slbit;                    -- U|clock (user design)
+    CE_USEC : in slbit;                 -- U|1 usec clock enable
+    CE_MSEC : in slbit;                 -- U|1 msec clock enable
+    CE_INT : in slbit := '0';           -- U|rri ato time unit clock enable
+    RESET  : in slbit;                  -- U|reset
+    CLKS : in slbit;                    -- S|clock (frontend:serial)
+    CES_MSEC : in slbit;                -- S|1 msec clock enable
+    ENAXON : in slbit;                  -- U|enable xon/xoff handling
+    ESCFILL : in slbit;                 -- U|enable fill escaping
+    RXSD : in slbit;                    -- S|receive serial data    (board view)
+    TXSD : out slbit;                   -- S|transmit serial data   (board view)
+    CTS_N : in slbit := '0';            -- S|clear to send (act.low, board view)
+    RTS_N : out slbit;                  -- S|request to send (act.low, brd view)
+    RB_MREQ : out rb_mreq_type;         -- U|rbus: request
+    RB_SRES : in rb_sres_type;          -- U|rbus: response
+    RB_LAM : in slv16;                  -- U|rbus: look at me
+    RB_STAT : in slv4;                  -- U|rbus: status flags
+    RL_MONI : out rl_moni_type;         -- U|rlink_core: monitor port
+    SER_MONI : out serport_moni_type    -- U|serport: monitor port
+  );
+end component;
 --
 -- io activity leds
 --

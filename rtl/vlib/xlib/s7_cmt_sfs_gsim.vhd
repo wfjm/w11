@@ -1,6 +1,6 @@
--- $Id: s7_cmt_sfs_gsim.vhd 734 2016-02-20 22:43:20Z mueller $
+-- $Id: s7_cmt_sfs_gsim.vhd 760 2016-04-09 16:17:13Z mueller $
 --
--- Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -23,6 +23,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-04-09   760   1.1    BUGFIX: correct mmcm range check boundaries
 -- 2013-09-28   535   1.0    Initial version (derived from dcm_sfs_gsim)
 ------------------------------------------------------------------------------
 -- Note: for test bench usage a copy of s7_cmt_sfs_gsim, with _tb instead
@@ -123,10 +124,10 @@ begin
             severity failure;
         end if;
         -- setup VCO and PD range check boundaries
-        t_vcomin := (1000 ns / f_vcomax_pll) - 1 ps;
-        t_vcomax := (1000 ns / f_vcomin_pll) + 1 ps;
-        t_pdmin  := (1000 ns / f_pdmax_pll) - 1 ps;
-        t_pdmax  := (1000 ns / f_pdmin_pll) + 1 ps;
+        t_vcomin := (1000 ns / f_vcomax_mmcm) - 1 ps;
+        t_vcomax := (1000 ns / f_vcomin_mmcm) + 1 ps;
+        t_pdmin  := (1000 ns / f_pdmax_mmcm) - 1 ps;
+        t_pdmax  := (1000 ns / f_pdmin_mmcm) + 1 ps;
 
       end if; -- GEN_TYPE = "MMCM"
 

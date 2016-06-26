@@ -1,0 +1,5 @@
+# libs
+../slvtypes.vhd
+# design
+cdc_vector_s0.vhd
+@xdc:cdc_vector_s0.xdc -SCOPE_REF

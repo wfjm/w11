@@ -6,3 +6,4 @@
 ../rlink_sp1c.vbom
 # design
 tbu_rlink_sp1c.vhd
+@xdc:../../generic_clk_100mhz.xdc

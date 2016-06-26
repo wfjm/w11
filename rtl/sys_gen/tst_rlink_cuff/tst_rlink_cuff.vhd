@@ -1,6 +1,6 @@
--- $Id: tst_rlink_cuff.vhd 666 2015-04-12 21:17:54Z mueller $
+-- $Id: tst_rlink_cuff.vhd 748 2016-03-20 15:18:50Z mueller $
 --
--- Copyright 2012-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2012-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -25,10 +25,11 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 13.3-14.7; ghdl 0.29-0.31
+-- Tool versions:  xst 13.3-14.7; ghdl 0.29-0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-03-19   748   1.2.1  define rlink SYSID
 -- 2015-04-11   666   1.2    rearrange XON handling
 -- 2014-08-28   588   1.1    use new rlink v4 iface generics and 4 bit STAT
 -- 2013-01-02   467   1.0.1  use 64 usec led pulse width
@@ -114,14 +115,18 @@ architecture syn of tst_rlink_cuff is
 
   signal R_LEDDIV : slv6 := (others=>'0');   -- clock divider for LED pulses
   signal R_LEDCE : slbit := '0';             -- ce every 64 usec
-  
+
+  constant sysid_proj  : slv16 := x"0103";   -- tst_rlink_cuff
+  constant sysid_board : slv8  := x"00";     -- generic
+  constant sysid_vers  : slv8  := x"00";
+
 begin
 
   RLCORE : rlink_core8
     generic map (
       BTOWIDTH     => 6,
       RTAWIDTH     => 12,
-      SYSID        => (others=>'0'),
+      SYSID        => sysid_proj & sysid_board & sysid_vers,
       ENAPIN_RLMON => sbcntl_sbf_rlmon,
       ENAPIN_RBMON => sbcntl_sbf_rbmon)
     port map (

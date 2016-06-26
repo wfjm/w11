@@ -1,6 +1,6 @@
--- $Id: tb_tst_serloop.vhd 476 2013-01-26 22:23:53Z mueller $
+-- $Id: tb_tst_serloop.vhd 764 2016-04-23 18:21:44Z mueller $
 --
--- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,8 +16,8 @@
 -- Description:    Generic test bench for sys_tst_serloop_xx
 --
 -- Dependencies:   vlib/simlib/simclkcnt
---                 vlib/serport/serport_uart_rxtx
---                 vlib/serport/serport_xontx
+--                 vlib/serport/serport_uart_rxtx_tb
+--                 vlib/serport/serport_xontx_tb
 --
 -- To test:        sys_tst_serloop_xx
 --
@@ -25,6 +25,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-04-23   764   1.2    use serport/tb/serport_(uart_rxtx|xontx)_tb
+--                           use assert to halt simulation
 -- 2011-12-23   444   1.1    use new simclkcnt
 -- 2011-11-13   425   1.0    Initial version
 -- 2011-11-06   420   0.5    First draft
@@ -38,7 +40,7 @@ use std.textio.all;
 
 use work.slvtypes.all;
 use work.simlib.all;
-use work.serportlib.all;
+use work.serportlib_tb.all;
 
 entity tb_tst_serloop is
   port (
@@ -105,7 +107,7 @@ begin
 
   CLKCNT : simclkcnt port map (CLK => CLKS, CLK_CYCLE => CLK_CYCLE);
 
-  UART : serport_uart_rxtx
+  UART : entity work.serport_uart_rxtx_tb
     generic map (
       CDWIDTH => 13)
     port map (
@@ -123,7 +125,7 @@ begin
       TXBUSY => UART_TXBUSY
     );
 
-  XONTX : serport_xontx
+  XONTX : entity work.serport_xontx_tb
     port map (
       CLK         => CLKS,
       RESET       => UART_RESET,
@@ -450,6 +452,8 @@ begin
 
     wait for 500 ns;                    -- allows dcm's to stop
 
+    assert false report "Simulation Finished" severity failure;
+    
     wait;                               -- suspend proc_stim forever
                                         -- clock is stopped, sim will end
 

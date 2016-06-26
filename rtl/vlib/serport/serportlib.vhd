@@ -1,4 +1,4 @@
--- $Id: serportlib.vhd 724 2016-01-03 22:53:53Z mueller $
+-- $Id: serportlib.vhd 755 2016-03-28 17:59:59Z mueller $
 --
 -- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,10 +16,11 @@
 -- Description:    serial port interface components
 --
 -- Dependencies:   -
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2015.4; ghdl 0.18-0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-03-25   752   1.3.2  add serport_2clock2
 -- 2015-04-11   666   1.3.1  add serport_master
 -- 2015-02-01   641   1.3    add CLKDIV_F for autobaud
 -- 2013-01-26   476   1.2.6  renamed package to serportlib
@@ -32,7 +33,7 @@
 -- 2007-10-22    88   1.1    renames (in prev revs); remove std_logic_unsigned
 -- 2007-06-03    45   1.0    Initial version 
 ------------------------------------------------------------------------------
--- Note: for test bench usage a copy of all serport_* entities, with -tb
+-- Note: for test bench usage a copy of many serport_* entities, with -tb
 --       appended to the name, has been created in the /tb sub folder.
 --       Ensure to update the copy when this file is changed !!
 
@@ -226,6 +227,33 @@ component serport_2clock is             -- serial port module, 2 clock domain
     CLKU : in slbit;                    -- clock (backend:user)
     RESET : in slbit;                   -- reset
     CLKS : in slbit;                    -- clock (frontend:serial)
+    CES_MSEC : in slbit;                -- S|1 msec clock enable
+    ENAXON : in slbit;                  -- U|enable xon/xoff handling
+    ENAESC : in slbit;                  -- U|enable xon/xoff escaping
+    RXDATA : out slv8;                  -- U|receiver data out
+    RXVAL : out slbit;                  -- U|receiver data valid
+    RXHOLD : in slbit;                  -- U|receiver data hold
+    TXDATA : in slv8;                   -- U|transmit data in
+    TXENA : in slbit;                   -- U|transmit data enable
+    TXBUSY : out slbit;                 -- U|transmit busy
+    MONI : out serport_moni_type;       -- U|serport monitor port
+    RXSD : in slbit;                    -- S|receive serial data (uart view)
+    TXSD : out slbit;                   -- S|transmit serial data (uart view)
+    RXRTS_N : out slbit;                -- S|receive rts (uart view, act.low)
+    TXCTS_N : in slbit                  -- S|transmit cts (uart view, act.low)
+  );
+end component;
+
+component serport_2clock2 is            -- serial port module, 2 clock dom. (v2)
+  generic (
+    CDWIDTH : positive := 13;           -- clk divider width
+    CDINIT : natural   := 15;           -- clk divider initial/reset setting
+    RXFAWIDTH : natural :=  5;          -- rx fifo address width
+    TXFAWIDTH : natural :=  5);         -- tx fifo address width
+  port (
+    CLKU : in slbit;                    -- U|clock (backend:user)
+    RESET : in slbit;                   -- U|reset
+    CLKS : in slbit;                    -- S|clock (frontend:serial)
     CES_MSEC : in slbit;                -- S|1 msec clock enable
     ENAXON : in slbit;                  -- U|enable xon/xoff handling
     ENAESC : in slbit;                  -- U|enable xon/xoff escaping

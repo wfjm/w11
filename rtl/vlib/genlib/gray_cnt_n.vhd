@@ -1,4 +1,4 @@
--- $Id: gray_cnt_n.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: gray_cnt_n.vhd 751 2016-03-25 19:46:11Z mueller $
 --
 -- Copyright 2007- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,14 +16,23 @@
 -- Description:    Genric width Gray code counter
 --
 -- Dependencies:   -
--- Test bench:     tb/tb_debounce_gen
+-- Test bench:     tb/tb_gray_cnt_n
 -- Target Devices: generic
--- Tool versions:  xst 8.1-14.7; ghdl 0.18-0.31
+-- Tool versions:  xst 8.1-14.7; ghdl 0.18-0.33
 -- Revision History: 
 -- Date         Rev Version    Comment
 -- 2007-12-26   106   1.0      Initial version 
 --
 -- Some synthesis results:
+-- - 2016-03-25 ise 14.7   for xc6slx16-csg324-2:
+--   DWIDTH  LUT Flop   clock(xst est.)
+--        4    5    5   421MHz/ 2.37ns
+--        5    6    6   414MHz/ 2.41ns
+--        6    8    7   361MHz/ 2.77ns
+--        8   10    9   321MHz/ 3.11ns
+--       16   29   17   252MHz/ 3.96ns
+--       32   70   33   214MHz/ 4.65ns
+--       64  173   65   176MHz/ 5.66ns
 -- - 2007-12-27 ise 8.2.03 for xc3s1000-ft256-4:
 --   DWIDTH  LUT Flop   clock(xst est.)
 --        4    6    5   305MHz/ 3.28ns
@@ -38,7 +47,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 use work.slvtypes.all;
-use work.genlib.all;
 
 entity gray_cnt_n is                    -- n bit gray code counter
   generic (

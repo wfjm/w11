@@ -9,7 +9,7 @@
 ../../../vlib/simlib/simclk.vbom
 ../../../vlib/simlib/simclkcnt.vbom
 ../../micron/mt45w8mw16b.vbom
-@uut: ${uut := tbd_nx_cram_memctl_as.vbom}
+${uut := tbd_nx_cram_memctl_as.vbom}  -UUT
 # design
 tb_nx_cram_memctl.vhd
 @top:tb_nx_cram_memctl

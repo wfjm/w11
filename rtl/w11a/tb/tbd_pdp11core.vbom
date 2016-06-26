@@ -13,3 +13,4 @@ ${sys_conf := ../sys_conf.vhd}
 [sim]../pdp11_tmu_sb.vbom
 # design
 tbd_pdp11core.vhd
+@xdc:../../vlib/generic_clk_100mhz.xdc

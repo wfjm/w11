@@ -1,4 +1,4 @@
--- $Id: serport_uart_rx.vhd 734 2016-02-20 22:43:20Z mueller $
+-- $Id: serport_uart_rx.vhd 774 2016-06-12 17:08:47Z mueller $
 --
 -- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -24,9 +24,10 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_serport_uart_rxtx
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.2; ghdl 0.18-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-05-22   787   2.0.4  don't init N_REGS (vivado fix for fsm inference)
 -- 2011-10-22   417   2.0.3  now numeric_std clean
 -- 2009-07-12   233   2.0.2  remove snoopers
 -- 2008-03-02   121   2.0.1  comment out snoopers
@@ -41,9 +42,9 @@
 -- 2007-10-12    88   1.0.1  avoid ieee.std_logic_unsigned, use cast to unsigned
 -- 2007-06-30    62   1.0    Initial version 
 ------------------------------------------------------------------------------
--- Note: for test bench usage a copy of all serport_* entities, with _tb
---       appended to the name, has been created in the /tb sub folder.
---       Ensure to update the copy when this file is changed !!
+-- NOTE: for test bench usage a copy of all serport_* entities, with _tb
+-- !!!!  appended to the name, has been created in the /tb sub folder.
+-- !!!!  Ensure to update the copy when this file is changed !!
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -97,9 +98,9 @@ architecture syn of serport_uart_rx is
     (others=>'0')                       -- sreg
   );
 
-  signal R_REGS : regs_type := regs_init;  -- state registers
-  signal N_REGS : regs_type := regs_init;  -- next value state regs
-  
+  signal R_REGS : regs_type := regs_init;
+  signal N_REGS : regs_type;            -- don't init (vivado fix for fsm infer)
+
 begin
 
   proc_regs: process (CLK)

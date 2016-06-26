@@ -1,6 +1,6 @@
-// $Id: RtclRlinkConnect.cpp 676 2015-05-09 16:31:54Z mueller $
+// $Id: RtclRlinkConnect.cpp 758 2016-04-02 18:01:39Z mueller $
 //
-// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2016-04-02   758   1.4.6  add USR_ACCESS register support (UsrAcc->usracc)
+// 2016-03-20   748   1.4.5  M_get/set: add timeout
 // 2015-05-09   676   1.4.3  M_errcnt: add -increment; M_log: add -bare,-info..
 // 2015-04-19   668   1.4.2  M_wtlam: allow tout=0 for pending attn cleanup
 // 2015-04-12   666   1.4.1  add M_init
@@ -38,7 +40,7 @@
 
 /*!
   \file
-  \version $Id: RtclRlinkConnect.cpp 676 2015-05-09 16:31:54Z mueller $
+  \version $Id: RtclRlinkConnect.cpp 758 2016-04-02 18:01:39Z mueller $
   \brief   Implemenation of class RtclRlinkConnect.
  */
 
@@ -115,6 +117,8 @@ RtclRlinkConnect::RtclRlinkConnect(Tcl_Interp* interp, const char* name)
                         boost::bind(&RlinkConnect::DumpLevel, pobj));
   fGets.Add<uint32_t>  ("tracelevel", 
                         boost::bind(&RlinkConnect::TraceLevel, pobj));
+  fGets.Add<double>    ("timeout", 
+                        boost::bind(&RlinkConnect::Timeout, pobj));
   fGets.Add<const string&>  ("logfile", 
                         boost::bind(&RlinkConnect::LogFileName, pobj));
 
@@ -122,6 +126,8 @@ RtclRlinkConnect::RtclRlinkConnect(Tcl_Interp* interp, const char* name)
                         boost::bind(&RlinkConnect::LinkInitDone, pobj));
   fGets.Add<uint32_t>  ("sysid", 
                         boost::bind(&RlinkConnect::SysId, pobj));
+  fGets.Add<uint32_t>  ("usracc", 
+                        boost::bind(&RlinkConnect::UsrAcc, pobj));
   fGets.Add<size_t>    ("rbufsize", 
                         boost::bind(&RlinkConnect::RbufSize, pobj));
   fGets.Add<size_t>    ("bsizemax", 
@@ -141,6 +147,8 @@ RtclRlinkConnect::RtclRlinkConnect(Tcl_Interp* interp, const char* name)
                         boost::bind(&RlinkConnect::SetDumpLevel, pobj, _1));
   fSets.Add<uint32_t>  ("tracelevel", 
                         boost::bind(&RlinkConnect::SetTraceLevel, pobj, _1));
+  fSets.Add<double>    ("timeout", 
+                        boost::bind(&RlinkConnect::SetTimeout, pobj, _1));
   fSets.Add<const string&>  ("logfile", 
                         boost::bind(&RlinkConnect::SetLogFileName, pobj, _1));
 

@@ -1,5 +1,6 @@
 # libs
 ../slvtypes.vhd
+xlib.vhd
 # components
 [sim]iob_keeper_gen.vbom
 # design

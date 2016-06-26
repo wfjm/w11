@@ -1,0 +1,27 @@
+# $Id: sys_tst_snhumanio_s3.imfset 769 2016-05-28 11:36:22Z mueller $
+#
+# ----------------------------------------------------------------------------
+[xst]
+INFO:.*Mux is complete : default of case is discarded
+
+Unconnected output port 'CE_USEC' of component 'clkdivce'
+
+FF/Latch <R_REGS.ucnt_\d*> has a constant value of 0
+Node <CLKDIV/R_REGS.usec> of sequential type is unconnected
+
+#
+# ----------------------------------------------------------------------------
+[tra]
+
+#
+# ----------------------------------------------------------------------------
+[map]
+INFO:.*
+
+#
+# ----------------------------------------------------------------------------
+[par]
+
+#
+# ----------------------------------------------------------------------------
+[bgn]

@@ -1,6 +1,6 @@
--- $Id: pdp11_sys70.vhd 712 2015-11-01 22:53:45Z mueller $
+-- $Id: pdp11_sys70.vhd 750 2016-03-24 23:11:51Z mueller $
 --
--- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -27,10 +27,11 @@
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 14.7; viv 2014.4; ghdl 0.31
+-- Tool versions:  ise 14.7; viv 2014.4-2015.5; ghdl 0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-03-22   750   1.2    pdp11_cache now configurable size
 -- 2015-11-01   712   1.1.4  use sbcntl_sbf_tmu
 -- 2015-07-19   702   1.1.3  use DM_STAT_SE
 -- 2015-07-04   697   1.1.2  change DM_STAT_SY setup; add dmcmon, dmhbpt;
@@ -172,6 +173,8 @@ begin
     );  
 
   CACHE: pdp11_cache
+    generic map (
+      TWIDTH => sys_conf_cache_twidth)
     port map (
       CLK       => CLK,
       GRESET    => GRESET_L,

@@ -1,12 +1,22 @@
-$Id: README_known_issues.txt 746 2016-03-19 13:08:36Z mueller $
+$Id: README_known_issues.txt 779 2016-06-26 15:37:16Z mueller $
 
 Known issues for this release.
 The case id indicates the release when the issue was first recognized.
 
-- V0.72-2: xsim simulations with timing annotation not yet available.
-- V0.72-1: Vivado 2015.4 xelab crashes when DPI is used in a mxied vhdl-verilog
-    language environment. This prevents currently to build a xsim simulation 
-    model for rlink based test benches.
+- V0.73-1: as of vivado 2016.2 xelab shows sometimes extremely long build times,
+    especially for generated post-synthesis vhdl models. But also building a 
+    behavioral simulation for a w11a design can take 25 min. Even though 
+    post-synthesis or post-routing models are now generated in verilog working 
+    with xsim is cumbersome and time consuming.
+- V0.73-2: Many post-synthesis functional and especially post-routing timing 
+    simulations currently fail due to startup and initialization problems. 
+    Cause is MMCM/PLL startup, which is not properly reflected in the test 
+    bench. Will be resolved in an upcoming release.
+- V0.73-3: The 'state number generator' code in pdp11_sequencer causes in vivado
+    2016.1 (and .2) that the main FSM isn't re-coded anymore, which has high 
+    impact on achievable clock rate. The two optional debug units depending on 
+    the state number, dmscnt and dmcmon, are therefore currently deactivated in
+    all Artix based systems (but are available on all Spartan based systems).
 
 - V0.66-1: the TM11 controller transfers data byte wise (all disk do it 16bit 
     word wise) and allows for odd byte length transfers. Odd length transfers
@@ -25,12 +35,8 @@ The case id indicates the release when the issue was first recognized.
     - read or write 'with header' gives currently ILF
     All this isn't used by any OS, so in practice not relevant.
 
-- V0.64-7: ghdl simulated OS boots via ti_w11 (-n4 ect options) fail due to a 
-    flow control issue (likely since V0.63).
 - V0.64-6: IO delays still unconstraint in vivado. All critical IOs use
     explicitly IOB flops, thus timing well defined.
-- V0.64-3: Highest baud rate with basys3 and nexys4 is 10 MBaud. 10 MBaud is
-    not supported according to FTDI, but works. 12 MBaud in an upcoming release.
 - V0.64-2: rlink throughput on basys3/nexys4 limited by serial port stack 
     round trip times. Will be overcome by libusb based custom driver.
 - V0.64-1: The large default transfer size for disk accesses leads to bad

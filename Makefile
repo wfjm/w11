@@ -1,4 +1,4 @@
-# $Id: Makefile 745 2016-03-18 22:10:34Z mueller $
+# $Id: Makefile 772 2016-06-05 12:55:11Z mueller $
 #
 # 'Meta Makefile' for whole retro project
 #   allows to make all synthesis targets
@@ -6,6 +6,8 @@
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2016-06-05   772   1.2.4  add vmfsum,imfsum targets
+# 2016-03-19   748   1.2.3  comment out legacy designs and tests
 # 2016-02-19   732   1.2.1  remove dispunit syn and sim entries
 # 2015-02-01   640   1.2    add vivado targets, separate from ise targets
 # 2015-01-25   638   1.1    drop as type fx2 targets
@@ -30,18 +32,18 @@ SYN_ise += rtl/sys_gen/tst_snhumanio/s3board
 SYN_ise += rtl/sys_gen/w11a/s3board
 
 #     Nexys2 -------------------------------------
-SYN_ise += rtl/sys_gen/tst_fx2loop/nexys2/ic
-SYN_ise += rtl/sys_gen/tst_fx2loop/nexys2/ic3
+#SYN_ise += rtl/sys_gen/tst_fx2loop/nexys2/ic
+#SYN_ise += rtl/sys_gen/tst_fx2loop/nexys2/ic3
 SYN_ise += rtl/sys_gen/tst_rlink/nexys2
 SYN_ise += rtl/sys_gen/tst_rlink_cuff/nexys2/ic
-SYN_ise += rtl/sys_gen/tst_rlink_cuff/nexys2/ic3
+#SYN_ise += rtl/sys_gen/tst_rlink_cuff/nexys2/ic3
 SYN_ise += rtl/sys_gen/tst_serloop/nexys2
 SYN_ise += rtl/sys_gen/tst_snhumanio/nexys2
 SYN_ise += rtl/sys_gen/w11a/nexys2
 
 #     Nexys3 -------------------------------------
-SYN_ise += rtl/sys_gen/tst_fx2loop/nexys3/ic
-SYN_ise += rtl/sys_gen/tst_fx2loop/nexys3/ic3
+#SYN_ise += rtl/sys_gen/tst_fx2loop/nexys3/ic
+#SYN_ise += rtl/sys_gen/tst_fx2loop/nexys3/ic3
 SYN_ise += rtl/sys_gen/tst_rlink/nexys3
 SYN_ise += rtl/sys_gen/tst_rlink_cuff/nexys3/ic
 SYN_ise += rtl/sys_gen/tst_serloop/nexys3
@@ -111,6 +113,7 @@ SIM_viv += rtl/sys_gen/w11a/arty_bram/tb
 .PHONY : default
 .PHONY : all all_ise all_viv
 .PHONY : all_sim_ise all_syn_ise all_syn_viv
+.PHONY : vmfsum imfsum
 .PHONY : clean 
 .PHONY : clean_sim_ise clean_sim_ise_tmp
 .PHONY : clean_sym_ise clean_sim_viv clean_sym_ise_tmp clean_sym_viv_tmp 
@@ -129,6 +132,8 @@ default :
 	@echo "    make -j `nproc` all_syn_ise"
 	@echo "    make -j `nproc` all_sim_viv"
 	@echo "    make -j 1 all_syn_viv"
+	@echo "    make vmfsum"
+	@echo "    make imfsum"
 	@echo "    make clean"
 	@echo "    make clean_sim_ise"
 	@echo "    make clean_syn_ise"
@@ -205,6 +210,11 @@ $(SIM_viv):
 	$(MAKE) -j 1 -C $@
 $(SYN_viv):
 	$(MAKE) -j 1 -C $@
+#
+vmfsum :
+	@xviv_msg_summary
+imfsum :
+	@xise_msg_summary
 #
 all_lib :
 	$(MAKE) -C tools/src

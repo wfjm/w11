@@ -1,4 +1,4 @@
--- $Id: serport_uart_rxtx.vhd 734 2016-02-20 22:43:20Z mueller $
+-- $Id: serport_uart_rxtx.vhd 774 2016-06-12 17:08:47Z mueller $
 --
 -- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,14 +19,14 @@
 --                 serport_uart_tx
 -- Test bench:     tb/tb_serport_uart_rxtx
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.2; ghdl 0.18-0.33
 -- Revision History:
 -- Date         Rev Version  Comment
 -- 2007-06-24    60   1.0    Initial version 
 ------------------------------------------------------------------------------
--- Note: for test bench usage a copy of all serport_* entities, with _tb
---       appended to the name, has been created in the /tb sub folder.
---       Ensure to update the copy when this file is changed !!
+-- NOTE: for test bench usage a copy of all serport_* entities, with _tb
+-- !!!!  appended to the name, has been created in the /tb sub folder.
+-- !!!!  Ensure to update the copy when this file is changed !!
 
 library ieee;
 use ieee.std_logic_1164.all;

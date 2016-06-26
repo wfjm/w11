@@ -1,11 +1,14 @@
 #!/usr/bin/perl -w
-# $Id: ti_w11 745 2016-03-18 22:10:34Z mueller $
+# $Id: ti_w11 776 2016-06-18 17:22:51Z mueller $
 #
 # Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2016-06-18   776   1.3.5  use ti_rri --tout now
+# 2016-03-20   748   1.3.4  BUGFIX: add portsel oob for -fx;
+#                           use 120 sec timeout for simulation; add -ll,-dl,-tl
 # 2016-03-18   745   1.3.3  add arty support, add -fx
 # 2015-11-01   712   1.3.2  use sb_cntl pin 12 for tmu; add -ghw option
 # 2015-05-14   680   1.3.1  use now -f1,-f1e,-f2,-f2e (fx now f1e)
@@ -31,6 +34,10 @@ my $opt_dry;
 my $opt_b;
 my $opt_io = '';
 my $opt_f  = '';
+my $opt_ll = '2';
+my $opt_dl = '';
+my $opt_tl = '';
+my $opt_to = '';
 my $opt_tmu;
 my $opt_ghw;
 my $tirri;
@@ -150,6 +157,15 @@ while (scalar(@ARGV)) {
 	exit 1;
       }
     }
+  } elsif ($curarg =~ m{^-ll(\d)$} ) {	    # -ll<n>  (setup --logl)
+    $opt_ll = $1;
+    shift @ARGV;
+  } elsif ($curarg =~ m{^-dl(\d)$} ) {	    # -dl<n>  (setup --dmpl)
+    $opt_dl = $1;
+    shift @ARGV;
+  } elsif ($curarg =~ m{^-tl(\d)$} ) {	    # -tl<n>  (setup --tiol)
+    $opt_tl = $1;
+    shift @ARGV;
   } else {
     last;
   }
@@ -203,11 +219,19 @@ if ($opt_io eq 'f') {
   exit 1;
 }
 
+# setup timeout
+if ($opt_io eq 'f') {
+  $opt_to = '120.';                   # 120 sec timeout for simulation
+}
+
 #
 # setup all other ti_rri options
 #
 
-push @arglist, '--logl=2';
+push @arglist, "--logl=${opt_ll}";
+push @arglist, "--dmpl=${opt_dl}" if $opt_dl ne '';
+push @arglist, "--tiol=${opt_tl}" if $opt_tl ne '';
+push @arglist, "--tout=${opt_to}" if $opt_to ne '';
 push @arglist, '--int' unless $opt_b;
 push @arglist, '--pack=rw11';
 push @arglist, @tiopts;                     # add options from ARGV
@@ -225,6 +249,8 @@ if ($opt_io eq 'f') {
   if ($opt_f eq 'c') {
     push @arglist, 'rlc oob -sbdata  8 0x4'; # portsel = 0100 -> fx2
     push @arglist, 'rlc oob -sbdata 16 0x4'; # swi     = 0100 -> fx2
+  } elsif ($opt_f eq 'x') {
+    push @arglist, 'rlc oob -sbdata  8 0x2'; # portsel = 0010 -> 1st ser XON
   } elsif ($opt_f eq '1x') {
     push @arglist, 'rlc oob -sbdata  8 0x2'; # portsel = 0010 -> 1st ser XON
     push @arglist, 'rlc oob -sbdata 16 0x2'; # swi     = 0010 -> 1st ser XON
@@ -310,9 +336,10 @@ sub print_usage {
   print "      -fx       use 1st serport with hardwired xon\n";
   print "      -f1       use 1st serport\n";
   print "      -f1x      use 1st serport with switched xon\n";
-  print "      -f2       use 2nd serport   (fusp)\n";
+  print "      -f2       use 2nd serport (fusp)\n";
   print "      -f2x      use 2nd serport with switched xon\n";
   print "    -tmu      activate trace and monitoring unit\n";
+  print "    -ghw      activate ghdl wave dump with --wave=<stem>.ghw\n";
   print "  setup options for FPGA connects:\n";
   print "    -u        use --cuff connect\n";
   print "    -t..      use --term connect\n";

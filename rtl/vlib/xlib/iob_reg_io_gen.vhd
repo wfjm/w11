@@ -1,4 +1,4 @@
--- $Id: iob_reg_io_gen.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: iob_reg_io_gen.vhd 771 2016-05-29 17:39:06Z mueller $
 --
 -- Copyright 2007-2008 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,7 +18,7 @@
 -- Dependencies:   iob_keeper_gen                 [sim only]
 -- Test bench:     -
 -- Target Devices: generic Spartan, Virtex
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.1; ghdl 0.18-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2008-05-22   149   1.0.4  use internally TE to match OBUFT T polarity
@@ -99,8 +99,7 @@ begin
   DI <= R_DI;
 
 -- Note: PULL (UP, DOWN or KEEP) is only implemented for simulation, not
---       for inference in synthesis. Use pin attributes in UCF's or use
---       iob_reg_io_gen_unisim
+--       for inference in synthesis. Use pin attributes in UCF's or XDC's
 --
 -- synthesis translate_off
 

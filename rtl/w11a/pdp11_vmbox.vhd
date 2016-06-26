@@ -1,6 +1,6 @@
--- $Id: pdp11_vmbox.vhd 697 2015-07-05 14:23:26Z mueller $
+-- $Id: pdp11_vmbox.vhd 767 2016-05-26 07:47:51Z mueller $
 --
--- Copyright 2006-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -23,10 +23,11 @@
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.1; ghdl 0.18-0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-05-22   787   1.6.6  don't init N_REGS (vivado fix for fsm inference)
 -- 2015-07-03   697   1.6.5  much wider DM_STAT_VM
 -- 2015-04-04   662   1.6.4  atowidth now 6 (was 5) to support ibdr_rprm reset
 -- 2011-11-18   427   1.6.3  now numeric_std clean
@@ -152,7 +153,7 @@ architecture syn of pdp11_vmbox is
   );
 
   signal R_REGS : regs_type := regs_init;
-  signal N_REGS : regs_type := regs_init;
+  signal N_REGS : regs_type;            -- don't init (vivado fix for fsm infer)
 
   signal R_SLIM : slv8 := (others=>'0');   -- stack limit register
 

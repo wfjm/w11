@@ -1,4 +1,4 @@
--- $Id: sys_tst_rlink_n2.vhd 743 2016-03-13 16:42:31Z mueller $
+-- $Id: sys_tst_rlink_n2.vhd 748 2016-03-20 15:18:50Z mueller $
 --
 -- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -41,6 +41,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-03-19   748   1.4.2  define rlink SYSID
 -- 2015-04-11   666   1.4.1  rearrange XON handling
 -- 2014-11-09   603   1.4    use new rlink v4 iface and 4 bit STAT
 -- 2014-08-15   583   1.3    rb_mreq addr now 16 bit
@@ -150,6 +151,10 @@ architecture syn of sys_tst_rlink_n2 is
 
   constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/0008: 1111 1110 1111 0xxx
 
+  constant sysid_proj  : slv16 := x"0101";   -- tst_rlink
+  constant sysid_board : slv8  := x"02";     -- nexys2
+  constant sysid_vers  : slv8  := x"00";
+
 begin
 
   assert (sys_conf_clksys mod 1000000) = 0
@@ -223,7 +228,7 @@ begin
     generic map (
       BTOWIDTH     => 6,
       RTAWIDTH     => 12,
-      SYSID        => (others=>'0'),
+      SYSID        => sysid_proj & sysid_board & sysid_vers,
       IFAWIDTH     => 5,
       OFAWIDTH     => 5,
       ENAPIN_RLMON => sbcntl_sbf_rlmon,

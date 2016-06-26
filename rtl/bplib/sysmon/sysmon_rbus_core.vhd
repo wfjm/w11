@@ -1,4 +1,4 @@
--- $Id: sysmon_rbus_core.vhd 741 2016-03-12 23:49:03Z mueller $
+-- $Id: sysmon_rbus_core.vhd 767 2016-05-26 07:47:51Z mueller $
 --
 -- Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,10 +20,12 @@
 -- Test bench:     -
 --
 -- Target Devices: generic (all with SYSMON or XADC)
--- Tool versions:  viv 2015.4; ghdl 0.33
+-- Tool versions:  viv 2015.4-2016.1; ghdl 0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-05-25   787   1.0.1  don't init N_REGS (vivado fix for fsm inference)
+--                           BUGFIX: use s_init in regs_init (was s_idle)
 -- 2016-03-12   741   1.0    Initial version
 -- 2016-03-06   738   0.1    First draft
 ------------------------------------------------------------------------------
@@ -115,7 +117,7 @@ architecture syn of sysmon_rbus_core is
 
   constant regs_init : regs_type := (
     '0',                                -- rbsel
-    s_idle,                             -- state
+    s_init,                             -- state
     (others=>'0'),                      -- eoscnt
     '0','0','0','0',                    -- stat_ot, stat_j*
     slv(to_unsigned(0,ALWIDTH)),        -- almh
@@ -124,7 +126,7 @@ architecture syn of sysmon_rbus_core is
   );
 
   signal R_REGS : regs_type := regs_init;  -- state registers
-  signal N_REGS : regs_type := regs_init;  -- next value state regs
+  signal N_REGS : regs_type;          -- don't init (vivado fix for fsm infer)
 
   -- only internal regs have names, only 3 LSB in constant
   constant rbaddr_cntl:  slv3 := "000";  --  0    -/-/f

@@ -1,4 +1,4 @@
--- $Id: serport_2clock.vhd 666 2015-04-12 21:17:54Z mueller $
+-- $Id: serport_2clock.vhd 757 2016-04-02 11:19:06Z mueller $
 --
 -- Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -15,7 +15,7 @@
 -- Module Name:    serport_2clock - syn
 -- Description:    serial port: serial port module, 2 clock domain
 --
--- Dependencies:   genlib/cdc_pulse
+-- Dependencies:   cdclib/cdc_pulse
 --                 serport_uart_rxtx_ab
 --                 serport_xonrx
 --                 serport_xontx
@@ -31,6 +31,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-03-28   755   1.1.2  check assertions only at raising clock
 -- 2015-04-11   666   1.1.1  add sim assertions for RXOVR and RXERR
 -- 2015-02-01   641   1.1    add CLKDIV_F for autobaud;
 -- 2011-12-10   438   1.0.2  internal reset on abact
@@ -45,7 +46,7 @@ use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.serportlib.all;
-use work.genlib.all;
+use work.cdclib.all;
 use work.memlib.all;
 
 entity serport_2clock is                -- serial port module, 2 clock domain
@@ -389,12 +390,16 @@ begin
 
   proc_check: process (CLKS)
   begin
-    assert RXOVR = '0'
-      report "serport_2clock-W: RXOVR = '1'; data loss in receive fifo"
-      severity warning;
-    assert RXERR = '0'
-      report "serport_2clock-W: RXERR = '1'; spurious receive error"
-      severity warning;
+    if rising_edge(CLKS) then
+      assert RXOVR = '0'
+        report "serport_2clock-W: RXOVR = " & slbit'image(RXOVR) &
+                 "; data loss in receive fifo"
+        severity warning;
+      assert RXERR = '0'
+        report "serport_2clock-W: RXERR = " & slbit'image(RXERR) &
+                 "; spurious receive error"
+        severity warning;
+    end if;
   end process proc_check;
 
 -- synthesis translate_on

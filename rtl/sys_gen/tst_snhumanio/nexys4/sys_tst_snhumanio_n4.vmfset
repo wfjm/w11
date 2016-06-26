@@ -1,0 +1,16 @@
+# $Id: sys_tst_snhumanio_n4.vmfset 772 2016-06-05 12:55:11Z mueller $
+#
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+[syn]
+# port driven by constant --------------------------------------
+# --> RGBLED0 and upper 4 DSP digits unused                     # OK 2016-06-05
+i [Synth 8-3917] O_RGBLED0[\d]
+i [Synth 8-3917] O_ANO_N[4]
+i [Synth 8-3917] O_ANO_N[5]
+i [Synth 8-3917] O_ANO_N[6]
+i [Synth 8-3917] O_ANO_N[7]
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+[imp]
+I [Vivado 12-2489]                                # multiple of 1 ps
+I [Physopt 32-742]                                # BRAM Flop Optimization

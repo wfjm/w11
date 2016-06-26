@@ -1,6 +1,6 @@
--- $Id: genlib.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: genlib.vhd 757 2016-04-02 11:19:06Z mueller $
 --
--- Copyright 2007-2012 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,11 @@
 -- Description:    some general purpose components
 --
 -- Dependencies:   -
--- Tool versions:  ise 8.1-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.1-14.7; viv 2014.4-2015.4; ghdl 0.18-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-04-02   757   1.1    move cdc_pulse to cdclib
+-- 2016-03-25   751   1.0.10 add gray_cnt_6
 -- 2012-12-29   466   1.0.9  add led_pulse_stretch
 -- 2011-11-09   421   1.0.8  add cdc_pulse
 -- 2010-04-17   277   1.0.7  timer: no default for START,DONE,BUSY; drop STOP
@@ -120,6 +122,15 @@ component gray_cnt_5 is                 -- 5 bit gray code counter (ROM based)
   );
 end component;
 
+component gray_cnt_6 is                 -- 6 bit gray code counter (ROM based)
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit := '0';            -- reset
+    CE : in slbit := '1';               -- count enable
+    DATA : out slv5                     -- data out
+  );
+end component;
+
 component gray_cnt_n is                 -- n bit gray code counter
   generic (
     DWIDTH : positive := 8);            -- data width
@@ -152,20 +163,6 @@ component timer is                      -- retriggerable timer
     STOP : in slbit := '0';             -- stop timer
     DONE : out slbit;                   -- mark last delay cycle
     BUSY : out slbit                    -- timer running
-  );
-end component;
-
-component cdc_pulse is                  -- clock domain cross for pulse
-  generic (
-    POUT_SINGLE : boolean := false;     -- if true: single cycle pout
-    BUSY_WACK : boolean := false);      -- if true: busy waits for ack
-  port (
-    CLKM : in slbit;                    -- clock master
-    RESET : in slbit := '0';            -- M|reset
-    CLKS : in slbit;                    -- clock slave
-    PIN : in slbit;                     -- M|pulse in
-    BUSY : out slbit;                   -- M|busy
-    POUT : out slbit                    -- S|pulse out
   );
 end component;
 

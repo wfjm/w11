@@ -1,4 +1,4 @@
--- $Id: bp_swibtnled.vhd 637 2015-01-25 18:36:40Z mueller $
+-- $Id: bp_swibtnled.vhd 756 2016-03-29 21:49:46Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -22,7 +22,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  ise 11.4-14.7; viv 2014.4; ghdl 0.26-0.31
+-- Tool versions:  ise 11.4-14.7; viv 2014.4-2015.4; ghdl 0.26-0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

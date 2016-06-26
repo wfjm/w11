@@ -1,11 +1,12 @@
 #!/bin/bash
-# $Id: xviv_ghdl_unisim 642 2015-02-06 18:53:12Z mueller $
+# $Id: xviv_ghdl_unisim 762 2016-04-17 21:33:42Z mueller $
 #
-# Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 #  Revision History:
 # Date         Rev  Vers    Comment
+# 2016-04-17   762   1.1    update for viv 2016.1
 # 2015-02-02   642   1.0    Initial version
 #
 
@@ -114,8 +115,15 @@ fi
 cd unimacro
 #
 cp $XTWV_PATH/data/vhdl/src/unimacro/*.vhd .
+
+if [ -r $XTWV_PATH/data/vhdl/src/unimacro/vhdl_analyze_order ]
+then
+  cp $XTWV_PATH/data/vhdl/src/unimacro/vhdl_analyze_order .
+else
+  ls -1 *.vhd > vhdl_analyze_order
+fi
 #
-for file in *.vhd
+for file in `cat vhdl_analyze_order`
 do
   echo "# ghdl ... $file"
   ghdl -a -P../unisim -fexplicit --ieee=synopsys --work=unimacro \

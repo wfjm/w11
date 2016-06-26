@@ -1,4 +1,4 @@
--- $Id: sys_tst_rlink_b3.vhd 745 2016-03-18 22:10:34Z mueller $
+-- $Id: sys_tst_rlink_b3.vhd 758 2016-04-02 18:01:39Z mueller $
 --
 -- Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -22,7 +22,8 @@
 --                 vlib/rlink/rlink_sp1c
 --                 rbd_tst_rlink
 --                 bplib/sysmon/sysmonx_rbus_base
---                 vlib/rbus/rb_sres_or_3
+--                 vlib/rbus/rbd_usracc
+--                 vlib/rbus/rb_sres_or_4
 --
 -- Test bench:     tb/tb_tst_rlink_b3
 --
@@ -31,11 +32,14 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2016-03-27   753 2015.4  xc7a35t-1     986  1352    36   3.0   473 meminf
 -- 2016-03-13   743 2015.4  xc7a35t-1     988  1372    64   4.5   503 +XADC
 -- 2015-01-30   636 2014.4  xc7a35t-1     946  1319    64   4.5   476  
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-04-02   758   1.1.3  add rbd_usracc (bitfile+jtag timestamp access)
+-- 2016-03-19   748   1.1.2  define rlink SYSID
 -- 2016-03-18   745   1.1.1  hardwire XON=1
 -- 2016-03-12   741   1.1    add sysmon_rbus
 -- 2016-02-26   735   1.0.2  use s7_cmt_sfs
@@ -68,6 +72,7 @@ use work.xlib.all;
 use work.genlib.all;
 use work.serportlib.all;
 use work.rblib.all;
+use work.rbdlib.all;
 use work.rlinklib.all;
 use work.bpgenlib.all;
 use work.bpgenrbuslib.all;
@@ -112,6 +117,7 @@ architecture syn of sys_tst_rlink_b3 is
   signal RB_SRES_HIO    : rb_sres_type := rb_sres_init;
   signal RB_SRES_TST    : rb_sres_type := rb_sres_init;
   signal RB_SRES_SYSMON : rb_sres_type := rb_sres_init;
+  signal RB_SRES_USRACC : rb_sres_type := rb_sres_init;
 
   signal RB_LAM  : slv16 := (others=>'0');
   signal RB_STAT : slv4  := (others=>'0');
@@ -121,6 +127,10 @@ architecture syn of sys_tst_rlink_b3 is
 
   constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/0008: 1111 1110 1111 0xxx
   constant rbaddr_sysmon: slv16 := x"fb00"; -- fb00/0080: 1111 1011 0xxx xxxx
+
+  constant sysid_proj  : slv16 := x"0101";   -- tst_rlink
+  constant sysid_board : slv8  := x"06";     -- basys3
+  constant sysid_vers  : slv8  := x"00";
 
 begin
 
@@ -194,12 +204,12 @@ begin
     generic map (
       BTOWIDTH     => 6,
       RTAWIDTH     => 12,
-      SYSID        => (others=>'0'),
+      SYSID        => sysid_proj & sysid_board & sysid_vers,
       IFAWIDTH     => 5,
       OFAWIDTH     => 5,
       ENAPIN_RLMON => sbcntl_sbf_rlmon,
       ENAPIN_RBMON => sbcntl_sbf_rbmon,
-      CDWIDTH      => 15,
+      CDWIDTH      => 12,
       CDINIT       => sys_conf_ser2rri_cdinit,
       RBMON_AWIDTH => 0,                -- must be 0, rbmon in rbd_tst_rlink
       RBMON_RBADDR => (others=>'0'))
@@ -254,11 +264,19 @@ begin
       );
   end generate SMRB;
 
-  RB_SRES_OR1 : rb_sres_or_3
+  UARB : rbd_usracc
+    port map (
+      CLK     => CLK,
+      RB_MREQ => RB_MREQ,
+      RB_SRES => RB_SRES_USRACC
+    );
+
+  RB_SRES_OR1 : rb_sres_or_4
     port map (
       RB_SRES_1  => RB_SRES_HIO,
       RB_SRES_2  => RB_SRES_TST,
       RB_SRES_3  => RB_SRES_SYSMON,
+      RB_SRES_4  => RB_SRES_USRACC,
       RB_SRES_OR => RB_SRES
     );
 

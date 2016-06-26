@@ -1,6 +1,6 @@
--- $Id: memlib.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: memlib.vhd 751 2016-03-25 19:46:11Z mueller $
 --
--- Copyright 2006-2007 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -17,9 +17,10 @@
 --                 asynchronus rams; Fifo's.
 --
 -- Dependencies:   -
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2015.4; ghdl 0.18-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-03-25   751   1.1    add fifo_2c_dram2
 -- 2008-03-08   123   1.0.3  add ram_2swsr_xfirst_gen_unisim
 -- 2008-03-02   122   1.0.2  change generic default for BRAM models
 -- 2007-12-27   106   1.0.1  add fifo_2c_dram
@@ -216,6 +217,26 @@ component fifo_1c_bubble is             -- fifo, 1 clock, bubble regs
 end component;
 
 component fifo_2c_dram is               -- fifo, 2 clock, dram based
+  generic (
+    AWIDTH : positive :=  4;            -- address width (sets size)
+    DWIDTH : positive := 16);           -- data width
+  port (
+    CLKW : in slbit;                    -- clock (write side)
+    CLKR : in slbit;                    -- clock (read side)
+    RESETW : in slbit;                  -- W|reset from write side
+    RESETR : in slbit;                  -- R|reset from read side
+    DI : in slv(DWIDTH-1 downto 0);     -- W|input data
+    ENA : in slbit;                     -- W|write enable
+    BUSY : out slbit;                   -- W|write port hold    
+    DO : out slv(DWIDTH-1 downto 0);    -- R|output data
+    VAL : out slbit;                    -- R|read valid
+    HOLD : in slbit;                    -- R|read hold
+    SIZEW : out slv(AWIDTH-1 downto 0); -- W|number slots to write
+    SIZER : out slv(AWIDTH-1 downto 0)  -- R|number slots to read 
+  );
+end component;
+
+component fifo_2c_dram2 is              -- fifo, 2 clock, dram based (v2)
   generic (
     AWIDTH : positive :=  4;            -- address width (sets size)
     DWIDTH : positive := 16);           -- data width

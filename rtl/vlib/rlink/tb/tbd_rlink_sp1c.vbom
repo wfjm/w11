@@ -15,3 +15,4 @@ ${tbu_rlink_sp1c := tbu_rlink_sp1c.vbom}
 ../../simlib/simclkcnt.vbom
 # design
 tbd_rlink_sp1c.vhd
+@xdc:../../generic_clk_100mhz.xdc

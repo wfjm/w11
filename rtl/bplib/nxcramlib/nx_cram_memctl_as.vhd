@@ -1,6 +1,6 @@
--- $Id: nx_cram_memctl_as.vhd 718 2015-12-26 15:59:48Z mueller $
+-- $Id: nx_cram_memctl_as.vhd 767 2016-05-26 07:47:51Z mueller $
 --
--- Copyright 2010-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -13,7 +13,7 @@
 -- 
 ------------------------------------------------------------------------------
 -- Module Name:    nx_cram_memctl_as - syn
--- Description:    nexys2/3: CRAM driver - async and page mode
+-- Description:    nexys2/3/4: CRAM driver - async and page mode
 --
 -- Dependencies:   vlib/xlib/iob_reg_o
 --                 vlib/xlib/iob_reg_o_gen
@@ -21,7 +21,7 @@
 -- Test bench:     tb/tb_nx_cram_memctl_as
 --                 sys_gen/tst_sram/nexys2/tb/tb_tst_sram_n2
 -- Target Devices: generic
--- Tool versions:  ise 11.4-14.7; viv 2014.4; ghdl 0.26-0.31
+-- Tool versions:  ise 11.4-14.7; viv 2014.4-2016.1; ghdl 0.26-0.33
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -31,6 +31,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-05-22   787   1.2.2  don't init N_REGS (vivado fix for fsm inference)
 -- 2015-12-26   718   1.2.1  BUGFIX: do_dispatch(): always define imem_oe
 -- 2011-11-26   433   1.2    renamed from n2_cram_memctl_as
 -- 2011-11-19   432   1.1    remove O_FLA_CE_N port
@@ -197,8 +198,8 @@ architecture syn of nx_cram_memctl_as is
     (others=>'0')                       -- memdi
   );
     
-  signal R_REGS : regs_type := regs_init;  -- state registers
-  signal N_REGS : regs_type := regs_init;  -- next value state regs
+  signal R_REGS : regs_type := regs_init;
+  signal N_REGS : regs_type;            -- don't init (vivado fix for fsm infer)
   
   signal CLK_180  : slbit := '0';
   signal MEM_CE_N : slbit := '1';

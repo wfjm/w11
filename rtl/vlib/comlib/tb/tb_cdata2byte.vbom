@@ -5,6 +5,6 @@
 # components
 ../../simlib/simclk.vbom
 ../../simlib/simclkcnt.vbom
-@uut: ${uut := tbd_cdata2byte.vbom}
+${uut := tbd_cdata2byte.vbom}  -UUT
 # design
 tb_cdata2byte.vhd

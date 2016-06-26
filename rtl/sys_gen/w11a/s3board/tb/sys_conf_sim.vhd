@@ -1,6 +1,6 @@
--- $Id: sys_conf_sim.vhd 698 2015-07-05 21:20:18Z mueller $
+-- $Id: sys_conf_sim.vhd 770 2016-05-28 14:15:00Z mueller $
 --
--- Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,11 @@
 -- Description:    Definitions for sys_w11a_s3 (for simulation)
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.1-14.7; ghdl 0.18-0.31
+-- Tool versions:  xst 8.1-14.7; ghdl 0.18-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-05-28   770   1.3.1  sys_conf_mem_losize now type natural 
+-- 2016-03-22   750   1.3    add sys_conf_cache_twidth
 -- 2015-06-26   695   1.2.1  add sys_conf_(dmscnt|dmhbpt*|dmcmon*)
 -- 2015-03-14   658   1.2    add sys_conf_ibd_* definitions
 -- 2014-12-22   619   1.1.2  add _rbmon_awidth
@@ -48,14 +50,15 @@ package sys_conf is
   -- configure w11 cpu core --------------------------------------------------
   constant sys_conf_bram           : integer :=  0;      -- no bram, use cache
   constant sys_conf_bram_awidth    : integer := 14;      -- bram size (16 kB)
-  constant sys_conf_mem_losize     : integer := 8#037777#; --   1 MByte
---constant sys_conf_mem_losize     : integer := 8#003777#; -- 128 kByte (debug)
+  constant sys_conf_mem_losize     : natural := 8#037777#; --   1 MByte
+--constant sys_conf_mem_losize     : natural := 8#003777#; -- 128 kByte (debug)
 
 --  constant sys_conf_bram           : integer :=  1;      --  bram only 
 --  constant sys_conf_bram_awidth    : integer := 16;      -- bram size (64 kB)
---  constant sys_conf_mem_losize     : integer := 8#001777#; -- 64 kByte
+--  constant sys_conf_mem_losize     : natural := 8#001777#; -- 64 kByte
   
   constant sys_conf_cache_fmiss    : slbit   := '0';     -- cache enabled
+  constant sys_conf_cache_twidth   : integer :=  9;      -- 8kB cache
 
   -- configure w11 system devices --------------------------------------------
   -- configure character and communication devices

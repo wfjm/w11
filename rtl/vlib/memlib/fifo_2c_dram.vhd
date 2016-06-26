@@ -1,4 +1,4 @@
--- $Id: fifo_2c_dram.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: fifo_2c_dram.vhd 751 2016-03-25 19:46:11Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -22,7 +22,7 @@
 --
 -- Test bench:     tb/tb_fifo_2c_dram
 -- Target Devices: generic Spartan, Virtex
--- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2011-11-13   424   1.1    use capture+sync flops; reset now glitch free 
@@ -175,13 +175,16 @@ begin
   G2B_WR : gray2bin_gen                 -- gray->bin for waddr on read  side
     generic map (DWIDTH => AWIDTH)
     port map (DI => R_REGR.waddr_s, DO => WADDR_S_BIN);
-  G2B_RW : gray2bin_gen                 -- gray->bin for raddr on write side
+  G2B_RR : gray2bin_gen                 -- gray->bin for raddr on read  side
     generic map (DWIDTH => AWIDTH)
     port map (DI => RADDR, DO => RADDR_BIN);
-  G2B_RR : gray2bin_gen                 -- gray->bin for raddr on read  side
+  G2B_RW : gray2bin_gen                 -- gray->bin for raddr on write side
     generic map (DWIDTH => AWIDTH)
     port map (DI => R_REGW.raddr_s, DO => RADDR_S_BIN);
  
+  --
+  -- write side --------------------------------------------------------------
+  --
   proc_regw: process (CLKW)
   begin
     if rising_edge(CLKW) then
@@ -257,6 +260,9 @@ begin
 
   end process proc_nextw;
 
+  --
+  -- read side ---------------------------------------------------------------
+  --
   proc_regr: process (CLKR)
   begin
     if rising_edge(CLKR) then

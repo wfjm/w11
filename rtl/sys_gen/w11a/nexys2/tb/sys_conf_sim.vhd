@@ -1,6 +1,6 @@
--- $Id: sys_conf_sim.vhd 698 2015-07-05 21:20:18Z mueller $
+-- $Id: sys_conf_sim.vhd 770 2016-05-28 14:15:00Z mueller $
 --
--- Copyright 2010-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,11 @@
 -- Description:    Definitions for sys_w11a_n2 (for simulation)
 --
 -- Dependencies:   -
--- Tool versions:  xst 11.4-14.7; ghdl 0.26-0.31
+-- Tool versions:  xst 11.4-14.7; ghdl 0.26-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-05-28   770   1.5.1  sys_conf_mem_losize now type natural 
+-- 2016-03-22   750   1.5    add sys_conf_cache_twidth
 -- 2015-06-26   695   1.4.1  add sys_conf_(dmscnt|dmhbpt*|dmcmon*)
 -- 2015-03-14   658   1.4    add sys_conf_ibd_* definitions
 -- 2015-02-07   643   1.3    drop bram and minisys options
@@ -63,9 +65,10 @@ package sys_conf is
   constant sys_conf_dmcmon_awidth : integer := 9; -- use 0 to disable
 
   -- configure w11 cpu core --------------------------------------------------
-  constant sys_conf_mem_losize     : integer := 8#167777#; --   4 MByte
+  constant sys_conf_mem_losize     : natural := 8#167777#; --   4 MByte
 
   constant sys_conf_cache_fmiss    : slbit   := '0';     -- cache enabled
+  constant sys_conf_cache_twidth   : integer :=  9;      -- 8kB cache
 
   -- configure w11 system devices --------------------------------------------
   -- configure character and communication devices

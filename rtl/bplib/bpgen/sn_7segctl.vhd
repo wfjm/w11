@@ -1,4 +1,4 @@
--- $Id: sn_7segctl.vhd 637 2015-01-25 18:36:40Z mueller $
+-- $Id: sn_7segctl.vhd 750 2016-03-24 23:11:51Z mueller $
 --
 -- Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -100,11 +100,11 @@ begin
 
   assert DCWIDTH=2 or DCWIDTH=3
   report "assert(DCWIDTH=2 or DCWIDTH=3): unsupported DCWIDTH"
-  severity FAILURE;
+  severity failure;
 
   assert CDWIDTH >= 5
   report "assert(CDWIDTH >= 5): CDWIDTH too small"
-  severity FAILURE;
+  severity failure;
 
   proc_regs: process (CLK)
   begin

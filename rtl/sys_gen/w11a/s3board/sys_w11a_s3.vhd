@@ -1,6 +1,6 @@
--- $Id: sys_w11a_s3.vhd 734 2016-02-20 22:43:20Z mueller $
+-- $Id: sys_w11a_s3.vhd 748 2016-03-20 15:18:50Z mueller $
 --
--- Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -74,6 +74,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-03-19   748   2.1.1  define rlink SYSID
 -- 2015-05-09   677   2.1    start/stop/suspend overhaul; reset overhaul
 -- 2015-05-02   673   2.0    use pdp11_sys70 and pdp11_hio70; now in std form
 -- 2015-04-11   666   1.7.1  rearrange XON handling
@@ -277,6 +278,10 @@ architecture syn of sys_w11a_s3 is
   constant rbaddr_rbmon : slv16 := x"ffe8"; -- ffe8/0008: 1111 1111 1110 1xxx
   constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/0008: 1111 1110 1111 0xxx
 
+  constant sysid_proj  : slv16 := x"0201";   -- w11a
+  constant sysid_board : slv8  := x"01";     -- s3board
+  constant sysid_vers  : slv8  := x"00";
+
 begin
 
   CLK <= I_CLK50;                       -- use 50MHz as system clock
@@ -313,7 +318,7 @@ begin
     generic map (
       BTOWIDTH     => 6,                --  64 cycles access timeout
       RTAWIDTH     => 12,
-      SYSID        => (others=>'0'),
+      SYSID        => sysid_proj & sysid_board & sysid_vers,
       IFAWIDTH     => 5,                --  32 word input fifo
       OFAWIDTH     => 5,                --  32 word output fifo
       ENAPIN_RLMON => sbcntl_sbf_rlmon,

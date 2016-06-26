@@ -1,11 +1,16 @@
 #!/bin/bash
-# $Id: tbrun_tbwrri 745 2016-03-18 22:10:34Z mueller $
+# $Id: tbrun_tbwrri 778 2016-06-25 15:18:01Z mueller $
 #
 # Copyright 2014-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2016-06-25   778   1.2.4  drop make ghdl_tmp_clean logic
+# 2016-06-18   776   1.2.3  use ti_rri --tout to set connection timeout
+# 2016-06-05   773   1.2.2  use _bsim.log for behavioural sim log
+# 2016-03-20   748   1.2.1  BUGFIX: add portsel oob for -hxon
+#                           use 120 sec timeout for simulation
 # 2016-03-18   745   1.2    use --sxon and --hxon instead of --xon
 # 2015-04-11   666   1.1    add --fusp,--xon
 # 2014-12-27   622   1.0    Initial version
@@ -98,23 +103,14 @@ shift 1
 tbenchname=$(basename $tbench)
 tbenchpath=$(dirname  $tbench)
 
-# check for ghdl with _ssim, _fsim, _tsim
-isghdlxsim=""
-if [[ $tbench =~ _[sft]sim$ ]] ; then
-  isghdlxsim=true
-  logsuff=""
-fi
-
 # issue makes
-if [[ -n "$isghdlxsim" ]] ; then docmd "make -C $tbenchpath ghdl_tmp_clean"; fi
 docmd "make -C $tbenchpath $tbenchname"
 exitstat=$?
-if [[ -n "$isghdlxsim" ]] ; then docmd "make -C $tbenchpath ghdl_tmp_clean"; fi
 
 if (( $exitstat > 0 )) ; then exit $exitstat; fi
 
 # determine logfile name
-logsuff="_dsim"
+logsuff="_bsim"
 if [[ $tbenchname =~ _[sft]sim$ ]] ; then logsuff=""; fi
 if [[ -n "$optlsuf" ]] ;             then logsuff="_$optlsuf"; fi
 
@@ -144,6 +140,7 @@ else
 fi
 
 cmd+=" --logl=3"
+cmd+=" --tout=120."             # 120 sec timeout for simulation
 
 if [[ -n "$optpack" ]] ; then   cmd+=" --pack=$optpack"; fi
 if [[ -n "$optrri" ]] ; then    cmd+=" $optrri"; fi
@@ -163,6 +160,10 @@ fi
 if [[ -n "$optsxon" ]] ; then
   cmd+=" \"rlc oob -sbdata  8 0x2\""    # portsel = 0010 -> 1st ser XON
   cmd+=" \"rlc oob -sbdata 16 0x2\""    # swi     = 0010 -> 1st ser XON
+fi
+
+if [[ -n "$opthxon" ]] ; then
+  cmd+=" \"rlc oob -sbdata  8 0x2\""    # portsel = 0010 -> 1st ser XON
 fi
 
 if (( $ncfxcount > 0 )) ; then  cmd+=" \"rlc init\""; fi

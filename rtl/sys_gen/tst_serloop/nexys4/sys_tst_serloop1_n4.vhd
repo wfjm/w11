@@ -1,6 +1,6 @@
--- $Id: sys_tst_serloop1_n4.vhd 646 2015-02-15 12:04:55Z mueller $
+-- $Id: sys_tst_serloop1_n4.vhd 772 2016-06-05 12:55:11Z mueller $
 --
--- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -13,9 +13,10 @@
 --
 ------------------------------------------------------------------------------
 -- Module Name:    sys_tst_serloop1_n4 - syn
--- Description:    Tester serial link for nexys3 (serport_1clock case)
+-- Description:    Tester serial link for nexys4 (serport_1clock case)
 --
--- Dependencies:   genlib/clkdivce
+-- Dependencies:   vlib/xlib/s7_cmt_sfs
+--                 vlib/genlib/clkdivce
 --                 bpgen/bp_rs232_4line_iob
 --                 bpgen/sn_humanio
 --                 tst_serloop_hiomap
@@ -25,14 +26,16 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  viv 2014.4; ghdl 0.31
+-- Tool versions:  viv 2014.4-2015.4; ghdl 0.31-0.33
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
--- 2015-02-01   641 2014.4  xc7a100t-1    xxx  xxxx    xx     x   xxx  
+-- 2016-03-25   751 2015.4  xc7a100t-1    415  402x    32     0   185  
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-06-05   772   1.1.1  use CDUWIDTH=7, 120 MHz clock is natural choice
+-- 2016-03-27   753   1.1    clock now from cmt and configurable
 -- 2015-02-06   643   1.1    factor out memory
 -- 2015-02-01   641   1.0    Initial version (derived from sys_tst_serloop1_n3)
 ------------------------------------------------------------------------------
@@ -104,13 +107,26 @@ architecture syn of sys_tst_serloop1_n4 is
 
 begin
 
-  CLK <= I_CLK100;
-  
+  GEN_CLKSYS : s7_cmt_sfs               -- clock generator -------------------
+    generic map (
+      VCO_DIVIDE     => sys_conf_clksys_vcodivide,
+      VCO_MULTIPLY   => sys_conf_clksys_vcomultiply,
+      OUT_DIVIDE     => sys_conf_clksys_outdivide,
+      CLKIN_PERIOD   => 10.0,
+      CLKIN_JITTER   => 0.01,
+      STARTUP_WAIT   => false,
+      GEN_TYPE       => sys_conf_clksys_gentype)
+    port map (
+      CLKIN   => I_CLK100,
+      CLKFX   => CLK,
+      LOCKED  => open
+    );
+
   CLKDIV : clkdivce
     generic map (
-      CDUWIDTH => 8,
-      USECDIV  => sys_conf_clkdiv_usecdiv,   -- syn:  100  sim:  20
-      MSECDIV  => sys_conf_clkdiv_msecdiv)   -- syn: 1000  sim:   5
+      CDUWIDTH => 7,
+      USECDIV  => sys_conf_clksys_mhz,   
+      MSECDIV  => sys_conf_clkdiv_msecdiv) 
     port map (
       CLK     => CLK,
       CE_USEC => open,
@@ -171,7 +187,7 @@ begin
   
   SERPORT : serport_1clock
     generic map (
-      CDWIDTH   => 15,
+      CDWIDTH   => 12,
       CDINIT    => sys_conf_uart_cdinit,
       RXFAWIDTH => 5,
       TXFAWIDTH => 5)

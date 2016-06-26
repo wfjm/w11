@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: ti_w11.1 745 2016-03-18 22:10:34Z mueller $
+.\"  $Id: ti_w11.1 748 2016-03-20 15:18:50Z mueller $
 .\"
 .\" Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -87,12 +87,21 @@ use 2nd serport with switched xon
 .RE
 .IP \fB-tmu\fP
 activate trace and monitoring unit
-.PD 0
 .IP \fB-ghw\fP
-activate ghw wave file writing
+activate ghdl wave dump, will write a dump file with the name
+\f<tb>.ghw\fR where <tb> is the filename of the test bench
+.PD 0
 .PD
 .
 .SS "common options"
+.IP \fB-ll\fIn\fR
+set rlink logging level to \fIn\fR (will issue a --logl=\fIn\fR).
+.IP \fB-dl\fIn\fR
+set rlink dump level to \fIn\fR (will issue a --dmpl=\fIn\fR).
+.IP \fB-tl\fIn\fR
+set rlink I/O trace level to \fIn\fR (will issue a --tiol=\fIn\fR).
+.IP \fB-b\fR
+batch mode
 .IP \fB-e "\fR=\fIfile"\fR
 load and execute \fIfile\fP. If the file type is '.mac' the file will
 be on the fly compiled with \fBasm-11\fP(1), for all other file types

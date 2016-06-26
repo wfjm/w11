@@ -1,6 +1,6 @@
--- $Id: ibdr_rhrp.vhd 692 2015-06-21 11:53:24Z mueller $
+-- $Id: ibdr_rhrp.vhd 767 2016-05-26 07:47:51Z mueller $
 --
--- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,7 +18,7 @@
 -- Dependencies:   ram_1swar_gen
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  ise 14.7; viv 2014.4; ghdl 0.31
+-- Tool versions:  ise 14.7; viv 2014.4-2016.1; ghdl 0.31-0.33
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -28,6 +28,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-05-22   787   1.0.4  don't init N_REGS (vivado fix for fsm inference)
 -- 2015-06-20   692   1.0.3  BUGFIX: fix func-go when drive/init busy checks
 -- 2015-06-05   690   1.0.2  use 'not unit' for lsb of rpsn to avoid SI detect
 --                           BUGFIX: set rmr only for write to busy unit
@@ -401,7 +402,7 @@ architecture syn of ibdr_rhrp is
   );
 
   signal R_REGS : regs_type := regs_init;
-  signal N_REGS : regs_type := regs_init;
+  signal N_REGS : regs_type;            -- don't init (vivado fix for fsm infer)
 
   signal MEM_1_WE : slbit := '0';
   signal MEM_0_WE : slbit := '0';

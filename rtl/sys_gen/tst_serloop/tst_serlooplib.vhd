@@ -1,4 +1,4 @@
--- $Id: tst_serlooplib.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: tst_serlooplib.vhd 751 2016-03-25 19:46:11Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,7 +16,7 @@
 -- Description:    Definitions for tst_serloop records and helpers
 --
 -- Dependencies:   -
--- Tool versions:  ise 13.1-14.7; viv 2014.7; ghdl 0.29-0.31
+-- Tool versions:  ise 13.1-14.7; viv 2014.7-2015.4; ghdl 0.29-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2011-12-10   438   1.0.2  add rxui(cnt|dat) fields in hio_stat_type

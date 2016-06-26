@@ -1,4 +1,4 @@
--- $Id: sysmonrbuslib.vhd 742 2016-03-13 14:40:19Z mueller $
+-- $Id: sysmonrbuslib.vhd 770 2016-05-28 14:15:00Z mueller $
 --
 -- Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  viv2015.4; ghdl 0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-05-28   770   1.0.1  ensure to_unsigned() has a type natural argument
 -- 2016-03-13   742   1.0    Initial version
 -- 2016-03-06   738   0.1    First draft
 ------------------------------------------------------------------------------
@@ -195,17 +196,17 @@ package body sysmonrbuslib is
 
 -- -------------------------------------
 pure function xadc_temp2alim(temp : real) return bv16 is
-  variable ival : integer := 0;
+  variable ival : natural := 0;
 begin
-  ival := integer(((temp + 273.14) * 16.0 * 4096.0) / 503.975);
+  ival := natural(((temp + 273.14) * 16.0 * 4096.0) / 503.975);
   return to_bitvector(slv(to_unsigned(ival,16)));
 end function xadc_temp2alim;
 
 -- -------------------------------------
 pure function xadc_svolt2alim (volt : real) return bv16 is
-  variable ival : integer := 0;
+  variable ival : natural := 0;
 begin
-  ival := integer((volt * 16.0 * 4096.0) / 3.0);
+  ival := natural((volt * 16.0 * 4096.0) / 3.0);
   return to_bitvector(slv(to_unsigned(ival,16)));
 end function xadc_svolt2alim;
 

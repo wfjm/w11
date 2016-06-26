@@ -4,6 +4,7 @@
 iblib.vhd
 # components
 [sim]../vlib/memlib/ram_1swar_gen.vbom
-[xst,vsyn]../vlib/memlib/ram_1swar_gen_unisim.vbom
+[xst]../vlib/memlib/ram_1swar_gen_unisim.vbom
+[vsyn]../vlib/memlib/ram_1swar_gen.vbom
 # design
 ibdr_rhrp.vhd

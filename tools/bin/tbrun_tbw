@@ -1,11 +1,14 @@
 #!/bin/bash
-# $Id: tbrun_tbw 727 2016-02-07 13:58:47Z mueller $
+# $Id: tbrun_tbw 779 2016-06-26 15:37:16Z mueller $
 #
 # Copyright 2014-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2016-06-25   778   1.1.3  drop make ghdl_tmp_clean logic
+# 2016-06-05   773   1.1.2  use _bsim.log for behavioral sim log
+# 2016-04-17   762   1.1.1  don't create '-run' for [IX]Sim anymore (now default)
 # 2016-02-06   727   1.1    add vivado xsim support; Makefile.ise support
 # 2014-12-27   622   1.0.1  add --stack, --ghw, --tbw, --pcom
 # 2014-12-26   621   1.0    Initial version
@@ -76,32 +79,21 @@ if [[ $tbench =~ _XSim ]] ; then
   isghdl=""
 fi
 
-# check for ghdl with _ssim, _fsim,  _osim, _tsim
-isghdlxsim=""
-if [[ -n "$isghdl" ]] && [[ $tbench =~ _[sfot]sim$ ]] ; then
-  isghdlxsim=true
-  logsuff=""
-fi
-
 # issue makes
-if [[ -n "$isghdlxsim" ]] ; then docmd "make ghdl_tmp_clean"; fi
 docmd "make $makeopts $tbench"
 exitstat=$?
-if [[ -n "$isghdlxsim" ]] ; then docmd "make ghdl_tmp_clean"; fi
 
 if (( $exitstat > 0 )) ; then exit $exitstat; fi
 
 # determine logfile name
-logsuff="_dsim"
-if [[ $tbench =~ _[sfot]sim$ ]] ; then logsuff=""; fi
+logsuff="_bsim"
+if [[ $tbench =~ _[fsorept]sim$ ]] ; then logsuff=""; fi
 if [[ -n "$optlsuf" ]] ;      then logsuff="_$optlsuf"; fi
 
 logfile="${tbench}${logsuff}.log"
 
 # now build actual test command (a tbw|filter|tee|egrep pipe)
 cmd="time tbw $tbench"
-if [[ -n "$isisim" ]] ; then    cmd+=" -run"; fi
-if [[ -n "$isxsim" ]] ; then    cmd+=" -run"; fi
 if [[ -n "$stimfile" ]] ; then  cmd+=" $stimfile"; fi
 if [[ -n "$opttbw" ]] ; then    cmd+=" $opttbw"; fi
 if [[ -n "$optstack" ]] ; then  cmd+=" --stack-max-size=$optstack"; fi

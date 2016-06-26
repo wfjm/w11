@@ -1,4 +1,4 @@
--- $Id: sys_w11a_br_arty.vhd 742 2016-03-13 14:40:19Z mueller $
+-- $Id: sys_w11a_br_arty.vhd 768 2016-05-26 16:47:00Z mueller $
 --
 -- Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,7 +18,7 @@
 -- Dependencies:   vlib/xlib/s7_cmt_sfs
 --                 vlib/genlib/clkdivce
 --                 bplib/bpgen/bp_rs232_2line_iob
---                 vlib/rlink/rlink_sp1c
+--                 vlib/rlink/rlink_sp2c
 --                 w11a/pdp11_sys70
 --                 ibus/ibdr_maxisys
 --                 w11a/pdp11_bram_memctl
@@ -27,20 +27,27 @@
 --                 bplib/bpgen/bp_swibtnled
 --                 bplib/bpgen/rgbdrv_3x4mux
 --                 bplib/sysmon/sysmonx_rbus_arty
---                 vlib/rbus/rb_sres_or_2
+--                 vlib/rbus/rbd_usracc
+--                 vlib/rbus/rb_sres_or_3
 --
 -- Test bench:     tb/tb_sys_w11a_br_arty
 --
 -- Target Devices: generic
--- Tool versions:  viv 2015.4; ghdl 0.33
+-- Tool versions:  viv 2015.4-2016.1; ghdl 0.33
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2016-05-26   768 2016.1  xc7a35t-1    2226  5080   138  47.5  1569 fsm+dsm=0
+-- 2016-03-29   756 2015.4  xc7a35t-1    2106  4428   138  48.5  1397 serport2
+-- 2016-03-27   753 2015.4  xc7a35t-1    1995  4298   138  48.5  1349 meminf
 -- 2016-03-13   742 2015.4  xc7a35t-1    1996  4309   162  48.5  1333 +XADC
 -- 2016-02-27   737 2015.4  xc7a35t-1    1952  4246   162  48.5  1316  
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-04-02   758   1.2.1  add rbd_usracc (bitfile+jtag timestamp access)
+-- 2016-03-28   755   1.2    use serport_2clock2
+-- 2016-03-19   748   1.1.2  define rlink SYSID
 -- 2016-03-13   742   1.1.1  add sysmon_rbus
 -- 2016-03-06   740   1.1    add A_VPWRN/P to baseline config
 -- 2016-02-27   736   1.0    Initial version (derived from sys_w11a_b3)
@@ -98,6 +105,7 @@ use work.xlib.all;
 use work.genlib.all;
 use work.serportlib.all;
 use work.rblib.all;
+use work.rbdlib.all;
 use work.rlinklib.all;
 use work.bpgenlib.all;
 use work.sysmonrbuslib.all;
@@ -134,6 +142,9 @@ architecture syn of sys_w11a_br_arty is
   signal CE_USEC : slbit := '0';
   signal CE_MSEC : slbit := '0';
 
+  signal CLKS :  slbit := '0';
+  signal CES_MSEC : slbit := '0';
+
   signal RXD :   slbit := '1';
   signal TXD :   slbit := '0';
     
@@ -142,6 +153,7 @@ architecture syn of sys_w11a_br_arty is
   signal RB_SRES_CPU    : rb_sres_type := rb_sres_init;
   signal RB_SRES_HIO    : rb_sres_type := rb_sres_init;
   signal RB_SRES_SYSMON : rb_sres_type := rb_sres_init;
+  signal RB_SRES_USRACC : rb_sres_type := rb_sres_init;
 
   signal RB_LAM  : slv16 := (others=>'0');
   signal RB_STAT : slv4  := (others=>'0');
@@ -187,13 +199,17 @@ architecture syn of sys_w11a_br_arty is
   constant rbaddr_rbmon : slv16 := x"ffe8"; -- ffe8/0008: 1111 1111 1110 1xxx
   constant rbaddr_sysmon: slv16 := x"fb00"; -- fb00/0080: 1111 1011 0xxx xxxx
 
+  constant sysid_proj  : slv16 := x"0201";   -- w11a
+  constant sysid_board : slv8  := x"07";     -- arty
+  constant sysid_vers  : slv8  := x"00";
+
 begin
 
   assert (sys_conf_clksys mod 1000000) = 0
     report "assert sys_conf_clksys on MHz grid"
     severity failure;
   
-  GEN_CLKSYS : s7_cmt_sfs               -- clock generator -------------------
+  GEN_CLKSYS : s7_cmt_sfs               -- clock generator system ------------
     generic map (
       VCO_DIVIDE     => sys_conf_clksys_vcodivide,
       VCO_MULTIPLY   => sys_conf_clksys_vcomultiply,
@@ -208,7 +224,7 @@ begin
       LOCKED  => open
     );
 
-  CLKDIV : clkdivce                     -- usec/msec clock divider -----------
+  CLKDIV_CLK : clkdivce                 -- usec/msec clock divider system ----
     generic map (
       CDUWIDTH => 7,
       USECDIV  => sys_conf_clksys_mhz,
@@ -219,25 +235,51 @@ begin
       CE_MSEC => CE_MSEC
     );
 
+  GEN_CLKSER : s7_cmt_sfs               -- clock generator serport------------
+    generic map (
+      VCO_DIVIDE     => sys_conf_clkser_vcodivide,
+      VCO_MULTIPLY   => sys_conf_clkser_vcomultiply,
+      OUT_DIVIDE     => sys_conf_clkser_outdivide,
+      CLKIN_PERIOD   => 10.0,
+      CLKIN_JITTER   => 0.01,
+      STARTUP_WAIT   => false,
+      GEN_TYPE       => sys_conf_clkser_gentype)
+    port map (
+      CLKIN   => I_CLK100,
+      CLKFX   => CLKS,
+      LOCKED  => open
+    );
+
+  CLKDIV_CLKS : clkdivce                -- usec/msec clock divider serport ---
+    generic map (
+      CDUWIDTH => 7,
+      USECDIV  => sys_conf_clkser_mhz,
+      MSECDIV  => 1000)
+    port map (
+      CLK     => CLKS,
+      CE_USEC => open,
+      CE_MSEC => CES_MSEC
+    );
+
   IOB_RS232 : bp_rs232_2line_iob         -- serport iob ----------------------
     port map (
-      CLK      => CLK,
+      CLK      => CLKS,
       RXD      => RXD,
       TXD      => TXD,
       I_RXD    => I_RXD,
       O_TXD    => O_TXD
     );
 
-  RLINK : rlink_sp1c                    -- rlink for serport -----------------
+  RLINK : rlink_sp2c                    -- rlink for serport -----------------
     generic map (
       BTOWIDTH     => 7,                -- 128 cycles access timeout
       RTAWIDTH     => 12,
-      SYSID        => (others=>'0'),
+      SYSID        => sysid_proj & sysid_board & sysid_vers,
       IFAWIDTH     => 5,                --  32 word input fifo
       OFAWIDTH     => 5,                --  32 word output fifo
       ENAPIN_RLMON => sbcntl_sbf_rlmon,
       ENAPIN_RBMON => sbcntl_sbf_rbmon,
-      CDWIDTH      => 13,
+      CDWIDTH      => 12,
       CDINIT       => sys_conf_ser2rri_cdinit,
       RBMON_AWIDTH => sys_conf_rbmon_awidth,
       RBMON_RBADDR => rbaddr_rbmon)
@@ -247,6 +289,8 @@ begin
       CE_MSEC  => CE_MSEC,
       CE_INT   => CE_MSEC,
       RESET    => RESET,
+      CLKS     => CLKS,
+      CES_MSEC => CES_MSEC,
       ENAXON   => '1',                  -- XON statically enabled !
       ESCFILL  => '0',
       RXSD     => RXD,
@@ -404,10 +448,18 @@ begin
       );
   end generate SMRB;
 
-  RB_SRES_OR : rb_sres_or_2             -- rbus or ---------------------------
+  UARB : rbd_usracc
+    port map (
+      CLK     => CLK,
+      RB_MREQ => RB_MREQ,
+      RB_SRES => RB_SRES_USRACC
+    );
+
+  RB_SRES_OR : rb_sres_or_3             -- rbus or ---------------------------
     port map (
       RB_SRES_1  => RB_SRES_CPU,
       RB_SRES_2  => RB_SRES_SYSMON,
+      RB_SRES_3  => RB_SRES_USRACC,
       RB_SRES_OR => RB_SRES
     );
   

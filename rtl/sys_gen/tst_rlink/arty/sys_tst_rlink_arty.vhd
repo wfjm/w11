@@ -1,4 +1,4 @@
--- $Id: sys_tst_rlink_arty.vhd 743 2016-03-13 16:42:31Z mueller $
+-- $Id: sys_tst_rlink_arty.vhd 758 2016-04-02 18:01:39Z mueller $
 --
 -- Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -24,8 +24,8 @@
 --                 bplib/bpgen/rgbdrv_master
 --                 bplib/bpgen/rgbdrv_analog_rbus
 --                 bplib/sysmon/sysmonx_rbus_arty
+--                 vlib/rbus/rbd_usracc
 --                 vlib/rbus/rb_sres_or_4
---                 vlib/rbus/rb_sres_or_3
 --
 -- Test bench:     tb/tb_tst_rlink_arty
 --
@@ -34,12 +34,15 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2016-03-27   753 2015.4  xc7a35t-1L    980  1396    36   3.0   494 meminf
 -- 2016-03-13   743 2015.4  xc7a35t-1L    980  1390    64   4.5   514 +XADC
 -- 2016-02-20   734 2015.4  xc7a35t-1L    941  1352    64   4.5   478  
 -- 2016-02-14   731 2015.4  xc7a35t-1L    777  1313    64   4.5   399  
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-04-02   758   1.1.5  add rbd_usracc (bitfile+jtag timestamp access)
+-- 2016-03-19   748   1.1.4  define rlink SYSID
 -- 2016-03-13   743   1.1.3  hardwire XON=1, all SWI now unused
 -- 2016-03-12   741   1.1.2  use sysmonx_rbus_arty now
 -- 2016-03-06   740   1.1.1  add A_VPWRN/P to baseline config
@@ -67,6 +70,7 @@ use work.xlib.all;
 use work.genlib.all;
 use work.serportlib.all;
 use work.rblib.all;
+use work.rbdlib.all;
 use work.rlinklib.all;
 use work.bpgenlib.all;
 use work.bpgenrbuslib.all;
@@ -117,6 +121,7 @@ architecture syn of sys_tst_rlink_arty is
   signal RB_SRES_RGB2   : rb_sres_type := rb_sres_init;
   signal RB_SRES_RGB3   : rb_sres_type := rb_sres_init;
   signal RB_SRES_SYSMON : rb_sres_type := rb_sres_init;
+  signal RB_SRES_USRACC : rb_sres_type := rb_sres_init;
 
   signal RB_LAM  : slv16 := (others=>'0');
   signal RB_STAT : slv4  := (others=>'0');
@@ -132,6 +137,10 @@ architecture syn of sys_tst_rlink_arty is
   constant rbaddr_rgb2  : slv16 := x"fc08"; -- fe08/0004: 1111 1100 0000 10xx
   constant rbaddr_rgb3  : slv16 := x"fc0c"; -- fe0c/0004: 1111 1100 0000 11xx
   constant rbaddr_sysmon: slv16 := x"fb00"; -- fb00/0080: 1111 1011 0xxx xxxx
+
+  constant sysid_proj  : slv16 := x"0101";   -- tst_rlink
+  constant sysid_board : slv8  := x"07";     -- arty
+  constant sysid_vers  : slv8  := x"00";
 
 begin
 
@@ -198,12 +207,12 @@ begin
     generic map (
       BTOWIDTH     => 6,
       RTAWIDTH     => 12,
-      SYSID        => (others=>'0'),
+      SYSID        => sysid_proj & sysid_board & sysid_vers,
       IFAWIDTH     => 5,
       OFAWIDTH     => 5,
       ENAPIN_RLMON => sbcntl_sbf_rlmon,
       ENAPIN_RBMON => sbcntl_sbf_rbmon,
-      CDWIDTH      => 15,
+      CDWIDTH      => 12,
       CDINIT       => sys_conf_ser2rri_cdinit,
       RBMON_AWIDTH => 0,                -- must be 0, rbmon in rbd_tst_rlink
       RBMON_RBADDR => (others=>'0'))
@@ -336,11 +345,19 @@ begin
       RB_SRES_OR => RB_SRES_RGB
     );
 
-  RB_SRES_OR1 : rb_sres_or_3
+  UARB : rbd_usracc
+    port map (
+      CLK     => CLK,
+      RB_MREQ => RB_MREQ,
+      RB_SRES => RB_SRES_USRACC
+    );
+
+  RB_SRES_OR1 : rb_sres_or_4
     port map (
       RB_SRES_1  => RB_SRES_TST,
       RB_SRES_2  => RB_SRES_RGB,
       RB_SRES_3  => RB_SRES_SYSMON,
+      RB_SRES_4  => RB_SRES_USRACC,
       RB_SRES_OR => RB_SRES
     );
 

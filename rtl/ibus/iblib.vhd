@@ -1,6 +1,6 @@
--- $Id: iblib.vhd 672 2015-05-02 21:58:28Z mueller $
+-- $Id: iblib.vhd 770 2016-05-28 14:15:00Z mueller $
 --
--- Copyright 2008-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Definitions for ibus interface and bus entities
 --
 -- Dependencies:   -
--- Tool versions:  ise 8.1-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.1-14.7; viv 2014.4-2016.1; ghdl 0.18-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-05-28   770   2.1.1  use type natural for vec,pri fields of intmap_type
 -- 2015-04-24   668   2.1    add ibd_ibmon
 -- 2010-10-23   335   2.0.1  add ib_sel; add ib_sres_or_mon
 -- 2010-10-17   333   2.0    ibus V2 interface: use aval,re,we,rmw
@@ -115,8 +116,8 @@ component ib_sres_or_gen is             -- ibus result or, generic
 end component;
 
 type intmap_type is record              -- interrupt map entry type
-  vec : integer;                        -- vector address
-  pri : integer;                        -- priority
+  vec : natural;                        -- vector address
+  pri : natural;                        -- priority
 end record intmap_type;
 constant intmap_init : intmap_type := (0,0);
 

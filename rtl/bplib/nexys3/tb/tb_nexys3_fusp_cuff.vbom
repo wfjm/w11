@@ -18,7 +18,7 @@ ${sys_conf := sys_conf_sim.vhd}
 tb_nexys3_core.vbom
 ../../../vlib/serport/tb/serport_master_tb.vbom
 ../../../bplib/fx2lib/tb/fx2_2fifo_core.vbom
-@uut: ${nexys3_fusp_cuff_aif := nexys3_fusp_cuff_dummy.vbom}
+${nexys3_fusp_cuff_aif := nexys3_fusp_cuff_dummy.vbom}  -UUT
 # design
 tb_nexys3_fusp_cuff.vhd
 @top:tb_nexys3_fusp_cuff

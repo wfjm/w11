@@ -1,4 +1,4 @@
-# $Id: Makefile 733 2016-02-20 12:24:13Z mueller $
+# $Id: Makefile 763 2016-04-22 17:48:24Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -21,6 +21,5 @@ include ${RETROBASE}/rtl/make_viv/generic_vivado.mk
 #
 ifndef DONTINCDEP
 include $(VBOM_all:.vbom=.dep_vsyn)
-##include $(VBOM_all:.vbom=.dep_ghdl)
 endif
 #

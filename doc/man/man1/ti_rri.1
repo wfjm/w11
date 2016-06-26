@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: ti_rri.1 742 2016-03-13 14:40:19Z mueller $
+.\"  $Id: ti_rri.1 776 2016-06-18 17:22:51Z mueller $
 .\"
 .\" Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH TI_RRI 1 2016-03-13 "Retro Project" "Retro Project Manual"
+.TH TI_RRI 1 2016-06-18 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 ti_rri \- \fBRlink\fP Backend Server
@@ -33,6 +33,8 @@ loads additional tcl packages when requested with \fB\-\-pack\fP
 .IP "-"
 sets up logging and debug according to  \fB\-\-log\fP,  \fB\-\-logl\fP,
 \fB\-\-dmpl\fP, and \fB\-\-tiol\fP
+.IP "-"
+sets up connection timeout according to  \fB\-\-tout\fP
 .IP "-"
 starts an additional process if requested with \fB\-\-run\fP
 .IP "-"
@@ -190,6 +192,12 @@ trace buffer activities
 trace character activities
 .PD
 .RE
+.
+.\" -- --tout -----------------------------------
+.IP \fB\-\-tout=\fIdt\fR
+set connection timeout. Default is '1.'. Must be >0. . Should be set to a
+larger value when slow simulators are connected, e.g. post-implentation 
+timing models.
 .
 .\" -- --int ------------------------------------
 .IP \fB\-\-int\fP

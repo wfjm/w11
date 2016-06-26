@@ -4,6 +4,7 @@
 rblib.vhd
 # components
 [sim]../memlib/ram_1swsr_wfirst_gen.vbom
-[xst,vsyn]../memlib/ram_1swsr_wfirst_gen_unisim.vbom
+[xst]../memlib/ram_1swsr_wfirst_gen_unisim.vbom
+[vsyn]../memlib/ram_1swsr_wfirst_gen.vbom
 # design
 rbd_rbmon.vhd

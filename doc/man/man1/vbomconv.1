@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: vbomconv.1 746 2016-03-19 13:08:36Z mueller $
+.\"  $Id: vbomconv.1 779 2016-06-26 15:37:16Z mueller $
 .\"
 .\" Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -208,7 +208,7 @@ The first definition seen in the \fIvbom\fP
 traversal is taken, all others are ignored. The filename in the usage clause
 is the default used in case the logical name wasn't defined.
 
-Last but not least are 5 directives defined in the \fBvbom\fP
+Last but not least are 4 directives defined in the \fBvbom\fP
 file format:
 .
 .IP "\fB@top\fP:\fIname\fP"
@@ -219,13 +219,6 @@ stem of the \fIvbom\fP file name.
 allows to specify additional system libraries. Currently used to indicate 
 that the \fIunisim\fP, \fIunimacro\fP or  \fIsimprim\fP libraries are 
 needed by \fBghdl\fP.
-.
-.IP "\fB@uut\fP:\fIfile\fP"
-signals that the \fIvbom\fP descibes a test bench and that \fIfile\fP is
-the 'unit under test'. This allows to split the sources into a simulation
-only test bench part and a synthesizable 'unit under test' part. \fIfile\fP
-is typically a \fIvbom\fP in case of a functional simulation or the file
-name of a generated post synthesis model.
 .
 .IP "\fB@xdc\fP:\fIfile\fP"
 specifies that \fIfile\fP is a constraint file for Vivado synthesis and should
@@ -452,6 +445,15 @@ actions use \fBexec\fP(3) to execute the \fBghdl\fP command.
 In these cases the caller will see the exit status of \fBghdl\fP.
 .
 .\" ------------------------------------------------------------------
+.SH ENVIRONMENT
+.IP \fBVBOMCONV_XSIM_LANG\fP
+Controls the language for the generated models used by xsim. Can be set to
+\fIverilog\fP or to \fIvhdl\fP. If not defined \fIverilog\fP is used.
+It affects \fB\-\-vsim_prj\fP but also \fB\-\-dep_vsim\fP.
+Use  \fBrm_dep\fP(1) to force regeneration of dependency files when this
+environment variable is set, unset or changed.
+.
+.\" ------------------------------------------------------------------
 .SH BUGS
 .IP \(bu 2
 Duplicate file elimination fails when one source file is refered to by
@@ -550,7 +552,6 @@ output like in
     vbomconv --ghdl_a_cmd  tb_w11a_n2.vbom  | wc
     vbomconv --isim_prj    tb_w11a_n2.vbom  | wc
 .EP
-.
 .\" ------------------------------------------------------------------
 .SH "SEE ALSO"
 .BR vbom (5),

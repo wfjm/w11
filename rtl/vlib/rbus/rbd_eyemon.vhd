@@ -1,6 +1,6 @@
--- $Id: rbd_eyemon.vhd 593 2014-09-14 22:21:33Z mueller $
+-- $Id: rbd_eyemon.vhd 767 2016-05-26 07:47:51Z mueller $
 --
--- Copyright 2010-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,7 +20,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 12.1-14.7; ghdl 0.29-0.31
+-- Tool versions:  xst 12.1-14.7; viv 2014.4-2016.1; ghdl 0.29-0.33
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -29,6 +29,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-05-22   787   4.1.1  don't init N_REGS (vivado fix for fsm inference)
 -- 2014-09-13   593   4.1    no default rbus addess anymore, def=0
 -- 2014-08-15   583   4.0    rb_mreq addr now 16 bit
 -- 2011-11-19   427   1.0.3  now numeric_std clean
@@ -131,7 +132,7 @@ architecture syn of rbd_eyemon is
   );
 
   signal R_REGS : regs_type := regs_init;
-  signal N_REGS : regs_type := regs_init;
+  signal N_REGS : regs_type;            -- don't init (vivado fix for fsm infer)
 
   signal BRAM_ENA : slbit := '0';
   signal BRAM_DIA : slv32 := (others=>'0');
@@ -296,6 +297,7 @@ begin
         end if;
 
       when s_char =>                    -- s_char: processing a char ---------
+        n.state := s_char;              -- needed to prevent vivado iSTATE
         if RXACT = '0' then               -- uart went unactive
           if RXSD = '1' then                -- line idle -> to s_idle
             n.state := s_idle;

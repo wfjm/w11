@@ -5,6 +5,6 @@
 # components
 ../../simlib/simclk.vbom
 ../../simlib/simclkcnt.vbom
-@uut: ${uut := tbd_serport_uart_rxtx.vbom}
+${uut := tbd_serport_uart_rxtx.vbom}  -UUT
 # design
 tb_serport_uart_rxtx.vhd

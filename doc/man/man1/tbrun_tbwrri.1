@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: tbrun_tbwrri.1 745 2016-03-18 22:10:34Z mueller $
+.\"  $Id: tbrun_tbwrri.1 774 2016-06-12 17:08:47Z mueller $
 .\"
 .\" Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -63,7 +63,7 @@ dry run, prints the commands but doesn't execute
 .
 .\" -- --lsuf ------------------------------------
 .IP \fB\-\-lsuf\ \fIsuff\fR
-use '_\fIsuff\fR.log' as suffix for log file. Default is '_dsim.log'
+use '_\fIsuff\fR.log' as suffix for log file. Default is '_bsim.log'
 .
 .\" -- --stack -----------------------------------
 .IP \fB\-\-stack\ \fInnn\fR
@@ -97,8 +97,8 @@ For s3board, nexys2, and nexys3 designs.
 .
 .\" -- --sxon ------------------------------------
 .IP \fB\-\-sxon\fR
-switched\ XON: enable XON flow control with SWI(1), will generate appropriate 
-'rlc oob' commands and ti_rri \-\-fifo options. 
+switched\ XON: enable XON flow control with SWI(1), will generate 
+appropriate 'rlc oob' commands and ti_rri \-\-fifo options. 
 For nexys4 designs.
 .
 .\" -- --hxon ------------------------------------

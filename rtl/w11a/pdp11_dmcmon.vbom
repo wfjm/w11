@@ -5,8 +5,10 @@
 pdp11.vbom
 # components
 [sim]../vlib/memlib/ram_2swsr_rfirst_gen.vbom
-[xst,vsyn]../vlib/memlib/ram_2swsr_rfirst_gen_unisim.vbom
+[xst]../vlib/memlib/ram_2swsr_rfirst_gen_unisim.vbom
+[vsyn]../vlib/memlib/ram_2swsr_rfirst_gen.vbom
 [sim]../vlib/memlib/ram_1swar_1ar_gen.vbom
-[xst,vsyn]../vlib/memlib/ram_1swar_1ar_gen_unisim.vbom
+[xst]../vlib/memlib/ram_1swar_1ar_gen_unisim.vbom
+[vsyn]../vlib/memlib/ram_1swar_1ar_gen.vbom
 # design
 pdp11_dmcmon.vhd

@@ -1,0 +1,5 @@
+# libs
+../slvtypes.vhd
+# design
+cdc_signal_s1.vhd
+@xdc:cdc_signal_s1.xdc -SCOPE_REF

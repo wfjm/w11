@@ -1,4 +1,4 @@
--- $Id: rbd_tester.vhd 593 2014-09-14 22:21:33Z mueller $
+-- $Id: rbd_tester.vhd 758 2016-04-02 18:01:39Z mueller $
 --
 -- Copyright 2010-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,7 +20,7 @@
 -- Test bench:     rlink/tb/tb_rlink (used as test target)
 --
 -- Target Devices: generic
--- Tool versions:  xst 12.1-14.7; ghdl 0.29-0.31
+-- Tool versions:  xst 12.1-14.7; viv 2014.4-2015.4; ghdl 0.29-0.33
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri

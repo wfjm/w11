@@ -1,4 +1,4 @@
--- $Id: tb_tst_serloop1_n4.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: tb_tst_serloop1_n4.vhd 760 2016-04-09 16:17:13Z mueller $
 --
 -- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,6 +16,7 @@
 -- Description:    Test bench for sys_tst_serloop1_n4
 --
 -- Dependencies:   simlib/simclk
+--                 vlib/xlib/tb/s7_cmt_sfs_tb
 --                 sys_tst_serloop1_n4 [UUT]
 --                 tb/tb_tst_serloop
 --
@@ -25,6 +26,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-04-09   760   1.1    clock now from cmt and configurable
 -- 2015-02-21   438   1.0    Initial version (cloned from tb_tst_serloop1_n3)
 ------------------------------------------------------------------------------
 
@@ -36,6 +38,7 @@ use std.textio.all;
 
 use work.slvtypes.all;
 use work.simlib.all;
+use work.sys_conf.all;
 
 entity tb_tst_serloop1_n4 is
 end tb_tst_serloop1_n4;
@@ -44,6 +47,8 @@ architecture sim of tb_tst_serloop1_n4 is
   
   signal CLK100 : slbit := '0';
   signal CLK_STOP  : slbit := '0';
+  
+  signal CLK  : slbit := '0';
 
   signal I_RXD : slbit := '1';
   signal O_TXD : slbit := '1';
@@ -74,6 +79,21 @@ begin
       CLK_STOP  => CLK_STOP
     );
 
+  GEN_CLKSYS : entity work.s7_cmt_sfs_tb
+    generic map (
+      VCO_DIVIDE     => sys_conf_clksys_vcodivide,
+      VCO_MULTIPLY   => sys_conf_clksys_vcomultiply,
+      OUT_DIVIDE     => sys_conf_clksys_outdivide,
+      CLKIN_PERIOD   => 10.0,
+      CLKIN_JITTER   => 0.01,
+      STARTUP_WAIT   => false,
+      GEN_TYPE       => sys_conf_clksys_gentype)
+    port map (
+      CLKIN   => CLK100,
+      CLKFX   => CLK,
+      LOCKED  => open
+    );
+  
   UUT : entity work.sys_tst_serloop1_n4
     port map (
       I_CLK100     => CLK100,
@@ -93,17 +113,17 @@ begin
 
   GENTB : entity work.tb_tst_serloop
     port map (
-      CLKS      => CLK100,
-      CLKH      => CLK100,
+      CLKS      => CLK,
+      CLKH      => CLK,
       CLK_STOP  => CLK_STOP,
       P0_RXD    => RXD,
       P0_TXD    => TXD,
       P0_RTS_N  => RTS_N,
       P0_CTS_N  => CTS_N,
-      P1_RXD    => RXD,
-      P1_TXD    => TXD,
-      P1_RTS_N  => RTS_N,
-      P1_CTS_N  => CTS_N,
+      P1_RXD    => open,                -- port 1 unused for n4 !
+      P1_TXD    => '0',
+      P1_RTS_N  => '0',
+      P1_CTS_N  => open,
       SWI       => SWI(7 downto 0),
       BTN       => BTN(3 downto 0)
     );

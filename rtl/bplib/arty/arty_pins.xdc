@@ -1,15 +1,20 @@
 # -*- tcl -*-
-# $Id: arty_pins.xdc 740 2016-03-06 20:56:56Z mueller $
+# $Id: arty_pins.xdc 758 2016-04-02 18:01:39Z mueller $
 #
 # Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
-# Pin locks for Digilent Arty core functionality
-#  - USB UART
-#  - human I/O (switches, buttons, leds)
+# Digilent Arty core functionality
+# - Configuration setup
+#   - config voltage
+#   - enable bitstream timestamp
+# - Pin Locks for
+#   - USB UART
+#   - human I/O (switches, buttons, leds)
 #
 # Revision History: 
 # Date         Rev Version  Comment
+# 2016-04-02   758   1.2    add BITSTREAM.CONFIG.USR_ACCESS setup
 # 2016-03-06   740   1.1    add A_VPWRP/N to baseline config
 # 2016-01-31   726   1.0    Initial version
 #
@@ -17,6 +22,7 @@
 # config setup --------------------------------------------------------------
 set_property CFGBVS         VCCO [current_design]
 set_property CONFIG_VOLTAGE  3.3 [current_design]
+set_property BITSTREAM.CONFIG.USR_ACCESS TIMESTAMP [current_design]
 
 # clocks -- in bank 35 ------------------------------------------------------
 set_property PACKAGE_PIN e3  [get_ports {I_CLK100}]

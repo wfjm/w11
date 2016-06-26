@@ -1,4 +1,4 @@
--- $Id: pdp11_reg70.vhd 677 2015-05-09 21:52:32Z mueller $
+-- $Id: pdp11_reg70.vhd 768 2016-05-26 16:47:00Z mueller $
 --
 -- Copyright 2008-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,7 +18,7 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.1; ghdl 0.18-0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
@@ -36,7 +36,6 @@ use ieee.numeric_std.all;
 use work.slvtypes.all;
 use work.pdp11.all;
 use work.iblib.all;
-use work.sys_conf.all;
 
 -- ----------------------------------------------------------------------------
 

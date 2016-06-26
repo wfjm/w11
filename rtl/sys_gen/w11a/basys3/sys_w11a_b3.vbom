@@ -4,6 +4,7 @@
 ../../../vlib/genlib/genlib.vhd
 ../../../vlib/serport/serportlib.vbom
 ../../../vlib/rbus/rblib.vhd
+../../../vlib/rbus/rbdlib.vhd
 ../../../vlib/rlink/rlinklib.vbom
 ../../../bplib/bpgen/bpgenlib.vbom
 ../../../bplib/bpgen/bpgenrbuslib.vbom
@@ -17,7 +18,7 @@ sys_conf = sys_conf.vhd
 [ghdl,isim,vsim]../../../vlib/xlib/s7_cmt_sfs_gsim.vbom
 ../../../vlib/genlib/clkdivce.vbom
 ../../../bplib/bpgen/bp_rs232_2line_iob.vbom
-../../../vlib/rlink/rlink_sp1c.vbom
+../../../vlib/rlink/rlink_sp2c.vbom
 ../../../w11a/pdp11_sys70.vbom
 ../../../ibus/ibdr_maxisys.vbom
 ../../../w11a/pdp11_bram_memctl.vbom
@@ -25,7 +26,8 @@ sys_conf = sys_conf.vhd
 ../../../w11a/pdp11_hio70.vbom
 ../../../bplib/bpgen/sn_humanio_rbus.vbom
 ../../../bplib/sysmon/sysmonx_rbus_base.vbom
-../../../vlib/rbus/rb_sres_or_3.vbom
+../../../vlib/rbus/rbd_usracc.vbom
+../../../vlib/rbus/rb_sres_or_4.vbom
 # design
 sys_w11a_b3.vhd
 @xdc:../../../bplib/basys3/basys3_pclk.xdc

@@ -1,10 +1,12 @@
-# $Id: generic_xflow.mk 733 2016-02-20 12:24:13Z mueller $
+# $Id: generic_xflow.mk 778 2016-06-25 15:18:01Z mueller $
 #
-# Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2016-06-25   778   1.11.2 mfset rule: add message if log not found
+# 2016-05-27   769   1.11.1 rename mfset to imfset
 # 2015-05-02   672   1.11   ucf_cpp handling: remove -C (gcc 4.8 stdc-predef.h)
 # 2015-02-06   643   1.10   use make_ise; rename xise_msg_filter <- isemsg_filter
 #                           drop --ise_path from vbomconv;
@@ -100,8 +102,8 @@ XFLOW    = xflow -p ${ISE_PATH}
 	@ echo "==============================================================="
 	@ echo "*     XST Diagnostic Summary                                  *"
 	@ echo "==============================================================="
-	@ if [ -r $*.mfset ]; then xise_msg_filter xst $*.mfset $*_xst.log; fi
-	@ if [ ! -r $*.mfset ]; then grep -i -A 1 ":.*:" $*_xst.log || true; fi
+	@ if [ -r $*.imfset ]; then xise_msg_filter xst $*.imfset $*_xst.log; fi
+	@ if [ ! -r $*.imfset ]; then grep -i -A 1 ":.*:" $*_xst.log || true; fi
 	@ echo "==============================================================="
 #
 # the following rule needed to generate an %_*sim.vhd in a ./tb sub-directory
@@ -122,8 +124,8 @@ XFLOW    = xflow -p ${ISE_PATH}
 	@ echo "==============================================================="
 	@ echo "*     XST Diagnostic Summary                                  *"
 	@ echo "==============================================================="
-	@ if [ -r $*.mfset ]; then xise_msg_filter xst $*.mfset $*_xst.log; fi
-	@ if [ ! -r $*.mfset ]; then grep -i -A 1 ":.*:" $*_xst.log || true; fi
+	@ if [ -r $*.imfset ]; then xise_msg_filter xst $*.imfset $*_xst.log; fi
+	@ if [ ! -r $*.imfset ]; then grep -i -A 1 ":.*:" $*_xst.log || true; fi
 	@ echo "==============================================================="
 #
 # Implement 1 (map+par)
@@ -155,19 +157,19 @@ XFLOW    = xflow -p ${ISE_PATH}
 	if [ -r ./ise/$*_pad.txt ]; then cp -p ./ise/$*_pad.txt ./$*_pad.log; fi
 	if [ -r ./ise/$*.twr ]; then cp -p ./ise/$*.twr ./$*_twr.log; fi
 	if [ -r ./ise/$*.tsi ]; then cp -p ./ise/$*.tsi ./$*_tsi.log; fi
-	@ if [ -r $*.mfset ]; then \
+	@ if [ -r $*.imfset ]; then \
 	  echo "=============================================================";\
 	  echo "*     Translate Diagnostic Summary                          *";\
 	  echo "=============================================================";\
-	  xise_msg_filter tra $*.mfset $*_tra.log;\
+	  xise_msg_filter tra $*.imfset $*_tra.log;\
 	  echo "=============================================================";\
 	  echo "*     MAP Diagnostic Summary                                *";\
 	  echo "=============================================================";\
-	  xise_msg_filter map $*.mfset $*_map.log;\
+	  xise_msg_filter map $*.imfset $*_map.log;\
 	  echo "=============================================================";\
 	  echo "*     PAR Diagnostic Summary                                *";\
 	  echo "=============================================================";\
-	  xise_msg_filter par $*.mfset $*_par.log;\
+	  xise_msg_filter par $*.imfset $*_par.log;\
 	  echo "=============================================================";\
 	  fi
 #
@@ -185,11 +187,11 @@ XFLOW    = xflow -p ${ISE_PATH}
 	if [ -r ./ise/$*.bit ]; then cp -p ./ise/$*.bit .; fi
 	if [ -r ./ise/$*.msk ]; then cp -p ./ise/$*.msk .; fi
 	if [ -r ./ise/$*.bgn ]; then cp -p ./ise/$*.bgn ./$*_bgn.log; fi
-	@ if [ -r $*.mfset ]; then \
+	@ if [ -r $*.imfset ]; then \
 	  echo "=============================================================";\
 	  echo "*     Bitgen Diagnostic Summary                             *";\
 	  echo "=============================================================";\
-	  xise_msg_filter bgn $*.mfset $*_bgn.log;\
+	  xise_msg_filter bgn $*.imfset $*_bgn.log;\
 	  echo "=============================================================";\
 	  fi
 #
@@ -225,18 +227,27 @@ endif
 # Print log file summary
 #   input:   %_*.log (not depended)
 #   output:  .PHONY
-%.mfsum: %.mfset
+%.mfsum: %.imfset
 	@ echo "=== XST summary ============================================="
-	@ if [ -r $*_xst.log ]; then xise_msg_filter xst $*.mfset $*_xst.log; fi
+	@ if [ -r $*_xst.log ]; \
+	    then xise_msg_filter xst $*.imfset $*_xst.log; \
+	    else echo "   !!! no $*_xst.log found"; fi
 	@ echo "=== Translate summary ======================================="
-	@ if [ -r $*_tra.log ]; then xise_msg_filter tra $*.mfset $*_tra.log; fi
+	@ if [ -r $*_tra.log ]; \
+	    then xise_msg_filter tra $*.imfset $*_tra.log; \
+	    else echo "   !!! no $*_tra.log found"; fi
 	@ echo "=== MAP summary ============================================="
-	@ if [ -r $*_map.log ]; then xise_msg_filter map $*.mfset $*_map.log; fi
+	@ if [ -r $*_map.log ]; \
+	    then xise_msg_filter map $*.imfset $*_map.log; \
+	    else echo "   !!! no $*_map.log found"; fi
 	@ echo "=== PAR summary ============================================="
-	@ if [ -r $*_par.log ]; then xise_msg_filter par $*.mfset $*_par.log; fi
+	@ if [ -r $*_par.log ]; \
+	    then xise_msg_filter par $*.imfset $*_par.log; \
+	    else echo "   !!! no $*_par.log found"; fi
 	@ echo "=== Bitgen summary =========================================="
-	@ if [ -r $*_bgn.log ]; then xise_msg_filter bgn $*.mfset $*_bgn.log; fi
-
+	@ if [ -r $*_bgn.log ]; \
+	    then xise_msg_filter bgn $*.imfset $*_bgn.log; \
+	    else echo "   !!! no $*_bgn.log found"; fi
 #
 #
 #

@@ -1,6 +1,6 @@
--- $Id: simlib.vhd 599 2014-10-25 13:43:56Z mueller $
+-- $Id: simlib.vhd 774 2016-06-12 17:08:47Z mueller $
 --
--- Copyright 2006-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,10 +18,11 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
+-- Tool versions:  xst 8.2-14.7; viv 2015.4-2016.2; ghdl 0.18-0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-06-12   774   2.1.2  add writetimens()
 -- 2014-10-25   599   2.1.1  add wait_* procedures; writeoptint: no dat clear
 -- 2014-10-18   597   2.1    add simfifo_*, writetrace procedures
 -- 2014-09-06   591   2.0.1  add readint_ea() with range check
@@ -205,6 +206,11 @@ procedure writegen(                     -- write slv in generic base (arb. lth)
   justified: in side:=right;            -- justification (left/right)
   field: in width:=0;                   -- field width
   base: in integer:= 2);                -- default base
+
+procedure writetimens(                  -- write time as fractional ns
+  L: inout line;                        -- line
+  t : in time;                          -- time
+  field : in width:=0);                 -- number of ns digits
 
 procedure writetimestamp(               -- write time stamp
   L: inout line;                        -- line
@@ -1162,10 +1168,10 @@ begin
 end procedure writegen;
 
 -- -------------------------------------
-
-procedure writetimestamp(
-  L: inout line;
-  str : in string := null_string) is
+procedure writetimens(                  -- write time as fractional ns
+  L: inout line;                        -- line
+  t : in time;                          -- time
+  field : in width:=0) is               -- number of ns digits
 
   variable t_nsec  : integer := 0;
   variable t_psec  : integer := 0;
@@ -1173,15 +1179,26 @@ procedure writetimestamp(
 
 begin
 
-  t_nsec  := now / 1 ns;
-  t_psec  := (now - t_nsec * 1 ns) / 1 ps;
+  t_nsec  := t / 1 ns;
+  t_psec  := (t - t_nsec * 1 ns) / 1 ps;
   t_dnsec := t_psec/100;
   
-  write(L, t_nsec, right, 8);
+  write(L, t_nsec, right, field);
   write(L,'.');
   write(L, t_dnsec, right, 1);
   write(L, string'(" ns"));
+
+end procedure writetimens;
   
+-- -------------------------------------
+
+procedure writetimestamp(
+  L: inout line;
+  str : in string := null_string) is
+
+begin
+
+  writetimens(L, now, 8);
   if str /= null_string then
     write(L, str);
   end if;

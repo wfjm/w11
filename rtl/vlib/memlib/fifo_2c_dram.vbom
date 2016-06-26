@@ -4,7 +4,8 @@
 memlib.vhd
 # components
 [sim]ram_1swar_1ar_gen.vbom
-[xst,vsyn]ram_1swar_1ar_gen_unisim.vbom
+[xst]ram_1swar_1ar_gen_unisim.vbom
+[vsyn]ram_1swar_1ar_gen.vbom
 ../genlib/gray_cnt_gen.vbom
 ../genlib/gray2bin_gen.vbom
 # design

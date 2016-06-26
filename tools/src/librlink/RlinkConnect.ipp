@@ -1,6 +1,6 @@
-// $Id: RlinkConnect.ipp 666 2015-04-12 21:17:54Z mueller $
+// $Id: RlinkConnect.ipp 758 2016-04-02 18:01:39Z mueller $
 //
-// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2016-04-02   758   2.4    add USR_ACCESS register support (RLUA0/RLUA1)
+// 2016-03-20   748   2.3    add fTimeout,(Set)Timeout();
 // 2015-04-12   666   2.2    add LinkInit,LinkInitDone; transfer xon
 // 2015-01-06   631   2.1    full rlink v4 implementation
 // 2013-03-05   495   1.2.1  add Exec() without emsg (will send emsg to LogFile)
@@ -26,7 +28,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.ipp 666 2015-04-12 21:17:54Z mueller $
+  \version $Id: RlinkConnect.ipp 758 2016-04-02 18:01:39Z mueller $
   \brief   Implemenation (inline) of RlinkConnect.
 */
 
@@ -102,6 +104,13 @@ inline void RlinkConnect::Exec(RlinkCommandList& clist)
 inline uint32_t RlinkConnect::SysId() const
 {
   return fSysId;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+inline uint32_t RlinkConnect::UsrAcc() const
+{
+  return fUsrAcc;
 }
 
 //------------------------------------------+-----------------------------------
@@ -235,6 +244,14 @@ inline uint32_t RlinkConnect::DumpLevel() const
 inline uint32_t RlinkConnect::TraceLevel() const
 {
   return fTraceLevel;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline double RlinkConnect::Timeout() const
+{
+  return fTimeout;
 }
 
 //------------------------------------------+-----------------------------------

@@ -5,6 +5,7 @@
 pdp11.vbom
 # components
 [sim]../vlib/memlib/ram_1swar_gen.vbom
-[xst,vsyn]../vlib/memlib/ram_1swar_gen_unisim.vbom
+[xst]../vlib/memlib/ram_1swar_gen_unisim.vbom
+[vsyn]../vlib/memlib/ram_1swar_gen.vbom
 # design
 pdp11_mmu_sadr.vhd

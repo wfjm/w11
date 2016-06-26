@@ -4,6 +4,7 @@
 ../../../vlib/genlib/genlib.vhd
 ../../../vlib/serport/serportlib.vbom
 ../../../vlib/rbus/rblib.vhd
+../../../vlib/rbus/rbdlib.vhd
 ../../../vlib/rlink/rlinklib.vbom
 ../../../bplib/bpgen/bpgenlib.vbom
 ../../../bplib/bpgen/bpgenrbuslib.vbom
@@ -20,8 +21,9 @@ ${sys_conf := sys_conf.vhd}
 ../../../bplib/bpgen/rgbdrv_master.vbom
 ../../../bplib/bpgen/rgbdrv_analog_rbus.vbom
 ../../../bplib/sysmon/sysmonx_rbus_base.vbom
+../../../vlib/rbus/rbd_usracc.vbom
 ../../../vlib/rbus/rb_sres_or_2.vbom
-../../../vlib/rbus/rb_sres_or_4.vbom
+../../../vlib/rbus/rb_sres_or_6.vbom
 # design
 sys_tst_rlink_n4.vhd
 @ucf_cpp: sys_tst_rlink_n4.ucf

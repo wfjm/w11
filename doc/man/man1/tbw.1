@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: tbw.1 727 2016-02-07 13:58:47Z mueller $
+.\"  $Id: tbw.1 774 2016-06-12 17:08:47Z mueller $
 .\"
 .\" Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH TBW 1 2016-02-06 "Retro Project" "Retro Project Manual"
+.TH TBW 1 2016-04-17 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 tbw \- wrapper script to start ghdl based VHDL test benches
@@ -52,9 +52,10 @@ or if defined to \fIFILEDEF\fP, and execute \fITBPROG\fP. In essence
 .SS Using a \fItbw.dat\fP configuration file
 When the generic file name or the stimulus file name does not follow the 
 simple default pattern or more than one input file is required a 
-configuration file can be used to define the setup. It has the fixed
-name \fItbw.dat\fP and is searched the current working directory. The
-format is described in section FILES.
+configuration file can be used to define the setup. It has the fixed name 
+\fItbw.dat\fP and is searched the directory of the test bench program
+\fITBPROG\fP.
+The format is described in section FILES.
 
 In this case the \fIFILEDEF\fP argument can be specified as 'tag=value'
 pairs where tag refers to a generic name and value gives the concrete
@@ -68,15 +69,18 @@ defined via the \fItbw.dat\fP file, for details see section FILES.
 .
 .\" ------------------------------------------------------------------
 .SH OPTIONS
-The options \fB\-run\fP, \fB\-fifo\fP and \fB\-verbose\fP are processed
-by tbw itself. If more than one is given they must be in this order.
-.IP \fB\-run\fR
-Used for _ISim or _XSim tb's, ensures that simulation runs till end. Will
-issue a 'run all' command for ISim and a '-R' option for XSim.
+The options \fB\-fifo\fP, \fB\-verbose\fP and \fB\-norun\fP  are processed
+by tbw itself. They must be the first options after \fITBPROG\fP.
 .IP \fB\-fifo\fR
-Forces usage of rlink_cext fifo, will ignore tbw.dat
+Forces usage of rlink_cext fifo in case no \fItbw.dat\fP is found or no section
+matching \fITBPROG\fP is found in tbw.dat.
 .IP \fB\-verbose\fR
-show the used tag,value settings before execution
+Show the used tag,value settings before execution
+.IP \fB\-norun\fR
+Start simulator in interactive mode.
+Default for _XSim or _ISim tb's is to ensure that the simulation runs till 
+the end, as for ghdl. Therefore a '-R' option for XSim or a 'run all' command 
+for ISim  is generated. The -norun option suppresses this.
 
 .\" ------------------------------------------------------------------
 .SH GHDL OPTIONS
@@ -111,9 +115,10 @@ display process name before each cycle.
 .\" ------------------------------------------------------------------
 .SH FILES
 .IP "\fI./tbw.dat\fR" 4
-This configuration file is searched for in the current working directory
-and holds associations between generic file names and concrete file names
-for one or more test bench executables. It contains sections of the format
+This configuration file is searched for in the directory of the test bench
+program \fITBPROG\fP and holds associations between generic file names and 
+concrete file names for one or more test bench executables. It contains 
+sections of the format
 
 .EX
     [\fITBPROG\fP]
@@ -179,6 +184,9 @@ produce a single \fIDONE\fP line
 .PD
 .RE
 
+The convenience script \fBtbrun_tbw\fP(1) can be used in many cases to create
+such a pipeline.
+
 .SS Test benches controlled with \fBti_rri\fP
 In these cases the test bench is started via \fBti_rri\fP using the
 \fB\-\-run\fP and \fB\-\-fifo\fP options. Also here usually a pipe with 
@@ -188,14 +196,19 @@ In these cases the test bench is started via \fBti_rri\fP using the
   ti_rri \-\-run="tbw tb_tst_rlink_n3" \-\-fifo \-\-logl=3 \-\- \\
         "package require tst_rlink" \\
         "tst_rlink::setup" "tst_rlink::test_all" |\\
-     tee tb_tst_rlink_n3_dsim.log |\\
+     tee tb_tst_rlink_n3_bsim.log |\\
      egrep "(\-[EFW]:|FAIL|PEND|DONE)"
 .EE
+
+The convenience script \fBtbrun_tbwrri\fP(1) can be used in many cases to
+create these sometimes rather lengthy constructs.
 
 .
 .\" ------------------------------------------------------------------
 .SH "SEE ALSO"
 .BR ti_rri (1),
+.BR tbrun_tbw (1),
+.BR tbrun_tbwrri (1),
 .BR gtkwave (1),
 .BR symlink (7),
 .BR fifo (7)

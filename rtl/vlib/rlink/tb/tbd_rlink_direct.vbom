@@ -6,3 +6,4 @@
 ../rlink_core.vbom
 # design
 tbd_rlink_direct.vhd
+@xdc:../../generic_clk_100mhz.xdc

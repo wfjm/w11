@@ -6,7 +6,8 @@
 rlinklib.vbom
 # components
 [sim]../memlib/ram_2swsr_rfirst_gen.vbom
-[xst,vsyn]../memlib/ram_2swsr_rfirst_gen_unisim.vbom
+[xst]../memlib/ram_2swsr_rfirst_gen_unisim.vbom
+[vsyn]../memlib/ram_2swsr_rfirst_gen.vbom
 ../memlib/fifo_1c_dram.vbom
 ../comlib/crc16.vbom
 ../rbus/rb_sel.vbom

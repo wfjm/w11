@@ -1,4 +1,4 @@
--- $Id: s7_cmt_sfs_tb.vhd 734 2016-02-20 22:43:20Z mueller $
+-- $Id: s7_cmt_sfs_tb.vhd 760 2016-04-09 16:17:13Z mueller $
 --
 -- Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -23,6 +23,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-04-09   760   1.1    BUGFIX: correct mmcm range check boundaries
 -- 2016-02-20   734   1.0    Initial version (copied from s7_cmt_sfs_gsim)
 ------------------------------------------------------------------------------
 
@@ -120,10 +121,10 @@ begin
             severity failure;
         end if;
         -- setup VCO and PD range check boundaries
-        t_vcomin := (1000 ns / f_vcomax_pll) - 1 ps;
-        t_vcomax := (1000 ns / f_vcomin_pll) + 1 ps;
-        t_pdmin  := (1000 ns / f_pdmax_pll) - 1 ps;
-        t_pdmax  := (1000 ns / f_pdmin_pll) + 1 ps;
+        t_vcomin := (1000 ns / f_vcomax_mmcm) - 1 ps;
+        t_vcomax := (1000 ns / f_vcomin_mmcm) + 1 ps;
+        t_pdmin  := (1000 ns / f_pdmax_mmcm) - 1 ps;
+        t_pdmax  := (1000 ns / f_pdmin_mmcm) + 1 ps;
 
       end if; -- GEN_TYPE = "MMCM"
 
@@ -133,7 +134,8 @@ begin
 
       if t_vco<t_vcomin or t_vco>t_vcomax then
         assert false 
-          report "assert(VCO frequency out of range)"
+          report "assert(VCO frequency out of range); t_cvo: "
+                     & time'image(t_vco)
           severity failure;
       end if;
       

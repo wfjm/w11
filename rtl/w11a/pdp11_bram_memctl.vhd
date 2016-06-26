@@ -1,6 +1,6 @@
--- $Id: pdp11_bram_memctl.vhd 644 2015-02-08 22:56:54Z mueller $
+-- $Id: pdp11_bram_memctl.vhd 767 2016-05-26 07:47:51Z mueller $
 --
--- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,10 +18,12 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: 7-Series
--- Tool versions:  ise 14.7; viv 2014.4; ghdl 0.31
+-- Tool versions:  ise 14.7; viv 2014.4-2016.1; ghdl 0.31-0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-05-22   787   1.1.1  don't init N_REGS (vivado fix for fsm inference)
+-- 2016-03-20   749   1.1    use ram_1swsr_wfirst_gen rather BRAM_SINGLE_MACRO
 -- 2015-02-08   644   1.0    Initial version 
 ------------------------------------------------------------------------------
 
@@ -29,12 +31,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-library unisim;
-use unisim.vcomponents.all;
-library unimacro;
-use unimacro.vcomponents.all;
-
 use work.slvtypes.all;
+use work.memlib.all;
 use work.pdp11.all;
 
 -- ----------------------------------------------------------------------------
@@ -42,7 +40,7 @@ use work.pdp11.all;
 entity pdp11_bram_memctl is             -- BRAM based memctl
   generic (
     MAWIDTH : positive := 4;            -- mux address width
-    NBLOCK : positive := 11);           -- write delay in clock cycles
+    NBLOCK : positive := 11);           -- number of 16 kByte blocks
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- reset
@@ -93,8 +91,8 @@ architecture syn of pdp11_bram_memctl is
     '0'                                 -- ackr
   );
 
-  signal R_REGS : regs_type := regs_init;  -- state registers
-  signal N_REGS : regs_type := regs_init;  -- next value state regs
+  signal R_REGS : regs_type := regs_init;
+  signal N_REGS : regs_type;            -- don't init (vivado fix for fsm infer)
 
   type mem_do_type is array (NBLOCK-1 downto 0) of slv32;
   signal MEM_DO : mem_do_type := (others=> (others => '0'));
@@ -112,25 +110,18 @@ begin
   
   MARRAY: for row in NBLOCK-1 downto 0 generate
     MROW: for col in 3 downto 0 generate
-      signal WE : slv(0 downto 0) := "0";
     begin
-      WE(0) <= R_REGS.cellwe(col);
-      MCELL : BRAM_SINGLE_MACRO
+      MCELL : ram_1swsr_wfirst_gen
         generic map (
-          BRAM_SIZE   => "36Kb",
-          DEVICE      => "7SERIES",
-          WRITE_WIDTH => 8,
-          READ_WIDTH  => 8,
-          WRITE_MODE  => "WRITE_FIRST")
+          AWIDTH => 12,                 -- 4 Kb blocks
+          DWIDTH =>  8)                 -- byte wide
         port map (
-          CLK   => CLK,
-          RST   => '0',
-          REGCE => '1',
-          ADDR  => R_REGS.celladdr,
-          EN    => R_REGS.cellen(row),
-          WE    => WE,
-          DI    => R_REGS.dibuf(8*col+7 downto 8*col),
-          DO    => MEM_DO(row)(8*col+7 downto 8*col)
+          CLK  => CLK,
+          EN   => R_REGS.cellen(row),
+          WE   => R_REGS.cellwe(col),
+          ADDR => R_REGS.celladdr,
+          DI   => R_REGS.dibuf(8*col+7 downto 8*col),
+          DO   => MEM_DO(row)(8*col+7 downto 8*col)
         );
     end generate MROW;
   end generate MARRAY;

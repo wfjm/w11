@@ -1,4 +1,4 @@
--- $Id: pdp11.vhd 712 2015-11-01 22:53:45Z mueller $
+-- $Id: pdp11.vhd 750 2016-03-24 23:11:51Z mueller $
 --
 -- Copyright 2006-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -1056,6 +1056,8 @@ component pdp11_mem70 is                -- 11/70 memory system registers
 end component;
 
 component pdp11_cache is                -- cache
+  generic (
+    TWIDTH : positive := 9);            -- tag width (5 to 9)
   port (
     CLK : in slbit;                     -- clock
     GRESET : in slbit;                  -- general reset
@@ -1163,7 +1165,7 @@ end component;
 component pdp11_bram_memctl is          -- BRAM based memctl
   generic (
     MAWIDTH : positive := 4;            -- mux address width
-    NBLOCK : positive := 11);           -- write delay in clock cycles
+    NBLOCK : positive := 11);           -- number of 16 kByte blocks
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- reset

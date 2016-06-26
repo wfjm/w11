@@ -1,4 +1,4 @@
-# $Id: w11a_os_guide.txt 745 2016-03-18 22:10:34Z mueller $
+# $Id: w11a_os_guide.txt 779 2016-06-26 15:37:16Z mueller $
 
 Guide to run operating system images on w11a systems
 
@@ -107,7 +107,7 @@ Guide to run operating system images on w11a systems
 
      - for arty over serial
          SWI = 0110                (gives console light emulation...)
-         ti_w11 -tu<dn>,10M,break,xon  @<oskit-name>_boot.tcl
+         ti_w11 -tu<dn>,12M,break,xon  @<oskit-name>_boot.tcl
 
          NOTE: the arty w11a has currently only 176 kB memory (all from BRAMS!)
                unix-v5 works fine. XXDP, RT11 and RSX-11M should work.
@@ -123,7 +123,7 @@ Guide to run operating system images on w11a systems
 
      - for n4 over serial
          SWI = 00000000 00101000   (gives console light display on LEDS)
-         ti_w11 -tu<dn>,10M,break,cts  @<oskit-name>_boot.tcl
+         ti_w11 -tu<dn>,12M,break,cts  @<oskit-name>_boot.tcl
 
      - for n2,n3 over fx2
          SWI = 00101100
@@ -164,7 +164,7 @@ Guide to run operating system images on w11a systems
 
 4. simh simulator setup ---------------------------------------------------
 
-   Sometimes it is good to compare the w11a behaviour with the PDP-11 software
+   Sometimes it is good to compare the w11a behavior with the PDP-11 software
    emulator from the simh project (see http://simh.trailing-edge.com/).
 
    Under $RETROBASE/tools/simh two setup files are provided with configure

@@ -1,8 +1,8 @@
 #! /usr/bin/env tclshcpp
 # -*- tcl -*-
-# $Id: ti_rri 631 2015-01-09 21:36:51Z mueller $
+# $Id: ti_rri 776 2016-06-18 17:22:51Z mueller $
 #
-# Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -15,6 +15,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2015-01-09   776   1.2.2  add --tout option to setup rlc timeout before connect
 # 2015-01-09   631   1.2.1  use rlc get/set rather config
 # 2014-11-07   601   1.2    use tclshcpp (C++ based) rather tclsh
 # 2013-05-19   521   1.1.6  setup proper interactive handling; add --run reap
@@ -41,6 +42,7 @@
 # --logl=n            ; default 2
 # --dmpl=n            ; default 0
 # --tiol=n            ; default 0
+# --tout=n            ; default 1.
 # --int
 # --help
 # --
@@ -63,6 +65,7 @@ array set opts {
     logl_  2
     dmpl_  0
     tiol_  0
+    tout_  1.
     int    0
     help   0
 }
@@ -119,6 +122,7 @@ foreach arg $argv {
     ^--?logl=.+$  { regexp -- {=(.*)} $arg dummy opts(logl_) }
     ^--?dmpl=.+$  { regexp -- {=(.*)} $arg dummy opts(dmpl_) }
     ^--?tiol=.+$  { regexp -- {=(.*)} $arg dummy opts(tiol_) }
+    ^--?tout=.+$  { regexp -- {=(.*)} $arg dummy opts(tout_) }
     ^--?int$      { set opts(int) 1 }
     ^--?help$     { set opts(help) 1 }
     ^--$          { set optsendseen 1 }
@@ -152,10 +156,11 @@ if { $opts(help) } {
   puts {                   --term=[NAME[,BAUD[,OPTS]]]}
   puts {  --cuff[=ARGS]  open cuff type rlink port. Optional arguments are:}
   puts {                   --cuff=[NAME[,OPTS]]}
-  puts {  --log=FILE     set log file name. Default is to write to stdout.}
-  puts {  --logl=LVL     set log level, default is '2' allowed values 0-3.}
+  puts {  --log=FILE     set log file name. Default is to write to stdout}
+  puts {  --logl=LVL     set log level, default is '2' allowed values 0-3}
   puts {  --dmpl=LVL     set dump level, default is '0', values like logl}
-  puts {  --tiol=LVL     set i/o trace level, default is '0', allowed 0-2.}
+  puts {  --tiol=LVL     set i/o trace level, default is '0', allowed 0-2}
+  puts {  --tout=dt      set timeout, default is '1.', must be >0.}
   puts {  --int          enter interactive mode even when commands given}
   puts {  --help         display this help and exit}
   puts {  --             all following arguments are treated as tcl commands}
@@ -216,6 +221,7 @@ if { $opts(log_) ne "-" } {
 rlc set printlevel $opts(logl_)
 rlc set dumplevel  $opts(dmpl_)
 rlc set tracelevel $opts(tiol_)
+rlc set timeout    $opts(tout_)
 
 # first start, if specified with --run, the test bench
 # exec sh -c $cmd is used to execute a shell command including [], '',""

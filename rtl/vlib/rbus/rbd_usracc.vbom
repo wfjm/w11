@@ -1,0 +1,8 @@
+# libs
+../slvtypes.vhd
+../xlib/xlib.vhd
+rblib.vhd
+# components
+../xlib/usr_access_unisim.vbom
+# design
+rbd_usracc.vhd

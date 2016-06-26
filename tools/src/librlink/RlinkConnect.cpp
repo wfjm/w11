@@ -1,6 +1,6 @@
-// $Id: RlinkConnect.cpp 679 2015-05-13 17:38:46Z mueller $
+// $Id: RlinkConnect.cpp 758 2016-04-02 18:01:39Z mueller $
 //
-// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2016-04-02   758   2.5    add USR_ACCESS register support (RLUA0/RLUA1)
+// 2016-03-20   748   2.4    add fTimeout,(Set)Timeout();
 // 2015-05-10   678   2.3.1  WaitAttn(): BUGFIX: return 0. (not -1.) if poll
 // 2015-04-12   666   2.3    add LinkInit,LinkInitDone; transfer xon
 // 2015-04-02   661   2.2    expect logic: stat expect in Command, invert mask
@@ -36,7 +38,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.cpp 679 2015-05-13 17:38:46Z mueller $
+  \version $Id: RlinkConnect.cpp 758 2016-04-02 18:01:39Z mueller $
   \brief   Implemenation of RlinkConnect.
 */
 
@@ -72,6 +74,8 @@ const uint16_t RlinkConnect::kRbaddr_RLCNTL;
 const uint16_t RlinkConnect::kRbaddr_RLSTAT;
 const uint16_t RlinkConnect::kRbaddr_RLID1;
 const uint16_t RlinkConnect::kRbaddr_RLID0;
+const uint16_t RlinkConnect::kRbaddr_RLUA1;
+const uint16_t RlinkConnect::kRbaddr_RLUA0;
 
 const uint16_t RlinkConnect::kRLCNTL_M_AnEna;
 const uint16_t RlinkConnect::kRLCNTL_M_AtoEna;
@@ -108,11 +112,13 @@ RlinkConnect::RlinkConnect()
     fPrintLevel(2),                         // default print: error and checks
     fDumpLevel(0),                          // default dump: no
     fTraceLevel(0),                         // default trace: no
+    fTimeout(10.),                          // default timeout: 10 sec
     fspLog(new RlogFile(&cout)),
     fConnectMutex(),
     fAttnNotiPatt(0),
     fTsLastAttnNoti(-1),
     fSysId(0xffffffff),
+    fUsrAcc(0x00000000),
     fRbufSize(2048)
 {
   for (size_t i=0; i<8; i++) fSeqNumber[i] = 0;
@@ -174,6 +180,7 @@ bool RlinkConnect::Open(const std::string& name, RerrMsg& emsg)
   fLinkInitDone = false;
   fRbufSize = 2048;                         // use minimum (2kB) as startup
   fSysId    = 0xffffffff;
+  fUsrAcc   = 0x00000000;
   
   if (! fpPort->Url().FindOpt("noinit")) {
     if (!LinkInit(emsg)) {
@@ -216,10 +223,22 @@ bool RlinkConnect::LinkInit(RerrMsg& emsg)
   clist.AddRreg(kRbaddr_RLID1);
   clist.AddRreg(kRbaddr_RLID0);
 
+  // RLUA0/1 are optional registers, available for 7Series and higher
+  clist.AddRreg(kRbaddr_RLUA1);
+  clist.SetLastExpectStatus(0,0);       // disable stat check
+  clist.AddRreg(kRbaddr_RLUA0);
+  clist.SetLastExpectStatus(0,0);       // disable stat check
+
   if (!Exec(clist, emsg)) return false;
 
   fLinkInitDone = true;
-  
+
+  // handle rlink core registers: setup mappings, keep data
+  AddrMapInsert("rl.cntl", kRbaddr_RLCNTL);
+  AddrMapInsert("rl.stat", kRbaddr_RLSTAT);
+  AddrMapInsert("rl.id1",  kRbaddr_RLID1);
+  AddrMapInsert("rl.id0",  kRbaddr_RLID0);
+
   uint16_t rlstat = clist[0].Data();
   uint16_t rlid1  = clist[1].Data();
   uint16_t rlid0  = clist[2].Data();
@@ -227,6 +246,21 @@ bool RlinkConnect::LinkInit(RerrMsg& emsg)
   fRbufSize = size_t(1) << (10 + (rlstat & kRLSTAT_M_RBSize));
   fSysId    = uint32_t(rlid1)<<16 | uint32_t(rlid0);
 
+  // handle rlink optional registers: USR_ACCESS
+  const uint8_t staterr = RlinkCommand::kStat_M_RbTout |
+                          RlinkCommand::kStat_M_RbNak  |
+                          RlinkCommand::kStat_M_RbErr;
+  if ((clist[3].Status() & staterr) == 0 &&     // RLUA1 ok
+      (clist[4].Status() & staterr) == 0) {     // RLUA0 ok
+
+    AddrMapInsert("rl.ua1",  kRbaddr_RLUA1);
+    AddrMapInsert("rl.ua0",  kRbaddr_RLUA0);
+
+    uint16_t rlua1  = clist[3].Data();
+    uint16_t rlua0  = clist[4].Data();
+    fUsrAcc   = uint32_t(rlua1)<<16 | uint32_t(rlua0);
+  }
+  
   return true;
 }
   
@@ -575,6 +609,15 @@ void RlinkConnect::SetTraceLevel(uint32_t lvl)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
+void RlinkConnect::SetTimeout(double timeout)
+{
+  fTimeout = timeout;
+  return;
+}
+  
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
 bool RlinkConnect::LogOpen(const std::string& name, RerrMsg& emsg)
 {
   if (!fspLog->Open(name, emsg)) {
@@ -702,8 +745,8 @@ bool RlinkConnect::ExecPart(RlinkCommandList& clist, size_t ibeg, size_t iend,
   if (!fSndPkt.SndPacket(fpPort.get(), emsg)) return false;
 
   // FIXME_code: handle recoveries
-  // FIXME_code: use proper value for timeout
-  bool ok = ReadResponse(15., emsg);
+  // FIXME_code: use proper value for timeout (rest time for Exec ?)
+  bool ok = ReadResponse(fTimeout, emsg);
   if (!ok) Rexception("RlinkConnect::ExecPart()","faulty response");
 
   int ncmd = DecodeResponse(clist, ibeg, iend);

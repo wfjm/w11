@@ -1,6 +1,6 @@
--- $Id: rbdlib.vhd 672 2015-05-02 21:58:28Z mueller $
+-- $Id: rbdlib.vhd 758 2016-04-02 18:01:39Z mueller $
 --
--- Copyright 2010-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,10 +16,11 @@
 -- Description:    Definitions for rbus devices
 --
 -- Dependencies:   -
--- Tool versions:  xst 12.1-14.7; ghdl 0.29-0.31
+-- Tool versions:  xst 12.1-14.7; viv 2014.4-2015.4; ghdl 0.29-0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-04-02   758   4.1    add rbd_usracc
 -- 2014-09-13   593   4.0    use new rlink v4 iface and 4 bit STAT
 -- 2014-08-15   583   3.5    rb_mreq addr now 16 bit
 -- 2011-11-19   427   1.2.1  now numeric_std clean
@@ -43,6 +44,7 @@ use work.rblib.all;
 
 package rbdlib is
   
+constant rbaddr_usracc : slv16 := x"fffa"; -- fffa/8: 1111 1111 1111 1010
 constant rbaddr_rbmon  : slv16 := x"ffe8"; -- ffe8/8: 1111 1111 1110 1xxx
 constant rbaddr_tester : slv16 := x"ffe0"; -- ffe0/8: 1111 1111 1110 0xxx
 
@@ -110,6 +112,16 @@ component rbd_timer is                  -- rbus dev: usec precision timer
     RB_SRES : out rb_sres_type;         -- rbus: response
     DONE : out slbit;                   -- mark last timer cycle
     BUSY : out slbit                    -- timer running
+  );
+end component;
+
+component rbd_usracc is                 -- rbus dev: return usr_access register
+  generic (
+    RB_ADDR : slv16 := rbaddr_usracc);
+  port (
+    CLK  : in slbit;                    -- clock
+    RB_MREQ : in rb_mreq_type;          -- rbus: request
+    RB_SRES : out rb_sres_type          -- rbus: response
   );
 end component;
 

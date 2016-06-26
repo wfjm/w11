@@ -1,6 +1,6 @@
--- $Id: ibdr_rk11.vhd 672 2015-05-02 21:58:28Z mueller $
+-- $Id: ibdr_rk11.vhd 767 2016-05-26 07:47:51Z mueller $
 --
--- Copyright 2008-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,7 +18,7 @@
 -- Dependencies:   ram_1swar_gen
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.1; ghdl 0.18-0.33
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -29,6 +29,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-05-22   787   1.3.1  don't init N_REGS (vivado fix for fsm inference)
 -- 2015-05-01   672   1.3    BUGFIX: interrupt after dreset,seek command start
 -- 2011-11-18   427   1.2.2  now numeric_std clean
 -- 2010-10-23   335   1.2.1  rename RRI_LAM->RB_LAM;
@@ -168,7 +169,7 @@ architecture syn of ibdr_rk11 is
   );
 
   signal R_REGS : regs_type := regs_init;
-  signal N_REGS : regs_type := regs_init;
+  signal N_REGS : regs_type;            -- don't init (vivado fix for fsm infer)
 
   signal MEM_1_WE : slbit := '0';
   signal MEM_0_WE : slbit := '0';

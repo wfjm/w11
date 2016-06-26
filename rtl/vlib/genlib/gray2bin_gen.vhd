@@ -1,4 +1,4 @@
--- $Id: gray2bin_gen.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: gray2bin_gen.vhd 751 2016-03-25 19:46:11Z mueller $
 --
 -- Copyright 2007- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,9 +16,9 @@
 -- Description:    Gray code to binary converter
 --
 -- Dependencies:   -
--- Test bench:     tb/tb_debounce_gen
+-- Test bench:     tb/tb_gray_cnt_n
 -- Target Devices: generic
--- Tool versions:  xst 8.1-14.7; ghdl 0.18-0.31
+-- Tool versions:  xst 8.1-14.7; viv 2014.4-2015.4; ghdl 0.18-0.33
 -- Revision History: 
 -- Date         Rev Version    Comment
 -- 2007-12-26   106   1.0      Initial version 

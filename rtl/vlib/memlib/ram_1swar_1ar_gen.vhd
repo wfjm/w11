@@ -1,4 +1,4 @@
--- $Id: ram_1swar_1ar_gen.vhd 686 2015-06-04 21:08:08Z mueller $
+-- $Id: ram_1swar_1ar_gen.vhd 750 2016-03-24 23:11:51Z mueller $
 --
 -- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -30,13 +30,13 @@
 -- 2007-06-03    45   1.0    Initial version
 --
 -- Some synthesis results:
--- - 2010-06-03 ise 11.4 for xc3s1000-ft256-4:
---   AWIDTH DWIDTH  LUTl LUTm   Comments
---        4     16     -   32    16*RAM16X1D
---        5     16    34   64    32*RAM16X1D
---        6     16    68  128    64*RAM16X1D, 32*MUXF5
---        7     16   136  256   128*RAM16X1D, 64*MUXF5, 32*MUXF6
---        8     16   292  512   256*RAM16X1D,144*MUXF5, 64*MUXF6, 32*MUXF7  
+-- - 2010-06-03 (r123) with ise 11.4 for xc3s1000-ft256-4:
+--   AWIDTH DWIDTH  LUTl LUTm   RAM16X1D  MUXF5  MUXF6  MUXF7
+--        4     16     -   32         16      0      0      0
+--        5     16    34   64         32      0      0      0
+--        6     16    68  128         64     32      0      0
+--        7     16   136  256        128     64     32      0
+--        8     16   292  512        256    144     64     32
 -- - 2007-12-31 ise 8.2.03 for xc3s1000-ft256-4:
 --   {same results as above for AW=4 and 6}
 ------------------------------------------------------------------------------

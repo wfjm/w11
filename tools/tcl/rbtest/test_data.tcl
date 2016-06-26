@@ -1,6 +1,6 @@
-# $Id: test_data.tcl 661 2015-04-03 18:28:41Z mueller $
+# $Id: test_data.tcl 777 2016-06-19 20:24:15Z mueller $
 #
-# Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2016-06-19   777   2.1.1  add dinc tests
 # 2015-04-03   661   2.1    drop estatdef, use estattout
 # 2014-12-21   617   2.0.1  use rbtout stat bit for timeout
 # 2014-11-09   603   2.0    use rlink v4 address layout and iface
@@ -118,6 +119,37 @@ namespace eval rbtest {
         -rreg te.data -edata [expr {$nbusy | ( $nbusy << 8 ) }] \
         -rreg te.ncyc -edata [expr {$nbusy + 1 }] 
     }
+    #
+    # -------------------------------------------------------------------------
+    rlc log "  test 5a: test dinc: post-increment on read"
+      rlc exec \
+        -wreg te.data 0x1100 \
+        -rreg te.dinc -edata 0x1100 \
+        -rreg te.dinc -edata 0x1101 \
+        -rreg te.dinc -edata 0x1102 \
+        -rreg te.data -edata 0x1103
+    #
+    # -------------------------------------------------------------------------
+    rlc log "  test 5b: test dinc: write-check and post-increment on write"
+      # clear wchk, do proper writes
+      rlc exec \
+        -wreg te.cntl [regbld rbtest::CNTL {wchk 0} {nbusy 0}] \
+        -wreg te.data 0x1200 \
+        -wreg te.dinc 0x1200 \
+        -wreg te.dinc 0x1201 \
+        -wreg te.dinc 0x1202 \
+        -rreg te.data -edata 0x1203 \
+        -rreg te.cntl -edata [regbld rbtest::CNTL {wchk 0}]
+      # wchk still clear; bad write (ff03, expected 1203); check wchk;
+      #   good write; check wchk (must stick); check that data write clears wchk
+      rlc exec \
+        -wreg te.dinc 0xff03 \
+        -rreg te.cntl -edata [regbld rbtest::CNTL {wchk 1}] \
+        -wreg te.dinc 0x1204 \
+        -rreg te.cntl -edata [regbld rbtest::CNTL {wchk 1}] \
+        -rreg te.dinc -edata 0x1205 \
+        -wreg te.data 0x1300 \
+        -rreg te.cntl -edata [regbld rbtest::CNTL {wchk 0}]
     #
     #-------------------------------------------------------------------------
     rlc log "rbtest::test_data - cleanup: clear cntl and data"

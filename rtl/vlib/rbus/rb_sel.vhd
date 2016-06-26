@@ -1,6 +1,6 @@
--- $Id: rb_sel.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: rb_sel.vhd 758 2016-04-02 18:01:39Z mueller $
 --
--- Copyright 2010-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,10 +18,11 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  ise 12.1-14.7; viv 2014.4; ghdl 0.29-0.31
+-- Tool versions:  ise 12.1-14.7; viv 2014.4-2015.4; ghdl 0.29-0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-04-02   758   4.1    streamline code
 -- 2014-08-15   583   4.0    rb_mreq addr now 16 bit
 -- 2010-12-26   349   1.0    Initial version (cloned from ibus/ib_sel)
 ------------------------------------------------------------------------------
@@ -53,15 +54,14 @@ begin
     report "assert(SAWIDTH<=15)" severity failure;
    
   proc_regs: process (CLK)
-    variable isel : slbit := '0';
   begin
     if rising_edge(CLK) then
-      isel := '0';
       if RB_MREQ.aval='1' and
         RB_MREQ.addr(15 downto SAWIDTH)=RB_ADDR(15 downto SAWIDTH) then
-        isel := '1';
+        R_SEL <= '1';
+      else
+        R_SEL <= '0';
       end if;
-      R_SEL <= isel;
     end if;
   end process proc_regs;
 

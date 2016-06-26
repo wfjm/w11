@@ -1,6 +1,6 @@
-// $Id: RlinkConnect.hpp 666 2015-04-12 21:17:54Z mueller $
+// $Id: RlinkConnect.hpp 758 2016-04-02 18:01:39Z mueller $
 //
-// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2016-04-02   758   2.5    add USR_ACCESS register support (RLUA0/RLUA1)
+// 2016-03-20   748   2.4    add fTimeout,(Set)Timeout();
 // 2015-04-12   666   2.3    add LinkInit,LinkInitDone; transfer xon
 // 2015-04-02   661   2.2    expect logic: stat expect in Command, invert mask
 // 2015-01-06   631   2.1    full rlink v4 implementation
@@ -37,7 +39,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.hpp 666 2015-04-12 21:17:54Z mueller $
+  \version $Id: RlinkConnect.hpp 758 2016-04-02 18:01:39Z mueller $
   \brief   Declaration of class \c RlinkConnect.
 */
 
@@ -109,6 +111,7 @@ namespace Retro {
       bool          SndAttn(RerrMsg& emsg);
 
       uint32_t      SysId() const;
+      uint32_t      UsrAcc() const;
       size_t        RbufSize() const;
       size_t        BlockSizeMax() const;
       size_t        BlockSizePrudent() const;
@@ -129,6 +132,7 @@ namespace Retro {
       void          SetPrintLevel(uint32_t lvl);
       void          SetDumpLevel(uint32_t lvl);
       void          SetTraceLevel(uint32_t lvl);
+      void          SetTimeout(double timeout);
 
       uint32_t      LogBaseAddr() const;
       uint32_t      LogBaseData() const;
@@ -136,6 +140,7 @@ namespace Retro {
       uint32_t      PrintLevel() const;
       uint32_t      DumpLevel() const;
       uint32_t      TraceLevel() const;
+      double        Timeout() const;
 
       bool          LogOpen(const std::string& name, RerrMsg& emsg);
       void          LogUseStream(std::ostream* pstr, 
@@ -156,6 +161,8 @@ namespace Retro {
       static const uint16_t kRbaddr_RLSTAT = 0xfffe; //!< rlink core reg RLSTAT
       static const uint16_t kRbaddr_RLID1  = 0xfffd; //!< rlink core reg RLID1
       static const uint16_t kRbaddr_RLID0  = 0xfffc; //!< rlink core reg RLID0
+      static const uint16_t kRbaddr_RLUA1  = 0xfffb; //!< rlink opt. reg RLUA1
+      static const uint16_t kRbaddr_RLUA0  = 0xfffa; //!< rlink opt. reg RLUA0
 
       static const uint16_t kRLCNTL_M_AnEna = kWBit15;//!< RLCNTL: an  enable
       static const uint16_t kRLCNTL_M_AtoEna= kWBit14;//!< RLCNTL: ato enable
@@ -236,11 +243,13 @@ namespace Retro {
       uint32_t      fPrintLevel;            //!< print 0=off,1=err,2=chk,3=all
       uint32_t      fDumpLevel;             //!< dump  0=off,1=err,2=chk,3=all
       uint32_t      fTraceLevel;            //!< trace 0=off,1=buf,2=char
+      double        fTimeout;               //!< response timeout
       boost::shared_ptr<RlogFile> fspLog;   //!< log file ptr
       boost::recursive_mutex fConnectMutex; //!< mutex to lock whole connect
       uint16_t      fAttnNotiPatt;          //!< attn notifier pattern
       double        fTsLastAttnNoti;        //!< time stamp last attn notify
       uint32_t      fSysId;                 //!< SYSID of connected device
+      uint32_t      fUsrAcc;                //!< USR_ACCESS of connected device
       size_t        fRbufSize;              //!< Rbuf size (in bytes)
   };
   

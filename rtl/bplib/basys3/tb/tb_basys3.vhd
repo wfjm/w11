@@ -1,4 +1,4 @@
--- $Id: tb_basys3.vhd 734 2016-02-20 22:43:20Z mueller $
+-- $Id: tb_basys3.vhd 748 2016-03-20 15:18:50Z mueller $
 --
 -- Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -26,7 +26,7 @@
 -- To test:        generic, any basys3_aif target
 --
 -- Target Devices: generic
--- Tool versions:  viv 2014.4-2015.4; ghdl 0.31
+-- Tool versions:  viv 2014.4-2015.4; ghdl 0.31-0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
@@ -182,6 +182,12 @@ begin
     
   end process proc_moni;
 
+  --
+  -- Notes on portsel and XON control:
+  --   - most basys3 designs will use hardwired XON=1
+  --   - but some (especially basis tests) might not use flow control
+  --   - that's why XON flow control must be optional and configurable !
+  --
   proc_simbus: process (SB_VAL)
   begin
     if SB_VAL'event and to_x01(SB_VAL)='1' then

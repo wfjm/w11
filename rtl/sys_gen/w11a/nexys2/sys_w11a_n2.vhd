@@ -1,6 +1,6 @@
--- $Id: sys_w11a_n2.vhd 734 2016-02-20 22:43:20Z mueller $
+-- $Id: sys_w11a_n2.vhd 748 2016-03-20 15:18:50Z mueller $
 --
--- Copyright 2010-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -30,7 +30,7 @@
 -- Test bench:     tb/tb_sys_w11a_n2
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.2-14.7; ghdl 0.26-0.31
+-- Tool versions:  xst 8.2-14.7; ghdl 0.26-0.33
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -67,6 +67,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-03-19   748   2.1.1  define rlink SYSID
 -- 2015-05-09   677   2.1    start/stop/suspend overhaul; reset overhaul
 -- 2015-05-01   672   2.0    use pdp11_sys70 and pdp11_hio70
 -- 2015-04-11   666   1.7.2  rearrange XON handling
@@ -279,6 +280,10 @@ architecture syn of sys_w11a_n2 is
   constant rbaddr_rbmon : slv16 := x"ffe8"; -- ffe8/0008: 1111 1111 1110 1xxx
   constant rbaddr_hio   : slv16 := x"fef0"; -- fef0/0008: 1111 1110 1111 0xxx
 
+  constant sysid_proj  : slv16 := x"0201";   -- w11a
+  constant sysid_board : slv8  := x"02";     -- nexys2
+  constant sysid_vers  : slv8  := x"00";
+
 begin
 
   assert (sys_conf_clksys mod 1000000) = 0
@@ -328,7 +333,7 @@ begin
     generic map (
       BTOWIDTH     => 7,                -- 128 cycles access timeout
       RTAWIDTH     => 12,
-      SYSID        => (others=>'0'),
+      SYSID        => sysid_proj & sysid_board & sysid_vers,
       IFAWIDTH     => 5,                --  32 word input fifo
       OFAWIDTH     => 5,                --  32 word output fifo
       PETOWIDTH    => sys_conf_fx2_petowidth,

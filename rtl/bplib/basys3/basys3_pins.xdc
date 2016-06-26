@@ -1,21 +1,27 @@
 # -*- tcl -*-
-# $Id: basys3_pins.xdc 726 2016-01-31 23:02:31Z mueller $
+# $Id: basys3_pins.xdc 758 2016-04-02 18:01:39Z mueller $
 #
-# Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
-# Pin locks for Digilent Basys 3 core functionality
-#  - USB UART
-#  - human I/O (switches, buttons, leds, display)
+# Digilent Basys 3 core functionality
+# - Configuration setup
+#   - config voltage
+#   - enable bitstream timestamp
+# - Pin Locks for
+#   - USB UART
+#   - human I/O (switches, buttons, leds, display)
 #
 # Revision History: 
 # Date         Rev Version  Comment
+# 2016-04-02   758   1.1    add BITSTREAM.CONFIG.USR_ACCESS setup
 # 2015-01-30   640   1.0    Initial version
 #
 
 # config setup --------------------------------------------------------------
 set_property CFGBVS         VCCO [current_design]
 set_property CONFIG_VOLTAGE  3.3 [current_design]
+set_property BITSTREAM.CONFIG.USR_ACCESS TIMESTAMP [current_design]
 
 # clocks -- in bank 34 ------------------------------------------------------
 set_property PACKAGE_PIN w5  [get_ports {I_CLK100}]

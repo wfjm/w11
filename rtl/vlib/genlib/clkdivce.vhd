@@ -1,4 +1,4 @@
--- $Id: clkdivce.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: clkdivce.vhd 751 2016-03-25 19:46:11Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,7 +18,7 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2015.4; ghdl 0.18-0.33
 -- Revision History: 
 -- Date        Rev  Version    Comment
 -- 2011-10-22   418   1.0.3  now numeric_std clean
@@ -69,7 +69,7 @@ begin
   assert USECDIV <= 2**CDUWIDTH and MSECDIV <= 1024
     report "assert(USECDIV <= 2**CDUWIDTH and MSECDIV <= 1024): " &
            "USECDIV too large for given CDUWIDTH or MSECDIV>1024"
-    severity FAILURE;
+    severity failure;
 
   proc_regs: process (CLK)
   begin

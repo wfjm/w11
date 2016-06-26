@@ -1,0 +1,27 @@
+#!/bin/bash
+# $Id: xviv_msg_summary 772 2016-06-05 12:55:11Z mueller $
+#
+# Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
+#
+#  Revision History:
+# Date         Rev  Vers    Comment
+# 2016-06-05   772   1.0    Initial version
+#
+
+for f in `find -name "*.vmfset" | sort`
+do
+  dnam=`dirname $f`
+  bnam=`basename $f .vmfset`
+  echo ""
+  echo "####################################################################"
+  echo "### ${dnam}/${bnam} ###"
+  pushd ${dnam} > /dev/null
+  if [ ! -r ${bnam}_syn.log ]
+  then
+    echo No ${bnam}_syn.log available
+  else
+    make ${bnam}.mfsum
+  fi
+  popd > /dev/null
+done

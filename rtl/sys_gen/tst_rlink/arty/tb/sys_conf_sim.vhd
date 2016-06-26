@@ -1,4 +1,4 @@
--- $Id: sys_conf_sim.vhd 743 2016-03-13 16:42:31Z mueller $
+-- $Id: sys_conf_sim.vhd 775 2016-06-18 13:42:00Z mueller $
 --
 -- Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,7 +16,7 @@
 -- Description:    Definitions for sys_tst_rlink_arty (for simulation)
 --
 -- Dependencies:   -
--- Tool versions:  viv 2015.4; ghdl 0.33
+-- Tool versions:  viv 2015.4-2016.2; ghdl 0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2016-03-12   741   1.1    add sysmon_rbus

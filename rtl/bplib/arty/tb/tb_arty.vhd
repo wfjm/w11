@@ -1,4 +1,4 @@
--- $Id: tb_arty.vhd 740 2016-03-06 20:56:56Z mueller $
+-- $Id: tb_arty.vhd 748 2016-03-20 15:18:50Z mueller $
 --
 -- Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -30,6 +30,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-03-20   748   1.2    BUGFIX: add PORTSEL_XON logic
 -- 2016-03-06   740   1.1    add A_VPWRN/P to baseline config
 -- 2016-02-20   734   1.0.2  use s7_cmt_sfs_tb to avoid xsim conflict
 -- 2016-02-13   730   1.0.1  direct instantiation of tbcore_rlink
@@ -80,6 +81,10 @@ architecture sim of tb_arty is
   signal O_RGBLED1 : slv3 := (others=>'0');
   signal O_RGBLED2 : slv3 := (others=>'0');
   signal O_RGBLED3 : slv3 := (others=>'0');
+
+  signal R_PORTSEL_XON : slbit := '0';       -- if 1 use xon/xoff
+
+  constant sbaddr_portsel: slv8 := slv(to_unsigned( 8,8));
 
   constant clock_period : time :=  10 ns;
   constant clock_offset : time := 200 ns;
@@ -152,7 +157,7 @@ begin
       CLK     => CLKCOM,
       RESET   => RESET,
       CLKDIV  => CLKDIV,
-      ENAXON  => '0',                   -- FIXME:  or 1 ???
+      ENAXON  => R_PORTSEL_XON,
       ENAESC  => '0',
       RXDATA  => RXDATA,
       RXVAL   => RXVAL,
@@ -182,5 +187,20 @@ begin
     end loop;
     
   end process proc_moni;
+
+  --
+  -- Notes on portsel and XON control:
+  --   - most arty designs will use hardwired XON=1
+  --   - but some (especially basis tests) might not use flow control
+  --   - that's why XON flow control must be optional and configurable !
+  --
+  proc_simbus: process (SB_VAL)
+  begin
+    if SB_VAL'event and to_x01(SB_VAL)='1' then
+      if SB_ADDR = sbaddr_portsel then
+        R_PORTSEL_XON <= to_x01(SB_DATA(1));
+      end if;
+    end if;
+  end process proc_simbus;
 
 end sim;

@@ -1,4 +1,5 @@
 # libs
 ../slvtypes.vhd
+xlib.vhd
 # design
 iob_keeper_gen.vhd

@@ -1,6 +1,6 @@
--- $Id: pdp11_core_rbus.vhd 700 2015-07-12 19:28:31Z mueller $
+-- $Id: pdp11_core_rbus.vhd 767 2016-05-26 07:47:51Z mueller $
 --
--- Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,7 +19,7 @@
 -- Test bench:     tb/tb_rlink_tba_pdp11core
 --
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.1; ghdl 0.18-0.33
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -27,6 +27,7 @@
 --
 -- Revision History: -
 -- Date         Rev Version  Comment
+-- 2016-05-22   787   1.5.2  don't init N_REGS (vivado fix for fsm inference)
 -- 2015-07-10   700   1.5.1  add cpuact logic, redefine lam as cpuact 1->0
 -- 2015-05-09   677   1.5    start/stop/suspend overhaul; reset overhaul
 -- 2014-12-26   621   1.4    use full size 4k word ibus window
@@ -163,8 +164,8 @@ architecture syn of pdp11_core_rbus is
     '0','0'                             -- doinc, waitstep
   );
 
-  signal R_REGS : regs_type := regs_init;  -- state registers
-  signal N_REGS : regs_type := regs_init;  -- next value state regs
+  signal R_REGS : regs_type := regs_init;
+  signal N_REGS : regs_type;            -- don't init (vivado fix for fsm infer)
 
   begin
     
@@ -380,7 +381,8 @@ architecture syn of pdp11_core_rbus is
         end if;
 
       when s_cpstep =>                  -- s_cpstep: wait for cpustep done ---
-        if r.rbselc='0' or irbena='0' then -- rbus cycle abort
+       n.state := s_cpstep;               -- needed to prevent vivado iSTATE
+       if r.rbselc='0' or irbena='0' then -- rbus cycle abort
           n.state := s_idle;                -- quit
         else
           if CP_STAT.cpustep = '0' then      -- cpustep done

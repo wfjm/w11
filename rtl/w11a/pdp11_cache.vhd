@@ -1,6 +1,6 @@
--- $Id: pdp11_cache.vhd 677 2015-05-09 21:52:32Z mueller $
+-- $Id: pdp11_cache.vhd 767 2016-05-26 07:47:51Z mueller $
 --
--- Copyright 2008-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,9 +18,23 @@
 -- Dependencies:   memlib/ram_2swsr_rfirst_gen
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.1; ghdl 0.18-0.33
+--
+-- Synthesis results
+--   clw = cache line width (tag+data)
+--   eff = efficiency (fraction of used BRAM colums)
+-- - 2016-03-22 (r750) with viv 2015.4 for xc7a100t-1
+--   TWIDTH   flop  lutl  lutm  RAMB36 RAMB18   bram   clw   eff
+--        9     43   106     0       0      5    2.5    45  100%
+--        8     43   109     0       5      0    5.0    44   97%
+--        7     43   107     0      10      4   12.0    43   89%
+--        6     43   106     0      19      4   21.0    42  100%
+--        5     58!  106     0      41      0   41.0    41  100%
+--
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-05-22   787   1.1.1  don't init N_REGS (vivado fix for fsm inference)
+-- 2016-03-22   751   1.1    now configurable size (8,16,32,64,128 kB)
 -- 2011-11-18   427   1.0.3  now numeric_std clean
 -- 2008-02-23   118   1.0.2  ce cache in s_idle to avoid U's in sim
 --                           factor invariants out of if's; fix tag rmiss logic
@@ -38,6 +52,8 @@ use work.memlib.all;
 use work.pdp11.all;
 
 entity pdp11_cache is                   -- cache
+  generic (
+    TWIDTH : positive := 9);            -- tag width (5 to 9)
   port (
     CLK : in slbit;                     -- clock
     GRESET : in slbit;                  -- general reset
@@ -59,6 +75,22 @@ end pdp11_cache;
 
 architecture syn of pdp11_cache is
 
+  constant lwidth: positive := 22-2-TWIDTH; -- line address width
+
+  subtype t_range   is integer range TWIDTH-1 downto  0;      -- tag value regs
+  subtype l_range   is integer range lwidth-1 downto  0;      -- line addr regs
+
+  subtype af_tag    is integer range 22-1 downto 22-TWIDTH;   -- tag  address
+  subtype af_line   is integer range 22-TWIDTH-1 downto 2;    -- line address
+  
+  subtype df_byte3  is integer range 31 downto 24;
+  subtype df_byte2  is integer range 23 downto 16;
+  subtype df_byte1  is integer range 15 downto  8;
+  subtype df_byte0  is integer range  7 downto  0;
+
+  subtype df_word1  is integer range 31 downto 16;
+  subtype df_word0  is integer range 15 downto  0;
+  
   type state_type is (
     s_idle,                             -- s_idle: wait for req
     s_read,                             -- s_read: read cycle
@@ -69,8 +101,8 @@ architecture syn of pdp11_cache is
   type regs_type is record
     state : state_type;                 -- state
     addr_w : slbit;                     -- address - word select
-    addr_l : slv11;                     -- address - cache line address
-    addr_t : slv9;                      -- address - cache tag part
+    addr_l : slv(l_range);              -- address - cache line address
+    addr_t : slv(t_range);              -- address - cache tag part
     be : slv4;                          -- byte enables (at 4 byte level)
     di : slv16;                         -- data
   end record regs_type;
@@ -78,21 +110,21 @@ architecture syn of pdp11_cache is
   constant regs_init : regs_type := (
     s_idle,                             -- state
     '0',                                -- addr_w
-    (others=>'0'),                      -- addr_l
-    (others=>'0'),                      -- addr_t
+    slv(to_unsigned(0,lwidth)),         -- addr_l
+    slv(to_unsigned(0,TWIDTH)),         -- addr_t
     (others=>'0'),                      -- be
     (others=>'0')                       -- di
   );
     
-  signal R_REGS : regs_type := regs_init;  -- state registers
-  signal N_REGS : regs_type := regs_init;  -- next value state regs
+  signal R_REGS : regs_type := regs_init;
+  signal N_REGS : regs_type;            -- don't init (vivado fix for fsm infer)
   
   signal CMEM_TAG_CEA  : slbit := '0';
   signal CMEM_TAG_CEB  : slbit := '0';
   signal CMEM_TAG_WEA  : slbit := '0';
   signal CMEM_TAG_WEB  : slbit := '0';
-  signal CMEM_TAG_DIB  : slv9  := (others=>'0');
-  signal CMEM_TAG_DOA  : slv9  := (others=>'0');
+  signal CMEM_TAG_DIB  : slv(t_range)  := (others=>'0');
+  signal CMEM_TAG_DOA  : slv(t_range)  := (others=>'0');
   signal CMEM_DAT_CEA  : slbit := '0';
   signal CMEM_DAT_CEB  : slbit := '0';
   signal CMEM_DAT_WEA  : slv4 := "0000";
@@ -112,10 +144,14 @@ architecture syn of pdp11_cache is
 
 begin
 
+  assert TWIDTH>=5 and TWIDTH<=9
+  report "assert(TWIDTH>=5 and TWIDTH<=9): unsupported TWIDTH"
+  severity failure;
+
   CMEM_TAG : ram_2swsr_rfirst_gen
     generic map (
-      AWIDTH => 11,
-      DWIDTH =>  9)
+      AWIDTH => lwidth,
+      DWIDTH => twidth)
     port map (
       CLKA  => CLK,
       CLKB  => CLK,
@@ -123,9 +159,9 @@ begin
       ENB   => CMEM_TAG_CEB,
       WEA   => CMEM_TAG_WEA,
       WEB   => CMEM_TAG_WEB,
-      ADDRA => EM_MREQ.addr(12 downto 2),
+      ADDRA => EM_MREQ.addr(af_line),
       ADDRB => R_REGS.addr_l,
-      DIA   => EM_MREQ.addr(21 downto 13),
+      DIA   => EM_MREQ.addr(af_tag),
       DIB   => CMEM_TAG_DIB,
       DOA   => CMEM_TAG_DOA,
       DOB   => open
@@ -133,7 +169,7 @@ begin
 
   CMEM_DAT0 : ram_2swsr_rfirst_gen
     generic map (
-      AWIDTH => 11,
+      AWIDTH => lwidth,
       DWIDTH =>  9)
     port map (
       CLKA  => CLK,
@@ -142,7 +178,7 @@ begin
       ENB   => CMEM_DAT_CEB,
       WEA   => CMEM_DAT_WEA(0),
       WEB   => CMEM_DAT_WEB(0),
-      ADDRA => EM_MREQ.addr(12 downto 2),
+      ADDRA => EM_MREQ.addr(af_line),
       ADDRB => R_REGS.addr_l,
       DIA   => CMEM_DIA_0,
       DIB   => CMEM_DIB_0,
@@ -152,7 +188,7 @@ begin
 
   CMEM_DAT1 : ram_2swsr_rfirst_gen
     generic map (
-      AWIDTH => 11,
+      AWIDTH => lwidth,
       DWIDTH =>  9)
     port map (
       CLKA  => CLK,
@@ -161,7 +197,7 @@ begin
       ENB   => CMEM_DAT_CEB,
       WEA   => CMEM_DAT_WEA(1),
       WEB   => CMEM_DAT_WEB(1),
-      ADDRA => EM_MREQ.addr(12 downto 2),
+      ADDRA => EM_MREQ.addr(af_line),
       ADDRB => R_REGS.addr_l,
       DIA   => CMEM_DIA_1,
       DIB   => CMEM_DIB_1,
@@ -171,7 +207,7 @@ begin
 
   CMEM_DAT2 : ram_2swsr_rfirst_gen
     generic map (
-      AWIDTH => 11,
+      AWIDTH => lwidth,
       DWIDTH =>  9)
     port map (
       CLKA  => CLK,
@@ -180,7 +216,7 @@ begin
       ENB   => CMEM_DAT_CEB,
       WEA   => CMEM_DAT_WEA(2),
       WEB   => CMEM_DAT_WEB(2),
-      ADDRA => EM_MREQ.addr(12 downto 2),
+      ADDRA => EM_MREQ.addr(af_line),
       ADDRB => R_REGS.addr_l,
       DIA   => CMEM_DIA_2,
       DIB   => CMEM_DIB_2,
@@ -190,7 +226,7 @@ begin
 
   CMEM_DAT3 : ram_2swsr_rfirst_gen
     generic map (
-      AWIDTH => 11,
+      AWIDTH => lwidth,
       DWIDTH =>  9)
     port map (
       CLKA  => CLK,
@@ -199,7 +235,7 @@ begin
       ENB   => CMEM_DAT_CEB,
       WEA   => CMEM_DAT_WEA(3),
       WEB   => CMEM_DAT_WEB(3),
-      ADDRA => EM_MREQ.addr(12 downto 2),
+      ADDRA => EM_MREQ.addr(af_line),
       ADDRB => R_REGS.addr_l,
       DIA   => CMEM_DIA_3,
       DIB   => CMEM_DIB_3,
@@ -229,8 +265,8 @@ begin
     variable n : regs_type := regs_init;
 
     variable iaddr_w : slbit := '0';
-    variable iaddr_l : slv11 := (others=>'0');
-    variable iaddr_t : slv9  := (others=>'0');
+    variable iaddr_l : slv(l_range) := (others=>'0');
+    variable iaddr_t : slv(t_range)  := (others=>'0');
 
     variable itagok : slbit := '0';
     variable ivalok : slbit := '0';
@@ -239,7 +275,7 @@ begin
     variable icmem_tag_ceb : slbit := '0';
     variable icmem_tag_wea : slbit := '0';
     variable icmem_tag_web : slbit := '0';
-    variable icmem_tag_dib : slv9  := (others=>'0');
+    variable icmem_tag_dib : slv(t_range)  := (others=>'0');
     variable icmem_dat_cea : slbit := '0';
     variable icmem_dat_ceb : slbit := '0';
     variable icmem_dat_wea : slv4  := "0000";
@@ -264,8 +300,8 @@ begin
     n := R_REGS;
 
     iaddr_w := EM_MREQ.addr(1);                -- get word select
-    iaddr_l := EM_MREQ.addr(12 downto 2);      -- get cache line addr
-    iaddr_t := EM_MREQ.addr(21 downto 13);     -- get cache tag part
+    iaddr_l := EM_MREQ.addr(af_line);          -- get cache line addr
+    iaddr_t := EM_MREQ.addr(af_tag);           -- get cache tag part
     
     icmem_tag_cea := '0';
     icmem_tag_ceb := '0';
@@ -279,14 +315,14 @@ begin
     icmem_val_dib := "0000";
     icmem_dat_dib := MEM_DO;            -- default, local define whenver used
 
-    icmem_val_doa(0)            := CMEM_DOA_0(8);
-    icmem_dat_doa( 7 downto  0) := CMEM_DOA_0(7 downto 0);
-    icmem_val_doa(1)            := CMEM_DOA_1(8);
-    icmem_dat_doa(15 downto  8) := CMEM_DOA_1(7 downto 0);
-    icmem_val_doa(2)            := CMEM_DOA_2(8);
-    icmem_dat_doa(23 downto 16) := CMEM_DOA_2(7 downto 0);
-    icmem_val_doa(3)            := CMEM_DOA_3(8);
-    icmem_dat_doa(31 downto 24) := CMEM_DOA_3(7 downto 0);
+    icmem_val_doa(0)        := CMEM_DOA_0(8);
+    icmem_dat_doa(df_byte0) := CMEM_DOA_0(df_byte0);
+    icmem_val_doa(1)        := CMEM_DOA_1(8);
+    icmem_dat_doa(df_byte1) := CMEM_DOA_1(df_byte0);
+    icmem_val_doa(2)        := CMEM_DOA_2(8);
+    icmem_dat_doa(df_byte2) := CMEM_DOA_2(df_byte0);
+    icmem_val_doa(3)        := CMEM_DOA_3(8);
+    icmem_dat_doa(df_byte3) := CMEM_DOA_3(df_byte0);
 
     itagok := '0';
     if CMEM_TAG_DOA = r.addr_t then  -- cache tag hit
@@ -405,32 +441,32 @@ begin
     CMEM_DAT_WEA <= icmem_dat_wea;
     CMEM_DAT_WEB <= icmem_dat_web;
     
-    CMEM_DIA_0(8)          <= '1';
-    CMEM_DIA_0(7 downto 0) <= EM_MREQ.din( 7 downto 0);
-    CMEM_DIA_1(8)          <= '1';
-    CMEM_DIA_1(7 downto 0) <= EM_MREQ.din(15 downto 8);
-    CMEM_DIA_2(8)          <= '1';
-    CMEM_DIA_2(7 downto 0) <= EM_MREQ.din( 7 downto 0);
-    CMEM_DIA_3(8)          <= '1';
-    CMEM_DIA_3(7 downto 0) <= EM_MREQ.din(15 downto 8);
+    CMEM_DIA_0(8)        <= '1';
+    CMEM_DIA_0(df_byte0) <= EM_MREQ.din(df_byte0);
+    CMEM_DIA_1(8)        <= '1';
+    CMEM_DIA_1(df_byte0) <= EM_MREQ.din(df_byte1);
+    CMEM_DIA_2(8)        <= '1';
+    CMEM_DIA_2(df_byte0) <= EM_MREQ.din(df_byte0);
+    CMEM_DIA_3(8)        <= '1';
+    CMEM_DIA_3(df_byte0) <= EM_MREQ.din(df_byte1);
 
-    CMEM_DIB_0(8)          <= icmem_val_dib(0);
-    CMEM_DIB_0(7 downto 0) <= icmem_dat_dib(7 downto 0);
-    CMEM_DIB_1(8)          <= icmem_val_dib(1);
-    CMEM_DIB_1(7 downto 0) <= icmem_dat_dib(15 downto 8);
-    CMEM_DIB_2(8)          <= icmem_val_dib(2);
-    CMEM_DIB_2(7 downto 0) <= icmem_dat_dib(23 downto 16);
-    CMEM_DIB_3(8)          <= icmem_val_dib(3);
-    CMEM_DIB_3(7 downto 0) <= icmem_dat_dib(31 downto 24);
+    CMEM_DIB_0(8)        <= icmem_val_dib(0);
+    CMEM_DIB_0(df_byte0) <= icmem_dat_dib(df_byte0);
+    CMEM_DIB_1(8)        <= icmem_val_dib(1);
+    CMEM_DIB_1(df_byte0) <= icmem_dat_dib(df_byte1);
+    CMEM_DIB_2(8)        <= icmem_val_dib(2);
+    CMEM_DIB_2(df_byte0) <= icmem_dat_dib(df_byte2);
+    CMEM_DIB_3(8)        <= icmem_val_dib(3);
+    CMEM_DIB_3(df_byte0) <= icmem_dat_dib(df_byte3);
 
     EM_SRES <= em_sres_init;
     EM_SRES.ack_r <= iackr;
     EM_SRES.ack_w <= iackw;
     case iosel is
-      when "00" => EM_SRES.dout <= icmem_dat_doa(15 downto  0);
-      when "01" => EM_SRES.dout <= icmem_dat_doa(31 downto 16);
-      when "10" => EM_SRES.dout <= MEM_DO(15 downto  0);
-      when "11" => EM_SRES.dout <= MEM_DO(31 downto 16);
+      when "00" => EM_SRES.dout <= icmem_dat_doa(df_word0);
+      when "01" => EM_SRES.dout <= icmem_dat_doa(df_word1);
+      when "10" => EM_SRES.dout <= MEM_DO(df_word0);
+      when "11" => EM_SRES.dout <= MEM_DO(df_word1);
       when others => null;
     end case;
     

@@ -1,4 +1,4 @@
--- $Id: sys_tst_rlink_n4.vhd 743 2016-03-13 16:42:31Z mueller $
+-- $Id: sys_tst_rlink_n4.vhd 772 2016-06-05 12:55:11Z mueller $
 --
 -- Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -24,8 +24,9 @@
 --                 bplib/bpgen/rgbdrv_master
 --                 bplib/bpgen/rgbdrv_analog_rbus
 --                 bplib/sysmon/sysmonx_rbus_base
+--                 vlib/rbus/rbd_usracc
 --                 vlib/rbus/rb_sres_or_2
---                 vlib/rbus/rb_sres_or_4
+--                 vlib/rbus/rb_sres_or_6
 --
 -- Test bench:     tb/tb_tst_rlink_n4
 --
@@ -34,12 +35,17 @@
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2016-04-02   758 2015.4  xc7a100t-1   1113  1461    36   3.0   528 usracc
+-- 2016-03-27   753 2015.4  xc7a100t-1   1124  1461    36   3.0   522 meminf
 -- 2016-03-13   743 2015.4  xc7a100t-1   1124  1463    64   4.5   567 +XADC
 -- 2016-02-20   734 2015.4  xc7a100t-1   1080  1424    64   4.5   502 +RGB
 -- 2015-01-31   640 2014.4  xc7a100t-1    990  1360    64   4.5   495  
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-06-05   772   1.5.3  use CDUWIDTH=7, 120 MHz clock is natural choice
+-- 2016-04-02   758   1.5.2  add rbd_usracc_e2 (bitfile+jtag timestamp access)
+-- 2016-03-19   748   1.5.1  define rlink SYSID
 -- 2016-03-12   741   1.5    add sysmon_rbus
 -- 2016-02-20   734   1.4.2  add rgbdrv_analog_rbus for two rgb leds
 -- 2015-04-11   666   1.4.1  rearrange XON handling
@@ -76,6 +82,7 @@ use work.xlib.all;
 use work.genlib.all;
 use work.serportlib.all;
 use work.rblib.all;
+use work.rbdlib.all;
 use work.rlinklib.all;
 use work.bpgenlib.all;
 use work.bpgenrbuslib.all;
@@ -130,6 +137,7 @@ architecture syn of sys_tst_rlink_n4 is
   signal RB_SRES_RGB1   : rb_sres_type := rb_sres_init;
   signal RB_SRES_RGB    : rb_sres_type := rb_sres_init;
   signal RB_SRES_SYSMON : rb_sres_type := rb_sres_init;
+  signal RB_SRES_USRACC : rb_sres_type := rb_sres_init;
 
   signal RB_LAM  : slv16 := (others=>'0');
   signal RB_STAT : slv4  := (others=>'0');
@@ -144,6 +152,10 @@ architecture syn of sys_tst_rlink_n4 is
   constant rbaddr_rgb0  : slv16 := x"fc00"; -- fe00/0004: 1111 1100 0000 00xx
   constant rbaddr_rgb1  : slv16 := x"fc04"; -- fe04/0004: 1111 1100 0000 01xx
   constant rbaddr_sysmon: slv16 := x"fb00"; -- fb00/0080: 1111 1011 0xxx xxxx
+
+  constant sysid_proj  : slv16 := x"0101";   -- tst_rlink
+  constant sysid_board : slv8  := x"05";     -- nexys4
+  constant sysid_vers  : slv8  := x"00";
 
 begin
 
@@ -170,7 +182,7 @@ begin
 
   CLKDIV : clkdivce
     generic map (
-      CDUWIDTH => 8,                    -- good up to 254 MHz
+      CDUWIDTH => 7,                    -- good up to 127 MHz
       USECDIV  => sys_conf_clksys_mhz,
       MSECDIV  => 1000)
     port map (
@@ -222,12 +234,12 @@ begin
     generic map (
       BTOWIDTH     => 6,
       RTAWIDTH     => 12,
-      SYSID        => (others=>'0'),
+      SYSID        => sysid_proj & sysid_board & sysid_vers,
       IFAWIDTH     => 5,
       OFAWIDTH     => 5,
       ENAPIN_RLMON => sbcntl_sbf_rlmon,
       ENAPIN_RBMON => sbcntl_sbf_rbmon,
-      CDWIDTH      => 15,
+      CDWIDTH      => 12,
       CDINIT       => sys_conf_ser2rri_cdinit,
       RBMON_AWIDTH => 0,                -- must be 0, rbmon in rbd_tst_rlink
       RBMON_RBADDR => (others=>'0'))
@@ -322,6 +334,13 @@ begin
       );
   end generate SMRB;
 
+  UARB : rbd_usracc
+    port map (
+      CLK     => CLK,
+      RB_MREQ => RB_MREQ,
+      RB_SRES => RB_SRES_USRACC
+    );
+  
   RB_SRES_ORRGB : rb_sres_or_2
     port map (
       RB_SRES_1  => RB_SRES_RGB0,
@@ -329,12 +348,13 @@ begin
       RB_SRES_OR => RB_SRES_RGB
     );
 
-  RB_SRES_OR1 : rb_sres_or_4
+  RB_SRES_OR1 : rb_sres_or_6
     port map (
       RB_SRES_1  => RB_SRES_HIO,
       RB_SRES_2  => RB_SRES_TST,
       RB_SRES_3  => RB_SRES_RGB,
       RB_SRES_4  => RB_SRES_SYSMON,
+      RB_SRES_5  => RB_SRES_USRACC,
       RB_SRES_OR => RB_SRES
     );
 

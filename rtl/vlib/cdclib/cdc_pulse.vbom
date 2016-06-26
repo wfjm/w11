@@ -1,0 +1,5 @@
+# libs
+../slvtypes.vhd
+# design
+cdc_pulse.vhd
+@xdc:cdc_pulse.xdc -SCOPE_REF

@@ -1,0 +1,270 @@
+#!/usr/bin/perl -w
+# $Id: xviv_msg_filter 772 2016-06-05 12:55:11Z mueller $
+#
+# Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+#
+# This program is free software; you may redistribute and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 2, or at your option any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# for complete details.
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2016-06-04   772   1.0    Initial version
+#
+
+use 5.14.0;                                 # require Perl 5.14 or higher
+use strict;                                 # require strict checking
+use FileHandle;
+
+use Getopt::Long;
+
+my %opts = ();
+
+GetOptions(\%opts, "help", "pacc") || exit 1;
+
+sub print_help;
+sub read_mfs;
+sub read_log;
+
+my $type   = shift @ARGV;
+my $mfsnam = shift @ARGV;
+my $lognam = shift @ARGV;
+my @flist;
+my @mlist;
+my $nackcnt  = 0;
+my $ackcnt   = 0;
+my $imisscnt = 0;
+my $rmisscnt = 0;
+my $timebad  = 0;
+my $timegood = 0;
+
+my $retrobase = $ENV{RETROBASE};
+
+autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
+
+if (exists $opts{help}) {
+  print_help;
+  exit 0;
+}
+
+if (!defined $type || !defined $mfsnam || !defined $lognam) {
+  print STDERR "xviv_msg_filter-E: one of 'type mfset log' missing \n\n";
+  print_help;
+  exit 1;
+}
+
+if ($type !~ m{^(syn|imp)$}) {
+  print STDERR "xviv_msg_filter-E: type must be syn or imp\n";
+  exit 1;
+}
+
+if (read_mfs($mfsnam)) {exit 1;}
+if (read_log($lognam)) {exit 1;}
+
+foreach my $m (@mlist) {
+  my $msev  = $m->[0];
+  my $mcode = $m->[1];
+  my $mtext = $m->[2];
+  my $msgmatch = 0;
+
+  # check for timing closure
+  #  bad:  [Route 35-39] The design did not meet timing requirements
+  #  bad:  [Timing 38-282] The design failed to meet the timing ...
+  #  good: [Route 35-61] The design met the timing requirement
+  $timebad  += 1 if $type eq 'imp' && $mcode eq 'Route 35-39';
+  $timebad  += 1 if $type eq 'imp' && $mcode eq 'Timing 38-282';
+  $timegood += 1 if $type eq 'imp' && $mcode eq 'Route 35-61';
+
+  foreach my $f (@flist) {
+    my $fmode = $f->[0];
+    my $fcode = $f->[1];
+    my $frege = $f->[2];
+    if ($frege eq '') {
+      $msgmatch = $mcode eq $fcode;
+    } else {
+      $msgmatch = $mcode eq $fcode && $mtext =~ m{$frege};
+    }
+    if ($msgmatch) {
+      #print "+++m '$fmode' '$fcode' '$frege' : '$mcode' '$mtext'\n";
+      $f->[3] += 1;
+      last;
+    }
+  }
+
+  $msgmatch = 1 if $msev eq 'INFO';         # accept all INFO
+
+  if ($msgmatch) {
+    $m->[3] += 1;
+  } else {
+    $nackcnt += 1;
+  }
+}
+
+if ($nackcnt) {
+  print "Unexpected messages of type [$type] from $lognam:\n";
+  foreach my $m (@mlist) {
+    next if $m->[3];
+
+    # now prety print the message
+    #   remove $RETROBASE from file names
+    my $mtext = $m->[2];
+    $mtext =~ s/${retrobase}/.../g if defined $retrobase;
+    #   and break it up into 80 character wide lines
+    my @mwl = split /\s+/,$mtext;
+    unshift @mwl, '[' . $m->[1] . ']';
+    unshift @mwl, $m->[0] . ':';
+    my $pref = '   ';
+    my $line = ' ';
+    while (scalar(@mwl)) {
+      my $word = shift @mwl;
+      if (length($line) + length($word) + 1 > 80) {
+        print "$line\n";
+        $line = $pref;
+      }
+      $line .= ' ' . $word;
+    }
+    print "$line\n" if $line ne $pref;
+  }
+  print "\n";
+}
+
+foreach my $f (@flist) {
+  if ($f->[3] != 0) {                       # matches seen
+    $ackcnt  += 1;
+  } else {                                  # matches not seen
+    if ($f->[0] eq 'i') {                     # complain if 'i'
+      $imisscnt += 1;
+    } elsif ($f->[0] eq 'r') {                # complain if 'r'
+      $rmisscnt += 1;
+    }
+  }
+}
+
+if ($ackcnt && exists $opts{pacc}) {
+  print "Accepted messages for type [$type] from $lognam:\n";
+  foreach my $f (@flist) {
+    next if $f->[3] == 0;
+    printf "%4d: [%s] %s\n", $f->[3], $f->[1], $f->[2];
+  }
+  print "\n";
+}
+
+if ($imisscnt) {
+  print "Ignore filter rules with no matches for type [$type] from $lognam:\n";
+  foreach my $f (@flist) {
+    next if $f->[3] != 0;
+    printf "%4d: [%s] %s\n", $f->[3], $f->[1], $f->[2] if $f->[0] eq 'i';
+  }
+  print "\n";
+}
+
+if ($rmisscnt) {
+  print "Missed required messages for type [$type] from $lognam:\n";
+  foreach my $f (@flist) {
+    next if $f->[3] != 0;
+    printf "%4d: [%s] %s\n", $f->[3], $f->[1], $f->[2] if $f->[0] eq 'r';
+  }
+  print "\n";
+}
+
+if ($type eq 'imp' && ($timebad > 0 || $timegood == 0)) {
+  printf "!! ------------------------------ !!\n";
+  printf "!! FAILED TO REACH TIMING CLOSURE !!\n";
+  printf "!! ------------------------------ !!\n";
+}
+
+#-------------------------------------------------------------------------------
+sub read_mfs {
+  my ($fname) = @_;
+
+  if (not -r $fname) {
+    print STDERR "xviv_msg_filter-E: \'$fname\' not existing or readable\n";
+    return 1;
+  }
+
+  my $fh = new FileHandle;
+  $fh->open($fname)    or die "can't open for read $fname: $!";
+
+  my $intyp = 0;
+
+  while (<$fh>) {
+    chomp;
+    s/#.*//;                                # remove comments after #
+    s/\s+$//;                               # remove trailing blanks
+    next if /^\s*$/;			    # drop empty lines
+
+    if (/^\@(.+)$/) {                       # @<filename> found
+      my $rc = read_mfs($1);
+      return $rc if $rc;
+      next;
+    }
+
+    if (m{^\[([a-z]{3})\]$}) {              # [typ] tag found
+      if ($1 eq $type) {
+        $intyp = 1;
+      } else {
+        $intyp = 0;
+      }
+      next;
+    }
+
+    next unless $intyp;                     # only process relevant lines
+
+    if (/^([iIr])\s+\[(.+?)\]\s*(.*)\s*$/) {
+      #print "+++0m '$1' '$2' '$3'\n";
+      my $fmode = $1;
+      my $fcode = $2;
+      my $frege = $3;
+      $frege =~ s/\[/\\\[/g;
+      $frege =~ s/\]/\\\]/g;
+      push @flist, [$fmode,$fcode,$frege, 0];
+    } else {
+      printf STDERR "xviv_msg_filter-E: bad line in mfset: '%s'\n", $_;
+    }
+  }
+
+  $fh->close();
+
+  return 0;
+}
+
+#-------------------------------------------------------------------------------
+sub read_log {
+  my ($fname) = @_;
+
+  if (not -r $fname) {
+    print STDERR "xviv_msg_filter-E: \'$fname\' not existing or readable\n";
+    return 1;
+  }
+
+  open (LFILE, $fname)    or die "can't open for read $fname: $!";
+
+  while (<LFILE>) {
+    chomp;
+    if (m{^(INFO|WARNING|CRITICAL WARNING|ERROR):\s*\[(.+?)\]\s*(.*)}) {
+      #print "+++0l '$1' '$2' '$3'\n";
+      push @mlist, [$1,$2,$3,0];
+    }
+  }
+
+  close (LFILE);
+
+  return 0;
+}
+
+#-------------------------------------------------------------------------------
+
+sub print_help {
+  print "usage: xviv_msg_filter [options] type mfset log\n";
+  print "  type   log file type: syn or imp\n";
+  print "  mfset  message filter set file\n";
+  print "  log    log file\n";
+  print "  Options:\n";
+  print "    --pacc           print summary of accepted messages\n";
+  print "    --help           this message\n";
+}

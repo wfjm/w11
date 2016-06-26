@@ -18,7 +18,7 @@ ${sys_conf := sys_conf_sim.vhd}
 tb_nexys4_core.vbom
 ../../micron/mt45w8mw16b.vbom
 ../../../vlib/serport/tb/serport_master_tb.vbom
-@uut: ${nexys4_cram_aif := nexys4_cram_dummy.vbom}
+${nexys4_cram_aif := nexys4_cram_dummy.vbom}  -UUT
 # design
 tb_nexys4_cram.vhd
 @top:tb_nexys4_cram

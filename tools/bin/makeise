@@ -1,0 +1,8 @@
+#!/bin/bash
+# $Id: makeise 761 2016-04-17 08:53:48Z mueller $
+#
+# Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
+#
+
+exec make -f Makefile.ise "$@"

@@ -1,4 +1,4 @@
--- $Id: comlib.vhd 746 2016-03-19 13:08:36Z mueller $
+-- $Id: comlib.vhd 749 2016-03-20 22:09:03Z mueller $
 --
 -- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  ise 8.2-14.7; viv 2014.4-2015.4; ghdl 0.18-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-03-20   749   1.6.2  crc*_update*: leave return type unconstraint
 -- 2016-03-13   744   1.6.1  crc16_update_tbl: work around XSim 2015.4 issue
 -- 2014-09-27   595   1.6    add crc16 (using CRC-CCITT polynomial)
 -- 2014-09-14   593   1.5    new iface for cdata2byte and byte2cdata
@@ -134,11 +135,16 @@ component crc16 is                      -- crc-16 generator, checker
   );
 end component;
 
-  function crc8_update     (crc : in slv8; data : in slv8) return slv8;
-  function crc8_update_tbl (crc : in slv8; data : in slv8) return slv8;
+  -- Note: leave return type unconstraint ! A direction constraint return
+  --       type works fine in ghdl and ISim, but XSim will abort with an
+  --       run time error (there is indeed a mismatch, some simulators
+  --       tolerate this, some not, so never constrain a return type...).
 
-  function crc16_update     (crc : in slv16; data : in slv8) return slv16;
-  function crc16_update_tbl (crc : in slv16; data : in slv8) return slv16;
+  function crc8_update     (crc : in slv8; data : in slv8) return slv;
+  function crc8_update_tbl (crc : in slv8; data : in slv8) return slv;
+
+  function crc16_update     (crc : in slv16; data : in slv8) return slv;
+  function crc16_update_tbl (crc : in slv16; data : in slv8) return slv;
 
 end package comlib;
 
@@ -153,7 +159,7 @@ package body comlib is
   -- http://dx.doi.org/10.1109%2FDSN.2004.1311885
   -- http://www.ece.cmu.edu/~koopman/roses/dsn04/koopman04_crc_poly_embedded.pdf
   --
-  function crc8_update (crc: in slv8; data: in slv8) return slv8 is
+  function crc8_update (crc: in slv8; data: in slv8) return slv is
     variable t : slv8 := (others=>'0');
     variable n : slv8 := (others=>'0');
   begin
@@ -173,7 +179,7 @@ package body comlib is
     
   end function crc8_update;
   
-  function crc8_update_tbl (crc: in slv8; data: in slv8) return slv8 is
+  function crc8_update_tbl (crc: in slv8; data: in slv8) return slv is
     
     type crc8_tbl_type is array (0 to 255) of integer;
     variable crc8_tbl : crc8_tbl_type :=        -- generated with gen_crc8_tbl
@@ -220,7 +226,7 @@ package body comlib is
   -- crc16_update and crc16_update_tbl implement the CCITT polynomial
   --    x^16 + x^12 + x^5 + 1   (0x1021)
   --
-  function crc16_update (crc: in slv16; data: in slv8) return slv16 is
+  function crc16_update (crc: in slv16; data: in slv8) return slv is
     variable n : slv16 := (others=>'0');
     variable t : slv8  := (others=>'0');
  begin
@@ -249,7 +255,7 @@ package body comlib is
     
   end function crc16_update;
   
-  function crc16_update_tbl (crc: in slv16; data: in slv8) return slv16 is
+  function crc16_update_tbl (crc: in slv16; data: in slv8) return slv is
     
     type crc16_tbl_type is array (0 to 255) of integer;
     variable crc16_tbl : crc16_tbl_type :=        
@@ -298,13 +304,7 @@ package body comlib is
     ch := crc(7 downto 0) & "00000000";
     t  := data xor crc(15 downto 8);
     td := crc16_tbl(to_integer(unsigned(t)));
-    cu := slv(to_unsigned(td, 16));
-    ch := ch xor cu;
-    return ch;
-
---  original code was simply
---    return ch xor slv(to_unsigned(td, 16));
---  vivado 2015.4 xsim failed on this, issue worked around by equivalent code 
+    return ch xor slv(to_unsigned(td, 16));
     
   end function crc16_update_tbl;
    

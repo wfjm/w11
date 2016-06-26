@@ -17,7 +17,7 @@ ${sys_conf := sys_conf_sim.vhd}
 ../../../vlib/xlib/tb/s7_cmt_sfs_tb.vbom
 tb_arty_core.vbom
 ../../../vlib/serport/tb/serport_master_tb.vbom
-@uut: ${arty_aif := arty_dummy.vbom}
+${arty_aif := arty_dummy.vbom}  -UUT
 # design
 tb_arty.vhd
 @top:tb_arty

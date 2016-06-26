@@ -1,4 +1,4 @@
-# $Id: README_buildsystem_ISE.txt 651 2015-02-26 21:32:15Z mueller $
+# $Id: README_buildsystem_ISE.txt 779 2016-06-26 15:37:16Z mueller $
 
 Guide to the Build System (Xilinx ISE Version)
 
@@ -114,13 +114,17 @@ Guide to the Build System (Xilinx ISE Version)
   In many cases the test benches can also be compiled against the gate
   level models derived after the xst, map or par step. To compile them
 
-    make ghdl_tmp_clean
-    make <tbench>_ssim                  # for post-xst
-    make <tbench>_fsim                  # for post-map
-    make <tbench>_tsim                  # for post-par
+    make <tbench>_ssim                  # for post-xst  (using UNISIM)
+    make <tbench>_fsim                  # for post-map  (using SIMPRIM)
+    make <tbench>_tsim                  # for post-par  (using SIMPRIM)
 
-  The 'make ghdl_tmp_clean' is needed to flush the ghdl work area from
-  the compilation remains of earlier functional model compiles.
+  Individual working directories are used for the different models
+    ghdl.bsim        for bahavioral model
+    ghdl.ssim        for post-xst
+    ghdl.fsim        for post-map
+    ghdl.tsim        for post-par
+  and can co-exist. The 'make ghdl_tmp_clean' can be used to flush the ghdl
+  work areas, but in general this is not needed (since V0.73).
 
   Notes:
   - the post-xst simulation (_ssim targets) proved to be a valuable tool.

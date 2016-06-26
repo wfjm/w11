@@ -4,6 +4,7 @@
 ../../../vlib/genlib/genlib.vhd
 ../../../vlib/serport/serportlib.vbom
 ../../../vlib/rbus/rblib.vhd
+../../../vlib/rbus/rbdlib.vhd
 ../../../vlib/rlink/rlinklib.vbom
 ../../../bplib/bpgen/bpgenlib.vbom
 ../../../bplib/bpgen/bpgenrbuslib.vbom
@@ -18,7 +19,8 @@ ${sys_conf := sys_conf.vhd}
 ../../../vlib/rlink/rlink_sp1c.vbom
 ../rbd_tst_rlink.vbom
 ../../../bplib/sysmon/sysmonx_rbus_base.vbom
-../../../vlib/rbus/rb_sres_or_3.vbom
+../../../vlib/rbus/rbd_usracc.vbom
+../../../vlib/rbus/rb_sres_or_4.vbom
 # design
 sys_tst_rlink_b3.vhd
 @xdc:../../../bplib/basys3/basys3_pclk.xdc

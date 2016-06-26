@@ -1,4 +1,4 @@
-$Id: README.txt 746 2016-03-19 13:08:36Z mueller $
+$Id: README.txt 779 2016-06-26 15:37:16Z mueller $
 
 Release notes for w11a
 
@@ -21,6 +21,213 @@ Release notes for w11a
     * w11a_known_issues.txt: known differences, limitations and issues
 
 2. Change Log ----------------------------------------------------------------
+
+- trunk (2016-06-26: svn rev 36(oc) 779(wfjm); untagged w11a_V0.73)  +++++++++
+  - Preface
+    - the 'basic vivado support' added with V0.64 was a minimal effort port of
+      the code base used under ISE, leading to sub-optimal results under vivado.
+      - the FSM inference under vivado is quirky and has several issues. The
+        most essential one prevented re-coding with 'one_hot' encoding, which
+        lead to high logic depth and low clock rates. Proper work-arounds were
+        applied to almost all FSMs, now vivado infers all (but one) properly
+        and re-codes them as 'one_hot'. That is especially important for the
+        pdp11_sequencer, which has 113 states. The sys_w11a_n4 system can now
+        run with up to 90 MHz (was 75-80 MHz before).
+      - due to a remaining synthesis issue the dmscnt and dmcmon debug units
+        are currently disabled for Artix based systems (see issue V0.73-3).
+      - memory inference is now used for all distributed and block rams under
+        vivado. The memory generators in memlib are still used under ISE
+        Note: they were initially setup to work around ISE synthesis issues.
+      - vivado synthesis and implementation use now 'explore' type flows for
+        optimal timing performance.
+      - the two clock dram based fifo was re-written (as fifo_2c_dram2) to allow
+        proper usage of vivado constraints (e.g. scoped xdc).
+
+    - vivado is now the prime platform for all further development
+      - the component test benches run now by default under Vivado with an
+        Artix-7 as default target. The makefiles for ISE with a Spartan-6 target
+        are available as 'Makefile.ise' and via the 'makeise' command.
+      - a message filter (xviv_msg_filter) has been developed which lists only
+        the unexpected message of a synthesis or implementation run. Filter
+        rule sets (.vmfset files) are available for all designs.
+      - full support for the vivado simuator 'xsim' has been added, there are
+        make targets to build a behavioral simulation as well as post-synthesis,
+        post-optimize, and post-routing functional and timing models. All these
+        models are now created in separate sub-directories and can now co-exist.
+        However see issues V.073-1 and 0.73-2 for severe caveats on xsim.
+      - vivado write_vhdl generates code which violates a vhdl language rule. 
+        Attributes of port signals are declared in the wrong place. xsim and 
+        other simulators accept this, but ghdl doesn't. As a work-around the
+        generated code is cleaned up by a filter (see xviv_sim_vhdl_cleanup).
+  
+    - additional rlink devices
+      - the XADC block, available on all 7Series FPGAs, is now accessible via
+        rlink on all Arty, Basys3 and Nexys4 designs. Especially useful on the
+        Arty board because on this board also the currents are monitored.
+      - the USR_ACCESS register, available on all 7Series FPGAs, is now readable
+        via rlink on all Arty, Basys3 and Nexys4 designs. The vivado build flow
+        initializes this register with the build timestamp. This allows to
+        verify the build time of a design at run time.
+
+    - the cache used by the w11a (pdp11_cache) was initialy developed with the
+      tight block ram resources of the early Spartan-3 systems in mind. It had
+      8 kByte and used 5 BRAMs of size 18 kBit. With very little changes the 
+      implenenation is now parametrized, and can generate also 16,32, 64 and 
+      even 128 kByte caches which also use the 36 kBit BRAMs on the Artix.
+      There is a trade-off between cache sizes and clock rate due to routing
+      delays to the BRAM blocks. The w11a on the nexys4 runs with 16 kByte
+      cache and 90 MHz clock or with 64 kByte cache and 80 MHz. For practical
+      work loads, like a kernel compile, the 64 kByte configuration is better
+      and thus the default.
+
+    - resolved known issue V0.64-7: was caused by a combination of issues
+      and is now resolved by a combination of measures: add portsel logic for 
+      arty tb, proper portsel setup, configurable timeout, and finally proper 
+      timeout setting.
+    - resolved known issue V0.64-3: So far the arty, basys3 and nexys4 serial 
+      port, based on a FTDI FT2232, was often operated at 10 MBaud. This rate 
+      is in fact not supported by FTDI, the chip will use 8 instead of 10 MBaud.
+      Due to auto-bauding, which simly adapts to the actual baud rate, this went
+      undetected for some time. Now all designs use a serport block clocked with
+      120 MHz and can be operated with 12 MBaud. 
+
+  - Summary
+    - new reference system: switched to Vivado 2016.2 (from 2015.4)
+    - code base cleaned-up for vivado, fsm now inferred
+    - xsim support complete (but many issues to be resolved yet)
+    - added configurable w11a cache
+    - removed some never documented and now strategically obsolete designs:
+      - sys_tst_fx2loop (for nexys2 and nexys3)
+      - sys_tst_rlink_cuff_ic3 (a three channel variant of the fx2 interface)
+
+  - New features
+    - new modules
+      - rtl/vlib
+        - generic_clk_100mhz.xdc    - generic 100 MHz on CLK constraint (for tbs)
+      - rtl/vlib/cdclib             - new directory for clock domain crossing
+        - cdc_pulse.vhd               - cdc for a pulse (moved in from genlib)
+        - cdc_signal_s1.vhd           - cdc for a signal, 2 stage
+        - cdc_vector_s0.vhd           - cdc for a vector, 1 stage
+      - rtl/vlib/memlib
+        - fifo_2c_dram2.vhd             - re-write of fifo_2c_dram to allow
+                                          proper usage of vivado constraints
+      - rtl/vlib/rbus
+        - rb_sres_or_6.vhd              - rbus result or, 6 input
+        - rbd_usracc.vhd                - return usr_access register
+      - rtl/vlib/rlink
+        - rlink_sp2c.vhd                - rlink_core8 + serport_2clock2 combo
+      - rtl/vlib/serport
+        - serport_2clock2.vhd           - like serport_2clock, use fifo_2c_dram2
+      - rtl/vlib/xlib
+        - usr_access_unisim.vhd         - Wrapper for USR_ACCESS* entities
+   - new files
+      - tools/bin
+        - xise_msg_summary            - list all filtered ISE messages
+        - xviv_msg_filter             - message filter for vivado
+        - xviv_msg_summary            - list all filtered vivado messages
+        - xviv_sim_vhdl_cleanup       - cleanup vivado generated vhdl for ghdl
+        - makeise                     - wrapper for make -f Makefile.ise
+      - tools/tcl/rbtest
+        - test_flow.tcl               - test back pressure and flow control
+
+  - Changes
+    - rtl/bplib/*/*_pins.xdc        - add BITSTREAM.CONFIG.USR_ACCESS setup
+    - rtl/bplib/*/tb/tb_*.vbom      - use -UUT attribute
+    - rtl/sys_gen/*/*/tb/tb_*.vbom  - use -UUT attribute
+    - rtl/make_ise
+      - generic_ghdl.mk               - use ghdl.?sim as workdir for ghdl
+      - generic_xflow.mk              - use .imfset for ISE message rules
+    - rtl/make_viv
+      - generic_ghdl.mk               - use ghdl.?sim as workdir for ghdl
+      - generic_vivado.mk             - add [sorep]sim.v and %.vivado targets
+                                      - vmfset support, use xviv_sim_vhdl_cleanup
+      - generic_xsim.mk               - [rep]sim models; use xsim.?sim as workdir
+      - viv_tools_build.tcl           - use explore flows;  prj,opt,pla modes
+      - viv_tools_config.tcl          - add USR_ACCESS readback
+      - viv_tools_model.tcl           - add [sor]sim_vhdl [sorepd]sim_veri modes
+    - rtl/sys_gen/*/*                 (all rlink based designs)
+      - sys_*.vhd                     - define rlink SYSID
+    - rtl/sys_gen/*/*                 (all rlink and 7series based designs)
+      - sys_*.vhd                     - add rbd_usracc, use serport_2clock2
+      - sys_conf.vhd                  - use PLL for clkser_gentype
+    - rtl/sys_gen/w11a/*
+      - sys_conf.vhd                  - add sys_conf_cache_twidth
+    - rtl/sys_gen/tst_serloop/nexys4
+      - sys_tst_serloop1_n4.vhd       - clock now from cmt and configurable
+    - rtl/sys_gen/tst_serloop/tb
+      - tb_tst_serloop.vhd            - use serport_(uart_rxtx|xontx)_tb
+    - rtl/vlib/*/tb/tb_*.vbom       - use -UUT attribute
+    - rtl/vlib/*/tb/tbd_*.vbom      - use generic_clk_100mhz.xdc
+    - rtl/vlib/comlib/comlib.vhd    - leave return type unconstraint
+    - rtl/vlib/simlib/simlib.vhd    - add writetimens()
+    - rtl/w11a
+      - pdp11_bram_memctl.vhd         - use memory inference now
+      - pdp11_cache.vhd               - now configurable size (8,16,32,64,128 kB)
+      - pdp11_sequencer.vhd           - proc_snum conditional (vivado fsm fix)
+    - rtl/*/*.vbom                  - use memory inference for vivado
+    - rtl/*/*.vhd                   - workarounds and fixes to many FSMs
+    - tools/bin
+      - tbrun_tbw                     - use _bsim.log for behavioral sim log
+      - tbrun_tbwrri                  - use _bsim.log for behavioral sim log
+                                        use 120 sec timeout for simulation
+      - tbw                           - add '-norun', -run now default
+      - ti_rri                        - add --tout option
+                                        use 120 sec timeout for simulation
+      - vbomconv                      - add file properties (-UUT,-SCOPE_REF)
+                                        full xsim support now in -vsim_prj
+      - tools/src/librlink
+        - RlinkConnect                - add USR_ACCESS register support
+      - tools/src/librlinktpp
+        - RtclRlinkConnect            - add USR_ACCESS, timeout access
+      - tools/tcl/rbtest
+        - test_data.tcl               - add dinc register tests
+      - tools/tcl/rlink
+        - util.tcl                    - add USR_ACCESS register support
+
+    - removed designs
+      - rtl/sys_gen/tst_fx2loop/nexys*/*/sys_tst_fx2loop_*_n*
+      - rtl/sys_gen/tst_rlink_cuff/nexys2/ic3/sys_tst_rlink_cuff_ic3_n2
+    - renames
+      - *.mfset -> *.imfset         - to be complementary to new .vmfset
+      - Makefile -> Makefile.ise    - old ISE makefiles in component areas
+
+  - Bug fixes
+    - rtl/bplib/arty/tb
+      - tb_arty.vhd:                - add portsel logic
+    - rtl/bplib/sysmon
+      - sysmon_rbus_core.vhd        - use s_init (and not s_idle) after RESET
+    - rtl/vlib/xlib
+      - s7_cmt_sfs_*.vhd            - correct mmcm range check boundaries
+    - tools/bin
+      - ti_w11:                     - proper portsel oob for -fx
+      - tbrun_tbwrri:               - proper portsel oob for -hxon
+
+  - Known issues
+    - all issues: see README_known_issues.txt
+    - resolved issues:
+      - V0.72-1: since vivado 2016.1 xelab builds models which use DPI in a
+          mixed vhdl-verilog language environment.
+      - V0.72-2: now full support to build behavioral as well as functional and
+          timing simulations with xsim. See V.073-1 and 0.73-2 for caveats.
+      - V0.64-7: flow control issues with simulation models resolved
+      - V0.64-3: basys3, nexys4 and arty designs support now 12 MBaud.
+
+    - new issues:
+      - V0.73-1: as of vivado 2016.2 xelab shows sometimes extremely long build
+          times, especially for generated post-synthesis vhdl models. But also 
+          building a behavioral simulation for a w11a design can take 25 min.
+          Even though post-synthesis or post-routing models are now generated
+          in verilog working with xsim is cumbersome and time consuming.
+      - V0.73-2: Many post-synthesis functional and especially post-routing
+          timing simulations currently fail due to startup and initialization
+          problems. Cause is MMCM/PLL startup, which is not properly reflected
+          in the test bench. Will be resolved in an upcoming release.
+      - V0.73-3: The 'state number generator' code in pdp11_sequencer causes
+          in vivado 2016.1 (and .2) that the main FSM isn't re-coded anymore,
+          which has high impact on achievable clock rate. The two optional
+          debug units depending on the state number, dmscnt and dmcmon, are
+          therefore currently deactivated in all Artix based systems (but are
+          available on all Spartan based systems).
 
 - trunk (2016-03-19: svn rev 35(oc) 746(wfjm); untagged w11a_V0.72)  +++++++++
   - Preface
@@ -70,7 +277,7 @@ Release notes for w11a
         - serport_uart_*_tb           - added copies for tb usage
       - rtl/vlib/xlib/tb
         - s7_cmt_sfs_tb               - added copy for tb usage
-      - 
+
     - new files
       - doc/man/man1
         - tbrun_tbw.1               - man file for tbrun_tbw

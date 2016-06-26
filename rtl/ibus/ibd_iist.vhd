@@ -1,6 +1,6 @@
--- $Id: ibd_iist.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: ibd_iist.vhd 767 2016-05-26 07:47:51Z mueller $
 --
--- Copyright 2009-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2009-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,7 +18,7 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.1; ghdl 0.18-0.33
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -29,6 +29,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-05-22   787   0.8.2  don't init N_REGS (vivado fix for fsm inference)
 -- 2011-11-18   427   0.8.1  now numeric_std clean
 -- 2010-10-17   333   0.8    use ibus V2 interface
 -- 2009-06-07   224   0.7    send inverted stc_stp; remove pgc_err; honor msk_im
@@ -218,7 +219,7 @@ architecture syn of ibd_iist is
   );
   
   signal R_REGS : regs_type := regs_init;
-  signal N_REGS : regs_type := regs_init;
+  signal N_REGS : regs_type;            -- don't init (vivado fix for fsm infer)
 
 begin
   

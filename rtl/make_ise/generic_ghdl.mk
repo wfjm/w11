@@ -1,10 +1,11 @@
-# $Id: generic_ghdl.mk 733 2016-02-20 12:24:13Z mueller $
+# $Id: generic_ghdl.mk 778 2016-06-25 15:18:01Z mueller $
 #
-# Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2016-06-24   778   1.1    use ghdl.?sim as workdir
 # 2015-02-14   646   1.4    use --xlpath for vbomconv; drop cygwin support;
 # 2014-07-26   575   1.3.2  use XTWI_PATH now (ise/vivado switch done later)
 # 2013-01-27   477   1.3.1  use dontincdep.mk to suppress .dep include on clean
@@ -42,9 +43,8 @@ include ${RETROBASE}/rtl/make_ise/dontincdep.mk
 ghdl_clean: ghdl_tmp_clean
 	rm -f $(EXE_all)
 	rm -f $(EXE_all:%=%_[sft]sim)
-	rm -f cext_*.o
 #
 ghdl_tmp_clean:
-	find -maxdepth 1 -name "*.o" | grep -v "^\./cext_" | xargs rm -f
-	rm -f work-obj93.cf
+	rm -rf ghdl.[bsft]sim
+	rm -f cext_*.o e~*.o
 #

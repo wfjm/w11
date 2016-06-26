@@ -1,4 +1,4 @@
--- $Id: serport_1clock.vhd 666 2015-04-12 21:17:54Z mueller $
+-- $Id: serport_1clock.vhd 748 2016-03-20 15:18:50Z mueller $
 --
 -- Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -185,7 +185,7 @@ begin
     SIZE  => RXFIFO_SIZE
   );
 
-  TXFIFO : fifo_1c_dram                 -- input fifo, 1 clock, dram based
+  TXFIFO : fifo_1c_dram                 -- output fifo, 1 clock, dram based
   generic map (
     AWIDTH => TXFAWIDTH,
     DWIDTH => 8)

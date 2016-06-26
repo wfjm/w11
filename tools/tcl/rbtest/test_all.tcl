@@ -1,6 +1,6 @@
-# $Id: test_all.tcl 662 2015-04-05 08:02:54Z mueller $
+# $Id: test_all.tcl 777 2016-06-19 20:24:15Z mueller $
 #
-# Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2016-06-18   777   1.2    add test_flow
 # 2015-04-03   662   1.1    add test_labo
 # 2011-03-27   374   1.0    Initial version
 # 2011-03-13   369   0.1    First draft
@@ -32,6 +33,7 @@ namespace eval rbtest {
     incr errcnt [rbtest::test_labo]
     incr errcnt [rbtest::test_stat $statmsk]
     incr errcnt [rbtest::test_attn $attnmsk]
+    incr errcnt [rbtest::test_flow 256]
     return $errcnt
   }
 }

@@ -5,3 +5,4 @@
 ../serport_uart_rx.vbom
 # design
 tbd_serport_uart_rx.vhd
+@xdc:../../generic_clk_100mhz.xdc

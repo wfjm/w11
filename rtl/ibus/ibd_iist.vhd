@@ -1,4 +1,4 @@
--- $Id: ibd_iist.vhd 767 2016-05-26 07:47:51Z mueller $
+-- $Id: ibd_iist.vhd 784 2016-07-09 22:17:01Z mueller $
 --
 -- Copyright 2009-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -29,7 +29,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2016-05-22   787   0.8.2  don't init N_REGS (vivado fix for fsm inference)
+-- 2016-05-22   767   0.8.2  don't init N_REGS (vivado fix for fsm inference)
 -- 2011-11-18   427   0.8.1  now numeric_std clean
 -- 2010-10-17   333   0.8    use ibus V2 interface
 -- 2009-06-07   224   0.7    send inverted stc_stp; remove pgc_err; honor msk_im

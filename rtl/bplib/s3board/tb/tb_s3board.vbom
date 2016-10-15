@@ -1,0 +1,20 @@
+# Not meant for direct top level usage. Used with 
+# tb_s3board_(....)[_ssim].vbom and config
+# lines to generate the different cases.
+#
+# libs
+../../../vlib/slvtypes.vhd
+../../../vlib/rlink/rlinklib.vbom
+../s3boardlib.vbom
+../../../vlib/simlib/simlib.vhd
+../../../vlib/simlib/simbus.vhd
+# components
+../../../vlib/simlib/simclk.vbom
+../../../vlib/simlib/simclkcnt.vbom
+../../../vlib/rlink/tbcore/tbcore_rlink.vbom
+tb_s3board_core.vbom
+${s3board_aif := s3board_dummy.vbom}  -UUT
+../../../vlib/serport/tb/serport_master_tb.vbom
+# design
+tb_s3board.vhd
+@top:tb_s3board

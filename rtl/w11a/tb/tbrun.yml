@@ -1,0 +1,21 @@
+# $Id: tbrun.yml 807 2016-09-17 07:49:26Z mueller $
+#
+# Revision History:
+# Date         Rev Version  Comment
+# 2016-08-21   799   1.0    Initial version
+#
+- default:
+    mode: ${viv_modes}
+#
+- tag:  [default, viv, w11a, base]
+  test: |
+    tbrun_tbw --lsuf base tb_pdp11core${ms}
+#
+- tag:  [default, viv, w11a, ubmap]
+  test: |
+    tbrun_tbw --lsuf ubmap tb_pdp11core${ms} tb_pdp11core_ubmap.dat
+#
+- tag:  [default, viv, w11a, ibdr]
+  test: |
+    tbrun_tbw --lsuf ibdr tb_rlink_tba_pdp11core${ms} \
+      tb_rlink_tba_pdp11core_ibdr.dat

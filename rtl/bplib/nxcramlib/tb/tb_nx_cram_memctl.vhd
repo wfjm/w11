@@ -1,4 +1,4 @@
--- $Id: tb_nx_cram_memctl.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: tb_nx_cram_memctl.vhd 802 2016-08-27 19:00:23Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -113,10 +113,11 @@ end component;
   signal CLK_STOP : slbit := '0';
   signal CLK_CYCLE : integer := 0;
 
-  constant clock_period : time :=  20 ns;
-  constant clock_offset : time := 200 ns;
-  constant setup_time : time :=  7.5 ns;   -- compatible ucf for
-  constant c2out_time : time := 12.0 ns;   -- tbd_nx_cram_memctl_as
+  constant clock_period : Delay_length :=  20 ns;  -- when changed update also
+                                                   -- READ0DELAY ect delays !!
+  constant clock_offset : Delay_length := 200 ns;
+  constant setup_time : Delay_length :=  7.5 ns;   -- compatible ucf for
+  constant c2out_time : Delay_length := 12.0 ns;   -- tbd_nx_cram_memctl_as
 
 begin
 

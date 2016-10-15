@@ -1,4 +1,4 @@
--- $Id: tb_serport_autobaud.vhd 476 2013-01-26 22:23:53Z mueller $
+-- $Id: tb_serport_autobaud.vhd 790 2016-07-20 18:52:44Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -88,10 +88,10 @@ architecture sim of tb_serport_autobaud is
   signal R_MON_VAL_2 : slbit := '0';
   signal R_MON_DAT_2 : slv8 := (others=>'0');
 
-  constant clock_period : time :=  20 ns;
-  constant clock_offset : time := 200 ns;
-  constant setup_time : time :=  5 ns;
-  constant c2out_time : time := 10 ns;
+  constant clock_period : Delay_length :=  20 ns;
+  constant clock_offset : Delay_length := 200 ns;
+  constant setup_time : Delay_length :=  5 ns;
+  constant c2out_time : Delay_length := 10 ns;
 
 begin
 

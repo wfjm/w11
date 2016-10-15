@@ -1,0 +1,23 @@
+# $Id: tbrun.yml 807 2016-09-17 07:49:26Z mueller $
+#
+# Revision History:
+# Date         Rev Version  Comment
+# 2016-09-17   807   1.1    use nossim because _ssim support broken; add sp1c
+# 2016-08-21   799   1.0    Initial version
+#
+- default:
+    mode: ${viv_modes_nossim}
+#
+- tag:  [default, viv, rlink, direct]
+  test: |
+    tbrun_tbw tb_rlink_direct${ms}
+    
+- tag:  [default, viv, rlink, sp1c]
+  test: |
+    tbrun_tbw tb_rlink_sp1c${ms}
+    
+- tag:  [default, viv, rlink, ttcombo]
+  test: |
+    
+- tag:  [default, viv, rlink, eyemon]
+  test: |

@@ -1,0 +1,14 @@
+## $Id: sys_tst_sram_n2.ucf_cpp 336 2010-11-06 18:28:27Z mueller $
+##
+## Revision History: 
+## Date         Rev Version  Comment
+## 2010-11-06   336   1.0.1  rename input pin CLK -> I_CLK50
+## 2010-05-23   294   1.0    Initial version
+##
+
+NET "I_CLK50" TNM_NET = "I_CLK50";
+TIMESPEC "TS_I_CLK50" = PERIOD "I_CLK50" 20 ns HIGH 50 %;
+OFFSET =  IN 10 ns BEFORE "I_CLK50";
+OFFSET = OUT 20 ns  AFTER "I_CLK50";
+
+#include "bplib/nexys2/nexys2_pins.ucf"

@@ -1,0 +1,45 @@
+# $Id: sys_tst_sram_n4.vmfset 785 2016-07-10 12:22:41Z mueller $
+#
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+[syn]
+# false_path -hold ignored by synth ----------------------------
+I [Designutils 20-1567]                                         # generic
+
+# port driven by constant --------------------------------------
+i [Synth 8-3917] O_RGBLED0[\d]                                  # OK 2016-06-05
+
+# tying undriven pin to constant -------------------------------
+# upper 8 LEDs unused                                           # OK 2016-06-05
+i [Synth 8-3295] HIO:LED[\d*]
+# only few LAMs used                                            # OK 2016-06-05
+i [Synth 8-3295] RLINK:RB_LAM[\d*]
+
+# unconnected ports --------------------------------------------
+I [Synth 8-3331] RB_MREQ                                        # generic
+# --> I_MEM_WAIT not used by current nx_cram_memctl_as          # OK 2016-06-05
+i [Synth 8-3331] nx_cram_memctl_as.*I_MEM_WAIT
+# --> MEM_ACK_W not used by current tst_sram                    # OK 2016-06-05
+i [Synth 8-3331] tst_sram.*MEM_ACK_W
+# --> rlink_sp2c doesn't use CE_USEC and CE_MSEC                # OK 2016-06-05
+i [Synth 8-3331] rlink_sp2c.*CE_(USEC|MSEC)
+
+# unused sequential element ------------------------------------
+I [Synth 8-3332] R_LREGS_reg[attn][\d*]                         # generic
+# --> many HIO pins not used                                    # OK 2016-06-05
+i [Synth 8-3332] HIO/IOB_LED/R_DO_reg[\d*] 
+i [Synth 8-3332] HIO/IOB_(SWI|BTN)/R_DI_reg[\d*]
+i [Synth 8-3332] HIO/DEB.DEB_(SWI|BTN)/R_REGS_reg[(dref|dout|dchange)][\d*]
+# --> monitor outputs moneop,monattn currently not used         # OK 2016-06-05
+i [Synth 8-3332] RLINK/CORE/RL/R_LREGS_reg[moneop]
+i [Synth 8-3332] RLINK/CORE/RL/R_LREGS_reg[monattn]
+# --> only RB_STAT 0,1 used by tst_sram                         # OK 2016-06-05
+i [Synth 8-3332] RLINK/CORE/RL/R_BREGS_reg[stat][(2|3)]
+# --> CE_USEC isn't used (also not in rlink_sp2c)               # OK 2016-06-05
+i [Synth 8-3332] CLKDIV_CLK/R_REGS_reg[usec]
+# --> CES_USEC isn't used                                       # OK 2016-06-05
+i [Synth 8-3332] CLKDIV_CLKS/R_REGS_reg[usec]
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+[imp]
+I [Vivado 12-2489]                                # multiple of 1 ps
+I [Physopt 32-742]                                # BRAM Flop Optimization

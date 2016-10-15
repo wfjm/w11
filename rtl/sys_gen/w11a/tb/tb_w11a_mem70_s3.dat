@@ -1,0 +1,157 @@
+# $Id: tb_w11a_mem70_s3.dat 351 2010-12-30 21:50:54Z mueller $
+#
+# Tests 11/70 memory system, S3board specific size test and probing
+#
+# Revision History: 
+# Date         Rev Version  Comment
+# 2010-06-13   305   1.1    rename lal,lah -> wal,wah; replace 'sta' -> 'stapc'
+# 2010-06-06   301   1.0    initial version
+#
+.mode pdpcp
+.tocmd   50
+.tostp  100
+.togo  5000
+.rlmon    0
+.rbmon    0
+#
+.reset
+.wait 10
+.anena    1
+#
+#-----------------------------------------------------------------------------
+C Test 1: memory system size
+wal     177760
+rmi   d=037777    -- 177760: Lower size Register (for 1MB system)
+rmi   d=000000    -- 177762: Upper size Register
+#
+#-----------------------------------------------------------------------------
+C Test 2: probe memory
+#
+# cache size is 8 kByte --> 000000,020000,040000,060000,.. share one cache line
+# Probe 8 areas in memory, 128 kB apart. 
+#    00,000000  00,000100
+#    02,000000  02,000102
+#    04,000000  04,000104
+#    06,000000  06,000106
+#    00,000000  10,000110
+#    12,000000  12,000112
+#    14,000000  14,000114
+#    16,000000  16,000116
+#
+# write data
+#
+wal     000000    -- write to 00,000000
+wah     000100    -- use 22 bit mode
+wm      100000
+wal     000100    -- write to 00,000100
+wah     000100    -- use 22 bit mode
+wm      100100
+#
+wal     000000    -- write to 02,000000
+wah     000102    -- use 22 bit mode
+wm      102000
+wal     000102    -- write to 02,000102
+wah     000102    -- use 22 bit mode
+wm      102102
+#
+wal     000000    -- write to 04,000000
+wah     000104    -- use 22 bit mode
+wm      104000
+wal     000104    -- write to 04,000104
+wah     000104    -- use 22 bit mode
+wm      104104
+#
+wal     000000    -- write to 06,000000
+wah     000106    -- use 22 bit mode
+wm      106000
+wal     000106    -- write to 06,000106
+wah     000106    -- use 22 bit mode
+wm      106106
+#
+wal     000000    -- write to 10,000000
+wah     000110    -- use 22 bit mode
+wm      110000
+wal     000110    -- write to 10,000110
+wah     000110    -- use 22 bit mode
+wm      110110
+#
+wal     000000    -- write to 12,000000
+wah     000112    -- use 22 bit mode
+wm      112000
+wal     000112    -- write to 12,000112
+wah     000112    -- use 22 bit mode
+wm      112112
+#
+wal     000000    -- write to 14,000000
+wah     000114    -- use 22 bit mode
+wm      114000
+wal     000114    -- write to 14,000114
+wah     000114    -- use 22 bit mode
+wm      114114
+#
+wal     000000    -- write to 16,000000
+wah     000116    -- use 22 bit mode
+wm      116000
+wal     000116    -- write to 16,000116
+wah     000116    -- use 22 bit mode
+wm      116116
+#
+#
+# read  data
+#
+wal     000000    -- read from 00,000000
+wah     000100    -- use 22 bit mode
+rm    d=100000
+wal     000100    -- read from 00,000100
+wah     000100    -- use 22 bit mode
+rm    d=100100
+#
+wal     000000    -- read from 02,000000
+wah     000102    -- use 22 bit mode
+rm    d=102000
+wal     000102    -- read from 02,000102
+wah     000102    -- use 22 bit mode
+rm    d=102102
+#
+wal     000000    -- read from 04,000000
+wah     000104    -- use 22 bit mode
+rm    d=104000
+wal     000104    -- read from 04,000104
+wah     000104    -- use 22 bit mode
+rm    d=104104
+#
+wal     000000    -- read from 06,000000
+wah     000106    -- use 22 bit mode
+rm    d=106000
+wal     000106    -- read from 06,000106
+wah     000106    -- use 22 bit mode
+rm    d=106106
+#
+wal     000000    -- read from 10,000000
+wah     000110    -- use 22 bit mode
+rm    d=110000
+wal     000110    -- read from 10,000110
+wah     000110    -- use 22 bit mode
+rm    d=110110
+#
+wal     000000    -- read from 12,000000
+wah     000112    -- use 22 bit mode
+rm    d=112000
+wal     000112    -- read from 12,000112
+wah     000112    -- use 22 bit mode
+rm    d=112112
+#
+wal     000000    -- read from 14,000000
+wah     000114    -- use 22 bit mode
+rm    d=114000
+wal     000114    -- read from 14,000114
+wah     000114    -- use 22 bit mode
+rm    d=114114
+#
+wal     000000    -- read from 16,000000
+wah     000116    -- use 22 bit mode
+rm    d=116000
+wal     000116    -- read from 16,000116
+wah     000116    -- use 22 bit mode
+rm    d=116116
+#

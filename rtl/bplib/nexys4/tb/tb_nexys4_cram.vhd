@@ -1,4 +1,4 @@
--- $Id: tb_nexys4_cram.vhd 734 2016-02-20 22:43:20Z mueller $
+-- $Id: tb_nexys4_cram.vhd 805 2016-09-03 08:09:52Z mueller $
 --
 -- Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -22,15 +22,18 @@
 --                 tb_nexys4_core
 --                 serport/tb/serport_master_tb
 --                 nexys4_cram_aif [UUT]
+--                 simlib/simbididly
 --                 vlib/parts/micron/mt45w8mw16b
 --
 -- To test:        generic, any nexys4_cram_aif target
 --
 -- Target Devices: generic
--- Tool versions:  ise 14.5-14.7; viv 2014.4; ghdl 0.29-0.31
+-- Tool versions:  ise 14.5-14.7; viv 2014.4-2016.2; ghdl 0.29-0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-09-02   805   1.3.1  tbcore_rlink without CLK_STOP now
+-- 2016-07-20   791   1.3    use simbididly
 -- 2016-02-20   734   1.2.3  use s7_cmt_sfs_tb to avoid xsim conflict
 -- 2016-02-13   730   1.2.2  direct instantiation of tbcore_rlink
 -- 2016-01-03   724   1.2.1  use serport/tb/serport_master_tb
@@ -62,7 +65,6 @@ architecture sim of tb_nexys4_cram is
   signal CLKOSC : slbit := '0';         -- board clock (100 Mhz)
   signal CLKCOM : slbit := '0';         -- communication clock
 
-  signal CLK_STOP : slbit := '0';
   signal CLKCOM_CYCLE : integer := 0;
 
   signal RESET : slbit := '0';
@@ -87,23 +89,36 @@ architecture sim of tb_nexys4_cram is
   signal O_RGBLED1 : slv3 := (others=>'0');
   signal O_ANO_N : slv8 := (others=>'0');
   signal O_SEG_N : slv8 := (others=>'0');
-  signal O_MEM_CE_N  : slbit := '1';
-  signal O_MEM_BE_N  : slv2 := (others=>'1');
-  signal O_MEM_WE_N  : slbit := '1';
-  signal O_MEM_OE_N  : slbit := '1';
-  signal O_MEM_ADV_N : slbit := '1';
-  signal O_MEM_CLK   : slbit := '0';
-  signal O_MEM_CRE   : slbit := '0';
-  signal I_MEM_WAIT  : slbit := '0';
-  signal O_MEM_ADDR  : slv23 := (others=>'Z');
-  signal IO_MEM_DATA : slv16 := (others=>'0');
+
+  signal TB_MEM_CE_N  : slbit := '1';
+  signal TB_MEM_BE_N  : slv2 := (others=>'1');
+  signal TB_MEM_WE_N  : slbit := '1';
+  signal TB_MEM_OE_N  : slbit := '1';
+  signal TB_MEM_ADV_N : slbit := '1';
+  signal TB_MEM_CLK   : slbit := '0';
+  signal TB_MEM_CRE   : slbit := '0';
+  signal TB_MEM_WAIT  : slbit := '0';
+  signal TB_MEM_ADDR  : slv23 := (others=>'Z');
+  signal TB_MEM_DATA : slv16 := (others=>'0');
+
+  signal MM_MEM_CE_N  : slbit := '1';
+  signal MM_MEM_BE_N  : slv2 := (others=>'1');
+  signal MM_MEM_WE_N  : slbit := '1';
+  signal MM_MEM_OE_N  : slbit := '1';
+  signal MM_MEM_ADV_N : slbit := '1';
+  signal MM_MEM_CLK   : slbit := '0';
+  signal MM_MEM_CRE   : slbit := '0';
+  signal MM_MEM_WAIT  : slbit := '0';
+  signal MM_MEM_ADDR  : slv23 := (others=>'Z');
+  signal MM_MEM_DATA  : slv16 := (others=>'0');
 
   signal R_PORTSEL_XON : slbit := '0';       -- if 1 use xon/xoff
 
   constant sbaddr_portsel: slv8 := slv(to_unsigned( 8,8));
 
-  constant clock_period : time :=  10 ns;
-  constant clock_offset : time := 200 ns;
+  constant clock_period : Delay_length :=  10 ns;
+  constant clock_offset : Delay_length := 200 ns;
+  constant pcb_delay : Delay_length := 1 ns;
 
 begin
   
@@ -112,8 +127,7 @@ begin
       PERIOD => clock_period,
       OFFSET => clock_offset)
     port map (
-      CLK      => CLKOSC,
-      CLK_STOP => CLK_STOP
+      CLK      => CLKOSC
     );
   
   CLKGEN_COM : entity work.s7_cmt_sfs_tb
@@ -136,7 +150,6 @@ begin
   TBCORE : entity work.tbcore_rlink
     port map (
       CLK      => CLKCOM,
-      CLK_STOP => CLK_STOP,
       RX_DATA  => TXDATA,
       RX_VAL   => TXENA,
       RX_HOLD  => TXBUSY,
@@ -166,31 +179,49 @@ begin
       O_RGBLED1   => O_RGBLED1,
       O_ANO_N     => O_ANO_N,
       O_SEG_N     => O_SEG_N,
-      O_MEM_CE_N  => O_MEM_CE_N,
-      O_MEM_BE_N  => O_MEM_BE_N,
-      O_MEM_WE_N  => O_MEM_WE_N,
-      O_MEM_OE_N  => O_MEM_OE_N,
-      O_MEM_ADV_N => O_MEM_ADV_N,
-      O_MEM_CLK   => O_MEM_CLK,
-      O_MEM_CRE   => O_MEM_CRE,
-      I_MEM_WAIT  => I_MEM_WAIT,
-      O_MEM_ADDR  => O_MEM_ADDR,
-      IO_MEM_DATA => IO_MEM_DATA
+      O_MEM_CE_N  => TB_MEM_CE_N,
+      O_MEM_BE_N  => TB_MEM_BE_N,
+      O_MEM_WE_N  => TB_MEM_WE_N,
+      O_MEM_OE_N  => TB_MEM_OE_N,
+      O_MEM_ADV_N => TB_MEM_ADV_N,
+      O_MEM_CLK   => TB_MEM_CLK,
+      O_MEM_CRE   => TB_MEM_CRE,
+      I_MEM_WAIT  => TB_MEM_WAIT,
+      O_MEM_ADDR  => TB_MEM_ADDR,
+      IO_MEM_DATA => TB_MEM_DATA
     );
   
+  MM_MEM_CE_N  <= TB_MEM_CE_N  after pcb_delay;
+  MM_MEM_BE_N  <= TB_MEM_BE_N  after pcb_delay;
+  MM_MEM_WE_N  <= TB_MEM_WE_N  after pcb_delay;
+  MM_MEM_OE_N  <= TB_MEM_OE_N  after pcb_delay;
+  MM_MEM_ADV_N <= TB_MEM_ADV_N after pcb_delay;
+  MM_MEM_CLK   <= TB_MEM_CLK   after pcb_delay;
+  MM_MEM_CRE   <= TB_MEM_CRE   after pcb_delay;
+  MM_MEM_ADDR  <= TB_MEM_ADDR  after pcb_delay;
+  TB_MEM_WAIT  <= MM_MEM_WAIT  after pcb_delay;
+
+  BUSDLY: simbididly
+    generic map (
+      DELAY  => pcb_delay,
+      DWIDTH => 16)
+    port map (
+      A => TB_MEM_DATA,
+      B => MM_MEM_DATA);
+
   MEM : entity work.mt45w8mw16b
     port map (
-      CLK   => O_MEM_CLK,
-      CE_N  => O_MEM_CE_N,
-      OE_N  => O_MEM_OE_N,
-      WE_N  => O_MEM_WE_N,
-      UB_N  => O_MEM_BE_N(1),
-      LB_N  => O_MEM_BE_N(0),
-      ADV_N => O_MEM_ADV_N,
-      CRE   => O_MEM_CRE,
-      MWAIT => I_MEM_WAIT,
-      ADDR  => O_MEM_ADDR,
-      DATA  => IO_MEM_DATA
+      CLK   => MM_MEM_CLK,
+      CE_N  => MM_MEM_CE_N,
+      OE_N  => MM_MEM_OE_N,
+      WE_N  => MM_MEM_WE_N,
+      UB_N  => MM_MEM_BE_N(1),
+      LB_N  => MM_MEM_BE_N(0),
+      ADV_N => MM_MEM_ADV_N,
+      CRE   => MM_MEM_CRE,
+      MWAIT => MM_MEM_WAIT,
+      ADDR  => MM_MEM_ADDR,
+      DATA  => MM_MEM_DATA
     );
   
   SERMSTR : entity work.serport_master_tb

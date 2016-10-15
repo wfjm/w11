@@ -1,6 +1,6 @@
--- $Id: nxcramlib.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: nxcramlib.vhd 788 2016-07-16 22:23:23Z mueller $
 --
--- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,10 +16,11 @@
 -- Description:    Nexys 2/3 CRAM drivers
 -- 
 -- Dependencies:   -
--- Tool versions:  ise 11.4-14.7; viv 2014.4; ghdl 0.26-0.31
+-- Tool versions:  ise 11.4-14.7; viv 2014.4-2016.2; ghdl 0.26-0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-07-16   788   1.1    add cram_(read0|read1|write)delay functions
 -- 2011-11-26   433   1.0    Initial version (extracted from nexys2lib)
 ------------------------------------------------------------------------------
 
@@ -29,6 +30,16 @@ use ieee.std_logic_1164.all;
 use work.slvtypes.all;
 
 package nxcramlib is
+  
+pure function cram_delay(clk_mhz : positive;
+                         delay_ps : positive) return positive;
+pure function cram_read0delay(clk_mhz : positive) return positive;
+pure function cram_read1delay(clk_mhz : positive) return positive;
+pure function cram_writedelay(clk_mhz : positive) return positive;
+
+constant cram_read0delay_ps : positive := 80000;   -- initial read delay
+constant cram_read1delay_ps : positive := 30000;   -- page read delay
+constant cram_writedelay_ps : positive := 75000;   -- write delay
 
 component nx_cram_dummy is              -- CRAM protection dummy 
   port (
@@ -47,9 +58,9 @@ end component;
 
 component nx_cram_memctl_as is          -- CRAM driver (async+page mode)
   generic (
-    READ0DELAY : positive := 2;         -- read word 0 delay in clock cycles
+    READ0DELAY : positive := 4;         -- read word 0 delay in clock cycles
     READ1DELAY : positive := 2;         -- read word 1 delay in clock cycles
-    WRITEDELAY : positive := 3);        -- write delay in clock cycles
+    WRITEDELAY : positive := 4);        -- write delay in clock cycles
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- reset
@@ -78,3 +89,43 @@ component nx_cram_memctl_as is          -- CRAM driver (async+page mode)
 end component;
 
 end package nxcramlib;
+
+-- ----------------------------------------------------------------------------
+package body nxcramlib is
+
+-- -------------------------------------
+pure function cram_delay(               -- calculate delay in clock cycles
+  clk_mhz : positive;                     -- clock frequency in MHz
+  delay_ps : positive)                    -- delay in ps
+  return positive is
+  variable period_ps : natural := 0;       -- clk period in ps
+begin
+  period_ps := 1000000 / clk_mhz;
+  return (delay_ps + period_ps - 10) / period_ps;
+end function cram_delay;
+
+-- -------------------------------------
+pure function cram_read0delay(          -- read0 delay in clock cycles
+  clk_mhz : positive)                     -- clock frequency in MHz
+  return positive is
+begin
+  return cram_delay(clk_mhz, cram_read0delay_ps);
+end function cram_read0delay;
+
+-- -------------------------------------
+pure function cram_read1delay(          -- read1 delay in clock cycles
+  clk_mhz : positive)                     -- clock frequency in MHz
+  return positive is
+begin
+  return cram_delay(clk_mhz, cram_read1delay_ps);
+end function cram_read1delay;
+
+-- -------------------------------------
+pure function cram_writedelay(          -- write delay in clock cycles
+  clk_mhz : positive)                     -- clock frequency in MHz
+  return positive is
+begin
+  return cram_delay(clk_mhz, cram_writedelay_ps);
+end function cram_writedelay;
+
+end package body nxcramlib;

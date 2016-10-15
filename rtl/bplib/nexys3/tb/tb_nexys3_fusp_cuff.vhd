@@ -1,4 +1,4 @@
--- $Id: tb_nexys3_fusp_cuff.vhd 730 2016-02-13 16:22:03Z mueller $
+-- $Id: tb_nexys3_fusp_cuff.vhd 805 2016-09-03 08:09:52Z mueller $
 --
 -- Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -27,10 +27,11 @@
 -- To test:        generic, any nexys3_fusp_cuff_aif target
 --
 -- Target Devices: generic
--- Tool versions:  xst 13.1-14.7; ghdl 0.29-0.31
+-- Tool versions:  xst 13.1-14.7; ghdl 0.29-0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-09-02   805   1.2.3  tbcore_rlink without CLK_STOP now
 -- 2016-02-13   730   1.2.2  direct instantiation of tbcore_rlink
 -- 2016-01-03   724   1.2.1  use serport/tb/serport_master_tb
 -- 2015-04-12   666   1.2    use serport_master instead of serport_uart_rxtx
@@ -61,7 +62,6 @@ architecture sim of tb_nexys3_fusp_cuff is
   signal CLKOSC : slbit := '0';         -- board clock (100 Mhz)
   signal CLKCOM : slbit := '0';         -- communication clock
 
-  signal CLK_STOP : slbit := '0';
   signal CLKCOM_CYCLE : integer := 0;
 
   signal RESET : slbit := '0';
@@ -133,8 +133,8 @@ architecture sim of tb_nexys3_fusp_cuff is
 
   constant sbaddr_portsel: slv8 := slv(to_unsigned( 8,8));
 
-  constant clock_period : time :=  10 ns;
-  constant clock_offset : time := 200 ns;
+  constant clock_period : Delay_length :=  10 ns;
+  constant clock_offset : Delay_length := 200 ns;
 
 begin
   
@@ -143,12 +143,9 @@ begin
       PERIOD => clock_period,
       OFFSET => clock_offset)
     port map (
-      CLK      => CLKOSC,
-      CLK_STOP => CLK_STOP
+      CLK      => CLKOSC
     );
   
-  SB_CLKSTOP <= CLK_STOP;
-
   CLKGEN_COM : s6_cmt_sfs
     generic map (
       VCO_DIVIDE   => sys_conf_clksys_vcodivide,
@@ -169,7 +166,6 @@ begin
   TBCORE : entity work.tbcore_rlink
     port map (
       CLK      => CLKCOM,
-      CLK_STOP => CLK_STOP,
       RX_DATA  => TBC_RXDATA,
       RX_VAL   => TBC_RXVAL,
       RX_HOLD  => TBC_RXHOLD,

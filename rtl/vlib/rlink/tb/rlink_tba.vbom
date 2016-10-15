@@ -1,0 +1,8 @@
+# libs
+../../slvtypes.vhd
+../../comlib/comlib.vhd
+../rlinklib.vbom
+rlinktblib.vhd
+# components
+# design
+rlink_tba.vhd

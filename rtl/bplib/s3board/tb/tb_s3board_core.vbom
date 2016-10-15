@@ -1,7 +1,9 @@
 # libs
 ../../../vlib/slvtypes.vhd
+../../../vlib/simlib/simlib.vhd
 ../../../vlib/simlib/simbus.vhd
 # components
+../../../vlib/simlib/simbididly.vhd
 ../../issi/is61lv25616al.vbom
 # design
 tb_s3board_core.vhd

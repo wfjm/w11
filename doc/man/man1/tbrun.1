@@ -1,0 +1,239 @@
+.\"  -*- nroff -*-
+.\"  $Id: tbrun.1 812 2016-10-03 18:39:50Z mueller $
+.\"
+.\" Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" 
+.\" ------------------------------------------------------------------
+.
+.TH TBRUN 1 2016-10-02 "Retro Project" "Retro Project Manual"
+.\" ------------------------------------------------------------------
+.SH NAME
+tbrun \- test bench driver
+.\" ------------------------------------------------------------------
+.SH SYNOPSIS
+.
+.SY tbrun
+.OP OPTIONS
+.OP DSCFILE
+.YS
+.
+.\" ------------------------------------------------------------------
+.SH DESCRIPTION
+\fBtbrun\fP organizes the execution of large sets of test benches. It will
+
+.RS 2
+.PD 0
+.IP "-" 2
+read the file \fIDSCFILE\fP, which describes the full set of test benches.
+The top level \fIDSCFILE\fP typically includes other files which allows to 
+organize the description in a well structured manner. If no \fIDSCFILE\fP
+is specified the file \fItbrun.yml\fP in the current working directory is
+used.
+.IP "-"
+selects based on the given \fB\-\-tag\fP and \fB\-\-exclude\fP options the 
+tests to be executed in a given run.
+.IP "-"
+determines based on the \fB\-\-mode\fP option the simulation engine and
+the simulation type, behavioral or post-synthesis or later. See section
+MODES for details.
+.IP "-"
+executes the tests which as much parallelism as possible. The \fB\-\-jobs\fP
+option specifies the maximal number of jobs, and a locking logic prevents that
+more than one test is run in one working directory.
+.PD
+.RE
+.PP
+.
+.\" ------------------------------------------------------------------
+.SH OPTIONS
+.
+.\" -- --tag -------------------------------------
+.IP \fB\-\-tag=\fItlist\fR
+specifies the tags a test must match to be selected for execution.
+\fItlist\fR can be a comma separated list of tags, a test must match
+all tags given in \fItlist\fR to be selected.
+.br
+\fB\-\-tag\fP can be specified multiple times, the selections are ored.
+In effect, a test must match all tags in the \fItlist\fR of one of the
+specified \fB\-\-tag\fP options.
+.br
+If no \fB\-\-tag\fP option is given an implicit \fI\-\-tag=default\fP is
+assumed, so all tests with the tag 'default' are executed.
+.
+.\" -- --exclude ---------------------------------
+.IP \fB\-\-exclude=\fItlist\fR
+specifies the tags a test must not match. \fItlist\fR can again be a comma
+separated list, a test which matches all the tags given is excluded.
+.br
+\fB\-\-exclude\fP can be specified multiple times, the rejections are ored.
+In effect, a test is rejected if it matches all tags in the \fItlist\fR of 
+one of the specified \fB\-\-exclude\fP options.
+.
+.\" -- --mode ------------------------------------
+.IP \fB\-\-mode=\fImlist\fR
+determines the simulation engine and the type of simulation. Can be a
+comma separated list, if several modes are specified all of them will
+be executed.
+.br 
+If no \fB\-\-mode\fP is given the default value 'bsim' is used.
+Note that unlike \fB\-\-tag\fP and \fB\-\-exclude\fP only a single
+\fB\-\-mode\fP option is processed, if multiple are present only the
+last one will be used.
+
+.RS
+Each mode specification has the format '[\fIengine\fP]_[\fItype\fP]' 
+and follows the model name suffix rules of the build system.
+
+If the \fIengine\fP part is omitted \fBghdl\fP(1) is assumed as default.
+If the \fItype\fP part is omitted 'bsim' is assumed as default.
+Other supported values for \fIengine\fP are
+.RS 2
+.PD 0
+.IP \fBISim\fP 6
+the Xilinx ISE build-in simulator
+.IP \fBXSim\fP
+the Xilinx vivado build-in simulator
+.PD
+.RE
+
+The \fItype\fP part has the following supported values
+.RS 2
+.PD 0
+.IP \fBbsim\fP 6
+behavioral simulation
+.IP \fBssim\fP
+post-synthesis functional simulation
+.IP \fBfsim\fP
+post-map simulation (only ISE)
+.IP \fBosim\fP
+post-optimize functional simulation (only vivado)
+.IP \fBrsim\fP
+post-routing functional simulation (only vivado)
+.IP \fBesim\fP
+post-synthesis timing simulation (only vivado)
+.IP \fBpsim\fP
+post-optimize timing simulation (only vivado)
+.IP \fBtsim\fP
+post-routing timing simulation
+.PD
+.RE
+.RE
+.
+.\" -- --jobs ------------------------------------
+.IP \fB\-\-jobs=\fInjob\fR
+.RS
+specifies the maximal number of parallel jobs.
+Without \fB\-\-jobs\fP option the tests are executed sequentially and
+the test output is forwarded immediately to stdout.
+
+With \fB\-\-jobs\fP option a task dispatcher is used which starts the jobs, 
+received and buffers the test output, and forwards it to stdout when the 
+job completes. The test outputs are always in the original selection order, 
+thus not affected by the completion order. 
+
+The task dispatcher displays also a progress line when stdout is a terminal
+device of the format
+.EX
+    #-I: t047: 5l 35.6s; t053: 5l 20.2s (26t,2w,31o)
+.EE
+where 
+.RS 2
+.PD 0
+.IP "t***:" 6
+specifies the current task number
+.IP "**l"
+number of output lines collected for this task
+.IP "*.*s"
+run time (as real time) of the task (running since time)
+.IP "**t"
+number of tasks still waiting for execution
+.IP "*w"
+number of tasks currently running
+.IP "*o"
+number of tasks in pending output queue
+.PD
+.RE
+
+Note that \fB\-\-jobs\fP enables the task dispatcher and thus output
+buffering and progress line output even when \fInjob\fP is '1' !
+.RE
+.
+.\" -- --tee -------------------------------------
+.IP \fB\-\-tee=\fIoutfile\fR
+if specified the all output send to stdout with the exception of the
+progress line updates is also written in the file \fIoutfile\fR.
+This is very convenient in conjunction with the \fB\-\-jobs\fP option
+which generates progress line output only when stdout is a terminal
+device.
+Using shell pipes and \fBtee\fP(1) will therefore prevent progress lines,
+use the \fB\-\-tee\fP instead to save the output into a file.
+.
+.\" -- --dry -------------------------------------
+.IP \fB\-\-dry\fP
+dry run, prints the generated commands, but doesn't execute.
+When used without \f\-\-jobs\fP option a commented list of shell commands
+is printed which describes the linear execution of the selected tests.
+.br
+When used together with \f\-\-jobs\fP this option mainly serves to debug
+the task dispatcher. A random wait of 0.2 to 1.8 sec is generated for each
+selected test.
+.
+\" -- --trace -----------------------------------
+.IP \fB\-\-trace\fP
+prints additional information on job control
+.
+.\" -- --nomake ----------------------------------
+.IP \fB\-\-nomake\fP
+don't execute make step of test bench. 
+Will be forwarded to \fBtbrun_tbw\fP(1) and \fBtbrun_tbwrri\fP(1) 
+based test benches.
+.
+\" -- --norun -----------------------------------
+.IP \fB\-\-norun\fP
+don't execute run step of test bench, useful to only execute make step.
+Will be forwarded to \fBtbrun_tbw\fP(1) and \fBtbrun_tbwrri\fP(1) 
+based test benches.
+.
+\" -- --rlmon -----------------------------------
+.IP \fB\-\-rlmon\fP
+enable the rlink monitor, will be forwarded to \fBtbrun_tbwrri\fP(1) 
+based test benches.
+.
+\" -- --rbmon -----------------------------------
+.IP \fB\-\-rbmon\fP
+enable the rbus monitor, will be forwarded to \fBtbrun_tbwrri\fP(1) 
+based test benches
+.
+.\" -- --bwait ----------------------------------
+.IP \fB\-\-bwait=\fItwait\fR
+specifies startup wait for behavioral simulations. 
+\fItwait\fR must be an integer, time unit is 1 ns.  Will be forwarded 
+to \fBtbrun_tbwrri\fP(1) based test benches.
+.
+.\" -- --swait ----------------------------------
+.IP \fB\-\-swait=\fItwait\fR
+specifies startup wait for post-synthesis and higher simulations. 
+\fItwait\fR must be an integer, time unit is 1 ns.  Will be forwarded 
+to \fBtbrun_tbwrri\fP(1) based test benches.
+.
+.\" ------------------------------------------------------------------
+.SH EXAMPLES
+.IP "\fBtbrun" 4
+Simplest default case, will use the \fItbrun.yml\fP file in the current
+working directory, assume \fI\-\-tag=default\fP and \fI\-\-mode=bsim\fP 
+and this select all tests tagged with 'default' and run the behavioral
+simulation with \fBghdl\fP(1). Done in simple sequential mode.
+.IP "\fBtbrun --jobs=2 --tag=viv,sys_w11a --mode=XSim" 4
+Will select all tests which have a 'viv' and a 'sys_w11a' tag, 
+use XSim as simulation engine and run the behavioral simulation.
+Will use the task dispatcher and will try to run 2 tests in parallel.
+.
+.\" ------------------------------------------------------------------
+.SH "SEE ALSO"
+.BR tbrun_tbw (1),
+.BR tbrun_tbwrri (1),
+.BR tbfilt (1)
+
+.\" ------------------------------------------------------------------
+.SH AUTHOR
+Walter F.J. Mueller <W.F.J.Mueller@gsi.de>

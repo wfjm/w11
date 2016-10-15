@@ -1,4 +1,4 @@
--- $Id: simclkcnt.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: simclkcnt.vhd 787 2016-07-16 14:40:41Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,7 +18,7 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 12.1-14.7; ghdl 0.29-0.31
+-- Tool versions:  xst 12.1-14.7; viv 2016.2; ghdl 0.29-0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

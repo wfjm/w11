@@ -1,4 +1,6 @@
 # configure for _*sim case
+# configure
 uut = tbd_serport_autobaud_ssim.vhd
+# design
 tb_serport_autobaud.vbom
 @top:tb_serport_autobaud

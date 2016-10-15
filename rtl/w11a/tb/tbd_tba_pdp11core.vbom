@@ -1,0 +1,18 @@
+# libs
+../../vlib/slvtypes.vhd
+../../vlib/genlib/genlib.vhd
+../../ibus/iblib.vhd
+../../ibus/ibdlib.vhd
+../pdp11.vbom
+${sys_conf := ../sys_conf.vhd}
+../../vlib/rbus/rblib.vhd
+# components
+../../vlib/genlib/clkdivce.vbom
+../pdp11_core_rbus.vbom
+../pdp11_core.vbom
+../pdp11_bram.vbom
+../../ibus/ibdr_minisys.vbom
+../../vlib/rbus/rb_sres_or_2.vbom
+# design
+tbd_tba_pdp11core.vhd
+@xdc:../../vlib/generic_clk_100mhz.xdc

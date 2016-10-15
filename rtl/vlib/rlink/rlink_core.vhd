@@ -1,4 +1,4 @@
--- $Id: rlink_core.vhd 767 2016-05-26 07:47:51Z mueller $
+-- $Id: rlink_core.vhd 799 2016-08-21 09:20:19Z mueller $
 --
 -- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -28,7 +28,7 @@
 --                 tb/tb_rlink_tba_ttcombo
 --
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.1; ghdl 0.18-0.33
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.2; ghdl 0.18-0.33
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -39,7 +39,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2016-05-22   787   4.1.2  don't init N_REGS (vivado fix for fsm inference)
+-- 2016-08-18   799   4.1.3  remove 'assert false' from report statements
+-- 2016-05-22   767   4.1.2  don't init N_REGS (vivado fix for fsm inference)
 -- 2015-12-26   718   4.1.1  add proc_sres: strip 'x' from RB_SRES.dout
 -- 2014-12-21   617   4.1    use stat(_rbf_rbtout) to signal rbus timeout
 -- 2014-12-20   614   4.0    largely rewritten; 2 FSMs; v3 protocol; 4 bit STAT
@@ -520,8 +521,7 @@ begin
     sres.dout := to_x01(RB_SRES.dout);
 
     if sres.ack = '1' and sres.busy = '0' and is_x(sres.dout) then
-      assert false
-        report "rlink_core: seen 'x' in rb_sres.data"
+      report "rlink_core: seen 'x' in rb_sres.data"
         severity warning;
       sres.dout := (others=>'1');
     end if;

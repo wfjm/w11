@@ -1,4 +1,4 @@
--- $Id: dcm_sfs_gsim.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: dcm_sfs_gsim.vhd 790 2016-07-20 18:52:44Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -48,7 +48,7 @@ end dcm_sfs;
 architecture sim of dcm_sfs is
 
   signal CLK_DIVPULSE : slbit := '0';
-  signal CLKOUT_PERIOD : time := 0 ns;
+  signal CLKOUT_PERIOD : Delay_length := 0 ns;
   signal R_CLKOUT : slbit := '0';
   signal R_LOCKED : slbit := '0';
   
@@ -56,8 +56,8 @@ begin
 
   proc_clkin : process (CLKIN)
     variable t_lastclkin : time := 0 ns;
-    variable t_lastperiod : time := 0 ns;
-    variable t_period : time := 0 ns;
+    variable t_lastperiod : Delay_length := 0 ns;
+    variable t_period : Delay_length := 0 ns;
     variable nclkin : integer := 1;
   begin
     
@@ -92,8 +92,8 @@ begin
 
   proc_clkout : process
     variable t_lastclkin : time := 0 ns;
-    variable t_lastperiod : time := 0 ns;
-    variable t_period : time := 0 ns;
+    variable t_lastperiod : Delay_length := 0 ns;
+    variable t_period : Delay_length := 0 ns;
     variable nclkin : integer := 1;
   begin
 

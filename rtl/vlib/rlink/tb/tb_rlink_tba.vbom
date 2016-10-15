@@ -1,0 +1,24 @@
+# Not meant for direct top level usage. Used with 
+# tb_rlink_tba_(....)[_ssim].vbom and config
+# lines to generate the different cases.
+#
+# libs
+../../slvtypes.vhd
+../../genlib/genlib.vhd
+../../comlib/comlib.vhd
+../../rbus/rblib.vhd
+../rlinklib.vbom
+rlinktblib.vhd
+../../simlib/simlib.vhd
+# components
+../../simlib/simclk.vbom
+../../simlib/simclkcnt.vbom
+../../genlib/tb/clkdivce_tb.vbom
+rlink_tba.vbom
+../rlink_core.vbom
+${rbtba_aif := tbd_tba_ttcombo.vbom}  -UUT
+../rlink_mon.vbom
+../../rbus/rb_mon.vbom
+# design
+tb_rlink_tba.vhd
+@top:tb_rlink_tba

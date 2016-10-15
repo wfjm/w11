@@ -1,0 +1,12 @@
+# $Id: tbrun.yml 807 2016-09-17 07:49:26Z mueller $
+#
+# Revision History:
+# Date         Rev Version  Comment
+# 2016-08-27   802   1.0    Initial version
+#
+- default:
+    mode: ${ise_modes}
+#
+- tag:  [default, ise, bplib, sram_memctl]
+  test: |
+    tbrun_tbw tb_s3_sram_memctl${ms}

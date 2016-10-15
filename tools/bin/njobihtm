@@ -1,0 +1,119 @@
+#!/usr/bin/perl -w
+# $Id: njobihtm 810 2016-10-02 16:51:12Z mueller $
+#
+# Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+#
+# This program is free software; you may redistribute and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 2, or at your option any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# for complete details.
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2016-10-01   810   1.0    Initial version
+#
+
+use 5.14.0;                                 # require Perl 5.14 or higher
+use strict;                                 # require strict checking
+
+use Getopt::Long;
+
+my %opts = ();
+
+GetOptions(\%opts, "verbose", "mem=s"
+          )
+  or die "bad options";
+
+sub get_cpuinfo;
+sub get_meminfo;
+
+my $ncpu;
+my $ntpc;
+my $nkb;
+my $njob = 1;
+
+get_cpuinfo();
+get_meminfo();
+
+if (defined $ncpu && defined $ntpc && defined $nkb) {
+} else {
+  print STDERR "njobihtm-F: failed to obtain cpu or mem size\n";
+  exit 1;
+}
+
+
+my $ncore = $ncpu / $ntpc;                  # number of cores
+my $nht   = $ncpu - $ncore;
+
+$njob = $ncore + int($nht/4);
+
+if ($opts{verbose}) {
+  printf STDERR "#cpus:        %d\n", $ncpu;
+  printf STDERR "#thread/cpu:  %d\n", $ntpc;
+  printf STDERR "#cores:       %d\n", $ncore;
+  printf STDERR "mem(MB):      %d\n", int($nkb/1024);
+  printf STDERR "#job (cpus):  %d\n", $njob;
+}
+
+if (defined $opts{mem}) {
+  my $mem;
+  if ($opts{mem} =~ m/^(\d+)([MG])$/) {
+    $mem =       1024 * $1 if $2 eq 'M';
+    $mem = 1024* 1024 * $1 if $2 eq 'G';
+    my $njobm = int(($nkb - 1024*1024) / $mem);
+    $njobm = 1 unless $njobm > 0;
+    printf STDERR "#job (mem):   %d\n", $njobm if $opts{verbose};
+    if ($njobm < $njob) {
+      $njob = $njobm;
+    }
+  } else {
+    print STDERR "njobihtm-F: bad -mem option '$opts{mem}', must be nnn[MG]\n";
+    exit 1;
+  }
+}
+
+print "$njob\n";
+
+exit 0;
+
+#-------------------------------------------------------------------------------
+sub get_cpuinfo {
+  open (LSCPU, "lscpu|")
+    or die "failed to open 'lscpu|': $!";
+
+  while (<LSCPU>) {
+    chomp;
+    if (m/^(.*?)\s*:\s*(.*)$/) {
+      my $tag = $1;
+      my $val = $2;
+      # print "+++1 '$tag' : '$val' \n";
+      $ncpu = $val if $tag eq 'CPU(s)';
+      $ntpc = $val if $tag eq 'Thread(s) per core';
+    }
+  }
+  close LSCPU;
+  return;
+}
+
+#-------------------------------------------------------------------------------
+sub get_meminfo {
+  open (MEMINFO, "/proc/meminfo")
+    or die "failed to open '/proc/meminfo': $!";
+
+  while (<MEMINFO>) {
+    chomp;
+    if (m/^(.*?)\s*:\s*(\d+)\s*kB/) {
+      my $tag = $1;
+      my $val = $2;
+      # print "+++1 '$tag' : '$val' \n";
+      $nkb = $val if $tag eq 'MemTotal';
+    }
+  }
+  close MEMINFO;
+  return;
+}
+

@@ -1,0 +1,9 @@
+# configure tb_nexsy4_cram with sys_tst_sram_n4 target;
+# use vhdl configure file (tb_tst_sram_n4.vhd) to allow
+# that all configurations will co-exist in work library
+# configure
+nexys4_cram_aif = ../sys_tst_sram_n4.vbom
+sys_conf = sys_conf_sim.vbom
+# design
+../../../../bplib/nexys4/tb/tb_nexys4_cram.vbom
+tb_tst_sram_n4.vhd

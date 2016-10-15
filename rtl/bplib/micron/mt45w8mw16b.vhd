@@ -1,6 +1,6 @@
--- $Id: mt45w8mw16b.vhd 718 2015-12-26 15:59:48Z mueller $
+-- $Id: mt45w8mw16b.vhd 799 2016-08-21 09:20:19Z mueller $
 --
--- Copyright 2010-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,16 +16,18 @@
 -- Description:    Micron MT45W8MW16B CellularRAM model
 --                 Currently a much simplified model
 --                 - only async accesses
---                 - ignores CLK and CRE
+--                 - ignores CLK 
 --                 - simple model for response of DATA lines, but no
 --                   check for timing violations of control lines
 --
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 11.4-14.7; ghdl 0.26-0.31
+-- Tool versions:  xst 11.4-14.7; ghdl 0.26-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-08-18   799   1.4.1  remove 'assert false' from report statements
+-- 2016-07-10   786   1.4    add RCR handling; page mode by default now off !!
 -- 2015-12-26   718   1.3.3  BUGFIX: initialize L_ADDR with all '1', see comment
 -- 2011-11-19   427   1.3.2  now numeric_std clean
 -- 2010-06-03   299   1.3.1  improved timing model (WE cycle, robust T_apa)
@@ -82,19 +84,23 @@ end mt45w8mw16b;
 architecture sim of mt45w8mw16b is
 
   -- timing constants for -701 speed grade (70 ns; 104 MHz)
-  constant T_aa   : time := 70 ns;      -- address access time             (max)
-  constant T_apa  : time := 20 ns;      -- page acess time                 (max)
-  constant T_oh   : time :=  5 ns;      -- output hold from addr change    (max)
-  constant T_oe   : time := 20 ns;      -- output enable to valid output   (max)
-  constant T_ohz  : time :=  8 ns;      -- output disable to high-z output (max)
-  constant T_olz  : time :=  3 ns;      -- output enable to low-z output   (min)
-  constant T_lz   : time := 10 ns;      -- chip enable to low-z output     (min)
-  constant T_hz   : time :=  8 ns;      -- chip disable to high-z output   (max)
+  constant T_aa   : Delay_length := 70 ns; -- address access time           (max)
+  constant T_apa  : Delay_length := 20 ns; -- page access time              (max)
+  constant T_oh   : Delay_length :=  5 ns; -- output hold from addr change  (max)
+  constant T_oe   : Delay_length := 20 ns; -- output enable to valid output (max)
+  constant T_ohz  : Delay_length :=  8 ns; -- output disable to high-z out  (max)
+  constant T_olz  : Delay_length :=  3 ns; -- output enable to low-z output (min)
+  constant T_lz   : Delay_length := 10 ns; -- chip enable to low-z output   (min)
+  constant T_hz   : Delay_length :=  8 ns; -- chip disable to high-z output (max)
 
   constant memsize : positive := 2**(ADDR'length);
   constant datzero : slv(DATA'range) := (others=>'0');
   type ram_type is array (0 to memsize-1) of slv(DATA'range);
 
+  subtype  xcr_f_sel   is integer range 19 downto 18; -- cre register select
+  constant xcr_sel_rcr : slv2 := "00";
+  constant xcr_sel_bcr : slv2 := "10";
+  
   constant bcr_f_mode   : integer := 15;              -- operating mode 
   constant bcr_f_ilat   : integer := 14;              -- initial latency
   subtype  bcr_f_lc    is integer range 13 downto 11; -- latency counter
@@ -103,6 +109,14 @@ architecture sim of mt45w8mw16b is
   subtype  bcr_f_drive is integer range  5 downto  4; -- drive strength
   constant bcr_f_bw     : integer :=  3;              -- burst wrap
   subtype  bcr_f_bl    is integer range  2 downto  0; -- burst length
+
+  subtype  rcr_f_res3  is integer range 22 downto 20; -- reserved - MBZ
+  subtype  rcr_f_res2  is integer range 17 downto  8; -- reserved - MBZ
+  constant rcr_f_pmode  : integer :=  7;              -- page mode (1=ena)
+  subtype  rcr_f_res1  is integer range  6 downto  5; -- reserved - MBZ
+  constant rcr_f_dpd    : integer :=  4;              -- dpd mode  (1=dis)
+  constant rcr_f_res0   : integer :=  3;              -- reserved - MBZ
+  subtype  rcr_f_par   is integer range  2 downto  0; -- array conf (000=all)
     
   subtype  f_byte1       is integer range 15 downto 8;
   subtype  f_byte0       is integer range  7 downto 0;
@@ -115,6 +129,7 @@ architecture sim of mt45w8mw16b is
   signal ADV : slbit := '0';
   signal WE_L_EFF : slbit := '0';
   signal WE_U_EFF : slbit := '0';
+  signal WE_C_EFF : slbit := '0';
 
   signal R_BCR_MODE  : slbit := '1';    -- mode: def: async
   signal R_BCR_ILAT  : slbit := '0';    -- ilat: def: variable
@@ -124,7 +139,12 @@ architecture sim of mt45w8mw16b is
   signal R_BCR_DRIVE : slv2  := "01";   -- drive:def: 1/2
   signal R_BCR_BW    : slbit := '1';    -- bw:   def: no wrap
   signal R_BCR_BL    : slv3  := "111";  -- bl:   def: continuous
-  
+
+  signal R_RCR_PMODE : slbit := '0';    -- pmode:def: disabled (ena=1 !)
+  signal R_RCR_DPD   : slbit := '1';    -- dpd:  def: disabled (ena=0 !)
+  signal R_RCR_PAR   : slv3  := "000";  -- par:  def: full array
+  signal R_T_APA_EFF : Delay_length  := T_aa;   -- page mode disabled by default
+
   signal L_ADDR : slv23 := (others=>'1'); -- all '1' for propper 1st access
   signal DOUT_VAL_EN : slbit := '0';
   signal DOUT_VAL_AA : slbit := '0';
@@ -144,9 +164,11 @@ begin
   BE_U <= not UB_N;
   ADV  <= not ADV_N;
 
-  WE_L_EFF <= CE and WE and BE_L;
-  WE_U_EFF <= CE and WE and BE_U;
+  WE_L_EFF <= CE and WE and BE_L and (not CRE);
+  WE_U_EFF <= CE and WE and BE_U and (not CRE);
 
+  WE_C_EFF <= CE and WE and CRE;
+  
   -- address valid logic, latch ADDR when ADV true
   proc_adv: process (ADV, ADDR)
   begin
@@ -174,7 +196,7 @@ begin
       DOUT_VAL_EN <= '0', '1' after T_aa;
     end if;
     if L_ADDR'event then
-      DOUT_VAL_PA <= '0', '1' after T_apa;
+      DOUT_VAL_PA <= '0', '1' after R_T_APA_EFF;
       if L_ADDR(22 downto 4) /= addr_last(22 downto 4) then
         DOUT_VAL_AA <= '0', '1' after T_aa;
       end if;
@@ -207,7 +229,7 @@ begin
     end if;
   end process proc_dout_lz;
   
-  proc_cram: process (CE, OE, WE, WE_L_EFF, WE_U_EFF, L_ADDR, DATA)
+  proc_cram: process (WE_L_EFF, WE_U_EFF, L_ADDR, DATA)
     variable ram : ram_type := (others=>datzero);
   begin
 
@@ -224,6 +246,39 @@ begin
 
   end process proc_cram;
 
+  proc_cr: process (WE_C_EFF, L_ADDR)
+  begin
+    if falling_edge(WE_C_EFF) then
+      case L_ADDR(xcr_f_sel) is
+
+        when xcr_sel_rcr =>
+          R_RCR_PMODE <= L_ADDR(rcr_f_pmode);
+          if L_ADDR(rcr_f_pmode) = '1' then
+            R_T_APA_EFF <= T_apa;
+          else
+            R_T_APA_EFF <= T_aa;
+          end if;
+          assert L_ADDR(rcr_f_res3) = "000"
+            report "bad rcr write: 22:20 not zero" severity error;
+          assert L_ADDR(rcr_f_res2) = "0000000000"
+            report "bad rcr write: 17: 8 not zero" severity error;
+          assert L_ADDR(rcr_f_res1) = "00"
+            report "bad rcr write:  6: 5 not zero" severity error;
+          assert L_ADDR(rcr_f_dpd) = '1'
+            report "bad rcr write:  dpd not '1'" severity error;
+          assert L_ADDR(rcr_f_res0) = '0'
+            report "bad rcr write:  3: 3 not zero" severity error;
+          assert L_ADDR(rcr_f_par) = "000"
+            report "bad rcr write:  par not '000'" severity error;
+
+        when xcr_sel_bcr => 
+          report "bcr written - not supported" severity error;
+        when others =>
+          report "bad select field" severity error;
+      end case;
+    end if;
+  end process proc_cr;
+    
   proc_data: process (DOUT, DOUT_VAL_EN, DOUT_VAL_AA, DOUT_VAL_PA, DOUT_VAL_OE,
                       DOUT_LZ_CE, DOUT_LZ_OE)
     variable idout : slv16 := (others=>'0');

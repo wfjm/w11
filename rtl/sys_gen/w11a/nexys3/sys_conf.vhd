@@ -1,4 +1,4 @@
--- $Id: sys_conf.vhd 770 2016-05-28 14:15:00Z mueller $
+-- $Id: sys_conf.vhd 788 2016-07-16 22:23:23Z mueller $
 --
 -- Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,8 @@
 -- Tool versions:  xst 13.1-14.7; ghdl 0.29-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-07-16   788   1.7    use cram_*delay functions to determine delays
+-- 2016-07-10   786   1.6    memctl with page mode, new read1delay
 -- 2016-05-28   770   1.5.1  sys_conf_mem_losize now type natural 
 -- 2016-03-22   750   1.5    add sys_conf_cache_twidth
 -- 2015-06-26   695   1.4.2  add sys_conf_(dmscnt|dmhbpt*|dmcmon*)
@@ -38,15 +40,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 use work.slvtypes.all;
-
--- valid system clock / delay combinations (see n2_cram_memctl_as.vhd):
---  div mul  clksys  read0 read1 write
---    2   1   50.0     2     2     3
---    4   3   75.0     4     4     5   (also 70 MHz)
---    5   4   80.0     5     5     5  
---   20  17   85.0     5     5     6  
---   10   9   90.0     6     6     6   (also 95 MHz)
---    1   1  100.0     6     6     7  
+use work.nxcramlib.all;
 
 package sys_conf is
 
@@ -65,9 +59,7 @@ package sys_conf is
   constant sys_conf_fx2_ccwidth  : positive := 5;
 
   -- configure memory controller ---------------------------------------------
-  constant sys_conf_memctl_read0delay : positive := 4;
-  constant sys_conf_memctl_read1delay : positive := sys_conf_memctl_read0delay;
-  constant sys_conf_memctl_writedelay : positive := 5;
+  -- now under derived constants
 
   -- configure debug and monitoring units ------------------------------------
   constant sys_conf_rbmon_awidth  : integer := 9; -- use 0 to disable
@@ -106,5 +98,12 @@ package sys_conf is
 
   constant sys_conf_ser2rri_cdinit : integer :=
     (sys_conf_clksys/sys_conf_ser2rri_defbaud)-1;
-  
+
+  constant sys_conf_memctl_read0delay : positive :=
+              cram_read0delay(sys_conf_clksys_mhz);
+  constant sys_conf_memctl_read1delay : positive := 
+              cram_read1delay(sys_conf_clksys_mhz);
+  constant sys_conf_memctl_writedelay : positive := 
+              cram_writedelay(sys_conf_clksys_mhz);
+
 end package sys_conf;

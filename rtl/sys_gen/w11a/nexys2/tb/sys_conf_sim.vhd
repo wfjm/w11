@@ -1,4 +1,4 @@
--- $Id: sys_conf_sim.vhd 770 2016-05-28 14:15:00Z mueller $
+-- $Id: sys_conf_sim.vhd 788 2016-07-16 22:23:23Z mueller $
 --
 -- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  xst 11.4-14.7; ghdl 0.26-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-07-16   788   1.6    use cram_*delay functions to determine delays
 -- 2016-05-28   770   1.5.1  sys_conf_mem_losize now type natural 
 -- 2016-03-22   750   1.5    add sys_conf_cache_twidth
 -- 2015-06-26   695   1.4.1  add sys_conf_(dmscnt|dmhbpt*|dmcmon*)
@@ -35,6 +36,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 use work.slvtypes.all;
+use work.nxcramlib.all;
 
 package sys_conf is
 
@@ -53,9 +55,7 @@ package sys_conf is
   constant sys_conf_fx2_ccwidth  : positive := 5;
     
   -- configure memory controller ---------------------------------------------
-  constant sys_conf_memctl_read0delay : positive := 3;
-  constant sys_conf_memctl_read1delay : positive := sys_conf_memctl_read0delay;
-  constant sys_conf_memctl_writedelay : positive := 4;
+  -- now under derived constants
 
   -- configure debug and monitoring units ------------------------------------
   constant sys_conf_rbmon_awidth  : integer := 9; -- use 0 to disable
@@ -89,5 +89,12 @@ package sys_conf is
   constant sys_conf_clksys : integer :=
     (50000000/sys_conf_clkfx_divide)*sys_conf_clkfx_multiply;
   constant sys_conf_clksys_mhz : integer := sys_conf_clksys/1000000;
+
+  constant sys_conf_memctl_read0delay : positive :=
+              cram_read0delay(sys_conf_clksys_mhz);
+  constant sys_conf_memctl_read1delay : positive := 
+              cram_read1delay(sys_conf_clksys_mhz);
+  constant sys_conf_memctl_writedelay : positive := 
+              cram_writedelay(sys_conf_clksys_mhz);
 
 end package sys_conf;

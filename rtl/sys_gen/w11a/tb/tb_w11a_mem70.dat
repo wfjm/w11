@@ -1,0 +1,186 @@
+# $Id: tb_w11a_mem70.dat 802 2016-08-27 19:00:23Z mueller $
+#
+# Tests generic parts of 11/70 memory system
+#
+# Revision History: 
+# Date         Rev Version  Comment
+# 2016-08-27   802   1.4    changed to accommodate up to 128 kByte cache size
+# 2010-06-13   305   1.3    rename lal,lah -> wal,wah; replace 'sta' -> 'stapc'
+# 2010-06-05   301   1.2.1  move size register check to new _s3 and _n2.dat
+# 2008-03-02   121   1.2    moved ubmap+rdma tests to tb/tb_pdp11_core_ubmap.dat
+# 2008-02-24   119   1.1    add ubmap and rdma transfers
+# 2008-02-23   118   1.0    initial version
+#
+.mode pdpcp
+.tocmd   50
+.tostp  100
+.togo  5000
+.rlmon    0
+.rbmon    0
+#
+.reset
+.wait 10
+.anena    1
+#
+#-----------------------------------------------------------------------------
+C Test access to 11/70 memory system registers
+wal     177740
+rmi   d=000000    -- 177740: Low  Error Address Register
+rmi   d=000000    -- 177742: High Error Address Register
+rmi   d=000000    -- 177744: Memory System Error Register
+rmi   d=000000    -- 177746: Control Register
+rmi   d=000000    -- 177750: Maintenance Register
+rmi   d=-         -- 177752: Hit/Miss Register
+wal     177760
+rmi   d=-         -- 177760: Lower size Register (check access but not value)
+rmi   d=000000    -- 177762: Upper size Register
+#
+#-----------------------------------------------------------------------------
+# Note on cache:
+# - original cache size was 8 kByte 
+#   --> 000000,020000,040000,060000,.. share one cache line
+# - the new configurable cache can be as big as 128 kByte
+# - the hit/miss tests below will work for up maximal cache size and use
+#   22bit mode access and two areas 120 kByte appart
+#       wah/wal    00/0000xx
+#       wah/wal    02/0000xx
+# 
+C Test 1: cache basic rmiss test (do we get data from mem on rmiss ?)
+#
+wal     000000    -- write 00,000000
+wah     000100
+bwm     8
+        000000
+        000002
+        000004
+        000006
+        000010
+        000012
+        000014
+        000016
+wal     000000    -- write 02,000000
+wah     000102
+bwm     8
+        020000
+        020002
+        020004
+        020006
+        020010
+        020012
+        020014
+        020016
+wal     000000    -- read 00,000000
+wah     000100
+brm     8
+      d=000000
+      d=000002
+      d=000004
+      d=000006
+      d=000010
+      d=000012
+      d=000014
+      d=000016
+wal     000000    -- read 02,000000 (will miss)
+wah     000102
+brm     8
+      d=020000
+      d=020002
+      d=020004
+      d=020006
+      d=020010
+      d=020012
+      d=020014
+      d=020016
+#-----------------------------------------------------------------------------
+C Test 2: Hit/Miss register
+#
+wal     000004    -- 7 read on same location -> 6 hits
+wah     000102
+rm    d=020004
+rm    d=020004
+rm    d=020004
+rm    d=020004
+rm    d=020004
+rm    d=020004
+rm    d=020004
+wal     177752    -- hit/miss reg
+rm    d=000077    -- 111 111
+#
+wal     000004    -- 1 read on conflicting address -> 1 miss
+wah     000100
+rm    d=000004
+wal     177752    -- hit/miss reg
+rm    d=000076    -- 111 110
+#
+wal     000006    -- 1 read on next word in line -> 1 hit
+wah     000100
+rm    d=000006
+wal     177752    -- hit/miss reg
+rm    d=000075    -- 111 101
+#
+wal     000010    -- read next 4 words -> alternating miss/hit
+wah     000100
+brm     4
+      d=000010
+      d=000012
+      d=000014
+      d=000016
+wal     177752    -- hit/miss reg
+rm    d=000025    -- 010 101
+#
+wal     000020    -- write next 4 words -> 4 miss
+wah     000100
+bwm     4
+        000020
+        000022
+        000024
+        000026
+wal     177752    -- hit/miss reg
+rm    d=000020    -- 010 000
+#
+wal     000020    -- re-read these 4 words -> 4 hit
+wah     000100
+brm     4
+      d=000020
+      d=000022
+      d=000024
+      d=000026
+wal     177752    -- hit/miss reg
+rm    d=000017    -- 001 111
+#
+wal     000010    -- 02,000010 in cache, owerwrite cache line, 1st word
+wah     000102
+wm      120010    -- write    -> miss
+rmi   d=120010    -- re-read  -> hit
+rmi   d=020012    -- read 2nd -> miss
+wal     177752    -- hit/miss reg
+rm    d=000072    -- 111 010
+#-----------------------------------------------------------------------------
+C Test 3: Control Register: test force miss bits
+#
+wal     177746    -- control reg
+wm      000014    --   set fmiss bits
+rm    d=000014
+#
+wal     000020    -- re-read last 4 words -> 4 forced misses
+brm     4
+      d=000020
+      d=000022
+      d=000024
+      d=000026
+wal     177752    -- hit/miss reg
+rm    d=000040    -- 100 000
+#
+wal     177746    -- control reg
+wm      000000    --   clear fmiss bits again
+rm    d=000000
+#
+wal     000020    -- re-read last 4 words -> 4 hits
+brm     4
+      d=000020
+      d=000022
+      d=000024
+      d=000026
+wal     177752    -- hit/miss reg
+rm    d=000017    -- 001 111
+#

@@ -1,0 +1,359 @@
+# $Id: tb_rlink_tba_pdp11core_stim.dat 805 2016-09-03 08:09:52Z mueller $
+#
+#  Revision History: 
+# Date         Rev Version  Comment
+# 2015-05-08   675   1.5    start/stop/suspend overhaul
+# 2014-12-26   621   1.4    adopt wmembe,ribr,wibr testing to new 4k window
+# 2014-12-20   614   1.6    now for rlink v4 iface
+# 2014-08-15   583   1.5    rb_mreq addr now 16 bit
+# 2014-07-31   576   1.4.1  only one data item per line after rblk/wblk
+# 2010-06-13   305   1.4    adapt to new rri<->cp implementation
+# 2008-05-03   143   1.3.4  adapt to new cpurust code for reset
+# 2008-04-27   140   1.3.3  adapt to new stat interface (with cpursta)
+# 2008-02-24   119   1.3.2  added lah,rps,wps command definition; use them
+# 2008-01-20   113   1.3.1  CPU attn now on bit 0
+# 2007-11-24    98   1.3    adapt to new internal init handling
+# 2007-09-16    83   1.2.2  add 'rst' at end to get back into ground state
+# 2007-09-02    79   1.2.1  add '.mode' command
+# 2007-08-12    74   1.2    test LAM and attn handling
+# 2007-08-10    72   1.1.1  renamed to tb_rritba_pdp11core_stim.dat
+# 2007-07-29    70   1.1    use .amdef now
+# 2007-07-28    69   1.0    Initial version
+#
+.mode rri
+.wait   5
+.rlmon  0
+.rbmon  0
+.cmax  32
+#
+# setup address mnemonics
+.amclr
+#
+.amdef conf   0000000000000000
+.amdef cntl   0000000000000001
+.amdef stat   0000000000000010
+.amdef psw    0000000000000011
+.amdef al     0000000000000100
+.amdef ah     0000000000000101
+.amdef mem    0000000000000110
+.amdef memi   0000000000000111
+#
+.amdef r0     0000000000001000
+.amdef r1     0000000000001001
+.amdef r2     0000000000001010
+.amdef r3     0000000000001011
+.amdef r4     0000000000001100
+.amdef r5     0000000000001101
+.amdef sp     0000000000001110
+.amdef pc     0000000000001111
+#
+# setup stat check default
+.sdef s=00000000
+#
+C                                  cmderr
+C                                  |cmdmerr
+C                                  ||cpususp
+C                                  |||cpugo
+C                                  ||||attention flags set
+C                                  |||||rbtout  
+C                                  ||||||rbnak
+C                                  |||||||rberr
+C                                  ||||||||
+C                                  00000000 
+C
+C                      cmd addr    ----stat ------------data  ---check---
+C
+C ----------------------------------------------------------------------------
+C write registers
+#
+wreg .r0        o"000001"              -- set r0
+wreg .r1        o"000101"              -- set r1
+wreg .r2        o"000201"              -- set r2
+wreg .r3        o"000301"              -- set r3
+wreg .r4        o"000401"              -- set r4
+wreg .r5        o"000501"              -- set r5
+wreg .sp        o"000601"              -- set sp
+wreg .pc        o"000701"              -- set pc
+C ---------------------------------------------------------------------------
+C read registers
+#
+rreg .r0      d=o"000001"              --   ! r0
+rreg .r1      d=o"000101"              --   ! r1
+rreg .r2      d=o"000201"              --   ! r2
+rreg .r3      d=o"000301"              --   ! r3
+rreg .r4      d=o"000401"              --   ! r4
+rreg .r5      d=o"000501"              --   ! r5
+rreg .sp      d=o"000601"              --   ! sp
+rreg .pc      d=o"000701"              --   ! pc
+C ---------------------------------------------------------------------------
+C write memory (via wreg, use wreg/memi)
+#
+wreg .al        o"002000"              -- write mem(2000,...,2006)
+wreg .memi      o"007700"           
+wreg .memi      o"007710"           
+wreg .memi      o"007720"           
+wreg .memi      o"007730"           
+C ----------------------------------------------------------------------------
+C read memory (via rreg, use rreg/memi)
+#
+wreg .al        o"002000"           
+rreg .memi    d=o"007700"           
+rreg .memi    d=o"007710"           
+rreg .memi    d=o"007720"           
+rreg .memi    d=o"007730"           
+C ----------------------------------------------------------------------------
+C write memory (via wblk)
+#
+wreg .al        o"002010"              -- write mem(2010,...,2016)
+wblk .memi     4           
+    o"007740"
+    o"007750"
+    o"007760"
+    o"007770"    
+C ----------------------------------------------------------------------------
+C read memory (via rblk)
+#
+wreg .al        o"002000"           
+rblk .memi     8           
+  d=o"007700"
+  d=o"007710"
+  d=o"007720"
+  d=o"007730"
+  d=o"007740"
+  d=o"007750"
+  d=o"007760"
+  d=o"007770"
+C ----------------------------------------------------------------------------
+C read/write PSW via various mechanisms
+C   via wps/rps
+wreg .psw       o"000017"
+rreg .psw     d=o"000017"
+wreg .psw       o"000000"
+rreg .psw     d=o"000000"
+#
+C   via 16bit cp addressing (al 177776)
+wreg .al        o"177776"              -- addr=psw
+wreg .mem       o"000017"              -- set all cc flags in psw
+rreg .mem     d=o"000017"              -- ! psw
+rreg .psw     d=o"000017"
+wreg .mem       o"000000"              -- clear all cc flags in psw
+rreg .mem     d=o"000000"              -- ! psw
+rreg .psw     d=o"000000"
+#
+C   via 22bit cp addressing (al 177776; ah 177)
+wreg .al        o"177776"              -- addr=psw
+wreg .ah        o"000177"
+wreg .mem       o"000017"              -- set all cc flags in psw
+rreg .mem     d=o"000017"              -- ! psw
+rreg .psw     d=o"000017"
+wreg .mem       o"000000"              -- clear all cc flags in psw
+rreg .mem     d=o"000000"              -- ! psw
+rreg .psw     d=o"000000"
+C ----------------------------------------------------------------------------
+C write register set 1, sm,um stack
+#
+wreg .psw       o"004000"              -- psw: cm=kernel, set=1
+wreg .r0        o"010001"              -- set r0 = 010001
+wreg .r1        o"010101"              -- set r1 = 010101
+wreg .r2        o"010201"              -- set r2 = 010201
+wreg .r3        o"010301"              -- set r3 = 010301
+wreg .r4        o"010401"              -- set r4 = 010401
+wreg .r5        o"010501"              -- set r5 = 010501
+wreg .psw       o"044000"              -- psw: cm=super(01),set=1
+wreg .sp        o"010601"              -- set ssp = 010601
+wreg .psw       o"144000"              -- psw: cm=user(11),set=1
+wreg .sp        o"110601"              -- set isp = 110601
+C ----------------------------------------------------------------------------
+C read all registers set 0/1, km,sm,um stack
+#
+wreg .psw       o"000000"              -- psw: cm=kernel(00),set=0
+rreg .r0      d=o"000001"              --   ! r0
+rreg .r1      d=o"000101"              --   ! r1
+rreg .r2      d=o"000201"              --   ! r2
+rreg .r3      d=o"000301"              --   ! r3
+rreg .r4      d=o"000401"              --   ! r4
+rreg .r5      d=o"000501"              --   ! r5
+rreg .sp      d=o"000601"              --   ! ksp
+rreg .pc      d=o"000701"              --   ! pc
+#
+wreg .psw       o"040000"              -- psw: cm=super(01),set=0
+rreg .sp      d=o"010601"              --   ! ssp
+wreg .psw       o"140000"              -- psw: cm=user(11),set=0
+rreg .sp      d=o"110601"              --   ! usp
+#
+wreg .psw       o"144000"              -- psw: cm=user(11),set=1
+rreg .r0      d=o"010001"              --   ! r0
+rreg .r1      d=o"010101"              --   ! r1
+rreg .r2      d=o"010201"              --   ! r2
+rreg .r3      d=o"010301"              --   ! r3
+rreg .r4      d=o"010401"              --   ! r4
+rreg .r5      d=o"010501"              --   ! r5
+#
+wreg .psw       o"000000"              -- psw=000000;
+C ----------------------------------------------------------------------------
+C write,read IB space: : MMU SAR supervisor mode (16 bit regs)
+#
+wreg .al        o"172240"              -- addr=172240; SM I addr reg
+wreg .memi      o"012340"              -- set 012340
+wreg .memi      o"012342"              -- set 012342
+wreg .memi      o"012344"              -- set 012344
+#
+wreg .al        o"172240"              -- addr=172240; SM I addr reg
+rreg .memi    d=o"012340"              -- ! 012340
+rreg .memi    d=o"012342"              -- ! 012342
+rreg .memi    d=o"012344"              -- ! 012344
+C ----------------------------------------------------------------------------
+C load simple test code 1: "1$:inc r1; sob r0,1$; halt"
+#
+wreg .al        o"002100"              -- addr=002100
+wreg .memi      o"005201"              -- inc r1
+wreg .memi      o"077002"              -- sob r0,-2
+wreg .memi      o"000000"              -- halt
+C exec test code 1 w/ r0=2; wait 50 cycle; test regs
+#
+wreg .r0        o"000002"              -- set r0 = 2
+wreg .r1        o"000000"              -- set r1 = 0
+wreg .pc        o"002100"              -- set pc = 2100
+wreg .cntl      o"000001" s=00010000   -- start (cpfunc_start=00001)
+.wait 50
+rreg .r0      d=o"000000" s=00001000   --   ! r0=0
+rreg .r1      d=o"000002" s=00001000   --   ! r1=2
+rreg .pc      d=o"002106" s=00001000   --   ! pc=002106
+attn          d=o"000001" s=00000000   -- read/clean LAM's
+wreg .cntl      o"000004"              -- reset (cpfunc_creset=00100)
+C ----------------------------------------------------------------------------
+C single step through test code 1
+#
+wreg .r0        o"000003"              -- set r0 = 3
+wreg .r1        o"000000"              -- set r1 = 0
+wreg .pc        o"002100"              -- set pc = 2100
+#
+wreg .cntl      o"000003"              -- step over inc (cpfunc_step=00011)
+rreg .r0      d=o"000003"              --   ! r0=3
+rreg .r1      d=o"000001"              --   ! r1=1
+rreg .pc      d=o"002102"              --   ! pc=002102
+#
+wreg .cntl      o"000003"              -- step over sob (cpfunc_step=00011)
+rreg .r0      d=o"000002"              --   ! r0=2
+rreg .r1      d=o"000001"              --   ! r1=1
+rreg .pc      d=o"002100"              --   ! pc=002100
+#
+wreg .cntl      o"000003"              -- step over inc
+wreg .cntl      o"000003"              -- step over sob
+rreg .r0      d=o"000001"              --   ! r0=1
+rreg .r1      d=o"000002"              --   ! r1=2
+rreg .pc      d=o"002100"              --   ! pc=002100
+C ----------------------------------------------------------------------------
+C execute code 1, test stat command while it runs
+#
+wreg .r0        o"000005"              -- set r0 = 5
+wreg .r1        o"000000"              -- set r1 = 0
+wreg .pc        o"002100"              -- set pc = 2100
+wreg .cntl      o"000001" s=00010000   -- start (cpfunc_start=00001)
+#rreg .stat   d=0000000000000100 s=00000000    -- possible w/ tb, not FPGA !!
+rreg .stat    d=-                s=-           --   
+rreg .stat    d=-                s=-           --   
+rreg .stat    d=-                s=-           -- somewhere the code will stop
+rreg .stat    d=-                s=-           -- 
+rreg .stat    d=-                s=-           -- 
+rreg .stat    d=0000000000010000 s=00001000    --   ! cpurust=0001
+rreg .r0      d=o"000000" s=00001000   --   ! r0=0
+rreg .r1      d=o"000005" s=00001000   --   ! r1=5
+rreg .pc      d=o"002106" s=00001000   --   ! pc=002106
+attn          d=o"000001" s=00000000   -- read/clean LAM's
+wreg .cntl      o"000004"              -- init  (cpfunc_creset=00100)
+rreg .stat    d=0000000000000000       --   ! cpurust=0000
+C ----------------------------------------------------------------------------
+C execute code 1, look for attn comma to happen
+#
+wreg x"ffff"    x"8000"                -- set rlink anena=1
+wreg .r0        o"000005"              -- set r0 = 5
+wreg .r1        o"000000"              -- set r1 = 0
+wreg .pc        o"002100"              -- set pc = 2100
+wreg .cntl      o"000001" s=00010000   -- start (cpfunc_start=00001)
+.eop
+.wtlam 100
+rreg .stat    d=0000000000010000 s=00001000    --   ! cpurust=0001
+rreg .r0      d=o"000000" s=00001000   --   ! r0=0
+rreg .r1      d=o"000005" s=00001000   --   ! r1=5
+rreg .pc      d=o"002106" s=00001000   --   ! pc=002106
+attn          d=o"000001" s=00000000   -- read/clean LAM's
+wreg .cntl      o"000004"              -- init  (cpfunc_creset=00100)
+rreg .stat    d=0000000000000000       --   ! cpurust=0000
+C ----------------------------------------------------------------------------
+C load test code 2 for single step testing of 'slow' instructions
+#
+wreg .al        o"002200"              -- addr=002200
+wblk .memi    13           
+    o"067070"                          -- add @0(r0),@6(r0)
+    o"000000"
+    o"000006"
+    o"067070"                          -- add @2(r0),@6(r0)
+#2210
+    o"000002"
+    o"000006"
+    o"067070"                          -- add @4(r0),@6(r0)
+    o"000004"
+#2220
+    o"000006"
+    o"067070"                          -- add @0(r0),@6(r0)
+    o"000000"
+    o"000006"
+#2230
+    o"000000"                          -- halt
+#
+wreg .al        o"002240"              -- addr=002240
+wblk .memi    12           
+    o"002260"                          -- addresses used by add's
+    o"002262"
+    o"002264"
+    o"002266"
+#2250
+    d"1"                               -- some data to test d"nnn"
+    d"-1"
+    x"dead"
+    x"beaf"
+#2260
+    o"000010"                          -- input data used by add's
+    o"000100"
+    o"001000"
+    o"000001"                          -- result of add's
+C ----------------------------------------------------------------------------
+C single step through test code 2
+#
+wreg .pc        o"002200"              -- set pc = 2200
+wreg .r0        o"002240"              -- set r0 = 2240
+wreg .cntl      o"000003"              -- step over 1st add (cpfunc_step=00011)
+wreg .cntl      o"000003"              -- step over 2nd add (cpfunc_step=00011)
+wreg .cntl      o"000003"              -- step over 3rd add (cpfunc_step=00011)
+#
+rreg .r0      d=o"002240"              --   ! r0=2240
+rreg .pc      d=o"002222"              --   ! pc=002222
+wreg .al        o"002240"              -- addr=002240
+rblk .memi    12           
+  d=-                                  -- skip over pointers, test tag=-
+  d=-
+  d=- 
+  d=-
+  d=b"0000000000000001"                -- verify data written with d"nn"
+  d=b"1111111111111111"
+  d=x"dead"                            -- check data written with x"nn"
+  d=x"beaf"
+  d=o"000010"                          -- input data used by add's
+  d=o"000100"
+  d=o"001000"
+  d=o"001111"                          -- result of add's
+#
+wreg .cntl      o"000003"              -- step over 4th add (cpfunc_step=00011)
+wreg .cntl      o"000003" s=00000000   -- step over halt    (cpfunc_step=00011)
+rreg .pc      d=o"002232" s=00000000   --   ! pc=002232
+wreg .al        o"002260" s=00000000   -- addr=002260
+rblk .memi    4           s=00000000
+  d=o"000010"                          -- input data used by add's
+  d=o"000100"
+  d=o"001000"
+  d=o"001121"                          -- result of add's
+C ----------------------------------------------------------------------------
+C finally stop and init CPU (clears cpuhalt flag)
+wreg .cntl      o"000002"              -- stop  (cpfunc_stop=00010)
+wreg .cntl      o"000004"              -- init  (cpfunc_creset=00100)

@@ -1,7 +1,9 @@
 # configure tb_basys3 with sys_tst_rlink_b3 target;
 # use vhdl configure file (tb_tst_rlink_b3.vhd) to allow
 # that all configurations will co-exist in work library
-${basys3_aif := ../sys_tst_rlink_b3.vbom}
+# configure
+basys3_aif = ../sys_tst_rlink_b3.vbom
 sys_conf = sys_conf_sim.vhd
+# design
 ../../../../bplib/basys3/tb/tb_basys3.vbom
 tb_tst_rlink_b3.vhd

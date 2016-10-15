@@ -1,6 +1,6 @@
--- $Id: tb_tst_serloop1_n4.vhd 760 2016-04-09 16:17:13Z mueller $
+-- $Id: tb_tst_serloop1_n4.vhd 805 2016-09-03 08:09:52Z mueller $
 --
--- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -26,6 +26,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-09-03   805   1.2    remove CLK_STOP logic (simstop via report)
 -- 2016-04-09   760   1.1    clock now from cmt and configurable
 -- 2015-02-21   438   1.0    Initial version (cloned from tb_tst_serloop1_n3)
 ------------------------------------------------------------------------------
@@ -46,7 +47,6 @@ end tb_tst_serloop1_n4;
 architecture sim of tb_tst_serloop1_n4 is
   
   signal CLK100 : slbit := '0';
-  signal CLK_STOP  : slbit := '0';
   
   signal CLK  : slbit := '0';
 
@@ -64,9 +64,9 @@ architecture sim of tb_tst_serloop1_n4 is
   signal SWI : slv16 := (others=>'0');
   signal BTN : slv5 := (others=>'0');
   
-  constant clock_period : time :=   10 ns;
-  constant clock_offset : time :=  200 ns;
-  constant delay_time :   time :=    2 ns;
+  constant clock_period : Delay_length :=   10 ns;
+  constant clock_offset : Delay_length :=  200 ns;
+  constant delay_time :   Delay_length :=    2 ns;
   
 begin
 
@@ -75,8 +75,7 @@ begin
       PERIOD => clock_period,
       OFFSET => clock_offset)
     port map (
-      CLK       => CLK100,
-      CLK_STOP  => CLK_STOP
+      CLK       => CLK100
     );
 
   GEN_CLKSYS : entity work.s7_cmt_sfs_tb
@@ -115,7 +114,6 @@ begin
     port map (
       CLKS      => CLK,
       CLKH      => CLK,
-      CLK_STOP  => CLK_STOP,
       P0_RXD    => RXD,
       P0_TXD    => TXD,
       P0_RTS_N  => RTS_N,

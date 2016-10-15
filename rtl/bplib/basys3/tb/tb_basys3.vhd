@@ -1,4 +1,4 @@
--- $Id: tb_basys3.vhd 748 2016-03-20 15:18:50Z mueller $
+-- $Id: tb_basys3.vhd 805 2016-09-03 08:09:52Z mueller $
 --
 -- Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -26,10 +26,11 @@
 -- To test:        generic, any basys3_aif target
 --
 -- Target Devices: generic
--- Tool versions:  viv 2014.4-2015.4; ghdl 0.31-0.33
+-- Tool versions:  viv 2014.4-2016.2; ghdl 0.31-0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-09-02   805   1.1.4  tbcore_rlink without CLK_STOP now
 -- 2016-02-20   734   1.1.3  use s7_cmt_sfs_tb to avoid xsim conflict
 -- 2016-02-13   730   1.1.2  direct instantiation of tbcore_rlink
 -- 2016-01-03   724   1.1.1  use serport/tb/serport_master_tb
@@ -59,7 +60,6 @@ architecture sim of tb_basys3 is
   signal CLKOSC : slbit := '0';         -- board clock (100 Mhz)
   signal CLKCOM : slbit := '0';         -- communication clock
 
-  signal CLK_STOP : slbit := '0';
   signal CLKCOM_CYCLE : integer := 0;
 
   signal RESET : slbit := '0';
@@ -84,8 +84,8 @@ architecture sim of tb_basys3 is
 
   constant sbaddr_portsel: slv8 := slv(to_unsigned( 8,8));
 
-  constant clock_period : time :=  10 ns;
-  constant clock_offset : time := 200 ns;
+  constant clock_period : Delay_length :=  10 ns;
+  constant clock_offset : Delay_length := 200 ns;
 
 begin
   
@@ -94,8 +94,7 @@ begin
       PERIOD => clock_period,
       OFFSET => clock_offset)
     port map (
-      CLK      => CLKOSC,
-      CLK_STOP => CLK_STOP
+      CLK      => CLKOSC
     );
   
   CLKGEN_COM : entity work.s7_cmt_sfs_tb
@@ -118,7 +117,6 @@ begin
   TBCORE : entity work.tbcore_rlink
     port map (
       CLK      => CLKCOM,
-      CLK_STOP => CLK_STOP,
       RX_DATA  => TXDATA,
       RX_VAL   => TXENA,
       RX_HOLD  => TXBUSY,

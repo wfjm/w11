@@ -1,6 +1,8 @@
 # configure for _*sim case
 # Note: this tb uses sys_tst_rlink_n4.vbom in local directory
 #       (not in .. as usual) to allow a tb specific configure !!!
+# configure
 nexys4_aif = sys_tst_rlink_n4_ssim.vhd
+# design
 tb_tst_rlink_n4.vbom
 @top:tb_tst_rlink_n4

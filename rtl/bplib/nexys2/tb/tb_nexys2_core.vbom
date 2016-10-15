@@ -1,7 +1,9 @@
 # libs
 ../../../vlib/slvtypes.vhd
+../../../vlib/simlib/simlib.vhd
 ../../../vlib/simlib/simbus.vhd
 # components
+../../../vlib/simlib/simbididly.vhd
 ../../micron/mt45w8mw16b.vbom
 # design
 tb_nexys2_core.vhd

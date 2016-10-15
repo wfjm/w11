@@ -1,0 +1,830 @@
+#!/usr/bin/perl -w
+# $Id: tbrun 808 2016-09-17 13:02:46Z mueller $
+#
+# Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+#
+# This program is free software; you may redistribute and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 2, or at your option any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# for complete details.
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2016-09-17   808   1.0    Initial version
+# 2016-08-09   796   0.1    First draft
+#
+
+use 5.14.0;                                 # require Perl 5.14 or higher
+use strict;                                 # require strict checking
+
+use Getopt::Long;
+use FileHandle;
+use YAML::XS;
+use Cwd;
+use IO::Select;
+use Time::HiRes qw(gettimeofday);
+
+my %opts = ();
+
+GetOptions(\%opts, "tag=s@", "exclude=s@", "mode=s",
+           "jobs=i", "tee=s", "tmax=i", "dry", "trace",
+           "nomake", "norun",
+           "rlmon", "rbmon", "bwait=i", "swait=i"
+          )
+  or die "bad options";
+
+sub setup_tagfilter;
+sub check_tagfilter;
+sub check_modefilter;
+sub include_file;
+sub read_file;
+sub load_yaml;
+sub check_keys;
+sub expand_vars;
+sub merge_lines;
+sub merge_expand;
+sub key_or_def;
+sub handle_include;
+sub handle_default;
+sub handle_itest;
+sub tpr;
+sub tpre;
+sub print_trace;
+sub run_tests_single;
+sub run_tests_multi;
+
+my @tlist;
+my @olist;
+my @wlist;
+
+
+my %keys_include = ( include => { mode => 'm', ref => ''},
+                     tag     => { mode => 'o', ref => 'ARRAY'}
+                   );
+my %keys_default = ( default => { mode => 'm', ref => 'HASH'}
+                   );
+my %keys_defhash = ( tag     => { mode => 'o', ref => 'ARRAY'},
+                     mode    => { mode => 'o', ref => ''}
+                   );
+my %keys_itest   = ( test    => { mode => 'm', ref => ''},
+                     tag     => { mode => 'o', ref => 'ARRAY'},
+                     mode    => { mode => 'o', ref => ''}
+                   );
+
+my $nseen = 0;
+my $ntest = 0;
+my $ndone = 0;
+my $nfail = 0;
+my $inicwd = getcwd();
+my %gblvars;
+
+$gblvars{ise_modes} = '[bsft]sim,ISim_[bsft]sim';
+$gblvars{ise_modes_noisim} = '[bsft]sim';             # when ISim not possible
+$gblvars{ise_modes_nossim} = 'bsim,ISim_bsim';        # when ssim not available
+#
+$gblvars{viv_modes} = '[bsor]sim,XSim_[bsorept]sim';
+$gblvars{viv_modes_nossim} = 'bsim,XSim_bsim';        # when ssim not available
+
+autoflush STDOUT 1 if -p STDOUT || -t STDOUT;
+my $ticker_on = -t STDOUT;
+
+my $fh_tee;
+if (defined $opts{tee} && $opts{tee} ne '') {
+  $fh_tee = new FileHandle;
+  $fh_tee->open($opts{tee},'>') or die "failed to open for write '$opts{tee}'";
+}
+
+$opts{tag}  = ['default'] unless defined $opts{tag};
+$opts{mode} = 'bsim'      unless defined $opts{mode};
+
+my %modecache;
+my @modelist;
+foreach (split /,/,$opts{mode}) {
+  $_ .= '_bsim' if m/^[IX]Sim$/;
+  push @modelist, $_;
+}
+
+push @ARGV, 'tbrun.yml' unless scalar( @ARGV);
+
+my @tagincl = setup_tagfilter($opts{tag});
+my @tagexcl = setup_tagfilter($opts{exclude});
+
+foreach my $fnam (@ARGV) {
+  include_file($fnam);
+}
+
+$ntest = scalar(@tlist);
+unless ($ntest) {
+  tpre(sprintf "tbrun-E: %d tests found, none selected\n", $nseen);
+  exit 2;
+}
+
+if (defined $opts{jobs}) {
+  run_tests_multi();
+} else {
+  run_tests_single();
+}
+
+if (defined $opts{dry}) {
+  tpr(sprintf "#tbrun-I: %d tests found, %d selected\n", $nseen,$ntest);
+}
+
+if ($nfail) {
+  tpr(sprintf "tbrun-I: %d tests failed of %d tests executed\n",$nfail,$ndone);
+}
+
+exit $nfail ? 1 : 0;
+
+#-------------------------------------------------------------------------------
+sub setup_tagfilter {
+  my ($targlist) = @_;
+  return () unless defined $targlist;
+  my @tagfiltlist;
+  foreach my $targ (@$targlist) {
+    my @tagfilt = map { "^($_)\$" } split /,/, $targ;
+    push @tagfiltlist, \@tagfilt;
+  }
+  return @tagfiltlist;
+}
+
+#-------------------------------------------------------------------------------
+sub check_tagfilter {
+  my ($tfiltlist,$tlist) = @_;
+  foreach my $tfilt (@$tfiltlist) {         # loop over filters
+    my $fok = 1;
+    foreach my $tfele (@$tfilt) {           # loop over filter elements
+      my $match = 0;
+      foreach my $tag (@$tlist) {           # loop over tags
+        $match = $tag =~ m/$tfele/;         # tag matchs filter element
+        last if $match;
+      }
+      $fok = 0 unless $match;               # filter missed if one element missed
+    }
+    return 1 if $fok;                       # return ok of one filter matched
+  }
+  return 0;                                 # here if no filter matched
+}
+
+#-------------------------------------------------------------------------------
+sub check_modefilter {
+  my ($mode,$mlist) = @_;
+  unless (exists $modecache{$mlist}) {
+    my %mh;
+    foreach my $mi (split /,/,$mlist) {
+      if ($mi =~ m/^(.*)\[([a-z]+)\](.*)$/) {
+        foreach (split //,$2) {
+          $mh{$1.$_.$3} = 1;
+        }
+      } else {
+        $mh{$mi} = 1;
+      }
+    }
+    $modecache{$mlist} = \%mh;
+  }
+
+  my $rmh = $modecache{$mlist};
+  return exists $$rmh{$mode};
+}
+
+#-------------------------------------------------------------------------------
+sub include_file {
+  my ($fnam) = @_;
+  my $fdat = read_file($fnam);
+  exit 2 unless defined $fdat;
+  my $ylst = load_yaml($fdat, $fnam);
+  exit 2 unless defined $ylst;
+
+  my $oldcwd = getcwd();
+
+  if ($fnam =~ m|^(.*)/(.*)$|) {
+    chdir $1 or die "chdir to '$1' failed with '$!'";
+  }
+
+  my %defhash;
+  foreach my $yele (@$ylst) {
+    if (exists $yele->{include}) {
+      handle_include($yele);
+    } elsif (exists $yele->{default}) {
+      handle_default($yele, \%defhash);
+    } elsif (exists $yele->{test}) {
+      handle_itest($yele, \%defhash);
+    } else {
+      tpr(sprintf "tbrun-E: unknown list element in '%s'\n  found keys: %s\n",
+            $fnam, join(',',sort keys %$yele));
+      exit 2;
+    }
+  }
+
+  chdir $oldcwd or die "chdir to '$oldcwd' failed with '$!'";
+  return;
+}
+
+#-------------------------------------------------------------------------------
+sub read_file {
+  my ($fnam) = @_;
+  my $fh = new FileHandle;
+  if (not open $fh, '<', $fnam) {
+    my $err = $!;
+    tpre(sprintf "tbrun-E: failed to open '%s'\n  cwd: %s\n  error: %s\n",
+           $fnam, getcwd(), $err);
+    return undef;
+  }
+  # nice trick to slurp the whole file into a variable
+  my $fdat = do {
+    local $/ = undef;
+    <$fh>;
+  };
+  close $fh;
+  return $fdat;
+}
+
+#-------------------------------------------------------------------------------
+sub load_yaml {
+  my ($fdat,$fnam) = @_;
+  my $ylst;
+  eval { $ylst = YAML::XS::Load($fdat); };
+  if ($@ ne '') {
+    my $err = $@;
+    tpre(sprintf "tbrun-E: failed to yaml load '%s'\n  cwd: %s\n  error: %s\n",
+           $fnam, getcwd(), $err);
+    return undef;
+  }
+  if (ref $ylst ne 'ARRAY') {
+    tpre(sprintf "tbrun-E: top level yaml is not a list but '%s'\n", ref $ylst);
+    return undef;
+  }
+  foreach my $yele (@$ylst) {
+    if (ref $yele ne 'HASH') {
+      tpre(sprintf "tbrun-E: second level yaml is not a hash '%s'\n", ref $yele);
+      return undef;
+    }
+  }
+  return $ylst;
+}
+
+#-------------------------------------------------------------------------------
+sub check_keys {
+  my ($yele, $href) = @_;
+  foreach my $keyele ( keys %$yele ) {
+    if (not exists $href->{$keyele}) {
+      tpre(sprintf "tbrun-E: unexpected key '%s'\n", $keyele);
+      return 0;
+    }
+    my $ref = ref $yele->{$keyele};
+    if ($ref ne $href->{$keyele}->{ref}) {
+      tpre(sprintf "tbrun-E: key '%s' is type'%s', expected '%s'\n",
+             $keyele, $ref, $href->{$keyele}->{ref});
+      return 0;
+    }
+  }
+  foreach my $keyref ( keys %$href ) {
+    next if $href->{$keyref}->{mode} eq 'o';
+    if (not exists $yele->{$keyref}) {
+      tpre(sprintf "tbrun-E: key '%s' missing\n", $keyref);
+      return 0;
+    }
+  }
+  return 1;
+}
+
+#-------------------------------------------------------------------------------
+sub lookup_var {
+  my ($vnam,$hrefs) = @_;
+  return $gblvars{$vnam} if exists $gblvars{$vnam};
+  if ($vnam =~ m/[A-Z][A-Z0-9_]*/) {
+    return $ENV{$vnam} if exists $ENV{$vnam};
+  }
+  tpre(sprintf "tbrun-E: can't replace '$vnam'\n");
+  exit 2;
+}
+
+#-------------------------------------------------------------------------------
+sub expand_vars {
+  my ($txt,$hrefs) = @_;
+  my $res = '';
+  while ($txt ne '') {
+    if ($txt =~ m/\$\{([a-zA-Z][a-zA-Z0-9_]*)\}/) {
+      my $vnam = $1;
+      my $vrep = lookup_var($vnam, $hrefs);
+      $res .= $`;
+      $res .= $vrep;
+      $txt  = $';
+    } else {
+      $res .= $txt;
+      last;
+    }
+  }
+  return $res;
+}
+
+#-------------------------------------------------------------------------------
+sub merge_lines {
+  my ($txt) = @_;
+  $txt =~ s|\s*\\\n\s*| |mg;
+  chomp $txt;
+  return $txt;
+}
+
+#-------------------------------------------------------------------------------
+sub merge_expand {
+  my ($txt,$hrefs) = @_;
+  return expand_vars(merge_lines($txt), $hrefs);
+}
+
+#-------------------------------------------------------------------------------
+sub key_or_def {
+  my ($tag,$yele,$defhash) = @_;
+  return $yele->{$tag}    if exists $yele->{$tag};
+  return $defhash->{$tag} if exists $defhash->{$tag};
+  return undef;
+}
+
+#-------------------------------------------------------------------------------
+sub handle_include {
+  my ($yele) = @_;
+  check_keys($yele, \%keys_include) or exit 2;
+
+  my $fnam = merge_expand($yele->{include}, undef);
+  include_file($fnam);
+
+  return;
+}
+
+#-------------------------------------------------------------------------------
+sub handle_default {
+  my ($yele, $defhash) = @_;
+  check_keys($yele, \%keys_default) or exit 2;
+  check_keys($yele->{default}, \%keys_defhash) or exit 2;
+  foreach my $key (keys %{$yele->{default}}) {
+    $$defhash{$key} = $$yele{default}{$key};
+  }
+  return;
+}
+
+#-------------------------------------------------------------------------------
+sub handle_itest {
+  my ($yele, $defhash) = @_;
+  check_keys($yele, \%keys_itest) or exit 2;
+
+  $nseen += 1;
+
+  my $tlist = key_or_def('tag', $yele, $defhash);
+  if (defined $tlist) {
+    return unless check_tagfilter(\@tagincl, $tlist);
+    return     if check_tagfilter(\@tagexcl, $tlist);
+  }
+
+  my $mlist = merge_expand(key_or_def('mode', $yele, $defhash), undef);
+
+  foreach my $mode (@modelist) {
+    next unless check_modefilter($mode, $mlist);
+
+    my $ms = '_' . $mode;
+    $ms =~ s/_bsim$//;
+    $gblvars{ms} = $ms;
+
+    my $test = merge_expand($yele->{test}, undef);
+
+    # forward options for tbrun_tbw or tbrun_tbwrri commands
+    if ($test =~ m/^\s*(tbrun_tbw|tbrun_tbwrri)\s+(.*)$/) {
+      my $cmd  = $1;
+      my $rest = $2;
+      $test  = $cmd;
+      $test .= ' --nomake' if $opts{nomake};
+      $test .= ' --norun'  if $opts{norun};
+      if ($cmd eq 'tbrun_tbwrri') {
+        $test .= ' --rlmon' if $opts{rlmon};
+        $test .= ' --rbmon' if $opts{rbmon};
+        $test .= ' --bwait '.$opts{bwait} if $opts{bwait};
+        $test .= ' --swait '.$opts{swait} if $opts{swait};
+      }
+      $test .= ' ' . $rest;
+    }
+
+    my $tid  = scalar(@tlist);
+    my $tmsg = sprintf "t%03d - tags: ", $tid;
+    $tmsg .= join ',',@$tlist if defined $tlist;
+
+    my %titem;
+    $titem{id}   = $tid;
+    $titem{cd}   = getcwd();
+    $titem{test} = $test;
+    $titem{tag}  = $tlist;
+    $titem{tmsg} = $tmsg;
+
+    push @{$titem{locks}}, $titem{cd};
+
+    push @tlist, \%titem;
+
+    delete $gblvars{ms};
+  }
+
+  return;
+}
+
+#-------------------------------------------------------------------------------
+sub tpr {
+  my ($txt) = @_;
+  print $txt;
+  print $fh_tee $txt if defined $fh_tee;
+  return;
+}
+
+#-------------------------------------------------------------------------------
+sub tpre {
+  my ($txt) = @_;
+  print STDERR $txt;
+  print $fh_tee $txt if defined $fh_tee;
+  return;
+}
+
+#-------------------------------------------------------------------------------
+sub max {
+  my ($a,$b) = @_;
+  return ($a > $b) ? $a : $b;
+}
+
+#-------------------------------------------------------------------------------
+sub open_job_fh {
+  my ($cmd) = @_;
+  my $fh = new FileHandle;
+
+  # add STDERR->STDOUT redirect (create sub shell of needed)
+  $cmd = '(' . $cmd . ')' if  $cmd =~ m/\n/g;
+  $cmd .= ' 2>&1';
+
+  # open returns pid of created process in case an in or out pipe is created
+  my $pid = open $fh, '-|', $cmd;
+  # print "+++1 $pid\n";
+
+  if (not $pid) {
+    my $err = $!;
+    my $msg = sprintf "tbrun-E: failed to start '%s'\n  cwd: %s\n  error: %s\n",
+                $cmd, getcwd(), $err;
+    return (undef, undef, $msg);
+  }
+  return ($fh, $pid, undef);
+}
+
+#-------------------------------------------------------------------------------
+sub run_tests_single {
+  my $drycd = '';
+  foreach my $titem (@tlist) {
+    my $cdir = $titem->{cd};
+    my $test = $titem->{test};
+
+    chdir $inicwd or die "chdir to '$inicwd' failed with '$!'";
+
+    if ($opts{dry}) {
+      if ($cdir ne $drycd) {
+        tpr("#------------------------------------------------------------\n");
+        tpr("cd $cdir\n");
+        $drycd = $cdir;
+      }
+      tpr("#----------------------------------------\n");
+      tpr("# $titem->{tmsg}\n");
+      tpr("$test\n");
+
+    } else {
+      tpr("#----------------------------------------\n");
+      tpr("# $titem->{tmsg}\n");
+      $ndone += 1;
+      my $cmd = '';
+      $cmd .= "cd $cdir";
+      $cmd .= "\n";
+      $cmd .= "$test";
+
+      my ($fh,$pid,$msg) = open_job_fh($cmd);
+      if (not defined $fh) {
+        tpre($msg);
+      } else {
+        while (<$fh>) {
+          print $_;
+        }
+        if (not close $fh) {
+          my $err = $?;
+          tpr(sprintf "tbrun-I: test FAILed with exit status %d,%d\n",
+                ($err>>8), ($err&0xff));
+          $nfail += 1;
+        }
+      }
+    }
+  }
+
+  if ($opts{dry}) {
+    tpr("#------------------------------------------------------------\n");
+    tpr(sprintf "cd %s\n", $inicwd);
+  }
+
+  return;
+}
+
+#-------------------------------------------------------------------------------
+sub print_ticker {
+  return unless $ticker_on;
+
+  my ($rwlist) = @_;
+  my $msg = '';
+  state $lastlength = 0;
+
+  if (defined $rwlist) {
+    my $time_now = gettimeofday();
+    $msg = '#-I: ' . join '; ', map {
+      sprintf('t%03d: %dl %3.1fs',
+              $_->{id}, $_->{nlines}, $time_now-$_->{tstart})
+      } @$rwlist;
+    $msg = substr($msg,0,75) . ' ...' if  length($msg)  >79;
+    unless (defined $opts{trace}) {
+      my $suff = sprintf '(%dt,%dw,%do)',
+                 scalar(@tlist), scalar(@wlist), scalar(@olist);
+      if (length($suff) + length($msg) + 1 <= 79) {
+        $msg .= ' ' . $suff;
+      } else {
+        $msg  = substr($msg,0,79-6-length($suff)) . ' ... ' . $suff;
+      }
+    }
+  }
+  my $newlength = length($msg);
+  $msg .= ' ' x ($lastlength - $newlength) if $lastlength > $newlength;
+  print $msg . "\r";
+  $lastlength = $newlength;
+  return;
+}
+
+#-------------------------------------------------------------------------------
+sub print_jobs {
+  while (defined $olist[0]->{exitcode}) {
+    print_ticker();
+    my $titem = shift @olist;
+    tpr("#----------------------------------------\n");
+    tpr("# $titem->{tmsg}\n");
+    tpr($titem->{out});
+  }
+  return;
+}
+
+#-------------------------------------------------------------------------------
+sub print_trace {
+  my ($titem) = @_;
+  my $pref = '';
+  my $suff = sprintf '(%dt,%dw,%do)',
+               scalar(@tlist), scalar(@wlist), scalar(@olist);
+  if (defined $titem->{exitcode}) {
+    $pref = ($titem->{exitcode}==0) ? 'pass ' : 'FAIL ';
+  } else {
+    $pref = 'start';
+  }
+  my $txt = '#-I: ' . $pref . ' ' . $titem->{tmsg};
+  $txt .= ' ' . $suff;
+  $txt .= "\n";
+  print_ticker();
+  tpr($txt);
+  return;
+}
+
+#-------------------------------------------------------------------------------
+sub start_jobs {
+
+  # initialize lock hash
+  my %locks;
+  foreach my $titem (@wlist) {
+    foreach my $lock (@{$titem->{locks}}) {
+      $locks{$lock} = 1;
+    }
+  }
+
+  # look for suitable tasks
+  for (my $i=0; $i < scalar(@tlist) && scalar(@wlist) < $opts{jobs}; ) {
+    my $titem = $tlist[$i];
+    my $nlock = 0;
+    foreach my $lock (@{$titem->{locks}}) {
+      if ($locks{$lock}) {
+        $nlock += 1;
+        last;
+      }
+    }
+
+    # suitable task found
+    if ($nlock == 0) {
+      my $cdir = $titem->{cd};
+      my $test = $titem->{test};
+      $ndone += 1;
+
+      my $cmd = '';
+      if ($opts{dry}) {
+        $cmd .= "cd $cdir";
+        $cmd .= "\n";
+        $cmd .= "perl -e 'select(undef, undef, undef, 0.2+1.6*rand( 1.))'";
+        $cmd .= "\n";
+        $cmd .= "echo \"cd $cdir\"";
+        $cmd .= "\n";
+        $cmd .= "echo \"$test\"";
+      } else {
+        $cmd .= "cd $cdir";
+        $cmd .= "\n";
+        $cmd .= "$test";
+      }
+
+      # start job
+      my ($fh,$pid,$msg) = open_job_fh($cmd);
+      if (not defined $fh) {
+        $titem->{out} = $msg;
+        $titem->{exitcode} = 1;
+        print_trace($titem) if $opts{trace};
+        print_jobs();
+      } else {
+        $titem->{fh}     = $fh;
+        $titem->{fd}     = fileno($fh);
+        $titem->{pid}    = $pid;
+        $titem->{out}    = '';
+        $titem->{tstart} = gettimeofday();
+        $titem->{nlines} = 0;
+        push @wlist, $titem;
+        foreach my $lock (@{$titem->{locks}}) {
+          $locks{$lock} = 1;
+        }
+        print_trace($titem) if $opts{trace};
+      }
+      splice @tlist, $i, 1;                   # remove from tlist
+      next;                                   # and re-test i'th list element
+    } # if ($nlock == 0)
+
+    $i += 1;                                # inspect nexyt list element
+  } # for (my $i=0; ...
+  return;
+}
+
+#-------------------------------------------------------------------------------
+sub kill_job {
+  my ($titem, $trun) = @_;
+  my $pid  = $titem->{pid};
+  my $pgid = getpgrp(0);
+  my %phash;
+
+  $titem->{killed} = $trun;
+
+  # get process tree data (for whole user, no pgid filtering possible
+  my $rank = 0;
+  open PS,"ps -H -o pid,ppid,pgid,comm --user $ENV{USER}|";
+  while (<PS>) {
+    chomp;
+    next unless m/^\s*(\d+)\s+(\d+)\s+(\d+)\s(.*)$/;
+    my $cpid  = $1;
+    my $cppid = $2;
+    my $cpgid = $3;
+    my $cargs = $4;
+    next unless $cpgid == $pgid;            # only current process group
+    next if $cargs =~ m/^\s*ps\s*$/;        # skip the 'ps' process itself
+    $phash{$cpid}->{ppid} = $cppid;
+    $phash{$cpid}->{pgid} = $cpgid;
+    $phash{$cpid}->{args} = $cargs;
+    $phash{$cpid}->{rank} = $rank++;
+    push @{$phash{$cppid}->{childs}}, $cpid;
+  }
+  close PS;
+
+  # sanity check 1: own tbrun process should be included
+  unless (exists $phash{$$}) {
+    print_ticker();
+    printf "-E: tmax kill logic error: tbrun master pid not in phash\n";
+    return;
+  }
+  # sanity check 2: job to be killed should be child of master tbrun
+  unless ($phash{$pid}->{ppid} == $$) {
+    print_ticker();
+    printf "-E: tmax kill logic error: job not child of tbrun\n";
+    return;
+  }
+
+  # determine number of leading blanks in master tbrun line
+  my $nstrip = 0;
+  $nstrip = length($1) if ($phash{$$}->{args} =~ m/^(\s*)/);
+
+  # recursively mark all childs of job master
+  my @pids = ($pid);
+  while (scalar(@pids)) {
+    my $cpid = shift @pids;
+    if (not exists $phash{$cpid}) {
+      print_ticker();
+      printf "-E: tmax kill logic error: child pid not in phash\n";
+      return;
+    }
+    $phash{$cpid}->{kill} = 1;
+    if (exists $phash{$cpid}->{childs}) {
+      push @pids, @{$phash{$cpid}->{childs}};
+    }
+  }
+
+  # build list of pid to be killed, and trace message
+  my @kpids;
+  my @ktext;
+  foreach my $cpid (sort {$phash{$a}->{rank} <=> $phash{$b}->{rank} }
+                    grep {$phash{$_}->{kill}}
+                    keys %phash) {
+    push @kpids, $cpid;
+    push @ktext, sprintf "#    %6d %6d %6d %s",
+      $cpid, $phash{$cpid}->{ppid},
+        $phash{$cpid}->{pgid},
+        substr($phash{$cpid}->{args}, $nstrip);
+  }
+
+  # print trace message, if selected
+  if ($opts{trace}) {
+    print_ticker();
+    printf "#-I: kill  t%03d after %3.1fs, kill proccesses:\n",
+      $titem->{id}, $trun, join("\n");
+    print  "#       pid   ppid   pgid   command\n";
+    print  join("\n",@ktext) . "\n";
+  }
+
+  # and finally kill all processes of the job
+  kill 'TERM', @kpids;
+
+  return;
+}
+
+#-------------------------------------------------------------------------------
+sub run_tests_multi {
+  @olist = @tlist;
+
+  while (scalar(@tlist) || scalar(@wlist)) { # while something to do
+    # start new jobs, if available and job slots free
+    start_jobs();
+
+    my @fhlist = map { $_->{fh} } @wlist;
+    my %fdhash;
+    foreach my $titem (@wlist) {
+      $fdhash{$titem->{fd}} = $titem;
+    }
+
+    my $sel = IO::Select->new(@fhlist);
+    my $neof = 0;
+    my $time_ticker = gettimeofday() + 0.1;
+
+    while ($neof == 0) {
+      my $wait_ticker = max(0.1, $time_ticker - gettimeofday() + 0.1);
+      my @fhlist = $sel->can_read($wait_ticker);
+      my $time_now = gettimeofday();
+      if ($time_now >= $time_ticker) {
+        print_ticker(\@wlist);
+        $time_ticker = $time_now + 0.9;
+      }
+      foreach my $fh (@fhlist) {
+        my $fd = fileno($fh);
+        my $titem = $fdhash{$fd};
+        my $buf = '';
+        my $nb = sysread $fh, $buf, 1024;
+
+        # data read
+        if ($nb) {
+          $titem->{out}    .= $buf;
+          $titem->{nlines} += ($buf =~ tr/\n/\n/); # count \n in $buf
+
+        # eof or error
+        } else {
+          if (defined $titem->{killed}) {
+            $titem->{out} .= sprintf
+              "tbrun-I: test killed after %3.1fs\n", $titem->{killed};
+          }
+          if (not close $fh) {
+            my $err = $?;
+            $titem->{out} .= sprintf
+              "tbrun-I: test FAILed with exit status %d,%d\n",
+                ($err>>8), ($err&0xff);
+            $nfail += 1;
+            $titem->{exitcode} = $err;
+          } else {
+            $titem->{exitcode} = 0;
+          }
+
+          $neof += 1;
+          for (my $i=0; $i < scalar(@wlist); $i++) {
+            next unless $wlist[$i]->{fd} == $fd;
+            splice @wlist, $i, 1;
+            last;
+          }
+          print_trace($titem) if $opts{trace};
+        }
+      } # foreach my $fh ...
+
+      # handle tmax
+      if (defined $opts{tmax}) {
+        foreach my $titem (@wlist) {
+          my $trun = $time_now - $titem->{tstart};
+          if ($trun > $opts{tmax}) {
+            kill_job($titem, $trun) unless defined $titem->{killed};
+          }
+        }
+      }
+
+    } # while ($neof == 0)
+    # here if at least one job finished
+    print_jobs();
+  }
+
+  return;
+}

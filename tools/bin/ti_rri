@@ -1,6 +1,6 @@
 #! /usr/bin/env tclshcpp
 # -*- tcl -*-
-# $Id: ti_rri 776 2016-06-18 17:22:51Z mueller $
+# $Id: ti_rri 799 2016-08-21 09:20:19Z mueller $
 #
 # Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -230,7 +230,7 @@ rlc set timeout    $opts(tout_)
 if { $opts(run_) ne "" } {
   if { [catch {exec sh -c $opts(run_) &} runpid] } {
     puts "-E: failed to execute \"$opts(run_)\" with error message\n  $runpid"
-    puts "aborting..."
+    puts "-E: aborting..."
     return 1
   }
 }
@@ -314,13 +314,13 @@ foreach cmd $clist {
       if { [catch {source $filename} errmsg] } {
         puts "-E: failed to source file \"$filename\" with error message:"
         if {[info exists errorInfo]} {puts $errorInfo} else {puts $errmsg}
-        puts "aborting..."
+        puts "-E: aborting..."
         break
       }
     # handle @file.dat ect --> not yet supported
     } else {
       puts "-E: only tcl supported but $filename found"
-      puts "aborting..."
+      puts "-E: aborting..."
       break
     }
 
@@ -329,7 +329,7 @@ foreach cmd $clist {
     if { [catch {eval $cmd} errmsg] } {
       puts "-E: eval of \"$cmd\" failed with error message:"
       if {[info exists errorInfo]} {puts $errorInfo} else {puts $errmsg}
-      puts "aborting..."
+      puts "-E: aborting..."
       break
     }
   }

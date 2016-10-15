@@ -1,0 +1,8 @@
+# configure for _*sim case
+# Note: this tb uses sys_tst_sram_n4.vbom in local directory
+#       (not in .. as usual) to allow a tb specific configure !!!
+# configure
+nexys4_cram_aif = sys_tst_sram_n4_ssim.vhd
+# design
+tb_tst_sram_n4.vbom
+@top:tb_tst_sram_n4

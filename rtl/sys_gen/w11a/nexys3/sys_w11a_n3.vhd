@@ -1,4 +1,4 @@
--- $Id: sys_w11a_n3.vhd 748 2016-03-20 15:18:50Z mueller $
+-- $Id: sys_w11a_n3.vhd 791 2016-07-21 22:01:10Z mueller $
 --
 -- Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -395,7 +395,7 @@ begin
     
   MEM_ADDR_EXT <= "00" & MEM_ADDR;    -- just use lower 4 MB (of 16 MB)
 
-  SRAM_CTL: nx_cram_memctl_as           -- memory controller -----------------
+  CRAMCTL: nx_cram_memctl_as            -- memory controller -----------------
     generic map (
       READ0DELAY => sys_conf_memctl_read0delay,
       READ1DELAY => sys_conf_memctl_read1delay,

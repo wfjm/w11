@@ -1,4 +1,6 @@
 # configure for _*sim case
+# configure
 uut = tbd_cdata2byte_ssim.vhd
+# design
 tb_cdata2byte.vbom
 @top:tb_cdata2byte

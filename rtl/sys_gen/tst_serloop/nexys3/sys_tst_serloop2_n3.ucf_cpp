@@ -1,0 +1,30 @@
+## $Id: sys_tst_serloop2_n3.ucf_cpp 441 2011-12-20 17:01:16Z mueller $
+##
+## Revision History: 
+## Date         Rev Version  Comment
+## 2011-12-11   438   1.0.1  temporarily use with ser=usr=100 MHz
+## 2011-11-27   433   1.0    Initial version
+##
+
+NET "I_CLK100" TNM_NET = "I_CLK100";
+TIMESPEC "TS_I_CLK100" = PERIOD "I_CLK100" 10.0 ns HIGH 50 %;
+OFFSET =  IN 10 ns BEFORE "I_CLK100";
+OFFSET = OUT 20 ns  AFTER "I_CLK100";
+
+## rules to prevent default 'cross clock' constraints for the dcm generated
+## clocks CLK(150 MHz) and CLKS(60 MHz). All essential domain crossing done 
+## via fifo's or dedicated capture/synch flops.
+
+##NET "CLK"   TNM_NET = "CLK";
+##NET "CLKS"  TNM_NET = "CLKS";
+##TIMESPEC "TS_CDC_CLK_CLKS" = FROM "I_CLK100"  TO "CLKS" 10 ns;
+##TIMESPEC "TS_CDC_CLK_CLKS" = FROM "CLK"  TO "CLKS" 10 ns;
+##TIMESPEC "TS_CDC_CLKS_CLK" = FROM "CLKS" TO "I_CLK100"  10 ns;
+
+## std board
+##
+#include "bplib/nexys3/nexys3_pins.ucf"
+##
+## Pmod B0 - RS232 
+##
+#include "bplib/nexys3/nexys3_pins_pmb0_rs232.ucf"

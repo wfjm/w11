@@ -1,0 +1,10 @@
+# $Id: tbrun.yml 807 2016-09-17 07:49:26Z mueller $
+#
+# Revision History:
+# Date         Rev Version  Comment
+# 2016-08-13   798   1.0    Initial version
+#
+- include: s3board/tb/tbrun.yml
+- include: nexys2/tb/tbrun.yml
+- include: nexys3/tb/tbrun.yml
+- include: nexys4/tb/tbrun.yml

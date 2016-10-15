@@ -1,4 +1,6 @@
 # configure for _*sim case
+# configure
 uut = s3_sram_memctl_ssim.vhd
+# design
 tb_s3_sram_memctl.vbom
 @top:tb_s3_sram_memctl

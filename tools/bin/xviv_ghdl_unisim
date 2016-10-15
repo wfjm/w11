@@ -1,15 +1,17 @@
 #!/bin/bash
-# $Id: xviv_ghdl_unisim 762 2016-04-17 21:33:42Z mueller $
+# $Id: xviv_ghdl_unisim 782 2016-07-03 08:09:36Z mueller $
 #
 # Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 #  Revision History:
 # Date         Rev  Vers    Comment
+# 2016-07-02   782   1.1.1  add ghdlopts as 1st option; default is -O2
 # 2016-04-17   762   1.1    update for viv 2016.1
 # 2015-02-02   642   1.0    Initial version
 #
-
+ghdlopts=${1:--O2 -g}
+#
 if [ -z "$XTWV_PATH" ]
 then
   echo "XTWV_PATH not defined"
@@ -79,14 +81,14 @@ popd
 # now compile all --------------------------------
 #
 echo "# ghdl ... unisim_retarget_VCOMP.vhd"
-ghdl -a --ieee=synopsys --work=unisim unisim_retarget_VCOMP.vhd
+ghdl -a --ieee=synopsys --work=unisim $ghdlopts unisim_retarget_VCOMP.vhd
 echo "# ghdl ... unisim_VPKG.vhd"
-ghdl -a --ieee=synopsys --work=unisim unisim_VPKG.vhd
+ghdl -a --ieee=synopsys --work=unisim $ghdlopts unisim_VPKG.vhd
 
 for file in `cat primitive/vhdl_analyze_order`
 do
   echo "# ghdl ... primitive/$file"
-  ghdl -a -fexplicit --ieee=synopsys --work=unisim \
+  ghdl -a -fexplicit --ieee=synopsys --work=unisim $ghdlopts \
       --no-vital-checks primitive/$file 2>&1 |\
       tee primitive/$file.ghdl.log
 done
@@ -94,7 +96,7 @@ done
 for file in `cat retarget/vhdl_analyze_order`
 do
   echo "# ghdl ... retarget/$file"
-  ghdl -a -fexplicit --ieee=synopsys --work=unisim \
+  ghdl -a -fexplicit --ieee=synopsys --work=unisim $ghdlopts \
       --no-vital-checks retarget/$file 2>&1 |\
       tee retarget/$file.ghdl.log
 done
@@ -126,7 +128,7 @@ fi
 for file in `cat vhdl_analyze_order`
 do
   echo "# ghdl ... $file"
-  ghdl -a -P../unisim -fexplicit --ieee=synopsys --work=unimacro \
+  ghdl -a -P../unisim -fexplicit --ieee=synopsys --work=unimacro $ghdlopts \
       --no-vital-checks $file 2>&1 | tee $file.ghdl.log
 done
 #

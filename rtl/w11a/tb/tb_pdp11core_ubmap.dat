@@ -1,0 +1,305 @@
+# $Id: tb_pdp11core_ubmap.dat 674 2015-05-04 16:17:40Z mueller $
+#
+# Revision History: 
+# Date         Rev Version  Comment
+# 2015-05-03   674   1.5    start/stop/suspend overhaul
+# 2008-03-02   121   1.0    extracted from sys/tb/tb_s3board_pdp11core_mem70
+#
+.mode pdpcp
+.tocmd   50
+.tostp  100
+.togo  5000
+.rlmon    0
+.rbmon    0
+#
+.reset
+.wait 10
+.anena    1
+#
+#-----------------------------------------------------------------------------
+C Test 1: Write/Read ubmap registers
+wal     170200
+bwm     64
+        177777    -- write all bits
+        177777    -- write all bits
+        000100    -- map  1
+        000001
+        000200    -- map  2
+        000002
+        000300    -- map  3
+        000003
+        000400    -- map  4
+        000004
+        000500    -- map  5
+        000005
+        000600    -- map  6
+        000006
+        000700    -- map  7
+        000007
+        001000    -- map 10
+        000010
+        001100    -- map 11
+        000011
+        001200    -- map 12
+        000012
+        001300    -- map 13
+        000013
+        001400    -- map 14
+        000014
+        001500    -- map 15
+        000015
+        001600    -- map 16
+        000016
+        001700    -- map 17
+        000017
+        002000    -- map 20
+        000020
+        002100    -- map 21
+        000021
+        002200    -- map 22
+        000022
+        002300    -- map 23
+        000023
+        002400    -- map 24
+        000024
+        002500    -- map 25
+        000025
+        002600    -- map 26
+        000026
+        002700    -- map 27
+        000027
+        003000    -- map 30
+        000030
+        003100    -- map 31
+        000031
+        003200    -- map 32
+        000032
+        003300    -- map 33
+        000033
+        003400    -- map 34
+        000034
+        003500    -- map 35
+        000035
+        003600    -- map 36
+        000036
+        003700    -- map 37
+        000037
+wal     170200
+brm     64
+      d=177776    -- only 15:01 are writable, bit 0 is 0
+      d=000077    -- only  5:00 are writable, upper 10 bits are 0
+      d=000100    -- map  1
+      d=000001
+      d=000200    -- map  2
+      d=000002
+      d=000300    -- map  3
+      d=000003
+      d=000400    -- map  4
+      d=000004
+      d=000500    -- map  5
+      d=000005
+      d=000600    -- map  6
+      d=000006
+      d=000700    -- map  7
+      d=000007
+      d=001000    -- map 10
+      d=000010
+      d=001100    -- map 11
+      d=000011
+      d=001200    -- map 12
+      d=000012
+      d=001300    -- map 13
+      d=000013
+      d=001400    -- map 14
+      d=000014
+      d=001500    -- map 15
+      d=000015
+      d=001600    -- map 16
+      d=000016
+      d=001700    -- map 17
+      d=000017
+      d=002000    -- map 20
+      d=000020
+      d=002100    -- map 21
+      d=000021
+      d=002200    -- map 22
+      d=000022
+      d=002300    -- map 23
+      d=000023
+      d=002400    -- map 24
+      d=000024
+      d=002500    -- map 25
+      d=000025
+      d=002600    -- map 26
+      d=000026
+      d=002700    -- map 27
+      d=000027
+      d=003000    -- map 30
+      d=000030
+      d=003100    -- map 31
+      d=000031
+      d=003200    -- map 32
+      d=000032
+      d=003300    -- map 33
+      d=000033
+      d=003400    -- map 34
+      d=000034
+      d=003500    -- map 35
+      d=000035
+      d=003600    -- map 36
+      d=000036
+      d=003700    -- map 37
+      d=000037
+#
+#-----------------------------------------------------------------------------
+C Test 2: Write/Read memory via bwm/brm and Unibus map
+#
+wal     170200    -- setup test map
+bwm     4
+        000000    -- map 0: 000000 -> 000000
+        000000    -- 
+        004000    -- map 1: 020000 -> 004000
+        000000
+wal     170200    -- verify test map
+brm     4
+      d=000000    -- map 0
+      d=000000    -- 
+      d=004000    -- map 1
+      d=000000
+#
+C Test 2.1 write/read with ubmap off in MMU
+#
+wal     020000    -- Page 1
+wah     000200    -- ubmap=1
+bwm     4
+        000100
+        000101
+        000102
+        000103
+wal     020000
+brm     4
+      d=000100
+      d=000101
+      d=000102
+      d=000103
+#
+C Test 2.2 write/read with ubmap on in MMU
+#
+wal     172516    -- SSR3
+wm      000040    --   set ubmap=1
+wal     020000    -- Page 1
+wah     000200    -- ubmap=1
+bwm     4
+        000200
+        000201
+        000202
+        000203
+wal     020000    -- check that old transfer data unchanged
+brm     4
+      d=000100
+      d=000101
+      d=000102
+      d=000103
+wal     004000    -- 020000 was mapped to 004000, check data
+brm     4
+      d=000200
+      d=000201
+      d=000202
+      d=000203
+#-----------------------------------------------------------------------------
+C Test 3: Write/Read memory via bwm/brm and Unibus map while CPU running
+C   Setup trap catchers
+#
+# FU    DATA C
+wal     000004    -- vectors:  4...34 (trap catcher)
+bwm     14
+        000006    --   PC:06	 ; vector   4
+        000000    --   PS:0
+        000012    --   PC:12	 ; vector  10
+        000000    --   PS:0
+        000016    --   PC:16  ; vector  14  (T bit; BPT)
+        000000    --   PS:0
+        000022    --   PC:22  ; vector  20  (IOT)
+        000000    --   PS:0
+        000026    --   PC:26  ; vector  24  (Power fail, not used)
+        000000    --   PS:0
+        000032    --   PC:32  ; vector  30  (EMT)
+        000000    --   PS:0
+        000036    --   PC:36  ; vector  34  (TRAP)
+        000000    --   PS:0
+wal     000240    -- vectors: 240,244,250 (trap catcher)
+bwm     6
+        000242    --   PC:242 ; vector 240  (PIRQ)
+        000000    --   PS:0
+        000246    --   PC:246 ; vector 244  (FPU)
+        000000    --   PS:0
+        000252    --   PC:252 ; vector 250  (MMU)
+        000000    --   PS:0
+#
+C   Setup Code
+#
+wal     002000
+bwm     7
+        005211    -- inc (r1)      ; increment a mem  location
+        005312    -- dec (r2)      ; decrement a ubus location 
+        005700    -- tst r0        ; test for loop
+        001774    -- beq .-4       ; loop while r0=0
+        011103    -- mov (r1),r3   ; sum mem and ubus location
+        061203    -- add (r2),r3   ; r3 should be 0
+        000000    -- halt
+#
+C   Start Code
+wr0     000000    -- 0 for looping
+wr1     002100    -- a mem  addr
+wr2     172256    -- a ubus addr: MMU SM mode AR page 7 (is a 16bit r/w reg)
+wpc     002000
+sta               -- 'start' does no reset (keeps SSR3.ubmap=1)
+#
+wal     020200    -- Page 1
+wah     000200    -- ubmap=1
+bwm     16
+        000300
+        000301
+        000302
+        000303
+        000304
+        000305
+        000306
+        000307
+        000310
+        000311
+        000312
+        000313
+        000314
+        000315
+        000316
+        000317
+#
+wr0     000001    -- 1 for stop looping
+wtgo              -- wait for cpu halt
+#
+rpc   d=002016    -- ! pc
+wal     002100    -- check  mem loc (for visual inspection)
+rm    d=-
+wal     172256    -- check ubus loc (for visual inspection)
+rm    d=-
+rr3   d=000000    -- ! r3 (is sum of mem and ubus location)
+#
+wal     004200    -- 020200 was mapped to 004200, check data
+brm     16
+      d=000300
+      d=000301
+      d=000302
+      d=000303
+      d=000304
+      d=000305
+      d=000306
+      d=000307
+      d=000310
+      d=000311
+      d=000312
+      d=000313
+      d=000314
+      d=000315
+      d=000316
+      d=000317

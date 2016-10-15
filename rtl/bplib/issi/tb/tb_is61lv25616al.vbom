@@ -1,0 +1,7 @@
+#
+# libs
+../../../vlib/simlib/simlib.vhd
+# components
+../is61lv25616al.vbom
+# design
+tb_is61lv25616al.vhd

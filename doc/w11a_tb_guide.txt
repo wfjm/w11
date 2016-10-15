@@ -1,4 +1,4 @@
-# $Id: w11a_tb_guide.txt 779 2016-06-26 15:37:16Z mueller $
+# $Id: w11a_tb_guide.txt 810 2016-10-02 16:51:12Z mueller $
 
 Note: - Ghdl is used for all behavioral simulations
       - Optionally Vivado xsim can be used
@@ -7,22 +7,25 @@ Note: - Ghdl is used for all behavioral simulations
       - For timing simulations only Vivado xsim can be used.
       - ISE isim is also available, but considered legacy support
 
-Guide to running w11a test benches
+Guide to running test benches
 
   Table of content:
   
-  1. Unit tests benches
-  2. Available unit tests benches
-  3. System tests benches
-  4. Available system tests benches
+  1. Tests bench environment
+  2. Unit test benches
+  3. System test benches
+  4. Test bench driver
+  5. Execute all available tests
+  6. Available unit tests benches
+  7. Available system tests benches
 
 
-1. Unit tests benches -----------------------------------------------------
+1. Tests bench environment ------------------------------------------------
 
-   All unit test benches have the same simple structure:
+   All test benches have the same simple structure:
 
-   - a stimulus process reads test patterns as well as the expected
-     responses from a stimulus file
+   - the test benches are 'self-checking'. For unit tests a stimulus process 
+     reads test patterns as well as the expected responses from a stimulus file
 
    - the responses are checked in very simple cases by the stimulus process,
      in general by a monitoring process
@@ -35,120 +38,40 @@ Guide to running w11a test benches
 
    - at the end a line with the word "DONE" is printed.
 
-   - the test bench is run like
-
-       tbw <testbenchname> [stimfile] | tee <logfile> | egrep "(FAIL|DONE)"
-
-     where 
-       - 'tbw' is a small perl script setting up a symbolic link to the
-         stimulus file, the default extracted from the file tbw.dat, if
-         an optional file name is give this one will be used instead.
-       - 'tee' ensures that the full log is saved
-       - 'egrep' filters FAIL and DONE lines, a successful run will
-         produce a single DONE line
-
-   - Most tests can be run against 
-       - the behavioral model
-       - post-synthesis    functional
-       - post-optimization functional
-       - post-routing      functional
-       - post-synthesis    timing
-       - post-optimization timing
-       - post-routing      timing
+   - Most tests can be run as 
+       - bsim: the behavioral model
+       - ssim: post-synthesis    functional
+       - osim: post-optimization functional
+       - rsim: post-routing      functional
+       - esim: post-synthesis    timing
+       - psim: post-optimization timing
+       - tsim: post-routing      timing
 
      Building the simulation models is handled by the build environment. See 
      README_buildsystem_Vivado.txt for details of the vivado flow and 
      README_buildsystem_ISE.txt for the ISE flow.
 
-     An example of a post-synthesis model is given for the w11a core test.
+2. Unit test benches ------------------------------------------------------
+
+   All unit test are executed via 'tbw' (test bench warpper) script.
+
+   - the test bench is run like
+
+       tbw <testbenchname> [stimfile] | tbfilt --tee <logfile>
+
+     where 
+       - tbw sets up the environment of the test bench and starts it.
+         It generates required symbolic links, e.g. to the stimulus file,
+         the defaults extracted from the file tbw.dat, if an optional file
+         name is give this one will be used instead.
+       - tbfilt saves the full test bench output to a logfile and filters
+         the output for PASS/FAIL criteria
 
    - for convenience a wrapper script 'tbrun_tbw' is used to generate the 
-     tbw|tee|egrep pipe. This script also checks with 'make' whether the
+     tbw|tbfilt pipe. This script also checks with 'make' whether the
      test bench is up-to-date or must be (re)-compiled.
 
-2. Available unit tests benches -------------------------------------------
-
-   In the following the available tests are listed with their tbrun_tbw which
-     - will call 'make' to build them
-     - and create the pipe setup to run them
-   and the expected output (the run time measured on a 3 GHz system)
-
-   - serport receiver test
-     cd $RETROBASE/rtl/vlib/serport/tb
-     tbrun_tbw tb_serport_uart_rx 
-     -> 1269955.0 ns  63488: DONE 
-     -> real 0m0.531s   user 0m0.392s   sys 0m0.014s
-
-   - serport receiver/transmitter test
-     tbrun_tbw tb_serport_uart_rxtx
-     -> 52335.0 ns   2607: DONE 
-     -> real 0m0.120s   user 0m0.065s   sys 0m0.013s
-
-   - serport autobauder test
-     tbrun_tbw tb_serport_autobaud
-     -> 367475.0 ns  18364: DONE 
-     -> real 0m0.343s   user 0m0.316s   sys 0m0.003s
-
- 
-   - 9 bit comma,data to Byte stream converter test
-     cd $RETROBASE/rtl/vlib/comlib/tb
-     tbrun_tbw tb_cdata2byte
-     -> 7261.0 ns    354: DONE 
-     -> real 0m0.088s   user 0m0.057s   sys 0m0.013s
-
-   - rlink core test
-
-     cd $RETROBASE/rtl/vlib/rlink/tb
-     tbrun_tbw tb_rlink_direct
-     -> 78975.0 ns   3939: DONE 
-     -> real 0m0.270s   user 0m0.222s   sys 0m0.026s
-
-   - rlink core test via serial port interface
-
-     cd $RETROBASE/rtl/vlib/rlink/tb
-     tbrun_tbw --lsuf stim2_bsim   tb_rlink_sp1c tb_rlink_sp1c_stim.dat
-     -> 27595.0 ns   1370: DONE 
-     -> real 0m0.184s   user 0m0.145s   sys 0m0.011s
-
-     tbrun_tbw --lsuf stim1_bsim   tb_rlink_sp1c tb_rlink_stim.dat
-     -> 420295.0 ns  21005: DONE 
-     -> real 0m0.939s   user 0m0.945s   sys 0m0.026s
-
-   - w11a core test 
-     - using behavioral model
-
-       cd $RETROBASE/rtl/w11a/tb
-       tbrun_tbw tb_pdp11core
-       -> 225355.0 ns  61258: DONE 
-       -> real 0m6.446s   user 0m6.387s   sys 0m0.024s
-
-     - using Vivado post-synthesis vhdl model and ghdl
-
-       tbrun_tbw tb_pdp11core_ssim
-       ->  1225355.0 ns  61258: DONE 
-       -> real 1m40.446s   user 1m40.344s   sys 0m0.075s
-
-     - using Vivado post-synthesis verilog model and xsim
-
-       tbrun_tbw tb_pdp11core_XSim_ssim
-       -> 1225355.0 ns  61258: DONE 
-       -> real 1m14.835s   user 1m13.997s   sys 0m1.011s
-
-   - s3board sram controller test 
-
-     cd $RETROBASE/rtl/bplib/s3board/tb
-     tbrun_tbw tb_s3_sram_memctl
-     -> 5015.0 ns    241: DONE 
-     -> real 0m0.075s   user 0m0.045s   sys 0m0.022s
-
-   - nexys2/nexys3 cram controller test 
-
-     cd $RETROBASE/rtl/bplib/nxcramlib/tb
-     tbrun_tbw tb_nx_cram_memctl_as
-     -> 24272.5 ns   1204: DONE 
-     -> real 0m0.337s   user 0m0.147s   sys 0m0.146s
-
-3. System tests benches ---------------------------------------------------
+3. System test benches ----------------------------------------------------
 
    The system tests allow to verify to verify a full system design.
    In this case vhdl test bench code contains
@@ -163,183 +86,93 @@ Guide to running w11a test benches
    simulation, or via a serial port to a FPGA board. This way the same tests 
    can be executed in simulation and on real hardware.
 
-4. Available system tests benches -----------------------------------------
+   In general the script 'tbrun_tbwrri' is used to generate the quite lengthy 
+   ommand to properly setup the tbw|tbfilt pipe.  This script also checks 
+   with 'make' whether the test bench is up-to-date or must be (re)-compiled.
 
-4a. serport tester ---------------------------------------------------
+4. Test bench driver ------------------------------------------------------
 
-   The sys_tst_serloop design is a test target for validating the serial
-   link UART stack. Send and receive throughput as well as loop-back tests
-   are supported
+   All available tests (unit and system test benches) are described in a
+   set of descriptor files, usually called 'tbrun.yml'. The top level file
+   in $RETROBASE includes other descriptor files located in the source 
+   directories of the tests.
 
-   - sys_tst_serloop_s3 test bench
+   The script 'tbrun' reads these descriptor files, selects tests based
+   on --tag and --exclude options, and executes the tests with the
+   simulation engine and simulation type given by the --mode option.
+   For full description of see 'man tbrun'.
 
-     cd $RETROBASE/rtl/sys_gen/tst_serloop/s3board/tb
-     tbrun_tbw tb_tst_serloop_s3
-     -> 301353.3 ns  18068: DONE 
-     -> real 0m0.832s   user 0m0.765s   sys 0m0.036s
+   The low level drivers 'tbrun_tbw' and 'tbrun_tbwrri' will automatically 
+   build the model if it is not available or outdated. This is very convenient
+   when working with a single test bench during development.
 
-   - sys_tst_serloop_n2 test bench
+   When executing a large number of them it's in general better to separate
+   the model building (make phase) made model execution (run phase). Both
+   the low level drivers as well as 'tbrun' support this via the options
+   --nomake and --norun.
 
-     cd $RETROBASE/rtl/sys_gen/tst_serloop/nexys2/tb
-     tbrun_tbw tb_tst_serloop1_n2
-     -> 361560.0 ns  18068: DONE
-     -> real 0m0.799s   user 0m0.758s   sys 0m0.021s
+   The individial test benches are simplest started via tbrun and a proper
+   selection via --tag. Very helpful is
 
-     tbrun_tbw tb_tst_serloop2_n2
-     -> 304353.3 ns  18248: DONE
-     -> real 0m1.274s   user 0m1.236s   sys 0m0.017s
+     cd $RETROBASE
+     tbrun --dry --tag=.*
 
-   - sys_tst_serloop_n3 test bench
+   which gives a listing of all available test. The tag list as well as
+   the shell commands to execute the test are shown.
 
-     cd $RETROBASE/rtl/sys_gen/tst_serloop/nexys3/tb
-     tbrun_tbw tb_tst_serloop1_n3
-     -> 361560.0 ns  18068: DONE
-     -> real 0m0.841s   user 0m0.820s   sys 0m0.014s
+5. Execute all available tests --------------------------------------------
 
-4b. rlink tester -----------------------------------------------------
+   As stated above it is in general better to to separate the model building 
+   (make phase) made model execution (run phase). The currently recommended
+   way to execute all test benches is given below.
+   The run time is measured on a 3 GHz dual core system.
 
-   The sys_tst_rlink design is a test target for validating the rlink and 
-   rbus functionality at all levels.
+     cd $RETROBASE
+     # build all behavioral models
+     #   first all with ISE work flow
+     time nice tbrun -j 2 -norun -tag=ise -tee=tbrun_make_ise_bsim.log
+       # --> real 3m41.732s   user 6m3.381s   sys 0m24.224s
 
-   - Artix based systems
+     #   than all with vivado work flow
+     time nice tbrun -j 2 -norun -tag=viv -tee=tbrun_make_viv_bsim.log
+       # --> real 3m36.532s   user 5m58.319s   sys 0m25.235s
+     
+     # than execute all behavioral models
+     time nice tbrun -j 2 -nomake -tag=ise -tee=tbrun_run_ise_bsim.log
+       # --> real 3m19.799s   user 5m45.060s   sys 0m6.625s
+     time nice tbrun -j 2 -nomake -tag=viv -tee=tbrun_run_viv_bsim.log
+       #--> real 3m49.193s   user 5m44.063s   sys 0m5.332s
 
-     - sys_tst_rlink_arty test bench
-  
-       cd $RETROBASE/rtl/sys_gen/tst_rlink/arty/tb
-       tbrun_tbwrri --hxon --pack tst_rlink   tb_tst_rlink_arty \
-           "tst_rlink::setup"  "tst_rlink::test_all"
-       -> 1028590.0 ns 102838: DONE 
-       -> real 0m14.163s   user 0m12.637s   sys 0m0.152s
+   All test create an individual logfile. 'tbfilt' can be used to scan
+   these logfiles and create a summary with
 
-     - sys_tst_rlink_b3 test bench
-  
-       cd $RETROBASE/rtl/sys_gen/tst_rlink/basys3/tb
-       tbrun_tbwrri --hxon --pack tst_rlink   tb_tst_rlink_b3 \
-           "tst_rlink::setup"  "tst_rlink::test_all"
-       -> 1028820.0 ns 102861: DONE 
-       -> real 0m9.275s   user 0m9.041s   sys 0m0.094s
+     tbfilt -all -sum -comp
+   
+   It should look like
+     76m   0m00.034s c    0.92u   0 PASS tb_is61lv25616al_bsim.log
+     76m   0m00.153s c    4.00u   0 PASS tb_mt45w8mw16b_bsim.log
+     76m   0m00.168s c     1146   0 PASS tb_nx_cram_memctl_as_bsim.log
+     ...
+     ...
+     76m   0m03.729s c    61258   0 PASS tb_pdp11core_bsim_base.log
+     76m   0m00.083s c     1121   0 PASS tb_pdp11core_bsim_ubmap.log
+     76m   0m00.068s c     1031   0 PASS tb_rlink_tba_pdp11core_bsim_ibdr.log
 
-     - sys_tst_rlink_n4 test bench
-  
-       cd $RETROBASE/rtl/sys_gen/tst_rlink/nexys4/tb
-       tbrun_tbwrri --pack tst_rlink   tb_tst_rlink_n4 \
-           "tst_rlink::setup"  "tst_rlink::test_all"
-       -> 1020240.0 ns 102003: DONE 
-       -> real 0m9.751s   user 0m9.544s   sys 0m0.081s
+6. Available unit tests benches -------------------------------------------
 
+     tbrun --tag=comlib                    # comlib unit tests
+     tbrun --tag=serport                   # serport unit tests
+     tbrun --tag=rlink                     # rlink unit tests
+     tbrun --tag=issi                      # SRAM model unit tests
+     tbrun --tag=micron                    # CRAM model unit tests
+     tbrun --tag=sram_memctl               # SRAM controller unit tests
+     tbrun --tag=cram_memctl               # CRAM controller unit tests
+     tbrun --tag=w11a                      # w11a unit tests
 
-   - Spartan based systems
+7. Available system tests benches -----------------------------------------
 
-     - sys_tst_rlink_n3 test bench
-  
-       cd $RETROBASE/rtl/sys_gen/tst_rlink/nexys3/tb
-       tbrun_tbwrri --fusp --pack tst_rlink   tb_tst_rlink_n3 \
-           "tst_rlink::setup"  "tst_rlink::test_all"
-       -> 1024980.0 ns 102477: DONE 
-       -> real 0m8.081s   user 0m7.904s   sys 0m0.106s
-
-     - sys_tst_rlink_n2 test bench
-  
-       cd $RETROBASE/rtl/sys_gen/tst_rlink/nexys2/tb
-       tbrun_tbwrri --fusp --pack tst_rlink   tb_tst_rlink_n2 \
-           "tst_rlink::setup"  "tst_rlink::test_all"
-       -> 2049320.0 ns 102455: DONE 
-       -> real 0m7.934s   user 0m7.748s   sys 0m0.114s
-
-     - sys_tst_rlink_s3 test bench
-  
-       cd $RETROBASE/rtl/sys_gen/tst_rlink/s3board/tb
-       tbrun_tbwrri --fusp --pack tst_rlink   tb_tst_rlink_s3 \
-           "tst_rlink::setup"  "tst_rlink::test_all" 
-       -> 2049720.0 ns 102476: DONE 
-       -> real 0m7.612s   user 0m7.437s   sys 0m0.075s
-
-4c. rlink tester, Cypress FX2 based version --------------------------
-
-   The sys_tst_rlink_cuff design is a test target for validating the rlink and 
-   rbus functionality at all levels over the Cypress FX2 USB interface which
-   is provided by the Nexys2 abd Nexys3 boards.
-
-   - sys_tst_rlink_cuff_ic_n3 test bench
-
-     cd $RETROBASE/rtl/sys_gen/tst_rlink_cuff/nexys3/ic/tb
-     tbrun_tbwrri --cuff --pack tst_rlink   tb_tst_rlink_cuff_ic_n3 \
-         "tst_rlink::setup"  "tst_rlink::test_all"
-     -> 558770.0 ns  55856: DONE 
-     -> real 0m7.679s   user 0m7.433s   sys 0m0.185s
-
-   - sys_tst_rlink_cuff_ic_n2 test bench
-
-     cd $RETROBASE/rtl/sys_gen/tst_rlink_cuff/nexys2/ic/tb
-     tbrun_tbwrri --cuff --pack tst_rlink   tb_tst_rlink_cuff_ic_n2 \
-         "tst_rlink::setup"  "tst_rlink::test_all"
-     -> 596300.0 ns  29804: DONE 
-     -> real 0m3.741s   user 0m3.542s   sys 0m0.127s
-
-4d. w11a systems -----------------------------------------------------
-
-   The stimulus file used in the w11a core test can be executed in the full
-   system context with the following commands. Note that the cycle number 
-   printed in the DONE line can now vary slightly because the response time of
-   the rlink backend process and thus scheduling of backend vs. ghdl process
-   can affect the result.
-
-   For convenience a wrapper script 'tbrun_tbwrri' is used to generate the 
-   required quite long ti_rri command. Like for 'tbrun_tbw' the script also
-   checks with 'make' whether the test bench is up-to-date or must be 
-   (re)-compiled.
-
-   - Artix based systems
-
-       cd $RETROBASE/rtl/sys_gen/w11a/nexys4/tb
-       tbrun_tbwrri --pack rw11  tb_w11a_n4 \
-           "rw11::setup_cpu" \
-           "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat"
-       -> 4812818.3 ns 577513: DONE 
-       -> real 1m11.139s   user 1m10.726s   sys 0m0.545s
-
-   - Spartan based systems
-     - sys_w11a_n3 test bench
-  
-       cd $RETROBASE/rtl/sys_gen/w11a/nexys3/tb
-       tbrun_tbwrri --cuff --pack rw11  tb_w11a_n3 \
-           "rw11::setup_cpu" \
-           "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat"
-       -> 3612428.7 ns 231182: DONE 
-       -> real 0m47.454s   user 0m47.241s   sys 0m0.456s
-
-     - sys_w11a_n2 test bench
-  
-       cd $RETROBASE/rtl/sys_gen/w11a/nexys2/tb
-       tbrun_tbwrri --cuff --pack rw11  tb_w11a_n2 \
-           "rw11::setup_cpu" \
-           "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat"
-       -> 4009900.0 ns 200484: DONE 
-       -> real 0m45.429s   user 0m45.215s   sys 0m0.480s
-
-     - sys_w11a_s3 test bench
-  
-       cd $RETROBASE/rtl/sys_gen/w11a/s3board/tb
-       tbrun_tbwrri --fusp --pack rw11  tb_w11a_s3 \
-           "rw11::setup_cpu" \
-           "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat"
-       -> 10528880.0 ns 526434: DONE 
-       -> real 1m13.706s   user 1m13.483s   sys 0m0.470s
-
-
-   A new, modular w11a test bench is under construction. So far it is very
-   incomplete. This very preliminary version can be executed with
-
-   - sys_w11a_n2 test bench
-
-     cd $RETROBASE/rtl/sys_gen/w11a/nexys2/tb
-     tbrun_tbwrri  --cuff --lsuf tbench_bsim --pack rw11  tb_w11a_n2 \
-        "rw11::setup_cpu" "rw11::tbench @cpu_all.dat"
-     -> 3268940.0 ns 163436: DONE 
-     -> real 0m30.761s   user 0m31.576s   sys 0m0.502s
-
-     tbrun_tbwrri --cuff --lsuf tbench_bsim --pack rw11  tb_w11a_n2 \
-        "rw11::setup_cpu" "rw11::tbench @dev_all.dat"
-     -> 1376360.0 ns  68807: DONE 
-     -> real 0m16.991s   user 0m17.049s   sys 0m0.235s
-
+     tbrun --tag=sys_tst_serloop.*         # all sys_tst_serloop designs
+     tbrun --tag=sys_tst_rlink             # all sys_tst_rlink designs
+     tbrun --tag=sys_tst_rlink_cuff        # all sys_tst_rlink_cuff designs
+     tbrun --tag=sys_tst_sram              # all sys_tst_sram designs
+     tbrun --tag=sys_w11a                  # all w11a designs

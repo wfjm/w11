@@ -1,0 +1,8 @@
+#
+# libs
+../../../vlib/simlib/simlib.vhd
+# components
+../mt45w8mw16b.vbom
+../../../vlib/simlib/simbididly.vbom
+# design
+tb_mt45w8mw16b.vhd

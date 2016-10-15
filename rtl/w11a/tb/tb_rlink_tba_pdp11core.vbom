@@ -1,0 +1,8 @@
+# configure tb_rlink_tba with rbd_tba_pdp11core target;
+# use vhdl configure file (tb_rlink_tba_pdp11core.vhd) to allow
+# that all configurations will co-exist in work library
+# configure
+rbtba_aif = tbd_tba_pdp11core.vbom
+# design
+../../vlib/rlink/tb/tb_rlink_tba.vbom
+tb_rlink_tba_pdp11core.vhd

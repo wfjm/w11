@@ -1,0 +1,546 @@
+#!/usr/bin/perl -w
+# $Id: ticonv_rri 795 2016-08-09 12:45:58Z mueller $
+#
+# Copyright 2014-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+#
+# This program is free software; you may redistribute and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 2, or at your option any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# for complete details.
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2016-08-07   795   1.2.1  avoid GetOptions =f (bug in perl v5.22.1)
+# 2015-04-03   661   1.2    adopt to new stat checking and mask polarity
+# 2015-01-31   640   1.1.2  use 'rlc get|set' instead of 'rlc config'
+# 2014-12-21   616   1.1.1  add .ndef and n= for BlockDone expects
+# 2014-12-06   609   1.1    use .cmax and .eop; drop .cclst; (for rlink v4)
+# 2014-08-09   580   1.0    Initial version
+#
+
+#-------------------------------------------------------------------------------
+# handles the command:
+#
+#  .mode  rri
+#  .dbaso n
+#  .rlmon 0|1
+#  .rbmon 0|1
+#  .scntl n 0|1
+#! .sinit g8 g16       !! NOT YET !!
+#  .sdef  [s=g8]
+#  .ndef  0|1
+#  .amclr
+#  .amdef name g8
+#  .reset
+#  .wait  n
+#  .wtlam n
+#  .cmax  n
+#  .eop
+#  rreg   <addr> [d=g16] [s=g8]
+#  wreg   <addr> g16 [s=g8]
+#  rblk   <addr> n [n=dd] [s=g8]
+#         followed by n d=g16 data check values
+#  wblk   <addr> n [n=dd] [s=g8]
+#         followed by n g16 data values
+#  stat   [d=g16] [s=d8]
+#  attn   [d=g16] [s=d8]
+#  init   <addr> g16 [s=g8]
+#
+
+use 5.005;                                  # require Perl 5.005 or higher
+use strict;                                 # require strict checking
+
+use Getopt::Long;
+use FileHandle;
+
+my %opts = ();
+
+GetOptions(\%opts, "tout=s", "cmax=i"
+          )
+  or die "bad options";
+
+sub cmdlist_do;
+sub add_addr;
+sub add_data;
+sub add_edata;
+sub add_edata;
+
+sub cget_chkblank;			    # check for unused chars in cmd line
+sub cget_tagval2_gdat;		            # get tag=v1[,v2], generic base
+sub cget_tagval_gdat;	   	            # get tag=val, generic base
+sub cget_gdat;                              # get generic base value
+sub sget_bdat;                              # convert 01 string -> binary value
+sub get_line;
+
+my $cmd_line;
+my $cmd_rest;
+my $dbase = 2;                              # use binary as default data radix
+
+my @cmdfh;
+my @cmdlist;
+
+if (scalar(@ARGV) != 1) {
+  print STDERR "ticonv_rri-E: usage: ticonv_rri <filename>\n";
+  exit 1;
+}
+
+my $fnam = $ARGV[0];
+my $tout = $opts{tout} || 10.;
+my $cmax = $opts{cmax} || 6;
+
+my $ref_sdef = 0x00;                        # by default check for 'hard' errors
+my $msk_sdef = 0xf8;                        # ignore the status bits + attn flag
+my $chk_ndef = 1;                           # dcnt default check on by default
+
+my $fh = new FileHandle;
+$fh->open("<$fnam") or die "failed to open '$fnam'";
+push @cmdfh, $fh;
+
+print "set save_config_basedata [rlc get basedata]\n";
+print "set save_config_basestat [rlc get basestat]\n";
+print "rlc set basedata 8\n";
+print "rlc set basestat 2\n";
+
+while (1) {
+  my $cmd = get_line();
+  last unless defined $cmd;
+  $cmd_line = $cmd;
+  $cmd_rest = "";
+
+  # .mode mode -> accept only 'rri', quit otherwise ------------------
+  if ($cmd =~ /^\.mode\s+(.*)$/) {
+    if ($1 ne "rri") {
+      print "# FAIL: $cmd not supported\n";
+      exit 1;
+    }
+    next;
+
+  # .dbaso n ---------------------------------------------------------
+  } elsif ($cmd =~ /^\.dbaso\s+(\d+)$/) {
+    my $dbaso = $1;
+    cmdlist_do();
+    print "rlc set basedata $dbaso\n";
+
+  # .cmax n ----------------------------------------------------------
+  } elsif ($cmd =~ /^\.cmax\s+(\d+)$/) {
+    $cmax = $1;
+    next;
+
+  # .eop -------------------------------------------------------------
+  } elsif ($cmd =~ /^\.eop/) {
+    cmdlist_do();
+    next;
+
+  # .sdef s=ref[,msk] ------------------------------------------------
+  } elsif ($cmd =~ /^\.sdef\s+s=([01]+),?([01]*)/) {
+    $cmd_rest = $';
+    cmdlist_do();
+    $ref_sdef = oct("0b$1");
+    $msk_sdef = oct("0b$2");
+
+  # .ndef ------------------------------------------------------------
+  } elsif ($cmd =~ /^\.ndef\s+([01])/) {
+    $cmd_rest = $';
+    cmdlist_do();
+    $chk_ndef = $1;
+
+  # .rlmon,.rbmon ----------------------------------------------------
+  } elsif ($cmd =~ /^\.(r[lb]mon)\s+(\d)/) {
+    $cmd_rest = $';
+    cmdlist_do();
+    print "rlc oob -$1 $2\n";
+
+  # .scntl -----------------------------------------------------------
+  } elsif ($cmd =~ /^\.scntl\s+(\d+)\s+(\d)/) {
+    $cmd_rest = $';
+    cmdlist_do();
+    print "rlc oob -sbcntl $1 $2\n";
+
+  # .reset -----------------------------------------------------------
+  } elsif ($cmd =~ /^\.reset/) {
+    $cmd_rest = $';
+    cmdlist_do();
+    print "rlc exec -init 0 1\n";
+
+  # .amclr -----------------------------------------------------------
+  } elsif ($cmd =~ /^\.amclr/) {
+    $cmd_rest = $';
+    cmdlist_do();
+    print "rlc amap -clear\n";
+
+  # .amdef -----------------------------------------------------------
+  } elsif ($cmd =~ /^\.amdef\s+([0-9a-z]+)\s+([01]+)/) {
+    $cmd_rest = $';
+    cmdlist_do();
+    my $anam = $1;
+    my $aval = sprintf ('0%3.3o', oct("0b$2"));
+    print "rlc amap -insert $anam $aval\n";
+
+  # .wait n ----------------------------------------------------------
+  # Note: simply send zeros rather true idles. both are discarded anyway
+  } elsif ($cmd =~ /^(\.wait)/) {
+    $cmd_rest = $';
+    my $delay = cget_gdat(16,10,1,256);
+    cmdlist_do();
+    print "rlc log \".wait $delay\"\n";
+    print "rlc rawio -wblk {";
+    for (my $i = 0; $i < $delay; $i++) {
+      printf  " 0%3.3o", 0x00;
+    }
+    print "}\n";
+
+  # .wtlam n ---------------------------------------------------------
+  # Note: ignore n, use tout here !
+  } elsif ($cmd =~ /^(\.wtlam)/) {
+    $cmd_rest = $';
+    my $delay = cget_gdat(16,10,1);         # currently ignores
+    cmdlist_do();
+    printf "rlc wtlam %d\n", $tout;
+
+  # rreg <addr> [d=g16] [s=b8] ---------------------------------------
+  } elsif ($cmd =~ /^rreg/) {
+    $cmd_rest = $';
+    my $act = "-rreg";
+    $act .= add_addr();
+    $act .= add_edata($dbase);
+    $act .= add_estat();
+    push @cmdlist, $act;
+
+  # wreg|init <addr> g16 [s=b8] --------------------------------------
+  } elsif ($cmd =~ /^(wreg|init)/) {
+    $cmd_rest = $';
+    my $act = "-$1";
+    $act .= add_addr();
+    $act .= add_data($dbase);
+    $act .= add_estat();
+    push @cmdlist, $act;
+
+  # rblk <addr> n [n=dd] [s=b8] --------------------------------------
+  } elsif ($cmd =~ /^rblk/) {
+    $cmd_rest = $';
+    my $act = "-rblk";
+    $act .= add_addr();
+    my $nblk = cget_gdat(16,10,1,256);
+    $act .= " $nblk";
+    $act .= add_edone($nblk);
+    $act .= add_estat();
+    cget_chkblank();
+    my @ref_rblk;
+    my @msk_rblk;
+    my $do_msk = 0;
+    for (my $i = 0; $i < $nblk; $i++) {
+      $cmd_rest = get_line() if ($cmd_rest eq "");
+      $cmd_rest =~ s/^\s*//;
+      my ($ref,$msk) = cget_tagval2_gdat("d",16,$dbase);
+      if (not defined $ref) {
+        $ref = 0;
+        $msk = 0xffff;
+      }
+      $msk = 0 unless defined $msk;
+      $do_msk = 1 if $msk != 0;
+      push @ref_rblk, sprintf("0%6.6o", $ref);
+      push @msk_rblk, sprintf("0%6.6o", (0xffff & ~$msk));
+    }
+
+    $act .= ' -edata {' . join(' ',@ref_rblk) . '}';
+    $act .= ' {' . join(' ',@msk_rblk) . '}' if $do_msk;
+    push @cmdlist, $act;
+    cmdlist_do();
+
+  # wblk <addr> n [n=dd] [s=b8] --------------------------------------
+  } elsif ($cmd =~ /^wblk/) {
+    $cmd_rest = $';
+    my $act = "-wblk";
+    $act .= add_addr();
+    my $nblk = cget_gdat(16,10,1,256);
+    my $edone = add_edone($nblk);
+    my $estat = add_estat();
+    cget_chkblank();
+    my @dat_wblk;
+    for (my $i = 0; $i < $nblk; $i++) {
+      $cmd_rest = get_line() if ($cmd_rest eq "");
+      $cmd_rest =~ s/^\s*//;
+      push @dat_wblk, sprintf('0%6.6o', cget_gdat(16,$dbase));
+    }
+
+    $act .= ' {' . join(' ',@dat_wblk) . '}';
+    $act .= $edone;
+    $act .= $estat;
+    push @cmdlist, $act;
+    cmdlist_do();
+
+
+  # stat|attn [d=g16] [s=b8] -----------------------------------------
+  } elsif ($cmd =~ /^(stat|attn)\s+/) {
+    $cmd_rest = $';
+    my $act = "-$1";
+    $act .= add_edata($dbase);
+    $act .= add_estat();
+    push @cmdlist, $act;
+
+  # unknown commands -------------------------------------------------
+  } else {
+    print "# FAIL: no match for '$cmd'\n";
+    exit 1;
+  }
+
+  cget_chkblank();
+
+  cmdlist_do() if scalar(@cmdlist) >= $cmax;
+}
+
+cmdlist_do();
+
+print "rlc set basedata \$save_config_basedata\n";
+print "rlc set basestat \$save_config_basestat\n";
+
+exit 0;
+
+#-------------------------------------------------------------------------------
+sub add_addr {
+  my $addr;
+
+  $cmd_rest =~ s/^\s*//;
+  if ($cmd_rest =~ /^\.([[0-9a-z.]+)/) {
+    $addr = $1;
+    $cmd_rest = $';
+  } else {
+    $addr =sprintf('0x%4.4x', cget_gdat(16,2));
+  }
+  return " $addr";
+}
+
+#-------------------------------------------------------------------------------
+sub add_data {
+  my ($dbase) = @_;
+  my $data = cget_gdat(16,$dbase);
+  return sprintf(" 0%6.6o", $data);
+}
+
+#-------------------------------------------------------------------------------
+# Note: input has ignore mask, output has check mask now
+sub add_edata {
+  my ($dbase) = @_;
+  my ($ref,$msk) = cget_tagval2_gdat("d",16,$dbase);
+  return "" unless defined $ref;
+  my $str = sprintf(" -edata 0%6.6o", $ref);
+  $str .= sprintf(" 0%6.6o", (0xffff & ~$msk)) if defined $msk && $msk;
+  return $str;
+}
+
+#-------------------------------------------------------------------------------
+# Note: input has ignore mask, output has check mask now
+#       -estat always added, either from s= tag or from .sdef directive
+sub add_estat {
+  my ($dat, $msk) = cget_tagval2_gdat("s",8,2);
+  unless (defined $dat) {
+    $dat = $ref_sdef;
+    $msk = $msk_sdef;
+  }
+  my $str = sprintf(" -estat 0x%2.2x", $dat);
+  $str .= sprintf(" 0x%2.2x", (0xff & ~$msk)) if defined $msk && $msk;
+  return $str;
+}
+
+#-------------------------------------------------------------------------------
+sub add_edone {
+  my ($bsize) = @_;
+  my ($nblk) = cget_tagval_gdat("n",16,10);
+  $nblk = $bsize if (not defined $nblk && $chk_ndef);
+  return "" unless defined $nblk;
+  my $str = sprintf(" -edone %d", $nblk);
+  return $str;
+}
+
+#-------------------------------------------------------------------------------
+sub cmdlist_do {
+  return unless scalar(@cmdlist);
+
+  print "rlc exec \\\n";
+  while (scalar(@cmdlist)) {
+    print "         ";
+    print shift @cmdlist;
+    print " \\\n" if scalar(@cmdlist);
+  }
+  print "\n";
+  @cmdlist = ();
+  return;
+}
+
+#-------------------------------------------------------------------------------
+
+sub cget_chkblank {			    # check for unused chars in cmd line
+  $cmd_rest =~ s/^\s*//;
+  if ($cmd_rest ne "") {
+    print "ticonv_rri-E: extra data ignored: \"$cmd_rest\"\n";
+    print "          for command: \"$cmd_line\"\n";
+    exit 1;
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub cget_tagval2_gdat {                     # get tag=v1[,v2], generic base
+  my ($tag,$nbit,$dbase) = @_;
+  my $dat;
+  my $msk = undef;
+  $cmd_rest =~ s/^\s*//;
+  if ($cmd_rest =~ /^$tag=/) {
+    $cmd_rest = $';
+    if ($cmd_rest =~ /^-/) {
+      $cmd_rest = $';
+      my $msk = (1 << $nbit) -1;
+      return (0,$msk);
+    } else {
+      $dat = cget_gdat($nbit, $dbase);
+      if ($cmd_rest =~ /^,/) {
+	$cmd_rest = $';
+	$msk = cget_gdat($nbit, $dbase);
+      }
+      return ($dat, $msk);
+    }
+  }
+  return (undef, undef);
+}
+
+#-------------------------------------------------------------------------------
+
+sub cget_tagval_gdat {                      # get tag=val, generic base
+  my ($tag,$nbit,$dbase,$min,$max) = @_;
+  $cmd_rest =~ s/^\s*//;
+  if ($cmd_rest =~ /^$tag=/) {
+    $cmd_rest = $';
+    return cget_gdat($nbit, $dbase,$min,$max);
+  }
+  return undef;
+}
+
+#-------------------------------------------------------------------------------
+
+sub cget_gdat {                             # get generic base value
+  my ($nbit,$dbase,$min,$max) = @_;
+  my $dat;
+
+  $cmd_rest =~ s/^\s*//;
+  if ($cmd_rest =~ /^[xXoObBdD]"/) {
+    if ($cmd_rest =~ /^[xX]"([0-9a-fA-F]+)"/) {
+      $cmd_rest = $';
+      $dat = hex $1;
+    } elsif ($cmd_rest =~ /^[oO]"([0-7]+)"/) {
+      $cmd_rest = $';
+      $dat = oct $1;
+    } elsif ($cmd_rest =~ /^[bB]"([01]+)"/) {
+      $cmd_rest = $';
+      my $odat = sget_bdat($nbit, $1);
+      $dat = $odat if defined $odat;
+    } elsif ($cmd_rest =~ /^[dD]"([+-]?[0-9]+)"/) {
+      $cmd_rest = $';
+      my $odat = (int $1) & ((1<<$nbit)-1);
+      $dat = $odat;
+    }
+  } else {
+    if ($cmd_rest =~ /^([+-]?[0-9]+)\./) {
+      $cmd_rest = $';
+      my $odat = (int $1) & ((1<<$nbit)-1);
+      $dat = $odat;
+    } elsif ($dbase == 16 && $cmd_rest =~ /^([0-9a-fA-F]+)/) {
+      $cmd_rest = $';
+      $dat = hex $1;
+    } elsif ($dbase ==  8 && $cmd_rest =~ /^([0-7]+)/) {
+      $cmd_rest = $';
+      $dat = oct $1;
+    } elsif ($dbase ==  2 && $cmd_rest =~ /^([01]+)/) {
+      $cmd_rest = $';
+      my $odat = sget_bdat($nbit, $1);
+      $dat = $odat if defined $odat;
+    } elsif ($dbase == 10 && $cmd_rest =~ /^([0-9]+)/) {
+      $cmd_rest = $';
+      $dat = int $1;
+    }
+  }
+
+  if (not defined $dat) {
+    print "ticonv_rri-E: cget_gdat error in \"$cmd_rest\" (base=$dbase)\n";
+    exit 1;
+  }
+
+  if (defined $min && $dat < $min) {
+    print "ticonv_rri-E: cget_gdat range error, $dat < $min\n";
+    exit 1;
+  }
+  if (defined $max && $dat > $max) {
+    print "ticonv_rri-E: cget_gdat range error, $dat > $max\n";
+    exit 1;
+  }
+
+  return $dat;
+}
+
+#-------------------------------------------------------------------------------
+
+sub sget_bdat {                             # convert 01 string -> binary value
+  my ($nbit,$str) = @_;
+  my $nchar = length($str);
+  my $odat = 0;
+
+  if ($nchar != $nbit) {
+    print "ticonv_rri-E: sget_bdat error \'$str\' has not length $nbit\n";
+    exit 1;
+  }
+
+  for (my $i = 0; $i < $nchar; $i++) {
+    $odat *= 2;
+    $odat += 1 if substr($str, $i, 1) eq "1";
+  }
+  return $odat;
+}
+
+#-------------------------------------------------------------------------------
+
+sub get_line {
+  while (1) {
+    return undef unless scalar(@cmdfh);
+    my $fh = $cmdfh[$#cmdfh];
+    my $cmd = <$fh>;
+    if (not defined $cmd) {
+      $fh->close();
+      pop @cmdfh;
+      next;
+    }
+
+    # detect @<fname> lines
+    if ($cmd =~ /^@(.+)/) {
+      my $fnam = $1;
+      my $fh = new FileHandle;
+      $fh->open("<$fnam") or die "failed to open '$fnam'";
+      push @cmdfh, $fh;
+      next;
+    }
+
+    # write C... comment lines to rlc log
+    if ($cmd =~ /^C(.*)/) {
+      cmdlist_do();
+      my $msg = $1;
+      $msg =~ s/"/'/g;
+      $msg =~ s/\[/\{/g;
+      $msg =~ s/\]/\}/g;
+      print "rlc log \"C $msg\"\n";
+      next;
+    }
+
+    $cmd =~ s{^\s*}{};		# remove leading blanks
+
+    next if $cmd =~ m/^#/;	# ignore "# ...." lines
+    next if $cmd =~ m/^;/;	# ignore "; ...." lines
+
+    $cmd =~ s{--.*}{};		# remove comments after --
+    $cmd =~ s{\s*$}{};		# remove trailing blanks
+    next if $cmd eq "";	        # ignore empty lines
+
+    return $cmd;
+  }
+}

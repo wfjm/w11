@@ -1,12 +1,12 @@
 .\"  -*- nroff -*-
-.\"  $Id: vbomconv.1 779 2016-06-26 15:37:16Z mueller $
+.\"  $Id: vbomconv.1 783 2016-07-03 21:14:57Z mueller $
 .\"
 .\" Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH VBOMCONV 1 2016-03-19 "Retro Project" "Retro Project Manual"
+.TH VBOMCONV 1 2016-07-02 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 vbomconv \- generate files and actions from vbom manifest files
@@ -446,12 +446,32 @@ In these cases the caller will see the exit status of \fBghdl\fP.
 .
 .\" ------------------------------------------------------------------
 .SH ENVIRONMENT
-.IP \fBVBOMCONV_XSIM_LANG\fP
+.IP \fBVBOMCONV_XSIM_LANG\fP 4
 Controls the language for the generated models used by xsim. Can be set to
 \fIverilog\fP or to \fIvhdl\fP. If not defined \fIverilog\fP is used.
 It affects \fB\-\-vsim_prj\fP but also \fB\-\-dep_vsim\fP.
 Use  \fBrm_dep\fP(1) to force regeneration of dependency files when this
 environment variable is set, unset or changed.
+.
+.IP \fBVBOMCONV_GHDL_OPTS\fP
+Extra options for the ghdl compile stage. If not specified "\fB-O2 -g\fP" is
+taken to enable optimization (is not default for gcc backend!) and debug
+symbols (needed for assertion failure backtrace).
+.
+.IP \fBVBOMCONV_GHDL_GCOV\fP
+If defined and set to '1' \fBghdl\fP(1) models will be compiled with 
+\fBgcov\fP(1) coverage support. This option is only available when ghdl
+was compiled with gcc backend, the llvm and mcode backend do not support
+coverage analysis. The generated ghdl options will be appended after the
+ones given by \fBVBOMCONV_GHDL_OPTS\fP. Note that no default options are
+assume, so -Ox or -g options must be explicitly given via 
+\fBVBOMCONV_GHDL_OPTS\fP.
+The additional ghdl options are
+.EX
+   -Wc,-ftest-coverage
+   -Wc,-fprofile-arcs
+   -Wl,-lgcov
+.EE
 .
 .\" ------------------------------------------------------------------
 .SH BUGS

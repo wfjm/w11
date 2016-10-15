@@ -1,4 +1,4 @@
--- $Id: serport_uart_autobaud.vhd 774 2016-06-12 17:08:47Z mueller $
+-- $Id: serport_uart_autobaud.vhd 784 2016-07-09 22:17:01Z mueller $
 --
 -- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -21,7 +21,7 @@
 -- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.2; ghdl 0.18-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2016-05-22   787   1.1.1  don't init N_REGS (vivado fix for fsm inference)
+-- 2016-05-22   767   1.1.1  don't init N_REGS (vivado fix for fsm inference)
 -- 2015-02-01   641   1.1    add CLKDIV_F
 -- 2011-10-22   417   1.0.4  now numeric_std clean
 -- 2010-04-18   279   1.0.3  change ccnt start value to -3, better rounding

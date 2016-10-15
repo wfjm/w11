@@ -1,0 +1,19 @@
+# $Id: tbrun.yml 807 2016-09-17 07:49:26Z mueller $
+#
+# Revision History:
+# Date         Rev Version  Comment
+# 2016-08-28   803   1.1    use ${ise_modes_noisim} when ISim can't be used
+# 2016-08-21   799   1.0    Initial version
+#
+- default:
+    mode: ${ise_modes_noisim}
+#
+- tag:  [default, ise, sys_tst_rlink, n2, base]
+  test: |
+    tbrun_tbwrri --sxon --lsuf base --pack tst_rlink   tb_tst_rlink_n2${ms} \
+      "tst_rlink::setup"  "tst_rlink::test_all"
+#
+- tag:  [default, ise, sys_tst_rlink, n2, emon]
+  test: |
+    tbrun_tbwrri --sxon --lsuf emon --pack tst_rlink   tb_tst_rlink_n2${ms} \
+      "tst_rlink::setup"  "tst_rlink::test_all_emon"

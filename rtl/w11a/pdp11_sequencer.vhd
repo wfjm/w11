@@ -1,4 +1,4 @@
--- $Id: pdp11_sequencer.vhd 768 2016-05-26 16:47:00Z mueller $
+-- $Id: pdp11_sequencer.vhd 812 2016-10-03 18:39:50Z mueller $
 --
 -- Copyright 2006-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -22,6 +22,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-10-03   812   1.6.7  always define DM_STAT_SE.snum
 -- 2016-05-26   768   1.6.6  don't init N_REGS (vivado fix for fsm inference)
 --                           proc_snum conditional (vivado fsm workaround)
 -- 2015-08-02   708   1.6.5  BUGFIX: proper trap_mmu and trap_ysv handling
@@ -2403,7 +2404,7 @@ begin
 
   -- state number creation logic is conditional, only done when monitor
   -- enabled. Due to sythnesis impact in vivado
-  SNUM : if sys_conf_dmscnt generate
+  SNUM1 : if sys_conf_dmscnt generate
   begin
     proc_snum : process (R_STATE)
       variable isnum : slv8 := (others=>'0');
@@ -2542,7 +2543,12 @@ begin
       end case;
       DM_STAT_SE.snum   <= isnum;
     end process proc_snum;
-  end generate SNUM;
+  end generate SNUM1;
+
+  SNUM0 : if not sys_conf_dmscnt generate
+  begin
+    DM_STAT_SE.snum   <= (others=>'0');
+  end generate SNUM0;
   
 end syn;
  

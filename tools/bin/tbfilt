@@ -1,0 +1,403 @@
+#!/usr/bin/perl -w
+# $Id: tbfilt 807 2016-09-17 07:49:26Z mueller $
+#
+# Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+#
+# This program is free software; you may redistribute and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 2, or at your option any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# for complete details.
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2016-09-10   806   1.0    Initial version
+# 2016-08-05   795   0.1    First draft
+#
+
+use 5.14.0;                                 # require Perl 5.14 or higher
+use strict;                                 # require strict checking
+
+use Getopt::Long;
+use FileHandle;
+use POSIX qw(strftime);
+
+my %opts = ();
+
+GetOptions(\%opts, "tee=s",  "pcom",
+           "find=s", "all",
+           "summary", "wide", "compact", "format=s", "nohead"
+          )
+  or die "bad options";
+
+sub do_file;
+sub conv_fd;
+sub conv_ft;
+sub conv_fs;
+sub conv_fa;
+sub conv_tr;
+sub conv_tu;
+sub conv_ts;
+sub conv_tc;
+sub conv_tg;
+sub conv_st;
+sub conv_ss;
+sub conv_sc;
+sub conv_sg;
+sub conv_sp;
+sub conv_sm;
+sub conv_ec;
+sub conv_pf;
+sub conv_nf;
+sub conv_ns;
+
+my %fmttbl = (fd => {conv => \&conv_fd, head=>' file-date'},
+              ft => {conv => \&conv_ft, head=>'    time'},
+              fs => {conv => \&conv_fs, head=>' time'},
+              fa => {conv => \&conv_fa, head=>'age'},
+              tr => {conv => \&conv_tr, head=>'  time-real'},
+              tu => {conv => \&conv_tu, head=>'  time-user'},
+              ts => {conv => \&conv_ts, head=>'   time-sys'},
+              tc => {conv => \&conv_tc, head=>'   time-cpu'},
+              tg => {conv => \&conv_tg, head=>'       time t'},
+              st => {conv => \&conv_st, head=>'stime(ns)'},
+              ss => {conv => \&conv_ss, head=>'stime'},
+              sc => {conv => \&conv_sc, head=>'  cycles'},
+              sg => {conv => \&conv_sg, head=>' cyc|tim'},
+              sp => {conv => \&conv_sp, head=>'sperf'},
+              sm => {conv => \&conv_sm, head=>'MHz'},
+              ec => {conv => \&conv_ec, head=>'err'},
+              pf => {conv => \&conv_pf, head=>'stat'},
+              nf => {conv => \&conv_nf, head=>'filename'},
+              ns => {conv => \&conv_ns, head=>'filename'});
+my @fmtlst;
+
+my $format = $ENV{TBFILT_FORMAT};
+$format = '%fd %fs %tr %tc %sc %ec %pf %nf' if $opts{wide};
+$format = '%fa %tg %sg %ec %pf %ns' if $opts{compact};
+$format = $opts{format} if defined $opts{format};
+$format = '%ec %pf %nf' unless defined $format;
+
+while (length($format)) {
+  if ($format =~ m/^([^%]*)%([a-z][a-z])/) {
+    my $pref = $1;
+    my $code = $2;
+    if (exists $fmttbl{$code}) {
+      push @fmtlst, {pref => $pref,
+                     conv => $fmttbl{$code}{conv},
+                     head => $fmttbl{$code}{head}};
+    } else { last; };
+    $format = $';
+  } else { last; };
+}
+if (length($format)) {
+  print STDERR "tbfilt-f: bad format '$format'\n";
+  exit 2;
+}
+
+autoflush STDOUT 1 if (-p STDOUT);
+
+my $fh_tee;
+if (defined $opts{tee} && $opts{tee} ne '') {
+  $fh_tee = new FileHandle;
+  $fh_tee->open($opts{tee},'>') or die "failed to open for write '$opts{tee}'";
+}
+
+my @flist = @ARGV;
+
+# if find pattern has no '*', expand it
+if (defined $opts{find}) {
+  unless ($opts{find} =~ m/\*/) {
+    $opts{find} = '.*/tb_.*_' . $opts{find} . '.*\.log';
+  }
+}
+
+if (defined $opts{all}) {
+  if (defined $opts{find}) {
+    print STDERR "tbfilt-I: -find ignored because -all given\n";
+  }
+  $opts{find} = '.*/tb_.*_[bfsorept]sim(_.*)?\.log';
+}
+
+if (defined $opts{find}) {
+  if (scalar (@flist)) {
+    print STDERR "tbfilt-I: file names ignored because -all or -find given\n";
+    @flist = ();
+  }
+  open FIND,'-|',"find -regextype egrep -regex '$opts{find}'"
+    or die "failed to open find pipe";
+
+  while (<FIND>) {
+    chomp;
+    s|^\./||;                               # drop leading ./
+    push @flist, $_;
+  }
+
+  close FIND;
+  @flist = sort @flist;
+  if (scalar (@flist) == 0) {
+    print STDERR "tbfilt-E: no files found by -find or -all\n";
+    exit 2;
+  }
+
+} else {
+  push @flist, '-' if (scalar(@flist) == 0);
+}
+
+my $manyfile = scalar(@flist) > 1;
+my $notsumm  = not $opts{summary};
+my %vals;
+my $exitcode = 0;
+
+if ($opts{summary} && (not $opts{nohead})) {
+  foreach my $item (@fmtlst) {
+    print $item->{pref};
+    print $item->{head};
+  }
+  print "\n";
+}
+
+foreach my $fnam (@flist) {
+  my $nfail = do_file($fnam);
+  $exitcode = 1 if $nfail;
+}
+
+exit $exitcode;
+
+#-------------------------------------------------------------------------------
+
+sub do_file {
+  my ($fnam) = @_;
+
+  %vals = ();
+  $vals{fnam}  = $fnam;
+  $vals{nfail} = 0;
+
+  my $fh;
+  if ($fnam eq '-') {
+    $fh = *STDIN;
+  } else {
+    $fh = new FileHandle;
+    $fh->open($fnam,'<') or die "failed to open for read '$fnam'";
+  }
+
+  if ($manyfile && $notsumm) {
+    print "-- $fnam";
+    my $npad = 74-length($fnam);
+    print ' '.('-' x $npad) if $npad > 0;
+    print "\n";
+  }
+
+  while (<$fh>) {
+    print $fh_tee $_ if defined  $fh_tee;
+    chomp;
+    my $show;
+    my $fail;
+
+    $fail = 1 if m/-[EF]:/;
+    $fail = 1 if m/(ERROR|FAIL)/;
+    $show = 1 if m/-W:/;
+    $show = 1 if m/(PASS)/;
+    $show = 1 if $opts{pcom} && m/^C/;      # show lines starting with C
+
+    # ghdl reports or assertions (warning and higher)
+    if (m/:\((report|assertion) (warning|error|failure)\):/) {
+      # ignore ieee lib warnings at t=0
+      next if /:\@0ms:\(assertion warning\): NUMERIC_STD.*metavalue detected/;
+      next if /:\@0ms:\(assertion warning\): CONV_INTEGER: There is an 'U'/;
+      next if /std_logic_arith.*:\@0ms:\(assertion warning\): There is an 'U'/;
+      # ignore ' Simulation Finished' report failure (used to end ghdl sim)
+      next if /:\(report failure\): Simulation Finished/;
+      $fail = 1;
+    }
+
+    # check for DONE line accept
+    #           920 ns: DONE                   -- tb'swithout clock
+    #     7798080.0 ns 389893: DONE            -- single clock tb's
+    #       56075.0 ns   2094: DONE-w          -- multiclock tb's  (max taken)
+    #
+    if (m/^\s*(\d+\.?\d*)\s+ns\s*(\d*):\s+DONE(-\S+)?\s*$/) {
+      $show = 1;
+      $vals{done_ns}  = $1;
+      if ($2 ne '') {
+        if (defined $vals{done_cyc}) {
+          $vals{done_cyc} = $2 if $2 > $vals{done_cyc};
+        } else {
+          $vals{done_cyc} = $2;
+        }
+      }
+    }
+
+    # check for time line
+    # Note: don't root the pattern with /^ --> allow arbitary text before
+    #       the 'time' output. In practice 'time' output (to stderr by bash)
+    #       and ghdl 'report' (also to stderr) get mixed and one might get
+    #         tb_w11a_b3real 0m49.179s   user 0m0.993s   sys 0m0.293s
+    #
+    if (m/real\s+(\d*)m(\d+\.\d*)s\s+
+          user\s+(\d*)m(\d+\.\d*)s\s+
+           sys\s+(\d*)m(\d+\.\d*)s/x) {
+      $show = 1;
+      $vals{treal} = [$1,$2];
+      $vals{tuser} = [$3,$4];
+      $vals{tsys}  = [$5,$6];
+    }
+
+    print "$_\n" if ($show || $fail) && $notsumm;
+    $vals{nfail} += 1 if $fail;
+  }
+
+  if (not defined $vals{done_ns}) {
+    print "tbfilt-I: no DONE seen; FAIL\n" if $notsumm;
+    $vals{nfail} += 1;
+  }
+
+  $vals{mtime} = ($fnam eq '-') ? time :  (stat($fh))[9];
+
+  if ($opts{summary}) {
+    foreach my $item (@fmtlst) {
+      print $item->{pref};
+      print &{$item->{conv}};
+    }
+    print "\n";
+  }
+
+  return $vals{nfail};
+}
+
+#-------------------------------------------------------------------------------
+sub time_val {
+  my ($tdsc) = @_;
+  return undef unless defined $tdsc;
+  return 60.*$tdsc->[0] + $tdsc->[1];
+}
+
+sub time_str {
+  my ($tdsc) = @_;
+  return '          -' unless defined $tdsc;
+  return sprintf '%3dm%06.3fs', $tdsc->[0],$tdsc->[1];
+}
+
+sub time_sum {
+  my ($tdsc1,$tdsc2) = @_;
+  return undef unless defined $tdsc1 && defined $tdsc2;
+  return time_val($tdsc1) + time_val($tdsc2);
+}
+
+sub gconv {
+  my ($val) = @_;
+  my $str = sprintf '%4.2f', $val;
+  return substr($str,0,4);
+}
+
+#-------------------------------------------------------------------------------
+sub conv_fd {
+  return strftime "%F", localtime($vals{mtime});
+}
+
+sub conv_ft {
+  return strftime "%T", localtime($vals{mtime});
+}
+
+sub conv_fs {
+  return strftime "%H:%M", localtime($vals{mtime});
+}
+
+sub conv_fa {
+  my $dt = time - $vals{mtime};
+             return sprintf '%2ds', $dt if $dt < 99;
+  $dt /= 60; return sprintf '%2dm', $dt if $dt < 99;
+  $dt /= 60; return sprintf '%2dh', $dt if $dt < 60;
+  $dt /= 24; return sprintf '%2dd', $dt if $dt < 99;
+             return 'old';
+}
+
+sub conv_tr {
+  return time_str($vals{treal});
+}
+
+sub conv_tu {
+  return time_str($vals{tuser});
+                }
+
+sub conv_ts {
+  return time_str($vals{tsys});
+}
+
+sub conv_tc {
+  my $tsum = time_sum($vals{tuser}, $vals{tsys});
+  return '          -' unless defined $tsum;
+  my $min = int($tsum/60.);
+  my $sec = $tsum - 60. * $min;
+  return sprintf '%3dm%06.3fs', $min, $sec;
+}
+
+sub conv_tg {
+  my $treal = time_val($vals{treal});
+  my $tcpu  = time_sum($vals{tuser}, $vals{tsys});
+  if (defined $treal && defined $tcpu && $tcpu > 0.4 * $treal) {
+    return conv_tc() . ' c' ;
+  } else {
+    return conv_tr() . ((defined $treal) ? ' r': ' -');
+  }
+}
+
+sub conv_st {
+  return '        -' unless defined $vals{done_ns};
+  return sprintf '%9d', $vals{done_ns};
+}
+
+sub conv_ss {
+  return '    -' unless defined $vals{done_ns};
+  my $stim = 0.001 * $vals{done_ns};
+                  return gconv($stim) . 'u' if $stim < 999;
+  $stim *= 0.001; return gconv($stim) . 'm' if $stim < 999;
+  $stim *= 0.001; return gconv($stim) . 's';
+}
+
+sub conv_sc {
+  return '       -' unless defined $vals{done_cyc};
+  return sprintf '%8d', $vals{done_cyc};
+}
+
+sub conv_sg {
+  return conv_sc() if defined $vals{done_cyc};
+  return '   ' . conv_ss();
+}
+
+sub conv_sp {
+  my $nc   = $vals{done_cyc};
+  my $tsum = time_sum($vals{tuser}, $vals{tsys});
+  return '    -' unless defined $nc && defined $tsum;
+  my $sperf = 1000000. * $tsum / $nc;
+                   return gconv($sperf) . 'u' if $sperf < 999;
+  $sperf *= 0.001; return gconv($sperf) . 'm';
+}
+
+sub conv_sm {
+  return '  -' unless defined $vals{done_ns} && $vals{done_ns} > 200 &&
+                      defined $vals{done_cyc};
+  my $mhz = (1000. * $vals{done_cyc}) / ($vals{done_ns} - 200);
+  return sprintf '%3d', int($mhz+0.5);
+}
+
+sub conv_ec {
+  return sprintf '%3d', $vals{nfail};
+}
+
+sub conv_pf {
+  return $vals{nfail} ? 'FAIL' : 'PASS';
+}
+
+sub conv_nf {
+  return $vals{fnam};
+}
+
+sub conv_ns {
+  my $val = $vals{fnam};
+  $val =~ s|^.*/||;
+  return $val;
+}

@@ -1,4 +1,4 @@
--- $Id: sys_w11a_s3.vhd 748 2016-03-20 15:18:50Z mueller $
+-- $Id: sys_w11a_s3.vhd 791 2016-07-21 22:01:10Z mueller $
 --
 -- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -393,7 +393,7 @@ begin
       EI_VECT  => EI_VECT,
       DISPREG  => DISPREG);
 
-  SRAM_CTL: s3_sram_memctl              -- memory controller -----------------
+  SRAMCTL: s3_sram_memctl               -- memory controller -----------------
     port map (
       CLK         => CLK,
       RESET       => GRESET,

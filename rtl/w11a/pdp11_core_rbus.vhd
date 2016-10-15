@@ -1,4 +1,4 @@
--- $Id: pdp11_core_rbus.vhd 767 2016-05-26 07:47:51Z mueller $
+-- $Id: pdp11_core_rbus.vhd 784 2016-07-09 22:17:01Z mueller $
 --
 -- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -27,7 +27,7 @@
 --
 -- Revision History: -
 -- Date         Rev Version  Comment
--- 2016-05-22   787   1.5.2  don't init N_REGS (vivado fix for fsm inference)
+-- 2016-05-22   767   1.5.2  don't init N_REGS (vivado fix for fsm inference)
 -- 2015-07-10   700   1.5.1  add cpuact logic, redefine lam as cpuact 1->0
 -- 2015-05-09   677   1.5    start/stop/suspend overhaul; reset overhaul
 -- 2014-12-26   621   1.4    use full size 4k word ibus window

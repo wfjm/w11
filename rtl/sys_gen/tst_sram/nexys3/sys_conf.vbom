@@ -1,0 +1,5 @@
+# libs
+../../../vlib/slvtypes.vhd
+../../../bplib/nxcramlib/nxcramlib.vhd
+# design
+sys_conf.vhd

@@ -1,4 +1,6 @@
 # configure for _*sim case
+# configure
 uut = tbd_pdp11core_ssim.vhd
+# design
 tb_pdp11core.vbom
 @top:tb_pdp11core

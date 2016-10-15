@@ -1,0 +1,17 @@
+# $Id: tbrun.yml 807 2016-09-17 07:49:26Z mueller $
+#
+# Revision History:
+# Date         Rev Version  Comment
+# 2016-00-10   806   1.1    use nossim because no _ssim support available
+# 2016-08-21   799   1.0    Initial version
+#
+- default:
+    mode: ${ise_modes_nossim}
+#
+- tag:  [default, ise, sys_tst_serloop1, n2]
+  test: |
+    tbrun_tbw tb_tst_serloop1_n2${ms}
+
+- tag:  [default, ise, sys_tst_serloop2, n2]
+  test: |
+    tbrun_tbw tb_tst_serloop2_n2${ms}

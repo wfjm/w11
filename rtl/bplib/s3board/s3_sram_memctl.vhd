@@ -1,6 +1,6 @@
--- $Id: s3_sram_memctl.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: s3_sram_memctl.vhd 793 2016-07-23 19:38:55Z mueller $
 --
--- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -30,6 +30,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-07-23   793   1.0.7  drop "KEEP" for data (better for dbg)
 -- 2011-11-19   427   1.0.6  now numeric_std clean
 -- 2010-06-03   299   1.0.5  add "KEEP" for data iob;
 -- 2010-05-16   291   1.0.4  rename memctl_s3sram -> s3_sram_memctl
@@ -200,7 +201,7 @@ begin
   IOB_MEM_DATA : iob_reg_io_gen
     generic map (
       DWIDTH => 32,
-      PULL   => "KEEP")
+      PULL   => "NONE")
     port map (
       CLK => CLK,
       CEI => DATA_CEI,

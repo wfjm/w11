@@ -1,0 +1,154 @@
+# $Id: tb_rlink_tba_pdp11core_ibdr.dat 675 2015-05-08 21:05:08Z mueller $
+#
+#  Revision History: 
+# Date         Rev Version  Comment
+# 2015-05-03   674   1.5    start/stop/suspend overhaul
+# 2014-12-26   621   1.4    adopt wmembe,ribr,wibr testing to new 4k window
+# 2014-09-27   595   1.3    now for rlink v4 iface
+# 2014-08-15   583   1.2    rb_mreq addr now 16 bit
+# 2010-06-18   306   1.1    adapt to new rri<->cp implementation
+# 2008-03-02   121   1.0.2  test byte access via RRI
+# 2008-02-24   119   1.0.1  added lah,rps,wps command definition
+# 2008-01-20   113   1.0    Initial version
+#
+.mode rri
+.wait   5
+.rlmon  0
+.rbmon  0
+.cmax  32
+#
+# setup address mnemonics
+.amclr
+#
+# cpu addresses
+#
+.amdef conf   0000000000000000
+.amdef cntl   0000000000000001
+.amdef stat   0000000000000010
+.amdef psw    0000000000000011
+.amdef al     0000000000000100
+.amdef ah     0000000000000101
+.amdef mem    0000000000000110
+.amdef memi   0000000000000111
+#
+.amdef r0     0000000000001000
+.amdef r1     0000000000001001
+.amdef r2     0000000000001010
+.amdef r3     0000000000001011
+.amdef r4     0000000000001100
+.amdef r5     0000000000001101
+.amdef sp     0000000000001110
+.amdef pc     0000000000001111
+.amdef membe  0000000000010000
+#
+# ibus -> ibr mapping: (addr-160000)/2 + 40000
+#   RKWC: 177406 -> ibr 047603
+#   RKBA: 177410 -> ibr 047604
+#   XCSR: 177564 -> ibr 047672
+#   XBUF: 177566 -> ibr 047673
+#
+.amdef RKWC  o"047603"
+.amdef RKBA  o"047604"
+.amdef XCSR  o"047672"
+.amdef XBUF  o"047673"
+#
+# setup stat check default
+.sdef s=00000000
+#
+C                                  cmderr
+C                                  |cmdmerr
+C                                  ||cpususp
+C                                  |||cpugo
+C                                  ||||attention flags set
+C                                  |||||rbtout  
+C                                  ||||||rbnak
+C                                  |||||||rberr
+C                                  ||||||||
+C                                  00000000 
+C
+C                      cmd addr    ----stat ------------data  ---check---
+C
+C -----------------------------------------------------------------------------
+C Reset CPU to get defined state
+#
+wreg .cntl      o"000004"              -- init  (cpfunc_creset=00100)
+#
+C -----------------------------------------------------------------------------
+C write/read membe register (is 2:0)
+#
+wreg .membe       o"000001"             -- set membe   (be=01 stick=0)
+rreg .membe     d=o"000001"             --   ! membe
+wreg .membe       o"000006"             -- set membe   (be=10 stick=1)
+rreg .membe     d=o"000006"             --   ! membe
+wreg .membe       o"000003"             -- set membe   (be=11 stick=0)
+rreg .membe     d=o"000003"             --   ! membe
+#
+C -----------------------------------------------------------------------------
+C read/write a ibd register via CPU and RRI (use RK11 RKWC/RKBA [177406/177410])
+#
+wreg .al          o"177406"             --#RKWC
+wreg .memi        o"123456"             -- write RKWC via CPU
+wreg .memi        o"170707"             -- write RKBA via CPU
+wreg .al          o"177406"             --
+rreg .memi      d=o"123456"             -- read  RKWC via CPU
+rreg .memi      d=o"170707"             -- read  RKBA via CPU
+#
+rreg .RKWC      d=o"123456"             -- read  RKWC via RRI
+rreg .RKBA      d=o"170707"             -- read  RKBA via RRI
+wreg .RKWC        o"107070"             -- write RKWC via RRI
+wreg .RKBA        o"106060"             -- write RKBA via RRI
+#
+wreg .al          o"177406"             -- #RKWC
+rreg .memi      d=o"107070"             -- read  RKWC via CPU
+rreg .memi      d=o"106060"             -- read  RKBA via CPU
+#
+C -----------------------------------------------------------------------------
+C byte read/write a ibd register via RRI (use RK11 RKWC [177406])
+#
+wreg .al          o"177406"             --#RKWC
+wreg .membe       o"000003"             -- set membe
+rreg .membe     d=o"000003"             --   ! membe
+wreg .RKWC        o"070070"             -- write RKWC via RRI
+rreg .mem       d=o"070070"             -- read  RKWC via CPU
+#
+wreg .membe       o"000001"             -- set membe (address lower byte)
+rreg .membe     d=o"000001"             --   ! membe 
+wreg .RKWC        o"000060"             -- write RKWC via RRI
+rreg .mem       d=o"070060"             -- read  RKWC via CPU
+#
+wreg .membe       o"000002"             -- set membe (address upper byte)
+rreg .membe     d=o"000002"             --   ! membe 
+wreg .RKWC        o"060000"             -- write RKWC via RRI
+rreg .mem       d=o"060060"             -- read  RKWC via CPU
+#
+rreg .membe     d=o"000003"             --   ! membe (wasn't sticky, so 11)
+wreg .RKWC        o"050050"             -- write RKWC via RRI
+rreg .mem       d=o"050050"             -- read  RKWC via CPU
+#
+wreg .membe       o"000005"             -- set membe (address lower byte, sticky
+rreg .membe     d=o"000005"             --   ! membe 
+wreg .RKWC        o"000040"             -- write RKWC via RRI
+rreg .mem       d=o"050040"             -- read  RKWC via CPU
+rreg .membe     d=o"000005"             --   ! membe (now sticky, stays!)
+wreg .RKWC        o"000030"             -- write RKWC via RRI
+rreg .mem       d=o"050030"             -- read  RKWC via CPU
+#
+wreg .membe       o"000003"             -- set membe
+rreg .membe     d=o"000003"             --   ! membe
+#
+C -----------------------------------------------------------------------------
+C test device attention (use DL11 XCSR/XBUF [177564/177566])
+#
+rreg .XCSR      d=o"000200"             -- read  XCSR via RRI: XRDY=1
+rreg .XBUF      d=o"001000"             -- read  XBUF via RRI: RRDY=1,XDONE=0
+wreg .al          o"177566"             -- #XBUF
+wreg .mem         o"000123" s=00001000  -- write XBUF via CPU
+rreg .XCSR      d=o"000000" s=00001000  -- read  XCSR via RRI: XRDY=0
+rreg .XBUF      d=o"001523" s=00001000  -- read  XBUF via RRI: RRDY=1,XDONE=1
+rreg .XBUF      d=o"001123" s=00001000  -- read2 XBUF via RRI: RRDY=1,XDONE=0
+rreg .XCSR      d=o"000200" s=00001000  -- read  XCSR via RRI: XRDY=1
+attn            d=o"000002" s=00000000  -- read/clean LAM's: lam(1) used by DL11
+#
+C -----------------------------------------------------------------------------
+C finally reset CPU 
+wreg .cntl      o"000004"              -- init  (cpfunc_creset=00100)

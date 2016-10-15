@@ -1,6 +1,6 @@
--- $Id: rlinktblib.vhd 595 2014-09-28 08:47:45Z mueller $
+-- $Id: rlinktblib.vhd 805 2016-09-03 08:09:52Z mueller $
 --
--- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    rlink test environment components
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
+-- Tool versions:  xst 8.2-14.7; viv 2015.4-2016.2; ghdl 0.18-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-02-13   730   4.1    drop tbcore_rlink component definition
 -- 2014-08-28   588   4.0    now full rlink v4 iface and 4 bit STAT
 -- 2014-08-15   583   3.5    rb_mreq addr now 16 bit
 -- 2011-12-23   444   3.1    new clock iface for tbcore_rlink; drop .._dcm
@@ -129,18 +130,6 @@ component rbtba_aif is                  -- rbus tba, abstract interface
     RB_SRES_dout : out slv16;           -- rbus: response - dout
     RB_LAM : out slv16;                 -- rbus: look at me
     RB_STAT : out slv4                  -- rbus: status flags
-  );
-end component;
-
-component tbcore_rlink is               -- core of vhpi_cext based test bench
-  port (
-    CLK : in slbit;                     -- control interface clock
-    CLK_STOP : out slbit;               -- clock stop trigger
-    RX_DATA : out slv8;                 -- read data         (data ext->tb)
-    RX_VAL : out slbit;                 -- read data valid   (data ext->tb)
-    RX_HOLD : in slbit;                 -- read data hold    (data ext->tb)
-    TX_DATA : in slv8;                  -- write data        (data tb->ext)
-    TX_ENA : in slbit                   -- write data enable (data tb->ext)
   );
 end component;
 

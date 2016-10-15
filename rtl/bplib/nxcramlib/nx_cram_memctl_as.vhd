@@ -1,4 +1,4 @@
--- $Id: nx_cram_memctl_as.vhd 767 2016-05-26 07:47:51Z mueller $
+-- $Id: nx_cram_memctl_as.vhd 789 2016-07-17 08:26:55Z mueller $
 --
 -- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,18 +20,29 @@
 --                 vlib/xlib/iob_reg_io_gen
 -- Test bench:     tb/tb_nx_cram_memctl_as
 --                 sys_gen/tst_sram/nexys2/tb/tb_tst_sram_n2
+--                 sys_gen/tst_sram/nexys3/tb/tb_tst_sram_n3
+--                 sys_gen/tst_sram/nexys4/tb/tb_tst_sram_n4
 -- Target Devices: generic
--- Tool versions:  ise 11.4-14.7; viv 2014.4-2016.1; ghdl 0.26-0.33
+-- Tool versions:  ise 11.4-14.7; viv 2014.4-2016.2; ghdl 0.26-0.33
 --
+-- Synthesized:
+-- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic    
+-- 2016-07-03   783 2016.3  xc7a100t-1     91    87     0     0    43
+-- 
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
--- 2010-06-03   299  11.4   L68  xc3s1200e-4   91  100    0   96 s  6.7
--- 2010-05-24   294  11.4   L68  xc3s1200e-4   91   99    0   95 s  6.7
--- 2010-05-23   293  11.4   L68  xc3s1200e-4   91  139    0   99 s  6.7
+-- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2016-07-03   767 14.7 131013  xc6slx16-2   100  134    0   60 s  4.2
+-- 2010-06-03   299 11.4    L68  xc3s1200e-4   91  100    0   96 s  6.7
+-- 2010-05-24   294 11.4    L68  xc3s1200e-4   91   99    0   95 s  6.7
+-- 2010-05-23   293 11.4    L68  xc3s1200e-4   91  139    0   99 s  6.7
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2016-05-22   787   1.2.2  don't init N_REGS (vivado fix for fsm inference)
+-- 2016-07-16   788   2.1    change *DELAY generics, now absolute delay cycles
+--                           add s_init1; drop "KEEP" for data (better for dbg)
+-- 2016-07-10   786   2.0    add page mode support
+-- 2016-05-22   767   1.2.2  don't init N_REGS (vivado fix for fsm inference)
 -- 2015-12-26   718   1.2.1  BUGFIX: do_dispatch(): always define imem_oe
 -- 2011-11-26   433   1.2    renamed from n2_cram_memctl_as
 -- 2011-11-19   432   1.1    remove O_FLA_CE_N port
@@ -44,41 +55,23 @@
 -- 2010-05-23   293   1.0    Initial version 
 --
 -- Notes:
---  1. READ1DELAY of 2 is needed even though the timing of the memory suggests
---     that 1 cycle is enough (T_apa is 20 ns, so 40 ns round trip is ok). A
---     short READ1 delay works in sim, but not on fpga where the data of the
---     ADDR(0)=0 cycle is re-read (see notes_tst_sram_n2.txt).
---     tb_n2_cram_memctl_as_ISim_tsim works with full sdf even when T_apa is
---     40ns or 50 ns, only T_apa 60 ns fails !
---     Unclear what is wrong here, the timing of the memory model seems ok.
---  2. There is no 'bus-turn-around' cycle needed for a write->read change
+--  1. There is no 'bus-turn-around' cycle needed for a write->read change
 --     FPGA_OE goes 1->0 and MEM_OE goes 0->1 on the s_wrput1->s_rdinit
 --     transition simultaneously. The FPGA will go high-Z quickly, the memory
 --     low-Z delay by the IOB and internal memory delays. No clash.
---  3. There is a hidden 'bus-turn-around' cycle for a read->write change.
+--  2. There is a hidden 'bus-turn-around' cycle for a read->write change.
 --     MEM_OE goes 1->0 on s_rdget1->s_wrinit and the memory will go high-z with
 --     some delay. FPGA_OE goes 0->1 in the next cycle at s_wrinit->s_wrwait0.
 --     Again no clash due to the 1 cycle delay.
 --
 -- Nominal timings:
---     READ0/1 = N_rd_cycle - 2
---     WRITE   = N_wr_cycle - 1
+--     READ0   = (T_aa + ext_read_delay)  in cycles
+--     READ1   = (T_pa + ext_read_delay)  in cycles
+--     WRITE   = (T_aa + ext_write_delay) in cycles
+--   with
+--     ext_read_delay:  output_IOB + 2*PCB_delay + input_IOB + skew
+--     ext_write_delay: skew
 --
--- from notes_nexys2.txt (Rev 339):
---         clksys        RD  WR     < use for >               Test case
---                                                            MHz div mul
---        <51.20          2   3     <-- 50                     50   1   1
---         51.20- 54.80   3   3     <-- 52,54                  54  25  27
---         54.80- 64.10   3   4     <-- 55,56,58,60,62,64      64  25  32
---         64.10- 68.50   4   4     <-- 65                     65  10  13
---         68.50- 76.92   4   5     <-- 70,75                  75   2   3
---         76.92- 82.19   5   5     <-- 80                     80   5   8
---         82.19- 89.74   5   6     <-- 85                     85  10  17
---         89.74- 95.89   6   6     <-- 90,95                  95  10  19
---         95.89-102.56   6   7     <-- 100                   100   1   2
---   remark added 2015-12-26
---   - for sys_w11a_n3 one gets in simulation errors for 72 MHz and RD=4 !!
---   - so far unclear whether controller or memory model is wrong !!
 --
 -- Timing of some signals:
 --
@@ -126,9 +119,9 @@ use work.xlib.all;
 
 entity nx_cram_memctl_as is             -- CRAM driver (async+page mode)
   generic (
-    READ0DELAY : positive := 2;         -- read word 0 delay in clock cycles
+    READ0DELAY : positive := 4;         -- read word 0 delay in clock cycles
     READ1DELAY : positive := 2;         -- read word 1 delay in clock cycles
-    WRITEDELAY : positive := 3);        -- write delay in clock cycles
+    WRITEDELAY : positive := 4);        -- write delay in clock cycles
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- reset
@@ -160,6 +153,13 @@ end nx_cram_memctl_as;
 architecture syn of nx_cram_memctl_as is
 
   type state_type is (
+    s_init,                             -- s_init: startup state
+    s_init1,                            -- s_init1: reset released
+    s_wcinit,                           -- s_wcinit: write rcr init
+    s_wcwait,                           -- s_wcwait: write rcr wait
+    s_wcput,                            -- s_wcput: write rcr done
+    s_rainit,                           -- s_rainit: read array init
+    s_rawait,                           -- s_rawait: wait read array
     s_idle,                             -- s_idle: wait for req
     s_rdinit,                           -- s_rdinit:  read init cycle
     s_rdwait0,                          -- s_rdwait0: read wait low word
@@ -187,7 +187,7 @@ architecture syn of nx_cram_memctl_as is
   end record regs_type;
 
   constant regs_init : regs_type := (
-    s_idle,                             -- state
+    s_init,                             -- state
     '0',                                -- ackr
     '0',                                -- addr0
     "00",                               -- be2nd
@@ -197,7 +197,16 @@ architecture syn of nx_cram_memctl_as is
     (others=>'0'),                      -- memdo0
     (others=>'0')                       -- memdi
   );
-    
+
+  constant c_addrh_rcr_setup : slv22 :=
+    "000" &             -- 22:20 reserved MBZ
+    "00"  &             -- 19:18 reg sel 00=RCR
+    "0000000000"  &     -- 17: 8 reserved MBZ
+    '1' &               --     7 page mode enable (1=enable)
+    "00" &              --  6: 5 reserved MBZ
+    '1' &               --     4 dpd disaable (1=disable)
+    "000";              --  3: 1 rest is reserved or PAR, which should be 0
+
   signal R_REGS : regs_type := regs_init;
   signal N_REGS : regs_type;            -- don't init (vivado fix for fsm infer)
   
@@ -206,9 +215,11 @@ architecture syn of nx_cram_memctl_as is
   signal MEM_BE_N : slv2  := "11";
   signal MEM_WE_N : slbit := '1';
   signal MEM_OE_N : slbit := '1';
+  signal MEM_CRE  : slbit := '0';
   signal BE_CE    : slbit := '0';
   signal ADDRH_CE : slbit := '0';
   signal ADDR0_CE : slbit := '0';
+  signal ADDRH    : slv22 := (others=>'0');
   signal ADDR0    : slbit := '0';
   signal DATA_CEI : slbit := '0';
   signal DATA_CEO : slbit := '0';
@@ -216,16 +227,22 @@ architecture syn of nx_cram_memctl_as is
   signal MEM_DO   : slv16 := (others=>'0');
   signal MEM_DI   : slv16 := (others=>'0');
 
--- these attributes aren't accepted by ghdl 0.26
---  attribute s : string;
---  attribute s of I_MEM_WAIT : signal is "true";
-
 begin
 
-  assert READ0DELAY<=2**R_REGS.cntdly'length and
-         READ1DELAY<=2**R_REGS.cntdly'length and
-         WRITEDELAY<=2**R_REGS.cntdly'length
-    report "assert(READ0,READ1,WRITEDELAY <= 2**cntdly'length)"
+  -- Notes:
+  --   used READ0DELAY-2 and READ0DELAY-3
+  --   used READ1DELAY-2
+  --   used WRITEDELAY-2
+  
+  assert READ0DELAY-2 < 2**R_REGS.cntdly'length and
+         READ1DELAY-2 < 2**R_REGS.cntdly'length and
+         WRITEDELAY-2 < 2**R_REGS.cntdly'length
+    report "assert( (READ0,READ1,WRITE)DELAY-2 < 2**cntdly'length)"
+    severity failure;
+  assert READ0DELAY >= 3 and
+         READ1DELAY >= 2 and
+         WRITEDELAY >= 2
+    report "assert( (READ0,READ1,WRITE)DELAY-2 >= 2 or 3)"
     severity failure;
 
   CLK_180 <= not CLK;
@@ -271,13 +288,23 @@ begin
       PAD => O_MEM_OE_N
     );
   
+  IOB_MEM_CRE : iob_reg_o
+    generic map (
+      INIT   => '0')
+    port map (
+      CLK => CLK,
+      CE  => '1',
+      DO  => MEM_CRE,
+      PAD => O_MEM_CRE
+    );
+  
   IOB_MEM_ADDRH : iob_reg_o_gen
     generic map (
       DWIDTH => 22)
     port map (
       CLK => CLK,
       CE  => ADDRH_CE,
-      DO  => ADDR,
+      DO  => ADDRH,
       PAD => O_MEM_ADDR(22 downto 1)
     );
   
@@ -292,7 +319,7 @@ begin
   IOB_MEM_DATA : iob_reg_io_gen
     generic map (
       DWIDTH => 16,
-      PULL   => "KEEP")
+      PULL   => "NONE")
     port map (
       CLK => CLK,
       CEI => DATA_CEI,
@@ -305,7 +332,6 @@ begin
 
   O_MEM_ADV_N <= '0';
   O_MEM_CLK   <= '0';
-  O_MEM_CRE   <= '0';
 
   proc_regs: process (CLK)
   begin
@@ -320,7 +346,7 @@ begin
 
   end process proc_regs;
 
-  proc_next: process (R_REGS, REQ, WE, BE, DI, MEM_DO)
+  proc_next: process (R_REGS, REQ, WE, BE, DI, ADDR, MEM_DO)
 
     variable r : regs_type := regs_init;
     variable n : regs_type := regs_init;
@@ -328,13 +354,15 @@ begin
     variable iackw : slbit := '0';
     variable iactr : slbit := '0';
     variable iactw : slbit := '0';
-    variable imem_ce : slbit := '0';
-    variable imem_be : slv2  := "00";
-    variable imem_we : slbit := '0';
-    variable imem_oe : slbit := '0';
+    variable imem_ce   : slbit := '0';
+    variable imem_be   : slv2  := "00";
+    variable imem_we   : slbit := '0';
+    variable imem_oe   : slbit := '0';
+    variable imem_cre  : slbit := '0';
     variable ibe_ce    : slbit := '0';
     variable iaddrh_ce : slbit := '0';
     variable iaddr0_ce : slbit := '0';
+    variable iaddrh    : slv22 := (others=>'0');
     variable iaddr0    : slbit := '0';
     variable idata_cei : slbit := '0';
     variable idata_ceo : slbit := '0';
@@ -385,13 +413,15 @@ begin
     iactr := '0';
     iactw := '0';
 
-    imem_ce := '0';
-    imem_be := "11";
-    imem_we := '0';
-    imem_oe := '0';
+    imem_ce   := '0';
+    imem_be   := "11";
+    imem_we   := '0';
+    imem_oe   := '0';
+    imem_cre  := '0';
     ibe_ce    := '0';
     iaddrh_ce := '0';
     iaddr0_ce := '0';
+    iaddrh    := ADDR;
     iaddr0    := '0';
     idata_cei := '0';
     idata_ceo := '0';
@@ -402,6 +432,54 @@ begin
     end if;
 
     case r.state is
+      when s_init =>                    -- s_init: startup state
+        ibusy   := '1';                   -- signal busy, unable to handle req
+        n.state := s_init1;
+
+      when s_init1 =>                   -- s_init1: reset released
+        ibusy   := '1';                   -- signal busy, unable to handle req
+        iaddrh  := c_addrh_rcr_setup;
+        iaddr0  := '0';
+        iaddrh_ce := '1';
+        iaddr0_ce := '1';
+        imem_ce  := '1';                  -- ce  CRAM next cycle
+        imem_cre := '1';                  -- cre CRAM next cycle
+        n.state := s_wcinit;
+
+      when s_wcinit =>                  -- s_wcinit: write rcr init
+        ibusy    := '1';                  -- signal busy, unable to handle req
+        imem_ce  := '1';                  -- ce  CRAM next cycle
+        imem_cre := '1';                  -- cre CRAM next cycle
+        imem_we  := '1';                  -- we  CRAM next cycle
+        n.cntdly := slv(to_unsigned(WRITEDELAY-2, n.cntdly'length));
+        n.state  := s_wcwait;
+
+      when s_wcwait =>                  -- s_wcinit: write rcr wait
+        ibusy    := '1';                  -- signal busy, unable to handle req
+        imem_ce  := '1';                  -- ce  CRAM next cycle
+        imem_we  := '1';                  -- we  CRAM next cycle
+        imem_cre := '1';                  -- cre CRAM next cycle
+        if unsigned(r.cntdly) = 0 then    -- wait expired ?
+          n.state := s_wcput;             -- next: write rcr done
+        end if;
+
+      when s_wcput =>                   -- s_wcput: write rcr done
+        ibusy    := '1';                  -- signal busy, unable to handle req
+        n.state  := s_rainit;             -- next: read array init
+
+      when s_rainit =>                  -- s_rainit: read array init
+        ibusy   := '1';                   -- signal busy, unable to handle req
+        imem_ce := '1';                   -- ce CRAM next cycle
+        n.cntdly:= slv(to_unsigned(READ0DELAY-2, n.cntdly'length));
+        n.state := s_rawait ;             -- next: wait read array
+
+      when s_rawait =>                  -- s_rawait: wait read array
+        ibusy   := '1';                   -- signal busy, unable to handle req
+        imem_ce := '1';                   -- ce CRAM next cycle
+        if unsigned(r.cntdly) = 0 then    -- wait expired ?
+          n.state := s_idle;              -- next: wait for req
+        end if;
+
       when s_idle =>                    -- s_idle: wait for req
         if REQ = '1' then                 -- if IO requested
           do_dispatch(n.state, iaddrh_ce, iaddr0_ce, iaddr0,
@@ -413,8 +491,8 @@ begin
         iactr   := '1';                   -- signal mem read
         imem_ce := '1';                   -- ce CRAM next cycle
         imem_oe := '1';                   -- oe CRAM next cycle
-        n.cntdly:= slv(to_unsigned(READ0DELAY-1, n.cntdly'length));
-        n.state := s_rdwait0;             -- next: wait
+        n.cntdly:= slv(to_unsigned(READ0DELAY-3, n.cntdly'length));
+        n.state := s_rdwait0;             -- next: wait low word
 
       when s_rdwait0 =>                  -- s_rdwait0: read wait low word
         ibusy   := '1';                   -- signal busy, unable to handle req
@@ -433,7 +511,7 @@ begin
         idata_cei := '1';                 -- latch input data
         iaddr0_ce := '1';                 -- latch address 0 bit
         iaddr0    := '1';                 -- now go for high word
-        n.cntdly:= slv(to_unsigned(READ1DELAY-1, n.cntdly'length));
+        n.cntdly:= slv(to_unsigned(READ1DELAY-2, n.cntdly'length));
         n.state := s_rdwait1;             -- next: wait high word
 
       when s_rdwait1 =>                 -- s_rdwait1: read wait high word
@@ -442,7 +520,7 @@ begin
         imem_ce := '1';                   -- ce CRAM next cycle
         imem_oe := '1';                   -- oe CRAM next cycle
         if unsigned(r.cntdly) = 0 then    -- wait expired ?
-          n.state := s_rdget1;              -- next: get low word
+          n.state := s_rdget1;              -- next: get high word
         end if;                             --
 
       when s_rdget1 =>                  -- s_rdget1: read get high word
@@ -468,7 +546,7 @@ begin
         idata_oe := '1';                  -- oe FPGA next cycle
         imem_ce  := '1';                  -- ce CRAM next cycle
         imem_we  := '1';                  -- we CRAM in half cycle
-        n.cntdly:= slv(to_unsigned(WRITEDELAY-1, n.cntdly'length));
+        n.cntdly:= slv(to_unsigned(WRITEDELAY-2, n.cntdly'length));
         n.state := s_wrwait0;             -- next: wait
 
       when s_wrwait0 =>                 -- s_rdput0:  write wait 1st word
@@ -511,7 +589,7 @@ begin
         idata_oe := '1';                  -- oe FPGA next cycle
         imem_ce  := '1';                  -- ce CRAM next cycle
         imem_we  := '1';                  -- we CRAM in half cycle
-        n.cntdly:= slv(to_unsigned(WRITEDELAY-1, n.cntdly'length));
+        n.cntdly:= slv(to_unsigned(WRITEDELAY-2, n.cntdly'length));
         n.state := s_wrwait1;             -- next: wait
 
       when s_wrwait1 =>                 -- s_wrwait1: write wait 2nd word
@@ -565,6 +643,7 @@ begin
     MEM_WE_N <= not imem_we;
     MEM_BE_N <= not imem_be;
     MEM_OE_N <= not imem_oe;
+    MEM_CRE  <=     imem_cre;
 
     if r.addr0 = '0' then
       MEM_DI <= r.memdi(15 downto 0);
@@ -575,6 +654,7 @@ begin
     BE_CE    <= ibe_ce;
     ADDRH_CE <= iaddrh_ce;
     ADDR0_CE <= iaddr0_ce;
+    ADDRH    <= iaddrh;
     ADDR0    <= iaddr0;
     DATA_CEI <= idata_cei;
     DATA_CEO <= idata_ceo;

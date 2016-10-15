@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: xtwi 735 2016-02-26 22:17:42Z mueller $
+# $Id: xtwi 804 2016-08-28 17:33:50Z mueller $
 #
 # Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
@@ -10,6 +10,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2016-08-28   804   1.2    BUGFIX: add ":." to PATH even under BARE_PATH
 # 2016-02-21   735   1.1    use BARE_PATH ect to provide clean environment
 # 2013-10-12   539   1.0    Initial version
 #
@@ -33,10 +34,11 @@ then
   fi
 
   # provide clean environment when BARE_PATH ect defined
-  #   add only $RETROBASE/tools/bin to path
+  #   add only $RETROBASE/tools/bin and '.' to path
+  #   '.' is needed to start ISim tb's, which usually are in cwd
   if [ -n "$BARE_PATH" ]
   then
-    export PATH=$BARE_PATH:$RETROBASE/tools/bin
+    export PATH=$BARE_PATH:$RETROBASE/tools/bin:.
     unset LD_LIBRARY_PATH
     if [ -n "$BARE_LD_LIBRARY_PATH" ]
     then

@@ -1,4 +1,4 @@
--- $Id: pdp11_cache.vhd 767 2016-05-26 07:47:51Z mueller $
+-- $Id: pdp11_cache.vhd 784 2016-07-09 22:17:01Z mueller $
 --
 -- Copyright 2008-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -33,7 +33,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2016-05-22   787   1.1.1  don't init N_REGS (vivado fix for fsm inference)
+-- 2016-05-22   767   1.1.1  don't init N_REGS (vivado fix for fsm inference)
 -- 2016-03-22   751   1.1    now configurable size (8,16,32,64,128 kB)
 -- 2011-11-18   427   1.0.3  now numeric_std clean
 -- 2008-02-23   118   1.0.2  ce cache in s_idle to avoid U's in sim

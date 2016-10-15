@@ -1,10 +1,12 @@
-# $Id: generic_vivado.mk 778 2016-06-25 15:18:01Z mueller $
+# $Id: generic_vivado.mk 803 2016-08-28 12:39:00Z mueller $
 #
 # Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 # Revision History: 
 # Date         Rev Version  Comment
+# 2016-08-27   802   1.4.1  viv_clean: rm only vivado logs
+# 2016-07-22   792   1.4    relocate viv tcl code to tools/vivado
 # 2016-06-24   778   1.3    add rsim.vhd and [sorep]sim.v targets
 # 2016-06-11   774   1.2.1  call xviv_sim_vhdl_cleanup for %_[so]sim rules
 # 2016-05-27   769   1.2    add xviv_msg_filter support
@@ -22,16 +24,16 @@ endif
 # ensure that default tools and flows are defined
 #
 ifndef VIV_INIT
-VIV_INIT = ${RETROBASE}/rtl/make_viv/viv_init.tcl
+VIV_INIT = ${RETROBASE}/tools/vivado/viv_init.tcl
 endif
 ifndef VIV_BUILD_FLOW
-VIV_BUILD_FLOW = ${RETROBASE}/rtl/make_viv/viv_default_build.tcl
+VIV_BUILD_FLOW = ${RETROBASE}/tools/vivado/viv_default_build.tcl
 endif
 ifndef VIV_CONFIG_FLOW
-VIV_CONFIG_FLOW = ${RETROBASE}/rtl/make_viv/viv_default_config.tcl
+VIV_CONFIG_FLOW = ${RETROBASE}/tools/vivado/viv_default_config.tcl
 endif
 ifndef VIV_MODEL_FLOW
-VIV_MODEL_FLOW = ${RETROBASE}/rtl/make_viv/viv_default_model.tcl
+VIV_MODEL_FLOW = ${RETROBASE}/tools/vivado/viv_default_model.tcl
 endif
 #
 # $@ first target
@@ -247,7 +249,9 @@ viv_clean: viv_tmp_clean
 	rm -f *.bit
 	rm -f *.dcp
 	rm -f *.jou
-	rm -f *.log
+	rm -f *_bit.log
+	rm -f *_imp.log
+	rm -f *_syn.log
 	rm -f *.rpt
 	rm -f *_[sor]sim.vhd
 	rm -f *_[sorept]sim.v

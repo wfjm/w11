@@ -1,4 +1,4 @@
--- $Id: ibdr_rhrp.vhd 767 2016-05-26 07:47:51Z mueller $
+-- $Id: ibdr_rhrp.vhd 784 2016-07-09 22:17:01Z mueller $
 --
 -- Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -28,7 +28,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2016-05-22   787   1.0.4  don't init N_REGS (vivado fix for fsm inference)
+-- 2016-05-22   767   1.0.4  don't init N_REGS (vivado fix for fsm inference)
 -- 2015-06-20   692   1.0.3  BUGFIX: fix func-go when drive/init busy checks
 -- 2015-06-05   690   1.0.2  use 'not unit' for lsb of rpsn to avoid SI detect
 --                           BUGFIX: set rmr only for write to busy unit

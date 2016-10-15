@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tbw 778 2016-06-25 15:18:01Z mueller $
+# $Id: tbw 808 2016-09-17 13:02:46Z mueller $
 #
 # Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,9 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2016-09-03   805   1.5.4  use {} as delimiter for immediate mode data
+# 2016-08-28   804   1.5.3  BUGFIX: xsim: append -R to ARGV (was prepended...)
+# 2016-07-02   782   1.5.2  add TBW_GHDL_OPTS
 # 2016-06-25   778   1.5.1  support all sim modes
 # 2016-04-17   762   1.5    make '-run' default for [IX]Sim, add '-norun'
 # 2016-03-20   748   1.4    recode OPTIONS handling and -fifo handling
@@ -50,9 +53,10 @@ use File::Spec;
 use Cwd 'abs_path';
 
 my $tb_code;
-my $is_isim;
+my $is_ghdl;                                # uses ghdl simulator
+my $is_isim;                                # uses ISE simulator
 my $is_isim_run;
-my $is_xsim;
+my $is_xsim;                                # uses vivado simulator
 my $opt_run;
 my $opt_norun;
 my $opt_fifo;
@@ -61,6 +65,8 @@ my $opt_verbose;
 my @args_pos;			# list of positional args
 my @args_nam;			# list of named args
 my @file_dsc;			# file descriptors from tbw.dat
+
+my $ghdl_opts = $ENV{TBW_GHDL_OPTS};        # ghdl extra options
 
 sub print_usage;
 
@@ -87,7 +93,7 @@ if ($tb_code =~ m|^(.*)/(.*)$|) {
   $tb_code_name = $2;
 }
 
-# process -run, -fifo and -verbose options (can be in any order now)
+# process -norun, -fifo and -verbose options (can be in any order now)
 
 while (scalar(@ARGV)) {
   my $opt = $ARGV[0];
@@ -113,8 +119,10 @@ if ($tb_code_stem =~ /_ISim$/) {            # is it an ISim executable ?
 if ($tb_code_stem =~ /_XSim$/) {            # is it an XSim executable ?
   $tb_code_stem =~ s/_XSim$//;              # drop _XSim
   $is_xsim = 1;
-  unshift @ARGV,'-R' unless $opt_norun;     # run all unless '-norun' given
+  push @ARGV,'-R' unless $opt_norun;        # run all unless '-norun' given
 }
+
+$is_ghdl = not ($is_isim or $is_xsim);
 
 if (not -e $tb_code) {
   print "tbw-E: $tb_code not existing or not executable\n";
@@ -151,7 +159,7 @@ if (-r $tbwdat_file) {
     }
   }
 } else {
-  print "tbw-W: failed to find $tbwdat_file\n";
+  print "tbw-I: didn't find ${tbwdat_file}, using defaults\n";
 }
 
 #
@@ -228,7 +236,7 @@ foreach my $dsc (@file_dsc) {
 
   } else {			# handle link to file cases
 
-    if ($val =~ /^\[(.*)\]$/) {	# immediate data case: "[line1;line2;...]"
+    if ($val =~ /^\{(.*)\}$/) {	# immediate data case: "{line1;line2;...}"
       my @lines = split /;/, $1;
       my $fname = "$tag\_tmp.tmp";
       open TFILE,">$fname" or die "can't create temporary file $fname: $!";
@@ -256,7 +264,7 @@ foreach my $dsc (@file_dsc) {
     }
 
     if (not -r $val) {
-      print "tbw-F: file for $tag not existing or not readable: $val\n";
+      print "tbw-F: file for '$tag' not existing or not readable: $val\n";
       exit 1;
     }
 
@@ -283,6 +291,13 @@ foreach my $dsc (@file_dsc) {
 }
 
 #
+# additional ghdl options
+#
+if ($is_ghdl && defined $ghdl_opts) {
+  push @ARGV, split /\s+/,$ghdl_opts;
+}
+
+#
 # here all ok, finally exec test bench
 #
 
@@ -296,6 +311,7 @@ if ($is_isim_run) {                         # handle for isim 'run all'
      or die "failed to close process pipe to isim: $!";
 
 } else {                                    # otherwise just exec
+  # print  ($tb_code . " " . join(" ",@ARGV) . "\n");
   exec $tb_code,@ARGV
     or die "failed to exec: $!";
 }
@@ -304,13 +320,13 @@ if ($is_isim_run) {                         # handle for isim 'run all'
 sub print_usage {
   print "usage: tbw <tb_code>  [opts] [filedefs] [ghdl-opts]\n";
   print "  opts\n";
-  print "    -run      for _ISim tb's, runs the tb with a 'run all' command\n";
+  print "    -norun    for _ISim tb's, runs the tb without 'run all' command\n";
   print "    -fifo     use rlink_cext fifo, ignore tbw.dat\n";
   print "    -verbose  show the used tag,value settings before execution\n";
   print "  filedefs define tb input, either filename in tbw.dat order or\n";
   print "    tag=name or tag=[<content>] pairs with tag matching one in in\n";
   print "    tbw.dat. The [<content>] form allows to give data inline, e.g.\n";
-  print "    like \"_conf=[.rpmon 1]\"\n";
+  print "    like \"_conf={.rpmon 1}\"\n";
   print "  ghdl-opts are all other options starting with a '-', they are\n";
   print "     passed to the testbench. Some useful ghdl options are:\n";
   print "      --wave=x.ghw\n";

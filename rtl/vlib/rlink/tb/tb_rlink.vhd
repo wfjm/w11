@@ -1,6 +1,6 @@
--- $Id: tb_rlink.vhd 596 2014-10-17 19:50:07Z mueller $
+-- $Id: tb_rlink.vhd 807 2016-09-17 07:49:26Z mueller $
 --
--- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -17,8 +17,8 @@
 --
 -- Dependencies:   simlib/simclk
 --                 simlib/simclkcnt
---                 genlib/clkdivce
---                 rbus/tbd_tester
+--                 genlib/tb/clkdivce_tb
+--                 rbus/rbd_tester
 --                 tbd_rlink_gen [UUT]
 --
 -- To test:        rlink_core     (via tbd_rlink_direct)
@@ -26,10 +26,11 @@
 --                 rlink_serport  (via tbd_rlink_serport)
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
+-- Tool versions:  xst 8.2-14.7; viv 2016.2; ghdl 0.18-0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-09-10   806   4.1.1  use clkdivce_tb
 -- 2014-10-12   596   4.1    use readgen_ea; add get_cmd_ea; labo instead of stat
 --                           add txblk,rxblk,rxrbeg,rxrend,rxcbs,anmsg commands
 -- 2014-08-28   588   4.0    now rlink v4 iface -> txcac has 16 bit; 4 bit STAT
@@ -194,10 +195,10 @@ architecture sim of tb_rlink is
   shared variable sv_nrxlist : natural := 0;
   shared variable sv_rxind : natural := 0;
 
-  constant clock_period : time :=  20 ns;
-  constant clock_offset : time := 200 ns;
-  constant setup_time : time :=  5 ns;
-  constant c2out_time : time := 10 ns;
+  constant clock_period : Delay_length :=  20 ns;
+  constant clock_offset : Delay_length := 200 ns;
+  constant setup_time : Delay_length :=  5 ns;
+  constant c2out_time : Delay_length := 10 ns;
 
 component tbd_rlink_gen is              -- rlink, generic tb design interface
   port (
@@ -240,7 +241,7 @@ begin
 
   CLKCNT : simclkcnt port map (CLK => CLK, CLK_CYCLE => CLK_CYCLE);
 
-  CLKDIV : clkdivce
+  CLKDIV : entity work.clkdivce_tb
     generic map (
       CDUWIDTH => 6,
       USECDIV  => 4,

@@ -1,4 +1,4 @@
--- $Id: serport_uart_rx_tb.vhd 767 2016-05-26 07:47:51Z mueller $
+-- $Id: serport_uart_rx_tb.vhd 784 2016-07-09 22:17:01Z mueller $
 --
 -- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -26,7 +26,7 @@
 -- Tool versions:  ghdl 0.18-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2016-05-22   787   1.0.1  don't init N_REGS (vivado fix for fsm inference)
+-- 2016-05-22   767   1.0.1  don't init N_REGS (vivado fix for fsm inference)
 -- 2016-01-03   724   1.0    Initial version (copied from serport_uart_rx)
 ------------------------------------------------------------------------------
 

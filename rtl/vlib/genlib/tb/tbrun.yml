@@ -1,0 +1,12 @@
+# $Id: tbrun.yml 807 2016-09-17 07:49:26Z mueller $
+#
+# Revision History:
+# Date         Rev Version  Comment
+# 2016-08-12   797   1.0    Initial version
+#
+- default:
+    mode: ${viv_modes}
+#
+- tag:  [default, viv, genlib]
+  test: |
+    tbrun_tbw tb_cnt_array_dram${ms}

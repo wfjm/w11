@@ -11,6 +11,7 @@
 ../../../vlib/simlib/simbus.vhd
 ${sys_conf := sys_conf_sim.vhd}
 # components
+${gsr_pulse := ../../../vlib/xlib/gsr_pulse_dummy.vbom}
 ../../../vlib/simlib/simclk.vbom
 ../../../vlib/simlib/simclkcnt.vbom
 ../../../vlib/rlink/tbcore/tbcore_rlink.vbom

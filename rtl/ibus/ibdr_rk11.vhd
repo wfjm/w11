@@ -1,4 +1,4 @@
--- $Id: ibdr_rk11.vhd 767 2016-05-26 07:47:51Z mueller $
+-- $Id: ibdr_rk11.vhd 784 2016-07-09 22:17:01Z mueller $
 --
 -- Copyright 2008-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -29,7 +29,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2016-05-22   787   1.3.1  don't init N_REGS (vivado fix for fsm inference)
+-- 2016-05-22   767   1.3.1  don't init N_REGS (vivado fix for fsm inference)
 -- 2015-05-01   672   1.3    BUGFIX: interrupt after dreset,seek command start
 -- 2011-11-18   427   1.2.2  now numeric_std clean
 -- 2010-10-23   335   1.2.1  rename RRI_LAM->RB_LAM;

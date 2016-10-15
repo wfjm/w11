@@ -6,6 +6,7 @@
 # 2011-11-27   433   1.0    Initial version
 #
 EXE_all  = tb_tst_serloop1_n3 
+EXE_all += tb_tst_serloop2_n3
 #
 include ${RETROBASE}/rtl/make_ise/xflow_default_nexys3.mk
 #

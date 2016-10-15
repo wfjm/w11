@@ -1,0 +1,9 @@
+# configure tb_nexsy2 with sys_tst_sram_n2 target;
+# use vhdl configure file (tb_tst_sram_n2.vhd) to allow
+# that all configurations will co-exist in work library
+# configure
+nexys2_aif = ../sys_tst_sram_n2.vbom
+sys_conf = sys_conf_sim.vbom
+# design
+../../../../bplib/nexys2/tb/tb_nexys2.vbom
+tb_tst_sram_n2.vhd

@@ -1,6 +1,6 @@
--- $Id: pdp11_core.vhd 702 2015-07-19 17:36:09Z mueller $
+-- $Id: pdp11_core.vhd 812 2016-10-03 18:39:50Z mueller $
 --
--- Copyright 2006-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -27,9 +27,10 @@
 --                 tb/tb_rlink_tba_pdp11core
 --
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.2; ghdl 0.18-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-10-03   812   1.4.3  drop SNUM signal, not used anymore
 -- 2015-07-19   702   1.4.2  add DM_STAT_SE port; re-arrange DM_STAT_CO usage
 -- 2015-07-05   697   1.4.1  wire istart,istop,cpustep to DM_STAT_CO
 -- 2015-06-26   695   1.4.1  connect SNUM (current state number)
@@ -115,7 +116,6 @@ architecture syn of pdp11_core is
   signal INT_VECT : slv9_2 := (others=>'0'); 
   signal CP_STAT_L : cp_stat_type := cp_stat_init;
   signal INT_ACK : slbit := '0';
-  signal SNUM : slv8 := (others=>'0'); 
 
   signal IB_SRES_DP : ib_sres_type := ib_sres_init;
   signal IB_SRES_SEQ : ib_sres_type := ib_sres_init;

@@ -1,4 +1,4 @@
--- $Id: sysmon_rbus_core.vhd 767 2016-05-26 07:47:51Z mueller $
+-- $Id: sysmon_rbus_core.vhd 784 2016-07-09 22:17:01Z mueller $
 --
 -- Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -24,7 +24,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2016-05-25   787   1.0.1  don't init N_REGS (vivado fix for fsm inference)
+-- 2016-05-25   767   1.0.1  don't init N_REGS (vivado fix for fsm inference)
 --                           BUGFIX: use s_init in regs_init (was s_idle)
 -- 2016-03-12   741   1.0    Initial version
 -- 2016-03-06   738   0.1    First draft

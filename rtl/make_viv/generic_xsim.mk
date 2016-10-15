@@ -1,10 +1,11 @@
-# $Id: generic_xsim.mk 778 2016-06-25 15:18:01Z mueller $
+# $Id: generic_xsim.mk 804 2016-08-28 17:33:50Z mueller $
 #
 # Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2016-08-28   804   1.1.1  xsim work dir now xsim.<mode>.<stem>
 # 2016-06-24   778   1.1    add [rep]sim models; use xsim.?sim as workdir
 # 2016-02-06   727   1.0    Initial version
 #
@@ -77,7 +78,7 @@ xsim_clean: xsim_tmp_clean
 	rm -f $(EXE_all:%=%_XSim_esim)
 	rm -f $(EXE_all:%=%_XSim_psim)
 	rm -f $(EXE_all:%=%_XSim_tsim)
-	rm -rf xsim.[bsorept]sim 
+	rm -rf xsim.[bsorept]sim.*
 #
 xsim_tmp_clean:
 	rm -f *.wdb
@@ -85,6 +86,6 @@ xsim_tmp_clean:
 	rm -f xsim.log xsim_*.backup.log
 	rm -f webtalk.jou webtalk_*.backup.jou
 	rm -f webtalk.log webtalk_*.backup.log
-	rm -rf xsim.[bsorept]sim/xsim.dir/xil_defaultlib
-	rm -f xsim.dir
+	rm -rf xsim.[bsorept]sim.*/xsim.dir/xil_defaultlib
+	rm -rf xsim.dir
 #

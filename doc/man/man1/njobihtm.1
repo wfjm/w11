@@ -1,0 +1,75 @@
+.\"  -*- nroff -*-
+.\"  $Id: njobihtm.1 810 2016-10-02 16:51:12Z mueller $
+.\"
+.\" Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" 
+.\" ------------------------------------------------------------------
+.
+.TH NJOBIHTM 1 2016-10-01 "Retro Project" "Retro Project Manual"
+.\" ------------------------------------------------------------------
+.SH NAME
+njobihtm \- number of jobs considering hyper-threading and memory
+.\" ------------------------------------------------------------------
+.SH SYNOPSIS
+.
+.SY njobihtm
+.OP -v
+.OP -m nnn[MG]
+.YS
+.
+.\" ------------------------------------------------------------------
+.SH DESCRIPTION
+\fBnjobihtm\fP determines the number of CPU-intensive jobs based on the
+number of CPU and memory resources. The 'ihtm' stands for 'intelligent
+hyper-threading and memory'. The script 
+
+.RS 2
+.PD 0
+.IP "-" 2
+determines the number of physical cores and the number of threads per core
+.IP "-"
+assumes that only a quarter of the additional hyper-threads are useful
+.IP "-"
+if \fB-m\fP is given. determines the memory size, assumes that at least
+one GB should be available for general usage, and limits the number of
+jobs accordingly.
+.PD
+.RE
+.PP
+The number of jobs is written to STDOUT, and can be used like `njobs`.
+.
+.\" ------------------------------------------------------------------
+.SH OPTIONS
+.
+.\" -- --mem -------------------------------------
+.IP \fB\-m\ \fIsize\fR
+gives the required physical memory per job.
+\fIsize\fP must be given as integer with either a 'M' or 'G', indicating MB 
+or GB.
+.
+.\" -- --verbose ---------------------------------
+.IP \fB\-v\fP
+if given the found system parameters and the reasoning is printed to STDERR.
+.
+.\" ------------------------------------------------------------------
+.SH EXAMPLES
+.IP "\fBmake -j `njobihtm` all\fR" 4
+Start \fBmake\fR(1) with a reasonable number of jobs. 
+.IP "\fBnjobihtm -v -m=2G\fR" 4
+Determines the number of jobs with 2 GB memory per job. On a system with 4 cores
+and hyper-threading and 8 GB installed memory one gets due to the '-v' the
+output
+.EX
+    #cpus:        8
+    #thread/cpu:  2
+    #cores:       4
+    mem(MB):      7961
+    #job (cpus):  5
+    #job (mem):   3
+    3
+.EE
+Note that the '-v' output goes to STDERR, only the answer '3' to STDOUT.
+
+.\" ------------------------------------------------------------------
+.SH AUTHOR
+Walter F.J. Mueller <W.F.J.Mueller@gsi.de>

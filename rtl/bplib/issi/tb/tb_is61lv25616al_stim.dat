@@ -1,0 +1,92 @@
+# $Id: tb_is61lv25616al_stim.dat 146 2008-05-16 19:17:42Z mueller $
+#
+C Write first 8 cells, full words
+#
+wdo   0 ns ce=1 be=11 a=00000 de=1 d=1000
+wdo  10 ns we=1
+wdo  20 ns we=0
+wdo  10 ns ce=1 be=11 a=00001 de=1 d=1101
+wdo  10 ns we=1
+wdo  20 ns we=0
+wdo  10 ns ce=1 be=11 a=00002 de=1 d=1202
+wdo  10 ns we=1
+wdo  20 ns we=0
+wdo  10 ns ce=1 be=11 a=00003 de=1 d=1303
+wdo  10 ns we=1
+wdo  20 ns we=0
+wdo  10 ns ce=1 be=11 a=00004 de=1 d=1404
+wdo  10 ns we=1
+wdo  20 ns we=0
+wdo  10 ns ce=1 be=11 a=00005 de=1 d=1505
+wdo  10 ns we=1
+wdo  20 ns we=0
+wdo  10 ns ce=1 be=11 a=00006 de=1 d=1606
+wdo  10 ns we=1
+wdo  20 ns we=0
+wdo  10 ns ce=1 be=11 a=00007 de=1 d=1707
+wdo  10 ns we=1
+wdo  20 ns we=0
+#
+wdo  10 ns be=11 de=0
+wdo  20 ns
+#
+C Read first 8 cells
+#
+wdo  20 ns oe=1 a=00000
+wdo  20 ns D=1000
+wdo   0 ns oe=1 a=00001
+wdo  20 ns D=1101
+wdo   0 ns oe=1 a=00002
+wdo  20 ns D=1202
+wdo   0 ns oe=1 a=00003
+wdo  20 ns D=1303
+wdo   0 ns oe=1 a=00004
+wdo  20 ns D=1404
+wdo   0 ns oe=1 a=00005
+wdo  20 ns D=1505
+wdo   0 ns oe=1 a=00006
+wdo  20 ns D=1606
+wdo   0 ns oe=1 a=00007
+wdo  20 ns D=1707
+#
+wdo   0 ns oe=0
+wdo  20 ns
+#
+C Byte write in last 4 cells
+wdo   0 ns ce=1 be=00 a=00004 de=1 d=3414    -- no write
+wdo  10 ns we=1
+wdo  20 ns we=0
+wdo  10 ns ce=1 be=01 a=00005 de=1 d=3515    -- low byte write
+wdo  10 ns we=1
+wdo  20 ns we=0
+wdo  10 ns ce=1 be=10 a=00006 de=1 d=3616    -- high byte write
+wdo  10 ns we=1
+wdo  20 ns we=0
+wdo  10 ns ce=1 be=11 a=00007 de=1 d=3717    -- full word write
+wdo  10 ns we=1
+wdo  20 ns we=0
+#
+wdo  10 ns be=11 de=0
+wdo  20 ns
+#
+C Read again first 8 cells
+#
+wdo  20 ns oe=1 a=00000
+wdo  20 ns D=1000
+wdo   0 ns oe=1 a=00001
+wdo  20 ns D=1101
+wdo   0 ns oe=1 a=00002
+wdo  20 ns D=1202
+wdo   0 ns oe=1 a=00003
+wdo  20 ns D=1303
+wdo   0 ns oe=1 a=00004
+wdo  20 ns D=1404
+wdo   0 ns oe=1 a=00005
+wdo  20 ns D=1515
+wdo   0 ns oe=1 a=00006
+wdo  20 ns D=3606
+wdo   0 ns oe=1 a=00007
+wdo  20 ns D=3717
+#
+wdo  20 ns
+#

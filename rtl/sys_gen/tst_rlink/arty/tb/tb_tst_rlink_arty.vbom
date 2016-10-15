@@ -1,7 +1,9 @@
 # configure tb_arty with sys_tst_rlink_arty target;
 # use vhdl configure file (tb_tst_rlink_arty.vhd) to allow
 # that all configurations will co-exist in work library
-${arty_aif := ../sys_tst_rlink_arty.vbom}
+# configure
+arty_aif = ../sys_tst_rlink_arty.vbom
 sys_conf = sys_conf_sim.vhd
+# design
 ../../../../bplib/arty/tb/tb_arty.vbom
 tb_tst_rlink_arty.vhd

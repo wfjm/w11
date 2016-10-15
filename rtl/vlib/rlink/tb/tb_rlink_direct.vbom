@@ -1,6 +1,8 @@
 # configure tb_rlink with tbd_rlink_direct wrapper
 # use vhdl configure file (tb_rlink_direct.vhd) at allow 
 # that all configurations will co-exist in work library
+# configure
 uut = tbd_rlink_direct.vbom
+# design
 tb_rlink.vbom
 tb_rlink_direct.vhd

@@ -1,0 +1,23 @@
+# Not meant for direct top level usage. Used with 
+# tb_nexys2_(....)[_ssim].vbom and config
+# lines to generate the different cases.
+#
+# libs
+../../../vlib/slvtypes.vhd
+../../../vlib/rlink/rlinklib.vbom
+../../../vlib/xlib/xlib.vhd
+../nexys2lib.vhd
+../../../vlib/simlib/simlib.vhd
+../../../vlib/simlib/simbus.vhd
+${sys_conf := sys_conf_sim.vhd}
+# components
+../../../vlib/simlib/simclk.vbom
+../../../vlib/simlib/simclkcnt.vbom
+../../../vlib/rlink/tbcore/tbcore_rlink.vbom
+../../../vlib/xlib/dcm_sfs_gsim.vbom
+tb_nexys2_core.vbom
+../../../vlib/serport/tb/serport_master_tb.vbom
+${nexys2_aif := nexys2_dummy.vbom}  -UUT
+# design
+tb_nexys2.vhd
+@top:tb_nexys2

@@ -1,4 +1,4 @@
-# conf
+# configure
 sys_conf = sys_conf1_sim.vhd
 # libs
 ../../../../vlib/slvtypes.vhd

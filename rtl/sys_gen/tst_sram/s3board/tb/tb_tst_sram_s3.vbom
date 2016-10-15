@@ -1,0 +1,9 @@
+# configure tb_s3board with sys_tst_sram_s3 target;
+# use vhdl configure file (tb_tst_sram_s3.vhd) to allow
+# that all configurations will co-exist in work library
+# configure
+s3board_aif = ../sys_tst_sram_s3.vbom
+sys_conf = sys_conf_sim.vhd
+# design
+../../../../bplib/s3board/tb/tb_s3board.vbom
+tb_tst_sram_s3.vhd

@@ -1,6 +1,6 @@
--- $Id: tb_tst_serloop_s3.vhd 444 2011-12-25 10:04:58Z mueller $
+-- $Id: tb_tst_serloop_s3.vhd 805 2016-09-03 08:09:52Z mueller $
 --
--- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -26,6 +26,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-09-03   805   1.2    remove CLK_STOP logic (simstop via report)
 -- 2011-12-23   444   1.1    use new simclk
 -- 2011-11-17   426   1.0.1  use dcm_sfs now
 -- 2011-11-06   420   1.0    Initial version 
@@ -47,7 +48,6 @@ end tb_tst_serloop_s3;
 architecture sim of tb_tst_serloop_s3 is
   
   signal CLK50 : slbit := '0';
-  signal CLK_STOP  : slbit := '0';
 
   signal CLKS  : slbit := '0';
   
@@ -71,9 +71,9 @@ architecture sim of tb_tst_serloop_s3 is
   signal FUSP_RXD : slbit := '1';
   signal FUSP_TXD : slbit := '1';
   
-  constant clock_period : time :=   20 ns;
-  constant clock_offset : time :=  200 ns;
-  constant delay_time :   time :=    2 ns;
+  constant clock_period : Delay_length :=   20 ns;
+  constant clock_offset : Delay_length :=  200 ns;
+  constant delay_time :   Delay_length :=    2 ns;
   
 begin
 
@@ -82,8 +82,7 @@ begin
       PERIOD => clock_period,
       OFFSET => clock_offset)
     port map (
-      CLK       => CLK50,
-      CLK_STOP  => CLK_STOP
+      CLK       => CLK50
     );
 
   DCM_S : dcm_sfs
@@ -123,7 +122,6 @@ begin
     port map (
       CLKS      => CLKS,
       CLKH      => CLKS,
-      CLK_STOP  => CLK_STOP,
       P0_RXD    => RXD,
       P0_TXD    => TXD,
       P0_RTS_N  => '0',

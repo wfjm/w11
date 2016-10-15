@@ -1,10 +1,11 @@
-# $Id: generic_ghdl.mk 778 2016-06-25 15:18:01Z mueller $
+# $Id: generic_ghdl.mk 781 2016-07-01 16:56:02Z mueller $
 #
 # Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2016-07-01   781   1.1.1  ghdl_clean: remove also gcov files
 # 2016-06-24   778   1.1    add rsim model; use ghdl.?sim as workdir
 # 2015-02-14   646   1.0    Initial version (cloned from make_ise)
 #
@@ -35,6 +36,7 @@ include ${RETROBASE}/rtl/make_ise/dontincdep.mk
 ghdl_clean: ghdl_tmp_clean
 	rm -f $(EXE_all)
 	rm -f $(EXE_all:%=%_[sor]sim)
+	rm -f *.gcov *.gcda *.gcno
 #
 ghdl_tmp_clean:
 	rm -rf ghdl.[bsor]sim

@@ -1,4 +1,4 @@
--- $Id: pdp11_dmscnt.vhd 767 2016-05-26 07:47:51Z mueller $
+-- $Id: pdp11_dmscnt.vhd 784 2016-07-09 22:17:01Z mueller $
 --
 -- Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -27,7 +27,7 @@
 --
 -- Revision History: -
 -- Date         Rev Version  Comment
--- 2016-05-22   787   1.1.1  don't init N_REGS (vivado fix for fsm inference)
+-- 2016-05-22   767   1.1.1  don't init N_REGS (vivado fix for fsm inference)
 -- 2015-12-28   721   1.1    use laddr/waddr; use ena instead of cnt;
 -- 2015-07-19   702   1.0    Initial version
 -- 2015-06-26   695   1.0    First draft 

@@ -1,4 +1,4 @@
--- $Id: pdp11_vmbox.vhd 767 2016-05-26 07:47:51Z mueller $
+-- $Id: pdp11_vmbox.vhd 784 2016-07-09 22:17:01Z mueller $
 --
 -- Copyright 2006-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -27,7 +27,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2016-05-22   787   1.6.6  don't init N_REGS (vivado fix for fsm inference)
+-- 2016-05-22   767   1.6.6  don't init N_REGS (vivado fix for fsm inference)
 -- 2015-07-03   697   1.6.5  much wider DM_STAT_VM
 -- 2015-04-04   662   1.6.4  atowidth now 6 (was 5) to support ibdr_rprm reset
 -- 2011-11-18   427   1.6.3  now numeric_std clean

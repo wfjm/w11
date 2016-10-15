@@ -1,6 +1,7 @@
 # libs
 ../../../vlib/slvtypes.vhd
 ../../../vlib/simlib/simlib.vhd
+../../../vlib/simlib/simbus.vhd
 ../../../vlib/serport/tb/serportlib_tb.vhd
 # components
 ../../../vlib/simlib/simclkcnt.vbom

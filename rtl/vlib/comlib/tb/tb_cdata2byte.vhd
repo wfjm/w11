@@ -1,4 +1,4 @@
--- $Id: tb_cdata2byte.vhd 599 2014-10-25 13:43:56Z mueller $
+-- $Id: tb_cdata2byte.vhd 790 2016-07-20 18:52:44Z mueller $
 --
 -- Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -52,7 +52,7 @@ end tb_cdata2byte;
 architecture sim of tb_cdata2byte is
   
   constant clk_dsc : clock_dsc := (20 ns, 1 ns, 1 ns);
-  constant clk_offset : time := 200 ns;
+  constant clk_offset : Delay_length := 200 ns;
   
   signal CLK :  slbit := '0';
   signal RESET :  slbit := '0';

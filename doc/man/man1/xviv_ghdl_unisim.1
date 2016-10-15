@@ -1,18 +1,20 @@
 .\"  -*- nroff -*-
-.\"  $Id: xviv_ghdl_unisim.1 779 2016-06-26 15:37:16Z mueller $
+.\"  $Id: xviv_ghdl_unisim.1 782 2016-07-03 08:09:36Z mueller $
 .\"
-.\" Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH XVIV_GHDL_UNISIM 1 2015-02-04 "Retro Project" "Retro Project Manual"
+.TH XVIV_GHDL_UNISIM 1 2016-07-02 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 xviv_ghdl_unisim \- compile Xilinx Vivado UNISIM and UNIMACRO libraries for ghdl
 .\" ------------------------------------------------------------------
 .SH SYNOPSIS
 .
-.B xviv_ghdl_unisim
+.SY xviv_ghdl_unisim
+.RI [ GHDL-OPTIONS ]...
+.YS
 .
 .\" ------------------------------------------------------------------
 .SH DESCRIPTION
@@ -40,7 +42,13 @@ self-referencial initializations. They seem to be tolerated by the commercial
 tools but not by \fBghdl\fP.
 The \fBxilinx_vhdl_memcolltype_fix\fP
 helper script simply removes them, no further problems seen so far.
-
+.
+.\" ------------------------------------------------------------------
+.SH OPTIONS
+Options added after the xviv_ghdl_unisim command are simply forwarded to
+the 'ghdl -a' commands. In general used to specify the optimize level.
+If no options given \fI-O2 -g\fP is used.
+.
 .\" ------------------------------------------------------------------
 .SH ENVIRONMENT
 .IP \fBXTWV_PATH\fP

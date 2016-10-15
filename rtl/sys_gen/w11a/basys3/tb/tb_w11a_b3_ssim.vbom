@@ -1,6 +1,8 @@
 # configure for _*sim case
 # Note: this tb uses sys_w11a_b3.vbom in local directory
 #       (not in .. as usual) to allow a tb specific configure !!!
+# configure
 basys3_aif = sys_w11a_b3_ssim.vhd
+# design
 tb_w11a_b3.vbom
 @top:tb_w11a_b3

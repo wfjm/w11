@@ -1,14 +1,19 @@
 #!/bin/bash
-# $Id: tbrun_tbwrri 778 2016-06-25 15:18:01Z mueller $
+# $Id: tbrun_tbwrri 808 2016-09-17 13:02:46Z mueller $
 #
 # Copyright 2014-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2016-09-17   808   1.3.3  add --r(l|b)mon,(b|s)wait; configure now via _conf=
+# 2016-09-03   805   1.3.2  add TIMEFORMAT and time for make commands
+# 2016-08-21   800   1.3.1  add -norun, -nomake
+# 2016-08-06   795   1.3    use tbfilt; fixup -lsuf logic
+# 2016-07-03   783   1.2.5  drop ghdl_assert_filter (use --ieee=... at ghdl lvl)
 # 2016-06-25   778   1.2.4  drop make ghdl_tmp_clean logic
 # 2016-06-18   776   1.2.3  use ti_rri --tout to set connection timeout
-# 2016-06-05   773   1.2.2  use _bsim.log for behavioural sim log
+# 2016-06-05   773   1.2.2  use _bsim.log for behavioral sim log
 # 2016-03-20   748   1.2.1  BUGFIX: add portsel oob for -hxon
 #                           use 120 sec timeout for simulation
 # 2016-03-18   745   1.2    use --sxon and --hxon instead of --xon
@@ -26,13 +31,17 @@ chkval ()
 
 docmd ()
 {
-  echo "$1"
   if [[ -z "$optdry" ]] ; then
+    echo "$2"
     eval "$1"
+  else
+    echo "$1"
   fi
 }
 
 optdry=""
+optnomake=""
+optnorun=""
 optlsuf=""
 optstack=""
 optghw=""
@@ -44,23 +53,33 @@ optcuff=""
 optfusp=""
 optsxon=""
 opthxon=""
+optrlmon=""
+optrbmon=""
+optbwait=0
+optswait=0
 
 # handle options
 while (( $# > 0 )) ; do
   case $1 in
-    -dry|--dry)     optdry=$1    ;             shift 1 ;;
-    -lsuf|--lsuf)   optlsuf=$2   ; chkval $2 ; shift 2 ;;
-    -stack|--stack) optstack=$2  ; chkval $2 ; shift 2 ;;
-    -ghw|--ghw)     optghw=$2    ; chkval $2 ; shift 2 ;;
-    -tbw|--tbw)     opttbw=$2    ; chkval $2 ; shift 2 ;;
-    -pack|--pack)   optpack=$2   ; chkval $2 ; shift 2 ;;
-    -rri|--rri)     optrri=$2    ; chkval $2 ; shift 2 ;;
-    -cuff|--cuff)   optcuff=$1   ;             shift 1 ;;
-    -fusp|--fusp)   optfusp=$1   ;             shift 1 ;;
-    -sxon|--sxon)   optsxon=$1   ;             shift 1 ;;
-    -hxon|--hxon)   opthxon=$1   ;             shift 1 ;;
-    -pcom|--pcom)   optpcom=$1   ;             shift 1 ;;
-    -\?|-h*|--h*)   opthelp=$1   ;             shift 1 ;;
+    -dry|--dry)       optdry=$1    ;             shift 1 ;;
+    -nomake|--nomake) optnomake=$1 ;             shift 1 ;;
+    -norun|--norun)   optnorun=$1  ;             shift 1 ;;
+    -lsuf|--lsuf)     optlsuf=$2   ; chkval $2 ; shift 2 ;;
+    -stack|--stack)   optstack=$2  ; chkval $2 ; shift 2 ;;
+    -ghw|--ghw)       optghw=$2    ; chkval $2 ; shift 2 ;;
+    -tbw|--tbw)       opttbw=$2    ; chkval $2 ; shift 2 ;;
+    -pack|--pack)     optpack=$2   ; chkval $2 ; shift 2 ;;
+    -rri|--rri)       optrri=$2    ; chkval $2 ; shift 2 ;;
+    -cuff|--cuff)     optcuff=$1   ;             shift 1 ;;
+    -fusp|--fusp)     optfusp=$1   ;             shift 1 ;;
+    -sxon|--sxon)     optsxon=$1   ;             shift 1 ;;
+    -hxon|--hxon)     opthxon=$1   ;             shift 1 ;;
+    -pcom|--pcom)     optpcom=$1   ;             shift 1 ;;
+    -rlmon|--rlmon)   optrlmon=$1  ;             shift 1 ;;
+    -rbmon|--rbmon)   optrlmon=$1  ;             shift 1 ;;
+    -bwait|--bwait)   optbwait=$2  ; chkval $2 ; shift 2 ;;
+    -swait|--swait)   optswait=$2  ; chkval $2 ; shift 2 ;;
+    -\?|-h*|--h*)     opthelp=$1   ;             shift 1 ;;
     -*)             echo "tbrun_tbwrri-E: invalid option '$1'"; exit 1 ;;
     *)     break;;
   esac
@@ -71,6 +90,8 @@ if [[ -n "$opthelp" || $# -eq 0 ]] ; then
   echo "Usage: tbrun_tbwrri [opts] testbench rricmds..."
   echo "  Options:"
   echo "  --dry             dry run, print commands, don't execute"
+  echo "  --nomake          don't execute make step"
+  echo "  --norun           don't execute run  step"
   echo "  --lsuf  suff      use '_<suff>.log' as suffix for log file"
   echo "  --stack nnn       use <nnn> as ghdl stack size"
   echo "  --ghw   fname     write ghw file with name '<fname>.ghw'"
@@ -82,6 +103,10 @@ if [[ -n "$opthelp" || $# -eq 0 ]] ; then
   echo "  --sxon            use xon with 1st serport (via SWI(1))"
   echo "  --hxon            use xon with 1st serport (hardwired)"
   echo "  --pcom            print test comments"
+  echo "  --rlmon           enable rlmon"
+  echo "  --rbmon           enable rbmon"
+  echo "  --bwait ns        start-up wait in ns for behavioral simulations"
+  echo "  --swait ns        start-up wait in ns for post-syn simulations"
   exit 1
 fi
 
@@ -99,86 +124,116 @@ fi
 
 tbench=$1
 shift 1
+makeopts=""
 
 tbenchname=$(basename $tbench)
 tbenchpath=$(dirname  $tbench)
 
 # issue makes
-docmd "make -C $tbenchpath $tbenchname"
-exitstat=$?
+#   add -C $tbenchpath only if not '.' to avoid 'Entering/Leaving' messages
+makeopts=""
+if [[ "$tbenchpath" != "." ]] ; then
+  makeopts="-C $tbenchpath"
+fi
+if [[ -z "$optnomake" ]] ; then
+  cmd="TIMEFORMAT=$'real %3lR   user %3lU   sys %3lS'"
+  cmd+=$'\n'
+  cmd+="time make $makeopts $tbench"
+  docmd "$cmd"
+  exitstat=$?
+  if (( $exitstat > 0 )) ; then exit $exitstat; fi
+  echo ""
+fi
 
-if (( $exitstat > 0 )) ; then exit $exitstat; fi
+# check for test bench
+if [[ ! -x $tbench ]] ; then
+  echo "tbrun_tbwrri-E: $tbench not existing or not executable"
+  exit 1
+fi
 
-# determine logfile name
+# determine logfile name and determine startup wait (bwait or swait)
 logsuff="_bsim"
-if [[ $tbenchname =~ _[sft]sim$ ]] ; then logsuff=""; fi
-if [[ -n "$optlsuf" ]] ;             then logsuff="_$optlsuf"; fi
+waitns=$optbwait
+if [[ $tbenchname =~ _[fsorept]sim$ ]] ; then 
+  logsuff=""
+  waitns=$optswait
+fi
+if [[ -n "$optlsuf" ]] ;                 then logsuff+="_$optlsuf"; fi
 
 logfile="${tbenchname}${logsuff}.log"
 
+# determine simbus configure (done with inline mode _conf={l1;l2;l3})
+# Note: .sdata expects hex in full signal size (addr 8 bit, data 16 bit)
+conf=""
+if [[ -n "$optcuff" ]] ; then
+  conf+=".sdata 08 0004;"    # portsel = 0100 -> fx2
+  conf+=".sdata 10 0004;"    # swi     = 0100 -> fx2
+fi
+
+if [[ -n "$optfusp" ]] ; then
+  conf+=".sdata 08 0001;"    # portsel = 0001 -> 2nd ser
+  conf+=".sdata 10 0001;"    # swi     = 0001 -> 2nd ser
+fi
+
+if [[ -n "$optsxon" ]] ; then
+  conf+=".sdata 08 0002;"    # portsel = 0010 -> 1st ser XON
+  conf+=".sdata 10 0002;"    # swi     = 0010 -> 1st ser XON
+fi
+
+if [[ -n "$opthxon" ]] ; then
+  conf+=".sdata 08 0002;"    # portsel = 0010 -> 1st ser XON
+fi
+
+if (( $waitns > 0 )) ; then
+  conf+=".wait $waitns ns;" 
+fi
+
 # now build actual test command
-cmd="time ti_rri --run=\"tbw $tbench -fifo"
-if [[ -n "$opttbw" ]] ; then    cmd+=" $opttbw"; fi
-if [[ -n "$optstack" ]] ; then  cmd+=" --stack-max-size=$optstack"; fi
+cmdtb+="ti_rri --run=\"tbw $tbench -fifo"
+if [[ -n "$conf" ]] ;   then    cmdtb+=" '_conf={$conf}'"; fi
+if [[ -n "$opttbw" ]] ; then    cmdtb+=" $opttbw"; fi
+if [[ -n "$optstack" ]] ; then  cmdtb+=" --stack-max-size=$optstack"; fi
 if [[ -n "$optghw" ]] ; then 
   if [[ "$optghw" != *.ghw ]]; then optghw="$optghw.ghw"; fi
-  cmd+=" --wave=$optghw"; 
+  cmdtb+=" --wave=$optghw"; 
 fi
-cmd+=" 2>&1 | ghdl_assert_filter\""
+cmdtb+=" 2>&1 \""
 
 # Note: the following ensurs that we always have 'fifo=,<options>' with an
 #       empty first field (the default fifo name)
 fifoopts=""
 if [[ -n "$opthxon" ]] ; then   fifoopts+=",xon"; fi
 if [[ -n "$optsxon" ]] ; then   fifoopts+=",xon"; fi
-if (( $ncfxcount > 0 )) ; then  fifoopts+=",noinit"; fi
 
 if [[ -n "$fifoopts" ]] ; then
-  cmd+=" --fifo=$fifoopts"
+  cmdtb+=" --fifo=$fifoopts"
 else
-  cmd+=" --fifo"
+  cmdtb+=" --fifo"
 fi
 
-cmd+=" --logl=3"
-cmd+=" --tout=120."             # 120 sec timeout for simulation
+cmdtb+=" --logl=3"
+cmdtb+=" --tout=120."             # 120 sec timeout for simulation
 
-if [[ -n "$optpack" ]] ; then   cmd+=" --pack=$optpack"; fi
-if [[ -n "$optrri" ]] ; then    cmd+=" $optrri"; fi
+if [[ -n "$optpack" ]] ; then   cmdtb+=" --pack=$optpack"; fi
+if [[ -n "$optrri" ]] ; then    cmdtb+=" $optrri"; fi
 
-cmd+=" --"
-
-if [[ -n "$optcuff" ]] ; then
-  cmd+=" \"rlc oob -sbdata  8 0x4\""    # portsel = 0100 -> fx2
-  cmd+=" \"rlc oob -sbdata 16 0x4\""    # swi     = 0100 -> fx2
-fi
-
-if [[ -n "$optfusp" ]] ; then
-  cmd+=" \"rlc oob -sbdata  8 0x1\""    # portsel = 0001 -> 2nd ser
-  cmd+=" \"rlc oob -sbdata 16 0x1\""    # swi     = 0001 -> 2nd ser
-fi
-
-if [[ -n "$optsxon" ]] ; then
-  cmd+=" \"rlc oob -sbdata  8 0x2\""    # portsel = 0010 -> 1st ser XON
-  cmd+=" \"rlc oob -sbdata 16 0x2\""    # swi     = 0010 -> 1st ser XON
-fi
-
-if [[ -n "$opthxon" ]] ; then
-  cmd+=" \"rlc oob -sbdata  8 0x2\""    # portsel = 0010 -> 1st ser XON
-fi
-
-if (( $ncfxcount > 0 )) ; then  cmd+=" \"rlc init\""; fi
+cmdtb+=" --"
 
 while (( $# > 0 )) ; do
-  cmd+=" "
-  if [[ $1 =~ " " ]] ; then cmd+="\""; fi
-  cmd+="$1"
-  if [[ $1 =~ " " ]] ; then cmd+="\""; fi
+  cmdtb+=" "
+  if [[ $1 =~ " " ]] ; then cmdtb+="\""; fi
+  cmdtb+="$1"
+  if [[ $1 =~ " " ]] ; then cmdtb+="\""; fi
   shift 1
 done
-cmd+=" | tee $logfile"
 
-pcomtag=""
-if [[ -n "$optpcom" ]] ; then pcomtag="^\#|"; fi
-# FAIL, PASS, DONE come from tbs
-cmd+=" | egrep \"(${pcomtag}-[EFW]:|FAIL|PASS|DONE)\""
-docmd "$cmd"
+cmdtf="tbfilt -tee $logfile"
+if [[ -n "$optpcom" ]] ; then cmdtf+=" -pcom"; fi
+
+cmd="(export TIMEFORMAT=$'real %3lR   user %3lU   sys %3lS'; time $cmdtb) 2>&1"
+cmd+=" | $cmdtf"
+txt="$cmdtb | $cmdtf"
+
+if [[ -z "$optnorun" ]] ; then
+  docmd "$cmd" "$txt"
+fi

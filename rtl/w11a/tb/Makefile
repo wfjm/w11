@@ -5,6 +5,7 @@
 # 2016-03-13   744   1.0    Initial version
 #
 EXE_all  = tb_pdp11core
+EXE_all += tb_rlink_tba_pdp11core
 
 #
 # reference board for test synthesis is Artix-7 based Nexys4

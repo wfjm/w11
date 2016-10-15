@@ -1,4 +1,4 @@
--- $Id: clkdivce.vhd 751 2016-03-25 19:46:11Z mueller $
+-- $Id: clkdivce.vhd 807 2016-09-17 07:49:26Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,12 +20,15 @@
 -- Target Devices: generic
 -- Tool versions:  ise 8.2-14.7; viv 2014.4-2015.4; ghdl 0.18-0.33
 -- Revision History: 
--- Date        Rev  Version    Comment
+-- Date         Rev Version  Comment
 -- 2011-10-22   418   1.0.3  now numeric_std clean
 -- 2008-01-20   112   1.0.2  rename clkgen->clkdivce; remove SYS_CLK port
 -- 2007-10-12    88   1.0.1  avoid ieee.std_logic_unsigned, use cast to unsigned
 -- 2007-06-30    62   1.0    Initial version 
 ------------------------------------------------------------------------------
+-- Note: for test bench usage a copy of the clkdivce entity, with _tb
+--       appended to the name, has been created in the /tb sub folder.
+--       Ensure to update the copy when this file is changed !!
 
 library ieee;
 use ieee.std_logic_1164.all;

@@ -1,4 +1,4 @@
--- $Id: pdp11_bram_memctl.vhd 767 2016-05-26 07:47:51Z mueller $
+-- $Id: pdp11_bram_memctl.vhd 784 2016-07-09 22:17:01Z mueller $
 --
 -- Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -22,7 +22,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2016-05-22   787   1.1.1  don't init N_REGS (vivado fix for fsm inference)
+-- 2016-05-22   767   1.1.1  don't init N_REGS (vivado fix for fsm inference)
 -- 2016-03-20   749   1.1    use ram_1swsr_wfirst_gen rather BRAM_SINGLE_MACRO
 -- 2015-02-08   644   1.0    Initial version 
 ------------------------------------------------------------------------------

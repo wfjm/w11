@@ -13,7 +13,7 @@
 ../../../ibus/iblib.vhd
 ../../../ibus/ibdlib.vhd
 ../../../w11a/pdp11.vhd
-sys_conf = sys_conf.vhd
+${sys_conf := sys_conf.vbom}
 # components
 [xst,vsyn]../../../vlib/xlib/dcm_sfs_unisim_s3e.vbom
 [ghdl,isim,vsim]../../../vlib/xlib/dcm_sfs_gsim.vbom

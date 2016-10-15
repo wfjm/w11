@@ -1,4 +1,4 @@
--- $Id: s6_cmt_sfs_gsim.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: s6_cmt_sfs_gsim.vhd 799 2016-08-21 09:20:19Z mueller $
 --
 -- Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,10 +19,11 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic Spartan-6
--- Tool versions:  xst 14.5-14.7; ghdl 0.29-0.31
+-- Tool versions:  xst 14.5-14.7; ghdl 0.29-0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-08-18   799   1.0.1  remove 'assert false' from report statements
 -- 2013-10-06   538   1.0    Initial version (derived from s7_cmt_sfs_gsim)
 ------------------------------------------------------------------------------
 
@@ -51,7 +52,7 @@ end s6_cmt_sfs;
 architecture sim of s6_cmt_sfs is
 
   signal CLK_DIVPULSE : slbit := '0';
-  signal CLKOUT_PERIOD : time := 0 ns;
+  signal CLKOUT_PERIOD : Delay_length := 0 ns;
   signal R_CLKOUT : slbit := '0';
   signal R_LOCKED : slbit := '0';
   
@@ -65,20 +66,19 @@ begin
     constant f_pdmin_pll   : integer :=   19;
     constant f_pdmax_pll   : integer :=  375;
 
-    variable t_vco : time := 0 ns;
-    variable t_vcomin : time := 0 ns;
-    variable t_vcomax : time := 0 ns;
-    variable t_pd : time := 0 ns;
-    variable t_pdmin : time := 0 ns;
-    variable t_pdmax : time := 0 ns;
+    variable t_vco : Delay_length := 0 ns;
+    variable t_vcomin : Delay_length := 0 ns;
+    variable t_vcomax : Delay_length := 0 ns;
+    variable t_pd : Delay_length := 0 ns;
+    variable t_pdmin : Delay_length := 0 ns;
+    variable t_pdmax : Delay_length := 0 ns;
 
   begin
     -- validate generics
 
     
     if not (GEN_TYPE = "PLL" or GEN_TYPE = "DCM") then
-      assert false 
-        report "assert(GEN_TYPE='PLL' or GEN_TYPE='DCM')"
+      report "assert(GEN_TYPE='PLL' or GEN_TYPE='DCM')"
         severity failure;
     end if;
 
@@ -90,8 +90,7 @@ begin
            VCO_MULTIPLY<1 or VCO_MULTIPLY>64 or
            OUT_DIVIDE<1   or OUT_DIVIDE>128
         then
-          assert false 
-            report
+          report
           "assert(VCO_DIVIDE in 1:52 VCO_MULTIPLY in 1:64 OUT_DIVIDE in 1:128)"
             severity failure;
         end if;
@@ -106,14 +105,12 @@ begin
         t_vco := t_pd / VCO_MULTIPLY;
 
         if t_vco<t_vcomin or t_vco>t_vcomax then
-          assert false 
-            report "assert(VCO frequency out of range)"
+          report "assert(VCO frequency out of range)"
             severity failure;
         end if;
       
         if t_pd<t_pdmin or t_pd>t_pdmax then
-          assert FALSE 
-            report "assert(PD frequency out of range)"
+          report "assert(PD frequency out of range)"
             severity failure;
         end if;
 
@@ -125,8 +122,7 @@ begin
            VCO_MULTIPLY<2 or VCO_MULTIPLY>32 or
            OUT_DIVIDE/=1
         then
-          assert false 
-            report
+          report
           "assert(VCO_DIVIDE in 1:32 VCO_MULTIPLY in 2:32 OUT_DIVIDE=1)"
             severity failure;
         end if;
@@ -139,8 +135,8 @@ begin
 
   proc_clkin : process (CLKIN)
     variable t_lastclkin : time := 0 ns;
-    variable t_lastperiod : time := 0 ns;
-    variable t_period : time := 0 ns;
+    variable t_lastperiod : Delay_length := 0 ns;
+    variable t_period : Delay_length := 0 ns;
     variable nclkin : integer := 1;
   begin
     
@@ -175,8 +171,8 @@ begin
 
   proc_clkout : process
     variable t_lastclkin : time := 0 ns;
-    variable t_lastperiod : time := 0 ns;
-    variable t_period : time := 0 ns;
+    variable t_lastperiod : Delay_length := 0 ns;
+    variable t_period : Delay_length := 0 ns;
     variable nclkin : integer := 1;
   begin
 

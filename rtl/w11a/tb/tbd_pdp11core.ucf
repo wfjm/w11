@@ -1,0 +1,7 @@
+# $Id: tbd_pdp11core.ucf 351 2010-12-30 21:50:54Z mueller $
+#
+#
+NET "CLK" TNM_NET = "CLK";
+TIMESPEC "TS_CLK" = PERIOD "CLK" 20 ns HIGH 50 %;
+OFFSET = IN 10 ns BEFORE "CLK"  ;
+OFFSET = OUT 20 ns AFTER "CLK"  ;

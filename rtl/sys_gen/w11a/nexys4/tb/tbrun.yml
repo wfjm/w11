@@ -1,0 +1,40 @@
+# $Id: tbrun.yml 809 2016-09-18 19:49:14Z mueller $
+#
+# Revision History:
+# Date         Rev Version  Comment
+# 2016-09-18   809   1.0.1  use 60 sec tout for run_pdpcp tb_pdp11core_stim
+# 2016-08-21   799   1.0    Initial version
+#
+- default:
+    mode: ${viv_modes}
+#
+- tag:  [default, viv, sys_w11a, n4, stim1]
+  test: |
+    tbrun_tbwrri --lsuf stim1  tb_w11a_n4${ms} \
+      "rlink::run_rri ../../../../w11a/tb/tb_rlink_tba_pdp11core_stim.dat"
+
+- tag:  [default, viv, sys_w11a, n4, mem70]
+  test: |
+    tbrun_tbwrri --lsuf mem70  --pack rw11  tb_w11a_n4${ms} \
+      "rw11::setup_cpu" "rw11::run_pdpcp ../../tb/tb_w11a_mem70.dat"
+
+- tag:  [default, viv, sys_w11a, n4, mem70_n2]
+  test: |
+    tbrun_tbwrri --lsuf mem70_n2  --pack rw11  tb_w11a_n4${ms} \
+      "rw11::setup_cpu" "rw11::run_pdpcp ../../tb/tb_w11a_mem70_n2.dat"
+
+- tag:  [default, viv, sys_w11a, n4, stim2]
+  test: |
+    tbrun_tbwrri --lsuf stim2  --pack rw11  tb_w11a_n4${ms} \
+      "rw11::setup_cpu" \
+      "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat 60."
+
+- tag:  [default, viv, sys_w11a, n4, tbcpu]
+  test: |
+    tbrun_tbwrri --lsuf tbcpu  --pack rw11  tb_w11a_n4${ms} \
+      "rw11::setup_cpu" "rw11::tbench @cpu_all.dat"
+
+- tag:  [default, viv, sys_w11a, n4, tbdev]
+  test: |
+    tbrun_tbwrri --lsuf tbdev  --pack rw11  tb_w11a_n4${ms} \
+      "rw11::setup_cpu" "rw11::tbench @dev_all.dat"

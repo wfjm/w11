@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: tbw.1 774 2016-06-12 17:08:47Z mueller $
+.\"  $Id: tbw.1 810 2016-10-02 16:51:12Z mueller $
 .\"
 .\" Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH TBW 1 2016-04-17 "Retro Project" "Retro Project Manual"
+.TH TBW 1 2016-10-02 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 tbw \- wrapper script to start ghdl based VHDL test benches
@@ -113,6 +113,23 @@ display time as simulation advances.
 display process name before each cycle.
 .
 .\" ------------------------------------------------------------------
+.
+.SH ENVIRONMENT
+.IP \fBTBW_GHDL_OPTS\fP 4
+Additional options which are passed to ghdl based simulations.
+Of particular value are
+.RS
+.IP "\fB\-\-ieee\-asserts=disable\-at\-0\fP" 4
+suppresses assertion warnings from the ieee libraries at startup time (t=0ns).
+.IP "\fB\-\-unbuffered\fP"
+sets output at all files (stdout, stderr, and files opened for write) to
+unbuffered mode. This is very helpful to keep output from the ghdl
+simulation and other programs in a co-simulation environment in synch.
+Note: only available for ghdl 0.34dev after merge of  Jonsba/master #100 on
+2016-06-26.
+.RE
+.
+.\" ------------------------------------------------------------------
 .SH FILES
 .IP "\fI./tbw.dat\fR" 4
 This configuration file is searched for in the directory of the test bench
@@ -168,7 +185,7 @@ When the simulation stops a line with the word \fIDONE\fP is printed.
 These test benches are usually run like
 
 .EX
-  tbw <testbenchname> [stimfile] | tee <logfile> | egrep "(FAIL|DONE)"
+  tbw <testbenchname> [stimfile] | tbfilt --tee <logfile> 
 .EE
 
 where
@@ -177,10 +194,8 @@ where
 .IP "\-" 2
 \fBtbw\fP sets up the stimulus file and runs the test bench executable
 .IP "\-"
-\fBtee\fP ensures that the full log is saved
-.IP "\-"
-\fBegrep\fP filters \fIFAIL\fP and \fIDONE\fP lines, a successful run will 
-produce a single \fIDONE\fP line
+\fBtbfilt\fP ensures that the full log is saved and the PASS/FAIL criteria
+are extracted
 .PD
 .RE
 
@@ -190,14 +205,13 @@ such a pipeline.
 .SS Test benches controlled with \fBti_rri\fP
 In these cases the test bench is started via \fBti_rri\fP using the
 \fB\-\-run\fP and \fB\-\-fifo\fP options. Also here usually a pipe with 
-\fBtee\fP and \fBegrep\fP is used, a typical example is
+\fBtbfilt\fP(1) is used, a typical example is
 
 .EX
   ti_rri \-\-run="tbw tb_tst_rlink_n3" \-\-fifo \-\-logl=3 \-\- \\
         "package require tst_rlink" \\
         "tst_rlink::setup" "tst_rlink::test_all" |\\
-     tee tb_tst_rlink_n3_bsim.log |\\
-     egrep "(\-[EFW]:|FAIL|PEND|DONE)"
+     tbfilt --tee=tb_tst_rlink_n3_bsim.log 
 .EE
 
 The convenience script \fBtbrun_tbwrri\fP(1) can be used in many cases to
@@ -206,8 +220,9 @@ create these sometimes rather lengthy constructs.
 .
 .\" ------------------------------------------------------------------
 .SH "SEE ALSO"
-.BR ti_rri (1),
 .BR tbrun_tbw (1),
+.BR tbfilt (1),
+.BR ti_rri (1),
 .BR tbrun_tbwrri (1),
 .BR gtkwave (1),
 .BR symlink (7),

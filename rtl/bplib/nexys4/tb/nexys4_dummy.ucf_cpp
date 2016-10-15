@@ -1,0 +1,11 @@
+## $Id: nexys4_dummy.ucf_cpp 534 2013-09-22 21:37:24Z mueller $
+##
+## Revision History: 
+## Date         Rev Version  Comment
+## 2013-09-21   534   1.0    Initial version
+##
+
+## std board
+##
+#include "bplib/nexys4/nexys4_pins.ucf"
+##

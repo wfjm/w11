@@ -1,4 +1,4 @@
--- $Id: tb_arty.vhd 748 2016-03-20 15:18:50Z mueller $
+-- $Id: tb_arty.vhd 809 2016-09-18 19:49:14Z mueller $
 --
 -- Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -26,10 +26,12 @@
 -- To test:        generic, any arty_aif target
 --
 -- Target Devices: generic
--- Tool versions:  viv 2015.4; ghdl 0.33
+-- Tool versions:  viv 2015.4-2016.2; ghdl 0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-09-18   809   1.3    add gsr_pulse (provisional....)
+-- 2016-09-02   805   1.2.1  tbcore_rlink without CLK_STOP now
 -- 2016-03-20   748   1.2    BUGFIX: add PORTSEL_XON logic
 -- 2016-03-06   740   1.1    add A_VPWRN/P to baseline config
 -- 2016-02-20   734   1.0.2  use s7_cmt_sfs_tb to avoid xsim conflict
@@ -59,7 +61,6 @@ architecture sim of tb_arty is
   signal CLKOSC : slbit := '0';         -- board clock (100 Mhz)
   signal CLKCOM : slbit := '0';         -- communication clock
 
-  signal CLK_STOP : slbit := '0';
   signal CLKCOM_CYCLE : integer := 0;
 
   signal RESET : slbit := '0';
@@ -86,18 +87,19 @@ architecture sim of tb_arty is
 
   constant sbaddr_portsel: slv8 := slv(to_unsigned( 8,8));
 
-  constant clock_period : time :=  10 ns;
-  constant clock_offset : time := 200 ns;
+  constant clock_period : Delay_length :=  10 ns;
+  constant clock_offset : Delay_length := 200 ns;
 
 begin
+
+  GINIT : entity work.gsr_pulse;
   
   CLKGEN : simclk
     generic map (
       PERIOD => clock_period,
       OFFSET => clock_offset)
     port map (
-      CLK      => CLKOSC,
-      CLK_STOP => CLK_STOP
+      CLK      => CLKOSC
     );
   
   CLKGEN_COM : entity work.s7_cmt_sfs_tb
@@ -120,7 +122,6 @@ begin
   TBCORE : entity work.tbcore_rlink
     port map (
       CLK      => CLKCOM,
-      CLK_STOP => CLK_STOP,
       RX_DATA  => TXDATA,
       RX_VAL   => TXENA,
       RX_HOLD  => TXBUSY,

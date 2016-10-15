@@ -1,4 +1,4 @@
--- $Id: simlib.vhd 774 2016-06-12 17:08:47Z mueller $
+-- $Id: simlib.vhd 805 2016-09-03 08:09:52Z mueller $
 --
 -- Copyright 2006-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -22,6 +22,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-09-03   805   2.1.4  simclk(v): CLK_STOP,CLK_HOLD now optional ports
+-- 2016-07-16   787   2.1.3  add simbididly component
 -- 2016-06-12   774   2.1.2  add writetimens()
 -- 2014-10-25   599   2.1.1  add wait_* procedures; writeoptint: no dat clear
 -- 2014-10-18   597   2.1    add simfifo_*, writetrace procedures
@@ -240,9 +242,9 @@ procedure writetrace(                   -- debug trace - slv
   dat : in slv);                        -- value
   
 type clock_dsc is record                -- clock descriptor
-  period : time;                        -- clock period
-  hold   : time;                        -- hold time  = clock yo stim time
-  setup  : time;                        -- setup time = moni to clock time
+  period : Delay_length;                -- clock period
+  hold   : Delay_length;                -- hold time  = clock yo stim time
+  setup  : Delay_length;                -- setup time = moni to clock time
 end record;
 
 procedure wait_nextstim(                -- wait for next stim time
@@ -294,11 +296,11 @@ procedure simfifo_dump(                 -- dump simfifo
 
 component simclk is                   -- test bench clock generator
   generic (
-    PERIOD : time := 20 ns;           -- clock period
-    OFFSET : time := 200 ns);         -- clock offset (first up transition)
+    PERIOD : Delay_length := 20 ns;   -- clock period
+    OFFSET : Delay_length := 200 ns); -- clock offset (first up transition)
   port (
     CLK  : out slbit;                 -- clock
-    CLK_STOP : in slbit               -- clock stop trigger
+    CLK_STOP : in slbit := '0'        -- clock stop trigger
   );
 end component;
 
@@ -306,9 +308,9 @@ component simclkv is                  -- test bench clock generator
                                       --  with variable periods
   port (
     CLK  : out slbit;                 -- clock
-    CLK_PERIOD : in time;             -- clock period
-    CLK_HOLD : in slbit;              -- if 1, hold clocks in 0 state
-    CLK_STOP : in slbit               -- clock stop trigger
+    CLK_PERIOD : in Delay_length;     -- clock period
+    CLK_HOLD : in slbit := '0';       -- if 1, hold clocks in 0 state
+    CLK_STOP : in slbit := '0'        -- clock stop trigger
   );
 end component;
 
@@ -316,6 +318,16 @@ component simclkcnt is                -- test bench system clock cycle counter
   port (
     CLK  : in slbit;                  -- clock
     CLK_CYCLE  : out integer          -- clock cycle number
+  );
+end component;
+
+component simbididly is               -- test bench bi-directional bus delay
+  generic (
+    DELAY : Delay_length;             -- transport delay between A and B
+    DWIDTH : positive := 16);         -- data port width
+   port (
+    A : inout slv(DWIDTH-1 downto 0); -- port A
+    B : inout slv(DWIDTH-1 downto 0)  -- port B
   );
 end component;
 

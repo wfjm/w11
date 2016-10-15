@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: vbom.5 779 2016-06-26 15:37:16Z mueller $
+.\"  $Id: vbom.5 782 2016-07-03 08:09:36Z mueller $
 .\"
 .\" Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH VBOM 2016-03-19 "Retro Project" "Retro Project Manual"
+.TH VBOM 2016-07-02 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 vbom \- vhdl manifest file format - 'vhdl bill of material'
@@ -48,13 +48,15 @@ described by this \fBvbom\fP file.
 .B "\fB.v\fP"
 .TQ
 .B "\fB.sv\fP"
-refers to a verilog or system-verilog source file. Accepted by the vivado
+refers to a verilog or system verilog source file. Accepted by the vivado
 xsim simulator. Typically used for DPI wrappers or simprim based models
 in vivado.
 .
 .IP "\fB.c\fP"
-refers to the C source which implements a \fIvhdl\fP function or procedure
-via the \fIvhpi\fP mechanism. Supported only in conjunction with \fBghdl\fP.
+refers to the C sources which implement either a vhdl function or 
+procedure via the VHPI mechanism or a system verilog functions
+via the DPI mechanism. Supported only in conjunction with ghdl
+and vivado simulator.
 .
 .RE
 .

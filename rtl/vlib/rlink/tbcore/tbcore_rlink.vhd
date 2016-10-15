@@ -1,4 +1,4 @@
--- $Id: tbcore_rlink.vhd 731 2016-02-14 21:07:14Z mueller $
+-- $Id: tbcore_rlink.vhd 808 2016-09-17 13:02:46Z mueller $
 --
 -- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -21,9 +21,11 @@
 -- To test:        generic, any rlink_cext based target
 --
 -- Target Devices: generic
--- Tool versions:  ghdl 0.26-0.31
+-- Tool versions:  ghdl 0.26-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-09-17   807   3.2.2  conf: .sinit -> .sdata; finite length SB_VAL pulse
+-- 2016-09-02   805   3.2.1  conf: add .wait and CONF_DONE; drop CLK_STOP
 -- 2016-02-07   729   3.2    use rlink_cext_iface (allow VHPI and DPI backend)
 -- 2015-11-01   712   3.1.3  proc_stim: drive SB_CNTL from start to avoid 'U'
 -- 2013-01-04   469   3.1.2  use 1ns wait for .sinit to allow simbus debugging
@@ -53,7 +55,6 @@ use work.rlinklib.all;
 entity tbcore_rlink is                  -- core of rlink_cext based test bench
   port (
     CLK : in slbit;                     -- control interface clock
-    CLK_STOP : out slbit;               -- clock stop trigger
     RX_DATA : out slv8;                 -- read data         (data ext->tb)
     RX_VAL : out slbit;                 -- read data valid   (data ext->tb)
     RX_HOLD : in slbit;                 -- read data hold    (data ext->tb)
@@ -69,6 +70,7 @@ architecture sim of tbcore_rlink is
   signal CEXT_RXDATA : slv32   := (others=>'0');
   signal CEXT_RXVAL  : slbit   := '0';
   signal CEXT_RXHOLD : slbit   := '1';
+  signal CONF_DONE   : slbit   := '0';
 
 begin
   
@@ -95,9 +97,13 @@ begin
     variable dname : string(1 to 6) := (others=>' ');
     variable ien : slbit := '0';
     variable ibit : integer := 0;
+    variable twait : Delay_length := 0 ns;
     variable iaddr : slv8 := (others=>'0');
     variable idata : slv16 := (others=>'0');
   begin
+
+    CONF_DONE  <= '0';
+    SB_SIMSTOP <= 'L';
     
     SB_CNTL <= (others=>'L');
     SB_VAL  <= 'L';
@@ -120,6 +126,7 @@ begin
             assert (ibit>=SB_CNTL'low and ibit<=SB_CNTL'high)
               report "assert bit number in range of SB_CNTL"
               severity failure;
+            wait for 1 ns;
             if ien = '1' then
               SB_CNTL(ibit) <= 'H';
             else
@@ -128,6 +135,7 @@ begin
 
           when ".rlmon" =>              -- .rlmon
             read_ea(iline, ien);
+            wait for 1 ns;
             if ien = '1' then
               SB_CNTL(sbcntl_sbf_rlmon) <= 'H';
             else
@@ -136,15 +144,17 @@ begin
 
           when ".rbmon" =>              -- .rbmon
             read_ea(iline, ien);
+            wait for 1 ns;
             if ien = '1' then
               SB_CNTL(sbcntl_sbf_rbmon) <= 'H';
             else
               SB_CNTL(sbcntl_sbf_rbmon) <= 'L';
             end if;
 
-          when ".sinit" =>              -- .sinit
-            readgen_ea(iline, iaddr, 8);
-            readgen_ea(iline, idata, 8);
+          when ".sdata" =>              -- .sdata
+            readgen_ea(iline, iaddr, 16);
+            readgen_ea(iline, idata, 16);
+            wait for 1 ns;
             SB_ADDR <= iaddr;
             SB_DATA <= idata;
             SB_VAL  <= 'H';
@@ -152,8 +162,11 @@ begin
             SB_VAL  <= 'L';
             SB_ADDR <= (others=>'L');
             SB_DATA <= (others=>'L');
-            wait for 1 ns;
 
+          when ".wait " =>              -- .wait
+            read_ea(iline, twait);
+            wait for twait;
+            
           when others =>                -- bad command
             write(oline, string'("?? unknown command: "));
             write(oline, dname);
@@ -172,6 +185,8 @@ begin
     SB_ADDR <= (others=>'L');
     SB_DATA <= (others=>'L');
 
+    CONF_DONE  <= '1';
+
     wait;     -- halt process here 
     
   end process proc_conf;
@@ -187,7 +202,6 @@ begin
   begin
 
     -- setup init values for all output ports
-    CLK_STOP <= '0';
     RX_DATA  <= (others=>'0');
     RX_VAL   <= '0';
 
@@ -198,11 +212,14 @@ begin
 
     CEXT_RXHOLD <= '1';
       
-    -- wait for 10 clock cycles (design run up)
+    -- wait for CONF_DONE, but at least 10 clock cycles (conf+design run up)
     for i in 0 to 9 loop
       wait until rising_edge(CLK);
     end loop;  -- i
-
+    while CONF_DONE = '0' loop
+      wait until rising_edge(CLK);      
+    end loop;
+    
     writetimestamp(oline, CLK_CYCLE, ": START");
     writeline(output, oline);
 
@@ -241,10 +258,13 @@ begin
             else
               SB_ADDR <= iaddr;
               SB_DATA <= idata;
+              -- In principle a delta cycle long pulse is enough to make the
+              -- simbus transfer. A 500 ps long pulse is generated to ensure
+              -- that SB_VAL is visible in a viewer. That works up to 1 GHz
               SB_VAL  <= '1';
-              wait for 0 ns;
+              wait for 500 ps;
               SB_VAL  <= 'Z';
-              wait for 0 ns;
+              wait for 0 ps;
             end if;
           end if;
         elsif irxint = -1 then           -- end-of-file seen
@@ -264,14 +284,13 @@ begin
     for i in 0 to 49 loop
       wait until rising_edge(CLK);
     end loop;  -- i
-    
-    CLK_STOP <= '1';
-    
+
     writetimestamp(oline, CLK_CYCLE, ": DONE ");
     writeline(output, oline);
 
-    wait;                               -- suspend proc_stim forever
-                                        -- clock is stopped, sim will end
+    SB_SIMSTOP <= '1';                  -- signal simulation stop
+    wait for 100 ns;                    -- monitor grace time
+    report "Simulation Finished" severity failure; -- end simulation
 
   end process proc_stim;
 

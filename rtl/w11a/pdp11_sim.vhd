@@ -1,4 +1,4 @@
--- $Id: pdp11_sim.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: pdp11_sim.vhd 790 2016-07-20 18:52:44Z mueller $
 --
 -- Copyright 2006-2007 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -31,10 +31,10 @@ use std.textio.all;
 
 package pdp11_sim is
 
-  constant clock_period : time :=  20 ns;
-  constant clock_offset : time := 200 ns;
-  constant setup_time : time := 5 ns;
-  constant c2out_time : time := 5 ns;
+  constant clock_period : Delay_length :=  20 ns;
+  constant clock_offset : Delay_length := 200 ns;
+  constant setup_time : Delay_length := 5 ns;
+  constant c2out_time : Delay_length := 5 ns;
 
 end package pdp11_sim;
 

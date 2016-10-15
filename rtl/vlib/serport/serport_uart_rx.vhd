@@ -1,4 +1,4 @@
--- $Id: serport_uart_rx.vhd 774 2016-06-12 17:08:47Z mueller $
+-- $Id: serport_uart_rx.vhd 784 2016-07-09 22:17:01Z mueller $
 --
 -- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -27,7 +27,7 @@
 -- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.2; ghdl 0.18-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2016-05-22   787   2.0.4  don't init N_REGS (vivado fix for fsm inference)
+-- 2016-05-22   767   2.0.4  don't init N_REGS (vivado fix for fsm inference)
 -- 2011-10-22   417   2.0.3  now numeric_std clean
 -- 2009-07-12   233   2.0.2  remove snoopers
 -- 2008-03-02   121   2.0.1  comment out snoopers

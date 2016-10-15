@@ -1,0 +1,13 @@
+## $Id: fifo_2c_dram.ucf 109 2008-01-01 22:02:27Z mueller $
+##
+## ucf for test synthesis only
+##
+NET "CLKW" TNM_NET = "CLKW";
+TIMESPEC "TS_CLKW" = PERIOD "CLKW" 20 ns HIGH 50 %;
+NET "CLKR" TNM_NET = "CLKR";
+TIMESPEC "TS_CLKR" = PERIOD "CLKR" 20 ns HIGH 50 %;
+##
+OFFSET =  IN 10 ns BEFORE "CLKW";
+OFFSET =  IN 10 ns BEFORE "CLKR";
+OFFSET = OUT 20 ns  AFTER "CLKW";
+OFFSET = OUT 20 ns  AFTER "CLKR";

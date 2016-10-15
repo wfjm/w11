@@ -1,4 +1,4 @@
--- $Id: tb_s3_sram_memctl.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: tb_s3_sram_memctl.vhd 790 2016-07-20 18:52:44Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -90,10 +90,10 @@ architecture sim of tb_s3_sram_memctl is
   signal CLK_STOP : slbit := '0';
   signal CLK_CYCLE : integer := 0;
 
-  constant clock_period : time :=  20 ns;
-  constant clock_offset : time := 200 ns;
-  constant setup_time : time :=  5 ns;
-  constant c2out_time : time := 10 ns;
+  constant clock_period : Delay_length :=  20 ns;
+  constant clock_offset : Delay_length := 200 ns;
+  constant setup_time : Delay_length :=  5 ns;
+  constant c2out_time : Delay_length := 10 ns;
 
 begin
 

@@ -1,0 +1,20 @@
+# $Id: tbrun.yml 807 2016-09-17 07:49:26Z mueller $
+#
+# Revision History:
+# Date         Rev Version  Comment
+# 2016-08-12   797   1.0    Initial version
+#
+- default:
+    mode: ${viv_modes}
+#
+- tag:  [default, viv, serport, rx]
+  test: |
+    tbrun_tbw tb_serport_uart_rx${ms}
+
+- tag:  [default, viv, serport, rxtx]
+  test: |
+    tbrun_tbw tb_serport_uart_rxtx${ms}
+    
+- tag:  [default, viv, serport, autobaud]
+  test: |
+    tbrun_tbw tb_serport_autobaud${ms}

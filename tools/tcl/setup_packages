@@ -29,3 +29,4 @@ pkg_mkIndex -verbose ibd_rl11  *.tcl
 pkg_mkIndex -verbose ibd_tm11  *.tcl
 #
 pkg_mkIndex -verbose tst_rlink    *.tcl
+pkg_mkIndex -verbose tst_sram     *.tcl

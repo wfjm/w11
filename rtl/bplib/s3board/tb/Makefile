@@ -10,8 +10,6 @@
 # 2007-11-26    98   1.1    use make includes
 # 2007-09-23    84   1.0    Initial version
 #
-EXE_all  = tb_s3board_dummy
-EXE_all += tb_s3board_fusp_dummy 
 EXE_all += tb_s3_sram_memctl
 #
 ifndef XTW_BOARD

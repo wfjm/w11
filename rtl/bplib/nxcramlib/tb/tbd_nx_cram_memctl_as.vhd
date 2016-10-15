@@ -1,6 +1,6 @@
--- $Id: tbd_nx_cram_memctl_as.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: tbd_nx_cram_memctl_as.vhd 802 2016-08-27 19:00:23Z mueller $
 --
--- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -30,6 +30,7 @@
 -- Tool versions:  xst 11.4-14.7; ghdl 0.26-0.31
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-08-27   802   1.2.1  use cram_read0delay ect
 -- 2011-11-26   433   1.2    renamed from tbd_n2_cram_memctl_as
 -- 2011-11-23   432   1.1    remove O_FLA_CE_N port from n2_cram_memctl
 -- 2010-06-03   298   1.0.1  add hack to force IOB'FFs to O_MEM_ADDR
@@ -78,7 +79,7 @@ architecture syn of tbd_nx_cram_memctl_as is
   
 begin
 
-  -- Note: This is a HACk to ensure that the IOB flops are on the O_MEM_ADDR
+  -- Note: This is a hack to ensure that the IOB flops are on the O_MEM_ADDR
   --   pins. Without par might choose to use IFF's on ADDR, causing varying
   --   routing delays to O_MEM_ADDR. Didn't find a better way, setting
   --   iob "false" attributes in ADDR didn't help.
@@ -87,11 +88,11 @@ begin
   
   ADDR_X <= ADDR when RESET='0' else (others=>'0');
   
-  MEMCTL : nx_cram_memctl_as
+  CRAMCTL : nx_cram_memctl_as
     generic map (
-      READ0DELAY => 2,
-      READ1DELAY => 2,
-      WRITEDELAY => 3)
+      READ0DELAY => cram_read0delay(50), -- assume 50 MHz system clock. Must be
+      READ1DELAY => cram_read1delay(50), --   modified when clock_period is
+      WRITEDELAY => cram_writedelay(50)) --   changed in tb_nx_cram_memctl !!
     port map (
       CLK    => CLK,
       RESET  => RESET,

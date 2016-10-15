@@ -1,0 +1,12 @@
+# libs
+../../slvtypes.vhd
+../../rbus/rblib.vhd
+../../rbus/rbdlib.vhd
+# components
+../../rbus/rbd_tester.vbom
+../../rbus/rbd_bram.vbom
+../../rbus/rbd_rbmon.vbom
+../../rbus/rb_sres_or_4.vbom
+# design
+tbd_tba_ttcombo.vhd
+@xdc:../../generic_clk_100mhz.xdc

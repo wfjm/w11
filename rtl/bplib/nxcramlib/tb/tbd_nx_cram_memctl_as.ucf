@@ -1,0 +1,40 @@
+## $Id: tbd_nx_cram_memctl_as.ucf 433 2011-11-27 22:04:39Z mueller $
+##
+## drive strength defs and timing defs for tbd_nx_cram_memctl_as test target
+##
+## Revision History: 
+## Date         Rev Version  Comment
+## 2011-11-26   433   1.1    renamed from tbd_n2_cram_memctl_as.ucf
+## 2010-05-30   297   1.0    Initial version 
+##
+## Note: default is DRIVE=12 | SLEW=SLOW
+##
+## The OFFSET rules are compatible with the setup and c2out times
+## used in the test bench tb_nx_cram_memctl.
+##
+NET "CLK" TNM_NET = "CLK";
+TIMESPEC "TS_CLK" = PERIOD "CLK" 20 ns HIGH 50 %;
+OFFSET =  IN  7.5 ns BEFORE "CLK";
+OFFSET = OUT 12.0 ns  AFTER "CLK";
+##
+NET "O_MEM_WE_N"  OFFSET = OUT 12.0 ns  AFTER "CLK" FALLING;
+##
+## -- define defaults
+##
+INST "/" IOSTANDARD=LVCMOS33;
+##
+## CRAM ----------------------------------------------------------------------
+NET "O_MEM_CE_N"     IOSTANDARD=LVCMOS33 | DRIVE=12 | SLEW=FAST;
+NET "O_MEM_WE_N"     IOSTANDARD=LVCMOS33 | DRIVE=12 | SLEW=FAST;
+NET "O_MEM_OE_N"     IOSTANDARD=LVCMOS33 | DRIVE=12 | SLEW=FAST;
+##
+NET "O_MEM_BE_N<*>"  IOSTANDARD=LVCMOS33 | DRIVE=12 | SLEW=FAST;
+##
+NET "O_MEM_ADV_N"    IOSTANDARD=LVCMOS33 | DRIVE=12 | SLEW=FAST;
+NET "O_MEM_CLK"      IOSTANDARD=LVCMOS33 | DRIVE=12 | SLEW=FAST;
+NET "O_MEM_CRE"      IOSTANDARD=LVCMOS33 | DRIVE=12 | SLEW=FAST;
+NET "I_MEM_WAIT"     IOSTANDARD=LVCMOS33 | PULLDOWN;
+##
+NET "O_MEM_ADDR<*>"  IOSTANDARD=LVCMOS33 | DRIVE=6 | SLEW=FAST;
+NET "IO_MEM_DATA<*>" IOSTANDARD=LVCMOS33 | DRIVE=6 | SLEW=SLOW | KEEPER;
+##

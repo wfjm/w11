@@ -1,4 +1,4 @@
--- $Id: is61lv25616al.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: is61lv25616al.vhd 790 2016-07-20 18:52:44Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -126,18 +126,18 @@ end is61lv25616al_bank;
 
 architecture sim of is61lv25616al_bank is
 
-  constant T_rc   : time := 10 ns;      -- read cycle time        (min)
-  constant T_aa   : time := 10 ns;      -- address access time    (max)
-  constant T_oha  : time :=  2 ns;      -- output hold time       (min)
-  constant T_ace  : time := 10 ns;      -- ce access time         (max)
-  constant T_doe  : time :=  4 ns;      -- oe access time         (max)
-  constant T_hzoe : time :=  4 ns;      -- oe to high-Z output    (max)
-  constant T_lzoe : time :=  0 ns;      -- oe to low-Z output     (min)
-  constant T_hzce : time :=  4 ns;      -- ce to high-Z output    (min=0,max=4)
-  constant T_lzce : time :=  3 ns;      -- ce to low-Z output     (min)
-  constant T_ba   : time :=  4 ns;      -- lb,ub access time      (max)
-  constant T_hzb  : time :=  3 ns;      -- lb,ub to high-Z output (min=0,max=3)
-  constant T_lzb  : time :=  0 ns;      -- lb,ub low-Z output     (min)
+  constant T_rc   : Delay_length := 10 ns;  -- read cycle time      (min)
+  constant T_aa   : Delay_length := 10 ns;  -- address access time  (max)
+  constant T_oha  : Delay_length :=  2 ns;  -- output hold time     (min)
+  constant T_ace  : Delay_length := 10 ns;  -- ce access time       (max)
+  constant T_doe  : Delay_length :=  4 ns;  -- oe access time       (max)
+  constant T_hzoe : Delay_length :=  4 ns;  -- oe to high-Z output  (max)
+  constant T_lzoe : Delay_length :=  0 ns;  -- oe to low-Z output   (min)
+  constant T_hzce : Delay_length :=  4 ns;  -- ce to high-Z output  (min=0,max=4)
+  constant T_lzce : Delay_length :=  3 ns;  -- ce to low-Z output   (min)
+  constant T_ba   : Delay_length :=  4 ns;  -- lb,ub access time    (max)
+  constant T_hzb  : Delay_length :=  3 ns;  -- lb,ub to high-Z out  (min=0,max=3)
+  constant T_lzb  : Delay_length :=  0 ns;  -- lb,ub low-Z output   (min)
 
   constant memsize : positive := 2**(ADDR'length);
   constant datzero : slv(DATA'range) := (others=>'0');

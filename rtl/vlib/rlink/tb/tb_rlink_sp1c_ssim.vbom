@@ -1,5 +1,7 @@
 # configure tb_rlink with tbd_rlink_sp1c wrapper; _*sim case
+# configure
 tbd_rlink_gen = tbd_rlink_sp1c.vbom
 tbu_rlink_sp1c = tbu_rlink_sp1c_ssim.vhd
+# design
 tb_rlink_sp1c.vbom
 @top:tb_rlink_sp1c

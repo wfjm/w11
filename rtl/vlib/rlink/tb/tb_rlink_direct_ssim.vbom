@@ -1,4 +1,6 @@
 # configure tb_rlink with tbd_rlink_direct wrapper; _*sim case
+# configure
 uut = tbd_rlink_direct_ssim.vhd
+# design
 tb_rlink_direct.vbom
 @top : tb_rlink_direct

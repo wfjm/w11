@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: tbrun_tbw.1 774 2016-06-12 17:08:47Z mueller $
+.\"  $Id: tbrun_tbw.1 800 2016-08-21 22:02:49Z mueller $
 .\"
 .\" Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH TBRUN_TBW 1 2016-03-18 "Retro Project" "Retro Project Manual"
+.TH TBRUN_TBW 1 2016-08-21 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 tbrun_tbw \- \fBtbw\fP based test bench starter
@@ -30,15 +30,8 @@ issue a \fBmake\fP(1) command to (re)-build \fITBENCH\fP.
 .IP "-"
 build a \fBtbw\fP(1) command, using \fISTIMFILE\fP if specified.
 .IP "-"
-create a shell pipe to which runs tbw and handles the output with
-.IP "  -" 4
-\fBghdl_assert_filter\fP(1) to suppress irrelevant diagnostics
-created by \fBghdl\fP(1) and it's IEEE libs
-.IP "  -"
-\fBtee\fP(1) to save the output to a log file. The log file
-name is build as "<TBENCH>_<lsuf>.log"
-.IP "  -"
-\fBegrep\fP(1) to filter out only essential lines to stdout
+create a shell pipe to which runs tbw and handles the test bench output with
+\fBtbfilt\fP(1) to determine success of failure.
 .PD
 .RE
 .PP
@@ -52,6 +45,14 @@ and not '--ghw=xxx' !
 .\" -- --dry -------------------------------------
 .IP \fB\-\-dry\fP
 dry run, prints the commands but doesn't execute
+.
+.\" -- --nomake ----------------------------------
+.IP \fB\-\-nomake\fP
+don't execute make step (\fITBENCH\fP neither build nor updated)
+.
+\" -- --norun -----------------------------------
+.IP \fB\-\-norun\fP
+don't execute test bench (useful to only execute make step)
 .
 .\" -- --lsuf ------------------------------------
 .IP \fB\-\-lsuf\ \fIsuff\fR
@@ -68,23 +69,25 @@ write a ghw file with name '\fIfname\fP.ghw'
 .\" -- --tbw opts --------------------------------
 .IP \fB\-\-tbw\ \fIopts\fR
 append \fIopts\fP to the \fBtbw\fP(1) command
+.\" -- --pcom ------------------------------------
+.IP \fB\-\-pcom\fR
+enables that test bench comments are passed to stdout.
 .
 .\" ------------------------------------------------------------------
 .SH EXAMPLES
 .IP "\fBtbrun_tbw tb_serport_uart_rx" 4
-Simplest default case, will execute
+Simplest default case, will execute in essence
 .EX
    make  tb_serport_uart_rx
-   time tbw tb_serport_uart_rx 2>&1 |\\
-     ghdl_assert_filter |\\
-     tee tb_serport_uart_rx_bsim.log |\\
-     egrep "(-[EFW]:|ERROR|FAIL|PASS|DONE)"
+   tbw tb_serport_uart_rx 2>&1 | tbfilt
 .EE
+The issued command is more involved, defines TIMEFORMAT, adds a bash 'time',
+and some redirects to ensure that the 'time' output ends up un the log file.
 
 .\" ------------------------------------------------------------------
 .SH "SEE ALSO"
 .BR tbw (1),
-.BR ghdl_assert_filter (1),
+.BR tbfilt (1),
 .BR ghdl (1)
 
 .\" ------------------------------------------------------------------

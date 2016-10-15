@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: tbrun_tbwrri.1 774 2016-06-12 17:08:47Z mueller $
+.\"  $Id: tbrun_tbwrri.1 808 2016-09-17 13:02:46Z mueller $
 .\"
 .\" Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH TBRUN_TBWRRI 1 2016-03-18 "Retro Project" "Retro Project Manual"
+.TH TBRUN_TBWRRI 1 2016-09-17 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 tbrun_tbw \- \fBti_rri\fP plus \fBtbw\fP based test bench starter
@@ -38,15 +38,8 @@ setup commands resulting from \fB\-\-cuff\fP, \fB\-\-fusp\fP, ...
 .IP "  -"
 all optional \fICOMMANDS\fP
 .IP "-" 2
-create shell pipes to filter the output with
-.IP "  -" 4
-\fBghdl_assert_filter\fP(1) to suppress irrelevant diagnostics
-created by \fBghdl\fP(1) and it's IEEE libs
-.IP "  -"
-\fBtee\fP(1) to save the output to a log file. The log file
-name is build as "<TBENCH>_<lsuf>.log"
-.IP "  -"
-\fBegrep\fP(1) to filter out only essential lines to stdout
+create shell pipe to filter the output with \fBtbfilt\fP(1) to determine 
+success of failure.
 .PD
 .RE
 .PP
@@ -60,6 +53,14 @@ and not '--ghw=xxx' !
 .\" -- --dry -------------------------------------
 .IP \fB\-\-dry\fP
 dry run, prints the commands but doesn't execute
+.
+.\" -- --nomake ----------------------------------
+.IP \fB\-\-nomake\fP
+don't execute make step (\fITBENCH\fP neither build nor updated)
+.
+.\" -- --norun -----------------------------------
+.IP \fB\-\-norun\fP
+don't execute test bench (useful to only execute make step)
 .
 .\" -- --lsuf ------------------------------------
 .IP \fB\-\-lsuf\ \fIsuff\fR
@@ -110,6 +111,27 @@ For basys3 and arty designs.
 .IP \fB\-\-pcom\fR
 enables that test bench comments are passed to stdout.
 .
+.\" -- --rlmon -----------------------------------
+.IP \fB\-\-rlmon\fR
+configures the test bench to enable rlmon (rlink communication monitor, logs
+all characters read and send by the rlink core).
+Done in UUT, thus useful only for behavioral simulations.
+.
+.\" -- --rbmon -----------------------------------
+.IP \fB\-\-rbmon\fR
+configures the test bench to enable rbmon (rbus monitor, logs all rbus
+transactions).
+Done in UUT, thus useful only for behavioral simulations.
+.
+.\" -- --bwait -----------------------------------
+.IP \fB\-\-bwait\fR\ \fItime\fR
+add additional \fItime\fR ns startup waiting time for behavioral models.
+.
+.\" -- --swait -----------------------------------
+.IP \fB\-\-bwait\fR\ \fItime\fR
+add additional \fItime\fR ns startup waiting time for post-synthesis and
+later models.
+
 .\" -- --help ------------------------------------
 .IP \fB\-\-help\fR
 print help message and quit.
@@ -118,7 +140,7 @@ print help message and quit.
 .SH "SEE ALSO"
 .BR tbw (1),
 .BR ti_rri (1),
-.BR ghdl_assert_filter (1),
+.BR tbfilt (1),
 .BR ghdl (1)
 
 .\" ------------------------------------------------------------------

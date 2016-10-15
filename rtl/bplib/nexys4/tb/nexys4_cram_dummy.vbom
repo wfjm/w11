@@ -1,0 +1,8 @@
+# libs
+../../../vlib/slvtypes.vhd
+../../nxcramlib/nxcramlib.vhd
+# components
+../../nxcramlib/nx_cram_dummy.vbom
+# design
+nexys4_cram_dummy.vhd
+@ucf_cpp: nexys4_cram_dummy.ucf

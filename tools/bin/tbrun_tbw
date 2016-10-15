@@ -1,11 +1,15 @@
 #!/bin/bash
-# $Id: tbrun_tbw 779 2016-06-26 15:37:16Z mueller $
+# $Id: tbrun_tbw 807 2016-09-17 07:49:26Z mueller $
 #
 # Copyright 2014-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2016-09-03   805   1.2.2  add TIMEFORMAT and time for make commands
+# 2016-08-21   800   1.2.1  add -norun, -nomake
+# 2016-08-06   795   1.2    use tbfilt; fixup -lsuf logic
+# 2016-07-03   782   1.1.4  drop ghdl_assert_filter (use --ieee=... at ghdl lvl)
 # 2016-06-25   778   1.1.3  drop make ghdl_tmp_clean logic
 # 2016-06-05   773   1.1.2  use _bsim.log for behavioral sim log
 # 2016-04-17   762   1.1.1  don't create '-run' for [IX]Sim anymore (now default)
@@ -16,13 +20,17 @@
 
 docmd ()
 {
-  echo "$1"
   if [[ -z "$optdry" ]] ; then
+    echo "$2"
     eval "$1"
+  else
+    echo "$1"
   fi
 }
 
 optdry=""
+optnomake=""
+optnorun=""
 optlsuf=""
 optstack=""
 optghw=""
@@ -32,12 +40,14 @@ optpcom=""
 # handle options
 while (( $# > 0 )) ; do
   case $1 in
-    -dry|--dry)     optdry=$1    ; shift 1 ;;
-    -lsuf|--lsuf)   optlsuf=$2   ; shift 2 ;;
-    -stack|--stack) optstack=$2  ; shift 2 ;;
-    -ghw|--ghw)     optghw=$2    ; shift 2 ;;
-    -tbw|--tbw)     opttbw=$2    ; shift 2 ;;
-    -pcom|--pcom)   optpcom=$1   ; shift 1 ;;
+    -dry|--dry)       optdry=$1    ; shift 1 ;;
+    -nomake|--nomake) optnomake=$1 ; shift 1 ;;
+    -norun|--norun)   optnorun=$1  ; shift 1 ;;
+    -lsuf|--lsuf)     optlsuf=$2   ; shift 2 ;;
+    -stack|--stack)   optstack=$2  ; shift 2 ;;
+    -ghw|--ghw)       optghw=$2    ; shift 2 ;;
+    -tbw|--tbw)       opttbw=$2    ; shift 2 ;;
+    -pcom|--pcom)     optpcom=$1   ; shift 1 ;;
     -*)             echo "tbrun_tbw-E: invalid option '$1'"; exit 1 ;;
     *)     break;;
   esac
@@ -51,10 +61,13 @@ if (( $# == 0 )) ; then
   echo "Usage: tbrun_tbw [opts] testbench [stimfile]"
   echo "  Options:"
   echo "  --dry             dry run, print commands, don't execute"
+  echo "  --nomake          don't execute make step"
+  echo "  --norun           don't execute run  step"
   echo "  --lsuf  suff      use '_<suff>.log' as suffix for log file"
   echo "  --stack nnn       use <nnn> as ghdl stack size"
   echo "  --ghw   fname     write ghw file with name '<fname>.ghw"
   echo "  --tbw   opts      append <opts> to tbw command"
+  echo "  --pcom            print test comments"
   exit 1
 fi
 
@@ -80,30 +93,44 @@ if [[ $tbench =~ _XSim ]] ; then
 fi
 
 # issue makes
-docmd "make $makeopts $tbench"
-exitstat=$?
+if [[ -z "$optnomake" ]] ; then
+  cmd="TIMEFORMAT=$'real %3lR   user %3lU   sys %3lS'"
+  cmd+=$'\n'
+  cmd+="time make $makeopts $tbench"
+  docmd "$cmd"
+  exitstat=$?
+  if (( $exitstat > 0 )) ; then exit $exitstat; fi
+  echo ""
+fi
 
-if (( $exitstat > 0 )) ; then exit $exitstat; fi
+# check for test bench
+if [[ ! -x $tbench ]] ; then
+  echo "tbrun_tbw-E: $tbench not existing or not executable"
+  exit 1
+fi
 
 # determine logfile name
 logsuff="_bsim"
 if [[ $tbench =~ _[fsorept]sim$ ]] ; then logsuff=""; fi
-if [[ -n "$optlsuf" ]] ;      then logsuff="_$optlsuf"; fi
+if [[ -n "$optlsuf" ]] ;             then logsuff+="_$optlsuf"; fi
 
 logfile="${tbench}${logsuff}.log"
 
-# now build actual test command (a tbw|filter|tee|egrep pipe)
-cmd="time tbw $tbench"
-if [[ -n "$stimfile" ]] ; then  cmd+=" $stimfile"; fi
-if [[ -n "$opttbw" ]] ; then    cmd+=" $opttbw"; fi
-if [[ -n "$optstack" ]] ; then  cmd+=" --stack-max-size=$optstack"; fi
-if [[ -n "$optghw" ]] ; then    cmd+=" --wave=$optghw.ghw"; fi
-cmd+=" 2>&1"
-if [[ -n "$isghdl" ]] ; then    cmd+=" | ghdl_assert_filter"; fi
-cmd+=" | tee $logfile"
+# now build actual test command (a tbw | tbfilt pipe)
+cmdtb="tbw $tbench"
+if [[ -n "$stimfile" ]] ; then  cmdtb+=" $stimfile"; fi
+if [[ -n "$opttbw" ]] ; then    cmdtb+=" $opttbw"; fi
+if [[ -n "$optstack" ]] ; then  cmdtb+=" --stack-max-size=$optstack"; fi
+if [[ -n "$optghw" ]] ; then    cmdtb+=" --wave=$optghw.ghw"; fi
+cmdtb+=" 2>&1"
 
-pcomtag=""
-if [[ -n "$optpcom" ]] ; then pcomtag="^C|"; fi
-# FAIL, PASS, DONE come from tbs; ERROR comes from ISim
-cmd+=" | egrep \"(${pcomtag}-[EFW]:|ERROR|FAIL|PASS|DONE)\""
-docmd "$cmd"
+cmdtf="tbfilt -tee $logfile"
+if [[ -n "$optpcom" ]] ; then cmdtf+=" -pcom"; fi
+
+cmd="(export TIMEFORMAT=$'real %3lR   user %3lU   sys %3lS'; time $cmdtb) 2>&1"
+cmd+=" | $cmdtf"
+txt="$cmdtb | $cmdtf"
+
+if [[ -z "$optnorun" ]] ; then
+  docmd "$cmd" "$txt"
+fi

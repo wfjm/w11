@@ -1,0 +1,141 @@
+# $Id: tb_mt45w8mw16b_stim.dat 787 2016-07-16 14:40:41Z mueller $
+#
+C Write first 8 cells, full words
+#
+wdo 100 ns ce=1 be=11 a=000000 de=1 d=1000
+wdo  10 ns we=1
+wdo 100 ns we=0
+wdo  20 ns ce=0
+#
+wdo  20 ns ce=1 be=11 a=000001 de=1 d=1101
+wdo  10 ns we=1
+wdo 100 ns we=0
+wdo  20 ns ce=0
+#
+wdo  20 ns ce=1 be=11 a=000002 de=1 d=1202
+wdo  10 ns we=1
+wdo 100 ns we=0
+wdo  20 ns ce=0
+#
+wdo  20 ns ce=1 be=11 a=000003 de=1 d=1303
+wdo  10 ns we=1
+wdo 100 ns we=0
+wdo  20 ns ce=0
+#
+wdo  20 ns ce=1 be=11 a=000004 de=1 d=1404
+wdo  10 ns we=1
+wdo 100 ns we=0
+wdo  20 ns ce=0
+#
+wdo  20 ns ce=1 be=11 a=000005 de=1 d=1505
+wdo  10 ns we=1
+wdo 100 ns we=0
+wdo  20 ns ce=0
+#
+wdo  20 ns ce=1 be=11 a=000006 de=1 d=1606
+wdo  10 ns we=1
+wdo 100 ns we=0
+wdo  20 ns ce=0
+#
+wdo  20 ns ce=1 be=11 a=000007 de=1 d=1707
+wdo  10 ns we=1
+wdo 100 ns we=0
+wdo  20 ns ce=0
+#
+wdo   0 ns be=11 de=0
+wdo  20 ns
+#
+C Read first 8 cells (full cycle per read)
+#
+wdo   0 ns ce=1 oe=1 a=000000
+wdo 100 ns ce=0 D=1000
+wdo  20 ns ce=1 a=000001
+wdo 100 ns ce=0 D=1101
+wdo  20 ns ce=1 a=000002
+wdo 100 ns ce=0 D=1202
+wdo  20 ns ce=1 a=000003
+wdo 100 ns ce=0 D=1303
+wdo  20 ns ce=1 a=000004
+wdo 100 ns ce=0 D=1404
+wdo  20 ns ce=1 a=000005
+wdo 100 ns ce=0 D=1505
+wdo  20 ns ce=1 a=000006
+wdo 100 ns ce=0 D=1606
+wdo  20 ns ce=1 a=000007
+wdo 100 ns ce=0 D=1707
+wdo   0 ns oe=0
+wdo  20 ns
+#
+C Read first 4 cells (all in one CE, page mode timing, will be expect XXXX)
+#
+wdo   0 ns ce=1 oe=1 a=000000
+wdo 100 ns           a=000001 D=1000
+wdo  40 ns           a=000002 D=XXXX
+wdo  40 ns           a=000003 D=XXXX
+wdo  40 ns                    D=XXXX
+wdo   0 ns oe=0
+wdo  20 ns
+#
+C Enable page mode
+#  addr to set rcr with pmode=1
+#     a(19:18) = 00    select 
+#     a(    7) =  1    pmode
+#     a(    4) =  1    dpd (disable)
+#  --> addr = 00090
+wdo   0 ns ce=1 cre=1 we=1 a=000090
+wdo  80 ns ce=0 cre=0 we=0
+wdo  20 ns
+#
+C Read first 8 cells (page mode, all in one CE)
+#
+wdo   0 ns ce=1 oe=1 a=000000
+wdo 100 ns           a=000001 D=1000
+wdo  40 ns           a=000002 D=1101
+wdo  40 ns           a=000003 D=1202
+wdo  40 ns           a=000004 D=1303
+wdo  40 ns           a=000005 D=1404
+wdo  40 ns           a=000006 D=1505
+wdo  40 ns           a=000007 D=1606
+wdo  40 ns ce=0               D=1707
+#
+wdo   0 ns oe=0
+wdo  20 ns
+#
+C Byte write in last 4 cells
+wdo   0 ns ce=1 be=00 a=000004 de=1 d=3414   -- no write
+wdo  10 ns we=1
+wdo 100 ns we=0
+wdo  20 ns ce=0
+#
+wdo  20 ns ce=1 be=01 a=000005 de=1 d=3515   -- low byte write
+wdo  10 ns we=1
+wdo 100 ns we=0
+wdo  20 ns ce=0
+#
+wdo  20 ns ce=1 be=10 a=000006 de=1 d=3616   -- high byte write
+wdo  10 ns we=1
+wdo 100 ns we=0
+wdo  20 ns ce=0
+#
+wdo  20 ns ce=1 be=11 a=000007 de=1 d=3717   -- full word write
+wdo  10 ns we=1
+wdo 100 ns we=0
+wdo  20 ns ce=0
+#
+wdo   0 ns be=11 de=0
+wdo  20 ns
+#
+C Read again first 8 cells (page mode, all in one CE)
+#
+wdo   0 ns ce=1 oe=1 a=000000
+wdo 100 ns           a=000001 D=1000
+wdo  40 ns           a=000002 D=1101
+wdo  40 ns           a=000003 D=1202
+wdo  40 ns           a=000004 D=1303
+wdo  40 ns           a=000005 D=1404
+wdo  40 ns           a=000006 D=1515
+wdo  40 ns           a=000007 D=3606
+wdo  40 ns ce=0               D=3717
+#
+wdo  20 ns
+#

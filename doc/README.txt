@@ -1,4 +1,4 @@
-$Id: README.txt 779 2016-06-26 15:37:16Z mueller $
+$Id: README.txt 811 2016-10-03 07:24:02Z mueller $
 
 Release notes for w11a
 
@@ -21,6 +21,156 @@ Release notes for w11a
     * w11a_known_issues.txt: known differences, limitations and issues
 
 2. Change Log ----------------------------------------------------------------
+
+- trunk (2016-10-02: svn rev 37(oc) 811(wfjm); untagged w11a_V0.74)  +++++++++
+  - Preface
+    - the current version of the  memory controller for the micron mt45w8mw16b
+      'cellular ram' used on nexys2, nexys3, and nexys4 uses the asynchronous
+      access mode. The device supports a 'page mode' to speed up read access to
+      subsequent addresses. Even though prepared in the controller logic this
+      feature was simply forgotten. This is now properly implemented and 
+      results in a bit faster cache line load times. The overall performance
+      of a w11a design is measurably, but marginally better.
+    - many unit tests still used a ISE environment. All board independent
+      tests were converted now to a vivado environment, only tests which
+      really depend a FPGA not supported by vivado stay with ISE.
+    - a total of 82 unit or system tests are currently available. Many of them
+      can be executed by different simulation engines, ghdl or the ISE/vivado 
+      build-in simulators, and for different stages of the implementation flow, 
+      from initial behavioral simulation over post-synthesis functional to final 
+      post-routing timing simulation. This results in a large number of possible
+      tests. All test benches are all self-checking, but the execution of them
+      was so far not sufficiently automatized.
+      This was addressed with 'tbrun', a test bench driver, which obtains a
+      list of all available test benches from configuration files, selects
+      a subset given by selection criteria, and executes them. It can handle
+      the parallel execution of tests so multi-core systems can be very
+      easily exploited. Running all tests is now a single shell command.
+    - a new tool 'tbfilt' simplifies the logic of self-checking test benches
+      and can also be used as a tool to analyze the full log files produced
+      by the test benches
+    - several test benches have been added to this release, most notably the
+      memory tester sys_tst_sram_* which was originally developed to verify
+      the s3board SRAM controller and later ported to verify the nexys* CRAM
+      controller.
+    - the system test benches with SRAM and CRAM now include the PCB trace
+      delay between FPGA and memory chip. The new entity simbididly models a
+      bi-directional bus delay.
+    - so far test benches ended by stopping the clock, all processes were 
+      written such that they enter a permanent wait, which causes the simulation
+      to stop. Worked for fine behavioral simulations, but fails when Xilinx 
+      MMCMs are involved in post-synthesis simulations. The UNISIM models 
+      apparently have timed waits. The test benches were modified to stop via a
+      report with severity failure, the test environment detects this specific
+      assertion/report failure and accepts it as successful termination of
+      the simulation.
+    - the configuration of the board switches in system test benches was done
+      in a sub-optimal way which could lead to startup problems. tbrun_tbwrri
+      uses now a different mechanism which ensures that all board and test
+      bench configuration is done in the first ns of the simulation and has
+      thus completed well before all other activities.
+    - finally a caveat: post-synthesis simulations work fine with ISE, but
+      currently not with vivado, even in case of almost identical designs,
+      like sys_tst_rlink_n3 vs sys_tst_rlink_n4. Is under investigation.
+
+  - Summary
+    - upgraded CRAM controller, now with 'page mode' support
+    - new test bench driver tbrun, give automatized test bench execution
+
+  - New features
+    - new modules
+      - rtl/bplib/issi/tb/*         - added unit test for is61lv25616al model
+      - rtl/bplib/micron/tb/*       - added unit test for mt45w8mw16b model
+      - rtl/sys_gen/tst_serloop     - add serloop2 (2 clock) designs for n3,n4
+        - nexys3/sys_tst_serloop2_n3.vhd
+        - nexys4/sys_tst_serloop2_n4.vhd
+      - rtl/sys_gen/tst_sram        - add sram test design for
+        - nexys2/*
+        - nexys3/*
+        - nexys4/*
+        - s3board/*
+      - rtl/vlib/genlib/tb
+        - clkdivce_tb.vhd             - copy for tb usage of clkdivce
+      - rtl/vlib/rlink/tb
+        - rlink_tba.vhd               - rlink test bench adapter
+        - tb_rlink_tba.vhd            - test bench for rbus devices
+        - tbd_tba_ttcombo.vhd         - tba tester for ttcombo
+      - rtl/vlib/simlib
+        - simbididly.vhd              - bi-di bus delay model
+      - rtl/vlib/xlib
+        - gsr_pulse.vhd               - pulse GSR at startup
+        - gsr_pulse_dummy.vhd         - no-action dummy (for bsim models)
+      - rtl/w11a/tb
+        - tb_rlink_tba_pdp11core.vhd  - tba tester for w11a
+
+    - new files
+      - doc/man/man1                - added tbrun,tbfilt man pages
+      - */tbrun.yml                 - test bench descriptors for tbrun
+      - rtl/sys_gen/w11a/tb
+        - tb_w11a_mem70*.dat          - stim files for additional tests
+      - rtl/w11a/tb
+        - tb_pdp11core_ubmap.dat      - stim files for additional test
+      - tools/bin
+        - njobihtm                    - determine #jobs
+        - tbfilt                      - test bench output filter
+        - tbrun                       - test bench driver
+        - ticonv_rri                  - converts old 'mode rri' for ti_rri
+       - tools/tcl/tst_sram/*.tcl     - support for sys_tst_sram
+
+  - Changes
+    - rtl/bplib
+      - arty/tb/tb_arty.vhd           - add gsr_pulse (provisional....)
+      - */tb/tb_*.vhd                 - tbcore_rlink without CLK_STOP now
+      - fx2lib/tb/fx2_2fifo_core.vhd  - proc_ifclk: remove clock stop
+      - nexys2/tb/tb_nexys2_core.vhd  - use simbididly
+      - nexys3/tb/tb_nexys3_core.vhd  - use simbididly
+      - nexys4/tb/tb_nexys4_cram.vhd  - use simbididly
+      - nxcramlib
+        - nx_cram_memctl_as.vhd       - add page mode support
+        - nxcramlib.vhd               - add cram_*delay functions
+      - s3board
+        - s3_sram_memctl.vhd          - drop "KEEP" for data (better for dbg)
+        - tb/tb_s3board_core.vhd      - use simbididly
+    - rtl/make_ise
+      - generic_ghdl.mk               - ghdl_clean: remove also gcov files
+    - rtl/make_viv
+      - generic_ghdl.mk               - ghdl_clean: remove also gcov files
+      - generic_vivado.mk             - viv_clean: rm only vivado logs
+      - generic_xsim.mk               - xsim work dir now xsim.<mode>.<stem>
+    - rtl/sys_gen/tst_serloop
+      - */tb/tb_tst_serloop*.vhd      - remove CLK_STOP logic
+      - tb/tb_tst_serloop.vhd         - remove CLK_STOP logic
+    - rtl/sys_gen/w11a/nexys*
+      - sys_conf.vhd                  - use cram_*delay functions 
+    - rtl/vlib/rlink
+      - rlink_core.vhd                - remove 'assert false' from report stmts
+      - tb/tb_rlink.vhd               - use clkdivce_tb
+      - tbcore/tbcore_rlink.vhd       - conf: add .wait, CONF_DONE; drop CLK_STOP
+    - rtl/vlib/simlib                 
+      - simbus.vhd                    - rename SB_CLKSTOP > SB_SIMSTOP
+      - simclk.vhd                    - CLK_STOP now optional port
+    - rtl/vlib/xlib
+      - */s*_cmt_sfs_*.vhd            - remove 'assert false' from report stmts
+    - tools/bin
+      - tbrun_tbwrri                  - add --r(l|b)mon,(b|s)wait; configure
+                                        now via _conf={...}
+      - tbw                           - use {} as delimiter for immediate mode
+      - vbomconv                      - add VBOMCONV_GHDL_OPTS and .._GHDL_GCOV
+      - xise_ghdl_*                   - add ghdlopts as 1st option; def is -O2
+
+    - removed files
+      - tools/bin/ghdl_assert_filter  - obsolete (use tbfilt now)
+    - renames
+      - rtl/make_viv/viv_*.tcl -> tools/vivado - separate make and tools
+
+  - Bug fixes
+    - tools/bin
+      - tbw                         - xsim: append -R to ARGV (was prepended...)
+      - xtwi                        - add ":." to PATH even under BARE_PATH
+
+  - Known issues
+    - all issues: see README_known_issues.txt
+    - no resolved or new issues in this release
 
 - trunk (2016-06-26: svn rev 36(oc) 779(wfjm); untagged w11a_V0.73)  +++++++++
   - Preface
@@ -120,7 +270,7 @@ Release notes for w11a
         - serport_2clock2.vhd           - like serport_2clock, use fifo_2c_dram2
       - rtl/vlib/xlib
         - usr_access_unisim.vhd         - Wrapper for USR_ACCESS* entities
-   - new files
+    - new files
       - tools/bin
         - xise_msg_summary            - list all filtered ISE messages
         - xviv_msg_filter             - message filter for vivado

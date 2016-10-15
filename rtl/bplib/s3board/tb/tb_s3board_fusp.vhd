@@ -1,4 +1,4 @@
--- $Id: tb_s3board_fusp.vhd 730 2016-02-13 16:22:03Z mueller $
+-- $Id: tb_s3board_fusp.vhd 805 2016-09-03 08:09:52Z mueller $
 --
 -- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -25,9 +25,10 @@
 -- To test:        generic, any s3board_fusp_aif target
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-09-02   805   1.3.3  tbcore_rlink without CLK_STOP now
 -- 2016-02-13   730   1.3.2  direct instantiation of tbcore_rlink
 -- 2016-01-03   724   1.3.1  use serport/tb/serport_master_tb
 -- 2015-04-12   666   1.3    use serport_master instead of serport_uart_rxtx
@@ -60,7 +61,6 @@ architecture sim of tb_s3board_fusp is
   
   signal CLK : slbit := '0';
   
-  signal CLK_STOP : slbit := '0';
   signal CLK_CYCLE : integer := 0;
 
   signal RESET : slbit := '0';
@@ -106,8 +106,8 @@ architecture sim of tb_s3board_fusp is
 
   constant sbaddr_portsel: slv8 := slv(to_unsigned( 8,8));
 
-  constant clock_period : time :=  20 ns;
-  constant clock_offset : time := 200 ns;
+  constant clock_period : Delay_length :=  20 ns;
+  constant clock_offset : Delay_length := 200 ns;
 
 begin
 
@@ -116,8 +116,7 @@ begin
       PERIOD => clock_period,
       OFFSET => clock_offset)
     port map (
-      CLK      => CLK,
-      CLK_STOP => CLK_STOP
+      CLK      => CLK
     );
   
   CLKCNT : simclkcnt port map (CLK => CLK, CLK_CYCLE => CLK_CYCLE);
@@ -125,7 +124,6 @@ begin
   TBCORE : entity work.tbcore_rlink
     port map (
       CLK      => CLK,
-      CLK_STOP => CLK_STOP,
       RX_DATA  => TXDATA,
       RX_VAL   => TXENA,
       RX_HOLD  => RX_HOLD,

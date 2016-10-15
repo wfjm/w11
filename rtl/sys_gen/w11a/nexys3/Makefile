@@ -1,11 +1,12 @@
-# $Id: Makefile 733 2016-02-20 12:24:13Z mueller $
+# $Id: Makefile 801 2016-08-27 16:47:01Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2016-08-26   801   1.3    use explicit VBOM_all, no wildcard
 # 2013-04-20   509   1.2    add fx2 support
 # 2011-11-20   430   1.0    Initial version (derived from _n2 version)
 #
-VBOM_all  = $(wildcard *.vbom)
+VBOM_all  = sys_w11a_n3.vbom
 BIT_all   = $(VBOM_all:.vbom=.bit)
 #
 include ${RETROBASE}/rtl/make_ise/xflow_default_nexys3.mk

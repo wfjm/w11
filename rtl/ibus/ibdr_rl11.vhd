@@ -1,4 +1,4 @@
--- $Id: ibdr_rl11.vhd 767 2016-05-26 07:47:51Z mueller $
+-- $Id: ibdr_rl11.vhd 784 2016-07-09 22:17:01Z mueller $
 --
 -- Copyright 2014-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -27,7 +27,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2016-05-22   787   1.0.2  don't init N_REGS (vivado fix for fsm inference)
+-- 2016-05-22   767   1.0.2  don't init N_REGS (vivado fix for fsm inference)
 -- 2015-03-04   655   1.0.1  seek: ignore da(6:5), don't check for 0 anymore
 -- 2015-02-28   653   1.0    Initial verison
 -- 2014-06-09   561   0.1    First draft

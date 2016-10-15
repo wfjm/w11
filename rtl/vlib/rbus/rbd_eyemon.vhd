@@ -1,4 +1,4 @@
--- $Id: rbd_eyemon.vhd 767 2016-05-26 07:47:51Z mueller $
+-- $Id: rbd_eyemon.vhd 784 2016-07-09 22:17:01Z mueller $
 --
 -- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -29,7 +29,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2016-05-22   787   4.1.1  don't init N_REGS (vivado fix for fsm inference)
+-- 2016-05-22   767   4.1.1  don't init N_REGS (vivado fix for fsm inference)
 -- 2014-09-13   593   4.1    no default rbus addess anymore, def=0
 -- 2014-08-15   583   4.0    rb_mreq addr now 16 bit
 -- 2011-11-19   427   1.0.3  now numeric_std clean

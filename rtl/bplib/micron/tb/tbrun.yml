@@ -1,0 +1,13 @@
+# $Id: tbrun.yml 807 2016-09-17 07:49:26Z mueller $
+#
+# Revision History:
+# Date         Rev Version  Comment
+# 2016-00-10   806   1.1    use nossim because no _ssim support available
+# 2016-08-22   800   1.0    Initial version
+#
+- default:
+    mode: ${viv_modes_nossim}
+#
+- tag:  [default, viv, bplib, micron, cram]
+  test: |
+    tbrun_tbw tb_mt45w8mw16b${ms}

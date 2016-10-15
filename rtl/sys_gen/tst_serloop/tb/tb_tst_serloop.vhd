@@ -1,4 +1,4 @@
--- $Id: tb_tst_serloop.vhd 764 2016-04-23 18:21:44Z mueller $
+-- $Id: tb_tst_serloop.vhd 805 2016-09-03 08:09:52Z mueller $
 --
 -- Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -25,6 +25,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-09-03   805   1.2.2  remove CLK_STOP logic (simstop via report)
+-- 2016-08-18   799   1.2.1  remove 'assert false' from report statements
 -- 2016-04-23   764   1.2    use serport/tb/serport_(uart_rxtx|xontx)_tb
 --                           use assert to halt simulation
 -- 2011-12-23   444   1.1    use new simclkcnt
@@ -40,13 +42,13 @@ use std.textio.all;
 
 use work.slvtypes.all;
 use work.simlib.all;
+use work.simbus.all;
 use work.serportlib_tb.all;
 
 entity tb_tst_serloop is
   port (
     CLKS : in slbit;                    -- clock for serport
     CLKH : in slbit;                    -- clock for humanio
-    CLK_STOP : out slbit;               -- clock stop
     P0_RXD : out slbit;                 -- port 0 receive data (board view)
     P0_TXD : in slbit;                  -- port 0 transmit data (board view)
     P0_RTS_N : in slbit;                -- port 0 rts_n
@@ -62,7 +64,6 @@ end tb_tst_serloop;
 
 architecture sim of tb_tst_serloop is
   
-  signal CLK_STOP_L  : slbit := '0';  
   signal CLK_CYCLE : integer := 0;
   
   signal UART_RESET : slbit := '0';
@@ -441,26 +442,19 @@ begin
       testempty_ea(iline);
     end loop;   -- file_loop
 
-    writetimestamp(oline, CLK_CYCLE, ": DONE ");
-    writeline(output, oline);
-
     -- extra wait for at least two character times (20 bit times)
     -- to allow tx and rx of the last character
     waitclk(20*(to_integer(unsigned(CLKDIV))+1));
 
-    CLK_STOP_L <= '1';
+    writetimestamp(oline, CLK_CYCLE, ": DONE ");
+    writeline(output, oline);
 
-    wait for 500 ns;                    -- allows dcm's to stop
-
-    assert false report "Simulation Finished" severity failure;
-    
-    wait;                               -- suspend proc_stim forever
-                                        -- clock is stopped, sim will end
+    SB_SIMSTOP <= '1';                  -- signal simulation stop
+    wait for 100 ns;                    -- monitor grace time
+    report "Simulation Finished" severity failure; -- end simulation
 
   end process proc_stim;
 
-  CLK_STOP <= CLK_STOP_L;
-  
   proc_moni: process
     variable oline : line;
     variable dclk : integer := 0;

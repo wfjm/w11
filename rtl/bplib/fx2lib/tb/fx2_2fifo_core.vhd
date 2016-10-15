@@ -1,6 +1,6 @@
--- $Id: fx2_2fifo_core.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: fx2_2fifo_core.vhd 805 2016-09-03 08:09:52Z mueller $
 --
--- Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,9 +18,10 @@
 -- Dependencies:   memlib/fifo_2c_dram
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 13.3-14.7; ghdl 0.29-0.31
+-- Tool versions:  xst 13.3-14.7; ghdl 0.29-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-09-02   805   1.0.1  proc_ifclk: remove clock stop (not needed anymore)
 -- 2013-01-04   469   1.0    Initial version
 ------------------------------------------------------------------------------
 
@@ -131,15 +132,15 @@ begin
     );
 
   proc_ifclk: process
-    constant offset : time := 200 ns;
-    constant halfperiod_7 : time := 16700 ps;
-    constant halfperiod_6 : time := 16600 ps;
+    constant offset : Delay_length := 200 ns;
+    constant halfperiod_7 : Delay_length := 16700 ps;
+    constant halfperiod_6 : Delay_length := 16600 ps;
   begin
 
     CLK30 <= '0';
     wait for offset;
 
-    clk_loop: loop
+    loop
       CLK30 <= '1';
       wait for halfperiod_7;
       CLK30 <= '0';
@@ -152,11 +153,8 @@ begin
       wait for halfperiod_7;
       CLK30 <= '0';
       wait for halfperiod_6;
-      exit clk_loop when to_x01(SB_CLKSTOP) = '1';
     end loop;    
-    
-    wait;                               -- endless wait, simulator will stop
-    
+        
   end process proc_ifclk;
 
   proc_state: process (CLK30)

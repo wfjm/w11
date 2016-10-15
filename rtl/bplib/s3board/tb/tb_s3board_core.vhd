@@ -1,4 +1,4 @@
--- $Id: tb_s3board_core.vhd 724 2016-01-03 22:53:53Z mueller $
+-- $Id: tb_s3board_core.vhd 793 2016-07-23 19:38:55Z mueller $
 --
 -- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -15,14 +15,16 @@
 -- Module Name:    tb_s3board_core - sim
 -- Description:    Test bench for s3board - core device handling
 --
--- Dependencies:   vlib/parts/issi/is61lv25616al
+-- Dependencies:   simlib/simbididly
+--                 vlib/parts/issi/is61lv25616al
 --
 -- To test:        generic, any s3board target
 --
 -- Target Devices: generic
--- Tool versions:  xst 11.4-14.7; ghdl 0.26-0.31
+-- Tool versions:  xst 11.4-14.7; ghdl 0.26-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-07-23   793   1.1    use simbididly
 -- 2011-11-19   427   1.0.2  now numeric_std clean
 -- 2010-05-02   287   1.0.1  add sbaddr_(swi|btn) defs, now sbus addr 16,17
 -- 2010-04-24   282   1.0    Initial version (from vlib/s3board/tb/tb_s3board)
@@ -35,6 +37,7 @@ use ieee.std_logic_textio.all;
 use std.textio.all;
 
 use work.slvtypes.all;
+use work.simlib.all;
 use work.simbus.all;
 
 entity tb_s3board_core is
@@ -52,34 +55,56 @@ end tb_s3board_core;
 
 architecture sim of tb_s3board_core is
   
+  signal MM_MEM_CE_N  : slv2 := (others=>'1');
+  signal MM_MEM_BE_N  : slv4 := (others=>'1');
+  signal MM_MEM_WE_N  : slbit := '1';
+  signal MM_MEM_OE_N  : slbit := '1';
+  signal MM_MEM_ADDR  : slv18 := (others=>'Z');
+  signal MM_MEM_DATA  : slv32 := (others=>'0');
+
   signal R_SWI : slv8 := (others=>'0');
   signal R_BTN : slv4 := (others=>'0');
 
   constant sbaddr_swi:  slv8 := slv(to_unsigned( 16,8));
   constant sbaddr_btn:  slv8 := slv(to_unsigned( 17,8));
+  constant pcb_delay : Delay_length := 1 ns;
 
 begin
   
+  MM_MEM_CE_N  <= O_MEM_CE_N  after pcb_delay;
+  MM_MEM_BE_N  <= O_MEM_BE_N  after pcb_delay;
+  MM_MEM_WE_N  <= O_MEM_WE_N  after pcb_delay;
+  MM_MEM_OE_N  <= O_MEM_OE_N  after pcb_delay;
+  MM_MEM_ADDR  <= O_MEM_ADDR  after pcb_delay;
+
+  BUSDLY: simbididly
+    generic map (
+      DELAY  => pcb_delay,
+      DWIDTH => 32)
+    port map (
+      A => IO_MEM_DATA,
+      B => MM_MEM_DATA);
+
   MEM_L : entity work.is61lv25616al
     port map (
-      CE_N => O_MEM_CE_N(0),
-      OE_N => O_MEM_OE_N,
-      WE_N => O_MEM_WE_N,
-      UB_N => O_MEM_BE_N(1),
-      LB_N => O_MEM_BE_N(0),
-      ADDR => O_MEM_ADDR,
-      DATA => IO_MEM_DATA(15 downto 0)
+      CE_N => MM_MEM_CE_N(0),
+      OE_N => MM_MEM_OE_N,
+      WE_N => MM_MEM_WE_N,
+      UB_N => MM_MEM_BE_N(1),
+      LB_N => MM_MEM_BE_N(0),
+      ADDR => MM_MEM_ADDR,
+      DATA => MM_MEM_DATA(15 downto 0)
     );
   
   MEM_U : entity work.is61lv25616al
     port map (
-      CE_N => O_MEM_CE_N(1),
-      OE_N => O_MEM_OE_N,
-      WE_N => O_MEM_WE_N,
-      UB_N => O_MEM_BE_N(3),
-      LB_N => O_MEM_BE_N(2),
-      ADDR => O_MEM_ADDR,
-      DATA => IO_MEM_DATA(31 downto 16)
+      CE_N => MM_MEM_CE_N(1),
+      OE_N => MM_MEM_OE_N,
+      WE_N => MM_MEM_WE_N,
+      UB_N => MM_MEM_BE_N(3),
+      LB_N => MM_MEM_BE_N(2),
+      ADDR => MM_MEM_ADDR,
+      DATA => MM_MEM_DATA(31 downto 16)
     );
   
   proc_simbus: process (SB_VAL)

@@ -1,0 +1,12 @@
+# $Id: tbrun.yml 807 2016-09-17 07:49:26Z mueller $
+#
+# Revision History:
+# Date         Rev Version  Comment
+# 2016-08-22   800   1.0    Initial version
+#
+- default:
+    mode: ${viv_modes}
+#
+- tag:  [default, viv, bplib, cram_memctl_as]
+  test: |
+    tbrun_tbw tb_nx_cram_memctl_as${ms}

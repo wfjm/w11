@@ -1,4 +1,4 @@
-# $Id: Makefile 772 2016-06-05 12:55:11Z mueller $
+# $Id: Makefile 810 2016-10-02 16:51:12Z mueller $
 #
 # 'Meta Makefile' for whole retro project
 #   allows to make all synthesis targets
@@ -6,8 +6,11 @@
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2016-10-01   810   1.2.6  move component tests to SIM_viv when vivado used
+# 2016-07-10   785   1.2.5  re-enable rtl/sys_gen/tst_sram/nexys4 (ok in 2016.2)
 # 2016-06-05   772   1.2.4  add vmfsum,imfsum targets
 # 2016-03-19   748   1.2.3  comment out legacy designs and tests
+# 2016-02-19   733   1.2.2  disable rtl/sys_gen/tst_sram/nexys4 (fails in 2015.4)
 # 2016-02-19   732   1.2.1  remove dispunit syn and sim entries
 # 2015-02-01   640   1.2    add vivado targets, separate from ise targets
 # 2015-01-25   638   1.1    drop as type fx2 targets
@@ -29,6 +32,7 @@
 SYN_ise += rtl/sys_gen/tst_rlink/s3board
 SYN_ise += rtl/sys_gen/tst_serloop/s3board
 SYN_ise += rtl/sys_gen/tst_snhumanio/s3board
+SYN_ise += rtl/sys_gen/tst_sram/s3board
 SYN_ise += rtl/sys_gen/w11a/s3board
 
 #     Nexys2 -------------------------------------
@@ -39,6 +43,7 @@ SYN_ise += rtl/sys_gen/tst_rlink_cuff/nexys2/ic
 #SYN_ise += rtl/sys_gen/tst_rlink_cuff/nexys2/ic3
 SYN_ise += rtl/sys_gen/tst_serloop/nexys2
 SYN_ise += rtl/sys_gen/tst_snhumanio/nexys2
+SYN_ise += rtl/sys_gen/tst_sram/nexys2
 SYN_ise += rtl/sys_gen/w11a/nexys2
 
 #     Nexys3 -------------------------------------
@@ -48,6 +53,7 @@ SYN_ise += rtl/sys_gen/tst_rlink/nexys3
 SYN_ise += rtl/sys_gen/tst_rlink_cuff/nexys3/ic
 SYN_ise += rtl/sys_gen/tst_serloop/nexys3
 SYN_ise += rtl/sys_gen/tst_snhumanio/nexys3
+SYN_ise += rtl/sys_gen/tst_sram/nexys3
 SYN_ise += rtl/sys_gen/w11a/nexys3
 
 #   Vivado based targets, by board type --------------------
@@ -61,6 +67,7 @@ SYN_viv += rtl/sys_gen/w11a/basys3
 SYN_viv += rtl/sys_gen/tst_rlink/nexys4
 SYN_viv += rtl/sys_gen/tst_serloop/nexys4
 SYN_viv += rtl/sys_gen/tst_snhumanio/nexys4
+SYN_viv += rtl/sys_gen/tst_sram/nexys4
 SYN_viv += rtl/sys_gen/w11a/nexys4
 
 #     Arty ---------------------------------------
@@ -71,30 +78,38 @@ SYN_viv += rtl/sys_gen/w11a/arty_bram
 #   ISE flow -----------------------------------------------
 
 #     Component tests ----------------------------
-SIM_ise += rtl/bplib/nxcramlib/tb
-SIM_ise += rtl/vlib/comlib/tb
-SIM_ise += rtl/vlib/rlink/tb
-SIM_ise += rtl/vlib/serport/tb
-SIM_ise += rtl/w11a/tb
 
 #     S3board ------------------------------------
 SIM_ise += rtl/sys_gen/tst_rlink/s3board/tb
 SIM_ise += rtl/sys_gen/tst_serloop/s3board/tb
+SIM_ise += rtl/sys_gen/tst_sram/s3board/tb
 SIM_ise += rtl/sys_gen/w11a/s3board/tb
 
 #     Nexys2 -------------------------------------
 SIM_ise += rtl/sys_gen/tst_rlink/nexys2/tb
 SIM_ise += rtl/sys_gen/tst_rlink_cuff/nexys2/ic/tb
 SIM_ise += rtl/sys_gen/tst_serloop/nexys2/tb
+SIM_ise += rtl/sys_gen/tst_sram/nexys2/tb
 SIM_ise += rtl/sys_gen/w11a/nexys2/tb
 
 #     Nexys3 -------------------------------------
 SIM_ise += rtl/sys_gen/tst_rlink/nexys3/tb
 SIM_ise += rtl/sys_gen/tst_rlink_cuff/nexys3/ic/tb
 SIM_ise += rtl/sys_gen/tst_serloop/nexys3/tb
+SIM_ise += rtl/sys_gen/tst_sram/nexys3/tb
 SIM_ise += rtl/sys_gen/w11a/nexys3/tb
 
 #   Vivado flow --------------------------------------------
+
+#     Component tests ----------------------------
+SIM_viv += rtl/bplib/issi/tb
+SIM_viv += rtl/bplib/micron/tb
+SIM_viv += rtl/bplib/nxcramlib/tb
+SIM_viv += rtl/vlib/comlib/tb
+SIM_viv += rtl/vlib/rlink/tb
+SIM_viv += rtl/vlib/serport/tb
+SIM_viv += rtl/w11a/tb
+
 #     Basys3 -------------------------------------
 SIM_viv += rtl/sys_gen/tst_rlink/basys3/tb
 #SIM_viv += rtl/sys_gen/tst_serloop/basys3/tb
@@ -103,6 +118,7 @@ SIM_viv += rtl/sys_gen/w11a/basys3/tb
 #     Nexys4 -------------------------------------
 SIM_viv += rtl/sys_gen/tst_rlink/nexys4/tb
 SIM_viv += rtl/sys_gen/tst_serloop/nexys4/tb
+SIM_viv += rtl/sys_gen/tst_sram/nexys4/tb
 SIM_viv += rtl/sys_gen/w11a/nexys4/tb
 
 #     Arty ---------------------------------------

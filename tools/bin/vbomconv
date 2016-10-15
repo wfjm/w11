@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: vbomconv 778 2016-06-25 15:18:01Z mueller $
+# $Id: vbomconv 804 2016-08-28 17:33:50Z mueller $
 #
 # Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,8 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2016-08-28   804   1.17.3 xsim work dir now xsim.<mode>.<stem>
+# 2016-07-02   782   1.17.2 add VBOMCONV_GHDL_OPTS and VBOMCONV_GHDL_GCOV
 # 2016-06-24   778   1.17.1 -vsyn_prj: add [rep]sim models & VBOMCONV_XSIM_LANG
 #                           -ghdl_(i|m|a): use --workdir
 # 2016-06-19   777   1.17   -vsyn_prj: sim and syn source sets based on -UUT
@@ -144,15 +146,24 @@ my $level = 0;                              # vbom nesting level
 my $xst_writevhdl = 1;
 my $xlpath=$opts{xlpath};
 my $no_xlpath = ! defined $xlpath || $xlpath eq "";
-my $xsim_lang = 'verilog';                  # xsim model language
+my $ghdl_opts = $ENV{VBOMCONV_GHDL_OPTS};   # ghdl extra options
+my $ghdl_gcov = $ENV{VBOMCONV_GHDL_GCOV};   # ghdl gcov enable
+my $xsim_lang = $ENV{VBOMCONV_XSIM_LANG};   # xsim model language
 
-$xsim_lang = $ENV{VBOMCONV_XSIM_LANG} if defined $ENV{VBOMCONV_XSIM_LANG};
+if ($ghdl_gcov) {
+  $ghdl_opts  = ''  unless defined $ghdl_opts;
+  $ghdl_opts .= ' ' unless $ghdl_opts eq '';
+  $ghdl_opts .= '-Wc,-ftest-coverage -Wc,-fprofile-arcs -Wl,-lgcov';
+} else {
+  $ghdl_opts  = '-O2 -g' unless defined $ghdl_opts;
+}
+
+$xsim_lang = 'verilog' unless defined $xsim_lang;
 if ($xsim_lang ne 'verilog' && $xsim_lang ne 'vhdl') {
   print STDERR "vbomconv-E: VBOMCONV_XSIM_LANG is '$xsim_lang'\n";
   print STDERR "vbomconv-E: VBOMCONV_XSIM_LANG must be 'verilog' or 'vhdl'\n";
   exit 1;
 }
-
 $is_veri = $xsim_lang eq 'verilog';
 
 autoflush STDOUT 1;		# autoflush, so nothing lost on exec later
@@ -327,7 +338,7 @@ if ($do_trace) {
   print STDERR "  \-UUT: $uut\n" if defined $uut;
 }
 
-# --ghdh_a -- ghdl analysis command ----------------------------------
+# --ghdl_a -- ghdl analysis command ----------------------------------
 
 if (exists $opts{ghdl_a} || exists $opts{ghdl_a_cmd}) {
   if ($no_xlpath && ($has_unisim || $has_unimacro || $has_simprim) ) {
@@ -343,6 +354,7 @@ if (exists $opts{ghdl_a} || exists $opts{ghdl_a_cmd}) {
     $cmd .= " -P$xlpath/unimacro"  if $has_unimacro;
     $cmd .= " -P$xlpath/simprim"   if $has_simprim;
     $cmd .= " --ieee=synopsys";
+    $cmd .= " ${ghdl_opts}";
     $cmd .= " $file";
     print "$cmd\n";
     if (exists $opts{ghdl_a}) {
@@ -362,7 +374,7 @@ if (exists $opts{ghdl_a} || exists $opts{ghdl_a_cmd}) {
   }
 }
 
-# --ghdh_i -- ghdl inspection command --------------------------------
+# --ghdl_i -- ghdl inspection command --------------------------------
 
 if (exists $opts{ghdl_i} || exists $opts{ghdl_i_cmd}) {
   my $workdir = "ghdl.${sim_mode}";
@@ -408,7 +420,7 @@ if (exists $opts{ghdl_i} || exists $opts{ghdl_i_cmd}) {
   }
 }
 
-# --ghdh_m -- ghdl make command --------------------------------------
+# --ghdl_m -- ghdl make command --------------------------------------
 # Note: the 'buildin' make used by the -m option of ghdl does not
 #       check for object files linked with -Wl, e.g. vhpi objects.
 #       To force a re-elaboration the old executable is deleted first.
@@ -436,6 +448,7 @@ if (exists $opts{ghdl_m} || exists $opts{ghdl_m_cmd} ) {
   $cmd .= " -P$xlpath/unimacro"  if $has_unimacro;
   $cmd .= " -P$xlpath/simprim"   if $has_simprim;
   $cmd .= " --ieee=synopsys";
+  $cmd .= " ${ghdl_opts}";
   $cmd .= " --no-vital-checks"   if $sim_mode ne 'bsim';
 
   foreach (@srcfile_list) {
@@ -551,7 +564,10 @@ if (exists $opts{vsyn_prj}) {
 # --vsim_prj ---------------------------------------------------------
 
 if (exists $opts{vsim_prj}) {
-  my $workdir = "xsim.${sim_mode}";
+  # Note: use a separate workdir for each sim_mode and each model (given
+  # by stem). This allows to have all co-existant, and to delete the workdir
+  # each time one of them is re-build.
+  my $workdir = "xsim.${sim_mode}.${stem}";
   my $fname_forwarder = "${stem}_XSim";
   $fname_forwarder =~ s/_([sorept]sim)_XSim/_XSim_$1/;
 

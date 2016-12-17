@@ -1,42 +1,18 @@
+# backup files
+*.bak
+*~
+
+# archives
 *.gz
 *.tar
 *.tgz
+
+# make auto-dependency 
+*.dep
 *.dep_*
-work-obj93.cf
-*.vcd
-*.ghw
-*.sav
+
+# temporary and generated
+*.o
 *.tmp
-*.exe
-ise
-xflow.his
-*.ngc
-*.ncd
-*.pcf
-*.bit
-*.msk
-*.svf
 *.log
-isim
-*_[sfot]sim.vhd
-*_tsim.sdf
-rlink_cext_fifo_[rt]x
-rlink_cext_conf
-tmu_ofile
-*.dsk
-*.tap
-*.lst
-*.cof
-.Xil
-project_mflow
-xsim.dir
-webtalk_*
-*_[sfot]sim
-*_[IX]Sim
-*_[IX]Sim_[sfot]sim
-*.dcp
-*.jou
-*.pb
-*.prj
-*.rpt
-*.wdb
+core

@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: svn_set_ignore 601 2014-11-07 22:44:43Z mueller $
+# $Id: svn_set_ignore 822 2016-12-17 18:50:04Z mueller $
 #
-# Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,12 +14,13 @@
 #
 #  Revision History:
 # Date         Rev  Vers    Comment
+# 2016-12-17   821   1.2    use .gitignore rather .cvsignore
 # 2014-11-04   601   1.1    use 'svn info' rather /.svn check for svn >= 1.7
 # 2010-04-26   284   1.0.1  add error check for GetOptions
 # 2007-06-16    56   1.0    Initial version
 #
 
-use 5.005;                                  # require Perl 5.005 or higher
+use 5.14.0;                                 # require Perl 5.14 or higher
 use strict;                                 # require strict checking
 
 use Getopt::Long;
@@ -27,33 +28,30 @@ use Getopt::Long;
 sub do_dir;
 
 my @dirlist;
-my @def_ipat;
+my %ignores;
 
 my %opts = ();
 
-GetOptions(\%opts, "dry-run")
+GetOptions(\%opts, "trace", "dry-run")
   or die "bad options";
 
 if (@ARGV) {
   push @dirlist, @ARGV;
 } else {
-  @dirlist = `find -type d | grep -v "\.svn"`;
+  @dirlist = `find -type d | sort`;
   die "bad find|grep" if $?;
+  chomp @dirlist;
+  # drop some directories at this level
+  @dirlist = grep {! /\/(\.svn|\.Xil)/} @dirlist;
 }
 
-open (CVSIG, ".cvsignore") or die "no top level .cvsigore found";
-@def_ipat = grep /.+/, <CVSIG>;
-close (CVSIG);
-
-foreach (@dirlist) { chomp; do_dir($_); }
+foreach (@dirlist) { do_dir($_); }
 
 #-------------------------------------------------------------------------------
 
 sub do_dir {
   my ($dirname) = @_;
   my @cur_ipat;
-  my @loc_ipat;
-  my @sum_ipat;
   my @new_ipat;
   my %ipat;
 
@@ -64,43 +62,54 @@ sub do_dir {
   return if $?;
 
   print "$dirname\n";
-  open (SVN, "svn pg svn:ignore $dirname|") or die "failed to open svn pg pipe";
-  @cur_ipat = grep /.+/, <SVN>;	# prop get and drop empty lines
-  close (SVN);
 
-  if ($dirname ne "." && -r "$dirname/.cvsignore") {
-    open (CVSIG, "$dirname/.cvsignore") 
-      or die "failed to read local .cvsignore";
-    @loc_ipat = grep /.+/, <CVSIG>;
-    close (CVSIG);
-  }
-
-  push @sum_ipat, @def_ipat;
-  push @sum_ipat, @loc_ipat;
-
-  foreach (@sum_ipat) {
-    if (exists $ipat{$_}) {
-      my $pat = $_;
-      chomp $pat;
-      print "duplicate ignore: $pat in $dirname\n";
-    } else {
-      $ipat{$_} = 1;
-      push @new_ipat, $_;
+  my @dpelist = split '/', $dirname;
+  my @dpecurr = ();
+  foreach my $e (@dpelist) {
+    push @dpecurr, $e;
+    my $d = join '/',@dpecurr;
+    if (not exists $ignores{$d}) {
+      $ignores{$d} = ();
+      if (-r "$d/.gitignore") {
+        print "read $d/.gitignore\n" if exists $opts{trace};
+        open (CVSIG, "$d/.gitignore")
+          or die "failed to read $d/.gitignore";
+        while (<CVSIG>) {
+          chomp;
+          next if /^\s*$/;                  # ignore empty or space only lines
+          next if /^#/;                     # ignore comments
+          push @{$ignores{$d}}, $_;
+          print "   $_\n" if exists $opts{trace};
+        }
+        close (CVSIG);
+      }
+    }
+    foreach my $i (@{$ignores{$d}}) {
+      next if exists $ipat{$i};
+      $ipat{$i} = 1;
+      push @new_ipat, $i;
     }
   }
 
-  if (join("",@cur_ipat) ne join("",@new_ipat)) {
+  open (SVN, "svn pg svn:ignore $dirname|")
+    or die "failed to open svn pg pipe for '$dirname'";
+  while (<SVN>) {
+    chomp;
+    next if /^\s*$/;                        # ignore empty or space only lines
+    push @cur_ipat, $_;
+  }
+  close (SVN);
+
+  if (join("\n",@cur_ipat) ne join("\n",@new_ipat)) {
     print "update svn:ignore for $dirname\n";
     print "old svn:ignore:\n";
-    print "   ", join "   ",@cur_ipat if @cur_ipat;
-    print "local .cvsignore:\n";
-    print "   ", join "   ",@loc_ipat if @loc_ipat;
+    print "   ", join("\n   ",@cur_ipat),"\n";
     print "new svn:ignore:\n";
-    print "   ", join "   ",@new_ipat if @new_ipat;
+    print "   ", join("\n   ",@new_ipat),"\n";
 
     if (not exists $opts{"dry-run"}) {
       open (TMP, ">/tmp/svn_set_ignore_$$") or die "failed to open tmp file";
-      print TMP join "",@new_ipat;
+      print TMP join("\n",@new_ipat),"\n";
       close (TMP);
       print `svn ps svn:ignore -F /tmp/svn_set_ignore_$$ $dirname`;
       die "bad svn ps" if $?;

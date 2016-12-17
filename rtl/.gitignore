@@ -1,0 +1,55 @@
+# ghdl + gtkwave
+work-obj93.cf
+ghdl.[bsfort]sim
+*.vcd
+*.ghw
+*.sav
+*.gcov
+*.gcda
+*.gcno
+
+# generated hdl models
+*_[sfort]sim.vhd
+*_[sorept]sim.v
+*_[ept]sim.sdf
+
+# Xilinx tools ISE
+ise
+xflow.his
+*.ngc
+*.ncd
+*.pcf
+*.bit
+*.msk
+*.svf
+*.log
+isim
+fuse.xmsgs
+fuseRelaunch.cmd
+
+# Xilinx tools Vivado
+.Xil
+project_mflow
+xsim.dir
+xsim.[bsorept]sim.*
+webtalk_*
+*_[sfot]sim
+*_[IX]Sim
+*_[IX]Sim_[sfot]sim
+*.dcp
+*.jou
+*.pb
+*.prj
+*.rpt
+*.wdb
+
+# rlink
+rlink_cext_fifo_[rt]x
+rlink_cext_conf
+
+# simulation
+tmu_ofile
+*.dsk
+*.tap
+*.lst
+*.cof

@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: svn_set_ignore.1 550 2014-02-03 08:16:57Z mueller $
+.\"  $Id: svn_set_ignore.1 822 2016-12-17 18:50:04Z mueller $
 .\"
 .\" Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -8,7 +8,7 @@
 .TH SVN_SET_IGNORE 1 2010-04-26 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
-svn_set_ignore \- setup svn:ignore properties based on .cvsignore files
+svn_set_ignore \- setup svn:ignore properties based on .gitignore files
 .\" ------------------------------------------------------------------
 .SH SYNOPSIS
 .
@@ -20,13 +20,13 @@ svn_set_ignore \- setup svn:ignore properties based on .cvsignore files
 .SH DESCRIPTION
 Creates or updates a \fIsvn:ignore\fP property for the current directory
 and all sub-directories. The current directory must contain a
-\fI.cvsignore\fP file which defines the default list of ignore patterns for the
-whole project. If a local \fI.cvsignore\fP file is found in a sub directory
-its content will be appended to the default list.
+\fI.gitignore\fP file which defines the default list of ignore patterns for the
+whole project. The local ignore pattern for each directory is the concatination
+of all \fI.gitignore\fP files found in the directory hierarchy.
 .
 If no \fIsvn:ignore\fP property exists or the existing one differs from
 the ignore pattern list determined from the top level and local 
-\f.cvsignore\fP file the property is set or updated.
+\f.gitignore\fP file the property is set or updated.
 .
 .\" ------------------------------------------------------------------
 .SH OPTIONS
@@ -38,8 +38,8 @@ svn repository.
 .
 .\" ------------------------------------------------------------------
 .SH EXIT STATUS
-If no  \fI.cvsignore\fP file is found or a \fBsvn\fP(1) command fails the 
-script dies with exit status 2.
+If no top level \fI.gitignore\fP file is found or a \fBsvn\fP(1) command fails
+the script dies with exit status 2.
 .
 .\" ------------------------------------------------------------------
 .SH "SEE ALSO"

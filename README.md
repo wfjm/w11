@@ -13,7 +13,14 @@ Digilent Arty, Basys3, Nexys4, Nexys3, Nexys2 and S3board boards
 and boots 5th Edition UNIX and 2.11BSD UNIX. 
 
 For more information look into:
-* [w11 home page](https://wfjm.github.io/home/w11/)
+- [w11 home page](https://wfjm.github.io/home/w11/)
+- [change log](doc/CHANGELOG.md)
+- [installation notes](doc/INSTALL.md)
+- [short description of the directory layout](https://wfjm.github.io/home/w11/impl/dirlayout.html)
+- [guide to run test benches](doc/w11a_tb_guide.md)
+- [guide to boot operation systems](doc/w11a_os_guide.md)
+- [known issues generel](doc/README_known_issues.md)
+- [known issues w11a CPU](doc/w11a_known_issues.md)
 
 ### Note on freecores/w11
 The [freecores team](http://freecores.github.io/) created in 2014 a

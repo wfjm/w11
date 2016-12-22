@@ -1,8 +1,6 @@
-# $Id: INSTALL_ghdl.txt 651 2015-02-26 21:32:15Z mueller $
+# Installation of ghdl
 
-The w11 project uses the open source VHDL simulator
-
-  ghdl
+The w11 project uses the open source VHDL simulator **ghdl**.
 
 It used to be part of most distributions. Unfortunately the Debian maintainer 
 for ghdl refused at some point to integrate ghdl into Debian Etch. Therefore
@@ -15,40 +13,38 @@ ghdl, the currently maintained versions 12.04 LTS "Precise", 14.04 LTS "Trusty"
 and 14.10 "Utopic" unfortunately don't.
 
 To install ghdl on an up-to-date Debian or Ubuntu systems you have the
-following options {as of early February 2015}:
+following options _(as of early February 2015)_:
 
 - Ubuntu Precise and Trusty
 
   Thanks to Peter Gavin Ubuntu packages for GHDL are available from his PPA
   'Personal Package Archives', see
 
-    https://launchpad.net/~pgavin/+archive/ghdl
+        https://launchpad.net/~pgavin/+archive/ghdl
 
   So to install ghdl under Ubuntu use
 
-    sudo add-apt-repository ppa:pgavin/ghdl
-    sudo apt-get update
-    sudo apt-get install ghdl
+        sudo add-apt-repository ppa:pgavin/ghdl
+        sudo apt-get update
+        sudo apt-get install ghdl
 
 - Debian Wheezy
 
   Thanks to Joris van Rantwijk Debian packages for GHDL are available
   from the web site
 
-    http://jorisvr.nl/ghdl_debian.html
+        http://jorisvr.nl/ghdl_debian.html
 
   There are also Ubuntu packages, but Joris focus is clearly on Debian.
 
 Only Debian and Ubuntu are actively used by the w11a developer. The situation 
 for other Linux distributions is therefore just taken from the respective web 
-sites {status October 2013}:
+sites _(status October 2013)_:
 
-- Suse
+- **Suse**  
   For Suse 12.2 and 12.3 un-official ghdl packages are available, but they
   seem to be based on the long obsolete ghdl version 0.27.
-
-- Redhat/Fedora
+- **Redhat/Fedora**  
   For Fedora 18,19, and 20 packages are available based on ghdl 0.29
-
-- Gentoo
+- **Gentoo**  
   Packages, marked 'unstable', are available based on ghdl 0.29 and 0.27

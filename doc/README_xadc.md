@@ -1,10 +1,8 @@
-# $Id: README_xadc.txt 746 2016-03-19 13:08:36Z mueller $
-
 The Artix-7 based designs contain now a module which makes the data of the
 FPGA system monitor, called XADC in 7Series and SYSMON otherwise, available
-on the rbus and therefore from ti_rri.
+on the rbus and therefore from `ti_rri`.
 
-To set this up in ti_rri or ti_w11 use
+To set this up in `ti_rri` or `ti_w11` use
 
     package require rbsysmon
     rbsysmon::setup_xadc_arty;      # for arty

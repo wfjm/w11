@@ -1,129 +1,79 @@
-$Id: README-w11a_V.50-w11a_V0.60.txt 578 2014-08-05 21:28:19Z mueller $
+# Changelog: w11a_V0.50 -> w11a_V0.60
 
-Release notes for w11a
+### Release highlights
+- revised ibus protocol V2
+  (in [w11a_V0.51](#user-content-w11a_V0.51))
+- revised rbus protocol V3
+  (in [w11a_V0.52](#user-content-w11a_V0.52))
+- backend server rewritten in C++ and Tcl
+  (in [w11a_V0.53](#user-content-w11a_V0.53)
+  and [w11a_V0.562](#user-content-w11a_V0.562))
+- add Nexys3 port of w11a
+  (in [w11a_V0.54](#user-content-w11a_V0.54))
+- add Cypress FX2 support
+  (in [w11a_V0.56](#user-content-w11a_V0.56)
+  and [w11a_V0.57](#user-content-w11a_V0.57))
+- added LP11,PC11 support
+  (in [w11a_V0.58](#user-content-w11a_V0.58))
+- reference system now ISE 14.7 and Ubuntu 12.04 64 bit, ghdl 0.31
+- many code cleanups; use `numeric_std`
+- many documentation improvements
+- development status upgraded to beta (from alpha)
 
-  Table of content:
-  
-  1. Documentation
-  2. Files
-  3. Change Log
+### Table of contents
+- Release [w11a_V0.60](#user-content-w11a_V0.60)
+- Release [w11a_V0.581](#user-content-w11a_V0.581)
+- Release [w11a_V0.58](#user-content-w11a_V0.58)
+- Release [w11a_V0.57](#user-content-w11a_V0.57)
+- Release [w11a_V0.562](#user-content-w11a_V0.562)
+- Release [w11a_V0.561](#user-content-w11a_V0.561)
+- Release [w11a_V0.56](#user-content-w11a_V0.56)
+- Release [w11a_V0.55](#user-content-w11a_V0.55)
+- Release [w11a_V0.54](#user-content-w11a_V0.54)
+- Release [w11a_V0.532](#user-content-w11a_V0.532)
+- Release [w11a_V0.531](#user-content-w11a_V0.531)
+- Release [w11a_V0.53](#user-content-w11a_V0.53)
+- Release [w11a_V0.52](#user-content-w11a_V0.52)
+- Release [w11a_V0.51](#user-content-w11a_V0.51)
+- Release [w11a_V0.5](#user-content-w11a_V0.5)
 
-1. Documentation -------------------------------------------------------------
+<!-- --------------------------------------------------------------------- -->
+---
+## 2014-06-06: w11a_V0.60 - svn rev 25(oc) 559+(wfjm) <a name="w11a_V0.60"></a>
 
-  More detailed information on installation, build and test can be found 
-  in the doc directory, specifically
+### Summary
+- many documentation updates; no functional changes
 
-    * README.txt: release notes
-    * INSTALL.txt: installation and building test benches and systems
-    * w11a_tb_guide.txt: running test benches
-    * w11a_os_guide.txt: booting operating systems 
-    * w11a_known_issues.txt: known differences, limitations and issues
+### New features
 
-2. Files ---------------------------------------------------------------------
-
-   doc                          Documentation
-   doc/man                        man pages for retro11 commands
-   rtl                          VHDL sources
-   rtl/bplib                    - board and component support libs
-   rtl/bplib/atlys                - for Digilent Atlys board
-   rtl/bplib/fx2lib               - for Cypress FX2 USB interface controller
-   rtl/bplib/issi                 - for ISSI parts
-   rtl/bplib/micron               - for Micron parts
-   rtl/bplib/nexys2               - for Digilent Nexsy2 board
-   rtl/bplib/nexys3               - for Digilent Nexsy3 board
-   rtl/bplib/nxcramlib            - for CRAM part used in Nexys2/3
-   rtl/bplib/s3board              - for Digilent S3BOARD
-   rtl/ibus                     - ibus devices (UNIBUS peripherals)
-   rtl/sys_gen                  - top level designs
-   rtl/sys_gen/tst_fx2loop        - top level designs for Cypress FX2 tester
-     nexys2,nexys3                 - systems for Nexsy2,Nexsy3
-   rtl/sys_gen/tst_rlink          - top level designs for an rlink tester
-     nexys2,nexys3,s3board          - systems for Nexsy2,Nexsy3,S3BOARD
-   rtl/sys_gen/tst_rlink_cuff     - top level designs for rlink over FX2 tester
-     nexys2,nexys3,atlys            - systems for Atlys,Nexsy2,Nexsy3
-   rtl/sys_gen/tst_serloop        - top level designs for serport loop tester
-     nexys2,nexys3,s3board          - systems for Nexsy2,Nexsy3,S3BOARD
-   rtl/sys_gen/tst_snhumanio      - top level designs for human I/O tester
-     atlys,nexys2,nexys3,s3board    - systems for Atlys,Nexsy2,Nexsy3,S3BOARD
-   rtl/sys_gen/w11a               - top level designs for w11a SoC
-     nexys2,nexys3,s3board          - w11a systems for Nexsy2,Nexsy3,S3BOARD
-   rtl/vlib                     - VHDL component libs
-   rtl/vlib/comlib                - communication
-   rtl/vlib/genlib                - general
-   rtl/vlib/memlib                - memory
-   rtl/vlib/rbus                  - rri: rbus
-   rtl/vlib/rlink                 - rri: rlink
-   rtl/vlib/serport               - serial port (UART)
-   rtl/vlib/simlib                - simulation helper lib
-   rtl/vlib/xlib                  - Xilinx specific components
-   rtl/w11a                     - w11a core
-   tools                        helper programs
-   tools/asm-11                 - pdp-11 assembler code
-   tools/asm-11/tests             - test bench for asm-11
-   tools/asm-11/tests-err         - test bench for asm-11 (error check part)
-   tools/bin                    - scripts and binaries
-   tools/dox                    - Doxygen documentation configuration
-   tools/make                   - make includes
-   tools/fx2                    - Firmware for Cypress FX2 USB Interface
-   tools/fx2/bin                  - pre-build firmware images in .ihx format
-   tools/fx2/src                  - C and asm sources
-   tools/fx2/sys                  - udev rules for USB on fpga eval boards
-   tools/oskit                  - setup files for Operation System kits
-   tools/oskit/...                - several PDP-11 system kits available
-   tools/src                    - C++ sources for rlink backend software
-   tools/src/librlink             - basic rlink interface
-   tools/src/librlinktpp          - C++ to tcl binding for rlink interface
-   tools/src/librtcltools         - support classes to implement Tcl bindings
-   tools/src/librtools            - general support classes and methods
-   tools/src/librutiltpp          - Tcl support commands implemented in C++
-   tools/src/librw11              - w11 over rlink interface
-   tools/src/librwxxtpp           - C++ to tcl binding for w11 over rlink iface
-   tools/tbench                 - w11 CPU test bench
-   tools/tcl                    - Tcl scripts
-
-3. Change Log ----------------------------------------------------------------
-
-- w11a_V0.50 -> w11a_V0.60 cummulative summary of key changes
-  - revised ibus protocol V2  (in w11a_V0.51)
-  - revised rbus protocol V3  (in w11a_V0.52)
-  - backend server rewritten in C++ and Tcl (in w11a_V0.53 and w11a_V0.562)
-  - add Nexys3 port of w11a (in w11a_V0.54)
-  - add Cypress FX2 support (in w11a_V0.56 and w11a_V0.57)
-  - added LP11,PC11 support (in w11a_V0.58)
-  - reference system now ISE 14.7 and Ubuntu 12.04 64 bit, ghdl 0.31
-  - many code cleanups; use numeric_std
-  - many documentation improvements
-  - development status upgraded to beta (from alpha)
-
-- trunk (2014-06-06: svn rev 25(oc) 559+(wfjm); tagged w11a_V0.60)   +++++++++
-
-  - Summary
-    - many documentation updates; no functional changes
-
-  - New features
     - Tarballs with ready to use bit files and and all logfiles from the tool 
       chain can be downloaded from
+      ```
         http://www.retro11.de/data/oc_w11/bitkits/
+      ```
       This area is organized in folders for different releases. The tarball 
       file names contain information about release, Xlinix tool, and design.
 
-  - Changes
-    - documentation updates
-    - URL of oskits changed, they are now unter
-        http://www.retro11.de/data/oc_w11/oskits
+### Changes
+- documentation updates
+- URL of oskits changed, they are now unter
+  http://www.retro11.de/data/oc_w11/oskits/
 
-- trunk (2014-05-29: svn rev 22(oc) 556(wfjm); untagged w11a_V0.581)  ++++++++
+<!-- --------------------------------------------------------------------- -->
+---
+## 2014-05-29: w11a_V0.581 - svn rev 22(oc) 556(wfjm) <a name="w11a_V0.581"></a>
 
-  - Summary
-    - new reference system
-      - switched from ISE 13.3 to 14.7.
-      - map/par behaviour changed, unfortunately unfavorably for w11a. 
-        On Nexys3 no timing closure anymore for 80 MHz, only 72 MHz can 
-        be achieved now.
-    - new man pages (in doc/man/man1/)
-    - support for Spartan-6 CMTs in PLL and DCM mode
+### Summary
+- new reference system
+  - switched from ISE 13.3 to 14.7.
+  - map/par behaviour changed, unfortunately unfavorably for w11a. 
+    On Nexys3 no timing closure anymore for 80 MHz, only 72 MHz can 
+    be achieved now.
+- new man pages (in `doc/man/man1/`)
+- support for Spartan-6 CMTs in PLL and DCM mode
 
-  - New features
+### New features
+
     - new modules
       - rtl/vlib/xlib
         - s6_cmt_sfs_unisim       - Spartan-6 CMT for simple frequency synthesis
@@ -156,22 +106,27 @@ Release notes for w11a
     - tools/tcl/rw11
       - util.tcl                  - move definitions to defs.tcl
 
-  - Bug fixes
-    - tools/src/librtools/RlogFile - fix date print (month was off by one)
-    - tools/tcl/rw11/asm.tcl      - asmwait checks now pc if stop: defined
+### Bug fixes
 
-  - Other updates
+    - tools/src/librtools/RlogFile - fix date print (month was off by one)
+    - tools/tcl/rw11/asm.tcl       - asmwait checks now pc if stop: defined
+
+### Other updates
+
     - INSTALL_ghdl.txt - text reflects current situation on ghdl packages
 
-- trunk (2013-05-12: svn rev 21(oc) 518+(wfjm); untagged w11a_V0.58)  ++++++++
+<!-- --------------------------------------------------------------------- -->
+---
+## 2013-05-12: w11a_V0.58 - svn rev 21(oc) 518+(wfjm) <a name="w11a_V0.58"></a>
 
-  - Summary
-    - C++ and Tcl based backend server now fully functional, supports with 
-        DL11, RK11, LP11 and PC11 all devices available in w11a designs
-    - the old perl based backend server (pi_rri) is obsolete and removed
-    - operating system kits reorganized
+### Summary
+- C++ and Tcl based backend server now fully functional, supports with 
+  DL11, RK11, LP11 and PC11 all devices available in w11a designs
+- the old perl based backend server (pi_rri) is obsolete and removed
+- operating system kits reorganized
 
-  - New features
+### New features
+
     - new directory trees for
       - tools/oskit               - operating system kits
     - new modules
@@ -184,26 +139,31 @@ Release notes for w11a
         - RtclRw11*PC11           - tcl iface for PC11 paper tape handling
         - RtclRw11*Stream*        - tcl iface for Virtual Stream handling
 
-  - Changes
+### Changes
+
     - renames
-      - the w11 backend quick starter now named ti_w11 and under tools/bin
+      - the w11 backend quick starter now named ti_w11 and under `tools/bin`
         (was rtl/sys_gen/w11a/tb/torri)
       - all operating system image related material now under 
-        tools/oskit (was under rtl/sys_gen/w11a/tb)
+        `tools/oskit` (was under rtl/sys_gen/w11a/tb)
 
-  - Bug fixes
+### Bug fixes
+
     - rtl/ibus/ibdr_lp11  - err flag logic fixed, was cleared in ibus racc read
     - rtl/ibus/ibdr_pc11  - rbuf logic fixed. Was broken since ibus V2 update
                               in V0.51! Went untested because pc11 rarely used.
 
-- trunk (2013-04-27: svn rev 20(oc) 511(wfjm); untagged w11a_V0.57)  +++++++++
+<!-- --------------------------------------------------------------------- -->
+---
+## 2013-04-27: w11a_V0.57 - svn rev 20(oc) 511(wfjm)  <a name="w11a_V0.57"></a>
 
-  - Summary
-    - new C++ and Tcl based backend server supports now RK11 handling
-    - w11a systems operate with rlink over USB on nexsy2 and nexsy3 boards.
-      See w11a_os_guide.txt for details
+### Summary
+- new C++ and Tcl based backend server supports now RK11 handling
+- w11a systems operate with rlink over USB on nexsy2 and nexsy3 boards.
+  See w11a_os_guide.txt for details
 
-  - New features
+### New features
+
     - new modules
       - rtl/bplib/fx2rlink      - new vhdl lib with rlink over fx2 modules
         - ioleds_sp1c_fx2         - io activity leds for rlink_sp1c_fx2
@@ -217,28 +177,33 @@ Release notes for w11a
     - new files
       - rtl/sys_gen/w11a/tb/torri - quick starter for new backend
 
-  - Changes
+### Changes
+
     - tcl module renames:
         tools/tcl/rw11a  -> tools/tcl/rw11
 
-  - Bug fixes
+### Bug fixes
+
     - tools/src/ReventLoop: poll list update logic in DoPoll() corrected
 
-- trunk (2013-04-13: svn rev 19(oc) 505(wfjm); untagged w11a_V0.562) +++++++++
+<!-- --------------------------------------------------------------------- -->
+---
+## 2013-04-13: w11a_V0.562 - svn rev 19(oc) 505(wfjm)  <a name="w11a_V0.562"></a>
 
-  - Summary
-    - V0.53 introduced a new C++ and Tcl based backend server, but only the
-      very basic rlink handling layer. This step release add now many support
-      classes for interfacing to w11 system designs, and the associated Tcl
-      bindings.
-    - add 'asm-11', a simple, Macro-11 syntax subset combatible, assembler. 
-      Can be used stand-alone to generate 'absolute loader' format files,
-      but also integrates tightly into the Tcl environment and is used as
-      building block in the creation of CPU test benches.
-    - use now doxygen 1.8.3.1, generate c++,tcl, and vhdl source docs
-      See section 9. in INSTALL.txt for details.
+### Summary
+- V0.53 introduced a new C++ and Tcl based backend server, but only the
+  very basic rlink handling layer. This step release add now many support
+  classes for interfacing to w11 system designs, and the associated Tcl
+  bindings.
+- add `asm-11`, a simple, Macro-11 syntax subset combatible, assembler. 
+  Can be used stand-alone to generate 'absolute loader' format files,
+  but also integrates tightly into the Tcl environment and is used as
+  building block in the creation of CPU test benches.
+- use now doxygen 1.8.3.1, generate c++, tcl, and vhdl source docs
+  See section 9. in INSTALL.txt for details.
 
-  - New features
+### New features
+
     - new directory trees for
       - tools/asm-11              - asm-11 code
       - tools/asm-11/tests          - test bench for asm-11
@@ -254,7 +219,8 @@ Release notes for w11a
         - *.Doxyfile     - new descriptors c++,tcl,vhdl docs
         - make_dox       - driver script to generate c++,tcl,vhdl doxygen docs
 
-  - Changes
+### Changes
+
     - vhdl module renames:
         vlib/serport               -> vlib/serportlib
     - vhdl module splits:
@@ -262,43 +228,50 @@ Release notes for w11a
     - C++ class splits
         librtcltools/RtclProxyBase -> RtclCmdBase + RtclProxyBase
 
-- trunk (2013-01-06: svn rev 18(oc) 472(wfjm); untagged w11a_V0.561) +++++++++
+<!-- --------------------------------------------------------------------- -->
+---
+## 2013-01-06: w11a_V0.561 - svn rev 18(oc) 472(wfjm)  <a name="w11a_V0.561"></a>
 
-  - Summary
-    - Added simple simulation model of Cypress FX2 and test benches for
-      functional verifcation of FX2 controller
-    - Bugfixes in FX2 firmware and controller, works now also on Nexys3 & Atlys
-    - Added test systems for rlink over USB verification for Nexys3 & Atlys
+### Summary
+- Added simple simulation model of Cypress FX2 and test benches for
+  functional verifcation of FX2 controller
+- Bugfixes in FX2 firmware and controller, works now also on Nexys3 & Atlys
+- Added test systems for rlink over USB verification for Nexys3 & Atlys
 
-  - New features
+### New features
+
     - new test benches
       - rtl/sys_gen/tst_rlink_cuff/nexys2/ic/tb/tb_tst_rlink_cuff_ic_n2
     - new systems
       - rtl/sys_gen/tst_rlink_cuff/nexys2/ic/sys_tst_rlink_cuff_ic_n3
       - rtl/sys_gen/tst_rlink_cuff/nexys2/ic/sys_tst_rlink_cuff_ic_atlys
 
-  - Bug fixes
+### Bug fixes
+
     - tools/fx2/src: FX2 firmware now properly re-initializes hardware registers
         and will work on Nexys3 and Atlys boards with default Digilent EPROM
     - rtl/bplib/fx2lib: read pipeline logic in FX2 controller corrected
 
-- trunk (2013-01-02: svn rev 17(oc) 467(wfjm); untagged w11a_V0.56) ++++++++++
+<!-- --------------------------------------------------------------------- -->
+---
+## 2013-01-02: w11a_V0.56 - svn rev 17(oc) 467(wfjm)  <a name="w11a_V0.56"></a>
 
-  - Summary
-    - re-organized handling of board and derived clocks in test benches
-    - added message filter definitions for some designs (.mfset files)
-    - added Cypress EZ-USB FX2 controller (USB interface)
-    - added firmware for EZ-USB FX2 supporting jtag access and data transfer
-    - FPGA configure over USB now supported directly in make build flow
-    - added test systems for USB testing and rlink over USB verification
-    - no functional change of w11a CPU core or any pre-existing test systems
-    - Note: Carefully read the disclaimer about usage of USB VID/PID numbers
-            in the file README_USB-VID-PID.txt. You'll be responsible for any
-            misuse of the defaults provided with the project sources !!
+### Summary
+- re-organized handling of board and derived clocks in test benches
+- added message filter definitions for some designs (`.mfset` files)
+- added Cypress EZ-USB FX2 controller (USB interface)
+- added firmware for EZ-USB FX2 supporting jtag access and data transfer
+- FPGA configure over USB now supported directly in make build flow
+- added test systems for USB testing and rlink over USB verification
+- no functional change of w11a CPU core or any pre-existing test systems
+- Note: Carefully read the disclaimer about usage of USB VID/PID numbers
+  in the file README_USB-VID-PID.txt. You'll be responsible for any
+  misuse of the defaults provided with the project sources !!
 
-  - New reference system
-    The development and test system was upgraded from Kubuntu 10.04 to 12.04.
-    The version of several key tools and libraries changed:
+### New reference system
+The development and test system was upgraded from Kubuntu 10.04 to 12.04.
+The version of several key tools and libraries changed:
+```
        linux kernel    3.2.0    (was  2.6.32)
        gcc/g++         4.6.3    (was  4.4.3)
        boost           1.46.1   (was  1.40)
@@ -307,8 +280,9 @@ Release notes for w11a
        tcl             8.5.11   (was  8.4.19)
        xilinx ise     13.3      (was 13.1)
     --> see INSTALL.txt, INSTALL_ghdl.txt and INSTALL_urjtag.txt
+```
+### New features
 
-  - New features
     - added firmware for Cypress FX2 controller
       - tools/fx2
         - bin    - pre-build firmware images in .ihx file format
@@ -325,7 +299,8 @@ Release notes for w11a
     - tools/bin
       - xilinx_sdf_ghdl_filter: tool to patch ISE sdf files for usage with ghdl
 
-  - Changes
+### Changes
+
     - documentation
       - added a 'system requirements' section in INSTALL.txt
       - added INSTALL_ghdl.txt and INSTALL_urjtag.txt covering ghdl and urjtag
@@ -339,14 +314,17 @@ Release notes for w11a
       - vlib/rlink/tb/
         - tbcore_rlink_dcm  - obsolete, use tbcore_rlink
 
-- trunk (2011-12-23: svn rev 16(oc) 442(wfjm); untagged w11a_V0.55)  +++++++++
+<!-- --------------------------------------------------------------------- -->
+---
+## 2011-12-23: w11a_V0.55 - svn rev 16(oc) 442(wfjm)  <a name="w11a_V0.55"></a>
 
-  - Summary
-    - added xon/xoff (software flow control) support to serport library
-    - added test systems for serport verification
-    - use new serport stack in sys_w11a_* and sys_tst_rlink_* systems
+### Summary
+- added xon/xoff (software flow control) support to serport library
+- added test systems for serport verification
+- use new serport stack in sys_w11a_* and sys_tst_rlink_* systems
 
-  - New features
+### New features
+
     - new modules
       - vlib/serport
         - serport_xonrx  - xon/xoff logic rx path
@@ -372,32 +350,39 @@ Release notes for w11a
         - rlink_serport      - obsolete, now all in rlink_sp1c
         - rlink_base_serport - use now new rlink_sp1c
 
-- trunk (2011-12-04: svn rev 15(oc) 436(wfjm); untagged w11a_V0.54)  +++++++++
+<!-- --------------------------------------------------------------------- -->
+---
+## 2011-12-04: w11a_V0.54 - svn rev 15(oc) 436(wfjm)  <a name="w11a_V0.54"></a>
 
-  - Summary
-    - added support for nexys3 board for w11a
+### Summary
+- added support for nexys3 board for w11a
 
-  - New features
+### New features
+
     - new systems
       - sys_gen/w11a/nexys3/sys_w11a_n3
       - sys_gen/w11a/nexys3/sys_tst_rlink_n3
 
-  - Changes
+### Changes
+
     - module renames:
         bplib/nexys2/n2_cram_dummy     -> bplib/nxcramlib/nx_cram_dummy
         bplib/nexys2/n2_cram_memctl_as -> bplib/nxcramlib/nx_cram_memctl_as
 
-  - Bug fixes
-    - tools/src/lib*: backend libraries compile now on 64 bit systems
+### Bug fixes
+- tools/src/lib*: backend libraries compile now on 64 bit systems
 
-- trunk (2011-11-20: svn rev 14(oc) 428(wfjm); untagged w11a_V0.532) +++++++++
+<!-- --------------------------------------------------------------------- -->
+---
+## 2011-11-20: w11a_V0.532 - svn rev 14(oc) 428(wfjm)  <a name="w11a_V0.532"></a>
 
-  - Summary
-    - generalized the 'human I/O' interface for s3board,nexys2/3 and atlys
-    - added test design for the 'human I/O' interface
-    - no functional change of w11a CPU core or any existing test systems
+### Summary
+- generalized the 'human I/O' interface for s3board,nexys2/3 and atlys
+- added test design for the 'human I/O' interface
+- no functional change of w11a CPU core or any existing test systems
 
-  - Changes
+### Changes
+
     - functional changes
       - use now 'a6' polynomial of Koopman et al for crc8 in rlink
     - with one exception all vhdl sources use now numeric_std
@@ -406,22 +391,26 @@ Release notes for w11a
         vlib/xlib/dcm_sp_sfs_unisim -> vlib/xlib/dcm_sfs_unisim_s3e
         vlib/xlib/tb/tb_dcm_sp_sfs  -> vlib/xlib/tb/tb_dcm_sfs
 
-  - New features
+### New features
+
     - new modules
       - rtl/sys_gen/tst_snhumanio
         - sub-tree with test design for 'human I/O' interface modules
         - atlys, nexys2, and s3board directories contain the systems
           for the respective Digilent boards
 
-- trunk (2011-09-11: svn rev 12(oc) 409(wfjm); untagged w11a_V0.531) +++++++++
+<!-- --------------------------------------------------------------------- -->
+---
+## 2011-09-11: w11a_V0.531 - svn rev 12(oc) 409(wfjm)  <a name="w11a_V0.531"></a>
 
-  - Summary
-    - Many small changes to prepare upcoming support for
-      - Spartan-6 boards (nexys3 and atlys)
-      - usage of Cypress FX2 USB interface on nexys2/3 and atlys boards
-    - no functional change of w11a CPU core or any test systems
+### Summary
+- Many small changes to prepare upcoming support for
+  - Spartan-6 boards (nexys3 and atlys)
+  - usage of Cypress FX2 USB interface on nexys2/3 and atlys boards
+- no functional change of w11a CPU core or any test systems
 
-  - Changes
+### Changes
+
     - use boost libraries instead of custom coding:
       - boost/function and /bind for callbacks, retire RmethDscBase and RmethDsc
       - boost/foreach for some iterator loops
@@ -441,21 +430,24 @@ Release notes for w11a
         rtl/vlib/xst_vhdl.opt          -> rtl/make/syn_s3_speed.opt
         rtl/vlib/balanced.opt          -> rtl/make/imp_s3_speed.opt
 
-- trunk (2011-04-17: svn rev 11(oc) 376(wfjm); untagged w11a_V0.53) ++++++++++
+<!-- --------------------------------------------------------------------- -->
+---
+## 2011-04-17: w11a_V0.53 - svn rev 11(oc) 376(wfjm)  <a name="w11a_V0.53"></a>
 
-  - Summary
-    - Introduce C++ and Tcl based backend server. A set of C++ classes provide
-      the basic rlink communication primitives. Additional glue classes provide
-      a Tcl binding. This first phase contains the basic functionality needed
-      to control simple test benches.
-    - add an 'rlink exerciser' (tst_rlink) and a top level design for a Nexys2
-      board (sys_tst_rlink_n2) and a test suite implemented in Tcl.
+### Summary
+- Introduce C++ and Tcl based backend server. A set of C++ classes provide
+  the basic rlink communication primitives. Additional glue classes provide
+  a Tcl binding. This first phase contains the basic functionality needed
+  to control simple test benches.
+- add an rlink exerciser (`tst_rlink`) and a top level design for a Nexys2
+  board (`sys_tst_rlink_n2`) and a test suite implemented in Tcl.
 
-  - Note: No functional changes in w11a core and I/O system at this point!
-          The w11a demonstrator systems are still operated with the old
-          backend code (pi_rri).
+- Note: No functional changes in w11a core and I/O system at this point!
+  The w11a demonstrator systems are still operated with the old
+  backend code (`pi_rri`).
 
-  - New features
+### New features
+
     - new directory trees for
       - C++ sources of backend (plus make and doxygen documentation support)
         - tools/dox                - Doxygen documentation configuration
@@ -488,18 +480,22 @@ Release notes for w11a
       - tools/bin
         - ti_rri: Tcl driver for rlink tests and servers (will replace pi_rri)
 
-- trunk (2011-01-02: svn rev 9(oc) 352(wfjm); untagged w11a_V0.52) +++++++++++
+<!-- --------------------------------------------------------------------- -->
+---
+## 2011-01-02: w11a_V0.52 - svn rev 9(oc) 352(wfjm)  <a name="w11a_V0.52"></a>
 
-  - Summary
-    - Introduce rbus protocol V3
-    - reorganize rbus and rlink modules, many renames
+### Summary
+- Introduce rbus protocol V3
+- reorganize rbus and rlink modules, many renames
 
-  - New features
+### New features
+
     - vlib/rbus
       - added several rbus devices useful for debugging
         - rbd_tester: test target, used for example in test benches
 
-  - Changes
+### Changes
+
     - module renames:
       - the rri (remote-register-interface) components were re-organized and
         cleanly separated into rbus and rlink components:
@@ -560,14 +556,17 @@ Release notes for w11a
       - rlink_serport (re-written) is an adapter to a serial interface
       - rlink_base_serport (renamed) combines rlink_base and rlink_serport
 
-- trunk (2010-11-28: svn rev 8(oc) 341(wfjm); untagged w11a_V0.51) +++++++++++
+<!-- --------------------------------------------------------------------- -->
+---
+## 2010-11-28: w11a_V0.51 - svn rev 8(oc) 341(wfjm)  <a name="w11a_V0.51"></a>
 
-  - Summary 
-    - Introduce ibus protocol V2
-    - Nexys2 systems use DCM
-    - sys_w11a_n2 now runs with 58 MHz
+### Summary 
+- Introduce ibus protocol V2
+- Nexys2 systems use DCM
+- sys_w11a_n2 now runs with 58 MHz
 
-  - New features
+### New features
+
     - ibus
       - added ib_sres_or_mon to check for miss-behaving ibus devices
       - added ib_sel to encapsulate address select logic
@@ -576,7 +575,8 @@ Release notes for w11a
       - sys_gen/w11a/nexys2
         - sys_w11a_n2 now runs with 58 MHz clksys
 
-  - Changes
+### Changes
+
     - module renames:
       - in future 'box' is used for large autonomous blocks, therefore use
         the term unit for purely sequential logic modules:
@@ -594,15 +594,17 @@ Release notes for w11a
       - basic ibus transaction now takes 2 cycles, one for address select, one
         for data exchange. This avoids too long logic paths in the ibus logic.
 
-  - Bug fixes
-    - rtl/vlib/Makefile.xflow: use default .opt files under rtl/vlib again.
+### Bug fixes
+- rtl/vlib/Makefile.xflow: use default .opt files under rtl/vlib again.
 
-- w11a_V0.5 (2010-07-23) +++++++++++++++++++++++++++++++++++++++++++++++++++++
+<!-- --------------------------------------------------------------------- -->
+---
+## 2010-07-23: w11a_V0.5  <a name="w11a_V0.5"></a>
 
-  Initial release with 
-  - w11a CPU core
-  - basic set of peripherals: kw11l, dl11, lp11, pc11, rk11/rk05
-  - just for fun: iist (not fully implemented and tested yet)
-  - two complete system configurations with 
-    - for a Digilent S3BOARD    rtl/sys_gen/w11a/s3board/sys_w11a_s3
-    - for a Digilent Nexys2     rtl/sys_gen/w11a/nexys2/sys_w11a_n2
+###  Initial release with 
+- w11a CPU core
+- basic set of peripherals: kw11l, dl11, lp11, pc11, rk11/rk05
+- just for fun: iist (not fully implemented and tested yet)
+- two complete system configurations with 
+  - for a Digilent S3BOARD    rtl/sys_gen/w11a/s3board/sys_w11a_s3
+  - for a Digilent Nexys2     rtl/sys_gen/w11a/nexys2/sys_w11a_n2

@@ -1,5 +1,10 @@
 # Summary of known issues for w11a CPU and systems
 
+General issues are listed on a separate document
+[README_known_issues.md](README_known_issues.md).
+
+This file descibes issues of the w11 CPU.
+
 ###Table of content
 
 - [Known differences between w11a and KB11-C (11/70)](#user-content-diff)

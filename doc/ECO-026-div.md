@@ -99,7 +99,7 @@ algorithms need special rules and checks for this.
       w11a   --> regs updated under some rare conditions
       KB11-C --> regs updated under some rare conditions
                  but in cases different from w11a
-      11/44  --> regs updated under some conditions (see v7_longdivide_bug.txt)
+      11/44  --> regs updated under some conditions
       J11    --> regs never updated
       simh   --> regs never updated
    ```

@@ -1,25 +1,25 @@
-# $Id: README_xxdp_rlset.txt 680 2015-05-14 13:29:46Z mueller $
+## Notes on oskit: XXDP V2.2 and V2.5 system on RL02 volumes
 
-Notes on oskit: XXDP V2.2 and V2.5 system on RL02 volumes
+### General remarks
 
-  Table of content:
+See notes in [w11a_os_guide.md](../../../doc/w11a_os_guide.md) on
+  1. I/O emulation setup
+  2. FPGA Board setup
+  3. Rlink and Backend Server setup
+  4. Legal terms
 
-    1.  General remarks
-    2.  Installation
-    3.  Usage
+**Also read [README_license.txt](README_license.txt) !!**
 
-1. General remarks ---------------------------------------------------
-
-   See notes, especially on legal terms, in README_license.txt !!
-
-2. Installation ------------------------------------------------------
-
-   - A disk images for XXDP V2.2 and V2.5 are available from bitsavers
-       http://bitsavers.trailing-edge.com/bits/DEC/pdp11/discimages/rl02
+### Installation
+A disk images for XXDP V2.2 and V2.5 are available from bitsavers  
+http://bitsavers.trailing-edge.com/bits/DEC/pdp11/discimages/rl02
+```
          xxdp22.rl02.gz
          xxdp25.rl02.gz
-     Download, unpack and copy the disk images (*.dsk), e.g.
+```
 
+Download, unpack and copy the disk images (*.dsk), e.g.
+```bash
        cd $RETROBASE/tools/oskit/xxdp_rl
 
        disk_path=http://bitsavers.trailing-edge.com/bits/DEC/pdp11/discimages
@@ -28,22 +28,28 @@ Notes on oskit: XXDP V2.2 and V2.5 system on RL02 volumes
 
        gunzip -c xxdp22.rl02.gz > xxdp22.dsk
        gunzip -c xxdp25.rl02.gz > xxdp25.dsk
+```
 
-3. Usage -------------------------------------------------------------
+### Usage
 
-   - Start them in simulator
+- Start disk in simulator
+  ```
        pdp11 xxdp22_rl_boot.scmd
        pdp11 xxdp25_rl_boot.scmd
+  ```
 
-     or on w11a
+  or on w11a
+  ```
        ti_w11 <opt> @xxdp22_rl_boot.tcl
        ti_w11 <opt> @xxdp25_rl_boot.tcl
-     where <opt> is the proper option set for the board.
+  ```
 
-   - Hit <ENTER> in the xterm window to connect to simh or backend server.
-     The boot dialog in the console xterm window will look like
-     (required input is in {..}, with {<CR>} denoting a carriage return.
+  where `<opt>` is the proper option set for the board.
 
+- Hit `<ENTER>` in the `xterm` window to connect to simh or backend server.
+  The boot dialog in the console `xterm` window will look like
+  (required input is in `{..}`, with `{<CR>}` denoting a carriage return.
+  ```
      XXDP V2.2 boot dialog:
 
        CHMDLD0 XXDP+ DL MONITOR
@@ -56,9 +62,10 @@ Notes on oskit: XXDP V2.2 and V2.5 system on RL02 volumes
        THIS IS XXDP+.  TYPE "H" OR "H/L" FOR HELP.
 
        .
+  ```
 
-     XXDP V2.5 boot dialog:
-
+  XXDP V2.5 boot dialog:
+  ```
        BOOTING UP XXDP-XM EXTENDED MONITOR
 
        XXDP-XM EXTENDED MONITOR - XXDP V2.5
@@ -80,6 +87,7 @@ Notes on oskit: XXDP V2.2 and V2.5 system on RL02 volumes
          --> will list the files
        . {R EKBAD0}
          --> will run the 'PDP 11/70 cpu diagnostic part 1'
+  ```
 
-     There is no 'halt' or 'shutdown' command, just terminate the 
-     simulator or backend server session.
+  There is no `halt` or `shutdown` command, just terminate the 
+  simulator or backend server session.

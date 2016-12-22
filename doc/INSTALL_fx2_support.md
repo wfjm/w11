@@ -6,7 +6,7 @@ project uses a custom firmware in the FX2, this writeup describes the
 installation of tools, environment setup and generation of the FX2 firmware.
 
 ### Table of content
-  
+
 - [System requirements](#user-content-sysreq)
 - [Setup environment variables](#user-content-envvar)
 - [Setup USB access](#user-content-usb-access)
@@ -43,7 +43,7 @@ these devices. A set of rules is provided under
 
     $RETROBASE/tools/fx2/sys
 
-Follow the 'README.txt' file in this directory.
+Follow the [README.md](../tools/fx2/sys/README.md) file in this directory.
 
 Notes:
 - the provided udev rules use the VID/PID for **internal lab use** as

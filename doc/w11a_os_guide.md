@@ -236,13 +236,12 @@ Several oskits are provided:
 
 | oskit Name  |  OS  | Disk/Tape| Comment |
 | :---- | :----| :------  | :------ |
-| unix-v5_rk | Unix V5 System  | RK05 | |
-| 211bsd_rk  | 2.11BSD system  | RK05 | _very elementary subset_ |
-| 211bsd_rl  | 2.11BSD system  | RL02 | _small subset_ |
-| 211bsd_rp  | 2.11BSD system  | RP06 | _full system_ |
+| [unix-v5_rk](../tools/oskit/unix-v5_rk) | Unix V5 System  | RK05 | |
+| [211bsd_rk](../tools/oskit/211bsd_rk)  | 2.11BSD system  | RK05 | _very elementary subset_ |
+| [211bsd_rl](../tools/oskit/211bsd_rl)  | 2.11BSD system  | RL02 | _small subset_ |
+| [211bsd_rp](../tools/oskit/211bsd_rp)  | 2.11BSD system  | RP06 | _full system_ |
 
-For further details consult the `README_<oskit-name>set.txt` file in the
-oskit directory.
+For further details consult the `README.md` file in the oskit directory.
 
 ### DEC operating systems <a name="oskits-dec"></a>
 
@@ -278,12 +277,11 @@ Several oskits are provided:
 
 | oskit Name  |  OS  | Disk/Tape| Comment |
 | :---- | :----| :------  | :------ |
-| rsx11m-31_rk  | RSX-11M V3.1    | RK05 | |
-| rsx11m-40_rk  | RSX-11M V4.0    | RK05 | |
-| rsx11mp-30_rp | RSX-11M+ V3.0   | RP06 | |
-| rt11-40_rk    | RT-11 V4.0      | RK05 | |
-| rt11-53_rl    | RT-11 V5.3      | RL02 | |
-| xxdp_rl       | XXDP 22 and 25  | RL02 | |
+| [rsx11m-31_rk](../tools/oskit/rsx11m-31_rk)  | RSX-11M V3.1    | RK05 | |
+| [rsx11m-40_rk](../tools/oskit/rsx11m-40_rk)  | RSX-11M V4.0    | RK05 | |
+| [rsx11mp-30_rp](../tools/oskit/rsx11mp-30_rp) | RSX-11M+ V3.0   | RP06 | |
+| [rt11-40_rk](../tools/oskit/rt11-40_rk)    | RT-11 V4.0      | RK05 | |
+| [rt11-53_rl](../tools/oskit/rt11-53_rl)    | RT-11 V5.3      | RL02 | |
+| [xxdp_rl](../tools/oskit/xxdp_rl)       | XXDP 22 and 25  | RL02 | |
 
-For further details consult the `README_<oskit-name>set.txt` file in the
-oskit directory.
+For further details consult the `README.md` file in the oskit directory.

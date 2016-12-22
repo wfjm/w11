@@ -1,40 +1,44 @@
-# $Id: README_rt11-53_rlset.txt 699 2015-07-05 21:37:26Z mueller $
+##Notes on oskit: RT-11 V5.3 system on a RL02 volume
 
-Notes on oskit: RT-11 V5.3 system on a RL02 volume
+### General remarks
 
-  Table of content:
+See notes in [w11a_os_guide.md](../../../doc/w11a_os_guide.md) on
+  1. I/O emulation setup
+  2. FPGA Board setup
+  3. Rlink and Backend Server setup
+  4. Legal terms
 
-    1.  General remarks
-    2.  Installation
-    3.  Usage
+**Also read README_license.txt which is included in the oskit !!**
 
-1. General remarks ---------------------------------------------------
+### Installation
+A disk set is available from
+http://www.retro11.de/data/oc_w11/oskits/rt11-53_rlset.tgz
 
-   See notes, especially on legal terms, in $RETROBASE/doc/w11a_os_guide.txt
-
-   Also read README_license.txt which is included in the oskit !!
-
-2. Installation ------------------------------------------------------
-
-   - A disk set is available from
-       http://www.retro11.de/data/oc_w11/oskits/rt11-53_rlset.tgz
-     Download, unpack and copy the disk images (*.dsk), e.g.
-
+Download, unpack and copy the disk images (*.dsk), e.g.
+```bash
        cd $RETROBASE/tools/oskit/rt11-53_rl
        wget http://www.retro11.de/data/oc_w11/oskits/rt11-53_rlset.tgz
        tar -xzf rt11-53_rlset.tgz
+```
 
-3. Usage -------------------------------------------------------------
+### Usage
 
-   - Start them in simulator
+- Start disk image in simulator
+  ```
        pdp11 rt11-53_rl_boot.scmd
-     or ONLY IF YOU HAVE A VALID LICENSE on w11a
-       ti_w11 <opt> @rt11-53_rl_boot.tcl
-     where <opt> is the proper option set for the board.
+  ```
 
-   - Hit <ENTER> in the xterm window to connect to simh or backend server.
-     The boot dialog in the console xterm window will look like
-     (required input is in {..}, with {<CR>} denoting a carriage return:
+  or **ONLY IF YOU HAVE A VALID LICENSE** on w11a
+  ```
+       ti_w11 <opt> @rt11-53_rl_boot.tcl
+  ```
+
+  where `<opt>` is the proper option set for the board.
+
+- Hit `<ENTER>` in the `xterm` window to connect to simh or backend server.
+     The boot dialog in the console `xterm` window will look like
+     (required input is in `{..}`, with `{<CR>}` denoting a carriage return:
+  ```
 
     RT-11FB  V05.03  
 
@@ -64,8 +68,9 @@ Notes on oskit: RT-11 V5.3 system on a RL02 volume
         Release Notes.  V5NOTE.TXT can be TYPED or PRINTED.
        
         .
+  ```
 
-     Now you are at the RT-11 prompt and can exercise the system.
+  Now you are at the RT-11 prompt and can exercise the system.
 
-     There is no 'halt' or 'shutdown' command, just terminate the 
-     simulator or backend server session.
+  There is no `halt` or `shutdown` command, just terminate the 
+  simulator or backend server session.

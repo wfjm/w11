@@ -1,21 +1,22 @@
 # Changelog: w11a_V0.60 -> w11a_V0.70
 
 ### Release highlights
-- Bugfix for DIV instruction
-  (in [w11a_V0.61](#user-content-w11a-V0.61), 
+- bugfix for DIV instruction
+  (in [w11a_V0.61](#user-content-w11a_V0.61), 
   see [ECO-026-div.md](ECO-026-div.md))
 - revised rbus protocol V4
-  (in [w11a_V0.62](#user-content-w11a-V0.63), see README_Rlink_V4.txt)
+  (in [w11a_V0.62](#user-content-w11a_V0.62),
+  see [README_Rlink_V4.md](README_Rlink_V4.md))
 - add basic Vivado support
-  (in [w11a_V0.64](#user-content-w11a-V0.64))
+  (in [w11a_V0.64](#user-content-w11a_V0.64))
 - add Nexys4 and Basys3 port of w11a
-  (in [w11a_V0.64](#user-content-w11a-V0.64))
+  (in [w11a_V0.64](#user-content-w11a_V0.64))
 - add RL11/RL02  disk support
-  (in [w11a_V0.64](#user-content-w11a-V0.64))
+  (in [w11a_V0.64](#user-content-w11a_V0.64))
 - add RH70+RP/RM disk support
-  (in [w11a_V0.65](#user-content-w11a-V0.65))
+  (in [w11a_V0.65](#user-content-w11a_V0.65))
 - add TM11/TY10 tape support
-  (in [w11a_V0.66](#user-content-w11a-V0.66))
+  (in [w11a_V0.66](#user-content-w11a_V0.66))
 - reference system now ISE 14.7, Vivado 2014.4; Ubuntu 14.04 64 bit, ghdl 0.31
 
 ### Table of contents
@@ -26,7 +27,7 @@
 - Release [w11a_V0.63](#user-content-w11a_V0.63)
 - Release [w11a_V0.62](#user-content-w11a_V0.62)
 - Release [w11a_V0.61](#user-content-w11a_V0.61)
-- [CHANGELOG for w11a_V.50 to w11a_V0.60.md](CHANGELOG-w11a_V.50-w11a_V0.60.md)
+- [CHANGELOG for w11a_V.50 to w11a_V0.60](CHANGELOG-w11a_V0.50-w11a_V0.60.md)
 
 <!-- --------------------------------------------------------------------- -->
 ---
@@ -289,7 +290,7 @@
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2015-03-01: w11a_V0.64 - svn rev 29(oc) 655(wfjm) <a name="v0.64"></a>
+## 2015-03-01: w11a_V0.64 - svn rev 29(oc) 655(wfjm) <a name="w11a_V0.64"></a>
 
 ### Preface
 - The w11 project started on a Spartan-3 based Digilent S3board, and soon 
@@ -494,7 +495,7 @@
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2014-12-20: w11a_V0.62 - svn rev 27(oc) 614(wfjm) <a name="v0.62"></a>
+## 2014-12-20: w11a_V0.62 - svn rev 27(oc) 614(wfjm) <a name="w11a_V0.62"></a>
 
 ### Summary
 - migrate to rlink protocol version 4
@@ -584,7 +585,7 @@ Notes:
 ### Summary
 - The `div` instruction gave wrong results in some corner cases when either
   divisor or quotient were the largest negative integer (100000 or -32768).
-  This is corrected now, for details see [ECO-026-div.md](ECO-026-div.md)
+  This is corrected now, for details see [ECO-026-div.md](ECO-026-div.md).
 - some minor updates and fixes to support scripts
 - `xtwi` usage and `XTWI_PATH` setup explained in INSTALL.txt
 

@@ -1,12 +1,30 @@
 # Changelog: w11a_V0.70 -> w11a_V0.74
 
+### Release highlights
+- bugfix for mmu trap handling
+  (done in [w11a_V0.71](#user-content-w11a_V0.71),
+  reported in [w11a_V0.72](#user-content-w11a_V0.72),
+  see [ECO-027-trap_mmu.md](ECO-027-trap_mmu.md))
+- add debug and monitoring units
+  (in [w11a_V0.71](#user-content-w11a_V0.71))
+- add Arty port of w11a
+  (in [w11a_V0.72](#user-content-w11a_V0.72))
+- full Vivado support
+  (in [w11a_V0.73](#user-content-w11a_V0.73))
+- configurable size cache
+  (in [w11a_V0.73](#user-content-w11a_V0.73))
+- cram controller using 'page mode'
+  (in [w11a_V0.74](#user-content-w11a_V0.74))
+- add new test bench driver `tbrun`
+  (in [w11a_V0.74](#user-content-w11a_V0.74))
+
 ### Table of contents
 - Release [w11a_V0.74](#user-content-w11a_V0.74)
 - Release [w11a_V0.73](#user-content-w11a_V0.73)
 - Release [w11a_V0.72](#user-content-w11a_V0.72)
 - Release [w11a_V0.71](#user-content-w11a_V0.71)
-- [CHANGELOG for w11a_V.60 to w11a_V0.70.md](CHANGELOG-w11a_V.60-w11a_V0.70.md)
-- [CHANGELOG for w11a_V.50 to w11a_V0.60.md](CHANGELOG-w11a_V.50-w11a_V0.60.md)
+- [CHANGELOG for w11a_V.60 to w11a_V0.70](CHANGELOG-w11a_V0.60-w11a_V0.70.md)
+- [CHANGELOG for w11a_V.50 to w11a_V0.60](CHANGELOG-w11a_V0.50-w11a_V0.60.md)
 
 <!-- --------------------------------------------------------------------- -->
 ---
@@ -34,11 +52,11 @@
   a subset given by selection criteria, and executes them. It can handle
   the parallel execution of tests so multi-core systems can be very
   easily exploited. Running all tests is now a single shell command.
-- a new tool 'tbfilt' simplifies the logic of self-checking test benches
+- a new tool `tbfilt` simplifies the logic of self-checking test benches
   and can also be used as a tool to analyze the full log files produced
   by the test benches
 - several test benches have been added to this release, most notably the
-  memory tester sys_tst_sram_* which was originally developed to verify
+  memory tester `sys_tst_sram_*` which was originally developed to verify
   the s3board SRAM controller and later ported to verify the nexys* CRAM
   controller.
 - the system test benches with SRAM and CRAM now include the PCB trace
@@ -224,7 +242,7 @@
   arty tb, proper portsel setup, configurable timeout, and finally proper 
   timeout setting.
 - resolved known issue V0.64-3: So far the arty, basys3 and nexys4 serial 
-  port, based on a FTDI FT2232, was often operated at 10 MBaud. This rate 
+  port, based on a `FTDI FT2232`, was often operated at 10 MBaud. This rate 
   is in fact not supported by FTDI, the chip will use 8 instead of 10 MBaud.
   Due to auto-bauding, which simly adapts to the actual baud rate, this went
   undetected for some time. Now all designs use a serport block clocked with

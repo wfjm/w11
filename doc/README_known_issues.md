@@ -1,4 +1,10 @@
-## Known issues
+# Known issues
+
+The issues of the w11 CPU are listed in a separate document
+[w11a_known_issues.md](w11a_known_issues.md).
+
+This file descibes general issues.
+
 The case id indicates the release when the issue was first recognized.
 
 ### V0.73-3 {[issue #11](https://github.com/wfjm/w11/issues/11)}

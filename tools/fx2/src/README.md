@@ -1,10 +1,10 @@
-The FX2 software is based on the Sourceforge project ixo-jtag
+The FX2 firmware is based on the Sourceforge project `ixo-jtag`
 
   http://sourceforge.net/projects/ixo-jtag/
 
-The usb_jtag sub project was checked out on 2011-07-17 (Rev 204) from 
+The `usb_jtag` sub project was checked out on 2011-07-17 (Rev 204) from 
 Sourceforge and taken as basis for the further developement.
-The original README.txt is preserved under 
+The original `README.txt` is preserved under 
 [README_iso_jtag.txt](README_iso_jtag.txt).
 Only the `hw_nexys.c` branch was kept on the import.
 

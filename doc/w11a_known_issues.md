@@ -13,19 +13,23 @@ This file descibes issues of the w11 CPU.
 
 ### Known differences between w11a and KB11-C (11/70) <a name="diff"></a>
 
-- the SPL instruction in the 11/70 always fetched the next instruction
+- the `SPL` instruction in the 11/70 always fetched the next instruction
   regardless of pending device or even console interrupts. This is known
-  as the 'spl bug', see
-  - http://minnie.tuhs.org/pipermail/pups/2006-September/001082.html
-  - http://minnie.tuhs.org/pipermail/pups/2006-October/001083.html
+  as the infamous _spl bug_, see
+  - http://minnie.tuhs.org/pipermail/tuhs/2006-September/001086.html
+  - http://minnie.tuhs.org/pipermail/tuhs/2006-October/001087.html
+  - http://minnie.tuhs.org/pipermail/tuhs/2006-October/001088.html
+  - http://minnie.tuhs.org/pipermail/tuhs/2006-October/001089.html
+  - http://minnie.tuhs.org/pipermail/tuhs/2006-October/001095.html
+  - http://minnie.tuhs.org/pipermail/tuhs/2006-October/001096.html
 
-  In the w11a the SPL has 11/70 semantics in kernel mode, thus next no 
-  traps or interrupts, but in supervisor and user mode SPL really acts as 
-  nop, so traps and interrupts are taken as for all other instructions.   
+  In the w11a the `SPL` has 11/70 semantics in kernel mode, thus next no 
+  traps or interrupts, but in supervisor and user mode `SPL` really acts as 
+  `NOOP`, so traps and interrupts are taken as for all other instructions.   
   **--> The w11a isn't bug compatible with the 11/70.**
 - A 'red stack violation' looses PSW, a 0 is pushed in stack.
-- The 'instruction complete flag' in SSR0 is not implemented, it is 
-  permanently '0', SSR2 will not record vector addresses in case of a
+- The 'instruction complete flag' in `SSR0` is not implemented, it is 
+  permanently '0', `SSR2` will not record vector addresses in case of a
   vector fetch fault. Recovery of vector fetch faults is therefore not
   possible, but only 11/45 and 11/70 supported this, no OS used that, and
   it's even unclear whether it can be practically used.
@@ -37,7 +41,7 @@ This file descibes issues of the w11 CPU.
 
 All four points relate to very 11/70 specific behaviour, no operating system
 depends on them, therefore they are considered acceptable implementation
-differences
+differences.
 
 ### Known limitations  <a name="lim"></a>
 
@@ -96,5 +100,5 @@ or interrupt occur
   - **TCK-007 pri=H: CPU: no trap-4 after emt on odd stack**
   - **TCK-006 pri=H: CPU: no yel-stack trap after `jsr pc,nnn(pc)`**
   - **TCK-004 pri=H: CPU: yel-stack by interrupt causes loop-up**
-  - **TCK-003 pri=H: CPU: yel-stack by iot pushes two stack frames**
+  - **TCK-003 pri=H: CPU: yel-stack by `IOT` pushes two stack frames**
 

@@ -13,14 +13,27 @@ Digilent Arty, Basys3, Nexys4, Nexys3, Nexys2 and S3board boards
 and boots 5th Edition UNIX and 2.11BSD UNIX. 
 
 For more information look into:
-- [w11 home page](https://wfjm.github.io/home/w11/)
+- w11 project [home page](https://wfjm.github.io/home/w11/)
+  and [blog](https://wfjm.github.io/blogs/w11/)
 - [change log](doc/CHANGELOG.md)
-- [installation notes](doc/INSTALL.md)
-- [short description of the directory layout](https://wfjm.github.io/home/w11/impl/dirlayout.html)
-- [guide to run test benches](doc/w11a_tb_guide.md)
-- [guide to boot operating systems](doc/w11a_os_guide.md)
-- [known issues general](doc/README_known_issues.md)
-- [known issues w11a CPU](doc/w11a_known_issues.md)
+  and [installation notes](doc/INSTALL.md)
+- guides to build bit files and test benches
+  with [Xilinx Vivado](doc/README_buildsystem_Vivado.md.html)
+  and [Xilinx ISE](doc/README_buildsystem_ISE.md.html)
+- guides to [run test benches](doc/w11a_tb_guide.md)
+  and to [boot operating systems](doc/w11a_os_guide.md)
+- known issues [general](doc/README_known_issues.md)
+  and [w11a CPU](doc/w11a_known_issues.md)
+
+A short description of the directory layout
+[is provided separately](https://wfjm.github.io/home/w11/impl/dirlayout.html),
+the top level directories are
+
+| Directory | Content |
+| --------- | ------- |
+| [doc](doc)     | documentation |
+| [rtl](rtl)     | HDL sources (mostly vhdl) |
+| [tools](tools) | many tools |
 
 ### Note on freecores/w11
 The [freecores team](http://freecores.github.io/) created in 2014 a

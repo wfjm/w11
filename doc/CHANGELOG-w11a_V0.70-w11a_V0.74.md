@@ -4,7 +4,7 @@
 - bugfix for mmu trap handling
   (done in [w11a_V0.71](#user-content-w11a_V0.71),
   reported in [w11a_V0.72](#user-content-w11a_V0.72),
-  see [ECO-027-trap_mmu.md](ECO-027-trap_mmu.md))
+  see [ECO-027](ECO-027-trap_mmu.md))
 - add debug and monitoring units
   (in [w11a_V0.71](#user-content-w11a_V0.71))
 - add Arty port of w11a
@@ -398,7 +398,7 @@
 - added support for the Vivado simulator. Simple test benches work fine.
   Rlink based test benches don't work due to a bug in Vivado 2015.4.
 - A rather esoteric CPU bug was fixed in release V0.71 but forgotten to
-  mention in the README. See [ECO-027-trap_mmu.md](ECO-027-trap_mmu.md) 
+  mention in the README. See [ECO-027](ECO-027-trap_mmu.md) 
   for details.
 
 ### Summary

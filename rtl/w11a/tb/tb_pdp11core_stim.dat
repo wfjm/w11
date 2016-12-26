@@ -1,7 +1,8 @@
-# $Id: tb_pdp11core_stim.dat 716 2015-12-22 21:44:33Z mueller $
+# $Id: tb_pdp11core_stim.dat 829 2016-12-26 18:56:17Z mueller $
 #
 # Revision History: 
 # Date         Rev Version  Comment
+# 2016-12-26   829   2.8    PSW now 000000 after cpu reset (cres)
 # 2015-12-22   716   2.7    comment out test 20.13 (fails since r708)
 # 2015-05-08   675   2.6    start/stop/suspend overhaul
 # 2014-12-26   621   2.5    adopt wmembe,ribr,wibr emulation to new 4k window
@@ -420,7 +421,7 @@ rpc   d=000020    -- ! pc
 wal     001374
 brm     2
       d=002206    -- ! (sp)   old pc
-      d=000341    -- ! 2(sp)  old ps
+      d=000001    -- ! 2(sp)  old ps
 #-----------------------------------------------------------------------------
 C Setup code 3 [base 2300] (bpt against trap handler doing inc r0; rtt)
 #
@@ -816,7 +817,7 @@ rr5   d=003424    -- ! r5=3424
 rpc   d=003356    -- ! pc
 wal     003400
 brm     10
-      d=000340    -- ! mem(3400)   after start
+      d=000000    -- ! mem(3400)   after start
       d=030000    -- ! mem(3402)   after mov #030000,(r0)
       d=030003    -- ! mem(3404)   after se(v,c)          (VC)
       d=030341    -- ! mem(3406)   after spl 7            (pri=7,C)
@@ -1100,7 +1101,7 @@ cres
 stapc   004030    -- start @ 4030  (just HALT, testing console reset)
 wtgo    
 rpc   d=004032    -- ! pc=4032
-rps   d=000340    -- ! psw: reset by CRESET
+rps   d=000000    -- ! psw: reset by CRESET
 wal     172516    -- SSR3
 rmi   d=000000    -- ! cleared by CRESET
 wal     177572    -- SSR0
@@ -5373,7 +5374,7 @@ rsp   d=001374    -- ! sp=1374
 wal     001374    -- check stack
 brm     2
       d=100002    --   trap address: PC inc'ed expected for 11/70   [[s:100000]]
-      d=000340    --   PSW
+      d=000000    --   PSW
 cres              -- console reset (to clear CPUERR reg)
 #
 # simh notes:

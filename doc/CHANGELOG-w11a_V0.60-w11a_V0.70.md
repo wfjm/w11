@@ -3,10 +3,10 @@
 ### Release highlights
 - bugfix for DIV instruction
   (in [w11a_V0.61](#user-content-w11a_V0.61), 
-  see [ECO-026-div.md](ECO-026-div.md))
+  see [ECO-026](ECO-026-div.md))
 - revised rbus protocol V4
   (in [w11a_V0.62](#user-content-w11a_V0.62),
-  see [README_Rlink_V4.md](README_Rlink_V4.md))
+  see [README_Rlink_V4(README_Rlink_V4.md))
 - add basic Vivado support
   (in [w11a_V0.64](#user-content-w11a_V0.64))
 - add Nexys4 and Basys3 port of w11a
@@ -585,7 +585,7 @@ Notes:
 ### Summary
 - The `div` instruction gave wrong results in some corner cases when either
   divisor or quotient were the largest negative integer (100000 or -32768).
-  This is corrected now, for details see [ECO-026-div.md](ECO-026-div.md).
+  This is corrected now, for details see [ECO-026](ECO-026-div.md).
 - some minor updates and fixes to support scripts
 - `xtwi` usage and `XTWI_PATH` setup explained in INSTALL.txt
 

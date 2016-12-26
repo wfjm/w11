@@ -1,6 +1,6 @@
--- $Id: pdp11.vhd 750 2016-03-24 23:11:51Z mueller $
+-- $Id: pdp11.vhd 829 2016-12-26 18:56:17Z mueller $
 --
--- Copyright 2006-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,10 +16,11 @@
 -- Description:    Definitions for pdp11 components
 --
 -- Dependencies:   -
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2016.2; ghdl 0.18-0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-12-26   829   1.6.6  BUGFIX: psw init with pri=0, as on real 11/70
 -- 2015-11-01   712   1.6.5  define sbcntl_sbf_tmu := 12; use for pdp11_tmu_sb
 -- 2015-07-19   702   1.6.4  change DM_STAT_(DP|CO); add DM_STAT_SE
 -- 2015-07-10   700   1.6.3  define c_cpurust_hbpt;
@@ -122,7 +123,7 @@ package pdp11 is
 
   constant psw_init : psw_type := (
     "00","00",                          -- cmode, pmode  (=kernel)
-    '0',"111",'0',                      -- rset, pri (=7), tflag
+    '0',"000",'0',                      -- rset, pri (=0), tflag
     "0000"                              -- cc     NZVC=0
   );
 

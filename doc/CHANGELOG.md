@@ -10,6 +10,7 @@
 <!-- --------------------------------------------------------------------- -->
 ---
 ## HEAD <a name="head"></a>
+- `PS` initialized now with `000000` (see [ECO-028](ECO-028-ps_init.md))
 
 <!-- --------------------------------------------------------------------- -->
 ---
@@ -20,4 +21,4 @@
 - moved w11 project pages from OpenCores to GitHub-Pages
   [wfjm.github.io/home/w11](https://wfjm.github.io/home/w11/)
 - converted existing documentation from plain text to markdown
-- added README.md files
+- added README.md files in sub-directories

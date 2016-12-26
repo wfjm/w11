@@ -1,7 +1,7 @@
-# $Id: test_cmon_regs.tcl 706 2015-08-01 06:59:48Z mueller $
+# $Id: test_cmon_regs.tcl 830 2016-12-26 20:25:49Z mueller $
 #
 # Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
+# License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment

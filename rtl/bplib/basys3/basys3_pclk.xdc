@@ -1,8 +1,8 @@
 # -*- tcl -*-
-# $Id: basys3_pclk.xdc 726 2016-01-31 23:02:31Z mueller $
+# $Id: basys3_pclk.xdc 830 2016-12-26 20:25:49Z mueller $
 #
 # Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
+# License disclaimer see License.txt in $RETROBASE directory
 #
 # Primary clocks for Digilent Basys3
 #

@@ -1,6 +1,6 @@
-; $Id: defs_mmu.mac 707 2015-08-02 12:10:42Z mueller $
+; $Id: defs_mmu.mac 830 2016-12-26 20:25:49Z mueller $
 ; Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-; License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory 
+; License disclaimer see License.txt in $RETROBASE directory 
 ;
 ; definitions for mmu registers (as in defs_mmu.das)
 ;

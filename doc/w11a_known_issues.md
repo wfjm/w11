@@ -58,6 +58,11 @@ differences.
 
 ### Known bugs  <a name="bug"></a>
 
+- **TCK-038 pri=H: DL11: output chars lost**  
+Part of the output can be lost when `xxdp` test `eqkce1` is run on FPGA, also
+some kernel messages during the 211BSD boot sequence. Most likely cause is that
+device ready polls timeout before the rlink interface can serve the interrupt.
+
 - **TCK-036 pri=L: RK11: hardware poll not working**  
 The RK11/RK05 hardware poll logic is probably not reflecting the
 behaviour of the real drive.

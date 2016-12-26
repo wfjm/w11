@@ -1,7 +1,7 @@
-# $Id: generic_xflow_cpld.mk 642 2015-02-06 18:53:12Z mueller $
+# $Id: generic_xflow_cpld.mk 830 2016-12-26 20:25:49Z mueller $
 #
 # Copyright 2010-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
+# License disclaimer see License.txt in $RETROBASE directory
 #
 #  Revision History: 
 # Date         Rev Version  Comment

@@ -1,8 +1,8 @@
 # -*- tcl -*-
-# $Id: cdc_vector_s0.xdc 759 2016-04-09 10:13:57Z mueller $
+# $Id: cdc_vector_s0.xdc 830 2016-12-26 20:25:49Z mueller $
 #
 # Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
+# License disclaimer see License.txt in $RETROBASE directory
 #
 # cdc constraints for cdc_vector_s0
 #

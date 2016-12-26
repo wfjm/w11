@@ -1,7 +1,7 @@
-# $Id: generic_xsim.mk 804 2016-08-28 17:33:50Z mueller $
+# $Id: generic_xsim.mk 830 2016-12-26 20:25:49Z mueller $
 #
 # Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
+# License disclaimer see License.txt in $RETROBASE directory
 #
 #  Revision History: 
 # Date         Rev Version  Comment

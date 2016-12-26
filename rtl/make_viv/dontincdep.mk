@@ -1,7 +1,7 @@
-# $Id: dontincdep.mk 646 2015-02-15 12:04:55Z mueller $
+# $Id: dontincdep.mk 830 2016-12-26 20:25:49Z mueller $
 #
 # Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
+# License disclaimer see License.txt in $RETROBASE directory
 #
 #  Revision History: 
 # Date         Rev Version  Comment

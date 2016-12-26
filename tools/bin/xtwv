@@ -1,8 +1,8 @@
 #!/bin/bash
-# $Id: xtwv 735 2016-02-26 22:17:42Z mueller $
+# $Id: xtwv 830 2016-12-26 20:25:49Z mueller $
 #
 # Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
+# License disclaimer see License.txt in $RETROBASE directory
 #
 # Xilinx Tool Wrapper script for Vivado
 #   define XTWV_PATH

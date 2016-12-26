@@ -1,7 +1,7 @@
-# $Id: test_w11a_dstm_word_flow.tcl 704 2015-07-25 14:18:03Z mueller $
+# $Id: test_w11a_dstm_word_flow.tcl 830 2016-12-26 20:25:49Z mueller $
 #
 # Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
+# License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment

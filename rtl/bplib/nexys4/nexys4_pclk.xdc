@@ -1,7 +1,7 @@
-# $Id: nexys4_pclk.xdc 640 2015-02-01 09:56:53Z mueller $
+# $Id: nexys4_pclk.xdc 830 2016-12-26 20:25:49Z mueller $
 #
 # Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
+# License disclaimer see License.txt in $RETROBASE directory
 #
 # Primary clocks for Nexys4
 #

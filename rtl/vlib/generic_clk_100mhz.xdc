@@ -1,8 +1,8 @@
 # -*- tcl -*-
-# $Id: generic_clk_100mhz.xdc 777 2016-06-19 20:24:15Z mueller $
+# $Id: generic_clk_100mhz.xdc 830 2016-12-26 20:25:49Z mueller $
 #
 # Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
+# License disclaimer see License.txt in $RETROBASE directory
 #
 # Generic constraint for pin CLK with a 100 MHz clock
 # Helpful for test benches and generic test synthesis

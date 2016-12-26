@@ -1,8 +1,8 @@
 # -*- tcl -*-
-# $Id: fifo_2c_dram2.xdc 761 2016-04-17 08:53:48Z mueller $
+# $Id: fifo_2c_dram2.xdc 830 2016-12-26 20:25:49Z mueller $
 #
 # Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see LICENSE_gpl_v2.txt in $RETROBASE directory
+# License disclaimer see License.txt in $RETROBASE directory
 #
 # cdc constraints for fifo_2c_dram2 core
 #

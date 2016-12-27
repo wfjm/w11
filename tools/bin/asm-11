@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: asm-11 712 2015-11-01 22:53:45Z mueller $
+# $Id: asm-11 831 2016-12-27 16:51:12Z mueller $
 #
 # Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -1314,17 +1314,17 @@ sub eval_exp {
       my $v2 = pop @val;
       my $v1 = pop @val;
       return undef unless defined $v1 && defined $v2;
-      if      ($bop eq '+') {
+      if      ($bop eq '+') {               # '+': addition
         push @val, int($v1) + int($v2);
-      } elsif ($bop eq '-') {
+      } elsif ($bop eq '-') {               # '-': subtraction
         push @val, int($v1) - int($v2);
-      } elsif ($bop eq '*') {
+      } elsif ($bop eq '*') {               # '*': multiplication
         push @val, int($v1) * int($v2);
-      } elsif ($bop eq '/') {
+      } elsif ($bop eq '/') {               # '/': division
         push @val, int(int($v1) / int($v2));
-      } elsif ($bop eq '&') {
+      } elsif ($bop eq '&') {               # '&': bit-wise and
         push @val, int($v1) & int($v2);
-      } elsif ($bop eq '!') {
+      } elsif ($bop eq '!') {               # '!': bit-wise or
         push @val, int($v1) | int($v2);
       } else {
         die "BUGCHECK: tag='OP(b)', val='$bop'\n";

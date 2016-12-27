@@ -1,4 +1,4 @@
-# $Id: tb_pdp11core_stim.dat 829 2016-12-26 18:56:17Z mueller $
+# $Id: tb_pdp11core_stim.dat 831 2016-12-27 16:51:12Z mueller $
 #
 # Revision History: 
 # Date         Rev Version  Comment
@@ -331,7 +331,7 @@ bwm     8
         001000    --    1000    100000 base
         001200    --    1200    120000 base
         001400    --    1400    140000 base
-        177600    --  176000 (map to I/O page)
+        177600    --  177600    (map to I/O page)
 #-----------------------------------------------------------------------------
 C Setup code 1 [base 2100] (very basics: cont,start; 'simple' instructions)
 #

@@ -1,0 +1,46 @@
+; $Id: mminki.mac 831 2016-12-27 16:51:12Z mueller $
+; Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; License disclaimer see License.txt in $RETROBASE directory
+;
+; Initialize MMU, kernel I space only
+; Call:
+;   jsr  pc, mminki
+; Arguments:
+;   none
+; Expected includes:
+;   lib/defs_mmu.mac 
+; 
+; All registers preserved
+;  
+
+mminki: 
+        mov     r0,-(sp)                ; save regs 
+        mov     r1,-(sp)
+;
+        mov     #kipdr,r0               ; kerel I space DR
+        mov     #077406,r1              ; slf=127; ed=0(up); acf=6(w/r)
+;
+        mov     r1,(r0)+                ; kipdr(0)
+        mov     r1,(r0)+                ; kipdr(1)
+        mov     r1,(r0)+                ; kipdr(2)
+        mov     r1,(r0)+                ; kipdr(3)
+        mov     r1,(r0)+                ; kipdr(4)
+        mov     r1,(r0)+                ; kipdr(5)
+        mov     r1,(r0)+                ; kipdr(6)
+        mov     r1,(r0)+                ; kipdr(7)
+;
+        mov     #kipar,r0               ; kernel I space AR
+;
+        mov     #000000,(r0)+           ; kipar(0):     200    000000 base
+        mov     #000200,(r0)+           ; kipar(0):     400    020000 base
+        mov     #000400,(r0)+           ; kipar(0):     600    040000 base
+        mov     #000600,(r0)+           ; kipar(0):    1000    060000 base
+        mov     #001000,(r0)+           ; kipar(0):    1200    100000 base
+        mov     #001200,(r0)+           ; kipar(0):    1400    120000 base
+        mov     #001400,(r0)+           ; kipar(0):    1600    140000 base
+        mov     #177600,(r0)+           ; kipar(0):  177600    (map to I/O page)
+;
+        mov     (sp)+,r1                ; restore regs
+        mov     (sp)+,r0
+;
+        rts     pc

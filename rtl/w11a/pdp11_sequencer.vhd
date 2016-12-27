@@ -1,4 +1,4 @@
--- $Id: pdp11_sequencer.vhd 812 2016-10-03 18:39:50Z mueller $
+-- $Id: pdp11_sequencer.vhd 831 2016-12-27 16:51:12Z mueller $
 --
 -- Copyright 2006-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,10 +18,11 @@
 -- Dependencies:   ib_sel
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.1; ghdl 0.18-0.33
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.2; ghdl 0.18-0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-12-27   831   1.6.8  CPUERR now cleared with creset
 -- 2016-10-03   812   1.6.7  always define DM_STAT_SE.snum
 -- 2016-05-26   768   1.6.6  don't init N_REGS (vivado fix for fsm inference)
 --                           proc_snum conditional (vivado fsm workaround)
@@ -303,17 +304,27 @@ begin
     if rising_edge(CLK) then
       if GRESET = '1' then
         R_STATUS <= cpustat_init;
-        R_CPUERR <= cpuerr_init;
         R_IDSTAT <= decode_stat_init;
         R_VMSTAT <= vm_stat_init;
       else
         R_STATUS <= N_STATUS;
-        R_CPUERR <= N_CPUERR;
         R_IDSTAT <= N_IDSTAT;
         R_VMSTAT <= VM_STAT;
       end if;
     end if;
   end process proc_status;
+
+  -- ensure that CPUERR is reset with GRESET and CRESET 
+  proc_cpuerr: process (CLK)
+  begin
+    if rising_edge(CLK) then
+      if GRESET = '1' or R_STATUS.creset = '1' then
+        R_CPUERR <= cpuerr_init;
+      else
+        R_CPUERR <= N_CPUERR;
+      end if;
+    end if;
+  end process proc_cpuerr;
 
   proc_state: process (CLK)
   begin

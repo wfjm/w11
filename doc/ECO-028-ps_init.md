@@ -23,6 +23,6 @@ See the full story in the exhaustive commit message for
 Hopefully none. All `ibus` devices come up with interrupts disabled, so there
 shouldn't be any spurious interrupts at start-up.
 
-### Provisos
+### Hindsights
 Even a very plausible behavior like _"disable all interrupts at power on"_ can
 be the incorrect one.

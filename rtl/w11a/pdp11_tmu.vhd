@@ -1,6 +1,6 @@
--- $Id: pdp11_tmu.vhd 697 2015-07-05 14:23:26Z mueller $
+-- $Id: pdp11_tmu.vhd 833 2016-12-28 10:29:10Z mueller $
 --
--- Copyright 2008-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,10 +19,11 @@
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ghdl 0.18-0.31
+-- Tool versions:  ghdl 0.18-0.33
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2016-12-28   833   1.3    open tmu_ofile only when used
 -- 2015-07-03   697   1.2.1  adapt to new DM_STAT_SY/DM_STAT_VM
 -- 2015-05-03   674   1.2    start/stop/suspend overhaul
 -- 2011-12-23   444   1.1    use local clkcycle count instead of simbus global
@@ -77,15 +78,18 @@ begin
     variable vm_ibsres_busy_last : slbit := '0';
     variable vm_ibsres_ack_last  : slbit := '0';
     variable wcycle : boolean := false;
-    file ofile : text open write_mode is "tmu_ofile";
+    file ofile : text;
   begin
 
     if rising_edge(CLK) then
 
       clkcycle := clkcycle + 1;
       
-      if R_FIRST = '1' then
+      if ENA = '1' and R_FIRST = '1' then
+        -- open output file on first usage
+        file_open(ofile, "tmu_ofile", WRITE_MODE);
         R_FIRST <= '0';
+        
         -- sequence of field desciptors must equal the sequence of writes later
         write(oline, string'("#"));
         write(oline, string'(" clkcycle:d"));

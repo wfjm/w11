@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: fx2load_wrapper 604 2014-11-16 22:33:09Z mueller $
+# $Id: fx2load_wrapper 832 2016-12-28 09:49:47Z mueller $
 #
 # Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -19,7 +19,7 @@
 # 2011-12-29   446   1.0    Initial version
 #
 
-use 5.005;                                  # require Perl 5.005 or higher
+use 5.14.0;                                 # require Perl 5.14 or higher
 use strict;                                 # require strict checking
 use FileHandle;
 use Time::HiRes qw(usleep);

@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: asm-11_expect 501 2013-03-30 13:53:39Z mueller $
+# $Id: asm-11_expect 832 2016-12-28 09:49:47Z mueller $
 #
 # Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -18,7 +18,7 @@
 # 2013-03-24   499   0.1    First draft
 #
 
-use 5.10.0;                                 # require Perl 5.10 or higher
+use 5.14.0;                                 # require Perl 5.14 or higher
 use strict;                                 # require strict checking
 use FileHandle;
 

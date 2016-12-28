@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: ti_w11 830 2016-12-26 20:25:49Z mueller $
+# $Id: ti_w11 832 2016-12-28 09:49:47Z mueller $
 #
 # Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
@@ -20,7 +20,7 @@
 # 2013-04-26   510   1.0    Initial version (derived from dorri)
 #
 
-use 5.005;                                  # require Perl 5.005 or higher
+use 5.14.0;                                 # require Perl 5.14 or higher
 use strict;                                 # require strict checking
 use FileHandle;
 

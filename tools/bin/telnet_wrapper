@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: telnet_wrapper 547 2013-12-29 13:10:07Z mueller $
+# $Id: telnet_wrapper 832 2016-12-28 09:49:47Z mueller $
 #
 # Copyright 2009-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -17,7 +17,7 @@
 # 2009-11-07   246   1.0    Initial version
 #
 
-use 5.005;                                  # require Perl 5.005 or higher
+use 5.14.0;                                 # require Perl 5.14 or higher
 use strict;                                 # require strict checking
 
 if (scalar(@ARGV) != 2) {

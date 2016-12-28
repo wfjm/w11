@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: vbomconv 804 2016-08-28 17:33:50Z mueller $
+# $Id: vbomconv 832 2016-12-28 09:49:47Z mueller $
 #
 # Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -65,7 +65,7 @@
 # 2007-07-08    65   1.1    add "tag : names"; inferral of _[ft]sim vboms
 # 2007-07-06    64   1.0    Initial version
 
-use 5.005;                                  # require Perl 5.005 or higher
+use 5.14.0;                                 # require Perl 5.14 or higher
 use strict;                                 # require strict checking
 use FileHandle;
 use Cwd 'getcwd';

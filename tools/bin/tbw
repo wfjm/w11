@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tbw 808 2016-09-17 13:02:46Z mueller $
+# $Id: tbw 832 2016-12-28 09:49:47Z mueller $
 #
 # Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -45,7 +45,7 @@
 #  <tb_code>_stim_dat to refer to it. All args are passed along to <tb_code>
 #
 
-use 5.005;                                  # require Perl 5.005 or higher
+use 5.14.0;                                 # require Perl 5.14 or higher
 use strict;                                 # require strict checking
 use POSIX qw(mkfifo);
 use FileHandle;

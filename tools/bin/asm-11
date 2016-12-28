@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: asm-11 831 2016-12-27 16:51:12Z mueller $
+# $Id: asm-11 832 2016-12-28 09:49:47Z mueller $
 #
 # Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -24,7 +24,7 @@
 # 2013-03-07   496   0.1    First draft
 #
 
-use 5.10.0;                                 # require Perl 5.10 or higher
+use 5.14.0;                                 # require Perl 5.14 or higher
 use strict;                                 # require strict checking
 use FileHandle;
 

@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: config_wrapper 534 2013-09-22 21:37:24Z mueller $
+# $Id: config_wrapper 832 2016-12-28 09:49:47Z mueller $
 #
 # Copyright 2010-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -30,7 +30,7 @@
 # 2010-04-24   281   1.0    Initial version
 #
 
-use 5.005;                                  # require Perl 5.005 or higher
+use 5.14.0;                                 # require Perl 5.14 or higher
 use strict;                                 # require strict checking
 use FileHandle;
 

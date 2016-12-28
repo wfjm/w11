@@ -10,8 +10,9 @@
 <!-- --------------------------------------------------------------------- -->
 ---
 ## HEAD <a name="head"></a>
-- `PS` initialized now with `000000` (see [ECO-028](ECO-028-ps_init.md))
+### Summary
 - `CPUERR` cleared with cpu reset (see [ECO-029](ECO-029-cpuerr_creset.md))
+- `PS` initialized now with `000000` (see [ECO-028](ECO-028-ps_init.md))
 
 <!-- --------------------------------------------------------------------- -->
 ---

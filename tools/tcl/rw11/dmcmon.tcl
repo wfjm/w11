@@ -1,6 +1,6 @@
-# $Id: dmcmon.tcl 710 2015-08-31 06:19:56Z mueller $
+# $Id: dmcmon.tcl 834 2016-12-30 15:19:09Z mueller $
 #
-# Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2016-12-29   833   1.0.1  cm_print: protect against empty lists
 # 2015-08-05   708   1.0    Initial version
 # 2015-07-05   697   0.1    First draft
 #
@@ -117,6 +118,7 @@ namespace eval rw11 {
   # cm_print: convert raw into human readable format
   #
   proc cm_print {cmraw} {
+    if {![llength $cmraw]} {return;}
     set imode [regget rw11::CM_CNTL(imode) [lindex $cmraw 0 0]]
     set rval {}
     set line {}

@@ -1,6 +1,6 @@
-# $Id: util.tcl 722 2015-12-30 19:45:46Z mueller $
+# $Id: util.tcl 834 2016-12-30 15:19:09Z mueller $
 #
-# Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2016-12-30   833   1.1    add proc filter
 # 2015-12-28   721   1.0.2  add regmap_add defs; add symbolic register dump
 # 2015-07-25   704   1.0.1  start: use args and args2opts
 # 2015-04-25   668   1.0    Initial version
@@ -78,6 +79,14 @@ namespace eval ibd_ibmon {
                               [list conena $opts(conena)] \
                              ]
   }
+  #
+  # start: setup filter window
+  #
+  proc filter {{cpu "cpu0"} {lolim 0} {hilim 0177776}} {
+    $cpu cp -wibr im.lolim $lolim \
+            -wibr im.hilim $hilim
+  }
+
   #
   # stop: stop the ibmon
   #

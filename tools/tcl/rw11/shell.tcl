@@ -1,6 +1,6 @@
-# $Id: shell.tcl 724 2016-01-03 22:53:53Z mueller $
+# $Id: shell.tcl 834 2016-12-30 15:19:09Z mueller $
 #
-# Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2016-12-30   833   2.0    major overhaul    
 # 2015-12-23   717   1.1    add e,g,d commands; fix shell_tin
 # 2015-07-12   700   1.0    Initial version
 #
@@ -21,11 +22,14 @@ package provide rw11 1.0
 
 package require rlink
 package require rwxxtpp
+package require ibd_ibmon
 
 namespace eval rw11 {
 
-  variable shell_depth  0
-  variable shell_cpu    "cpu0"
+  variable shell_depth     0;                   # recursion stopper
+  variable shell_cpu       "cpu0";              # current cpu command
+  variable shell_cme_pend  1;                   # .cme pending
+  variable shell_cme_mode  "i";                 # mode for pending .cme
   variable shell_attnhdl_added 0
   variable shell_eofchar_save {puts {}}
 
@@ -107,10 +111,10 @@ namespace eval rw11 {
     cpu0 cp -rstat cpustat
     if {[regget rw11::CP_STAT(go) $cpustat]} {
       puts \
-      "cpu0 running, ^D disabled. Use qq to quit shell or tirri_exit to bail out"
+      "cpu0 running, ^D disabled. Use .q to quit shell or .qq to bail out"
       return ""
     }
-    shell_stop
+    tirri_exit
     return ""
   }
 
@@ -120,6 +124,8 @@ namespace eval rw11 {
   proc shell_attncpu {} {
     puts "CPU attention"
     puts [cpu0 show -r0ps]
+    puts -nonewline [::tclreadline::prompt1]
+    flush stdout
     return ""
   }
 
@@ -135,31 +141,49 @@ namespace eval rw11 {
 
     switch $cname {
 
-      e         {set rval [shell_exa {*}$cargs]}
-      g         {set rval [shell_get {*}$cargs]}
-      d         {set rval [shell_dep {*}$cargs]}
+      .e        {set rval [shell_exa {*}$cargs]}
+      .g        {set rval [shell_get {*}$cargs]}
+      .d        {set rval [shell_dep {*}$cargs]}
 
-      c0        -
-      c1        -
-      c2        -
-      c3        {set rval [shell_setcpu $cname]}
+      .c0       -
+      .c1       -
+      .c2       -
+      .c3       {set rval [shell_setcpu $cname]}
 
-      cs        {set rval [shell_cs  {*}$cargs]}
-      cr        {set rval [shell_cr  {*}$cargs]}
-      cl        {set rval [shell_cll {*}$cargs]}
+      .cs       {set rval [shell_cs   {*}$cargs]}
+      .cr       {set rval [shell_cr   {*}$cargs]}
+      .csus     {set rval [shell_csus {*}$cargs]}
+      .csto     {set rval [shell_csto {*}$cargs]}
+      .cres     {set rval [shell_cres {*}$cargs]}
+      .csta     {set rval [shell_csta {*}$cargs]}
 
-      bs        {set rval [rw11::hb_set      $shell_cpu {*}$cargs]}
-      br        {set rval [rw11::hb_remove   $shell_cpu {*}$cargs]}
-      bl        {set rval [rw11::hb_list     $shell_cpu {*}$cargs]}
+      .bs       {set rval [rw11::hb_set      $shell_cpu {*}$cargs]}
+      .br       {set rval [rw11::hb_remove   $shell_cpu {*}$cargs]}
+      .bl       {set rval [rw11::hb_list     $shell_cpu {*}$cargs]}
 
-      qq        {set rval [rw11::shell_stop  {*}$cargs]}
+      .cme      {set rval [shell_cme  {*}$cargs]}
+      .cmd      {set rval [shell_cmd  {*}$cargs]}
+      .cml      {set rval [shell_cml  {*}$cargs]}
+
+      .ime      {set rval [shell_ime  {*}$cargs]}
+      .imd      {set rval [shell_imd  {*}$cargs]}
+      .imf      {set rval [shell_imf  {*}$cargs]}
+      .iml      {set rval [shell_iml  {*}$cargs]}
 
       .         {set rval [shell_cls {*}$cargs]}
       ?         {set rval [shell_clb {*}$cargs]}
+      ?m        {set rval [shell_clm {*}$cargs]}
+      ?u        {set rval [shell_clu {*}$cargs]}
+      ??        {set rval [shell_cll {*}$cargs]}
       (         {set rval [shell_ti  {*}$cargs]}
       <         {set rval [shell_tin {*}$cargs]}
 
-      h         {set rval [shell_help {*}$cargs]}
+      .hr       {set rval [shell_hr  {*}$cargs]}
+      .h        {set rval [shell_h   {*}$cargs]}
+      .ha       {set rval [shell_ha  {*}$cargs]}
+
+      .q        {set rval [shell_q   {*}$cargs]}
+      .qq       {set rval [shell_qq  {*}$cargs]}
 
       default   {
         if {$shell_depth > 1} {
@@ -178,7 +202,7 @@ namespace eval rw11 {
   # 
   proc shell_setcpu {cname} {
     variable shell_cpu
-    set cpucmd "cpu[string range $cname 1 1]"
+    set cpucmd "cpu[string range $cname 2 2]"
     if {[llength [info commands $cpucmd]] == 0} {
       error "'$cpucmd' not available"
     }
@@ -191,6 +215,11 @@ namespace eval rw11 {
   # 
   proc shell_cs {{nstep 1}} {
     variable shell_cpu
+    variable shell_cme_pend
+    variable shell_cme_mode
+
+    if {$shell_cme_pend} { shell_cme $shell_cme_mode }
+
     set rval {}
     for {set i 0} {$i < $nstep} {incr i} {
       rw11::hb_clear $shell_cpu
@@ -208,9 +237,187 @@ namespace eval rw11 {
   # 
   proc shell_cr {} {
     variable shell_cpu
+    variable shell_cme_pend
+    variable shell_cme_mode
+
+    if {$shell_cme_pend} { shell_cme $shell_cme_mode }
+
     rw11::hb_clear $shell_cpu
     $shell_cpu cp -resume
     return ""
+  }
+
+  #
+  # shell_csus: cpu suspend --------------------------------------------------
+  # 
+  proc shell_csus {} {
+    variable shell_cpu
+    $shell_cpu cp -suspend
+    return ""
+  }
+
+  #
+  # shell_csto: cpu stop -----------------------------------------------------
+  # 
+  proc shell_csto {} {
+    variable shell_cpu
+    $shell_cpu cp -stop
+    return ""
+  }
+
+  #
+  # shell_cres: cpu reset ----------------------------------------------------
+  # 
+  proc shell_cres {} {
+    variable shell_cpu
+    $shell_cpu cp -stop
+    $shell_cpu cp -creset
+    return ""
+  }
+
+  #
+  # shell_csta: cpu start ----------------------------------------------------
+  # 
+  proc shell_csta {{pc -1}} {
+    variable shell_cpu
+    variable shell_cme_pend
+    variable shell_cme_mode
+
+    if {$shell_cme_pend} { shell_cme $shell_cme_mode }
+
+    if {$pc == -1} {
+      $shell_cpu cp -start
+    } else {
+      $shell_cpu cp -stapc $pc
+    }
+    return ""
+  }
+
+  #
+  # shell_cme: cmon enable ---------------------------------------------------
+  # 
+  proc shell_cme {{mode "i"}} {
+    variable shell_cpu
+    variable shell_cme_pend
+    variable shell_cme_mode
+
+   if {![shell_test_device $shell_cpu "cme" "cm.cntl" "dmcmon"]} {return ""}
+
+    if {![regexp {^[is]?n?$} $mode]} {
+      error ".cme-E: bad mode '$mode', only i,s and n allowed"
+    }
+
+    set shell_cme_pend 0
+    set shell_cme_mode $mode
+
+    set imode [string match *i* $mode]
+    set mwsup [string match *s* $mode]
+    set wena  1
+    if {[string match *n* $mode]} {set wena 0}
+    rw11::cm_start $shell_cpu imode $imode mwsup $mwsup wena $wena
+    return ""
+  }
+
+  #
+  # shell_cmd: cmon disable --------------------------------------------------
+  # 
+  proc shell_cmd {} {
+    variable shell_cpu
+    variable shell_cme_pend
+
+    if {![shell_test_device $shell_cpu "cme" "cm.cntl" "dmcmon"]} {return ""}
+
+    set shell_cme_pend 0
+    rw11::cm_stop $shell_cpu
+    return ""
+  }
+
+  #
+  # shell_cml: cmon list -----------------------------------------------------
+  # 
+  proc shell_cml {{nent -1}} {
+    variable shell_cpu
+    variable shell_cme_pend
+   if {![shell_test_device $shell_cpu "cme" "cm.cntl" "dmcmon"]} {return ""}
+
+    set shell_cme_pend 1
+    rw11::cm_stop $shell_cpu
+    return [rw11::cm_print [rw11::cm_read $shell_cpu $nent]]
+  }
+
+  #
+  # shell_ime: ibmon enable --------------------------------------------------
+  # 
+  proc shell_ime {{mode "lrc"}} {
+    variable shell_cpu
+    if {![shell_test_device $shell_cpu "ime" "im.cntl" "ibmon"]} {return ""}
+
+    if {![regexp {^[crl]+n?$} $mode]} {
+      error ".ime-E: bad mode '$mode', use \[lrc\] and n"
+    }
+    set locena [string match *l* $mode]
+    set remena [string match *r* $mode]
+    set conena [string match *c* $mode]
+    set wena  1
+    if {[string match *n* $mode]} {set wena 0}
+
+    ibd_ibmon::start $shell_cpu \
+      locena $locena remena $remena conena $conena wena $wena
+    return ""
+  }
+
+  #
+  # shell_imd: ibmon diasable -------------------------------------------------
+  # 
+  proc shell_imd {} {
+    variable shell_cpu
+    if {![shell_test_device $shell_cpu "ime" "im.cntl" "ibmon"]} {return ""}
+
+    ibd_ibmon::stop $shell_cpu
+    return ""
+  }
+
+  #
+  # shell_imf: ibmon filter ---------------------------------------------------
+  # 
+  proc shell_imf {{lo ""} {hi ""}} {
+    variable shell_cpu
+    if {![shell_test_device $shell_cpu "imf" "im.cntl" "ibmon"]} {return ""}
+
+    set lolim 0
+    set hilim 0177776
+
+    if {$lo ne ""} {
+      set lolist [split $lo "/"]
+      if {[llength $lolist] > 2} {
+        error ".iml-E: bad lo specifier '$lo', use val or val/len"
+      }
+      set lolim [shell_conv_register $shell_cpu [lindex $lolist 0]]
+      if {[llength $lolist] == 2} {
+        set hilim [expr {$lolim + 2*([lindex $lolist 1]-1)}]
+      }
+    }
+
+    if {$hi ne ""} {
+      set hilim [shell_conv_register $shell_cpu $hi]
+    }
+
+    if {$lolim > $hilim} {error ".iml-E: hilim must be >= lolim"}
+
+    ibd_ibmon::filter $shell_cpu $lolim $hilim
+
+    return ""
+  }
+
+  #
+  # shell_iml: ibmon list -----------------------------------------------------
+  # 
+  proc shell_iml {{nent -1}} {
+    variable shell_cpu
+    if {![shell_test_device $shell_cpu "ime" "im.cntl" "ibmon"]} {return ""}
+    set mondat [ibd_ibmon::read $shell_cpu $nent]
+    if {![llength $mondat]} {return ""}
+    return [ibd_ibmon::print $shell_cpu $mondat]
   }
 
   #
@@ -230,15 +437,30 @@ namespace eval rw11 {
   }
 
   #
+  # shell_clm: mmu status ----------------------------------------------------
+  # 
+  proc shell_clm {} {
+    variable shell_cpu
+    return [$shell_cpu show -mmu]
+  }
+
+  #
+  # shell_clu: ubmap status --------------------------------------------------
+  # 
+  proc shell_clu {} {
+    variable shell_cpu
+    return [$shell_cpu show -ubmap]
+  }
+
+  #
   # shell_cll: cpu long status -----------------------------------------------
   # 
   proc shell_cll {} {
     variable shell_cpu
-    set    rval [$shell_cpu show -r0ps]
-    append rval "\n"
-    append rval [$shell_cpu show -mmu]
-    append rval "\n"
-    append rval [$shell_cpu show -ubmap]
+    set    rval [shell_clb]
+    append rval "\n" [shell_clm]
+    append rval "\n" [shell_clu]
+    return $rval
   }
 
   #
@@ -263,31 +485,168 @@ namespace eval rw11 {
   }
 
   #
-  # shell_help: shell help text ----------------------------------------------
+  # shell_hr: list of and help on ibus register -------------------------------
   # 
-  proc shell_help args {
-    set rval "rw11 shell command abreviations:"
-    foreach i {0 1 2 3} {
-      if {[llength [info commands "cpu${i}"]] > 0} {
-        append rval "\n  c${i}                 ; select cpu${i}"
+  proc shell_hr {{spec "*"} {am ""}} {
+    variable shell_cpu
+    set nreg 0
+
+    set rval "name       :    hex     oct"
+    if {$am ne "" && ![regexp {^[rl][rw]$} $am]} {
+      error ".hr-E: bad am '$am', only \[rl\]\[rw\] allowed"
+    }
+    foreach item [$shell_cpu imap] {
+      set val [lindex $item 0]
+      set nam [lindex $item 1]
+      if {[string match $spec $nam]} {
+        incr nreg
+        append rval [format "\n%-10s : 0x%04x  %06o" $nam $val $val]
+        set rdsc [rw11util::regmap_get $nam $am]
+        if {$rdsc ne ""} {
+          append rval "\n"
+          append rval [regdsc_print $rdsc]
+        }
       }
     }
-    append rval "\n  e aspec            ; examine memory, return as text"
-    append rval "\n  g aspec            ; get memory, return as tcl list"
-    append rval "\n  d aspec vals       ; deposit memory"
-    append rval "\n  cs                 ; cpu step"
-    append rval "\n  cr                 ; cpu resume"
-    append rval "\n  cl                 ; full cpu state (with mmu+ubmap)"
-    append rval "\n  bs ind typ lo hi   ; set bpt"
-    append rval "\n  br ?ind?           ; remove bpt"
-    append rval "\n  bl                 ; list bpt"
-    append rval "\n  qq                 ; quit shell, return to ti_rri"
-    append rval "\n  .                  ; short cpu state (pc+psw)"
-    append rval "\n  ?                  ; brief cpu state (all regs)"
-    append rval "\n  ( ?text?           ; tta0 input without cr"
-    append rval "\n  < ?text?           ; tta0 input with cr"
-    append rval "\n  h                  ; this help text"
+
+    if {!$nreg} {
+      append rval [format "\n%-10s : -- no matches found --" $spec]
+    }
+
     return $rval
   }
 
+  #
+  # shell_q: quit shell ------------------------------------------------------
+  # 
+  proc shell_q args {
+    puts "shell-I: use rw11::shell_start to restart shell"
+    shell_stop
+  }
+
+  #
+  # shell_qq: quit ti_rri unconditionally ------------------------------------
+  # 
+  proc shell_qq args {
+    tirri_exit
+  }
+
+  #
+  # shell_h: shell help text -------------------------------------------------
+  # 
+  proc shell_h args {
+    variable shell_cpu
+    append rval "CPU state:"
+    foreach i {0 1 2 3} {
+      if {[llength [info commands "cpu${i}"]] > 0} {
+        append rval "\n    .c${i}                 ; select cpu${i}"
+      }
+    }
+    append rval "\n    .cs ?nstep?         ; cpu step"
+    append rval "\n    .cr                 ; cpu resume"
+    append rval "\n    .csus               ; cpu suspend"
+    append rval "\n    .csto               ; cpu stop"
+    append rval "\n    .cres               ; cpu reset"
+    append rval "\n    .csta ?addr?        ; cpu start"
+    append rval "\n    .                   ; short cpu state (pc+psw)"
+    append rval "\n    ?                   ; brief cpu state (all regs)"
+    append rval "\n    ?m                  ; mmu status"
+    append rval "\n    ?u                  ; ubmap status"
+    append rval "\n    ??                  ; full  cpu state (with mmu+ubmap)"
+    append rval "\nmemory and register access:"
+    append rval "\n    .e aspec            ; examine, return as text"
+    append rval "\n    .g aspec            ; get, return as tcl list"
+    append rval "\n    .d aspec vals       ; deposit"
+    append rval "\n                        ; see .ha for help on aspec format"
+    append rval "\nCPU hardware breakpoint:"
+    append rval "\n    .bs ind typ lo hi   ; set bpt"
+    append rval "\n    .br ?ind?           ; remove bpt"
+    append rval "\n    .bl                 ; list bpt"
+    if {[$shell_cpu rmap -testname "cm.cntl"]} {
+    append rval "\nCPU monitor:"
+      append rval "\n    .cme ?mode?         ; cmon enable; mode:\[is\]?n?"
+      append rval "\n    .cmd                ; cmon disable"
+      append rval "\n    .cml ?nent?         ; cmon list"
+    }
+    if {[$shell_cpu rmap -testname "im.cntl"]} {
+    append rval "\nibus monitor:"
+      append rval "\n    .ime                ; ibmon enable; mode: \[crl\]+n?"
+      append rval "\n    .imd                ; ibmon disable"
+      append rval "\n    .imf ?lo? ?hi?      ; ibmon filter"
+      append rval "\n    .iml ?nent?         ; ibmon list"
+    }
+    append rval "\console (tta0) direct input:"
+    append rval "\n    ( ?text?            ; tta0 input without cr"
+    append rval "\n    < ?text?            ; tta0 input with cr"
+    append rval "\nmiscellaneous:"
+    append rval "\n    .hr ?name? ?am?     ; list ibus registers; am: \[rl\]\[rw\]"
+    append rval "\n    .h                  ; this help text"
+    append rval "\n    .q                  ; quit shell, return to ti_rri"
+    append rval "\n    .qq                 ; quit ti_rri unconditionally"
+    return $rval
+  }
+
+  #
+  # shell_ha: shell aspec help text ------------------------------------------
+  # 
+  proc shell_ha args {
+    set rval "address specifier format for .e .g and .d:"
+    append rval "\n  .e addr/opt/opt/...                  --> returns text"
+    append rval "\n  .g addr/opt/opt/...                  --> returns value list"
+    append rval "\n  .d addr/opt/opt/... vals"
+    append rval "\n"
+    append rval "\naddr format"
+    append rval "\n  nnnn     - number (note that tcl default is decimal !!)"
+    append rval "\n  name     - register name lookup in imap"
+    append rval "\n  name+nn  - name with offset"
+    append rval "\n  rx       - with r0,..,r7,sp,pc and also ps"
+    append rval "\n  @rx      - indirect: with r0,..,r7,sp,pc"
+    append rval "\n  (rx)     - indirect"
+    append rval "\n  nnn(rx)  - indirect with offset"
+    append rval "\n"
+    append rval "\nopt format (multiple opt's allowed)"
+    append rval "\n  nnn      - repeat count (decimal, in words)"
+    append rval "\n  l        - for iopage access: loc (as seen by CPU)"
+    append rval "\n  r        - for iopage access: rem (as seen by rlink)"
+    append rval "\n  p        - for memory access: physical (16bit)"
+    append rval "\n  e        - for memory access: extended (22 bit)"
+    append rval "\n  MS       - for memory access via mmu mode=M and space=S"
+    append rval "\n           -   M (mode)  as c,p,k,s,u for cm,pm,kern,sup,user"
+    append rval "\n           -   S (space) as i,d for instruction,data"
+    append rval "\n  i        - print as intructuion with dasm"
+    append rval "\n  a        - print as ascii"
+    append rval "\n  d        - print as decimal"
+    append rval "\n  x        - print as hex"
+    append rval "\n"
+    append rval "\nexamples:"
+    append rval "\n  .e rpa.cs1        - register rhrp.cs1"
+    append rval "\n  .e rpa.cs1/12/r   - 12 regs starting rpa.cs1, rlink view"
+    append rval "\n  .e @pc/8/ci/i     - use pc, mmu in ci mode, 8 words as instructions"
+    append rval "\n  .e @r0/8/cd       - use r0. mmu in cd mode, show 8 words"
+    return $rval
+  }
+
+  #
+  # shell_test_device: test whether cpu option available ---------------------
+  # 
+  proc shell_test_device {cpu cmd regnam optnam} {
+    if {[$cpu rmap -testname $regnam]} {
+      return 1;
+    }
+    puts "shell-W: '$cmd' command ignored, '$optnam' CPU option not available"
+    return 0;
+  }
+  #
+  # shell_conv_register: convert register to address -------------------------
+  # 
+  proc shell_conv_register {cpu reg} {
+    if {[$cpu imap -testname $reg]} {
+      return [$cpu imap $reg]
+    } elseif {[string is integer $reg]} {
+      return $reg
+    } else {
+      error "shell-E: unknown register '$reg'"
+    }
+  }
+ 
 }

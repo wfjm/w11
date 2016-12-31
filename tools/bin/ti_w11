@@ -1,11 +1,12 @@
 #!/usr/bin/perl -w
-# $Id: ti_w11 832 2016-12-28 09:49:47Z mueller $
+# $Id: ti_w11 835 2016-12-31 10:00:14Z mueller $
 #
 # Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2016-12-31   834   1.4    use rw11::shell by default; add -ns to suppress it
 # 2016-06-18   776   1.3.5  use ti_rri --tout now
 # 2016-03-20   748   1.3.4  BUGFIX: add portsel oob for -fx;
 #                           use 120 sec timeout for simulation; add -ll,-dl,-tl
@@ -32,6 +33,7 @@ my $sysbase = "$ENV{RETROBASE}/rtl/sys_gen/w11a";
 
 my $opt_dry;
 my $opt_b;
+my $opt_ns;
 my $opt_io = '';
 my $opt_f  = '';
 my $opt_ll = '2';
@@ -66,6 +68,10 @@ while (scalar(@ARGV)) {
 
   } elsif ($curarg =~ m{^-b$} ) {	    # -b
     $opt_b = 1;
+    shift @ARGV;
+
+  } elsif ($curarg =~ m{^-ns$} ) {	    # -ns
+    $opt_ns = 1;
     shift @ARGV;
 
   } elsif ($curarg =~ m{^-tmu$} ) {	    # -tmu
@@ -274,6 +280,13 @@ push @arglist, 'rlc init' if $opt_io eq 'f';
 push @arglist, 'rw11::setup_sys';
 
 #
+# start w11 shell
+#
+unless ($opt_ns) {
+  push @arglist, 'rw11::shell_start';
+}
+
+#
 # handle -e option
 #
 
@@ -283,8 +296,6 @@ if (defined $val_e) {
   } else {
     push @arglist, "cpu0 ldabs $val_e";
   }
-  push @arglist, 'rw11::cpumon';
-  push @arglist, 'rw11::cpucons';
   push @arglist, 'cpu0 cp -stapc 0200';
 }
 
@@ -305,7 +316,7 @@ if ($tirri eq '' || ! -e $tirri) {
 # print command line
 #
 if (1) {
- print 'ti_rri ', join (' ', map {(m{\s}) ? "\"$_\"" : $_} @arglist) , "\n";
+  print 'ti_rri ', join (' ', map {(m{\s}) ? "\"$_\"" : $_} @arglist) , "\n";
 }
 
 #
@@ -347,6 +358,11 @@ sub print_usage {
   print "      -tu*[,opts]   use /dev/ttyUSB* (* is device number)\n";
   print "                    opts can be ',break', ',xon'\n";
   print "  common options:\n";
+  print "    -ll<n>    set rlink logging level to <n> (using --logl=<n>)\n";
+  print "    -dl<n>    set rlink dump level to <n> (using --dmpl=<n>)\n";
+  print "    -tl<n>    set rlink trace level to <n> (using --tiol=<n>)\n";
+  print "    -b        batch mode\n";
+  print "    -ns       don't start w11 shell\n";
   print "    -e <file> load and execute file\n";
   print "                file type '.mac': on the fly compile with asm-11\n";
   print "                any other file type: assume lda format\n";

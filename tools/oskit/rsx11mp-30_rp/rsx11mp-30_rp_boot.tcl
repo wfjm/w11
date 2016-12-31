@@ -1,4 +1,4 @@
-# $Id: rsx11mp-30_rp_boot.tcl 704 2015-07-25 14:18:03Z mueller $
+# $Id: rsx11mp-30_rp_boot.tcl 835 2016-12-31 10:00:14Z mueller $
 #
 # Setup file for RSX11-M+ V3.0 RP06 based system
 #
@@ -25,6 +25,4 @@ cpu0rpa0 att rsx11mp-30.dsk
 
 # and boot
 rutil::dohook "preboothook"
-rw11::cpumon
-rw11::cpucons
 cpu0 boot rpa0

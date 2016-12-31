@@ -1,4 +1,4 @@
-# $Id: rt11-40_rk_boot.tcl 704 2015-07-25 14:18:03Z mueller $
+# $Id: rt11-40_rk_boot.tcl 835 2016-12-31 10:00:14Z mueller $
 #
 # Setup file for RT-11 V4.0 RK05 based system
 #
@@ -22,6 +22,4 @@ cpu0rka0 att rtv4_rk.dsk
 
 # and boot
 rutil::dohook "preboothook"
-rw11::cpumon
-rw11::cpucons
 cpu0 boot rka0

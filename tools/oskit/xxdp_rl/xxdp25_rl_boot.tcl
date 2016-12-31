@@ -1,4 +1,4 @@
-# $Id: xxdp25_rl_boot.tcl 704 2015-07-25 14:18:03Z mueller $
+# $Id: xxdp25_rl_boot.tcl 835 2016-12-31 10:00:14Z mueller $
 #
 # Setup file for XXDP V2.5 RL02 based system
 #
@@ -22,6 +22,4 @@ cpu0rla0 att xxdp25.dsk
 
 # and boot
 rutil::dohook "preboothook"
-rw11::cpumon
-rw11::cpucons
 cpu0 boot rla0

@@ -109,7 +109,7 @@ Download, unpack and copy the disk images (*.dsk), e.g.
 
   While the system was running the server process display the
   ```
-       cpumon> 
+       cpu0> 
   ```
 
   prompt. When the w11 has halted after 211bsd shutdown a message like

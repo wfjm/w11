@@ -1,4 +1,4 @@
-# $Id: rsx11m-40_rk_boot.tcl 704 2015-07-25 14:18:03Z mueller $
+# $Id: rsx11m-40_rk_boot.tcl 835 2016-12-31 10:00:14Z mueller $
 #
 # Setup file for RSX11-M V4.0 RK05 based system
 #
@@ -25,6 +25,4 @@ cpu0rka2 att RSX11M_USER.dsk
 
 # and boot
 rutil::dohook "preboothook"
-rw11::cpumon
-rw11::cpucons
 cpu0 boot rka0

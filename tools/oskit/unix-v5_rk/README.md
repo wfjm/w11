@@ -57,7 +57,7 @@ Download, unpack and copy the disk images (*.dsk), e.g.
   There is no `halt` or `shutdown` command, just terminate the server
   session with a 
   ``` 
-       tirri_exit
+       .qq
   ```
 
   command. The disks aren't cached, so no need to sync either.

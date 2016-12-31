@@ -1,4 +1,4 @@
-# $Id: 211bsd_tm_rm05_boot.tcl 704 2015-07-25 14:18:03Z mueller $
+# $Id: 211bsd_tm_rm05_boot.tcl 835 2016-12-31 10:00:14Z mueller $
 #
 # Setup file for creating a 211bsd RM05 system from a TM11 dist kit
 #
@@ -29,6 +29,4 @@ cpu0tma0 att 211bsd_tm.tap?wpro
 
 # and boot
 rutil::dohook "preboothook"
-rw11::cpumon
-rw11::cpucons
 cpu0 boot tma0

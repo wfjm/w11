@@ -1,6 +1,6 @@
-// $Id: RtclRw11Cpu.cpp 718 2015-12-26 15:59:48Z mueller $
+// $Id: RtclRw11Cpu.cpp 835 2016-12-31 10:00:14Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2016-12-30   834   1.2.9  use 'ssr' instead of 'mmr' for MMU registers
 // 2015-12-26   718   1.2.8  use BlockSizeMax() for 'cp -b[rw]m' and 'ldasm' 
 // 2015-07-12   700   1.2.4  use ..CpuAct instead ..CpuGo (new active based lam);
 //                           add probe and map setup for optional cpu components
@@ -37,7 +38,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Cpu.cpp 718 2015-12-26 15:59:48Z mueller $
+  \version $Id: RtclRw11Cpu.cpp 835 2016-12-31 10:00:14Z mueller $
   \brief   Implemenation of RtclRw11Cpu.
 */
 
@@ -1273,7 +1274,7 @@ int RtclRw11Cpu::M_show(RtclArgs& args)
       sos << endl;
 
     } else if (opt == "-mmu") {
-      uint16_t mmr[4];
+      uint16_t ssr[4];
       uint16_t asr[3][32];
       const char* pmode[3] = {"km","sm","um"};
       const char* acf[8] = {"nres ",
@@ -1288,9 +1289,9 @@ int RtclRw11Cpu::M_show(RtclArgs& args)
         boost::lock_guard<RlinkConnect> lock(Connect());
         RlinkCommandList clist;
         clist.AddWreg(base + Rw11Cpu::kCPAL, 0177572);
-        clist.AddRblk(base + Rw11Cpu::kCPMEMI, mmr, 3);
+        clist.AddRblk(base + Rw11Cpu::kCPMEMI, ssr, 3);
         clist.AddWreg(base + Rw11Cpu::kCPAL, 0172516);
-        clist.AddRblk(base + Rw11Cpu::kCPMEMI, mmr+3, 1);
+        clist.AddRblk(base + Rw11Cpu::kCPMEMI, ssr+3, 1);
         if (!Server().Exec(clist, emsg)) return args.Quit(emsg);
         clist.Clear();
         clist.AddWreg(base + Rw11Cpu::kCPAL, 0172300);
@@ -1301,31 +1302,31 @@ int RtclRw11Cpu::M_show(RtclArgs& args)
         clist.AddRblk(base + Rw11Cpu::kCPMEMI, asr[2], 32);
         if (!Server().Exec(clist, emsg)) return args.Quit(emsg);
       }
-      uint16_t mmr1_0_reg = (mmr[1]    ) & 07;
-       int16_t mmr1_0_val = (mmr[1]>> 3) & 37;
-      uint16_t mmr1_1_reg = (mmr[1]>> 8) & 07;
-       int16_t mmr1_1_val = (mmr[1]>>11) & 37;
-      uint16_t mmr3_ubmap = (mmr[3]>> 5) & 01;
-      uint16_t mmr3_22bit = (mmr[3]>> 4) & 01;
-      uint16_t mmr3_d_km  = (mmr[3]>> 2) & 01;
-      uint16_t mmr3_d_sm  = (mmr[3]>> 1) & 01;
-      uint16_t mmr3_d_um  = (mmr[3]    ) & 01;
+      uint16_t ssr1_0_reg = (ssr[1]    ) & 07;
+       int16_t ssr1_0_val = (ssr[1]>> 3) & 37;
+      uint16_t ssr1_1_reg = (ssr[1]>> 8) & 07;
+       int16_t ssr1_1_val = (ssr[1]>>11) & 37;
+      uint16_t ssr3_ubmap = (ssr[3]>> 5) & 01;
+      uint16_t ssr3_22bit = (ssr[3]>> 4) & 01;
+      uint16_t ssr3_d_km  = (ssr[3]>> 2) & 01;
+      uint16_t ssr3_d_sm  = (ssr[3]>> 1) & 01;
+      uint16_t ssr3_d_um  = (ssr[3]    ) & 01;
       sos << "mmu:" << endl;
-      sos << "mmr0=" << RosPrintBvi(mmr[0],8) << endl;
-      if (mmr1_0_val & 020) mmr1_0_val |= 0177740;
-      if (mmr1_1_val & 020) mmr1_1_val |= 0177740;
-      sos << "mmr1=" << RosPrintBvi(mmr[1],8);
-      if (mmr1_0_val) sos << "  r" << mmr1_0_reg 
-                          << ":" << RosPrintf(mmr1_0_val,"d",3);
-      if (mmr1_1_val) sos << "  r" << mmr1_1_reg 
-                          << ":" << RosPrintf(mmr1_1_val,"d",3);
+      sos << "ssr0=" << RosPrintBvi(ssr[0],8) << endl;
+      if (ssr1_0_val & 020) ssr1_0_val |= 0177740;
+      if (ssr1_1_val & 020) ssr1_1_val |= 0177740;
+      sos << "ssr1=" << RosPrintBvi(ssr[1],8);
+      if (ssr1_0_val) sos << "  r" << ssr1_0_reg 
+                          << ":" << RosPrintf(ssr1_0_val,"d",3);
+      if (ssr1_1_val) sos << "  r" << ssr1_1_reg 
+                          << ":" << RosPrintf(ssr1_1_val,"d",3);
       sos << endl;
-      sos << "mmr2=" << RosPrintBvi(mmr[2],8) << endl;
-      sos << "mmr3=" << RosPrintBvi(mmr[3],8) 
-          << "  ubmap=" << mmr3_ubmap
-          << "  22bit=" << mmr3_22bit
-          << "  d-space k,s,u=" << mmr3_d_km 
-          << "," << mmr3_d_sm << "," << mmr3_d_um << endl;
+      sos << "ssr2=" << RosPrintBvi(ssr[2],8) << endl;
+      sos << "ssr3=" << RosPrintBvi(ssr[3],8) 
+          << "  ubmap=" << ssr3_ubmap
+          << "  22bit=" << ssr3_22bit
+          << "  d-space k,s,u=" << ssr3_d_km 
+          << "," << ssr3_d_sm << "," << ssr3_d_um << endl;
       for (size_t m=0; m<3; m++) {
         sos << pmode[m] << "   "
             << " I pdr slf aw d acf     I par"

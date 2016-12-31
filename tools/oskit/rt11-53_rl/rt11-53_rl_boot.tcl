@@ -1,4 +1,4 @@
-# $Id: rt11-53_rl_boot.tcl 704 2015-07-25 14:18:03Z mueller $
+# $Id: rt11-53_rl_boot.tcl 835 2016-12-31 10:00:14Z mueller $
 #
 # Setup file for RT-11 V5.3 RL02 based system
 #
@@ -22,6 +22,4 @@ cpu0rla0 att RT11_V5.3_SYSTEM.dsk
 
 # and boot
 rutil::dohook "preboothook"
-rw11::cpumon
-rw11::cpucons
 cpu0 boot rla0

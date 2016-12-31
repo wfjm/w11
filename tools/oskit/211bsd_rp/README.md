@@ -118,14 +118,13 @@ Download, unpack and copy the disk images (*.dsk), e.g.
 
   While the system was running the server process display the
   ```
-       cpumon> 
+       cpu0> 
   ```
 
   prompt. When the w11 has halted after 211bsd shutdown a message like
   ```
 
        CPU down attention
-       Processor registers and status:
        Processor registers and status:
          PS: 030350 cm,pm=k,u s,p,t=0,7,0 NZVC=1000  rust: 01 HALTed
          R0: 177560  R1: 010330  R2: 056172  R3: 000010

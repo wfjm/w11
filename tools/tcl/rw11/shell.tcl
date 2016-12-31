@@ -1,4 +1,4 @@
-# $Id: shell.tcl 834 2016-12-30 15:19:09Z mueller $
+# $Id: shell.tcl 835 2016-12-31 10:00:14Z mueller $
 #
 # Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2016-12-31   834   2.1    add '@' command
 # 2016-12-30   833   2.0    major overhaul    
 # 2015-12-23   717   1.1    add e,g,d commands; fix shell_tin
 # 2015-07-12   700   1.0    Initial version
@@ -138,6 +139,19 @@ namespace eval rw11 {
     set rval   {}
     set cname  [lindex $args 0]
     set cargs  [lreplace $args 0 0]
+
+    # handle @<command-file>
+    if {[regexp -- {^\@(.+)$} $cname matched fname]} {
+      if {![file exists $fname]} {
+        error "shell-E: file 'fname' not found"
+      }
+      if {[regexp -- {^(.+)\.scmd$} $fname]} {
+        shell_simh $fname
+      } else {
+        source $fname
+      }
+      return
+    }
 
     switch $cname {
 

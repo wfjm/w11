@@ -1,4 +1,4 @@
-# $Id: uv5_rk_boot.tcl 704 2015-07-25 14:18:03Z mueller $
+# $Id: uv5_rk_boot.tcl 835 2016-12-31 10:00:14Z mueller $
 #
 # Setup file for Unix V5 RK05 based system
 #
@@ -20,6 +20,4 @@ cpu0rka0 att unix_v5_rk.dsk
 
 # and boot
 rutil::dohook "preboothook"
-rw11::cpumon
-rw11::cpucons
 cpu0 boot rka0

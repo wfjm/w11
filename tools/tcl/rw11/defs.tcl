@@ -1,4 +1,4 @@
-# $Id: defs.tcl 724 2016-01-03 22:53:53Z mueller $
+# $Id: defs.tcl 835 2016-12-31 10:00:14Z mueller $
 #
 # Copyright 2014-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2016-12-30   834   1.0.4  fix typo in regmap_add for SDR's
 # 2016-01-02   724   1.0.3  add s: defs for CP_STAT(rust)
 # 2015-12-26   719   1.0.2  add regmap_add defs; add CNTRL def
 # 2015-09-06   710   1.0.1  regdsc PSW: add silent n,z,v,c; *mode syms; fix tflag
@@ -101,7 +102,7 @@ namespace eval rw11 {
   rw11util::regmap_add rw11 ssr0      {?? SSR0}
   rw11util::regmap_add rw11 ssr1      {?? SSR1}
   rw11util::regmap_add rw11 ssr3      {?? SSR3}
-  rw11util::regmap_add rw11 sdr???.?  {?? SDR}
+  rw11util::regmap_add rw11 sdr??.?   {?? SDR}
   rw11util::regmap_add rw11 pirq      {?? PIRQ}
   rw11util::regmap_add rw11 cpuerr    {?? CPUERR}
   #

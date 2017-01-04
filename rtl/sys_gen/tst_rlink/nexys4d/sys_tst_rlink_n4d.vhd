@@ -1,4 +1,4 @@
--- $Id: sys_tst_rlink_n4d.vhd 838 2017-01-04 20:57:57Z mueller $
+-- $Id: sys_tst_rlink_n4d.vhd 839 2017-01-04 21:34:04Z mueller $
 --
 -- Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -154,7 +154,7 @@ architecture syn of sys_tst_rlink_n4d is
   constant rbaddr_sysmon: slv16 := x"fb00"; -- fb00/0080: 1111 1011 0xxx xxxx
 
   constant sysid_proj  : slv16 := x"0101";   -- tst_rlink
-  constant sysid_board : slv8  := x"06";     -- nexys4d
+  constant sysid_board : slv8  := x"08";     -- nexys4d
   constant sysid_vers  : slv8  := x"00";
 
 begin

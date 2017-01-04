@@ -1,0 +1,16 @@
+# $Id: tbrun.yml 838 2017-01-04 20:57:57Z mueller $
+#
+# Revision History:
+# Date         Rev Version  Comment
+# 2016-08-21   799   1.0    Initial version
+#
+- default:
+    mode: ${viv_modes}
+#
+- tag:  [viv, sys_tst_serloop1, n4d]
+  test: |
+    tbrun_tbw tb_tst_serloop1_n4d${ms}
+
+- tag:  [viv, sys_tst_serloop2, n4d]
+  test: |
+    tbrun_tbw tb_tst_serloop2_n4d${ms}

@@ -1,0 +1,4 @@
+# libs
+../../../vlib/slvtypes.vhd
+# design
+nexys4d_dummy.vhd

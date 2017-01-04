@@ -1,0 +1,34 @@
+# $Id: tbrun.yml 838 2017-01-04 20:57:57Z mueller $
+#
+# Revision History:
+# Date         Rev Version  Comment
+# 2017-01-04   800   1.0    Initial version
+#
+- default:
+    mode: ${viv_modes}
+#
+- tag:  [viv, sys_w11a, br_n4d, stim1]
+  test: |
+    tbrun_tbwrri --lsuf stim1  tb_w11a_br_n4d${ms} \
+      "rlink::run_rri ../../../../w11a/tb/tb_rlink_tba_pdp11core_stim.dat"
+
+- tag:  [viv, sys_w11a, br_n4d, mem70]
+  test: |
+    tbrun_tbwrri --lsuf mem70  --pack rw11  tb_w11a_br_n4d${ms} \
+      "rw11::setup_cpu" "rw11::run_pdpcp ../../tb/tb_w11a_mem70.dat"
+
+- tag:  [viv, sys_w11a, br_n4d, stim2]
+  test: |
+    tbrun_tbwrri --lsuf stim2  --pack rw11  tb_w11a_br_n4d${ms} \
+      "rw11::setup_cpu" \
+      "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat 60."
+
+- tag:  [viv, sys_w11a, br_n4d, tbcpu]
+  test: |
+    tbrun_tbwrri --lsuf tbcpu  --pack rw11  tb_w11a_br_n4d${ms} \
+      "rw11::setup_cpu" "rw11::tbench @cpu_all.dat"
+
+- tag:  [viv, sys_w11a, br_n4d, tbdev]
+  test: |
+    tbrun_tbwrri --lsuf tbdev  --pack rw11  tb_w11a_br_n4d${ms} \
+      "rw11::setup_cpu" "rw11::tbench @dev_all.dat"

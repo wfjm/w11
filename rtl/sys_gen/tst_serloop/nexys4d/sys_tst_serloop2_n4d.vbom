@@ -1,0 +1,21 @@
+# libs
+../../../vlib/slvtypes.vhd
+../../../vlib/xlib/xlib.vhd
+../../../vlib/genlib/genlib.vhd
+../../../bplib/bpgen/bpgenlib.vbom
+../tst_serlooplib.vbom
+../../../vlib/serport/serportlib.vbom
+${sys_conf := sys_conf2.vhd}
+# components
+[vsyn]../../../vlib/xlib/s7_cmt_sfs_unisim.vbom
+[ghdl,vsim]../../../vlib/xlib/s7_cmt_sfs_gsim.vbom
+../../../vlib/genlib/clkdivce.vbom
+../../../bplib/bpgen/bp_rs232_4line_iob.vbom
+../../../bplib/bpgen/sn_humanio.vbom
+../tst_serloop_hiomap.vbom
+../../../vlib/serport/serport_2clock2.vbom
+../tst_serloop.vbom
+# design
+sys_tst_serloop2_n4d.vhd
+@xdc:../../../bplib/nexys4d/nexys4d_pclk.xdc
+@xdc:../../../bplib/nexys4d/nexys4d_pins.xdc

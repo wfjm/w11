@@ -1,0 +1,8 @@
+# configure for _*sim case
+# Note: this tb uses sys_w11a_n4d.vbom in local directory
+#       (not in .. as usual) to allow a tb specific configure !!!
+# configure
+nexys4d_aif = sys_w11a_br_n4d_ssim.vhd
+# design
+tb_w11a_br_n4d.vbom
+@top:tb_w11a_br_n4d

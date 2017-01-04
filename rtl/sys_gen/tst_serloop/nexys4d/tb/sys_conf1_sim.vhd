@@ -1,6 +1,6 @@
 -- $Id: sys_conf1_sim.vhd 838 2017-01-04 20:57:57Z mueller $
 --
--- Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -13,14 +13,13 @@
 --
 ------------------------------------------------------------------------------
 -- Package Name:   sys_conf
--- Description:    Definitions for sys_tst_serloop1_n4 (for test bench)
+-- Description:    Definitions for sys_tst_serloop1_n4d (for test bench)
 --
 -- Dependencies:   -
--- Tool versions:  viv 2014.4-2015.4; ghdl 0.31-0.33
+-- Tool versions:  viv 2016.2; ghdl 0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2016-03-27   753   1.1    clock now from cmt and configurable
--- 2015-02-21   649   1.0    Initial version (cloned from sys_tst_serloop1_n3)
+-- 2017-01-04   838   1.0    Initial version
 ------------------------------------------------------------------------------
 
 library ieee;

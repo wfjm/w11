@@ -1,6 +1,6 @@
--- $Id: sys_conf1_sim.vhd 838 2017-01-04 20:57:57Z mueller $
+-- $Id: sys_conf1.vhd 838 2017-01-04 20:57:57Z mueller $
 --
--- Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -13,14 +13,13 @@
 --
 ------------------------------------------------------------------------------
 -- Package Name:   sys_conf
--- Description:    Definitions for sys_tst_serloop1_n4 (for test bench)
+-- Description:    Definitions for sys_tst_serloop1_n4d (for synthesis)
 --
 -- Dependencies:   -
--- Tool versions:  viv 2014.4-2015.4; ghdl 0.31-0.33
+-- Tool versions:  viv 2016.2; ghdl 0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2016-03-27   753   1.1    clock now from cmt and configurable
--- 2015-02-21   649   1.0    Initial version (cloned from sys_tst_serloop1_n3)
+-- 2017-01-04   838   1.0    Initial version
 ------------------------------------------------------------------------------
 
 library ieee;
@@ -30,30 +29,28 @@ use work.slvtypes.all;
 
 package sys_conf is
 
-  -- in simulation a usec stays to 120 cycles (1.0 usec) and a msec to
-  -- 240 cycles (2 usec). This affects mainly the autobauder. A break will be
-  -- detected after 128 msec periods,  this in simulation after 256 usec or
-  -- 30720 cycles. This is compatible with bitrates of 115200 baud or higher
-  -- (115200 <-> 8.68 usec <-> 1040 cycles)
-  
   -- configure clocks --------------------------------------------------------
   constant sys_conf_clksys_vcodivide   : positive :=   1;
   constant sys_conf_clksys_vcomultiply : positive :=  12;   -- vco 1200 MHz
   constant sys_conf_clksys_outdivide   : positive :=  10;   -- sys  120 MHz
   constant sys_conf_clksys_gentype     : string   := "MMCM";
   
-  constant sys_conf_clkdiv_msecdiv  : integer := 2; -- shortened !!
+  constant sys_conf_clkdiv_usecdiv : integer  :=  100; -- default usec 
+  constant sys_conf_clkdiv_msecdiv  : integer := 1000; -- default msec
 
   -- configure hio interfaces -----------------------------------------------
-  constant sys_conf_hio_debounce : boolean := false;  -- no  debouncers
+  constant sys_conf_hio_debounce : boolean := true;   -- instantiate debouncers
 
   -- configure serport ------------------------------------------------------  
-  constant sys_conf_uart_cdinit : integer := 1-1;     -- 1 cycle/bit in sim
+  constant sys_conf_uart_defbaud : integer := 115200;   -- default 115k baud
 
   -- derived constants =======================================================
   constant sys_conf_clksys : integer :=
     ((100000000/sys_conf_clksys_vcodivide)*sys_conf_clksys_vcomultiply) /
     sys_conf_clksys_outdivide;
   constant sys_conf_clksys_mhz : integer := sys_conf_clksys/1000000;
+
+  constant sys_conf_uart_cdinit : integer :=
+    (sys_conf_clksys/sys_conf_uart_defbaud)-1;
   
 end package sys_conf;

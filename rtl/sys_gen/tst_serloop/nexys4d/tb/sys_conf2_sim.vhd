@@ -1,6 +1,6 @@
--- $Id: sys_conf1_sim.vhd 838 2017-01-04 20:57:57Z mueller $
+-- $Id: sys_conf2_sim.vhd 838 2017-01-04 20:57:57Z mueller $
 --
--- Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -13,14 +13,13 @@
 --
 ------------------------------------------------------------------------------
 -- Package Name:   sys_conf
--- Description:    Definitions for sys_tst_serloop1_n4 (for test bench)
+-- Description:    Definitions for sys_tst_serloop2_n4d (for test bench)
 --
 -- Dependencies:   -
--- Tool versions:  viv 2014.4-2015.4; ghdl 0.31-0.33
+-- Tool versions:  2016.2; ghdl 0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2016-03-27   753   1.1    clock now from cmt and configurable
--- 2015-02-21   649   1.0    Initial version (cloned from sys_tst_serloop1_n3)
+-- 2017-01-04   838   1.0    Initial version
 ------------------------------------------------------------------------------
 
 library ieee;
@@ -37,12 +36,19 @@ package sys_conf is
   -- (115200 <-> 8.68 usec <-> 1040 cycles)
   
   -- configure clocks --------------------------------------------------------
-  constant sys_conf_clksys_vcodivide   : positive :=   1;
-  constant sys_conf_clksys_vcomultiply : positive :=  12;   -- vco 1200 MHz
-  constant sys_conf_clksys_outdivide   : positive :=  10;   -- sys  120 MHz
+  constant sys_conf_clksys_vcodivide   : positive :=   5;   -- f     20 Mhz
+  constant sys_conf_clksys_vcomultiply : positive :=  36;   -- vco  720 MHz
+  constant sys_conf_clksys_outdivide   : positive :=  10;   -- sys   72 MHz
   constant sys_conf_clksys_gentype     : string   := "MMCM";
-  
-  constant sys_conf_clkdiv_msecdiv  : integer := 2; -- shortened !!
+
+  constant sys_conf_clksys_msecdiv  : integer := 2; -- shortened !!
+
+  constant sys_conf_clkser_vcodivide   : positive :=   1;
+  constant sys_conf_clkser_vcomultiply : positive :=  12;   -- vco 1200 MHz
+  constant sys_conf_clkser_outdivide   : positive :=  10;   -- sys  120 MHz
+  constant sys_conf_clkser_gentype     : string   := "PLL";
+
+  constant sys_conf_clkser_msecdiv  : integer := 2; -- shortened !!
 
   -- configure hio interfaces -----------------------------------------------
   constant sys_conf_hio_debounce : boolean := false;  -- no  debouncers
@@ -56,4 +62,9 @@ package sys_conf is
     sys_conf_clksys_outdivide;
   constant sys_conf_clksys_mhz : integer := sys_conf_clksys/1000000;
   
+  constant sys_conf_clkser : integer :=
+    ((100000000/sys_conf_clkser_vcodivide)*sys_conf_clkser_vcomultiply) /
+    sys_conf_clkser_outdivide;
+  constant sys_conf_clkser_mhz : integer := sys_conf_clkser/1000000;
+
 end package sys_conf;

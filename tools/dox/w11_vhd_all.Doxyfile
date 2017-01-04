@@ -5,7 +5,7 @@
 #---------------------------------------------------------------------------
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "w11 - vhd"
-PROJECT_NUMBER         = 0.74
+PROJECT_NUMBER         = 0.741
 PROJECT_BRIEF          = "W11 CPU core and support modules"
 PROJECT_LOGO           =
 OUTPUT_DIRECTORY       = $(RETRODOXY)/w11/vhd
@@ -108,6 +108,8 @@ EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = */*_ssim.vhd \
                          */*_fsim.vhd \
                          */*_tsim.vhd \
+                         */*_osim.vhd \
+                         */*_rsim.vhd \
                          */.svn* \
                          */tests/*
 EXCLUDE_SYMBOLS        =

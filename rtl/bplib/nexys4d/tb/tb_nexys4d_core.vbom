@@ -1,0 +1,6 @@
+# libs
+../../../vlib/slvtypes.vhd
+../../../vlib/simlib/simbus.vhd
+# components
+# design
+tb_nexys4d_core.vhd

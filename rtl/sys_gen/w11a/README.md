@@ -8,4 +8,5 @@ and is organized in
 | [nexys2](nexys2)       | design for Digilent Nexys2 |
 | [nexys3](nexys3)       | design for Digilent Nexys3 |
 | [nexys4](nexys4)       | design for Digilent Nexys4 (old CRAM version !!) |
+| [nexys4d_bram](nexys4d_bram)  | design for Digilent Nexys4 DDR, using BRAM only **UNTESTED**  |
 | [s3board](s3board)     | design for Digilent S3BOARD |

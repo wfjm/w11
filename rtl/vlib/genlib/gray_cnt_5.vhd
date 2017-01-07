@@ -1,6 +1,6 @@
--- $Id: gray_cnt_5.vhd 751 2016-03-25 19:46:11Z mueller $
+-- $Id: gray_cnt_5.vhd 840 2017-01-07 16:15:12Z mueller $
 --
--- Copyright 2007- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,9 +18,10 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1-14.7; viv 2014.4-2015.4; ghdl 0.18-0.33
+-- Tool versions:  xst 8.1-14.7; viv 2014.4-2016.4; ghdl 0.18-0.33
 -- Revision History: 
 -- Date         Rev Version    Comment
+-- 2017-01-07   840   1.1      disable fsm recognition in vivado
 -- 2007-12-26   106   1.0      Initial version 
 -- 
 -- Some synthesis results:
@@ -59,6 +60,12 @@ architecture syn of gray_cnt_5 is
   attribute fsm_extract of R_DATA : signal is "no";
   attribute rom_style : string;
   attribute rom_style of N_DATA : signal is "distributed";
+  
+  -- Note: vivado started with -fsm_extraction one_hot didn't fsm recognize
+  -- this code up to 2016.2. With 2016.3 and later it is converted into a
+  -- 31 state one-hot fsm, unless explicitely suppressed
+  attribute fsm_encoding : string;
+  attribute fsm_encoding of R_DATA : signal is "none";
 
 begin
 

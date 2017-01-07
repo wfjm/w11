@@ -1,10 +1,11 @@
-# $Id: viv_tools_config.tcl 830 2016-12-26 20:25:49Z mueller $
+# $Id: viv_tools_config.tcl 840 2017-01-07 16:15:12Z mueller $
 #
-# Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2017-01-07   840   1.2    use get_hw_servers localhost:*
 # 2016-04-02   758   1.1    add USR_ACCESS readback
 # 2015-02-14   646   1.0    Initial version
 #
@@ -30,8 +31,9 @@ proc rvtb_default_config {stem} {
   open_hw
   connect_hw_server
 
-  # connect to target
-  open_hw_target [lindex [get_hw_targets -of_objects [get_hw_servers localhost]] 0]
+  # connect to target (Note: localhost:* will fail on vivado 2015.1 and before)
+  open_hw_target [lindex [get_hw_targets -of_objects \
+                            [get_hw_servers localhost:*]] 0]
 
   # setup bitfile
   set_property PROGRAM.FILE "${stem}.bit" [lindex [get_hw_devices] 0]

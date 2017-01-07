@@ -11,16 +11,17 @@
 ---
 ## HEAD <a name="head"></a>
 ### Proviso
-_The HEAD version is shows the current development. No guarantees that
+_The HEAD version shows the current development. No guarantees that
 software or firmware builds or that the documentation is consistent.
-The full set of tests is only run for releases._
+The full set of tests is only run for tagged releases._
 
 ### Summary
-- [w11 shell](../tools/tcl/rw11/shell.tcl) re-organized abd expanded,
+- fixes for Vivado 2016.4
+- added **preliminary** support for Nexys4 DDR board
+- [w11 shell](../tools/tcl/rw11/shell.tcl) re-organized and expanded,
   now default in [ti_w11](../tools/bin/ti_w11)
 - `CPUERR` cleared with cpu reset (see [ECO-029](ECO-029-cpuerr_creset.md))
 - `PS` initialized now with `000000` (see [ECO-028](ECO-028-ps_init.md))
-- added **preliminary** and **FPGA untested** support for nexys4 DDR
 
 <!-- --------------------------------------------------------------------- -->
 ---

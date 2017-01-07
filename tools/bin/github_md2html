@@ -1,0 +1,255 @@
+#!/usr/bin/perl -w
+# $Id: github_md2html 837 2017-01-02 19:23:34Z mueller $
+#
+# Copyright 2016-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+#
+# This program is free software; you may redistribute and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 2, or at your option any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# for complete details.
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2017-01-02   837   1.1    add -standalone and -trace; add rate wait
+# 2016-12-17   823   1.0    Initial version
+#
+
+use 5.14.0;                                 # require Perl 5.14 or higher
+use strict;                                 # require strict checking
+use Getopt::Long;
+use LWP::UserAgent;
+use JSON::XS;
+
+my %opts = ();
+
+GetOptions(\%opts,
+           "context:s", "force", "standalone", "trace",
+           "dump", "help") || exit 1;
+
+my $url_ghapi_md     = "https://api.github.com/markdown";
+my $url_ghapi_mdraw  = "https://api.github.com/markdown/raw";
+my $url_css_ghmd     = "https://wfjm.github.io/css/github-markdown.css";
+my $url_css_ghmdbody = "https://wfjm.github.io/css/github-markdown-body.css";
+
+sub print_help;
+sub do_md2html;
+
+autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
+autoflush STDOUT 1 if (-t STDOUT);          # autoflush if output into term
+
+if (exists $opts{help}) {
+  print_help;
+  exit 0;
+}
+
+my @flist;
+foreach my $arg (@ARGV) {
+  if  (! -e $arg) {
+    print STDERR "github_md2html-E: file or directory '$arg' not found\n";
+  } elsif (-f $arg) {
+    push @flist, $arg;
+  } elsif (-d $arg) {
+    open (FFILE, "find $arg -name '*.md' -type f | sort |")
+      or die "Failed to run 'find $arg': $!";
+    while (<FFILE>) {
+      chomp;
+      push @flist, $_;
+    }
+    close FFILE;
+  } elsif (-l $arg) {
+    print STDERR "github_md2html-W: symlink '$arg' ignored\n";
+  } else {
+    print STDERR "github_md2html-E: '$arg' not file or directory, ignored\n";
+  }
+}
+
+unless (scalar @flist) {
+  print STDERR "github_md2html-E: no files specified of found\n";
+  print_help;
+  exit 1;
+}
+
+foreach my $file (@flist) {
+  do_md2html($file);
+}
+
+#-------------------------------------------------------------------------------
+
+sub do_request {
+  my ($ifile,$ua,$req) = @_;
+  for (my $nretry=0; $nretry<10; $nretry++) {
+    my $res  = $ua->request($req);
+
+    if (exists $opts{dump}) {
+      print "------------------------------------------------------\n";
+      print "response for $ifile\n";
+      print $res->as_string,"\n";
+      print "------------------------------------------------------\n";
+    }
+
+    return $res if $res->is_success;
+
+    my $rate_limit  = $res->header('X-RateLimit-Limit');
+    my $rate_remain = $res->header('X-RateLimit-Remaining');
+    my $rate_reset  = $res->header('X-RateLimit-Reset');
+    if ($res->status_line eq '403 Forbidden' &&
+        defined $rate_limit && defined $rate_remain && defined $rate_reset &&
+        $rate_remain == 0) {
+      my $twait  = $rate_reset - time;
+      my $twait_min = $twait / 60;
+      my $twait_sec = $twait % 60;
+      printf "github_md2html-I: rate limit %d/hr reached, wait %2dm%02ds\n",
+        $rate_limit,
+          $twait_min, $twait_sec;
+      sleep $twait+1;
+    } else {
+      print STDERR "github_md2html-E: api error:'" . $res->status_line . "'\n";
+      print STDERR "response for $ifile\n";
+      print STDERR $res->as_string,"\n";
+      return undef;
+    }
+  }
+  print STDERR "github_md2html-E: retry limit reached\n";
+  return undef;
+}
+
+#-------------------------------------------------------------------------------
+
+sub do_md2html {
+  my ($ifile) = @_;
+  my $ofile = "$ifile.html";
+  my $doit = exists $opts{force} || (not -e $ofile);
+
+  unless ($doit) {
+    # -M returns <script_start_time> - <file_modify_time> in fractional days
+    # --> thus file age in days relative to now
+    $doit = -M $ofile > -M $ifile;      # output older than input
+  }
+
+  unless ($doit) {
+    print "$ifile: ok\n";
+    return;
+  }
+
+  # get file path and name
+  my $ifile_path = '.';
+  my $ifile_name = $ifile;
+  if ($ifile =~ m|^(.+)/(.+)|) {
+    $ifile_path = $1;
+    $ifile_name = $2;
+  }
+
+  # read input file
+  my $idata;
+  {
+    local $/;                               # slurp file ...
+    open IFILE, $ifile or die "file open read failed";
+    $idata = <IFILE>;
+    close IFILE;
+  }
+
+  # prepare request
+  my $ua = LWP::UserAgent->new;
+  my $req;
+
+  # with context --> use markdown api (json based)
+  if (exists $opts{context}) {
+    $req = HTTP::Request->new('POST', $url_ghapi_md);
+    my %apireq = ('mode'    => 'gfm',
+                  'context' => $opts{context},
+                  'text'    => $idata
+                 );
+    my $apireq_json = encode_json(\%apireq);
+    $req->content($apireq_json);
+
+  # no context --> use markdown/raw api
+  } else {
+    $req = HTTP::Request->new('POST', $url_ghapi_mdraw);
+    $req->content_type('text/x-markdown');
+    $req->content($idata);
+  }
+
+  if (exists $opts{dump}) {
+    print "------------------------------------------------------\n";
+    print "request for $ifile\n";
+    print $req->as_string,"\n";
+  }
+
+  my $res  = do_request($ifile, $ua, $req);
+  return unless defined $res;
+
+  my $html = $res->decoded_content;
+
+  if (exists $opts{standalone}) {
+    $html =~ s{<a(.*)href="(.+)"}{
+      my $hopt = $1;
+      my $href = "$2";
+      unless ($href =~ m|^https?://|) {
+        if ($href =~ m|\.md$|) {
+          $href .= '.html';
+          print "  hmap: $href\n" if exists $opts{trace};
+        } else {
+          if (-d "$ifile_path/$href") {
+            $href =~ s|/$||;                # drop trailing '/'
+            if (-r "$ifile_path/$href/README.md") {
+              $href .= '/README.md.html';
+              print "  dmap: $href: ok\n" if exists $opts{trace};
+            } else {
+              print "  dmap: $href: skipped\n" if exists $opts{trace};
+            }
+          }
+        }
+      }
+      "<a${hopt}href=\"$href\"";
+    }gex;
+  }
+
+  open OFILE, ">$ofile" or die "file open write failed";
+  print OFILE '<!DOCTYPE html>',"\n";
+  print OFILE '<html>',"\n";
+  print OFILE '<head>',"\n";
+  print OFILE '  <meta http-equiv="Content-Type"',
+                       ' content="text/html; charset=UTF-8">',"\n";
+  print OFILE '  <meta name="generator"',
+                       ' content="github_md2html via github api">',"\n";
+  print OFILE '  <link rel="stylesheet"',
+                       ' href="',$url_css_ghmd,'">',"\n";
+  print OFILE '  <link rel="stylesheet"',
+                       ' href="',$url_css_ghmdbody,'">',"\n";
+  print OFILE '</head>',"\n";
+  print OFILE '<body class="markdown-body">',"\n";
+  if ($opts{standalone} && $ifile_name eq 'README.md') {
+    print OFILE '<p><i>Directory README.',"\n";
+    print OFILE 'To <a href=".">local directory listing</a></i>.</p>',"\n";
+  }
+  print OFILE $html,"\n";
+  print OFILE '</body>',"\n";
+  print OFILE '</html>',"\n";
+  close OFILE;
+
+  my $rate_limit  = $res->header('X-RateLimit-Limit');
+  my $rate_remain = $res->header('X-RateLimit-Remaining');
+  my $rate_reset  = $res->header('X-RateLimit-Reset');
+  my $time_reset  = $rate_reset - time;
+  my $reset_min   = $time_reset / 60;
+  my $reset_sec   = $time_reset % 60;
+
+  printf "%s: done, rate %d of %d for %2dm%02ds\n",
+    $ifile, $rate_remain, $rate_limit, $reset_min, $reset_sec;
+}
+
+#-------------------------------------------------------------------------------
+
+sub print_help {
+  print "usage: github_md2html [opts] files...\n";
+  print "  --force        update all (default: check timestamps)\n";
+  print "  --standalone   modify links for local browser usage\n";
+  print "  --trace        trace link mapping in standalone mode\n";
+  print "  --context c    uses context and markdown api (default: raw api)\n";
+  print "  --dump         print HTTP request and response\n";
+  print "  --help         this message\n";
+}

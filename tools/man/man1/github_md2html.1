@@ -1,0 +1,77 @@
+.\"  -*- nroff -*-
+.\"  $Id: github_md2html.1 837 2017-01-02 19:23:34Z mueller $
+.\"
+.\" Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" 
+.\" ------------------------------------------------------------------
+.
+.TH GITHUB_MD2HTML 1 2017-01-02 "Retro Project" "Retro Project Manual"
+.\" ------------------------------------------------------------------
+.SH NAME
+github_md2html \- convert markdown to html with GitHub API
+.\" ------------------------------------------------------------------
+.SH SYNOPSIS
+.
+.SY github_md2html
+.OP OPTIONS
+.I FILE...
+.YS
+.
+.\" ------------------------------------------------------------------
+.SH DESCRIPTION
+Converts markdown files to html using the GitHub converter API. 
+\fIFILE\fP can either be a file name or a directory name (e.g. '.').
+If it's a directory, the whole sub-tree will be scanned and all files
+with an extension of \fI.md\fP will be converted. 
+The created html files have the extension \fI.md.html\fP.
+
+Unless the \fB-force\fP option is given the script checks whether the 
+\fI.md.html\fP
+file already exists and converts only when the markdown file is newer than
+the html file.
+.
+.\" ------------------------------------------------------------------
+.SH OPTIONS
+.
+.\" ----------------------------------------------
+.IP "\fB\-force\fR"
+re-create all files, even when they exist and are up-to-date.
+.
+.\" ----------------------------------------------
+.IP "\fB\-standalone\fR"
+modify local links for usage with local browser. All links pointing to a
+local \fI.md\fP file will be redirected to the \fI.md.html\fP file, and
+all links pointing to a local directory will be redirected to a
+\fIREADME.md.html\fP in case the directory README exists.
+This mode is is useful when one wants to inspect the files directly
+with a browser.
+.
+.\" ----------------------------------------------
+.IP "\fB\-trace\fR"
+trace link mapping in \fI-standalone\fP mode.
+.
+.\" ----------------------------------------------
+.IP "\fB\-context \fIcont\fR"
+defines the GitHub repository context. 
+.
+.\" ----------------------------------------------
+.IP "\fB\-dump\fR"
+print HTTP request and response.
+.
+.\" ----------------------------------------------
+.IP "\fB\-help\fR"
+print help text.
+.
+.\" ------------------------------------------------------------------
+.SH EXIT STATUS
+In case of an error an exit status 1 is returned.
+.
+.
+.\" ------------------------------------------------------------------
+.SH EXAMPLES
+.IP "\fBgithub_md2html -s .\fR" 4
+will convert all \fI.md\fP files in the current sub-tree in standalone mode.
+
+.\" ------------------------------------------------------------------
+.SH AUTHOR
+Walter F.J. Mueller <W.F.J.Mueller@gsi.de>

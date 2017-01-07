@@ -1,6 +1,6 @@
-# $Id: util.tcl 834 2016-12-30 15:19:09Z mueller $
+# $Id: util.tcl 837 2017-01-02 19:23:34Z mueller $
 #
-# Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-01-02   837   1.1.1  add procs ime,imf
 # 2016-12-30   833   1.1    add proc filter
 # 2015-12-28   721   1.0.2  add regmap_add defs; add symbolic register dump
 # 2015-07-25   704   1.0.1  start: use args and args2opts
@@ -46,8 +47,9 @@ namespace eval ibd_ibmon {
   rw11util::regmap_add ibd_ibmon im.cntl {r? CNTL}
   rw11util::regmap_add ibd_ibmon im.stat {r? STAT}
   rw11util::regmap_add ibd_ibmon im.addr {r? ADDR}
+
   #
-  # setup: amap definitions for ibd_ibmon
+  # setup: amap definitions for ibd_ibmon ------------------------------------
   # 
   proc setup {{cpu "cpu0"} {base 0160000}} {
     $cpu imap -insert im.cntl  [expr {$base + 000}]
@@ -58,7 +60,7 @@ namespace eval ibd_ibmon {
     $cpu imap -insert im.data  [expr {$base + 012}]
   }
   #
-  # init: reset ibd_ibmon (stop, reset alim)
+  # init: reset ibd_ibmon (stop, reset alim) ---------------------------------
   # 
   proc init {{cpu "cpu0"}} {
     $cpu cp \
@@ -68,7 +70,7 @@ namespace eval ibd_ibmon {
       -wibr im.addr 0x0000
   }
   #
-  # start: start the ibmon
+  # start: start the ibmon ---------------------------------------------------
   #
   proc start {{cpu "cpu0"} args} {
     args2opts opts { conena 1 remena 1 locena 1 wena 1 } {*}$args
@@ -80,7 +82,7 @@ namespace eval ibd_ibmon {
                              ]
   }
   #
-  # start: setup filter window
+  # start: setup filter window -----------------------------------------------
   #
   proc filter {{cpu "cpu0"} {lolim 0} {hilim 0177776}} {
     $cpu cp -wibr im.lolim $lolim \
@@ -88,13 +90,13 @@ namespace eval ibd_ibmon {
   }
 
   #
-  # stop: stop the ibmon
+  # stop: stop the ibmon -----------------------------------------------------
   #
   proc stop {{cpu "cpu0"}} {
     $cpu cp -wibr im.cntl [regbld ibd_ibmon::CNTL stop]
   }
   #
-  # read: read nent last entries (by default all)
+  # read: read nent last entries (by default all) ----------------------------
   #
   proc read {{cpu "cpu0"} {nent -1}} {
     $cpu cp -ribr im.addr raddr \
@@ -167,7 +169,7 @@ namespace eval ibd_ibmon {
     return $rval
   }
   #
-  # print: print ibmon data (optionally also read them)
+  # print: print ibmon data (optionally also read them) ----------------------
   #
   proc print {{cpu "cpu0"} {mondat -1}} {
 
@@ -258,7 +260,7 @@ namespace eval ibd_ibmon {
   }
 
   #
-  # raw_edata: prepare edata lists for raw data reads in tests
+  # raw_edata: prepare edata lists for raw data reads in tests ---------------
   #   args is list of {eflag eaddr edata enbusy} sublists
 
   proc raw_edata {edat emsk args} {
@@ -293,7 +295,7 @@ namespace eval ibd_ibmon {
   }
 
   #
-  # raw_check: check raw data against expect values prepared by raw_edata
+  # raw_check: check raw data against expect values prepared by raw_edata ----
   #
   proc raw_check {{cpu "cpu0"} edat emsk} {
 
@@ -304,5 +306,65 @@ namespace eval ibd_ibmon {
       -ribr  im.addr -edata [llength $edat]
     return ""
   }
-  
+
+  #
+  # === high level procs: compact usage (also by rw11:shell) =================
+  #
+  # ime: ibmon enable --------------------------------------------------------
+  # 
+  proc ime {{cpu "cpu0"} {mode "lrc"}} {
+    if {![regexp {^[crl]+n?$} $mode]} {
+      error "ime-E: bad mode '$mode', use \[lrc\] and n"
+    }
+    set locena [string match *l* $mode]
+    set remena [string match *r* $mode]
+    set conena [string match *c* $mode]
+    set wena  1
+    if {[string match *n* $mode]} {set wena 0}
+    
+    ibd_ibmon::start $cpu \
+      locena $locena remena $remena conena $conena wena $wena
+    return ""
+  }
+
+  #
+  # imf: ibmon filter --------------------------------------------------------
+  # 
+  proc imf {{cpu "cpu0"} {lo ""} {hi ""}} {
+    set lolim 0
+    set hilim 0177776
+
+    if {$lo ne ""} {
+      set lolist [split $lo "/"]
+      if {[llength $lolist] > 2} {
+        error "imf-E: bad lo specifier '$lo', use val or val/len"
+      }
+      set lolim [imap_reg2addr $cpu [lindex $lolist 0]]
+      if {[llength $lolist] == 2} {
+        set hilim [expr {$lolim + 2*([lindex $lolist 1]-1)}]
+      }
+    }
+
+    if {$hi ne ""} {
+      set hilim [imap_reg2addr $cpu $hi]
+    }
+
+    if {$lolim > $hilim} {error "imf-E: hilim must be >= lolim"}
+
+    ibd_ibmon::filter $cpu $lolim $hilim
+  }
+
+  #
+  # imap_reg2addr: convert register to address -------------------------------
+  # 
+  proc imap_reg2addr {cpu reg} {
+    if {[$cpu imap -testname $reg]} {
+      return [$cpu imap $reg]
+    } elseif {[string is integer $reg]} {
+      return $reg
+    } else {
+      error "imap_reg2addr-E: unknown register '$reg'"
+    }
+  }
+
 }

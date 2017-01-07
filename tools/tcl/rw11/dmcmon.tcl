@@ -1,6 +1,6 @@
-# $Id: dmcmon.tcl 834 2016-12-30 15:19:09Z mueller $
+# $Id: dmcmon.tcl 837 2017-01-02 19:23:34Z mueller $
 #
-# Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-01-02   837   1.0.2  add procs cme,cml
 # 2016-12-29   833   1.0.1  cm_print: protect against empty lists
 # 2015-08-05   708   1.0    Initial version
 # 2015-07-05   697   0.1    First draft
@@ -52,7 +53,7 @@ namespace eval rw11 {
   variable CM_D8_VMERR_RSV   05
 
   #
-  # cm_start: start the dmcmon
+  # cm_start: start the dmcmon -----------------------------------------------
   #
   proc cm_start {{cpu "cpu0"} args} {
     args2opts opts { mwsup 0 imode 0 wena 1 } {*}$args
@@ -62,14 +63,14 @@ namespace eval rw11 {
   }
 
   #
-  # cm_stop: stop the dmcmon
+  # cm_stop: stop the dmcmon -------------------------------------------------
   #
   proc cm_stop {{cpu "cpu0"}} {
     $cpu cp -wreg cm.cntl [regbld rw11::CM_CNTL stop]
   }
 
   #
-  # cm_read: read nent last entries (by default all)
+  # cm_read: read nent last entries (by default all) -------------------------
   #   returns a list, 1st entry descriptor, rest 9-tuples in d0,..,d8 order
   #
   proc cm_read {{cpu "cpu0"} {nent -1}} {
@@ -115,7 +116,7 @@ namespace eval rw11 {
   }
 
   #
-  # cm_print: convert raw into human readable format
+  # cm_print: convert raw into human readable format -------------------------
   #
   proc cm_print {cmraw} {
     if {![llength $cmraw]} {return;}
@@ -278,7 +279,7 @@ namespace eval rw11 {
   }
 
   #
-  # cm_raw2txt: converts raw data list into a storable text format
+  # cm_raw2txt: converts raw data list into a storable text format -----------
   #
   proc cm_raw2txt {cmraw} {
     set len [llength $cmraw]
@@ -297,7 +298,7 @@ namespace eval rw11 {
   }
 
   #
-  # cm_txt2raw: converts storable text format back in raw data list
+  # cm_txt2raw: converts storable text format back in raw data list ----------
   #
   proc cm_txt2raw {text} {
     set rval {}
@@ -325,7 +326,7 @@ namespace eval rw11 {
   }
 
   #
-  # cm_get_snum2state
+  # cm_get_snum2state --------------------------------------------------------
   #
   proc cm_get_snum2state {} {
     set retrobase $::env(RETROBASE)
@@ -362,7 +363,7 @@ namespace eval rw11 {
   }
 
   #
-  # cm_read_lint: read lint (last instruction) context
+  # cm_read_lint: read lint (last instruction) context -----------------------
   #   returns list of lists
   #   1. stat,ipc,ireg
   #   2. mal list (CM_STAT.malcnt entries)
@@ -390,7 +391,7 @@ namespace eval rw11 {
   }
 
   #
-  # cm_print_lint: print lint (last instruction) context
+  # cm_print_lint: print lint (last instruction) context ---------------------
   #
   proc cm_print_lint {cmlraw} {
     set stat [lindex $cmlraw 0 0]
@@ -460,4 +461,32 @@ namespace eval rw11 {
 
     return $rval
   }
+
+  #
+  # === high level procs: compact usage (also by rw11:shell) =================
+  #
+  # cme: dmcmon enable -------------------------------------------------------
+  #
+  proc cme {{cpu "cpu0"} {mode "i"}} {
+    if {![regexp {^[is]?n?$} $mode]} {
+      error "cme-E: bad mode '$mode', only i,s and n allowed"
+    }
+
+    set imode [string match *i* $mode]
+    set mwsup [string match *s* $mode]
+    set wena  1
+    if {[string match *n* $mode]} {set wena 0}
+
+    rw11::cm_start $cpu imode $imode mwsup $mwsup wena $wena
+    return ""
+  }
+
+  #
+  # cml: dmcmon list ---------------------------------------------------------
+  #
+  proc cml {{cpu "cpu0"} {nent -1}} {
+    rw11::cm_stop $cpu
+    return [rw11::cm_print [rw11::cm_read $cpu $nent]]
+  }
+
 }

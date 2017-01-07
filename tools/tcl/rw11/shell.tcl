@@ -1,6 +1,6 @@
-# $Id: shell.tcl 835 2016-12-31 10:00:14Z mueller $
+# $Id: shell.tcl 837 2017-01-02 19:23:34Z mueller $
 #
-# Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-01-02   837   2.2    code re-shuffle; add cpu status in prompt
 # 2016-12-31   834   2.1    add '@' command
 # 2016-12-30   833   2.0    major overhaul    
 # 2015-12-23   717   1.1    add e,g,d commands; fix shell_tin
@@ -29,6 +30,7 @@ namespace eval rw11 {
 
   variable shell_depth     0;                   # recursion stopper
   variable shell_cpu       "cpu0";              # current cpu command
+  variable shell_cpu_stat  "";                  # cpu status
   variable shell_cme_pend  1;                   # .cme pending
   variable shell_cme_mode  "i";                 # mode for pending .cme
   variable shell_attnhdl_added 0
@@ -40,7 +42,8 @@ namespace eval rw11 {
   proc shell_start {} {
     variable shell_cpu
     variable shell_attnhdl_added
-    variable shell_eofchar_save 
+    variable shell_eofchar_save
+    variable shell_cpu_stat
     global   tirri_interactive
     
     # quit if shell already active
@@ -64,7 +67,7 @@ namespace eval rw11 {
       rename ::tclreadline::prompt1 ::rw11::shell_prompt1_save
       namespace eval ::tclreadline {
         proc prompt1 {} {
-          return "${rw11::shell_cpu}> "
+          return "${rw11::shell_cpu_stat}${rw11::shell_cpu}> "
         }
       }
       # disable ^D (and save old setting)
@@ -125,6 +128,7 @@ namespace eval rw11 {
   proc shell_attncpu {} {
     puts "CPU attention"
     puts [cpu0 show -r0ps]
+    shell_update_cpu_stat
     puts -nonewline [::tclreadline::prompt1]
     flush stdout
     return ""
@@ -229,10 +233,8 @@ namespace eval rw11 {
   # 
   proc shell_cs {{nstep 1}} {
     variable shell_cpu
-    variable shell_cme_pend
-    variable shell_cme_mode
 
-    if {$shell_cme_pend} { shell_cme $shell_cme_mode }
+    shell_cme_ifpend
 
     set rval {}
     for {set i 0} {$i < $nstep} {incr i} {
@@ -243,6 +245,7 @@ namespace eval rw11 {
       $shell_cpu cp -rstat stat
       if {[regget rw11::CP_STAT(rust) $stat] != $rw11::RUST_STEP} {break}
     }
+    shell_update_cpu_stat
     return $rval
   }
 
@@ -251,10 +254,10 @@ namespace eval rw11 {
   # 
   proc shell_cr {} {
     variable shell_cpu
-    variable shell_cme_pend
-    variable shell_cme_mode
+    variable shell_cpu_stat
 
-    if {$shell_cme_pend} { shell_cme $shell_cme_mode }
+    shell_cme_ifpend
+    set shell_cpu_stat "g:";
 
     rw11::hb_clear $shell_cpu
     $shell_cpu cp -resume
@@ -267,6 +270,7 @@ namespace eval rw11 {
   proc shell_csus {} {
     variable shell_cpu
     $shell_cpu cp -suspend
+    shell_update_cpu_stat
     return ""
   }
 
@@ -276,6 +280,7 @@ namespace eval rw11 {
   proc shell_csto {} {
     variable shell_cpu
     $shell_cpu cp -stop
+    shell_update_cpu_stat
     return ""
   }
 
@@ -286,6 +291,7 @@ namespace eval rw11 {
     variable shell_cpu
     $shell_cpu cp -stop
     $shell_cpu cp -creset
+    shell_update_cpu_stat
     return ""
   }
 
@@ -294,10 +300,10 @@ namespace eval rw11 {
   # 
   proc shell_csta {{pc -1}} {
     variable shell_cpu
-    variable shell_cme_pend
-    variable shell_cme_mode
+    variable shell_cpu_stat
 
-    if {$shell_cme_pend} { shell_cme $shell_cme_mode }
+    shell_cme_ifpend
+    set shell_cpu_stat "g:";
 
     if {$pc == -1} {
       $shell_cpu cp -start
@@ -308,6 +314,24 @@ namespace eval rw11 {
   }
 
   #
+  # shell_cme_ifpend: do cme if pending and cmon available -------------------
+  # 
+  proc shell_cme_ifpend {} {
+    variable shell_cpu
+    variable shell_cme_pend
+    variable shell_cme_mode
+
+    if {$shell_cme_pend} {
+      if {[$shell_cpu rmap -testname "cm.cntl"]} {
+        shell_cme $shell_cme_mode
+      } else {
+        set shell_cme_pend 0
+      }
+    }
+    return "";
+  }    
+
+  #
   # shell_cme: cmon enable ---------------------------------------------------
   # 
   proc shell_cme {{mode "i"}} {
@@ -315,20 +339,11 @@ namespace eval rw11 {
     variable shell_cme_pend
     variable shell_cme_mode
 
-   if {![shell_test_device $shell_cpu "cme" "cm.cntl" "dmcmon"]} {return ""}
+    if {![shell_test_device $shell_cpu "cme" "cm.cntl" "dmcmon"]} {return ""}
 
-    if {![regexp {^[is]?n?$} $mode]} {
-      error ".cme-E: bad mode '$mode', only i,s and n allowed"
-    }
-
+    rw11::cme $shell_cpu $mode
     set shell_cme_pend 0
     set shell_cme_mode $mode
-
-    set imode [string match *i* $mode]
-    set mwsup [string match *s* $mode]
-    set wena  1
-    if {[string match *n* $mode]} {set wena 0}
-    rw11::cm_start $shell_cpu imode $imode mwsup $mwsup wena $wena
     return ""
   }
 
@@ -339,7 +354,7 @@ namespace eval rw11 {
     variable shell_cpu
     variable shell_cme_pend
 
-    if {![shell_test_device $shell_cpu "cme" "cm.cntl" "dmcmon"]} {return ""}
+    if {![shell_test_device $shell_cpu "cmd" "cm.cntl" "dmcmon"]} {return ""}
 
     set shell_cme_pend 0
     rw11::cm_stop $shell_cpu
@@ -352,11 +367,10 @@ namespace eval rw11 {
   proc shell_cml {{nent -1}} {
     variable shell_cpu
     variable shell_cme_pend
-   if {![shell_test_device $shell_cpu "cme" "cm.cntl" "dmcmon"]} {return ""}
+   if {![shell_test_device $shell_cpu "cml" "cm.cntl" "dmcmon"]} {return ""}
 
     set shell_cme_pend 1
-    rw11::cm_stop $shell_cpu
-    return [rw11::cm_print [rw11::cm_read $shell_cpu $nent]]
+    return [rw11::cml $shell_cpu $nent]
   }
 
   #
@@ -366,17 +380,7 @@ namespace eval rw11 {
     variable shell_cpu
     if {![shell_test_device $shell_cpu "ime" "im.cntl" "ibmon"]} {return ""}
 
-    if {![regexp {^[crl]+n?$} $mode]} {
-      error ".ime-E: bad mode '$mode', use \[lrc\] and n"
-    }
-    set locena [string match *l* $mode]
-    set remena [string match *r* $mode]
-    set conena [string match *c* $mode]
-    set wena  1
-    if {[string match *n* $mode]} {set wena 0}
-
-    ibd_ibmon::start $shell_cpu \
-      locena $locena remena $remena conena $conena wena $wena
+    ibd_ibmon::ime $shell_cpu $mode
     return ""
   }
 
@@ -385,7 +389,7 @@ namespace eval rw11 {
   # 
   proc shell_imd {} {
     variable shell_cpu
-    if {![shell_test_device $shell_cpu "ime" "im.cntl" "ibmon"]} {return ""}
+    if {![shell_test_device $shell_cpu "imd" "im.cntl" "ibmon"]} {return ""}
 
     ibd_ibmon::stop $shell_cpu
     return ""
@@ -398,28 +402,7 @@ namespace eval rw11 {
     variable shell_cpu
     if {![shell_test_device $shell_cpu "imf" "im.cntl" "ibmon"]} {return ""}
 
-    set lolim 0
-    set hilim 0177776
-
-    if {$lo ne ""} {
-      set lolist [split $lo "/"]
-      if {[llength $lolist] > 2} {
-        error ".iml-E: bad lo specifier '$lo', use val or val/len"
-      }
-      set lolim [shell_conv_register $shell_cpu [lindex $lolist 0]]
-      if {[llength $lolist] == 2} {
-        set hilim [expr {$lolim + 2*([lindex $lolist 1]-1)}]
-      }
-    }
-
-    if {$hi ne ""} {
-      set hilim [shell_conv_register $shell_cpu $hi]
-    }
-
-    if {$lolim > $hilim} {error ".iml-E: hilim must be >= lolim"}
-
-    ibd_ibmon::filter $shell_cpu $lolim $hilim
-
+    ibd_ibmon::imf $shell_cpu $lo $hi
     return ""
   }
 
@@ -428,7 +411,7 @@ namespace eval rw11 {
   # 
   proc shell_iml {{nent -1}} {
     variable shell_cpu
-    if {![shell_test_device $shell_cpu "ime" "im.cntl" "ibmon"]} {return ""}
+    if {![shell_test_device $shell_cpu "iml" "im.cntl" "ibmon"]} {return ""}
     set mondat [ibd_ibmon::read $shell_cpu $nent]
     if {![llength $mondat]} {return ""}
     return [ibd_ibmon::print $shell_cpu $mondat]
@@ -589,7 +572,7 @@ namespace eval rw11 {
       append rval "\n    .imf ?lo? ?hi?      ; ibmon filter"
       append rval "\n    .iml ?nent?         ; ibmon list"
     }
-    append rval "\console (tta0) direct input:"
+    append rval "\nconsole (tta0) direct input:"
     append rval "\n    ( ?text?            ; tta0 input without cr"
     append rval "\n    < ?text?            ; tta0 input with cr"
     append rval "\nmiscellaneous:"
@@ -650,17 +633,29 @@ namespace eval rw11 {
     puts "shell-W: '$cmd' command ignored, '$optnam' CPU option not available"
     return 0;
   }
+
   #
-  # shell_conv_register: convert register to address -------------------------
-  # 
-  proc shell_conv_register {cpu reg} {
-    if {[$cpu imap -testname $reg]} {
-      return [$cpu imap $reg]
-    } elseif {[string is integer $reg]} {
-      return $reg
-    } else {
-      error "shell-E: unknown register '$reg'"
+  # shell_update_cpu_stat ----------------------------------------------------
+  #
+  proc shell_update_cpu_stat {} {
+    variable shell_cpu_stat
+    set shell_cpu_stat ""
+    foreach i {0 1 2 3} {
+      if {[llength [info commands "cpu${i}"]] > 0} {
+        cpu${i} cp -rreg "stat" cp_stat
+        set cpu_rust [regget rw11::CP_STAT(rust) $cp_stat]
+            if {$cpu_rust == $rw11::RUST_INIT}  { set cpu_rcode "I" } \
+        elseif {$cpu_rust == $rw11::RUST_HALT}  { set cpu_rcode "H" } \
+        elseif {$cpu_rust == $rw11::RUST_RESET} { set cpu_rcode "R" } \
+        elseif {$cpu_rust == $rw11::RUST_STOP}  { set cpu_rcode "S" } \
+        elseif {$cpu_rust == $rw11::RUST_STEP}  { set cpu_rcode "+" } \
+        elseif {$cpu_rust == $rw11::RUST_SUSP}  { set cpu_rcode "s" } \
+        elseif {$cpu_rust == $rw11::RUST_HBPT}  { set cpu_rcode "b" } \
+        elseif {$cpu_rust == $rw11::RUST_RUNS}  { set cpu_rcode "g" } \
+        else                                    { set cpu_rcode "E" }
+        append shell_cpu_stat $cpu_rcode
+      }
     }
+    append shell_cpu_stat ":"
   }
- 
 }

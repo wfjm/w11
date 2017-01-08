@@ -1,11 +1,12 @@
 #!/usr/bin/perl -w
-# $Id: ti_w11 835 2016-12-31 10:00:14Z mueller $
+# $Id: ti_w11 843 2017-01-08 18:15:27Z mueller $
 #
-# Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-01-08   843   1.4.1  allow -tuD,.... for Digilent autodetect; add -bn4d
 # 2016-12-31   834   1.4    use rw11::shell by default; add -ns to suppress it
 # 2016-06-18   776   1.3.5  use ti_rri --tout now
 # 2016-03-20   748   1.3.4  BUGFIX: add portsel oob for -fx;
@@ -44,13 +45,14 @@ my $opt_tmu;
 my $opt_ghw;
 my $tirri;
 my $val_term;
-my $val_tb_s3  = "tbw $sysbase/s3board/tb/tb_w11a_s3 -fifo";
-my $val_tb_n2  = "tbw $sysbase/nexys2/tb/tb_w11a_n2 -fifo";
-my $val_tb_n3  = "tbw $sysbase/nexys3/tb/tb_w11a_n3 -fifo";
-my $val_tb_b3  = "tbw $sysbase/basys3/tb/tb_w11a_b3 -fifo";
-my $val_tb_n4  = "tbw $sysbase/nexys4/tb/tb_w11a_n4 -fifo";
-my $val_tb_bn4 = "tbw $sysbase/nexys4_bram/tb/tb_w11a_br_n4 -fifo";
-my $val_tb_bar = "tbw $sysbase/arty_bram/tb/tb_w11a_br_arty -fifo";
+my $val_tb_s3   = "tbw $sysbase/s3board/tb/tb_w11a_s3 -fifo";
+my $val_tb_n2   = "tbw $sysbase/nexys2/tb/tb_w11a_n2 -fifo";
+my $val_tb_n3   = "tbw $sysbase/nexys3/tb/tb_w11a_n3 -fifo";
+my $val_tb_b3   = "tbw $sysbase/basys3/tb/tb_w11a_b3 -fifo";
+my $val_tb_n4   = "tbw $sysbase/nexys4/tb/tb_w11a_n4 -fifo";
+my $val_tb_bn4  = "tbw $sysbase/nexys4_bram/tb/tb_w11a_br_n4 -fifo";
+my $val_tb_bn4d = "tbw $sysbase/nexys4d_bram/tb/tb_w11a_br_n4d -fifo";
+my $val_tb_bar  = "tbw $sysbase/arty_bram/tb/tb_w11a_br_arty -fifo";
 my $val_tb;
 my $val_e;
 
@@ -118,6 +120,12 @@ while (scalar(@ARGV)) {
     $val_tb = $val_tb_bn4;
     shift @ARGV;
 
+  } elsif ($curarg =~ m{^-bn4s$} ) {	    # -bn4d (prim serport fine)
+    $opt_io = 'f';
+    $opt_f  = '1';
+    $val_tb = $val_tb_bn4d;
+    shift @ARGV;
+
   } elsif ($curarg =~ m{^-bar$} ) {	    # -bar (use -fx by default)
     $opt_io = 'f';
     $opt_f  = 'x';
@@ -128,7 +136,7 @@ while (scalar(@ARGV)) {
     $opt_f = $1;
     shift @ARGV;
 
-  } elsif ($curarg =~ m{^-t([su])(\d?),?} ) {	# -t[su]...
+  } elsif ($curarg =~ m{^-t([su])(\d+|D),?} ) {	# -t[su]...
     my $devnam = ($1 eq 's') ? '/dev/ttyS' : '/dev/ttyUSB';
     my $devnum = $2;
     my ($dev,$baud,$opt1,$opt2) = split /,/,$curarg;
@@ -140,7 +148,7 @@ while (scalar(@ARGV)) {
     }
 
     $opt_io = 't';
-    $val_term = sprintf '%s%d,%s', $devnam, $devnum, $baud;
+    $val_term = sprintf '%s%s,%s', $devnam, $devnum, $baud;
     $val_term .= ",$opt1" if defined $opt1;
     $val_term .= ",$opt2" if defined $opt2;
     shift @ARGV;
@@ -354,8 +362,8 @@ sub print_usage {
   print "  setup options for FPGA connects:\n";
   print "    -u        use --cuff connect\n";
   print "    -t..      use --term connect\n";
-  print "      -ts*[,opts]   use /dev/ttyS*   (* is device number)\n";
-  print "      -tu*[,opts]   use /dev/ttyUSB* (* is device number)\n";
+  print "      -ts*[,opts]   use /dev/ttyS*   (* = device number)\n";
+  print "      -tu*[,opts]   use /dev/ttyUSB* (* = device number or 'D')\n";
   print "                    opts can be ',break', ',xon'\n";
   print "  common options:\n";
   print "    -ll<n>    set rlink logging level to <n> (using --logl=<n>)\n";

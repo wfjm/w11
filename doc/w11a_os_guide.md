@@ -13,12 +13,13 @@
 ### I/O emulation setup <a name="io-emu"></a>
 
 All UNIBUS peripherals which exchange data (currently DL11, LP11, PC11, RK11,
-and RL11) are currently emulated via a backend process. The communication 
-between FPGA board and backend server can be via
+RL11, RPRH and TM11 ) are currently emulated via a backend process. The 
+communication between FPGA board and backend server can be via
 
 - Serial port
   - via an integrated USB-UART bridge
-    - on arty, basys3, and nexys4 with a `FT2232HQ`, allows up to 12M Baud
+    - on Arty, Basys3, and Nexys4 and Nexys4 DDR with a `FT2232HQ`, 
+      allows up to 12M Baud
     - on nexys3 with a `FT232R`, allows up to 2M Baud
   - via RS232 port, as on s3board and nexys2
     - using a serial port (/dev/ttySx) is limited to 115 kBaud on most PCs.
@@ -30,7 +31,7 @@ between FPGA board and backend server can be via
   - also allows to configure the FPGA over the same USB connection
 
 - Notes: 
-  - A 10M Baud connection, like on a nexys4, gives disk access rates and 
+  - A 12M Baud connection, like on a nexys4, gives disk access rates and 
     throughputs much better than the real hardware of the 70's and is well 
     suitable for practical usage.
   - In an OS with good disk caching like 2.11BSD the impact of disk speed
@@ -43,14 +44,15 @@ between FPGA board and backend server can be via
 
 Recommended setup for best performance (boards ordered by vintage):
 
-| Board | Channel/Interface | nom. speed | peak transfer rate |
-| :---- | :---------------- | :--------- | -----------------: |
-| arty    | USB-UART bridge        | 10M Baud     |   910 kB/sec |
-| basys3  | USB-UART bridge        | 10M Baud     |   910 kB/sec |
-| nexys4  | USB-UART bridge        | 10M Baud     |   910 kb/sec |
-| nexys3  | Cypress FX2 USB        | USB2.0 speed | 30000 kB/sec |
-| nexys3  | Cypress FX2 USB        | USB2.0 speed | 30000 kB/sec |
-| s3board |  RS232+USB-RS232 cable | 460k Baud    |    41 kB/sec |
+| Board      | Channel/Interface      | nom. speed   | peak transfer rate |
+| :--------- | :--------------------- | :----------- | -----------------: |
+| Arty       | USB-UART bridge        | 12M Baud     |  1090 kB/sec |
+| Basys3     | USB-UART bridge        | 12M Baud     |  1090 kB/sec |
+| Nexys4 DDR | USB-UART bridge        | 12M Baud     |  1090 kb/sec |
+| Nexys4     | USB-UART bridge        | 12M Baud     |  1090 kb/sec |
+| Nexys3     | Cypress FX2 USB        | USB2.0 speed | 30000 kB/sec |
+| Nexys2     | Cypress FX2 USB        | USB2.0 speed | 30000 kB/sec |
+| S3board    |  RS232+USB-RS232 cable | 460k Baud    |    41 kB/sec |
     
 ### FPGA Board setup <a name="fpga-setup"></a>
 
@@ -58,43 +60,29 @@ Recommended setups
 
 - Arty
   - connect USB cable to micro-USB connector labeled 'J10'
-  - to configure via vivado hardware server
-    
-           make <sys>.vconfig
-    
+  - to configure via vivado hardware server `make <sys>.vconfig`
 
 - Basys3
   - connect USB cable to micro-USB connector labeled 'PROG'
-  - to configure via vivado hardware server
-    
-           make <sys>.vconfig
-    
+  - to configure via vivado hardware server `make <sys>.vconfig`
 
-- Nexys4
+- Nexys4 and Nexys4 DDR
   - connect USB cable to micro-USB connector labeled 'PROG'
-  - to configure via vivado hardware server
-
-           make <sys>.vconfig
+  - to configure via vivado hardware server `make <sys>.vconfig`
 
 - Nexys3
   - use Cypress FX for configure and and rlink communication
   - connect USB cable to micro-USB connector labeled 'USB PROG'
-  - to configure via FX2 and jtag tool
-
-           make <sys>.jconfig
+  - to configure via FX2 and jtag tool `make <sys>.jconfig`
 
 - Nexys2
   - connect USB cable to mini-USB connector (between RS232 and PS/2 port)
-  - to configure via FX2 and jtag tool
-
-           make <sys>.jconfig
+  - to configure via FX2 and jtag tool `make <sys>.jconfig`
 
 - S3board
   - connect the USB-RS232 cable to the RS232 port
   - connect a JTAG programmer (e.g. Xilinx USB Cable II) to JTAG pins
-  - to configure via ISE Impact
-
-           make <sys>.iconfig
+  - to configure via ISE Impact `make <sys>.iconfig`
 
 ### Rlink and Backend Server setup <a name="rlink"></a>
 
@@ -114,7 +102,7 @@ All examples below use the same basic setup
   - for arty over serial
 
           SWI = 0110                (gives console light emulation...)
-          ti_w11 -tu<dn>,12M,break,xon  @<oskit-name>_boot.tcl
+          ti_w11 -tuD,12M,break,xon  @<oskit-name>_boot.tcl
 
      **Note**: the arty w11a has currently only 176 kB memory (all from BRAMS!)
      unix-v5 works fine. XXDP, RT11 and RSX-11M should work.
@@ -123,17 +111,17 @@ All examples below use the same basic setup
   - for b3 over serial
 
           SWI = 00000000 00101000   (gives console light display on LEDS)
-          ti_w11 -tu<dn>,12M,break,xon  @<oskit-name>_boot.tcl
+          ti_w11 -tuD,12M,break,xon  @<oskit-name>_boot.tcl
 
 
      **Note**: the basys3 w11a has only 176 kB memory (all from BRAMS!)
      unix-v5 works fine. XXDP, RT11 and RSX-11M should work.
      211bsd will not boot, either most RSX-11M+ systems.
 
-  - for n4 over serial
+  - for n4 or n4d over serial
 
           SWI = 00000000 00101000   (gives console light display on LEDS)
-          ti_w11 -tu<dn>,12M,break,cts  @<oskit-name>_boot.tcl
+          ti_w11 -tuD,12M,break,cts  @<oskit-name>_boot.tcl
 
   - for n2,n3 over fx2
 
@@ -146,12 +134,15 @@ All examples below use the same basic setup
           ti_w11 -tu<dn>,460k,break,xon @<oskit-name>_boot.tcl
    
     Notes: 
-    - on `<dn>`, the serial device number
-      - check with `ls /dev/ttyUSB*` to see what is available
-      - `<dn>` is typically '1' if a single `FT2232HQ` based boardis connected,
-        like a arty, basys3, or nexys4. Initially two ttyUSB devices show up, 
-        the lower is for FPGA config and will disappear when Vivado hardware
-        server is used once. The upper provides the data connection.
+    - the letter after `-tu` is either the serial device number,
+      denoted as `<dn>`, or the letter `D` for auto-detection of
+      Digilent boards with a FT2232HQ based interface.
+      - for Arty, Basys3 and Nexys4 board simply use `D`
+      - otherwise check with `ls /dev/ttyUSB*` to see what is available
+      - `<dn>` is typically '1' if a single `FT2232HQ` based board is connected,
+        like an Arty, Basys3, or Nexys4. Initially two ttyUSB devices show up, 
+        the lower is for FPGA configuration and will disappear when the Vivado 
+        hardware server is used once. The upper provides the data connection.
       - `<dn>` is typically '0' if only a single USB-RS232 cable is connected
 
      - on LED display

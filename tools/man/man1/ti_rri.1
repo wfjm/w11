@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: ti_rri.1 776 2016-06-18 17:22:51Z mueller $
+.\"  $Id: ti_rri.1 843 2017-01-08 18:15:27Z mueller $
 .\"
-.\" Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH TI_RRI 1 2016-06-18 "Retro Project" "Retro Project Manual"
+.TH TI_RRI 1 2017-01-08 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 ti_rri \- \fBRlink\fP Backend Server
@@ -102,7 +102,9 @@ open a serial port type \fBrlink\fP port. Optional arguments are
 .RS
 .IP \fBname\fP
 tty device name, default is 'USB0'. If \fIname\fP does not start with '/'
-the name is prefixed with '/dev/tty'.
+the name is prefixed with '/dev/tty'. The special device name 'USBD'
+triggers the auto-detection of a Digilent board with a FT2232C based
+interface.
 .IP \fBbaud\fP
 serial port baud rate, default is '115k'. Allowed baud rate settings are:
 .RS

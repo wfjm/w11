@@ -1,8 +1,8 @@
 #! /usr/bin/env tclshcpp
 # -*- tcl -*-
-# $Id: ti_rri 799 2016-08-21 09:20:19Z mueller $
+# $Id: ti_rri 843 2017-01-08 18:15:27Z mueller $
 #
-# Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -15,6 +15,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-01-08   843   1.4.3  allow --term=USBD for Digilent autodetect
 # 2015-01-09   776   1.2.2  add --tout option to setup rlc timeout before connect
 # 2015-01-09   631   1.2.1  use rlc get/set rather config
 # 2014-11-07   601   1.2    use tclshcpp (C++ based) rather tclsh
@@ -258,6 +259,39 @@ if { $opts(term) } {
   set baud [lindex $nlist 1]
   if {$dev  eq ""} {set dev  "USB0"}
   if {$baud eq ""} {set baud "115k"}
+
+  # autodetect Digilent usb device look to udev signature
+  #  E: ID_SERIAL=Digilent_Digilent_USB_Device_<serial_number>
+  #  E: ID_USB_INTERFACE_NUM=01       
+  #  Note on INTERFACE_NUM: '00' is configuration, '01' is communication EP
+  # 
+  if {$dev  eq "USBD" || $dev  eq "/dev/ttyUSBD"} {
+    set dev_usbd {}
+    foreach udev [lsort [glob -nocomplain "/dev/ttyUSB*"]] {
+      set path [exec udevadm info -q path -n $udev]
+      set text [exec udevadm info --export -p $path]
+      set id_id {}
+      set id_sn {}
+      set id_in {}
+      foreach line [split $text "\n"] {
+        set line [string trim $line]
+        regexp -- {^E: ID_SERIAL=(.*)_(\d*)$} $line      matched id_id id_sn
+        regexp -- {^E: ID_USB_INTERFACE_NUM=(.*)$} $line matched id_in
+      }
+      if {$id_id eq "Digilent_Digilent_USB_Device" && $id_in eq "01"} {
+        set dev_usbd $udev
+        break
+      }
+    }
+    if {$dev_usbd ne ""} {
+      set dev $dev_usbd
+      # puts "-I: Digilent USB interface detected: $dev_usbd"
+    } else {
+      puts "-E: no Digilent USB interface detected"
+      return 1
+    }
+  }
+
   set url "term:$dev?baud=$baud"
   foreach opt [lrange $nlist 2 end] {
     if {$opt  ne ""} {append url ";$opt"}

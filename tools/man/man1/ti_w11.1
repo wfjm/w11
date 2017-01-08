@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: ti_w11.1 834 2016-12-30 15:19:09Z mueller $
+.\"  $Id: ti_w11.1 843 2017-01-08 18:15:27Z mueller $
 .\"
-.\" Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH TI_W11 1 2015-11-01 "Retro Project" "Retro Project Manual"
+.TH TI_W11 1 2017-01-08 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 ti_w11 \- Quick starter for \fBti_rri\fP with \fBw11\fP CPU designs
@@ -36,15 +36,19 @@ executing it.
 .IP \fB-u\fP
 use \fB\-\-cuff\fP connect (USB via Cypress FX2)
 .IP \fB-t\fIDN\fR[,\fIopts\fP]
-use \fB\-\-term\fP connect, \fID\fP specifies device name, \fIN\fP
-specified the device number, and \fIopts\fP the addtional options
-a \fB\-\-term\fP can hold (e.g. break or xon). \fID\fP is mapped as
+use \fB\-\-term\fP connect.
+\fID\fP specifies device name. \fIN\fP specifies 
+the device number, or in case of the character 'D' the auto-detection of a
+Digilent board with a FT2232C based interface.
+\fIopts\fP specified the addtional options a \fB\-\-term\fP can hold
+(e.g. break or xon). 
+\fID\fP is mapped as
 .RS
 .PD 0
 .IP \fBs\fP 4
 use /dev/ttyS*  (* is device number \fIN\fP)
 .IP \fBu\fP 4
-use /dev/ttyUSB*  (* is device number \fIN\fP)
+use /dev/ttyUSB*  (* is device number \fIN\fP or 'D')
 .PD
 .RE
 .
@@ -56,6 +60,8 @@ start \fItb_w11a_b3\fP simulation (Basys3, default \fB-fx\fP)
 start \fItb_w11a_n4\fP simulation (Nexys4)
 .IP \fB-bn4\fP
 start \fItb_w11a_br_n4\fP simulation (Nexys4, BRAM only)
+.IP \fB-bn4d\fP
+start \fItb_w11a_br_n4d\fP simulation (Nexys4 DDR, BRAM only)
 .IP \fB-bar\fP
 start \fItb_w11a_br_arty\fP simulation (Arty, BRAM only, default \fB-fx\fP)
 .IP \fB-n3\fP
@@ -117,13 +123,16 @@ Connected via USB, communication via Cypress FX2.
 \fBti_rri\fP(1) will be started and the given boot script executed.
 Typical way to start Nexys2 and Nexys3 boards.
 
-.IP "\fBti_w11 -tu2,10M,break,cts @211bsd_rl_boot.tcl\fR" 4
+.IP "\fBti_w11 -tu2,12M,break,cts @211bsd_rl_boot.tcl\fR" 4
 Assumes a FPGA board with a \fBw11\fP CPU design already configured.
 Connected via USB, communication via an USB UART. In this case the
-device \fI/dev/ttyUSB2\fP will be used, with \fI10 MBaud\fP, \fIbreak\fP to
+device \fI/dev/ttyUSB2\fP will be used, with \fI12 MBaud\fP, \fIbreak\fP to
 trigger auto-bauding, and \fIcts\fP to use hardware handshake.
 \fBti_rri\fP(1) will be started and the given boot script executed.
-Typical way to start Nexys4 boards.
+
+.IP "\fBti_w11 -tuD,12M,break,cts @211bsd_rl_boot.tcl\fR" 4
+Like above, but now the USB device will be autodetected.
+Typical way to start a Nexys4 board.
 
 .IP "\fBti_w11 -n3 -e $RETROBASE/tools/asm-11/w11/sys/dl11/simple_out.mac\fR"
 Will start the \fItb_w11a_n3\fP test bench in \fBghdl\fP(1), on the fly 

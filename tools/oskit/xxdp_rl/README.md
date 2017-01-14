@@ -8,7 +8,7 @@ See notes in [w11a_os_guide.md](../../../doc/w11a_os_guide.md) on
   3. Rlink and Backend Server setup
   4. Legal terms
 
-**Also read [README_license.txt](README_license.txt) !!**
+**Also read [README_license.md](README_license.md) !!**
 
 ### Installation
 A disk images for XXDP V2.2 and V2.5 are available from bitsavers  

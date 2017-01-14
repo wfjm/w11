@@ -7,6 +7,7 @@
 ../../../vlib/rbus/rbdlib.vhd
 ../../../vlib/rlink/rlinklib.vbom
 ../../../bplib/bpgen/bpgenlib.vbom
+../../../bplib/sysmon/sysmonrbuslib.vbom
 ../../../bplib/s3board/s3boardlib.vbom
 ../../../bplib/nxcramlib/nxcramlib.vhd
 ${sys_conf := sys_conf.vbom}
@@ -19,8 +20,9 @@ ${sys_conf := sys_conf.vbom}
 ../../../vlib/rlink/rlink_sp2c.vbom
 ../tst_sram.vbom
 ../../../bplib/nxcramlib/nx_cram_memctl_as.vbom
+../../../bplib/sysmon/sysmonx_rbus_base.vbom
 ../../../vlib/rbus/rbd_usracc.vbom
-../../../vlib/rbus/rb_sres_or_4.vbom
+../../../vlib/rbus/rb_sres_or_3.vbom
 # design
 sys_tst_sram_n4.vhd
 @ucf_cpp: sys_tst_sram_n4.ucf

@@ -17,7 +17,8 @@ software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases._
 
 ### Summary
-- _nothing yet..._
+- add `sysmon_rbus` in `sys_tst_sram_n4`
+- Auto-dection of Digilent boards with FT2232HQ interface
 
 <!-- --------------------------------------------------------------------- -->
 ---

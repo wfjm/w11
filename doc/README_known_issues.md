@@ -11,8 +11,12 @@ The case id indicates the release when the issue was first recognized.
 The 'state number generator' code in `pdp11_sequencer` causes in vivado
 2016.1 (and .2) that the main FSM isn't re-coded anymore, which has high 
 impact on achievable clock rate. The two optional debug units depending on 
-the state number, dmscnt and dmcmon, are therefore currently deactivated in
+the state number, `dmscnt` and `dmcmon`, are therefore currently deactivated in
 all Artix based systems (but are available on all Spartan based systems).
+
+Issue is still in Vivado 2016.4. `dmcmon` can be enabled if wanted, this
+might require a reduced clock rate. See procedure given in
+[comment to issue #11](https://github.com/wfjm/w11/issues/11).
 
 ### V0.73-2 {[issue #10](https://github.com/wfjm/w11/issues/10)}
 Many post-synthesis functional and especially post-routing timing 

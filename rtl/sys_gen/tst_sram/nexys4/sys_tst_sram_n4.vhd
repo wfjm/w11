@@ -1,6 +1,6 @@
--- $Id: sys_tst_sram_n4.vhd 791 2016-07-21 22:01:10Z mueller $
+-- $Id: sys_tst_sram_n4.vhd 844 2017-01-14 20:01:52Z mueller $
 --
--- Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -22,20 +22,23 @@
 --                 vlib/rlink/rlink_sp2c
 --                 tst_sram
 --                 bplib/nxcramlib/nx_cram_memctl_as
+--                 bplib/sysmon/sysmonx_rbus_base
 --                 vlib/rbus/rbd_usracc
---                 vlib/rbus/rb_sres_or_2
+--                 vlib/rbus/rb_sres_or_3
 --
 -- Test bench:     tb/tb_tst_sram_n4
 --
 -- Target Devices: generic
--- Tool versions:  ise 14.5-14.7; viv 2014.4-2016.2; ghdl 0.29-0.33
+-- Tool versions:  ise 14.5-14.7; viv 2014.4-2016.4; ghdl 0.29-0.33
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2017-01-14   844 2016.4  xc7a100t-1   1042  1677    24     5   557 +sysmon
 -- 2016-03-29   756 2015.4  xc7a100t-1    918  1207    24     5   428  
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2017-01-14   844   1.6    add sysmon_rbus
 -- 2016-07-10   785   1.5.1  SWI(1) now XON
 -- 2016-07-09   784   1.5    tst_sram with AWIDTH and 22bit support
 -- 2016-04-02   758   1.4.1  add rbd_usracc (bitfile+jtag timestamp access)
@@ -62,6 +65,7 @@ use work.rblib.all;
 use work.rbdlib.all;
 use work.rlinklib.all;
 use work.bpgenlib.all;
+use work.sysmonrbuslib.all;
 use work.s3boardlib.all;
 use work.nxcramlib.all;
 use work.sys_conf.all;
@@ -128,6 +132,7 @@ architecture syn of sys_tst_sram_n4 is
   signal SER_MONI : serport_moni_type := serport_moni_init;
 
   signal RB_SRES_TST : rb_sres_type := rb_sres_init;
+  signal RB_SRES_SYSMON : rb_sres_type := rb_sres_init;
   signal RB_SRES_USRACC : rb_sres_type := rb_sres_init;
 
   signal RB_LAM_TST  : slbit := '0';
@@ -144,6 +149,8 @@ architecture syn of sys_tst_sram_n4 is
   signal MEM_BE    : slv4  := (others=>'0');
   signal MEM_DI    : slv32 := (others=>'0');
   signal MEM_DO    : slv32 := (others=>'0');
+
+  constant rbaddr_sysmon: slv16 := x"fb00"; -- fb00/0080: 1111 1011 0xxx xxxx
 
   constant sysid_proj  : slv16 := x"0104";   -- tst_sram
   constant sysid_board : slv8  := x"05";     -- nexys4
@@ -333,6 +340,20 @@ begin
       IO_MEM_DATA => IO_MEM_DATA
     );
 
+  SMRB : sysmonx_rbus_base
+    generic map (                     -- use default INIT_ (Vccint=1.00)
+      CLK_MHZ  => sys_conf_clksys_mhz,
+      RB_ADDR  => rbaddr_sysmon)
+    port map (
+      CLK      => CLK,
+      RESET    => GBL_RESET,
+      RB_MREQ  => RB_MREQ,
+      RB_SRES  => RB_SRES_SYSMON,
+      ALM      => open,
+      OT       => open,
+      TEMP     => open
+    );
+
   UARB : rbd_usracc
     port map (
       CLK     => CLK,
@@ -340,10 +361,11 @@ begin
       RB_SRES => RB_SRES_USRACC
     );
 
-  RB_SRES_OR : rb_sres_or_2             -- rbus or ---------------------------
+  RB_SRES_OR : rb_sres_or_3             -- rbus or ---------------------------
     port map (
       RB_SRES_1  => RB_SRES_TST,
-      RB_SRES_2  => RB_SRES_USRACC,
+      RB_SRES_2  => RB_SRES_SYSMON,
+      RB_SRES_3  => RB_SRES_USRACC,
       RB_SRES_OR => RB_SRES
     );
   

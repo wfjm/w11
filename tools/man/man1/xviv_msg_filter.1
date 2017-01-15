@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: xviv_msg_filter.1 779 2016-06-26 15:37:16Z mueller $
+.\"  $Id: xviv_msg_filter.1 845 2017-01-15 14:58:27Z mueller $
 .\"
 .\" Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -90,7 +90,7 @@ notifivation is printed.
 .PD
 .RE
 .IP \fBname\fP
-vivado message name, enclosed in [] brackets
+Vivado message name, enclosed in [] brackets
 .IP \fBpattern\fP
 regular expression to match the message text. This field is optional, if 
 omitted all messages with th given name will match. '[' and ']' characters
@@ -117,7 +117,7 @@ can't be opened an exit status 1 is returned.
 .\" ------------------------------------------------------------------
 .SH EXAMPLES
 .IP "\fBxviv_msg_filter syn proj.vmfset proj_syn.log\fR" 4
-Generate a short summary of the vivado synthesis log file.
+Generate a short summary of the Vivado synthesis log file.
 .
 .\" ------------------------------------------------------------------
 .SH "SEE ALSO"

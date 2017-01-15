@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: ti_w11.1 843 2017-01-08 18:15:27Z mueller $
+.\"  $Id: ti_w11.1 845 2017-01-15 14:58:27Z mueller $
 .\"
 .\" Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH TI_W11 1 2017-01-08 "Retro Project" "Retro Project Manual"
+.TH TI_W11 1 2017-01-14 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 ti_w11 \- Quick starter for \fBti_rri\fP with \fBw11\fP CPU designs
@@ -13,8 +13,9 @@ ti_w11 \- Quick starter for \fBti_rri\fP with \fBw11\fP CPU designs
 .SH SYNOPSIS
 .
 .SY ti_w11
-.OP OPTIONS
-.OP "ti_rri options and commands"
+.RI [ OPTION ]...
+.RI [ "ti_rri option" ]...
+.RI [ "ti_rri command" ]...
 .YS
 .
 .\" ------------------------------------------------------------------
@@ -108,7 +109,7 @@ set rlink dump level to \fIn\fR (will issue a --dmpl=\fIn\fR).
 set rlink I/O trace level to \fIn\fR (will issue a --tiol=\fIn\fR).
 .IP \fB-b\fR
 batch mode
-.IP \fB-e "\fR=\fIfile"\fR
+.IP "\fB-e \fR\fIfile\fR"
 load and execute \fIfile\fP. If the file type is '.mac' the file will
 be on the fly compiled with \fBasm-11\fP(1), for all other file types
 it is assumed that they are in \fBlda\fP(5) format.

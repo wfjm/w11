@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: tbrun.1 812 2016-10-03 18:39:50Z mueller $
+.\"  $Id: tbrun.1 845 2017-01-15 14:58:27Z mueller $
 .\"
 .\" Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -13,8 +13,8 @@ tbrun \- test bench driver
 .SH SYNOPSIS
 .
 .SY tbrun
-.OP OPTIONS
-.OP DSCFILE
+.RI [ OPTION ]...
+.RI [ DSCFILE ]
 .YS
 .
 .\" ------------------------------------------------------------------
@@ -92,7 +92,7 @@ Other supported values for \fIengine\fP are
 .IP \fBISim\fP 6
 the Xilinx ISE build-in simulator
 .IP \fBXSim\fP
-the Xilinx vivado build-in simulator
+the Xilinx Vivado build-in simulator
 .PD
 .RE
 
@@ -106,13 +106,13 @@ post-synthesis functional simulation
 .IP \fBfsim\fP
 post-map simulation (only ISE)
 .IP \fBosim\fP
-post-optimize functional simulation (only vivado)
+post-optimize functional simulation (only Vivado)
 .IP \fBrsim\fP
-post-routing functional simulation (only vivado)
+post-routing functional simulation (only Vivado)
 .IP \fBesim\fP
-post-synthesis timing simulation (only vivado)
+post-synthesis timing simulation (only Vivado)
 .IP \fBpsim\fP
-post-optimize timing simulation (only vivado)
+post-optimize timing simulation (only Vivado)
 .IP \fBtsim\fP
 post-routing timing simulation
 .PD
@@ -171,10 +171,10 @@ use the \fB\-\-tee\fP instead to save the output into a file.
 .\" -- --dry -------------------------------------
 .IP \fB\-\-dry\fP
 dry run, prints the generated commands, but doesn't execute.
-When used without \f\-\-jobs\fP option a commented list of shell commands
+When used without \-\-jobs\fP option a commented list of shell commands
 is printed which describes the linear execution of the selected tests.
 .br
-When used together with \f\-\-jobs\fP this option mainly serves to debug
+When used together with \-\-jobs\fP this option mainly serves to debug
 the task dispatcher. A random wait of 0.2 to 1.8 sec is generated for each
 selected test.
 .

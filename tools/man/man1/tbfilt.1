@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: tbfilt.1 803 2016-08-28 12:39:00Z mueller $
+.\"  $Id: tbfilt.1 845 2017-01-15 14:58:27Z mueller $
 .\"
 .\" Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -15,10 +15,10 @@ tbfilt \- filter for and analysis of test bench log files
 .SY tbfilt
 .B \-\-tee
 .I  OFILE
-.OP OPTIONS
+.RI [ OPTION ]...
 .
 .SY tbfilt
-.OP OPTIONS
+.RI [ OPTION ]...
 .RI [ FILES ]...
 .YS
 .
@@ -282,7 +282,7 @@ Usually used together with \fBtbw\fP(1) in pipelines like
 .EE
 Since tbfilt expects also the output of a \fBbash\fP(1) 'time' command
 in the input stream the setup of the pipeline is more involved.
-In general the wrapper scripts \fB\tbrun_tbw\fP(1) or \fBtbrun_tbwrri\fP(1)
+In general the wrapper scripts \fBtbrun_tbw\fP(1) or \fBtbrun_tbwrri\fP(1)
 are used.
 .
 .SS As Analysis Tool

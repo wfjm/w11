@@ -1,12 +1,12 @@
 .\"  -*- nroff -*-
-.\"  $Id: vbomconv.1 783 2016-07-03 21:14:57Z mueller $
+.\"  $Id: vbomconv.1 845 2017-01-15 14:58:27Z mueller $
 .\"
 .\" Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH VBOMCONV 1 2016-07-02 "Retro Project" "Retro Project Manual"
+.TH VBOMCONV 1 2017-01-15 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 vbomconv \- generate files and actions from vbom manifest files
@@ -41,7 +41,7 @@ vbomconv \- generate files and actions from vbom manifest files
 .BI \-\-ghdl_export "\fR=\fPpath"
 .I vbom
 
-.\" --- vivado
+.\" --- Vivado
 .SY vbomconv
 .OP \-\-trace
 .B \-\-vsyn_prj
@@ -260,7 +260,9 @@ or simprim libraries are located. This option is mandatory for
 \fB\-\-ghdl_a\fP and \fB\-\-ghdl_m\fP commands when the design contains 
 a \fB@lib\fP directive.
 These compiled libs are typically created with the 
-\fBxise_ghdl_unisim\fP(1) or \fBxise_ghdl_simprim\fP(1) commands.
+\fBxviv_ghdl_unisim\fP(1) command for Vivado and
+\fBxise_ghdl_unisim\fP(1) or \fBxise_ghdl_simprim\fP(1) commands
+for ISE environments.
 .
 .\" --------------------------------------------------------
 .SH ACTIONS
@@ -581,6 +583,7 @@ output like in
 .BR xtwv (1),
 .BR cpp (1),
 .br
+.BR xviv_ghdl_unisim (1),
 .BR xise_ghdl_simprim (1),
 .BR xise_ghdl_unisim (1)
 .

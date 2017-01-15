@@ -17,8 +17,11 @@ software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases._
 
 ### Summary
+- man pages now [available online](http://www.retro11.de/manp/w11/man/cat1/).
 - add `sysmon_rbus` in `sys_tst_sram_n4`
-- Auto-dection of Digilent boards with FT2232HQ interface
+- Auto-dection of Digilent boards with `FT2232HQ` interface for
+  [ti_rri](http://www.retro11.de/manp/w11/man/cat1/ti_rri.0.html) and
+  [ti_w11](http://www.retro11.de/manp/w11/man/cat1/ti_w11.0.html).
 
 <!-- --------------------------------------------------------------------- -->
 ---

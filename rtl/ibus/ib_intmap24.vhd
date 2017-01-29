@@ -1,6 +1,6 @@
--- $Id: ib_intmap.vhd 846 2017-01-29 13:01:59Z mueller $
+-- $Id: ib_intmap24.vhd 846 2017-01-29 13:01:59Z mueller $
 --
--- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -12,28 +12,22 @@
 -- for complete details.
 --
 ------------------------------------------------------------------------------
--- Module Name:    ib_intmap - syn
--- Description:    pdp11: external interrupt mapper (15 line)
+-- Module Name:    ib_intmap24 - syn
+-- Description:    pdp11: external interrupt mapper (23 line)
 --
 -- Dependencies:   -
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.4; ghdl 0.18-0.33
+-- Tool versions:  ise 14.7; viv 2016.4; ghdl 0.33
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic MHz
--- 2016-05-26   641 2016.4  xc7a100t-1      0    30     0     0     -   -
--- 2015-02-22   641 i 14.7  xc6slx16-2      0    20     0     0     9   -
+-- 2016-05-26   641 2016.4  xc7a100t-1      0    48     0     0     -   -
+-- 2015-02-22   641 i 14.7  xc6slx16-2      0    38     0     0    20   -
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2011-11-18   427   1.2.2  now numeric_std clean
--- 2008-08-22   161   1.2.1  renamed pdp11_ -> ib_; use iblib
--- 2008-01-20   112   1.2    add INTMAP generic to externalize config
--- 2008-01-06   111   1.1    add EI_ACK output lines, remove EI_LINE
--- 2007-10-12    88   1.0.2  avoid ieee.std_logic_unsigned, use cast to unsigned
--- 2007-06-14    56   1.0.1  Use slvtypes.all
--- 2007-05-12    26   1.0    Initial version 
+-- 2017-01-28   846   1.0    Initial version (cloned from ib_intmap.vhd)
 ------------------------------------------------------------------------------
 
 library ieee;
@@ -45,27 +39,35 @@ use work.iblib.all;
 
 -- ----------------------------------------------------------------------------
 
-entity ib_intmap is                     -- external interrupt mapper
+entity ib_intmap24 is                   -- external interrupt mapper (23 line)
   generic (
-    INTMAP : intmap_array_type := intmap_array_init);                       
+    INTMAP : intmap24_array_type := intmap24_array_init);                       
   port (
-    EI_REQ : in slv16_1;                -- interrupt request lines
+    EI_REQ : in slv24_1;                -- interrupt request lines
     EI_ACKM : in slbit;                 -- interrupt acknowledge (from master)
-    EI_ACK : out slv16_1;               -- interrupt acknowledge (to requestor)
+    EI_ACK : out slv24_1;               -- interrupt acknowledge (to requestor)
     EI_PRI : out slv3;                  -- interrupt priority
     EI_VECT : out slv9_2                -- interrupt vector
   );
-end ib_intmap;
+end ib_intmap24;
 
-architecture syn of ib_intmap is
+architecture syn of ib_intmap24 is
 
-  signal EI_LINE : slv4 := (others=>'0');    -- external interrupt line
+  signal EI_LINE : slv5 := (others=>'0');    -- external interrupt line
 
-  type intp_type is array (15 downto 0) of slv3;
-  type intv_type is array (15 downto 0) of slv9;
+  type intp_type is array (23 downto 0) of slv3;
+  type intv_type is array (23 downto 0) of slv9;
 
   constant conf_intp : intp_type :=
-    (slv(to_unsigned(INTMAP(15).pri,3)),  -- line 15
+    (slv(to_unsigned(INTMAP(23).pri,3)),  -- line 23
+     slv(to_unsigned(INTMAP(22).pri,3)),  -- line 22
+     slv(to_unsigned(INTMAP(21).pri,3)),  -- line 21
+     slv(to_unsigned(INTMAP(20).pri,3)),  -- line 20
+     slv(to_unsigned(INTMAP(19).pri,3)),  -- line 19
+     slv(to_unsigned(INTMAP(18).pri,3)),  -- line 18
+     slv(to_unsigned(INTMAP(17).pri,3)),  -- line 17
+     slv(to_unsigned(INTMAP(16).pri,3)),  -- line 16
+     slv(to_unsigned(INTMAP(15).pri,3)),  -- line 15
      slv(to_unsigned(INTMAP(14).pri,3)),  -- line 14
      slv(to_unsigned(INTMAP(13).pri,3)),  -- line 13
      slv(to_unsigned(INTMAP(12).pri,3)),  -- line 12
@@ -84,7 +86,16 @@ architecture syn of ib_intmap is
      ); 
 
   constant conf_intv : intv_type :=
-    (slv(to_unsigned(INTMAP(15).vec,9)),  -- line 15
+    (
+     slv(to_unsigned(INTMAP(23).vec,9)),  -- line 23
+     slv(to_unsigned(INTMAP(22).vec,9)),  -- line 22
+     slv(to_unsigned(INTMAP(21).vec,9)),  -- line 21
+     slv(to_unsigned(INTMAP(20).vec,9)),  -- line 20
+     slv(to_unsigned(INTMAP(19).vec,9)),  -- line 19
+     slv(to_unsigned(INTMAP(18).vec,9)),  -- line 18
+     slv(to_unsigned(INTMAP(17).vec,9)),  -- line 17
+     slv(to_unsigned(INTMAP(16).vec,9)),  -- line 16
+     slv(to_unsigned(INTMAP(15).vec,9)),  -- line 15
      slv(to_unsigned(INTMAP(14).vec,9)),  -- line 14
      slv(to_unsigned(INTMAP(13).vec,9)),  -- line 13
      slv(to_unsigned(INTMAP(12).vec,9)),  -- line 12
@@ -107,26 +118,34 @@ architecture syn of ib_intmap is
   
 begin
 
-  EI_LINE <= "1111" when EI_REQ(15)='1' else
-             "1110" when EI_REQ(14)='1' else
-             "1101" when EI_REQ(13)='1' else
-             "1100" when EI_REQ(12)='1' else
-             "1011" when EI_REQ(11)='1' else
-             "1010" when EI_REQ(10)='1' else
-             "1001" when EI_REQ( 9)='1' else
-             "1000" when EI_REQ( 8)='1' else
-             "0111" when EI_REQ( 7)='1' else
-             "0110" when EI_REQ( 6)='1' else
-             "0101" when EI_REQ( 5)='1' else
-             "0100" when EI_REQ( 4)='1' else
-             "0011" when EI_REQ( 3)='1' else
-             "0010" when EI_REQ( 2)='1' else
-             "0001" when EI_REQ( 1)='1' else
-             "0000";
+  EI_LINE <= "10111" when EI_REQ(23)='1' else
+             "10110" when EI_REQ(22)='1' else
+             "10101" when EI_REQ(21)='1' else
+             "10100" when EI_REQ(20)='1' else
+             "10011" when EI_REQ(19)='1' else
+             "10010" when EI_REQ(18)='1' else
+             "10001" when EI_REQ(17)='1' else
+             "10000" when EI_REQ(16)='1' else
+             "01111" when EI_REQ(15)='1' else
+             "01110" when EI_REQ(14)='1' else
+             "01101" when EI_REQ(13)='1' else
+             "01100" when EI_REQ(12)='1' else
+             "01011" when EI_REQ(11)='1' else
+             "01010" when EI_REQ(10)='1' else
+             "01001" when EI_REQ( 9)='1' else
+             "01000" when EI_REQ( 8)='1' else
+             "00111" when EI_REQ( 7)='1' else
+             "00110" when EI_REQ( 6)='1' else
+             "00101" when EI_REQ( 5)='1' else
+             "00100" when EI_REQ( 4)='1' else
+             "00011" when EI_REQ( 3)='1' else
+             "00010" when EI_REQ( 2)='1' else
+             "00001" when EI_REQ( 1)='1' else
+             "00000";
 
   proc_intmap : process (EI_LINE, EI_ACKM)
     variable iline : integer := 0;
-    variable iei_ack : slv16 := (others=>'0');
+    variable iei_ack : slv24 := (others=>'0');
   begin
 
     iline := to_integer(unsigned(EI_LINE));

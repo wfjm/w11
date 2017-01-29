@@ -1,6 +1,6 @@
--- $Id: ibdr_maxisys.vhd 683 2015-05-17 21:54:35Z mueller $
+-- $Id: ibdr_maxisys.vhd 846 2017-01-29 13:01:59Z mueller $
 --
--- Copyright 2009-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2009-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -27,13 +27,16 @@
 --                 ibdr_sdreg
 --                 ib_sres_or_4
 --                 ib_sres_or_3
---                 ib_intmap
+--                 ib_intmap24
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.4; ghdl 0.18-0.33
 --
--- Synthesized (xst):
+-- Synthesized:
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2017-01-28   846 14.7  131013 xc6slx16-2   668 1562   30  577 s  8.5 intmap24
+-- 2017-01-28   683 viv 2016.4   xc7a100t-1   683 1684   48    - -           
+-- 2017-01-28   683 14.7  131013 xc6slx16-2   668 1557   30  576 s  8.5 +TM11
 -- 2015-04-06   664 14.7  131013 xc6slx16-2   559 1068   29  410 s  9.1 +RHRP
 -- 2015-01-04   630 14.7  131013 xc6slx16-2   388  761   20  265 s  8.0 +RL11
 -- 2014-06-08   560 14.7  131013 xc6slx16-2   311  615    8  216 s  7.1
@@ -42,6 +45,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2017-01-28   846   1.4    use ib_intmap24
 -- 2015-05-15   683   1.3.1  add TM11
 -- 2015-05-10   678   1.3    start/stop/suspend overhaul
 -- 2015-04-06   664   1.2.3  rename RPRM to RHRP
@@ -116,9 +120,17 @@ end ibdr_maxisys;
 
 architecture syn of ibdr_maxisys is
 
-  constant conf_intmap : intmap_array_type :=
-    ((8#260#,6),                        -- line 15  IIST
-     (8#100#,6),                        -- line 14  KW11-L
+  constant conf_intmap24 : intmap24_array_type :=
+    (intmap_init,                       -- line 23  (unused)
+     intmap_init,                       -- line 22  (unused)
+     intmap_init,                       -- line 21  (unused)
+     intmap_init,                       -- line 20  (unused)
+     intmap_init,                       -- line 19  (unused)
+     intmap_init,                       -- line 18  (unused)
+     (8#104#,7),                        -- line 17  KW11-P
+     (8#260#,6),                        -- line 16  IIST
+     (8#100#,6),                        -- line 15  KW11-L
+     (8#120#,5),                        -- line 14  DENUA
      (8#254#,5),                        -- line 13  RHRP
      (8#160#,5),                        -- line 12  RL11
      (8#220#,5),                        -- line 11  RK11
@@ -166,8 +178,8 @@ architecture syn of ibdr_maxisys is
   signal IB_SRES_3      : ib_sres_type := ib_sres_init;
   signal IB_SRES_4      : ib_sres_type := ib_sres_init;
   
-  signal EI_REQ  : slv16_1 := (others=>'0');
-  signal EI_ACK  : slv16_1 := (others=>'0');
+  signal EI_REQ  : slv24_1 := (others=>'0');
+  signal EI_ACK  : slv24_1 := (others=>'0');
 
   signal EI_REQ_IIST     : slbit := '0';
   signal EI_REQ_KW11P    : slbit := '0';
@@ -429,9 +441,9 @@ begin
       IB_SRES_OR => IB_SRES
     );
 
-  INTMAP : ib_intmap
+  INTMAP : ib_intmap24
     generic map (
-      INTMAP => conf_intmap)
+      INTMAP => conf_intmap24)
     port map (
       EI_REQ  => EI_REQ,
       EI_ACKM => EI_ACKM,
@@ -440,8 +452,11 @@ begin
       EI_VECT => EI_VECT
     );
    
-  EI_REQ(15) <= EI_REQ_IIST;
-  EI_REQ(14) <= EI_REQ_KW11L;
+  EI_REQ(23 downto 18) <= (others=>'0');
+  EI_REQ(17) <= EI_REQ_KW11P;
+  EI_REQ(16) <= EI_REQ_IIST;
+  EI_REQ(15) <= EI_REQ_KW11L;
+  EI_REQ(14) <= EI_REQ_DEUNA;
   EI_REQ(13) <= EI_REQ_RHRP;
   EI_REQ(12) <= EI_REQ_RL11;
   EI_REQ(11) <= EI_REQ_RK11;
@@ -456,8 +471,10 @@ begin
   EI_REQ( 2) <= EI_REQ_PC11PTP;
   EI_REQ( 1) <= EI_REQ_LP11;
 
-  EI_ACK_IIST     <= EI_ACK(15);
-  EI_ACK_KW11L    <= EI_ACK(14);
+  EI_ACK_KW11P    <= EI_ACK(17);
+  EI_ACK_IIST     <= EI_ACK(16);
+  EI_ACK_KW11L    <= EI_ACK(15);
+  EI_ACK_DEUNA    <= EI_ACK(14);
   EI_ACK_RHRP     <= EI_ACK(13);
   EI_ACK_RL11     <= EI_ACK(12);
   EI_ACK_RK11     <= EI_ACK(11);

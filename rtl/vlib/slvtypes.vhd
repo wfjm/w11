@@ -1,6 +1,6 @@
--- $Id: slvtypes.vhd 641 2015-02-01 22:12:15Z mueller $
+-- $Id: slvtypes.vhd 846 2017-01-29 13:01:59Z mueller $
 --
--- Copyright 2007-2008 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,9 +20,10 @@
 --                 commonly used (n downto 0) vectors
 --
 -- Dependencies:   -
--- Tool versions:  ise 8.1-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.1-14.7; viv 2014.4-2016.4; ghdl 0.18-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2017-01-28   846   1.0.5  add slv24_1
 -- 2008-08-24   162   1.0.4  add slv60 and 64
 -- 2008-08-22   161   1.0.3  add slvnn_m subtypes from pdp11 package
 -- 2008-03-24   129   1.0.2  add slv31
@@ -75,5 +76,6 @@ package slvtypes is
   subtype slv16_1 is std_logic_vector(15 downto 1);  -- 16 bit word, 1 lsb drop
   subtype slv18_1 is std_logic_vector(17 downto 1);  -- 18 bit word, 1 lsb drop
   subtype slv22_1 is std_logic_vector(21 downto 1);  -- 22 bit word, 1 lsb drop
+  subtype slv24_1 is std_logic_vector(23 downto 1);  -- 24 bit word, 1 lsb drop
 
 end package slvtypes;

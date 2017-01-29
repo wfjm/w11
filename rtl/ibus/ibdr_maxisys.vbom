@@ -16,6 +16,6 @@ ibdr_lp11.vbom
 ibdr_sdreg.vbom
 ib_sres_or_4.vbom
 ib_sres_or_3.vbom
-ib_intmap.vbom
+ib_intmap24.vbom
 # design
 ibdr_maxisys.vhd

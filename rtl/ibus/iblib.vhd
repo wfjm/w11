@@ -1,6 +1,6 @@
--- $Id: iblib.vhd 770 2016-05-28 14:15:00Z mueller $
+-- $Id: iblib.vhd 846 2017-01-29 13:01:59Z mueller $
 --
--- Copyright 2008-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Definitions for ibus interface and bus entities
 --
 -- Dependencies:   -
--- Tool versions:  ise 8.1-14.7; viv 2014.4-2016.1; ghdl 0.18-0.33
+-- Tool versions:  ise 8.1-14.7; viv 2014.4-2016.4; ghdl 0.18-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2017-01-28   846   2.2    add ib_intmap24
 -- 2016-05-28   770   2.1.1  use type natural for vec,pri fields of intmap_type
 -- 2015-04-24   668   2.1    add ibd_ibmon
 -- 2010-10-23   335   2.0.1  add ib_sel; add ib_sres_or_mon
@@ -124,13 +125,28 @@ constant intmap_init : intmap_type := (0,0);
 type intmap_array_type is array (15 downto 0) of intmap_type;
 constant intmap_array_init : intmap_array_type := (others=>intmap_init);
 
-component ib_intmap is                  -- external interrupt mapper
+component ib_intmap is                  -- external interrupt mapper (15 line)
   generic (
     INTMAP : intmap_array_type := intmap_array_init);                       
   port (
     EI_REQ : in slv16_1;                -- interrupt request lines
     EI_ACKM : in slbit;                 -- interrupt acknowledge (from master)
     EI_ACK : out slv16_1;               -- interrupt acknowledge (to requestor)
+    EI_PRI : out slv3;                  -- interrupt priority
+    EI_VECT : out slv9_2                -- interrupt vector
+  );
+end component;
+
+type intmap24_array_type is array (23 downto 0) of intmap_type;
+constant intmap24_array_init : intmap24_array_type := (others=>intmap_init);
+
+component ib_intmap24 is                -- external interrupt mapper (23 line)
+  generic (
+    INTMAP : intmap24_array_type := intmap24_array_init);                       
+  port (
+    EI_REQ : in slv24_1;                -- interrupt request lines
+    EI_ACKM : in slbit;                 -- interrupt acknowledge (from master)
+    EI_ACK : out slv24_1;               -- interrupt acknowledge (to requestor)
     EI_PRI : out slv3;                  -- interrupt priority
     EI_VECT : out slv9_2                -- interrupt vector
   );

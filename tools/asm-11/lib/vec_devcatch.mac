@@ -1,4 +1,4 @@
-; $Id: vec_devcatch.mac 830 2016-12-26 20:25:49Z mueller $
+; $Id: vec_devcatch.mac 848 2017-02-04 14:55:30Z mueller $
 ; Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ; License disclaimer see License.txt in $RETROBASE directory
 ;
@@ -47,7 +47,7 @@ v..deu: .word   v..deu+2        ; vec 120 (DEUNA)
         .word   0
 ;
         . = 000160
-v..rl:  .word   v..rl+2         ; vec 120 (RL11)
+v..rl:  .word   v..rl+2         ; vec 160 (RL11)
         .word   0
 ;
 ; Note on vector 200
@@ -67,7 +67,7 @@ v..tm:  .word   v..tm+2         ; vec 224 (TM11)
         . = 000254
 v..rp:  .word   v..rp+2         ; vec 254 (RHRP)
         .word   0
-v..iis: .word   v..iis+2        ; vec 250 (IIST)
+v..iis: .word   v..iis+2        ; vec 260 (IIST)
         .word   0
 ;
         . = 000300

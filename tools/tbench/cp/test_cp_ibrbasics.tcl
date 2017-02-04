@@ -1,4 +1,4 @@
-# $Id: test_cp_ibrbasics.tcl 830 2016-12-26 20:25:49Z mueller $
+# $Id: test_cp_ibrbasics.tcl 847 2017-01-29 22:38:42Z mueller $
 #
 # Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
@@ -8,8 +8,10 @@
 # 2014-12-26   621   1.1    test membe
 # 2014-03-02   552   1.0    Initial version
 #
-# Test very basic memory interface gymnastics
-#  2. write/read IB space via bwm/brm (use MMU SAR SM I regs)
+# Test ibus window gymnastics
+#  1. write/read IB space via bwm/brm   (use MMU SAR SM I regs)
+#  2. write/read IB space via wibr/ribr (use MMU SAR SM I regs)
+#  3. test membe (byte write) via wibr/ribr
 #
 
 # ----------------------------------------------------------------------------

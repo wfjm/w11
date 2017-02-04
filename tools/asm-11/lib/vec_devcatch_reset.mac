@@ -1,4 +1,4 @@
-; $Id: vec_devcatch_reset.mac 830 2016-12-26 20:25:49Z mueller $
+; $Id: vec_devcatch_reset.mac 848 2017-02-04 14:55:30Z mueller $
 ; Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ; License disclaimer see License.txt in $RETROBASE directory
 ;
@@ -22,7 +22,7 @@
         mov     #v..deu+2,v..deu ; vec 120 (DEUNA)
         clr     v..deu+2
 ;
-        mov     #v..rl+2,v..rl   ; vec 120 (RL11)
+        mov     #v..rl+2,v..rl   ; vec 160 (RL11)
         clr     v..rl+2
 ;
         mov     #v..lp+2,v..lp   ; vec 200 (LP11)
@@ -35,7 +35,7 @@
 ;
         mov     #v..rp+2,v..rp   ; vec 254 (RHRP)
         clr     v..rp+2
-        mov     #v..iis+2,v..iis ; vec 250 (IIST)
+        mov     #v..iis+2,v..iis ; vec 260 (IIST)
         clr     v..iis+2
 ;
         mov     #v..d2r+2,v..d2r ; vec 300 (DL11-RX  2nd)

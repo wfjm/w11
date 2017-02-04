@@ -1,6 +1,6 @@
-// $Id: RtclRw11CntlBase.ipp 521 2013-05-20 22:16:45Z mueller $
+// $Id: RtclRw11CntlBase.ipp 848 2017-02-04 14:55:30Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-04   848   1.1    add in fGets: found,pdataint,pdatarem
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-08   484   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclRw11CntlBase.ipp 521 2013-05-20 22:16:45Z mueller $
+  \version $Id: RtclRw11CntlBase.ipp 848 2017-02-04 14:55:30Z mueller $
   \brief   Implemenation (all inline) of RtclRw11CntlBase.
 */
 
@@ -47,10 +48,13 @@ inline RtclRw11CntlBase<TO>::RtclRw11CntlBase(const std::string& type)
   TO* pobj = fspObj.get();
   fGets.Add<const std::string&>("type",  boost::bind(&TO::Type, pobj));
   fGets.Add<const std::string&>("name",  boost::bind(&TO::Name, pobj));
-  fGets.Add<uint16_t>          ("base",  boost::bind(&TO::Base, pobj));
-  fGets.Add<int>               ("lam",   boost::bind(&TO::Lam,  pobj));  
-  fGets.Add<bool>              ("enable",boost::bind(&TO::Enable, pobj));  
-  fGets.Add<bool>              ("started",boost::bind(&TO::IsStarted, pobj));  
+  fGets.Add<uint16_t>    ("base",  boost::bind(&TO::Base, pobj));
+  fGets.Add<int>         ("lam",   boost::bind(&TO::Lam,  pobj));  
+  fGets.Add<bool>        ("found", boost::bind(&TO::ProbeFound, pobj));  
+  fGets.Add<uint16_t>    ("pdataint", boost::bind(&TO::ProbeDataInt, pobj));  
+  fGets.Add<uint16_t>    ("pdatarem", boost::bind(&TO::ProbeDataRem, pobj));  
+  fGets.Add<bool>        ("enable",boost::bind(&TO::Enable, pobj));  
+  fGets.Add<bool>        ("started",boost::bind(&TO::IsStarted, pobj));  
   fGets.Add<uint32_t>    ("trace", boost::bind(&TO::TraceLevel,pobj));  
 
   fSets.Add<bool>        ("enable", boost::bind(&TO::SetEnable,pobj,_1));  

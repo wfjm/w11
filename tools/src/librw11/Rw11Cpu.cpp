@@ -1,6 +1,6 @@
-// $Id: Rw11Cpu.cpp 719 2015-12-27 09:45:43Z mueller $
+// $Id: Rw11Cpu.cpp 848 2017-02-04 14:55:30Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,7 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2015-12-26   719   1.2.5  BUGFIX: IM* correct register offset definitions
+// 2017-02-04   848   1.2.7  ProbeCntl: handle probe data
+// 2015-12-26   719   1.2.6  BUGFIX: IM* correct register offset definitions
 // 2015-07-12   700   1.2.5  use ..CpuAct instead ..CpuGo (new active based lam);
 //                           add probe and map setup for optional cpu components
 // 2015-05-15   682   1.2.4  BUGFIX: Boot(): extract unit number properly
@@ -32,7 +33,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cpu.cpp 719 2015-12-27 09:45:43Z mueller $
+  \version $Id: Rw11Cpu.cpp 848 2017-02-04 14:55:30Z mueller $
   \brief   Implemenation of Rw11Cpu.
 */
 #include <stdlib.h>
@@ -445,6 +446,11 @@ bool Rw11Cpu::ProbeCntl(Rw11Probe& dsc)
       clist.SetLastExpectStatus(0,0);       // disable stat check
     }
 
+    dsc.fFoundInt = false;
+    dsc.fFoundRem = false;
+    dsc.fDataInt  = 0;
+    dsc.fDataRem  = 0;
+    
     Server().Exec(clist);
 
     if (dsc.fProbeInt) {
@@ -452,12 +458,14 @@ bool Rw11Cpu::ProbeCntl(Rw11Probe& dsc)
                          (RlinkCommand::kStat_M_RbTout |
                           RlinkCommand::kStat_M_RbNak  |
                           RlinkCommand::kStat_M_RbErr)) ==0;
+      if (dsc.fFoundInt) dsc.fDataInt = clist[iib].Data();
     }
     if (dsc.fProbeRem) {
       dsc.fFoundRem = (clist[irb].Status() & 
                          (RlinkCommand::kStat_M_RbTout |
                           RlinkCommand::kStat_M_RbNak  |
                           RlinkCommand::kStat_M_RbErr)) ==0;
+      if (dsc.fFoundRem) dsc.fDataRem = clist[irb].Data();
     }
     dsc.fProbeDone = true;
   }

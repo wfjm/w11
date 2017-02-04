@@ -1,6 +1,6 @@
-// $Id: RtclRw11Cpu.cpp 835 2016-12-31 10:00:14Z mueller $
+// $Id: RtclRw11Cpu.cpp 848 2017-02-04 14:55:30Z mueller $
 //
-// Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-04   848   1.2.10 M_default: add 'probe ena on' output
 // 2016-12-30   834   1.2.9  use 'ssr' instead of 'mmr' for MMU registers
 // 2015-12-26   718   1.2.8  use BlockSizeMax() for 'cp -b[rw]m' and 'ldasm' 
 // 2015-07-12   700   1.2.4  use ..CpuAct instead ..CpuGo (new active based lam);
@@ -38,7 +39,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Cpu.cpp 835 2016-12-31 10:00:14Z mueller $
+  \version $Id: RtclRw11Cpu.cpp 848 2017-02-04 14:55:30Z mueller $
   \brief   Implemenation of RtclRw11Cpu.
 */
 
@@ -1415,14 +1416,19 @@ int RtclRw11Cpu::M_default(RtclArgs& args)
   vector<string> cntlnames;
   Obj().ListCntl(cntlnames);
 
-  sos << "name type ibbase lam" << endl;
+  sos << "name type  ibbase lam  probe ena on" << endl;
 
   for (size_t i=0; i<cntlnames.size(); i++) {
     Rw11Cntl& cntl(Obj().Cntl(cntlnames[i]));
     sos << RosPrintf(cntl.Name().c_str(),"-s",4)
-        << " " << RosPrintf(cntl.Type().c_str(),"-s",4)
+        << " " << RosPrintf(cntl.Type().c_str(),"-s",5)
         << " " << RosPrintf(cntl.Base(),"o",6)
         << " " << RosPrintf(cntl.Lam(),"d",3)
+        << "  " << cntl.ProbeStatus().Found()
+        << " " << cntl.ProbeStatus().IndicatorInt()
+        << " " << cntl.ProbeStatus().IndicatorRem()
+        << "  " << cntl.Enable()
+        << "  " << cntl.IsStarted()
         << endl;
   }
 

@@ -1,6 +1,6 @@
-// $Id: Rw11Probe.hpp 495 2013-03-06 17:13:48Z mueller $
+// $Id: Rw11Probe.hpp 848 2017-02-04 14:55:30Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-04   848   1.1    Keep probe data; add DataInt(), DataRem()
 // 2013-03-05   495   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 
 /*!
   \file
-  \version $Id: Rw11Probe.hpp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: Rw11Probe.hpp 848 2017-02-04 14:55:30Z mueller $
   \brief   Declaration of class Rw11Probe.
 */
 
@@ -35,6 +36,8 @@ namespace Retro {
       bool          fProbeDone;
       bool          fFoundInt;
       bool          fFoundRem;
+      uint16_t      fDataInt;
+      uint16_t      fDataRem;
 
       explicit      Rw11Probe(uint16_t addr = 0, bool probeint = false, 
                               bool proberem = false);
@@ -43,12 +46,14 @@ namespace Retro {
 
       char          IndicatorInt() const;
       char          IndicatorRem() const;
+      uint16_t      DataInt() const;
+      uint16_t      DataRem() const;
 
       virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
   };
   
 } // end namespace Retro
 
-//#include "Rw11Probe.ipp"
+#include "Rw11Probe.ipp"
 
 #endif

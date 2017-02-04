@@ -1,6 +1,6 @@
-// $Id: Rw11Probe.cpp 495 2013-03-06 17:13:48Z mueller $
+// $Id: Rw11Probe.cpp 848 2017-02-04 14:55:30Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,12 +13,13 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-04   848   1.1    Keep probe data; add DataInt(), DataRem()
 // 2013-03-05   495   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11Probe.cpp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: Rw11Probe.cpp 848 2017-02-04 14:55:30Z mueller $
   \brief   Implemenation of Rw11Probe.
 */
 
@@ -48,7 +49,9 @@ Rw11Probe::Rw11Probe(uint16_t addr, bool probeint, bool proberem)
     fProbeRem(proberem),
     fProbeDone(false),
     fFoundInt(false),
-    fFoundRem(false)
+    fFoundRem(false),
+    fDataInt(false),
+    fDataRem(false)
 {}
 
 //------------------------------------------+-----------------------------------
@@ -93,7 +96,9 @@ void Rw11Probe::Dump(std::ostream& os, int ind, const char* text) const
   os << bl << "  fAddr:           " << RosPrintf(fAddr,"o0",6) << endl;
   os << bl << "  fProbeInt,Rem:   " << fProbeInt << ", " << fProbeInt<< endl;
   os << bl << "  fProbeDone:      " << fProbeDone << endl;
-  os << bl << "  fFoundInt,Rem    " << fFoundInt << ", " << fFoundInt<< endl;
+  os << bl << "  fFoundInt,Rem:   " << fFoundInt << ", " << fFoundInt<< endl;
+  os << bl << "  fDataInt,Rem:    " << RosPrintf(fDataInt,"o0",6)<< ", " 
+                                    << RosPrintf(fDataRem,"o0",6) << endl;
   return;
 }
 

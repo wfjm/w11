@@ -1,7 +1,8 @@
-# $Id: generic_cpp.mk 630 2015-01-04 22:43:32Z mueller $
+# $Id: generic_cpp.mk 848 2017-02-04 14:55:30Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2017-02-03   848   1.0.4  use -std=c++11 (gcc 4.7 or later)
 # 2015-01-04   630   1.0.3  use -Wextra
 # 2011-11-28   434   1.0.2  use -fno-strict-aliasing, avoid warn from boost bind
 # 2011-11-21   432   1.0.1  gcc 4.4.5 wants explict -fPIC for .so code
@@ -42,7 +43,7 @@ ifndef CXXOPTFLAGS
 CXXOPTFLAGS = -O3
 endif
 #
-CXXFLAGS   = -Wall -Wextra -fPIC -fno-strict-aliasing -std=c++0x 
+CXXFLAGS   = -Wall -Wextra -fPIC -fno-strict-aliasing -std=c++11 
 CXXFLAGS  += $(CXXOPTFLAGS) $(INCLFLAGS)
 COMPILE.cc = $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
 #

@@ -1,6 +1,6 @@
-// $Id: Rw11UnitStream.cpp 515 2013-05-04 17:28:59Z mueller $
+// $Id: Rw11UnitStream.cpp 848 2017-02-04 14:55:30Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-04   848   1.1    Pos(): return -1 if not attached
 // 2013-05-04   515   1.0    Initial version
 // 2013-05-01   513   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11UnitStream.cpp 515 2013-05-04 17:28:59Z mueller $
+  \version $Id: Rw11UnitStream.cpp 848 2017-02-04 14:55:30Z mueller $
   \brief   Implemenation of Rw11UnitStream.
 */
 
@@ -73,8 +74,7 @@ void Rw11UnitStream::SetPos(int pos)
 
 int Rw11UnitStream::Pos() const
 {
-  if (!Virt()) 
-    throw Rexception("Rw11UnitStream::Pos", "no stream attached");
+  if (!Virt()) return -1;                   // allow tcl 'get ?' if not attached
 
   RerrMsg emsg;
   int irc = Virt()->Tell(emsg);

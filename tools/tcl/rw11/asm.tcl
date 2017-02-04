@@ -1,6 +1,6 @@
-# $Id: asm.tcl 704 2015-07-25 14:18:03Z mueller $
+# $Id: asm.tcl 848 2017-02-04 14:55:30Z mueller $
 #
-# Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-02-04   784   1.0.5  asmrun: allow 'ps' in initializer list
 # 2015-07-25   704   1.0.4  asmrun,asmtreg,asmtmem: use args in proc definition
 # 2014-07-26   575   1.0.3  add asmwait_tout variable, use in asmwait
 # 2014-07-10   568   1.0.2  add errcnt return for asmtreg and asmtmem
@@ -55,14 +56,19 @@ namespace eval rw11 {
       }
     }
 
-    $cpu cp -wr0 $opts(r0) \
-            -wr1 $opts(r1) \
-            -wr2 $opts(r2) \
-            -wr3 $opts(r3) \
-            -wr4 $opts(r4) \
-            -wr5 $opts(r5) \
-            -wsp $opts(sp) \
-            -stapc $opts(pc)
+    set clist {}
+    foreach key {r0 r1 r2 r3 r4 r5 sp} {
+      lappend clist "-w${key}" $opts($key)
+    }
+    if {[info exists opts(ps)]} {
+      lappend clist "-wpc" $opts(pc)
+      lappend clist "-wps" $opts(ps)
+      lappend clist "-start"
+    } else {
+      lappend clist "-stapc" $opts(pc)
+    }
+
+    $cpu cp {*}$clist
 
     return ""
   }

@@ -1,6 +1,6 @@
-// $Id: RtclSet.ipp 488 2013-02-16 18:49:47Z mueller $
+// $Id: RtclSet.ipp 854 2017-02-25 14:46:03Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,12 +13,13 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-20   854   1.1    add Rtime
 // 2013-02-12   487   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclSet.ipp 488 2013-02-16 18:49:47Z mueller $
+  \version $Id: RtclSet.ipp 854 2017-02-25 14:46:03Z mueller $
   \brief   Implemenation (inline) of class RtclSet.
 */
 
@@ -29,6 +30,8 @@
 
 #include <climits>
 #include <cfloat>
+
+#include "librtools/Rtime.hpp"
 
 // all method definitions in namespace Retro
 namespace Retro {
@@ -242,6 +245,20 @@ inline void RtclSet<const std::string&>::operator()(RtclArgs& args) const
 {
   char* val = Tcl_GetString(args.CurrentArg());
   fSet(std::string(val));
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+template <>
+inline void RtclSet<const Rtime&>::operator()(RtclArgs& args) const 
+{
+  double val;
+  if(Tcl_GetDoubleFromObj(args.Interp(), args.CurrentArg(), &val) != TCL_OK)
+    throw Rexception("RtclSet<>::oper()", "conversion error");
+
+  fSet(Rtime(val));
   return;
 }
 

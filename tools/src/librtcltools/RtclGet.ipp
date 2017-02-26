@@ -1,6 +1,6 @@
-// $Id: RtclGet.ipp 488 2013-02-16 18:49:47Z mueller $
+// $Id: RtclGet.ipp 854 2017-02-25 14:46:03Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,12 +13,13 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-20   854   1.1    add Rtime
 // 2013-02-12   487   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclGet.ipp 488 2013-02-16 18:49:47Z mueller $
+  \version $Id: RtclGet.ipp 854 2017-02-25 14:46:03Z mueller $
   \brief   Implemenation (inline) of class RtclGet.
 */
 
@@ -26,6 +27,8 @@
   \class Retro::RtclGet
   \brief FIXME_docs
 */
+
+#include "librtools/Rtime.hpp"
 
 // all method definitions in namespace Retro
 namespace Retro {
@@ -184,6 +187,27 @@ inline Tcl_Obj* RtclGet<const std::string&>::operator()() const
   std::string val = fGet();
   return Tcl_NewStringObj((char*) val.data(), val.length());
 }
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+template <>
+inline Tcl_Obj* RtclGet<Rtime>::operator()() const 
+{
+  Rtime val = fGet();
+  return Tcl_NewDoubleObj(double(val));
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+template <>
+inline Tcl_Obj* RtclGet<const Rtime&>::operator()() const 
+{
+  Rtime val = fGet();
+  return Tcl_NewDoubleObj(double(val));
+}
+
 
 } // end namespace Retro
 

@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.cpp 848 2017-02-04 14:55:30Z mueller $
+// $Id: RtclRw11Cpu.cpp 853 2017-02-19 18:54:30Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-19   853   1.2.12 use Rtime
+// 2017-02-17   851   1.2.11 probe/setup auxilliary devices: kw11l,kw11p,iist
 // 2017-02-04   848   1.2.10 M_default: add 'probe ena on' output
 // 2016-12-30   834   1.2.9  use 'ssr' instead of 'mmr' for MMU registers
 // 2015-12-26   718   1.2.8  use BlockSizeMax() for 'cp -b[rw]m' and 'ldasm' 
@@ -39,7 +41,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Cpu.cpp 848 2017-02-04 14:55:30Z mueller $
+  \version $Id: RtclRw11Cpu.cpp 853 2017-02-19 18:54:30Z mueller $
   \brief   Implemenation of RtclRw11Cpu.
 */
 
@@ -777,38 +779,39 @@ int RtclRw11Cpu::M_wtcpu(RtclArgs& args)
 
   string opt;
   bool reset = false;
-  double tout;
+  double dtout;
 
   while (args.NextOpt(opt, optset)) {
     if (opt == "-reset") reset = true;
   }
-  if (!args.GetArg("tout", tout, 0.001)) return kERR;
+  if (!args.GetArg("tout", dtout, 0.001)) return kERR;
   if (!args.AllDone()) return kERR;
 
-  double twait = -1;
+  Rtime twait;
+  int irc = -1;
 
   if (!Server().IsActive()) {               // server is not active
     RerrMsg emsg;
     uint16_t apat;
     // FIXME_code: make apat accessible in  tcl
-    twait = Connect().WaitAttn(tout, apat, emsg);
-    if (twait == -2.) {                     // wait failed, quit
+    irc = Connect().WaitAttn(Rtime(dtout), twait, apat, emsg);
+    if (irc == -2) {                       // wait failed, quit
       return args.Quit(emsg);
     }
-    if (twait >= 0.) {                      // wait succeeded
-      RlinkCommandList clist;                 // get and discard attn pattern 
+    if (irc >= 0) {                        // wait succeeded
+      RlinkCommandList clist;               // get and discard attn pattern 
       clist.AddAttn();
       if (!Connect().Exec(clist, emsg)) return args.Quit(emsg);
     }
 
   } else {                                  // server is active
-    twait = Obj().WaitCpuActDown(tout);
+    irc = Obj().WaitCpuActDown(Rtime(dtout), twait);
   } 
 
-  if (twait < 0.) {                         // timeout
+  if (irc < 0) {                            // timeout
     if (Connect().PrintLevel() >= 1) {
       RlogMsg lmsg(Connect().LogFile());
-      lmsg << "-- wtcpu to=" << RosPrintf(tout, "f", 0,3) << " FAIL timeout";
+      lmsg << "-- wtcpu to=" << RosPrintf(dtout, "f", 0,3) << " FAIL timeout";
     }
     Connect().Context().IncErrorCount();
     if (reset) {                            // reset requested 
@@ -821,13 +824,13 @@ int RtclRw11Cpu::M_wtcpu(RtclArgs& args)
   } else {                                  // no timeout
     if (Connect().PrintLevel() >= 3) {
       RlogMsg lmsg(Connect().LogFile());
-      lmsg << "-- wtcpu to=" << RosPrintf(tout, "f", 0,3)
-           << "  T=" << RosPrintf(twait, "f", 0,3)
+      lmsg << "-- wtcpu to=" << RosPrintf(dtout, "f", 0,3)
+           << "  T=" << RosPrintf(double(twait), "f", 0,3)
            << "  OK";
     }
   }
   
-  args.SetResult(twait);
+  args.SetResult(irc >= 0 ? double(twait) : double(irc));
   return kOK;
 }
 
@@ -1450,6 +1453,9 @@ void RtclRw11Cpu::SetupGetSet()
   fGets.Add<bool>         ("hascmon",  boost::bind(&Rw11Cpu::HasCmon,  pobj));
   fGets.Add<uint16_t>     ("hashbpt",  boost::bind(&Rw11Cpu::HasHbpt,  pobj));
   fGets.Add<bool>         ("hasibmon", boost::bind(&Rw11Cpu::HasIbmon, pobj));
+  fGets.Add<bool>         ("haskw11l", boost::bind(&Rw11Cpu::HasKw11l, pobj));
+  fGets.Add<bool>         ("haskw11p", boost::bind(&Rw11Cpu::HasKw11p, pobj));
+  fGets.Add<bool>         ("hasiist",  boost::bind(&Rw11Cpu::HasIist,  pobj));
   return;
 }
 

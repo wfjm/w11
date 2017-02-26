@@ -1,6 +1,6 @@
-// $Id: Rw11Cpu.ipp 700 2015-07-12 19:28:31Z mueller $
+// $Id: Rw11Cpu.ipp 851 2017-02-18 09:20:40Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-17   851   1.2.2  probe/setup auxilliary devices: kw11l,kw11p,iist
 // 2015-07-12   700   1.2.1  use ..CpuAct instead ..CpuGo (new active based lam)
 // 2015-03-21   659   1.2    add RAddrMap
 // 2014-12-25   621   1.1    Adopt for 4k word ibus window; add IAddrMap
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cpu.ipp 700 2015-07-12 19:28:31Z mueller $
+  \version $Id: Rw11Cpu.ipp 851 2017-02-18 09:20:40Z mueller $
   \brief   Implemenation (inline) of Rw11Cpu.
 */
 
@@ -123,6 +124,30 @@ inline uint16_t Rw11Cpu::HasHbpt() const
 inline bool Rw11Cpu::HasIbmon() const
 {
   return fHasIbmon;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline bool Rw11Cpu::HasKw11l() const
+{
+  return fHasKw11l;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline bool Rw11Cpu::HasKw11p() const
+{
+  return fHasKw11p;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline bool Rw11Cpu::HasIist() const
+{
+  return fHasIist;
 }
 
 //------------------------------------------+-----------------------------------

@@ -1,6 +1,6 @@
-// $Id: Rw11Cpu.hpp 721 2015-12-29 17:50:50Z mueller $
+// $Id: Rw11Cpu.hpp 853 2017-02-19 18:54:30Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,16 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-19   853   1.2.8  use Rtime
+// 2017-02-17   851   1.2.7  probe/setup auxilliary devices: kw11l,kw11p,iist
+// 2017-02-10   850   1.2.6  add ModLalh()
 // 2015-12-28   721   1.2.5  BUGFIX: IM* correct register offset definitions
 // 2015-07-12   700   1.2.4  use ..CpuAct instead ..CpuGo (new active based lam);
 //                           add probe and map setup for optional cpu components
 // 2015-05-08   675   1.2.3  w11a start/stop/suspend overhaul
 // 2015-04-25   668   1.2.2  add AddRbibr(), AddWbibr()
 // 2015-04-03   661   1.2.1  add kStat_M_* defs
-// 2015-03-21   659   1.2    add RAddrMap; add AllRAddrMapInsert();
+// 2015-03-21   659   1.2    add RAddrMap(); add AllRAddrMapInsert();
 // 2015-01-01   626   1.1    Adopt for rlink v4 and 4k ibus window; add IAddrMap
 // 2013-04-14   506   1.0.1  add AddLalh(),AddRMem(),AddWMem()
 // 2013-04-12   504   1.0    Initial version
@@ -29,7 +32,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cpu.hpp 721 2015-12-29 17:50:50Z mueller $
+  \version $Id: Rw11Cpu.hpp 853 2017-02-19 18:54:30Z mueller $
   \brief   Declaration of class Rw11Cpu.
 */
 
@@ -84,6 +87,9 @@ namespace Retro {
       bool          HasCmon() const;
       uint16_t      HasHbpt() const;
       bool          HasIbmon() const;
+      bool          HasKw11l() const;
+      bool          HasKw11p() const;
+      bool          HasIist() const;
 
       void          AddCntl(const boost::shared_ptr<Rw11Cntl>& spcntl);
       bool          TestCntl(const std::string& name) const;
@@ -107,6 +113,9 @@ namespace Retro {
 
       int           AddLalh(RlinkCommandList& clist, uint32_t addr, 
                             uint16_t mode=kCPAH_M_22BIT);
+      void          ModLalh(RlinkCommandList& clist, size_t ind, uint32_t addr, 
+                            uint16_t mode=kCPAH_M_22BIT);
+
       int           AddRMem(RlinkCommandList& clist, uint32_t addr,
                             uint16_t* buf, size_t size, 
                             uint16_t mode=kCPAH_M_22BIT, 
@@ -129,7 +138,7 @@ namespace Retro {
 
       void          SetCpuActUp();
       void          SetCpuActDown(uint16_t stat);
-      double        WaitCpuActDown(double tout);
+      int           WaitCpuActDown(const Rtime& tout, Rtime&twait);
       bool          CpuAct() const;
       uint16_t      CpuStat() const;
 
@@ -212,7 +221,7 @@ namespace Retro {
       static const uint8_t   kStat_M_CpuSusp = kBBit05; //!< stat: cpususp flag
       static const uint8_t   kStat_M_CpuGo   = kBBit04; //!< stat: cpugo   flag
 
-    // defs for optional w11 components
+    // defs for optional w11 cpu components
       static const uint16_t  kSCBASE  = 0x0040;   //!< DMSCNT reg base offset
       static const uint16_t  kSCCNTL  = 0x0000;   //!< SC.CNTL  reg offset
       static const uint16_t  kSCADDR  = 0x0001;   //!< SC.ADDR  reg offset
@@ -244,6 +253,16 @@ namespace Retro {
       static const uint16_t  kIMADDR  = 0x0008;   //!< IM.ADDR  reg offset
       static const uint16_t  kIMDATA  = 0x000a;   //!< IM.DATA  reg offset
 
+    // defs for optional w11 aux components
+      static const uint16_t  kKWLBASE = 0177546;  //!< KW11-L ibus address
+      static const uint16_t  kKWPBASE = 0172540;  //!< KW11-P ibus address
+      static const uint16_t  kKWPCSR  = 0x0000;   //!< KWP.CSR  reg offset
+      static const uint16_t  kKWPCSB  = 0x0002;   //!< KWP.CSB  reg offset
+      static const uint16_t  kKWPCTR  = 0x0004;   //!< KWP.CTR  reg offset
+      static const uint16_t  kIISTBASE= 0177500;  //!< IIST   ibus address
+      static const uint16_t  kIISTACR = 0x0000;   //!< II.ACR   reg offset
+      static const uint16_t  kIISTADR = 0x0002;   //!< II.ADR   reg offset
+
     protected:
       void          SetupStd();
       void          SetupOpt();
@@ -261,6 +280,9 @@ namespace Retro {
       bool          fHasCmon;               //!< has dmcmon (cpu monitor)
       uint16_t      fHasHbpt;               //!< has dmhbpt (hardware breakpoint)
       bool          fHasIbmon;              //!< has ibmon  (ibus monitor)
+      bool          fHasKw11l;              //!< has kw11-l (line clock)
+      bool          fHasKw11p;              //!< has kw11-l (prog clock)
+      bool          fHasIist;               //!< has iist   (smp comm)
       bool          fCpuAct;
       uint16_t      fCpuStat;
       boost::mutex               fCpuActMutex;

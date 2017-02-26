@@ -1,6 +1,6 @@
-// $Id: RlinkConnect.cpp 758 2016-04-02 18:01:39Z mueller $
+// $Id: RlinkConnect.cpp 854 2017-02-25 14:46:03Z mueller $
 //
-// Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-20   854   2.6    use Rtime, drop TimeOfDayAsDouble
 // 2016-04-02   758   2.5    add USR_ACCESS register support (RLUA0/RLUA1)
 // 2016-03-20   748   2.4    add fTimeout,(Set)Timeout();
 // 2015-05-10   678   2.3.1  WaitAttn(): BUGFIX: return 0. (not -1.) if poll
@@ -38,7 +39,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.cpp 758 2016-04-02 18:01:39Z mueller $
+  \version $Id: RlinkConnect.cpp 854 2017-02-25 14:46:03Z mueller $
   \brief   Implemenation of RlinkConnect.
 */
 
@@ -116,7 +117,7 @@ RlinkConnect::RlinkConnect()
     fspLog(new RlogFile(&cout)),
     fConnectMutex(),
     fAttnNotiPatt(0),
-    fTsLastAttnNoti(-1),
+    fTsLastAttnNoti(),
     fSysId(0xffffffff),
     fUsrAcc(0x00000000),
     fRbufSize(2048)
@@ -448,22 +449,23 @@ void RlinkConnect::Exec(RlinkCommandList& clist, RlinkContext& cntx)
 /*!
   First checks whether there are received and not yet harvested notifies.
   In that case the cummulative pattern of these pending notifies is returned
-  in \a apat, and a 0. return value.
+  in \a apat, and a 0 return value.
 
   If a positive \a timeout is specified the method waits this long for a
   valid and non-zero attention notify.
 
-  \param      timeout  maximal time to wait for input in sec. Must be >= 0.
+  \param      timeout  maximal time to wait. Must be non-negative.
                        A zero \a timeout can be used to only harvest pending
                        notifies without waiting for new ones.
+  \param[out] twait    wait time
   \param[out] apat     cummulative attention pattern
   \param[out] emsg     contains error description (mainly from port layer)
 
-  \returns wait time, or a negative value indicating an error:
-    - =0.  if there was already a received and not yet harvested notify
-    - >0   the wait time till the nofity was received
-    - -1.  indicates timeout (\a apat will be 0)
-    - -2.  indicates port IO error (\a emsg will contain information)
+  \returns >=0 on success or a negative value indicating an error:
+    -  0  if there was already a received and not yet harvested notify
+    -  1  finite duration wait
+    - -1  indicates timeout (\a apat will be 0)
+    - -2  indicates port IO error (\a emsg will contain information)
 
   \throws Rexception if called outside of an active server
 
@@ -471,13 +473,15 @@ void RlinkConnect::Exec(RlinkCommandList& clist, RlinkContext& cntx)
 
  */
 
-double RlinkConnect::WaitAttn(double timeout, uint16_t& apat, RerrMsg& emsg)
+int RlinkConnect::WaitAttn(const Rtime& timeout, Rtime& twait, 
+                           uint16_t& apat, RerrMsg& emsg)
 {
   if (ServerActiveOutside())
     throw Rexception("RlinkConnect::WaitAttn()", 
                      "not allowed outside active server");
 
   apat = 0;
+  twait.Clear();
 
   boost::lock_guard<RlinkConnect> lock(*this);
 
@@ -485,22 +489,22 @@ double RlinkConnect::WaitAttn(double timeout, uint16_t& apat, RerrMsg& emsg)
   if (fAttnNotiPatt != 0) {
     apat = fAttnNotiPatt;
     fAttnNotiPatt = 0;
-    return 0.;
+    return 0;
   }
 
   // quit if poll only (zero timeout) 
-  if (timeout == 0.) return 0.;
+  if (!timeout.IsPositive()) return 0;
 
   // wait for new notifier
-  double tnow = Rtools::TimeOfDayAsDouble();
-  double tend = tnow + timeout;
-  double tbeg = tnow;
+  Rtime tnow(CLOCK_MONOTONIC);
+  Rtime tend = tnow + timeout;
+  Rtime tbeg = tnow;
 
   while (tnow < tend) {
     int irc = fRcvPkt.ReadData(fpPort.get(), tend-tnow, emsg);
-    if (irc == RlinkPort::kTout) return -1.;
-    if (irc == RlinkPort::kErr)  return -2.;
-    tnow = Rtools::TimeOfDayAsDouble();    
+    if (irc == RlinkPort::kTout) return -1;
+    if (irc == RlinkPort::kErr)  return -2;
+    tnow.GetClock(CLOCK_MONOTONIC);    
     while (fRcvPkt.ProcessData()) {
       int irc = fRcvPkt.PacketState();
       if (irc == RlinkPacketBufRcv::kPktPend) break;
@@ -509,7 +513,8 @@ double RlinkConnect::WaitAttn(double timeout, uint16_t& apat, RerrMsg& emsg)
         if (fAttnNotiPatt != 0) {
           apat = fAttnNotiPatt;
           fAttnNotiPatt = 0;
-          return tnow - tbeg;
+          twait = tnow - tbeg;
+          return 1;
         }
       } else {
         RlogMsg lmsg(*fspLog, 'E');
@@ -609,8 +614,11 @@ void RlinkConnect::SetTraceLevel(uint32_t lvl)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RlinkConnect::SetTimeout(double timeout)
+void RlinkConnect::SetTimeout(const Rtime& timeout)
 {
+  if (!timeout.IsPositive())
+    throw Rexception("RlinkConnect::SetTimeout()",
+                     "Bad args: timeout <= 0");
   fTimeout = timeout;
   return;
 }
@@ -691,8 +699,11 @@ void RlinkConnect::Dump(std::ostream& os, int ind, const char* text) const
   os << bl << "  fDumpLevel       " << fDumpLevel << endl;
   os << bl << "  fTraceLevel      " << fTraceLevel << endl;
   fspLog->Dump(os, ind+2, "fspLog: ");
-  os << bl << "  fAttnNotiPatt: " << RosPrintBvi(fAttnNotiPatt,16) << endl;
-  //FIXME_code: fTsLastAttnNoti not yet in Dump (get formatter...)
+  os << bl << "  fAttnNotiPatt:   " << RosPrintBvi(fAttnNotiPatt,16) << endl;
+  os << bl << "  fTsLastAttnNoti: " << fTsLastAttnNoti << endl;
+  os << bl << "  fSysId:          " << RosPrintBvi(fSysId,16) << endl;
+  os << bl << "  fUsrAcc:         " << RosPrintBvi(fUsrAcc,16) << endl;
+  os << bl << "  fRbufSize:       " << RosPrintf(fRbufSize,"d",6) << endl;
 
   return;
 }
@@ -716,7 +727,7 @@ void RlinkConnect::HandleUnsolicitedData()
 
   boost::lock_guard<RlinkConnect> lock(*this);
   RerrMsg emsg;
-  int irc = fRcvPkt.ReadData(fpPort.get(), 0., emsg);
+  int irc = fRcvPkt.ReadData(fpPort.get(), Rtime(), emsg);
   if (irc == 0) return;
   if (irc < 0) {
     RlogMsg lmsg(*fspLog, 'E');
@@ -1054,10 +1065,10 @@ bool RlinkConnect::DecodeAttnNotify(uint16_t& apat)
   \pre a previous response must have been accepted with AcceptResponse().
  */ 
 
-bool RlinkConnect::ReadResponse(double timeout, RerrMsg& emsg)
+bool RlinkConnect::ReadResponse(const Rtime& timeout, RerrMsg& emsg)
 {
-  double tnow = Rtools::TimeOfDayAsDouble();
-  double tend = tnow + timeout;
+  Rtime tnow(CLOCK_MONOTONIC);
+  Rtime tend = tnow + timeout;
 
   while (tnow < tend) {
     int irc = fRcvPkt.ReadData(fpPort.get(), tend-tnow, emsg);
@@ -1081,7 +1092,7 @@ bool RlinkConnect::ReadResponse(double timeout, RerrMsg& emsg)
       }
     } //while (fRcvPkt.ProcessData())
 
-    tnow = Rtools::TimeOfDayAsDouble();
+    tnow.GetClock(CLOCK_MONOTONIC);
 
   } // while (tnow < tend)
 
@@ -1176,13 +1187,12 @@ void RlinkConnect::ProcessAttnNotify()
      } else {
        lmsg << " !NONE!";
      }
-     double now = Rtools::TimeOfDayAsDouble();
-     if (fTsLastAttnNoti > 0.) 
-       lmsg << "  dt=" << RosPrintf(now-fTsLastAttnNoti,"f",8,6);
-     fTsLastAttnNoti = now;
+     Rtime tnow(CLOCK_MONOTONIC);
+     if (fTsLastAttnNoti.IsPositive()) 
+       lmsg << "  dt=" << RosPrintf(double(tnow-fTsLastAttnNoti),"f",8,6);
+     fTsLastAttnNoti = tnow;
   }
   return;
 }
-
 
 } // end namespace Retro

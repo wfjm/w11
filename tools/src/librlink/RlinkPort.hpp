@@ -1,6 +1,6 @@
-// $Id: RlinkPort.hpp 666 2015-04-12 21:17:54Z mueller $
+// $Id: RlinkPort.hpp 853 2017-02-19 18:54:30Z mueller $
 //
-// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-19   853   1.4    use Rtime, drop TimeOfDayAsDouble
 // 2015-04-11   666   1.3    add fXon, XonEnable()
 // 2014-12-10   611   1.2.2  add time stamps for Read/Write for logs
 // 2013-05-01   513   1.2.1  fTraceLevel now uint32_t
@@ -28,7 +29,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPort.hpp 666 2015-04-12 21:17:54Z mueller $
+  \version $Id: RlinkPort.hpp 853 2017-02-19 18:54:30Z mueller $
   \brief   Declaration of class RlinkPort.
 */
 
@@ -44,6 +45,7 @@
 #include "librtools/RlogFile.hpp"
 #include "librtools/Rstats.hpp"
 #include "librtools/RparseUrl.hpp"
+#include "librtools/Rtime.hpp"
 
 namespace Retro {
 
@@ -55,13 +57,13 @@ namespace Retro {
       virtual bool  Open(const std::string& url, RerrMsg& emsg) = 0;
       virtual void  Close();
 
-      virtual int   Read(uint8_t* buf, size_t size, double timeout, 
+      virtual int   Read(uint8_t* buf, size_t size, const Rtime& timeout, 
                          RerrMsg& emsg);
       virtual int   Write(const uint8_t* buf, size_t size, RerrMsg& emsg);
-      virtual bool  PollRead(double timeout);
+      virtual bool  PollRead(const Rtime& timeout);
 
       int           RawRead(uint8_t* buf, size_t size, bool exactsize,
-                            double timeout, double& tused, RerrMsg& emsg);
+                            const Rtime& timeout, Rtime& tused, RerrMsg& emsg);
       int           RawWrite(const uint8_t* buf, size_t size, RerrMsg& emsg);
 
       bool          IsOpen() const;
@@ -108,8 +110,8 @@ namespace Retro {
       int           fFdWrite;               //!< fd for write
       boost::shared_ptr<RlogFile>  fspLog;  //!< log file ptr
       uint32_t      fTraceLevel;            //!< trace level
-      double        fTsLastRead;            //!< time stamp last write
-      double        fTsLastWrite;           //!< time stamp last write
+      Rtime         fTsLastRead;            //!< time stamp last write
+      Rtime         fTsLastWrite;           //!< time stamp last write
       Rstats        fStats;                 //!< statistics
   };
   

@@ -1,6 +1,6 @@
-// $Id: RtclRlinkConnect.cpp 758 2016-04-02 18:01:39Z mueller $
+// $Id: RtclRlinkConnect.cpp 854 2017-02-25 14:46:03Z mueller $
 //
-// Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-20   854   1.5    use Rtime
 // 2016-04-02   758   1.4.6  add USR_ACCESS register support (UsrAcc->usracc)
 // 2016-03-20   748   1.4.5  M_get/set: add timeout
 // 2015-05-09   676   1.4.3  M_errcnt: add -increment; M_log: add -bare,-info..
@@ -40,7 +41,7 @@
 
 /*!
   \file
-  \version $Id: RtclRlinkConnect.cpp 758 2016-04-02 18:01:39Z mueller $
+  \version $Id: RtclRlinkConnect.cpp 854 2017-02-25 14:46:03Z mueller $
   \brief   Implemenation of class RtclRlinkConnect.
  */
 
@@ -117,7 +118,7 @@ RtclRlinkConnect::RtclRlinkConnect(Tcl_Interp* interp, const char* name)
                         boost::bind(&RlinkConnect::DumpLevel, pobj));
   fGets.Add<uint32_t>  ("tracelevel", 
                         boost::bind(&RlinkConnect::TraceLevel, pobj));
-  fGets.Add<double>    ("timeout", 
+  fGets.Add<const Rtime&> ("timeout", 
                         boost::bind(&RlinkConnect::Timeout, pobj));
   fGets.Add<const string&>  ("logfile", 
                         boost::bind(&RlinkConnect::LogFileName, pobj));
@@ -147,7 +148,7 @@ RtclRlinkConnect::RtclRlinkConnect(Tcl_Interp* interp, const char* name)
                         boost::bind(&RlinkConnect::SetDumpLevel, pobj, _1));
   fSets.Add<uint32_t>  ("tracelevel", 
                         boost::bind(&RlinkConnect::SetTraceLevel, pobj, _1));
-  fSets.Add<double>    ("timeout", 
+  fSets.Add<const Rtime&>   ("timeout", 
                         boost::bind(&RlinkConnect::SetTimeout, pobj, _1));
   fSets.Add<const string&>  ("logfile", 
                         boost::bind(&RlinkConnect::SetLogFileName, pobj, _1));
@@ -567,31 +568,32 @@ int RtclRlinkConnect::M_errcnt(RtclArgs& args)
 
 int RtclRlinkConnect::M_wtlam(RtclArgs& args)
 {
-  double tout;
+  double dtout;
   string rvn_apat;
-  if (!args.GetArg("tout", tout, 0.0)) return kERR;
+  if (!args.GetArg("tout", dtout, 0.0)) return kERR;
   if (!args.GetArg("??varApat", rvn_apat)) return kERR;
   if (!args.AllDone()) return kERR;
 
   RerrMsg emsg;
   uint16_t apat = 0;
+  Rtime twait;
 
-  double twait = Obj().WaitAttn(tout, apat, emsg);
+  int irc = Obj().WaitAttn(Rtime(dtout), twait, apat, emsg);
 
   if (rvn_apat.length()) {
     if(!Rtcl::SetVar(args.Interp(), rvn_apat,
                      Tcl_NewIntObj((int)apat))) return kERR;
   }
 
-  if (twait == -2.) {                       // IO error
+  if (irc == -2) {                          // IO error
     return args.Quit(emsg);
-  } else if (twait == -1.) {                // timeout
+  } else if (irc == -1) {                   // timeout
     if (Obj().PrintLevel() >= 1) {
       RlogMsg lmsg(Obj().LogFile());
-      lmsg << "-- wtlam to=" << RosPrintf(tout, "f", 0,3)
+      lmsg << "-- wtlam to=" << RosPrintf(dtout, "f", 0,3)
            << " FAIL timeout" << endl;
       Obj().Context().IncErrorCount();
-      args.SetResult(tout);
+      args.SetResult(dtout);
       return kOK;
     }
   }
@@ -599,16 +601,16 @@ int RtclRlinkConnect::M_wtlam(RtclArgs& args)
   if (Obj().PrintLevel() >= 3) {
     RlogMsg lmsg(Obj().LogFile());
     lmsg << "-- wtlam  apat=" << RosPrintf(apat,"x0",4);
-    if (tout == 0.) {
+    if (dtout == 0.) {
       lmsg << "  to=0 harvest only";
     } else {
-      lmsg << "  to=" << RosPrintf(tout, "f", 0,3)
-           << "  T=" << RosPrintf(twait, "f", 0,3);
+      lmsg << "  to=" << RosPrintf(dtout, "f", 0,3)
+           << "  T=" << RosPrintf(double(twait), "f", 0,3);
     }
     lmsg << "  OK" << endl;
   }
   
-  args.SetResult(twait);
+  args.SetResult(double(twait));
   return kOK;
 }
 

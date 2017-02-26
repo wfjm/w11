@@ -1,6 +1,6 @@
-// $Id: RtclRlinkPort.cpp 632 2015-01-11 12:30:03Z mueller $
+// $Id: RtclRlinkPort.cpp 853 2017-02-19 18:54:30Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-19   853   1.1    use Rtime
 // 2015-01-09   632   1.0.4  add M_get, M_set, remove M_config
 // 2014-08-22   584   1.0.3  use nullptr
 // 2013-02-23   492   1.0.2  use RlogFile.Name();
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: RtclRlinkPort.cpp 632 2015-01-11 12:30:03Z mueller $
+  \version $Id: RtclRlinkPort.cpp 853 2017-02-19 18:54:30Z mueller $
   \brief   Implemenation of class RtclRlinkPort.
  */
 
@@ -322,9 +323,9 @@ int RtclRlinkPort::DoRawio(RtclArgs& args, RlinkPort* pport, size_t& errcnt)
 
   if (mode == 'r') {                        // handle -rblk ------------------
     RerrMsg emsg;
-    double tused = 0.;
+    Rtime tused;
     rdata.resize(rsize);
-    int irc = pport->RawRead(rdata.data(), rdata.size(), true, timeout, 
+    int irc = pport->RawRead(rdata.data(), rdata.size(), true, Rtime(timeout), 
                              tused, emsg);
     if (irc == RlinkPort::kErr) return args.Quit("-E: timeout on -rblk");
     if (irc != (int)rdata.size()) return args.Quit(emsg);
@@ -342,7 +343,7 @@ int RtclRlinkPort::DoRawio(RtclArgs& args, RlinkPort* pport, size_t& errcnt)
       }
       if (nerr) errcnt += 1;
     }
-    args.SetResult(tused);
+    args.SetResult(double(tused));
 
   } else {                                  // handle -wblk ------------------
     RerrMsg emsg;

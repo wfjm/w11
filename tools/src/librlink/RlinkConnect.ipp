@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.ipp 758 2016-04-02 18:01:39Z mueller $
+// $Id: RlinkConnect.ipp 854 2017-02-25 14:46:03Z mueller $
 //
 // Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-20   854   2.5    use Rtime, drop TimeOfDayAsDouble
 // 2016-04-02   758   2.4    add USR_ACCESS register support (RLUA0/RLUA1)
 // 2016-03-20   748   2.3    add fTimeout,(Set)Timeout();
 // 2015-04-12   666   2.2    add LinkInit,LinkInitDone; transfer xon
@@ -28,7 +29,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.ipp 758 2016-04-02 18:01:39Z mueller $
+  \version $Id: RlinkConnect.ipp 854 2017-02-25 14:46:03Z mueller $
   \brief   Implemenation (inline) of RlinkConnect.
 */
 
@@ -249,7 +250,7 @@ inline uint32_t RlinkConnect::TraceLevel() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline double RlinkConnect::Timeout() const
+inline const Rtime& RlinkConnect::Timeout() const
 {
   return fTimeout;
 }

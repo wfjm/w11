@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.cpp 848 2017-02-04 14:55:30Z mueller $
+// $Id: Rw11Cpu.cpp 853 2017-02-19 18:54:30Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,9 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-19   853   1.2.10 use Rtime
+// 2017-02-17   851   1.2.9  probe/setup auxilliary devices: kw11l,kw11p,iist
+// 2017-02-10   850   1.2.8  add ModLalh()
 // 2017-02-04   848   1.2.7  ProbeCntl: handle probe data
 // 2015-12-26   719   1.2.6  BUGFIX: IM* correct register offset definitions
 // 2015-07-12   700   1.2.5  use ..CpuAct instead ..CpuGo (new active based lam);
@@ -22,7 +25,7 @@
 // 2015-05-08   675   1.2.3  w11a start/stop/suspend overhaul
 // 2015-04-25   668   1.2.2  add AddRbibr(), AddWbibr()
 // 2015-04-03   661   1.2.1  add kStat_M_* defs
-// 2015-03-21   659   1.2    add RAddrMap
+// 2015-03-21   659   1.2    add RAddrMap()
 // 2015-01-01   626   1.1    Adopt for rlink v4 and 4k ibus window
 // 2014-12-21   617   1.0.3  use kStat_M_RbTout for rbus timeout
 // 2014-08-02   576   1.0.2  adopt rename of LastExpect->SetLastExpect
@@ -33,7 +36,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cpu.cpp 848 2017-02-04 14:55:30Z mueller $
+  \version $Id: Rw11Cpu.cpp 853 2017-02-19 18:54:30Z mueller $
   \brief   Implemenation of Rw11Cpu.
 */
 #include <stdlib.h>
@@ -155,6 +158,15 @@ const uint16_t  Rw11Cpu::kIMLOLIM;
 const uint16_t  Rw11Cpu::kIMADDR;
 const uint16_t  Rw11Cpu::kIMDATA;
 
+const uint16_t  Rw11Cpu::kKWLBASE;
+const uint16_t  Rw11Cpu::kKWPBASE;
+const uint16_t  Rw11Cpu::kKWPCSR;
+const uint16_t  Rw11Cpu::kKWPCSB;
+const uint16_t  Rw11Cpu::kKWPCTR;
+const uint16_t  Rw11Cpu::kIISTBASE;
+const uint16_t  Rw11Cpu::kIISTACR;
+const uint16_t  Rw11Cpu::kIISTADR;
+
 //------------------------------------------+-----------------------------------
 //! Constructor
 
@@ -168,6 +180,9 @@ Rw11Cpu::Rw11Cpu(const std::string& type)
     fHasCmon(false),
     fHasHbpt(0),
     fHasIbmon(false),
+    fHasKw11l(false),
+    fHasKw11p(false),
+    fHasIist(false),
     fCpuAct(0),
     fCpuStat(0),
     fCpuActMutex(),
@@ -338,6 +353,33 @@ int Rw11Cpu::AddLalh(RlinkCommandList& clist, uint32_t addr, uint16_t mode)
   int ind = clist.AddWreg(fBase+kCPAL, al);
   clist.AddWreg(fBase+kCPAH, ah);
   return ind;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rw11Cpu::ModLalh(RlinkCommandList& clist, size_t ind, 
+                      uint32_t addr, uint16_t mode)
+{
+  if (ind + 1 > clist.Size())
+    throw Rexception("Rw11Cpu::ModLalh","Bad args: ind out of range");
+
+  uint16_t al = uint16_t(addr);
+  uint16_t ah = uint16_t(addr>>16) & kCPAH_M_ADDR;
+  ah |= mode & (kCPAH_M_22BIT|kCPAH_M_UBMAP);
+
+  RlinkCommand& cmdal = clist[ind];
+  RlinkCommand& cmdah = clist[ind+1];
+
+  if (cmdal.Command() != RlinkCommand::kCmdWreg ||
+      cmdal.Address() != fBase+kCPAL ||
+      cmdah.Command() != RlinkCommand::kCmdWreg ||
+      cmdah.Address() != fBase+kCPAH)
+    throw Rexception("Rw11Cpu::ModLalh","Bad state: not writing cpal/cpah");
+
+  cmdal.SetData(al);
+  cmdah.SetData(ah);
+  return;
 }
 
 //------------------------------------------+-----------------------------------
@@ -743,18 +785,24 @@ void Rw11Cpu::SetCpuActDown(uint16_t stat)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-double Rw11Cpu::WaitCpuActDown(double tout)
+int Rw11Cpu::WaitCpuActDown(const Rtime& tout, Rtime& twait)
 {
-  boost::system_time t0(boost::get_system_time());
+  Rtime tstart(CLOCK_MONOTONIC);
+  twait.Clear();
+  
   boost::system_time timeout(boost::posix_time::max_date_time);
-  if (tout > 0.) 
-    timeout = t0 + boost::posix_time::microseconds((long)1E6 * tout);  
+  if (tout.IsPositive()) 
+    // Note: boost::posix_time might lack the nanoseconds ctor (if build with
+    //       microsecond precision), thus use microsecond.
+    timeout = boost::get_system_time() + 
+              boost::posix_time::seconds(tout.Sec()) +
+              boost::posix_time::microseconds(tout.NSec()/1000);
   boost::unique_lock<boost::mutex> lock(fCpuActMutex);
   while (fCpuAct) {
-    if (!fCpuActCond.timed_wait(lock, timeout)) return -1.;
+    if (!fCpuActCond.timed_wait(lock, timeout)) return -1;
   }
-  boost::posix_time::time_duration dt = boost::get_system_time() - t0;
-  return double(dt.ticks()) / dt.ticks_per_second();
+  twait = Rtime(CLOCK_MONOTONIC) - tstart;
+  return twait.IsPositive();
 }  
 
 //------------------------------------------+-----------------------------------
@@ -911,7 +959,7 @@ void Rw11Cpu::SetupStd()
 
 void Rw11Cpu::SetupOpt()
 {
-  // probe optional components: dmscnt, dmcmon, dmhbpt and ibmon
+  // probe optional cpu components: dmscnt, dmcmon, dmhbpt and ibmon
   RlinkCommandList clist;
 
   int isc =  clist.AddRreg(Base()+kSCBASE+kSCCNTL);
@@ -926,6 +974,16 @@ void Rw11Cpu::SetupOpt()
     clist.SetLastExpectStatus(0,0); 
   }
   int iim = AddRibr(clist, kIMBASE+kIMCNTL);
+  clist.SetLastExpectStatus(0,0); 
+
+  // probe auxilliary cpu components: kw11-l, kw11-p, iist
+  int ikwl= AddRibr(clist, kKWLBASE);
+  clist.SetLastExpectStatus(0,0); 
+
+  int ikwp= AddRibr(clist, kKWPBASE + kKWPCSR);
+  clist.SetLastExpectStatus(0,0); 
+
+  int iii= AddRibr(clist, kIISTBASE + kIISTACR);
   clist.SetLastExpectStatus(0,0); 
 
   Connect().Exec(clist);
@@ -976,6 +1034,24 @@ void Rw11Cpu::SetupOpt()
     AllIAddrMapInsert("im.lolim", kIMBASE + kIMLOLIM);
     AllIAddrMapInsert("im.addr",  kIMBASE + kIMADDR);
     AllIAddrMapInsert("im.data",  kIMBASE + kIMDATA);
+  }
+
+  fHasKw11l = (clist[ikwl].Status() & statmsk) == 0;
+  if (fHasKw11l) {
+    AllIAddrMapInsert("kwl.csr",  kKWLBASE);
+  }
+
+  fHasKw11p = (clist[ikwp].Status() & statmsk) == 0;
+  if (fHasKw11p) {
+    AllIAddrMapInsert("kwp.csr",  kKWPBASE + kKWPCSR);
+    AllIAddrMapInsert("kwp.csb",  kKWPBASE + kKWPCSB);
+    AllIAddrMapInsert("kwp.ctr",  kKWPBASE + kKWPCTR);
+  }
+  
+  fHasIist = (clist[iii].Status() & statmsk) == 0;
+  if (fHasIist) {
+    AllIAddrMapInsert("iist.acr",   kIISTBASE + kIISTACR);
+    AllIAddrMapInsert("iist.adr",   kIISTBASE + kIISTADR);
   }
 
   return;

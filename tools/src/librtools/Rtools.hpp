@@ -1,6 +1,6 @@
-// $Id: Rtools.hpp 611 2014-12-10 23:23:58Z mueller $
+// $Id: Rtools.hpp 852 2017-02-18 12:43:31Z mueller $
 //
-// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-18   852   1.0.6  remove TimeOfDayAsDouble()
+// 2017-02-11   850   1.0.5  add Word2Bytes() and Bytes2Word()
 // 2014-11-23   606   1.0.4  add TimeOfDayAsDouble()
 // 2013-05-04   516   1.0.3  add CreateBackupFile(), String2Long()
 // 2013-02-13   481   1.0.2  remove ThrowLogic(), ThrowRuntime()
@@ -22,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: Rtools.hpp 611 2014-12-10 23:23:58Z mueller $
+  \version $Id: Rtools.hpp 852 2017-02-18 12:43:31Z mueller $
   \brief   Declaration of class Rtools .
 */
 
@@ -55,11 +57,13 @@ namespace Retro {
                                      RerrMsg& emsg);
     bool            CreateBackupFile(const RparseUrl& purl, RerrMsg& emsg);
 
-    double          TimeOfDayAsDouble();
-  };
+    void            Word2Bytes(uint16_t word, uint16_t& byte0, uint16_t& byte1);
+    uint16_t        Bytes2Word(uint16_t byte0, uint16_t byte1);
+
+  } // end namespace Rtools
 
 } // end namespace Retro
 
-//#include "Rtools.ipp"
+#include "Rtools.ipp"
 
 #endif

@@ -1,6 +1,6 @@
-// $Id: RlinkPort.cpp 666 2015-04-12 21:17:54Z mueller $
+// $Id: RlinkPort.cpp 853 2017-02-19 18:54:30Z mueller $
 //
-// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-19   853   1.4    use Rtime, drop TimeOfDayAsDouble
 // 2015-04-11   666   1.3    add fXon, XonEnable()
 // 2014-12-10   611   1.2.4  add time stamps for Read/Write for logs
 // 2014-11-29   607   1.2.3  BUGFIX: fix time handling on RawRead()
@@ -31,7 +32,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPort.cpp 666 2015-04-12 21:17:54Z mueller $
+  \version $Id: RlinkPort.cpp 853 2017-02-19 18:54:30Z mueller $
   \brief   Implemenation of RlinkPort.
 */
 
@@ -78,8 +79,8 @@ RlinkPort::RlinkPort()
     fFdWrite(-1),
     fspLog(),
     fTraceLevel(0),
-    fTsLastRead(-1.),
-    fTsLastWrite(-1.),
+    fTsLastRead(),
+    fTsLastWrite(),
     fStats()
 {
   fStats.Define(kStatNPortWrite,    "NPortWrite", "Port::Write() calls");
@@ -118,7 +119,8 @@ void RlinkPort::Close()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-int RlinkPort::Read(uint8_t* buf, size_t size, double timeout, RerrMsg& emsg)
+int RlinkPort::Read(uint8_t* buf, size_t size, const Rtime& timeout, 
+                    RerrMsg& emsg)
 {
   if (!IsOpen())
     throw Rexception("RlinkPort::Read()","Bad state: port not open");
@@ -145,11 +147,11 @@ int RlinkPort::Read(uint8_t* buf, size_t size, double timeout, RerrMsg& emsg)
   if (fspLog && fTraceLevel>0) {
     RlogMsg lmsg(*fspLog, 'I');
     lmsg << "port  read nchar=" << RosPrintf(irc,"d",4);
-    double now = Rtools::TimeOfDayAsDouble();
-    if (fTsLastRead  > 0.) 
-      lmsg << "  dt_rd=" << RosPrintf(now-fTsLastRead,"f",8,6);
-    if (fTsLastWrite > 0.) 
-      lmsg << "  dt_wr=" << RosPrintf(now-fTsLastWrite,"f",8,6);
+    Rtime now(CLOCK_MONOTONIC);
+    if (fTsLastRead.IsPositive()) 
+      lmsg << "  dt_rd=" << RosPrintf(double(now-fTsLastRead),"f",8,6);
+    if (fTsLastWrite.IsPositive()) 
+      lmsg << "  dt_wr=" << RosPrintf(double(now-fTsLastWrite),"f",8,6);
     fTsLastRead = now;
     if (fTraceLevel>1) {
       size_t ncol = (80-5-6)/(2+1);
@@ -182,11 +184,11 @@ int RlinkPort::Write(const uint8_t* buf, size_t size, RerrMsg& emsg)
   if (fspLog && fTraceLevel>0) {
     RlogMsg lmsg(*fspLog, 'I');
     lmsg << "port write nchar=" << RosPrintf(size,"d",4);
-    double now = Rtools::TimeOfDayAsDouble();
-    if (fTsLastRead  > 0.) 
-      lmsg << "  dt_rd=" << RosPrintf(now-fTsLastRead,"f",8,6);
-    if (fTsLastWrite > 0.) 
-      lmsg << "  dt_wr=" << RosPrintf(now-fTsLastWrite,"f",8,6);
+    Rtime now(CLOCK_MONOTONIC);
+    if (fTsLastRead.IsPositive()) 
+      lmsg << "  dt_rd=" << RosPrintf(double(now-fTsLastRead),"f",8,6);
+    if (fTsLastWrite.IsPositive()) 
+      lmsg << "  dt_wr=" << RosPrintf(double(now-fTsLastWrite),"f",8,6);
     fTsLastWrite = now;
     if (fTraceLevel>1) {
       size_t ncol = (80-5-6)/(2+1);
@@ -220,14 +222,14 @@ int RlinkPort::Write(const uint8_t* buf, size_t size, RerrMsg& emsg)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-bool RlinkPort::PollRead(double timeout)
+bool RlinkPort::PollRead(const Rtime& timeout)
 {
   if (! IsOpen())
     throw Rexception("RlinkPort::PollRead()","Bad state: port not open");
-  if (timeout < 0.)
+  if (timeout.IsNegative())
     throw Rexception("RlinkPort::PollRead()","Bad args: timeout < 0");
 
-  int ito = 1000.*timeout + 0.1;
+  int ito = timeout.ToMSec();
 
   struct pollfd fds[1] = {{fFdRead,         // fd
                            POLLIN,          // events
@@ -252,24 +254,24 @@ bool RlinkPort::PollRead(double timeout)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 int RlinkPort::RawRead(uint8_t* buf, size_t size, bool exactsize,
-                       double timeout, double& tused, RerrMsg& emsg)
+                       const Rtime& timeout, Rtime& tused, RerrMsg& emsg)
 {
-  if (timeout <= 0.)
+  if (!timeout.IsPositive())
     throw Rexception("RlinkPort::RawRead()", "Bad args: timeout <= 0.");
   if (size <= 0)
     throw Rexception("RlinkPort::RawRead()", "Bad args: size <= 0");
 
   fStats.Inc(kStatNPortRawRead);
-  tused = 0.;
+  tused.Clear();
 
-  double tnow = Rtools::TimeOfDayAsDouble();
-  double tend = tnow + timeout;
-  double tbeg = tnow;
+  Rtime tnow(CLOCK_MONOTONIC);
+  Rtime tend = tnow + timeout;
+  Rtime tbeg = tnow;
 
   size_t ndone = 0;
   while (tnow < tend && ndone<size) {
     int irc = Read(buf+ndone, size-ndone, tend-tnow, emsg);
-    tnow  = Rtools::TimeOfDayAsDouble();
+    tnow.GetClock(CLOCK_MONOTONIC);
     tused = tnow - tbeg;
     if (irc <= 0) return irc;
     if (!exactsize) break;
@@ -302,7 +304,8 @@ void RlinkPort::Dump(std::ostream& os, int ind, const char* text) const
   os << bl << "  fFdWrite:        " << fFdWrite << endl;
   os << bl << "  fspLog:          " << fspLog.get() << endl;
   os << bl << "  fTraceLevel:     " << fTraceLevel << endl;
-  //FIXME_code: fTsLastRead, fTsLastWrite not yet in Dump (get formatter...)
+  os << bl << "  fTsLastRead:     " << fTsLastRead << endl;
+  os << bl << "  fTsLastWrite:    " << fTsLastWrite << endl;
   fStats.Dump(os, ind+2, "fStats: ");
   return;
 }

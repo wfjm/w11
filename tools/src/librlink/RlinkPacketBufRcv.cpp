@@ -1,6 +1,6 @@
-// $Id: RlinkPacketBufRcv.cpp 632 2015-01-11 12:30:03Z mueller $
+// $Id: RlinkPacketBufRcv.cpp 853 2017-02-19 18:54:30Z mueller $
 //
-// Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-19   853   1.1    use Rtime
 // 2014-12-25   621   1.0.1  Reorganize packet send/revd stats
 // 2014-11-30   607   1.0    Initial version
 // 2014-11-02   600   0.1    First draft (re-organize PacketBuf for rlink v4)
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPacketBufRcv.cpp 632 2015-01-11 12:30:03Z mueller $
+  \version $Id: RlinkPacketBufRcv.cpp 853 2017-02-19 18:54:30Z mueller $
   \brief   Implemenation of class RlinkPacketBuf.
  */
 
@@ -75,7 +76,8 @@ RlinkPacketBufRcv::~RlinkPacketBufRcv()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-int RlinkPacketBufRcv::ReadData(RlinkPort* port, double timeout, RerrMsg& emsg)
+int RlinkPacketBufRcv::ReadData(RlinkPort* port, const Rtime& timeout, 
+                                RerrMsg& emsg)
 {
   if (port == nullptr) 
     throw Rexception("RlinkPacketBufRcv::ReadData()", 
@@ -89,7 +91,7 @@ int RlinkPacketBufRcv::ReadData(RlinkPort* port, double timeout, RerrMsg& emsg)
 
   int irc = port->Read(fRawBuf, sizeof(fRawBuf), timeout, emsg);
 
-  if (timeout == 0 && irc == RlinkPort::kTout) return 0;
+  if (timeout.IsZero() && irc == RlinkPort::kTout) return 0;
 
   if (irc < 0) {
     if (irc == RlinkPort::kTout) {

@@ -1,6 +1,6 @@
-// $Id: Rtools.cpp 606 2014-11-24 07:08:51Z mueller $
+// $Id: Rtools.cpp 852 2017-02-18 12:43:31Z mueller $
 //
-// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,7 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2014-11-23   606   1.0.4  add TimeOfDayAsDouble()
+// 2017-02-18   852   1.0.7 remove TimeOfDayAsDouble()
+// 2014-11-23   606   1.0.6  add TimeOfDayAsDouble()
 // 2014-11-08   602   1.0.5  add (int) cast in snprintf to match %d type
 // 2014-08-22   584   1.0.4  use nullptr
 // 2013-05-04   516   1.0.3  add CreateBackupFile()
@@ -24,15 +25,12 @@
 
 /*!
   \file
-  \version $Id: Rtools.cpp 606 2014-11-24 07:08:51Z mueller $
+  \version $Id: Rtools.cpp 852 2017-02-18 12:43:31Z mueller $
   \brief   Implemenation of Rtools .
 */
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/time.h>
 #include <unistd.h>
 
 #include <iostream>
@@ -172,28 +170,6 @@ bool CreateBackupFile(const RparseUrl& purl, RerrMsg& emsg)
     }
   }
   return true;
-}
-
-//------------------------------------------+-----------------------------------
-//! Returns the time-of-day as \c double value
-/*!
-  Calls \c gettimeofday() and returns the current time as a \c double.
-  This is convenient for calculations with time values.
-
-  \returns time is seconds as \a double with micro second resolution.
-  \throws Rexception in case \c gettimeofday() fails.
- */
-
-double TimeOfDayAsDouble()
-{
-  struct timeval tval;
-  int irc = ::gettimeofday(&tval, 0);
-  if (irc < 0) {
-    throw Rexception("Rtools::TimeOfDayAsDouble()",
-                     "gettimeofday failed with ", errno);
-  }
-  
-  return double(tval.tv_sec) + 1.e-6*double(tval.tv_usec);
 }
 
 } // end namespace Rtools

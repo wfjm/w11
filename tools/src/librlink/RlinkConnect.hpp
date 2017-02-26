@@ -1,6 +1,6 @@
-// $Id: RlinkConnect.hpp 758 2016-04-02 18:01:39Z mueller $
+// $Id: RlinkConnect.hpp 854 2017-02-25 14:46:03Z mueller $
 //
-// Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-20   854   2.6    use Rtime, drop TimeOfDayAsDouble
 // 2016-04-02   758   2.5    add USR_ACCESS register support (RLUA0/RLUA1)
 // 2016-03-20   748   2.4    add fTimeout,(Set)Timeout();
 // 2015-04-12   666   2.3    add LinkInit,LinkInitDone; transfer xon
@@ -39,7 +40,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.hpp 758 2016-04-02 18:01:39Z mueller $
+  \version $Id: RlinkConnect.hpp 854 2017-02-25 14:46:03Z mueller $
   \brief   Declaration of class \c RlinkConnect.
 */
 
@@ -57,6 +58,7 @@
 #include "boost/scoped_ptr.hpp"
 
 #include "librtools/RerrMsg.hpp"
+#include "librtools/Rtime.hpp"
 #include "librtools/Rstats.hpp"
 #include "librtools/RlogFile.hpp"
 
@@ -106,7 +108,8 @@ namespace Retro {
       void          Exec(RlinkCommandList& clist);
       void          Exec(RlinkCommandList& clist, RlinkContext& cntx);
 
-      double        WaitAttn(double timeout, uint16_t& apat, RerrMsg& emsg);
+      int           WaitAttn(const Rtime& timeout, Rtime& twait, uint16_t& apat, 
+                             RerrMsg& emsg);
       bool          SndOob(uint16_t addr, uint16_t data, RerrMsg& emsg);
       bool          SndAttn(RerrMsg& emsg);
 
@@ -132,7 +135,7 @@ namespace Retro {
       void          SetPrintLevel(uint32_t lvl);
       void          SetDumpLevel(uint32_t lvl);
       void          SetTraceLevel(uint32_t lvl);
-      void          SetTimeout(double timeout);
+      void          SetTimeout(const Rtime& timeout);
 
       uint32_t      LogBaseAddr() const;
       uint32_t      LogBaseData() const;
@@ -140,7 +143,7 @@ namespace Retro {
       uint32_t      PrintLevel() const;
       uint32_t      DumpLevel() const;
       uint32_t      TraceLevel() const;
-      double        Timeout() const;
+      const Rtime&  Timeout() const;
 
       bool          LogOpen(const std::string& name, RerrMsg& emsg);
       void          LogUseStream(std::ostream* pstr, 
@@ -221,7 +224,7 @@ namespace Retro {
       int           DecodeResponse(RlinkCommandList& clist, size_t ibeg,
                                    size_t iend);
       bool          DecodeAttnNotify(uint16_t& apat);
-      bool          ReadResponse(double timeout, RerrMsg& emsg);
+      bool          ReadResponse(const Rtime& timeout, RerrMsg& emsg);
       void          AcceptResponse();
       void          ProcessUnsolicitedData();
       void          ProcessAttnNotify();
@@ -243,11 +246,11 @@ namespace Retro {
       uint32_t      fPrintLevel;            //!< print 0=off,1=err,2=chk,3=all
       uint32_t      fDumpLevel;             //!< dump  0=off,1=err,2=chk,3=all
       uint32_t      fTraceLevel;            //!< trace 0=off,1=buf,2=char
-      double        fTimeout;               //!< response timeout
+      Rtime         fTimeout;               //!< response timeout
       boost::shared_ptr<RlogFile> fspLog;   //!< log file ptr
       boost::recursive_mutex fConnectMutex; //!< mutex to lock whole connect
       uint16_t      fAttnNotiPatt;          //!< attn notifier pattern
-      double        fTsLastAttnNoti;        //!< time stamp last attn notify
+      Rtime         fTsLastAttnNoti;        //!< time stamp last attn notify
       uint32_t      fSysId;                 //!< SYSID of connected device
       uint32_t      fUsrAcc;                //!< USR_ACCESS of connected device
       size_t        fRbufSize;              //!< Rbuf size (in bytes)

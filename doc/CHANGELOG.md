@@ -17,7 +17,15 @@ software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases._
 
 ### Summary
-- 23 line interrupt mapper now for full system configuration
+- use Rtime; drop Rtools::TimeOfDayAsDouble()
+- probe/setup auxilliary devices: kw11l,kw11p,iist
+- librw11/Rw11Cpu: add ModLalh()
+- librtools/Rstats: add IncLogHist() and fix + and * operator definition
+- add Rtime support in RtclGet/RtclSet
+- add librtools/Rtime: class for absolute and delta times
+- use -std=c++11 (gcc 4.7 or later)
+- update probe handling: add probe data, make it tcl getable
+- 23 line interrupt mapper for full system configuration
 - man pages now [available online](http://www.retro11.de/manp/w11/man/cat1/).
 - add `sysmon_rbus` in `sys_tst_sram_n4`
 - Auto-dection of Digilent boards with `FT2232HQ` interface for

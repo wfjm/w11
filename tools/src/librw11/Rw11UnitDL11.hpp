@@ -1,4 +1,4 @@
-// $Id: Rw11UnitDL11.hpp 504 2013-04-13 15:37:24Z mueller $
+// $Id: Rw11UnitDL11.hpp 856 2017-02-25 20:09:10Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,14 +20,12 @@
 
 /*!
   \file
-  \version $Id: Rw11UnitDL11.hpp 504 2013-04-13 15:37:24Z mueller $
+  \version $Id: Rw11UnitDL11.hpp 856 2017-02-25 20:09:10Z mueller $
   \brief   Declaration of class Rw11UnitDL11.
 */
 
 #ifndef included_Retro_Rw11UnitDL11
 #define included_Retro_Rw11UnitDL11 1
-
-#include "Rw11VirtTerm.hpp"
 
 #include "Rw11UnitTermBase.hpp"
 

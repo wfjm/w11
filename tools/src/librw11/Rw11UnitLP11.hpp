@@ -1,4 +1,4 @@
-// $Id: Rw11UnitLP11.hpp 515 2013-05-04 17:28:59Z mueller $
+// $Id: Rw11UnitLP11.hpp 856 2017-02-25 20:09:10Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,14 +19,12 @@
 
 /*!
   \file
-  \version $Id: Rw11UnitLP11.hpp 515 2013-05-04 17:28:59Z mueller $
+  \version $Id: Rw11UnitLP11.hpp 856 2017-02-25 20:09:10Z mueller $
   \brief   Declaration of class Rw11UnitLP11.
 */
 
 #ifndef included_Retro_Rw11UnitLP11
 #define included_Retro_Rw11UnitLP11 1
-
-#include "Rw11VirtStream.hpp"
 
 #include "Rw11UnitStreamBase.hpp"
 

@@ -1,6 +1,6 @@
-// $Id: Rw11UnitTerm.hpp 570 2014-07-20 19:05:11Z mueller $
+// $Id: Rw11UnitTerm.hpp 855 2017-02-25 16:30:37Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-25   855   1.1.1  RcvNext() --> RcvQueueNext(); WakeupCntl() now pure
 // 2013-05-03   515   1.1    use AttachDone(),DetachCleanup(),DetachDone()
 // 2013-04-20   508   1.0.1  add 7bit and non-printable masking; add log file
 // 2013-04-13   504   1.0    Initial version
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: Rw11UnitTerm.hpp 570 2014-07-20 19:05:11Z mueller $
+  \version $Id: Rw11UnitTerm.hpp 855 2017-02-25 16:30:37Z mueller $
   \brief   Declaration of class Rw11UnitTerm.
 */
 
@@ -56,15 +57,15 @@ namespace Retro {
       void          SetLog(const std::string& fname);
       const std::string&  Log() const;
 
-      virtual bool  RcvQueueEmpty();
-      virtual size_t RcvQueueSize();
-      virtual uint8_t RcvNext();
+      virtual bool    RcvQueueEmpty();
+      virtual size_t  RcvQueueSize();
+      virtual uint8_t RcvQueueNext();
       virtual size_t Rcv(uint8_t* buf, size_t count);
 
       virtual bool  Snd(const uint8_t* buf, size_t count);
 
       virtual bool  RcvCallback(const uint8_t* buf, size_t count);
-      virtual void  WakeupCntl();
+      virtual void  WakeupCntl() = 0;
 
       virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
 

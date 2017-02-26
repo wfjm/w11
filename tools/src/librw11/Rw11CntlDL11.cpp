@@ -1,6 +1,6 @@
-// $Id: Rw11CntlDL11.cpp 659 2015-03-22 23:15:51Z mueller $
+// $Id: Rw11CntlDL11.cpp 855 2017-02-25 16:30:37Z mueller $
 //
-// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-25   855   1.2.1  shorten ctor code; RcvNext() --> RcvQueueNext()
 // 2014-12-30   625   1.2    adopt to Rlink V4 attn logic
 // 2014-12-25   621   1.1    adopt to 4k word ibus window and 
 // 2013-05-04   516   1.0.2  add RxRlim support (receive interrupt rate limit)
@@ -23,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlDL11.cpp 659 2015-03-22 23:15:51Z mueller $
+  \version $Id: Rw11CntlDL11.cpp 855 2017-02-25 16:30:37Z mueller $
   \brief   Implemenation of Rw11CntlDL11.
 */
 
@@ -80,9 +81,7 @@ Rw11CntlDL11::Rw11CntlDL11()
     fRxRlim(0)
 {
   // must be here because Units have a back-ptr (not available at Rw11CntlBase)
-  for (size_t i=0; i<NUnit(); i++) {
-    fspUnit[i].reset(new Rw11UnitDL11(this, i));
-  }
+  fspUnit[0].reset(new Rw11UnitDL11(this, 0)); // single unit controller
 }
 
 //------------------------------------------+-----------------------------------
@@ -152,7 +151,7 @@ void Rw11CntlDL11::Wakeup()
     Server().Exec(clist);
     uint16_t rcsr = clist[ircsr].Data();
     if ((rcsr & kRCSR_M_RDONE) == 0) {      // RBUF not full
-      uint8_t ichr = fspUnit[0]->RcvNext();
+      uint8_t ichr = fspUnit[0]->RcvQueueNext();
       clist.Clear();
       Cpu().AddWibr(clist, fBase+kRBUF, ichr);
       Server().Exec(clist);
@@ -252,7 +251,7 @@ int Rw11CntlDL11::AttnHandler(RlinkServer::AttnArgs& args)
   }
 
   if (rrdy && !fspUnit[0]->RcvQueueEmpty()) {
-    uint8_t ichr = fspUnit[0]->RcvNext();
+    uint8_t ichr = fspUnit[0]->RcvQueueNext();
     RlinkCommandList clist;
     Cpu().AddWibr(clist, fBase+kRBUF, ichr);
     Server().Exec(clist);

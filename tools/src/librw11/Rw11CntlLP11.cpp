@@ -1,6 +1,6 @@
-// $Id: Rw11CntlLP11.cpp 659 2015-03-22 23:15:51Z mueller $
+// $Id: Rw11CntlLP11.cpp 856 2017-02-25 20:09:10Z mueller $
 //
-// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-25   855   1.2.1  shorten ctor code
 // 2014-12-30   625   1.2    adopt to Rlink V4 attn logic
 // 2014-12-25   621   1.1    adopt to 4k word ibus window
 // 2013-05-04   515   1.0    Initial version
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlLP11.cpp 659 2015-03-22 23:15:51Z mueller $
+  \version $Id: Rw11CntlLP11.cpp 856 2017-02-25 20:09:10Z mueller $
   \brief   Implemenation of Rw11CntlLP11.
 */
 
@@ -70,9 +71,7 @@ Rw11CntlLP11::Rw11CntlLP11()
     fPC_buf(0)
 {
   // must be here because Units have a back-ptr (not available at Rw11CntlBase)
-  for (size_t i=0; i<NUnit(); i++) {
-    fspUnit[i].reset(new Rw11UnitLP11(this, i));
-  }
+  fspUnit[0].reset(new Rw11UnitLP11(this, 0)); // single unit controller
 }
 
 //------------------------------------------+-----------------------------------

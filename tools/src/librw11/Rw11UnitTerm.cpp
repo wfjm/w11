@@ -1,6 +1,6 @@
-// $Id: Rw11UnitTerm.cpp 516 2013-05-05 21:24:52Z mueller $
+// $Id: Rw11UnitTerm.cpp 855 2017-02-25 16:30:37Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-25   855   1.1.1  RcvNext() --> RcvQueueNext(); WakeupCntl() now pure
 // 2013-05-03   515   1.1    use AttachDone(),DetachCleanup(),DetachDone()
 // 2013-04-13   504   1.0    Initial version
 // 2013-02-19   490   0.1    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11UnitTerm.cpp 516 2013-05-05 21:24:52Z mueller $
+  \version $Id: Rw11UnitTerm.cpp 855 2017-02-25 16:30:37Z mueller $
   \brief   Implemenation of Rw11UnitTerm.
 */
 
@@ -119,23 +120,7 @@ void Rw11UnitTerm::SetLog(const std::string& fname)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-bool Rw11UnitTerm::RcvQueueEmpty()
-{
-  return fRcvQueue.empty();
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-size_t Rw11UnitTerm::RcvQueueSize()
-{
-  return fRcvQueue.size();
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-uint8_t Rw11UnitTerm::RcvNext()
+uint8_t Rw11UnitTerm::RcvQueueNext()
 {
   if (RcvQueueEmpty()) return 0;
   uint8_t ochr = fRcvQueue.front();
@@ -253,14 +238,6 @@ bool Rw11UnitTerm::RcvCallback(const uint8_t* buf, size_t count)
   bool que_empty_new = fRcvQueue.empty();
   if (que_empty_old && !que_empty_new) WakeupCntl();
   return true;
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-void Rw11UnitTerm::WakeupCntl()
-{
-  return;
 }
 
 //------------------------------------------+-----------------------------------

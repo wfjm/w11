@@ -1,6 +1,6 @@
-// $Id: Rstats.cpp 492 2013-02-24 22:14:47Z mueller $
+// $Id: Rstats.cpp 851 2017-02-18 09:20:40Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-18   851   1.0.3  add IncLogHist; fix + and * operator definition
 // 2013-02-03   481   1.0.2  use Rexception
 // 2011-03-06   367   1.0.1  use max from algorithm
 // 2011-02-06   359   1.0    Initial version
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rstats.cpp 492 2013-02-24 22:14:47Z mueller $
+  \version $Id: Rstats.cpp 851 2017-02-18 09:20:40Z mueller $
   \brief   Implemenation of Rstats .
 */
 
@@ -109,6 +110,26 @@ void Rstats::Define(size_t ind, const std::string& name,
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
+void Rstats::IncLogHist(size_t ind, size_t maskfirst,
+                        size_t masklast, size_t val)
+{
+  if (val == 0) return;
+  size_t mask = maskfirst;
+  while (ind < fValue.size()) {
+    if (val <= mask || mask >= masklast) {  // val in bin or last bin
+      Inc(ind);
+      return;
+    }
+    mask = (mask<<1) | 0x1;
+    ind += 1;
+  }
+  
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
 void Rstats::SetFormat(const char* format, int width, int prec)
 {
   fFormat = format;
@@ -188,7 +209,7 @@ Rstats& Rstats::operator=(const Rstats& rhs)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-Rstats& Rstats::operator-(const Rstats& rhs)
+Rstats& Rstats::operator-=(const Rstats& rhs)
 {
   if (Size() != rhs.Size() || fHash != rhs.fHash) {
     throw Rexception("Rstats::oper-()",
@@ -204,7 +225,7 @@ Rstats& Rstats::operator-(const Rstats& rhs)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-Rstats& Rstats::operator*(double rhs)
+Rstats& Rstats::operator*=(double rhs)
 {
   for (size_t i=0; i<fValue.size(); i++) {
     fValue[i] *= rhs;

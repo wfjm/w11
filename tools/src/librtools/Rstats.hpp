@@ -1,6 +1,6 @@
-// $Id: Rstats.hpp 495 2013-03-06 17:13:48Z mueller $
+// $Id: Rstats.hpp 851 2017-02-18 09:20:40Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,12 +13,13 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-18   851   1.0.1  add IncLogHist; fix + and * operator definition
 // 2011-02-06   359   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rstats.hpp 495 2013-03-06 17:13:48Z mueller $
+  \version $Id: Rstats.hpp 851 2017-02-18 09:20:40Z mueller $
   \brief   Declaration of class Rstats .
 */
 
@@ -45,6 +46,9 @@ namespace Retro {
       void          Set(size_t ind, double val);
       void          Inc(size_t ind, double val=1.);
 
+      void          IncLogHist(size_t ind, size_t maskfirst,
+                               size_t masklast, size_t val);
+
       void          SetFormat(const char* format, int width=0, int prec=0);
     
       size_t        Size() const;
@@ -59,8 +63,8 @@ namespace Retro {
       double        operator[](size_t ind) const;
 
       Rstats&       operator=(const Rstats& rhs);
-      Rstats&       operator-(const Rstats& rhs);
-      Rstats&       operator*(double rhs);
+      Rstats&       operator-=(const Rstats& rhs);
+      Rstats&       operator*=(double rhs);
 
   private:
       std::vector<double> fValue;           //!< counter value

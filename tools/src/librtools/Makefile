@@ -1,4 +1,4 @@
-# $Id: Makefile 733 2016-02-20 12:24:13Z mueller $
+# $Id: Makefile 851 2017-02-18 09:20:40Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -24,11 +24,17 @@ LDLIBS     = -L${BOOSTLIB} -lboost_thread -lboost_system
 #
 # Object files to be included
 #
-OBJ_all    = RerrMsg.o RosFill.o RosPrintBvi.o RosPrintfBase.o RosPrintfS.o \
-	     RiosState.o Rbits.o \
-             RlogFile.o RlogFileCatalog.o RlogMsg.o \
-             Rstats.o Rtools.o \
-	     Rexception.o RparseUrl.o
+OBJ_all    = Rbits.o
+OBJ_all   += RerrMsg.o
+OBJ_all   += Rexception.o
+OBJ_all   += RiosState.o
+OBJ_all   += RlogFile.o RlogFileCatalog.o RlogMsg.o
+OBJ_all   += RosFill.o 
+OBJ_all   += RosPrintBvi.o RosPrintfBase.o RosPrintfS.o
+OBJ_all   += RparseUrl.o
+OBJ_all   += Rstats.o
+OBJ_all   += Rtime.o
+OBJ_all   += Rtools.o
 #
 DEP_all    = $(OBJ_all:.o=.dep)
 #

@@ -1,6 +1,6 @@
-// $Id: Rw11CntlRK11.cpp 686 2015-06-04 21:08:08Z mueller $
+// $Id: Rw11CntlRK11.cpp 857 2017-02-26 15:27:41Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
 //   the boot code is from the simh project and Copyright Robert M Supnik
 // 
@@ -15,6 +15,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-26   857   2.0.3  use kCPAH_M_UBM22
 // 2015-06-04   686   2.0.2  check for spurious lams
 // 2015-02-17   647   2.0.1  use Nwrd2Nblk(); BUGFIX: revise RdmaPostExecCB()
 // 2015-01-04   628   2.0    use Rw11RdmaDisk
@@ -27,7 +28,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlRK11.cpp 686 2015-06-04 21:08:08Z mueller $
+  \version $Id: Rw11CntlRK11.cpp 857 2017-02-26 15:27:41Z mueller $
   \brief   Implemenation of Rw11CntlRK11.
 */
 
@@ -436,9 +437,7 @@ int Rw11CntlRK11::AttnHandler(RlinkServer::AttnArgs& args)
     if (rker) {
       AddErrorExit(clist, rker);
     } else {
-      fRdma.QueueDiskWrite(addr, nwrd, 
-                           Rw11Cpu::kCPAH_M_22BIT|Rw11Cpu::kCPAH_M_UBMAP,
-                           lba, &unit);
+      fRdma.QueueDiskWrite(addr, nwrd, Rw11Cpu::kCPAH_M_UBM22, lba, &unit);
     }
 
   } else if (fu == kFUNC_READ) {            // Read --------------------------
@@ -449,9 +448,7 @@ int Rw11CntlRK11::AttnHandler(RlinkServer::AttnArgs& args)
     if (rker) {
       AddErrorExit(clist, rker);
     } else {
-      fRdma.QueueDiskRead(addr, nwrd, 
-                          Rw11Cpu::kCPAH_M_22BIT|Rw11Cpu::kCPAH_M_UBMAP,
-                          lba, &unit);
+      fRdma.QueueDiskRead(addr, nwrd, Rw11Cpu::kCPAH_M_UBM22, lba, &unit);
     }
 
   } else if (fu == kFUNC_WCHK) {            // Write Check -------------------
@@ -462,9 +459,7 @@ int Rw11CntlRK11::AttnHandler(RlinkServer::AttnArgs& args)
     if (rker) {
       AddErrorExit(clist, rker);
     } else {
-      fRdma.QueueDiskWriteCheck(addr, nwrd, 
-                                Rw11Cpu::kCPAH_M_22BIT|Rw11Cpu::kCPAH_M_UBMAP,
-                                lba, &unit);
+      fRdma.QueueDiskWriteCheck(addr, nwrd, Rw11Cpu::kCPAH_M_UBM22, lba, &unit);
     }
 
   } else if (fu == kFUNC_SEEK) {            // Seek --------------------------

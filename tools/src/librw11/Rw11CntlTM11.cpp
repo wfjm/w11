@@ -1,6 +1,6 @@
-// $Id: Rw11CntlTM11.cpp 690 2015-06-07 18:23:51Z mueller $
+// $Id: Rw11CntlTM11.cpp 857 2017-02-26 15:27:41Z mueller $
 //
-// Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
 //   the boot code is from the simh project and Copyright Robert M Supnik
 // 
@@ -15,6 +15,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-26   857   1.0.2  use kCPAH_M_UBM22
 // 2015-06-06   690   1.0.1  BUGFIX: AddFastExit() check for Virt() defined
 // 2015-06-04   686   1.0    Initial version
 // 2015-05-17   683   0.1    First draft
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlTM11.cpp 690 2015-06-07 18:23:51Z mueller $
+  \version $Id: Rw11CntlTM11.cpp 857 2017-02-26 15:27:41Z mueller $
   \brief   Implemenation of Rw11CntlTM11.
 */
 
@@ -402,8 +403,7 @@ int Rw11CntlTM11::AttnHandler(RlinkServer::AttnArgs& args)
       AddErrorExit(clist, kTMCR_M_RICMD|kTMSR_M_BTE);   // now just bail out !!
     } else {
       size_t nwdma = ndone/2;
-      fRdma.QueueWMem(addr, fBuf.data(), nwdma, 
-                      Rw11Cpu::kCPAH_M_22BIT|Rw11Cpu::kCPAH_M_UBMAP);
+      fRdma.QueueWMem(addr, fBuf.data(), nwdma, Rw11Cpu::kCPAH_M_UBM22);
     }
 
   } else if (fu == kFUNC_WRITE ||           // Write -------------------------
@@ -414,8 +414,7 @@ int Rw11CntlTM11::AttnHandler(RlinkServer::AttnArgs& args)
     if (nbyt&0x1) {                         // FIXME_code: add odd rlen handling
       AddErrorExit(clist, kTMCR_M_RICMD|kTMSR_M_BTE);   // now just bail out !!
     } else {
-      fRdma.QueueRMem(addr, fBuf.data(), nwdma, 
-                      Rw11Cpu::kCPAH_M_22BIT|Rw11Cpu::kCPAH_M_UBMAP);
+      fRdma.QueueRMem(addr, fBuf.data(), nwdma, Rw11Cpu::kCPAH_M_UBM22);
     }
 
   } else if (fu == kFUNC_WEOF) {            // Write Eof ---------------------

@@ -1,6 +1,6 @@
-// $Id: Rw11CntlRL11.cpp 686 2015-06-04 21:08:08Z mueller $
+// $Id: Rw11CntlRL11.cpp 857 2017-02-26 15:27:41Z mueller $
 //
-// Copyright 2014-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
 //   the boot code is from the simh project and Copyright Robert M Supnik
 //   CalcCrc() is adopted from the simh project and Copyright Robert M Supnik
@@ -16,6 +16,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-26   857   1.0.3  use kCPAH_M_UBM22
 // 2015-06-04   686   1.0.2  check for spurious lams
 // 2015-03-04   655   1.0.1  use original boot code again
 // 2015-03-01   653   1.0    Initial version
@@ -24,7 +25,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlRL11.cpp 686 2015-06-04 21:08:08Z mueller $
+  \version $Id: Rw11CntlRL11.cpp 857 2017-02-26 15:27:41Z mueller $
   \brief   Implemenation of Rw11CntlRL11.
 */
 
@@ -537,24 +538,18 @@ int Rw11CntlRL11::AttnHandler(RlinkServer::AttnArgs& args)
       AddSetStatus(clist, ds, sta | kSTA_M_WGE);
       AddErrorExit(clist, kERR_M_DE); 
     } else {
-      fRdma.QueueDiskWrite(addr, nwrd, 
-                           Rw11Cpu::kCPAH_M_22BIT|Rw11Cpu::kCPAH_M_UBMAP,
-                           lba, &unit);
+      fRdma.QueueDiskWrite(addr, nwrd, Rw11Cpu::kCPAH_M_UBM22, lba, &unit);
     }
 
   } else if (fu == kFUNC_WCHK) {            // Write Check -------------------
     fStats.Inc(kStatNFuncWchk );
-    fRdma.QueueDiskWriteCheck(addr, nwrd, 
-                              Rw11Cpu::kCPAH_M_22BIT|Rw11Cpu::kCPAH_M_UBMAP,
-                              lba, &unit);
+    fRdma.QueueDiskWriteCheck(addr, nwrd, Rw11Cpu::kCPAH_M_UBM22, lba, &unit);
     
   } else if (fu == kFUNC_READ ||            // Read or 
              fu == kFUNC_RNHC) {            // Read No Header Check ----------
     fStats.Inc(fu==kFUNC_READ ? kStatNFuncRead : kStatNFuncRnhc);
 
-    fRdma.QueueDiskRead(addr, nwrd, 
-                        Rw11Cpu::kCPAH_M_22BIT|Rw11Cpu::kCPAH_M_UBMAP,
-                        lba, &unit);
+    fRdma.QueueDiskRead(addr, nwrd, Rw11Cpu::kCPAH_M_UBM22, lba, &unit);
   }
 
   if (clist.Size()) {                       // if handled directly

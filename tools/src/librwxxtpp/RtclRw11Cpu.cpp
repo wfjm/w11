@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.cpp 853 2017-02-19 18:54:30Z mueller $
+// $Id: RtclRw11Cpu.cpp 857 2017-02-26 15:27:41Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-26   857   1.2.13 use kCPAH_M_UBM22 for cp -wa -ubm
 // 2017-02-19   853   1.2.12 use Rtime
 // 2017-02-17   851   1.2.11 probe/setup auxilliary devices: kw11l,kw11p,iist
 // 2017-02-04   848   1.2.10 M_default: add 'probe ena on' output
@@ -41,7 +42,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Cpu.cpp 853 2017-02-19 18:54:30Z mueller $
+  \version $Id: RtclRw11Cpu.cpp 857 2017-02-26 15:27:41Z mueller $
   \brief   Implemenation of RtclRw11Cpu.
 */
 
@@ -481,7 +482,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
         if (subopt == "-p22") {             // -p22 
           ah |= Rw11Cpu::kCPAH_M_22BIT;
         } else if (subopt == "-ubm") {      // -ubm 
-          ah |= Rw11Cpu::kCPAH_M_UBMAP;
+          ah |= Rw11Cpu::kCPAH_M_UBM22;
         }
       }
       clist.AddWreg(base + Rw11Cpu::kCPAL, al);

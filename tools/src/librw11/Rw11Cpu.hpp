@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.hpp 853 2017-02-19 18:54:30Z mueller $
+// $Id: Rw11Cpu.hpp 857 2017-02-26 15:27:41Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-26   857   1.2.9  add kCPAH_M_UBM22
 // 2017-02-19   853   1.2.8  use Rtime
 // 2017-02-17   851   1.2.7  probe/setup auxilliary devices: kw11l,kw11p,iist
 // 2017-02-10   850   1.2.6  add ModLalh()
@@ -32,7 +33,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cpu.hpp 853 2017-02-19 18:54:30Z mueller $
+  \version $Id: Rw11Cpu.hpp 857 2017-02-26 15:27:41Z mueller $
   \brief   Declaration of class Rw11Cpu.
 */
 
@@ -208,9 +209,10 @@ namespace Retro {
       static const uint16_t  kCPURUST_SFAIL  = 0xa;  //!< sequencer failure
       static const uint16_t  kCPURUST_VFAIL  = 0xb;  //!< vmbox failure
 
-      static const uint16_t  kCPAH_M_ADDR  = 0x003f;  //!< 
-      static const uint16_t  kCPAH_M_22BIT = kWBit06; //!< 
-      static const uint16_t  kCPAH_M_UBMAP = kWBit07; //!<
+      static const uint16_t  kCPAH_M_ADDR  = 0x003f;  //!< mask for 6bit msb
+      static const uint16_t  kCPAH_M_22BIT = kWBit06; //!< ena 22bit addressing
+      static const uint16_t  kCPAH_M_UBMAP = kWBit07; //!< ena ubmap
+      static const uint16_t  kCPAH_M_UBM22 = kWBit06|kWBit07; //!< ubmap+22bit
 
       static const uint16_t  kCPMEMBE_M_STICK = kWBit02; //!< 
       static const uint16_t  kCPMEMBE_M_BE    = 0x0003;  //!< 

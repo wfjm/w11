@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.cpp 853 2017-02-19 18:54:30Z mueller $
+// $Id: Rw11Cpu.cpp 857 2017-02-26 15:27:41Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-26   857   1.2.11 add kCPAH_M_UBM22
 // 2017-02-19   853   1.2.10 use Rtime
 // 2017-02-17   851   1.2.9  probe/setup auxilliary devices: kw11l,kw11p,iist
 // 2017-02-10   850   1.2.8  add ModLalh()
@@ -36,7 +37,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cpu.cpp 853 2017-02-19 18:54:30Z mueller $
+  \version $Id: Rw11Cpu.cpp 857 2017-02-26 15:27:41Z mueller $
   \brief   Implemenation of Rw11Cpu.
 */
 #include <stdlib.h>
@@ -118,6 +119,7 @@ const uint16_t  Rw11Cpu::kCPURUST_VFAIL;
 const uint16_t  Rw11Cpu::kCPAH_M_ADDR;
 const uint16_t  Rw11Cpu::kCPAH_M_22BIT;
 const uint16_t  Rw11Cpu::kCPAH_M_UBMAP;
+const uint16_t  Rw11Cpu::kCPAH_M_UBM22;
 
 const uint16_t  Rw11Cpu::kCPMEMBE_M_STICK;
 const uint16_t  Rw11Cpu::kCPMEMBE_M_BE;

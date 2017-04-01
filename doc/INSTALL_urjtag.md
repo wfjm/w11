@@ -1,50 +1,42 @@
 # Installation of urjtag
 
-The w11 project uses the open source JTAG Access software from the
-SourceForge project
-[urjtag](https://sourceforge.net/projects/urjtag/) 
-for configuring FPGA over the Cypress FX2 USB Interface available on 
-Digilent Nexys2, Nexys3 and Atlys boards.
+`urjtag` is a available as Debian/Ubuntu package since long time.
+but with quite varying quality:
+  - Debian Squeeze and Ubuntu 11.10 (oneiric) or were **broken** due to a
+    string size limitation problem
+  - Ubuntu 12.04 **works**
+  - Ubuntu 14.04 **works**
+  - Ubuntu 16.04 is **corrupt**, crashes with a SEGFAULT in the `detect` command
 
-The most recent version works fine. This version is delivered with 
-Ubuntu 12.04 LTS and later Ubuntu versions. In this case simply install the 
-package `urjtag`. Try the command
+If you have installed the package `urjtag` and the command
 
     jtag
 
-it should print
+prints
 
     UrJTAG 0.10 #2007
 
-and show a version number of `#2007` or higher.
+with a version number of `#2007` or higher and
 
-Old versions unfortunately have a string size limitation problem with can
-lead to problems when used with Digilent S3BOARDS (or other cases with
-multiple devices in the jtag chain). Therefore for
+    cd $RETROBASE/rtl/sys_gen/tst_rlink_cuff/nexys3/ic
+    make sys_tst_rlink_cuff_ic_n3.jconfig
 
-    Debian Squeeze and older
-    Ubuntu 11.10 (oneiric) and older
+works fine with a connected `nexys3` board all is fine.
 
-or if the 'jtag' command prints something like
+Otherwise install from sources. I prefer in install in `$HOME/usr_local`
+to keep distribution packages and self-compiled things separate. Do do
 
-    UrJTAG 0.10 #1502
-    UrJTAG 0.9 #1476
+    cd <your source directory>
+    time git clone https://git.code.sf.net/p/urjtag/git urjtag
 
-it is advisible to install the urjtag software from sources.
+    cd urjtag/urjtag
+    ./autogen.sh --prefix=$HOME/usr_local 2>&1 | tee autogen.log
+    time make 2>&1 | tee make.log
+    time make install 2>&1 | tee install.log
 
-Simlest is to install an up-to-date version directly from the SourceForge
-svn repository, start at
-https://sourceforge.net/p/urjtag/svn/HEAD/tree/trunk/ , do a 
-`svn co` for revision `2007` or later, build and install.
+Tested with urjtag version (from `git log`)
 
-Alternatively start with the `V0.10 (rev #1502)` tarball available from
-https://sourceforge.net/projects/urjtag/files/
-and download
+    commit d938d4679692d94709f30fa9d20205e22436f39b
+    Author: Geert Stappers <stappers@debian.org>
+    Date:   Mon Mar 20 12:04:22 2017 +0100
 
-    urjtag-0.10.tar.gz            (dated 2009-04-17)
-
-Change in file `src/cmd/parse.c` the line
-
-    #define MAXINPUTLINE 100    /* Maximum input line length */
-
-and replace `100` with `512`, build and install.

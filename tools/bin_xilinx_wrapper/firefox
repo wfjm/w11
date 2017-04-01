@@ -1,0 +1,9 @@
+#!/bin/bash
+#
+# wrapper for the firefox command used in Xilinx ISE/Vivado
+# it cleans up the environment
+# following a suggestion of Clifford Wolf
+#
+unset LD_LIBRARY_PATH
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+exec firefox "$@"

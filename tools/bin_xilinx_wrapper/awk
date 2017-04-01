@@ -1,0 +1,8 @@
+#!/bin/bash
+#
+# wrapper for the awk command used in Xilinx Vivado
+# it cleans up the environment
+#
+unset LD_LIBRARY_PATH
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+exec awk "$@"

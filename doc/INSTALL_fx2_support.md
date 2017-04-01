@@ -19,8 +19,9 @@ USB Interface. Re-building them requires
 - Small Device C Compiler -> package: `sdcc` `sdcc-ucsim`
 - for FX2 firmware download and jtag programming over USB one needs
   - fxload -> package: `fxload`
-  - urjtag -> package: `urjtag`  for Ubuntu 12.04 and newer  
-    see [INSTALL_urjtag.md](INSTALL_urjtag.md) for other distributions !!
+  - urjtag -> package: `urjtag` for Ubuntu 12.04 or 14.04,
+      is **broken in Ubuntu 16.04**.
+      See [INSTALL_urjtag.md](INSTALL_urjtag.md) for installation from sources !!
 
 ### Setup environment variables  <a name="envvar"></a>
 

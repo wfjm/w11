@@ -106,7 +106,7 @@ All examples below use the same basic setup
 
      **Note**: the arty w11a has currently only 176 kB memory (all from BRAMS!)
      unix-v5 works fine. XXDP, RT11 and RSX-11M should work.
-     211bsd will not boot, either most RSX-11M+ systems.
+     211bsd will not boot, neither most RSX-11M+ systems.
 
   - for b3 over serial
 

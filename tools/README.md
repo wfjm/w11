@@ -4,6 +4,7 @@ This directory tree contains **many tools** and is organized in
 | --------- | ------- |
 | [asm-11](asm-11) | environment for `asm-11` assembler |
 | [bin](bin)       | support scripts and tools |
+| [bin_xilinx_wrapper](bin_xilinx_wrapper) | wrappers for Xilinx environments |
 | [dox](dox)       | configuration files for Doxygen |
 | [fx2](fx2)       | firmware for Cypress FX2 USB interface |
 | [make](make)     | make includes |

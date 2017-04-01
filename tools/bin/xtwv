@@ -1,7 +1,7 @@
 #!/bin/bash
-# $Id: xtwv 830 2016-12-26 20:25:49Z mueller $
+# $Id: xtwv 862 2017-04-01 12:44:51Z mueller $
 #
-# Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Xilinx Tool Wrapper script for Vivado
@@ -10,6 +10,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-04-01   862   1.1.1  add usr_local/bin and bin_xilinx_wrapper to PATH
 # 2016-02-21   735   1.1    use BARE_PATH ect to provide clean environment
 # 2014-04-18   554   1.0.1  fake XILINX_VIVADO, 2014.1 doesn't define it anymore
 # 2013-10-12   539   1.0    Initial version (cloned from xtwi)
@@ -33,10 +34,12 @@ then
   fi
 
   # provide clean environment when BARE_PATH ect defined
-  #   add only $RETROBASE/tools/bin to path
+  #   add prepend $HOME/usr_local/bin to path
+  #   add append $RETROBASE/tools/bin and '.' to path
+  #   '.' is needed to start tb's, which usually are in cwd
   if [ -n "$BARE_PATH" ]
   then
-    export PATH=$BARE_PATH:$RETROBASE/tools/bin
+    export PATH=$HOME/usr_local/bin:$BARE_PATH:$RETROBASE/tools/bin:.
     unset LD_LIBRARY_PATH
     if [ -n "$BARE_LD_LIBRARY_PATH" ]
     then
@@ -44,6 +47,9 @@ then
     fi 
   fi
 
+  # add bin_xilinx_wrapper to path (for firefox ect interceptors)
+  export PATH=$RETROBASE/tools/bin_xilinx_wrapper:$PATH
+  
   # check whether 32 or 64 bit system (uname -m gives 'i686' or 'x86_64')
   if [ `uname -m` = "x86_64" ]
   then

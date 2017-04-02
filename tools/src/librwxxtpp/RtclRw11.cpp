@@ -1,6 +1,6 @@
-// $Id: RtclRw11.cpp 858 2017-03-05 17:41:37Z mueller $
+// $Id: RtclRw11.cpp 867 2017-04-02 18:16:33Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   866   1.0.2  add M_set; handle default disk scheme
 // 2015-03-28   660   1.0.1  add M_get
 // 2014-12-25   621   1.1    adopt to 4k word ibus window
 // 2013-03-06   495   1.0    Initial version
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11.cpp 858 2017-03-05 17:41:37Z mueller $
+  \version $Id: RtclRw11.cpp 867 2017-04-02 18:16:33Z mueller $
   \brief   Implemenation of class RtclRw11.
  */
 
@@ -38,6 +39,7 @@
 #include "RtclRw11CpuW11a.hpp"
 #include "librw11/Rw11Cpu.hpp"
 #include "librw11/Rw11Cntl.hpp"
+#include "librw11/Rw11VirtDisk.hpp"
 
 #include "RtclRw11.hpp"
 
@@ -57,16 +59,22 @@ namespace Retro {
 RtclRw11::RtclRw11(Tcl_Interp* interp, const char* name)
   : RtclProxyOwned<Rw11>("Rw11", interp, name, new Rw11()),
     fspServ(),
-    fGets()
+    fGets(),
+    fSets()
 {
   AddMeth("get",      boost::bind(&RtclRw11::M_get,     this, _1));
+  AddMeth("set",      boost::bind(&RtclRw11::M_set,     this, _1));
   AddMeth("start",    boost::bind(&RtclRw11::M_start,   this, _1));
   AddMeth("dump",     boost::bind(&RtclRw11::M_dump,    this, _1));
   AddMeth("$default", boost::bind(&RtclRw11::M_default, this, _1));
 
   Rw11* pobj = &Obj();
-  fGets.Add<bool>              ("started",boost::bind(&Rw11::IsStarted, pobj));  
+  fGets.Add<bool>           ("started",boost::bind(&Rw11::IsStarted, pobj));  
+  fGets.Add<const string&>  ("diskscheme",
+                             boost::bind(&Rw11VirtDisk::DefaultScheme));  
 
+  fSets.Add<const string&>  ("diskscheme",  
+                             boost::bind(&Rw11VirtDisk::SetDefaultScheme, _1));
 }
 
 //------------------------------------------+-----------------------------------
@@ -127,6 +135,16 @@ int RtclRw11::M_get(RtclArgs& args)
   // synchronize with server thread
   boost::lock_guard<RlinkConnect> lock(Obj().Connect());
   return fGets.M_get(args);
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+int RtclRw11::M_set(RtclArgs& args)
+{
+  // synchronize with server thread
+  boost::lock_guard<RlinkConnect> lock(Obj().Connect());
+  return fSets.M_set(args);
 }
 
 //------------------------------------------+-----------------------------------

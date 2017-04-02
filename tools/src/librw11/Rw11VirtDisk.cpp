@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDisk.cpp 864 2017-04-02 13:20:18Z mueller $
+// $Id: Rw11VirtDisk.cpp 867 2017-04-02 18:16:33Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   866   1.2    add default scheme handling
 // 2017-04-02   864   1.1    add Rw11VirtDiskOver
 // 2013-03-03   494   1.0    Initial version
 // 2013-02-13   488   0.1    First draft
@@ -20,13 +21,14 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtDisk.cpp 864 2017-04-02 13:20:18Z mueller $
+  \version $Id: Rw11VirtDisk.cpp 867 2017-04-02 18:16:33Z mueller $
   \brief   Implemenation of Rw11VirtDisk.
 */
 #include <memory>
 
 #include "librtools/RosFill.hpp"
 #include "librtools/RparseUrl.hpp"
+#include "librtools/Rexception.hpp"
 #include "Rw11VirtDiskFile.hpp"
 #include "Rw11VirtDiskOver.hpp"
 
@@ -42,6 +44,11 @@ using namespace std;
 // all method definitions in namespace Retro
 namespace Retro {
 
+//------------------------------------------+-----------------------------------
+// static definitions
+
+std::string Rw11VirtDisk::sDefaultScheme("file");
+  
 //------------------------------------------+-----------------------------------
 //! Default constructor
 
@@ -65,10 +72,24 @@ Rw11VirtDisk::~Rw11VirtDisk()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
+void Rw11VirtDisk::Dump(std::ostream& os, int ind, const char* text) const
+{
+  RosFill bl(ind);
+  os << bl << (text?text:"--") << "Rw11VirtDisk @ " << this << endl;
+
+  os << bl << "  fBlkSize:        " << fBlkSize << endl;
+  os << bl << "  fNBlock:         " << fNBlock << endl;
+  Rw11Virt::Dump(os, ind, " ^");
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
 Rw11VirtDisk* Rw11VirtDisk::New(const std::string& url, Rw11Unit* punit,
                                 RerrMsg& emsg)
 {
-  string scheme = RparseUrl::FindScheme(url, "file");
+  string scheme = RparseUrl::FindScheme(url, sDefaultScheme);
   unique_ptr<Rw11VirtDisk> p;
   
   if (scheme == "file") {                   // scheme -> file:
@@ -90,16 +111,21 @@ Rw11VirtDisk* Rw11VirtDisk::New(const std::string& url, Rw11Unit* punit,
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11VirtDisk::Dump(std::ostream& os, int ind, const char* text) const
+const std::string& Rw11VirtDisk::DefaultScheme()
 {
-  RosFill bl(ind);
-  os << bl << (text?text:"--") << "Rw11VirtDisk @ " << this << endl;
+  return sDefaultScheme;
+} 
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
 
-  os << bl << "  fBlkSize:        " << fBlkSize << endl;
-  os << bl << "  fNBlock:         " << fNBlock << endl;
-  Rw11Virt::Dump(os, ind, " ^");
+void Rw11VirtDisk::SetDefaultScheme(const std::string& scheme)
+{
+  if (scheme != "file" && scheme != "over")
+    throw Rexception("Rw11VirtDisk::SetDefaultScheme",
+                     "only 'file' or 'over' allowed");
+    
+  sDefaultScheme = scheme;
   return;
 }
-
-
+  
 } // end namespace Retro

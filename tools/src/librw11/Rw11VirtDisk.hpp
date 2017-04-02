@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDisk.hpp 864 2017-04-02 13:20:18Z mueller $
+// $Id: Rw11VirtDisk.hpp 867 2017-04-02 18:16:33Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   866   1.1    add default scheme handling
 // 2013-03-03   494   1.0    Initial version
 // 2013-02-13   488   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -20,12 +21,14 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtDisk.hpp 864 2017-04-02 13:20:18Z mueller $
+  \version $Id: Rw11VirtDisk.hpp 867 2017-04-02 18:16:33Z mueller $
   \brief   Declaration of class Rw11VirtDisk.
 */
 
 #ifndef included_Retro_Rw11VirtDisk
 #define included_Retro_Rw11VirtDisk 1
+
+#include <string>
 
 #include "Rw11Virt.hpp"
 
@@ -50,6 +53,9 @@ namespace Retro {
       static Rw11VirtDisk* New(const std::string& url, Rw11Unit* punit,
                                RerrMsg& emsg);
 
+      static const std::string& DefaultScheme();
+      static void   SetDefaultScheme(const std::string& scheme);
+
     // statistics counter indices
       enum stats {
         kStatNVDRead = Rw11Virt::kDimStat,
@@ -62,6 +68,9 @@ namespace Retro {
     protected:
       size_t        fBlkSize;               //<! block size in byte
       size_t        fNBlock;                //<! disk size in blocks
+    
+    protected:
+      static std::string sDefaultScheme;     //<! default scheme
   };
   
 } // end namespace Retro

@@ -1,6 +1,6 @@
-// $Id: RtclContext.hpp 490 2013-02-22 18:43:26Z mueller $
+// $Id: RtclContext.hpp 866 2017-04-02 17:20:13Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-04   866   1.0.4  rename fMapContext -> fContextMap
 // 2013-01-12   474   1.0.3  add FindProxy() method
 // 2011-04-24   380   1.0.2  use boost::noncopyable (instead of private dcl's)
 // 2011-03-12   368   1.0.1  drop fExitSeen, get exit handling right
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: RtclContext.hpp 490 2013-02-22 18:43:26Z mueller $
+  \version $Id: RtclContext.hpp 866 2017-04-02 17:20:13Z mueller $
   \brief   Declaration of class RtclContext.
 */
 
@@ -78,7 +79,7 @@ namespace Retro {
       cset_t        fSetClass;              //!< set for Class objects
       pset_t        fSetProxy;              //!< set for Proxy objects
 
-      static xmap_t fMapContext;            //!< map of contexts
+      static xmap_t fContextMap;            //!< map of contexts
   };
   
 } // end namespace Retro

@@ -17,6 +17,17 @@ software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases._
 
 ### Summary
+- more compact dumps, add Dump(..,detail); trace output with cntl name
+  - RlinkCommand: add CommandInfo()
+  - RtclCmdBase: add GetArgsDump()
+  - RlinkCommandList: Dump(): add detail arg
+  - Rstats: add NameMaxLength(); Print(): add counter name
+  - Rw11Cntl: use Dump(detail) for PrimClist ect
+  - Rw11CntlBase,Rw11Rdma*: Dump(): add detail arg
+  - Rw11Cntl*: Dump(): add detail arg; use cntl name as message prefix
+- RtclRw11Cntl: M_dump: use GetArgsDump and Dump detail
+- RtimerFd: first practical version
+- use clock_gettime instead of gettimeofday
 - add Rw11VirtDiskOver (simple overlay file container)
   - Rw11VirtDiskBuffer: added, disk buffer representation
   - Rw11VirtDiskOver: added, a 'keep changes in memory' overlay file container

@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.hpp 857 2017-02-26 15:27:41Z mueller $
+// $Id: Rw11Cpu.hpp 866 2017-04-02 17:20:13Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -33,7 +33,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cpu.hpp 857 2017-02-26 15:27:41Z mueller $
+  \version $Id: Rw11Cpu.hpp 866 2017-04-02 17:20:13Z mueller $
   \brief   Declaration of class Rw11Cpu.
 */
 
@@ -42,6 +42,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 #include "boost/utility.hpp"
 #include "boost/shared_ptr.hpp"

@@ -1,6 +1,6 @@
-// $Id: RtclContext.cpp 492 2013-02-24 22:14:47Z mueller $
+// $Id: RtclContext.cpp 866 2017-04-02 17:20:13Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-04   866   1.0.4  rename fMapContext -> fContextMap
 // 2013-02-03   481   1.0.3  use Rexception
 // 2013-01-12   474   1.0.2  add FindProxy() method
 // 2011-03-12   368   1.0.1  drop fExitSeen, get exit handling right
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: RtclContext.cpp 492 2013-02-24 22:14:47Z mueller $
+  \version $Id: RtclContext.cpp 866 2017-04-02 17:20:13Z mueller $
   \brief   Implemenation of RtclContext.
 */
 
@@ -45,7 +46,7 @@ namespace Retro {
 typedef std::pair<RtclContext::cset_it_t, bool>  cset_ins_t;
 typedef std::pair<RtclContext::pset_it_t, bool>  pset_ins_t;
 
-RtclContext::xmap_t RtclContext::fMapContext;
+RtclContext::xmap_t RtclContext::fContextMap;
 
 //------------------------------------------+-----------------------------------
 //! Default constructor
@@ -159,12 +160,12 @@ RtclProxyBase* RtclContext::FindProxy(const std::string& type,
 RtclContext& RtclContext::Find(Tcl_Interp* interp)
 {
   RtclContext* pcntx = 0;
-  xmap_it_t it = fMapContext.find(interp);
-  if (it != fMapContext.end()) {
+  xmap_it_t it = fContextMap.find(interp);
+  if (it != fContextMap.end()) {
     pcntx = it->second;
   } else {
     pcntx = new RtclContext(interp);
-    fMapContext.insert(xmap_val_t(interp, pcntx));
+    fContextMap.insert(xmap_val_t(interp, pcntx));
     Tcl_CreateExitHandler((Tcl_ExitProc*) ThunkTclExitProc, (ClientData) pcntx);
 
   }

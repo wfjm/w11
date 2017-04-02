@@ -1,4 +1,4 @@
-// $Id: RtclRw11.cpp 660 2015-03-29 22:10:16Z mueller $
+// $Id: RtclRw11.cpp 858 2017-03-05 17:41:37Z mueller $
 //
 // Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -21,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11.cpp 660 2015-03-29 22:10:16Z mueller $
+  \version $Id: RtclRw11.cpp 858 2017-03-05 17:41:37Z mueller $
   \brief   Implemenation of class RtclRw11.
  */
 
@@ -161,7 +161,7 @@ int RtclRw11::M_default(RtclArgs& args)
   if (!args.AllDone()) return kERR;
   ostringstream sos;
 
-  sos << "cpu type base : cntl  type ibbase  probe  lam boot" << endl;
+  sos << "cpu type base : cntl   type ibbase  probe  lam boot" << endl;
 
   for (size_t i=0; i<Obj().NCpu(); i++) {
     Rw11Cpu& cpu(Obj().Cpu(i));
@@ -175,7 +175,7 @@ int RtclRw11::M_default(RtclArgs& args)
       Rw11Cntl& cntl(cpu.Cntl(list[j]));
       const Rw11Probe& pstat(cntl.ProbeStatus());
       sos << "                 " << RosPrintf(cntl.Name().c_str(),"-s",4)
-          << " " << RosPrintf(cntl.Type().c_str(),"-s",4)
+          << " " << RosPrintf(cntl.Type().c_str(),"-s",5)
           << " " << RosPrintf(cntl.Base(),"o0",6)
           << "  ir=" << pstat.IndicatorInt() << "," << pstat.IndicatorRem();
       if (cntl.Lam() > 0) sos << " " << RosPrintf(cntl.Lam(),"d",3);

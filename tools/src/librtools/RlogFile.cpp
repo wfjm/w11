@@ -1,6 +1,6 @@
-// $Id: RlogFile.cpp 631 2015-01-09 21:36:51Z mueller $
+// $Id: RlogFile.cpp 858 2017-03-05 17:41:37Z mueller $
 //
-// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-03-04   858   2.2.1  use clock_gettime instead of gettimeofday
 // 2015-01-08   631   2.2    Open(): now with RerrMsg and cout/cerr support
 // 2014-12-10   611   2.1.2  timestamp now usec precision (was msec)
 // 2013-10-11   539   2.1.1  fix date print (month was off by one)
@@ -23,11 +24,11 @@
 
 /*!
   \file
-  \version $Id: RlogFile.cpp 631 2015-01-09 21:36:51Z mueller $
+  \version $Id: RlogFile.cpp 858 2017-03-05 17:41:37Z mueller $
   \brief   Implemenation of RlogFile.
 */
 
-#include <sys/time.h>
+#include <time.h>
 #include <errno.h>
 
 #include "boost/thread/locks.hpp"
@@ -136,11 +137,11 @@ void RlogFile::Write(const std::string& str, char tag)
   boost::lock_guard<RlogFile> lock(*this);
 
   if (tag) {
-    struct timeval tval;
-    ::gettimeofday(&tval, 0);
+    struct timespec ts;
+    ::clock_gettime(CLOCK_REALTIME, &ts);
 
     struct tm tymd;
-    ::localtime_r(&tval.tv_sec, &tymd);
+    ::localtime_r(&ts.tv_sec, &tymd);
 
     if (tymd.tm_year != fTagYear  ||
         tymd.tm_mon  != fTagMonth ||
@@ -160,7 +161,7 @@ void RlogFile::Write(const std::string& str, char tag)
        << RosPrintf(tymd.tm_hour,"d0",2) << ":"
        << RosPrintf(tymd.tm_min,"d0",2) << ":"
        << RosPrintf(tymd.tm_sec,"d0",2) << "."
-       << RosPrintf((int)tval.tv_usec,"d0",6) << " : ";
+       << RosPrintf((int)ts.tv_nsec/1000,"d0",6) << " : ";
   }
 
   os << str;

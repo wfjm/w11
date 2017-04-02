@@ -1,6 +1,6 @@
-// $Id: RlinkPortCuff.cpp 666 2015-04-12 21:17:54Z mueller $
+// $Id: RlinkPortCuff.cpp 858 2017-03-05 17:41:37Z mueller $
 //
-// Copyright 2012-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2012-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-03-04   858   1.1.4  use clock_gettime instead of gettimeofday
 // 2015-04-12   666   1.1.3  add noinit attribute
 // 2014-08-22   584   1.1.2  use nullptr
 // 2013-05-17   521   1.1.1  use Rtools::String2Long
@@ -25,13 +26,12 @@
 
 /*!
   \file
-  \version $Id: RlinkPortCuff.cpp 666 2015-04-12 21:17:54Z mueller $
+  \version $Id: RlinkPortCuff.cpp 858 2017-03-05 17:41:37Z mueller $
   \brief   Implemenation of RlinkPortCuff.
 */
 
 #include <errno.h>
 #include <unistd.h>
-#include <sys/time.h>
 #include <time.h>
 #include <stdio.h>
 #include <string.h>
@@ -492,15 +492,14 @@ libusb_transfer* RlinkPortCuff::NewWriteTransfer()
 bool RlinkPortCuff::TraceOn()
 {
   if (!fUrl.FindOpt("trace")) return false;
-  struct timeval tv;
-  struct timezone tz;
+  struct timespec ts;
   struct tm tmval;
 
-  ::gettimeofday(&tv, &tz);
-  ::localtime_r(&tv.tv_sec, &tmval);
+  ::clock_gettime(CLOCK_REALTIME, &ts);
+  ::localtime_r(&ts.tv_sec, &tmval);
   char buf[20];
   ::snprintf(buf, 20, "%02d:%02d:%02d.%06d: ", 
-             tmval.tm_hour, tmval.tm_min, tmval.tm_sec, (int) tv.tv_usec);
+             tmval.tm_hour, tmval.tm_min, tmval.tm_sec, (int) ts.tv_nsec/1000);
   cout << buf;
   return true;
 }

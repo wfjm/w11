@@ -17,6 +17,13 @@ software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases._
 
 ### Summary
+- add Rw11VirtDiskOver (simple overlay file container)
+  - Rw11VirtDiskBuffer: added, disk buffer representation
+  - Rw11VirtDiskOver: added, a 'keep changes in memory' overlay file container
+  - Rw11Virt: add fWProt,WProt()
+  - Rw11VirtDiskFile: adopt WProt handling
+  - RtclRw11Unit: add fpVirt,DetachCleanup(),AttachDone(),M_virt()
+  - RtclRw11UnitBase: add AttachDone()
 - tcl command handling update
   - support now sub-command handling
   - support dynamically created commands (like 'virt')

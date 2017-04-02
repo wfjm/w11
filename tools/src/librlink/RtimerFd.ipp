@@ -1,6 +1,6 @@
-// $Id: RtimerFd.ipp 488 2013-02-16 18:49:47Z mueller $
+// $Id: RtimerFd.ipp 851 2017-02-18 09:20:40Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,17 +13,34 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2013-01-11   473   1.0    Initial version
+// 2017-02-18   851   1.0    Initial version
+// 2013-01-11   473   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtimerFd.ipp 488 2013-02-16 18:49:47Z mueller $
+  \version $Id: RtimerFd.ipp 851 2017-02-18 09:20:40Z mueller $
   \brief   Implemenation (inline) of class RtimerFd.
 */
 
 // all method definitions in namespace Retro
 namespace Retro {
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline bool RtimerFd::IsOpen() const
+{
+  return fFd >= 0;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline void RtimerFd::SetRelative(double dt)
+{
+  return SetRelative(Rtime(dt));
+}
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
@@ -36,9 +53,9 @@ inline int RtimerFd::Fd() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline RtimerFd::operator int() const
+inline RtimerFd::operator bool() const
 {
-  return fFd;
+  return IsOpen();
 }
 
 } // end namespace Retro

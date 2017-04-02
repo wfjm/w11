@@ -1,6 +1,6 @@
-// $Id: RtimerFd.hpp 486 2013-02-10 22:34:43Z mueller $
+// $Id: RtimerFd.hpp 852 2017-02-18 12:43:31Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,21 +13,26 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2013-01-11   473   1.0    Initial version
+// 2017-02-18   852   1.0    Initial version
+// 2013-01-11   473   0.1    First draft
 // ---------------------------------------------------------------------------
 
 
 /*!
   \file
-  \version $Id: RtimerFd.hpp 486 2013-02-10 22:34:43Z mueller $
+  \version $Id: RtimerFd.hpp 852 2017-02-18 12:43:31Z mueller $
   \brief   Declaration of class \c RtimerFd.
 */
 
 #ifndef included_Retro_RtimerFd
 #define included_Retro_RtimerFd 1
 
+#include <time.h>
+
 #include "boost/utility.hpp"
-#include "boost/date_time/posix_time/posix_time_types.hpp"
+
+#include "librtools/Rtime.hpp"
+
 
 namespace Retro {
 
@@ -36,11 +41,16 @@ namespace Retro {
                     RtimerFd();
       virtual      ~RtimerFd();
 
-      int           Fd() const;
-      void          SetRelTimer(boost::posix_time::time_duration interval,
-                                boost::posix_time::time_duration initial);
+      void          Open(clockid_t clkid=CLOCK_MONOTONIC);
+      bool          IsOpen() const;
+      void          Close();
+      void          SetRelative(const Rtime& dt);
+      void          SetRelative(double dt);
+      void          Cancel();
+      uint64_t      Read();
 
-      operator      int() const;
+      int           Fd() const;
+      explicit      operator bool() const;
 
     protected:
 

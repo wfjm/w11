@@ -1,6 +1,6 @@
-// $Id: RtclCmdBase.hpp 511 2013-04-27 13:51:46Z mueller $
+// $Id: RtclCmdBase.hpp 863 2017-04-02 11:43:15Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,15 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   863   1.1    add DelMeth(),TstMeth(); add M_info() and '?'
+//                           rename fMapMeth -> fMethMap
 // 2013-04-26   511   1.0.1  AddMeth() now public
 // 2013-02-02   480   1.0    Initial version (refactored out from ProxyBase)
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclCmdBase.hpp 511 2013-04-27 13:51:46Z mueller $
+  \version $Id: RtclCmdBase.hpp 863 2017-04-02 11:43:15Z mueller $
   \brief   Declaration of class RtclCmdBase.
 */
 
@@ -52,15 +54,18 @@ namespace Retro {
 
       int           DispatchCmd(RtclArgs& args);
       void          AddMeth(const std::string& name, const methfo_t& methfo);
+      void          DelMeth(const std::string& name);
+      bool          TstMeth(const std::string& name);
 
     // some constants (also defined in cpp)
       static const int kOK  = TCL_OK;       //<!
       static const int kERR = TCL_ERROR;    //<!
 
     protected:
-    
+      int           M_info(RtclArgs& args);
+
     protected:
-      mmap_t        fMapMeth;               //!< map for named methods
+      mmap_t        fMethMap;               //!< map for named methods
   };
   
 } // end namespace Retro

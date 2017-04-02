@@ -1,6 +1,6 @@
-// $Id: RtclProxyBase.cpp 584 2014-08-22 19:38:12Z mueller $
+// $Id: RtclProxyBase.cpp 859 2017-03-11 22:36:45Z mueller $
 //
-// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-03-11   859   1.5    adopt new DispatchCmd() logic
 // 2014-08-22   584   1.4.3  use nullptr
 // 2013-02-09   485   1.4.2  add CommandName()
 // 2013-02-05   483   1.4.1  ClassCmdConfig: use RtclArgs
@@ -27,7 +28,7 @@
 
 /*!
   \file
-  \version $Id: RtclProxyBase.cpp 584 2014-08-22 19:38:12Z mueller $
+  \version $Id: RtclProxyBase.cpp 859 2017-03-11 22:36:45Z mueller $
   \brief   Implemenation of RtclProxyBase.
 */
 
@@ -114,7 +115,7 @@ void RtclProxyBase::CreateObjectCmd(Tcl_Interp* interp, const char* name)
 int RtclProxyBase::TclObjectCmd(Tcl_Interp* interp, int objc, 
                                 Tcl_Obj* const objv[])
 {
-  RtclArgs  args(interp, objc, objv, 2);
+  RtclArgs  args(interp, objc, objv, 1);
   return DispatchCmd(args);
 }
 

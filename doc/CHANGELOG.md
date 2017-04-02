@@ -17,6 +17,10 @@ software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases._
 
 ### Summary
+- move to Ubuntu 16.04 as development platform
+  - document urjtag build (jtag in Ubuntu 16.04 is broken)
+  - add environment sanity wrappers for acroread,awk,firefox to ensure
+    proper operation of vivado under Ubuntu 16.04
 - use Rtime; drop Rtools::TimeOfDayAsDouble()
 - probe/setup auxilliary devices: kw11l,kw11p,iist
 - librw11/Rw11Cpu: add ModLalh()

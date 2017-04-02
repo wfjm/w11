@@ -1,6 +1,6 @@
-// $Id: Rw11VirtTape.ipp 686 2015-06-04 21:08:08Z mueller $
+// $Id: Rw11VirtTape.ipp 864 2017-04-02 13:20:18Z mueller $
 //
-// Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   864   1.1    move fWProt,WProt() to Rw11Virt base
 // 2015-06-04   686   1.0    Initial version
 // 2015-05-17   683   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11VirtTape.ipp 686 2015-06-04 21:08:08Z mueller $
+  \version $Id: Rw11VirtTape.ipp 864 2017-04-02 13:20:18Z mueller $
   \brief   Implemenation (inline) of Rw11VirtTape.
 */
 
@@ -29,27 +30,10 @@ namespace Retro {
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline void Rw11VirtTape::SetWProt(bool wprot)
-{
-  fWProt = wprot;
-  return;
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
 inline void Rw11VirtTape::SetCapacity(size_t nbyte)
 {
   fCapacity = nbyte;
   return;
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-inline bool Rw11VirtTape::WProt() const
-{
-  return fWProt;
 }
 
 //------------------------------------------+-----------------------------------

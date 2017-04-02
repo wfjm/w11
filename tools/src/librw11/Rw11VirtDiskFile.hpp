@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDiskFile.hpp 509 2013-04-21 20:46:20Z mueller $
+// $Id: Rw11VirtDiskFile.hpp 859 2017-03-11 22:36:45Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtDiskFile.hpp 509 2013-04-21 20:46:20Z mueller $
+  \version $Id: Rw11VirtDiskFile.hpp 859 2017-03-11 22:36:45Z mueller $
   \brief   Declaration of class Rw11VirtDiskFile.
 */
 
@@ -45,6 +45,11 @@ namespace Retro {
                           RerrMsg& emsg);
 
       virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
+
+    // statistics counter indices (now new)
+      enum stats {
+        kDimStat = Rw11VirtDisk::kDimStat
+      };    
 
     protected:
       bool          Seek(size_t seekpos, RerrMsg& emsg);

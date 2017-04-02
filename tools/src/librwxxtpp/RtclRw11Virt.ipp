@@ -1,6 +1,6 @@
-// $Id: RtclRw11Unit.ipp 863 2017-04-02 11:43:15Z mueller $
+// $Id: RtclRw11Virt.ipp 859 2017-03-11 22:36:45Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,14 +13,13 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2013-03-03   494   1.0    Initial version
-// 2013-02-22   490   0.1    First draft
+// 2013-03-11   859   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclRw11Unit.ipp 863 2017-04-02 11:43:15Z mueller $
-  \brief   Implemenation (inline) of RtclRw11Unit.
+  \version $Id: RtclRw11Virt.ipp 859 2017-03-11 22:36:45Z mueller $
+  \brief   Implemenation (inline) of RtclRw11Virt.
 */
 
 // all method definitions in namespace Retro
@@ -29,17 +28,9 @@ namespace Retro {
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline RtclGetList& RtclRw11Unit::GetList()
+inline Rw11Virt* RtclRw11Virt::Virt() const
 {
-  return fGets;
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-inline RtclSetList& RtclRw11Unit::SetList()
-{
-  return fSets;
+  return fpVirt;
 }
 
 } // end namespace Retro

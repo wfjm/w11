@@ -1,6 +1,6 @@
-// $Id: RtclRw11UnitBase.ipp 680 2015-05-14 13:29:46Z mueller $
+// $Id: RtclRw11UnitBase.ipp 863 2017-04-02 11:43:15Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   863   1.2    add AttachDone()
 // 2015-05-14   680   1.1    fGets: add enabled (moved from RtclRw11UnitDisk)
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-16   488   0.1    First draft
@@ -20,11 +21,12 @@
 
 /*!
   \file
-  \version $Id: RtclRw11UnitBase.ipp 680 2015-05-14 13:29:46Z mueller $
+  \version $Id: RtclRw11UnitBase.ipp 863 2017-04-02 11:43:15Z mueller $
   \brief   Implemenation (all inline) of RtclRw11UnitBase.
 */
 
 #include "librtcltools/RtclStats.hpp"
+#include "RtclRw11VirtFactory.hpp"
 
 /*!
   \class Retro::RtclRw11UnitBase
@@ -73,6 +75,20 @@ template <class TO>
 inline const boost::shared_ptr<TO>& RtclRw11UnitBase<TO>::ObjSPtr()
 {
   return fspObj;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+template <class TO>
+void RtclRw11UnitBase<TO>::AttachDone()
+{
+  if (!Obj().Virt()) return;
+  RtclRw11Virt* pvirt=RtclRw11VirtFactory(Obj().Virt());
+  if (!pvirt) return;
+  fpVirt.reset(pvirt);
+  AddMeth("virt",  boost::bind(&RtclRw11Unit::M_virt, this, _1));
+  return;
 }
 
 //------------------------------------------+-----------------------------------

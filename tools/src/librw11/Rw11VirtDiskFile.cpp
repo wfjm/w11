@@ -1,6 +1,6 @@
-// $Id: Rw11VirtDiskFile.cpp 684 2015-05-24 14:10:59Z mueller $
+// $Id: Rw11VirtDiskFile.cpp 859 2017-03-11 22:36:45Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-03-11   859   1.1    use fWProt
 // 2013-04-14   506   1.0    Initial version
 // 2013-02-13   488   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11VirtDiskFile.cpp 684 2015-05-24 14:10:59Z mueller $
+  \version $Id: Rw11VirtDiskFile.cpp 859 2017-03-11 22:36:45Z mueller $
   \brief   Implemenation of Rw11VirtDiskFile.
 */
 
@@ -64,10 +65,10 @@ Rw11VirtDiskFile::~Rw11VirtDiskFile()
 bool Rw11VirtDiskFile::Open(const std::string& url, RerrMsg& emsg)
 {
   if (!fUrl.Set(url, "|wpro|", emsg)) return false;
-
-  bool wpro = fUrl.FindOpt("wpro");
   
-  int fd = ::open(fUrl.Path().c_str(), wpro ? O_RDONLY : O_RDWR);
+  fWProt = fUrl.FindOpt("wpro");
+  
+  int fd = ::open(fUrl.Path().c_str(), fWProt ? O_RDONLY : O_RDWR);
   if (fd < 0) {
     emsg.InitErrno("Rw11VirtDiskFile::Open()", 
                    string("open() for '") + fUrl.Path() + "' failed: ", errno);
@@ -80,6 +81,8 @@ bool Rw11VirtDiskFile::Open(const std::string& url, RerrMsg& emsg)
                    string("stat() for '") + fUrl.Path() + "' failed: ", errno);
     return false;
   }
+
+  if ((sbuf.st_mode & S_IWUSR) == 0) fWProt = true;
 
   fFd = fd;
   fSize = sbuf.st_size;

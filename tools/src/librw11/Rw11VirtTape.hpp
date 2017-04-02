@@ -1,6 +1,6 @@
-// $Id: Rw11VirtTape.hpp 686 2015-06-04 21:08:08Z mueller $
+// $Id: Rw11VirtTape.hpp 864 2017-04-02 13:20:18Z mueller $
 //
-// Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   864   1.1    move fWProt,WProt() to Rw11Virt base
 // 2015-06-04   686   1.0    Initial version
 // 2015-05-17   683   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtTape.hpp 686 2015-06-04 21:08:08Z mueller $
+  \version $Id: Rw11VirtTape.hpp 864 2017-04-02 13:20:18Z mueller $
   \brief   Declaration of class Rw11VirtTape.
 */
 
@@ -36,9 +37,7 @@ namespace Retro {
       explicit      Rw11VirtTape(Rw11Unit* punit);
                    ~Rw11VirtTape();
 
-      void          SetWProt(bool wprot);
       void          SetCapacity(size_t nbyte);
-      bool          WProt() const;
       size_t        Capacity() const;
 
       virtual bool  ReadRecord(size_t nbyte, uint8_t* data, size_t& ndone, 
@@ -96,7 +95,6 @@ namespace Retro {
       };
 
     protected:
-      bool          fWProt;                 //<! write protected
       size_t        fCapacity;              //<! capacity in byte (0=unlimited)
       bool          fBot;                   //<! tape at bot
       bool          fEot;                   //<! tape beyond eot

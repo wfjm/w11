@@ -1,6 +1,6 @@
-// $Id: Rw11Virt.cpp 864 2017-04-02 13:20:18Z mueller $
+// $Id: Rw11VirtDiskBuffer.ipp 859 2017-03-11 22:36:45Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,69 +13,48 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2017-04-02   864   1.1    add fWProt,WProt()
-// 2013-03-06   495   1.0    Initial version
-// 2013-02-13   488   0.1    First draft
+// 2017-03-10   859   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11Virt.cpp 864 2017-04-02 13:20:18Z mueller $
-  \brief   Implemenation of Rw11Virt.
-*/
-
-#include "librtools/RosFill.hpp"
-
-#include "Rw11Virt.hpp"
-
-using namespace std;
-
-/*!
-  \class Retro::Rw11Virt
-  \brief FIXME_docs
+  \version $Id: Rw11VirtDiskBuffer.ipp 859 2017-03-11 22:36:45Z mueller $
+  \brief   Implemenation (inline) of Rw11VirtDiskBuffer.
 */
 
 // all method definitions in namespace Retro
 namespace Retro {
 
 //------------------------------------------+-----------------------------------
-//! Default constructor
-
-Rw11Virt::Rw11Virt(Rw11Unit* punit)
-  : fpUnit(punit),
-    fUrl(),
-    fWProt(false),
-    fStats()
-{}
-
-//------------------------------------------+-----------------------------------
-//! Destructor
-
-Rw11Virt::~Rw11Virt()
-{}
-
-//------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-bool Rw11Virt::WProt() const
+inline size_t Rw11VirtDiskBuffer::BlockSize() const
 {
-  return fWProt;
+  return fBuf.size();
 }
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11Virt::Dump(std::ostream& os, int ind, const char* text) const
+inline uint8_t* Rw11VirtDiskBuffer::Data()
 {
-  RosFill bl(ind);
-  os << bl << (text?text:"--") << "Rw11Virt @ " << this << endl;
-
-  os << bl << "  fpUnit:          " << fpUnit << endl;
-  fUrl.Dump(os, ind+2, "fUrl: ");
-  os << bl << "  fWProt:          " << fWProt << endl;
-  fStats.Dump(os, ind+2, "fStats: ");
-  return;
+  return fBuf.data();
 }
 
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline const uint8_t* Rw11VirtDiskBuffer::Data() const
+{
+  return fBuf.data();
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline uint32_t Rw11VirtDiskBuffer::NWrite() const
+{
+  return fNWrite;
+}
 
 } // end namespace Retro

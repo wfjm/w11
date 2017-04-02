@@ -1,6 +1,6 @@
-// $Id: RtclRw11UnitDisk.hpp 863 2017-04-02 11:43:15Z mueller $
+// $Id: RtclRw11VirtBase.hpp 859 2017-03-11 22:36:45Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,40 +13,38 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2013-04-19   507   1.0    Initial version
-// 2013-02-22   490   0.1    First draft
+// 2017-03-11   859   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 
 /*!
   \file
-  \version $Id: RtclRw11UnitDisk.hpp 863 2017-04-02 11:43:15Z mueller $
-  \brief   Declaration of class RtclRw11UnitDisk.
+  \version $Id: RtclRw11VirtBase.hpp 859 2017-03-11 22:36:45Z mueller $
+  \brief   Declaration of class RtclRw11VirtBase.
 */
 
-#ifndef included_Retro_RtclRw11UnitDisk
-#define included_Retro_RtclRw11UnitDisk 1
+#ifndef included_Retro_RtclRw11VirtBase
+#define included_Retro_RtclRw11VirtBase 1
 
-#include "librw11/Rw11UnitDisk.hpp"
-
-#include "RtclRw11Unit.hpp"
+#include "RtclRw11Virt.hpp"
 
 namespace Retro {
 
-  class RtclRw11UnitDisk {
+  template <class TO>
+  class RtclRw11VirtBase : public RtclRw11Virt {
     public:
-                    RtclRw11UnitDisk(RtclRw11Unit* ptcl, Rw11UnitDisk* pobj);
-                   ~RtclRw11UnitDisk();
+                    RtclRw11VirtBase(TO* pobj);
+                   ~RtclRw11VirtBase();
+
+      TO&           Obj();
 
     protected:
-
-    protected:
-      RtclRw11Unit* fpTcl;
-      Rw11UnitDisk* fpObj;
+      TO*           fpObj;                 //!< ptr to object
   };
   
 } // end namespace Retro
 
-//#include "RtclRw11UnitDisk.ipp"
+// implementation is all inline
+#include "RtclRw11VirtBase.ipp"
 
 #endif

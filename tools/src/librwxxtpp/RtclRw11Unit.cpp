@@ -1,6 +1,6 @@
-// $Id: RtclRw11Unit.cpp 504 2013-04-13 15:37:24Z mueller $
+// $Id: RtclRw11Unit.cpp 863 2017-04-02 11:43:15Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,19 +13,21 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   863   1.1    add fpVirt; add DetachCleanup()
 // 2013-03-03   494   1.0    Initial version
 // 2013-02-16   488   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclRw11Unit.cpp 504 2013-04-13 15:37:24Z mueller $
+  \version $Id: RtclRw11Unit.cpp 863 2017-04-02 11:43:15Z mueller $
   \brief   Implemenation of RtclRw11Unit.
 */
 
 #include "boost/thread/locks.hpp"
 #include "boost/bind.hpp"
 
+#include "librtools/Rexception.hpp"
 #include "librtcltools/RtclStats.hpp"
 
 #include "RtclRw11Unit.hpp"
@@ -47,7 +49,8 @@ RtclRw11Unit::RtclRw11Unit(const std::string& type, Rw11Cpu* pcpu)
   : RtclProxyBase(type),
     fpCpu(pcpu),
     fGets(),
-    fSets()
+    fSets(),
+    fpVirt()
 {
   AddMeth("get",      boost::bind(&RtclRw11Unit::M_get,     this, _1));
   AddMeth("set",      boost::bind(&RtclRw11Unit::M_set,     this, _1));
@@ -62,6 +65,17 @@ RtclRw11Unit::RtclRw11Unit(const std::string& type, Rw11Cpu* pcpu)
 
 RtclRw11Unit::~RtclRw11Unit()
 {}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void RtclRw11Unit::DetachCleanup()
+{
+  if (!fpVirt) return;
+  DelMeth("virt");
+  fpVirt.reset();
+  return;
+}
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
@@ -96,7 +110,10 @@ int RtclRw11Unit::M_attach(RtclArgs& args)
   RerrMsg emsg;
   // synchronize with server thread
   boost::lock_guard<RlinkConnect> lock(fpCpu->Connect());
+
+  DetachCleanup();
   if (!Obj().Attach(url, emsg)) return args.Quit(emsg);
+  AttachDone();
   return kOK;
 }
 
@@ -111,6 +128,19 @@ int RtclRw11Unit::M_detach(RtclArgs& args)
   boost::lock_guard<RlinkConnect> lock(fpCpu->Connect());
   Obj().Detach();
   return kOK;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+int RtclRw11Unit::M_virt(RtclArgs& args)
+{
+  if (!fpVirt) throw Rexception("RtclRw11Unit::M_virt:",
+                                "Bad state: fpVirt == nullptr");
+  
+  // synchronize with server thread
+  boost::lock_guard<RlinkConnect> lock(fpCpu->Connect());
+  return fpVirt->DispatchCmd(args);
 }
 
 //------------------------------------------+-----------------------------------

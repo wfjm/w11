@@ -1,4 +1,4 @@
-// $Id: Rw11UnitTapeBase.ipp 686 2015-06-04 21:08:08Z mueller $
+// $Id: Rw11UnitTapeBase.ipp 864 2017-04-02 13:20:18Z mueller $
 //
 // Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,7 @@
 
 /*!
   \file
-  \version $Id: Rw11UnitTapeBase.ipp 686 2015-06-04 21:08:08Z mueller $
+  \version $Id: Rw11UnitTapeBase.ipp 864 2017-04-02 13:20:18Z mueller $
   \brief   Implemenation (inline) of Rw11UnitTapeBase.
 */
 
@@ -78,8 +78,7 @@ void Rw11UnitTapeBase<TC>::Dump(std::ostream& os, int ind,
 template <class TC>
 void  Rw11UnitTapeBase<TC>::AttachDone()
 {
-  // transfer, if defined, wprot and capacity from unit to virt
-  if (WProt()) Virt()->SetWProt(true);
+  // transfer, if defined capacity from unit to virt
   if (Capacity()!=0 && Virt()->Capacity()==0) Virt()->SetCapacity(Capacity());
   Cntl().UnitSetup(Index());
   return;

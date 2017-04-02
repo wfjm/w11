@@ -1,6 +1,6 @@
-// $Id: Rw11VirtStream.cpp 516 2013-05-05 21:24:52Z mueller $
+// $Id: Rw11VirtStream.cpp 864 2017-04-02 13:20:18Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   864   1.0.2  signal for input streams WProt
 // 2013-05-05   516   1.0.1  Open(): support ?app and ?bck=n options
 // 2013-05-04   515   1.0    Initial version
 // 2013-05-01   513   0.1    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtStream.cpp 516 2013-05-05 21:24:52Z mueller $
+  \version $Id: Rw11VirtStream.cpp 864 2017-04-02 13:20:18Z mueller $
   \brief   Implemenation of Rw11VirtStream.
 */
 #include <memory>
@@ -88,6 +89,7 @@ bool Rw11VirtStream::Open(const std::string& url, RerrMsg& emsg)
     fFile = ::fopen(fUrl.Path().c_str(), fUrl.FindOpt("app") ? "a" : "w");
 
   } else {                                  // handle input  streams
+    fWProt = true;
     if (!fUrl.Set(url, "", emsg)) return false;
     fFile = ::fopen(fUrl.Path().c_str(), "r");
   }

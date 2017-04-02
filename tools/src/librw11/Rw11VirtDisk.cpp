@@ -1,6 +1,6 @@
-// $Id: Rw11VirtDisk.cpp 509 2013-04-21 20:46:20Z mueller $
+// $Id: Rw11VirtDisk.cpp 864 2017-04-02 13:20:18Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   864   1.1    add Rw11VirtDiskOver
 // 2013-03-03   494   1.0    Initial version
 // 2013-02-13   488   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11VirtDisk.cpp 509 2013-04-21 20:46:20Z mueller $
+  \version $Id: Rw11VirtDisk.cpp 864 2017-04-02 13:20:18Z mueller $
   \brief   Implemenation of Rw11VirtDisk.
 */
 #include <memory>
@@ -27,6 +28,7 @@
 #include "librtools/RosFill.hpp"
 #include "librtools/RparseUrl.hpp"
 #include "Rw11VirtDiskFile.hpp"
+#include "Rw11VirtDiskOver.hpp"
 
 #include "Rw11VirtDisk.hpp"
 
@@ -71,6 +73,10 @@ Rw11VirtDisk* Rw11VirtDisk::New(const std::string& url, Rw11Unit* punit,
   
   if (scheme == "file") {                   // scheme -> file:
     p.reset(new Rw11VirtDiskFile(punit));
+    if (p->Open(url, emsg)) return p.release();
+
+  } else if (scheme == "over") {            // scheme -> over:
+    p.reset(new Rw11VirtDiskOver(punit));
     if (p->Open(url, emsg)) return p.release();
 
   } else {                                  // scheme -> no match

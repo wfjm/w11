@@ -17,6 +17,10 @@ software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases._
 
 ### Summary
+- tcl command handling update
+  - support now sub-command handling
+  - support dynamically created commands (like 'virt')
+  - support command info (via '?' option)
 - move to Ubuntu 16.04 as development platform
   - document urjtag build (jtag in Ubuntu 16.04 is broken)
   - add environment sanity wrappers for acroread,awk,firefox to ensure

@@ -1,6 +1,6 @@
-// $Id: Rw11VirtDisk.hpp 509 2013-04-21 20:46:20Z mueller $
+// $Id: Rw11VirtDisk.hpp 864 2017-04-02 13:20:18Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtDisk.hpp 509 2013-04-21 20:46:20Z mueller $
+  \version $Id: Rw11VirtDisk.hpp 864 2017-04-02 13:20:18Z mueller $
   \brief   Declaration of class Rw11VirtDisk.
 */
 

@@ -1,4 +1,4 @@
-// $Id: Rw11CntlTM11.cpp 857 2017-02-26 15:27:41Z mueller $
+// $Id: Rw11CntlTM11.cpp 865 2017-04-02 16:45:06Z mueller $
 //
 // Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -15,6 +15,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   865   1.0.4  Dump(): add detail arg
+// 2017-03-03   858   1.0.3  use cntl name as message prefix
 // 2017-02-26   857   1.0.2  use kCPAH_M_UBM22
 // 2015-06-06   690   1.0.1  BUGFIX: AddFastExit() check for Virt() defined
 // 2015-06-04   686   1.0    Initial version
@@ -23,7 +25,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlTM11.cpp 857 2017-02-26 15:27:41Z mueller $
+  \version $Id: Rw11CntlTM11.cpp 865 2017-04-02 16:45:06Z mueller $
   \brief   Implemenation of Rw11CntlTM11.
 */
 
@@ -273,7 +275,8 @@ bool Rw11CntlTM11::BootCode(size_t unit, std::vector<uint16_t>& code,
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11CntlTM11::Dump(std::ostream& os, int ind, const char* text) const
+void Rw11CntlTM11::Dump(std::ostream& os, int ind, const char* text,
+                        int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11CntlTM11 @ " << this << endl;
@@ -291,8 +294,8 @@ void Rw11CntlTM11::Dump(std::ostream& os, int ind, const char* text) const
   os << bl << "  fRd_fu:          " << fRd_fu  << endl;
   os << bl << "  fRd_opcode:      " << fRd_opcode  << endl;
   os << bl << "  fBuf.size()      " << RosPrintf(fBuf.size(),"d",6) << endl;
-  fRdma.Dump(os, ind+2, "fRdma: ");
-  Rw11CntlBase<Rw11UnitTM11,4>::Dump(os, ind, " ^");
+  fRdma.Dump(os, ind+2, "fRdma: ", detail);
+  Rw11CntlBase<Rw11UnitTM11,4>::Dump(os, ind, " ^", detail);
   return;
 }
   
@@ -327,7 +330,7 @@ int Rw11CntlTM11::AttnHandler(RlinkServer::AttnArgs& args)
     RlogMsg lmsg(LogFile());
     static const char* fumnemo[8] = 
       {"un ","rd ","wr ","we ","sf ","sb ","wi ","re "};
-    lmsg << "-I TM11"
+    lmsg << "-I " << Name() << ":"
          << " fu=" << fumnemo[fu&07]
          << " un=" << unum
          << " cr=" << RosPrintBvi(tmcr,8)
@@ -340,8 +343,8 @@ int Rw11CntlTM11::AttnHandler(RlinkServer::AttnArgs& args)
   // check for spurious interrupts (either RDY=1 or RDY=0 and rdma busy)
   if ((tmcr & kTMCR_M_RDY) || fRdma.IsActive()) {
     RlogMsg lmsg(LogFile());
-    lmsg << "-E TM11   err "
-         << " cr=" << RosPrintBvi(tmcr,8)
+    lmsg << "-E " << Name() << ":   err"
+         << "  cr=" << RosPrintBvi(tmcr,8)
          << " spurious lam: "
          << (fRdma.IsActive() ? "RDY=0 and Rdma busy" : "RDY=1");
     return 0;
@@ -386,7 +389,7 @@ int Rw11CntlTM11::AttnHandler(RlinkServer::AttnArgs& args)
     unit.Detach();
     AddFastExit(clist, opcode, 0);
     RlogMsg lmsg(LogFile());
-    lmsg << "-I TM11"
+    lmsg << "-I " << Name() << ":"
          << " unit " << unum << "unload";
 
   } else if (fu == kFUNC_READ) {            // Read --------------------------
@@ -487,9 +490,7 @@ void Rw11CntlTM11::AddErrorExit(RlinkCommandList& clist, uint16_t tmcr)
   cpu.AddWibr(clist, fBase+kTMCR, tmcr);
   if (fTraceLevel>1) {
     RlogMsg lmsg(LogFile());
-    lmsg << "-I TM11"
-         << "   err "
-         << "     "
+    lmsg << "-I " << Name() << ":   err      "
          << " cr=" << RosPrintBvi(tmcr,8);
   }
 
@@ -545,8 +546,7 @@ void Rw11CntlTM11::AddFastExit(RlinkCommandList& clist, int opcode, size_t ndone
  if (fTraceLevel>1) {
     RlogMsg lmsg(LogFile());
     bool err = tmcr & (kTMCR_M_RBTE);
-    lmsg << "-I TM11"
-         << (err ? "   err " :"    ok ")
+    lmsg << "-I " << Name() << (err ? ":   err " : ":    ok ")
          << " un=" << unum
          << " cr=" << RosPrintBvi(tmcr,8)
          << "          "
@@ -619,8 +619,7 @@ void Rw11CntlTM11::AddNormalExit(RlinkCommandList& clist, size_t ndone,
  if (fTraceLevel>1) {
     RlogMsg lmsg(LogFile());
     bool err = tmcr & (kTMCR_M_RPAE|kTMCR_M_RRLE|kTMCR_M_RBTE|kTMCR_M_RNXM);
-    lmsg << "-I TM11"
-         << (err ? "   err " :"    ok ")
+    lmsg << "-I " << Name() << (err ? ":   err " : ":    ok ")
          << " un=" << unum
          << " cr=" << RosPrintBvi(tmcr,8)
          << " ad=" << RosPrintBvi(addr,8,18)
@@ -637,7 +636,7 @@ void Rw11CntlTM11::AddNormalExit(RlinkCommandList& clist, size_t ndone,
 void Rw11CntlTM11::WriteLog(const char* func, RerrMsg&  emsg)
 {
   RlogMsg lmsg(LogFile());
-  lmsg << "-E TM11"
+  lmsg << "-E " << Name() << ":"
        << " error for func=" << func
        << ":" << emsg;
 

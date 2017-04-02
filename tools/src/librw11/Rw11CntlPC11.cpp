@@ -1,6 +1,6 @@
-// $Id: Rw11CntlPC11.cpp 659 2015-03-22 23:15:51Z mueller $
+// $Id: Rw11CntlPC11.cpp 865 2017-04-02 16:45:06Z mueller $
 //
-// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   865   1.2.2  Dump(): add detail arg
+// 2017-03-03   858   1.2.1  use cntl name as message prefix
 // 2014-12-30   625   1.2    adopt to Rlink V4 attn logic
 // 2014-12-25   621   1.1    adopt to 4k word ibus window
 // 2013-05-03   515   1.0    Initial version
@@ -20,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlPC11.cpp 659 2015-03-22 23:15:51Z mueller $
+  \version $Id: Rw11CntlPC11.cpp 865 2017-04-02 16:45:06Z mueller $
   \brief   Implemenation of Rw11CntlPC11.
 */
 
@@ -232,13 +234,14 @@ void Rw11CntlPC11::UnitSetup(size_t ind)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11CntlPC11::Dump(std::ostream& os, int ind, const char* text) const
+void Rw11CntlPC11::Dump(std::ostream& os, int ind, const char* text,
+                        int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11CntlPC11 @ " << this << endl;
   os << bl << "  fPC_pbuf:        " << fPC_pbuf << endl;
 
-  Rw11CntlBase<Rw11UnitPC11,2>::Dump(os, ind, " ^");
+  Rw11CntlBase<Rw11UnitPC11,2>::Dump(os, ind, " ^", detail);
   return;
 }
   
@@ -257,7 +260,7 @@ int Rw11CntlPC11::AttnHandler(RlinkServer::AttnArgs& args)
 
   if (fTraceLevel>0) {
     RlogMsg lmsg(LogFile());
-    lmsg << "-I PC11." << Name()
+    lmsg << "-I " << Name() << ":"
          << " pbuf=" << RosPrintBvi(pbuf,8)
          << " pval=" << pval
          << " rbusy=" << rbusy;

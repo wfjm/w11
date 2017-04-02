@@ -1,6 +1,6 @@
-// $Id: Rw11Rdma.cpp 648 2015-02-20 20:16:21Z mueller $
+// $Id: Rw11Rdma.cpp 865 2017-04-02 16:45:06Z mueller $
 //
-// Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   865   1.1.1  Dump(): add detail arg
 // 2015-02-17   647   1.1    PreExecCB with nwdone and nwnext
 // 2015-01-04   627   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11Rdma.cpp 648 2015-02-20 20:16:21Z mueller $
+  \version $Id: Rw11Rdma.cpp 865 2017-04-02 16:45:06Z mueller $
   \brief   Implemenation of Rw11Rdma.
 */
 
@@ -115,7 +116,8 @@ void Rw11Rdma::QueueWMem(uint32_t addr, const uint16_t* block, size_t size,
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11Rdma::Dump(std::ostream& os, int ind, const char* text) const
+void Rw11Rdma::Dump(std::ostream& os, int ind, const char* text,
+                    int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11Rdma @ " << this << endl;
@@ -129,7 +131,7 @@ void Rw11Rdma::Dump(std::ostream& os, int ind, const char* text) const
   os << bl << "  fNWordRest:      " << RosPrintf(fNWordRest,"d",4) << endl;
   os << bl << "  fNWordDone:      " << RosPrintf(fNWordDone,"d",4) << endl;
   os << bl << "  fpBlock:         " << fpBlock << endl;
-  fStats.Dump(os, ind+2, "fStats: ");
+  fStats.Dump(os, ind+2, "fStats: ", detail-1);
   return;
 }
 

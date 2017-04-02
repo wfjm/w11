@@ -1,4 +1,4 @@
-// $Id: Rstats.cpp 851 2017-02-18 09:20:40Z mueller $
+// $Id: Rstats.cpp 865 2017-04-02 16:45:06Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-04   865   1.0.4  add NameMaxLength(); Print(): add counter name
 // 2017-02-18   851   1.0.3  add IncLogHist; fix + and * operator definition
 // 2013-02-03   481   1.0.2  use Rexception
 // 2011-03-06   367   1.0.1  use max from algorithm
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: Rstats.cpp 851 2017-02-18 09:20:40Z mueller $
+  \version $Id: Rstats.cpp 865 2017-04-02 16:45:06Z mueller $
   \brief   Implemenation of Rstats .
 */
 
@@ -140,6 +141,18 @@ void Rstats::SetFormat(const char* format, int width, int prec)
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
+size_t Rstats::NameMaxLength() const
+{
+  size_t maxlen = 0;
+  for (size_t i=0; i<Size(); i++) {
+    size_t len = fName[i].length();
+    if (len > maxlen) maxlen = len;
+  }
+  return maxlen;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
 
 void Rstats::Print(std::ostream& os, const char* format,
                    int width, int prec) const
@@ -149,9 +162,11 @@ void Rstats::Print(std::ostream& os, const char* format,
     width  = fWidth;
     prec   = fPrec;
   }
-  
+
+  size_t maxlen = NameMaxLength();
   for (size_t i=0; i<Size(); i++) {
     os << RosPrintf(fValue[i], format, width, prec)
+       << " : " << RosPrintf(fName[i].c_str(),"-s",maxlen) 
        << " : " << fText[i] << endl;
   }
   return;
@@ -160,19 +175,29 @@ void Rstats::Print(std::ostream& os, const char* format,
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rstats::Dump(std::ostream& os, int ind, const char* text) const
+void Rstats::Dump(std::ostream& os, int ind, const char* text,
+                  int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rstats @ " << this << endl;
-
-  size_t maxlen=8;
-  for (size_t i=0; i<Size(); i++) maxlen = max(maxlen, fName[i].length());
-  
-  for (size_t i=0; i<Size(); i++) {
-    os << bl << "  " << fName[i] << ":" << RosFill(maxlen-fName[i].length()+1)
-       << RosPrintf(fValue[i], "f", 12)
-       << "  '" << fText[i] << "'" << endl;
+  if (detail >= 0) {                      // full dump
+    size_t maxlen=8;
+    for (size_t i=0; i<Size(); i++) maxlen = max(maxlen, fName[i].length());
+    
+    for (size_t i=0; i<Size(); i++) {
+      os << bl << "  " << fName[i] << ":" << RosFill(maxlen-fName[i].length()+1)
+         << RosPrintf(fValue[i], "f", 12)
+         << "  '" << fText[i] << "'" << endl;
+    }
+  }  else {
+    os << bl << "  fValue.size():      "
+       << RosPrintf(fValue.size(),"d",2) << endl;
   }
+
+  os << bl << "  fHash:              " << RosPrintf(fHash,"x",8) << endl;
+  os << bl << "  fFormat,Width,Prec: " << fFormat
+     << ", " << RosPrintf(fWidth,"d",2)
+     << ", " << RosPrintf(fPrec,"d",2)  << endl;
 
   return;
 }

@@ -1,6 +1,6 @@
-// $Id: Rw11CntlRHRP.cpp 720 2015-12-28 14:52:45Z mueller $
+// $Id: Rw11CntlRHRP.cpp 865 2017-04-02 16:45:06Z mueller $
 //
-// Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
 //   the boot code is from the simh project and Copyright Robert M Supnik
 // 
@@ -15,6 +15,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   865   1.0.5  Dump(): add detail arg
+// 2017-03-03   858   1.0.4  use cntl name as message prefix
 // 2015-12-28   720   1.0.3  use octal for er1= printouts
 // 2015-06-04   686   1.0.2  check for spurious lams
 // 2015-05-24   684   1.0.1  fixed rpcs2 update for wcheck and nem aborts
@@ -24,7 +26,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlRHRP.cpp 720 2015-12-28 14:52:45Z mueller $
+  \version $Id: Rw11CntlRHRP.cpp 865 2017-04-02 16:45:06Z mueller $
   \brief   Implemenation of Rw11CntlRHRP.
 */
 
@@ -360,7 +362,8 @@ bool Rw11CntlRHRP::BootCode(size_t unit, std::vector<uint16_t>& code,
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11CntlRHRP::Dump(std::ostream& os, int ind, const char* text) const
+void Rw11CntlRHRP::Dump(std::ostream& os, int ind, const char* text,
+                        int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11CntlRHRP @ " << this << endl;
@@ -388,8 +391,8 @@ void Rw11CntlRHRP::Dump(std::ostream& os, int ind, const char* text) const
   os << bl << "  fRd_nwrd:        " << RosPrintf(fRd_nwrd,"d",6) << endl;
   os << bl << "  fRd_fu:          " << RosPrintf(fRd_fu,"d",6) << endl;
   os << bl << "  fRd_ovr:         " << fRd_ovr  << endl;
-  fRdma.Dump(os, ind+2, "fRdma: ");
-  Rw11CntlBase<Rw11UnitRHRP,4>::Dump(os, ind, " ^");
+  fRdma.Dump(os, ind+2, "fRdma: ", detail);
+  Rw11CntlBase<Rw11UnitRHRP,4>::Dump(os, ind, " ^", detail);
   return;
 }
   
@@ -440,7 +443,7 @@ int Rw11CntlRHRP::AttnHandler(RlinkServer::AttnArgs& args)
        "10 ","11 ","12 ","13 ","14 ","15 ","16 ","17 ",    // 01---
        "20 ","21 ","22 ","23 ","wc ","wch","26 ","27 ",    // 10---
        "wr ","wrh","32 ","33 ","rd ","rdh","36 ","37 "};   // 11---
-    lmsg << "-I RHRP"
+    lmsg << "-I " << Name() << ":"
          << " fu=" << fumnemo[fu&037]
          << " cs=" << RosPrintBvi(rpcs1,8)
          << "," << RosPrintBvi(rpcs2,8)
@@ -610,8 +613,7 @@ void Rw11CntlRHRP::AddErrorExit(RlinkCommandList& clist, uint16_t rper1)
 
   if (fTraceLevel>1) {
     RlogMsg lmsg(LogFile());
-    lmsg << "-I RHRP"
-         << "   err "
+    lmsg << "-I " << Name() << ":   err "
          << " cs1=" << RosPrintBvi(fRd_rpcs1,8)
          << " er1=" << RosPrintBvi(rper1,8);
   }
@@ -661,14 +663,12 @@ void Rw11CntlRHRP::AddNormalExit(RlinkCommandList& clist, size_t ndone,
   if (fTraceLevel>1) {
     RlogMsg lmsg(LogFile());
     if (rper1 || rpcs2) {
-      lmsg << "-I RHRP"
-           << "   err "
+      lmsg << "-I " << Name() << ":   err "
            << " er1=" << RosPrintBvi(rper1,8)
            << " cs2=" << RosPrintBvi(rpcs2,8,8)
            << endl;
     }
-    lmsg << "-I RHRP"
-         << (rper1==0 ? "    ok " :"   err ")
+    lmsg << "-I " << Name() << (rper1==0 ? ":    ok " : ":   err ")
          << " we=" << RosPrintBvi(wc,8) << "," << RosPrintBvi(rper1,8)
          << " ad=" << RosPrintBvi(addr,8,22)
          << " pa=" << unum

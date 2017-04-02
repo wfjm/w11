@@ -1,6 +1,6 @@
-// $Id: RlinkCommandList.hpp 661 2015-04-03 18:28:41Z mueller $
+// $Id: RlinkCommandList.hpp 865 2017-04-02 16:45:06Z mueller $
 //
-// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   865   1.3.1  Dump(): add detail arg
 // 2015-04-02   661   1.3    expect logic: add SetLastExpect methods
 // 2014-11-23   606   1.2    new rlink v4 iface
 // 2014-08-02   576   1.1    rename LastExpect->SetLastExpect
@@ -24,7 +25,7 @@
 
 /*!
   \file
-  \version $Id: RlinkCommandList.hpp 661 2015-04-03 18:28:41Z mueller $
+  \version $Id: RlinkCommandList.hpp 865 2017-04-02 16:45:06Z mueller $
   \brief   Declaration of class RlinkCommandList.
 */
 
@@ -82,7 +83,8 @@ namespace Retro {
       void          Print(std::ostream& os, const RlinkAddrMap* pamap=0, 
                           size_t abase=16, size_t dbase=16, 
                           size_t sbase=16) const;
-      void          Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      void          Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
 
       RlinkCommandList& operator=(const RlinkCommandList& rhs);
 

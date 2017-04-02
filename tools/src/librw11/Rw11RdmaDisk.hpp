@@ -1,6 +1,6 @@
-// $Id: Rw11RdmaDisk.hpp 648 2015-02-20 20:16:21Z mueller $
+// $Id: Rw11RdmaDisk.hpp 865 2017-04-02 16:45:06Z mueller $
 //
-// Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   865   1.0.1  Dump(): add detail arg
 // 2015-01-04   627   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 
 /*!
   \file
-  \version $Id: Rw11RdmaDisk.hpp 648 2015-02-20 20:16:21Z mueller $
+  \version $Id: Rw11RdmaDisk.hpp 865 2017-04-02 16:45:06Z mueller $
   \brief   Declaration of class Rw11RdmaDisk.
 */
 
@@ -49,7 +50,8 @@ namespace Retro {
 
       size_t        WriteCheck(size_t nwdone); 
 
-      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
 
     // statistics counter indices
       enum stats {

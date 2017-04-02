@@ -1,6 +1,6 @@
-// $Id: Rw11RdmaDisk.cpp 648 2015-02-20 20:16:21Z mueller $
+// $Id: Rw11RdmaDisk.cpp 865 2017-04-02 16:45:06Z mueller $
 //
-// Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,12 +13,13 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   865   1.0.1  Dump(): add detail arg
 // 2015-01-04   628   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11RdmaDisk.cpp 648 2015-02-20 20:16:21Z mueller $
+  \version $Id: Rw11RdmaDisk.cpp 865 2017-04-02 16:45:06Z mueller $
   \brief   Implemenation of Rw11RdmaDisk.
 */
 
@@ -127,7 +128,8 @@ size_t Rw11RdmaDisk::WriteCheck(size_t nwdone)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11RdmaDisk::Dump(std::ostream& os, int ind, const char* text) const
+void Rw11RdmaDisk::Dump(std::ostream& os, int ind, const char* text,
+                          int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11RdmaDisk @ " << this << endl;
@@ -138,7 +140,7 @@ void Rw11RdmaDisk::Dump(std::ostream& os, int ind, const char* text) const
   os << bl << "  fLba:            " << RosPrintf(fLba,"d",8) << endl;
   os << bl << "  fFunc:           " << fFunc << endl;
 
-  Rw11Rdma::Dump(os, ind, " ^");
+  Rw11Rdma::Dump(os, ind, " ^", detail);
   return;
 } 
 

@@ -1,4 +1,4 @@
-// $Id: Rw11CntlRK11.cpp 857 2017-02-26 15:27:41Z mueller $
+// $Id: Rw11CntlRK11.cpp 865 2017-04-02 16:45:06Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -15,6 +15,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   865   2.0.5  Dump(): add detail arg
+// 2017-03-03   858   2.0.4  use cntl name as message prefix
 // 2017-02-26   857   2.0.3  use kCPAH_M_UBM22
 // 2015-06-04   686   2.0.2  check for spurious lams
 // 2015-02-17   647   2.0.1  use Nwrd2Nblk(); BUGFIX: revise RdmaPostExecCB()
@@ -28,7 +30,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlRK11.cpp 857 2017-02-26 15:27:41Z mueller $
+  \version $Id: Rw11CntlRK11.cpp 865 2017-04-02 16:45:06Z mueller $
   \brief   Implemenation of Rw11CntlRK11.
 */
 
@@ -290,7 +292,8 @@ bool Rw11CntlRK11::BootCode(size_t unit, std::vector<uint16_t>& code,
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11CntlRK11::Dump(std::ostream& os, int ind, const char* text) const
+void Rw11CntlRK11::Dump(std::ostream& os, int ind, const char* text,
+                        int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11CntlRK11 @ " << this << endl;
@@ -306,8 +309,8 @@ void Rw11CntlRK11::Dump(std::ostream& os, int ind, const char* text) const
   os << bl << "  fRd_nwrd:        " << fRd_nwrd << endl;
   os << bl << "  fRd_fu:          " << fRd_fu  << endl;
   os << bl << "  fRd_ovr:         " << fRd_ovr  << endl;
-  fRdma.Dump(os, ind+2, "fRdma: ");
-  Rw11CntlBase<Rw11UnitRK11,8>::Dump(os, ind, " ^");
+  fRdma.Dump(os, ind+2, "fRdma: ", detail);
+  Rw11CntlBase<Rw11UnitRK11,8>::Dump(os, ind, " ^", detail);
   return;
 }
   
@@ -340,7 +343,8 @@ int Rw11CntlRK11::AttnHandler(RlinkServer::AttnArgs& args)
 
   if (!go) {
     RlogMsg lmsg(LogFile());
-    lmsg << "-I RK11 cs=" << RosPrintBvi(rkcs,8)
+    lmsg << "-I " << Name() << ":"
+         << " cs=" << RosPrintBvi(rkcs,8)
          << "  go=0, spurious attn, dropped";
     return 0;
   }
@@ -363,7 +367,8 @@ int Rw11CntlRK11::AttnHandler(RlinkServer::AttnArgs& args)
     RlogMsg lmsg(LogFile());
     static const char* fumnemo[8] = {"cr","w ","r ","wc","sk","rc","dr","wl"};
     
-    lmsg << "-I RK11 cs=" << RosPrintBvi(rkcs,8)
+    lmsg << "-I " << Name() << ":"
+         << " cs=" << RosPrintBvi(rkcs,8)
          << " da=" << RosPrintBvi(rkda,8)
          << " ad=" << RosPrintBvi(addr,8,18)
          << " fu=" << fumnemo[fu&0x7]
@@ -378,8 +383,8 @@ int Rw11CntlRK11::AttnHandler(RlinkServer::AttnArgs& args)
   // check for spurious interrupts (either RDY=1 or RDY=0 and rdma busy)
   if ((rkcs & kRKCS_M_RDY) || fRdma.IsActive()) {
     RlogMsg lmsg(LogFile());
-    lmsg << "-E RK11   err "
-         << " cr=" << RosPrintBvi(rkcs,8)
+    lmsg << "-E " << Name() << ":   err"
+         << "  cr=" << RosPrintBvi(rkcs,8)
          << " spurious lam: "
          << (fRdma.IsActive() ? "RDY=0 and Rdma busy" : "RDY=1");
     return 0;
@@ -573,7 +578,7 @@ void Rw11CntlRK11::RdmaPostExecCB(int stat, size_t ndone,
 void Rw11CntlRK11::LogRker(uint16_t rker)
 {
   RlogMsg lmsg(LogFile());
-  lmsg << "-E RK11 er=" << RosPrintBvi(rker,8) << "  ERROR ABORT";
+  lmsg << "-E " << Name() << ": er=" << RosPrintBvi(rker,8) << "  ERROR ABORT";
 }
 
 //------------------------------------------+-----------------------------------

@@ -1,4 +1,4 @@
-// $Id: Rstats.hpp 851 2017-02-18 09:20:40Z mueller $
+// $Id: Rstats.hpp 865 2017-04-02 16:45:06Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-02-04   865   1.0.2  add NameMaxLength(); Dump(): add detail arg
 // 2017-02-18   851   1.0.1  add IncLogHist; fix + and * operator definition
 // 2011-02-06   359   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rstats.hpp 851 2017-02-18 09:20:40Z mueller $
+  \version $Id: Rstats.hpp 865 2017-04-02 16:45:06Z mueller $
   \brief   Declaration of class Rstats .
 */
 
@@ -38,7 +39,7 @@ namespace Retro {
     public: 
 		    Rstats();
                     Rstats(const Rstats& rhs);
-                    ~Rstats();
+                   ~Rstats();
 
       void          Define(size_t ind, const std::string& name, 
                            const std::string& text);
@@ -55,10 +56,12 @@ namespace Retro {
       double        Value(size_t ind) const;
       const std::string&  Name(size_t ind) const;
       const std::string&  Text(size_t ind) const;
+      size_t        NameMaxLength() const;
 
       void          Print(std::ostream& os, const char* format=0, 
                           int width=0, int prec=0) const;
-      void          Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      void          Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
 
       double        operator[](size_t ind) const;
 

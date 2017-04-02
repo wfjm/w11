@@ -1,6 +1,6 @@
-// $Id: Rw11Cntl.cpp 682 2015-05-15 18:35:29Z mueller $
+// $Id: Rw11Cntl.cpp 865 2017-04-02 16:45:06Z mueller $
 //
-// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   865   1.1.1  use Dump(detail) for PrimClist
 // 2014-12-30   625   1.1    adopt to Rlink V4 attn logic
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-05   483   0.1    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cntl.cpp 682 2015-05-15 18:35:29Z mueller $
+  \version $Id: Rw11Cntl.cpp 865 2017-04-02 16:45:06Z mueller $
   \brief   Implemenation of Rw11Cntl.
 */
 
@@ -128,7 +129,8 @@ std::string Rw11Cntl::UnitName(size_t index) const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11Cntl::Dump(std::ostream& os, int ind, const char* text) const
+void Rw11Cntl::Dump(std::ostream& os, int ind, const char* text,
+                    int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11Cntl @ " << this << endl;
@@ -142,8 +144,8 @@ void Rw11Cntl::Dump(std::ostream& os, int ind, const char* text) const
   os << bl << "  fStarted:        " << fStarted << endl;
   fProbe.Dump(os, ind+2, "fProbe: ");
   os << bl << "  fTraceLevel:     " << fTraceLevel << endl;
-  fPrimClist.Dump(os, ind+2, "fPrimClist: ");
-  fStats.Dump(os, ind+2, "fStats: ");
+  fPrimClist.Dump(os, ind+2, "fPrimClist: ", detail-1);
+  fStats.Dump(os, ind+2, "fStats: ", detail-1);
   return;
 }
 

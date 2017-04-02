@@ -1,6 +1,6 @@
-// $Id: RlinkCommandList.cpp 661 2015-04-03 18:28:41Z mueller $
+// $Id: RlinkCommandList.cpp 865 2017-04-02 16:45:06Z mueller $
 //
-// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   865   1.3.1  Dump(): add detail arg
 // 2015-04-02   661   1.3    expect logic: add SetLastExpect methods
 // 2014-11-23   606   1.2    new rlink v4 iface
 // 2014-08-02   576   1.1    rename LastExpect->SetLastExpect
@@ -25,12 +26,11 @@
 
 /*!
   \file
-  \version $Id: RlinkCommandList.cpp 661 2015-04-03 18:28:41Z mueller $
+  \version $Id: RlinkCommandList.cpp 865 2017-04-02 16:45:06Z mueller $
   \brief   Implemenation of class RlinkCommandList.
  */
 
 #include <string>
-
 #include "boost/foreach.hpp"
 #define foreach_ BOOST_FOREACH
 
@@ -306,18 +306,24 @@ void RlinkCommandList::Print(std::ostream& os,
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RlinkCommandList::Dump(std::ostream& os, int ind, const char* text) const
+void RlinkCommandList::Dump(std::ostream& os, int ind, const char* text,
+                            int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "RlinkCommandList @ " << this << endl;
 
   os << bl << "  fLaboIndex:      " << fLaboIndex << endl;
   for (size_t i=0; i<Size(); i++) {
-    string pref("fList[");
-    pref << RosPrintf(i) << RosPrintf("]: ");
-    fList[i]->Dump(os, ind+2, pref.c_str());
+    if (detail >= 0) {                      // full dump
+      string pref("fList[");
+      pref << RosPrintf(i) << RosPrintf("]: ");
+      fList[i]->Dump(os, ind+2, pref.c_str());
+    } else {                                // compact dump
+      os << bl << "  [" << RosPrintf(i,"d",2) << "]: " 
+         << fList[i]->CommandInfo() << endl;
+    }
   }
-
+  
   return;
 }
 

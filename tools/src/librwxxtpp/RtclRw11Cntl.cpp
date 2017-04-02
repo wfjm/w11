@@ -1,6 +1,6 @@
-// $Id: RtclRw11Cntl.cpp 660 2015-03-29 22:10:16Z mueller $
+// $Id: RtclRw11Cntl.cpp 865 2017-04-02 16:45:06Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   865   1.0.2  M_dump: use GetArgsDump and Dump detail
 // 2015-03-27   660   1.0.1  add M_start
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-08   484   0.1    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Cntl.cpp 660 2015-03-29 22:10:16Z mueller $
+  \version $Id: RtclRw11Cntl.cpp 865 2017-04-02 16:45:06Z mueller $
   \brief   Implemenation of RtclRw11Cntl.
 */
 
@@ -121,10 +122,12 @@ int RtclRw11Cntl::M_stats(RtclArgs& args)
 
 int RtclRw11Cntl::M_dump(RtclArgs& args)
 {
+  int detail=0;
+  if (!GetArgsDump(args, detail)) return kERR;
   if (!args.AllDone()) return kERR;
 
   ostringstream sos;
-  Obj().Dump(sos, 0);
+  Obj().Dump(sos, 0, "", detail);
   args.SetResult(sos);
   return kOK;
 }

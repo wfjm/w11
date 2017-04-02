@@ -1,6 +1,6 @@
-// $Id: Rw11CntlLP11.hpp 665 2015-04-07 07:13:49Z mueller $
+// $Id: Rw11CntlLP11.hpp 865 2017-04-02 16:45:06Z mueller $
 //
-// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   865   1.1.1  Dump(): add detail arg
 // 2014-12-29   623   1.1    adopt to Rlink V4 attn logic
 // 2013-05-01   513   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlLP11.hpp 665 2015-04-07 07:13:49Z mueller $
+  \version $Id: Rw11CntlLP11.hpp 865 2017-04-02 16:45:06Z mueller $
   \brief   Declaration of class Rw11CntlLP11.
 */
 
@@ -44,7 +45,8 @@ namespace Retro {
 
       virtual void  UnitSetup(size_t ind);
 
-      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
 
     // some constants (also defined in cpp)
       static const uint16_t kIbaddr = 0177514; //!< LP11 default address

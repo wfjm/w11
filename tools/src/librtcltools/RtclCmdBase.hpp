@@ -1,4 +1,4 @@
-// $Id: RtclCmdBase.hpp 863 2017-04-02 11:43:15Z mueller $
+// $Id: RtclCmdBase.hpp 865 2017-04-02 16:45:06Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   865   1.1.1  add GetArgsDump()
 // 2017-04-02   863   1.1    add DelMeth(),TstMeth(); add M_info() and '?'
 //                           rename fMapMeth -> fMethMap
 // 2013-04-26   511   1.0.1  AddMeth() now public
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RtclCmdBase.hpp 863 2017-04-02 11:43:15Z mueller $
+  \version $Id: RtclCmdBase.hpp 865 2017-04-02 16:45:06Z mueller $
   \brief   Declaration of class RtclCmdBase.
 */
 
@@ -56,12 +57,13 @@ namespace Retro {
       void          AddMeth(const std::string& name, const methfo_t& methfo);
       void          DelMeth(const std::string& name);
       bool          TstMeth(const std::string& name);
-
+        
     // some constants (also defined in cpp)
       static const int kOK  = TCL_OK;       //<!
       static const int kERR = TCL_ERROR;    //<!
 
     protected:
+      bool          GetArgsDump(RtclArgs& args, int& detail);
       int           M_info(RtclArgs& args);
 
     protected:

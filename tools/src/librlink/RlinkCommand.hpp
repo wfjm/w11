@@ -1,6 +1,6 @@
-// $Id: RlinkCommand.hpp 661 2015-04-03 18:28:41Z mueller $
+// $Id: RlinkCommand.hpp 859 2017-03-11 22:36:45Z mueller $
 //
-// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-03-11   859   1.3.1  add CommandInfo()
 // 2015-04-02   661   1.3    expect logic: add stat check, Print() without cntx
 // 2014-12-21   617   1.2.2  use kStat_M_RbTout for rbus timeout
 // 2014-12-20   616   1.2.1  add kFlagChkDone
@@ -25,7 +26,7 @@
 
 /*!
   \file
-  \version $Id: RlinkCommand.hpp 661 2015-04-03 18:28:41Z mueller $
+  \version $Id: RlinkCommand.hpp 859 2017-03-11 22:36:45Z mueller $
   \brief   Declaration of class RlinkCommand.
 */
 
@@ -34,6 +35,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <string>
 #include <vector>
 #include <ostream>
 
@@ -107,6 +109,7 @@ namespace Retro {
       void          Print(std::ostream& os, const RlinkAddrMap* pamap=0, 
                           size_t abase=16, size_t dbase=16, 
                           size_t sbase=16) const;
+      std::string   CommandInfo() const;
       void          Dump(std::ostream& os, int ind=0, const char* text=0) const;
 
       static const char* CommandName(uint8_t cmd);

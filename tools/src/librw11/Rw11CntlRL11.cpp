@@ -1,4 +1,4 @@
-// $Id: Rw11CntlRL11.cpp 857 2017-02-26 15:27:41Z mueller $
+// $Id: Rw11CntlRL11.cpp 865 2017-04-02 16:45:06Z mueller $
 //
 // Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -16,6 +16,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   865   1.0.5  Dump(): add detail arg
+// 2017-03-03   858   1.0.4  use cntl name as message prefix
 // 2017-02-26   857   1.0.3  use kCPAH_M_UBM22
 // 2015-06-04   686   1.0.2  check for spurious lams
 // 2015-03-04   655   1.0.1  use original boot code again
@@ -25,7 +27,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlRL11.cpp 857 2017-02-26 15:27:41Z mueller $
+  \version $Id: Rw11CntlRL11.cpp 865 2017-04-02 16:45:06Z mueller $
   \brief   Implemenation of Rw11CntlRL11.
 */
 
@@ -353,7 +355,8 @@ bool Rw11CntlRL11::BootCode(size_t unit, std::vector<uint16_t>& code,
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11CntlRL11::Dump(std::ostream& os, int ind, const char* text) const
+void Rw11CntlRL11::Dump(std::ostream& os, int ind, const char* text,
+                        int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11CntlRL11 @ " << this << endl;
@@ -374,8 +377,8 @@ void Rw11CntlRL11::Dump(std::ostream& os, int ind, const char* text) const
   os << bl << "  fRd_nwrd:        " << RosPrintf(fRd_nwrd,"d",6) << endl;
   os << bl << "  fRd_fu:          " << RosPrintf(fRd_fu,"d",6) << endl;
   os << bl << "  fRd_ovr:         " << fRd_ovr  << endl;
-  fRdma.Dump(os, ind+2, "fRdma: ");
-  Rw11CntlBase<Rw11UnitRL11,4>::Dump(os, ind, " ^");
+  fRdma.Dump(os, ind+2, "fRdma: ", detail);
+  Rw11CntlBase<Rw11UnitRL11,4>::Dump(os, ind, " ^", detail);
   return;
 }
   
@@ -428,7 +431,8 @@ int Rw11CntlRL11::AttnHandler(RlinkServer::AttnArgs& args)
   if (fTraceLevel>0) {
     RlogMsg lmsg(LogFile());
     static const char* fumnemo[8] = {"no","wc","gs","se","rh","w ","r ","rn"};
-    lmsg << "-I RL11 cs=" << RosPrintBvi(rlcs,8)
+    lmsg << "-I " << Name() << ":"
+         << " cs=" << RosPrintBvi(rlcs,8)
          << " da=" << RosPrintBvi(rlda,8)
          << " ad=" << RosPrintBvi(addr,8,18)
          << " fu=" << fumnemo[fu&0x7]
@@ -445,8 +449,8 @@ int Rw11CntlRL11::AttnHandler(RlinkServer::AttnArgs& args)
   // check for spurious interrupts (either RDY=1 or RDY=0 and rdma busy)
   if ((rlcs & kRLCS_M_CRDY) || fRdma.IsActive()) {
     RlogMsg lmsg(LogFile());
-    lmsg << "-E RL11   err "
-         << " cr=" << RosPrintBvi(rlcs,8)
+    lmsg << "-E " << Name() << ":   err"
+         << "  cr=" << RosPrintBvi(rlcs,8)
          << " spurious lam: "
          << (fRdma.IsActive() ? "RDY=0 and Rdma busy" : "RDY=1");
     return 0;
@@ -505,8 +509,8 @@ int Rw11CntlRL11::AttnHandler(RlinkServer::AttnArgs& args)
 
     if (fTraceLevel>1) {
       RlogMsg lmsg(LogFile());
-      lmsg << "-I RL11   ok "
-           << " cs=" << RosPrintBvi(cs,8)
+      lmsg << "-I " << Name() << ":"
+           << "   ok  cs=" << RosPrintBvi(cs,8)
            << " mp=" << RosPrintBvi(crc,8)
            << " pos=" << RosPrintBvi(pos,8)
            << "->" << RosPrintBvi(posn,8);
@@ -617,7 +621,8 @@ void Rw11CntlRL11::RdmaPostExecCB(int stat, size_t ndone,
 void Rw11CntlRL11::LogRler(uint16_t rlerr)
 {
   RlogMsg lmsg(LogFile());
-  lmsg << "-E RL11 err=" << RosPrintBvi(rlerr,2,5) << "  ERROR ABORT";
+  lmsg << "-E " << Name() << ":"
+       << " err=" << RosPrintBvi(rlerr,2,5) << "  ERROR ABORT";
   return;
 }
 
@@ -666,7 +671,7 @@ void Rw11CntlRL11::AddErrorExit(RlinkCommandList& clist, uint16_t rlerr)
 
   if (fTraceLevel>1) {
     RlogMsg lmsg(LogFile());
-    lmsg << "-I RL11   err"
+    lmsg << "-I " << Name() << ":   err" 
          << " cs=" << RosPrintBvi(cs,8)
          << " err=" << RosPrintBvi(rlerr,2,5)
          << " pos=" << RosPrintBvi(fRd_pos,8);
@@ -724,7 +729,7 @@ void Rw11CntlRL11::AddNormalExit(RlinkCommandList& clist, size_t ndone,
 
   if (fTraceLevel>1) {
     RlogMsg lmsg(LogFile());
-    lmsg << "-I RL11   " << (rlerr==0 ? " ok" : "err")
+    lmsg << "-I " << Name() << (rlerr==0 ? ":    ok" : ":   err")
          << " cs=" << RosPrintBvi(cs,8)
          << " ba=" << RosPrintBvi(ba,8)
          << " da=" << RosPrintBvi(da,8)

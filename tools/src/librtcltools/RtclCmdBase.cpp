@@ -1,4 +1,4 @@
-// $Id: RtclCmdBase.cpp 863 2017-04-02 11:43:15Z mueller $
+// $Id: RtclCmdBase.cpp 865 2017-04-02 16:45:06Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   865   1.1.1  add GetArgsDump()
 // 2017-04-02   863   1.1    add DelMeth(),TstMeth(); add M_info() and '?'
 //                           rename fMapMeth -> fMethMap
 // 2017-03-11   859   1.1    support now sub-command handling
@@ -24,13 +25,15 @@
 
 /*!
   \file
-  \version $Id: RtclCmdBase.cpp 863 2017-04-02 11:43:15Z mueller $
+  \version $Id: RtclCmdBase.cpp 865 2017-04-02 16:45:06Z mueller $
   \brief   Implemenation of RtclCmdBase.
 */
 
 #include "RtclCmdBase.hpp"
 
 #include "librtools/Rexception.hpp"
+#include "librtcltools/RtclNameSet.hpp"
+
 #include "Rtcl.hpp"
 #include "RtclOPtr.hpp"
 
@@ -159,6 +162,26 @@ void RtclCmdBase::DelMeth(const std::string& name)
 bool RtclCmdBase::TstMeth(const std::string& name)
 {
   return fMethMap.find(name) != fMethMap.end();
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+bool RtclCmdBase::GetArgsDump(RtclArgs& args, int& detail)
+{
+  static RtclNameSet optset("-brief|-v|-vv|-vvv");
+  detail = 0;
+  string opt;
+
+  while (args.NextOpt(opt, optset)) {
+    if      (opt == "-brief") { detail = -1;}
+    else if (opt == "-v")     { detail = +1;}
+    else if (opt == "-vv")    { detail = +2;}
+    else if (opt == "-vvv")   { detail = +3;}
+    else                      { detail =  0;}
+  }
+  
+  return true;
 }
 
 //------------------------------------------+-----------------------------------

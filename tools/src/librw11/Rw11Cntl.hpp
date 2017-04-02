@@ -1,4 +1,4 @@
-// $Id: Rw11Cntl.hpp 848 2017-02-04 14:55:30Z mueller $
+// $Id: Rw11Cntl.hpp 865 2017-04-02 16:45:06Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   865   1.2.1  Dump(): add detail arg
 // 2017-02-04   848   1.2    add ProbeFound(),ProbeDataInt,Rem()
 // 2015-05-15   680   1.1.1  add NUnit() as virtual
 // 2014-12-30   625   1.1    adopt to Rlink V4 attn logic
@@ -23,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cntl.hpp 848 2017-02-04 14:55:30Z mueller $
+  \version $Id: Rw11Cntl.hpp 865 2017-04-02 16:45:06Z mueller $
   \brief   Declaration of class Rw11Cntl.
 */
 
@@ -84,7 +85,8 @@ namespace Retro {
       std::string   UnitName(size_t index) const;
 
       const Rstats& Stats() const;
-      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
 
     // statistics counter indices
       enum stats {

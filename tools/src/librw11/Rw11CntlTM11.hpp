@@ -1,6 +1,6 @@
-// $Id: Rw11CntlTM11.hpp 690 2015-06-07 18:23:51Z mueller $
+// $Id: Rw11CntlTM11.hpp 865 2017-04-02 16:45:06Z mueller $
 //
-// Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   865   1.0.1  Dump(): add detail arg
 // 2015-06-04   686   1.0    Initial version
 // 2015-05-17   683   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlTM11.hpp 690 2015-06-07 18:23:51Z mueller $
+  \version $Id: Rw11CntlTM11.hpp 865 2017-04-02 16:45:06Z mueller $
   \brief   Declaration of class Rw11CntlTM11.
 */
 
@@ -53,7 +54,8 @@ namespace Retro {
 
       const Rstats& RdmaStats() const;
 
-      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
 
     // some constants (also defined in cpp)
       static const uint16_t kIbaddr = 0172520; //!< TM11 default address

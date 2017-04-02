@@ -1,6 +1,6 @@
-// $Id: Rw11CntlBase.hpp 682 2015-05-15 18:35:29Z mueller $
+// $Id: Rw11CntlBase.hpp 865 2017-04-02 16:45:06Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   865   1.2.1  Dump(): add detail arg
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-14   488   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlBase.hpp 682 2015-05-15 18:35:29Z mueller $
+  \version $Id: Rw11CntlBase.hpp 865 2017-04-02 16:45:06Z mueller $
   \brief   Declaration of class Rw11CntlBase.
 */
 
@@ -44,7 +45,8 @@ namespace Retro {
       TU&           Unit(size_t index) const;
       const boost::shared_ptr<TU>& UnitSPtr(size_t index) const;
 
-      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
 
     protected:
       boost::shared_ptr<TU> fspUnit[NU];

@@ -1,6 +1,6 @@
-// $Id: RlinkCommand.cpp 662 2015-04-05 08:02:54Z mueller $
+// $Id: RlinkCommand.cpp 859 2017-03-11 22:36:45Z mueller $
 //
-// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-03-11   859   1.3.1  add CommandInfo()
 // 2015-04-02   661   1.3    expect logic: add stat check, Print() without cntx
 // 2015-02-07   642   1.2.3  Print()+Dump(): adopt for large nblk;
 // 2014-12-21   617   1.2.2  use kStat_M_RbTout for rbus timeout
@@ -27,12 +28,13 @@
 
 /*!
   \file
-  \version $Id: RlinkCommand.cpp 662 2015-04-05 08:02:54Z mueller $
+  \version $Id: RlinkCommand.cpp 859 2017-03-11 22:36:45Z mueller $
   \brief   Implemenation of class RlinkCommand.
  */
 
 // debug
 #include <iostream>
+#include <sstream>
 
 #include <algorithm>
 
@@ -297,7 +299,7 @@ void RlinkCommand::Print(std::ostream& os,
     }
   }
 
-  // don't write more that command and address for canceled commands
+  // don't write more than command and address for canceled commands
   if (TestFlagAny(kFlagLabo)) {
     os << " CANCELED" << endl;
     return;
@@ -428,6 +430,73 @@ void RlinkCommand::Print(std::ostream& os,
   os << endl;
 
   return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+std::string RlinkCommand::CommandInfo() const
+{
+  ostringstream sos;
+  uint8_t ccode = Command();
+  
+  // separator + command mnemonic, code and flags
+  // separator:  ++     first in packet
+  //             --     non-first in packet
+  //             -! +!  labo with abort
+  //             -. +.  labo canceled command
+
+  char sep0 = TestFlagAny(kFlagPktBeg) ? '+' : '-';
+  char sep1 = sep0;
+  if (ccode==kCmdLabo && fData) sep1 = '!'; // indicate aborting labo
+  if (TestFlagAny(kFlagLabo))   sep1 = '.'; // indicate aborted command
+
+  sos << sep0 << sep1 << " " << CommandName(ccode);
+
+  // address field
+  if (ccode==kCmdRreg || ccode==kCmdRblk ||
+      ccode==kCmdWreg || ccode==kCmdWblk ||
+      ccode==kCmdInit) {
+    sos << " a=" << RosPrintBvi(fAddress, 16);
+  } else {
+    sos << "       ";
+  }
+
+  // data field (scalar)
+  if (ccode== kCmdRreg || ccode==kCmdWreg ||
+      ccode== kCmdLabo || ccode==kCmdAttn ||
+      ccode== kCmdInit) {
+    sos << " d=" << RosPrintBvi(fData, 16) << "     ";
+  } else if (ccode== kCmdRblk || ccode==kCmdWblk) {
+    sos << " n=" << RosPrintf(BlockSize(), "d", 4)
+        << (BlockSize()==BlockDone() ? "=" : ">")
+        << RosPrintf(BlockDone(), "d", 4);
+  } else {
+    sos << "            ";
+  }
+
+  // don't write more that command and address for canceled commands
+  if (TestFlagAny(kFlagLabo)) {
+    sos << " CANCELED";
+    return sos.str();
+  }
+
+  // status field
+  sos << " s=" << RosPrintBvi(fStatus, 2);
+
+  if (TestFlagAny(kFlagDone)) {
+    if (TestFlagAny(kFlagChkStat|kFlagChkData|kFlagChkDone)) {
+      sos << " FAIL: chk";
+    } else {
+      sos << " OK";
+    }
+  } else if (TestFlagAny(kFlagSend)) {
+    sos << " FAIL: snd";
+  } else {
+    sos << " PEND";
+  }
+
+  return sos.str();
 }
 
 //------------------------------------------+-----------------------------------

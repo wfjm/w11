@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDL11.cpp 855 2017-02-25 16:30:37Z mueller $
+// $Id: Rw11CntlDL11.cpp 865 2017-04-02 16:45:06Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   865   1.2.3  Dump(): add detail arg
+// 2017-03-03   858   1.2.2  use cntl name as message prefix
 // 2017-02-25   855   1.2.1  shorten ctor code; RcvNext() --> RcvQueueNext()
 // 2014-12-30   625   1.2    adopt to Rlink V4 attn logic
 // 2014-12-25   621   1.1    adopt to 4k word ibus window and 
@@ -24,7 +26,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlDL11.cpp 855 2017-02-25 16:30:37Z mueller $
+  \version $Id: Rw11CntlDL11.cpp 865 2017-04-02 16:45:06Z mueller $
   \brief   Implemenation of Rw11CntlDL11.
 */
 
@@ -185,14 +187,15 @@ uint16_t Rw11CntlDL11::RxRlim() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11CntlDL11::Dump(std::ostream& os, int ind, const char* text) const
+void Rw11CntlDL11::Dump(std::ostream& os, int ind, const char* text,
+                        int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11CntlDL11 @ " << this << endl;
   os << bl << "  fPC_xbuf:        " << fPC_xbuf << endl;
   os << bl << "  fRxRlim:         " << fRxRlim  << endl;
 
-  Rw11CntlBase<Rw11UnitDL11,1>::Dump(os, ind, " ^");
+  Rw11CntlBase<Rw11UnitDL11,1>::Dump(os, ind, " ^", detail);
   return;
 }
   
@@ -212,7 +215,7 @@ int Rw11CntlDL11::AttnHandler(RlinkServer::AttnArgs& args)
 
   if (fTraceLevel>0) {
     RlogMsg lmsg(LogFile());
-    lmsg << "-I DL11." << Name()
+    lmsg << "-I " << Name() << ":"
          << " xbuf=" << RosPrintBvi(xbuf,8)
          << " xval=" << xval
          << " rrdy=" << rrdy

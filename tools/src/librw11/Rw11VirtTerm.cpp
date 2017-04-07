@@ -1,6 +1,6 @@
-// $Id: Rw11VirtTerm.cpp 508 2013-04-20 18:43:28Z mueller $
+// $Id: Rw11VirtTerm.cpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-13   488   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11VirtTerm.cpp 508 2013-04-20 18:43:28Z mueller $
+  \version $Id: Rw11VirtTerm.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of Rw11VirtTerm.
 */
 #include <memory>
@@ -89,13 +90,14 @@ Rw11VirtTerm* Rw11VirtTerm::New(const std::string& url, Rw11Unit* punit,
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11VirtTerm::Dump(std::ostream& os, int ind, const char* text) const
+void Rw11VirtTerm::Dump(std::ostream& os, int ind, const char* text,
+                        int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11VirtTerm @ " << this << endl;
 
   os << bl << "  fChannelId:      " << fChannelId << endl;
-  Rw11Virt::Dump(os, ind, " ^");
+  Rw11Virt::Dump(os, ind, " ^", detail);
   return;
 }
 

@@ -1,6 +1,6 @@
-// $Id: Rw11UnitRL11.hpp 653 2015-03-01 12:53:01Z mueller $
+// $Id: Rw11UnitRL11.hpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2014-06-08   561   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 
 /*!
   \file
-  \version $Id: Rw11UnitRL11.hpp 653 2015-03-01 12:53:01Z mueller $
+  \version $Id: Rw11UnitRL11.hpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Declaration of class Rw11UnitRL11.
 */
 
@@ -44,7 +45,8 @@ namespace Retro {
       uint16_t      Rlsta() const;
       uint16_t      Rlpos() const;
 
-      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
 
     protected:
       uint16_t      fRlsta;

@@ -1,6 +1,6 @@
-// $Id: Rw11UnitTM11.cpp 686 2015-06-04 21:08:08Z mueller $
+// $Id: Rw11UnitTM11.cpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,12 +13,13 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2015-05-17   683   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11UnitTM11.cpp 686 2015-06-04 21:08:08Z mueller $
+  \version $Id: Rw11UnitTM11.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of Rw11UnitTM11.
 */
 
@@ -60,13 +61,14 @@ Rw11UnitTM11::~Rw11UnitTM11()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11UnitTM11::Dump(std::ostream& os, int ind, const char* text) const
+void Rw11UnitTM11::Dump(std::ostream& os, int ind, const char* text,
+                        int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11UnitTM11 @ " << this << endl;
   os << bl << "  fTmds:           " << fTmds    << endl;
 
-  Rw11UnitTapeBase<Rw11CntlTM11>::Dump(os, ind, " ^");
+  Rw11UnitTapeBase<Rw11CntlTM11>::Dump(os, ind, " ^", detail);
   return;
 }
   

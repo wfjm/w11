@@ -1,4 +1,4 @@
-// $Id: RtclRw11Virt.cpp 859 2017-03-11 22:36:45Z mueller $
+// $Id: RtclRw11Virt.cpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,12 +13,13 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.0.1  M_dump: use GetArgsDump and Dump detail
 // 2017-03-11   859   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclRw11Virt.cpp 859 2017-03-11 22:36:45Z mueller $
+  \version $Id: RtclRw11Virt.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of RtclRw11Virt.
 */
 
@@ -94,10 +95,12 @@ int RtclRw11Virt::M_stats(RtclArgs& args)
 
 int RtclRw11Virt::M_dump(RtclArgs& args)
 {
+  int detail=0;
+  if (!GetArgsDump(args, detail)) return kERR;
   if (!args.AllDone()) return kERR;
 
   std::ostringstream sos;
-  Virt()->Dump(sos, 0);
+  Virt()->Dump(sos, 0, "", detail);
   args.SetResult(sos);
   return kOK;
 }

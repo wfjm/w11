@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.cpp 857 2017-02-26 15:27:41Z mueller $
+// $Id: RtclRw11Cpu.cpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.2.14 M_dump: use GetArgsDump and Dump detail
 // 2017-02-26   857   1.2.13 use kCPAH_M_UBM22 for cp -wa -ubm
 // 2017-02-19   853   1.2.12 use Rtime
 // 2017-02-17   851   1.2.11 probe/setup auxilliary devices: kw11l,kw11p,iist
@@ -42,7 +43,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Cpu.cpp 857 2017-02-26 15:27:41Z mueller $
+  \version $Id: RtclRw11Cpu.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of RtclRw11Cpu.
 */
 
@@ -1401,10 +1402,12 @@ int RtclRw11Cpu::M_stats(RtclArgs& args)
 
 int RtclRw11Cpu::M_dump(RtclArgs& args)
 {
+  int detail=0;
+  if (!GetArgsDump(args, detail)) return kERR;
   if (!args.AllDone()) return kERR;
 
   ostringstream sos;
-  Obj().Dump(sos, 0);
+  Obj().Dump(sos, 0, "", detail);
   args.SetResult(sos);
   return kOK;
 }

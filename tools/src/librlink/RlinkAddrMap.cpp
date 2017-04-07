@@ -1,6 +1,6 @@
-// $Id: RlinkAddrMap.cpp 603 2014-11-09 22:50:26Z mueller $
+// $Id: RlinkAddrMap.cpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.0.3  Dump(): add detail arg
 // 2013-02-03   481   1.0.2  use Rexception
 // 2011-11-28   434   1.0.1  Print(): use proper cast for lp64 compatibility
 // 2011-03-06   367   1.0    Initial version
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RlinkAddrMap.cpp 603 2014-11-09 22:50:26Z mueller $
+  \version $Id: RlinkAddrMap.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of class RlinkAddrMap.
  */
 
@@ -180,11 +181,16 @@ void RlinkAddrMap::Print(std::ostream& os, int ind) const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RlinkAddrMap::Dump(std::ostream& os, int ind, const char* text) const
+void RlinkAddrMap::Dump(std::ostream& os, int ind, const char* text,
+                        int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "RlinkAddrMap @ " << this << endl;
-  Print(os,ind+2);
+  if (detail < 0) {
+    os << bl << "  fAddrMap.size(): " << fAddrMap.size() << endl;
+  } else {
+    Print(os,ind+2);
+  }
   return;
 }
 

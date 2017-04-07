@@ -1,6 +1,6 @@
-// $Id: Rw11UnitTapeBase.ipp 864 2017-04-02 13:20:18Z mueller $
+// $Id: Rw11UnitTapeBase.ipp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2015-06-04   686   1.0    Initial version
 // 2015-05-17   683   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11UnitTapeBase.ipp 864 2017-04-02 13:20:18Z mueller $
+  \version $Id: Rw11UnitTapeBase.ipp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation (inline) of Rw11UnitTapeBase.
 */
 
@@ -62,13 +63,13 @@ inline TC& Rw11UnitTapeBase<TC>::Cntl() const
 //! FIXME_docs
 
 template <class TC>
-void Rw11UnitTapeBase<TC>::Dump(std::ostream& os, int ind, 
-                                const char* text) const
+void Rw11UnitTapeBase<TC>::Dump(std::ostream& os, int ind, const char* text,
+                                int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11UnitTapeBase  @ " << this << std::endl;
   os << bl << "  fpCntl:          " << fpCntl   << std::endl;
-  Rw11UnitTape::Dump(os, ind, " ^");
+  Rw11UnitTape::Dump(os, ind, " ^", detail);
   return;
 } 
 

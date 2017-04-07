@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDisk.cpp 867 2017-04-02 18:16:33Z mueller $
+// $Id: Rw11VirtDisk.cpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.2.1  Dump(): add detail arg
 // 2017-04-02   866   1.2    add default scheme handling
 // 2017-04-02   864   1.1    add Rw11VirtDiskOver
 // 2013-03-03   494   1.0    Initial version
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtDisk.cpp 867 2017-04-02 18:16:33Z mueller $
+  \version $Id: Rw11VirtDisk.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of Rw11VirtDisk.
 */
 #include <memory>
@@ -72,14 +73,15 @@ Rw11VirtDisk::~Rw11VirtDisk()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11VirtDisk::Dump(std::ostream& os, int ind, const char* text) const
+void Rw11VirtDisk::Dump(std::ostream& os, int ind, const char* text,
+                        int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11VirtDisk @ " << this << endl;
 
   os << bl << "  fBlkSize:        " << fBlkSize << endl;
   os << bl << "  fNBlock:         " << fNBlock << endl;
-  Rw11Virt::Dump(os, ind, " ^");
+  Rw11Virt::Dump(os, ind, " ^", detail);
   return;
 }
 

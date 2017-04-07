@@ -1,6 +1,6 @@
-// $Id: RlinkContext.hpp 661 2015-04-03 18:28:41Z mueller $
+// $Id: RlinkContext.hpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2015-03-28   660   1.1    add SetStatus(Value|Mask)()
 // 2013-02-23   492   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RlinkContext.hpp 661 2015-04-03 18:28:41Z mueller $
+  \version $Id: RlinkContext.hpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Declaration of class RlinkContext.
 */
 
@@ -51,7 +52,8 @@ namespace Retro {
       void          ClearErrorCount();
       size_t        ErrorCount() const;
 
-      void          Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      void          Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
     
     protected: 
       uint8_t       fStatusVal;             //!< status value

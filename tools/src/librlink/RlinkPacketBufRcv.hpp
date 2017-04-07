@@ -1,4 +1,4 @@
-// $Id: RlinkPacketBufRcv.hpp 853 2017-02-19 18:54:30Z mueller $
+// $Id: RlinkPacketBufRcv.hpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2017-02-19   853   1.1    use Rtime
 // 2014-12-25   621   1.0.1  Reorganize packet send/revd stats
 // 2014-11-30   607   1.0    Initial version 
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPacketBufRcv.hpp 853 2017-02-19 18:54:30Z mueller $
+  \version $Id: RlinkPacketBufRcv.hpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Declaration of class RlinkPacketBuf.
 */
 
@@ -62,7 +63,8 @@ namespace Retro {
  
       int           NakIndex() const;
  
-      void          Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      void          Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
 
    // statistics counter indices
       enum stats {

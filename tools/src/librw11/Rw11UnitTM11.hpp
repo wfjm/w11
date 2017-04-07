@@ -1,6 +1,6 @@
-// $Id: Rw11UnitTM11.hpp 686 2015-06-04 21:08:08Z mueller $
+// $Id: Rw11UnitTM11.hpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2015-05-17   683   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 
 /*!
   \file
-  \version $Id: Rw11UnitTM11.hpp 686 2015-06-04 21:08:08Z mueller $
+  \version $Id: Rw11UnitTM11.hpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Declaration of class Rw11UnitTM11.
 */
 
@@ -40,7 +41,8 @@ namespace Retro {
       void          SetTmds(uint16_t tmds);
       uint16_t      Tmds() const;
 
-      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
 
     protected:
       uint16_t      fTmds;

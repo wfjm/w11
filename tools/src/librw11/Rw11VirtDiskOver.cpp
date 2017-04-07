@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDiskOver.cpp 864 2017-04-02 13:20:18Z mueller $
+// $Id: Rw11VirtDiskOver.cpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,12 +13,13 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2017-03-10   859   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11VirtDiskOver.cpp 864 2017-04-02 13:20:18Z mueller $
+  \version $Id: Rw11VirtDiskOver.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of Rw11VirtDiskOver.
 */
 
@@ -167,13 +168,14 @@ void Rw11VirtDiskOver::List(std::ostream& os) const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11VirtDiskOver::Dump(std::ostream& os, int ind, const char* text) const
+void Rw11VirtDiskOver::Dump(std::ostream& os, int ind, const char* text,
+                            int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11VirtDiskOver @ " << this << endl;
 
   os << bl << "  fBlkMap.size     " << fBlkMap.size() << endl;
-  Rw11VirtDiskFile::Dump(os, ind, " ^");
+  Rw11VirtDiskFile::Dump(os, ind, " ^", detail);
   return;
 }
 

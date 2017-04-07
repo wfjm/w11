@@ -1,6 +1,6 @@
-// $Id: RlinkServer.cpp 686 2015-06-04 21:08:08Z mueller $
+// $Id: RlinkServer.cpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.2.2  Dump(): add detail arg
 // 2015-06-05   686   1.2.1  BUGFIX: CallAttnHandler(): fix race in hnext
 // 2015-04-04   662   1.2    BUGFIX: fix race in Stop(), use UnStop()
 // 2015-01-10   632   2.2    Exec() without emsg now void, will throw
@@ -27,7 +28,7 @@
 
 /*!
   \file
-  \version $Id: RlinkServer.cpp 686 2015-06-04 21:08:08Z mueller $
+  \version $Id: RlinkServer.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of RlinkServer.
 */
 
@@ -368,7 +369,8 @@ void RlinkServer::Print(std::ostream& os) const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RlinkServer::Dump(std::ostream& os, int ind, const char* text) const
+void RlinkServer::Dump(std::ostream& os, int ind, const char* text,
+                       int detail) const
 {
   // FIXME_code: is that thread safe ??? fActnList.size() ???
   RosFill bl(ind);
@@ -381,11 +383,11 @@ void RlinkServer::Dump(std::ostream& os, int ind, const char* text) const
        << RosPrintBvi(fAttnDsc[i].fId.fMask,16)
        << ", " << fAttnDsc[i].fId.fCdata << endl;
   os << bl << "  fActnList.size:  " << fActnList.size() << endl;
-  fELoop.Dump(os, ind+2, "fELoop");
+  fELoop.Dump(os, ind+2, "fELoop", detail);
   os << bl << "  fServerThread:   " << fServerThread.get_id() << endl;
   os << bl << "  fAttnPatt:       " << RosPrintBvi(fAttnPatt,16) << endl;
   os << bl << "  fAttnNotiPatt:   " << RosPrintBvi(fAttnNotiPatt,16) << endl;
-  fStats.Dump(os, ind+2, "fStats: ");
+  fStats.Dump(os, ind+2, "fStats: ", detail-1);
   return;
 }
 

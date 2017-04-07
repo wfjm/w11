@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDiskOver.hpp 859 2017-03-11 22:36:45Z mueller $
+// $Id: Rw11VirtDiskOver.hpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2017-03-10   859   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 
 /*!
   \file
-  \version $Id: Rw11VirtDiskOver.hpp 859 2017-03-11 22:36:45Z mueller $
+  \version $Id: Rw11VirtDiskOver.hpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Declaration of class Rw11VirtDiskOver.
 */
 
@@ -57,7 +58,8 @@ namespace Retro {
       bool          Flush(RerrMsg& emsg);
       void          List(std::ostream& os) const;
 
-      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
 
     // statistics counter indices (now new)
       enum stats {

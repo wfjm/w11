@@ -1,4 +1,4 @@
-// $Id: RtclRw11Unit.cpp 863 2017-04-02 11:43:15Z mueller $
+// $Id: RtclRw11Unit.cpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.1.1  M_dump: use GetArgsDump and Dump detail
 // 2017-04-02   863   1.1    add fpVirt; add DetachCleanup()
 // 2013-03-03   494   1.0    Initial version
 // 2013-02-16   488   0.1    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Unit.cpp 863 2017-04-02 11:43:15Z mueller $
+  \version $Id: RtclRw11Unit.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of RtclRw11Unit.
 */
 
@@ -148,10 +149,12 @@ int RtclRw11Unit::M_virt(RtclArgs& args)
 
 int RtclRw11Unit::M_dump(RtclArgs& args)
 {
+  int detail=0;
+  if (!GetArgsDump(args, detail)) return kERR;
   if (!args.AllDone()) return kERR;
 
   ostringstream sos;
-  Obj().Dump(sos, 0);
+  Obj().Dump(sos, 0, "", detail);
   args.SetResult(sos);
   return kOK;
 }

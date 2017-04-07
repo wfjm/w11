@@ -1,6 +1,6 @@
-// $Id: RlinkPortTerm.cpp 666 2015-04-12 21:17:54Z mueller $
+// $Id: RlinkPortTerm.cpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.3.1  Dump(): add detail arg
 // 2015-04-12   666   1.3    drop xon/xoff excaping; add noinit attribute
 // 2015-02-01   641   1.2    support custom baud rates (5M,6M,10M,12M)
 // 2013-02-23   492   1.1    use RparseUrl
@@ -27,7 +28,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPortTerm.cpp 666 2015-04-12 21:17:54Z mueller $
+  \version $Id: RlinkPortTerm.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of RlinkPortTerm.
 */
 
@@ -314,13 +315,14 @@ void RlinkPortTerm::Close()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RlinkPortTerm::Dump(std::ostream& os, int ind, const char* text) const
+void RlinkPortTerm::Dump(std::ostream& os, int ind, const char* text,
+                         int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "RlinkPortTerm @ " << this << endl;
   DumpTios(os, ind, "fTiosOld", fTiosOld);
   DumpTios(os, ind, "fTiosNew", fTiosNew);
-  RlinkPort::Dump(os, ind, " ^");
+  RlinkPort::Dump(os, ind, " ^", detail);
   return;
 } 
 

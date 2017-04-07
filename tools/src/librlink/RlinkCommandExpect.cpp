@@ -1,6 +1,6 @@
-// $Id: RlinkCommandExpect.cpp 661 2015-04-03 18:28:41Z mueller $
+// $Id: RlinkCommandExpect.cpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2015-04-02   661   1.1    expect logic: remove stat from Expect, invert mask
 // 2011-11-28   434   1.0.1  Dump(): use proper cast for lp64 compatibility
 // 2011-03-12   368   1.0    Initial version
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RlinkCommandExpect.cpp 661 2015-04-03 18:28:41Z mueller $
+  \version $Id: RlinkCommandExpect.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of class RlinkCommandExpect.
  */
 
@@ -133,7 +134,8 @@ bool RlinkCommandExpect::BlockIsChecked(size_t ind) const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RlinkCommandExpect::Dump(std::ostream& os, int ind, const char* text) const
+void RlinkCommandExpect::Dump(std::ostream& os, int ind, const char* text,
+                              int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "RlinkCommandExpect @ " << this << endl;

@@ -1,4 +1,4 @@
-// $Id: RlinkPortTerm.hpp 666 2015-04-12 21:17:54Z mueller $
+// $Id: RlinkPortTerm.hpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2015-04-11   666   1.1    drop xon/xoff excaping, now done in RlinkPacketBuf
 // 2011-12-18   440   1.0.2  add kStatNPort stats
 // 2011-12-11   438   1.0.1  Read(),Write(): added for xon handling, tcdrain();
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPortTerm.hpp 666 2015-04-12 21:17:54Z mueller $
+  \version $Id: RlinkPortTerm.hpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Declaration of class RlinkPortTerm.
 */
 
@@ -45,7 +46,8 @@ namespace Retro {
       virtual bool  Open(const std::string& url, RerrMsg& emsg);
       virtual void  Close();
  
-      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
 
     // some constants (also defined in cpp)
       static const uint8_t kc_xon  = 0x11;  // XON  char -> ^Q = hex 11

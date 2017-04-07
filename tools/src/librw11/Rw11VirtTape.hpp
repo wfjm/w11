@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTape.hpp 864 2017-04-02 13:20:18Z mueller $
+// $Id: Rw11VirtTape.hpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2017-04-02   864   1.1    move fWProt,WProt() to Rw11Virt base
 // 2015-06-04   686   1.0    Initial version
 // 2015-05-17   683   0.1    First draft
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtTape.hpp 864 2017-04-02 13:20:18Z mueller $
+  \version $Id: Rw11VirtTape.hpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Declaration of class Rw11VirtTape.
 */
 
@@ -61,7 +62,8 @@ namespace Retro {
       int           PosFile() const;
       int           PosRecord() const;
 
-      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
 
       static Rw11VirtTape* New(const std::string& url, Rw11Unit* punit,
                                RerrMsg& emsg);

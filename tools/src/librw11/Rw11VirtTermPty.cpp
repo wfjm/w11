@@ -1,6 +1,6 @@
-// $Id: Rw11VirtTermPty.cpp 632 2015-01-11 12:30:03Z mueller $
+// $Id: Rw11VirtTermPty.cpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-24   492   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11VirtTermPty.cpp 632 2015-01-11 12:30:03Z mueller $
+  \version $Id: Rw11VirtTermPty.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of Rw11VirtTermPty.
 */
 #define _XOPEN_SOURCE 600
@@ -143,13 +144,14 @@ int Rw11VirtTermPty::RcvPollHandler(const pollfd& pfd)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11VirtTermPty::Dump(std::ostream& os, int ind, const char* text) const
+void Rw11VirtTermPty::Dump(std::ostream& os, int ind, const char* text,
+                           int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11VirtTermPty @ " << this << endl;
 
   os << bl << "  fFd:             " << fFd << endl;
-  Rw11VirtTerm::Dump(os, ind+2, "");
+  Rw11VirtTerm::Dump(os, ind+2, "", detail);
   return;
 }
 

@@ -1,6 +1,6 @@
-// $Id: Rw11UnitLP11.cpp 515 2013-05-04 17:28:59Z mueller $
+// $Id: Rw11UnitLP11.cpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,12 +13,13 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2013-05-01   513   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11UnitLP11.cpp 515 2013-05-04 17:28:59Z mueller $
+  \version $Id: Rw11UnitLP11.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of Rw11UnitLP11.
 */
 
@@ -57,11 +58,12 @@ Rw11UnitLP11::~Rw11UnitLP11()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11UnitLP11::Dump(std::ostream& os, int ind, const char* text) const
+void Rw11UnitLP11::Dump(std::ostream& os, int ind, const char* text,
+                        int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11UnitLP11 @ " << this << endl;
-  Rw11UnitStreamBase<Rw11CntlLP11>::Dump(os, ind, " ^");
+  Rw11UnitStreamBase<Rw11CntlLP11>::Dump(os, ind, " ^", detail);
   return;
 }
   

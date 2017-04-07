@@ -1,6 +1,6 @@
-// $Id: Rw11Unit.hpp 680 2015-05-14 13:29:46Z mueller $
+// $Id: Rw11Unit.hpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.1.2  Dump(): add detail arg
 // 2015-05-13   680   1.1.1  add Enabled()
 // 2013-05-03   515   1.1    use AttachDone(),DetachCleanup(),DetachDone()
 // 2013-05-01   513   1.0.1  add fAttachOpts, (Set)AttachOpts()
@@ -23,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Unit.hpp 680 2015-05-14 13:29:46Z mueller $
+  \version $Id: Rw11Unit.hpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Declaration of class Rw11Unit.
 */
 
@@ -68,7 +69,8 @@ namespace Retro {
       virtual void  Detach();
 
       const Rstats& Stats() const;
-      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
 
     // statistics counter indices
       enum stats {

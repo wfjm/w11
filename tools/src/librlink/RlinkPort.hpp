@@ -1,4 +1,4 @@
-// $Id: RlinkPort.hpp 853 2017-02-19 18:54:30Z mueller $
+// $Id: RlinkPort.hpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.4.1  Dump(): add detail arg
 // 2017-02-19   853   1.4    use Rtime, drop TimeOfDayAsDouble
 // 2015-04-11   666   1.3    add fXon, XonEnable()
 // 2014-12-10   611   1.2.2  add time stamps for Read/Write for logs
@@ -29,7 +30,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPort.hpp 853 2017-02-19 18:54:30Z mueller $
+  \version $Id: RlinkPort.hpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Declaration of class RlinkPort.
 */
 
@@ -81,7 +82,8 @@ namespace Retro {
 
       const Rstats& Stats() const;
 
-      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
 
     // some constants (also defined in cpp)
       static const int  kEof  =  0;         //<! return code: end-of-file 

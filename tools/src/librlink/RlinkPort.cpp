@@ -1,4 +1,4 @@
-// $Id: RlinkPort.cpp 853 2017-02-19 18:54:30Z mueller $
+// $Id: RlinkPort.cpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.4.1  Dump(): add detail arg
 // 2017-02-19   853   1.4    use Rtime, drop TimeOfDayAsDouble
 // 2015-04-11   666   1.3    add fXon, XonEnable()
 // 2014-12-10   611   1.2.4  add time stamps for Read/Write for logs
@@ -32,7 +33,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPort.cpp 853 2017-02-19 18:54:30Z mueller $
+  \version $Id: RlinkPort.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of RlinkPort.
 */
 
@@ -292,7 +293,8 @@ int RlinkPort::RawWrite(const uint8_t* buf, size_t size, RerrMsg& emsg)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RlinkPort::Dump(std::ostream& os, int ind, const char* text) const
+void RlinkPort::Dump(std::ostream& os, int ind, const char* text,
+                     int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "RlinkPort @ " << this << endl;
@@ -306,7 +308,7 @@ void RlinkPort::Dump(std::ostream& os, int ind, const char* text) const
   os << bl << "  fTraceLevel:     " << fTraceLevel << endl;
   os << bl << "  fTsLastRead:     " << fTsLastRead << endl;
   os << bl << "  fTsLastWrite:    " << fTsLastWrite << endl;
-  fStats.Dump(os, ind+2, "fStats: ");
+  fStats.Dump(os, ind+2, "fStats: ", detail);
   return;
 }
 

@@ -1,6 +1,6 @@
-// $Id: RlinkPacketBuf.hpp 606 2014-11-24 07:08:51Z mueller $
+// $Id: RlinkPacketBuf.hpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   2.0.1  Dump(): add detail arg
 // 2014-11-23   606   2.0    re-organize for rlink v4
 // 2013-04-21   509   1.0.2  add SndAttn() method
 // 2013-01-13   474   1.0.1  add PollAttn() method
@@ -23,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPacketBuf.hpp 606 2014-11-24 07:08:51Z mueller $
+  \version $Id: RlinkPacketBuf.hpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Declaration of class RlinkPacketBuf.
 */
 
@@ -55,7 +56,8 @@ namespace Retro {
 
       const Rstats& Stats() const;
 
-      void          Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      void          Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
 
     // flag bits (also defined in cpp)
       static const uint32_t kFlagSopSeen    = 1<<0;  //!< sop was seen

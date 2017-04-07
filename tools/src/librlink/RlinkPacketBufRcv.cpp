@@ -1,4 +1,4 @@
-// $Id: RlinkPacketBufRcv.cpp 853 2017-02-19 18:54:30Z mueller $
+// $Id: RlinkPacketBufRcv.cpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2017-02-19   853   1.1    use Rtime
 // 2014-12-25   621   1.0.1  Reorganize packet send/revd stats
 // 2014-11-30   607   1.0    Initial version
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPacketBufRcv.cpp 853 2017-02-19 18:54:30Z mueller $
+  \version $Id: RlinkPacketBufRcv.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of class RlinkPacketBuf.
  */
 
@@ -182,7 +183,8 @@ void RlinkPacketBufRcv::GetWithCrc(uint16_t* pdata, size_t count)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RlinkPacketBufRcv::Dump(std::ostream& os, int ind, const char* text) const
+void RlinkPacketBufRcv::Dump(std::ostream& os, int ind, const char* text,
+                             int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "RlinkPacketBufRcv @ " << this << endl;
@@ -205,7 +207,7 @@ void RlinkPacketBufRcv::Dump(std::ostream& os, int ind, const char* text) const
   }
   os << endl;
 
-  RlinkPacketBuf::Dump(os, ind, " ^");
+  RlinkPacketBuf::Dump(os, ind, " ^", detail);
   return;
 }
 

@@ -1,6 +1,6 @@
-// $Id: RlinkAddrMap.hpp 486 2013-02-10 22:34:43Z mueller $
+// $Id: RlinkAddrMap.hpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2011-03-05   366   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 
 /*!
   \file
-  \version $Id: RlinkAddrMap.hpp 486 2013-02-10 22:34:43Z mueller $
+  \version $Id: RlinkAddrMap.hpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Declaration of class \c RlinkAddrMap.
 */
 
@@ -62,7 +63,8 @@ namespace Retro {
       size_t        MaxNameLength() const;
 
       void          Print(std::ostream& os, int ind=0) const;
-      void          Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      void          Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
 
     protected:
       nmap_t        fNameMap;               //!< name->addr map

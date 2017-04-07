@@ -1,6 +1,6 @@
-// $Id: Rw11UnitRHRP.hpp 680 2015-05-14 13:29:46Z mueller $
+// $Id: Rw11UnitRHRP.hpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2015-05-14   680   1.0    Initial version
 // 2015-03-21   659   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11UnitRHRP.hpp 680 2015-05-14 13:29:46Z mueller $
+  \version $Id: Rw11UnitRHRP.hpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Declaration of class Rw11UnitRHRP.
 */
 
@@ -45,7 +46,8 @@ namespace Retro {
       void          SetRpds(uint16_t rpds);
       uint16_t      Rpds() const;
 
-      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
 
     // some constants (also defined in cpp)
       static const uint16_t kDTE_M_RM = kWBit02; //!< rm type flag

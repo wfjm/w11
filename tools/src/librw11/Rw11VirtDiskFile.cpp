@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDiskFile.cpp 859 2017-03-11 22:36:45Z mueller $
+// $Id: Rw11VirtDiskFile.cpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2017-03-11   859   1.1    use fWProt
 // 2013-04-14   506   1.0    Initial version
 // 2013-02-13   488   0.1    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtDiskFile.cpp 859 2017-03-11 22:36:45Z mueller $
+  \version $Id: Rw11VirtDiskFile.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of Rw11VirtDiskFile.
 */
 
@@ -151,14 +152,15 @@ bool Rw11VirtDiskFile::Write(size_t lba, size_t nblk, const uint8_t* data,
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11VirtDiskFile::Dump(std::ostream& os, int ind, const char* text) const
+void Rw11VirtDiskFile::Dump(std::ostream& os, int ind, const char* text,
+                            int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11VirtDiskFile @ " << this << endl;
 
   os << bl << "  fFd:             " << fFd << endl;
   os << bl << "  fSize:           " << fSize << endl;
-  Rw11VirtDisk::Dump(os, ind, " ^");
+  Rw11VirtDisk::Dump(os, ind, " ^", detail);
   return;
 }
 

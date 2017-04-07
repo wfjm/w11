@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.cpp 857 2017-02-26 15:27:41Z mueller $
+// $Id: Rw11Cpu.cpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.2.12 Dump(): add detail arg
 // 2017-02-26   857   1.2.11 add kCPAH_M_UBM22
 // 2017-02-19   853   1.2.10 use Rtime
 // 2017-02-17   851   1.2.9  probe/setup auxilliary devices: kw11l,kw11p,iist
@@ -37,7 +38,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cpu.cpp 857 2017-02-26 15:27:41Z mueller $
+  \version $Id: Rw11Cpu.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of Rw11Cpu.
 */
 #include <stdlib.h>
@@ -858,7 +859,8 @@ void Rw11Cpu::W11AttnHandler()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11Cpu::Dump(std::ostream& os, int ind, const char* text) const
+void Rw11Cpu::Dump(std::ostream& os, int ind, const char* text,
+                   int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11Cpu @ " << this << endl;
@@ -879,9 +881,9 @@ void Rw11Cpu::Dump(std::ostream& os, int ind, const char* text) const
     os << bl << "    " << RosPrintf((it->first).c_str(), "-s",8)
        << " : " << it->second << endl;
   }
-  fIAddrMap.Dump(os, ind+2, "fIAddrMap: ");
-  fRAddrMap.Dump(os, ind+2, "fRAddrMap: ");
-  fStats.Dump(os, ind+2, "fStats: ");
+  fIAddrMap.Dump(os, ind+2, "fIAddrMap: ", detail-1);
+  fRAddrMap.Dump(os, ind+2, "fRAddrMap: ", detail-1);
+  fStats.Dump(os, ind+2, "fStats: ", detail);
   return;
 }
 

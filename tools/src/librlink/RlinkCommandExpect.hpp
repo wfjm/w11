@@ -1,6 +1,6 @@
-// $Id: RlinkCommandExpect.hpp 661 2015-04-03 18:28:41Z mueller $
+// $Id: RlinkCommandExpect.hpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.2.1  Dump(): add detail arg
 // 2015-04-02   661   1.2    expect logic: remove stat from Expect, invert mask
 // 2014-12-20   616   1.1    add Done count methods (for rblk/wblk)
 // 2011-03-12   368   1.0    Initial version
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: RlinkCommandExpect.hpp 661 2015-04-03 18:28:41Z mueller $
+  \version $Id: RlinkCommandExpect.hpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Declaration of class RlinkCommandExpect.
 */
 
@@ -65,7 +66,8 @@ namespace Retro {
       bool          DoneIsChecked() const;
       bool          BlockIsChecked(size_t ind) const;
 
-      void          Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      void          Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
     
     protected: 
       uint16_t      fDataVal;               //!< data value

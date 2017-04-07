@@ -1,4 +1,4 @@
-// $Id: RlinkCommand.cpp 859 2017-03-11 22:36:45Z mueller $
+// $Id: RlinkCommand.cpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.3.2  Dump(): add detail arg
 // 2017-03-11   859   1.3.1  add CommandInfo()
 // 2015-04-02   661   1.3    expect logic: add stat check, Print() without cntx
 // 2015-02-07   642   1.2.3  Print()+Dump(): adopt for large nblk;
@@ -28,7 +29,7 @@
 
 /*!
   \file
-  \version $Id: RlinkCommand.cpp 859 2017-03-11 22:36:45Z mueller $
+  \version $Id: RlinkCommand.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of class RlinkCommand.
  */
 
@@ -502,7 +503,8 @@ std::string RlinkCommand::CommandInfo() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RlinkCommand::Dump(std::ostream& os, int ind, const char* text) const
+void RlinkCommand::Dump(std::ostream& os, int ind, const char* text,
+                        int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "RlinkCommand @ " << this << endl;
@@ -532,7 +534,7 @@ void RlinkCommand::Dump(std::ostream& os, int ind, const char* text) const
   }
   os << bl << "  fExpectStatusVal:" << RosPrintBvi(fExpectStatusVal,0) << endl;
   os << bl << "  fExpectStatusMsk:" << RosPrintBvi(fExpectStatusMsk,0) << endl;
-  if (fpExpect) fpExpect->Dump(os, ind+2, "fpExpect: ");
+  if (fpExpect) fpExpect->Dump(os, ind+2, "fpExpect: ", detail);
 
   return;
 }

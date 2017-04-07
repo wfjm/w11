@@ -1,6 +1,6 @@
-// $Id: RlinkPacketBufSnd.cpp 666 2015-04-12 21:17:54Z mueller $
+// $Id: RlinkPacketBufSnd.cpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2014-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2015-04-11   666   1.1    handle xon/xoff escaping, add (Set)XonEscape()
 // 2014-12-25   621   1.0.1  Reorganize packet send/revd stats
 // 2014-11-15   604   1.0    Initial version
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPacketBufSnd.cpp 666 2015-04-12 21:17:54Z mueller $
+  \version $Id: RlinkPacketBufSnd.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of class RlinkPacketBuf.
  */
 
@@ -211,7 +212,8 @@ bool RlinkPacketBufSnd::SndUnJam(RlinkPort* port, RerrMsg& emsg)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RlinkPacketBufSnd::Dump(std::ostream& os, int ind, const char* text) const
+void RlinkPacketBufSnd::Dump(std::ostream& os, int ind, const char* text,
+                             int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "RlinkPacketBufSnd @ " << this << endl;
@@ -227,7 +229,7 @@ void RlinkPacketBufSnd::Dump(std::ostream& os, int ind, const char* text) const
   }
   os << endl;
 
-  RlinkPacketBuf::Dump(os, ind, " ^");
+  RlinkPacketBuf::Dump(os, ind, " ^", detail);
  
   return;
 }

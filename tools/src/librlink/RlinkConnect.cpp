@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.cpp 854 2017-02-25 14:46:03Z mueller $
+// $Id: RlinkConnect.cpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   2.6.1  Dump(): add detail arg
 // 2017-02-20   854   2.6    use Rtime, drop TimeOfDayAsDouble
 // 2016-04-02   758   2.5    add USR_ACCESS register support (RLUA0/RLUA1)
 // 2016-03-20   748   2.4    add fTimeout,(Set)Timeout();
@@ -39,7 +40,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.cpp 854 2017-02-25 14:46:03Z mueller $
+  \version $Id: RlinkConnect.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of RlinkConnect.
 */
 
@@ -669,13 +670,14 @@ void RlinkConnect::Print(std::ostream& os) const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RlinkConnect::Dump(std::ostream& os, int ind, const char* text) const
+void RlinkConnect::Dump(std::ostream& os, int ind, const char* text,
+                        int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "RlinkConnect @ " << this << endl;
 
   if (fpPort) {
-    fpPort->Dump(os, ind+2, "fpPort: ");
+    fpPort->Dump(os, ind+2, "fpPort: ", detail);
   } else {
     os << bl << "  fpPort:          " <<  fpPort.get() << endl;
   }
@@ -687,11 +689,11 @@ void RlinkConnect::Dump(std::ostream& os, int ind, const char* text) const
   for (size_t i=0; i<8; i++) os << RosPrintBvi(fSeqNumber[i],16) << " ";
   os << endl;
   
-  fSndPkt.Dump(os, ind+2, "fSndPkt: ");
-  fRcvPkt.Dump(os, ind+2, "fRcvPkt: ");
-  fContext.Dump(os, ind+2, "fContext: ");
-  fAddrMap.Dump(os, ind+2, "fAddrMap: ");
-  fStats.Dump(os, ind+2, "fStats: ");
+  fSndPkt.Dump(os, ind+2, "fSndPkt: ", detail);
+  fRcvPkt.Dump(os, ind+2, "fRcvPkt: ", detail);
+  fContext.Dump(os, ind+2, "fContext: ", detail);
+  fAddrMap.Dump(os, ind+2, "fAddrMap: ", detail-1);
+  fStats.Dump(os, ind+2, "fStats: ", detail-1);
   os << bl << "  fLogBaseAddr:    " << fLogBaseAddr << endl;
   os << bl << "  fLogBaseData:    " << fLogBaseData << endl;
   os << bl << "  fLogBaseStat:    " << fLogBaseStat << endl;

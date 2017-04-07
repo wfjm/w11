@@ -1,4 +1,4 @@
-// $Id: RtclRlinkConnect.cpp 854 2017-02-25 14:46:03Z mueller $
+// $Id: RtclRlinkConnect.cpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   865   1.5.1  M_dump: use GetArgsDump and Dump detail
 // 2017-02-20   854   1.5    use Rtime
 // 2016-04-02   758   1.4.6  add USR_ACCESS register support (UsrAcc->usracc)
 // 2016-03-20   748   1.4.5  M_get/set: add timeout
@@ -41,7 +42,7 @@
 
 /*!
   \file
-  \version $Id: RtclRlinkConnect.cpp 854 2017-02-25 14:46:03Z mueller $
+  \version $Id: RtclRlinkConnect.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of class RtclRlinkConnect.
  */
 
@@ -742,10 +743,12 @@ int RtclRlinkConnect::M_print(RtclArgs& args)
 
 int RtclRlinkConnect::M_dump(RtclArgs& args)
 {
+  int detail=0;
+  if (!GetArgsDump(args, detail)) return kERR;
   if (!args.AllDone()) return kERR;
 
   ostringstream sos;
-  Obj().Dump(sos, 0);
+  Obj().Dump(sos, 0, "", detail);
   args.SetResult(sos);
   return kOK;
 }

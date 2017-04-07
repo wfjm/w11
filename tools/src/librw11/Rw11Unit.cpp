@@ -1,6 +1,6 @@
-// $Id: Rw11Unit.cpp 680 2015-05-14 13:29:46Z mueller $
+// $Id: Rw11Unit.cpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.1.2  Dump(): add detail arg
 // 2015-05-13   680   1.1.1  add Enabled()
 // 2013-05-03   515   1.1    use AttachDone(),DetachCleanup(),DetachDone()
 // 2013-03-06   495   1.0    Initial version
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Unit.cpp 680 2015-05-14 13:29:46Z mueller $
+  \version $Id: Rw11Unit.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of Rw11Unit.
 */
 
@@ -83,14 +84,15 @@ void Rw11Unit::Detach()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11Unit::Dump(std::ostream& os, int ind, const char* text) const
+void Rw11Unit::Dump(std::ostream& os, int ind, const char* text,
+                    int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11Unit @ " << this << endl;
 
   os << bl << "  fIndex:          " << fIndex << endl;
   os << bl << "  fAttachOpts:     " << fAttachOpts << endl;
-  fStats.Dump(os, ind+2, "fStats: ");
+  fStats.Dump(os, ind+2, "fStats: ", detail-1);
   return;
 }
 

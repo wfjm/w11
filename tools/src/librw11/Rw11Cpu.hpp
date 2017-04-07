@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.hpp 866 2017-04-02 17:20:13Z mueller $
+// $Id: Rw11Cpu.hpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.2.10 Dump(): add detail arg
 // 2017-02-26   857   1.2.9  add kCPAH_M_UBM22
 // 2017-02-19   853   1.2.8  use Rtime
 // 2017-02-17   851   1.2.7  probe/setup auxilliary devices: kw11l,kw11p,iist
@@ -33,7 +34,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cpu.hpp 866 2017-04-02 17:20:13Z mueller $
+  \version $Id: Rw11Cpu.hpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Declaration of class Rw11Cpu.
 */
 
@@ -163,7 +164,8 @@ namespace Retro {
       void          W11AttnHandler();
 
       const Rstats& Stats() const;
-      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
 
     // some constants (also defined in cpp)
       static const uint16_t  kCPCONF  = 0x0000; //!< CPCONF  reg offset

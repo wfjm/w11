@@ -1,6 +1,6 @@
-// $Id: Rw11UnitTape.cpp 686 2015-06-04 21:08:08Z mueller $
+// $Id: Rw11UnitTape.cpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2015-06-04   686   1.0    Initial version
 // 2015-05-17   683   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11UnitTape.cpp 686 2015-06-04 21:08:08Z mueller $
+  \version $Id: Rw11UnitTape.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of Rw11UnitTape.
 */
 
@@ -232,7 +233,8 @@ bool Rw11UnitTape::VirtRewind(int& opcode, RerrMsg& emsg)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11UnitTape::Dump(std::ostream& os, int ind, const char* text) const
+void Rw11UnitTape::Dump(std::ostream& os, int ind, const char* text,
+                        int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11UnitTape @ " << this << endl;
@@ -241,7 +243,7 @@ void Rw11UnitTape::Dump(std::ostream& os, int ind, const char* text) const
   os << bl << "  fWProt:          " << fWProt << endl;
   os << bl << "  fCapacity:       " << fCapacity << endl;
 
-  Rw11UnitVirt<Rw11VirtTape>::Dump(os, ind, " ^");
+  Rw11UnitVirt<Rw11VirtTape>::Dump(os, ind, " ^", detail);
   return;
 } 
 

@@ -1,4 +1,4 @@
-// $Id: RlinkCommand.hpp 859 2017-03-11 22:36:45Z mueller $
+// $Id: RlinkCommand.hpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.3.2  Dump(): add detail arg
 // 2017-03-11   859   1.3.1  add CommandInfo()
 // 2015-04-02   661   1.3    expect logic: add stat check, Print() without cntx
 // 2014-12-21   617   1.2.2  use kStat_M_RbTout for rbus timeout
@@ -26,7 +27,7 @@
 
 /*!
   \file
-  \version $Id: RlinkCommand.hpp 859 2017-03-11 22:36:45Z mueller $
+  \version $Id: RlinkCommand.hpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Declaration of class RlinkCommand.
 */
 
@@ -110,7 +111,8 @@ namespace Retro {
                           size_t abase=16, size_t dbase=16, 
                           size_t sbase=16) const;
       std::string   CommandInfo() const;
-      void          Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      void          Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
 
       static const char* CommandName(uint8_t cmd);
       static const RflagName* FlagNames();

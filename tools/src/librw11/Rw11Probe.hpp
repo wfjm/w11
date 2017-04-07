@@ -1,4 +1,4 @@
-// $Id: Rw11Probe.hpp 848 2017-02-04 14:55:30Z mueller $
+// $Id: Rw11Probe.hpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2017-02-04   848   1.1    Keep probe data; add DataInt(), DataRem()
 // 2013-03-05   495   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Probe.hpp 848 2017-02-04 14:55:30Z mueller $
+  \version $Id: Rw11Probe.hpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Declaration of class Rw11Probe.
 */
 
@@ -49,7 +50,8 @@ namespace Retro {
       uint16_t      DataInt() const;
       uint16_t      DataRem() const;
 
-      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
   };
   
 } // end namespace Retro

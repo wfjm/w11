@@ -1,4 +1,4 @@
-// $Id: Rw11UnitTerm.hpp 855 2017-02-25 16:30:37Z mueller $
+// $Id: Rw11UnitTerm.hpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.1.2  Dump(): add detail arg
 // 2017-02-25   855   1.1.1  RcvNext() --> RcvQueueNext(); WakeupCntl() now pure
 // 2013-05-03   515   1.1    use AttachDone(),DetachCleanup(),DetachDone()
 // 2013-04-20   508   1.0.1  add 7bit and non-printable masking; add log file
@@ -23,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: Rw11UnitTerm.hpp 855 2017-02-25 16:30:37Z mueller $
+  \version $Id: Rw11UnitTerm.hpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Declaration of class Rw11UnitTerm.
 */
 
@@ -67,7 +68,8 @@ namespace Retro {
       virtual bool  RcvCallback(const uint8_t* buf, size_t count);
       virtual void  WakeupCntl() = 0;
 
-      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
 
     // statistics counter indices
       enum stats {

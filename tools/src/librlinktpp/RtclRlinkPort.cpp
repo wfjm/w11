@@ -1,4 +1,4 @@
-// $Id: RtclRlinkPort.cpp 853 2017-02-19 18:54:30Z mueller $
+// $Id: RtclRlinkPort.cpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   865   1.1.1  M_dump: use GetArgsDump and Dump detail
 // 2017-02-19   853   1.1    use Rtime
 // 2015-01-09   632   1.0.4  add M_get, M_set, remove M_config
 // 2014-08-22   584   1.0.3  use nullptr
@@ -23,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: RtclRlinkPort.cpp 853 2017-02-19 18:54:30Z mueller $
+  \version $Id: RtclRlinkPort.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of class RtclRlinkPort.
  */
 
@@ -182,11 +183,13 @@ int RtclRlinkPort::M_log(RtclArgs& args)
 
 int RtclRlinkPort::M_dump(RtclArgs& args)
 {
+  int detail=0;
+  if (!GetArgsDump(args, detail)) return kERR;
   if (!args.AllDone()) return kERR;
   if (!TestOpen(args)) return kERR;
 
   ostringstream sos;
-  fpObj->Dump(sos, 0);
+  fpObj->Dump(sos, 0, "", 0);
   args.SetResult(sos);
   return kOK;
 }

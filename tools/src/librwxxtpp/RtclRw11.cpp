@@ -1,4 +1,4 @@
-// $Id: RtclRw11.cpp 867 2017-04-02 18:16:33Z mueller $
+// $Id: RtclRw11.cpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.0.3  M_dump: use GetArgsDump and Dump detail
 // 2017-04-02   866   1.0.2  add M_set; handle default disk scheme
 // 2015-03-28   660   1.0.1  add M_get
 // 2014-12-25   621   1.1    adopt to 4k word ibus window
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11.cpp 867 2017-04-02 18:16:33Z mueller $
+  \version $Id: RtclRw11.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of class RtclRw11.
  */
 
@@ -163,10 +164,12 @@ int RtclRw11::M_start(RtclArgs& args)
 
 int RtclRw11::M_dump(RtclArgs& args)
 {
+  int detail=0;
+  if (!GetArgsDump(args, detail)) return kERR;
   if (!args.AllDone()) return kERR;
 
   ostringstream sos;
-  Obj().Dump(sos, 0);
+  Obj().Dump(sos, 0, "", detail);
   args.SetResult(sos);
   return kOK;
 }

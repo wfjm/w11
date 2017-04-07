@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDisk.hpp 867 2017-04-02 18:16:33Z mueller $
+// $Id: Rw11VirtDisk.hpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2017-04-02   866   1.1    add default scheme handling
 // 2013-03-03   494   1.0    Initial version
 // 2013-02-13   488   0.1    First draft
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtDisk.hpp 867 2017-04-02 18:16:33Z mueller $
+  \version $Id: Rw11VirtDisk.hpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Declaration of class Rw11VirtDisk.
 */
 
@@ -48,7 +49,8 @@ namespace Retro {
       virtual bool  Write(size_t lba, size_t nblk, const uint8_t* data, 
                           RerrMsg& emsg) = 0;
 
-      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
 
       static Rw11VirtDisk* New(const std::string& url, Rw11Unit* punit,
                                RerrMsg& emsg);

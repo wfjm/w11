@@ -1,6 +1,6 @@
-// $Id: RlinkPacketBufSnd.hpp 666 2015-04-12 21:17:54Z mueller $
+// $Id: RlinkPacketBufSnd.hpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2014-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.1.2  Dump(): add detail arg
 // 2015-04-11   666   1.1    handle xon/xoff escaping, add (Set)XonEscape()
 // 2014-12-25   621   1.0.1  Reorganize packet send/revd stats
 // 2014-11-14   604   1.0    Initial version
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPacketBufSnd.hpp 666 2015-04-12 21:17:54Z mueller $
+  \version $Id: RlinkPacketBufSnd.hpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Declaration of class RlinkPacketBufSnd.
 */
 
@@ -62,7 +63,8 @@ namespace Retro {
 
       size_t        RawSize() const;
 
-      void          Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      void          Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
  
    // statistics counter indices
       enum stats {

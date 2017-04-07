@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.hpp 854 2017-02-25 14:46:03Z mueller $
+// $Id: RlinkConnect.hpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   2.6.1  Dump(): add detail arg
 // 2017-02-20   854   2.6    use Rtime, drop TimeOfDayAsDouble
 // 2016-04-02   758   2.5    add USR_ACCESS register support (RLUA0/RLUA1)
 // 2016-03-20   748   2.4    add fTimeout,(Set)Timeout();
@@ -40,7 +41,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.hpp 854 2017-02-25 14:46:03Z mueller $
+  \version $Id: RlinkConnect.hpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Declaration of class \c RlinkConnect.
 */
 
@@ -155,7 +156,8 @@ namespace Retro {
       std::string   LogFileName() const;
 
       void          Print(std::ostream& os) const;
-      void          Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      void          Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
 
       void          HandleUnsolicitedData();
 

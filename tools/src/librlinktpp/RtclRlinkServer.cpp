@@ -1,6 +1,6 @@
-// $Id: RtclRlinkServer.cpp 662 2015-04-05 08:02:54Z mueller $
+// $Id: RtclRlinkServer.cpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-02   865   1.1.1  M_dump: use GetArgsDump and Dump detail
 // 2015-04-04   662   1.1    add M_get, M_set; remove 'server -trace'
 // 2014-08-22   584   1.0.6  use nullptr
 // 2013-05-01   513   1.0.5  TraceLevel now uint32_t
@@ -25,7 +26,7 @@
 
 /*!
   \file
-  \version $Id: RtclRlinkServer.cpp 662 2015-04-05 08:02:54Z mueller $
+  \version $Id: RtclRlinkServer.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of class RtclRlinkServer.
  */
 
@@ -291,10 +292,12 @@ int RtclRlinkServer::M_print(RtclArgs& args)
 
 int RtclRlinkServer::M_dump(RtclArgs& args)
 {
+  int detail=0;
+  if (!GetArgsDump(args, detail)) return kERR;
   if (!args.AllDone()) return kERR;
 
   ostringstream sos;
-  Obj().Dump(sos, 0);
+  Obj().Dump(sos, 0, "", detail);
   args.SetResult(sos);
   return kOK;
 }

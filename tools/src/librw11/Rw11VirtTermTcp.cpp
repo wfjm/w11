@@ -1,6 +1,6 @@
-// $Id: Rw11VirtTermTcp.cpp 632 2015-01-11 12:30:03Z mueller $
+// $Id: Rw11VirtTermTcp.cpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.0.5  Dump(): add detail arg
 // 2014-08-22   584   1.0.4  use nullptr
 // 2013-05-17   512   1.0.3  use Rtools::String2Long
 // 2013-05-05   516   1.0.2  fix mistakes in emsg generation with errno
@@ -23,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtTermTcp.cpp 632 2015-01-11 12:30:03Z mueller $
+  \version $Id: Rw11VirtTermTcp.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of Rw11VirtTermTcp.
 */
 
@@ -232,7 +233,8 @@ bool Rw11VirtTermTcp::Snd(const uint8_t* data, size_t count, RerrMsg& emsg)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11VirtTermTcp::Dump(std::ostream& os, int ind, const char* text) const
+void Rw11VirtTermTcp::Dump(std::ostream& os, int ind, const char* text,
+                           int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11VirtTermTcp @ " << this << endl;
@@ -253,7 +255,7 @@ void Rw11VirtTermTcp::Dump(std::ostream& os, int ind, const char* text) const
   os << bl << "  fState:          " << t_state    << endl;
   os << bl << "  fTcpTrace:       " << fTcpTrace  << endl;
   os << bl << "  fSndPreConQue.size" << fSndPreConQue.size()  << endl;
-  Rw11VirtTerm::Dump(os, ind, " ^");
+  Rw11VirtTerm::Dump(os, ind, " ^", detail);
   return;
 }
 

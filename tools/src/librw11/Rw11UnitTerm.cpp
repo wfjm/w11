@@ -1,4 +1,4 @@
-// $Id: Rw11UnitTerm.cpp 855 2017-02-25 16:30:37Z mueller $
+// $Id: Rw11UnitTerm.cpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.1.2  Dump(): add detail arg
 // 2017-02-25   855   1.1.1  RcvNext() --> RcvQueueNext(); WakeupCntl() now pure
 // 2013-05-03   515   1.1    use AttachDone(),DetachCleanup(),DetachDone()
 // 2013-04-13   504   1.0    Initial version
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: Rw11UnitTerm.cpp 855 2017-02-25 16:30:37Z mueller $
+  \version $Id: Rw11UnitTerm.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of Rw11UnitTerm.
 */
 
@@ -243,7 +244,8 @@ bool Rw11UnitTerm::RcvCallback(const uint8_t* buf, size_t count)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11UnitTerm::Dump(std::ostream& os, int ind, const char* text) const
+void Rw11UnitTerm::Dump(std::ostream& os, int ind, const char* text,
+                        int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11UnitTerm @ " << this << endl;
@@ -282,7 +284,7 @@ void Rw11UnitTerm::Dump(std::ostream& os, int ind, const char* text) const
   os << bl << "  fLogCrPend:      " << fLogCrPend << endl;
   os << bl << "  fLogLfLast:      " << fLogLfLast << endl;
 
-  Rw11UnitVirt<Rw11VirtTerm>::Dump(os, ind, " ^");
+  Rw11UnitVirt<Rw11VirtTerm>::Dump(os, ind, " ^", detail);
   return;
 } 
 

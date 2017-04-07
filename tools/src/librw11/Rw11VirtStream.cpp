@@ -1,4 +1,4 @@
-// $Id: Rw11VirtStream.cpp 864 2017-04-02 13:20:18Z mueller $
+// $Id: Rw11VirtStream.cpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.0.3  Dump(): add detail arg
 // 2017-04-02   864   1.0.2  signal for input streams WProt
 // 2013-05-05   516   1.0.1  Open(): support ?app and ?bck=n options
 // 2013-05-04   515   1.0    Initial version
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtStream.cpp 864 2017-04-02 13:20:18Z mueller $
+  \version $Id: Rw11VirtStream.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of Rw11VirtStream.
 */
 #include <memory>
@@ -212,7 +213,8 @@ bool Rw11VirtStream::Seek(int pos, RerrMsg& emsg)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11VirtStream::Dump(std::ostream& os, int ind, const char* text) const
+void Rw11VirtStream::Dump(std::ostream& os, int ind, const char* text,
+                          int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11VirtStream @ " << this << endl;
@@ -220,7 +222,7 @@ void Rw11VirtStream::Dump(std::ostream& os, int ind, const char* text) const
   os << bl << "  fIStream:        " << fIStream << endl;
   os << bl << "  fOStream:        " << fOStream << endl;
   os << bl << "  fFile:           " << fFile << endl;
-  Rw11Virt::Dump(os, ind, " ^");
+  Rw11Virt::Dump(os, ind, " ^", detail);
   return;
 }
 

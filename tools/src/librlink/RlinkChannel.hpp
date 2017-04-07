@@ -1,6 +1,6 @@
-// $Id: RlinkChannel.hpp 492 2013-02-24 22:14:47Z mueller $
+// $Id: RlinkChannel.hpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2013-02-23   492   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 
 /*!
   \file
-  \version $Id: RlinkChannel.hpp 492 2013-02-24 22:14:47Z mueller $
+  \version $Id: RlinkChannel.hpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Declaration of class RlinkChannel.
 */
 
@@ -44,7 +45,8 @@ namespace Retro {
 
       bool          Exec(RlinkCommandList& clist, RerrMsg& emsg);
 
-      void          Dump(std::ostream& os, int ind=0, const char* text=0) const;
+      void          Dump(std::ostream& os, int ind=0, const char* text=0,
+                         int detail=0) const;
     
     protected: 
       RlinkContext  fContext;               //!< stat check and errcnt context

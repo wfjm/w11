@@ -1,6 +1,6 @@
-// $Id: Rw11UnitDisk.cpp 659 2015-03-22 23:15:51Z mueller $
+// $Id: Rw11UnitDisk.cpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.0.2  Dump(): add detail arg
 // 2015-03-21   659   1.0.1  add fEnabled, Enabled()
 // 2013-04-19   507   1.0    Initial version
 // 2013-02-19   490   0.1    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11UnitDisk.cpp 659 2015-03-22 23:15:51Z mueller $
+  \version $Id: Rw11UnitDisk.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of Rw11UnitDisk.
 */
 
@@ -98,7 +99,8 @@ bool Rw11UnitDisk::VirtWrite(size_t lba, size_t nblk, const uint8_t* data,
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11UnitDisk::Dump(std::ostream& os, int ind, const char* text) const
+void Rw11UnitDisk::Dump(std::ostream& os, int ind, const char* text,
+                        int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11UnitDisk @ " << this << endl;
@@ -111,7 +113,7 @@ void Rw11UnitDisk::Dump(std::ostream& os, int ind, const char* text) const
   os << bl << "  fNBlock:         " << fNBlock  << endl;
   os << bl << "  fWProt:          " << fWProt << endl;
 
-  Rw11UnitVirt<Rw11VirtDisk>::Dump(os, ind, " ^");
+  Rw11UnitVirt<Rw11VirtDisk>::Dump(os, ind, " ^", detail);
   return;
 } 
 

@@ -1,6 +1,6 @@
-// $Id: Rw11UnitVirt.ipp 680 2015-05-14 13:29:46Z mueller $
+// $Id: Rw11UnitVirt.ipp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.2.1  Dump(): add detail arg
 // 2015-05-13   680   1.2    Attach(): check for Enabled()
 // 2014-11-02   600   1.1.1  add (bool) cast, needed in 4.8.2
 // 2013-05-03   515   1.1    use AttachDone(),DetachCleanup(),DetachDone()
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: Rw11UnitVirt.ipp 680 2015-05-14 13:29:46Z mueller $
+  \version $Id: Rw11UnitVirt.ipp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation (inline) of Rw11UnitVirt.
 */
 
@@ -102,18 +103,18 @@ inline void Rw11UnitVirt<TV>::Detach()
 //! FIXME_docs
 
 template <class TV>
-void Rw11UnitVirt<TV>::Dump(std::ostream& os, int ind, 
-                               const char* text) const
+void Rw11UnitVirt<TV>::Dump(std::ostream& os, int ind, const char* text,
+                            int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11UnitVirt @ " << this << std::endl;
   if (fpVirt) {
-    fpVirt->Dump(os, ind+2, "*fpVirt: ");
+    fpVirt->Dump(os, ind+2, "*fpVirt: ", detail);
   } else {
     os << bl << "  fpVirt:          " << fpVirt.get()   << std::endl;
   }
   
-  Rw11Unit::Dump(os, ind, " ^");
+  Rw11Unit::Dump(os, ind, " ^", detail);
   return;
 } 
 

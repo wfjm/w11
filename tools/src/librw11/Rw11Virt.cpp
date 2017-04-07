@@ -1,4 +1,4 @@
-// $Id: Rw11Virt.cpp 864 2017-04-02 13:20:18Z mueller $
+// $Id: Rw11Virt.cpp 868 2017-04-07 20:09:33Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2017-04-02   864   1.1    add fWProt,WProt()
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-13   488   0.1    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Virt.cpp 864 2017-04-02 13:20:18Z mueller $
+  \version $Id: Rw11Virt.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of Rw11Virt.
 */
 
@@ -65,7 +66,8 @@ bool Rw11Virt::WProt() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11Virt::Dump(std::ostream& os, int ind, const char* text) const
+void Rw11Virt::Dump(std::ostream& os, int ind, const char* text,
+                    int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11Virt @ " << this << endl;
@@ -73,7 +75,7 @@ void Rw11Virt::Dump(std::ostream& os, int ind, const char* text) const
   os << bl << "  fpUnit:          " << fpUnit << endl;
   fUrl.Dump(os, ind+2, "fUrl: ");
   os << bl << "  fWProt:          " << fWProt << endl;
-  fStats.Dump(os, ind+2, "fStats: ");
+  fStats.Dump(os, ind+2, "fStats: ", detail-1);
   return;
 }
 

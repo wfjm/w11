@@ -1,6 +1,6 @@
-// $Id: RlinkPacketBuf.cpp 606 2014-11-24 07:08:51Z mueller $
+// $Id: RlinkPacketBuf.cpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   2.0.1  Dump(): add detail arg
 // 2014-11-23   606   2.0    re-organize for rlink v4
 // 2013-04-21   509   1.0.4  add SndAttn() method
 // 2013-02-03   481   1.0.3  use Rexception
@@ -24,7 +25,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPacketBuf.cpp 606 2014-11-24 07:08:51Z mueller $
+  \version $Id: RlinkPacketBuf.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of class RlinkPacketBuf.
  */
 
@@ -90,13 +91,14 @@ RlinkPacketBuf::~RlinkPacketBuf()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RlinkPacketBuf::Dump(std::ostream& os, int ind, const char* text) const
+void RlinkPacketBuf::Dump(std::ostream& os, int ind, const char* text,
+                          int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "RlinkPacketBuf @ " << this << endl;
   os << bl << "  fCrc:          " << RosPrintBvi(fCrc.Crc(), 0) << endl;
   os << bl << "  fFlags:        " << RosPrintBvi(fFlags, 0) << endl;
-  fStats.Dump(os, ind+2, "fStats: ");
+  fStats.Dump(os, ind+2, "fStats: ", detail-1);
 
   os << bl << "  fPktBuf(size): " << RosPrintf(fPktBuf.size(),"d",4);
   size_t ncol  = max(1, (80-ind-4-6)/(2+1));

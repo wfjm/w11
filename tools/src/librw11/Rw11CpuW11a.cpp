@@ -1,6 +1,6 @@
-// $Id: Rw11CpuW11a.cpp 621 2014-12-26 21:20:05Z mueller $
+// $Id: Rw11CpuW11a.cpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2014-12-25   621   1.1    adopt to 4k word ibus window
 // 2013-03-03   494   1.0    Initial version
 // 2013-01-27   478   0.1    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CpuW11a.cpp 621 2014-12-26 21:20:05Z mueller $
+  \version $Id: Rw11CpuW11a.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of Rw11CpuW11a.
 */
 
@@ -65,11 +66,12 @@ void Rw11CpuW11a::Setup(size_t ind, uint16_t base, uint16_t ibase)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11CpuW11a::Dump(std::ostream& os, int ind, const char* text) const
+void Rw11CpuW11a::Dump(std::ostream& os, int ind, const char* text,
+                       int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11CpuW11a @ " << this << endl;
-  Rw11Cpu::Dump(os, ind, " ^");
+  Rw11Cpu::Dump(os, ind, " ^", detail);
   return;
 }
   

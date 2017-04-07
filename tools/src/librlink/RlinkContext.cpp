@@ -1,6 +1,6 @@
-// $Id: RlinkContext.cpp 492 2013-02-24 22:14:47Z mueller $
+// $Id: RlinkContext.cpp 868 2017-04-07 20:09:33Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,12 +13,13 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2013-02-23   492   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RlinkContext.cpp 492 2013-02-24 22:14:47Z mueller $
+  \version $Id: RlinkContext.cpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Implemenation of class RlinkContext.
  */
 
@@ -56,7 +57,8 @@ RlinkContext::~RlinkContext()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RlinkContext::Dump(std::ostream& os, int ind, const char* text) const
+void RlinkContext::Dump(std::ostream& os, int ind, const char* text,
+                        int detail) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "RlinkContext @ " << this << endl;

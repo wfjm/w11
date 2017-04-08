@@ -1,6 +1,6 @@
-// $Id: RtclRw11UnitStream.cpp 515 2013-05-04 17:28:59Z mueller $
+// $Id: RtclRw11UnitStream.cpp 870 2017-04-08 18:24:34Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,12 +13,13 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-08   870   1.1    use Rw11UnitStream& ObjUV(); inh from RtclRw11Unit
 // 2013-05-01   513   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclRw11UnitStream.cpp 515 2013-05-04 17:28:59Z mueller $
+  \version $Id: RtclRw11UnitStream.cpp 870 2017-04-08 18:24:34Z mueller $
   \brief   Implemenation of RtclRw11UnitStream.
 */
 
@@ -37,18 +38,9 @@ namespace Retro {
 //------------------------------------------+-----------------------------------
 //! Constructor
 
-RtclRw11UnitStream::RtclRw11UnitStream(RtclRw11Unit* ptcl, Rw11UnitStream* pobj)
-  : fpTcl(ptcl),
-    fpObj(pobj)
-{
-  RtclGetList& gets = ptcl->GetList();
-  RtclSetList& sets = ptcl->SetList();
-  gets.Add<int>           ("pos",  
-                            boost::bind(&Rw11UnitStream::Pos,  pobj));
-
-  sets.Add<int>           ("pos",  
-                            boost::bind(&Rw11UnitStream::SetPos,pobj, _1));
-}
+RtclRw11UnitStream::RtclRw11UnitStream(const std::string& type)
+  : RtclRw11Unit(type)
+{}
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
@@ -57,4 +49,22 @@ RtclRw11UnitStream::~RtclRw11UnitStream()
 {}
 
 
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void RtclRw11UnitStream::SetupGetSet()
+{
+  // this can't be in ctor because pure virtual is called which is available
+  // only when more derived class is being constructed. SetupGetSet() must be
+  // called in ctor of a more derived class.
+
+  Rw11UnitStream* pobj = &ObjUV();
+
+  fGets.Add<int>           ("pos",  
+                             boost::bind(&Rw11UnitStream::Pos,  pobj));
+
+  fSets.Add<int>           ("pos",  
+                             boost::bind(&Rw11UnitStream::SetPos,pobj, _1));
+  return;
+}
 } // end namespace Retro

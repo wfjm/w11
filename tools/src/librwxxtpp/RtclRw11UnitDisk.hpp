@@ -1,6 +1,6 @@
-// $Id: RtclRw11UnitDisk.hpp 863 2017-04-02 11:43:15Z mueller $
+// $Id: RtclRw11UnitDisk.hpp 870 2017-04-08 18:24:34Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-08   870   1.1    use Rw11UnitDisk& ObjUV(); inherit from RtclRw11Unit
 // 2013-04-19   507   1.0    Initial version
 // 2013-02-22   490   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11UnitDisk.hpp 863 2017-04-02 11:43:15Z mueller $
+  \version $Id: RtclRw11UnitDisk.hpp 870 2017-04-08 18:24:34Z mueller $
   \brief   Declaration of class RtclRw11UnitDisk.
 */
 
@@ -33,16 +34,16 @@
 
 namespace Retro {
 
-  class RtclRw11UnitDisk {
+  class RtclRw11UnitDisk : public RtclRw11Unit {
     public:
-                    RtclRw11UnitDisk(RtclRw11Unit* ptcl, Rw11UnitDisk* pobj);
+                    RtclRw11UnitDisk(const std::string& type);
                    ~RtclRw11UnitDisk();
 
-    protected:
+      virtual Rw11UnitDisk&  ObjUV() = 0;
 
     protected:
-      RtclRw11Unit* fpTcl;
-      Rw11UnitDisk* fpObj;
+      void          SetupGetSet();
+
   };
   
 } // end namespace Retro

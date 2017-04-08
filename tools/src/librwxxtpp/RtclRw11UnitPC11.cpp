@@ -1,6 +1,6 @@
-// $Id: RtclRw11UnitPC11.cpp 584 2014-08-22 19:38:12Z mueller $
+// $Id: RtclRw11UnitPC11.cpp 870 2017-04-08 18:24:34Z mueller $
 //
-// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-08   870   1.1    inherit from RtclRw11UnitBase
 // 2014-08-22   584   1.0.1  use nullptr
 // 2013-05-03   515   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclRw11UnitPC11.cpp 584 2014-08-22 19:38:12Z mueller $
+  \version $Id: RtclRw11UnitPC11.cpp 870 2017-04-08 18:24:34Z mueller $
   \brief   Implemenation of RtclRw11UnitPC11.
 */
 
@@ -41,10 +42,11 @@ namespace Retro {
 RtclRw11UnitPC11::RtclRw11UnitPC11(Tcl_Interp* interp,
                               const std::string& unitcmd,
                               const boost::shared_ptr<Rw11UnitPC11>& spunit)
-  : RtclRw11UnitBase<Rw11UnitPC11>("Rw11UnitPC11", spunit),
-    RtclRw11UnitStream(this, spunit.get())
+  : RtclRw11UnitBase<Rw11UnitPC11,Rw11UnitStream,
+                     RtclRw11UnitStream>("Rw11UnitPC11", spunit)
 {
   // create default unit command
+  SetupGetSet();
   CreateObjectCmd(interp, unitcmd.c_str());
 
   // for 1st PC11, create also alias

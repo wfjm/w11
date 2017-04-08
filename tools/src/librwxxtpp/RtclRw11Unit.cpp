@@ -1,4 +1,4 @@
-// $Id: RtclRw11Unit.cpp 868 2017-04-07 20:09:33Z mueller $
+// $Id: RtclRw11Unit.cpp 870 2017-04-08 18:24:34Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-08   870   1.2    drop fpCpu, use added Cpu()=0 instead
 // 2017-04-07   868   1.1.1  M_dump: use GetArgsDump and Dump detail
 // 2017-04-02   863   1.1    add fpVirt; add DetachCleanup()
 // 2013-03-03   494   1.0    Initial version
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Unit.cpp 868 2017-04-07 20:09:33Z mueller $
+  \version $Id: RtclRw11Unit.cpp 870 2017-04-08 18:24:34Z mueller $
   \brief   Implemenation of RtclRw11Unit.
 */
 
@@ -46,9 +47,8 @@ namespace Retro {
 //------------------------------------------+-----------------------------------
 //! Default constructor
 
-RtclRw11Unit::RtclRw11Unit(const std::string& type, Rw11Cpu* pcpu)
+RtclRw11Unit::RtclRw11Unit(const std::string& type)
   : RtclProxyBase(type),
-    fpCpu(pcpu),
     fGets(),
     fSets(),
     fpVirt()
@@ -84,7 +84,7 @@ void RtclRw11Unit::DetachCleanup()
 int RtclRw11Unit::M_get(RtclArgs& args)
 {
   // synchronize with server thread
-  boost::lock_guard<RlinkConnect> lock(fpCpu->Connect());
+  boost::lock_guard<RlinkConnect> lock(Cpu().Connect());
   return fGets.M_get(args);
 }
 
@@ -94,7 +94,7 @@ int RtclRw11Unit::M_get(RtclArgs& args)
 int RtclRw11Unit::M_set(RtclArgs& args)
 {
   // synchronize with server thread
-  boost::lock_guard<RlinkConnect> lock(fpCpu->Connect());
+  boost::lock_guard<RlinkConnect> lock(Cpu().Connect());
   return fSets.M_set(args);
 }
 
@@ -110,7 +110,7 @@ int RtclRw11Unit::M_attach(RtclArgs& args)
 
   RerrMsg emsg;
   // synchronize with server thread
-  boost::lock_guard<RlinkConnect> lock(fpCpu->Connect());
+  boost::lock_guard<RlinkConnect> lock(Cpu().Connect());
 
   DetachCleanup();
   if (!Obj().Attach(url, emsg)) return args.Quit(emsg);
@@ -126,7 +126,7 @@ int RtclRw11Unit::M_detach(RtclArgs& args)
   if (!args.AllDone()) return kERR;
 
   // synchronize with server thread
-  boost::lock_guard<RlinkConnect> lock(fpCpu->Connect());
+  boost::lock_guard<RlinkConnect> lock(Cpu().Connect());
   Obj().Detach();
   return kOK;
 }
@@ -140,7 +140,7 @@ int RtclRw11Unit::M_virt(RtclArgs& args)
                                 "Bad state: fpVirt == nullptr");
   
   // synchronize with server thread
-  boost::lock_guard<RlinkConnect> lock(fpCpu->Connect());
+  boost::lock_guard<RlinkConnect> lock(Cpu().Connect());
   return fpVirt->DispatchCmd(args);
 }
 

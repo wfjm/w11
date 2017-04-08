@@ -1,6 +1,6 @@
-// $Id: RtclRw11UnitRHRP.hpp 680 2015-05-14 13:29:46Z mueller $
+// $Id: RtclRw11UnitRHRP.hpp 870 2017-04-08 18:24:34Z mueller $
 //
-// Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-08   870   1.1    inherit from RtclRw11UnitBase
 // 2015-05-14   680   1.0    Initial version
 // 2015-03-21   659   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11UnitRHRP.hpp 680 2015-05-14 13:29:46Z mueller $
+  \version $Id: RtclRw11UnitRHRP.hpp 870 2017-04-08 18:24:34Z mueller $
   \brief   Declaration of class RtclRw11UnitRHRP.
 */
 
@@ -35,8 +36,8 @@
 
 namespace Retro {
 
-  class RtclRw11UnitRHRP : public RtclRw11UnitBase<Rw11UnitRHRP>,
-                           public RtclRw11UnitDisk {
+  class RtclRw11UnitRHRP : public RtclRw11UnitBase<Rw11UnitRHRP,Rw11UnitDisk,
+                                                   RtclRw11UnitDisk> {
     public:
                     RtclRw11UnitRHRP(Tcl_Interp* interp,
                                  const std::string& unitcmd,

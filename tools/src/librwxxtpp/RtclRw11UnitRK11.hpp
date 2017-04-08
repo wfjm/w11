@@ -1,4 +1,4 @@
-// $Id: RtclRw11UnitRK11.hpp 509 2013-04-21 20:46:20Z mueller $
+// $Id: RtclRw11UnitRK11.hpp 870 2017-04-08 18:24:34Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11UnitRK11.hpp 509 2013-04-21 20:46:20Z mueller $
+  \version $Id: RtclRw11UnitRK11.hpp 870 2017-04-08 18:24:34Z mueller $
   \brief   Declaration of class RtclRw11UnitRK11.
 */
 
@@ -35,8 +35,8 @@
 
 namespace Retro {
 
-  class RtclRw11UnitRK11 : public RtclRw11UnitBase<Rw11UnitRK11>,
-                           public RtclRw11UnitDisk {
+  class RtclRw11UnitRK11 : public RtclRw11UnitBase<Rw11UnitRK11,Rw11UnitDisk,
+                                                   RtclRw11UnitDisk> {
     public:
                     RtclRw11UnitRK11(Tcl_Interp* interp,
                                  const std::string& unitcmd,

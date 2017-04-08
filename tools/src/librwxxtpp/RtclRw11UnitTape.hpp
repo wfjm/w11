@@ -1,6 +1,6 @@
-// $Id: RtclRw11UnitTape.hpp 683 2015-05-17 21:54:35Z mueller $
+// $Id: RtclRw11UnitTape.hpp 870 2017-04-08 18:24:34Z mueller $
 //
-// Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2015-05-17   683   0.1    First draft
+// 2017-04-08   870   1.1    use Rw11UnitTape& ObjUV(); inherit from RtclRw11Unit
+// 2015-05-17   683   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 
 /*!
   \file
-  \version $Id: RtclRw11UnitTape.hpp 683 2015-05-17 21:54:35Z mueller $
+  \version $Id: RtclRw11UnitTape.hpp 870 2017-04-08 18:24:34Z mueller $
   \brief   Declaration of class RtclRw11UnitTape.
 */
 
@@ -32,16 +33,17 @@
 
 namespace Retro {
 
-  class RtclRw11UnitTape {
+  class RtclRw11UnitTape : public RtclRw11Unit {
     public:
-                    RtclRw11UnitTape(RtclRw11Unit* ptcl, Rw11UnitTape* pobj);
+                    RtclRw11UnitTape(const std::string& type);
                    ~RtclRw11UnitTape();
 
+      virtual Rw11UnitTape&  ObjUV() = 0;
+    
     protected:
+      void          SetupGetSet();
 
-    protected:
-      RtclRw11Unit* fpTcl;
-      Rw11UnitTape* fpObj;
+
   };
   
 } // end namespace Retro

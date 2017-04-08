@@ -1,4 +1,4 @@
-// $Id: RtclRw11UnitBase.ipp 863 2017-04-02 11:43:15Z mueller $
+// $Id: RtclRw11UnitBase.ipp 870 2017-04-08 18:24:34Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-08   870   1.3    add TUV,TB; add TUV* ObjUV(); inherit from TB
 // 2017-04-02   863   1.2    add AttachDone()
 // 2015-05-14   680   1.1    fGets: add enabled (moved from RtclRw11UnitDisk)
 // 2013-03-06   495   1.0    Initial version
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11UnitBase.ipp 863 2017-04-02 11:43:15Z mueller $
+  \version $Id: RtclRw11UnitBase.ipp 870 2017-04-08 18:24:34Z mueller $
   \brief   Implemenation (all inline) of RtclRw11UnitBase.
 */
 
@@ -36,34 +37,55 @@
 // all method definitions in namespace Retro
 namespace Retro {
 
+// Note on coding style:
+//   all base class members must be qualified with "this->" to ensure proper
+//   name lookup. Otherwise one gets errors like "no declarations were found
+//   by argument-dependent lookup at the point of instantiation"
+//
+//   Reason is the according to C++ standart in a first pass all names which
+//   are not template parameter dependent are resolved. If a name is not found
+//   one gets above mentioned error. All other names are looked up in a second
+//   pass.  Adding "this->" makes the name template parameter dependent.
+//
+//   Prefixing a "TC::" can also be used, e.g. for constants like TB::kOK.
+  
 //------------------------------------------+-----------------------------------
 //! Constructor
 
-template <class TO>
-inline RtclRw11UnitBase<TO>::RtclRw11UnitBase(const std::string& type,
-                                     const boost::shared_ptr<TO>& spunit)
-  : RtclRw11Unit(type, &(spunit->Cntl().Cpu())),
+template <class TU, class TUV, class TB>
+inline RtclRw11UnitBase<TU,TUV,TB>::RtclRw11UnitBase(const std::string& type,
+                                     const boost::shared_ptr<TU>& spunit)
+  : TB(type),
     fspObj(spunit)
 {
-  AddMeth("stats",    boost::bind(&RtclRw11UnitBase<TO>::M_stats,   this, _1));
-  TO* pobj = fspObj.get();
-  fGets.Add<size_t>            ("index",  boost::bind(&TO::Index, pobj));
-  fGets.Add<std::string>       ("name",   boost::bind(&TO::Name,  pobj));
-  fGets.Add<bool>              ("enabled", boost::bind(&TO::Enabled, pobj));
+  this->AddMeth("stats",    boost::bind(&RtclRw11UnitBase<TU,TUV,TB>::M_stats,
+                                        this, _1));
+  TU* pobj = fspObj.get();
+
+  // the following construction is neccessary because the base class is a
+  // template argument. Access to "this->fGets" is done via a local variable
+  // 'gets' to a local variable. Otherwise processing of the template functions
+  // Add<...> will cause obscure "expected primary-expression before ‘>’ "
+  // error messages. Simply too much nested templating...
+  
+  RtclGetList& gets = this->fGets;
+  gets.Add<size_t>          ("index",   boost::bind(&TU::Index,   pobj));
+  gets.Add<std::string>     ("name",    boost::bind(&TU::Name,    pobj));
+  gets.Add<bool>            ("enabled", boost::bind(&TU::Enabled, pobj));
 }
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-template <class TO>
-inline RtclRw11UnitBase<TO>::~RtclRw11UnitBase()
+template <class TU, class TUV, class TB>
+inline RtclRw11UnitBase<TU,TUV,TB>::~RtclRw11UnitBase()
 {}
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-template <class TO>
-inline TO& RtclRw11UnitBase<TO>::Obj()
+template <class TU, class TUV, class TB>
+inline TU& RtclRw11UnitBase<TU,TUV,TB>::Obj()
 {
   return *fspObj;
 }
@@ -71,8 +93,26 @@ inline TO& RtclRw11UnitBase<TO>::Obj()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-template <class TO>
-inline const boost::shared_ptr<TO>& RtclRw11UnitBase<TO>::ObjSPtr()
+template <class TU, class TUV, class TB>
+inline TUV& RtclRw11UnitBase<TU,TUV,TB>::ObjUV()
+{
+  return *fspObj;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+template <class TU, class TUV, class TB>
+inline Rw11Cpu& RtclRw11UnitBase<TU,TUV,TB>::Cpu() const
+{
+  return fspObj->Cpu();
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+template <class TU, class TUV, class TB>
+inline const boost::shared_ptr<TU>& RtclRw11UnitBase<TU,TUV,TB>::ObjSPtr()
 {
   return fspObj;
 }
@@ -80,30 +120,30 @@ inline const boost::shared_ptr<TO>& RtclRw11UnitBase<TO>::ObjSPtr()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-template <class TO>
-void RtclRw11UnitBase<TO>::AttachDone()
+template <class TU, class TUV, class TB>
+void RtclRw11UnitBase<TU,TUV,TB>::AttachDone()
 {
   if (!Obj().Virt()) return;
   RtclRw11Virt* pvirt=RtclRw11VirtFactory(Obj().Virt());
   if (!pvirt) return;
-  fpVirt.reset(pvirt);
-  AddMeth("virt",  boost::bind(&RtclRw11Unit::M_virt, this, _1));
+  this->fpVirt.reset(pvirt);
+  this->AddMeth("virt",  boost::bind(&RtclRw11Unit::M_virt, this, _1));
   return;
 }
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-template <class TO>
-int RtclRw11UnitBase<TO>::M_stats(RtclArgs& args)
+template <class TU, class TUV, class TB>
+int RtclRw11UnitBase<TU,TUV,TB>::M_stats(RtclArgs& args)
 {
   RtclStats::Context cntx;
-  if (!RtclStats::GetArgs(args, cntx)) return kERR;
-  if (!RtclStats::Collect(args, cntx, Obj().Stats())) return kERR;
+  if (!RtclStats::GetArgs(args, cntx)) return TB::kERR;
+  if (!RtclStats::Collect(args, cntx, Obj().Stats())) return TB::kERR;
   if (Obj().Virt()) {
-    if (!RtclStats::Collect(args, cntx, Obj().Virt()->Stats())) return kERR;
+    if (!RtclStats::Collect(args, cntx, Obj().Virt()->Stats())) return TB::kERR;
   }
-  return kOK;
+  return TB::kOK;
 }
 
 } // end namespace Retro

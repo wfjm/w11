@@ -1,6 +1,6 @@
-// $Id: RtclRw11UnitStream.hpp 515 2013-05-04 17:28:59Z mueller $
+// $Id: RtclRw11UnitStream.hpp 870 2017-04-08 18:24:34Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-08   870   1.1    use Rw11UnitStream& ObjUV(); inh from RtclRw11Unit
 // 2013-05-01   513   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 
 /*!
   \file
-  \version $Id: RtclRw11UnitStream.hpp 515 2013-05-04 17:28:59Z mueller $
+  \version $Id: RtclRw11UnitStream.hpp 870 2017-04-08 18:24:34Z mueller $
   \brief   Declaration of class RtclRw11UnitStream.
 */
 
@@ -32,17 +33,16 @@
 
 namespace Retro {
 
-  class RtclRw11UnitStream {
+  class RtclRw11UnitStream : public RtclRw11Unit {
     public:
-                    RtclRw11UnitStream(RtclRw11Unit* ptcl, 
-                                       Rw11UnitStream* pobj);
+                    RtclRw11UnitStream(const std::string& type);
                    ~RtclRw11UnitStream();
 
-    protected:
+      virtual Rw11UnitStream&  ObjUV() = 0;
 
     protected:
-      RtclRw11Unit* fpTcl;
-      Rw11UnitStream* fpObj;
+      void          SetupGetSet();
+    
   };
   
 } // end namespace Retro

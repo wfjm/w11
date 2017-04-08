@@ -1,4 +1,4 @@
-// $Id: RtclRw11Unit.hpp 863 2017-04-02 11:43:15Z mueller $
+// $Id: RtclRw11Unit.hpp 870 2017-04-08 18:24:34Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-08   870   1.2    drop fpCpu, use added Cpu()=0 instead
 // 2017-04-02   863   1.1    add fpVirt,DetachCleanup(),AttachDone(),M_virt()
 // 2013-03-03   494   1.0    Initial version
 // 2013-02-16   488   0.1    First draft
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Unit.hpp 863 2017-04-02 11:43:15Z mueller $
+  \version $Id: RtclRw11Unit.hpp 870 2017-04-08 18:24:34Z mueller $
   \brief   Declaration of class RtclRw11Unit.
 */
 
@@ -47,12 +48,11 @@ namespace Retro {
   class RtclRw11Unit : public RtclProxyBase {
     public:
 
-                    RtclRw11Unit(const std::string& type, Rw11Cpu* pcpu);
+                    RtclRw11Unit(const std::string& type);
       virtual      ~RtclRw11Unit();
 
       virtual Rw11Unit&  Obj() = 0;
-      RtclGetList&  GetList();
-      RtclSetList&  SetList();
+      virtual Rw11Cpu&   Cpu() const = 0;
 
     protected:
       virtual void  AttachDone() = 0;
@@ -66,7 +66,6 @@ namespace Retro {
       int           M_default(RtclArgs& args);
 
     protected:
-      Rw11Cpu*      fpCpu;
       RtclGetList   fGets;
       RtclSetList   fSets;
       boost::scoped_ptr<RtclRw11Virt>  fpVirt;
@@ -74,6 +73,6 @@ namespace Retro {
   
 } // end namespace Retro
 
-#include "RtclRw11Unit.ipp"
+//#include "RtclRw11Unit.ipp"
 
 #endif

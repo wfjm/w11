@@ -1,6 +1,6 @@
-// $Id: RtclRw11UnitTerm.hpp 511 2013-04-27 13:51:46Z mueller $
+// $Id: RtclRw11UnitTerm.hpp 870 2017-04-08 18:24:34Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-08   870   1.1    use Rw11UnitTerm& ObjUV(); inherit from RtclRw11Unit
 // 2013-04-26   511   1.0.1  add M_type
 // 2013-03-03   494   1.0    Initial version
 // 2013-03-01   493   0.1    First draft
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11UnitTerm.hpp 511 2013-04-27 13:51:46Z mueller $
+  \version $Id: RtclRw11UnitTerm.hpp 870 2017-04-08 18:24:34Z mueller $
   \brief   Declaration of class RtclRw11UnitTerm.
 */
 
@@ -34,17 +35,17 @@
 
 namespace Retro {
 
-  class RtclRw11UnitTerm {
+  class RtclRw11UnitTerm : public RtclRw11Unit {
     public:
-                    RtclRw11UnitTerm(RtclRw11Unit* ptcl, Rw11UnitTerm* pobj);
+                    RtclRw11UnitTerm(const std::string& type);
                    ~RtclRw11UnitTerm();
 
+      virtual Rw11UnitTerm&  ObjUV() = 0;
+    
     protected:
       int           M_type(RtclArgs& args);
+      void          SetupGetSet();
 
-    protected:
-      RtclRw11Unit* fpTcl;
-      Rw11UnitTerm* fpObj;
   };
   
 } // end namespace Retro

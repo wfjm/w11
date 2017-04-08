@@ -1,4 +1,4 @@
-// $Id: RtclRw11UnitBase.hpp 863 2017-04-02 11:43:15Z mueller $
+// $Id: RtclRw11UnitBase.hpp 870 2017-04-08 18:24:34Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-08   870   1.2    add TUV,TB; add TUV* ObjUV(); inherit from TB
 // 2017-04-02   863   1.1    add AttachDone()
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-16   488   0.1    First draft
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11UnitBase.hpp 863 2017-04-02 11:43:15Z mueller $
+  \version $Id: RtclRw11UnitBase.hpp 870 2017-04-08 18:24:34Z mueller $
   \brief   Declaration of class RtclRw11UnitBase.
 */
 
@@ -34,22 +35,24 @@
 
 namespace Retro {
 
-  template <class TO>
-  class RtclRw11UnitBase : public RtclRw11Unit {
+  template <class TU, class TUV, class TB>
+  class RtclRw11UnitBase : public TB {
     public:
                     RtclRw11UnitBase(const std::string& type, 
-                                     const boost::shared_ptr<TO>& spunit);
+                                     const boost::shared_ptr<TU>& spunit);
                    ~RtclRw11UnitBase();
 
-      TO&           Obj();
-      const boost::shared_ptr<TO>&  ObjSPtr();
+      virtual TU&   Obj();
+      virtual TUV&  ObjUV();
+      virtual Rw11Cpu&   Cpu() const;
+      const boost::shared_ptr<TU>&  ObjSPtr();
 
     protected:
       virtual void  AttachDone();
       int           M_stats(RtclArgs& args);
 
     protected:
-      boost::shared_ptr<TO>  fspObj; //!< sptr to managed object
+      boost::shared_ptr<TU>  fspObj; //!< sptr to managed object
   };
   
 } // end namespace Retro

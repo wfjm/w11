@@ -1,6 +1,6 @@
-// $Id: RtclRw11UnitTM11.cpp 686 2015-06-04 21:08:08Z mueller $
+// $Id: RtclRw11UnitTM11.cpp 870 2017-04-08 18:24:34Z mueller $
 //
-// Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,12 +13,13 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-08   870   1.1    inherit from RtclRw11UnitBase
 // 2015-05-17   683   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclRw11UnitTM11.cpp 686 2015-06-04 21:08:08Z mueller $
+  \version $Id: RtclRw11UnitTM11.cpp 870 2017-04-08 18:24:34Z mueller $
   \brief   Implemenation of RtclRw11UnitTM11.
 */
 
@@ -40,9 +41,10 @@ namespace Retro {
 RtclRw11UnitTM11::RtclRw11UnitTM11(
                     Tcl_Interp* interp, const std::string& unitcmd,
                     const boost::shared_ptr<Rw11UnitTM11>& spunit)
-  : RtclRw11UnitBase<Rw11UnitTM11>("Rw11UnitTM11", spunit),
-    RtclRw11UnitTape(this, spunit.get())
+  : RtclRw11UnitBase<Rw11UnitTM11,Rw11UnitTape,
+                     RtclRw11UnitTape>("Rw11UnitTM11", spunit)
 {
+  SetupGetSet();
   CreateObjectCmd(interp, unitcmd.c_str()); 
 }
 

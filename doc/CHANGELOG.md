@@ -17,15 +17,22 @@ software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases._
 
 ### Summary
-- more compact dumps, add Dump(..,detail); trace output with cntl name
+- remove double inheritance in RtclRw11Unit* stack
+  - RtclRw11Unit: drop fpCpu, use added Cpu()=0 instead
+  - RtclRw11UnitBase: add TUV,TB; add TUV* ObjUV(); inherit from TB
+  - RtclRw11Unit(Disk|Stream|Tape|Term): define ObjUV();inherit from RtclRw11Unit
+  - RtclRw11Unit(dev): inherit from RtclRw11UnitBase
+- trace output with controller name
+  - Rw11Cntl*: use controller name as message prefix
+- more compact dumps, add Dump(..,detail)
   - RlinkCommand: add CommandInfo()
   - RtclCmdBase: add GetArgsDump()
   - RlinkCommandList: Dump(): add detail arg
   - Rstats: add NameMaxLength(); Print(): add counter name
   - Rw11Cntl: use Dump(detail) for PrimClist ect
-  - Rw11CntlBase,Rw11Rdma*: Dump(): add detail arg
-  - Rw11Cntl*: Dump(): add detail arg; use cntl name as message prefix
-- RtclRw11Cntl: M_dump: use GetArgsDump and Dump detail
+  - Rw11(Cntl|Unit|Virt)*,: Dump(): add detail arg
+  - many other classes: Dump(): add detail arg
+  - RtclRw11(Cntl|Unit|*): M_dump: use GetArgsDump and Dump detail
 - RtimerFd: first practical version
 - use clock_gettime instead of gettimeofday
 - add Rw11VirtDiskOver (simple overlay file container)

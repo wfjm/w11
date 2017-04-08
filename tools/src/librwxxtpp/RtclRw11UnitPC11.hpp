@@ -1,6 +1,6 @@
-// $Id: RtclRw11UnitPC11.hpp 515 2013-05-04 17:28:59Z mueller $
+// $Id: RtclRw11UnitPC11.hpp 870 2017-04-08 18:24:34Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-08   870   1.1    inherit from RtclRw11UnitBase
 // 2013-05-03   515   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 
 /*!
   \file
-  \version $Id: RtclRw11UnitPC11.hpp 515 2013-05-04 17:28:59Z mueller $
+  \version $Id: RtclRw11UnitPC11.hpp 870 2017-04-08 18:24:34Z mueller $
   \brief   Declaration of class RtclRw11UnitPC11.
 */
 
@@ -34,8 +35,8 @@
 
 namespace Retro {
 
-class RtclRw11UnitPC11 : public RtclRw11UnitBase<Rw11UnitPC11>,
-                         public RtclRw11UnitStream {
+class RtclRw11UnitPC11 : public RtclRw11UnitBase<Rw11UnitPC11,Rw11UnitStream,
+                                                 RtclRw11UnitStream> {
     public:
                     RtclRw11UnitPC11(Tcl_Interp* interp,
                                 const std::string& unitcmd,

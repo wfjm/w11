@@ -1,4 +1,4 @@
-// $Id: RtclRw11CntlBase.hpp 504 2013-04-13 15:37:24Z mueller $
+// $Id: RtclRw11CntlBase.hpp 870 2017-04-08 18:24:34Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11CntlBase.hpp 504 2013-04-13 15:37:24Z mueller $
+  \version $Id: RtclRw11CntlBase.hpp 870 2017-04-08 18:24:34Z mueller $
   \brief   Declaration of class RtclRw11CntlBase.
 */
 
@@ -33,20 +33,20 @@
 
 namespace Retro {
 
-  template <class TO>
+  template <class TC>
   class RtclRw11CntlBase : public RtclRw11Cntl {
     public:
       explicit      RtclRw11CntlBase(const std::string& type);
                    ~RtclRw11CntlBase();
 
-      TO&           Obj();
-      const boost::shared_ptr<TO>&  ObjSPtr();
+      virtual TC&   Obj();
+      const boost::shared_ptr<TC>&  ObjSPtr();
 
     protected:
       int           M_bootcode(RtclArgs& args);
 
     protected:
-      boost::shared_ptr<TO>  fspObj; //!< sptr to managed object
+      boost::shared_ptr<TC>  fspObj; //!< sptr to managed object
   };
   
 } // end namespace Retro

@@ -1,4 +1,4 @@
-// $Id: RtclRw11CntlBase.ipp 848 2017-02-04 14:55:30Z mueller $
+// $Id: RtclRw11CntlBase.ipp 870 2017-04-08 18:24:34Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11CntlBase.ipp 848 2017-02-04 14:55:30Z mueller $
+  \version $Id: RtclRw11CntlBase.ipp 870 2017-04-08 18:24:34Z mueller $
   \brief   Implemenation (all inline) of RtclRw11CntlBase.
 */
 
@@ -38,41 +38,41 @@ namespace Retro {
 //------------------------------------------+-----------------------------------
 //! Constructor
 
-template <class TO>
-inline RtclRw11CntlBase<TO>::RtclRw11CntlBase(const std::string& type)
+template <class TC>
+inline RtclRw11CntlBase<TC>::RtclRw11CntlBase(const std::string& type)
   : RtclRw11Cntl(type),
-    fspObj(new TO())
+    fspObj(new TC())
 {
-  AddMeth("bootcode", boost::bind(&RtclRw11CntlBase<TO>::M_bootcode,this, _1));
+  AddMeth("bootcode", boost::bind(&RtclRw11CntlBase<TC>::M_bootcode,this, _1));
 
-  TO* pobj = fspObj.get();
-  fGets.Add<const std::string&>("type",  boost::bind(&TO::Type, pobj));
-  fGets.Add<const std::string&>("name",  boost::bind(&TO::Name, pobj));
-  fGets.Add<uint16_t>    ("base",  boost::bind(&TO::Base, pobj));
-  fGets.Add<int>         ("lam",   boost::bind(&TO::Lam,  pobj));  
-  fGets.Add<bool>        ("found", boost::bind(&TO::ProbeFound, pobj));  
-  fGets.Add<uint16_t>    ("pdataint", boost::bind(&TO::ProbeDataInt, pobj));  
-  fGets.Add<uint16_t>    ("pdatarem", boost::bind(&TO::ProbeDataRem, pobj));  
-  fGets.Add<bool>        ("enable",boost::bind(&TO::Enable, pobj));  
-  fGets.Add<bool>        ("started",boost::bind(&TO::IsStarted, pobj));  
-  fGets.Add<uint32_t>    ("trace", boost::bind(&TO::TraceLevel,pobj));  
+  TC* pobj = fspObj.get();
+  fGets.Add<const std::string&>("type",  boost::bind(&TC::Type, pobj));
+  fGets.Add<const std::string&>("name",  boost::bind(&TC::Name, pobj));
+  fGets.Add<uint16_t>    ("base",  boost::bind(&TC::Base, pobj));
+  fGets.Add<int>         ("lam",   boost::bind(&TC::Lam,  pobj));  
+  fGets.Add<bool>        ("found", boost::bind(&TC::ProbeFound, pobj));  
+  fGets.Add<uint16_t>    ("pdataint", boost::bind(&TC::ProbeDataInt, pobj));  
+  fGets.Add<uint16_t>    ("pdatarem", boost::bind(&TC::ProbeDataRem, pobj));  
+  fGets.Add<bool>        ("enable",boost::bind(&TC::Enable, pobj));  
+  fGets.Add<bool>        ("started",boost::bind(&TC::IsStarted, pobj));  
+  fGets.Add<uint32_t>    ("trace", boost::bind(&TC::TraceLevel,pobj));  
 
-  fSets.Add<bool>        ("enable", boost::bind(&TO::SetEnable,pobj,_1));  
-  fSets.Add<uint32_t>    ("trace", boost::bind(&TO::SetTraceLevel,pobj,_1));  
+  fSets.Add<bool>        ("enable", boost::bind(&TC::SetEnable,pobj,_1));  
+  fSets.Add<uint32_t>    ("trace", boost::bind(&TC::SetTraceLevel,pobj,_1));  
 }
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-template <class TO>
-inline RtclRw11CntlBase<TO>::~RtclRw11CntlBase()
+template <class TC>
+inline RtclRw11CntlBase<TC>::~RtclRw11CntlBase()
 {}
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-template <class TO>
-inline TO& RtclRw11CntlBase<TO>::Obj()
+template <class TC>
+inline TC& RtclRw11CntlBase<TC>::Obj()
 {
   return *fspObj;
 }
@@ -80,8 +80,8 @@ inline TO& RtclRw11CntlBase<TO>::Obj()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-template <class TO>
-inline const boost::shared_ptr<TO>& RtclRw11CntlBase<TO>::ObjSPtr()
+template <class TC>
+inline const boost::shared_ptr<TC>& RtclRw11CntlBase<TC>::ObjSPtr()
 {
   return fspObj;
 }
@@ -89,8 +89,8 @@ inline const boost::shared_ptr<TO>& RtclRw11CntlBase<TO>::ObjSPtr()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-template <class TO>
-int RtclRw11CntlBase<TO>::M_bootcode(RtclArgs& args)
+template <class TC>
+int RtclRw11CntlBase<TC>::M_bootcode(RtclArgs& args)
 {
   int unit = 0;
   if (!args.GetArg("?unit", unit, 0, Obj().NUnit()-1)) return kERR;

@@ -1,6 +1,6 @@
-# $Id: test_regs.tcl 661 2015-04-03 18:28:41Z mueller $
+# $Id: test_regs.tcl 872 2017-04-09 20:48:05Z mueller $
 #
-# Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-04-09   872   3.0    adopt to revised interface
 # 2015-04-03   661   2.1    drop estatdef (stat err check default now)
 # 2014-12-27   622   2.0    rbd_rbmon reorganized, supports now 16 bit addresses
 # 2011-03-27   374   1.0    Initial version
@@ -38,18 +39,56 @@ namespace eval rbmoni {
     #
     #-------------------------------------------------------------------------
     rlc log "  test 1: write/read cntl"
+    # test that starting caputes option flags, and that stoping keeps them
     rlc exec \
-      -wreg rm.cntl [regbld rbmoni::CNTL start] \
-      -rreg rm.cntl -edata [regbld rbmoni::CNTL start] \
-      -wreg rm.cntl [regbld rbmoni::CNTL stop] \
-      -rreg rm.cntl -edata 0 \
-      -wreg rm.cntl [regbld rbmoni::CNTL start wena] \
-      -rreg rm.cntl -edata [regbld rbmoni::CNTL start wena] \
-      -wreg rm.cntl [regbld rbmoni::CNTL stop] \
-      -rreg rm.cntl -edata 0 
+      -wreg rm.cntl [regbld rbmoni::CNTL {func "STA"}] \
+      -rreg rm.cntl -edata [regbld rbmoni::CNTL] \
+      -wreg rm.cntl [regbld rbmoni::CNTL wstop {func "STA"}] \
+      -rreg rm.cntl -edata  [regbld rbmoni::CNTL wstop] \
+      -wreg rm.cntl [regbld rbmoni::CNTL rcolr {func "STA"}] \
+      -rreg rm.cntl -edata  [regbld rbmoni::CNTL rcolr] \
+      -wreg rm.cntl [regbld rbmoni::CNTL rcolw {func "STA"}] \
+      -rreg rm.cntl -edata  [regbld rbmoni::CNTL rcolw] \
+      -wreg rm.cntl [regbld rbmoni::CNTL rcolw rcolr {func "STA"}] \
+      -rreg rm.cntl -edata  [regbld rbmoni::CNTL rcolw rcolr] \
+      -wreg rm.cntl [regbld rbmoni::CNTL {func "STO"}] \
+      -rreg rm.cntl -edata  [regbld rbmoni::CNTL rcolw rcolr] 
     #
     #-------------------------------------------------------------------------
-    rlc log "  test 2: read stat"
+    rlc log "  test 2: write cntl, read stat"
+    # test that susp/run follow functions set to cntl
+    rlc exec \
+      -wreg rm.cntl [regbld rbmoni::CNTL {func "STA"}] \
+      -rreg rm.stat -edata [regbld rbmoni::STAT run] \
+      -wreg rm.cntl [regbld rbmoni::CNTL {func "SUS"}] \
+      -rreg rm.stat -edata [regbld rbmoni::STAT susp run] \
+      -wreg rm.cntl [regbld rbmoni::CNTL {func "RES"}] \
+      -rreg rm.stat -edata [regbld rbmoni::STAT run] \
+      -wreg rm.cntl [regbld rbmoni::CNTL {func "STO"}] \
+      -rreg rm.stat -edata [regbld rbmoni::STAT]
+    # test that suspend/resume of a stopped system is a noop
+    rlc exec \
+      -wreg rm.cntl [regbld rbmoni::CNTL {func "SUS"}] \
+      -rreg rm.stat -edata [regbld rbmoni::STAT] \
+      -wreg rm.cntl [regbld rbmoni::CNTL {func "RES"}] \
+      -rreg rm.stat -edata [regbld rbmoni::STAT]
+    # test that start of a suspended system clears suspend
+    rlc exec \
+      -wreg rm.cntl [regbld rbmoni::CNTL {func "STA"}] \
+      -rreg rm.stat -edata [regbld rbmoni::STAT run] \
+      -wreg rm.cntl [regbld rbmoni::CNTL {func "SUS"}] \
+      -rreg rm.stat -edata [regbld rbmoni::STAT susp run] \
+      -wreg rm.cntl [regbld rbmoni::CNTL {func "STA"}] \
+      -rreg rm.stat -edata [regbld rbmoni::STAT run]
+    # test that stop of a suspended system clears suspend
+    rlc exec \
+      -wreg rm.cntl [regbld rbmoni::CNTL {func "STA"}] \
+      -rreg rm.stat -edata [regbld rbmoni::STAT run] \
+      -wreg rm.cntl [regbld rbmoni::CNTL {func "SUS"}] \
+      -rreg rm.stat -edata [regbld rbmoni::STAT susp run] \
+      -wreg rm.cntl [regbld rbmoni::CNTL {func "STO"}] \
+      -rreg rm.stat -edata [regbld rbmoni::STAT]
+    # get amax for later usage
     rlc exec \
       -rreg rm.stat rstat
     set bsize [regget rbmoni::STAT(bsize) $rstat]
@@ -74,17 +113,13 @@ namespace eval rbmoni {
     }
     #
     #-------------------------------------------------------------------------
-    rlc log "  test 5: verify that cntl.go 0->1 clear addr"
+    rlc log "  test 5: verify that starting clears addr"
     rlc exec \
-      -wreg rm.cntl [regbld rbmoni::CNTL stop] \
-      -rreg rm.cntl -edata 0x0 \
+      -wreg rm.cntl [regbld rbmoni::CNTL {func "STO"}] \
       -wreg rm.addr [regbld rbmoni::ADDR [list laddr $amax]] \
       -rreg rm.addr -edata [regbld rbmoni::ADDR [list laddr $amax]] \
-      -wreg rm.cntl [regbld rbmoni::CNTL start] \
-      -rreg rm.cntl -edata [regbld rbmoni::CNTL start] \
-      -rreg rm.addr -edata 0x00 \
-      -wreg rm.cntl [regbld rbmoni::CNTL stop] \
-      -rreg rm.cntl -edata 0x0
+      -wreg rm.cntl [regbld rbmoni::CNTL {func "STA"}] \
+      -rreg rm.addr -edata 0x00 
     #
     #-------------------------------------------------------------------------
     rlc log "rbmoni::test_regs - cleanup"

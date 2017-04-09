@@ -1,4 +1,4 @@
-# $Id: util.tcl 837 2017-01-02 19:23:34Z mueller $
+# $Id: util.tcl 872 2017-04-09 20:48:05Z mueller $
 #
 # Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-04-09   872   2.0    revised interface, add suspend and repeat collect
 # 2017-01-02   837   1.1.1  add procs ime,imf
 # 2016-12-30   833   1.1    add proc filter
 # 2015-12-28   721   1.0.2  add regmap_add defs; add symbolic register dump
@@ -30,8 +31,10 @@ namespace eval ibd_ibmon {
   #
   # setup register descriptions for ibd_ibmon
   #
-  regdsc CNTL {conena 5} {remena 4} {locena 3} {wena 2} {stop 1} {start 0}
-  regdsc STAT {bsize 15 3} {wrap 0}
+  regdsc CNTL {rcolw 8} {rcolr 7} {wstop 6} \
+              {conena 5} {remena 4} {locena 3} \
+              {func 2 3 "s:NOOP:NOOP1:NOOP2:NOOP3:STO:STA:SUS:RES"}
+  regdsc STAT {bsize 15 3} {wrap 2} {susp 1} {run 0}
   regdsc ADDR {laddr 15 14} {waddr 1 2}
   #
   regdsc DAT3 {burst 15} {tout 14} {nak 13} {ack 12} \
@@ -64,22 +67,10 @@ namespace eval ibd_ibmon {
   # 
   proc init {{cpu "cpu0"}} {
     $cpu cp \
-      -wibr im.cntl [regbld ibd_ibmon::CNTL stop] \
+      -wibr im.cntl [regbld ibd_ibmon::CNTL {func "STO"}] \
       -wibr im.hilim  0177776 \
       -wibr im.lolim  0160000 \
       -wibr im.addr 0x0000
-  }
-  #
-  # start: start the ibmon ---------------------------------------------------
-  #
-  proc start {{cpu "cpu0"} args} {
-    args2opts opts { conena 1 remena 1 locena 1 wena 1 } {*}$args
-    $cpu cp -wibr im.cntl [regbld ibd_ibmon::CNTL start \
-                              [list   wena $opts(wena)] \
-                              [list locena $opts(locena)] \
-                              [list remena $opts(remena)] \
-                              [list conena $opts(conena)] \
-                             ]
   }
   #
   # start: setup filter window -----------------------------------------------
@@ -88,40 +79,65 @@ namespace eval ibd_ibmon {
     $cpu cp -wibr im.lolim $lolim \
             -wibr im.hilim $hilim
   }
-
+  #
+  # start: start the ibmon ---------------------------------------------------
+  #
+  proc start {{cpu "cpu0"} args} {
+    args2opts opts {rcolw 0 rcolr 0 wstop 0 conena 1 remena 1 locena 1} {*}$args
+    $cpu cp -wibr im.cntl [regbld ibd_ibmon::CNTL {func "STA"} \
+                              [list  rcolw $opts(rcolw)] \
+                              [list  rcolr $opts(rcolr)] \
+                              [list  wstop $opts(wstop)] \
+                              [list locena $opts(locena)] \
+                              [list remena $opts(remena)] \
+                              [list conena $opts(conena)] \
+                             ]
+  }
   #
   # stop: stop the ibmon -----------------------------------------------------
   #
   proc stop {{cpu "cpu0"}} {
-    $cpu cp -wibr im.cntl [regbld ibd_ibmon::CNTL stop]
+    $cpu cp -wibr im.cntl [regbld ibd_ibmon::CNTL {func "STO"}]
   }
   #
   # read: read nent last entries (by default all) ----------------------------
   #
   proc read {{cpu "cpu0"} {nent -1}} {
-    $cpu cp -ribr im.addr raddr \
+    # suspend and get address and status
+    $cpu cp -wibr im.cntl [regbld ibd_ibmon::CNTL {func "SUS"}] \
+            -ribr im.cntl rcntl \
+            -ribr im.addr raddr \
             -ribr im.stat rstat
 
+    # determine max number items
     set bsize [regget ibd_ibmon::STAT(bsize) $rstat]
     set amax  [expr {( 512 << $bsize ) - 1}]
-    if {$nent == -1} { set nent $amax }
+    set nmax  [expr { $amax + 1 } ]
+    if {$nent == -1}   { set nent $nmax }
+    if {$nent > $nmax} { set nent $nmax }
 
+    # determine number of available items (check wrap flag)
     set laddr [regget ibd_ibmon::ADDR(laddr) $raddr]
     set nval  $laddr
-    if {[regget ibd_ibmon::STAT(wrap) $rstat]} { set nval $amax }
+    if {[regget ibd_ibmon::STAT(wrap) $rstat]} { set nval $nmax }
 
     if {$nent > $nval} {set nent $nval}
-    if {$nent == 0} { return {} }
+    if {$nent == 0}    { return {} }
 
-    set caddr [expr {( $laddr - $nent ) & $amax}]
+    # if wstop set use first nent items, otherwise last nent items
+    set caddr 0
+    if {![regget ibd_ibmon::CNTL(wstop) $rcntl]} {
+      set caddr [expr {( $laddr - $nent ) & $amax}]
+    }
     $cpu cp -wibr im.addr [regbld ibd_ibmon::ADDR [list laddr $caddr]]
 
     set rval {}
-
+    set nblkmax [expr {( [rlc get bsizemax] >> 2 ) << 2}]; # ensure multiple of 4
     set nrest $nent
+    
     while {$nrest > 0} {
       set nblk [expr {$nrest << 2}]
-      if {$nblk > 256} {set nblk 256}
+      if {$nblk > $nblkmax} {set nblk $nblkmax}
       set iaddr [$cpu imap im.data]
       $cpu cp -rbibr $iaddr $nblk rawdat
 
@@ -164,8 +180,10 @@ namespace eval ibd_ibmon {
       set nrest [expr {$nrest - ( $nblk >> 2 ) }]
     }
 
-    $cpu cp -wibr im.addr $raddr
-
+    # resume and restore address
+    $cpu cp -wibr im.addr $raddr \
+            -wibr im.cntl [regbld ibd_ibmon::CNTL {func "RES"}]
+    
     return $rval
   }
   #
@@ -313,17 +331,24 @@ namespace eval ibd_ibmon {
   # ime: ibmon enable --------------------------------------------------------
   # 
   proc ime {{cpu "cpu0"} {mode "lrc"}} {
-    if {![regexp {^[crl]+n?$} $mode]} {
-      error "ime-E: bad mode '$mode', use \[lrc\] and n"
+    if {![regexp {^[lrcnRW]*$} $mode]} {
+      error "ime-E: bad mode '$mode', use \[lrc\]* and \[nRW\]*"
     }
     set locena [string match *l* $mode]
     set remena [string match *r* $mode]
     set conena [string match *c* $mode]
-    set wena  1
-    if {[string match *n* $mode]} {set wena 0}
+    if {$locena == 0 && $remena == 0 && $conena == 0} {
+      set locena 1
+      set remena 1
+      set conena 1
+    }
+    set wstop  [string match *n* $mode]
+    set rcolr  [string match *R* $mode]
+    set rcolw  [string match *W* $mode]
     
     ibd_ibmon::start $cpu \
-      locena $locena remena $remena conena $conena wena $wena
+      locena $locena remena $remena conena $conena \
+      wstop $wstop rcolr $rcolr rcolw $rcolw
     return ""
   }
 

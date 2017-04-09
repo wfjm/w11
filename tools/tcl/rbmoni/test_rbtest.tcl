@@ -1,6 +1,6 @@
-# $Id: test_rbtest.tcl 661 2015-04-03 18:28:41Z mueller $
+# $Id: test_rbtest.tcl 872 2017-04-09 20:48:05Z mueller $
 #
-# Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-04-09   872   3.0    adopt to revised interface
 # 2015-04-03   661   2.1    drop estatdef; fix test 5 (wrong regs accessed)
 # 2014-12-22   619   2.0    adopt to new rbd_rbmon and rlink v4
 # 2011-03-27   374   1.0    Initial version
@@ -57,12 +58,12 @@ namespace eval rbmoni {
 
     # write/read te.stat and te.data with rbmoni on; check that 4 lines aquired
     rlc exec \
-      -wreg rm.cntl [regbld rbmoni::CNTL start] \
+      -wreg rm.cntl [regbld rbmoni::CNTL {func "STA"}] \
       -wreg te.stat $vtestat  \
       -wreg te.data $vtedata  \
       -rreg te.stat -edata $vtestat  \
       -rreg te.data -edata $vtedata  \
-      -wreg rm.cntl [regbld rbmoni::CNTL stop] \
+      -wreg rm.cntl [regbld rbmoni::CNTL {func "STO"}] \
       -rreg rm.addr -edata [regbld rbmoni::ADDR {laddr 4}]
 
     if {$print} {puts [print]}
@@ -331,6 +332,225 @@ namespace eval rbmoni {
     rbmoni::init
 
     #
+    #-------------------------------------------------------------------------
+    rlc log "  test 6: test repeat collapse read with wreg,rreg "
+    #-----------------------------------------------------------------
+    rlc log "  test 6a: dry run, no collapse active"
+    set vteinit  [regbld rbtest::INIT cntl]
+    # build expect list: list of {eflag eaddr edata enbusy} sublists
+    raw_edata edat emsk \
+      [list [regbld rbmoni::FLAGS       nak init] $atecntl $vteinit  0] \
+      [list [regbld rbmoni::FLAGS       ack   we] $atefifo 0x0001    0] \
+      [list [regbld rbmoni::FLAGS       ack   we] $atefifo 0x0002    0] \
+      [list [regbld rbmoni::FLAGS       ack   we] $atefifo 0x0003    0] \
+      [list [regbld rbmoni::FLAGS       ack   we] $atefifo 0x0004    0] \
+      [list [regbld rbmoni::FLAGS       ack     ] $atefifo 0x0001    0] \
+      [list [regbld rbmoni::FLAGS       ack     ] $atefifo 0x0002    0] \
+      [list [regbld rbmoni::FLAGS       ack     ] $atefifo 0x0003    0] \
+      [list [regbld rbmoni::FLAGS       ack     ] $atefifo 0x0004    0] \
+      [list [regbld rbmoni::FLAGS       nak init] $atecntl $vteinit  0]
+    #
+    rbmoni::start
+    rlc exec \
+      -init te.cntl $vteinit \
+      -wreg te.fifo 0x0001   \
+      -wreg te.fifo 0x0002   \
+      -wreg te.fifo 0x0003   \
+      -wreg te.fifo 0x0004   \
+      -rreg te.fifo -edata 0x0001   \
+      -rreg te.fifo -edata 0x0002   \
+      -rreg te.fifo -edata 0x0003   \
+      -rreg te.fifo -edata 0x0004   \
+      -init te.cntl $vteinit 
+    rbmoni::stop
+    if {$print} {puts [print]}
+    raw_check $edat $emsk
+
+    #-----------------------------------------------------------------
+    rlc log "  test 6b: read collapse active"
+    # build expect list: list of {eflag eaddr edata enbusy} sublists
+    raw_edata edat emsk \
+      [list [regbld rbmoni::FLAGS       nak init] $atecntl $vteinit  0] \
+      [list [regbld rbmoni::FLAGS       ack   we] $atefifo 0x0001    0] \
+      [list [regbld rbmoni::FLAGS       ack   we] $atefifo 0x0002    0] \
+      [list [regbld rbmoni::FLAGS       ack   we] $atefifo 0x0003    0] \
+      [list [regbld rbmoni::FLAGS       ack   we] $atefifo 0x0004    0] \
+      [list [regbld rbmoni::FLAGS       ack     ] $atefifo 0x0001    0] \
+      [list [regbld rbmoni::FLAGS       ack     ] $atefifo 0x0004    0] \
+      [list [regbld rbmoni::FLAGS       nak init] $atecntl $vteinit  0]
+    #
+    rbmoni::start rcolr 1
+    rlc exec \
+      -init te.cntl $vteinit \
+      -wreg te.fifo 0x0001   \
+      -wreg te.fifo 0x0002   \
+      -wreg te.fifo 0x0003   \
+      -wreg te.fifo 0x0004   \
+      -rreg te.fifo -edata 0x0001   \
+      -rreg te.fifo -edata 0x0002   \
+      -rreg te.fifo -edata 0x0003   \
+      -rreg te.fifo -edata 0x0004   \
+      -init te.cntl $vteinit 
+    rbmoni::stop
+    if {$print} {puts [print]}
+    raw_check $edat $emsk
+
+    #-----------------------------------------------------------------
+    rlc log "  test 6c: write collapse active"
+    # build expect list: list of {eflag eaddr edata enbusy} sublists
+    raw_edata edat emsk \
+      [list [regbld rbmoni::FLAGS       nak init] $atecntl $vteinit  0] \
+      [list [regbld rbmoni::FLAGS       ack   we] $atefifo 0x0001    0] \
+      [list [regbld rbmoni::FLAGS       ack   we] $atefifo 0x0004    0] \
+      [list [regbld rbmoni::FLAGS       ack     ] $atefifo 0x0001    0] \
+      [list [regbld rbmoni::FLAGS       ack     ] $atefifo 0x0002    0] \
+      [list [regbld rbmoni::FLAGS       ack     ] $atefifo 0x0003    0] \
+      [list [regbld rbmoni::FLAGS       ack     ] $atefifo 0x0004    0] \
+      [list [regbld rbmoni::FLAGS       nak init] $atecntl $vteinit  0]
+    #
+    rbmoni::start rcolw 1
+    rlc exec \
+      -init te.cntl $vteinit \
+      -wreg te.fifo 0x0001   \
+      -wreg te.fifo 0x0002   \
+      -wreg te.fifo 0x0003   \
+      -wreg te.fifo 0x0004   \
+      -rreg te.fifo -edata 0x0001   \
+      -rreg te.fifo -edata 0x0002   \
+      -rreg te.fifo -edata 0x0003   \
+      -rreg te.fifo -edata 0x0004   \
+      -init te.cntl $vteinit 
+    rbmoni::stop
+    if {$print} {puts [print]}
+    raw_check $edat $emsk
+
+    #-----------------------------------------------------------------
+    rlc log "  test 6d: read and write collapse active"
+    # build expect list: list of {eflag eaddr edata enbusy} sublists
+    raw_edata edat emsk \
+      [list [regbld rbmoni::FLAGS       nak init] $atecntl $vteinit  0] \
+      [list [regbld rbmoni::FLAGS       ack   we] $atefifo 0x0001    0] \
+      [list [regbld rbmoni::FLAGS       ack   we] $atefifo 0x0004    0] \
+      [list [regbld rbmoni::FLAGS       ack     ] $atefifo 0x0001    0] \
+      [list [regbld rbmoni::FLAGS       ack     ] $atefifo 0x0004    0] \
+      [list [regbld rbmoni::FLAGS       nak init] $atecntl $vteinit  0]
+    #
+    rbmoni::start rcolw 1 rcolr 1
+    rlc exec \
+      -init te.cntl $vteinit \
+      -wreg te.fifo 0x0001   \
+      -wreg te.fifo 0x0002   \
+      -wreg te.fifo 0x0003   \
+      -wreg te.fifo 0x0004   \
+      -rreg te.fifo -edata 0x0001   \
+      -rreg te.fifo -edata 0x0002   \
+      -rreg te.fifo -edata 0x0003   \
+      -rreg te.fifo -edata 0x0004   \
+      -init te.cntl $vteinit 
+    rbmoni::stop
+    if {$print} {puts [print]}
+    raw_check $edat $emsk
+
+    #
+    #-------------------------------------------------------------------------
+    rlc log "  test 7: test repeat collapse read with wblk,rblk "
+    #-----------------------------------------------------------------
+    rlc log "  test 7a: dry run, no collapse active"
+    set vteinit  [regbld rbtest::INIT cntl]
+    set vtefifo  {0x1101 0x2202 0x3303 0x4404}
+    # build expect list: list of {eflag eaddr edata enbusy} sublists
+    raw_edata edat emsk \
+      [list [regbld rbmoni::FLAGS       nak init] $atecntl $vteinit  0] \
+      [list [regbld rbmoni::FLAGS       ack   we] $atefifo 0x1101    0] \
+      [list [regbld rbmoni::FLAGS burst ack   we] $atefifo 0x2202    0] \
+      [list [regbld rbmoni::FLAGS burst ack   we] $atefifo 0x3303    0] \
+      [list [regbld rbmoni::FLAGS burst ack   we] $atefifo 0x4404    0] \
+      [list [regbld rbmoni::FLAGS       ack     ] $atefifo 0x1101    0] \
+      [list [regbld rbmoni::FLAGS burst ack     ] $atefifo 0x2202    0] \
+      [list [regbld rbmoni::FLAGS burst ack     ] $atefifo 0x3303    0] \
+      [list [regbld rbmoni::FLAGS burst ack     ] $atefifo 0x4404    0] \
+      [list [regbld rbmoni::FLAGS       nak init] $atecntl $vteinit  0]
+    #
+    rbmoni::start
+    rlc exec \
+      -init te.cntl $vteinit \
+      -wblk te.fifo $vtefifo \
+      -rblk te.fifo [llength $vtefifo] -edata $vtefifo \
+      -init te.cntl $vteinit 
+    rbmoni::stop
+    if {$print} {puts [print]}
+    raw_check $edat $emsk
+
+    #-----------------------------------------------------------------
+    rlc log "  test 7b: read collapse active"
+    #
+    # build expect list: list of {eflag eaddr edata enbusy} sublists
+    raw_edata edat emsk \
+      [list [regbld rbmoni::FLAGS       nak init] $atecntl $vteinit  0] \
+      [list [regbld rbmoni::FLAGS       ack   we] $atefifo 0x1101    0] \
+      [list [regbld rbmoni::FLAGS burst ack   we] $atefifo 0x2202    0] \
+      [list [regbld rbmoni::FLAGS burst ack   we] $atefifo 0x3303    0] \
+      [list [regbld rbmoni::FLAGS burst ack   we] $atefifo 0x4404    0] \
+      [list [regbld rbmoni::FLAGS       ack     ] $atefifo 0x1101    0] \
+      [list [regbld rbmoni::FLAGS burst ack     ] $atefifo 0x4404    0] \
+      [list [regbld rbmoni::FLAGS       nak init] $atecntl $vteinit  0]
+    #
+    rbmoni::start rcolr 1
+    rlc exec \
+      -init te.cntl $vteinit \
+      -wblk te.fifo $vtefifo \
+      -rblk te.fifo [llength $vtefifo] -edata $vtefifo \
+      -init te.cntl $vteinit 
+    rbmoni::stop
+    if {$print} {puts [print]}
+    raw_check $edat $emsk
+
+    #-----------------------------------------------------------------
+    rlc log "  test 7c: write collapse active"
+    #
+    # build expect list: list of {eflag eaddr edata enbusy} sublists
+    raw_edata edat emsk \
+      [list [regbld rbmoni::FLAGS       nak init] $atecntl $vteinit  0] \
+      [list [regbld rbmoni::FLAGS       ack   we] $atefifo 0x1101    0] \
+      [list [regbld rbmoni::FLAGS burst ack   we] $atefifo 0x4404    0] \
+      [list [regbld rbmoni::FLAGS       ack     ] $atefifo 0x1101    0] \
+      [list [regbld rbmoni::FLAGS burst ack     ] $atefifo 0x2202    0] \
+      [list [regbld rbmoni::FLAGS burst ack     ] $atefifo 0x3303    0] \
+      [list [regbld rbmoni::FLAGS burst ack     ] $atefifo 0x4404    0] \
+      [list [regbld rbmoni::FLAGS       nak init] $atecntl $vteinit  0]
+    #
+    rbmoni::start rcolw 1
+    rlc exec \
+      -init te.cntl $vteinit \
+      -wblk te.fifo $vtefifo \
+      -rblk te.fifo [llength $vtefifo] -edata $vtefifo \
+      -init te.cntl $vteinit 
+    rbmoni::stop
+    if {$print} {puts [print]}
+    raw_check $edat $emsk
+
+    #-----------------------------------------------------------------
+    rlc log "  test 7d: read and write collapse active"
+    #
+    # build expect list: list of {eflag eaddr edata enbusy} sublists
+    raw_edata edat emsk \
+      [list [regbld rbmoni::FLAGS       nak init] $atecntl $vteinit  0] \
+      [list [regbld rbmoni::FLAGS       ack   we] $atefifo 0x1101    0] \
+      [list [regbld rbmoni::FLAGS burst ack   we] $atefifo 0x4404    0] \
+      [list [regbld rbmoni::FLAGS       ack     ] $atefifo 0x1101    0] \
+      [list [regbld rbmoni::FLAGS burst ack     ] $atefifo 0x4404    0] \
+      [list [regbld rbmoni::FLAGS       nak init] $atecntl $vteinit  0]
+    #
+    rbmoni::start rcolw 1 rcolr 1
+    rlc exec \
+      -init te.cntl $vteinit \
+      -wblk te.fifo $vtefifo \
+      -rblk te.fifo [llength $vtefifo] -edata $vtefifo \
+      -init te.cntl $vteinit 
+    rbmoni::stop
+    if {$print} {puts [print]}
+    raw_check $edat $emsk
+
     #-------------------------------------------------------------------------
     rlc log "rbmoni::test_rbtest - cleanup:"
     rbtest::init

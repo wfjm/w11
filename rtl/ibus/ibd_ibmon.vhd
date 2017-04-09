@@ -1,6 +1,6 @@
--- $Id: ibd_ibmon.vhd 697 2015-07-05 14:23:26Z mueller $
+-- $Id: ibd_ibmon.vhd 872 2017-04-09 20:48:05Z mueller $
 --
--- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,29 +20,40 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 14.7; viv 2014.4; ghdl 0.31
+-- Tool versions:  xst 14.7; viv 2014.4-2016.4; ghdl 0.31-0.34
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2017-04-09   872 14.7  131013 xc6slx16-2   134  203    0   80 s  5.5
 -- 2015-04-24   668 14.7  131013 xc6slx16-2   112  235    0   83 s  5.6
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2017-04-09   872   2.0    revised interface, add suspend and repeat collapse
+-- 2017-03-04   858   1.0.2  BUGFIX: wrap set when go=0 due to wena=0
 -- 2015-05-02   672   1.0.1  use natural for AWIDTH to work around a ghdl issue
 -- 2015-04-24   668   1.0    Initial version (derived from rbd_rbmon)
 ------------------------------------------------------------------------------
 --
 -- Addr   Bits  Name        r/w/f  Function
 --  000         cntl        r/w/f  Control register
+--          08    rcolw     r/w/-    repeat collapse writes
+--          07    rcolr     r/w/-    repeat collapse reads
+--          06    wstop     r/w/-    stop on wrap
 --          05    conena    r/w/-    con enable
 --          04    remena    r/w/-    rem enable
 --          03    locena    r/w/-    loc enable
---          02    wena      r/w/-    wrap enable
---          01    stop      r/w/f    writing 1 stops  moni
---          00    start     r/w/f    writing 1 starts moni and clears addr
+--       02:00    func      0/-/f    change run status if != noop
+--                                     0xx  noop
+--                                     100  sto  stop
+--                                     101  sta  start and latch all options
+--                                     110  sus  suspend  (noop if not started)
+--                                     111  res  resume   (noop if not started)
 --  001         stat        r/w/-  Status register
 --       15:13    bsize     r/-/-    buffer size (AWIDTH-9)
---          00    wrap      r/-/-    line address wrapped (cleared on go)
+--          02    wrap      r/-/-    line address wrapped (cleared on start)
+--          01    susp      r/-/-    suspended
+--          00    run       r/-/-    running (can be suspended)
 --  010  12:01  hilim       r/w/-  upper address limit, inclusive (def: 177776)
 --  011  12:01  lolim       r/w/-  lower address limit, inclusive (def: 160000)
 --  100         addr        r/w/-  Address register
@@ -106,14 +117,19 @@ architecture syn of ibd_ibmon is
   constant ibaddr_addr  : slv3 := "100";   -- addr  address offset
   constant ibaddr_data  : slv3 := "101";   -- data  address offset
 
+  constant cntl_ibf_rcolw    : integer :=     8;
+  constant cntl_ibf_rcolr    : integer :=     7;
+  constant cntl_ibf_wstop    : integer :=     6;
   constant cntl_ibf_conena   : integer :=     5;
   constant cntl_ibf_remena   : integer :=     4;
   constant cntl_ibf_locena   : integer :=     3;
-  constant cntl_ibf_wena     : integer :=     2;
-  constant cntl_ibf_stop     : integer :=     1;
-  constant cntl_ibf_start    : integer :=     0;
+  subtype  cntl_ibf_func    is integer range  2 downto  0;
+  
   subtype  stat_ibf_bsize   is integer range 15 downto 13;
-  constant stat_ibf_wrap     : integer :=     0;
+  constant stat_ibf_wrap     : integer :=     2;
+  constant stat_ibf_susp     : integer :=     1;
+  constant stat_ibf_run      : integer :=     0;
+  
   subtype  addr_ibf_laddr   is integer range 2+AWIDTH-1 downto  2;
   subtype  addr_ibf_waddr   is integer range  1 downto  0;
 
@@ -136,19 +152,36 @@ architecture syn of ibd_ibmon is
   subtype  dat0_ibf_addr    is integer range 12 downto  1;
   constant dat0_ibf_cacc     : integer :=     0;
 
+  constant func_sto : slv3 := "100";    -- func: stop
+  constant func_sta : slv3 := "101";    -- func: start
+  constant func_sus : slv3 := "110";    -- func: suspend
+  constant func_res : slv3 := "111";    -- func: resume
+
   type regs_type is record              -- state registers
-    ibsel : slbit;                      -- ibus select
+    ibsel  : slbit;                     -- ibus select
+    rcolw  : slbit;                     -- rcolw flag (repeat collect writes)
+    rcolr  : slbit;                     -- rcolr flag (repeat collect reads)
+    wstop  : slbit;                     -- wstop flag (stop on wrap)
     conena : slbit;                     -- conena flag (record console access)
     remena : slbit;                     -- remena flag (record remote access)
     locena : slbit;                     -- locena flag (record local access)
-    wena : slbit;                       -- wena flag (wrap enable)
-    go : slbit;                         -- go flag
-    hilim : slv13_1;                    -- upper address limit
-    lolim : slv13_1;                    -- lower address limit
-    wrap : slbit;                       -- laddr wrap flag
-    laddr : slv(AWIDTH-1 downto 0);     -- line address
-    waddr : slv2;                       -- word address
-    ibtake_1 : slbit;                   -- ib capture active in last cycle
+    susp   : slbit;                     -- suspended flag
+    go     : slbit;                     -- go flag (actively running)
+    hilim  : slv13_1;                   -- upper address limit
+    lolim  : slv13_1;                   -- lower address limit
+    wrap   : slbit;                     -- laddr wrap flag
+    laddr  : slv(AWIDTH-1 downto 0);    -- line address
+    waddr  : slv2;                      -- word address
+    addrlast: slv13_1;                  -- last ib addr
+    addrsame: slbit;                    -- curr ib addr equal last ib addr
+    addrwind: slbit;                    -- curr ib addr in [lolim,hilim] window
+    aval_1  : slbit;                    -- last cycle aval
+    arm1r   : slbit;                    -- 1st level arm for read
+    arm2r   : slbit;                    -- 2nd level arm for read
+    arm1w   : slbit;                    -- 1st level arm for write
+    arm2w   : slbit;                    -- 2nd level arm for write
+    rcol    : slbit;                    -- repeat collaps
+    ibtake_1: slbit;                    -- ib capture active in last cycle
     ibaddr  : slv13_1;                  -- ibus trace: addr
     ibwe    : slbit;                    -- ibus trace: we
     ibrmw   : slbit;                    -- ibus trace: rmw
@@ -171,12 +204,17 @@ architecture syn of ibd_ibmon is
   
   constant regs_init : regs_type := (
     '0',                                -- ibsel
-    '1','1','1','1','1',                -- conena,remena,locena,wena,go
+    '0','0','0',                        -- rcolw,rcolr,wstop
+    '1','1','1',                        -- conena,remena,locena
+    '0','1',                            -- susp,go
     (others=>'1'),                      -- hilim (def: 177776)
     (others=>'0'),                      -- lolim (def: 160000)
     '0',                                -- wrap
     laddrzero,                          -- laddr
     "00",                               -- waddr
+    (others=>'0'),                      -- addrlast (startup: 160000)
+    '0','0','0',                        -- addrsame,addrwind,aval_1
+    '0','0','0','0','0',                -- arm1r,arm2r,arm1w,arm2w,rcol
     '0',                                -- ibtake_1
     (others=>'0'),                      -- ibaddr
     '0','0','0','0','0','0',            -- ibwe,ibrmw,ibbe0,ibbe1,ibcacc,ibracc
@@ -199,6 +237,7 @@ architecture syn of ibd_ibmon is
   signal BRAM1_DI : slv32 := (others=>'0');
   signal BRAM0_DO : slv32 := (others=>'0');
   signal BRAM1_DO : slv32 := (others=>'0');
+  signal BRAM_ADDR : slv(AWIDTH-1 downto 0) := (others=>'0');
   
 begin
 
@@ -214,7 +253,7 @@ begin
       CLK   => CLK,
       EN    => BRAM_EN,
       WE    => BRAM_WE,
-      ADDR  => R_REGS.laddr,
+      ADDR  => BRAM_ADDR,
       DI    => BRAM1_DI,
       DO    => BRAM1_DO
     );
@@ -227,7 +266,7 @@ begin
       CLK   => CLK,
       EN    => BRAM_EN,
       WE    => BRAM_WE,
-      ADDR  => R_REGS.laddr,
+      ADDR  => BRAM_ADDR,
       DI    => BRAM0_DI,
       DO    => BRAM0_DO
     );
@@ -258,6 +297,8 @@ begin
     variable idat1 : slv16 := (others=>'0');
     variable idat2 : slv16 := (others=>'0');
     variable idat3 : slv16 := (others=>'0');
+    variable iaddrinc : slv(AWIDTH-1 downto 0) := (others=>'0');
+    variable iaddroff : slv(AWIDTH-1 downto 0) := (others=>'0');
   begin
 
     r := R_REGS;
@@ -281,6 +322,21 @@ begin
       ibramen := '1';                   -- ensures bram read before ibus read
     end if;
 
+    -- ibus address monitor
+    if IB_MREQ.aval='1' and r.aval_1='0' then
+      n.addrlast := IB_MREQ.addr;
+      n.addrsame := '0';
+      if IB_MREQ.addr = r.addrlast then
+        n.addrsame := '1';
+      end if;
+      n.addrwind := '0';
+      if unsigned(IB_MREQ.addr)>=unsigned(r.lolim) and   -- and in addr window
+         unsigned(IB_MREQ.addr)<=unsigned(r.hilim) then
+        n.addrwind := '1';
+      end if;
+    end if;
+    n.aval_1 := IB_MREQ.aval;
+    
     -- ibus transactions (react only on console (this includes racc))
     if r.ibsel = '1' and IB_MREQ.cacc='1' then
 
@@ -289,20 +345,31 @@ begin
       case IB_MREQ.addr(3 downto 1) is
 
         when ibaddr_cntl =>                 -- cntl ------------------
-          if IB_MREQ.we = '1' then 
-            n.conena := IB_MREQ.din(cntl_ibf_conena);
-            n.remena := IB_MREQ.din(cntl_ibf_remena);
-            n.locena := IB_MREQ.din(cntl_ibf_locena);
-            n.wena   := IB_MREQ.din(cntl_ibf_wena);
-            if IB_MREQ.din(cntl_ibf_start) = '1' then
-              n.go    := '1';
-              n.wrap  := '0';
-              n.laddr := laddrzero;
-              n.waddr := "00";
-            end if;
-            if IB_MREQ.din(cntl_ibf_stop) = '1' then
-              n.go    := '0';
-            end if;
+          if IB_MREQ.we = '1' then
+            case IB_MREQ.din(cntl_ibf_func) is
+              when func_sto =>                -- func: stop ------------
+                n.go    := '0';
+                n.susp  := '0';
+              when func_sta =>                -- func: start -----------
+                n.rcolw  := IB_MREQ.din(cntl_ibf_rcolw);
+                n.rcolr  := IB_MREQ.din(cntl_ibf_rcolr);
+                n.wstop  := IB_MREQ.din(cntl_ibf_wstop);
+                n.conena := IB_MREQ.din(cntl_ibf_conena);
+                n.remena := IB_MREQ.din(cntl_ibf_remena);
+                n.locena := IB_MREQ.din(cntl_ibf_locena);
+                n.go     := '1';
+                n.susp   := '0';
+                n.wrap   := '0';
+                n.laddr  := laddrzero;
+                n.waddr  := "00";
+              when func_sus =>                -- func: susp ------------
+                n.go     := '0';
+                n.susp   := r.go;
+              when func_res =>                -- func: resu ------------
+                n.go     := r.susp;
+                n.susp   := '0';
+              when others => null;            -- <> --------------------
+            end case;
           end if;
           
         when ibaddr_stat => null;           -- stat ------------------
@@ -346,14 +413,17 @@ begin
     if r.ibsel = '1' then
       case IB_MREQ.addr(3 downto 1) is
         when ibaddr_cntl =>                 -- cntl ------------------
+          iib_dout(cntl_ibf_rcolw)  := r.rcolw;
+          iib_dout(cntl_ibf_rcolr)  := r.rcolr;
+          iib_dout(cntl_ibf_wstop)  := r.wstop;
           iib_dout(cntl_ibf_conena) := r.conena;
           iib_dout(cntl_ibf_remena) := r.remena;
           iib_dout(cntl_ibf_locena) := r.locena;
-          iib_dout(cntl_ibf_wena)   := r.wena;
-          iib_dout(cntl_ibf_start)  := r.go;
         when ibaddr_stat =>                 -- stat ------------------
           iib_dout(stat_ibf_bsize) := slv(to_unsigned(AWIDTH-9,3));
           iib_dout(stat_ibf_wrap)  := r.wrap;
+          iib_dout(stat_ibf_susp)  := r.susp;         -- started and suspended
+          iib_dout(stat_ibf_run)   := r.go or r.susp; -- started
         when ibaddr_hilim =>                -- hilim -----------------
           iib_dout(iba_ibf_pref)   := (others=>'1');
           iib_dout(iba_ibf_addr)   := r.hilim;
@@ -380,10 +450,8 @@ begin
     --   and the access is not refering to ibd_ibmon itself
     
     ibtake := '0';
-    if IB_MREQ.aval='1' and iibena='1' then              -- aval and (re or we)
-      if unsigned(IB_MREQ.addr)>=unsigned(r.lolim) and   -- and in addr window
-         unsigned(IB_MREQ.addr)<=unsigned(r.hilim) and
-         r.ibsel='0' then                                -- and not self
+    if IB_MREQ.aval='1' and iibena='1' then   -- aval and (re or we)
+      if r.addrwind='1' and r.ibsel='0' then    -- and in window and not self
         if (r.locena='1' and IB_MREQ.cacc='0' and IB_MREQ.racc='0') or
            (r.remena='1' and IB_MREQ.racc='1') or
            (r.conena='1' and IB_MREQ.cacc='1') then
@@ -418,6 +486,15 @@ begin
       n.ibnak  := not IB_SRES_SUM.ack;
       n.ibtout := IB_SRES_SUM.busy;
 
+      if IB_SRES_SUM.busy = '0' then    -- if last cycle of a transaction
+        n.arm1r := r.rcolr and IB_MREQ.re;
+        n.arm1w := r.rcolw and IB_MREQ.we;
+        n.arm2r := r.arm1r and r.addrsame and IB_MREQ.re;
+        n.arm2w := r.arm1w and r.addrsame and IB_MREQ.we;
+        n.rcol  := ((r.arm2r and IB_MREQ.re) or
+                    (r.arm2w and IB_MREQ.we)) and r.addrsame;
+      end if;
+      
     else                                -- if capture not active
       if r.go='1' and r.ibtake_1='1' then -- active and transaction just ended
         ibramen := '1';
@@ -437,13 +514,17 @@ begin
     if IB_MREQ.aval = '0' then          -- if aval gone
       n.ibburst := '0';                   -- clear burst flag
     end if;
+
+    iaddrinc := (others=>'0');
+    iaddroff := (others=>'0');
+    iaddrinc(0) := not (r.rcol and r.go);
+    iaddroff(0) :=     (r.rcol and r.go);
     
     if laddr_inc = '1' then
-      n.laddr := slv(unsigned(r.laddr) + 1);
+      n.laddr := slv(unsigned(r.laddr) + unsigned(iaddrinc));
       if r.go='1' and r.laddr=laddrlast then
-        if r.wena = '1' then
-          n.wrap := '1';
-        else
+        n.wrap := '1';
+        if r.wstop = '1' then
           n.go   := '0';
         end if;
       end if;
@@ -471,11 +552,12 @@ begin
     
     N_REGS <= n;
 
-    BRAM_EN <= ibramen;
-    BRAM_WE <= ibramwe;
-
-    BRAM1_DI <= idat3 & idat2;
-    BRAM0_DI <= idat1 & idat0;
+    BRAM_EN   <= ibramen;
+    BRAM_WE   <= ibramwe;
+    BRAM_ADDR <= slv(unsigned(R_REGS.laddr) - unsigned(iaddroff));
+    
+    BRAM1_DI  <= idat3 & idat2;
+    BRAM0_DI  <= idat1 & idat0;
       
     IB_SRES.dout <= iib_dout;
     IB_SRES.ack  <= iib_ack;

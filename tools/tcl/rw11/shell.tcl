@@ -1,4 +1,4 @@
-# $Id: shell.tcl 837 2017-01-02 19:23:34Z mueller $
+# $Id: shell.tcl 872 2017-04-09 20:48:05Z mueller $
 #
 # Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-04-09   872   2.2.1  adopt .ime to new interface
 # 2017-01-02   837   2.2    code re-shuffle; add cpu status in prompt
 # 2016-12-31   834   2.1    add '@' command
 # 2016-12-30   833   2.0    major overhaul    
@@ -567,7 +568,7 @@ namespace eval rw11 {
     }
     if {[$shell_cpu rmap -testname "im.cntl"]} {
     append rval "\nibus monitor:"
-      append rval "\n    .ime                ; ibmon enable; mode: \[crl\]+n?"
+      append rval "\n    .ime                ; ibmon enable; mode: \[lrcnRW\]*"
       append rval "\n    .imd                ; ibmon disable"
       append rval "\n    .imf ?lo? ?hi?      ; ibmon filter"
       append rval "\n    .iml ?nent?         ; ibmon list"
@@ -607,6 +608,7 @@ namespace eval rw11 {
     append rval "\n  r        - for iopage access: rem (as seen by rlink)"
     append rval "\n  p        - for memory access: physical (16bit)"
     append rval "\n  e        - for memory access: extended (22 bit)"
+    append rval "\n  u        - for memory access via ubmap (22 bit)"
     append rval "\n  MS       - for memory access via mmu mode=M and space=S"
     append rval "\n           -   M (mode)  as c,p,k,s,u for cm,pm,kern,sup,user"
     append rval "\n           -   S (space) as i,d for instruction,data"

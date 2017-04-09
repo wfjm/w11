@@ -14,9 +14,15 @@
 ### Proviso
 _The HEAD version shows the current development. No guarantees that
 software or firmware builds or that the documentation is consistent.
-The full set of tests is only run for tagged releases._
+The full set of tests is only run for tagged releases.
 
 ### Summary
+- revise interface for ibd_ibmon and rbd_rbmon
+  - use start,stop,suspend,resume functions; improved stop on wrap handling
+  - add 'repeat collapse' logic (store only first and last of a sequence)
+- BUGFIX: `rlc get logfile` or `rlc get *` crashed with segfault
+  - error was a type mismatch in the getter declaration in RtclRlinkConnect
+  - fixed by changing the return type in RlinkConnect
 - remove double inheritance in RtclRw11Unit* stack
   - RtclRw11Unit: drop fpCpu, use added Cpu()=0 instead
   - RtclRw11UnitBase: add TUV,TB; add TUV* ObjUV(); inherit from TB

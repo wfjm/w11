@@ -1,6 +1,6 @@
-# $Id: util.tcl 661 2015-04-03 18:28:41Z mueller $
+# $Id: util.tcl 872 2017-04-09 20:48:05Z mueller $
 #
-# Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-04-09   872   4.0    revised interface, add suspend and repeat collect
 # 2015-04-03   661   3.1    drop estatdef; invert mask in raw_edata
 # 2014-12-23   619   3.0    rbd_rbmon reorganized, supports now 16 bit addresses
 # 2014-11-09   603   2.0    use rlink v4 address layout
@@ -29,8 +30,9 @@ namespace eval rbmoni {
   #
   # setup register descriptions for rbd_rbmon
   #
-  regdsc CNTL {wena 2} {stop 1} {start 0}
-  regdsc STAT {bsize 15 3} {wrap 0}
+  regdsc CNTL {rcolw 5} {rcolr 4} {wstop 3} \
+              {func 2 3 "s:NOOP:NOOP1:NOOP2:NOOP3:STO:STA:SUS:RES"}
+  regdsc STAT {bsize 15 3} {wrap 2} {susp 1} {run 0}
   regdsc ADDR {laddr 15 14} {waddr 1 2}
   #
   regdsc DAT3 {flags 15 8 "-"} {burst 15} {tout 14} {nak 13} {ack 12} \
@@ -57,7 +59,7 @@ namespace eval rbmoni {
   # 
   proc init {} {
     rlc exec \
-      -wreg rm.cntl [regbld rbmoni::CNTL stop] \
+      -wreg rm.cntl [regbld rbmoni::CNTL {func "STO"}] \
       -wreg rm.hilim  0xfffb \
       -wreg rm.lolim  0x0000 \
       -wreg rm.addr 0x0000
@@ -65,42 +67,58 @@ namespace eval rbmoni {
   #
   # start: start the rbmon
   #
-  proc start {{wena 0}} {
-    rlc exec -wreg rm.cntl [regbld rbmoni::CNTL start [list wena $wena]]
+  proc start {args} {
+    args2opts opts {rcolw 0 rcolr 0 wstop 0} {*}$args
+    rlc exec -wreg rm.cntl [regbld rbmoni::CNTL {func "STA"} \
+                              [list  rcolw $opts(rcolw)] \
+                              [list  rcolr $opts(rcolr)] \
+                              [list  wstop $opts(wstop)] \
+                            ]
   }
   #
   # stop: stop the rbmon
   #
   proc stop {} {
-    rlc exec -wreg rm.cntl [regbld rbmoni::CNTL stop]
+    rlc exec -wreg rm.cntl [regbld rbmoni::CNTL {func "STO"}]
   }
   #
   # read: read nent last entries (by default all)
   #
   proc read {{nent -1}} {
-    rlc exec -rreg rm.addr raddr \
+    rlc exec -wreg rm.cntl [regbld rbmoni::CNTL {func "SUS"}] \
+             -rreg rm.cntl rcntl \
+             -rreg rm.addr raddr \
              -rreg rm.stat rstat
 
+    # determine max number items
     set bsize [regget rbmoni::STAT(bsize) $rstat]
     set amax  [expr {( 512 << $bsize ) - 1}]
-    if {$nent == -1} { set nent $amax }
+    set nmax  [expr { $amax + 1 } ]
+    if {$nent == -1}   { set nent $nmax }
+    if {$nent > $nmax} { set nent $nmax }
 
+    # determine number of available items (check wrap flag)
     set laddr [regget rbmoni::ADDR(laddr) $raddr]
     set nval  $laddr
-    if {[regget rbmoni::STAT(wrap) $rstat]} { set nval $amax }
+    if {[regget rbmoni::STAT(wrap) $rstat]} { set nval $nmax }
 
     if {$nent > $nval} {set nent $nval}
-    if {$nent == 0} { return {} }
+    if {$nent == 0}    { return {} }
 
-    set caddr [expr {( $laddr - $nent ) & $amax}]
+    # if wstop set use first nent items, otherwise last nent items
+    set caddr 0
+    if {![regget rbmoni::CNTL(wstop) $rcntl]} {
+      set caddr [expr {( $laddr - $nent ) & $amax}]
+    }
     rlc exec -wreg rm.addr [regbld rbmoni::ADDR [list laddr $caddr]]
-
+    
     set rval {}
-
+    set nblkmax [expr {( [rlc get bsizemax] >> 2 ) << 2}]; # ensure multiple of 4
     set nrest $nent
+    
     while {$nrest > 0} {
       set nblk [expr {$nrest << 2}]
-      if {$nblk > 256} {set nblk 256}
+      if {$nblk > $nblkmax} {set nblk $nblkmax}
       rlc exec -rblk rm.data $nblk rawdat
 
       foreach {d0 d1 d2 d3} $rawdat {
@@ -116,7 +134,9 @@ namespace eval rbmoni {
       set nrest [expr {$nrest - ( $nblk >> 2 ) }]
     }
 
-    rlc exec -wreg rm.addr $raddr
+    # resume and restore address
+    rlc exec -wreg rm.addr $raddr \
+             -wreg rm.cntl [regbld rbmoni::CNTL {func "RES"}]
 
     set mbnext [regbld rbmoni::FLAGS bnext]
     set mburst [regbld rbmoni::FLAGS burst]
@@ -149,7 +169,7 @@ namespace eval rbmoni {
 
     set eind [expr {1 - [llength $mondat] }]
     append rval \
-      "  ind  addr       data  delay nbsy     flags  bu to na ac bs er mode"
+      "  ind  addr        data  delay nbsy     flags  bu to na ac bs er mode"
 
     set mbnext [regbld rbmoni::FLAGS bnext]
     set mburst [regbld rbmoni::FLAGS burst]
@@ -199,7 +219,7 @@ namespace eval rbmoni {
       if {$ftout}           {append comment " TOUT=1!"}
       if {[rlc amap -testaddr $eaddr]} {set ename [rlc amap -name $eaddr]}
       append rval [format \
-      "\n%5d  %-10s %4.4x  %5s %4d  %s  %s %s %s %s %s %s %s  %s" \
+      "\n%5d  %-11s %4.4x  %5s %4d  %s  %s %s %s %s %s %s %s  %s" \
         $eind $ename $edata $pedly $enbusy [pbvi b8 $eflag] \
         $pburst $ptout $pnak $pack $pbusy $perr $pmode $comment]
       incr eind

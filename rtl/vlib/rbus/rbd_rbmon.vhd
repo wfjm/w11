@@ -1,6 +1,6 @@
--- $Id: rbd_rbmon.vhd 758 2016-04-02 18:01:39Z mueller $
+-- $Id: rbd_rbmon.vhd 872 2017-04-09 20:48:05Z mueller $
 --
--- Copyright 2010-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,16 +20,19 @@
 -- Test bench:     rlink/tb/tb_rlink_tba_ttcombo
 --
 -- Target Devices: generic
--- Tool versions:  xst 12.1-14.7; viv 2014.4-2015.4; ghdl 0.29-0.33
+-- Tool versions:  xst 12.1-14.7; viv 2014.4-2016.4; ghdl 0.29-0.34
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2017-04-09   872 14.7  131013 xc6slx16-2   140  202    -   82 s  5.9
+-- 2017-04-08   758 14.7  131013 xc6slx16-2   112  200    -   73 s  5.7
 -- 2014-12-22   619 14.7  131013 xc6slx16-2   114  209    -   72 s  5.6
 -- 2014-12-21   593 14.7  131013 xc6slx16-2    99  207    -   77 s  7.0
 -- 2010-12-27   349 12.1    M53d xc3s1000-4    95  228    -  154 s 10.4
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2017-04-09   872   6.0    revised interface, add suspend and repeat collapse
 -- 2015-05-02   672   5.0.1  use natural for AWIDTH to work around a ghdl issue
 -- 2014-12-22   619   5.0    reorganized, supports now 16 bit addresses
 -- 2014-09-13   593   4.1    change default address -> ffe8
@@ -42,12 +45,20 @@
 --
 -- Addr   Bits  Name        r/w/f  Function
 --  000         cntl        r/w/f  Control register
---          02    wena      r/w/-    wrap enable
---          01    stop      r/w/f    writing 1 stops  moni
---          00    start     r/w/f    writing 1 starts moni and clears addr
+--          05    rcolw     r/w/-    repeat collapse writes
+--          04    rcolr     r/w/-    repeat collapse reads
+--          03    wstop     r/w/-    stop on wrap
+--       02:00    func      0/-/f    change run status if != noop
+--                                     0xx  noop
+--                                     100  sto  stop
+--                                     101  sta  start and latch all options
+--                                     110  sus  suspend  (noop if not started)
+--                                     111  res  resume   (noop if not started)
 --  001         stat        r/w/-  Status register
 --       15:13    bsize     r/-/-    buffer size (AWIDTH-9)
---          00    wrap      r/-/-    line address wrapped (cleared on go)
+--          02    wrap      r/-/-    line address wrapped (cleared on start)
+--          01    susp      r/-/-    suspended
+--          00    run       r/-/-    running (can be suspended)
 --  010         hilim       r/w/-  upper address limit, inclusive (def: 0xfffb)
 --  011         lolim       r/w/-  lower address limit, inclusive (def: 0x0000)
 --  100         addr        r/w/-  Address register
@@ -107,11 +118,16 @@ architecture syn of rbd_rbmon is
   constant rbaddr_addr  : slv3 := "100";   -- addr  address offset
   constant rbaddr_data  : slv3 := "101";   -- data  address offset
 
-  constant cntl_rbf_wena     : integer :=     2;
-  constant cntl_rbf_stop     : integer :=     1;
-  constant cntl_rbf_start    : integer :=     0;
+  constant cntl_rbf_rcolw    : integer :=     5;
+  constant cntl_rbf_rcolr    : integer :=     4;
+  constant cntl_rbf_wstop    : integer :=     3;
+  subtype  cntl_rbf_func    is integer range  2 downto  0;
+  
   subtype  stat_rbf_bsize   is integer range 15 downto 13;
-  constant stat_rbf_wrap     : integer :=     0;
+  constant stat_rbf_wrap     : integer :=     2;
+  constant stat_rbf_susp     : integer :=     1;
+  constant stat_rbf_run      : integer :=     0;
+  
   subtype  addr_rbf_laddr   is integer range 2+AWIDTH-1 downto  2;
   subtype  addr_rbf_waddr   is integer range  1 downto  0;
 
@@ -127,15 +143,32 @@ architecture syn of rbd_rbmon is
   subtype  dat2_rbf_ndlylsb is integer range 15 downto 10;
   subtype  dat2_rbf_nbusy   is integer range  9 downto  0;
 
+  constant func_sto : slv3 := "100";    -- func: stop
+  constant func_sta : slv3 := "101";    -- func: start
+  constant func_sus : slv3 := "110";    -- func: suspend
+  constant func_res : slv3 := "111";    -- func: resume
+
   type regs_type is record              -- state registers
     rbsel : slbit;                      -- rbus select
-    wena : slbit;                       -- wena flag (wrap enable)
+    rcolw  : slbit;                     -- rcolw flag (repeat collect writes)
+    rcolr  : slbit;                     -- rcolr flag (repeat collect reads)
+    wstop  : slbit;                     -- wstop flag (stop on wrap)
+    susp   : slbit;                     -- suspended flag
     go : slbit;                         -- go flag
     hilim : slv16;                      -- upper address limit
     lolim : slv16;                      -- lower address limit
     wrap : slbit;                       -- laddr wrap flag
     laddr : slv(AWIDTH-1 downto 0);     -- line address
     waddr : slv2;                       -- word address
+    addrlast: slv16;                    -- last rb addr
+    addrsame: slbit;                    -- curr rb addr equal last rb addr
+    addrwind: slbit;                    -- curr rb addr in [lolim,hilim] window
+    aval_1  : slbit;                    -- last cycle aval
+    arm1r   : slbit;                    -- 1st level arm for read
+    arm2r   : slbit;                    -- 2nd level arm for read
+    arm1w   : slbit;                    -- 1st level arm for write
+    arm2w   : slbit;                    -- 2nd level arm for write
+    rcol    : slbit;                    -- repeat collaps
     rbtake_1 : slbit;                   -- rb capture active in last cycle
     rbaddr  : slv16;                    -- rbus trace: addr
     rbinit  : slbit;                    -- rbus trace: init
@@ -156,12 +189,16 @@ architecture syn of rbd_rbmon is
   
   constant regs_init : regs_type := (
     '0',                                -- rbsel
-    '0','0',                            -- wena,go
+    '0','0','0',                        -- rcolw,rcolr,wstop
+    '0','1',                            -- susp,go
     x"fffb",                            -- hilim (def: fffb)
     x"0000",                            -- lolim (def: 0000)
     '0',                                -- wrap
     laddrzero,                          -- laddr
     "00",                               -- waddr
+    x"ffff",                            -- addrlast (startup: ffff)
+    '0','0','0',                        -- addrsame,addrwind,aval_1
+    '0','0','0','0','0',                -- arm1r,arm2r,arm1w,arm2w,rcol
     '0',                                -- rbtake_1
     (others=>'0'),                      -- rbaddr
     '0','0','0','0','0',                -- rbinit,rbwe,rback,rbbusy,rberr
@@ -183,7 +220,8 @@ architecture syn of rbd_rbmon is
   signal BRAM1_DI : slv32 := (others=>'0');
   signal BRAM0_DO : slv32 := (others=>'0');
   signal BRAM1_DO : slv32 := (others=>'0');
-  
+  signal BRAM_ADDR : slv(AWIDTH-1 downto 0) := (others=>'0');
+
 begin
 
   assert AWIDTH>=9 and AWIDTH<=14 
@@ -198,7 +236,7 @@ begin
       CLK   => CLK,
       EN    => BRAM_EN,
       WE    => BRAM_WE,
-      ADDR  => R_REGS.laddr,
+      ADDR  => BRAM_ADDR,
       DI    => BRAM1_DI,
       DO    => BRAM1_DO
     );
@@ -211,7 +249,7 @@ begin
       CLK   => CLK,
       EN    => BRAM_EN,
       WE    => BRAM_WE,
-      ADDR  => R_REGS.laddr,
+      ADDR  => BRAM_ADDR,
       DI    => BRAM0_DI,
       DO    => BRAM0_DO
     );
@@ -243,6 +281,8 @@ begin
     variable idat1 : slv16 := (others=>'0');
     variable idat2 : slv16 := (others=>'0');
     variable idat3 : slv16 := (others=>'0');
+    variable iaddrinc : slv(AWIDTH-1 downto 0) := (others=>'0');
+    variable iaddroff : slv(AWIDTH-1 downto 0) := (others=>'0');
   begin
 
     r := R_REGS;
@@ -267,6 +307,21 @@ begin
       ibramen := '1';
     end if;
 
+    -- rbus address monitor
+    if RB_MREQ.aval='1' and r.aval_1='0' then
+      n.addrlast := RB_MREQ.addr;
+      n.addrsame := '0';
+      if RB_MREQ.addr = r.addrlast then
+        n.addrsame := '1';
+      end if;
+      n.addrwind := '0';
+      if unsigned(RB_MREQ.addr)>=unsigned(r.lolim) and   -- and in addr window
+         unsigned(RB_MREQ.addr)<=unsigned(r.hilim) then
+        n.addrwind := '1';
+      end if;
+    end if;
+    n.aval_1 := RB_MREQ.aval;
+
     -- rbus transactions
     if r.rbsel = '1' then
 
@@ -276,16 +331,27 @@ begin
 
         when rbaddr_cntl =>                 -- cntl ------------------
           if RB_MREQ.we = '1' then 
-            n.wena := RB_MREQ.din(cntl_rbf_wena);
-            if RB_MREQ.din(cntl_rbf_start) = '1' then
-              n.go    := '1';
-              n.wrap  := '0';
-              n.laddr := laddrzero;
-              n.waddr := "00";
-            end if;
-            if RB_MREQ.din(cntl_rbf_stop) = '1' then
-              n.go    := '0';
-            end if;
+            case RB_MREQ.din(cntl_rbf_func) is
+              when func_sto =>                -- func: stop ------------
+                n.go    := '0';
+                n.susp  := '0';
+              when func_sta =>                -- func: start -----------
+                n.rcolw  := RB_MREQ.din(cntl_rbf_rcolw);
+                n.rcolr  := RB_MREQ.din(cntl_rbf_rcolr);
+                n.wstop  := RB_MREQ.din(cntl_rbf_wstop);
+                n.go     := '1';
+                n.susp   := '0';
+                n.wrap   := '0';
+                n.laddr  := laddrzero;
+                n.waddr  := "00";
+              when func_sus =>                -- func: susp ------------
+                n.go     := '0';
+                n.susp   := r.go;
+              when func_res =>                -- func: resu ------------
+                n.go     := r.susp;
+                n.susp   := '0';
+              when others => null;            -- <> --------------------
+            end case;
           end if;
           
         when rbaddr_stat => null;           -- stat ------------------
@@ -329,11 +395,14 @@ begin
     if r.rbsel = '1' then
       case RB_MREQ.addr(2 downto 0) is
         when rbaddr_cntl =>                 -- cntl ------------------
-          irb_dout(cntl_rbf_wena)  := r.wena;
-          irb_dout(cntl_rbf_start) := r.go;
+          irb_dout(cntl_rbf_rcolw)  := r.rcolw;
+          irb_dout(cntl_rbf_rcolr)  := r.rcolr;
+          irb_dout(cntl_rbf_wstop)  := r.wstop;
         when rbaddr_stat =>                 -- stat ------------------
           irb_dout(stat_rbf_bsize) := slv(to_unsigned(AWIDTH-9,3));
           irb_dout(stat_rbf_wrap)  := r.wrap;
+          irb_dout(stat_rbf_susp)  := r.susp;         -- started and suspended
+          irb_dout(stat_rbf_run)   := r.go or r.susp; -- started
         when rbaddr_hilim =>                -- hilim -----------------
           irb_dout                 := r.hilim;
         when rbaddr_lolim =>                -- lolim -----------------
@@ -358,10 +427,8 @@ begin
     --   and the access is not refering to rbd_rbmon itself
     
     rbtake := '0';
-    if RB_MREQ.aval='1' and irbena='1' then              -- aval and (re or we)
-      if unsigned(RB_MREQ.addr)>=unsigned(r.lolim) and   -- and in addr window
-         unsigned(RB_MREQ.addr)<=unsigned(r.hilim) and
-         r.rbsel='0' then                                -- and not self
+    if RB_MREQ.aval='1' and irbena='1' then   -- aval and (re or we)
+      if r.addrwind='1' and r.rbsel='0' then     -- and in window and not self
         rbtake := '1';
       end if;
     end if;
@@ -395,6 +462,16 @@ begin
       n.rbnak  := not RB_SRES_SUM.ack;
       n.rbtout := RB_SRES_SUM.busy;
 
+      if RB_SRES_SUM.busy = '0' then    -- if last cycle of a transaction
+        n.addrsame := '1';                -- in case of burst
+        n.arm1r := r.rcolr and RB_MREQ.re;
+        n.arm1w := r.rcolw and RB_MREQ.we;
+        n.arm2r := r.arm1r and r.addrsame and RB_MREQ.re;
+        n.arm2w := r.arm1w and r.addrsame and RB_MREQ.we;
+        n.rcol  := ((r.arm2r and RB_MREQ.re) or
+                    (r.arm2w and RB_MREQ.we)) and r.addrsame;
+      end if;
+      
     else                                -- if capture not active
       if r.go='1' and r.rbtake_1='1' then -- active and transaction just ended
         ibramen := '1';
@@ -415,12 +492,16 @@ begin
       n.rbburst := '0';                   -- clear burst flag
     end if;
     
+    iaddrinc := (others=>'0');
+    iaddroff := (others=>'0');
+    iaddrinc(0) := not (r.rcol and r.go);
+    iaddroff(0) :=     (r.rcol and r.go);
+    
     if laddr_inc = '1' then
-      n.laddr := slv(unsigned(r.laddr) + 1);
+      n.laddr := slv(unsigned(r.laddr) + unsigned(iaddrinc));
       if r.go='1' and r.laddr=laddrlast then
-        if r.wena = '1' then
-          n.wrap := '1';
-        else
+        n.wrap := '1';
+        if r.wstop = '1' then
           n.go   := '0';
         end if;
       end if;
@@ -445,11 +526,12 @@ begin
     
     N_REGS <= n;
 
-    BRAM_EN <= ibramen;
-    BRAM_WE <= ibramwe;
+    BRAM_EN   <= ibramen;
+    BRAM_WE   <= ibramwe;
+    BRAM_ADDR <= slv(unsigned(R_REGS.laddr) - unsigned(iaddroff));
 
-    BRAM1_DI <= idat3 & idat2;
-    BRAM0_DI <= idat1 & idat0;
+    BRAM1_DI  <= idat3 & idat2;
+    BRAM0_DI  <= idat1 & idat0;
       
     RB_SRES.dout <= irb_dout;
     RB_SRES.ack  <= irb_ack;

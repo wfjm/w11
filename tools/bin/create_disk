@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: create_disk 832 2016-12-28 09:49:47Z mueller $
+# $Id: create_disk 871 2017-04-09 15:19:11Z mueller $
 #
-# Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -17,7 +17,7 @@
 # 2015-06-21   692   1.1.2  use sysseek rather seek; add RM80
 # 2015-04-06   665   1.1.1  add alias RM03 (for RM02) and RP05 (for RP04)
 # 2014-06-14   562   1.1    BUGFIX: repair --boot; add RM02,RM05,RP04,RP07
-# 2013-05-20   521   1.0    First draft
+# 2013-05-20   521   1.0    Initial version
 #
 
 use 5.14.0;                                 # require Perl 5.14 or higher

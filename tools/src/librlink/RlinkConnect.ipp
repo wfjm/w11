@@ -1,6 +1,6 @@
-// $Id: RlinkConnect.ipp 854 2017-02-25 14:46:03Z mueller $
+// $Id: RlinkConnect.ipp 871 2017-04-09 15:19:11Z mueller $
 //
-// Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-09   871   2.5.1  LogFileName(): returns now const std::string&
 // 2017-02-20   854   2.5    use Rtime, drop TimeOfDayAsDouble
 // 2016-04-02   758   2.4    add USR_ACCESS register support (RLUA0/RLUA1)
 // 2016-03-20   748   2.3    add fTimeout,(Set)Timeout();
@@ -29,7 +30,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.ipp 854 2017-02-25 14:46:03Z mueller $
+  \version $Id: RlinkConnect.ipp 871 2017-04-09 15:19:11Z mueller $
   \brief   Implemenation (inline) of RlinkConnect.
 */
 
@@ -274,7 +275,7 @@ inline const boost::shared_ptr<RlogFile>& RlinkConnect::LogFileSPtr() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline std::string RlinkConnect::LogFileName() const
+inline const std::string& RlinkConnect::LogFileName() const
 {
   return LogFile().Name();
 }

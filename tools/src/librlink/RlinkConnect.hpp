@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.hpp 868 2017-04-07 20:09:33Z mueller $
+// $Id: RlinkConnect.hpp 871 2017-04-09 15:19:11Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-09   871   2.6.2  LogFileName(): returns now const std::string&
 // 2017-04-07   868   2.6.1  Dump(): add detail arg
 // 2017-02-20   854   2.6    use Rtime, drop TimeOfDayAsDouble
 // 2016-04-02   758   2.5    add USR_ACCESS register support (RLUA0/RLUA1)
@@ -41,7 +42,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.hpp 868 2017-04-07 20:09:33Z mueller $
+  \version $Id: RlinkConnect.hpp 871 2017-04-09 15:19:11Z mueller $
   \brief   Declaration of class \c RlinkConnect.
 */
 
@@ -153,7 +154,7 @@ namespace Retro {
       const boost::shared_ptr<RlogFile>&   LogFileSPtr() const;
 
       void          SetLogFileName(const std::string& name);
-      std::string   LogFileName() const;
+      const std::string&   LogFileName() const;
 
       void          Print(std::ostream& os) const;
       void          Dump(std::ostream& os, int ind=0, const char* text=0,

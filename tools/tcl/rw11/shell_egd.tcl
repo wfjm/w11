@@ -1,6 +1,6 @@
-# $Id: shell_egd.tcl 834 2016-12-30 15:19:09Z mueller $
+# $Id: shell_egd.tcl 859 2017-03-11 22:36:45Z mueller $
 #
-# Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-03-10   859   1.1    .egd: add /u option (memory access via ubmap)
 # 2015-12-28   720   1.0    Initial version
 # 2015-12-23   717   0.1    First draft
 #
@@ -78,7 +79,7 @@ namespace eval rw11 {
       switch -regexp -matchvar mvar -- $opt {
         {^[lr]$}        { set opt_lr  $opt }
         {^[cpksu][id]$} { set opt_am  $opt }
-        {^[pe]$}        { set opt_am  $opt }
+        {^[peu]$}       { set opt_am  $opt }
         {^[iabodxfF]$}  { set opt_fmt $opt }
         {^(\d)+$}       { set opt_cnt $opt }
         default         { error "-E: bad option: $opt"}
@@ -202,7 +203,7 @@ namespace eval rw11 {
   proc shell_mspec_get {mspec} {
     variable shell_cpu
     set mode  [lindex $mspec 0]; # reg,mem,iop
-    set am    [lindex $mspec 1]; # l,r or p,e,[cpksu][id]
+    set am    [lindex $mspec 1]; # l,r or p,e,u,[cpksu][id]
     set addr  [lindex $mspec 2]
     set cnt   [lindex $mspec 3]
     set fmt   [lindex $mspec 4]; # i,a,b,o,d,x,f,F
@@ -210,10 +211,11 @@ namespace eval rw11 {
     switch $mode {
       mem {
         set clist {}
-        if {$am eq "p"} {
-          lappend clist -wal $addr
-        } else {
-          lappend clist -wa $addr -p22
+        switch $am {
+          p  {lappend clist -wal $addr}
+          u  {lappend clist -wa  $addr -ubm}
+          e  {lappend clist -wa  $addr -p22}
+          default {error "-E: BUGCHECK: expected am of p,u, or e"}
         }
         lappend clist -brm $cnt rval
         $shell_cpu cp {*}$clist
@@ -451,10 +453,11 @@ namespace eval rw11 {
     switch $mode {
       mem {
         set clist {}
-        if {$am eq "p"} {
-          lappend clist -wal $addr
-        } else {
-          lappend clist -wa $addr -p22
+        switch $am {
+          p  {lappend clist -wal $addr}
+          u  {lappend clist -wa  $addr -ubm}
+          e  {lappend clist -wa  $addr -p22}
+          default {error "-E: BUGCHECK: expected am of p,u, or e"}
         }
         lappend clist -bwm $vals
         $shell_cpu cp {*}$clist

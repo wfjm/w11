@@ -1,6 +1,6 @@
-# $Id: defs.tcl 835 2016-12-31 10:00:14Z mueller $
+# $Id: defs.tcl 851 2017-02-18 09:20:40Z mueller $
 #
-# Copyright 2014-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-02-17   851   1.0.5  defs for auxilliary devices (kw11l,kw11p,iist)
 # 2016-12-30   834   1.0.4  fix typo in regmap_add for SDR's
 # 2016-01-02   724   1.0.3  add s: defs for CP_STAT(rust)
 # 2015-12-26   719   1.0.2  add regmap_add defs; add CNTRL def
@@ -109,6 +110,26 @@ namespace eval rw11 {
   rw11util::regmap_add rw11 cntrl     {?? CNTRL}
   #
   # other w11a definitions ---------------------------------------------------
+  #
+  # KW11-L line clock
+  set A_KW11L_CSR  0177546
+  regdsc KW11L_CSR  {moni 7} {ie 6}
+  rw11util::regmap_add rw11 kwl.csr    {?? KW11L_CSR}
+  #
+  # KW11-P line clock
+  set A_KW11P_CSR  0172540
+  set A_KW11P_CSB  0172542
+  set A_KW11P_CTR  0172544
+  regdsc KW11P_CSR  {err 15} {done 7} {ie 6} {fix 5} {updn 4} \
+                    {mode 3} {rate 2 2} {run 0}
+  rw11util::regmap_add rw11 kwp.csr    {?? KW11P_CSR}
+  #
+  # IIST - interprocessor communication
+  set A_IIST_ACR   0177500
+  set A_IIST_ADR   0177502
+  regdsc IIST_ACR  {clr 15} {sid 9 2} {ac 3 4}
+  rw11util::regmap_add rw11 iist.acr   {?? IIST_ACR}
+  #
   # Interrupt vectors -----------------------------------------------
   #
   set V_004      0000004

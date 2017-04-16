@@ -1,4 +1,4 @@
-// $Id: RtclGet.ipp 854 2017-02-25 14:46:03Z mueller $
+// $Id: RtclGet.ipp 876 2017-04-16 08:01:37Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-16   876   1.2    add Tcl_Obj*
 // 2017-02-20   854   1.1    add Rtime
 // 2013-02-12   487   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclGet.ipp 854 2017-02-25 14:46:03Z mueller $
+  \version $Id: RtclGet.ipp 876 2017-04-16 08:01:37Z mueller $
   \brief   Implemenation (inline) of class RtclGet.
 */
 
@@ -206,6 +207,15 @@ inline Tcl_Obj* RtclGet<const Rtime&>::operator()() const
 {
   Rtime val = fGet();
   return Tcl_NewDoubleObj(double(val));
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+template <>
+inline Tcl_Obj* RtclGet<Tcl_Obj*>::operator()() const 
+{
+  return fGet();
 }
 
 

@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTermPty.hpp 868 2017-04-07 20:09:33Z mueller $
+// $Id: Rw11VirtTermPty.hpp 875 2017-04-15 21:58:50Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -21,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtTermPty.hpp 868 2017-04-07 20:09:33Z mueller $
+  \version $Id: Rw11VirtTermPty.hpp 875 2017-04-15 21:58:50Z mueller $
   \brief   Declaration of class Rw11VirtTermPty.
 */
 
@@ -40,7 +40,7 @@ namespace Retro {
       explicit      Rw11VirtTermPty(Rw11Unit* punit);
                    ~Rw11VirtTermPty();
 
-      bool          Open(const std::string& url, RerrMsg& emsg);
+      virtual bool  Open(const std::string& url, RerrMsg& emsg);
 
       virtual bool  Snd(const uint8_t* data, size_t count, RerrMsg& emsg);
 

@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTermPty.cpp 868 2017-04-07 20:09:33Z mueller $
+// $Id: Rw11VirtTermPty.cpp 875 2017-04-15 21:58:50Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-15   875   1.0.2  Open(): set default scheme
 // 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-24   492   0.1    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtTermPty.cpp 868 2017-04-07 20:09:33Z mueller $
+  \version $Id: Rw11VirtTermPty.cpp 875 2017-04-15 21:58:50Z mueller $
   \brief   Implemenation of Rw11VirtTermPty.
 */
 #define _XOPEN_SOURCE 600
@@ -69,6 +70,8 @@ Rw11VirtTermPty::~Rw11VirtTermPty()
 
 bool Rw11VirtTermPty::Open(const std::string& url, RerrMsg& emsg)
 {
+  if (!fUrl.Set(url, "", "pty", emsg)) return false;
+
   int fd = posix_openpt(O_RDWR);
   if (fd < 0) {
     emsg.InitErrno("Rw11VirtTermPty::Open", "posix_openpt() failed: ", errno);

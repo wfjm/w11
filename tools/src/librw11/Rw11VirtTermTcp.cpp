@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTermTcp.cpp 868 2017-04-07 20:09:33Z mueller $
+// $Id: Rw11VirtTermTcp.cpp 875 2017-04-15 21:58:50Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-15   875   1.0.6  Open(): set default scheme
 // 2017-04-07   868   1.0.5  Dump(): add detail arg
 // 2014-08-22   584   1.0.4  use nullptr
 // 2013-05-17   512   1.0.3  use Rtools::String2Long
@@ -24,7 +25,7 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtTermTcp.cpp 868 2017-04-07 20:09:33Z mueller $
+  \version $Id: Rw11VirtTermTcp.cpp 875 2017-04-15 21:58:50Z mueller $
   \brief   Implemenation of Rw11VirtTermTcp.
 */
 
@@ -118,7 +119,7 @@ Rw11VirtTermTcp::~Rw11VirtTermTcp()
 
 bool Rw11VirtTermTcp::Open(const std::string& url, RerrMsg& emsg)
 {
-  if (!fUrl.Set(url, "|port=|trace|", emsg)) return false;
+  if (!fUrl.Set(url, "|port=|trace|", "tcp", emsg)) return false;
   if (!(fUrl.FindOpt("port"))) {
     emsg.Init("Rw11VirtTermTcp::Open", "port= option not specified");
     return false;

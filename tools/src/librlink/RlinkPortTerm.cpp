@@ -1,4 +1,4 @@
-// $Id: RlinkPortTerm.cpp 868 2017-04-07 20:09:33Z mueller $
+// $Id: RlinkPortTerm.cpp 875 2017-04-15 21:58:50Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-15   875   1.3.2  Open(): set default scheme
 // 2017-04-07   868   1.3.1  Dump(): add detail arg
 // 2015-04-12   666   1.3    drop xon/xoff excaping; add noinit attribute
 // 2015-02-01   641   1.2    support custom baud rates (5M,6M,10M,12M)
@@ -28,7 +29,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPortTerm.cpp 868 2017-04-07 20:09:33Z mueller $
+  \version $Id: RlinkPortTerm.cpp 875 2017-04-15 21:58:50Z mueller $
   \brief   Implemenation of RlinkPortTerm.
 */
 
@@ -83,7 +84,7 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
 {
   Close();
 
-  if (!fUrl.Set(url, "|baud=|break|cts|xon|noinit|", emsg)) return false;
+  if (!fUrl.Set(url, "|baud=|break|cts|xon|noinit|", "term", emsg)) return false;
 
   // if path doesn't start with a '/' prepend a '/dev/tty'
   if (fUrl.Path().substr(0,1) != "/") {

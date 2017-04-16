@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDiskFile.cpp 868 2017-04-07 20:09:33Z mueller $
+// $Id: Rw11VirtDiskFile.cpp 875 2017-04-15 21:58:50Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-15   875   1.1.2  Open(): add overload with scheme handling
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2017-03-11   859   1.1    use fWProt
 // 2013-04-14   506   1.0    Initial version
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtDiskFile.cpp 868 2017-04-07 20:09:33Z mueller $
+  \version $Id: Rw11VirtDiskFile.cpp 875 2017-04-15 21:58:50Z mueller $
   \brief   Implemenation of Rw11VirtDiskFile.
 */
 
@@ -65,7 +66,16 @@ Rw11VirtDiskFile::~Rw11VirtDiskFile()
 
 bool Rw11VirtDiskFile::Open(const std::string& url, RerrMsg& emsg)
 {
-  if (!fUrl.Set(url, "|wpro|", emsg)) return false;
+  return Open(url, "file", emsg);
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+bool Rw11VirtDiskFile::Open(const std::string& url, const std::string& scheme,
+                            RerrMsg& emsg)
+{
+  if (!fUrl.Set(url, "|wpro|", scheme, emsg)) return false;
   
   fWProt = fUrl.FindOpt("wpro");
   

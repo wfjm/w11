@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTermTcp.hpp 868 2017-04-07 20:09:33Z mueller $
+// $Id: Rw11VirtTermTcp.hpp 875 2017-04-15 21:58:50Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -22,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtTermTcp.hpp 868 2017-04-07 20:09:33Z mueller $
+  \version $Id: Rw11VirtTermTcp.hpp 875 2017-04-15 21:58:50Z mueller $
   \brief   Declaration of class Rw11VirtTermTcp.
 */
 
@@ -41,7 +41,7 @@ namespace Retro {
       explicit      Rw11VirtTermTcp(Rw11Unit* punit);
                    ~Rw11VirtTermTcp();
 
-      bool          Open(const std::string& url, RerrMsg& emsg);
+      virtual bool  Open(const std::string& url, RerrMsg& emsg);
 
       virtual bool  Snd(const uint8_t* data, size_t count, RerrMsg& emsg);
 

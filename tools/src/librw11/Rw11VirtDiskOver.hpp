@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDiskOver.hpp 868 2017-04-07 20:09:33Z mueller $
+// $Id: Rw11VirtDiskOver.hpp 875 2017-04-15 21:58:50Z mueller $
 //
 // Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,7 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtDiskOver.hpp 868 2017-04-07 20:09:33Z mueller $
+  \version $Id: Rw11VirtDiskOver.hpp 875 2017-04-15 21:58:50Z mueller $
   \brief   Declaration of class Rw11VirtDiskOver.
 */
 
@@ -48,7 +48,7 @@ namespace Retro {
 
       virtual bool  WProt() const;
 
-      bool          Open(const std::string& url, RerrMsg& emsg);
+      virtual bool  Open(const std::string& url, RerrMsg& emsg);
 
       virtual bool  Read(size_t lba, size_t nblk, uint8_t* data, 
                          RerrMsg& emsg);

@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDiskOver.cpp 868 2017-04-07 20:09:33Z mueller $
+// $Id: Rw11VirtDiskOver.cpp 875 2017-04-15 21:58:50Z mueller $
 //
 // Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-15   875   1.0.2  Open(): use overload with scheme handling
 // 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2017-03-10   859   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: Rw11VirtDiskOver.cpp 868 2017-04-07 20:09:33Z mueller $
+  \version $Id: Rw11VirtDiskOver.cpp 875 2017-04-15 21:58:50Z mueller $
   \brief   Implemenation of Rw11VirtDiskOver.
 */
 
@@ -72,8 +73,7 @@ bool Rw11VirtDiskOver::WProt() const
 bool Rw11VirtDiskOver::Open(const std::string& url, RerrMsg& emsg)
 {
   // FIXME_code: do we need to handle wpro ?
-  // FIXME_code: at this point assume that parent ignore proto
-  return Rw11VirtDiskFile::Open(url, emsg);
+  return Rw11VirtDiskFile::Open(url, "over", emsg);
 }
 
 //------------------------------------------+-----------------------------------

@@ -1,4 +1,4 @@
-// $Id: RlinkPortCuff.cpp 858 2017-03-05 17:41:37Z mueller $
+// $Id: RlinkPortCuff.cpp 875 2017-04-15 21:58:50Z mueller $
 //
 // Copyright 2012-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-15   875   1.1.5  Open(): set default scheme
 // 2017-03-04   858   1.1.4  use clock_gettime instead of gettimeofday
 // 2015-04-12   666   1.1.3  add noinit attribute
 // 2014-08-22   584   1.1.2  use nullptr
@@ -26,7 +27,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPortCuff.cpp 858 2017-03-05 17:41:37Z mueller $
+  \version $Id: RlinkPortCuff.cpp 875 2017-04-15 21:58:50Z mueller $
   \brief   Implemenation of RlinkPortCuff.
 */
 
@@ -98,7 +99,7 @@ bool RlinkPortCuff::Open(const std::string& url, RerrMsg& emsg)
 
   if (IsOpen()) Close();
 
-  if (!fUrl.Set(url, "|trace|noinit|", emsg)) return false;
+  if (!fUrl.Set(url, "|trace|noinit|", "cuff", emsg)) return false;
 
   // initialize USB context
   irc = libusb_init(&fpUsbContext);

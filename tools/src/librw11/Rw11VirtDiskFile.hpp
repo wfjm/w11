@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDiskFile.hpp 868 2017-04-07 20:09:33Z mueller $
+// $Id: Rw11VirtDiskFile.hpp 875 2017-04-15 21:58:50Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-15   875   1.0.2  Open(): add overload with scheme handling
 // 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2013-04-14   506   1.0    Initial version
 // 2013-02-13   488   0.1    First draft
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtDiskFile.hpp 868 2017-04-07 20:09:33Z mueller $
+  \version $Id: Rw11VirtDiskFile.hpp 875 2017-04-15 21:58:50Z mueller $
   \brief   Declaration of class Rw11VirtDiskFile.
 */
 
@@ -38,7 +39,9 @@ namespace Retro {
       explicit      Rw11VirtDiskFile(Rw11Unit* punit);
                    ~Rw11VirtDiskFile();
 
-      bool          Open(const std::string& url, RerrMsg& emsg);
+      virtual bool  Open(const std::string& url, RerrMsg& emsg);
+      bool          Open(const std::string& url, const std::string& scheme,
+                         RerrMsg& emsg);
 
       virtual bool  Read(size_t lba, size_t nblk, uint8_t* data, 
                          RerrMsg& emsg);

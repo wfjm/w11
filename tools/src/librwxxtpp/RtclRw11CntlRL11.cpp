@@ -1,6 +1,6 @@
-// $Id: RtclRw11CntlRL11.cpp 632 2015-01-11 12:30:03Z mueller $
+// $Id: RtclRw11CntlRL11.cpp 878 2017-04-16 12:28:15Z mueller $
 //
-// Copyright 2014-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-16   878   1.2    add class in ctor; derive from RtclRw11CntlDiskBase
 // 2015-01-10   632   1.0    Initial version
 // 2014-06-08   561   0.1    First draft
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclRw11CntlRL11.cpp 632 2015-01-11 12:30:03Z mueller $
+  \version $Id: RtclRw11CntlRL11.cpp 878 2017-04-16 12:28:15Z mueller $
   \brief   Implemenation of RtclRw11CntlRL11.
 */
 
@@ -42,14 +43,8 @@ namespace Retro {
 //! Constructor
 
 RtclRw11CntlRL11::RtclRw11CntlRL11()
-  : RtclRw11CntlBase<Rw11CntlRL11>("Rw11CntlRL11")
-{
-  Rw11CntlRL11* pobj = &Obj();
-  fGets.Add<size_t>  ("chunksize", 
-                      boost::bind(&Rw11CntlRL11::ChunkSize,    pobj));
-  fSets.Add<size_t>  ("chunksize",
-                      boost::bind(&Rw11CntlRL11::SetChunkSize, pobj, _1));
-}
+  : RtclRw11CntlDiskBase<Rw11CntlRL11>("Rw11CntlRL11","disk")
+{}
 
 //------------------------------------------+-----------------------------------
 //! Destructor

@@ -1,6 +1,6 @@
-// $Id: RtclRw11CntlRK11.cpp 632 2015-01-11 12:30:03Z mueller $
+// $Id: RtclRw11CntlRK11.cpp 878 2017-04-16 12:28:15Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-16   878   1.2    add class in ctor; derive from RtclRw11CntlDiskBase
 // 2015-01-04   627   1.1    add Get/Set for chunksize
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-02   480   0.1    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11CntlRK11.cpp 632 2015-01-11 12:30:03Z mueller $
+  \version $Id: RtclRw11CntlRK11.cpp 878 2017-04-16 12:28:15Z mueller $
   \brief   Implemenation of RtclRw11CntlRK11.
 */
 
@@ -43,14 +44,8 @@ namespace Retro {
 //! Constructor
 
 RtclRw11CntlRK11::RtclRw11CntlRK11()
-  : RtclRw11CntlBase<Rw11CntlRK11>("Rw11CntlRK11")
-{  
-  Rw11CntlRK11* pobj = &Obj();
-  fGets.Add<size_t>  ("chunksize", 
-                      boost::bind(&Rw11CntlRK11::ChunkSize,    pobj));
-  fSets.Add<size_t>  ("chunksize",
-                      boost::bind(&Rw11CntlRK11::SetChunkSize, pobj, _1));
-}
+  : RtclRw11CntlDiskBase<Rw11CntlRK11>("Rw11CntlRK11","disk")
+{}
 
 //------------------------------------------+-----------------------------------
 //! Destructor

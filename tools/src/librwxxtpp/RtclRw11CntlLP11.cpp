@@ -1,6 +1,6 @@
-// $Id: RtclRw11CntlLP11.cpp 515 2013-05-04 17:28:59Z mueller $
+// $Id: RtclRw11CntlLP11.cpp 878 2017-04-16 12:28:15Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,12 +13,13 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-16   878   1.1    add class in ctor;derive from RtclRw11CntlStreamBase
 // 2013-05-01   513   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclRw11CntlLP11.cpp 515 2013-05-04 17:28:59Z mueller $
+  \version $Id: RtclRw11CntlLP11.cpp 878 2017-04-16 12:28:15Z mueller $
   \brief   Implemenation of RtclRw11CntlLP11.
 */
 
@@ -41,10 +42,8 @@ namespace Retro {
 //! Constructor
 
 RtclRw11CntlLP11::RtclRw11CntlLP11()
-  : RtclRw11CntlBase<Rw11CntlLP11>("Rw11CntlLP11")
-{
-  //Rw11CntlLP11* pobj = &Obj();
-}
+  : RtclRw11CntlStreamBase<Rw11CntlLP11>("Rw11CntlLP11","stream")
+{}
 
 //------------------------------------------+-----------------------------------
 //! Destructor

@@ -1,6 +1,6 @@
-// $Id: RtclRw11CntlBase.hpp 870 2017-04-08 18:24:34Z mueller $
+// $Id: RtclRw11CntlBase.hpp 877 2017-04-16 10:13:56Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-16   877   1.1    add class in ctor
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-08   484   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11CntlBase.hpp 870 2017-04-08 18:24:34Z mueller $
+  \version $Id: RtclRw11CntlBase.hpp 877 2017-04-16 10:13:56Z mueller $
   \brief   Declaration of class RtclRw11CntlBase.
 */
 
@@ -36,7 +37,8 @@ namespace Retro {
   template <class TC>
   class RtclRw11CntlBase : public RtclRw11Cntl {
     public:
-      explicit      RtclRw11CntlBase(const std::string& type);
+      explicit      RtclRw11CntlBase(const std::string& type,
+                                     const std::string& cclass);
                    ~RtclRw11CntlBase();
 
       virtual TC&   Obj();

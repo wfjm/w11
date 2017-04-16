@@ -1,6 +1,6 @@
-// $Id: RtclRw11CntlDL11.cpp 516 2013-05-05 21:24:52Z mueller $
+// $Id: RtclRw11CntlDL11.cpp 878 2017-04-16 12:28:15Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-16   878   1.1    add class in ctor; derive from RtclRw11CntlTermBase
 // 2013-05-04   516   1.0.1  add RxRlim support (receive interrupt rate limit)
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-02   480   0.1    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11CntlDL11.cpp 516 2013-05-05 21:24:52Z mueller $
+  \version $Id: RtclRw11CntlDL11.cpp 878 2017-04-16 12:28:15Z mueller $
   \brief   Implemenation of RtclRw11CntlDL11.
 */
 
@@ -43,7 +44,7 @@ namespace Retro {
 //! Constructor
 
 RtclRw11CntlDL11::RtclRw11CntlDL11()
-  : RtclRw11CntlBase<Rw11CntlDL11>("Rw11CntlDL11")
+  : RtclRw11CntlTermBase<Rw11CntlDL11>("Rw11CntlDL11","term")
 {
   Rw11CntlDL11* pobj = &Obj();
   fGets.Add<uint16_t>  ("rxrlim", 

@@ -1,6 +1,6 @@
-// $Id: RtclRw11CntlTM11.cpp 686 2015-06-04 21:08:08Z mueller $
+// $Id: RtclRw11CntlTM11.cpp 878 2017-04-16 12:28:15Z mueller $
 //
-// Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,12 +13,13 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-16   878   1.1    add class in ctor; derive from RtclRw11CntlTapeBase
 // 2015-05-17   683   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RtclRw11CntlTM11.cpp 686 2015-06-04 21:08:08Z mueller $
+  \version $Id: RtclRw11CntlTM11.cpp 878 2017-04-16 12:28:15Z mueller $
   \brief   Implemenation of RtclRw11CntlTM11.
 */
 
@@ -41,14 +42,8 @@ namespace Retro {
 //! Constructor
 
 RtclRw11CntlTM11::RtclRw11CntlTM11()
-  : RtclRw11CntlBase<Rw11CntlTM11>("Rw11CntlTM11")
-{  
-  Rw11CntlTM11* pobj = &Obj();
-  fGets.Add<size_t>  ("chunksize", 
-                      boost::bind(&Rw11CntlTM11::ChunkSize,    pobj));
-  fSets.Add<size_t>  ("chunksize",
-                      boost::bind(&Rw11CntlTM11::SetChunkSize, pobj, _1));
-}
+  : RtclRw11CntlTapeBase<Rw11CntlTM11>("Rw11CntlTM11","tape")
+{}
 
 //------------------------------------------+-----------------------------------
 //! Destructor

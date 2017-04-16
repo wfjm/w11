@@ -1,6 +1,6 @@
-// $Id: RtclRw11CntlPC11.hpp 515 2013-05-04 17:28:59Z mueller $
+// $Id: RtclRw11CntlPC11.hpp 878 2017-04-16 12:28:15Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,25 +13,26 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-16   878   1.1    derive from RtclRw11CntlStreamBase
 // 2013-05-03   515   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 
 /*!
   \file
-  \version $Id: RtclRw11CntlPC11.hpp 515 2013-05-04 17:28:59Z mueller $
+  \version $Id: RtclRw11CntlPC11.hpp 878 2017-04-16 12:28:15Z mueller $
   \brief   Declaration of class RtclRw11CntlPC11.
 */
 
 #ifndef included_Retro_RtclRw11CntlPC11
 #define included_Retro_RtclRw11CntlPC11 1
 
-#include "RtclRw11CntlBase.hpp"
+#include "RtclRw11CntlStreamBase.hpp"
 #include "librw11/Rw11CntlPC11.hpp"
 
 namespace Retro {
 
-  class RtclRw11CntlPC11 : public RtclRw11CntlBase<Rw11CntlPC11> {
+  class RtclRw11CntlPC11 : public RtclRw11CntlStreamBase<Rw11CntlPC11> {
     public:
                     RtclRw11CntlPC11();
                    ~RtclRw11CntlPC11();

@@ -1,4 +1,4 @@
-// $Id: RtclRw11CntlBase.ipp 870 2017-04-08 18:24:34Z mueller $
+// $Id: RtclRw11CntlBase.ipp 877 2017-04-16 10:13:56Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-16   877   1.2    add class in ctor
 // 2017-02-04   848   1.1    add in fGets: found,pdataint,pdatarem
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-08   484   0.1    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11CntlBase.ipp 870 2017-04-08 18:24:34Z mueller $
+  \version $Id: RtclRw11CntlBase.ipp 877 2017-04-16 10:13:56Z mueller $
   \brief   Implemenation (all inline) of RtclRw11CntlBase.
 */
 
@@ -39,8 +40,9 @@ namespace Retro {
 //! Constructor
 
 template <class TC>
-inline RtclRw11CntlBase<TC>::RtclRw11CntlBase(const std::string& type)
-  : RtclRw11Cntl(type),
+inline RtclRw11CntlBase<TC>::RtclRw11CntlBase(const std::string& type,
+                                              const std::string& cclass)
+  : RtclRw11Cntl(type,cclass),
     fspObj(new TC())
 {
   AddMeth("bootcode", boost::bind(&RtclRw11CntlBase<TC>::M_bootcode,this, _1));

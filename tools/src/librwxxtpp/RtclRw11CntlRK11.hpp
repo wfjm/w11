@@ -1,6 +1,6 @@
-// $Id: RtclRw11CntlRK11.hpp 627 2015-01-04 11:36:37Z mueller $
+// $Id: RtclRw11CntlRK11.hpp 878 2017-04-16 12:28:15Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-16   878   1.2    derive from RtclRw11CntlDiskBase
 // 2015-01-03   627   1.1    add local M_stat
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-08   484   0.1    First draft
@@ -21,19 +22,19 @@
 
 /*!
   \file
-  \version $Id: RtclRw11CntlRK11.hpp 627 2015-01-04 11:36:37Z mueller $
+  \version $Id: RtclRw11CntlRK11.hpp 878 2017-04-16 12:28:15Z mueller $
   \brief   Declaration of class RtclRw11CntlRK11.
 */
 
 #ifndef included_Retro_RtclRw11CntlRK11
 #define included_Retro_RtclRw11CntlRK11 1
 
-#include "RtclRw11CntlBase.hpp"
+#include "RtclRw11CntlDiskBase.hpp"
 #include "librw11/Rw11CntlRK11.hpp"
 
 namespace Retro {
 
-  class RtclRw11CntlRK11 : public RtclRw11CntlBase<Rw11CntlRK11> {
+  class RtclRw11CntlRK11 : public RtclRw11CntlDiskBase<Rw11CntlRK11> {
     public:
                     RtclRw11CntlRK11();
                    ~RtclRw11CntlRK11();

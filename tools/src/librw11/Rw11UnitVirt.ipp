@@ -1,4 +1,4 @@
-// $Id: Rw11UnitVirt.ipp 868 2017-04-07 20:09:33Z mueller $
+// $Id: Rw11UnitVirt.ipp 875 2017-04-15 21:58:50Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-15   875   1.2.2  add VirtBase()
 // 2017-04-07   868   1.2.1  Dump(): add detail arg
 // 2015-05-13   680   1.2    Attach(): check for Enabled()
 // 2014-11-02   600   1.1.1  add (bool) cast, needed in 4.8.2
@@ -23,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: Rw11UnitVirt.ipp 868 2017-04-07 20:09:33Z mueller $
+  \version $Id: Rw11UnitVirt.ipp 875 2017-04-15 21:58:50Z mueller $
   \brief   Implemenation (inline) of Rw11UnitVirt.
 */
 
@@ -62,6 +63,15 @@ Rw11UnitVirt<TV>::~Rw11UnitVirt()
 
 template <class TV>
 inline TV* Rw11UnitVirt<TV>::Virt() const
+{
+  return fpVirt.get();
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+template <class TV>
+inline Rw11Virt* Rw11UnitVirt<TV>::VirtBase() const
 {
   return fpVirt.get();
 }

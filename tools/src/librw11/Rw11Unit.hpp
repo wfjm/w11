@@ -1,4 +1,4 @@
-// $Id: Rw11Unit.hpp 868 2017-04-07 20:09:33Z mueller $
+// $Id: Rw11Unit.hpp 875 2017-04-15 21:58:50Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-15   875   1.1.3  add VirtBase(), IsAttached(), AttachUrl()
 // 2017-04-07   868   1.1.2  Dump(): add detail arg
 // 2015-05-13   680   1.1.1  add Enabled()
 // 2013-05-03   515   1.1    use AttachDone(),DetachCleanup(),DetachDone()
@@ -24,7 +25,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Unit.hpp 868 2017-04-07 20:09:33Z mueller $
+  \version $Id: Rw11Unit.hpp 875 2017-04-15 21:58:50Z mueller $
   \brief   Declaration of class Rw11Unit.
 */
 
@@ -44,6 +45,8 @@
 
 namespace Retro {
 
+  class Rw11Virt;                           // forw decl to avoid circular incl
+
   class Rw11Unit : public Rbits, private boost::noncopyable {
     public:
 
@@ -62,9 +65,12 @@ namespace Retro {
       RlinkServer&  Server() const;
       RlinkConnect& Connect() const;
       RlogFile&     LogFile() const;
-
       virtual bool  Enabled() const;
 
+      virtual Rw11Virt*  VirtBase() const = 0;
+      bool          IsAttached() const;
+      const std::string& AttachUrl() const;
+    
       virtual bool  Attach(const std::string& url, RerrMsg& emsg);
       virtual void  Detach();
 

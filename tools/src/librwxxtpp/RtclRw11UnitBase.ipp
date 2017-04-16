@@ -1,4 +1,4 @@
-// $Id: RtclRw11UnitBase.ipp 870 2017-04-08 18:24:34Z mueller $
+// $Id: RtclRw11UnitBase.ipp 875 2017-04-15 21:58:50Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-15   875   1.3.1  add attached,attachutl getters
 // 2017-04-08   870   1.3    add TUV,TB; add TUV* ObjUV(); inherit from TB
 // 2017-04-02   863   1.2    add AttachDone()
 // 2015-05-14   680   1.1    fGets: add enabled (moved from RtclRw11UnitDisk)
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11UnitBase.ipp 870 2017-04-08 18:24:34Z mueller $
+  \version $Id: RtclRw11UnitBase.ipp 875 2017-04-15 21:58:50Z mueller $
   \brief   Implemenation (all inline) of RtclRw11UnitBase.
 */
 
@@ -69,9 +70,11 @@ inline RtclRw11UnitBase<TU,TUV,TB>::RtclRw11UnitBase(const std::string& type,
   // error messages. Simply too much nested templating...
   
   RtclGetList& gets = this->fGets;
-  gets.Add<size_t>          ("index",   boost::bind(&TU::Index,   pobj));
-  gets.Add<std::string>     ("name",    boost::bind(&TU::Name,    pobj));
-  gets.Add<bool>            ("enabled", boost::bind(&TU::Enabled, pobj));
+  gets.Add<size_t>          ("index",    boost::bind(&TU::Index,       pobj));
+  gets.Add<std::string>     ("name",     boost::bind(&TU::Name,        pobj));
+  gets.Add<bool>            ("enabled",  boost::bind(&TU::Enabled,     pobj));
+  gets.Add<bool>            ("attached", boost::bind(&TU::IsAttached,  pobj));
+  gets.Add<const std::string&> ("attachurl",boost::bind(&TU::AttachUrl,pobj));
 }
 
 //------------------------------------------+-----------------------------------

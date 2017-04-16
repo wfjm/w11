@@ -1,4 +1,4 @@
-// $Id: Rw11Virt.hpp 868 2017-04-07 20:09:33Z mueller $
+// $Id: Rw11Virt.hpp 875 2017-04-15 21:58:50Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-15   875   1.1.2  add Url() const getter
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2017-04-02   864   1.1    add fWProt,WProt()
 // 2013-03-06   495   1.0    Initial version
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Virt.hpp 868 2017-04-07 20:09:33Z mueller $
+  \version $Id: Rw11Virt.hpp 875 2017-04-15 21:58:50Z mueller $
   \brief   Declaration of class Rw11Virt.
 */
 
@@ -54,6 +55,8 @@ namespace Retro {
       RlogFile&     LogFile() const;
       virtual bool  WProt() const;
 
+      const RparseUrl& Url() const;
+    
       virtual bool  Open(const std::string& url, RerrMsg& emsg) = 0;
 
       const Rstats& Stats() const;

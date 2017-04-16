@@ -1,4 +1,4 @@
-// $Id: Rw11Cntl.cpp 865 2017-04-02 16:45:06Z mueller $
+// $Id: Rw11Cntl.cpp 875 2017-04-15 21:58:50Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-15   874   1.1.2  remove NUnit()
 // 2017-04-02   865   1.1.1  use Dump(detail) for PrimClist
 // 2014-12-30   625   1.1    adopt to Rlink V4 attn logic
 // 2013-03-06   495   1.0    Initial version
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cntl.cpp 865 2017-04-02 16:45:06Z mueller $
+  \version $Id: Rw11Cntl.cpp 875 2017-04-15 21:58:50Z mueller $
   \brief   Implemenation of Rw11Cntl.
 */
 
@@ -93,14 +94,6 @@ void Rw11Cntl::Start()
 {
   fStarted = true;
   return;
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-size_t Rw11Cntl::NUnit() const
-{
-  return 0;                                 // real values from devived classes
 }
 
 //------------------------------------------+-----------------------------------

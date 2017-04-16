@@ -1,4 +1,4 @@
-// $Id: Rw11UnitVirt.hpp 868 2017-04-07 20:09:33Z mueller $
+// $Id: Rw11UnitVirt.hpp 875 2017-04-15 21:58:50Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-15   875   1.0.2  add VirtBase()
 // 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2013-03-03   494   1.0    Initial version
 // 2013-02-22   490   0.1    First draft
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: Rw11UnitVirt.hpp 868 2017-04-07 20:09:33Z mueller $
+  \version $Id: Rw11UnitVirt.hpp 875 2017-04-15 21:58:50Z mueller $
   \brief   Declaration of class Rw11UnitVirt.
 */
 
@@ -43,6 +44,7 @@ namespace Retro {
 
       TV*           Virt() const;
 
+      virtual Rw11Virt*  VirtBase() const;
       virtual bool  Attach(const std::string& url, RerrMsg& emsg);
       virtual void  Detach();
 

@@ -1,4 +1,4 @@
-// $Id: Rw11Unit.cpp 868 2017-04-07 20:09:33Z mueller $
+// $Id: Rw11Unit.cpp 875 2017-04-15 21:58:50Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-15   875   1.1.3  add IsAttached(), AttachUrl()
 // 2017-04-07   868   1.1.2  Dump(): add detail arg
 // 2015-05-13   680   1.1.1  add Enabled()
 // 2013-05-03   515   1.1    use AttachDone(),DetachCleanup(),DetachDone()
@@ -22,13 +23,14 @@
 
 /*!
   \file
-  \version $Id: Rw11Unit.cpp 868 2017-04-07 20:09:33Z mueller $
+  \version $Id: Rw11Unit.cpp 875 2017-04-15 21:58:50Z mueller $
   \brief   Implemenation of Rw11Unit.
 */
 
 #include "librtools/RosFill.hpp"
 
 #include "Rw11Unit.hpp"
+#include "Rw11Virt.hpp"
 
 using namespace std;
 
@@ -62,6 +64,27 @@ Rw11Unit::~Rw11Unit()
 bool Rw11Unit::Enabled() const
 {    
   return true;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+bool Rw11Unit::IsAttached() const
+{
+  return bool(VirtBase());
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+const std::string&  Rw11Unit::AttachUrl() const
+{
+  if (VirtBase()) {
+    return VirtBase()->Url().Url();
+  }
+  
+  static const string strnil;
+  return strnil;
 }
 
 //------------------------------------------+-----------------------------------

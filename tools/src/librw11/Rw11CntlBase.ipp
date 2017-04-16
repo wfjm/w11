@@ -1,4 +1,4 @@
-// $Id: Rw11CntlBase.ipp 865 2017-04-02 16:45:06Z mueller $
+// $Id: Rw11CntlBase.ipp 875 2017-04-15 21:58:50Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-15   874   1.0.2  add UnitBase()
 // 2017-04-02   865   1.0.1  Dump(): add detail arg
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-14   488   0.1    First draft
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlBase.ipp 865 2017-04-02 16:45:06Z mueller $
+  \version $Id: Rw11CntlBase.ipp 875 2017-04-15 21:58:50Z mueller $
   \brief   Implemenation (inline) of Rw11CntlBase.
 */
 
@@ -59,6 +60,15 @@ template <class TU, size_t NU>
 inline size_t Rw11CntlBase<TU,NU>::NUnit() const
 {
   return NU;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+template <class TU, size_t NU>
+inline Rw11Unit& Rw11CntlBase<TU,NU>::UnitBase(size_t index) const
+{
+  return *fspUnit[index];
 }
 
 //------------------------------------------+-----------------------------------

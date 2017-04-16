@@ -1,4 +1,4 @@
-// $Id: Rw11Cntl.hpp 865 2017-04-02 16:45:06Z mueller $
+// $Id: Rw11Cntl.hpp 875 2017-04-15 21:58:50Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-15   874   1.2.2  NUnit() now pure; add UnitBase()
 // 2017-04-02   865   1.2.1  Dump(): add detail arg
 // 2017-02-04   848   1.2    add ProbeFound(),ProbeDataInt,Rem()
 // 2015-05-15   680   1.1.1  add NUnit() as virtual
@@ -24,7 +25,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cntl.hpp 865 2017-04-02 16:45:06Z mueller $
+  \version $Id: Rw11Cntl.hpp 875 2017-04-15 21:58:50Z mueller $
   \brief   Declaration of class Rw11Cntl.
 */
 
@@ -44,6 +45,8 @@
 #include "Rw11Cpu.hpp"
 
 namespace Retro {
+
+  class Rw11Unit;                           // forw decl to avoid circular incl
 
   class Rw11Cntl : public Rbits, private boost::noncopyable {
     public:
@@ -75,7 +78,8 @@ namespace Retro {
       virtual void  Start();
       bool          IsStarted() const;
 
-      virtual size_t NUnit() const;
+      virtual size_t NUnit() const = 0;
+      virtual Rw11Unit& UnitBase(size_t index) const = 0;
       virtual bool  BootCode(size_t unit, std::vector<uint16_t>& code, 
                              uint16_t& aload, uint16_t& astart);
 

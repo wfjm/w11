@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.cpp 868 2017-04-07 20:09:33Z mueller $
+// $Id: Rw11Cpu.cpp 874 2017-04-14 17:53:07Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -38,7 +38,7 @@
 
 /*!
   \file
-  \version $Id: Rw11Cpu.cpp 868 2017-04-07 20:09:33Z mueller $
+  \version $Id: Rw11Cpu.cpp 874 2017-04-14 17:53:07Z mueller $
   \brief   Implemenation of Rw11Cpu.
 */
 #include <stdlib.h>
@@ -977,17 +977,17 @@ void Rw11Cpu::SetupOpt()
     ihb[i] =  clist.AddRreg(Base()+kHBBASE+i*kHBSIZE+kHBCNTL);
     clist.SetLastExpectStatus(0,0); 
   }
-  int iim = AddRibr(clist, kIMBASE+kIMCNTL);
+  int iim = AddRibr(clist, kIMBASE+kIMCNTL);  // ibmon probe rem (no loc resp)
   clist.SetLastExpectStatus(0,0); 
 
   // probe auxilliary cpu components: kw11-l, kw11-p, iist
-  int ikwl= AddRibr(clist, kKWLBASE);
+  int ikwl= AddRibr(clist, kKWLBASE);            // kw11-l probe rem 
   clist.SetLastExpectStatus(0,0); 
 
-  int ikwp= AddRibr(clist, kKWPBASE + kKWPCSR);
+  int ikwp= AddRibr(clist, kKWPBASE + kKWPCSR);  // kw11-p probe rem 
   clist.SetLastExpectStatus(0,0); 
 
-  int iii= AddRibr(clist, kIISTBASE + kIISTACR);
+  int iii= AddRibr(clist, kIISTBASE + kIISTACR); // iist probe rem
   clist.SetLastExpectStatus(0,0); 
 
   Connect().Exec(clist);

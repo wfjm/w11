@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cntl.cpp 865 2017-04-02 16:45:06Z mueller $
+// $Id: RtclRw11Cntl.cpp 877 2017-04-16 10:13:56Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-16   877   1.1.2  add UnitCommands(); add Class()
 // 2017-04-02   865   1.0.2  M_dump: use GetArgsDump and Dump detail
 // 2015-03-27   660   1.0.1  add M_start
 // 2013-03-06   495   1.0    Initial version
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Cntl.cpp 865 2017-04-02 16:45:06Z mueller $
+  \version $Id: RtclRw11Cntl.cpp 877 2017-04-16 10:13:56Z mueller $
   \brief   Implemenation of RtclRw11Cntl.
 */
 
@@ -29,6 +30,7 @@
 #include "boost/bind.hpp"
 
 #include "librtcltools/RtclStats.hpp"
+#include "librtcltools/RtclOPtr.hpp"
 
 #include "RtclRw11Cntl.hpp"
 
@@ -45,8 +47,10 @@ namespace Retro {
 //------------------------------------------+-----------------------------------
 //! Constructor
 
-RtclRw11Cntl::RtclRw11Cntl(const std::string& type)
+RtclRw11Cntl::RtclRw11Cntl(const std::string& type,
+                           const std::string& cclass)
   : RtclProxyBase(type),
+    fClass(cclass),
     fGets(),
     fSets()
 {
@@ -57,6 +61,11 @@ RtclRw11Cntl::RtclRw11Cntl(const std::string& type)
   AddMeth("stats",    boost::bind(&RtclRw11Cntl::M_stats,   this, _1));
   AddMeth("dump",     boost::bind(&RtclRw11Cntl::M_dump,    this, _1));
   AddMeth("$default", boost::bind(&RtclRw11Cntl::M_default, this, _1));
+
+  fGets.Add<Tcl_Obj*>      ("units",  
+                            boost::bind(&RtclRw11Cntl::UnitCommands, this));
+  fGets.Add<const string&> ("class",  
+                            boost::bind(&RtclRw11Cntl::Class, this));
 }
 
 //------------------------------------------+-----------------------------------
@@ -142,6 +151,28 @@ int RtclRw11Cntl::M_default(RtclArgs& args)
   sos << "no default output defined yet...\n";
   args.AppendResultLines(sos);
   return kOK;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+Tcl_Obj* RtclRw11Cntl::UnitCommands()
+{
+  Tcl_Obj* rlist = Tcl_NewListObj(0,nullptr);
+  for (size_t i = 0; i < Obj().NUnit(); i++) {
+    string ucmd = CommandName() + to_string(i);
+    RtclOPtr pele(Tcl_NewStringObj(ucmd.data(), ucmd.length()));
+    Tcl_ListObjAppendElement(nullptr, rlist, pele);
+  }
+  return rlist;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+const std::string& RtclRw11Cntl::Class() const
+{
+  return fClass;
 }
 
 } // end namespace Retro

@@ -1,6 +1,6 @@
-// $Id: RtclRw11Cpu.hpp 661 2015-04-03 18:28:41Z mueller $
+// $Id: RtclRw11Cpu.hpp 876 2017-04-16 08:01:37Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-16   876   1.0.5  add ControllerCommands()
 // 2015-04-03   661   1.0.4  add ClistNonEmpty()
 // 2015-03-21   659   1.0.3  rename M_amap->M_imap; add M_rmap; add GetRAddr()
 // 2014-12-25   621   1.0.2  add M_amap
@@ -24,7 +25,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Cpu.hpp 661 2015-04-03 18:28:41Z mueller $
+  \version $Id: RtclRw11Cpu.hpp 876 2017-04-16 08:01:37Z mueller $
   \brief   Declaration of class RtclRw11Cpu.
 */
 
@@ -82,6 +83,8 @@ namespace Retro {
                                size_t nind, std::vector<std::string>& varname);
       bool          ClistNonEmpty(RtclArgs& args, 
                                   const RlinkCommandList& clist);
+    
+      Tcl_Obj*      ControllerCommands();
 
     protected:
       RtclGetList   fGets;

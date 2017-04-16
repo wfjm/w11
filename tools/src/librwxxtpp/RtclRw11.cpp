@@ -1,4 +1,4 @@
-// $Id: RtclRw11.cpp 868 2017-04-07 20:09:33Z mueller $
+// $Id: RtclRw11.cpp 876 2017-04-16 08:01:37Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-16   876   1.0.4  add CpuCommands()
 // 2017-04-07   868   1.0.3  M_dump: use GetArgsDump and Dump detail
 // 2017-04-02   866   1.0.2  add M_set; handle default disk scheme
 // 2015-03-28   660   1.0.1  add M_get
@@ -23,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11.cpp 868 2017-04-07 20:09:33Z mueller $
+  \version $Id: RtclRw11.cpp 876 2017-04-16 08:01:37Z mueller $
   \brief   Implemenation of class RtclRw11.
  */
 
@@ -76,6 +77,8 @@ RtclRw11::RtclRw11(Tcl_Interp* interp, const char* name)
 
   fSets.Add<const string&>  ("diskscheme",  
                              boost::bind(&Rw11VirtDisk::SetDefaultScheme, _1));
+  fGets.Add<Tcl_Obj*>       ("cpus",  
+                             boost::bind(&RtclRw11::CpuCommands, this));
 }
 
 //------------------------------------------+-----------------------------------
@@ -182,7 +185,7 @@ int RtclRw11::M_default(RtclArgs& args)
   if (!args.AllDone()) return kERR;
   ostringstream sos;
 
-  sos << "cpu type base : cntl   type ibbase  probe  lam boot" << endl;
+  sos << "cpu type base : cntl  type  ibbase  probe  lam boot" << endl;
 
   for (size_t i=0; i<Obj().NCpu(); i++) {
     Rw11Cpu& cpu(Obj().Cpu(i));
@@ -190,10 +193,11 @@ int RtclRw11::M_default(RtclArgs& args)
         << " " << RosPrintf(cpu.Type().c_str(),"-s",4)
         << " " << RosPrintf(cpu.Base(),"x",4)
         << endl;
-    vector<string> list;
-    cpu.ListCntl(list);
-    for (size_t j=0; j<list.size(); j++) {
-      Rw11Cntl& cntl(cpu.Cntl(list[j]));
+    
+    vector<string> cntlnames;
+    cpu.ListCntl(cntlnames);
+    for (auto& cname : cntlnames) {
+      Rw11Cntl& cntl(cpu.Cntl(cname));
       const Rw11Probe& pstat(cntl.ProbeStatus());
       sos << "                 " << RosPrintf(cntl.Name().c_str(),"-s",4)
           << " " << RosPrintf(cntl.Type().c_str(),"-s",5)
@@ -213,5 +217,20 @@ int RtclRw11::M_default(RtclArgs& args)
   args.AppendResultLines(sos);
   return kOK;
 }
+  
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+Tcl_Obj* RtclRw11::CpuCommands()
+{
+  Tcl_Obj* rlist = Tcl_NewListObj(0,nullptr);
+  for (size_t i=0; i<Obj().NCpu(); i++) {
+    string ccmd = string("cpu") + to_string(i);
+    RtclOPtr pele(Tcl_NewStringObj(ccmd.data(), ccmd.length()));
+    Tcl_ListObjAppendElement(nullptr, rlist, pele);
+  }
+  return rlist;
+}
+
 
 } // end namespace Retro

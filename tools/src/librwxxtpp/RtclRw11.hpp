@@ -1,4 +1,4 @@
-// $Id: RtclRw11.hpp 867 2017-04-02 18:16:33Z mueller $
+// $Id: RtclRw11.hpp 876 2017-04-16 08:01:37Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-16   876   1.0.3  add CpuCommands()
 // 2017-04-02   866   1.0.2  add M_set
 // 2015-03-28   660   1.0.1  add M_get
 // 2013-03-06   495   1.0    Initial version
@@ -21,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11.hpp 867 2017-04-02 18:16:33Z mueller $
+  \version $Id: RtclRw11.hpp 876 2017-04-16 08:01:37Z mueller $
   \brief   Declaration of class RtclRw11.
 */
 
@@ -55,6 +56,8 @@ namespace Retro {
       int           M_start(RtclArgs& args);
       int           M_dump(RtclArgs& args);
       int           M_default(RtclArgs& args);
+
+      Tcl_Obj*      CpuCommands();
 
     protected:
       boost::shared_ptr<RlinkServer> fspServ;

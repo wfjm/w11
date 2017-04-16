@@ -1,6 +1,6 @@
-// $Id: RtclRw11Cntl.hpp 660 2015-03-29 22:10:16Z mueller $
+// $Id: RtclRw11Cntl.hpp 878 2017-04-16 12:28:15Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-16   878   1.1.2  add UnitCommands(); add Class(); M_default virtual
 // 2015-03-27   660   1.1.1  add M_start
 // 2015-01-03   627   1.1    M_stats now virtual
 // 2013-03-06   495   1.0    Initial version
@@ -22,7 +23,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Cntl.hpp 660 2015-03-29 22:10:16Z mueller $
+  \version $Id: RtclRw11Cntl.hpp 878 2017-04-16 12:28:15Z mueller $
   \brief   Declaration of class RtclRw11Cntl.
 */
 
@@ -44,7 +45,8 @@ namespace Retro {
   class RtclRw11Cntl : public RtclProxyBase {
     public:
 
-      explicit      RtclRw11Cntl(const std::string& type);
+                    RtclRw11Cntl(const std::string& type,
+                                 const std::string& cclass);
       virtual      ~RtclRw11Cntl();
 
       virtual Rw11Cntl&  Obj() = 0;
@@ -57,9 +59,13 @@ namespace Retro {
       int           M_start(RtclArgs& args);
       virtual int   M_stats(RtclArgs& args);
       int           M_dump(RtclArgs& args);
-      int           M_default(RtclArgs& args);
+      virtual int   M_default(RtclArgs& args);
+
+      Tcl_Obj*      UnitCommands();
+      const std::string&  Class() const;
 
     protected:
+      std::string   fClass;
       RtclGetList   fGets;
       RtclSetList   fSets;
   };

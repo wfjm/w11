@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.cpp 868 2017-04-07 20:09:33Z mueller $
+// $Id: RtclRw11Cpu.cpp 876 2017-04-16 08:01:37Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-15   876   1.2.16 add ControllerCommands()
+// 2017-04-15   875   1.2.15 M_default: add attached units summary
 // 2017-04-07   868   1.2.14 M_dump: use GetArgsDump and Dump detail
 // 2017-02-26   857   1.2.13 use kCPAH_M_UBM22 for cp -wa -ubm
 // 2017-02-19   853   1.2.12 use Rtime
@@ -43,7 +45,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Cpu.cpp 868 2017-04-07 20:09:33Z mueller $
+  \version $Id: RtclRw11Cpu.cpp 876 2017-04-16 08:01:37Z mueller $
   \brief   Implemenation of RtclRw11Cpu.
 */
 
@@ -69,6 +71,8 @@
 #include "librtcltools/RtclOPtr.hpp"
 #include "librtcltools/RtclNameSet.hpp"
 #include "librlink/RlinkCommandList.hpp"
+
+#include "librw11/Rw11Unit.hpp"
 
 #include "RtclRw11.hpp"
 
@@ -112,6 +116,9 @@ RtclRw11Cpu::RtclRw11Cpu(const std::string& type)
   AddMeth("show",     boost::bind(&RtclRw11Cpu::M_show,    this, _1));
   AddMeth("dump",     boost::bind(&RtclRw11Cpu::M_dump,    this, _1));
   AddMeth("$default", boost::bind(&RtclRw11Cpu::M_default, this, _1));
+  
+  fGets.Add<Tcl_Obj*> ("cntls",  
+                       boost::bind(&RtclRw11Cpu::ControllerCommands, this));
 }
 
 //------------------------------------------+-----------------------------------
@@ -1425,8 +1432,8 @@ int RtclRw11Cpu::M_default(RtclArgs& args)
 
   sos << "name type  ibbase lam  probe ena on" << endl;
 
-  for (size_t i=0; i<cntlnames.size(); i++) {
-    Rw11Cntl& cntl(Obj().Cntl(cntlnames[i]));
+  for (auto& cname : cntlnames) {
+    Rw11Cntl& cntl(Obj().Cntl(cname));
     sos << RosPrintf(cntl.Name().c_str(),"-s",4)
         << " " << RosPrintf(cntl.Type().c_str(),"-s",5)
         << " " << RosPrintf(cntl.Base(),"o",6)
@@ -1439,6 +1446,20 @@ int RtclRw11Cpu::M_default(RtclArgs& args)
         << endl;
   }
 
+  sos << endl;
+  sos << "name  attachurl" << endl;
+  
+  for (auto& cname : cntlnames) {
+    Rw11Cntl& cntl(Obj().Cntl(cname));
+    for (size_t j=0; j<cntl.NUnit(); j++) {
+      Rw11Unit& unit(cntl.UnitBase(j));
+      if (unit.IsAttached()) {
+        sos << RosPrintf(unit.Name().c_str(),"-s",5)
+            << " " << unit.AttachUrl() << endl;
+      }
+    }
+  }
+  
   args.AppendResultLines(sos);
   return kOK;
 }
@@ -1569,6 +1590,23 @@ bool RtclRw11Cpu::ClistNonEmpty(RtclArgs& args, const RlinkCommandList& clist)
     return false;
   }
   return true;
+}
+  
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+Tcl_Obj* RtclRw11Cpu::ControllerCommands()
+{
+  vector<string> cntlnames;
+  Obj().ListCntl(cntlnames);
+
+  Tcl_Obj* rlist = Tcl_NewListObj(0,nullptr);
+  for (auto& cname : cntlnames) {
+    string ccmd = CommandName() + cname;
+    RtclOPtr pele(Tcl_NewStringObj(ccmd.data(), ccmd.length()));
+    Tcl_ListObjAppendElement(nullptr, rlist, pele);
+  }
+  return rlist;
 }
 
 } // end namespace Retro

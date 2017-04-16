@@ -1,6 +1,6 @@
-// $Id: RparseUrl.cpp 686 2015-06-04 21:08:08Z mueller $
+// $Id: RparseUrl.cpp 875 2017-04-15 21:58:50Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-15   875   1.1    add Set() with default scheme handling
 // 2015-06-04   686   1.0.2  Set(): add check that optlist is enclosed by '|'
 // 2013-02-23   492   1.0.1  add static FindScheme(); allow no or empty scheme
 // 2013-02-03   481   1.0    Initial version, extracted from RlinkPort
@@ -20,7 +21,7 @@
 
 /*!
   \file
-  \version $Id: RparseUrl.cpp 686 2015-06-04 21:08:08Z mueller $
+  \version $Id: RparseUrl.cpp 875 2017-04-15 21:58:50Z mueller $
   \brief   Implemenation of RparseUrl.
 */
 
@@ -130,6 +131,20 @@ bool RparseUrl::Set(const std::string& url, const std::string& optlist,
   }
 
   return true;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+bool RparseUrl::Set(const std::string& url, const std::string& optlist, 
+                    const std::string& scheme, RerrMsg& emsg)
+{
+  if (FindScheme(url).length() == 0 && scheme.length() > 0) {
+    string url1 = scheme + string(":") + url;
+    return Set(url1, optlist, emsg);
+  }
+  
+  return Set(url, optlist, emsg);
 }
 
 //------------------------------------------+-----------------------------------

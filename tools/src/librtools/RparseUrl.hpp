@@ -1,6 +1,6 @@
-// $Id: RparseUrl.hpp 492 2013-02-24 22:14:47Z mueller $
+// $Id: RparseUrl.hpp 875 2017-04-15 21:58:50Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,13 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-15   875   1.1    add Set() with default scheme handling
 // 2013-02-23   492   1.0.1  add static FindScheme(); allow no or empty scheme
 // 2013-02-03   481   1.0    Initial version, extracted from RlinkPort
 // ---------------------------------------------------------------------------
 
 /*!
   \file
-  \version $Id: RparseUrl.hpp 492 2013-02-24 22:14:47Z mueller $
+  \version $Id: RparseUrl.hpp 875 2017-04-15 21:58:50Z mueller $
   \brief   Declaration of class RparseUrl.
 */
 
@@ -45,6 +46,8 @@ namespace Retro {
 
       bool          Set(const std::string& url, const std::string& optlist,
                         RerrMsg& emsg);
+      bool          Set(const std::string& url, const std::string& optlist,
+                        const std::string& scheme, RerrMsg& emsg);
       void          SetPath(const std::string& path);
 
       void          Clear();

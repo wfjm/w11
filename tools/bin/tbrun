@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: tbrun 808 2016-09-17 13:02:46Z mueller $
+# $Id: tbrun 875 2017-04-15 21:58:50Z mueller $
 #
-# Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2016-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-04-15   875   1.0.1  add --help option
 # 2016-09-17   808   1.0    Initial version
 # 2016-08-09   796   0.1    First draft
 #
@@ -33,7 +34,8 @@ my %opts = ();
 GetOptions(\%opts, "tag=s@", "exclude=s@", "mode=s",
            "jobs=i", "tee=s", "tmax=i", "dry", "trace",
            "nomake", "norun",
-           "rlmon", "rbmon", "bwait=i", "swait=i"
+           "rlmon", "rbmon", "bwait=i", "swait=i",
+           "help"
           )
   or die "bad options";
 
@@ -56,6 +58,7 @@ sub tpre;
 sub print_trace;
 sub run_tests_single;
 sub run_tests_multi;
+sub print_usage;
 
 my @tlist;
 my @olist;
@@ -88,6 +91,11 @@ $gblvars{ise_modes_nossim} = 'bsim,ISim_bsim';        # when ssim not available
 #
 $gblvars{viv_modes} = '[bsor]sim,XSim_[bsorept]sim';
 $gblvars{viv_modes_nossim} = 'bsim,XSim_bsim';        # when ssim not available
+
+if ($opts{help}) {
+  print_usage();
+  exit 0;
+}
 
 autoflush STDOUT 1 if -p STDOUT || -t STDOUT;
 my $ticker_on = -t STDOUT;
@@ -826,5 +834,27 @@ sub run_tests_multi {
     print_jobs();
   }
 
+  return;
+}
+
+# ----------------------------------------------------------------------------
+sub print_usage {
+  print "usage: tbrun [options] [dcsfile]\n";
+  print "  --tag=<tlist>      list of tags to run (def='default')\n";
+  print "  --exclude=<tlist>  tag combinations to exclude\n";
+  print "  --mode=<mlist>     list of modes to run\n";
+  print "  --jobs=<njob>      number of parallel jobs (def=1)\n";
+  print "  --tee=<ofile>      addition logfile for al stdout output\n";
+  print "  --dry              dry run, prints only the generated commands\n";
+  print "  --trace            prints additional information on job control\n";
+  print "  --nomake           don't execute make step of test bench\n";
+  print "  --norun            don't execute run step of test bench\n";
+  print "  --rlmon            enable the rlink monitor\n";
+  print "  --rbmon            enable  the  rbus  monitor\n";
+  print "  --bwait=<dt>       startup wait for behavioral simulations (in ns)\n";
+  print "  --swait=<dt>       startup wait for post-* simulations (in ns)\n";
+  print "  --help             print short help text\n";
+  print "\n";
+  print "  If no [dcsfile] is specified 'tbrun.yml' is used\n";
   return;
 }

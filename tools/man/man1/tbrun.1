@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: tbrun.1 845 2017-01-15 14:58:27Z mueller $
+.\"  $Id: tbrun.1 875 2017-04-15 21:58:50Z mueller $
 .\"
-.\" Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2016-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH TBRUN 1 2016-10-02 "Retro Project" "Retro Project Manual"
+.TH TBRUN 1 2017-04-15 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 tbrun \- test bench driver
@@ -180,7 +180,7 @@ selected test.
 .
 \" -- --trace -----------------------------------
 .IP \fB\-\-trace\fP
-prints additional information on job control
+prints additional information on job control.
 .
 .\" -- --nomake ----------------------------------
 .IP \fB\-\-nomake\fP
@@ -202,7 +202,7 @@ based test benches.
 \" -- --rbmon -----------------------------------
 .IP \fB\-\-rbmon\fP
 enable the rbus monitor, will be forwarded to \fBtbrun_tbwrri\fP(1) 
-based test benches
+based test benches.
 .
 .\" -- --bwait ----------------------------------
 .IP \fB\-\-bwait=\fItwait\fR
@@ -216,6 +216,10 @@ specifies startup wait for post-synthesis and higher simulations.
 \fItwait\fR must be an integer, time unit is 1 ns.  Will be forwarded 
 to \fBtbrun_tbwrri\fP(1) based test benches.
 .
+.
+\" -- --help -------------------------------------
+.IP \fB\-\-help\fP
+print short help text.
 .\" ------------------------------------------------------------------
 .SH EXAMPLES
 .IP "\fBtbrun" 4

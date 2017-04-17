@@ -1,6 +1,6 @@
-# $Id: regmap.tcl 720 2015-12-28 14:52:45Z mueller $
+# $Id: regmap.tcl 858 2017-03-05 17:41:37Z mueller $
 #
-# Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-03-04   858   1.0.1  add ibd_deuna
 # 2015-12-28   720   1.0    Initial version
 # 2015-12-26   719   0.1    First draft
 #
@@ -82,6 +83,7 @@ namespace eval rw11util {
     variable regmap_loaded
     package require rw11
     package require ibd_dl11
+    package require ibd_deuna
     package require ibd_ibmon
     package require ibd_lp11
     package require ibd_pc11

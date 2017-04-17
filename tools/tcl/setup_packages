@@ -1,5 +1,5 @@
 #! /usr/bin/env tclshcpp
-# $Id: setup_packages 741 2016-03-12 23:49:03Z mueller $
+# $Id: setup_packages 847 2017-01-29 22:38:42Z mueller $
 #
 pkg_mkIndex -verbose ../lib \
             librlinktpp.so \
@@ -19,6 +19,7 @@ pkg_mkIndex -verbose rbsysmon *.tcl
 pkg_mkIndex -verbose rw11     *.tcl
 pkg_mkIndex -verbose rw11util *.tcl
 #
+pkg_mkIndex -verbose ibd_deuna *.tcl
 pkg_mkIndex -verbose ibd_dl11  *.tcl
 pkg_mkIndex -verbose ibd_ibmon *.tcl
 pkg_mkIndex -verbose ibd_lp11  *.tcl

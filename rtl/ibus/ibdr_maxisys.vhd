@@ -1,4 +1,4 @@
--- $Id: ibdr_maxisys.vhd 846 2017-01-29 13:01:59Z mueller $
+-- $Id: ibdr_maxisys.vhd 848 2017-02-04 14:55:30Z mueller $
 --
 -- Copyright 2009-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -17,6 +17,7 @@
 --
 -- Dependencies:   ibd_iist
 --                 ibd_kw11l
+--                 ibdr_deuna
 --                 ibdr_rhrp
 --                 ibdr_rl11
 --                 ibdr_rk11
@@ -34,6 +35,7 @@
 --
 -- Synthesized:
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2017-01-29   847 14.7  131013 xc6slx16-2   712 1628   30  599 s  8.5 +DEUNA
 -- 2017-01-28   846 14.7  131013 xc6slx16-2   668 1562   30  577 s  8.5 intmap24
 -- 2017-01-28   683 viv 2016.4   xc7a100t-1   683 1684   48    - -           
 -- 2017-01-28   683 14.7  131013 xc6slx16-2   668 1557   30  576 s  8.5 +TM11
@@ -45,11 +47,12 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2017-01-29   847   1.4.1  add DEUNA; rename generic labels
 -- 2017-01-28   846   1.4    use ib_intmap24
 -- 2015-05-15   683   1.3.1  add TM11
 -- 2015-05-10   678   1.3    start/stop/suspend overhaul
 -- 2015-04-06   664   1.2.3  rename RPRM to RHRP
--- 2015-03-14   658   1.2.2  add RPRM; rearrange intmap (+rhrp,tm11,-kw11-l)
+-- 2015-03-14   658   1.2.2  add RPRM; rearrange intmap (+rhrp,tm11,-kw11-p)
 --                           use sys_conf, make most devices configurable
 -- 2015-01-04   630   1.2.1  RL11 back in
 -- 2014-06-27   565   1.2.1  temporarily hide RL11
@@ -147,7 +150,7 @@ architecture syn of ibdr_maxisys is
      intmap_init                        -- line  0  (must be unused!)
      );
 
-  signal RB_LAM_DENUA  : slbit := '0';
+  signal RB_LAM_DEUNA  : slbit := '0';
   signal RB_LAM_RHRP   : slbit := '0';
   signal RB_LAM_RL11   : slbit := '0';
   signal RB_LAM_RK11   : slbit := '0';
@@ -262,9 +265,23 @@ begin
       EI_ACK  => EI_ACK_KW11L
     );
 
+  DEUNA: if sys_conf_ibd_deuna generate
+  begin
+    XUA : ibdr_deuna
+      port map (
+        CLK     => CLK,
+        BRESET  => BRESET,
+        RB_LAM  => RB_LAM_DEUNA,
+        IB_MREQ => IB_MREQ,
+        IB_SRES => IB_SRES_DEUNA,
+        EI_REQ  => EI_REQ_DEUNA,
+        EI_ACK  => EI_ACK_DEUNA
+      );
+  end generate DEUNA;
+
   RHRP: if sys_conf_ibd_rhrp generate
   begin
-    I0 : ibdr_rhrp
+    RPA : ibdr_rhrp
       port map (
         CLK     => CLK,
         CE_USEC => CE_USEC,
@@ -280,7 +297,7 @@ begin
 
   RL11: if sys_conf_ibd_rl11 generate
   begin
-    I0 : ibdr_rl11
+    RLA : ibdr_rl11
       port map (
         CLK     => CLK,
         CE_MSEC => CE_MSEC,
@@ -295,7 +312,7 @@ begin
 
   RK11: if sys_conf_ibd_rk11 generate
   begin
-    I0 : ibdr_rk11
+    RKA : ibdr_rk11
       port map (
         CLK     => CLK,
         CE_MSEC => CE_MSEC,
@@ -310,7 +327,7 @@ begin
 
   TM11: if sys_conf_ibd_tm11 generate
   begin
-    I0 : ibdr_tm11
+    TMA : ibdr_tm11
       port map (
         CLK     => CLK,
         BRESET  => BRESET,
@@ -339,7 +356,7 @@ begin
   
   DL11_1: if sys_conf_ibd_dl11_1 generate
   begin
-    I0 : ibdr_dl11
+    TTB : ibdr_dl11
       generic map (
         IB_ADDR   => slv(to_unsigned(8#176500#,16)))
       port map (
@@ -359,7 +376,7 @@ begin
 
   PC11: if sys_conf_ibd_pc11 generate
   begin
-    I0 : ibdr_pc11
+    PCA : ibdr_pc11
       port map (
         CLK        => CLK,
         RESET      => RESET,
@@ -376,7 +393,7 @@ begin
 
   LP11: if sys_conf_ibd_lp11 generate
   begin
-    I0 : ibdr_lp11
+    LPA : ibdr_lp11
       port map (
         CLK     => CLK,
         RESET   => RESET,
@@ -491,7 +508,7 @@ begin
 
   RB_LAM(15 downto 11) <= (others=>'0'); 
   RB_LAM(10) <= RB_LAM_PC11;
-  RB_LAM( 9) <= RB_LAM_DENUA;
+  RB_LAM( 9) <= RB_LAM_DEUNA;
   RB_LAM( 8) <= RB_LAM_LP11;
   RB_LAM( 7) <= RB_LAM_TM11;
   RB_LAM( 6) <= RB_LAM_RHRP;

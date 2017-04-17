@@ -1,4 +1,4 @@
--- $Id: sys_conf_sim.vhd 838 2017-01-04 20:57:57Z mueller $
+-- $Id: sys_conf_sim.vhd 847 2017-01-29 22:38:42Z mueller $
 --
 -- Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,9 +16,10 @@
 -- Description:    Definitions for sys_w11a_br_n4d (for simulation)
 --
 -- Dependencies:   -
--- Tool versions:  viv 2016.2; ghdl 0.33
+-- Tool versions:  viv 2016.2-2016.4; ghdl 0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2017-01-29   847   1.0.1  add sys_conf_ibd_deuna
 -- 2017-01-04   644   1.0    Initial version (cloned from _br_n4)
 ------------------------------------------------------------------------------
 
@@ -69,6 +70,7 @@ package sys_conf is
   constant sys_conf_ibd_dl11_1 : boolean := true;  -- 2nd DL11
   constant sys_conf_ibd_pc11   : boolean := true;  -- PC11
   constant sys_conf_ibd_lp11   : boolean := true;  -- LP11
+  constant sys_conf_ibd_deuna  : boolean := true;  -- DEUNA
 
   -- configure mass storage devices
   constant sys_conf_ibd_rk11   : boolean := true;  -- RK11

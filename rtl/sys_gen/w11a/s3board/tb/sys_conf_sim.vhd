@@ -1,6 +1,6 @@
--- $Id: sys_conf_sim.vhd 770 2016-05-28 14:15:00Z mueller $
+-- $Id: sys_conf_sim.vhd 847 2017-01-29 22:38:42Z mueller $
 --
--- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,6 +19,7 @@
 -- Tool versions:  xst 8.1-14.7; ghdl 0.18-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2017-01-29   847   1.3.2  add sys_conf_ibd_deuna
 -- 2016-05-28   770   1.3.1  sys_conf_mem_losize now type natural 
 -- 2016-03-22   750   1.3    add sys_conf_cache_twidth
 -- 2015-06-26   695   1.2.1  add sys_conf_(dmscnt|dmhbpt*|dmcmon*)
@@ -65,6 +66,7 @@ package sys_conf is
   constant sys_conf_ibd_dl11_1 : boolean := true;  -- 2nd DL11
   constant sys_conf_ibd_pc11   : boolean := true;  -- PC11
   constant sys_conf_ibd_lp11   : boolean := true;  -- LP11
+  constant sys_conf_ibd_deuna  : boolean := true;  -- DEUNA
 
   -- configure mass storage devices
   constant sys_conf_ibd_rk11   : boolean := true;  -- RK11

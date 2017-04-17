@@ -1,6 +1,6 @@
--- $Id: ibdlib.vhd 682 2015-05-15 18:35:29Z mueller $
+-- $Id: ibdlib.vhd 847 2017-01-29 22:38:42Z mueller $
 --
--- Copyright 2008-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Definitions for ibus devices
 --
 -- Dependencies:   -
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.4; ghdl 0.18-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2017-01-29   847   1.3.1  add ibdr_deuna
 -- 2015-05-09   676   1.3    start/stop/suspend overhaul
 -- 2015-03-13   658   1.2.1  add rprm declaration (later renaned to rhrp)
 -- 2014-06-08   561   1.2    fix rl11 declaration
@@ -121,6 +122,19 @@ component ibd_kw11l is                  -- ibus dev(loc): KW11-L (line clock)
     RESET : in slbit;                   -- system reset
     BRESET : in slbit;                  -- ibus reset
     CPUSUSP : in slbit;                 -- cpu suspended
+    IB_MREQ : in ib_mreq_type;          -- ibus request
+    IB_SRES : out ib_sres_type;         -- ibus response
+    EI_REQ : out slbit;                 -- interrupt request
+    EI_ACK : in slbit                   -- interrupt acknowledge
+  );
+end component;
+
+component ibdr_deuna is                 -- ibus dev(rem): DEUNA
+                                        -- fixed address: 174510
+  port (
+    CLK : in slbit;                     -- clock
+    BRESET : in slbit;                  -- ibus reset
+    RB_LAM : out slbit;                 -- remote attention
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response
     EI_REQ : out slbit;                 -- interrupt request

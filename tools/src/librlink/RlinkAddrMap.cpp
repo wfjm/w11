@@ -1,4 +1,4 @@
-// $Id: RlinkAddrMap.cpp 868 2017-04-07 20:09:33Z mueller $
+// $Id: RlinkAddrMap.cpp 880 2017-04-17 12:03:52Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -22,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RlinkAddrMap.cpp 868 2017-04-07 20:09:33Z mueller $
+  \version $Id: RlinkAddrMap.cpp 880 2017-04-17 12:03:52Z mueller $
   \brief   Implemenation of class RlinkAddrMap.
  */
 
@@ -187,7 +187,7 @@ void RlinkAddrMap::Dump(std::ostream& os, int ind, const char* text,
   RosFill bl(ind);
   os << bl << (text?text:"--") << "RlinkAddrMap @ " << this << endl;
   if (detail < 0) {
-    os << bl << "  fAddrMap.size(): " << fAddrMap.size() << endl;
+    os << bl << "  fAddrMap.size:   " << fAddrMap.size() << endl;
   } else {
     Print(os,ind+2);
   }

@@ -1,4 +1,4 @@
-// $Id: ReventLoop.cpp 868 2017-04-07 20:09:33Z mueller $
+// $Id: ReventLoop.cpp 880 2017-04-17 12:03:52Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -24,7 +24,7 @@
 
 /*!
   \file
-  \version $Id: ReventLoop.cpp 868 2017-04-07 20:09:33Z mueller $
+  \version $Id: ReventLoop.cpp 880 2017-04-17 12:03:52Z mueller $
   \brief   Implemenation of class ReventLoop.
 */
 
@@ -194,9 +194,9 @@ void ReventLoop::Dump(std::ostream& os, int ind, const char* text,
   os << bl << "  fUpdatePoll:     " << fUpdatePoll << endl;
   {
     boost::lock_guard<boost::mutex> lock(((ReventLoop*)this)->fPollDscMutex);
-    os << bl << "  fPollDsc.size    " << fPollDsc.size() << endl;
-    os << bl << "  fPollFd.size     " << fPollFd.size()  << endl;
-    os << bl << "  fPollHdl.size    " << fPollHdl.size() << endl;
+    os << bl << "  fPollDsc.size:   " << fPollDsc.size() << endl;
+    os << bl << "  fPollFd.size:    " << fPollFd.size()  << endl;
+    os << bl << "  fPollHdl.size:   " << fPollHdl.size() << endl;
     for (size_t i=0; i<fPollDsc.size(); i++) {
       os << bl << "    [" << RosPrintf(i,"d",3) << "]:"
          << " fd:" << RosPrintf(fPollDsc[i].fFd,"d",3)

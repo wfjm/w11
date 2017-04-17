@@ -1,4 +1,4 @@
-// $Id: RlinkPacketBuf.cpp 868 2017-04-07 20:09:33Z mueller $
+// $Id: RlinkPacketBuf.cpp 880 2017-04-17 12:03:52Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -25,7 +25,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPacketBuf.cpp 868 2017-04-07 20:09:33Z mueller $
+  \version $Id: RlinkPacketBuf.cpp 880 2017-04-17 12:03:52Z mueller $
   \brief   Implemenation of class RlinkPacketBuf.
  */
 
@@ -100,7 +100,7 @@ void RlinkPacketBuf::Dump(std::ostream& os, int ind, const char* text,
   os << bl << "  fFlags:        " << RosPrintBvi(fFlags, 0) << endl;
   fStats.Dump(os, ind+2, "fStats: ", detail-1);
 
-  os << bl << "  fPktBuf(size): " << RosPrintf(fPktBuf.size(),"d",4);
+  os << bl << "  fPktBuf.size:  " << RosPrintf(fPktBuf.size(),"d",4);
   size_t ncol  = max(1, (80-ind-4-6)/(2+1));
   for (size_t i=0; i< fPktBuf.size(); i++) {
     if (i%ncol == 0) os << "\n" << bl << "    " << RosPrintf(i,"d",4) << ": ";

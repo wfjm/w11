@@ -1,4 +1,4 @@
-// $Id: Rw11RdmaDisk.cpp 865 2017-04-02 16:45:06Z mueller $
+// $Id: Rw11RdmaDisk.cpp 880 2017-04-17 12:03:52Z mueller $
 //
 // Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,7 @@
 
 /*!
   \file
-  \version $Id: Rw11RdmaDisk.cpp 865 2017-04-02 16:45:06Z mueller $
+  \version $Id: Rw11RdmaDisk.cpp 880 2017-04-17 12:03:52Z mueller $
   \brief   Implemenation of Rw11RdmaDisk.
 */
 
@@ -133,7 +133,7 @@ void Rw11RdmaDisk::Dump(std::ostream& os, int ind, const char* text,
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11RdmaDisk @ " << this << endl;
-  os << bl << "  fBuf.size()      " << RosPrintf(fBuf.size(),"d",5) << endl;
+  os << bl << "  fBuf.size:       " << RosPrintf(fBuf.size(),"d",5) << endl;
   os << bl << "  fpUnit:          " << fpUnit << endl;
   os << bl << "  fNWord:          " << RosPrintf(fNWord,"d",5) << endl;
   os << bl << "  fNBlock:         " << RosPrintf(fNBlock,"d",5) << endl;

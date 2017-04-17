@@ -1,4 +1,4 @@
-// $Id: RlinkPacketBufRcv.cpp 868 2017-04-07 20:09:33Z mueller $
+// $Id: RlinkPacketBufRcv.cpp 880 2017-04-17 12:03:52Z mueller $
 //
 // Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -22,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: RlinkPacketBufRcv.cpp 868 2017-04-07 20:09:33Z mueller $
+  \version $Id: RlinkPacketBufRcv.cpp 880 2017-04-17 12:03:52Z mueller $
   \brief   Implemenation of class RlinkPacketBuf.
  */
 
@@ -199,7 +199,7 @@ void RlinkPacketBufRcv::Dump(std::ostream& os, int ind, const char* text,
   os << bl << "  fEscSeen:      " << RosPrintf(fEscSeen) << endl;
   os << bl << "  fNakIndex:     " << RosPrintf(fNakIndex,"d",4) << endl;
 
-  os << bl << "  fDropData(size): " << RosPrintf(fDropData.size(),"d",4);
+  os << bl << "  fDropData.size:" << RosPrintf(fDropData.size(),"d",4);
   size_t ncol  = max(1, (80-ind-4-6)/(2+1));
   for (size_t i=0; i<fDropData.size(); i++) {
     if (i%ncol == 0) os << "\n" << bl << "    " << RosPrintf(i,"d",4) << ": ";

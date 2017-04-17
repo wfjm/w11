@@ -17,6 +17,24 @@ software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
 ### Summary
+- factor out controller class specifics; add useful M_default output
+  - RtclRw11Cntl*Base: add classes with Rdma,Disk,Stream.Tape,Term specifics
+  - RtclRw11Cntl*: add class in ctor; derive from RtclRw11Cntl*Base
+- make list cpus,cntls,units command gettable; make controller class gettable
+  - RtclRw11: add CpuCommands() and cpus getter
+  - RtclRw11Cntl: add UnitCommands() and uints and class getter
+  - RtclRw11Cpu: add ControllerCommands() and cntls getter
+  - RtclGet: add Tcl_Obj* getter
+- make attach status and attach url gettable for units
+  - Rw11Cntl,Rw11CntlBase: NUnit() now pure; add UnitBase()
+  - Rw11Unit: add IsAttached(), AttachUrl()
+  - Rw11UnitVirt: add VirtBase()
+  - Rw11Virt: add Url() const getter
+  - RtclRw11UnitBase: add attached,attachutl getters
+- ensure that defaulted scheme visible in displayed open urls
+  - pass default scheme to RparseUrl in Open()
+  - add Open() overloads for Rw11VirtDiskFile and Rw11VirtDiskOver
+  -  RparseUrl: add Set() with default scheme handling
 - revise interface for ibd_ibmon and rbd_rbmon
   - use start,stop,suspend,resume functions; improved stop on wrap handling
   - add 'repeat collapse' logic (store only first and last of a sequence)

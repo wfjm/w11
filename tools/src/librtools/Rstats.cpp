@@ -1,4 +1,4 @@
-// $Id: Rstats.cpp 865 2017-04-02 16:45:06Z mueller $
+// $Id: Rstats.cpp 880 2017-04-17 12:03:52Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -22,7 +22,7 @@
 
 /*!
   \file
-  \version $Id: Rstats.cpp 865 2017-04-02 16:45:06Z mueller $
+  \version $Id: Rstats.cpp 880 2017-04-17 12:03:52Z mueller $
   \brief   Implemenation of Rstats .
 */
 
@@ -190,7 +190,7 @@ void Rstats::Dump(std::ostream& os, int ind, const char* text,
          << "  '" << fText[i] << "'" << endl;
     }
   }  else {
-    os << bl << "  fValue.size():      "
+    os << bl << "  fValue.size:        "
        << RosPrintf(fValue.size(),"d",2) << endl;
   }
 

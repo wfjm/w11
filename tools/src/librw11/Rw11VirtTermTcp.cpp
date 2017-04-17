@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTermTcp.cpp 875 2017-04-15 21:58:50Z mueller $
+// $Id: Rw11VirtTermTcp.cpp 880 2017-04-17 12:03:52Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -25,7 +25,7 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtTermTcp.cpp 875 2017-04-15 21:58:50Z mueller $
+  \version $Id: Rw11VirtTermTcp.cpp 880 2017-04-17 12:03:52Z mueller $
   \brief   Implemenation of Rw11VirtTermTcp.
 */
 
@@ -253,9 +253,9 @@ void Rw11VirtTermTcp::Dump(std::ostream& os, int ind, const char* text,
   case ts_Subiac: t_state = "ts_Subiac";  break;
   default: t_state = "???";
   }
-  os << bl << "  fState:          " << t_state    << endl;
-  os << bl << "  fTcpTrace:       " << fTcpTrace  << endl;
-  os << bl << "  fSndPreConQue.size" << fSndPreConQue.size()  << endl;
+  os << bl << "  fState:            " << t_state    << endl;
+  os << bl << "  fTcpTrace:         " << fTcpTrace  << endl;
+  os << bl << "  fSndPreConQue.size:" << fSndPreConQue.size()  << endl;
   Rw11VirtTerm::Dump(os, ind, " ^", detail);
   return;
 }

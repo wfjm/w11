@@ -1,4 +1,4 @@
-// $Id: Rw11CntlTM11.cpp 865 2017-04-02 16:45:06Z mueller $
+// $Id: Rw11CntlTM11.cpp 880 2017-04-17 12:03:52Z mueller $
 //
 // Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -25,7 +25,7 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlTM11.cpp 865 2017-04-02 16:45:06Z mueller $
+  \version $Id: Rw11CntlTM11.cpp 880 2017-04-17 12:03:52Z mueller $
   \brief   Implemenation of Rw11CntlTM11.
 */
 
@@ -293,7 +293,7 @@ void Rw11CntlTM11::Dump(std::ostream& os, int ind, const char* text,
   os << bl << "  fRd_nwrd:        " << RosPrintf(fRd_nwrd,"d",6) << endl;
   os << bl << "  fRd_fu:          " << fRd_fu  << endl;
   os << bl << "  fRd_opcode:      " << fRd_opcode  << endl;
-  os << bl << "  fBuf.size()      " << RosPrintf(fBuf.size(),"d",6) << endl;
+  os << bl << "  fBuf.size:       " << RosPrintf(fBuf.size(),"d",6) << endl;
   fRdma.Dump(os, ind+2, "fRdma: ", detail);
   Rw11CntlBase<Rw11UnitTM11,4>::Dump(os, ind, " ^", detail);
   return;

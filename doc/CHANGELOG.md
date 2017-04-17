@@ -17,6 +17,22 @@ software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
 ### Summary
+- add DEUNA (ethernet) support
+  - add DEUNA device (xu) for ibus
+  - add DEUNA to all sys_w11a systems
+    - add ibdr_deuna to maxisys
+    - setup sys_conf for all systems
+  - backend support classes for networking
+    - RethBuf: ethernet buffer
+    - RethTools: some handy tools
+    - Rw11VirtEth: new virt base for ethernet
+    - Rw11VirtEthTap: concrete networking via tap devices
+  - backend for DEUNA
+    - Rw11CntlDEUNA: controller and almost all logic
+    - Rw11UnitDEUNA: unit
+  - tcl support for DEUNA
+  - tbench support for DEUNA
+  - some new preinit and preboot hooks
 - factor out controller class specifics; add useful M_default output
   - RtclRw11Cntl*Base: add classes with Rdma,Disk,Stream.Tape,Term specifics
   - RtclRw11Cntl*: add class in ctor; derive from RtclRw11Cntl*Base

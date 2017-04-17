@@ -1,7 +1,8 @@
-# $Id: dev_all.dat 687 2015-06-05 09:03:34Z mueller $
+# $Id: dev_all.dat 848 2017-02-04 14:55:30Z mueller $
 #
 ## steering file for all devices tests
 #
 @rhrp/rhrp_all.dat
 @tm11/tm11_all.dat
+@deuna/deuna_all.dat
 #

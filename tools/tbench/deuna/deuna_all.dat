@@ -1,0 +1,7 @@
+# $Id: deuna_all.dat 848 2017-02-04 14:55:30Z mueller $
+#
+## steering file for all deuna tests
+#
+test_deuna_regs.tcl
+test_deuna_func.tcl
+test_deuna_int.tcl

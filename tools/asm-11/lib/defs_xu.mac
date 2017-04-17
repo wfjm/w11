@@ -1,0 +1,32 @@
+; $Id: defs_xu.mac 848 2017-02-04 14:55:30Z mueller $
+; Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; License disclaimer see License.txt in $RETROBASE directory
+;
+; definitions for DEUNA controler
+; 
+; register addresses
+; 
+        xu.pr0=174510
+        xu.pr1=174512
+        xu.pr2=174514
+        xu.pr3=174516
+;
+; symbol definitions for xu.pr0
+;
+        xu.ser=100000
+        xu.pce=040000
+        xu.rxi=020000
+        xu.txi=010000
+        xu.dni=004000
+        xu.rcb=002000
+        xu.usc=000400
+        xu.ir =000200
+        xu.ie =000100
+        xu.rst=000040
+;
+; symbol definitions for xu.pr1
+;
+        xu.xpw=100000
+        xu.ica=040000
+        xu.pct=000200
+        xu.deu=000020

@@ -1,6 +1,6 @@
-# $Id: util.tcl 722 2015-12-30 19:45:46Z mueller $
+# $Id: util.tcl 849 2017-02-05 22:30:03Z mueller $
 #
-# Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-02-04   848   1.3.7  add DEUNA; setup_cntl: handle not found devices
 # 2015-12-30   721   1.3.6  BUGFIX: setup_ostr: adopt to use args2opts
 # 2015-07-25   704   1.3.5  use args2opts
 # 2015-05-17   683   1.3.4  setup_sys: add TM11
@@ -73,6 +74,7 @@ namespace eval rw11 {
     cpu0 add rl11
     cpu0 add rhrp
     cpu0 add tm11
+    cpu0 add deuna
     cpu0 add lp11
     cpu0 add pc11
     rlw start
@@ -199,10 +201,13 @@ namespace eval rw11 {
     if {[info commands $ccmd] eq ""} { # create controller, if needed
       $cpu add $ctype
     }
+#    if {![$ccmd get found]} {   # quit if not found
+#      return 0
+#    }
     if {![$ccmd get started]} { # start it, if needed
       $ccmd start
     }
-    return ""
+    return 1
   }
 
   #

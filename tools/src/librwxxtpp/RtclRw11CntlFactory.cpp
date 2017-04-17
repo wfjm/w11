@@ -1,6 +1,6 @@
-// $Id: RtclRw11CntlFactory.cpp 683 2015-05-17 21:54:35Z mueller $
+// $Id: RtclRw11CntlFactory.cpp 847 2017-01-29 22:38:42Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-01-29   847   1.1.4  add DEUNA
 // 2015-03-21   659   1.1.3  add RPRM (later renamed to RHRP)
 // 2015-01-04   630   1.1.2  RL11 back in
 // 2014-06-27   565   1.1.1  temporarily hide RL11
@@ -24,7 +25,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11CntlFactory.cpp 683 2015-05-17 21:54:35Z mueller $
+  \version $Id: RtclRw11CntlFactory.cpp 847 2017-01-29 22:38:42Z mueller $
   \brief   Implemenation of global function RtclRw11CntlFactory.
 */
 
@@ -37,6 +38,7 @@
 #include "RtclRw11CntlRL11.hpp"
 #include "RtclRw11CntlRHRP.hpp"
 #include "RtclRw11CntlTM11.hpp"
+#include "RtclRw11CntlDEUNA.hpp"
 #include "RtclRw11CntlLP11.hpp"
 #include "RtclRw11CntlPC11.hpp"
 
@@ -76,6 +78,11 @@ int RtclRw11CntlFactory(RtclArgs& args, RtclRw11Cpu& cpu)
     
   } else if (type == "tm11") {              // tm11 --------------------------
     unique_ptr<RtclRw11CntlTM11> pobj(new RtclRw11CntlTM11());
+    if(pobj->FactoryCmdConfig(args, cpu) != TCL_OK) return TCL_ERROR;
+    pobj.release();
+    
+  } else if (type == "deuna") {             // deuna -------------------------
+    unique_ptr<RtclRw11CntlDEUNA> pobj(new RtclRw11CntlDEUNA());
     if(pobj->FactoryCmdConfig(args, cpu) != TCL_OK) return TCL_ERROR;
     pobj.release();
     

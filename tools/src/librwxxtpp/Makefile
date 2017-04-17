@@ -40,6 +40,7 @@ OBJ_all   +=   RtclRw11CntlRK11.o RtclRw11UnitRK11.o
 OBJ_all   +=   RtclRw11CntlRL11.o RtclRw11UnitRL11.o
 OBJ_all   +=   RtclRw11CntlRHRP.o RtclRw11UnitRHRP.o
 OBJ_all   +=   RtclRw11CntlTM11.o RtclRw11UnitTM11.o
+OBJ_all   +=   RtclRw11CntlDEUNA.o RtclRw11UnitDEUNA.o
 OBJ_all   +=   RtclRw11Virt.o
 OBJ_all   +=   RtclRw11VirtFactory.o 
 OBJ_all   +=   RtclRw11VirtDiskOver.o

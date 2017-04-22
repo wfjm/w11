@@ -1,6 +1,6 @@
-# $Id: util.tcl 643 2015-02-07 17:41:53Z mueller $
+# $Id: util.tcl 883 2017-04-22 11:57:38Z mueller $
 #
-# Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-04-22   883   1.1.1  setup: now idempotent
 # 2015-02-07   642   1.1    add print()
 # 2011-04-17   376   1.0.1  add proc read
 # 2011-04-02   375   1.0    Initial version
@@ -34,6 +35,7 @@ namespace eval rbemon {
   # setup: amap definitions for rbd_eyemon
   # 
   proc setup {{base 0xffd0}} {
+    if {[rlc amap -testname em.cntl $base]} {return ""}
     rlc amap -insert em.cntl [expr {$base + 0x00}]
     rlc amap -insert em.rdiv [expr {$base + 0x01}]
     rlc amap -insert em.addr [expr {$base + 0x02}]

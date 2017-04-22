@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.cpp 876 2017-04-16 08:01:37Z mueller $
+// $Id: RtclRw11Cpu.cpp 883 2017-04-22 11:57:38Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-22   883   1.2.17 M_(imap|rmap): -testname optional addr check
 // 2017-04-15   876   1.2.16 add ControllerCommands()
 // 2017-04-15   875   1.2.15 M_default: add attached units summary
 // 2017-04-07   868   1.2.14 M_dump: use GetArgsDump and Dump detail
@@ -45,7 +46,7 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Cpu.cpp 876 2017-04-16 08:01:37Z mueller $
+  \version $Id: RtclRw11Cpu.cpp 883 2017-04-22 11:57:38Z mueller $
   \brief   Implemenation of RtclRw11Cpu.
 */
 
@@ -160,11 +161,16 @@ int RtclRw11Cpu::M_imap(RtclArgs& args)
                          "' not mapped");
       }
 
-    } else if (opt == "-testname") {        // imap -testname name
+    } else if (opt == "-testname") {        // imap -testname name ?addr
       if (!args.GetArg("name", name)) return kERR;
+      if (!args.GetArg("?addr", addr)) return kERR;
       if (!args.AllDone()) return kERR;
       uint16_t tstaddr;
-      args.SetResult(int(addrmap.Find(name, tstaddr)));
+      bool found = addrmap.Find(name, tstaddr);
+      if (found && args.NOptMiss()==0) {      // if specified addr
+        if (tstaddr != addr) found = false;   // verify addr
+      }
+      args.SetResult(int(found));
 
     } else if (opt == "-testaddr") {        // imap -testaddr addr
       if (!args.GetArg("addr", addr)) return kERR;
@@ -258,11 +264,16 @@ int RtclRw11Cpu::M_rmap(RtclArgs& args)
                          "' not mapped");
       }
 
-    } else if (opt == "-testname") {        // rmap -testname name
+    } else if (opt == "-testname") {        // rmap -testname name ?addr
       if (!args.GetArg("name", name)) return kERR;
+      if (!args.GetArg("?addr", addr)) return kERR;
       if (!args.AllDone()) return kERR;
       uint16_t tstaddr;
-      args.SetResult(int(lmap.Find(name, tstaddr)));
+      bool found = lmap.Find(name, tstaddr);
+      if (found && args.NOptMiss()==0) {      // if specified addr
+        if (tstaddr != addr) found = false;   // verify addr
+      }
+      args.SetResult(int(found));
 
     } else if (opt == "-testaddr") {        // rmap -testaddr addr
       if (!args.GetArg("addr", addr)) return kERR;

@@ -1,6 +1,6 @@
-# $Id: util.tcl 758 2016-04-02 18:01:39Z mueller $
+# $Id: util.tcl 883 2017-04-22 11:57:38Z mueller $
 #
-# Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-04-22   883   2.1.1  add amap_reg2addr
 # 2016-04-02   758   2.1    add USR_ACCESS register support (RLUA0/RLUA1)
 # 2014-12-21   617   2.0.1  add rbtout definition in STAT
 # 2014-12-07   609   2.0    use new rlink v4 iface; remove SINIT again
@@ -127,5 +128,17 @@ namespace eval rlink {
     return $rval
   }
 
+  #
+  # amap_reg2addr: convert register to address -------------------------------
+  # 
+  proc amap_reg2addr {reg} {
+    if {[rlc amap -testname $reg]} {
+      return [rlc amap $reg]
+    } elseif {[string is integer $reg]} {
+      return $reg
+    } else {
+      error "amap_reg2addr-E: unknown register '$reg'"
+    }
+  }
 
 }

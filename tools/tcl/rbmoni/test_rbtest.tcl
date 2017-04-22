@@ -1,4 +1,4 @@
-# $Id: test_rbtest.tcl 872 2017-04-09 20:48:05Z mueller $
+# $Id: test_rbtest.tcl 873 2017-04-14 11:56:29Z mueller $
 #
 # Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,7 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
-# 2017-04-09   872   3.0    adopt to revised interface
+# 2017-04-14   873   3.0    adopt to revised interface
 # 2015-04-03   661   2.1    drop estatdef; fix test 5 (wrong regs accessed)
 # 2014-12-22   619   2.0    adopt to new rbd_rbmon and rlink v4
 # 2011-03-27   374   1.0    Initial version
@@ -333,10 +333,10 @@ namespace eval rbmoni {
 
     #
     #-------------------------------------------------------------------------
-    rlc log "  test 6: test repeat collapse read with wreg,rreg "
+    rlc log "  test 6: test repeat collapse read with wreg,rreg"
     #-----------------------------------------------------------------
     rlc log "  test 6a: dry run, no collapse active"
-    set vteinit  [regbld rbtest::INIT cntl]
+    set vteinit  [regbld rbtest::INIT cntl data fifo]
     # build expect list: list of {eflag eaddr edata enbusy} sublists
     raw_edata edat emsk \
       [list [regbld rbmoni::FLAGS       nak init] $atecntl $vteinit  0] \
@@ -451,12 +451,72 @@ namespace eval rbmoni {
     if {$print} {puts [print]}
     raw_check $edat $emsk
 
+    #-----------------------------------------------------------------
+    rlc log "  test 6e: verify non-collapse of alternating write-read same addr"
+    # build expect list: list of {eflag eaddr edata enbusy} sublists
+    raw_edata edat emsk \
+      [list [regbld rbmoni::FLAGS       nak init] $atecntl $vteinit  0] \
+      [list [regbld rbmoni::FLAGS       ack   we] $atefifo 0x0001    0] \
+      [list [regbld rbmoni::FLAGS       ack     ] $atefifo 0x0001    0] \
+      [list [regbld rbmoni::FLAGS       ack   we] $atefifo 0x0002    0] \
+      [list [regbld rbmoni::FLAGS       ack     ] $atefifo 0x0002    0] \
+      [list [regbld rbmoni::FLAGS       ack   we] $atefifo 0x0003    0] \
+      [list [regbld rbmoni::FLAGS       ack     ] $atefifo 0x0003    0] \
+      [list [regbld rbmoni::FLAGS       ack   we] $atefifo 0x0004    0] \
+      [list [regbld rbmoni::FLAGS       ack     ] $atefifo 0x0004    0] \
+      [list [regbld rbmoni::FLAGS       nak init] $atecntl $vteinit  0]
+    #
+    rbmoni::start rcolw 1 rcolr 1
+    rlc exec \
+      -init te.cntl $vteinit \
+      -wreg te.fifo        0x0001   \
+      -rreg te.fifo -edata 0x0001   \
+      -wreg te.fifo        0x0002   \
+      -rreg te.fifo -edata 0x0002   \
+      -wreg te.fifo        0x0003   \
+      -rreg te.fifo -edata 0x0003   \
+      -wreg te.fifo        0x0004   \
+      -rreg te.fifo -edata 0x0004   \
+      -init te.cntl $vteinit 
+    rbmoni::stop
+    if {$print} {puts [print]}
+    raw_check $edat $emsk
+
+    #-----------------------------------------------------------------
+    rlc log "  test 6f: verify non-collapse of reads to different addr"
+    # build expect list: list of {eflag eaddr edata enbusy} sublists
+    raw_edata edat emsk \
+      [list [regbld rbmoni::FLAGS       nak init] $atecntl $vteinit  0] \
+      [list [regbld rbmoni::FLAGS       ack   we] $atedata 0x1230    0] \
+      [list [regbld rbmoni::FLAGS       ack     ] $atedata 0x1230    0] \
+      [list [regbld rbmoni::FLAGS       ack     ] $atedinc 0x1230    0] \
+      [list [regbld rbmoni::FLAGS       ack     ] $atedata 0x1231    0] \
+      [list [regbld rbmoni::FLAGS       ack     ] $atedinc 0x1231    0] \
+      [list [regbld rbmoni::FLAGS       ack     ] $atedata 0x1232    0] \
+      [list [regbld rbmoni::FLAGS       ack     ] $atedinc 0x1232    0] \
+      [list [regbld rbmoni::FLAGS       nak init] $atecntl $vteinit  0]
+    #
+    rbmoni::start rcolw 1 rcolr 1
+    rlc exec \
+      -init te.cntl $vteinit \
+      -wreg te.data        0x1230   \
+      -rreg te.data -edata 0x1230   \
+      -rreg te.dinc -edata 0x1230   \
+      -rreg te.data -edata 0x1231   \
+      -rreg te.dinc -edata 0x1231   \
+      -rreg te.data -edata 0x1232   \
+      -rreg te.dinc -edata 0x1232   \
+      -init te.cntl $vteinit 
+    rbmoni::stop
+    if {$print} {puts [print]}
+    raw_check $edat $emsk
+
     #
     #-------------------------------------------------------------------------
-    rlc log "  test 7: test repeat collapse read with wblk,rblk "
+    rlc log "  test 7: test repeat collapse read with wblk,rblk"
     #-----------------------------------------------------------------
     rlc log "  test 7a: dry run, no collapse active"
-    set vteinit  [regbld rbtest::INIT cntl]
+    set vteinit  [regbld rbtest::INIT cntl data fifo]
     set vtefifo  {0x1101 0x2202 0x3303 0x4404}
     # build expect list: list of {eflag eaddr edata enbusy} sublists
     raw_edata edat emsk \
@@ -547,6 +607,87 @@ namespace eval rbmoni {
       -wblk te.fifo $vtefifo \
       -rblk te.fifo [llength $vtefifo] -edata $vtefifo \
       -init te.cntl $vteinit 
+    rbmoni::stop
+    if {$print} {puts [print]}
+    raw_check $edat $emsk
+
+    #-------------------------------------------------------------------------
+    rlc log "  test 8: test repeat collapse with lolim,hilim "
+    #-----------------------------------------------------------------
+    # set window to te.ncyc to te.dinc, thus exclude cntl,stat,attn,fifo,lnak
+    rlc exec -wreg rm.lolim $atencyc \
+             -wreg rm.hilim $atedinc
+
+    #-----------------------------------------------------------------
+    rlc log "  test 8a: read collapse interrupted by out-of-window read"
+    raw_edata edat emsk \
+      [list [regbld rbmoni::FLAGS ack we] $atedata 0x2000 0] \
+      [list [regbld rbmoni::FLAGS ack   ] $atedinc 0x2000 0] \
+      [list [regbld rbmoni::FLAGS ack   ] $atedinc 0x2003 0] \
+      [list [regbld rbmoni::FLAGS ack   ] $atedinc 0x2004 0] \
+      [list [regbld rbmoni::FLAGS ack   ] $atedinc 0x2007 0]
+    #
+    rbmoni::start rcolw 1 rcolr 1
+    rlc exec -wreg te.data        0x2000 \
+             -rreg te.dinc -edata 0x2000 \
+             -rreg te.dinc -edata 0x2001 \
+             -rreg te.dinc -edata 0x2002 \
+             -rreg te.dinc -edata 0x2003 \
+             -rreg te.stat  \
+             -rreg te.dinc -edata 0x2004 \
+             -rreg te.dinc -edata 0x2005 \
+             -rreg te.dinc -edata 0x2006 \
+             -rreg te.dinc -edata 0x2007
+    rbmoni::stop
+    if {$print} {puts [print]}
+    raw_check $edat $emsk
+
+    #-----------------------------------------------------------------
+    rlc log "  test 8b: write collapse interrupted by out-of-window write"
+    raw_edata edat emsk \
+      [list [regbld rbmoni::FLAGS ack we] $atedata 0x3000 0] \
+      [list [regbld rbmoni::FLAGS ack we] $atedinc 0x3001 0] \
+      [list [regbld rbmoni::FLAGS ack we] $atedinc 0x3003 0] \
+      [list [regbld rbmoni::FLAGS ack we] $atedinc 0x3004 0] \
+      [list [regbld rbmoni::FLAGS ack we] $atedinc 0x3007 0]
+    #
+    rbmoni::start rcolw 1 rcolr 1
+    rlc exec -wreg te.data 0x3000 \
+             -wreg te.dinc 0x3001 \
+             -wreg te.dinc 0x3002 \
+             -wreg te.dinc 0x3003 \
+             -wreg te.stat 0x0000 \
+             -wreg te.dinc 0x3004 \
+             -wreg te.dinc 0x3005 \
+             -wreg te.dinc 0x3006 \
+             -wreg te.dinc 0x3007
+    rbmoni::stop
+    if {$print} {puts [print]}
+    raw_check $edat $emsk
+    rbmoni::init
+
+    #-----------------------------------------------------------------
+    rlc log "  test 8c: read collapse interrupted by init (which recorded)"
+    set vteinit  [regbld rbtest::INIT data]
+    raw_edata edat emsk \
+      [list [regbld rbmoni::FLAGS ack we         ] $atedata 0x4000 0] \
+      [list [regbld rbmoni::FLAGS ack            ] $atedinc 0x4000 0] \
+      [list [regbld rbmoni::FLAGS ack            ] $atedinc 0x4003 0] \
+      [list [regbld rbmoni::FLAGS        nak init] $atecntl $vteinit  0] \
+      [list [regbld rbmoni::FLAGS ack            ] $atedinc 0x0000 0] \
+      [list [regbld rbmoni::FLAGS ack            ] $atedinc 0x0003 0]
+    #
+    rbmoni::start rcolw 1 rcolr 1
+    rlc exec -wreg te.data        0x4000 \
+             -rreg te.dinc -edata 0x4000 \
+             -rreg te.dinc -edata 0x4001 \
+             -rreg te.dinc -edata 0x4002 \
+             -rreg te.dinc -edata 0x4003 \
+             -init te.cntl        $vteinit \
+             -rreg te.dinc -edata 0x0000 \
+             -rreg te.dinc -edata 0x0001 \
+             -rreg te.dinc -edata 0x0002 \
+             -rreg te.dinc -edata 0x0003
     rbmoni::stop
     if {$print} {puts [print]}
     raw_check $edat $emsk

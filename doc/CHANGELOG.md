@@ -11,12 +11,38 @@
 <!-- --------------------------------------------------------------------- -->
 ---
 ## HEAD <a name="head"></a>
-### Proviso
-_The HEAD version shows the current development. No guarantees that
+### General Proviso
+The HEAD version shows the current development. No guarantees that
 software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
+### Special Provisos
+- DEUNA still with very limited functionality and testing
+  - no buffer chaining
+  - no loopback
+  - no memory access error checking
+  - works with 211bsd, ping and telnet login tested
+- DEUNA and nexys3 shows rlink aborts
+  - unlikely that it's a DEUNA issue
+  - more likely this revealed a hidden flaw in the fx2 based transport
+  - all works fine with nexys4 !
+
 ### Summary
+- integrate rbus monitor in w11 shell
+  - ti_rri: setup rbus monitor if detected
+  - rw11/shell.tcl: add .rme,.rmd,.rmf,.rml
+  - ibd_ibmon/util.tcl: move out imap_reg2addr
+  - rbmoni/util.tcl: add procs filter,rme,rmf
+  - rlink/util.tcl: add amap_reg2addr
+  - rw11/util.tcl: move in imap_reg2addr; add imap_range2addr
+  - rw11/shell.tcl: integrate rbmon: add .rme,.rmd,.rmf,.rml
+- make setup procs idempotent
+  - RlinkConnect: add rbus monitor probe, add HasRbmon()
+  - RtclRlinkConnect: M_amap: -testname opt addr check; add hasrbmon get
+  - RtclRw11Cpu: M_(imap|rmap): -testname optional addr check
+  - */util.tcl: setup: now idempotent
+- w11 shell .bs now support ibus register names and ranges
+  - rw11/dmhbpt.tcl: hb_set: use imap_range2addr, allow regnam and range
 - add DEUNA (ethernet) support
   - add DEUNA device (xu) for ibus
   - add DEUNA to all sys_w11a systems

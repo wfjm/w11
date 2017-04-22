@@ -1,6 +1,6 @@
-# $Id: dmhbpt.tcl 701 2015-07-19 12:58:29Z mueller $
+# $Id: dmhbpt.tcl 883 2017-04-22 11:57:38Z mueller $
 #
-# Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-04-22   833   1.0.1  hb_set: use imap_range2addr, allow regnam and range
 # 2015-07-17   701   1.0    Initial version
 # 2015-07-05   697   0.1    First draft
 #
@@ -32,7 +33,7 @@ namespace eval rw11 {
   #
   # hb_set: set breakpoint
   #
-  proc hb_set {cpu unit type lolim {hilim 0} } {
+  proc hb_set {cpu unit type lo {hi ""} } {
     hb_ucheck $cpu $unit
     if {![regexp {^[ksu]?[rwi]+$} $type]} {
       error "hb_set-E: bad type '$type', only ksu and iwr allowed"
@@ -44,7 +45,10 @@ namespace eval rw11 {
     if {[string match *k* $type]} {set mode 0}
     if {[string match *s* $type]} {set mode 1}
     if {[string match *u* $type]} {set mode 3}
-    if {$hilim < $lolim} {set hilim $lolim}
+
+    set aran [rw11::imap_range2addr $cpu $lo $hi]
+    set lolim [lindex $aran 0]
+    set hilim [lindex $aran 1]
     
     $cpu cp -wreg "hb${unit}.cntl" \
                  [regbld rw11::HB_CNTL [list mode  $mode] \

@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.cpp 868 2017-04-07 20:09:33Z mueller $
+// $Id: RlinkConnect.cpp 883 2017-04-22 11:57:38Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-22   883   2.6.2  add rbus monitor probe, add HasRbmon()
 // 2017-04-07   868   2.6.1  Dump(): add detail arg
 // 2017-02-20   854   2.6    use Rtime, drop TimeOfDayAsDouble
 // 2016-04-02   758   2.5    add USR_ACCESS register support (RLUA0/RLUA1)
@@ -40,7 +41,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.cpp 868 2017-04-07 20:09:33Z mueller $
+  \version $Id: RlinkConnect.cpp 883 2017-04-22 11:57:38Z mueller $
   \brief   Implemenation of RlinkConnect.
 */
 
@@ -78,6 +79,7 @@ const uint16_t RlinkConnect::kRbaddr_RLID1;
 const uint16_t RlinkConnect::kRbaddr_RLID0;
 const uint16_t RlinkConnect::kRbaddr_RLUA1;
 const uint16_t RlinkConnect::kRbaddr_RLUA0;
+const uint16_t RlinkConnect::kRbaddr_RMBASE;
 
 const uint16_t RlinkConnect::kRLCNTL_M_AnEna;
 const uint16_t RlinkConnect::kRLCNTL_M_AtoEna;
@@ -121,7 +123,8 @@ RlinkConnect::RlinkConnect()
     fTsLastAttnNoti(),
     fSysId(0xffffffff),
     fUsrAcc(0x00000000),
-    fRbufSize(2048)
+    fRbufSize(2048),
+    fHasRbmon(false)
 {
   for (size_t i=0; i<8; i++) fSeqNumber[i] = 0;
 
@@ -221,14 +224,17 @@ bool RlinkConnect::LinkInit(RerrMsg& emsg)
   if (fLinkInitDone) return true;
   
   RlinkCommandList clist;
-  clist.AddRreg(kRbaddr_RLSTAT);
-  clist.AddRreg(kRbaddr_RLID1);
-  clist.AddRreg(kRbaddr_RLID0);
+  int ista = clist.AddRreg(kRbaddr_RLSTAT);
+  int iid1 = clist.AddRreg(kRbaddr_RLID1);
+  int iid0 = clist.AddRreg(kRbaddr_RLID0);
 
   // RLUA0/1 are optional registers, available for 7Series and higher
-  clist.AddRreg(kRbaddr_RLUA1);
+  int iua1 = clist.AddRreg(kRbaddr_RLUA1);
   clist.SetLastExpectStatus(0,0);       // disable stat check
-  clist.AddRreg(kRbaddr_RLUA0);
+  int iua0 = clist.AddRreg(kRbaddr_RLUA0);
+  clist.SetLastExpectStatus(0,0);       // disable stat check
+  // probe for rbus monitor
+  int irbm = clist.AddRreg(kRbaddr_RMBASE);
   clist.SetLastExpectStatus(0,0);       // disable stat check
 
   if (!Exec(clist, emsg)) return false;
@@ -241,19 +247,19 @@ bool RlinkConnect::LinkInit(RerrMsg& emsg)
   AddrMapInsert("rl.id1",  kRbaddr_RLID1);
   AddrMapInsert("rl.id0",  kRbaddr_RLID0);
 
-  uint16_t rlstat = clist[0].Data();
-  uint16_t rlid1  = clist[1].Data();
-  uint16_t rlid0  = clist[2].Data();
+  uint16_t rlstat = clist[ista].Data();
+  uint16_t rlid1  = clist[iid1].Data();
+  uint16_t rlid0  = clist[iid0].Data();
 
   fRbufSize = size_t(1) << (10 + (rlstat & kRLSTAT_M_RBSize));
   fSysId    = uint32_t(rlid1)<<16 | uint32_t(rlid0);
 
-  // handle rlink optional registers: USR_ACCESS
+  // handle rlink optional registers: USR_ACCESS and rbus monitor probe
   const uint8_t staterr = RlinkCommand::kStat_M_RbTout |
                           RlinkCommand::kStat_M_RbNak  |
                           RlinkCommand::kStat_M_RbErr;
-  if ((clist[3].Status() & staterr) == 0 &&     // RLUA1 ok
-      (clist[4].Status() & staterr) == 0) {     // RLUA0 ok
+  if ((clist[iua1].Status() & staterr) == 0 &&     // RLUA1 ok
+      (clist[iua0].Status() & staterr) == 0) {     // RLUA0 ok
 
     AddrMapInsert("rl.ua1",  kRbaddr_RLUA1);
     AddrMapInsert("rl.ua0",  kRbaddr_RLUA0);
@@ -261,6 +267,10 @@ bool RlinkConnect::LinkInit(RerrMsg& emsg)
     uint16_t rlua1  = clist[3].Data();
     uint16_t rlua0  = clist[4].Data();
     fUsrAcc   = uint32_t(rlua1)<<16 | uint32_t(rlua0);
+  }
+  
+  if ((clist[irbm].Status() & staterr) == 0) {     // rbus monitor found
+    fHasRbmon = true;                                // just remember 
   }
   
   return true;

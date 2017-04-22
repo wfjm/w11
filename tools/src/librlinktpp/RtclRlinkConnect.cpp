@@ -1,4 +1,4 @@
-// $Id: RtclRlinkConnect.cpp 868 2017-04-07 20:09:33Z mueller $
+// $Id: RtclRlinkConnect.cpp 883 2017-04-22 11:57:38Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-22   883   1.5.2  M_amap: -testname opt addr check; add hasrbmon get 
 // 2017-04-02   865   1.5.1  M_dump: use GetArgsDump and Dump detail
 // 2017-02-20   854   1.5    use Rtime
 // 2016-04-02   758   1.4.6  add USR_ACCESS register support (UsrAcc->usracc)
@@ -42,7 +43,7 @@
 
 /*!
   \file
-  \version $Id: RtclRlinkConnect.cpp 868 2017-04-07 20:09:33Z mueller $
+  \version $Id: RtclRlinkConnect.cpp 883 2017-04-22 11:57:38Z mueller $
   \brief   Implemenation of class RtclRlinkConnect.
  */
 
@@ -136,6 +137,8 @@ RtclRlinkConnect::RtclRlinkConnect(Tcl_Interp* interp, const char* name)
                         boost::bind(&RlinkConnect::BlockSizeMax, pobj));
   fGets.Add<size_t>    ("bsizeprudent", 
                         boost::bind(&RlinkConnect::BlockSizePrudent, pobj));
+  fGets.Add<bool>      ("hasrbmon", 
+                        boost::bind(&RlinkConnect::HasRbmon, pobj));
 
   fSets.Add<uint32_t>  ("baseaddr", 
                         boost::bind(&RlinkConnect::SetLogBaseAddr, pobj, _1));
@@ -467,11 +470,16 @@ int RtclRlinkConnect::M_amap(RtclArgs& args)
                          "' not mapped");
       }
 
-    } else if (opt == "-testname") {        // amap -testname name
+    } else if (opt == "-testname") {        // amap -testname name ?addr
       if (!args.GetArg("name", name)) return kERR;
+      if (!args.GetArg("?addr", addr)) return kERR;
       if (!args.AllDone()) return kERR;
       uint16_t tstaddr;
-      args.SetResult(int(addrmap.Find(name, tstaddr)));
+      bool found = addrmap.Find(name, tstaddr);
+      if (found && args.NOptMiss()==0) {      // if specified addr
+        if (tstaddr != addr) found = false;   // verify addr
+      }
+      args.SetResult(int(found));
 
     } else if (opt == "-testaddr") {        // amap -testaddr addr
       if (!args.GetArg("addr", addr)) return kERR;

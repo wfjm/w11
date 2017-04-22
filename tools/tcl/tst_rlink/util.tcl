@@ -1,6 +1,6 @@
-# $Id: util.tcl 603 2014-11-09 22:50:26Z mueller $
+# $Id: util.tcl 883 2017-04-22 11:57:38Z mueller $
 #
-# Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-04-22   883   2.0.1  setup: now idempotent
 # 2014-11-09   603   2.0    use rlink v4 address layout
 # 2011-04-17   376   1.0.1  add proc scan_baud
 # 2011-04-02   375   1.0    Initial version
@@ -33,14 +34,15 @@ namespace eval tst_rlink {
   # setup: amap definitions for tst_rlink
   # 
   proc setup {} {
-    rlc amap -clear;                    # clear first to allow re-run
     rlink::setup;
     rbtest::setup  0xffe0;
     rbmoni::setup  0xffe8;
     rbemon::setup  0xffd0;
     rbbram::setup  0xfe00;
-    rlc amap -insert timer.1 0xfe11;
-    rlc amap -insert timer.0 0xfe10;
+    if {![rlc amap -testname timer.0]} {
+      rlc amap -insert timer.1 0xfe11;
+      rlc amap -insert timer.0 0xfe10;
+    }
     rbs3hio::setup 0xfef0;
   }
 

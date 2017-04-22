@@ -1,4 +1,4 @@
-# $Id: util.tcl 872 2017-04-09 20:48:05Z mueller $
+# $Id: util.tcl 883 2017-04-22 11:57:38Z mueller $
 #
 # Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,7 +13,8 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
-# 2017-04-09   872   4.0    revised interface, add suspend and repeat collect
+# 2017-04-22   883   4.0.1  setup: now idempotent; add procs filter,rme,rmf
+# 2017-04-13   873   4.0    revised interface, add suspend and repeat collect
 # 2015-04-03   661   3.1    drop estatdef; invert mask in raw_edata
 # 2014-12-23   619   3.0    rbd_rbmon reorganized, supports now 16 bit addresses
 # 2014-11-09   603   2.0    use rlink v4 address layout
@@ -44,9 +45,10 @@ namespace eval rbmoni {
   regdsc FLAGS {bnext 8} {burst 7} {tout 6} {nak 5} {ack 4} \
                {busy 3} {err 2} {we 1} {init 0}
   #
-  # setup: amap definitions for rbd_rbmon
+  # setup: amap definitions for rbd_rbmon ------------------------------------
   # 
   proc setup {{base 0xffe8}} {
+    if {[rlc amap -testname rm.cntl $base]} {return ""}
     rlc amap -insert rm.cntl  [expr {$base + 0x00}]
     rlc amap -insert rm.stat  [expr {$base + 0x01}]
     rlc amap -insert rm.hilim [expr {$base + 0x02}]
@@ -55,7 +57,7 @@ namespace eval rbmoni {
     rlc amap -insert rm.data  [expr {$base + 0x05}]
   }
   #
-  # init: reset rbd_rbmon (stop, reset alim)
+  # init: reset rbd_rbmon (stop, reset alim) ---------------------------------
   # 
   proc init {} {
     rlc exec \
@@ -65,7 +67,15 @@ namespace eval rbmoni {
       -wreg rm.addr 0x0000
   }
   #
-  # start: start the rbmon
+  # start: setup filter window -----------------------------------------------
+  #
+  proc filter {{lolim 0160000} {hilim 0177776}} {
+    rlc exec \
+      -wreg rm.lolim $lolim \
+      -wreg rm.hilim $hilim
+  }
+  #
+  # start: start the rbmon ---------------------------------------------------
   #
   proc start {args} {
     args2opts opts {rcolw 0 rcolr 0 wstop 0} {*}$args
@@ -76,16 +86,33 @@ namespace eval rbmoni {
                             ]
   }
   #
-  # stop: stop the rbmon
+  # stop: stop the rbmon -----------------------------------------------------
   #
   proc stop {} {
     rlc exec -wreg rm.cntl [regbld rbmoni::CNTL {func "STO"}]
   }
   #
-  # read: read nent last entries (by default all)
+  # suspend: suspend the rbmon -----------------------------------------------
+  #   returns 1 if already suspended
+  #   that allows to implement nested suspend/resume properly
+  #
+  proc suspend {} {
+    rlc exec -rreg rm.stat rstat \
+             -wreg rm.cntl [regbld rbmoni::CNTL {func "SUS"}]
+    return [regget rbmoni::STAT(susp) $rstat]
+  }
+  #
+  # resume: resume the rbmon -------------------------------------------------
+  #
+  proc resume {} {
+    rlc exec -wreg rm.cntl [regbld rbmoni::CNTL {func "RES"}]
+  }
+  #
+  # read: read nent last entries (by default all) ----------------------------
   #
   proc read {{nent -1}} {
-    rlc exec -wreg rm.cntl [regbld rbmoni::CNTL {func "SUS"}] \
+    rlc exec -rreg rm.stat rstatpre \
+             -wreg rm.cntl [regbld rbmoni::CNTL {func "SUS"}] \
              -rreg rm.cntl rcntl \
              -rreg rm.addr raddr \
              -rreg rm.stat rstat
@@ -134,9 +161,11 @@ namespace eval rbmoni {
       set nrest [expr {$nrest - ( $nblk >> 2 ) }]
     }
 
-    # resume and restore address
+    # restore address and resume
+    #   resume only if not already suspended before
+    set rfu [expr {[regget rbmoni::STAT(susp) $rstatpre] ? "NOOP" : "RES"}]
     rlc exec -wreg rm.addr $raddr \
-             -wreg rm.cntl [regbld rbmoni::CNTL {func "RES"}]
+             -wreg rm.cntl [regbldkv rbmoni::CNTL func $rfu]
 
     set mbnext [regbld rbmoni::FLAGS bnext]
     set mburst [regbld rbmoni::FLAGS burst]
@@ -152,7 +181,7 @@ namespace eval rbmoni {
     return $rval
   }
   #
-  # print: print rbmon data (optionally also read them)
+  # print: print rbmon data (optionally also read them) -----------------------
   #
   proc print {{mondat -1}} {
 
@@ -229,7 +258,7 @@ namespace eval rbmoni {
   }
 
   #
-  # raw_edata: prepare edata lists for raw data reads in tests
+  # raw_edata: prepare edata lists for raw data reads in tests ---------------
   #   args is list of {eflag eaddr edata enbusy} sublists
 
   proc raw_edata {edat emsk args} {
@@ -264,7 +293,7 @@ namespace eval rbmoni {
   }
 
   #
-  # raw_check: check raw data against expect values prepared by raw_edata
+  # raw_check: check raw data against expect values prepared by raw_edata ----
   #
   proc raw_check {edat emsk} {
 
@@ -274,6 +303,50 @@ namespace eval rbmoni {
       -rblk rm.data [llength $edat] -edata $edat $emsk \
       -rreg rm.addr -edata [llength $edat]
     return ""
+  }
+  #
+  # === high level procs: compact usage (also by rw11:shell) =================
+  #
+  # rme: rbmon enable --------------------------------------------------------
+  # 
+  proc rme {{mode ""}} {
+    if {![regexp {^[nRW]*$} $mode]} {
+      error "rme-E: bad mode '$mode', use \[nRW\]*"
+    }
+    set wstop  [string match *n* $mode]
+    set rcolr  [string match *R* $mode]
+    set rcolw  [string match *W* $mode]
+    
+    rbmoni::start wstop $wstop rcolr $rcolr rcolw $rcolw
+    return ""
+  }
+
+  #
+  # rmf: rbmon filter --------------------------------------------------------
+  # 
+  proc rmf {{lo ""} {hi ""}} {
+    set lolim 0
+    set hilim 0177773
+
+    if {$lo ne ""} {
+      set lolist [split $lo "/"]
+      if {[llength $lolist] > 2} {
+        error "imf-E: bad lo specifier '$lo', use val or val/len"
+      }
+      set lolim [rlink::amap_reg2addr [lindex $lolist 0]]
+      set hilim $lolim
+      if {[llength $lolist] == 2} {
+        set hilim [expr {$lolim + ([lindex $lolist 1]-1)}]
+      }
+    }
+
+    if {$hi ne ""} {
+      set hilim [rlink::amap_reg2addr $hi]
+    }
+
+    if {$lolim > $hilim} {error "rmf-E: hilim must be >= lolim"}
+
+    rbmoni::filter $lolim $hilim
   }
   
 }

@@ -1,6 +1,6 @@
-# $Id: util.tcl 661 2015-04-03 18:28:41Z mueller $
+# $Id: util.tcl 883 2017-04-22 11:57:38Z mueller $
 #
-# Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-04-22   883   2.0.2  setup: now idempotent
 # 2014-12-21   617   2.0.1  use rbtout stat bit for timeout
 # 2014-11-09   603   2.0    use rlink v4 address layout and iface with 8 regs
 # 2011-03-27   374   1.0    Initial version
@@ -35,6 +36,7 @@ namespace eval rbtest {
   # setup: amap definitions for rbd_tester
   # 
   proc setup {{base 0xffe0}} {
+    if {[rlc amap -testname te.cntl $base]} {return ""}
     rlc amap -insert te.cntl [expr {$base + 0x00}]
     rlc amap -insert te.stat [expr {$base + 0x01}]
     rlc amap -insert te.attn [expr {$base + 0x02}]

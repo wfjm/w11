@@ -1,6 +1,6 @@
 #! /usr/bin/env tclshcpp
 # -*- tcl -*-
-# $Id: ti_rri 843 2017-01-08 18:15:27Z mueller $
+# $Id: ti_rri 883 2017-04-22 11:57:38Z mueller $
 #
 # Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -15,6 +15,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-04-22   883   1.4.4  setup rbus monitor if detected
 # 2017-01-08   843   1.4.3  allow --term=USBD for Digilent autodetect
 # 2015-01-09   776   1.2.2  add --tout option to setup rlc timeout before connect
 # 2015-01-09   631   1.2.1  use rlc get/set rather config
@@ -214,7 +215,6 @@ if { $opts(pack_) ne "" } {
   }
 }
 
-
 # setup logging
 if { $opts(log_) ne "-" } {
   rlc set logfile       $opts(log_)
@@ -367,6 +367,14 @@ foreach cmd $clist {
       break
     }
   }
+}
+
+# setup rbus monitor if detected
+# must be done after all command line commands are processed to allow
+# defered initialization and 'rlc init' hacks.
+if {[rlc get hasrbmon]} {
+  package require rbmoni
+  rbmoni::setup
 }
 
 if { $tcl_interactive && $tirri_interactive } {

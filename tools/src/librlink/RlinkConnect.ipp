@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.ipp 871 2017-04-09 15:19:11Z mueller $
+// $Id: RlinkConnect.ipp 883 2017-04-22 11:57:38Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-22   883   2.5.2  add rbus monitor probe, add HasRbmon()
 // 2017-04-09   871   2.5.1  LogFileName(): returns now const std::string&
 // 2017-02-20   854   2.5    use Rtime, drop TimeOfDayAsDouble
 // 2016-04-02   758   2.4    add USR_ACCESS register support (RLUA0/RLUA1)
@@ -30,7 +31,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.ipp 871 2017-04-09 15:19:11Z mueller $
+  \version $Id: RlinkConnect.ipp 883 2017-04-22 11:57:38Z mueller $
   \brief   Implemenation (inline) of RlinkConnect.
 */
 
@@ -134,6 +135,13 @@ inline size_t RlinkConnect::BlockSizeMax() const
 inline size_t RlinkConnect::BlockSizePrudent() const
 {
   return (fRbufSize-kRbufPrudentDelta)/2;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+inline bool RlinkConnect::HasRbmon() const
+{
+  return fHasRbmon;
 }
 
 //------------------------------------------+-----------------------------------

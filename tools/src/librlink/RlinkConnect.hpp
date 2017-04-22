@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.hpp 871 2017-04-09 15:19:11Z mueller $
+// $Id: RlinkConnect.hpp 883 2017-04-22 11:57:38Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-22   883   2.6.3  add rbus monitor probe, add HasRbmon()
 // 2017-04-09   871   2.6.2  LogFileName(): returns now const std::string&
 // 2017-04-07   868   2.6.1  Dump(): add detail arg
 // 2017-02-20   854   2.6    use Rtime, drop TimeOfDayAsDouble
@@ -42,7 +43,7 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.hpp 871 2017-04-09 15:19:11Z mueller $
+  \version $Id: RlinkConnect.hpp 883 2017-04-22 11:57:38Z mueller $
   \brief   Declaration of class \c RlinkConnect.
 */
 
@@ -120,6 +121,7 @@ namespace Retro {
       size_t        RbufSize() const;
       size_t        BlockSizeMax() const;
       size_t        BlockSizePrudent() const;
+      bool          HasRbmon() const;
 
       bool          AddrMapInsert(const std::string& name, uint16_t addr);
       bool          AddrMapErase(const std::string& name);
@@ -169,6 +171,7 @@ namespace Retro {
       static const uint16_t kRbaddr_RLID0  = 0xfffc; //!< rlink core reg RLID0
       static const uint16_t kRbaddr_RLUA1  = 0xfffb; //!< rlink opt. reg RLUA1
       static const uint16_t kRbaddr_RLUA0  = 0xfffa; //!< rlink opt. reg RLUA0
+      static const uint16_t kRbaddr_RMBASE = 0xffe8; //!< rlink opt. rbd_rbmon
 
       static const uint16_t kRLCNTL_M_AnEna = kWBit15;//!< RLCNTL: an  enable
       static const uint16_t kRLCNTL_M_AtoEna= kWBit14;//!< RLCNTL: ato enable
@@ -257,6 +260,7 @@ namespace Retro {
       uint32_t      fSysId;                 //!< SYSID of connected device
       uint32_t      fUsrAcc;                //!< USR_ACCESS of connected device
       size_t        fRbufSize;              //!< Rbuf size (in bytes)
+      bool          fHasRbmon;              //!< has rbd_rbmon (rbus monitor)
   };
   
 } // end namespace Retro

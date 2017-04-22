@@ -1,4 +1,4 @@
-# $Id: util.tcl 872 2017-04-09 20:48:05Z mueller $
+# $Id: util.tcl 883 2017-04-22 11:57:38Z mueller $
 #
 # Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,7 +13,8 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
-# 2017-04-09   872   2.0    revised interface, add suspend and repeat collect
+# 2017-04-22   883   2.0.1  setup: now idempotent; move out imap_reg2addr
+# 2017-04-16   880   2.0    revised interface, add suspend and repeat collect
 # 2017-01-02   837   1.1.1  add procs ime,imf
 # 2016-12-30   833   1.1    add proc filter
 # 2015-12-28   721   1.0.2  add regmap_add defs; add symbolic register dump
@@ -25,6 +26,7 @@ package provide ibd_ibmon 1.0
 
 package require rutil
 package require rlink
+package require rw11
 package require rw11util
 
 namespace eval ibd_ibmon {
@@ -55,6 +57,7 @@ namespace eval ibd_ibmon {
   # setup: amap definitions for ibd_ibmon ------------------------------------
   # 
   proc setup {{cpu "cpu0"} {base 0160000}} {
+    if {[$cpu imap -testname im.cntl $base]} {return ""}
     $cpu imap -insert im.cntl  [expr {$base + 000}]
     $cpu imap -insert im.stat  [expr {$base + 002}]
     $cpu imap -insert im.hilim [expr {$base + 004}]
@@ -75,7 +78,13 @@ namespace eval ibd_ibmon {
   #
   # start: setup filter window -----------------------------------------------
   #
-  proc filter {{cpu "cpu0"} {lolim 0} {hilim 0177776}} {
+  proc filter {{cpu "cpu0"} {lolim 0160000} {hilim 0177776}} {
+    if {$lolim < 0160000 || $hilim < 0160000} {
+      error "filter-E: bad lolim or hilim, must be >= 0160000"
+    }
+    if {$lolim > $hilim} {
+      error "filter-E: bad lolim.hilim, must be lolim <= hilim"
+    }
     $cpu cp -wibr im.lolim $lolim \
             -wibr im.hilim $hilim
   }
@@ -100,11 +109,28 @@ namespace eval ibd_ibmon {
     $cpu cp -wibr im.cntl [regbld ibd_ibmon::CNTL {func "STO"}]
   }
   #
+  # suspend: suspend the ibmon -----------------------------------------------
+  #   returns 1 if already suspended
+  #   that allows to implement nested suspend/resume properly
+  #
+  proc suspend {{cpu "cpu0"}} {
+     $cpu cp -ribr im.stat rstat \
+             -wibr im.cntl [regbld ibd_ibmon::CNTL {func "SUS"}]
+    return [regget ibd_ibmon::STAT(susp) $rstat]
+  }
+  #
+  # resume: resume the ibmon -------------------------------------------------
+  #
+  proc resume {{cpu "cpu0"}} {
+    $cpu cp -wibr im.cntl [regbld ibd_ibmon::CNTL {func "RES"}]
+  }
+  #
   # read: read nent last entries (by default all) ----------------------------
   #
   proc read {{cpu "cpu0"} {nent -1}} {
     # suspend and get address and status
-    $cpu cp -wibr im.cntl [regbld ibd_ibmon::CNTL {func "SUS"}] \
+    $cpu cp -rreg im.stat rstatpre \
+            -wibr im.cntl [regbld ibd_ibmon::CNTL {func "SUS"}] \
             -ribr im.cntl rcntl \
             -ribr im.addr raddr \
             -ribr im.stat rstat
@@ -180,9 +206,11 @@ namespace eval ibd_ibmon {
       set nrest [expr {$nrest - ( $nblk >> 2 ) }]
     }
 
-    # resume and restore address
+    # restore address and resume
+    #   resume only if not already suspended before
+    set rfu [expr {[regget ibd_ibmon::::STAT(susp) $rstatpre] ? "NOOP" : "RES"}]
     $cpu cp -wibr im.addr $raddr \
-            -wibr im.cntl [regbld ibd_ibmon::CNTL {func "RES"}]
+            -wibr im.cntl [regbldkv ibd_ibmon::CNTL func $rfu]
     
     return $rval
   }
@@ -258,7 +286,11 @@ namespace eval ibd_ibmon {
         set ename [$cpu imap -name $eaddr]
         set eam   "l${prw}"
         if {$fracc} { set eam "r${prw}"}
-        set etext [rw11util::regmap_txt $ename $eam $edata]
+        # mask out high/low byte for byte writes for regmap_txt
+        set edatamsk $edata
+        if {$pwe1 eq "0"} {set edatamsk [expr { $edatamsk & 0x00ff } ]}
+        if {$pwe0 eq "0"} {set edatamsk [expr { $edatamsk & 0xff00 } ]}
+        set etext [rw11util::regmap_txt $ename $eam $edatamsk]
       }
 
       set comment ""
@@ -356,40 +388,16 @@ namespace eval ibd_ibmon {
   # imf: ibmon filter --------------------------------------------------------
   # 
   proc imf {{cpu "cpu0"} {lo ""} {hi ""}} {
-    set lolim 0
+    set lolim 0160000
     set hilim 0177776
 
     if {$lo ne ""} {
-      set lolist [split $lo "/"]
-      if {[llength $lolist] > 2} {
-        error "imf-E: bad lo specifier '$lo', use val or val/len"
-      }
-      set lolim [imap_reg2addr $cpu [lindex $lolist 0]]
-      if {[llength $lolist] == 2} {
-        set hilim [expr {$lolim + 2*([lindex $lolist 1]-1)}]
-      }
+      set aran [rw11::imap_range2addr $cpu $lo $hi]
+      set lolim [lindex $aran 0]
+      set hilim [lindex $aran 1]
     }
-
-    if {$hi ne ""} {
-      set hilim [imap_reg2addr $cpu $hi]
-    }
-
-    if {$lolim > $hilim} {error "imf-E: hilim must be >= lolim"}
 
     ibd_ibmon::filter $cpu $lolim $hilim
-  }
-
-  #
-  # imap_reg2addr: convert register to address -------------------------------
-  # 
-  proc imap_reg2addr {cpu reg} {
-    if {[$cpu imap -testname $reg]} {
-      return [$cpu imap $reg]
-    } elseif {[string is integer $reg]} {
-      return $reg
-    } else {
-      error "imap_reg2addr-E: unknown register '$reg'"
-    }
   }
 
 }

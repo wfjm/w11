@@ -1,4 +1,4 @@
-# $Id: test_regs.tcl 872 2017-04-09 20:48:05Z mueller $
+# $Id: test_regs.tcl 873 2017-04-14 11:56:29Z mueller $
 #
 # Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,7 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
-# 2017-04-09   872   3.0    adopt to revised interface
+# 2017-04-13   873   3.0    adopt to revised interface
 # 2015-04-03   661   2.1    drop estatdef (stat err check default now)
 # 2014-12-27   622   2.0    rbd_rbmon reorganized, supports now 16 bit addresses
 # 2011-03-27   374   1.0    Initial version
@@ -80,10 +80,13 @@ namespace eval rbmoni {
       -rreg rm.stat -edata [regbld rbmoni::STAT susp run] \
       -wreg rm.cntl [regbld rbmoni::CNTL {func "STA"}] \
       -rreg rm.stat -edata [regbld rbmoni::STAT run]
+    # test that suspend of a suspended system is a noop
     # test that stop of a suspended system clears suspend
     rlc exec \
       -wreg rm.cntl [regbld rbmoni::CNTL {func "STA"}] \
       -rreg rm.stat -edata [regbld rbmoni::STAT run] \
+      -wreg rm.cntl [regbld rbmoni::CNTL {func "SUS"}] \
+      -rreg rm.stat -edata [regbld rbmoni::STAT susp run] \
       -wreg rm.cntl [regbld rbmoni::CNTL {func "SUS"}] \
       -rreg rm.stat -edata [regbld rbmoni::STAT susp run] \
       -wreg rm.cntl [regbld rbmoni::CNTL {func "STO"}] \

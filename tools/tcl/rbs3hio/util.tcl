@@ -1,6 +1,6 @@
-# $Id: util.tcl 640 2015-02-01 09:56:53Z mueller $
+# $Id: util.tcl 883 2017-04-22 11:57:38Z mueller $
 #
-# Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-04-22   883   1.1.1  setup: now idempotent
 # 2015-01-31   640   1.1    adopt to new register layout
 # 2011-08-14   406   1.0.2  adopt to common register layout
 # 2011-04-17   376   1.0.1  print: show also switch values; add proc disptest
@@ -36,6 +37,7 @@ namespace eval rbs3hio {
   # setup: amap definitions for s3_humanio_rbus
   # 
   proc setup {{base 0xfef0}} {
+    if {[rlc amap -testname hi.stat $base]} {return ""}
     rlc amap -insert hi.stat [expr {$base + 0x00}]
     rlc amap -insert hi.cntl [expr {$base + 0x01}]
     rlc amap -insert hi.btn  [expr {$base + 0x02}]

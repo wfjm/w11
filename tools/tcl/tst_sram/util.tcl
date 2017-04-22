@@ -1,6 +1,6 @@
-# $Id: util.tcl 785 2016-07-10 12:22:41Z mueller $
+# $Id: util.tcl 883 2017-04-22 11:57:38Z mueller $
 #
-# Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-04-22   883   1.2.1  setup: now idempotent
 # 2016-07-09   784   1.2    22bit support: mask sstat(wide); add iswide
 # 2015-04-03   661   1.1    drop estatdef (stat err check default now)
 # 2014-08-14   582   1.0.1  add srun* procs; add nscmd and tout variables
@@ -43,6 +44,7 @@ namespace eval tst_sram {
   # setup: amap definitions for tst_sram core design -------------------------
   # 
   proc setup {{base 0x0000}} {
+    if {[rlc amap -testname sr.mdih $base]} {return ""}
     rlc amap -insert sr.mdih   [expr {$base + 0x00}]
     rlc amap -insert sr.mdil   [expr {$base + 0x01}]
     rlc amap -insert sr.mdoh   [expr {$base + 0x02}]

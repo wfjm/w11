@@ -1,4 +1,4 @@
-# $Id: shell.tcl 872 2017-04-09 20:48:05Z mueller $
+# $Id: shell.tcl 883 2017-04-22 11:57:38Z mueller $
 #
 # Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,8 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-04-22   883   2.2.3  integrate rbmon: add .rme,.rmd,.rmf,.rml
+# 2017-04-16   879   2.2.2  rename .cres->.crst and .cr->.cres (more intuitive)
 # 2017-04-09   872   2.2.1  adopt .ime to new interface
 # 2017-01-02   837   2.2    code re-shuffle; add cpu status in prompt
 # 2016-12-31   834   2.1    add '@' command
@@ -26,6 +28,7 @@ package provide rw11 1.0
 package require rlink
 package require rwxxtpp
 package require ibd_ibmon
+package require rbmoni
 
 namespace eval rw11 {
 
@@ -170,10 +173,10 @@ namespace eval rw11 {
       .c3       {set rval [shell_setcpu $cname]}
 
       .cs       {set rval [shell_cs   {*}$cargs]}
-      .cr       {set rval [shell_cr   {*}$cargs]}
+      .cres     {set rval [shell_cres {*}$cargs]}
       .csus     {set rval [shell_csus {*}$cargs]}
       .csto     {set rval [shell_csto {*}$cargs]}
-      .cres     {set rval [shell_cres {*}$cargs]}
+      .crst     {set rval [shell_crst {*}$cargs]}
       .csta     {set rval [shell_csta {*}$cargs]}
 
       .bs       {set rval [rw11::hb_set      $shell_cpu {*}$cargs]}
@@ -188,6 +191,11 @@ namespace eval rw11 {
       .imd      {set rval [shell_imd  {*}$cargs]}
       .imf      {set rval [shell_imf  {*}$cargs]}
       .iml      {set rval [shell_iml  {*}$cargs]}
+
+      .rme      {set rval [shell_rme  {*}$cargs]}
+      .rmd      {set rval [shell_rmd  {*}$cargs]}
+      .rmf      {set rval [shell_rmf  {*}$cargs]}
+      .rml      {set rval [shell_rml  {*}$cargs]}
 
       .         {set rval [shell_cls {*}$cargs]}
       ?         {set rval [shell_clb {*}$cargs]}
@@ -251,9 +259,9 @@ namespace eval rw11 {
   }
 
   #
-  # shell_cr: cpu resume -----------------------------------------------------
+  # shell_cres: cpu resume ---------------------------------------------------
   # 
-  proc shell_cr {} {
+  proc shell_cres {} {
     variable shell_cpu
     variable shell_cpu_stat
 
@@ -286,9 +294,9 @@ namespace eval rw11 {
   }
 
   #
-  # shell_cres: cpu reset ----------------------------------------------------
+  # shell_crst: cpu reset ----------------------------------------------------
   # 
-  proc shell_cres {} {
+  proc shell_crst {} {
     variable shell_cpu
     $shell_cpu cp -stop
     $shell_cpu cp -creset
@@ -340,7 +348,7 @@ namespace eval rw11 {
     variable shell_cme_pend
     variable shell_cme_mode
 
-    if {![shell_test_device $shell_cpu "cme" "cm.cntl" "dmcmon"]} {return ""}
+    if {![shell_test_cpurmap $shell_cpu "cme" "cm.cntl" "dmcmon"]} {return ""}
 
     rw11::cme $shell_cpu $mode
     set shell_cme_pend 0
@@ -355,7 +363,7 @@ namespace eval rw11 {
     variable shell_cpu
     variable shell_cme_pend
 
-    if {![shell_test_device $shell_cpu "cmd" "cm.cntl" "dmcmon"]} {return ""}
+    if {![shell_test_cpurmap $shell_cpu "cmd" "cm.cntl" "dmcmon"]} {return ""}
 
     set shell_cme_pend 0
     rw11::cm_stop $shell_cpu
@@ -368,7 +376,7 @@ namespace eval rw11 {
   proc shell_cml {{nent -1}} {
     variable shell_cpu
     variable shell_cme_pend
-   if {![shell_test_device $shell_cpu "cml" "cm.cntl" "dmcmon"]} {return ""}
+   if {![shell_test_cpurmap $shell_cpu "cml" "cm.cntl" "dmcmon"]} {return ""}
 
     set shell_cme_pend 1
     return [rw11::cml $shell_cpu $nent]
@@ -379,7 +387,7 @@ namespace eval rw11 {
   # 
   proc shell_ime {{mode "lrc"}} {
     variable shell_cpu
-    if {![shell_test_device $shell_cpu "ime" "im.cntl" "ibmon"]} {return ""}
+    if {![shell_test_cpurmap $shell_cpu "ime" "im.cntl" "ibmon"]} {return ""}
 
     ibd_ibmon::ime $shell_cpu $mode
     return ""
@@ -390,7 +398,7 @@ namespace eval rw11 {
   # 
   proc shell_imd {} {
     variable shell_cpu
-    if {![shell_test_device $shell_cpu "imd" "im.cntl" "ibmon"]} {return ""}
+    if {![shell_test_cpurmap $shell_cpu "imd" "im.cntl" "ibmon"]} {return ""}
 
     ibd_ibmon::stop $shell_cpu
     return ""
@@ -401,7 +409,7 @@ namespace eval rw11 {
   # 
   proc shell_imf {{lo ""} {hi ""}} {
     variable shell_cpu
-    if {![shell_test_device $shell_cpu "imf" "im.cntl" "ibmon"]} {return ""}
+    if {![shell_test_cpurmap $shell_cpu "imf" "im.cntl" "ibmon"]} {return ""}
 
     ibd_ibmon::imf $shell_cpu $lo $hi
     return ""
@@ -412,10 +420,47 @@ namespace eval rw11 {
   # 
   proc shell_iml {{nent -1}} {
     variable shell_cpu
-    if {![shell_test_device $shell_cpu "iml" "im.cntl" "ibmon"]} {return ""}
+    if {![shell_test_cpurmap $shell_cpu "iml" "im.cntl" "ibmon"]} {return ""}
     set mondat [ibd_ibmon::read $shell_cpu $nent]
     if {![llength $mondat]} {return ""}
     return [ibd_ibmon::print $shell_cpu $mondat]
+  }
+
+  #
+  # shell_rme: rbmon enable --------------------------------------------------
+  # 
+  proc shell_rme {{mode ""}} {
+    if {![shell_test_rlcamap "rme" "rm.cntl" "rbmon"]} {return ""}
+   rbmoni::rme $mode
+    return ""
+  }
+
+  #
+  # shell_rmd: rbmon diasable -------------------------------------------------
+  # 
+  proc shell_rmd {} {
+    if {![shell_test_rlcamap "rmd" "rm.cntl" "rbmon"]} {return ""}
+    rbmoni::stop
+    return ""
+  }
+
+  #
+  # shell_rmf: rbmon filter ---------------------------------------------------
+  # 
+  proc shell_rmf {{lo ""} {hi ""}} {
+    if {![shell_test_rlcamap "rmf" "rm.cntl" "rbmon"]} {return ""}
+    rbmoni::rmf $lo $hi
+    return ""
+  }
+
+  #
+  # shell_rml: rbmon list -----------------------------------------------------
+  # 
+  proc shell_rml {{nent -1}} {
+    if {![shell_test_rlcamap "rml" "rm.cntl" "rbmon"]} {return ""}
+    set mondat [rbmoni::read $nent]
+    if {![llength $mondat]} {return ""}
+    return [rbmoni::print $mondat]
   }
 
   #
@@ -541,11 +586,11 @@ namespace eval rw11 {
       }
     }
     append rval "\n    .cs ?nstep?         ; cpu step"
-    append rval "\n    .cr                 ; cpu resume"
+    append rval "\n    .cres               ; cpu resume"
     append rval "\n    .csus               ; cpu suspend"
     append rval "\n    .csto               ; cpu stop"
-    append rval "\n    .cres               ; cpu reset"
     append rval "\n    .csta ?addr?        ; cpu start"
+    append rval "\n    .crst               ; cpu reset"
     append rval "\n    .                   ; short cpu state (pc+psw)"
     append rval "\n    ?                   ; brief cpu state (all regs)"
     append rval "\n    ?m                  ; mmu status"
@@ -560,18 +605,25 @@ namespace eval rw11 {
     append rval "\n    .bs ind typ lo hi   ; set bpt"
     append rval "\n    .br ?ind?           ; remove bpt"
     append rval "\n    .bl                 ; list bpt"
-    if {[$shell_cpu rmap -testname "cm.cntl"]} {
+    if {[$shell_cpu get hascmon]} {
     append rval "\nCPU monitor:"
       append rval "\n    .cme ?mode?         ; cmon enable; mode:\[is\]?n?"
       append rval "\n    .cmd                ; cmon disable"
       append rval "\n    .cml ?nent?         ; cmon list"
     }
-    if {[$shell_cpu rmap -testname "im.cntl"]} {
+    if {[$shell_cpu get hasibmon]} {
     append rval "\nibus monitor:"
       append rval "\n    .ime                ; ibmon enable; mode: \[lrcnRW\]*"
       append rval "\n    .imd                ; ibmon disable"
       append rval "\n    .imf ?lo? ?hi?      ; ibmon filter"
       append rval "\n    .iml ?nent?         ; ibmon list"
+    }
+    if {[rlc get hasrbmon]} {
+    append rval "\nrbus monitor:"
+      append rval "\n    .rme                ; rbmon enable; mode: \[nRW\]*"
+      append rval "\n    .rmd                ; rbmon disable"
+      append rval "\n    .rmf ?lo? ?hi?      ; rbmon filter"
+      append rval "\n    .rml ?nent?         ; rbmon list"
     }
     append rval "\nconsole (tta0) direct input:"
     append rval "\n    ( ?text?            ; tta0 input without cr"
@@ -626,13 +678,24 @@ namespace eval rw11 {
   }
 
   #
-  # shell_test_device: test whether cpu option available ---------------------
+  # shell_test_cpurmap: test whether cpu option available ---------------------
   # 
-  proc shell_test_device {cpu cmd regnam optnam} {
+  proc shell_test_cpurmap {cpu cmd regnam optnam} {
     if {[$cpu rmap -testname $regnam]} {
       return 1;
     }
     puts "shell-W: '$cmd' command ignored, '$optnam' CPU option not available"
+    return 0;
+  }
+
+  #
+  # shell_test_rlcamap: test whether rbus option available --------------------
+  # 
+  proc shell_test_rlcamap {cmd regnam optnam} {
+    if {[rlc amap -testname $regnam]} {
+      return 1;
+    }
+    puts "shell-W: '$cmd' command ignored, '$optnam' rbus option not available"
     return 0;
   }
 

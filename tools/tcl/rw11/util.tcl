@@ -1,4 +1,4 @@
-# $Id: util.tcl 849 2017-02-05 22:30:03Z mueller $
+# $Id: util.tcl 883 2017-04-22 11:57:38Z mueller $
 #
 # Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-04-22   83    1.3.8  move in imap_reg2addr; add imap_range2addr
 # 2017-02-04   848   1.3.7  add DEUNA; setup_cntl: handle not found devices
 # 2015-12-30   721   1.3.6  BUGFIX: setup_ostr: adopt to use args2opts
 # 2015-07-25   704   1.3.5  use args2opts
@@ -223,5 +224,41 @@ namespace eval rw11 {
     append p_cc [expr {$ps_v ? "v" : "."}]
     append p_cc [expr {$ps_c ? "c" : "."}]
     return "${p_cmode}${p_pmode}${ps_rset}${ps_pri}${p_tflag}${p_cc}"
+  }
+  
+  #
+  # imap_reg2addr: convert register to address -------------------------------
+  # 
+  proc imap_reg2addr {cpu reg} {
+    if {[$cpu imap -testname $reg]} {
+      return [$cpu imap $reg]
+    } elseif {[string is integer $reg]} {
+      return $reg
+    } else {
+      error "imap_reg2addr-E: unknown register '$reg'"
+    }
+  }
+  #
+  # imap_range2addr: convert register range to address range -----------------
+  #   Note: also used for general address ranges, so no check on >= 0160000
+  # 
+  proc imap_range2addr {cpu lo {hi ""}} {
+    set lolist [split $lo "/"]
+    if {[llength $lolist] > 2} {
+      error "imap_range2addr-E: bad lo specifier '$lo', use val or val/len"
+    }
+    set lolim [imap_reg2addr $cpu [lindex $lolist 0]]
+    set hilim $lolim
+    if {[llength $lolist] == 2} {
+      set hilim [expr {$lolim + 2*([lindex $lolist 1]-1)}]
+    }
+
+    if {$hi ne ""} {
+      set hilim [imap_reg2addr $cpu $hi]
+    }
+
+    if {$lolim > $hilim} {error "imap_range2addr-E: hilim must be >= lolim"}
+
+    return [list $lolim $hilim]
   }
 }

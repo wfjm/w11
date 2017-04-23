@@ -1,4 +1,4 @@
--- $Id: sys_conf.vhd 858 2017-03-05 17:41:37Z mueller $
+-- $Id: sys_conf.vhd 884 2017-04-22 16:35:42Z mueller $
 --
 -- Copyright 2007-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,9 +16,10 @@
 -- Description:    Definitions for sys_w11a_s3 (for synthesis)
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.1-14.7; ghdl 0.18-0.33
+-- Tool versions:  xst 8.1-14.7; ghdl 0.18-0.34
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2017-04-22   884   1.3.4  use sys_conf_dmcmon_awidth=8 (proper value)
 -- 2017-03-04   858   1.3.3  enable deuna
 -- 2017-01-29   847   1.3.2  add sys_conf_ibd_deuna
 -- 2016-05-27   770   1.3.1  sys_conf_mem_losize now type natural 
@@ -47,7 +48,7 @@ package sys_conf is
   constant sys_conf_ibmon_awidth  : integer := 9; -- use 0 to disable
   constant sys_conf_dmscnt        : boolean := true;
   constant sys_conf_dmhbpt_nunit  : integer := 2; -- use 0 to disable
-  constant sys_conf_dmcmon_awidth : integer := 9; -- use 0 to disable
+  constant sys_conf_dmcmon_awidth : integer := 8; -- use 0 to disable
 
   -- configure w11 cpu core --------------------------------------------------
   constant sys_conf_mem_losize     : natural := 8#037777#; --   1 MByte

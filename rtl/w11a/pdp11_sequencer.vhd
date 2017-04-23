@@ -1,6 +1,6 @@
--- $Id: pdp11_sequencer.vhd 831 2016-12-27 16:51:12Z mueller $
+-- $Id: pdp11_sequencer.vhd 885 2017-04-23 15:54:01Z mueller $
 --
--- Copyright 2006-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,10 +18,12 @@
 -- Dependencies:   ib_sel
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.2; ghdl 0.18-0.33
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2017.1; ghdl 0.18-0.34
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2017-04-23   885   1.6.9  not sys_conf_dmscnt: set SNUM from state category;
+--                           change waitsusp logic; add WAIT to idm_idone
 -- 2016-12-27   831   1.6.8  CPUERR now cleared with creset
 -- 2016-10-03   812   1.6.7  always define DM_STAT_SE.snum
 -- 2016-05-26   768   1.6.6  don't init N_REGS (vivado fix for fsm inference)
@@ -270,6 +272,8 @@ architecture syn of pdp11_sequencer is
   signal R_VMSTAT : vm_stat_type := vm_stat_init;
 
   signal IBSEL_CPUERR : slbit := '0';
+  
+  signal VM_CNTL_L : vm_cntl_type := vm_cntl_init;
 
 begin
 
@@ -365,6 +369,7 @@ begin
 
     variable int_pending : slbit := '0';     -- an interrupt is pending
 
+    variable idm_idle    : slbit := '0';     -- idle   for dm_stat_se
     variable idm_idone   : slbit := '0';     -- idone  for dm_stat_se
     variable idm_vfetch  : slbit := '0';     -- vfetch for dm_stat_se
     
@@ -614,6 +619,7 @@ begin
       int_pending := '1';
     end if;
 
+    idm_idle   := '0';
     idm_idone  := '0';
     idm_vfetch := '0';
     
@@ -705,15 +711,15 @@ begin
     case R_STATE is
       
   -- idle and command port states ---------------------------------------------
-
-      -- Note: s_idle was entered from suspended WAIT when waitsusp='1'
-      -- --> all exits must check this and either return to s_op_wait
-      --     or abort the WAIT and set waitsusp='0'
       
       when s_idle =>
+        -- Note: s_idle was entered from suspended WAIT when waitsusp='1'
+        -- --> all exits must check this and either return to s_op_wait
+        --     or abort the WAIT and set waitsusp='0'
 
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_ddst;   -- VA = DDST (do mux early)
         nstatus.cpustep := '0';
+        idm_idle := '1';                        -- signal sequencer idle
         
         if R_STATUS.cmdbusy = '1' then
           case R_STATUS.cpfunc is
@@ -835,8 +841,7 @@ begin
           end case;
 
         elsif R_STATUS.waitsusp = '1' then
-          nstatus.waitsusp := '0';
-          nstate := s_op_wait;          
+          nstate := s_op_wait;            --waitsusp is cleared in s_op_wait
 
         elsif R_STATUS.cpugo = '1' and    -- running
               R_STATUS.cpususp='0' then   --   and not suspended
@@ -1557,10 +1562,22 @@ begin
         end if;
 
       when s_op_wait =>                 -- WAIT
+        -- Note: wait is the only interruptable instruction. The CPU spins
+        --   in s_op_wait until an interrupt or a control command is seen.
+        --   In case of a control command R_STATUS.waitsusp is set and
+        --   control transfered to s_idle. If the control command returns
+        --   to s_op_wait, waitsusp is cleared here. This ensures that the
+        --   idm_idone logic (for dmcmon) sees only one WAIT even if it is
+        --   interrupted by control commands.
         ndpcntl.gpr_asrc := "000";      -- load R0 in DSRC for DR emulation
         ndpcntl.dsrc_sel := c_dpath_dsrc_src;
-        ndpcntl.dsrc_we := '1';
-         
+        ndpcntl.dsrc_we  := '1';
+        nstatus.waitsusp := '0';        -- in case of returning from s_idle
+
+        -- signal idone in the first cycle of a WAIT instruction to dmcmon
+        -- ensures that a WAIT is logged once and only once
+        idm_idone := not (R_STATUS.waitsusp or R_STATUS.cpuwait);
+
         nstate := s_op_wait;            -- spin here
         if is_kmode = '0' then          -- but act as nop if not in kernel
           nstate := s_idle;
@@ -2384,13 +2401,15 @@ begin
     ESUSP_O <= R_STATUS.suspint;     -- FIXME_code: handle masking later
     ITIMER  <= R_STATUS.itimer;
     
-    DP_CNTL <= ndpcntl;
-    VM_CNTL <= nvmcntl;
+    DP_CNTL   <= ndpcntl;
+    VM_CNTL   <= nvmcntl;
+    VM_CNTL_L <= nvmcntl;
 
     nmmumoni.regnum := ndpcntl.gpr_adst;
     nmmumoni.delta  := ndpcntl.ounit_const(3 downto 0);
     MMU_MONI <= nmmumoni;
 
+    DM_STAT_SE.idle   <= idm_idle;
     DM_STAT_SE.istart <= nmmumoni.istart;
     DM_STAT_SE.idone  <= idm_idone;
     DM_STAT_SE.vfetch <= idm_vfetch;
@@ -2413,8 +2432,8 @@ begin
     CP_STAT.suspext <= R_STATUS.suspext;
   end process proc_cpstat;
 
-  -- state number creation logic is conditional, only done when monitor
-  -- enabled. Due to sythnesis impact in vivado
+  -- SNUM creation logic is conditional due to synthesis impact in vivado.
+  -- SNUM = 'full state number' only available when dmscnt unit enabled.
   SNUM1 : if sys_conf_dmscnt generate
   begin
     proc_snum : process (R_STATE)
@@ -2556,9 +2575,175 @@ begin
     end process proc_snum;
   end generate SNUM1;
 
+  -- if dmscnt not enable setup SNUM based on state categories (currently 4)
+  -- and a 'wait' indicator determined from monitoring VM_CNTL and VM_STAT
   SNUM0 : if not sys_conf_dmscnt generate
+    signal R_VMWAIT : slbit := '0';  -- vmwait flag
   begin
-    DM_STAT_SE.snum   <= (others=>'0');
+
+    proc_vmwait: process (CLK)
+    begin
+      if rising_edge(CLK) then
+        if GRESET = '1' then
+          R_VMWAIT <= '0';
+        else
+          if VM_CNTL_L.req = '1' then
+            R_VMWAIT <= '1';
+          elsif VM_STAT.ack = '1' or VM_STAT.err = '1' or VM_STAT.fail='1' then
+            R_VMWAIT <= '0';
+          end if;
+        end if;
+      end if;
+    end process proc_vmwait;
+
+    proc_snum : process (R_STATE, R_VMWAIT)
+      variable isnum_con : slbit := '0';
+      variable isnum_ins : slbit := '0';
+      variable isnum_vec : slbit := '0';
+      variable isnum_err : slbit := '0';
+    begin
+      isnum_con := '0';
+      isnum_ins := '0';
+      isnum_vec := '0';
+      isnum_err := '0';
+      case R_STATE is
+        when s_idle           => null;
+        when s_cp_regread     => isnum_con := '1';
+        when s_cp_rps         => isnum_con := '1';
+        when s_cp_memr_w      => isnum_con := '1';
+        when s_cp_memw_w      => isnum_con := '1';
+        when s_ifetch         => isnum_ins := '1';
+        when s_ifetch_w       => isnum_ins := '1';
+        when s_idecode        => isnum_ins := '1';
+                                 
+        when s_srcr_def       => isnum_ins := '1';
+        when s_srcr_def_w     => isnum_ins := '1';
+        when s_srcr_inc       => isnum_ins := '1';
+        when s_srcr_inc_w     => isnum_ins := '1';
+        when s_srcr_dec       => isnum_ins := '1';
+        when s_srcr_dec1      => isnum_ins := '1';
+        when s_srcr_ind       => isnum_ins := '1';
+        when s_srcr_ind1_w    => isnum_ins := '1';
+        when s_srcr_ind2      => isnum_ins := '1';
+        when s_srcr_ind2_w    => isnum_ins := '1';
+                                 
+        when s_dstr_def       => isnum_ins := '1';
+        when s_dstr_def_w     => isnum_ins := '1';
+        when s_dstr_inc       => isnum_ins := '1';
+        when s_dstr_inc_w     => isnum_ins := '1';
+        when s_dstr_dec       => isnum_ins := '1';
+        when s_dstr_dec1      => isnum_ins := '1';
+        when s_dstr_ind       => isnum_ins := '1';
+        when s_dstr_ind1_w    => isnum_ins := '1';
+        when s_dstr_ind2      => isnum_ins := '1';
+        when s_dstr_ind2_w    => isnum_ins := '1';
+                                 
+        when s_dstw_def       => isnum_ins := '1';
+        when s_dstw_def_w     => isnum_ins := '1';
+        when s_dstw_inc       => isnum_ins := '1';
+        when s_dstw_inc_w     => isnum_ins := '1';
+        when s_dstw_incdef_w  => isnum_ins := '1';
+        when s_dstw_dec       => isnum_ins := '1';
+        when s_dstw_dec1      => isnum_ins := '1';
+        when s_dstw_ind       => isnum_ins := '1';
+        when s_dstw_ind_w     => isnum_ins := '1';
+        when s_dstw_def246    => isnum_ins := '1';
+                                 
+        when s_dsta_inc       => isnum_ins := '1';
+        when s_dsta_incdef_w  => isnum_ins := '1';
+        when s_dsta_dec       => isnum_ins := '1';
+        when s_dsta_dec1      => isnum_ins := '1';
+        when s_dsta_ind       => isnum_ins := '1';
+        when s_dsta_ind_w     => isnum_ins := '1';
+                                 
+        when s_op_halt        => isnum_ins := '1';
+        when s_op_wait        => isnum_ins := '1';
+        when s_op_trap        => isnum_ins := '1';
+        when s_op_reset       => isnum_ins := '1';
+        when s_op_rts         => isnum_ins := '1';
+        when s_op_rts_pop     => isnum_ins := '1';
+        when s_op_rts_pop_w   => isnum_ins := '1';
+        when s_op_spl         => isnum_ins := '1';
+        when s_op_mcc         => isnum_ins := '1';
+        when s_op_br          => isnum_ins := '1';
+        when s_op_mark        => isnum_ins := '1';
+        when s_op_mark1       => isnum_ins := '1';
+        when s_op_mark_pop    => isnum_ins := '1';
+        when s_op_mark_pop_w  => isnum_ins := '1';
+        when s_op_sob         => isnum_ins := '1';
+        when s_op_sob1        => isnum_ins := '1';
+                                 
+        when s_opg_gen        => isnum_ins := '1';
+        when s_opg_gen_rmw_w  => isnum_ins := '1';
+        when s_opg_mul        => isnum_ins := '1';
+        when s_opg_mul1       => isnum_ins := '1';
+        when s_opg_div        => isnum_ins := '1';
+        when s_opg_div_cn     => isnum_ins := '1';
+        when s_opg_div_cr     => isnum_ins := '1';
+        when s_opg_div_sq     => isnum_ins := '1';
+        when s_opg_div_sr     => isnum_ins := '1';
+        when s_opg_div_quit   => isnum_ins := '1';
+        when s_opg_ash        => isnum_ins := '1';
+        when s_opg_ash_cn     => isnum_ins := '1';
+        when s_opg_ashc       => isnum_ins := '1';
+        when s_opg_ashc_cn    => isnum_ins := '1';
+        when s_opg_ashc_wl    => isnum_ins := '1';
+                                 
+        when s_opa_jsr        => isnum_ins := '1';
+        when s_opa_jsr1       => isnum_ins := '1';
+        when s_opa_jsr_push   => isnum_ins := '1';
+        when s_opa_jsr_push_w => isnum_ins := '1';
+        when s_opa_jsr2       => isnum_ins := '1';
+        when s_opa_jmp        => isnum_ins := '1';
+        when s_opa_mtp        => isnum_ins := '1';
+        when s_opa_mtp_pop_w  => isnum_ins := '1';
+        when s_opa_mtp_reg    => isnum_ins := '1';
+        when s_opa_mtp_mem    => isnum_ins := '1';
+        when s_opa_mtp_mem_w  => isnum_ins := '1';
+        when s_opa_mfp_reg    => isnum_ins := '1';
+        when s_opa_mfp_mem    => isnum_ins := '1';
+        when s_opa_mfp_mem_w  => isnum_ins := '1';
+        when s_opa_mfp_dec    => isnum_ins := '1';
+        when s_opa_mfp_push   => isnum_ins := '1';
+        when s_opa_mfp_push_w => isnum_ins := '1';
+                                 
+        when s_trap_4         => isnum_ins := '1';
+        when s_trap_10        => isnum_ins := '1';
+        when s_trap_disp      => isnum_ins := '1';
+                                 
+        when s_int_ext        => isnum_vec := '1';
+                                 
+        when s_int_getpc      => isnum_vec := '1';
+        when s_int_getpc_w    => isnum_vec := '1';
+        when s_int_getps      => isnum_vec := '1';
+        when s_int_getps_w    => isnum_vec := '1';
+        when s_int_getsp      => isnum_vec := '1';
+        when s_int_decsp      => isnum_vec := '1';
+        when s_int_pushps     => isnum_vec := '1';
+        when s_int_pushps_w   => isnum_vec := '1';
+        when s_int_pushpc     => isnum_vec := '1';
+        when s_int_pushpc_w   => isnum_vec := '1';
+                                 
+        when s_rti_getpc      => isnum_vec := '1';
+        when s_rti_getpc_w    => isnum_vec := '1';
+        when s_rti_getps      => isnum_vec := '1';
+        when s_rti_getps_w    => isnum_vec := '1';
+        when s_rti_newpc      => isnum_vec := '1';
+                                 
+        when s_vmerr          => isnum_err := '1';
+        when s_cpufail        => isnum_err := '1';
+                                 
+        when others           => null;
+      end case;
+      
+      DM_STAT_SE.snum <= (others=>'0');
+      DM_STAT_SE.snum(c_snum_f_con) <= isnum_con;
+      DM_STAT_SE.snum(c_snum_f_ins) <= isnum_ins;
+      DM_STAT_SE.snum(c_snum_f_vec) <= isnum_vec;
+      DM_STAT_SE.snum(c_snum_f_err) <= isnum_err;
+      DM_STAT_SE.snum(c_snum_f_vmw) <= R_VMWAIT;
+      
+    end process proc_snum;
   end generate SNUM0;
   
 end syn;

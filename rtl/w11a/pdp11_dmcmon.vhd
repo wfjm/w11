@@ -1,6 +1,6 @@
--- $Id: pdp11_dmcmon.vhd 709 2015-08-06 18:08:49Z mueller $
+-- $Id: pdp11_dmcmon.vhd 885 2017-04-23 15:54:01Z mueller $
 --
--- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,7 +20,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  ise 14.7; viv 2014.4; ghdl 0.31
+-- Tool versions:  ise 14.7; viv 2014.4-2017.1; ghdl 0.31-0.34
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -28,6 +28,7 @@
 --
 -- Revision History: -
 -- Date         Rev Version  Comment
+-- 2017-04-22   884   2.0    use DM_STAT_SE.idle; revised interface, add suspend
 -- 2015-08-03   709   1.0    Initial version
 -- 2015-07-05   697   0.1    First draft
 ------------------------------------------------------------------------------
@@ -36,15 +37,22 @@
 --
 --  Addr   Bits  Name       r/w/f  Function
 --  000         cntl        r/w/f  Control register
---          04    mwsup     r/w/-    mem wait suppress (used when start=1)
---          03    imode     r/w/-    instruction mode  (used when start=1)
---          02    wena      r/w/-    wrap enabled      (")
---          01    stop      r/w/f    writing 1 stops  moni
---          00    start     r/w/f    writing 1 starts moni and clears addr
+--          05    mwsup     r/w/-    mem wait suppress
+--          04    imode     r/w/-    instruction mode
+--          03    wstop     r/w/-    stop on wrap
+--       02:00    func      0/-/f    change run status if != noop
+--                                     0xx  noop
+--                                     100  sto  stop
+--                                     101  sta  start and latch all options
+--                                     110  sus  suspend  (noop if not started)
+--                                     111  res  resume   (noop if not started)
 --  001         stat        r/-/-  Status register
 --       15:13    bsize     r/-/-    buffer size (AWIDTH-8)
 --       12:09    malcnt    r/-/-    valid entries in memory access log
---          00    wrap      r/-/-    line address wrapped (cleared on go)
+--          08    snum      r/-/-    snum support
+--          02    wrap      r/-/-    line address wrapped (cleared on start)
+--          01    susp      r/-/-    suspended
+--          00    run       r/-/-    running (can be suspended)
 --  010         addr        r/w/-  Address register    (writable when stopped)
 --        *:04    laddr     r/w/-    line address
 --       03:00    waddr     r/w/-    word address (0000 to 1000)
@@ -133,7 +141,8 @@ use work.pdp11.all;
 entity pdp11_dmcmon is                  -- debug&moni: cpu monitor
   generic (
     RB_ADDR : slv16 := slv(to_unsigned(16#0048#,16));
-    AWIDTH : natural := 8);
+    AWIDTH : natural := 8;
+    SNUM : boolean := false);
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- reset
@@ -158,14 +167,18 @@ architecture syn of pdp11_dmcmon is
   constant rbaddr_ireg  : slv3 := "110";  -- ireg  address offset
   constant rbaddr_imal  : slv3 := "111";  -- imal  address offset
   
-  constant cntl_rbf_mwsup    : integer :=     4;
-  constant cntl_rbf_imode    : integer :=     3;
-  constant cntl_rbf_wena     : integer :=     2;
-  constant cntl_rbf_stop     : integer :=     1;
-  constant cntl_rbf_start    : integer :=     0;
+  constant cntl_rbf_mwsup    : integer :=     5;
+  constant cntl_rbf_imode    : integer :=     4;
+  constant cntl_rbf_wstop    : integer :=     3;
+  subtype  cntl_rbf_func    is integer range  2 downto  0;
+
   subtype  stat_rbf_bsize   is integer range 15 downto 13;
-  subtype  stat_rbf_malcnt  is integer range 12 downto 09;
-  constant stat_rbf_wrap     : integer :=     0;
+  subtype  stat_rbf_malcnt  is integer range 12 downto  9;
+  constant stat_rbf_snum     : integer :=     8;
+  constant stat_rbf_wrap     : integer :=     2;
+  constant stat_rbf_susp     : integer :=     1;
+  constant stat_rbf_run      : integer :=     0;
+
   subtype  addr_rbf_laddr   is integer range 4+AWIDTH-1 downto  4;
   subtype  addr_rbf_waddr   is integer range  3 downto  0;
 
@@ -226,6 +239,11 @@ architecture syn of pdp11_dmcmon is
   constant dat5_ibf_tflag    : integer :=     4;
   subtype  dat5_ibf_cc      is integer range  3 downto  0;
 
+  constant func_sto : slv3 := "100";    -- func: stop
+  constant func_sta : slv3 := "101";    -- func: start
+  constant func_sus : slv3 := "110";    -- func: suspend
+  constant func_res : slv3 := "111";    -- func: resume
+
   constant laddrzero : slv(AWIDTH-1 downto 0) := (others=>'0');
   constant laddrlast : slv(AWIDTH-1 downto 0) := (others=>'1');
 
@@ -233,8 +251,9 @@ architecture syn of pdp11_dmcmon is
     rbsel : slbit;                      -- rbus select
     mwsup : slbit;                      -- mwsup flag (mem wait suppress)
     imode : slbit;                      -- imode flag
-    wena  : slbit;                      -- wena flag (wrap enable)
-    go : slbit;                         -- go flag
+    wstop : slbit;                      -- wstop flag (stop on wrap)
+    susp   : slbit;                     -- suspended flag
+    go : slbit;                         -- go flag (actively running)
     active : slbit;                     -- active flag
     wrap : slbit;                       -- laddr wrap flag
     laddr : slv(AWIDTH-1 downto 0);     -- line address
@@ -277,6 +296,7 @@ architecture syn of pdp11_dmcmon is
     vm_trap_ysv  : slbit;               -- vm.vmstat.trap_ysv
     vm_trap_mmu  : slbit;               -- vm.vmstat.trap_mmu
     vm_pend      : slbit;               -- vm req pending
+    se_idle      : slbit;               -- se.idle
     se_istart    : slbit;               -- se.istart
     se_istart_1  : slbit;               -- se.istart last cycle
     se_idone     : slbit;               -- se.idone
@@ -286,8 +306,8 @@ architecture syn of pdp11_dmcmon is
   end record regs_type;
   constant regs_init : regs_type := (
     '0',                                -- rbsel
-    '0','1',                            -- mwsup,imode
-    '1','1','0',                        -- wena,go,active
+    '0','1','0',                        -- mwsup,imode,wstop
+    '0','1','0',                        -- susp,go,active
     '0',                                -- wrap
     laddrzero,                          -- laddr
     "0000",                             -- waddr
@@ -311,7 +331,8 @@ architecture syn of pdp11_dmcmon is
     '0','0','0','0','0',                -- vm_err_*
     '0','0',                            -- vm_trap_*
     '0',                                -- vm_pend
-    '0','0','0','0',                    -- se_istart(_1),se_idone,se_vfetch
+    '0','0','0',                        -- se_idle,se_istart(_1)
+    '0','0',                            -- se_idone,se_vfetch
     (others=>'0'),                      -- se_snum
     '0'                                 -- mwdrop
   );
@@ -467,20 +488,31 @@ architecture syn of pdp11_dmcmon is
     if r.rbsel = '1' then
       irb_ack := irbena;                -- ack all accesses
       case RB_MREQ.addr(2 downto 0) is
-        when rbaddr_cntl =>                 -- cntl ------------------
+        when rbaddr_cntl =>               -- cntl ------------------
          if RB_MREQ.we = '1' then 
-            if RB_MREQ.din(cntl_rbf_start) = '1' then
-              n.mwsup := RB_MREQ.din(cntl_rbf_mwsup);
-              n.imode := RB_MREQ.din(cntl_rbf_imode);
-              n.wena  := RB_MREQ.din(cntl_rbf_wena);
-              n.go    := '1';
-              n.wrap  := '0';
-              n.laddr := laddrzero;
-              n.waddr := "0000";
-            end if;
-            if RB_MREQ.din(cntl_rbf_stop) = '1' then
-              n.go    := '0';
-            end if;
+           case RB_MREQ.din(cntl_rbf_func) is
+             when func_sto =>               -- func: stop ------------
+               n.go    := '0';
+               n.susp  := '0';
+             when func_sta =>               -- func: start -----------
+               n.mwsup := RB_MREQ.din(cntl_rbf_mwsup);
+               n.imode := RB_MREQ.din(cntl_rbf_imode);
+               n.wstop := RB_MREQ.din(cntl_rbf_wstop);
+               n.go    := '1';
+               n.susp  := '0';
+               n.wrap  := '0';
+               n.laddr := laddrzero;
+               n.waddr := "0000";
+             when func_sus =>               -- func: susp ------------
+               if r.go = '1' then             -- noop unless running
+                 n.go     := '0';
+                 n.susp   := r.go;
+               end if;
+             when func_res =>               -- func: resu ------------
+               n.go     := r.susp;
+               n.susp   := '0';
+             when others => null;           -- <> --------------------
+           end case;             
          end if;
 
         when rbaddr_stat =>                 -- stat ------------------
@@ -488,18 +520,21 @@ architecture syn of pdp11_dmcmon is
 
         when rbaddr_addr =>                 -- addr ------------------
           if RB_MREQ.we = '1' then
-            if r.go='0' then
+            if r.go = '0' then                -- if not active OK
               n.laddr := RB_MREQ.din(addr_rbf_laddr);
               n.waddr := RB_MREQ.din(addr_rbf_waddr);
             else
-              irb_err := '1';                 -- error
+              irb_err := '1';                 -- otherwise error
             end if;
           end if;
 
         when rbaddr_data =>                 -- data ------------------
-          if r.go='1' or RB_MREQ.we='1' then
+          -- write to data is an error
+          if RB_MREQ.we='1' then
             irb_err := '1';                   -- error
-          elsif RB_MREQ.re = '1' then
+          end if;
+          -- read to data always allowed, addr only incremented when not active
+          if RB_MREQ.re = '1' and r.go = '0' then
             if r.waddr(3) = '1' then          -- equivalent waddr>=1000
               n.waddr := (others=>'0');
               laddr_inc := '1';
@@ -532,13 +567,17 @@ architecture syn of pdp11_dmcmon is
         when rbaddr_cntl =>                 -- cntl ------------------
           irb_dout(cntl_rbf_mwsup)  := r.mwsup;
           irb_dout(cntl_rbf_imode)  := r.imode;
-          irb_dout(cntl_rbf_wena)   := r.wena;
-          irb_dout(cntl_rbf_start)  := r.go;
+          irb_dout(cntl_rbf_wstop)  := r.wstop;
 
         when rbaddr_stat =>                 -- stat ------------------
           irb_dout(stat_rbf_bsize)  := slv(to_unsigned(AWIDTH-8,3));
           irb_dout(stat_rbf_malcnt) := r.mal_waddr;
+          if SNUM then
+            irb_dout(stat_rbf_snum)   := '1';
+          end if;
           irb_dout(stat_rbf_wrap)   := r.wrap;
+          irb_dout(stat_rbf_susp)   := r.susp;         -- started and suspended
+          irb_dout(stat_rbf_run)    := r.go or r.susp; -- started
 
         when rbaddr_addr =>                 -- addr ------------------
           irb_dout(addr_rbf_laddr)  := r.laddr;
@@ -637,6 +676,7 @@ architecture syn of pdp11_dmcmon is
     end if;
       
     n.se_istart_1 := r.se_istart;
+    n.se_idle     := DM_STAT_SE.idle;
     n.se_istart   := DM_STAT_SE.istart;
     n.se_idone    := DM_STAT_SE.idone;
     n.se_vfetch   := DM_STAT_SE.vfetch;
@@ -654,7 +694,7 @@ architecture syn of pdp11_dmcmon is
     end if;
 
     iactive := r.active;
-    if unsigned(r.se_snum) = 0 then     -- in idle state
+    if r.se_idle = '1' then             -- in idle state
       if igoeff = '0' then                -- if goeff=0 stop running
         n.active := '0';
       end if;
@@ -694,9 +734,8 @@ architecture syn of pdp11_dmcmon is
     if laddr_inc = '1' then
       n.laddr := slv(unsigned(r.laddr) + 1);
       if r.go='1' and r.laddr=laddrlast then
-        if r.wena = '1' then
-          n.wrap := '1';
-        else
+        n.wrap := '1';
+        if r.wstop = '1' then
           n.go   := '0';
         end if;
       end if;

@@ -1,4 +1,4 @@
-# $Id: util.tcl 883 2017-04-22 11:57:38Z mueller $
+# $Id: util.tcl 885 2017-04-23 15:54:01Z mueller $
 #
 # Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -130,7 +130,6 @@ namespace eval rbmoni {
     if {[regget rbmoni::STAT(wrap) $rstat]} { set nval $nmax }
 
     if {$nent > $nval} {set nent $nval}
-    if {$nent == 0}    { return {} }
 
     # if wstop set use first nent items, otherwise last nent items
     set caddr 0

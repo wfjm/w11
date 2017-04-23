@@ -1,4 +1,4 @@
-# $Id: shell.tcl 883 2017-04-22 11:57:38Z mueller $
+# $Id: shell.tcl 885 2017-04-23 15:54:01Z mueller $
 #
 # Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-04-23   885   2.2.4  adopt .cm* to new interface
 # 2017-04-22   883   2.2.3  integrate rbmon: add .rme,.rmd,.rmf,.rml
 # 2017-04-16   879   2.2.2  rename .cres->.crst and .cr->.cres (more intuitive)
 # 2017-04-09   872   2.2.1  adopt .ime to new interface
@@ -35,8 +36,6 @@ namespace eval rw11 {
   variable shell_depth     0;                   # recursion stopper
   variable shell_cpu       "cpu0";              # current cpu command
   variable shell_cpu_stat  "";                  # cpu status
-  variable shell_cme_pend  1;                   # .cme pending
-  variable shell_cme_mode  "i";                 # mode for pending .cme
   variable shell_attnhdl_added 0
   variable shell_eofchar_save {puts {}}
 
@@ -243,8 +242,6 @@ namespace eval rw11 {
   proc shell_cs {{nstep 1}} {
     variable shell_cpu
 
-    shell_cme_ifpend
-
     set rval {}
     for {set i 0} {$i < $nstep} {incr i} {
       rw11::hb_clear $shell_cpu
@@ -265,7 +262,6 @@ namespace eval rw11 {
     variable shell_cpu
     variable shell_cpu_stat
 
-    shell_cme_ifpend
     set shell_cpu_stat "g:";
 
     rw11::hb_clear $shell_cpu
@@ -311,7 +307,6 @@ namespace eval rw11 {
     variable shell_cpu
     variable shell_cpu_stat
 
-    shell_cme_ifpend
     set shell_cpu_stat "g:";
 
     if {$pc == -1} {
@@ -323,36 +318,13 @@ namespace eval rw11 {
   }
 
   #
-  # shell_cme_ifpend: do cme if pending and cmon available -------------------
-  # 
-  proc shell_cme_ifpend {} {
-    variable shell_cpu
-    variable shell_cme_pend
-    variable shell_cme_mode
-
-    if {$shell_cme_pend} {
-      if {[$shell_cpu rmap -testname "cm.cntl"]} {
-        shell_cme $shell_cme_mode
-      } else {
-        set shell_cme_pend 0
-      }
-    }
-    return "";
-  }    
-
-  #
   # shell_cme: cmon enable ---------------------------------------------------
   # 
-  proc shell_cme {{mode "i"}} {
+  proc shell_cme {{mode ""}} {
     variable shell_cpu
-    variable shell_cme_pend
-    variable shell_cme_mode
 
     if {![shell_test_cpurmap $shell_cpu "cme" "cm.cntl" "dmcmon"]} {return ""}
-
     rw11::cme $shell_cpu $mode
-    set shell_cme_pend 0
-    set shell_cme_mode $mode
     return ""
   }
 
@@ -361,11 +333,8 @@ namespace eval rw11 {
   # 
   proc shell_cmd {} {
     variable shell_cpu
-    variable shell_cme_pend
 
     if {![shell_test_cpurmap $shell_cpu "cmd" "cm.cntl" "dmcmon"]} {return ""}
-
-    set shell_cme_pend 0
     rw11::cm_stop $shell_cpu
     return ""
   }
@@ -375,10 +344,7 @@ namespace eval rw11 {
   # 
   proc shell_cml {{nent -1}} {
     variable shell_cpu
-    variable shell_cme_pend
-   if {![shell_test_cpurmap $shell_cpu "cml" "cm.cntl" "dmcmon"]} {return ""}
-
-    set shell_cme_pend 1
+    if {![shell_test_cpurmap $shell_cpu "cml" "cm.cntl" "dmcmon"]} {return ""}
     return [rw11::cml $shell_cpu $nent]
   }
 
@@ -607,7 +573,7 @@ namespace eval rw11 {
     append rval "\n    .bl                 ; list bpt"
     if {[$shell_cpu get hascmon]} {
     append rval "\nCPU monitor:"
-      append rval "\n    .cme ?mode?         ; cmon enable; mode:\[is\]?n?"
+      append rval "\n    .cme ?mode?         ; cmon enable; mode:n?\[isS\]?"
       append rval "\n    .cmd                ; cmon disable"
       append rval "\n    .cml ?nent?         ; cmon list"
     }

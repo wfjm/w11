@@ -1,13 +1,9 @@
-# $Id: sys_w11a_n4.vmfset 774 2016-06-12 17:08:47Z mueller $
+# $Id: sys_w11a_n4.vmfset 885 2017-04-23 15:54:01Z mueller $
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
 # false_path -hold ignored by synth ----------------------------
 I [Designutils 20-1567]
-
-# net without driver -------------------------------------------
-# --> snum currently disabled                                   # OK 2016-05-28
-i [Synth 8-3848] DM_STAT_SE[snum].*pdp11_sequencer
 
 # port driven by constant --------------------------------------
 # --> RGBLED0 currently unused                                  # OK 2016-05-28
@@ -42,6 +38,8 @@ i [Synth 8-3332] SEQ/R_IDSTAT_reg[res_sel][2]
 # --> monitor outputs moneop,monattn currently not used         # OK 2016-05-28
 i [Synth 8-3332] RLINK/CORE/RL/R_LREGS_reg[moneop]
 i [Synth 8-3332] RLINK/CORE/RL/R_LREGS_reg[monattn]
+# --> scnt disabled, thus 3 SNUM bits '0'                       # OK 2017-04-22
+i [Synth 8-3332] R_REGS_reg[se_snum][(4|5|6)]
 
 # INFO: encoded FSM with state register as --------------------
 # test for sys_w11a_n4 that all FSMs are one_hot

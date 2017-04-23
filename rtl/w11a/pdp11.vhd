@@ -1,6 +1,6 @@
--- $Id: pdp11.vhd 829 2016-12-26 18:56:17Z mueller $
+-- $Id: pdp11.vhd 884 2017-04-22 16:35:42Z mueller $
 --
--- Copyright 2006-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,10 +16,11 @@
 -- Description:    Definitions for pdp11 components
 --
 -- Dependencies:   -
--- Tool versions:  ise 8.2-14.7; viv 2016.2; ghdl 0.18-0.33
+-- Tool versions:  ise 8.2-14.7; viv 2016.2-2017.1; ghdl 0.18-0.34
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2017-04-22   884   1.6.7  dm_stat_se: add idle; pdp11_dmcmon: add SNUM generic
 -- 2016-12-26   829   1.6.6  BUGFIX: psw init with pri=0, as on real 11/70
 -- 2015-11-01   712   1.6.5  define sbcntl_sbf_tmu := 12; use for pdp11_tmu_sb
 -- 2015-07-19   702   1.6.4  change DM_STAT_(DP|CO); add DM_STAT_SE
@@ -603,6 +604,7 @@ package pdp11 is
 -- debug and monitoring port definitions -------------------------------------
 
   type dm_stat_se_type is record        -- debug and monitor status - sequencer
+    idle   : slbit;                     -- sequencer ideling
     istart : slbit;                     -- instruction start
     idone  : slbit;                     -- instruction done
     vfetch : slbit;                     -- vector fetch
@@ -610,10 +612,16 @@ package pdp11 is
   end record dm_stat_se_type;
 
   constant dm_stat_se_init : dm_stat_se_type := (
-    '0','0','0',                        -- istart,idone,vfetch
+    '0','0','0','0',                    -- idle,istart,idone,vfetch
     (others=>'0')                       -- snum
   );
-  
+
+  constant c_snum_f_con: integer := 0;  -- control     state flag
+  constant c_snum_f_ins: integer := 1;  -- instruction state flag
+  constant c_snum_f_vec: integer := 2;  -- vector      state flag
+  constant c_snum_f_err: integer := 3;  -- error       state flag
+  constant c_snum_f_vmw: integer := 7;  -- vm wait  flag
+
   type dm_stat_dp_type is record        -- debug and monitor status - dpath
     pc : slv16;                         -- pc
     psw : psw_type;                     -- psw
@@ -1302,7 +1310,8 @@ end component;
 component pdp11_dmcmon is               -- debug&moni: cpu monitor
   generic (
     RB_ADDR : slv16 := slv(to_unsigned(16#0048#,16));
-    AWIDTH : natural := 8);
+    AWIDTH : natural := 8;
+    SNUM : boolean := false);
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- reset

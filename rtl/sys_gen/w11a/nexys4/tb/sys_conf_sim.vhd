@@ -1,4 +1,4 @@
--- $Id: sys_conf_sim.vhd 847 2017-01-29 22:38:42Z mueller $
+-- $Id: sys_conf_sim.vhd 884 2017-04-22 16:35:42Z mueller $
 --
 -- Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,9 +16,10 @@
 -- Description:    Definitions for sys_w11a_n4 (for simulation)
 --
 -- Dependencies:   -
--- Tool versions:  xst 14.5-14.7; viv 2016.1-2016.4; ghdl 0.29-0.33
+-- Tool versions:  xst 14.5-14.7; viv 2016.1-2017.1; ghdl 0.29-0.34
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2017-04-22   884   1.5.2  re-enable dmcmon
 -- 2017-01-29   847   1.5.1  add sys_conf_ibd_deuna
 -- 2016-07-16   788   1.5    use cram_*delay functions to determine delays
 -- 2016-06-18   775   1.4.5  use PLL for clkser_gentype
@@ -66,7 +67,7 @@ package sys_conf is
   constant sys_conf_ibmon_awidth  : integer := 9; -- use 0 to disable
   constant sys_conf_dmscnt        : boolean := false;
   constant sys_conf_dmhbpt_nunit  : integer := 2; -- use 0 to disable
-  constant sys_conf_dmcmon_awidth : integer := 0; -- use 0 to disable, 9 to use
+  constant sys_conf_dmcmon_awidth : integer := 8; -- use 0 to disable, 8 to use
   constant sys_conf_rbd_sysmon    : boolean := true;  -- SYSMON(XADC)
 
   -- configure w11 cpu core --------------------------------------------------

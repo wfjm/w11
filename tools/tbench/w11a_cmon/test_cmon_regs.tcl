@@ -1,10 +1,11 @@
-# $Id: test_cmon_regs.tcl 830 2016-12-26 20:25:49Z mueller $
+# $Id: test_cmon_regs.tcl 885 2017-04-23 15:54:01Z mueller $
 #
-# Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2017-04-23   885   2.0    adopt to revised interface
 # 2015-07-18   701   1.0    Initial version
 #
 # Test register response 
@@ -20,55 +21,93 @@ if {[$cpu get hascmon] == 0} {
 # -- Section A ---------------------------------------------------------------
 rlc log "  A basic register access tests -----------------------------"
 
-rlc log "    A1: test cntl --------------------------------------"
-# reset cmon
-$cpu cp -wreg cm.cntl [regbld rw11::CM_CNTL start stop] \
-        -rreg cm.cntl -edata 0
+rlc log "    A1: write/read cntl---------------------------------"
+# test that starting caputes option flags, and that stoping keeps them
+$cpu cp \
+  -wreg cm.cntl [regbld rw11::CM_CNTL {func "STA"}] \
+  -rreg cm.cntl -edata [regbld rw11::CM_CNTL] \
+  -wreg cm.cntl [regbld rw11::CM_CNTL wstop {func "STA"}] \
+  -rreg cm.cntl -edata  [regbld rw11::CM_CNTL wstop] \
+  -wreg cm.cntl [regbld rw11::CM_CNTL imode {func "STA"}] \
+  -rreg cm.cntl -edata  [regbld rw11::CM_CNTL imode] \
+  -wreg cm.cntl [regbld rw11::CM_CNTL mwsup {func "STA"}] \
+  -rreg cm.cntl -edata  [regbld rw11::CM_CNTL mwsup] \
+  -wreg cm.cntl [regbld rw11::CM_CNTL wstop mwsup {func "STA"}] \
+  -rreg cm.cntl -edata  [regbld rw11::CM_CNTL wstop mwsup] \
+  -wreg cm.cntl [regbld rw11::CM_CNTL {func "STO"}] \
+  -rreg cm.cntl -edata  [regbld rw11::CM_CNTL wstop mwsup]
 
-# test imode, wena bits (set only when start=1)
-  $cpu cp -wreg cm.cntl [regbld rw11::CM_CNTL start] \
-          -rreg cm.cntl -edata [regbld rw11::CM_CNTL start] \
-          -wreg cm.cntl [regbld rw11::CM_CNTL wena start] \
-          -rreg cm.cntl -edata [regbld rw11::CM_CNTL wena start] \
-          -wreg cm.cntl [regbld rw11::CM_CNTL imode wena start] \
-          -rreg cm.cntl -edata [regbld rw11::CM_CNTL imode wena start]
-# test imode, wena bits (kept when start=0)
-  $cpu cp -wreg cm.cntl [regbld rw11::CM_CNTL stop] \
-          -rreg cm.cntl -edata [regbld rw11::CM_CNTL imode wena] \
-          -wreg cm.cntl [regbld rw11::CM_CNTL start stop] \
-          -rreg cm.cntl -edata 0 \
-          -wreg cm.cntl [regbld rw11::CM_CNTL imode] \
-          -rreg cm.cntl -edata 0 \
-          -wreg cm.cntl [regbld rw11::CM_CNTL wena] \
-          -rreg cm.cntl -edata 0 
+rlc log "    A2: write cntl, read stat --------------------------"
+# test that susp/run follow functions set to cntl
+set statmsk [regbld rw11::CM_STAT wrap susp run] 
+$cpu cp \
+  -wreg cm.cntl [regbld rw11::CM_CNTL {func "STA"}] \
+  -rreg cm.stat -edata [regbld rw11::CM_STAT run] $statmsk \
+  -wreg cm.cntl [regbld rw11::CM_CNTL {func "SUS"}] \
+  -rreg cm.stat -edata [regbld rw11::CM_STAT susp run] $statmsk \
+  -wreg cm.cntl [regbld rw11::CM_CNTL {func "RES"}] \
+  -rreg cm.stat -edata [regbld rw11::CM_STAT run] $statmsk \
+  -wreg cm.cntl [regbld rw11::CM_CNTL {func "STO"}] \
+  -rreg cm.stat -edata [regbld rw11::CM_STAT] $statmsk 
+# test that suspend/resume of a stopped system is a noop
+$cpu cp \
+  -wreg cm.cntl [regbld rw11::CM_CNTL {func "SUS"}] \
+  -rreg cm.stat -edata [regbld rw11::CM_STAT] $statmsk \
+  -wreg cm.cntl [regbld rw11::CM_CNTL {func "RES"}] \
+  -rreg cm.stat -edata [regbld rw11::CM_STAT] $statmsk
+# test that start of a suspended system clears suspend
+$cpu cp \
+  -wreg cm.cntl [regbld rw11::CM_CNTL {func "STA"}] \
+  -rreg cm.stat -edata [regbld rw11::CM_STAT run] $statmsk \
+  -wreg cm.cntl [regbld rw11::CM_CNTL {func "SUS"}] \
+  -rreg cm.stat -edata [regbld rw11::CM_STAT susp run] $statmsk \
+  -wreg cm.cntl [regbld rw11::CM_CNTL {func "STA"}] \
+  -rreg cm.stat -edata [regbld rw11::CM_STAT run] $statmsk
+# test that suspend of a suspended system is a noop
+# test that stop of a suspended system clears suspend
+$cpu cp \
+  -wreg cm.cntl [regbld rw11::CM_CNTL {func "STA"}] \
+  -rreg cm.stat -edata [regbld rw11::CM_STAT run] $statmsk \
+  -wreg cm.cntl [regbld rw11::CM_CNTL {func "SUS"}] \
+  -rreg cm.stat -edata [regbld rw11::CM_STAT susp run] $statmsk \
+  -wreg cm.cntl [regbld rw11::CM_CNTL {func "SUS"}] \
+  -rreg cm.stat -edata [regbld rw11::CM_STAT susp run] $statmsk \
+  -wreg cm.cntl [regbld rw11::CM_CNTL {func "STO"}] \
+  -rreg cm.stat -edata [regbld rw11::CM_STAT] $statmsk
+# get amax for later usage
+$cpu cp \
+  -rreg cm.stat rstat
+set bsize [regget rbmoni::STAT(bsize) $rstat]
+set amax  [expr {( 256 << $bsize ) - 1}]
 
-# start cmon
-$cpu cp -wreg cm.cntl [regbld rw11::CM_CNTL start] \
-        -rreg cm.cntl -edata [regbld rw11::CM_CNTL start]
+rlc log "    A3: test addr --------------------------------------"
+rlc log "    A3.1: write/read addr when stopped -----------------"
+foreach {laddr waddr} [list 0x0000 0 0x0000 7 $amax 0 $amax 8] {
+  set addr [regbld rw11::CM_ADDR [list laddr $laddr] [list waddr $waddr]]
+  $cpu cp \
+    -wreg cm.addr $addr \
+    -rreg cm.addr -edata $addr
+}
 
-rlc log "    A2: test stat --------------------------------------"
-# is read only
-$cpu cp -rreg cm.stat \
-        -wreg cm.stat 0 -estaterr
+rlc log "    A3.2: verify that starting clears addr -------------"
+$cpu cp \
+  -wreg cm.cntl [regbldkv rw11::CM_CNTL func "STO"] \
+  -wreg cm.addr [regbldkv rw11::CM_ADDR laddr $amax] \
+  -rreg cm.addr -edata [regbldkv rw11::CM_ADDR laddr $amax] \
+  -wreg cm.cntl [regbldkv rw11::CM_CNTL func "STA"] \
+  -rreg cm.addr -edata 0x00 \
+  -wreg cm.cntl [regbldkv rw11::CM_CNTL func "STO"]
 
-rlc log "    A3: test addr ---------------------------------------"
-rlc log "    A3.1: when stopped ----------------------------------"
-# start will clear addr
-$cpu cp -wreg cm.cntl [regbld rw11::CM_CNTL stop] \
-        -rreg cm.cntl -edata 0 \
-        -wreg cm.addr [regbld rw11::CM_ADDR {laddr 017} {waddr 03}] \
-        -rreg cm.addr -edata [regbld rw11::CM_ADDR {laddr 017} {waddr 03}] \
-        -wreg cm.cntl [regbld rw11::CM_CNTL start] \
-        -rreg cm.cntl -edata [regbld rw11::CM_CNTL start] \
-        -rreg cm.addr -edata [regbld rw11::CM_ADDR {laddr 0} {waddr 0}]
-rlc log "    A3.2: test err when started and written ------------"
-$cpu cp -wreg cm.cntl [regbld rw11::CM_CNTL start] \
-        -wreg cm.addr 0x1234 -estaterr 
+rlc log "    A3.3: test err when started and addr written -------"
+$cpu cp \
+  -wreg cm.cntl [regbldkv rw11::CM_CNTL func "STA"] \
+  -wreg cm.addr 0x100 -estaterr \
+  -wreg cm.cntl [regbldkv rw11::CM_CNTL func "STO"]
 
 rlc log "    A4: test data --------------------------------------"
 rlc log "    A4.1: when stopped ---------------------------------"
 # stop, set addr, and nine times data, check addr
-$cpu cp -wreg cm.cntl [regbld rw11::CM_CNTL stop] \
+$cpu cp -wreg cm.cntl [regbld rw11::CM_CNTL {func "STO"}] \
         -wreg cm.addr [regbld rw11::CM_ADDR {laddr 010} {waddr 0}] \
         -rreg cm.data \
         -rreg cm.addr -edata [regbld rw11::CM_ADDR {laddr 010} {waddr 001}] \
@@ -90,11 +129,8 @@ $cpu cp -rreg cm.data \
         -rreg cm.data \
         -rreg cm.addr -edata [regbld rw11::CM_ADDR {laddr 011} {waddr 000}]
 
-rlc log "    A4.2: test err when started or written -------------"
-$cpu cp -wreg cm.cntl [regbld rw11::CM_CNTL start] \
-        -rreg cm.data -estaterr \
-        -wreg cm.cntl [regbld rw11::CM_CNTL stop] \
-        -wreg cm.data 0 -estaterr 
+rlc log "    A4.2: test err when written ------------------------"
+$cpu cp -wreg cm.data 0x100 -estaterr
 
 rlc log "    A5: test imon section; readable, not writable ------"
 $cpu cp -rreg cm.iaddr \

@@ -1,10 +1,11 @@
-# $Id: test_cmon_logs.tcl 830 2016-12-26 20:25:49Z mueller $
+# $Id: test_cmon_logs.tcl 885 2017-04-23 15:54:01Z mueller $
 #
-# Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2017-04-23   885   2.0    adopt to revised interface
 # 2015-08-02   707   1.0    Initial version
 #
 # Test cm_print
@@ -18,8 +19,11 @@ if {[$cpu get hascmon] == 0} {
 }
 
 # reset cmon
-$cpu cp -wreg cm.cntl [regbld rw11::CM_CNTL start stop] \
-        -rreg cm.cntl -edata 0
+# reset cmon
+$cpu cp \
+  -wreg cm.cntl [regbld rw11::CM_CNTL {func "STA"}] \
+  -wreg cm.cntl [regbld rw11::CM_CNTL {func "STO"}] \
+  -rreg cm.cntl -edata 0
 
 # define tmpproc for executing tests
 proc tmpproc_dotest {cpu code tname} {

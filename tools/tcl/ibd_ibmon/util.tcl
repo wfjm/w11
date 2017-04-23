@@ -1,4 +1,4 @@
-# $Id: util.tcl 883 2017-04-22 11:57:38Z mueller $
+# $Id: util.tcl 885 2017-04-23 15:54:01Z mueller $
 #
 # Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -76,7 +76,7 @@ namespace eval ibd_ibmon {
       -wibr im.addr 0x0000
   }
   #
-  # start: setup filter window -----------------------------------------------
+  # filter: setup filter window ----------------------------------------------
   #
   proc filter {{cpu "cpu0"} {lolim 0160000} {hilim 0177776}} {
     if {$lolim < 0160000 || $hilim < 0160000} {
@@ -148,7 +148,6 @@ namespace eval ibd_ibmon {
     if {[regget ibd_ibmon::STAT(wrap) $rstat]} { set nval $nmax }
 
     if {$nent > $nval} {set nent $nval}
-    if {$nent == 0}    { return {} }
 
     # if wstop set use first nent items, otherwise last nent items
     set caddr 0
@@ -208,7 +207,7 @@ namespace eval ibd_ibmon {
 
     # restore address and resume
     #   resume only if not already suspended before
-    set rfu [expr {[regget ibd_ibmon::::STAT(susp) $rstatpre] ? "NOOP" : "RES"}]
+    set rfu [expr {[regget ibd_ibmon::STAT(susp) $rstatpre] ? "NOOP" : "RES"}]
     $cpu cp -wibr im.addr $raddr \
             -wibr im.cntl [regbldkv ibd_ibmon::CNTL func $rfu]
     

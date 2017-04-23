@@ -1,6 +1,6 @@
--- $Id: pdp11_sys70.vhd 750 2016-03-24 23:11:51Z mueller $
+-- $Id: pdp11_sys70.vhd 884 2017-04-22 16:35:42Z mueller $
 --
--- Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -31,6 +31,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2017-04-22   884   1.2.1  pdp11_dmcmon: use SNUM and AWIDTH generics
 -- 2016-03-22   750   1.2    pdp11_cache now configurable size
 -- 2015-11-01   712   1.1.4  use sbcntl_sbf_tmu
 -- 2015-07-19   702   1.1.3  use DM_STAT_SE
@@ -249,7 +250,9 @@ begin
   begin
     I0: pdp11_dmcmon
       generic map (
-        RB_ADDR => slv(to_unsigned(16#0048#,16)))
+        RB_ADDR => slv(to_unsigned(16#0048#,16)),
+        AWIDTH  => sys_conf_dmcmon_awidth,
+        SNUM    => sys_conf_dmscnt)
       port map (
         CLK         => CLK,
         RESET       => RESET,

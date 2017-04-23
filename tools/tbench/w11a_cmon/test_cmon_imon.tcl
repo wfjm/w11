@@ -1,10 +1,11 @@
-# $Id: test_cmon_imon.tcl 830 2016-12-26 20:25:49Z mueller $
+# $Id: test_cmon_imon.tcl 885 2017-04-23 15:54:01Z mueller $
 #
-# Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2017-04-23   885   2.0    adopt to revised interface
 # 2015-07-18   701   1.0    Initial version
 #
 # Test register response 
@@ -18,8 +19,13 @@ if {[$cpu get hascmon] == 0} {
 }
 
 # reset cmon
-$cpu cp -wreg cm.cntl [regbld rw11::CM_CNTL start stop] \
-        -rreg cm.cntl -edata 0
+$cpu cp \
+  -wreg cm.cntl [regbld rw11::CM_CNTL {func "STA"}] \
+  -wreg cm.cntl [regbld rw11::CM_CNTL {func "STO"}] \
+  -rreg cm.cntl -edata 0
+
+# remember mask for malcnt
+set malcntmsk [regbld rw11::CM_STAT {malcnt -1}]
 
 # -- Section A ---------------------------------------------------------------
 rlc log "  A: simple linear code, word access ------------------------"
@@ -145,7 +151,7 @@ foreach {ipc mal} $edata {
   lappend clist -step
   lappend clist -rreg "cm.ipc"  -edata $ipc
   lappend clist -rreg "cm.stat" \
-                -edata [regbldkv rw11::CM_STAT malcnt $malcnt]
+                -edata [regbldkv rw11::CM_STAT malcnt $malcnt] $malcntmsk
   if {$malcnt > 0} {
     lappend clist -rblk "cm.imal" $malcnt -edata $mal
   }
@@ -217,7 +223,7 @@ foreach {ipc data} $edata {
   lappend clist -step
   lappend clist -rreg "cm.ipc"  -edata $ipc
   lappend clist -rreg "cm.stat" \
-                -edata [regbldkv rw11::CM_STAT malcnt $malcnt]
+                -edata [regbldkv rw11::CM_STAT malcnt $malcnt] $malcntmsk
   if {$malcnt > 0} {
     lappend clist -rblk "cm.imal" $malcnt -edata $data
   }

@@ -1,4 +1,4 @@
-# $Id: dmcmon.tcl 837 2017-01-02 19:23:34Z mueller $
+# $Id: dmcmon.tcl 885 2017-04-23 15:54:01Z mueller $
 #
 # Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-04-23   885   2.0    revised interface, add suspend
 # 2017-01-02   837   1.0.2  add procs cme,cml
 # 2016-12-29   833   1.0.1  cm_print: protect against empty lists
 # 2015-08-05   708   1.0    Initial version
@@ -28,11 +29,14 @@ namespace eval rw11 {
   #
   # setup dmcmon unit register descriptions for w11a -------------------------
   #
-  regdsc CM_CNTL   {mwsup 4} {imode 3} {wena 2} {stop 1} {start 0}
-  regdsc CM_STAT   {bsize 15 3} {malcnt 12 4} {wrap 0}
+  regdsc CM_CNTL   {mwsup 5} {imode 4} {wstop 3} \
+                   {func 2 3 "s:NOOP:NOOP1:NOOP2:NOOP3:STO:STA:SUS:RES"}
+  regdsc CM_STAT   {bsize 15 3} {malcnt 12 4} {snum 8} {wrap 2} {susp 1} {run 0}
   regdsc CM_ADDR   {laddr 15 12} {waddr 3 4}
   regdsc CM_IADDR  {laddr 15 12}
 
+  regdsc CM_FSNUM  {vmw 7} {err 3} {vec 2} {ins 1} {con 0} 
+  
   regdsc CM_D8     {xnum 7 8} {req 15} {istart 9} {idone 8}
   regdsc CM_D8REQ  {wacc 14} {macc 13} {cacc 12} {bytop 11} {dspace 10}
   regdsc CM_D8ACK  {ack 14} {err 13} {tysv 12} {tmmu 11} {mwdrop 10}
@@ -56,17 +60,36 @@ namespace eval rw11 {
   # cm_start: start the dmcmon -----------------------------------------------
   #
   proc cm_start {{cpu "cpu0"} args} {
-    args2opts opts { mwsup 0 imode 0 wena 1 } {*}$args
-    $cpu cp -wreg cm.cntl [regbldkv rw11::CM_CNTL start 1 \
-                            mwsup $opts(mwsup)  imode $opts(imode) \
-                            wena $opts(wena) ]
+    args2opts opts { mwsup 0 imode 0 wstop 0 } {*}$args
+    $cpu cp -wreg cm.cntl [regbldkv rw11::CM_CNTL func "STA" \
+                             mwsup $opts(mwsup) \
+                             imode $opts(imode) \
+                             wstop $opts(wstop) ]
   }
 
   #
   # cm_stop: stop the dmcmon -------------------------------------------------
   #
   proc cm_stop {{cpu "cpu0"}} {
-    $cpu cp -wreg cm.cntl [regbld rw11::CM_CNTL stop]
+    $cpu cp -wreg cm.cntl [regbld rw11::CM_CNTL {func "STO"}]
+  }
+
+  #
+  # suspend: suspend the dmcmon ----------------------------------------------
+  #   returns 1 if already suspended
+  #   that allows to implement nested suspend/resume properly
+  #
+  proc cm_susp {{cpu "cpu0"}} {
+     $cpu cp -rreg cm.stat rstat \
+             -wreg cm.cntl [regbld rw11::CM_CNTL {func "SUS"}]
+    return [regget rw11::CM_STAT(susp) $rstat]
+  }
+  
+  #
+  # resume: resume the dmcmon ------------------------------------------------
+  #
+  proc cm_resu {{cpu "cpu0"}} {
+    $cpu cp -wreg cm.cntl [regbld rw11::CM_CNTL {func "RES"}]
   }
 
   #
@@ -74,22 +97,31 @@ namespace eval rw11 {
   #   returns a list, 1st entry descriptor, rest 9-tuples in d0,..,d8 order
   #
   proc cm_read {{cpu "cpu0"} {nent -1}} {
-    $cpu cp -rreg cm.cntl rcntl \
-            -rreg cm.stat rstat \
-            -rreg cm.addr raddr
+    # suspend and get address and status
+    $cpu cp -rreg cm.stat rstatpre \
+            -wreg cm.cntl [regbld rw11::CM_CNTL {func "SUS"}] \
+            -rreg cm.cntl rcntl \
+            -rreg cm.addr raddr \
+            -rreg cm.stat rstat
 
     set bsize [regget rw11::CM_STAT(bsize) $rstat]
     set amax  [expr {( 256 << $bsize ) - 1}]
-    if {$nent == -1} { set nent $amax }
+    set nmax  [expr { $amax + 1 } ]
+    if {$nent == -1}   { set nent $nmax }
+    if {$nent > $nmax} { set nent $nmax }
 
+    # determine number of available items (check wrap flag)
     set laddr [regget rw11::CM_ADDR(laddr) $raddr]
     set nval  $laddr
-    if {[regget rw11::CM_STAT(wrap) $rstat]} { set nval $amax }
+    if {[regget rw11::CM_STAT(wrap) $rstat]} { set nval $nmax }
 
     if {$nent > $nval} {set nent $nval}
-    if {$nent == 0} { return {} }
 
-   set caddr [expr {( $laddr - $nent ) & $amax}]
+    # if wstop set use first nent items, otherwise last nent items
+    set caddr 0
+    if {![regget rw11::CM_CNTL(wstop) $rcntl]} {
+      set caddr [expr {( $laddr - $nent ) & $amax}]
+    }
     $cpu cp -wreg cm.addr [regbld rw11::CM_ADDR [list laddr $caddr]]
 
     set rval {}
@@ -110,7 +142,11 @@ namespace eval rw11 {
       set nrest [expr {$nrest - $nget }]
     }
 
-    $cpu cp -wreg cm.addr $raddr
+    # restore address and resume
+    #   resume only if not already suspended before
+    set rfu [expr {[regget rw11::CM_STAT(susp) $rstatpre] ? "NOOP" : "RES"}]
+    $cpu cp -wreg cm.addr $raddr \
+            -wreg cm.cntl [regbldkv rw11::CM_CNTL func $rfu]
 
     return $rval
   }
@@ -119,12 +155,22 @@ namespace eval rw11 {
   # cm_print: convert raw into human readable format -------------------------
   #
   proc cm_print {cmraw} {
-    if {![llength $cmraw]} {return;}
-    set imode [regget rw11::CM_CNTL(imode) [lindex $cmraw 0 0]]
+    if {[llength $cmraw] <= 1} {return;}
+    set rcntl [lindex $cmraw 0 0];        # get im.cntl
+    set rstat [lindex $cmraw 0 1];        # get im.stat
+    set imode [regget rw11::CM_CNTL(imode) $rcntl]
+    set rsnum [regget rw11::CM_STAT(snum)  $rstat]
     set rval {}
     set line {}
-    if { $imode} {append line " nc"}
-    if {!$imode} {append line "state         "}
+    if {$imode} {
+      append line " nc"
+    } else {
+      if {$rsnum} {
+        append line "state         "
+      } else {
+        append line "c WS"
+      }
+    }
 
     if {$imode}  {
       append line " ....pc"
@@ -209,8 +255,19 @@ namespace eval rw11 {
         if {$first}    {set ccnt 0}
         append line [format %3d $ccnt]
       } else {
-        set snam [lindex $snum2state $d8_xnum]
-        append line [format %-14s $snam]
+        if {$rsnum} {
+          set snam [lindex $snum2state $d8_xnum]
+          append line [format %-14s $snam]
+        } else {
+          set snumcat "-"
+          if {[regget rw11::CM_FSNUM(con) $d8_xnum]} {set snumcat "c"}
+          if {[regget rw11::CM_FSNUM(ins) $d8_xnum]} {set snumcat "i"}
+          if {[regget rw11::CM_FSNUM(vec) $d8_xnum]} {set snumcat "v"}
+          if {[regget rw11::CM_FSNUM(err) $d8_xnum]} {set snumcat "e"}
+          set snumvmw " "
+          if {[regget rw11::CM_FSNUM(vmw) $d8_xnum]} {set snumvmw "W"}
+          append line "$snumcat $snumvmw "
+        }
       }
 
       if {$imode} {
@@ -467,17 +524,18 @@ namespace eval rw11 {
   #
   # cme: dmcmon enable -------------------------------------------------------
   #
-  proc cme {{cpu "cpu0"} {mode "i"}} {
-    if {![regexp {^[is]?n?$} $mode]} {
-      error "cme-E: bad mode '$mode', only i,s and n allowed"
+  proc cme {{cpu "cpu0"} {mode ""}} {
+    if {![regexp {^n?[isS]?$} $mode]} {
+      error "cme-E: bad mode '$mode', only n plus [isS] allowed"
     }
 
-    set imode [string match *i* $mode]
-    set mwsup [string match *s* $mode]
-    set wena  1
-    if {[string match *n* $mode]} {set wena 0}
+    set wstop [string match *n* $mode]
+    set imode 1
+    set mwsup 0
+    if {[string match *s* $mode]} {set imode 0; set mwsup 1}
+    if {[string match *S* $mode]} {set imode 0; set mwsup 0}
 
-    rw11::cm_start $cpu imode $imode mwsup $mwsup wena $wena
+    rw11::cm_start $cpu imode $imode mwsup $mwsup wstop $wstop
     return ""
   }
 
@@ -485,7 +543,6 @@ namespace eval rw11 {
   # cml: dmcmon list ---------------------------------------------------------
   #
   proc cml {{cpu "cpu0"} {nent -1}} {
-    rw11::cm_stop $cpu
     return [rw11::cm_print [rw11::cm_read $cpu $nent]]
   }
 

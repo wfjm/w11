@@ -28,6 +28,13 @@ The full set of tests is only run for tagged releases.
   - all works fine with nexys4 !
 
 ### Summary
+- refurbish dmcmon
+  - has now the sta,sto,sus,res logic as rbmon and ibmon
+  - does not depend on full state number generation anymore
+  - missed WAIT instructions so far, has been fixed
+- dmcmon included in sys_w11a_n4 again
+  - full snum generation code gives bad synthesis under vivado (fine in ISE)
+  - the updated dmcmon can life with a simple, category based, snum
 - integrate rbus monitor in w11 shell
   - ti_rri: setup rbus monitor if detected
   - rw11/shell.tcl: add .rme,.rmd,.rmf,.rml

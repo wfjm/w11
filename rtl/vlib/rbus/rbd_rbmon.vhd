@@ -1,4 +1,4 @@
--- $Id: rbd_rbmon.vhd 872 2017-04-09 20:48:05Z mueller $
+-- $Id: rbd_rbmon.vhd 879 2017-04-16 15:42:35Z mueller $
 --
 -- Copyright 2010-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -24,7 +24,7 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
--- 2017-04-09   872 14.7  131013 xc6slx16-2   140  202    -   82 s  5.9
+-- 2017-04-14   873 14.7  131013 xc6slx16-2   124  187    -   67 s  5.9
 -- 2017-04-08   758 14.7  131013 xc6slx16-2   112  200    -   73 s  5.7
 -- 2014-12-22   619 14.7  131013 xc6slx16-2   114  209    -   72 s  5.6
 -- 2014-12-21   593 14.7  131013 xc6slx16-2    99  207    -   77 s  7.0
@@ -32,7 +32,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2017-04-09   872   6.0    revised interface, add suspend and repeat collapse
+-- 2017-04-16   879   6.0    revised interface, add suspend and repeat collapse
 -- 2015-05-02   672   5.0.1  use natural for AWIDTH to work around a ghdl issue
 -- 2014-12-22   619   5.0    reorganized, supports now 16 bit addresses
 -- 2014-09-13   593   4.1    change default address -> ffe8
@@ -160,7 +160,6 @@ architecture syn of rbd_rbmon is
     wrap : slbit;                       -- laddr wrap flag
     laddr : slv(AWIDTH-1 downto 0);     -- line address
     waddr : slv2;                       -- word address
-    addrlast: slv16;                    -- last rb addr
     addrsame: slbit;                    -- curr rb addr equal last rb addr
     addrwind: slbit;                    -- curr rb addr in [lolim,hilim] window
     aval_1  : slbit;                    -- last cycle aval
@@ -196,11 +195,10 @@ architecture syn of rbd_rbmon is
     '0',                                -- wrap
     laddrzero,                          -- laddr
     "00",                               -- waddr
-    x"ffff",                            -- addrlast (startup: ffff)
     '0','0','0',                        -- addrsame,addrwind,aval_1
     '0','0','0','0','0',                -- arm1r,arm2r,arm1w,arm2w,rcol
     '0',                                -- rbtake_1
-    (others=>'0'),                      -- rbaddr
+    x"ffff",                            -- rbaddr (startup: ffff)
     '0','0','0','0','0',                -- rbinit,rbwe,rback,rbbusy,rberr
     '0','0','0',                        -- rbnak,rbtout,rbburst
     (others=>'0'),                      -- rbdata
@@ -307,21 +305,6 @@ begin
       ibramen := '1';
     end if;
 
-    -- rbus address monitor
-    if RB_MREQ.aval='1' and r.aval_1='0' then
-      n.addrlast := RB_MREQ.addr;
-      n.addrsame := '0';
-      if RB_MREQ.addr = r.addrlast then
-        n.addrsame := '1';
-      end if;
-      n.addrwind := '0';
-      if unsigned(RB_MREQ.addr)>=unsigned(r.lolim) and   -- and in addr window
-         unsigned(RB_MREQ.addr)<=unsigned(r.hilim) then
-        n.addrwind := '1';
-      end if;
-    end if;
-    n.aval_1 := RB_MREQ.aval;
-
     -- rbus transactions
     if r.rbsel = '1' then
 
@@ -345,8 +328,10 @@ begin
                 n.laddr  := laddrzero;
                 n.waddr  := "00";
               when func_sus =>                -- func: susp ------------
-                n.go     := '0';
-                n.susp   := r.go;
+                if r.go = '1' then              -- noop unless running
+                  n.go     := '0';
+                  n.susp   := r.go;
+                end if;
               when func_res =>                -- func: resu ------------
                 n.go     := r.susp;
                 n.susp   := '0';
@@ -368,17 +353,21 @@ begin
           
         when rbaddr_addr =>                 -- addr ------------------
           if RB_MREQ.we = '1' then
-            n.go    := '0';
-            n.wrap  := '0';
-            n.laddr := RB_MREQ.din(addr_rbf_laddr);
-            n.waddr := RB_MREQ.din(addr_rbf_waddr);
+            if r.go = '0' then                -- if not active OK
+              n.laddr := RB_MREQ.din(addr_rbf_laddr);
+              n.waddr := RB_MREQ.din(addr_rbf_waddr);
+            else
+              irb_err := '1';                 -- otherwise error
+            end if;
           end if;
 
         when rbaddr_data =>                 -- data ------------------
-          if r.go='1' or RB_MREQ.we='1' then
+          -- write to data is an error
+          if RB_MREQ.we='1' then
             irb_err := '1';
           end if;
-          if RB_MREQ.re = '1' then
+          -- read to data always allowed, addr only incremented when not active
+          if RB_MREQ.re = '1' and r.go = '0' then
             n.waddr := slv(unsigned(r.waddr) + 1);
             if r.waddr = "11" then
               laddr_inc := '1';
@@ -426,6 +415,31 @@ begin
     --   a rbus transaction are captured if the address is in alim window
     --   and the access is not refering to rbd_rbmon itself
     
+    -- rbus address monitor
+    if (RB_MREQ.aval='1' and r.aval_1='0') or RB_MREQ.init='1' then
+      n.rbaddr := RB_MREQ.addr;
+      n.addrsame := '0';
+      if RB_MREQ.addr = r.rbaddr then
+        n.addrsame := '1';
+      end if;
+      n.addrwind := '0';
+      if unsigned(RB_MREQ.addr)>=unsigned(r.lolim) and   -- and in addr window
+         unsigned(RB_MREQ.addr)<=unsigned(r.hilim) then
+        n.addrwind := '1';
+      end if;
+    end if;
+    n.aval_1 := RB_MREQ.aval;
+
+    -- rbus data  monitor
+    if (RB_MREQ.aval='1' and irbena='1') or RB_MREQ.init='1' then
+      if RB_MREQ.init='1' or RB_MREQ.we='1' then  -- for write/init of din
+        n.rbdata := RB_MREQ.din;
+      else                                        -- for read of dout
+        n.rbdata := RB_SRES_SUM.dout;
+      end if;
+    end if;
+
+    -- track state and decide on storage
     rbtake := '0';
     if RB_MREQ.aval='1' and irbena='1' then   -- aval and (re or we)
       if r.addrwind='1' and r.rbsel='0' then     -- and in window and not self
@@ -437,14 +451,8 @@ begin
     end if;
 
     if rbtake = '1' then                -- if capture active
-      n.rbaddr := RB_MREQ.addr;           -- keep track of some state
-      n.rbinit := RB_MREQ.init;
+      n.rbinit := RB_MREQ.init;           -- keep track of some state
       n.rbwe   := RB_MREQ.we;
-      if RB_MREQ.init='1' or RB_MREQ.we='1' then  -- for write/init of din
-        n.rbdata := RB_MREQ.din;
-      else                                        -- for read of dout
-        n.rbdata := RB_SRES_SUM.dout;
-      end if;
       
       if r.rbtake_1 = '0' then            -- if initial cycle of a transaction
         n.rback  := RB_SRES_SUM.ack;

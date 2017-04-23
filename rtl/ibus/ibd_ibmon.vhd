@@ -1,4 +1,4 @@
--- $Id: ibd_ibmon.vhd 872 2017-04-09 20:48:05Z mueller $
+-- $Id: ibd_ibmon.vhd 879 2017-04-16 15:42:35Z mueller $
 --
 -- Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -24,12 +24,12 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
--- 2017-04-09   872 14.7  131013 xc6slx16-2   134  203    0   80 s  5.5
+-- 2017-04-14   873 14.7  131013 xc6slx16-2   121  205    0   77 s  5.5
 -- 2015-04-24   668 14.7  131013 xc6slx16-2   112  235    0   83 s  5.6
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2017-04-09   872   2.0    revised interface, add suspend and repeat collapse
+-- 2017-04-16   879   2.0    revised interface, add suspend and repeat collapse
 -- 2017-03-04   858   1.0.2  BUGFIX: wrap set when go=0 due to wena=0
 -- 2015-05-02   672   1.0.1  use natural for AWIDTH to work around a ghdl issue
 -- 2015-04-24   668   1.0    Initial version (derived from rbd_rbmon)
@@ -172,7 +172,6 @@ architecture syn of ibd_ibmon is
     wrap   : slbit;                     -- laddr wrap flag
     laddr  : slv(AWIDTH-1 downto 0);    -- line address
     waddr  : slv2;                      -- word address
-    addrlast: slv13_1;                  -- last ib addr
     addrsame: slbit;                    -- curr ib addr equal last ib addr
     addrwind: slbit;                    -- curr ib addr in [lolim,hilim] window
     aval_1  : slbit;                    -- last cycle aval
@@ -212,11 +211,10 @@ architecture syn of ibd_ibmon is
     '0',                                -- wrap
     laddrzero,                          -- laddr
     "00",                               -- waddr
-    (others=>'0'),                      -- addrlast (startup: 160000)
     '0','0','0',                        -- addrsame,addrwind,aval_1
     '0','0','0','0','0',                -- arm1r,arm2r,arm1w,arm2w,rcol
     '0',                                -- ibtake_1
-    (others=>'0'),                      -- ibaddr
+    (others=>'0'),                      -- ibaddr (startup: 160000)
     '0','0','0','0','0','0',            -- ibwe,ibrmw,ibbe0,ibbe1,ibcacc,ibracc
     '0','0',                            -- iback,ibbusy
     '0','0','0',                        -- ibnak,ibtout,ibburst
@@ -322,23 +320,8 @@ begin
       ibramen := '1';                   -- ensures bram read before ibus read
     end if;
 
-    -- ibus address monitor
-    if IB_MREQ.aval='1' and r.aval_1='0' then
-      n.addrlast := IB_MREQ.addr;
-      n.addrsame := '0';
-      if IB_MREQ.addr = r.addrlast then
-        n.addrsame := '1';
-      end if;
-      n.addrwind := '0';
-      if unsigned(IB_MREQ.addr)>=unsigned(r.lolim) and   -- and in addr window
-         unsigned(IB_MREQ.addr)<=unsigned(r.hilim) then
-        n.addrwind := '1';
-      end if;
-    end if;
-    n.aval_1 := IB_MREQ.aval;
-    
-    -- ibus transactions (react only on console (this includes racc))
-    if r.ibsel = '1' and IB_MREQ.cacc='1' then
+    -- ibus transactions (react only on rem access; invisible on loc side)
+    if r.ibsel = '1' and IB_MREQ.racc='1' then
 
       iib_ack := iibena;                -- ack all accesses
 
@@ -363,8 +346,10 @@ begin
                 n.laddr  := laddrzero;
                 n.waddr  := "00";
               when func_sus =>                -- func: susp ------------
-                n.go     := '0';
-                n.susp   := r.go;
+                if r.go = '1' then              -- noop unless running
+                  n.go     := '0';
+                  n.susp   := r.go;
+                end if;
               when func_res =>                -- func: resu ------------
                 n.go     := r.susp;
                 n.susp   := '0';
@@ -386,17 +371,21 @@ begin
           
         when ibaddr_addr =>                 -- addr ------------------
           if IB_MREQ.we = '1' then
-            n.go    := '0';
-            n.wrap  := '0';
-            n.laddr := IB_MREQ.din(addr_ibf_laddr);
-            n.waddr := IB_MREQ.din(addr_ibf_waddr);
+            if r.go = '0' then                -- if not active OK
+              n.laddr := IB_MREQ.din(addr_ibf_laddr);
+              n.waddr := IB_MREQ.din(addr_ibf_waddr);
+            else
+              iib_ack := '0';                 -- otherwise error, do nak
+            end if;
           end if;
 
         when ibaddr_data =>                 -- data ------------------
-          if r.go='1' or IB_MREQ.we='1' then
-            iib_ack := '0';                   -- error, do nak
+          -- write to data is an error, do nak
+          if IB_MREQ.we='1' then
+            iib_ack := '0';
           end if;
-          if IB_MREQ.re = '1' then
+          -- read to data always allowed, addr only incremented when not active
+          if IB_MREQ.re = '1' and r.go = '0' then
             n.waddr := slv(unsigned(r.waddr) + 1);
             if r.waddr = "11" then
               laddr_inc := '1';
@@ -449,6 +438,31 @@ begin
     --   a ibus transaction are captured if the address is in alim window
     --   and the access is not refering to ibd_ibmon itself
     
+    -- ibus address monitor
+    if IB_MREQ.aval='1' and r.aval_1='0' then
+      n.ibaddr := IB_MREQ.addr;
+      n.addrsame := '0';
+      if IB_MREQ.addr = r.ibaddr then
+        n.addrsame := '1';
+      end if;
+      n.addrwind := '0';
+      if unsigned(IB_MREQ.addr)>=unsigned(r.lolim) and   -- and in addr window
+         unsigned(IB_MREQ.addr)<=unsigned(r.hilim) then
+        n.addrwind := '1';
+      end if;
+    end if;
+    n.aval_1 := IB_MREQ.aval;
+    
+    -- ibus data  monitor
+    if IB_MREQ.aval='1' and iibena='1' then   -- aval and (re or we)
+      if IB_MREQ.we='1' then                -- for write of din
+        n.ibdata := IB_MREQ.din;
+      else                                  -- for read of dout
+        n.ibdata := IB_SRES_SUM.dout;
+      end if;
+    end if;
+      
+    -- track state and decide on storage
     ibtake := '0';
     if IB_MREQ.aval='1' and iibena='1' then   -- aval and (re or we)
       if r.addrwind='1' and r.ibsel='0' then    -- and in window and not self
@@ -461,18 +475,12 @@ begin
     end if;
 
     if ibtake = '1' then                -- if capture active
-      n.ibaddr := IB_MREQ.addr;           -- keep track of some state
-      n.ibwe   := IB_MREQ.we;
+      n.ibwe   := IB_MREQ.we;             -- keep track of some state
       n.ibrmw  := IB_MREQ.rmw;
       n.ibbe0  := IB_MREQ.be0;
       n.ibbe1  := IB_MREQ.be1;
       n.ibcacc := IB_MREQ.cacc;
       n.ibracc := IB_MREQ.racc;
-      if IB_MREQ.we='1' then                -- for write of din
-        n.ibdata := IB_MREQ.din;
-      else                                  -- for read of dout
-        n.ibdata := IB_SRES_SUM.dout;
-      end if;
       
       if r.ibtake_1 = '0' then            -- if initial cycle of a transaction
         n.iback  := IB_SRES_SUM.ack;

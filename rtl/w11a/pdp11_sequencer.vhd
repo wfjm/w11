@@ -1,4 +1,4 @@
--- $Id: pdp11_sequencer.vhd 885 2017-04-23 15:54:01Z mueller $
+-- $Id: pdp11_sequencer.vhd 886 2017-04-23 17:00:54Z mueller $
 --
 -- Copyright 2006-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -712,7 +712,7 @@ begin
       
   -- idle and command port states ---------------------------------------------
       
-      when s_idle =>
+      when s_idle =>                    -- ------------------------------------
         -- Note: s_idle was entered from suspended WAIT when waitsusp='1'
         -- --> all exits must check this and either return to s_op_wait
         --     or abort the WAIT and set waitsusp='0'
@@ -855,21 +855,21 @@ begin
           
         end if;
 
-      when s_cp_regread =>
+      when s_cp_regread =>              -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_ddst;  -- OUNIT A = DDST
         ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B = const(0)
         ndpcntl.dres_sel  := c_dpath_res_ounit;   -- DRES = OUNIT
         nstatus.cmdack := '1';
         nstate := s_idle;
         
-      when s_cp_rps =>
+      when s_cp_rps =>                  -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_dtmp;  -- OUNIT A = DTMP
         ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B = const(0)
         ndpcntl.dres_sel  := c_dpath_res_ounit;   -- DRES = OUNIT
         nstatus.cmdack := '1';
         nstate := s_idle;
 
-      when s_cp_memr_w =>
+      when s_cp_memr_w =>               -- -----------------------------------
         nstate := s_cp_memr_w;
         ndpcntl.dres_sel := c_dpath_res_vmdout;  -- DRES = VMDOUT
         if (VM_STAT.ack or VM_STAT.err or VM_STAT.fail)='1' then
@@ -880,7 +880,7 @@ begin
           nstate := s_idle;
         end if;
 
-      when s_cp_memw_w =>
+      when s_cp_memw_w =>               -- -----------------------------------
         nstate := s_cp_memw_w;
         if (VM_STAT.ack or VM_STAT.err or VM_STAT.fail)='1' then
           nstatus.cmdack   := '1';
@@ -892,11 +892,11 @@ begin
         
   -- instruction fetch and decode ---------------------------------------------
 
-      when s_ifetch =>
+      when s_ifetch =>                  -- -----------------------------------
         nmmumoni.istart := '1';         -- do here; memread_i inc PC ! 
         do_memread_i(nstate, ndpcntl, nvmcntl, s_ifetch_w);
         
-      when s_ifetch_w =>
+      when s_ifetch_w =>                -- -----------------------------------
         nstate := s_ifetch_w;
         do_memcheck(nstate, nstatus, imemok);
         if imemok then
@@ -904,7 +904,7 @@ begin
           nstate := s_idecode;
         end if;
         
-      when s_idecode =>
+      when s_idecode =>                 -- -----------------------------------
         nstatus.itimer := '1';          -- signal instruction started
         nidstat := ID_STAT;             -- register decode status
         if ID_STAT.force_srcsp = '1' then
@@ -1012,13 +1012,13 @@ begin
   --               s_srcr_def_w         get @n(r)
   --               -> do_fork_dstr or do_fork_opg
         
-      when s_srcr_def =>
+      when s_srcr_def =>                -- -----------------------------------
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_dsrc; -- VA = DSRC
         do_memread_d(nstate, nvmcntl, s_srcr_def_w,
                      bytop=>R_IDSTAT.is_bytop,
                      is_pci=>R_IDSTAT.is_srcpcmode1);
 
-      when s_srcr_def_w =>
+      when s_srcr_def_w =>              -- -----------------------------------
         nstate := s_srcr_def_w;
         do_memcheck(nstate, nstatus, imemok);
         ndpcntl.dres_sel := c_dpath_res_vmdout;  -- DRES = VMDOUT
@@ -1032,7 +1032,7 @@ begin
           end if;
         end if;
 
-      when s_srcr_inc =>
+      when s_srcr_inc =>                -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_dsrc;  -- OUNIT A=DSRC
         do_const_opsize(ndpcntl, R_IDSTAT.is_bytop, SRCDEF, SRCREG);
         ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B=const
@@ -1050,7 +1050,7 @@ begin
         do_memread_d(nstate, nvmcntl, s_srcr_inc_w,
                      bytop=>bytop, is_pci=>R_IDSTAT.is_srcpc);
         
-      when s_srcr_inc_w =>
+      when s_srcr_inc_w =>              -- -----------------------------------
         nstate := s_srcr_inc_w;
         ndpcntl.dres_sel := c_dpath_res_vmdout;  -- DRES = VMDOUT
         ndpcntl.dsrc_sel := c_dpath_dsrc_res;    -- DSRC = DRES
@@ -1068,7 +1068,7 @@ begin
           end if;
         end if;
         
-      when s_srcr_dec =>
+      when s_srcr_dec =>                -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_dsrc; -- OUNIT A=DSRC
         do_const_opsize(ndpcntl, R_IDSTAT.is_bytop, SRCDEF, SRCREG);
         ndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B=const
@@ -1086,15 +1086,15 @@ begin
         end if;
         nstate := s_srcr_dec1;
 
-      when s_srcr_dec1 =>
+      when s_srcr_dec1 =>               -- -----------------------------------
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_dsrc; -- VA = DSRC
         bytop := R_IDSTAT.is_bytop and not SRCDEF;
         do_memread_d(nstate, nvmcntl, s_srcr_inc_w, bytop=>bytop);
 
-      when s_srcr_ind =>
+      when s_srcr_ind =>                -- -----------------------------------
         do_memread_i(nstate, ndpcntl, nvmcntl, s_srcr_ind1_w);
 
-      when s_srcr_ind1_w =>
+      when s_srcr_ind1_w =>             -- -----------------------------------
         nstate := s_srcr_ind1_w;
         if R_IDSTAT.is_srcpc = '0' then
           ndpcntl.ounit_asel := c_ounit_asel_dsrc; -- OUNIT A = DSRC
@@ -1112,12 +1112,12 @@ begin
           nstate := s_srcr_ind2;
         end if;
 
-      when s_srcr_ind2 =>
+      when s_srcr_ind2 =>               -- -----------------------------------
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_dsrc; -- VA = DSRC
         bytop := R_IDSTAT.is_bytop and not SRCDEF;
         do_memread_d(nstate, nvmcntl, s_srcr_ind2_w, bytop=>bytop);
 
-      when s_srcr_ind2_w =>
+      when s_srcr_ind2_w =>             -- -----------------------------------
         nstate := s_srcr_ind2_w;
         ndpcntl.dres_sel := c_dpath_res_vmdout;  -- DRES = VMDOUT
         ndpcntl.dsrc_sel := c_dpath_dsrc_res;    -- DSRC = DRES
@@ -1177,12 +1177,12 @@ begin
   --               s_dstr_def_w         get @n(r)
   --               -> do_fork_opg
 
-      when s_dstr_def =>
+      when s_dstr_def =>                -- -----------------------------------
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_ddst; -- VA = DDST
         do_memread_d(nstate, nvmcntl, s_dstr_def_w,
                      bytop=>R_IDSTAT.is_bytop, macc=>R_IDSTAT.is_rmwop);
 
-      when s_dstr_def_w =>
+      when s_dstr_def_w =>              -- -----------------------------------
         nstate := s_dstr_def_w;
         do_memcheck(nstate, nstatus, imemok);
         ndpcntl.dres_sel := c_dpath_res_vmdout;  -- DRES = VMDOUT
@@ -1192,7 +1192,7 @@ begin
           do_fork_opg(nstate, R_IDSTAT);
         end if;
 
-      when s_dstr_inc =>
+      when s_dstr_inc =>                -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_ddst; -- OUNIT A=DDST
         do_const_opsize(ndpcntl, R_IDSTAT.is_bytop, DSTDEF, DSTREG);
         ndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B=const
@@ -1207,7 +1207,7 @@ begin
         do_memread_d(nstate, nvmcntl, s_dstr_inc_w,
                      bytop=>bytop, macc=>macc, is_pci=>R_IDSTAT.is_dstpc);
         
-      when s_dstr_inc_w =>
+      when s_dstr_inc_w =>              -- -----------------------------------
         nstate := s_dstr_inc_w;
         ndpcntl.dres_sel := c_dpath_res_vmdout;  -- DRES = VMDOUT
         ndpcntl.ddst_sel := c_dpath_ddst_res;    -- DDST = DRES
@@ -1221,7 +1221,7 @@ begin
           end if;
         end if;
         
-      when s_dstr_dec =>
+      when s_dstr_dec =>                -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_ddst; -- OUNIT A=DDST
         do_const_opsize(ndpcntl, R_IDSTAT.is_bytop, DSTDEF, DSTREG);
         ndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B=const
@@ -1235,17 +1235,17 @@ begin
         nmmumoni.isdec := '1';
         nstate := s_dstr_dec1;
 
-      when s_dstr_dec1 =>
+      when s_dstr_dec1 =>               -- -----------------------------------
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_ddst; -- VA = DDST
         macc  := R_IDSTAT.is_rmwop and not DSTDEF;
         bytop := R_IDSTAT.is_bytop and not DSTDEF;
         do_memread_d(nstate, nvmcntl, s_dstr_inc_w,
                      bytop=>bytop, macc=>macc);
 
-      when s_dstr_ind =>
+      when s_dstr_ind =>                -- -----------------------------------
         do_memread_i(nstate, ndpcntl, nvmcntl, s_dstr_ind1_w);
 
-      when s_dstr_ind1_w =>
+      when s_dstr_ind1_w =>             -- -----------------------------------
         nstate := s_dstr_ind1_w;
         if R_IDSTAT.is_dstpc = '0' then
           ndpcntl.ounit_asel := c_ounit_asel_ddst; -- OUNIT A = DDST
@@ -1261,14 +1261,14 @@ begin
           nstate := s_dstr_ind2;
         end if;
 
-      when s_dstr_ind2 =>
+      when s_dstr_ind2 =>               -- -----------------------------------
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_ddst; -- VA = DDST
         macc  := R_IDSTAT.is_rmwop and not DSTDEF;
         bytop := R_IDSTAT.is_bytop and not DSTDEF;
         do_memread_d(nstate, nvmcntl, s_dstr_ind2_w,
                      bytop=>bytop, macc=>macc);
 
-      when s_dstr_ind2_w =>
+      when s_dstr_ind2_w =>             -- -----------------------------------
         nstate := s_dstr_ind2_w;
         ndpcntl.dres_sel := c_dpath_res_vmdout;  -- DRES = VMDOUT
         ndpcntl.ddst_sel := c_dpath_ddst_res;    -- DDST = DRES
@@ -1324,14 +1324,14 @@ begin
   --               s_dstw_def_w         ack  @n(r)
   --               -> do_fork_next
         
-      when s_dstw_def =>
+      when s_dstw_def =>                -- -----------------------------------
         ndpcntl.psr_ccwe := '1';
         ndpcntl.dres_sel := R_IDSTAT.res_sel;      -- DRES = choice of idec
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_ddst; -- VA = DDST
         nvmcntl.kstack := is_dstkstack1246;
         do_memwrite(nstate, nvmcntl, s_dstw_def_w);
         
-      when s_dstw_def_w =>
+      when s_dstw_def_w =>              -- -----------------------------------
         nstate := s_dstw_def_w;
         do_memcheck(nstate, nstatus, imemok);
         if imemok then
@@ -1339,7 +1339,7 @@ begin
           do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
         end if;
 
-      when s_dstw_inc =>
+      when s_dstw_inc =>                -- -----------------------------------
         ndpcntl.psr_ccwe := '1';
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_ddst;   -- VA = DDST
         ndpcntl.ounit_asel := c_ounit_asel_ddst;     -- OUNIT A=DDST  (for else)
@@ -1360,7 +1360,7 @@ begin
                        is_pci=>R_IDSTAT.is_dstpc);
         end if;
         
-      when s_dstw_inc_w =>
+      when s_dstw_inc_w =>              -- -----------------------------------
         nstate := s_dstw_inc_w;
         ndpcntl.ounit_asel := c_ounit_asel_ddst;   -- OUNIT A=DDST
         do_const_opsize(ndpcntl, R_IDSTAT.is_bytop, DSTDEF, DSTREG);
@@ -1380,7 +1380,7 @@ begin
           do_fork_next(nstate, nstatus, nmmumoni); -- fetch next
         end if;
 
-      when s_dstw_incdef_w =>
+      when s_dstw_incdef_w =>           -- -----------------------------------
         nstate := s_dstw_incdef_w;
         ndpcntl.dres_sel := c_dpath_res_vmdout;  -- DRES = VMDOUT
         ndpcntl.ddst_sel := c_dpath_ddst_res;    -- DDST = DRES
@@ -1390,7 +1390,7 @@ begin
           nstate := s_dstw_def246;
         end if;
 
-      when s_dstw_dec =>
+      when s_dstw_dec =>                -- -----------------------------------
         ndpcntl.psr_ccwe := '1';
         ndpcntl.ounit_asel := c_ounit_asel_ddst; -- OUNIT A=DDST
         do_const_opsize(ndpcntl, R_IDSTAT.is_bytop, DSTDEF, DSTREG);
@@ -1405,7 +1405,7 @@ begin
         nmmumoni.isdec := '1';
         nstate := s_dstw_dec1;
         
-      when s_dstw_dec1 =>
+      when s_dstw_dec1 =>               -- -----------------------------------
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_ddst; -- VA = DDST
         ndpcntl.dres_sel := R_IDSTAT.res_sel;      -- DRES = from idec (for if)
         if DSTDEF = '0' then
@@ -1415,11 +1415,11 @@ begin
           do_memread_d(nstate, nvmcntl, s_dstw_incdef_w);
         end if;          
 
-      when s_dstw_ind =>
+      when s_dstw_ind =>                -- -----------------------------------
         ndpcntl.psr_ccwe := '1';
         do_memread_i(nstate, ndpcntl, nvmcntl, s_dstw_ind_w);
 
-      when s_dstw_ind_w =>
+      when s_dstw_ind_w =>              -- -----------------------------------
         nstate := s_dstw_ind_w;
         if R_IDSTAT.is_dstpc = '0' then
           ndpcntl.ounit_asel := c_ounit_asel_ddst; -- OUNIT A = DDST
@@ -1435,7 +1435,7 @@ begin
           nstate := s_dstw_dec1;
         end if;        
 
-      when s_dstw_def246 =>
+      when s_dstw_def246 =>             -- -----------------------------------
         ndpcntl.dres_sel := R_IDSTAT.res_sel;      -- DRES = choice of idec
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_ddst; -- VA = DDST
         do_memwrite(nstate, nvmcntl, s_dstw_def_w);
@@ -1471,7 +1471,7 @@ begin
   --               s_dsta_incdef_w      get n(r)
   --               -> do_fork_opa
 
-      when s_dsta_inc =>
+      when s_dsta_inc =>                -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_ddst;   -- OUNIT A=DDST
         ndpcntl.ounit_const := "000000010";
         ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const(2)
@@ -1492,7 +1492,7 @@ begin
                        is_pci=>R_IDSTAT.is_dstpc);          
         end if;
           
-      when s_dsta_incdef_w =>
+      when s_dsta_incdef_w =>           -- -----------------------------------
         nstate := s_dsta_incdef_w;
         ndpcntl.dres_sel := c_dpath_res_vmdout;  -- DRES = VMDOUT
         ndpcntl.ddst_sel := c_dpath_ddst_res;    -- DDST = DRES
@@ -1502,7 +1502,7 @@ begin
           do_fork_opa(nstate, R_IDSTAT);
         end if;    
     
-      when s_dsta_dec =>
+      when s_dsta_dec =>                -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_ddst; -- OUNIT A=DDST
         ndpcntl.ounit_const := "000000010";
         ndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B=const(2)
@@ -1520,7 +1520,7 @@ begin
         end if;
         nstate := s_dsta_dec1;
         
-      when s_dsta_dec1 =>
+      when s_dsta_dec1 =>               -- -----------------------------------
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_ddst; -- VA = DDST
         if DSTDEF = '0' then                       -- check here used also by
           do_fork_opa(nstate, R_IDSTAT);           -- s_dsta_ind flow !!
@@ -1528,10 +1528,10 @@ begin
           do_memread_d(nstate, nvmcntl, s_dsta_incdef_w);
         end if;          
 
-      when s_dsta_ind =>
+      when s_dsta_ind =>                -- -----------------------------------
         do_memread_i(nstate, ndpcntl, nvmcntl, s_dsta_ind_w);
         
-      when s_dsta_ind_w =>
+      when s_dsta_ind_w =>              -- -----------------------------------
         nstate := s_dsta_ind_w;
         if R_IDSTAT.is_dstpc = '0' then
           ndpcntl.ounit_asel := c_ounit_asel_ddst; -- OUNIT A = DDST
@@ -1549,7 +1549,7 @@ begin
         
   -- instruction operate states -----------------------------------------------
 
-      when s_op_halt =>                 -- HALT
+      when s_op_halt =>                 -- HALT -------------------------------
         idm_idone := '1';               -- instruction done
         if is_kmode = '1' then          -- if in kernel mode execute
           nmmumoni.idone := '1';
@@ -1561,7 +1561,7 @@ begin
           nstate := s_trap_4;           -- trap 4 like 11/70
         end if;
 
-      when s_op_wait =>                 -- WAIT
+      when s_op_wait =>                 -- WAIT ------------------------------
         -- Note: wait is the only interruptable instruction. The CPU spins
         --   in s_op_wait until an interrupt or a control command is seen.
         --   In case of a control command R_STATUS.waitsusp is set and
@@ -1592,18 +1592,18 @@ begin
           nstatus.itimer  := '1';       -- itimer will stay 1 during a WAIT
        end if;
 
-      when s_op_trap =>                 -- traps
+      when s_op_trap =>                 -- traps -----------------------------
         idm_idone := '1';                      -- instruction done
         lvector := "0000" & R_IDSTAT.trap_vec; -- vector
         do_start_int(nstate, ndpcntl, lvector);
         
-      when s_op_reset =>                -- RESET
+      when s_op_reset =>                -- RESET -----------------------------
         if is_kmode = '1' then          -- if in kernel mode execute
           nstatus.breset := '1';          -- issue bus reset
         end if;
         nstate := s_idle;
         
-      when s_op_rts =>                  -- RTS
+      when s_op_rts =>                  -- RTS -------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_ddst;   -- OUNIT A=DDST
         ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const(0)
         ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
@@ -1611,11 +1611,11 @@ begin
         ndpcntl.gpr_we := '1';                     -- load PC with reg(dst)
         nstate := s_op_rts_pop;
 
-      when s_op_rts_pop =>
+      when s_op_rts_pop =>              -- -----------------------------------
         do_memread_srcinc(nstate, ndpcntl, nvmcntl, s_op_rts_pop_w,
                           nmmumoni, updt_sp=>'1');
         
-      when s_op_rts_pop_w =>
+      when s_op_rts_pop_w =>            -- -----------------------------------
         nstate := s_op_rts_pop_w;
         ndpcntl.dres_sel := c_dpath_res_vmdout;   -- DRES = VMDOUT
         ndpcntl.gpr_adst := DSTREG;
@@ -1626,7 +1626,7 @@ begin
           do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
         end if;
         
-      when s_op_spl =>                  -- SPL
+      when s_op_spl =>                  -- SPL -------------------------------
         ndpcntl.dres_sel := c_dpath_res_ireg;    -- DRES = IREG
         ndpcntl.psr_func := c_psr_func_wspl;
         idm_idone := '1';                        -- instruction done
@@ -1639,14 +1639,14 @@ begin
           do_fork_next(nstate, nstatus, nmmumoni);  -- in non-kernel, noop
         end if;
 
-      when s_op_mcc =>                  -- CLx/SEx
+      when s_op_mcc =>                  -- CLx/SEx ---------------------------
         ndpcntl.dres_sel := c_dpath_res_ireg;    -- DRES = IREG
         ndpcntl.psr_func := c_psr_func_wcc;
         ndpcntl.psr_we := '1';
         idm_idone := '1';                        -- instruction done
         do_fork_next(nstate, nstatus, nmmumoni); -- fetch next
         
-      when s_op_br =>                   -- BR
+      when s_op_br =>                   -- BR --------------------------------
         nvmcntl.dspace := '0';                   -- prepare do_fork_next_pref
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_pc; -- VA = PC
         ndpcntl.ounit_asel := c_ounit_asel_pc;   -- OUNIT A = PC
@@ -1682,7 +1682,7 @@ begin
           do_fork_next_pref(nstate, nstatus, ndpcntl, nvmcntl, nmmumoni);
         end if;
         
-      when s_op_mark =>                 -- MARK 
+      when s_op_mark =>                 -- MARK ------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_pc;   -- OUNIT A = PC
         ndpcntl.ounit_bsel := c_ounit_bsel_ireg6;-- OUNIT B = IREG6
         ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
@@ -1693,7 +1693,7 @@ begin
         ndpcntl.ddst_we := '1';
         nstate := s_op_mark1;
 
-      when s_op_mark1 =>
+      when s_op_mark1 =>                -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_ddst; -- OUNIT A = DDST
         ndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B = const(0)
         ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
@@ -1701,11 +1701,11 @@ begin
         ndpcntl.gpr_we := '1';                   -- load PC with r5
         nstate := s_op_mark_pop;
 
-      when s_op_mark_pop =>
+      when s_op_mark_pop =>             -- -----------------------------------
         do_memread_srcinc(nstate, ndpcntl, nvmcntl, s_op_mark_pop_w,
                           nmmumoni, updt_sp=>'1');
 
-      when s_op_mark_pop_w =>
+      when s_op_mark_pop_w =>           -- -----------------------------------
         nstate := s_op_mark_pop_w;
         ndpcntl.dres_sel := c_dpath_res_vmdout;  -- DRES = VMDOUT
         ndpcntl.gpr_adst := c_gpr_r5;
@@ -1716,7 +1716,7 @@ begin
           do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
         end if;
         
-      when s_op_sob =>                  -- SOB (dec)
+      when s_op_sob =>                  -- SOB (dec) -------------------------
         -- comment fork_next_pref out (blog 2006-10-02) due to synthesis impact
         --nvmcntl.dspace := '0';                   -- prepare do_fork_next_pref
         --ndpcntl.vmaddr_sel := c_dpath_vmaddr_pc; -- VA = PC
@@ -1732,7 +1732,7 @@ begin
           do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
         end if;
         
-      when s_op_sob1 =>                 -- SOB (br) 
+      when s_op_sob1 =>                 -- SOB (br) --------------------------
         ndpcntl.ounit_asel := c_ounit_asel_pc;   -- OUNIT A = PC
         ndpcntl.ounit_bsel := c_ounit_bsel_ireg6;-- OUNIT B = IREG6
         ndpcntl.ounit_opsub := '1';              -- OUNIT = A - B
@@ -1742,7 +1742,7 @@ begin
         idm_idone := '1';                        -- instruction done
         do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
 
-      when s_opg_gen =>
+      when s_opg_gen =>                 -- -----------------------------------
         nvmcntl.dspace := '0';                   -- prepare do_fork_next_pref
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_pc; -- VA = PC
         ndpcntl.gpr_bytop := R_IDSTAT.is_bytop;
@@ -1779,7 +1779,7 @@ begin
           end if;
         end if;           
 
-      when s_opg_gen_rmw_w =>
+      when s_opg_gen_rmw_w =>           -- -----------------------------------
         nstate := s_opg_gen_rmw_w;
         do_memcheck(nstate, nstatus, imemok);
         if imemok then
@@ -1787,7 +1787,7 @@ begin
           do_fork_next(nstate, nstatus, nmmumoni); -- fetch next
         end if;
 
-      when s_opg_mul =>                 -- MUL (oper)
+      when s_opg_mul =>                 -- MUL (oper) ------------------------
         ndpcntl.dres_sel := R_IDSTAT.res_sel;   -- DRES = choice of idec
         ndpcntl.gpr_adst := SRCREG;             -- write high order result
         ndpcntl.gpr_we := '1';
@@ -1797,7 +1797,7 @@ begin
         ndpcntl.dtmp_we := '1';                 -- capture low order part
         nstate := s_opg_mul1;
         
-      when s_opg_mul1 =>                -- MUL (write odd reg)
+      when s_opg_mul1 =>                -- MUL (write odd reg) ---------------
         ndpcntl.ounit_asel := c_ounit_asel_dtmp; -- OUNIT A = DTMP
         ndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B = const(0)
         ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
@@ -1807,14 +1807,14 @@ begin
         idm_idone := '1';                        -- instruction done
         do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
         
-      when s_opg_div =>                 -- DIV (load dd_low)
+      when s_opg_div =>                 -- DIV (load dd_low) -----------------
         ndpcntl.munit_s_div := '1';
         ndpcntl.gpr_asrc := SRCREG(2 downto 1) & "1";-- read odd reg !
         ndpcntl.dtmp_sel := c_dpath_dtmp_dsrc;
         ndpcntl.dtmp_we := '1';
         nstate := s_opg_div_cn;
 
-      when s_opg_div_cn =>              -- DIV (1st...16th cycle)
+      when s_opg_div_cn =>              -- DIV (1st...16th cycle) ------------
         ndpcntl.munit_s_div_cn := '1';
         ndpcntl.dres_sel := R_IDSTAT.res_sel;     -- DRES = choice of idec
         ndpcntl.dsrc_sel := c_dpath_dsrc_res;     -- DSRC = DRES
@@ -1830,14 +1830,14 @@ begin
           nstate := s_opg_div_cr;
         end if;
 
-      when s_opg_div_cr =>              -- DIV (remainder correction)
+      when s_opg_div_cr =>              -- DIV (remainder correction) --------
         ndpcntl.munit_s_div_cr := '1';
         ndpcntl.dres_sel := R_IDSTAT.res_sel;     -- DRES = choice of idec
         ndpcntl.dsrc_sel := c_dpath_dsrc_res;     -- DSRC = DRES
         ndpcntl.dsrc_we := DP_STAT.div_cr;        -- update DSRC
         nstate := s_opg_div_sq;
         
-      when s_opg_div_sq =>              -- DIV (correct and store quotient)
+      when s_opg_div_sq =>              -- DIV (correct and store quotient) --
         ndpcntl.ounit_asel := c_ounit_asel_dtmp;  -- OUNIT A=DTMP
         ndpcntl.ounit_const := "00000000"&DP_STAT.div_cq;-- OUNIT const = Q corr.
         ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B=const (q cor)
@@ -1848,7 +1848,7 @@ begin
         ndpcntl.dtmp_we := '1';                   -- update DTMP (Q)
         nstate := s_opg_div_sr;
 
-      when s_opg_div_sr =>              -- DIV (store remainder)
+      when s_opg_div_sr =>              -- DIV (store remainder) -------------
         ndpcntl.munit_s_div_sr := '1';
         ndpcntl.ounit_asel := c_ounit_asel_dsrc;  -- OUNIT A=DSRC
         ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B=const (0)
@@ -1863,16 +1863,16 @@ begin
           do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
         end if;
         
-      when s_opg_div_quit =>            -- DIV (0/ or /0 or V=1 aborts)
+      when s_opg_div_quit =>            -- DIV (0/ or /0 or V=1 aborts) ------
         ndpcntl.psr_ccwe := '1';
         idm_idone := '1';               -- instruction done
         do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
 
-      when s_opg_ash =>                 -- ASH (load shc)
+      when s_opg_ash =>                 -- ASH (load shc) --------------------
         ndpcntl.munit_s_ash := '1';
         nstate := s_opg_ash_cn;
 
-      when s_opg_ash_cn =>              -- ASH (shift cycles)
+      when s_opg_ash_cn =>              -- ASH (shift cycles) ----------------
         nvmcntl.dspace := '0';                    -- prepare do_fork_next_pref
         ndpcntl.dsrc_sel := c_dpath_dsrc_res;     -- DSRC = DRES
         ndpcntl.ounit_asel := c_ounit_asel_dsrc;  -- OUNIT A=DSRC
@@ -1892,14 +1892,14 @@ begin
           do_fork_next_pref(nstate, nstatus, ndpcntl, nvmcntl, nmmumoni);
         end if;
           
-      when s_opg_ashc =>                -- ASHC (load low, load shc)
+      when s_opg_ashc =>                -- ASHC (load low, load shc) ---------
         ndpcntl.gpr_asrc := SRCREG(2 downto 1) & "1";-- read odd reg !
         ndpcntl.dtmp_sel := c_dpath_dtmp_dsrc;
         ndpcntl.dtmp_we := '1';
         ndpcntl.munit_s_ashc := '1';
         nstate := s_opg_ashc_cn;
 
-      when s_opg_ashc_cn =>             -- ASHC (shift cycles)
+      when s_opg_ashc_cn =>             -- ASHC (shift cycles) ---------------
         ndpcntl.dsrc_sel := c_dpath_dsrc_res;     -- DSRC = DRES
         ndpcntl.dtmp_sel := c_dpath_dtmp_drese;   -- DTMP = DRESE
         ndpcntl.ounit_asel := c_ounit_asel_dsrc;  -- OUNIT A=DSRC
@@ -1918,7 +1918,7 @@ begin
           nstate := s_opg_ashc_wl;
         end if;
 
-      when s_opg_ashc_wl =>             -- ASHC (write low)
+      when s_opg_ashc_wl =>             -- ASHC (write low) ------------------
         ndpcntl.ounit_asel := c_ounit_asel_dtmp; -- OUNIT A = DTMP
         ndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B = const(0)
         ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
@@ -1929,7 +1929,7 @@ begin
 
   -- dsta mode operations -----------------------------------------------------
 
-      when s_opa_jsr =>
+      when s_opa_jsr =>                 -- -----------------------------------
         ndpcntl.gpr_asrc := c_gpr_sp;              --                (for else)
         ndpcntl.dsrc_sel := c_dpath_dsrc_src;      -- DSRC = regfile (for else)
         if R_IDSTAT.is_dstmode0 = '1' then
@@ -1939,7 +1939,7 @@ begin
           nstate := s_opa_jsr1;
         end if;
 
-      when s_opa_jsr1 =>
+      when s_opa_jsr1 =>                -- -----------------------------------
         ndpcntl.gpr_asrc := SRCREG;
         ndpcntl.dtmp_sel := c_dpath_dtmp_dsrc;     -- DTMP = regfile
         ndpcntl.dtmp_we := '1';
@@ -1957,7 +1957,7 @@ begin
         nmmumoni.isdec := '1';
         nstate := s_opa_jsr_push;
 
-      when s_opa_jsr_push =>
+      when s_opa_jsr_push =>            -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_dtmp;   -- OUNIT A=DTMP
         ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const(0)
         ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
@@ -1968,7 +1968,7 @@ begin
         nvmcntl.req := '1';
         nstate := s_opa_jsr_push_w;
 
-      when s_opa_jsr_push_w =>
+      when s_opa_jsr_push_w =>          -- -----------------------------------
         nstate := s_opa_jsr_push_w;
         ndpcntl.ounit_asel := c_ounit_asel_pc;     -- OUNIT A=PC
         ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const(0)
@@ -1980,7 +1980,7 @@ begin
           nstate := s_opa_jsr2;
         end if;
 
-      when s_opa_jsr2 =>
+      when s_opa_jsr2 =>                -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_ddst;   -- OUNIT A=DDST
         ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const(0)
         ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
@@ -1989,7 +1989,7 @@ begin
         idm_idone := '1';                          -- instruction done
         do_fork_next(nstate, nstatus, nmmumoni);   -- fetch next
 
-      when s_opa_jmp =>
+      when s_opa_jmp =>                 -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_ddst;   -- OUNIT A=DDST
         ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const(0)
         ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
@@ -2002,11 +2002,11 @@ begin
           do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
         end if;
 
-      when s_opa_mtp =>
+      when s_opa_mtp =>                 -- -----------------------------------
         do_memread_srcinc(nstate, ndpcntl, nvmcntl, s_opa_mtp_pop_w,
                           nmmumoni, updt_sp=>'1');
         
-      when s_opa_mtp_pop_w =>
+      when s_opa_mtp_pop_w =>           -- -----------------------------------
         nstate := s_opa_mtp_pop_w;
         ndpcntl.dres_sel := c_dpath_res_vmdout;   -- DRES = VMDOUT
         ndpcntl.dtmp_sel := c_dpath_dtmp_dres;    -- DTMP = DRES
@@ -2028,7 +2028,7 @@ begin
         ndpcntl.ddst_sel := c_dpath_ddst_dst;     -- DDST = R(DST)
         ndpcntl.ddst_we  := '1';                  -- update DDST (needed for sp)
 
-      when s_opa_mtp_reg =>
+      when s_opa_mtp_reg =>             -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_dtmp;  -- OUNIT A = DTMP
         ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B = const(0)
         ndpcntl.dres_sel := c_dpath_res_ounit;    -- DRES = OUNIT
@@ -2038,7 +2038,7 @@ begin
         idm_idone := '1';                         -- instruction done
         do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
 
-      when s_opa_mtp_mem =>
+      when s_opa_mtp_mem =>             -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_dtmp;  -- OUNIT A = DTMP
         ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B = const(0)
         ndpcntl.dres_sel := c_dpath_res_ounit;    -- DRES = OUNIT
@@ -2050,7 +2050,7 @@ begin
         nvmcntl.req := '1';
         nstate := s_opa_mtp_mem_w;
         
-      when s_opa_mtp_mem_w =>
+      when s_opa_mtp_mem_w =>           -- -----------------------------------
         nstate := s_opa_mtp_mem_w;
         do_memcheck(nstate, nstatus, imemok);
         if imemok then
@@ -2058,13 +2058,13 @@ begin
           do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
         end if;
 
-      when s_opa_mfp_reg =>
+      when s_opa_mfp_reg =>             -- -----------------------------------
         ndpcntl.gpr_mode := PSW.pmode;           -- fetch reg in pmode
         ndpcntl.ddst_sel := c_dpath_ddst_dst;    -- DDST = reg(dst)
         ndpcntl.ddst_we := '1';
         nstate := s_opa_mfp_dec;
         
-      when s_opa_mfp_mem =>
+      when s_opa_mfp_mem =>             -- -----------------------------------
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_ddst;   -- VA = DDST
         if PSW.cmode=c_psw_umode and                 -- if cm=pm=user then
            PSW.cmode=c_psw_umode then                -- MFPI works like it
@@ -2076,7 +2076,7 @@ begin
         nvmcntl.req := '1';
         nstate := s_opa_mfp_mem_w;
 
-      when s_opa_mfp_mem_w =>
+      when s_opa_mfp_mem_w =>           -- -----------------------------------
         nstate := s_opa_mfp_mem_w;
         do_memcheck(nstate, nstatus, imemok);
         ndpcntl.dres_sel := c_dpath_res_vmdout;  -- DRES = VMDOUT
@@ -2086,7 +2086,7 @@ begin
           nstate := s_opa_mfp_dec;
         end if;
 
-      when s_opa_mfp_dec =>         
+      when s_opa_mfp_dec =>             -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_dsrc;   -- OUNIT A=DSRC
         ndpcntl.ounit_const := "000000010";
         ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const(2)
@@ -2100,7 +2100,7 @@ begin
         nmmumoni.isdec := '1';
         nstate := s_opa_mfp_push;
 
-      when s_opa_mfp_push =>
+      when s_opa_mfp_push =>            -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_ddst;   -- OUNIT A=DDST
         ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const(0)
         ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
@@ -2112,7 +2112,7 @@ begin
         nvmcntl.req := '1';
         nstate := s_opa_mfp_push_w;
 
-      when s_opa_mfp_push_w =>
+      when s_opa_mfp_push_w =>          -- -----------------------------------
         nstate := s_opa_mfp_push_w;
         do_memcheck(nstate, nstatus, imemok);
         if imemok then
@@ -2122,16 +2122,16 @@ begin
 
   -- trap and interrupt handling states ---------------------------------------
 
-      when s_trap_4 =>
+      when s_trap_4 =>                  -- -----------------------------------
         lvector := "0000001";           -- vector (4)
         do_start_int(nstate, ndpcntl, lvector);
 
-      when s_trap_10 =>
+      when s_trap_10 =>                 -- -----------------------------------
         idm_idone := '1';               -- instruction done
         lvector := "0000010";           -- vector (10)
         do_start_int(nstate, ndpcntl, lvector);
 
-      when s_trap_disp =>
+      when s_trap_disp =>               -- -----------------------------------
         if R_STATUS.trap_mmu = '1' then
           nvmcntl.trap_done := '1';     -- mmu trap taken: set ssr0 trap bit
           lvector := "0101010";         -- mmu trap: vector (250)
@@ -2145,16 +2145,16 @@ begin
         nstatus.trap_ysv := '0';        -- 
         do_start_int(nstate, ndpcntl, lvector);
 
-      when s_int_ext =>
+      when s_int_ext =>                 -- -----------------------------------
         lvector := R_STATUS.intvect;    -- external vector
         do_start_int(nstate, ndpcntl, lvector);
 
-      when s_int_getpc =>
+      when s_int_getpc =>               -- -----------------------------------
         idm_vfetch := '1';              -- signal vfetch
         nvmcntl.mode := c_psw_kmode;    -- fetch PC from kernel D space
         do_memread_srcinc(nstate, ndpcntl, nvmcntl, s_int_getpc_w, nmmumoni);
 
-      when s_int_getpc_w =>
+      when s_int_getpc_w =>             -- -----------------------------------
         nstate := s_int_getpc_w;
         ndpcntl.dres_sel := c_dpath_res_vmdout;   -- DRES = VMDOUT
         ndpcntl.ddst_sel := c_dpath_ddst_res;     -- DDST = DRES
@@ -2169,11 +2169,11 @@ begin
           nstate := s_int_getps;
         end if;
 
-      when s_int_getps =>
+      when s_int_getps =>               -- -----------------------------------
         nvmcntl.mode := c_psw_kmode;    -- fetch PS from kernel D space
         do_memread_srcinc(nstate, ndpcntl, nvmcntl, s_int_getps_w, nmmumoni);
 
-      when s_int_getps_w =>
+      when s_int_getps_w =>             -- -----------------------------------
         nstate := s_int_getps_w;
         ndpcntl.dres_sel := c_dpath_res_vmdout;   -- DRES = VMDOUT
         ndpcntl.psr_func := c_psr_func_wint;      -- interupt mode write
@@ -2188,12 +2188,12 @@ begin
           nstate := s_int_getsp;
         end if;
 
-      when s_int_getsp =>
+      when s_int_getsp =>               -- -----------------------------------
         ndpcntl.gpr_asrc := c_gpr_sp;
         ndpcntl.dsrc_we := '1';                  -- DSRC = SP (in new mode)
         nstate := s_int_decsp;
 
-      when s_int_decsp =>
+      when s_int_decsp =>               -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_dsrc; -- OUNIT A=DSRC
         ndpcntl.ounit_const := "000000010";      -- OUNIT const=2
         ndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B=const
@@ -2205,7 +2205,7 @@ begin
         ndpcntl.gpr_we := '1';                   -- update SP too
         nstate := s_int_pushps;
 
-      when s_int_pushps =>
+      when s_int_pushps =>              -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_dtmp;   -- OUNIT A=DTMP (old PS)
         ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const (0)
         ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
@@ -2216,7 +2216,7 @@ begin
         nvmcntl.req := '1';
         nstate := s_int_pushps_w;
 
-      when s_int_pushps_w =>
+      when s_int_pushps_w =>            -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_dsrc; -- OUNIT A=DSRC
         ndpcntl.ounit_const := "000000010";      -- OUNIT const=2
         ndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B=const
@@ -2233,7 +2233,7 @@ begin
           nstate := s_int_pushpc;
         end if;
         
-      when s_int_pushpc =>
+      when s_int_pushpc =>              -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_pc;     -- OUNIT A=PC
         ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const (0)
         ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
@@ -2244,7 +2244,7 @@ begin
         nvmcntl.req := '1';
         nstate := s_int_pushpc_w;
 
-      when s_int_pushpc_w =>
+      when s_int_pushpc_w =>            -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_ddst;   -- OUNIT A=DDST
         ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const (0)
         ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
@@ -2260,11 +2260,11 @@ begin
         
   -- return from trap or interrupt handling states ----------------------------
 
-      when s_rti_getpc =>
+      when s_rti_getpc =>               -- -----------------------------------
         do_memread_srcinc(nstate, ndpcntl, nvmcntl, s_rti_getpc_w,
                           nmmumoni, updt_sp=>'1');
 
-      when s_rti_getpc_w =>
+      when s_rti_getpc_w =>             -- -----------------------------------
         nstate := s_rti_getpc_w;
         ndpcntl.dres_sel := c_dpath_res_vmdout;   -- DRES = VMDOUT
         ndpcntl.ddst_sel := c_dpath_ddst_res;     -- DDST = DRES
@@ -2274,11 +2274,11 @@ begin
           nstate := s_rti_getps;
         end if;
 
-      when s_rti_getps =>
+      when s_rti_getps =>               -- -----------------------------------
         do_memread_srcinc(nstate, ndpcntl, nvmcntl, s_rti_getps_w,
                           nmmumoni, updt_sp=>'1');
 
-      when s_rti_getps_w =>
+      when s_rti_getps_w =>             -- -----------------------------------
         nstate := s_rti_getps_w;
         do_memcheck(nstate, nstatus, imemok);
         ndpcntl.dres_sel := c_dpath_res_vmdout;   -- DRES = VMDOUT
@@ -2292,7 +2292,7 @@ begin
           nstate := s_rti_newpc;
         end if;
 
-      when s_rti_newpc =>
+      when s_rti_newpc =>               -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_ddst;  -- OUNIT A=DDST
         ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B=const (0)
         ndpcntl.dres_sel := c_dpath_res_ounit;    -- DRES = OUNIT
@@ -2307,7 +2307,7 @@ begin
 
   -- exception abort states ---------------------------------------------------
 
-      when s_vmerr =>
+      when s_vmerr =>                   -- -----------------------------------
         nstate := s_cpufail;
 
                                             -- setup for R_VMSTAT.err_rsv='1'
@@ -2361,12 +2361,12 @@ begin
           end if;
         end if;
         
-      when s_cpufail =>
+      when s_cpufail =>                 -- -----------------------------------
         nstatus.cpugo   := '0';
         nstatus.cpurust := c_cpurust_sfail;
         nstate := s_idle; 
         
-      when others =>
+      when others =>                    -- -----------------------------------
         nstate := s_cpufail;             --!!! catch undefined states !!!
 
     end case;

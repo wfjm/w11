@@ -1,4 +1,4 @@
--- $Id: pdp11_dmcmon.vhd 885 2017-04-23 15:54:01Z mueller $
+-- $Id: pdp11_dmcmon.vhd 886 2017-04-23 17:00:54Z mueller $
 --
 -- Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -197,20 +197,20 @@ architecture syn of pdp11_dmcmon is
   subtype  bram_df_word1    is integer range  31 downto  16;
   subtype  bram_df_word0    is integer range  15 downto   0;
   
-  constant dat8_ibf_req      : integer :=    15;
-  constant dat8_ibf_wacc     : integer :=    14;  -- if req=1
-  constant dat8_ibf_macc     : integer :=    13;  -- "
-  constant dat8_ibf_cacc     : integer :=    12;  -- "
-  constant dat8_ibf_bytop    : integer :=    11;  -- "
-  constant dat8_ibf_dspace   : integer :=    10;  -- "
-  constant dat8_ibf_ack      : integer :=    14;  -- if req=0
-  constant dat8_ibf_err      : integer :=    13;  -- "
-  constant dat8_ibf_trap_ysv : integer :=    12;  -- if req=0 ack=1 err=0
-  constant dat8_ibf_trap_mmu : integer :=    11;  -- "
-  constant dat8_ibf_mwdrop   : integer :=    10;  -- "
-  subtype  dat8_ibf_vmerr   is integer range 12 downto 10;-- if req=0 ack=0 err=1
-  constant dat8_ibf_istart   : integer :=     9;  -- always
-  constant dat8_ibf_idone    : integer :=     8;  -- "
+  constant dat8_rbf_req      : integer :=    15;
+  constant dat8_rbf_wacc     : integer :=    14;  -- if req=1
+  constant dat8_rbf_macc     : integer :=    13;  -- "
+  constant dat8_rbf_cacc     : integer :=    12;  -- "
+  constant dat8_rbf_bytop    : integer :=    11;  -- "
+  constant dat8_rbf_dspace   : integer :=    10;  -- "
+  constant dat8_rbf_ack      : integer :=    14;  -- if req=0
+  constant dat8_rbf_err      : integer :=    13;  -- "
+  constant dat8_rbf_trap_ysv : integer :=    12;  -- if req=0 ack=1 err=0
+  constant dat8_rbf_trap_mmu : integer :=    11;  -- "
+  constant dat8_rbf_mwdrop   : integer :=    10;  -- "
+  subtype  dat8_rbf_vmerr   is integer range 12 downto 10;-- if req=0 ack=0 err=1
+  constant dat8_rbf_istart   : integer :=     9;  -- always
+  constant dat8_rbf_idone    : integer :=     8;  -- "
 
   constant vmerr_odd   : slv3 := "001";  -- vm error code:  err_odd
   constant vmerr_mmu   : slv3 := "010";  -- vm error code:  err_mmu
@@ -218,26 +218,26 @@ architecture syn of pdp11_dmcmon is
   constant vmerr_iobto : slv3 := "100";  -- vm error code:  err_iobto
   constant vmerr_rsv   : slv3 := "101";  -- vm error code:  err_rsv
   
-  subtype  dat8_ibf_snum    is integer range  7 downto  0;
+  subtype  dat8_rbf_snum    is integer range  7 downto  0;
 
-  subtype  dat8_ibf_cnum    is integer range  7 downto  0;
+  subtype  dat8_rbf_cnum    is integer range  7 downto  0;
 
-  subtype  dat7_ibf_pc      is integer range 15 downto  1;
-  constant dat7_ibf_idecode  : integer :=     0;
+  subtype  dat7_rbf_pc      is integer range 15 downto  1;
+  constant dat7_rbf_idecode  : integer :=     0;
 
-  subtype  dat5_ibf_cmode   is integer range 15 downto 14;
-  subtype  dat5_ibf_pmode   is integer range 13 downto 12; 
-  constant dat5_ibf_rset     : integer :=    11;
+  subtype  dat5_rbf_cmode   is integer range 15 downto 14;
+  subtype  dat5_rbf_pmode   is integer range 13 downto 12; 
+  constant dat5_rbf_rset     : integer :=    11;
 
-  constant dat5_ibf_dres_val : integer :=    10; -- if imode=0
-  constant dat5_ibf_ddst_we  : integer :=     9;
-  constant dat5_ibf_dsrc_we  : integer :=     8;
+  constant dat5_rbf_dres_val : integer :=    10; -- if imode=0
+  constant dat5_rbf_ddst_we  : integer :=     9;
+  constant dat5_rbf_dsrc_we  : integer :=     8;
 
-  constant dat5_ibf_vfetch   : integer :=     8; -- if imode=1
+  constant dat5_rbf_vfetch   : integer :=     8; -- if imode=1
 
-  subtype  dat5_ibf_pri     is integer range  7 downto  5;
-  constant dat5_ibf_tflag    : integer :=     4;
-  subtype  dat5_ibf_cc      is integer range  3 downto  0;
+  subtype  dat5_rbf_pri     is integer range  7 downto  5;
+  constant dat5_rbf_tflag    : integer :=     4;
+  subtype  dat5_rbf_cc      is integer range  3 downto  0;
 
   constant func_sto : slv3 := "100";    -- func: stop
   constant func_sta : slv3 := "101";    -- func: start
@@ -771,45 +771,45 @@ architecture syn of pdp11_dmcmon is
     -- build word8
     idat8 := (others=>'0');
     if r.vm_req = '1' or (r.imode='1' and r.vm_err='0') then
-      idat8(dat8_ibf_req)    := '1';
+      idat8(dat8_rbf_req)    := '1';
       if r.imode = '1' and (r.se_istart='1' or r.se_istart_1='1') then
-        idat8(dat8_ibf_wacc)   := R_REGS.vm_wacc_1;
-        idat8(dat8_ibf_macc)   := R_REGS.vm_macc_1;
-        idat8(dat8_ibf_cacc)   := R_REGS.vm_cacc_1;
-        idat8(dat8_ibf_bytop)  := R_REGS.vm_bytop_1;
-        idat8(dat8_ibf_dspace) := R_REGS.vm_dspace_1;
+        idat8(dat8_rbf_wacc)   := R_REGS.vm_wacc_1;
+        idat8(dat8_rbf_macc)   := R_REGS.vm_macc_1;
+        idat8(dat8_rbf_cacc)   := R_REGS.vm_cacc_1;
+        idat8(dat8_rbf_bytop)  := R_REGS.vm_bytop_1;
+        idat8(dat8_rbf_dspace) := R_REGS.vm_dspace_1;
       else
-        idat8(dat8_ibf_wacc)   := R_REGS.vm_wacc;
-        idat8(dat8_ibf_macc)   := R_REGS.vm_macc;
-        idat8(dat8_ibf_cacc)   := R_REGS.vm_cacc;
-        idat8(dat8_ibf_bytop)  := R_REGS.vm_bytop;
-        idat8(dat8_ibf_dspace) := R_REGS.vm_dspace;
+        idat8(dat8_rbf_wacc)   := R_REGS.vm_wacc;
+        idat8(dat8_rbf_macc)   := R_REGS.vm_macc;
+        idat8(dat8_rbf_cacc)   := R_REGS.vm_cacc;
+        idat8(dat8_rbf_bytop)  := R_REGS.vm_bytop;
+        idat8(dat8_rbf_dspace) := R_REGS.vm_dspace;
       end if;
     else
-      idat8(dat8_ibf_ack)    := R_REGS.vm_ack;
-      idat8(dat8_ibf_err)    := R_REGS.vm_err;
+      idat8(dat8_rbf_ack)    := R_REGS.vm_ack;
+      idat8(dat8_rbf_err)    := R_REGS.vm_err;
       if r.vm_ack = '1' then
-        idat8(dat8_ibf_trap_ysv) := R_REGS.vm_trap_ysv;
-        idat8(dat8_ibf_trap_mmu) := R_REGS.vm_trap_mmu;
-        idat8(dat8_ibf_mwdrop)   := R_REGS.mwdrop;
+        idat8(dat8_rbf_trap_ysv) := R_REGS.vm_trap_ysv;
+        idat8(dat8_rbf_trap_mmu) := R_REGS.vm_trap_mmu;
+        idat8(dat8_rbf_mwdrop)   := R_REGS.mwdrop;
       elsif r.vm_err = '1' then
-        idat8(dat8_ibf_vmerr)    := ivmerr;
+        idat8(dat8_rbf_vmerr)    := ivmerr;
       end if;
     end if;
-    idat8(dat8_ibf_istart)  := R_REGS.se_istart;
-    idat8(dat8_ibf_idone)   := R_REGS.se_idone;
+    idat8(dat8_rbf_istart)  := R_REGS.se_istart;
+    idat8(dat8_rbf_idone)   := R_REGS.se_idone;
 
     if r.imode = '0' then
-      idat8(dat8_ibf_snum)   := R_REGS.se_snum;
+      idat8(dat8_rbf_snum)   := R_REGS.se_snum;
     else
-      idat8(dat8_ibf_cnum)   := R_REGS.cnum;
+      idat8(dat8_rbf_cnum)   := R_REGS.cnum;
     end if;
     idat(bram_df_word8) := idat8;
 
     -- build word7
     idat7 := (others=>'0');
-    idat7(dat7_ibf_pc)     := R_REGS.dp_pc_dec;
-    idat7(dat7_ibf_idecode):= R_REGS.dp_ireg_we_1;
+    idat7(dat7_rbf_pc)     := R_REGS.dp_pc_dec;
+    idat7(dat7_rbf_idecode):= R_REGS.dp_ireg_we_1;
     idat(bram_df_word7)    := idat7;
 
     -- build word6
@@ -817,19 +817,19 @@ architecture syn of pdp11_dmcmon is
 
     -- build word5
     idat5 := (others=>'0');
-    idat5(dat5_ibf_cmode)    := DM_STAT_DP.psw.cmode;
-    idat5(dat5_ibf_pmode)    := DM_STAT_DP.psw.pmode;
-    idat5(dat5_ibf_rset)     := DM_STAT_DP.psw.rset;
+    idat5(dat5_rbf_cmode)    := DM_STAT_DP.psw.cmode;
+    idat5(dat5_rbf_pmode)    := DM_STAT_DP.psw.pmode;
+    idat5(dat5_rbf_rset)     := DM_STAT_DP.psw.rset;
     if r.imode = '0' then
-      idat5(dat5_ibf_dres_val) := R_REGS.dp_dres_val;
-      idat5(dat5_ibf_ddst_we)  := R_REGS.dp_ddst_we;
-      idat5(dat5_ibf_dsrc_we)  := R_REGS.dp_dsrc_we;
+      idat5(dat5_rbf_dres_val) := R_REGS.dp_dres_val;
+      idat5(dat5_rbf_ddst_we)  := R_REGS.dp_ddst_we;
+      idat5(dat5_rbf_dsrc_we)  := R_REGS.dp_dsrc_we;
     else
-      idat5(dat5_ibf_vfetch)   := R_REGS.se_vfetch;
+      idat5(dat5_rbf_vfetch)   := R_REGS.se_vfetch;
     end if;
-    idat5(dat5_ibf_pri)      := DM_STAT_DP.psw.pri;
-    idat5(dat5_ibf_tflag)    := DM_STAT_DP.psw.tflag;
-    idat5(dat5_ibf_cc)       := DM_STAT_DP.psw.cc;
+    idat5(dat5_rbf_pri)      := DM_STAT_DP.psw.pri;
+    idat5(dat5_rbf_tflag)    := DM_STAT_DP.psw.tflag;
+    idat5(dat5_rbf_cc)       := DM_STAT_DP.psw.cc;
     idat(bram_df_word5)      := idat5;
     
     -- build word4 to word2

@@ -1,4 +1,4 @@
-// $Id: RlinkContext.ipp 660 2015-03-29 22:10:16Z mueller $
+// $Id: RlinkContext.ipp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,6 @@
 
 /*!
   \file
-  \version $Id: RlinkContext.ipp 660 2015-03-29 22:10:16Z mueller $
   \brief   Implemenation (inline) of class RlinkContext.
 */
 

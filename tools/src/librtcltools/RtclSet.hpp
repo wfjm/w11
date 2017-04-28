@@ -1,4 +1,4 @@
-// $Id: RtclSet.hpp 487 2013-02-12 19:14:38Z mueller $
+// $Id: RtclSet.hpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -18,7 +18,6 @@
 
 /*!
   \file
-  \version $Id: RtclSet.hpp 487 2013-02-12 19:14:38Z mueller $
   \brief   Declaration of class \c RtclSet.
 */
 

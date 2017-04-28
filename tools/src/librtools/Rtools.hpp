@@ -1,4 +1,4 @@
-// $Id: Rtools.hpp 852 2017-02-18 12:43:31Z mueller $
+// $Id: Rtools.hpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -24,7 +24,6 @@
 
 /*!
   \file
-  \version $Id: Rtools.hpp 852 2017-02-18 12:43:31Z mueller $
   \brief   Declaration of class Rtools .
 */
 

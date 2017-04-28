@@ -1,4 +1,4 @@
-// $Id: RtclRw11Virt.ipp 859 2017-03-11 22:36:45Z mueller $
+// $Id: RtclRw11Virt.ipp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -18,7 +18,6 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Virt.ipp 859 2017-03-11 22:36:45Z mueller $
   \brief   Implemenation (inline) of RtclRw11Virt.
 */
 

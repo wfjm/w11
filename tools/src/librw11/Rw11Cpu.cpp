@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.cpp 874 2017-04-14 17:53:07Z mueller $
+// $Id: Rw11Cpu.cpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -38,7 +38,6 @@
 
 /*!
   \file
-  \version $Id: Rw11Cpu.cpp 874 2017-04-14 17:53:07Z mueller $
   \brief   Implemenation of Rw11Cpu.
 */
 #include <stdlib.h>

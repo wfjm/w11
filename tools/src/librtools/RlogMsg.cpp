@@ -1,4 +1,4 @@
-// $Id: RlogMsg.cpp 490 2013-02-22 18:43:26Z mueller $
+// $Id: RlogMsg.cpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -18,7 +18,6 @@
 
 /*!
   \file
-  \version $Id: RlogMsg.cpp 490 2013-02-22 18:43:26Z mueller $
   \brief   Implemenation of RlogMsg.
 */
 

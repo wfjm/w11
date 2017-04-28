@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTape.hpp 868 2017-04-07 20:09:33Z mueller $
+// $Id: Rw11VirtTape.hpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -22,7 +22,6 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtTape.hpp 868 2017-04-07 20:09:33Z mueller $
   \brief   Declaration of class Rw11VirtTape.
 */
 

@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDEUNA.cpp 881 2017-04-17 18:52:26Z mueller $
+// $Id: Rw11CntlDEUNA.cpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,6 @@
 
 /*!
   \file
-  \version $Id: Rw11CntlDEUNA.cpp 881 2017-04-17 18:52:26Z mueller $
   \brief   Implemenation of Rw11CntlDEUNA.
 */
 

@@ -1,4 +1,4 @@
-// $Id: Rw11RdmaDisk.cpp 880 2017-04-17 12:03:52Z mueller $
+// $Id: Rw11RdmaDisk.cpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,6 @@
 
 /*!
   \file
-  \version $Id: Rw11RdmaDisk.cpp 880 2017-04-17 12:03:52Z mueller $
   \brief   Implemenation of Rw11RdmaDisk.
 */
 

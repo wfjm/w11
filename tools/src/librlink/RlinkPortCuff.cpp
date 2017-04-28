@@ -1,4 +1,4 @@
-// $Id: RlinkPortCuff.cpp 875 2017-04-15 21:58:50Z mueller $
+// $Id: RlinkPortCuff.cpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2012-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -27,7 +27,6 @@
 
 /*!
   \file
-  \version $Id: RlinkPortCuff.cpp 875 2017-04-15 21:58:50Z mueller $
   \brief   Implemenation of RlinkPortCuff.
 */
 

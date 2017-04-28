@@ -1,4 +1,4 @@
-// $Id: RlinkCrc16.hpp 602 2014-11-08 21:42:47Z mueller $
+// $Id: RlinkCrc16.hpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,6 @@
 
 /*!
   \file
-  \version $Id: RlinkCrc16.hpp 602 2014-11-08 21:42:47Z mueller $
   \brief   Declaration of class \c RlinkCrc16.
 */
 

@@ -1,4 +1,4 @@
-// $Id: RlinkServerEventLoop.hpp 486 2013-02-10 22:34:43Z mueller $
+// $Id: RlinkServerEventLoop.hpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,6 @@
 
 /*!
   \file
-  \version $Id: RlinkServerEventLoop.hpp 486 2013-02-10 22:34:43Z mueller $
   \brief   Declaration of class \c RlinkServerEventLoop.
 */
 

@@ -1,4 +1,4 @@
-// $Id: RtclClassBase.ipp 488 2013-02-16 18:49:47Z mueller $
+// $Id: RtclClassBase.ipp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,6 @@
 
 /*!
   \file
-  \version $Id: RtclClassBase.ipp 488 2013-02-16 18:49:47Z mueller $
   \brief   Implemenation (inline) of RtclClassBase.
 */
 

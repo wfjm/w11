@@ -1,4 +1,4 @@
-// $Id: RtclRw11CntlPC11.hpp 878 2017-04-16 12:28:15Z mueller $
+// $Id: RtclRw11CntlPC11.hpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,6 @@
 
 /*!
   \file
-  \version $Id: RtclRw11CntlPC11.hpp 878 2017-04-16 12:28:15Z mueller $
   \brief   Declaration of class RtclRw11CntlPC11.
 */
 

@@ -1,4 +1,4 @@
-// $Id: RtclClassOwned.hpp 482 2013-02-05 15:53:09Z mueller $
+// $Id: RtclClassOwned.hpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,6 @@
 
 /*!
   \file
-  \version $Id: RtclClassOwned.hpp 482 2013-02-05 15:53:09Z mueller $
   \brief   Declaration of class RtclClassOwned.
 */
 

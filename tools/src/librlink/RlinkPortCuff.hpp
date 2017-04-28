@@ -1,4 +1,4 @@
-// $Id: RlinkPortCuff.hpp 502 2013-04-02 19:29:30Z mueller $
+// $Id: RlinkPortCuff.hpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2012-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,6 @@
 
 /*!
   \file
-  \version $Id: RlinkPortCuff.hpp 502 2013-04-02 19:29:30Z mueller $
   \brief   Declaration of class RlinkPortCuff.
 */
 

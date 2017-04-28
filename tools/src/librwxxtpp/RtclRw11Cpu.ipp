@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.ipp 504 2013-04-13 15:37:24Z mueller $
+// $Id: RtclRw11Cpu.ipp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,6 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Cpu.ipp 504 2013-04-13 15:37:24Z mueller $
   \brief   Implemenation (inline) of RtclRw11Cpu.
 */
 

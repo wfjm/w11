@@ -1,4 +1,4 @@
-// $Id: RlinkCommand.ipp 661 2015-04-03 18:28:41Z mueller $
+// $Id: RlinkCommand.ipp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -22,7 +22,6 @@
 
 /*!
   \file
-  \version $Id: RlinkCommand.ipp 661 2015-04-03 18:28:41Z mueller $
   \brief   Implemenation (inline) of class RlinkCommand.
 */
 

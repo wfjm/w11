@@ -1,4 +1,4 @@
-// $Id: RtclBvi.cpp 632 2015-01-11 12:30:03Z mueller $
+// $Id: RtclBvi.cpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -21,7 +21,6 @@
 
 /*!
   \file
-  \version $Id: RtclBvi.cpp 632 2015-01-11 12:30:03Z mueller $
   \brief   Implemenation of RtclBvi.
 */
 

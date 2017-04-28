@@ -1,4 +1,4 @@
-// $Id: RtimerFd.ipp 851 2017-02-18 09:20:40Z mueller $
+// $Id: RtimerFd.ipp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,6 @@
 
 /*!
   \file
-  \version $Id: RtimerFd.ipp 851 2017-02-18 09:20:40Z mueller $
   \brief   Implemenation (inline) of class RtimerFd.
 */
 

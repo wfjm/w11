@@ -1,4 +1,4 @@
-// $Id: RparseUrl.cpp 875 2017-04-15 21:58:50Z mueller $
+// $Id: RparseUrl.cpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -21,7 +21,6 @@
 
 /*!
   \file
-  \version $Id: RparseUrl.cpp 875 2017-04-15 21:58:50Z mueller $
   \brief   Implemenation of RparseUrl.
 */
 

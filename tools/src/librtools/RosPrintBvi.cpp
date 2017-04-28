@@ -1,4 +1,4 @@
-// $Id: RosPrintBvi.cpp 492 2013-02-24 22:14:47Z mueller $
+// $Id: RosPrintBvi.cpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,6 @@
 
 /*!
   \file
-  \version $Id: RosPrintBvi.cpp 492 2013-02-24 22:14:47Z mueller $
   \brief   Implemenation of RosPrintBvi .
 */
 

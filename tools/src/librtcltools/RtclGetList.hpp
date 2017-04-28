@@ -1,4 +1,4 @@
-// $Id: RtclGetList.hpp 631 2015-01-09 21:36:51Z mueller $
+// $Id: RtclGetList.hpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,6 @@
 
 /*!
   \file
-  \version $Id: RtclGetList.hpp 631 2015-01-09 21:36:51Z mueller $
   \brief   Declaration of class \c RtclGetList.
 */
 

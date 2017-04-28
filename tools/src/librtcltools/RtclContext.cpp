@@ -1,4 +1,4 @@
-// $Id: RtclContext.cpp 866 2017-04-02 17:20:13Z mueller $
+// $Id: RtclContext.cpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -23,7 +23,6 @@
 
 /*!
   \file
-  \version $Id: RtclContext.cpp 866 2017-04-02 17:20:13Z mueller $
   \brief   Implemenation of RtclContext.
 */
 

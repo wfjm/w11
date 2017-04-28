@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTape.ipp 864 2017-04-02 13:20:18Z mueller $
+// $Id: Rw11VirtTape.ipp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,6 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtTape.ipp 864 2017-04-02 13:20:18Z mueller $
   \brief   Implemenation (inline) of Rw11VirtTape.
 */
 

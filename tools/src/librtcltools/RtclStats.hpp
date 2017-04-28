@@ -1,4 +1,4 @@
-// $Id: RtclStats.hpp 495 2013-03-06 17:13:48Z mueller $
+// $Id: RtclStats.hpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -21,7 +21,6 @@
 
 /*!
   \file
-  \version $Id: RtclStats.hpp 495 2013-03-06 17:13:48Z mueller $
   \brief   Declaration of class RtclStats.
 */
 

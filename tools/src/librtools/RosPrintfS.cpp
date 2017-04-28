@@ -1,4 +1,4 @@
-// $Id: RosPrintfS.cpp 531 2013-08-16 19:34:32Z mueller $
+// $Id: RosPrintfS.cpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2000-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,6 @@
 
 /*!
   \file
-  \version $Id: RosPrintfS.cpp 531 2013-08-16 19:34:32Z mueller $
   \brief   Implemenation of RosPrintfS .
 */
 

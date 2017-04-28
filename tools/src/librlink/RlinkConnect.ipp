@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.ipp 883 2017-04-22 11:57:38Z mueller $
+// $Id: RlinkConnect.ipp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -31,7 +31,6 @@
 
 /*!
   \file
-  \version $Id: RlinkConnect.ipp 883 2017-04-22 11:57:38Z mueller $
   \brief   Implemenation (inline) of RlinkConnect.
 */
 

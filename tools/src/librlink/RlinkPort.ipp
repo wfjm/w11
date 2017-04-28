@@ -1,4 +1,4 @@
-// $Id: RlinkPort.ipp 666 2015-04-12 21:17:54Z mueller $
+// $Id: RlinkPort.ipp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -23,7 +23,6 @@
 
 /*!
   \file
-  \version $Id: RlinkPort.ipp 666 2015-04-12 21:17:54Z mueller $
   \brief   Implemenation (inline) of RlinkPort.
 */
 

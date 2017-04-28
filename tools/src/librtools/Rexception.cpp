@@ -1,4 +1,4 @@
-// $Id: Rexception.cpp 625 2014-12-30 16:17:45Z mueller $
+// $Id: Rexception.cpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,6 @@
 
 /*!
   \file
-  \version $Id: Rexception.cpp 625 2014-12-30 16:17:45Z mueller $
   \brief   Implemenation of Rexception.
 */
 

@@ -1,4 +1,4 @@
-// $Id: Rw11UnitTape.ipp 686 2015-06-04 21:08:08Z mueller $
+// $Id: Rw11UnitTape.ipp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,6 @@
 
 /*!
   \file
-  \version $Id: Rw11UnitTape.ipp 686 2015-06-04 21:08:08Z mueller $
   \brief   Implemenation (inline) of Rw11UnitTape.
 */
 

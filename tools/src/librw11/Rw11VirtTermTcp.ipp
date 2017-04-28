@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTermTcp.ipp 508 2013-04-20 18:43:28Z mueller $
+// $Id: Rw11VirtTermTcp.ipp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -18,7 +18,6 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtTermTcp.ipp 508 2013-04-20 18:43:28Z mueller $
   \brief   Implemenation (inline) of Rw11VirtTermTcp.
 */
 

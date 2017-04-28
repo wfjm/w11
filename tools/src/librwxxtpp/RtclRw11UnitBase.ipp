@@ -1,4 +1,4 @@
-// $Id: RtclRw11UnitBase.ipp 875 2017-04-15 21:58:50Z mueller $
+// $Id: RtclRw11UnitBase.ipp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -23,7 +23,6 @@
 
 /*!
   \file
-  \version $Id: RtclRw11UnitBase.ipp 875 2017-04-15 21:58:50Z mueller $
   \brief   Implemenation (all inline) of RtclRw11UnitBase.
 */
 

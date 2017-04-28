@@ -1,4 +1,4 @@
-// $Id: RtclNameSet.cpp 584 2014-08-22 19:38:12Z mueller $
+// $Id: RtclNameSet.cpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -21,7 +21,6 @@
 
 /*!
   \file
-  \version $Id: RtclNameSet.cpp 584 2014-08-22 19:38:12Z mueller $
   \brief   Implemenation of RtclNameSet.
 */
 

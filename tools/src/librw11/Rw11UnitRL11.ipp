@@ -1,4 +1,4 @@
-// $Id: Rw11UnitRL11.ipp 653 2015-03-01 12:53:01Z mueller $
+// $Id: Rw11UnitRL11.ipp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -18,7 +18,6 @@
 
 /*!
   \file
-  \version $Id: Rw11UnitRL11.ipp 653 2015-03-01 12:53:01Z mueller $
   \brief   Implemenation (inline) of Rw11UnitRL11.
 */
 

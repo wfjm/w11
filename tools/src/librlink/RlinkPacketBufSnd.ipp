@@ -1,4 +1,4 @@
-// $Id: RlinkPacketBufSnd.ipp 666 2015-04-12 21:17:54Z mueller $
+// $Id: RlinkPacketBufSnd.ipp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2014-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,6 @@
 
 /*!
   \file
-  \version $Id: RlinkPacketBufSnd.ipp 666 2015-04-12 21:17:54Z mueller $
   \brief   Implemenation (inline) of class RlinkPacketBuf.
 */
 

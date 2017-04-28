@@ -1,4 +1,4 @@
-// $Id: RlinkServerEventLoop.cpp 662 2015-04-05 08:02:54Z mueller $
+// $Id: RlinkServerEventLoop.cpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -21,7 +21,6 @@
 
 /*!
   \file
-  \version $Id: RlinkServerEventLoop.cpp 662 2015-04-05 08:02:54Z mueller $
   \brief   Implemenation of RlinkServerEventLoop.
 */
 

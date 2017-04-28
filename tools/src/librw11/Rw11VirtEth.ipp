@@ -1,4 +1,4 @@
-// $Id: Rw11VirtEth.ipp 847 2017-01-29 22:38:42Z mueller $
+// $Id: Rw11VirtEth.ipp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -19,7 +19,6 @@
 
 /*!
   \file
-  \version $Id: Rw11VirtEth.ipp 847 2017-01-29 22:38:42Z mueller $
   \brief   Implemenation (inline) of Rw11VirtEth.
 */
 

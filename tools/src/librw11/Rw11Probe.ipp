@@ -1,4 +1,4 @@
-// $Id: Rw11Probe.ipp 848 2017-02-04 14:55:30Z mueller $
+// $Id: Rw11Probe.ipp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -18,7 +18,6 @@
 
 /*!
   \file
-  \version $Id: Rw11Probe.ipp 848 2017-02-04 14:55:30Z mueller $
   \brief   Implemenation (inline) of Rw11Probe.
 */
 

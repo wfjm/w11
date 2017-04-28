@@ -1,4 +1,4 @@
-// $Id: RtclAttnShuttle.cpp 631 2015-01-09 21:36:51Z mueller $
+// $Id: RtclAttnShuttle.cpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -23,7 +23,6 @@
 
 /*!
   \file
-  \version $Id: RtclAttnShuttle.cpp 631 2015-01-09 21:36:51Z mueller $
   \brief   Implemenation of class RtclAttnShuttle.
  */
 

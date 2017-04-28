@@ -1,4 +1,4 @@
-// $Id: Rtools.ipp 850 2017-02-12 22:51:19Z mueller $
+// $Id: Rtools.ipp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -18,7 +18,6 @@
 
 /*!
   \file
-  \version $Id: Rtools.ipp 850 2017-02-12 22:51:19Z mueller $
   \brief   Implemenation (inline) of Rtools.
 */
 

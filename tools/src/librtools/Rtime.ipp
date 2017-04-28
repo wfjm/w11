@@ -1,4 +1,4 @@
-// $Id: Rtime.ipp 854 2017-02-25 14:46:03Z mueller $
+// $Id: Rtime.ipp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -18,7 +18,6 @@
 
 /*!
   \file
-  \version $Id: Rtime.ipp 854 2017-02-25 14:46:03Z mueller $
   \brief   Implemenation (inline) of Rtime.
 */
 

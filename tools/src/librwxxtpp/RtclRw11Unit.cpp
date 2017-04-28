@@ -1,4 +1,4 @@
-// $Id: RtclRw11Unit.cpp 870 2017-04-08 18:24:34Z mueller $
+// $Id: RtclRw11Unit.cpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -22,7 +22,6 @@
 
 /*!
   \file
-  \version $Id: RtclRw11Unit.cpp 870 2017-04-08 18:24:34Z mueller $
   \brief   Implemenation of RtclRw11Unit.
 */
 

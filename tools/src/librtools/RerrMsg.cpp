@@ -1,4 +1,4 @@
-// $Id: RerrMsg.cpp 493 2013-03-01 21:02:33Z mueller $
+// $Id: RerrMsg.cpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,6 @@
 
 /*!
   \file
-  \version $Id: RerrMsg.cpp 493 2013-03-01 21:02:33Z mueller $
   \brief   Implemenation of RerrMsg.
 */
 

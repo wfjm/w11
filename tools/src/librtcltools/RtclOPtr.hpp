@@ -1,4 +1,4 @@
-// $Id: RtclOPtr.hpp 521 2013-05-20 22:16:45Z mueller $
+// $Id: RtclOPtr.hpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,6 @@
 
 /*!
   \file
-  \version $Id: RtclOPtr.hpp 521 2013-05-20 22:16:45Z mueller $
   \brief   Declaration of class RtclOPtr.
 */
 

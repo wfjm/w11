@@ -1,4 +1,4 @@
-// $Id: Rexception.hpp 625 2014-12-30 16:17:45Z mueller $
+// $Id: Rexception.hpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -21,7 +21,6 @@
 
 /*!
   \file
-  \version $Id: Rexception.hpp 625 2014-12-30 16:17:45Z mueller $
   \brief   Declaration of class Rexception.
 */
 

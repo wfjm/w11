@@ -1,4 +1,4 @@
-// $Id: Rw11UnitTerm.ipp 855 2017-02-25 16:30:37Z mueller $
+// $Id: Rw11UnitTerm.ipp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -21,7 +21,6 @@
 
 /*!
   \file
-  \version $Id: Rw11UnitTerm.ipp 855 2017-02-25 16:30:37Z mueller $
   \brief   Implemenation (inline) of Rw11UnitTerm.
 */
 

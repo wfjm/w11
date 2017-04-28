@@ -1,4 +1,4 @@
-// $Id: RtclRw11VirtDiskOver.cpp 859 2017-03-11 22:36:45Z mueller $
+// $Id: RtclRw11VirtDiskOver.cpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -18,7 +18,6 @@
 
 /*!
   \file
-  \version $Id: RtclRw11VirtDiskOver.cpp 859 2017-03-11 22:36:45Z mueller $
   \brief   Implemenation of RtclRw11VirtDiskOver.
 */
 

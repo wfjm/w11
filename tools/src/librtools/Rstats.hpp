@@ -1,4 +1,4 @@
-// $Id: Rstats.hpp 865 2017-04-02 16:45:06Z mueller $
+// $Id: Rstats.hpp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,6 @@
 
 /*!
   \file
-  \version $Id: Rstats.hpp 865 2017-04-02 16:45:06Z mueller $
   \brief   Declaration of class Rstats .
 */
 

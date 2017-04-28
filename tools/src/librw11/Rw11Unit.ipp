@@ -1,4 +1,4 @@
-// $Id: Rw11Unit.ipp 513 2013-05-01 14:02:06Z mueller $
+// $Id: Rw11Unit.ipp 887 2017-04-28 19:32:52Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,6 @@
 
 /*!
   \file
-  \version $Id: Rw11Unit.ipp 513 2013-05-01 14:02:06Z mueller $
   \brief   Implemenation (inline) of Rw11Unit.
 */
 

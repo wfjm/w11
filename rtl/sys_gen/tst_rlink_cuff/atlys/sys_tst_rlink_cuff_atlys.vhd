@@ -1,4 +1,4 @@
--- $Id: sys_tst_rlink_cuff_atlys.vhd 734 2016-02-20 22:43:20Z mueller $
+-- $Id: sys_tst_rlink_cuff_atlys.vhd 889 2017-04-30 13:31:27Z mueller $
 --
 -- Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -56,12 +56,12 @@
 --
 --    DSP:      SER_MONI.clkdiv         (from auto bauder)
 --    for SWI(2)='0' (serport)
---    DP(3)     not SER_MONI.txok       (shows tx back preasure)
+--    DP(3)     not SER_MONI.txok       (shows tx back pressure)
 --      (2)     SER_MONI.txact          (shows tx activity)
---      (1)     not SER_MONI.rxok       (shows rx back preasure)
+--      (1)     not SER_MONI.rxok       (shows rx back pressure)
 --      (0)     SER_MONI.rxact          (shows rx activity)
 --    for SWI(2)='1' (fx2)
---    DP(3)     FX2_TX2BUSY             (shows tx2 back preasure)
+--    DP(3)     FX2_TX2BUSY             (shows tx2 back pressure)
 --      (2)     FX2_TX2ENA(stretched)   (shows tx2 activity)
 --      (1)     FX2_TXENA(streched)     (shows tx activity)
 --      (0)     FX2_RXVAL(stretched)    (shows rx activity)

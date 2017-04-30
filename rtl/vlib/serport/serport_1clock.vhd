@@ -1,4 +1,4 @@
--- $Id: serport_1clock.vhd 748 2016-03-20 15:18:50Z mueller $
+-- $Id: serport_1clock.vhd 889 2017-04-30 13:31:27Z mueller $
 --
 -- Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -201,7 +201,7 @@ begin
     SIZE  => open
   );
     
-  -- receive back preasure
+  -- receive back pressure
   --    on if fifo more than 3/4 full
   --   off if fifo less than 1/2 full
   proc_rxok: process (CLK)

@@ -1,4 +1,4 @@
--- $Id: sysmon_rbus_core.vhd 784 2016-07-09 22:17:01Z mueller $
+-- $Id: sysmon_rbus_core.vhd 889 2017-04-30 13:31:27Z mueller $
 --
 -- Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -203,7 +203,7 @@ begin
 
     irbena  := RB_MREQ.re or RB_MREQ.we;
 
-    -- check for internal rbus controler register window
+    -- check for internal rbus controller register window
     irb_addr_int := '0';
     if RB_MREQ.addr(DAWIDTH-1 downto 3) = IBASE(DAWIDTH-1 downto 3) then
       irb_addr_int := '1';      

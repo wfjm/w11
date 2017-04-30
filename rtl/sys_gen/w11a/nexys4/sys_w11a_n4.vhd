@@ -1,4 +1,4 @@
--- $Id: sys_w11a_n4.vhd 885 2017-04-23 15:54:01Z mueller $
+-- $Id: sys_w11a_n4.vhd 889 2017-04-30 13:31:27Z mueller $
 --
 -- Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -110,9 +110,9 @@
 --    DSP(7:4)  shows abclkdiv & abclkdiv_f or PS, depending on SWI(5)
 --    DSP(3:0)  shows DISPREG or DR emulation, depending on SWI(4)
 --    DP(3:0)   shows IO activity
---                  (3)  not SER_MONI.txok       (shows tx back preasure)
+--                  (3)  not SER_MONI.txok       (shows tx back pressure)
 --                  (2)  SER_MONI.txact          (shows tx activity)
---                  (1)  not SER_MONI.rxok       (shows rx back preasure)
+--                  (1)  not SER_MONI.rxok       (shows rx back pressure)
 --                  (0)  SER_MONI.rxact          (shows rx activity)
 --
 

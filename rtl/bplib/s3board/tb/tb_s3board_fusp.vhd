@@ -1,4 +1,4 @@
--- $Id: tb_s3board_fusp.vhd 805 2016-09-03 08:09:52Z mueller $
+-- $Id: tb_s3board_fusp.vhd 889 2017-04-30 13:31:27Z mueller $
 --
 -- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -131,7 +131,7 @@ begin
       TX_ENA   => RXVAL
     );
 
-  RX_HOLD <= TXBUSY or RTS_N;           -- back preasure for data flow to tb
+  RX_HOLD <= TXBUSY or RTS_N;           -- back pressure for data flow to tb
   
   S3CORE : entity work.tb_s3board_core
     port map (

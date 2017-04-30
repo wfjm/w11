@@ -1,4 +1,4 @@
--- $Id: sys_tst_rlink_arty.vhd 758 2016-04-02 18:01:39Z mueller $
+-- $Id: sys_tst_rlink_arty.vhd 889 2017-04-30 13:31:27Z mueller $
 --
 -- Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -56,9 +56,9 @@
 --    SWI(1):   -unused-
 --    SWI(0):   -unused-
 --
---    LED(3):   not SER_MONI.txok       (shows tx back preasure)
+--    LED(3):   not SER_MONI.txok       (shows tx back pressure)
 --    LED(2):   SER_MONI.txact          (shows tx activity)
---    LED(1):   not SER_MONI.rxok       (shows rx back preasure)
+--    LED(1):   not SER_MONI.rxok       (shows rx back pressure)
 --    LED(0):   SER_MONI.rxact          (shows rx activity)
 --
 

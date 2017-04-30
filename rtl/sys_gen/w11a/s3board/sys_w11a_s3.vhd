@@ -1,4 +1,4 @@
--- $Id: sys_w11a_s3.vhd 858 2017-03-05 17:41:37Z mueller $
+-- $Id: sys_w11a_s3.vhd 889 2017-04-30 13:31:27Z mueller $
 --
 -- Copyright 2007-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -169,9 +169,9 @@
 --                  (4) '1'
 --                (3:0) cpurust code
 --
---    DP(3):    not SER_MONI.txok       (shows tx back preasure)
+--    DP(3):    not SER_MONI.txok       (shows tx back pressure)
 --    DP(2):    SER_MONI.txact          (shows tx activity)
---    DP(1):    not SER_MONI.rxok       (shows rx back preasure)
+--    DP(1):    not SER_MONI.rxok       (shows rx back pressure)
 --    DP(0):    SER_MONI.rxact          (shows rx activity)
 --
 

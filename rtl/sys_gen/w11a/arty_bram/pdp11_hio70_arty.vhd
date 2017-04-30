@@ -1,4 +1,4 @@
--- $Id: pdp11_hio70_arty.vhd 737 2016-02-28 09:07:18Z mueller $
+-- $Id: pdp11_hio70_arty.vhd 889 2017-04-30 13:31:27Z mueller $
 --
 -- Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -28,9 +28,9 @@
 -- collects the output for LED and RGB leds
 -- MODE = 00xy
 --   LED     IO activity
---             (3)   not SER_MONI.txok       (shows tx back preasure)
+--             (3)   not SER_MONI.txok       (shows tx back pressure)
 --             (2)   SER_MONI.txact          (shows tx activity)
---             (1)   not SER_MONI.rxok       (shows rx back preasure)
+--             (1)   not SER_MONI.rxok       (shows rx back pressure)
 --             (0)   SER_MONI.rxact          (shows rx activity)
 --   RGB_G   CPU busy       (active cpugo=1, enabled with y=1)
 --             (3)   kernel mode, non-wait, pri>0

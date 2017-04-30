@@ -1,4 +1,4 @@
--- $Id: serport_2clock2.vhd 759 2016-04-09 10:13:57Z mueller $
+-- $Id: serport_2clock2.vhd 889 2017-04-30 13:31:27Z mueller $
 --
 -- Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -244,7 +244,7 @@ begin
     SIZER  => open
   );
 
-  -- receive back preasure
+  -- receive back pressure
   --    on if fifo more than 3/4 full (less than 1/4 free)
   --   off if fifo less than 1/2 full (more than 1/2 free)
   proc_rxok: process (CLKS)

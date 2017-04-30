@@ -1,4 +1,4 @@
--- $Id: tst_sram.vhd 785 2016-07-10 12:22:41Z mueller $
+-- $Id: tst_sram.vhd 889 2017-04-30 13:31:27Z mueller $
 --
 -- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -40,7 +40,7 @@
 -- 2010-06-18   306   1.1.2  rename rbus data fields to _rbf_
 -- 2010-06-03   299   1.1.1  correct rbus init logic (use we, RB_ADDR)
 -- 2010-05-24   294   1.1    Correct _al->_dl logic, remove BUSY=0 condition
--- 2010-05-21   292   1.0.1  move memory controler to top level entity
+-- 2010-05-21   292   1.0.1  move memory controller to top level entity
 -- 2010-05-16   291   1.0    Initial version (extracted from sys_tst_sram)
 --                           now RB_SRES only driven when selected
 ------------------------------------------------------------------------------
@@ -147,9 +147,9 @@
 --
 --    DSP:      data as selected by SWI(7..4)
 --
---    DP(3):    not SER_MONI.txok       (shows tx back preasure)
+--    DP(3):    not SER_MONI.txok       (shows tx back pressure)
 --    DP(2):    SER_MONI.txact          (shows tx activity)
---    DP(1):    not SER_MONI.rxok       (shows rx back preasure)
+--    DP(1):    not SER_MONI.rxok       (shows rx back pressure)
 --    DP(0):    SER_MONI.rxact          (shows rx activity)
 --
 

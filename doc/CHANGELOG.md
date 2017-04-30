@@ -22,12 +22,19 @@ The full set of tests is only run for tagged releases.
   - no loopback
   - no memory access error checking
   - works with 211bsd, ping and telnet login tested
-- DEUNA and nexys3 shows rlink aborts
-  - unlikely that it's a DEUNA issue
-  - more likely this revealed a hidden flaw in the fx2 based transport
-  - all works fine with nexys4 !
+  - RSX11-M uses buffer chaining, will not work
 
 ### Summary
+- re-arrange rawio commands for rlc and rlp
+  - RtclRlink(Connect|Port): drop M_rawio; add M_rawread,M_rawrblk,M_rawwblk
+  - RtclRlinkPort: LogFileName(): returns now const std::string&
+- BUGFIXes for backend
+  - RlinkPort: BUGFIX: RawRead(): proper irc for exactsize=false
+  - Rexception: BUGFIX: add fErrtxt for proper what() return
+- sys_w11a_n(2|3): use SWI(7:6) to allow fx2 debug via LEDs 
+- BUGFIX: resolve hangup of fx2 USB controller
+  - was caused by inconsistent use of rx fifo thresholds
+  - adding more lines to monitor output (fsm_* lines for state tracking)
 - refurbish dmcmon
   - has now the sta,sto,sus,res logic as rbmon and ibmon
   - does not depend on full state number generation anymore

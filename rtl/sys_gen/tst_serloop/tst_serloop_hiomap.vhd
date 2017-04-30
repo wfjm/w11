@@ -1,4 +1,4 @@
--- $Id: tst_serloop_hiomap.vhd 751 2016-03-25 19:46:11Z mueller $
+-- $Id: tst_serloop_hiomap.vhd 889 2017-04-30 13:31:27Z mueller $
 --
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -54,7 +54,7 @@
 --       (4)    rxoecnt > 0                     (overrun error)
 --       (3)    rxsecnt > 0                     (sequence error)
 --       (2)    abact                           (shows ab activity)
---       (1)    (not rxok) or (not txok)        (shows back preasure)
+--       (1)    (not rxok) or (not txok)        (shows back pressure)
 --       (0)    rxact or txact                  (shows activity)
 --
 --    DSP       data as selected by SWI(7:4)
@@ -70,9 +70,9 @@
 --                1010 -> rxuicnt,rxuidat
 --                1111 -> abclkdiv
 --
---    DP(3):    not SER_MONI.txok   (shows tx back preasure)
+--    DP(3):    not SER_MONI.txok   (shows tx back pressure)
 --      (2):    SER_MONI.txact      (shows tx activity)
---      (1):    not SER_MONI.rxok   (shows rx back preasure)
+--      (1):    not SER_MONI.rxok   (shows rx back pressure)
 --      (0):    SER_MONI.rxact      (shows rx activity)
 --
 
@@ -202,9 +202,9 @@ begin
 
     -- setup display decimal points
 
-    idp(3) := not SER_MONI.txok;        -- tx back preasure
+    idp(3) := not SER_MONI.txok;        -- tx back pressure
     idp(2) := SER_MONI.txact;           -- tx activity
-    idp(1) := not SER_MONI.rxok;        -- rx back preasure
+    idp(1) := not SER_MONI.rxok;        -- rx back pressure
     idp(0) := SER_MONI.rxact;           -- rx activity
 
     N_REGS <= n;

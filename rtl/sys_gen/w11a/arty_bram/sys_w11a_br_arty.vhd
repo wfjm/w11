@@ -1,4 +1,4 @@
--- $Id: sys_w11a_br_arty.vhd 883 2017-04-22 11:57:38Z mueller $
+-- $Id: sys_w11a_br_arty.vhd 889 2017-04-30 13:31:27Z mueller $
 --
 -- Copyright 2016-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -74,9 +74,9 @@
 --      
 -- LED and RGB  assignment for SWI=00xy
 --   LED     IO activity
---             (3)   not SER_MONI.txok       (shows tx back preasure)
+--             (3)   not SER_MONI.txok       (shows tx back pressure)
 --             (2)   SER_MONI.txact          (shows tx activity)
---             (1)   not SER_MONI.rxok       (shows rx back preasure)
+--             (1)   not SER_MONI.rxok       (shows rx back pressure)
 --             (0)   SER_MONI.rxact          (shows rx activity)
 --   RGB_G   CPU busy       (active cpugo=1, enabled with SWI(0))
 --             (3)   kernel mode, non-wait, pri>0

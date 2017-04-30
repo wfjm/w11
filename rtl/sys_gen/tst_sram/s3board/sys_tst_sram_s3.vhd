@@ -1,4 +1,4 @@
--- $Id: sys_tst_sram_s3.vhd 791 2016-07-21 22:01:10Z mueller $
+-- $Id: sys_tst_sram_s3.vhd 889 2017-04-30 13:31:27Z mueller $
 --
 -- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -58,7 +58,7 @@
 -- 2010-10-23   335   2.0.4  rename RRI_LAM->RB_LAM;
 -- 2010-06-03   300   2.0.3  use default FAWIDTH for rri_core_serport
 -- 2010-05-32   294   2.0.2  rename sys_tst_sram -> sys_tst_sram_s3
--- 2010-05-21   292   2.0.1  move memory controler to top level entity
+-- 2010-05-21   292   2.0.1  move memory controller to top level entity
 -- 2010-05-16   291   2.0    move tester code to tst_sram; use s3_rs232_iob_int
 -- 2010-05-02   287   1.1.6  ren CE_XSEC->CE_INT,RP_STAT->RB_STAT,AP_LAM->RB_LAM
 --                           drop RP_IINT from interfaces; drop RTSFLUSH generic

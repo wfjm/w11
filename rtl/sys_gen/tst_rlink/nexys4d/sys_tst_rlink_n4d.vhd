@@ -1,4 +1,4 @@
--- $Id: sys_tst_rlink_n4d.vhd 839 2017-01-04 21:34:04Z mueller $
+-- $Id: sys_tst_rlink_n4d.vhd 889 2017-04-30 13:31:27Z mueller $
 --
 -- Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -68,9 +68,9 @@
 --    LED(0):   timer 0 busy 
 --
 --    DSP:      SER_MONI.clkdiv         (from auto bauder)
---    DP(3):    not SER_MONI.txok       (shows tx back preasure)
+--    DP(3):    not SER_MONI.txok       (shows tx back pressure)
 --    DP(2):    SER_MONI.txact          (shows tx activity)
---    DP(1):    not SER_MONI.rxok       (shows rx back preasure)
+--    DP(1):    not SER_MONI.rxok       (shows rx back pressure)
 --    DP(0):    SER_MONI.rxact          (shows rx activity)
 --
 

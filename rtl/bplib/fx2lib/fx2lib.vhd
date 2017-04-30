@@ -1,6 +1,6 @@
--- $Id: fx2lib.vhd 638 2015-01-25 22:01:38Z mueller $
+-- $Id: fx2lib.vhd 888 2017-04-30 13:06:51Z mueller $
 --
--- Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,10 +16,11 @@
 -- Description:    Cypress ez-usb fx2 support
 -- 
 -- Dependencies:   -
--- Tool versions:  xst 12.1-14.7; ghdl 0.26-0.31
+-- Tool versions:  xst 12.1-14.7; ghdl 0.26-0.34
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2017-04-30   888   1.5    add fsm_* monitor lines
 -- 2015-01-25   638   1.4    retire fx2_2fifoctl_as
 -- 2012-01-14   453   1.3    use afull/aempty logic instead of exporting size
 -- 2012-01-03   449   1.2.1  reorganize fx2ctl_moni; hardcode ep's
@@ -54,6 +55,13 @@ package fx2lib is
     slrd : slbit;                       -- read strobe
     slwr : slbit;                       -- write strobe
     pktend : slbit;                     -- pktend strobe
+    fsm_idle : slbit;                   -- fsm: in s_idle
+    fsm_prep : slbit;                   -- fsm: in s_*prep*
+    fsm_disp : slbit;                   -- fsm: in s_*disp*
+    fsm_pipe : slbit;                   -- fsm: in s_rxpipe
+    fsm_rx   : slbit;                   -- fsm: in s_rx*
+    fsm_tx   : slbit;                   -- fsm: in s_tx*
+    fsm_tx2  : slbit;                   -- fsm: in s_tx2*
   end record fx2ctl_moni_type;
 
   constant fx2ctl_moni_init : fx2ctl_moni_type := (
@@ -61,7 +69,9 @@ package fx2lib is
     '0','0',                            -- flag_ep4_(empty|almost)
     '0','0',                            -- flag_ep6_(full|almost)
     '0','0',                            -- flag_ep8_(full|almost)
-    '0','0','0'                         -- slrd, slwr, pktend
+    '0','0','0',                        -- slrd, slwr, pktend
+    '0','0','0','0',                    -- fsm_(idle|prep|disp|pipe)
+    '0','0','0'                         -- fsm_(rx|tx|tx2)
   );
 
 

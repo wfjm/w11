@@ -1,6 +1,6 @@
--- $Id: fx2_2fifoctl_ic.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: fx2_2fifoctl_ic.vhd 888 2017-04-30 13:06:51Z mueller $
 --
--- Copyright 2012-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2012-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -23,16 +23,19 @@
 --
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 13.3-14.7; ghdl 0.29-0.31
+-- Tool versions:  xst 13.3-14.7; ghdl 0.29-0.34
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2017-04-30   888  14.7 131013 xc6slx16-2   145  147   32   75 s  5.5/5.1
 -- 2013-01-04   469  13.3   O76x xc3s1200e-4  112  172   64  169 s  7.4/7.4
 -- 2012-01-14   453  13.3   O76x xc3s1200e-4  101? 173   64  159 s  8.3/7.4
 -- 2012-01-08   451  13.3   O76x xc3s1200e-4  110  166   64  163 s  7.5
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2017-04-30   888   1.3    BUGFIX: resolve rx fifo threshold deadlock
+--                           add fsm_* monitor lines
 -- 2013-01-04   469   1.2    BUGFIX: redo rx logic, now properly pipelined
 -- 2012-01-15   453   1.1    use aempty/afull logic; collapse tx and pe flows
 -- 2012-01-09   451   1.0    Initial version
@@ -129,7 +132,10 @@ architecture syn of fx2_2fifoctl_ic is
     '0','0',                            -- moni_ep(4|6)_sel
     '0','0'                             -- moni_ep(4|6)_pf
   );
-    
+
+  constant rxfifo_thres : natural := 3;  -- required free space in rx fifo to
+                                         -- start rx pipeline
+ 
   signal R_REGS : regs_type := regs_init;  -- state registers
   signal N_REGS : regs_type := regs_init;  -- next value state regs
 
@@ -295,9 +301,7 @@ begin
 
   end process proc_regs;
 
-  proc_next: process (R_REGS, 
-                      FX2_FLAG_N, TXFIFO_VAL, RXSIZE_FX2,
-                      RXFIFO_BUSY, TXBUSY_L)
+  proc_next: process (R_REGS, FX2_FLAG_N, TXFIFO_VAL, RXSIZE_FX2, TXBUSY_L)
 
     variable r : regs_type := regs_init;
     variable n : regs_type := regs_init;
@@ -320,6 +324,7 @@ begin
     variable slrxok : slbit := '0';
     variable sltxok : slbit := '0';
     variable pipeok : slbit := '0';
+    variable rxfifook : slbit := '0';
 
     variable cc_clr : slbit := '0';
     variable cc_cnt : slbit := '0';
@@ -349,6 +354,11 @@ begin
     sltxok := FX2_FLAG_N(c_flag_tx_ff); --  full flag is act.low!
     pipeok := FX2_FLAG_N(c_flag_prog);  -- almost flag is act.low!
 
+    rxfifook := '0';
+    if unsigned(RXSIZE_FX2)>rxfifo_thres then -- enough space in rx fifo ?
+      rxfifook := '1';
+    end if;
+    
     cc_clr := '0';
     cc_cnt := '0';
     if unsigned(r.ccnt) = 0  then
@@ -361,7 +371,7 @@ begin
     
     case r.state is
       when s_idle =>                    -- s_idle:
-        if slrxok='1' and RXFIFO_BUSY='0' then
+        if slrxok='1' and rxfifook='1' then -- rx data and space in fifo
           ififo_ce := '1';
           ififo    := c_rxfifo;
           n.state := s_rxprep1;
@@ -394,7 +404,7 @@ begin
             n.state := s_txprep0;           -- otherwise switch to tx flow
           end if;
         -- if more rx to do and possible
-        elsif slrxok='1' and unsigned(RXSIZE_FX2)>3 then  -- !thres must be >3!
+        elsif slrxok='1' and rxfifook='1' then
           islrd := '1';
           cc_cnt := '1';
           n.rxpipe1 := '1';
@@ -431,7 +441,7 @@ begin
 
       when s_txdisp =>                  -- s_txdisp: write, dispatch
         -- if chunk done and rx pending and possible
-        if cc_done='1' and slrxok='1' and RXFIFO_BUSY='0' then
+        if cc_done='1' and slrxok='1' and rxfifook='1' then
           n.state := s_rxprep0;
         -- if pktend to do and possible
         elsif sltxok = '1' and r.pepend = '1' then
@@ -533,6 +543,20 @@ begin
         R_MONI_C.slrd            <= not FX2_SLRD_N;
         R_MONI_C.slwr            <= not FX2_SLWR_N;
         R_MONI_C.pktend          <= not FX2_PKTEND_N;
+        case R_REGS.state is
+          when s_idle    => R_MONI_C.fsm_idle <= '1';
+          when s_rxprep0 => R_MONI_C.fsm_prep <= '1'; R_MONI_C.fsm_rx  <= '1';
+          when s_rxprep1 => R_MONI_C.fsm_prep <= '1'; R_MONI_C.fsm_rx  <= '1';
+          when s_rxprep2 => R_MONI_C.fsm_prep <= '1'; R_MONI_C.fsm_rx  <= '1';
+          when s_rxdisp  => R_MONI_C.fsm_disp <= '1'; R_MONI_C.fsm_rx  <= '1';
+          when s_rxpipe  => R_MONI_C.fsm_pipe <= '1'; R_MONI_C.fsm_rx  <= '1';
+          when s_txprep0 => R_MONI_C.fsm_prep <= '1'; R_MONI_C.fsm_tx  <= '1'; 
+          when s_txprep1 => R_MONI_C.fsm_prep <= '1'; R_MONI_C.fsm_tx  <= '1';
+          when s_txprep2 => R_MONI_C.fsm_prep <= '1'; R_MONI_C.fsm_tx  <= '1';
+          when s_txdisp  => R_MONI_C.fsm_disp <= '1'; R_MONI_C.fsm_tx  <= '1';
+          when others => null;
+        end case;
+        
         R_MONI_S <= R_MONI_C;
       end if;
     end if;

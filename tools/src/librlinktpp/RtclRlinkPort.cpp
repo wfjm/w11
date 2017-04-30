@@ -1,4 +1,4 @@
-// $Id: RtclRlinkPort.cpp 887 2017-04-28 19:32:52Z mueller $
+// $Id: RtclRlinkPort.cpp 888 2017-04-30 13:06:51Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-29   888   1.2    LogFileName(): returns now const std::string&
+//                           drop M_rawio; add M_rawread,M_rawrblk,M_rawwblk
 // 2017-04-02   865   1.1.1  M_dump: use GetArgsDump and Dump detail
 // 2017-02-19   853   1.1    use Rtime
 // 2015-01-09   632   1.0.4  add M_get, M_set, remove M_config
@@ -67,7 +69,9 @@ RtclRlinkPort::RtclRlinkPort(Tcl_Interp* interp, const char* name)
   AddMeth("open",     boost::bind(&RtclRlinkPort::M_open,    this, _1));
   AddMeth("close",    boost::bind(&RtclRlinkPort::M_close,   this, _1));
   AddMeth("errcnt",   boost::bind(&RtclRlinkPort::M_errcnt,  this, _1));
-  AddMeth("rawio",    boost::bind(&RtclRlinkPort::M_rawio,   this, _1));
+  AddMeth("rawread",  boost::bind(&RtclRlinkPort::M_rawread, this, _1));
+  AddMeth("rawrblk",  boost::bind(&RtclRlinkPort::M_rawrblk, this, _1));
+  AddMeth("rawwblk",  boost::bind(&RtclRlinkPort::M_rawwblk, this, _1));
   AddMeth("stats",    boost::bind(&RtclRlinkPort::M_stats,   this, _1));
   AddMeth("log",      boost::bind(&RtclRlinkPort::M_log,     this, _1));
   AddMeth("dump",     boost::bind(&RtclRlinkPort::M_dump,    this, _1));
@@ -147,9 +151,25 @@ int RtclRlinkPort::M_errcnt(RtclArgs& args)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-int RtclRlinkPort::M_rawio(RtclArgs& args)
+int RtclRlinkPort::M_rawread(RtclArgs& args)
 {
-  return DoRawio(args, fpObj, fErrCnt);
+  return DoRawRead(args, fpObj);
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+int RtclRlinkPort::M_rawrblk(RtclArgs& args)
+{
+  return DoRawRblk(args, fpObj, fErrCnt);
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+int RtclRlinkPort::M_rawwblk(RtclArgs& args)
+{
+  return DoRawWblk(args, fpObj);
 }
 
 //------------------------------------------+-----------------------------------
@@ -272,7 +292,7 @@ void RtclRlinkPort::SetLogFileName(const std::string& name)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline std::string RtclRlinkPort::LogFileName() const
+inline const std::string& RtclRlinkPort::LogFileName() const
 {
   return fspLog->Name();
 }
@@ -280,80 +300,120 @@ inline std::string RtclRlinkPort::LogFileName() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-int RtclRlinkPort::DoRawio(RtclArgs& args, RlinkPort* pport, size_t& errcnt)
+int RtclRlinkPort::DoRawRead(RtclArgs& args, RlinkPort* pport)
 {
-  static RtclNameSet optset("-rblk|-wblk|-edata|-timeout");
+  if (!(pport && pport->IsOpen())) return args.Quit("-E: port not open");
+  
+  int32_t rsize;
+  string rvname;
+  vector<uint8_t> rdata;
+  double timeout = 1.;
 
-  if (!pport || !pport->IsOpen()) args.Quit("-E: port not open");
-
+  if (!args.GetArg("bsize", rsize, 1, 4096)) return kERR;
+  if (!args.GetArg("varData", rvname)) return kERR;
+  
+  static RtclNameSet optset("-timeout");
   string opt;
-  char mode = 0;
+  while (args.NextOpt(opt, optset)) {
+    if (opt == "-timeout") {     // -timeout tsec ------------------
+      if (!args.GetArg("tsec", timeout, 0.)) return kERR;
+    }
+  }
+
+  RerrMsg emsg;
+  Rtime tused;
+  rdata.resize(rsize);
+
+  int irc = pport->RawRead(rdata.data(), rdata.size(), false, Rtime(timeout), 
+                           tused, emsg);
+
+  if (irc == RlinkPort::kEof)    return args.Quit("-E: RawRead EOF");
+  if (irc == RlinkPort::kTout)   return args.Quit("-E: RawRead timeout");
+  if (irc < 0)                   return args.Quit(emsg);
+
+  rdata.resize(irc);
+
+  RtclOPtr pres(Rtcl::NewListIntObj(rdata));
+  if(!Rtcl::SetVar(args.Interp(), rvname, pres)) return kERR;
+
+  args.SetResult(double(tused));
+
+  return kOK;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+int RtclRlinkPort::DoRawRblk(RtclArgs& args, RlinkPort* pport, size_t& errcnt)
+{
+  if (!(pport && pport->IsOpen())) return args.Quit("-E: port not open");
 
   int32_t rsize;
   string rvname;
   vector<uint8_t> rdata;
-  vector<uint8_t> wdata;
   vector<uint8_t> edata;
   vector<uint8_t> emask;
   double timeout = 1.;
+  
+  if (!args.GetArg("bsize", rsize, 1, 4096)) return kERR;
+  if (!args.GetArg("??varData", rvname)) return kERR;
 
+  static RtclNameSet optset("-edata|-timeout");
+  string opt;
   while (args.NextOpt(opt, optset)) {
-    if        (opt == "-rblk") {            // -rblk size ?varData ------------
-      if (mode) return args.Quit("-E: only one -rblk or -wblk allowed");
-      mode = 'r';
-      if (!args.GetArg("bsize", rsize, 1, 256)) return kERR;
-      if (!args.GetArg("??varData", rvname)) return kERR;
-
-    } else if (opt == "-wblk") {            // -wblk block --------------------
-      if (mode) return args.Quit("-E: only one -rblk or -wblk allowed");
-      mode = 'w';
-      if (!args.GetArg("data", wdata, 1, 256)) return kERR;
-
-    } else if (opt == "-edata") {           // -edata data ?mask --------------
-      if (mode != 'r') return args.Quit("-E: -edata only allowed after -rblk");
+    if (opt == "-edata") {              // -edata data ?mask --------------
       if (!args.GetArg("data", edata, 0, rsize)) return kERR;
       if (!args.GetArg("??mask", emask, 0, rsize)) return kERR;
-
-    } else if (opt == "-timeout") {         // -timeout tsec ------------------
+    } else if (opt == "-timeout") {     // -timeout tsec ------------------
       if (!args.GetArg("tsec", timeout, 0.)) return kERR;
     }
   }
+
+  RerrMsg emsg;
+  Rtime tused;
+  rdata.resize(rsize);
+
+  int irc = pport->RawRead(rdata.data(), rdata.size(), true, Rtime(timeout), 
+                           tused, emsg);
+  if (irc == RlinkPort::kEof)    return args.Quit("-E: RawRead EOF");
+  if (irc == RlinkPort::kTout)   return args.Quit("-E: RawRead timeout");
+  if (irc < 0)                   return args.Quit(emsg);
   
-  if (!args.AllDone()) return kERR;
-
-  if (!mode) return args.Quit("-E: no -rblk or -wblk given");
-
-  if (mode == 'r') {                        // handle -rblk ------------------
-    RerrMsg emsg;
-    Rtime tused;
-    rdata.resize(rsize);
-    int irc = pport->RawRead(rdata.data(), rdata.size(), true, Rtime(timeout), 
-                             tused, emsg);
-    if (irc == RlinkPort::kErr) return args.Quit("-E: timeout on -rblk");
-    if (irc != (int)rdata.size()) return args.Quit(emsg);
-    if (rvname.length()) {
-      RtclOPtr pres(Rtcl::NewListIntObj(rdata));
-      if(!Rtcl::SetVar(args.Interp(), rvname, pres)) return kERR;
-    }
-    if (edata.size()) {
-      size_t nerr=0;
-      for (size_t i=0; i<rdata.size(); i++) {
-        if (i >= edata.size()) break;
-        uint8_t eval = edata[i];
-        uint8_t emsk = (i < emask.size()) ? emask[i] : 0x0000;
-        if ((rdata[i]|emsk) != (eval|emsk)) nerr += 1;
-      }
-      if (nerr) errcnt += 1;
-    }
-    args.SetResult(double(tused));
-
-  } else {                                  // handle -wblk ------------------
-    RerrMsg emsg;
-    int irc = pport->RawWrite(wdata.data(), wdata.size(), emsg);
-    if (irc != (int)wdata.size()) return args.Quit(emsg);
+  if (rvname.length()) {
+    RtclOPtr pres(Rtcl::NewListIntObj(rdata));
+    if(!Rtcl::SetVar(args.Interp(), rvname, pres)) return kERR;
   }
-
+  if (edata.size()) {
+    size_t nerr=0;
+    for (size_t i=0; i<rdata.size(); i++) {
+      if (i >= edata.size()) break;
+      uint8_t eval = edata[i];
+      uint8_t emsk = (i < emask.size()) ? emask[i] : 0x00;
+      if ((rdata[i]|emsk) != (eval|emsk)) nerr += 1;
+    }
+    if (nerr) errcnt += 1;
+  }
+  args.SetResult(double(tused));
+  
   return kOK;
 }
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+int RtclRlinkPort::DoRawWblk(RtclArgs& args, RlinkPort* pport)
+{
+  if (!(pport && pport->IsOpen())) return args.Quit("-E: port not open");
+
+  vector<uint8_t> wdata;
+  if (!args.GetArg("data", wdata, 1, 4096)) return kERR;
+  
+  RerrMsg emsg;
+  int irc = pport->RawWrite(wdata.data(), wdata.size(), emsg);
+  if (irc != (int)wdata.size()) return args.Quit(emsg);
+  
+  return kOK;
+}
+
 
 } // end namespace Retro

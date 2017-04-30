@@ -1,6 +1,6 @@
-// $Id: RtclRlinkConnect.hpp 887 2017-04-28 19:32:52Z mueller $
+// $Id: RtclRlinkConnect.hpp 888 2017-04-30 13:06:51Z mueller $
 //
-// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-29   888   1.1    drop M_rawio; add M_rawread,M_rawrblk,M_rawwblk
 // 2015-04-12   666   1.0.5  add M_init
 // 2015-01-06   631   1.0.4  add M_get, M_set, remove M_config
 // 2013-02-23   492   1.0.3  use RlogFile.Name(); use Context().ErrorCount()
@@ -56,7 +57,9 @@ namespace Retro {
       int           M_errcnt(RtclArgs& args);
       int           M_wtlam(RtclArgs& args);
       int           M_oob(RtclArgs& args);
-      int           M_rawio(RtclArgs& args);
+      int           M_rawread(RtclArgs& args);
+      int           M_rawrblk(RtclArgs& args);
+      int           M_rawwblk(RtclArgs& args);
       int           M_stats(RtclArgs& args);
       int           M_log(RtclArgs& args);
       int           M_print(RtclArgs& args);

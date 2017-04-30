@@ -1,4 +1,4 @@
-// $Id: RtclRlinkConnect.cpp 887 2017-04-28 19:32:52Z mueller $
+// $Id: RtclRlinkConnect.cpp 888 2017-04-30 13:06:51Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-29   888   1.6    drop M_rawio; add M_rawread,M_rawrblk,M_rawwblk
 // 2017-04-22   883   1.5.2  M_amap: -testname opt addr check; add hasrbmon get 
 // 2017-04-02   865   1.5.1  M_dump: use GetArgsDump and Dump detail
 // 2017-02-20   854   1.5    use Rtime
@@ -91,7 +92,9 @@ RtclRlinkConnect::RtclRlinkConnect(Tcl_Interp* interp, const char* name)
   AddMeth("errcnt",   boost::bind(&RtclRlinkConnect::M_errcnt,  this, _1));
   AddMeth("wtlam",    boost::bind(&RtclRlinkConnect::M_wtlam,   this, _1));
   AddMeth("oob",      boost::bind(&RtclRlinkConnect::M_oob,     this, _1));
-  AddMeth("rawio",    boost::bind(&RtclRlinkConnect::M_rawio,   this, _1));
+  AddMeth("rawread",  boost::bind(&RtclRlinkConnect::M_rawread, this, _1));
+  AddMeth("rawrblk",  boost::bind(&RtclRlinkConnect::M_rawrblk, this, _1));
+  AddMeth("rawwblk",  boost::bind(&RtclRlinkConnect::M_rawwblk, this, _1));
   AddMeth("stats",    boost::bind(&RtclRlinkConnect::M_stats,   this, _1));
   AddMeth("log",      boost::bind(&RtclRlinkConnect::M_log,     this, _1));
   AddMeth("print",    boost::bind(&RtclRlinkConnect::M_print,   this, _1));
@@ -676,12 +679,28 @@ int RtclRlinkConnect::M_oob(RtclArgs& args)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-int RtclRlinkConnect::M_rawio(RtclArgs& args)
+int RtclRlinkConnect::M_rawread(RtclArgs& args)
+{
+  return RtclRlinkPort::DoRawRead(args, Obj().Port());
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+int RtclRlinkConnect::M_rawrblk(RtclArgs& args)
 {
   size_t errcnt = 0;
-  int rc = RtclRlinkPort::DoRawio(args, Obj().Port(), errcnt);
+  int rc = RtclRlinkPort::DoRawRblk(args, Obj().Port(), errcnt);
   Obj().Context().IncErrorCount(errcnt);
   return rc;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+int RtclRlinkConnect::M_rawwblk(RtclArgs& args)
+{
+  return RtclRlinkPort::DoRawWblk(args, Obj().Port());
 }
 
 //------------------------------------------+-----------------------------------

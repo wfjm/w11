@@ -1,6 +1,6 @@
-// $Id: RtclRlinkPort.hpp 887 2017-04-28 19:32:52Z mueller $
+// $Id: RtclRlinkPort.hpp 888 2017-04-30 13:06:51Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-29   888   1.1    LogFileName(): returns now const std::string&
+//                           drop M_rawio; add M_rawread,M_rawrblk,M_rawwblk
 // 2015-01-09   632   1.0.2  add M_get, M_set, remove M_config
 // 2013-02-23   492   1.0.1  use RlogFile.Name();
 // 2013-01-27   478   1.0    Initial version
@@ -51,7 +53,9 @@ namespace Retro {
       int           M_open(RtclArgs& args);
       int           M_close(RtclArgs& args);
       int           M_errcnt(RtclArgs& args);
-      int           M_rawio(RtclArgs& args);
+      int           M_rawread(RtclArgs& args);
+      int           M_rawrblk(RtclArgs& args);
+      int           M_rawwblk(RtclArgs& args);
       int           M_stats(RtclArgs& args);
       int           M_log(RtclArgs& args);
       int           M_dump(RtclArgs& args);
@@ -62,9 +66,11 @@ namespace Retro {
       void          SetupGetSet();
       bool          TestOpen(RtclArgs& args);
       void          SetLogFileName(const std::string& name);
-      std::string   LogFileName() const;
+      const std::string&  LogFileName() const;
 
-      static int    DoRawio(RtclArgs& args, RlinkPort* pport, size_t& errcnt);
+      static int    DoRawRead(RtclArgs& args, RlinkPort* pport);
+      static int    DoRawRblk(RtclArgs& args, RlinkPort* pport, size_t& errcnt);
+      static int    DoRawWblk(RtclArgs& args, RlinkPort* pport);
 
     protected:
       RlinkPort*    fpObj;                  //!< ptr to managed object

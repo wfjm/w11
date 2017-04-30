@@ -1,4 +1,4 @@
-// $Id: RlinkPort.cpp 887 2017-04-28 19:32:52Z mueller $
+// $Id: RlinkPort.cpp 888 2017-04-30 13:06:51Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-29   888   1.4.2  BUGFIX: RawRead(): proper irc for exactsize=false
 // 2017-04-07   868   1.4.1  Dump(): add detail arg
 // 2017-02-19   853   1.4    use Rtime, drop TimeOfDayAsDouble
 // 2015-04-11   666   1.3    add fXon, XonEnable()
@@ -274,8 +275,8 @@ int RlinkPort::RawRead(uint8_t* buf, size_t size, bool exactsize,
     tnow.GetClock(CLOCK_MONOTONIC);
     tused = tnow - tbeg;
     if (irc <= 0) return irc;
-    if (!exactsize) break;
     ndone += irc;
+    if (!exactsize) break;
   }
   
   return (int)ndone;

@@ -1,6 +1,6 @@
-// $Id: Rexception.hpp 887 2017-04-28 19:32:52Z mueller $
+// $Id: Rexception.hpp 888 2017-04-30 13:06:51Z mueller $
 //
-// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-29   888   1.2    BUGFIX: add fErrtxt for proper what() return
 // 2014-12-30   625   1.1    add ctor(meth,text,emsg)
 // 2013-02-12   487   1.0.1  add ErrMsg() getter
 // 2013-01-12   474   1.0    Initial version
@@ -46,11 +47,12 @@ namespace Retro {
                                const std::string& text, const RerrMsg& errmsg);
                    ~Rexception() throw();
 
-      const char*  what() const throw();
+      virtual const char* what() const throw();
       const RerrMsg& ErrMsg() const;
 
     protected:
-      RerrMsg       fErrmsg;                //!< message object 
+      RerrMsg       fErrmsg;                //!< message object
+      std::string   fErrtxt;                //!< message text (for what())
   };
 
 } // end namespace Retro

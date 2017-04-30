@@ -1,6 +1,6 @@
-// $Id: Rexception.cpp 887 2017-04-28 19:32:52Z mueller $
+// $Id: Rexception.cpp 888 2017-04-30 13:06:51Z mueller $
 //
-// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-04-29   888   1.2    BUGFIX: add fErrtxt for proper what() return
 // 2014-12-30   625   1.1    add ctor(meth,text,emsg)
 // 2013-01-12   474   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -38,21 +39,25 @@ namespace Retro {
 //! Default constructor
 
 Rexception::Rexception()
-  : fErrmsg()
-{}
+  : fErrmsg(),
+    fErrtxt()
+{
+}
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
 Rexception::Rexception(const RerrMsg& errmsg)
-  : fErrmsg(errmsg)
+  : fErrmsg(errmsg),
+    fErrtxt(fErrmsg.Message())
 {}
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
 Rexception::Rexception(const std::string& meth, const std::string& text)
-  : fErrmsg(meth,text)
+  : fErrmsg(meth,text),
+    fErrtxt(fErrmsg.Message())
 {}
 
 //------------------------------------------+-----------------------------------
@@ -60,7 +65,8 @@ Rexception::Rexception(const std::string& meth, const std::string& text)
 
 Rexception::Rexception(const std::string& meth, const std::string& text, 
                        int errnum)
-  : fErrmsg(meth,text,errnum)
+  : fErrmsg(meth,text,errnum),
+    fErrtxt(fErrmsg.Message())
 {}
 
 //------------------------------------------+-----------------------------------
@@ -68,7 +74,8 @@ Rexception::Rexception(const std::string& meth, const std::string& text,
 
 Rexception::Rexception(const std::string& meth, const std::string& text, 
                        const RerrMsg& errmsg)
-  : fErrmsg(meth,text+errmsg.Message())
+  : fErrmsg(meth,text+errmsg.Message()),
+    fErrtxt(fErrmsg.Message())
 {}
 
 //------------------------------------------+-----------------------------------
@@ -82,7 +89,9 @@ Rexception::~Rexception() throw()
 
 const char* Rexception::what() const throw()
 {
-  return fErrmsg.Message().c_str();
+  // what() must return a pointer to a string which stays valid at least as long
+  // as the exception object lives. Use member variable fErrtxt for this.
+  return fErrtxt.c_str();
 }
 
 } // end namespace Retro

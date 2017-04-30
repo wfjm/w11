@@ -1,4 +1,4 @@
--- $Id: sys_w11a_n2.vhd 858 2017-03-05 17:41:37Z mueller $
+-- $Id: sys_w11a_n2.vhd 888 2017-04-30 13:06:51Z mueller $
 --
 -- Copyright 2010-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -30,10 +30,11 @@
 -- Test bench:     tb/tb_sys_w11a_n2
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.2-14.7; ghdl 0.26-0.33
+-- Tool versions:  xst 8.2-14.7; ghdl 0.26-0.34
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2017-04-30   888 14.7  131013 xc3s1200e-4 2806 7865  446 5043 ok: +fx2dbg
 -- 2017-03-04   858 14.7  131013 xc3s1200e-4 2740 7713  446 4912 ok: +DEUNA
 -- 2017-01-29   846 14.7  131013 xc3s1200e-4 2696 7620  446 4857 ok: +int24
 -- 2015-06-21   692 14.7  131013 xc3s1200e-4 2312 6716  414 4192 ok: rhrp fixes
@@ -69,6 +70,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2017-04-30   888   2.2    use SWI(7:6) to allow fx2 debug via LEDs
 -- 2016-03-19   748   2.1.1  define rlink SYSID
 -- 2015-05-09   677   2.1    start/stop/suspend overhaul; reset overhaul
 -- 2015-05-01   672   2.0    use pdp11_sys70 and pdp11_hio70
@@ -112,13 +114,16 @@
 --
 -- Usage of Nexys 2 Switches, Buttons, LEDs:
 --
---    SWI(7:6): no function (only connected to sn_humanio_rbus)
---       (5:4):  select DSP
+--    SWI(7:6): select LED display mode
+--                 0x  w11 sys70 LED display (further controlled by SWI(3))
+--                 10  FX2 debug: fx2 fifo states
+--                 11  FX2 debug: fx2 fsm  states
+--       (5:4): select DSP
 --                 00 abclkdiv & abclkdiv_f
 --                 01 PC
 --                 10 DISPREG
 --                 11 DR emulation
---       (3):    select LED display
+--       (3):   select LED display
 --                 0 overall status
 --                 1 DR emulation
 --       (2)    0 -> int/ext RS242 port for rlink
@@ -127,10 +132,10 @@
 --       (0):   0 -> main board RS232 port
 --              1 -> Pmod B/top RS232 port
 --
---    LEDs if SWI(3) = 1
+--    LEDs if SWI(7) = 0 and SWI(3) = 1
 --      (7:0)    DR emulation; shows R0(lower 8 bits) during wait like 11/45+70
 --
---    LEDs if SWI(3) = 0
+--    LEDs if SWI(7) = 0 and SWI(3) = 0
 --        (7)    MEM_ACT_W
 --        (6)    MEM_ACT_R
 --        (5)    cmdbusy (all rlink access, mostly rdma)
@@ -144,15 +149,31 @@
 --                  (4) '1'
 --                (3:0) cpurust code
 --
+--    LEDs if SWI(7) = 1
+--        (7)    fifo_ep4
+--        (6)    fifo_ep6
+--        (5)    fsm_rx
+--        (4)    fsm_tx
+--    LEDs if SWI(7) = 1 and SWI(6) = 0
+--        (3)    flag_ep4_empty
+--        (2)    flag_ep4_almost
+--        (1)    flag_ep6_full
+--        (0)    flag_ep6_almost
+--    LEDs if SWI(7) = 1 and SWI(6) = 1
+--        (3)    fsm_idle
+--        (2)    fsm_prep
+--        (1)    fsm_disp
+--        (0)    fsm_pipe
+--
 --    DP(3:0) shows IO activity
 --            if SWI(2)=0 (serport)
---                  (3):    not SER_MONI.txok       (shows tx back preasure)
+--                  (3):    not SER_MONI.txok       (shows tx back pressure)
 --                  (2):    SER_MONI.txact          (shows tx activity)
---                  (1):    not SER_MONI.rxok       (shows rx back preasure)
+--                  (1):    not SER_MONI.rxok       (shows rx back pressure)
 --                  (0):    SER_MONI.rxact          (shows rx activity)
 --            if SWI(2)=1 (fx2-usb)
---                  (3):    RB_SRES.busy            (shows rbus back preasure)
---                  (2):    RLB_TXBUSY              (shows tx back preasure)
+--                  (3):    RB_SRES.busy            (shows rbus back pressure)
+--                  (2):    RLB_TXBUSY              (shows tx back pressure)
 --                  (1):    RLB_TXENA               (shows tx activity)
 --                  (0):    RLB_RXVAL               (shows rx activity)
 --
@@ -240,6 +261,8 @@ architecture syn of sys_w11a_n2 is
   signal RLB_MONI : rlb_moni_type := rlb_moni_init;
   signal SER_MONI : serport_moni_type := serport_moni_init;
   signal FX2_MONI : fx2ctl_moni_type  := fx2ctl_moni_init;
+
+  signal LED70   : slv8  := (others=>'0');  
 
   signal SWI     : slv8  := (others=>'0');
   signal BTN     : slv4  := (others=>'0');
@@ -485,9 +508,37 @@ begin
       DM_STAT_DP => DM_STAT_DP,
       ABCLKDIV   => ABCLKDIV,
       DISPREG    => DISPREG,
-      LED        => LED,
+      LED        => LED70,
       DSP_DAT    => DSP_DAT
     );
+
+  proc_fx2leds: process (SWI, LED70, FX2_MONI) -- hio LED handler ------------
+    variable iled : slv8 := (others=>'0');
+  begin
+
+    iled := (others=>'0');
+    if SWI(7) = '0' then
+      iled := LED70;
+    else
+      iled(7) := FX2_MONI.fifo_ep4;
+      iled(6) := FX2_MONI.fifo_ep6;
+      iled(5) := FX2_MONI.fsm_rx;
+      iled(4) := FX2_MONI.fsm_tx;
+      if SWI(6) = '0' then
+        iled(3) := FX2_MONI.flag_ep4_empty;
+        iled(2) := FX2_MONI.flag_ep4_almost;
+        iled(1) := FX2_MONI.flag_ep6_full;
+        iled(0) := FX2_MONI.flag_ep6_almost;
+      else
+        iled(3) := FX2_MONI.fsm_idle;
+        iled(2) := FX2_MONI.fsm_prep;
+        iled(1) := FX2_MONI.fsm_disp;
+        iled(0) := FX2_MONI.fsm_pipe;
+      end if;
+    end if;
+    LED <= iled;
+    
+  end process proc_fx2leds;
 
   HIO : sn_humanio_rbus                 -- hio manager -----------------------
     generic map (

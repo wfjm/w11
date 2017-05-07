@@ -1,4 +1,4 @@
-# $Id: dmhbpt.tcl 883 2017-04-22 11:57:38Z mueller $
+# $Id: dmhbpt.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -58,7 +58,7 @@ namespace eval rw11 {
             -wreg "hb${unit}.stat"  0      \
             -wreg "hb${unit}.hilim" $hilim \
             -wreg "hb${unit}.lolim" $lolim
-    return ""
+    return
   }
 
   #
@@ -81,7 +81,7 @@ namespace eval rw11 {
       lappend clist -wreg "hb${i}.lolim" 0
     }
     $cpu cp {*}$clist
-    return ""
+    return
   }
 
   #
@@ -101,7 +101,7 @@ namespace eval rw11 {
         $cpu cp {*}$clist
       }
     }
-    return ""
+    return
   }
 
   #
@@ -154,6 +154,6 @@ namespace eval rw11 {
     if {$unit < 0 || $unit >= [$cpu get hashbpt]} {
       error "hb_..-E: '$unit' out of range"
     }
-    return ""
+    return
   }
 }

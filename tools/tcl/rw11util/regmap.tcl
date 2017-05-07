@@ -1,4 +1,4 @@
-# $Id: regmap.tcl 858 2017-03-05 17:41:37Z mueller $
+# $Id: regmap.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -39,7 +39,7 @@ namespace eval rw11util {
     }
 
     set regmap($name) [list $pack $amlist]    
-    return ""
+    return
   }
 
   #
@@ -64,7 +64,7 @@ namespace eval rw11util {
         }
       }
     }
-    return ""
+    return
   }
 
   #
@@ -72,7 +72,7 @@ namespace eval rw11util {
   # 
   proc regmap_txt {name am val} {
     set rdsc [regmap_get $name $am]
-    if {$rdsc eq ""} return ""
+    if {$rdsc eq ""} return
     return [regtxt $rdsc $val]
   }
 
@@ -92,7 +92,7 @@ namespace eval rw11util {
     package require ibd_rl11
     package require ibd_tm11
     set regmap_loaded 1
-    return ""
+    return
   }
 
 

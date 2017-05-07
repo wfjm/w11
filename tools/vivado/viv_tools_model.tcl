@@ -1,4 +1,4 @@
-# $Id: viv_tools_model.tcl 830 2016-12-26 20:25:49Z mueller $
+# $Id: viv_tools_model.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
@@ -55,5 +55,5 @@ proc rvtb_default_model {stem mode} {
     error "rvtb_default_model-E: bad mode: $mode";
   }
 
-  return "";
+  return;
 }

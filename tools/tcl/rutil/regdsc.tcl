@@ -1,4 +1,4 @@
-# $Id: regdsc.tcl 724 2016-01-03 22:53:53Z mueller $
+# $Id: regdsc.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -93,7 +93,7 @@ namespace eval rutil {
     set rdsc(-w) [expr {$fbegmax + 1}]
     set rdsc(-m) $mskftot
 
-    return ""
+    return
   }
 
   proc regdsc_sort {a b} {

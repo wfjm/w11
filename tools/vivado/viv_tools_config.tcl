@@ -1,4 +1,4 @@
-# $Id: viv_tools_config.tcl 840 2017-01-07 16:15:12Z mueller $
+# $Id: viv_tools_config.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
@@ -49,5 +49,5 @@ proc rvtb_default_config {stem} {
   puts "USR_ACCESS: 0x$usracc_raw  $usracc_fmt"
   puts ""
 
-  return "";
+  return;
 }

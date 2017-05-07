@@ -1,4 +1,4 @@
-# $Id: util.tcl 883 2017-04-22 11:57:38Z mueller $
+# $Id: util.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -44,7 +44,7 @@ namespace eval tst_sram {
   # setup: amap definitions for tst_sram core design -------------------------
   # 
   proc setup {{base 0x0000}} {
-    if {[rlc amap -testname sr.mdih $base]} {return ""}
+    if {[rlc amap -testname sr.mdih $base]} {return}
     rlc amap -insert sr.mdih   [expr {$base + 0x00}]
     rlc amap -insert sr.mdil   [expr {$base + 0x01}]
     rlc amap -insert sr.mdoh   [expr {$base + 0x02}]
@@ -119,7 +119,7 @@ namespace eval tst_sram {
     if {[llength $buf] > 0} {
       rlc exec -wblk sr.sblk $buf
     }
-    return ""
+    return
   }
 
   #
@@ -194,7 +194,7 @@ namespace eval tst_sram {
              -rreg sr.seaddr -edata 0x0000 \
              -rreg sr.sedath -edata 0x0000 \
              -rreg sr.sedatl -edata 0x0000
-    return ""
+    return
   }
   #
   # srun_lists: call srun for mdi and maddr lists ----------------------------
@@ -205,7 +205,7 @@ namespace eval tst_sram {
         srun $mdih $mdil $maddrh $maddrl $tout
       }
     }
-    return ""
+    return
   }
   #
   # srun_loop: full maddr* loop of sequencer ---------------------------------
@@ -240,7 +240,7 @@ namespace eval tst_sram {
     set line [format "loop done maddr=%2.2x %4.4x mdi=%4.4x %4.4x in %7.2f s" \
                 $maddrh $maddrl $mdih $mdil $trun]
     rlc log $line
-    return ""
+    return
   }
 }
 

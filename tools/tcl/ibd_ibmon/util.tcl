@@ -1,4 +1,4 @@
-# $Id: util.tcl 885 2017-04-23 15:54:01Z mueller $
+# $Id: util.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -57,7 +57,7 @@ namespace eval ibd_ibmon {
   # setup: amap definitions for ibd_ibmon ------------------------------------
   # 
   proc setup {{cpu "cpu0"} {base 0160000}} {
-    if {[$cpu imap -testname im.cntl $base]} {return ""}
+    if {[$cpu imap -testname im.cntl $base]} {return}
     $cpu imap -insert im.cntl  [expr {$base + 000}]
     $cpu imap -insert im.stat  [expr {$base + 002}]
     $cpu imap -insert im.hilim [expr {$base + 004}]
@@ -340,7 +340,7 @@ namespace eval ibd_ibmon {
       lappend uemsk $m0 $m1 $m2 $m3
     }
 
-    return ""
+    return
   }
 
   #
@@ -353,7 +353,7 @@ namespace eval ibd_ibmon {
       -wibr  im.addr 0 \
       -rbibr im.data [llength $edat] -edata $edat $emsk \
       -ribr  im.addr -edata [llength $edat]
-    return ""
+    return
   }
 
   #
@@ -380,7 +380,7 @@ namespace eval ibd_ibmon {
     ibd_ibmon::start $cpu \
       locena $locena remena $remena conena $conena \
       wstop $wstop rcolr $rcolr rcolw $rcolw
-    return ""
+    return
   }
 
   #

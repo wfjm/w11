@@ -1,6 +1,6 @@
-# $Id: dmscnt.tcl 722 2015-12-30 19:45:46Z mueller $
+# $Id: dmscnt.tcl 894 2017-05-07 07:18:32Z mueller $
 #
-# Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-04-22   883   1.0.3  sc_setup: now idempotent
 # 2015-12-30   722   1.0.2  sc_start: use args2opts
 # 2015-12-28   721   1.0.1  use ena instead of cnt; use regbldkv
 # 2015-06-27   695   1.0    Initial version
@@ -35,6 +36,7 @@ namespace eval rw11 {
   # 
   proc sc_setup {{cpu "cpu0"}} {
     set base [$cpu get base]
+    if {[$cpu rmap -testname sc.cntl [expr {$base + 0x40}]]} {return}
     $cpu rmap -insert sc.cntl [expr {$base + 0x40}]
     $cpu rmap -insert sc.addr [expr {$base + 0x41}]
     $cpu rmap -insert sc.data [expr {$base + 0x42}]

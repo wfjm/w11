@@ -1,4 +1,4 @@
-# $Id: test_all.tcl 785 2016-07-10 12:22:41Z mueller $
+# $Id: test_all.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2014-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -71,7 +71,7 @@ namespace eval tst_sram {
 
     srun_lists $lmdi $lmaddr
     srun_lists $lmdi $lmaddr_ran
-    return ""
+    return
   }
   #
   # test_fpga: test suite for fpga tests -------------------------------------
@@ -115,6 +115,6 @@ namespace eval tst_sram {
     foreach {mdih mdil} $lmdi_ran {
       srun_loop $mdih $mdil $maddrh $maddrl $wide $tout
     }
-    return ""
+    return
   }
 }

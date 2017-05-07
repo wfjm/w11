@@ -1,4 +1,4 @@
-# $Id: cpumon.tcl 512 2013-04-28 07:44:02Z mueller $
+# $Id: cpumon.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -67,7 +67,7 @@ namespace eval rw11 {
     }
 
     set cpumon_active 1
-    return ""
+    return
   }
 
   #
@@ -89,7 +89,7 @@ namespace eval rw11 {
       }
       set cpumon_active 0
     }
-    return ""
+    return
   }
 
 }

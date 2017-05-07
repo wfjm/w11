@@ -1,4 +1,4 @@
-# $Id: test_flow.tcl 777 2016-06-19 20:24:15Z mueller $
+# $Id: test_flow.tcl 894 2017-05-07 07:18:32Z mueller $
 #
 # Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -35,7 +35,7 @@ namespace eval rbtest {
     rlc exec -init te.cntl [regbld rbtest::INIT cntl]
     #
     #-------------------------------------------------------------------------
-    rlc log "  test 1: create back pressure with wreg after a rblk"
+    rlc log "  test 1: create back pressure with wblk after a rblk"
     set rbase 0x8000
     set wbase 0xc000
     set nw $bufmin

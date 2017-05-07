@@ -1,4 +1,4 @@
-# $Id: cpucons.tcl 626 2015-01-03 14:41:37Z mueller $
+# $Id: cpucons.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -38,7 +38,7 @@ namespace eval rw11 {
 
     # quit if cpucons already done
     if {$cpucons_done} {
-      return ""
+      return
     }
 
     namespace eval :: {
@@ -63,7 +63,7 @@ namespace eval rw11 {
       proc "(" {args} {
         set str [join $args " "]
         cpu0tta0 type $str
-        return ""
+        return
       }
 
       #
@@ -73,13 +73,13 @@ namespace eval rw11 {
         set str [join $args " "]
         append str "\r"
         cpu0tta0 type $str
-        return ""
+        return
       }
 
     }
 
       set cpucons_done 1
-      return ""
+      return
   }
 
 }

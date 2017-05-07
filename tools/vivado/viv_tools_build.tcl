@@ -1,4 +1,4 @@
-# $Id: viv_tools_build.tcl 830 2016-12-26 20:25:49Z mueller $
+# $Id: viv_tools_build.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
@@ -23,7 +23,7 @@
 proc rvtb_trace_cmd {cmd} {
   puts "# $cmd"
   eval $cmd
-  return ""
+  return
 }
 
 #
@@ -34,7 +34,7 @@ proc rvtb_locate_setup_file {stem} {
   if {[file readable $name]} {return $name}
   set name "$../{stem}_setup.tcl"
   if {[file readable $name]} {return $name}
-  return ""
+  return
 }
 
 #
@@ -46,7 +46,7 @@ proc rvtb_mv_file {src dst} {
   } else {
     puts "rvtb_mv_file-W: file '$src' not existing"
   }
-  return ""
+  return
 }
 
 #
@@ -65,14 +65,14 @@ proc rvtb_cp_file {src dst} {
   } else {
     puts "rvtb_cp_file-W: file '$src' not existing"
   }
-  return ""
+  return
 }
 
 #
 # --------------------------------------------------------------------
 #
 proc rvtb_build_check {step} {
-  return ""
+  return
 }
 
 #
@@ -206,7 +206,7 @@ proc rvtb_default_build {stem step} {
 
   if {$step eq "prj"} {
     puts "rvtb_default_build-I: new project setup for ${stem}"    
-    return ""
+    return
   }
 
   # some handy variables

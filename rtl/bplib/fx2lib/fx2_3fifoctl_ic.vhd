@@ -1,4 +1,4 @@
--- $Id: fx2_3fifoctl_ic.vhd 888 2017-04-30 13:06:51Z mueller $
+-- $Id: fx2_3fifoctl_ic.vhd 890 2017-04-30 15:27:53Z mueller $
 --
 -- Copyright 2012-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -590,7 +590,7 @@ begin
     
     -- pktend time-out handling:
     --   if tx fifo is non-empty, set counter to max
-    --   if tx fifo is empty, count down every usec
+    --   if tx fifo is empty, count down every ifclk cycle
     --   on 1->0 transition queue pktend request
     if TXFIFO_VAL = '1' then
       n.petocnt := (others=>'1');

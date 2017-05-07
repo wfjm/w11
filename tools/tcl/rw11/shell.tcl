@@ -1,4 +1,4 @@
-# $Id: shell.tcl 885 2017-04-23 15:54:01Z mueller $
+# $Id: shell.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -78,7 +78,7 @@ namespace eval rw11 {
       ::tclreadline::readline eofchar {::rw11::shell_eofchar}
     }
 
-    return ""
+    return
   }
 
   #
@@ -101,7 +101,7 @@ namespace eval rw11 {
       ::tclreadline::readline eofchar $shell_eofchar_save
     }
 
-    return ""
+    return
   }
 
   #
@@ -119,10 +119,10 @@ namespace eval rw11 {
     if {[regget rw11::CP_STAT(go) $cpustat]} {
       puts \
       "cpu0 running, ^D disabled. Use .q to quit shell or .qq to bail out"
-      return ""
+      return
     }
     tirri_exit
-    return ""
+    return
   }
 
   #
@@ -134,7 +134,7 @@ namespace eval rw11 {
     shell_update_cpu_stat
     puts -nonewline [::tclreadline::prompt1]
     flush stdout
-    return ""
+    return
   }
 
   #
@@ -233,7 +233,7 @@ namespace eval rw11 {
       error "'$cpucmd' not available"
     }
     set shell_cpu $cpucmd
-    return ""
+    return
   }
 
   #
@@ -266,7 +266,7 @@ namespace eval rw11 {
 
     rw11::hb_clear $shell_cpu
     $shell_cpu cp -resume
-    return ""
+    return
   }
 
   #
@@ -276,7 +276,7 @@ namespace eval rw11 {
     variable shell_cpu
     $shell_cpu cp -suspend
     shell_update_cpu_stat
-    return ""
+    return
   }
 
   #
@@ -286,7 +286,7 @@ namespace eval rw11 {
     variable shell_cpu
     $shell_cpu cp -stop
     shell_update_cpu_stat
-    return ""
+    return
   }
 
   #
@@ -297,7 +297,7 @@ namespace eval rw11 {
     $shell_cpu cp -stop
     $shell_cpu cp -creset
     shell_update_cpu_stat
-    return ""
+    return
   }
 
   #
@@ -314,7 +314,7 @@ namespace eval rw11 {
     } else {
       $shell_cpu cp -stapc $pc
     }
-    return ""
+    return
   }
 
   #
@@ -323,9 +323,9 @@ namespace eval rw11 {
   proc shell_cme {{mode ""}} {
     variable shell_cpu
 
-    if {![shell_test_cpurmap $shell_cpu "cme" "cm.cntl" "dmcmon"]} {return ""}
+    if {![shell_test_cpurmap $shell_cpu "cme" "cm.cntl" "dmcmon"]} {return}
     rw11::cme $shell_cpu $mode
-    return ""
+    return
   }
 
   #
@@ -334,9 +334,9 @@ namespace eval rw11 {
   proc shell_cmd {} {
     variable shell_cpu
 
-    if {![shell_test_cpurmap $shell_cpu "cmd" "cm.cntl" "dmcmon"]} {return ""}
+    if {![shell_test_cpurmap $shell_cpu "cmd" "cm.cntl" "dmcmon"]} {return}
     rw11::cm_stop $shell_cpu
-    return ""
+    return
   }
 
   #
@@ -344,7 +344,7 @@ namespace eval rw11 {
   # 
   proc shell_cml {{nent -1}} {
     variable shell_cpu
-    if {![shell_test_cpurmap $shell_cpu "cml" "cm.cntl" "dmcmon"]} {return ""}
+    if {![shell_test_cpurmap $shell_cpu "cml" "cm.cntl" "dmcmon"]} {return}
     return [rw11::cml $shell_cpu $nent]
   }
 
@@ -353,10 +353,10 @@ namespace eval rw11 {
   # 
   proc shell_ime {{mode "lrc"}} {
     variable shell_cpu
-    if {![shell_test_cpurmap $shell_cpu "ime" "im.cntl" "ibmon"]} {return ""}
+    if {![shell_test_cpurmap $shell_cpu "ime" "im.cntl" "ibmon"]} {return}
 
     ibd_ibmon::ime $shell_cpu $mode
-    return ""
+    return
   }
 
   #
@@ -364,10 +364,10 @@ namespace eval rw11 {
   # 
   proc shell_imd {} {
     variable shell_cpu
-    if {![shell_test_cpurmap $shell_cpu "imd" "im.cntl" "ibmon"]} {return ""}
+    if {![shell_test_cpurmap $shell_cpu "imd" "im.cntl" "ibmon"]} {return}
 
     ibd_ibmon::stop $shell_cpu
-    return ""
+    return
   }
 
   #
@@ -375,10 +375,10 @@ namespace eval rw11 {
   # 
   proc shell_imf {{lo ""} {hi ""}} {
     variable shell_cpu
-    if {![shell_test_cpurmap $shell_cpu "imf" "im.cntl" "ibmon"]} {return ""}
+    if {![shell_test_cpurmap $shell_cpu "imf" "im.cntl" "ibmon"]} {return}
 
     ibd_ibmon::imf $shell_cpu $lo $hi
-    return ""
+    return
   }
 
   #
@@ -386,9 +386,9 @@ namespace eval rw11 {
   # 
   proc shell_iml {{nent -1}} {
     variable shell_cpu
-    if {![shell_test_cpurmap $shell_cpu "iml" "im.cntl" "ibmon"]} {return ""}
+    if {![shell_test_cpurmap $shell_cpu "iml" "im.cntl" "ibmon"]} {return}
     set mondat [ibd_ibmon::read $shell_cpu $nent]
-    if {![llength $mondat]} {return ""}
+    if {![llength $mondat]} {return}
     return [ibd_ibmon::print $shell_cpu $mondat]
   }
 
@@ -396,36 +396,36 @@ namespace eval rw11 {
   # shell_rme: rbmon enable --------------------------------------------------
   # 
   proc shell_rme {{mode ""}} {
-    if {![shell_test_rlcamap "rme" "rm.cntl" "rbmon"]} {return ""}
+    if {![shell_test_rlcamap "rme" "rm.cntl" "rbmon"]} {return}
    rbmoni::rme $mode
-    return ""
+    return
   }
 
   #
   # shell_rmd: rbmon diasable -------------------------------------------------
   # 
   proc shell_rmd {} {
-    if {![shell_test_rlcamap "rmd" "rm.cntl" "rbmon"]} {return ""}
+    if {![shell_test_rlcamap "rmd" "rm.cntl" "rbmon"]} {return}
     rbmoni::stop
-    return ""
+    return
   }
 
   #
   # shell_rmf: rbmon filter ---------------------------------------------------
   # 
   proc shell_rmf {{lo ""} {hi ""}} {
-    if {![shell_test_rlcamap "rmf" "rm.cntl" "rbmon"]} {return ""}
+    if {![shell_test_rlcamap "rmf" "rm.cntl" "rbmon"]} {return}
     rbmoni::rmf $lo $hi
-    return ""
+    return
   }
 
   #
   # shell_rml: rbmon list -----------------------------------------------------
   # 
   proc shell_rml {{nent -1}} {
-    if {![shell_test_rlcamap "rml" "rm.cntl" "rbmon"]} {return ""}
+    if {![shell_test_rlcamap "rml" "rm.cntl" "rbmon"]} {return}
     set mondat [rbmoni::read $nent]
-    if {![llength $mondat]} {return ""}
+    if {![llength $mondat]} {return}
     return [rbmoni::print $mondat]
   }
 
@@ -479,7 +479,7 @@ namespace eval rw11 {
     variable shell_cpu
     set str [join $args " "]
     "${shell_cpu}tta0" type $str
-    return ""
+    return
   }
 
   #
@@ -490,7 +490,7 @@ namespace eval rw11 {
     set str [join $args " "]
     append str "\r"
     "${shell_cpu}tta0" type $str
-    return ""
+    return
   }
 
   #

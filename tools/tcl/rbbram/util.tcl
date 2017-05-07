@@ -1,4 +1,4 @@
-# $Id: util.tcl 883 2017-04-22 11:57:38Z mueller $
+# $Id: util.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -29,7 +29,7 @@ namespace eval rbbram {
   # setup: amap definitions for rbd_bram
   # 
   proc setup {base} {
-    if {[rlc amap -testname br.cntl $base]} {return ""}
+    if {[rlc amap -testname br.cntl $base]} {return}
     rlc amap -insert br.cntl [expr {$base + 0x00}]
     rlc amap -insert br.data [expr {$base + 0x01}]
   }

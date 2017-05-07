@@ -1,4 +1,4 @@
-# $Id: util.tcl 883 2017-04-22 11:57:38Z mueller $
+# $Id: util.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -59,7 +59,7 @@ namespace eval rw11 {
     rlink::setup;               # basic rlink defs
     rw11 rlw rls w11a 1;        # create 1 w11a cpu
     cpu0 cp -stop -creset;      # stop and reset CPU
-    return ""
+    return
   }
 
   #
@@ -79,7 +79,7 @@ namespace eval rw11 {
     cpu0 add lp11
     cpu0 add pc11
     rlw start
-    return ""
+    return
   }
 
   #
@@ -125,7 +125,7 @@ namespace eval rw11 {
         ${cpu}${unit} set to7bit 1
       }
     }
-    return ""
+    return
   }
 
   #
@@ -151,7 +151,7 @@ namespace eval rw11 {
 
     # handle unit
     ${cpu}${unit} att "tirri_${unit}.dat${urlopt}"
-    return ""
+    return
   }
 
   #

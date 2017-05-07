@@ -1,4 +1,4 @@
-# $Id: asm.tcl 848 2017-02-04 14:55:30Z mueller $
+# $Id: asm.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -70,7 +70,7 @@ namespace eval rw11 {
 
     $cpu cp {*}$clist
 
-    return ""
+    return
   }
 
   #

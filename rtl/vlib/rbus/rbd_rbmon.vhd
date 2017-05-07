@@ -1,4 +1,4 @@
--- $Id: rbd_rbmon.vhd 879 2017-04-16 15:42:35Z mueller $
+-- $Id: rbd_rbmon.vhd 892 2017-05-01 17:57:34Z mueller $
 --
 -- Copyright 2010-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -414,6 +414,7 @@ begin
     -- rbus monitor 
     --   a rbus transaction are captured if the address is in alim window
     --   and the access is not refering to rbd_rbmon itself
+    --   Note: rbus init cycles come with aval=0 but addr is valid and checked !
     
     -- rbus address monitor
     if (RB_MREQ.aval='1' and r.aval_1='0') or RB_MREQ.init='1' then

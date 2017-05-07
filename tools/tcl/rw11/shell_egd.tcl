@@ -1,4 +1,4 @@
-# $Id: shell_egd.tcl 859 2017-03-11 22:36:45Z mueller $
+# $Id: shell_egd.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -56,7 +56,7 @@ namespace eval rw11 {
     set pspec [shell_aspec_parse $aspec]
     set mspec [shell_pspec_map   $pspec]
     set rval  [shell_mspec_put   $mspec $args]
-    return ""
+    return
   }
 
   #
@@ -461,7 +461,7 @@ namespace eval rw11 {
         }
         lappend clist -bwm $vals
         $shell_cpu cp {*}$clist
-        return ""
+        return
       }
 
       reg {
@@ -498,7 +498,7 @@ namespace eval rw11 {
       default { error "-E: BUGCHECK: bad mode $mode" }
     }
 
-    return ""
+    return
 
   }
 

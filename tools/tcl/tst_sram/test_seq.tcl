@@ -1,4 +1,4 @@
-# $Id: test_seq.tcl 785 2016-07-10 12:22:41Z mueller $
+# $Id: test_seq.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -58,7 +58,7 @@ namespace eval tst_sram {
         -rreg sr.sedath -edata $sedath            -estat $stabad $stamsk \
         -rreg sr.sedatl -edata $sedatl            -estat $stabad $stamsk 
     }
-    return ""
+    return
   }
 
   #

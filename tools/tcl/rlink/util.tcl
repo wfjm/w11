@@ -1,4 +1,4 @@
-# $Id: util.tcl 883 2017-04-22 11:57:38Z mueller $
+# $Id: util.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -67,7 +67,7 @@ namespace eval rlink {
     rlc exec \
       -wreg $rlink::ADDR_RLCNTL 0 \
       -attn
-    return ""
+    return
   }
 
   #

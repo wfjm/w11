@@ -1,4 +1,4 @@
-# $Id: dmcmon.tcl 885 2017-04-23 15:54:01Z mueller $
+# $Id: dmcmon.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -340,7 +340,7 @@ namespace eval rw11 {
   #
   proc cm_raw2txt {cmraw} {
     set len [llength $cmraw]
-    if {$len == 0} {return ""}
+    if {$len == 0} {return}
     set rval [format "# cntl,stat,type: %6.6o %6.6o %6.6o" \
                 [lindex $cmraw 0 0] [lindex $cmraw 0 1] [lindex $cmraw 0 2]]
     append rval "\n# d8 ....pc ..ireg ...psw ..dsrc ..ddst ..dres vmaddr vmdata" 
@@ -536,7 +536,7 @@ namespace eval rw11 {
     if {[string match *S* $mode]} {set imode 0; set mwsup 0}
 
     rw11::cm_start $cpu imode $imode mwsup $mwsup wstop $wstop
-    return ""
+    return
   }
 
   #

@@ -1,4 +1,4 @@
-# $Id: test_tm11_int.tcl 830 2016-12-26 20:25:49Z mueller $
+# $Id: test_tm11_int.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
@@ -137,7 +137,7 @@ proc tmpproc_dotest {cpu symName args} {
           -rmi   -edata $opts(o.bc) \
           -rmi   -edata $opts(o.ba)   
 
-  return ""
+  return
 }
 
 # discard pending attn to be on save side

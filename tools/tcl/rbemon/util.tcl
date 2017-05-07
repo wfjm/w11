@@ -1,4 +1,4 @@
-# $Id: util.tcl 883 2017-04-22 11:57:38Z mueller $
+# $Id: util.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -35,7 +35,7 @@ namespace eval rbemon {
   # setup: amap definitions for rbd_eyemon
   # 
   proc setup {{base 0xffd0}} {
-    if {[rlc amap -testname em.cntl $base]} {return ""}
+    if {[rlc amap -testname em.cntl $base]} {return}
     rlc amap -insert em.cntl [expr {$base + 0x00}]
     rlc amap -insert em.rdiv [expr {$base + 0x01}]
     rlc amap -insert em.addr [expr {$base + 0x02}]
@@ -66,7 +66,7 @@ namespace eval rbemon {
         error "-E: rbemon::clear failed, CNTL.clr didn't go back to 0"
       }
     }
-    return ""
+    return
   }
   #
   # start: start the eyemon

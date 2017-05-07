@@ -1,4 +1,4 @@
-# $Id: util.tcl 885 2017-04-23 15:54:01Z mueller $
+# $Id: util.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -48,7 +48,7 @@ namespace eval rbmoni {
   # setup: amap definitions for rbd_rbmon ------------------------------------
   # 
   proc setup {{base 0xffe8}} {
-    if {[rlc amap -testname rm.cntl $base]} {return ""}
+    if {[rlc amap -testname rm.cntl $base]} {return}
     rlc amap -insert rm.cntl  [expr {$base + 0x00}]
     rlc amap -insert rm.stat  [expr {$base + 0x01}]
     rlc amap -insert rm.hilim [expr {$base + 0x02}]
@@ -288,7 +288,7 @@ namespace eval rbmoni {
       lappend uemsk $m0 $m1 $m2 $m3
     }
 
-    return ""
+    return
   }
 
   #
@@ -301,7 +301,7 @@ namespace eval rbmoni {
       -wreg rm.addr 0 \
       -rblk rm.data [llength $edat] -edata $edat $emsk \
       -rreg rm.addr -edata [llength $edat]
-    return ""
+    return
   }
   #
   # === high level procs: compact usage (also by rw11:shell) =================
@@ -317,7 +317,7 @@ namespace eval rbmoni {
     set rcolw  [string match *W* $mode]
     
     rbmoni::start wstop $wstop rcolr $rcolr rcolw $rcolw
-    return ""
+    return
   }
 
   #

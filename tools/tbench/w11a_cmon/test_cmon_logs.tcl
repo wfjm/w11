@@ -1,4 +1,4 @@
-# $Id: test_cmon_logs.tcl 885 2017-04-23 15:54:01Z mueller $
+# $Id: test_cmon_logs.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
@@ -41,7 +41,7 @@ proc tmpproc_dotest {cpu code tname} {
     set fnam "test_cmon_${tname}_imode${imode}.log"
     tofile $fnam $cmprt
   }
-  return ""
+  return
 }
 
 # -- Section A ---------------------------------------------------------------

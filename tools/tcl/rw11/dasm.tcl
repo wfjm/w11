@@ -1,4 +1,4 @@
-# $Id: dasm.tcl 718 2015-12-26 15:59:48Z mueller $
+# $Id: dasm.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -291,7 +291,7 @@ namespace eval rw11 {
     variable dasm_vecmap
     set vkey [format %3.3o $vec]
     if {[info exists dasm_vecmap($vkey)]} {return $dasm_vecmap($vkey)}
-    return ""
+    return
   }
 
   #

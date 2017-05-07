@@ -1,4 +1,4 @@
-# $Id: util.tcl 705 2015-07-26 21:25:42Z mueller $
+# $Id: util.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -45,7 +45,7 @@ namespace eval rutil {
         error "args2opts-E: key $key not valid in optlist"
       }
     }
-    return ""
+    return
   }
 
   #

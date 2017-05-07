@@ -1,4 +1,4 @@
-# $Id: shell_simh.tcl 835 2016-12-31 10:00:14Z mueller $
+# $Id: shell_simh.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -41,7 +41,7 @@ namespace eval rw11 {
         }
       }
     }
-    return ""
+    return
   }
 
   #

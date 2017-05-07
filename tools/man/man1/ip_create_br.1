@@ -1,0 +1,42 @@
+.\"  -*- nroff -*-
+.\"  $Id: ip_create_br.1 893 2017-05-05 17:43:53Z mueller $
+.\"
+.\" Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" 
+.\" ------------------------------------------------------------------
+.
+.TH IP_CREATE_BR 1 2017-04-14 "Retro Project" "Retro Project Manual"
+.\" ------------------------------------------------------------------
+.SH NAME
+ip_create_br \- create bridge and re-connect ethernet interface
+.\" ------------------------------------------------------------------
+.SH SYNOPSIS
+.
+.SY ip_create_br
+.YS
+.
+.\" ------------------------------------------------------------------
+.SH DESCRIPTION
+
+This script expects a default single Ethernet interface setup, creates
+a bridge named 'br0', and re-connects Ethernet interface to this bridge.
+
+The scripts bails out gracefully in case 'br0' already exists. In not, it
+determines the name of the Ethernet interface, accepting both old 'eth*' and 
+new 'en*' naming, and verifies that it is a single Ethernet configuration.
+Than it creates a bridge device named 'br0' and re-connects the physical
+Ethernet interface to the bridge, preserving all IP addresses and routes.
+
+This script is part of setting up tap devices with \fBip_create_tap\fR(1)
+but can be used independently.
+
+The script should be started as normal user, but uses \fBsudo\fR(8) to
+execute priviledged commands and might therefore ask for the user password.
+.
+.\" ------------------------------------------------------------------
+.SH "SEE ALSO"
+.BR ip_create_tap (1)
+
+.\" ------------------------------------------------------------------
+.SH AUTHOR
+Walter F.J. Mueller <W.F.J.Mueller@gsi.de>

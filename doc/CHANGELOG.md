@@ -25,13 +25,17 @@ The full set of tests is only run for tagged releases.
   - RSX11-M uses buffer chaining, will not work
 
 ### Summary
+- tools for setting up ethernet bridge and tap
+  - add ip_create_br: create bride and convert default ethernet interface
+  - add ip_create_tap: create use-mode tap device
+  - add ip_inspect: helper script
 - re-arrange rawio commands for rlc and rlp
   - RtclRlink(Connect|Port): drop M_rawio; add M_rawread,M_rawrblk,M_rawwblk
   - RtclRlinkPort: LogFileName(): returns now const std::string&
 - BUGFIXes for backend
   - RlinkPort: BUGFIX: RawRead(): proper irc for exactsize=false
   - Rexception: BUGFIX: add fErrtxt for proper what() return
-- sys_w11a_n(2|3): use SWI(7:6) to allow fx2 debug via LEDs 
+- sys_w11a_n(2|3): use SWI(7:6) to allow fx2 debug via LEDs
 - BUGFIX: resolve hangup of fx2 USB controller
   - was caused by inconsistent use of rx fifo thresholds
   - adding more lines to monitor output (fsm_* lines for state tracking)

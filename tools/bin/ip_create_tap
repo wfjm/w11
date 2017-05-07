@@ -1,0 +1,51 @@
+#!/bin/bash
+# $Id: ip_create_tap 873 2017-04-14 11:56:29Z mueller $
+#
+# Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# License disclaimer see License.txt in $RETROBASE directory
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2017-04-14   873   1.0    Initial version
+# 2017-03-04   858   0.5    First draft
+#
+
+tap=${1:-tap0}
+
+if ifconfig | grep -q "${tap}\s*Link"
+then
+  echo "tap ${tap} already exists"
+  exit 1
+fi
+
+ifconfig | grep -q "br0\s*Link"
+if [ $? != 0 ]
+then
+  echo "ip_create_tap-I: create bridge br0"
+  ip_create_br
+fi
+
+# sanitize PATH, use what sudo has
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+which_ifconfig=$(which ifconfig)
+which_tunctl=$(which tunctl)
+which_brctl=$(which brctl)
+
+if [[ -z "$which_ifconfig" || -z "$which_tunctl" || -z "$which_brctl" ]]
+then 
+  echo "ip_create_br-E: ifconfig, brctl, or route not in PATH"
+  exit 1
+fi
+
+# print info so that sudo password prompt is expected
+if [[ $(id -u) -ne 0 ]] ; then echo "ip_create_br-I: requires sudo" ; fi
+
+sudo $which_tunctl -t ${tap} -u $USER
+sudo $which_ifconfig ${tap} up
+# bridge in the tap device
+sudo $which_brctl addif br0 ${tap}
+sudo $which_ifconfig ${tap} 0.0.0.0
+
+#
+$which_ifconfig ${tap}

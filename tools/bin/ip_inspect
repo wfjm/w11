@@ -1,0 +1,161 @@
+#!/usr/bin/perl -w
+# $Id: ip_inspect 887 2017-04-28 19:32:52Z mueller $
+#
+# Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+#
+# This program is free software; you may redistribute and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 2, or at your option any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# for complete details.
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2017-04-08   872   0.1    First draft
+#
+
+use 5.14.0;                                 # require Perl 5.14 or higher
+use strict;                                 # require strict checking
+
+use Getopt::Long;
+
+my %opts = ();
+
+GetOptions(\%opts,
+          )
+  or exit 1;
+
+sub print_usage;
+sub do_defeif;
+sub do_addr4;
+sub do_defroute;
+
+autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
+
+my $cmd = shift @ARGV;
+unless (defined $cmd) {
+  printf STDERR "ip_inspect-E: missing command; use 'ip_inspect help'\n";
+  exit 1;
+}
+
+if ($cmd eq "help") {
+  print_usage();
+} elsif ($cmd eq "defeif") {
+  do_defeif();
+} elsif ($cmd eq "addr4") {
+  do_addr4();
+} elsif ($cmd eq "defroute") {
+  do_defroute();
+} else {
+  printf STDERR "ip_inspect-E: invalid command '$cmd'\n";
+  exit 1;
+}
+exit 0;
+
+#-------------------------------------------------------------------------------
+
+sub do_defeif {
+  my @devs;
+  open (IPRES, "ip link show|") or die "failed to call ip";
+  while (<IPRES>) {
+    chomp;
+    next unless m|^\d+:\s*(\w+):|;
+    my $dev = $1;
+    next unless $dev =~ m/^(en|eth)/;
+    push @devs,$dev;
+  }
+  close (IPRES);
+  if (scalar(@devs) == 0) {
+    printf STDERR "ip_inspect-E: failed to detect default device\n";
+    exit 1;
+  }
+  if (scalar(@devs) > 1) {
+    printf STDERR "ip_inspect-E: multiple ethernet interfaces '%s'\n",
+      join ',',@devs;
+    exit 1;
+  }
+  print "$devs[0]\n";
+  return;
+}
+
+#-------------------------------------------------------------------------------
+
+sub do_addr4 {
+  my $dev = shift @ARGV;
+  my $fld = shift @ARGV;
+  unless (defined $dev && defined $fld) {
+    printf STDERR "ip_inspect-E: missing device or field\n";
+    exit 1;
+  }
+
+  my $addr;
+  my $size;
+  my $bcast;
+  open (IPRES, "ip addr show dev $dev|") or die "failed to call ip";
+  while (<IPRES>) {
+    chomp;
+    next unless m|^\s+inet\s+([0-9.]+)/(\d+)\s+brd\s+([0-9.]+)|;
+    $addr  = $1;
+    $size  = $2;
+    $bcast = $3;
+  }
+  close (IPRES);
+  if ($fld eq "addr") {
+    print "$addr\n";
+  } elsif ($fld eq "addrm") {
+    print "$addr/$size\n";
+  } elsif ($fld eq "mask") {
+    my $mask = size2mask($size);
+    print "$mask\n";
+  } elsif ($fld eq "bcast") {
+    print "$bcast\n";
+  } else {
+    printf STDERR "ip_inspect-E: invalid field '$fld'\n";
+    exit 1;
+  }
+  return;
+}
+
+#-------------------------------------------------------------------------------
+
+sub do_defroute {
+  open (IPRES, "ip route show|") or die "failed to call ip";
+  while (<IPRES>) {
+    chomp;
+    if (m|^default via\s+([0-9.]+)|) {
+      close (IPRES);
+      print "$1\n";
+      return;
+    }
+  }
+  printf STDERR "ip_inspect-E: failed to find default route\n";
+  exit 1;
+}
+
+#-------------------------------------------------------------------------------
+
+sub size2mask {
+  my ($size) = @_;
+  my $bmask = ('1' x $size) . ('0' x (32-$size));
+  my $dmask = oct("0b".substr($bmask, 0,8)) . '.' .
+              oct("0b".substr($bmask, 8,8)) . '.' .
+              oct("0b".substr($bmask,16,8)) . '.' .
+              oct("0b".substr($bmask,24,8));
+  return $dmask;
+}
+
+#-------------------------------------------------------------------------------
+
+sub print_usage {
+  print "usage: ip_inspect <command> <args>\n";
+  print "  ip_inspect defeif               # get default eth interface\n";
+  print "  ip_inspect addr4 <if> addrm     # get ip4 addr/mask\n";
+  print "  ip_inspect addr4 <if> addr      # get ip4 bare addr\n";
+  print "  ip_inspect addr4 <if> mask      # get ip4 subnet mask\n";
+  print "  ip_inspect addr4 <if> bcast     # get ip4 bcast addr\n";
+  print "  ip_inspect defroute             # get default route\n";
+  return;
+}

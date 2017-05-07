@@ -1,0 +1,40 @@
+.\"  -*- nroff -*-
+.\"  $Id: ip_create_tap.1 893 2017-05-05 17:43:53Z mueller $
+.\"
+.\" Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" 
+.\" ------------------------------------------------------------------
+.
+.TH IP_CREATE_TAP 1 2017-04-14 "Retro Project" "Retro Project Manual"
+.\" ------------------------------------------------------------------
+.SH NAME
+ip_create_tap \- add a user-mode tap device to a bridge
+.\" ------------------------------------------------------------------
+.SH SYNOPSIS
+.
+.SY ip_create_tap
+.RI [ TAPNAME ]
+.YS
+.
+.\" ------------------------------------------------------------------
+.SH DESCRIPTION
+
+This script adds user-mode a tap device to a bridge, and creates the bridge
+in case it doesn't exist already.
+
+The script first checks whether 'br0' exists, if not \fBip_create_br\fR(1)
+is executed. Than a tap device is created, named \fITAPNAME\fP or 'tap0'
+by default. The tap device will be accessible for the user which executes
+the script. Finally the created tap device is connected to bridge 'br0'.
+
+The script should be started as normal user, but uses \fBsudo\fR(8) to
+execute priviledged commands and might therefore ask for the user password.
+
+.
+.\" ------------------------------------------------------------------
+.SH "SEE ALSO"
+.BR ip_create_br (1)
+
+.\" ------------------------------------------------------------------
+.SH AUTHOR
+Walter F.J. Mueller <W.F.J.Mueller@gsi.de>

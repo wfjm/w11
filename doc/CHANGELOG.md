@@ -25,6 +25,12 @@ The full set of tests is only run for tagged releases.
   - RSX11-M uses buffer chaining, will not work
 
 ### Summary
+- Miscellaneous fixes and changes
+  - Makefile: add all_tcl to all; use njobihtm
+  - rlink_core: BUGFIX: correct re-transmit after nak aborts
+  - tb_rlink_stim.dat: start section B (error aborts) and C (retransmit)
+  - ticonv_rri: use 'rlc rawwblk' instead of 'rlc rawio -wblk'
+  - rbmoni/test_regs.tcl: add data/addr logic tests
 - tools for setting up ethernet bridge and tap
   - add ip_create_br: create bride and convert default ethernet interface
   - add ip_create_tap: create use-mode tap device

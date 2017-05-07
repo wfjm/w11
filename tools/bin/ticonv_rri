@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: ticonv_rri 832 2016-12-28 09:49:47Z mueller $
+# $Id: ticonv_rri 891 2017-05-01 13:46:31Z mueller $
 #
-# Copyright 2014-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-05-01   891   1.2.2  use 'rlc rawwblk' instead of 'rlc rawio -wblk'
 # 2016-08-07   795   1.2.1  avoid GetOptions =f (bug in perl v5.22.1)
 # 2015-04-03   661   1.2    adopt to new stat checking and mask polarity
 # 2015-01-31   640   1.1.2  use 'rlc get|set' instead of 'rlc config'
@@ -187,7 +188,7 @@ while (1) {
     my $delay = cget_gdat(16,10,1,256);
     cmdlist_do();
     print "rlc log \".wait $delay\"\n";
-    print "rlc rawio -wblk {";
+    print "rlc rawwblk {";
     for (my $i = 0; $i < $delay; $i++) {
       printf  " 0%3.3o", 0x00;
     }

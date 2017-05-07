@@ -1,4 +1,4 @@
-# $Id: test_regs.tcl 873 2017-04-14 11:56:29Z mueller $
+# $Id: test_regs.tcl 888 2017-04-30 13:06:51Z mueller $
 #
 # Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-04-29   888   3.1    add data/addr logic tests
 # 2017-04-13   873   3.0    adopt to revised interface
 # 2015-04-03   661   2.1    drop estatdef (stat err check default now)
 # 2014-12-27   622   2.0    rbd_rbmon reorganized, supports now 16 bit addresses
@@ -28,7 +29,7 @@ package require rlink
 
 namespace eval rbmoni {
   #
-  # Basic tests with rbtester registers
+  # Basic access tests for rbmoni registers
   #
   proc test_regs {} {
     #
@@ -38,7 +39,8 @@ namespace eval rbmoni {
     rlc log "rbmoni::test_regs - start"
     #
     #-------------------------------------------------------------------------
-    rlc log "  test 1: write/read cntl"
+    rlc log "  A basic register access tests -----------------------------"
+    rlc log "    A1: write/read cntl---------------------------------"
     # test that starting caputes option flags, and that stoping keeps them
     rlc exec \
       -wreg rm.cntl [regbld rbmoni::CNTL {func "STA"}] \
@@ -55,7 +57,7 @@ namespace eval rbmoni {
       -rreg rm.cntl -edata  [regbld rbmoni::CNTL rcolw rcolr] 
     #
     #-------------------------------------------------------------------------
-    rlc log "  test 2: write cntl, read stat"
+    rlc log "    A2: write cntl, read stat --------------------------"
     # test that susp/run follow functions set to cntl
     rlc exec \
       -wreg rm.cntl [regbld rbmoni::CNTL {func "STA"}] \
@@ -98,7 +100,7 @@ namespace eval rbmoni {
     set amax  [expr {( 512 << $bsize ) - 1}]
     #
     #-------------------------------------------------------------------------
-    rlc log "  test 3: write/read hilim/lolim"
+    rlc log "    A3: write/read hilim/lolim -------------------------"
     foreach {lolim hilim} {0xffff 0x0000 \
                            0x0000 0xfffb} {
       rlc exec \
@@ -107,7 +109,8 @@ namespace eval rbmoni {
     }
     #
     #-------------------------------------------------------------------------
-    rlc log "  test 4: write/read addr"
+    rlc log "    A4: test addr --------------------------------------"
+    rlc log "    A4.1: write/read addr when stopped -----------------"
     foreach {laddr waddr} [list 0x0000 0 0x0000 3 $amax 0 $amax 3] {
       set addr [regbld rbmoni::ADDR [list laddr $laddr] [list waddr $waddr]]
       rlc exec \
@@ -116,13 +119,43 @@ namespace eval rbmoni {
     }
     #
     #-------------------------------------------------------------------------
-    rlc log "  test 5: verify that starting clears addr"
+    rlc log "    A4.2: verify that starting clears addr -------------"
     rlc exec \
       -wreg rm.cntl [regbld rbmoni::CNTL {func "STO"}] \
       -wreg rm.addr [regbld rbmoni::ADDR [list laddr $amax]] \
       -rreg rm.addr -edata [regbld rbmoni::ADDR [list laddr $amax]] \
       -wreg rm.cntl [regbld rbmoni::CNTL {func "STA"}] \
-      -rreg rm.addr -edata 0x00 
+      -rreg rm.addr -edata 0x00 \
+      -wreg rm.cntl [regbld rbmoni::CNTL {func "STO"}]
+    #
+    #-------------------------------------------------------------------------
+    rlc log "    A4.3: test err when started and addr written -------"
+    rlc exec \
+      -wreg rm.cntl [regbld rbmoni::CNTL {func "STA"}] \
+      -wreg rm.addr 0x100 -estaterr \
+      -wreg rm.cntl [regbld rbmoni::CNTL {func "STO"}]
+    #
+    #-------------------------------------------------------------------------
+    rlc log "    A5: test data --------------------------------------"
+    rlc log "    A5.1: when stopped ---------------------------------"
+    # stop, set addr, and four times data, check addr
+    # at 5th data read waddr goes 0 and laddr incs
+    rlc exec \
+      -wreg rm.cntl [regbld rbmoni::CNTL {func "STO"}] \
+      -wreg rm.addr [regbld rbmoni::ADDR {laddr 010} {waddr 0}] \
+      -rreg rm.data \
+      -rreg rm.addr -edata [regbld rbmoni::ADDR {laddr 010} {waddr 001}] \
+      -rreg rm.data \
+      -rreg rm.addr -edata [regbld rbmoni::ADDR {laddr 010} {waddr 002}] \
+      -rreg rm.data \
+      -rreg rm.addr -edata [regbld rbmoni::ADDR {laddr 010} {waddr 003}] \
+      -rreg rm.data \
+      -rreg rm.addr -edata [regbld rbmoni::ADDR {laddr 011} {waddr 000}]
+    #
+    #-------------------------------------------------------------------------
+    rlc log "    A5.2: test err when written ------------------------"
+    rlc exec -wreg rm.data 0x100 -estaterr
+    
     #
     #-------------------------------------------------------------------------
     rlc log "rbmoni::test_regs - cleanup"

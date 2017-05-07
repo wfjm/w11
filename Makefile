@@ -1,4 +1,4 @@
-# $Id: Makefile 810 2016-10-02 16:51:12Z mueller $
+# $Id: Makefile 893 2017-05-05 17:43:53Z mueller $
 #
 # 'Meta Makefile' for whole retro project
 #   allows to make all synthesis targets
@@ -6,6 +6,7 @@
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2017-05-01   891   1.2.7  add all_tcl to all; use njobihtm
 # 2016-10-01   810   1.2.6  move component tests to SIM_viv when vivado used
 # 2016-07-10   785   1.2.5  re-enable rtl/sys_gen/tst_sram/nexys4 (ok in 2016.2)
 # 2016-06-05   772   1.2.4  add vmfsum,imfsum targets
@@ -141,13 +142,13 @@ SIM_viv += rtl/sys_gen/w11a/arty_bram/tb
 default :
 	@echo "No default action defined:"
 	@echo "  for VHDL simulation/synthesis use:"
-	@echo "    make -j `nproc` all"
-	@echo "    make -j `nproc` all_ise"
-	@echo "    make -j `nproc` all_viv"
-	@echo "    make -j `nproc` all_sim_ise"
-	@echo "    make -j `nproc` all_syn_ise"
-	@echo "    make -j `nproc` all_sim_viv"
-	@echo "    make -j 1 all_syn_viv"
+	@echo "    make -j `njobihtm -m=2G` all"
+	@echo "    make -j `njobihtm -m=1G` all_ise"
+	@echo "    make -j `njobihtm -m=2G` all_viv"
+	@echo "    make -j `njobihtm` all_sim_ise"
+	@echo "    make -j `njobihtm -m=1G` all_syn_ise"
+	@echo "    make -j `njobihtm` all_sim_viv"
+	@echo "    make -j `njobihtm -m=2G` all_syn_viv"
 	@echo "    make vmfsum"
 	@echo "    make imfsum"
 	@echo "    make clean"
@@ -160,12 +161,12 @@ default :
 	@echo "    make clean_sim_viv_tmp"
 	@echo "    make clean_syn_viv_tmp"
 	@echo "  for tool/documentation generation use:"
-	@echo "    make -j `nproc` all_lib"
+	@echo "    make -j `njobihtm` all_lib"
 	@echo "    make clean_lib"
 	@echo "    make all_tcl"
 	@echo "    make all_dox"
 #
-all     : all_ise all_viv all_lib 
+all     : all_ise all_viv all_lib all_tcl
 all_ise : all_sim_ise all_syn_ise
 all_viv : all_sim_viv all_syn_viv
 #

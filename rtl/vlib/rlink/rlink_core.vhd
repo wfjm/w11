@@ -1,6 +1,6 @@
--- $Id: rlink_core.vhd 799 2016-08-21 09:20:19Z mueller $
+-- $Id: rlink_core.vhd 892 2017-05-01 17:57:34Z mueller $
 --
--- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -28,10 +28,12 @@
 --                 tb/tb_rlink_tba_ttcombo
 --
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.2; ghdl 0.18-0.33
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2017.1; ghdl 0.18-0.34
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2017-05-01   892 14.7  131013 xc6slx16-2   298  709   20  226 s  7.3
+-- 2016-08-21   799 14.7  131013 xc6slx16-2   297  717   20  227 s  7.2 ?incr?
 -- 2015-12-26   718 14.7  131013 xc6slx16-2   312  460   16  150 s  7.0 ver 4.1
 -- 2014-12-20   614 14.7  131013 xc6slx16-2   310  453   16  146 s  6.8 ver 4.0
 -- 2014-08-13   581 14.7  131013 xc6slx16-2   160  230    0   73 s  6.0 ver 3.0
@@ -39,6 +41,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2017-05-01   892   4.2    BUGFIX: correct re-transmit after nak aborts
 -- 2016-08-18   799   4.1.3  remove 'assert false' from report statements
 -- 2016-05-22   767   4.1.2  don't init N_REGS (vivado fix for fsm inference)
 -- 2015-12-26   718   4.1.1  add proc_sres: strip 'x' from RB_SRES.dout
@@ -292,6 +295,7 @@ architecture syn of rlink_core is
     rtaddra : slv(RTAWIDTH-1 downto 0); -- rtbuf port a addr (write pointer)
     rtaddra_red : slbit;                -- rtaddra red (at max)
     rtaddra_bad : slbit;                -- rtaddra bad (inc beyond max)
+    rtaddra_zero : slbit;               -- rtaddra was 0 in last cycle
     rtaddrb : slv(RTAWIDTH-1 downto 0); -- rtbuf port b addr (aux pointer)
     rtaddrb_red : slbit;                -- rtaddrb red (at max)
     rtaddrb_bad : slbit;                -- rtaddrb bad (inc beyond max)
@@ -320,9 +324,9 @@ architecture syn of rlink_core is
     '0','0',                            -- cmdseen,doretra
     (others=>'0'),                      -- dinl
     rtaddr_zero,                        -- rtaddra
-    '0','0',                            -- rtaddra_red, rtaddra_bad
+    '0','0','0',                        -- rtaddra_(red|bad|zero)
     rtaddr_zero,                        -- rtaddrb
-    '0','0',                            -- rtaddrb_red, rtaddrb_bad
+    '0','0',                            -- rtaddrb_(red,bad)
     '0','0'                             -- moneop,monattn
   );
 
@@ -711,8 +715,16 @@ begin
         ival := '1';
         if RL_HOLD = '0' then             -- wait for accept
           if r.doretra = '1' then           -- if retra request
-            irtreb := '1';                    -- request first byte
-            n.state := sl_txrtbuf;            -- next: send rtbuf
+            if r.rtaddra_zero = '1' then      -- nothing to send
+              if r.nakdone = '0' then           -- if no nak active
+                n.state := sl_txeop;              -- next: send eop
+              else
+                n.state := sl_txnak;              -- next: send nak
+              end if;
+            else                              -- something to send
+              irtreb := '1';                    -- request first byte
+              n.state := sl_txrtbuf;            -- next: send rtbuf
+            end if;
           else                              -- or normal command
             n.state := sl_rxcmd;              -- next: read first command
           end if;
@@ -730,7 +742,11 @@ begin
         ido := '0' & "10" & (not r.nakcode) & r.nakcode;
         ival := '1';
         if RL_HOLD = '0' then             -- wait for accept
-          n.state := sl_rxeop;            -- next: wait for eop
+          if r.doretra = '0' then           -- if no nak active
+            n.state := sl_rxeop;              -- next: wait for eop
+          else                              -- else of nak active
+            n.state := sl_txeop;              -- next: send eop
+          end if;
         end if;
         
       when sl_rxeop =>                  -- sl_rxeop: wait for eop ------------
@@ -756,7 +772,7 @@ begin
             end if;
           end if;
         end if;
-        
+                
       when sl_txeop =>                  -- sl_txeop: send eop ----------------
         n.state := sl_txeop;              -- needed to prevent vivado iSTATE
         ido := c_rlink_dat_eop;           -- send eop character
@@ -1244,6 +1260,11 @@ begin
           end if;
         end if;
       end if;
+    end if;
+    if r.rtaddra = rtaddr_zero then
+      n.rtaddra_zero := '1';
+    else
+      n.rtaddra_zero := '0';
     end if;
 
     -- addrb logic (write and read pointer)

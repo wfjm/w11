@@ -1,7 +1,8 @@
-# $Id: tb_rlink_stim.dat 617 2014-12-21 14:18:53Z mueller $
+# $Id: tb_rlink_stim.dat 892 2017-05-01 17:57:34Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2017-05-01   892   4.1    start section B (error aborts) and C (retransmit)
 # 2014-12-21   617   4.0.1  rlink signals now tout and nak on separate stat bits
 # 2014-10-12   596   4.0    rewritten for rlink v4
 # ...                       all history v1->v3 droped
@@ -23,6 +24,7 @@
 .rbmon 1
 #
 C =============================================================================
+C Section A: Verify basic functionality
 C Section A1: Basic framing
 C -----------------------------------------------------------------------------
 C Test A1.1: empty frame
@@ -66,21 +68,6 @@ txeop
 #
 .iowt 10
 #
-C -----------------------------------------------------------------------------
-C Test A1.4: frame error nak abort: sop in active frame
-C       tx: sop - sop - eop
-C       rx: sop - nak nakcode(010) - eop
-rxsop
-rxnak
-rx8    10101010   -- 10 101 010
-rxeop
-#
-txsop
-txsop
-txeop
-#
-.iowt 10
-#
 C =============================================================================
 C Section A2: Basic commands: attn, wreg, rreg
 C -----------------------------------------------------------------------------
@@ -105,7 +92,7 @@ txeop
 C -----------------------------------------------------------------------------
 C Test A2.2: wreg(data) -> shows that rlink can write a register
 C   data := x"1111"
-C wreg: tx: sop - cmd(wreg,3) addr(00f1) dl dh ccrc - eop
+C wreg: tx: sop - cmd(wreg,3) addr(ffe4) dl dh ccrc - eop
 C       rx: sop - cmd(wreg,3) stat crc - eop
 #
 rxsop 
@@ -121,7 +108,7 @@ txeop
 C -----------------------------------------------------------------------------
 C Test A2.3: rreg(data) -> shows that rlink can read back a register
 C   data -> x"1111"
-C rreg: tx: sop - cmd(rreg,4) addr(00f1) ccrc - eop
+C rreg: tx: sop - cmd(rreg,4) addr(ffe4) ccrc - eop
 C       rx: sop - cmd(rreg,4) dl dh stat crc - eop
 #
 rxsop 
@@ -158,7 +145,7 @@ eop
 .iowt 10
 #
 C -----------------------------------------------------------------------------
-C Test A3.3: check stat write/read  (and that RB_STAT is retured)
+C Test A3.3: check stat write/read  (and that RB_STAT is returned)
 #
 sop
 wreg    2  x"ffe1"  x"ffff"  00000000       -- stat := ffff
@@ -639,7 +626,173 @@ attn    2           x"0004"  00000000       -- attn >? 0004
 eop
 .iowt 10
 #
-#==============================================================================
+C =============================================================================
+C Section B: verify command aborts (ending in nak - nakcode - eop)
+#
+#  nakcode_ccrc   : "000" -- cmd crc error        -- 
+#  nakcode_dcrc   : "001" -- data crc error       --
+#  nakcode_frame  : "010" -- framing error        -- in B1.*
+#  nakcode_unused : "011" -- <unused code>        --
+#  nakcode_cmd    : "100" -- bad cmd              -- in B2.*
+#  nakcode_cnt    : "101" -- bad cnt              --
+#  nakcode_rtovfl : "110" -- rtbuf ovfl           --
+#  nakcode_rtwblk : "111" -- rtbuf ovfl in wblk   --
+#
+C =============================================================================
+C Test B1.1: frame error nak abort: sop-sop
+C       tx: sop - sop - eop
+C       rx: sop - nak nakcode(010) - eop
+rxsop
+rxnak
+rx8    10101010   -- 10 101 010
+rxeop
+#
+txsop
+txsop
+txeop
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test B1.2: frame error nak abort: sop-cmd-sop-cmd-eop
+C       tx: sop - cmd(wreg,3) addr(ffe4) dl dh ccrc -
+C           sop - cmd(wreg,3) addr(ffe4) dl dh ccrc - eop
+C       rx: sop - cmd(wreg,3) stat crc - nak nakcode(010) - eop
+C  Note: that second write isn't executed is verified in second next test
+rxsop
+rxcs   wreg,3  00000000
+rxnak
+rx8    10101010   -- 10 101 010
+rxeop
+#
+txsop
+txcad  wreg,3  x"ffe4"  x"2222"
+txsop
+txcad  wreg,4  x"ffe4"  x"3333"
+txeop
+#
+.iowt 20
+#
+C =============================================================================
+C Test B2.1: bad command nak abort: 0xff as 1st command
+C       tx: sop - 0xff - eop
+C       rx: sop - nak nakcode(100) - eop
+rxsop
+rxnak
+rx8    10011100   -- 10 011 100
+rxeop
+#
+txsop
+tx8    11111111
+txeop
+#
+.iowt 10
+#
+C -----------------------------------------------------------------------------
+C Test B2.2: bad command nak abort: 0xff as 2nd command
+C       tx: sop - cmd(rreg,5) addr(ffe4) ccrc - 0xff - eop
+C       rx: sop - cmd(rreg,5) dl dh stat crc  - nak nakcode(100) - eop
+C  Note: check with read back value that abort 2 tests ago did work
+rxsop
+rxcds  rreg,5  x"2222"  00000000
+rxnak
+rx8    10011100   -- 10 011 100
+rxeop
+#
+txsop
+txca   rreg,5  x"ffe4"
+tx8    11111111
+txeop
+#
+.iowt 10
+#
+C =============================================================================
+C Section C: verify re-transmit logic
+C Section C1: re-transmit after successfull command list
+C -----------------------------------------------------------------------------
+C Test C1.1: re-transmit after wreg-rreg
+C - execute command --------------------
+sop
+wreg    0  x"ffe4"  x"beaf"  00000000       -- data := beaf
+rreg    1  x"ffe4"  x"beaf"  00000000       -- data >? beaf
+eop
+.iowt 10
+#
+C - do re-transmit ---------------------
+rxsop 
+rxcs   wreg,0  00000000
+rxcds  rreg,1  x"beaf"  00000000
+rxeop 
+#
+txnak
+#
+.iowt 20
+#
+C -----------------------------------------------------------------------------
+C Test C1.2: check that re-transmit buffer is kept after empty sop-eop frame
+C - send sop-eop -----------------------
+sop
+eop
+.iowt 20
+#
+C - do re-transmit (expect last one) ---
+rxsop 
+rxcs   wreg,0  00000000
+rxcds  rreg,1  x"beaf"  00000000
+rxeop 
+#
+txnak
+#
+.iowt 20
+#
+C =============================================================================
+C Section C2: re-transmit after aborted command list
+C -----------------------------------------------------------------------------
+C Test C2.1: re-transmit after bad cmd abort (100): 0xff as 1st command
+C - execute command --------------------
+rxsop
+rxnak
+rx8    10011100   -- 10 011 100
+rxeop
+#
+txsop
+tx8    11111111
+txeop
+.iowt 10
+#
+C - do re-transmit ---------------------
+rxsop
+rxnak
+rx8    10011100   -- 10 011 100
+rxeop
+#
+txnak
+.iowt 20
+#
+C -----------------------------------------------------------------------------
+C Test C2.2: re-transmit after bad cmd abort (100): 0xff as 2nd command
+C - execute command --------------------
+rxsop
+rxcs   wreg,3  00000000
+rxnak
+rx8    10011100   -- 10 011 100
+rxeop
+#
+txsop
+txcad  wreg,3  x"ffe4"  x"beaf"
+tx8    11111111
+txeop
+.iowt 10
+#
+C - do re-transmit ---------------------
+rxsop
+rxcs   wreg,3  00000000
+rxnak
+rx8    10011100   -- 10 011 100
+rxeop
+#
+txnak
+.iowt 20
 #
 C -----------------------------------------------------------------------------
 C Run down and Finish

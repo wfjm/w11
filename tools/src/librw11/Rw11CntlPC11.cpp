@@ -1,4 +1,4 @@
-// $Id: Rw11CntlPC11.cpp 887 2017-04-28 19:32:52Z mueller $
+// $Id: Rw11CntlPC11.cpp 897 2017-05-20 14:57:20Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-05-14   897   1.3    trace received chars
 // 2017-04-02   865   1.2.2  Dump(): add detail arg
 // 2017-03-03   858   1.2.1  use cntl name as message prefix
 // 2014-12-30   625   1.2    adopt to Rlink V4 attn logic
@@ -256,44 +257,52 @@ int Rw11CntlPC11::AttnHandler(RlinkServer::AttnArgs& args)
   bool pval     = pbuf & kPBUF_M_PVAL;
   bool rbusy    = pbuf & kPBUF_M_RBUSY;
   uint8_t ochr  = pbuf & kPBUF_M_BUF;
-
-  if (fTraceLevel>0) {
-    RlogMsg lmsg(LogFile());
-    lmsg << "-I " << Name() << ":"
-         << " pbuf=" << RosPrintBvi(pbuf,8)
-         << " pval=" << pval
-         << " rbusy=" << rbusy;
-    if (pval) {
-      lmsg << " char=";
-      if (ochr>=040 && ochr<0177) {
-        lmsg << "'" << char(ochr) << "'";
-      } else {
-        lmsg << RosPrintBvi(ochr,8);
-      }
-    }
-  }
   
-  if (pval) {
+  if (pval) {                               // punch valid -------------------
+    if (fTraceLevel>0) {
+      RlogMsg lmsg(LogFile());
+      lmsg << "-I " << Name() << ": pp"
+           << " pbuf=" << RosPrintBvi(pbuf,8)
+           << " pval=" << pval
+           << " rbusy=" << rbusy
+           << " char=" << RosPrintBvi(ochr,8);
+      if (ochr>=040 && ochr<0177)  lmsg << "  '" << char(ochr) << "'";
+    }
+    
     RerrMsg emsg;
     bool rc = fspUnit[kUnit_PP]->VirtWrite(&ochr, 1, emsg);
     if (!rc) {
       RlogMsg lmsg(LogFile());
-      lmsg << emsg;
+      lmsg << "-E " << Name() << ":" << emsg;
       SetOnline(1, false);
     }
   }
 
-  if (rbusy) {
+  if (rbusy) {                              // reader busy -------------------
     uint8_t ichr = 0;
     RerrMsg emsg;
     int irc = fspUnit[kUnit_PR]->VirtRead(&ichr, 1, emsg);
     if (irc < 0) {
       RlogMsg lmsg(LogFile());
-      lmsg << emsg;
+      lmsg << "-E " << Name() << ":" << emsg;
     }
+    
     if (irc <= 0) {
+      if (fTraceLevel>0) {
+        RlogMsg lmsg(LogFile());
+        lmsg << "-I " << Name() << ": set reader offline";  
+      }  
       SetOnline(0, false);
+      
     } else {
+      if (fTraceLevel>0) {
+        RlogMsg lmsg(LogFile());
+        lmsg << "-I " << Name() << ": pr"
+             << " rbusy=" << rbusy
+             << " char=" << RosPrintBvi(ichr,8);
+        if (ichr>=040 && ichr<0177) lmsg << "  '" << char(ichr) << "'";
+      }
+      
       RlinkCommandList clist;
       Cpu().AddWibr(clist, fBase+kRBUF, ichr);
       Server().Exec(clist);

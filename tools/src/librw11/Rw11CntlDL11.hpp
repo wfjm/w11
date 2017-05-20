@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDL11.hpp 887 2017-04-28 19:32:52Z mueller $
+// $Id: Rw11CntlDL11.hpp 897 2017-05-20 14:57:20Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-05-14   897   1.2    add RcvChar(),TraceChar()
 // 2017-04-02   865   1.1.1  Dump(): add detail arg
 // 2014-12-29   623   1.1    adopt to Rlink V4 attn logic
 // 2013-05-04   516   1.0.1  add RxRlim support (receive interrupt rate limit)
@@ -77,6 +78,8 @@ namespace Retro {
 
     protected:
       int           AttnHandler(RlinkServer::AttnArgs& args);
+      void          RcvChar();
+      void          TraceChar(char dir, uint16_t xbuf, uint8_t chr);
     
     protected:
       size_t        fPC_xbuf;               //!< PrimClist: xbuf index

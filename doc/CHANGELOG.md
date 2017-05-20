@@ -25,6 +25,7 @@ The full set of tests is only run for tagged releases.
   - RSX11-M uses buffer chaining, will not work
 
 ### Summary
+- Rw11CntlPC11,Rw11CntlDL11: trace received chars
 - Miscellaneous fixes and changes
   - Makefile: add all_tcl to all; use njobihtm
   - rlink_core: BUGFIX: correct re-transmit after nak aborts

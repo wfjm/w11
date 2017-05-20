@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDL11.cpp 887 2017-04-28 19:32:52Z mueller $
+// $Id: Rw11CntlDL11.cpp 897 2017-05-20 14:57:20Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-05-14   897   1.3    add RcvChar(),TraceChar(); trace received chars
 // 2017-04-02   865   1.2.3  Dump(): add detail arg
 // 2017-03-03   858   1.2.2  use cntl name as message prefix
 // 2017-02-25   855   1.2.1  shorten ctor code; RcvNext() --> RcvQueueNext()
@@ -151,12 +152,7 @@ void Rw11CntlDL11::Wakeup()
     size_t ircsr = Cpu().AddRibr(clist, fBase+kRCSR);
     Server().Exec(clist);
     uint16_t rcsr = clist[ircsr].Data();
-    if ((rcsr & kRCSR_M_RDONE) == 0) {      // RBUF not full
-      uint8_t ichr = fspUnit[0]->RcvQueueNext();
-      clist.Clear();
-      Cpu().AddWibr(clist, fBase+kRBUF, ichr);
-      Server().Exec(clist);
-    }
+    if ((rcsr & kRCSR_M_RDONE) == 0) RcvChar(); // send if RBUF not full
   }
 
   return;
@@ -212,54 +208,72 @@ int Rw11CntlDL11::AttnHandler(RlinkServer::AttnArgs& args)
   bool xval = xbuf & kXBUF_M_XVAL;
   bool rrdy = xbuf & kXBUF_M_RRDY;
 
-  if (fTraceLevel>0) {
-    RlogMsg lmsg(LogFile());
-    lmsg << "-I " << Name() << ":"
-         << " xbuf=" << RosPrintBvi(xbuf,8)
-         << " xval=" << xval
-         << " rrdy=" << rrdy
-         << " rcvq=" << RosPrintf(fspUnit[0]->RcvQueueSize(),"d",3);
-    if (xval) {
-      lmsg << " char=";
-      if (ochr>=040 && ochr<0177) {
-        lmsg << "'" << char(ochr) << "'";
-      } else {
-        lmsg << RosPrintBvi(ochr,8);
-        lmsg << " " << ((ochr&0200) ? "|" : " ");
-        uint8_t ochr7 = ochr & 0177;
-        if (ochr7 < 040) {
-          switch (ochr7) {
-          case 010: lmsg << "BS"; break;
-          case 011: lmsg << "HT"; break;
-          case 012: lmsg << "LF"; break;
-          case 013: lmsg << "VT"; break;
-          case 014: lmsg << "FF"; break;
-          case 015: lmsg << "CR"; break;
-          default:  lmsg << "^" << char('A'+ochr7);
-          }
-        } else {
-          if (ochr7 < 0177) {
-            lmsg << "'" << char(ochr7) << "'";
-          } else {
-            lmsg << "DEL";
-          }
-        }
-      }
-    }
-  }
-
-  if (xval) {
-    fspUnit[0]->Snd(&ochr, 1);
-  }
-
-  if (rrdy && !fspUnit[0]->RcvQueueEmpty()) {
-    uint8_t ichr = fspUnit[0]->RcvQueueNext();
-    RlinkCommandList clist;
-    Cpu().AddWibr(clist, fBase+kRBUF, ichr);
-    Server().Exec(clist);
-  }
+  if (fTraceLevel>0) TraceChar('t', xbuf, ochr);
+  if (xval) fspUnit[0]->Snd(&ochr, 1);
+  if (rrdy && !fspUnit[0]->RcvQueueEmpty()) RcvChar();
 
   return 0;
 }
 
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+// RcvQueueEmpty() must be false !!
+  
+void Rw11CntlDL11::RcvChar()
+{
+  uint8_t ichr = fspUnit[0]->RcvQueueNext();
+  if (fTraceLevel>0) TraceChar('r', 0, ichr);
+  RlinkCommandList clist;
+  Cpu().AddWibr(clist, fBase+kRBUF, ichr);
+  Server().Exec(clist);
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+void Rw11CntlDL11::TraceChar(char dir, uint16_t xbuf, uint8_t chr)
+{
+  bool xval = xbuf & kXBUF_M_XVAL;
+  bool rrdy = xbuf & kXBUF_M_RRDY;
+  RlogMsg lmsg(LogFile());
+  lmsg << "-I " << Name() << ":" << ' ' << dir << 'x';
+  if (dir == 't') {
+    lmsg << " xbuf=" << RosPrintBvi(xbuf,8)
+         << " xval=" << xval
+         << " rrdy=" << rrdy;
+  } else {
+    lmsg << "                          ";
+  }
+  lmsg << " rcvq=" << RosPrintf(fspUnit[0]->RcvQueueSize(),"d",3);
+  if (xval || dir != 't') {
+    lmsg << " char=";
+    if (chr>=040 && chr<0177) {
+      lmsg << "'" << char(chr) << "'";
+    } else {
+      lmsg << RosPrintBvi(chr,8);
+      lmsg << " " << ((chr&0200) ? "|" : " ");
+      uint8_t chr7 = chr & 0177;
+      if (chr7 < 040) {
+        switch (chr7) {
+        case 010: lmsg << "BS"; break;
+        case 011: lmsg << "HT"; break;
+        case 012: lmsg << "LF"; break;
+        case 013: lmsg << "VT"; break;
+        case 014: lmsg << "FF"; break;
+        case 015: lmsg << "CR"; break;
+        case 033: lmsg << "ESC"; break;
+        default:  lmsg << "^" << char('@'+chr7);
+        }
+      } else {
+        if (chr7 < 0177) {
+          lmsg << "'" << char(chr7) << "'";
+        } else {
+          lmsg << "DEL";
+        }
+      }
+    }
+  }
+  return;
+}
+  
 } // end namespace Retro

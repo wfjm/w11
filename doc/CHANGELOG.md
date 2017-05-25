@@ -25,6 +25,10 @@ The full set of tests is only run for tagged releases.
   - RSX11-M uses buffer chaining, will not work
 
 ### Summary
+- cleanup 211bsd system images (oskits)
+  - 211bsd_rp, the master, see [CHANGELOG](../tools/oskit/211bsd_rp/CHANGELOG.md)
+  - 211bsd_rk, see [CHANGELOG](../tools/oskit/211bsd_rl/CHANGELOG.md)
+  - 211bsd_rl, see [CHANGELOG](../tools/oskit/211bsd_rk/CHANGELOG.md)
 - Rw11CntlPC11,Rw11CntlDL11: trace received chars
 - Miscellaneous fixes and changes
   - Makefile: add all_tcl to all; use njobihtm

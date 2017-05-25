@@ -6,6 +6,8 @@ See notes in [w11a_os_guide.md](../../../doc/w11a_os_guide.md) on
   2. FPGA Board setup
   3. Rlink and Backend Server setup
   4. Legal terms
+  
+For history see [CHANGELOG.md](CHANGELOG.md).
 
 ### Installation
 A disk set is available from
@@ -37,14 +39,14 @@ Download, unpack and copy the disk images (*.dsk), e.g.
        : rl(0,0,0)unix
        Boot: bootdev=03400 bootcsr=0174400
 
-       2.11 BSD UNIX #1: Thu Jan 1 22:05:02 PST 2009
-           root@curly.2bsd.com:/usr/src/sys/RETRONFPRL
+       2.11 BSD UNIX #2: Sat May 20 22:55:40 PDT 2017
+           root@w11a:/usr/src/sys/RETRONFPRL
 
        phys mem  = 3932160
        avail mem = 3577344
        user mem  = 307200
 
-       January  1 22:44:48 init: configure system
+       May 20 23:28:34 init: configure system
 
        dz ? csr 160100 vector 310 skipped:  No CSR.
        lp 0 csr 177514 vector 200 attached
@@ -59,27 +61,22 @@ Download, unpack and copy the disk images (*.dsk), e.g.
   In first `'#'` prompt the system is in single-user mode. Just enter a `^D` 
   to continue the system startup to multi-user mode:
   ```
-       #^D
-      
+       #^D      
        Fast boot ... skipping disk checks
        checking quotas: done.
        Assuming non-networking system ...
        preserving editor files
        clearing /tmp
        standard daemons: update cron accounting.
-       January  1 22:46:13 acctd[51]: open(/usr/adm/acct,O_WRONLY|O_APPEND): 2
        starting lpd
-       starting local daemons:Thu Jan  1 22:46:13 PST 2009
-       January  1 22:46:13 init: kernel security level changed from 0 to 1
-       January  1 22:46:15 getty: /dev/tty01: Device not configured
-       January  1 22:46:15 getty: /dev/tty00: Device not configured
-       January  1 22:46:15 getty: /dev/tty02: Device not configured
-       January  1 22:46:15 getty: /dev/tty03: Device not configured
-
-       2.11 BSD UNIX (curly.2bsd.com) (console)
+       starting local daemons:Sat May 20 23:28:41 PDT 2017
+       May 20 23:28:41 init: kernel security level changed from 0 to 1
        
-       login: 
-  ```
+       
+       2.11 BSD UNIX (w11a) (console)
+       
+       login:
+```
   The login prompt is sometimes mangled with the 'Device not configured'
   system messages, if its not visible just hit `<ENTER>` to get a fresh one.
   ```
@@ -123,3 +120,10 @@ Download, unpack and copy the disk images (*.dsk), e.g.
    ```
 
    will be visible. Now the server process can be stopped with `^D`.
+
+### Provisos
+- **minimal** system !! Maybe useful as recovery system.
+- was useful at a time when w11a had only RK11 and RL11 type disk support
+- /tmp stays on '/'
+- /home is not mounted
+- suitable for a 'root' user, other accounts not supported

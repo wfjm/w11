@@ -6,6 +6,8 @@ See notes in [w11a_os_guide.md](../../../doc/w11a_os_guide.md) on
   2. FPGA Board setup
   3. Rlink and Backend Server setup
   4. Legal terms
+  
+For history see [CHANGELOG.md](CHANGELOG.md).
 
 ### Installation
 A disk set is available from
@@ -37,14 +39,14 @@ Download, unpack and copy the disk images (*.dsk), e.g.
        : rk(0,0,0)unix
        Boot: bootdev=03000 bootcsr=0177404
        
-       2.11 BSD UNIX #26: Thu Jan 1 19:49:13 PST 2009
-           root@curly.2bsd.com:/usr/src/sys/RETRONFPRK
+       2.11 BSD UNIX #27: Sat May 20 22:55:12 PDT 2017
+           root@w11a:/usr/src/sys/RETRONFPRK
        
        phys mem  = 3932160
        avail mem = 3577856
        user mem  = 307200
        
-       January  4 16:45:33 init: configure system
+       May 20 23:02:13 init: configure system
        
        dz ? csr 160100 vector 310 skipped:  No CSR.
        lp 0 csr 177514 vector 200 attached
@@ -60,6 +62,7 @@ Download, unpack and copy the disk images (*.dsk), e.g.
   to continue the system startup to multi-user mode:
   ```
        #^D
+       Fast boot ... skipping disk checks
        checking quotas: done.
        Assuming non-networking system ...
        checking for core dump... 
@@ -67,12 +70,10 @@ Download, unpack and copy the disk images (*.dsk), e.g.
        clearing /tmp
        standard daemons: update cron accounting.
        starting lpd
-       starting local daemons:Sun Jan  4 16:46:37 PST 2009
-       January  4 16:46:37 init: kernel security level changed from 0 to 1
-       January  4 16:46:40 getty: /dev/tty01: Device not configured
-       ...
+       starting local daemons:Sat May 20 23:02:20 PDT 2017
+       May 20 23:02:20 init: kernel security level changed from 0 to 1
        
-       2.11 BSD UNIX (curly.2bsd.com) (console)
+       2.11 BSD UNIX (w11a) (console)
        
        login: 
   ```
@@ -122,3 +123,10 @@ Download, unpack and copy the disk images (*.dsk), e.g.
    ```
 
   will be visible. Now the server process can be stopped with `^D`.
+
+### Provisos
+- **absolute minimal** system !! Not for practical use !!
+- was useful at a time when w11a had only RK11 type disk support
+- /tmp stays on '/'
+- /home is not mounted
+- suitable for a 'root' user, other accounts not supported

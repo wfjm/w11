@@ -6,6 +6,8 @@ See notes in [w11a_os_guide.md](../../../doc/w11a_os_guide.md) on
   2. FPGA Board setup
   3. Rlink and Backend Server setup
   4. Legal terms
+  
+For history see [CHANGELOG.md](CHANGELOG.md).
 
 ### Installation
 A disk set is available from
@@ -37,16 +39,17 @@ Download, unpack and copy the disk images (*.dsk), e.g.
        : xp(0,0,0)unix
        Boot: bootdev=05000 bootcsr=0176700
 
-       2.11 BSD UNIX #9: Wed Dec 10 06:24:37 PST 2008
-           root@curly.2bsd.com:/usr/src/sys/RETRONFPNW
+       2.11 BSD UNIX #12: Sat May 20 20:00:07 PDT 2017
+           root@w11a:/usr/src/sys/RETRONFPNW
 
+       attaching sl
        attaching lo0
 
        phys mem  = 3932160
        avail mem = 3461952
        user mem  = 307200
 
-       January  3 23:00:35 init: configure system
+       May 20 22:59:11 init: configure system
        
        dz ? csr 160100 vector 310 skipped:  No CSR.
        lp 0 csr 177514 vector 200 attached
@@ -63,29 +66,22 @@ Download, unpack and copy the disk images (*.dsk), e.g.
   ```
        #^D
        Fast boot ... skipping disk checks
-       checking quotas: done.
+       Checking quotas: done.
        Assuming NETWORKING system ...
-       ifconfig: ioctl (SIOCGIFFLAGS): no such interface
-       add host curly.2bsd.com: gateway localhost.2bsd.com
-       add net default: gateway 206.139.202.1: Network is unreachable
+       add host w11a: gateway localhost
        starting system logger
        checking for core dump... 
        preserving editor files
        clearing /tmp
        standard daemons: update cron accounting.
-       starting network daemons: inetd  printer.
-       January  3 23:00:47 lpd[76]: /dev/ttyS5: No such file or directory
-       starting local daemons:Sat Jan  3 23:00:47 PST 2009
-       January  3 23:00:47 init: kernel security level changed from 0 to 1
-       January  3 23:00:49 getty: /dev/tty04: Device not configured
-       January  3 23:00:49 getty: /dev/tty03: Device not configured
-       January  3 23:00:49 getty: /dev/tty00: Device not configured
-       January  3 23:00:49 getty: /dev/tty01: Device not configured
-       January  3 23:00:49 getty: /dev/tty02: Device not config
-
-       2.11 BSD UNIX (curly.2bsd.com) (console)
+       starting network daemons: inetd printer.
+       starting local daemons:Sat May 20 22:43:49 PDT 2017
+       May 20 22:43:49 w11a init: kernel security level changed from 0 to 1
        
-       login: 
+       
+       2.11 BSD UNIX (w11a) (console)
+       
+       login:
   ```
 
   The login prompt is sometimes mangled with the 'Device not configured'
@@ -110,7 +106,9 @@ Download, unpack and copy the disk images (*.dsk), e.g.
          1/ 10  ub_map entries,   10    free,   10    max
        # {mount}
        /dev/xp0a on /
-       /dev/xp0c on /usr
+       /dev/xp0c on /tmp
+       /dev/xp0d on /home
+       /dev/xp0e on /usr
        # {halt}
        syncing disks... done
        halting

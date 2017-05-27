@@ -25,6 +25,14 @@ The full set of tests is only run for tagged releases.
   - RSX11-M uses buffer chaining, will not work
 
 ### Summary
+- Miscellaneous fixes and changes
+  - Rw11VirtDiskOver: BUGFIX: correct write count accumulation
+  - svn_set_ignore: check svn:ignore existance before reading it
+  - telnet_wrapper: add 'r' --> reset and stty sane handling
+- move hook_*.tcl files to tools/oskiit/hook directory
+- add two new 211bsd system images (oskits)
+  - 211bsd_rpmin: for small memory systems
+  - 211bsd_rpeth: with DEUNA Ethernet support
 - cleanup 211bsd system images (oskits)
   - 211bsd_rp, the master, see [CHANGELOG](../tools/oskit/211bsd_rp/CHANGELOG.md)
   - 211bsd_rk, see [CHANGELOG](../tools/oskit/211bsd_rl/CHANGELOG.md)

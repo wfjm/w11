@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: telnet_wrapper 832 2016-12-28 09:49:47Z mueller $
+# $Id: telnet_wrapper 899 2017-05-27 13:25:41Z mueller $
 #
-# Copyright 2009-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2009-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev  Vers    Comment
+# 2017-05-25   899   1.1    add 'r' --> reset and stty sane handling
 # 2009-11-07   246   1.0    Initial version
 #
 
@@ -35,21 +36,23 @@ chomp $telnet;
 
 while(1) {
   my $rc = system $telnet, $host, $port;
-  if ($rc != 0) {
-    print STDERR "telnet failed with rc=$rc\n";
-  }
-  print "enter q or <^D> to quit, otherwise hit <ENTER> to reconnect: ";
-  my $buf;
-  my $nc = read STDIN, $buf, 1;
-  if (not defined $nc) {
-    print "\n";
-    exit 1;
-  }
-  if ($nc == 0) {
+  print STDERR "telnet failed with rc=$rc\n" if $rc != 0;
+  print "enter q or <^D> to quit, r for tty reset, or <ENTER> to reconnect: ";
+
+  my $buf = <STDIN>;
+  unless ($buf) {                           # quit if EOF
     print "\n";
     exit 0;
   }
-  if ($buf eq "q") {
-    exit 0;
+  chomp $buf;
+  next    if $buf eq "";                    # <ENTER>
+  exit 0  if $buf eq "q";                   # 'q'
+  if ($buf eq "r") {                        # 'r'
+    my $rc = system 'reset';
+    print STDERR "'reset' failed with rc=$rc\n" if $rc != 0;
+    $rc = system 'stty', 'sane';
+    print STDERR "'stty sane' failed with rc=$rc\n" if $rc != 0;
+  } else {
+    print "Invalid input '$buf', only ^D,<ENTER> or 'r' allowed\n";
   }
 }

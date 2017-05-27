@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDiskOver.cpp 887 2017-04-28 19:32:52Z mueller $
+// $Id: Rw11VirtDiskOver.cpp 896 2017-05-07 22:07:35Z mueller $
 //
 // Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-05-07   896   1.0.3  List(): BUGFIX: correct write count accumulation
 // 2017-04-15   875   1.0.2  Open(): use overload with scheme handling
 // 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2017-03-10   859   1.0    Initial version
@@ -148,6 +149,7 @@ void Rw11VirtDiskOver::List(std::ostream& os) const
   uint32_t lbabeg = fBlkMap.begin()->first; // first lba
   uint32_t nwrite = 0;
   for (auto it=fBlkMap.begin(); it!=fBlkMap.end(); ) {
+    nwrite += (it->second).NWrite();
     auto itnext = next(it);
     if (itnext == fBlkMap.end() || itnext->first != (it->first)+1) {
       os << RosPrintf(lbabeg,"d",8) 
@@ -156,8 +158,6 @@ void Rw11VirtDiskOver::List(std::ostream& os) const
          << " nw=" << RosPrintf(nwrite,"d",8) << endl;
       if (itnext != fBlkMap.end()) lbabeg = itnext->first;
       nwrite = 0;
-    } else {
-      nwrite += (it->second).NWrite();
     }
     it = itnext;
   }

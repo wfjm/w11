@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: svn_set_ignore 822 2016-12-17 18:50:04Z mueller $
+# $Id: svn_set_ignore 899 2017-05-27 13:25:41Z mueller $
 #
-# Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2007-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev  Vers    Comment
+# 2017-05-27   899   1.2.1  check svn:ignore existance before reading it
 # 2016-12-17   821   1.2    use .gitignore rather .cvsignore
 # 2014-11-04   601   1.1    use 'svn info' rather /.svn check for svn >= 1.7
 # 2010-04-26   284   1.0.1  add error check for GetOptions
@@ -91,19 +92,39 @@ sub do_dir {
     }
   }
 
-  open (SVN, "svn pg svn:ignore $dirname|")
-    or die "failed to open svn pg pipe for '$dirname'";
+  # check whether svn:ignore already defined
+  my $has_ignore = 0;
+  open (SVN, "svn pl $dirname|")
+    or die "failed to open svn pl pipe for '$dirname'";
   while (<SVN>) {
     chomp;
-    next if /^\s*$/;                        # ignore empty or space only lines
-    push @cur_ipat, $_;
+    if (m/^\s*svn:ignore\s*$/) {
+      $has_ignore = 1;
+      last;
+    }
   }
   close (SVN);
 
+  # read svn:ignore, if it exists
+  if ($has_ignore) {
+    open (SVN, "svn pg svn:ignore $dirname|")
+      or die "failed to open svn pg pipe for '$dirname'";
+    while (<SVN>) {
+      chomp;
+      next if /^\s*$/;                        # ignore empty or space only lines
+      push @cur_ipat, $_;
+    }
+    close (SVN);
+  }
+
   if (join("\n",@cur_ipat) ne join("\n",@new_ipat)) {
-    print "update svn:ignore for $dirname\n";
-    print "old svn:ignore:\n";
-    print "   ", join("\n   ",@cur_ipat),"\n";
+    if ($has_ignore) {
+      print "update svn:ignore for $dirname\n";
+      print "old svn:ignore:\n";
+      print "   ", join("\n   ",@cur_ipat),"\n";
+    } else {
+      print "setup svn:ignore for $dirname\n";
+    }
     print "new svn:ignore:\n";
     print "   ", join("\n   ",@new_ipat),"\n";
 

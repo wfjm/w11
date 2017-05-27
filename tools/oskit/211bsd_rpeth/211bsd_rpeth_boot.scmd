@@ -1,0 +1,29 @@
+; $Id: 211bsd_rpeth_boot.scmd 899 2017-05-27 13:25:41Z mueller $
+;
+; Setup file for 211bsd RP06 based system with ethernet
+;
+; Usage:
+;
+; ip_create_tap
+;
+; pdp11 211bsd_rpnet_boot.scmd
+;
+do ../../simh/setup_w11a_max.scmd
+set tto 7b
+set dlo0 7b
+;
+set rp0 rp06
+set rp1 rp06
+;
+set rl0 rl02
+set rl1 rl02
+set rl2 rl02
+set rl3 rl02
+;
+set xu enabled
+set xu type=deuna
+att xu0 tap:tap0
+;
+att rp0 211bsd_rpeth.dsk
+;
+boo rp0

@@ -1,4 +1,4 @@
-# $Id: hook_ibmon_xua.tcl 858 2017-03-05 17:41:37Z mueller $
+# $Id: hook_ibmon_xua.tcl 899 2017-05-27 13:25:41Z mueller $
 puts "hook: start ibmon for xua"
 package require ibd_ibmon
 ibd_ibmon::stop

@@ -1,4 +1,4 @@
-# $Id: hook_blkdev_trace.tcl 689 2015-06-05 14:33:18Z mueller $
+# $Id: hook_blkdev_trace.tcl 899 2017-05-27 13:25:41Z mueller $
 puts "hook: trace all block devices to rlc.log"
 rlc set logfile rlc.log
 cpu0rka set trace 2

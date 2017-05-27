@@ -1,4 +1,4 @@
-# $Id: hook_ibmon_rka.tcl 722 2015-12-30 19:45:46Z mueller $
+# $Id: hook_ibmon_rka.tcl 899 2017-05-27 13:25:41Z mueller $
 puts "hook: start ibmon for rka"
 package require ibd_ibmon
 ibd_ibmon::stop

@@ -231,6 +231,8 @@ Several oskits are provided:
 | [211bsd_rk](../tools/oskit/211bsd_rk)  | 2.11BSD system  | RK05 | _very elementary subset_ |
 | [211bsd_rl](../tools/oskit/211bsd_rl)  | 2.11BSD system  | RL02 | _small subset_ |
 | [211bsd_rp](../tools/oskit/211bsd_rp)  | 2.11BSD system  | RP06 | _full system_ |
+| [211bsd_rpmin](../tools/oskit/211bsd_rpmin)  | 2.11BSD system  | RP06 | _full system; tuned for small memory (min 512 kB, better 640 kB)_ |
+| [211bsd_rpeth](../tools/oskit/211bsd_rpeth)  | 2.11BSD system  | RP06 | _full system; with DEUNA Ethernet_ |
 
 For further details consult the `README.md` file in the oskit directory.
 
@@ -261,7 +263,7 @@ like the w11a.
   The boot scripts for simh are included ( `<kit>.simh` )
    
 - In case you happen to have a valid license feel free to try them
-  out the W11A and let the author know whether is works as it should.
+  out the w11a and let the author know whether is works as it should.
   For convenience the boot scripts are also included ( `<kit>.tcl` ).
 
 Several oskits are provided:

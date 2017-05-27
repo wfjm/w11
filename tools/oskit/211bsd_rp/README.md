@@ -84,8 +84,8 @@ Download, unpack and copy the disk images (*.dsk), e.g.
        login:
   ```
 
-  The login prompt is sometimes mangled with the 'Device not configured'
-  system messages, if its not visible just hit `<ENTER>` to get a fresh one.
+  The login prompt is sometimes mangled with system messages, if its not
+  visible just hit `<ENTER>` to get a fresh one.
   ```
        login: {root}
        erase, kill ^U, intr ^C

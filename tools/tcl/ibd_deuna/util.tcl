@@ -1,4 +1,4 @@
-# $Id: util.tcl 874 2017-04-14 17:53:07Z mueller $
+# $Id: util.tcl 894 2017-05-07 07:18:32Z mueller $
 #
 # Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,7 +13,8 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
-# 2017-04-14   874   1.0    Initial version
+# 2017-05-06   894   1.0    Initial version (full functionality)
+# 2017-04-14   874   0.5    Initial version (partial functionality)
 # 2014-06-09   561   0.1    First draft 
 #
 
@@ -32,7 +33,7 @@ namespace eval ibd_deuna {
   regdsc PR0 {seri 15} {pcei 14} {rxi 13} {txi 12} {dni 11} {rcbi 10} \
     {usci 8} {intr 7} {inte 6} {rset 5} \
     [list "pcmd" 3 4 $pcmdtxt]
-  regdsc PR0RR [list "pcmdbp" 15 4 $pcmdtxt] {busy 9} {pcwwb 8}\
+  regdsc PR0RR [list "pcmdbp" 15 4 $pcmdtxt] {pdmdwb 10} {busy 9} {pcwwb 8}\
     {intr 7} {inte 6} {rset 5} {brst 4} \
     [list "pcmd" 3 4 $pcmdtxt]
   regdsc PR0RW {seri 15} {pcei 14} {rxi 13} {txi 12} {dni 11} {rcbi 10} \

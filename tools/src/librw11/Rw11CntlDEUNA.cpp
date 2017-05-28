@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDEUNA.cpp 887 2017-04-28 19:32:52Z mueller $
+// $Id: Rw11CntlDEUNA.cpp 901 2017-05-28 11:26:11Z mueller $
 //
 // Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2017-04-17   880   0.5    Initial version (works w 211bsd; no err handling)
+// 2017-04-17   880   0.5    Initial version (minimal functions, 211bsd ready)
 // 2014-06-09   561   0.1    First draft 
 // ---------------------------------------------------------------------------
 
@@ -81,6 +81,7 @@ const uint16_t Rw11CntlDEUNA::kPR0_M_PCMD;
 
 const uint16_t Rw11CntlDEUNA::kPR0_V_PCMDBP;
 const uint16_t Rw11CntlDEUNA::kPR0_B_PCMDBP;
+const uint16_t Rw11CntlDEUNA::kPR0_M_PDMDWB;
 const uint16_t Rw11CntlDEUNA::kPR0_M_PCWWB;
   
 const uint16_t Rw11CntlDEUNA::kPCMD_NOOP;  
@@ -253,6 +254,9 @@ Rw11CntlDEUNA::Rw11CntlDEUNA()
   fStats.Define(kStatNPcmdHalt   , "NPcmdHalt"   , "pcmd HALT");
   fStats.Define(kStatNPcmdRsrvd  , "NPcmdRsrvd"  , "pcmd reserved");
   fStats.Define(kStatNPcmdUimpl  , "NPcmdUimpl"  , "pcmd not implemented");
+  fStats.Define(kStatNPcmdWBPdmd , "NPcmdWBPdmd" , "pcmd write w/ busy: pdmd");
+  fStats.Define(kStatNPcmdWBOther, "NPcmdWBOther", "pcmd write w/ busy: other");
+  fStats.Define(kStatNPdmdRestart, "NPdmdRestart", "pcmd pdmd restart");
   fStats.Define(kStatNFuncNoop   , "NFuncNoop"   , "func NOOP");
   fStats.Define(kStatNFuncRdpa   , "NFuncRdpa"   , "func RDPA");
   fStats.Define(kStatNFuncRpa    , "NFuncRpa"    , "func PRA");
@@ -726,15 +730,25 @@ int Rw11CntlDEUNA::AttnHandler(RlinkServer::AttnArgs& args)
   bool     brst  = fPr0Last & kPR0_M_BRST;
   uint16_t pcmd  = (fPr0Last>>kPR0_V_PCMDBP) & kPR0_B_PCMDBP;
 
-  // check for pcmd write while busy (part 1)
+  // check for pcmd write while busy
   if (fPr0Last & kPR0_M_PCWWB) {
-    RlogMsg lmsg(LogFile());
-    lmsg << "-E " << Name() << ": pcmd race"
-         << " pr0=" << RosPrintBvi(fPr0Last,8)
-         << " pcmd-1st=" << MnemoPcmd(pcmd)
-         << " pcmd-2nd=" << MnemoPcmd(fPr0Last & kPR0_M_PCMD);
+    uint16_t pcmdwwb  = fPr0Last & kPR0_M_PCMD;
+    if (pcmdwwb == kPCMD_PDMD) {
+      fStats.Inc(kStatNPcmdWBPdmd);
+    } else {
+      fStats.Inc(kStatNPcmdWBOther);
+      RlogMsg lmsg(LogFile());
+      lmsg << "-E " << Name() << ": pcmd write w/ busy"
+           << " pr0=" << RosPrintBvi(fPr0Last,8)
+           << " pcmd-1st=" << MnemoPcmd(pcmd)
+           << " pcmd-2nd=" << MnemoPcmd(pcmdwwb);
+    }
   }
-  
+  // check for pcmd  pdmd while busy restarts
+  if (fPr0Last & kPR0_M_PDMDWB) {
+    fStats.Inc(kStatNPdmdRestart);
+  }
+
   RlinkCommandList clist;
 
   fPr1Pcto = false;

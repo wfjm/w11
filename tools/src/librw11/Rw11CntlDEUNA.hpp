@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDEUNA.hpp 887 2017-04-28 19:32:52Z mueller $
+// $Id: Rw11CntlDEUNA.hpp 901 2017-05-28 11:26:11Z mueller $
 //
 // Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2017-04-14   875   1.0    Initial version
+// 2017-04-14   875   0.5    Initial version (minimal functions, 211bsd ready)
 // 2014-06-09   561   0.1    First draft 
 // ---------------------------------------------------------------------------
 
@@ -97,8 +97,9 @@ namespace Retro {
       static const uint16_t kPR0_M_BRST = kWBit04; //!< RSET: breset seen
       static const uint16_t kPR0_M_PCMD = 00017;   //!< PCMD: port command
 
-      static const uint16_t kPR0_V_PCMDBP=    12;   //!< PCMDBP: port busy prot
-      static const uint16_t kPR0_B_PCMDBP= 00017;   //!< PCMDBP: port busy prot
+      static const uint16_t kPR0_V_PCMDBP=    12;   //!< PCMDBP: pcmd busy prot
+      static const uint16_t kPR0_B_PCMDBP= 00017;   //!< PCMDBP: pcmd busy prot
+      static const uint16_t kPR0_M_PDMDWB= kWBit10; //!< PDMDWB: pdmd while busy
       static const uint16_t kPR0_M_PCWWB = kWBit08; //!< PCWWB: pcmd write w busy
 
       static const uint16_t kPCMD_NOOP    =   0;   //!< NOOP: noop 
@@ -222,6 +223,9 @@ namespace Retro {
         kStatNPcmdHalt,
         kStatNPcmdRsrvd,
         kStatNPcmdUimpl,
+        kStatNPcmdWBPdmd,
+        kStatNPcmdWBOther,
+        kStatNPdmdRestart,
         kStatNFuncNoop,
         kStatNFuncRdpa,
         kStatNFuncRpa,

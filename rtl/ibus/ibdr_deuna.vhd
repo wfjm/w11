@@ -1,4 +1,4 @@
--- $Id: ibdr_deuna.vhd 874 2017-04-14 17:53:07Z mueller $
+-- $Id: ibdr_deuna.vhd 894 2017-05-07 07:18:32Z mueller $
 --
 -- Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,16 +18,18 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  ise 14.7; viv 2016.4; ghdl 0.33
+-- Tool versions:  ise 14.7; viv 2016.4-2017.1; ghdl 0.33-0.34
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2017-05-06   894 14.7  131013 xc6slx16-2    53   92    0   42 s  4.4
 -- 2017-04-14   874 14.7  131013 xc6slx16-2    50   79    0   40 s  4.1
 -- 2017-01-29   847 14.7  131013 xc6slx16-2    42   70    0   36 s  4.1
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2017-04-14   875   1.0    Initial version
+-- 2017-05-06   894   1.0    Initial version (full functionality)
+-- 2017-04-14   875   0.5    Initial version (partial functionality)
 -- 2014-06-09   561   0.1    First draft 
 ------------------------------------------------------------------------------
 
@@ -74,11 +76,13 @@ architecture syn of ibdr_deuna is
   subtype  pr0_ibf_pcmd    is integer range  3 downto  0;
   -- additional rem view assignments
   subtype  pr0_ibf_pcmdbp  is integer range 15 downto 12;
+  constant pr0_ibf_pdmdwb: integer := 10;
   constant pr0_ibf_busy  : integer :=  9;
   constant pr0_ibf_pcwwb : integer :=  8;
   constant pr0_ibf_brst  : integer :=  4;
   
   constant pcmd_noop : slv4 := "0000";   -- pcmd: noop (DNI not set !)
+  constant pcmd_pdmd : slv4 := "1000";   -- pcmd: pdmd 
 
   constant pr1_ibf_xpwr  : integer := 15;
   constant pr1_ibf_icab  : integer := 14;
@@ -110,6 +114,7 @@ architecture syn of ibdr_deuna is
     pr1deuna : slbit;                   -- pr1: bit 0 of ID (0=DEUNA;1=DELUA)
     pr1state : slv4;                    -- pr1: port status
     pcbb     : slv18_1;                 -- pr2+3: port conrol block base
+    pdmdwb   : slbit;                   -- restart for pdmd while busy
     busy     : slbit;                   -- busy
     pcmdwwb  : slbit;                   -- pcmd written while busy
     pcmdbp   : slv4;                    -- pcmd busy protected
@@ -128,7 +133,7 @@ architecture syn of ibdr_deuna is
     '0','0',                            -- pr1pcto,pr1deuna
     state_reset,                        -- pr1state
     (others=>'0'),                      -- pcbb
-    '0','0',                            -- busy,pcmdwwb
+    '0','0','0',                        -- pdmdwb,busy,pcmdwwb
     (others=>'0'),                      -- pcmdbp
     '0',                                -- resreq
     '0'                                 -- ireq
@@ -198,6 +203,7 @@ begin
             idout(pr0_ibf_usci)   := r.pr0usci;
           else                            -- rem view of upper byte
             idout(pr0_ibf_pcmdbp) := r.pcmdbp;
+            idout(pr0_ibf_pdmdwb) := r.pdmdwb;
             idout(pr0_ibf_busy)   := r.busy;
             idout(pr0_ibf_pcwwb)  := r.pcmdwwb;
           end if;
@@ -212,21 +218,39 @@ begin
           if IB_MREQ.we = '1' then
             if ibrem = '1' then           -- rem write
               if IB_MREQ.din(pr0_ibf_seri) = '1' then n.pr0seri := '1'; end if;
-              if IB_MREQ.din(pr0_ibf_pcei) = '1' then n.pr0pcei := '1'; end if;
+              if IB_MREQ.din(pr0_ibf_pcei) = '1' then
+                n.pcmdwwb := '0';
+                n.pdmdwb  := '0';
+                n.busy    := '0';
+                n.pr0pcei := '1';
+              end if;
               if IB_MREQ.din(pr0_ibf_rxi)  = '1' then n.pr0rxi  := '1'; end if;
               if IB_MREQ.din(pr0_ibf_txi)  = '1' then n.pr0txi  := '1'; end if;
-              if IB_MREQ.din(pr0_ibf_dni)  = '1' then n.pr0dni  := '1'; end if;
-              if IB_MREQ.din(pr0_ibf_rcbi) = '1' then n.pr0rcbi := '1'; end if;
-              if IB_MREQ.din(pr0_ibf_usci) = '1' then n.pr0usci := '1'; end if;
-              if IB_MREQ.din(pr0_ibf_rset) = '1' then n.pr0rset := '0'; end if;
-              if IB_MREQ.din(pr0_ibf_brst) = '1' then n.pr0brst := '0'; end if;
-              if IB_MREQ.din(pr0_ibf_dni)  = '1' or
-                 IB_MREQ.din(pr0_ibf_pcei) = '1' or
-                 IB_MREQ.din(pr0_ibf_busy) = '1' or
-                 IB_MREQ.din(pr0_ibf_rset) = '1' or
-                 IB_MREQ.din(pr0_ibf_brst) = '1' then
-                n.busy := '0';
+              if IB_MREQ.din(pr0_ibf_dni)  = '1' then
+                n.pcmdwwb := '0';
+                n.pdmdwb  := '0';
+               -- if pdmd issued while busy, restart with pdmd, else end pcmd
+               if r.pcmdwwb = '1' and r.pr0pcmd = pcmd_pdmd then
+                  n.pcmdbp := pcmd_pdmd;
+                  n.pdmdwb := '1';
+                  ilam     := '1';            -- rri lam: restart with pdmd
+                else
+                  n.busy    := '0';
+                  n.pr0dni  := '1';
+                end if;
               end if;
+              if IB_MREQ.din(pr0_ibf_rcbi) = '1' then n.pr0rcbi := '1'; end if;
+              if IB_MREQ.din(pr0_ibf_busy) = '1' then n.busy := '0';    end if;
+              if IB_MREQ.din(pr0_ibf_usci) = '1' then n.pr0usci := '1'; end if;
+              if IB_MREQ.din(pr0_ibf_rset) = '1' then
+                n.busy := '0';
+                n.pr0rset := '0';
+              end if;
+              if IB_MREQ.din(pr0_ibf_brst) = '1' then
+                n.busy := '0';
+                n.pr0brst := '0';
+              end if;
+              
             else                          -- loc write
               if IB_MREQ.be1 = '1' then
                 if IB_MREQ.din(pr0_ibf_seri) = '1' then n.pr0seri := '0'; end if;
@@ -260,10 +284,6 @@ begin
             end if; -- else ibrem = '1'
           end if; -- if IB_MREQ.we = '1'
           
-          if IB_MREQ.re = '1' and ibrem = '1' then  -- for rem pr0 reads
-            n.pcmdwwb := '0';             -- clear pcmdwwb
-          end if;
-
         when ibaddr_pr1 =>              -- PCSR1 - status ------------------
           idout(pr1_ibf_xpwr)  := r.pr1xpwr;
           idout(pr1_ibf_icab)  := r.pr1icab;

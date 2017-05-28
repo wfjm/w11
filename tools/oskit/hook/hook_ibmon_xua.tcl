@@ -1,8 +1,9 @@
-# $Id: hook_ibmon_xua.tcl 899 2017-05-27 13:25:41Z mueller $
+# $Id: hook_ibmon_xua.tcl 901 2017-05-28 11:26:11Z mueller $
 puts "hook: start ibmon for xua"
-package require ibd_ibmon
-ibd_ibmon::stop
-cpu0 cp -wibr im.lolim [cpu0 imap xua.pr0] \
-        -wibr im.hilim [cpu0 imap xua.pr3]
-#ibd_ibmon::start cpu0 wena 0
-ibd_ibmon::start
+
+# set filter on xua registers
+# repeat collapse for reads (211bsd driver does polling!)
+
+.imd
+.imf xua.pr0 xua.pr3
+.ime R

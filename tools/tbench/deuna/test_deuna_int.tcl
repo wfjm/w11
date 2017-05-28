@@ -1,4 +1,4 @@
-# $Id: test_deuna_int.tcl 874 2017-04-14 17:53:07Z mueller $
+# $Id: test_deuna_int.tcl 895 2017-05-07 07:38:47Z mueller $
 #
 # Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
@@ -99,7 +99,7 @@ proc tmpproc_dotest {cpu symName args} {
                          r3 $opts(o.r3) \
                          r4 $opts(o.r4) \
                          sp $sym(stack)
-  return ""
+  return
 }
 
 # -- Section A ---------------------------------------------------------------

@@ -1,11 +1,12 @@
-# $Id: test_deuna_func.tcl 874 2017-04-14 17:53:07Z mueller $
+# $Id: test_deuna_func.tcl 894 2017-05-07 07:18:32Z mueller $
 #
 # Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
-# 2017-04-14   874   1.0    Initial version
+# 2017-05-06   894   1.0    Initial version (full functionality)
+# 2017-04-14   874   0.5    Initial version (partial functionality)
 # 2017-01-30   848   0.1    First draft
 #
 # Test function response 
@@ -71,8 +72,32 @@ foreach pcmd {0x01 0x02 0x08 0x0f} {
     -rma  xua.pr0 -edata 0
 }
 
-rlc log "    A1.4: check pcmd busy protect logic----------------"
+rlc log "    A1.4: pcmd busy protect logic: 2nd not PDMD -------"
 # pr0 is clean from previous test !
+# issue 1st GETPCB and 2nd GETCMD
+$cpu cp \
+  -wma  xua.pr0 [regbld ibd_deuna::PR0 {pcmd "GETPCB"}] \
+  -rma  xua.pr0 -edata [regbld ibd_deuna::PR0 {pcmd "GETPCB"}] \
+  -wma  xua.pr0 [regbld ibd_deuna::PR0 {pcmd "GETCMD"}] \
+  -rma  xua.pr0 -edata [regbld ibd_deuna::PR0 {pcmd "GETCMD"}]
+
+rlc wtlam 1.
+rlc exec -attn -edata $attnmsk
+
+# simulate command handling in backend
+#   pcmd and pcmdbp differ now
+#   pcwwb is cleared by dni
+$cpu cp \
+  -ribr xua.pr0 -edata [regbldkv ibd_deuna::PR0RR \
+                          pcmdbp "GETPCB" busy 1 pcwwb 1 pcmd "GETCMD"] \
+  -wibr xua.pr0 [regbld ibd_deuna::PR0RW dni] \
+  -rma  xua.pr0 -edata [regbldkv ibd_deuna::PR0 dni 1 intr 1 pcmd "GETCMD"] \
+  -wma  xua.pr0  [regbldkv ibd_deuna::PR0 dni 1] \
+  -rma  xua.pr0 -edata 0
+
+rlc log "    A1.5: pcmd busy protect logic: restart with PDMD --"
+# pr0 is clean from previous test !
+# issue 1st GETCMD and 2nd PDMD
 $cpu cp \
   -wma  xua.pr0 [regbld ibd_deuna::PR0 {pcmd "GETCMD"}] \
   -rma  xua.pr0 -edata [regbld ibd_deuna::PR0 {pcmd "GETCMD"}] \
@@ -84,12 +109,25 @@ rlc exec -attn -edata $attnmsk
 
 # simulate command handling in backend
 #   pcmd and pcmdbp differ now
-#   pcwwb is cleared by rem pr0 read (check by reading twice)
+#   dni will clear pcwwb, restart with attn, and not set dni (thus intr=0)
+
 $cpu cp \
   -ribr xua.pr0 -edata [regbldkv ibd_deuna::PR0RR \
                           pcmdbp "GETCMD" busy 1 pcwwb 1 pcmd "PDMD"] \
+  -wibr xua.pr0 [regbld ibd_deuna::PR0RW dni] \
+  -rma  xua.pr0 -edata [regbldkv ibd_deuna::PR0 dni 0 intr 0 pcmd "PDMD"]
+
+# handle restarted pdmd
+rlc wtlam 1.
+rlc exec -attn -edata $attnmsk
+
+# simulate command handling in backend
+#   pcmd and pcmdbp equal now; pcwwb=0 now
+#   dni will end transaction now
+
+$cpu cp \
   -ribr xua.pr0 -edata [regbldkv ibd_deuna::PR0RR \
-                          pcmdbp "GETCMD" busy 1 pcmd "PDMD"] \
+                          pcmdbp "PDMD" pdmdwb 1 busy 1 pcwwb 0 pcmd "PDMD"] \
   -wibr xua.pr0 [regbld ibd_deuna::PR0RW dni] \
   -rma  xua.pr0 -edata [regbldkv ibd_deuna::PR0 dni 1 intr 1 pcmd "PDMD"] \
   -wma  xua.pr0  [regbldkv ibd_deuna::PR0 dni 1] \

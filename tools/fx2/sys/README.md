@@ -13,8 +13,8 @@ is read/write accessible for user land processes, either in
 
 To setup udev rules do
 ```bash
-    sudo cp -a 99-retro-usb-permissions.rules /etc/udev/rules.d/
-    sudo chown root:root /etc/udev/rules.d/99-retro-usb-permissions.rules
+    sudo cp -a 90-retro-usb-permissions.rules /etc/udev/rules.d/
+    sudo chown root:root /etc/udev/rules.d/90-retro-usb-permissions.rules
     dir /etc/udev/rules.d/
 
     sudo udevadm control --reload-rules

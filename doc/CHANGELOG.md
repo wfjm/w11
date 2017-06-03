@@ -25,6 +25,20 @@ The full set of tests is only run for tagged releases.
   - RSX11-M uses buffer chaining, will not work
 
 ### Summary
+- Update USB serial latency handling
+  - 99-retro-usb-permissions.rules renamed to 90-retro-usb-permissions.rules
+  - 91-retro-usb-latency.rules: udev rule to set low latency for FDTI USB UART
+  - 92-retro-usb-persistent.rules: udev rule for persistent device names
+  - for all FTDI USB-UART it is essential to set them to `low latency` mode.
+    That was default for linux kernels 2.6.32 to 4.4.52. Since about March
+    2017 one gets kernels with 16 ms default latency again, thanks to
+    [kernel patch 9589541](https://patchwork.kernel.org/patch/9589541/).
+    **For newer systems it is essential to install a udev rule** which
+    automatically sets low latency, see [docu](../tools/sys/README.md).
+- Miscellaneous fixes and changes
+  - ibdr_deuna: add logic to handle 'PDMD issued while busy'
+  - Rw11CntlDEUNA: adopt trace and statistics
+  - hook_ibmon_xua.tcl: use .imf,.ime
 - Miscellaneous fixes and changes
   - Rw11VirtDiskOver: BUGFIX: correct write count accumulation
   - svn_set_ignore: check svn:ignore existance before reading it

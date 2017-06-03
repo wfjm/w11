@@ -13,7 +13,7 @@
 ### I/O emulation setup <a name="io-emu"></a>
 
 All UNIBUS peripherals which exchange data (currently DL11, LP11, PC11, RK11,
-RL11, RPRH and TM11 ) are currently emulated via a backend process. The 
+RL11, RPRH, TM11, and DENUA ) are currently emulated via a backend process. The 
 communication between FPGA board and backend server can be via
 
 - Serial port
@@ -21,10 +21,16 @@ communication between FPGA board and backend server can be via
     - on Arty, Basys3, and Nexys4 and Nexys4 DDR with a `FT2232HQ`, 
       allows up to 12M Baud
     - on nexys3 with a `FT232R`, allows up to 2M Baud
+    - for all FTDI USB-UART it is essential to set them to `low latency` mode.
+      That was default for linux kernels 2.6.32 to 4.4.52. Since about March
+      2017 one gets kernels with 16 ms default latency again, thanks to
+      [kernel patch 9589541](https://patchwork.kernel.org/patch/9589541/).
+      **For newer systems it is essential to install a udev rule** which
+      automatically sets low latency, see [docu](../tools/sys/README.md).
   - via RS232 port, as on s3board and nexys2
     - using a serial port (/dev/ttySx) is limited to 115 kBaud on most PCs.
     - using a USB-RS232 adapter was tested up to 460k Baud. 
-   
+
 - Direct USB connection using a Cypress FX2 USB controller
   - is supported on the nexys2 and nexys3 FPGA boards
   - much faster than serial port connections (see below)
@@ -183,7 +189,7 @@ simh to reflect the w11a setup as close as possible:
 - `setup_w11a_max.scmd`  
   Planned configuration for the w11a, in addition
   - processor: 4 Mbyte memory (as on Nexys2, Nexys3,...)
-  - periphery: DZ11, RL11/RL02, RK70/RP06, TM11/TU10
+  - periphery: in addition DZ11, RL11/RL02, RK70/RP06, TM11/TU10
 
 Startup scripts are provided with each oskit. They call the w11a_max
 configuration, so will show in the emulator what w11a can do when
@@ -201,7 +207,7 @@ All examples below use the same basic setup
 
          pdp11 <oskit-name>_boot.scmd
 
-###oskits <a name="oskits"></a>
+### oskits <a name="oskits"></a>
 
 Ready to be used 'oskits' are provided under
 
@@ -210,7 +216,7 @@ Ready to be used 'oskits' are provided under
 The tarballs with the disk images are provided from a web server
 and have to be installed separately.
 
-###Unix systems <a name="oskits-unix"></a>
+### Unix systems <a name="oskits-unix"></a>
 
 #### Legal and license issues
 

@@ -1,0 +1,16 @@
+# $Id: 91-retro-usb-latency.rules 902 2017-06-03 14:02:17Z mueller $
+#
+# udev rules to set FTDI USB-serial adaptors to low latency mode
+#
+# copy into /etc/udev/rules.d
+#
+# Notes:
+# - prior to linux 2.6.32 the default was the built in 16 ms device latency
+# - from linux 2.6.32 till 4.4 patch 9589541 low latency (1 ms) was the default
+# - the patch https://patchwork.kernel.org/patch/9589541/ reverted this
+# - the entered the 4.4.52 and higher kernel lines under the changelog heading
+#       USB: serial: ftdi_sio: fix extreme low-latency setting
+# - this rule ensures that low (1ms) latency is used
+#
+ACTION=="add", SUBSYSTEM=="tty", DRIVERS=="ftdi_sio", RUN+="/bin/setserial /dev/$kernel low_latency"
+#

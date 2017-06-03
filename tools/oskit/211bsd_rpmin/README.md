@@ -45,6 +45,7 @@ Download, unpack and copy the disk images (*.dsk), e.g.
   ```
 
 - Hit `<ENTER>` in the `xterm` window to connnect to backend server.
+  System with as low as 512 kB memory can be used, like in example below.
   The boot dialog in the console `xterm` window will look like
   (required input is in `{..}`, with `{<CR>}` denoting a carriage return:
   ```
@@ -56,8 +57,8 @@ Download, unpack and copy the disk images (*.dsk), e.g.
        2.11 BSD UNIX #1: Fri May 26 12:48:54 PDT 2017
            root@w11a:/usr/src/sys/RETRONFPMIN
 
-       phys mem  = 3932160
-       avail mem = 3721408
+       phys mem  = 524288
+       avail mem = 313536
        user mem  = 307200
 
        May 26 12:49:35 init: configure system
@@ -109,8 +110,8 @@ Download, unpack and copy the disk images (*.dsk), e.g.
         47/128 inodes
          9/ 80 processes
          8/ 36 texts active,  32 used
-         3/ 72 swapmap entries,  437 kB used, 3742 kB free, 3736 kB max
-        30/ 80 coremap entries, 3069 kB free, 2993 kB max
+         6/ 72 swapmap entries,  475 kB used, 3704 kB free, 3673 kB max
+        15/ 80 coremap entries,  107 kB free,   43 kB max
          1/ 10  ub_map entries,   25    free,   25    max
        # {mount}
        /dev/xp0a on /

@@ -1,4 +1,4 @@
-# $Id: 99-retro-usb-permissions.rules 467 2013-01-02 19:49:05Z mueller $
+# $Id: 90-retro-usb-permissions.rules 902 2017-06-03 14:02:17Z mueller $
 #
 # udev rules to make some USB adaptors writable to group plugdev
 #

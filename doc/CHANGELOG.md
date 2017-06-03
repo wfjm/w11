@@ -25,6 +25,7 @@ The full set of tests is only run for tagged releases.
   - RSX11-M uses buffer chaining, will not work
 
 ### Summary
+- Rw11VirtDiskOver.cpp: Read(): BUGFIX: fix index error in blockwise read
 - Update USB serial latency handling
   - 99-retro-usb-permissions.rules renamed to 90-retro-usb-permissions.rules
   - 91-retro-usb-latency.rules: udev rule to set low latency for FDTI USB UART

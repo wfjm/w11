@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDiskOver.cpp 896 2017-05-07 22:07:35Z mueller $
+// $Id: Rw11VirtDiskOver.cpp 903 2017-06-03 17:40:51Z mueller $
 //
 // Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-06-03   903   1.0.4  Read(): BUGFIX: fix index error in blockwise read
 // 2017-05-07   896   1.0.3  List(): BUGFIX: correct write count accumulation
 // 2017-04-15   875   1.0.2  Open(): use overload with scheme handling
 // 2017-04-07   868   1.0.1  Dump(): add detail arg
@@ -90,7 +91,7 @@ bool Rw11VirtDiskOver::Read(size_t lba, size_t nblk, uint8_t* data,
     for (size_t i=0; i<nblk; i++) {                     // get it blockwise
       auto it = fBlkMap.find(lba+i);
       if (it == fBlkMap.end()) {
-        bool rc = Rw11VirtDiskFile::Read(lba+1, 1, data+i*fBlkSize, emsg);
+        bool rc = Rw11VirtDiskFile::Read(lba+i, 1, data+i*fBlkSize, emsg);
         if (!rc) return rc;
       } else {
         (it->second).Read(data+i*fBlkSize);

@@ -122,7 +122,7 @@ All examples below use the same basic setup
 
      **Note**: the basys3 w11a has only 176 kB memory (all from BRAMS!)
      unix-v5 works fine. XXDP, RT11 and RSX-11M should work.
-     211bsd will not boot, either most RSX-11M+ systems.
+     211bsd will not boot, neither most RSX-11M+ systems.
 
   - for n4 or n4d over serial
 

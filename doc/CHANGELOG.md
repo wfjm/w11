@@ -16,63 +16,91 @@ The HEAD version shows the current development. No guarantees that
 software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
-### Special Provisos
-- DEUNA still with very limited functionality and testing
+### Summary
+
+<!-- --------------------------------------------------------------------- -->
+---
+## 2017-06-04: [w11a_V0.75](https://github.com/wfjm/w11/releases/tag/w11a_V0.75) - rev 904(wfjm) <a name="w11a_V0.75"></a>
+
+### Summary
+- the only device class missing so far for the w11 was *network interfaces*.
+  This release adds a preliminary and functionally restricted `DEUNA` Ethernet
+  interface and thus for the the first time full networking support for 211bsd.
+  The provisos for the current implementation are
   - no buffer chaining
   - no loopback
   - no memory access error checking
-  - works with 211bsd, ping and telnet login tested
-  - RSX11-M uses buffer chaining, will not work
-
-### Summary
-- Rw11VirtDiskOver.cpp: Read(): BUGFIX: fix index error in blockwise read
-- Update USB serial latency handling
-  - 99-retro-usb-permissions.rules renamed to 90-retro-usb-permissions.rules
-  - 91-retro-usb-latency.rules: udev rule to set low latency for FDTI USB UART
-  - 92-retro-usb-persistent.rules: udev rule for persistent device names
+  - works with 211bsd: ping, telnet, and ftp tested
+  - RSX11-M uses buffer chaining, will definitively not work
+- move to Ubuntu 16.04 as development platform
+  - document urjtag build (jtag in Ubuntu 16.04 is broken)
+  - add environment sanity wrappers for acroread,awk,firefox to ensure
+    proper operation of vivado under Ubuntu 16.04
+  - use -std=c++11 (gcc 4.7 or later)
   - for all FTDI USB-UART it is essential to set them to `low latency` mode.
     That was default for linux kernels 2.6.32 to 4.4.52. Since about March
     2017 one gets kernels with 16 ms default latency again, thanks to
     [kernel patch 9589541](https://patchwork.kernel.org/patch/9589541/).
     **For newer systems it is essential to install a udev rule** which
-    automatically sets low latency, see [docu](../tools/sys/README.md).
-- Miscellaneous fixes and changes
-  - ibdr_deuna: add logic to handle 'PDMD issued while busy'
-  - Rw11CntlDEUNA: adopt trace and statistics
-  - hook_ibmon_xua.tcl: use .imf,.ime
-- Miscellaneous fixes and changes
-  - Rw11VirtDiskOver: BUGFIX: correct write count accumulation
-  - svn_set_ignore: check svn:ignore existance before reading it
-  - telnet_wrapper: add 'r' --> reset and stty sane handling
-- move hook_*.tcl files to tools/oskiit/hook directory
+    automatically sets low latency, see [documentation](../tools/sys/README.md).
+- the cpu monitor dmcmon was not available in vivado systems due to synthesis
+  issues caused by dmscnt. Is resolved, dmcmon now part of sys_w11a_n4.
+- many improvements to the w11 shell in ti_w11: rbmon integrated, usage
+  of ibmon and dmcmon streamlined.
+- add *overlay* file system (Rw11VirtDiskOver, scheme over:) which keeps all
+  write in backend memory. Very convenient for development. The changes can
+  be written to the disk image with a tcl level command (cpu0* virt flush).
 - add two new 211bsd system images (oskits)
-  - 211bsd_rpmin: for small memory systems
+  - 211bsd_rpmin: for small memory systems (512 or 672 kB)
   - 211bsd_rpeth: with DEUNA Ethernet support
 - cleanup 211bsd system images (oskits)
   - 211bsd_rp, the master, see [CHANGELOG](../tools/oskit/211bsd_rp/CHANGELOG.md)
   - 211bsd_rk, see [CHANGELOG](../tools/oskit/211bsd_rl/CHANGELOG.md)
   - 211bsd_rl, see [CHANGELOG](../tools/oskit/211bsd_rk/CHANGELOG.md)
-- Rw11CntlPC11,Rw11CntlDL11: trace received chars
-- Miscellaneous fixes and changes
-  - Makefile: add all_tcl to all; use njobihtm
-  - rlink_core: BUGFIX: correct re-transmit after nak aborts
-  - tb_rlink_stim.dat: start section B (error aborts) and C (retransmit)
-  - ticonv_rri: use 'rlc rawwblk' instead of 'rlc rawio -wblk'
-  - rbmoni/test_regs.tcl: add data/addr logic tests
-- tools for setting up ethernet bridge and tap
-  - add ip_create_br: create bride and convert default ethernet interface
+- man pages now [available online](http://www.retro11.de/manp/w11/man/cat1/).
+
+### New features
+- add DEUNA (Ethernet) support
+  - add DEUNA device (xu) for ibus
+  - add DEUNA to all sys_w11a systems
+    - add ibdr_deuna to maxisys
+    - setup sys_conf for all systems
+  - backend support classes for networking
+    - RethBuf: Ethernet buffer
+    - RethTools: some handy tools
+    - Rw11VirtEth: new virt base for Ethernet
+    - Rw11VirtEthTap: concrete networking via tap devices
+  - backend for DEUNA
+    - Rw11CntlDEUNA: controller and almost all logic
+    - Rw11UnitDEUNA: unit
+  - tcl support for DEUNA
+  - tbench support for DEUNA
+  - some new preinit and preboot hooks
+- tools for setting up Ethernet bridge and tap
+  - add ip_create_br: create bride and convert default Ethernet interface
   - add ip_create_tap: create use-mode tap device
   - add ip_inspect: helper script
-- re-arrange rawio commands for rlc and rlp
-  - RtclRlink(Connect|Port): drop M_rawio; add M_rawread,M_rawrblk,M_rawwblk
-  - RtclRlinkPort: LogFileName(): returns now const std::string&
-- BUGFIXes for backend
-  - RlinkPort: BUGFIX: RawRead(): proper irc for exactsize=false
-  - Rexception: BUGFIX: add fErrtxt for proper what() return
+- update USB serial latency handling
+  - 91-retro-usb-latency.rules: udev rule to set low latency for FDTI USB UART
+  - 92-retro-usb-persistent.rules: udev rule for persistent device names
+  - 99-retro-usb-permissions.rules renamed to 90-retro-usb-permissions.rules
+- add Rw11VirtDiskOver (simple overlay file container)
+  - Rw11VirtDiskBuffer: added, disk buffer representation
+  - Rw11VirtDiskOver: added, a 'keep changes in memory' overlay file container
+  - Rw11Virt: add fWProt,WProt()
+  - Rw11VirtDiskFile: adopt WProt handling
+  - RtclRw11Unit: add fpVirt,DetachCleanup(),AttachDone(),M_virt()
+  - RtclRw11UnitBase: add AttachDone()
+- RtimerFd: first practical version
+- Rtime: class for absolute and delta times
+
+### Changes
 - sys_w11a_n(2|3): use SWI(7:6) to allow fx2 debug via LEDs
-- BUGFIX: resolve hangup of fx2 USB controller
-  - was caused by inconsistent use of rx fifo thresholds
-  - adding more lines to monitor output (fsm_* lines for state tracking)
+- sys_tst_sram_n4: add sysmon_rbus
+- 23 line interrupt mapper for full system configuration
+- revise interface for ibd_ibmon and rbd_rbmon
+  - use start,stop,suspend,resume functions; improved stop on wrap handling
+  - add 'repeat collapse' logic (store only first and last of a sequence)
 - refurbish dmcmon
   - has now the sta,sto,sus,res logic as rbmon and ibmon
   - does not depend on full state number generation anymore
@@ -80,6 +108,9 @@ The full set of tests is only run for tagged releases.
 - dmcmon included in sys_w11a_n4 again
   - full snum generation code gives bad synthesis under vivado (fine in ISE)
   - the updated dmcmon can life with a simple, category based, snum
+- move hook_*.tcl files to tools/oskiit/hook directory
+- w11 shell .bs now support ibus register names and ranges
+  - rw11/dmhbpt.tcl: hb_set: use imap_range2addr, allow regnam and range
 - integrate rbus monitor in w11 shell
   - ti_rri: setup rbus monitor if detected
   - rw11/shell.tcl: add .rme,.rmd,.rmf,.rml
@@ -88,29 +119,17 @@ The full set of tests is only run for tagged releases.
   - rlink/util.tcl: add amap_reg2addr
   - rw11/util.tcl: move in imap_reg2addr; add imap_range2addr
   - rw11/shell.tcl: integrate rbmon: add .rme,.rmd,.rmf,.rml
+- update probe handling
+  - probe/setup auxiliary devices: kw11l,kw11p,iist
+  - keep probe data, make it tcl gettable
+- re-arrange rawio commands for rlc and rlp
+  - RtclRlink(Connect|Port): drop M_rawio; add M_rawread,M_rawrblk,M_rawwblk
+  - RtclRlinkPort: LogFileName(): returns now const std::string&
 - make setup procs idempotent
   - RlinkConnect: add rbus monitor probe, add HasRbmon()
   - RtclRlinkConnect: M_amap: -testname opt addr check; add hasrbmon get
   - RtclRw11Cpu: M_(imap|rmap): -testname optional addr check
   - */util.tcl: setup: now idempotent
-- w11 shell .bs now support ibus register names and ranges
-  - rw11/dmhbpt.tcl: hb_set: use imap_range2addr, allow regnam and range
-- add DEUNA (ethernet) support
-  - add DEUNA device (xu) for ibus
-  - add DEUNA to all sys_w11a systems
-    - add ibdr_deuna to maxisys
-    - setup sys_conf for all systems
-  - backend support classes for networking
-    - RethBuf: ethernet buffer
-    - RethTools: some handy tools
-    - Rw11VirtEth: new virt base for ethernet
-    - Rw11VirtEthTap: concrete networking via tap devices
-  - backend for DEUNA
-    - Rw11CntlDEUNA: controller and almost all logic
-    - Rw11UnitDEUNA: unit
-  - tcl support for DEUNA
-  - tbench support for DEUNA
-  - some new preinit and preboot hooks
 - factor out controller class specifics; add useful M_default output
   - RtclRw11Cntl*Base: add classes with Rdma,Disk,Stream.Tape,Term specifics
   - RtclRw11Cntl*: add class in ctor; derive from RtclRw11Cntl*Base
@@ -128,20 +147,15 @@ The full set of tests is only run for tagged releases.
 - ensure that defaulted scheme visible in displayed open urls
   - pass default scheme to RparseUrl in Open()
   - add Open() overloads for Rw11VirtDiskFile and Rw11VirtDiskOver
-  -  RparseUrl: add Set() with default scheme handling
-- revise interface for ibd_ibmon and rbd_rbmon
-  - use start,stop,suspend,resume functions; improved stop on wrap handling
-  - add 'repeat collapse' logic (store only first and last of a sequence)
-- BUGFIX: `rlc get logfile` or `rlc get *` crashed with segfault
-  - error was a type mismatch in the getter declaration in RtclRlinkConnect
-  - fixed by changing the return type in RlinkConnect
+  - RparseUrl: add Set() with default scheme handling
 - remove double inheritance in RtclRw11Unit* stack
   - RtclRw11Unit: drop fpCpu, use added Cpu()=0 instead
   - RtclRw11UnitBase: add TUV,TB; add TUV* ObjUV(); inherit from TB
   - RtclRw11Unit(Disk|Stream|Tape|Term): define ObjUV();inherit from RtclRw11Unit
   - RtclRw11Unit(dev): inherit from RtclRw11UnitBase
-- trace output with controller name
+- update trace output handling
   - Rw11Cntl*: use controller name as message prefix
+  - Rw11CntlPC11,Rw11CntlDL11: trace received chars
 - more compact dumps, add Dump(..,detail)
   - RlinkCommand: add CommandInfo()
   - RtclCmdBase: add GetArgsDump()
@@ -151,37 +165,40 @@ The full set of tests is only run for tagged releases.
   - Rw11(Cntl|Unit|Virt)*,: Dump(): add detail arg
   - many other classes: Dump(): add detail arg
   - RtclRw11(Cntl|Unit|*): M_dump: use GetArgsDump and Dump detail
-- RtimerFd: first practical version
-- use clock_gettime instead of gettimeofday
-- add Rw11VirtDiskOver (simple overlay file container)
-  - Rw11VirtDiskBuffer: added, disk buffer representation
-  - Rw11VirtDiskOver: added, a 'keep changes in memory' overlay file container
-  - Rw11Virt: add fWProt,WProt()
-  - Rw11VirtDiskFile: adopt WProt handling
-  - RtclRw11Unit: add fpVirt,DetachCleanup(),AttachDone(),M_virt()
-  - RtclRw11UnitBase: add AttachDone()
+- update time handling
+  - use clock_gettime instead of gettimeofday
+  - add Rtime support in RtclGet/RtclSet
+  - use Rtime; drop Rtools::TimeOfDayAsDouble()
 - tcl command handling update
   - support now sub-command handling
   - support dynamically created commands (like 'virt')
   - support command info (via '?' option)
-- move to Ubuntu 16.04 as development platform
-  - document urjtag build (jtag in Ubuntu 16.04 is broken)
-  - add environment sanity wrappers for acroread,awk,firefox to ensure
-    proper operation of vivado under Ubuntu 16.04
-- use Rtime; drop Rtools::TimeOfDayAsDouble()
-- probe/setup auxilliary devices: kw11l,kw11p,iist
-- librw11/Rw11Cpu: add ModLalh()
-- librtools/Rstats: add IncLogHist() and fix + and * operator definition
-- add Rtime support in RtclGet/RtclSet
-- add librtools/Rtime: class for absolute and delta times
-- use -std=c++11 (gcc 4.7 or later)
-- update probe handling: add probe data, make it tcl getable
-- 23 line interrupt mapper for full system configuration
-- man pages now [available online](http://www.retro11.de/manp/w11/man/cat1/).
-- add `sysmon_rbus` in `sys_tst_sram_n4`
-- Auto-dection of Digilent boards with `FT2232HQ` interface for
+- Auto-detection of Digilent boards with `FT2232HQ` interface for
   [ti_rri](http://www.retro11.de/manp/w11/man/cat1/ti_rri.0.html) and
   [ti_w11](http://www.retro11.de/manp/w11/man/cat1/ti_w11.0.html).
+- miscellaneous fixes and changes
+  - svn_set_ignore: check svn:ignore existence before reading it
+  - telnet_wrapper: add 'r' --> reset and stty sane handling
+  - Makefile: add all_tcl to all; use njobihtm
+  - tb_rlink_stim.dat: start section B (error aborts) and C (re-transmit)
+  - ticonv_rri: use 'rlc rawwblk' instead of 'rlc rawio -wblk'
+  - rbmoni/test_regs.tcl: add data/addr logic tests
+  - librw11/Rw11Cpu: add ModLalh()
+  - librtools/Rstats: add IncLogHist() and fix + and * operator definition
+
+### Bug Fixes
+- rlink_core: BUGFIX: correct re-transmit after nak aborts
+- resolve hangup of fx2 USB controller
+  - was caused by inconsistent use of rx fifo thresholds
+  - adding more lines to monitor output (fsm_* lines for state tracking)
+- RlinkPort: BUGFIX: RawRead(): proper irc for exactsize=false
+- Rexception: BUGFIX: add fErrtxt for proper what() return
+- `rlc get logfile` or `rlc get *` crashed with segfault
+  - error was a type mismatch in the getter declaration in RtclRlinkConnect
+  - fixed by changing the return type in RlinkConnect
+
+### Known issues
+
 
 <!-- --------------------------------------------------------------------- -->
 ---

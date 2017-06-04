@@ -1,4 +1,4 @@
--- $Id: sys_w11a_br_n4d.vhd 889 2017-04-30 13:31:27Z mueller $
+-- $Id: sys_w11a_br_n4d.vhd 899 2017-05-27 13:25:41Z mueller $
 --
 -- Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -32,11 +32,11 @@
 -- Test bench:     tb/tb_sys_w11a_br_n4d
 --
 -- Target Devices: generic
--- Tool versions:  viv 2016.2-2016.4; ghdl 0.33
+-- Tool versions:  viv 2016.2-2017.1; ghdl 0.34
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
--- 2017-03-04   858 2016.4  xc7a100t-1   2491  5335   138 131.5  1728 +DEUNA
+-- 2017-05-25   898 2016.4  xc7a100t-1   2541  5500   138 131.5  1750 +DEUNA
 -- 2017-01-07   842 2016.4  xc7a100t-1   2491  5335   138 131.5  1728  
 --
 -- Revision History: 

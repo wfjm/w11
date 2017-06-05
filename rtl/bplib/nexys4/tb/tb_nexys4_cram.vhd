@@ -1,4 +1,4 @@
--- $Id: tb_nexys4_cram.vhd 805 2016-09-03 08:09:52Z mueller $
+-- $Id: tb_nexys4_cram.vhd 906 2017-06-04 21:59:13Z mueller $
 --
 -- Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -23,7 +23,7 @@
 --                 serport/tb/serport_master_tb
 --                 nexys4_cram_aif [UUT]
 --                 simlib/simbididly
---                 vlib/parts/micron/mt45w8mw16b
+--                 bplib/micron/mt45w8mw16b
 --
 -- To test:        generic, any nexys4_cram_aif target
 --

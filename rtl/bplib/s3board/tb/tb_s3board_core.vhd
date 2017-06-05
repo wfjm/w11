@@ -1,4 +1,4 @@
--- $Id: tb_s3board_core.vhd 793 2016-07-23 19:38:55Z mueller $
+-- $Id: tb_s3board_core.vhd 906 2017-06-04 21:59:13Z mueller $
 --
 -- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,7 +16,7 @@
 -- Description:    Test bench for s3board - core device handling
 --
 -- Dependencies:   simlib/simbididly
---                 vlib/parts/issi/is61lv25616al
+--                 bplib/issi/is61lv25616al
 --
 -- To test:        generic, any s3board target
 --

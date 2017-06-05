@@ -1,4 +1,4 @@
--- $Id: tb_nexys2_core.vhd 791 2016-07-21 22:01:10Z mueller $
+-- $Id: tb_nexys2_core.vhd 906 2017-06-04 21:59:13Z mueller $
 --
 -- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,7 +16,7 @@
 -- Description:    Test bench for nexys2 - core device handling
 --
 -- Dependencies:   simlib/simbididly
---                 vlib/parts/micron/mt45w8mw16b
+--                 bplib/micron/mt45w8mw16b
 --
 -- To test:        generic, any nexys2 target
 --

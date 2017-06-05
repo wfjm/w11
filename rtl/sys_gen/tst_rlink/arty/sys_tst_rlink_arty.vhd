@@ -1,4 +1,4 @@
--- $Id: sys_tst_rlink_arty.vhd 889 2017-04-30 13:31:27Z mueller $
+-- $Id: sys_tst_rlink_arty.vhd 907 2017-06-05 08:19:12Z mueller $
 --
 -- Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -30,10 +30,11 @@
 -- Test bench:     tb/tb_tst_rlink_arty
 --
 -- Target Devices: generic
--- Tool versions:  viv 2015.4; ghdl 0.33
+-- Tool versions:  viv 2015.4-2016.4; ghdl 0.33-0.34
 --
--- Synthesized (xst):
+-- Synthesized (viv):
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2017-06-05   907 2016.4  xc7a35t-1L   1033  1658    36   3.0   544
 -- 2016-03-27   753 2015.4  xc7a35t-1L    980  1396    36   3.0   494 meminf
 -- 2016-03-13   743 2015.4  xc7a35t-1L    980  1390    64   4.5   514 +XADC
 -- 2016-02-20   734 2015.4  xc7a35t-1L    941  1352    64   4.5   478  

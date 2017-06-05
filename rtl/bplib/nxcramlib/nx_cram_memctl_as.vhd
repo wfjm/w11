@@ -1,4 +1,4 @@
--- $Id: nx_cram_memctl_as.vhd 789 2016-07-17 08:26:55Z mueller $
+-- $Id: nx_cram_memctl_as.vhd 907 2017-06-05 08:19:12Z mueller $
 --
 -- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -23,9 +23,9 @@
 --                 sys_gen/tst_sram/nexys3/tb/tb_tst_sram_n3
 --                 sys_gen/tst_sram/nexys4/tb/tb_tst_sram_n4
 -- Target Devices: generic
--- Tool versions:  ise 11.4-14.7; viv 2014.4-2016.2; ghdl 0.26-0.33
+-- Tool versions:  ise 11.4-14.7; viv 2014.4-2016.4; ghdl 0.26-0.34
 --
--- Synthesized:
+-- Synthesized (viv):
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic    
 -- 2016-07-03   783 2016.3  xc7a100t-1     91    87     0     0    43
 -- 

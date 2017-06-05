@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDiskOver.hpp 887 2017-04-28 19:32:52Z mueller $
+// $Id: Rw11VirtDiskOver.hpp 908 2017-06-05 21:03:06Z mueller $
 //
 // Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-06-05   907   1.0.2  more detailed stats
 // 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2017-03-10   859   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -62,11 +63,13 @@ namespace Retro {
 
     // statistics counter indices (now new)
       enum stats {
-        kStatNVDReadOver = Rw11VirtDiskFile::kDimStat,
-        kStatNVDReadBlkOver,
-        kStatNVDWriteOver,
-        kStatNVDWriteBlkOver,
-        kStatNVDFlushOver,
+        kStatNVDORead = Rw11VirtDiskFile::kDimStat,
+        kStatNVDOReadBlkFF,
+        kStatNVDOReadBlkFP,
+        kStatNVDOReadBlkO,
+        kStatNVDOWrite,
+        kStatNVDOWriteBlk,
+        kStatNVDOFlush,
         kDimStat
       };    
 

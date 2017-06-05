@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDiskOver.cpp 903 2017-06-03 17:40:51Z mueller $
+// $Id: Rw11VirtDiskOver.cpp 908 2017-06-05 21:03:06Z mueller $
 //
 // Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-06-05   907   1.0.5  more detailed stats
 // 2017-06-03   903   1.0.4  Read(): BUGFIX: fix index error in blockwise read
 // 2017-05-07   896   1.0.3  List(): BUGFIX: correct write count accumulation
 // 2017-04-15   875   1.0.2  Open(): use overload with scheme handling
@@ -47,11 +48,16 @@ Rw11VirtDiskOver::Rw11VirtDiskOver(Rw11Unit* punit)
   : Rw11VirtDiskFile(punit),
     fBlkMap()
 {
-  fStats.Define(kStatNVDReadOver,    "NVDReadOver",    "Read() calls over");
-  fStats.Define(kStatNVDReadBlkOver, "NVDReadBlkOver", "blocks read from over");
-  fStats.Define(kStatNVDWriteOver,   "NVDWriteOver",   "Write() calls over");
-  fStats.Define(kStatNVDWriteBlkOver,"NVDWriteBlkOver","blocks written to over");
-  fStats.Define(kStatNVDFlushOver,   "NVDFlushOver",   "Flush() calls");
+  fStats.Define(kStatNVDORead,      "NVDORead",     "over: Read() calls");
+  fStats.Define(kStatNVDOReadBlkFF, "NVDOReadBlkFF",
+                                      "over: blocks read file full");
+  fStats.Define(kStatNVDOReadBlkFP, "NVDOReadBlkFP",
+                                      "over: blocks read file part");
+  fStats.Define(kStatNVDOReadBlkO,  "NVDOReadBlkO",
+                                      "over: blocks read from over");
+  fStats.Define(kStatNVDOWrite,     "NVDOWrite",    "over: Write() calls");
+  fStats.Define(kStatNVDOWriteBlk,  "NVDOWriteBlk", "over: blocks written");
+  fStats.Define(kStatNVDOFlush,     "NVDOFlush",    "over: Flush() calls");
 }
 
 //------------------------------------------+-----------------------------------
@@ -83,19 +89,23 @@ bool Rw11VirtDiskOver::Open(const std::string& url, RerrMsg& emsg)
 bool Rw11VirtDiskOver::Read(size_t lba, size_t nblk, uint8_t* data, 
                             RerrMsg& emsg)
 {
-  fStats.Inc(kStatNVDReadOver);
+  fStats.Inc(kStatNVDORead);
   auto it = fBlkMap.lower_bound(lba);
+
   if (it == fBlkMap.end() || it->first >= lba+nblk) { // no match
+    fStats.Inc(kStatNVDOReadBlkFF, double(nblk));
     return Rw11VirtDiskFile::Read(lba, nblk, data, emsg); // one swoop from disk
+
   } else {                                            // match
     for (size_t i=0; i<nblk; i++) {                     // get it blockwise
       auto it = fBlkMap.find(lba+i);
       if (it == fBlkMap.end()) {
+        fStats.Inc(kStatNVDOReadBlkFP);
         bool rc = Rw11VirtDiskFile::Read(lba+i, 1, data+i*fBlkSize, emsg);
         if (!rc) return rc;
       } else {
+        fStats.Inc(kStatNVDOReadBlkO);
         (it->second).Read(data+i*fBlkSize);
-        fStats.Inc(kStatNVDReadBlkOver);
       }
     }
   }
@@ -108,8 +118,8 @@ bool Rw11VirtDiskOver::Read(size_t lba, size_t nblk, uint8_t* data,
 bool Rw11VirtDiskOver::Write(size_t lba, size_t nblk, const uint8_t* data, 
                              RerrMsg& emsg)
 {
-  fStats.Inc(kStatNVDWriteOver);
-  fStats.Inc(kStatNVDWriteBlkOver, double(nblk));
+  fStats.Inc(kStatNVDOWrite);
+  fStats.Inc(kStatNVDOWriteBlk, double(nblk));
   for (size_t i=0; i<nblk; i++) {
     auto it = fBlkMap.find(lba+i);
     if (it == fBlkMap.end()) {
@@ -131,7 +141,7 @@ bool Rw11VirtDiskOver::Flush(RerrMsg& emsg)
     return false;
   }
   
-  fStats.Inc(kStatNVDFlushOver);
+  fStats.Inc(kStatNVDOFlush);
   for (auto& kv: fBlkMap) {
     bool rc = Rw11VirtDiskFile::Write(kv.first, 1, kv.second.Data(), emsg);
     if (!rc) return rc;

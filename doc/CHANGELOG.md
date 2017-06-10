@@ -18,6 +18,14 @@ The full set of tests is only run for tagged releases.
 
 ### Summary
 
+- shell_egd.tcl: BUGFIX: shell_pspec_map: fix mapping for addr>20000
+- get vivado 2017.1 ready
+  - xviv_msg_filter: add version-range tag support
+  - *.vmfset:
+    - drop the nonsense 'Synth 8-6014' messages
+    - adopt to different path used by 'Synth 8-3332' messages
+- Rw11VirtDiskOver: more detailed stats
+
 <!-- --------------------------------------------------------------------- -->
 ---
 ## 2017-06-04: [w11a_V0.75](https://github.com/wfjm/w11/releases/tag/w11a_V0.75) - rev 904(wfjm) <a name="w11a_V0.75"></a>

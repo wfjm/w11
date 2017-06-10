@@ -1,4 +1,4 @@
-# $Id: shell_egd.tcl 895 2017-05-07 07:38:47Z mueller $
+# $Id: shell_egd.tcl 910 2017-06-10 09:29:06Z mueller $
 #
 # Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-06-09   910   1.1.1  BUGFIX: shell_pspec_map: fix mapping for addr>20000
 # 2017-03-10   859   1.1    .egd: add /u option (memory access via ubmap)
 # 2015-12-28   720   1.0    Initial version
 # 2015-12-23   717   0.1    First draft
@@ -174,7 +175,7 @@ namespace eval rw11 {
           set segnum [expr {$addr>>13}]
           set sarname "sar${am0}${am1}.${segnum}"
           $shell_cpu cp -rreg $sarname sarval
-          set addr [expr {$addr + 64 * $sarval}]
+          set addr [expr {($addr & 017777) + 64 * $sarval}]
           set am "e"
         }
         return [list "mem" $am $addr $cnt $fmt ]

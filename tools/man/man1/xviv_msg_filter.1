@@ -1,10 +1,10 @@
 .\"  -*- nroff -*-
-.\"  $Id: xviv_msg_filter.1 845 2017-01-15 14:58:27Z mueller $
+.\"  $Id: xviv_msg_filter.1 909 2017-06-09 16:21:55Z mueller $
 .\"
 .\" Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
-.TH XVIV_MSG_FILTER 1 2016-05-27 "Retro Project" "Retro Project Manual"
+.TH XVIV_MSG_FILTER 1 2017-06-06 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 xviv_msg_filter \- message filter for Xilinx Vivado tool chain log files
@@ -66,6 +66,18 @@ after a '#' in a line will be ignored.
 xviv_msg_filter will extract the rules of the section matching the
 \fITYPE\fP argument.
 
+A line of the form
+.EX
+   {yyyy.n:yyyy.n}
+   {:yyyy.n}
+   {yyyy.n:}
+   {:}
+.EE
+acts as version range tag and specifies a range of vivado versions for which the 
+following rules shall be applied.
+"{:2016.4}" means up to version 2016.4, "{:2017.1}" from 2017.1 on, while
+"{:}" cancels version range checking.
+
 A line starting with '@' specifies a nested mfset file. This allows to
 store the message filter sets in a structured way and factor out common
 rule sets in separate files.
@@ -95,7 +107,7 @@ Vivado message name, enclosed in [] brackets
 regular expression to match the message text. This field is optional, if 
 omitted all messages with th given name will match. '[' and ']' characters
 are escaped to '\\[' and '\\]', because [] is very often part of signal 
-names. Character set matches are therefore not possible.
+names. Character set matches are therefore not possible, unfortunately.
 
 .SS Example message filter file
 .EX

@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: xviv_msg_filter 772 2016-06-05 12:55:11Z mueller $
+# $Id: xviv_msg_filter 909 2017-06-09 16:21:55Z mueller $
 #
-# Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2016-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-06-06   909   1,1    add version-range tags
 # 2016-06-04   772   1.0    Initial version
 #
 
@@ -43,6 +44,10 @@ my $rmisscnt = 0;
 my $timebad  = 0;
 my $timegood = 0;
 
+my $vercur;
+my $vermin = "0000.0";
+my $vermax = "9999.9";
+
 my $retrobase = $ENV{RETROBASE};
 
 autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
@@ -63,6 +68,7 @@ if ($type !~ m{^(syn|imp)$}) {
   exit 1;
 }
 
+if (read_ver($lognam)) {exit 1;}
 if (read_mfs($mfsnam)) {exit 1;}
 if (read_log($lognam)) {exit 1;}
 
@@ -207,6 +213,8 @@ sub read_mfs {
     if (m{^\[([a-z]{3})\]$}) {              # [typ] tag found
       if ($1 eq $type) {
         $intyp = 1;
+        $vermin = "0000.0";
+        $vermax = "9999.9";
       } else {
         $intyp = 0;
       }
@@ -214,6 +222,14 @@ sub read_mfs {
     }
 
     next unless $intyp;                     # only process relevant lines
+
+    if (m/\{(\d{4}\.\d)?:(\d{4}\.\d)?\}/) {  # {vermin:varmax} tag found
+      $vermin = (defined $1) ? $1 : "0000.0";
+      $vermax = (defined $2) ? $2 : "9999.9";
+      next;
+    }
+
+    next if $vercur lt $vermin || $vercur gt $vermax;
 
     if (/^([iIr])\s+\[(.+?)\]\s*(.*)\s*$/) {
       #print "+++0m '$1' '$2' '$3'\n";
@@ -255,6 +271,33 @@ sub read_log {
   close (LFILE);
 
   return 0;
+}
+
+#-------------------------------------------------------------------------------
+sub read_ver {
+  my ($fname) = @_;
+
+  if (not -r $fname) {
+    print STDERR "xviv_msg_filter-E: \'$fname\' not existing or readable\n";
+    return 1;
+  }
+
+  open (LFILE, $fname)    or die "can't open for read $fname: $!";
+
+  my $nline = 0;
+  while (<LFILE>) {
+    chomp;
+    if (m/\*\*\*\*\*\* Vivado v(\d{4}\.\d)/) {
+      $vercur = $1;
+      close (LFILE);
+      return 0;
+    }
+    last if $nline++ > 100;                 # stop looking after 100 lines
+  }
+
+  close (LFILE);
+  print STDERR "xviv_msg_filter-E: no vivado version found in \'$fname\'\n";
+  return 1;
 }
 
 #-------------------------------------------------------------------------------

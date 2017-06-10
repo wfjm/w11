@@ -1,8 +1,11 @@
-# $Id: sys_tst_snhumanio_b3.vmfset 772 2016-06-05 12:55:11Z mueller $
+# $Id: sys_tst_snhumanio_b3.vmfset 908 2017-06-05 21:03:06Z mueller $
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
-# --> really no messages ... !
+# sequential element removed (2017.1 nonsense) -----------------
+I [Synth 8-6014] _reg                                           # generic
+
+# --> really no messages otherise... !
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [imp]

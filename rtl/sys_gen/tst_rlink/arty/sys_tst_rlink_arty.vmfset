@@ -1,4 +1,4 @@
-# $Id: sys_tst_rlink_arty.vmfset 773 2016-06-05 20:03:15Z mueller $
+# $Id: sys_tst_rlink_arty.vmfset 908 2017-06-05 21:03:06Z mueller $
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
@@ -6,6 +6,9 @@
 I [Synth 8-3331] RB_MREQ                                        # generic
 # --> rlink_sp1c doesn't use CE_USEC                            # OK 2016-06-05
 i [Synth 8-3331] rlink_sp1c.*CE_USEC
+
+# sequential element removed (2017.1 nonsense) -----------------
+I [Synth 8-6014] _reg                                           # generic
 
 # unused sequential element ------------------------------------
 # --> many HIO pins not used                                    # OK 2016-06-05

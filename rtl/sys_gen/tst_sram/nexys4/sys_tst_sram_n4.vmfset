@@ -1,4 +1,4 @@
-# $Id: sys_tst_sram_n4.vmfset 785 2016-07-10 12:22:41Z mueller $
+# $Id: sys_tst_sram_n4.vmfset 908 2017-06-05 21:03:06Z mueller $
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
@@ -22,6 +22,9 @@ i [Synth 8-3331] nx_cram_memctl_as.*I_MEM_WAIT
 i [Synth 8-3331] tst_sram.*MEM_ACK_W
 # --> rlink_sp2c doesn't use CE_USEC and CE_MSEC                # OK 2016-06-05
 i [Synth 8-3331] rlink_sp2c.*CE_(USEC|MSEC)
+
+# sequential element removed (2017.1 nonsense) -----------------
+I [Synth 8-6014] _reg                                           # generic
 
 # unused sequential element ------------------------------------
 I [Synth 8-3332] R_LREGS_reg[attn][\d*]                         # generic

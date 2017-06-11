@@ -1,4 +1,4 @@
--- $Id: s3boardlib.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: s3boardlib.vhd 911 2017-06-11 10:52:32Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -99,7 +99,7 @@ component s3_sram_dummy is              -- SRAM protection dummy
   );
 end component;
 
-component s3_sram_memctl is             -- SRAM driver
+component s3_sram_memctl is             -- SRAM controller
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- reset

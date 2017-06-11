@@ -1,4 +1,4 @@
--- $Id: nxcramlib.vhd 788 2016-07-16 22:23:23Z mueller $
+-- $Id: nxcramlib.vhd 911 2017-06-11 10:52:32Z mueller $
 --
 -- Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,7 +13,7 @@
 --
 ------------------------------------------------------------------------------
 -- Package Name:   nxcramlib
--- Description:    Nexys 2/3 CRAM drivers
+-- Description:    Nexys 2/3 CRAM controllers
 -- 
 -- Dependencies:   -
 -- Tool versions:  ise 11.4-14.7; viv 2014.4-2016.2; ghdl 0.26-0.33
@@ -56,7 +56,7 @@ component nx_cram_dummy is              -- CRAM protection dummy
   );
 end component;
 
-component nx_cram_memctl_as is          -- CRAM driver (async+page mode)
+component nx_cram_memctl_as is          -- CRAM controller (async+page mode)
   generic (
     READ0DELAY : positive := 4;         -- read word 0 delay in clock cycles
     READ1DELAY : positive := 2;         -- read word 1 delay in clock cycles

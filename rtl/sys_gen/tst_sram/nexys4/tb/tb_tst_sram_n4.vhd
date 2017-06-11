@@ -1,4 +1,4 @@
--- $Id: tb_tst_sram_n4.vhd 643 2015-02-07 17:41:53Z mueller $
+-- $Id: tb_tst_sram_n4.vhd 912 2017-06-11 18:30:03Z mueller $
 --
 -- Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,7 +13,7 @@
 --
 ------------------------------------------------------------------------------
 -- Module Name:    tb_tst_sram_n4
--- Description:    Configuration for tb_tst_sram_n4 for tb_nexys4_fusp
+-- Description:    Configuration for tb_tst_sram_n4 for tb_nexys4_cram
 --
 -- Dependencies:   sys_tst_sram_n4
 --

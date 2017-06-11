@@ -1,4 +1,4 @@
--- $Id: sys_tst_snhumanio_b3.vhd 640 2015-02-01 09:56:53Z mueller $
+-- $Id: sys_tst_snhumanio_b3.vhd 907 2017-06-05 08:19:12Z mueller $
 --
 -- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -22,9 +22,9 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  viv 2014.4; ghdl 0.31
+-- Tool versions:  viv 2014.4-2016.4; ghdl 0.31-0.34
 --
--- Synthesized (xst):
+-- Synthesized (viv):
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
 -- 2015-01-30   636 2014.4  xc7a35t-1     154   133     0     0    63  
 --

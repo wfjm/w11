@@ -1,4 +1,4 @@
--- $Id: tbd_nx_cram_memctl_as.vhd 802 2016-08-27 19:00:23Z mueller $
+-- $Id: tbd_nx_cram_memctl_as.vhd 911 2017-06-11 10:52:32Z mueller $
 --
 -- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -43,7 +43,7 @@ use ieee.std_logic_1164.all;
 use work.slvtypes.all;
 use work.nxcramlib.all;
 
-entity tbd_nx_cram_memctl_as is         -- CRAM driver (async mode) [tb design]
+entity tbd_nx_cram_memctl_as is         -- CRAM controller (async mode) [tb wrap]
                                         -- generic: READ0=2;READ1=2;WRITE=3
   port (
     CLK : in slbit;                     -- clock

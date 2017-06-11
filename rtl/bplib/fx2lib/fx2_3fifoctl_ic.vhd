@@ -1,4 +1,4 @@
--- $Id: fx2_3fifoctl_ic.vhd 890 2017-04-30 15:27:53Z mueller $
+-- $Id: fx2_3fifoctl_ic.vhd 911 2017-06-11 10:52:32Z mueller $
 --
 -- Copyright 2012-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,7 +13,7 @@
 -- 
 ------------------------------------------------------------------------------
 -- Module Name:    fx2_3fifoctl_ic - syn
--- Description:    Cypress EZ-USB FX2 driver (3 fifo; int clk)
+-- Description:    Cypress EZ-USB FX2 controller (3 fifo; int clk)
 --
 -- Dependencies:   vlib/xlib/iob_reg_o
 --                 vlib/xlib/iob_reg_i_gen
@@ -49,7 +49,7 @@ use work.xlib.all;
 use work.memlib.all;
 use work.fx2lib.all;
 
-entity fx2_3fifoctl_ic is               -- EZ-USB FX2 driver (3 fifo; int clk)
+entity fx2_3fifoctl_ic is               -- EZ-USB FX2 controller(3 fifo; int clk)
   generic (
     RXFAWIDTH : positive :=  5;         -- receive  fifo address width
     TXFAWIDTH : positive :=  5;         -- transmit fifo address width

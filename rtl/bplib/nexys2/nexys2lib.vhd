@@ -1,4 +1,4 @@
--- $Id: nexys2lib.vhd 649 2015-02-21 21:10:16Z mueller $
+-- $Id: nexys2lib.vhd 911 2017-06-11 10:52:32Z mueller $
 --
 -- Copyright 2010-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -23,7 +23,7 @@
 -- 2013-01-01   467   1.4    add nexys2_cuff_aif, nexys2_fusp_cuff_aif
 -- 2011-12-23   444   1.3    remove clksys output hack
 -- 2011-11-26   433   1.2    remove n2_cram_* modules, now in nxcramlib
--- 2011-11-23   432   1.1    remove O_FLA_CE_N port in cram driver/dummy
+-- 2011-11-23   432   1.1    remove O_FLA_CE_N port in cram controller/dummy
 -- 2010-11-13   338   1.0.2  add O_CLKSYS to aif's (DCM derived system clock)
 -- 2010-11-06   336   1.0.4  rename input pin CLK -> I_CLK50
 -- 2010-05-28   295   1.0.3  use _ADV_N also for n2_cram_dummy

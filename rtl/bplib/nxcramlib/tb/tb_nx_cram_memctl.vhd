@@ -1,4 +1,4 @@
--- $Id: tb_nx_cram_memctl.vhd 802 2016-08-27 19:00:23Z mueller $
+-- $Id: tb_nx_cram_memctl.vhd 911 2017-06-11 10:52:32Z mueller $
 --
 -- Copyright 2010-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -47,7 +47,7 @@ end tb_nx_cram_memctl;
 
 architecture sim of tb_nx_cram_memctl is
   
-component tbd_nx_cram_memctl is         -- CRAM driver (abstract) [tb design]
+component tbd_nx_cram_memctl is         -- CRAM controller (abstract) [tb design]
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- reset

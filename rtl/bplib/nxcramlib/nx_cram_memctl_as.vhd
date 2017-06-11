@@ -1,4 +1,4 @@
--- $Id: nx_cram_memctl_as.vhd 907 2017-06-05 08:19:12Z mueller $
+-- $Id: nx_cram_memctl_as.vhd 911 2017-06-11 10:52:32Z mueller $
 --
 -- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,7 +13,7 @@
 -- 
 ------------------------------------------------------------------------------
 -- Module Name:    nx_cram_memctl_as - syn
--- Description:    nexys2/3/4: CRAM driver - async and page mode
+-- Description:    nexys2/3/4: CRAM controller - async and page mode
 --
 -- Dependencies:   vlib/xlib/iob_reg_o
 --                 vlib/xlib/iob_reg_o_gen
@@ -117,7 +117,7 @@ use ieee.numeric_std.all;
 use work.slvtypes.all;
 use work.xlib.all;
 
-entity nx_cram_memctl_as is             -- CRAM driver (async+page mode)
+entity nx_cram_memctl_as is             -- CRAM controller (async+page mode)
   generic (
     READ0DELAY : positive := 4;         -- read word 0 delay in clock cycles
     READ1DELAY : positive := 2;         -- read word 1 delay in clock cycles

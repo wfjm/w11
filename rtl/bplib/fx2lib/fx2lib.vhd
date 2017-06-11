@@ -1,4 +1,4 @@
--- $Id: fx2lib.vhd 888 2017-04-30 13:06:51Z mueller $
+-- $Id: fx2lib.vhd 911 2017-06-11 10:52:32Z mueller $
 --
 -- Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -76,7 +76,7 @@ package fx2lib is
 
 
 -- -------------------------------------
-component fx2_2fifoctl_ic is            -- EZ-USB FX2 driver (2 fifo; int clk)
+component fx2_2fifoctl_ic is            -- EZ-USB FX2 controller(2 fifo; int clk)
   generic (
     RXFAWIDTH : positive :=  5;         -- receive  fifo address width
     TXFAWIDTH : positive :=  5;         -- transmit fifo address width
@@ -107,7 +107,7 @@ component fx2_2fifoctl_ic is            -- EZ-USB FX2 driver (2 fifo; int clk)
   );
 end component;
 
-component fx2_3fifoctl_ic is            -- EZ-USB FX2 driver (3 fifo; int clk)
+component fx2_3fifoctl_ic is            -- EZ-USB FX2 controller(3 fifo; int clk)
   generic (
     RXFAWIDTH : positive :=  5;         -- receive  fifo address width
     TXFAWIDTH : positive :=  5;         -- transmit fifo address width

@@ -19,3 +19,8 @@ to verify whether usb device has low latency use
     cat /sys/bus/usb-serial/devices/ttyUSB1/latency_timer
     # --> should show '1' and not '16'
 ```
+
+to verify whether persistent device name applied
+```bash
+   ls -al /dev/fpga_*
+```

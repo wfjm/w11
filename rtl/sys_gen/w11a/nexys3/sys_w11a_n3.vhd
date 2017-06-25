@@ -1,4 +1,4 @@
--- $Id: sys_w11a_n3.vhd 888 2017-04-30 13:06:51Z mueller $
+-- $Id: sys_w11a_n3.vhd 914 2017-06-25 06:17:18Z mueller $
 --
 -- Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -259,7 +259,6 @@ architecture syn of sys_w11a_n3 is
   signal IB_SRES_IBDR : ib_sres_type := ib_sres_init;
 
   signal DISPREG : slv16 := (others=>'0');
-  signal STATLEDS :  slv8 := (others=>'0');
   signal ABCLKDIV : slv16 := (others=>'0');
 
   signal LED70   : slv8  := (others=>'0');  

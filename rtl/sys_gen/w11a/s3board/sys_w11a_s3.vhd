@@ -1,4 +1,4 @@
--- $Id: sys_w11a_s3.vhd 889 2017-04-30 13:31:27Z mueller $
+-- $Id: sys_w11a_s3.vhd 914 2017-06-25 06:17:18Z mueller $
 --
 -- Copyright 2007-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -274,7 +274,6 @@ architecture syn of sys_w11a_s3 is
   signal IB_SRES_IBDR  : ib_sres_type := ib_sres_init;
 
   signal DISPREG : slv16 := (others=>'0');
-  signal STATLEDS :  slv8 := (others=>'0');
   signal ABCLKDIV : slv16 := (others=>'0');
 
   constant rbaddr_rbmon : slv16 := x"ffe8"; -- ffe8/0008: 1111 1111 1110 1xxx

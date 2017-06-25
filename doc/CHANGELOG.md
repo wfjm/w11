@@ -18,6 +18,14 @@ The full set of tests is only run for tagged releases.
 
 ### Summary
 
+- new modules/packages
+  - rtl/vlib/rutil.vhd: added package, with imin helper function
+- cleanups
+  - s3_sram_memctl: drop superfluous idata_cei=1 in s_write2
+- 17bit support for tst_sram
+  - tst_sram.vhd: allow AWIDTH=17; sstat_rbf_awidth instead of _wide
+  - tcl/tst_sram/*.tcl: 17bit support; use sstat(awidth); add isnarrow
+- add test_w11a_mem70.tcl; retire old tests tb_w11a_mem70*.dat
 - shell_egd.tcl: BUGFIX: shell_pspec_map: fix mapping for addr>20000
 - get vivado 2017.1 ready
   - xviv_msg_filter: add version-range tag support

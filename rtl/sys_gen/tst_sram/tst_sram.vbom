@@ -1,5 +1,6 @@
 # libs
 ../../vlib/slvtypes.vhd
+../../vlib/rutil.vhd
 ../../vlib/memlib/memlib.vhd
 ../../vlib/rbus/rblib.vhd
 ${sys_conf}

@@ -1,6 +1,6 @@
--- $Id: s3_sram_memctl.vhd 793 2016-07-23 19:38:55Z mueller $
+-- $Id: s3_sram_memctl.vhd 912 2017-06-11 18:30:03Z mueller $
 --
--- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -13,7 +13,7 @@
 -- 
 ------------------------------------------------------------------------------
 -- Module Name:    s3_sram_memctl - syn
--- Description:    s3board: SRAM driver
+-- Description:    s3board: SRAM controller
 --
 -- Dependencies:   vlib/xlib/iob_reg_o
 --                 vlib/xlib/iob_reg_o_gen
@@ -30,6 +30,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2017-06-11   912   1.0.8  drop superfluous idata_cei=1 in s_write2
 -- 2016-07-23   793   1.0.7  drop "KEEP" for data (better for dbg)
 -- 2011-11-19   427   1.0.6  now numeric_std clean
 -- 2010-06-03   299   1.0.5  add "KEEP" for data iob;
@@ -83,7 +84,7 @@ use ieee.numeric_std.all;
 use work.slvtypes.all;
 use work.xlib.all;
 
-entity s3_sram_memctl is                -- SRAM driver for S3BOARD
+entity s3_sram_memctl is                -- SRAM controller for S3BOARD
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- reset
@@ -311,7 +312,6 @@ begin
       when s_write2 =>                  -- s_write2: write cycle, 2nd half
         iactw := '1';                     -- signal mem write
         iackw := '1';                     -- signal write acknowledge
-        idata_cei := '1';                 -- latch input data (from SRAM)
         if REQ = '1' then                 -- if IO requested
           if WE = '1' then                  -- if WRITE requested
             iaddr_ce  := '1';                 -- latch address and be's

@@ -1,6 +1,6 @@
-# $Id: test_all.tcl 895 2017-05-07 07:38:47Z mueller $
+# $Id: test_all.tcl 914 2017-06-25 06:17:18Z mueller $
 #
-# Copyright 2014-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-06-19   914   2.2    17bit support; use sstat(awidth); add isnarrow
 # 2016-07-09   784   2.1    add test_all test driver
 # 2014-11-23   606   2.0    use new rlink v4 iface
 # 2014-08-14   582   1.0    Initial version
@@ -105,7 +106,7 @@ namespace eval tst_sram {
     set maddrh 0x0000
     set maddrl 0x0000
     if {[rlink::issim]} {
-      set maddrh [expr {$wide ? 0x003f : 0x0003}]
+      set maddrh [expr {[iswide] ? 0x3f : [isnarrow] ? 0x01: 0x03}]
       set maddrl 0xfffc
     }
 

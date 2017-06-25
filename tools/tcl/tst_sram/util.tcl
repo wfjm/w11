@@ -1,4 +1,4 @@
-# $Id: util.tcl 895 2017-05-07 07:38:47Z mueller $
+# $Id: util.tcl 914 2017-06-25 06:17:18Z mueller $
 #
 # Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-06-19   914   1.3    17bit support; use sstat(awidth); add isnarrow
 # 2017-04-22   883   1.2.1  setup: now idempotent
 # 2016-07-09   784   1.2    22bit support: mask sstat(wide); add iswide
 # 2015-04-03   661   1.1    drop estatdef (stat err check default now)
@@ -32,12 +33,13 @@ namespace eval tst_sram {
   #
   variable nscmd 0;             # length of current sequencer command list
   variable tout 10.;            # default time out
-  variable iswide -1;           # sstat.wide cache
+  variable iswide   -1;         # sstat.awidth=22 cache
+  variable isnarrow -1;         # sstat.awidth=17 cache
   #
   # setup register descriptions for tst_sram core design ---------------------
   # 
   regdsc MCMD  {ld 14} {inc 13} {we 12} {be 11 4} {addrh 5 6}
-  regdsc SSTAT {wide 15} {wswap 9} {wloop 8} \
+  regdsc SSTAT {awidth 15 3} {wswap 9} {wloop 8} \
                {loop 7} {xord 6} {xora 5} {veri 4} {fail 1} {run 0}
   regdsc SCMD  {wait 31 4} {we 24} {be 23 4} {addr 17 18}
   #
@@ -74,15 +76,32 @@ namespace eval tst_sram {
       -wreg sr.sstat 0
   }
   #
+  # checkawidth: inspect SSTAT(awidth) ---------------------------------------
+  # 
+  proc checkawidth {} {
+    variable iswide
+    variable isnarrow
+    rlc exec -rreg sr.sstat sstat
+    set awidth [regget tst_sram::SSTAT(awidth) $sstat]
+    set iswide   [expr {$awidth + 16 == 22}]
+    set isnarrow [expr {$awidth + 16 == 17}]
+    return ""
+  }
+  #
   # iswide: 1 if 22bit system ------------------------------------------------
   # 
   proc iswide {} {
     variable iswide
-    if {$iswide < 0} {
-      rlc exec -rreg sr.sstat sstat
-      set iswide [regget tst_sram::SSTAT(wide) $sstat]
-    }
+    if {$iswide < 0} { checkawidth }
     return $iswide
+  }
+  #
+  # isnarrow: 1 if 17bit system ----------------------------------------------
+  # 
+  proc isnarrow {} {
+    variable isnarrow
+    if {$isnarrow < 0} { checkawidth }
+    return $isnarrow
   }
   #
   # scmd_write: write a scmd list --------------------------------------------
@@ -179,7 +198,7 @@ namespace eval tst_sram {
     variable nscmd
     if {$tout == 0}  {set tout $tst_sram::tout}
     if {$nscmd == 0} {error "no or empty scmd list loaded"}
-    set sm [rutil::com16 [regbld tst_sram::SSTAT wide]]
+    set sm [rutil::com16 [regbld tst_sram::SSTAT {awidth -1}]]
     rlc exec -init 0 1
     rlc exec -wreg sr.sstat [regbld tst_sram::SSTAT xord xora veri] \
              -wreg sr.mdih   $mdih \
@@ -214,7 +233,7 @@ namespace eval tst_sram {
     variable nscmd
     if {$tout == 0}  {set tout $tst_sram::tout}
     if {$nscmd == 0} {error "no or empty scmd list loaded"}
-    set sm [rutil::com16 [regbld tst_sram::SSTAT wide]]
+    set sm [rutil::com16 [regbld tst_sram::SSTAT {awidth -1}]]
     set sstat [regbldkv tst_sram::SSTAT wswap $wide wloop $wide loop 1 \
                                         xord 1 xora 1 veri 1]
     rlc exec -init 0 1

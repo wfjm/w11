@@ -1,6 +1,6 @@
--- $Id: tst_sram.vhd 889 2017-04-30 13:31:27Z mueller $
+-- $Id: tst_sram.vhd 917 2017-06-25 18:05:28Z mueller $
 --
--- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -13,22 +13,24 @@
 --
 ------------------------------------------------------------------------------
 -- Module Name:    tst_sram - syn
--- Description:    test of s3board sram and its controller
+-- Description:    test of sram (s3,c7) and cram (n2,n3,n4) and its controller
 --
 -- Dependencies:   vlib/memlib/ram_1swsr_wfirst_gen
 --                 vlib/memlib/ram_2swsr_wfirst_gen
 --                 vlib/rlink/rlink_base_serport
 --
--- Test bench:     nexys4/tb/tb_tst_sram_n4       (with cram)
+-- Test bench:     cmoda7/tb/tb_tst_sram_c7       (with sram)
+--                 nexys4/tb/tb_tst_sram_n4       (with cram)
 --                 nexys3/tb/tb_tst_sram_n3       (with cram)
 --                 nexys2/tb/tb_tst_sram_n2       (with cram)
 --                 s3board/tb/tb_tst_sram_s3      (with sram)
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.2-14.7; viv 2014.4-2016.2; ghdl 0.18-0.33
+-- Tool versions:  xst 8.2-14.7; viv 2014.4-2017.1; ghdl 0.18-0.34
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2017-06-25   917   1.6    allow AWIDTH=17; sstat_rbf_awidth instead of _wide
 -- 2016-07-10   785   1.5.1  std SWI layout: now (7:4) disp select, SWI(1)->XON
 -- 2016-07-09   784   1.5    AWIDTH generic, add 22bit support for cram
 -- 2016-05-22   767   1.4.1  don't init N_REGS (vivado fix for fsm inference)
@@ -153,11 +155,14 @@
 --    DP(0):    SER_MONI.rxact          (shows rx activity)
 --
 
+-- ----------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 use work.slvtypes.all;
+use work.rutil.all;
 use work.memlib.all;
 use work.rblib.all;
 
@@ -194,6 +199,8 @@ entity tst_sram is                      -- tester for sram memctl
 end tst_sram;
 
 architecture syn of tst_sram is
+
+  constant IWIDTH : natural := imin(18, AWIDTH);
   
   signal SEQ_RESET : slbit := '0';
   
@@ -284,7 +291,7 @@ architecture syn of tst_sram is
   subtype  maddr_f_wh      is integer range  AWIDTH-1 downto 16;
   subtype  maddr_f_wl      is integer range  15 downto  0;
 
-  subtype  maddr_f_scmd    is integer range  17 downto  0;
+  subtype  maddr_f_scmd    is integer range  IWIDTH-1 downto  0;
   subtype  maddr_f_top4    is integer range  AWIDTH-1   downto AWIDTH-1-3;
   subtype  maddr_f_mid4    is integer range  AWIDTH-1-4 downto AWIDTH-1-7;
   subtype  maddr_f_bot     is integer range  AWIDTH-1-8 downto          0;
@@ -300,7 +307,7 @@ architecture syn of tst_sram is
   subtype  mcmd_rbf_be     is integer range 11 downto  8;
   subtype  mcmd_rbf_addrh  is integer range AWIDTH-1-16 downto  0;
   
-  constant sstat_rbf_wide:  integer :=  15;
+  subtype  sstat_rbf_awidth is integer range 15 downto  13;
   constant sstat_rbf_wswap: integer :=   9;
   constant sstat_rbf_wloop: integer :=   8;
   constant sstat_rbf_loop:  integer :=   7;
@@ -313,7 +320,7 @@ architecture syn of tst_sram is
   subtype  scmd_rbf_wait   is integer range 31 downto 28;
   constant scmd_rbf_we:    integer :=  24;
   subtype  scmd_rbf_be     is integer range 23 downto 20;
-  subtype  scmd_rbf_addr   is integer range 17 downto  0;
+  subtype  scmd_rbf_addr   is integer range IWIDTH-1 downto  0;
 
   constant rbaddr_mdih:   slv5 := "00000";  --  0    -/r/w
   constant rbaddr_mdil:   slv5 := "00001";  --  1    -/r/w
@@ -354,8 +361,8 @@ architecture syn of tst_sram is
 
 begin
 
-  assert AWIDTH=18 or AWIDTH=22 
-    report "assert(AWIDTH=18 or AWIDTH=22): unsupported AWIDTH"
+  assert AWIDTH=17 or AWIDTH=18 or AWIDTH=22 
+    report "assert(AWIDTH=17 or AWIDTH=18 or AWIDTH=22): unsupported AWIDTH"
     severity failure;
 
   SMEM_B3 : ram_1swsr_wfirst_gen
@@ -1023,9 +1030,7 @@ begin
         omux_dat(r.saddr'range) := r.saddr;
       when omux_sstat =>
         omux_dat := (others=>'0');
-        if AWIDTH = 22 then
-          omux_dat(sstat_rbf_wide) := '1';
-        end if;
+        omux_dat(sstat_rbf_awidth):= slv(to_unsigned(AWIDTH-16,3));
         omux_dat(sstat_rbf_wswap) := r.swswap;
         omux_dat(sstat_rbf_wloop) := r.swloop;
         omux_dat(sstat_rbf_loop)  := r.sloop;

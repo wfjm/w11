@@ -1,6 +1,6 @@
-# $Id: test_seq.tcl 895 2017-05-07 07:38:47Z mueller $
+# $Id: test_seq.tcl 917 2017-06-25 18:05:28Z mueller $
 #
-# Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2016-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-06-25   917   1.2    17bit support; use sstat(awidth); use isnarrow
 # 2016-07-10   785   1.1    add wswap and wloop tests
 # 2016-07-09   784   1.0    Initial version (ported from tb_tst_sram_stim.dat)
 #
@@ -40,7 +41,7 @@ namespace eval tst_sram {
     rlc wtlam $tout
     # harvest attn and check sequencer status
     # also check rlink command status (RB_STAT(1) <= R_REGS.sfail)
-    set seqmsk [rutil::com16 [regbld tst_sram::SSTAT wide]]; # ign sstat.wide !
+    set seqmsk [rutil::com16 [regbld tst_sram::SSTAT {awidth -1}]]
     set stamsk [regbld rlink::STAT {stat -1} rbtout rbnak rberr];
 
     if {$seaddr == 0} {         # fail=0 --> check saddr
@@ -80,7 +81,7 @@ namespace eval tst_sram {
     #
     set errcnt 0
     rlc errcnt -clear
-    set sm [rutil::com16 [regbld tst_sram::SSTAT wide]]
+    set sm [rutil::com16 [regbld tst_sram::SSTAT {awidth -1}]]
 
     rlink::anena 1;             # enable attn notify
 
@@ -416,21 +417,24 @@ namespace eval tst_sram {
     lappend clist { 0 r 1111 0x000003 0x03132333};
     scmd_write $clist
 
-    # start sequencer with loop=1,xora=1 and maddr=3fff0 (will loop to 3ffff)
-    test_seq_setxor 0x03 0xfff0 0x0000 0x0000
+    set maddrh_seq [expr {[isnarrow] ? 0x01: 0x03}]
+    
+    # start seq >17bit: loop=1,xora=1 and maddr=3fff0 (will loop to 3ffff)
+    # start seq =17bit: loop=1,xora=1 and maddr=1fff0 (will loop to 1ffff)
+    test_seq_setxor $maddrh_seq 0xfff0 0x0000 0x0000
     test_seq_srun   [regbld tst_sram::SSTAT loop xora veri]  $tout
     # check that maddr incremented
     rlc exec \
-      -rreg sr.maddrh -edata 0x0003 \
+      -rreg sr.maddrh -edata $maddrh_seq \
       -rreg sr.maddrl -edata 0xffff
-    # last iteration will write into
+    # last iteration will write into (for >17bit):
     #  00000 xor 03ffff -> 03ffff  (00102030)
     #  00001 xor 03ffff -> 03fffe  (01112131)
     #  00002 xor 03ffff -> 03fffd  (02122232)
     #  00003 xor 03ffff -> 03fffc  (03132333)
     # read back 4 longwords 03fffc..03ffff
     rlc exec \
-      -wreg sr.maddrh 0x0003 \
+      -wreg sr.maddrh $maddrh_seq \
       -wreg sr.maddrl 0xfffc \
       -rblk sr.mblk 8 -edata {0x0313 0x2333 \
                               0x0212 0x2232 \
@@ -452,13 +456,14 @@ namespace eval tst_sram {
     lappend clist { 0 r 1111 0x000103 0x00000000};
     scmd_write $clist
 
-    # start with loop=1,xora=1 and maddr=03fff0 (tried to loop to 03ffff)
-    test_seq_setxor 0x03 0xfff0 0x0000 0x0000
+    # start seq >17bit: loop=1,xora=1 and maddr=03fff0 (tried to loop to 03ffff)
+    # start seq =17bit: loop=1,xora=1 and maddr=01fff0 (tried to loop to 01ffff)
+    test_seq_setxor $maddrh_seq 0xfff0 0x0000 0x0000
     test_seq_srun   [regbld tst_sram::SSTAT loop xora veri]  $tout \
                        5 0x0111 0x2131
     # check that maddr do not increment (fail on first loop !)
     rlc exec \
-      -rreg sr.maddrh -edata 0x0003 \
+      -rreg sr.maddrh -edata $maddrh_seq \
       -rreg sr.maddrl -edata 0xfff0
 
     # finally clear veri error

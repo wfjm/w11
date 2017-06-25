@@ -1,6 +1,6 @@
-# $Id: test_regs.tcl 785 2016-07-10 12:22:41Z mueller $
+# $Id: test_regs.tcl 917 2017-06-25 18:05:28Z mueller $
 #
-# Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2016-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-06-25   917   1.2    17bit support; use sstat(awidth); add isnarrow
 # 2016-07-10   785   1.1    add memory test (touch evenly distributed addr)
 # 2016-07-09   784   1.0    Initial version (ported from tb_tst_sram_stim.dat)
 #
@@ -51,7 +52,7 @@ namespace eval tst_sram {
     #
     #-------------------------------------------------------------------------
     rlc log "  test 1b: test maddrh range"
-    set maddrh_max [expr {[iswide] ? 0x3f : 0x03}]
+    set maddrh_max [expr {[iswide] ? 0x3f : [isnarrow] ? 0x01: 0x03}]
     rlc exec \
       -wreg sr.maddrh  0xffff \
       -rreg sr.maddrh  -edata $maddrh_max
@@ -235,7 +236,7 @@ namespace eval tst_sram {
     #
     #-------------------------------------------------------------------------
     rlc log "  test 5: test sstat bits"
-    set sm [rutil::com16 [regbld tst_sram::SSTAT wide]]
+    set sm [rutil::com16 [regbld tst_sram::SSTAT {awidth -1}]]
     rlc exec \
       -wreg sr.sstat 0 \
       -rreg sr.sstat -edata 0 $sm \
@@ -255,26 +256,51 @@ namespace eval tst_sram {
     #-------------------------------------------------------------------------
     rlc log "  test 6: test memory (touch 5(+5) evenly spaced addresses)"
     # writes
-    # 18bit: 0x000000 0x010001 0x020002 0x030003 0x03ffff
-    rlc exec \
-      -wreg sr.mdih   0x5500 \
-      -wreg sr.mdil   0xaa00 \
-      -wreg sr.maddrl 0x0000 \
-      -wreg sr.mcmd   [regbld tst_sram::MCMD ld inc we {be 0xf} {addrh 0x00}] \
-      -wreg sr.mdih   0x5501 \
-      -wreg sr.mdil   0xaa01 \
-      -wreg sr.mcmd   [regbld tst_sram::MCMD ld inc we {be 0xf} {addrh 0x01}] \
-      -wreg sr.mdih   0x5502 \
-      -wreg sr.mdil   0xaa02 \
-      -wreg sr.mcmd   [regbld tst_sram::MCMD ld inc we {be 0xf} {addrh 0x02}] \
-      -wreg sr.mdih   0x5503 \
-      -wreg sr.mdil   0xaa03 \
-      -wreg sr.mcmd   [regbld tst_sram::MCMD ld inc we {be 0xf} {addrh 0x03}] \
-      -rreg sr.maddrl -edata 0x0004 \
-      -wreg sr.mdih   0x5504 \
-      -wreg sr.mdil   0xaa04 \
-      -wreg sr.maddrl 0xffff \
-      -wreg sr.mcmd   [regbld tst_sram::MCMD ld     we {be 0xf} {addrh 0x03}]
+    if {[isnarrow]} {
+      # 17bit: 0x000000 0x004001 0x010002 0x014003 0x01ffff
+      rlc exec \
+        -wreg sr.mdih   0x5500 \
+        -wreg sr.mdil   0xaa00 \
+        -wreg sr.maddrl 0x0000 \
+        -wreg sr.mcmd   [regbld tst_sram::MCMD ld inc we {be 0xf} {addrh 0x00}] \
+        -wreg sr.mdih   0x5501 \
+        -wreg sr.mdil   0xaa01 \
+        -wreg sr.maddrl 0x4001 \
+        -wreg sr.mcmd   [regbld tst_sram::MCMD ld inc we {be 0xf} {addrh 0x00}] \
+        -wreg sr.mdih   0x5502 \
+        -wreg sr.mdil   0xaa02 \
+        -wreg sr.maddrl 0x0002 \
+        -wreg sr.mcmd   [regbld tst_sram::MCMD ld inc we {be 0xf} {addrh 0x01}] \
+        -wreg sr.mdih   0x5503 \
+        -wreg sr.mdil   0xaa03 \
+        -wreg sr.maddrl 0x4003 \
+        -wreg sr.mcmd   [regbld tst_sram::MCMD ld inc we {be 0xf} {addrh 0x01}] \
+        -wreg sr.mdih   0x5504 \
+        -wreg sr.mdil   0xaa04 \
+        -wreg sr.maddrl 0xffff \
+        -wreg sr.mcmd   [regbld tst_sram::MCMD ld     we {be 0xf} {addrh 0x01}]
+    } else {
+      # 18bit: 0x000000 0x010001 0x020002 0x030003 0x03ffff
+      rlc exec \
+        -wreg sr.mdih   0x5500 \
+        -wreg sr.mdil   0xaa00 \
+        -wreg sr.maddrl 0x0000 \
+        -wreg sr.mcmd   [regbld tst_sram::MCMD ld inc we {be 0xf} {addrh 0x00}] \
+        -wreg sr.mdih   0x5501 \
+        -wreg sr.mdil   0xaa01 \
+        -wreg sr.mcmd   [regbld tst_sram::MCMD ld inc we {be 0xf} {addrh 0x01}] \
+        -wreg sr.mdih   0x5502 \
+        -wreg sr.mdil   0xaa02 \
+        -wreg sr.mcmd   [regbld tst_sram::MCMD ld inc we {be 0xf} {addrh 0x02}] \
+        -wreg sr.mdih   0x5503 \
+        -wreg sr.mdil   0xaa03 \
+        -wreg sr.mcmd   [regbld tst_sram::MCMD ld inc we {be 0xf} {addrh 0x03}] \
+        -rreg sr.maddrl -edata 0x0004 \
+        -wreg sr.mdih   0x5504 \
+        -wreg sr.mdil   0xaa04 \
+        -wreg sr.maddrl 0xffff \
+        -wreg sr.mcmd   [regbld tst_sram::MCMD ld     we {be 0xf} {addrh 0x03}]
+    }
     # 22bit: 0x040000 0x100001 0x200002 0x300003 0x3fffff
     if {[iswide]} {
     rlc exec \
@@ -298,25 +324,49 @@ namespace eval tst_sram {
       -wreg sr.mcmd   [regbld tst_sram::MCMD ld     we {be 0xf} {addrh 0x3f}]
     }
     # reads
-    rlc exec \
-      -wreg sr.maddrl 0x0000 \
-      -wreg sr.mcmd   [regbld tst_sram::MCMD ld inc    {be 0xf} {addrh 0x00}] \
-      -rreg sr.mdoh   -edata 0x5500 \
-      -rreg sr.mdol   -edata 0xaa00 \
-      -wreg sr.mcmd   [regbld tst_sram::MCMD ld inc    {be 0xf} {addrh 0x01}] \
-      -rreg sr.mdoh   -edata 0x5501 \
-      -rreg sr.mdol   -edata 0xaa01 \
-      -wreg sr.mcmd   [regbld tst_sram::MCMD ld inc    {be 0xf} {addrh 0x02}] \
-      -rreg sr.mdoh   -edata 0x5502 \
-      -rreg sr.mdol   -edata 0xaa02 \
-      -wreg sr.mcmd   [regbld tst_sram::MCMD ld inc    {be 0xf} {addrh 0x03}] \
-      -rreg sr.mdoh   -edata 0x5503 \
-      -rreg sr.mdol   -edata 0xaa03 \
-      -rreg sr.maddrl -edata 0x0004 \
-      -wreg sr.maddrl 0xffff \
-      -wreg sr.mcmd   [regbld tst_sram::MCMD ld        {be 0xf} {addrh 0x03}] \
-      -rreg sr.mdoh   -edata 0x5504 \
-      -rreg sr.mdol   -edata 0xaa04
+    if {[isnarrow]} {
+      rlc exec \
+        -wreg sr.maddrl 0x0000 \
+        -wreg sr.mcmd   [regbld tst_sram::MCMD ld inc    {be 0xf} {addrh 0x00}] \
+        -rreg sr.mdoh   -edata 0x5500 \
+        -rreg sr.mdol   -edata 0xaa00 \
+        -wreg sr.maddrl 0x4001 \
+        -wreg sr.mcmd   [regbld tst_sram::MCMD ld inc    {be 0xf} {addrh 0x00}] \
+        -rreg sr.mdoh   -edata 0x5501 \
+        -rreg sr.mdol   -edata 0xaa01 \
+        -wreg sr.maddrl 0x0002 \
+        -wreg sr.mcmd   [regbld tst_sram::MCMD ld inc    {be 0xf} {addrh 0x01}] \
+        -rreg sr.mdoh   -edata 0x5502 \
+        -rreg sr.mdol   -edata 0xaa02 \
+        -wreg sr.maddrl 0x4003 \
+        -wreg sr.mcmd   [regbld tst_sram::MCMD ld inc    {be 0xf} {addrh 0x01}] \
+        -rreg sr.mdoh   -edata 0x5503 \
+        -rreg sr.mdol   -edata 0xaa03 \
+        -wreg sr.maddrl 0xffff \
+        -wreg sr.mcmd   [regbld tst_sram::MCMD ld        {be 0xf} {addrh 0x01}] \
+        -rreg sr.mdoh   -edata 0x5504 \
+        -rreg sr.mdol   -edata 0xaa04
+    } else {
+      rlc exec \
+        -wreg sr.maddrl 0x0000 \
+        -wreg sr.mcmd   [regbld tst_sram::MCMD ld inc    {be 0xf} {addrh 0x00}] \
+        -rreg sr.mdoh   -edata 0x5500 \
+        -rreg sr.mdol   -edata 0xaa00 \
+        -wreg sr.mcmd   [regbld tst_sram::MCMD ld inc    {be 0xf} {addrh 0x01}] \
+        -rreg sr.mdoh   -edata 0x5501 \
+        -rreg sr.mdol   -edata 0xaa01 \
+        -wreg sr.mcmd   [regbld tst_sram::MCMD ld inc    {be 0xf} {addrh 0x02}] \
+        -rreg sr.mdoh   -edata 0x5502 \
+        -rreg sr.mdol   -edata 0xaa02 \
+        -wreg sr.mcmd   [regbld tst_sram::MCMD ld inc    {be 0xf} {addrh 0x03}] \
+        -rreg sr.mdoh   -edata 0x5503 \
+        -rreg sr.mdol   -edata 0xaa03 \
+        -rreg sr.maddrl -edata 0x0004 \
+        -wreg sr.maddrl 0xffff \
+        -wreg sr.mcmd   [regbld tst_sram::MCMD ld        {be 0xf} {addrh 0x03}] \
+        -rreg sr.mdoh   -edata 0x5504 \
+        -rreg sr.mdol   -edata 0xaa04
+    }
     if {[iswide]} {
     rlc exec \
       -wreg sr.maddrl 0x0000 \

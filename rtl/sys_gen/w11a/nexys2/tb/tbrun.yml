@@ -1,7 +1,8 @@
-# $Id: tbrun.yml 809 2016-09-18 19:49:14Z mueller $
+# $Id: tbrun.yml 916 2017-06-25 13:30:07Z mueller $
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2017-06-25   916   1.2    retire mem70,mem70_n2 - now in tbcpu
 # 2016-09-18   809   1.1.1  use 60 sec tout for run_pdpcp tb_pdp11core_stim
 # 2016-08-28   803   1.1    use ${ise_modes_noisim} when ISim can't be used
 # 2016-08-21   799   1.0    Initial version
@@ -13,16 +14,6 @@
   test: |
     tbrun_tbwrri --cuff --lsuf stim1  tb_w11a_n2${ms} \
      "rlink::run_rri ../../../../w11a/tb/tb_rlink_tba_pdp11core_stim.dat"
-
-- tag:  [default, ise, sys_w11a, n2, mem70]
-  test: |
-    tbrun_tbwrri --cuff  --lsuf mem70 --pack rw11  tb_w11a_n2${ms} \
-      "rw11::setup_cpu" "rw11::run_pdpcp ../../tb/tb_w11a_mem70.dat"
-
-- tag:  [default, ise, sys_w11a, n2, mem70_n2]
-  test: |
-    tbrun_tbwrri --cuff --lsuf mem70_n2 --pack rw11  tb_w11a_n2${ms} \
-      "rw11::setup_cpu" "rw11::run_pdpcp ../../tb/tb_w11a_mem70_n2.dat"
 
 - tag:  [default, ise, sys_w11a, n2, stim2]
   test: |

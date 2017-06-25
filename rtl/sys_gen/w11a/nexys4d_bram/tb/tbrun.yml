@@ -1,7 +1,8 @@
-# $Id: tbrun.yml 838 2017-01-04 20:57:57Z mueller $
+# $Id: tbrun.yml 916 2017-06-25 13:30:07Z mueller $
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2017-06-25   916   1.2    retire mem70 - now in tbcpu
 # 2017-01-04   800   1.0    Initial version
 #
 - default:
@@ -11,11 +12,6 @@
   test: |
     tbrun_tbwrri --lsuf stim1  tb_w11a_br_n4d${ms} \
       "rlink::run_rri ../../../../w11a/tb/tb_rlink_tba_pdp11core_stim.dat"
-
-- tag:  [viv, sys_w11a, br_n4d, mem70]
-  test: |
-    tbrun_tbwrri --lsuf mem70  --pack rw11  tb_w11a_br_n4d${ms} \
-      "rw11::setup_cpu" "rw11::run_pdpcp ../../tb/tb_w11a_mem70.dat"
 
 - tag:  [viv, sys_w11a, br_n4d, stim2]
   test: |

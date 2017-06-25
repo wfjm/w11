@@ -1,6 +1,8 @@
-# $Id: w11a_all.dat 831 2016-12-27 16:51:12Z mueller $
+# $Id: w11a_all.dat 916 2017-06-25 13:30:07Z mueller $
 #
 ## steering file for all w11a tests
+#
+test_w11a_mem70.tcl
 #
 test_w11a_srcr_word_flow.tcl
 test_w11a_dstw_word_flow.tcl

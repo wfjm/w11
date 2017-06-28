@@ -1,6 +1,6 @@
 #! /usr/bin/env tclshcpp
 # -*- tcl -*-
-# $Id: ti_rri 883 2017-04-22 11:57:38Z mueller $
+# $Id: ti_rri 918 2017-06-28 20:04:17Z mueller $
 #
 # Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -15,6 +15,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-06-28   918   1.4.5  adopt Digilent autodetect for CmodA7
 # 2017-04-22   883   1.4.4  setup rbus monitor if detected
 # 2017-01-08   843   1.4.3  allow --term=USBD for Digilent autodetect
 # 2015-01-09   776   1.2.2  add --tout option to setup rlc timeout before connect
@@ -275,10 +276,12 @@ if { $opts(term) } {
       set id_in {}
       foreach line [split $text "\n"] {
         set line [string trim $line]
-        regexp -- {^E: ID_SERIAL=(.*)_(\d*)$} $line      matched id_id id_sn
-        regexp -- {^E: ID_USB_INTERFACE_NUM=(.*)$} $line matched id_in
+        regexp -- {^E: ID_SERIAL=(.*)_([0-9a-fA-F]+)$} $line matched id_id id_sn
+        regexp -- {^E: ID_USB_INTERFACE_NUM=(.*)$}     $line matched id_in
       }
-      if {$id_id eq "Digilent_Digilent_USB_Device" && $id_in eq "01"} {
+      if {($id_id eq "Digilent_Digilent_USB_Device" || \
+           $id_id eq "Digilent_Digilent_Adept_USB_Device" ) \
+            && $id_in eq "01"} {
         set dev_usbd $udev
         break
       }

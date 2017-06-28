@@ -1,0 +1,9 @@
+# configure tb_cmoda7_sram with sys_tst_sram_c7 target;
+# use vhdl configure file (tb_tst_sram_c7.vhd) to allow
+# that all configurations will co-exist in work library
+# configure
+cmoda7_sram_aif = ../sys_tst_sram_c7.vbom
+sys_conf = sys_conf_sim.vhd
+# design
+../../../../bplib/cmoda7/tb/tb_cmoda7_sram.vbom
+tb_tst_sram_c7.vhd

@@ -18,7 +18,7 @@ communication between FPGA board and backend server can be via
 
 - Serial port
   - via an integrated USB-UART bridge
-    - on Arty, Basys3, and Nexys4 and Nexys4 DDR with a `FT2232HQ`, 
+    - on Arty, Basys3, CmodA7 and Nexys4 and Nexys4 DDR with a `FT2232HQ`, 
       allows up to 12M Baud
     - on nexys3 with a `FT232R`, allows up to 2M Baud
     - for all FTDI USB-UART it is essential to set them to `low latency` mode.
@@ -54,6 +54,7 @@ Recommended setup for best performance (boards ordered by vintage):
 | :--------- | :--------------------- | :----------- | -----------------: |
 | Arty       | USB-UART bridge        | 12M Baud     |  1090 kB/sec |
 | Basys3     | USB-UART bridge        | 12M Baud     |  1090 kB/sec |
+| Cmod A7    | USB-UART bridge        | 12M Baud     |  1090 kB/sec |
 | Nexys4 DDR | USB-UART bridge        | 12M Baud     |  1090 kb/sec |
 | Nexys4     | USB-UART bridge        | 12M Baud     |  1090 kb/sec |
 | Nexys3     | Cypress FX2 USB        | USB2.0 speed | 30000 kB/sec |
@@ -70,6 +71,10 @@ Recommended setups
 
 - Basys3
   - connect USB cable to micro-USB connector labeled 'PROG'
+  - to configure via vivado hardware server `make <sys>.vconfig`
+
+- Cmod A7
+  - connect USB cable to micro-USB connector
   - to configure via vivado hardware server `make <sys>.vconfig`
 
 - Nexys4 and Nexys4 DDR
@@ -124,6 +129,15 @@ All examples below use the same basic setup
      unix-v5 works fine. XXDP, RT11 and RSX-11M should work.
      211bsd will not boot, neither most RSX-11M+ systems.
 
+  - for c7 over serial
+
+          ti_w11 -tuD,12M,break,xon  @<oskit-name>_boot.tcl
+
+     **Note**: the c7 w11a has currently only 672 kB memory (512 SRAM + 160 BRAM)
+     unix-5,XXDP,RT11,RSX-11M and most most RSX-11M+ systems should work.
+     211bsd works only in the 'non-networking' configuration
+     [211bsd_rpmin](../tools/oskit/211bsd_rpmin)
+
   - for n4 or n4d over serial
 
           SWI = 00000000 00101000   (gives console light display on LEDS)
@@ -143,12 +157,13 @@ All examples below use the same basic setup
     - the letter after `-tu` is either the serial device number,
       denoted as `<dn>`, or the letter `D` for auto-detection of
       Digilent boards with a FT2232HQ based interface.
-      - for Arty, Basys3 and Nexys4 board simply use `D`
+      - for Arty, Basys3, CmodA7 and Nexys4 board simply use `D`
       - otherwise check with `ls /dev/ttyUSB*` to see what is available
       - `<dn>` is typically '1' if a single `FT2232HQ` based board is connected,
-        like an Arty, Basys3, or Nexys4. Initially two ttyUSB devices show up, 
-        the lower is for FPGA configuration and will disappear when the Vivado 
-        hardware server is used once. The upper provides the data connection.
+        like an Arty, Basys3, CmodA7, or Nexys4. Initially two ttyUSB devices
+        show up, the lower is for FPGA configuration and will disappear when
+        the Vivado hardware server is used once. The upper provides the data
+        connection.
       - `<dn>` is typically '0' if only a single USB-RS232 cable is connected
 
      - on LED display

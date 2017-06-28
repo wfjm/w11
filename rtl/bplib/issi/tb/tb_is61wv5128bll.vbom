@@ -1,0 +1,7 @@
+#
+# libs
+../../../vlib/simlib/simlib.vhd
+# components
+../is61wv5128bll.vbom
+# design
+tb_is61wv5128bll.vhd

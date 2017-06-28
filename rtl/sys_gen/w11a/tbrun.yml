@@ -1,7 +1,8 @@
-# $Id: tbrun.yml 807 2016-09-17 07:49:26Z mueller $
+# $Id: tbrun.yml 916 2017-06-25 13:30:07Z mueller $
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2017-06-25   914   1.1    add cmoda7
 # 2016-08-22   800   1.0    Initial version
 #
 - include: s3board/tb/tbrun.yml
@@ -10,3 +11,4 @@
 - include: nexys4/tb/tbrun.yml
 - include: basys3/tb/tbrun.yml
 - include: arty_bram/tb/tbrun.yml
+- include: cmoda7/tb/tbrun.yml

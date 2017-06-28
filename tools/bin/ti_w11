@@ -1,11 +1,12 @@
 #!/usr/bin/perl -w
-# $Id: ti_w11 843 2017-01-08 18:15:27Z mueller $
+# $Id: ti_w11 916 2017-06-25 13:30:07Z mueller $
 #
 # Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2017-06-25   916   1.4.2  add -c7 (cmoda7 support)
 # 2017-01-08   843   1.4.1  allow -tuD,.... for Digilent autodetect; add -bn4d
 # 2016-12-31   834   1.4    use rw11::shell by default; add -ns to suppress it
 # 2016-06-18   776   1.3.5  use ti_rri --tout now
@@ -53,6 +54,7 @@ my $val_tb_n4   = "tbw $sysbase/nexys4/tb/tb_w11a_n4 -fifo";
 my $val_tb_bn4  = "tbw $sysbase/nexys4_bram/tb/tb_w11a_br_n4 -fifo";
 my $val_tb_bn4d = "tbw $sysbase/nexys4d_bram/tb/tb_w11a_br_n4d -fifo";
 my $val_tb_bar  = "tbw $sysbase/arty_bram/tb/tb_w11a_br_arty -fifo";
+my $val_tb_c7   = "tbw $sysbase/cmoda7/tb/tb_w11a_c7 -fifo";
 my $val_tb;
 my $val_e;
 
@@ -130,6 +132,12 @@ while (scalar(@ARGV)) {
     $opt_io = 'f';
     $opt_f  = 'x';
     $val_tb = $val_tb_bar;
+    shift @ARGV;
+
+  } elsif ($curarg =~ m{^-c7$} ) {	    # -c7 (use -fx by default)
+    $opt_io = 'f';
+    $opt_f  = 'x';
+    $val_tb = $val_tb_c7;
     shift @ARGV;
 
   } elsif ($curarg =~ m{^-f(c|x|1|1x|2|2x)$} ) { # -f..
@@ -343,6 +351,7 @@ exit 1;
 sub print_usage {
   print "usage: ti_w11 <setup options> <ti_rri opts and cmds>...\n";
   print "  setup options for ghdl simulation runs:\n";
+  print "    -c7       start tb_w11a_c7 simulation (default: -fx)\n";
   print "    -b3       start tb_w11a_b3 simulation (default: -fx)\n";
   print "    -n4       start tb_w11a_n4 simulation\n";
   print "    -bn4      start tb_w11a_br_n4 simulation\n";

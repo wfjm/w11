@@ -1,4 +1,4 @@
-# $Id: 92-retro-usb-persistent.rules 902 2017-06-03 14:02:17Z mueller $
+# $Id: 92-retro-usb-persistent.rules 918 2017-06-28 20:04:17Z mueller $
 #
 # udev rules to create persistent names for Digilent FT2232C style FPGA boards
 #
@@ -11,7 +11,17 @@
 #   interface number are properties of different device layers and multiple
 #   ATTRS{} must match in one layer
 #
-# NOTE: this is an example, adopt ID_SERIAL_SHORT to your needs
+# NOTE: this is an example, adopt ID_SERIAL_SHORT to your needs, use
+#         udevadm info -q all -n /dev/ttyUSB2        # change USB2 to need
 #
 # - Digilent nexys4 board ------------------------------------------------
 SUBSYSTEM=="tty", ENV{ID_USB_INTERFACE_NUM}=="01", ENV{ID_MODEL}=="Digilent_USB_Device", ENV{ID_SERIAL_SHORT}=="210274628291", SYMLINK="fpga_n4"
+#
+# - Digilent basys3 board ------------------------------------------------
+SUBSYSTEM=="tty", ENV{ID_USB_INTERFACE_NUM}=="01", ENV{ID_MODEL}=="Digilent_USB_Device", ENV{ID_SERIAL_SHORT}=="210183638100", SYMLINK="fpga_b3"
+#
+# - Digilent arty board --------------------------------------------------
+SUBSYSTEM=="tty", ENV{ID_USB_INTERFACE_NUM}=="01", ENV{ID_MODEL}=="Digilent_USB_Device", ENV{ID_SERIAL_SHORT}=="210319788597", SYMLINK="fpga_arty"
+#
+# - Digilent arty board --------------------------------------------------
+SUBSYSTEM=="tty", ENV{ID_USB_INTERFACE_NUM}=="01", ENV{ID_MODEL}=="Digilent_Adept_USB_Device", ENV{ID_SERIAL_SHORT}=="210328A414AD", SYMLINK="fpga_c7"

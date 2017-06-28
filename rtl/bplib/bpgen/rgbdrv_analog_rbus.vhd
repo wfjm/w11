@@ -1,6 +1,6 @@
--- $Id: rgbdrv_analog_rbus.vhd 734 2016-02-20 22:43:20Z mueller $
+-- $Id: rgbdrv_analog_rbus.vhd 907 2017-06-05 08:19:12Z mueller $
 --
--- Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2016-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,10 +20,11 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  ise 14.7; viv 2015.4; ghdl 0.31
+-- Tool versions:  ise 14.7; viv 2015.4-2016.4; ghdl 0.31-0.34
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2017-06-05   907   1.1    add ACTLOW generic to invert output polarity
 -- 2016-02-20   724   1.0    Initial version
 ------------------------------------------------------------------------------
 --
@@ -48,6 +49,7 @@ use work.bpgenlib.all;
 entity rgbdrv_analog_rbus is   -- rgb analog from rbus
   generic (
     DWIDTH : positive := 8;             -- dimmer width
+    ACTLOW : slbit := '0';              -- invert output polarity
     RB_ADDR : slv16 := slv(to_unsigned(16#0000#,16)));
   port (
     CLK : in slbit;                     -- clock
@@ -95,7 +97,8 @@ begin
 
   RGB : rgbdrv_analog
     generic map (
-      DWIDTH   => DWIDTH)
+      DWIDTH   => DWIDTH,
+      ACTLOW   => ACTLOW)
     port map (
       CLK      => CLK,
       RESET    => RESET,

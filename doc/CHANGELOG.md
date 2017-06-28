@@ -18,6 +18,20 @@ The full set of tests is only run for tagged releases.
 
 ### Summary
 
+- Add Digilent Cmod A7 (35 die size) support
+  - general board support
+  - c7_sram_memctl: SRAM memory controller (incl tb)
+  - is61wv5128bll: simple memory model (incl tb)
+  - sn_humanio_emu_rbus: human IO emulator
+  - 92-retro-usb-persistent.rules: add more board rules
+  - associated changes
+    - sn_humanio_rbus: add stat_rbf_emu (=0); single cycle btn pulses
+    - rgbdrv_analog(_rbus): add ACTLOW generic to invert output polarity
+    - ti_rri: adopt Digilent autodetect for CmodA7
+  - add systems
+    - tst_rlink: rlink tested
+    - tst_sram: SRAM tester
+    - w11a: w11a system with 672 kB memory (512 SRAM + 160 BRAM)
 - new modules/packages
   - rtl/vlib/rutil.vhd: added package, with imin helper function
 - cleanups

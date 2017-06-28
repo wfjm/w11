@@ -7,6 +7,7 @@ and is organized in
 | [atlys](atlys)         | support for Digilent Atlys board |
 | [basys3](basys3)       | support for Digilent Basys3 board |
 | [bpgen](bpgen)         | interfaces for IO devices common on Digilent boards |
+| [cmoda7](cmoda7)       | support for Digilent Cmod A7 board |
 | [fx2lib](fx2lib)       | interface for Cypress FX2 USB |
 | [fx2rlink](fx2rlink)   | modules for rlink over Cypress FX2 |
 | [issi](issi)           | simulation models for ISSI components |

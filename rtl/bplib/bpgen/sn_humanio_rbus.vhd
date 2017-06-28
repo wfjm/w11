@@ -1,6 +1,6 @@
--- $Id: sn_humanio_rbus.vhd 640 2015-02-01 09:56:53Z mueller $
+-- $Id: sn_humanio_rbus.vhd 912 2017-06-11 18:30:03Z mueller $
 --
--- Copyright 2010-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,7 +20,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  ise 11.4-14.7; viv 2014.4; ghdl 0.26-0.31
+-- Tool versions:  ise 11.4-14.7; viv 2014.4-2017.1; ghdl 0.26-0.34
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -34,6 +34,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2017-06-11   912   2.0.1  add stat_rbf_emu (=0); single cycle btn pulses
 -- 2015-01-31   640   2.0    add SWIDTH,LWIDTH,DCWIDTH, change register layout
 -- 2014-08-15   583   1.3    rb_mreq addr now 16 bit
 -- 2011-11-19   427   1.2.1  now numeric_std clean
@@ -49,6 +50,7 @@
 --
 -- Addr   Bits  Name        r/w/f  Function
 --  000         stat        r/-/-  Status register
+--           15   emu       r/-/-    emulation (always 0)
 --        14:12   hdig      r/-/-    display size as (2**DCWIDTH)-1
 --        11:08   hled      r/-/-    led     size as LWIDTH-1
 --         7:04   hbtn      r/-/-    button  size as BWIDTH-1
@@ -163,6 +165,7 @@ architecture syn of sn_humanio_rbus is
   signal R_REGS : regs_type := regs_init;  -- state registers
   signal N_REGS : regs_type := regs_init;  -- next value state regs
 
+  constant stat_rbf_emu:     integer := 15;
   subtype  stat_rbf_hdig     is integer range 14 downto 12;
   subtype  stat_rbf_hled     is integer range 11 downto  8;
   subtype  stat_rbf_hbtn     is integer range  7 downto  4;
@@ -270,7 +273,9 @@ begin
 
     -- input register for LED signal
     n.ledin  := LED;
-
+    -- clear btn register --> cause single cycle pulses
+    n.btn    := (others=>'0');
+    
     -- rbus address decoder
     n.rbsel := '0';
     if RB_MREQ.aval='1' and RB_MREQ.addr(15 downto 3)=RB_ADDR(15 downto 3) then
@@ -284,6 +289,7 @@ begin
       case RB_MREQ.addr(2 downto 0) is
         
         when rbaddr_stat =>
+          irb_dout(stat_rbf_emu)   := '0';
           irb_dout(stat_rbf_hdig)  := slv(to_unsigned((2**DCWIDTH)-1,3));
           irb_dout(stat_rbf_hled)  := slv(to_unsigned(LWIDTH-1,4));
           irb_dout(stat_rbf_hbtn)  := slv(to_unsigned(BWIDTH-1,4));

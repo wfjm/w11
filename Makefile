@@ -1,4 +1,4 @@
-# $Id: Makefile 893 2017-05-05 17:43:53Z mueller $
+# $Id: Makefile 918 2017-06-28 20:04:17Z mueller $
 #
 # 'Meta Makefile' for whole retro project
 #   allows to make all synthesis targets
@@ -6,6 +6,7 @@
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2017-06-28   918   1.2.8  add cmoda7 port for tst_rlink,tst_sram,w11a
 # 2017-05-01   891   1.2.7  add all_tcl to all; use njobihtm
 # 2016-10-01   810   1.2.6  move component tests to SIM_viv when vivado used
 # 2016-07-10   785   1.2.5  re-enable rtl/sys_gen/tst_sram/nexys4 (ok in 2016.2)
@@ -75,6 +76,11 @@ SYN_viv += rtl/sys_gen/w11a/nexys4
 SYN_viv += rtl/sys_gen/tst_rlink/arty
 SYN_viv += rtl/sys_gen/w11a/arty_bram
 
+#     CmodA7 -------------------------------------
+SYN_viv += rtl/sys_gen/tst_rlink/cmoda7
+SYN_viv += rtl/sys_gen/tst_sram/cmoda7
+SYN_viv += rtl/sys_gen/w11a/cmoda7
+
 # Simulation targets -------------------------------------------------
 #   ISE flow -----------------------------------------------
 
@@ -126,7 +132,12 @@ SIM_viv += rtl/sys_gen/w11a/nexys4/tb
 SIM_viv += rtl/sys_gen/tst_rlink/arty/tb
 SIM_viv += rtl/sys_gen/w11a/arty_bram/tb
 
-#
+#     CmodA7 -------------------------------------
+SIM_viv += rtl/sys_gen/tst_rlink/cmoda7/tb
+SIM_viv += rtl/sys_gen/tst_sram/cmoda7/tb
+SIM_viv += rtl/sys_gen/w11a/cmoda7/tb
+
+# --------------------------------------------------------------------
 .PHONY : default
 .PHONY : all all_ise all_viv
 .PHONY : all_sim_ise all_syn_ise all_syn_viv

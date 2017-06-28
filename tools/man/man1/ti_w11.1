@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: ti_w11.1 845 2017-01-15 14:58:27Z mueller $
+.\"  $Id: ti_w11.1 916 2017-06-25 13:30:07Z mueller $
 .\"
 .\" Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH TI_W11 1 2017-01-14 "Retro Project" "Retro Project Manual"
+.TH TI_W11 1 2017-06-25 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 ti_w11 \- Quick starter for \fBti_rri\fP with \fBw11\fP CPU designs
@@ -55,6 +55,8 @@ use /dev/ttyUSB*  (* is device number \fIN\fP or 'D')
 .
 .SS "setup options for ghdl simulation runs"
 .PD 0
+.IP \fB-c7\fP
+start \fItb_w11a_c7\fP simulation (Cmod A7, default \fB-fx\fP)
 .IP \fB-b3\fP
 start \fItb_w11a_b3\fP simulation (Basys3, default \fB-fx\fP)
 .IP \fB-n4\fP
@@ -81,7 +83,7 @@ for mode \fIm\fP are
 .IP \fBc\fP 4
 use Cypress FX2 data path (cuff, only for -n2 and -n3)
 .IP \fBx\fP 4
-use 1st serport with hardwired xon (for -b3 and -arty)
+use 1st serport with hardwired xon (for -b3,-bar,-c7)
 .IP \fB1\fP 4
 use 1st serport
 .IP \fB1x\fP 4

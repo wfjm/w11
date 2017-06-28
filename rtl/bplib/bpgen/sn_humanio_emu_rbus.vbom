@@ -1,0 +1,6 @@
+# libs
+../../vlib/slvtypes.vhd
+../../vlib/rbus/rblib.vhd
+# components
+# design
+sn_humanio_emu_rbus.vhd

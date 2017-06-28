@@ -1,0 +1,4 @@
+# libs
+../../../vlib/slvtypes.vhd
+# design
+cmoda7_dummy.vhd

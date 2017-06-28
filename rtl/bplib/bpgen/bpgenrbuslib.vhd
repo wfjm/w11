@@ -1,6 +1,6 @@
--- $Id: bpgenrbuslib.vhd 734 2016-02-20 22:43:20Z mueller $
+-- $Id: bpgenrbuslib.vhd 912 2017-06-11 18:30:03Z mueller $
 --
--- Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,11 @@
 -- Description:    Generic Board/Part components using rbus
 -- 
 -- Dependencies:   -
--- Tool versions:  ise 12.1-14.7; viv 2014.4-2015.4; ghdl 0.26-0.31
+-- Tool versions:  ise 12.1-14.7; viv 2014.4-2017.1; ghdl 0.26-0.34
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2017-06-11   912   1.3.2  add sn_humanio_emu_rbus
+-- 2017-06-05   907   1.3.1  rgbdrv_analog_rbus: add ACTLOW generic
 -- 2016-02-20   734   1.3    add rgbdrv_analog_rbus
 -- 2015-01-25   637   1.2    add generics to sn_humanio_rbus
 -- 2014-08-15   583   1.1    rb_mreq addr now 16 bit
@@ -104,9 +106,30 @@ component sn_humanio_demu_rbus is       -- human i/o swi,btn,led only /w rbus
   );
 end component;
 
+component sn_humanio_emu_rbus is        -- sn_humanio rbus emulator
+  generic (
+    SWIDTH : positive := 8;             -- SWI port width
+    BWIDTH : positive := 4;             -- BTN port width
+    LWIDTH : positive := 8;             -- LED port width
+    DCWIDTH : positive := 2;            -- digit counter width (2 or 3)
+    RB_ADDR : slv16 := slv(to_unsigned(16#fef0#,16)));
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit := '0';            -- reset
+    RB_MREQ : in rb_mreq_type;          -- rbus: request
+    RB_SRES : out rb_sres_type;         -- rbus: response
+    SWI : out slv(SWIDTH-1 downto 0);   -- switch settings, debounced
+    BTN : out slv(BWIDTH-1 downto 0);   -- button settings, debounced
+    LED : in slv(LWIDTH-1 downto 0);    -- led data
+    DSP_DAT : in slv(4*(2**DCWIDTH)-1 downto 0);   -- display data
+    DSP_DP : in slv((2**DCWIDTH)-1 downto 0)       -- display decimal points
+  );
+end component;
+
 component rgbdrv_analog_rbus is         -- rgb analog from rbus
   generic (
     DWIDTH : positive := 8;             -- dimmer width
+    ACTLOW : slbit := '0';              -- invert output polarity
     RB_ADDR : slv16 := slv(to_unsigned(16#0000#,16)));
   port (
     CLK : in slbit;                     -- clock

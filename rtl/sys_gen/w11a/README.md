@@ -5,6 +5,7 @@ and is organized in
 | --------- | ------- |
 | [arty_bram](arty_bram) | design for Digilent Arty, using BRAM only |
 | [basys3](basys3)       | design for Digilent Basys3 |
+| [cmoda7](cmoda7)       | design for Digilent Cmod A7 (35 die size) |
 | [nexys2](nexys2)       | design for Digilent Nexys2 |
 | [nexys3](nexys3)       | design for Digilent Nexys3 |
 | [nexys4](nexys4)       | design for Digilent Nexys4 (old CRAM version !!) |

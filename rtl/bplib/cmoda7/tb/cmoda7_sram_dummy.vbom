@@ -1,0 +1,5 @@
+# libs
+../../../vlib/slvtypes.vhd
+# components
+# design
+cmoda7_sram_dummy.vhd

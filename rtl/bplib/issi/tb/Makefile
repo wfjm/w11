@@ -1,13 +1,14 @@
-# $Id: Makefile 804 2016-08-28 17:33:50Z mueller $
+# $Id: Makefile 906 2017-06-04 21:59:13Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2017-06-04   906   1.3.1  add tb_is61wv5128bll
 # 2016-08-28   804   1.3    remove ISim, add XSim support
 # 2011-08-13   405   1.2    use includes from rtl/make
 # 2009-11-21   252   1.1    add ISim support
 # 2007-12-14   101   1.0    Initial version
 #
-EXE_all = tb_is61lv25616al
+EXE_all = tb_is61lv25616al tb_is61wv5128bll
 
 #
 # reference board for test synthesis is Artix-7 based Nexys4

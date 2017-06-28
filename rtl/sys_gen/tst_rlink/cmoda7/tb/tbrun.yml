@@ -1,0 +1,18 @@
+# $Id: tbrun.yml 906 2017-06-04 21:59:13Z mueller $
+#
+# Revision History:
+# Date         Rev Version  Comment
+# 2017-06-04   906   1.0    Initial version
+#
+- default:
+    mode: ${viv_modes}
+#
+- tag:  [default, viv, sys_tst_rlink, c7, base]
+  test: |
+    tbrun_tbwrri --hxon --lsuf base --pack tst_rlink   tb_tst_rlink_c7${ms} \
+      "tst_rlink::setup"  "tst_rlink::test_all"
+#
+- tag:  [default, viv, sys_tst_rlink, c7, emon]
+  test: |
+    tbrun_tbwrri --hxon --lsuf emon --pack tst_rlink   tb_tst_rlink_c7${ms} \
+      "tst_rlink::setup"  "tst_rlink::test_all_emon"

@@ -1,0 +1,29 @@
+# libs
+../../../vlib/slvtypes.vhd
+../../../vlib/xlib/xlib.vhd
+../../../vlib/genlib/genlib.vhd
+../../../vlib/serport/serportlib.vbom
+../../../vlib/rbus/rblib.vhd
+../../../vlib/rbus/rbdlib.vhd
+../../../vlib/rlink/rlinklib.vbom
+../../../bplib/bpgen/bpgenlib.vbom
+../../../bplib/bpgen/bpgenrbuslib.vbom
+../../../bplib/sysmon/sysmonrbuslib.vbom
+${sys_conf := sys_conf.vhd}
+# components
+[xst,vsyn]../../../vlib/xlib/s7_cmt_sfs_unisim.vbom
+[ghdl,isim,vsim]../../../vlib/xlib/s7_cmt_sfs_gsim.vbom
+../../../vlib/genlib/clkdivce.vbom
+../../../bplib/bpgen/bp_rs232_2line_iob.vbom
+../../../vlib/rlink/rlink_sp1c.vbom
+../rbd_tst_rlink.vbom
+../../../bplib/bpgen/rgbdrv_master.vbom
+../../../bplib/bpgen/rgbdrv_analog_rbus.vbom
+../../../bplib/sysmon/sysmonx_rbus_base.vbom
+../../../vlib/rbus/rbd_usracc.vbom
+../../../vlib/rbus/rb_sres_or_4.vbom
+../../../vlib/xlib/iob_reg_o_gen.vbom
+# design
+sys_tst_rlink_c7.vhd
+@xdc:../../../bplib/cmoda7/cmoda7_pclk.xdc
+@xdc:../../../bplib/cmoda7/cmoda7_pins.xdc

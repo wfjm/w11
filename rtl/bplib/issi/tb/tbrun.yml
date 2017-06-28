@@ -1,13 +1,17 @@
-# $Id: tbrun.yml 807 2016-09-17 07:49:26Z mueller $
+# $Id: tbrun.yml 906 2017-06-04 21:59:13Z mueller $
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2017-06-04   906   1.2    add tb_is61wv5128bll
 # 2016-00-10   806   1.1    use nossim because no _ssim support available
 # 2016-08-12   797   1.0    Initial version
 #
 - default:
     mode: ${viv_modes_nossim}
 #
-- tag:  [default, viv, bplib, issi]
+- tag:  [default, ise, bplib, issi]
   test: |
     tbrun_tbw tb_is61lv25616al${ms}
+- tag:  [default, viv, bplib, issi]
+  test: |
+    tbrun_tbw tb_is61wv5128bll${ms}

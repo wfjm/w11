@@ -1,4 +1,4 @@
-# $Id: util.tcl 895 2017-05-07 07:38:47Z mueller $
+# $Id: util.tcl 912 2017-06-11 18:30:03Z mueller $
 #
 # Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -30,7 +30,7 @@ namespace eval rbs3hio {
   #
   # setup register descriptions for s3_humanio_rbus
   #
-  regdsc STAT {hdig 14 3} {hled 11 4} {hbtn 7 4} {hswi 3 4}
+  regdsc STAT {emu 15} {hdig 14 3} {hled 11 4} {hbtn 7 4} {hswi 3 4}
   regdsc CNTL {dsp1en 4} {dsp0en 3} {dpen 2} {leden 1} {swien 0}
 
   #

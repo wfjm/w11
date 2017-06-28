@@ -1,0 +1,25 @@
+# Not meant for direct top level usage. Used with 
+# tb_cmoda7_(....)[_ssim].vbom and config
+# lines to generate the different cases.
+#
+# libs
+../../../vlib/slvtypes.vhd
+../../../vlib/rlink/rlinklib.vbom
+../../../vlib/xlib/xlib.vhd
+../cmoda7lib.vhd
+../../../vlib/simlib/simlib.vhd
+../../../vlib/simlib/simbus.vhd
+${sys_conf := sys_conf_sim.vhd}
+# components
+../../../vlib/simlib/simclk.vbom
+../../../vlib/simlib/simclkcnt.vbom
+../../../vlib/rlink/tbcore/tbcore_rlink.vbom
+../../../vlib/xlib/tb/s7_cmt_sfs_tb.vbom
+tb_cmoda7_core.vbom
+../../../vlib/simlib/simbididly.vbom
+../../issi/is61wv5128bll.vbom
+../../../vlib/serport/tb/serport_master_tb.vbom
+${cmoda7_sram_aif := cmoda7_sram_dummy.vbom}  -UUT
+# design
+tb_cmoda7_sram.vhd
+@top:tb_cmoda7_sram

@@ -1,6 +1,6 @@
--- $Id: bpgenlib.vhd 737 2016-02-28 09:07:18Z mueller $
+-- $Id: bpgenlib.vhd 907 2017-06-05 08:19:12Z mueller $
 --
--- Copyright 2011-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Generic Board/Part components
 -- 
 -- Dependencies:   -
--- Tool versions:  ise 12.1-14.7; viv 2014.4-2015.4; ghdl 0.26-0.31
+-- Tool versions:  ise 12.1-14.7; viv 2014.4-2016.4; ghdl 0.26-0.34
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2017-06-05   907   1.2.1  rgbdrv_analog: add ACTLOW generic
 -- 2016-02-27   737   1.2    add rgbdrv entity
 -- 2015-01-24   637   1.1.2  add generics to sn_humanio and sn_7segctl
 -- 2013-09-21   534   1.1.1  add bp_rs232_4l4l_iob
@@ -195,7 +196,8 @@ end component;
 
 component rgbdrv_analog is              -- rgbled driver: analog channel
   generic (
-    DWIDTH : positive := 8);            -- dimmer width
+    DWIDTH : positive := 8;             -- dimmer width
+    ACTLOW : slbit := '0');             -- invert output polarity
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit := '0';            -- reset

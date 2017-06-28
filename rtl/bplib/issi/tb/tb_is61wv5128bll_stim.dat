@@ -1,0 +1,105 @@
+# $Id: tb_is61wv5128bll_stim.dat 906 2017-06-04 21:59:13Z mueller $
+#
+C Write first 8 cells
+#
+wdo   0 ns ce=1  a=00000 de=1 d=70
+wdo  10 ns we=1
+wdo  20 ns we=0
+wdo  10 ns ce=1  a=00001 de=1 d=61
+wdo  10 ns we=1
+wdo  20 ns we=0
+wdo  10 ns ce=1  a=00002 de=1 d=52
+wdo  10 ns we=1
+wdo  20 ns we=0
+wdo  10 ns ce=1  a=00003 de=1 d=43
+wdo  10 ns we=1
+wdo  20 ns we=0
+wdo  10 ns ce=1  a=00004 de=1 d=34
+wdo  10 ns we=1
+wdo  20 ns we=0
+wdo  10 ns ce=1  a=00005 de=1 d=25
+wdo  10 ns we=1
+wdo  20 ns we=0
+wdo  10 ns ce=1  a=00006 de=1 d=16
+wdo  10 ns we=1
+wdo  20 ns we=0
+wdo  10 ns ce=1  a=00007 de=1 d=07
+wdo  10 ns we=1
+wdo  20 ns we=0
+#
+wdo  10 ns de=0
+wdo  20 ns
+#
+C Read first 8 cells
+#
+wdo  20 ns oe=1 a=00000
+wdo  20 ns D=70
+wdo   0 ns oe=1 a=00001
+wdo  20 ns D=61
+wdo   0 ns oe=1 a=00002
+wdo  20 ns D=52
+wdo   0 ns oe=1 a=00003
+wdo  20 ns D=43
+wdo   0 ns oe=1 a=00004
+wdo  20 ns D=34
+wdo   0 ns oe=1 a=00005
+wdo  20 ns D=25
+wdo   0 ns oe=1 a=00006
+wdo  20 ns D=16
+wdo   0 ns oe=1 a=00007
+wdo  20 ns D=07
+#
+wdo   0 ns oe=0
+wdo  20 ns
+#
+C Write last 8 cells
+#
+wdo   0 ns ce=1  a=3fff8 de=1 d=f8
+wdo  10 ns we=1
+wdo  20 ns we=0
+wdo  10 ns ce=1  a=3fff9 de=1 d=e9
+wdo  10 ns we=1
+wdo  20 ns we=0
+wdo  10 ns ce=1  a=3fffa de=1 d=da
+wdo  10 ns we=1
+wdo  20 ns we=0
+wdo  10 ns ce=1  a=3fffb de=1 d=cb
+wdo  10 ns we=1
+wdo  20 ns we=0
+wdo  10 ns ce=1  a=3fffc de=1 d=bc
+wdo  10 ns we=1
+wdo  20 ns we=0
+wdo  10 ns ce=1  a=3fffd de=1 d=ad
+wdo  10 ns we=1
+wdo  20 ns we=0
+wdo  10 ns ce=1  a=3fffe de=1 d=9e
+wdo  10 ns we=1
+wdo  20 ns we=0
+wdo  10 ns ce=1  a=3ffff de=1 d=8f
+wdo  10 ns we=1
+wdo  20 ns we=0
+#
+wdo  10 ns de=0
+wdo  20 ns
+
+C Read some cells in staggered pattern
+#
+wdo  20 ns oe=1 a=00000
+wdo  20 ns D=70
+wdo   0 ns oe=1 a=3ffff
+wdo  20 ns D=8f
+wdo   0 ns oe=1 a=00002
+wdo  20 ns D=52
+wdo   0 ns oe=1 a=3fffd
+wdo  20 ns D=ad
+wdo   0 ns oe=1 a=00004
+wdo  20 ns D=34
+wdo   0 ns oe=1 a=3fffb
+wdo  20 ns D=cb
+wdo   0 ns oe=1 a=00006
+wdo  20 ns D=16
+wdo   0 ns oe=1 a=3fff9
+wdo  20 ns D=e9
+#
+wdo   0 ns oe=0
+wdo  20 ns

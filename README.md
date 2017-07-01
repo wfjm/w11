@@ -9,7 +9,7 @@ and a basic set of UNIBUS peripherals
 (DL11, LP11, PC11),
 and last but not least a cache and memory controllers for SRAM and PSRAM.
 The design is **FPGA proven**, runs currently on
-Digilent Arty, Basys3, Nexys4, Nexys3, Nexys2 and S3board boards
+Digilent Arty, Basys3, CmodA7, Nexys4, Nexys3, Nexys2 and S3board boards
 and boots 5th Edition UNIX and 2.11BSD UNIX. 
 
 For more information look into:

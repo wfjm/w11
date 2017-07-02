@@ -1,4 +1,4 @@
--- $Id: c7_sram_memctl.vhd 914 2017-06-25 06:17:18Z mueller $
+-- $Id: c7_sram_memctl.vhd 920 2017-07-02 08:54:54Z mueller $
 --
 -- Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -26,11 +26,12 @@
 -- Tool versions:  viv 2017.1; ghdl 0.34
 --
 -- Synthesized (viv):
--- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic    
--- 2017-06-11   xxx 2017.1  xc7a35t-1       x     x     x     0     x
+-- Date         Rev  viv    Target       flop  lutl  lutm  bram    
+-- 2017-06-19   914 2017.1  xc7a35t-1     109    81     0     0   syn level
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2017-07-01   920   1.0.1  shorten ce and oe times
 -- 2017-06-19   914   1.0    Initial version
 -- 2017-06-11   912   0.5    First draft 
 --
@@ -38,36 +39,39 @@
 --
 -- single read request:
 -- 
--- state       |_idle  |_read  |_idle  |
+-- state       |_idle  |_read0 |_read1 |...._read0 |_read1 |_idle  |
 -- 
--- CLK       __|^^^|___|^^^|___|^^^|___|^
+-- CLK       __|^^^|___|^^^|___|^^^|___|....^^^|___|^^^|___|^^^|___|^^
 -- 
--- REQ       _______|^^^^^|______________
--- WE        ____________________________
+-- REQ       _________|^^^^^^^|____________________________________
+-- WE        ______________________________________________________
 -- 
--- IOB_CE    __________|^^^^^^^|_________
--- IOB_OE    __________|^^^^^^^|_________
+-- IOB_CE    __________|^^^^^^^^^^^^^^^^....^^^^^^^^^^^^^^^|_________
+-- IOB_OE    __________|^^^^^^^^^^^^^^^^....^^^^^^^^^^^^^^^|_________
 -- 
--- DO        oooooooooooooooooo|ddddddd|d
--- BUSY      ____________________________
--- ACK_R     __________________|^^^^^^^|_
+-- ADDR[1:0]           |    00 |    00 |....    11 |    11 |---------
+-- DATA      ----------|        data-0 |            data-3 |---------
+-- BUSY      __________|^^^^^^^^^^^^^^^^....^^^^^^^^^^^^^^^|________
+-- ACK_R     ___________________________...._______|^^^^^^^|________
 -- 
--- single write request:
+-- single write request (assume BE="0011")
 -- 
--- state       |_idle  |_write1|_write2|_idle  |
+-- state       |_idle  |_write0|_write1|_write0|_write1|_idle  |
 -- 
--- CLK       __|^^^|___|^^^|___|^^^|___|^^^|___|^
+-- CLK       __|^^^|___|^^^|___|^^^|___|^^^|___|^^^|___|^^^|___|^^
 -- 
--- REQ       _______|^^^^^|______________
--- WE        _______|^^^^^|______________
+-- REQ       _________|^^^^^^^|____________________________________
+-- WE        _________|^^^^^^^|____________________________________
 -- 
--- IOB_CE    __________|^^^^^^^^^^^^^^^|_________
--- IOB_BE    __________|^^^^^^^^^^^^^^^|_________
--- IOB_OE    ____________________________________
--- IOB_WE    ______________|^^^^^^^|_____________
+-- ADDR[1:0]           |    00 |    00 |....    01 |    01 |---------
+-- DATA      ----------| data-0        |....data-1         |---------
 -- 
--- BUSY      __________|^^^^^^^|_________________
--- ACK_W     __________________|^^^^^^^|_________
+-- IOB_CE    __________|^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^|_________
+-- IOB_OE    ________________________________________________________
+-- IOB_WE    ______________|^^^^^^^|___________|^^^^^^^|_____________
+-- 
+-- BUSY      __________|^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^|_________
+-- ACK_W     ______________________________________|^^^^^^^|_________
 -- 
 ------------------------------------------------------------------------------
 
@@ -318,13 +322,13 @@ begin
       when s_read1 =>                   -- s_read1: read cycle, 2nd half
         ibusy := '1';                     -- signal busy, unable to handle req
         iactr := '1';                     -- signal mem read
-        imem_ce   := '1';                 -- ce SRAM next cycle
-        imem_oe   := '1';                 -- oe SRAM next cycle
         idata_cei := '1';                 -- latch input data
         if r.addrb = "00" then            -- last byte seen (counter wrapped) ?
           n.ackr := '1';                    -- ACK_R next cycle
           n.state := s_idle;
         else                              -- more bytes to do ?
+          imem_ce   := '1';                 -- ce SRAM next cycle
+          imem_oe   := '1';                 -- oe SRAM next cycle
           iaddrb    := r.addrb;             -- use addrb counter
           iaddrb_ce := '1';                 -- latch byte address (use r.addrb)
           n.state := s_read0;
@@ -341,12 +345,12 @@ begin
       when s_write1 =>                  -- s_write1: write cycle, 2nd half
         ibusy := '1';                     -- signal busy, unable to handle req
         iactw := '1';                     -- signal mem write
-        idata_oe := '1';                  -- oe FPGA next cycle
-        imem_ce  := '1';                  -- ce SRAM next cycle
         if r.be = "0000" then             -- all done ?
           iackw := '1';                     -- signal write acknowledge
           n.state := s_idle;                -- next: idle
         else                              -- more to do ?
+          idata_oe  := '1';                 -- oe FPGA next cycle
+          imem_ce   := '1';                 -- ce SRAM next cycle
           idata_ceo := '1';                 -- latch output data (to SRAM)
           iaddrb    := iaddrb_be;           -- use addrb from be encode
           iaddrb_ce := '1';                 -- latch byte address (use iaddr_be)

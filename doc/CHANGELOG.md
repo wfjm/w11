@@ -18,6 +18,9 @@ The full set of tests is only run for tagged releases.
 
 ### Summary
 
+- Added Unix 7th Edition oskit; rename 5th Edition kit
+  - u5ed_rk: renamed from unix-v5_rk
+  - u7ed_rp: added, very preliminary, boots on CmodA7, further testing be be done
 - Add Digilent Cmod A7 (35 die size) support
   - general board support
   - c7_sram_memctl: SRAM memory controller (incl tb)

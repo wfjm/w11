@@ -1,4 +1,4 @@
-## Notes on oskit: Unix V5 system on RK05 volumes
+## Notes on oskit: Unix 5th Edition system on RK05 volumes
 
 ### General remarks
 See notes in [w11a_os_guide.md](../../../doc/w11a_os_guide.md) on
@@ -9,14 +9,14 @@ See notes in [w11a_os_guide.md](../../../doc/w11a_os_guide.md) on
 
 ### Installation
 A disk set is available from
-http://www.retro11.de/data/oc_w11/oskits/unix_v5_rkset.tgz
+http://www.retro11.de/data/oc_w11/oskits/u5ed_rkset.tgz
 
 Download, unpack and copy the disk images (*.dsk), e.g.
 ```bash
 
-       cd $RETROBASE/tools/oskit/unix-v5_rk
-       wget http://www.retro11.de/data/oc_w11/oskits/unix_v5_rkset.tgz
-       tar -xzf unix_v5_rkset.tgz
+       cd $RETROBASE/tools/oskit/u5ed_rk
+       wget http://www.retro11.de/data/oc_w11/oskits/u5ed_rkset.tgz
+       tar -xzf u5ed_rkset.tgz
 ```
 
 ### Usage
@@ -25,7 +25,7 @@ Download, unpack and copy the disk images (*.dsk), e.g.
   (see section Rlink in [w11a_os_guide.md](../../../doc/w11a_os_guide.md))
   ```
        boot script:  uv5_rk_boot.tcl
-       example:      ti_w11 <opt> @uv5_rk_boot.tcl
+       example:      ti_w11 <opt> @u5ed_rk_boot.tcl
                      where <opt> is the proper option set for the board.
   ```
 

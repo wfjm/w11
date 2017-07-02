@@ -116,7 +116,7 @@ All examples below use the same basic setup
           ti_w11 -tuD,12M,break,xon  @<oskit-name>_boot.tcl
 
      **Note**: the arty w11a has currently only 176 kB memory (all from BRAMS!)
-     unix-v5 works fine. XXDP, RT11 and RSX-11M should work.
+     u5ed works fine. XXDP, RT11 and RSX-11M should work.
      211bsd will not boot, neither most RSX-11M+ systems.
 
   - for b3 over serial
@@ -126,7 +126,7 @@ All examples below use the same basic setup
 
 
      **Note**: the basys3 w11a has only 176 kB memory (all from BRAMS!)
-     unix-v5 works fine. XXDP, RT11 and RSX-11M should work.
+     u5ed works fine. XXDP, RT11 and RSX-11M should work.
      211bsd will not boot, neither most RSX-11M+ systems.
 
   - for c7 over serial
@@ -134,7 +134,7 @@ All examples below use the same basic setup
           ti_w11 -tuD,12M,break,xon  @<oskit-name>_boot.tcl
 
      **Note**: the c7 w11a has currently only 672 kB memory (512 SRAM + 160 BRAM)
-     unix-5,XXDP,RT11,RSX-11M and most most RSX-11M+ systems should work.
+     u5ed, u7ed, XXDP, RT11, RSX-11M and most most RSX-11M+ systems should work.
      211bsd works only in the 'non-networking' configuration
      [211bsd_rpmin](../tools/oskit/211bsd_rpmin)
 
@@ -248,7 +248,8 @@ Several oskits are provided:
 
 | oskit Name  |  OS  | Disk/Tape| Comment |
 | :---- | :----| :------  | :------ |
-| [unix-v5_rk](../tools/oskit/unix-v5_rk) | Unix V5 System  | RK05 | |
+| [u5ed_rk](../tools/oskit/u5ed_rk) | Unix 5th Ed. System  | RK05 | |
+| [u7ed_rp](../tools/oskit/u7ed_rp) | Unix 7th Ed. System  | RP04 | _very preliminary, port to w11a in progress_|
 | [211bsd_rk](../tools/oskit/211bsd_rk)  | 2.11BSD system  | RK05 | _very elementary subset_ |
 | [211bsd_rl](../tools/oskit/211bsd_rl)  | 2.11BSD system  | RL02 | _small subset_ |
 | [211bsd_rp](../tools/oskit/211bsd_rp)  | 2.11BSD system  | RP06 | _full system_ |

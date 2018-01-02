@@ -1,10 +1,10 @@
--- $Id: tb_tst_sram_s3.vhd 437 2011-12-09 19:38:07Z mueller $
+-- $Id: tb_tst_sram_s3.vhd 984 2018-01-02 20:56:27Z mueller $
 --
 -- Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
--- Software Foundation, either version 2, or at your option any later version.
+-- Software Foundation, either version 3, or (at your option) any later version.
 --
 -- This program is distributed in the hope that it will be useful, but
 -- WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY

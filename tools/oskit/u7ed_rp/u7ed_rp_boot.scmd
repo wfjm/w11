@@ -1,4 +1,4 @@
-; $Id: u7ed_rp_boot.scmd 921 2017-07-02 11:55:14Z mueller $
+; $Id: u7ed_rp_boot.scmd 924 2017-07-16 16:32:22Z mueller $
 ;
 ; Setup file for Unix 7th Edition RP04 based system
 ;
@@ -9,6 +9,7 @@
 ;;;do ../../simh/setup_w11a_max.scmd
 set cpu 11/70 nofpp
 set cpu idle
+set cpu 2M
 ;
 set tto 7b
 set dlo0 7b

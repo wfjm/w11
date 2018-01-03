@@ -18,6 +18,8 @@ The full set of tests is only run for tagged releases.
 
 ### Summary
 
+- The license disclaimers in the source files referred so far to GPL V2 or later
+  They are now consistent with the License.txt file, which refers to GPL V3.
 - Added Unix 7th Edition oskit; rename 5th Edition kit
   - u5ed_rk: renamed from unix-v5_rk
   - u7ed_rp: added, very preliminary, boots on CmodA7, further testing be be done

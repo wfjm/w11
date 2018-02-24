@@ -43,3 +43,15 @@ copy of almost all OpenCores cores in Github under
 which is 
 [*outdated* and *not maintained*](https://github.com/freecores/w11/issues/1).
 ***Only [wfjm/w11](https://github.com/wfjm/w11) is maintained***.
+
+### License
+This project is released under the 
+[GPL V3 license](https://www.gnu.org/licenses/gpl-3.0.html),
+all files contain the disclaimer:
+
+    This program is free software; you may redistribute and/or modify
+    it under the terms of the GNU General Public License version 3.
+    See Licence.txt in distribition directory for further details.
+
+The full text of the GPL license is in this directory as
+[License.txt](License.txt).

@@ -18,7 +18,7 @@
 - For timing simulations only Vivado xsim can be used.
 - ISE isim is also available, but considered legacy support
 
-### Tests bench environment  <a name="env"></a>
+### <a id="env">Tests bench environment</a>
 
 All test benches have the same simple structure:
 
@@ -53,7 +53,7 @@ All test benches have the same simple structure:
   of the vivado flow and 
   [README_buildsystem_ISE.md](README_buildsystem_ISE.md) for the ISE flow.
 
-### Unit test benches  <a name="tb-unit"></a>
+### <a id="tb-unit">Unit test benches</a>
 
 All unit test are executed via `tbw` (test bench warpper) script.
 
@@ -73,7 +73,7 @@ All unit test are executed via `tbw` (test bench warpper) script.
   tbw|tbfilt pipe. This script also checks with `make` whether the
   test bench is up-to-date or must be (re)-compiled.
 
-### System test benches  <a name="tb-sys"></a>
+### <a id="tb-sys">System test benches</a>
 
 The system tests allow to verify to verify a full system design.
 In this case vhdl test bench code contains
@@ -93,7 +93,7 @@ In general the script `tbrun_tbwrri` is used to generate the quite lengthy
 command to properly setup the tbw|tbfilt pipe.  This script also checks 
 with `make` whether the test bench is up-to-date or must be (re)-compiled.
 
-### Test bench driver  <a name="tb-driver"></a>
+### <a id="tb-driver">Test bench driver</a>
 
 All available tests (unit and system test benches) are described in a
 set of descriptor files, usually called `tbrun.yml`. The top level file
@@ -123,7 +123,7 @@ selection via `--tag`. Very helpful is
 which gives a listing of all available test. The tag list as well as
 the shell commands to execute the test are shown.
 
-### Execute all available tests  <a name="tb-exec"></a>
+### <a id="tb-exec">Execute all available tests</a>
 
 As stated above it is in general better to to separate the model building 
 (make phase) made model execution (run phase). The currently recommended
@@ -162,7 +162,7 @@ It should look like
      76m   0m00.083s c     1121   0 PASS tb_pdp11core_bsim_ubmap.log
      76m   0m00.068s c     1031   0 PASS tb_rlink_tba_pdp11core_bsim_ibdr.log
 
-### Available unit test benches  <a name="list-tb-unit"></a>
+### <a id="list-tb-unit">Available unit test benches</a>
 
      tbrun --tag=comlib                    # comlib unit tests
      tbrun --tag=serport                   # serport unit tests
@@ -173,7 +173,7 @@ It should look like
      tbrun --tag=cram_memctl               # CRAM controller unit tests
      tbrun --tag=w11a                      # w11a unit tests
 
-### Available system test benches  <a name="list-tb-sys"></a>
+### <a id="list-tb-sys">Available system test benches</a>
 
      tbrun --tag=sys_tst_serloop.*         # all sys_tst_serloop designs
      tbrun --tag=sys_tst_rlink             # all sys_tst_rlink designs

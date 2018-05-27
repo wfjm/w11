@@ -10,7 +10,7 @@
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## HEAD <a name="head"></a>
+## <a id="head">HEAD</a>
 ### General Proviso
 The HEAD version shows the current development. No guarantees that
 software or firmware builds or that the documentation is consistent.
@@ -22,7 +22,7 @@ The full set of tests is only run for tagged releases.
   They are now consistent with the License.txt file, which refers to GPL V3.
 - Added Unix 7th Edition oskit; rename 5th Edition kit
   - u5ed_rk: renamed from unix-v5_rk
-  - u7ed_rp: added, very preliminary, boots on CmodA7, further testing be be done
+  - u7ed_rp: added, very preliminary, boots on CmodA7, further testing needed
 - Add Digilent Cmod A7 (35 die size) support
   - general board support
   - c7_sram_memctl: SRAM memory controller (incl tb)
@@ -55,7 +55,7 @@ The full set of tests is only run for tagged releases.
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2017-06-04: [w11a_V0.75](https://github.com/wfjm/w11/releases/tag/w11a_V0.75) - rev 904(wfjm) <a name="w11a_V0.75"></a>
+## <a id="w11a_V0.75">2017-06-04: [w11a_V0.75](https://github.com/wfjm/w11/releases/tag/w11a_V0.75) - rev 904(wfjm)</a>
 
 ### Summary
 - the only device class missing so far for the w11 was *network interfaces*.
@@ -237,7 +237,7 @@ The full set of tests is only run for tagged releases.
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2017-01-07: [w11a_V0.742](https://github.com/wfjm/w11/releases/tag/w11a_V0.742) - rev 841(wfjm) <a name="w11a_V0.742"></a>
+## <a id="w11a_V0.742">2017-01-07: [w11a_V0.742](https://github.com/wfjm/w11/releases/tag/w11a_V0.742) - rev 841(wfjm)</a>
 
 ### Summary
 - fixes for Vivado 2016.4; all designs build under vivado 2016.4
@@ -249,7 +249,7 @@ The full set of tests is only run for tagged releases.
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2016-12-23: [w11a_V0.741](https://github.com/wfjm/w11/releases/tag/w11a_V0.741) - rev 826(wfjm) <a name="w11a_V0.741"></a>
+## <a id="w11a_V0.741">2016-12-23: [w11a_V0.741](https://github.com/wfjm/w11/releases/tag/w11a_V0.741) - rev 826(wfjm)</a>
 ### Summary
 - moved w11 repository from OpenCores to GitHub
   [wfjm/w11](https://github.com/wfjm/w11/)

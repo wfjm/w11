@@ -14,7 +14,7 @@
 - [Configuring FPGAs (directly via config_wrapper)](#user-content-config-wrap)
 - [Note on Artix-7 based designs](#user-content-artix)
 
-### Concept <a name="concept"></a>
+### <a id="concept">Concept</a>
 
 This projects uses GNU make to
 - generate bit files     (synthesis with xst and place&route with par)
@@ -58,9 +58,9 @@ maintained.
 
 For more details on vbomconv consult the man page.
 
-### Setup system environment <a name="sysenv"></a>
+### <a id="sysenv">Setup system environment</a>
 
-#### Setup environment variables <a name="envvar"></a>
+#### <a id="envvar">Setup environment variables</a>
 
 The build flows require the environment variables:
 - `RETROBASE`:  must refer to the installation root directory
@@ -78,7 +78,7 @@ Notes:
 - don't run the ISE setup scripts ..../settings(32|64).sh in your working 
   shell. Setup only `XTWI_PATH` !
   
-#### Compile UNISIM/UNIMACRO/SIMPRIM libraries for ghdl <a name="ghdllibs"></a>
+#### <a id="ghdllibs">Compile UNISIM/UNIMACRO/SIMPRIM libraries for ghdl</a>
 
 A few entities use `UNISIM` or `UNIMACRO` primitives, and models derived after
 the par step require also `SIMPRIM` primitives. In these cases ghdl has to
@@ -99,13 +99,13 @@ Two helper scripts will create these libraries:
 
 Run these scripts for each ISE version which is installed.
 
-### Building test benches  <a name="buildtb"></a>
+### <a id="buildtb">Building test benches</a>
 
 The build flows support two simulators
 - ghdl      -> open source, with VHPI support, doesn't accept sdf files
 - ISE ISim  -> limited to 50k lines in WebPack, no VHPI support
 
-#### With ghdl  <a name="buildtb-ghdl"></a>
+#### <a id="buildtb-ghdl">With ghdl</a>
 
 To compile a ghdl based test bench named `<tbench>` all is needed is
 
@@ -138,7 +138,7 @@ Notes:
 - post-par simulations without timing annotation often fail, most likely
   due to clocking and delta cycle issues due to inserted clock buffers.
 
-#### With ISE ISim  <a name="buildtb-isim"></a>
+#### <a id="buildtb-isim">With ISE ISim</a>
 
 To compile a ISE ISim based test bench named `<tbench>` all is needed is
 
@@ -165,7 +165,7 @@ Notes:
   Since VHPI is used in the rlink simulation all system test benches with
   an rlink interface, thus most, will only run with ghdl and not with ISim.
  
-### Building FPGA bit files  <a name="buildfpga"></a>
+### <a id="buildfpga">Building FPGA bit files</a>
 
 To generate a bit file for a system named `<sys>` all is needed is
 
@@ -203,7 +203,7 @@ use the make target
 
 after a re-build.
 
-### Configuring FPGAs (via make flow) <a name="config-make"></a>
+### <a id="config-make">Configuring FPGAs (via make flow)</a>
 
 The make flow supports also loading the bitstream into FPGAs, either
 via Xilinx Impact, or via the Cypress FX2 USB controller is available.
@@ -223,7 +223,7 @@ to a version matching the FPGA design, generate a .svf file from the
 .bit file, and configure the FPGA. In case the bit file is out-of-date
 the whole design will be re-implemented before.
 
-### Configuring FPGAs (directly via `config_wrapper`) <a name="config-wrap"></a>
+### <a id="config-wrap">Configuring FPGAs (directly via `config_wrapper`)</a>
 
 The make flow described above uses two scripts
 
@@ -233,7 +233,7 @@ The make flow described above uses two scripts
 which can be used directly for loading available bit or svf files into
 the FPGA. For detailed documentation see the respective man pages.
 
-### Note on Artix-7 based designs <a name="artix"></a>
+### <a id="artix">Note on Artix-7 based designs</a>
 
 The development for Nexys4 started with ISE, but has now fully moved to
 Vivado. The make files for the ISE build flows have been kept for comparison

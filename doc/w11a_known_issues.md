@@ -11,7 +11,7 @@ This file descibes issues of the w11 CPU.
 - [Known limitations](#user-content-lim)
 - [Known bugs](#user-content-bug)
 
-### Known differences between w11a and KB11-C (11/70) <a name="diff"></a>
+### <a id="diff">Known differences between w11a and KB11-C (11/70)</a>
 
 - the `SPL` instruction in the 11/70 always fetched the next instruction
   regardless of pending device or even console interrupts. This is known
@@ -43,7 +43,7 @@ All four points relate to very 11/70 specific behaviour, no operating system
 depends on them, therefore they are considered acceptable implementation
 differences.
 
-### Known limitations  <a name="lim"></a>
+### <a id="lim">Known limitations</a>
 
 - some programs use timing loops based on the execution speed of the
   original processors. This can lead to spurious timeouts, especially
@@ -56,7 +56,7 @@ differences.
   **--> a 'watch dog' mechanism will be added in a future version which
   suspends the CPU when the server doesn't respond fast enough.**
 
-### Known bugs  <a name="bug"></a>
+### <a id="bug">Known bugs</a>
 
 - **TCK-038 pri=H: DL11: output chars lost**  
 Part of the output can be lost when `xxdp` test `eqkce1` is run on FPGA, also

@@ -18,8 +18,8 @@ For more information look into:
 - [change log](doc/CHANGELOG.md)
   and [installation notes](doc/INSTALL.md)
 - guides to build bit files and test benches
-  with [Xilinx Vivado](doc/README_buildsystem_Vivado.md.html)
-  and [Xilinx ISE](doc/README_buildsystem_ISE.md.html)
+  with [Xilinx Vivado](doc/README_buildsystem_Vivado.md)
+  and [Xilinx ISE](doc/README_buildsystem_ISE.md)
 - guides to [run test benches](doc/w11a_tb_guide.md)
   and to [boot operating systems](doc/w11a_os_guide.md)
 - known issues [general](doc/README_known_issues.md)
@@ -51,7 +51,7 @@ all files contain the disclaimer:
 
     This program is free software; you may redistribute and/or modify
     it under the terms of the GNU General Public License version 3.
-    See Licence.txt in distribition directory for further details.
+    See License.txt in distribition directory for further details.
 
 The full text of the GPL license is in this directory as
 [License.txt](License.txt).

@@ -14,7 +14,7 @@
 - [Configuring FPGAs (via make flow)](#user-content-config-fpga)
 - [Note on ISE](#user-content-ise)
 
-### Concept <a name="concept"></a>
+### <a id="concept">Concept</a>
 
 This projects uses GNU `make` to
 - generate bit files     (with Vivado synthesis)
@@ -60,9 +60,9 @@ maintained.
 
 For more details on `vbomconv` consult the man page.
 
-### Setup system environment <a name="sysenv"></a>
+### <a id="sysenv">Setup system environment</a>
 
-#### Setup environment variables <a name="envvar"></a>
+#### <a id="envvar">Setup environment variables</a>
 
 The build flows require the environment variables:
 - `RETROBASE`:  must refer to the installation root directory
@@ -77,7 +77,7 @@ Notes:
 - don't run the Vivado setup scripts ..../settings(32|64).sh in your working 
   shell. Setup only XTWV_PATH !
   
-#### Compile UNISIM/UNIMACRO libraries for ghdl <a name="ghdllibs"></a>
+#### <a id="ghdllibs">Compile UNISIM/UNIMACRO libraries for ghdl</a>
 
 A few entities use `UNISIM` or `UNIMACRO` primitives, and post synthesis models 
 require also `UNISIM` primitives. In these cases ghdl has to link against a 
@@ -103,11 +103,11 @@ Notes:
   However: under ISE `SIMPRIM` was available in vhdl, but ghdl did never 
   accept the sdf files, making ghdl timing simulations impossible under ISE too.
 
-### Building test benches  <a name="buildtb"></a>
+### <a id="buildtb">Building test benches</a>
 
 The build flows currently supports ghdl and the vivado simulator xsim.
 
-#### With ghdl  <a name="buildtb-ghdl"></a>
+#### <a id="buildtb-ghdl">With ghdl</a>
 
 To compile a ghdl based test bench named `<tbench>` all is needed is
 
@@ -143,7 +143,7 @@ Notes:
 - Many post-synthesis functional currently fail due to startup and 
   initialization problems (see issue V0.73-2).
 
-#### With Vivado xsim  <a name="buildtb-xsim"></a>
+#### <a id="buildtb-xsim">With Vivado xsim</a>
 
 To compile a Vivado xsim based test bench named <tbench> all is needed is
 
@@ -174,7 +174,7 @@ Notes:
   simulations currently fail due to startup and initialization problems
   (see issue V0.73-2).
  
-### Building FPGA bit files  <a name="buildfpga"></a>
+### <a id="buildfpga">Building FPGA bit files</a>
 
 To generate a bit file for a system named `<sys>` all is needed is
 
@@ -215,7 +215,7 @@ If only the post synthesis, optimize or route design checkpoints are wanted
     make <sys>_opt.dcp
     make <sys>_rou.dcp
 
-### Building vivado projects, creating gate level models  <a name="buildviv"></a>
+### <a id="buildviv">Building vivado projects, creating gate level models</a>
 
 Vivado is used in 'project mode', whenever one of the targets mentioned
 above is build a vivado project is freshly created in the directory
@@ -250,7 +250,7 @@ Specifically
 
 For timing model verilog file an associated sdf file is also generated.
 
-### Configuring FPGAs  <a name="config-fpga"></a>
+### <a id="config-fpga">Configuring FPGAs</a>
 
 The make flow supports also loading the bitstream into FPGAs via the
 Vivado hardware server. Simply use
@@ -259,7 +259,7 @@ Vivado hardware server. Simply use
 
 Note: works with Arty, Basys3, and Nexys4, only one board must connected.
 
-### Note on ISE  <a name="ise"></a>
+### <a id="ise">Note on ISE</a>
 
 The development for Nexys4 started with ISE, but has now fully moved to
 Vivado. The make files for the ISE build flows have been kept for comparison

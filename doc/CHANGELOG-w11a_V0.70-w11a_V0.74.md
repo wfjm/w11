@@ -28,7 +28,7 @@
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2016-10-02: w11a_V0.74 - svn rev 37(oc) 811(wfjm) <a name="w11a_V0.74"></a>
+## <a id="w11a_V0.74">2016-10-02: w11a_V0.74 - svn rev 37(oc) 811(wfjm)</a>
 ### Preface
 - the current version of the  memory controller for the micron `mt45w8mw16b`
   'cellular ram' used on nexys2, nexys3, and nexys4 uses the asynchronous
@@ -183,7 +183,7 @@
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2016-06-26: w11a_V0.73 - svn rev 36(oc) 779(wfjm) <a name="w11a_V0.73"></a>
+## <a id="w11a_V0.73">2016-06-26: w11a_V0.73 - svn rev 36(oc) 779(wfjm)</a>
 ### Preface
 - the 'basic vivado support' added with V0.64 was a minimal effort port of
   the code base used under ISE, leading to sub-optimal results under vivado.
@@ -390,7 +390,7 @@
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2016-03-19: w11a_V0.72 - svn rev 35(oc) 746(wfjm) <a name="w11a_V0.72"></a>
+## <a id="w11a_V0.72">2016-03-19: w11a_V0.72 - svn rev 35(oc) 746(wfjm)</a>
 ### Preface
 - The new low-cost Digilent Arty board is a very attractive platform.
   The DDR3 memory will take some time to integrate, in this release thus
@@ -498,7 +498,7 @@
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2015-12-30: w11a_V0.71 - svn rev 34(oc) 722(wfjm) <a name="w11a_V0.71"></a>
+## <a id="w11a_V0.71">2015-12-30: w11a_V0.71 - svn rev 34(oc) 722(wfjm)</a>
 ### Preface
 - the w11a so far lacked any 'hardware debugger' support, which made the
   debugging of CPU core issues a bit tedious. This release added a first

@@ -10,7 +10,7 @@
   - [Unix systems](#user-content-oskits-unix)
   - [DEC operating systems](#user-content-oskits-dec)
 
-### I/O emulation setup <a name="io-emu"></a>
+### <a id="io-emu">I/O emulation setup</a>
 
 All UNIBUS peripherals which exchange data (currently DL11, LP11, PC11, RK11,
 RL11, RPRH, TM11, and DENUA ) are currently emulated via a backend process. The 
@@ -61,7 +61,7 @@ Recommended setup for best performance (boards ordered by vintage):
 | Nexys2     | Cypress FX2 USB        | USB2.0 speed | 30000 kB/sec |
 | S3board    |  RS232+USB-RS232 cable | 460k Baud    |    41 kB/sec |
     
-### FPGA Board setup <a name="fpga-setup"></a>
+### <a id="fpga-setup">FPGA Board setup</a>
 
 Recommended setups
 
@@ -95,7 +95,7 @@ Recommended setups
   - connect a JTAG programmer (e.g. Xilinx USB Cable II) to JTAG pins
   - to configure via ISE Impact `make <sys>.iconfig`
 
-### Rlink and Backend Server setup <a name="rlink"></a>
+### <a id="rlink">Rlink and Backend Server setup</a>
 
 All examples below use the same basic setup
 
@@ -190,7 +190,7 @@ All examples below use the same basic setup
                     0 -> DISPREG
                     1 -> DR emulation
 
-### simh simulator setup <a name="simh"></a>
+### <a id="simh">simh simulator setup</a>
 
 Sometimes it is good to compare the w11a behavior with the PDP-11 software
 emulator from the simh project (see http://simh.trailing-edge.com/).
@@ -222,7 +222,7 @@ All examples below use the same basic setup
 
          pdp11 <oskit-name>_boot.scmd
 
-### oskits <a name="oskits"></a>
+### <a id="oskits">oskits</a>
 
 Ready to be used 'oskits' are provided under
 
@@ -231,7 +231,7 @@ Ready to be used 'oskits' are provided under
 The tarballs with the disk images are provided from a web server
 and have to be installed separately.
 
-### Unix systems <a name="oskits-unix"></a>
+### <a id="oskits-unix">Unix systems</a>
 
 #### Legal and license issues
 
@@ -258,7 +258,7 @@ Several oskits are provided:
 
 For further details consult the `README.md` file in the oskit directory.
 
-### DEC operating systems <a name="oskits-dec"></a>
+### <a id="oskits-dec">DEC operating systems</a>
 
 #### Legal and license issues
 

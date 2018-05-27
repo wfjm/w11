@@ -12,7 +12,7 @@ installation of tools, environment setup and generation of the FX2 firmware.
 - [Setup USB access](#user-content-usb-access)
 - [Rebuild Cypress FX2 firmware](#user-content-fx2-firmware)
 
-### System requirements  <a name="sysreq"></a>
+### <a id="sysreq">System requirements</a>
   
 the download contains pre-build firmware images for the Cypress FX2
 USB Interface. Re-building them requires
@@ -23,7 +23,7 @@ USB Interface. Re-building them requires
       is **broken in Ubuntu 16.04**.
       See [INSTALL_urjtag.md](INSTALL_urjtag.md) for installation from sources !!
 
-### Setup environment variables  <a name="envvar"></a>
+### <a id="envvar">Setup environment variables</a>
 
 The default USB VID and PID is defined by two environment variables. 
 For internal lab use one can use
@@ -36,7 +36,7 @@ For internal lab use one can use
 > misuse of the defaults provided with the project sources.  
 > Usage of this VID/PID in any commercial product is forbidden.**
 
-### Setup USB access  <a name="usb-access"></a>
+### <a id="usb-access">Setup USB access</a>
 
 For using the Cypress FX2 USB interface on Digilent Nexys2, Nexys3 and
 Atlys boards `udev` rules must be setup to allow user level access to
@@ -51,7 +51,7 @@ Notes:
   described above. If a different VID/PID is used the file must be modified.
 - your user account must be in group `plugdev` (should be the default).
 
-### Rebuild Cypress FX2 firmware  <a name="fx2-firmware"></a>
+### <a id="fx2-firmware">Rebuild Cypress FX2 firmware</a>
 
 The download includes pre-build firmware images for the Cypress FX2
 USB interface used on the Digilent Nexys2, Nexys3 and Atlys Boards.

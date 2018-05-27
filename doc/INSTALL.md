@@ -14,7 +14,7 @@
 - [Available bitkits with bit and log files](#user-content-bitkits)
 - [Generate Doxygen based source code view](#user-content-build-doxy)
 
-### Download <a name="download"></a>
+### <a id="download">Download</a>
 
 All instructions below assume that the project files reside in a
 working directory with the name represented as `<install-dir>`
@@ -43,7 +43,7 @@ Prior to October 2016 the project was maintained on OpenCores, access
 to the legacy svn repository is described in
 [INSTALL_from_opencores.md](INSTALL_from_opencores.md).
 
-### System requirements <a name="sysreq"></a>
+### <a id="sysreq">System requirements</a>
   
 This project contains not only VHDL code but also support software. Therefore
 quite a few software packages are expected to be installed. The following
@@ -78,7 +78,7 @@ distributions should be straight forward.
   required, version 1.8.3.1 or later
 
 
-### Setup environment variables <a name="envvar"></a>
+### <a id="envvar">Setup environment variables</a>
 
 The make flows for building test benches (ghdl, Vivado xsim or ISE ISim based)
 and FPGA bit files (with Vivado or ISE) as well as the support software
@@ -121,7 +121,7 @@ read next section.
 For Cypress FX2 (on Nexys2/3) related setup see 
 [INSTALL_fx2_support.md](INSTALL_fx2_support.md).
 
-### Compile UNISIM/UNIMACRO/SIMPRIM libraries for ghdl <a name="ghdl-lib"></a>
+### <a id="ghdl-lib">Compile UNISIM/UNIMACRO/SIMPRIM libraries for ghdl</a>
 
 The build system for test benches also supports test benches run against the
 gate level models derived after synthesis or place&route. In this case ghdl
@@ -130,9 +130,9 @@ The details are described in
 - [README_buildsystem_Vivado.md](README_buildsystem_Vivado.md#user-content-ghdllibs)
 - [README_buildsystem_ISE.md](README_buildsystem_ISE.md#user-content-ghdllibs)
 
-### Compile and install the support software <a name="build-tools"></a>
+### <a id="build-tools">Compile and install the support software</a>
 
-#### Compile sharable libraries <a name="build-cpp"></a>
+#### <a id="build-cpp">Compile sharable libraries</a>
 
 Note: some `c++11` features are used in the code
 
@@ -175,7 +175,7 @@ To cleanup, e.g. before a re-build
     rm_dep
     make realclean
 
-#### Setup Tcl environment <a name="build-tcl"></a>
+#### <a id="build-tcl">Setup Tcl environment</a>
 
 The Tcl files are organized in several packages. To create the Tcl
 package files (`pkgIndex.tcl`)
@@ -200,7 +200,7 @@ To use them simply copy them into your home directory (or soft link them)
     ln -s $RETROBASE/tools/tcl/.tclshrc .
     ln -s $RETROBASE/tools/tcl/.wishrc  .
 
-### The build system <a name="build-system"></a>
+### <a id="build-system">The build system</a>
 
 The generation of FPGA firmware and test benches is based on make flows. 
   
@@ -215,7 +215,7 @@ can be found under
 - [README_buildsystem_ISE.md](README_buildsystem_ISE.md)
   for Spartan-3 and Spartan-6 based designs
 
-### Available designs <a name="build-fpga"></a>
+### <a id="build-fpga">Available designs</a>
 
 Ready to build designs are organized in the directories
 
@@ -242,7 +242,7 @@ with in most cases
 - `<dtype>` = `<design>`
 - `<code>` = 2 letter abbreviation for the board, e.g. n4 for nexys4.
 
-### Available bitkits with bit and log files <a name="bitkits"></a>
+### <a id="bitkits">Available bitkits with bit and log files</a>
 
 Tarballs with ready to use bit files and all logfiles from the tool 
 chain can be downloaded from
@@ -281,7 +281,7 @@ file names contain information about release, Xlinix tool, and design:
 
           xtwi config_wrapper --board=s3board iconfig <design>.bit
 
-### Generate Doxygen based source code view <a name="build-doxy"></a>
+### <a id="build-doxy">Generate Doxygen based source code view</a>
 
 Currently there is not much real documentation included in the source
 files. The doxygen generated html output is nevertheless very useful

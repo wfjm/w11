@@ -39,7 +39,7 @@
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2014-06-06: w11a_V0.60 - svn rev 25(oc) 559+(wfjm) <a name="w11a_V0.60"></a>
+## <a id="w11a_V0.60">2014-06-06: w11a_V0.60 - svn rev 25(oc) 559+(wfjm)</a>
 
 ### Summary
 - many documentation updates; no functional changes
@@ -61,7 +61,7 @@
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2014-05-29: w11a_V0.581 - svn rev 22(oc) 556(wfjm) <a name="w11a_V0.581"></a>
+## <a id="w11a_V0.581">2014-05-29: w11a_V0.581 - svn rev 22(oc) 556(wfjm)</a>
 
 ### Summary
 - new reference system
@@ -117,7 +117,7 @@
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2013-05-12: w11a_V0.58 - svn rev 21(oc) 518+(wfjm) <a name="w11a_V0.58"></a>
+## <a id="w11a_V0.58">2013-05-12: w11a_V0.58 - svn rev 21(oc) 518+(wfjm)</a>
 
 ### Summary
 - C++ and Tcl based backend server now fully functional, supports with 
@@ -155,7 +155,7 @@
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2013-04-27: w11a_V0.57 - svn rev 20(oc) 511(wfjm)  <a name="w11a_V0.57"></a>
+## <a id="w11a_V0.57">2013-04-27: w11a_V0.57 - svn rev 20(oc) 511(wfjm)</a>
 
 ### Summary
 - new C++ and Tcl based backend server supports now RK11 handling
@@ -188,7 +188,7 @@
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2013-04-13: w11a_V0.562 - svn rev 19(oc) 505(wfjm)  <a name="w11a_V0.562"></a>
+## <a id="w11a_V0.562">2013-04-13: w11a_V0.562 - svn rev 19(oc) 505(wfjm)</a>
 
 ### Summary
 - V0.53 introduced a new C++ and Tcl based backend server, but only the
@@ -230,7 +230,7 @@
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2013-01-06: w11a_V0.561 - svn rev 18(oc) 472(wfjm)  <a name="w11a_V0.561"></a>
+## <a id="w11a_V0.561">2013-01-06: w11a_V0.561 - svn rev 18(oc) 472(wfjm)</a>
 
 ### Summary
 - Added simple simulation model of Cypress FX2 and test benches for
@@ -254,7 +254,7 @@
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2013-01-02: w11a_V0.56 - svn rev 17(oc) 467(wfjm)  <a name="w11a_V0.56"></a>
+## <a id="w11a_V0.56">2013-01-02: w11a_V0.56 - svn rev 17(oc) 467(wfjm)</a>
 
 ### Summary
 - re-organized handling of board and derived clocks in test benches
@@ -316,7 +316,7 @@ The version of several key tools and libraries changed:
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2011-12-23: w11a_V0.55 - svn rev 16(oc) 442(wfjm)  <a name="w11a_V0.55"></a>
+## <a id="w11a_V0.55">2011-12-23: w11a_V0.55 - svn rev 16(oc) 442(wfjm)</a>
 
 ### Summary
 - added xon/xoff (software flow control) support to serport library
@@ -352,7 +352,7 @@ The version of several key tools and libraries changed:
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2011-12-04: w11a_V0.54 - svn rev 15(oc) 436(wfjm)  <a name="w11a_V0.54"></a>
+## <a id="w11a_V0.54">2011-12-04: w11a_V0.54 - svn rev 15(oc) 436(wfjm)</a>
 
 ### Summary
 - added support for nexys3 board for w11a
@@ -374,7 +374,7 @@ The version of several key tools and libraries changed:
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2011-11-20: w11a_V0.532 - svn rev 14(oc) 428(wfjm)  <a name="w11a_V0.532"></a>
+## <a id="w11a_V0.532">2011-11-20: w11a_V0.532 - svn rev 14(oc) 428(wfjm)</a>
 
 ### Summary
 - generalized the 'human I/O' interface for s3board,nexys2/3 and atlys
@@ -401,7 +401,7 @@ The version of several key tools and libraries changed:
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2011-09-11: w11a_V0.531 - svn rev 12(oc) 409(wfjm)  <a name="w11a_V0.531"></a>
+## <a id="w11a_V0.531">2011-09-11: w11a_V0.531 - svn rev 12(oc) 409(wfjm)</a>
 
 ### Summary
 - Many small changes to prepare upcoming support for
@@ -432,7 +432,7 @@ The version of several key tools and libraries changed:
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2011-04-17: w11a_V0.53 - svn rev 11(oc) 376(wfjm)  <a name="w11a_V0.53"></a>
+## <a id="w11a_V0.53">2011-04-17: w11a_V0.53 - svn rev 11(oc) 376(wfjm)</a>
 
 ### Summary
 - Introduce C++ and Tcl based backend server. A set of C++ classes provide
@@ -482,7 +482,7 @@ The version of several key tools and libraries changed:
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2011-01-02: w11a_V0.52 - svn rev 9(oc) 352(wfjm)  <a name="w11a_V0.52"></a>
+## <a id="w11a_V0.52">2011-01-02: w11a_V0.52 - svn rev 9(oc) 352(wfjm)</a>
 
 ### Summary
 - Introduce rbus protocol V3
@@ -558,7 +558,7 @@ The version of several key tools and libraries changed:
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2010-11-28: w11a_V0.51 - svn rev 8(oc) 341(wfjm)  <a name="w11a_V0.51"></a>
+## <a id="w11a_V0.51">2010-11-28: w11a_V0.51 - svn rev 8(oc) 341(wfjm)</a>
 
 ### Summary 
 - Introduce ibus protocol V2
@@ -599,7 +599,7 @@ The version of several key tools and libraries changed:
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## 2010-07-23: w11a_V0.5  <a name="w11a_V0.5"></a>
+## <a id="w11a_V0.5">2010-07-23: w11a_V0.5</a>
 
 ###  Initial release with 
 - w11a CPU core

@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: github_md2html 985 2018-01-03 08:59:40Z mueller $
+# $Id: github_md2html 1021 2018-05-15 20:05:23Z mueller $
 #
-# Copyright 2016-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-05-13  1021   1.1.1  handle fragment identifiers in -standalone mapping
 # 2017-01-02   837   1.1    add -standalone and -trace; add rate wait
 # 2016-12-17   823   1.0    Initial version
 #
@@ -189,8 +190,9 @@ sub do_md2html {
       my $hopt = $1;
       my $href = "$2";
       unless ($href =~ m|^https?://|) {
-        if ($href =~ m|\.md$|) {
-          $href .= '.html';
+        if ($href =~ m|^(.+\.md)(#.*)?$|) {
+          $href  = $1 . '.html';
+          $href .= $2 if defined $2;
           print "  hmap: $href\n" if exists $opts{trace};
         } else {
           if (-d "$ifile_path/$href") {

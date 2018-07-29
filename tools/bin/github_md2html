@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: github_md2html 1021 2018-05-15 20:05:23Z mueller $
+# $Id: github_md2html 1033 2018-07-03 05:59:02Z mueller $
 #
 # Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-07-02  1033   1.1.2  use non-greedy match in -stand code
 # 2018-05-13  1021   1.1.1  handle fragment identifiers in -standalone mapping
 # 2017-01-02   837   1.1    add -standalone and -trace; add rate wait
 # 2016-12-17   823   1.0    Initial version
@@ -186,7 +187,7 @@ sub do_md2html {
   my $html = $res->decoded_content;
 
   if (exists $opts{standalone}) {
-    $html =~ s{<a(.*)href="(.+)"}{
+    $html =~ s{<a(.*?)href="(.+?)"}{        # non-greedy matches !!
       my $hopt = $1;
       my $href = "$2";
       unless ($href =~ m|^https?://|) {

@@ -89,6 +89,7 @@ variables:
 | :------- | :------ |
 | `RETROBASE`     | must refer to the installation root directory |
 | `PATH`          | the tools binary directory `$RETROBASE/tools/bin` must be in the path |
+|                 | current working directory `.` must be in the path (expected e.g. by `TBW`) |
 | `LD_LIBRARY_PATH` | the tools library directory `$RETROBASE/tools/lib` must be in the library path |
 | `MANPATH`       | the tools man page directory `$RETROBASE/tools/man` should be in the man path |
 | `TCLINC`        | pathname for includes of Tcl runtime library |
@@ -102,7 +103,7 @@ variables:
 For bash and alike use
 
       export RETROBASE=<install-dir>
-      export PATH=$PATH:$RETROBASE/tools/bin
+      export PATH=$PATH:$RETROBASE/tools/bin:.
       export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$RETROBASE/tools/lib
       export MANPATH=$MANPATH:$RETROBASE/tools/man
 
@@ -151,7 +152,8 @@ Required tools and libraries:
 
 Build was tested under:
 
-    ubuntu precise (14.04 LTS):  gcc 4.8.2  boost 1.54    libusb 1.0.17
+    ubuntu xenial  (16.04 LTS):  gcc 5.4.0  boost 1.58    libusb 1.0.20
+    ubuntu trusty  (14.04 LTS):  gcc 4.8.2  boost 1.54    libusb 1.0.17
     debian wheezy  (7.0.8):      gcc 4.7.2  boost 1.49    libusb 1.0.11
 
 To build all sharable libraries

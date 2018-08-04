@@ -4,6 +4,7 @@ This directory contains udev rule files which ensure that
 
 To setup udev rules do
 ```bash
+    cd $RETROBASE/tools/sys
     # !! adopt 92-retro-usb-persistent.rules to your needs !!
     sudo cp -a 91-retro-usb-latency.rules    /etc/udev/rules.d/
     sudo cp -a 92-retro-usb-persistent.rules /etc/udev/rules.d/

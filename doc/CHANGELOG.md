@@ -2,6 +2,7 @@
 
 ### Table of contents
 - Current [HEAD](#user-content-head)
+- Release [w11a_V0.75](#user-content-w11a_V0.75)
 - Release [w11a_V0.742](#user-content-w11a_V0.742)
 - Release [w11a_V0.741](#user-content-w11a_V0.741)
 - [CHANGELOG for w11a_V.70 to w11a_V0.74](CHANGELOG-w11a_V0.70-w11a_V0.74.md)

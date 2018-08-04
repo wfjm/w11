@@ -12,6 +12,7 @@
 - [The build system](#user-content-build-system)
 - [Available designs](#user-content-build-fpga)
 - [Available bitkits with bit and log files](#user-content-bitkits)
+- [Configure FPGA](#user-content-fpgaconf)
 - [Generate Doxygen based source code view](#user-content-build-doxy)
 
 ### <a id="download">Download</a>
@@ -51,7 +52,7 @@ list gives the Ubuntu/Debian package names, but mapping this to other
 distributions should be straight forward. 
 
 - building the FPGA bit files requires the Xilinx design tools 
-  - Vivado WebPACK (for Artix-7 based designs)
+  - Vivado WebPACK (for Series-7 based designs)
   - ISE WebPACK (for Spartan-3 and Spartan-6 based designs)
 - building and using the rlink backend software requires:
   - full C/C++ development chain (gcc,g++,cpp,make)  
@@ -229,11 +230,18 @@ Ready to build designs are organized in the directories
       tst_rlink_cuff  rlink over FX2 interface tester
 
     and <board>
-      basys3          b3: Digilent Basys3 board
-      nexys4          n4: Digilent Nexys4 board (cellular RAM version)
-      nexys3          n3: Digilent Nexys3 board
-      nexys2          n2: Digilent Nexys2 board (-1200 FPGA version)
-      s3board         s3: Digilent S3board (-1000 FPGA version)
+      cmoda7          c7:      Digilent Cmod A7 board
+      arty            arty:    Digilent Arty A7-35 board
+      basys3          b3:      Digilent Basys3 board
+      nexys4d         n4d:     Digilent Nexys4 board (DDR RAM version)
+      nexys4          n4:      Digilent Nexys4 board (cellular RAM version)
+      nexys3          n3:      Digilent Nexys3 board
+      nexys2          n2:      Digilent Nexys2 board (-1200 FPGA version)
+      s3board         s3:      Digilent S3board (-1000 FPGA version)
+
+    for w11a designs which only use BRAM as memory are provided
+      arty_bram       br_arty: Digilent Arty A7-35 board
+      nexys4d_bram    br_n4d:  Digilent Nexys4 board (DDR RAM version)
 
 To build the designs locally use
 
@@ -242,7 +250,7 @@ To build the designs locally use
 
 with in most cases 
 - `<dtype>` = `<design>`
-- `<code>` = 2 letter abbreviation for the board, e.g. n4 for nexys4.
+- `<btype>` = abbreviation for the board, e.g. n4 for nexys4.
 
 ### <a id="bitkits">Available bitkits with bit and log files</a>
 
@@ -255,6 +263,7 @@ file names contain information about release, Xlinix tool, and design:
 
     <release>_<tool>_<design>.tgz
 
+### <a id="fpgaconf">Configure FPGA</a>
 - Vivado based designs:
   These designs can be loaded with the Vivado hardware server into the FPGA.
 
@@ -265,7 +274,7 @@ file names contain information about release, Xlinix tool, and design:
   Notes:
   1. `XTWI_PATH` and `RETROBASE` environment variables must be defined.
   2. `config_wrapper bit2svf` is only needed once to create the svf files.
-  3. fx2load_wrapper is needed once after each board power on.
+  3. `fx2load_wrapper` is needed once after each board power on.
 
   - for Digilent Nexys3 board (using Cypress FX2 USB controller)
 

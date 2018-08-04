@@ -20,24 +20,24 @@ communication between FPGA board and backend server can be via
   - via an integrated USB-UART bridge
     - on Arty, Basys3, CmodA7 and Nexys4 and Nexys4 DDR with a `FT2232HQ`, 
       allows up to 12M Baud
-    - on nexys3 with a `FT232R`, allows up to 2M Baud
+    - on Nexys3 with a `FT232R`, allows up to 2M Baud
     - for all FTDI USB-UART it is essential to set them to `low latency` mode.
       That was default for linux kernels 2.6.32 to 4.4.52. Since about March
       2017 one gets kernels with 16 ms default latency again, thanks to
       [kernel patch 9589541](https://patchwork.kernel.org/patch/9589541/).
       **For newer systems it is essential to install a udev rule** which
       automatically sets low latency, see [docu](../tools/sys/README.md).
-  - via RS232 port, as on s3board and nexys2
+  - via RS232 port, as on S3board and Nexys2
     - using a serial port (/dev/ttySx) is limited to 115 kBaud on most PCs.
     - using a USB-RS232 adapter was tested up to 460k Baud. 
 
 - Direct USB connection using a Cypress FX2 USB controller
-  - is supported on the nexys2 and nexys3 FPGA boards
+  - is supported on the Nexys2 and Nexys3 FPGA boards
   - much faster than serial port connections (see below)
   - also allows to configure the FPGA over the same USB connection
 
 - Notes: 
-  - A 12M Baud connection, like on a nexys4, gives disk access rates and 
+  - A 12M Baud connection, like on a Nexys4, gives disk access rates and 
     throughputs much better than the real hardware of the 70's and is well 
     suitable for practical usage.
   - In an OS with good disk caching like 2.11BSD the impact of disk speed
@@ -148,7 +148,7 @@ All examples below use the same basic setup
           SWI = 00101100
           ti_w11 -u @<oskit-name>_boot.tcl
 
-  - for s3 serial
+  - for s3 over serial
 
           SWI = 00101010
           ti_w11 -tu<dn>,460k,break,xon @<oskit-name>_boot.tcl

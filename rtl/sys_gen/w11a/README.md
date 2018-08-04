@@ -3,7 +3,7 @@ and is organized in
 
 | Directory | Content |
 | --------- | ------- |
-| [arty_bram](arty_bram) | design for Digilent Arty, using BRAM only |
+| [arty_bram](arty_bram) | design for Digilent Arty A7-35, using BRAM only |
 | [basys3](basys3)       | design for Digilent Basys3 |
 | [cmoda7](cmoda7)       | design for Digilent Cmod A7 (35 die size) |
 | [nexys2](nexys2)       | design for Digilent Nexys2 |

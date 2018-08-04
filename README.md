@@ -24,6 +24,8 @@ For more information look into:
   and to [boot operating systems](doc/w11a_os_guide.md)
 - known issues [general](doc/README_known_issues.md)
   and [w11a CPU](doc/w11a_known_issues.md)
+- the impatient readers can try their luck with the
+  [quick start guide](doc/INSTALL_quickstart.md)
 
 A short description of the directory layout
 [is provided separately](https://wfjm.github.io/home/w11/impl/dirlayout.html),

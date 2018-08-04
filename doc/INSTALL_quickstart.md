@@ -57,7 +57,7 @@ First all required software must be installed
 ### <a id="build">Build: generate bit file and configure FPGA</a>
 
 All details of the Vivado implementation flow are encapsulated by the
-[build system](doc/README_buildsystem_Vivado.md) in a simple `make` command
+[build system](README_buildsystem_Vivado.md) in a simple `make` command
 
     cd $RETROBASE/rtl/sys_gen/w11a/<board>
     time make sys_w11a_<btype>.bit
@@ -98,18 +98,22 @@ Key steps are
 
 - configure the board switches _(important!!)_ and start the backend software
   with the options as described in
-  [w11a_os_guide#rlink](w11a_os_guide.md.html#user-content-rlink), typically
+  [w11a_os_guide#rlink](w11a_os_guide.md#user-content-rlink), typically
 
       cd $RETROBASE/tools/oskit/<oskit-name>
       ti_w11 <options> @<oskit-name>_boot.tcl
 
-  Hit <ENTER> in the `DL0vt100` console window to connect, than follow
+  Hit `<ENTER>` in the `DL0vt100` console window to connect, than follow
   the expected startup sequence on the console `DL0vt100` is described in the
   README in the oskit directory.
 
 ### <a id="tested">Concrete test run</a>
 The recipe was tested
-- on 2018-08-04
+- system environment
+  - Kubuntu 16.04 LTS
+  - Vivado 2017.1
+  - on 2018-08-04
+
 - after commit [6ee3ed6](https://github.com/wfjm/w11/commit/6ee3ed6)
 
       cd $RETROBASE/tools/src
@@ -137,7 +141,7 @@ The recipe was tested
         # set board switches to SWI = 00000000 00101000
         ti_w11 -tuD,12M,break,cts  @211bsd_rp_boot.tcl
 
-  - in window `DL1vt100` hit <ENTER> to connect to backend, than see output and do required inputs as written in [README](../tools/oskit/211bsd_rp/README.md):
+  - in window `DL1vt100` hit `<ENTER>` to connect to backend, than see output and do required inputs as written in [README](../tools/oskit/211bsd_rp/README.md):
   
         70Boot from xp(0,0,0) at 0176700
         : {<CR>}

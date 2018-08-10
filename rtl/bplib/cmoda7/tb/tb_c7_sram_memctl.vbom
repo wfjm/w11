@@ -1,0 +1,11 @@
+# libs
+../../../vlib/slvtypes.vhd
+../cmoda7lib.vhd
+../../../vlib/simlib/simlib.vhd
+# components
+../../../vlib/simlib/simclk.vbom
+../../../vlib/simlib/simclkcnt.vbom
+../../issi/is61wv5128bll.vbom
+${uut := ../c7_sram_memctl.vbom}
+# design
+tb_c7_sram_memctl.vhd

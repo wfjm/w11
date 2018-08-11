@@ -159,7 +159,7 @@
 
 ### Summary
 - new C++ and Tcl based backend server supports now RK11 handling
-- w11a systems operate with rlink over USB on nexsy2 and nexsy3 boards.
+- w11a systems operate with rlink over USB on Nexys2 and Nexys3 boards.
   See w11a_os_guide.txt for details
 
 ### New features
@@ -459,7 +459,7 @@ The version of several key tools and libraries changed:
         - tools/src/librutiltpp    - Tcl support commands implemented in C++
       - VHDL sources of an 'rlink exerciser'
         - rtl/sys_gen/tst_rlink    - top level designs for an rlink tester
-        - rtl/sys_gen/tst_rlink/nexys2  - rlink tester system for Nexsy2 board
+        - rtl/sys_gen/tst_rlink/nexys2  - rlink tester system for Nexys2 board
       - Tcl sources of 'rlink exerciser'
         - tools/tcl/rlink          - defs and proc's for basic rlink functions
         - tools/tcl/rutil          - general support procs

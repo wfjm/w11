@@ -2,6 +2,7 @@
 
 ### Table of contents
 - Current [HEAD](#user-content-head)
+- Release [w11a_V0.751](#user-content-w11a_V0.751)
 - Release [w11a_V0.75](#user-content-w11a_V0.75)
 - Release [w11a_V0.742](#user-content-w11a_V0.742)
 - Release [w11a_V0.741](#user-content-w11a_V0.741)
@@ -19,11 +20,20 @@ The full set of tests is only run for tagged releases.
 
 ### Summary
 
+<!-- --------------------------------------------------------------------- -->
+---
+## <a id="w11a_V0.751">2018-08-10: [w11a_V0.751](https://github.com/wfjm/w11/releases/tag/w11a_V0.751) - rev 1037(wfjm)</a>
+
+### Summary
 - The license disclaimers in the source files referred so far to GPL V2 or later
   They are now consistent with the License.txt file, which refers to GPL V3.
+- Add Digilent Cmod A7 (35 die size) support
+- get vivado 2017.1 ready
 - Added Unix 7th Edition oskit; rename 5th Edition kit
   - u5ed_rk: renamed from unix-v5_rk
   - u7ed_rp: added, very preliminary, boots on CmodA7, further testing needed
+  
+### New features
 - Add Digilent Cmod A7 (35 die size) support
   - general board support
   - c7_sram_memctl: SRAM memory controller (incl tb)
@@ -38,21 +48,26 @@ The full set of tests is only run for tagged releases.
     - tst_rlink: rlink tested
     - tst_sram: SRAM tester
     - w11a: w11a system with 672 kB memory (512 SRAM + 160 BRAM)
-- new modules/packages
-  - rtl/vlib/rutil.vhd: added package, with imin helper function
+- rtl/vlib/rutil.vhd: added package, with imin helper function
+
+### Changes
 - cleanups
   - s3_sram_memctl: drop superfluous idata_cei=1 in s_write2
 - 17bit support for tst_sram
   - tst_sram.vhd: allow AWIDTH=17; sstat_rbf_awidth instead of _wide
   - tcl/tst_sram/*.tcl: 17bit support; use sstat(awidth); add isnarrow
-- add test_w11a_mem70.tcl; retire old tests tb_w11a_mem70*.dat
-- shell_egd.tcl: BUGFIX: shell_pspec_map: fix mapping for addr>20000
 - get vivado 2017.1 ready
   - xviv_msg_filter: add version-range tag support
   - *.vmfset:
     - drop the nonsense 'Synth 8-6014' messages
     - adopt to different path used by 'Synth 8-3332' messages
 - Rw11VirtDiskOver: more detailed stats
+- add test_w11a_mem70.tcl; retire old tests tb_w11a_mem70*.dat
+
+### Bug Fixes
+- shell_egd.tcl: BUGFIX: shell_pspec_map: fix mapping for addr>20000
+
+### Known issues
 
 <!-- --------------------------------------------------------------------- -->
 ---
@@ -234,7 +249,6 @@ The full set of tests is only run for tagged releases.
   - fixed by changing the return type in RlinkConnect
 
 ### Known issues
-
 
 <!-- --------------------------------------------------------------------- -->
 ---

@@ -2,7 +2,7 @@
 # Note: this tb uses sys_w11a_c7.vbom in local directory
 #       (not in .. as usual) to allow a tb specific configure !!!
 # configure
-nexys4_cram_aif = sys_w11a_c7_ssim.vhd
+cmoda7_cram_aif = sys_w11a_c7_ssim.vhd
 # design
 tb_w11a_c7.vbom
 @top:tb_w11a_c7

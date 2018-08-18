@@ -19,6 +19,7 @@ software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
 ### Summary
+- xviv_msg_filter: allow {yyyy.x} tags (in addition to ranges)
 
 <!-- --------------------------------------------------------------------- -->
 ---
@@ -28,11 +29,12 @@ The full set of tests is only run for tagged releases.
 - The license disclaimers in the source files referred so far to GPL V2 or later
   They are now consistent with the License.txt file, which refers to GPL V3.
 - Add Digilent Cmod A7 (35 die size) support
+- Add [INSTALL_quickstart](INSTALL_quickstart.md)
 - get vivado 2017.1 ready
 - Added Unix 7th Edition oskit; rename 5th Edition kit
   - u5ed_rk: renamed from unix-v5_rk
   - u7ed_rp: added, very preliminary, boots on CmodA7, further testing needed
-  
+
 ### New features
 - Add Digilent Cmod A7 (35 die size) support
   - general board support

@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: xviv_msg_filter 985 2018-01-03 08:59:40Z mueller $
+# $Id: xviv_msg_filter 1039 2018-08-12 10:04:09Z mueller $
 #
-# Copyright 2016-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,7 +14,8 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
-# 2017-06-06   909   1,1    add version-range tags
+# 2018-08-11  1039   1.1.1  allow {yyyy.x} tags (in addition to ranges)
+# 2017-06-06   909   1.1    add version-range tags
 # 2016-06-04   772   1.0    Initial version
 #
 
@@ -222,6 +223,12 @@ sub read_mfs {
     }
 
     next unless $intyp;                     # only process relevant lines
+
+    if (m/\{(\d{4}\.\d)}/) {                # {ver} tag found
+      $vermin = $1;
+      $vermax = $1;
+      next;
+    }
 
     if (m/\{(\d{4}\.\d)?:(\d{4}\.\d)?\}/) {  # {vermin:varmax} tag found
       $vermin = (defined $1) ? $1 : "0000.0";

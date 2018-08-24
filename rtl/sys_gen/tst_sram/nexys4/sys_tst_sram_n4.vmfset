@@ -1,7 +1,13 @@
-# $Id: sys_tst_sram_n4.vmfset 908 2017-06-05 21:03:06Z mueller $
+# $Id: sys_tst_sram_n4.vmfset 1039 2018-08-12 10:04:09Z mueller $
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
+# general issues -----------------------------------------------
+{2018.2:}
+# stupid new warning, Xilinx suggests to safely ingnore
+i [Constraints 18-5210]                                         # generic
+{:}
+
 # false_path -hold ignored by synth ----------------------------
 I [Designutils 20-1567]                                         # generic
 
@@ -32,6 +38,8 @@ I [Synth 8-3332] R_LREGS_reg[attn][\d*]                         # generic
 i [Synth 8-3332] HIO/IOB_LED/R_DO_reg[\d*] 
 i [Synth 8-3332] HIO/IOB_(SWI|BTN)/R_DI_reg[\d*]
 i [Synth 8-3332] HIO/DEB.DEB_(SWI|BTN)/R_REGS_reg[(dref|dout|dchange)][\d*]
+
+{:2017.4}
 # --> monitor outputs moneop,monattn currently not used         # OK 2016-06-05
 i [Synth 8-3332] RLINK/CORE/RL/R_LREGS_reg[moneop]
 i [Synth 8-3332] RLINK/CORE/RL/R_LREGS_reg[monattn]
@@ -41,6 +49,16 @@ i [Synth 8-3332] RLINK/CORE/RL/R_BREGS_reg[stat][(2|3)]
 i [Synth 8-3332] CLKDIV_CLK/R_REGS_reg[usec]
 # --> CES_USEC isn't used                                       # OK 2016-06-05
 i [Synth 8-3332] CLKDIV_CLKS/R_REGS_reg[usec]
+
+{2018.1:}
+# --> monitor outputs moneop,monattn currently not used         # OK 2018-08-12
+i [Synth 8-3332] CORE/RL/R_LREGS_reg[moneop]
+i [Synth 8-3332] CORE/RL/R_LREGS_reg[monattn]
+# --> only RB_STAT 0,1 used by tst_sram                         # OK 2018-08-12
+i [Synth 8-3332] CORE/RL/R_BREGS_reg[stat][(2|3)]
+# --> CE_USEC isn't used (also not in rlink_sp2c)               # OK 2018-08-12
+# --> CES_USEC isn't used                                       # OK 2018-08-12
+i [Synth 8-3332] R_REGS_reg[usec].* module clkdivce
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [imp]

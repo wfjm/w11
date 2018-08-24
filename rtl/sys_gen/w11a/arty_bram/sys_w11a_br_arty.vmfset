@@ -1,7 +1,16 @@
-# $Id: sys_w11a_br_arty.vmfset 909 2017-06-09 16:21:55Z mueller $
+# $Id: sys_w11a_br_arty.vmfset 1039 2018-08-12 10:04:09Z mueller $
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
+# general issues -----------------------------------------------
+{2018.2:}
+# stupid new warning, Xilinx suggests to safely ingnore
+i [Constraints 18-5210]                                         # generic
+{:}
+
+# binding instance .. which has no pins ------------------------
+I [Synth 8-115]                                                 # generic
+
 # false_path -hold ignored by synth ----------------------------
 I [Designutils 20-1567]                                         # generic
 
@@ -49,39 +58,103 @@ i [Synth 8-3332] RLINK/CORE/RL/R_LREGS_reg[monattn]
 # --> dmcmon not configured, snum not used                      # OK 2017-06-06
 i [Synth 8-3332] SEQ/SNUM0.R_VMWAIT_reg
 
-{2017.1:}
+{2017.1:2017.4}
 I [Synth 8-3332] R_LREGS_reg[attn][\d*]                         # generic
+
 # --> many HIO pins not used                                    # OK 2017-06-06
 I [Synth 8-3332] HIO/R_REGS_reg[(btn|swi)(eff)?][\d*]
 i [Synth 8-3332] HIO/IOB_BTN/R_DI_reg[\d*]
 i [Synth 8-3332] HIO/DEB.DEB_BTN/R_REGS_reg[(dref|dout|dchange|cecnt)][\d*]
 # --> usec not used for serport clock domain                    # OK 2017-06-06
 i [Synth 8-3332] CLKDIV_CLKS/R_REGS_reg[usec]
-# --> inst_compl logic disabled in pdp11_mmu                    # OK 2017-06-06
-i [Synth 8-3332] MMU/R_SSR0_reg[inst_compl].* pdp11_vmbox
-# --> IB_MREQ.cacc only used in ibd_ibmon, which is disabled    # OK 2017-06-06
-i [Synth 8-3332] R_REGS_reg[ibcacc].* pdp11_vmbox
-# --> not yet used                                              # OK 2017-06-06
-i [Synth 8-3332] R_STATUS_reg[suspext].* pdp11_sequencer
-# --> mawidth=4, nblock=11, so some cellen unused               # OK 2017-06-06
+# --> mawidth=4, nblock=11, so some cellen unused               # OK 2016-06-05
 i [Synth 8-3332] BRAM_CTL/R_REGS_reg[cellen][1\d]
 # --> indeed no types with [3] set                              # OK 2017-06-06
 i [Synth 8-3332] R_REGS_reg[dtyp][3].* ibdr_rhrp
 # --> not yet used                                              # OK 2017-06-06
 i [Synth 8-3332] R_REGS_reg[req_lock].* ibd_iist
 i [Synth 8-3332] R_REGS_reg[req_boot].* ibd_iist
+# --> monitor outputs moneop,monattn currently not used         # OK 2016-06-05
+i [Synth 8-3332] RLINK/CORE/RL/R_LREGS_reg[moneop]
+i [Synth 8-3332] RLINK/CORE/RL/R_LREGS_reg[monattn]
+
+{2017.1:2017.3}
+# --> inst_compl logic disabled in pdp11_mmu                    # OK 2017-06-06
+i [Synth 8-3332] MMU/R_SSR0_reg[inst_compl].* pdp11_vmbox
+# --> IB_MREQ.cacc only used in ibd_ibmon, which is disabled    # OK 2017-06-06
+i [Synth 8-3332] R_REGS_reg[ibcacc].* pdp11_vmbox
+# --> not yet used                                              # OK 2017-06-06
+i [Synth 8-3332] R_STATUS_reg[suspext].* pdp11_sequencer
 # --> [8] is for DZ11TX, not yet available                      # OK 2017-06-06
 # --> [9] is for DZ11RX, unclear why this one isn't removed too !!
 i [Synth 8-3332] R_STATUS_reg[intvect][8].* pdp11_sequencer
 # --> _decode only uses _[oalm]unit -> [2] always '0' in decode # OK 2017-06-06
 i [Synth 8-3332] R_IDSTAT_reg[res_sel][2].* pdp11_sequencer
-# --> monitor outputs moneop,monattn currently not used         # OK 2017-06-06
-i [Synth 8-3332] RLINK/CORE/RL/R_LREGS_reg[moneop]
-i [Synth 8-3332] RLINK/CORE/RL/R_LREGS_reg[monattn]
-# --> dmcmon not configured, snum not used
+# --> dmcmon not configured, snum not used                      # OK 2017-06-06
 i [Synth 8-3332] SNUM0.R_VMWAIT_reg.* pdp11_sequencer           # OK 2017-06-06
 
+{2017.4}
+# --> inst_compl logic disabled in pdp11_mmu                    # OK 2017-06-06
+i [Synth 8-3332] MMU/R_SSR0_reg[inst_compl].* pdp11_core
+# --> IB_MREQ.cacc only used in ibd_ibmon, which is disabled    # OK 2018-08-11
+i [Synth 8-3332] R_REGS_reg[ibcacc].* pdp11_core
+# --> not yet used                                              # OK 2018-08-11
+i [Synth 8-3332] R_STATUS_reg[suspext].* pdp11_core
+# --> [8] is for DZ11TX, not yet available                      # OK 2018-08-11
+# --> [9] is for DZ11RX, unclear why this one isn't removed too !!
+i [Synth 8-3332] R_STATUS_reg[intvect][8].* pdp11_core
+# --> _decode only uses _[oalm]unit -> [2] always '0' in decode # OK 2018-08-11
+i [Synth 8-3332] R_IDSTAT_reg[res_sel][2].* pdp11_core
+# --> dmcmon not configured, snum not used                      # OK 2018-08-11
+i [Synth 8-3332] SNUM0.R_VMWAIT_reg.* pdp11_core                # OK 2018-08-11
+
+{2018.1:}
+I [Synth 8-3332] R_LREGS_reg[attn][\d*]                         # generic
+# --> many HIO pins not used                                    # OK 2017-06-06
+I [Synth 8-3332] HIO/R_REGS_reg[(btn|swi)(eff)?][\d*]
+i [Synth 8-3332] IOB_BTN/R_DI_reg[\d*]
+i [Synth 8-3332] DEB.DEB_BTN/R_REGS_reg[(dref|dout|dchange|cecnt)][\d*]
+# --> usec not used for serport clock domain                    # OK 2017-06-06
+i [Synth 8-3332] R_REGS_reg[usec]
+# --> mawidth=4, nblock=11, so some cellen unused               # OK 2018-08-11
+i [Synth 8-3332] R_REGS_reg[cellen][1\d]
+# --> indeed no types with [3] set                              # OK 2017-06-06
+i [Synth 8-3332] R_REGS_reg[dtyp][3].* ibdr_rhrp
+# --> not yet used                                              # OK 2017-06-06
+i [Synth 8-3332] R_REGS_reg[req_lock].* ibd_iist
+i [Synth 8-3332] R_REGS_reg[req_boot].* ibd_iist
+# --> monitor outputs moneop,monattn currently not used         # OK 2018-08-11
+i [Synth 8-3332] CORE/RL/R_LREGS_reg[moneop]
+i [Synth 8-3332] CORE/RL/R_LREGS_reg[monattn]
+# --> inst_compl logic disabled in pdp11_mmu                    # OK 2017-06-06
+i [Synth 8-3332] MMU/R_SSR0_reg[inst_compl].* pdp11_core
+# --> IB_MREQ.cacc only used in ibd_ibmon, which is disabled    # OK 2018-08-11
+i [Synth 8-3332] R_REGS_reg[ibcacc].* pdp11_core
+# --> not yet used                                              # OK 2018-08-11
+i [Synth 8-3332] R_STATUS_reg[suspext].* pdp11_sequencer
+# --> [8] is for DZ11TX, not yet available                      # OK 2017-06-06
+# --> [9] is for DZ11RX, unclear why this one isn't removed too !!
+i [Synth 8-3332] R_STATUS_reg[intvect][8].* pdp11_sequencer
+# --> _decode only uses _[oalm]unit -> [2] always '0' in decode # OK 2018-08-11
+i [Synth 8-3332] R_IDSTAT_reg[res_sel][2].* pdp11_sequencer
+# --> dmcmon not configured, snum not used
+i [Synth 8-3332] SNUM0.R_VMWAIT_reg.* pdp11_sequencer           # OK 2018-08-11
+
 {:}
+
+# INFO: encoded FSM with state register as --------------------
+# test for sys_w11a_br_arty that all FSMs are one_hot
+r [Synth 8-3354] R_BREGS_reg[state.*'one-hot'.*'rlink_core'
+r [Synth 8-3354] R_LREGS_reg[state].*'one-hot'.*'rlink_core'
+r [Synth 8-3354] R_REGS_reg[state].*'one-hot'.*'serport_uart_autobaud'
+r [Synth 8-3354] R_REGS_reg[state].*'one-hot'.*'serport_uart_rx'
+r [Synth 8-3354] R_REGS_reg[state].*'one-hot'.*'pdp11_core_rbus'
+r [Synth 8-3354] R_REGS_reg[state].*'one-hot'.*'pdp11_vmbox'
+r [Synth 8-3354] R_STATE_reg.*'one-hot'.*'pdp11_sequencer'
+r [Synth 8-3354] R_REGS_reg[state].*'one-hot'.*'pdp11_cache'
+r [Synth 8-3354] R_REGS_reg[state].*'one-hot'.*'ibdr_rhrp'
+r [Synth 8-3354] R_REGS_reg[state].*'one-hot'.*'ibdr_rl11'
+r [Synth 8-3354] R_REGS_reg[state].*'one-hot'.*'sysmon_rbus_core'
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [imp]

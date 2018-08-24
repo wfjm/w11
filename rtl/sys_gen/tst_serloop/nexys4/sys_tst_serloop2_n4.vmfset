@@ -1,7 +1,13 @@
-# $Id: sys_tst_serloop2_n4.vmfset 908 2017-06-05 21:03:06Z mueller $
+# $Id: sys_tst_serloop2_n4.vmfset 1039 2018-08-12 10:04:09Z mueller $
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
+# general issues -----------------------------------------------
+{2018.2:}
+# stupid new warning, Xilinx suggests to safely ingnore
+i [Constraints 18-5210]                                         # generic
+{:}
+
 # false_path -hold ignored by synth ----------------------------
 I [Designutils 20-1567]                                         # generic
 

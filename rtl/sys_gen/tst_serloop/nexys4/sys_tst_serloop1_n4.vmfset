@@ -1,7 +1,13 @@
-# $Id: sys_tst_serloop1_n4.vmfset 908 2017-06-05 21:03:06Z mueller $
+# $Id: sys_tst_serloop1_n4.vmfset 1039 2018-08-12 10:04:09Z mueller $
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
+
+# general issues -----------------------------------------------
+{2018.2:}
+# stupid new warning, Xilinx suggests to safely ingnore
+i [Constraints 18-5210]                                         # generic
+{:}
 
 # +++# port driven by constant --------------------------------------
 # --> RGBLED0 unused                                            # OK 2016-06-05
@@ -32,7 +38,7 @@ I [Synth 8-6014] _reg                                           # generic
 i [Synth 8-3332] HIO/IOB_(SWI|BTN)/R_DI_reg[\d*]
 i [Synth 8-3332] HIO/DEB.DEB_(SWI|BTN)/R_REGS_reg[(dref|dout|dchange)][\d*]
 
-# ++==+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [imp]
 I [Vivado 12-2489]                                # multiple of 1 ps
 I [Physopt 32-742]                                # BRAM Flop Optimization

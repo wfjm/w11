@@ -1,7 +1,13 @@
-# $Id: sys_tst_sram_c7.vmfset 912 2017-06-11 18:30:03Z mueller $
+# $Id: sys_tst_sram_c7.vmfset 1039 2018-08-12 10:04:09Z mueller $
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
+# general issues -----------------------------------------------
+{2018.2:}
+# stupid new warning, Xilinx suggests to safely ingnore
+i [Constraints 18-5210]                                         # generic
+{:}
+
 # false_path -hold ignored by synth ----------------------------
 I [Designutils 20-1567]                                         # generic
 
@@ -27,6 +33,7 @@ i [Synth 8-3331] rlink_sp2c.*CE_(USEC|MSEC)
 I [Synth 8-6014] _reg                                           # generic
 
 # unused sequential element ------------------------------------
+{:2017.4}
 I [Synth 8-3332] R_LREGS_reg[attn][\d*]                         # generic
 # --> many HIO pins not used                                    # OK 2017-06-11
 i [Synth 8-3332] HIO/R_REGS_reg[led][\d*]
@@ -41,6 +48,21 @@ i [Synth 8-3332] RLINK/CORE/RL/R_BREGS_reg[stat][(2|3)]
 i [Synth 8-3332] CLKDIV_CLK/R_REGS_reg[usec]
 # --> CES_USEC isn't used                                       # OK 2017-06-11
 i [Synth 8-3332] CLKDIV_CLKS/R_REGS_reg[usec]
+
+{2018.1:}
+I [Synth 8-3332] R_LREGS_reg[attn][\d*]                         # generic
+# --> many HIO pins not used                                    # OK 2018-08-12
+i [Synth 8-3332] R_REGS_reg[led][\d*].* sn_humanio_emu_rbus
+i [Synth 8-3332] R_REGS_reg[dsp_dp][\d*].* sn_humanio_emu_rbus
+i [Synth 8-3332] R_REGS_reg[dsp_dat][\d*].* sn_humanio_emu_rbus
+# --> monitor outputs moneop,monattn currently not used         # OK 2018-08-12
+i [Synth 8-3332] CORE/RL/R_LREGS_reg[moneop]
+i [Synth 8-3332] CORE/RL/R_LREGS_reg[monattn]
+# --> only RB_STAT 0,1 used by tst_sram                         # OK 2018-08-12
+i [Synth 8-3332] CORE/RL/R_BREGS_reg[stat][(2|3)]
+# --> CE_USEC isn't used (also not in rlink_sp2c)               # OK 2018-08-12
+# --> CES_USEC isn't used                                       # OK 2018-08-12
+i [Synth 8-3332] R_REGS_reg[usec].* clkdivce
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [imp]

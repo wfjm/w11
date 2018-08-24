@@ -20,6 +20,9 @@ The full set of tests is only run for tagged releases.
 
 ### Summary
 - xviv_msg_filter: allow {yyyy.x} tags (in addition to ranges)
+- xviv_msg_summary: check also for .bit and .dcp files
+- get vivado 2017.2 ready; all designs build under 2017.2 and 2018.2
+- *.vmfset: update rules to cover 2017.4-2018.2
 
 <!-- --------------------------------------------------------------------- -->
 ---

@@ -1,7 +1,16 @@
-# $Id: sys_w11a_c7.vmfset 916 2017-06-25 13:30:07Z mueller $
+# $Id: sys_w11a_c7.vmfset 1039 2018-08-12 10:04:09Z mueller $
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
+# general issues -----------------------------------------------
+{2018.2:}
+# stupid new warning, Xilinx suggests to safely ingnore
+i [Constraints 18-5210]                                         # generic
+{:}
+
+# binding instance .. which has no pins ------------------------
+I [Synth 8-115]                                                 # generic
+
 # false_path -hold ignored by synth ----------------------------
 I [Designutils 20-1567]
 
@@ -53,14 +62,8 @@ i [Synth 8-3332] R_REGS_reg[dsp_dp][(4|5|6|7)]
 {2017.1:}
 I [Synth 8-3332] R_LREGS_reg[attn][\d*]                         # generic
 I [Synth 8-3332] R_REGS_reg[(btn|swi)(eff)?][\d*]               # generic
-# --> usec not used for serport clock domain                    # OK 2017-06-24
-i [Synth 8-3332] R_REGS_reg[usec].* clkdivce
-# --> inst_compl logic disabled in pdp11_mmu                    # OK 2017-06-24
-i [Synth 8-3332] MMU/R_SSR0_reg[inst_compl].* pdp11_vmbox
 # --> not yet used                                              # OK 2017-06-24
 i [Synth 8-3332] R_STATUS_reg[suspext].* pdp11_sequencer
-# --> mawidth=4, nblock=11, so some cellen unused               # OK 2017-06-25
-i [Synth 8-3332] R_REGS_reg[cellen][1\d].* pdp11_bram_memctl
 # --> indeed no types with [3] set                              # OK 2017-06-24
 i [Synth 8-3332] R_REGS_reg[dtyp][3].* ibdr_rhrp
 # --> not yet used                                              # OK 2017-06-24
@@ -71,18 +74,37 @@ i [Synth 8-3332] R_REGS_reg[req_boot].* ibd_iist
 i [Synth 8-3332] R_STATUS_reg[intvect][8].* pdp11_sequencer
 # --> _decode only uses _[oalm]unit -> [2] always '0' in decode # OK 2017-06-24
 i [Synth 8-3332] R_IDSTAT_reg[res_sel][2].* pdp11_sequencer
-# --> monitor outputs moneop,monattn currently not used         # OK 2017-06-24
-i [Synth 8-3332] CORE/RL/R_LREGS_reg[moneop].* rlink_sp2c
-i [Synth 8-3332] CORE/RL/R_LREGS_reg[monattn].* rlink_sp2c
 # --> scnt disabled, thus 3 SNUM bits '0'                       # OK 2017-06-24
 i [Synth 8-3332] R_REGS_reg[se_snum][(4|5|6)]
 # --> upper 4 DSP_DP unused                                     # OK 2017-06-24
 i [Synth 8-3332] R_REGS_reg[dsp_dp][(4|5|6|7)]
 
+{2017.1:2017.4}
+# --> usec not used for serport clock domain                    # OK 2017-06-24
+i [Synth 8-3332] R_REGS_reg[usec].* clkdivce
+# --> monitor outputs moneop,monattn currently not used         # OK 2017-06-24
+i [Synth 8-3332] CORE/RL/R_LREGS_reg[moneop].* rlink_sp2c
+i [Synth 8-3332] CORE/RL/R_LREGS_reg[monattn].* rlink_sp2c
+# --> inst_compl logic disabled in pdp11_mmu                    # OK 2017-06-24
+i [Synth 8-3332] MMU/R_SSR0_reg[inst_compl].* pdp11_vmbox
+# --> mawidth=4, nblock=11, so some cellen unused               # OK 2017-06-25
+i [Synth 8-3332] R_REGS_reg[cellen][1\d].* pdp11_bram_memctl
+
+{2018.1:}
+# --> usec not used for serport clock domain                    # OK 2018-08-12
+i [Synth 8-3332] R_REGS_reg[usec].* sys_w11a_c7
+# --> monitor outputs moneop,monattn currently not used         # OK 2018-08-12
+i [Synth 8-3332] R_LREGS_reg[moneop].* rlink_core
+i [Synth 8-3332] R_LREGS_reg[monattn].* rlink_core
+# --> inst_compl logic disabled in pdp11_mmu                    # OK 2018-08-12
+i [Synth 8-3332] MMU/R_SSR0_reg[inst_compl].* pdp11_core
+# --> mawidth=4, nblock=11, so some cellen unused               # OK 2018-08-12
+i [Synth 8-3332] R_REGS_reg[cellen][1\d].* sys_w11a_c7
+
 {:}
 
 # INFO: encoded FSM with state register as --------------------
-# test for sys_w11a_n4 that all FSMs are one_hot
+# test for sys_w11a_c7 that all FSMs are one_hot
 r [Synth 8-3354] R_BREGS_reg[state.*'one-hot'.*'rlink_core'
 r [Synth 8-3354] R_LREGS_reg[state].*'one-hot'.*'rlink_core'
 r [Synth 8-3354] R_REGS_reg[state].*'one-hot'.*'serport_uart_autobaud'

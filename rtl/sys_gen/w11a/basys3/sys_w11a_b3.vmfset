@@ -1,7 +1,16 @@
-# $Id: sys_w11a_b3.vmfset 909 2017-06-09 16:21:55Z mueller $
+# $Id: sys_w11a_b3.vmfset 1039 2018-08-12 10:04:09Z mueller $
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
+# general issues -----------------------------------------------
+{2018.2:}
+# stupid new warning, Xilinx suggests to safely ingnore
+i [Constraints 18-5210]                                         # generic
+{:}
+
+# binding instance .. which has no pins ------------------------
+I [Synth 8-115]                                                 # generic
+
 # false_path -hold ignored by synth ----------------------------
 I [Designutils 20-1567]                                         # generic
 
@@ -49,10 +58,6 @@ I [Synth 8-3332] R_LREGS_reg[attn][\d*]                         # generic
 I [Synth 8-3332] R_REGS_reg[(btn|swi)(eff)?][\d*]               # generic
 # --> usec not used for serport clock domain                    # OK 2017-06-06
 i [Synth 8-3332] R_REGS_reg[usec].* clkdivce
-# --> inst_compl logic disabled in pdp11_mmu                    # OK 2017-06-06
-i [Synth 8-3332] MMU/R_SSR0_reg[inst_compl].* pdp11_vmbox
-# --> IB_MREQ.cacc only used in ibd_ibmon, which is disabled    # OK 2017-06-06
-i [Synth 8-3332] R_REGS_reg[ibcacc].* pdp11_vmbox
 # --> not yet used                                              # OK 2017-06-06
 i [Synth 8-3332] R_STATUS_reg[suspext].* pdp11_sequencer
 # --> mawidth=4, nblock=11, so some cellen unused               # OK 2016-06-05
@@ -73,7 +78,33 @@ i [Synth 8-3332] CORE/RL/R_LREGS_reg[monattn].* rlink_sp2c
 # --> dmcmon not configured, snum not used                      # OK 2017-06-06
 i [Synth 8-3332] SNUM0.R_VMWAIT_reg.* pdp11_sequencer
 
+{2017.1:2017.4}
+# --> inst_compl logic disabled in pdp11_mmu                    # OK 2017-06-06
+i [Synth 8-3332] MMU/R_SSR0_reg[inst_compl].* pdp11_vmbox
+# --> IB_MREQ.cacc only used in ibd_ibmon, which is disabled    # OK 2017-06-06
+i [Synth 8-3332] R_REGS_reg[ibcacc].* pdp11_vmbox
+
+{2018.1:}
+# --> inst_compl logic disabled in pdp11_mmu                    # OK 2018-08-12
+i [Synth 8-3332] MMU/R_SSR0_reg[inst_compl].* pdp11_core
+# --> IB_MREQ.cacc only used in ibd_ibmon, which is disabled    # OK 2018-08-12
+i [Synth 8-3332] R_REGS_reg[ibcacc].* pdp11_core
+
 {:}
+
+# INFO: encoded FSM with state register as --------------------
+# test for sys_w11a_b3 that all FSMs are one_hot
+r [Synth 8-3354] R_BREGS_reg[state.*'one-hot'.*'rlink_core'
+r [Synth 8-3354] R_LREGS_reg[state].*'one-hot'.*'rlink_core'
+r [Synth 8-3354] R_REGS_reg[state].*'one-hot'.*'serport_uart_autobaud'
+r [Synth 8-3354] R_REGS_reg[state].*'one-hot'.*'serport_uart_rx'
+r [Synth 8-3354] R_REGS_reg[state].*'one-hot'.*'pdp11_core_rbus'
+r [Synth 8-3354] R_REGS_reg[state].*'one-hot'.*'pdp11_vmbox'
+r [Synth 8-3354] R_STATE_reg.*'one-hot'.*'pdp11_sequencer'
+r [Synth 8-3354] R_REGS_reg[state].*'one-hot'.*'pdp11_cache'
+r [Synth 8-3354] R_REGS_reg[state].*'one-hot'.*'ibdr_rhrp'
+r [Synth 8-3354] R_REGS_reg[state].*'one-hot'.*'ibdr_rl11'
+r [Synth 8-3354] R_REGS_reg[state].*'one-hot'.*'sysmon_rbus_core'
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [imp]

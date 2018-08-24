@@ -1,11 +1,12 @@
 #!/bin/bash
-# $Id: xviv_msg_summary 830 2016-12-26 20:25:49Z mueller $
+# $Id: xviv_msg_summary 1040 2018-08-18 07:40:07Z mueller $
 #
-# Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 #  Revision History:
 # Date         Rev  Vers    Comment
+# 2018-08-18  1040   1.1    check also for .bit and .dcp files
 # 2016-06-05   772   1.0    Initial version
 #
 
@@ -19,7 +20,13 @@ do
   pushd ${dnam} > /dev/null
   if [ ! -r ${bnam}_syn.log ]
   then
-    echo No ${bnam}_syn.log available
+    if [ ! -r ${bnam}.bit ] && [ ! -r ${bnam}_syn.dcp ] &&
+       [ ! -r ${bnam}_opt.dcp ] && [ ! -r ${bnam}_rou.dcp ]
+    then
+      echo No ${bnam} bit or dcp available
+    else
+      echo No ${bnam}_syn.log available
+    fi
   else
     make ${bnam}.mfsum
   fi

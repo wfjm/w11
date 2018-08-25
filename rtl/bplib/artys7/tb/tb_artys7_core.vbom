@@ -1,0 +1,6 @@
+# libs
+../../../vlib/slvtypes.vhd
+../../../vlib/simlib/simbus.vhd
+# components
+# design
+tb_artys7_core.vhd

@@ -1,6 +1,6 @@
--- $Id: bpgenlib.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: bpgenlib.vhd 1038 2018-08-11 12:39:52Z mueller $
 --
--- Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Generic Board/Part components
 -- 
 -- Dependencies:   -
--- Tool versions:  ise 12.1-14.7; viv 2014.4-2016.4; ghdl 0.26-0.34
+-- Tool versions:  ise 12.1-14.7; viv 2014.4-2018.2; ghdl 0.26-0.34
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-08-11  1038   1.2.2  add rgbdrv_3x2mux
 -- 2017-06-05   907   1.2.1  rgbdrv_analog: add ACTLOW generic
 -- 2016-02-27   737   1.2    add rgbdrv entity
 -- 2015-01-24   637   1.1.2  add generics to sn_humanio and sn_7segctl
@@ -236,6 +237,19 @@ component rgbdrv_3x4mux is              -- rgbled driver: mux three 4bit inputs
     O_RGBLED1 : out slv3;               -- pad-o: rgb led 1
     O_RGBLED2 : out slv3;               -- pad-o: rgb led 2
     O_RGBLED3 : out slv3                -- pad-o: rgb led 3
+  );
+end component;
+
+component rgbdrv_3x2mux is              -- rgbled driver: mux three 2bit inputs
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit := '0';            -- reset
+    CE_USEC : in slbit;                 -- 1 us clock enable
+    DATR : in slv2;                     -- red   data
+    DATG : in slv2;                     -- green data
+    DATB : in slv2;                     -- blue  data
+    O_RGBLED0 : out slv3;               -- pad-o: rgb led 0
+    O_RGBLED1 : out slv3                -- pad-o: rgb led 1
   );
 end component;
 

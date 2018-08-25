@@ -1,0 +1,29 @@
+# $Id: tbrun.yml 1038 2018-08-11 12:39:52Z mueller $
+#
+# Revision History:
+# Date         Rev Version  Comment
+# 2018-08-11  1038   1.0    Initial version
+#
+- default:
+    mode: ${viv_modes}
+#
+- tag:  [viv, sys_w11a, br_as7, stim1]
+  test: |
+    tbrun_tbwrri --hxon --lsuf stim1  tb_w11a_br_as7${ms} \
+      "rlink::run_rri ../../../../w11a/tb/tb_rlink_tba_pdp11core_stim.dat"
+
+- tag:  [viv, sys_w11a, br_as7, stim2]
+  test: |
+    tbrun_tbwrri --hxon --lsuf stim2  --pack rw11  tb_w11a_br_as7${ms} \
+      "rw11::setup_cpu" \
+      "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat 60."
+
+- tag:  [viv, sys_w11a, br_as7, tbcpu]
+  test: |
+    tbrun_tbwrri --hxon --lsuf tbcpu  --pack rw11  tb_w11a_br_as7${ms} \
+      "rw11::setup_cpu" "rw11::tbench @cpu_all.dat"
+
+- tag:  [viv, sys_w11a, br_as7, tbdev]
+  test: |
+    tbrun_tbwrri --hxon --lsuf tbdev  --pack rw11  tb_w11a_br_as7${ms} \
+      "rw11::setup_cpu" "rw11::tbench @dev_all.dat"

@@ -1,0 +1,7 @@
+# $Id: tbw.dat 1038 2018-08-11 12:39:52Z mueller $
+#
+[tb_w11a_br_as7]
+rlink_cext_fifo_rx = <fifo>
+rlink_cext_fifo_tx = <fifo>
+rlink_cext_conf = <null>
+sysmon_stim = ../../../../bplib/sysmon/tb/sysmon_stim_n4.dat

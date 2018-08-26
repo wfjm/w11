@@ -10,7 +10,6 @@
 - include: nexys2/tb/tbrun.yml
 - include: nexys3/tb/tbrun.yml
 - include: nexys4/tb/tbrun.yml
-- include: nexys4_bram/tb/tbrun.yml
 - include: basys3/tb/tbrun.yml
 - include: arty_bram/tb/tbrun.yml
 - include: artys7_bram/tb/tbrun.yml

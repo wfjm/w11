@@ -1,6 +1,6 @@
--- $Id: sys_w11a_br_arty.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: sys_w11a_br_arty.vhd 1039 2018-08-12 10:04:09Z mueller $
 --
--- Copyright 2016-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -33,10 +33,15 @@
 -- Test bench:     tb/tb_sys_w11a_br_arty
 --
 -- Target Devices: generic
--- Tool versions:  viv 2015.4-2016.4; ghdl 0.33
+-- Tool versions:  viv 2015.4-2018.2; ghdl 0.33-0.34
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2018-08-11  1038 2018.2  xc7a35t-1    2283  5190   138  47.5  1602 
+-- 2018-08-11  1038 2018.1  xc7a35t-1    2283  5193   138  47.5  1616 
+-- 2018-08-11  1038 2017.4  xc7a35t-1    2278  5130   138  47.5  1541 
+-- 2018-08-11  1038 2017.2  xc7a35t-1    2275  5104   138  47.5  1581 
+-- 2018-08-11  1038 2017.1  xc7a35t-1    2275  5104   138  47.5  1581 
 -- 2017-04-16   881 2016.4  xc7a35t-1    2275  5104   138  47.5  1611 +DEUNA
 -- 2017-01-29   846 2016.4  xc7a35t-1    2225  5100   138  47.5  1555 +int24
 -- 2016-05-26   768 2016.1  xc7a35t-1    2226  5080   138  47.5  1569 fsm+dsm=0

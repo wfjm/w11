@@ -2,6 +2,7 @@
 
 ### Table of contents
 - Current [HEAD](#user-content-head)
+- Release [w11a_V0.752](#user-content-w11a_V0.752)
 - Release [w11a_V0.751](#user-content-w11a_V0.751)
 - Release [w11a_V0.75](#user-content-w11a_V0.75)
 - Release [w11a_V0.742](#user-content-w11a_V0.742)
@@ -19,10 +20,33 @@ software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
 ### Summary
+
+<!-- --------------------------------------------------------------------- -->
+---
+## <a id="w11a_V0.752">2018-08-26: [w11a_V0.752](https://github.com/wfjm/w11/releases/tag/w11a_V0.752) - rev 1041(wfjm)</a>
+### Summary
+- the Arty board is now also offered with a Spartan-7 FPGA. To evaluate the
+  Spartan vs Artix performance a w11a port to the Arty S7 board was added.
+  The design runs with 80 MHz, same clock rate as achieved with Artix-7 FPGAs.
+  _Note_: the design is only simulation tested, was _not FPGA tested_ !!
+- use vivado 2017.2 as default (needed for Spartan-7 support). All vivado
+  versions from 2017.3 to 2018.2 were tested. All designs build properly under
+  vivado 2018.2, but the CPU time for a build increased very substantially,
+  so they are currently not used as default build tool.
+
+### New features
+- Add Digilent Arty A7 (50 die size) support
+  - general board support (for rev E board)
+  - rgbdrv_3x2mux.vhd : driver for array with 2 RGB LEDs
+  - add systems
+    - w11a: w11a system with 256 kB memory (from BRAM) (_only sim tested_)
+### Changes
 - xviv_msg_filter: allow {yyyy.x} tags (in addition to ranges)
 - xviv_msg_summary: check also for .bit and .dcp files
-- get vivado 2017.2 ready; all designs build under 2017.2 and 2018.2
-- *.vmfset: update rules to cover 2017.4-2018.2
+- get vivado 2017.2 ready (needed for Spartan-7 support)
+- test vivado 2017.3 - 2018.2 ready
+  - *.vmfset: update rules to cover 2017.4-2018.2
+  - all designs build under 2017.2 and 2018.2
 
 <!-- --------------------------------------------------------------------- -->
 ---
@@ -50,7 +74,7 @@ The full set of tests is only run for tagged releases.
     - rgbdrv_analog(_rbus): add ACTLOW generic to invert output polarity
     - ti_rri: adopt Digilent autodetect for CmodA7
   - add systems
-    - tst_rlink: rlink tested
+    - tst_rlink: rlink tester
     - tst_sram: SRAM tester
     - w11a: w11a system with 672 kB memory (512 SRAM + 160 BRAM)
 - rtl/vlib/rutil.vhd: added package, with imin helper function

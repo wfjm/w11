@@ -1,0 +1,38 @@
+os: linux
+dist: trusty
+language: c++
+sudo: required
+#
+matrix:
+  include:
+    - name: "gcc 4.8"
+      env: MATRIX_EVAL="CC=gcc && CXX=g++"
+
+#
+before_install:
+  - |
+    sudo apt-get install -y \
+      libboost-dev libboost-date-time-dev \
+      libboost-thread-dev libboost-regex-dev \
+      libusb-1.0-0-dev \
+      tcl8.6 tcl8.6-dev tcllib tclreadline
+  - eval "${MATRIX_EVAL}"
+
+#
+before_script:
+  - bash -c '${CC}  --version'
+  - bash -c '${CXX} --version'
+  - export RETROBASE=$PWD
+  - export PATH=$PATH:$RETROBASE/tools/bin:.
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$RETROBASE/tools/lib
+  - export BOOSTINC=/usr/include
+  - export BOOSTLIB=/usr/lib
+  - export TCLINC=/usr/include/tcl8.6
+  - export TCLLIB=/usr/lib/x86_64-linux-gnu
+  - export TCLLIBNAME=tcl8.6
+
+#
+script:
+  - make -C tools/src
+  - make -C tools/src/testtclsh
+  - pushd tools/tcl && setup_packages && popd

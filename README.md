@@ -1,5 +1,7 @@
 # w11: PDP 11/70 CPU and SoC
 
+[![Build Status](https://travis-ci.org/wfjm/w11.svg?branch=master)](https://travis-ci.org/wfjm/w11)
+
 ### Overview
 The project contains the VHDL code for a **complete DEC PDP-11 system**:
 a PDP-11/70 CPU with memory management unit, but without floating point unit,

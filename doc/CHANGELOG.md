@@ -20,6 +20,7 @@ software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
 ### Summary
+- add Travis CI integration (phase 1)
 
 <!-- --------------------------------------------------------------------- -->
 ---

@@ -1,6 +1,6 @@
--- $Id: ibdlib.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: ibdlib.vhd 1043 2018-09-09 10:20:12Z mueller $
 --
--- Copyright 2008-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Definitions for ibus devices
 --
 -- Dependencies:   -
--- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.4; ghdl 0.18-0.33
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2018.2; ghdl 0.18-0.34
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-09-08  1043   1.3.1  update ibd_kw11p
 -- 2017-01-29   847   1.3.1  add ibdr_deuna
 -- 2015-05-09   676   1.3    start/stop/suspend overhaul
 -- 2015-03-13   658   1.2.1  add rprm declaration (later renaned to rhrp)
@@ -106,6 +107,7 @@ component ibd_kw11p is                  -- ibus dev(loc): KW11-P (prog clock)
     CE_MSEC : in slbit;                 -- msec pulse
     RESET : in slbit;                   -- system reset
     BRESET : in slbit;                  -- ibus reset
+    EXTEVT : in slbit;                  -- external event for RATE="11"
     CPUSUSP : in slbit;                 -- cpu suspended
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response

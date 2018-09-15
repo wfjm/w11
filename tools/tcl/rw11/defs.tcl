@@ -1,6 +1,6 @@
-# $Id: defs.tcl 985 2018-01-03 08:59:40Z mueller $
+# $Id: defs.tcl 1044 2018-09-15 11:12:07Z mueller $
 #
-# Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-09-09  1044   1.0.6  update defs kw11p, literals for KW11P_CSR(rate)
 # 2017-02-17   851   1.0.5  defs for auxilliary devices (kw11l,kw11p,iist)
 # 2016-12-30   834   1.0.4  fix typo in regmap_add for SDR's
 # 2016-01-02   724   1.0.3  add s: defs for CP_STAT(rust)
@@ -120,8 +121,8 @@ namespace eval rw11 {
   set A_KW11P_CSR  0172540
   set A_KW11P_CSB  0172542
   set A_KW11P_CTR  0172544
-  regdsc KW11P_CSR  {err 15} {done 7} {ie 6} {fix 5} {updn 4} \
-                    {mode 3} {rate 2 2} {run 0}
+  regdsc KW11P_CSR  {err 15} {done 7} {ie 6} {fix 5} {updn 4} {mode 3} \
+                    {rate 2 2 "s:r100k:r10k:rline:rext"} {run 0}
   rw11util::regmap_add rw11 kwp.csr    {?? KW11P_CSR}
   #
   # IIST - interprocessor communication

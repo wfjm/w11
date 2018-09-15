@@ -1,0 +1,8 @@
+# $Id: w11a_kw11p_all.dat 1045 2018-09-15 15:20:57Z mueller $
+#
+## steering file for all w11a_kw11p tests
+#
+test_kw11p_regs.tcl
+test_kw11p_ctr.tcl
+test_kw11p_int.tcl
+#

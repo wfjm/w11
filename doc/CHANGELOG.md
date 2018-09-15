@@ -26,6 +26,7 @@ The full set of tests is only run for tagged releases.
 - sys_w11_n4: reduce cache from 64 to 32 kB to keep timing closure
 - stay with vivado 2017.2 as default tool, 2017.2 to 2018.2 exhibit much
   longer build times for w11 designs (see Xilinx Forum post [884858](https://forums.xilinx.com/t5/Synthesis/vivado-2018-2-much-slower-than-2017-2-at-least-for-small-designs/m-p/884858))
+- RtclRw11Unit: fix for clang: M_virt() now public
 
 <!-- --------------------------------------------------------------------- -->
 ---

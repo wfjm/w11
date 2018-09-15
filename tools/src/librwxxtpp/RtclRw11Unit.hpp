@@ -1,6 +1,6 @@
-// $Id: RtclRw11Unit.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclRw11Unit.hpp 1046 2018-09-15 16:20:23Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-09-15  1046   1.2.1  fix for clang: M_virt() now public
 // 2017-04-08   870   1.2    drop fpCpu, use added Cpu()=0 instead
 // 2017-04-02   863   1.1    add fpVirt,DetachCleanup(),AttachDone(),M_virt()
 // 2013-03-03   494   1.0    Initial version
@@ -60,9 +61,10 @@ namespace Retro {
       int           M_set(RtclArgs& args);
       int           M_attach(RtclArgs& args);
       int           M_detach(RtclArgs& args);
-      int           M_virt(RtclArgs& args);
       int           M_dump(RtclArgs& args);
       int           M_default(RtclArgs& args);
+    public:
+      int           M_virt(RtclArgs& args);
 
     protected:
       RtclGetList   fGets;

@@ -1,6 +1,6 @@
--- $Id: sys_conf.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: sys_conf.vhd 1044 2018-09-15 11:12:07Z mueller $
 --
--- Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,11 @@
 -- Description:    Definitions for sys_w11a_n4 (for synthesis)
 --
 -- Dependencies:   -
--- Tool versions:  ise 14.5-14.7; viv 2014.4-2017.1; ghdl 0.29-0.34
+-- Tool versions:  ise 14.5-14.7; viv 2014.4-2018.2; ghdl 0.29-0.34
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-09-09  1044   1.5.5  use _cache_twidth TW=7 (32 kByte), timing issues
+-- 2018-09-08  1043   1.5.4  add sys_conf_ibd_kw11p
 -- 2017-04-22   884   1.5.3  re-enable dmcmon
 -- 2017-03-04   858   1.5.2  enable deuna
 -- 2017-01-29   847   1.5.1  add sys_conf_ibd_deuna
@@ -75,7 +77,7 @@ package sys_conf is
   constant sys_conf_mem_losize     : natural := 8#167777#; --   4 MByte
   
   constant sys_conf_cache_fmiss    : slbit   := '0';     -- cache enabled
-  constant sys_conf_cache_twidth   : integer :=  6;      --  64kB cache
+  constant sys_conf_cache_twidth   : integer :=  7;      --  32kB cache
     
   -- configure w11 system devices --------------------------------------------
   -- configure character and communication devices
@@ -92,6 +94,7 @@ package sys_conf is
 
   -- configure other devices
   constant sys_conf_ibd_iist   : boolean := true;  -- IIST
+  constant sys_conf_ibd_kw11p  : boolean := true;  -- KW11P
 
   -- derived constants =======================================================
   constant sys_conf_clksys : integer :=

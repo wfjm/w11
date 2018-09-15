@@ -1,6 +1,6 @@
--- $Id: sys_conf.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: sys_conf.vhd 1043 2018-09-09 10:20:12Z mueller $
 --
--- Copyright 2016-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Definitions for sys_w11a_br_arty (for synthesis)
 --
 -- Dependencies:   -
--- Tool versions:  viv 2015.4-2016.4; ghdl 0.33
+-- Tool versions:  viv 2015.4-2018.2; ghdl 0.33-0.34
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-09-08  1043   1.3.6  add sys_conf_ibd_kw11p
 -- 2017-03-04   858   1.3.5  enable deuna
 -- 2017-01-29   847   1.3.4  add sys_conf_ibd_deuna
 -- 2016-06-18   775   1.3.3  use PLL for clkser_gentype
@@ -87,6 +88,7 @@ package sys_conf is
 
   -- configure other devices
   constant sys_conf_ibd_iist   : boolean := true;  -- IIST
+  constant sys_conf_ibd_kw11p  : boolean := true;  -- KW11P
 
   -- derived constants =======================================================
   constant sys_conf_clksys : integer :=

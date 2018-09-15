@@ -1,6 +1,6 @@
--- $Id: sys_w11a_n3.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: sys_w11a_n3.vhd 1045 2018-09-15 15:20:57Z mueller $
 --
--- Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -34,6 +34,7 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2018-09-15  1045 14.7  131013 xc6slx16-2  2851 5453  177 1932 ok: +KW11P  84%
 -- 2017-03-30   888 14.7  131013 xc6slx16-2  2790 5352  177 1943 ok: +fx2dbg 85%
 -- 2017-03-04   858 14.7  131013 xc6slx16-2  2717 5273  177 1885 ok: +deuna  82%
 -- 2017-01-29   846 14.7  131013 xc6slx16-2  2680 5208  177 1860 ok: +int24  81%

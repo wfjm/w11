@@ -1,6 +1,6 @@
--- $Id: sys_conf_sim.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: sys_conf_sim.vhd 1043 2018-09-09 10:20:12Z mueller $
 --
--- Copyright 2010-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,6 +19,7 @@
 -- Tool versions:  xst 11.4-14.7; ghdl 0.26-0.34
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-09-08  1043   1.6.3  add sys_conf_ibd_kw11p
 -- 2017-04-22   884   1.6.2  use sys_conf_dmcmon_awidth=8 (proper value)
 -- 2017-01-29   847   1.6.1  add sys_conf_ibd_deuna
 -- 2016-07-16   788   1.6    use cram_*delay functions to determine delays
@@ -87,6 +88,7 @@ package sys_conf is
 
   -- configure other devices
   constant sys_conf_ibd_iist   : boolean := true;  -- IIST
+  constant sys_conf_ibd_kw11p  : boolean := true;  -- KW11P
 
   -- derived constants =======================================================
   constant sys_conf_clksys : integer :=

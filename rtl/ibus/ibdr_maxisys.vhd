@@ -1,6 +1,6 @@
--- $Id: ibdr_maxisys.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: ibdr_maxisys.vhd 1043 2018-09-09 10:20:12Z mueller $
 --
--- Copyright 2009-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2009-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -17,6 +17,7 @@
 --
 -- Dependencies:   ibd_iist
 --                 ibd_kw11l
+--                 ibd_kw11p
 --                 ibdr_deuna
 --                 ibdr_rhrp
 --                 ibdr_rl11
@@ -47,6 +48,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-09-08  1043   1.4.2  add KW11P;
 -- 2017-01-29   847   1.4.1  add DEUNA; rename generic labels
 -- 2017-01-28   846   1.4    use ib_intmap24
 -- 2015-05-15   683   1.3.1  add TM11
@@ -72,7 +74,7 @@
 --
 -- ibbase  vec  pri  slot attn  sror device name
 --
--- 172540  104   ?7    17    -  1/1  KW11-P
+-- 172540  104    6    17    -  1/1  KW11-P
 -- 177500  260    6 15 16    -  1/2  IIST
 -- 177546  100    6 14 15    -  1/3  KW11-L
 -- 174510  120    5    14    9  1/4  DEUNA
@@ -130,7 +132,7 @@ architecture syn of ibdr_maxisys is
      intmap_init,                       -- line 20  (unused)
      intmap_init,                       -- line 19  (unused)
      intmap_init,                       -- line 18  (unused)
-     (8#104#,7),                        -- line 17  KW11-P
+     (8#104#,6),                        -- line 17  KW11-P
      (8#260#,6),                        -- line 16  IIST
      (8#100#,6),                        -- line 15  KW11-L
      (8#120#,5),                        -- line 14  DENUA
@@ -264,6 +266,24 @@ begin
       EI_REQ  => EI_REQ_KW11L,
       EI_ACK  => EI_ACK_KW11L
     );
+
+  KW11P: if sys_conf_ibd_kw11p generate
+  begin
+    I0 : ibd_kw11p
+      port map (
+        CLK     => CLK,
+        CE_USEC => CE_USEC,
+        CE_MSEC => CE_MSEC,
+        RESET   => RESET,
+        BRESET  => BRESET,
+        EXTEVT  => '0',
+        CPUSUSP => CPUSUSP,
+        IB_MREQ => IB_MREQ,
+        IB_SRES => IB_SRES_KW11P,
+        EI_REQ  => EI_REQ_KW11P,
+        EI_ACK  => EI_ACK_KW11P
+      );
+  end generate KW11P;
 
   DEUNA: if sys_conf_ibd_deuna generate
   begin

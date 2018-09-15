@@ -1,6 +1,6 @@
--- $Id: sys_w11a_n4.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: sys_w11a_n4.vhd 1045 2018-09-15 15:20:57Z mueller $
 --
--- Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -32,10 +32,11 @@
 -- Test bench:     tb/tb_sys_w11a_n4
 --
 -- Target Devices: generic
--- Tool versions:  ise 14.5-14.7; viv 2014.4-2016.4; ghdl 0.29-0.33
+-- Tool versions:  ise 14.5-14.7; viv 2014.4-2018.2; ghdl 0.29-0.34
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic MHz
+-- 2019-09-15  1045 2017.2  xc7a100t-1   2926  5904   150  17.0  1884  80 +KW11P
 -- 2017-04-22   885 2016.4  xc7a100t-1   2862  5859   150  12.0  1900  80 +dmcmon
 -- 2017-04-16   881 2016.4  xc7a100t-1   2645  5621   138  12.0  1804  80 +DEUNA
 -- 2017-01-29   846 2016.4  xc7a100t-1   2574  5496   138  12.0  1750  80 +int24

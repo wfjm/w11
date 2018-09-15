@@ -1,6 +1,6 @@
--- $Id: sys_conf.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: sys_conf.vhd 1043 2018-09-09 10:20:12Z mueller $
 --
--- Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Definitions for sys_w11a_c7 (for synthesis)
 --
 -- Dependencies:   -
--- Tool versions:  viv 2017.1; ghdl 0.34
+-- Tool versions:  viv 2017.1-2018.2; ghdl 0.34
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-09-08  1043   1.0.1  add sys_conf_ibd_kw11p
 -- 2017-06-24   914   1.0    Initial version (derived from _n4 version)
 ------------------------------------------------------------------------------
 
@@ -81,6 +82,7 @@ package sys_conf is
 
   -- configure other devices
   constant sys_conf_ibd_iist   : boolean := true;  -- IIST
+  constant sys_conf_ibd_kw11p  : boolean := true;  -- KW11P
 
   -- derived constants =======================================================
   constant sys_conf_clksys : integer :=

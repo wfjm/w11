@@ -1,6 +1,6 @@
--- $Id: sys_conf.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: sys_conf.vhd 1043 2018-09-09 10:20:12Z mueller $
 --
--- Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,6 +19,7 @@
 -- Tool versions:  xst 14.7; viv 2014.4-2016.4; ghdl 0.18-0.33
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-09-08  1043   1.0.2  add sys_conf_ibd_kw11p
 -- 2017-01-29   847   1.0.1  add sys_conf_ibd_deuna
 -- 2015-03-14   658   1.0    Initial version 
 ------------------------------------------------------------------------------
@@ -44,6 +45,7 @@ package sys_conf is
 
   -- configure other devices
   constant sys_conf_ibd_iist   : boolean := true;  -- IIST
+  constant sys_conf_ibd_kw11p  : boolean := true;  -- KW11P
 
 end package sys_conf;
 

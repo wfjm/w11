@@ -1,4 +1,4 @@
--- $Id: sys_conf_sim.vhd 1038 2018-08-11 12:39:52Z mueller $
+-- $Id: sys_conf_sim.vhd 1043 2018-09-09 10:20:12Z mueller $
 --
 -- Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  viv 2017.2-2018.2; ghdl 0.34
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-09-08  1043   1.0.1  add sys_conf_ibd_kw11p
 -- 2018-08-11  1038   1.0    Initial version
 ------------------------------------------------------------------------------
 
@@ -79,6 +80,7 @@ package sys_conf is
 
   -- configure other devices
   constant sys_conf_ibd_iist   : boolean := true;  -- IIST
+  constant sys_conf_ibd_kw11p  : boolean := true;  -- KW11P
 
   -- derived constants =======================================================
   constant sys_conf_clksys : integer :=

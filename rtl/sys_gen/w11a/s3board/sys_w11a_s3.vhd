@@ -1,6 +1,6 @@
--- $Id: sys_w11a_s3.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: sys_w11a_s3.vhd 1045 2018-09-15 15:20:57Z mueller $
 --
--- Copyright 2007-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -29,10 +29,11 @@
 -- Test bench:     tb/tb_sys_w11a_s3
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.33
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.34
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2018-09-15  1045 14.7  131013 xc3s1000-4  2670 7721  382 4851 OK: +KP11P 63%
 -- 2017-03-04   858 14.7  131013 xc3s1000-4  2576 7471  382 4716 OK: +DEUNA 61%
 -- 2017-01-29   846 14.7  131013 xc3s1000-4  2538 7355  382 4635 OK: +int24 60%
 -- 2015-06-04   686 14.7  131013 xc3s1000-4  2158 6453  350 3975 OK: +TM11  51%

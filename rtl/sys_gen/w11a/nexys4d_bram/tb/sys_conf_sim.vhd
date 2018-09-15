@@ -1,6 +1,6 @@
--- $Id: sys_conf_sim.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: sys_conf_sim.vhd 1043 2018-09-09 10:20:12Z mueller $
 --
--- Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Definitions for sys_w11a_br_n4d (for simulation)
 --
 -- Dependencies:   -
--- Tool versions:  viv 2016.2-2016.4; ghdl 0.33
+-- Tool versions:  viv 2016.2-2018.2; ghdl 0.33-0.34
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-09-08  1043   1.0.2  add sys_conf_ibd_kw11p
 -- 2017-01-29   847   1.0.1  add sys_conf_ibd_deuna
 -- 2017-01-04   644   1.0    Initial version (cloned from _br_n4)
 ------------------------------------------------------------------------------
@@ -80,6 +81,7 @@ package sys_conf is
 
   -- configure other devices
   constant sys_conf_ibd_iist   : boolean := true;  -- IIST
+  constant sys_conf_ibd_kw11p  : boolean := true;  -- KW11P
 
   -- derived constants =======================================================
 

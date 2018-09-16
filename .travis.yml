@@ -8,6 +8,16 @@ matrix:
     - name: "gcc 4.8"
       env: MATRIX_EVAL="CC=gcc && CXX=g++"
 
+    - name: "gcc 7"
+      addons:
+        apt:
+          sources:  ubuntu-toolchain-r-test
+          packages: g++-7
+      env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+
+    - name: "clang"
+      env: MATRIX_EVAL="CC=clang && CXX=clang++"
+
 #
 before_install:
   - |
@@ -15,7 +25,11 @@ before_install:
       libboost-dev libboost-date-time-dev \
       libboost-thread-dev libboost-regex-dev \
       libusb-1.0-0-dev \
-      tcl8.6 tcl8.6-dev tcllib tclreadline
+      tcl8.6 tcl8.6-dev tcllib tclreadline \
+      libyaml-libyaml-perl
+  - wget https://www.retro11.de/data/oc_w11/travis/allsim.tbz
+  - tar -tvf allsim.tbz | perl -pe 's/^.*\s(\d\d\d\d-)/$1/'
+  - tar -xvf allsim.tbz
   - eval "${MATRIX_EVAL}"
 
 #
@@ -36,3 +50,23 @@ script:
   - make -C tools/src
   - make -C tools/src/testtclsh
   - pushd tools/tcl && setup_packages && popd
+  - |
+    tbrun -nomake \
+      -tag default,memlib \
+      -tag default,genlib \
+      -tag default,comlib \
+      -tag default,rlink \
+      -tag default,serport \
+      -tag default,bplib \
+      -tag default,w11a \
+      -tag default,sys_tst_serloop \
+      -tag default,sys_tst_serloop1 \
+      -tag default,sys_tst_serloop2 \
+      -tag default,sys_tst_rlink,base \
+      -tag default,sys_tst_rlink_cuff,basefx2 \
+      -tag default,sys_tst_rlink_cuff,baseser \
+      -tag default,sys_tst_sram,base \
+      -tag default,sys_tst_sram,n4 \
+      -tag default,sys_w11a,stim1 \
+      -tag default,sys_w11a,n4
+  - tbfilt -all -sum -comp

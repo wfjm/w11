@@ -1,4 +1,4 @@
-# $Id: test_regs.tcl 985 2018-01-03 08:59:40Z mueller $
+# $Id: test_regs.tcl 1044 2018-09-15 11:12:07Z mueller $
 #
 # Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -41,7 +41,7 @@ namespace eval rbmoni {
     #-------------------------------------------------------------------------
     rlc log "  A basic register access tests -----------------------------"
     rlc log "    A1: write/read cntl---------------------------------"
-    # test that starting caputes option flags, and that stoping keeps them
+    # test that starting captures option flags, and that stoping keeps them
     rlc exec \
       -wreg rm.cntl [regbld rbmoni::CNTL {func "STA"}] \
       -rreg rm.cntl -edata [regbld rbmoni::CNTL] \

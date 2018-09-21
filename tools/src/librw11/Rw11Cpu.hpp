@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11Cpu.hpp 1044 2018-09-15 11:12:07Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -285,7 +285,7 @@ namespace Retro {
       uint16_t      fHasHbpt;               //!< has dmhbpt (hardware breakpoint)
       bool          fHasIbmon;              //!< has ibmon  (ibus monitor)
       bool          fHasKw11l;              //!< has kw11-l (line clock)
-      bool          fHasKw11p;              //!< has kw11-l (prog clock)
+      bool          fHasKw11p;              //!< has kw11-p (prog clock)
       bool          fHasIist;               //!< has iist   (smp comm)
       bool          fCpuAct;
       uint16_t      fCpuStat;

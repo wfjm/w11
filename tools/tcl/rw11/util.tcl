@@ -1,4 +1,4 @@
-# $Id: util.tcl 985 2018-01-03 08:59:40Z mueller $
+# $Id: util.tcl 1044 2018-09-15 11:12:07Z mueller $
 #
 # Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,7 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
-# 2017-04-22   83    1.3.8  move in imap_reg2addr; add imap_range2addr
+# 2017-04-22   883   1.3.8  move in imap_reg2addr; add imap_range2addr
 # 2017-02-04   848   1.3.7  add DEUNA; setup_cntl: handle not found devices
 # 2015-12-30   721   1.3.6  BUGFIX: setup_ostr: adopt to use args2opts
 # 2015-07-25   704   1.3.5  use args2opts

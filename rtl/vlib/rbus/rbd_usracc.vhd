@@ -1,6 +1,6 @@
--- $Id: rbd_usracc.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: rbd_usracc.vhd 1044 2018-09-15 11:12:07Z mueller $
 --
--- Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,7 +19,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  viv 2015.4; ghdl 0.33
+-- Tool versions:  viv 2015.4-2018.2; ghdl 0.33-0.34
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
@@ -29,8 +29,8 @@
 -- rbus registers:
 --
 -- Addr   Bits  Name        r/w/f  Function
---    0         time        r/-/-  use_accress lsb
---    1         time        r/-/-  use_accress msb
+--    0         ua0         r/-/-  use_accress lsb
+--    1         ua1         r/-/-  use_accress msb
 --
 
 library ieee;

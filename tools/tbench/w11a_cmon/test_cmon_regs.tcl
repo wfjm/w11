@@ -1,4 +1,4 @@
-# $Id: test_cmon_regs.tcl 885 2017-04-23 15:54:01Z mueller $
+# $Id: test_cmon_regs.tcl 1044 2018-09-15 11:12:07Z mueller $
 #
 # Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
@@ -22,7 +22,7 @@ if {[$cpu get hascmon] == 0} {
 rlc log "  A basic register access tests -----------------------------"
 
 rlc log "    A1: write/read cntl---------------------------------"
-# test that starting caputes option flags, and that stoping keeps them
+# test that starting captures option flags, and that stoping keeps them
 $cpu cp \
   -wreg cm.cntl [regbld rw11::CM_CNTL {func "STA"}] \
   -rreg cm.cntl -edata [regbld rw11::CM_CNTL] \

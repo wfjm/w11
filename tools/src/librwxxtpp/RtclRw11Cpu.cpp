@@ -1,6 +1,6 @@
-// $Id: RtclRw11Cpu.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclRw11Cpu.cpp 1048 2018-09-22 07:41:46Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-09-21  1048   1.2.18 coverity fixup (uninitialized scalar)
 // 2017-04-22   883   1.2.17 M_(imap|rmap): -testname optional addr check
 // 2017-04-15   876   1.2.16 add ControllerCommands()
 // 2017-04-15   875   1.2.15 M_default: add attached units summary
@@ -164,7 +165,7 @@ int RtclRw11Cpu::M_imap(RtclArgs& args)
       if (!args.GetArg("name", name)) return kERR;
       if (!args.GetArg("?addr", addr)) return kERR;
       if (!args.AllDone()) return kERR;
-      uint16_t tstaddr;
+      uint16_t tstaddr=0;
       bool found = addrmap.Find(name, tstaddr);
       if (found && args.NOptMiss()==0) {      // if specified addr
         if (tstaddr != addr) found = false;   // verify addr
@@ -178,9 +179,9 @@ int RtclRw11Cpu::M_imap(RtclArgs& args)
       args.SetResult(int(addrmap.Find(addr, tstname)));
 
     } else if (opt == "-insert") {          // imap -insert name addr
-      uint16_t tstaddr;
+      uint16_t tstaddr=0;
       string   tstname;
-      int      tstint;
+      int      tstint=0;
       if (!args.GetArg("name", name)) return kERR;
       // enforce that the name is not a valid representation of an int
       if (Tcl_GetIntFromObj(nullptr, args[args.NDone()-1], &tstint) == kOK) 
@@ -212,7 +213,7 @@ int RtclRw11Cpu::M_imap(RtclArgs& args)
     if (!args.OptValid()) return kERR;
     if (!args.GetArg("?name", name)) return kERR;
     if (args.NOptMiss()==0) {               // imap name
-      uint16_t tstaddr;
+      uint16_t tstaddr=0;
       if(addrmap.Find(name, tstaddr)) {
         args.SetResult(int(tstaddr));
       } else {
@@ -267,7 +268,7 @@ int RtclRw11Cpu::M_rmap(RtclArgs& args)
       if (!args.GetArg("name", name)) return kERR;
       if (!args.GetArg("?addr", addr)) return kERR;
       if (!args.AllDone()) return kERR;
-      uint16_t tstaddr;
+      uint16_t tstaddr=0;
       bool found = lmap.Find(name, tstaddr);
       if (found && args.NOptMiss()==0) {      // if specified addr
         if (tstaddr != addr) found = false;   // verify addr
@@ -281,9 +282,9 @@ int RtclRw11Cpu::M_rmap(RtclArgs& args)
       args.SetResult(int(lmap.Find(addr, tstname)));
 
     } else if (opt == "-insert") {          // rmap -insert name addr
-      uint16_t tstaddr;
+      uint16_t tstaddr=0;
       string   tstname;
-      int      tstint;
+      int      tstint=0;
       if (!args.GetArg("name", name)) return kERR;
       // enforce that the name is not a valid representation of an int
       if (Tcl_GetIntFromObj(nullptr, args[args.NDone()-1], &tstint) == kOK) 
@@ -315,7 +316,7 @@ int RtclRw11Cpu::M_rmap(RtclArgs& args)
     if (!args.OptValid()) return kERR;
     if (!args.GetArg("?name", name)) return kERR;
     if (args.NOptMiss()==0) {               // rmap name
-      uint16_t tstaddr;
+      uint16_t tstaddr=0;
       if(lmap.Find(name, tstaddr)) {
         args.SetResult(int(tstaddr));
       } else if(cmap.Find(name, tstaddr)) {
@@ -394,15 +395,15 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
     }    
 
     if        (opt == "-rreg") {            // -rreg addr ?varData ?varStat ---
-      uint16_t addr;
+      uint16_t addr=0;
       if (!GetRAddr(args, addr)) return kERR;
       if (!GetVarName(args, "??varData", lsize, vardata)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       clist.AddRreg(addr);
 
     } else if (opt == "-rblk") {            // -rblk addr size ?varData ?varStat
-      uint16_t addr;
-      int32_t bsize;
+      uint16_t addr=0;
+      int32_t bsize=0;
       if (!GetRAddr(args, addr)) return kERR;
       if (!args.GetArg("bsize", bsize, 1, Connect().BlockSizeMax())) return kERR;
       if (!GetVarName(args, "??varData", lsize, vardata)) return kERR;
@@ -410,15 +411,15 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       clist.AddRblk(addr, (size_t) bsize);
 
     } else if (opt == "-wreg") {            // -wreg addr data ?varStat -------
-      uint16_t addr;
-      uint16_t data;
+      uint16_t addr=0;
+      uint16_t data=0;
       if (!GetRAddr(args, addr)) return kERR;
       if (!args.GetArg("data", data)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       clist.AddWreg(addr, data);
 
     } else if (opt == "-wblk") {            // -wblk addr block ?varStat ------
-      uint16_t addr;
+      uint16_t addr=0;
       vector<uint16_t> block;
       if (!GetRAddr(args, addr)) return kERR;
       if (!args.GetArg("data", block, 1, Connect().BlockSizeMax())) return kERR;
@@ -436,8 +437,8 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       clist.AddAttn();
 
     } else if (opt == "-init") {            // -init addr data ?varStat -------
-      uint16_t addr;
-      uint16_t data;
+      uint16_t addr=0;
+      uint16_t data=0;
       if (!GetRAddr(args, addr)) return kERR;
       if (!args.GetArg("data", data)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
@@ -449,7 +450,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       clist.AddRreg(base + Rw11Cpu::kCPR0 + regnum);
 
     } else if (opt == "-wr") {              // -wr* data ?varStat ------------
-      uint16_t data;
+      uint16_t data=0;
       if (!args.GetArg("data", data)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       clist.AddWreg(base + Rw11Cpu::kCPR0 + regnum, data);
@@ -460,7 +461,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       clist.AddRreg(base + Rw11Cpu::kCPPSW);
 
     } else if (opt == "-wps") {             // -wps data ?varStat ------------
-      uint16_t data;
+      uint16_t data=0;
       if (!args.GetArg("data", data)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       clist.AddWreg(base + Rw11Cpu::kCPPSW, data);
@@ -476,19 +477,19 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       clist.AddRreg(base + Rw11Cpu::kCPAH);
 
     } else if (opt == "-wal") {             // -wal data ?varStat ------------
-      uint16_t ibaddr;
+      uint16_t ibaddr=0;
       if (!GetIAddr(args, ibaddr)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       clist.AddWreg(base + Rw11Cpu::kCPAL, ibaddr);
 
     } else if (opt == "-wah") {             // -wah data ?varStat ------------
-      uint16_t data;
+      uint16_t data=0;
       if (!args.GetArg("ah", data)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       clist.AddWreg(base + Rw11Cpu::kCPAH, data);
 
     } else if (opt == "-wa") {              // -wa addr ?varStat [-p22 -ubm]--
-      uint32_t addr;
+      uint32_t addr=0;
       if (!args.GetArg("addr", addr, 017777776)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       uint16_t al = addr;
@@ -515,7 +516,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       clist.AddRreg(base + addr);
 
     } else if (opt == "-rma") {             // -rma addr ?varData ?varStat ---
-      uint16_t ibaddr;
+      uint16_t ibaddr=0;
       if (!GetIAddr(args, ibaddr)) return kERR;
       // bind expects to memi access, which is second command
       if (!GetVarName(args, "??varData", lsize+1, vardata)) return kERR;
@@ -527,14 +528,14 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
                opt == "-wmi") {
       uint16_t addr = opt=="-wm" ? Rw11Cpu::kCPMEM : 
                                    Rw11Cpu::kCPMEMI;
-      uint16_t data;
+      uint16_t data=0;
       if (!args.GetArg("data", data)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       clist.AddWreg(base + addr, data);
 
     } else if (opt == "-wma") {             // -wma addr data ?varStat -------
-      uint16_t ibaddr;
-      uint16_t data;
+      uint16_t ibaddr=0;
+      uint16_t data=0;
       if (!GetIAddr(args, ibaddr)) return kERR;
       if (!args.GetArg("data", data)) return kERR;
       // bind expects to memi access, which is second command
@@ -543,7 +544,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       clist.AddWreg(base + Rw11Cpu::kCPMEMI, data);
 
     } else if (opt == "-brm") {             // -brm size ?varData ?varStat ---
-      int32_t bsize;
+      int32_t bsize=0;
       if (!args.GetArg("bsize", bsize, 1, Connect().BlockSizeMax())) return kERR;
       if (!GetVarName(args, "??varData", lsize, vardata)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
@@ -586,7 +587,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       setcpuact = true;
 
     } else if (opt == "-stapc") {           // -stapc addr ?varStat ----------
-      uint16_t data;
+      uint16_t data=0;
       if (!args.GetArg("data", data)) return kERR;
       if (!GetVarName(args, "??varStat", lsize+1, varstat)) return kERR;  
       clist.AddWreg(base + Rw11Cpu::kCPCNTL, Rw11Cpu::kCPFUNC_STOP);
@@ -601,7 +602,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       clist.AddRreg(base + Rw11Cpu::kCPMEMBE);
 
     } else if (opt == "-wmembe") {          // -wmembe be ?varStat [-stick] -
-      uint16_t be;
+      uint16_t be=0;
       bool     stick = false;
       if (!args.GetArg("be", be, 3)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
@@ -617,15 +618,15 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       Obj().AddMembe(clist, be, stick);
 
     } else if (opt == "-ribr") {           // -ribr iba ?varData ?varStat ----
-      uint16_t ibaddr;
+      uint16_t ibaddr=0;
       if (!GetIAddr(args, ibaddr)) return kERR;
       if (!GetVarName(args, "??varData", lsize, vardata)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       Obj().AddRibr(clist, ibaddr);
 
     } else if (opt == "-rbibr") {          // -rbibr iba size ?varData ?varStat
-      uint16_t ibaddr;
-      int32_t bsize;
+      uint16_t ibaddr=0;
+      int32_t bsize=0;
       if (!GetIAddr(args, ibaddr)) return kERR;
       if (!args.GetArg("bsize", bsize, 1, Connect().BlockSizeMax())) return kERR;
       if (!GetVarName(args, "??varData", lsize, vardata)) return kERR;
@@ -633,15 +634,15 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       Obj().AddRbibr(clist, ibaddr, (size_t) bsize);
 
     } else if (opt == "-wibr") {           // -wibr iba data ?varStat --------
-      uint16_t ibaddr;
-      uint16_t data;
+      uint16_t ibaddr=0;
+      uint16_t data=0;
       if (!GetIAddr(args, ibaddr)) return kERR;
       if (!args.GetArg("data",   data)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       Obj().AddWibr(clist, ibaddr, data);
 
     } else if (opt == "-wbibr") {          // -wbibr iba block data ?varStat -
-      uint16_t ibaddr;
+      uint16_t ibaddr=0;
       vector<uint16_t> block;
       if (!GetIAddr(args, ibaddr)) return kERR;
       if (!args.GetArg("data", block, 1, Connect().BlockSizeMax())) return kERR;
@@ -858,7 +859,7 @@ int RtclRw11Cpu::M_wtcpu(RtclArgs& args)
 
 int RtclRw11Cpu::M_deposit(RtclArgs& args)
 {
-  uint16_t  addr;
+  uint16_t  addr=0;
   vector<uint16_t> data;
   if (!args.GetArg("addr", addr)) return kERR;
   if (!args.GetArg("data", data, 1)) return kERR;
@@ -876,7 +877,7 @@ int RtclRw11Cpu::M_deposit(RtclArgs& args)
 
 int RtclRw11Cpu::M_examine(RtclArgs& args)
 {
-  uint16_t  addr;
+  uint16_t  addr=0;
   if (!args.GetArg("addr", addr)) return kERR;
   if (!args.AllDone()) return kERR;
 
@@ -895,7 +896,7 @@ int RtclRw11Cpu::M_examine(RtclArgs& args)
 
 int RtclRw11Cpu::M_lsmem(RtclArgs& args)
 {
-  uint16_t  abeg;
+  uint16_t  abeg=0;
   if (!args.GetArg("abeg", abeg)) return kERR;
   uint16_t  aend = abeg;
   if (!args.GetArg("?aend", aend, 0xffff, abeg)) return kERR;

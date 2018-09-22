@@ -1,6 +1,6 @@
-// $Id: RtclArgs.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclArgs.cpp 1047 2018-09-16 11:08:41Z mueller $
 //
-// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-09-16  1047   1.0.9  coverity fixup (uninitialized scalar)
 // 2014-08-22   584   1.0.8  use nullptr
 // 2013-05-19   521   1.0.7  add NextSubOpt() method, pass optset's as const
 // 2013-02-12   487   1.0.6  add CurrentArg() method
@@ -93,6 +94,7 @@ RtclArgs::RtclArgs(const RtclArgs& rhs)
     fObjv(rhs.fObjv),
     fNDone(rhs.fNDone),
     fNOptMiss(rhs.fNOptMiss),
+    fNConfigRead(rhs.fNConfigRead),
     fOptErr(rhs.fOptErr),
     fArgErr(rhs.fArgErr)
 {}

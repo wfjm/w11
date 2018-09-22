@@ -1,6 +1,6 @@
-// $Id: RlinkCommandList.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkCommandList.cpp 1047 2018-09-16 11:08:41Z mueller $
 //
-// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-09-16  1047   1.3.2  coverity fixup (uninitialized scalar)
 // 2017-04-02   865   1.3.1  Dump(): add detail arg
 // 2015-04-02   661   1.3    expect logic: add SetLastExpect methods
 // 2014-11-23   606   1.2    new rlink v4 iface
@@ -63,7 +64,8 @@ RlinkCommandList::RlinkCommandList()
 //! Copy constructor
 
 RlinkCommandList::RlinkCommandList(const RlinkCommandList& rhs)
-  : fList()
+  : fList(),
+    fLaboIndex(-1)
 {
   operator=(rhs);
 }

@@ -20,8 +20,10 @@ software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
 ### Summary
-- add Travis CI integration (phase 1)
-- add Coverity (manual scan upload, not via Travis)
+- add Travis CI integration (phase 1), see [Travis CI project wfjm/w11](https://travis-ci.org/wfjm/w11)
+- add Coverity Scan (manual scan upload, not via Travis) see [Coverity project wfjm/w11](https://scan.coverity.com/projects/wfjm-w11).
+- fixes for several coverity defected defects
+  - uninitialized variable (all uncritical)
 - add KW11-P (programmable clock) to all w11 systems
 - sys_w11_n4: reduce cache from 64 to 32 kB to keep timing closure
 - stay with vivado 2017.2 as default tool, 2017.2 to 2018.2 exhibit much

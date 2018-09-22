@@ -1,6 +1,6 @@
-// $Id: RtclProxyBase.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclProxyBase.cpp 1047 2018-09-16 11:08:41Z mueller $
 //
-// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-09-16  1047   1.5.1  coverity fixup (uninitialized pointer)
 // 2017-03-11   859   1.5    adopt new DispatchCmd() logic
 // 2014-08-22   584   1.4.3  use nullptr
 // 2013-02-09   485   1.4.2  add CommandName()
@@ -54,7 +55,8 @@ typedef std::pair<RtclProxyBase::mmap_it_t, bool>  mmap_ins_t;
 RtclProxyBase::RtclProxyBase(const std::string& type)
   : RtclCmdBase(),
     fType(type),
-    fInterp(0)
+    fInterp(0),
+    fCmdToken(0)
 {}
 
 //------------------------------------------+-----------------------------------

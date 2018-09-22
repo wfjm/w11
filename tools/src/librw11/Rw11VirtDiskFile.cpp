@@ -1,6 +1,6 @@
-// $Id: Rw11VirtDiskFile.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11VirtDiskFile.cpp 1047 2018-09-16 11:08:41Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-09-16  1047   1.1.3  coverity fixup (uninitialized scalar)
 // 2017-04-15   875   1.1.2  Open(): add overload with scheme handling
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2017-03-11   859   1.1    use fWProt
@@ -49,7 +50,8 @@ namespace Retro {
 
 Rw11VirtDiskFile::Rw11VirtDiskFile(Rw11Unit* punit)
   : Rw11VirtDisk(punit),
-    fFd(0)
+    fFd(0),
+    fSize(0)
 {}
 
 //------------------------------------------+-----------------------------------

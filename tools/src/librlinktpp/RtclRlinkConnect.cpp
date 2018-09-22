@@ -1,6 +1,6 @@
-// $Id: RtclRlinkConnect.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclRlinkConnect.cpp 1048 2018-09-22 07:41:46Z mueller $
 //
-// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-09-16  1047   1.6.1  coverity fixup (uninitialized scalar)
 // 2017-04-29   888   1.6    drop M_rawio; add M_rawread,M_rawrblk,M_rawwblk
 // 2017-04-22   883   1.5.2  M_amap: -testname opt addr check; add hasrbmon get 
 // 2017-04-02   865   1.5.1  M_dump: use GetArgsDump and Dump detail
@@ -238,7 +239,7 @@ int RtclRlinkConnect::M_exec(RtclArgs& args)
 
   RlinkCommandList clist;
   string opt;
-  uint16_t addr;
+  uint16_t addr=0;
 
   vector<string> vardata;
   vector<string> varstat;
@@ -256,7 +257,7 @@ int RtclRlinkConnect::M_exec(RtclArgs& args)
       clist.AddRreg(addr);
 
     } else if (opt == "-rblk") {            // -rblk addr size ?varData ?varStat
-      int32_t bsize;
+      int32_t bsize=0;
       if (!GetAddr(args, addr)) return kERR;
       if (!args.GetArg("bsize", bsize, 1, Obj().BlockSizeMax())) return kERR;
       if (!GetVarName(args, "??varData", lsize, vardata)) return kERR;
@@ -264,7 +265,7 @@ int RtclRlinkConnect::M_exec(RtclArgs& args)
       clist.AddRblk(addr, (size_t) bsize);
 
     } else if (opt == "-wreg") {            // -wreg addr data ?varStat -------
-      uint16_t data;
+      uint16_t data=0;
       if (!GetAddr(args, addr)) return kERR;
       if (!args.GetArg("data", data)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
@@ -288,7 +289,7 @@ int RtclRlinkConnect::M_exec(RtclArgs& args)
       clist.AddAttn();
 
     } else if (opt == "-init") {            // -init addr data ?varStat -------
-      uint16_t data;
+      uint16_t data=0;
       if (!GetAddr(args, addr)) return kERR;
       if (!args.GetArg("data", data)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
@@ -490,9 +491,9 @@ int RtclRlinkConnect::M_amap(RtclArgs& args)
       args.SetResult(int(addrmap.Find(addr, tstname)));
 
     } else if (opt == "-insert") {          // amap -insert name addr
-      uint16_t tstaddr;
+      uint16_t tstaddr=0;
       string   tstname;
-      int      tstint;
+      int      tstint=0;
       if (!args.GetArg("name", name)) return kERR;
       // enforce that the name is not a valid representation of an int
       if (Tcl_GetIntFromObj(nullptr, args[args.NDone()-1], &tstint) == kOK) 
@@ -528,7 +529,7 @@ int RtclRlinkConnect::M_amap(RtclArgs& args)
     if (!args.OptValid()) return kERR;
     if (!args.GetArg("?name", name)) return kERR;
     if (args.NOptMiss()==0) {               // amap name
-      uint16_t tstaddr;
+      uint16_t tstaddr=0;
       if(addrmap.Find(name, tstaddr)) {
         args.SetResult(int(tstaddr));
       } else {
@@ -633,8 +634,8 @@ int RtclRlinkConnect::M_oob(RtclArgs& args)
   static RtclNameSet optset("-rlmon|-rlbmon|-rbmon|-sbcntl|-sbdata");
 
   string opt;
-  uint16_t addr;
-  uint16_t data;
+  uint16_t addr=0;
+  uint16_t data=0;
   RerrMsg emsg;
 
   if (args.NextOpt(opt, optset)) {
@@ -826,7 +827,7 @@ bool RtclRlinkConnect::GetAddr(RtclArgs& args, uint16_t& addr)
   Tcl_Obj* pobj=0;
   if (!args.GetArg("addr", pobj)) return kERR;
 
-  int tstint;
+  int tstint=0;
   // if a number is given..
   if (Tcl_GetIntFromObj(nullptr, pobj, &tstint) == kOK) {
     if (tstint >= 0 && tstint <= 0xffff) {
@@ -839,7 +840,7 @@ bool RtclRlinkConnect::GetAddr(RtclArgs& args, uint16_t& addr)
   // if a name is given 
   } else {
     string name(Tcl_GetString(pobj));
-    uint16_t tstaddr;
+    uint16_t tstaddr=0;
     if (Obj().AddrMap().Find(name, tstaddr)) {
       addr = tstaddr;
     } else {

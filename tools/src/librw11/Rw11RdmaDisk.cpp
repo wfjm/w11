@@ -1,6 +1,6 @@
-// $Id: Rw11RdmaDisk.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11RdmaDisk.cpp 1047 2018-09-16 11:08:41Z mueller $
 //
-// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-09-16  1047   1.0.2  coverity fixup (uninitialized scalar)
 // 2017-04-02   865   1.0.1  Dump(): add detail arg
 // 2015-01-04   628   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -48,7 +49,8 @@ Rw11RdmaDisk::Rw11RdmaDisk(Rw11Cntl* pcntl, const precb_t& precb,
     fpUnit(nullptr),
     fNWord(0),
     fNBlock(0),
-    fLba()
+    fLba(),
+    fFunc(kFuncRead)
 {
   fStats.Define(kStatNWritePadded, "NWritePadded" , "padded disk write");
   fStats.Define(kStatNWChkFail,    "NWChkFail"    , "write check failed");

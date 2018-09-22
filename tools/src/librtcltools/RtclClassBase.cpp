@@ -1,6 +1,6 @@
-// $Id: RtclClassBase.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclClassBase.cpp 1047 2018-09-16 11:08:41Z mueller $
 //
-// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-09-16  1047   1.0.5  coverity fixup (uninitialized pointer)
 // 2014-08-22   584   1.0.4  use nullptr
 // 2013-02-10   485   1.0.3  add static const defs
 // 2013-01-13   474   1.0.2  TclClassCmd(): check for existing Rtclproxy names
@@ -56,7 +57,8 @@ const int RtclClassBase::kERR;
 
 RtclClassBase::RtclClassBase(const std::string& type)
   : fType(type),
-    fInterp(0)
+    fInterp(0),
+    fCmdToken(0)
 {}
 
 //------------------------------------------+-----------------------------------

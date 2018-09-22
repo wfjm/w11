@@ -1,6 +1,6 @@
-// $Id: RlinkPortTerm.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkPortTerm.cpp 1048 2018-09-22 07:41:46Z mueller $
 //
-// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-09-21  1048   1.3.3  coverity fixup (uninitialized field)
 // 2017-04-15   875   1.3.2  Open(): set default scheme
 // 2017-04-07   868   1.3.1  Dump(): add detail arg
 // 2015-04-12   666   1.3    drop xon/xoff excaping; add noinit attribute
@@ -32,6 +33,7 @@
   \brief   Implemenation of RlinkPortTerm.
 */
 
+#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -66,7 +68,10 @@ const uint8_t RlinkPortTerm::kc_xoff;
 
 RlinkPortTerm::RlinkPortTerm()
   : RlinkPort()
-{}
+{
+  memset(&fTiosOld,0,sizeof(fTiosOld));
+  memset(&fTiosNew,0,sizeof(fTiosNew));
+}
 
 //------------------------------------------+-----------------------------------
 //! Destructor

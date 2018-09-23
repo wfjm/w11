@@ -22,13 +22,21 @@ The full set of tests is only run for tagged releases.
 ### Summary
 - add Travis CI integration (phase 1), see [Travis CI project wfjm/w11](https://travis-ci.org/wfjm/w11)
 - add Coverity Scan (manual scan upload, not via Travis) see [Coverity project wfjm/w11](https://scan.coverity.com/projects/wfjm-w11).
-- fixes for several coverity defected defects
-  - uninitialized variable (all uncritical)
+- fixes for coverity detected defects, most uncritical, but some real bugs
+- use for C++ compiles -Wpedantic
 - add KW11-P (programmable clock) to all w11 systems
 - sys_w11_n4: reduce cache from 64 to 32 kB to keep timing closure
 - stay with vivado 2017.2 as default tool, 2017.2 to 2018.2 exhibit much
   longer build times for w11 designs (see Xilinx Forum post [884858](https://forums.xilinx.com/t5/Synthesis/vivado-2018-2-much-slower-than-2017-2-at-least-for-small-designs/m-p/884858))
 - RtclRw11Unit: fix for clang: M_virt() now public
+
+### Bug Fixes
+- RtclArgs.cpp: BUGFIX: GetArg(): argument in wrong order (coverity)
+- Rw11CntlDEUNA.cpp: BUGFIX: SetMacDefault(): resource leak (coverity)
+- Rw11VirtDiskFile.cpp: BUGFIX: Open(): resource leak (coverity)
+- Rw11VirtTapeTap.cpp:
+  - BUGFIX: Open(): resource leak (coverity)
+  - BUGFIX: Rewind(): bad constant expression (coverity)
 
 <!-- --------------------------------------------------------------------- -->
 ---

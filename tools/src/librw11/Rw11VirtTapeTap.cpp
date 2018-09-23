@@ -1,6 +1,6 @@
-// $Id: Rw11VirtTapeTap.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11VirtTapeTap.cpp 1048 2018-09-22 07:41:46Z mueller $
 //
-// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-09-22  1048   1.0.3  BUGFIX: coverity (resource leak; bad expression)
 // 2017-04-15   875   1.0.2  Open(): set default scheme
 // 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2015-06-04   686   1.0    Initial version
@@ -134,6 +135,7 @@ bool Rw11VirtTapeTap::Open(const std::string& url, RerrMsg& emsg)
   if (::fstat(fd, &sbuf) < 0) {
     emsg.InitErrno("Rw11VirtTapeTap::Open()", 
                    string("stat() for '") + fUrl.Path() + "' failed: ", errno);
+    ::close(fd);
     return false;
   }
 
@@ -423,7 +425,7 @@ bool Rw11VirtTapeTap::Rewind(int& opcode, RerrMsg& emsg)
   fStats.Inc(kStatNVTRewind);
 
   opcode = kOpCodeBadFormat;
-  if (Seek(0, 0, emsg) <0) return SetBad();
+  if (!Seek(0, 0, emsg)) return SetBad();
 
   fBot = true;
   fEot = false;

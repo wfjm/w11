@@ -1,6 +1,6 @@
-// $Id: RtclCmdBase.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclCmdBase.cpp 1048 2018-09-22 07:41:46Z mueller $
 //
-// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -85,6 +85,7 @@ int RtclCmdBase::DispatchCmd(RtclArgs& args)
   }
   
   string name;
+  /* coverity[checked_return] */
   args.GetArg("cmd", name);                 // will always succeed
   it_match = fMethMap.lower_bound(name);
 

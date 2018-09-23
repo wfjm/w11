@@ -1,6 +1,6 @@
-// $Id: Rw11CntlDEUNA.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11CntlDEUNA.cpp 1048 2018-09-22 07:41:46Z mueller $
 //
-// Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-09-22  1048   0.5.1  BUGFIX: coverity (resource leak)
 // 2017-04-17   880   0.5    Initial version (minimal functions, 211bsd ready)
 // 2014-06-09   561   0.1    First draft 
 // ---------------------------------------------------------------------------
@@ -405,12 +406,16 @@ void Rw11CntlDEUNA::SetMacDefault(const std::string& mac)
       throw Rexception("Rw11CntlDEUNA::SetMacDefault",
                        "open() for '/dev/urandom' failed: ", errno);
     
-    if (::read(fd, &bmac, sizeof(bmac)) != sizeof(bmac))
+    if (::read(fd, &bmac, sizeof(bmac)) != sizeof(bmac)) {
+      int rd_errno = errno;
+      ::close(fd);
       throw Rexception("Rw11CntlDEUNA::SetMacDefault",
-                       "read() for '/dev/random' failed: ", errno);
+                       "read() for '/dev/random' failed: ", rd_errno);
+    }
     bmac &= ~macbit1;                       // ensure bcast bit is clear
     bmac |=  macbit2;                       // ensure laa   bit is set
-    
+    ::close(fd);
+
   } else {
     if (mac.substr(0,4) == "dec:") {
       machex  = "08:00:0b:";                  // DEC OUI

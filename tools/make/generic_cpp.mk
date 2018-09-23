@@ -1,7 +1,8 @@
-# $Id: generic_cpp.mk 848 2017-02-04 14:55:30Z mueller $
+# $Id: generic_cpp.mk 1049 2018-09-22 13:56:52Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2018-09-22  1049   1.0.3  use -Wpedantic
 # 2017-02-03   848   1.0.4  use -std=c++11 (gcc 4.7 or later)
 # 2015-01-04   630   1.0.3  use -Wextra
 # 2011-11-28   434   1.0.2  use -fno-strict-aliasing, avoid warn from boost bind
@@ -12,10 +13,11 @@
 # Compile options
 #
 # -- handle C
-#   -O       optimize
-#   -fPIC    position independent code
-#   -Wall    all warnings
-#   -Wextra  extra warnings
+#   -O         optimize
+#   -fPIC      position independent code
+#   -Wall      all warnings
+#   -Wextra    extra warnings
+#   -Wpedantic pedantic warnings
 #
 ifdef CCCOMMAND
 CC = $(CCCOMMAND)
@@ -25,7 +27,7 @@ CCOPTFLAGS = -O3
 endif
 #
 CC         = gcc
-CFLAGS     = -Wall -Wextra -fPIC
+CFLAGS     = -Wall -Wextra -Wpedantic -fPIC
 CFLAGS    += $(CCOPTFLAGS) $(INCLFLAGS)
 #
 # -- handle C++
@@ -43,7 +45,7 @@ ifndef CXXOPTFLAGS
 CXXOPTFLAGS = -O3
 endif
 #
-CXXFLAGS   = -Wall -Wextra -fPIC -fno-strict-aliasing -std=c++11 
+CXXFLAGS   = -Wall -Wextra -Wpedantic -fPIC -fno-strict-aliasing -std=c++11 
 CXXFLAGS  += $(CXXOPTFLAGS) $(INCLFLAGS)
 COMPILE.cc = $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
 #

@@ -1,4 +1,4 @@
-// $Id: RtclArgs.cpp 1047 2018-09-16 11:08:41Z mueller $
+// $Id: RtclArgs.cpp 1048 2018-09-22 07:41:46Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-09-22  1048   1.0.10 BUFFIX: GetArg(): coverity (argument in wrong order)
 // 2018-09-16  1047   1.0.9  coverity fixup (uninitialized scalar)
 // 2014-08-22   584   1.0.8  use nullptr
 // 2013-05-19   521   1.0.7  add NextSubOpt() method, pass optset's as const
@@ -246,7 +247,7 @@ bool RtclArgs::GetArg(const char* name, uint32_t& val, uint32_t max,
 bool RtclArgs::GetArg(const char* name, float& val, float min, float max)
 {
   double vald = (double)val;
-  bool ret = GetArg(name, vald, (double)max, (double)min);
+  bool ret = GetArg(name, vald, (double)min, (double)max);
   val = (float) vald;
   return ret;
 }

@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDiskFile.cpp 1047 2018-09-16 11:08:41Z mueller $
+// $Id: Rw11VirtDiskFile.cpp 1048 2018-09-22 07:41:46Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-09-22  1048   1.1.4  BUGFIX: coverity (resource leak)
 // 2018-09-16  1047   1.1.3  coverity fixup (uninitialized scalar)
 // 2017-04-15   875   1.1.2  Open(): add overload with scheme handling
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
@@ -91,6 +92,7 @@ bool Rw11VirtDiskFile::Open(const std::string& url, const std::string& scheme,
   if (::fstat(fd, &sbuf) < 0) {
     emsg.InitErrno("Rw11VirtDiskFile::Open()", 
                    string("stat() for '") + fUrl.Path() + "' failed: ", errno);
+    ::close(fd);
     return false;
   }
 

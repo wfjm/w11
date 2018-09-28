@@ -31,6 +31,7 @@ The full set of tests is only run for tagged releases.
 - RtclRw11Unit: fix for clang: M_virt() now public
 
 ### Bug Fixes
+- RtclArgs.hpp: BUGFIX: get *_min limits correct (gcc -Wpedantic)
 - RtclArgs.cpp: BUGFIX: GetArg(): argument in wrong order (coverity)
 - Rw11CntlDEUNA.cpp: BUGFIX: SetMacDefault(): resource leak (coverity)
 - Rw11VirtDiskFile.cpp: BUGFIX: Open(): resource leak (coverity)

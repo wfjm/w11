@@ -1,6 +1,6 @@
-// $Id: RtclSignalAction.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclSignalAction.cpp 1049 2018-09-22 13:56:52Z mueller $
 //
-// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -160,7 +160,7 @@ bool RtclSignalAction::ValidSignal(int signum, RerrMsg& emsg)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RtclSignalAction::TclChannelHandler(int mask)
+void RtclSignalAction::TclChannelHandler(int /*mask*/)
 {
   char signum;
   Tcl_Read(fShuttleChn, (char*) &signum, sizeof(signum));
@@ -198,7 +198,7 @@ void RtclSignalAction::SignalHandler(int signum)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RtclSignalAction::ThunkTclChannelHandler(ClientData cdata, int mask)
+void RtclSignalAction::ThunkTclChannelHandler(ClientData /*cdata*/, int mask)
 {
   if (fpObj) fpObj->TclChannelHandler(mask);
   return;
@@ -207,7 +207,7 @@ void RtclSignalAction::ThunkTclChannelHandler(ClientData cdata, int mask)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RtclSignalAction::ThunkTclExitProc(ClientData cdata)
+void RtclSignalAction::ThunkTclExitProc(ClientData /*cdata*/)
 {
   delete fpObj;
   fpObj = nullptr;

@@ -1,6 +1,6 @@
-// $Id: RtclAttnShuttle.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclAttnShuttle.cpp 1049 2018-09-22 13:56:52Z mueller $
 //
-// Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -142,7 +142,7 @@ int RtclAttnShuttle::AttnHandler(RlinkServer::AttnArgs& args)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RtclAttnShuttle::TclChannelHandler(int mask)
+void RtclAttnShuttle::TclChannelHandler(int /*mask*/)
 {
   uint16_t apat;
   Tcl_ReadRaw(fShuttleChn, (char*) &apat, sizeof(apat));

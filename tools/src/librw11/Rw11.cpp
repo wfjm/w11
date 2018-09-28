@@ -1,6 +1,6 @@
-// $Id: Rw11.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11.cpp 1049 2018-09-22 13:56:52Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -117,7 +117,7 @@ void Rw11::Start()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11::Dump(std::ostream& os, int ind, const char* text, int detail) const
+void Rw11::Dump(std::ostream& os, int ind, const char* text, int /*detail*/) const
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11 @ " << this << endl;

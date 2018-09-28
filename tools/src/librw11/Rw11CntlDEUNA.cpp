@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDEUNA.cpp 1048 2018-09-22 07:41:46Z mueller $
+// $Id: Rw11CntlDEUNA.cpp 1049 2018-09-22 13:56:52Z mueller $
 //
 // Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -350,7 +350,7 @@ void Rw11CntlDEUNA::Start()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11CntlDEUNA::UnitSetup(size_t ind)
+void Rw11CntlDEUNA::UnitSetup(size_t /*ind*/)
 {
   RlinkCommandList clist;
   Rw11Cpu& cpu  = Cpu();
@@ -1365,10 +1365,10 @@ void Rw11CntlDEUNA::StartTxRing()
   RlinkCommandList clist;
   uint16_t txdsccur[4];
   uint16_t txdscnxt[4];
-  size_t irdtxdsccur = Cpu().AddRMem(clist, TxRingDscAddr(fTxRingIndex),
-                                     txdsccur, 3, Rw11Cpu::kCPAH_M_UBM22, true);
-  size_t irdtxdscnxt = Cpu().AddRMem(clist, TxRingDscAddr(TxRingIndexNext()),
-                                     txdscnxt, 3, Rw11Cpu::kCPAH_M_UBM22, true);
+  //size_t irdtxdsccur = Cpu().AddRMem(clist, TxRingDscAddr(fTxRingIndex),
+  //                                 txdsccur, 3, Rw11Cpu::kCPAH_M_UBM22, true);
+  //size_t irdtxdscnxt = Cpu().AddRMem(clist, TxRingDscAddr(TxRingIndexNext()),
+  //                                 txdscnxt, 3, Rw11Cpu::kCPAH_M_UBM22, true);
   Server().Exec(clist);
   // FIXME_code: check dsc read errors !  
   StartTxRing(txdsccur, txdscnxt);
@@ -1408,10 +1408,10 @@ void Rw11CntlDEUNA::StartRxRing()
   RlinkCommandList clist;
   uint16_t rxdsccur[4];
   uint16_t rxdscnxt[4];
-  size_t irdrxdsccur = Cpu().AddRMem(clist, RxRingDscAddr(fRxRingIndex),
-                                     rxdsccur, 3, Rw11Cpu::kCPAH_M_UBM22, true);
-  size_t irdrxdscnxt = Cpu().AddRMem(clist, RxRingDscAddr(RxRingIndexNext()),
-                                     rxdscnxt, 3, Rw11Cpu::kCPAH_M_UBM22, true);
+  //size_t irdrxdsccur = Cpu().AddRMem(clist, RxRingDscAddr(fRxRingIndex),
+  //                                 rxdsccur, 3, Rw11Cpu::kCPAH_M_UBM22, true);
+  //size_t irdrxdscnxt = Cpu().AddRMem(clist, RxRingDscAddr(RxRingIndexNext()),
+  //                                rxdscnxt, 3, Rw11Cpu::kCPAH_M_UBM22, true);
   Server().Exec(clist);
   // FIXME_code: check dsc read errors !  
   StartRxRing(rxdsccur, rxdscnxt);

@@ -1,6 +1,6 @@
-// $Id: RtclArgs.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclArgs.hpp 1049 2018-09-22 13:56:52Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-09-22  1049   1.0.10 BUGFIX: get *_min limits correct
 // 2013-05-19   521   1.0.9  add NextSubOpt() method, pass optset's as const
 // 2013-03-05   495   1.0.8  add SetResult(bool)
 // 2013-03-02   494   1.0.7  add Quit() method
@@ -50,15 +51,15 @@ namespace Retro {
   class RtclArgs {
     public:
 
-    const static int8_t   int8_min   = 0xff;
-    const static int8_t   int8_max   = 0x7f;
-    const static uint8_t  uint8_max  = 0xff;
-    const static int16_t  int16_min  = 0xffff;
-    const static int16_t  int16_max  = 0x7fff;
-    const static uint16_t uint16_max = 0xffff;
-    const static int32_t  int32_min  = 0xffffffff;
-    const static int32_t  int32_max  = 0x7fffffff;
-    const static uint32_t uint32_max = 0xffffffff;
+    const static int8_t   int8_min   = std::numeric_limits<int8_t>::min();
+    const static int8_t   int8_max   = std::numeric_limits<int8_t>::max();
+    const static uint8_t  uint8_max  = std::numeric_limits<uint8_t>::max();
+    const static int16_t  int16_min  = std::numeric_limits<int16_t>::min();
+    const static int16_t  int16_max  = std::numeric_limits<int16_t>::max();
+    const static uint16_t uint16_max = std::numeric_limits<uint16_t>::max();
+    const static int32_t  int32_min  = std::numeric_limits<int32_t>::min();
+    const static int32_t  int32_max  = std::numeric_limits<int32_t>::max();
+    const static uint32_t uint32_max = std::numeric_limits<uint32_t>::max();
 
                         RtclArgs();
                         RtclArgs(Tcl_Interp* interp, int objc, 

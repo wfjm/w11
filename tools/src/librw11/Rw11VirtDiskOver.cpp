@@ -1,6 +1,6 @@
-// $Id: Rw11VirtDiskOver.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11VirtDiskOver.cpp 1049 2018-09-22 13:56:52Z mueller $
 //
-// Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -116,7 +116,7 @@ bool Rw11VirtDiskOver::Read(size_t lba, size_t nblk, uint8_t* data,
 //! FIXME_docs
 
 bool Rw11VirtDiskOver::Write(size_t lba, size_t nblk, const uint8_t* data, 
-                             RerrMsg& emsg)
+                             RerrMsg& /*emsg*/)
 {
   fStats.Inc(kStatNVDOWrite);
   fStats.Inc(kStatNVDOWriteBlk, double(nblk));

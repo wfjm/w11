@@ -1,6 +1,6 @@
-// $Id: Rw11UnitDisk.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11UnitDisk.cpp 1049 2018-09-22 13:56:52Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -62,7 +62,7 @@ Rw11UnitDisk::~Rw11UnitDisk()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11UnitDisk::SetType(const std::string& type)
+void Rw11UnitDisk::SetType(const std::string& /*type*/)
 {
   throw Rexception("Rw11UnitDisk::SetType", 
                    string("Bad args: only type '") + fType + "' supported");

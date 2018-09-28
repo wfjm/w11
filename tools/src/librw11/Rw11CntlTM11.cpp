@@ -1,6 +1,6 @@
-// $Id: Rw11CntlTM11.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11CntlTM11.cpp 1049 2018-09-22 13:56:52Z mueller $
 //
-// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
 //   the boot code is from the simh project and Copyright Robert M Supnik
 // 
@@ -452,8 +452,8 @@ int Rw11CntlTM11::AttnHandler(RlinkServer::AttnArgs& args)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11CntlTM11::RdmaPreExecCB(int stat, size_t nwdone, size_t nwnext,
-                                 RlinkCommandList& clist)
+void Rw11CntlTM11::RdmaPreExecCB(int /*stat*/, size_t /*nwdone*/,
+                                 size_t /*nwnext*/, RlinkCommandList& /*clist*/)
 {
   // noop for TM11
   return;
@@ -463,7 +463,7 @@ void Rw11CntlTM11::RdmaPreExecCB(int stat, size_t nwdone, size_t nwnext,
 //! FIXME_docs
 
 void Rw11CntlTM11::RdmaPostExecCB(int stat, size_t ndone,
-                                  RlinkCommandList& clist, size_t ncmd)
+                                  RlinkCommandList& /*clist*/, size_t /*ncmd*/)
 {
   if (stat == Rw11Rdma::kStatusBusy) return;
 

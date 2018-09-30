@@ -1,6 +1,6 @@
-// $Id: Rw11Cpu.hpp 1044 2018-09-15 11:12:07Z mueller $
+// $Id: Rw11Cpu.hpp 1050 2018-09-23 15:46:42Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-09-23  1050   1.2.11 add HasPcnt()
 // 2017-04-07   868   1.2.10 Dump(): add detail arg
 // 2017-02-26   857   1.2.9  add kCPAH_M_UBM22
 // 2017-02-19   853   1.2.8  use Rtime
@@ -86,6 +87,7 @@ namespace Retro {
       uint16_t      IBase() const;
 
       bool          HasScnt() const;
+      bool          HasPcnt() const;
       bool          HasCmon() const;
       uint16_t      HasHbpt() const;
       bool          HasIbmon() const;
@@ -249,7 +251,12 @@ namespace Retro {
       static const uint16_t  kHBHILIM = 0x0002;   //!< HB.HILIM reg offset
       static const uint16_t  kHBLOLIM = 0x0003;   //!< HB.LOLIM reg offset
 
-      static const uint16_t  kIMBASE  = 0160000;  //!< Ibmon ibus address
+      static const uint16_t  kPCBASE  = 0x0060;   //!< DMPCNT reg base offset
+      static const uint16_t  kPCCNTL  = 0x0000;   //!< PC.CNTL  reg offset
+      static const uint16_t  kPCSTAT  = 0x0001;   //!< PC.STAT  reg offset
+      static const uint16_t  kPCDATA  = 0x0002;   //!< PC.DATA  reg offset
+
+    static const uint16_t  kIMBASE  = 0160000;  //!< Ibmon ibus address
       static const uint16_t  kIMCNTL  = 0x0000;   //!< IM.CNTL  reg offset
       static const uint16_t  kIMSTAT  = 0x0002;   //!< IM.STAT  reg offset
       static const uint16_t  kIMHILIM = 0x0004;   //!< IM.HILIM reg offset
@@ -281,6 +288,7 @@ namespace Retro {
       uint16_t      fBase;
       uint16_t      fIBase;
       bool          fHasScnt;               //!< has dmscnt (state counter) 
+      bool          fHasPcnt;               //!< has dmpcnt (perf counters) 
       bool          fHasCmon;               //!< has dmcmon (cpu monitor)
       uint16_t      fHasHbpt;               //!< has dmhbpt (hardware breakpoint)
       bool          fHasIbmon;              //!< has ibmon  (ibus monitor)

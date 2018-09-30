@@ -20,15 +20,40 @@ software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
 ### Summary
-- add Travis CI integration (phase 1), see [Travis CI project wfjm/w11](https://travis-ci.org/wfjm/w11)
-- add Coverity Scan (manual scan upload, not via Travis) see [Coverity project wfjm/w11](https://scan.coverity.com/projects/wfjm-w11).
-- fixes for coverity detected defects, most uncritical, but some real bugs
-- use for C++ compiles -Wpedantic
-- add KW11-P (programmable clock) to all w11 systems
-- sys_w11_n4: reduce cache from 64 to 32 kB to keep timing closure
+- add continuous integration support via [Travis CI](https://travis-ci.org),
+  add [project wfjm/w11](https://travis-ci.org/wfjm/w11), and setup
+  a `.travis.yml`.
+- use static source code analysis [Coverity Scan](https://scan.coverity.com),
+  add [project wfjm/w11](https://scan.coverity.com/projects/wfjm-w11).
+  The scans are manually uploaded, not automated via Travis (w11 is a `vhdl`
+  project after all, so C++ backend code doesn't change so often). Coverity
+  found a modest number of defects,  most uncritical, but some real bugs.
+- the Coverity results triggered a general backend code review
+  - fix coverity detected defects
+  - get backend code `-Wall -Wextra -Wpedantic` clean
+- add KW11-P (programmable clock) to all w11 systems. It is usefull in test
+  benches (fast interrupt source) and enables on the long run to port the
+  2.10BSD kernel profiling code to 2.11BSD.
 - stay with vivado 2017.2 as default tool, 2017.2 to 2018.2 exhibit much
-  longer build times for w11 designs (see Xilinx Forum post [884858](https://forums.xilinx.com/t5/Synthesis/vivado-2018-2-much-slower-than-2017-2-at-least-for-small-designs/m-p/884858))
+  longer build times for w11 designs (see Xilinx Forum post
+  [884858](https://forums.xilinx.com/t5/Synthesis/vivado-2018-2-much-slower-than-2017-2-at-least-for-small-designs/m-p/884858))
+
+### New features
+- travis support via `.travis.yml`
+  - compiles the C++ backend
+  - download the `ghdl` based test benches (can't be build under Travis)
+  - execute the test benches with `tbrun`
+- add KW11-P support, enable it in all w11a systems
+- add pdp11_dmpcnt: performance counters
+
+### Changes
+- use for C++ compiles also `-Wpedantic`
+- sys_w11_n4: reduce cache from 64 to 32 kB to keep timing closure
 - RtclRw11Unit: fix for clang: M_virt() now public
+- backend code review:
+  - fixes for uninitialized variables (coverity, all uncritical)
+  - now -Wunused-parameter clean (comment unused params)
+  - now -Wunused-variable clean (comment so far unused code)
 
 ### Bug Fixes
 - RtclArgs.hpp: BUGFIX: get *_min limits correct (gcc -Wpedantic)
@@ -38,6 +63,8 @@ The full set of tests is only run for tagged releases.
 - Rw11VirtTapeTap.cpp:
   - BUGFIX: Open(): resource leak (coverity)
   - BUGFIX: Rewind(): bad constant expression (coverity)
+
+### Known issues
 
 <!-- --------------------------------------------------------------------- -->
 ---

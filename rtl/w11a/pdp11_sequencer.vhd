@@ -1,6 +1,6 @@
--- $Id: pdp11_sequencer.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: pdp11_sequencer.vhd 1051 2018-09-29 15:29:11Z mueller $
 --
--- Copyright 2006-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,10 +18,11 @@
 -- Dependencies:   ib_sel
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4-2017.1; ghdl 0.18-0.34
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2018.2; ghdl 0.18-0.34
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-09-29  1051   1.6.10 add DM_STAT_SE.(cpbusy,idec)
 -- 2017-04-23   885   1.6.9  not sys_conf_dmscnt: set SNUM from state category;
 --                           change waitsusp logic; add WAIT to idm_idone
 -- 2016-12-27   831   1.6.8  CPUERR now cleared with creset
@@ -370,6 +371,8 @@ begin
     variable int_pending : slbit := '0';     -- an interrupt is pending
 
     variable idm_idle    : slbit := '0';     -- idle   for dm_stat_se
+    variable idm_cpbusy  : slbit := '0';     -- cpbusy for dm_stat_se
+    variable idm_idec    : slbit := '0';     -- idec   for dm_stat_se
     variable idm_idone   : slbit := '0';     -- idone  for dm_stat_se
     variable idm_vfetch  : slbit := '0';     -- vfetch for dm_stat_se
     
@@ -620,6 +623,8 @@ begin
     end if;
 
     idm_idle   := '0';
+    idm_cpbusy := '0';
+    idm_idec   := '0';
     idm_idone  := '0';
     idm_vfetch := '0';
     
@@ -722,6 +727,7 @@ begin
         idm_idle := '1';                        -- signal sequencer idle
         
         if R_STATUS.cmdbusy = '1' then
+          idm_cpbusy := '1';                    -- signal cp busy
           case R_STATUS.cpfunc is
 
             when c_cpfunc_noop =>       -- noop : no operation -------
@@ -856,6 +862,7 @@ begin
         end if;
 
       when s_cp_regread =>              -- -----------------------------------
+        idm_cpbusy := '1';                        -- signal cp busy
         ndpcntl.ounit_asel := c_ounit_asel_ddst;  -- OUNIT A = DDST
         ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B = const(0)
         ndpcntl.dres_sel  := c_dpath_res_ounit;   -- DRES = OUNIT
@@ -863,6 +870,7 @@ begin
         nstate := s_idle;
         
       when s_cp_rps =>                  -- -----------------------------------
+        idm_cpbusy := '1';                        -- signal cp busy
         ndpcntl.ounit_asel := c_ounit_asel_dtmp;  -- OUNIT A = DTMP
         ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B = const(0)
         ndpcntl.dres_sel  := c_dpath_res_ounit;   -- DRES = OUNIT
@@ -870,6 +878,7 @@ begin
         nstate := s_idle;
 
       when s_cp_memr_w =>               -- -----------------------------------
+        idm_cpbusy := '1';                       -- signal cp busy
         nstate := s_cp_memr_w;
         ndpcntl.dres_sel := c_dpath_res_vmdout;  -- DRES = VMDOUT
         if (VM_STAT.ack or VM_STAT.err or VM_STAT.fail)='1' then
@@ -881,6 +890,7 @@ begin
         end if;
 
       when s_cp_memw_w =>               -- -----------------------------------
+        idm_cpbusy := '1';                       -- signal cp busy
         nstate := s_cp_memw_w;
         if (VM_STAT.ack or VM_STAT.err or VM_STAT.fail)='1' then
           nstatus.cmdack   := '1';
@@ -905,7 +915,8 @@ begin
         end if;
         
       when s_idecode =>                 -- -----------------------------------
-        nstatus.itimer := '1';          -- signal instruction started
+        idm_idec := '1';                -- signal instruction started
+        nstatus.itimer := '1';          -- itimer counts each decode
         nidstat := ID_STAT;             -- register decode status
         if ID_STAT.force_srcsp = '1' then
           ndpcntl.gpr_asrc := c_gpr_sp;
@@ -2410,7 +2421,9 @@ begin
     MMU_MONI <= nmmumoni;
 
     DM_STAT_SE.idle   <= idm_idle;
+    DM_STAT_SE.cpbusy <= idm_cpbusy;
     DM_STAT_SE.istart <= nmmumoni.istart;
+    DM_STAT_SE.idec   <= idm_idec;
     DM_STAT_SE.idone  <= idm_idone;
     DM_STAT_SE.vfetch <= idm_vfetch;
       

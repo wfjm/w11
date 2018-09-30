@@ -14,7 +14,9 @@ pdp11_mem70.vbom
 pdp11_dmscnt.vbom
 pdp11_dmcmon.vbom
 pdp11_dmhbpt.vbom
+pdp11_dmpcnt.vbom
 ../vlib/rbus/rb_sres_or_4.vbom
+../vlib/rbus/rb_sres_or_2.vbom
 [sim]pdp11_tmu_sb.vbom
 # design
 pdp11_sys70.vhd

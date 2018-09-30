@@ -1,4 +1,4 @@
--- $Id: sys_conf.vhd 1043 2018-09-09 10:20:12Z mueller $
+-- $Id: sys_conf.vhd 1050 2018-09-23 15:46:42Z mueller $
 --
 -- Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  viv 2014.4-2018.2; ghdl 0.31-0.34
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-09-22  1050   1.3.7  add sys_conf_dmpcnt
 -- 2018-09-08  1043   1.3.6  add sys_conf_ibd_kw11p
 -- 2017-03-04   858   1.3.5  enable deuna
 -- 2017-01-29   847   1.3.4  add sys_conf_ibd_deuna
@@ -63,6 +64,7 @@ package sys_conf is
   constant sys_conf_rbmon_awidth  : integer := 0; -- no rbmon to save BRAMs
   constant sys_conf_ibmon_awidth  : integer := 0; -- no ibmon to save BRAMs
   constant sys_conf_dmscnt        : boolean := false;
+  constant sys_conf_dmpcnt        : boolean := true;
   constant sys_conf_dmhbpt_nunit  : integer := 2; -- use 0 to disable
   constant sys_conf_dmcmon_awidth : integer := 0; -- no dmcmon to save BRAMs
   constant sys_conf_rbd_sysmon    : boolean := true;  -- SYSMON(XADC)

@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.cpp 1048 2018-09-22 07:41:46Z mueller $
+// $Id: Rw11Cpu.cpp 1050 2018-09-23 15:46:42Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-09-23  1050   1.2.14 add HasPcnt()
 // 2018-09-22  1048   1.2.13 coverity fixup (drop unreachable code)
 // 2017-04-07   868   1.2.12 Dump(): add detail arg
 // 2017-02-26   857   1.2.11 add kCPAH_M_UBM22
@@ -153,6 +154,11 @@ const uint16_t  Rw11Cpu::kHBSTAT;
 const uint16_t  Rw11Cpu::kHBHILIM;
 const uint16_t  Rw11Cpu::kHBLOLIM;
 
+const uint16_t  Rw11Cpu::kPCBASE;
+const uint16_t  Rw11Cpu::kPCCNTL;
+const uint16_t  Rw11Cpu::kPCSTAT;
+const uint16_t  Rw11Cpu::kPCDATA;
+
 const uint16_t  Rw11Cpu::kIMBASE;
 const uint16_t  Rw11Cpu::kIMCNTL;
 const uint16_t  Rw11Cpu::kIMSTAT;
@@ -180,6 +186,7 @@ Rw11Cpu::Rw11Cpu(const std::string& type)
     fBase(0),
     fIBase(0x4000),
     fHasScnt(false),
+    fHasPcnt(false),
     fHasCmon(false),
     fHasHbpt(0),
     fHasIbmon(false),
@@ -870,6 +877,7 @@ void Rw11Cpu::Dump(std::ostream& os, int ind, const char* text,
   os << bl << "  fBase:           " << RosPrintf(fBase,"$x0",4) << endl;
   os << bl << "  fIBase:          " << RosPrintf(fIBase,"$x0",4) << endl;
   os << bl << "  fHasScnt:        " << fHasScnt << endl;
+  os << bl << "  fHasPcnt:        " << fHasPcnt << endl;
   os << bl << "  fHasCmon:        " << fHasCmon << endl;
   os << bl << "  fHasHbpt:        " << fHasHbpt << endl;
   os << bl << "  fHasIbmon:       " << fHasIbmon << endl;
@@ -977,7 +985,10 @@ void Rw11Cpu::SetupOpt()
     clist.SetLastExpectStatus(0,0); 
   }
   int iim = AddRibr(clist, kIMBASE+kIMCNTL);  // ibmon probe rem (no loc resp)
-  clist.SetLastExpectStatus(0,0); 
+  clist.SetLastExpectStatus(0,0);
+  
+  int ipc =  clist.AddRreg(Base()+kPCBASE+kPCCNTL);
+  clist.SetLastExpectStatus(0,0);        // disable stat check
 
   // probe auxilliary cpu components: kw11-l, kw11-p, iist
   int ikwl= AddRibr(clist, kKWLBASE);            // kw11-l probe rem 
@@ -1027,6 +1038,14 @@ void Rw11Cpu::SetupOpt()
     AllRAddrMapInsert(pref+".stat"  , base + kHBSTAT);
     AllRAddrMapInsert(pref+".hilim" , base + kHBHILIM);
     AllRAddrMapInsert(pref+".lolim" , base + kHBLOLIM);
+  }
+  
+  fHasPcnt = (clist[ipc].Status() & statmsk) == 0;
+  if (fHasPcnt) {
+    uint16_t base = Base() + kPCBASE;
+    AllRAddrMapInsert("pc.cntl" , base + kPCCNTL);
+    AllRAddrMapInsert("pc.stat" , base + kPCSTAT);
+    AllRAddrMapInsert("pc.data" , base + kPCDATA);
   }
 
   fHasIbmon = (clist[iim].Status() & statmsk) == 0;

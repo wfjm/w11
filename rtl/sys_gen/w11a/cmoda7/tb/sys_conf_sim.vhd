@@ -1,4 +1,4 @@
--- $Id: sys_conf_sim.vhd 1043 2018-09-09 10:20:12Z mueller $
+-- $Id: sys_conf_sim.vhd 1050 2018-09-23 15:46:42Z mueller $
 --
 -- Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  viv 2017.1-2018.2; ghdl 0.34
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-09-22  1050   1.0.2  add sys_conf_dmpcnt
 -- 2018-09-08  1043   1.0.1  add sys_conf_ibd_kw11p
 -- 2017-06-24   914   1.0    Initial version (cloned from _n4)
 ------------------------------------------------------------------------------
@@ -53,6 +54,7 @@ package sys_conf is
   constant sys_conf_rbmon_awidth  : integer := 9; -- use 0 to disable
   constant sys_conf_ibmon_awidth  : integer := 9; -- use 0 to disable
   constant sys_conf_dmscnt        : boolean := false;
+  constant sys_conf_dmpcnt        : boolean := true;
   constant sys_conf_dmhbpt_nunit  : integer := 2; -- use 0 to disable
   constant sys_conf_dmcmon_awidth : integer := 8; -- use 0 to disable, 8 to use
   constant sys_conf_rbd_sysmon    : boolean := true;  -- SYSMON(XADC)

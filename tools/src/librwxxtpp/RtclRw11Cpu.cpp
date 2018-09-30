@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.cpp 1048 2018-09-22 07:41:46Z mueller $
+// $Id: RtclRw11Cpu.cpp 1050 2018-09-23 15:46:42Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-09-23  1050   1.2.18 add HasPcnt()
 // 2018-09-21  1048   1.2.18 coverity fixup (uninitialized scalar)
 // 2017-04-22   883   1.2.17 M_(imap|rmap): -testname optional addr check
 // 2017-04-15   876   1.2.16 add ControllerCommands()
@@ -1486,6 +1487,7 @@ void RtclRw11Cpu::SetupGetSet()
   fGets.Add<uint16_t>     ("base",     boost::bind(&Rw11Cpu::Base,     pobj));
   fGets.Add<uint16_t>     ("ibase",    boost::bind(&Rw11Cpu::IBase,    pobj));
   fGets.Add<bool>         ("hasscnt",  boost::bind(&Rw11Cpu::HasScnt,  pobj));
+  fGets.Add<bool>         ("haspcnt",  boost::bind(&Rw11Cpu::HasPcnt,  pobj));
   fGets.Add<bool>         ("hascmon",  boost::bind(&Rw11Cpu::HasCmon,  pobj));
   fGets.Add<uint16_t>     ("hashbpt",  boost::bind(&Rw11Cpu::HasHbpt,  pobj));
   fGets.Add<bool>         ("hasibmon", boost::bind(&Rw11Cpu::HasIbmon, pobj));

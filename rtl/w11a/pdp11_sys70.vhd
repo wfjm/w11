@@ -1,6 +1,6 @@
--- $Id: pdp11_sys70.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: pdp11_sys70.vhd 1051 2018-09-29 15:29:11Z mueller $
 --
--- Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -22,15 +22,20 @@
 --                 ibus/ibd_ibmon
 --                 ibus/ib_sres_or_3
 --                 w11a/pdp11_dmscnt
+--                 w11a/pdp11_dmcmon
+--                 w11a/pdp11_dmhpbt
+--                 w11a/pdp11_dmpcnt
 --                 rbus/rb_sres_or_4
+--                 rbus/rb_sres_or_2
 --                 w11a/pdp11_tmu_sb           [sim only]
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 14.7; viv 2014.4-2015.5; ghdl 0.33
+-- Tool versions:  ise 14.7; viv 2014.4-2018.2; ghdl 0.33-0.34
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-09-29  1051   1.2.2  add pdp11_dmpcnt
 -- 2017-04-22   884   1.2.1  pdp11_dmcmon: use SNUM and AWIDTH generics
 -- 2016-03-22   750   1.2    pdp11_cache now configurable size
 -- 2015-11-01   712   1.1.4  use sbcntl_sbf_tmu
@@ -87,14 +92,19 @@ architecture syn of pdp11_sys70 is
   
   signal RB_SRES_CORE   : rb_sres_type := rb_sres_init;
   signal RB_SRES_DMSCNT : rb_sres_type := rb_sres_init;
+  signal RB_SRES_DMPCNT : rb_sres_type := rb_sres_init;
   signal RB_SRES_DMHBPT : rb_sres_type := rb_sres_init;
   signal RB_SRES_DMCMON : rb_sres_type := rb_sres_init;
+  signal RB_SRES_DM     : rb_sres_type := rb_sres_init;
+  signal RB_SRES_L      : rb_sres_type := rb_sres_init;
 
   signal CP_CNTL : cp_cntl_type := cp_cntl_init;
   signal CP_ADDR : cp_addr_type := cp_addr_init;
   signal CP_DIN  : slv16 := (others=>'0');
   signal CP_STAT_L : cp_stat_type := cp_stat_init;
   signal CP_DOUT : slv16 := (others=>'0');
+  
+  signal EI_ACKM_L : slbit := '0';
 
   signal EM_MREQ : em_mreq_type := em_mreq_init;
   signal EM_SRES : em_sres_type := em_sres_init;
@@ -160,7 +170,7 @@ begin
       HBPT      => HBPT,
       EI_PRI    => EI_PRI,
       EI_VECT   => EI_VECT,
-      EI_ACKM   => EI_ACKM,
+      EI_ACKM   => EI_ACKM_L,
       EM_MREQ   => EM_MREQ,
       EM_SRES   => EM_SRES,
       CRESET    => CRESET_L,
@@ -284,20 +294,126 @@ begin
       );
   end generate DMHBPT;
 
-  RB_SRES_OR : rb_sres_or_4
+  DMPCNT : if sys_conf_dmpcnt generate
+    signal PERFSIG : slv32 := (others=>'0');
+  begin
+    proc_sig: process (CP_STAT_L, DM_STAT_SE, DM_STAT_DP_L, DM_STAT_DP_L.psw,
+                       DM_STAT_VM.vmcntl, DM_STAT_VM.vmstat, RB_MREQ, RB_SRES_L,
+                       DM_STAT_VM.ibmreq, DM_STAT_VM.ibsres)
+      variable isig : slv32 := (others=>'0');
+    begin
+      
+      isig := (others=>'0');
+
+      if DM_STAT_SE.cpbusy = '1' then
+        isig(0)  := '1';                    -- cpu_cpbusy
+      elsif CP_STAT_L.cpugo = '1' then
+        case DM_STAT_DP_L.psw.cmode is
+          when c_psw_kmode =>
+            if CP_STAT_L.cpuwait = '1' then
+              isig(3) := '1';               -- cpu_km_wait
+            elsif unsigned(DM_STAT_DP_L.psw.pri) = 0 then
+              isig(2) := '1';               -- cpu_km_pri0
+            else
+              isig(1) := '1';               -- cpu_km_prix
+            end if;
+          when c_psw_smode =>
+            isig(4) := '1';                 -- cpu_sm
+          when c_psw_umode =>
+            isig(5) := '1';                 -- cpu_um
+          when others => null;
+        end case;
+      end if;
+
+      isig(6)  := DM_STAT_SE.idec;          -- cpu_idec
+      isig(7)  := DM_STAT_SE.vfetch;        -- cpu_vfetch
+      isig(8)  := EI_ACKM_L;                -- cpu_irupt (not counting PIRQ!)
+      if DM_STAT_DP_L.gpr_adst = c_gpr_pc and DM_STAT_DP_L.gpr_we = '1' then
+        isig(9)  := '1';                    -- cpu_pcload
+      end if;
+      
+      -- hack to roughly emulate cache request data
+      isig(10) := DM_STAT_VM.vmcntl.req and not DM_STAT_VM.vmcntl.wacc;-- ca_rd
+      isig(11) := DM_STAT_VM.vmcntl.req and     DM_STAT_VM.vmcntl.wacc;-- ca_wr
+      isig(12) := CACHE_CHIT;               -- ca_rdhit
+      isig(13) := '0';                      -- ca_wrhit
+      isig(14) := '0';                      -- ca_rdmem
+      isig(15) := '0';                      -- ca_wrmem
+      isig(16) := '0';                      -- ca_rdwait
+      isig(17) := '0';                      -- ca_wrwait
+
+      if DM_STAT_VM.ibmreq.aval='1' then
+        if DM_STAT_VM. ibsres.busy='0' then
+          isig(18) := DM_STAT_VM.ibmreq.re; -- ib_rd
+          isig(19) := DM_STAT_VM.ibmreq.we; -- ib_wr
+        else
+          isig(20) := DM_STAT_VM.ibmreq.re or DM_STAT_VM.ibmreq.we; -- ib_busy
+        end if;
+      end if;
+
+      -- a hack too, for 1 core systems is addr(15)='0' when CPU addressed
+      if RB_MREQ.aval='1' and RB_MREQ.addr(15)='0' then
+        if RB_SRES_L.busy='0' then
+          isig(21) := RB_MREQ.re;               -- rb_rd
+          isig(22) := RB_MREQ.we;               -- rb_wr
+        else
+          isig(23) := RB_MREQ.re or RB_MREQ.we; -- rb_busy
+        end if;
+        
+      end if;
+
+      isig(24) := '0';                      -- ext_rdrhit
+      isig(25) := '0';                      -- ext_wrrhit
+      isig(26) := '0';                      -- ext_wrflush
+      isig(27) := '0';                      -- ext_rlrdbusy
+      isig(28) := '0';                      -- ext_rlrdback
+      isig(29) := '0';                      -- ext_rlwrbusy
+      isig(30) := '0';                      -- ext_rlwrback
+      isig(31) := '1';                      -- usec
+      
+      PERFSIG <= isig;
+    end process proc_sig;
+      
+      
+    I0: pdp11_dmpcnt
+      generic map (
+        RB_ADDR => slv(to_unsigned(16#0060#,16)),  -- rbus address
+        VERS    => slv(to_unsigned(1, 8)),         -- counter layout version
+                --  33222222222211111111110000000000
+                --  10987654321098765432109876543210
+        CENA    => "10000000111111000001111111111111") -- counter enables
+      port map (
+        CLK         => CLK,
+        RESET       => RESET,
+        RB_MREQ     => RB_MREQ,
+        RB_SRES     => RB_SRES_DMPCNT,
+        PERFSIG     => PERFSIG
+      );
+  end generate DMPCNT;
+  
+  RB_SRES_DMOR : rb_sres_or_4
     port map (
-      RB_SRES_1  => RB_SRES_CORE,
-      RB_SRES_2  => RB_SRES_DMSCNT,
+      RB_SRES_1  => RB_SRES_DMSCNT,
+      RB_SRES_2  => RB_SRES_DMPCNT,
       RB_SRES_3  => RB_SRES_DMHBPT,
       RB_SRES_4  => RB_SRES_DMCMON,
-      RB_SRES_OR => RB_SRES
+      RB_SRES_OR => RB_SRES_DM
+      );
+  
+  RB_SRES_OR : rb_sres_or_2
+    port map (
+      RB_SRES_1  => RB_SRES_CORE,
+      RB_SRES_2  => RB_SRES_DM,
+      RB_SRES_OR => RB_SRES_L
     );
 
-  IB_MREQ    <= IB_MREQ_M;          -- setup output signals
+  RB_SRES    <= RB_SRES_L;          -- setup output signals
+  IB_MREQ    <= IB_MREQ_M;
   GRESET     <= GRESET_L;
   CRESET     <= CRESET_L;
   BRESET     <= BRESET_L;
   CP_STAT    <= CP_STAT_L;
+  EI_ACKM    <= EI_ACKM_L;
   DM_STAT_DP <= DM_STAT_DP_L;
   
   DM_STAT_SY.chit   <= CACHE_CHIT;

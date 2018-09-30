@@ -1,4 +1,4 @@
--- $Id: pdp11_dmscnt.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: pdp11_dmscnt.vhd 1050 2018-09-23 15:46:42Z mueller $
 --
 -- Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -30,7 +30,7 @@
 -- 2016-05-22   767   1.1.1  don't init N_REGS (vivado fix for fsm inference)
 -- 2015-12-28   721   1.1    use laddr/waddr; use ena instead of cnt;
 -- 2015-07-19   702   1.0    Initial version
--- 2015-06-26   695   1.0    First draft 
+-- 2015-06-26   695   0.1    First draft 
 ------------------------------------------------------------------------------
 --
 -- rbus registers:

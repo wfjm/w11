@@ -1,6 +1,6 @@
--- $Id: pdp11.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: pdp11.vhd 1051 2018-09-29 15:29:11Z mueller $
 --
--- Copyright 2006-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,10 +16,11 @@
 -- Description:    Definitions for pdp11 components
 --
 -- Dependencies:   -
--- Tool versions:  ise 8.2-14.7; viv 2016.2-2017.1; ghdl 0.18-0.34
+-- Tool versions:  ise 8.2-14.7; viv 2016.2-2018.2; ghdl 0.18-0.34
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-09-29  1051   1.6.8  add pdp11_dmpcnt; add DM_STAT_SE.(cpbusy,idec)
 -- 2017-04-22   884   1.6.7  dm_stat_se: add idle; pdp11_dmcmon: add SNUM generic
 -- 2016-12-26   829   1.6.6  BUGFIX: psw init with pri=0, as on real 11/70
 -- 2015-11-01   712   1.6.5  define sbcntl_sbf_tmu := 12; use for pdp11_tmu_sb
@@ -605,14 +606,16 @@ package pdp11 is
 
   type dm_stat_se_type is record        -- debug and monitor status - sequencer
     idle   : slbit;                     -- sequencer ideling
+    cpbusy : slbit;                     -- in cp states
     istart : slbit;                     -- instruction start
+    idec   : slbit;                     -- instruction decode
     idone  : slbit;                     -- instruction done
     vfetch : slbit;                     -- vector fetch
     snum : slv8;                        -- current state number
   end record dm_stat_se_type;
 
   constant dm_stat_se_init : dm_stat_se_type := (
-    '0','0','0','0',                    -- idle,istart,idone,vfetch
+    '0','0','0','0','0','0',            -- idle,cpbusy,istart,idec,idone,vfetch
     (others=>'0')                       -- snum
   );
 
@@ -1357,6 +1360,21 @@ component pdp11_dmhbpt_unit is          -- dmhbpt - indivitial unit
     HBPT : out slbit                    -- hw break flag
   );
 end component;
+
+component pdp11_dmpcnt is               -- debug&moni: performance counters
+  generic (
+    RB_ADDR : slv16 := slv(to_unsigned(16#0060#,16));  -- rbus address
+    VERS    : slv8  := slv(to_unsigned(0, 8));         -- counter layout version
+    CENA    : slv32 := (others=>'1'));                 -- counter enables
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit;                   -- reset
+    RB_MREQ : in rb_mreq_type;          -- rbus: request
+    RB_SRES : out rb_sres_type;         -- rbus: response
+    PERFSIG : in slv32                  -- signals to count
+  );
+end component;
+
 
 -- ----- move later to pdp11_conf --------------------------------------------
 

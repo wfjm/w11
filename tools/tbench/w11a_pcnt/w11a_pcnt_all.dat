@@ -1,0 +1,7 @@
+# $Id: w11a_pcnt_all.dat 1050 2018-09-23 15:46:42Z mueller $
+#
+## steering file for all w11a_pcnt tests
+#
+test_pcnt_regs.tcl
+test_pcnt_basics.tcl
+#

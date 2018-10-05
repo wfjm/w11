@@ -47,13 +47,17 @@ The full set of tests is only run for tagged releases.
 - add pdp11_dmpcnt: performance counters
 
 ### Changes
-- use for C++ compiles also `-Wpedantic`
 - sys_w11_n4: reduce cache from 64 to 32 kB to keep timing closure
+- changes for DM_STAT_* signals (debug and monitoring)
+  - DM_STAT_SE: add cpbusy and idec
 - RtclRw11Unit: fix for clang: M_virt() now public
 - backend code review:
+  - use for C++ compiles also `-Wpedantic`
   - fixes for uninitialized variables (coverity, all uncritical)
-  - now -Wunused-parameter clean (comment unused params)
-  - now -Wunused-variable clean (comment so far unused code)
+  - now -Wunused-parameter clean (comment out unused params)
+  - now -Wunused-variable clean (comment out so far unused code)
+  - some selected clang -Weverything aspects
+    - now -Wdocumentation clean (some wrong doxygen trailing comments)
 
 ### Bug Fixes
 - RtclArgs.hpp: BUGFIX: get *_min limits correct (gcc -Wpedantic)

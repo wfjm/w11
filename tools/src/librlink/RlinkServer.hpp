@@ -1,4 +1,4 @@
-// $Id: RlinkServer.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkServer.hpp 1052 2018-09-30 08:10:52Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -54,10 +54,10 @@ namespace Retro {
     public:
 
       struct AttnArgs {
-        uint16_t    fAttnPatt;              //<! in: current attention pattern
-        uint16_t    fAttnMask;              //<! in: handler attention mask
-        uint16_t    fAttnHarvest;           //<! out: harvested attentions
-        bool        fHarvestDone;           //<! out: set true when harvested
+        uint16_t    fAttnPatt;              //!< in: current attention pattern
+        uint16_t    fAttnMask;              //!< in: handler attention mask
+        uint16_t    fAttnHarvest;           //!< out: harvested attentions
+        bool        fHarvestDone;           //!< out: set true when harvested
                     AttnArgs();
                     AttnArgs(uint16_t apatt, uint16_t amask);
       };
@@ -117,9 +117,9 @@ namespace Retro {
         kStatNEloopPoll,                    //!< event loop turns (poll)
         kStatNWakeupEvt,                    //!< Wakeup events
         kStatNRlinkEvt,                     //!< Rlink data events
-        kStatNAttnHdl,                      //<! Attn handler calls
-        kStatNAttnNoti,                     //<! Attn notifies processed
-        kStatNAttnHarv,                     //<! Attn handler restarts
+        kStatNAttnHdl,                      //!< Attn handler calls
+        kStatNAttnNoti,                     //!< Attn notifies processed
+        kStatNAttnHarv,                     //!< Attn handler restarts
         kStatNAttn00,                       //!< Attn bit  0 set
         kStatNAttn01,                       //!< Attn bit  1 set
         kStatNAttn02,                       //!< Attn bit  2 set

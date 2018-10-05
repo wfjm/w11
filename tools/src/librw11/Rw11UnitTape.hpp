@@ -1,4 +1,4 @@
-// $Id: Rw11UnitTape.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11UnitTape.hpp 1052 2018-09-30 08:10:52Z mueller $
 //
 // Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -76,7 +76,7 @@ namespace Retro {
       std::string   fType;                  //!< drive type
       bool          fEnabled;               //!< unit enabled
       bool          fWProt;                 //!< unit write protected
-      size_t        fCapacity;              //<! capacity in byte (0=unlimited)
+      size_t        fCapacity;              //!< capacity in byte (0=unlimited)
   };
   
 } // end namespace Retro

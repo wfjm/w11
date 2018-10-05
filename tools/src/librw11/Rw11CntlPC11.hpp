@@ -1,4 +1,4 @@
-// $Id: Rw11CntlPC11.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11CntlPC11.hpp 1052 2018-09-30 08:10:52Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -59,8 +59,8 @@ namespace Retro {
       static const uint16_t kPCSR = 004;  //!< PCSR reg offset
       static const uint16_t kPBUF = 006;  //!< PBUF reg offset
 
-      static const uint16_t kUnit_PR   = 0;   //<! unit number of paper reader 
-      static const uint16_t kUnit_PP   = 1;   //<! unit number of paper puncher 
+      static const uint16_t kUnit_PR   = 0;   //!< unit number of paper reader 
+      static const uint16_t kUnit_PP   = 1;   //!< unit number of paper puncher 
 
       static const uint16_t kProbeOff = kRCSR; //!< probe address offset (rcsr)
       static const bool     kProbeInt = true;  //!< probe int active

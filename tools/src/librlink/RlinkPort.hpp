@@ -1,4 +1,4 @@
-// $Id: RlinkPort.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkPort.hpp 1052 2018-09-30 08:10:52Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -85,9 +85,9 @@ namespace Retro {
                          int detail=0) const;
 
     // some constants (also defined in cpp)
-      static const int  kEof  =  0;         //<! return code: end-of-file 
-      static const int  kTout = -1;         //<! return code: time out
-      static const int  kErr  = -2;         //<! return code: IO error
+      static const int  kEof  =  0;         //!< return code: end-of-file 
+      static const int  kTout = -1;         //!< return code: time out
+      static const int  kErr  = -2;         //!< return code: IO error
 
     // statistics counter indices
       enum stats {

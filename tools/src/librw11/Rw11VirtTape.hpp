@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTape.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11VirtTape.hpp 1052 2018-09-30 08:10:52Z mueller $
 //
 // Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -86,22 +86,22 @@ namespace Retro {
 
     // operation code
       enum OpCode {
-        kOpCodeOK = 0,                      //<! operation OK
-        kOpCodeBot,                         //<! ended at BOT
-        kOpCodeEof,                         //<! ended at EOF
-        kOpCodeEom,                         //<! ended at EOM
-        kOpCodeRecLenErr,                   //<! record length error
-        kOpCodeBadParity,                   //<! record with parity error
-        kOpCodeBadFormat                    //<! file format error
+        kOpCodeOK = 0,                      //!< operation OK
+        kOpCodeBot,                         //!< ended at BOT
+        kOpCodeEof,                         //!< ended at EOF
+        kOpCodeEom,                         //!< ended at EOM
+        kOpCodeRecLenErr,                   //!< record length error
+        kOpCodeBadParity,                   //!< record with parity error
+        kOpCodeBadFormat                    //!< file format error
       };
 
     protected:
-      size_t        fCapacity;              //<! capacity in byte (0=unlimited)
-      bool          fBot;                   //<! tape at bot
-      bool          fEot;                   //<! tape beyond eot
-      bool          fEom;                   //<! tape beyond medium
-      int           fPosFile;               //<! tape pos: #files  (-1=unknown)
-      int           fPosRecord;             //<! tape pos: #record (-1=unknown)
+      size_t        fCapacity;              //!< capacity in byte (0=unlimited)
+      bool          fBot;                   //!< tape at bot
+      bool          fEot;                   //!< tape beyond eot
+      bool          fEom;                   //!< tape beyond medium
+      int           fPosFile;               //!< tape pos: #files  (-1=unknown)
+      int           fPosRecord;             //!< tape pos: #record (-1=unknown)
   };
   
 } // end namespace Retro

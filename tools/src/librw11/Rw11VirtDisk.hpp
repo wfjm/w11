@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDisk.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11VirtDisk.hpp 1052 2018-09-30 08:10:52Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -67,11 +67,11 @@ namespace Retro {
       };    
 
     protected:
-      size_t        fBlkSize;               //<! block size in byte
-      size_t        fNBlock;                //<! disk size in blocks
+      size_t        fBlkSize;               //!< block size in byte
+      size_t        fNBlock;                //!< disk size in blocks
     
     protected:
-      static std::string sDefaultScheme;     //<! default scheme
+      static std::string sDefaultScheme;     //!< default scheme
   };
   
 } // end namespace Retro

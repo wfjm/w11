@@ -1,4 +1,4 @@
-// $Id: RlinkPacketBufRcv.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkPacketBufRcv.hpp 1052 2018-09-30 08:10:52Z mueller $
 //
 // Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -47,10 +47,10 @@ namespace Retro {
       void          FlushRaw();
 
       enum pkt_state {
-        kPktPend=0,                         //<! pending, still being filled
-        kPktResp,                           //<! response packet (SOP+EOP)
-        kPktAttn,                           //<! attn notify packet (ATTN+EOP)
-        kPktError                           //<! errorous packet
+        kPktPend=0,                         //!< pending, still being filled
+        kPktResp,                           //!< response packet (SOP+EOP)
+        kPktAttn,                           //!< attn notify packet (ATTN+EOP)
+        kPktError                           //!< errorous packet
       };
       pkt_state     PacketState();
 

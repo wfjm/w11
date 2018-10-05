@@ -1,4 +1,4 @@
-// $Id: RtclRlinkServer.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclRlinkServer.hpp 1052 2018-09-30 08:10:52Z mueller $
 //
 // Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -65,7 +65,7 @@ namespace Retro {
       typedef alist_t::iterator           alist_it_t;
 
       boost::shared_ptr<RlinkConnect> fspConn;
-      alist_t       fAttnHdl; //<! list of attn handlers
+      alist_t       fAttnHdl; //!< list of attn handlers
       RtclGetList   fGets;
       RtclSetList   fSets;
   };

@@ -1,4 +1,4 @@
-// $Id: RtclClassBase.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclClassBase.hpp 1052 2018-09-30 08:10:52Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -42,8 +42,8 @@ namespace Retro {
       Tcl_Command        Token() const;
 
     // some constants (also defined in cpp)
-      static const int kOK  = TCL_OK;       //<!
-      static const int kERR = TCL_ERROR;    //<!
+      static const int kOK  = TCL_OK;       //!<
+      static const int kERR = TCL_ERROR;    //!<
 
     protected:
       void          SetType(const std::string& type);

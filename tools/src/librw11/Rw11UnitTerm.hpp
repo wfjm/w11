@@ -1,4 +1,4 @@
-// $Id: Rw11UnitTerm.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11UnitTerm.hpp 1052 2018-09-30 08:10:52Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -80,15 +80,15 @@ namespace Retro {
       virtual void  AttachDone();
 
     protected:
-      bool          fTo7bit;                //<! discard parity bit on output
-      bool          fToEnpc;                //<! escape non-printables on output
-      bool          fTi7bit;                //<! discard parity bit on input
-      std::deque<uint8_t>  fRcvQueue;       //<! input queue
-      std::string   fLogFname;              //<! log file name
-      std::ofstream fLogStream;             //<! log file stream
-      bool          fLogOptCrlf;            //<! log file: crlf option given
-      bool          fLogCrPend;             //<! log file: cr pending
-      bool          fLogLfLast;             //<! log file: lf was last char
+      bool          fTo7bit;                //!< discard parity bit on output
+      bool          fToEnpc;                //!< escape non-printables on output
+      bool          fTi7bit;                //!< discard parity bit on input
+      std::deque<uint8_t>  fRcvQueue;       //!< input queue
+      std::string   fLogFname;              //!< log file name
+      std::ofstream fLogStream;             //!< log file stream
+      bool          fLogOptCrlf;            //!< log file: crlf option given
+      bool          fLogCrPend;             //!< log file: cr pending
+      bool          fLogLfLast;             //!< log file: lf was last char
   };
   
 } // end namespace Retro

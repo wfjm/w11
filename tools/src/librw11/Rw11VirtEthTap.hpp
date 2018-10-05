@@ -1,4 +1,4 @@
-// $Id: Rw11VirtEthTap.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11VirtEthTap.hpp 1052 2018-09-30 08:10:52Z mueller $
 //
 // Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -49,7 +49,7 @@ namespace Retro {
       int           RcvPollHandler(const pollfd& pfd);
 
     protected:
-      int           fFd;                    //<! fd for pty master side 
+      int           fFd;                    //!< fd for pty master side 
   };
   
 } // end namespace Retro

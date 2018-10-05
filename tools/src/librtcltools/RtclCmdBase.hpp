@@ -1,4 +1,4 @@
-// $Id: RtclCmdBase.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclCmdBase.hpp 1052 2018-09-30 08:10:52Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -58,8 +58,8 @@ namespace Retro {
       bool          TstMeth(const std::string& name);
         
     // some constants (also defined in cpp)
-      static const int kOK  = TCL_OK;       //<!
-      static const int kERR = TCL_ERROR;    //<!
+      static const int kOK  = TCL_OK;       //!<
+      static const int kERR = TCL_ERROR;    //!<
 
     protected:
       bool          GetArgsDump(RtclArgs& args, int& detail);

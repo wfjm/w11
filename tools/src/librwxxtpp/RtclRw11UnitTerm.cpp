@@ -1,6 +1,6 @@
-// $Id: RtclRw11UnitTerm.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclRw11UnitTerm.cpp 1053 2018-10-06 20:34:52Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-10-06  1053   1.1.1  move using after includes (clang warning)
 // 2017-04-08   870   1.1    use Rw11UnitTerm& ObjUV(); inherit from RtclRw11Unit
 // 2013-04-26   511   1.0.1  add M_type
 // 2013-03-03   494   1.0    Initial version
@@ -24,9 +25,9 @@
   \brief   Implemenation of RtclRw11UnitTerm.
 */
 
-using namespace std;
-
 #include "RtclRw11UnitTerm.hpp"
+
+using namespace std;
 
 /*!
   \class Retro::RtclRw11UnitTerm

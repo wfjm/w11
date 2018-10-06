@@ -1,6 +1,6 @@
-// $Id: RtclRw11UnitTape.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclRw11UnitTape.cpp 1053 2018-10-06 20:34:52Z mueller $
 //
-// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-10-06  1053   1.1.1  move using after includes (clang warning)
 // 2017-04-08   870   1.1    use Rw11UnitTape& ObjUV(); inherit from RtclRw11Unit
 // 2015-06-04   686   1.0    Initial version
 // 2015-05-17   683   0.1    First draft
@@ -23,9 +24,9 @@
   \brief   Implemenation of RtclRw11UnitTape.
 */
 
-using namespace std;
-
 #include "RtclRw11UnitTape.hpp"
+
+using namespace std;
 
 /*!
   \class Retro::RtclRw11UnitTape

@@ -1,6 +1,6 @@
--- $Id: pdp11_tmu.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: pdp11_tmu.vhd 1053 2018-10-06 20:34:52Z mueller $
 --
--- Copyright 2008-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,10 +19,11 @@
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ghdl 0.18-0.33
+-- Tool versions:  viv 2016.2-2018.2; ghdl 0.18-0.34
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-10-05  1053   1.3.1  use DM_STAT_CA instead of DM_STAT_SY
 -- 2016-12-28   833   1.3    open tmu_ofile only when used
 -- 2015-07-03   697   1.2.1  adapt to new DM_STAT_SY/DM_STAT_VM
 -- 2015-05-03   674   1.2    start/stop/suspend overhaul
@@ -57,7 +58,7 @@ entity pdp11_tmu is                     -- trace and monitor unit
     DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - dpath
     DM_STAT_VM : in dm_stat_vm_type;    -- debug and monitor status - vmbox
     DM_STAT_CO : in dm_stat_co_type;    -- debug and monitor status - core
-    DM_STAT_SY : in dm_stat_sy_type     -- debug and monitor status - system
+    DM_STAT_CA : in dm_stat_ca_type     -- debug and monitor status - cache
   );
 end pdp11_tmu;
 
@@ -136,7 +137,14 @@ begin
         write(oline, string'(" co.suspint:b"));
         write(oline, string'(" co.suspext:b"));
 
-        write(oline, string'(" sy.chit:b"));
+        write(oline, string'(" ca.rd:b"));
+        write(oline, string'(" ca.wr:b"));
+        write(oline, string'(" ca.rdhit:b"));
+        write(oline, string'(" ca.wrhit:b"));
+        write(oline, string'(" ca.rdmem:b"));
+        write(oline, string'(" ca.wrmem:b"));
+        write(oline, string'(" ca.rdwait:b"));
+        write(oline, string'(" ca.wrwait:b"));
 
         writeline(ofile, oline);
       end if;
@@ -226,7 +234,14 @@ begin
         write(oline,    DM_STAT_CO.suspint, right, 2);
         write(oline,    DM_STAT_CO.suspext, right, 2);
         
-        write(oline,    DM_STAT_SY.chit, right, 2);
+        write(oline,    DM_STAT_CA.rd, right, 2);
+        write(oline,    DM_STAT_CA.wr, right, 2);
+        write(oline,    DM_STAT_CA.rdhit, right, 2);
+        write(oline,    DM_STAT_CA.wrhit, right, 2);
+        write(oline,    DM_STAT_CA.rdmem, right, 2);
+        write(oline,    DM_STAT_CA.wrmem, right, 2);
+        write(oline,    DM_STAT_CA.rdwait, right, 2);
+        write(oline,    DM_STAT_CA.wrwait, right, 2);
 
         writeline(ofile, oline);
       end if;

@@ -1,6 +1,6 @@
--- $Id: pdp11_tmu_sb.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: pdp11_tmu_sb.vhd 1053 2018-10-06 20:34:52Z mueller $
 --
--- Copyright 2009-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2009-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -17,9 +17,10 @@
 --
 -- Dependencies:   simbus
 -- Test bench:     -
--- Tool versions:  xst 8.1-14.7; ghdl 0.18-0.31
+-- Tool versions:  xst 8.1-14.7; viv 2016.2-2018.2; ghdl 0.18-0.34
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-10-05  1053   1.0.2  use DM_STAT_CA instead of DM_STAT_SY
 -- 2015-11-01   712   1.0.1  use sbcntl_sbf_tmu
 -- 2009-05-10   214   1.0    Initial version 
 ------------------------------------------------------------------------------
@@ -40,7 +41,7 @@ entity pdp11_tmu_sb is                  -- trace and mon. unit; simbus wrapper
     DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - dpath
     DM_STAT_VM : in dm_stat_vm_type;    -- debug and monitor status - vmbox
     DM_STAT_CO : in dm_stat_co_type;    -- debug and monitor status - core
-    DM_STAT_SY : in dm_stat_sy_type     -- debug and monitor status - system
+    DM_STAT_CA : in dm_stat_ca_type     -- debug and monitor status - cache
   );
 end pdp11_tmu_sb;
 
@@ -63,7 +64,7 @@ begin
       DM_STAT_DP => DM_STAT_DP,
       DM_STAT_VM => DM_STAT_VM,
       DM_STAT_CO => DM_STAT_CO,
-      DM_STAT_SY => DM_STAT_SY
+      DM_STAT_CA => DM_STAT_CA
     );
   
 end sim;

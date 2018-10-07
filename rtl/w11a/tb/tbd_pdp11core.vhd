@@ -1,6 +1,6 @@
--- $Id: tbd_pdp11core.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: tbd_pdp11core.vhd 1053 2018-10-06 20:34:52Z mueller $
 --
--- Copyright 2007-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -26,7 +26,7 @@
 -- To test:        pdp11_core
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
+-- Tool versions:  xst 8.2-14.7; viv 2016.2-2018.2; ghdl 0.18-0.34
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -41,6 +41,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-10-05  1053   1.6.3  use DM_STAT_CA instead of DM_STAT_SY
 -- 2015-11-01   712   1.6.2  use sbcntl_sbf_tmu
 -- 2015-07-03   697   1.6.1  adapt to new DM_STAT_(SY|VM)
 -- 2015-05-03   674   1.6    start/stop/suspend overhaul
@@ -127,7 +128,7 @@ architecture syn of tbd_pdp11core is
   signal DM_STAT_DP : dm_stat_dp_type := dm_stat_dp_init;
   signal DM_STAT_VM : dm_stat_vm_type := dm_stat_vm_init;
   signal DM_STAT_CO : dm_stat_co_type := dm_stat_co_init;
-  signal DM_STAT_SY : dm_stat_sy_type := dm_stat_sy_init;
+  signal DM_STAT_CA : dm_stat_ca_type := dm_stat_ca_init;
 
 begin
 
@@ -216,7 +217,7 @@ begin
       DISPREG  => open
     );  
 
-  DM_STAT_SY.chit   <= '0';
+  DM_STAT_CA   <= dm_stat_ca_init;
 
 -- synthesis translate_off
   TMU : pdp11_tmu_sb
@@ -227,7 +228,7 @@ begin
       DM_STAT_DP => DM_STAT_DP,
       DM_STAT_VM => DM_STAT_VM,
       DM_STAT_CO => DM_STAT_CO,
-      DM_STAT_SY => DM_STAT_SY
+      DM_STAT_CA => DM_STAT_CA
     );
   
 -- synthesis translate_on

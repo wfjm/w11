@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: tmuconv 985 2018-01-03 08:59:40Z mueller $
+# $Id: tmuconv 1053 2018-10-06 20:34:52Z mueller $
 #
-# Copyright 2008-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2008-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-10-05  1053   1.1.2  use 'ca.*' instead of 'sy.*' fields
 # 2015-11-01   712   1.1.1  BUGFIX: fix '.' handling for br/sob instructions
 #                           BUGFIX: correct xor (now r,dst, and not src,r)
 #                           br/sob offsets now octal; assume --t_id if no opts
@@ -71,7 +72,14 @@
 #   co.cpususp:b
 #   co.suspint:b
 #   co.suspext:b
-#   sy.chit:b
+#   ca.rd:b
+#   ca.wr:b
+#   ca.rdhit:b
+#   ca.wrhit:b
+#   ca.rdmem:b
+#   ca.wrmem:b
+#   ca.rdwait:b
+#   ca.wrwait:b
 #
 
 use 5.14.0;                                 # require Perl 5.14 or higher
@@ -140,7 +148,14 @@ my $ind_vm_emsres_ack_r;
 my $ind_vm_emsres_ack_w;
 my $ind_vm_emsres_dout;
 
-my $ind_sy_chit;
+my $ind_ca_rd;
+my $ind_ca_wr;
+my $ind_ca_rdhit;
+my $ind_ca_wrhit;
+my $ind_ca_rdmem;
+my $ind_ca_wrmem;
+my $ind_ca_rdwait;
+my $ind_ca_wrwait;
 
 my @pdp11_opcode_tbl = (
     {code=>0000000, mask=>0000000, name=>"halt", type=>"0arg"},
@@ -530,7 +545,14 @@ sub do_file {
       $ind_vm_emsres_ack_w  = $name{'vm.emsres.ack_w'}->{ind};
       $ind_vm_emsres_dout   = $name{'vm.emsres.dout'}->{ind};
 
-      $ind_sy_chit          = $name{'sy.chit'}->{ind};
+      $ind_ca_rd            = $name{'ca.rd'}->{ind};
+      $ind_ca_wr            = $name{'ca.wr'}->{ind};
+      $ind_ca_rdhit         = $name{'ca.rdhit'}->{ind};
+      $ind_ca_wrhit         = $name{'ca.wrhit'}->{ind};
+      $ind_ca_rdmem         = $name{'ca.rdmem'}->{ind};
+      $ind_ca_wrmem         = $name{'ca.wrmem'}->{ind};
+      $ind_ca_rdwait        = $name{'ca.rdwait'}->{ind};
+      $ind_ca_wrwait        = $name{'ca.wrwait'}->{ind};
 
     } else {
       @val_last = @val_curr;
@@ -684,7 +706,7 @@ sub do_file {
 	    $val_curr[$ind_vm_emmreq_cancel],
 	    $val_curr[$ind_vm_emsres_ack_r],
 	    $val_curr[$ind_vm_emsres_ack_w],
-	    $val_curr[$ind_sy_chit];
+	    $val_curr[$ind_ca_rdhit];
 	  if ($val_curr[$ind_vm_emmreq_cancel]) {
 	    $emreq_str .= " cancel";
 	    $emcurr_we = undef;

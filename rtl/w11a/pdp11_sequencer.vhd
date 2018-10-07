@@ -1,4 +1,4 @@
--- $Id: pdp11_sequencer.vhd 1051 2018-09-29 15:29:11Z mueller $
+-- $Id: pdp11_sequencer.vhd 1053 2018-10-06 20:34:52Z mueller $
 --
 -- Copyright 2006-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -22,7 +22,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2018-09-29  1051   1.6.10 add DM_STAT_SE.(cpbusy,idec)
+-- 2018-10-06  1053   1.6.10 add DM_STAT_SE.(cpbusy,idec,pcload)
 -- 2017-04-23   885   1.6.9  not sys_conf_dmscnt: set SNUM from state category;
 --                           change waitsusp logic; add WAIT to idm_idone
 -- 2016-12-27   831   1.6.8  CPUERR now cleared with creset
@@ -370,11 +370,12 @@ begin
 
     variable int_pending : slbit := '0';     -- an interrupt is pending
 
-    variable idm_idle    : slbit := '0';     -- idle   for dm_stat_se
-    variable idm_cpbusy  : slbit := '0';     -- cpbusy for dm_stat_se
-    variable idm_idec    : slbit := '0';     -- idec   for dm_stat_se
-    variable idm_idone   : slbit := '0';     -- idone  for dm_stat_se
-    variable idm_vfetch  : slbit := '0';     -- vfetch for dm_stat_se
+    variable idm_idle   : slbit := '0';      -- idle   for dm_stat_se
+    variable idm_cpbusy : slbit := '0';      -- cpbusy for dm_stat_se
+    variable idm_idec   : slbit := '0';      -- idec   for dm_stat_se
+    variable idm_idone  : slbit := '0';      -- idone  for dm_stat_se
+    variable idm_pcload : slbit := '0';      -- pcload for dm_stat_se
+    variable idm_vfetch : slbit := '0';      -- vfetch for dm_stat_se
     
     alias SRCMOD : slv2 is IREG(11 downto 10); -- src register mode high
     alias SRCDEF : slbit is IREG(9);           -- src register mode defered
@@ -626,6 +627,7 @@ begin
     idm_cpbusy := '0';
     idm_idec   := '0';
     idm_idone  := '0';
+    idm_pcload := '0';
     idm_vfetch := '0';
     
     imemok := false;
@@ -1620,6 +1622,7 @@ begin
         ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
         ndpcntl.gpr_adst := c_gpr_pc;
         ndpcntl.gpr_we := '1';                     -- load PC with reg(dst)
+        idm_pcload := '1';                         -- signal flow change
         nstate := s_op_rts_pop;
 
       when s_op_rts_pop =>              -- -----------------------------------
@@ -1688,6 +1691,7 @@ begin
         idm_idone := '1';               -- instruction done
         if brcond = brcode(0) then      -- this coding creates redundant code
           ndpcntl.gpr_we := '1';        --   but synthesis optimizes this way !
+          idm_pcload := '1';            -- signal flow change
           do_fork_next(nstate, nstatus, nmmumoni);
         else
           do_fork_next_pref(nstate, nstatus, ndpcntl, nvmcntl, nmmumoni);
@@ -1710,6 +1714,7 @@ begin
         ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
         ndpcntl.gpr_adst := c_gpr_pc;
         ndpcntl.gpr_we := '1';                   -- load PC with r5
+        idm_pcload := '1';                       -- signal flow change
         nstate := s_op_mark_pop;
 
       when s_op_mark_pop =>             -- -----------------------------------
@@ -1750,6 +1755,7 @@ begin
         ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
         ndpcntl.gpr_adst := c_gpr_pc;
         ndpcntl.gpr_we := '1';
+        idm_pcload := '1';                       -- signal flow change
         idm_idone := '1';                        -- instruction done
         do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
 
@@ -1997,6 +2003,7 @@ begin
         ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
         ndpcntl.gpr_adst := c_gpr_pc;
         ndpcntl.gpr_we := '1';                     -- load PC with dsta
+        idm_pcload := '1';                         -- signal flow change
         idm_idone := '1';                          -- instruction done
         do_fork_next(nstate, nstatus, nmmumoni);   -- fetch next
 
@@ -2009,6 +2016,7 @@ begin
           nstate := s_trap_10;                     -- trap 10 like 11/70
         else
           ndpcntl.gpr_we := '1';                   -- load PC with dsta
+          idm_pcload := '1';                       -- signal flow change
           idm_idone := '1';                        -- instruction done
           do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
         end if;
@@ -2266,6 +2274,7 @@ begin
         if imemok then
           nstatus.do_intrsv := '0';                -- signal end of rsv
           ndpcntl.gpr_we := '1';                   -- load new PC
+          idm_pcload := '1';                       -- signal flow change
           do_fork_next(nstate, nstatus, nmmumoni);         -- ???
         end if;
         
@@ -2309,6 +2318,7 @@ begin
         ndpcntl.dres_sel := c_dpath_res_ounit;    -- DRES = OUNIT
         ndpcntl.gpr_adst := c_gpr_pc;
         ndpcntl.gpr_we := '1';                    -- load new PC
+        idm_pcload := '1';                        -- signal flow change
         idm_idone := '1';                         -- instruction done
         if R_IDSTAT.op_rtt = '1' then             -- if RTT instruction
           nstate := s_ifetch;                       -- force fetch
@@ -2425,6 +2435,7 @@ begin
     DM_STAT_SE.istart <= nmmumoni.istart;
     DM_STAT_SE.idec   <= idm_idec;
     DM_STAT_SE.idone  <= idm_idone;
+    DM_STAT_SE.pcload <= idm_pcload;
     DM_STAT_SE.vfetch <= idm_vfetch;
       
   end process proc_next;

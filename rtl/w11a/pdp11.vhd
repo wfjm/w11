@@ -1,4 +1,4 @@
--- $Id: pdp11.vhd 1051 2018-09-29 15:29:11Z mueller $
+-- $Id: pdp11.vhd 1053 2018-10-06 20:34:52Z mueller $
 --
 -- Copyright 2006-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,6 +20,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-10-05  1053   1.6.9  drop DM_STAT_SY; add DM_STAT_CA, use in pdp11_cache
+--                           add DM_STAT_SE.pcload
 -- 2018-09-29  1051   1.6.8  add pdp11_dmpcnt; add DM_STAT_SE.(cpbusy,idec)
 -- 2017-04-22   884   1.6.7  dm_stat_se: add idle; pdp11_dmcmon: add SNUM generic
 -- 2016-12-26   829   1.6.6  BUGFIX: psw init with pri=0, as on real 11/70
@@ -610,12 +612,14 @@ package pdp11 is
     istart : slbit;                     -- instruction start
     idec   : slbit;                     -- instruction decode
     idone  : slbit;                     -- instruction done
+    pcload : slbit;                     -- PC loaded (flow change)
     vfetch : slbit;                     -- vector fetch
     snum : slv8;                        -- current state number
   end record dm_stat_se_type;
 
   constant dm_stat_se_init : dm_stat_se_type := (
-    '0','0','0','0','0','0',            -- idle,cpbusy,istart,idec,idone,vfetch
+    '0','0',                            -- idle,cpbusy
+    '0','0','0','0','0',                -- istart,idec,idone,pcload,vfetch
     (others=>'0')                       -- snum
   );
 
@@ -695,14 +699,20 @@ package pdp11 is
     '0','0'                             -- susp...
   );
 
-  type dm_stat_sy_type is record        -- debug and monitor status - system
-    chit : slbit;                       -- cache hit
-    dummy : slbit;                      -- ... sorry records must have two ...
-  end record dm_stat_sy_type;
+  type dm_stat_ca_type is record        -- debug and monitor status - cache
+    rd     : slbit;                     -- read  request
+    wr     : slbit;                     -- write request
+    rdhit  : slbit;                     -- read  hit
+    wrhit  : slbit;                     -- write hit
+    rdmem  : slbit;                     -- read  memory
+    wrmem  : slbit;                     -- write memory
+    rdwait : slbit;                     -- read  wait
+    wrwait : slbit;                     -- write wait
+  end record dm_stat_ca_type;
 
-  constant dm_stat_sy_init : dm_stat_sy_type := (
-    '0',                                -- chit
-    '0'
+  constant dm_stat_ca_init : dm_stat_ca_type := (
+    '0','0','0','0',                    -- rd,wr,rdhit,wrhit
+    '0','0','0','0'                     -- rdmem,wrmem,rdwait,wrwait
   );
 
 -- rbus interface definitions ------------------------------------------------
@@ -1076,7 +1086,6 @@ component pdp11_cache is                -- cache
     EM_MREQ : in em_mreq_type;          -- em request
     EM_SRES : out em_sres_type;         -- em response
     FMISS : in slbit;                   -- force miss
-    CHIT : out slbit;                   -- cache hit flag
     MEM_REQ : out slbit;                -- memory: request
     MEM_WE : out slbit;                 -- memory: write enable
     MEM_BUSY : in slbit;                -- memory: controller busy
@@ -1084,7 +1093,8 @@ component pdp11_cache is                -- cache
     MEM_ADDR : out slv20;               -- memory: address
     MEM_BE : out slv4;                  -- memory: byte enable
     MEM_DI : out slv32;                 -- memory: data in  (memory view)
-    MEM_DO : in slv32                   -- memory: data out (memory view)
+    MEM_DO : in slv32;                  -- memory: data out (memory view)
+    DM_STAT_CA : out dm_stat_ca_type    -- debug and monitor status - cache
   );
 end component;
 
@@ -1124,7 +1134,7 @@ component pdp11_tmu is                  -- trace and monitor unit
     DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - dpath
     DM_STAT_VM : in dm_stat_vm_type;    -- debug and monitor status - vmbox
     DM_STAT_CO : in dm_stat_co_type;    -- debug and monitor status - core
-    DM_STAT_SY : in dm_stat_sy_type     -- debug and monitor status - system
+    DM_STAT_CA : in dm_stat_ca_type     -- debug and monitor status - cache
   );
 end component;
 
@@ -1140,7 +1150,7 @@ component pdp11_tmu_sb is               -- trace and mon. unit; simbus wrapper
     DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - dpath
     DM_STAT_VM : in dm_stat_vm_type;    -- debug and monitor status - vmbox
     DM_STAT_CO : in dm_stat_co_type;    -- debug and monitor status - core
-    DM_STAT_SY : in dm_stat_sy_type     -- debug and monitor status - system
+    DM_STAT_CA : in dm_stat_ca_type     -- debug and monitor status - cache
   );
 end component;
 

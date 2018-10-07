@@ -1,4 +1,4 @@
--- $Id: pdp11_sys70.vhd 1051 2018-09-29 15:29:11Z mueller $
+-- $Id: pdp11_sys70.vhd 1053 2018-10-06 20:34:52Z mueller $
 --
 -- Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -35,6 +35,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-10-06  1053   1.2.3  drop DM_STAT_SY; add DM_STAT_CA; use _SE.pcload
 -- 2018-09-29  1051   1.2.2  add pdp11_dmpcnt
 -- 2017-04-22   884   1.2.1  pdp11_dmcmon: use SNUM and AWIDTH generics
 -- 2016-03-22   750   1.2    pdp11_cache now configurable size
@@ -116,7 +117,6 @@ architecture syn of pdp11_sys70 is
   signal HM_ENA      : slbit := '0';
   signal MEM70_FMISS : slbit := '0';
   signal CACHE_FMISS : slbit := '0';
-  signal CACHE_CHIT  : slbit := '0';
 
   signal HBPT        : slbit := '0';
 
@@ -124,7 +124,7 @@ architecture syn of pdp11_sys70 is
   signal DM_STAT_DP_L : dm_stat_dp_type := dm_stat_dp_init;
   signal DM_STAT_VM   : dm_stat_vm_type := dm_stat_vm_init;
   signal DM_STAT_CO   : dm_stat_co_type := dm_stat_co_init;
-  signal DM_STAT_SY   : dm_stat_sy_type := dm_stat_sy_init;
+  signal DM_STAT_CA   : dm_stat_ca_type := dm_stat_ca_init;
 
   signal IB_MREQ_M : ib_mreq_type := ib_mreq_init;
   signal IB_SRES_M : ib_sres_type := ib_sres_init;
@@ -187,20 +187,20 @@ begin
     generic map (
       TWIDTH => sys_conf_cache_twidth)
     port map (
-      CLK       => CLK,
-      GRESET    => GRESET_L,
-      EM_MREQ   => EM_MREQ,
-      EM_SRES   => EM_SRES,
-      FMISS     => CACHE_FMISS,
-      CHIT      => CACHE_CHIT,
-      MEM_REQ   => MEM_REQ,
-      MEM_WE    => MEM_WE,
-      MEM_BUSY  => MEM_BUSY,
-      MEM_ACK_R => MEM_ACK_R,
-      MEM_ADDR  => MEM_ADDR,
-      MEM_BE    => MEM_BE,
-      MEM_DI    => MEM_DI,
-      MEM_DO    => MEM_DO
+      CLK        => CLK,
+      GRESET     => GRESET_L,
+      EM_MREQ    => EM_MREQ,
+      EM_SRES    => EM_SRES,
+      FMISS      => CACHE_FMISS,
+      MEM_REQ    => MEM_REQ,
+      MEM_WE     => MEM_WE,
+      MEM_BUSY   => MEM_BUSY,
+      MEM_ACK_R  => MEM_ACK_R,
+      MEM_ADDR   => MEM_ADDR,
+      MEM_BE     => MEM_BE,
+      MEM_DI     => MEM_DI,
+      MEM_DO     => MEM_DO,
+      DM_STAT_CA => DM_STAT_CA
     );
 
   MEM70: pdp11_mem70
@@ -208,7 +208,7 @@ begin
       CLK         => CLK,
       CRESET      => BRESET_L,
       HM_ENA      => HM_ENA,
-      HM_VAL      => CACHE_CHIT,
+      HM_VAL      => DM_STAT_CA.rdhit,
       CACHE_FMISS => MEM70_FMISS,
       IB_MREQ     => IB_MREQ_M,
       IB_SRES     => IB_SRES_MEM70
@@ -298,7 +298,7 @@ begin
     signal PERFSIG : slv32 := (others=>'0');
   begin
     proc_sig: process (CP_STAT_L, DM_STAT_SE, DM_STAT_DP_L, DM_STAT_DP_L.psw,
-                       DM_STAT_VM.vmcntl, DM_STAT_VM.vmstat, RB_MREQ, RB_SRES_L,
+                       DM_STAT_CA, RB_MREQ, RB_SRES_L,
                        DM_STAT_VM.ibmreq, DM_STAT_VM.ibsres)
       variable isig : slv32 := (others=>'0');
     begin
@@ -326,21 +326,18 @@ begin
       end if;
 
       isig(6)  := DM_STAT_SE.idec;          -- cpu_idec
-      isig(7)  := DM_STAT_SE.vfetch;        -- cpu_vfetch
-      isig(8)  := EI_ACKM_L;                -- cpu_irupt (not counting PIRQ!)
-      if DM_STAT_DP_L.gpr_adst = c_gpr_pc and DM_STAT_DP_L.gpr_we = '1' then
-        isig(9)  := '1';                    -- cpu_pcload
-      end if;
+      isig(7)  := DM_STAT_SE.pcload;        -- cpu_pcload
+      isig(8)  := DM_STAT_SE.vfetch;        -- cpu_vfetch
+      isig(9)  := EI_ACKM_L;                -- cpu_irupt (not counting PIRQ!)
       
-      -- hack to roughly emulate cache request data
-      isig(10) := DM_STAT_VM.vmcntl.req and not DM_STAT_VM.vmcntl.wacc;-- ca_rd
-      isig(11) := DM_STAT_VM.vmcntl.req and     DM_STAT_VM.vmcntl.wacc;-- ca_wr
-      isig(12) := CACHE_CHIT;               -- ca_rdhit
-      isig(13) := '0';                      -- ca_wrhit
-      isig(14) := '0';                      -- ca_rdmem
-      isig(15) := '0';                      -- ca_wrmem
-      isig(16) := '0';                      -- ca_rdwait
-      isig(17) := '0';                      -- ca_wrwait
+      isig(10) := DM_STAT_CA.rd;            -- ca_rd
+      isig(11) := DM_STAT_CA.wr;            -- ca_wr
+      isig(12) := DM_STAT_CA.rdhit;         -- ca_rdhit
+      isig(13) := DM_STAT_CA.wrhit;         -- ca_wrhit
+      isig(14) := DM_STAT_CA.rdmem;         -- ca_rdmem
+      isig(15) := DM_STAT_CA.wrmem;         -- ca_wrmem
+      isig(16) := DM_STAT_CA.rdwait;        -- ca_rdwait
+      isig(17) := DM_STAT_CA.wrwait;        -- ca_wrwait
 
       if DM_STAT_VM.ibmreq.aval='1' then
         if DM_STAT_VM. ibsres.busy='0' then
@@ -369,7 +366,7 @@ begin
       isig(28) := '0';                      -- ext_rlrdback
       isig(29) := '0';                      -- ext_rlwrbusy
       isig(30) := '0';                      -- ext_rlwrback
-      isig(31) := '1';                      -- usec
+      isig(31) := '1';                      -- usec (now clock)
       
       PERFSIG <= isig;
     end process proc_sig;
@@ -381,7 +378,7 @@ begin
         VERS    => slv(to_unsigned(1, 8)),         -- counter layout version
                 --  33222222222211111111110000000000
                 --  10987654321098765432109876543210
-        CENA    => "10000000111111000001111111111111") -- counter enables
+        CENA    => "10000000111111111111111111111111") -- counter enables
       port map (
         CLK         => CLK,
         RESET       => RESET,
@@ -416,8 +413,6 @@ begin
   EI_ACKM    <= EI_ACKM_L;
   DM_STAT_DP <= DM_STAT_DP_L;
   
-  DM_STAT_SY.chit   <= CACHE_CHIT;
-
 -- synthesis translate_off
   
   TMU : pdp11_tmu_sb
@@ -428,7 +423,7 @@ begin
       DM_STAT_DP => DM_STAT_DP_L,
       DM_STAT_VM => DM_STAT_VM,
       DM_STAT_CO => DM_STAT_CO,
-      DM_STAT_SY => DM_STAT_SY
+      DM_STAT_CA => DM_STAT_CA
     );
 -- synthesis translate_on
   

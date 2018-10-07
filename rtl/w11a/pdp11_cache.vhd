@@ -1,6 +1,6 @@
--- $Id: pdp11_cache.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: pdp11_cache.vhd 1053 2018-10-06 20:34:52Z mueller $
 --
--- Copyright 2008-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,21 +18,22 @@
 -- Dependencies:   memlib/ram_2swsr_rfirst_gen
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.1; ghdl 0.18-0.33
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2018.2; ghdl 0.18-0.34
 --
 -- Synthesis results
 --   clw = cache line width (tag+data)
 --   eff = efficiency (fraction of used BRAM colums)
 -- - 2016-03-22 (r750) with viv 2015.4 for xc7a100t-1
---   TWIDTH   flop  lutl  lutm  RAMB36 RAMB18   bram   clw   eff
---        9     43   106     0       0      5    2.5    45  100%
---        8     43   109     0       5      0    5.0    44   97%
---        7     43   107     0      10      4   12.0    43   89%
---        6     43   106     0      19      4   21.0    42  100%
---        5     58!  106     0      41      0   41.0    41  100%
+--   TWIDTH  size  flop  lutl  lutm  RAMB36 RAMB18   bram   clw   eff
+--        9    8k    43   106     0       0      5    2.5    45  100%
+--        8   16k    43   109     0       5      0    5.0    44   97%
+--        7   32k    43   107     0      10      4   12.0    43   89%
+--        6   64k    43   106     0      19      4   21.0    42  100%
+--        5  128k    58!  106     0      41      0   41.0    41  100%
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-10-06  1053   1.2    drop CHIT, use DM_STAT_CA, detailed monitoring
 -- 2016-05-22   767   1.1.1  don't init N_REGS (vivado fix for fsm inference)
 -- 2016-03-22   751   1.1    now configurable size (8,16,32,64,128 kB)
 -- 2011-11-18   427   1.0.3  now numeric_std clean
@@ -60,7 +61,6 @@ entity pdp11_cache is                   -- cache
     EM_MREQ : in em_mreq_type;          -- em request
     EM_SRES : out em_sres_type;         -- em response
     FMISS : in slbit;                   -- force miss
-    CHIT : out slbit;                   -- cache hit flag
     MEM_REQ : out slbit;                -- memory: request
     MEM_WE : out slbit;                 -- memory: write enable
     MEM_BUSY : in slbit;                -- memory: controller busy
@@ -68,7 +68,8 @@ entity pdp11_cache is                   -- cache
     MEM_ADDR : out slv20;               -- memory: address
     MEM_BE : out slv4;                  -- memory: byte enable
     MEM_DI : out slv32;                 -- memory: data in  (memory view)
-    MEM_DO : in slv32                   -- memory: data out (memory view)
+    MEM_DO : in slv32;                  -- memory: data out (memory view)
+    DM_STAT_CA : out dm_stat_ca_type    -- debug and monitor status - cache
   );
 end pdp11_cache;
 
@@ -287,8 +288,8 @@ begin
 
     variable iackr : slbit := '0';
     variable iackw : slbit := '0';
-    variable ichit : slbit := '0';
     variable iosel : slv2  := "11";
+    variable istat : dm_stat_ca_type := dm_stat_ca_init;
 
     variable imem_reqr : slbit := '0';
     variable imem_reqw : slbit := '0';
@@ -335,10 +336,11 @@ begin
 
     iackr := '0';
     iackw := '0';
-    ichit := '0';
     iosel := "11";                      -- default to ext. mem data
                                         -- this prevents U's from cache bram's
                                         -- to propagate to dout in beginning...
+
+    istat := dm_stat_ca_init;
 
     imem_reqr := '0';
     imem_reqw := '0';
@@ -375,13 +377,18 @@ begin
         imem_be := "1111";                -- mem read: all 4 bytes
         if EM_MREQ.cancel = '0' then
           if FMISS='0' and itagok='1' and ivalok='1' then -- read tag&val hit
+            istat.rd := '1';                -- moni read request (hit)
             iackr := '1';                   -- signal read acknowledge
-            ichit := '1';                   -- signal cache hit
+            istat.rdhit := '1';             -- moni read hit
             n.state := s_idle;              -- next: back to idle 
           else                            -- read miss
             if MEM_BUSY = '0' then          -- if mem not busy
+              istat.rd := '1';                -- moni read request (!hit & !wait)
               imem_reqr :='1';                -- request mem read
+              istat.rdmem := '1';             -- moni mem read
               n.state := s_rmiss;             -- next: rmiss, wait for mem data
+            else                            -- else mem busy
+              istat.wrwait := '1';            -- moni mem busy
             end if;
           end if;
         else
@@ -395,6 +402,7 @@ begin
         icmem_val_dib := "1111";          -- cache update: all valid
         icmem_dat_dib := MEM_DO;          -- cache update: data from mem
         icmem_dat_web := "1111";          -- cache update: write all 4 bytes
+        istat.rdwait := '1';              -- moni read wait
         if MEM_ACK_R = '1' then           -- mem data valid
           iackr := '1';                     -- signal read acknowledge
           icmem_tag_ceb := '1';             -- access cache tag  port B
@@ -407,14 +415,20 @@ begin
         icmem_dat_dib := icmem_dat_doa;   -- cache restore: last state 
         if EM_MREQ.cancel = '0' then      -- request ok
           if MEM_BUSY = '0' then            -- if mem not busy
+            istat.wr := '1';                -- moni write request
             if itagok = '0' then              -- if write tag miss
               icmem_dat_ceb := '1';             -- access cache (invalidate)
               icmem_dat_web := not r.be;        -- write missed bytes
               icmem_val_dib := "0000";          -- invalidate missed bytes
+            else
+              istat.wrhit := '1';               -- moni write hit
             end if;
             imem_reqw := '1';                 -- write back to main memory
+            istat.wrmem := '1';               -- moni mem write
             iackw := '1';                     -- and done
             n.state := s_idle;                -- next: back to idle
+          else                              -- else mem busy
+            istat.wrwait := '1';              -- moni mem busy
           end if;
           
         else                              -- request canceled -> restore
@@ -470,7 +484,7 @@ begin
       when others => null;
     end case;
     
-    CHIT  <= ichit;
+    DM_STAT_CA <= istat;
 
     MEM_REQ  <= imem_reqr or imem_reqw;
     MEM_WE   <= imem_reqw;

@@ -1,4 +1,4 @@
-# $Id: dmpcnt.tcl 1051 2018-09-29 15:29:11Z mueller $
+# $Id: dmpcnt.tcl 1053 2018-10-06 20:34:52Z mueller $
 #
 # Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,7 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
-# 2018-09-29  1051   1.0    Initial version
+# 2018-10-06  1053   1.0    Initial version
 # 2018-09-23  1050   0.1    First draft
 #
 
@@ -31,14 +31,22 @@ namespace eval rw11 {
   regdsc PC_STAT {ainc 15} {caddr 13 5} {waddr 8} {run 0}
 
   # preliminary handling of counter names, hack in first version
-  variable pcnt_cnames {cpu_cpbusy cpu_km_prix cpu_km_pri0 cpu_km_wait \
-                        cpu_sm cpu_um cpu_idec cpu_vfetch \
-                        cpu_irupt cpu_pcload ca_rd ca_wr \
-                        ca_rdhit -ca_wrhit -ca_rdmem -ca_wrmem \
-                        -ca_rdwait -ca_wrwait ib_rd ib_wr \
-                        ib_busy rb_rd rb_wr rb_busy \
-                        -ext_rdrhit -ext_wrrhit -ext_wrflush -ext_rlrdbusy \
-                        -ext_rlrdback -ext_rlwrbusy -ext_rlwrback clock}
+  variable pcnt_cnames [list cpu_cpbusy cpu_km_prix cpu_km_pri0 cpu_km_wait \
+                             cpu_sm cpu_um cpu_idec cpu_pcload \
+                             cpu_vfetch cpu_irupt ca_rd ca_wr \
+                             ca_rdhit ca_wrhit ca_rdmem ca_wrmem \
+                             ca_rdwait ca_wrwait ib_rd ib_wr \
+                             ib_busy rb_rd rb_wr rb_busy \
+                             ext_rdrhit ext_wrrhit ext_wrflush ext_rlrdbusy \
+                             ext_rlrdback ext_rlwrbusy ext_rlwrback clock]
+  variable pcnt_cindex
+  set tmp_ind 0
+  foreach {nam} $pcnt_cnames {
+    set pcnt_cindex($nam) $tmp_ind
+    incr tmp_ind
+  }
+  unset tmp_ind
+  
   #
   # pc_setup: rmap definitions for dmpcnt
   # 

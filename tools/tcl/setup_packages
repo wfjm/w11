@@ -1,6 +1,13 @@
 #! /usr/bin/env tclshcpp
-# $Id: setup_packages 847 2017-01-29 22:38:42Z mueller $
+# $Id: setup_packages 1053 2018-10-06 20:34:52Z mueller $
 #
+# pkg_mkIndex uses tclLog to write, which by default writes to stderr
+# this is 'make -s' unfriendly, so redefined tclLog to use plain puts
+
+proc tclLog args {
+  puts {*}$args
+}
+
 pkg_mkIndex -verbose ../lib \
             librlinktpp.so \
             librusbtpp.so \

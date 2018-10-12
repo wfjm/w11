@@ -1,4 +1,4 @@
-# $Id: Makefile 918 2017-06-28 20:04:17Z mueller $
+# $Id: Makefile 1055 2018-10-12 17:53:52Z mueller $
 #
 # 'Meta Makefile' for whole retro project
 #   allows to make all synthesis targets
@@ -6,6 +6,7 @@
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2018-10-12  1055   1.2.9  use setup_package_filt
 # 2017-06-28   918   1.2.8  add cmoda7 port for tst_rlink,tst_sram,w11a
 # 2017-05-01   891   1.2.7  add all_tcl to all; use njobihtm
 # 2016-10-01   810   1.2.6  move component tests to SIM_viv when vivado used
@@ -250,7 +251,7 @@ clean_lib :
 	$(MAKE) -C tools/src distclean
 #
 all_tcl :
-	(cd tools/tcl; setup_packages)
+	(cd tools/tcl; setup_packages 2>&1 | ./setup_packages_filt -quiet)
 #
 all_dox :
 	(cd tools/dox; make_doxy)

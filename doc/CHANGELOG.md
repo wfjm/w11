@@ -47,6 +47,7 @@ The full set of tests is only run for tagged releases.
 - add pdp11_dmpcnt: performance counters
 
 ### Changes
+- Makefile: `make all_tcl` now quiet, use setup_packages_filt
 - sys_w11_n4: reduce cache from 64 to 32 kB to keep timing closure
 - changes for DM_STAT_* signals (debug and monitoring)
   - DM_STAT_SE: add elements cpbusy,idec,pcload

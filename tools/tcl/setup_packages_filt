@@ -1,0 +1,80 @@
+#!/usr/bin/perl -w
+# $Id: setup_packages_filt 1055 2018-10-12 17:53:52Z mueller $
+#
+# Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+#
+# This program is free software; you may redistribute and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 3, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# for complete details.
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2018-10-12  1055   1.0    Initial version
+# 2018-10-06  1054   0.1    First draft
+#
+
+use 5.14.0;                                 # require Perl 5.14 or higher
+use strict;                                 # require strict checking
+
+use Getopt::Long;
+my %opts = ();
+GetOptions(\%opts, "help", "quiet")
+  or exit 1;
+
+
+autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
+
+my $mname = '';
+my $obuf = '';
+my $ecode = 0;
+
+sub print_help;
+sub flush_obuf;
+
+if (exists $opts{help}) {
+  print_help;
+  exit 0;
+}
+
+print "setup_packages summary:\n" unless $opts{quiet};
+
+while (<>) {
+  chomp;
+  if (m/^successful\s+(loading|sourcing)\s+of\s+(.*)$/) {
+    flush_obuf unless $opts{quiet};
+    $mname = $2;
+    $obuf = '  ' . $2 . ' :';
+  } elsif ($mname ne '' && m/^packages provided were\s+(.*)$/) {
+    $obuf .= ' ' . $1;
+  } elsif (m/^processed\s+(.*)$/ && $mname eq $1) {
+    flush_obuf unless $opts{quiet};
+  } else {
+    flush_obuf;
+    print "$_\n";
+    $ecode = 1;
+  }
+}
+
+exit $ecode;
+
+#-------------------------------------------------------------------------------
+
+sub flush_obuf {
+  print "$obuf\n" if $obuf ne '';
+  $obuf = '';
+  $mname = '';
+}
+
+#-------------------------------------------------------------------------------
+
+sub print_help {
+  print "usage: setup_packages 2>&1 | setup_packages_filt [OPTIONS]...\n";
+  print "  --quiet       suppress expected output\n";
+  print "  --help        print this text and exit\n";
+  return;
+}

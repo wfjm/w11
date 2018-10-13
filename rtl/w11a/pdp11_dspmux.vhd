@@ -1,6 +1,6 @@
--- $Id: pdp11_dspmux.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: pdp11_dspmux.vhd 1055 2018-10-12 17:53:52Z mueller $
 --
--- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,27 +18,28 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  ise 14.7; viv 2014.4; ghdl 0.31
+-- Tool versions:  ise 14.7; viv 2018.2; ghdl 0.31-0.34
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-10-07  1054   1.1    use DM_STAT_EXP instead of DM_STAT_DP
 -- 2015-02-22   650   1.0    Initial version 
 -- 2015-02-21   649   0.1    First draft
 ------------------------------------------------------------------------------
 -- selects display data
 --   4 Digit Displays
 --     SEL(1:0)  00  ABCLKDIV
---               01  DM_STAT_DP.pc
+--               01  DM_STAT_EXP.dp_pc
 --               10  DISPREG 
---               11  DM_STAT_DP.dsrc
+--               11  DM_STAT_EXP.dp_dsrc
 --
 --  8 Digit Displays
 --     SEL(1)   select DSP(7:4)
 --                0  ABCLKDIV
---                1  DM_STAT_DP.pc
+--                1  DM_STAT_EXP.dp_pc
 --     SEL(0)   select DSP(7:4)
 --                0  DISPREG
---                1  DM_STAT_DP.dsrc
+--                1  DM_STAT_EXP.dp_dsrc
 --                
 
 library ieee;
@@ -56,7 +57,7 @@ entity pdp11_dspmux is               -- hio dsp mux
   port (
     SEL : in slv2;                      -- select
     ABCLKDIV : in slv16;                -- serport clock divider
-    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - dpath
+    DM_STAT_EXP : in dm_stat_exp_type;  -- debug and monitor - exports
     DISPREG : in slv16;                 -- display register
     DSP_DAT : out slv(4*(2**DCWIDTH)-1 downto 0)   -- display data
   );
@@ -73,7 +74,7 @@ begin
     report "assert(DCWIDTH=2 or DCWIDTH=3): unsupported DCWIDTH"
     severity failure;
 
-  proc_mux: process (SEL, ABCLKDIV, DM_STAT_DP, DISPREG)
+  proc_mux: process (SEL, ABCLKDIV, DM_STAT_EXP, DISPREG)
     variable idat : slv(4*(2**DCWIDTH)-1 downto 0) := (others=>'0');
   begin
     idat := (others=>'0');
@@ -84,11 +85,11 @@ begin
         when "00" => 
           idat(dspdat_lsb) := ABCLKDIV;
         when "01" => 
-          idat(dspdat_lsb) := DM_STAT_DP.pc;
+          idat(dspdat_lsb) := DM_STAT_EXP.dp_pc;
         when "10" =>
           idat(dspdat_lsb) := DISPREG;
         when "11" => 
-          idat(dspdat_lsb) := DM_STAT_DP.dsrc;
+          idat(dspdat_lsb) := DM_STAT_EXP.dp_dsrc;
         when others => null;
       end case;
 
@@ -97,13 +98,13 @@ begin
       if SEL(1) = '0' then
         idat(dspdat_msb) := ABCLKDIV;
       else
-        idat(dspdat_msb) := DM_STAT_DP.pc;
+        idat(dspdat_msb) := DM_STAT_EXP.dp_pc;
       end if;
 
       if SEL(0) = '0' then
         idat(dspdat_lsb) := DISPREG;
       else
-        idat(dspdat_lsb) := DM_STAT_DP.dsrc;
+        idat(dspdat_lsb) := DM_STAT_EXP.dp_dsrc;
       end if;
       
     end if;

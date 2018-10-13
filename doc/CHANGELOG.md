@@ -50,13 +50,17 @@ The full set of tests is only run for tagged releases.
 - Makefile: `make all_tcl` now quiet, use setup_packages_filt
 - sys_w11_n4: reduce cache from 64 to 32 kB to keep timing closure
 - changes for DM_STAT_* signals (debug and monitoring)
-  - DM_STAT_SE: add elements cpbusy,idec,pcload
+  - DM_STAT_SE: add elements cpbusy,idec,pcload,itimer
   - DM_STAT_CA: added, used for cache monitoring
   - DM_STAT_SY: removed, now replaced by DM_STAT_CA
-- pdp11_sys70: instantiate pdp11_dmpcnt, setup performance counter sigs
-- pdp11_sequencer: drive DM_STAT_SE.(cpbusy,idec,pcload)
+  - DM_STAT_EXP: added, for signals exported by pdp11_sys70
+- pdp11_sys70:
+  - instantiate pdp11_dmpcnt, setup performance counter sigs
+  - drop ITIMER,DM_STAT_DP, use DM_STAT_EXP, add PERFEXT port
+- pdp11_sequencer: drive DM_STAT_SE.(cpbusy,idec,pcload,itimer), drop ITIMER
 - pdp11_cache: drop CHIT, add DM_STAT_CA port, add detailed monitoring
 - pdp11_tmu(_sb): use DM_STAT_CA instead of DM_STAT_SY
+- sys_w11a_*.vhd: use DM_STAT_EXP
 - RtclRw11Unit: fix for clang: M_virt() now public
 - backend code review:
   - use for C++ compiles also `-Wpedantic`

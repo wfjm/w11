@@ -1,6 +1,6 @@
--- $Id: pdp11_ledmux.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: pdp11_ledmux.vhd 1055 2018-10-12 17:53:52Z mueller $
 --
--- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,10 +18,11 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  ise 14.7; viv 2014.4; ghdl 0.31
+-- Tool versions:  ise 14.7; viv 2018.2; ghdl 0.31-0.34
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-10-07  1054   1.1    use DM_STAT_EXP instead of DM_STAT_DP
 -- 2015-02-27   652   1.0    Initial version 
 -- 2015-02-20   649   0.1    First draft
 ------------------------------------------------------------------------------
@@ -41,7 +42,7 @@ entity pdp11_ledmux is                  -- hio led mux
   port (
     SEL : in slbit;                     -- select (0=stat;1=dr)
     STATLEDS : in slv8;                 -- 8 bit CPU status
-    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - dpath
+    DM_STAT_EXP : in dm_stat_exp_type;  -- debug and monitor - exports
     LED : out slv(LWIDTH-1 downto 0)    -- hio leds
   );
 end pdp11_ledmux;
@@ -54,7 +55,7 @@ begin
     report "assert(LWIDTH=8 or LWIDTH=16): unsupported LWIDTH"
     severity failure;
 
-  proc_mux: process (SEL, STATLEDS, DM_STAT_DP.dsrc)
+  proc_mux: process (SEL, STATLEDS, DM_STAT_EXP)
     variable iled : slv(LWIDTH-1 downto 0) := (others=>'0');
   begin
     iled := (others=>'0');
@@ -63,9 +64,9 @@ begin
       iled(STATLEDS'range) := STATLEDS;
     else
       if LWIDTH=8 then
-        iled :=  DM_STAT_DP.dsrc(11 downto 4); --take middle part
+        iled :=  DM_STAT_EXP.dp_dsrc(11 downto 4); --take middle part
       else
-        iled :=  DM_STAT_DP.dsrc(iled'range);
+        iled :=  DM_STAT_EXP.dp_dsrc(iled'range);
       end if;
     end if;
 

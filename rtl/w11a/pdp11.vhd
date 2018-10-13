@@ -1,4 +1,4 @@
--- $Id: pdp11.vhd 1053 2018-10-06 20:34:52Z mueller $
+-- $Id: pdp11.vhd 1055 2018-10-12 17:53:52Z mueller $
 --
 -- Copyright 2006-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,6 +20,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-10-07  1054   1.6.10 add DM_STAT_EXP; add DM_STAT_SE.itimer
 -- 2018-10-05  1053   1.6.9  drop DM_STAT_SY; add DM_STAT_CA, use in pdp11_cache
 --                           add DM_STAT_SE.pcload
 -- 2018-09-29  1051   1.6.8  add pdp11_dmpcnt; add DM_STAT_SE.(cpbusy,idec)
@@ -607,11 +608,12 @@ package pdp11 is
 -- debug and monitoring port definitions -------------------------------------
 
   type dm_stat_se_type is record        -- debug and monitor status - sequencer
-    idle   : slbit;                     -- sequencer ideling
+    idle   : slbit;                     -- sequencer ideling (for pdp11_dcmon)
     cpbusy : slbit;                     -- in cp states
     istart : slbit;                     -- instruction start
-    idec   : slbit;                     -- instruction decode
+    idec   : slbit;                     -- instruction decode (for ibd_kw11p)
     idone  : slbit;                     -- instruction done
+    itimer : slbit;                     -- instruction timer  (for ibdr_rhrp)
     pcload : slbit;                     -- PC loaded (flow change)
     vfetch : slbit;                     -- vector fetch
     snum : slv8;                        -- current state number
@@ -619,7 +621,8 @@ package pdp11 is
 
   constant dm_stat_se_init : dm_stat_se_type := (
     '0','0',                            -- idle,cpbusy
-    '0','0','0','0','0',                -- istart,idec,idone,pcload,vfetch
+    '0','0','0','0',                    -- istart,idec,idone,itimer
+    '0','0',                            -- pcload,vfetch
     (others=>'0')                       -- snum
   );
 
@@ -713,6 +716,21 @@ package pdp11 is
   constant dm_stat_ca_init : dm_stat_ca_type := (
     '0','0','0','0',                    -- rd,wr,rdhit,wrhit
     '0','0','0','0'                     -- rdmem,wrmem,rdwait,wrwait
+    );
+  
+  type dm_stat_exp_type is record       -- debug and monitor - sys70 export
+    dp_pc : slv16;                      -- DM_STAT_DP: pc
+    dp_psw : psw_type;                  -- DM_STAT_DP: psw
+    dp_dsrc : slv16;                    -- DM_STAT_DP: dsrc register
+    se_idec   : slbit;                  -- DM_STAT_SE: instruction decode
+    se_itimer : slbit;                  -- DM_STAT_SE: instruction timer
+  end record dm_stat_exp_type;
+
+  constant dm_stat_exp_init : dm_stat_exp_type := (
+    (others=>'0'),                      -- dp_pc
+    psw_init,                           -- dp_psw
+    (others=>'0'),                      -- dp_dsrc
+    '0','0'                             -- se_idec,se_itimer
   );
 
 -- rbus interface definitions ------------------------------------------------
@@ -1022,7 +1040,6 @@ component pdp11_sequencer is            -- cpu sequencer
     CP_STAT : out cp_stat_type;         -- console port status
     ESUSP_O : out slbit;                -- external suspend output
     ESUSP_I : in slbit;                 -- external suspend input
-    ITIMER : out slbit;                 -- instruction timer
     HBPT : in slbit;                    -- hardware bpt
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response    
@@ -1109,7 +1126,6 @@ component pdp11_core is                 -- full processor core
     CP_DOUT : out slv16;                -- console data out
     ESUSP_O : out slbit;                -- external suspend output
     ESUSP_I : in slbit;                 -- external suspend input
-    ITIMER : out slbit;                 -- instruction timer
     HBPT : in slbit;                    -- hardware bpt
     EI_PRI : in slv3;                   -- external interrupt priority
     EI_VECT : in slv9_2;                -- external interrupt vector
@@ -1210,7 +1226,7 @@ component pdp11_statleds is             -- status leds
     MEM_ACT_R : in slbit;               -- memory active read
     MEM_ACT_W : in slbit;               -- memory active write
     CP_STAT : in cp_stat_type;          -- console port status
-    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - dpath
+    DM_STAT_EXP : in dm_stat_exp_type;  -- debug and monitor - exports
     STATLEDS : out slv8                 -- 8 bit CPU status 
   );
 end component;
@@ -1221,7 +1237,7 @@ component pdp11_ledmux is               -- hio led mux
   port (
     SEL : in slbit;                     -- select (0=stat;1=dr)
     STATLEDS : in slv8;                 -- 8 bit CPU status
-    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - dpath
+    DM_STAT_EXP : in dm_stat_exp_type;  -- debug and monitor - exports
     LED : out slv(LWIDTH-1 downto 0)    -- hio leds
   );
 end component;
@@ -1232,7 +1248,7 @@ component pdp11_dspmux is               -- hio dsp mux
   port (
     SEL : in slv2;                      -- select
     ABCLKDIV : in slv16;                -- serport clock divider
-    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - dpath
+    DM_STAT_EXP : in dm_stat_exp_type;  -- debug and monitor - exports
     DISPREG : in slv16;                 -- display register
     DSP_DAT : out slv(4*(2**DCWIDTH)-1 downto 0)  -- display data
   );
@@ -1273,7 +1289,7 @@ component pdp11_sys70 is                -- 11/70 system 1 core +rbus,debug,cache
     EI_PRI  : in slv3;                  -- external interrupt priority
     EI_VECT : in slv9_2;                -- external interrupt vector
     EI_ACKM : out slbit;                -- external interrupt acknowledge
-    ITIMER : out slbit;                 -- instruction timer
+    PERFEXT : in slv8;                  -- cpu external perf counter signals
     IB_MREQ : out ib_mreq_type;         -- ibus request  (master)
     IB_SRES : in ib_sres_type;          -- ibus response (from IO system)
     MEM_REQ : out slbit;                -- memory: request
@@ -1284,7 +1300,7 @@ component pdp11_sys70 is                -- 11/70 system 1 core +rbus,debug,cache
     MEM_BE : out slv4;                  -- memory: byte enable
     MEM_DI : out slv32;                 -- memory: data in  (memory view)
     MEM_DO : in slv32;                  -- memory: data out (memory view)
-    DM_STAT_DP : out dm_stat_dp_type    -- debug and monitor status - dpath
+    DM_STAT_EXP : out dm_stat_exp_type  -- debug and monitor - sys70 exports
   );
 end component;
 
@@ -1298,7 +1314,7 @@ component pdp11_hio70 is                -- hio led and dsp for sys70
     MEM_ACT_R : in slbit;               -- memory active read
     MEM_ACT_W : in slbit;               -- memory active write
     CP_STAT : in cp_stat_type;          -- console port status
-    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status
+    DM_STAT_EXP : in dm_stat_exp_type;  -- debug and monitor - exports
     ABCLKDIV : in slv16;                -- serport clock divider
     DISPREG : in slv16;                 -- display register
     LED : out slv(LWIDTH-1 downto 0);   -- hio leds

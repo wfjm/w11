@@ -1,6 +1,6 @@
--- $Id: pdp11_statleds.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: pdp11_statleds.vhd 1055 2018-10-12 17:53:52Z mueller $
 --
--- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,10 +18,11 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  ise 14.7; viv 2014.4; ghdl 0.31
+-- Tool versions:  ise 14.7; viv 2018.2; ghdl 0.31-0.34
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-10-07  1054   1.1    use DM_STAT_EXP instead of DM_STAT_DP
 -- 2015-02-20   649   1.0    Initial version 
 ------------------------------------------------------------------------------
 --   LED  (7)    MEM_ACT_W
@@ -51,7 +52,7 @@ entity pdp11_statleds is                -- status leds
     MEM_ACT_R : in slbit;               -- memory active read
     MEM_ACT_W : in slbit;               -- memory active write
     CP_STAT : in cp_stat_type;          -- console port status
-    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - dpath
+    DM_STAT_EXP : in dm_stat_exp_type;  -- debug and monitor - exports
     STATLEDS : out slv8                 -- 8 bit CPU status 
   );
 end pdp11_statleds;
@@ -60,7 +61,7 @@ architecture syn of pdp11_statleds is
   
 begin
 
-  proc_led: process (MEM_ACT_W, MEM_ACT_R, CP_STAT, DM_STAT_DP.psw)
+  proc_led: process (MEM_ACT_W, MEM_ACT_R, CP_STAT, DM_STAT_EXP.dp_psw)
     variable iled : slv8 := (others=>'0');
   begin
     iled := (others=>'0');
@@ -69,11 +70,11 @@ begin
     iled(6) := MEM_ACT_R;
     iled(5) := CP_STAT.cmdbusy;
     if CP_STAT.cpugo = '1' then
-      case DM_STAT_DP.psw.cmode is
+      case DM_STAT_EXP.dp_psw.cmode is
         when c_psw_kmode =>
           if CP_STAT.cpuwait = '1' then
             iled(2) := '1';
-          elsif unsigned(DM_STAT_DP.psw.pri) = 0 then
+          elsif unsigned(DM_STAT_EXP.dp_psw.pri) = 0 then
             iled(3) := '1';
           else
             iled(4) := '1';

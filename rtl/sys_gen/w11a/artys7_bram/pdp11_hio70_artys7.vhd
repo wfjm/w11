@@ -1,4 +1,4 @@
--- $Id: pdp11_hio70_artys7.vhd 1038 2018-08-11 12:39:52Z mueller $
+-- $Id: pdp11_hio70_artys7.vhd 1055 2018-10-12 17:53:52Z mueller $
 --
 -- Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -22,6 +22,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-10-07  1054   1.1    use DM_STAT_EXP instead of DM_STAT_DP
 -- 2018-08-05  1038   1.0    Initial version (cloned from pdp11_hio70_artya7)
 ------------------------------------------------------------------------------
 --
@@ -71,7 +72,7 @@ entity pdp11_hio70_artys7 is            -- hio led+rgb for sys70 for artys7
     MEM_ACT_R : in slbit;               -- memory active read
     MEM_ACT_W : in slbit;               -- memory active write
     CP_STAT : in cp_stat_type;          -- console port status
-    DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status
+    DM_STAT_EXP : in dm_stat_exp_type;  -- debug and monitor - exports
     DISPREG : in slv16;                 -- display register
     IOLEDS : in slv4;                   -- serport ioleds
     ABCLKDIV : in slv16;                -- serport clock divider
@@ -104,9 +105,9 @@ begin
       idat16 := (others=>'0');
       case MODE(1 downto 0) is
         when "00" => idat16 := ABCLKDIV;
-        when "01" => idat16 := DM_STAT_DP.pc;
+        when "01" => idat16 := DM_STAT_EXP.dp_pc;
         when "10" => idat16 := DISPREG;
-        when "11" => idat16 := DM_STAT_DP.dsrc;
+        when "11" => idat16 := DM_STAT_EXP.dp_dsrc;
         when others => null;
       end case;
       
@@ -127,7 +128,7 @@ begin
 
           if MODE(0) = '1' then
             if CP_STAT.cpugo = '1' then
-              case DM_STAT_DP.psw.cmode is
+              case DM_STAT_EXP.dp_psw.cmode is
                 when c_psw_kmode =>
                   if CP_STAT.cpuwait = '0' then
                     irgb_g(1) := '1';
@@ -149,10 +150,10 @@ begin
           end if;               
 
         else                            -- LED+RGB show DR emulation
-          iled   := DM_STAT_DP.dsrc(15 downto 12);
-          irgb_b := DM_STAT_DP.dsrc( 9 downto  8);
-          irgb_g := DM_STAT_DP.dsrc( 5 downto  4);
-          irgb_r := DM_STAT_DP.dsrc( 1 downto  0);
+          iled   := DM_STAT_EXP.dp_dsrc(15 downto 12);
+          irgb_b := DM_STAT_EXP.dp_dsrc( 9 downto  8);
+          irgb_g := DM_STAT_EXP.dp_dsrc( 5 downto  4);
+          irgb_r := DM_STAT_EXP.dp_dsrc( 1 downto  0);
         end if; -- MODE(2) = '0'
 
       else                              -- LED+RGB show one of four regs

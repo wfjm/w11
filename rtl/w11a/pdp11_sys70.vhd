@@ -1,4 +1,4 @@
--- $Id: pdp11_sys70.vhd 1053 2018-10-06 20:34:52Z mueller $
+-- $Id: pdp11_sys70.vhd 1055 2018-10-12 17:53:52Z mueller $
 --
 -- Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -35,6 +35,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-10-07  1054   1.3    drop ITIMER,DM_STAT_DP out ports, use DM_STAT_EXP
+--                           add PERFEXT in port
 -- 2018-10-06  1053   1.2.3  drop DM_STAT_SY; add DM_STAT_CA; use _SE.pcload
 -- 2018-09-29  1051   1.2.2  add pdp11_dmpcnt
 -- 2017-04-22   884   1.2.1  pdp11_dmcmon: use SNUM and AWIDTH generics
@@ -74,7 +76,7 @@ entity pdp11_sys70 is                   -- 11/70 system 1 core +rbus,debug,cache
     EI_PRI  : in slv3;                  -- external interrupt priority
     EI_VECT : in slv9_2;                -- external interrupt vector
     EI_ACKM : out slbit;                -- external interrupt acknowledge
-    ITIMER : out slbit;                 -- instruction timer
+    PERFEXT : in slv8;                  -- cpu external perf counter signals
     IB_MREQ : out ib_mreq_type;         -- ibus request  (master)
     IB_SRES : in ib_sres_type;          -- ibus response
     MEM_REQ : out slbit;                -- memory: request
@@ -85,7 +87,7 @@ entity pdp11_sys70 is                   -- 11/70 system 1 core +rbus,debug,cache
     MEM_BE : out slv4;                  -- memory: byte enable
     MEM_DI : out slv32;                 -- memory: data in  (memory view)
     MEM_DO : in slv32;                  -- memory: data out (memory view)
-    DM_STAT_DP : out dm_stat_dp_type    -- debug and monitor status - dpath
+    DM_STAT_EXP : out dm_stat_exp_type  -- debug and monitor - sys70 exports
   );
 end pdp11_sys70;
 
@@ -121,7 +123,7 @@ architecture syn of pdp11_sys70 is
   signal HBPT        : slbit := '0';
 
   signal DM_STAT_SE   : dm_stat_se_type := dm_stat_se_init;
-  signal DM_STAT_DP_L : dm_stat_dp_type := dm_stat_dp_init;
+  signal DM_STAT_DP   : dm_stat_dp_type := dm_stat_dp_init;
   signal DM_STAT_VM   : dm_stat_vm_type := dm_stat_vm_init;
   signal DM_STAT_CO   : dm_stat_co_type := dm_stat_co_init;
   signal DM_STAT_CA   : dm_stat_ca_type := dm_stat_ca_init;
@@ -166,7 +168,6 @@ begin
       CP_DOUT   => CP_DOUT,
       ESUSP_O   => open,
       ESUSP_I   => '0',
-      ITIMER    => ITIMER,
       HBPT      => HBPT,
       EI_PRI    => EI_PRI,
       EI_VECT   => EI_VECT,
@@ -178,7 +179,7 @@ begin
       IB_MREQ_M => IB_MREQ_M,
       IB_SRES_M => IB_SRES_M,
       DM_STAT_SE => DM_STAT_SE,
-      DM_STAT_DP => DM_STAT_DP_L,
+      DM_STAT_DP => DM_STAT_DP,
       DM_STAT_VM => DM_STAT_VM,
       DM_STAT_CO => DM_STAT_CO
     );  
@@ -251,7 +252,7 @@ begin
         RB_MREQ     => RB_MREQ,
         RB_SRES     => RB_SRES_DMSCNT,
         DM_STAT_SE  => DM_STAT_SE,
-        DM_STAT_DP  => DM_STAT_DP_L,
+        DM_STAT_DP  => DM_STAT_DP,
         DM_STAT_CO  => DM_STAT_CO
       );
   end generate DMSCNT;
@@ -269,7 +270,7 @@ begin
         RB_MREQ     => RB_MREQ,
         RB_SRES     => RB_SRES_DMCMON,
         DM_STAT_SE  => DM_STAT_SE,
-        DM_STAT_DP  => DM_STAT_DP_L,
+        DM_STAT_DP  => DM_STAT_DP,
         DM_STAT_VM  => DM_STAT_VM,
         DM_STAT_CO  => DM_STAT_CO
       );
@@ -287,7 +288,7 @@ begin
         RB_MREQ     => RB_MREQ,
         RB_SRES     => RB_SRES_DMHBPT,
         DM_STAT_SE  => DM_STAT_SE,
-        DM_STAT_DP  => DM_STAT_DP_L,
+        DM_STAT_DP  => DM_STAT_DP,
         DM_STAT_VM  => DM_STAT_VM,
         DM_STAT_CO  => DM_STAT_CO,
         HBPT        => HBPT
@@ -297,9 +298,9 @@ begin
   DMPCNT : if sys_conf_dmpcnt generate
     signal PERFSIG : slv32 := (others=>'0');
   begin
-    proc_sig: process (CP_STAT_L, DM_STAT_SE, DM_STAT_DP_L, DM_STAT_DP_L.psw,
+    proc_sig: process (CP_STAT_L, DM_STAT_SE, DM_STAT_DP, DM_STAT_DP.psw,
                        DM_STAT_CA, RB_MREQ, RB_SRES_L,
-                       DM_STAT_VM.ibmreq, DM_STAT_VM.ibsres)
+                       DM_STAT_VM.ibmreq, DM_STAT_VM.ibsres, PERFEXT)
       variable isig : slv32 := (others=>'0');
     begin
       
@@ -308,11 +309,11 @@ begin
       if DM_STAT_SE.cpbusy = '1' then
         isig(0)  := '1';                    -- cpu_cpbusy
       elsif CP_STAT_L.cpugo = '1' then
-        case DM_STAT_DP_L.psw.cmode is
+        case DM_STAT_DP.psw.cmode is
           when c_psw_kmode =>
             if CP_STAT_L.cpuwait = '1' then
               isig(3) := '1';               -- cpu_km_wait
-            elsif unsigned(DM_STAT_DP_L.psw.pri) = 0 then
+            elsif unsigned(DM_STAT_DP.psw.pri) = 0 then
               isig(2) := '1';               -- cpu_km_pri0
             else
               isig(1) := '1';               -- cpu_km_prix
@@ -359,14 +360,14 @@ begin
         
       end if;
 
-      isig(24) := '0';                      -- ext_rdrhit
-      isig(25) := '0';                      -- ext_wrrhit
-      isig(26) := '0';                      -- ext_wrflush
-      isig(27) := '0';                      -- ext_rlrdbusy
-      isig(28) := '0';                      -- ext_rlrdback
-      isig(29) := '0';                      -- ext_rlwrbusy
-      isig(30) := '0';                      -- ext_rlwrback
-      isig(31) := '1';                      -- usec (now clock)
+      isig(24) := PERFEXT(0);               -- ext_rdrhit
+      isig(25) := PERFEXT(1);               -- ext_wrrhit
+      isig(26) := PERFEXT(2);               -- ext_wrflush
+      isig(27) := PERFEXT(3);               -- ext_rlrdbusy
+      isig(28) := PERFEXT(4);               -- ext_rlrdback
+      isig(29) := PERFEXT(5);               -- ext_rlwrbusy
+      isig(30) := PERFEXT(6);               -- ext_rlwrback
+      isig(31) := PERFEXT(7);               -- ext_usec
       
       PERFSIG <= isig;
     end process proc_sig;
@@ -378,7 +379,7 @@ begin
         VERS    => slv(to_unsigned(1, 8)),         -- counter layout version
                 --  33222222222211111111110000000000
                 --  10987654321098765432109876543210
-        CENA    => "10000000111111111111111111111111") -- counter enables
+        CENA    => "11111111111111111111111111111111") -- counter enables
       port map (
         CLK         => CLK,
         RESET       => RESET,
@@ -411,7 +412,11 @@ begin
   BRESET     <= BRESET_L;
   CP_STAT    <= CP_STAT_L;
   EI_ACKM    <= EI_ACKM_L;
-  DM_STAT_DP <= DM_STAT_DP_L;
+  DM_STAT_EXP.dp_psw    <= DM_STAT_DP.psw;
+  DM_STAT_EXP.dp_pc     <= DM_STAT_DP.pc;
+  DM_STAT_EXP.dp_dsrc   <= DM_STAT_DP.dsrc;
+  DM_STAT_EXP.se_idec   <= DM_STAT_SE.idec;
+  DM_STAT_EXP.se_itimer <= DM_STAT_SE.itimer;
   
 -- synthesis translate_off
   
@@ -420,7 +425,7 @@ begin
       ENAPIN => sbcntl_sbf_tmu)
     port map (
       CLK        => CLK,
-      DM_STAT_DP => DM_STAT_DP_L,
+      DM_STAT_DP => DM_STAT_DP,
       DM_STAT_VM => DM_STAT_VM,
       DM_STAT_CO => DM_STAT_CO,
       DM_STAT_CA => DM_STAT_CA

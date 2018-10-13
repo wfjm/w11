@@ -1,4 +1,4 @@
--- $Id: pdp11_sequencer.vhd 1053 2018-10-06 20:34:52Z mueller $
+-- $Id: pdp11_sequencer.vhd 1055 2018-10-12 17:53:52Z mueller $
 --
 -- Copyright 2006-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -22,6 +22,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-10-07  1054   1.6.11 drop ITIMER, use DM_STAT_SE.itimer
 -- 2018-10-06  1053   1.6.10 add DM_STAT_SE.(cpbusy,idec,pcload)
 -- 2017-04-23   885   1.6.9  not sys_conf_dmscnt: set SNUM from state category;
 --                           change waitsusp logic; add WAIT to idm_idone
@@ -109,7 +110,6 @@ entity pdp11_sequencer is               -- CPU sequencer
     CP_STAT : out cp_stat_type;         -- console port status
     ESUSP_O : out slbit;                -- external suspend output
     ESUSP_I : in slbit;                 -- external suspend input
-    ITIMER : out slbit;                 -- instruction timer
     HBPT : in slbit;                    -- hardware bpt
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response    
@@ -2420,7 +2420,6 @@ begin
     CRESET  <= R_STATUS.creset;
     BRESET  <= R_STATUS.breset;
     ESUSP_O <= R_STATUS.suspint;     -- FIXME_code: handle masking later
-    ITIMER  <= R_STATUS.itimer;
     
     DP_CNTL   <= ndpcntl;
     VM_CNTL   <= nvmcntl;
@@ -2435,6 +2434,7 @@ begin
     DM_STAT_SE.istart <= nmmumoni.istart;
     DM_STAT_SE.idec   <= idm_idec;
     DM_STAT_SE.idone  <= idm_idone;
+    DM_STAT_SE.itimer <= R_STATUS.itimer;
     DM_STAT_SE.pcload <= idm_pcload;
     DM_STAT_SE.vfetch <= idm_vfetch;
       

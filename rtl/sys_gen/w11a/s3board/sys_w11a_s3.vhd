@@ -1,4 +1,4 @@
--- $Id: sys_w11a_s3.vhd 1045 2018-09-15 15:20:57Z mueller $
+-- $Id: sys_w11a_s3.vhd 1055 2018-10-12 17:53:52Z mueller $
 --
 -- Copyright 2007-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -77,6 +77,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-10-07  1054   2.2    use DM_STAT_EXP
 -- 2016-03-19   748   2.1.1  define rlink SYSID
 -- 2015-05-09   677   2.1    start/stop/suspend overhaul; reset overhaul
 -- 2015-05-02   673   2.0    use pdp11_sys70 and pdp11_hio70; now in std form
@@ -251,14 +252,14 @@ architecture syn of sys_w11a_s3 is
   signal GRESET  : slbit := '0';        -- general reset (from rbus)
   signal CRESET  : slbit := '0';        -- cpu reset     (from cp)
   signal BRESET  : slbit := '0';        -- bus reset     (from cp or cpu)
-  signal ITIMER  : slbit := '0';
+  signal PERFEXT : slv8  := (others=>'0');
 
   signal EI_PRI  : slv3   := (others=>'0');
   signal EI_VECT : slv9_2 := (others=>'0');
   signal EI_ACKM : slbit  := '0';
 
   signal CP_STAT : cp_stat_type := cp_stat_init;
-  signal DM_STAT_DP : dm_stat_dp_type := dm_stat_dp_init;
+  signal DM_STAT_EXP : dm_stat_exp_type := dm_stat_exp_init;
   
   signal MEM_REQ   : slbit := '0';
   signal MEM_WE    : slbit := '0';
@@ -349,33 +350,42 @@ begin
       SER_MONI => SER_MONI
     );
    
+  PERFEXT(0) <= '0';
+  PERFEXT(1) <= '0';
+  PERFEXT(2) <= '0';
+  PERFEXT(3) <= '0';
+  PERFEXT(4) <= '0';
+  PERFEXT(5) <= '0';
+  PERFEXT(6) <= '0';
+  PERFEXT(7) <= CE_USEC;
+  
   SYS70 : pdp11_sys70                   -- 1 cpu system ----------------------
     port map (
-      CLK        => CLK,
-      RESET      => RESET,
-      RB_MREQ    => RB_MREQ,
-      RB_SRES    => RB_SRES_CPU,
-      RB_STAT    => RB_STAT,
-      RB_LAM_CPU => RB_LAM(0),
-      GRESET     => GRESET,
-      CRESET     => CRESET,
-      BRESET     => BRESET,
-      CP_STAT    => CP_STAT,
-      EI_PRI     => EI_PRI,
-      EI_VECT    => EI_VECT,
-      EI_ACKM    => EI_ACKM,
-      ITIMER     => ITIMER,
-      IB_MREQ    => IB_MREQ,
-      IB_SRES    => IB_SRES_IBDR,
-      MEM_REQ    => MEM_REQ,
-      MEM_WE     => MEM_WE,
-      MEM_BUSY   => MEM_BUSY,
-      MEM_ACK_R  => MEM_ACK_R,
-      MEM_ADDR   => MEM_ADDR,
-      MEM_BE     => MEM_BE,
-      MEM_DI     => MEM_DI,
-      MEM_DO     => MEM_DO,
-      DM_STAT_DP => DM_STAT_DP
+      CLK         => CLK,
+      RESET       => RESET,
+      RB_MREQ     => RB_MREQ,
+      RB_SRES     => RB_SRES_CPU,
+      RB_STAT     => RB_STAT,
+      RB_LAM_CPU  => RB_LAM(0),
+      GRESET      => GRESET,
+      CRESET      => CRESET,
+      BRESET      => BRESET,
+      CP_STAT     => CP_STAT,
+      EI_PRI      => EI_PRI,
+      EI_VECT     => EI_VECT,
+      EI_ACKM     => EI_ACKM,
+      PERFEXT     => PERFEXT,
+      IB_MREQ     => IB_MREQ,
+      IB_SRES     => IB_SRES_IBDR,
+      MEM_REQ     => MEM_REQ,
+      MEM_WE      => MEM_WE,
+      MEM_BUSY    => MEM_BUSY,
+      MEM_ACK_R   => MEM_ACK_R,
+      MEM_ADDR    => MEM_ADDR,
+      MEM_BE      => MEM_BE,
+      MEM_DI      => MEM_DI,
+      MEM_DO      => MEM_DO,
+      DM_STAT_EXP => DM_STAT_EXP
     );
       
   IBDR_SYS : ibdr_maxisys               -- IO system -------------------------
@@ -385,7 +395,7 @@ begin
       CE_MSEC  => CE_MSEC,
       RESET    => GRESET,
       BRESET   => BRESET,
-      ITIMER   => ITIMER,
+      ITIMER   => DM_STAT_EXP.se_itimer,
       CPUSUSP  => CP_STAT.cpususp,
       RB_LAM   => RB_LAM(15 downto 1),
       IB_MREQ  => IB_MREQ,
@@ -431,16 +441,16 @@ begin
       LWIDTH => LED'length,
       DCWIDTH => 2)
     port map (
-      SEL_LED    => SWI(3),
-      SEL_DSP    => SWI(5 downto 4),
-      MEM_ACT_R  => MEM_ACT_R,
-      MEM_ACT_W  => MEM_ACT_W,
-      CP_STAT    => CP_STAT,
-      DM_STAT_DP => DM_STAT_DP,
-      ABCLKDIV   => ABCLKDIV,
-      DISPREG    => DISPREG,
-      LED        => LED,
-      DSP_DAT    => DSP_DAT
+      SEL_LED     => SWI(3),
+      SEL_DSP     => SWI(5 downto 4),
+      MEM_ACT_R   => MEM_ACT_R,
+      MEM_ACT_W   => MEM_ACT_W,
+      CP_STAT     => CP_STAT,
+      DM_STAT_EXP => DM_STAT_EXP,
+      ABCLKDIV    => ABCLKDIV,
+      DISPREG     => DISPREG,
+      LED         => LED,
+      DSP_DAT     => DSP_DAT
     );
 
   HIO : sn_humanio_rbus                 -- hio manager -----------------------

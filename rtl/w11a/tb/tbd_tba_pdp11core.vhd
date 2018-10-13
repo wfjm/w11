@@ -1,6 +1,6 @@
--- $Id: tbd_tba_pdp11core.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: tbd_tba_pdp11core.vhd 1055 2018-10-12 17:53:52Z mueller $
 --
--- Copyright 2008-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -29,9 +29,10 @@
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
 --
--- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.34
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-10-07  1054   1.6.1  drop ITIMER from core
 -- 2015-05-09   677   1.6    start/stop/suspend overhaul; reset overhaul
 -- 2014-08-28   588   1.5.1  use new rlink v4 iface and 4 bit STAT
 -- 2014-08-15   583   1.5    rb_mreq addr now 16 bit
@@ -159,25 +160,28 @@ begin
 
   W11A : pdp11_core
     port map (
-      CLK     => CLK,
-      RESET   => GRESET,
-      CP_CNTL => CP_CNTL,
-      CP_ADDR => CP_ADDR,
-      CP_DIN  => CP_DIN,
-      CP_STAT => CP_STAT,
-      CP_DOUT => CP_DOUT,
-      ESUSP_O => open,
-      ESUSP_I => '0',
-      ITIMER  => open,
-      HBPT    => '0',
-      EI_PRI  => EI_PRI,
-      EI_VECT => EI_VECT,
-      EI_ACKM => EI_ACKM,
-      EM_MREQ => EM_MREQ,
-      EM_SRES => EM_SRES,
-      BRESET  => BRESET,
-      IB_MREQ_M => IB_MREQ,
-      IB_SRES_M => IB_SRES
+      CLK        => CLK,
+      RESET      => GRESET,
+      CP_CNTL    => CP_CNTL,
+      CP_ADDR    => CP_ADDR,
+      CP_DIN     => CP_DIN,
+      CP_STAT    => CP_STAT,
+      CP_DOUT    => CP_DOUT,
+      ESUSP_O    => open,
+      ESUSP_I    => '0',
+      HBPT       => '0',
+      EI_PRI     => EI_PRI,
+      EI_VECT    => EI_VECT,
+      EI_ACKM    => EI_ACKM,
+      EM_MREQ    => EM_MREQ,
+      EM_SRES    => EM_SRES,
+      BRESET     => BRESET,
+      IB_MREQ_M  => IB_MREQ,
+      IB_SRES_M  => IB_SRES,
+      DM_STAT_SE => open,
+      DM_STAT_DP => open,
+      DM_STAT_VM => open,
+      DM_STAT_CO => open
     );
   
   MEM : pdp11_bram

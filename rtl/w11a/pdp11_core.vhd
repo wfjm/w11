@@ -1,6 +1,6 @@
--- $Id: pdp11_core.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: pdp11_core.vhd 1055 2018-10-12 17:53:52Z mueller $
 --
--- Copyright 2006-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -27,9 +27,10 @@
 --                 tb/tb_rlink_tba_pdp11core
 --
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.2; ghdl 0.18-0.33
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2018.2; ghdl 0.18-0.34
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-10-07  1054   1.4.4  drop ITIMER, now routed via DM_STAT_SE.itimer
 -- 2016-10-03   812   1.4.3  drop SNUM signal, not used anymore
 -- 2015-07-19   702   1.4.2  add DM_STAT_SE port; re-arrange DM_STAT_CO usage
 -- 2015-07-05   697   1.4.1  wire istart,istop,cpustep to DM_STAT_CO
@@ -77,7 +78,6 @@ entity pdp11_core is                    -- full processor core
     CP_DOUT : out slv16;                -- console data out
     ESUSP_O : out slbit;                -- external suspend output
     ESUSP_I : in slbit;                 -- external suspend input
-    ITIMER : out slbit;                 -- instruction timer
     HBPT : in slbit;                    -- hardware bpt
     EI_PRI : in slv3;                   -- external interrupt priority
     EI_VECT : in slv9_2;                -- external interrupt vector
@@ -197,7 +197,6 @@ begin
       CP_STAT   => CP_STAT_L,
       ESUSP_O   => ESUSP_O,
       ESUSP_I   => ESUSP_I,
-      ITIMER    => ITIMER,
       HBPT      => HBPT,
       IB_MREQ   => IB_MREQ,
       IB_SRES   => IB_SRES_SEQ,

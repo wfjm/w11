@@ -1,4 +1,4 @@
-# $Id: sys_w11a_b3.vmfset 1039 2018-08-12 10:04:09Z mueller $
+# $Id: sys_w11a_b3.vmfset 1056 2018-10-13 16:01:17Z mueller $
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
@@ -19,6 +19,8 @@ I [Designutils 20-1567]                                         # generic
 # unconnected ports --------------------------------------------
 I [Synth 8-3331] RB_MREQ                                        # generic
 I [Synth 8-3331] DM_STAT_DP                                     # generic
+I [Synth 8-3331] DM_STAT_EXP                                    # generic
+I [Synth 8-3331] CP_STAT                                        # generic
 
 # sequential element removed (2017.1 nonsense) -----------------
 I [Synth 8-6014] _reg                                           # generic
@@ -77,6 +79,9 @@ i [Synth 8-3332] CORE/RL/R_LREGS_reg[moneop].* rlink_sp2c
 i [Synth 8-3332] CORE/RL/R_LREGS_reg[monattn].* rlink_sp2c
 # --> dmcmon not configured, snum not used                      # OK 2017-06-06
 i [Synth 8-3332] SNUM0.R_VMWAIT_reg.* pdp11_sequencer
+# --> PERFEXT(0:2) not used                                     # OK 2018-10-13
+i [Synth 8-3332] R_REGS_reg[psig][2(4|5|6)]
+i [Synth 8-3332] PRE[2(4|5|6)].ENA.CNT/R_CNT_reg[\d*]
 
 {2017.1:2017.4}
 # --> inst_compl logic disabled in pdp11_mmu                    # OK 2017-06-06

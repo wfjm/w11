@@ -1,4 +1,4 @@
-# $Id: sys_w11a_n4.vmfset 1039 2018-08-12 10:04:09Z mueller $
+# $Id: sys_w11a_n4.vmfset 1056 2018-10-13 16:01:17Z mueller $
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
@@ -21,6 +21,8 @@ i [Synth 8-3917] O_RGBLED0[\d]
 # unconnected ports --------------------------------------------
 I [Synth 8-3331] RB_MREQ                                        # generic
 I [Synth 8-3331] DM_STAT_DP                                     # generic
+I [Synth 8-3331] DM_STAT_EXP                                    # generic
+I [Synth 8-3331] CP_STAT                                        # generic
 
 # sequential element removed (2017.1 nonsense) -----------------
 I [Synth 8-6014] _reg                                           # generic
@@ -74,6 +76,9 @@ i [Synth 8-3332] R_STATUS_reg[intvect][8].* pdp11_sequencer
 i [Synth 8-3332] R_IDSTAT_reg[res_sel][2].* pdp11_sequencer
 # --> scnt disabled, thus 3 SNUM bits '0'                       # OK 2017-06-06
 i [Synth 8-3332] R_REGS_reg[se_snum][(4|5|6)]
+# --> PERFEXT(0:2) not used                                     # OK 2018-10-13
+i [Synth 8-3332] R_REGS_reg[psig][2(4|5|6)]
+i [Synth 8-3332] PRE[2(4|5|6)].ENA.CNT/R_CNT_reg[\d*]
 
 {2017.1:2017.4}
 # --> usec not used for serport clock domain                    # OK 2017-06-06

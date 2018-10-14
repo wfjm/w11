@@ -1,4 +1,4 @@
-# $Id: sys_w11a_br_as7.vmfset 1039 2018-08-12 10:04:09Z mueller $
+# $Id: sys_w11a_br_as7.vmfset 1056 2018-10-13 16:01:17Z mueller $
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
@@ -18,10 +18,15 @@ I [Designutils 20-1567]                                         # generic
 
 # unconnected ports --------------------------------------------
 I [Synth 8-3331] RB_MREQ                                        # generic
+I [Synth 8-3331] IB_MREQ                                        # generic
 I [Synth 8-3331] DM_STAT_DP                                     # generic
-# --> pdp11_hio70_arty uses only subset of CP_STAT info         # OK 2018-08-11
-I [Synth 8-3331] pdp11_hio70_arty.*CP_STAT[.*]
-I [Synth 8-3331] pdp11_hio70_artys7.*MEM_ACT_(R|W)
+I [Synth 8-3331] DM_STAT_EXP                                    # generic
+I [Synth 8-3331] CP_STAT                                        # generic
+I [Synth 8-3331] SER_MONI                                       # generic
+# --> pdp11_hio70_arty doesn't use MEM_ACT                      # OK 2018-08-11
+i [Synth 8-3331] pdp11_hio70_artys7.*MEM_ACT_(R|W)
+# --> only 128 kB memory available
+i [Synth 8-3331] pdp11_bram_memctl .* ADDR[1(6|7|8|9)]          # OK 2018-10-13
 
 # sequential element removed (2017.1 nonsense) -----------------
 I [Synth 8-6014] _reg                                           # generic
@@ -45,19 +50,22 @@ i [Synth 8-3332] R_IDSTAT_reg[res_sel][2].* pdp11_sequencer
 i [Synth 8-3332] SNUM0.R_VMWAIT_reg.* pdp11_sequencer           # OK 2018-08-11
 
 {2017.2:2017.4}
-# --> many HIO pins not used                                    # OK 2018-08-11
+# --> many HIO pins not used                                    # OK 2018-10-13
 I [Synth 8-3332] HIO/R_REGS_reg[(btn|swi)(eff)?][\d*]
-i [Synth 8-3332] HIO/IOB_BTN/R_DI_reg[\d*]
-i [Synth 8-3332] HIO/DEB.DEB_BTN/R_REGS_reg[(dref|dout|dchange|cecnt)][\d*]
-# --> usec not used for serport clock domain                    # OK 2018-08-11
-i [Synth 8-3332] CLKDIV_CLKS/R_REGS_reg[usec]
+i [Synth 8-3332] IOB_BTN/R_DI_reg[\d*]
+i [Synth 8-3332] DEB.DEB_BTN/R_REGS_reg[(dref|dout|dchange|cecnt)][\d*]
+# --> usec not used for serport clock domain                    # OK 2018-10-13
+i [Synth 8-3332] R_REGS_reg[usec]
 # --> inst_compl logic disabled in pdp11_mmu                    # OK 2018-08-11
 i [Synth 8-3332] MMU/R_SSR0_reg[inst_compl].* pdp11_vmbox
 # --> IB_MREQ.cacc only used in ibd_ibmon, which is disabled    # OK 2018-08-11
 i [Synth 8-3332] R_REGS_reg[ibcacc].* pdp11_vmbox
-# --> monitor outputs moneop,monattn currently not used         # OK 2018-08-11
-i [Synth 8-3332] RLINK/CORE/RL/R_LREGS_reg[moneop]
-i [Synth 8-3332] RLINK/CORE/RL/R_LREGS_reg[monattn]
+# --> monitor outputs moneop,monattn currently not used         # OK 2018-10-13
+i [Synth 8-3332] CORE/RL/R_LREGS_reg[moneop]
+i [Synth 8-3332] CORE/RL/R_LREGS_reg[monattn]
+# --> PERFEXT(0:2) not used                                     # OK 2018-10-13
+i [Synth 8-3332] R_REGS_reg[psig][2(4|5|6)]
+i [Synth 8-3332] PRE[2(4|5|6)].ENA.CNT/R_CNT_reg[\d*]
 
 {2018.1:}
 # --> many HIO pins not used                                    # OK 2018-08-11

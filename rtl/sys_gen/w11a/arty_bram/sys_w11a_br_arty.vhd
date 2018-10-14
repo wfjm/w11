@@ -1,4 +1,4 @@
--- $Id: sys_w11a_br_arty.vhd 1055 2018-10-12 17:53:52Z mueller $
+-- $Id: sys_w11a_br_arty.vhd 1056 2018-10-13 16:01:17Z mueller $
 --
 -- Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -37,6 +37,7 @@
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2018-10-13  1055 2017.2  xc7a35t-1    2560  5499   170  47.5  1699 +dmpcnt
 -- 2018-09-15  1045 2017.2  xc7a35t-1    2337  5188   138  47.5  1611 +KW11P
 -- 2018-08-11  1038 2018.2  xc7a35t-1    2283  5190   138  47.5  1602 
 -- 2018-08-11  1038 2018.1  xc7a35t-1    2283  5193   138  47.5  1616 
@@ -53,7 +54,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2018-10-07  1054   1.3    use DM_STAT_EXP
+-- 2018-10-13  1055   1.3    use DM_STAT_EXP; IDEC to maxisys; setup PERFEXT
 -- 2016-04-02   758   1.2.1  add rbd_usracc (bitfile+jtag timestamp access)
 -- 2016-03-28   755   1.2    use serport_2clock2
 -- 2016-03-19   748   1.1.2  define rlink SYSID
@@ -314,14 +315,14 @@ begin
       SER_MONI => SER_MONI
     );
 
-  PERFEXT(0) <= '0';
-  PERFEXT(1) <= '0';
-  PERFEXT(2) <= '0';
-  PERFEXT(3) <= '0';
-  PERFEXT(4) <= '0';
-  PERFEXT(5) <= '0';
-  PERFEXT(6) <= '0';
-  PERFEXT(7) <= CE_USEC;
+  PERFEXT(0) <= '0';                    -- unused (ext_rdrhit)
+  PERFEXT(1) <= '0';                    -- unused (ext_wrrhit)
+  PERFEXT(2) <= '0';                    -- unused (ext_wrflush)
+  PERFEXT(3) <= SER_MONI.rxact;         -- ext_rlrxact
+  PERFEXT(4) <= not SER_MONI.rxok;      -- ext_rlrxback
+  PERFEXT(5) <= SER_MONI.txact;         -- ext_rltxact
+  PERFEXT(6) <= not SER_MONI.txok;      -- ext_rltxback
+  PERFEXT(7) <= CE_USEC;                -- ext_usec
   
   SYS70 : pdp11_sys70                   -- 1 cpu system ----------------------
     port map (
@@ -361,6 +362,7 @@ begin
       RESET    => GRESET,
       BRESET   => BRESET,
       ITIMER   => DM_STAT_EXP.se_itimer,
+      IDEC     => DM_STAT_EXP.se_idec,
       CPUSUSP  => CP_STAT.cpususp,
       RB_LAM   => RB_LAM(15 downto 1),
       IB_MREQ  => IB_MREQ,

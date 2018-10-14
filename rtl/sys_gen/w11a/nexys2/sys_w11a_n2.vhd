@@ -1,4 +1,4 @@
--- $Id: sys_w11a_n2.vhd 1055 2018-10-12 17:53:52Z mueller $
+-- $Id: sys_w11a_n2.vhd 1056 2018-10-13 16:01:17Z mueller $
 --
 -- Copyright 2010-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -34,6 +34,7 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2018-10-13  1055 14.7  131013 xc3s1200e-4 3097 8484  510 5471 ok: +dmpcnt
 -- 2018-09-15  1045 14.7  131013 xc3s1200e-4 2860 7983  446 5098 ok: +KW11P
 -- 2017-04-30   888 14.7  131013 xc3s1200e-4 2806 7865  446 5043 ok: +fx2dbg
 -- 2017-03-04   858 14.7  131013 xc3s1200e-4 2740 7713  446 4912 ok: +DEUNA
@@ -71,7 +72,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2018-10-07  1054   2.3    use DM_STAT_EXP
+-- 2018-10-13  1055   2.3    use DM_STAT_EXP; IDEC to maxisys; setup PERFEXT
 -- 2017-04-30   888   2.2    use SWI(7:6) to allow fx2 debug via LEDs
 -- 2016-03-19   748   2.1.1  define rlink SYSID
 -- 2015-05-09   677   2.1    start/stop/suspend overhaul; reset overhaul
@@ -400,14 +401,14 @@ begin
       IO_FX2_DATA    => IO_FX2_DATA
     );
 
-  PERFEXT(0) <= '0';
-  PERFEXT(1) <= '0';
-  PERFEXT(2) <= '0';
-  PERFEXT(3) <= '0';
-  PERFEXT(4) <= '0';
-  PERFEXT(5) <= '0';
-  PERFEXT(6) <= '0';
-  PERFEXT(7) <= CE_USEC;
+  PERFEXT(0) <= '0';                    -- unused (ext_rdrhit)
+  PERFEXT(1) <= '0';                    -- unused (ext_wrrhit)
+  PERFEXT(2) <= '0';                    -- unused (ext_wrflush)
+  PERFEXT(3) <= RLB_MONI.rxval and not RLB_MONI.rxhold;  -- ext_rlrxact
+  PERFEXT(4) <= RLB_MONI.rxhold;                         -- ext_rlrxback
+  PERFEXT(5) <= RLB_MONI.txena and not RLB_MONI.txbusy;  -- ext_rltxact
+  PERFEXT(6) <= RLB_MONI.txbusy;                         -- ext_rltxback
+  PERFEXT(7) <= CE_USEC;                -- ext_usec
 
   SYS70 : pdp11_sys70                   -- 1 cpu system ----------------------
     port map (
@@ -446,6 +447,7 @@ begin
       RESET    => GRESET,
       BRESET   => BRESET,
       ITIMER   => DM_STAT_EXP.se_itimer,
+      IDEC     => DM_STAT_EXP.se_idec,
       CPUSUSP  => CP_STAT.cpususp,
       RB_LAM   => RB_LAM(15 downto 1),
       IB_MREQ  => IB_MREQ,

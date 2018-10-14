@@ -60,7 +60,8 @@ The full set of tests is only run for tagged releases.
 - pdp11_sequencer: drive DM_STAT_SE.(cpbusy,idec,pcload,itimer), drop ITIMER
 - pdp11_cache: drop CHIT, add DM_STAT_CA port, add detailed monitoring
 - pdp11_tmu(_sb): use DM_STAT_CA instead of DM_STAT_SY
-- sys_w11a_*.vhd: use DM_STAT_EXP
+- ibdr_maxisys: add IDEC port, connect to EXTEVT of KW11P
+- sys_w11a_*.vhd: use DM_STAT_EXP; IDEC to maxisys; setup PERFEXT
 - RtclRw11Unit: fix for clang: M_virt() now public
 - backend code review:
   - use for C++ compiles also `-Wpedantic`

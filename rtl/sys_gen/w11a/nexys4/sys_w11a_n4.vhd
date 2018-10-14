@@ -1,4 +1,4 @@
--- $Id: sys_w11a_n4.vhd 1055 2018-10-12 17:53:52Z mueller $
+-- $Id: sys_w11a_n4.vhd 1056 2018-10-13 16:01:17Z mueller $
 --
 -- Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -36,7 +36,8 @@
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic MHz
--- 2019-09-15  1045 2017.2  xc7a100t-1   2926  5904   150  17.0  1884  80 +KW11P
+-- 2018-10-13  1045 2017.2  xc7a100t-1   3146  6228   182  17.0  1979  80 +dmpcnt
+-- 2018-09-15  1045 2017.2  xc7a100t-1   2926  5904   150  17.0  1884  80 +KW11P
 -- 2017-04-22   885 2016.4  xc7a100t-1   2862  5859   150  12.0  1900  80 +dmcmon
 -- 2017-04-16   881 2016.4  xc7a100t-1   2645  5621   138  12.0  1804  80 +DEUNA
 -- 2017-01-29   846 2016.4  xc7a100t-1   2574  5496   138  12.0  1750  80 +int24
@@ -53,7 +54,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2018-10-07  1054   2.4    use DM_STAT_EXP
+-- 2018-10-13  1055   2.4    use DM_STAT_EXP; IDEC to maxisys; setup PERFEXT
 -- 2016-04-02   758   2.3.1  add rbd_usracc (bitfile+jtag timestamp access)
 -- 2016-03-28   755   2.3    use serport_2clock2
 -- 2016-03-19   748   2.2.1  define rlink SYSID
@@ -348,14 +349,14 @@ begin
       SER_MONI => SER_MONI
     );
 
-  PERFEXT(0) <= '0';
-  PERFEXT(1) <= '0';
-  PERFEXT(2) <= '0';
-  PERFEXT(3) <= '0';
-  PERFEXT(4) <= '0';
-  PERFEXT(5) <= '0';
-  PERFEXT(6) <= '0';
-  PERFEXT(7) <= CE_USEC;
+  PERFEXT(0) <= '0';                    -- unused (ext_rdrhit)
+  PERFEXT(1) <= '0';                    -- unused (ext_wrrhit)
+  PERFEXT(2) <= '0';                    -- unused (ext_wrflush)
+  PERFEXT(3) <= SER_MONI.rxact;         -- ext_rlrxact
+  PERFEXT(4) <= not SER_MONI.rxok;      -- ext_rlrxback
+  PERFEXT(5) <= SER_MONI.txact;         -- ext_rltxact
+  PERFEXT(6) <= not SER_MONI.txok;      -- ext_rltxback
+  PERFEXT(7) <= CE_USEC;                -- ext_usec
 
   SYS70 : pdp11_sys70                   -- 1 cpu system ----------------------
     port map (
@@ -394,6 +395,7 @@ begin
       RESET    => GRESET,
       BRESET   => BRESET,
       ITIMER   => DM_STAT_EXP.se_itimer,
+      IDEC     => DM_STAT_EXP.se_idec,
       CPUSUSP  => CP_STAT.cpususp,
       RB_LAM   => RB_LAM(15 downto 1),
       IB_MREQ  => IB_MREQ,

@@ -1,4 +1,4 @@
--- $Id: ibdr_maxisys.vhd 1043 2018-09-09 10:20:12Z mueller $
+-- $Id: ibdr_maxisys.vhd 1056 2018-10-13 16:01:17Z mueller $
 --
 -- Copyright 2009-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -32,10 +32,11 @@
 --                 ib_intmap24
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.4; ghdl 0.18-0.33
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2018.2; ghdl 0.18-0.34
 --
 -- Synthesized:
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2018-10-13  1055 14.7  131013 xc6slx16-2   774 1720   30  584 s  8.5 +KW11P
 -- 2017-01-29   847 14.7  131013 xc6slx16-2   712 1628   30  599 s  8.5 +DEUNA
 -- 2017-01-28   846 14.7  131013 xc6slx16-2   668 1562   30  577 s  8.5 intmap24
 -- 2017-01-28   683 viv 2016.4   xc7a100t-1   683 1684   48    - -           
@@ -48,6 +49,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-10-13  1055   1.5    add IDEC port, connect to EXTEVT of KW11P
 -- 2018-09-08  1043   1.4.2  add KW11P;
 -- 2017-01-29   847   1.4.1  add DEUNA; rename generic labels
 -- 2017-01-28   846   1.4    use ib_intmap24
@@ -112,6 +114,7 @@ entity ibdr_maxisys is                  -- ibus(rem) full system
     RESET : in slbit;                   -- reset
     BRESET : in slbit;                  -- ibus reset
     ITIMER : in slbit;                  -- instruction timer
+    IDEC : in slbit;                    -- instruction decode
     CPUSUSP : in slbit;                 -- cpu suspended
     RB_LAM : out slv16_1;               -- remote attention vector
     IB_MREQ : in ib_mreq_type;          -- ibus request
@@ -276,7 +279,7 @@ begin
         CE_MSEC => CE_MSEC,
         RESET   => RESET,
         BRESET  => BRESET,
-        EXTEVT  => '0',
+        EXTEVT  => IDEC,
         CPUSUSP => CPUSUSP,
         IB_MREQ => IB_MREQ,
         IB_SRES => IB_SRES_KW11P,

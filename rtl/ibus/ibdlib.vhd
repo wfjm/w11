@@ -1,4 +1,4 @@
--- $Id: ibdlib.vhd 1043 2018-09-09 10:20:12Z mueller $
+-- $Id: ibdlib.vhd 1056 2018-10-13 16:01:17Z mueller $
 --
 -- Copyright 2008-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  ise 8.2-14.7; viv 2014.4-2018.2; ghdl 0.18-0.34
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-10-13  1055   1.3.2  update ibdr_maxisys (add IDEC port)
 -- 2018-09-08  1043   1.3.1  update ibd_kw11p
 -- 2017-01-29   847   1.3.1  add ibdr_deuna
 -- 2015-05-09   676   1.3    start/stop/suspend overhaul
@@ -301,6 +302,7 @@ component ibdr_maxisys is               -- ibus(rem) full system
     RESET : in slbit;                   -- reset
     BRESET : in slbit;                  -- ibus reset
     ITIMER : in slbit;                  -- instruction timer
+    IDEC : in slbit;                    -- instruction decode
     CPUSUSP : in slbit;                 -- cpu suspended
     RB_LAM : out slv16_1;               -- remote attention vector
     IB_MREQ : in ib_mreq_type;          -- ibus request

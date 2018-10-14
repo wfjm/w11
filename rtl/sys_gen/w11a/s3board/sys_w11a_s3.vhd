@@ -1,4 +1,4 @@
--- $Id: sys_w11a_s3.vhd 1055 2018-10-12 17:53:52Z mueller $
+-- $Id: sys_w11a_s3.vhd 1056 2018-10-13 16:01:17Z mueller $
 --
 -- Copyright 2007-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -33,11 +33,12 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
--- 2018-09-15  1045 14.7  131013 xc3s1000-4  2670 7721  382 4851 OK: +KP11P 63%
--- 2017-03-04   858 14.7  131013 xc3s1000-4  2576 7471  382 4716 OK: +DEUNA 61%
--- 2017-01-29   846 14.7  131013 xc3s1000-4  2538 7355  382 4635 OK: +int24 60%
--- 2015-06-04   686 14.7  131013 xc3s1000-4  2158 6453  350 3975 OK: +TM11  51%
--- 2015-05-14   680 14.7  131013 xc3s1000-4  2087 6316  350 3928 OK: +RHRP  51%
+-- 2018-10-13  1055 14.7  131013 xc3s1000-4  2890 8217  446 5177 OK: +dmpcnt 67%
+-- 2018-09-15  1045 14.7  131013 xc3s1000-4  2670 7721  382 4851 OK: +KP11P  63%
+-- 2017-03-04   858 14.7  131013 xc3s1000-4  2576 7471  382 4716 OK: +DEUNA  61%
+-- 2017-01-29   846 14.7  131013 xc3s1000-4  2538 7355  382 4635 OK: +int24  60%
+-- 2015-06-04   686 14.7  131013 xc3s1000-4  2158 6453  350 3975 OK: +TM11   51%
+-- 2015-05-14   680 14.7  131013 xc3s1000-4  2087 6316  350 3928 OK: +RHRP   51%
 -- 2015-02-21   649 14.7  131013 xc3s1000-4  1643 5124  318 3176 OK: +RL11
 -- 2014-12-22   619 14.7  131013 xc3s1000-4  1569 4768  302 2994 OK: +rbmon
 -- 2014-12-20   614 14.7  131013 xc3s1000-4  1455 4523  302 2807 OK: -RL11,rlv4
@@ -77,7 +78,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2018-10-07  1054   2.2    use DM_STAT_EXP
+-- 2018-10-13  1055   2.2    use DM_STAT_EXP; IDEC to maxisys; setup PERFEXT
 -- 2016-03-19   748   2.1.1  define rlink SYSID
 -- 2015-05-09   677   2.1    start/stop/suspend overhaul; reset overhaul
 -- 2015-05-02   673   2.0    use pdp11_sys70 and pdp11_hio70; now in std form
@@ -350,14 +351,14 @@ begin
       SER_MONI => SER_MONI
     );
    
-  PERFEXT(0) <= '0';
-  PERFEXT(1) <= '0';
-  PERFEXT(2) <= '0';
-  PERFEXT(3) <= '0';
-  PERFEXT(4) <= '0';
-  PERFEXT(5) <= '0';
-  PERFEXT(6) <= '0';
-  PERFEXT(7) <= CE_USEC;
+  PERFEXT(0) <= '0';                    -- unused (ext_rdrhit)
+  PERFEXT(1) <= '0';                    -- unused (ext_wrrhit)
+  PERFEXT(2) <= '0';                    -- unused (ext_wrflush)
+  PERFEXT(3) <= SER_MONI.rxact;         -- ext_rlrxact
+  PERFEXT(4) <= not SER_MONI.rxok;      -- ext_rlrxback
+  PERFEXT(5) <= SER_MONI.txact;         -- ext_rltxact
+  PERFEXT(6) <= not SER_MONI.txok;      -- ext_rltxback
+  PERFEXT(7) <= CE_USEC;                -- ext_usec
   
   SYS70 : pdp11_sys70                   -- 1 cpu system ----------------------
     port map (
@@ -396,6 +397,7 @@ begin
       RESET    => GRESET,
       BRESET   => BRESET,
       ITIMER   => DM_STAT_EXP.se_itimer,
+      IDEC     => DM_STAT_EXP.se_idec,
       CPUSUSP  => CP_STAT.cpususp,
       RB_LAM   => RB_LAM(15 downto 1),
       IB_MREQ  => IB_MREQ,

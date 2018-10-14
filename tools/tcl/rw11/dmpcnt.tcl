@@ -1,4 +1,4 @@
-# $Id: dmpcnt.tcl 1053 2018-10-06 20:34:52Z mueller $
+# $Id: dmpcnt.tcl 1056 2018-10-13 16:01:17Z mueller $
 #
 # Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,7 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
-# 2018-10-06  1053   1.0    Initial version
+# 2018-10-13  1055   1.0    Initial version
 # 2018-09-23  1050   0.1    First draft
 #
 
@@ -37,8 +37,8 @@ namespace eval rw11 {
                              ca_rdhit ca_wrhit ca_rdmem ca_wrmem \
                              ca_rdwait ca_wrwait ib_rd ib_wr \
                              ib_busy rb_rd rb_wr rb_busy \
-                             ext_rdrhit ext_wrrhit ext_wrflush ext_rlrdbusy \
-                             ext_rlrdback ext_rlwrbusy ext_rlwrback clock]
+                             ext_rdrhit ext_wrrhit ext_wrflush ext_rlrxact \
+                             ext_rlrxback ext_rltxact ext_rltxback ext_udec]
   variable pcnt_cindex
   set tmp_ind 0
   foreach {nam} $pcnt_cnames {

@@ -1,5 +1,5 @@
-; $Id: defs_mmu.mac 830 2016-12-26 20:25:49Z mueller $
-; Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; $Id: defs_mmu.mac 1053 2018-10-06 20:34:52Z mueller $
+; Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ; License disclaimer see License.txt in $RETROBASE directory 
 ;
 ; definitions for mmu registers (as in defs_mmu.das)
@@ -10,7 +10,6 @@
         ssr3 = 172516
 ;
         uipdr = 177600                  ; usr i page dsc base
-        udpdr = 177620                  ; usr d page dsc base
         udpdr = 177620                  ; usr d page dsc base
         uipar = 177640                  ; usr i page addr base
         udpar = 177660                  ; usr d page addr base

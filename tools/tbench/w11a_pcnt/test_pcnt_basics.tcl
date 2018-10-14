@@ -1,11 +1,12 @@
-# $Id: test_pcnt_basics.tcl 1053 2018-10-06 20:34:52Z mueller $
+# $Id: test_pcnt_basics.tcl 1054 2018-10-07 07:47:28Z mueller $
 #
 # Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
-# 2018-09-23  1050   1.0    Initial version
+# 2018-10-06  1053   1.0    Initial version
+# 2018-09-23  1050   0.1    First draft
 #
 # Test basic perf counter functionality 
 

@@ -1,4 +1,4 @@
--- $Id: pdp11_sys70.vhd 1055 2018-10-12 17:53:52Z mueller $
+-- $Id: pdp11_sys70.vhd 1056 2018-10-13 16:01:17Z mueller $
 --
 -- Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -35,7 +35,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2018-10-07  1054   1.3    drop ITIMER,DM_STAT_DP out ports, use DM_STAT_EXP
+-- 2018-10-13  1055   1.3    drop ITIMER,DM_STAT_DP out ports, use DM_STAT_EXP
 --                           add PERFEXT in port
 -- 2018-10-06  1053   1.2.3  drop DM_STAT_SY; add DM_STAT_CA; use _SE.pcload
 -- 2018-09-29  1051   1.2.2  add pdp11_dmpcnt
@@ -299,7 +299,7 @@ begin
     signal PERFSIG : slv32 := (others=>'0');
   begin
     proc_sig: process (CP_STAT_L, DM_STAT_SE, DM_STAT_DP, DM_STAT_DP.psw,
-                       DM_STAT_CA, RB_MREQ, RB_SRES_L,
+                       DM_STAT_CA, RB_MREQ, RB_SRES_L, EI_ACKM_L,
                        DM_STAT_VM.ibmreq, DM_STAT_VM.ibsres, PERFEXT)
       variable isig : slv32 := (others=>'0');
     begin
@@ -363,10 +363,10 @@ begin
       isig(24) := PERFEXT(0);               -- ext_rdrhit
       isig(25) := PERFEXT(1);               -- ext_wrrhit
       isig(26) := PERFEXT(2);               -- ext_wrflush
-      isig(27) := PERFEXT(3);               -- ext_rlrdbusy
-      isig(28) := PERFEXT(4);               -- ext_rlrdback
-      isig(29) := PERFEXT(5);               -- ext_rlwrbusy
-      isig(30) := PERFEXT(6);               -- ext_rlwrback
+      isig(27) := PERFEXT(3);               -- ext_rlrxact
+      isig(28) := PERFEXT(4);               -- ext_rlrxback
+      isig(29) := PERFEXT(5);               -- ext_rltxact
+      isig(30) := PERFEXT(6);               -- ext_rltxback
       isig(31) := PERFEXT(7);               -- ext_usec
       
       PERFSIG <= isig;

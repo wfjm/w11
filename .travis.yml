@@ -49,7 +49,7 @@ before_script:
 script:
   - make -C tools/src
   - make -C tools/src/testtclsh
-  - pushd tools/tcl && setup_packages && popd
+  - make all_tcl
   - |
     tbrun -nomake \
       -tag default,memlib \

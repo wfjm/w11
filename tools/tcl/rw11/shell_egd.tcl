@@ -1,4 +1,4 @@
-# $Id: shell_egd.tcl 985 2018-01-03 08:59:40Z mueller $
+# $Id: shell_egd.tcl 1056 2018-10-13 16:01:17Z mueller $
 #
 # Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -448,7 +448,7 @@ namespace eval rw11 {
 
     set nvals [llength $vals]
     if {$nvals != $cnt} { 
-      error "-E: expected $cnt write values, seen only $nvals"
+      error "-E: expected $cnt write values, seen $nvals"
     }
 
     switch $mode {

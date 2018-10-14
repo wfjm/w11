@@ -1,4 +1,4 @@
--- $Id: ibd_kw11p.vhd 1044 2018-09-15 11:12:07Z mueller $
+-- $Id: ibd_kw11p.vhd 1056 2018-10-13 16:01:17Z mueller $
 --
 -- Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -162,10 +162,10 @@ begin
     
     ievt  := '0';
 
+    n.evtext  := EXTEVT;                -- buffer
     n.evt100k := '0';                   -- one shot
     n.evt10k  := '0';                   -- one shot
     n.evtline := '0';                   -- one shot
-    n.evtext  := '0';                   -- one shot
     n.evtfix  := '0';                   -- one shot
     n.evtload := '0';                   -- one shot
       
@@ -242,11 +242,6 @@ begin
           end if;
         end if;
       end if;
-    end if;
-    
-    --   capture event
-    if EXTEVT='1' then
-      n.evtext := '1';
     end if;
     
     --   counter logic

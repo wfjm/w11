@@ -1,10 +1,11 @@
-# $Id: test_kw11p_int.tcl 1045 2018-09-15 15:20:57Z mueller $
+# $Id: test_kw11p_int.tcl 1056 2018-10-13 16:01:17Z mueller $
 #
 # Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2018-10-13  1055   1.1    add test with extevt=idec
 # 2018-09-15  1045   1.0    Initial version
 #
 # Test interrupt response 
@@ -55,7 +56,6 @@ rw11::asmrun  $cpu sym
 rw11::asmwait $cpu sym 
 rw11::asmtreg $cpu     sp [expr $sym(stack)-4]
 $cpu cp -rr0 reg0
-
 rlc log [format "      2 x 100 kHz ticks took %4d sob" [expr {1000-$reg0}]]
 
 rlc log "    A2: repeat interrupt (mode=1) ----------------------"
@@ -100,6 +100,52 @@ rw11::asmwait $cpu sym
 rw11::asmtreg $cpu     r1 0 \
                        sp [expr $sym(stack)-4]
 $cpu cp -rr0 reg0
-
 rlc log [format "      3 x 100 kHz ticks took %4d sob" [expr {1500-$reg0}]]
+
+# -- Section B ---------------------------------------------------------------
+rlc log "  B test interrupts via extevt=idec -------------------------"
+rlc log "    B1: repeat interrupt (mode=1) ----------------------"
+
+# setup three interrupts after 20 ticks of extevt counter
+#   wait loop will see
+#     2(setup)+18(sob)+3(irupt)+17(sob)+3(irupt)+17(sob)+3(irupt+halt)
+#     --> expect 18+2*17 = 52 sob iterations
+# load test code
+$cpu ldasm -lst lst -sym sym {
+        .include  |lib/defs_cpu.mac|
+        .include  |lib/defs_kwp.mac|
+;
+        .include  |lib/vec_cpucatch.mac|
+; 
+        . = 000104              ; setup KW11-P interrupt vector
+v..kwp: .word vh.kwp
+        .word cp.pr7
+        
+        . = 1000                ; data area
+stack:
+        
+        . = 2000                ; code area
+start:  spl     7               ; lock out interrupts
+  
+;
+        mov     #3,r1           ; setup interrupt counter
+        mov     #20.,@#kw.csb   ; load kw11-p counter
+        mov     #<kw.ie+kw.mod+kw.rex+kw.run>,@#kw.csr  ; setup: extevt dn rep
+        spl     0               ; allow interrupts
+        mov     #70.,r0;        ; timeout after 70 instructions
+1$:     sob     r0,1$           ; wait some time
+        halt                    ; HALT if no interrupt seen
+;
+vh.kwp: dec     r1              ; count interrupts
+        beq     2$              ; if eq three interrupts seen
+        rti                     ; otherwise continue
+2$:     halt                    ; HALT if done
+stop:
+}
+
+rw11::asmrun  $cpu sym
+rw11::asmwait $cpu sym 
+rw11::asmtreg $cpu     r0  [expr {70-52}] \
+                       r1  0 \
+                       sp [expr $sym(stack)-4]
 

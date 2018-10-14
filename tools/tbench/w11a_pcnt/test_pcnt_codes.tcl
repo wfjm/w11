@@ -1,11 +1,12 @@
-# $Id: test_pcnt_codes.tcl 1053 2018-10-06 20:34:52Z mueller $
+# $Id: test_pcnt_codes.tcl 1056 2018-10-13 16:01:17Z mueller $
 #
 # Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
-# 2018-10-06  1053   1.0    Initial version
+# 2018-10-13  1055   1.0    Initial version
+# 2018-10-06  1053   0.1    First draft
 #
 # Test perf counter functionality with test codes
 
@@ -17,21 +18,8 @@ if {[$cpu get haspcnt] == 0} {
   return
 }
 
-# define tmpproc for execute test
-proc tmpproc_dotest {cpu code args} {
-  # compile and load code
-  $cpu cp -creset
-  $cpu ldasm -lst lst -sym sym $code
-
-  # clear and start dmpcnt
-  $cpu cp \
-    -wreg pc.cntl [regbld rw11::PC_CNTL {func "CLR"}] \
-    -wreg pc.cntl [regbld rw11::PC_CNTL {func "STA"}] 
-  
-  # run code
-  rw11::asmrun  $cpu sym
-  rw11::asmwait $cpu sym
-
+# define tmpproc to veriy test result
+proc tmpproc_check {cpu args} {
   # determine pcnt index range to read
   set imin 31
   set imax  0
@@ -73,7 +61,7 @@ proc tmpproc_dotest {cpu code args} {
         rlc errcnt -inc
       }
     } else {
-      if {$v <= -$exp} {
+      if {$v < -$exp} {
         rlc log -bare \
           [format "FAIL: $nam expect >= %d, found %1.0f" [expr {-$exp}] $v]
         rlc errcnt -inc
@@ -81,11 +69,98 @@ proc tmpproc_dotest {cpu code args} {
     }
   }
 }
+ 
+# define tmpproc to execute test
+proc tmpproc_dotest {cpu code args} {
+  # compile and load code
+  $cpu cp -creset
+  $cpu ldasm -lst lst -sym sym $code
+
+  # clear and start dmpcnt
+  $cpu cp \
+    -wreg pc.cntl [regbld rw11::PC_CNTL {func "CLR"}] \
+    -wreg pc.cntl [regbld rw11::PC_CNTL {func "STA"}] 
+  
+  # run code
+  rw11::asmrun  $cpu sym
+  rw11::asmwait $cpu sym
+  
+  tmpproc_check $cpu {*}$args 
+}
 
 # -- Section A ---------------------------------------------------------------
-rlc log "  A: plain kernel mode codes---------------------------------"
+rlc log "  A: rbus and ibus counters ---------------------------------"
 
-rlc log "    A1: plain sob loop ---------------------------------"
+rlc log "    A1: rbus write -------------------------------------"
+$cpu cp -creset
+$cpu cp \
+  -wreg pc.cntl [regbld rw11::PC_CNTL {func "CLR"}] \
+  -wreg pc.cntl [regbld rw11::PC_CNTL {func "STA"}] \
+  -wal 002000 \
+  -bwm {0200 0201 0202 0203 0204 0205 0206 0207
+        0210 0211 0212 0213 0214 0215 0216 0217} \
+  -wreg pc.cntl [regbld rw11::PC_CNTL {func "STO"}]
+
+# rb_wr:  18 = 1(wal) + 16(bwm) + 1(wreg) 
+tmpproc_check $cpu \
+  rb_rd     0 \
+  rb_wr    18
+
+rlc log "    A2: rbus read --------------------------------------"
+$cpu cp \
+  -wreg pc.cntl [regbld rw11::PC_CNTL {func "CLR"}] \
+  -wreg pc.cntl [regbld rw11::PC_CNTL {func "STA"}] \
+  -wal 002000 \
+  -brm 16 -edata {0200 0201 0202 0203 0204 0205 0206 0207
+                  0210 0211 0212 0213 0214 0215 0216 0217} \
+  -wreg pc.cntl [regbld rw11::PC_CNTL {func "STO"}]
+
+# rb_rd:  16 =  16(brm)
+# rb_wr:   2 = 1(wal) + 1(wreg) 
+tmpproc_check $cpu \
+  rb_rd    16 \
+  rb_wr     2
+
+rlc log "    A3: ibus via rbus write ----------------------------"
+# use MMU user mode address descriptor registers as target
+$cpu cp -creset
+$cpu cp \
+  -wreg pc.cntl [regbld rw11::PC_CNTL {func "CLR"}] \
+  -wreg pc.cntl [regbld rw11::PC_CNTL {func "STA"}] \
+  -wal $rw11::A_SAR_UM \
+  -bwm {0200 0201 0202 0203 0204 0205 0206 0207
+        0210 0211 0212 0213 0214 0215 0216 0217} \
+  -wreg pc.cntl [regbld rw11::PC_CNTL {func "STO"}]
+
+# rb_wr:  18 = 1(wal) + 16(bwm) + 1(wreg) 
+tmpproc_check $cpu \
+  ib_rd     0 \
+  ib_wr    16 \
+  rb_rd     0 \
+  rb_wr    18
+
+rlc log "    A4: ibus via rbus read -----------------------------"
+# use MMU user mode address descriptor registers as target
+$cpu cp \
+  -wreg pc.cntl [regbld rw11::PC_CNTL {func "CLR"}] \
+  -wreg pc.cntl [regbld rw11::PC_CNTL {func "STA"}] \
+  -wal $rw11::A_SAR_UM \
+  -brm 16 -edata {0200 0201 0202 0203 0204 0205 0206 0207
+                  0210 0211 0212 0213 0214 0215 0216 0217} \
+  -wreg pc.cntl [regbld rw11::PC_CNTL {func "STO"}]
+
+# rb_rd:  16 =  16(brm)
+# rb_wr:   2 = 1(wal) + 1(wreg) 
+tmpproc_check $cpu \
+  ib_rd    16 \
+  ib_wr     0 \
+  rb_rd    16 \
+  rb_wr     2
+
+# -- Section B ---------------------------------------------------------------
+rlc log "  B: plain kernel mode codes --------------------------------"
+
+rlc log "    B1: plain sob loop ---------------------------------"
 set code {
         . = 1000
 stack:  
@@ -114,7 +189,7 @@ tmpproc_dotest $cpu $code \
   ca_rdmem      0 \
   ca_wrmem      0
 
-rlc log "    A2: sob + inc R loop -------------------------------"
+rlc log "    B2: sob + inc R loop -------------------------------"
 set code {
         . = 1000
 stack:  
@@ -145,7 +220,7 @@ tmpproc_dotest $cpu $code \
   ca_rdmem      0 \
   ca_wrmem      0
 
-rlc log "    A3: sob + inc mem loop -----------------------------"
+rlc log "    B3: sob + inc mem loop -----------------------------"
 set code {
         . = 1000
 stack:  
@@ -177,7 +252,7 @@ tmpproc_dotest $cpu $code \
   ca_rdmem      0 \
   ca_wrmem     33
 
-rlc log "    A4: dec+bne+inc @#ibus loop (test ibus access) -----"
+rlc log "    B4: dec+bne+inc @#ibus loop (test ibus access) -----"
 # use usr d page addr register (16 bit read/write) as easy ibus target
 set code {
         .include        |lib/defs_mmu.mac|
@@ -214,10 +289,10 @@ tmpproc_dotest $cpu $code \
   ib_rd        32 \
   ib_wr        33
 
-# -- Section B ---------------------------------------------------------------
-rlc log "  B: test kern pri>0, super and user mode -------------------"
+# -- Section C ---------------------------------------------------------------
+rlc log "  C: test kern pri>0, super and user mode -------------------"
 
-rlc log "    B1: kernel pri > 0 ---------------------------------"
+rlc log "    C1: kernel pri > 0 ---------------------------------"
 set code {
         .include        |lib/defs_cpu.mac|
         . = 1000
@@ -249,7 +324,7 @@ tmpproc_dotest $cpu $code \
   ca_rdmem      0 \
   ca_wrmem      0
 
-rlc log "    B2: supervisor mode --------------------------------"
+rlc log "    C2: supervisor mode --------------------------------"
 set code {
         .include        |lib/defs_cpu.mac|
         . = 1000
@@ -281,7 +356,7 @@ tmpproc_dotest $cpu $code \
   ca_rdmem      0 \
   ca_wrmem      0
 
-rlc log "    B3: user mode --------------------------------------"
+rlc log "    C3: user mode --------------------------------------"
 set code {
         .include        |lib/defs_cpu.mac|
         . = 1000
@@ -313,10 +388,10 @@ tmpproc_dotest $cpu $code \
   ca_rdmem      0 \
   ca_wrmem      0
 
-# -- Section C ---------------------------------------------------------------
-rlc log "  C: test vector fetch --------------------------------------"
+# -- Section D ---------------------------------------------------------------
+rlc log "  D: test vector fetch --------------------------------------"
 
-rlc log "    C1: vector via trap instruction --------------------"
+rlc log "    D1: vector via trap instruction --------------------"
 set code {
         .include        |lib/vec_cpucatch.mac|
         . = 1000
@@ -357,3 +432,53 @@ tmpproc_dotest $cpu $code \
   ca_wrhit     10 \
   ca_rdmem      0 \
   ca_wrmem     10
+
+# -- Section E ---------------------------------------------------------------
+rlc log "  E: test interrupts (via kw11p if avaialable) --------------"
+if {[$cpu get haskw11p] == 0} {
+  rlc log "  test_pcnt_codes-W: no kw11p unit found, test skipped"
+  return
+}
+
+# setup three interrupts after 20 ticks of extevt counter
+# code lifted from test_kw11p_int
+set code {
+        .include  |lib/defs_cpu.mac|
+        .include  |lib/defs_kwp.mac|
+;
+        .include  |lib/vec_cpucatch.mac|
+; 
+        . = 000104              ; setup KW11-P interrupt vector
+v..kwp: .word vh.kwp
+        .word cp.pr7
+        
+        . = 1000                ; data area
+stack:
+        
+        . = 2000                ; code area
+start:  spl     7               ; lock out interrupts
+  
+;
+        mov     #3,r1           ; setup interrupt counter
+        mov     #20.,@#kw.csb   ; load kw11-p counter
+        mov     #<kw.ie+kw.mod+kw.rex+kw.run>,@#kw.csr  ; setup: extevt dn rep
+        spl     0               ; allow interrupts
+        mov     #70.,r0;        ; timeout after 70 instructions
+1$:     sob     r0,1$           ; wait some time
+        halt                    ; HALT if no interrupt seen
+;
+vh.kwp: dec     r1              ; count interrupts
+        beq     2$              ; if eq three interrupts seen
+        rti                     ; otherwise continue
+2$:     halt                    ; HALT if done
+stop:
+}
+
+tmpproc_dotest $cpu $code \
+  cpu_km_prix  -1 \
+  cpu_km_pri0  -1 \
+  cpu_km_wait   0 \
+  cpu_sm        0 \
+  cpu_um        0 \
+  cpu_vfetch    3 \
+  cpu_irupt     3 

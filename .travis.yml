@@ -27,9 +27,9 @@ before_install:
       libusb-1.0-0-dev \
       tcl8.6 tcl8.6-dev tcllib tclreadline \
       libyaml-libyaml-perl
-  - wget https://www.retro11.de/data/oc_w11/travis/allsim.tbz
-  - tar -tvf allsim.tbz | perl -pe 's/^.*\s(\d\d\d\d-)/$1/'
-  - tar -xvf allsim.tbz
+  - wget https://www.retro11.de/data/oc_w11/travis/allsim.tgz
+  - tar -tvf allsim.tgz | perl -pe 's/^.*\s(\d\d\d\d-)/$1/'
+  - tar -xvf allsim.tgz && rm allsim.tgz
   - eval "${MATRIX_EVAL}"
 
 #
@@ -70,3 +70,5 @@ script:
       -tag default,sys_w11a,stim1 \
       -tag default,sys_w11a,n4
   - tbfilt -all -sum -comp
+#
+  - .travis/deploy.sh

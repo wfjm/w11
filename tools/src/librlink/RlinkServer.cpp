@@ -1,6 +1,6 @@
-// $Id: RlinkServer.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkServer.cpp 1059 2018-10-27 10:34:16Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-10-27  1059   1.2.3  coverity fixup (uncaught exception in dtor)
 // 2017-04-07   868   1.2.2  Dump(): add detail arg
 // 2015-06-05   686   1.2.1  BUGFIX: CallAttnHandler(): fix race in hnext
 // 2015-04-04   662   1.2    BUGFIX: fix race in Stop(), use UnStop()
@@ -40,6 +41,7 @@
 #include "librtools/RosPrintBvi.hpp"
 #include "librtools/Rexception.hpp"
 #include "librtools/RlogMsg.hpp"
+#include "librtools/Rtools.hpp"
 
 #include "RlinkServer.hpp"
 
@@ -107,7 +109,7 @@ RlinkServer::RlinkServer()
 
 RlinkServer::~RlinkServer()
 {
-  Stop();
+  Rtools::Catch2Cerr(__func__, [this](){ Stop(); } );
   if (fspConn) fspConn->SetServer(0);
 }
 

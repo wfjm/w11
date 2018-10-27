@@ -1,6 +1,6 @@
-// $Id: Rw11VirtEthTap.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11VirtEthTap.cpp 1059 2018-10-27 10:34:16Z mueller $
 //
-// Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-10-27  1059   1.0.1  coverity fixup (uncaught exception in dtor)
+//                           coverity fixup (buffer not null terminated)
 // 2017-04-15   875   1.0    Initial version
 // 2014-06-09   561   0.1    First draft 
 // ---------------------------------------------------------------------------
@@ -36,6 +38,7 @@
 #include "boost/bind.hpp"
 
 #include "librtools/RosFill.hpp"
+#include "librtools/Rtools.hpp"
 
 #include "Rw11VirtEthTap.hpp"
 
@@ -63,8 +66,9 @@ Rw11VirtEthTap::Rw11VirtEthTap(Rw11Unit* punit)
 Rw11VirtEthTap::~Rw11VirtEthTap()
 {
   if (fFd>=2) {
-    Server().RemovePollHandler(fFd);
-    close(fFd);
+    Rtools::Catch2Cerr(__func__,
+                       [this](){ Server().RemovePollHandler(fFd); } );
+    ::close(fFd);
   }
 }
 
@@ -90,7 +94,7 @@ bool Rw11VirtEthTap::Open(const std::string& url, RerrMsg& emsg)
 
   struct ifreq ifr;
   ::memset(&ifr, 0, sizeof(ifr));
-  strncpy(ifr.ifr_name, fUrl.Path().c_str(), IFNAMSIZ); 
+  ::strncpy(ifr.ifr_name, fUrl.Path().c_str(), IFNAMSIZ-1); 
   ifr.ifr_flags = IFF_TAP|IFF_NO_PI;
 
   if (::ioctl(fd, TUNSETIFF, &ifr) < 0) {

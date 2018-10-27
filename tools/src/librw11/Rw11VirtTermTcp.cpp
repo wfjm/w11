@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTermTcp.cpp 1049 2018-09-22 13:56:52Z mueller $
+// $Id: Rw11VirtTermTcp.cpp 1059 2018-10-27 10:34:16Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-10-27  1059   1.0.7  coverity fixup (uncaught exception in dtor)
 // 2017-04-15   875   1.0.6  Open(): set default scheme
 // 2017-04-07   868   1.0.5  Dump(): add detail arg
 // 2014-08-22   584   1.0.4  use nullptr
@@ -37,6 +38,7 @@
 
 #include "librtools/RosFill.hpp"
 #include "librtools/RlogMsg.hpp"
+#include "librtools/Rtools.hpp"
 
 #include "Rw11VirtTermTcp.hpp"
 
@@ -104,12 +106,14 @@ Rw11VirtTermTcp::Rw11VirtTermTcp(Rw11Unit* punit)
 Rw11VirtTermTcp::~Rw11VirtTermTcp()
 {
   if (fFdListen > 2) {
-    Server().RemovePollHandler(fFdListen);
-    close(fFdListen);
+    Rtools::Catch2Cerr(__func__,
+                       [this](){ Server().RemovePollHandler(fFdListen); } );
+    ::close(fFdListen);
   }
   if (Connected()) {
-    Server().RemovePollHandler(fFd);
-    close(fFd);
+    Rtools::Catch2Cerr(__func__,
+                       [this](){ Server().RemovePollHandler(fFd); } );
+    ::close(fFd);
   }
 }
 

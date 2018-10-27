@@ -1,4 +1,4 @@
-// $Id: RtclAttnShuttle.cpp 1049 2018-09-22 13:56:52Z mueller $
+// $Id: RtclAttnShuttle.cpp 1059 2018-10-27 10:34:16Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-10-27  1059   1.1.1  coverity fixup (uncaught exception in dtor)
 // 2014-12-30   625   1.1    adopt to Rlink V4 attn logic
 // 2014-11-08   602   1.0.3  cast int first to ptrdiff_t, than to ClientData
 // 2014-08-22   584   1.0.2  use nullptr
@@ -31,6 +32,7 @@
 #include "boost/bind.hpp"
 
 #include "librtools/Rexception.hpp"
+#include "librtools/Rtools.hpp"
 
 #include "RtclAttnShuttle.hpp"
 
@@ -69,7 +71,7 @@ RtclAttnShuttle::RtclAttnShuttle(uint16_t mask, Tcl_Obj* pobj)
 
 RtclAttnShuttle::~RtclAttnShuttle()
 {
-  Remove();
+  Rtools::Catch2Cerr(__func__, [this](){ Remove();} );
   ::close(fFdPipeWrite);
   ::close(fFdPipeRead);
 }

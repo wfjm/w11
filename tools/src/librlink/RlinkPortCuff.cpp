@@ -1,6 +1,6 @@
-// $Id: RlinkPortCuff.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkPortCuff.cpp 1059 2018-10-27 10:34:16Z mueller $
 //
-// Copyright 2012-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2012-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-10-27  1059   1.1.6  coverity fixup (uncaught exception in dtor)
 // 2017-04-15   875   1.1.5  Open(): set default scheme
 // 2017-03-04   858   1.1.4  use clock_gettime instead of gettimeofday
 // 2015-04-12   666   1.1.3  add noinit attribute
@@ -86,7 +87,8 @@ RlinkPortCuff::RlinkPortCuff()
 
 RlinkPortCuff::~RlinkPortCuff()
 {
-  if (IsOpen()) RlinkPortCuff::Close();
+  if (IsOpen())  Rtools::Catch2Cerr(__func__,
+                                    [this](){ RlinkPortCuff::Close(); } );
 }
 
 //------------------------------------------+-----------------------------------

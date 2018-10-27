@@ -1,6 +1,6 @@
-// $Id: Rw11VirtTermPty.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11VirtTermPty.cpp 1059 2018-10-27 10:34:16Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-10-27  1059   1.0.3  coverity fixup (uncaught exception in dtor)
 // 2017-04-15   875   1.0.2  Open(): set default scheme
 // 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2013-03-06   495   1.0    Initial version
@@ -59,8 +60,9 @@ Rw11VirtTermPty::Rw11VirtTermPty(Rw11Unit* punit)
 Rw11VirtTermPty::~Rw11VirtTermPty()
 {
   if (fFd>=2) {
-    Server().RemovePollHandler(fFd);
-    close(fFd);
+    Rtools::Catch2Cerr(__func__,
+                       [this](){ Server().RemovePollHandler(fFd); } );
+    ::close(fFd);
   }
 }
 

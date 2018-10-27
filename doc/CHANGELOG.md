@@ -66,6 +66,7 @@ The full set of tests is only run for tagged releases.
 - backend code review:
   - use for C++ compiles also `-Wpedantic`
   - fixes for uninitialized variables (coverity, all uncritical)
+  - catch exceptions in dtors (coverity, use Catch2Cerr)
   - now -Wunused-parameter clean (comment out unused params)
   - now -Wunused-variable clean (comment out so far unused code)
   - move `using namespace std` after includes (clang warning)

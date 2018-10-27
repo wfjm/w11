@@ -1,6 +1,6 @@
-// $Id: RlinkConnect.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkConnect.cpp 1059 2018-10-27 10:34:16Z mueller $
 //
-// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-10-27  1059   2.6.3  coverity fixup (uncaught exception in dtor)
 // 2017-04-22   883   2.6.2  add rbus monitor probe, add HasRbmon()
 // 2017-04-07   868   2.6.1  Dump(): add detail arg
 // 2017-02-20   854   2.6    use Rtime, drop TimeOfDayAsDouble
@@ -163,7 +164,7 @@ RlinkConnect::RlinkConnect()
 
 RlinkConnect::~RlinkConnect()
 {
-  Close();
+  Rtools::Catch2Cerr(__func__, [this](){ Close(); } );
 }
 
 //------------------------------------------+-----------------------------------

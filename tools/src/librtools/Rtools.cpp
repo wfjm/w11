@@ -1,6 +1,6 @@
-// $Id: Rtools.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rtools.cpp 1059 2018-10-27 10:34:16Z mueller $
 //
-// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,7 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2017-02-18   852   1.0.7 remove TimeOfDayAsDouble()
+// 2018-10-26  1059   1.0.8  add Catch2Cerr()
+// 2017-02-18   852   1.0.7  remove TimeOfDayAsDouble()
 // 2014-11-23   606   1.0.6  add TimeOfDayAsDouble()
 // 2014-11-08   602   1.0.5  add (int) cast in snprintf to match %d type
 // 2014-08-22   584   1.0.4  use nullptr
@@ -169,6 +170,27 @@ bool CreateBackupFile(const RparseUrl& purl, RerrMsg& emsg)
     }
   }
   return true;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Catch2Cerr(const char* msg, std::function<void()> func)
+{
+  try {
+    func();
+  } catch (Rexception& e) {
+    cerr << "Catch2Cerr-E: exception '" << e.ErrMsg().Text()
+         << "' thrown in " << e.ErrMsg().Meth()
+         << " caught and dropped in " << msg << endl;
+   } catch (exception& e) {
+    cerr << "Catch2Cerr-E: exception '" << e.what()
+         << " caught and dropped in " << msg << endl;
+  } catch(...) {
+    cerr << "Catch2Cerr-E: non std::exception"
+         << " caught and dropped in " << msg << endl;
+  }
+  return;
 }
 
 } // end namespace Rtools

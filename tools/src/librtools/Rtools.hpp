@@ -1,6 +1,6 @@
-// $Id: Rtools.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rtools.hpp 1059 2018-10-27 10:34:16Z mueller $
 //
-// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-10-26  1059   1.0.7  add Catch2Cerr()
 // 2017-02-18   852   1.0.6  remove TimeOfDayAsDouble()
 // 2017-02-11   850   1.0.5  add Word2Bytes() and Bytes2Word()
 // 2014-11-23   606   1.0.4  add TimeOfDayAsDouble()
@@ -32,6 +33,7 @@
 
 #include <cstdint>
 #include <string>
+#include <functional>
 
 #include "RerrMsg.hpp"
 #include "RparseUrl.hpp"
@@ -58,6 +60,8 @@ namespace Retro {
 
     void            Word2Bytes(uint16_t word, uint16_t& byte0, uint16_t& byte1);
     uint16_t        Bytes2Word(uint16_t byte0, uint16_t byte1);
+
+    void            Catch2Cerr(const char* msg, std::function<void()> func);
 
   } // end namespace Rtools
 

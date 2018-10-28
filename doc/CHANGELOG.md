@@ -64,20 +64,26 @@ The full set of tests is only run for tagged releases.
 - sys_w11a_*.vhd: use DM_STAT_EXP; IDEC to maxisys; setup PERFEXT
 - RtclRw11Unit: fix for clang: M_virt() now public
 - backend code review:
-  - use for C++ compiles also `-Wpedantic`
+  - use for C++ compiles `-Wpedantic` (in addition to `-Wall` and `-Wextra`)
   - fixes for uninitialized variables (coverity, all uncritical)
   - catch exceptions in dtors (coverity, use Catch2Cerr)
+  - use `nullptr` instead of plain '0'
+  - use `[[noreturn]]` (clang -Wmissing-noreturn)
+  - drop never reached returns (clang -Wunreachable-code-return)
+  - drop `throw()` lists, use `noexcept` (clang -Wdeprecated)
+  - add `R*_Init` prototypes (clang -Wmissing-prototypes)
   - now -Wunused-parameter clean (comment out unused params)
   - now -Wunused-variable clean (comment out so far unused code)
   - move `using namespace std` after includes (clang warning)
   - some selected clang -Weverything aspects
-    - now -Wdocumentation clean (some wrong doxygen trailing comments)
+  - now -Wdocumentation clean (some wrong doxygen trailing comments)
 
 ### Bug Fixes
 - RtclArgs.hpp: BUGFIX: get *_min limits correct (gcc -Wpedantic)
 - RtclArgs.cpp: BUGFIX: GetArg(): argument in wrong order (coverity)
 - Rw11CntlDEUNA.cpp: BUGFIX: SetMacDefault(): resource leak (coverity)
 - Rw11VirtDiskFile.cpp: BUGFIX: Open(): resource leak (coverity)
+- Rw11VirtEthTap.cpp: BUGFIX: buffer not null terminated (coverity)
 - Rw11VirtTapeTap.cpp:
   - BUGFIX: Open(): resource leak (coverity)
   - BUGFIX: Rewind(): bad constant expression (coverity)

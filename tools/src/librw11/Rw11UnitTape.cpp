@@ -1,4 +1,4 @@
-// $Id: Rw11UnitTape.cpp 1049 2018-09-22 13:56:52Z mueller $
+// $Id: Rw11UnitTape.cpp 1060 2018-10-27 11:32:39Z mueller $
 //
 // Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -61,7 +61,6 @@ void Rw11UnitTape::SetType(const std::string& /*type*/)
 {
   throw Rexception("Rw11UnitTape::SetType", 
                    string("Bad args: only type '") + fType + "' supported");
-  return;
 }
 
 //------------------------------------------+-----------------------------------

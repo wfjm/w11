@@ -1,6 +1,6 @@
-// $Id: Rstats.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rstats.cpp 1060 2018-10-27 11:32:39Z mueller $
 //
-// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -156,7 +156,7 @@ size_t Rstats::NameMaxLength() const
 void Rstats::Print(std::ostream& os, const char* format,
                    int width, int prec) const
 {
-  if (format == 0 || format[0]==0) {
+  if (format == nullptr || format[0]==0) {
     format = fFormat.c_str();
     width  = fWidth;
     prec   = fPrec;

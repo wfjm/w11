@@ -1,6 +1,6 @@
-// $Id: RiosState.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RiosState.cpp 1060 2018-10-27 11:32:39Z mueller $
 //
-// Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2006-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -82,7 +82,7 @@ void RiosState::SetFormat(const char* form, int prec)
   char	  c_fill      = 0;
   char	  c;
 
-  if (form == 0) form = "";	    // allow null as format
+  if (form == nullptr) form = "";	    // allow null as format
 
   for (c = *form++; ; c = *form++) {
     if (c == '+') { b_plus   = true; continue;}

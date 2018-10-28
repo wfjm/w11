@@ -1,4 +1,4 @@
-// $Id: Rw11UnitDisk.cpp 1049 2018-09-22 13:56:52Z mueller $
+// $Id: Rw11UnitDisk.cpp 1060 2018-10-27 11:32:39Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -66,7 +66,6 @@ void Rw11UnitDisk::SetType(const std::string& /*type*/)
 {
   throw Rexception("Rw11UnitDisk::SetType", 
                    string("Bad args: only type '") + fType + "' supported");
-  return;
 }
 
 //------------------------------------------+-----------------------------------

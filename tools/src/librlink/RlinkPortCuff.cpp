@@ -1,4 +1,4 @@
-// $Id: RlinkPortCuff.cpp 1059 2018-10-27 10:34:16Z mueller $
+// $Id: RlinkPortCuff.cpp 1060 2018-10-27 11:32:39Z mueller $
 //
 // Copyright 2012-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -509,6 +509,7 @@ bool RlinkPortCuff::TraceOn()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
+[[noreturn]]
 void RlinkPortCuff::BadSysCall(const char* meth, const char* text, int rc)
 {
   stringstream ss;
@@ -520,6 +521,7 @@ void RlinkPortCuff::BadSysCall(const char* meth, const char* text, int rc)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
+[[noreturn]]
 void RlinkPortCuff::BadUSBCall(const char* meth, const char* text, int rc)
 {
   stringstream ss;

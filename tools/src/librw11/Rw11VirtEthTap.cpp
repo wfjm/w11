@@ -1,4 +1,4 @@
-// $Id: Rw11VirtEthTap.cpp 1059 2018-10-27 10:34:16Z mueller $
+// $Id: Rw11VirtEthTap.cpp 1062 2018-10-28 11:14:20Z mueller $
 //
 // Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -14,7 +14,7 @@
 // Revision History: 
 // Date         Rev Version  Comment
 // 2018-10-27  1059   1.0.1  coverity fixup (uncaught exception in dtor)
-//                           coverity fixup (buffer not null terminated)
+//                           BUGFIX: coverity (buffer not null terminated)
 // 2017-04-15   875   1.0    Initial version
 // 2014-06-09   561   0.1    First draft 
 // ---------------------------------------------------------------------------

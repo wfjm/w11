@@ -1,6 +1,6 @@
-// $Id: RlinkPortCuff.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkPortCuff.hpp 1060 2018-10-27 11:32:39Z mueller $
 //
-// Copyright 2012-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2012-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -91,8 +91,8 @@ namespace Retro {
       void          DriverEventUSB();
       libusb_transfer* NewWriteTransfer();
       bool          TraceOn();
-      void          BadSysCall(const char* meth, const char* text, int rc);
-      void          BadUSBCall(const char* meth, const char* text, int rc);
+      [[noreturn]] void BadSysCall(const char* meth, const char* text, int rc);
+      [[noreturn]] void BadUSBCall(const char* meth, const char* text, int rc);
       void          CheckUSBTransfer(const char* meth, libusb_transfer *t);
       const char*   USBErrorName(int rc);
 

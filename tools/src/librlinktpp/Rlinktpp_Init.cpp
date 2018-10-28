@@ -1,6 +1,6 @@
-// $Id: Rlinktpp_Init.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rlinktpp_Init.cpp 1061 2018-10-27 17:39:11Z mueller $
 //
-// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -39,6 +39,8 @@
 
 using namespace std;
 using namespace Retro;
+
+extern "C" int Rlinktpp_Init(Tcl_Interp* interp); // -Wmissing-prototypes fix
 
 //------------------------------------------+-----------------------------------
 extern "C" int Rlinktpp_Init(Tcl_Interp* interp) 

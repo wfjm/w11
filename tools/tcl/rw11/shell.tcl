@@ -1,6 +1,6 @@
-# $Id: shell.tcl 985 2018-01-03 08:59:40Z mueller $
+# $Id: shell.tcl 1058 2018-10-21 21:46:26Z mueller $
 #
-# Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-10-21  1058   2.2.5  add after#\d+ scrubber (a real HACK, sorry)
 # 2017-04-23   885   2.2.4  adopt .cm* to new interface
 # 2017-04-22   883   2.2.3  integrate rbmon: add .rme,.rmd,.rmf,.rml
 # 2017-04-16   879   2.2.2  rename .cres->.crst and .cr->.cres (more intuitive)
@@ -108,6 +109,19 @@ namespace eval rw11 {
   # shell_forward: rw11 shell forwarder (will be renamed to ::unknown) -------
   # 
   proc shell_forward args {
+    # in tcl 8.6 tclreadline and after interferes in some strange manner
+    # commands are sometime prefixed with 'after#nnn'. This BLOODY HACK
+    # looks for commands starting with 'after#\d+', scrubs of prefix, and
+    # executes them via uplevel.
+    set cmd  [lindex $args 0]
+    set cmdo $cmd
+    regsub -all {^after#\d+} $cmd {} cmd
+    if {$cmd ne $cmdo} {
+      if {$cmd eq ""} { return "" }
+      lset args 0 $cmd
+      uplevel 1 [list {*}$args]
+      return ""
+    }
     uplevel 1 [list rw11::shell {*}$args]
   }
 

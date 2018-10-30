@@ -44,7 +44,10 @@ The full set of tests is only run for tagged releases.
   - download the `ghdl` based test benches (can't be build under Travis)
   - execute the test benches with `tbrun`
 - add KW11-P support, enable it in all w11a systems
-- add pdp11_dmpcnt: performance counters
+- add performance counters
+  - pdp11_dmpcnt: an array of 32 counters of 32 bit width
+  - connected to 24 signals from inside pdp11_sys70 and 8 signals from outside
+  - dmpcntanal: analysis script
 
 ### Changes
 - Makefile: `make all_tcl` now quiet, use setup_packages_filt

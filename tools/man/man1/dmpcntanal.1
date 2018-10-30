@@ -1,0 +1,282 @@
+.\"  -*- nroff -*-
+.\"  $Id: dmpcntanal.1 1059 2018-10-27 10:34:16Z mueller $
+.\"
+.\" Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" 
+.\" ------------------------------------------------------------------
+.
+.TH DMPCNTANAL 1 2018-10-21 "Retro Project" "Retro Project Manual"
+.\" ------------------------------------------------------------------
+.SH NAME
+dmpcntanal \- analyze dmpcnt data
+.\" ------------------------------------------------------------------
+.SH SYNOPSIS
+.
+.SY dmpcntanal
+.RI [ OPTION ]...
+.I FILE
+.
+.SY dmpcntanal
+.B \-\-help
+.YS
+.
+.\" ------------------------------------------------------------------
+.SH DESCRIPTION
+Reads a list of CPU performance counter raw data, usually generated via
+a \fIrw11::pc_lsta\fR command, and generates human readable reports.
+.
+.\" ------------------------------------------------------------------
+.SH OPTIONS
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-cstate\fR"
+show the CPU state columns, which give in percent the fraction of
+clock cycles spend in different CPU states:
+.RS
+.IP \fIcp\fP
+console port handling, mostly rbus processing.
+.PD 0
+.IP \fIkm>0\fP
+kernel mode at priority > 0, interrupt handling or interrupt lock-out
+.IP \fIkm=0\fP
+kernel mode at priority == 0
+.IP \fIwait\fP
+idling in a WAIT instruction
+.IP \fIsm\fP
+supervisor mode
+.IP \fIsum\fP
+user mode
+.PD
+.RE
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-cevents\fR"
+show the CPU events columns
+.RS
+.IP \fIMin/s\fP
+instruction rate in MHz
+.PD 0
+.IP \fIvfetc\fP
+vector fetch rate, sum of traps, exceptions and interrupts.
+.IP \fIirupt\fP
+interrupt rate
+.IP \fIi/b\fP
+instruction per branch
+.PD
+.RE
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-clk\fR"
+clock rate on MHz, counting only cycles when CPU running. In normal
+operation this is equivalent to the system clock rate.
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-cpi\fR"
+show the CPU cycle/instruction column.
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-cpb\fR"
+show the CPU cycle/branch column.
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-cache\fR"
+show all cache columns.
+.RS
+.IP \fIr/i\fP
+number of read requests per instruction.
+.PD 0
+.IP \fIw/i\fP
+number of write requests per instruction.
+.IP \fIrhit\fP
+read hit rate in %.
+.IP \fIwhit\fP
+write hit rate in %.
+.IP \fIrwt\fP
+average number of wait cycles per memory read (in miss case).
+.IP \fIwwt\fP
+average number of wait cycles per memory write (from back pressure).
+.IP \fIwt/i\fP
+average number of memory wait cycles per instruction.
+.PD
+.RE
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-chit\fR"
+show cache columns \fIrhit\fP, \fIwhit\fP and \fIwt/i\fP, subset of
+\fB--cache\fR.
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-ibus\fR"
+show all ibus columns.
+.RS
+.IP \fIrdkH\fP
+ibus read rate in kHz.
+.PD 0
+.IP \fIwrkH\fP
+ibus write rate in kHz.
+.IP \fIwt/r\fP
+average number of ibus wait cycles (read and write combined).
+.PD
+.RE
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-rbus\fR"
+show all rbus columns.
+.RS
+.IP \fIrdkH\fP
+ibus read rate in kHz.
+.PD 0
+.IP \fIwrkH\fP
+ibus write rate in kHz.
+.IP \fIwt/r\fP
+average number of ibus wait cycles (read and write combined).
+.PD
+.RE
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-raw\fR=\fIclist\fR"
+show raw data of the counters given in the comma separated list of
+counter names \fIclist\fR.
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-dat\fR=\fIclist\fR"
+show data rate of the counters given in the comma separated list of
+counter names \fIclist\fR.
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-fmt\fR=\fIhdr,[fmt],[mul],num[,den]\fR"
+add custom column with a scaled counter rate or a scaled counter ratio
+specified with
+.RS
+.IP \fBhdr\fP
+text for header. The length if the header must be equal or less than the
+width of the format.
+.PD 0
+.IP \fBfmt\fP
+format in the form like \fIw.p\fR with a single digit field width \fIw\fR
+and single digit precision \fIp\fR. If \fIp\fR is \fI0\fR no decimal point
+is printed. If omitted \fI4.1\fR is assumed.
+.IP \fBmul\fP
+multiplier, given as integer of floating point number.
+If omitted 1. is assumed.
+.IP \fBnum\fP
+name of numerator counter
+.IP \fBden\fP
+name of denominator counter. If specified the ratio \fInum/den\fR is
+printed, if omitted the rate \fInum\fR is printed.
+.PD
+.RE
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-sum\fR=\fInam[,from[,to]]\fR"
+allows to determine averages for a given time interval with
+.RS
+.IP \fBnam\fP
+name printed in the 1st column, up to 6 characters allowed.
+.PD 0
+.IP \fBfrom\fP
+start time of averaging, if omitted start at begin.
+.IP \fBto\fP
+end time of averaging, if omitted sum to the end.
+.PD
+.RE
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-tot\fR"
+add line with average values for the whole dataset, short for \fB-sum=total\fR.
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-cpu\fR"
+short for \fB-cstate -cevent -chit\fR. If no option which generates
+an output column is given and a \fB\-cpu\fR style output is generated.
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-all\fR"
+short for \fB-cstate -cevent -cache -ibus -rbus\fR.
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-hpl\fR=\fIn\fR"
+print header after \fIn\fR lines.
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-help\fR"
+print full help text and exit.
+.
+.\" ------------------------------------------------------------------
+.SH COLUMN DEFINITIONS
+All standard columns generated via options like \fB-cstate\fR can
+also be created via the \fB-fmt\fR option with the following parameters
+.EX
+
+    name    format  mul     numerator     denominator
+    
+    cp      4.1     100.    cpu_cpbusy    cpu_tot
+    km>0    4.1     100.    cpu_km_prix   cpu_tot
+    km=0    4.1     100.    cpu_km_pri0   cpu_tot
+    wait    4.1     100.    cpu_km_wait   cpu_tot
+    sm      4.1     100.    cpu_sm        cpu_tot
+    um      4.1     100.    cpu_um        cpu_tot
+
+    Min/s   5.2     1.e-6   cpu_idec
+    vfetch  5.0     1.      cpu_vfetch
+    irupt   5.0     1.      cpu_irupt
+    i/b     4.1     1.      cpu_idec      cpu_pcload
+    
+    r/i     4.2     1.      ca_rd         cpu_idec
+    w/i     4.2     1.      ca_wr         cpu_idec
+    rhit    4.1     100.    ca_rdhit      ca_rd
+    whit    4.1     100.    ca_wrhit      ca_wr
+    rwt     4.1     1.      ca_rdwait     ca_rdmem
+    wwt     4.1     1.      ca_wrwait     ca_wrmem
+    wt/i    4.1     1.      ca_totwt      cpu_idec
+
+    rdkH    4.2     1.e-3   ib_rd
+    wrkH    4.2     1.e-3   ib_wr
+    wt/r    4.1     1.      ib_busy       ib_tot
+
+    rdkH    4.2     1.e-3   rb_rd
+    wrkH    4.2     1.e-3   rb_wr
+    wt/r    4.1     1.      rb_busy       rb_tot
+.EE
+
+.\" ------------------------------------------------------------------
+.SH EXAMPLES
+.IP "\fBdmpcntanal -cstate -cevent -tot pc_dmpcnt_xxx.dat\fR" 4
+reads the file \fIpc_dmpcnt_xxx.dat\fR and generates a report with the
+\fB-cstate\fR and \fB-cevent\fR columns sets.
+
+The input file is typically generated by a \fBti_w11\fR tcl command like
+
+.EX
+  rw11::pc_clear
+  rw11::pc_start
+  rw11::pc_lsta pc_dmpcnt_xxx.dat
+.EE
+
+The output might look like
+
+.EX
+  time  ------ cpu state in % -------  ----- cpu events -----
+   sec    cp km>0 km=0 wait   sm   um  Min/s vfetc irupt  i/b
+ ...
+  38.0   0.7 10.4 19.2  4.0  0.0 65.7   8.95  1319   712  4.2
+  39.0   0.4  5.1  9.9  1.4  0.0 83.1   9.76  1021   373  4.0
+  40.0   0.7  9.4 18.6  3.6  0.0 67.8   8.60  1135   616  4.5
+  41.0   0.4  4.6  9.5  1.1  0.0 84.4   9.81  1190   313  4.1
+  42.0   0.6  7.1 18.0  3.4  0.0 70.8   9.33  1153   611  3.9
+  43.0   0.5  7.6 15.0  4.1  0.0 72.7   9.15  1278   540  4.1
+  44.0   0.6  9.2 15.8  3.0  0.0 71.4   8.87  1267   509  4.4
+  45.0   0.6  7.4 16.7  3.2  0.0 72.1   8.96  1276   552  4.2
+ ...
+  time  ------ cpu state in % -------  ----- cpu events -----
+   sec    cp km>0 km=0 wait   sm   um  Min/s vfetc irupt  i/b
+ total   0.5  7.0 17.0 19.7  0.0 55.8   7.28  1453   471  3.9
+.EE
+
+.\" ------------------------------------------------------------------
+.SH "SEE ALSO"
+.BR ti_w11 (1)
+
+.\" ------------------------------------------------------------------
+.SH AUTHOR
+Walter F.J. Mueller <W.F.J.Mueller@gsi.de>

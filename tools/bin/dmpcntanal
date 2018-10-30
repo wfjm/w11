@@ -1,0 +1,506 @@
+#!/usr/bin/perl -w
+# $Id: dmpcntanal 1057 2018-10-19 15:06:42Z mueller $
+#
+# Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+#
+# This program is free software; you may redistribute and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 3, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# for complete details.
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2018-10-19  1057   1.0    Initial version
+# 2018-10-06  1053   0.1    First draft
+#
+
+use 5.14.0;                                 # require Perl 5.14 or higher
+use strict;                                 # require strict checking
+
+use Getopt::Long;
+use Scalar::Util qw(looks_like_number);
+
+my %opts = ();
+
+GetOptions(\%opts, "cstate", "cevent", "clk", "cpi", "cpb",
+           "cache", "chit", "ibus", "rbus",
+           "raw=s@", "dat=s@", "fmt=s@", "sum=s@", "tot",
+           "cpu", "all", "hpl=i",
+           "help")
+  or die "bad options";
+
+my %cnam2ind = (cpu_cpbusy   =>  0,
+                cpu_km_prix  =>  1,
+                cpu_km_pri0  =>  2,
+                cpu_km_wait  =>  3,
+                cpu_sm       =>  4,
+                cpu_um       =>  5,
+                cpu_idec     =>  6,
+                cpu_pcload   =>  7,
+                cpu_vfetch   =>  8,
+                cpu_irupt    =>  9,
+                ca_rd        => 10,
+                ca_wr        => 11,
+                ca_rdhit     => 12,
+                ca_wrhit     => 13,
+                ca_rdmem     => 14,
+                ca_wrmem     => 15,
+                ca_rdwait    => 16,
+                ca_wrwait    => 17,
+                ib_rd        => 18,
+                ib_wr        => 19,
+                ib_busy      => 20,
+                rb_rd        => 21,
+                rb_wr        => 22,
+                rb_busy      => 23,
+                ext_rdrhit   => 24,
+                ext_wrrhit   => 25,
+                ext_wrflush  => 26,
+                ext_rlrxact  => 27,
+                ext_rlrxback => 28,
+                ext_rltxact  => 29,
+                ext_rltxback => 20,
+                ext_usec     => 31,
+                # calculated values
+                cpu_tot      => -1,         # total cpu cyles
+                cpu_act      => -2,         # active cpu cycles (no cp + wait)
+                ca_totwt     => -3,         # total cache wait cycles
+                ib_tot       => -4,         # total ibus requests
+                rb_tot       => -5          # total rbus requests
+               );
+
+my $sumdt = 0.4;
+
+my @rawnam;
+my @datnam;
+my @fmtdsc;
+my @sumdsc;
+
+my %hraw;
+my %hdif;
+
+autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
+
+if (exists $opts{help}) {
+  print_help();
+  exit 0;
+}
+
+# process -raw and -dat options
+foreach my $opt (@{$opts{raw}}) { push @rawnam, split /,/,$opt; }
+foreach my $opt (@{$opts{dat}}) { push @datnam, split /,/,$opt; }
+
+# process -fmt options
+foreach my $opt (@{$opts{fmt}}) {
+  my @olist = split /,/,$opt;
+  if (scalar(@olist) < 4 || scalar(@olist) > 5) {
+    print STDERR "dmpcntanal-E: bad -fmt option '$opt'\n";
+    exit 1;
+  }
+  my $head   = $olist[0];
+  my $fmt    = $olist[1];
+  my $fac    = $olist[2];
+  my $namnum = $olist[3];
+  my $namden = $olist[4];
+  $fac = 1.    unless $fac ne '';
+  $fmt = '4.1' unless $fmt ne '';
+  my ($fmtlen,$fmtpre) = ($fmt =~ m/^(\d)\.(\d)$/);
+  unless (defined $fmtlen && defined $fmtpre) {
+    print STDERR "dmpcntanal-E: bad format '$fmt' in -fmt\n";
+    exit 1;
+  }
+  unless (length($head) <= $fmtlen) {
+    print STDERR "dmpcntanal-E: header '$head' longer than $fmtlen in -fmt\n";
+    exit 1;
+  }
+  chknum($fac, '-fmt');
+  chknam($namnum, '-fmt');
+  chknam($namden, '-fmt') if defined $namden;
+  push @fmtdsc, {head   => $head,
+                 fmt    => '%' . $fmt .'f',
+                 fmtlen => $fmtlen,
+                 fmtpre => $fmtpre,
+                 fac    => $fac,
+                 namnum => $namnum,
+                 namden => $namden
+                };
+}
+
+# process -tot option
+push @{$opts{sum}}, 'total' if $opts{tot};
+
+# process -sum options
+foreach my $opt (@{$opts{sum}}) {
+  my @olist = split /,/,$opt;
+  if (scalar(@olist) < 1 || scalar(@olist) > 3) {
+    print STDERR "dmpcntanal-E: bad -sum option '$opt'\n";
+    exit 1;
+  } else {
+    my $name   = $olist[0];
+    my $from   = $olist[1];
+    my $to     = $olist[2];
+    unless (length($name) <= 6) {
+      print STDERR "dmpcntanal-E: name '$name' longer than 6 in -sum\n";
+      exit 1;
+    }
+    $from =   0. unless defined $from && $from ne '';
+    $to   = 1.e8 unless defined $to   && $to   ne '';;
+    chknum($from, '-sum');
+    chknum($to,   '-to');
+    if ($to <= $from) {
+      print STDERR "dmpcntanal-E: negative time interval [$from,$to] -sum\n";
+      exit 1;
+    }
+    push @sumdsc, {name   => $name,
+                   from   => $from,
+                   to     => $to,
+                   count  => 0,
+                   hdif   => {}
+                  };
+  }
+}
+
+foreach my $nam (@rawnam) { chknam($nam, '-raw') }
+foreach my $nam (@datnam) { chknam($nam, '-dat') }
+
+# process -cache and -chit options
+delete $opts{chit} if $opts{cache};         # hide -chit if -cache given
+
+# default to -cpu if no field specified
+unless ($opts{cstate} || $opts{cevent} ||
+        $opts{clk} || $opts{cpi} || $opts{cpb} ||
+        $opts{cache} || $opts{chit} || $opts{ibus} || $opts{rbus} ||
+        $opts{cpu} || $opts{all} ||
+        scalar(@rawnam) || scalar(@datnam) || scalar(@fmtdsc)) {
+  $opts{cpu} = 1;
+}
+
+# process -cpu
+if ($opts{cpu}) {
+  $opts{cstate} = 1;
+  $opts{cevent} = 1;
+  $opts{chit} = 1;
+}
+# process -all
+if ($opts{all}) {
+  $opts{cstate} = 1;
+  $opts{cevent} = 1;
+  $opts{cache} = 1;
+  $opts{ibus} = 1;
+  $opts{rbus} = 1;
+}
+
+# and finally process data
+foreach my $file (@ARGV) {
+  read_file($file);
+}
+
+#-------------------------------------------------------------------------------
+
+sub read_file {
+  my ($file) = @_;
+
+  # print headers
+  prthead();
+
+  # open file
+  open IFILE,"<$file" or die "failed to open $file";
+
+  my @vraw  = (0) x 32;
+  my @vdif  = (0) x 32;
+  my @vlast = (0) x 32;
+  my $nline = 0;
+
+  # loop over lines in file
+  while (<IFILE>) {
+    chomp;
+    next if m/^#/;
+    if (m/^\s*(\d+\.\d+)\s+((\s*\d+){32})$/x) {
+      # prepare data as array
+      my $time = $1;
+      my @vraw = split /\s+/,$2;
+      for (my $i=0; $i<32; $i++) {
+        my $dif = $vraw[$i] - $vlast[$i];
+        $dif += 4.*1024.*1024.*1024. if ($dif < 0);
+        $vdif[$i]  = $dif;
+        $vlast[$i] = $vraw[$i];
+      }
+
+      # prepare data as hash
+      foreach my $nam (keys %cnam2ind) {
+        next if $cnam2ind{$nam} < 0;
+        $hraw{$nam} = $vraw[$cnam2ind{$nam}];
+        $hdif{$nam} = $vdif[$cnam2ind{$nam}];
+      }
+      $hdif{cpu_tot} = $hdif{cpu_cpbusy} + $hdif{cpu_km_prix} +
+                       $hdif{cpu_km_pri0} + $hdif{cpu_km_wait} +
+                       $hdif{cpu_sm} + $hdif{cpu_um};
+      $hdif{cpu_act} = $hdif{cpu_km_prix} + $hdif{cpu_km_pri0} +
+                       $hdif{cpu_sm} + $hdif{cpu_um};
+      $hdif{ca_totwt} = $hdif{ca_rdwait} + $hdif{ca_wrwait};
+      $hdif{ib_tot} = $hdif{ib_rd} + $hdif{ib_wr};
+      $hdif{rb_tot} = $hdif{rb_rd} + $hdif{rb_wr};
+
+      # accululation of (sub-)totals
+      foreach my $dsc (@sumdsc) {
+        if ($time >= $dsc->{from}-$sumdt && $time <= $dsc->{to}+$sumdt) {
+          $dsc->{count} += 1;
+          foreach my $k (keys %hdif) { $dsc->{hdif}->{$k} += $hdif{$k} }
+        }
+      }
+      # do printing
+      $nline += 1;
+      if ($opts{hpl} && $opts{hpl} > 0 && $nline > $opts{hpl}) {
+        print "\n";
+        prthead();
+        $nline = 0;
+      }
+      prtline(\%hraw, \%hdif, (sprintf "%6.1f", $time));
+
+    } else {
+      printf STDERR "bad line: $_\n";
+    }
+  }
+
+  # print (sub-)totals
+  if (scalar @sumdsc) {
+    print "\n";
+    prthead();
+    foreach my $dsc (@sumdsc) {
+      if ($dsc->{count} > 0) {
+        foreach my $k (keys %hdif) { $dsc->{hdif}->{$k} /= $dsc->{count} }
+        prtline(undef, $dsc->{hdif}, $dsc->{name});
+      } else {
+        printf "%6s  ... empty ... no data in [%4.1f,%4.1f]\n",
+          $dsc->{name}, $dsc->{from}-$sumdt, $dsc->{to}+$sumdt;
+      }
+    }
+  }
+
+  close IFILE;
+
+}
+
+
+#-------------------------------------------------------------------------------
+
+sub prtline {
+  my ($rhraw,$rhdif,$tcol) = @_;
+
+  printf "%6s", $tcol;
+  if (defined $rhraw) {
+    foreach my $nam (@rawnam) { printf " %10.0f", $rhraw->{$nam}; }
+  } else {
+    foreach my $nam (@rawnam) { printf ' ' x 10 . '-'; }
+  }
+  foreach my $nam (@datnam) { printf " %9.0f", $rhdif->{$nam}; }
+
+  if ($opts{cstate}) {
+    print ' ';
+    prtrat($rhdif,'%4.1f',100.,'cpu_cpbusy','cpu_tot');
+    prtrat($rhdif,'%4.1f',100.,'cpu_km_prix','cpu_tot');
+    prtrat($rhdif,'%4.1f',100.,'cpu_km_pri0','cpu_tot');
+    prtrat($rhdif,'%4.1f',100.,'cpu_km_wait','cpu_tot');
+    prtrat($rhdif,'%4.1f',100.,'cpu_sm','cpu_tot');
+    prtrat($rhdif,'%4.1f',100.,'cpu_um','cpu_tot');
+  }
+  if ($opts{clk}) {
+    prtval($rhdif,'%5.1f',1.e-6,'cpu_tot');
+  }
+  if ($opts{cevent}) {
+    print ' ';
+    prtval($rhdif,'%5.2f',1.e-6,'cpu_idec');
+    prtval($rhdif,'%5.0f',1.,'cpu_vfetch');
+    prtval($rhdif,'%5.0f',1.,'cpu_irupt');
+    prtrat($rhdif,'%4.1f',1.,'cpu_idec','cpu_pcload');
+  }
+  if ($opts{cpi}) {
+    prtrat($rhdif,'%4.1f',1.,'cpu_act','cpu_idec');
+  }
+  if ($opts{cpb}) {
+    prtrat($rhdif,'%4.1f',1.,'cpu_act','cpu_pcload');
+  }
+
+  if ($opts{cache}) {
+    print ' ';
+    prtrat($rhdif,'%4.2f',1.,'ca_rd','cpu_idec');
+    prtrat($rhdif,'%4.2f',1.,'ca_wr','cpu_idec');
+    prtrat($rhdif,'%4.1f',100.,'ca_rdhit','ca_rd');
+    prtrat($rhdif,'%4.1f',100.,'ca_wrhit','ca_wr');
+    prtrat($rhdif,'%4.1f',1.,'ca_rdwait','ca_rdmem');
+    prtrat($rhdif,'%4.1f',1.,'ca_wrwait','ca_wrmem');
+    prtrat($rhdif,'%4.1f',1.,'ca_totwt','cpu_idec');
+  }
+  if ($opts{chit}) {
+    print ' ';
+    prtrat($rhdif,'%4.1f',100.,'ca_rdhit','ca_rd');
+    prtrat($rhdif,'%4.1f',100.,'ca_wrhit','ca_wr');
+    prtrat($rhdif,'%4.1f',1.,'ca_totwt','cpu_idec');
+  }
+
+  if ($opts{ibus}) {
+    print ' ';
+    prtval($rhdif,'%4.2f',1.e-3,'ib_rd');
+    prtval($rhdif,'%4.2f',1.e-3,'ib_wr');
+    prtrat($rhdif,'%4.1f',1.,'ib_busy','ib_tot');
+  }
+  if ($opts{rbus}) {
+    print ' ';
+    prtval($rhdif,'%4.2f',1.e-3,'rb_rd');
+    prtval($rhdif,'%4.2f',1.e-3,'rb_wr');
+    prtrat($rhdif,'%4.1f',1.,'rb_busy','rb_tot');
+  }
+
+  foreach my $dsc (@fmtdsc) {
+    if (defined $dsc->{namden}) {
+      prtrat($rhdif, $dsc->{fmt}, $dsc->{fac}, $dsc->{namnum}, $dsc->{namden});
+    } else {
+      prtval($rhdif, $dsc->{fmt}, $dsc->{fac}, $dsc->{namnum});
+    }
+  }
+  printf "\n";
+}
+
+#-------------------------------------------------------------------------------
+
+sub prthead {
+  # print header line 1
+  printf '  time';
+  foreach my $nam (@rawnam) { printf " %9s_", (split /_/,$nam,2)[0]; }
+  foreach my $nam (@datnam) { printf " %8s_",  (split /_/,$nam,2)[0];}
+  print '  ------ cpu state in % -------' if $opts{cstate};
+  print ' clock' if $opts{clk};
+  print '  ----- cpu events -----' if $opts{cevent};
+  print ' ----' if $opts{cpi};
+  print ' ----' if $opts{cpb};
+  print '  -------------- cache -------------' if $opts{cache};
+  print '  ---- cache ---' if $opts{chit};
+  print '  ---- ibus ----' if $opts{ibus};
+  print '  ---- rbus ----' if $opts{rbus};
+  my $fmtcol = 0;
+  foreach my $dsc (@fmtdsc) { $fmtcol += $dsc->{fmtlen}+1 }
+  if ($fmtcol > 0) {
+    my $ndash  = $fmtcol - 6;
+    my $nleft  = int($ndash/2);
+    my $nright = $ndash - $nleft;
+    print ' ' . '-'x$nleft . ' fmt ' . '-'x$nright;
+  }
+  printf "\n";
+
+  # print header line 2
+  printf "   sec";
+  foreach my $nam (@rawnam) { printf " %10s", (split /_/,$nam,2)[1]; }
+  foreach my $nam (@datnam) { printf " %9s", (split /_/,$nam,2)[1]; }
+  print '    cp km>0 km=0 wait   sm   um' if $opts{cstate};
+  print '   MHz' if $opts{clk};
+  print '  Min/s vfetc irupt  i/b' if $opts{cevent};
+  print '  c/i' if $opts{cpi};
+  print '  c/b' if $opts{cpb};
+  print '   r/i  w/i rhit whit  rwt  wwt wt/i' if $opts{cache};
+  print '  rhit whit wt/i' if $opts{chit};
+  print '  rdkH wrkH wt/r' if $opts{ibus};
+  print '  rdkH wrkH wt/r' if $opts{rbus};
+  foreach my $dsc (@fmtdsc) { printf " %$dsc->{fmtlen}s", $dsc->{head}}
+  printf "\n";
+}
+
+#-------------------------------------------------------------------------------
+
+sub prtrat {
+  my ($rhdif,$fmt,$mul,$namnum,$namden) = @_;
+  if (not exists $rhdif->{$namnum} || not exists $rhdif->{$namden}) {
+    prtbad($fmt);
+  } else {
+    my $rat = 0.;
+    $rat = $rhdif->{$namnum} / $rhdif->{$namden} if $rhdif->{$namden} > 0.;
+    prtfmt($fmt, $rat*$mul);
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub prtval {
+  my ($rhdif,$fmt,$mul,$nam) = @_;
+  if (not exists $rhdif->{$nam}) {
+    prtbad($fmt);
+  } else {
+    prtfmt($fmt, $rhdif->{$nam}*$mul);
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub prtfmt {
+  my ($fmt,$val) = @_;
+  my ($len,$prec) = ($fmt =~ m/(\d)\.(\d)/);
+  my $str = sprintf $fmt, $val;
+  if (($prec == 0 && length($str) > $len) ||
+      ($prec > 0  && length($str) > $len+$prec+1)) {
+    print ' ' . '*' x $len;
+    return
+  }
+  $str = substr($str,0,$len) if length($str) > $len;
+  print ' ' . $str;
+}
+
+#-------------------------------------------------------------------------------
+
+sub prtbad {
+  my ($fmt) = @_;
+  my ($len,$prec) = ($fmt =~ m/(\d)\.(\d)/);
+  print ' ' x $len . '-';
+}
+
+#-------------------------------------------------------------------------------
+
+sub chknam {
+  my ($nam,$cmd) = @_;
+  return if exists $cnam2ind{$nam};
+  print STDERR "dmpcntanal-E: unknown counter name '$nam' in $cmd\n";
+  exit 1;
+}
+
+#-------------------------------------------------------------------------------
+
+sub chknum {
+  my ($num,$cmd) = @_;
+  return if looks_like_number($num);
+  print STDERR "dmpcntanal-E: bad factor '$num' in  $cmd\n";
+  exit 1;
+}
+
+#-------------------------------------------------------------------------------
+
+sub print_help {
+  print "usage: dmpcntanal file\n";
+  print "  --cstate          show cpu state colums\n";
+  print "  --cevent          show cpu events colums\n";
+  print "  --clk             show cpu clock column\n";
+  print "  --cpi             show cpu cycle/instruction column\n";
+  print "  --cpb             show cpu cycle/branch column\n";
+  print "  --cache           show all cache colums\n";
+  print "  --chit            show cache hit+wait colums (subset of --cache)\n";
+  print "  --ibus            show ibus colums\n";
+  print "  --rbus            show rbus colums\n";
+  print "  --raw=c[,c,..]    show raw data of counter c\n";
+  print "  --dat=c[,c,..]    show rate data of counter c\n";
+  print "  --fmt=h,f,m,n[,d] add custom colum with\n";
+  print "                      h  header text\n";
+  print "                      f  format as len.pre (default 4.1)\n";
+  print "                      m  multiplier (default 1.)\n";
+  print "                      n  numerator counter name\n";
+  print "                      d  denominator counter name (optional)\n";
+  print "  --sum=n[,f[,t]]   add sub-total line, with\n";
+  print "                      n  name printed in time column\n";
+  print "                      f  from, begin of interval (optional)\n";
+  print "                      t  to, end of interval (optional)\n";
+  print "  --tot             add total line (short for -sum=total)\n";
+  print "  --cpu             short for -cstate -cevent -chit (default view)\n";
+  print "  --all             short for -cstate -cevent -cache -ibus -rbus\n";
+  print "  --hpl=n           print header after n lines\n";
+  print "  --help            this message\n";
+}

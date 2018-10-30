@@ -1,4 +1,4 @@
-# $Id: dmpcnt.tcl 1056 2018-10-13 16:01:17Z mueller $
+# $Id: dmpcnt.tcl 1058 2018-10-21 21:46:26Z mueller $
 #
 # Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-10-21  1058   1.1    add logger, pc_l* commands
 # 2018-10-13  1055   1.0    Initial version
 # 2018-09-23  1050   0.1    First draft
 #
@@ -30,7 +31,7 @@ namespace eval rw11 {
                  {func 2 3 "s:NOOP:NOOP1:NOOP2:NOOP3:STO:STA:CLR:LOA"}
   regdsc PC_STAT {ainc 15} {caddr 13 5} {waddr 8} {run 0}
 
-  # preliminary handling of counter names, hack in first version
+   # preliminary handling of counter names, hack in first version
   variable pcnt_cnames [list cpu_cpbusy cpu_km_prix cpu_km_pri0 cpu_km_wait \
                              cpu_sm cpu_um cpu_idec cpu_pcload \
                              cpu_vfetch cpu_irupt ca_rd ca_wr \
@@ -46,7 +47,12 @@ namespace eval rw11 {
     incr tmp_ind
   }
   unset tmp_ind
-  
+
+  variable pcnt_timesta  0
+  variable pcnt_timenext 0
+  variable pcnt_logaftid 0
+  variable pcnt_logchan  0
+    
   #
   # pc_setup: rmap definitions for dmpcnt
   # 
@@ -126,5 +132,84 @@ namespace eval rw11 {
     }
     return $rval
   }
+  
+  #
+  # pc_lsta: start logging
+  #
+  proc pc_lsta {{file ""}} {
+    variable pcnt_timesta
+    variable pcnt_timenext
+    variable pcnt_logaftid
+    variable pcnt_logchan
+
+    if {$pcnt_logchan != 0} { error "pc logger already running" }
+
+    if {$file eq ""} {
+      set timestamp [clock format [clock seconds] -format "%Y-%m-%d-%H%M%S"]
+      set file "pc_dmpcnt$timestamp.dat"
+    }
+    
+    pc_clear
+    pc_start
+
+    set pcnt_logchan  [open $file w]
+    fconfigure $pcnt_logchan -buffering line
+    set pcnt_timesta  [clock milliseconds]
+    set pcnt_timenext $pcnt_timesta
+    after 0 rw11::pc_lhdl
+    return ""
+  }
+  
+  #
+  # pc_lsto: stop logging
+  #
+  proc pc_lsto {} {
+    variable pcnt_logaftid
+    variable pcnt_logchan
+    variable pcnt_timesta
+    variable pcnt_timenext
+    
+    if {$pcnt_logchan == 0} { return "" }
+    
+    after cancel $pcnt_logaftid
+    close $pcnt_logchan
+    set pcnt_logchan  0
+    set pcnt_timesta  0
+    set pcnt_timenext 0
+    set pcnt_logaftid 0
+    return ""
+  }
+  
+  #
+  # pc_lcom: add comment to logger
+  #
+  proc pc_lcom {{comment ""}} {
+    variable pcnt_logchan
+    if {$pcnt_logchan == 0} { error "pc logger not running" }
+    puts $pcnt_logchan "# $comment"
+    return ""
+  }
+  
+  #
+  # pc_lhdl: logger handler
+  #
+  proc pc_lhdl {} {
+    variable pcnt_timesta
+    variable pcnt_timenext
+    variable pcnt_logaftid
+    variable pcnt_logchan
+    if {$pcnt_logchan == 0} { return "" }
+    set tela [expr {([clock milliseconds]-$pcnt_timesta)/1000.}]
+    set pclist [pc_read]
+    set line [format "%10.3f " $tela]
+    foreach {pc} $pclist {
+      append line [format " %1.0f" $pc]
+    }
+    puts $pcnt_logchan $line
+    set pcnt_timenext [expr {$pcnt_timenext + 1000}]
+    set dt [expr { $pcnt_timenext - [clock milliseconds]}]
+    after $dt rw11::pc_lhdl
+    return ""
+  }  
 
 }

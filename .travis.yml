@@ -50,6 +50,8 @@ script:
   - make -C tools/src
   - make -C tools/src/testtclsh
   - make all_tcl
+  - make -C tools/asm-11/tests allexp
+  - make -C tools/asm-11/tests-err allexp
   - |
     tbrun -nomake \
       -tag default,memlib \

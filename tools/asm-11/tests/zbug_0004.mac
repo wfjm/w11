@@ -1,0 +1,25 @@
+; $Id: zbug_0004.mac 1063 2018-10-29 18:37:42Z mueller $
+;
+; for asm-11 prior rev 712
+;
+; ISSUE: faulty '.' handling:
+;        - asm-11 used current location at the point when operand is processed
+;        - macro-11 uses
+;          - the address of opcode in case of instructions
+;          - the current address in case of .word lists
+;
+; REASON: parser error, added out_wop() function and $defincdot state variable
+;
+        .asect
+
+        . = 400
+
+        mov     #.,r0           ;;!! 000400: 012700 000400
+        cmp     #.,#.           ;;!! 000404: 022727 000404 000404
+
+        . = 1000
+        .word   .               ;;!! 001000: 001000
+        .word   .,.             ;;!! 001002: 001002 001004
+        .word   .,0,.           ;;!! 001006: 001006 000000 001012
+        
+        .end

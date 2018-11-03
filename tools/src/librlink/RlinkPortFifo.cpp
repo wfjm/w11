@@ -1,6 +1,6 @@
-// $Id: RlinkPortFifo.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkPortFifo.cpp 1063 2018-10-29 18:37:42Z mueller $
 //
-// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -95,7 +95,7 @@ int RlinkPortFifo::OpenFifo(const std::string& name, bool snd, RerrMsg& emsg)
 
   int irc;
   
-  irc = stat(name.c_str(), &stat_fifo);
+  irc = ::stat(name.c_str(), &stat_fifo);
   if (irc == 0) {
     if ((stat_fifo.st_mode & S_IFIFO) == 0) {
       emsg.Init("RlinkPortFifo::OpenFiFo()",
@@ -112,7 +112,8 @@ int RlinkPortFifo::OpenFifo(const std::string& name, bool snd, RerrMsg& emsg)
       return -1;
     }    
   }
-
+  
+  /* coverity[toctou] */
   irc = ::open(name.c_str(), snd ? O_WRONLY : O_RDONLY);
   if (irc < 0) {
     emsg.InitErrno("RlinkPortFifo::OpenFifo()", 

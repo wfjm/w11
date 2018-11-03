@@ -136,26 +136,24 @@ The details are described in
 
 #### <a id="build-cpp">Compile sharable libraries</a>
 
-Note: some `c++11` features are used in the code
-
-| Feature | Description | in gcc since |
-| :------ | :---------- | :----------: |
-| N2343 | decltype (used by boost bind)  | gcc 4.3 |
-| N2431 | nullptr                        | gcc 4.6 |
-| N2930 | range based for                | gcc 4.6 |
-| N1984 | auto-types variables           | gcc 4.4 |
+The backend code base uses now many `c++11` langauge features, e.g.
+`nullptr`, `auto`, lambda functions, list initialization, range-based `for`,
+to name the most prominent.
+A C++ compiler with full `c++11` support is therefore needed, so either
+`gcc 4.8.1` or `clang 3.3`. Current experience is:
+- gcc 5.4.0 and clang 3.8.0, as in Ubuntu 16.04 LTS, _will work !!_
+- gcc 4.7.2 and clang 3.0-6.2, as in Debian 7, _will not work !!_
 
 Required tools and libraries:
 
-    g++    >= 4.6    (see c++11 usage above)
+    g++    >= 4.8.1  (see c++11 usage above)
     boost  >= 1.35   (boost::thread api changed, new one is used)
-    linusb >= 1.0.5  (timerfd support)
+    libusb >= 1.0.5  (timerfd support)
 
 Build was tested under:
 
     ubuntu xenial  (16.04 LTS):  gcc 5.4.0  boost 1.58    libusb 1.0.20
     ubuntu trusty  (14.04 LTS):  gcc 4.8.2  boost 1.54    libusb 1.0.17
-    debian wheezy  (7.0.8):      gcc 4.7.2  boost 1.49    libusb 1.0.11
 
 To build all sharable libraries
 

@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: create_disk 985 2018-01-03 08:59:40Z mueller $
+# $Id: create_disk 1059 2018-10-27 10:34:16Z mueller $
 #
-# Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -247,7 +247,7 @@ sub print_help {
   my ($ptyp) = @_;
   print "usage: create_disk [options] <file>\n";
   print "  --typ=<type>  specified disk type, must be specified\n";
-  print "  --ini=<pat>   initialization pattern, can be\n";
+  print "  --ini=<pat>   initialization pattern, available patterns below\n";
   print "  --bad         create factory bad block table on last track\n";
   print "  --boot        write dummy boot block, print volume info and HALT\n";
   print "  --help        print full help, with list --typ and --ini options\n";

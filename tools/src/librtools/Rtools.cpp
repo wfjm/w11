@@ -1,4 +1,4 @@
-// $Id: Rtools.cpp 1059 2018-10-27 10:34:16Z mueller $
+// $Id: Rtools.cpp 1063 2018-10-29 18:37:42Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -122,7 +122,7 @@ bool CreateBackupFile(const std::string& fname, size_t nbackup, RerrMsg& emsg)
   fnames.push_back(fname);
   for (size_t i=1; i<=nbackup; i++) {
     char fnum[4];
-    snprintf(fnum, 4, "%d", (int)i);
+    ::snprintf(fnum, sizeof(fnum), "%d", (int)i);
     fnames.push_back(fbase + "_" + fnum + fext);
   }
   
@@ -144,6 +144,7 @@ bool CreateBackupFile(const std::string& fname, size_t nbackup, RerrMsg& emsg)
       return false;
     }
     // here we know old file exists and is a regular file
+    /* coverity[toctou] */
     irc = ::rename(fnam_old.c_str(), fnam_new.c_str());
     if (irc < 0) {
       emsg.InitErrno("Rtools::CreateBackupFile", 

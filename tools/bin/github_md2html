@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: github_md2html 1033 2018-07-03 05:59:02Z mueller $
+# $Id: github_md2html 1057 2018-10-19 15:06:42Z mueller $
 #
 # Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-10-19  1057   1.1.3  add --verbose; don't list up-to-date files anymore
 # 2018-07-02  1033   1.1.2  use non-greedy match in -stand code
 # 2018-05-13  1021   1.1.1  handle fragment identifiers in -standalone mapping
 # 2017-01-02   837   1.1    add -standalone and -trace; add rate wait
@@ -29,7 +30,7 @@ use JSON::XS;
 my %opts = ();
 
 GetOptions(\%opts,
-           "context:s", "force", "standalone", "trace",
+           "context:s", "force", "standalone", "trace", "verbose",
            "dump", "help") || exit 1;
 
 my $url_ghapi_md     = "https://api.github.com/markdown";
@@ -133,7 +134,7 @@ sub do_md2html {
   }
 
   unless ($doit) {
-    print "$ifile: ok\n";
+    print "$ifile: ok\n" if $opts{verbose};
     return;
   }
 

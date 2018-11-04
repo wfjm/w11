@@ -1,6 +1,6 @@
-// $Id: Rw11CntlRHRP.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11CntlRHRP.cpp 1062 2018-10-28 11:14:20Z mueller $
 //
-// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
 //   the boot code is from the simh project and Copyright Robert M Supnik
 // 
@@ -15,6 +15,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-10-28  1062   1.0.6  replace boost/foreach
 // 2017-04-02   865   1.0.5  Dump(): add detail arg
 // 2017-03-03   858   1.0.4  use cntl name as message prefix
 // 2015-12-28   720   1.0.3  use octal for er1= printouts
@@ -30,8 +31,6 @@
 */
 
 #include "boost/bind.hpp"
-#include "boost/foreach.hpp"
-#define foreach_ BOOST_FOREACH
 
 #include "librtools/RosFill.hpp"
 #include "librtools/RosPrintBvi.hpp"
@@ -352,7 +351,7 @@ bool Rw11CntlRHRP::BootCode(size_t unit, std::vector<uint16_t>& code,
     };
   
   code.clear();
-  foreach_ (uint16_t& w, bootcode) code.push_back(w); 
+  code.insert(code.end(), std::begin(bootcode), std::end(bootcode));
   aload  = kBOOT_START;
   astart = kBOOT_START+2;
   return true;

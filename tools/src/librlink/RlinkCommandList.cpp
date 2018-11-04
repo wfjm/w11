@@ -1,4 +1,4 @@
-// $Id: RlinkCommandList.cpp 1047 2018-09-16 11:08:41Z mueller $
+// $Id: RlinkCommandList.cpp 1062 2018-10-28 11:14:20Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-10-28  1062   1.3.3  replace boost/foreach
 // 2018-09-16  1047   1.3.2  coverity fixup (uninitialized scalar)
 // 2017-04-02   865   1.3.1  Dump(): add detail arg
 // 2015-04-02   661   1.3    expect logic: add SetLastExpect methods
@@ -31,8 +32,6 @@
  */
 
 #include <string>
-#include "boost/foreach.hpp"
-#define foreach_ BOOST_FOREACH
 
 #include "RlinkCommandList.hpp"
 
@@ -75,7 +74,7 @@ RlinkCommandList::RlinkCommandList(const RlinkCommandList& rhs)
 
 RlinkCommandList::~RlinkCommandList()
 {
-  foreach_ (RlinkCommand* pcmd, fList) { delete pcmd; }
+  for (auto& pcmd: fList) delete pcmd;
 }
 
 //------------------------------------------+-----------------------------------
@@ -285,7 +284,7 @@ void RlinkCommandList::SetLastExpect(RlinkCommandExpect* pexp)
 
 void RlinkCommandList::Clear()
 {
-  foreach_ (RlinkCommand* pcmd, fList) { delete pcmd; }
+  for (auto& pcmd: fList) delete pcmd;
   fList.clear();
   fLaboIndex = -1;
   return;
@@ -298,9 +297,7 @@ void RlinkCommandList::Print(std::ostream& os,
                              const RlinkAddrMap* pamap, size_t abase, 
                              size_t dbase, size_t sbase) const
 {
-  foreach_ (RlinkCommand* pcmd, fList) {
-    pcmd->Print(os, pamap, abase, dbase, sbase);
-  }
+  for (auto& pcmd: fList) pcmd->Print(os, pamap, abase, dbase, sbase);
   return;
 }
 
@@ -335,8 +332,8 @@ RlinkCommandList&
   Retro::RlinkCommandList::operator=( const RlinkCommandList& rhs)
 {
   if (&rhs == this) return *this;
-  
-  foreach_ (RlinkCommand* pcmd, fList) { delete pcmd; }
+
+  for (auto& pcmd: fList) delete pcmd;
   fList.clear();
   for (size_t i=0; i<rhs.Size(); i++) AddCommand(rhs[i]);
   return *this;

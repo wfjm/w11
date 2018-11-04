@@ -1,4 +1,4 @@
-// $Id: Rw11CntlTM11.cpp 1049 2018-09-22 13:56:52Z mueller $
+// $Id: Rw11CntlTM11.cpp 1062 2018-10-28 11:14:20Z mueller $
 //
 // Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -15,6 +15,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-10-28  1062   1.0.5  replace boost/foreach
 // 2017-04-02   865   1.0.4  Dump(): add detail arg
 // 2017-03-03   858   1.0.3  use cntl name as message prefix
 // 2017-02-26   857   1.0.2  use kCPAH_M_UBM22
@@ -29,8 +30,6 @@
 */
 
 #include "boost/bind.hpp"
-#include "boost/foreach.hpp"
-#define foreach_ BOOST_FOREACH
 
 #include "librtools/RosFill.hpp"
 #include "librtools/RosPrintBvi.hpp"
@@ -265,7 +264,7 @@ bool Rw11CntlTM11::BootCode(size_t unit, std::vector<uint16_t>& code,
   };
   
   code.clear();
-  foreach_ (uint16_t& w, bootcode) code.push_back(w); 
+  code.insert(code.end(), std::begin(bootcode), std::end(bootcode));
   aload  = kBOOT_START;
   astart = kBOOT_START+2;
   return true;

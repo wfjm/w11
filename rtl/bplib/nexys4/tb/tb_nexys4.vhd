@@ -1,6 +1,6 @@
--- $Id: tb_nexys4.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: tb_nexys4.vhd 1064 2018-11-03 09:24:13Z mueller $
 --
--- Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,7 +18,7 @@
 -- Dependencies:   simlib/simclk
 --                 simlib/simclkcnt
 --                 rlink/tbcore/tbcore_rlink
---                 xlib/tb/s7_cmt_sfs_tb
+--                 xlib/sfs_gsim_core
 --                 tb_nexys4_core
 --                 serport/tb/serport_master_tb
 --                 nexys4_aif [UUT]
@@ -26,10 +26,11 @@
 -- To test:        generic, any nexys4_aif target
 --
 -- Target Devices: generic
--- Tool versions:  ise 14.5-14.7; viv 2014.4-2016.2; ghdl 0.29-0.33
+-- Tool versions:  ise 14.5-14.7; viv 2014.4-2018.2; ghdl 0.29-0.34
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-11-03  1064   1.3.5  use sfs_gsim_core
 -- 2016-09-02   805   1.3.4  tbcore_rlink without CLK_STOP now
 -- 2016-02-20   734   1.3.3  use s7_cmt_sfs_tb to avoid xsim conflict
 -- 2016-02-13   730   1.3.2  direct instantiation of tbcore_rlink
@@ -105,15 +106,11 @@ begin
       CLK      => CLKOSC
     );
   
-  CLKGEN_COM : entity work.s7_cmt_sfs_tb
+  CLKGEN_COM : sfs_gsim_core
     generic map (
       VCO_DIVIDE   => sys_conf_clkser_vcodivide,
       VCO_MULTIPLY => sys_conf_clkser_vcomultiply,
-      OUT_DIVIDE   => sys_conf_clkser_outdivide,
-      CLKIN_PERIOD => 10.0,
-      CLKIN_JITTER => 0.01,
-      STARTUP_WAIT => false,
-      GEN_TYPE     => sys_conf_clkser_gentype)
+      OUT_DIVIDE   => sys_conf_clkser_outdivide)
     port map (
       CLKIN   => CLKOSC,
       CLKFX   => CLKCOM,

@@ -1,6 +1,6 @@
--- $Id: tb_arty.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: tb_arty.vhd 1064 2018-11-03 09:24:13Z mueller $
 --
--- Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,7 +18,7 @@
 -- Dependencies:   simlib/simclk
 --                 simlib/simclkcnt
 --                 rlink/tbcore/tbcore_rlink
---                 xlib/tb/s7_cmt_sfs_tb
+--                 xlib/sfs_gsim_core
 --                 tb_basys3_core
 --                 serport/tb/serport_master_tb
 --                 arty_aif [UUT]
@@ -26,10 +26,11 @@
 -- To test:        generic, any arty_aif target
 --
 -- Target Devices: generic
--- Tool versions:  viv 2015.4-2016.2; ghdl 0.33
+-- Tool versions:  viv 2015.4-2018.2; ghdl 0.33-0.34
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-11-03  1064   1.3.1  use sfs_gsim_core
 -- 2016-09-18   809   1.3    add gsr_pulse (provisional....)
 -- 2016-09-02   805   1.2.1  tbcore_rlink without CLK_STOP now
 -- 2016-03-20   748   1.2    BUGFIX: add PORTSEL_XON logic
@@ -102,15 +103,11 @@ begin
       CLK      => CLKOSC
     );
   
-  CLKGEN_COM : entity work.s7_cmt_sfs_tb
+  CLKGEN_COM : sfs_gsim_core
     generic map (
       VCO_DIVIDE   => sys_conf_clkser_vcodivide,
       VCO_MULTIPLY => sys_conf_clkser_vcomultiply,
-      OUT_DIVIDE   => sys_conf_clkser_outdivide,
-      CLKIN_PERIOD => 10.0,
-      CLKIN_JITTER => 0.01,
-      STARTUP_WAIT => false,
-      GEN_TYPE     => sys_conf_clkser_gentype)
+      OUT_DIVIDE   => sys_conf_clkser_outdivide)
     port map (
       CLKIN   => CLKOSC,
       CLKFX   => CLKCOM,

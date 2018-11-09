@@ -1,0 +1,4 @@
+# libs
+../slvtypes.vhd
+# design
+sfs_gsim_core.vhd

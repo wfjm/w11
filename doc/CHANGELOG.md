@@ -65,6 +65,10 @@ The full set of tests is only run for tagged releases.
 - pdp11_tmu(_sb): use DM_STAT_CA instead of DM_STAT_SY
 - ibdr_maxisys: add IDEC port, connect to EXTEVT of KW11P
 - sys_w11a_*.vhd: use DM_STAT_EXP; IDEC to maxisys; setup PERFEXT
+- sfs_gsim_core: new common simulation core
+  - use in {dcm,s6_cmt,s7_cmt}_sfs_gsim simulation models
+  - use in rtl/bplib/*/tb/tb_* test benches
+  - remove s7_cmt_sfs_tb
 - RtclRw11Unit: fix for clang: M_virt() now public
 - backend code review:
   - use for C++ compiles `-Wpedantic` (in addition to `-Wall` and `-Wextra`)

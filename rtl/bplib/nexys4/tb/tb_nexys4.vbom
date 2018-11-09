@@ -14,7 +14,7 @@ ${sys_conf := sys_conf_sim.vhd}
 ../../../vlib/simlib/simclk.vbom
 ../../../vlib/simlib/simclkcnt.vbom
 ../../../vlib/rlink/tbcore/tbcore_rlink.vbom
-../../../vlib/xlib/tb/s7_cmt_sfs_tb.vbom
+../../../vlib/xlib/sfs_gsim_core.vbom
 tb_nexys4_core.vbom
 ../../../vlib/serport/tb/serport_master_tb.vbom
 ${nexys4_aif := nexys4_dummy.vbom}  -UUT

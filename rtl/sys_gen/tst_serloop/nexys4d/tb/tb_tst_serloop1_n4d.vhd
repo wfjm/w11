@@ -1,6 +1,6 @@
--- $Id: tb_tst_serloop1_n4d.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: tb_tst_serloop1_n4d.vhd 1064 2018-11-03 09:24:13Z mueller $
 --
--- Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,7 +16,7 @@
 -- Description:    Test bench for sys_tst_serloop1_n4d
 --
 -- Dependencies:   simlib/simclk
---                 vlib/xlib/tb/s7_cmt_sfs_tb
+--                 xlib/sfs_gsim_core
 --                 sys_tst_serloop1_n4d [UUT]
 --                 tb/tb_tst_serloop
 --
@@ -26,6 +26,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-11-03  1064   1.0.1  use sfs_gsim_core
 -- 2017-01-04   838   1.0    Initial version (cloned from tb_tst_serloop1_n4)
 ------------------------------------------------------------------------------
 
@@ -36,6 +37,7 @@ use ieee.std_logic_textio.all;
 use std.textio.all;
 
 use work.slvtypes.all;
+use work.xlib.all;
 use work.simlib.all;
 use work.sys_conf.all;
 
@@ -76,15 +78,11 @@ begin
       CLK       => CLK100
     );
 
-  GEN_CLKSYS : entity work.s7_cmt_sfs_tb
+  GEN_CLKSYS : sfs_gsim_core
     generic map (
       VCO_DIVIDE     => sys_conf_clksys_vcodivide,
       VCO_MULTIPLY   => sys_conf_clksys_vcomultiply,
-      OUT_DIVIDE     => sys_conf_clksys_outdivide,
-      CLKIN_PERIOD   => 10.0,
-      CLKIN_JITTER   => 0.01,
-      STARTUP_WAIT   => false,
-      GEN_TYPE       => sys_conf_clksys_gentype)
+      OUT_DIVIDE     => sys_conf_clksys_outdivide)
     port map (
       CLKIN   => CLK100,
       CLKFX   => CLK,

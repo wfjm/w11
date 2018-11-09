@@ -1,10 +1,11 @@
 # libs
 ../../../../vlib/slvtypes.vhd
+../../../../vlib/xlib/xlib.vhd
 ../../../../vlib/simlib/simlib.vhd
 ${sys_conf := sys_conf1_sim.vhd}
 # components
 ../../../../vlib/simlib/simclk.vbom
-../../../../vlib/xlib/tb/s7_cmt_sfs_tb.vbom
+../../../../vlib/xlib/sfs_gsim_core.vbom
 sys_tst_serloop1_n4_ssim.vhd  -UUT
 ../../tb/tb_tst_serloop.vbom
 # design

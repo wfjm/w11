@@ -1,4 +1,7 @@
 # libs
 ../slvtypes.vhd
+xlib.vhd
+# components
+sfs_gsim_core.vbom
 # design
 dcm_sfs_gsim.vhd

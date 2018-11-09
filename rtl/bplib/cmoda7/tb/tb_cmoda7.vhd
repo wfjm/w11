@@ -1,6 +1,6 @@
--- $Id: tb_cmoda7.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: tb_cmoda7.vhd 1064 2018-11-03 09:24:13Z mueller $
 --
--- Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,7 +18,7 @@
 -- Dependencies:   simlib/simclk
 --                 simlib/simclkcnt
 --                 rlink/tbcore/tbcore_rlink
---                 xlib/tb/s7_cmt_sfs_tb
+--                 xlib/sfs_gsim_core
 --                 tb_basys3_core
 --                 serport/tb/serport_master_tb
 --                 cmoda7_aif [UUT]
@@ -26,10 +26,11 @@
 -- To test:        generic, any cmoda7_aif target
 --
 -- Target Devices: generic
--- Tool versions:  viv 2016.4; ghdl 0.34
+-- Tool versions:  viv 2016.4-2018.2; ghdl 0.34
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-11-03  1064   1.0.1  use sfs_gsim_core
 -- 2017-06-04   906   1.0    Initial version (derived from tb_arty)
 ------------------------------------------------------------------------------
 
@@ -92,15 +93,11 @@ begin
       CLK      => CLKOSC
     );
   
-  CLKGEN_COM : entity work.s7_cmt_sfs_tb
+  CLKGEN_COM : sfs_gsim_core
     generic map (
       VCO_DIVIDE   => sys_conf_clkser_vcodivide,
       VCO_MULTIPLY => sys_conf_clkser_vcomultiply,
-      OUT_DIVIDE   => sys_conf_clkser_outdivide,
-      CLKIN_PERIOD => 83.3,
-      CLKIN_JITTER => 0.01,
-      STARTUP_WAIT => false,
-      GEN_TYPE     => sys_conf_clkser_gentype)
+      OUT_DIVIDE   => sys_conf_clkser_outdivide)
     port map (
       CLKIN   => CLKOSC,
       CLKFX   => CLKCOM,

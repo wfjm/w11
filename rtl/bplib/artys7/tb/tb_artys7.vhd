@@ -1,4 +1,4 @@
--- $Id: tb_artys7.vhd 1038 2018-08-11 12:39:52Z mueller $
+-- $Id: tb_artys7.vhd 1064 2018-11-03 09:24:13Z mueller $
 --
 -- Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,7 +18,7 @@
 -- Dependencies:   simlib/simclk
 --                 simlib/simclkcnt
 --                 rlink/tbcore/tbcore_rlink
---                 xlib/tb/s7_cmt_sfs_tb
+--                 xlib/sfs_gsim_core
 --                 tb_basys3_core
 --                 serport/tb/serport_master_tb
 --                 artys7_aif [UUT]
@@ -30,6 +30,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-11-03  1064   1.0.1  use sfs_gsim_core
 -- 2018-08-05  1038   1.0    Initial version (derived from tb_artya7)
 ------------------------------------------------------------------------------
 
@@ -96,15 +97,11 @@ begin
       CLK      => CLKOSC
     );
   
-  CLKGEN_COM : entity work.s7_cmt_sfs_tb
+  CLKGEN_COM : sfs_gsim_core
     generic map (
       VCO_DIVIDE   => sys_conf_clkser_vcodivide,
       VCO_MULTIPLY => sys_conf_clkser_vcomultiply,
-      OUT_DIVIDE   => sys_conf_clkser_outdivide,
-      CLKIN_PERIOD => 10.0,
-      CLKIN_JITTER => 0.01,
-      STARTUP_WAIT => false,
-      GEN_TYPE     => sys_conf_clkser_gentype)
+      OUT_DIVIDE   => sys_conf_clkser_outdivide)
     port map (
       CLKIN   => CLKOSC,
       CLKFX   => CLKCOM,

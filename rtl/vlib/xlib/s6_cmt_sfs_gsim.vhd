@@ -1,6 +1,6 @@
--- $Id: s6_cmt_sfs_gsim.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: s6_cmt_sfs_gsim.vhd 1065 2018-11-04 11:32:06Z mueller $
 --
--- Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,10 +19,11 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic Spartan-6
--- Tool versions:  xst 14.5-14.7; ghdl 0.29-0.33
+-- Tool versions:  xst 14.5-14.7; ghdl 0.29-0.34
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-11-03  1065   1.1    use sfs_gsim_core
 -- 2016-08-18   799   1.0.1  remove 'assert false' from report statements
 -- 2013-10-06   538   1.0    Initial version (derived from s7_cmt_sfs_gsim)
 ------------------------------------------------------------------------------
@@ -31,31 +32,26 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 use work.slvtypes.all;
+use work.xlib.all;
 
 entity s6_cmt_sfs is                    -- Spartan-6 CMT for simple freq. synth.
   generic (
-    VCO_DIVIDE : positive := 1;         -- vco clock divide
+    VCO_DIVIDE   : positive := 1;       -- vco clock divide
     VCO_MULTIPLY : positive := 1;       -- vco clock multiply 
-    OUT_DIVIDE : positive := 1;         -- output divide
+    OUT_DIVIDE   : positive := 1;       -- output divide
     CLKIN_PERIOD : real := 10.0;        -- CLKIN period (def is 10.0 ns)
     CLKIN_JITTER : real := 0.01;        -- CLKIN jitter (def is 10 ps)
     STARTUP_WAIT : boolean := false;    -- hold FPGA startup till LOCKED
-    GEN_TYPE : string := "PLL");        -- PLL or MMCM
+    GEN_TYPE     : string := "PLL");    -- PLL or MMCM
   port (
-    CLKIN : in slbit;                   -- clock input
-    CLKFX : out slbit;                  -- clock output (synthesized freq.) 
+    CLKIN  : in slbit;                  -- clock input
+    CLKFX  : out slbit;                 -- clock output (synthesized freq.) 
     LOCKED : out slbit                  -- pll/mmcm locked
   );
 end s6_cmt_sfs;
 
 
-architecture sim of s6_cmt_sfs is
-
-  signal CLK_DIVPULSE : slbit := '0';
-  signal CLKOUT_PERIOD : Delay_length := 0 ns;
-  signal R_CLKOUT : slbit := '0';
-  signal R_LOCKED : slbit := '0';
-  
+architecture sim of s6_cmt_sfs is  
 begin
 
   proc_init : process
@@ -74,9 +70,8 @@ begin
     variable t_pdmax : Delay_length := 0 ns;
 
   begin
-    -- validate generics
-
     
+    -- validate generics   
     if not (GEN_TYPE = "PLL" or GEN_TYPE = "DCM") then
       report "assert(GEN_TYPE='PLL' or GEN_TYPE='DCM')"
         severity failure;
@@ -133,66 +128,16 @@ begin
     wait;
   end process proc_init;
 
-  proc_clkin : process (CLKIN)
-    variable t_lastclkin : time := 0 ns;
-    variable t_lastperiod : Delay_length := 0 ns;
-    variable t_period : Delay_length := 0 ns;
-    variable nclkin : integer := 1;
-  begin
-    
-    if CLKIN'event then
-      if CLKIN = '1' then               -- if CLKIN rising edge
-
-        if t_lastclkin > 0 ns then
-          t_lastperiod := t_period;
-          t_period := now - t_lastclkin;
-          CLKOUT_PERIOD <= (t_period * VCO_DIVIDE * OUT_DIVIDE) / VCO_MULTIPLY;
-          if t_lastperiod > 0 ns and abs(t_period-t_lastperiod) > 1 ps then
-            report "s6_cmt_sp_sfs: CLKIN unstable" severity warning;
-          end if;
-        end if;
-        t_lastclkin := now;
-        
-        if t_period > 0 ns then
-          nclkin := nclkin - 1;
-          if nclkin <= 0 then
-            nclkin := VCO_DIVIDE * OUT_DIVIDE;
-            CLK_DIVPULSE <= '1';
-            R_LOCKED     <= '1';
-          end if;
-        end if;
-
-      else                              -- if CLKIN falling edge
-        CLK_DIVPULSE <= '0';
-      end if;     
-    end if;
-    
-  end process proc_clkin;
-
-  proc_clkout : process
-    variable t_lastclkin : time := 0 ns;
-    variable t_lastperiod : Delay_length := 0 ns;
-    variable t_period : Delay_length := 0 ns;
-    variable nclkin : integer := 1;
-  begin
-
-    loop
-      wait until CLK_DIVPULSE = '1';
-
-      for i in 1 to VCO_MULTIPLY loop
-        R_CLKOUT <= '1';
-        wait for CLKOUT_PERIOD/2;
-        R_CLKOUT <= '0';
-        if i /= VCO_MULTIPLY then
-          wait for CLKOUT_PERIOD/2;
-        end if;
-      end loop;  -- i
-
-    end loop;
-    
-  end process proc_clkout;
-
-  CLKFX  <= R_CLKOUT;
-  LOCKED <= R_LOCKED;
+  -- generate clock
+  SFS: sfs_gsim_core
+    generic map (
+      VCO_DIVIDE   => VCO_DIVIDE,
+      VCO_MULTIPLY => VCO_MULTIPLY,
+      OUT_DIVIDE   => OUT_DIVIDE)
+    port map (
+      CLKIN   => CLKIN,
+      CLKFX   => CLKFX,
+      LOCKED  => LOCKED
+    );
   
 end sim;

@@ -1,4 +1,4 @@
-# $Id: Makefile 859 2017-03-11 22:36:45Z mueller $
+# $Id: Makefile 1063 2018-10-29 18:37:42Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -25,9 +25,9 @@ LDLIBS    +=   -lrlinktpp
 #
 # Object files to be included
 #
-OBJ_all    = Rwxxtpp_Init.o RtclRw11.o 
+OBJ_all    = Rwxxtpp_Init.o RtclRw11.o
 OBJ_all   +=   RtclRw11Cpu.o RtclRw11CpuW11a.o
-OBJ_all   +=   RtclRw11Cntl.o RtclRw11CntlFactory.o 
+OBJ_all   +=   RtclRw11Cntl.o RtclRw11CntlFactory.o
 OBJ_all   +=   RtclRw11Unit.o
 OBJ_all   +=   RtclRw11UnitTerm.o
 OBJ_all   +=   RtclRw11UnitDisk.o
@@ -42,8 +42,8 @@ OBJ_all   +=   RtclRw11CntlRHRP.o RtclRw11UnitRHRP.o
 OBJ_all   +=   RtclRw11CntlTM11.o RtclRw11UnitTM11.o
 OBJ_all   +=   RtclRw11CntlDEUNA.o RtclRw11UnitDEUNA.o
 OBJ_all   +=   RtclRw11Virt.o
-OBJ_all   +=   RtclRw11VirtFactory.o 
-OBJ_all   +=   RtclRw11VirtDiskOver.o
+OBJ_all   +=   RtclRw11VirtFactory.o
+OBJ_all   +=   RtclRw11VirtDiskOver.o RtclRw11VirtDiskRam.o
 #
 DEP_all    = $(OBJ_all:.o=.dep)
 #

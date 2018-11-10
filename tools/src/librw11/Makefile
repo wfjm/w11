@@ -1,4 +1,4 @@
-# $Id: Makefile 859 2017-03-11 22:36:45Z mueller $
+# $Id: Makefile 1063 2018-10-29 18:37:42Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -21,29 +21,30 @@ LDLIBS     = -L${RETROBASE}/tools/lib -lrtools -lrlink
 #
 # Object files to be included
 #
-OBJ_all    = Rw11.o Rw11Cpu.o Rw11CpuW11a.o 
+OBJ_all    = Rw11.o Rw11Cpu.o Rw11CpuW11a.o
 OBJ_all   +=   Rw11Probe.o
 OBJ_all   +=   Rw11Cntl.o Rw11Unit.o
-OBJ_all   +=   Rw11UnitTerm.o 
-OBJ_all   +=   Rw11UnitDisk.o 
-OBJ_all   +=   Rw11UnitTape.o 
-OBJ_all   +=   Rw11UnitStream.o 
-OBJ_all   +=   Rw11CntlDL11.o Rw11UnitDL11.o 
-OBJ_all   +=   Rw11CntlLP11.o Rw11UnitLP11.o 
-OBJ_all   +=   Rw11CntlPC11.o Rw11UnitPC11.o 
+OBJ_all   +=   Rw11UnitTerm.o
+OBJ_all   +=   Rw11UnitDisk.o
+OBJ_all   +=   Rw11UnitTape.o
+OBJ_all   +=   Rw11UnitStream.o
+OBJ_all   +=   Rw11CntlDL11.o Rw11UnitDL11.o
+OBJ_all   +=   Rw11CntlLP11.o Rw11UnitLP11.o
+OBJ_all   +=   Rw11CntlPC11.o Rw11UnitPC11.o
 OBJ_all   +=   Rw11CntlRL11.o Rw11UnitRL11.o
 OBJ_all   +=   Rw11CntlRK11.o Rw11UnitRK11.o
 OBJ_all   +=   Rw11CntlRHRP.o Rw11UnitRHRP.o
 OBJ_all   +=   Rw11CntlTM11.o Rw11UnitTM11.o
 OBJ_all   +=   Rw11CntlDEUNA.o Rw11UnitDEUNA.o
-OBJ_all   +=   Rw11Virt.o 
-OBJ_all   +=   Rw11VirtTerm.o Rw11VirtTermPty.o Rw11VirtTermTcp.o 
+OBJ_all   +=   Rw11Virt.o
+OBJ_all   +=   Rw11VirtTerm.o Rw11VirtTermPty.o Rw11VirtTermTcp.o
 OBJ_all   +=   Rw11VirtDiskBuffer.o
-OBJ_all   +=   Rw11VirtDisk.o Rw11VirtDiskFile.o Rw11VirtDiskOver.o 
-OBJ_all   +=   Rw11VirtTape.o Rw11VirtTapeTap.o 
-OBJ_all   +=   Rw11VirtEth.o Rw11VirtEthTap.o 
-OBJ_all   +=   Rw11VirtStream.o 
-OBJ_all   +=   Rw11Rdma.o Rw11RdmaDisk.o 
+OBJ_all   +=   Rw11VirtDisk.o Rw11VirtDiskFile.o
+OBJ_all   +=   Rw11VirtDiskOver.o Rw11VirtDiskRam.o
+OBJ_all   +=   Rw11VirtTape.o Rw11VirtTapeTap.o
+OBJ_all   +=   Rw11VirtEth.o Rw11VirtEthTap.o
+OBJ_all   +=   Rw11VirtStream.o
+OBJ_all   +=   Rw11Rdma.o Rw11RdmaDisk.o
 OBJ_all   +=   RethTools.o RethBuf.o
 #
 DEP_all    = $(OBJ_all:.o=.dep)

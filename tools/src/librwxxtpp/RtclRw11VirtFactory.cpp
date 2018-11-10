@@ -1,4 +1,4 @@
-// $Id: RtclRw11VirtFactory.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclRw11VirtFactory.cpp 1063 2018-10-29 18:37:42Z mueller $
 //
 // Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -22,8 +22,10 @@
 */
 
 #include "librw11/Rw11VirtDiskOver.hpp"
+#include "librw11/Rw11VirtDiskRam.hpp"
 
 #include "RtclRw11VirtDiskOver.hpp"
+#include "RtclRw11VirtDiskRam.hpp"
 
 #include "RtclRw11VirtFactory.hpp"
 
@@ -42,6 +44,10 @@ RtclRw11Virt* RtclRw11VirtFactory(Rw11Virt* pobj)
   Rw11VirtDiskOver* pdiskover = dynamic_cast<Rw11VirtDiskOver*>(pobj);
   if (pdiskover) {
     return new RtclRw11VirtDiskOver(pdiskover);
+  }  
+  Rw11VirtDiskRam* pdiskram = dynamic_cast<Rw11VirtDiskRam*>(pobj);
+  if (pdiskram) {
+    return new RtclRw11VirtDiskRam(pdiskram);
   }  
 
   return nullptr;

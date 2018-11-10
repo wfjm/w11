@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDisk.cpp 1061 2018-10-27 17:39:11Z mueller $
+// $Id: Rw11VirtDisk.cpp 1066 2018-11-10 11:21:53Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -57,7 +57,10 @@ std::string Rw11VirtDisk::sDefaultScheme("file");
 Rw11VirtDisk::Rw11VirtDisk(Rw11Unit* punit)
   : Rw11Virt(punit),
     fBlkSize(0),
-    fNBlock(0)
+    fNBlock(0),
+    fNCyl(0),
+    fNHead(0),
+    fNSect(0)
 {
   fStats.Define(kStatNVDRead,    "NVDRead",     "Read() calls");
   fStats.Define(kStatNVDReadBlk, "NVDReadBlk",  "blocks read");

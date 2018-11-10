@@ -1,6 +1,6 @@
-// $Id: Rw11UnitDiskBase.ipp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11UnitDiskBase.ipp 1061 2018-10-27 17:39:11Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-10-27  1061   1.1.2  adapt to new Rw11VirtDisk::Setup interface    
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2013-05-03   515   1.1    use AttachDone(),DetachCleanup(),DetachDone()
 // 2013-04-14   506   1.0    Initial version
@@ -79,7 +80,7 @@ void Rw11UnitDiskBase<TC>::Dump(std::ostream& os, int ind, const char* text,
 template <class TC>
 void  Rw11UnitDiskBase<TC>::AttachDone()
 {
-  Virt()->Setup(BlockSize(), NBlock());
+  Virt()->Setup(BlockSize(), NBlock(), NCylinder(), NHead(), NSector());
   Cntl().UnitSetup(Index());
   return;
 }

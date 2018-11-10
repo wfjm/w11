@@ -1,6 +1,6 @@
-// $Id: Rw11VirtDisk.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11VirtDisk.cpp 1061 2018-10-27 17:39:11Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-10-27  1061   1.3    add fNCyl,fNHead,fNSect; add Rw11VirtDiskRam
 // 2017-04-07   868   1.2.1  Dump(): add detail arg
 // 2017-04-02   866   1.2    add default scheme handling
 // 2017-04-02   864   1.1    add Rw11VirtDiskOver
@@ -31,6 +32,7 @@
 #include "librtools/Rexception.hpp"
 #include "Rw11VirtDiskFile.hpp"
 #include "Rw11VirtDiskOver.hpp"
+#include "Rw11VirtDiskRam.hpp"
 
 #include "Rw11VirtDisk.hpp"
 
@@ -80,6 +82,9 @@ void Rw11VirtDisk::Dump(std::ostream& os, int ind, const char* text,
 
   os << bl << "  fBlkSize:        " << fBlkSize << endl;
   os << bl << "  fNBlock:         " << fNBlock << endl;
+  os << bl << "  fNCyl:           " << fNCyl   << endl;
+  os << bl << "  fNHead:          " << fNHead  << endl;
+  os << bl << "  fNSect:          " << fNSect  << endl;
   Rw11Virt::Dump(os, ind, " ^", detail);
   return;
 }
@@ -99,6 +104,10 @@ Rw11VirtDisk* Rw11VirtDisk::New(const std::string& url, Rw11Unit* punit,
 
   } else if (scheme == "over") {            // scheme -> over:
     p.reset(new Rw11VirtDiskOver(punit));
+    if (p->Open(url, emsg)) return p.release();
+
+  } else if (scheme == "ram") {             // scheme -> ram:
+    p.reset(new Rw11VirtDiskRam(punit));
     if (p->Open(url, emsg)) return p.release();
 
   } else {                                  // scheme -> no match

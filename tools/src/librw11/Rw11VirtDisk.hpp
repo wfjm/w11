@@ -1,6 +1,6 @@
-// $Id: Rw11VirtDisk.hpp 1052 2018-09-30 08:10:52Z mueller $
+// $Id: Rw11VirtDisk.hpp 1061 2018-10-27 17:39:11Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-10-27  1061   1.2    add fNCyl,fNHead,fNSect,NCylinder(),...
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2017-04-02   866   1.1    add default scheme handling
 // 2013-03-03   494   1.0    Initial version
@@ -39,9 +40,13 @@ namespace Retro {
       explicit      Rw11VirtDisk(Rw11Unit* punit);
                    ~Rw11VirtDisk();
 
-      void          Setup(size_t blksize, size_t nblock);
+      void          Setup(size_t blksize, size_t nblock,
+                          size_t ncyl, size_t nhead, size_t nsect);
       size_t        BlockSize() const;
       size_t        NBlock() const;
+      size_t        NCylinder() const;
+      size_t        NHead() const;
+      size_t        NSector() const;
 
       virtual bool  Read(size_t lba, size_t nblk, uint8_t* data, 
                          RerrMsg& emsg) = 0;
@@ -69,7 +74,10 @@ namespace Retro {
     protected:
       size_t        fBlkSize;               //!< block size in byte
       size_t        fNBlock;                //!< disk size in blocks
-    
+      size_t        fNCyl;                  //!< # cylinder
+      size_t        fNHead;                 //!< # heads (aka surfaces)
+      size_t        fNSect;                 //!< # sectors
+
     protected:
       static std::string sDefaultScheme;     //!< default scheme
   };

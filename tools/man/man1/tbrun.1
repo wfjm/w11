@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: tbrun.1 875 2017-04-15 21:58:50Z mueller $
+.\"  $Id: tbrun.1 1065 2018-11-04 11:32:06Z mueller $
 .\"
-.\" Copyright 2016-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH TBRUN 1 2017-04-15 "Retro Project" "Retro Project Manual"
+.TH TBRUN 1 2018-11-03 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 tbrun \- test bench driver
@@ -216,10 +216,22 @@ specifies startup wait for post-synthesis and higher simulations.
 \fItwait\fR must be an integer, time unit is 1 ns.  Will be forwarded 
 to \fBtbrun_tbwrri\fP(1) based test benches.
 .
-.
 \" -- --help -------------------------------------
 .IP \fB\-\-help\fP
 print short help text.
+.
+.\" ------------------------------------------------------------------
+.SH EXIT STATUS
+In case of an error the exit codes are:
+.RS
+.PD 0
+.IP \fB1\fP 3
+run time errors, like bad option, file not found, etc
+.IP \fB2\fP 3
+at least one test FAILed, test bench has FAILed
+.PD
+.RE
+.
 .\" ------------------------------------------------------------------
 .SH EXAMPLES
 .IP "\fBtbrun" 4

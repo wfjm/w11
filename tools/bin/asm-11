@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: asm-11 985 2018-01-03 08:59:40Z mueller $
+# $Id: asm-11 1065 2018-11-04 11:32:06Z mueller $
 #
-# Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-11-03  1065   1.0.5  add and use bailout
 # 2015-11-01   712   1.0.4  BUGFIX: fix '.' handling in instructions
 # 2014-07-26   575   1.0.3  add 'call' and 'return' to pst (as in macro-11)
 # 2013-04-07   503   1.0.2  list dot for .even,.dot,.blkb,.blkw
@@ -45,56 +46,10 @@ GetOptions(\%opts, "help",
                    "cof", "ocof=s",
                    "lsm", "olsm=s"
           )
-  or exit 1;
+  or bailout("bad command options");
 
 unshift @{$opts{I}}, ".";                  # ./ is first in include path
 push @{$opts{I}}, "$ENV{RETROBASE}/tools/asm-11" if defined $ENV{RETROBASE};
-
-sub create_fname;
-sub read_file;
-sub parse_line;
-sub walign;
-sub add_err;
-sub prt_err;
-sub setdot;
-sub incdot;
-sub getdot;
-sub setsym;
-sub getsym;
-sub lst_checkmdef;
-sub eval_exp;
-sub check_llbl;
-sub check_reg;
-sub check_token;
-sub pushback_token;
-sub get_token;
-sub get_token1;
-sub to_rad50;
-sub pass2;
-sub pass2_out;
-sub pass2_lst_beg;
-sub pass2_lst_end;
-sub pass2_lst_line;
-sub out_w;
-sub out_wop;
-sub out_b;
-sub out_opcode;
-sub out_opcode_n;
-sub out_opcode_o;
-sub out_opdata;
-sub emitw;
-sub emitb;
-sub write_lda;
-sub write_cof;
-sub write_lsm;
-sub dump_rl;
-sub dump_sym;
-sub prt76o;
-sub prt43o;
-sub save66o;
-sub savestr;
-sub savestr1;
-sub print_help;
 
 # Permanant symbol table
 my %pst = (
@@ -323,15 +278,11 @@ my $out_start = 1;                          # absolute start address
 autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
 
 if (exists $opts{help}) {
-  print_help;
+  print_help();
   exit 0;
 }
 
-if (scalar(@ARGV) == 0) {
-  print STDERR "asm-11-F: no input files specified, quiting..\n";
-  print_help;
-  exit 1;
-}
+bailout("no input files specified") if scalar(@ARGV) == 0;
 
 # find stem of last file name
 $fstem = $ARGV[-1];
@@ -419,12 +370,9 @@ sub read_file {
   if ($fname eq "-") {
     $fh = *STDIN;
   } else {
-    if (not -r $fname) {
-      print STDERR "asm-11-F: '$fname' not found or readable, quiting..\n";
-      exit 1;
-    }
+    bailout("'$fname' not found or readable") if (not -r $fname);
     $fh = new FileHandle;
-    $fh->open($fname) or die "failed to open '$fname'";
+    $fh->open($fname) or bailout("failed to open '$fname': $!");
   }
 
   push @flist, $fname;
@@ -1675,10 +1623,7 @@ sub pass2 {
       $fh = *STDOUT;
     } else {
       $fh = new FileHandle;
-      unless (open($fh, ">", $lst_fname)) {
-        print STDERR "asm-11-F: '$lst_fname' not writable, quiting..\n";
-        exit 1;
-      }
+      open($fh, ">", $lst_fname) or bailout("'$lst_fname' not writable: $!");
     }
   }
 
@@ -2143,10 +2088,7 @@ sub write_lda {
     $fh = *STDOUT;
   } else {
     $fh = new FileHandle;
-    unless (open($fh, ">:raw", $fname)) {
-      print STDERR "asm-11-F: '$fname' not writable, quiting..\n";
-      exit 1;
-    }
+    open($fh, ">:raw", $fname) or bailout("'$fname' not writable: $!");
   }
 
   my @blist;
@@ -2224,10 +2166,7 @@ sub write_cof {
     $fh = *STDOUT;
   } else {
     $fh = new FileHandle;
-    unless (open($fh, ">:raw", $fname)) {
-      print STDERR "asm-11-F: '$fname' not writable, quiting..\n";
-      exit 1;
-    }
+    open($fh, ">:raw", $fname) or bailout("'$fname' not writable: $!");
   }
 
   print $fh "sym {\n";
@@ -2289,10 +2228,7 @@ sub write_lsm {
     $fh = *STDOUT;
   } else {
     $fh = new FileHandle;
-    unless (open($fh, ">:raw", $fname)) {
-      print STDERR "asm-11-F: '$fname' not writable, quiting..\n";
-      exit 1;
-    }
+    open($fh, ">:raw", $fname) or bailout("'$fname' not writable: $!")
   }
 
   my %mem;
@@ -2462,6 +2398,14 @@ sub savestr1 {
   my ($str) = @_;
   return '-' unless defined $str;
   return $str;
+}
+
+#-------------------------------------------------------------------------------
+
+sub bailout {
+  my ($msg) = @_;
+  print STDERR "asm-11-F: $msg\n";
+  exit 1;
 }
 
 #-------------------------------------------------------------------------------

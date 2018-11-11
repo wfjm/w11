@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: asm-11_expect.1 550 2014-02-03 08:16:57Z mueller $
+.\"  $Id: asm-11_expect.1 1065 2018-11-04 11:32:06Z mueller $
 .\"
-.\" Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH ASM-11_EXPECT 1 2013-03-30 "Retro Project" "Retro Project Manual"
+.TH ASM-11_EXPECT 1 2018-11-03 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 asm-11_expect \- expect checker for asm-11 test bench
@@ -89,14 +89,14 @@ If a line starts with an expect comment it will be applied to the asm-11
 statement in the following line. Or it is simply appended to a asm-11
 statement.
 .SS Comment examples
-.IP "\fB;;\-\- DM\fR" 4
+.IP "\fB;;!! DM\fR" 4
 expect a D and a M error flag
-.IP "\fB;;\-\- 001020:\fR"
+.IP "\fB;;!! 001020:\fR"
 expect that current location will be 001020, data not checked
-.IP "\fB;;\-\- 074167 177762\fR"
+.IP "\fB;;!! 074167 177762\fR"
 expect that the listing data section shows two words, 074167 and 177762.
 Address is not checked.
-.IP "\fB;;\-\- 001004: 000207\fR"
+.IP "\fB;;!! 001004: 000207\fR"
 expect that current location will be 001004 and that the listing data section
 shows one word with value 000207.
 
@@ -143,8 +143,19 @@ the content of the comment, like
 .EE
 .
 .\" ----------------------------------------------
-.IP "\fB\-help\fR"
+.IP "\fB\-\-help\fR"
 print full help text and exit.
+.
+.SH EXIT STATUS
+In case of an error the exit codes are:
+.RS
+.PD 0
+.IP \fB1\fP 3
+run time errors, like bad option, file not found, etc
+.IP \fB2\fP 3
+at least one expect FAILed, test bench has FAILed
+.PD
+.RE
 .
 .\" ------------------------------------------------------------------
 .SH EXAMPLES

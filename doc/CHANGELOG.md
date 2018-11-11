@@ -35,8 +35,7 @@ The full set of tests is only run for tagged releases.
   benches (fast interrupt source) and enables on the long run to port the
   2.10BSD kernel profiling code to 2.11BSD.
 - stay with vivado 2017.2 as default tool, 2017.2 to 2018.2 exhibit much
-  longer build times for w11 designs (see Xilinx Forum post
-  [884858](https://forums.xilinx.com/t5/Synthesis/vivado-2018-2-much-slower-than-2017-2-at-least-for-small-designs/m-p/884858))
+  longer build times for w11 designs (see [w11 blog posting](https://wfjm.github.io/blogs/w11/2018-09-01-vivado-2018.2-much-slower.html))
 
 ### New features
 - travis support via `.travis.yml`
@@ -48,6 +47,9 @@ The full set of tests is only run for tagged releases.
   - pdp11_dmpcnt: an array of 32 counters of 32 bit width
   - connected to 24 signals from inside pdp11_sys70 and 8 signals from outside
   - dmpcntanal: analysis script
+- add new disk scheme ram: (with Rw11VirtDiskRam)
+  - implements a ram-only-disk
+  - generates create_disk compatible test patterns
 
 ### Changes
 - Makefile: `make all_tcl` now quiet, use setup_packages_filt
@@ -70,6 +72,7 @@ The full set of tests is only run for tagged releases.
   - use in rtl/bplib/*/tb/tb_* test benches
   - remove s7_cmt_sfs_tb
 - RtclRw11Unit: fix for clang: M_virt() now public
+- Rw11VirtDisk: keep track of disk geometry
 - backend code review:
   - use for C++ compiles `-Wpedantic` (in addition to `-Wall` and `-Wextra`)
   - fixes for uninitialized variables (coverity, all uncritical)

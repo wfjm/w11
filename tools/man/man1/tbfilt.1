@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: tbfilt.1 845 2017-01-15 14:58:27Z mueller $
+.\"  $Id: tbfilt.1 1065 2018-11-04 11:32:06Z mueller $
 .\"
-.\" Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH TBFILT 1 2016-08-27 "Retro Project" "Retro Project Manual"
+.TH TBFILT 1 2018-11-03 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 tbfilt \- filter for and analysis of test bench log files
@@ -262,10 +262,15 @@ short file name (without path)
 .
 .\" ------------------------------------------------------------------
 .SH EXIT STATUS
-In case the test bench is considered FAILed an exit status 1 is returned.
-In case of an error at startup, e.g. no input files or invalid format
-specification, an error message to stderr or printed and an exit status
-of 2 is returned.
+In case of an error the exit codes are:
+.RS
+.PD 0
+.IP \fB1\fP 3
+run time errors, like bad option, file not found, etc
+.IP \fB2\fP 3
+at least one test FAILed, test bench has FAILed
+.PD
+.RE
 .
 .\" ------------------------------------------------------------------
 .SH ENVIRONMENT

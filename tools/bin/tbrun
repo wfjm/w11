@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: tbrun 985 2018-01-03 08:59:40Z mueller $
+# $Id: tbrun 1066 2018-11-10 11:21:53Z mueller $
 #
-# Copyright 2016-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-11-09  1066   1.1    add and use bailout; update exit code usage
 # 2017-04-15   875   1.0.1  add --help option
 # 2016-09-17   808   1.0    Initial version
 # 2016-08-09   796   0.1    First draft
@@ -37,28 +38,7 @@ GetOptions(\%opts, "tag=s@", "exclude=s@", "mode=s",
            "rlmon", "rbmon", "bwait=i", "swait=i",
            "help"
           )
-  or die "bad options";
-
-sub setup_tagfilter;
-sub check_tagfilter;
-sub check_modefilter;
-sub include_file;
-sub read_file;
-sub load_yaml;
-sub check_keys;
-sub expand_vars;
-sub merge_lines;
-sub merge_expand;
-sub key_or_def;
-sub handle_include;
-sub handle_default;
-sub handle_itest;
-sub tpr;
-sub tpre;
-sub print_trace;
-sub run_tests_single;
-sub run_tests_multi;
-sub print_usage;
+  or bailout("bad command options");
 
 my @tlist;
 my @olist;
@@ -103,7 +83,8 @@ my $ticker_on = -t STDOUT;
 my $fh_tee;
 if (defined $opts{tee} && $opts{tee} ne '') {
   $fh_tee = new FileHandle;
-  $fh_tee->open($opts{tee},'>') or die "failed to open for write '$opts{tee}'";
+  $fh_tee->open($opts{tee},'>')
+    or bailout("failed to open for write '$opts{tee}': $!");
 }
 
 $opts{tag}  = ['default'] unless defined $opts{tag};
@@ -128,7 +109,7 @@ foreach my $fnam (@ARGV) {
 $ntest = scalar(@tlist);
 unless ($ntest) {
   tpre(sprintf "tbrun-E: %d tests found, none selected\n", $nseen);
-  exit 2;
+  exit 1;
 }
 
 if (defined $opts{jobs}) {
@@ -139,13 +120,17 @@ if (defined $opts{jobs}) {
 
 if (defined $opts{dry}) {
   tpr(sprintf "#tbrun-I: %d tests found, %d selected\n", $nseen,$ntest);
+} else {
+
+  if ($nfail) {
+    tpr(sprintf "tbrun-I: %d tests failed of %d tests executed\n",$nfail,$ndone);
+  } else {
+    tpr(sprintf "tbrun-I: all tests passed, %d tests selected from %d found\n",
+        $ndone,$ntest);
+  }
 }
 
-if ($nfail) {
-  tpr(sprintf "tbrun-I: %d tests failed of %d tests executed\n",$nfail,$ndone);
-}
-
-exit $nfail ? 1 : 0;
+exit ($nfail ? 2 : 0);
 
 #-------------------------------------------------------------------------------
 sub setup_tagfilter {
@@ -202,14 +187,14 @@ sub check_modefilter {
 sub include_file {
   my ($fnam) = @_;
   my $fdat = read_file($fnam);
-  exit 2 unless defined $fdat;
+  exit 1 unless defined $fdat;
   my $ylst = load_yaml($fdat, $fnam);
-  exit 2 unless defined $ylst;
+  exit 1 unless defined $ylst;
 
   my $oldcwd = getcwd();
 
   if ($fnam =~ m|^(.*)/(.*)$|) {
-    chdir $1 or die "chdir to '$1' failed with '$!'";
+    chdir $1 or bailout("chdir to '$1' failed with '$!'");
   }
 
   my %defhash;
@@ -223,11 +208,11 @@ sub include_file {
     } else {
       tpr(sprintf "tbrun-E: unknown list element in '%s'\n  found keys: %s\n",
             $fnam, join(',',sort keys %$yele));
-      exit 2;
+      exit 1;
     }
   }
 
-  chdir $oldcwd or die "chdir to '$oldcwd' failed with '$!'";
+  chdir $oldcwd or bailout("chdir to '$oldcwd' failed with '$!'");
   return;
 }
 
@@ -307,7 +292,7 @@ sub lookup_var {
     return $ENV{$vnam} if exists $ENV{$vnam};
   }
   tpre(sprintf "tbrun-E: can't replace '$vnam'\n");
-  exit 2;
+  exit 1;
 }
 
 #-------------------------------------------------------------------------------
@@ -354,7 +339,7 @@ sub key_or_def {
 #-------------------------------------------------------------------------------
 sub handle_include {
   my ($yele) = @_;
-  check_keys($yele, \%keys_include) or exit 2;
+  check_keys($yele, \%keys_include) or exit 1;
 
   my $fnam = merge_expand($yele->{include}, undef);
   include_file($fnam);
@@ -365,8 +350,8 @@ sub handle_include {
 #-------------------------------------------------------------------------------
 sub handle_default {
   my ($yele, $defhash) = @_;
-  check_keys($yele, \%keys_default) or exit 2;
-  check_keys($yele->{default}, \%keys_defhash) or exit 2;
+  check_keys($yele, \%keys_default) or exit 1;
+  check_keys($yele->{default}, \%keys_defhash) or exit 1;
   foreach my $key (keys %{$yele->{default}}) {
     $$defhash{$key} = $$yele{default}{$key};
   }
@@ -376,7 +361,7 @@ sub handle_default {
 #-------------------------------------------------------------------------------
 sub handle_itest {
   my ($yele, $defhash) = @_;
-  check_keys($yele, \%keys_itest) or exit 2;
+  check_keys($yele, \%keys_itest) or exit 1;
 
   $nseen += 1;
 
@@ -485,7 +470,7 @@ sub run_tests_single {
     my $cdir = $titem->{cd};
     my $test = $titem->{test};
 
-    chdir $inicwd or die "chdir to '$inicwd' failed with '$!'";
+    chdir $inicwd or bailout("chdir to '$inicwd' failed with '$!'");
 
     if ($opts{dry}) {
       if ($cdir ne $drycd) {
@@ -835,6 +820,13 @@ sub run_tests_multi {
   }
 
   return;
+}
+
+# ----------------------------------------------------------------------------
+sub bailout {
+  my ($msg) = @_;
+  print STDERR "tbrun-F: $msg\n";
+  exit 1;
 }
 
 # ----------------------------------------------------------------------------

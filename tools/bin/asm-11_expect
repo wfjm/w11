@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: asm-11_expect 985 2018-01-03 08:59:40Z mueller $
+# $Id: asm-11_expect 1065 2018-11-04 11:32:06Z mueller $
 #
-# Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-11-03  1065   1.1    add and use bailout; update exit code usage
 # 2013-03-29   500   1.0    Initial version
 # 2013-03-24   499   0.1    First draft
 #
@@ -29,31 +30,24 @@ my %opts = ();
 GetOptions(\%opts, "help",
                    "tline", "tcheck"
           )
-  or exit 1;
-
-sub do_help;
-sub print_help;
+  or bailout("bad command options");
 
 my $errcnt;                                 # total error count
 
 autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
 
 if (exists $opts{help}) {
-  print_help;
+  print_help();
   exit 0;
 }
 
-if (scalar(@ARGV) == 0) {
-  print STDERR "asm-11_expect-F: no input files specified, quiting..\n";
-  print_help;
-  exit 1;
-}
+bailout("no input files specified") if scalar(@ARGV) == 0;
 
 foreach my $fname (@ARGV) {
   do_file($fname);
 }
 
-exit 1 if $errcnt > 0;
+exit 2 if $errcnt > 0;
 exit 0;
 
 #-------------------------------------------------------------------------------
@@ -78,12 +72,9 @@ sub do_file {
   if ($fname eq "-") {
     $fh = *STDIN;
   } else {
-    if (not -r $fname) {
-      print STDERR "asm-11_expect-F: '$fname' not found or readable. EXIT\n";
-      exit 1;
-    }
+    bailout("'$fname' not found or readable") if (not -r $fname);
     $fh = new FileHandle;
-    $fh->open($fname) or die "failed to open '$fname'";
+    $fh->open($fname) or bailout("failed to open '$fname': $!");
   }
 
   my @errmsg;                               # error message list
@@ -286,6 +277,14 @@ sub do_file {
   $errcnt += scalar(@errmsg);
 
   return;
+}
+
+#-------------------------------------------------------------------------------
+
+sub bailout {
+  my ($msg) = @_;
+  print STDERR "asm-11_expect-F: $msg\n";
+  exit 1;
 }
 
 #-------------------------------------------------------------------------------

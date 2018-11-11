@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: tbfilt 985 2018-01-03 08:59:40Z mueller $
+# $Id: tbfilt 1065 2018-11-04 11:32:06Z mueller $
 #
-# Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-11-03  1065   1.1    add and use bailout; update exit code usage
 # 2016-09-10   806   1.0    Initial version
 # 2016-08-05   795   0.1    First draft
 #
@@ -31,9 +32,8 @@ GetOptions(\%opts, "tee=s",  "pcom",
            "find=s", "all",
            "summary", "wide", "compact", "format=s", "nohead"
           )
-  or die "bad options";
+  or bailout("bad command options");
 
-sub do_file;
 sub conv_fd;
 sub conv_ft;
 sub conv_fs;
@@ -93,17 +93,15 @@ while (length($format)) {
     $format = $';
   } else { last; };
 }
-if (length($format)) {
-  print STDERR "tbfilt-f: bad format '$format'\n";
-  exit 2;
-}
+bailout("bad format '$format'") if length($format);
 
 autoflush STDOUT 1 if (-p STDOUT);
 
 my $fh_tee;
 if (defined $opts{tee} && $opts{tee} ne '') {
   $fh_tee = new FileHandle;
-  $fh_tee->open($opts{tee},'>') or die "failed to open for write '$opts{tee}'";
+  $fh_tee->open($opts{tee},'>') or
+    bailout("failed to open for write '$opts{tee}': $!");
 }
 
 my @flist = @ARGV;
@@ -128,7 +126,7 @@ if (defined $opts{find}) {
     @flist = ();
   }
   open FIND,'-|',"find -regextype egrep -regex '$opts{find}'"
-    or die "failed to open find pipe";
+    or bailout("failed to open find pipe: $!");
 
   while (<FIND>) {
     chomp;
@@ -138,10 +136,7 @@ if (defined $opts{find}) {
 
   close FIND;
   @flist = sort @flist;
-  if (scalar (@flist) == 0) {
-    print STDERR "tbfilt-E: no files found by -find or -all\n";
-    exit 2;
-  }
+  bailout("no files found by -find or -all") if (scalar (@flist) == 0);
 
 } else {
   push @flist, '-' if (scalar(@flist) == 0);
@@ -162,10 +157,18 @@ if ($opts{summary} && (not $opts{nohead})) {
 
 foreach my $fnam (@flist) {
   my $nfail = do_file($fnam);
-  $exitcode = 1 if $nfail;
+  $exitcode = 2 if $nfail;
 }
 
 exit $exitcode;
+
+#-------------------------------------------------------------------------------
+
+sub bailout {
+  my ($msg) = @_;
+  print STDERR "tbfilt-F: $msg\n";
+  exit 1;
+}
 
 #-------------------------------------------------------------------------------
 
@@ -181,7 +184,7 @@ sub do_file {
     $fh = *STDIN;
   } else {
     $fh = new FileHandle;
-    $fh->open($fnam,'<') or die "failed to open for read '$fnam'";
+    $fh->open($fnam,'<') or bailout("failed to open for read '$fnam': $!");
   }
 
   if ($manyfile && $notsumm) {

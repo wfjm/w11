@@ -1,4 +1,4 @@
-# $Id: Makefile 757 2016-04-02 11:19:06Z mueller $
+# $Id: Makefile 1067 2018-11-11 08:30:29Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -13,7 +13,7 @@ ifndef XTW_BOARD
 endif
 include ${RETROBASE}/rtl/make_viv/viv_default_$(XTW_BOARD).mk
 #
-.PHONY : catch all 
+.PHONY : catch all clean
 #
 catch : 
 	@echo "no default target defined, use"

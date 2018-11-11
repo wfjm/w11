@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTermTcp.cpp 1059 2018-10-27 10:34:16Z mueller $
+// $Id: Rw11VirtTermTcp.cpp 1066 2018-11-10 11:21:53Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -123,15 +123,15 @@ Rw11VirtTermTcp::~Rw11VirtTermTcp()
 bool Rw11VirtTermTcp::Open(const std::string& url, RerrMsg& emsg)
 {
   if (!fUrl.Set(url, "|port=|trace|", "tcp", emsg)) return false;
-  if (!(fUrl.FindOpt("port"))) {
+  
+  string port;
+  if (!fUrl.FindOpt("port", port)) {
     emsg.Init("Rw11VirtTermTcp::Open", "port= option not specified");
     return false;
   }
 
   fTcpTrace = fUrl.FindOpt("trace");
 
-  string port;
-  fUrl.FindOpt("port",port);
   unsigned long portno;
   if (!Rtools::String2Long(port, portno, emsg)) return false;
 

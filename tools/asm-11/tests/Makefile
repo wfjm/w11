@@ -1,11 +1,12 @@
-# $Id: Makefile 733 2016-02-20 12:24:13Z mueller $
+# $Id: Makefile 1065 2018-11-04 11:32:06Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2018-11-03  1065   1.1    sort file list
 # 2013-03-22   496   1.0    Initial version
 #---
 #
-MAC_all   = $(wildcard *.mac)
+MAC_all   = $(sort $(wildcard *.mac))
 LDA_all   = $(MAC_all:.mac=.lda)
 COF_all   = $(MAC_all:.mac=.cof)
 LST_all   = $(MAC_all:.mac=.lst)

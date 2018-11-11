@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.ipp 1050 2018-09-23 15:46:42Z mueller $
+// $Id: Rw11Cpu.ipp 1066 2018-11-10 11:21:53Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2019-09-23  1050   1.2.3  add HasPcnt()
+// 2018-09-23  1050   1.2.3  add HasPcnt()
 // 2017-02-17   851   1.2.2  probe/setup auxilliary devices: kw11l,kw11p,iist
 // 2015-07-12   700   1.2.1  use ..CpuAct instead ..CpuGo (new active based lam)
 // 2015-03-21   659   1.2    add RAddrMap

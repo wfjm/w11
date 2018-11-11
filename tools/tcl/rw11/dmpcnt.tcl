@@ -1,4 +1,4 @@
-# $Id: dmpcnt.tcl 1058 2018-10-21 21:46:26Z mueller $
+# $Id: dmpcnt.tcl 1066 2018-11-10 11:21:53Z mueller $
 #
 # Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-11-09  1066   1.1.1  pc_sta: fix default file name
 # 2018-10-21  1058   1.1    add logger, pc_l* commands
 # 2018-10-13  1055   1.0    Initial version
 # 2018-09-23  1050   0.1    First draft
@@ -146,7 +147,7 @@ namespace eval rw11 {
 
     if {$file eq ""} {
       set timestamp [clock format [clock seconds] -format "%Y-%m-%d-%H%M%S"]
-      set file "pc_dmpcnt$timestamp.dat"
+      set file "pc_dmpcnt_$timestamp.dat"
     }
     
     pc_clear

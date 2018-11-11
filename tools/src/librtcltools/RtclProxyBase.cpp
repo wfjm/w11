@@ -1,4 +1,4 @@
-// $Id: RtclProxyBase.cpp 1047 2018-09-16 11:08:41Z mueller $
+// $Id: RtclProxyBase.cpp 1066 2018-11-10 11:21:53Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -46,8 +46,6 @@ using namespace std;
 
 // all method definitions in namespace Retro
 namespace Retro {
-
-typedef std::pair<RtclProxyBase::mmap_it_t, bool>  mmap_ins_t;
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs

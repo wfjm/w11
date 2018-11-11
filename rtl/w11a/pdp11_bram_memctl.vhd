@@ -1,4 +1,4 @@
--- $Id: pdp11_bram_memctl.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: pdp11_bram_memctl.vhd 1067 2018-11-11 08:30:29Z mueller $
 --
 -- Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -15,7 +15,7 @@
 -- Module Name:    pdp11_bram_memctl - syn
 -- Description:    pdp11: BRAM based memctl
 --
--- Dependencies:   -
+-- Dependencies:   ram_1swsr_wfirst_gen
 -- Test bench:     -
 -- Target Devices: 7-Series
 -- Tool versions:  ise 14.7; viv 2014.4-2016.1; ghdl 0.31-0.33

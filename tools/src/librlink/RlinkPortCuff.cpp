@@ -1,4 +1,4 @@
-// $Id: RlinkPortCuff.cpp 1060 2018-10-27 11:32:39Z mueller $
+// $Id: RlinkPortCuff.cpp 1066 2018-11-10 11:21:53Z mueller $
 //
 // Copyright 2012-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-11-09  1066   1.1.7  use auto
 // 2018-10-27  1059   1.1.6  coverity fixup (uncaught exception in dtor)
 // 2017-04-15   875   1.1.5  Open(): set default scheme
 // 2017-03-04   858   1.1.4  use clock_gettime instead of gettimeofday
@@ -235,7 +236,7 @@ bool RlinkPortCuff::Open(const std::string& url, RerrMsg& emsg)
   
   // 2. libusb callbacks
   const libusb_pollfd** plist = libusb_get_pollfds(fpUsbContext);
-  for (const libusb_pollfd** p = plist; *p !=0; p++) {
+  for (auto p = plist; *p !=0; p++) {
     PollfdAdd((*p)->fd, (*p)->events);
   }
   ::free(plist);

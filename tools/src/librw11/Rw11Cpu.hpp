@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.hpp 1050 2018-09-23 15:46:42Z mueller $
+// $Id: Rw11Cpu.hpp 1066 2018-11-10 11:21:53Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -67,10 +67,6 @@ namespace Retro {
   class Rw11Cpu : public Rbits, private boost::noncopyable {
     public:
       typedef std::map<std::string, boost::shared_ptr<Rw11Cntl>> cmap_t;
-      typedef cmap_t::iterator         cmap_it_t;
-      typedef cmap_t::const_iterator   cmap_cit_t;
-      typedef cmap_t::value_type       cmap_val_t;
-
 
       explicit      Rw11Cpu(const std::string& type);
       virtual      ~Rw11Cpu();

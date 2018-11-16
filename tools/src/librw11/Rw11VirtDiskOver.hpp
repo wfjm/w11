@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDiskOver.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11VirtDiskOver.hpp 1066 2018-11-10 11:21:53Z mueller $
 //
 // Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -39,9 +39,6 @@ namespace Retro {
     public:
 
       typedef std::map<uint32_t,Rw11VirtDiskBuffer> bmap_t;
-      typedef bmap_t::iterator         bmap_it_t;
-      typedef bmap_t::const_iterator   bmap_cit_t;
-      typedef bmap_t::value_type       bmap_val_t;
 
       explicit      Rw11VirtDiskOver(Rw11Unit* punit);
                    ~Rw11VirtDiskOver();

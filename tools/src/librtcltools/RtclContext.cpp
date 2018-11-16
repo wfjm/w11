@@ -1,6 +1,6 @@
-// $Id: RtclContext.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclContext.cpp 1066 2018-11-10 11:21:53Z mueller $
 //
-// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-11-09  1066   1.0.5  use auto; use emplace,make_pair
 // 2017-02-04   866   1.0.4  rename fMapContext -> fContextMap
 // 2013-02-03   481   1.0.3  use Rexception
 // 2013-01-12   474   1.0.2  add FindProxy() method
@@ -42,9 +43,6 @@ using namespace std;
 // all method definitions in namespace Retro
 namespace Retro {
 
-typedef std::pair<RtclContext::cset_it_t, bool>  cset_ins_t;
-typedef std::pair<RtclContext::pset_it_t, bool>  pset_ins_t;
-
 RtclContext::xmap_t RtclContext::fContextMap;
 
 //------------------------------------------+-----------------------------------
@@ -67,7 +65,7 @@ RtclContext::~RtclContext()
 
 void RtclContext::RegisterClass(RtclClassBase* pobj)
 {
-  cset_ins_t ret = fSetClass.insert(pobj);
+  auto ret = fSetClass.insert(pobj);
   if (ret.second == false)                  // or use !(ret.second)
     throw Rexception("RtclContext::RegisterClass()",
                      "Bad args: duplicate pointer");
@@ -88,7 +86,7 @@ void RtclContext::UnRegisterClass(RtclClassBase* pobj)
 
 void RtclContext::RegisterProxy(RtclProxyBase* pobj)
 {
-  pset_ins_t ret = fSetProxy.insert(pobj);
+  auto ret = fSetProxy.insert(pobj);
   if (ret.second == false)                  // or use !(ret.second)
     throw Rexception("RtclContext::RegisterProxy()",
                      "Bad args: duplicate pointer");
@@ -109,7 +107,7 @@ void RtclContext::UnRegisterProxy(RtclProxyBase* pobj)
 
 bool RtclContext::CheckProxy(RtclProxyBase* pobj)
 {
-  pset_it_t it = fSetProxy.find(pobj);
+  auto it = fSetProxy.find(pobj);
   return it != fSetProxy.end();
 }
 
@@ -118,7 +116,7 @@ bool RtclContext::CheckProxy(RtclProxyBase* pobj)
 
 bool RtclContext::CheckProxy(RtclProxyBase* pobj, const string& type)
 {
-  pset_it_t it = fSetProxy.find(pobj);
+  auto it = fSetProxy.find(pobj);
   if (it == fSetProxy.end()) return false;
   return (*it)->Type() == type;
 }
@@ -130,7 +128,7 @@ void RtclContext::ListProxy(std::vector<RtclProxyBase*>& list,
                             const std::string& type)
 {
   list.clear();
-  for (pset_it_t it = fSetProxy.begin(); it != fSetProxy.end(); it++) {
+  for (auto it = fSetProxy.begin(); it != fSetProxy.end(); it++) {
     if (type.length() == 0 || (*it)->Type()==type) {
       list.push_back(*it);
     }
@@ -144,7 +142,7 @@ void RtclContext::ListProxy(std::vector<RtclProxyBase*>& list,
 RtclProxyBase* RtclContext::FindProxy(const std::string& type, 
                                       const std::string& name)
 {
-  for (pset_it_t it = fSetProxy.begin(); it != fSetProxy.end(); it++) {
+  for (auto it = fSetProxy.begin(); it != fSetProxy.end(); it++) {
     if (type.length() == 0 || (*it)->Type()==type) {
       const char* cmdname = Tcl_GetCommandName(fInterp, (*it)->Token());
       if (name == cmdname) return *it;
@@ -159,12 +157,12 @@ RtclProxyBase* RtclContext::FindProxy(const std::string& type,
 RtclContext& RtclContext::Find(Tcl_Interp* interp)
 {
   RtclContext* pcntx = 0;
-  xmap_it_t it = fContextMap.find(interp);
+  auto it = fContextMap.find(interp);
   if (it != fContextMap.end()) {
     pcntx = it->second;
   } else {
     pcntx = new RtclContext(interp);
-    fContextMap.insert(xmap_val_t(interp, pcntx));
+    fContextMap.emplace(make_pair(interp, pcntx));
     Tcl_CreateExitHandler((Tcl_ExitProc*) ThunkTclExitProc, (ClientData) pcntx);
 
   }

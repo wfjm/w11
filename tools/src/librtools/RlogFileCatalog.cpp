@@ -1,6 +1,6 @@
-// $Id: RlogFileCatalog.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlogFileCatalog.cpp 1066 2018-11-10 11:21:53Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-11-09  1066   1.0.1  use auto; use make_pair,emplace
 // 2013-02-22   491   1.0    Initial version
 // ---------------------------------------------------------------------------
 
@@ -50,13 +51,13 @@ RlogFileCatalog& RlogFileCatalog::Obj()
 const boost::shared_ptr<RlogFile>& 
   RlogFileCatalog::FindOrCreate(const std::string& name)
 {
-  map_cit_t it = fMap.find(name);
+  auto it = fMap.find(name);
   if (it != fMap.end()) return it->second;
 
   boost::shared_ptr<RlogFile> sptr(new RlogFile());
-  it = fMap.insert(fMap.begin(), map_val_t(name, sptr));
+  auto pitb = fMap.emplace(make_pair(name, sptr));
 
-  return it->second;
+  return pitb.first->second;
 }
 
 //------------------------------------------+-----------------------------------

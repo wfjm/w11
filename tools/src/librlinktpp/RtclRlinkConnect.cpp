@@ -1,4 +1,4 @@
-// $Id: RtclRlinkConnect.cpp 1048 2018-09-22 07:41:46Z mueller $
+// $Id: RtclRlinkConnect.cpp 1066 2018-11-10 11:21:53Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-11-09  1066   1.6.2  use auto
 // 2018-09-16  1047   1.6.1  coverity fixup (uninitialized scalar)
 // 2017-04-29   888   1.6    drop M_rawio; add M_rawread,M_rawrblk,M_rawwblk
 // 2017-04-22   883   1.5.2  M_amap: -testname opt addr check; add hasrbmon get 
@@ -538,8 +539,8 @@ int RtclRlinkConnect::M_amap(RtclArgs& args)
 
     } else {                                // amap
       RtclOPtr plist(Tcl_NewListObj(0, nullptr));
-      const RlinkAddrMap::amap_t amap = addrmap.Amap();
-      for (RlinkAddrMap::amap_cit_t it=amap.begin(); it!=amap.end(); it++) {
+      const auto amap = addrmap.Amap();
+      for (auto it=amap.begin(); it!=amap.end(); it++) {
         Tcl_Obj* tpair[2];
         tpair[0] = Tcl_NewIntObj(it->first);
         tpair[1] = Tcl_NewStringObj((it->second).c_str(),(it->second).length());

@@ -1,6 +1,6 @@
-// $Id: RtclGetList.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclGetList.cpp 1066 2018-11-10 11:21:53Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-11-09  1066   1.1.1  use auto; use emplace,make_pair
 // 2015-01-08   631   1.1    add Clear(), add '?' (key list) and '*' (kv list)
 // 2014-08-22   584   1.0.1  use nullptr
 // 2013-02-12   487   1.0    Initial version
@@ -53,7 +54,7 @@ RtclGetList::RtclGetList()
 
 RtclGetList::~RtclGetList()
 {
-  for (map_cit_t it=fMap.begin(); it != fMap.end(); it++) {
+  for (auto it=fMap.begin(); it != fMap.end(); it++) {
     delete (it->second);
   }
 }
@@ -63,8 +64,7 @@ RtclGetList::~RtclGetList()
 
 void RtclGetList::Add(const std::string& name, RtclGetBase* pget)
 {
-  typedef std::pair<Retro::RtclGetList::map_it_t, bool>  map_ins_t;
-  map_ins_t ret = fMap.insert(map_val_t(name, pget));
+  auto ret = fMap.emplace(make_pair(name, pget));
   if (ret.second == false) 
      throw Rexception("RtclGetList::Add:", 
                       string("Bad args: duplicate name: '") + name + "'");
@@ -110,14 +110,14 @@ int RtclGetList::M_get(RtclArgs& args)
     return TCL_OK;
   }
   
-  map_cit_t it = fMap.lower_bound(pname);
+  auto it = fMap.lower_bound(pname);
 
   // complain if not found
   if (it == fMap.end() || pname != it->first.substr(0,pname.length())) {
     Tcl_AppendResult(interp, "-E: unknown property '", pname.c_str(), 
                      "': must be ", nullptr);
     const char* delim = "";
-    for (map_cit_t it1=fMap.begin(); it1!=fMap.end(); it1++) {
+    for (auto it1=fMap.begin(); it1!=fMap.end(); it1++) {
       Tcl_AppendResult(interp, delim, it1->first.c_str(), nullptr);
       delim = ",";
     }
@@ -125,7 +125,7 @@ int RtclGetList::M_get(RtclArgs& args)
   }
 
   // check for ambiguous substring match
-  map_cit_t it1 = it;
+  auto it1 = it;
   it1++;
   if (it1!=fMap.end() && pname==it1->first.substr(0,pname.length())) {
     Tcl_AppendResult(interp, "-E: ambiguous property name '", pname.c_str(),

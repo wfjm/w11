@@ -1,4 +1,4 @@
-// $Id: RtclGetList.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclGetList.hpp 1066 2018-11-10 11:21:53Z mueller $
 //
 // Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -55,9 +55,6 @@ namespace Retro {
 
     protected: 
       typedef std::map<std::string, RtclGetBase*> map_t;
-      typedef map_t::iterator         map_it_t;
-      typedef map_t::const_iterator   map_cit_t;
-      typedef map_t::value_type       map_val_t;
 
       map_t         fMap;
   };

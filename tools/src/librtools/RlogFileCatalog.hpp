@@ -1,4 +1,4 @@
-// $Id: RlogFileCatalog.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlogFileCatalog.hpp 1066 2018-11-10 11:21:53Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -47,9 +47,6 @@ namespace Retro {
 
     protected:
       typedef std::map<std::string, boost::shared_ptr<RlogFile>> map_t;
-      typedef map_t::iterator         map_it_t;
-      typedef map_t::const_iterator   map_cit_t;
-      typedef map_t::value_type       map_val_t;
 
       map_t         fMap;                   //!< name->rlogfile map
   };

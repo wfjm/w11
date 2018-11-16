@@ -1,6 +1,6 @@
-// $Id: RlinkAddrMap.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkAddrMap.cpp 1066 2018-11-10 11:21:53Z mueller $
 //
-// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-11-09  1066   1.0.4  use auto; use emplace,make_pair
 // 2017-04-07   868   1.0.3  Dump(): add detail arg
 // 2013-02-03   481   1.0.2  use Rexception
 // 2011-11-28   434   1.0.1  Print(): use proper cast for lp64 compatibility
@@ -76,8 +77,8 @@ bool RlinkAddrMap::Insert(const std::string& name, uint16_t addr)
   if (fNameMap.find(name) != fNameMap.end()) return false;
   if (fAddrMap.find(addr) != fAddrMap.end()) return false;
 
-  fNameMap.insert(nmap_val_t(name, addr));
-  fAddrMap.insert(amap_val_t(addr, name));
+  fNameMap.emplace(make_pair(name, addr));
+  fAddrMap.emplace(make_pair(addr, name));
   fMaxLength = max(fMaxLength, name.length());
 
   return true;
@@ -88,7 +89,7 @@ bool RlinkAddrMap::Insert(const std::string& name, uint16_t addr)
 
 bool RlinkAddrMap::Erase(const std::string& name)
 {
-  nmap_cit_t it = fNameMap.find(name);
+  auto it = fNameMap.find(name);
   if (it == fNameMap.end()) return false;
 
   fMaxLength = 0;                           // force recalculate
@@ -107,7 +108,7 @@ bool RlinkAddrMap::Erase(const std::string& name)
 
 bool RlinkAddrMap::Erase(uint16_t addr)
 {
-  amap_cit_t it = fAddrMap.find(addr);
+  auto it = fAddrMap.find(addr);
   if (it == fAddrMap.end()) return false;
 
   fMaxLength = 0;                           // force recalculate
@@ -126,7 +127,7 @@ bool RlinkAddrMap::Erase(uint16_t addr)
 
 bool RlinkAddrMap::Find(const std::string& name, uint16_t& addr) const
 {
-  nmap_cit_t it = fNameMap.find(name);
+  auto it = fNameMap.find(name);
   if (it == fNameMap.end()) return false;
 
   addr = it->second;
@@ -139,7 +140,7 @@ bool RlinkAddrMap::Find(const std::string& name, uint16_t& addr) const
 
 bool RlinkAddrMap::Find(uint16_t addr, std::string& name) const
 {
-  amap_cit_t it = fAddrMap.find(addr);
+  auto it = fAddrMap.find(addr);
   if (it == fAddrMap.end()) return false;
 
   name = it->second;
@@ -153,7 +154,7 @@ bool RlinkAddrMap::Find(uint16_t addr, std::string& name) const
 size_t RlinkAddrMap::MaxNameLength() const
 {
   if (fMaxLength == 0) {
-    for (amap_cit_t it=fAddrMap.begin(); it!=fAddrMap.end(); it++) {
+    for (auto it=fAddrMap.begin(); it!=fAddrMap.end(); it++) {
       fMaxLength = max(fMaxLength, (it->second).length());
     }
   }
@@ -168,7 +169,7 @@ void RlinkAddrMap::Print(std::ostream& os, int ind) const
   size_t maxlen = max(((size_t) 6), MaxNameLength());
   
   RosFill bl(ind);
-  for (amap_cit_t it=fAddrMap.begin(); it!=fAddrMap.end(); it++) {
+  for (auto it=fAddrMap.begin(); it!=fAddrMap.end(); it++) {
     os << bl << RosPrintf((it->second).c_str(), "-s",maxlen)
        << " : " << RosPrintf(it->first, "$x0", 6)
        << "  " << RosPrintf(it->first, "o0", 6) << endl;

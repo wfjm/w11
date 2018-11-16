@@ -1,4 +1,4 @@
-// $Id: ReventLoop.cpp 1049 2018-09-22 13:56:52Z mueller $
+// $Id: ReventLoop.cpp 1066 2018-11-10 11:21:53Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-11-09  1066   1.2.2  use emplace_back
 // 2017-04-07   868   1.2.1  Dump(): add detail arg
 // 2015-04-04   662   1.2    BUGFIX: fix race in Stop(), add UnStop,StopPending
 // 2013-04-27   511   1.1.3  BUGFIX: logic in DoCall() fixed (loop range)
@@ -90,7 +91,7 @@ void ReventLoop::AddPollHandler(const pollhdl_t& pollhdl,
     }
   }
 
-  fPollDsc.push_back(PollDsc(pollhdl,fd,events));
+  fPollDsc.emplace_back(PollDsc(pollhdl,fd,events));
   fUpdatePoll = true;
 
   if (fspLog && fTraceLevel >= 1) {

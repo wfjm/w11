@@ -1,4 +1,4 @@
-// $Id: RtclCmdBase.cpp 1048 2018-09-22 07:41:46Z mueller $
+// $Id: RtclCmdBase.cpp 1066 2018-11-10 11:21:53Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-11-09  1066   1.1.2  use auto
 // 2017-04-02   865   1.1.1  add GetArgsDump()
 // 2017-04-02   863   1.1    add DelMeth(),TstMeth(); add M_info() and '?'
 //                           rename fMapMeth -> fMethMap
@@ -96,7 +97,7 @@ int RtclCmdBase::DispatchCmd(RtclArgs& args)
   if (it_match==fMethMap.end() || 
       name!=it_match->first.substr(0,name.length())) {
 
-    mmap_cit_t it_un = fMethMap.find("$unknown"); // unknown method registered ?
+    auto it_un = fMethMap.find("$unknown"); // unknown method registered ?
     if (it_un!=fMethMap.end()) {
       return (it_un->second)(args);
     }
@@ -115,7 +116,7 @@ int RtclCmdBase::DispatchCmd(RtclArgs& args)
     
   // check for ambiguous substring match
   if (name != it_match->first) {
-    mmap_cit_t it1 = it_match;
+    auto it1 = it_match;
     it1++;
     if (it1!=fMethMap.end() && name==it1->first.substr(0,name.length())) {
       Tcl_AppendResult(interp, "-E: ambiguous option '", 

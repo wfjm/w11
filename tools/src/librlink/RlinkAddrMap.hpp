@@ -1,4 +1,4 @@
-// $Id: RlinkAddrMap.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkAddrMap.hpp 1066 2018-11-10 11:21:53Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -36,13 +36,7 @@ namespace Retro {
   class RlinkAddrMap {
     public:
       typedef std::map<std::string, uint16_t> nmap_t;
-      typedef nmap_t::iterator         nmap_it_t;
-      typedef nmap_t::const_iterator   nmap_cit_t;
-      typedef nmap_t::value_type       nmap_val_t;
       typedef std::map<uint16_t, std::string> amap_t;
-      typedef amap_t::iterator         amap_it_t;
-      typedef amap_t::const_iterator   amap_cit_t;
-      typedef amap_t::value_type       amap_val_t;
 
                     RlinkAddrMap();
                    ~RlinkAddrMap();

@@ -1,6 +1,6 @@
-// $Id: RparseUrl.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RparseUrl.cpp 1066 2018-11-10 11:21:53Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-11-09  1066   1.1.1  use auto; use emplace,make_pair
 // 2017-04-15   875   1.1    add Set() with default scheme handling
 // 2015-06-04   686   1.0.2  Set(): add check that optlist is enclosed by '|'
 // 2013-02-23   492   1.0.1  add static FindScheme(); allow no or empty scheme
@@ -163,7 +164,7 @@ void RparseUrl::Clear()
 
 bool RparseUrl::FindOpt(const std::string& name) const
 {
-  omap_cit_t it = fOptMap.find(name);
+  auto it = fOptMap.find(name);
   if (it == fOptMap.end()) return false;
   return true;
 }
@@ -173,7 +174,7 @@ bool RparseUrl::FindOpt(const std::string& name) const
 
 bool RparseUrl::FindOpt(const std::string& name, std::string& value) const
 {
-  omap_cit_t it = fOptMap.find(name);
+  auto it = fOptMap.find(name);
   if (it == fOptMap.end()) return false;
 
   value = it->second;
@@ -193,7 +194,7 @@ void RparseUrl::Dump(std::ostream& os, int ind, const char* text) const
   os << bl << "  fScheme:         " << fScheme << endl;
   os << bl << "  fPath:           " << fPath << endl;
   os << bl << "  fOptMap:         " << endl;
-  for (omap_cit_t it=fOptMap.begin(); it!=fOptMap.end(); it++) {
+  for (auto it=fOptMap.begin(); it!=fOptMap.end(); it++) {
     os << bl << "    " << RosPrintf((it->first).c_str(), "-s",8)
        << " : " << it->second << endl;
   }
@@ -236,7 +237,7 @@ bool RparseUrl::AddOpt(const std::string& key, const std::string& val,
     return false;
   }
 
-  fOptMap.insert(omap_val_t(key, hasval ? val : "1"));
+  fOptMap.emplace(make_pair(key, hasval ? val : "1"));
   return true;
 }
 

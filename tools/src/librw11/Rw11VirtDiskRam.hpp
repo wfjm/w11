@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDiskRam.hpp 1063 2018-10-29 18:37:42Z mueller $
+// $Id: Rw11VirtDiskRam.hpp 1066 2018-11-10 11:21:53Z mueller $
 //
 // Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -38,9 +38,6 @@ namespace Retro {
     public:
 
       typedef std::map<uint32_t,Rw11VirtDiskBuffer> bmap_t;
-      typedef bmap_t::iterator         bmap_it_t;
-      typedef bmap_t::const_iterator   bmap_cit_t;
-      typedef bmap_t::value_type       bmap_val_t;
 
       explicit      Rw11VirtDiskRam(Rw11Unit* punit);
                    ~Rw11VirtDiskRam();

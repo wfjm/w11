@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.cpp 1050 2018-09-23 15:46:42Z mueller $
+// $Id: Rw11Cpu.cpp 1066 2018-11-10 11:21:53Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2019-09-23  1050   1.2.14 add HasPcnt()
+// 2018-11-09  1066   1.2.15 use auto; use emplace,make_pair
+// 2018-09-23  1050   1.2.14 add HasPcnt()
 // 2018-09-22  1048   1.2.13 coverity fixup (drop unreachable code)
 // 2017-04-07   868   1.2.12 Dump(): add detail arg
 // 2017-02-26   857   1.2.11 add kCPAH_M_UBM22
@@ -233,7 +234,7 @@ void Rw11Cpu::AddCntl(const boost::shared_ptr<Rw11Cntl>& spcntl)
     throw Rexception("Rw11Cpu::AddCntl",
                      "Bad state: duplicate controller name");;
 
-  fCntlMap.insert(cmap_val_t(name, spcntl));
+  fCntlMap.emplace(make_pair(name, spcntl));
   spcntl->SetCpu(this);
   return;
 }
@@ -252,7 +253,7 @@ bool Rw11Cpu::TestCntl(const std::string& name) const
 void Rw11Cpu::ListCntl(std::vector<std::string>& list) const
 {
   list.clear();
-  for (cmap_cit_t it=fCntlMap.begin(); it!=fCntlMap.end(); it++) {
+  for (auto it=fCntlMap.begin(); it!=fCntlMap.end(); it++) {
     list.push_back((it->second)->Name());
   }
   return;
@@ -263,7 +264,7 @@ void Rw11Cpu::ListCntl(std::vector<std::string>& list) const
 
 Rw11Cntl& Rw11Cpu::Cntl(const std::string& name) const
 {
-  cmap_cit_t it=fCntlMap.find(name);
+  auto it=fCntlMap.find(name);
   if (it == fCntlMap.end())
     throw Rexception("Rw11Cpu::Cntl()",
                      "Bad args: controller name '" + name + "' unknown");
@@ -275,7 +276,7 @@ Rw11Cntl& Rw11Cpu::Cntl(const std::string& name) const
 
 void Rw11Cpu::Start()
 {
-  for (cmap_cit_t it=fCntlMap.begin(); it!=fCntlMap.end(); it++) {
+  for (auto it=fCntlMap.begin(); it!=fCntlMap.end(); it++) {
     Rw11Cntl& cntl(*(it->second));
     cntl.Probe();
     if (cntl.ProbeStatus().Found() && cntl.Enable()) {
@@ -551,9 +552,6 @@ bool Rw11Cpu::LoadAbs(const std::string& fname, RerrMsg& emsg, bool trace)
   };
 
   typedef std::map<uint16_t, uint16_t> obmap_t;
-  //typedef obmap_t::iterator         obmap_it_t;
-  typedef obmap_t::const_iterator   obmap_cit_t;
-  typedef obmap_t::value_type       obmap_val_t;
 
   obmap_t oddbyte;                          // odd byte cache
 
@@ -637,7 +635,7 @@ bool Rw11Cpu::LoadAbs(const std::string& fname, RerrMsg& emsg, bool trace)
       addr = ldaddr;
       word = 0;
       if ((addr & 0x01) == 1 && bytcnt > 6) {
-        obmap_cit_t it = oddbyte.find(addr);
+        auto it = oddbyte.find(addr);
         if (it != oddbyte.end()) {
           word = it->second;
         } else {
@@ -683,7 +681,7 @@ bool Rw11Cpu::LoadAbs(const std::string& fname, RerrMsg& emsg, bool trace)
       } else {
         if ((addr & 0x01) == 1) {           // high byte not yet seen
           data.push_back(word);             // zero fill high byte
-          oddbyte.insert(obmap_val_t(addr,word)); // store even byte for later
+          oddbyte.emplace(make_pair(addr,word)); // store even byte for later
         }
 
         //cout << "+++2 " << RosPrintBvi(ldaddr,8) 
@@ -884,7 +882,7 @@ void Rw11Cpu::Dump(std::ostream& os, int ind, const char* text,
   os << bl << "  fCpuAct:         " << fCpuAct << endl;
   os << bl << "  fCpuStat:        " << RosPrintf(fCpuStat,"$x0",4) << endl;
   os << bl << "  fCntlMap:        " << endl;
-  for (cmap_cit_t it=fCntlMap.begin(); it!=fCntlMap.end(); it++) {
+  for (auto it=fCntlMap.begin(); it!=fCntlMap.end(); it++) {
     os << bl << "    " << RosPrintf((it->first).c_str(), "-s",8)
        << " : " << it->second << endl;
   }

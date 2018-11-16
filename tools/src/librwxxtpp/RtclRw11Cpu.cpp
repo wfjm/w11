@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.cpp 1050 2018-09-23 15:46:42Z mueller $
+// $Id: RtclRw11Cpu.cpp 1066 2018-11-10 11:21:53Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2019-09-23  1050   1.2.18 add HasPcnt()
+// 2018-11-09  1066   1.2.19 use auto; use emplace_back
+// 2018-09-23  1050   1.2.18 add HasPcnt()
 // 2018-09-21  1048   1.2.18 coverity fixup (uninitialized scalar)
 // 2017-04-22   883   1.2.17 M_(imap|rmap): -testname optional addr check
 // 2017-04-15   876   1.2.16 add ControllerCommands()
@@ -223,8 +224,8 @@ int RtclRw11Cpu::M_imap(RtclArgs& args)
 
     } else {                                // imap
       RtclOPtr plist(Tcl_NewListObj(0, nullptr));
-      const RlinkAddrMap::amap_t amap = addrmap.Amap();
-      for (RlinkAddrMap::amap_cit_t it=amap.begin(); it!=amap.end(); it++) {
+      const auto amap = addrmap.Amap();
+      for (auto it=amap.begin(); it!=amap.end(); it++) {
         Tcl_Obj* tpair[2];
         tpair[0] = Tcl_NewIntObj(it->first);
         tpair[1] = Tcl_NewStringObj((it->second).c_str(),(it->second).length());
@@ -328,8 +329,8 @@ int RtclRw11Cpu::M_rmap(RtclArgs& args)
 
     } else {                                // rmap
       RtclOPtr plist(Tcl_NewListObj(0, nullptr));
-      const RlinkAddrMap::amap_t amap = lmap.Amap();
-      for (RlinkAddrMap::amap_cit_t it=amap.begin(); it!=amap.end(); it++) {
+      const auto amap = lmap.Amap();
+      for (auto it=amap.begin(); it!=amap.end(); it++) {
         Tcl_Obj* tpair[2];
         tpair[0] = Tcl_NewIntObj(it->first);
         tpair[1] = Tcl_NewStringObj((it->second).c_str(),(it->second).length());
@@ -1069,8 +1070,6 @@ int RtclRw11Cpu::M_ldasm(RtclArgs& args)
   bool lstbodyseen = false;
 
   typedef map<uint16_t, uint16_t>  cmap_t;
-  typedef cmap_t::iterator         cmap_it_t;
-  //typedef cmap_t::value_type       cmap_val_t;
 
   cmap_t   cmap;
   uint16_t dot = 0;
@@ -1163,7 +1162,7 @@ int RtclRw11Cpu::M_ldasm(RtclArgs& args)
   dot = 0;
   RerrMsg emsg;
   
-  for (cmap_it_t it=cmap.begin(); it!=cmap.end(); it++) {
+  for (auto it=cmap.begin(); it!=cmap.end(); it++) {
     //cout << "+++2 mem[" << RosPrintf(it->first, "o0", 6)
     //     << "]=" << RosPrintf(it->second, "o0", 6) << endl;
     if (dot != it->first || block.size() >= Connect().BlockSizeMax()) {
@@ -1576,7 +1575,7 @@ bool RtclRw11Cpu::GetVarName(RtclArgs& args, const char* argname,
                              size_t nind, 
                              std::vector<std::string>& varname)
 {
-  while (varname.size() < nind+1) varname.push_back(string());
+  while (varname.size() < nind+1) varname.emplace_back(string());
   string name;
   if (!args.GetArg(argname, name)) return false;
   if (name.length()) {                      // if variable defined

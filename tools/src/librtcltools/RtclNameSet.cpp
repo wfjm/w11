@@ -1,6 +1,6 @@
-// $Id: RtclNameSet.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclNameSet.cpp 1066 2018-11-10 11:21:53Z mueller $
 //
-// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-11-09  1066   1.1.2  use auto
 // 2014-08-22   584   1.1.1  use nullptr
 // 2013-05-19   521   1.1    add CheckMatch()
 // 2013-02-03   481   1.0.1  use Rexception
@@ -41,8 +42,6 @@ using namespace std;
 // all method definitions in namespace Retro
 namespace Retro {
 
-typedef std::pair<RtclNameSet::nset_it_t, bool>  nset_ins_t;
-
 //------------------------------------------+-----------------------------------
 //! Default constructor
 
@@ -61,7 +60,7 @@ RtclNameSet::RtclNameSet(const std::string& nset)
     size_t iend = nset.find_first_of('|', ibeg);
     if (iend-ibeg > 0) {
       string name(nset, ibeg, iend-ibeg);
-      nset_ins_t ret = fSet.insert(name);
+      auto ret = fSet.insert(name);
         if (ret.second == false)                  // or use !(ret.second)
           throw Rexception("RtclNameSet::<ctor>", "Bad args: " +
                            string("duplicate name '") + name + 
@@ -97,7 +96,7 @@ int RtclNameSet::CheckMatch(Tcl_Interp* interp, std::string& rval,
                             const std::string& tval, bool misserr) const
 {
   rval.clear();
-  nset_cit_t it = fSet.lower_bound(tval);
+  auto it = fSet.lower_bound(tval);
 
   // no leading substring match
   if (it==fSet.end() || tval!=it->substr(0,tval.length())) {
@@ -105,7 +104,7 @@ int RtclNameSet::CheckMatch(Tcl_Interp* interp, std::string& rval,
       Tcl_AppendResult(interp, "-E: bad option '", tval.c_str(),
                        "': must be ", nullptr);
       const char* delim = "";
-      for (nset_cit_t it1=fSet.begin(); it1!=fSet.end(); it1++) {
+      for (auto it1=fSet.begin(); it1!=fSet.end(); it1++) {
         Tcl_AppendResult(interp, delim, it1->c_str(), nullptr);
         delim = ",";
       }
@@ -115,7 +114,7 @@ int RtclNameSet::CheckMatch(Tcl_Interp* interp, std::string& rval,
 
   // check for ambiguous substring match
   if (tval != *it) {
-    nset_cit_t it1 = it;
+    auto it1 = it;
     it1++;
     if (it1!=fSet.end() && tval==it1->substr(0,tval.length())) {
       Tcl_AppendResult(interp, "-E: ambiguous option '", tval.c_str(),

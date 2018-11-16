@@ -1,4 +1,4 @@
-// $Id: RtclCmdBase.hpp 1052 2018-09-30 08:10:52Z mueller $
+// $Id: RtclCmdBase.hpp 1066 2018-11-10 11:21:53Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -47,7 +47,6 @@ namespace Retro {
       typedef std::map<std::string, methfo_t> mmap_t;
       typedef mmap_t::iterator         mmap_it_t;
       typedef mmap_t::const_iterator   mmap_cit_t;
-      typedef mmap_t::value_type       mmap_val_t;
 
                     RtclCmdBase();
       virtual      ~RtclCmdBase();

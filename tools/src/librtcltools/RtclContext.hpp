@@ -1,4 +1,4 @@
-// $Id: RtclContext.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclContext.hpp 1066 2018-11-10 11:21:53Z mueller $
 //
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -45,12 +45,8 @@ namespace Retro {
   class RtclContext : private boost::noncopyable {
     public:
       typedef std::set<RtclClassBase*> cset_t;
-      typedef cset_t::iterator         cset_it_t;
       typedef std::set<RtclProxyBase*> pset_t;
-      typedef pset_t::iterator         pset_it_t;
       typedef std::map<Tcl_Interp*, RtclContext*>  xmap_t;
-      typedef xmap_t::iterator                     xmap_it_t;
-      typedef xmap_t::value_type                   xmap_val_t;
 
       explicit      RtclContext(Tcl_Interp* interp);
       virtual      ~RtclContext();

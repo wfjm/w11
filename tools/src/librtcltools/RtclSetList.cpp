@@ -1,4 +1,4 @@
-// $Id: RtclSetList.cpp 1066 2018-11-10 11:21:53Z mueller $
+// $Id: RtclSetList.cpp 1070 2018-11-17 09:48:04Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2018-11-09  1066   1.1.1  use auto; use emplace,make_pair
+// 2018-11-16  1070   1.1.1  use auto; use emplace,make_pair; use range loop
 // 2015-01-08   631   1.1    add Clear(), add '?' (key list)
 // 2014-08-22   584   1.0.1  use nullptr
 // 2013-02-12   487   1.0    Initial version
@@ -54,9 +54,7 @@ RtclSetList::RtclSetList()
 
 RtclSetList::~RtclSetList()
 {
-  for (auto it=fMap.begin(); it != fMap.end(); it++) {
-    delete (it->second);
-  }
+  for (auto& o: fMap) delete o.second;
 }
 
 //------------------------------------------+-----------------------------------
@@ -107,8 +105,8 @@ int RtclSetList::M_set(RtclArgs& args)
     Tcl_AppendResult(interp, "-E: unknown property '", pname.c_str(), 
                      "': must be ", nullptr);
     const char* delim = "";
-    for (auto it1=fMap.begin(); it1!=fMap.end(); it1++) {
-      Tcl_AppendResult(interp, delim, it1->first.c_str(), nullptr);
+    for (auto& o: fMap) {
+      Tcl_AppendResult(interp, delim, o.first.c_str(), nullptr);
       delim = ",";
     }
     return TCL_ERROR;

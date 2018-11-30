@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTermTcp.cpp 1066 2018-11-10 11:21:53Z mueller $
+// $Id: Rw11VirtTermTcp.cpp 1068 2018-11-11 22:35:21Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-11-11  1066   1.0.8  coverity fixup (unchecked return value)
 // 2018-10-27  1059   1.0.7  coverity fixup (uncaught exception in dtor)
 // 2017-04-15   875   1.0.6  Open(): set default scheme
 // 2017-04-07   868   1.0.5  Dump(): add detail arg

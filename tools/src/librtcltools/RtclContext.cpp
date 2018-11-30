@@ -1,4 +1,4 @@
-// $Id: RtclContext.cpp 1066 2018-11-10 11:21:53Z mueller $
+// $Id: RtclContext.cpp 1070 2018-11-17 09:48:04Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2018-11-09  1066   1.0.5  use auto; use emplace,make_pair
+// 2018-11-16  1070   1.0.5  use auto; use emplace,make_pair; use range loop
 // 2017-02-04   866   1.0.4  rename fMapContext -> fContextMap
 // 2013-02-03   481   1.0.3  use Rexception
 // 2013-01-12   474   1.0.2  add FindProxy() method
@@ -128,9 +128,9 @@ void RtclContext::ListProxy(std::vector<RtclProxyBase*>& list,
                             const std::string& type)
 {
   list.clear();
-  for (auto it = fSetProxy.begin(); it != fSetProxy.end(); it++) {
-    if (type.length() == 0 || (*it)->Type()==type) {
-      list.push_back(*it);
+  for (auto& po: fSetProxy) {
+    if (type.length() == 0 || po->Type()==type) {
+      list.push_back(po);
     }
   }
   return;
@@ -142,10 +142,10 @@ void RtclContext::ListProxy(std::vector<RtclProxyBase*>& list,
 RtclProxyBase* RtclContext::FindProxy(const std::string& type, 
                                       const std::string& name)
 {
-  for (auto it = fSetProxy.begin(); it != fSetProxy.end(); it++) {
-    if (type.length() == 0 || (*it)->Type()==type) {
-      const char* cmdname = Tcl_GetCommandName(fInterp, (*it)->Token());
-      if (name == cmdname) return *it;
+  for (auto& po: fSetProxy) {
+    if (type.length() == 0 || po->Type()==type) {
+      const char* cmdname = Tcl_GetCommandName(fInterp, po->Token());
+      if (name == cmdname) return po;
     }
   }
   return 0;

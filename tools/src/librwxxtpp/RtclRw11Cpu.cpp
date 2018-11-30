@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.cpp 1066 2018-11-10 11:21:53Z mueller $
+// $Id: RtclRw11Cpu.cpp 1070 2018-11-17 09:48:04Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2018-11-09  1066   1.2.19 use auto; use emplace_back
+// 2018-11-16  1070   1.2.19 use auto; use emplace_back; use range loop
 // 2018-09-23  1050   1.2.18 add HasPcnt()
 // 2018-09-21  1048   1.2.18 coverity fixup (uninitialized scalar)
 // 2017-04-22   883   1.2.17 M_(imap|rmap): -testname optional addr check
@@ -225,10 +225,10 @@ int RtclRw11Cpu::M_imap(RtclArgs& args)
     } else {                                // imap
       RtclOPtr plist(Tcl_NewListObj(0, nullptr));
       const auto amap = addrmap.Amap();
-      for (auto it=amap.begin(); it!=amap.end(); it++) {
+      for (auto& o: amap) {
         Tcl_Obj* tpair[2];
-        tpair[0] = Tcl_NewIntObj(it->first);
-        tpair[1] = Tcl_NewStringObj((it->second).c_str(),(it->second).length());
+        tpair[0] = Tcl_NewIntObj(o.first);
+        tpair[1] = Tcl_NewStringObj(o.second.c_str(),o.second.length());
         Tcl_ListObjAppendElement(nullptr, plist, Tcl_NewListObj(2, tpair));
       }
       args.SetResult(plist);
@@ -330,10 +330,10 @@ int RtclRw11Cpu::M_rmap(RtclArgs& args)
     } else {                                // rmap
       RtclOPtr plist(Tcl_NewListObj(0, nullptr));
       const auto amap = lmap.Amap();
-      for (auto it=amap.begin(); it!=amap.end(); it++) {
+      for (auto& o: amap) {
         Tcl_Obj* tpair[2];
-        tpair[0] = Tcl_NewIntObj(it->first);
-        tpair[1] = Tcl_NewStringObj((it->second).c_str(),(it->second).length());
+        tpair[0] = Tcl_NewIntObj(o.first);
+        tpair[1] = Tcl_NewStringObj(o.second.c_str(),o.second.length());
         Tcl_ListObjAppendElement(nullptr, plist, Tcl_NewListObj(2, tpair));
       }
       args.SetResult(plist);
@@ -1162,17 +1162,15 @@ int RtclRw11Cpu::M_ldasm(RtclArgs& args)
   dot = 0;
   RerrMsg emsg;
   
-  for (auto it=cmap.begin(); it!=cmap.end(); it++) {
-    //cout << "+++2 mem[" << RosPrintf(it->first, "o0", 6)
-    //     << "]=" << RosPrintf(it->second, "o0", 6) << endl;
-    if (dot != it->first || block.size() >= Connect().BlockSizeMax()) {
+  for (auto& o: cmap) {
+    if (dot != o.first || block.size() >= Connect().BlockSizeMax()) {
       if (block.size()) {
         if (!Obj().MemWrite(base, block, emsg)) return args.Quit(emsg);
         block.clear();
       }
-      base = dot = it->first;
+      base = dot = o.first;
     }
-    block.push_back(it->second);
+    block.push_back(o.second);
     dot += 2;
   }
 

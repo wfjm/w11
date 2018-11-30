@@ -1,4 +1,4 @@
-// $Id: RtclNameSet.cpp 1066 2018-11-10 11:21:53Z mueller $
+// $Id: RtclNameSet.cpp 1070 2018-11-17 09:48:04Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2018-11-09  1066   1.1.2  use auto
+// 2018-11-16  1070   1.1.2  use auto; use range loop
 // 2014-08-22   584   1.1.1  use nullptr
 // 2013-05-19   521   1.1    add CheckMatch()
 // 2013-02-03   481   1.0.1  use Rexception
@@ -104,8 +104,8 @@ int RtclNameSet::CheckMatch(Tcl_Interp* interp, std::string& rval,
       Tcl_AppendResult(interp, "-E: bad option '", tval.c_str(),
                        "': must be ", nullptr);
       const char* delim = "";
-      for (auto it1=fSet.begin(); it1!=fSet.end(); it1++) {
-        Tcl_AppendResult(interp, delim, it1->c_str(), nullptr);
+      for (auto& o: fSet) {
+        Tcl_AppendResult(interp, delim, o.c_str(), nullptr);
         delim = ",";
       }
     }

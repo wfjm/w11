@@ -87,6 +87,7 @@ The full set of tests is only run for tagged releases.
   - move `using namespace std` after includes (clang warning)
   - some selected clang -Weverything aspects
   - now -Wdocumentation clean (some wrong doxygen trailing comments)
+  - use auto, emplace() and range loops
 - rw11/shell.tcl: add workaround for tclreadline and `after` interference
 
 ### Bug Fixes

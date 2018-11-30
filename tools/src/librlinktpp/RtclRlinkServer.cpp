@@ -1,4 +1,4 @@
-// $Id: RtclRlinkServer.cpp 1066 2018-11-10 11:21:53Z mueller $
+// $Id: RtclRlinkServer.cpp 1070 2018-11-17 09:48:04Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2018-11-09  1066   1.1.2  use auto
+// 2018-11-16  1070   1.1.2  use auto; use range loop
 // 2017-04-02   865   1.1.1  M_dump: use GetArgsDump and Dump detail
 // 2015-04-04   662   1.1    add M_get, M_set; remove 'server -trace'
 // 2014-08-22   584   1.0.6  use nullptr
@@ -106,9 +106,7 @@ RtclRlinkServer::RtclRlinkServer(Tcl_Interp* interp, const char* name)
 
 RtclRlinkServer::~RtclRlinkServer()
 {
-  for (auto it = fAttnHdl.begin(); it != fAttnHdl.end(); it++) {
-    delete (*it);
-  }
+  for (auto& po: fAttnHdl) delete po;
 }
 
 //------------------------------------------+-----------------------------------
@@ -213,12 +211,12 @@ int RtclRlinkServer::M_attn(RtclArgs& args)
       if (!args.GetArg("mask", mask)) return kERR;
       if (!args.AllDone()) return kERR;
       RtclOPtr pres(Tcl_NewListObj(0,nullptr));
-      for (auto it = fAttnHdl.begin(); it != fAttnHdl.end(); it++) {
-        if ((*it)->Mask() & mask) {
+      for (auto& po : fAttnHdl) {
+        if (po->Mask() & mask) {
           RtclOPtr pele(Tcl_NewListObj(0,nullptr));
           Tcl_ListObjAppendElement(nullptr, pele, 
-                                   Tcl_NewIntObj((*it)->Mask()) );
-          Tcl_ListObjAppendElement(nullptr, pele, (*it)->Script() );
+                                   Tcl_NewIntObj(po->Mask()) );
+          Tcl_ListObjAppendElement(nullptr, pele, po->Script() );
           Tcl_ListObjAppendElement(nullptr, pres, pele);
         }
       }
@@ -230,10 +228,10 @@ int RtclRlinkServer::M_attn(RtclArgs& args)
       if (!args.GetArg("mask", mask)) return kERR;
       if (!args.AllDone()) return kERR;
       int nhdl = 0;
-      for (auto it = fAttnHdl.begin(); it != fAttnHdl.end(); it++) {
-        if ((*it)->Mask() & mask) {
+      for (auto& po: fAttnHdl) {
+        if (po->Mask() & mask) {
           nhdl += 1;
-          int rc = Tcl_EvalObjEx(interp, (*it)->Script(), TCL_EVAL_GLOBAL);
+          int rc = Tcl_EvalObjEx(interp, po->Script(), TCL_EVAL_GLOBAL);
           if (rc != kOK) return rc;
         }
       }
@@ -244,8 +242,8 @@ int RtclRlinkServer::M_attn(RtclArgs& args)
     } else if (opt == "-list") {            // attn -list
       if (!args.AllDone()) return kERR;
       vector<uint16_t> vres;
-      for (auto it = fAttnHdl.begin(); it != fAttnHdl.end(); it++) {
-        vres.push_back((*it)->Mask());
+      for (auto& po : fAttnHdl) {
+        vres.push_back(po->Mask());
       }
       args.SetResult(Rtcl::NewListIntObj(vres));
     }
@@ -254,8 +252,8 @@ int RtclRlinkServer::M_attn(RtclArgs& args)
     if (!args.OptValid()) return kERR;
     if (!args.AllDone()) return kERR;
     uint16_t mask=0;
-    for (auto it = fAttnHdl.begin(); it != fAttnHdl.end(); it++) {
-      mask |= (*it)->Mask();
+    for (auto& po: fAttnHdl) {
+      mask |= po->Mask();
     }
     args.SetResult(mask);
   }

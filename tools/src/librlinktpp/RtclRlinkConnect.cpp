@@ -1,4 +1,4 @@
-// $Id: RtclRlinkConnect.cpp 1066 2018-11-10 11:21:53Z mueller $
+// $Id: RtclRlinkConnect.cpp 1070 2018-11-17 09:48:04Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2018-11-09  1066   1.6.2  use auto
+// 2018-11-16  1070   1.6.2  use auto; use range loop
 // 2018-09-16  1047   1.6.1  coverity fixup (uninitialized scalar)
 // 2017-04-29   888   1.6    drop M_rawio; add M_rawread,M_rawrblk,M_rawwblk
 // 2017-04-22   883   1.5.2  M_amap: -testname opt addr check; add hasrbmon get 
@@ -540,10 +540,10 @@ int RtclRlinkConnect::M_amap(RtclArgs& args)
     } else {                                // amap
       RtclOPtr plist(Tcl_NewListObj(0, nullptr));
       const auto amap = addrmap.Amap();
-      for (auto it=amap.begin(); it!=amap.end(); it++) {
+      for (auto& o: amap) {
         Tcl_Obj* tpair[2];
-        tpair[0] = Tcl_NewIntObj(it->first);
-        tpair[1] = Tcl_NewStringObj((it->second).c_str(),(it->second).length());
+        tpair[0] = Tcl_NewIntObj(o.first);
+        tpair[1] = Tcl_NewStringObj(o.second.c_str(),o.second.length());
         Tcl_ListObjAppendElement(nullptr, plist, Tcl_NewListObj(2, tpair));
       }
       args.SetResult(plist);

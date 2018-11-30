@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.cpp 1066 2018-11-10 11:21:53Z mueller $
+// $Id: Rw11Cpu.cpp 1070 2018-11-17 09:48:04Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2018-11-09  1066   1.2.15 use auto; use emplace,make_pair
+// 2018-11-16  1070   1.2.15 use auto; use emplace,make_pair; use range loop
 // 2018-09-23  1050   1.2.14 add HasPcnt()
 // 2018-09-22  1048   1.2.13 coverity fixup (drop unreachable code)
 // 2017-04-07   868   1.2.12 Dump(): add detail arg
@@ -253,8 +253,8 @@ bool Rw11Cpu::TestCntl(const std::string& name) const
 void Rw11Cpu::ListCntl(std::vector<std::string>& list) const
 {
   list.clear();
-  for (auto it=fCntlMap.begin(); it!=fCntlMap.end(); it++) {
-    list.push_back((it->second)->Name());
+  for (auto& o: fCntlMap) {
+    list.push_back(o.second->Name());
   }
   return;
 }
@@ -276,8 +276,8 @@ Rw11Cntl& Rw11Cpu::Cntl(const std::string& name) const
 
 void Rw11Cpu::Start()
 {
-  for (auto it=fCntlMap.begin(); it!=fCntlMap.end(); it++) {
-    Rw11Cntl& cntl(*(it->second));
+  for (auto& o: fCntlMap) {
+    Rw11Cntl& cntl(*o.second);
     cntl.Probe();
     if (cntl.ProbeStatus().Found() && cntl.Enable()) {
       cntl.Start();
@@ -882,9 +882,9 @@ void Rw11Cpu::Dump(std::ostream& os, int ind, const char* text,
   os << bl << "  fCpuAct:         " << fCpuAct << endl;
   os << bl << "  fCpuStat:        " << RosPrintf(fCpuStat,"$x0",4) << endl;
   os << bl << "  fCntlMap:        " << endl;
-  for (auto it=fCntlMap.begin(); it!=fCntlMap.end(); it++) {
-    os << bl << "    " << RosPrintf((it->first).c_str(), "-s",8)
-       << " : " << it->second << endl;
+  for (auto& o: fCntlMap) {
+    os << bl << "    " << RosPrintf(o.first.c_str(), "-s",8)
+       << " : " << o.second << endl;
   }
   fIAddrMap.Dump(os, ind+2, "fIAddrMap: ", detail-1);
   fRAddrMap.Dump(os, ind+2, "fRAddrMap: ", detail-1);

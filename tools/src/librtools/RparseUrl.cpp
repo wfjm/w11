@@ -1,4 +1,4 @@
-// $Id: RparseUrl.cpp 1066 2018-11-10 11:21:53Z mueller $
+// $Id: RparseUrl.cpp 1070 2018-11-17 09:48:04Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2018-11-09  1066   1.1.1  use auto; use emplace,make_pair
+// 2018-11-16  1070   1.1.1  use auto; use emplace,make_pair; use range loop
 // 2017-04-15   875   1.1    add Set() with default scheme handling
 // 2015-06-04   686   1.0.2  Set(): add check that optlist is enclosed by '|'
 // 2013-02-23   492   1.0.1  add static FindScheme(); allow no or empty scheme
@@ -194,9 +194,9 @@ void RparseUrl::Dump(std::ostream& os, int ind, const char* text) const
   os << bl << "  fScheme:         " << fScheme << endl;
   os << bl << "  fPath:           " << fPath << endl;
   os << bl << "  fOptMap:         " << endl;
-  for (auto it=fOptMap.begin(); it!=fOptMap.end(); it++) {
-    os << bl << "    " << RosPrintf((it->first).c_str(), "-s",8)
-       << " : " << it->second << endl;
+  for (auto& o: fOptMap) {
+    os << bl << "    " << RosPrintf(o.first.c_str(), "-s",8)
+       << " : " << o.second << endl;
   }
   return;
 }

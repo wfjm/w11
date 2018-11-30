@@ -1,4 +1,4 @@
-// $Id: RlinkAddrMap.cpp 1066 2018-11-10 11:21:53Z mueller $
+// $Id: RlinkAddrMap.cpp 1070 2018-11-17 09:48:04Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2018-11-09  1066   1.0.4  use auto; use emplace,make_pair
+// 2018-11-16  1070   1.0.4  use auto; use emplace,make_pair; use range loop
 // 2017-04-07   868   1.0.3  Dump(): add detail arg
 // 2013-02-03   481   1.0.2  use Rexception
 // 2011-11-28   434   1.0.1  Print(): use proper cast for lp64 compatibility
@@ -154,8 +154,8 @@ bool RlinkAddrMap::Find(uint16_t addr, std::string& name) const
 size_t RlinkAddrMap::MaxNameLength() const
 {
   if (fMaxLength == 0) {
-    for (auto it=fAddrMap.begin(); it!=fAddrMap.end(); it++) {
-      fMaxLength = max(fMaxLength, (it->second).length());
+    for (auto& o: fAddrMap) {
+      fMaxLength = max(fMaxLength, o.second.length());
     }
   }
   return fMaxLength;
@@ -166,13 +166,13 @@ size_t RlinkAddrMap::MaxNameLength() const
 
 void RlinkAddrMap::Print(std::ostream& os, int ind) const
 {
-  size_t maxlen = max(((size_t) 6), MaxNameLength());
+  size_t maxlen = max(size_t(6), MaxNameLength());
   
   RosFill bl(ind);
-  for (auto it=fAddrMap.begin(); it!=fAddrMap.end(); it++) {
-    os << bl << RosPrintf((it->second).c_str(), "-s",maxlen)
-       << " : " << RosPrintf(it->first, "$x0", 6)
-       << "  " << RosPrintf(it->first, "o0", 6) << endl;
+  for (auto& o: fAddrMap) {
+    os << bl << RosPrintf(o.second.c_str(), "-s",maxlen)
+       << " : " << RosPrintf(o.first, "$x0", 6)
+       << "  " << RosPrintf(o.first, "o0", 6) << endl;
   }
 
   return;

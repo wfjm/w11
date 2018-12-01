@@ -36,6 +36,11 @@ The full set of tests is only run for tagged releases.
   2.10BSD kernel profiling code to 2.11BSD.
 - stay with vivado 2017.2 as default tool, 2017.2 to 2018.2 exhibit much
   longer build times for w11 designs (see [w11 blog posting](https://wfjm.github.io/blogs/w11/2018-09-01-vivado-2018.2-much-slower.html))
+- the first Artix-7 designs for the nexys4 board where done in 2013 with
+  ISE 14.5, later with 14.7, simply because the early Vivado versions were
+  nice technology demonstrators, but didn't compile the w11 code base. That
+  changed with Vivado 2014.3, and since 2015 ISE wasn't used for 7Series. So
+  it's time to remove the ISE build support for the nexys4 designs.
 
 ### New features
 - travis support via `.travis.yml`
@@ -52,6 +57,7 @@ The full set of tests is only run for tagged releases.
   - generates create_disk compatible test patterns
 
 ### Changes
+- remove ISE 14.x build support for 7Series (mostly nexys4 designs)
 - Makefile: `make all_tcl` now quiet, use setup_packages_filt
 - sys_w11_n4: reduce cache from 64 to 32 kB to keep timing closure
 - changes for DM_STAT_* signals (debug and monitoring)

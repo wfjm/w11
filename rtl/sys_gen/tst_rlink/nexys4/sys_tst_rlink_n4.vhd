@@ -1,4 +1,4 @@
--- $Id: sys_tst_rlink_n4.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: sys_tst_rlink_n4.vhd 1073 2018-11-23 18:05:51Z mueller $
 --
 -- Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -31,7 +31,7 @@
 -- Test bench:     tb/tb_tst_rlink_n4
 --
 -- Target Devices: generic
--- Tool versions:  ise 14.5-14.7; viv 2014.4-2015.4; ghdl 0.29-0.33
+-- Tool versions:  viv 2014.4-2017.2; ghdl 0.29-0.34    (ise 14.5-14.7 retired)
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic

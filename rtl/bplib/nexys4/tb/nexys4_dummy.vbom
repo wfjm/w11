@@ -2,4 +2,3 @@
 ../../../vlib/slvtypes.vhd
 # design
 nexys4_dummy.vhd
-@ucf_cpp: nexys4_dummy.ucf

@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: vbomconv 985 2018-01-03 08:59:40Z mueller $
+# $Id: vbomconv 1066 2018-11-10 11:21:53Z mueller $
 #
-# Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2007-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-11-09  1066   1.18   add and use bailout; add @tcl
 # 2016-08-28   804   1.17.3 xsim work dir now xsim.<mode>.<stem>
 # 2016-07-02   782   1.17.2 add VBOMCONV_GHDL_OPTS and VBOMCONV_GHDL_GCOV
 # 2016-06-24   778   1.17.1 -vsyn_prj: add [rep]sim models & VBOMCONV_XSIM_LANG
@@ -89,27 +90,19 @@ GetOptions(\%opts, "help", "trace", "xlpath=s",
                    "vsyn_export=s",
                    "vsim_export=s",
                    "get_top",
-                   "flist") || exit 1;
-
-sub print_help;
-sub read_vbom;
-sub scan_vbom;
-sub do_synsim;
-sub scan_synsim;
-sub copy_edir;
-sub write_vbomdep;
-sub canon_fname;
-sub parse_props;
-sub setup_props;
+                   "flist")
+  or bailout("bad command options");
 
 my @vbom_queue;                             # list of pending vbom's
 my @srcfile_list;                           # list of sources in compile order
 my @xdcfile_list;                           # list of xdc files
+my @tclfile_list;                           # list of xdc files
 my @srcfile_list_vhd;                       # all vhdl sources
 my @srcfile_list_v;                         # all (system) verilog sources
 my @srcfile_list_c;                         # all C sources
 my %vbom_files;                             # key=vbom; val=full file list
 my %vbom_xdc;                               # key=vbom; val=xdc spec list
+my %vbom_tcl;                               # key=vbom; val=tcl spec list
 my %vbom_done;                              # key=vbom; val=done flags
 my %vbom_rank;                              # key=vbom; val=vbom ranks
 my %srcfile_rank;                           # key=source file; val=file rank
@@ -169,7 +162,7 @@ $is_veri = $xsim_lang eq 'verilog';
 autoflush STDOUT 1;		# autoflush, so nothing lost on exec later
 
 if (exists $opts{help}) {
-  print_help;
+  print_help();
   exit 0;
 }
 
@@ -177,7 +170,7 @@ if (exists $opts{help}) {
 
 if (scalar(@ARGV) != 1) {
   print STDERR "vbomconv-E: only one vbom file name allowed\n\n";
-  print_help;
+  print_help();
   exit 1;
 }
 
@@ -222,7 +215,7 @@ print STDERR "-- [viv] active\n"  if $do_trace && $is_viv;
 
 if ($nactions > 1) {
   print STDERR "vbomconv-E: only one action qualifier allowed\n\n";
-  print_help;
+  print_help();
   exit 1;
 }
 
@@ -292,6 +285,11 @@ my @vbomfile_list_min = map {$_->[2]}
 # setup xdc files list (if one @xdc: seen)
 foreach (@vbomfile_list_min) {
   push @xdcfile_list, @{$vbom_xdc{$_}} if exists $vbom_xdc{$_};
+}
+
+# setup tcl files list (if one @tcl: seen)
+foreach (reverse @vbomfile_list_min) {
+  push @tclfile_list, @{$vbom_tcl{$_}} if exists $vbom_tcl{$_};
 }
 
 # now split source list according to languages
@@ -389,7 +387,7 @@ if (exists $opts{ghdl_i} || exists $opts{ghdl_i_cmd}) {
 
   if (-r "${workdir}/work-obj93.cf") {
     open (WFILE, "${workdir}/work-obj93.cf") or
-      die "can't open for ${workdir}/read work-obj93.cf: $!";
+      bailout("can't open for ${workdir}/read work-obj93.cf: $!");
     while (<WFILE>) {
       if (m{^file \. \"(.*?)\"}) {
 	$ghdl_work{$1} = 1;
@@ -412,8 +410,8 @@ if (exists $opts{ghdl_i} || exists $opts{ghdl_i_cmd}) {
   if ($nfile) {
     print "$cmd\n";
     if (exists $opts{ghdl_i}) {
-      exec "/bin/sh", "-c", $cmd;
-      die "failed to exec /bin/sh -c $cmd: $!";
+      exec "/bin/sh", "-c", $cmd or
+        bailout("failed to exec /bin/sh -c $cmd: $!");
     }
   } else {
     print "# $cmd  ## all files already inspected\n";
@@ -461,8 +459,8 @@ if (exists $opts{ghdl_m} || exists $opts{ghdl_m_cmd} ) {
   $cmd .= " $top";
   print "$cmd\n";
   if (exists $opts{ghdl_m}) {
-    exec "/bin/sh", "-c", $cmd;
-    die "failed to exec /bin/sh -c $cmd: $!";
+    exec "/bin/sh", "-c", $cmd or
+      bailout("failed to exec /bin/sh -c $cmd: $!");
   }
 }
 
@@ -557,8 +555,39 @@ if (exists $opts{vsyn_prj}) {
       }
     }
   }
-
   print "\n";
+
+  # setup additional tcl scripts
+  if (scalar @tclfile_list) {
+    print "#\n";
+    print "# setup additional tcl scripts\n";
+    print "#\n";
+
+    print 'proc rvtb_source_extra_tcl {path name} {'      ."\n";
+    print '  set basecd [pwd]'                            ."\n";
+    print '  puts "# source @tcl:$path/$name"'            ."\n";
+    print '  if [catch {cd $path'                         ."\n";
+    print '             source -notrace $name} err] {'    ."\n";
+    print '    puts "rvtb_source_extra_tcl-E: $err"'      ."\n";
+    print '    puts "rvtb_source_extra_tcl-F: aborting"'  ."\n";
+    print '    exit 1'                                    ."\n";
+    print '  }'                                           ."\n";
+    print '  cd $basecd'                                  ."\n";
+    print '}'                                             ."\n";
+    print "#\n";
+    foreach (@tclfile_list) {
+      my $path = '.';
+      my $name = $_;
+      if ($_ =~ m{^(.*)/(.*)$}) {
+        $path = $1;
+        $name = $2;
+      }
+      print "rvtb_source_extra_tcl $path $name\n";
+    }
+    print "#\n";
+    print "\n";
+  }
+
 }
 
 # --vsim_prj ---------------------------------------------------------
@@ -719,7 +748,7 @@ if (exists $opts{dep_ghdl}) {
       print "$stem : $ofile\n"; # depend on C source object file
 				# C source object compilation dependence
       open (ODEPFILE, ">$ofile.dep_ghdl") or
-	die "can't write $ofile.dep_ghdl: $!";
+	bailout("can't write $ofile.dep_ghdl: $!");
       print ODEPFILE "$ofile : $_\n";
       print ODEPFILE "\t\$(COMPILE.c) \$(OUTPUT_OPTION) \$<\n";
       close ODEPFILE;
@@ -833,6 +862,7 @@ if (exists $opts{dep_vsyn}) {
   my @files;
   push @files, @srcfile_list;
   push @files, @xdcfile_list;
+  push @files, @tclfile_list;
   foreach (@files) {
     print "$stem.bit : $_\n";
   }
@@ -905,12 +935,13 @@ if (exists $opts{ghdl_export}  or
 
   if (not -d $edir) {
     print STDERR "vbomconv-I: create target directory $edir\n";
-    system("mkdir -p $edir") == 0 or die "mkdir failed: $?";
+    system("mkdir -p $edir") == 0 or bailout("mkdir failed: $!");
   } else {
     print STDERR "vbomconv-I: target directory $edir already exists\n";
   }
 
-  open(PFILE, ">$edir/$stem.prj") or die "can't write open $edir/$stem.prj: $!";
+  open(PFILE, ">$edir/$stem.prj") or
+    bailout("can't write open $edir/$stem.prj: $!");
 
   foreach (@srcfile_list) {
     my $fname  = $_;
@@ -927,8 +958,8 @@ if (exists $opts{ghdl_export}  or
 
   # Note: currently no xflow opt files exported !!
   if (exists $opts{xst_export}) {
-    open(XFILE, ">$edir/$stem.xcf") or 
-      die "can't write open $edir/$stem.xcf: $!";
+    open(XFILE, ">$edir/$stem.xcf") or
+      bailout("can't write open $edir/$stem.xcf: $!");
     close(XFILE);
 
     foreach (glob("*.xcf")) { copy_edir($_, $edir); }
@@ -952,7 +983,7 @@ if (exists $opts{vsyn_export}  or
 
   if (not -d $edir) {
     print STDERR "vbomconv-I: create target directory $edir\n";
-    system("mkdir -p $edir") == 0 or die "mkdir failed: $?";
+    system("mkdir -p $edir") == 0 or bailout("mkdir failed: $!");
   } else {
     print STDERR "vbomconv-I: target directory $edir already exists\n";
   }
@@ -960,6 +991,7 @@ if (exists $opts{vsyn_export}  or
   my @filist;
   push @filist, @srcfile_list;
   push @filist, @xdcfile_list;
+  push @filist, @tclfile_list;
   my @fl_syn;
   my @fl_sim;
   my @fl_xdc;
@@ -974,14 +1006,13 @@ if (exists $opts{vsyn_export}  or
 
     copy_edir($fi, $edir);
 
-    if ($fname =~ m{\.(vhd|sv)$}) {          # .vhd or .sv
+    if ($fname =~ m{\.(vhd|v|sv)$}) {        # .vhd or .v or .sv
       if ($srcfile_synsim{$fi} eq 'syn') {
         push @fl_syn, $fname;
       } else {
         push @fl_sim, $fname;
       }
     } elsif ($fname =~ m{\.c}) {             # .c
-      printf "+++2 $fi\n";
       push @fl_sim, $fname;
     } elsif ($fname =~ m{\.xdc}) {           # .xdc
       push @fl_xdc, $fname;
@@ -990,7 +1021,8 @@ if (exists $opts{vsyn_export}  or
     }
   }
 
-  open(TFILE, ">$edir/$stem.tcl") or die "can't write open $edir/$stem.tcl: $!";
+  open(TFILE, ">$edir/$stem.tcl") or
+    bailout("can't write open $edir/$stem.tcl: $!");
 
   print TFILE "#\n";
   print TFILE "# setup file lists\n";
@@ -1036,7 +1068,6 @@ if (exists $opts{vsyn_export}  or
 
   close(TFILE);
 
-
 }
 
 # --get_top ----------------------------------------------------------
@@ -1065,6 +1096,7 @@ if (exists $opts{flist}) {
   }
 
   push @flist, @xdcfile_list;
+  push @flist, @tclfile_list;
 
   foreach (sort @flist) {
     my $fname  = $_;
@@ -1085,7 +1117,7 @@ sub read_vbom {
 
   print STDERR "-- open $vbom\n" if $do_trace;
 
-  open (IFILE, $vbom)    or die "can't open for read $vbom: $!";
+  open (IFILE, $vbom) or bailout("can't open for read $vbom: $!");
 
   my $vbom_path = "";
   my $vbom_file = $vbom;
@@ -1200,6 +1232,12 @@ sub read_vbom {
         push @{$vbom_xdc{$vbom}}, $fname;
         next;
 
+      # process @tcl:<file> lines
+      } elsif ($tag eq '@tcl') {
+        my $fname = canon_fname($vbom_path, $val);
+        push @{$vbom_tcl{$vbom}}, $fname;
+        next;
+
       # process @lib:<name> lines
       } elsif ($tag eq '@lib') {
         if ($val eq 'unisim') {
@@ -1304,7 +1342,7 @@ sub scan_vbom {
   my $rank = 1000*$level + scalar(@{$vbom_files{$vbom}});
   print STDERR "--> $level: $vbom\n" if $do_trace;
 
-  die "vbomcov-E excessive vbom stack depth \n" if $level>=1000;
+  bailout("excessive vbom stack depth") if $level>=1000;
 
   if (exists $vbom_rank{$vbom}) {
     $vbom_rank{$vbom}{min} = $level if $level < $vbom_rank{$vbom}{min};
@@ -1378,7 +1416,7 @@ sub scan_synsim {
 sub copy_edir {
   my ($file, $edir) = @_;
   print "cp -p $file $edir\n";
-  system("cp -p $file $edir")==0 or die "cp -p failed: $?";
+  system("cp -p $file $edir")==0 or bailout("cp -p failed: $?");
 }
 
 #-------------------------------------------------------------------------------
@@ -1455,6 +1493,14 @@ sub setup_props {
   $srcfile_prop{$fname}->{VBstem} = $stem;
   $srcfile_prop{$fname}->{VBtype} = $type;
   return;
+}
+
+#-------------------------------------------------------------------------------
+
+sub bailout {
+  my ($msg) = @_;
+  print STDERR "vbomconv-F: $msg\n";
+  exit 1;
 }
 
 #-------------------------------------------------------------------------------

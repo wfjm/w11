@@ -59,6 +59,8 @@ The full set of tests is only run for tagged releases.
 ### Changes
 - remove ISE 14.x build support for 7Series (mostly nexys4 designs)
 - Makefile: `make all_tcl` now quiet, use setup_packages_filt
+- vbomconv: now allows to inject Tcl scripts into the vivado project setup
+  sequence via the `@tcl` directive.
 - sys_w11_n4: reduce cache from 64 to 32 kB to keep timing closure
 - changes for DM_STAT_* signals (debug and monitoring)
   - DM_STAT_SE: add elements cpbusy,idec,pcload,itimer

@@ -1,10 +1,11 @@
-# $Id: viv_tools_build.tcl 895 2017-05-07 07:38:47Z mueller $
+# $Id: viv_tools_build.tcl 1072 2018-11-18 22:27:35Z mueller $
 #
-# Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2018-11-18  1072   1.2.2  increase message limits (all 200, some 5000)
 # 2016-09-18   809   1.2.1  keep hierarchy for synthesis only runs 
 # 2016-05-22   767   1.2    cleaner setup handling; use explore flows
 #                           add 2016.1 specific setups
@@ -150,7 +151,14 @@ proc rvtb_default_build {stem step} {
   set_msg_config -suppress -id {DRC 23-20};       # DSP48 output pilelining
   set_msg_config -suppress -id {Project 1-120};   # WebTalk mandatory
   set_msg_config -suppress -id {Common 17-186};   # WebTalk info send
-
+  #   set message default limit to 200 (buildin default is 100)
+  set_param messaging.defaultLimit 200
+  #   set message limit to 5000 for some cases
+  #     Synth 8-3331 : design xxx has unconnected port yyy
+  #     Synth 8-3332 : Sequential element xxx is unused .. removed from yyy
+  set_msg_config -id {[Synth 8-3331]} -limit 5000
+  set_msg_config -id {[Synth 8-3332]} -limit 5000
+  
   # Setup list of extra synthesis options (for later rodinMoreOptions)
   set synth_more_opts {}
 

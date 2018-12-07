@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: xviv_msg_filter 1039 2018-08-12 10:04:09Z mueller $
+# $Id: xviv_msg_filter 1072 2018-11-18 22:27:35Z mueller $
 #
 # Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-11-18  1072   1.1.2  display INFO Common 17-14 'further message disabled'
 # 2018-08-11  1039   1.1.1  allow {yyyy.x} tags (in addition to ranges)
 # 2017-06-06   909   1.1    add version-range tags
 # 2016-06-04   772   1.0    Initial version
@@ -103,7 +104,9 @@ foreach my $m (@mlist) {
     }
   }
 
-  $msgmatch = 1 if $msev eq 'INFO';         # accept all INFO
+  if ($mcode ne 'Common 17-14' && $msev eq 'INFO') {
+    $msgmatch = 1;         # accept all INFO except 'further msg disabled'
+  }
 
   if ($msgmatch) {
     $m->[3] += 1;

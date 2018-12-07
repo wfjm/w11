@@ -79,8 +79,12 @@ The full set of tests is only run for tagged releases.
   - use in {dcm,s6_cmt,s7_cmt}_sfs_gsim simulation models
   - use in rtl/bplib/*/tb/tb_* test benches
   - remove s7_cmt_sfs_tb
-- RtclRw11Unit: fix for clang: M_virt() now public
-- Rw11VirtDisk: keep track of disk geometry
+- tools changes
+  - xviv_msg_filter: display INFO Common 17-14 'further message disabled'
+  - viv_tools_build.tcl: increase message limits (all 200, some 5000)
+- backend changes
+  - RtclRw11Unit: fix for clang: M_virt() now public
+  - Rw11VirtDisk: keep track of disk geometry
 - backend code review:
   - use for C++ compiles `-Wpedantic` (in addition to `-Wall` and `-Wextra`)
   - fixes for uninitialized variables (coverity, all uncritical)

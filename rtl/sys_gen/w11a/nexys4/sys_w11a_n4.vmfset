@@ -1,4 +1,4 @@
-# $Id: sys_w11a_n4.vmfset 1056 2018-10-13 16:01:17Z mueller $
+# $Id: sys_w11a_n4.vmfset 1073 2018-11-23 18:05:51Z mueller $
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
@@ -19,10 +19,35 @@ I [Designutils 20-1567]
 i [Synth 8-3917] O_RGBLED0[\d]
 
 # unconnected ports --------------------------------------------
+I [Synth 8-3331] IB_MREQ                                        # generic
 I [Synth 8-3331] RB_MREQ                                        # generic
+I [Synth 8-3331] DM_STAT_CO                                     # generic
 I [Synth 8-3331] DM_STAT_DP                                     # generic
 I [Synth 8-3331] DM_STAT_EXP                                    # generic
+I [Synth 8-3331] DM_STAT_SE                                     # generic
+I [Synth 8-3331] DM_STAT_VM                                     # generic
 I [Synth 8-3331] CP_STAT                                        # generic
+I [Synth 8-3331] SER_MONI                                       # generic
+# --> ireg indeed not fully used                                # OK 2018-11-18
+i [Synth 8-3331] pdp11_sequencer .* IREG[1(1|2|3|4)]
+# --> ccin indedd not fully used                                # OK 2018-11-18
+i [Synth 8-3331] pdp11_lunit .* CCIN[(1|2)]
+# --> some psr bits are used                                    # OK 2018-11-18
+i [Synth 8-3331] pdp11_psr .* DIN[(8|9|10)]
+# --> not all moni fields used                                  # OK 2018-11-18
+i [Synth 8-3331] pdp11_mmu_ssr12 .* MONI[(idone|trace_prev)]
+# --> not all CNTL fieds used; also 6 LSBs from vaddr           # OK 2018-11-18
+i [Synth 8-3331] pdp11_mmu .* CNTL[trap_done]
+i [Synth 8-3331] pdp11_mmu .* VADDR[(0|1|2|3|4|5)]
+# --> so far no usage of usec and msec pulse                    # OK 2018-11-18
+i [Synth 8-3331] rlink_sp2c .* (CE_USEC|CE_MSEC)
+# --> msec indeed not used                                      # OK 2018-11-23
+i [Synth 8-3331] ibdr_rl11 .* CE_MSEC
+# --> ei_ack not used, interrupt request cleared via register   # OK 2018-11-23
+i [Synth 8-3331] ibdr_deuna .* EI_ACK
+i [Synth 8-3331] ibd_iist .* EI_ACK
+# --> i_mem_wait not used in as driver                          # OK 2018-11-23
+i [Synth 8-3331] nx_cram_memctl_as .* I_MEM_WAIT
 
 # sequential element removed (2017.1 nonsense) -----------------
 I [Synth 8-6014] _reg                                           # generic

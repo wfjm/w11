@@ -1,4 +1,4 @@
-// $Id: RlinkServer.cpp 1059 2018-10-27 10:34:16Z mueller $
+// $Id: RlinkServer.cpp 1075 2018-12-01 11:55:07Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,10 +13,10 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2018-10-27  1059   1.2.3  coverity fixup (uncaught exception in dtor)
-// 2017-04-07   868   1.2.2  Dump(): add detail arg
-// 2015-06-05   686   1.2.1  BUGFIX: CallAttnHandler(): fix race in hnext
-// 2015-04-04   662   1.2    BUGFIX: fix race in Stop(), use UnStop()
+// 2018-10-27  1059   2.2.4  coverity fixup (uncaught exception in dtor)
+// 2017-04-07   868   2.2.3  Dump(): add detail arg
+// 2015-06-05   686   2.2.2  BUGFIX: CallAttnHandler(): fix race in hnext
+// 2015-04-04   662   2.2.1  BUGFIX: fix race in Stop(), use UnStop()
 // 2015-01-10   632   2.2    Exec() without emsg now void, will throw
 // 2014-12-30   625   2.1    adopt to Rlink V4 attn logic
 // 2014-12-21   617   2.0.1  use kStat_M_RbTout for rbus timeout

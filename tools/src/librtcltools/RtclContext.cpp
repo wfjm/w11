@@ -1,4 +1,4 @@
-// $Id: RtclContext.cpp 1070 2018-11-17 09:48:04Z mueller $
+// $Id: RtclContext.cpp 1076 2018-12-02 12:45:49Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-02  1076   1.0.6  use nullptr
 // 2018-11-16  1070   1.0.5  use auto; use emplace,make_pair; use range loop
 // 2017-02-04   866   1.0.4  rename fMapContext -> fContextMap
 // 2013-02-03   481   1.0.3  use Rexception
@@ -148,7 +149,7 @@ RtclProxyBase* RtclContext::FindProxy(const std::string& type,
       if (name == cmdname) return po;
     }
   }
-  return 0;
+  return nullptr;
 }
 
 //------------------------------------------+-----------------------------------

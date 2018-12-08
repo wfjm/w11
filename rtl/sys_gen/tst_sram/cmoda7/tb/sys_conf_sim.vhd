@@ -1,4 +1,4 @@
--- $Id: sys_conf_sim.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: sys_conf_sim.vhd 1071 2018-11-17 20:53:26Z mueller $
 --
 -- Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,7 +19,7 @@
 -- Tool versions:  viv 2017.1; ghdl 0.34
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2013-09-21   534   1.0    Initial version 
+-- 2017-06-11   912   1.0    Initial version
 ------------------------------------------------------------------------------
 
 library ieee;

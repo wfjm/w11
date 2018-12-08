@@ -1,4 +1,4 @@
-# $Id: test_w11a_mem70.tcl 916 2017-06-25 13:30:07Z mueller $
+# $Id: test_w11a_mem70.tcl 1069 2018-11-16 17:11:30Z mueller $
 #
 # Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
@@ -112,7 +112,7 @@ $cpu cp -wal cntrl \
 
 # --------------------------------------------------------------------
 rlc log "  Test 4: test full memory (touch (4-7)*2 sections of 16 words"
-# determine memory size in 2^n steps; chunck size is 1/4
+# determine memory size in 2^n steps; chunk size is 1/4
 set msize2 [expr {2*1024*1024}]
 while {$msize < $msize2} {
   set msize2 [expr {$msize2 >> 1}]

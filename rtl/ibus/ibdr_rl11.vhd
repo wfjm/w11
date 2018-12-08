@@ -1,4 +1,4 @@
--- $Id: ibdr_rl11.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: ibdr_rl11.vhd 1073 2018-11-23 18:05:51Z mueller $
 --
 -- Copyright 2014-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -282,7 +282,7 @@ begin
     end if;
   end process proc_regs;
 
-  proc_next : process (R_REGS, CE_MSEC, IB_MREQ, MEM_DOUT, EI_ACK)
+  proc_next : process (R_REGS, IB_MREQ, MEM_DOUT, EI_ACK)
     variable r : regs_type := regs_init;
     variable n : regs_type := regs_init;
     variable ibhold : slbit := '0';

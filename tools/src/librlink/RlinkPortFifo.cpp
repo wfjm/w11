@@ -1,4 +1,4 @@
-// $Id: RlinkPortFifo.cpp 1063 2018-10-29 18:37:42Z mueller $
+// $Id: RlinkPortFifo.cpp 1075 2018-12-01 11:55:07Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -92,10 +92,7 @@ bool RlinkPortFifo::Open(const std::string& url, RerrMsg& emsg)
 int RlinkPortFifo::OpenFifo(const std::string& name, bool snd, RerrMsg& emsg)
 {
   struct stat stat_fifo;
-
-  int irc;
-  
-  irc = ::stat(name.c_str(), &stat_fifo);
+  int irc = ::stat(name.c_str(), &stat_fifo);
   if (irc == 0) {
     if ((stat_fifo.st_mode & S_IFIFO) == 0) {
       emsg.Init("RlinkPortFifo::OpenFiFo()",

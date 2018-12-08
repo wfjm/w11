@@ -1,4 +1,4 @@
--- $Id: ibdr_deuna.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: ibdr_deuna.vhd 1073 2018-11-23 18:05:51Z mueller $
 --
 -- Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -151,7 +151,7 @@ begin
     end if;
   end process proc_regs;
 
-  proc_next : process (R_REGS, IB_MREQ, EI_ACK, BRESET)
+  proc_next : process (R_REGS, IB_MREQ, BRESET)
     variable r : regs_type := regs_init;
     variable n : regs_type := regs_init;
     variable ibhold : slbit := '0';

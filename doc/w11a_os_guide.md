@@ -115,7 +115,7 @@ All examples below use the same basic setup
           SWI = 0110                (gives console light emulation...)
           ti_w11 -tuD,12M,break,xon  @<oskit-name>_boot.tcl
 
-     **Note**: the arty w11a has currently only 176 kB memory (all from BRAMS!)
+     **Note**: the arty w11a has currently only 176 kB memory (all from BRAMS!).
      u5ed works fine. XXDP, RT11 and RSX-11M should work.
      211bsd will not boot, neither most RSX-11M+ systems.
 
@@ -125,7 +125,7 @@ All examples below use the same basic setup
           ti_w11 -tuD,12M,break,xon  @<oskit-name>_boot.tcl
 
 
-     **Note**: the basys3 w11a has only 176 kB memory (all from BRAMS!)
+     **Note**: the basys3 w11a has only 176 kB memory (all from BRAMS!).
      u5ed works fine. XXDP, RT11 and RSX-11M should work.
      211bsd will not boot, neither most RSX-11M+ systems.
 
@@ -133,7 +133,8 @@ All examples below use the same basic setup
 
           ti_w11 -tuD,12M,break,xon  @<oskit-name>_boot.tcl
 
-     **Note**: the c7 w11a has currently only 672 kB memory (512 SRAM + 160 BRAM)
+     **Note**: the c7 w11a has currently only 672 kB memory
+     (512 SRAM + 160 BRAM).
      u5ed, u7ed, XXDP, RT11, RSX-11M and most most RSX-11M+ systems should work.
      211bsd works only in the 'non-networking' configuration
      [211bsd_rpmin](../tools/oskit/211bsd_rpmin)

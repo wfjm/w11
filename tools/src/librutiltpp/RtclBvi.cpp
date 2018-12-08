@@ -1,4 +1,4 @@
-// $Id: RtclBvi.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclBvi.cpp 1076 2018-12-02 12:45:49Z mueller $
 //
 // Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2014-08-22   584   1.0.2  use nullptr
+// 2018-12-02  1076   1.0.2  use nullptr
 // 2011-11-28   434   1.0.1  DoCmd(): use intptr_t cast for lp64 compatibility
 // 2011-03-27   374   1.0    Initial version
 // 2011-02-13   361   0.1    First draft
@@ -121,7 +121,7 @@ Tcl_Obj* RtclBvi::DoConv(Tcl_Interp* interp, ConvMode mode, Tcl_Obj* val,
       if (strchr("bBoOdDxX", pval[0]) == 0) {
         Tcl_AppendResult(interp, "-E: bad prefix in c'dddd' format string", 
                          nullptr);
-        return 0;
+        return nullptr;
       }
       form = pval[0];
       pval += 2;
@@ -154,20 +154,20 @@ Tcl_Obj* RtclBvi::DoConv(Tcl_Interp* interp, ConvMode mode, Tcl_Obj* val,
     if (eptr != pval+lval) {
       Tcl_AppendResult(interp, "-E: conversion error in '", 
                        Tcl_GetString(val), "'", nullptr);
-      return 0;
+      return nullptr;
     }
 
     if (lres > (1ul<<nbit)-1) {
       Tcl_AppendResult(interp, "-E: too many bits defined in '", 
                        Tcl_GetString(val), "'", nullptr);
-      return 0;
+      return nullptr;
     }
 
     return Tcl_NewIntObj((int)lres);
 
   } else if (mode == kInt2Str) {
     int val_int;
-    if (Tcl_GetIntFromObj(interp, val, &val_int)  != kOK) return 0;
+    if (Tcl_GetIntFromObj(interp, val, &val_int)  != kOK) return nullptr;
     int val_uint = (unsigned int) val_int;
 
     int nwidth = 1;
@@ -199,7 +199,7 @@ Tcl_Obj* RtclBvi::DoConv(Tcl_Interp* interp, ConvMode mode, Tcl_Obj* val,
     Tcl_AppendResult(interp, "-E: BUG! bad cdata in RtclBvi::DoConv() call", 
                      nullptr);
   }
-  return 0;
+  return nullptr;
 }
 
 //------------------------------------------+-----------------------------------

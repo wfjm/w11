@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDEUNA.cpp 1075 2018-12-01 11:55:07Z mueller $
+// $Id: Rw11CntlDEUNA.cpp 1078 2018-12-08 14:19:03Z mueller $
 //
 // Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-08  1078   0.5.3  BUGFIX: Start(Tx|Rx)Ring, was broken in r1049
+//                             when fixing -Wunused-variable warnings
 // 2018-11-30  1075   0.5.2  use list-init
 // 2018-09-22  1048   0.5.1  BUGFIX: coverity (resource leak)
 // 2017-04-17   880   0.5    Initial version (minimal functions, 211bsd ready)
@@ -1375,10 +1377,10 @@ void Rw11CntlDEUNA::StartTxRing()
   RlinkCommandList clist;
   uint16_t txdsccur[4];
   uint16_t txdscnxt[4];
-  //size_t irdtxdsccur = Cpu().AddRMem(clist, TxRingDscAddr(fTxRingIndex),
-  //                                 txdsccur, 3, Rw11Cpu::kCPAH_M_UBM22, true);
-  //size_t irdtxdscnxt = Cpu().AddRMem(clist, TxRingDscAddr(TxRingIndexNext()),
-  //                                 txdscnxt, 3, Rw11Cpu::kCPAH_M_UBM22, true);
+  Cpu().AddRMem(clist, TxRingDscAddr(fTxRingIndex),
+                txdsccur, 3, Rw11Cpu::kCPAH_M_UBM22, true);
+  Cpu().AddRMem(clist, TxRingDscAddr(TxRingIndexNext()),
+                txdscnxt, 3, Rw11Cpu::kCPAH_M_UBM22, true);
   Server().Exec(clist);
   // FIXME_code: check dsc read errors !  
   StartTxRing(txdsccur, txdscnxt);
@@ -1418,10 +1420,10 @@ void Rw11CntlDEUNA::StartRxRing()
   RlinkCommandList clist;
   uint16_t rxdsccur[4];
   uint16_t rxdscnxt[4];
-  //size_t irdrxdsccur = Cpu().AddRMem(clist, RxRingDscAddr(fRxRingIndex),
-  //                                 rxdsccur, 3, Rw11Cpu::kCPAH_M_UBM22, true);
-  //size_t irdrxdscnxt = Cpu().AddRMem(clist, RxRingDscAddr(RxRingIndexNext()),
-  //                                rxdscnxt, 3, Rw11Cpu::kCPAH_M_UBM22, true);
+  Cpu().AddRMem(clist, RxRingDscAddr(fRxRingIndex),
+                rxdsccur, 3, Rw11Cpu::kCPAH_M_UBM22, true);
+  Cpu().AddRMem(clist, RxRingDscAddr(RxRingIndexNext()),
+                rxdscnxt, 3, Rw11Cpu::kCPAH_M_UBM22, true);
   Server().Exec(clist);
   // FIXME_code: check dsc read errors !  
   StartRxRing(rxdsccur, rxdscnxt);

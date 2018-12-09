@@ -1,6 +1,6 @@
-// $Id: RlinkCommand.ipp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkCommand.ipp 1076 2018-12-02 12:45:49Z mueller $
 //
-// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-01  1076   1.4    use unique_ptr
 // 2015-04-02   661   1.3    expect logic: add stat check, Print() without cntx
 // 2014-11-02   600   1.2    new rlink v4 iface
 // 2013-05-06   495   1.0.1  add RlinkContext to Print() args; drop oper<<()
@@ -134,6 +135,15 @@ inline void RlinkCommand::SetRcvSize(size_t rsize)
 {
   fRcvSize = rsize;
   return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline RlinkCommandExpect& RlinkCommand::EnsureExpect()
+{
+  if (!fupExpect) fupExpect.reset(new RlinkCommandExpect());
+  return *fupExpect;
 }
 
 //------------------------------------------+-----------------------------------
@@ -289,9 +299,17 @@ inline size_t RlinkCommand::RcvSize() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline RlinkCommandExpect* RlinkCommand::Expect() const
+inline bool RlinkCommand::HasExpect() const
 {
-  return fpExpect;
+  return bool(fupExpect);
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline const RlinkCommandExpect& RlinkCommand::Expect() const
+{
+  return *fupExpect;
 }
 
 //------------------------------------------+-----------------------------------

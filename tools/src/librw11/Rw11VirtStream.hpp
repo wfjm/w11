@@ -1,6 +1,6 @@
-// $Id: Rw11VirtStream.hpp 1052 2018-09-30 08:10:52Z mueller $
+// $Id: Rw11VirtStream.hpp 1076 2018-12-02 12:45:49Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-02  1076   1.1    use unique_ptr for New()
 // 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2013-05-04   515   1.0    Initial version
 // 2013-05-01   513   0.1    First draft
@@ -27,6 +28,8 @@
 #define included_Retro_Rw11VirtStream 1
 
 #include <stdio.h>
+
+#include <memory>
 
 #include "Rw11Virt.hpp"
 
@@ -48,8 +51,9 @@ namespace Retro {
       virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
                          int detail=0) const;
 
-      static Rw11VirtStream* New(const std::string& url, Rw11Unit* punit,
-                                 RerrMsg& emsg);
+      static std::unique_ptr<Rw11VirtStream> New(const std::string& url,
+                                                 Rw11Unit* punit,
+                                                 RerrMsg& emsg);
 
     // statistics counter indices
       enum stats {

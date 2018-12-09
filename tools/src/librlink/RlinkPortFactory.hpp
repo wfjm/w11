@@ -1,6 +1,6 @@
-// $Id: RlinkPortFactory.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkPortFactory.hpp 1076 2018-12-02 12:45:49Z mueller $
 //
-// Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-01  1076   2.0    use unique_ptr
 // 2011-03-27   374   1.0    Initial version
 // 2011-01-15   356   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -33,8 +34,9 @@ namespace Retro {
 
   class RlinkPortFactory {
     public:
-      static RlinkPort* New(const std::string& url, RerrMsg& emsg);
-      static RlinkPort* Open(const std::string& url, RerrMsg& emsg);
+    
+      static RlinkPort::port_uptr_t New(const std::string& url, RerrMsg& emsg);
+      static RlinkPort::port_uptr_t Open(const std::string& url, RerrMsg& emsg);
   };
   
 } // end namespace Retro

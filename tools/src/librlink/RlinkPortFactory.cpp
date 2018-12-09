@@ -1,6 +1,6 @@
-// $Id: RlinkPortFactory.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkPortFactory.cpp 1076 2018-12-02 12:45:49Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-01  1076   2.0    use unique_ptr
 // 2013-02-23   492   1.2    use RparseUrl
 // 2012-12-26   465   1.1    add cuff: support
 // 2011-03-27   374   1.0    Initial version
@@ -45,39 +46,40 @@ namespace Retro {
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-RlinkPort* Retro::RlinkPortFactory::New(const std::string& url, RerrMsg& emsg)
+RlinkPort::port_uptr_t RlinkPortFactory::New(
+                         const std::string& url, RerrMsg& emsg)
 {
   string scheme = RparseUrl::FindScheme(url);
   
   if (scheme.length() == 0) { 
     emsg.Init("RlinkPortFactory::New()", 
               string("no scheme specified in url '" + url + "'"));
-    return 0;
+    return RlinkPort::port_uptr_t();
   }
 
   if        (scheme == "fifo") {
-    return new RlinkPortFifo();
+    return RlinkPort::port_uptr_t(new RlinkPortFifo());
   } else if (scheme == "term") {
-    return new RlinkPortTerm();
+    return RlinkPort::port_uptr_t(new RlinkPortTerm());
   } else if (scheme == "cuff") {
-    return new RlinkPortCuff();
+    return RlinkPort::port_uptr_t(new RlinkPortCuff());
   }
   
   emsg.Init("RlinkPortFactory::New()", string("unknown scheme: ") + scheme);
-  return 0;
+  return RlinkPort::port_uptr_t();
 }
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-RlinkPort* RlinkPortFactory::Open(const std::string& url, RerrMsg& emsg)
+RlinkPort::port_uptr_t RlinkPortFactory::Open(
+                         const std::string& url, RerrMsg& emsg)
 {
-  RlinkPort* pport = New(url, emsg);
-  if (pport == nullptr) return 0;
-
-  if (pport->Open(url, emsg)) return pport;
-  delete pport;
-  return 0;
+  auto upport = New(url, emsg);
+  if (upport) {                                       // New OK ?
+    if (!(upport->Open(url, emsg))) upport.reset();   // Open OK ?
+  }
+  return upport;
 }
 
 } // end namespace Retro

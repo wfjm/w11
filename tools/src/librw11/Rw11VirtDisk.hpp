@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDisk.hpp 1061 2018-10-27 17:39:11Z mueller $
+// $Id: Rw11VirtDisk.hpp 1076 2018-12-02 12:45:49Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-02  1076   1.3    use unique_ptr for New()
 // 2018-10-27  1061   1.2    add fNCyl,fNHead,fNSect,NCylinder(),...
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2017-04-02   866   1.1    add default scheme handling
@@ -30,6 +31,7 @@
 #define included_Retro_Rw11VirtDisk 1
 
 #include <string>
+#include <memory>
 
 #include "Rw11Virt.hpp"
 
@@ -56,8 +58,8 @@ namespace Retro {
       virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
                          int detail=0) const;
 
-      static Rw11VirtDisk* New(const std::string& url, Rw11Unit* punit,
-                               RerrMsg& emsg);
+      static std::unique_ptr<Rw11VirtDisk> New(const std::string& url,
+                                               Rw11Unit* punit, RerrMsg& emsg);
 
       static const std::string& DefaultScheme();
       static void   SetDefaultScheme(const std::string& scheme);

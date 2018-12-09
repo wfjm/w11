@@ -1,4 +1,4 @@
-// $Id: RlinkCommandList.cpp 1062 2018-10-28 11:14:20Z mueller $
+// $Id: RlinkCommandList.cpp 1076 2018-12-02 12:45:49Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-01  1076   1.4    use unique_ptr
 // 2018-10-28  1062   1.3.3  replace boost/foreach
 // 2018-09-16  1047   1.3.2  coverity fixup (uninitialized scalar)
 // 2017-04-02   865   1.3.1  Dump(): add detail arg
@@ -73,17 +74,15 @@ RlinkCommandList::RlinkCommandList(const RlinkCommandList& rhs)
 //! Destructor
 
 RlinkCommandList::~RlinkCommandList()
-{
-  for (auto& pcmd: fList) delete pcmd;
-}
+{}
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-size_t RlinkCommandList::AddCommand(RlinkCommand* cmd)
+size_t RlinkCommandList::AddCommand(cmd_uptr_t&& upcmd)
 {
   size_t ind = fList.size();
-  fList.push_back(cmd);
+  fList.push_back(move(upcmd));
   return ind;
 }
 
@@ -92,7 +91,7 @@ size_t RlinkCommandList::AddCommand(RlinkCommand* cmd)
 
 size_t RlinkCommandList::AddCommand(const RlinkCommand& cmd)
 {
-  return AddCommand(new RlinkCommand(cmd));
+  return AddCommand(cmd_uptr_t(new RlinkCommand(cmd)));
 }
 
 //------------------------------------------+-----------------------------------
@@ -101,9 +100,7 @@ size_t RlinkCommandList::AddCommand(const RlinkCommand& cmd)
 size_t RlinkCommandList::AddCommand(const RlinkCommandList& clist)
 {
   size_t ind = fList.size();
-  for (size_t i=0; i<clist.Size(); i++) {
-    AddCommand(new RlinkCommand(clist[i]));
-  }
+  for (auto& upcmd: clist.fList) AddCommand(*upcmd);
   return ind;
 }
 
@@ -112,9 +109,9 @@ size_t RlinkCommandList::AddCommand(const RlinkCommandList& clist)
 
 size_t RlinkCommandList::AddRreg(uint16_t addr)
 {
-  RlinkCommand* pcmd = new RlinkCommand();
-  pcmd->CmdRreg(addr);
-  return AddCommand(pcmd);
+  cmd_uptr_t upcmd(new RlinkCommand());
+  upcmd->CmdRreg(addr);
+  return AddCommand(move(upcmd));
 }
 
 //------------------------------------------+-----------------------------------
@@ -122,9 +119,9 @@ size_t RlinkCommandList::AddRreg(uint16_t addr)
 
 size_t RlinkCommandList::AddRblk(uint16_t addr, size_t size)
 {
-  RlinkCommand* pcmd = new RlinkCommand();
-  pcmd->CmdRblk(addr, size);
-  return AddCommand(pcmd);
+  cmd_uptr_t upcmd(new RlinkCommand());
+  upcmd->CmdRblk(addr, size);
+  return AddCommand(move(upcmd));
 }
 
 //------------------------------------------+-----------------------------------
@@ -132,9 +129,9 @@ size_t RlinkCommandList::AddRblk(uint16_t addr, size_t size)
 
 size_t RlinkCommandList::AddRblk(uint16_t addr, uint16_t* block, size_t size)
 {
-  RlinkCommand* pcmd = new RlinkCommand();
-  pcmd->CmdRblk(addr, block, size);
-  return AddCommand(pcmd);
+  cmd_uptr_t upcmd(new RlinkCommand());
+  upcmd->CmdRblk(addr, block, size);
+  return AddCommand(move(upcmd));
 }
 
 //------------------------------------------+-----------------------------------
@@ -142,9 +139,9 @@ size_t RlinkCommandList::AddRblk(uint16_t addr, uint16_t* block, size_t size)
 
 size_t RlinkCommandList::AddWreg(uint16_t addr, uint16_t data)
 {
-  RlinkCommand* pcmd = new RlinkCommand();
-  pcmd->CmdWreg(addr, data);
-  return AddCommand(pcmd);
+  cmd_uptr_t upcmd(new RlinkCommand());
+  upcmd->CmdWreg(addr, data);
+  return AddCommand(move(upcmd));
 }
 
 //------------------------------------------+-----------------------------------
@@ -152,9 +149,9 @@ size_t RlinkCommandList::AddWreg(uint16_t addr, uint16_t data)
 
 size_t RlinkCommandList::AddWblk(uint16_t addr, std::vector<uint16_t> block)
 {
-  RlinkCommand* pcmd = new RlinkCommand();
-  pcmd->CmdWblk(addr, block);
-  return AddCommand(pcmd);
+  cmd_uptr_t upcmd(new RlinkCommand());
+  upcmd->CmdWblk(addr, block);
+  return AddCommand(move(upcmd));
 }
 
 //------------------------------------------+-----------------------------------
@@ -163,9 +160,9 @@ size_t RlinkCommandList::AddWblk(uint16_t addr, std::vector<uint16_t> block)
 size_t RlinkCommandList::AddWblk(uint16_t addr, const uint16_t* block,
                                  size_t size)
 {
-  RlinkCommand* pcmd = new RlinkCommand();
-  pcmd->CmdWblk(addr, block, size);
-  return AddCommand(pcmd);
+  cmd_uptr_t upcmd(new RlinkCommand());
+  upcmd->CmdWblk(addr, block, size);
+  return AddCommand(move(upcmd));
 }
 
 //------------------------------------------+-----------------------------------
@@ -173,9 +170,9 @@ size_t RlinkCommandList::AddWblk(uint16_t addr, const uint16_t* block,
 
 size_t RlinkCommandList::AddLabo()
 {
-  RlinkCommand* pcmd = new RlinkCommand();
-  pcmd->CmdLabo();
-  return AddCommand(pcmd);
+  cmd_uptr_t upcmd(new RlinkCommand());
+  upcmd->CmdLabo();
+  return AddCommand(move(upcmd));
 }
 
 //------------------------------------------+-----------------------------------
@@ -183,9 +180,9 @@ size_t RlinkCommandList::AddLabo()
 
 size_t RlinkCommandList::AddAttn()
 {
-  RlinkCommand* pcmd = new RlinkCommand();
-  pcmd->CmdAttn();
-  return AddCommand(pcmd);
+  cmd_uptr_t upcmd(new RlinkCommand());
+  upcmd->CmdAttn();
+  return AddCommand(move(upcmd));
 }
 
 //------------------------------------------+-----------------------------------
@@ -193,9 +190,9 @@ size_t RlinkCommandList::AddAttn()
 
 size_t RlinkCommandList::AddInit(uint16_t addr, uint16_t data)
 {
-  RlinkCommand* pcmd = new RlinkCommand();
-  pcmd->CmdInit(addr, data);
-  return AddCommand(pcmd);
+  cmd_uptr_t upcmd(new RlinkCommand());
+  upcmd->CmdInit(addr, data);
+  return AddCommand(move(upcmd));
 }
 
 //------------------------------------------+-----------------------------------
@@ -219,8 +216,7 @@ void RlinkCommandList::SetLastExpectData(uint16_t data, uint16_t datamsk)
     throw Rexception("RlinkCommandList::SetLastExpectData()",
                      "Bad state: list empty");
   RlinkCommand& cmd = *fList.back();
-  if (!cmd.Expect()) cmd.SetExpect(new RlinkCommandExpect());
-  cmd.Expect()->SetData(data, datamsk);
+  cmd.EnsureExpect().SetData(data, datamsk);
   return;
 }
 
@@ -233,8 +229,7 @@ void RlinkCommandList::SetLastExpectDone(uint16_t done)
     throw Rexception("RlinkCommandList::SetLastExpectDone()",
                      "Bad state: list empty");
   RlinkCommand& cmd = *fList.back();
-  if (!cmd.Expect()) cmd.SetExpect(new RlinkCommandExpect());
-  cmd.Expect()->SetDone(done);
+  cmd.EnsureExpect().SetDone(done);
   return;
 }
 
@@ -247,8 +242,7 @@ void RlinkCommandList::SetLastExpectBlock(const std::vector<uint16_t>& block)
     throw Rexception("RlinkCommandList::SetLastExpectBlock()",
                      "Bad state: list empty");
   RlinkCommand& cmd = *fList.back();
-  if (!cmd.Expect()) cmd.SetExpect(new RlinkCommandExpect());
-  cmd.Expect()->SetBlock(block);
+  cmd.EnsureExpect().SetBlock(block);
   return;
 }
 
@@ -262,20 +256,19 @@ void RlinkCommandList::SetLastExpectBlock(const std::vector<uint16_t>& block)
     throw Rexception("RlinkCommandList::SetLastExpectBlock()",
                      "Bad state: list empty");
   RlinkCommand& cmd = *fList.back();
-  if (!cmd.Expect()) cmd.SetExpect(new RlinkCommandExpect());
-  cmd.Expect()->SetBlock(block, blockmsk);
+  cmd.EnsureExpect().SetBlock(block, blockmsk);
   return;
 }
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RlinkCommandList::SetLastExpect(RlinkCommandExpect* pexp)
+void RlinkCommandList::SetLastExpect(exp_uptr_t&& upexp)
 {
   if (fList.empty())
     throw Rexception("RlinkCommandList::SetLastExpect()",
                      "Bad state: list empty");
-  fList.back()->SetExpect(pexp);
+  fList.back()->SetExpect(move(upexp));
   return;
 }
 
@@ -284,7 +277,6 @@ void RlinkCommandList::SetLastExpect(RlinkCommandExpect* pexp)
 
 void RlinkCommandList::Clear()
 {
-  for (auto& pcmd: fList) delete pcmd;
   fList.clear();
   fLaboIndex = -1;
   return;
@@ -297,7 +289,7 @@ void RlinkCommandList::Print(std::ostream& os,
                              const RlinkAddrMap* pamap, size_t abase, 
                              size_t dbase, size_t sbase) const
 {
-  for (auto& pcmd: fList) pcmd->Print(os, pamap, abase, dbase, sbase);
+  for (auto& upcmd: fList) upcmd->Print(os, pamap, abase, dbase, sbase);
   return;
 }
 
@@ -333,9 +325,9 @@ RlinkCommandList&
 {
   if (&rhs == this) return *this;
 
-  for (auto& pcmd: fList) delete pcmd;
   fList.clear();
-  for (size_t i=0; i<rhs.Size(); i++) AddCommand(rhs[i]);
+  for (auto& upcmd: rhs.fList) AddCommand(*upcmd);
+  fLaboIndex = rhs.fLaboIndex;
   return *this;
 }
 

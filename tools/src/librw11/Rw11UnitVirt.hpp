@@ -1,6 +1,6 @@
-// $Id: Rw11UnitVirt.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11UnitVirt.hpp 1076 2018-12-02 12:45:49Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-01  1076   1.1    use unique_ptr instead of scoped_ptr
 // 2017-04-15   875   1.0.2  add VirtBase()
 // 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2013-03-03   494   1.0    Initial version
@@ -28,7 +29,7 @@
 #ifndef included_Retro_Rw11UnitVirt
 #define included_Retro_Rw11UnitVirt 1
 
-#include "boost/scoped_ptr.hpp"
+#include <memory>
 
 #include "Rw11Unit.hpp"
 
@@ -51,7 +52,7 @@ namespace Retro {
                          int detail=0) const;
 
     protected:
-      boost::scoped_ptr<TV> fpVirt;
+      std::unique_ptr<TV> fupVirt;
 
   };
   

@@ -1,4 +1,4 @@
-// $Id: Rw11VirtEthTap.cpp 1062 2018-10-28 11:14:20Z mueller $
+// $Id: Rw11VirtEthTap.cpp 1075 2018-12-01 11:55:07Z mueller $
 //
 // Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-11-30  1075   1.0.2  use list-init
 // 2018-10-27  1059   1.0.1  coverity fixup (uncaught exception in dtor)
 //                           BUGFIX: coverity (buffer not null terminated)
 // 2017-04-15   875   1.0    Initial version
@@ -29,7 +30,6 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <unistd.h>
-#include <string.h>
 
 #include <sys/ioctl.h>
 #include <net/if.h>
@@ -92,8 +92,7 @@ bool Rw11VirtEthTap::Open(const std::string& url, RerrMsg& emsg)
     return false;
   }
 
-  struct ifreq ifr;
-  ::memset(&ifr, 0, sizeof(ifr));
+  struct ifreq ifr = {};
   ::strncpy(ifr.ifr_name, fUrl.Path().c_str(), IFNAMSIZ-1); 
   ifr.ifr_flags = IFF_TAP|IFF_NO_PI;
 

@@ -1,4 +1,4 @@
-// $Id: RtclSignalAction.cpp 1049 2018-09-22 13:56:52Z mueller $
+// $Id: RtclSignalAction.cpp 1075 2018-12-01 11:55:07Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-11-30  1075   1.0.4  use list-init
 // 2014-11-08   602   1.0.3  cast int first to ptrdiff_t, than to ClientData
 // 2014-08-22   584   1.0.2  use nullptr
 // 2014-08-02   577   1.0.1  add include unistd.h  (write+pipe dcl)
@@ -26,7 +27,6 @@
 
 #include <errno.h>
 #include <signal.h>
-#include <string.h>
 #include <unistd.h>
 
 #include <iostream>
@@ -85,8 +85,7 @@ bool RtclSignalAction::SetAction(int signum, Tcl_Obj* pobj, RerrMsg& emsg)
   if (!ValidSignal(signum, emsg)) return false;
   if (fActionSet[signum] && !ClearAction(signum, emsg)) return false;
 
-  struct sigaction sigact;
-  ::memset(&sigact, 0, sizeof(sigact));
+  struct sigaction sigact = {};
   sigact.sa_handler = SignalHandler;
 
   if (::sigaction(signum, &sigact, &fOldAction[signum]) != 0) {
@@ -222,15 +221,10 @@ RtclSignalAction::RtclSignalAction(Tcl_Interp* interp)
     fFdPipeRead(-1),
     fFdPipeWrite(-1),
     fShuttleChn(),
-    fActionSet(),
-    fpScript(),
-    fOldAction()
+    fActionSet{},
+    fpScript{},
+    fOldAction{}
 {
-  for (size_t i=0; i<32; i++) {
-    fActionSet[i] = false;
-    ::memset(&fOldAction[i], 0, sizeof(fOldAction[0]));
-  }
-
   int pipefd[2];
   if (::pipe(pipefd) < 0) 
     throw Rexception("RtclSignalAction::<ctor>", "pipe() failed: ", errno);

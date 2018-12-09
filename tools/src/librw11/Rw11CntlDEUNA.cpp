@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDEUNA.cpp 1049 2018-09-22 13:56:52Z mueller $
+// $Id: Rw11CntlDEUNA.cpp 1075 2018-12-01 11:55:07Z mueller $
 //
 // Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-11-30  1075   0.5.2  use list-init
 // 2018-09-22  1048   0.5.1  BUGFIX: coverity (resource leak)
 // 2017-04-17   880   0.5    Initial version (minimal functions, 211bsd ready)
 // 2014-06-09   561   0.1    First draft 
@@ -210,6 +211,7 @@ Rw11CntlDEUNA::Rw11CntlDEUNA()
     fPC_rdrxdscnxt(0),
     fPcbbValid(false),
     fPcbb(0),
+    fPcb{},
     fRingValid(false),
     fTxRingBase(0),
     fTxRingSize(0),
@@ -227,10 +229,18 @@ Rw11CntlDEUNA::Rw11CntlDEUNA()
     fStatus(0),
     fTxRingIndex(0),
     fRxRingIndex(0),
+    fTxDscCurPC{},
+    fTxDscNxtPC{},
+    fRxDscCurPC{},
+    fRxDscNxtPC{},
     fTxRingState(kStateTxIdle),
+    fTxDscCur{},
+    fTxDscNxt{},
     fTxBuf(),
     fTxBufOffset(0),
     fRxRingState(kStateRxIdle),
+    fRxDscCur{},
+    fRxDscNxt{},
     fRxPollTime(0.01),
     fRxQueLimit(1000),
     fRxPollTimer(),

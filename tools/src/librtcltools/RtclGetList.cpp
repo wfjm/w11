@@ -1,4 +1,4 @@
-// $Id: RtclGetList.cpp 1070 2018-11-17 09:48:04Z mueller $
+// $Id: RtclGetList.cpp 1076 2018-12-02 12:45:49Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-01  1076   1.2    use unique_ptr
 // 2018-11-16  1070   1.1.1  use auto; use emplace,make_pair; use range loop
 // 2015-01-08   631   1.1    add Clear(), add '?' (key list) and '*' (kv list)
 // 2014-08-22   584   1.0.1  use nullptr
@@ -53,16 +54,14 @@ RtclGetList::RtclGetList()
 //! FIXME_docs
 
 RtclGetList::~RtclGetList()
-{
-  for (auto& o: fMap) delete o.second;
-}
+{}
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RtclGetList::Add(const std::string& name, RtclGetBase* pget)
+void RtclGetList::Add(const std::string& name, get_uptr_t&& upget)
 {
-  auto ret = fMap.emplace(make_pair(name, pget));
+  auto ret = fMap.emplace(make_pair(name, move(upget)));
   if (ret.second == false) 
      throw Rexception("RtclGetList::Add:", 
                       string("Bad args: duplicate name: '") + name + "'");

@@ -1,6 +1,6 @@
-// $Id: Rw11UnitVirt.ipp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11UnitVirt.ipp 1076 2018-12-02 12:45:49Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-01  1076   1.3    use unique_ptr instead of scoped_ptr
 // 2017-04-15   875   1.2.2  add VirtBase()
 // 2017-04-07   868   1.2.1  Dump(): add detail arg
 // 2015-05-13   680   1.2    Attach(): check for Enabled()
@@ -47,7 +48,7 @@ namespace Retro {
 template <class TV>
 Rw11UnitVirt<TV>::Rw11UnitVirt(Rw11Cntl* pcntl, size_t index)
   : Rw11Unit(pcntl, index),
-    fpVirt()
+    fupVirt()
 {}
 
 //------------------------------------------+-----------------------------------
@@ -63,7 +64,7 @@ Rw11UnitVirt<TV>::~Rw11UnitVirt()
 template <class TV>
 inline TV* Rw11UnitVirt<TV>::Virt() const
 {
-  return fpVirt.get();
+  return fupVirt.get();
 }
 
 //------------------------------------------+-----------------------------------
@@ -72,7 +73,7 @@ inline TV* Rw11UnitVirt<TV>::Virt() const
 template <class TV>
 inline Rw11Virt* Rw11UnitVirt<TV>::VirtBase() const
 {
-  return fpVirt.get();
+  return fupVirt.get();
 }
 
 //------------------------------------------+-----------------------------------
@@ -83,14 +84,14 @@ inline bool Rw11UnitVirt<TV>::Attach(const std::string& url, RerrMsg& emsg)
 {
   // synchronize with server thread
   boost::lock_guard<RlinkConnect> lock(Connect());
-  if (fpVirt) Detach();
+  if (fupVirt) Detach();
   if (!Enabled()) {
     emsg.Init("Rw11UnitVirt::Attach","unit not enabled");
     return false;
   }
-  fpVirt.reset(TV::New(url, this, emsg));
-  if (fpVirt) AttachDone();
-  return (bool)fpVirt;
+  fupVirt = std::move(TV::New(url, this, emsg));
+  if (fupVirt) AttachDone();
+  return bool(fupVirt);
 }
 
 //------------------------------------------+-----------------------------------
@@ -101,9 +102,9 @@ inline void Rw11UnitVirt<TV>::Detach()
 {
   // synchronize with server thread
   boost::lock_guard<RlinkConnect> lock(Connect());
-  if (!fpVirt) return;
+  if (!fupVirt) return;
   DetachCleanup();
-  fpVirt.reset();
+  fupVirt.reset();
   DetachDone();
   return;
 }
@@ -117,10 +118,10 @@ void Rw11UnitVirt<TV>::Dump(std::ostream& os, int ind, const char* text,
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11UnitVirt @ " << this << std::endl;
-  if (fpVirt) {
-    fpVirt->Dump(os, ind+2, "*fpVirt: ", detail);
+  if (fupVirt) {
+    fupVirt->Dump(os, ind+2, "*fupVirt: ", detail);
   } else {
-    os << bl << "  fpVirt:          " << fpVirt.get()   << std::endl;
+    os << bl << "  fupVirt:         " << fupVirt.get()   << std::endl;
   }
   
   Rw11Unit::Dump(os, ind, " ^", detail);

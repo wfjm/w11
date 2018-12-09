@@ -1,6 +1,6 @@
-// $Id: RlinkCommandList.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkCommandList.hpp 1076 2018-12-02 12:45:49Z mueller $
 //
-// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-01  1076   1.4    use unique_ptr
 // 2017-04-02   865   1.3.1  Dump(): add detail arg
 // 2015-04-02   661   1.3    expect logic: add SetLastExpect methods
 // 2014-11-23   606   1.2    new rlink v4 iface
@@ -35,6 +36,7 @@
 #include <cstdint>
 #include <vector>
 #include <iostream>
+#include <memory>
 
 #include "RlinkCommandExpect.hpp"
 #include "RlinkCommand.hpp"
@@ -45,12 +47,14 @@ namespace Retro {
 
   class RlinkCommandList {
     public:
+      typedef std::unique_ptr<RlinkCommand>        cmd_uptr_t;
+      typedef std::unique_ptr<RlinkCommandExpect>  exp_uptr_t;
 
                     RlinkCommandList();
                     RlinkCommandList(const RlinkCommandList&);
                    ~RlinkCommandList();
 
-      size_t        AddCommand(RlinkCommand* cmd);
+      size_t        AddCommand(cmd_uptr_t&& upcmd);
       size_t        AddCommand(const RlinkCommand& cmd);
       size_t        AddCommand(const RlinkCommandList& clist);
       size_t        AddRreg(uint16_t addr);
@@ -69,7 +73,7 @@ namespace Retro {
       void          SetLastExpectBlock(const std::vector<uint16_t>& block);
       void          SetLastExpectBlock(const std::vector<uint16_t>& block,
                                        const std::vector<uint16_t>& blockmsk);
-      void          SetLastExpect(RlinkCommandExpect* exp);
+      void          SetLastExpect(exp_uptr_t&& upexp);
     
       void          ClearLaboIndex();
       void          SetLaboIndex(int ind);
@@ -91,7 +95,7 @@ namespace Retro {
       const RlinkCommand& operator[](size_t ind) const;
 
     protected: 
-      std::vector<RlinkCommand*> fList;     //!< vector of commands
+      std::vector<cmd_uptr_t> fList;        //!< vector of commands
       int           fLaboIndex;             //!< index of active labo (-1 if no)
   };
 

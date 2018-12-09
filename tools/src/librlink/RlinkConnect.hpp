@@ -1,6 +1,6 @@
-// $Id: RlinkConnect.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkConnect.hpp 1076 2018-12-02 12:45:49Z mueller $
 //
-// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-01  1076   2.7    use unique_ptr instead of scoped_ptr
 // 2017-04-22   883   2.6.3  add rbus monitor probe, add HasRbmon()
 // 2017-04-09   871   2.6.2  LogFileName(): returns now const std::string&
 // 2017-04-07   868   2.6.1  Dump(): add detail arg
@@ -57,7 +58,6 @@
 #include "boost/utility.hpp"
 #include "boost/thread/recursive_mutex.hpp"
 #include "boost/shared_ptr.hpp"
-#include "boost/scoped_ptr.hpp"
 
 #include "librtools/RerrMsg.hpp"
 #include "librtools/Rtime.hpp"
@@ -235,7 +235,7 @@ namespace Retro {
       void          ProcessAttnNotify();
 
     protected: 
-      boost::scoped_ptr<RlinkPort> fpPort;  //!< ptr to port
+      RlinkPort::port_uptr_t fupPort;       //!< uptr to port
       bool          fLinkInitDeferred;      //!< noinit attr seen on Open
       bool          fLinkInitDone;          //!< LinkInit done
       RlinkServer*  fpServ;                 //!< ptr to server (optional)

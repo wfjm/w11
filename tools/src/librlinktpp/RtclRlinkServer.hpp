@@ -1,6 +1,6 @@
-// $Id: RtclRlinkServer.hpp 1052 2018-09-30 08:10:52Z mueller $
+// $Id: RtclRlinkServer.hpp 1076 2018-12-02 12:45:49Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-01  1076   1.2    use unique_ptr
 // 2015-04-04   662   1.1    add M_get, M_set; remove 'server -trace'
 // 2013-02-05   482   1.0.1  add shared_ptr to RlinkConnect object
 // 2013-01-12   474   1.0    Initial version
@@ -61,8 +62,8 @@ namespace Retro {
       int           M_default(RtclArgs& args);
 
     protected:
-      typedef std::list<RtclAttnShuttle*> alist_t;
-      typedef alist_t::iterator           alist_it_t;
+      typedef std::unique_ptr<RtclAttnShuttle> ahdl_uptr_t;
+      typedef std::list<ahdl_uptr_t> alist_t;
 
       boost::shared_ptr<RlinkConnect> fspConn;
       alist_t       fAttnHdl; //!< list of attn handlers

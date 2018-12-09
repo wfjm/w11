@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDisk.cpp 1066 2018-11-10 11:21:53Z mueller $
+// $Id: Rw11VirtDisk.cpp 1076 2018-12-02 12:45:49Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-02  1076   1.4    use unique_ptr for New()
 // 2018-10-27  1061   1.3    add fNCyl,fNHead,fNSect; add Rw11VirtDiskRam
 // 2017-04-07   868   1.2.1  Dump(): add detail arg
 // 2017-04-02   866   1.2    add default scheme handling
@@ -95,30 +96,31 @@ void Rw11VirtDisk::Dump(std::ostream& os, int ind, const char* text,
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-Rw11VirtDisk* Rw11VirtDisk::New(const std::string& url, Rw11Unit* punit,
-                                RerrMsg& emsg)
+std::unique_ptr<Rw11VirtDisk> Rw11VirtDisk::New(const std::string& url,
+                                                Rw11Unit* punit,
+                                                RerrMsg& emsg)
 {
   string scheme = RparseUrl::FindScheme(url, sDefaultScheme);
-  unique_ptr<Rw11VirtDisk> p;
+  unique_ptr<Rw11VirtDisk> up;
   
   if (scheme == "file") {                   // scheme -> file:
-    p.reset(new Rw11VirtDiskFile(punit));
-    if (p->Open(url, emsg)) return p.release();
+    up.reset(new Rw11VirtDiskFile(punit));
+    if (!up->Open(url, emsg)) up.reset();
 
   } else if (scheme == "over") {            // scheme -> over:
-    p.reset(new Rw11VirtDiskOver(punit));
-    if (p->Open(url, emsg)) return p.release();
+    up.reset(new Rw11VirtDiskOver(punit));
+    if (!up->Open(url, emsg)) up.reset();
 
   } else if (scheme == "ram") {             // scheme -> ram:
-    p.reset(new Rw11VirtDiskRam(punit));
-    if (p->Open(url, emsg)) return p.release();
+    up.reset(new Rw11VirtDiskRam(punit));
+    if (!up->Open(url, emsg)) up.reset();
 
   } else {                                  // scheme -> no match
     emsg.Init("Rw11VirtDisk::New", string("Scheme '") + scheme +
               "' is not supported");
   }
 
-  return 0;
+  return up;
 }
 
 //------------------------------------------+-----------------------------------

@@ -1,6 +1,6 @@
-// $Id: RlinkPort.hpp 1052 2018-09-30 08:10:52Z mueller $
+// $Id: RlinkPort.hpp 1076 2018-12-02 12:45:49Z mueller $
 //
-// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-01  1076   1.4 2  use unique_ptr
 // 2017-04-07   868   1.4.1  Dump(): add detail arg
 // 2017-02-19   853   1.4    use Rtime, drop TimeOfDayAsDouble
 // 2015-04-11   666   1.3    add fXon, XonEnable()
@@ -38,6 +39,7 @@
 
 #include <string>
 #include <map>
+#include <memory>
 
 #include "boost/utility.hpp"
 
@@ -51,6 +53,8 @@ namespace Retro {
 
   class RlinkPort : private boost::noncopyable {
     public:
+      typedef std::unique_ptr<RlinkPort>  port_uptr_t;
+    
                     RlinkPort();
       virtual      ~RlinkPort();
 

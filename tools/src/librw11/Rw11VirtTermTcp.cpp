@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTermTcp.cpp 1068 2018-11-11 22:35:21Z mueller $
+// $Id: Rw11VirtTermTcp.cpp 1075 2018-12-01 11:55:07Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-11-30  1075   1.0.9  use list-init
 // 2018-11-11  1066   1.0.8  coverity fixup (unchecked return value)
 // 2018-10-27  1059   1.0.7  coverity fixup (uncaught exception in dtor)
 // 2017-04-15   875   1.0.6  Open(): set default scheme
@@ -33,7 +34,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
-#include <string.h>
 
 #include <sstream>
 
@@ -155,8 +155,7 @@ bool Rw11VirtTermTcp::Open(const std::string& url, RerrMsg& emsg)
     return false;
   }
 
-  sockaddr_in sa;
-  memset(&sa, 0, sizeof(sa));
+  sockaddr_in sa = {};
   sa.sin_family = AF_INET;
   sa.sin_port   = htons((unsigned short) portno);
   sa.sin_addr.s_addr = htonl(INADDR_ANY);

@@ -1,6 +1,6 @@
-// $Id: Rw11VirtEth.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11VirtEth.hpp 1076 2018-12-02 12:45:49Z mueller $
 //
-// Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-02  1076   1.1    use unique_ptr for New()
 // 2017-04-07   868   1.0    Initial version
 // 2014-06-09   561   0.1    First draft 
 // ---------------------------------------------------------------------------
@@ -25,6 +26,7 @@
 #ifndef included_Retro_Rw11VirtEth
 #define included_Retro_Rw11VirtEth 1
 
+#include <memory>
 #include <memory>
 
 #include "boost/function.hpp"
@@ -50,8 +52,8 @@ namespace Retro {
       virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
                          int detail=0) const;
 
-      static Rw11VirtEth* New(const std::string& url, Rw11Unit* punit,
-                              RerrMsg& emsg);
+      static std::unique_ptr<Rw11VirtEth> New(const std::string& url,
+                                              Rw11Unit* punit, RerrMsg& emsg);
 
     // statistics counter indices
       enum stats {

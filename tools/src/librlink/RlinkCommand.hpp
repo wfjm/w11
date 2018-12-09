@@ -1,6 +1,6 @@
-// $Id: RlinkCommand.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkCommand.hpp 1076 2018-12-02 12:45:49Z mueller $
 //
-// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-01  1076   1.4    use unique_ptr
 // 2017-04-07   868   1.3.2  Dump(): add detail arg
 // 2017-03-11   859   1.3.1  add CommandInfo()
 // 2015-04-02   661   1.3    expect logic: add stat check, Print() without cntx
@@ -38,6 +39,7 @@
 #include <string>
 #include <vector>
 #include <ostream>
+#include <memory>
 
 #include "librtools/Rtools.hpp"
 
@@ -51,6 +53,8 @@ namespace Retro {
 
   class RlinkCommand : public Rbits {
     public:
+      typedef std::unique_ptr<RlinkCommandExpect>  exp_uptr_t;
+
                     RlinkCommand();
                     RlinkCommand(const RlinkCommand& rhs);
                    ~RlinkCommand();
@@ -78,7 +82,8 @@ namespace Retro {
       void          ClearFlagBit(uint32_t mask);
       void          SetRcvSize(size_t rsize);
 
-      void          SetExpect(RlinkCommandExpect* pexp);
+      void          SetExpect(exp_uptr_t&& upexp);
+      RlinkCommandExpect&  EnsureExpect();
       void          SetExpectStatus(uint8_t stat, uint8_t statmsk=0xff);
       void          SetExpectStatusDefault(uint8_t stat=0, uint8_t statmsk=0x0);
 
@@ -99,7 +104,8 @@ namespace Retro {
       bool          TestFlagAll(uint32_t mask) const;
       size_t        RcvSize() const;
 
-      RlinkCommandExpect* Expect() const;
+      bool          HasExpect() const;
+      const RlinkCommandExpect& Expect() const;
       uint8_t       ExpectStatusValue() const;
       uint8_t       ExpectStatusMask() const;
       bool          ExpectStatusSet() const;
@@ -167,7 +173,7 @@ namespace Retro {
       bool          fExpectStatusSet;       //!< stat chk set explicitely
       uint8_t       fExpectStatusVal;       //!< status value
       uint8_t       fExpectStatusMsk;       //!< status mask
-      RlinkCommandExpect* fpExpect;         //!< pointer to expect container
+      exp_uptr_t    fupExpect;              //!< pointer to expect container
   };
   
 } // end namespace Retro

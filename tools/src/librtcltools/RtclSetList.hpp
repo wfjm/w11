@@ -1,6 +1,6 @@
-// $Id: RtclSetList.hpp 1066 2018-11-10 11:21:53Z mueller $
+// $Id: RtclSetList.hpp 1076 2018-12-02 12:45:49Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-01  1076   1.2    use unique_ptr
 // 2015-01-08   631   1.1    add Clear()
 // 2013-02-12   487   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -41,10 +42,12 @@ namespace Retro {
 
   class RtclSetList : private boost::noncopyable {
     public:
+      typedef std::unique_ptr<RtclSetBase> set_uptr_t;
+
                     RtclSetList();
       virtual      ~RtclSetList();
 
-      void          Add(const std::string& name, RtclSetBase* pset);
+      void          Add(const std::string& name, set_uptr_t&& upset);
 
       template <class TP>
       void          Add(const std::string& name, 
@@ -54,7 +57,7 @@ namespace Retro {
       int           M_set(RtclArgs& args);
 
     protected: 
-      typedef std::map<std::string, RtclSetBase*> map_t;
+      typedef std::map<std::string, set_uptr_t> map_t;
 
       map_t         fMap;
   };

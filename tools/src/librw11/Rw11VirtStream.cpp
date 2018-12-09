@@ -1,6 +1,6 @@
-// $Id: Rw11VirtStream.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11VirtStream.cpp 1076 2018-12-02 12:45:49Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-02  1076   1.1    use unique_ptr for New()
 // 2017-04-07   868   1.0.3  Dump(): add detail arg
 // 2017-04-02   864   1.0.2  signal for input streams WProt
 // 2013-05-05   516   1.0.1  Open(): support ?app and ?bck=n options
@@ -228,13 +229,14 @@ void Rw11VirtStream::Dump(std::ostream& os, int ind, const char* text,
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-Rw11VirtStream* Rw11VirtStream::New(const std::string& url, Rw11Unit* punit,
-                                RerrMsg& emsg)
+std::unique_ptr<Rw11VirtStream> Rw11VirtStream::New(const std::string& url,
+                                                    Rw11Unit* punit,
+                                                    RerrMsg& emsg)
 {
-  unique_ptr<Rw11VirtStream> p;
-  p.reset(new Rw11VirtStream(punit));
-  if (p->Open(url, emsg)) return p.release();
-  return 0;
+  unique_ptr<Rw11VirtStream> up;
+  up.reset(new Rw11VirtStream(punit));
+  if (!up->Open(url, emsg)) up.reset();
+  return up;
 }
 
 

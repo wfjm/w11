@@ -1,6 +1,6 @@
-// $Id: RtclRw11VirtFactory.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclRw11VirtFactory.hpp 1076 2018-12-02 12:45:49Z mueller $
 //
-// Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-02  1076   2.0    use unique_ptr
 // 2017-03-11   859   1.0    Initial version
 // ---------------------------------------------------------------------------
 
@@ -25,13 +26,15 @@
 #ifndef included_Retro_RtclRw11VirtFactory
 #define included_Retro_RtclRw11VirtFactory 1
 
+#include <memory>
+
 #include "librw11/Rw11Virt.hpp"
 
 #include "RtclRw11Virt.hpp"
 
 namespace Retro {
 
-  RtclRw11Virt* RtclRw11VirtFactory(Rw11Virt* pobj);
+  std::unique_ptr<RtclRw11Virt> RtclRw11VirtFactory(Rw11Virt* pobj);
   
 } // end namespace Retro
 

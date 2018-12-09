@@ -1,4 +1,4 @@
-// $Id: RtclRw11Unit.hpp 1046 2018-09-15 16:20:23Z mueller $
+// $Id: RtclRw11Unit.hpp 1076 2018-12-02 12:45:49Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-01  1076   1.3    use unique_ptr instead of scoped_ptr
 // 2018-09-15  1046   1.2.1  fix for clang: M_virt() now public
 // 2017-04-08   870   1.2    drop fpCpu, use added Cpu()=0 instead
 // 2017-04-02   863   1.1    add fpVirt,DetachCleanup(),AttachDone(),M_virt()
@@ -31,8 +32,7 @@
 
 #include <cstddef>
 #include <string>
-
-#include "boost/scoped_ptr.hpp"
+#include <memory>
 
 #include "librtcltools/RtclProxyBase.hpp"
 #include "librtcltools/RtclGetList.hpp"
@@ -69,7 +69,7 @@ namespace Retro {
     protected:
       RtclGetList   fGets;
       RtclSetList   fSets;
-      boost::scoped_ptr<RtclRw11Virt>  fpVirt;
+      std::unique_ptr<RtclRw11Virt>  fupVirt;
   };
   
 } // end namespace Retro

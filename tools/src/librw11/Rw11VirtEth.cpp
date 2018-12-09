@@ -1,6 +1,6 @@
-// $Id: Rw11VirtEth.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11VirtEth.cpp 1076 2018-12-02 12:45:49Z mueller $
 //
-// Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-02  1076   1.1    use unique_ptr for New()
 // 2017-04-07   868   1.0    Initial version
 // 2014-06-09   561   0.1    First draft 
 // ---------------------------------------------------------------------------
@@ -62,22 +63,23 @@ Rw11VirtEth::~Rw11VirtEth()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-Rw11VirtEth* Rw11VirtEth::New(const std::string& url, Rw11Unit* punit,
-                                RerrMsg& emsg)
+std::unique_ptr<Rw11VirtEth> Rw11VirtEth::New(const std::string& url,
+                                              Rw11Unit* punit,
+                                              RerrMsg& emsg)
 {
   string scheme = RparseUrl::FindScheme(url, "tcp");
-  unique_ptr<Rw11VirtEth> p;
+  unique_ptr<Rw11VirtEth> up;
   
   if        (scheme == "tap") {             // scheme -> tap:
-    p.reset(new Rw11VirtEthTap(punit));
-    if (p->Open(url, emsg)) return p.release();
+    up.reset(new Rw11VirtEthTap(punit));
+    if (!up->Open(url, emsg)) up.reset();
 
   } else {                                  // scheme -> no match
     emsg.Init("Rw11VirtEth::New", string("Scheme '") + scheme +
               "' is not supported");
 
   }
-  return 0;
+  return up;
 }
 
 //------------------------------------------+-----------------------------------

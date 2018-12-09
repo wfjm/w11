@@ -1,6 +1,6 @@
-// $Id: Rw11UnitDEUNA.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11UnitDEUNA.cpp 1076 2018-12-02 12:45:49Z mueller $
 //
-// Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-01  1076   1.0.1  use unique_ptr
 // 2017-01-29   847   1.0    Initial version
 // 2014-06-09   561   0.1    First draft 
 // ---------------------------------------------------------------------------
@@ -71,7 +72,7 @@ void Rw11UnitDEUNA::Dump(std::ostream& os, int ind, const char* text,
 
 void Rw11UnitDEUNA::AttachDone()
 {
-  fpVirt->SetupRcvCallback(boost::bind(&Rw11CntlDEUNA::RcvCallback,
+  fupVirt->SetupRcvCallback(boost::bind(&Rw11CntlDEUNA::RcvCallback,
                                        &Cntl(), _1));
   Cntl().UnitSetup(0);
   return;

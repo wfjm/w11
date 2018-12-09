@@ -1,6 +1,6 @@
-// $Id: RtclRlinkPort.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclRlinkPort.cpp 1076 2018-12-02 12:45:49Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-01  1076   1.3    use unique_ptr
 // 2017-04-29   888   1.2    LogFileName(): returns now const std::string&
 //                           drop M_rawio; add M_rawread,M_rawrblk,M_rawwblk
 // 2017-04-02   865   1.1.1  M_dump: use GetArgsDump and Dump detail
@@ -60,7 +61,7 @@ namespace Retro {
 
 RtclRlinkPort::RtclRlinkPort(Tcl_Interp* interp, const char* name)
   : RtclProxyBase("RlinkPort"),
-    fpObj(nullptr),
+    fupObj(),
     fspLog(new RlogFile(&cout)),
     fTraceLevel(0),
     fErrCnt(0)
@@ -86,9 +87,7 @@ RtclRlinkPort::RtclRlinkPort(Tcl_Interp* interp, const char* name)
 //! Destructor
 
 RtclRlinkPort::~RtclRlinkPort()
-{
-  delete fpObj;
-}
+{}
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
@@ -102,14 +101,13 @@ int RtclRlinkPort::M_open(RtclArgs& args)
 
   RerrMsg emsg;
   if (args.NOptMiss() == 0) {               // open path
-    delete fpObj;
-    fpObj = RlinkPortFactory::Open(path, emsg);
+    fupObj = move(RlinkPortFactory::Open(path, emsg));
     SetupGetSet();
-    if (!fpObj) return args.Quit(emsg);
-    fpObj->SetLogFile(fspLog);
-    fpObj->SetTraceLevel(fTraceLevel);
+    if (!fupObj) return args.Quit(emsg);
+    fupObj->SetLogFile(fspLog);
+    fupObj->SetTraceLevel(fTraceLevel);
   } else {                                  // open
-    string name = (fpObj && fpObj->IsOpen()) ? fpObj->Url().Url() : string();
+    string name = (fupObj && fupObj->IsOpen()) ? fupObj->Url().Url() : string();
     args.SetResult(name);
   }
   return kOK;
@@ -122,8 +120,7 @@ int RtclRlinkPort::M_close(RtclArgs& args)
 {
   if (!args.AllDone()) return kERR;
   if (!TestOpen(args)) return kERR;
-  delete fpObj;
-  fpObj = nullptr;
+  fupObj.reset();
   SetupGetSet();
   return kOK;
 }
@@ -153,7 +150,7 @@ int RtclRlinkPort::M_errcnt(RtclArgs& args)
 
 int RtclRlinkPort::M_rawread(RtclArgs& args)
 {
-  return DoRawRead(args, fpObj);
+  return DoRawRead(args, fupObj.get());
 }
 
 //------------------------------------------+-----------------------------------
@@ -161,7 +158,7 @@ int RtclRlinkPort::M_rawread(RtclArgs& args)
 
 int RtclRlinkPort::M_rawrblk(RtclArgs& args)
 {
-  return DoRawRblk(args, fpObj, fErrCnt);
+  return DoRawRblk(args, fupObj.get(), fErrCnt);
 }
 
 //------------------------------------------+-----------------------------------
@@ -169,7 +166,7 @@ int RtclRlinkPort::M_rawrblk(RtclArgs& args)
 
 int RtclRlinkPort::M_rawwblk(RtclArgs& args)
 {
-  return DoRawWblk(args, fpObj);
+  return DoRawWblk(args, fupObj.get());
 }
 
 //------------------------------------------+-----------------------------------
@@ -181,7 +178,7 @@ int RtclRlinkPort::M_stats(RtclArgs& args)
 
   if (!TestOpen(args)) return kERR;
   if (!RtclStats::GetArgs(args, cntx)) return kERR;
-  if (!RtclStats::Collect(args, cntx, fpObj->Stats())) return kERR;
+  if (!RtclStats::Collect(args, cntx, fupObj->Stats())) return kERR;
   return kOK;
 }
 
@@ -208,7 +205,7 @@ int RtclRlinkPort::M_dump(RtclArgs& args)
   if (!TestOpen(args)) return kERR;
 
   ostringstream sos;
-  fpObj->Dump(sos, 0, "", 0);
+  fupObj->Dump(sos, 0, "", 0);
   args.SetResult(sos);
   return kOK;
 }
@@ -257,12 +254,13 @@ void RtclRlinkPort::SetupGetSet()
   fSets.Add<const string&>  ("logfile", 
                         boost::bind(&RtclRlinkPort::SetLogFileName, this, _1));
 
-  if (fpObj == nullptr) return;
+  if (!fupObj) return;
 
   fGets.Add<uint32_t>  ("tracelevel", 
-                        boost::bind(&RlinkPort::TraceLevel, fpObj));
+                        boost::bind(&RlinkPort::TraceLevel, fupObj.get()));
   fSets.Add<uint32_t>  ("tracelevel", 
-                        boost::bind(&RlinkPort::SetTraceLevel, fpObj, _1));
+                        boost::bind(&RlinkPort::SetTraceLevel, fupObj.get(),
+                                    _1));
 }
 
 //------------------------------------------+-----------------------------------
@@ -270,7 +268,7 @@ void RtclRlinkPort::SetupGetSet()
 
 bool RtclRlinkPort::TestOpen(RtclArgs& args)
 {
-  if (fpObj) return true;
+  if (fupObj) return true;
   args.AppendResult("-E: port not open", nullptr);
   return false;
 }

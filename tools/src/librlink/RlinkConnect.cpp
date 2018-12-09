@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.cpp 1059 2018-10-27 10:34:16Z mueller $
+// $Id: RlinkConnect.cpp 1076 2018-12-02 12:45:49Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-01  1076   2.7    use unique_ptr instead of scoped_ptr
+// 2018-11-30  1075   2.6.4  use list-init; use range loop
 // 2018-10-27  1059   2.6.3  coverity fixup (uncaught exception in dtor)
 // 2017-04-22   883   2.6.2  add rbus monitor probe, add HasRbmon()
 // 2017-04-07   868   2.6.1  Dump(): add detail arg
@@ -101,10 +103,11 @@ const uint16_t RlinkConnect::kRbufPrudentDelta;
 //! Default constructor
 
 RlinkConnect::RlinkConnect()
-  : fpPort(),
+  : fupPort(),
     fLinkInitDeferred(false),
     fLinkInitDone(false),
     fpServ(nullptr),
+    fSeqNumber{},
     fSndPkt(),
     fRcvPkt(),
     fContext(),
@@ -126,8 +129,6 @@ RlinkConnect::RlinkConnect()
     fRbufSize(2048),
     fHasRbmon(false)
 {
-  for (size_t i=0; i<8; i++) fSeqNumber[i] = 0;
-
   fContext.SetStatus(0, RlinkCommand::kStat_M_RbTout |
                         RlinkCommand::kStat_M_RbNak  |
                         RlinkCommand::kStat_M_RbErr);
@@ -174,20 +175,20 @@ bool RlinkConnect::Open(const std::string& name, RerrMsg& emsg)
 {
   Close();
 
-  fpPort.reset(RlinkPortFactory::Open(name, emsg));
-  if (!fpPort) return false;
+  fupPort = move(RlinkPortFactory::Open(name, emsg));
+  if (!fupPort) return false;
 
-  fSndPkt.SetXonEscape(fpPort->XonEnable()); // transfer XON enable
+  fSndPkt.SetXonEscape(fupPort->XonEnable()); // transfer XON enable
 
-  fpPort->SetLogFile(fspLog);
-  fpPort->SetTraceLevel(fTraceLevel);
+  fupPort->SetLogFile(fspLog);
+  fupPort->SetTraceLevel(fTraceLevel);
 
   fLinkInitDone = false;
   fRbufSize = 2048;                         // use minimum (2kB) as startup
   fSysId    = 0xffffffff;
   fUsrAcc   = 0x00000000;
   
-  if (! fpPort->Url().FindOpt("noinit")) {
+  if (! fupPort->Url().FindOpt("noinit")) {
     if (!LinkInit(emsg)) {
       Close();
       return false;
@@ -202,16 +203,16 @@ bool RlinkConnect::Open(const std::string& name, RerrMsg& emsg)
 
 void RlinkConnect::Close()
 {
-  if (!fpPort) return;
+  if (!fupPort) return;
 
   if (fpServ) fpServ->Stop();               // stop server in case still running
 
-  if (fpPort->Url().FindOpt("keep")) {
+  if (fupPort->Url().FindOpt("keep")) {
     RerrMsg emsg;
-    fSndPkt.SndKeep(fpPort.get(), emsg);
+    fSndPkt.SndKeep(fupPort.get(), emsg);
   }
 
-  fpPort.reset();
+  fupPort.reset();
     
   return;
 }
@@ -512,7 +513,7 @@ int RlinkConnect::WaitAttn(const Rtime& timeout, Rtime& twait,
   Rtime tbeg = tnow;
 
   while (tnow < tend) {
-    int irc = fRcvPkt.ReadData(fpPort.get(), tend-tnow, emsg);
+    int irc = fRcvPkt.ReadData(fupPort.get(), tend-tnow, emsg);
     if (irc == RlinkPort::kTout) return -1;
     if (irc == RlinkPort::kErr)  return -2;
     tnow.GetClock(CLOCK_MONOTONIC);    
@@ -546,7 +547,7 @@ bool RlinkConnect::SndOob(uint16_t addr, uint16_t data, RerrMsg& emsg)
 {
   boost::lock_guard<RlinkConnect> lock(*this);
   fStats.Inc(kStatNSndOob);
-  return fSndPkt.SndOob(fpPort.get(), addr, data, emsg);
+  return fSndPkt.SndOob(fupPort.get(), addr, data, emsg);
 }
 
 //------------------------------------------+-----------------------------------
@@ -555,7 +556,7 @@ bool RlinkConnect::SndOob(uint16_t addr, uint16_t data, RerrMsg& emsg)
 bool RlinkConnect::SndAttn(RerrMsg& emsg)
 {
   boost::lock_guard<RlinkConnect> lock(*this);
-  return fSndPkt.SndAttn(fpPort.get(), emsg);
+  return fSndPkt.SndAttn(fupPort.get(), emsg);
 }
 
 //------------------------------------------+-----------------------------------
@@ -618,7 +619,7 @@ void RlinkConnect::SetDumpLevel(uint32_t lvl)
 void RlinkConnect::SetTraceLevel(uint32_t lvl)
 {
   fTraceLevel = lvl;
-  if (fpPort) fpPort->SetTraceLevel(lvl);
+  if (fupPort) fupPort->SetTraceLevel(lvl);
   return;
 }  
 
@@ -686,17 +687,17 @@ void RlinkConnect::Dump(std::ostream& os, int ind, const char* text,
   RosFill bl(ind);
   os << bl << (text?text:"--") << "RlinkConnect @ " << this << endl;
 
-  if (fpPort) {
-    fpPort->Dump(os, ind+2, "fpPort: ", detail);
+  if (fupPort) {
+    fupPort->Dump(os, ind+2, "fupPort: ", detail);
   } else {
-    os << bl << "  fpPort:          " <<  fpPort.get() << endl;
+    os << bl << "  fupPort:         " <<  fupPort.get() << endl;
   }
 
   os << bl << "  fLinkInitDone:   " << fLinkInitDone << endl;
 
   os << bl << "  fpServ:          " << fpServ << endl;
   os << bl << "  fSeqNumber:      ";
-  for (size_t i=0; i<8; i++) os << RosPrintBvi(fSeqNumber[i],16) << " ";
+  for (auto& o: fSeqNumber) os << RosPrintBvi(o,16) << " ";
   os << endl;
   
   fSndPkt.Dump(os, ind+2, "fSndPkt: ", detail);
@@ -739,7 +740,7 @@ void RlinkConnect::HandleUnsolicitedData()
 
   boost::lock_guard<RlinkConnect> lock(*this);
   RerrMsg emsg;
-  int irc = fRcvPkt.ReadData(fpPort.get(), Rtime(), emsg);
+  int irc = fRcvPkt.ReadData(fupPort.get(), Rtime(), emsg);
   if (irc == 0) return;
   if (irc < 0) {
     RlogMsg lmsg(*fspLog, 'E');
@@ -765,7 +766,7 @@ bool RlinkConnect::ExecPart(RlinkCommandList& clist, size_t ibeg, size_t iend,
   EncodeRequest(clist, ibeg, iend);
 
   // FIXME_code: handle send fail properly;
-  if (!fSndPkt.SndPacket(fpPort.get(), emsg)) return false;
+  if (!fSndPkt.SndPacket(fupPort.get(), emsg)) return false;
 
   // FIXME_code: handle recoveries
   // FIXME_code: use proper value for timeout (rest time for Exec ?)
@@ -969,8 +970,8 @@ int RlinkConnect::DecodeResponse(RlinkCommandList& clist, size_t ibeg,
     }
 
     // expect handling
-    if (cmd.Expect()) {                     // expect object attached ?
-      RlinkCommandExpect& expect = *cmd.Expect();
+    if (cmd.HasExpect()) {                    // expect object attached ?
+      auto expect = cmd.Expect();
       if (ccode==RlinkCommand::kCmdRblk || 
           ccode==RlinkCommand::kCmdWblk) {
         if (expect.BlockValue().size()>0) fStats.Inc(kStatNExpData);
@@ -1083,7 +1084,7 @@ bool RlinkConnect::ReadResponse(const Rtime& timeout, RerrMsg& emsg)
   Rtime tend = tnow + timeout;
 
   while (tnow < tend) {
-    int irc = fRcvPkt.ReadData(fpPort.get(), tend-tnow, emsg);
+    int irc = fRcvPkt.ReadData(fupPort.get(), tend-tnow, emsg);
     if (irc <= 0) {
       RlogMsg lmsg(*fspLog, 'E');
       lmsg << "ReadResponse: IO error or timeout: " << emsg;

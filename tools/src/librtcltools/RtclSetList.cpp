@@ -1,4 +1,4 @@
-// $Id: RtclSetList.cpp 1070 2018-11-17 09:48:04Z mueller $
+// $Id: RtclSetList.cpp 1076 2018-12-02 12:45:49Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-01  1076   1.2    use unique_ptr
 // 2018-11-16  1070   1.1.1  use auto; use emplace,make_pair; use range loop
 // 2015-01-08   631   1.1    add Clear(), add '?' (key list)
 // 2014-08-22   584   1.0.1  use nullptr
@@ -53,16 +54,14 @@ RtclSetList::RtclSetList()
 //! FIXME_docs
 
 RtclSetList::~RtclSetList()
-{
-  for (auto& o: fMap) delete o.second;
-}
+{}
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RtclSetList::Add(const std::string& name, RtclSetBase* pset)
+void RtclSetList::Add(const std::string& name, set_uptr_t&& upset)
 {
-  auto ret = fMap.emplace(make_pair(name, pset));
+  auto ret = fMap.emplace(make_pair(name, move(upset)));
   if (ret.second == false) 
     throw Rexception("RtclSetList::Add:", 
                      string("Bad args: duplicate name: '") + name + "'");

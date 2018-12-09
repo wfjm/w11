@@ -1,6 +1,6 @@
-// $Id: Rw11VirtTape.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11VirtTape.cpp 1076 2018-12-02 12:45:49Z mueller $
 //
-// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-02  1076   1.2    use unique_ptr for New()
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2017-04-02   864   1.1    move fWProt,WProt() to Rw11Virt base
 // 2015-06-04   686   1.0    Initial version
@@ -77,22 +78,22 @@ Rw11VirtTape::~Rw11VirtTape()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-Rw11VirtTape* Rw11VirtTape::New(const std::string& url, Rw11Unit* punit,
-                                RerrMsg& emsg)
+std::unique_ptr<Rw11VirtTape> Rw11VirtTape::New(const std::string& url,
+                                                Rw11Unit* punit, RerrMsg& emsg)
 {
   string scheme = RparseUrl::FindScheme(url, "tap");
-  unique_ptr<Rw11VirtTape> p;
+  unique_ptr<Rw11VirtTape> up;
   
   if (scheme == "tap") {                   // scheme -> tap:
-    p.reset(new Rw11VirtTapeTap(punit));
-    if (p->Open(url, emsg)) return p.release();
+    up.reset(new Rw11VirtTapeTap(punit));
+    if (!up->Open(url, emsg)) up.reset();
 
   } else {                                  // scheme -> no match
     emsg.Init("Rw11VirtTape::New", string("Scheme '") + scheme +
               "' is not supported");
   }
 
-  return 0;
+  return up;
 }
 
 //------------------------------------------+-----------------------------------

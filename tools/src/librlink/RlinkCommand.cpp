@@ -1,4 +1,4 @@
-// $Id: RlinkCommand.cpp 1060 2018-10-27 11:32:39Z mueller $
+// $Id: RlinkCommand.cpp 1076 2018-12-02 12:45:49Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-01  1076   1.4    use unique_ptr
 // 2017-04-07   868   1.3.2  Dump(): add detail arg
 // 2017-03-11   859   1.3.1  add CommandInfo()
 // 2015-04-02   661   1.3    expect logic: add stat check, Print() without cntx
@@ -103,7 +104,7 @@ RlinkCommand::RlinkCommand()
     fExpectStatusSet(false),
     fExpectStatusVal(0),
     fExpectStatusMsk(0x0),
-    fpExpect(nullptr)
+    fupExpect()
 {}
 
 //------------------------------------------+-----------------------------------
@@ -123,16 +124,14 @@ RlinkCommand::RlinkCommand(const RlinkCommand& rhs)
     fExpectStatusSet(rhs.fExpectStatusSet),
     fExpectStatusVal(rhs.fExpectStatusVal),
     fExpectStatusMsk(rhs.fExpectStatusMsk),
-    fpExpect(rhs.fpExpect ? new RlinkCommandExpect(*rhs.fpExpect) : nullptr)
+    fupExpect(rhs.fupExpect ? new RlinkCommandExpect(*rhs.fupExpect) : nullptr)
 {}
 
 //------------------------------------------+-----------------------------------
 //! Destructor
 
 RlinkCommand::~RlinkCommand()
-{
-  delete fpExpect;                          // expect object owned by command
-}
+{}
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
@@ -190,8 +189,7 @@ void RlinkCommand::SetCommand(uint8_t cmd, uint16_t addr, uint16_t data)
   fStatus    = 0;
   fFlags     = kFlagInit;
   fRcvSize   = 0;
-  delete fpExpect;
-  fpExpect   = nullptr;
+  fupExpect.reset();
   return;
 }
 
@@ -255,10 +253,9 @@ void RlinkCommand::SetBlockExt(uint16_t* pblock, size_t size)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RlinkCommand::SetExpect(RlinkCommandExpect* pexp)
+void RlinkCommand::SetExpect(exp_uptr_t&& upexp)
 {
-  delete fpExpect;
-  fpExpect = pexp;
+  fupExpect = move(upexp);
   return;
 }
 
@@ -311,15 +308,15 @@ void RlinkCommand::Print(std::ostream& os,
       ccode== kCmdInit) {
     os << " d=" << RosPrintBvi(fData, dbase);    
 
-    if (fpExpect &&
+    if (HasExpect() &&
         (ccode==kCmdRreg || ccode==kCmdLabo || ccode==kCmdAttn)) {
       if (TestFlagAny(kFlagChkData)) {
         os << "#";
-        os << " D=" << RosPrintBvi(fpExpect->DataValue(), dbase);
-        if (fpExpect->DataMask() != 0xffff)  {
-          os << "," << RosPrintBvi(fpExpect->DataMask(), dbase);
+        os << " D=" << RosPrintBvi(Expect().DataValue(), dbase);
+        if (Expect().DataMask() != 0xffff)  {
+          os << "," << RosPrintBvi(Expect().DataMask(), dbase);
         }
-      } else if (fpExpect->DataIsChecked()) {
+      } else if (Expect().DataIsChecked()) {
         os << "!";
       } else {
         os << " ";
@@ -334,11 +331,11 @@ void RlinkCommand::Print(std::ostream& os,
     os << " n=" << RosPrintf(BlockSize(), "d", 4)
        << (BlockSize()==BlockDone() ? "=" : ">")
        << RosPrintf(BlockDone(), "d", 4);
-    if (fpExpect) {
+    if (HasExpect()) {
       if (TestFlagAny(kFlagChkDone)) {
         os << "#";
-        os << " N=" << RosPrintf(fpExpect->DoneValue(), "d", 4);
-      } else if (fpExpect->DoneIsChecked()) {
+        os << " N=" << RosPrintf(Expect().DoneValue(), "d", 4);
+      } else if (Expect().DoneIsChecked()) {
         os << "!";
       } else {
         os << " ";
@@ -380,7 +377,7 @@ void RlinkCommand::Print(std::ostream& os,
   size_t dwidth = (dbase==2) ? 16 : ((dbase==8) ? 6 : 4);  
   
   if (ccode==kCmdRblk) {
-    bool  dcheck = (fpExpect && fpExpect->BlockValue().size() > 0);
+    bool  dcheck = (HasExpect() && Expect().BlockValue().size() > 0);
     size_t ncol  = (80-4-5)/(dwidth+2);
     
     size_t size  = BlockSize();
@@ -390,10 +387,10 @@ void RlinkCommand::Print(std::ostream& os,
       if (i%ncol == 0) os << "\n    " << RosPrintf(i,"d",4) << ": ";
       os << RosPrintBvi(pdat[i], dbase);
       if (dcheck) {
-        if (!fpExpect->BlockCheck(i, pdat[i])) {
+        if (!Expect().BlockCheck(i, pdat[i])) {
           os << "#";
         } else {
-          os << (fpExpect->BlockIsChecked(i) ? "!" : "-");
+          os << (Expect().BlockIsChecked(i) ? "!" : "-");
         }
       } else {
         os << " ";
@@ -402,10 +399,10 @@ void RlinkCommand::Print(std::ostream& os,
     }
 
     if (dcheck && TestFlagAny(kFlagChkData)) {
-      const vector<uint16_t>& evalvec = fpExpect->BlockValue();
-      const vector<uint16_t>& emskvec = fpExpect->BlockMask();
+      const vector<uint16_t>& evalvec = Expect().BlockValue();
+      const vector<uint16_t>& emskvec = Expect().BlockMask();
       for (size_t i=0; i<size; i++) {
-        if (!fpExpect->BlockCheck(i, pdat[i])) {
+        if (!Expect().BlockCheck(i, pdat[i])) {
           os << "\n      FAIL d[" << RosPrintf(i,"d",4) << "]: "
              << RosPrintBvi(pdat[i], dbase) << "#"
              << "  D=" << RosPrintBvi(evalvec[i], dbase);
@@ -533,7 +530,7 @@ void RlinkCommand::Dump(std::ostream& os, int ind, const char* text,
   }
   os << bl << "  fExpectStatusVal:" << RosPrintBvi(fExpectStatusVal,0) << endl;
   os << bl << "  fExpectStatusMsk:" << RosPrintBvi(fExpectStatusMsk,0) << endl;
-  if (fpExpect) fpExpect->Dump(os, ind+2, "fpExpect: ", detail);
+  if (fupExpect) fupExpect->Dump(os, ind+2, "fupExpect: ", detail);
 
   return;
 }
@@ -591,8 +588,8 @@ RlinkCommand& RlinkCommand::operator=(const RlinkCommand& rhs)
   fExpectStatusSet = rhs.fExpectStatusSet;
   fExpectStatusVal = rhs.fExpectStatusVal;
   fExpectStatusMsk = rhs.fExpectStatusMsk;
-  delete fpExpect;
-  fpExpect         = rhs.fpExpect ? new RlinkCommandExpect(*rhs.fpExpect) : 0;
+  fupExpect.reset(rhs.fupExpect ?
+                  new RlinkCommandExpect(*rhs.fupExpect) : nullptr);
   return *this;
 }
 

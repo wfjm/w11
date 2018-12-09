@@ -1,4 +1,4 @@
-// $Id: RtclRlinkServer.cpp 1070 2018-11-17 09:48:04Z mueller $
+// $Id: RtclRlinkServer.cpp 1076 2018-12-02 12:45:49Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-01  1076   1.2    use unique_ptr
 // 2018-11-16  1070   1.1.2  use auto; use range loop
 // 2017-04-02   865   1.1.1  M_dump: use GetArgsDump and Dump detail
 // 2015-04-04   662   1.1    add M_get, M_set; remove 'server -trace'
@@ -105,9 +106,7 @@ RtclRlinkServer::RtclRlinkServer(Tcl_Interp* interp, const char* name)
 //! Destructor
 
 RtclRlinkServer::~RtclRlinkServer()
-{
-  for (auto& po: fAttnHdl) delete po;
-}
+{}
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
@@ -182,25 +181,26 @@ int RtclRlinkServer::M_attn(RtclArgs& args)
       if (!args.GetArg("script", script)) return kERR;
       if (!args.AllDone()) return kERR;
 
-      unique_ptr<RtclAttnShuttle> p(new RtclAttnShuttle(mask, script));
+      ahdl_uptr_t up(new RtclAttnShuttle(mask, script));
       try {
-        p->Add(&Obj(), interp);
+        up->Add(&Obj(), interp);
       } catch (exception& e) {
         return args.Quit(string("-E: handler rejected: ")+e.what());
       }
-      fAttnHdl.push_back(p.release());
+      fAttnHdl.push_back(move(up));
       return kOK;
 
     } else if (opt == "-remove") {            // attn -remove mask
       uint16_t mask=0;
       if (!args.GetArg("mask", mask)) return kERR;
       if (!args.AllDone()) return kERR;
-      for (auto it = fAttnHdl.end(); it != fAttnHdl.begin(); ) {
-        it--;
-        if ((*it)->Mask() == mask) {
-          fAttnHdl.erase(it);
-          delete (*it);
-          return kOK;
+      if (!fAttnHdl.empty()) {
+        for (auto it = fAttnHdl.end(); it != fAttnHdl.begin(); ) {
+          it--;
+          if ((*it)->Mask() == mask) {
+            fAttnHdl.erase(it);
+            return kOK;
+          }
         }
       }
       return args.Quit(string("-E: no handler defined for '") +

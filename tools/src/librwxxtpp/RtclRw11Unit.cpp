@@ -1,6 +1,6 @@
-// $Id: RtclRw11Unit.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclRw11Unit.cpp 1076 2018-12-02 12:45:49Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-01  1076   1.3    use unique_ptr instead of scoped_ptr
 // 2017-04-08   870   1.2    drop fpCpu, use added Cpu()=0 instead
 // 2017-04-07   868   1.1.1  M_dump: use GetArgsDump and Dump detail
 // 2017-04-02   863   1.1    add fpVirt; add DetachCleanup()
@@ -50,7 +51,7 @@ RtclRw11Unit::RtclRw11Unit(const std::string& type)
   : RtclProxyBase(type),
     fGets(),
     fSets(),
-    fpVirt()
+    fupVirt()
 {
   AddMeth("get",      boost::bind(&RtclRw11Unit::M_get,     this, _1));
   AddMeth("set",      boost::bind(&RtclRw11Unit::M_set,     this, _1));
@@ -71,9 +72,9 @@ RtclRw11Unit::~RtclRw11Unit()
 
 void RtclRw11Unit::DetachCleanup()
 {
-  if (!fpVirt) return;
+  if (!fupVirt) return;
   DelMeth("virt");
-  fpVirt.reset();
+  fupVirt.reset();
   return;
 }
 
@@ -135,12 +136,12 @@ int RtclRw11Unit::M_detach(RtclArgs& args)
 
 int RtclRw11Unit::M_virt(RtclArgs& args)
 {
-  if (!fpVirt) throw Rexception("RtclRw11Unit::M_virt:",
-                                "Bad state: fpVirt == nullptr");
+  if (!fupVirt) throw Rexception("RtclRw11Unit::M_virt:",
+                                 "Bad state: fupVirt == nullptr");
   
   // synchronize with server thread
   boost::lock_guard<RlinkConnect> lock(Cpu().Connect());
-  return fpVirt->DispatchCmd(args);
+  return fupVirt->DispatchCmd(args);
 }
 
 //------------------------------------------+-----------------------------------

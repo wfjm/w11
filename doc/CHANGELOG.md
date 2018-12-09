@@ -100,6 +100,7 @@ The full set of tests is only run for tagged releases.
   - some selected clang -Weverything aspects
   - now -Wdocumentation clean (some wrong doxygen trailing comments)
   - use auto, emplace() and range loops
+  - use unique_ptr (also replace boost::scoped_ptr)
 - rw11/shell.tcl: add workaround for tclreadline and `after` interference
 
 ### Bug Fixes

@@ -1,6 +1,6 @@
-// $Id: Rw11UnitTerm.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11UnitTerm.cpp 1076 2018-12-02 12:45:49Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-01  1076   1.1.3  use unique_ptr
 // 2017-04-07   868   1.1.2  Dump(): add detail arg
 // 2017-02-25   855   1.1.1  RcvNext() --> RcvQueueNext(); WakeupCntl() now pure
 // 2013-05-03   515   1.1    use AttachDone(),DetachCleanup(),DetachDone()
@@ -74,7 +75,7 @@ Rw11UnitTerm::~Rw11UnitTerm()
 
 const std::string& Rw11UnitTerm::ChannelId() const
 {
-  if (fpVirt) return fpVirt->ChannelId();
+  if (fupVirt) return fupVirt->ChannelId();
   static string nil;
   return nil;
 }  
@@ -203,9 +204,9 @@ bool Rw11UnitTerm::Snd(const uint8_t* buf, size_t count)
     }
   }
 
-  if (fpVirt) {                             // if virtual device attached
+  if (fupVirt) {                            // if virtual device attached
     RerrMsg emsg;
-    ok = fpVirt->Snd(bufout, bufcnt, emsg);
+    ok = fupVirt->Snd(bufout, bufcnt, emsg);
     // FIXME_code: handler errors
     
   } else {                                  // no virtual device attached
@@ -292,7 +293,7 @@ void Rw11UnitTerm::Dump(std::ostream& os, int ind, const char* text,
 
 void Rw11UnitTerm::AttachDone()
 {
-  fpVirt->SetupRcvCallback(boost::bind(&Rw11UnitTerm::RcvCallback,
+  fupVirt->SetupRcvCallback(boost::bind(&Rw11UnitTerm::RcvCallback,
                                            this, _1, _2));
   return;
 }

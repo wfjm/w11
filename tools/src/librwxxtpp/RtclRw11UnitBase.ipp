@@ -1,6 +1,6 @@
-// $Id: RtclRw11UnitBase.ipp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclRw11UnitBase.ipp 1076 2018-12-02 12:45:49Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-01  1076   1.3.2  use unique_ptr
 // 2017-04-15   875   1.3.1  add attached,attachutl getters
 // 2017-04-08   870   1.3    add TUV,TB; add TUV* ObjUV(); inherit from TB
 // 2017-04-02   863   1.2    add AttachDone()
@@ -126,9 +127,9 @@ template <class TU, class TUV, class TB>
 void RtclRw11UnitBase<TU,TUV,TB>::AttachDone()
 {
   if (!Obj().Virt()) return;
-  RtclRw11Virt* pvirt=RtclRw11VirtFactory(Obj().Virt());
+  std::unique_ptr<RtclRw11Virt> pvirt(RtclRw11VirtFactory(Obj().Virt()));
   if (!pvirt) return;
-  this->fpVirt.reset(pvirt);
+  this->fupVirt = move(pvirt);
   this->AddMeth("virt",  boost::bind(&RtclRw11Unit::M_virt, this, _1));
   return;
 }

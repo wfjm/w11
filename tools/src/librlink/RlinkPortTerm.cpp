@@ -1,4 +1,4 @@
-// $Id: RlinkPortTerm.cpp 1048 2018-09-22 07:41:46Z mueller $
+// $Id: RlinkPortTerm.cpp 1075 2018-12-01 11:55:07Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-11-30  1075   1.3.4  use list-init
 // 2018-09-21  1048   1.3.3  coverity fixup (uninitialized field)
 // 2017-04-15   875   1.3.2  Open(): set default scheme
 // 2017-04-07   868   1.3.1  Dump(): add detail arg
@@ -33,7 +34,6 @@
   \brief   Implemenation of RlinkPortTerm.
 */
 
-#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -67,11 +67,10 @@ const uint8_t RlinkPortTerm::kc_xoff;
 //! Default constructor
 
 RlinkPortTerm::RlinkPortTerm()
-  : RlinkPort()
-{
-  memset(&fTiosOld,0,sizeof(fTiosOld));
-  memset(&fTiosNew,0,sizeof(fTiosNew));
-}
+  : RlinkPort(),
+    fTiosOld{},
+    fTiosNew{}
+{}
 
 //------------------------------------------+-----------------------------------
 //! Destructor
@@ -161,7 +160,7 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
     return false;
   }
 
-  struct serial_struct sioctl;
+  struct serial_struct sioctl = {};
   int cdivisor = 0;
   
   if (nsbaud != 0) {

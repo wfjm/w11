@@ -1,6 +1,6 @@
-// $Id: RlinkCommandExpect.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkCommandExpect.hpp 1077 2018-12-07 19:37:03Z mueller $
 //
-// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1077   1.2.2  SetBlock: add move versions
 // 2017-04-07   868   1.2.1  Dump(): add detail arg
 // 2015-04-02   661   1.2    expect logic: remove stat from Expect, invert mask
 // 2014-12-20   616   1.1    add Done count methods (for rblk/wblk)
@@ -47,8 +48,11 @@ namespace Retro {
       void          SetData(uint16_t data, uint16_t datamsk=0);
       void          SetDone(uint16_t done, bool check=true);
       void          SetBlock(const std::vector<uint16_t>& block);
+      void          SetBlock(std::vector<uint16_t>&& block);
       void          SetBlock(const std::vector<uint16_t>& block,
                              const std::vector<uint16_t>& blockmsk);
+      void          SetBlock(std::vector<uint16_t>&& block,
+                             std::vector<uint16_t>&& blockmsk);
 
       uint16_t      DataValue() const;
       uint16_t      DataMask() const;

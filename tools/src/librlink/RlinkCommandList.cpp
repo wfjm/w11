@@ -1,4 +1,4 @@
-// $Id: RlinkCommandList.cpp 1076 2018-12-02 12:45:49Z mueller $
+// $Id: RlinkCommandList.cpp 1077 2018-12-07 19:37:03Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1077   1.4.1  SetLastExpectBlock: add move versions
 // 2018-12-01  1076   1.4    use unique_ptr
 // 2018-10-28  1062   1.3.3  replace boost/foreach
 // 2018-09-16  1047   1.3.2  coverity fixup (uninitialized scalar)
@@ -249,14 +250,41 @@ void RlinkCommandList::SetLastExpectBlock(const std::vector<uint16_t>& block)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-  void RlinkCommandList::SetLastExpectBlock(const std::vector<uint16_t>& block,
-                                        const std::vector<uint16_t>& blockmsk)
+void RlinkCommandList::SetLastExpectBlock(std::vector<uint16_t>&& block)
+{
+  if (fList.empty())
+    throw Rexception("RlinkCommandList::SetLastExpectBlock()",
+                     "Bad state: list empty");
+  RlinkCommand& cmd = *fList.back();
+  cmd.EnsureExpect().SetBlock(move(block));
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void RlinkCommandList::SetLastExpectBlock(const std::vector<uint16_t>& block,
+                                          const std::vector<uint16_t>& blockmsk)
 {
   if (fList.empty())
     throw Rexception("RlinkCommandList::SetLastExpectBlock()",
                      "Bad state: list empty");
   RlinkCommand& cmd = *fList.back();
   cmd.EnsureExpect().SetBlock(block, blockmsk);
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void RlinkCommandList::SetLastExpectBlock(std::vector<uint16_t>&& block,
+                                          std::vector<uint16_t>&& blockmsk)
+{
+  if (fList.empty())
+    throw Rexception("RlinkCommandList::SetLastExpectBlock()",
+                     "Bad state: list empty");
+  RlinkCommand& cmd = *fList.back();
+  cmd.EnsureExpect().SetBlock(move(block), move(blockmsk));
   return;
 }
 

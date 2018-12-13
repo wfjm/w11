@@ -1,4 +1,4 @@
-// $Id: RlinkCommandExpect.ipp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkCommandExpect.ipp 1077 2018-12-07 19:37:03Z mueller $
 //
 // Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1077   1.2.1  SetBlock: add move versions
 // 2015-04-02   661   1.2    expect logic: remove stat from Expect, invert mask
 // 2014-12-20   616   1.1    add Done count methods (for rblk/wblk)
 // 2011-03-12   368   1.0    Initial version
@@ -53,6 +54,17 @@ inline void RlinkCommandExpect::SetDone(uint16_t done, bool check)
 inline void RlinkCommandExpect::SetBlock(const std::vector<uint16_t>& block)
 {
   fBlockVal = block;
+  fBlockMsk.clear();
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline void RlinkCommandExpect::SetBlock(std::vector<uint16_t>&& block)
+{
+  fBlockVal = move(block);
+  fBlockMsk.clear();
   return;
 }
 
@@ -65,6 +77,17 @@ inline void RlinkCommandExpect::SetBlock(
 {
   fBlockVal = block;
   fBlockMsk = blockmsk;
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline void RlinkCommandExpect::SetBlock(std::vector<uint16_t>&& block,
+                                         std::vector<uint16_t>&& blockmsk)
+{
+  fBlockVal = move(block);
+  fBlockMsk = move(blockmsk);
   return;
 }
 

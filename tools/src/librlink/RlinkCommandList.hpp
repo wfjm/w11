@@ -1,4 +1,4 @@
-// $Id: RlinkCommandList.hpp 1076 2018-12-02 12:45:49Z mueller $
+// $Id: RlinkCommandList.hpp 1077 2018-12-07 19:37:03Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1077   1.4.1  SetLastExpectBlock: add move versions
 // 2018-12-01  1076   1.4    use unique_ptr
 // 2017-04-02   865   1.3.1  Dump(): add detail arg
 // 2015-04-02   661   1.3    expect logic: add SetLastExpect methods
@@ -71,8 +72,11 @@ namespace Retro {
       void          SetLastExpectData(uint16_t data, uint16_t datamsk=0xffff);
       void          SetLastExpectDone(uint16_t done);
       void          SetLastExpectBlock(const std::vector<uint16_t>& block);
+      void          SetLastExpectBlock(std::vector<uint16_t>&& block);
       void          SetLastExpectBlock(const std::vector<uint16_t>& block,
                                        const std::vector<uint16_t>& blockmsk);
+      void          SetLastExpectBlock(std::vector<uint16_t>&& block,
+                                       std::vector<uint16_t>&& blockmsk);
       void          SetLastExpect(exp_uptr_t&& upexp);
     
       void          ClearLaboIndex();

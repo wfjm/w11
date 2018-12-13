@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.cpp 1070 2018-11-17 09:48:04Z mueller $
+// $Id: RtclRw11Cpu.cpp 1077 2018-12-07 19:37:03Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1077   1.2.20 use SetLastExpectBlock move semantics
 // 2018-11-16  1070   1.2.19 use auto; use emplace_back; use range loop
 // 2018-09-23  1050   1.2.18 add HasPcnt()
 // 2018-09-21  1048   1.2.18 coverity fixup (uninitialized scalar)
@@ -669,7 +670,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
         size_t bsize = clist[lsize-1].BlockSize();
         if (!args.GetArg("data", data, 0, bsize)) return kERR;
         if (!args.GetArg("??mask", mask, 0, bsize)) return kERR;
-        clist.SetLastExpectBlock(data, mask);
+        clist.SetLastExpectBlock(move(data), move(mask));
       } else {
         uint16_t data=0;
         uint16_t mask=0xffff;

@@ -1,4 +1,4 @@
-// $Id: RtclRlinkConnect.cpp 1070 2018-11-17 09:48:04Z mueller $
+// $Id: RtclRlinkConnect.cpp 1077 2018-12-07 19:37:03Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1077   1.6.3  use SetLastExpectBlock move semantics
 // 2018-11-16  1070   1.6.2  use auto; use range loop
 // 2018-09-16  1047   1.6.1  coverity fixup (uninitialized scalar)
 // 2017-04-29   888   1.6    drop M_rawio; add M_rawread,M_rawrblk,M_rawwblk
@@ -304,7 +305,7 @@ int RtclRlinkConnect::M_exec(RtclArgs& args)
         size_t bsize = clist[lsize-1].BlockSize();
         if (!args.GetArg("data", data, 0, bsize)) return kERR;
         if (!args.GetArg("??mask", mask, 0, bsize)) return kERR;
-        clist.SetLastExpectBlock(data, mask);
+        clist.SetLastExpectBlock(move(data), move(mask));
       } else {
         uint16_t data=0;
         uint16_t mask=0xffff;

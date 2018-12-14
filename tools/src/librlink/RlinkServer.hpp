@@ -1,6 +1,6 @@
-// $Id: RlinkServer.hpp 1052 2018-09-30 08:10:52Z mueller $
+// $Id: RlinkServer.hpp 1078 2018-12-08 14:19:03Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1078   2.2.2  use std::shared_ptr instead of boost
 // 2017-04-07   868   2.2.1  Dump(): add detail arg
 // 2015-01-10   632   2.2    Exec() without emsg now void, will throw
 // 2014-12-30   625   2.1    adopt to Rlink V4 attn logic
@@ -36,10 +37,10 @@
 #include <cstdint>
 #include <vector>
 #include <list>
+#include <memory>
 
 #include "boost/utility.hpp"
 #include "boost/thread/thread.hpp"
-#include "boost/shared_ptr.hpp"
 
 #include "librtools/Rstats.hpp"
 
@@ -69,8 +70,8 @@ namespace Retro {
       explicit      RlinkServer();
       virtual      ~RlinkServer();
 
-      void          SetConnect(const boost::shared_ptr<RlinkConnect>& spconn);
-      const boost::shared_ptr<RlinkConnect>& ConnectSPtr() const;
+      void          SetConnect(const std::shared_ptr<RlinkConnect>& spconn);
+      const std::shared_ptr<RlinkConnect>& ConnectSPtr() const;
       RlinkConnect& Connect() const;
       RlogFile&     LogFile() const;
       RlinkContext& Context();  
@@ -166,7 +167,7 @@ namespace Retro {
                     AttnDsc(attnhdl_t hdl, const AttnId& id);
       };
 
-      boost::shared_ptr<RlinkConnect>  fspConn;
+      std::shared_ptr<RlinkConnect>  fspConn;
       RlinkContext  fContext;               //!< default server context
       std::vector<AttnDsc>  fAttnDsc;
       std::list<actnhdl_t>  fActnList;

@@ -1,4 +1,4 @@
-// $Id: RlinkChannel.cpp 1049 2018-09-22 13:56:52Z mueller $
+// $Id: RlinkChannel.cpp 1078 2018-12-08 14:19:03Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1078   1.0.2  use std::shared_ptr instead of boost
 // 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2013-02-23   492   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -42,7 +43,7 @@ namespace Retro {
 //------------------------------------------+-----------------------------------
 //! Default constructor
 
-RlinkChannel::RlinkChannel(const boost::shared_ptr<RlinkConnect>& spconn)
+RlinkChannel::RlinkChannel(const std::shared_ptr<RlinkConnect>& spconn)
   : fContext(),
     fspConn(spconn)
 {}

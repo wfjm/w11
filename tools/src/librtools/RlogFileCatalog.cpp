@@ -1,4 +1,4 @@
-// $Id: RlogFileCatalog.cpp 1066 2018-11-10 11:21:53Z mueller $
+// $Id: RlogFileCatalog.cpp 1078 2018-12-08 14:19:03Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1078   1.0.2  use std::shared_ptr instead of boost
 // 2018-11-09  1066   1.0.1  use auto; use make_pair,emplace
 // 2013-02-22   491   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -48,13 +49,13 @@ RlogFileCatalog& RlogFileCatalog::Obj()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-const boost::shared_ptr<RlogFile>& 
+const std::shared_ptr<RlogFile>& 
   RlogFileCatalog::FindOrCreate(const std::string& name)
 {
   auto it = fMap.find(name);
   if (it != fMap.end()) return it->second;
 
-  boost::shared_ptr<RlogFile> sptr(new RlogFile());
+  std::shared_ptr<RlogFile> sptr(new RlogFile());
   auto pitb = fMap.emplace(make_pair(name, sptr));
 
   return pitb.first->second;

@@ -1,4 +1,4 @@
-// $Id: RtclRlinkPort.hpp 1076 2018-12-02 12:45:49Z mueller $
+// $Id: RtclRlinkPort.hpp 1078 2018-12-08 14:19:03Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1078   1.2.1  use std::shared_ptr instead of boost
 // 2018-12-01  1076   1.2    use unique_ptr
 // 2017-04-29   888   1.1    LogFileName(): returns now const std::string&
 //                           drop M_rawio; add M_rawread,M_rawrblk,M_rawwblk
@@ -31,6 +32,7 @@
 
 #include <cstddef>
 #include <string>
+#include <memory>
 
 #include "librtools/RlogFile.hpp"
 #include "librtcltools/RtclProxyBase.hpp"
@@ -73,7 +75,7 @@ namespace Retro {
 
     protected:
       RlinkPort::port_uptr_t fupObj;        //!< uptr to managed port
-      boost::shared_ptr<RlogFile> fspLog;   //!< port log file
+      std::shared_ptr<RlogFile> fspLog;     //!< port log file
       uint32_t      fTraceLevel;            //!< 0=off,1=buf,2=char
       size_t        fErrCnt;                //!< error count
       RtclGetList   fGets;

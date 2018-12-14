@@ -1,6 +1,6 @@
-// $Id: RtclRw11UnitDEUNA.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclRw11UnitDEUNA.hpp 1078 2018-12-08 14:19:03Z mueller $
 //
-// Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1078   1.1    use std::shared_ptr instead of boost
 // 2017-04-08   870   1.0    Initial version
 // 2014-06-09   561   0.1    First draft 
 // ---------------------------------------------------------------------------
@@ -38,7 +39,7 @@ class RtclRw11UnitDEUNA : public RtclRw11UnitBase<Rw11UnitDEUNA,Rw11Unit,
     public:
                     RtclRw11UnitDEUNA(Tcl_Interp* interp,
                                 const std::string& unitcmd,
-                                const boost::shared_ptr<Rw11UnitDEUNA>& spunit);
+                                const std::shared_ptr<Rw11UnitDEUNA>& spunit);
                    ~RtclRw11UnitDEUNA();
 
     protected:

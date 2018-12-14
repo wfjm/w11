@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.cpp 1070 2018-11-17 09:48:04Z mueller $
+// $Id: Rw11Cpu.cpp 1078 2018-12-08 14:19:03Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1078   1.2.16 use std::shared_ptr instead of boost
 // 2018-11-16  1070   1.2.15 use auto; use emplace,make_pair; use range loop
 // 2018-09-23  1050   1.2.14 add HasPcnt()
 // 2018-09-22  1048   1.2.13 coverity fixup (drop unreachable code)
@@ -224,7 +225,7 @@ void Rw11Cpu::Setup(Rw11* pw11)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11Cpu::AddCntl(const boost::shared_ptr<Rw11Cntl>& spcntl)
+void Rw11Cpu::AddCntl(const std::shared_ptr<Rw11Cntl>& spcntl)
 {
   if (!spcntl)
     throw Rexception("Rw11Cpu::AddCntl","Bad args: spcntl == 0");

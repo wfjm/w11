@@ -1,6 +1,6 @@
-// $Id: RtclProxyOwned.ipp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclProxyOwned.ipp 1078 2018-12-08 14:19:03Z mueller $
 // 
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1078   1.1.1  use std::shared_ptr instead of boost
 // 2013-02-05   482   1.1    use shared_ptr to TO*; add ObjPtr();
 // 2011-02-13   361   1.0    Initial version
 // 2011-02-11   360   0.1    First draft
@@ -82,7 +83,7 @@ inline TO& RtclProxyOwned<TO>::Obj()
 //! FIXME_docs
 
 template <class TO>
-inline const boost::shared_ptr<TO>& RtclProxyOwned<TO>::ObjSPtr()
+inline const std::shared_ptr<TO>& RtclProxyOwned<TO>::ObjSPtr()
 {
   return fspObj;
 }

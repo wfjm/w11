@@ -1,4 +1,4 @@
-// $Id: RlinkServer.cpp 1075 2018-12-01 11:55:07Z mueller $
+// $Id: RlinkServer.cpp 1078 2018-12-08 14:19:03Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1078   2.2.5  use std::shared_ptr instead of boost
 // 2018-10-27  1059   2.2.4  coverity fixup (uncaught exception in dtor)
 // 2017-04-07   868   2.2.3  Dump(): add detail arg
 // 2015-06-05   686   2.2.2  BUGFIX: CallAttnHandler(): fix race in hnext
@@ -116,7 +117,7 @@ RlinkServer::~RlinkServer()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RlinkServer::SetConnect(const boost::shared_ptr<RlinkConnect>& spconn)
+void RlinkServer::SetConnect(const std::shared_ptr<RlinkConnect>& spconn)
 {
   if (!fspConn && !spconn) return;          // allow 0 = 0 ...
   if (fspConn)

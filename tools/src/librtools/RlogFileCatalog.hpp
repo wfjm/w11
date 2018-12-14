@@ -1,6 +1,6 @@
-// $Id: RlogFileCatalog.hpp 1066 2018-11-10 11:21:53Z mueller $
+// $Id: RlogFileCatalog.hpp 1078 2018-12-08 14:19:03Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1078   1.0.1  use std::shared_ptr instead of boost
 // 2013-02-22   491   1.0    Initial version
 // ---------------------------------------------------------------------------
 
@@ -25,9 +26,9 @@
 #define included_Retro_RlogFileCatalog 1
 
 #include <map>
+#include <memory>
 
 #include "boost/utility.hpp"
-#include "boost/shared_ptr.hpp"
 
 #include "RlogFile.hpp"
 
@@ -38,7 +39,7 @@ namespace Retro {
 
       static RlogFileCatalog&  Obj();    
 
-      const boost::shared_ptr<RlogFile>& FindOrCreate(const std::string& name);
+      const std::shared_ptr<RlogFile>& FindOrCreate(const std::string& name);
       void          Delete(const std::string& name);
 
     private:
@@ -46,7 +47,7 @@ namespace Retro {
                    ~RlogFileCatalog();
 
     protected:
-      typedef std::map<std::string, boost::shared_ptr<RlogFile>> map_t;
+      typedef std::map<std::string, std::shared_ptr<RlogFile>> map_t;
 
       map_t         fMap;                   //!< name->rlogfile map
   };

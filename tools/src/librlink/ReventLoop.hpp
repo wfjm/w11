@@ -1,6 +1,6 @@
-// $Id: ReventLoop.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: ReventLoop.hpp 1078 2018-12-08 14:19:03Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1078   1.2.2  use std::shared_ptr instead of boost
 // 2017-04-07   868   1.2.1  Dump(): add detail arg
 // 2015-04-04   662   1.2    BUGFIX: fix race in Stop(), add UnStop,StopPending
 // 2013-05-01   513   1.1.1  fTraceLevel now uint32_t
@@ -33,11 +34,11 @@
 
 #include <cstdint>
 #include <vector>
+#include <memory>
 
 #include "boost/utility.hpp"
 #include "boost/function.hpp"
 #include "boost/thread/mutex.hpp"
-#include "boost/shared_ptr.hpp"
 
 #include "librtools/RlogFile.hpp"
 
@@ -56,7 +57,7 @@ namespace Retro {
       void          RemovePollHandler(int fd, short events, bool nothrow=false);
       void          RemovePollHandler(int fd);
 
-      void          SetLogFile(const boost::shared_ptr<RlogFile>& splog);
+      void          SetLogFile(const std::shared_ptr<RlogFile>& splog);
       void          SetTraceLevel(uint32_t level);
       uint32_t      TraceLevel() const;
 
@@ -90,7 +91,7 @@ namespace Retro {
       std::vector<pollfd>    fPollFd;
       std::vector<pollhdl_t> fPollHdl;
       uint32_t      fTraceLevel;            //!< trace level
-      boost::shared_ptr<RlogFile>  fspLog;  //!< log file ptr
+      std::shared_ptr<RlogFile>  fspLog;    //!< log file ptr
 };
   
 } // end namespace Retro

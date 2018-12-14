@@ -1,6 +1,6 @@
-// $Id: RtclRw11CntlBase.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclRw11CntlBase.hpp 1078 2018-12-08 14:19:03Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1078   1.2    use std::shared_ptr instead of boost
 // 2017-04-16   877   1.1    add class in ctor
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-08   484   0.1    First draft
@@ -27,7 +28,7 @@
 #ifndef included_Retro_RtclRw11CntlBase
 #define included_Retro_RtclRw11CntlBase 1
 
-#include "boost/shared_ptr.hpp"
+#include <memory>
 
 #include "RtclRw11Cntl.hpp"
 
@@ -41,13 +42,13 @@ namespace Retro {
                    ~RtclRw11CntlBase();
 
       virtual TC&   Obj();
-      const boost::shared_ptr<TC>&  ObjSPtr();
+      const std::shared_ptr<TC>&  ObjSPtr();
 
     protected:
       int           M_bootcode(RtclArgs& args);
 
     protected:
-      boost::shared_ptr<TC>  fspObj; //!< sptr to managed object
+      std::shared_ptr<TC>  fspObj;         //!< sptr to managed object
   };
   
 } // end namespace Retro

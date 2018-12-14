@@ -1,6 +1,6 @@
-// $Id: RtclRw11UnitRL11.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclRw11UnitRL11.cpp 1078 2018-12-08 14:19:03Z mueller $
 //
-// Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1078   1.2    use std::shared_ptr instead of boost
 // 2017-04-08   870   1.1    inherit from RtclRw11UnitBase
 // 2014-06-08   561   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -39,7 +40,7 @@ namespace Retro {
 
 RtclRw11UnitRL11::RtclRw11UnitRL11(
                     Tcl_Interp* interp, const std::string& unitcmd,
-                    const boost::shared_ptr<Rw11UnitRL11>& spunit)
+                    const std::shared_ptr<Rw11UnitRL11>& spunit)
   : RtclRw11UnitBase<Rw11UnitRL11,Rw11UnitDisk,
                      RtclRw11UnitDisk>("Rw11UnitRL11", spunit)
 {

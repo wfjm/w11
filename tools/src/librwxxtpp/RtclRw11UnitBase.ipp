@@ -1,4 +1,4 @@
-// $Id: RtclRw11UnitBase.ipp 1076 2018-12-02 12:45:49Z mueller $
+// $Id: RtclRw11UnitBase.ipp 1078 2018-12-08 14:19:03Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1078   1.3.3  use std::shared_ptr instead of boost
 // 2018-12-01  1076   1.3.2  use unique_ptr
 // 2017-04-15   875   1.3.1  add attached,attachutl getters
 // 2017-04-08   870   1.3    add TUV,TB; add TUV* ObjUV(); inherit from TB
@@ -55,7 +56,7 @@ namespace Retro {
 
 template <class TU, class TUV, class TB>
 inline RtclRw11UnitBase<TU,TUV,TB>::RtclRw11UnitBase(const std::string& type,
-                                     const boost::shared_ptr<TU>& spunit)
+                                     const std::shared_ptr<TU>& spunit)
   : TB(type),
     fspObj(spunit)
 {
@@ -115,7 +116,7 @@ inline Rw11Cpu& RtclRw11UnitBase<TU,TUV,TB>::Cpu() const
 //! FIXME_docs
 
 template <class TU, class TUV, class TB>
-inline const boost::shared_ptr<TU>& RtclRw11UnitBase<TU,TUV,TB>::ObjSPtr()
+inline const std::shared_ptr<TU>& RtclRw11UnitBase<TU,TUV,TB>::ObjSPtr()
 {
   return fspObj;
 }

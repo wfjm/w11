@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.hpp 1066 2018-11-10 11:21:53Z mueller $
+// $Id: Rw11Cpu.hpp 1078 2018-12-08 14:19:03Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2019-09-23  1050   1.2.11 add HasPcnt()
+// 2018-12-07  1078   1.2.12 use std::shared_ptr instead of boost
+// 2018-09-23  1050   1.2.11 add HasPcnt()
 // 2017-04-07   868   1.2.10 Dump(): add detail arg
 // 2017-02-26   857   1.2.9  add kCPAH_M_UBM22
 // 2017-02-19   853   1.2.8  use Rtime
@@ -43,10 +44,10 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 #include <map>
 
 #include "boost/utility.hpp"
-#include "boost/shared_ptr.hpp"
 #include "boost/thread/locks.hpp"
 #include "boost/thread/condition_variable.hpp"
 
@@ -66,7 +67,7 @@ namespace Retro {
 
   class Rw11Cpu : public Rbits, private boost::noncopyable {
     public:
-      typedef std::map<std::string, boost::shared_ptr<Rw11Cntl>> cmap_t;
+      typedef std::map<std::string, std::shared_ptr<Rw11Cntl>> cmap_t;
 
       explicit      Rw11Cpu(const std::string& type);
       virtual      ~Rw11Cpu();
@@ -91,7 +92,7 @@ namespace Retro {
       bool          HasKw11p() const;
       bool          HasIist() const;
 
-      void          AddCntl(const boost::shared_ptr<Rw11Cntl>& spcntl);
+      void          AddCntl(const std::shared_ptr<Rw11Cntl>& spcntl);
       bool          TestCntl(const std::string& name) const;
       void          ListCntl(std::vector<std::string>& list) const;
       Rw11Cntl&     Cntl(const std::string& name) const;

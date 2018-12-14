@@ -1,6 +1,6 @@
-// $Id: RlinkServer.ipp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkServer.ipp 1078 2018-12-08 14:19:03Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1078   2.2.1  use std::shared_ptr instead of boost
 // 2015-01-10   632   2.2    Exec() without emsg now void, will throw
 // 2014-12-30   625   2.1    adopt to Rlink V4 attn logic
 // 2014-11-30   607   2.0    re-organize for rlink v4
@@ -32,7 +33,7 @@ namespace Retro {
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline const boost::shared_ptr<RlinkConnect>& RlinkServer::ConnectSPtr() const
+inline const std::shared_ptr<RlinkConnect>& RlinkServer::ConnectSPtr() const
 {
   return fspConn;
 }

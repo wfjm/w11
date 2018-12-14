@@ -1,4 +1,4 @@
-// $Id: RlinkPort.hpp 1076 2018-12-02 12:45:49Z mueller $
+// $Id: RlinkPort.hpp 1078 2018-12-08 14:19:03Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1078   1.4.3  use std::shared_ptr instead of boost
 // 2018-12-01  1076   1.4 2  use unique_ptr
 // 2017-04-07   868   1.4.1  Dump(): add detail arg
 // 2017-02-19   853   1.4    use Rtime, drop TimeOfDayAsDouble
@@ -78,7 +79,7 @@ namespace Retro {
       int           FdRead() const;
       int           FdWrite() const;
 
-      void          SetLogFile(const boost::shared_ptr<RlogFile>& splog);
+      void          SetLogFile(const std::shared_ptr<RlogFile>& splog);
       void          SetTraceLevel(uint32_t level);
 
       uint32_t      TraceLevel() const;
@@ -113,7 +114,7 @@ namespace Retro {
       bool          fXon;                   //!< xon attribute set 
       int           fFdRead;                //!< fd for read
       int           fFdWrite;               //!< fd for write
-      boost::shared_ptr<RlogFile>  fspLog;  //!< log file ptr
+      std::shared_ptr<RlogFile>  fspLog;    //!< log file ptr
       uint32_t      fTraceLevel;            //!< trace level
       Rtime         fTsLastRead;            //!< time stamp last write
       Rtime         fTsLastWrite;           //!< time stamp last write

@@ -1,4 +1,4 @@
-// $Id: Rw11.cpp 1049 2018-09-22 13:56:52Z mueller $
+// $Id: Rw11.cpp 1078 2018-12-08 14:19:03Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1078   1.1.2  use std::shared_ptr instead of boost
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2014-12-30   625   1.1    adopt to Rlink V4 attn logic
 // 2013-03-06   495   1.0    Initial version
@@ -64,7 +65,7 @@ Rw11::~Rw11()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11::SetServer(const boost::shared_ptr<RlinkServer>& spserv)
+void Rw11::SetServer(const std::shared_ptr<RlinkServer>& spserv)
 {
   fspServ = spserv;
   fspServ->AddAttnHandler(boost::bind(&Rw11::AttnHandler, this, _1), 
@@ -75,7 +76,7 @@ void Rw11::SetServer(const boost::shared_ptr<RlinkServer>& spserv)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11::AddCpu(const boost::shared_ptr<Rw11Cpu>& spcpu)
+void Rw11::AddCpu(const std::shared_ptr<Rw11Cpu>& spcpu)
 {
   if (fNCpu >= 4)
     throw Rexception("Rw11::AddCpu", "Bad state: already 4 cpus registered");

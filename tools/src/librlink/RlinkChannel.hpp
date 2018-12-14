@@ -1,6 +1,6 @@
-// $Id: RlinkChannel.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkChannel.hpp 1078 2018-12-08 14:19:03Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1078   1.0.2  use std::shared_ptr instead of boost
 // 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2013-02-23   492   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -26,7 +27,7 @@
 #ifndef included_Retro_RlinkChannel
 #define included_Retro_RlinkChannel 1
 
-#include "boost/shared_ptr.hpp"
+#include <memory>
 
 #include "RlinkContext.hpp"
 #include "RlinkConnect.hpp"
@@ -36,7 +37,7 @@ namespace Retro {
 
   class RlinkChannel {
     public:
-      explicit      RlinkChannel(const boost::shared_ptr<RlinkConnect>& spconn);
+      explicit      RlinkChannel(const std::shared_ptr<RlinkConnect>& spconn);
                    ~RlinkChannel();
 
       RlinkConnect& Connect();
@@ -49,7 +50,7 @@ namespace Retro {
     
     protected: 
       RlinkContext  fContext;               //!< stat check and errcnt context
-      boost::shared_ptr<RlinkConnect> fspConn; //!< ptr to connect
+      std::shared_ptr<RlinkConnect> fspConn; //!< ptr to connect
   };
   
 } // end namespace Retro

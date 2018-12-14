@@ -1,6 +1,6 @@
-// $Id: Rw11CntlBase.ipp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11CntlBase.ipp 1078 2018-12-08 14:19:03Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1078   1.0.3  use std::shared_ptr instead of boost
 // 2017-04-15   874   1.0.2  add UnitBase()
 // 2017-04-02   865   1.0.1  Dump(): add detail arg
 // 2013-03-06   495   1.0    Initial version
@@ -83,7 +84,7 @@ inline TU& Rw11CntlBase<TU,NU>::Unit(size_t index) const
 //! FIXME_docs
 
 template <class TU, size_t NU>
-inline const boost::shared_ptr<TU>& 
+inline const std::shared_ptr<TU>& 
   Rw11CntlBase<TU,NU>::UnitSPtr(size_t index) const
 {
   return fspUnit[index];

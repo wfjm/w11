@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.hpp 1076 2018-12-02 12:45:49Z mueller $
+// $Id: RlinkConnect.hpp 1078 2018-12-08 14:19:03Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1078   2.7.1  use std::shared_ptr instead of boost
 // 2018-12-01  1076   2.7    use unique_ptr instead of scoped_ptr
 // 2017-04-22   883   2.6.3  add rbus monitor probe, add HasRbmon()
 // 2017-04-09   871   2.6.2  LogFileName(): returns now const std::string&
@@ -53,11 +54,11 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <memory>
 #include <ostream>
 
 #include "boost/utility.hpp"
 #include "boost/thread/recursive_mutex.hpp"
-#include "boost/shared_ptr.hpp"
 
 #include "librtools/RerrMsg.hpp"
 #include "librtools/Rtime.hpp"
@@ -152,7 +153,7 @@ namespace Retro {
       void          LogUseStream(std::ostream* pstr, 
                                  const std::string& name = "");
       RlogFile&     LogFile() const;
-      const boost::shared_ptr<RlogFile>&   LogFileSPtr() const;
+      const std::shared_ptr<RlogFile>&   LogFileSPtr() const;
 
       void          SetLogFileName(const std::string& name);
       const std::string&   LogFileName() const;
@@ -252,7 +253,7 @@ namespace Retro {
       uint32_t      fDumpLevel;             //!< dump  0=off,1=err,2=chk,3=all
       uint32_t      fTraceLevel;            //!< trace 0=off,1=buf,2=char
       Rtime         fTimeout;               //!< response timeout
-      boost::shared_ptr<RlogFile> fspLog;   //!< log file ptr
+      std::shared_ptr<RlogFile> fspLog;     //!< log file ptr
       boost::recursive_mutex fConnectMutex; //!< mutex to lock whole connect
       uint16_t      fAttnNotiPatt;          //!< attn notifier pattern
       Rtime         fTsLastAttnNoti;        //!< time stamp last attn notify

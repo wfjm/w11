@@ -1,6 +1,6 @@
-// $Id: Rw11.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11.hpp 1078 2018-12-08 14:19:03Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1078   1.1.2  use std::shared_ptr instead of boost
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2014-12-29   624   1.1    adopt to Rlink V4 attn logic
 // 2013-03-06   495   1.0    Initial version
@@ -28,8 +29,9 @@
 #ifndef included_Retro_Rw11
 #define included_Retro_Rw11 1
 
+#include <memory>
+
 #include "boost/utility.hpp"
-#include "boost/shared_ptr.hpp"
 
 #include "librlink/RlinkServer.hpp"
 
@@ -43,13 +45,13 @@ namespace Retro {
                     Rw11();
       virtual      ~Rw11();
 
-      void          SetServer(const boost::shared_ptr<RlinkServer>& spserv);
-      const boost::shared_ptr<RlinkServer>& ServerSPtr() const;
+      void          SetServer(const std::shared_ptr<RlinkServer>& spserv);
+      const std::shared_ptr<RlinkServer>& ServerSPtr() const;
       RlinkServer&  Server() const;
       RlinkConnect& Connect() const;
       RlogFile&     LogFile() const;
 
-      void          AddCpu(const boost::shared_ptr<Rw11Cpu>& spcpu);
+      void          AddCpu(const std::shared_ptr<Rw11Cpu>& spcpu);
       size_t        NCpu() const;
       Rw11Cpu&      Cpu(size_t ind) const;
 
@@ -66,9 +68,9 @@ namespace Retro {
       int           AttnHandler(RlinkServer::AttnArgs& args);
 
     protected:
-      boost::shared_ptr<RlinkServer>  fspServ;
+      std::shared_ptr<RlinkServer>  fspServ;
       size_t        fNCpu;
-      boost::shared_ptr<Rw11Cpu>  fspCpu[4];
+      std::shared_ptr<Rw11Cpu>  fspCpu[4];
       bool          fStarted;               //!< true if Start() called
   };
   

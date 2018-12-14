@@ -101,9 +101,10 @@ The full set of tests is only run for tagged releases.
   - now -Wdocumentation clean (some wrong doxygen trailing comments)
   - use auto, emplace() and range loops
   - use unique_ptr instead of free pointers, avoid explicit `delete`
-  - add and use move semantic in RlinkCommandExpect 
+  - add and use move semantic in RlinkCommandExpect
   - replace boost with std
     - use std::unique_ptr instead of boost::scoped_ptr
+    - use std::shared_ptr instead of boost
 - rw11/shell.tcl: add workaround for tclreadline and `after` interference
 
 ### Bug Fixes

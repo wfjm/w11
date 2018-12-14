@@ -1,4 +1,4 @@
-// $Id: RtclRw11.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclRw11.hpp 1078 2018-12-08 14:19:03Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -30,8 +30,7 @@
 
 #include <cstddef>
 #include <string>
-
-#include "boost/shared_ptr.hpp"
+#include <memory>
 
 #include "librtcltools/RtclProxyOwned.hpp"
 #include "librtcltools/RtclGetList.hpp"
@@ -59,7 +58,7 @@ namespace Retro {
       Tcl_Obj*      CpuCommands();
 
     protected:
-      boost::shared_ptr<RlinkServer> fspServ;
+      std::shared_ptr<RlinkServer> fspServ;
       RtclGetList   fGets;
       RtclSetList   fSets;
   };

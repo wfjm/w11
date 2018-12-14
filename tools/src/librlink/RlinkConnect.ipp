@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.ipp 1076 2018-12-02 12:45:49Z mueller $
+// $Id: RlinkConnect.ipp 1078 2018-12-08 14:19:03Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1078   2.6.1  use std::shared_ptr instead of boost
 // 2018-12-01  1076   2.6    use unique_ptr instead of scoped_ptr
 // 2017-04-22   883   2.5.2  add rbus monitor probe, add HasRbmon()
 // 2017-04-09   871   2.5.1  LogFileName(): returns now const std::string&
@@ -275,7 +276,7 @@ inline RlogFile& RlinkConnect::LogFile() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline const boost::shared_ptr<RlogFile>& RlinkConnect::LogFileSPtr() const
+inline const std::shared_ptr<RlogFile>& RlinkConnect::LogFileSPtr() const
 {
   return fspLog;
 }

@@ -1,6 +1,6 @@
-// $Id: RlinkPort.ipp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkPort.ipp 1078 2018-12-08 14:19:03Z mueller $
 //
-// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1078   1.3.1  use std::shared_ptr instead of boost
 // 2015-04-11   666   1.3    add fXon, XonEnable()
 // 2013-05-01   513   1.2.1  fTraceLevel now uint32_t
 // 2013-02-23   492   1.2    use RparseUrl
@@ -72,7 +73,7 @@ inline int RlinkPort::FdWrite() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline void RlinkPort::SetLogFile(const boost::shared_ptr<RlogFile>& splog)
+inline void RlinkPort::SetLogFile(const std::shared_ptr<RlogFile>& splog)
 {
   fspLog = splog;
   return;

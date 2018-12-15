@@ -1,6 +1,6 @@
-// $Id: RlinkPacketBufSnd.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkPacketBufSnd.cpp 1079 2018-12-09 10:56:59Z mueller $
 //
-// Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-08  1079   1.2    use ref not ptr for RlinkPort
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2015-04-11   666   1.1    handle xon/xoff escaping, add (Set)XonEscape()
 // 2014-12-25   621   1.0.1  Reorganize packet send/revd stats
@@ -89,7 +90,7 @@ void RlinkPacketBufSnd::PutWithCrc(const uint16_t* pdata, size_t count)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-bool RlinkPacketBufSnd::SndPacket(RlinkPort* port, RerrMsg& emsg)
+bool RlinkPacketBufSnd::SndPacket(RlinkPort& port, RerrMsg& emsg)
 {
   size_t nesc  = 0;
   size_t nxesc = 0;
@@ -138,7 +139,7 @@ bool RlinkPacketBufSnd::SndPacket(RlinkPort* port, RerrMsg& emsg)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-bool RlinkPacketBufSnd::SndOob(RlinkPort* port, uint16_t addr, uint16_t data, 
+bool RlinkPacketBufSnd::SndOob(RlinkPort& port, uint16_t addr, uint16_t data, 
                                RerrMsg& emsg)
 {
   Init();
@@ -161,7 +162,7 @@ bool RlinkPacketBufSnd::SndOob(RlinkPort* port, uint16_t addr, uint16_t data,
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-bool RlinkPacketBufSnd::SndKeep(RlinkPort* port, RerrMsg& emsg)
+bool RlinkPacketBufSnd::SndKeep(RlinkPort& port, RerrMsg& emsg)
 {
   Init();
 
@@ -175,7 +176,7 @@ bool RlinkPacketBufSnd::SndKeep(RlinkPort* port, RerrMsg& emsg)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-bool RlinkPacketBufSnd::SndAttn(RlinkPort* port, RerrMsg& emsg)
+bool RlinkPacketBufSnd::SndAttn(RlinkPort& port, RerrMsg& emsg)
 {
   Init();
 
@@ -187,7 +188,7 @@ bool RlinkPacketBufSnd::SndAttn(RlinkPort* port, RerrMsg& emsg)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-bool RlinkPacketBufSnd::SndNak(RlinkPort* port, RerrMsg& emsg)
+bool RlinkPacketBufSnd::SndNak(RlinkPort& port, RerrMsg& emsg)
 {
   Init();
 
@@ -199,7 +200,7 @@ bool RlinkPacketBufSnd::SndNak(RlinkPort* port, RerrMsg& emsg)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-bool RlinkPacketBufSnd::SndUnJam(RlinkPort* port, RerrMsg& emsg)
+bool RlinkPacketBufSnd::SndUnJam(RlinkPort& port, RerrMsg& emsg)
 {
   Init();
 
@@ -236,13 +237,13 @@ void RlinkPacketBufSnd::Dump(std::ostream& os, int ind, const char* text,
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-bool RlinkPacketBufSnd::SndRaw(RlinkPort* port, RerrMsg& emsg)
+bool RlinkPacketBufSnd::SndRaw(RlinkPort& port, RerrMsg& emsg)
 {
-  if (port==0 || !port->IsOpen())
+  if (&port==nullptr || !port.IsOpen())
     throw Rexception("RlinkPacketBufSnd::SndRaw()", "Bad state: port not open");
 
   size_t rawbufsize = fRawBuf.size();
-  int irc = port->Write(fRawBuf.data(), rawbufsize, emsg);
+  int irc = port.Write(fRawBuf.data(), rawbufsize, emsg);
   if (irc < 0) return false;
   if ((size_t)irc != rawbufsize) {
     emsg.Init("RlinkPacketBufSnd::SndRaw()", "failed to write all data");

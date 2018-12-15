@@ -1,4 +1,4 @@
-// $Id: RlinkServer.cpp 1078 2018-12-08 14:19:03Z mueller $
+// $Id: RlinkServer.cpp 1079 2018-12-09 10:56:59Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -413,7 +413,7 @@ void RlinkServer::StartOrResume(bool resume)
   Exec(clist);
 
   // setup poll handler for Rlink traffic
-  int rlinkfd = fspConn->Port()->FdRead();
+  int rlinkfd = fspConn->Port().FdRead();
   if (!fELoop.TestPollHandler(rlinkfd, POLLIN))
     fELoop.AddPollHandler(boost::bind(&RlinkServer::RlinkHandler, this, _1), 
                           rlinkfd, POLLIN);

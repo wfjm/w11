@@ -1,4 +1,4 @@
-// $Id: Rw11CntlRK11.cpp 1062 2018-10-28 11:14:20Z mueller $
+// $Id: Rw11CntlRK11.cpp 1080 2018-12-09 20:30:33Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -15,6 +15,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-09  1080   2.0.7  use HasVirt(); Virt() returns ref
 // 2018-10-28  1062   2.0.6  replace boost/foreach
 // 2017-04-02   865   2.0.5  Dump(): add detail arg
 // 2017-03-03   858   2.0.4  use cntl name as message prefix
@@ -232,7 +233,7 @@ void Rw11CntlRK11::UnitSetup(size_t ind)
   RlinkCommandList clist;
 
   uint16_t rkds = ind<<kRKDS_V_ID;
-  if (unit.Virt()) {                        // file attached
+  if (unit.HasVirt()) {                     // file attached
     rkds |= kRKDS_M_HDEN;                   // always high density
     rkds |= kRKDS_M_SOK;                    // always sector counter OK ?FIXME?
     rkds |= kRKDS_M_DRY;                    // drive available
@@ -390,7 +391,7 @@ int Rw11CntlRK11::AttnHandler(RlinkServer::AttnArgs& args)
 
   // check for general abort conditions
   if (fu != kFUNC_CRESET &&                 // function not control reset
-      (!unit.Virt())) {                     //   and drive not attached
+      (!unit.HasVirt())) {                  //   and drive not attached
     rker = kRKER_M_NXD;                     //   --> abort with NXD error
 
   } else if (fu != kFUNC_WRITE &&           // function neither write

@@ -1,4 +1,4 @@
-// $Id: Rw11UnitTerm.cpp 1076 2018-12-02 12:45:49Z mueller $
+// $Id: Rw11UnitTerm.cpp 1080 2018-12-09 20:30:33Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-09  1080   1.1.4  use HasVirt(); Virt() returns ref
 // 2018-12-01  1076   1.1.3  use unique_ptr
 // 2017-04-07   868   1.1.2  Dump(): add detail arg
 // 2017-02-25   855   1.1.1  RcvNext() --> RcvQueueNext(); WakeupCntl() now pure
@@ -75,7 +76,7 @@ Rw11UnitTerm::~Rw11UnitTerm()
 
 const std::string& Rw11UnitTerm::ChannelId() const
 {
-  if (fupVirt) return fupVirt->ChannelId();
+  if (HasVirt()) return Virt().ChannelId();
   static string nil;
   return nil;
 }  
@@ -204,9 +205,9 @@ bool Rw11UnitTerm::Snd(const uint8_t* buf, size_t count)
     }
   }
 
-  if (fupVirt) {                            // if virtual device attached
+  if (HasVirt()) {                          // if virtual device attached
     RerrMsg emsg;
-    ok = fupVirt->Snd(bufout, bufcnt, emsg);
+    ok = Virt().Snd(bufout, bufcnt, emsg);
     // FIXME_code: handler errors
     
   } else {                                  // no virtual device attached
@@ -293,8 +294,8 @@ void Rw11UnitTerm::Dump(std::ostream& os, int ind, const char* text,
 
 void Rw11UnitTerm::AttachDone()
 {
-  fupVirt->SetupRcvCallback(boost::bind(&Rw11UnitTerm::RcvCallback,
-                                           this, _1, _2));
+  Virt().SetupRcvCallback(boost::bind(&Rw11UnitTerm::RcvCallback,
+                                      this, _1, _2));
   return;
 }
 

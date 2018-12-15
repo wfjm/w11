@@ -1,6 +1,6 @@
-// $Id: Rw11UnitTape.ipp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11UnitTape.ipp 1080 2018-12-09 20:30:33Z mueller $
 //
-// Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-09  1080   1.0.1  use HasVirt(); Virt() returns ref
 // 2015-06-04   686   1.0    Initial version
 // 2015-05-17   683   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -46,7 +47,7 @@ inline bool Rw11UnitTape::Enabled() const
 
 inline bool Rw11UnitTape::WProt() const
 {
-  return Virt() ? Virt()->WProt() : fWProt;
+  return HasVirt() ? Virt().WProt() : fWProt;
 }
 
 //------------------------------------------+-----------------------------------
@@ -54,7 +55,7 @@ inline bool Rw11UnitTape::WProt() const
 
 inline size_t Rw11UnitTape::Capacity() const
 {
-  return Virt() ? Virt()->Capacity() : fCapacity;
+  return HasVirt() ? Virt().Capacity() : fCapacity;
 }
 
 

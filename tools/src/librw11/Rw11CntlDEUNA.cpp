@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDEUNA.cpp 1078 2018-12-08 14:19:03Z mueller $
+// $Id: Rw11CntlDEUNA.cpp 1080 2018-12-09 20:30:33Z mueller $
 //
 // Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-09  1080   0.5.4  use HasVirt(); Virt() returns ref
 // 2018-12-08  1078   0.5.3  BUGFIX: Start(Tx|Rx)Ring, was broken in r1049
 //                             when fixing -Wunused-variable warnings
 // 2018-11-30  1075   0.5.2  use list-init
@@ -380,7 +381,7 @@ void Rw11CntlDEUNA::UnitSetup(size_t /*ind*/)
 
 void Rw11CntlDEUNA::SetType(const std::string& type)
 {
-  if (fPr1State != kSTATE_READY || fspUnit[0]->Virt())
+  if (fPr1State != kSTATE_READY || fspUnit[0]->HasVirt())
     throw Rexception("Rw11CntlDEUNA::SetType", 
                      string("Bad state: not in READY state or attached"));
 
@@ -444,7 +445,7 @@ void Rw11CntlDEUNA::SetMacDefault(const std::string& mac)
     throw Rexception("Rw11CntlDEUNA::SetMacDefault", 
                      string("Bad args: mcast address given, lsb not 0"));
   if (fPr1State == kSTATE_READY &&          // if not running
-      (!fspUnit[0]->Virt()) &&              // and not attached
+      (!fspUnit[0]->HasVirt()) &&           // and not attached
       fMacList[0] == fMacDefault) {         // and old pa was old dpa
     fMacList[0] = bmac;                     // update also pa !
   }
@@ -1363,7 +1364,7 @@ uint16_t Rw11CntlDEUNA::GetPr1() const
   if (fPr1Delua) {
     pr1 |= kPR1_M_DELUA;
   } else {
-    if (!fspUnit[0]->Virt()) {
+    if (!fspUnit[0]->HasVirt()) {
       pr1 |= kPR1_M_XPWR | kPR1_M_ICAB;
     }
   }
@@ -1561,9 +1562,9 @@ int Rw11CntlDEUNA::TxRingHandler()
   }
 
   LogFrameInfo('t', fTxBuf);               // log transmitted frame
-  if (unit.Virt()) {                  //  attached ?
+  if (unit.HasVirt()) {                    //  attached ?
     RerrMsg emsg;
-    unit.Virt()->Snd(fTxBuf, emsg);
+    unit.Virt().Snd(fTxBuf, emsg);
     // FIXME_code: error handling 
   }  
 

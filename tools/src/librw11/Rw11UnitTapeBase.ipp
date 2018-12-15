@@ -1,6 +1,6 @@
-// $Id: Rw11UnitTapeBase.ipp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11UnitTapeBase.ipp 1080 2018-12-09 20:30:33Z mueller $
 //
-// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-09  1080   1.0.2  use HasVirt(); Virt() returns ref
 // 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2015-06-04   686   1.0    Initial version
 // 2015-05-17   683   0.1    First draft
@@ -79,7 +80,7 @@ template <class TC>
 void  Rw11UnitTapeBase<TC>::AttachDone()
 {
   // transfer, if defined capacity from unit to virt
-  if (Capacity()!=0 && Virt()->Capacity()==0) Virt()->SetCapacity(Capacity());
+  if (Capacity()!=0 && Virt().Capacity()==0) Virt().SetCapacity(Capacity());
   Cntl().UnitSetup(Index());
   return;
 }

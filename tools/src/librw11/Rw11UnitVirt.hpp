@@ -1,4 +1,4 @@
-// $Id: Rw11UnitVirt.hpp 1076 2018-12-02 12:45:49Z mueller $
+// $Id: Rw11UnitVirt.hpp 1080 2018-12-09 20:30:33Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-09  1080   1.2    add HasVirt(); return ref for Virt()
 // 2018-12-01  1076   1.1    use unique_ptr instead of scoped_ptr
 // 2017-04-15   875   1.0.2  add VirtBase()
 // 2017-04-07   868   1.0.1  Dump(): add detail arg
@@ -42,7 +43,9 @@ namespace Retro {
                     Rw11UnitVirt(Rw11Cntl* pcntl, size_t index);
                    ~Rw11UnitVirt();
 
-      TV*           Virt() const;
+      bool          HasVirt() const;
+      TV&           Virt();
+      const TV&     Virt() const;
 
       virtual Rw11Virt*  VirtBase() const;
       virtual bool  Attach(const std::string& url, RerrMsg& emsg);

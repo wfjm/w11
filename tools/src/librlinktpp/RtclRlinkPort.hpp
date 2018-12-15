@@ -1,4 +1,4 @@
-// $Id: RtclRlinkPort.hpp 1078 2018-12-08 14:19:03Z mueller $
+// $Id: RtclRlinkPort.hpp 1079 2018-12-09 10:56:59Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-08  1079   1.3    use ref not ptr for RlinkPort
 // 2018-12-07  1078   1.2.1  use std::shared_ptr instead of boost
 // 2018-12-01  1076   1.2    use unique_ptr
 // 2017-04-29   888   1.1    LogFileName(): returns now const std::string&
@@ -65,13 +66,13 @@ namespace Retro {
       int           M_default(RtclArgs& args);
 
       void          SetupGetSet();
-      bool          TestOpen(RtclArgs& args);
+      bool          TestPort(RtclArgs& args, bool testopen=true);
       void          SetLogFileName(const std::string& name);
       const std::string&  LogFileName() const;
 
-      static int    DoRawRead(RtclArgs& args, RlinkPort* pport);
-      static int    DoRawRblk(RtclArgs& args, RlinkPort* pport, size_t& errcnt);
-      static int    DoRawWblk(RtclArgs& args, RlinkPort* pport);
+      static int    DoRawRead(RtclArgs& args, RlinkPort& port);
+      static int    DoRawRblk(RtclArgs& args, RlinkPort& port, size_t& errcnt);
+      static int    DoRawWblk(RtclArgs& args, RlinkPort& port);
 
     protected:
       RlinkPort::port_uptr_t fupObj;        //!< uptr to managed port

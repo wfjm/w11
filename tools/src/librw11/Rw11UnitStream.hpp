@@ -1,6 +1,6 @@
-// $Id: Rw11UnitStream.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11UnitStream.hpp 1080 2018-12-09 20:30:33Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-09  1080   1.0.2  Pos() not const anymore
 // 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2013-05-04   515   1.0    Initial version
 // 2013-05-01   513   0.1    First draft
@@ -39,7 +40,7 @@ namespace Retro {
                    ~Rw11UnitStream();
 
       void          SetPos(int pos);
-      int           Pos() const;
+      int           Pos();
 
       int           VirtRead(uint8_t* data, size_t count, RerrMsg& emsg);
       bool          VirtWrite(const uint8_t* data, size_t count, RerrMsg& emsg);

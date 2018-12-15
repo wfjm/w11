@@ -1,6 +1,6 @@
-// $Id: RlinkPacketBufSnd.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkPacketBufSnd.hpp 1079 2018-12-09 10:56:59Z mueller $
 //
-// Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-08  1079   1.2    use ref not ptr for RlinkPort
 // 2017-04-07   868   1.1.2  Dump(): add detail arg
 // 2015-04-11   666   1.1    handle xon/xoff escaping, add (Set)XonEscape()
 // 2014-12-25   621   1.0.1  Reorganize packet send/revd stats
@@ -38,7 +39,7 @@ namespace Retro {
     public:
 
                     RlinkPacketBufSnd();
-                    ~RlinkPacketBufSnd();
+                   ~RlinkPacketBufSnd();
 
       void          SetXonEscape(bool xon);
       bool          XonEscape() const;
@@ -52,13 +53,13 @@ namespace Retro {
 
       void          PutRawEsc(uint8_t ec);
 
-      bool          SndPacket(RlinkPort* port, RerrMsg& emsg);
-      bool          SndOob(RlinkPort* port, uint16_t addr, uint16_t data, 
+      bool          SndPacket(RlinkPort& port, RerrMsg& emsg);
+      bool          SndOob(RlinkPort& port, uint16_t addr, uint16_t data, 
                            RerrMsg& emsg);
-      bool          SndKeep(RlinkPort* port, RerrMsg& emsg);
-      bool          SndAttn(RlinkPort* port, RerrMsg& emsg);    
-      bool          SndNak(RlinkPort* port, RerrMsg& emsg);    
-      bool          SndUnJam(RlinkPort* port, RerrMsg& emsg);
+      bool          SndKeep(RlinkPort& port, RerrMsg& emsg);
+      bool          SndAttn(RlinkPort& port, RerrMsg& emsg);    
+      bool          SndNak(RlinkPort& port, RerrMsg& emsg);    
+      bool          SndUnJam(RlinkPort& port, RerrMsg& emsg);
 
       size_t        RawSize() const;
 
@@ -73,7 +74,7 @@ namespace Retro {
       };
 
     protected:
-      bool          SndRaw(RlinkPort* port, RerrMsg& emsg);
+      bool          SndRaw(RlinkPort& port, RerrMsg& emsg);
 
     protected:
       bool          fXonEscape;             //!< escape XON/XOFF

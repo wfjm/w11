@@ -1,6 +1,6 @@
-// $Id: Rw11UnitRL11.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11UnitRL11.cpp 1080 2018-12-09 20:30:33Z mueller $
 //
-// Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-09  1080   1.0.3  use HasVirt(); Virt() returns ref
 // 2017-04-07   868   1.0.2  Dump(): add detail arg
 // 2015-03-21   659   1.0.1  BUGFIX: SetType(): set fType;
 // 2014-06-08   561   1.0    Initial version
@@ -70,7 +71,7 @@ Rw11UnitRL11::~Rw11UnitRL11()
 
 void Rw11UnitRL11::SetType(const std::string& type)
 {
-  if (Virt()) {
+  if (HasVirt()) {
     throw Rexception("Rw11UnitRL11::SetType", 
                      string("Bad state: file attached"));
   }

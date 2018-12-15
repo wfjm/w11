@@ -1,4 +1,4 @@
-// $Id: Rw11CntlTM11.cpp 1062 2018-10-28 11:14:20Z mueller $
+// $Id: Rw11CntlTM11.cpp 1080 2018-12-09 20:30:33Z mueller $
 //
 // Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -15,6 +15,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-09  1080   1.0.6  use HasVirt(); Virt() returns ref
 // 2018-10-28  1062   1.0.5  replace boost/foreach
 // 2017-04-02   865   1.0.4  Dump(): add detail arg
 // 2017-03-03   858   1.0.3  use cntl name as message prefix
@@ -216,10 +217,10 @@ void Rw11CntlTM11::UnitSetup(size_t ind)
   RlinkCommandList clist;
 
   uint16_t tmds = 0;
-  if (unit.Virt()) {                        // file attached
+  if (unit.HasVirt()) {                     // file attached
     tmds |= kTMRL_M_ONL;
-    if (unit.Virt()->WProt()) tmds |= kTMRL_M_WRL;
-    if (unit.Virt()->Bot())   tmds |= kTMRL_M_BOT;
+    if (unit.Virt().WProt()) tmds |= kTMRL_M_WRL;
+    if (unit.Virt().Bot())   tmds |= kTMRL_M_BOT;
   }
   unit.SetTmds(tmds);
   cpu.AddWibr(clist, fBase+kTMCR, (uint16_t(ind)<<kTMCR_V_RUNIT)|
@@ -364,7 +365,7 @@ int Rw11CntlTM11::AttnHandler(RlinkServer::AttnArgs& args)
               fu == kFUNC_WEIRG ||
               fu == kFUNC_WEOF;
   
-  if ((!unit.Virt()) || (wcmd && unit.Virt()->WProt()) ) {
+  if ((!unit.HasVirt()) || (wcmd && unit.Virt().WProt()) ) {
     AddErrorExit(clist, kTMCR_M_RICMD);
     Server().Exec(clist);
     return 0;
@@ -508,12 +509,12 @@ void Rw11CntlTM11::AddFastExit(RlinkCommandList& clist, int opcode, size_t ndone
   uint16_t tmds = 0;
 
   // AddFastExit() is also called after UNLOAD, which calls unit.Detach()
-  // So unlike in all other cases, Virt() may be 0, so check on this
-  if (unit.Virt()) {
+  // So unlike in all other cases, HasVirt() may be false, so check on this
+  if (unit.HasVirt()) {
     tmds |= kTMRL_M_ONL;
-    if (unit.Virt()->WProt()) tmds |= kTMRL_M_WRL;
-    if (unit.Virt()->Bot())   tmds |= kTMRL_M_BOT;
-    if (unit.Virt()->Eot())   tmds |= kTMRL_M_EOT;
+    if (unit.Virt().WProt()) tmds |= kTMRL_M_WRL;
+    if (unit.Virt().Bot())   tmds |= kTMRL_M_BOT;
+    if (unit.Virt().Eot())   tmds |= kTMRL_M_EOT;
   }
   
   switch (opcode) {
@@ -566,9 +567,9 @@ void Rw11CntlTM11::AddNormalExit(RlinkCommandList& clist, size_t ndone,
   Rw11Cpu& cpu = Cpu();
 
   uint16_t tmds = kTMRL_M_ONL;
-  if (unit.Virt()->WProt()) tmds |= kTMRL_M_WRL;
-  if (unit.Virt()->Bot())   tmds |= kTMRL_M_BOT;
-  if (unit.Virt()->Eot())   tmds |= kTMRL_M_EOT;
+  if (unit.Virt().WProt()) tmds |= kTMRL_M_WRL;
+  if (unit.Virt().Bot())   tmds |= kTMRL_M_BOT;
+  if (unit.Virt().Eot())   tmds |= kTMRL_M_EOT;
 
   uint32_t addr = fRd_addr + 2*ndone;
   uint16_t tmbc = fRd_tmbc + 2*uint16_t(ndone);

@@ -1,4 +1,4 @@
-// $Id: RtclRlinkConnect.cpp 1077 2018-12-07 19:37:03Z mueller $
+// $Id: RtclRlinkConnect.cpp 1079 2018-12-09 10:56:59Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-08  1079   1.6.4  use HasPort(); Port() returns now ref
 // 2018-12-07  1077   1.6.3  use SetLastExpectBlock move semantics
 // 2018-11-16  1070   1.6.2  use auto; use range loop
 // 2018-09-16  1047   1.6.1  coverity fixup (uninitialized scalar)
@@ -197,7 +198,7 @@ int RtclRlinkConnect::M_open(RtclArgs& args)
   if (args.NOptMiss() == 0) {               // open path
     if (!Obj().Open(path, emsg)) return args.Quit(emsg);
   } else {                                  // open 
-    string name = Obj().IsOpen() ? Obj().Port()->Url().Url() : string();
+    string name = Obj().IsOpen() ? Obj().Port().Url().Url() : string();
     args.SetResult(name);
   }
   return kOK;
@@ -684,6 +685,8 @@ int RtclRlinkConnect::M_oob(RtclArgs& args)
 
 int RtclRlinkConnect::M_rawread(RtclArgs& args)
 {
+  if (!(Obj().HasPort() &&
+        Obj().Port().IsOpen())) return args.Quit("-E: port not open");
   return RtclRlinkPort::DoRawRead(args, Obj().Port());
 }
 
@@ -692,6 +695,8 @@ int RtclRlinkConnect::M_rawread(RtclArgs& args)
 
 int RtclRlinkConnect::M_rawrblk(RtclArgs& args)
 {
+  if (!(Obj().HasPort() &&
+        Obj().Port().IsOpen())) return args.Quit("-E: port not open");
   size_t errcnt = 0;
   int rc = RtclRlinkPort::DoRawRblk(args, Obj().Port(), errcnt);
   Obj().Context().IncErrorCount(errcnt);
@@ -703,6 +708,8 @@ int RtclRlinkConnect::M_rawrblk(RtclArgs& args)
 
 int RtclRlinkConnect::M_rawwblk(RtclArgs& args)
 {
+  if (!(Obj().HasPort() &&
+        Obj().Port().IsOpen())) return args.Quit("-E: port not open");
   return RtclRlinkPort::DoRawWblk(args, Obj().Port());
 }
 
@@ -716,8 +723,8 @@ int RtclRlinkConnect::M_stats(RtclArgs& args)
   if (!RtclStats::Collect(args, cntx, Obj().Stats())) return kERR;
   if (!RtclStats::Collect(args, cntx, Obj().SndStats())) return kERR;
   if (!RtclStats::Collect(args, cntx, Obj().RcvStats())) return kERR;
-  if (Obj().Port()) {
-    if (!RtclStats::Collect(args, cntx, Obj().Port()->Stats())) return kERR;
+  if (Obj().HasPort()) {
+    if (!RtclStats::Collect(args, cntx, Obj().Port().Stats())) return kERR;
   }
   return kOK;
 }

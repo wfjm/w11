@@ -1,4 +1,4 @@
-// $Id: Rw11UnitTape.cpp 1060 2018-10-27 11:32:39Z mueller $
+// $Id: Rw11UnitTape.cpp 1080 2018-12-09 20:30:33Z mueller $
 //
 // Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-09  1080   1.0.2  use HasVirt(); Virt() returns ref
 // 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2015-06-04   686   1.0    Initial version
 // 2015-05-17   683   0.1    First draft
@@ -68,8 +69,8 @@ void Rw11UnitTape::SetType(const std::string& /*type*/)
 
 void Rw11UnitTape::SetWProt(bool wprot)
 {
-  if (Virt()) throw Rexception("Rw11UnitTape::SetWProt",
-                               "not allowed when tape attached");
+  if (HasVirt()) throw Rexception("Rw11UnitTape::SetWProt",
+                                  "not allowed when tape attached");
   fWProt = wprot;
   return;
 }
@@ -79,8 +80,8 @@ void Rw11UnitTape::SetWProt(bool wprot)
 
 void Rw11UnitTape::SetCapacity(size_t nbyte)
 {
-  if (Virt()) throw Rexception("Rw11UnitTape::SetCapacity",
-                               "not allowed when tape attached");
+  if (HasVirt()) throw Rexception("Rw11UnitTape::SetCapacity",
+                                  "not allowed when tape attached");
   fCapacity = nbyte;
   return;
 }
@@ -90,9 +91,9 @@ void Rw11UnitTape::SetCapacity(size_t nbyte)
 
 void Rw11UnitTape::SetPosFile(int posfile)
 {
-  if (!Virt()) throw Rexception("Rw11UnitTape::SetPosFile", 
-                                "no tape attached");
-  Virt()->SetPosFile(posfile);
+  if (!HasVirt()) throw Rexception("Rw11UnitTape::SetPosFile", 
+                                   "no tape attached");
+  Virt().SetPosFile(posfile);
   return;
 }
 
@@ -101,9 +102,9 @@ void Rw11UnitTape::SetPosFile(int posfile)
 
 void Rw11UnitTape::SetPosRecord(int posrec)
 {
-  if (!Virt()) throw Rexception("Rw11UnitTape::SetPosRecord", 
-                                "no tape attached");
-  Virt()->SetPosRecord(posrec);
+  if (!HasVirt()) throw Rexception("Rw11UnitTape::SetPosRecord", 
+                                   "no tape attached");
+  Virt().SetPosRecord(posrec);
   return;
 }
 
@@ -112,8 +113,8 @@ void Rw11UnitTape::SetPosRecord(int posrec)
 
 bool Rw11UnitTape::Bot() const
 {
-  if (!Virt()) return false;
-  return Virt()->Bot();
+  if (!HasVirt()) return false;
+  return Virt().Bot();
 }
 
 //------------------------------------------+-----------------------------------
@@ -121,8 +122,8 @@ bool Rw11UnitTape::Bot() const
 
 bool Rw11UnitTape::Eot() const
 {
-  if (!Virt()) return false;
-  return Virt()->Eot();
+  if (!HasVirt()) return false;
+  return Virt().Eot();
 }
 
 //------------------------------------------+-----------------------------------
@@ -130,8 +131,8 @@ bool Rw11UnitTape::Eot() const
 
 bool Rw11UnitTape::Eom() const
 {
-  if (!Virt()) return false;
-  return Virt()->Eom();
+  if (!HasVirt()) return false;
+  return Virt().Eom();
 }
 
 //------------------------------------------+-----------------------------------
@@ -139,8 +140,8 @@ bool Rw11UnitTape::Eom() const
 
 int Rw11UnitTape::PosFile() const
 {
-  if (!Virt()) return -1;
-  return Virt()->PosFile();
+  if (!HasVirt()) return -1;
+  return Virt().PosFile();
 }
 
 //------------------------------------------+-----------------------------------
@@ -148,8 +149,8 @@ int Rw11UnitTape::PosFile() const
 
 int Rw11UnitTape::PosRecord() const
 {
-  if (!Virt()) return -1;
-  return Virt()->PosRecord();
+  if (!HasVirt()) return -1;
+  return Virt().PosRecord();
 }
 
 //------------------------------------------+-----------------------------------
@@ -158,11 +159,11 @@ int Rw11UnitTape::PosRecord() const
 bool Rw11UnitTape::VirtReadRecord(size_t nbyte, uint8_t* data, size_t& ndone, 
                                   int& opcode, RerrMsg& emsg)
 {
-  if (!Virt()) {
+  if (!HasVirt()) {
     emsg.Init("Rw11UnitTape::VirtReadRecord", "no tape attached");
     return false;
   }
-  return Virt()->ReadRecord(nbyte, data, ndone, opcode, emsg);
+  return Virt().ReadRecord(nbyte, data, ndone, opcode, emsg);
 }
 
 //------------------------------------------+-----------------------------------
@@ -171,11 +172,11 @@ bool Rw11UnitTape::VirtReadRecord(size_t nbyte, uint8_t* data, size_t& ndone,
 bool Rw11UnitTape::VirtWriteRecord(size_t nbyte, const uint8_t* data, 
                                    int& opcode, RerrMsg& emsg)
 {
-  if (!Virt()) {
+  if (!HasVirt()) {
     emsg.Init("Rw11UnitTape::VirtWriteRecord", "no tape attached");
     return false;
   }
-  return Virt()->WriteRecord(nbyte, data, opcode, emsg);
+  return Virt().WriteRecord(nbyte, data, opcode, emsg);
 }
 
 //------------------------------------------+-----------------------------------
@@ -183,11 +184,11 @@ bool Rw11UnitTape::VirtWriteRecord(size_t nbyte, const uint8_t* data,
 
 bool Rw11UnitTape::VirtWriteEof(RerrMsg& emsg)
 {
-  if (!Virt()) {
+  if (!HasVirt()) {
     emsg.Init("Rw11UnitTape::VirtWriteEof", "no tape attached");
     return false;
   }
-  return Virt()->WriteEof(emsg);
+  return Virt().WriteEof(emsg);
 }
 
 //------------------------------------------+-----------------------------------
@@ -196,11 +197,11 @@ bool Rw11UnitTape::VirtWriteEof(RerrMsg& emsg)
 bool Rw11UnitTape::VirtSpaceForw(size_t nrec, size_t& ndone, 
                                  int& opcode, RerrMsg& emsg)
 {
-  if (!Virt()) {
+  if (!HasVirt()) {
     emsg.Init("Rw11UnitTape::VirtSpaceForw", "no tape attached");
     return false;
   }
-  return Virt()->SpaceForw(nrec, ndone, opcode, emsg);
+  return Virt().SpaceForw(nrec, ndone, opcode, emsg);
 }
 
 //------------------------------------------+-----------------------------------
@@ -209,11 +210,11 @@ bool Rw11UnitTape::VirtSpaceForw(size_t nrec, size_t& ndone,
 bool Rw11UnitTape::VirtSpaceBack(size_t nrec, size_t& ndone, 
                                  int& opcode, RerrMsg& emsg)
 {
-  if (!Virt()) {
+  if (!HasVirt()) {
     emsg.Init("Rw11UnitTape::VirtSpaceBack", "no tape attached");
     return false;
   }
-  return Virt()->SpaceBack(nrec, ndone, opcode, emsg);
+  return Virt().SpaceBack(nrec, ndone, opcode, emsg);
 }
 
 //------------------------------------------+-----------------------------------
@@ -221,11 +222,11 @@ bool Rw11UnitTape::VirtSpaceBack(size_t nrec, size_t& ndone,
 
 bool Rw11UnitTape::VirtRewind(int& opcode, RerrMsg& emsg)
 {
-  if (!Virt()) {
+  if (!HasVirt()) {
     emsg.Init("Rw11UnitTape::VirtRewind", "no tape attached");
     return false;
   }
-  return Virt()->Rewind(opcode, emsg);
+  return Virt().Rewind(opcode, emsg);
 }
 
 //------------------------------------------+-----------------------------------

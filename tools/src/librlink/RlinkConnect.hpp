@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.hpp 1078 2018-12-08 14:19:03Z mueller $
+// $Id: RlinkConnect.hpp 1079 2018-12-09 10:56:59Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-08  1079   2.8    add HasPort(); return ref for Port()
 // 2018-12-07  1078   2.7.1  use std::shared_ptr instead of boost
 // 2018-12-01  1076   2.7    use unique_ptr instead of scoped_ptr
 // 2017-04-22   883   2.6.3  add rbus monitor probe, add HasRbmon()
@@ -87,7 +88,9 @@ namespace Retro {
       bool          Open(const std::string& name, RerrMsg& emsg);
       void          Close();
       bool          IsOpen() const;
-      RlinkPort*    Port() const;
+      bool          HasPort() const;
+      RlinkPort&        Port();
+      const RlinkPort&  Port() const;
 
       bool          LinkInit(RerrMsg& emsg);
       bool          LinkInitDone() const;

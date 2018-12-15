@@ -1,4 +1,4 @@
-// $Id: Rw11CntlRHRP.cpp 1062 2018-10-28 11:14:20Z mueller $
+// $Id: Rw11CntlRHRP.cpp 1080 2018-12-09 20:30:33Z mueller $
 //
 // Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -15,6 +15,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-09  1080   1.0.7  use HasVirt(); Virt() returns ref
 // 2018-10-28  1062   1.0.6  replace boost/foreach
 // 2017-04-02   865   1.0.5  Dump(): add detail arg
 // 2017-03-03   858   1.0.4  use cntl name as message prefix
@@ -297,7 +298,7 @@ void Rw11CntlRHRP::UnitSetup(size_t ind)
 
   if (unit.Type() != "off") {               // is enabled
     rpds |= kRPDS_M_DPR;
-    if (unit.Virt()) {                        // file attached
+    if (unit.HasVirt()) {                     // file attached
       rpds |= kRPDS_M_MOL;                    // -> set MOL
       rpds |= kRPDS_M_ERP;                    // -> clear ER1 via ERP=1
       if (unit.WProt()) rpds |= kRPDS_M_WRL; // in case write protected
@@ -498,7 +499,7 @@ int Rw11CntlRHRP::AttnHandler(RlinkServer::AttnArgs& args)
   //       SEEK and others are done in ibdr_rhrp autonomously
 
   // not attached --> signal drive unsave status
-  if (! unit.Virt()) {                      // not attached
+  if (! unit.HasVirt()) {                   // not attached
     AddErrorExit(clist, kRPER1_M_UNS);      // signal UNS (drive unsafe)
     Server().Exec(clist);                   // doit
     return 0;

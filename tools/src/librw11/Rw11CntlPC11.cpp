@@ -1,4 +1,4 @@
-// $Id: Rw11CntlPC11.cpp 1062 2018-10-28 11:14:20Z mueller $
+// $Id: Rw11CntlPC11.cpp 1080 2018-12-09 20:30:33Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-09  1080   1.3.2  use HasVirt(); Virt() returns ref
 // 2018-10-28  1062   1.3.1  replace boost/foreach
 // 2017-05-14   897   1.3    trace received chars
 // 2017-04-02   865   1.2.2  Dump(): add detail arg
@@ -226,7 +227,7 @@ bool Rw11CntlPC11::BootCode(size_t /*unit*/, std::vector<uint16_t>& code,
 void Rw11CntlPC11::UnitSetup(size_t ind)
 {
   Rw11UnitPC11& unit = *fspUnit[ind];
-  SetOnline(ind, unit.Virt());              // online if stream attached
+  SetOnline(ind, unit.HasVirt());           // online if stream attached
   return;
 }
 

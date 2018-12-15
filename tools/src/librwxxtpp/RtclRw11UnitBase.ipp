@@ -1,4 +1,4 @@
-// $Id: RtclRw11UnitBase.ipp 1078 2018-12-08 14:19:03Z mueller $
+// $Id: RtclRw11UnitBase.ipp 1080 2018-12-09 20:30:33Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-09  1080   1.3.4  use HasVirt(); Virt() returns ref
 // 2018-12-07  1078   1.3.3  use std::shared_ptr instead of boost
 // 2018-12-01  1076   1.3.2  use unique_ptr
 // 2017-04-15   875   1.3.1  add attached,attachutl getters
@@ -127,8 +128,8 @@ inline const std::shared_ptr<TU>& RtclRw11UnitBase<TU,TUV,TB>::ObjSPtr()
 template <class TU, class TUV, class TB>
 void RtclRw11UnitBase<TU,TUV,TB>::AttachDone()
 {
-  if (!Obj().Virt()) return;
-  std::unique_ptr<RtclRw11Virt> pvirt(RtclRw11VirtFactory(Obj().Virt()));
+  if (!Obj().HasVirt()) return;
+  std::unique_ptr<RtclRw11Virt> pvirt(RtclRw11VirtFactory(&Obj().Virt()));
   if (!pvirt) return;
   this->fupVirt = move(pvirt);
   this->AddMeth("virt",  boost::bind(&RtclRw11Unit::M_virt, this, _1));
@@ -144,8 +145,8 @@ int RtclRw11UnitBase<TU,TUV,TB>::M_stats(RtclArgs& args)
   RtclStats::Context cntx;
   if (!RtclStats::GetArgs(args, cntx)) return TB::kERR;
   if (!RtclStats::Collect(args, cntx, Obj().Stats())) return TB::kERR;
-  if (Obj().Virt()) {
-    if (!RtclStats::Collect(args, cntx, Obj().Virt()->Stats())) return TB::kERR;
+  if (Obj().HasVirt()) {
+    if (!RtclStats::Collect(args, cntx, Obj().Virt().Stats())) return TB::kERR;
   }
   return TB::kOK;
 }

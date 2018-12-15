@@ -1,4 +1,4 @@
-// $Id: Rw11UnitVirt.ipp 1076 2018-12-02 12:45:49Z mueller $
+// $Id: Rw11UnitVirt.ipp 1080 2018-12-09 20:30:33Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-09  1080   1.4    add HasVirt(); return ref for Virt()
 // 2018-12-01  1076   1.3    use unique_ptr instead of scoped_ptr
 // 2017-04-15   875   1.2.2  add VirtBase()
 // 2017-04-07   868   1.2.1  Dump(): add detail arg
@@ -62,9 +63,27 @@ Rw11UnitVirt<TV>::~Rw11UnitVirt()
 //! FIXME_docs
 
 template <class TV>
-inline TV* Rw11UnitVirt<TV>::Virt() const
+inline bool Rw11UnitVirt<TV>::HasVirt() const
 {
-  return fupVirt.get();
+  return bool(fupVirt);
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+template <class TV>
+inline TV& Rw11UnitVirt<TV>::Virt()
+{
+  return *fupVirt;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+template <class TV>
+inline const TV& Rw11UnitVirt<TV>::Virt() const
+{
+  return *fupVirt;
 }
 
 //------------------------------------------+-----------------------------------

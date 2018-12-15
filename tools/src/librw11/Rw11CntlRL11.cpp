@@ -1,4 +1,4 @@
-// $Id: Rw11CntlRL11.cpp 1062 2018-10-28 11:14:20Z mueller $
+// $Id: Rw11CntlRL11.cpp 1080 2018-12-09 20:30:33Z mueller $
 //
 // Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -16,6 +16,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-09  1080   1.0.7  use HasVirt(); Virt() returns ref
 // 2018-10-28  1062   1.0.6  replace boost/foreach
 // 2017-04-02   865   1.0.5  Dump(): add detail arg
 // 2017-03-03   858   1.0.4  use cntl name as message prefix
@@ -278,7 +279,7 @@ void Rw11CntlRL11::UnitSetup(size_t ind)
   if (unit.Type() == "rl02")                // is it RL02
     sta |= kSTA_M_DT;                       //   set DT bit (1=RL02,0=RL01)
 
-  if (unit.Virt()) {                        // file attached
+  if (unit.HasVirt()) {                     // file attached
     sta |= kSTA_M_HO | kSTA_M_BH | kST_LOCK; //   HO=1; BH=1; ST=LOCK
     if (unit.WProt())                       // in case write protected
       sta |= kSTA_M_WL;                     //   WL=1
@@ -471,7 +472,7 @@ int Rw11CntlRL11::AttnHandler(RlinkServer::AttnArgs& args)
   //       SEEK and GSTA are done in ibdr_rl11 autonomously
 
   // not attached --> assumed Offline, status = load
-  if (! unit.Virt()) {                      // not attached
+  if (! unit.HasVirt()) {                   // not attached
     AddErrorExit(clist, kERR_OPI);          // just signal OPI
                                             // drive stat is LOAD anyway
     Server().Exec(clist);                   // doit

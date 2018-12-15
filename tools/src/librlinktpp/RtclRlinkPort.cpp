@@ -1,4 +1,4 @@
-// $Id: RtclRlinkPort.cpp 1076 2018-12-02 12:45:49Z mueller $
+// $Id: RtclRlinkPort.cpp 1079 2018-12-09 10:56:59Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-08  1079   1.4    use ref not ptr for RlinkPort
 // 2018-12-01  1076   1.3    use unique_ptr
 // 2017-04-29   888   1.2    LogFileName(): returns now const std::string&
 //                           drop M_rawio; add M_rawread,M_rawrblk,M_rawwblk
@@ -64,7 +65,9 @@ RtclRlinkPort::RtclRlinkPort(Tcl_Interp* interp, const char* name)
     fupObj(),
     fspLog(new RlogFile(&cout)),
     fTraceLevel(0),
-    fErrCnt(0)
+    fErrCnt(0),
+    fGets(),
+    fSets()
 {
   CreateObjectCmd(interp, name);
   AddMeth("open",     boost::bind(&RtclRlinkPort::M_open,    this, _1));
@@ -119,7 +122,7 @@ int RtclRlinkPort::M_open(RtclArgs& args)
 int RtclRlinkPort::M_close(RtclArgs& args)
 {
   if (!args.AllDone()) return kERR;
-  if (!TestOpen(args)) return kERR;
+  if (!TestPort(args, false)) return kERR;
   fupObj.reset();
   SetupGetSet();
   return kOK;
@@ -150,7 +153,8 @@ int RtclRlinkPort::M_errcnt(RtclArgs& args)
 
 int RtclRlinkPort::M_rawread(RtclArgs& args)
 {
-  return DoRawRead(args, fupObj.get());
+  if (!TestPort(args)) return kERR;
+  return DoRawRead(args, *fupObj);
 }
 
 //------------------------------------------+-----------------------------------
@@ -158,7 +162,8 @@ int RtclRlinkPort::M_rawread(RtclArgs& args)
 
 int RtclRlinkPort::M_rawrblk(RtclArgs& args)
 {
-  return DoRawRblk(args, fupObj.get(), fErrCnt);
+  if (!TestPort(args)) return kERR;
+  return DoRawRblk(args, *fupObj, fErrCnt);
 }
 
 //------------------------------------------+-----------------------------------
@@ -166,7 +171,8 @@ int RtclRlinkPort::M_rawrblk(RtclArgs& args)
 
 int RtclRlinkPort::M_rawwblk(RtclArgs& args)
 {
-  return DoRawWblk(args, fupObj.get());
+  if (!TestPort(args)) return kERR;
+  return DoRawWblk(args, *fupObj);
 }
 
 //------------------------------------------+-----------------------------------
@@ -176,7 +182,7 @@ int RtclRlinkPort::M_stats(RtclArgs& args)
 {
   RtclStats::Context cntx;
 
-  if (!TestOpen(args)) return kERR;
+  if (!TestPort(args, false)) return kERR;
   if (!RtclStats::GetArgs(args, cntx)) return kERR;
   if (!RtclStats::Collect(args, cntx, fupObj->Stats())) return kERR;
   return kOK;
@@ -202,7 +208,7 @@ int RtclRlinkPort::M_dump(RtclArgs& args)
   int detail=0;
   if (!GetArgsDump(args, detail)) return kERR;
   if (!args.AllDone()) return kERR;
-  if (!TestOpen(args)) return kERR;
+  if (!TestPort(args, false)) return kERR;
 
   ostringstream sos;
   fupObj->Dump(sos, 0, "", 0);
@@ -266,9 +272,9 @@ void RtclRlinkPort::SetupGetSet()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-bool RtclRlinkPort::TestOpen(RtclArgs& args)
+bool RtclRlinkPort::TestPort(RtclArgs& args, bool testopen)
 {
-  if (fupObj) return true;
+  if (fupObj && (!testopen || fupObj->IsOpen())) return true;
   args.AppendResult("-E: port not open", nullptr);
   return false;
 }
@@ -298,10 +304,8 @@ inline const std::string& RtclRlinkPort::LogFileName() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-int RtclRlinkPort::DoRawRead(RtclArgs& args, RlinkPort* pport)
+int RtclRlinkPort::DoRawRead(RtclArgs& args, RlinkPort& port)
 {
-  if (!(pport && pport->IsOpen())) return args.Quit("-E: port not open");
-  
   int32_t rsize;
   string rvname;
   vector<uint8_t> rdata;
@@ -322,8 +326,8 @@ int RtclRlinkPort::DoRawRead(RtclArgs& args, RlinkPort* pport)
   Rtime tused;
   rdata.resize(rsize);
 
-  int irc = pport->RawRead(rdata.data(), rdata.size(), false, Rtime(timeout), 
-                           tused, emsg);
+  int irc = port.RawRead(rdata.data(), rdata.size(), false, Rtime(timeout), 
+                         tused, emsg);
 
   if (irc == RlinkPort::kEof)    return args.Quit("-E: RawRead EOF");
   if (irc == RlinkPort::kTout)   return args.Quit("-E: RawRead timeout");
@@ -342,10 +346,8 @@ int RtclRlinkPort::DoRawRead(RtclArgs& args, RlinkPort* pport)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-int RtclRlinkPort::DoRawRblk(RtclArgs& args, RlinkPort* pport, size_t& errcnt)
+int RtclRlinkPort::DoRawRblk(RtclArgs& args, RlinkPort& port, size_t& errcnt)
 {
-  if (!(pport && pport->IsOpen())) return args.Quit("-E: port not open");
-
   int32_t rsize;
   string rvname;
   vector<uint8_t> rdata;
@@ -371,8 +373,8 @@ int RtclRlinkPort::DoRawRblk(RtclArgs& args, RlinkPort* pport, size_t& errcnt)
   Rtime tused;
   rdata.resize(rsize);
 
-  int irc = pport->RawRead(rdata.data(), rdata.size(), true, Rtime(timeout), 
-                           tused, emsg);
+  int irc = port.RawRead(rdata.data(), rdata.size(), true, Rtime(timeout), 
+                         tused, emsg);
   if (irc == RlinkPort::kEof)    return args.Quit("-E: RawRead EOF");
   if (irc == RlinkPort::kTout)   return args.Quit("-E: RawRead timeout");
   if (irc < 0)                   return args.Quit(emsg);
@@ -399,15 +401,13 @@ int RtclRlinkPort::DoRawRblk(RtclArgs& args, RlinkPort* pport, size_t& errcnt)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-int RtclRlinkPort::DoRawWblk(RtclArgs& args, RlinkPort* pport)
+int RtclRlinkPort::DoRawWblk(RtclArgs& args, RlinkPort& port)
 {
-  if (!(pport && pport->IsOpen())) return args.Quit("-E: port not open");
-
   vector<uint8_t> wdata;
   if (!args.GetArg("data", wdata, 1, 4096)) return kERR;
   
   RerrMsg emsg;
-  int irc = pport->RawWrite(wdata.data(), wdata.size(), emsg);
+  int irc = port.RawWrite(wdata.data(), wdata.size(), emsg);
   if (irc != (int)wdata.size()) return args.Quit(emsg);
   
   return kOK;

@@ -1,4 +1,4 @@
-// $Id: Rw11CntlLP11.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11CntlLP11.cpp 1080 2018-12-09 20:30:33Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -123,7 +123,7 @@ void Rw11CntlLP11::Start()
 void Rw11CntlLP11::UnitSetup(size_t ind)
 {
   Rw11UnitLP11& unit = *fspUnit[ind];
-  SetOnline(unit.Virt());                   // online if stream attached
+  SetOnline(unit.HasVirt());                // online if stream attached
   return;
 }
 

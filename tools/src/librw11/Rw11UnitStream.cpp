@@ -1,6 +1,6 @@
-// $Id: Rw11UnitStream.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11UnitStream.cpp 1080 2018-12-09 20:30:33Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-09  1080   1.1.2  use HasVirt(); Virt() returns ref; Pos() not const 
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2017-02-04   848   1.1    Pos(): return -1 if not attached
 // 2013-05-04   515   1.0    Initial version
@@ -61,23 +62,23 @@ Rw11UnitStream::~Rw11UnitStream()
 
 void Rw11UnitStream::SetPos(int pos)
 {
-  if (!Virt()) 
+  if (!HasVirt()) 
     throw Rexception("Rw11UnitStream::SetPos", "no stream attached");
 
   RerrMsg emsg;
-  if (!Virt()->Seek(pos, emsg)) throw Rexception(emsg);
+  if (!Virt().Seek(pos, emsg)) throw Rexception(emsg);
   return;
 }
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-int Rw11UnitStream::Pos() const
+int Rw11UnitStream::Pos()
 {
-  if (!Virt()) return -1;                   // allow tcl 'get ?' if not attached
+  if (!HasVirt()) return -1;            // allow tcl 'get ?' if not attached
 
   RerrMsg emsg;
-  int irc = Virt()->Tell(emsg);
+  int irc = Virt().Tell(emsg);
   if (irc < 0) throw Rexception(emsg);
   return irc;
 }
@@ -87,12 +88,12 @@ int Rw11UnitStream::Pos() const
 
 int Rw11UnitStream::VirtRead(uint8_t* data, size_t count, RerrMsg& emsg)
 {
-  if (!Virt()) {
+  if (!HasVirt()) {
     fStats.Inc(kStatNPreAttMiss);
     emsg.Init("Rw11UnitStream::VirtRead", "no stream attached");
     return -1;
   }
-  return Virt()->Read(data, count, emsg);
+  return Virt().Read(data, count, emsg);
 }
 
 //------------------------------------------+-----------------------------------
@@ -100,12 +101,12 @@ int Rw11UnitStream::VirtRead(uint8_t* data, size_t count, RerrMsg& emsg)
 
 bool Rw11UnitStream::VirtWrite(const uint8_t* data, size_t count, RerrMsg& emsg)
 {
-  if (!Virt()) {
+  if (!HasVirt()) {
     fStats.Inc(kStatNPreAttDrop, double(count));
     emsg.Init("Rw11UnitStream::VirtWrite", "no stream attached");
     return false;
   }
-  return Virt()->Write(data, count, emsg);
+  return Virt().Write(data, count, emsg);
 }
 
 //------------------------------------------+-----------------------------------
@@ -113,11 +114,11 @@ bool Rw11UnitStream::VirtWrite(const uint8_t* data, size_t count, RerrMsg& emsg)
 
 bool Rw11UnitStream::VirtFlush(RerrMsg& emsg)
 {
-  if (!Virt()) {
+  if (!HasVirt()) {
     emsg.Init("Rw11UnitStream::VirtFlush", "no stream attached");
     return false;
   }
-  return Virt()->Flush(emsg);
+  return Virt().Flush(emsg);
 }
 
 //------------------------------------------+-----------------------------------

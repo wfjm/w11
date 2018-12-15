@@ -1,4 +1,4 @@
-// $Id: Rw11UnitDisk.cpp 1060 2018-10-27 11:32:39Z mueller $
+// $Id: Rw11UnitDisk.cpp 1080 2018-12-09 20:30:33Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-09  1080   1.0.3  use HasVirt(); Virt() returns ref
 // 2017-04-07   868   1.0.2  Dump(): add detail arg
 // 2015-03-21   659   1.0.1  add fEnabled, Enabled()
 // 2013-04-19   507   1.0    Initial version
@@ -74,11 +75,11 @@ void Rw11UnitDisk::SetType(const std::string& /*type*/)
 bool Rw11UnitDisk::VirtRead(size_t lba, size_t nblk, uint8_t* data,
                             RerrMsg& emsg)
 {
-  if (!Virt()) {
+  if (!HasVirt()) {
     emsg.Init("Rw11UnitDisk::VirtRead", "no disk attached");
     return false;
   }
-  return Virt()->Read(lba, nblk, data, emsg);
+  return Virt().Read(lba, nblk, data, emsg);
 }
 
 //------------------------------------------+-----------------------------------
@@ -87,11 +88,11 @@ bool Rw11UnitDisk::VirtRead(size_t lba, size_t nblk, uint8_t* data,
 bool Rw11UnitDisk::VirtWrite(size_t lba, size_t nblk, const uint8_t* data, 
                              RerrMsg& emsg)
 {
-  if (!Virt()) {
+  if (!HasVirt()) {
     emsg.Init("Rw11UnitDisk::VirtWrite", "no disk attached");
     return false;
   }
-  return Virt()->Write(lba, nblk, data, emsg);
+  return Virt().Write(lba, nblk, data, emsg);
 }
 
 //------------------------------------------+-----------------------------------

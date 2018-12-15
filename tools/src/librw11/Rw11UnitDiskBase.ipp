@@ -1,4 +1,4 @@
-// $Id: Rw11UnitDiskBase.ipp 1061 2018-10-27 17:39:11Z mueller $
+// $Id: Rw11UnitDiskBase.ipp 1080 2018-12-09 20:30:33Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-09  1080   1.1.3  use HasVirt(); Virt() returns ref
 // 2018-10-27  1061   1.1.2  adapt to new Rw11VirtDisk::Setup interface    
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2013-05-03   515   1.1    use AttachDone(),DetachCleanup(),DetachDone()
@@ -80,7 +81,7 @@ void Rw11UnitDiskBase<TC>::Dump(std::ostream& os, int ind, const char* text,
 template <class TC>
 void  Rw11UnitDiskBase<TC>::AttachDone()
 {
-  Virt()->Setup(BlockSize(), NBlock(), NCylinder(), NHead(), NSector());
+  Virt().Setup(BlockSize(), NBlock(), NCylinder(), NHead(), NSector());
   Cntl().UnitSetup(Index());
   return;
 }

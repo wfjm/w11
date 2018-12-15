@@ -105,6 +105,8 @@ The full set of tests is only run for tagged releases.
   - replace boost with std
     - use std::unique_ptr instead of boost::scoped_ptr
     - use std::shared_ptr instead of boost
+  - reduce usage of pointers in APIs
+    - add HasPort/HasVirt(); Port() and Virt() return reference
 - rw11/shell.tcl: add workaround for tclreadline and `after` interference
 
 ### Bug Fixes

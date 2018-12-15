@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.ipp 1078 2018-12-08 14:19:03Z mueller $
+// $Id: RlinkConnect.ipp 1079 2018-12-09 10:56:59Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-08  1079   2.7    add HasPort; return ref for Port()
 // 2018-12-07  1078   2.6.1  use std::shared_ptr instead of boost
 // 2018-12-01  1076   2.6    use unique_ptr instead of scoped_ptr
 // 2017-04-22   883   2.5.2  add rbus monitor probe, add HasRbmon()
@@ -50,9 +51,25 @@ inline bool RlinkConnect::IsOpen() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline RlinkPort* RlinkConnect::Port() const
+inline bool RlinkConnect::HasPort() const
 {
-  return fupPort.get();
+  return bool(fupPort);
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline RlinkPort& RlinkConnect::Port()
+{
+  return *fupPort;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline const RlinkPort& RlinkConnect::Port() const
+{
+  return *fupPort;
 }
 
 //------------------------------------------+-----------------------------------

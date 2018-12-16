@@ -1,4 +1,4 @@
-// $Id: RtclRw11UnitBase.ipp 1080 2018-12-09 20:30:33Z mueller $
+// $Id: RtclRw11UnitBase.ipp 1082 2018-12-15 13:56:20Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1082   1.3.5  use lambda instead of bind
 // 2018-12-09  1080   1.3.4  use HasVirt(); Virt() returns ref
 // 2018-12-07  1078   1.3.3  use std::shared_ptr instead of boost
 // 2018-12-01  1076   1.3.2  use unique_ptr
@@ -61,8 +62,8 @@ inline RtclRw11UnitBase<TU,TUV,TB>::RtclRw11UnitBase(const std::string& type,
   : TB(type),
     fspObj(spunit)
 {
-  this->AddMeth("stats",    boost::bind(&RtclRw11UnitBase<TU,TUV,TB>::M_stats,
-                                        this, _1));
+  this->AddMeth("stats",    [this](RtclArgs& args){ return M_stats(args); });
+  
   TU* pobj = fspObj.get();
 
   // the following construction is neccessary because the base class is a
@@ -72,11 +73,13 @@ inline RtclRw11UnitBase<TU,TUV,TB>::RtclRw11UnitBase(const std::string& type,
   // error messages. Simply too much nested templating...
   
   RtclGetList& gets = this->fGets;
-  gets.Add<size_t>          ("index",    boost::bind(&TU::Index,       pobj));
-  gets.Add<std::string>     ("name",     boost::bind(&TU::Name,        pobj));
-  gets.Add<bool>            ("enabled",  boost::bind(&TU::Enabled,     pobj));
-  gets.Add<bool>            ("attached", boost::bind(&TU::IsAttached,  pobj));
-  gets.Add<const std::string&> ("attachurl",boost::bind(&TU::AttachUrl,pobj));
+  gets.Add<size_t>          ("index",    [pobj](){ return pobj->Index(); });
+  gets.Add<std::string>     ("name",     [pobj](){ return pobj->Name(); });
+  gets.Add<bool>            ("enabled",  [pobj](){ return pobj->Enabled(); });
+  gets.Add<bool>            ("attached",
+                             [pobj](){ return pobj->IsAttached(); });
+  gets.Add<const std::string&> ("attachurl",
+                                [pobj](){ return pobj->AttachUrl(); });
 }
 
 //------------------------------------------+-----------------------------------
@@ -132,7 +135,7 @@ void RtclRw11UnitBase<TU,TUV,TB>::AttachDone()
   std::unique_ptr<RtclRw11Virt> pvirt(RtclRw11VirtFactory(&Obj().Virt()));
   if (!pvirt) return;
   this->fupVirt = move(pvirt);
-  this->AddMeth("virt",  boost::bind(&RtclRw11Unit::M_virt, this, _1));
+  this->AddMeth("virt", [this](RtclArgs& args){ return this->M_virt(args); });
   return;
 }
 

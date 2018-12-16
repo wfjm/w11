@@ -1,4 +1,4 @@
-// $Id: Rw11UnitDEUNA.cpp 1080 2018-12-09 20:30:33Z mueller $
+// $Id: Rw11UnitDEUNA.cpp 1083 2018-12-15 19:19:16Z mueller $
 //
 // Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-14  1081   1.0.3  use std::bind instead of boost
 // 2018-12-09  1080   1.0.2  use HasVirt(); Virt() returns ref
 // 2018-12-01  1076   1.0.1  use unique_ptr
 // 2017-01-29   847   1.0    Initial version
@@ -23,8 +24,6 @@
   \file
   \brief   Implemenation of Rw11UnitDEUNA.
 */
-
-#include "boost/bind.hpp"
 
 #include "librtools/RosFill.hpp"
 #include "Rw11CntlDEUNA.hpp"
@@ -73,8 +72,8 @@ void Rw11UnitDEUNA::Dump(std::ostream& os, int ind, const char* text,
 
 void Rw11UnitDEUNA::AttachDone()
 {
-  Virt().SetupRcvCallback(boost::bind(&Rw11CntlDEUNA::RcvCallback,
-                                       &Cntl(), _1));
+  Virt().SetupRcvCallback(std::bind(&Rw11CntlDEUNA::RcvCallback,
+                                    &Cntl(), placeholders::_1));
   Cntl().UnitSetup(0);
   return;
 }

@@ -1,4 +1,4 @@
-// $Id: Rw11VirtEth.hpp 1076 2018-12-02 12:45:49Z mueller $
+// $Id: Rw11VirtEth.hpp 1083 2018-12-15 19:19:16Z mueller $
 //
 // Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1083   1.1.2  SetupRcvCallback(): use rval ref and move semantics
+// 2018-12-14  1081   1.1.1  use std::function instead of boost
 // 2018-12-02  1076   1.1    use unique_ptr for New()
 // 2017-04-07   868   1.0    Initial version
 // 2014-06-09   561   0.1    First draft 
@@ -28,8 +30,7 @@
 
 #include <memory>
 #include <memory>
-
-#include "boost/function.hpp"
+#include <functional>
 
 #include "RethBuf.hpp"
 
@@ -39,14 +40,14 @@ namespace Retro {
 
   class Rw11VirtEth : public Rw11Virt {
     public:
-      typedef boost::function<bool(std::shared_ptr<RethBuf>&)> rcvcbfo_t;
+      typedef std::function<bool(std::shared_ptr<RethBuf>&)> rcvcbfo_t;
 
       explicit      Rw11VirtEth(Rw11Unit* punit);
                    ~Rw11VirtEth();
 
       virtual const std::string& ChannelId() const;
 
-      void          SetupRcvCallback(const rcvcbfo_t& rcvcbfo);
+      void          SetupRcvCallback(rcvcbfo_t&& rcvcbfo);
       virtual bool  Snd(const RethBuf& ebuf, RerrMsg& emsg) = 0;
 
       virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,

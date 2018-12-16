@@ -1,6 +1,6 @@
-// $Id: RtclRw11CntlRdmaBase.ipp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclRw11CntlRdmaBase.ipp 1082 2018-12-15 13:56:20Z mueller $
 //
-// Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1082   1.2.1  use lambda instead of bind
 // 2017-04-16   877   1.2    add class in ctor
 // 2017-02-04   848   1.1    add in fGets: found,pdataint,pdatarem
 // 2013-03-06   495   1.0    Initial version
@@ -46,10 +47,8 @@ inline RtclRw11CntlRdmaBase<TC>::RtclRw11CntlRdmaBase(const std::string& type,
   TC* pobj = &this->Obj();
   RtclGetList& gets = this->fGets;
   RtclSetList& sets = this->fSets;
-  gets.Add<size_t>  ("chunksize", 
-                     boost::bind(&TC::ChunkSize,    pobj));
-  sets.Add<size_t>  ("chunksize",
-                     boost::bind(&TC::SetChunkSize, pobj, _1));
+  gets.Add<size_t>  ("chunksize", [pobj](){ return pobj->ChunkSize(); });
+  sets.Add<size_t>  ("chunksize", [pobj](size_t v){ pobj->SetChunkSize(v); });
 }
 
 //------------------------------------------+-----------------------------------

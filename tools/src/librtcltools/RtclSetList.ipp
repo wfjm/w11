@@ -1,4 +1,4 @@
-// $Id: RtclSetList.ipp 1076 2018-12-02 12:45:49Z mueller $
+// $Id: RtclSetList.ipp 1083 2018-12-15 19:19:16Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1083   1.1.2  Add(): use rval ref and move semantics
+// 2018-12-14  1081   1.1.1  use std::function instead of boost
 // 2018-12-01  1076   1.1    use unique_ptr
 // 2013-02-12   487   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -29,10 +31,10 @@ namespace Retro {
 //! FIXME_docs
 
 template <class TP>
-inline void RtclSetList::Add(const std::string& name, 
-                             const boost::function<void(TP)>& set)
+inline void RtclSetList::Add(const std::string& name,
+                             std::function<void(TP)>&& set)
 {
-  Add(name, set_uptr_t(new RtclSet<TP>(set)));
+  Add(name, set_uptr_t(new RtclSet<TP>(move(set))));
   return;
 }
 

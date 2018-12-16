@@ -1,4 +1,4 @@
-// $Id: Rw11VirtEthTap.cpp 1075 2018-12-01 11:55:07Z mueller $
+// $Id: Rw11VirtEthTap.cpp 1082 2018-12-15 13:56:20Z mueller $
 //
 // Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1082   1.0.3  use lambda instead of bind
 // 2018-11-30  1075   1.0.2  use list-init
 // 2018-10-27  1059   1.0.1  coverity fixup (uncaught exception in dtor)
 //                           BUGFIX: coverity (buffer not null terminated)
@@ -34,8 +35,6 @@
 #include <sys/ioctl.h>
 #include <net/if.h>
 #include <linux/if_tun.h>
-
-#include "boost/bind.hpp"
 
 #include "librtools/RosFill.hpp"
 #include "librtools/Rtools.hpp"
@@ -105,8 +104,8 @@ bool Rw11VirtEthTap::Open(const std::string& url, RerrMsg& emsg)
   
   fFd = fd;
 
-  Server().AddPollHandler(boost::bind(&Rw11VirtEthTap::RcvPollHandler,
-                                      this, _1), 
+  Server().AddPollHandler([this](const pollfd& pfd)
+                            { return RcvPollHandler(pfd); }, 
                           fFd, POLLIN);
   return true;
 }

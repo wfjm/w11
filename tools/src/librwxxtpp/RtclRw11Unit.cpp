@@ -1,4 +1,4 @@
-// $Id: RtclRw11Unit.cpp 1076 2018-12-02 12:45:49Z mueller $
+// $Id: RtclRw11Unit.cpp 1082 2018-12-15 13:56:20Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1082   1.3.1  use lambda instead of bind
 // 2018-12-01  1076   1.3    use unique_ptr instead of scoped_ptr
 // 2017-04-08   870   1.2    drop fpCpu, use added Cpu()=0 instead
 // 2017-04-07   868   1.1.1  M_dump: use GetArgsDump and Dump detail
@@ -27,7 +28,6 @@
 */
 
 #include "boost/thread/locks.hpp"
-#include "boost/bind.hpp"
 
 #include "librtools/Rexception.hpp"
 #include "librtcltools/RtclStats.hpp"
@@ -53,12 +53,12 @@ RtclRw11Unit::RtclRw11Unit(const std::string& type)
     fSets(),
     fupVirt()
 {
-  AddMeth("get",      boost::bind(&RtclRw11Unit::M_get,     this, _1));
-  AddMeth("set",      boost::bind(&RtclRw11Unit::M_set,     this, _1));
-  AddMeth("attach",   boost::bind(&RtclRw11Unit::M_attach,  this, _1));
-  AddMeth("detach",   boost::bind(&RtclRw11Unit::M_detach,  this, _1));
-  AddMeth("dump",     boost::bind(&RtclRw11Unit::M_dump,    this, _1));
-  AddMeth("$default", boost::bind(&RtclRw11Unit::M_default, this, _1));
+  AddMeth("get",      [this](RtclArgs& args){ return M_get(args); });
+  AddMeth("set",      [this](RtclArgs& args){ return M_set(args); });
+  AddMeth("attach",   [this](RtclArgs& args){ return M_attach(args); });
+  AddMeth("detach",   [this](RtclArgs& args){ return M_detach(args); });
+  AddMeth("dump",     [this](RtclArgs& args){ return M_dump(args); });
+  AddMeth("$default", [this](RtclArgs& args){ return M_default(args); });
 }
 
 //------------------------------------------+-----------------------------------

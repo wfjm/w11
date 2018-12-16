@@ -1,4 +1,4 @@
-// $Id: Rw11CntlRK11.cpp 1080 2018-12-09 20:30:33Z mueller $
+// $Id: Rw11CntlRK11.cpp 1083 2018-12-15 19:19:16Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -15,6 +15,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1082   2.0.8  use std::bind or lambda instead of boost
 // 2018-12-09  1080   2.0.7  use HasVirt(); Virt() returns ref
 // 2018-10-28  1062   2.0.6  replace boost/foreach
 // 2017-04-02   865   2.0.5  Dump(): add detail arg
@@ -34,8 +35,6 @@
   \file
   \brief   Implemenation of Rw11CntlRK11.
 */
-
-#include "boost/bind.hpp"
 
 #include "librtools/RosFill.hpp"
 #include "librtools/RosPrintBvi.hpp"
@@ -154,8 +153,12 @@ Rw11CntlRK11::Rw11CntlRK11()
     fRd_fu(0),
     fRd_ovr(false),
     fRdma(this,
-          boost::bind(&Rw11CntlRK11::RdmaPreExecCB,  this, _1, _2, _3, _4),
-          boost::bind(&Rw11CntlRK11::RdmaPostExecCB, this, _1, _2, _3, _4))
+          std::bind(&Rw11CntlRK11::RdmaPreExecCB,  this,
+                    placeholders::_1, placeholders::_2,
+                    placeholders::_3, placeholders::_4),
+          std::bind(&Rw11CntlRK11::RdmaPostExecCB, this,
+                    placeholders::_1, placeholders::_2,
+                    placeholders::_3, placeholders::_4))
 {
   // must be here because Units have a back-ptr (not available at Rw11CntlBase)
   for (size_t i=0; i<NUnit(); i++) {
@@ -216,7 +219,8 @@ void Rw11CntlRK11::Start()
   fPC_rkcs = Cpu().AddRibr(fPrimClist, fBase+kRKCS);
 
   // add attn handler
-  Server().AddAttnHandler(boost::bind(&Rw11CntlRK11::AttnHandler, this, _1), 
+  Server().AddAttnHandler([this](RlinkServer::AttnArgs& args)
+                            { return AttnHandler(args); }, 
                           uint16_t(1)<<fLam, (void*)this);
 
   fStarted = true;

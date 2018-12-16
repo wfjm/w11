@@ -1,6 +1,6 @@
-// $Id: RtclSet.ipp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclSet.ipp 1083 2018-12-15 19:19:16Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1083   1.1.2  ctor: use rval ref and move semantics
+// 2018-12-14  1081   1.1.1  use std::function instead of boost
 // 2017-02-20   854   1.1    add Rtime
 // 2013-02-12   487   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -39,8 +41,8 @@ namespace Retro {
 //! FIXME_docs
 
 template <class TP>
-inline RtclSet<TP>::RtclSet(const boost::function<void(TP)>& set)
-  : fSet(set)
+inline RtclSet<TP>::RtclSet(std::function<void(TP)>&& set)
+  : fSet(move(set))
 {}
 
 //------------------------------------------+-----------------------------------

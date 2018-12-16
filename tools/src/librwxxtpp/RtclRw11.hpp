@@ -1,6 +1,6 @@
-// $Id: RtclRw11.hpp 1078 2018-12-08 14:19:03Z mueller $
+// $Id: RtclRw11.hpp 1081 2018-12-14 22:29:42Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-07  1078   1.1    use std::shared_ptr instead of boost
 // 2017-04-16   876   1.0.3  add CpuCommands()
 // 2017-04-02   866   1.0.2  add M_set
 // 2015-03-28   660   1.0.1  add M_get

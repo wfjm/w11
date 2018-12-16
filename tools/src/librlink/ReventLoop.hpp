@@ -1,4 +1,4 @@
-// $Id: ReventLoop.hpp 1078 2018-12-08 14:19:03Z mueller $
+// $Id: ReventLoop.hpp 1083 2018-12-15 19:19:16Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1083   1.2.4  AddPollHandler(): use rval ref and move
+// 2018-12-14  1081   1.2.3  use std::function instead of boost
 // 2018-12-07  1078   1.2.2  use std::shared_ptr instead of boost
 // 2017-04-07   868   1.2.1  Dump(): add detail arg
 // 2015-04-04   662   1.2    BUGFIX: fix race in Stop(), add UnStop,StopPending
@@ -35,9 +37,9 @@
 #include <cstdint>
 #include <vector>
 #include <memory>
+#include <functional>
 
 #include "boost/utility.hpp"
-#include "boost/function.hpp"
 #include "boost/thread/mutex.hpp"
 
 #include "librtools/RlogFile.hpp"
@@ -46,12 +48,12 @@ namespace Retro {
 
   class ReventLoop : private boost::noncopyable {
     public:
-      typedef boost::function<int(const pollfd&)> pollhdl_t;
+      typedef std::function<int(const pollfd&)> pollhdl_t;
 
                     ReventLoop();
       virtual      ~ReventLoop();
 
-      void          AddPollHandler(const pollhdl_t& pollhdl,
+      void          AddPollHandler(pollhdl_t&& pollhdl,
                                int fd, short events=POLLIN);
       bool          TestPollHandler(int fd, short events=POLLIN);
       void          RemovePollHandler(int fd, short events, bool nothrow=false);

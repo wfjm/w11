@@ -1,4 +1,4 @@
-// $Id: ReventLoop.cpp 1066 2018-11-10 11:21:53Z mueller $
+// $Id: ReventLoop.cpp 1083 2018-12-15 19:19:16Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1083   1.2.3  AddPollHandler(): use rval ref and move
 // 2018-11-09  1066   1.2.2  use emplace_back
 // 2017-04-07   868   1.2.1  Dump(): add detail arg
 // 2015-04-04   662   1.2    BUGFIX: fix race in Stop(), add UnStop,StopPending
@@ -32,7 +33,6 @@
 #include <poll.h>
 #include <errno.h>
 
-#include "boost/bind.hpp" 
 #include "boost/thread/locks.hpp"
 
 #include "librtools/Rexception.hpp"
@@ -78,8 +78,7 @@ ReventLoop::~ReventLoop()
 // by default handlers should start with: 
 //     if (pfd.revents & (~pfd.events)) return -1;
 
-void ReventLoop::AddPollHandler(const pollhdl_t& pollhdl,
-                                int fd, short events)
+void ReventLoop::AddPollHandler(pollhdl_t&& pollhdl, int fd, short events)
 {
   boost::lock_guard<boost::mutex> lock(fPollDscMutex);
   
@@ -91,7 +90,7 @@ void ReventLoop::AddPollHandler(const pollhdl_t& pollhdl,
     }
   }
 
-  fPollDsc.emplace_back(PollDsc(pollhdl,fd,events));
+  fPollDsc.emplace_back(move(pollhdl),fd,events);
   fUpdatePoll = true;
 
   if (fspLog && fTraceLevel >= 1) {

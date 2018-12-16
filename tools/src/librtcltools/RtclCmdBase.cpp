@@ -1,4 +1,4 @@
-// $Id: RtclCmdBase.cpp 1066 2018-11-10 11:21:53Z mueller $
+// $Id: RtclCmdBase.cpp 1083 2018-12-15 19:19:16Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1083   1.1.3  AddMeth(): use rval ref and move semantics
 // 2018-11-09  1066   1.1.2  use auto
 // 2017-04-02   865   1.1.1  add GetArgsDump()
 // 2017-04-02   863   1.1    add DelMeth(),TstMeth(); add M_info() and '?'
@@ -137,9 +138,9 @@ int RtclCmdBase::DispatchCmd(RtclArgs& args)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RtclCmdBase::AddMeth(const std::string& name, const methfo_t& methfo)
+void RtclCmdBase::AddMeth(const std::string& name, methfo_t&& methfo)
 {
-  auto ret = fMethMap.emplace(name, methfo);
+  auto ret = fMethMap.emplace(name, move(methfo));
   if (ret.second == false)                  // or use !(ret.second)
     throw Rexception("RtclCmdBase::AddMeth:", 
                      string("Bad args: duplicate name: '") + name + "'");

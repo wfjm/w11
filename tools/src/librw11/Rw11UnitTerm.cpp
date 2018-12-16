@@ -1,4 +1,4 @@
-// $Id: Rw11UnitTerm.cpp 1080 2018-12-09 20:30:33Z mueller $
+// $Id: Rw11UnitTerm.cpp 1083 2018-12-15 19:19:16Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-14  1081   1.1.5  use std::bind instead of boost
 // 2018-12-09  1080   1.1.4  use HasVirt(); Virt() returns ref
 // 2018-12-01  1076   1.1.3  use unique_ptr
 // 2017-04-07   868   1.1.2  Dump(): add detail arg
@@ -28,7 +29,6 @@
 */
 
 #include "boost/thread/locks.hpp"
-#include "boost/bind.hpp"
 
 #include "librtools/RparseUrl.hpp"
 #include "librtools/RosPrintf.hpp"
@@ -294,8 +294,8 @@ void Rw11UnitTerm::Dump(std::ostream& os, int ind, const char* text,
 
 void Rw11UnitTerm::AttachDone()
 {
-  Virt().SetupRcvCallback(boost::bind(&Rw11UnitTerm::RcvCallback,
-                                      this, _1, _2));
+  Virt().SetupRcvCallback(std::bind(&Rw11UnitTerm::RcvCallback,
+                                    this, placeholders::_1, placeholders::_2));
   return;
 }
 

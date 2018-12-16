@@ -1,6 +1,6 @@
-// $Id: RtclRw11Virt.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclRw11Virt.cpp 1082 2018-12-15 13:56:20Z mueller $
 //
-// Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1082   1.0.2  use lambda instead of bind
 // 2017-04-07   868   1.0.1  M_dump: use GetArgsDump and Dump detail
 // 2017-03-11   859   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -46,10 +47,10 @@ RtclRw11Virt::RtclRw11Virt(Rw11Virt* pvirt)
     fGets(),
     fSets()
 {
-  AddMeth("get",    boost::bind(&RtclRw11Virt::M_get,   this, _1));
-  AddMeth("set",    boost::bind(&RtclRw11Virt::M_set,   this, _1));
-  AddMeth("stats",  boost::bind(&RtclRw11Virt::M_stats, this, _1));
-  AddMeth("dump",   boost::bind(&RtclRw11Virt::M_dump,  this, _1));
+  AddMeth("get",    [this](RtclArgs& args){ return M_get(args); });
+  AddMeth("set",    [this](RtclArgs& args){ return M_set(args); });
+  AddMeth("stats",  [this](RtclArgs& args){ return M_stats(args); });
+  AddMeth("dump",   [this](RtclArgs& args){ return M_dump(args); });
 }
 
 //------------------------------------------+-----------------------------------

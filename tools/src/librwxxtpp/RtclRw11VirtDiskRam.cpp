@@ -1,4 +1,4 @@
-// $Id: RtclRw11VirtDiskRam.cpp 1063 2018-10-29 18:37:42Z mueller $
+// $Id: RtclRw11VirtDiskRam.cpp 1082 2018-12-15 13:56:20Z mueller $
 //
 // Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1082   1.0.1  use lambda instead of bind
 // 2018-10-28  1063   1.0    Initial version
 // ---------------------------------------------------------------------------
 
@@ -39,7 +40,7 @@ namespace Retro {
 RtclRw11VirtDiskRam::RtclRw11VirtDiskRam(Rw11VirtDiskRam* pobj)
   : RtclRw11VirtBase<Rw11VirtDiskRam>(pobj)
 {
-  AddMeth("list",  boost::bind(&RtclRw11VirtDiskRam::M_list,   this, _1));
+  AddMeth("list", [this](RtclArgs& args){ return M_list(args); });
 }
 
 //------------------------------------------+-----------------------------------

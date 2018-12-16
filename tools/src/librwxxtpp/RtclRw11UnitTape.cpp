@@ -1,4 +1,4 @@
-// $Id: RtclRw11UnitTape.cpp 1053 2018-10-06 20:34:52Z mueller $
+// $Id: RtclRw11UnitTape.cpp 1082 2018-12-15 13:56:20Z mueller $
 //
 // Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1082   1.1.2  use lambda instead of bind
 // 2018-10-06  1053   1.1.1  move using after includes (clang warning)
 // 2017-04-08   870   1.1    use Rw11UnitTape& ObjUV(); inherit from RtclRw11Unit
 // 2015-06-04   686   1.0    Initial version
@@ -60,33 +61,25 @@ void RtclRw11UnitTape::SetupGetSet()
 
   Rw11UnitTape* pobj = &ObjUV();
 
-  fGets.Add<const string&> ("type",  
-                            boost::bind(&Rw11UnitTape::Type,  pobj));
-  fGets.Add<bool>          ("wprot",  
-                            boost::bind(&Rw11UnitTape::WProt, pobj));
-  fGets.Add<size_t>        ("capacity",  
-                            boost::bind(&Rw11UnitTape::Capacity, pobj));
-  fGets.Add<bool>          ("bot",  
-                            boost::bind(&Rw11UnitTape::Bot, pobj));
-  fGets.Add<bool>          ("eot",  
-                            boost::bind(&Rw11UnitTape::Eot, pobj));
-  fGets.Add<bool>          ("eom",  
-                            boost::bind(&Rw11UnitTape::Eom, pobj));
-  fGets.Add<int>           ("posfile",  
-                            boost::bind(&Rw11UnitTape::PosFile, pobj));
-  fGets.Add<int>           ("posrecord",  
-                            boost::bind(&Rw11UnitTape::PosRecord, pobj));
+  fGets.Add<const string&> ("type",      [pobj](){ return pobj->Type(); });
+  fGets.Add<bool>          ("wprot",     [pobj](){ return pobj->WProt(); });
+  fGets.Add<size_t>        ("capacity",  [pobj](){ return pobj->Capacity(); });
+  fGets.Add<bool>          ("bot",       [pobj](){ return pobj->Bot(); });
+  fGets.Add<bool>          ("eot",       [pobj](){ return pobj->Eot(); });
+  fGets.Add<bool>          ("eom",       [pobj](){ return pobj->Eom(); });
+  fGets.Add<int>           ("posfile",   [pobj](){ return pobj->PosFile(); });
+  fGets.Add<int>           ("posrecord", [pobj](){ return pobj->PosRecord(); });
 
   fSets.Add<const string&> ("type",  
-                            boost::bind(&Rw11UnitTape::SetType,pobj, _1));
+                            [pobj](const string& v){ pobj->SetType(v); });
   fSets.Add<bool>          ("wprot",  
-                            boost::bind(&Rw11UnitTape::SetWProt,pobj, _1));
+                            [pobj](bool v){ pobj->SetWProt(v); });
   fSets.Add<size_t>        ("capacity",  
-                            boost::bind(&Rw11UnitTape::SetCapacity,pobj, _1));
+                            [pobj](size_t v){ pobj->SetCapacity(v); });
   fSets.Add<int>           ("posfile",  
-                            boost::bind(&Rw11UnitTape::SetPosFile,pobj, _1));
+                            [pobj](int v){ pobj->SetPosFile(v); });
   fSets.Add<int>           ("posrecord",  
-                            boost::bind(&Rw11UnitTape::SetPosRecord,pobj, _1));
+                            [pobj](int v){ pobj->SetPosRecord(v); });
   return;
 }
 

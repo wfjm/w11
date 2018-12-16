@@ -1,6 +1,6 @@
-// $Id: RtclRw11Cntl.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclRw11Cntl.cpp 1082 2018-12-15 13:56:20Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1082   1.1.3  use lambda instead of bind
 // 2017-04-16   877   1.1.2  add UnitCommands(); add Class()
 // 2017-04-02   865   1.0.2  M_dump: use GetArgsDump and Dump detail
 // 2015-03-27   660   1.0.1  add M_start
@@ -26,7 +27,6 @@
 */
 
 #include "boost/thread/locks.hpp"
-#include "boost/bind.hpp"
 
 #include "librtcltools/RtclStats.hpp"
 #include "librtcltools/RtclOPtr.hpp"
@@ -53,18 +53,16 @@ RtclRw11Cntl::RtclRw11Cntl(const std::string& type,
     fGets(),
     fSets()
 {
-  AddMeth("get",      boost::bind(&RtclRw11Cntl::M_get,     this, _1));
-  AddMeth("set",      boost::bind(&RtclRw11Cntl::M_set,     this, _1));
-  AddMeth("probe",    boost::bind(&RtclRw11Cntl::M_probe,   this, _1));
-  AddMeth("start",    boost::bind(&RtclRw11Cntl::M_start,   this, _1));
-  AddMeth("stats",    boost::bind(&RtclRw11Cntl::M_stats,   this, _1));
-  AddMeth("dump",     boost::bind(&RtclRw11Cntl::M_dump,    this, _1));
-  AddMeth("$default", boost::bind(&RtclRw11Cntl::M_default, this, _1));
+  AddMeth("get",      [this](RtclArgs& args){ return M_get(args); });
+  AddMeth("set",      [this](RtclArgs& args){ return M_set(args); });
+  AddMeth("probe",    [this](RtclArgs& args){ return M_probe(args); });
+  AddMeth("start",    [this](RtclArgs& args){ return M_start(args); });
+  AddMeth("stats",    [this](RtclArgs& args){ return M_stats(args); });
+  AddMeth("dump",     [this](RtclArgs& args){ return M_dump(args); });
+  AddMeth("$default", [this](RtclArgs& args){ return M_default(args); });
 
-  fGets.Add<Tcl_Obj*>      ("units",  
-                            boost::bind(&RtclRw11Cntl::UnitCommands, this));
-  fGets.Add<const string&> ("class",  
-                            boost::bind(&RtclRw11Cntl::Class, this));
+  fGets.Add<Tcl_Obj*>      ("units", [this](){ return UnitCommands(); });
+  fGets.Add<const string&> ("class", [this](){ return Class(); });
 }
 
 //------------------------------------------+-----------------------------------

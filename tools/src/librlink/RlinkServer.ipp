@@ -1,4 +1,4 @@
-// $Id: RlinkServer.ipp 1078 2018-12-08 14:19:03Z mueller $
+// $Id: RlinkServer.ipp 1083 2018-12-15 19:19:16Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1083   2.2.2  for std::function setups: use rval ref and move
 // 2018-12-07  1078   2.2.1  use std::shared_ptr instead of boost
 // 2015-01-10   632   2.2    Exec() without emsg now void, will throw
 // 2014-12-30   625   2.1    adopt to Rlink V4 attn logic
@@ -190,8 +191,8 @@ inline RlinkServer::AttnDsc::AttnDsc()
 //------------------------------------------+-----------------------------------
 //! Constructor
 
-inline RlinkServer::AttnDsc::AttnDsc(attnhdl_t hdl, const AttnId& id)
-  : fHandler(hdl),
+inline RlinkServer::AttnDsc::AttnDsc(attnhdl_t&& hdl, const AttnId& id)
+  : fHandler(move(hdl)),
     fId(id)
 {}
 

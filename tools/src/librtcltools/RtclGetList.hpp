@@ -1,4 +1,4 @@
-// $Id: RtclGetList.hpp 1076 2018-12-02 12:45:49Z mueller $
+// $Id: RtclGetList.hpp 1083 2018-12-15 19:19:16Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1083   1.2.2  Add(): use rval ref and move semantics
+// 2018-12-14  1081   1.2.1  use std::function instead of boost
 // 2018-12-01  1076   1.2    use unique_ptr
 // 2015-01-08   631   1.1    add Clear()
 // 2013-02-12   487   1.0    Initial version
@@ -31,9 +33,9 @@
 #include <cstdint>
 #include <string>
 #include <map>
+#include <functional>
 
 #include "boost/utility.hpp"
-#include "boost/function.hpp"
 
 #include "RtclGet.hpp"
 #include "librtcltools/RtclArgs.hpp"
@@ -50,8 +52,7 @@ namespace Retro {
       void          Add(const std::string& name, get_uptr_t&& upget);
 
       template <class TP>
-      void          Add(const std::string& name, 
-                        const boost::function<TP()>& get);
+      void          Add(const std::string& name, std::function<TP()>&& get);
 
       void          Clear();
       int           M_get(RtclArgs& args);

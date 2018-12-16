@@ -1,4 +1,4 @@
-// $Id: RtclRw11UnitDisk.cpp 1053 2018-10-06 20:34:52Z mueller $
+// $Id: RtclRw11UnitDisk.cpp 1082 2018-12-15 13:56:20Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1082   1.2.2  use lambda instead of bind
 // 2018-10-06  1053   1.2.1  move using after includes (clang warning)
 // 2017-04-08   870   1.2    use Rw11UnitDisk& ObjUV(); inherit from RtclRw11Unit
 // 2015-05-14   680   1.1.1  fGets: remove enabled, now in RtclRw11UnitBase
@@ -62,23 +63,16 @@ void RtclRw11UnitDisk::SetupGetSet()
 
   Rw11UnitDisk* pobj = &ObjUV();
   
-  fGets.Add<const string&> ("type",  
-                            boost::bind(&Rw11UnitDisk::Type,  pobj));
-  fGets.Add<size_t>        ("ncylinder",  
-                            boost::bind(&Rw11UnitDisk::NCylinder,  pobj));
-  fGets.Add<size_t>        ("nhead",  
-                            boost::bind(&Rw11UnitDisk::NHead,  pobj));
-  fGets.Add<size_t>        ("nsector",  
-                            boost::bind(&Rw11UnitDisk::NSector,  pobj));
-  fGets.Add<size_t>        ("blocksize",  
-                            boost::bind(&Rw11UnitDisk::BlockSize,  pobj));
-  fGets.Add<size_t>        ("nblock",  
-                            boost::bind(&Rw11UnitDisk::NBlock,  pobj));
-  fGets.Add<bool>          ("wprot",  
-                            boost::bind(&Rw11UnitDisk::WProt, pobj));
+  fGets.Add<const string&> ("type",      [pobj](){ return pobj->Type(); });
+  fGets.Add<size_t>        ("ncylinder", [pobj](){ return pobj->NCylinder(); });
+  fGets.Add<size_t>        ("nhead",     [pobj](){ return pobj->NHead(); });
+  fGets.Add<size_t>        ("nsector",   [pobj](){ return pobj->NSector(); });
+  fGets.Add<size_t>        ("blocksize", [pobj](){ return pobj->BlockSize(); });
+  fGets.Add<size_t>        ("nblock",    [pobj](){ return pobj->NBlock(); });
+  fGets.Add<bool>          ("wprot",     [pobj](){ return pobj->WProt(); });
 
   fSets.Add<const string&> ("type",  
-                            boost::bind(&Rw11UnitDisk::SetType,pobj, _1));
+                            [pobj](const string& v){ pobj->SetType(v); });
   return;
 }
 

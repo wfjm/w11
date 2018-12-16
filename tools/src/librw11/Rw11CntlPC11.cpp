@@ -1,4 +1,4 @@
-// $Id: Rw11CntlPC11.cpp 1080 2018-12-09 20:30:33Z mueller $
+// $Id: Rw11CntlPC11.cpp 1082 2018-12-15 13:56:20Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1082   1.3.3  use lambda instead of bind
 // 2018-12-09  1080   1.3.2  use HasVirt(); Virt() returns ref
 // 2018-10-28  1062   1.3.1  replace boost/foreach
 // 2017-05-14   897   1.3    trace received chars
@@ -27,8 +28,6 @@
   \file
   \brief   Implemenation of Rw11CntlPC11.
 */
-
-#include "boost/bind.hpp"
 
 #include "librtools/RosFill.hpp"
 #include "librtools/RosPrintBvi.hpp"
@@ -122,7 +121,8 @@ void Rw11CntlPC11::Start()
   fPC_pbuf = Cpu().AddRibr(fPrimClist, fBase+kPBUF);
 
   // add attn handler
-  Server().AddAttnHandler(boost::bind(&Rw11CntlPC11::AttnHandler, this, _1), 
+  Server().AddAttnHandler([this](RlinkServer::AttnArgs& args)
+                            { return AttnHandler(args); }, 
                           uint16_t(1)<<fLam, (void*)this);
 
   fStarted = true;

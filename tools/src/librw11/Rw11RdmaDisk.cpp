@@ -1,4 +1,4 @@
-// $Id: Rw11RdmaDisk.cpp 1047 2018-09-16 11:08:41Z mueller $
+// $Id: Rw11RdmaDisk.cpp 1083 2018-12-15 19:19:16Z mueller $
 //
 // Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -42,9 +42,8 @@ namespace Retro {
 //------------------------------------------+-----------------------------------
 //! Constructor
 
-Rw11RdmaDisk::Rw11RdmaDisk(Rw11Cntl* pcntl, const precb_t& precb, 
-                           const postcb_t& postcb)
-  : Rw11Rdma(pcntl, precb, postcb),
+Rw11RdmaDisk::Rw11RdmaDisk(Rw11Cntl* pcntl, precb_t&& precb, postcb_t&& postcb)
+  : Rw11Rdma(pcntl, move(precb), move(postcb)),
     fBuf(),
     fpUnit(nullptr),
     fNWord(0),

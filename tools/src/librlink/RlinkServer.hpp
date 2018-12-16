@@ -1,4 +1,4 @@
-// $Id: RlinkServer.hpp 1078 2018-12-08 14:19:03Z mueller $
+// $Id: RlinkServer.hpp 1083 2018-12-15 19:19:16Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1083   2.2.4  for std::function setups: use rval ref and move
+// 2018-12-14  1081   2.2.3  use std::function instead of boost
 // 2018-12-07  1078   2.2.2  use std::shared_ptr instead of boost
 // 2017-04-07   868   2.2.1  Dump(): add detail arg
 // 2015-01-10   632   2.2    Exec() without emsg now void, will throw
@@ -38,6 +40,7 @@
 #include <vector>
 #include <list>
 #include <memory>
+#include <functional>
 
 #include "boost/utility.hpp"
 #include "boost/thread/thread.hpp"
@@ -63,9 +66,9 @@ namespace Retro {
                     AttnArgs(uint16_t apatt, uint16_t amask);
       };
 
-      typedef ReventLoop::pollhdl_t            pollhdl_t;
-      typedef boost::function<int(AttnArgs&)>  attnhdl_t;
-      typedef boost::function<int()>           actnhdl_t;
+      typedef ReventLoop::pollhdl_t          pollhdl_t;
+      typedef std::function<int(AttnArgs&)>  attnhdl_t;
+      typedef std::function<int()>           actnhdl_t;
 
       explicit      RlinkServer();
       virtual      ~RlinkServer();
@@ -79,15 +82,15 @@ namespace Retro {
       bool          Exec(RlinkCommandList& clist, RerrMsg& emsg);
       void          Exec(RlinkCommandList& clist);
 
-      void          AddAttnHandler(const attnhdl_t& attnhdl, uint16_t mask,
+      void          AddAttnHandler(attnhdl_t&& attnhdl, uint16_t mask,
                                    void* cdata = nullptr);
       void          RemoveAttnHandler(uint16_t mask, void* cdata = nullptr);
       void          GetAttnInfo(AttnArgs& args, RlinkCommandList& clist);
       void          GetAttnInfo(AttnArgs& args);
 
-      void          QueueAction(const actnhdl_t& actnhdl);
+      void          QueueAction(actnhdl_t&& actnhdl);
 
-      void          AddPollHandler(const pollhdl_t& pollhdl,
+      void          AddPollHandler(pollhdl_t&& pollhdl,
                                    int fd, short events=POLLIN);
       bool          TestPollHandler(int fd, short events=POLLIN);
       void          RemovePollHandler(int fd, short events, bool nothrow=false);
@@ -164,7 +167,7 @@ namespace Retro {
         attnhdl_t   fHandler;
         AttnId      fId;
                     AttnDsc();
-                    AttnDsc(attnhdl_t hdl, const AttnId& id);
+                    AttnDsc(attnhdl_t&& hdl, const AttnId& id);
       };
 
       std::shared_ptr<RlinkConnect>  fspConn;

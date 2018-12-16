@@ -1,4 +1,4 @@
-// $Id: Rw11UnitRK11.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11UnitRK11.cpp 1081 2018-12-14 22:29:42Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -22,8 +22,6 @@
   \file
   \brief   Implemenation of Rw11UnitRK11.
 */
-
-#include "boost/bind.hpp"
 
 #include "librtools/RosFill.hpp"
 #include "Rw11CntlRK11.hpp"

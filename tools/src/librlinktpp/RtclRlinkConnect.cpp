@@ -1,4 +1,4 @@
-// $Id: RtclRlinkConnect.cpp 1079 2018-12-09 10:56:59Z mueller $
+// $Id: RtclRlinkConnect.cpp 1083 2018-12-15 19:19:16Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1082   1.6.5  use lambda instead of bind
 // 2018-12-08  1079   1.6.4  use HasPort(); Port() returns now ref
 // 2018-12-07  1077   1.6.3  use SetLastExpectBlock move semantics
 // 2018-11-16  1070   1.6.2  use auto; use range loop
@@ -55,7 +56,6 @@
 
 #include <iostream>
 
-#include "boost/bind.hpp"
 #include "boost/thread/locks.hpp"
 
 #include "librtcltools/Rtcl.hpp"
@@ -88,24 +88,24 @@ RtclRlinkConnect::RtclRlinkConnect(Tcl_Interp* interp, const char* name)
     fGets(),
     fSets()
 {
-  AddMeth("open",     boost::bind(&RtclRlinkConnect::M_open,    this, _1));
-  AddMeth("close",    boost::bind(&RtclRlinkConnect::M_close,   this, _1));
-  AddMeth("init",     boost::bind(&RtclRlinkConnect::M_init,    this, _1));
-  AddMeth("exec",     boost::bind(&RtclRlinkConnect::M_exec,    this, _1));
-  AddMeth("amap",     boost::bind(&RtclRlinkConnect::M_amap,    this, _1));
-  AddMeth("errcnt",   boost::bind(&RtclRlinkConnect::M_errcnt,  this, _1));
-  AddMeth("wtlam",    boost::bind(&RtclRlinkConnect::M_wtlam,   this, _1));
-  AddMeth("oob",      boost::bind(&RtclRlinkConnect::M_oob,     this, _1));
-  AddMeth("rawread",  boost::bind(&RtclRlinkConnect::M_rawread, this, _1));
-  AddMeth("rawrblk",  boost::bind(&RtclRlinkConnect::M_rawrblk, this, _1));
-  AddMeth("rawwblk",  boost::bind(&RtclRlinkConnect::M_rawwblk, this, _1));
-  AddMeth("stats",    boost::bind(&RtclRlinkConnect::M_stats,   this, _1));
-  AddMeth("log",      boost::bind(&RtclRlinkConnect::M_log,     this, _1));
-  AddMeth("print",    boost::bind(&RtclRlinkConnect::M_print,   this, _1));
-  AddMeth("dump",     boost::bind(&RtclRlinkConnect::M_dump,    this, _1));
-  AddMeth("get",      boost::bind(&RtclRlinkConnect::M_get,     this, _1));
-  AddMeth("set",      boost::bind(&RtclRlinkConnect::M_set,     this, _1));
-  AddMeth("$default", boost::bind(&RtclRlinkConnect::M_default, this, _1));
+  AddMeth("open",     [this](RtclArgs& args){ return M_open(args); });
+  AddMeth("close",    [this](RtclArgs& args){ return M_close(args); });
+  AddMeth("init",     [this](RtclArgs& args){ return M_init(args); });
+  AddMeth("exec",     [this](RtclArgs& args){ return M_exec(args); });
+  AddMeth("amap",     [this](RtclArgs& args){ return M_amap(args); });
+  AddMeth("errcnt",   [this](RtclArgs& args){ return M_errcnt(args); });
+  AddMeth("wtlam",    [this](RtclArgs& args){ return M_wtlam(args); });
+  AddMeth("oob",      [this](RtclArgs& args){ return M_oob(args); });
+  AddMeth("rawread",  [this](RtclArgs& args){ return M_rawread(args); });
+  AddMeth("rawrblk",  [this](RtclArgs& args){ return M_rawrblk(args); });
+  AddMeth("rawwblk",  [this](RtclArgs& args){ return M_rawwblk(args); });
+  AddMeth("stats",    [this](RtclArgs& args){ return M_stats(args); });
+  AddMeth("log",      [this](RtclArgs& args){ return M_log(args); });
+  AddMeth("print",    [this](RtclArgs& args){ return M_print(args); });
+  AddMeth("dump",     [this](RtclArgs& args){ return M_dump(args); });
+  AddMeth("get",      [this](RtclArgs& args){ return M_get(args); });
+  AddMeth("set",      [this](RtclArgs& args){ return M_set(args); });
+  AddMeth("$default", [this](RtclArgs& args){ return M_default(args); });
 
   for (size_t i=0; i<8; i++) {
     fCmdnameObj[i] = Tcl_NewStringObj(RlinkCommand::CommandName(i), -1);
@@ -114,68 +114,54 @@ RtclRlinkConnect::RtclRlinkConnect(Tcl_Interp* interp, const char* name)
   // attributes of RlinkConnect
   RlinkConnect* pobj  = &Obj();
 
-  fGets.Add<uint32_t>  ("baseaddr", 
-                        boost::bind(&RlinkConnect::LogBaseAddr, pobj));
-  fGets.Add<uint32_t>  ("basedata", 
-                        boost::bind(&RlinkConnect::LogBaseData, pobj));
-  fGets.Add<uint32_t>  ("basestat", 
-                        boost::bind(&RlinkConnect::LogBaseStat, pobj));
-  fGets.Add<uint32_t>  ("printlevel", 
-                        boost::bind(&RlinkConnect::PrintLevel, pobj));
-  fGets.Add<uint32_t>  ("dumplevel", 
-                        boost::bind(&RlinkConnect::DumpLevel, pobj));
-  fGets.Add<uint32_t>  ("tracelevel", 
-                        boost::bind(&RlinkConnect::TraceLevel, pobj));
-  fGets.Add<const Rtime&> ("timeout", 
-                        boost::bind(&RlinkConnect::Timeout, pobj));
-  fGets.Add<const string&>  ("logfile", 
-                        boost::bind(&RlinkConnect::LogFileName, pobj));
+  fGets.Add<uint32_t>  ("baseaddr",   [pobj](){ return pobj->LogBaseAddr(); });
+  fGets.Add<uint32_t>  ("basedata",   [pobj](){ return pobj->LogBaseData(); });
+  fGets.Add<uint32_t>  ("basestat",   [pobj](){ return pobj->LogBaseStat(); });
+  fGets.Add<uint32_t>  ("printlevel", [pobj](){ return pobj->PrintLevel(); });
+  fGets.Add<uint32_t>  ("dumplevel",  [pobj](){ return pobj->DumpLevel(); });
+  fGets.Add<uint32_t>  ("tracelevel", [pobj](){ return pobj->TraceLevel(); });
+  fGets.Add<const Rtime&> ("timeout", [pobj](){ return pobj->Timeout(); });
+  fGets.Add<const string&>("logfile", [pobj](){ return pobj->LogFileName(); });
 
-  fGets.Add<uint32_t>  ("initdone", 
-                        boost::bind(&RlinkConnect::LinkInitDone, pobj));
-  fGets.Add<uint32_t>  ("sysid", 
-                        boost::bind(&RlinkConnect::SysId, pobj));
-  fGets.Add<uint32_t>  ("usracc", 
-                        boost::bind(&RlinkConnect::UsrAcc, pobj));
-  fGets.Add<size_t>    ("rbufsize", 
-                        boost::bind(&RlinkConnect::RbufSize, pobj));
-  fGets.Add<size_t>    ("bsizemax", 
-                        boost::bind(&RlinkConnect::BlockSizeMax, pobj));
-  fGets.Add<size_t>    ("bsizeprudent", 
-                        boost::bind(&RlinkConnect::BlockSizePrudent, pobj));
-  fGets.Add<bool>      ("hasrbmon", 
-                        boost::bind(&RlinkConnect::HasRbmon, pobj));
+  fGets.Add<uint32_t>  ("initdone",   [pobj](){ return pobj->LinkInitDone(); });
+  fGets.Add<uint32_t>  ("sysid",      [pobj](){ return pobj->SysId(); });
+  fGets.Add<uint32_t>  ("usracc",     [pobj](){ return pobj->UsrAcc(); });
+  fGets.Add<size_t>    ("rbufsize",   [pobj](){ return pobj->RbufSize(); });
+  fGets.Add<size_t>    ("bsizemax",   [pobj](){ return pobj->BlockSizeMax(); });
+  fGets.Add<size_t>    ("bsizeprudent",
+                        [pobj](){ return pobj->BlockSizePrudent(); });
+  fGets.Add<bool>      ("hasrbmon",   [pobj](){ return pobj->HasRbmon(); });
 
-  fSets.Add<uint32_t>  ("baseaddr", 
-                        boost::bind(&RlinkConnect::SetLogBaseAddr, pobj, _1));
+  fSets.Add<uint32_t>  ("baseaddr",
+                        [pobj](uint32_t v){ pobj->SetLogBaseAddr(v); });
   fSets.Add<uint32_t>  ("basedata", 
-                        boost::bind(&RlinkConnect::SetLogBaseData, pobj, _1));
+                        [pobj](uint32_t v){ pobj->SetLogBaseData(v); });
   fSets.Add<uint32_t>  ("basestat", 
-                        boost::bind(&RlinkConnect::SetLogBaseStat, pobj, _1));
+                        [pobj](uint32_t v){ pobj->SetLogBaseStat(v); });
   fSets.Add<uint32_t>  ("printlevel", 
-                        boost::bind(&RlinkConnect::SetPrintLevel, pobj, _1));
+                        [pobj](uint32_t v){ pobj->SetPrintLevel(v); });
   fSets.Add<uint32_t>  ("dumplevel", 
-                        boost::bind(&RlinkConnect::SetDumpLevel, pobj, _1));
+                        [pobj](uint32_t v){ pobj->SetDumpLevel(v); });
   fSets.Add<uint32_t>  ("tracelevel", 
-                        boost::bind(&RlinkConnect::SetTraceLevel, pobj, _1));
+                        [pobj](uint32_t v){ pobj->SetTraceLevel(v); });
   fSets.Add<const Rtime&>   ("timeout", 
-                        boost::bind(&RlinkConnect::SetTimeout, pobj, _1));
+                        [pobj](const Rtime& v){ pobj->SetTimeout(v); });
   fSets.Add<const string&>  ("logfile", 
-                        boost::bind(&RlinkConnect::SetLogFileName, pobj, _1));
+                        [pobj](const string& v){ pobj->SetLogFileName(v); });
 
   // attributes of buildin RlinkContext
   RlinkContext* pcntx = &Obj().Context();
   fGets.Add<bool>      ("statchecked", 
-                        boost::bind(&RlinkContext::StatusIsChecked, pcntx));
+                        [pcntx](){ return pcntx->StatusIsChecked(); });
   fGets.Add<uint8_t>   ("statvalue", 
-                        boost::bind(&RlinkContext::StatusValue, pcntx));
+                        [pcntx](){ return pcntx->StatusValue(); });
   fGets.Add<uint8_t>   ("statmask", 
-                        boost::bind(&RlinkContext::StatusMask, pcntx));
+                        [pcntx](){ return pcntx->StatusMask(); });
 
   fSets.Add<uint8_t>   ("statvalue", 
-                        boost::bind(&RlinkContext::SetStatusValue, pcntx, _1));
+                        [pcntx](uint8_t v){ pcntx->SetStatusValue(v); });
   fSets.Add<uint8_t>   ("statmask", 
-                        boost::bind(&RlinkContext::SetStatusMask, pcntx, _1));
+                        [pcntx](uint8_t v){ pcntx->SetStatusMask(v); });
 }
 
 //------------------------------------------+-----------------------------------

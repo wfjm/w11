@@ -1,4 +1,4 @@
-// $Id: RtclRlinkPort.cpp 1079 2018-12-09 10:56:59Z mueller $
+// $Id: RtclRlinkPort.cpp 1083 2018-12-15 19:19:16Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1082   1.4.1  use lambda instead of bind
 // 2018-12-08  1079   1.4    use ref not ptr for RlinkPort
 // 2018-12-01  1076   1.3    use unique_ptr
 // 2017-04-29   888   1.2    LogFileName(): returns now const std::string&
@@ -34,8 +35,6 @@
 #include <ctype.h>
 
 #include <iostream>
-
-#include "boost/bind.hpp"
 
 #include "librtcltools/Rtcl.hpp"
 #include "librtcltools/RtclOPtr.hpp"
@@ -70,18 +69,18 @@ RtclRlinkPort::RtclRlinkPort(Tcl_Interp* interp, const char* name)
     fSets()
 {
   CreateObjectCmd(interp, name);
-  AddMeth("open",     boost::bind(&RtclRlinkPort::M_open,    this, _1));
-  AddMeth("close",    boost::bind(&RtclRlinkPort::M_close,   this, _1));
-  AddMeth("errcnt",   boost::bind(&RtclRlinkPort::M_errcnt,  this, _1));
-  AddMeth("rawread",  boost::bind(&RtclRlinkPort::M_rawread, this, _1));
-  AddMeth("rawrblk",  boost::bind(&RtclRlinkPort::M_rawrblk, this, _1));
-  AddMeth("rawwblk",  boost::bind(&RtclRlinkPort::M_rawwblk, this, _1));
-  AddMeth("stats",    boost::bind(&RtclRlinkPort::M_stats,   this, _1));
-  AddMeth("log",      boost::bind(&RtclRlinkPort::M_log,     this, _1));
-  AddMeth("dump",     boost::bind(&RtclRlinkPort::M_dump,    this, _1));
-  AddMeth("get",      boost::bind(&RtclRlinkPort::M_get,     this, _1));
-  AddMeth("set",      boost::bind(&RtclRlinkPort::M_set,     this, _1));
-  AddMeth("$default", boost::bind(&RtclRlinkPort::M_default, this, _1));
+  AddMeth("open",     [this](RtclArgs& args){ return M_open(args); });
+  AddMeth("close",    [this](RtclArgs& args){ return M_close(args); });
+  AddMeth("errcnt",   [this](RtclArgs& args){ return M_errcnt(args); });
+  AddMeth("rawread",  [this](RtclArgs& args){ return M_rawread(args); });
+  AddMeth("rawrblk",  [this](RtclArgs& args){ return M_rawrblk(args); });
+  AddMeth("rawwblk",  [this](RtclArgs& args){ return M_rawwblk(args); });
+  AddMeth("stats",    [this](RtclArgs& args){ return M_stats(args); });
+  AddMeth("log",      [this](RtclArgs& args){ return M_log(args); });
+  AddMeth("dump",     [this](RtclArgs& args){ return M_dump(args); });
+  AddMeth("get",      [this](RtclArgs& args){ return M_get(args); });
+  AddMeth("set",      [this](RtclArgs& args){ return M_set(args); });
+  AddMeth("$default", [this](RtclArgs& args){ return M_default(args); });
 
   SetupGetSet();
 }
@@ -255,18 +254,16 @@ void RtclRlinkPort::SetupGetSet()
   fGets.Clear();
   fSets.Clear();
 
-  fGets.Add<const string&>  ("logfile", 
-                        boost::bind(&RtclRlinkPort::LogFileName, this));
+  fGets.Add<const string&>  ("logfile", [this](){ return LogFileName(); });
   fSets.Add<const string&>  ("logfile", 
-                        boost::bind(&RtclRlinkPort::SetLogFileName, this, _1));
+                             [this](const string& v){ SetLogFileName(v); });
 
   if (!fupObj) return;
+  RlinkPort* pobj = fupObj.get();
 
-  fGets.Add<uint32_t>  ("tracelevel", 
-                        boost::bind(&RlinkPort::TraceLevel, fupObj.get()));
+  fGets.Add<uint32_t>  ("tracelevel", [pobj](){ return pobj->TraceLevel(); });
   fSets.Add<uint32_t>  ("tracelevel", 
-                        boost::bind(&RlinkPort::SetTraceLevel, fupObj.get(),
-                                    _1));
+                        [pobj](uint32_t v){pobj->SetTraceLevel(v); });
 }
 
 //------------------------------------------+-----------------------------------

@@ -1,6 +1,6 @@
-// $Id: RtclRw11.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclRw11.cpp 1082 2018-12-15 13:56:20Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1082   1.0.5  use lambda instead of bind
 // 2017-04-16   876   1.0.4  add CpuCommands()
 // 2017-04-07   868   1.0.3  M_dump: use GetArgsDump and Dump detail
 // 2017-04-02   866   1.0.2  add M_set; handle default disk scheme
@@ -31,8 +32,6 @@
 
 #include <iostream>
 #include <string>
-
-#include "boost/bind.hpp"
 
 #include "librtools/RosPrintf.hpp"
 #include "librtcltools/RtclContext.hpp"
@@ -63,21 +62,22 @@ RtclRw11::RtclRw11(Tcl_Interp* interp, const char* name)
     fGets(),
     fSets()
 {
-  AddMeth("get",      boost::bind(&RtclRw11::M_get,     this, _1));
-  AddMeth("set",      boost::bind(&RtclRw11::M_set,     this, _1));
-  AddMeth("start",    boost::bind(&RtclRw11::M_start,   this, _1));
-  AddMeth("dump",     boost::bind(&RtclRw11::M_dump,    this, _1));
-  AddMeth("$default", boost::bind(&RtclRw11::M_default, this, _1));
+  AddMeth("get",      [this](RtclArgs& args){ return M_get(args); });
+  AddMeth("set",      [this](RtclArgs& args){ return M_set(args); });
+  AddMeth("start",    [this](RtclArgs& args){ return M_start(args); });
+  AddMeth("dump",     [this](RtclArgs& args){ return M_dump(args); });
+  AddMeth("$default", [this](RtclArgs& args){ return M_default(args); });
 
   Rw11* pobj = &Obj();
-  fGets.Add<bool>           ("started",boost::bind(&Rw11::IsStarted, pobj));  
-  fGets.Add<const string&>  ("diskscheme",
-                             boost::bind(&Rw11VirtDisk::DefaultScheme));  
+  fGets.Add<bool>          ("started", [pobj](){ return pobj->IsStarted(); });
+  fGets.Add<const string&> ("diskscheme",
+                            [](){ return Rw11VirtDisk::DefaultScheme(); });  
+  fGets.Add<Tcl_Obj*>      ("cpus", [this](){ return CpuCommands(); });
 
-  fSets.Add<const string&>  ("diskscheme",  
-                             boost::bind(&Rw11VirtDisk::SetDefaultScheme, _1));
-  fGets.Add<Tcl_Obj*>       ("cpus",  
-                             boost::bind(&RtclRw11::CpuCommands, this));
+  fSets.Add<const string&> ("diskscheme",  
+                            [](const string& v)
+                              { Rw11VirtDisk::SetDefaultScheme(v);} );
+  
 }
 
 //------------------------------------------+-----------------------------------

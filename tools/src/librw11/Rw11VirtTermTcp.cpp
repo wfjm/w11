@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTermTcp.cpp 1075 2018-12-01 11:55:07Z mueller $
+// $Id: Rw11VirtTermTcp.cpp 1082 2018-12-15 13:56:20Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1082   1.0.10 use lambda instead of bind
 // 2018-11-30  1075   1.0.9  use list-init
 // 2018-11-11  1066   1.0.8  coverity fixup (unchecked return value)
 // 2018-10-27  1059   1.0.7  coverity fixup (uncaught exception in dtor)
@@ -182,8 +183,8 @@ bool Rw11VirtTermTcp::Open(const std::string& url, RerrMsg& emsg)
     lmsg << "TermTcp: listen on " << fChannelId << " for " << Unit().Name();
   }
 
-  Server().AddPollHandler(boost::bind(&Rw11VirtTermTcp::ListenPollHandler,
-                                      this, _1), 
+  Server().AddPollHandler([this](const pollfd& pfd)
+                            { return ListenPollHandler(pfd); }, 
                           fFdListen, POLLIN);
 
   return true;
@@ -339,8 +340,8 @@ int Rw11VirtTermTcp::ListenPollHandler(const pollfd& pfd)
   fState = ts_Stream;
 
   Server().RemovePollHandler(fFdListen);
-  Server().AddPollHandler(boost::bind(&Rw11VirtTermTcp::RcvPollHandler,
-                                      this, _1), 
+  Server().AddPollHandler([this](const pollfd& pfd)
+                            { return RcvPollHandler(pfd); }, 
                           fFd, POLLIN);
   return 0;
 }
@@ -426,8 +427,8 @@ int Rw11VirtTermTcp::RcvPollHandler(const pollfd& pfd)
     }
     close(fFd);
     fFd = -1;
-    Server().AddPollHandler(boost::bind(&Rw11VirtTermTcp::ListenPollHandler,
-                                        this, _1), 
+    Server().AddPollHandler([this](const pollfd& pfd)
+                              { return ListenPollHandler(pfd); }, 
                             fFdListen, POLLIN);    
     fState = ts_Listen;
     return -1;

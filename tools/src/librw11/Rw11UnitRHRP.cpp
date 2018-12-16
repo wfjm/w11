@@ -1,4 +1,4 @@
-// $Id: Rw11UnitRHRP.cpp 1080 2018-12-09 20:30:33Z mueller $
+// $Id: Rw11UnitRHRP.cpp 1081 2018-12-14 22:29:42Z mueller $
 //
 // Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -23,8 +23,6 @@
   \file
   \brief   Implemenation of Rw11UnitRHRP.
 */
-
-#include "boost/bind.hpp"
 
 #include "librtools/Rexception.hpp"
 #include "librtools/RosFill.hpp"

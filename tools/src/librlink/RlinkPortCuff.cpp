@@ -1,4 +1,4 @@
-// $Id: RlinkPortCuff.cpp 1066 2018-11-10 11:21:53Z mueller $
+// $Id: RlinkPortCuff.cpp 1081 2018-12-14 22:29:42Z mueller $
 //
 // Copyright 2012-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-14  1081   1.1.8  use std::bind instead of boost
 // 2018-11-09  1066   1.1.7  use auto
 // 2018-10-27  1059   1.1.6  coverity fixup (uncaught exception in dtor)
 // 2017-04-15   875   1.1.5  Open(): set default scheme
@@ -243,7 +244,7 @@ bool RlinkPortCuff::Open(const std::string& url, RerrMsg& emsg)
   libusb_set_pollfd_notifiers(fpUsbContext, ThunkPollfdAdd,
                               ThunkPollfdRemove, this);
 
-  fDriverThread =  boost::thread(boost::bind(&RlinkPortCuff::Driver, this));
+  fDriverThread =  boost::thread(std::bind(&RlinkPortCuff::Driver, this));
 
   fIsOpen  = true;
 

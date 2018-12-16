@@ -1,4 +1,4 @@
-// $Id: RtclRw11UnitTerm.cpp 1053 2018-10-06 20:34:52Z mueller $
+// $Id: RtclRw11UnitTerm.cpp 1082 2018-12-15 13:56:20Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1082   1.1.2  use lambda instead of bind
 // 2018-10-06  1053   1.1.1  move using after includes (clang warning)
 // 2017-04-08   870   1.1    use Rw11UnitTerm& ObjUV(); inherit from RtclRw11Unit
 // 2013-04-26   511   1.0.1  add M_type
@@ -43,7 +44,7 @@ namespace Retro {
 RtclRw11UnitTerm::RtclRw11UnitTerm(const std::string& type)
   : RtclRw11Unit(type)
 {
-  AddMeth("type",  boost::bind(&RtclRw11UnitTerm::M_type,    this, _1));
+  AddMeth("type",  [this](RtclArgs& args){ return M_type(args); });
 }
 
 //------------------------------------------+-----------------------------------
@@ -77,25 +78,17 @@ void RtclRw11UnitTerm::SetupGetSet()
 
   Rw11UnitTerm* pobj = &ObjUV();
 
-  fGets.Add<const string&> ("channelid",  
-                            boost::bind(&Rw11UnitTerm::ChannelId,  pobj));
-  fGets.Add<bool>          ("to7bit",  
-                            boost::bind(&Rw11UnitTerm::To7bit,  pobj));
-  fGets.Add<bool>          ("toenpc",  
-                            boost::bind(&Rw11UnitTerm::ToEnpc,  pobj));
-  fGets.Add<bool>          ("ti7bit",  
-                            boost::bind(&Rw11UnitTerm::Ti7bit,  pobj));
-  fGets.Add<const string&> ("log",  
-                            boost::bind(&Rw11UnitTerm::Log,  pobj));
+  fGets.Add<const string&> ("channelid", [pobj](){ return pobj->ChannelId(); });
+  fGets.Add<bool>          ("to7bit",    [pobj](){ return pobj->To7bit(); });
+  fGets.Add<bool>          ("toenpc",    [pobj](){ return pobj->ToEnpc(); });
+  fGets.Add<bool>          ("ti7bit",    [pobj](){ return pobj->Ti7bit(); });
+  fGets.Add<const string&> ("log",       [pobj](){ return pobj->Log(); });
 
-  fSets.Add<bool>          ("to7bit",  
-                            boost::bind(&Rw11UnitTerm::SetTo7bit,pobj, _1));
-  fSets.Add<bool>          ("toenpc",  
-                            boost::bind(&Rw11UnitTerm::SetToEnpc,pobj, _1));
-  fSets.Add<bool>          ("ti7bit",  
-                            boost::bind(&Rw11UnitTerm::SetTi7bit,pobj, _1));
-  fSets.Add<const string&> ("log",  
-                            boost::bind(&Rw11UnitTerm::SetLog,pobj, _1));
+  fSets.Add<bool>          ("to7bit", [pobj](bool v){ pobj->SetTo7bit(v); });
+  fSets.Add<bool>          ("toenpc", [pobj](bool v){ pobj->SetToEnpc(v); });
+  fSets.Add<bool>          ("ti7bit", [pobj](bool v){ pobj->SetTi7bit(v); });
+  fSets.Add<const string&> ("log",
+                            [pobj](const string& v){ pobj->SetLog(v); });
   return;
 }
 

@@ -1,6 +1,6 @@
-// $Id: Rw11Rdma.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11Rdma.hpp 1083 2018-12-15 19:19:16Z mueller $
 //
-// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1083   1.1.3  for std::function setups: use rval ref and move
+// 2018-12-14  1081   1.1.2  use std::function instead of boost
 // 2017-04-02   865   1.1.1  Dump(): add detail arg
 // 2015-02-17   647   1.1    PreExecCB with nwdone and nwnext
 // 2015-01-04   627   1.0    Initial version
@@ -27,8 +29,9 @@
 #ifndef included_Retro_Rw11Rdma
 #define included_Retro_Rw11Rdma 1
 
+#include <functional>
+
 #include "boost/utility.hpp"
-#include "boost/function.hpp"
 
 #include "librtools/Rstats.hpp"
 #include "librtools/RerrMsg.hpp"
@@ -41,13 +44,13 @@ namespace Retro {
   class Rw11Rdma : public Rbits, private boost::noncopyable {
     public:
 
-      typedef boost::function<void(int,size_t,size_t,
-                                   RlinkCommandList&)>  precb_t;
-      typedef boost::function<void(int,size_t,
-                                   RlinkCommandList&,size_t)>  postcb_t;
+      typedef std::function<void(int,size_t,size_t,
+                                 RlinkCommandList&)>  precb_t;
+      typedef std::function<void(int,size_t,
+                                 RlinkCommandList&,size_t)>  postcb_t;
 
-                    Rw11Rdma(Rw11Cntl* pcntl, const precb_t& precb, 
-                             const postcb_t& postcb);
+                    Rw11Rdma(Rw11Cntl* pcntl, precb_t&& precb,
+                             postcb_t&& postcb);
       virtual      ~Rw11Rdma();
 
       Rw11Cntl&     CntlBase() const;

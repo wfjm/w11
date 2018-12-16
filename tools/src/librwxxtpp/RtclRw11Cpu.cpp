@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.cpp 1077 2018-12-07 19:37:03Z mueller $
+// $Id: RtclRw11Cpu.cpp 1082 2018-12-15 13:56:20Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1082   1.2.21 use lambda instead of bind
 // 2018-12-07  1077   1.2.20 use SetLastExpectBlock move semantics
 // 2018-11-16  1070   1.2.19 use auto; use emplace_back; use range loop
 // 2018-09-23  1050   1.2.18 add HasPcnt()
@@ -63,7 +64,6 @@
 #include <memory>
 #include <sstream>
 
-#include "boost/bind.hpp"
 #include "boost/thread/locks.hpp"
 
 #include "librtools/RerrMsg.hpp"
@@ -103,26 +103,25 @@ RtclRw11Cpu::RtclRw11Cpu(const std::string& type)
     fGets(),
     fSets()
 {
-  AddMeth("add",      boost::bind(&RtclRw11Cpu::M_add,     this, _1));
-  AddMeth("imap",     boost::bind(&RtclRw11Cpu::M_imap,    this, _1));
-  AddMeth("rmap",     boost::bind(&RtclRw11Cpu::M_rmap,    this, _1));
-  AddMeth("cp",       boost::bind(&RtclRw11Cpu::M_cp,      this, _1));
-  AddMeth("wtcpu",    boost::bind(&RtclRw11Cpu::M_wtcpu,   this, _1));
-  AddMeth("deposit",  boost::bind(&RtclRw11Cpu::M_deposit, this, _1));
-  AddMeth("examine",  boost::bind(&RtclRw11Cpu::M_examine, this, _1));
-  AddMeth("lsmem",    boost::bind(&RtclRw11Cpu::M_lsmem,   this, _1));
-  AddMeth("ldabs",    boost::bind(&RtclRw11Cpu::M_ldabs,   this, _1));
-  AddMeth("ldasm",    boost::bind(&RtclRw11Cpu::M_ldasm,   this, _1));
-  AddMeth("boot",     boost::bind(&RtclRw11Cpu::M_boot,    this, _1));
-  AddMeth("get",      boost::bind(&RtclRw11Cpu::M_get,     this, _1));
-  AddMeth("set",      boost::bind(&RtclRw11Cpu::M_set,     this, _1));
-  AddMeth("stats",    boost::bind(&RtclRw11Cpu::M_stats,   this, _1));
-  AddMeth("show",     boost::bind(&RtclRw11Cpu::M_show,    this, _1));
-  AddMeth("dump",     boost::bind(&RtclRw11Cpu::M_dump,    this, _1));
-  AddMeth("$default", boost::bind(&RtclRw11Cpu::M_default, this, _1));
+  AddMeth("add",      [this](RtclArgs& args){ return M_add(args); });
+  AddMeth("imap",     [this](RtclArgs& args){ return M_imap(args); });
+  AddMeth("rmap",     [this](RtclArgs& args){ return M_rmap(args); });
+  AddMeth("cp",       [this](RtclArgs& args){ return M_cp(args); });
+  AddMeth("wtcpu",    [this](RtclArgs& args){ return M_wtcpu(args); });
+  AddMeth("deposit",  [this](RtclArgs& args){ return M_deposit(args); });
+  AddMeth("examine",  [this](RtclArgs& args){ return M_examine(args); });
+  AddMeth("lsmem",    [this](RtclArgs& args){ return M_lsmem(args); });
+  AddMeth("ldabs",    [this](RtclArgs& args){ return M_ldabs(args); });
+  AddMeth("ldasm",    [this](RtclArgs& args){ return M_ldasm(args); });
+  AddMeth("boot",     [this](RtclArgs& args){ return M_boot(args); });
+  AddMeth("get",      [this](RtclArgs& args){ return M_get(args); });
+  AddMeth("set",      [this](RtclArgs& args){ return M_set(args); });
+  AddMeth("stats",    [this](RtclArgs& args){ return M_stats(args); });
+  AddMeth("show",     [this](RtclArgs& args){ return M_show(args); });
+  AddMeth("dump",     [this](RtclArgs& args){ return M_dump(args); });
+  AddMeth("$default", [this](RtclArgs& args){ return M_default(args); });
   
-  fGets.Add<Tcl_Obj*> ("cntls",  
-                       boost::bind(&RtclRw11Cpu::ControllerCommands, this));
+  fGets.Add<Tcl_Obj*> ("cntls", [this](){ return ControllerCommands(); });
 }
 
 //------------------------------------------+-----------------------------------
@@ -1480,18 +1479,18 @@ int RtclRw11Cpu::M_default(RtclArgs& args)
 void RtclRw11Cpu::SetupGetSet()
 {
   Rw11Cpu* pobj = &Obj();
-  fGets.Add<const string&>("type",     boost::bind(&Rw11Cpu::Type,     pobj));
-  fGets.Add<size_t>       ("index",    boost::bind(&Rw11Cpu::Index,    pobj));
-  fGets.Add<uint16_t>     ("base",     boost::bind(&Rw11Cpu::Base,     pobj));
-  fGets.Add<uint16_t>     ("ibase",    boost::bind(&Rw11Cpu::IBase,    pobj));
-  fGets.Add<bool>         ("hasscnt",  boost::bind(&Rw11Cpu::HasScnt,  pobj));
-  fGets.Add<bool>         ("haspcnt",  boost::bind(&Rw11Cpu::HasPcnt,  pobj));
-  fGets.Add<bool>         ("hascmon",  boost::bind(&Rw11Cpu::HasCmon,  pobj));
-  fGets.Add<uint16_t>     ("hashbpt",  boost::bind(&Rw11Cpu::HasHbpt,  pobj));
-  fGets.Add<bool>         ("hasibmon", boost::bind(&Rw11Cpu::HasIbmon, pobj));
-  fGets.Add<bool>         ("haskw11l", boost::bind(&Rw11Cpu::HasKw11l, pobj));
-  fGets.Add<bool>         ("haskw11p", boost::bind(&Rw11Cpu::HasKw11p, pobj));
-  fGets.Add<bool>         ("hasiist",  boost::bind(&Rw11Cpu::HasIist,  pobj));
+  fGets.Add<const string&>("type",     [pobj](){ return pobj->Type(); });
+  fGets.Add<size_t>       ("index",    [pobj](){ return pobj->Index(); });
+  fGets.Add<uint16_t>     ("base",     [pobj](){ return pobj->Base(); });
+  fGets.Add<uint16_t>     ("ibase",    [pobj](){ return pobj->IBase(); });
+  fGets.Add<bool>         ("hasscnt",  [pobj](){ return pobj->HasScnt(); });
+  fGets.Add<bool>         ("haspcnt",  [pobj](){ return pobj->HasPcnt(); });
+  fGets.Add<bool>         ("hascmon",  [pobj](){ return pobj->HasCmon(); });
+  fGets.Add<uint16_t>     ("hashbpt",  [pobj](){ return pobj->HasHbpt(); });
+  fGets.Add<bool>         ("hasibmon", [pobj](){ return pobj->HasIbmon(); });
+  fGets.Add<bool>         ("haskw11l", [pobj](){ return pobj->HasKw11l(); });
+  fGets.Add<bool>         ("haskw11p", [pobj](){ return pobj->HasKw11p(); });
+  fGets.Add<bool>         ("hasiist",  [pobj](){ return pobj->HasIist(); });
   return;
 }
 

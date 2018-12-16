@@ -1,6 +1,6 @@
-// $Id: Rw11RdmaDisk.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11RdmaDisk.hpp 1083 2018-12-15 19:19:16Z mueller $
 //
-// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1083   1.0.2  for std::function setups: use rval ref and move
 // 2017-04-02   865   1.0.1  Dump(): add detail arg
 // 2015-01-04   627   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -35,8 +36,8 @@ namespace Retro {
 
   class Rw11RdmaDisk : public Rw11Rdma {
     public:
-                    Rw11RdmaDisk(Rw11Cntl* pcntl, const precb_t& precb, 
-                                 const postcb_t& postcb);
+                    Rw11RdmaDisk(Rw11Cntl* pcntl, precb_t&& precb, 
+                                 postcb_t&& postcb);
                    ~Rw11RdmaDisk();
 
       void          QueueDiskRead(uint32_t addr, size_t size, uint16_t mode, 

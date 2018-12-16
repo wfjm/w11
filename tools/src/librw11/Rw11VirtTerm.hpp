@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTerm.hpp 1076 2018-12-02 12:45:49Z mueller $
+// $Id: Rw11VirtTerm.hpp 1083 2018-12-15 19:19:16Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1083   1.1.2  SetupRcvCallback(): use rval ref and move semantics
+// 2018-12-14  1081   1.1.1  use std::function instead of boost
 // 2018-12-02  1076   1.1    use unique_ptr for New()
 // 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2013-03-06   495   1.0    Initial version
@@ -28,8 +30,7 @@
 #define included_Retro_Rw11VirtTerm 1
 
 #include <memory>
-
-#include "boost/function.hpp"
+#include <functional>
 
 #include "Rw11Virt.hpp"
 
@@ -37,14 +38,14 @@ namespace Retro {
 
   class Rw11VirtTerm : public Rw11Virt {
     public:
-      typedef boost::function<bool(const uint8_t*, size_t)> rcvcbfo_t;
+      typedef std::function<bool(const uint8_t*, size_t)> rcvcbfo_t;
 
       explicit      Rw11VirtTerm(Rw11Unit* punit);
                    ~Rw11VirtTerm();
 
       virtual const std::string& ChannelId() const;
 
-      void          SetupRcvCallback(const rcvcbfo_t& rcvcbfo);
+      void          SetupRcvCallback(rcvcbfo_t&& rcvcbfo);
       virtual bool  Snd(const uint8_t* data, size_t count, RerrMsg& emsg) = 0;
 
       virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,

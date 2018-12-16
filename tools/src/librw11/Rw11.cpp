@@ -1,4 +1,4 @@
-// $Id: Rw11.cpp 1078 2018-12-08 14:19:03Z mueller $
+// $Id: Rw11.cpp 1082 2018-12-15 13:56:20Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2018-12-07  1078   1.1.2  use std::shared_ptr instead of boost
+// 2018-12-15  1082   1.1.3  use lambda instead of bind
+// 2018-12-09  1080   1.1.2  use std::shared_ptr instead of boost and range loop
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2014-12-30   625   1.1    adopt to Rlink V4 attn logic
 // 2013-03-06   495   1.0    Initial version
@@ -68,7 +69,8 @@ Rw11::~Rw11()
 void Rw11::SetServer(const std::shared_ptr<RlinkServer>& spserv)
 {
   fspServ = spserv;
-  fspServ->AddAttnHandler(boost::bind(&Rw11::AttnHandler, this, _1), 
+  fspServ->AddAttnHandler([this](RlinkServer::AttnArgs& args)
+                            { return AttnHandler(args); }, 
                           uint16_t(1)<<kLam, (void*)this);
   return;
 }
@@ -126,7 +128,7 @@ void Rw11::Dump(std::ostream& os, int ind, const char* text, int /*detail*/) con
   os << bl << "  fspServ:         " << fspServ.get() << endl;
   os << bl << "  fNCpu:           " << fNCpu << endl;
   os << bl << "  fspCpu[4]:       ";
-  for (size_t i=0; i<4; i++) os << fspCpu[i].get() << " ";
+  for (auto& o: fspCpu) os << o.get() << " ";
   os << endl;
   os << bl << "  fStarted:        " << fStarted << endl;
   return;

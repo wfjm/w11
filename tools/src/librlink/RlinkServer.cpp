@@ -1,4 +1,4 @@
-// $Id: RlinkServer.cpp 1079 2018-12-09 10:56:59Z mueller $
+// $Id: RlinkServer.cpp 1083 2018-12-15 19:19:16Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1083   2.2.7  for std::function setups: use rval ref and move
+// 2018-12-14  1081   2.2.6  use std::bind instead of boost
 // 2018-12-07  1078   2.2.5  use std::shared_ptr instead of boost
 // 2018-10-27  1059   2.2.4  coverity fixup (uncaught exception in dtor)
 // 2017-04-07   868   2.2.3  Dump(): add detail arg
@@ -34,7 +36,6 @@
 */
 
 #include "boost/thread/locks.hpp"
-#include "boost/bind.hpp"
 
 #include "librtools/Rexception.hpp"
 #include "librtools/RosFill.hpp"
@@ -76,7 +77,8 @@ RlinkServer::RlinkServer()
                         RlinkCommand::kStat_M_RbNak  |
                         RlinkCommand::kStat_M_RbErr);
 
-  fELoop.AddPollHandler(boost::bind(&RlinkServer::WakeupHandler, this, _1), 
+  fELoop.AddPollHandler([this](const pollfd& pfd)
+                          { return WakeupHandler(pfd); }, 
                         fWakeupEvent, POLLIN);
 
   // Statistic setup
@@ -135,7 +137,7 @@ void RlinkServer::SetConnect(const std::shared_ptr<RlinkConnect>& spconn)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RlinkServer::AddAttnHandler(const attnhdl_t& attnhdl, uint16_t mask,
+void RlinkServer::AddAttnHandler(attnhdl_t&& attnhdl, uint16_t mask,
                                  void* cdata)
 {
   if (mask == 0)
@@ -150,7 +152,7 @@ void RlinkServer::AddAttnHandler(const attnhdl_t& attnhdl, uint16_t mask,
                        "Bad args: duplicate handler");
     }
   }
-  fAttnDsc.push_back(AttnDsc(attnhdl, id));
+  fAttnDsc.emplace_back(move(attnhdl), id);
 
   return;
 }
@@ -205,10 +207,10 @@ void RlinkServer::RemoveAttnHandler(uint16_t mask, void* cdata)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void RlinkServer::QueueAction(const actnhdl_t& actnhdl)
+void RlinkServer::QueueAction(actnhdl_t&& actnhdl)
 {
   boost::lock_guard<RlinkConnect> lock(*fspConn);
-  fActnList.push_back(actnhdl);
+  fActnList.push_back(move(actnhdl));
   if (IsActiveOutside()) Wakeup();
   return;
 }
@@ -216,11 +218,10 @@ void RlinkServer::QueueAction(const actnhdl_t& actnhdl)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
  
-void RlinkServer::AddPollHandler(const pollhdl_t& pollhdl,
-                                        int fd, short events)
+void RlinkServer::AddPollHandler(pollhdl_t&& pollhdl, int fd, short events)
 {
   boost::lock_guard<RlinkConnect> lock(*fspConn);
-  fELoop.AddPollHandler(pollhdl, fd, events);
+  fELoop.AddPollHandler(move(pollhdl), fd, events);
   if (IsActiveOutside()) Wakeup();
   return;
 }
@@ -415,13 +416,14 @@ void RlinkServer::StartOrResume(bool resume)
   // setup poll handler for Rlink traffic
   int rlinkfd = fspConn->Port().FdRead();
   if (!fELoop.TestPollHandler(rlinkfd, POLLIN))
-    fELoop.AddPollHandler(boost::bind(&RlinkServer::RlinkHandler, this, _1), 
+    fELoop.AddPollHandler([this](const pollfd& pfd)
+                            { return RlinkHandler(pfd); }, 
                           rlinkfd, POLLIN);
   
   // and start server thread
   fELoop.UnStop();
-  fServerThread = boost::thread(boost::bind(&RlinkServerEventLoop::EventLoop,
-                                            &fELoop));
+  fServerThread = boost::thread(std::bind(&RlinkServerEventLoop::EventLoop,
+                                          &fELoop));
 
   if (resume) {
     RerrMsg emsg;

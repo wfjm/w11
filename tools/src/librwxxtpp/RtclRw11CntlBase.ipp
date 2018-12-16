@@ -1,4 +1,4 @@
-// $Id: RtclRw11CntlBase.ipp 1078 2018-12-08 14:19:03Z mueller $
+// $Id: RtclRw11CntlBase.ipp 1082 2018-12-15 13:56:20Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1082   1.2.2  use lambda instead of bind
 // 2018-12-07  1078   1.2.1  use std::shared_ptr instead of boost
 // 2017-04-16   877   1.2    add class in ctor
 // 2017-02-04   848   1.1    add in fGets: found,pdataint,pdatarem
@@ -45,22 +46,22 @@ inline RtclRw11CntlBase<TC>::RtclRw11CntlBase(const std::string& type,
   : RtclRw11Cntl(type,cclass),
     fspObj(new TC())
 {
-  AddMeth("bootcode", boost::bind(&RtclRw11CntlBase<TC>::M_bootcode,this, _1));
+  AddMeth("bootcode", [this](RtclArgs& args){ return M_bootcode(args); });
 
   TC* pobj = fspObj.get();
-  fGets.Add<const std::string&>("type",  boost::bind(&TC::Type, pobj));
-  fGets.Add<const std::string&>("name",  boost::bind(&TC::Name, pobj));
-  fGets.Add<uint16_t>    ("base",  boost::bind(&TC::Base, pobj));
-  fGets.Add<int>         ("lam",   boost::bind(&TC::Lam,  pobj));  
-  fGets.Add<bool>        ("found", boost::bind(&TC::ProbeFound, pobj));  
-  fGets.Add<uint16_t>    ("pdataint", boost::bind(&TC::ProbeDataInt, pobj));  
-  fGets.Add<uint16_t>    ("pdatarem", boost::bind(&TC::ProbeDataRem, pobj));  
-  fGets.Add<bool>        ("enable",boost::bind(&TC::Enable, pobj));  
-  fGets.Add<bool>        ("started",boost::bind(&TC::IsStarted, pobj));  
-  fGets.Add<uint32_t>    ("trace", boost::bind(&TC::TraceLevel,pobj));  
-
-  fSets.Add<bool>        ("enable", boost::bind(&TC::SetEnable,pobj,_1));  
-  fSets.Add<uint32_t>    ("trace", boost::bind(&TC::SetTraceLevel,pobj,_1));  
+  fGets.Add<const std::string&>("type",  [pobj](){ return pobj->Type(); });
+  fGets.Add<const std::string&>("name",  [pobj](){ return pobj->Name(); });
+  fGets.Add<uint16_t>    ("base",     [pobj](){ return pobj->Base(); });
+  fGets.Add<int>         ("lam",      [pobj](){ return pobj->Lam(); });
+  fGets.Add<bool>        ("found",    [pobj](){ return pobj->ProbeFound(); });
+  fGets.Add<uint16_t>    ("pdataint", [pobj](){ return pobj->ProbeDataInt(); });
+  fGets.Add<uint16_t>    ("pdatarem", [pobj](){ return pobj->ProbeDataRem(); });
+  fGets.Add<bool>        ("enable",   [pobj](){ return pobj->Enable(); });
+  fGets.Add<bool>        ("started",  [pobj](){ return pobj->IsStarted(); });
+  fGets.Add<uint32_t>    ("trace",    [pobj](){ return pobj->TraceLevel(); });
+  
+  fSets.Add<bool>     ("enable", [pobj](bool v){ pobj->SetEnable(v); });
+  fSets.Add<uint32_t> ("trace",  [pobj](uint32_t v){ pobj->SetTraceLevel(v); });
 }
 
 //------------------------------------------+-----------------------------------

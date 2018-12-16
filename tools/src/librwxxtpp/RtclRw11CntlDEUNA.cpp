@@ -1,6 +1,6 @@
-// $Id: RtclRw11CntlDEUNA.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclRw11CntlDEUNA.cpp 1082 2018-12-15 13:56:20Z mueller $
 //
-// Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1082   1.0.1  use lambda instead of bind
 // 2017-04-16   878   1.0    Initial version
 // 2014-06-09   561   0.1    First draft 
 // ---------------------------------------------------------------------------
@@ -46,23 +47,19 @@ RtclRw11CntlDEUNA::RtclRw11CntlDEUNA()
   : RtclRw11CntlBase<Rw11CntlDEUNA>("Rw11CntlDEUNA","ether")
 {
   Rw11CntlDEUNA* pobj = &Obj();
-  fGets.Add<string>        ("dpa", 
-                            boost::bind(&Rw11CntlDEUNA::MacDefault,  pobj));
-  fGets.Add<const Rtime&>  ("rxpoll", 
-                            boost::bind(&Rw11CntlDEUNA::RxPollTime,  pobj));
-  fGets.Add<size_t>       ("rxqlim", 
-                            boost::bind(&Rw11CntlDEUNA::RxQueLimit,  pobj));
-  fGets.Add<bool>         ("run", 
-                            boost::bind(&Rw11CntlDEUNA::Running,     pobj));
+  fGets.Add<string>        ("dpa",    [pobj](){ return pobj->MacDefault(); });
+  fGets.Add<const Rtime&>  ("rxpoll", [pobj](){ return pobj->RxPollTime(); });
+  fGets.Add<size_t>        ("rxqlim", [pobj](){ return pobj->RxQueLimit(); });
+  fGets.Add<bool>          ("run",    [pobj](){ return pobj->Running(); });
 
   fSets.Add<const string&> ("type",  
-                            boost::bind(&Rw11CntlDEUNA::SetType,pobj, _1));
+                            [pobj](const string& v){ pobj->SetType(v); });
   fSets.Add<const string&> ("dpa",  
-                            boost::bind(&Rw11CntlDEUNA::SetMacDefault,pobj, _1));
+                            [pobj](const string& v){ pobj->SetMacDefault(v); });
   fSets.Add<const Rtime&>  ("rxpoll",  
-                            boost::bind(&Rw11CntlDEUNA::SetRxPollTime,pobj, _1));
+                            [pobj](const Rtime& v){ pobj->SetRxPollTime(v); });
   fSets.Add<size_t>        ("rxqlim",  
-                            boost::bind(&Rw11CntlDEUNA::SetRxQueLimit,pobj, _1));
+                            [pobj](size_t v){ pobj->SetRxQueLimit(v); });
 }
 
 //------------------------------------------+-----------------------------------

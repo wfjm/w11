@@ -1,4 +1,4 @@
-// $Id: RtclAttnShuttle.cpp 1059 2018-10-27 10:34:16Z mueller $
+// $Id: RtclAttnShuttle.cpp 1082 2018-12-15 13:56:20Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1082   1.1.2  use lambda instead of bind
 // 2018-10-27  1059   1.1.1  coverity fixup (uncaught exception in dtor)
 // 2014-12-30   625   1.1    adopt to Rlink V4 attn logic
 // 2014-11-08   602   1.0.3  cast int first to ptrdiff_t, than to ClientData
@@ -28,8 +29,6 @@
  */
 
 #include <errno.h>
-
-#include "boost/bind.hpp"
 
 #include "librtools/Rexception.hpp"
 #include "librtools/Rtools.hpp"
@@ -82,7 +81,8 @@ RtclAttnShuttle::~RtclAttnShuttle()
 void RtclAttnShuttle::Add(RlinkServer* pserv, Tcl_Interp* interp)
 {
   // connect to RlinkServer
-  pserv->AddAttnHandler(boost::bind(&RtclAttnShuttle::AttnHandler, this, _1),
+  pserv->AddAttnHandler([this](RlinkServer::AttnArgs& args)
+                            { return AttnHandler(args); },
                         fMask, (void*)this);
   fpServ = pserv;
 

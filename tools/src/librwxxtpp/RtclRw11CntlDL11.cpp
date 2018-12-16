@@ -1,6 +1,6 @@
-// $Id: RtclRw11CntlDL11.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclRw11CntlDL11.cpp 1082 2018-12-15 13:56:20Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1082   1.1.1  use lambda instead of bind
 // 2017-04-16   878   1.1    add class in ctor; derive from RtclRw11CntlTermBase
 // 2013-05-04   516   1.0.1  add RxRlim support (receive interrupt rate limit)
 // 2013-03-06   495   1.0    Initial version
@@ -46,10 +47,8 @@ RtclRw11CntlDL11::RtclRw11CntlDL11()
   : RtclRw11CntlTermBase<Rw11CntlDL11>("Rw11CntlDL11","term")
 {
   Rw11CntlDL11* pobj = &Obj();
-  fGets.Add<uint16_t>  ("rxrlim", 
-                        boost::bind(&Rw11CntlDL11::RxRlim,  pobj));
-  fSets.Add<uint16_t>  ("rxrlim",
-                        boost::bind(&Rw11CntlDL11::SetRxRlim,pobj, _1));
+  fGets.Add<uint16_t> ("rxrlim", [pobj](){ return pobj->RxRlim(); });
+  fSets.Add<uint16_t> ("rxrlim", [pobj](uint16_t v){ pobj->SetRxRlim(v); });
 }
 
 //------------------------------------------+-----------------------------------

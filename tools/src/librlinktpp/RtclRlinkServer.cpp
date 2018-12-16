@@ -1,4 +1,4 @@
-// $Id: RtclRlinkServer.cpp 1076 2018-12-02 12:45:49Z mueller $
+// $Id: RtclRlinkServer.cpp 1082 2018-12-15 13:56:20Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-14  1081   1.2.1  use std::bind instead of boost
 // 2018-12-01  1076   1.2    use unique_ptr
 // 2018-11-16  1070   1.1.2  use auto; use range loop
 // 2017-04-02   865   1.1.1  M_dump: use GetArgsDump and Dump detail
@@ -38,8 +39,6 @@
 #include <vector>
 #include <string>
 #include <memory>
-
-#include "boost/bind.hpp"
 
 #include "librtools/RosPrintBvi.hpp"
 #include "librtcltools/Rtcl.hpp"
@@ -70,36 +69,35 @@ RtclRlinkServer::RtclRlinkServer(Tcl_Interp* interp, const char* name)
     fGets(),
     fSets()
 {
-  AddMeth("server",   boost::bind(&RtclRlinkServer::M_server,  this, _1));
-  AddMeth("attn",     boost::bind(&RtclRlinkServer::M_attn,    this, _1));
-  AddMeth("stats",    boost::bind(&RtclRlinkServer::M_stats,   this, _1));
-  AddMeth("print",    boost::bind(&RtclRlinkServer::M_print,   this, _1));
-  AddMeth("dump",     boost::bind(&RtclRlinkServer::M_dump,    this, _1));
-  AddMeth("get",      boost::bind(&RtclRlinkServer::M_get,     this, _1));
-  AddMeth("set",      boost::bind(&RtclRlinkServer::M_set,     this, _1));
-  AddMeth("$default", boost::bind(&RtclRlinkServer::M_default, this, _1));
+  AddMeth("server",   [this](RtclArgs& args){ return M_server(args); });
+  AddMeth("attn",     [this](RtclArgs& args){ return M_attn(args); });
+  AddMeth("stats",    [this](RtclArgs& args){ return M_stats(args); });
+  AddMeth("print",    [this](RtclArgs& args){ return M_print(args); });
+  AddMeth("dump",     [this](RtclArgs& args){ return M_dump(args); });
+  AddMeth("get",      [this](RtclArgs& args){ return M_get(args); });
+  AddMeth("set",      [this](RtclArgs& args){ return M_set(args); });
+  AddMeth("$default", [this](RtclArgs& args){ return M_default(args); });
 
   // attributes of RlinkConnect
   RlinkServer* pobj  = &Obj();
-  fGets.Add<uint32_t>  ("tracelevel", 
-                        boost::bind(&RlinkServer::TraceLevel, pobj));
+  fGets.Add<uint32_t>  ("tracelevel", [pobj](){ return pobj->TraceLevel(); });
 
   fSets.Add<uint32_t>  ("tracelevel", 
-                        boost::bind(&RlinkServer::SetTraceLevel, pobj, _1));
+                        [pobj](uint32_t v){ pobj->SetTraceLevel(v); });
 
   // attributes of buildin RlinkContext
   RlinkContext* pcntx = &Obj().Context();
-  fGets.Add<bool>      ("statchecked", 
-                        boost::bind(&RlinkContext::StatusIsChecked, pcntx));
-  fGets.Add<uint8_t>   ("statvalue", 
-                        boost::bind(&RlinkContext::StatusValue, pcntx));
-  fGets.Add<uint8_t>   ("statmask", 
-                        boost::bind(&RlinkContext::StatusMask, pcntx));
+  fGets.Add<bool>      ("statchecked",
+                        [pcntx](){ return pcntx->StatusIsChecked(); });
+  fGets.Add<uint8_t>   ("statvalue",
+                        [pcntx](){ return pcntx->StatusValue(); });
+  fGets.Add<uint8_t>   ("statmask",
+                        [pcntx](){ return pcntx->StatusMask(); });
 
   fSets.Add<uint8_t>   ("statvalue", 
-                        boost::bind(&RlinkContext::SetStatusValue, pcntx, _1));
+                        [pcntx](uint8_t v){ pcntx->SetStatusValue(v); });
   fSets.Add<uint8_t>   ("statmask", 
-                        boost::bind(&RlinkContext::SetStatusMask, pcntx, _1));
+                        [pcntx](uint8_t v){ pcntx->SetStatusMask(v); });
 }
 
 //------------------------------------------+-----------------------------------

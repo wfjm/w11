@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDEUNA.cpp 1080 2018-12-09 20:30:33Z mueller $
+// $Id: Rw11CntlDEUNA.cpp 1082 2018-12-15 13:56:20Z mueller $
 //
 // Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-15  1082   0.5.5  use lambda instead of bind
 // 2018-12-09  1080   0.5.4  use HasVirt(); Virt() returns ref
 // 2018-12-08  1078   0.5.3  BUGFIX: Start(Tx|Rx)Ring, was broken in r1049
 //                             when fixing -Wunused-variable warnings
@@ -32,8 +33,6 @@
 #include <unistd.h>
 
 #include <sstream>
-
-#include "boost/bind.hpp"
 
 #include "librtools/RosFill.hpp"
 #include "librtools/RosPrintBvi.hpp"
@@ -353,7 +352,8 @@ void Rw11CntlDEUNA::Start()
   UnitSetup(0);
 
   // add attn handler
-  Server().AddAttnHandler(boost::bind(&Rw11CntlDEUNA::AttnHandler, this, _1), 
+  Server().AddAttnHandler([this](RlinkServer::AttnArgs& args)
+                            { return AttnHandler(args); }, 
                           uint16_t(1)<<fLam, (void*)this);
   fStarted = true;
 
@@ -1008,8 +1008,8 @@ void Rw11CntlDEUNA::SetRunning(bool run)
   if (run) {                                // start
     if (! fRxPollTimer.IsOpen()) {            // start poll timer if needed 
       fRxPollTimer.Open();
-      Server().AddPollHandler(boost::bind(&Rw11CntlDEUNA::RxPollHandler,
-                                          this, _1), 
+      Server().AddPollHandler([this](const pollfd& pfd)
+                                { return RxPollHandler(pfd); }, 
                               fRxPollTimer.Fd(), POLLIN);
     }
 
@@ -1400,8 +1400,7 @@ void Rw11CntlDEUNA::StartTxRing(const uint16_t dsccur[4],
   
   if (fTxDscCurPC[2] & kTXR2_M_OWN) {       // pending tx frames ?
     fTxRingState = kStateTxBusy;
-    Server().QueueAction(boost::bind(&Rw11CntlDEUNA::TxRingHandler, 
-                                     this));
+    Server().QueueAction([this](){ return TxRingHandler(); });
   }
   return;
 }
@@ -1444,8 +1443,7 @@ void Rw11CntlDEUNA::StartRxRing(const uint16_t dsccur[4],
   if (!fRxBufQueue.empty() &&               // if pending rx frames
       fRxDscCur[2] & kRXR2_M_OWN) {         // and buffer available
     fRxRingState = kStateRxBusy;
-    Server().QueueAction(boost::bind(&Rw11CntlDEUNA::RxRingHandler, 
-                                     this));
+    Server().QueueAction([this](){ return RxRingHandler(); });
   }
   return;
 }

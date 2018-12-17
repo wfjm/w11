@@ -1,6 +1,6 @@
-// $Id: RtclContext.hpp 1066 2018-11-10 11:21:53Z mueller $
+// $Id: RtclContext.hpp 1084 2018-12-16 12:23:53Z mueller $
 //
-// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-16  1084   1.0.5  use =delete for noncopyable instead of boost
 // 2017-02-04   866   1.0.4  rename fMapContext -> fContextMap
 // 2013-01-12   474   1.0.3  add FindProxy() method
 // 2011-04-24   380   1.0.2  use boost::noncopyable (instead of private dcl's)
@@ -35,14 +36,12 @@
 #include <set>
 #include <map>
 
-#include "boost/utility.hpp"
-
 #include "RtclClassBase.hpp"
 #include "RtclProxyBase.hpp"
 
 namespace Retro {
 
-  class RtclContext : private boost::noncopyable {
+  class RtclContext {
     public:
       typedef std::set<RtclClassBase*> cset_t;
       typedef std::set<RtclProxyBase*> pset_t;
@@ -50,6 +49,9 @@ namespace Retro {
 
       explicit      RtclContext(Tcl_Interp* interp);
       virtual      ~RtclContext();
+    
+                    RtclContext(const RtclContext&) = delete;  // noncopyable 
+      RtclContext&  operator=(const RtclContext&) = delete;    // noncopyable
 
       void          RegisterClass(RtclClassBase* pobj);
       void          UnRegisterClass(RtclClassBase* pobj);

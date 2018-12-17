@@ -1,4 +1,4 @@
-// $Id: Rw11.hpp 1078 2018-12-08 14:19:03Z mueller $
+// $Id: Rw11.hpp 1084 2018-12-16 12:23:53Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-16  1084   1.1.3  use =delete for noncopyable instead of boost
 // 2018-12-07  1078   1.1.2  use std::shared_ptr instead of boost
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2014-12-29   624   1.1    adopt to Rlink V4 attn logic
@@ -31,19 +32,20 @@
 
 #include <memory>
 
-#include "boost/utility.hpp"
-
 #include "librlink/RlinkServer.hpp"
 
 namespace Retro {
 
   class Rw11Cpu;                            // forw decl to avoid circular incl
 
-  class Rw11 : private boost::noncopyable {
+  class Rw11 {
     public:
 
                     Rw11();
       virtual      ~Rw11();
+ 
+                    Rw11(const Rw11&) = delete;       // noncopyable 
+      Rw11&         operator=(const Rw11&) = delete;  // noncopyable
 
       void          SetServer(const std::shared_ptr<RlinkServer>& spserv);
       const std::shared_ptr<RlinkServer>& ServerSPtr() const;

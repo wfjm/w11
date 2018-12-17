@@ -1,4 +1,4 @@
-// $Id: ReventLoop.hpp 1083 2018-12-15 19:19:16Z mueller $
+// $Id: ReventLoop.hpp 1084 2018-12-16 12:23:53Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-16  1084   1.2.5  use =delete for noncopyable instead of boost
 // 2018-12-15  1083   1.2.4  AddPollHandler(): use rval ref and move
 // 2018-12-14  1081   1.2.3  use std::function instead of boost
 // 2018-12-07  1078   1.2.2  use std::shared_ptr instead of boost
@@ -39,20 +40,22 @@
 #include <memory>
 #include <functional>
 
-#include "boost/utility.hpp"
 #include "boost/thread/mutex.hpp"
 
 #include "librtools/RlogFile.hpp"
 
 namespace Retro {
 
-  class ReventLoop : private boost::noncopyable {
+  class ReventLoop {
     public:
       typedef std::function<int(const pollfd&)> pollhdl_t;
 
                     ReventLoop();
       virtual      ~ReventLoop();
 
+                    ReventLoop(const ReventLoop&) = delete; // noncopyable 
+      ReventLoop&   operator=(const ReventLoop&) = delete;  // noncopyable
+ 
       void          AddPollHandler(pollhdl_t&& pollhdl,
                                int fd, short events=POLLIN);
       bool          TestPollHandler(int fd, short events=POLLIN);

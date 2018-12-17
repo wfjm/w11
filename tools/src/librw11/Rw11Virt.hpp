@@ -1,6 +1,6 @@
-// $Id: Rw11Virt.hpp 1052 2018-09-30 08:10:52Z mueller $
+// $Id: Rw11Virt.hpp 1084 2018-12-16 12:23:53Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-16  1084   1.1.3  use =delete for noncopyable instead of boost
 // 2017-04-15   875   1.1.2  add Url() const getter
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2017-04-02   864   1.1    add fWProt,WProt()
@@ -32,8 +33,6 @@
 #include <string>
 #include <iostream>
 
-#include "boost/utility.hpp"
-
 #include "librtools/RparseUrl.hpp"
 #include "librtools/RerrMsg.hpp"
 #include "librtools/Rstats.hpp"
@@ -41,10 +40,13 @@
 
 namespace Retro {
 
-  class Rw11Virt : private boost::noncopyable {
+  class Rw11Virt {
     public:
       explicit      Rw11Virt(Rw11Unit* punit);
       virtual      ~Rw11Virt();
+
+                    Rw11Virt(const Rw11Virt&) = delete;   // noncopyable 
+      Rw11Virt&     operator=(const Rw11Virt&) = delete;  // noncopyable
 
       Rw11Unit&     Unit() const;
       Rw11Cntl&     Cntl() const;

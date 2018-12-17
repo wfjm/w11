@@ -1,4 +1,4 @@
-// $Id: RtclCmdBase.hpp 1083 2018-12-15 19:19:16Z mueller $
+// $Id: RtclCmdBase.hpp 1084 2018-12-16 12:23:53Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-16  1084   1.1.4  use =delete for noncopyable instead of boost
 // 2018-12-15  1083   1.1.3  AddMeth(): use rval ref and move semantics
 // 2018-12-14  1081   1.1.2  use std::function instead of boost
 // 2017-04-02   865   1.1.1  add GetArgsDump()
@@ -36,13 +37,11 @@
 #include <map>
 #include <functional>
 
-#include "boost/utility.hpp"
-
 #include "RtclArgs.hpp"
 
 namespace Retro {
 
-  class RtclCmdBase : private boost::noncopyable {
+  class RtclCmdBase {
     public:
       typedef std::function<int(RtclArgs&)> methfo_t;
 
@@ -52,6 +51,9 @@ namespace Retro {
 
                     RtclCmdBase();
       virtual      ~RtclCmdBase();
+
+                    RtclCmdBase(const RtclCmdBase&) = delete;   // noncopyable 
+      RtclCmdBase&  operator=(const RtclCmdBase&) = delete;     // noncopyable
 
       int           DispatchCmd(RtclArgs& args);
       void          AddMeth(const std::string& name, methfo_t&& methfo);

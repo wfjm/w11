@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.hpp 1078 2018-12-08 14:19:03Z mueller $
+// $Id: Rw11Cpu.hpp 1084 2018-12-16 12:23:53Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-16  1084   1.2.13 use =delete for noncopyable instead of boost
 // 2018-12-07  1078   1.2.12 use std::shared_ptr instead of boost
 // 2018-09-23  1050   1.2.11 add HasPcnt()
 // 2017-04-07   868   1.2.10 Dump(): add detail arg
@@ -47,7 +48,6 @@
 #include <memory>
 #include <map>
 
-#include "boost/utility.hpp"
 #include "boost/thread/locks.hpp"
 #include "boost/thread/condition_variable.hpp"
 
@@ -65,12 +65,15 @@ namespace Retro {
 
   class Rw11Cntl;                           // forw decl to avoid circular incl
 
-  class Rw11Cpu : public Rbits, private boost::noncopyable {
+  class Rw11Cpu : public Rbits {
     public:
       typedef std::map<std::string, std::shared_ptr<Rw11Cntl>> cmap_t;
 
       explicit      Rw11Cpu(const std::string& type);
       virtual      ~Rw11Cpu();
+ 
+                    Rw11Cpu(const Rw11Cpu&) = delete;    // noncopyable 
+      Rw11Cpu&      operator=(const Rw11Cpu&) = delete;  // noncopyable
 
       void          Setup(Rw11* pw11);
       Rw11&         W11() const;

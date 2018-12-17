@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.hpp 1079 2018-12-09 10:56:59Z mueller $
+// $Id: RlinkConnect.hpp 1084 2018-12-16 12:23:53Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-16  1084   2.8.1  use =delete for noncopyable instead of boost
 // 2018-12-08  1079   2.8    add HasPort(); return ref for Port()
 // 2018-12-07  1078   2.7.1  use std::shared_ptr instead of boost
 // 2018-12-01  1076   2.7    use unique_ptr instead of scoped_ptr
@@ -58,7 +59,6 @@
 #include <memory>
 #include <ostream>
 
-#include "boost/utility.hpp"
 #include "boost/thread/recursive_mutex.hpp"
 
 #include "librtools/RerrMsg.hpp"
@@ -79,11 +79,14 @@ namespace Retro {
 
   class RlinkServer;                        // forw decl to avoid circular incl
 
-  class RlinkConnect : public Rbits, private boost::noncopyable {
+  class RlinkConnect : public Rbits {
     public:
 
                     RlinkConnect();
                    ~RlinkConnect();
+
+                    RlinkConnect(const RlinkConnect&) = delete;  // noncopyable 
+      RlinkConnect& operator=(const RlinkConnect&) = delete;     // noncopyable
 
       bool          Open(const std::string& name, RerrMsg& emsg);
       void          Close();

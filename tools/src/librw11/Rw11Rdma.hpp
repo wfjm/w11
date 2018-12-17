@@ -1,4 +1,4 @@
-// $Id: Rw11Rdma.hpp 1083 2018-12-15 19:19:16Z mueller $
+// $Id: Rw11Rdma.hpp 1084 2018-12-16 12:23:53Z mueller $
 //
 // Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-16  1084   1.1.4  use =delete for noncopyable instead of boost
 // 2018-12-15  1083   1.1.3  for std::function setups: use rval ref and move
 // 2018-12-14  1081   1.1.2  use std::function instead of boost
 // 2017-04-02   865   1.1.1  Dump(): add detail arg
@@ -31,8 +32,6 @@
 
 #include <functional>
 
-#include "boost/utility.hpp"
-
 #include "librtools/Rstats.hpp"
 #include "librtools/RerrMsg.hpp"
 
@@ -41,7 +40,7 @@
 
 namespace Retro {
 
-  class Rw11Rdma : public Rbits, private boost::noncopyable {
+  class Rw11Rdma : public Rbits {
     public:
 
       typedef std::function<void(int,size_t,size_t,
@@ -53,6 +52,9 @@ namespace Retro {
                              postcb_t&& postcb);
       virtual      ~Rw11Rdma();
 
+                    Rw11Rdma(const Rw11Rdma&) = delete;   // noncopyable 
+      Rw11Rdma&     operator=(const Rw11Rdma&) = delete;  // noncopyable
+    
       Rw11Cntl&     CntlBase() const;
       Rw11Cpu&      Cpu() const;
       Rw11&         W11() const;

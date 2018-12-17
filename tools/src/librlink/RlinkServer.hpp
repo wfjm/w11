@@ -1,4 +1,4 @@
-// $Id: RlinkServer.hpp 1083 2018-12-15 19:19:16Z mueller $
+// $Id: RlinkServer.hpp 1084 2018-12-16 12:23:53Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-16  1084   2.2.5  use =delete for noncopyable instead of boost
 // 2018-12-15  1083   2.2.4  for std::function setups: use rval ref and move
 // 2018-12-14  1081   2.2.3  use std::function instead of boost
 // 2018-12-07  1078   2.2.2  use std::shared_ptr instead of boost
@@ -42,7 +43,6 @@
 #include <memory>
 #include <functional>
 
-#include "boost/utility.hpp"
 #include "boost/thread/thread.hpp"
 
 #include "librtools/Rstats.hpp"
@@ -54,7 +54,7 @@
 
 namespace Retro {
 
-  class RlinkServer : private boost::noncopyable {
+  class RlinkServer {
     public:
 
       struct AttnArgs {
@@ -72,6 +72,9 @@ namespace Retro {
 
       explicit      RlinkServer();
       virtual      ~RlinkServer();
+    
+                    RlinkServer(const RlinkServer&) = delete;  // noncopyable 
+      RlinkServer&  operator=(const RlinkServer&) = delete;    // noncopyable
 
       void          SetConnect(const std::shared_ptr<RlinkConnect>& spconn);
       const std::shared_ptr<RlinkConnect>& ConnectSPtr() const;

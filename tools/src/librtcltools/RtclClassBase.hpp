@@ -1,6 +1,6 @@
-// $Id: RtclClassBase.hpp 1052 2018-09-30 08:10:52Z mueller $
+// $Id: RtclClassBase.hpp 1084 2018-12-16 12:23:53Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-16  1084   1.0.2  use =delete for noncopyable instead of boost
 // 2011-04-24   380   1.0.1  use boost::noncopyable (instead of private dcl's)
 // 2011-02-20   363   1.0    Initial version
 // 2011-02-11   360   0.1    First draft
@@ -26,17 +27,18 @@
 #ifndef included_Retro_RtclClassBase
 #define included_Retro_RtclClassBase 1
 
-#include "boost/utility.hpp"
-
 #include "tcl.h"
 
 namespace Retro {
 
-  class RtclClassBase : private boost::noncopyable {
+  class RtclClassBase {
     public:
 
       explicit      RtclClassBase(const std::string& type = std::string());
-      virtual       ~RtclClassBase();
+      virtual      ~RtclClassBase();
+    
+                    RtclClassBase(const RtclClassBase&) = delete; // noncopyable 
+      RtclClassBase& operator=(const RtclClassBase&) = delete;    // noncopyable
 
       const std::string& Type() const;
       Tcl_Command        Token() const;

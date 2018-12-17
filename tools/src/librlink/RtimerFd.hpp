@@ -1,6 +1,6 @@
-// $Id: RtimerFd.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtimerFd.hpp 1084 2018-12-16 12:23:53Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-16  1084   1.0.1  use =delete for noncopyable instead of boost
 // 2017-02-18   852   1.0    Initial version
 // 2013-01-11   473   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -28,17 +29,18 @@
 
 #include <time.h>
 
-#include "boost/utility.hpp"
-
 #include "librtools/Rtime.hpp"
 
 
 namespace Retro {
 
-  class RtimerFd : private boost::noncopyable {
+  class RtimerFd {
     public:
                     RtimerFd();
       virtual      ~RtimerFd();
+    
+                    RtimerFd(const RtimerFd&) = delete;   // noncopyable 
+      RtimerFd&     operator=(const RtimerFd&) = delete;  // noncopyable
 
       void          Open(clockid_t clkid=CLOCK_MONOTONIC);
       bool          IsOpen() const;

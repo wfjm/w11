@@ -1,4 +1,4 @@
-// $Id: RlogFileCatalog.hpp 1078 2018-12-08 14:19:03Z mueller $
+// $Id: RlogFileCatalog.hpp 1084 2018-12-16 12:23:53Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-16  1084   1.0.2  use =delete for noncopyable instead of boost
 // 2018-12-07  1078   1.0.1  use std::shared_ptr instead of boost
 // 2013-02-22   491   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -28,13 +29,11 @@
 #include <map>
 #include <memory>
 
-#include "boost/utility.hpp"
-
 #include "RlogFile.hpp"
 
 namespace Retro {
 
-  class RlogFileCatalog : private boost::noncopyable {
+  class RlogFileCatalog {
     public:
 
       static RlogFileCatalog&  Obj();    
@@ -46,7 +45,10 @@ namespace Retro {
                     RlogFileCatalog();
                    ~RlogFileCatalog();
 
-    protected:
+                    RlogFileCatalog(const RlogFileCatalog&) = delete; // noncopy 
+      RlogFileCatalog& operator=(const RlogFileCatalog&) = delete;    // noncopy
+
+  protected:
       typedef std::map<std::string, std::shared_ptr<RlogFile>> map_t;
 
       map_t         fMap;                   //!< name->rlogfile map

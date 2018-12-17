@@ -1,6 +1,6 @@
-// $Id: RlogFile.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlogFile.hpp 1084 2018-12-16 12:23:53Z mueller $
 //
-// Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-16  1084   2.2.1  use =delete for noncopyable instead of boost
 // 2015-01-08   631   2.2    Open(): now with RerrMsg and cout/cerr support
 // 2013-02-23   492   2.1    add Name(), keep log file name; add Dump()
 // 2013-02-22   491   2.0    add Write(),IsNew(), RlogMsg iface; use lockable
@@ -32,7 +33,6 @@
 #include <ostream>
 #include <fstream>
 
-#include "boost/utility.hpp"
 #include "boost/thread/mutex.hpp"
 
 #include "RerrMsg.hpp"
@@ -41,11 +41,14 @@ namespace Retro {
 
   class RlogMsg;                            // forw decl to avoid circular incl
 
-  class RlogFile : private boost::noncopyable {
+  class RlogFile {
     public:
                     RlogFile();
       explicit      RlogFile(std::ostream* os, const std::string& name = "");
                    ~RlogFile();
+
+                    RlogFile(const RlogFile&) = delete;   // noncopyable 
+      RlogFile&     operator=(const RlogFile&) = delete;  // noncopyable
 
       bool          IsNew() const;
       bool          Open(std::string name, RerrMsg& emsg);

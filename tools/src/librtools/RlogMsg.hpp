@@ -1,6 +1,6 @@
-// $Id: RlogMsg.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlogMsg.hpp 1084 2018-12-16 12:23:53Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-16  1084   1.0.1  use =delete for noncopyable instead of boost
 // 2013-02-22   490   1.0    Initial version
 // ---------------------------------------------------------------------------
 
@@ -26,18 +27,19 @@
 
 #include <sstream>
 
-#include "boost/utility.hpp"
-
 namespace Retro {
 
   class RlogFile;                           // forw decl to avoid circular incl
 
-  class RlogMsg : private boost::noncopyable {
+  class RlogMsg {
     public:
       explicit      RlogMsg(char tag = 0);
                     RlogMsg(RlogFile& lfile, char tag = 0);
                    ~RlogMsg();
 
+                    RlogMsg(const RlogMsg&) = delete;    // noncopyable 
+      RlogMsg&      operator=(const RlogMsg&) = delete;  // noncopyable
+    
       void          SetTag(char tag);
       void          SetString(const std::string& str);
 

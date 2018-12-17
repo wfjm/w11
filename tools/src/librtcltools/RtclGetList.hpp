@@ -1,4 +1,4 @@
-// $Id: RtclGetList.hpp 1083 2018-12-15 19:19:16Z mueller $
+// $Id: RtclGetList.hpp 1084 2018-12-16 12:23:53Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-16  1084   1.2.3  use =delete for noncopyable instead of boost
 // 2018-12-15  1083   1.2.2  Add(): use rval ref and move semantics
 // 2018-12-14  1081   1.2.1  use std::function instead of boost
 // 2018-12-01  1076   1.2    use unique_ptr
@@ -35,19 +36,20 @@
 #include <map>
 #include <functional>
 
-#include "boost/utility.hpp"
-
 #include "RtclGet.hpp"
 #include "librtcltools/RtclArgs.hpp"
 
 namespace Retro {
 
-  class RtclGetList : private boost::noncopyable {
+  class RtclGetList {
     public:
       typedef std::unique_ptr<RtclGetBase> get_uptr_t;
     
                     RtclGetList();
       virtual      ~RtclGetList();
+    
+                    RtclGetList(const RtclGetList&) = delete;   // noncopyable 
+      RtclGetList&  operator=(const RtclGetList&) = delete;     // noncopyable
 
       void          Add(const std::string& name, get_uptr_t&& upget);
 

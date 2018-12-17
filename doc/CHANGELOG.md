@@ -107,6 +107,7 @@ The full set of tests is only run for tagged releases.
     - use std::shared_ptr instead of boost
     - use std::function instead of boost
     - use std::bind or in most cases a lambda instead of boost::bind
+    - use =delete for noncopyable instead of boost
   - reduce usage of pointers in APIs
     - add HasPort/HasVirt(); Port() and Virt() return reference
 - rw11/shell.tcl: add workaround for tclreadline and `after` interference

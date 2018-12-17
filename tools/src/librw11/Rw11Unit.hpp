@@ -1,6 +1,6 @@
-// $Id: Rw11Unit.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11Unit.hpp 1084 2018-12-16 12:23:53Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-16  1084   1.1.4  use =delete for noncopyable instead of boost
 // 2017-04-15   875   1.1.3  add VirtBase(), IsAttached(), AttachUrl()
 // 2017-04-07   868   1.1.2  Dump(): add detail arg
 // 2015-05-13   680   1.1.1  add Enabled()
@@ -33,8 +34,6 @@
 
 #include <string>
 
-#include "boost/utility.hpp"
-
 #include "librtools/Rstats.hpp"
 #include "librtools/RerrMsg.hpp"
 #include "librlink/RlinkServer.hpp"
@@ -46,11 +45,14 @@ namespace Retro {
 
   class Rw11Virt;                           // forw decl to avoid circular incl
 
-  class Rw11Unit : public Rbits, private boost::noncopyable {
+  class Rw11Unit : public Rbits {
     public:
 
                     Rw11Unit(Rw11Cntl* pcntl, size_t index);
       virtual      ~Rw11Unit();
+
+                    Rw11Unit(const Rw11Unit&) = delete;   // noncopyable 
+      Rw11Unit&     operator=(const Rw11Unit&) = delete;  // noncopyable
 
       size_t        Index() const;
       std::string   Name() const;

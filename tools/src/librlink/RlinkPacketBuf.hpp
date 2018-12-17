@@ -1,6 +1,6 @@
-// $Id: RlinkPacketBuf.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkPacketBuf.hpp 1084 2018-12-16 12:23:53Z mueller $
 //
-// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-16  1084   2.0.2  use =delete for noncopyable instead of boost
 // 2017-04-07   868   2.0.1  Dump(): add detail arg
 // 2014-11-23   606   2.0    re-organize for rlink v4
 // 2013-04-21   509   1.0.2  add SndAttn() method
@@ -34,19 +35,20 @@
 #include <ostream>
 #include <vector>
 
-#include "boost/utility.hpp"
-
 #include "librtools/Rstats.hpp"
 
 #include "RlinkCrc16.hpp"
 
 namespace Retro {
 
-  class RlinkPacketBuf : private boost::noncopyable {
+  class RlinkPacketBuf {
     public:
 
                     RlinkPacketBuf();
                    ~RlinkPacketBuf();
+    
+                    RlinkPacketBuf(const RlinkPacketBuf&) = delete; // noncopy
+      RlinkPacketBuf& operator=(const RlinkPacketBuf&) = delete;  // noncopyable
     
       size_t        PktSize() const;
 

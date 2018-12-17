@@ -1,4 +1,4 @@
-// $Id: RlinkPort.hpp 1078 2018-12-08 14:19:03Z mueller $
+// $Id: RlinkPort.hpp 1084 2018-12-16 12:23:53Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-16  1084   1.4.4  use =delete for noncopyable instead of boost
 // 2018-12-07  1078   1.4.3  use std::shared_ptr instead of boost
 // 2018-12-01  1076   1.4 2  use unique_ptr
 // 2017-04-07   868   1.4.1  Dump(): add detail arg
@@ -42,8 +43,6 @@
 #include <map>
 #include <memory>
 
-#include "boost/utility.hpp"
-
 #include "librtools/RerrMsg.hpp"
 #include "librtools/RlogFile.hpp"
 #include "librtools/Rstats.hpp"
@@ -52,12 +51,15 @@
 
 namespace Retro {
 
-  class RlinkPort : private boost::noncopyable {
+  class RlinkPort {
     public:
       typedef std::unique_ptr<RlinkPort>  port_uptr_t;
     
                     RlinkPort();
       virtual      ~RlinkPort();
+
+                    RlinkPort(const RlinkPort&) = delete;  // noncopyable 
+      RlinkPort&    operator=(const RlinkPort&) = delete;  // noncopyable
 
       virtual bool  Open(const std::string& url, RerrMsg& emsg) = 0;
       virtual void  Close();

@@ -1,4 +1,4 @@
-// $Id: RtclRw11.cpp 1082 2018-12-15 13:56:20Z mueller $
+// $Id: RtclRw11.cpp 1087 2018-12-17 08:25:37Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-17  1087   1.0.6  use std::lock_guard instead of boost
 // 2018-12-15  1082   1.0.5  use lambda instead of bind
 // 2017-04-16   876   1.0.4  add CpuCommands()
 // 2017-04-07   868   1.0.3  M_dump: use GetArgsDump and Dump detail
@@ -136,7 +137,7 @@ int RtclRw11::ClassCmdConfig(RtclArgs& args)
 int RtclRw11::M_get(RtclArgs& args)
 {
   // synchronize with server thread
-  boost::lock_guard<RlinkConnect> lock(Obj().Connect());
+  lock_guard<RlinkConnect> lock(Obj().Connect());
   return fGets.M_get(args);
 }
 
@@ -146,7 +147,7 @@ int RtclRw11::M_get(RtclArgs& args)
 int RtclRw11::M_set(RtclArgs& args)
 {
   // synchronize with server thread
-  boost::lock_guard<RlinkConnect> lock(Obj().Connect());
+  lock_guard<RlinkConnect> lock(Obj().Connect());
   return fSets.M_set(args);
 }
 

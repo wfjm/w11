@@ -1,6 +1,6 @@
-// $Id: RlogFile.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlogFile.cpp 1085 2018-12-16 14:11:16Z mueller $
 //
-// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-17  1085   1.2.2  use std::lock_guard instead of boost
 // 2017-03-04   858   2.2.1  use clock_gettime instead of gettimeofday
 // 2015-01-08   631   2.2    Open(): now with RerrMsg and cout/cerr support
 // 2014-12-10   611   2.1.2  timestamp now usec precision (was msec)
@@ -30,8 +31,8 @@
 #include <time.h>
 #include <errno.h>
 
-#include "boost/thread/locks.hpp"
-
+#include <iostream>
+  
 #include "RosFill.hpp"
 #include "RosPrintf.hpp"
 #include "RlogMsg.hpp"
@@ -133,7 +134,7 @@ void RlogFile::Write(const std::string& str, char tag)
 {
   ostream& os = fpExtStream ? *fpExtStream : fIntStream;
 
-  boost::lock_guard<RlogFile> lock(*this);
+  lock_guard<RlogFile> lock(*this);
 
   if (tag) {
     struct timespec ts;

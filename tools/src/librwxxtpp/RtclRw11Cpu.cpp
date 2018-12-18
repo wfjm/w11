@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.cpp 1082 2018-12-15 13:56:20Z mueller $
+// $Id: RtclRw11Cpu.cpp 1085 2018-12-16 14:11:16Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-17  1085   1.2.22 use std::lock_guard instead of boost
 // 2018-12-15  1082   1.2.21 use lambda instead of bind
 // 2018-12-07  1077   1.2.20 use SetLastExpectBlock move semantics
 // 2018-11-16  1070   1.2.19 use auto; use emplace_back; use range loop
@@ -63,8 +64,6 @@
 #include <vector>
 #include <memory>
 #include <sstream>
-
-#include "boost/thread/locks.hpp"
 
 #include "librtools/RerrMsg.hpp"
 #include "librtools/RlogMsg.hpp"
@@ -1207,7 +1206,7 @@ int RtclRw11Cpu::M_boot(RtclArgs& args)
 int RtclRw11Cpu::M_get(RtclArgs& args)
 {
   // synchronize with server thread
-  boost::lock_guard<RlinkConnect> lock(Obj().Connect());
+  lock_guard<RlinkConnect> lock(Obj().Connect());
   return fGets.M_get(args);
 }
 
@@ -1217,7 +1216,7 @@ int RtclRw11Cpu::M_get(RtclArgs& args)
 int RtclRw11Cpu::M_set(RtclArgs& args)
 {
   // synchronize with server thread
-  boost::lock_guard<RlinkConnect> lock(Obj().Connect());
+  lock_guard<RlinkConnect> lock(Obj().Connect());
   return fSets.M_set(args);
 }
 
@@ -1308,7 +1307,7 @@ int RtclRw11Cpu::M_show(RtclArgs& args)
                             "rw   ",
                             "111  "};
       {
-        boost::lock_guard<RlinkConnect> lock(Connect());
+        lock_guard<RlinkConnect> lock(Connect());
         RlinkCommandList clist;
         clist.AddWreg(base + Rw11Cpu::kCPAL, 0177572);
         clist.AddRblk(base + Rw11Cpu::kCPMEMI, ssr, 3);

@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.hpp 1084 2018-12-16 12:23:53Z mueller $
+// $Id: Rw11Cpu.hpp 1085 2018-12-16 14:11:16Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-17  1085   1.2.14 use std::mutex,condition_variable instead of boost
 // 2018-12-16  1084   1.2.13 use =delete for noncopyable instead of boost
 // 2018-12-07  1078   1.2.12 use std::shared_ptr instead of boost
 // 2018-09-23  1050   1.2.11 add HasPcnt()
@@ -47,9 +48,8 @@
 #include <vector>
 #include <memory>
 #include <map>
-
-#include "boost/thread/locks.hpp"
-#include "boost/thread/condition_variable.hpp"
+#include <mutex>
+#include <condition_variable>
 
 #include "librtools/Rstats.hpp"
 #include "librtools/RerrMsg.hpp"
@@ -297,8 +297,8 @@ namespace Retro {
       bool          fHasIist;               //!< has iist   (smp comm)
       bool          fCpuAct;
       uint16_t      fCpuStat;
-      boost::mutex               fCpuActMutex;
-      boost::condition_variable  fCpuActCond;
+      std::mutex               fCpuActMutex;
+      std::condition_variable  fCpuActCond;
       cmap_t        fCntlMap;               //!< name->cntl map
       RlinkAddrMap  fIAddrMap;              //!< ibus name<->address mapping
       RlinkAddrMap  fRAddrMap;              //!< rbus name<->address mapping

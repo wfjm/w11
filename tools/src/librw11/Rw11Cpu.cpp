@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.cpp 1078 2018-12-08 14:19:03Z mueller $
+// $Id: Rw11Cpu.cpp 1085 2018-12-16 14:11:16Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-17  1085   1.2.17 use std::mutex,condition_variable instead of boost
 // 2018-12-07  1078   1.2.16 use std::shared_ptr instead of boost
 // 2018-11-16  1070   1.2.15 use auto; use emplace,make_pair; use range loop
 // 2018-09-23  1050   1.2.14 add HasPcnt()
@@ -51,8 +52,7 @@
 #include <vector>
 #include <map>
 #include <algorithm>
-
-#include "boost/date_time/posix_time/posix_time_types.hpp"
+#include <chrono>
 
 #include "librtools/Rexception.hpp"
 #include "librtools/RlogMsg.hpp"
@@ -769,7 +769,7 @@ bool Rw11Cpu::Boot(const std::string& uname, RerrMsg& emsg)
 
 void Rw11Cpu::SetCpuActUp()
 {
-  boost::lock_guard<boost::mutex> lock(fCpuActMutex);
+  lock_guard<mutex> lock(fCpuActMutex);
   fCpuAct  = true;
   fCpuStat = 0;
   fCpuActCond.notify_all();
@@ -782,7 +782,7 @@ void Rw11Cpu::SetCpuActUp()
 void Rw11Cpu::SetCpuActDown(uint16_t stat)
 {
   if ((stat & kCPSTAT_M_CpuGo) == 0 || (stat & kCPSTAT_M_CpuSusp) != 0 ) {
-    boost::lock_guard<boost::mutex> lock(fCpuActMutex);
+    lock_guard<mutex> lock(fCpuActMutex);
     fCpuAct  = false;
     fCpuStat = stat;
     fCpuActCond.notify_all();
@@ -797,17 +797,14 @@ int Rw11Cpu::WaitCpuActDown(const Rtime& tout, Rtime& twait)
 {
   Rtime tstart(CLOCK_MONOTONIC);
   twait.Clear();
+
+  chrono::duration<double> timeout(chrono::duration<double>::max());
+  if (tout.IsPositive())
+    timeout = chrono::duration<double>(tout.ToDouble());
   
-  boost::system_time timeout(boost::posix_time::max_date_time);
-  if (tout.IsPositive()) 
-    // Note: boost::posix_time might lack the nanoseconds ctor (if build with
-    //       microsecond precision), thus use microsecond.
-    timeout = boost::get_system_time() + 
-              boost::posix_time::seconds(tout.Sec()) +
-              boost::posix_time::microseconds(tout.NSec()/1000);
-  boost::unique_lock<boost::mutex> lock(fCpuActMutex);
+  unique_lock<mutex> lock(fCpuActMutex);
   while (fCpuAct) {
-    if (!fCpuActCond.timed_wait(lock, timeout)) return -1;
+    if (fCpuActCond.wait_for(lock, timeout) == cv_status::timeout) return -1;
   }
   twait = Rtime(CLOCK_MONOTONIC) - tstart;
   return twait.IsPositive();

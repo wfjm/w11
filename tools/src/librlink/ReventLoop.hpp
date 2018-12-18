@@ -1,4 +1,4 @@
-// $Id: ReventLoop.hpp 1084 2018-12-16 12:23:53Z mueller $
+// $Id: ReventLoop.hpp 1085 2018-12-16 14:11:16Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-17  1085   1.2.6  use std::mutex instead of boost
 // 2018-12-16  1084   1.2.5  use =delete for noncopyable instead of boost
 // 2018-12-15  1083   1.2.4  AddPollHandler(): use rval ref and move
 // 2018-12-14  1081   1.2.3  use std::function instead of boost
@@ -39,8 +40,7 @@
 #include <vector>
 #include <memory>
 #include <functional>
-
-#include "boost/thread/mutex.hpp"
+#include <mutex>
 
 #include "librtools/RlogFile.hpp"
 
@@ -91,7 +91,7 @@ namespace Retro {
 
       bool          fStopPending;
       bool          fUpdatePoll;
-      boost::mutex  fPollDscMutex;
+      std::mutex    fPollDscMutex;
       std::vector<PollDsc>   fPollDsc;
       std::vector<pollfd>    fPollFd;
       std::vector<pollhdl_t> fPollHdl;

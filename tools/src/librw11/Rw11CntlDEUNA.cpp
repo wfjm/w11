@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDEUNA.cpp 1082 2018-12-15 13:56:20Z mueller $
+// $Id: Rw11CntlDEUNA.cpp 1087 2018-12-17 08:25:37Z mueller $
 //
 // Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-17  1087   0.5.6  use std::lock_guard instead of boost
 // 2018-12-15  1082   0.5.5  use lambda instead of bind
 // 2018-12-09  1080   0.5.4  use HasVirt(); Virt() returns ref
 // 2018-12-08  1078   0.5.3  BUGFIX: Start(Tx|Rx)Ring, was broken in r1049
@@ -534,7 +535,7 @@ const char* Rw11CntlDEUNA::MnemoState(uint16_t state) const
 bool Rw11CntlDEUNA::RcvCallback(RethBuf::pbuf_t& pbuf)
 {
   // lock connect to protect rxqueue
-  boost::lock_guard<RlinkConnect> lock(Connect());
+  lock_guard<RlinkConnect> lock(Connect());
 
   fStats.Inc(kStatNRxFraSeen);
   if (!Running()) {                         // drop if not running
@@ -594,7 +595,7 @@ void Rw11CntlDEUNA::Dump(std::ostream& os, int ind, const char* text,
                          int detail) const
 {
   // lock connect to protect, e.g fRxBufQueue access
-  boost::lock_guard<RlinkConnect> lock(Connect());
+  lock_guard<RlinkConnect> lock(Connect());
 
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11CntlDEUNA @ " << this << endl;

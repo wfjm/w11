@@ -1,4 +1,4 @@
-// $Id: RlogFile.hpp 1084 2018-12-16 12:23:53Z mueller $
+// $Id: RlogFile.hpp 1088 2018-12-17 17:37:00Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-17  1085   1.2.2  use std::mutex instead of boost
 // 2018-12-16  1084   2.2.1  use =delete for noncopyable instead of boost
 // 2015-01-08   631   2.2    Open(): now with RerrMsg and cout/cerr support
 // 2013-02-23   492   2.1    add Name(), keep log file name; add Dump()
@@ -32,8 +33,7 @@
 #include <string>
 #include <ostream>
 #include <fstream>
-
-#include "boost/thread/mutex.hpp"
+#include <mutex>
 
 #include "RerrMsg.hpp"
 
@@ -60,7 +60,7 @@ namespace Retro {
 
       void          Dump(std::ostream& os, int ind=0, const char* text=0) const;
 
-      // provide boost Lockable interface
+      // provide Lockable interface
       void          lock();
       void          unlock();
 
@@ -79,7 +79,7 @@ namespace Retro {
       int           fTagYear;               //!< year of last time tag
       int           fTagMonth;              //!< month of last time tag
       int           fTagDay;                //!< day of last time tag
-      boost::mutex  fMutex;                 //!< mutex to lock file
+      std::mutex    fMutex;                 //!< mutex to lock file
   };
   
 } // end namespace Retro

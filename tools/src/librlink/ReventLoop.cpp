@@ -1,4 +1,4 @@
-// $Id: ReventLoop.cpp 1083 2018-12-15 19:19:16Z mueller $
+// $Id: ReventLoop.cpp 1085 2018-12-16 14:11:16Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-17  1085   1.2.4  use std::lock_guard instead of boost
 // 2018-12-15  1083   1.2.3  AddPollHandler(): use rval ref and move
 // 2018-11-09  1066   1.2.2  use emplace_back
 // 2017-04-07   868   1.2.1  Dump(): add detail arg
@@ -33,7 +34,7 @@
 #include <poll.h>
 #include <errno.h>
 
-#include "boost/thread/locks.hpp"
+#include <mutex>
 
 #include "librtools/Rexception.hpp"
 #include "librtools/RosPrintf.hpp"
@@ -80,7 +81,7 @@ ReventLoop::~ReventLoop()
 
 void ReventLoop::AddPollHandler(pollhdl_t&& pollhdl, int fd, short events)
 {
-  boost::lock_guard<boost::mutex> lock(fPollDscMutex);
+  lock_guard<mutex> lock(fPollDscMutex);
   
   for (size_t i=0; i<fPollDsc.size(); i++) {
     if (fPollDsc[i].fFd     == fd &&
@@ -106,7 +107,7 @@ void ReventLoop::AddPollHandler(pollhdl_t&& pollhdl, int fd, short events)
 
 void ReventLoop::RemovePollHandler(int fd, short events, bool nothrow)
 {
-  boost::lock_guard<boost::mutex> lock(fPollDscMutex);
+  lock_guard<mutex> lock(fPollDscMutex);
 
   for (size_t i=0; i<fPollDsc.size(); i++) {
     if (fPollDsc[i].fFd     == fd &&
@@ -129,7 +130,7 @@ void ReventLoop::RemovePollHandler(int fd, short events, bool nothrow)
 
 bool ReventLoop::TestPollHandler(int fd, short events)
 {
-  boost::lock_guard<boost::mutex> lock(fPollDscMutex);
+  lock_guard<mutex> lock(fPollDscMutex);
 
   for (size_t i=0; i<fPollDsc.size(); i++) {
     if (fPollDsc[i].fFd     == fd &&
@@ -145,7 +146,7 @@ bool ReventLoop::TestPollHandler(int fd, short events)
 
 void ReventLoop::RemovePollHandler(int fd)
 {
-  boost::lock_guard<boost::mutex> lock(fPollDscMutex);
+  lock_guard<mutex> lock(fPollDscMutex);
 
   for (size_t i=0; i<fPollDsc.size(); i++) {
     if (fPollDsc[i].fFd == fd) {
@@ -192,7 +193,7 @@ void ReventLoop::Dump(std::ostream& os, int ind, const char* text,
   os << bl << "  fStopPending:    " << fStopPending << endl;
   os << bl << "  fUpdatePoll:     " << fUpdatePoll << endl;
   {
-    boost::lock_guard<boost::mutex> lock(((ReventLoop*)this)->fPollDscMutex);
+    lock_guard<mutex> lock(((ReventLoop*)this)->fPollDscMutex);
     os << bl << "  fPollDsc.size:   " << fPollDsc.size() << endl;
     os << bl << "  fPollFd.size:    " << fPollFd.size()  << endl;
     os << bl << "  fPollHdl.size:   " << fPollHdl.size() << endl;
@@ -216,7 +217,7 @@ void ReventLoop::Dump(std::ostream& os, int ind, const char* text,
 int ReventLoop::DoPoll(int timeout)
 {
   if (fUpdatePoll) {
-    boost::lock_guard<boost::mutex> lock(fPollDscMutex);
+    lock_guard<mutex> lock(fPollDscMutex);
     
     fPollFd.resize(fPollDsc.size());
     fPollHdl.resize(fPollDsc.size());

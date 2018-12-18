@@ -1,4 +1,4 @@
-// $Id: Rw11UnitTerm.cpp 1083 2018-12-15 19:19:16Z mueller $
+// $Id: Rw11UnitTerm.cpp 1085 2018-12-16 14:11:16Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-17  1085   1.1.6  use std::lock_guard instead of boost
 // 2018-12-14  1081   1.1.5  use std::bind instead of boost
 // 2018-12-09  1080   1.1.4  use HasVirt(); Virt() returns ref
 // 2018-12-01  1076   1.1.3  use unique_ptr
@@ -27,8 +28,6 @@
   \file
   \brief   Implemenation of Rw11UnitTerm.
 */
-
-#include "boost/thread/locks.hpp"
 
 #include "librtools/RparseUrl.hpp"
 #include "librtools/RosPrintf.hpp"
@@ -229,7 +228,7 @@ bool Rw11UnitTerm::Snd(const uint8_t* buf, size_t count)
 bool Rw11UnitTerm::RcvCallback(const uint8_t* buf, size_t count)
 {
   // lock connect to protect rxqueue
-  boost::lock_guard<RlinkConnect> lock(Connect());
+  lock_guard<RlinkConnect> lock(Connect());
 
   bool que_empty_old = fRcvQueue.empty();
   for (size_t i=0; i<count; i++) {
@@ -255,7 +254,7 @@ void Rw11UnitTerm::Dump(std::ostream& os, int ind, const char* text,
   os << bl << "  fToEnpc:         " << fToEnpc << endl;
   os << bl << "  fTi7bit:         " << fTi7bit << endl;
   {
-    boost::lock_guard<RlinkConnect> lock(Connect());
+    lock_guard<RlinkConnect> lock(Connect());
     size_t size = fRcvQueue.size();
     os << bl << "  fRcvQueue.size:  " << fRcvQueue.size() << endl;
     if (size > 0) {

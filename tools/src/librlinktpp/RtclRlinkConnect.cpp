@@ -1,4 +1,4 @@
-// $Id: RtclRlinkConnect.cpp 1083 2018-12-15 19:19:16Z mueller $
+// $Id: RtclRlinkConnect.cpp 1085 2018-12-16 14:11:16Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-17  1085   1.6.6  use std::lock_guard instead of boost
 // 2018-12-15  1082   1.6.5  use lambda instead of bind
 // 2018-12-08  1079   1.6.4  use HasPort(); Port() returns now ref
 // 2018-12-07  1077   1.6.3  use SetLastExpectBlock move semantics
@@ -55,8 +56,6 @@
 #include <ctype.h>
 
 #include <iostream>
-
-#include "boost/thread/locks.hpp"
 
 #include "librtcltools/Rtcl.hpp"
 #include "librtcltools/RtclOPtr.hpp"
@@ -781,7 +780,7 @@ int RtclRlinkConnect::M_dump(RtclArgs& args)
 int RtclRlinkConnect::M_get(RtclArgs& args)
 {
   // synchronize with server thread (really needed ??)
-  boost::lock_guard<RlinkConnect> lock(Obj());
+  lock_guard<RlinkConnect> lock(Obj());
   return fGets.M_get(args);
 }
 
@@ -791,7 +790,7 @@ int RtclRlinkConnect::M_get(RtclArgs& args)
 int RtclRlinkConnect::M_set(RtclArgs& args)
 {
   // synchronize with server thread (really needed ??)
-  boost::lock_guard<RlinkConnect> lock(Obj());
+  lock_guard<RlinkConnect> lock(Obj());
   return fSets.M_set(args);
 }
 

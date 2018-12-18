@@ -1,4 +1,4 @@
-// $Id: RtclRlinkServer.cpp 1082 2018-12-15 13:56:20Z mueller $
+// $Id: RtclRlinkServer.cpp 1087 2018-12-17 08:25:37Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-17  1087   1.2.2  use std::lock_guard instead of boost
 // 2018-12-14  1081   1.2.1  use std::bind instead of boost
 // 2018-12-01  1076   1.2    use unique_ptr
 // 2018-11-16  1070   1.1.2  use auto; use range loop
@@ -304,7 +305,7 @@ int RtclRlinkServer::M_dump(RtclArgs& args)
 int RtclRlinkServer::M_get(RtclArgs& args)
 {
   // synchronize with server thread (really needed ??)
-  boost::lock_guard<RlinkConnect> lock(Obj().Connect());
+  lock_guard<RlinkConnect> lock(Obj().Connect());
   return fGets.M_get(args);
 }
 
@@ -314,7 +315,7 @@ int RtclRlinkServer::M_get(RtclArgs& args)
 int RtclRlinkServer::M_set(RtclArgs& args)
 {
   // synchronize with server thread (really needed ??)
-  boost::lock_guard<RlinkConnect> lock(Obj().Connect());
+  lock_guard<RlinkConnect> lock(Obj().Connect());
   return fSets.M_set(args);
 }
 

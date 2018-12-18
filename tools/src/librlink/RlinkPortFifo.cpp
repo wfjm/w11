@@ -1,4 +1,4 @@
-// $Id: RlinkPortFifo.cpp 1075 2018-12-01 11:55:07Z mueller $
+// $Id: RlinkPortFifo.cpp 1085 2018-12-16 14:11:16Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -29,6 +29,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include "RlinkPortFifo.hpp"
 
@@ -75,7 +76,7 @@ bool RlinkPortFifo::Open(const std::string& url, RerrMsg& emsg)
   
   fFdRead = OpenFifo(fUrl.Path() + "_tx", false, emsg);
   if (fFdRead < 0) {
-    close(fFdWrite);
+    ::close(fFdWrite);
     fFdWrite = -1;
     return false;
   }

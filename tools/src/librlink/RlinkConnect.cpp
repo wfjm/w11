@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.cpp 1079 2018-12-09 10:56:59Z mueller $
+// $Id: RlinkConnect.cpp 1085 2018-12-16 14:11:16Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-17  1085   2.8.1  use std::lock_guard instead of boost
 // 2018-12-08  1079   2.8    add HasPort(); return ref for Port()
 // 2018-12-01  1076   2.7    use unique_ptr instead of scoped_ptr
 // 2018-11-30  1075   2.6.4  use list-init; use range loop
@@ -49,8 +50,6 @@
 */
 
 #include <iostream>
-
-#include "boost/thread/locks.hpp"
 
 #include "RlinkPortFactory.hpp"
 #include "librtools/RosFill.hpp"
@@ -350,7 +349,7 @@ bool RlinkConnect::Exec(RlinkCommandList& clist, RlinkContext& cntx,
   if (! IsOpen())
     throw Rexception("RlinkConnect::Exec()", "Bad state: port not open");
 
-  boost::lock_guard<RlinkConnect> lock(*this);
+  lock_guard<RlinkConnect> lock(*this);
 
   fStats.Inc(kStatNExec);
 
@@ -496,7 +495,7 @@ int RlinkConnect::WaitAttn(const Rtime& timeout, Rtime& twait,
   apat = 0;
   twait.Clear();
 
-  boost::lock_guard<RlinkConnect> lock(*this);
+  lock_guard<RlinkConnect> lock(*this);
 
   // harvest pending notifiers
   if (fAttnNotiPatt != 0) {
@@ -546,7 +545,7 @@ int RlinkConnect::WaitAttn(const Rtime& timeout, Rtime& twait,
 
 bool RlinkConnect::SndOob(uint16_t addr, uint16_t data, RerrMsg& emsg)
 {
-  boost::lock_guard<RlinkConnect> lock(*this);
+  lock_guard<RlinkConnect> lock(*this);
   fStats.Inc(kStatNSndOob);
   return fSndPkt.SndOob(Port(), addr, data, emsg);
 }
@@ -556,7 +555,7 @@ bool RlinkConnect::SndOob(uint16_t addr, uint16_t data, RerrMsg& emsg)
 
 bool RlinkConnect::SndAttn(RerrMsg& emsg)
 {
-  boost::lock_guard<RlinkConnect> lock(*this);
+  lock_guard<RlinkConnect> lock(*this);
   return fSndPkt.SndAttn(Port(), emsg);
 }
 
@@ -739,7 +738,7 @@ void RlinkConnect::HandleUnsolicitedData()
     throw Rexception("RlinkConnect::HandleUnsolicitedData()", 
                      "only allowed inside active server");
 
-  boost::lock_guard<RlinkConnect> lock(*this);
+  lock_guard<RlinkConnect> lock(*this);
   RerrMsg emsg;
   int irc = fRcvPkt.ReadData(Port(), Rtime(), emsg);
   if (irc == 0) return;

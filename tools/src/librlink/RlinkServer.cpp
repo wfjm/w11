@@ -1,4 +1,4 @@
-// $Id: RlinkServer.cpp 1083 2018-12-15 19:19:16Z mueller $
+// $Id: RlinkServer.cpp 1085 2018-12-16 14:11:16Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-17  1085   1.2.8  use std::lock_guard instead of boost
 // 2018-12-15  1083   2.2.7  for std::function setups: use rval ref and move
 // 2018-12-14  1081   2.2.6  use std::bind instead of boost
 // 2018-12-07  1078   2.2.5  use std::shared_ptr instead of boost
@@ -34,8 +35,6 @@
   \file
   \brief   Implemenation of RlinkServer.
 */
-
-#include "boost/thread/locks.hpp"
 
 #include "librtools/Rexception.hpp"
 #include "librtools/RosFill.hpp"
@@ -143,7 +142,7 @@ void RlinkServer::AddAttnHandler(attnhdl_t&& attnhdl, uint16_t mask,
   if (mask == 0)
     throw Rexception("RlinkServer::AddAttnHandler()", "Bad args: mask == 0");
 
-  boost::lock_guard<RlinkConnect> lock(*fspConn);
+  lock_guard<RlinkConnect> lock(*fspConn);
 
   AttnId id(mask, cdata);
   for (size_t i=0; i<fAttnDsc.size(); i++) {
@@ -190,7 +189,7 @@ void RlinkServer::GetAttnInfo(AttnArgs& args)
 
 void RlinkServer::RemoveAttnHandler(uint16_t mask, void* cdata)
 {    
-  boost::lock_guard<RlinkConnect> lock(*fspConn);
+  lock_guard<RlinkConnect> lock(*fspConn);
 
   AttnId id(mask, cdata);
   for (size_t i=0; i<fAttnDsc.size(); i++) {
@@ -209,7 +208,7 @@ void RlinkServer::RemoveAttnHandler(uint16_t mask, void* cdata)
 
 void RlinkServer::QueueAction(actnhdl_t&& actnhdl)
 {
-  boost::lock_guard<RlinkConnect> lock(*fspConn);
+  lock_guard<RlinkConnect> lock(*fspConn);
   fActnList.push_back(move(actnhdl));
   if (IsActiveOutside()) Wakeup();
   return;
@@ -220,7 +219,7 @@ void RlinkServer::QueueAction(actnhdl_t&& actnhdl)
  
 void RlinkServer::AddPollHandler(pollhdl_t&& pollhdl, int fd, short events)
 {
-  boost::lock_guard<RlinkConnect> lock(*fspConn);
+  lock_guard<RlinkConnect> lock(*fspConn);
   fELoop.AddPollHandler(move(pollhdl), fd, events);
   if (IsActiveOutside()) Wakeup();
   return;
@@ -231,7 +230,7 @@ void RlinkServer::AddPollHandler(pollhdl_t&& pollhdl, int fd, short events)
  
 bool RlinkServer::TestPollHandler(int fd, short events)
 {
-  boost::lock_guard<RlinkConnect> lock(*fspConn);
+  lock_guard<RlinkConnect> lock(*fspConn);
   return fELoop.TestPollHandler(fd, events);
 }
 
@@ -240,7 +239,7 @@ bool RlinkServer::TestPollHandler(int fd, short events)
 
 void RlinkServer::RemovePollHandler(int fd, short events, bool nothrow)
 {
-  boost::lock_guard<RlinkConnect> lock(*fspConn);
+  lock_guard<RlinkConnect> lock(*fspConn);
   fELoop.RemovePollHandler(fd, events,nothrow);
   if (IsActiveOutside()) Wakeup();
   return;
@@ -251,7 +250,7 @@ void RlinkServer::RemovePollHandler(int fd, short events, bool nothrow)
 
 void RlinkServer::RemovePollHandler(int fd)
 {
-  boost::lock_guard<RlinkConnect> lock(*fspConn);
+  lock_guard<RlinkConnect> lock(*fspConn);
   fELoop.RemovePollHandler(fd);
   if (IsActiveOutside()) Wakeup();
   return;
@@ -406,7 +405,7 @@ void RlinkServer::StartOrResume(bool resume)
     throw Rexception("RlinkServer::StartOrResume()", 
                      "Bad state: RlinkConnect not open");
 
-  boost::lock_guard<RlinkConnect> lock(Connect());
+  lock_guard<RlinkConnect> lock(Connect());
   // enable attn notify send
   RlinkCommandList clist;
   if (!resume) clist.AddAttn();
@@ -449,7 +448,7 @@ void RlinkServer::CallAttnHandler()
 
   // if notifier pending, transfer it to current attn pattern
   if (fAttnNotiPatt) {
-    boost::lock_guard<RlinkConnect> lock(*fspConn);
+    lock_guard<RlinkConnect> lock(*fspConn);
     fStats.Inc(kStatNAttnNoti);
     if (fTraceLevel>0) {
       RlogMsg lmsg(LogFile());
@@ -472,7 +471,7 @@ void RlinkServer::CallAttnHandler()
     uint16_t hmatch = fAttnPatt & fAttnDsc[i].fId.fMask;
     if (hmatch) {
       AttnArgs args(fAttnPatt, fAttnDsc[i].fId.fMask);
-      boost::lock_guard<RlinkConnect> lock(*fspConn);
+      lock_guard<RlinkConnect> lock(*fspConn);
 
       if (fTraceLevel>0) {
         RlogMsg lmsg(LogFile());
@@ -533,7 +532,7 @@ void RlinkServer::CallActnHandler()
   if (!ActnPending()) return;
 
   // call first action
-  boost::lock_guard<RlinkConnect> lock(*fspConn);
+  lock_guard<RlinkConnect> lock(*fspConn);
 
   int irc = fActnList.front()();
 

@@ -1,4 +1,4 @@
-// $Id: RlogMsg.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlogMsg.cpp 1085 2018-12-16 14:11:16Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,8 +20,6 @@
   \file
   \brief   Implemenation of RlogMsg.
 */
-
-#include "boost/thread/locks.hpp"
 
 #include "RlogFile.hpp"
 

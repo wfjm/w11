@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.hpp 1084 2018-12-16 12:23:53Z mueller $
+// $Id: RlinkConnect.hpp 1088 2018-12-17 17:37:00Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-17  1085   2.8.2  use std::recursive_mutex instead of boost
 // 2018-12-16  1084   2.8.1  use =delete for noncopyable instead of boost
 // 2018-12-08  1079   2.8    add HasPort(); return ref for Port()
 // 2018-12-07  1078   2.7.1  use std::shared_ptr instead of boost
@@ -58,8 +59,7 @@
 #include <vector>
 #include <memory>
 #include <ostream>
-
-#include "boost/thread/recursive_mutex.hpp"
+#include <mutex>
 
 #include "librtools/RerrMsg.hpp"
 #include "librtools/Rtime.hpp"
@@ -106,7 +106,7 @@ namespace Retro {
       bool          ServerActiveInside() const;
       bool          ServerActiveOutside() const;
 
-      // provide boost Lockable interface
+      // provide Lockable interface
       void          lock();
       bool          try_lock();
       void          unlock();
@@ -260,7 +260,7 @@ namespace Retro {
       uint32_t      fTraceLevel;            //!< trace 0=off,1=buf,2=char
       Rtime         fTimeout;               //!< response timeout
       std::shared_ptr<RlogFile> fspLog;     //!< log file ptr
-      boost::recursive_mutex fConnectMutex; //!< mutex to lock whole connect
+      std::recursive_mutex fConnectMutex;   //!< mutex to lock whole connect
       uint16_t      fAttnNotiPatt;          //!< attn notifier pattern
       Rtime         fTsLastAttnNoti;        //!< time stamp last attn notify
       uint32_t      fSysId;                 //!< SYSID of connected device

@@ -1,4 +1,4 @@
-// $Id: RtclRw11VirtDiskRam.cpp 1082 2018-12-15 13:56:20Z mueller $
+// $Id: RtclRw11VirtDiskRam.cpp 1087 2018-12-17 08:25:37Z mueller $
 //
 // Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-17  1087   1.0.2  use std::lock_guard instead of boost
 // 2018-12-15  1082   1.0.1  use lambda instead of bind
 // 2018-10-28  1063   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -58,7 +59,7 @@ int RtclRw11VirtDiskRam::M_list(RtclArgs& args)
   ostringstream sos;
 
   // synchronize with server thread
-  boost::lock_guard<RlinkConnect> lock(Obj().Cpu().Connect());
+  lock_guard<RlinkConnect> lock(Obj().Cpu().Connect());
   Obj().List(sos);
   args.SetResult(sos);
   return kOK;

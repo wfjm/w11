@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cntl.cpp 1082 2018-12-15 13:56:20Z mueller $
+// $Id: RtclRw11Cntl.cpp 1085 2018-12-16 14:11:16Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-17  1085   1.1.4  use std::lock_guard instead of boost
 // 2018-12-15  1082   1.1.3  use lambda instead of bind
 // 2017-04-16   877   1.1.2  add UnitCommands(); add Class()
 // 2017-04-02   865   1.0.2  M_dump: use GetArgsDump and Dump detail
@@ -25,8 +26,6 @@
   \file
   \brief   Implemenation of RtclRw11Cntl.
 */
-
-#include "boost/thread/locks.hpp"
 
 #include "librtcltools/RtclStats.hpp"
 #include "librtcltools/RtclOPtr.hpp"
@@ -77,7 +76,7 @@ RtclRw11Cntl::~RtclRw11Cntl()
 int RtclRw11Cntl::M_get(RtclArgs& args)
 {
   // synchronize with server thread
-  boost::lock_guard<RlinkConnect> lock(Obj().Connect());
+  lock_guard<RlinkConnect> lock(Obj().Connect());
   return fGets.M_get(args);
 }
 
@@ -87,7 +86,7 @@ int RtclRw11Cntl::M_get(RtclArgs& args)
 int RtclRw11Cntl::M_set(RtclArgs& args)
 {
   // synchronize with server thread
-  boost::lock_guard<RlinkConnect> lock(Obj().Connect());
+  lock_guard<RlinkConnect> lock(Obj().Connect());
   return fSets.M_set(args);
 }
 

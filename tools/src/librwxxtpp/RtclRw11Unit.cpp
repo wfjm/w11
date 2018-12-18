@@ -1,4 +1,4 @@
-// $Id: RtclRw11Unit.cpp 1082 2018-12-15 13:56:20Z mueller $
+// $Id: RtclRw11Unit.cpp 1085 2018-12-16 14:11:16Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-17  1085   1.3.2  use std::lock_guard instead of boost
 // 2018-12-15  1082   1.3.1  use lambda instead of bind
 // 2018-12-01  1076   1.3    use unique_ptr instead of scoped_ptr
 // 2017-04-08   870   1.2    drop fpCpu, use added Cpu()=0 instead
@@ -26,8 +27,6 @@
   \file
   \brief   Implemenation of RtclRw11Unit.
 */
-
-#include "boost/thread/locks.hpp"
 
 #include "librtools/Rexception.hpp"
 #include "librtcltools/RtclStats.hpp"
@@ -84,7 +83,7 @@ void RtclRw11Unit::DetachCleanup()
 int RtclRw11Unit::M_get(RtclArgs& args)
 {
   // synchronize with server thread
-  boost::lock_guard<RlinkConnect> lock(Cpu().Connect());
+  lock_guard<RlinkConnect> lock(Cpu().Connect());
   return fGets.M_get(args);
 }
 
@@ -94,7 +93,7 @@ int RtclRw11Unit::M_get(RtclArgs& args)
 int RtclRw11Unit::M_set(RtclArgs& args)
 {
   // synchronize with server thread
-  boost::lock_guard<RlinkConnect> lock(Cpu().Connect());
+  lock_guard<RlinkConnect> lock(Cpu().Connect());
   return fSets.M_set(args);
 }
 
@@ -110,7 +109,7 @@ int RtclRw11Unit::M_attach(RtclArgs& args)
 
   RerrMsg emsg;
   // synchronize with server thread
-  boost::lock_guard<RlinkConnect> lock(Cpu().Connect());
+  lock_guard<RlinkConnect> lock(Cpu().Connect());
 
   DetachCleanup();
   if (!Obj().Attach(url, emsg)) return args.Quit(emsg);
@@ -126,7 +125,7 @@ int RtclRw11Unit::M_detach(RtclArgs& args)
   if (!args.AllDone()) return kERR;
 
   // synchronize with server thread
-  boost::lock_guard<RlinkConnect> lock(Cpu().Connect());
+  lock_guard<RlinkConnect> lock(Cpu().Connect());
   Obj().Detach();
   return kOK;
 }
@@ -140,7 +139,7 @@ int RtclRw11Unit::M_virt(RtclArgs& args)
                                  "Bad state: fupVirt == nullptr");
   
   // synchronize with server thread
-  boost::lock_guard<RlinkConnect> lock(Cpu().Connect());
+  lock_guard<RlinkConnect> lock(Cpu().Connect());
   return fupVirt->DispatchCmd(args);
 }
 

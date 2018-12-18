@@ -1,4 +1,4 @@
-// $Id: Rw11UnitVirt.ipp 1080 2018-12-09 20:30:33Z mueller $
+// $Id: Rw11UnitVirt.ipp 1085 2018-12-16 14:11:16Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-17  1085   1.4.1  use std::lock_guard instead of boost
 // 2018-12-09  1080   1.4    add HasVirt(); return ref for Virt()
 // 2018-12-01  1076   1.3    use unique_ptr instead of scoped_ptr
 // 2017-04-15   875   1.2.2  add VirtBase()
@@ -28,8 +29,6 @@
   \file
   \brief   Implemenation (inline) of Rw11UnitVirt.
 */
-
-#include "boost/thread/locks.hpp"
 
 #include "librtools/RosFill.hpp"
 
@@ -102,7 +101,7 @@ template <class TV>
 inline bool Rw11UnitVirt<TV>::Attach(const std::string& url, RerrMsg& emsg)
 {
   // synchronize with server thread
-  boost::lock_guard<RlinkConnect> lock(Connect());
+  std::lock_guard<RlinkConnect> lock(Connect());
   if (fupVirt) Detach();
   if (!Enabled()) {
     emsg.Init("Rw11UnitVirt::Attach","unit not enabled");
@@ -120,7 +119,7 @@ template <class TV>
 inline void Rw11UnitVirt<TV>::Detach()
 {
   // synchronize with server thread
-  boost::lock_guard<RlinkConnect> lock(Connect());
+  std::lock_guard<RlinkConnect> lock(Connect());
   if (!fupVirt) return;
   DetachCleanup();
   fupVirt.reset();

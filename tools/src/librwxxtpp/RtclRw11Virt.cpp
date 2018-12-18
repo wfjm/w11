@@ -1,4 +1,4 @@
-// $Id: RtclRw11Virt.cpp 1082 2018-12-15 13:56:20Z mueller $
+// $Id: RtclRw11Virt.cpp 1087 2018-12-17 08:25:37Z mueller $
 //
 // Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-17  1087   1.0.3  use std::lock_guard instead of boost
 // 2018-12-15  1082   1.0.2  use lambda instead of bind
 // 2017-04-07   868   1.0.1  M_dump: use GetArgsDump and Dump detail
 // 2017-03-11   859   1.0    Initial version
@@ -65,7 +66,7 @@ RtclRw11Virt::~RtclRw11Virt()
 int RtclRw11Virt::M_get(RtclArgs& args)
 {
   // synchronize with server thread
-  boost::lock_guard<RlinkConnect> lock(Virt()->Cpu().Connect());
+  lock_guard<RlinkConnect> lock(Virt()->Cpu().Connect());
   return fGets.M_get(args);
 }
 
@@ -75,7 +76,7 @@ int RtclRw11Virt::M_get(RtclArgs& args)
 int RtclRw11Virt::M_set(RtclArgs& args)
 {
   // synchronize with server thread
-  boost::lock_guard<RlinkConnect> lock(Virt()->Cpu().Connect());
+  lock_guard<RlinkConnect> lock(Virt()->Cpu().Connect());
   return fSets.M_set(args);
 }
 

@@ -31,6 +31,8 @@ The full set of tests is only run for tagged releases.
 - the Coverity results triggered a general backend code review
   - fix coverity detected defects
   - get backend code `-Wall -Wextra -Wpedantic` clean
+  - exploit c++11 language constructs (e.g. emplace,lambda,auto,move,...)
+  - completely replace boost with std
 - add KW11-P (programmable clock) to all w11 systems. It is usefull in test
   benches (fast interrupt source) and enables on the long run to port the
   2.10BSD kernel profiling code to 2.11BSD.
@@ -102,11 +104,12 @@ The full set of tests is only run for tagged releases.
   - use auto, emplace() and range loops
   - use unique_ptr instead of free pointers, avoid explicit `delete`
   - add and use move semantic in RlinkCommandExpect
-  - replace boost with std
+  - completely replace boost with std
     - use std::unique_ptr instead of boost::scoped_ptr
     - use std::shared_ptr instead of boost
     - use std::function instead of boost
-    - use std::bind or in most cases a lambda instead of boost::bind
+    - use std::bind or in most cases a lambda, instead of boost::bind
+    - use std::thread instead of boost
     - use mutex and friends from std:: instead from boost::
       - use std::mutex
       - use std::recursive_mutex

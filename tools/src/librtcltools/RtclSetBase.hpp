@@ -1,4 +1,4 @@
-// $Id: RtclSetBase.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclSetBase.hpp 1088 2018-12-17 17:37:00Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -28,8 +28,6 @@
 
 #include <cstdint>
 #include <string>
-
-#include "boost/function.hpp"
 
 #include "RtclArgs.hpp"
 

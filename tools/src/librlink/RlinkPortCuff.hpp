@@ -1,4 +1,4 @@
-// $Id: RlinkPortCuff.hpp 1060 2018-10-27 11:32:39Z mueller $
+// $Id: RlinkPortCuff.hpp 1088 2018-12-17 17:37:00Z mueller $
 //
 // Copyright 2012-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-17  1088   1.0.2  use std::thread instead of boost
 // 2013-01-02   467   1.0.1  get cleanup code right; add USBErrorName()
 // 2012-12-26   465   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -33,8 +34,7 @@
 
 #include <vector>
 #include <deque>
-
-#include "boost/thread/thread.hpp"
+#include <thread>
 
 namespace Retro {
 
@@ -72,7 +72,7 @@ namespace Retro {
     protected:
       int           fFdReadDriver;          //!< fd for read (driver end)
       int           fFdWriteDriver;         //!< fd for write (driver end)
-      boost::thread fDriverThread;          //!< driver thread
+      std::thread   fDriverThread;          //!< driver thread
       libusb_context*  fpUsbContext;
       libusb_device**  fpUsbDevList;
       ssize_t          fUsbDevCount;

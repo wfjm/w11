@@ -57,9 +57,6 @@ distributions should be straight forward.
 - building and using the rlink backend software requires:
   - full C/C++ development chain (gcc,g++,cpp,make)  
       -> package: `build-essential`
-  - Boost C++ library (>= 1.40), with date-time, thread, and regex  
-    -> package: `libboost-dev` `libboost-date-time-dev` `libboost-thread-dev`
-                `libboost-regex-dev`
   - libusb 1.0 (>= 1.0.6)  
     -> package: `libusb-1.0-0-dev`
   - Perl (>= 5.10)  (usually included in base installations)
@@ -108,8 +105,9 @@ For bash and alike use
       export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$RETROBASE/tools/lib
       export MANPATH=$MANPATH:$RETROBASE/tools/man
 
-In most cases the boost library version coming with the distribution will
-work, similar for Tcl, in those cases simply use
+Boost was essential in the pre-c++11 times, but has been completely replaced
+by std:: classes provided by c++11. In most cases the Tcl version coming with
+the distribution will work, in those cases simply use
 
       export TCLINC=/usr/include/tcl8.6
       export TCLLIBNAME=tcl8.6
@@ -147,7 +145,6 @@ A C++ compiler with full `c++11` support is therefore needed, so either
 Required tools and libraries:
 
     g++    >= 4.8.1  (see c++11 usage above)
-    boost  >= 1.35   (boost::thread api changed, new one is used)
     libusb >= 1.0.5  (timerfd support)
 
 Build was tested under:

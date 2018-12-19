@@ -1,4 +1,4 @@
-// $Id: RtclRlinkServer.cpp 1087 2018-12-17 08:25:37Z mueller $
+// $Id: RtclRlinkServer.cpp 1088 2018-12-17 17:37:00Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -140,11 +140,13 @@ int RtclRlinkServer::M_server(RtclArgs& args)
   if (args.NextOpt(opt, optset)) {
     if        (opt == "-start") {           // server -start
       if (!args.AllDone()) return kERR;
+      if (Obj().IsActive()) return args.Quit("-E: server already running");
       Obj().Start();
     } else if (opt == "-stop") {            // server -stop
       if (!args.AllDone()) return kERR;
       Obj().Stop();
     } else if (opt == "-resume") {          // server -resume
+      if (Obj().IsActive()) return args.Quit("-E: server already running");
       if (!args.AllDone()) return kERR;
       Obj().Resume();
     } else if (opt == "-test") {            // server -test

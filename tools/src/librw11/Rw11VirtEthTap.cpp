@@ -1,4 +1,4 @@
-// $Id: Rw11VirtEthTap.cpp 1082 2018-12-15 13:56:20Z mueller $
+// $Id: Rw11VirtEthTap.cpp 1088 2018-12-17 17:37:00Z mueller $
 //
 // Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -31,6 +31,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <unistd.h>
+#include <string.h>
 
 #include <sys/ioctl.h>
 #include <net/if.h>

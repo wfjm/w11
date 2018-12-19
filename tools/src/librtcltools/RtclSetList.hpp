@@ -1,4 +1,4 @@
-// $Id: RtclSetList.hpp 1084 2018-12-16 12:23:53Z mueller $
+// $Id: RtclSetList.hpp 1088 2018-12-17 17:37:00Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -34,6 +34,7 @@
 #include <cstdint>
 #include <string>
 #include <map>
+#include <memory>
 #include <functional>
 
 #include "RtclSet.hpp"

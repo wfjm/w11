@@ -1,4 +1,4 @@
-// $Id: RtclAttnShuttle.cpp 1082 2018-12-15 13:56:20Z mueller $
+// $Id: RtclAttnShuttle.cpp 1088 2018-12-17 17:37:00Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -28,6 +28,7 @@
   \brief   Implemenation of class RtclAttnShuttle.
  */
 
+#include <unistd.h>
 #include <errno.h>
 
 #include "librtools/Rexception.hpp"

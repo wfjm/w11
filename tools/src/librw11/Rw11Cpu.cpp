@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.cpp 1085 2018-12-16 14:11:16Z mueller $
+// $Id: Rw11Cpu.cpp 1088 2018-12-17 17:37:00Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -48,6 +48,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include <vector>
 #include <map>
@@ -573,7 +574,7 @@ bool Rw11Cpu::LoadAbs(const std::string& fname, RerrMsg& emsg, bool trace)
 
   while (go) {
     uint8_t byte;
-    int irc = read(fd, &byte, 1);
+    int irc = ::read(fd, &byte, 1);
     if (irc == 0) {
       if (state == s_chr0) {
         ok = true;
@@ -701,7 +702,7 @@ bool Rw11Cpu::LoadAbs(const std::string& fname, RerrMsg& emsg, bool trace)
     } // switch(state)
   } // while(go)
   
-  close(fd);
+  ::close(fd);
   
   return ok;
 }

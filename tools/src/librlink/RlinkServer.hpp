@@ -1,4 +1,4 @@
-// $Id: RlinkServer.hpp 1084 2018-12-16 12:23:53Z mueller $
+// $Id: RlinkServer.hpp 1088 2018-12-17 17:37:00Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-17  1088   2.2.6  use std::thread instead of boost
 // 2018-12-16  1084   2.2.5  use =delete for noncopyable instead of boost
 // 2018-12-15  1083   2.2.4  for std::function setups: use rval ref and move
 // 2018-12-14  1081   2.2.3  use std::function instead of boost
@@ -42,8 +43,7 @@
 #include <list>
 #include <memory>
 #include <functional>
-
-#include "boost/thread/thread.hpp"
+#include <thread>
 
 #include "librtools/Rstats.hpp"
 
@@ -179,7 +179,7 @@ namespace Retro {
       std::list<actnhdl_t>  fActnList;
       ReventFd      fWakeupEvent;
       RlinkServerEventLoop fELoop;
-      boost::thread fServerThread;
+      std::thread   fServerThread;
       uint16_t      fAttnPatt;              //!< current attn pattern
       uint16_t      fAttnNotiPatt;          //!< attn notifier pattern
       uint32_t      fTraceLevel;            //!< trace level

@@ -1,4 +1,4 @@
-// $Id: RlinkPortCuff.cpp 1081 2018-12-14 22:29:42Z mueller $
+// $Id: RlinkPortCuff.cpp 1088 2018-12-17 17:37:00Z mueller $
 //
 // Copyright 2012-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-17  1088   1.1.9  use std::thread instead of boost
 // 2018-12-14  1081   1.1.8  use std::bind instead of boost
 // 2018-11-09  1066   1.1.7  use auto
 // 2018-10-27  1059   1.1.6  coverity fixup (uncaught exception in dtor)
@@ -244,7 +245,7 @@ bool RlinkPortCuff::Open(const std::string& url, RerrMsg& emsg)
   libusb_set_pollfd_notifiers(fpUsbContext, ThunkPollfdAdd,
                               ThunkPollfdRemove, this);
 
-  fDriverThread =  boost::thread(std::bind(&RlinkPortCuff::Driver, this));
+  fDriverThread =  thread([this](){ Driver(); });
 
   fIsOpen  = true;
 
@@ -275,13 +276,7 @@ void RlinkPortCuff::Cleanup()
   CloseFd(fFdWrite);
   
   // wait till driver thread terminates
-  // use timed join, throw in case driver doesn't stop
-  if (fDriverThread.get_id() != boost::thread::id()) {
-    if (!fDriverThread.timed_join(boost::posix_time::milliseconds(500))) {
-      throw Rexception("RlinkPortCuff::Cleanup()",
-                       "driver thread failed to stop");
-    }
-  }
+  if (fDriverThread.joinable()) fDriverThread.join();
 
   // cleanup pipes
   CloseFd(fFdRead);
@@ -332,7 +327,7 @@ bool RlinkPortCuff::OpenPipe(int& fdread, int& fdwrite, RerrMsg& emsg)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-// executed in separate boost thread !!
+// executed in separate thread !!
 void RlinkPortCuff::Driver()
 {
   try {

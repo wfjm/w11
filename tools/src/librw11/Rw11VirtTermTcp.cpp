@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTermTcp.cpp 1082 2018-12-15 13:56:20Z mueller $
+// $Id: Rw11VirtTermTcp.cpp 1088 2018-12-17 17:37:00Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -35,6 +35,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <unistd.h>
 
 #include <sstream>
 
@@ -152,7 +153,7 @@ bool Rw11VirtTermTcp::Open(const std::string& url, RerrMsg& emsg)
   int on = 1;
   if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0) {
     emsg.InitErrno("Rw11VirtTermTcp::Open","setsockop() failed: ", errno);
-    close(fd);
+    ::close(fd);
     return false;
   }
 
@@ -164,13 +165,13 @@ bool Rw11VirtTermTcp::Open(const std::string& url, RerrMsg& emsg)
   // Note: ::bind needed below to avoid collision with std::bind... 
   if (::bind(fd, (sockaddr*) &sa, sizeof(sa)) < 0) {
     emsg.InitErrno("Rw11VirtTermTcp::Open","bind() failed: ", errno);
-    close(fd);
+    ::close(fd);
     return false;
   }
 
   if (listen(fd, 1) <0) {
     emsg.InitErrno("Rw11VirtTermTcp::Open","listen() failed: ", errno);
-    close(fd);
+    ::close(fd);
     return false;    
   }
 
@@ -219,7 +220,7 @@ bool Rw11VirtTermTcp::Snd(const uint8_t* data, size_t count, RerrMsg& /*emsg*/)
       *pobuf++ = *pdata++;
     }
 
-    int irc = write(fFd, obuf, pobuf-obuf);
+    int irc = ::write(fFd, obuf, pobuf-obuf);
     if (irc < 0) {
       RlogMsg lmsg(LogFile(),'E');
       RerrMsg emsg("Rw11VirtTermTcp::Snd", 
@@ -295,11 +296,11 @@ int Rw11VirtTermTcp::ListenPollHandler(const pollfd& pfd)
   int nerr = 0;
 
   // send initial negotiation WILLs and DOs
-  if (write(fFd, buf_1, sizeof(buf_1)) < 0) nerr += 1;
-  if (write(fFd, buf_2, sizeof(buf_2)) < 0) nerr += 1;
-  if (write(fFd, buf_3, sizeof(buf_3)) < 0) nerr += 1;
-  if (write(fFd, buf_4, sizeof(buf_4)) < 0) nerr += 1;
-  if (write(fFd, buf_5, sizeof(buf_5)) < 0) nerr += 1;
+  if (::write(fFd, buf_1, sizeof(buf_1)) < 0) nerr += 1;
+  if (::write(fFd, buf_2, sizeof(buf_2)) < 0) nerr += 1;
+  if (::write(fFd, buf_3, sizeof(buf_3)) < 0) nerr += 1;
+  if (::write(fFd, buf_4, sizeof(buf_4)) < 0) nerr += 1;
+  if (::write(fFd, buf_5, sizeof(buf_5)) < 0) nerr += 1;
 
   // send connect message
   if (nerr==0) {
@@ -322,7 +323,7 @@ int Rw11VirtTermTcp::ListenPollHandler(const pollfd& pfd)
   }
 
   if (nerr) {
-    close(fFd);
+    ::close(fFd);
     fFd = -1;
     RlogMsg lmsg(LogFile(),'E');
     RerrMsg emsg("Rw11VirtTermTcp::ListenPollHandler", 
@@ -360,7 +361,7 @@ int Rw11VirtTermTcp::RcvPollHandler(const pollfd& pfd)
     uint8_t obuf[1024];
     uint8_t* pobuf = obuf;
 
-    irc = read(fFd, ibuf, 1024);
+    irc = ::read(fFd, ibuf, 1024);
 
     if (irc < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) return 0;
 
@@ -425,7 +426,7 @@ int Rw11VirtTermTcp::RcvPollHandler(const pollfd& pfd)
       RlogMsg lmsg(LogFile(),'I');
       lmsg << "TermTcp: close on " << fChannelId << " for " << Unit().Name();
     }
-    close(fFd);
+    ::close(fFd);
     fFd = -1;
     Server().AddPollHandler([this](const pollfd& pfd)
                               { return ListenPollHandler(pfd); }, 

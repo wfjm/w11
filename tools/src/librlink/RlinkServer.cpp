@@ -1,4 +1,4 @@
-// $Id: RlinkServer.cpp 1085 2018-12-16 14:11:16Z mueller $
+// $Id: RlinkServer.cpp 1088 2018-12-17 17:37:00Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2018-12-17  1085   1.2.8  use std::lock_guard instead of boost
+// 2018-12-17  1088   2.2.8  use std::lock_guard, std::thread instead of boost
 // 2018-12-15  1083   2.2.7  for std::function setups: use rval ref and move
 // 2018-12-14  1081   2.2.6  use std::bind instead of boost
 // 2018-12-07  1078   2.2.5  use std::shared_ptr instead of boost
@@ -35,6 +35,8 @@
   \file
   \brief   Implemenation of RlinkServer.
 */
+
+#include <unistd.h>
 
 #include "librtools/Rexception.hpp"
 #include "librtools/RosFill.hpp"
@@ -188,7 +190,7 @@ void RlinkServer::GetAttnInfo(AttnArgs& args)
 //! FIXME_docs
 
 void RlinkServer::RemoveAttnHandler(uint16_t mask, void* cdata)
-{    
+{
   lock_guard<RlinkConnect> lock(*fspConn);
 
   AttnId id(mask, cdata);
@@ -269,7 +271,8 @@ void RlinkServer::Start()
 //! FIXME_docs
 
 void RlinkServer::Stop()
-{    
+{
+  if (!IsActive()) return;
   fELoop.Stop();
   Wakeup();
   fServerThread.join();
@@ -280,7 +283,7 @@ void RlinkServer::Stop()
 //! FIXME_docs
 
 void RlinkServer::Resume()
-{    
+{
   StartOrResume(true);
   return;
 }
@@ -289,9 +292,9 @@ void RlinkServer::Resume()
 //! FIXME_docs
 
 void RlinkServer::Wakeup()
-{    
+{
   uint64_t one(1);
-  int irc = write(fWakeupEvent, &one, sizeof(one));
+  int irc = ::write(fWakeupEvent, &one, sizeof(one));
   if (irc < 0) 
     throw Rexception("RlinkServer::Wakeup()", 
                      "write() to eventfd failed: ", errno);
@@ -302,7 +305,7 @@ void RlinkServer::Wakeup()
 //! FIXME_docs
 
 void RlinkServer::SignalAttnNotify(uint16_t apat)
-{    
+{
   // only called under lock !!
   if (apat & fAttnNotiPatt) {
     RlogMsg lmsg(LogFile(), 'W');
@@ -322,8 +325,8 @@ void RlinkServer::SignalAttnNotify(uint16_t apat)
  */
 
 bool RlinkServer::IsActive() const
-{    
-  return fServerThread.get_id() != boost::thread::id();
+{
+  return fServerThread.joinable();
 }
 
 //------------------------------------------+-----------------------------------
@@ -334,7 +337,7 @@ bool RlinkServer::IsActive() const
 
 bool RlinkServer::IsActiveInside() const
 {
-  return IsActive() && boost::this_thread::get_id() == fServerThread.get_id();
+  return IsActive() && this_thread::get_id() == fServerThread.get_id();
 }
 
 //------------------------------------------+-----------------------------------
@@ -346,7 +349,7 @@ bool RlinkServer::IsActiveInside() const
 
 bool RlinkServer::IsActiveOutside() const
 {
-  return IsActive() && boost::this_thread::get_id() != fServerThread.get_id();
+  return IsActive() && this_thread::get_id() != fServerThread.get_id();
 }
 
 //------------------------------------------+-----------------------------------
@@ -421,8 +424,7 @@ void RlinkServer::StartOrResume(bool resume)
   
   // and start server thread
   fELoop.UnStop();
-  fServerThread = boost::thread(std::bind(&RlinkServerEventLoop::EventLoop,
-                                          &fELoop));
+  fServerThread = thread([this](){ fELoop.EventLoop(); });
 
   if (resume) {
     RerrMsg emsg;
@@ -557,7 +559,7 @@ int RlinkServer::WakeupHandler(const pollfd& pfd)
   if (pfd.revents & (~pfd.events)) return -1;
 
   uint64_t buf;
-  int irc = read(fWakeupEvent, &buf, sizeof(buf));
+  int irc = ::read(fWakeupEvent, &buf, sizeof(buf));
   if (irc < 0) 
     throw Rexception("RlinkServer::WakeupHandler()", 
                      "read() from eventfd failed: ", errno);

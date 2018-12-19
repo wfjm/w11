@@ -1,4 +1,4 @@
-// $Id: Rtools.cpp 1063 2018-10-29 18:37:42Z mueller $
+// $Id: Rtools.cpp 1088 2018-12-17 17:37:00Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -186,7 +186,7 @@ void Catch2Cerr(const char* msg, std::function<void()> func)
          << " caught and dropped in " << msg << endl;
    } catch (exception& e) {
     cerr << "Catch2Cerr-E: exception '" << e.what()
-         << " caught and dropped in " << msg << endl;
+         << "' caught and dropped in " << msg << endl;
   } catch(...) {
     cerr << "Catch2Cerr-E: non std::exception"
          << " caught and dropped in " << msg << endl;

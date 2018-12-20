@@ -34,6 +34,7 @@ before_install:
 
 #
 before_script:
+  - less /proc/cpuinfo | grep "^model name" | head -n 1
   - bash -c '${CC}  --version'
   - bash -c '${CXX} --version'
   - export RETROBASE=$PWD

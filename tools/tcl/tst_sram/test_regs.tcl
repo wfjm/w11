@@ -1,6 +1,6 @@
-# $Id: test_regs.tcl 985 2018-01-03 08:59:40Z mueller $
+# $Id: test_regs.tcl 1074 2018-11-25 21:38:59Z mueller $
 #
-# Copyright 2016-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-11-25  1074   1.2.1  don't reset MEM, only SEQ
 # 2017-06-25   917   1.2    17bit support; use sstat(awidth); add isnarrow
 # 2016-07-10   785   1.1    add memory test (touch evenly distributed addr)
 # 2016-07-09   784   1.0    Initial version (ported from tb_tst_sram_stim.dat)
@@ -35,8 +36,8 @@ namespace eval tst_sram {
     rlc errcnt -clear
     #
     rlc log "tst_sram::test_regs ---------------------------------------------"
-    rlc log "  init: reset via init, clear sfail ect"
-    rlc exec -init sr.mdih 0x0003; # reset MEM,SEQ
+    rlc log "  init: reset SEQ via init, clear sfail ect"
+    rlc exec -init sr.mdih 0x0001; # reset SEQ (don't reset MEM !)
     #
     #-------------------------------------------------------------------------
     rlc log "  test 1a: test mdi* ,maddr*"

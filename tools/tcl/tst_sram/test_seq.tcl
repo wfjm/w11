@@ -1,6 +1,6 @@
-# $Id: test_seq.tcl 985 2018-01-03 08:59:40Z mueller $
+# $Id: test_seq.tcl 1074 2018-11-25 21:38:59Z mueller $
 #
-# Copyright 2016-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-11-25  1074   1.2.1  remove MEM reset via init
 # 2017-06-25   917   1.2    17bit support; use sstat(awidth); use isnarrow
 # 2016-07-10   785   1.1    add wswap and wloop tests
 # 2016-07-09   784   1.0    Initial version (ported from tb_tst_sram_stim.dat)
@@ -272,13 +273,6 @@ namespace eval tst_sram {
     # init 0x0 --> noop
     rlc exec \
       -init sr.mdih   0x0000 \
-      -rreg sr.sstat  -edata [regbld tst_sram::SSTAT veri fail] $sm \
-      -rreg sr.seaddr -edata 0x0004 \
-      -rreg sr.sedath -edata 0xb1a1 \
-      -rreg sr.sedatl -edata 0x9181
-    # init 0x2 --> reset MEM, no effect on SEQ state
-    rlc exec \
-      -init sr.mdih   0x0002 \
       -rreg sr.sstat  -edata [regbld tst_sram::SSTAT veri fail] $sm \
       -rreg sr.seaddr -edata 0x0004 \
       -rreg sr.sedath -edata 0xb1a1 \

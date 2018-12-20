@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tbrun 1066 2018-11-10 11:21:53Z mueller $
+# $Id: tbrun 1069 2018-11-16 17:11:30Z mueller $
 #
 # Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-11-16  1069   1.1.1  add --all
 # 2018-11-09  1066   1.1    add and use bailout; update exit code usage
 # 2017-04-15   875   1.0.1  add --help option
 # 2016-09-17   808   1.0    Initial version
@@ -32,7 +33,7 @@ use Time::HiRes qw(gettimeofday);
 
 my %opts = ();
 
-GetOptions(\%opts, "tag=s@", "exclude=s@", "mode=s",
+GetOptions(\%opts, "tag=s@", "exclude=s@", "mode=s", "all",
            "jobs=i", "tee=s", "tmax=i", "dry", "trace",
            "nomake", "norun",
            "rlmon", "rbmon", "bwait=i", "swait=i",
@@ -85,6 +86,11 @@ if (defined $opts{tee} && $opts{tee} ne '') {
   $fh_tee = new FileHandle;
   $fh_tee->open($opts{tee},'>')
     or bailout("failed to open for write '$opts{tee}': $!");
+}
+
+if ($opts{all}) {
+  bailout("-all not compatible with --tag options") if  defined $opts{tag};
+  $opts{tag}  = ['.*']
 }
 
 $opts{tag}  = ['default'] unless defined $opts{tag};

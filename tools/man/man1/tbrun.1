@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: tbrun.1 1065 2018-11-04 11:32:06Z mueller $
+.\"  $Id: tbrun.1 1069 2018-11-16 17:11:30Z mueller $
 .\"
 .\" Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH TBRUN 1 2018-11-03 "Retro Project" "Retro Project Manual"
+.TH TBRUN 1 2018-11-16 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 tbrun \- test bench driver
@@ -68,6 +68,11 @@ separated list, a test which matches all the tags given is excluded.
 \fB\-\-exclude\fP can be specified multiple times, the rejections are ored.
 In effect, a test is rejected if it matches all tags in the \fItlist\fR of 
 one of the specified \fB\-\-exclude\fP options.
+.
+.\" -- --all -------------------------------------
+.IP \fB\-\-all\fR
+is simply a shortcut for \fB\-\-tag=".*"\fR and selects all tags. Can be
+combined with \fB\-\-exclude\fP but not with other \fB\-\-tag\P options.
 .
 .\" -- --mode ------------------------------------
 .IP \fB\-\-mode=\fImlist\fR

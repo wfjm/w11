@@ -1,4 +1,4 @@
--- $Id: sys_w11a_br_n4d.vhd 1056 2018-10-13 16:01:17Z mueller $
+-- $Id: sys_w11a_br_n4d.vhd 1086 2018-12-16 18:29:55Z mueller $
 --
 -- Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -15,8 +15,7 @@
 -- Module Name:    sys_w11a_br_n4d - syn
 -- Description:    w11a test design for nexys4d (bram only)
 --
--- Dependencies:   vlib/xlib/s7_cmt_sfs
---                 vlib/genlib/clkdivce
+-- Dependencies:   bplib/bpgen/s7_cmt_1ce1ce
 --                 bplib/bpgen/bp_rs232_4line_iob
 --                 vlib/rlink/rlink_sp2c
 --                 w11a/pdp11_sys70
@@ -42,6 +41,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-12-16  1086   1.2    use s7_cmt_1ce1ce
 -- 2018-10-13  1055   1.1    use DM_STAT_EXP; IDEC to maxisys; setup PERFEXT
 -- 2017-01-04   838   1.0    Initial version (derived from sys_w11a_br_n4)
 ------------------------------------------------------------------------------
@@ -96,7 +96,6 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 use work.slvtypes.all;
-use work.xlib.all;
 use work.genlib.all;
 use work.serportlib.all;
 use work.rblib.all;
@@ -208,56 +207,34 @@ begin
     report "assert sys_conf_clksys on MHz grid"
     severity failure;
   
-  GEN_CLKSYS : s7_cmt_sfs               -- clock generator system ------------
+  GEN_CLKALL : s7_cmt_1ce1ce            -- clock generator system ------------
     generic map (
-      VCO_DIVIDE     => sys_conf_clksys_vcodivide,
-      VCO_MULTIPLY   => sys_conf_clksys_vcomultiply,
-      OUT_DIVIDE     => sys_conf_clksys_outdivide,
       CLKIN_PERIOD   => 10.0,
       CLKIN_JITTER   => 0.01,
       STARTUP_WAIT   => false,
-      GEN_TYPE       => sys_conf_clksys_gentype)
+      CLK0_VCODIV    => sys_conf_clksys_vcodivide,
+      CLK0_VCOMUL    => sys_conf_clksys_vcomultiply,
+      CLK0_OUTDIV    => sys_conf_clksys_outdivide,
+      CLK0_GENTYPE   => sys_conf_clksys_gentype,
+      CLK0_CDUWIDTH  => 7,
+      CLK0_USECDIV   => sys_conf_clksys_mhz,
+      CLK0_MSECDIV   => 1000,      
+      CLK1_VCODIV    => sys_conf_clkser_vcodivide,
+      CLK1_VCOMUL    => sys_conf_clkser_vcomultiply,
+      CLK1_OUTDIV    => sys_conf_clkser_outdivide,
+      CLK1_GENTYPE   => sys_conf_clkser_gentype,
+      CLK1_CDUWIDTH  => 7,
+      CLK1_USECDIV   => sys_conf_clkser_mhz,
+      CLK1_MSECDIV   => 1000)
     port map (
-      CLKIN   => I_CLK100,
-      CLKFX   => CLK,
-      LOCKED  => open
-    );
-
-  CLKDIV_CLK : clkdivce                 -- usec/msec clock divider system ----
-    generic map (
-      CDUWIDTH => 7,
-      USECDIV  => sys_conf_clksys_mhz,
-      MSECDIV  => 1000)
-    port map (
-      CLK     => CLK,
-      CE_USEC => CE_USEC,
-      CE_MSEC => CE_MSEC
-    );
-
-  GEN_CLKSER : s7_cmt_sfs               -- clock generator serport------------
-    generic map (
-      VCO_DIVIDE     => sys_conf_clkser_vcodivide,
-      VCO_MULTIPLY   => sys_conf_clkser_vcomultiply,
-      OUT_DIVIDE     => sys_conf_clkser_outdivide,
-      CLKIN_PERIOD   => 10.0,
-      CLKIN_JITTER   => 0.01,
-      STARTUP_WAIT   => false,
-      GEN_TYPE       => sys_conf_clkser_gentype)
-    port map (
-      CLKIN   => I_CLK100,
-      CLKFX   => CLKS,
-      LOCKED  => open
-    );
-
-  CLKDIV_CLKS : clkdivce                -- usec/msec clock divider serport ---
-    generic map (
-      CDUWIDTH => 7,
-      USECDIV  => sys_conf_clkser_mhz,
-      MSECDIV  => 1000)
-    port map (
-      CLK     => CLKS,
-      CE_USEC => open,
-      CE_MSEC => CES_MSEC
+      CLKIN     => I_CLK100,
+      CLK0      => CLK,
+      CE0_USEC  => CE_USEC,
+      CE0_MSEC  => CE_MSEC,
+      CLK1      => CLKS,
+      CE1_USEC  => open,
+      CE1_MSEC  => CES_MSEC,
+      LOCKED    => open
     );
 
   IOB_RS232 : bp_rs232_4line_iob         -- serport iob ----------------------

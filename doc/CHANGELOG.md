@@ -54,6 +54,7 @@ The full set of tests is only run for tagged releases.
   - pdp11_dmpcnt: an array of 32 counters of 32 bit width
   - connected to 24 signals from inside pdp11_sys70 and 8 signals from outside
   - dmpcntanal: analysis script
+- add s7_cmt_1ce1ce: clock generator block used in many 7-Series designs
 - add new disk scheme ram: (with Rw11VirtDiskRam)
   - implements a ram-only-disk
   - generates create_disk compatible test patterns
@@ -81,9 +82,14 @@ The full set of tests is only run for tagged releases.
   - use in {dcm,s6_cmt,s7_cmt}_sfs_gsim simulation models
   - use in rtl/bplib/*/tb/tb_* test benches
   - remove s7_cmt_sfs_tb
+- tbcore_rlink: wait 40 cycles after CONF_DONE
+- serport_master_tb: add 100 ps RXSD,TXSD delay to allow clock jitter
 - tools changes
   - xviv_msg_filter: display INFO Common 17-14 'further message disabled'
+  - tbrun: add --all option
   - viv_tools_build.tcl: increase message limits (all 200, some 5000)
+- tbench changes:
+  - tst_sram: don't test memory controller reset anymore
 - backend changes
   - RtclRw11Unit: fix for clang: M_virt() now public
   - Rw11VirtDisk: keep track of disk geometry

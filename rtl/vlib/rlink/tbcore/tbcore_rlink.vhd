@@ -1,6 +1,6 @@
--- $Id: tbcore_rlink.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: tbcore_rlink.vhd 1074 2018-11-25 21:38:59Z mueller $
 --
--- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -21,9 +21,10 @@
 -- To test:        generic, any rlink_cext based target
 --
 -- Target Devices: generic
--- Tool versions:  ghdl 0.26-0.33
+-- Tool versions:  ghdl 0.26-0.34
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-11-25  1074   3.3    wait 40 cycles after CONF_DONE
 -- 2016-09-17   807   3.2.2  conf: .sinit -> .sdata; finite length SB_VAL pulse
 -- 2016-09-02   805   3.2.1  conf: add .wait and CONF_DONE; drop CLK_STOP
 -- 2016-02-07   729   3.2    use rlink_cext_iface (allow VHPI and DPI backend)
@@ -212,13 +213,13 @@ begin
 
     CEXT_RXHOLD <= '1';
       
-    -- wait for CONF_DONE, but at least 10 clock cycles (conf+design run up)
-    for i in 0 to 9 loop
-      wait until rising_edge(CLK);
-    end loop;  -- i
+    -- wait for CONF_DONE, plus addional 40 clock cycles (conf+design run up)
     while CONF_DONE = '0' loop
       wait until rising_edge(CLK);      
     end loop;
+    for i in 0 to 39 loop
+      wait until rising_edge(CLK);
+    end loop;  -- i
     
     writetimestamp(oline, CLK_CYCLE, ": START");
     writeline(output, oline);

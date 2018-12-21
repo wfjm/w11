@@ -1,4 +1,4 @@
--- $Id: bpgenlib.vhd 1038 2018-08-11 12:39:52Z mueller $
+-- $Id: bpgenlib.vhd 1086 2018-12-16 18:29:55Z mueller $
 --
 -- Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  ise 12.1-14.7; viv 2014.4-2018.2; ghdl 0.26-0.34
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-12-16  1086   1.2.3  add s7_cmt_1ce1ce
 -- 2018-08-11  1038   1.2.2  add rgbdrv_3x2mux
 -- 2017-06-05   907   1.2.1  rgbdrv_analog: add ACTLOW generic
 -- 2016-02-27   737   1.2    add rgbdrv entity
@@ -250,6 +251,75 @@ component rgbdrv_3x2mux is              -- rgbled driver: mux three 2bit inputs
     DATB : in slv2;                     -- blue  data
     O_RGBLED0 : out slv3;               -- pad-o: rgb led 0
     O_RGBLED1 : out slv3                -- pad-o: rgb led 1
+  );
+end component;
+
+component s7_cmt_1ce1ce  is             -- clocking block: 2 clk+CEs
+  generic (
+    CLKIN_PERIOD  : real := 10.0;       -- CLKIN period (def is 10.0 ns)
+    CLKIN_JITTER  : real := 0.01;       -- CLKIN jitter (def is 10 ps)
+    STARTUP_WAIT  : boolean := false;   -- hold FPGA startup till LOCKED
+    CLK0_VCODIV   : positive := 1;      -- clk0: vco clock divide
+    CLK0_VCOMUL   : positive := 1;      -- clk0: vco clock multiply 
+    CLK0_OUTDIV   : positive := 1;      -- clk0: output divide
+    CLK0_GENTYPE  : string := "PLL";    -- clk0: PLL or MMCM
+    CLK0_CDUWIDTH : positive :=   7;    -- clk0: usec clock divider width
+    CLK0_USECDIV  : positive :=  50;    -- clk0: divider ratio for usec pulse
+    CLK0_MSECDIV  : positive := 1000;   -- clk0: divider ratio for msec pulse
+    CLK1_VCODIV   : positive := 1;      -- clk1: vco clock divide
+    CLK1_VCOMUL   : positive := 1;      -- clk1: vco clock multiply 
+    CLK1_OUTDIV   : positive := 1;      -- clk1: output divide
+    CLK1_GENTYPE  : string := "MMCM";   -- clk1: PLL or MMCM
+    CLK1_CDUWIDTH : positive :=   7;    -- clk1: usec clock divider width
+    CLK1_USECDIV  : positive :=  50;    -- clk1: divider ratio for usec pulse
+    CLK1_MSECDIV  : positive := 1000);  -- clk1: divider ratio for msec pulse
+  port (
+    CLKIN    : in slbit;                -- clock input
+    CLK0     : out slbit;               -- clk0: clock output
+    CE0_USEC : out slbit;               -- clk0: usec pulse
+    CE0_MSEC : out slbit;               -- clk0: msec pulse
+    CLK1     : out slbit;               -- clk1: clock output
+    CE1_USEC : out slbit;               -- clk1: usec pulse
+    CE1_MSEC : out slbit;               -- clk1: msec pulse
+    LOCKED   : out slbit                -- all PLL/MMCM locked
+  );
+end component;
+
+component s7_cmt_1ce1ce2c  is           -- clocking block: 2 clk+CEs; 2 clk
+  generic (
+    CLKIN_PERIOD  : real := 10.0;       -- CLKIN period (def is 10.0 ns)
+    CLKIN_JITTER  : real := 0.01;       -- CLKIN jitter (def is 10 ps)
+    STARTUP_WAIT  : boolean := false;   -- hold FPGA startup till LOCKED
+    CLK0_VCODIV   : positive := 1;      -- clk0: vco clock divide
+    CLK0_VCOMUL   : positive := 1;      -- clk0: vco clock multiply 
+    CLK0_OUTDIV   : positive := 1;      -- clk0: output divide
+    CLK0_GENTYPE  : string := "PLL";    -- clk0: PLL or MMCM
+    CLK0_CDUWIDTH : positive :=   7;    -- clk0: usec clock divider width
+    CLK0_USECDIV  : positive :=  50;    -- clk0: divider ratio for usec pulse
+    CLK0_MSECDIV  : positive := 1000;   -- clk0: divider ratio for msec pulse
+    CLK1_VCODIV   : positive := 1;      -- clk1: vco clock divide
+    CLK1_VCOMUL   : positive := 1;      -- clk1: vco clock multiply 
+    CLK1_OUTDIV   : positive := 1;      -- clk1: output divide
+    CLK1_GENTYPE  : string := "MMCM";   -- clk1: PLL or MMCM
+    CLK1_CDUWIDTH : positive :=   7;    -- clk1: usec clock divider width
+    CLK1_USECDIV  : positive :=  50;    -- clk1: divider ratio for usec pulse
+    CLK1_MSECDIV  : positive := 1000;   -- clk1: divider ratio for msec pulse
+    CLK23_VCODIV  : positive := 1;      -- clk2+3: vco clock divide
+    CLK23_VCOMUL  : positive := 1;      -- clk2+3: vco clock multiply 
+    CLK2_OUTDIV   : positive := 1;      -- clk2: output divide
+    CLK3_OUTDIV   : positive := 1;      -- clk3: output divide
+    CLK23_GENTYPE : string := "PLL");   -- clk2+3: PLL or MMCM
+  port (
+    CLKIN    : in slbit;                -- clock input
+    CLK0     : out slbit;               -- clk0: clock output
+    CE0_USEC : out slbit;               -- clk0: usec pulse
+    CE0_MSEC : out slbit;               -- clk0: msec pulse
+    CLK1     : out slbit;               -- clk1: clock output
+    CE1_USEC : out slbit;               -- clk1: usec pulse
+    CE1_MSEC : out slbit;               -- clk1: msec pulse
+    CLK2     : out slbit;               -- clk2: clock output
+    CLK3     : out slbit;               -- clk3: clock output
+    LOCKED   : out slbit                -- all PLL/MMCM locked
   );
 end component;
 

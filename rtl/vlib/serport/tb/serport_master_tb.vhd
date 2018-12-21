@@ -1,6 +1,6 @@
--- $Id: serport_master_tb.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: serport_master_tb.vhd 1087 2018-12-17 08:25:37Z mueller $
 --
--- Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,10 +20,11 @@
 --                 serport_xontx_tb
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  ghdl 0.31
+-- Tool versions:  ghdl 0.31-0.34
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-12-16  1087   1.1    add 100 ps RXSD,TXSD delay to allow clock jitter
 -- 2016-01-03   724   1.0    Initial version (copied from serport_master)
 
 ------------------------------------------------------------------------------
@@ -61,13 +62,16 @@ end serport_master_tb;
 architecture sim of serport_master_tb is
   
   signal UART_RXDATA : slv8 := (others=>'0');
-  signal UART_RXVAL : slbit := '0';
+  signal UART_RXVAL  : slbit := '0';
   signal UART_TXDATA : slv8 := (others=>'0');
-  signal UART_TXENA : slbit := '0';
+  signal UART_TXENA  : slbit := '0';
   signal UART_TXBUSY : slbit := '0';
 
-  signal XONTX_TXENA : slbit := '0';
+  signal XONTX_TXENA  : slbit := '0';
   signal XONTX_TXBUSY : slbit := '0';
+
+  signal UART_RXSD : slbit := '0';
+  signal UART_TXSD : slbit := '0';
 
   signal TXOK : slbit := '0';
   
@@ -80,17 +84,24 @@ begin
     CLK        => CLK,
     RESET      => RESET,
     CLKDIV     => CLKDIV,
-    RXSD       => RXSD,
+    RXSD       => UART_RXSD,
     RXDATA     => UART_RXDATA,
     RXVAL      => UART_RXVAL,
     RXERR      => RXERR,
     RXACT      => open,
-    TXSD       => TXSD,
+    TXSD       => UART_TXSD,
     TXDATA     => UART_TXDATA,
     TXENA      => UART_TXENA,
     TXBUSY     => UART_TXBUSY
   );
 
+  -- add some minor (100 ps) delay in the serial data path.
+  -- this makes transmission immune against small clock jitter between test
+  -- bench and UUT (e.g. from sfs re-phasing done differently in tb and UUT).
+  
+  TXSD      <= UART_TXSD after 100 ps;
+  UART_RXSD <= RXSD      after 100 ps;
+  
   XONRX : entity work.serport_xonrx_tb      --  xon/xoff logic rx path
   port map (
     CLK         => CLK,

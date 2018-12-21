@@ -1,6 +1,6 @@
--- $Id: sys_tst_serloop2_n4.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: sys_tst_serloop2_n4.vhd 1086 2018-12-16 18:29:55Z mueller $
 --
--- Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -12,11 +12,10 @@
 -- for complete details.
 --
 ------------------------------------------------------------------------------
--- Module Name:    sys_tst_serloop1_n4 - syn
--- Description:    Tester serial link for nexys4 (serport_1clock case)
+-- Module Name:    sys_tst_serloop2_n4 - syn
+-- Description:    Tester serial link for nexys4 (serport_2clock case)
 --
--- Dependencies:   vlib/xlib/s7_cmt_sfs
---                 vlib/genlib/clkdivce
+-- Dependencies:   bplib/bpgen/s7_cmt_1ce1ce
 --                 bpgen/bp_rs232_4line_iob
 --                 bpgen/sn_humanio
 --                 tst_serloop_hiomap
@@ -26,7 +25,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  viv 2014.4-2015.4; ghdl 0.31-0.33
+-- Tool versions:  viv 2014.4-2018.2; ghdl 0.31-0.34
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
@@ -34,6 +33,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-12-16  1086   1.1    use s7_cmt_1ce1ce
 -- 2016-06-05   722   1.0.1  use CDUWIDTH=7 for CLKS, 120 MHz is natural choice
 -- 2015-02-01   641   1.0    Initial version (derived from sys_tst_serloop1_n4)
 ------------------------------------------------------------------------------
@@ -44,7 +44,6 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 use work.slvtypes.all;
-use work.xlib.all;
 use work.genlib.all;
 use work.bpgenlib.all;
 use work.tst_serlooplib.all;
@@ -108,56 +107,34 @@ architecture syn of sys_tst_serloop2_n4 is
 
 begin
 
-  GEN_CLKSYS : s7_cmt_sfs               -- clock generator system ------------
+  GEN_CLKALL : s7_cmt_1ce1ce            -- clock generator system ------------
     generic map (
-      VCO_DIVIDE     => sys_conf_clksys_vcodivide,
-      VCO_MULTIPLY   => sys_conf_clksys_vcomultiply,
-      OUT_DIVIDE     => sys_conf_clksys_outdivide,
       CLKIN_PERIOD   => 10.0,
       CLKIN_JITTER   => 0.01,
       STARTUP_WAIT   => false,
-      GEN_TYPE       => sys_conf_clksys_gentype)
+      CLK0_VCODIV    => sys_conf_clksys_vcodivide,
+      CLK0_VCOMUL    => sys_conf_clksys_vcomultiply,
+      CLK0_OUTDIV    => sys_conf_clksys_outdivide,
+      CLK0_GENTYPE   => sys_conf_clksys_gentype,
+      CLK0_CDUWIDTH  => 8,
+      CLK0_USECDIV   => sys_conf_clksys_mhz,
+      CLK0_MSECDIV   => sys_conf_clksys_msecdiv,      
+      CLK1_VCODIV    => sys_conf_clkser_vcodivide,
+      CLK1_VCOMUL    => sys_conf_clkser_vcomultiply,
+      CLK1_OUTDIV    => sys_conf_clkser_outdivide,
+      CLK1_GENTYPE   => sys_conf_clkser_gentype,
+      CLK1_CDUWIDTH  => 7,
+      CLK1_USECDIV   => sys_conf_clkser_mhz,
+      CLK1_MSECDIV   => sys_conf_clkser_msecdiv)
     port map (
-      CLKIN   => I_CLK100,
-      CLKFX   => CLK,
-      LOCKED  => open
-    );
-
-  CLKDIV_CLK : clkdivce
-    generic map (
-      CDUWIDTH => 8,
-      USECDIV  => sys_conf_clksys_mhz,
-      MSECDIV  => sys_conf_clksys_msecdiv)
-    port map (
-      CLK     => CLK,
-      CE_USEC => open,
-      CE_MSEC => CE_MSEC
-    );
-
-  GEN_CLKSER : s7_cmt_sfs               -- clock generator serport -----------
-    generic map (
-      VCO_DIVIDE     => sys_conf_clkser_vcodivide,
-      VCO_MULTIPLY   => sys_conf_clkser_vcomultiply,
-      OUT_DIVIDE     => sys_conf_clkser_outdivide,
-      CLKIN_PERIOD   => 10.0,
-      CLKIN_JITTER   => 0.01,
-      STARTUP_WAIT   => false,
-      GEN_TYPE       => sys_conf_clkser_gentype)
-    port map (
-      CLKIN   => I_CLK100,
-      CLKFX   => CLKS,
-      LOCKED  => open
-    );
-
-  CLKDIV_CLKS : clkdivce
-    generic map (
-      CDUWIDTH => 7,                    -- good up to 127 MHz
-      USECDIV  => sys_conf_clkser_mhz,
-      MSECDIV  => sys_conf_clkser_msecdiv)
-    port map (
-      CLK     => CLKS,
-      CE_USEC => open,
-      CE_MSEC => CES_MSEC
+      CLKIN     => I_CLK100,
+      CLK0      => CLK,
+      CE0_USEC  => CE_USEC,
+      CE0_MSEC  => CE_MSEC,
+      CLK1      => CLKS,
+      CE1_USEC  => open,
+      CE1_MSEC  => CES_MSEC,
+      LOCKED    => open
     );
 
   HIO : sn_humanio

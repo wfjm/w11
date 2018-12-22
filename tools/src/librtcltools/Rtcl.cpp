@@ -1,6 +1,6 @@
-// $Id: Rtcl.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rtcl.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
-// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.0.6  use c++ style casts
 // 2014-08-22   584   1.0.5  use nullptr
 // 2013-01-06   473   1.0.4  add NewListIntObj(const uint(8|16)_t, ...)
 // 2011-03-13   369   1.0.2  add NewListIntObj(vector<uint8_t>)
@@ -60,7 +61,7 @@ Tcl_Obj* Rtcl::NewListIntObj(const uint8_t* data, size_t size)
   vobj.reserve(size);
   
   for (size_t i=0; i<size; i++) {
-    vobj.push_back(Tcl_NewIntObj((int)data[i]));
+    vobj.push_back(Tcl_NewIntObj(int(data[i])));
   }
   return Tcl_NewListObj(vobj.size(), vobj.data());
 }
@@ -76,7 +77,7 @@ Tcl_Obj* Rtcl::NewListIntObj(const uint16_t* data, size_t size)
   vobj.reserve(size);
   
   for (size_t i=0; i<size; i++) {
-    vobj.push_back(Tcl_NewIntObj((int)data[i]));
+    vobj.push_back(Tcl_NewIntObj(int(data[i])));
   }
   return Tcl_NewListObj(vobj.size(), vobj.data());
 }

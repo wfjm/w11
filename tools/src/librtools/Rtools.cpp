@@ -1,4 +1,4 @@
-// $Id: Rtools.cpp 1088 2018-12-17 17:37:00Z mueller $
+// $Id: Rtools.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.0.9  use c++ style casts
 // 2018-10-26  1059   1.0.8  add Catch2Cerr()
 // 2017-02-18   852   1.0.7  remove TimeOfDayAsDouble()
 // 2014-11-23   606   1.0.6  add TimeOfDayAsDouble()
@@ -122,7 +123,7 @@ bool CreateBackupFile(const std::string& fname, size_t nbackup, RerrMsg& emsg)
   fnames.push_back(fname);
   for (size_t i=1; i<=nbackup; i++) {
     char fnum[4];
-    ::snprintf(fnum, sizeof(fnum), "%d", (int)i);
+    ::snprintf(fnum, sizeof(fnum), "%d", int(i));
     fnames.push_back(fbase + "_" + fnum + fext);
   }
   

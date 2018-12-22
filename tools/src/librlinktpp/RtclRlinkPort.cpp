@@ -1,4 +1,4 @@
-// $Id: RtclRlinkPort.cpp 1083 2018-12-15 19:19:16Z mueller $
+// $Id: RtclRlinkPort.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.4.2  use c++ style casts
 // 2018-12-15  1082   1.4.1  use lambda instead of bind
 // 2018-12-08  1079   1.4    use ref not ptr for RlinkPort
 // 2018-12-01  1076   1.3    use unique_ptr
@@ -405,7 +406,7 @@ int RtclRlinkPort::DoRawWblk(RtclArgs& args, RlinkPort& port)
   
   RerrMsg emsg;
   int irc = port.RawWrite(wdata.data(), wdata.size(), emsg);
-  if (irc != (int)wdata.size()) return args.Quit(emsg);
+  if (irc != int(wdata.size())) return args.Quit(emsg);
   
   return kOK;
 }

@@ -1,4 +1,4 @@
-// $Id: RtclRw11UnitTerm.cpp 1082 2018-12-15 13:56:20Z mueller $
+// $Id: RtclRw11UnitTerm.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.1.3  use c++ style casts
 // 2018-12-15  1082   1.1.2  use lambda instead of bind
 // 2018-10-06  1053   1.1.1  move using after includes (clang warning)
 // 2017-04-08   870   1.1    use Rw11UnitTerm& ObjUV(); inherit from RtclRw11Unit
@@ -62,7 +63,8 @@ int RtclRw11UnitTerm::M_type(RtclArgs& args)
   if (!args.GetArg("text", text)) return TCL_ERROR;
   if (!args.AllDone()) return TCL_ERROR;
 
-  ObjUV().RcvCallback((const uint8_t*)text.data(), text.size());
+  ObjUV().RcvCallback(reinterpret_cast<const uint8_t*>(text.data()),
+                      text.size());
 
   return TCL_OK;
 }

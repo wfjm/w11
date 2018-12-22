@@ -1,4 +1,4 @@
-// $Id: Rw11CntlRL11.cpp 1083 2018-12-15 19:19:16Z mueller $
+// $Id: Rw11CntlRL11.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
 // Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -261,7 +261,7 @@ void Rw11CntlRL11::Start()
   // add attn handler
   Server().AddAttnHandler([this](RlinkServer::AttnArgs& args)
                             { return AttnHandler(args); }, 
-                          uint16_t(1)<<fLam, (void*)this);
+                          uint16_t(1)<<fLam, this);
 
   fStarted = true;
   return;

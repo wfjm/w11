@@ -1,4 +1,4 @@
-// $Id: RtclRw11CntlBase.ipp 1082 2018-12-15 13:56:20Z mueller $
+// $Id: RtclRw11CntlBase.ipp 1089 2018-12-19 10:45:41Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.2.3  use c++ style casts
 // 2018-12-15  1082   1.2.2  use lambda instead of bind
 // 2018-12-07  1078   1.2.1  use std::shared_ptr instead of boost
 // 2017-04-16   877   1.2    add class in ctor
@@ -104,8 +105,8 @@ int RtclRw11CntlBase<TC>::M_bootcode(RtclArgs& args)
   uint16_t astart;
   if (Obj().BootCode(unit, code, aload, astart)) {
     RtclOPtr pres(Tcl_NewListObj(0, NULL));
-    Tcl_ListObjAppendElement(NULL, pres, Tcl_NewIntObj((int)aload));
-    Tcl_ListObjAppendElement(NULL, pres, Tcl_NewIntObj((int)astart));
+    Tcl_ListObjAppendElement(NULL, pres, Tcl_NewIntObj(int(aload)));
+    Tcl_ListObjAppendElement(NULL, pres, Tcl_NewIntObj(int(astart)));
     Tcl_ListObjAppendElement(NULL, pres, Rtcl::NewListIntObj(code));
     args.SetResult(pres);
   }

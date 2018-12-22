@@ -1,6 +1,6 @@
-// $Id: RlinkCrc16.ipp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkCrc16.ipp 1089 2018-12-19 10:45:41Z mueller $
 //
-// Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.0.1  use c++ style casts
 // 2014-11-08   602   1.0    Initial version
 // ---------------------------------------------------------------------------
 
@@ -51,7 +52,7 @@ inline void RlinkCrc16::Clear()
 
 inline void RlinkCrc16::AddData(uint8_t data)
 {
-  uint8_t tmp = ((uint8_t)(fCrc>>8)) ^ data;
+  uint8_t tmp = uint8_t(fCrc>>8) ^ data;
   fCrc = (fCrc<<8) ^ fCrc16Table[tmp];
   return;
 }

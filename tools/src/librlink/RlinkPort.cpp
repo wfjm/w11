@@ -1,6 +1,6 @@
-// $Id: RlinkPort.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkPort.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
-// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.4.3  use c++ style casts
 // 2017-04-29   888   1.4.2  BUGFIX: RawRead(): proper irc for exactsize=false
 // 2017-04-07   868   1.4.1  Dump(): add detail arg
 // 2017-02-19   853   1.4    use Rtime, drop TimeOfDayAsDouble
@@ -137,7 +138,7 @@ int RlinkPort::Read(uint8_t* buf, size_t size, const Rtime& timeout,
 
   int irc = -1;
   while (irc < 0) {
-    irc = ::read(fFdRead, (void*) buf, size);
+    irc = ::read(fFdRead, buf, size);
     if (irc < 0 && errno != EINTR) {
       emsg.InitErrno("RlinkPort::Read()", "read() failed : ", errno);
       if (fspLog && fTraceLevel>0) fspLog->Write(emsg.Message(), 'E');
@@ -204,7 +205,7 @@ int RlinkPort::Write(const uint8_t* buf, size_t size, RerrMsg& emsg)
   while (ndone < size) {
     int irc = -1;
     while (irc < 0) {
-      irc = ::write(fFdWrite, (void*) (buf+ndone), size-ndone);
+      irc = ::write(fFdWrite, buf+ndone, size-ndone);
       if (irc < 0 && errno != EINTR) {
         emsg.InitErrno("RlinkPort::Write()", "write() failed : ", errno);
         if (fspLog && fTraceLevel>0) fspLog->Write(emsg.Message(), 'E');
@@ -279,7 +280,7 @@ int RlinkPort::RawRead(uint8_t* buf, size_t size, bool exactsize,
     if (!exactsize) break;
   }
   
-  return (int)ndone;
+  return int(ndone);
 }
 
 //------------------------------------------+-----------------------------------
@@ -299,7 +300,7 @@ void RlinkPort::Dump(std::ostream& os, int ind, const char* text,
   RosFill bl(ind);
   os << bl << (text?text:"--") << "RlinkPort @ " << this << endl;
 
-  os << bl << "  fIsOpen:         " << (int)fIsOpen << endl;
+  os << bl << "  fIsOpen:         " << int(fIsOpen) << endl;
   fUrl.Dump(os, ind+2, "fUrl: ");
   os << bl << "  fXon:            " << fXon << endl;
   os << bl << "  fFdRead:         " << fFdRead << endl;

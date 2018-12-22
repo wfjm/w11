@@ -1,4 +1,4 @@
-// $Id: ReventLoop.cpp 1085 2018-12-16 14:11:16Z mueller $
+// $Id: ReventLoop.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.2.5  use c++ style casts
 // 2018-12-17  1085   1.2.4  use std::lock_guard instead of boost
 // 2018-12-15  1083   1.2.3  AddPollHandler(): use rval ref and move
 // 2018-11-09  1066   1.2.2  use emplace_back
@@ -193,7 +194,7 @@ void ReventLoop::Dump(std::ostream& os, int ind, const char* text,
   os << bl << "  fStopPending:    " << fStopPending << endl;
   os << bl << "  fUpdatePoll:     " << fUpdatePoll << endl;
   {
-    lock_guard<mutex> lock(((ReventLoop*)this)->fPollDscMutex);
+    lock_guard<mutex> lock(const_cast<ReventLoop*>(this)->fPollDscMutex);
     os << bl << "  fPollDsc.size:   " << fPollDsc.size() << endl;
     os << bl << "  fPollFd.size:    " << fPollFd.size()  << endl;
     os << bl << "  fPollHdl.size:   " << fPollHdl.size() << endl;
@@ -201,7 +202,7 @@ void ReventLoop::Dump(std::ostream& os, int ind, const char* text,
       os << bl << "    [" << RosPrintf(i,"d",3) << "]:"
          << " fd:" << RosPrintf(fPollDsc[i].fFd,"d",3)
          << " evt:" << RosPrintf(fPollDsc[i].fEvents,"x",2)
-         << " hdl:" << (bool)fPollDsc[i].fHandler
+         << " hdl:" << bool(fPollDsc[i].fHandler)
          << endl;
     }
   }

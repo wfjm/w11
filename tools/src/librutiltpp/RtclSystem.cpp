@@ -1,4 +1,4 @@
-// $Id: RtclSystem.cpp 1049 2018-09-22 13:56:52Z mueller $
+// $Id: RtclSystem.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.0.2  use c++ style casts
 // 2014-08-22   584   1.0.1  use nullptr
 // 2013-05-17   521   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -58,11 +59,11 @@ static const int kERR = TCL_ERROR;
 void RtclSystem::CreateCmds(Tcl_Interp* interp)
 {
   Tcl_CreateObjCommand(interp, "rutil::isatty", Isatty, 
-                       (ClientData) 0, nullptr);
+                       nullptr, nullptr);
   Tcl_CreateObjCommand(interp, "rutil::sigaction", SignalAction, 
-                       (ClientData) 0, nullptr);
+                       nullptr, nullptr);
   Tcl_CreateObjCommand(interp, "rutil::waitpid", WaitPid, 
-                       (ClientData) 0, nullptr);
+                       nullptr, nullptr);
   return;
 }
 

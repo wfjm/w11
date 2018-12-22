@@ -1,4 +1,4 @@
-// $Id: RlinkPacketBufSnd.cpp 1079 2018-12-09 10:56:59Z mueller $
+// $Id: RlinkPacketBufSnd.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
 // Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.2.1  use c++ style casts
 // 2018-12-08  1079   1.2    use ref not ptr for RlinkPort
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2015-04-11   666   1.1    handle xon/xoff escaping, add (Set)XonEscape()
@@ -245,7 +246,7 @@ bool RlinkPacketBufSnd::SndRaw(RlinkPort& port, RerrMsg& emsg)
   size_t rawbufsize = fRawBuf.size();
   int irc = port.Write(fRawBuf.data(), rawbufsize, emsg);
   if (irc < 0) return false;
-  if ((size_t)irc != rawbufsize) {
+  if (size_t(irc) != rawbufsize) {
     emsg.Init("RlinkPacketBufSnd::SndRaw()", "failed to write all data");
     return false;
   }

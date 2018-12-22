@@ -1,4 +1,4 @@
-// $Id: RtclArgs.cpp 1048 2018-09-22 07:41:46Z mueller $
+// $Id: RtclArgs.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.0.11 use c++ style casts
 // 2018-09-22  1048   1.0.10 BUFFIX: GetArg(): coverity (argument in wrong order)
 // 2018-09-16  1047   1.0.9  coverity fixup (uninitialized scalar)
 // 2014-08-22   584   1.0.8  use nullptr
@@ -74,9 +75,9 @@ RtclArgs::RtclArgs()
 RtclArgs::RtclArgs(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[],
                    size_t nskip)
   : fpInterp(interp),
-    fObjc((size_t)objc),
+    fObjc(size_t(objc)),
     fObjv(objv),
-    fNDone((nskip<=(size_t)objc) ? nskip : (size_t)objc),
+    fNDone((nskip<=size_t(objc)) ? nskip : size_t(objc)),
     fNOptMiss(0),
     fNConfigRead(0),
     fOptErr(false),
@@ -111,7 +112,7 @@ RtclArgs::~RtclArgs()
 
 Tcl_Obj* RtclArgs::Objv(size_t ind) const
 {
-  if (ind >= (size_t)fObjc)
+  if (ind >= size_t(fObjc))
     throw Rexception("RtclArgs::Objv()","Bad args: index out-of-range");
   return fObjv[ind];
 }
@@ -157,9 +158,9 @@ bool RtclArgs::GetArg(const char* name, std::string& val)
 
 bool RtclArgs::GetArg(const char* name, int8_t& val, int8_t min, int8_t max)
 {
-  int32_t val32 = (int32_t)val;
-  bool ret = GetArg(name, val32, (int32_t)min, (int32_t)max);
-  val = (int8_t) val32;
+  int32_t val32 = int32_t(val);
+  bool ret = GetArg(name, val32, int32_t(min), int32_t(max));
+  val = int8_t(val32);
   return ret;
 }
 
@@ -168,9 +169,9 @@ bool RtclArgs::GetArg(const char* name, int8_t& val, int8_t min, int8_t max)
 
 bool RtclArgs::GetArg(const char* name, uint8_t& val, uint8_t max, uint8_t min)
 {
-  uint32_t val32 = (uint32_t)val;
-  bool ret = GetArg(name, val32, (uint32_t)max, (uint32_t)min);
-  val = (uint8_t) val32;
+  uint32_t val32 = uint32_t(val);
+  bool ret = GetArg(name, val32, uint32_t(max), uint32_t(min));
+  val = uint8_t(val32);
   return ret;
 }
 
@@ -179,9 +180,9 @@ bool RtclArgs::GetArg(const char* name, uint8_t& val, uint8_t max, uint8_t min)
 
 bool RtclArgs::GetArg(const char* name, int16_t& val, int16_t min, int16_t max)
 {
-  int32_t val32 = (int32_t)val;
-  bool ret = GetArg(name, val32, (int32_t)min, (int32_t)max);
-  val = (int16_t) val32;
+  int32_t val32 = int32_t(val);
+  bool ret = GetArg(name, val32, int32_t(min), int32_t(max));
+  val = int16_t(val32);
   return ret;
 }
 
@@ -191,9 +192,9 @@ bool RtclArgs::GetArg(const char* name, int16_t& val, int16_t min, int16_t max)
 bool RtclArgs::GetArg(const char* name, uint16_t& val, uint16_t max, 
                       uint16_t min)
 {
-  uint32_t val32 = (uint32_t)val;
-  bool ret = GetArg(name, val32, (uint32_t)max, (uint32_t)min);
-  val = (uint16_t) val32;
+  uint32_t val32 = uint32_t(val);
+  bool ret = GetArg(name, val32, uint32_t(max), uint32_t(min));
+  val = uint16_t(val32);
   return ret;
 }
 
@@ -214,7 +215,7 @@ bool RtclArgs::GetArg(const char* name, int32_t& val, int32_t min, int32_t max)
     AppendResult(sos);
     return false;
   }
-  val = (int32_t) objval;
+  val = int32_t(objval);
   return true;
 }
 
@@ -237,7 +238,7 @@ bool RtclArgs::GetArg(const char* name, uint32_t& val, uint32_t max,
     AppendResult(sos);
     return false;
   }
-  val = (uint32_t) objval;
+  val = uint32_t(objval);
   return true;
 }
 
@@ -246,9 +247,9 @@ bool RtclArgs::GetArg(const char* name, uint32_t& val, uint32_t max,
 
 bool RtclArgs::GetArg(const char* name, float& val, float min, float max)
 {
-  double vald = (double)val;
-  bool ret = GetArg(name, vald, (double)min, (double)max);
-  val = (float) vald;
+  double vald = val;
+  bool ret = GetArg(name, vald, double(min), double(max));
+  val = float(vald);
   return ret;
 }
 
@@ -299,7 +300,7 @@ bool RtclArgs::GetArg(const char* name, std::vector<uint8_t>& val,
       AppendResult(sos);
       return false;
     }
-    val.push_back((uint8_t)ival);
+    val.push_back(uint8_t(ival));
   }
   return true;
 }
@@ -330,7 +331,7 @@ bool RtclArgs::GetArg(const char* name, std::vector<uint16_t>& val,
       AppendResult(sos);
       return false;
     }
-    val.push_back((uint16_t)ival);
+    val.push_back(uint16_t(ival));
   }
   return true;
 }
@@ -365,7 +366,7 @@ bool RtclArgs::Config(const char* name, uint32_t& val, uint32_t max,
     val = tmp;
   } else {                                  // config read
     if (!ConfigReadCheck()) return false;
-    SetResult(Tcl_NewIntObj((int)val));
+    SetResult(Tcl_NewIntObj(int(val)));
   }
   return true;
 }
@@ -469,7 +470,7 @@ bool RtclArgs::AllDone()
 const char* RtclArgs::PeekArgString(int rind) const
 {
   int ind = fNDone + rind;
-  if (ind < 0 || ind >= (int)fObjc) return "";
+  if (ind < 0 || ind >= int(fObjc)) return "";
   return Tcl_GetString(fObjv[ind]);
 }
 
@@ -553,7 +554,7 @@ bool RtclArgs::NextArgList(const char* name, int& objc, Tcl_Obj**& objv,
     return false;
   }
 
-  if ((size_t)objc < lmin || (size_t)objc > lmax) {
+  if (size_t(objc) < lmin || size_t(objc) > lmax) {
     ostringstream sos;
     sos << "-E: list length '" << objc << "' for '" << name << "' out of range "
         << lmin << "..." << lmax;

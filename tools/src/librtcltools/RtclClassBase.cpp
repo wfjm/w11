@@ -1,4 +1,4 @@
-// $Id: RtclClassBase.cpp 1047 2018-09-16 11:08:41Z mueller $
+// $Id: RtclClassBase.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.0.6  use c++ style casts
 // 2018-09-16  1047   1.0.5  coverity fixup (uninitialized pointer)
 // 2014-08-22   584   1.0.4  use nullptr
 // 2013-02-10   485   1.0.3  add static const defs
@@ -76,10 +77,12 @@ void RtclClassBase::CreateClassCmd(Tcl_Interp* interp, const char* name)
 {
   fInterp = interp;
   fCmdToken = 
-    Tcl_CreateObjCommand(interp, name, ThunkTclClassCmd, (ClientData) this, 
-                         (Tcl_CmdDeleteProc *) ThunkTclCmdDeleteProc);
+    Tcl_CreateObjCommand(interp, name, ThunkTclClassCmd,
+                 reinterpret_cast<ClientData>(this), 
+                 reinterpret_cast<Tcl_CmdDeleteProc*>(ThunkTclCmdDeleteProc));
   RtclContext::Find(interp).RegisterClass(this);
-  Tcl_CreateExitHandler((Tcl_ExitProc*) ThunkTclExitProc, (ClientData) this);
+  Tcl_CreateExitHandler(reinterpret_cast<Tcl_ExitProc*>(ThunkTclExitProc),
+                        reinterpret_cast<ClientData>(this));
   return;
 }
 
@@ -146,12 +149,13 @@ int RtclClassBase::ClassCmdDelete(Tcl_Interp* interp, const char* name)
   }
   
   RtclContext& cntx = RtclContext::Find(interp);
-  if (!cntx.CheckProxy((RtclProxyBase*) cinfo.objClientData)) {
+  if (!cntx.CheckProxy(reinterpret_cast<RtclProxyBase*>(cinfo.objClientData))) {
     Tcl_AppendResult(interp, "-E: command '", name, "' is not a RtclProxy", 
                      nullptr);
     return kERR;
   }
-  if (!cntx.CheckProxy((RtclProxyBase*) cinfo.objClientData, Type())) {
+  if (!cntx.CheckProxy(reinterpret_cast<RtclProxyBase*>(cinfo.objClientData),
+                       Type())) {
     Tcl_AppendResult(interp, "-E: command '", name, 
                      "' is not a RtclProxy of type '", 
                      Type().c_str(), "'", nullptr);
@@ -177,7 +181,8 @@ int RtclClassBase::ThunkTclClassCmd(ClientData cdata, Tcl_Interp* interp,
   }
   
   try {
-    return ((RtclClassBase*) cdata)->TclClassCmd(interp, objc, objv);
+    return reinterpret_cast<RtclClassBase*>(cdata)->TclClassCmd(interp,
+                                                                objc, objv);
   } catch (exception& e) {
     Rtcl::AppendResultNewLines(interp);
     Tcl_AppendResult(interp, "-E: exception caught in ThunkTclClassCmd: '", 
@@ -191,8 +196,9 @@ int RtclClassBase::ThunkTclClassCmd(ClientData cdata, Tcl_Interp* interp,
 
 void RtclClassBase::ThunkTclCmdDeleteProc(ClientData cdata)
 {
-  Tcl_DeleteExitHandler((Tcl_ExitProc*) ThunkTclExitProc, cdata);
-  delete ((RtclClassBase*) cdata);
+  Tcl_DeleteExitHandler(reinterpret_cast<Tcl_ExitProc*>(ThunkTclExitProc),
+                        cdata);
+  delete (reinterpret_cast<RtclClassBase*>(cdata));
   return;
 }
 
@@ -201,7 +207,7 @@ void RtclClassBase::ThunkTclCmdDeleteProc(ClientData cdata)
 
 void RtclClassBase::ThunkTclExitProc(ClientData cdata)
 {
-  delete ((RtclClassBase*) cdata);
+  delete (reinterpret_cast<RtclClassBase*>(cdata));
   return;
 }
 

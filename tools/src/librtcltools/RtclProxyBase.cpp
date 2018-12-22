@@ -1,4 +1,4 @@
-// $Id: RtclProxyBase.cpp 1066 2018-11-10 11:21:53Z mueller $
+// $Id: RtclProxyBase.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.5.2  use c++ style casts
 // 2018-09-16  1047   1.5.1  coverity fixup (uninitialized pointer)
 // 2017-03-11   859   1.5    adopt new DispatchCmd() logic
 // 2014-08-22   584   1.4.3  use nullptr
@@ -101,10 +102,12 @@ void RtclProxyBase::CreateObjectCmd(Tcl_Interp* interp, const char* name)
 {
   fInterp = interp;
   fCmdToken = 
-    Tcl_CreateObjCommand(interp, name, ThunkTclObjectCmd, (ClientData) this, 
-                         (Tcl_CmdDeleteProc *) ThunkTclCmdDeleteProc);
+    Tcl_CreateObjCommand(interp, name, ThunkTclObjectCmd,
+                reinterpret_cast<ClientData>(this), 
+                reinterpret_cast<Tcl_CmdDeleteProc*>(ThunkTclCmdDeleteProc));
   RtclContext::Find(interp).RegisterProxy(this);
-  Tcl_CreateExitHandler((Tcl_ExitProc*) ThunkTclExitProc, (ClientData) this);
+  Tcl_CreateExitHandler(reinterpret_cast<Tcl_ExitProc*>(ThunkTclExitProc),
+                        reinterpret_cast<ClientData>(this));
   return;
 }
 
@@ -131,7 +134,8 @@ int RtclProxyBase::ThunkTclObjectCmd(ClientData cdata, Tcl_Interp* interp,
   }
   
   try {
-    return ((RtclProxyBase*) cdata)->TclObjectCmd(interp, objc, objv);
+    return (reinterpret_cast<RtclProxyBase*>(cdata))->TclObjectCmd(interp,
+                                                                   objc, objv);
   } catch (exception& e) {
     Rtcl::AppendResultNewLines(interp);
     Tcl_AppendResult(interp, "-E: exception caught '", e.what(), "'", nullptr);
@@ -144,8 +148,9 @@ int RtclProxyBase::ThunkTclObjectCmd(ClientData cdata, Tcl_Interp* interp,
 
 void RtclProxyBase::ThunkTclCmdDeleteProc(ClientData cdata)
 {
-  Tcl_DeleteExitHandler((Tcl_ExitProc*) ThunkTclExitProc, cdata);
-  delete ((RtclProxyBase*) cdata);
+  Tcl_DeleteExitHandler(reinterpret_cast<Tcl_ExitProc*>(ThunkTclExitProc),
+                        cdata);
+  delete (reinterpret_cast<RtclProxyBase*>(cdata));
   return;
 }
 
@@ -154,7 +159,7 @@ void RtclProxyBase::ThunkTclCmdDeleteProc(ClientData cdata)
 
 void RtclProxyBase::ThunkTclExitProc(ClientData cdata)
 {
-  delete ((RtclProxyBase*) cdata);
+  delete (reinterpret_cast<RtclProxyBase*>(cdata));
   return;
 }
 

@@ -1,4 +1,4 @@
-// $Id: RtclAttnShuttle.cpp 1088 2018-12-17 17:37:00Z mueller $
+// $Id: RtclAttnShuttle.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.1.3  use c++ style casts
 // 2018-12-15  1082   1.1.2  use lambda instead of bind
 // 2018-10-27  1059   1.1.1  coverity fixup (uncaught exception in dtor)
 // 2014-12-30   625   1.1    adopt to Rlink V4 attn logic
@@ -84,12 +85,12 @@ void RtclAttnShuttle::Add(RlinkServer* pserv, Tcl_Interp* interp)
   // connect to RlinkServer
   pserv->AddAttnHandler([this](RlinkServer::AttnArgs& args)
                             { return AttnHandler(args); },
-                        fMask, (void*)this);
+                        fMask, this);
   fpServ = pserv;
 
   // connect to Tcl
   // cast first to ptrdiff_t to promote to proper int size
-  fShuttleChn = Tcl_MakeFileChannel((ClientData)(ptrdiff_t)fFdPipeRead, 
+  fShuttleChn = Tcl_MakeFileChannel(reinterpret_cast<ClientData>(fFdPipeRead), 
                                     TCL_READABLE);
 
   Tcl_SetChannelOption(nullptr, fShuttleChn, "-buffersize", "64");
@@ -97,8 +98,8 @@ void RtclAttnShuttle::Add(RlinkServer* pserv, Tcl_Interp* interp)
   Tcl_SetChannelOption(nullptr, fShuttleChn, "-translation", "binary");
 
   Tcl_CreateChannelHandler(fShuttleChn, TCL_READABLE, 
-                           (Tcl_FileProc*) ThunkTclChannelHandler,
-                           (ClientData) this);
+                      reinterpret_cast<Tcl_FileProc*>(ThunkTclChannelHandler),
+                      reinterpret_cast<ClientData>(this));
 
   fpInterp = interp;
   return;
@@ -111,14 +112,14 @@ void RtclAttnShuttle::Remove()
 {
   // disconnect from RlinkServer
   if (fpServ) {
-    fpServ->RemoveAttnHandler(fMask, (void*)this);
+    fpServ->RemoveAttnHandler(fMask, this);
     fpServ = nullptr;
   }
   // disconnect from Tcl
   if (fpInterp) {
     Tcl_DeleteChannelHandler(fShuttleChn, 
-                             (Tcl_FileProc*) ThunkTclChannelHandler,
-                             (ClientData) this);
+                       reinterpret_cast<Tcl_FileProc*>(ThunkTclChannelHandler),
+                       reinterpret_cast<ClientData>(this));
     Tcl_Close(fpInterp, fShuttleChn);
     fpInterp = nullptr;
   }
@@ -134,7 +135,7 @@ int RtclAttnShuttle::AttnHandler(RlinkServer::AttnArgs& args)
   fpServ->GetAttnInfo(args);
 
   uint16_t apat = args.fAttnPatt & args.fAttnMask;
-  int irc = ::write(fFdPipeWrite, (void*) &apat, sizeof(apat));
+  int irc = ::write(fFdPipeWrite, &apat, sizeof(apat));
   if (irc < 0) 
     throw Rexception("RtclAttnShuttle::AttnHandler()",
                      "write() failed: ", errno);
@@ -148,11 +149,11 @@ int RtclAttnShuttle::AttnHandler(RlinkServer::AttnArgs& args)
 void RtclAttnShuttle::TclChannelHandler(int /*mask*/)
 {
   uint16_t apat;
-  Tcl_ReadRaw(fShuttleChn, (char*) &apat, sizeof(apat));
+  Tcl_ReadRaw(fShuttleChn, reinterpret_cast<char*>(&apat), sizeof(apat));
   // FIXME_code: handle return code
 
   Tcl_SetVar2Ex(fpInterp, "Rlink_attnbits", nullptr, 
-                Tcl_NewIntObj((int)apat), 0);
+                Tcl_NewIntObj(int(apat)), 0);
   // FIXME_code: handle return code
 
   Tcl_EvalObjEx(fpInterp, fpScript, TCL_EVAL_GLOBAL);
@@ -165,7 +166,7 @@ void RtclAttnShuttle::TclChannelHandler(int /*mask*/)
 
 void RtclAttnShuttle::ThunkTclChannelHandler(ClientData cdata, int mask)
 {
-  ((RtclAttnShuttle*) cdata)->TclChannelHandler(mask);
+  reinterpret_cast<RtclAttnShuttle*>(cdata)->TclChannelHandler(mask);
   return;
 }
 

@@ -1,4 +1,4 @@
-// $Id: RtclRlinkConnect.cpp 1085 2018-12-16 14:11:16Z mueller $
+// $Id: RtclRlinkConnect.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.6.7  use c++ style casts
 // 2018-12-17  1085   1.6.6  use std::lock_guard instead of boost
 // 2018-12-15  1082   1.6.5  use lambda instead of bind
 // 2018-12-08  1079   1.6.4  use HasPort(); Port() returns now ref
@@ -250,7 +251,7 @@ int RtclRlinkConnect::M_exec(RtclArgs& args)
       if (!args.GetArg("bsize", bsize, 1, Obj().BlockSizeMax())) return kERR;
       if (!GetVarName(args, "??varData", lsize, vardata)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
-      clist.AddRblk(addr, (size_t) bsize);
+      clist.AddRblk(addr, size_t(bsize));
 
     } else if (opt == "-wreg") {            // -wreg addr data ?varStat -------
       uint16_t data=0;
@@ -372,7 +373,7 @@ int RtclRlinkConnect::M_exec(RtclArgs& args)
         case RlinkCommand::kCmdRreg:
         case RlinkCommand::kCmdAttn:
         case RlinkCommand::kCmdLabo:
-          pres = Tcl_NewIntObj((int)cmd.Data());
+          pres = Tcl_NewIntObj(int(cmd.Data()));
           break;
         case RlinkCommand::kCmdRblk:
           pres = Rtcl::NewListIntObj(cmd.Block());
@@ -382,7 +383,7 @@ int RtclRlinkConnect::M_exec(RtclArgs& args)
     }
 
     if (icmd<varstat.size() && !varstat[icmd].empty()) {
-      RtclOPtr pres(Tcl_NewIntObj((int)cmd.Status()));
+      RtclOPtr pres(Tcl_NewIntObj(int(cmd.Status())));
       if (!Rtcl::SetVar(interp, varstat[icmd], pres)) return kERR;
     }
   }
@@ -410,16 +411,16 @@ int RtclRlinkConnect::M_exec(RtclArgs& args)
       RtclOPtr pres(Tcl_NewListObj(0, nullptr));
       Tcl_ListObjAppendElement(nullptr, pres, fCmdnameObj[cmd.Command()]);
       Tcl_ListObjAppendElement(nullptr, pres, 
-                               Tcl_NewIntObj((int)cmd.Request()));
-      Tcl_ListObjAppendElement(nullptr, pres, Tcl_NewIntObj((int)cmd.Flags()));
-      Tcl_ListObjAppendElement(nullptr, pres, Tcl_NewIntObj((int)cmd.Status()));
+                               Tcl_NewIntObj(int(cmd.Request())));
+      Tcl_ListObjAppendElement(nullptr, pres, Tcl_NewIntObj(int(cmd.Flags())));
+      Tcl_ListObjAppendElement(nullptr, pres, Tcl_NewIntObj(int(cmd.Status())));
 
       switch (cmd.Command()) {
         case RlinkCommand::kCmdRreg:
         case RlinkCommand::kCmdAttn:
         case RlinkCommand::kCmdLabo:
           Tcl_ListObjAppendElement(nullptr, pres, 
-                                   Tcl_NewIntObj((int)cmd.Data()));
+                                   Tcl_NewIntObj(int(cmd.Data())));
           break;
           
         case RlinkCommand::kCmdRblk:
@@ -582,7 +583,7 @@ int RtclRlinkConnect::M_wtlam(RtclArgs& args)
 
   if (rvn_apat.length()) {
     if(!Rtcl::SetVar(args.Interp(), rvn_apat,
-                     Tcl_NewIntObj((int)apat))) return kERR;
+                     Tcl_NewIntObj(int(apat)))) return kERR;
   }
 
   if (irc == -2) {                          // IO error
@@ -825,7 +826,7 @@ bool RtclRlinkConnect::GetAddr(RtclArgs& args, uint16_t& addr)
   // if a number is given..
   if (Tcl_GetIntFromObj(nullptr, pobj, &tstint) == kOK) {
     if (tstint >= 0 && tstint <= 0xffff) {
-      addr = (uint16_t)tstint;
+      addr = uint16_t(tstint);
     } else {
       args.AppendResult("-E: value '", Tcl_GetString(pobj), 
                         "' for 'addr' out of range 0...0xffff", nullptr);

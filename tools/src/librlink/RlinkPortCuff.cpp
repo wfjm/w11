@@ -1,4 +1,4 @@
-// $Id: RlinkPortCuff.cpp 1088 2018-12-17 17:37:00Z mueller $
+// $Id: RlinkPortCuff.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
 // Copyright 2012-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.1.10 use c++ style casts
 // 2018-12-17  1088   1.1.9  use std::thread instead of boost
 // 2018-12-14  1081   1.1.8  use std::bind instead of boost
 // 2018-11-09  1066   1.1.7  use auto
@@ -338,11 +339,11 @@ void RlinkPortCuff::Driver()
       
       t->dev_handle = fpUsbDevHdl;
       t->flags      = LIBUSB_TRANSFER_FREE_BUFFER;
-      t->endpoint   = (unsigned char) (kUSBReadEP|0x80);
+      t->endpoint   = static_cast<unsigned char>(kUSBReadEP|0x80);
       t->type       = LIBUSB_TRANSFER_TYPE_BULK;
       t->timeout    = 0;
       t->status     = LIBUSB_TRANSFER_COMPLETED;
-      t->buffer     = (unsigned char*) ::malloc(kUSBBufferSize);
+      t->buffer     = reinterpret_cast<unsigned char*>(::malloc(kUSBBufferSize));
       t->length     = kUSBBufferSize;
       t->actual_length = 0;
       t->callback   = ThunkUSBReadDone;
@@ -432,7 +433,7 @@ void RlinkPortCuff::DriverEventWritePipe()
     return;
   }
 
-  t->length = (int) ircs;
+  t->length = int(ircs);
   int irc = libusb_submit_transfer(t);
   if (irc) BadUSBCall("RlinkPortCuff::DriverEventWritePipe()", 
                       "libusb_submit_transfer()", irc);
@@ -470,10 +471,10 @@ libusb_transfer* RlinkPortCuff::NewWriteTransfer()
     t = libusb_alloc_transfer(0);
     t->dev_handle = fpUsbDevHdl;
     t->flags      = LIBUSB_TRANSFER_FREE_BUFFER;
-    t->endpoint   = (unsigned char) (kUSBWriteEP);
+    t->endpoint   = static_cast<unsigned char>(kUSBWriteEP);
     t->type       = LIBUSB_TRANSFER_TYPE_BULK;
     t->timeout    = 1000;
-    t->buffer     = (unsigned char*) ::malloc(kUSBBufferSize);
+    t->buffer     = reinterpret_cast<unsigned char*>(::malloc(kUSBBufferSize));
     t->callback   = ThunkUSBWriteDone;
     t->user_data  = this;
   }
@@ -498,7 +499,7 @@ bool RlinkPortCuff::TraceOn()
   ::localtime_r(&ts.tv_sec, &tmval);
   char buf[20];
   ::snprintf(buf, 20, "%02d:%02d:%02d.%06d: ", 
-             tmval.tm_hour, tmval.tm_min, tmval.tm_sec, (int) ts.tv_nsec/1000);
+             tmval.tm_hour, tmval.tm_min, tmval.tm_sec, int(ts.tv_nsec)/1000);
   cout << buf;
   return true;
 }
@@ -543,7 +544,7 @@ void RlinkPortCuff::CheckUSBTransfer(const char* meth, libusb_transfer *t)
 
   char buf[1024];
   ::snprintf(buf, 1024, "%s : transfer failure on ep=%d: %s",
-             meth, (int)(t->endpoint&(~0x80)), etext);
+             meth, int(t->endpoint&(~0x80)), etext);
   throw Rexception(meth, buf);
 }
 
@@ -660,8 +661,8 @@ void RlinkPortCuff::USBReadDone(libusb_transfer* t)
     CheckUSBTransfer("RlinkPortCuff::USBReadDone()", t);
     fStats.Inc(kStatNUSBRead);
     if (t->actual_length>0) {
-      ssize_t ircs = ::write(fFdReadDriver, t->buffer, 
-                             (size_t) t->actual_length);
+      ssize_t ircs = ::write(fFdReadDriver, t->buffer,
+                             size_t(t->actual_length));
       if (ircs < 0) BadSysCall("RlinkPortCuff::USBReadDone()",
                                "write()", ircs);
     }
@@ -685,7 +686,7 @@ void RlinkPortCuff::USBReadDone(libusb_transfer* t)
 
 void RlinkPortCuff::ThunkPollfdAdd(int fd, short events, void* udata)
 {
-  RlinkPortCuff* pcntx = (RlinkPortCuff*) udata;
+  RlinkPortCuff* pcntx = reinterpret_cast<RlinkPortCuff*>(udata);
   pcntx->PollfdAdd(fd, events);
   return;
 }
@@ -695,7 +696,7 @@ void RlinkPortCuff::ThunkPollfdAdd(int fd, short events, void* udata)
 
 void RlinkPortCuff::ThunkPollfdRemove(int fd, void* udata)
 {
-  RlinkPortCuff* pcntx = (RlinkPortCuff*) udata;
+  RlinkPortCuff* pcntx = reinterpret_cast<RlinkPortCuff*>(udata);
   pcntx->PollfdRemove(fd);
   return;
 }
@@ -705,7 +706,7 @@ void RlinkPortCuff::ThunkPollfdRemove(int fd, void* udata)
 
 void RlinkPortCuff::ThunkUSBWriteDone(libusb_transfer* t)
 {
-  RlinkPortCuff* pcntx = (RlinkPortCuff*) t->user_data;
+  RlinkPortCuff* pcntx = reinterpret_cast<RlinkPortCuff*>(t->user_data);
   pcntx->USBWriteDone(t);
   return;
 }
@@ -715,7 +716,7 @@ void RlinkPortCuff::ThunkUSBWriteDone(libusb_transfer* t)
 
 void RlinkPortCuff::ThunkUSBReadDone(libusb_transfer* t)
 {
-  RlinkPortCuff* pcntx = (RlinkPortCuff*) t->user_data;
+  RlinkPortCuff* pcntx = reinterpret_cast<RlinkPortCuff*>(t->user_data);
   pcntx->USBReadDone(t);
   return;
 }

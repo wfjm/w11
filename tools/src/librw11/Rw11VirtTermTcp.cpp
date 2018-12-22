@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTermTcp.cpp 1088 2018-12-17 17:37:00Z mueller $
+// $Id: Rw11VirtTermTcp.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.0.11 use c++ style casts
 // 2018-12-15  1082   1.0.10 use lambda instead of bind
 // 2018-11-30  1075   1.0.9  use list-init
 // 2018-11-11  1066   1.0.8  coverity fixup (unchecked return value)
@@ -159,11 +160,11 @@ bool Rw11VirtTermTcp::Open(const std::string& url, RerrMsg& emsg)
 
   sockaddr_in sa = {};
   sa.sin_family = AF_INET;
-  sa.sin_port   = htons((unsigned short) portno);
+  sa.sin_port   = htons(static_cast<unsigned short>(portno));
   sa.sin_addr.s_addr = htonl(INADDR_ANY);
 
   // Note: ::bind needed below to avoid collision with std::bind... 
-  if (::bind(fd, (sockaddr*) &sa, sizeof(sa)) < 0) {
+  if (::bind(fd, reinterpret_cast<sockaddr*>(&sa), sizeof(sa)) < 0) {
     emsg.InitErrno("Rw11VirtTermTcp::Open","bind() failed: ", errno);
     ::close(fd);
     return false;

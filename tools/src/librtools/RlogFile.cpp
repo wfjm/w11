@@ -1,4 +1,4 @@
-// $Id: RlogFile.cpp 1085 2018-12-16 14:11:16Z mueller $
+// $Id: RlogFile.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.2.3  use c++ style casts
 // 2018-12-17  1085   1.2.2  use std::lock_guard instead of boost
 // 2017-03-04   858   2.2.1  use clock_gettime instead of gettimeofday
 // 2015-01-08   631   2.2    Open(): now with RerrMsg and cout/cerr support
@@ -161,7 +162,7 @@ void RlogFile::Write(const std::string& str, char tag)
        << RosPrintf(tymd.tm_hour,"d0",2) << ":"
        << RosPrintf(tymd.tm_min,"d0",2) << ":"
        << RosPrintf(tymd.tm_sec,"d0",2) << "."
-       << RosPrintf((int)ts.tv_nsec/1000,"d0",6) << " : ";
+       << RosPrintf(int(ts.tv_nsec)/1000,"d0",6) << " : ";
   }
 
   os << str;

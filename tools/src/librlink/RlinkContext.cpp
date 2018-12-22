@@ -1,4 +1,4 @@
-// $Id: RlinkContext.cpp 1049 2018-09-22 13:56:52Z mueller $
+// $Id: RlinkContext.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.0.2  use c++ style casts
 // 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2013-02-23   492   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -64,7 +65,7 @@ void RlinkContext::Dump(std::ostream& os, int ind, const char* text,
 
   os << bl << "  fStatusVal:     " << RosPrintBvi(fStatusVal,0) << endl;
   os << bl << "  fStatusMsk:     " << RosPrintBvi(fStatusMsk,0) << endl;
-  os << bl << "  fErrCnt:        " << RosPrintf((int)fErrCnt,"d") << endl;  
+  os << bl << "  fErrCnt:        " << RosPrintf(int(fErrCnt),"d") << endl;  
   return;
 }
 

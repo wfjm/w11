@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.cpp 1085 2018-12-16 14:11:16Z mueller $
+// $Id: RlinkConnect.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   2.8.2  use c++ style casts
 // 2018-12-17  1085   2.8.1  use std::lock_guard instead of boost
 // 2018-12-08  1079   2.8    add HasPort(); return ref for Port()
 // 2018-12-01  1076   2.7    use unique_ptr instead of scoped_ptr
@@ -814,10 +815,10 @@ void RlinkConnect::EncodeRequest(RlinkCommandList& clist, size_t ibeg,
 
       case RlinkCommand::kCmdRblk:          // rblk command ---------------
         fStats.Inc(kStatNRblk);
-        fStats.Inc(kStatNRblkWord, (double) ndata);
+        fStats.Inc(kStatNRblkWord, double(ndata));
         cmd.SetRcvSize(1+2+2*ndata+2+1+2); // rcv: cmd+cnt+n*data+dcnt+stat+crc
         fSndPkt.PutWithCrc(cmd.Address());
-        fSndPkt.PutWithCrc((uint16_t)ndata);
+        fSndPkt.PutWithCrc(uint16_t(ndata));
         break;
 
       case RlinkCommand::kCmdWreg:          // wreg command ---------------
@@ -829,10 +830,10 @@ void RlinkConnect::EncodeRequest(RlinkCommandList& clist, size_t ibeg,
 
       case RlinkCommand::kCmdWblk:          // wblk command ---------------
         fStats.Inc(kStatNWblk);
-        fStats.Inc(kStatNWblkWord, (double) ndata);
+        fStats.Inc(kStatNWblkWord, double(ndata));
         cmd.SetRcvSize(1+2+1+2);              // rcv: cmd+dcnt+stat+crc
         fSndPkt.PutWithCrc(cmd.Address());
-        fSndPkt.PutWithCrc((uint16_t)ndata);
+        fSndPkt.PutWithCrc(uint16_t(ndata));
         fSndPkt.PutCrc();
         fSndPkt.PutWithCrc(pdata, ndata);
         break;
@@ -916,7 +917,7 @@ int RlinkConnect::DecodeResponse(RlinkCommandList& clist, size_t ibeg,
 
       case RlinkCommand::kCmdRblk:          // rblk command ---------------
         fRcvPkt.GetWithCrc(rdata);
-        if (rdata != (uint16_t)cmd.BlockSize()) {    // length mismatch
+        if (rdata != uint16_t(cmd.BlockSize())) {    // length mismatch
           cmd.SetFlagBit(RlinkCommand::kFlagErrDec);
           fStats.Inc(kStatNErrLen);
           RlogMsg lmsg(*fspLog, 'E');
@@ -938,7 +939,7 @@ int RlinkConnect::DecodeResponse(RlinkCommandList& clist, size_t ibeg,
 
       case RlinkCommand::kCmdLabo:          // labo command ---------------
         fRcvPkt.GetWithCrc(rdata8);
-        cmd.SetData((uint16_t)rdata8);
+        cmd.SetData(uint16_t(rdata8));
         break;
 
       case RlinkCommand::kCmdAttn:          // attn command ---------------

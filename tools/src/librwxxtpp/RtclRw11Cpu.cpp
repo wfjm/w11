@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.cpp 1085 2018-12-16 14:11:16Z mueller $
+// $Id: RtclRw11Cpu.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.2.23 use c++ style casts
 // 2018-12-17  1085   1.2.22 use std::lock_guard instead of boost
 // 2018-12-15  1082   1.2.21 use lambda instead of bind
 // 2018-12-07  1077   1.2.20 use SetLastExpectBlock move semantics
@@ -409,7 +410,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       if (!args.GetArg("bsize", bsize, 1, Connect().BlockSizeMax())) return kERR;
       if (!GetVarName(args, "??varData", lsize, vardata)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
-      clist.AddRblk(addr, (size_t) bsize);
+      clist.AddRblk(addr, size_t(bsize));
 
     } else if (opt == "-wreg") {            // -wreg addr data ?varStat -------
       uint16_t addr=0;
@@ -549,7 +550,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       if (!args.GetArg("bsize", bsize, 1, Connect().BlockSizeMax())) return kERR;
       if (!GetVarName(args, "??varData", lsize, vardata)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
-      clist.AddRblk(base + Rw11Cpu::kCPMEMI, (size_t) bsize);
+      clist.AddRblk(base + Rw11Cpu::kCPMEMI, size_t(bsize));
 
     } else if (opt == "-bwm") {             // -bwm block ?varStat -----------
       vector<uint16_t> block;
@@ -632,7 +633,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       if (!args.GetArg("bsize", bsize, 1, Connect().BlockSizeMax())) return kERR;
       if (!GetVarName(args, "??varData", lsize, vardata)) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
-      Obj().AddRbibr(clist, ibaddr, (size_t) bsize);
+      Obj().AddRbibr(clist, ibaddr, size_t(bsize));
 
     } else if (opt == "-wibr") {           // -wibr iba data ?varStat --------
       uint16_t ibaddr=0;
@@ -756,7 +757,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
         case RlinkCommand::kCmdRreg:
         case RlinkCommand::kCmdAttn:
         case RlinkCommand::kCmdLabo:
-          pres = Tcl_NewIntObj((int)cmd.Data());
+          pres = Tcl_NewIntObj(int(cmd.Data()));
           break;
 
         case RlinkCommand::kCmdRblk:
@@ -767,7 +768,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
     }
 
     if (icmd<varstat.size() && !varstat[icmd].empty()) {
-      RtclOPtr pres(Tcl_NewIntObj((int)cmd.Status()));
+      RtclOPtr pres(Tcl_NewIntObj(int(cmd.Status())));
       if (!Rtcl::SetVar(interp, varstat[icmd], pres)) return kERR;
     }
   }
@@ -982,7 +983,7 @@ int RtclRw11Cpu::M_ldasm(RtclArgs& args)
                              "2nd pipe() failed: ", errno));
 
   pid_t pid = ::fork();
-  if (pid == (pid_t) 0) {                   // in child here
+  if (pid == pid_t(0)) {                    // in child here
     vector<const char*> argv;
     vector<string>      opts;
 
@@ -1009,14 +1010,14 @@ int RtclRw11Cpu::M_ldasm(RtclArgs& args)
     ::dup2(STDOUT_FILENO, STDERR_FILENO);
     ::close(pipe_tcl2asm[1]);
     ::close(pipe_asm2tcl[0]);
-    ::execvp("asm-11", (char* const*) argv.data());
+    ::execvp("asm-11", const_cast<char* const*>(argv.data()));
     ::perror("execvp() for asm-11 failed");
     ::exit(EXIT_FAILURE);
     
   } else {                                  // in parent here
     ::close(pipe_tcl2asm[0]);
     ::close(pipe_asm2tcl[1]);
-    if (pid < (pid_t) 0) 
+    if (pid < pid_t(0)) 
       return args.Quit(RerrMsg("RtclRw11Cpu::M_ldasm" , 
                                "fork() failed: ", errno));
   }
@@ -1095,7 +1096,7 @@ int RtclRw11Cpu::M_ldasm(RtclArgs& args)
         string key = line.substr(0,dpos);
         string val= line.substr(dpos+4);
         if (!Tcl_SetVar2Ex(interp, varsym.c_str(), key.c_str(),
-                           Tcl_NewIntObj((int)::strtol(val.c_str(),nullptr,8)),
+                           Tcl_NewIntObj(int(::strtol(val.c_str(),nullptr,8))),
                            TCL_LEAVE_ERR_MSG)) return kERR;
       } else {
         return args.Quit(string("bad sym spec: ") + line);
@@ -1107,7 +1108,7 @@ int RtclRw11Cpu::M_ldasm(RtclArgs& args)
         if (line.length() != 10) 
           return args.Quit(string("bad dat spec: ") + line);
         dtyp = line[0];
-        dot  = (uint16_t)::strtol(line.c_str()+2,nullptr,8);
+        dot  = uint16_t(::strtol(line.c_str()+2,nullptr,8));
       } else if (line[0] == '}') {
         dtyp = ' ';
       } else {
@@ -1115,7 +1116,7 @@ int RtclRw11Cpu::M_ldasm(RtclArgs& args)
         string dat;
         while (datstream >> dat) {
           //cout << "+++1 " << dtyp << ":" << dat << endl;
-          uint16_t val = (uint16_t)::strtol(dat.c_str(),nullptr,8);
+          uint16_t val = uint16_t(::strtol(dat.c_str(),nullptr,8));
           if (dtyp == 'w') {
             cmap[dot] = val;
             dot += 2;
@@ -1505,7 +1506,7 @@ bool RtclRw11Cpu::GetIAddr(RtclArgs& args, uint16_t& ibaddr)
   // if a number is given..
   if (Tcl_GetIntFromObj(nullptr, pobj, &tstint) == kOK) {
     if (tstint >= 0 && tstint <= 0xffff && (tstint & 0x1) == 0) {
-      ibaddr = (uint16_t)tstint;
+      ibaddr = uint16_t(tstint);
     } else {
       args.AppendResult("-E: value '", Tcl_GetString(pobj), 
                         "' for 'addr' odd number or out of range 0...0xffff", 
@@ -1540,7 +1541,7 @@ bool RtclRw11Cpu::GetRAddr(RtclArgs& args, uint16_t& rbaddr)
   // if a number is given..
   if (Tcl_GetIntFromObj(nullptr, pobj, &tstint) == kOK) {
     if (tstint >= 0 && tstint <= 0xffff) {
-      rbaddr = (uint16_t)tstint;
+      rbaddr = uint16_t(tstint);
     } else {
       args.AppendResult("-E: value '", Tcl_GetString(pobj), 
                         "' for 'addr' out of range 0...0xffff", 

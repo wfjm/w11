@@ -1,6 +1,6 @@
-// $Id: ReventFd.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: ReventFd.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.0.1  use c++ style casts
 // 2013-01-14   475   1.0    Initial version
 // 2013-01-11   473   0.5    First draft
 // ---------------------------------------------------------------------------
@@ -75,7 +76,7 @@ int ReventFd::WaitFd(int fd)
 {
   uint64_t buf;
   int irc = ::read(fd, &buf, sizeof(buf));
-  return (irc <= 0) ? irc : (int)buf;
+  return (irc <= 0) ? irc : int(buf);
 }
 
 } // end namespace Retro

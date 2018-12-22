@@ -1,4 +1,4 @@
-// $Id: RtclContext.cpp 1076 2018-12-02 12:45:49Z mueller $
+// $Id: RtclContext.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.0.7  use c++ style casts
 // 2018-12-02  1076   1.0.6  use nullptr
 // 2018-11-16  1070   1.0.5  use auto; use emplace,make_pair; use range loop
 // 2017-02-04   866   1.0.4  rename fMapContext -> fContextMap
@@ -164,7 +165,8 @@ RtclContext& RtclContext::Find(Tcl_Interp* interp)
   } else {
     pcntx = new RtclContext(interp);
     fContextMap.emplace(make_pair(interp, pcntx));
-    Tcl_CreateExitHandler((Tcl_ExitProc*) ThunkTclExitProc, (ClientData) pcntx);
+    Tcl_CreateExitHandler(reinterpret_cast<Tcl_ExitProc*>(ThunkTclExitProc),
+                          reinterpret_cast<ClientData>(pcntx));
 
   }
   return *pcntx;
@@ -180,7 +182,7 @@ RtclContext& RtclContext::Find(Tcl_Interp* interp)
 
 void RtclContext::ThunkTclExitProc(ClientData cdata)
 {
-  RtclContext* pcntx = (RtclContext*) cdata;
+  RtclContext* pcntx = reinterpret_cast<RtclContext*>(cdata);
   if (pcntx->fSetClass.empty() && pcntx->fSetProxy.empty()) {
     delete pcntx;
   } else {

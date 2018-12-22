@@ -1,4 +1,4 @@
-// $Id: RtclGet.ipp 1083 2018-12-15 19:19:16Z mueller $
+// $Id: RtclGet.ipp 1089 2018-12-19 10:45:41Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.2.3  use c++ style casts
 // 2018-12-15  1083   1.2.2  ctor: use rval ref and move semantics
 // 2018-12-14  1081   1.2.1  use std::function instead of boost
 // 2017-04-16   876   1.2    add Tcl_Obj*
@@ -57,7 +58,7 @@ template <>
 inline Tcl_Obj* RtclGet<bool>::operator()() const 
 {
   bool val = fGet();
-  return Tcl_NewBooleanObj((int)val);
+  return Tcl_NewBooleanObj(int(val));
 }
 
 //------------------------------------------+-----------------------------------
@@ -67,7 +68,7 @@ template <>
 inline Tcl_Obj* RtclGet<char>::operator()() const 
 {
   char val = fGet();
-  return Tcl_NewIntObj((int)val);
+  return Tcl_NewIntObj(int(val));
 }
 
 //------------------------------------------+-----------------------------------
@@ -77,7 +78,7 @@ template <>
 inline Tcl_Obj* RtclGet<signed char>::operator()() const 
 {
   signed char val = fGet();
-  return Tcl_NewIntObj((int)val);
+  return Tcl_NewIntObj(int(val));
 }
 
 //------------------------------------------+-----------------------------------
@@ -87,7 +88,7 @@ template <>
 inline Tcl_Obj* RtclGet<unsigned char>::operator()() const 
 {
   unsigned char val = fGet();
-  return Tcl_NewIntObj((int)val);
+  return Tcl_NewIntObj(int(val));
 }
 
 //------------------------------------------+-----------------------------------
@@ -97,7 +98,7 @@ template <>
 inline Tcl_Obj* RtclGet<short>::operator()() const 
 {
   short val = fGet();
-  return Tcl_NewIntObj((int)val);
+  return Tcl_NewIntObj(int(val));
 }
 
 //------------------------------------------+-----------------------------------
@@ -107,7 +108,7 @@ template <>
 inline Tcl_Obj* RtclGet<unsigned short>::operator()() const 
 {
   unsigned short val = fGet();
-  return Tcl_NewIntObj((int)val);
+  return Tcl_NewIntObj(int(val));
 }
 
 //------------------------------------------+-----------------------------------
@@ -127,7 +128,7 @@ template <>
 inline Tcl_Obj* RtclGet<unsigned int>::operator()() const 
 {
   unsigned int val = fGet();
-  return Tcl_NewIntObj((int)val);
+  return Tcl_NewIntObj(int(val));
 }
 
 //------------------------------------------+-----------------------------------
@@ -147,7 +148,7 @@ template <>
 inline Tcl_Obj* RtclGet<unsigned long>::operator()() const 
 {
   unsigned long val = fGet();
-  return Tcl_NewLongObj((long)val);
+  return Tcl_NewLongObj(long(val));
 }
 
 //------------------------------------------+-----------------------------------
@@ -177,7 +178,7 @@ template <>
 inline Tcl_Obj* RtclGet<std::string>::operator()() const 
 {
   std::string val = fGet();
-  return Tcl_NewStringObj((char*) val.data(), val.length());
+  return Tcl_NewStringObj(val.data(), val.length());
 }
 
 //------------------------------------------+-----------------------------------
@@ -187,7 +188,7 @@ template <>
 inline Tcl_Obj* RtclGet<const std::string&>::operator()() const 
 {
   std::string val = fGet();
-  return Tcl_NewStringObj((char*) val.data(), val.length());
+  return Tcl_NewStringObj(val.data(), val.length());
 }
 
 //------------------------------------------+-----------------------------------

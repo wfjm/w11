@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDEUNA.cpp 1087 2018-12-17 08:25:37Z mueller $
+// $Id: Rw11CntlDEUNA.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
 // Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -355,7 +355,7 @@ void Rw11CntlDEUNA::Start()
   // add attn handler
   Server().AddAttnHandler([this](RlinkServer::AttnArgs& args)
                             { return AttnHandler(args); }, 
-                          uint16_t(1)<<fLam, (void*)this);
+                          uint16_t(1)<<fLam, this);
   fStarted = true;
 
   return;

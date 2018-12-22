@@ -1,4 +1,4 @@
-// $Id: RlinkCommandExpect.cpp 1049 2018-09-22 13:56:52Z mueller $
+// $Id: RlinkCommandExpect.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.1.2  use c++ style casts
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2015-04-02   661   1.1    expect logic: remove stat from Expect, invert mask
 // 2011-11-28   434   1.0.1  Dump(): use proper cast for lp64 compatibility
@@ -146,7 +147,7 @@ void RlinkCommandExpect::Dump(std::ostream& os, int ind, const char* text,
   if (fBlockVal.size() > 0) {
     os << bl << "  fBlockVal & Msk data: ";
     size_t width = (fBlockMsk.size()>0) ? 9 : 4;
-    size_t ncol  = max(((size_t) 1), (80-ind-4-5)/(width+1));
+    size_t ncol  = max(size_t(1), (80-ind-4-5)/(width+1));
     for (size_t i=0; i< fBlockVal.size(); i++) {
       if (i%ncol == 0) os << "\n" << bl << "    " << RosPrintf(i,"d",3) << ": ";
       

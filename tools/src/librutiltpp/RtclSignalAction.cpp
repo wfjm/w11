@@ -1,4 +1,4 @@
-// $Id: RtclSignalAction.cpp 1075 2018-12-01 11:55:07Z mueller $
+// $Id: RtclSignalAction.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.0.5  use c++ style casts
 // 2018-11-30  1075   1.0.4  use list-init
 // 2014-11-08   602   1.0.3  cast int first to ptrdiff_t, than to ClientData
 // 2014-08-22   584   1.0.2  use nullptr
@@ -63,7 +64,8 @@ bool RtclSignalAction::Init(Tcl_Interp* interp, RerrMsg& emsg)
     return false;
   }
 
-  Tcl_CreateExitHandler((Tcl_ExitProc*) ThunkTclExitProc, (ClientData) fpObj);
+  Tcl_CreateExitHandler(reinterpret_cast<Tcl_ExitProc*>(ThunkTclExitProc),
+                        reinterpret_cast<ClientData>(fpObj));
 
   return true;
 }
@@ -162,15 +164,15 @@ bool RtclSignalAction::ValidSignal(int signum, RerrMsg& emsg)
 void RtclSignalAction::TclChannelHandler(int /*mask*/)
 {
   char signum;
-  Tcl_Read(fShuttleChn, (char*) &signum, sizeof(signum));
+  Tcl_Read(fShuttleChn, reinterpret_cast<char*>(&signum), sizeof(signum));
   // FIXME_code: handle return code
 
   Tcl_SetVar2Ex(fpInterp, "Rutil_signum", nullptr, 
-                Tcl_NewIntObj((int)signum), 0);
+                Tcl_NewIntObj(int(signum)), 0);
   // FIXME_code: handle return code
 
-  if ((Tcl_Obj*)fpScript[(int)signum]) {
-    Tcl_EvalObjEx(fpInterp, fpScript[(int)signum], TCL_EVAL_GLOBAL);
+  if (!!fpScript[int(signum)]) {
+    Tcl_EvalObjEx(fpInterp, fpScript[int(signum)], TCL_EVAL_GLOBAL);
     // FIXME_code: handle return code 
   }
 
@@ -184,7 +186,7 @@ void RtclSignalAction::SignalHandler(int signum)
 {
   if (fpObj && fpObj->fFdPipeWrite>0) {
     char signum_c = signum;
-    int irc = ::write(fpObj->fFdPipeWrite, (void*) &signum_c, sizeof(signum_c));
+    int irc = ::write(fpObj->fFdPipeWrite, &signum_c, sizeof(signum_c));
     if (irc < 0) 
       cerr << "RtclSignalAction::SignalHandler-E: write() failed, errno="
            << errno << endl;
@@ -233,7 +235,7 @@ RtclSignalAction::RtclSignalAction(Tcl_Interp* interp)
   fFdPipeWrite = pipefd[1];
 
   // cast first to ptrdiff_t to promote to proper int size
-  fShuttleChn = Tcl_MakeFileChannel((ClientData)(ptrdiff_t)fFdPipeRead, 
+  fShuttleChn = Tcl_MakeFileChannel(reinterpret_cast<ClientData>(fFdPipeRead), 
                                     TCL_READABLE);
 
   Tcl_SetChannelOption(nullptr, fShuttleChn, "-buffersize", "64");
@@ -241,8 +243,8 @@ RtclSignalAction::RtclSignalAction(Tcl_Interp* interp)
   Tcl_SetChannelOption(nullptr, fShuttleChn, "-translation", "binary");
 
   Tcl_CreateChannelHandler(fShuttleChn, TCL_READABLE, 
-                           (Tcl_FileProc*) ThunkTclChannelHandler,
-                           (ClientData) this);
+                    reinterpret_cast<Tcl_FileProc*>(ThunkTclChannelHandler),
+                    reinterpret_cast<ClientData>(this));
 }
 
 //------------------------------------------+-----------------------------------

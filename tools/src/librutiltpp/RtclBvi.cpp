@@ -1,6 +1,6 @@
-// $Id: RtclBvi.cpp 1076 2018-12-02 12:45:49Z mueller $
+// $Id: RtclBvi.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
-// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.0.3  use c++ style casts
 // 2018-12-02  1076   1.0.2  use nullptr
 // 2011-11-28   434   1.0.1  DoCmd(): use intptr_t cast for lp64 compatibility
 // 2011-03-27   374   1.0    Initial version
@@ -51,8 +52,10 @@ static const int kERR = TCL_ERROR;
 
 void RtclBvi::CreateCmds(Tcl_Interp* interp)
 {
-  Tcl_CreateObjCommand(interp,  "bvi", DoCmd, (ClientData) kStr2Int, nullptr);
-  Tcl_CreateObjCommand(interp, "pbvi", DoCmd, (ClientData) kInt2Str, nullptr);
+  Tcl_CreateObjCommand(interp,  "bvi", DoCmd,
+                       reinterpret_cast<ClientData>(kStr2Int), nullptr);
+  Tcl_CreateObjCommand(interp, "pbvi", DoCmd,
+                       reinterpret_cast<ClientData>(kInt2Str), nullptr);
   return;
 }
 
@@ -68,7 +71,7 @@ int RtclBvi::DoCmd(ClientData cdata, Tcl_Interp* interp, int objc,
   if (!CheckFormat(interp, objc, objv, list, form, nbit)) return kERR;
   
   //ConvMode mode = (ConvMode)((int) cdata);
-  ConvMode mode = (ConvMode)((intptr_t) cdata);
+  ConvMode mode = static_cast<ConvMode>(intptr_t(cdata));
 
   if (list) {
     int lobjc = 0;
@@ -145,7 +148,7 @@ Tcl_Obj* RtclBvi::DoConv(Tcl_Interp* interp, ConvMode mode, Tcl_Obj* val,
     char* eptr=0;
 
     if (base==10 && pval[0]=='-') {
-      lres = (unsigned long) ::strtol(pval, &eptr, base);
+      lres = static_cast<unsigned long>(::strtol(pval, &eptr, base));
       if (nbit<32) lres &= (1ul<<nbit)-1;
     } else {
       lres = ::strtoul(pval, &eptr, base);
@@ -163,12 +166,12 @@ Tcl_Obj* RtclBvi::DoConv(Tcl_Interp* interp, ConvMode mode, Tcl_Obj* val,
       return nullptr;
     }
 
-    return Tcl_NewIntObj((int)lres);
+    return Tcl_NewIntObj(int(lres));
 
   } else if (mode == kInt2Str) {
     int val_int;
     if (Tcl_GetIntFromObj(interp, val, &val_int)  != kOK) return nullptr;
-    int val_uint = (unsigned int) val_int;
+    unsigned int val_uint = val_int;
 
     int nwidth = 1;
     if (form=='o' || form=='O') nwidth = 3;
@@ -186,7 +189,7 @@ Tcl_Obj* RtclBvi::DoConv(Tcl_Interp* interp, ConvMode mode, Tcl_Obj* val,
     for (int i=ndig-1; i>=0; i--) {
       unsigned int nibble = ((val_uint)>>(i*nwidth)) & nmask;
       nibble += (nibble <= 9) ? '0' : ('a'-10);
-      *pbuf++ = (char) nibble;
+      *pbuf++ = char(nibble);
     }
 
     if (form=='B' || form=='O' || form=='X') {

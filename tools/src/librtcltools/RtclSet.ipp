@@ -1,4 +1,4 @@
-// $Id: RtclSet.ipp 1083 2018-12-15 19:19:16Z mueller $
+// $Id: RtclSet.ipp 1089 2018-12-19 10:45:41Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.1.3  use c++ style casts
 // 2018-12-15  1083   1.1.2  ctor: use rval ref and move semantics
 // 2018-12-14  1081   1.1.1  use std::function instead of boost
 // 2017-02-20   854   1.1    add Rtime
@@ -62,7 +63,7 @@ inline void RtclSet<bool>::operator()(RtclArgs& args) const
   if(Tcl_GetBooleanFromObj(args.Interp(), args.CurrentArg(), &val) != TCL_OK)
     throw Rexception("RtclSet<>::oper()", "conversion error");
 
-  fSet((bool)val);
+  fSet(bool(val));
   return;
 }
 
@@ -79,7 +80,7 @@ inline void RtclSet<char>::operator()(RtclArgs& args) const
     throw Rexception("RtclSet<>::oper()", 
                      "out of range for type 'char'");
 
-  fSet((char)val);
+  fSet(char(val));
   return;
 }
 
@@ -96,7 +97,7 @@ inline void RtclSet<signed char>::operator()(RtclArgs& args) const
     throw Rexception("RtclSet<>::oper()", 
                      "out of range for type 'signed char'");
 
-  fSet((signed char)val);
+  fSet(static_cast<signed char>(val));
   return;
 }
 
@@ -109,11 +110,11 @@ inline void RtclSet<unsigned char>::operator()(RtclArgs& args) const
   int val;
   if(Tcl_GetIntFromObj(args.Interp(), args.CurrentArg(), &val) != TCL_OK)
     throw Rexception("RtclSet<>::oper()", "conversion error");
-  if ((unsigned int)val > UCHAR_MAX)
+  if (static_cast<unsigned int>(val) > UCHAR_MAX)
     throw Rexception("RtclSet<>::oper()", 
                      "out of range for type 'unsigned char'");
 
-  fSet((unsigned char)val);
+  fSet(static_cast<unsigned char>(val));
   return;
 }
 
@@ -130,7 +131,7 @@ inline void RtclSet<short>::operator()(RtclArgs& args) const
     throw Rexception("RtclSet<>::oper()", 
                      "out of range for type 'short'");
 
-  fSet((short)val);
+  fSet(short(val));
   return;
 }
 
@@ -143,11 +144,11 @@ inline void RtclSet<unsigned short>::operator()(RtclArgs& args) const
   int val;
   if(Tcl_GetIntFromObj(args.Interp(), args.CurrentArg(), &val) != TCL_OK)
     throw Rexception("RtclSet<>::oper()", "conversion error");
-  if ((unsigned int)val > USHRT_MAX)
+  if (static_cast<unsigned int>(val) > USHRT_MAX)
     throw Rexception("RtclSet<>::oper()", 
                      "out of range for type 'unsigned short'");
 
-  fSet((unsigned short)val);
+  fSet(static_cast<unsigned short>(val));
   return;
 }
 
@@ -175,7 +176,7 @@ inline void RtclSet<unsigned int>::operator()(RtclArgs& args) const
   if(Tcl_GetIntFromObj(args.Interp(), args.CurrentArg(), &val) != TCL_OK)
     throw Rexception("RtclSet<>::oper()", "conversion error");
 
-  fSet((unsigned int) val);
+  fSet(static_cast<unsigned int>(val));
   return;
 }
 
@@ -203,7 +204,7 @@ inline void RtclSet<unsigned long>::operator()(RtclArgs& args) const
   if(Tcl_GetLongFromObj(args.Interp(), args.CurrentArg(), &val) != TCL_OK)
     throw Rexception("RtclSet<>::oper()", "conversion error");
 
-  fSet((unsigned long) val);
+  fSet(static_cast<unsigned long>(val));
   return;
 }
 
@@ -220,7 +221,7 @@ inline void RtclSet<float>::operator()(RtclArgs& args) const
     throw Rexception("RtclSet<>::oper()", 
                      "out of range for type 'float'");
 
-  fSet((float)val);
+  fSet(float(val));
   return;
 }
 

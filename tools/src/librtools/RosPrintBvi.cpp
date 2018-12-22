@@ -1,6 +1,6 @@
-// $Id: RosPrintBvi.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RosPrintBvi.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
-// Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.0.3  use c++ style casts
 // 2013-02-03   481   1.0.2  use Rexception
 // 2011-03-12   368   1.0.1  allow base=0, will print in hex,oct and bin
 // 2011-03-05   366   1.0    Initial version
@@ -41,7 +42,7 @@ namespace Retro {
 //! Constructor. FIXME_docs
 
 RosPrintBvi::RosPrintBvi(uint8_t val, size_t base, size_t nbit)
-  : fVal((uint8_t)val),
+  : fVal(val),
     fBase(base),
     fNbit(nbit)
 {
@@ -57,7 +58,7 @@ RosPrintBvi::RosPrintBvi(uint8_t val, size_t base, size_t nbit)
 //! Constructor. FIXME_docs
 
 RosPrintBvi::RosPrintBvi(uint16_t val, size_t base, size_t nbit)
-  : fVal((uint16_t)val),
+  : fVal(val),
     fBase(base),
     fNbit(nbit)
 {
@@ -139,7 +140,7 @@ void RosPrintBvi::Convert(char* pbuf) const
   for (size_t i=ndig; i>0; i--) {
     uint32_t nibble = ((fVal)>>((i-1)*nwidth)) & nmask;
     nibble += (nibble <= 9) ? '0' : ('a'-10);
-    *pbuf++ = (char) nibble;
+    *pbuf++ = char(nibble);
   }
 
   *pbuf++ = '\0';

@@ -1,4 +1,4 @@
-// $Id: Rstats.cpp 1060 2018-10-27 11:32:39Z mueller $
+// $Id: Rstats.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.0.5  use c++ style casts
 // 2017-02-04   865   1.0.4  add NameMaxLength(); Print(): add counter name
 // 2017-02-18   851   1.0.3  add IncLogHist; fix + and * operator definition
 // 2013-02-03   481   1.0.2  use Rexception
@@ -82,9 +83,9 @@ void Rstats::Define(size_t ind, const std::string& name,
 {
   // update hash
   for (size_t i=0; i<name.length(); i++) 
-    fHash = 69069*fHash + (uint32_t) name[i];
+    fHash = 69069*fHash + uint32_t(name[i]);
   for (size_t i=0; i<text.length(); i++) 
-    fHash = 69069*fHash + (uint32_t) text[i];
+    fHash = 69069*fHash + uint32_t(text[i]);
 
   // in case it's the 'next' counter use push_back
   if (ind == Size()) {

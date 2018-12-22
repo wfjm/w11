@@ -1,6 +1,6 @@
-// $Id: RethBuf.ipp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RethBuf.ipp 1089 2018-12-19 10:45:41Z mueller $
 //
-// Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.0.1  use c++ style casts
 // 2017-02-25   856   1.0    Initial version
 // 2017-02-12   850   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -92,7 +93,7 @@ inline const uint8_t* RethBuf::Buf8() const
 
 inline const uint16_t* RethBuf::Buf16() const
 {
-  return (uint16_t*) fBuf;
+  return reinterpret_cast<uint16_t*>(const_cast<uint8_t*>(fBuf));
 }
 
 //------------------------------------------+-----------------------------------
@@ -100,7 +101,7 @@ inline const uint16_t* RethBuf::Buf16() const
 
 inline const uint32_t* RethBuf::Buf32() const
 {
-  return (uint32_t*) fBuf;
+  return reinterpret_cast<uint32_t*>(const_cast<uint8_t*>(fBuf));
 }
 
 //------------------------------------------+-----------------------------------
@@ -116,7 +117,7 @@ inline uint8_t* RethBuf::Buf8()
 
 inline uint16_t* RethBuf::Buf16()
 {
-  return (uint16_t*) fBuf;
+  return reinterpret_cast<uint16_t*>(fBuf);
 }
 
 //------------------------------------------+-----------------------------------
@@ -124,7 +125,7 @@ inline uint16_t* RethBuf::Buf16()
 
 inline uint32_t* RethBuf::Buf32()
 {
-  return (uint32_t*) fBuf;
+  return reinterpret_cast<uint32_t*>(fBuf);
 }
 
 //------------------------------------------+-----------------------------------

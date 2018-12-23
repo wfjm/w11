@@ -1,4 +1,4 @@
-// $Id: Rw11Cntl.cpp 1049 2018-09-22 13:56:52Z mueller $
+// $Id: Rw11Cntl.cpp 1090 2018-12-21 12:17:35Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-19  1090   1.1.3  use RosPrintf(bool)
 // 2017-04-15   874   1.1.2  remove NUnit()
 // 2017-04-02   865   1.1.1  use Dump(detail) for PrimClist
 // 2014-12-30   625   1.1    adopt to Rlink V4 attn logic
@@ -132,8 +133,8 @@ void Rw11Cntl::Dump(std::ostream& os, int ind, const char* text,
   os << bl << "  fName:           " << fName << endl;
   os << bl << "  fBase:           " << RosPrintf(fBase,"o0",6) << endl;
   os << bl << "  fLam:            " << fLam << endl;
-  os << bl << "  fEnable:         " << fEnable << endl;
-  os << bl << "  fStarted:        " << fStarted << endl;
+  os << bl << "  fEnable:         " << RosPrintf(fEnable) << endl;
+  os << bl << "  fStarted:        " << RosPrintf(fStarted) << endl;
   fProbe.Dump(os, ind+2, "fProbe: ");
   os << bl << "  fTraceLevel:     " << fTraceLevel << endl;
   fPrimClist.Dump(os, ind+2, "fPrimClist: ", detail-1);

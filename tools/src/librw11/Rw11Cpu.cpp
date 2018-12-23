@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.cpp 1088 2018-12-17 17:37:00Z mueller $
+// $Id: Rw11Cpu.cpp 1090 2018-12-21 12:17:35Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-19  1090   1.2.18 use RosPrintf(bool)
 // 2018-12-17  1085   1.2.17 use std::mutex,condition_variable instead of boost
 // 2018-12-07  1078   1.2.16 use std::shared_ptr instead of boost
 // 2018-11-16  1070   1.2.15 use auto; use emplace,make_pair; use range loop
@@ -873,12 +874,15 @@ void Rw11Cpu::Dump(std::ostream& os, int ind, const char* text,
   os << bl << "  fIndex:          " << fIndex << endl;
   os << bl << "  fBase:           " << RosPrintf(fBase,"$x0",4) << endl;
   os << bl << "  fIBase:          " << RosPrintf(fIBase,"$x0",4) << endl;
-  os << bl << "  fHasScnt:        " << fHasScnt << endl;
-  os << bl << "  fHasPcnt:        " << fHasPcnt << endl;
-  os << bl << "  fHasCmon:        " << fHasCmon << endl;
+  os << bl << "  fHasScnt:        " << RosPrintf(fHasScnt) << endl;
+  os << bl << "  fHasPcnt:        " << RosPrintf(fHasPcnt) << endl;
+  os << bl << "  fHasCmon:        " << RosPrintf(fHasCmon) << endl;
   os << bl << "  fHasHbpt:        " << fHasHbpt << endl;
-  os << bl << "  fHasIbmon:       " << fHasIbmon << endl;
-  os << bl << "  fCpuAct:         " << fCpuAct << endl;
+  os << bl << "  fHasIbmon:       " << RosPrintf(fHasIbmon) << endl;
+  os << bl << "  fHasKw11l:       " << RosPrintf(fHasKw11l) << endl;
+  os << bl << "  fHasKw11p:       " << RosPrintf(fHasKw11p) << endl;
+  os << bl << "  fHasIist:        " << RosPrintf(fHasIist)  << endl;
+  os << bl << "  fCpuAct:         " << RosPrintf(fCpuAct) << endl;
   os << bl << "  fCpuStat:        " << RosPrintf(fCpuStat,"$x0",4) << endl;
   os << bl << "  fCntlMap:        " << endl;
   for (auto& o: fCntlMap) {

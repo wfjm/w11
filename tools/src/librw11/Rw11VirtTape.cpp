@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTape.cpp 1076 2018-12-02 12:45:49Z mueller $
+// $Id: Rw11VirtTape.cpp 1090 2018-12-21 12:17:35Z mueller $
 //
 // Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-19  1090   1.2.1  use RosPrintf(bool)
 // 2018-12-02  1076   1.2    use unique_ptr for New()
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2017-04-02   864   1.1    move fWProt,WProt() to Rw11Virt base
@@ -27,6 +28,7 @@
 #include <memory>
 
 #include "librtools/RosFill.hpp"
+#include "librtools/RosPrintf.hpp"
 #include "librtools/RparseUrl.hpp"
 #include "librtools/Rexception.hpp"
 #include "Rw11VirtTapeTap.hpp"
@@ -160,9 +162,9 @@ void Rw11VirtTape::Dump(std::ostream& os, int ind, const char* text,
   os << bl << (text?text:"--") << "Rw11VirtTape @ " << this << endl;
 
   os << bl << "  fCapacity:       " << fCapacity << endl;
-  os << bl << "  fBot:            " << fBot << endl;
-  os << bl << "  fEot:            " << fEot << endl;
-  os << bl << "  fEom:            " << fEom << endl;
+  os << bl << "  fBot:            " << RosPrintf(fBot) << endl;
+  os << bl << "  fEot:            " << RosPrintf(fEot) << endl;
+  os << bl << "  fEom:            " << RosPrintf(fEom) << endl;
   os << bl << "  fPosFile:        " << fPosFile << endl;
   os << bl << "  fPosRecord:      " << fPosRecord << endl;
   Rw11Virt::Dump(os, ind, " ^", detail);

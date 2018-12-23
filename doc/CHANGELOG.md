@@ -111,6 +111,7 @@ The full set of tests is only run for tagged releases.
   - use unique_ptr instead of free pointers, avoid explicit `delete`
   - add and use move semantic in RlinkCommandExpect
   - use c++ style casts (gcc/clang -Wold-style-cast)
+  - use std::boolalpha; add and use Rprintf(bool);
   - completely replace boost with std
     - use std::unique_ptr instead of boost::scoped_ptr
     - use std::shared_ptr instead of boost

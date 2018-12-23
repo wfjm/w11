@@ -1,4 +1,4 @@
-// $Id: Rw11UnitTerm.cpp 1085 2018-12-16 14:11:16Z mueller $
+// $Id: Rw11UnitTerm.cpp 1090 2018-12-21 12:17:35Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-19  1090   1.1.7  use RosPrintf(bool)
 // 2018-12-17  1085   1.1.6  use std::lock_guard instead of boost
 // 2018-12-14  1081   1.1.5  use std::bind instead of boost
 // 2018-12-09  1080   1.1.4  use HasVirt(); Virt() returns ref
@@ -30,6 +31,7 @@
 */
 
 #include "librtools/RparseUrl.hpp"
+#include "librtools/RosFill.hpp"
 #include "librtools/RosPrintf.hpp"
 #include "librtools/Rexception.hpp"
 
@@ -250,9 +252,9 @@ void Rw11UnitTerm::Dump(std::ostream& os, int ind, const char* text,
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11UnitTerm @ " << this << endl;
 
-  os << bl << "  fTo7bit:         " << fTo7bit << endl;
-  os << bl << "  fToEnpc:         " << fToEnpc << endl;
-  os << bl << "  fTi7bit:         " << fTi7bit << endl;
+  os << bl << "  fTo7bit:         " << RosPrintf(fTo7bit) << endl;
+  os << bl << "  fToEnpc:         " << RosPrintf(fToEnpc) << endl;
+  os << bl << "  fTi7bit:         " << RosPrintf(fTi7bit) << endl;
   {
     lock_guard<RlinkConnect> lock(Connect());
     size_t size = fRcvQueue.size();
@@ -279,10 +281,10 @@ void Rw11UnitTerm::Dump(std::ostream& os, int ind, const char* text,
   }
   
   os << bl << "  fLogFname:       " << fLogFname << endl;
-  os << bl << "  fLogStream.is_open: " << fLogStream.is_open() << endl;
-  os << bl << "  fLogOptCrlf:     " << fLogOptCrlf << endl;
-  os << bl << "  fLogCrPend:      " << fLogCrPend << endl;
-  os << bl << "  fLogLfLast:      " << fLogLfLast << endl;
+  os << bl << "  fLogStream.is_open: " << RosPrintf(fLogStream.is_open())<<endl;
+  os << bl << "  fLogOptCrlf:     " << RosPrintf(fLogOptCrlf) << endl;
+  os << bl << "  fLogCrPend:      " << RosPrintf(fLogCrPend) << endl;
+  os << bl << "  fLogLfLast:      " << RosPrintf(fLogLfLast) << endl;
 
   Rw11UnitVirt<Rw11VirtTerm>::Dump(os, ind, " ^", detail);
   return;

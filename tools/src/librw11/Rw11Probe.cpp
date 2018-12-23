@@ -1,4 +1,4 @@
-// $Id: Rw11Probe.cpp 1049 2018-09-22 13:56:52Z mueller $
+// $Id: Rw11Probe.cpp 1090 2018-12-21 12:17:35Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-19  1090   1.1.2  use RosPrintf(bool)
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2017-02-04   848   1.1    Keep probe data; add DataInt(), DataRem()
 // 2013-03-05   495   1.0    Initial version
@@ -95,9 +96,11 @@ void Rw11Probe::Dump(std::ostream& os, int ind, const char* text,
   os << bl << (text?text:"--") << "Rw11Probe @ " << this << endl;
 
   os << bl << "  fAddr:           " << RosPrintf(fAddr,"o0",6) << endl;
-  os << bl << "  fProbeInt,Rem:   " << fProbeInt << ", " << fProbeInt<< endl;
-  os << bl << "  fProbeDone:      " << fProbeDone << endl;
-  os << bl << "  fFoundInt,Rem:   " << fFoundInt << ", " << fFoundInt<< endl;
+  os << bl << "  fProbeInt,Rem:   " << RosPrintf(fProbeInt) << ", "
+                                    << RosPrintf(fProbeInt) << endl;
+  os << bl << "  fProbeDone:      " << RosPrintf(fProbeDone) << endl;
+  os << bl << "  fFoundInt,Rem:   " << RosPrintf(fFoundInt) << ", "
+                                    << RosPrintf(fFoundInt) << endl;
   os << bl << "  fDataInt,Rem:    " << RosPrintf(fDataInt,"o0",6)<< ", " 
                                     << RosPrintf(fDataRem,"o0",6) << endl;
   return;

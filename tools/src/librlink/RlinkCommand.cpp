@@ -1,4 +1,4 @@
-// $Id: RlinkCommand.cpp 1076 2018-12-02 12:45:49Z mueller $
+// $Id: RlinkCommand.cpp 1090 2018-12-21 12:17:35Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-19  1090   1.4.1  use RosPrintf(bool)
 // 2018-12-01  1076   1.4    use unique_ptr
 // 2017-04-07   868   1.3.2  Dump(): add detail arg
 // 2017-03-11   859   1.3.1  add CommandInfo()
@@ -528,6 +529,7 @@ void RlinkCommand::Dump(std::ostream& os, int ind, const char* text,
     }
     os << endl;
   }
+  os << bl << "  fExpectStatusSet:" << RosPrintf(fExpectStatusSet) << endl;
   os << bl << "  fExpectStatusVal:" << RosPrintBvi(fExpectStatusVal,0) << endl;
   os << bl << "  fExpectStatusMsk:" << RosPrintBvi(fExpectStatusMsk,0) << endl;
   if (fupExpect) fupExpect->Dump(os, ind+2, "fupExpect: ", detail);

@@ -1,4 +1,4 @@
-// $Id: Rw11Rdma.cpp 1083 2018-12-15 19:19:16Z mueller $
+// $Id: Rw11Rdma.cpp 1090 2018-12-21 12:17:35Z mueller $
 //
 // Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-19  1090   1.1.4  use RosPrintf(bool)
 // 2018-12-15  1083   1.1.3  for std::function setups: use rval ref and move
 // 2018-12-15  1082   1.1.2  use lambda instead of bind
 // 2017-04-02   865   1.1.1  Dump(): add detail arg
@@ -122,7 +123,7 @@ void Rw11Rdma::Dump(std::ostream& os, int ind, const char* text,
 
   os << bl << "  fChunkSize:      " << RosPrintf(fChunksize,"d",4) << endl;
   os << bl << "  fStatus:         " << fStatus << endl;
-  os << bl << "  fIsWMem:         " << fIsWMem << endl;
+  os << bl << "  fIsWMem:         " << RosPrintf(fIsWMem) << endl;
   os << bl << "  fAddr:           " << RosPrintBvi(fAddr,8,22) << endl;
   os << bl << "  fMode:           " << RosPrintBvi(fAddr,16,16) << endl;
   os << bl << "  fNWordMax:       " << RosPrintf(fNWordMax,"d",4) << endl;

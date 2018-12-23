@@ -1,4 +1,4 @@
-// $Id: RlinkPort.cpp 1089 2018-12-19 10:45:41Z mueller $
+// $Id: RlinkPort.cpp 1090 2018-12-21 12:17:35Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-19  1090   1.4.4  use RosPrintf(bool)
 // 2018-12-18  1089   1.4.3  use c++ style casts
 // 2017-04-29   888   1.4.2  BUGFIX: RawRead(): proper irc for exactsize=false
 // 2017-04-07   868   1.4.1  Dump(): add detail arg
@@ -300,9 +301,9 @@ void RlinkPort::Dump(std::ostream& os, int ind, const char* text,
   RosFill bl(ind);
   os << bl << (text?text:"--") << "RlinkPort @ " << this << endl;
 
-  os << bl << "  fIsOpen:         " << int(fIsOpen) << endl;
+  os << bl << "  fIsOpen:         " << RosPrintf(fIsOpen) << endl;
   fUrl.Dump(os, ind+2, "fUrl: ");
-  os << bl << "  fXon:            " << fXon << endl;
+  os << bl << "  fXon:            " << RosPrintf(fXon) << endl;
   os << bl << "  fFdRead:         " << fFdRead << endl;
   os << bl << "  fFdWrite:        " << fFdWrite << endl;
   os << bl << "  fspLog:          " << fspLog.get() << endl;

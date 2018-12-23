@@ -1,4 +1,4 @@
-// $Id: Rw11VirtStream.cpp 1076 2018-12-02 12:45:49Z mueller $
+// $Id: Rw11VirtStream.cpp 1090 2018-12-21 12:17:35Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-19  1090   1.1.1  use RosPrintf(bool)
 // 2018-12-02  1076   1.1    use unique_ptr for New()
 // 2017-04-07   868   1.0.3  Dump(): add detail arg
 // 2017-04-02   864   1.0.2  signal for input streams WProt
@@ -31,6 +32,7 @@
 #include "librtools/Rexception.hpp"
 #include "librtools/RparseUrl.hpp"
 #include "librtools/RosFill.hpp"
+#include "librtools/RosPrintf.hpp"
 
 #include "Rw11VirtStream.hpp"
 
@@ -219,8 +221,8 @@ void Rw11VirtStream::Dump(std::ostream& os, int ind, const char* text,
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11VirtStream @ " << this << endl;
 
-  os << bl << "  fIStream:        " << fIStream << endl;
-  os << bl << "  fOStream:        " << fOStream << endl;
+  os << bl << "  fIStream:        " << RosPrintf(fIStream) << endl;
+  os << bl << "  fOStream:        " << RosPrintf(fOStream) << endl;
   os << bl << "  fFile:           " << fFile << endl;
   Rw11Virt::Dump(os, ind, " ^", detail);
   return;

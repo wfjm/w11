@@ -1,4 +1,4 @@
-// $Id: Rw11.cpp 1089 2018-12-19 10:45:41Z mueller $
+// $Id: Rw11.cpp 1090 2018-12-21 12:17:35Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-19  1090   1.1.4  use RosPrintf(bool)
 // 2018-12-15  1082   1.1.3  use lambda instead of bind
 // 2018-12-09  1080   1.1.2  use std::shared_ptr instead of boost and range loop
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
@@ -27,8 +28,8 @@
 */
 
 #include "librtools/Rexception.hpp"
-
 #include "librtools/RosFill.hpp"
+#include "librtools/RosPrintf.hpp"
 #include "Rw11Cpu.hpp"
 
 #include "Rw11.hpp"
@@ -130,7 +131,7 @@ void Rw11::Dump(std::ostream& os, int ind, const char* text, int /*detail*/) con
   os << bl << "  fspCpu[4]:       ";
   for (auto& o: fspCpu) os << o.get() << " ";
   os << endl;
-  os << bl << "  fStarted:        " << fStarted << endl;
+  os << bl << "  fStarted:        " << RosPrintf(fStarted) << endl;
   return;
 }
 

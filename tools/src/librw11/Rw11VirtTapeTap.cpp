@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTapeTap.cpp 1048 2018-09-22 07:41:46Z mueller $
+// $Id: Rw11VirtTapeTap.cpp 1090 2018-12-21 12:17:35Z mueller $
 //
 // Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-19  1090   1.0.4  use RosPrintf(bool)
 // 2018-09-22  1048   1.0.3  BUGFIX: coverity (resource leak; bad expression)
 // 2017-04-15   875   1.0.2  Open(): set default scheme
 // 2017-04-07   868   1.0.1  Dump(): add detail arg
@@ -31,6 +32,7 @@
 #include <unistd.h>
 
 #include "librtools/RosFill.hpp"
+#include "librtools/RosPrintf.hpp"
 #include "librtools/Rtools.hpp"
 
 #include "Rw11VirtTapeTap.hpp"
@@ -451,8 +453,9 @@ void Rw11VirtTapeTap::Dump(std::ostream& os, int ind, const char* text,
   os << bl << "  fFd:             " << fFd << endl;
   os << bl << "  fSize:           " << fSize << endl;
   os << bl << "  fPos:            " << fPos << endl;
-  os << bl << "  fBad:            " << fBad << endl;
-  os << bl << "  fPadOdd:         " << fPadOdd << endl;
+  os << bl << "  fBad:            " << RosPrintf(fBad) << endl;
+  os << bl << "  fPadOdd:         " << RosPrintf(fPadOdd) << endl;
+  os << bl << "  fTruncPend:      " << RosPrintf(fTruncPend) << endl;
   Rw11VirtTape::Dump(os, ind, " ^", detail);
   return;
 }

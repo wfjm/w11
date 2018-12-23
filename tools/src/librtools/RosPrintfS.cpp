@@ -1,6 +1,6 @@
-// $Id: RosPrintfS.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RosPrintfS.cpp 1089 2018-12-19 10:45:41Z mueller $
 //
-// Copyright 2000-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2000-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-18  1089   1.1.1  use c++ style casts
+// 2018-12-17  1088   1.1    add bool specialization (use c++11 std::boolalpha)
 // 2011-02-25   364   1.0.1  allow NULL ptr for const char*, output <NULL>
 // 2011-01-30   357   1.0    Adopted from CTBprintfS
 // 2000-10-29     -   -      Last change on CTBprintfS
@@ -64,6 +66,14 @@ void RosPrintfS<T>::ToStream(std::ostream& os) const
 
 //------------------------------------------+-----------------------------------
 template <>
+void RosPrintfS<bool>::ToStream(std::ostream& os) const
+{
+  RiosState  iostate(os, fForm, fPrec);
+  os << std::boolalpha << fValue;
+}
+
+//------------------------------------------+-----------------------------------
+template <>
 void RosPrintfS<char>::ToStream(std::ostream& os) const
 {
   RiosState  iostate(os, fForm, fPrec);
@@ -73,7 +83,7 @@ void RosPrintfS<char>::ToStream(std::ostream& os) const
   if (ctype == 0 || ctype == 'c') {
     os << fValue;
   } else {
-    os << (int) fValue;
+    os << int(fValue);
   }
 }
 
@@ -86,7 +96,7 @@ void RosPrintfS<int>::ToStream(std::ostream& os) const
   
   os.width(fWidth);
   if (ctype == 'c') {
-    os << (char) fValue;
+    os << char(fValue);
   } else {
     os << fValue;
   }
@@ -101,7 +111,7 @@ void RosPrintfS<const char *>::ToStream(std::ostream& os) const
   
   os.width(fWidth);
   if (ctype == 'p') {
-    os << (const void*) fValue;
+    os << reinterpret_cast<const void*>(fValue);
   } else {
     os << (fValue?fValue:"<NULL>");
   }
@@ -118,7 +128,7 @@ void RosPrintfS<const void *>::ToStream(std::ostream& os) const
   if (ctype == 0 || ctype == 'p') {
     os << fValue;
   } else {
-    os << (unsigned long) fValue;
+    os << reinterpret_cast<unsigned long>(fValue);
   }
 }
 
@@ -128,6 +138,7 @@ void RosPrintfS<const void *>::ToStream(std::ostream& os) const
 
 // finally do an explicit instantiation of the required RosPrintfS
 
+template class RosPrintfS<bool>;
 template class RosPrintfS<char>;
 template class RosPrintfS<int>;
 template class RosPrintfS<unsigned int>;

@@ -1,4 +1,4 @@
-// $Id: Rw11UnitDisk.cpp 1080 2018-12-09 20:30:33Z mueller $
+// $Id: Rw11UnitDisk.cpp 1090 2018-12-21 12:17:35Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-19  1090   1.0.4  use RosPrintf(bool)
 // 2018-12-09  1080   1.0.3  use HasVirt(); Virt() returns ref
 // 2017-04-07   868   1.0.2  Dump(): add detail arg
 // 2015-03-21   659   1.0.1  add fEnabled, Enabled()
@@ -26,6 +27,8 @@
 */
 
 #include "librtools/Rexception.hpp"
+#include "librtools/RosFill.hpp"
+#include "librtools/RosPrintf.hpp"
 
 #include "Rw11UnitDisk.hpp"
 
@@ -104,13 +107,13 @@ void Rw11UnitDisk::Dump(std::ostream& os, int ind, const char* text,
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11UnitDisk @ " << this << endl;
   os << bl << "  fType:           " << fType  << endl;
-  os << bl << "  fEnabled:        " << fEnabled << endl;
+  os << bl << "  fEnabled:        " << RosPrintf(fEnabled) << endl;
   os << bl << "  fNCyl:           " << fNCyl  << endl;
   os << bl << "  fNHead:          " << fNHead << endl;
   os << bl << "  fNSect:          " << fNSect << endl;
   os << bl << "  fBlksize:        " << fBlksize << endl;
   os << bl << "  fNBlock:         " << fNBlock  << endl;
-  os << bl << "  fWProt:          " << fWProt << endl;
+  os << bl << "  fWProt:          " << RosPrintf(fWProt) << endl;
 
   Rw11UnitVirt<Rw11VirtDisk>::Dump(os, ind, " ^", detail);
   return;

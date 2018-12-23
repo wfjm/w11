@@ -1,4 +1,4 @@
-// $Id: Rw11CntlRHRP.cpp 1089 2018-12-19 10:45:41Z mueller $
+// $Id: Rw11CntlRHRP.cpp 1090 2018-12-21 12:17:35Z mueller $
 //
 // Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -15,6 +15,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-19  1090   1.0.9  use RosPrintf(bool)
 // 2018-12-15  1082   1.0.8  use std::bind or lambda instead of bind
 // 2018-12-09  1080   1.0.7  use HasVirt(); Virt() returns ref
 // 2018-10-28  1062   1.0.6  replace boost/foreach
@@ -393,7 +394,7 @@ void Rw11CntlRHRP::Dump(std::ostream& os, int ind, const char* text,
   os << bl << "  fRd_lba:         " << RosPrintf(fRd_lba,"d",6)  << endl;
   os << bl << "  fRd_nwrd:        " << RosPrintf(fRd_nwrd,"d",6) << endl;
   os << bl << "  fRd_fu:          " << RosPrintf(fRd_fu,"d",6) << endl;
-  os << bl << "  fRd_ovr:         " << fRd_ovr  << endl;
+  os << bl << "  fRd_ovr:         " << RosPrintf(fRd_ovr) << endl;
   fRdma.Dump(os, ind+2, "fRdma: ", detail);
   Rw11CntlBase<Rw11UnitRHRP,4>::Dump(os, ind, " ^", detail);
   return;

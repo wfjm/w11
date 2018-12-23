@@ -1,4 +1,4 @@
-// $Id: RlinkPacketBufSnd.cpp 1089 2018-12-19 10:45:41Z mueller $
+// $Id: RlinkPacketBufSnd.cpp 1090 2018-12-21 12:17:35Z mueller $
 //
 // Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-19  1090   1.2.2  use RosPrintf(bool)
 // 2018-12-18  1089   1.2.1  use c++ style casts
 // 2018-12-08  1079   1.2    use ref not ptr for RlinkPort
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
@@ -219,7 +220,7 @@ void RlinkPacketBufSnd::Dump(std::ostream& os, int ind, const char* text,
   RosFill bl(ind);
   os << bl << (text?text:"--") << "RlinkPacketBufSnd @ " << this << endl;
 
-  os << bl << "  fXonEscape:      " << fXonEscape << endl;
+  os << bl << "  fXonEscape:      " << RosPrintf(fXonEscape) << endl;
 
   size_t rawbufsize = fRawBuf.size();
   os << bl << "  fRawBuf(size): " << RosPrintf(rawbufsize,"d",4);

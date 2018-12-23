@@ -1,4 +1,4 @@
-// $Id: RlogFile.cpp 1089 2018-12-19 10:45:41Z mueller $
+// $Id: RlogFile.cpp 1090 2018-12-21 12:17:35Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-19  1090   1.2.4  use RosPrintf(bool)
 // 2018-12-18  1089   1.2.3  use c++ style casts
 // 2018-12-17  1085   1.2.2  use std::lock_guard instead of boost
 // 2017-03-04   858   2.2.1  use clock_gettime instead of gettimeofday
@@ -180,7 +181,7 @@ void RlogFile::Dump(std::ostream& os, int ind, const char* text) const
   os << bl << (text?text:"--") << "RlogFile @ " << this << endl;
   os << bl << "  fpExtStream:     " << fpExtStream << endl;
   os << bl << "  fIntStream.isopen " << fIntStream.is_open() << endl;
-  os << bl << "  fNew             " << fNew << endl;
+  os << bl << "  fNew             " << RosPrintf(fNew) << endl;
   os << bl << "  fName            " << fName << endl;
   os << bl << "  fTagYr,Mo,Dy     " << fTagYear << ", " << fTagMonth
                                     << ", " << fTagDay << endl;

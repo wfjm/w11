@@ -1,6 +1,6 @@
-// $Id: RosPrintf.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RosPrintf.hpp 1088 2018-12-17 17:37:00Z mueller $
 //
-// Copyright 2000-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2000-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-17  1088   1.1    add bool specialization (use c++11 std::boolalpha)
 // 2011-01-30   357   1.0    Adopted from CTBprintf
 // 2000-12-18     -   -      Last change on CTBprintf
 // ---------------------------------------------------------------------------
@@ -32,6 +33,9 @@
 
 namespace Retro {
   
+  RosPrintfS<bool>   RosPrintf(bool value, const char* form=0, 
+                               int width=0, int prec=0);
+
   RosPrintfS<char>   RosPrintf(char value, const char* form=0, 
                                int width=0, int prec=0);
 

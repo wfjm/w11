@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.cpp 1089 2018-12-19 10:45:41Z mueller $
+// $Id: RlinkConnect.cpp 1090 2018-12-21 12:17:35Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-19  1090   2.8.3  use RosPrintf(bool)
 // 2018-12-18  1089   2.8.2  use c++ style casts
 // 2018-12-17  1085   2.8.1  use std::lock_guard instead of boost
 // 2018-12-08  1079   2.8    add HasPort(); return ref for Port()
@@ -689,15 +690,16 @@ void RlinkConnect::Dump(std::ostream& os, int ind, const char* text,
   os << bl << (text?text:"--") << "RlinkConnect @ " << this << endl;
 
   if (HasPort()) {
-    Port().Dump(os, ind+2, "fupPort: ", detail);
+    Port().Dump(os, ind+2, "fupPort:  ", detail);
   } else {
-    os << bl << "  fupPort:         " <<  fupPort.get() << endl;
+    os << bl << "  fupPort:          " <<  fupPort.get() << endl;
   }
 
-  os << bl << "  fLinkInitDone:   " << fLinkInitDone << endl;
+  os << bl << "  fLinkInitDeferred:" << RosPrintf(fLinkInitDeferred) << endl;
+  os << bl << "  fLinkInitDone:    " << RosPrintf(fLinkInitDone) << endl;
 
-  os << bl << "  fpServ:          " << fpServ << endl;
-  os << bl << "  fSeqNumber:      ";
+  os << bl << "  fpServ:           " << fpServ << endl;
+  os << bl << "  fSeqNumber:       ";
   for (auto& o: fSeqNumber) os << RosPrintBvi(o,16) << " ";
   os << endl;
   
@@ -706,18 +708,18 @@ void RlinkConnect::Dump(std::ostream& os, int ind, const char* text,
   fContext.Dump(os, ind+2, "fContext: ", detail);
   fAddrMap.Dump(os, ind+2, "fAddrMap: ", detail-1);
   fStats.Dump(os, ind+2, "fStats: ", detail-1);
-  os << bl << "  fLogBaseAddr:    " << fLogBaseAddr << endl;
-  os << bl << "  fLogBaseData:    " << fLogBaseData << endl;
-  os << bl << "  fLogBaseStat:    " << fLogBaseStat << endl;
-  os << bl << "  fPrintLevel:     " << fPrintLevel << endl;
-  os << bl << "  fDumpLevel       " << fDumpLevel << endl;
-  os << bl << "  fTraceLevel      " << fTraceLevel << endl;
+  os << bl << "  fLogBaseAddr:     " << fLogBaseAddr << endl;
+  os << bl << "  fLogBaseData:     " << fLogBaseData << endl;
+  os << bl << "  fLogBaseStat:     " << fLogBaseStat << endl;
+  os << bl << "  fPrintLevel:      " << fPrintLevel << endl;
+  os << bl << "  fDumpLevel        " << fDumpLevel << endl;
+  os << bl << "  fTraceLevel       " << fTraceLevel << endl;
   fspLog->Dump(os, ind+2, "fspLog: ");
-  os << bl << "  fAttnNotiPatt:   " << RosPrintBvi(fAttnNotiPatt,16) << endl;
-  os << bl << "  fTsLastAttnNoti: " << fTsLastAttnNoti << endl;
-  os << bl << "  fSysId:          " << RosPrintBvi(fSysId,16) << endl;
-  os << bl << "  fUsrAcc:         " << RosPrintBvi(fUsrAcc,16) << endl;
-  os << bl << "  fRbufSize:       " << RosPrintf(fRbufSize,"d",6) << endl;
+  os << bl << "  fAttnNotiPatt:    " << RosPrintBvi(fAttnNotiPatt,16) << endl;
+  os << bl << "  fTsLastAttnNoti:  " << fTsLastAttnNoti << endl;
+  os << bl << "  fSysId:           " << RosPrintBvi(fSysId,16) << endl;
+  os << bl << "  fUsrAcc:          " << RosPrintBvi(fUsrAcc,16) << endl;
+  os << bl << "  fRbufSize:        " << RosPrintf(fRbufSize,"d",6) << endl;
 
   return;
 }

@@ -1,6 +1,6 @@
-// $Id: Rw11Virt.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11Virt.cpp 1090 2018-12-21 12:17:35Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-19  1090   1.1.2  use RosPrintf(bool)
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2017-04-02   864   1.1    add fWProt,WProt()
 // 2013-03-06   495   1.0    Initial version
@@ -25,6 +26,7 @@
 */
 
 #include "librtools/RosFill.hpp"
+#include "librtools/RosPrintf.hpp"
 
 #include "Rw11Virt.hpp"
 
@@ -73,7 +75,7 @@ void Rw11Virt::Dump(std::ostream& os, int ind, const char* text,
 
   os << bl << "  fpUnit:          " << fpUnit << endl;
   fUrl.Dump(os, ind+2, "fUrl: ");
-  os << bl << "  fWProt:          " << fWProt << endl;
+  os << bl << "  fWProt:          " << RosPrintf(fWProt) << endl;
   fStats.Dump(os, ind+2, "fStats: ", detail-1);
   return;
 }

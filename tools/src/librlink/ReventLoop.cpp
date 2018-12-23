@@ -1,4 +1,4 @@
-// $Id: ReventLoop.cpp 1089 2018-12-19 10:45:41Z mueller $
+// $Id: ReventLoop.cpp 1090 2018-12-21 12:17:35Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-19  1090   1.2.6  use RosPrintf(bool)
 // 2018-12-18  1089   1.2.5  use c++ style casts
 // 2018-12-17  1085   1.2.4  use std::lock_guard instead of boost
 // 2018-12-15  1083   1.2.3  AddPollHandler(): use rval ref and move
@@ -191,8 +192,8 @@ void ReventLoop::Dump(std::ostream& os, int ind, const char* text,
 {
   RosFill bl(ind);
   os << bl << (text?text:"--") << "ReventLoop @ " << this << endl;
-  os << bl << "  fStopPending:    " << fStopPending << endl;
-  os << bl << "  fUpdatePoll:     " << fUpdatePoll << endl;
+  os << bl << "  fStopPending:    " << RosPrintf(fStopPending) << endl;
+  os << bl << "  fUpdatePoll:     " << RosPrintf(fUpdatePoll) << endl;
   {
     lock_guard<mutex> lock(const_cast<ReventLoop*>(this)->fPollDscMutex);
     os << bl << "  fPollDsc.size:   " << fPollDsc.size() << endl;

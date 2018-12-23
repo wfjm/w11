@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTermTcp.cpp 1089 2018-12-19 10:45:41Z mueller $
+// $Id: Rw11VirtTermTcp.cpp 1090 2018-12-21 12:17:35Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-19  1090   1.0.12 use RosPrintf(bool)
 // 2018-12-18  1089   1.0.11 use c++ style casts
 // 2018-12-15  1082   1.0.10 use lambda instead of bind
 // 2018-11-30  1075   1.0.9  use list-init
@@ -41,6 +42,7 @@
 #include <sstream>
 
 #include "librtools/RosFill.hpp"
+#include "librtools/RosPrintf.hpp"
 #include "librtools/RlogMsg.hpp"
 #include "librtools/Rtools.hpp"
 
@@ -260,7 +262,7 @@ void Rw11VirtTermTcp::Dump(std::ostream& os, int ind, const char* text,
   default: t_state = "???";
   }
   os << bl << "  fState:            " << t_state    << endl;
-  os << bl << "  fTcpTrace:         " << fTcpTrace  << endl;
+  os << bl << "  fTcpTrace:         " << RosPrintf(fTcpTrace)  << endl;
   os << bl << "  fSndPreConQue.size:" << fSndPreConQue.size()  << endl;
   Rw11VirtTerm::Dump(os, ind, " ^", detail);
   return;

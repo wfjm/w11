@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDEUNA.cpp 1089 2018-12-19 10:45:41Z mueller $
+// $Id: Rw11CntlDEUNA.cpp 1090 2018-12-21 12:17:35Z mueller $
 //
 // Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-19  1090   0.5.7  use RosPrintf(bool)
 // 2018-12-17  1087   0.5.6  use std::lock_guard instead of boost
 // 2018-12-15  1082   0.5.5  use lambda instead of bind
 // 2018-12-09  1080   0.5.4  use HasVirt(); Virt() returns ref
@@ -609,13 +610,13 @@ void Rw11CntlDEUNA::Dump(std::ostream& os, int ind, const char* text,
   os << bl << "  fPC_rdrxdsccur:   " << fPC_rdrxdsccur << endl;
   os << bl << "  fPC_larxdsccur:   " << fPC_larxdsccur << endl;
   os << bl << "  fPC_rdrxdscnxt:   " << fPC_rdrxdscnxt << endl;
-  os << bl << "  fPcbbValid:       " << fPcbbValid << endl;
+  os << bl << "  fPcbbValid:       " << RosPrintf(fPcbbValid) << endl;
   os << bl << "  fPcbb:            " << RosPrintf(fPcbb,"o0", 6) << endl;
   os << bl << "  fPcb:            ";
   for (auto& v : fPcb) os << " " << RosPrintf(v,"o0", 6);
   os << endl;
 
-  os << bl << "  fRingValid:       " << fRingValid << endl;
+  os << bl << "  fRingValid:       " << RosPrintf(fRingValid) << endl;
   os << bl << "  fTxRing format:   " << RosPrintf(fTxRingBase,"o0", 7) 
      << "," << RosPrintf(fTxRingSize,"d", 3) 
      << "," << RosPrintf(fTxRingELen,"d", 3) << endl;
@@ -641,11 +642,11 @@ void Rw11CntlDEUNA::Dump(std::ostream& os, int ind, const char* text,
 
   os << bl << "  fPr0Last*:       " << RosPrintf(fPr0Last,"o0", 6) << endl;
   os << bl << "  fPr1*:           " 
-     << " Pcto="  <<  fPr1Pcto
-     << " Delua=" << fPr1Delua
+     << " Pcto="  << RosPrintf(fPr1Pcto)
+     << " Delua=" << RosPrintf(fPr1Delua)
      << " State=" << RosPrintf(fPr1State,"o0", 2) << ":" << MnemoState(fPr1State)
      << " GetPr1()=" << RosPrintf(GetPr1(),"o0", 6) << endl;
-  os << bl << "  fRunning:         " << fRunning << endl;
+  os << bl << "  fRunning:         " << RosPrintf(fRunning) << endl;
   os << bl << "  fMode:            " << RosPrintf(fMode,"o0", 6) << endl;
   os << bl << "  fStatus:          " << RosPrintf(fStatus,"o0", 6) << endl;
 

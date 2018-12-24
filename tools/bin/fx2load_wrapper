@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: fx2load_wrapper 985 2018-01-03 08:59:40Z mueller $
+# $Id: fx2load_wrapper 1089 2018-12-19 10:45:41Z mueller $
 #
 # Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -51,15 +51,10 @@ if (not defined $opts{ihx_path}) {
   $opts{ihx_path} = $ENV{RETROBASE} . "/tools/fx2/bin";
 }
 
-sub print_help;
-sub run_command;
-sub get_usb_id;
-sub get_usb_prodinfo;
-
 autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
 
 if (exists $opts{help}) {
-  print_help;
+  print_help();
   exit 0;
 }
 

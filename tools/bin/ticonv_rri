@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: ticonv_rri 985 2018-01-03 08:59:40Z mueller $
+# $Id: ticonv_rri 1089 2018-12-19 10:45:41Z mueller $
 #
-# Copyright 2014-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-12-18  1089   1.2.3  add and use bailout
 # 2017-05-01   891   1.2.2  use 'rlc rawwblk' instead of 'rlc rawio -wblk'
 # 2016-08-07   795   1.2.1  avoid GetOptions =f (bug in perl v5.22.1)
 # 2015-04-03   661   1.2    adopt to new stat checking and mask polarity
@@ -62,20 +63,7 @@ my %opts = ();
 
 GetOptions(\%opts, "tout=s", "cmax=i"
           )
-  or die "bad options";
-
-sub cmdlist_do;
-sub add_addr;
-sub add_data;
-sub add_edata;
-sub add_edata;
-
-sub cget_chkblank;			    # check for unused chars in cmd line
-sub cget_tagval2_gdat;		            # get tag=v1[,v2], generic base
-sub cget_tagval_gdat;	   	            # get tag=val, generic base
-sub cget_gdat;                              # get generic base value
-sub sget_bdat;                              # convert 01 string -> binary value
-sub get_line;
+  or bailout("bad command options");
 
 my $cmd_line;
 my $cmd_rest;
@@ -84,10 +72,7 @@ my $dbase = 2;                              # use binary as default data radix
 my @cmdfh;
 my @cmdlist;
 
-if (scalar(@ARGV) != 1) {
-  print STDERR "ticonv_rri-E: usage: ticonv_rri <filename>\n";
-  exit 1;
-}
+bailout("usage: ticonv_rri <filename>") if (scalar(@ARGV) != 1);
 
 my $fnam = $ARGV[0];
 my $tout = $opts{tout} || 10.;
@@ -98,7 +83,7 @@ my $msk_sdef = 0xf8;                        # ignore the status bits + attn flag
 my $chk_ndef = 1;                           # dcnt default check on by default
 
 my $fh = new FileHandle;
-$fh->open("<$fnam") or die "failed to open '$fnam'";
+$fh->open("<$fnam") or bailout("failed to open '$fnam': $!");
 push @cmdfh, $fh;
 
 print "set save_config_basedata [rlc get basedata]\n";
@@ -114,10 +99,7 @@ while (1) {
 
   # .mode mode -> accept only 'rri', quit otherwise ------------------
   if ($cmd =~ /^\.mode\s+(.*)$/) {
-    if ($1 ne "rri") {
-      print "# FAIL: $cmd not supported\n";
-      exit 1;
-    }
+    bailout("# FAIL: $cmd not supported") if ($1 ne "rri");
     next;
 
   # .dbaso n ---------------------------------------------------------
@@ -285,8 +267,7 @@ while (1) {
 
   # unknown commands -------------------------------------------------
   } else {
-    print "# FAIL: no match for '$cmd'\n";
-    exit 1;
+    bailout("# FAIL: no match for '$cmd'");
   }
 
   cget_chkblank();
@@ -377,8 +358,8 @@ sub cmdlist_do {
 sub cget_chkblank {			    # check for unused chars in cmd line
   $cmd_rest =~ s/^\s*//;
   if ($cmd_rest ne "") {
-    print "ticonv_rri-E: extra data ignored: \"$cmd_rest\"\n";
-    print "          for command: \"$cmd_line\"\n";
+    print STDERR "ticonv_rri-E: extra data ignored: \"$cmd_rest\"\n";
+    print STDERR "          for command: \"$cmd_line\"\n";
     exit 1;
   }
 }
@@ -464,18 +445,13 @@ sub cget_gdat {                             # get generic base value
     }
   }
 
-  if (not defined $dat) {
-    print "ticonv_rri-E: cget_gdat error in \"$cmd_rest\" (base=$dbase)\n";
-    exit 1;
-  }
+  bailout("cget_gdat error in \"$cmd_rest\" (base=$dbase)") unless defined $dat;
 
   if (defined $min && $dat < $min) {
-    print "ticonv_rri-E: cget_gdat range error, $dat < $min\n";
-    exit 1;
+    bailout("cget_gdat range error, $dat < $min");
   }
   if (defined $max && $dat > $max) {
-    print "ticonv_rri-E: cget_gdat range error, $dat > $max\n";
-    exit 1;
+    bailout("cget_gdat range error, $dat > $max");
   }
 
   return $dat;
@@ -488,10 +464,7 @@ sub sget_bdat {                             # convert 01 string -> binary value
   my $nchar = length($str);
   my $odat = 0;
 
-  if ($nchar != $nbit) {
-    print "ticonv_rri-E: sget_bdat error \'$str\' has not length $nbit\n";
-    exit 1;
-  }
+  bailout("sget_bdat error '$str' has not length $nbit") if $nchar != $nbit;
 
   for (my $i = 0; $i < $nchar; $i++) {
     $odat *= 2;
@@ -517,7 +490,7 @@ sub get_line {
     if ($cmd =~ /^@(.+)/) {
       my $fnam = $1;
       my $fh = new FileHandle;
-      $fh->open("<$fnam") or die "failed to open '$fnam'";
+      $fh->open("<$fnam") or bailout("failed to open '$fnam': $!");
       push @cmdfh, $fh;
       next;
     }
@@ -544,4 +517,12 @@ sub get_line {
 
     return $cmd;
   }
+}
+
+#-------------------------------------------------------------------------------
+
+sub bailout {
+  my ($msg) = @_;
+  print STDERR "ticonv_rri-F: $msg\n";
+  exit 1;
 }

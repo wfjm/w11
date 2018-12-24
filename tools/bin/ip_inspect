@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: ip_inspect 985 2018-01-03 08:59:40Z mueller $
+# $Id: ip_inspect 1089 2018-12-19 10:45:41Z mueller $
 #
-# Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-12-18  1089   0.1.1  add and use bailout
 # 2017-04-08   872   0.1    First draft
 #
 
@@ -26,20 +27,13 @@ my %opts = ();
 
 GetOptions(\%opts,
           )
-  or exit 1;
-
-sub print_usage;
-sub do_defeif;
-sub do_addr4;
-sub do_defroute;
+  or bailout("bad command options");
 
 autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
 
 my $cmd = shift @ARGV;
-unless (defined $cmd) {
-  printf STDERR "ip_inspect-E: missing command; use 'ip_inspect help'\n";
-  exit 1;
-}
+
+bailout("missing command; use 'ip_inspect help'") unless (defined $cmd);
 
 if ($cmd eq "help") {
   print_usage();
@@ -50,8 +44,7 @@ if ($cmd eq "help") {
 } elsif ($cmd eq "defroute") {
   do_defroute();
 } else {
-  printf STDERR "ip_inspect-E: invalid command '$cmd'\n";
-  exit 1;
+  bailout("invalid command '$cmd'");
 }
 exit 0;
 
@@ -59,7 +52,7 @@ exit 0;
 
 sub do_defeif {
   my @devs;
-  open (IPRES, "ip link show|") or die "failed to call ip";
+  open (IPRES, "ip link show|") or bailout("failed to call ip");
   while (<IPRES>) {
     chomp;
     next unless m|^\d+:\s*(\w+):|;
@@ -68,14 +61,10 @@ sub do_defeif {
     push @devs,$dev;
   }
   close (IPRES);
-  if (scalar(@devs) == 0) {
-    printf STDERR "ip_inspect-E: failed to detect default device\n";
-    exit 1;
-  }
+  bailout("failed to detect default device") if (scalar(@devs) == 0);
   if (scalar(@devs) > 1) {
-    printf STDERR "ip_inspect-E: multiple ethernet interfaces '%s'\n",
-      join ',',@devs;
-    exit 1;
+    my $devstr = join ',',@devs;
+    bailout("multiple ethernet interfaces '$devstr'");
   }
   print "$devs[0]\n";
   return;
@@ -86,15 +75,12 @@ sub do_defeif {
 sub do_addr4 {
   my $dev = shift @ARGV;
   my $fld = shift @ARGV;
-  unless (defined $dev && defined $fld) {
-    printf STDERR "ip_inspect-E: missing device or field\n";
-    exit 1;
-  }
+  bailout("missing device or field") unless (defined $dev && defined $fld);
 
   my $addr;
   my $size;
   my $bcast;
-  open (IPRES, "ip addr show dev $dev|") or die "failed to call ip";
+  open (IPRES, "ip addr show dev $dev|") or bailout("failed to call ip");
   while (<IPRES>) {
     chomp;
     next unless m|^\s+inet\s+([0-9.]+)/(\d+)\s+brd\s+([0-9.]+)|;
@@ -113,8 +99,7 @@ sub do_addr4 {
   } elsif ($fld eq "bcast") {
     print "$bcast\n";
   } else {
-    printf STDERR "ip_inspect-E: invalid field '$fld'\n";
-    exit 1;
+    bailout("invalid field '$fld'");
   }
   return;
 }
@@ -122,7 +107,7 @@ sub do_addr4 {
 #-------------------------------------------------------------------------------
 
 sub do_defroute {
-  open (IPRES, "ip route show|") or die "failed to call ip";
+  open (IPRES, "ip route show|") or bailout("failed to call ip");
   while (<IPRES>) {
     chomp;
     if (m|^default via\s+([0-9.]+)|) {
@@ -131,8 +116,7 @@ sub do_defroute {
       return;
     }
   }
-  printf STDERR "ip_inspect-E: failed to find default route\n";
-  exit 1;
+  bailout("failed to find default route");
 }
 
 #-------------------------------------------------------------------------------
@@ -145,6 +129,14 @@ sub size2mask {
               oct("0b".substr($bmask,16,8)) . '.' .
               oct("0b".substr($bmask,24,8));
   return $dmask;
+}
+
+#-------------------------------------------------------------------------------
+
+sub bailout {
+  my ($msg) = @_;
+  print STDERR "ip_inspect-F: $msg\n";
+  exit 1;
 }
 
 #-------------------------------------------------------------------------------

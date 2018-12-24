@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: njobihtm 985 2018-01-03 08:59:40Z mueller $
+# $Id: njobihtm 1089 2018-12-19 10:45:41Z mueller $
 #
-# Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-12-18  1089   1.0.1  add and use bailout
 # 2016-10-01   810   1.0    Initial version
 #
 
@@ -26,10 +27,7 @@ my %opts = ();
 
 GetOptions(\%opts, "verbose", "mem=s"
           )
-  or die "bad options";
-
-sub get_cpuinfo;
-sub get_meminfo;
+  or bailout("bad command options");
 
 my $ncpu;
 my $ntpc;
@@ -39,12 +37,8 @@ my $njob = 1;
 get_cpuinfo();
 get_meminfo();
 
-if (defined $ncpu && defined $ntpc && defined $nkb) {
-} else {
-  print STDERR "njobihtm-F: failed to obtain cpu or mem size\n";
-  exit 1;
-}
-
+bailout("failed to obtain cpu or mem size")
+  unless (defined $ncpu && defined $ntpc && defined $nkb);
 
 my $ncore = $ncpu / $ntpc;                  # number of cores
 my $nht   = $ncpu - $ncore;
@@ -71,8 +65,7 @@ if (defined $opts{mem}) {
       $njob = $njobm;
     }
   } else {
-    print STDERR "njobihtm-F: bad -mem option '$opts{mem}', must be nnn[MG]\n";
-    exit 1;
+    bailout("bad -mem option '$opts{mem}', must be nnn[MG]");
   }
 }
 
@@ -83,7 +76,7 @@ exit 0;
 #-------------------------------------------------------------------------------
 sub get_cpuinfo {
   open (LSCPU, "lscpu|")
-    or die "failed to open 'lscpu|': $!";
+    or bailout("failed to open 'lscpu|': $!");
 
   while (<LSCPU>) {
     chomp;
@@ -102,7 +95,7 @@ sub get_cpuinfo {
 #-------------------------------------------------------------------------------
 sub get_meminfo {
   open (MEMINFO, "/proc/meminfo")
-    or die "failed to open '/proc/meminfo': $!";
+    or bailout("failed to open '/proc/meminfo': $!");
 
   while (<MEMINFO>) {
     chomp;
@@ -117,3 +110,10 @@ sub get_meminfo {
   return;
 }
 
+#-------------------------------------------------------------------------------
+
+sub bailout {
+  my ($msg) = @_;
+  print STDERR "njobihtm-F: $msg\n";
+  exit 1;
+}

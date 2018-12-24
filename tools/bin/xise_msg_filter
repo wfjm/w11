@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: xise_msg_filter 985 2018-01-03 08:59:40Z mueller $
+# $Id: xise_msg_filter 1089 2018-12-19 10:45:41Z mueller $
 #
-# Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-12-18  1089   1.1.3  add and use bailout
 # 2015-01-30   640   1.1.2  renamed from isemsg_filter
 # 2014-02-01   550   1.1.1  rename --pack to --pacc (accepted is meant here)
 # 2012-01-04   450   1.1    preliminary check for par 'all constraints met'
@@ -28,11 +29,8 @@ use Getopt::Long;
 
 my %opts = ();
 
-GetOptions(\%opts, "help", "pacc") || exit 1;
-
-sub print_help;
-sub read_mfs;
-sub read_log;
+GetOptions(\%opts, "help", "pacc")
+  or bailout("bad command options");
 
 my $type   = shift @ARGV;
 my $mfsnam = shift @ARGV;
@@ -47,19 +45,16 @@ my $misscnt = 0;
 autoflush STDOUT 1;		# autoflush, so nothing lost on exec later
 
 if (exists $opts{help}) {
-  print_help;
+  print_help();
   exit 0;
 }
 
 if (!defined $type || !defined $mfsnam || !defined $lognam) {
-  print STDERR "xise_msg_filter-E: one of 'type mfset log' missing \n\n";
-  print_help;
-  exit 1;
+  bailout("one of 'type mfset log' missing");
 }
 
 if ($type !~ m{^(xst|tra|map|par|twr|bgn)$}) {
-  print STDERR "xise_msg_filter-E: type must be  xst,tra,map,par,twr, or bgn\n";
-  exit 1;
+  bailout("type must be  xst,tra,map,par,twr, or bgn");
 }
 
 if (read_mfs()) {exit 1;}
@@ -126,7 +121,7 @@ sub read_mfs {
     return 1;
   }
 
-  open (FFILE, $mfsnam)    or die "can't open for read $mfsnam: $!";
+  open (FFILE, $mfsnam) or bailout("can't open for read $mfsnam: $!");
 
   my $intyp = 0;
 
@@ -160,7 +155,7 @@ sub read_log {
     return 1;
   }
 
-  open (LFILE, $lognam)    or die "can't open for read $lognam: $!";
+  open (LFILE, $lognam) or bailout("can't open for read $lognam: $!");
 
   my $msgorig = "";
   my $msgflat = "";
@@ -199,6 +194,14 @@ sub read_log {
   }
 
   return 0;
+}
+
+#-------------------------------------------------------------------------------
+
+sub bailout {
+  my ($msg) = @_;
+  print STDERR "xise_msg_filter-F: $msg\n";
+  exit 1;
 }
 
 #-------------------------------------------------------------------------------

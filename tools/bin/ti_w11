@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: ti_w11 916 2017-06-25 13:30:07Z mueller $
+# $Id: ti_w11 1089 2018-12-19 10:45:41Z mueller $
 #
 # Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
@@ -26,8 +26,6 @@
 use 5.14.0;                                 # require Perl 5.14 or higher
 use strict;                                 # require strict checking
 use FileHandle;
-
-sub print_usage;
 
 autoflush STDOUT 1;             # autoflush, so nothing lost on exec later
 

@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: create_disk 1059 2018-10-27 10:34:16Z mueller $
+# $Id: create_disk 1089 2018-12-19 10:45:41Z mueller $
 #
 # Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-12-18  1089   1.1.3  add and use bailout
 # 2015-06-21   692   1.1.2  use sysseek rather seek; add RM80
 # 2015-04-06   665   1.1.1  add alias RM03 (for RM02) and RP05 (for RP04)
 # 2014-06-14   562   1.1    BUGFIX: repair --boot; add RM02,RM05,RP04,RP07
@@ -31,12 +32,7 @@ my %opts = ();
 
 GetOptions(\%opts, "help", "typ=s", "ini=s", "bad", "boot"
           )
-  or exit 1;
-
-sub do_inipatt;
-sub do_badtable;
-sub do_boot;
-sub print_help;
+  or bailout("bad command options");
 
 # disk type table
 my %disktype = (
@@ -71,14 +67,14 @@ if (-e $fnam) {
   exit 1;
 }
 
+bailout("missing --typ specification") unless defined $opts{typ};
 my $typ = uc($opts{typ});
 
 $typ = "RM03" if defined $typ && $typ eq "RM02"; # RM02 is equivalent to RM03
 $typ = "RP05" if defined $typ && $typ eq "RP04"; # RM04 is equivalent to RP05
 
 unless (defined $typ && exists $disktype{$typ}) {
-  print STDERR "create_disk-E: no or invalid --typ specification, use --help\n";
-  exit 1;
+  bailout("invalid --typ specification, use --help");
 }
 
 my $cyl = $disktype{$typ}{cyl};
@@ -87,33 +83,30 @@ my $sec = $disktype{$typ}{sec};
 my $bps = $disktype{$typ}{bps};
 my $bad = $disktype{$typ}{bad};
 
-if ($opts{bad} && !$bad) {
-  print STDERR "create_disk-E: --bad not supported for type '$typ', abort\n";
-  exit 1;
-}
+bailout("--bad not supported for type '$typ'") if ($opts{bad} && !$bad);
 
 my $nblk = $cyl*$hd*$sec;
 my $cap  = $nblk * $bps;
 
 my $fh = new FileHandle;
 sysopen($fh, $fnam, O_RDWR|O_CREAT)
-  or die "failed to create '$fnam': $!";
+  or bailout("failed to create '$fnam': $!");
 
 # seek to end, write 1 byte at end
 my $rc = sysseek($fh, $cap-1, SEEK_SET);
-if (not $rc) {die "seek failed: $!";}
+bailout("seek failed: $!") if (not $rc);
 my $buf = pack('C1',0);
 $rc = syswrite($fh, $buf, length($buf));
-if ($rc<=0) {die "write failed: $!";}
+bailout("write failed: $!") if ($rc<=0);
 
 # handle init patterns
-do_inipatt if $opts{ini};
+do_inipatt() if $opts{ini};
 
 # handle factory bad block table
-do_badtable if $opts{bad};
+do_badtable() if $opts{bad};
 
 # write dummy boot block
-do_boot if $opts{boot};
+do_boot() if $opts{boot};
 
 #-------------------------------------------------------------------------------
 
@@ -129,10 +122,10 @@ sub do_inipatt {
     }
     my $buf = pack('v*',@dat);
     my $rc = sysseek($fh, 0, SEEK_SET);
-    if (not $rc) {die "seek failed: $!";}
+    bailout("seek failed: $!") if (not $rc);
     for (my $i=0; $i<$nblk; $i++) {
       $rc = syswrite($fh, $buf, length($buf));
-      if ($rc<=0) {die "write failed: $!";}
+      bailout("write failed: $!") if ($rc<=0);
     }
 
   } elsif ($ini eq 'test') {
@@ -141,7 +134,7 @@ sub do_inipatt {
     my $cur_trk = 0;
     my $cur_cyl = 0;
     my $rc = sysseek($fh, 0, SEEK_SET);
-    if (not $rc) {die "seek failed: $!";}
+    bailout("seek failed: $!") if (not $rc);
     for (my $i=0; $i<$nblk; $i++) {
       my @dat;
       for (my $i=0; $i<$bps/16; $i++) {
@@ -153,7 +146,7 @@ sub do_inipatt {
       }
       my $buf = pack('v*',@dat);
       $rc = syswrite($fh, $buf, length($buf));
-      if ($rc<=0) {die "write failed: $!";}
+      bailout("write failed: $!") if ($rc<=0);
       $cur_sec += 1;
       if ($cur_sec >= $sec) {
         $cur_sec = 0;
@@ -184,11 +177,11 @@ sub do_badtable {
 
   my $pos = $cap - $sec*$bps;               # position of last track
   my $rc = sysseek($fh, $pos, SEEK_SET);
-  if (not $rc) {die "seek failed: $!";}
+  bailout("seek failed: $!") if (not $rc);
   my $nsec = ($sec > 10) ? 10 : $sec;       # write last track, at most 10 sec
   for (my $i=0; $i<$nsec; $i++) {
     $rc = syswrite($fh, $buf, length($buf));
-    if ($rc<=0) {die "write failed: $!";}
+    bailout("write failed: $!") if ($rc<=0);
   }
   return;
 }
@@ -209,9 +202,9 @@ sub do_boot {
 
   my $buf = pack('v*',@dat);
   my $rc = sysseek($fh, 0, SEEK_SET);
-  if (not $rc) {die "seek failed: $!";}
+  bailout("seek failed: $!") if (not $rc);
   $rc = syswrite($fh, $buf, length($buf));
-  if ($rc<=0) {die "write failed: $!";}
+  bailout("write failed: $!") if ($rc<=0);
 
   $buf  = "\r\n";
   $buf .= "\r\n";
@@ -234,11 +227,19 @@ sub do_boot {
   #       don't add more text, all has been said anyway   !!
 
   $rc = sysseek($fh ,0100, SEEK_SET);
-  if (not $rc) {die "seek failed: $!";}
+  bailout("seek failed: $!") if (not $rc);
   $rc = syswrite($fh, $buf, length($buf));
-  if ($rc<=0) {die "write failed: $!";}
+  bailout("write failed: $!") if ($rc<=0);
 
   return;
+}
+
+#-------------------------------------------------------------------------------
+
+sub bailout {
+  my ($msg) = @_;
+  print STDERR "create_disk-F: $msg\n";
+  exit 1;
 }
 
 #-------------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: dmscntanal 985 2018-01-03 08:59:40Z mueller $
+# $Id: dmscntanal 1089 2018-12-19 10:45:41Z mueller $
 #
-# Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-12-18  1089   1.0.1  add and use bailout
 # 2015-06-28   696   1.0    Initial version
 #
 
@@ -25,13 +26,7 @@ use Getopt::Long;
 my %opts = ();
 
 GetOptions(\%opts, "help", "raw")
-  or die "bad options";
-
-sub print_help;
-sub read_file;
-sub show_raw;
-sub add_groups;
-sub group_new;
+  or bailout("bad command options");
 
 my @snum2nam;
 my %snam2num;
@@ -45,7 +40,7 @@ my $sum_um;
 autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
 
 if (exists $opts{help}) {
-  print_help;
+  print_help();
   exit 0;
 }
 
@@ -70,7 +65,7 @@ sub read_file {
   $sum_km  = 0;
   $sum_um  = 0;
 
-  open IFILE,"<$file" or die "failed to open $file";
+  open IFILE,"<$file" or bailout("failed to open '$file': $!");
 
   while (<IFILE>) {
     chomp;
@@ -161,8 +156,8 @@ sub show_frac {
 sub print_frac {
   my ($pre,$text,$nom,$denom) = @_;
 
-  die "print_frac: bad key '$nom'"    unless defined $snam2num{$nom};
-  die "print_frac: bad key '$denom'"  unless defined $snam2num{$denom};
+  bailout("print_frac: bad key '$nom'")   unless defined $snam2num{$nom};
+  bailout("print_frac: bad key '$denom'") unless defined $snam2num{$denom};
 
   my $fact = ($pre eq '%') ? 100. : 1.;
   printf "    %-22s  %7.2f%s %7.2f%s %7.2f%s\n",
@@ -460,8 +455,8 @@ sub group_new {
   my $snum = shift @_;
   my $snam = shift @_;
 
-  die "group_new: bad snum '$snum'" if defined $snum2nam[$snum];
-  die "group_new: bad snam '$snam'" if defined $snam2num{$snam};
+  bailout("group_new: bad snum '$snum'") if defined $snum2nam[$snum];
+  bailout("group_new: bad snam '$snam'") if defined $snam2num{$snam};
 
   $snum2nam[$snum] = $snam;
   $snam2num{$snam} = $snum;
@@ -473,11 +468,19 @@ sub group_new {
   foreach my $val (@_) {
     if ($val eq '+') { $sign =  1.; next;}
     if ($val eq '-') { $sign = -1.; next;}
-    die "bad action '$val'" unless defined $snam2num{$val};
+    bailout("bad action '$val'") unless defined $snam2num{$val};
     $dat_all{$snam} += $sign * $dat_all{$val};
     $dat_km{$snam}  += $sign * $dat_km{$val};
     $dat_um{$snam}  += $sign * $dat_um{$val};
   }
+}
+
+#-------------------------------------------------------------------------------
+
+sub bailout {
+  my ($msg) = @_;
+  print STDERR "dmscntanal-F: $msg\n";
+  exit 1;
 }
 
 #-------------------------------------------------------------------------------

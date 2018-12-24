@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: config_wrapper 985 2018-01-03 08:59:40Z mueller $
+# $Id: config_wrapper 1089 2018-12-19 10:45:41Z mueller $
 #
-# Copyright 2010-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2010-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-12-18  1089   1.1.9  add and use bailout
 # 2013-09-21   534   1.1.8  add nexys4 support
 # 2013-01-02   467   1.1.7  jconfig: prepend '0x' to support 'jtag #2007'
 # 2012-02-11   457   1.1.6  jconfig: use RETRO_FX2_VID/PID for USB VID/PID
@@ -38,7 +39,8 @@ use Getopt::Long;
 
 my %opts = ();
 
-GetOptions(\%opts, "help", "dry_run", "board=s", "path=s") or exit 1;
+GetOptions(\%opts, "help", "dry_run", "board=s", "path=s")
+  or bailout("bad command options");
 
 # setup defaults for board and path
 if (not defined $opts{board}) {
@@ -53,14 +55,10 @@ if (not defined $opts{path}) {
   $opts{path}  = "xc6slx45t" if $opts{board} eq "sp605";
 }
 
-sub print_help;
-sub run_command;
-
-
 autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
 
 if (exists $opts{help}) {
-  print_help;
+  print_help();
   exit 0;
 }
 
@@ -107,9 +105,7 @@ if ($board eq "s3board" && $ipath eq "xc3s200") {           # S3BOARD-200
   @plist = ("xccace", $ipath);
   $pfpga = 2;
 } else {
-  print STDERR 
-    "config_wrapper-E: only s3board/nexys2,3/atlys/sp605 supported\n";
-  exit 1;
+  bailout("only s3board/nexys2,3/atlys/sp605 supported");
 }
 
 my @blist;
@@ -121,39 +117,25 @@ foreach my $part (@plist) {
   elsif ($part =~ m/^xc7a\d*t?$/) { push @blist, "artix7/data" }    # 7-a
   elsif ($part =~ m/^xccace$/)   { push @blist, "acempm/data" }     # sys-ace
   else {
-    print STDERR "config_wrapper-E: no bsdl path known for $part\n";
-    exit 1;
+    bailout("no bsdl path known for $part");
   }
 }
 
 my $cmd  = shift @ARGV;
 my $file = shift @ARGV;
 
-if (! defined $cmd) {
-  print STDERR "config_wrapper-E: no command specified\n";
-  exit 1;
-}
-
-if (! defined $file) {
-  print STDERR "config_wrapper-E: no bit or svf file specified\n";
-  exit 1;
-}
-if (! -r $file) {
-  print STDERR "config_wrapper-E: input file not found or readable\n";
-  exit 1;
-}
+bailout("no command specified")             if (! defined $cmd);
+bailout("no bit or svf file specified")     if (! defined $file);
+bailout("input file not found or readable") if (! -r $file);
 
 my $xilpath = $ENV{XILINX};
-if (! defined $xilpath) {
-  print STDERR "config_wrapper-E: XILINX environment variable not defined\n";
-  exit 1;
-}
+bailout("XILINX environment variable not defined") if (! defined $xilpath);
 
 # ----- iconfig action --------------------------------------------------------
 if ($cmd eq "iconfig") {
 
   my $tmpfile = "tmp_config_wrapper.cmd";
-  open (OFILE, ">$tmpfile") or die "Couldn't open tmp cmd file: $!";
+  open (OFILE, ">$tmpfile") or bailout("Couldn't open tmp cmd file: $!");
 
   print  OFILE "setMode -bs\n";
   print  OFILE "setCable -p auto\n";
@@ -164,7 +146,7 @@ if ($cmd eq "iconfig") {
   printf OFILE "program -p %d -verify\n", $pfpga;
   print  OFILE "quit\n";
 
-  close (OFILE) or die "Couldn't close tmp cmd file: $!";
+  close (OFILE) or bailout("Couldn't close tmp cmd file: $!");
 
   my $rc  = run_command("impact -batch", $tmpfile);
   exit $rc;
@@ -175,7 +157,7 @@ if ($cmd eq "iconfig") {
   my $bpath = join ";", map "$xilpath/$_",@blist;
 
   my $tmpfile = "tmp_config_wrapper.cmd";
-  open (OFILE, ">$tmpfile") or die "Couldn't open tmp cmd file: $!";
+  open (OFILE, ">$tmpfile") or bailout("Couldn't open tmp cmd file: $!");
 
   # the UrJtag and Xilinx impact have different chain and part number schemes
   #   impact: 1-based, 1 is first in chain;
@@ -213,7 +195,7 @@ if ($cmd eq "iconfig") {
   printf OFILE "part %d\n", $jtag_part;
   printf OFILE "svf %s\n", $file;
 
-  close (OFILE) or die "Couldn't close tmp cmd file: $!";
+  close (OFILE) or bailout("Couldn't close tmp cmd file: $!");
 
   my $rc  = run_command("jtag", $tmpfile);
   exit $rc;
@@ -224,7 +206,7 @@ if ($cmd eq "iconfig") {
   $ofile =~ s/\.bit/\.svf/;
 
   my $tmpfile = "tmp_config_wrapper.cmd";
-  open (OFILE, ">$tmpfile") or die "Couldn't open tmp cmd file: $!";
+  open (OFILE, ">$tmpfile") or bailout("Couldn't open tmp cmd file: $!");
 
   print  OFILE "setMode -bs\n";
   printf OFILE "setCable -port svf -file %s\n", $ofile;
@@ -232,14 +214,13 @@ if ($cmd eq "iconfig") {
   print  OFILE "program -p 1\n";
   print  OFILE "quit\n";
 
-  close (OFILE) or die "Couldn't close tmp cmd file: $!";
+  close (OFILE) or bailout("Couldn't close tmp cmd file: $!");
 
   my $rc  = run_command("impact -batch", $tmpfile);
   exit $rc;
 }
 
-print STDERR "config_wrapper-E: command must be bit2svf, iconfig or jconfig\n";
-exit 1;
+bailout("command must be bit2svf, iconfig or jconfig");
 
 #-------------------------------------------------------------------------------
 
@@ -267,8 +248,16 @@ sub run_command {
     }
   }
 
-  unlink $tmpfile or die "Couldn't delete tmp cmd file: $!";
+  unlink $tmpfile or bailout("Couldn't delete tmp cmd file: $!");
   return $rc;
+}
+
+#-------------------------------------------------------------------------------
+
+sub bailout {
+  my ($msg) = @_;
+  print STDERR "config_wrapper-F: $msg\n";
+  exit 1;
 }
 
 #-------------------------------------------------------------------------------

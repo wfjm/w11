@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: xst_count_bels 985 2018-01-03 08:59:40Z mueller $
+# $Id: xst_count_bels 1089 2018-12-19 10:45:41Z mueller $
 #
-# Copyright 2007-2010 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2007-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2018-12-18  1089   1.2.2  add and use bailout
 # 2010-04-26   284   1.2.1  add error check for GetOptions
 # 2007-10-28    93   1.2    added -xsts (_ssim based device summary)
 # 2007-06-30    62   1.1    fixed parser, now all bels counted
@@ -24,12 +25,10 @@ use strict;                                 # require strict checking
 
 use Getopt::Long;
 
-sub do_file;
-
 my %opts = ();
 
 GetOptions(\%opts, "xstl", "xsts")
-  or die "bad options";
+  or bailout("bad command options");
 
 my $do_xstl  = defined $opts{xstl};
 my $do_xsts  = defined $opts{xsts};
@@ -44,7 +43,7 @@ sub do_file {
   my %bels;
   my $cur_bel;
 
-  open (IFILE, $filename)    or die "can't open for read $filename";
+  open (IFILE, $filename) or bailout("can't open for read '$filename': $!");
   while(<IFILE>) {
     chomp;
     if (m{^\s*[a-zA-Z0-9_]+\s*:\s*([a-zA-Z0-9_]+)\s*$}) {
@@ -92,7 +91,7 @@ sub do_file {
         $n_mult += $bels{$_};
       }
     }
-    
+
     print  "Device utilization summary (_ssim BELS scan):\n";
     print  "---------------------------------------------\n";
     printf " Number of Flip Flops:      %5d\n", $n_flop;
@@ -103,4 +102,12 @@ sub do_file {
     printf " Number of BRAMs:           %5d\n", $n_bram;
     printf " Number of MULT18X18s:      %5d\n", $n_mult;
   }
+}
+
+#-------------------------------------------------------------------------------
+
+sub bailout {
+  my ($msg) = @_;
+  print STDERR "xst_count_bels-F: $msg\n";
+  exit 1;
 }

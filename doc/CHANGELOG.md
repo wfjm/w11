@@ -87,6 +87,7 @@ The full set of tests is only run for tagged releases.
 - tools changes
   - xviv_msg_filter: display INFO Common 17-14 'further message disabled'
   - tbrun: add --all option
+  - (all perl scripts): add and use bailout instead of die
   - viv_tools_build.tcl: increase message limits (all 200, some 5000)
 - tbench changes:
   - tst_sram: don't test memory controller reset anymore

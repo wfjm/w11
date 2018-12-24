@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: dmscntconv 985 2018-01-03 08:59:40Z mueller $
+# $Id: dmscntconv 1089 2018-12-19 10:45:41Z mueller $
 #
-# Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-12-18  1089   1.0.2  add and use bailout
 # 2015-12-28   721   1.0.1  adopt to new syntax of STATE2SNUM mapper
 # 2015-06-27   695   1.0    Initial version
 #
@@ -26,11 +27,7 @@ use Getopt::Long;
 my %opts = ();
 
 GetOptions(\%opts, "help", "src=s")
-  or die "bad options";
-
-sub print_help;
-sub do_src;
-sub do_file;
+  or bailout("bad command options");
 
 my @snum2nam;
 my %snam2num;
@@ -41,13 +38,13 @@ my %dat_um;
 autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
 
 if (exists $opts{help}) {
-  print_help;
+  print_help();
   exit 0;
 }
 
 if (scalar(@ARGV) == 0) {
   print STDERR "dmscntconv-E: no input file specified\n";
-  print_help;
+  print_help();
   exit 1;
 }
 
@@ -98,7 +95,7 @@ for (my $snum=0; $snum<scalar(@snum2nam); $snum++) {
 sub do_src {
   my ($file) = @_;
 
-  open SFILE,"<$file" or die "failed to open $file";
+  open SFILE,"<$file" or bailout("failed to open '$file': $!");
 
   my $begin_seen;
   while (<SFILE>) {
@@ -136,7 +133,7 @@ sub do_file {
   %dat_um  = ();
   %dat_all = ();
 
-  open IFILE,"<$file" or die "failed to open $file";
+  open IFILE,"<$file" or bailout("failed to open '$file': $!");
 
   while (<IFILE>) {
     chomp;
@@ -174,6 +171,13 @@ sub do_file {
 
 }
 
+#-------------------------------------------------------------------------------
+
+sub bailout {
+  my ($msg) = @_;
+  print STDERR "dmscntconv-F: $msg\n";
+  exit 1;
+}
 #-------------------------------------------------------------------------------
 
 sub print_help {

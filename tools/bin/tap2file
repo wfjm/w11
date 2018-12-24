@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: tap2file 985 2018-01-03 08:59:40Z mueller $
+# $Id: tap2file 1089 2018-12-19 10:45:41Z mueller $
 #
-# Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-12-18  1089   1.0.2  add and use bailout
 # 2015-06-03   686   1.0.1  add print_usage; cleanups
 # 2015-05-24   684   1.0    Initial version
 #
@@ -29,20 +30,17 @@ use Getopt::Long;
 my %opts = ();
 
 GetOptions(\%opts, "pref=s", "help")
-  or die "bad options";
-
-sub close_ofile;
-sub print_usage;
+  or bailout("bad command options");
 
 if (scalar(@ARGV) == 0 || exists $opts{help}) {
-  print_usage;
+  print_usage();
   exit 0;
 }
 
 my $ifile = shift @ARGV;
 exit 0 unless defined $ifile;
 
-open(IFILE, "<$ifile") || die("Can't open $ifile: $!");
+open(IFILE, "<$ifile") or bailout("Can't open '$ifile': $!");
 
 my $basename = $ifile;
 $basename = $1 if $ifile =~ m|.*/(.*)|;
@@ -64,7 +62,7 @@ while ($nb = read(IFILE, $block, 4)) {
   my $metabeg = unpack("V", $block);
 
   if ($metabeg == 0x00000000) {
-    close_ofile;
+    close_ofile();
     $nfile += 1;
     next;
   }
@@ -74,7 +72,7 @@ while ($nb = read(IFILE, $block, 4)) {
 
   unless (defined fileno OFILE) {
     $ofile = sprintf("%s%02d.dat", $pref,$nfile);
-    open(OFILE, ">$ofile") || die("Can't open $ofile: $!");
+    open(OFILE, ">$ofile") or bailout("Can't open '$ofile': $!");
   }
 
   $nb = read(IFILE, $block, $metabeg);
@@ -100,7 +98,7 @@ while ($nb = read(IFILE, $block, 4)) {
   }
 }
 
-close_ofile;
+close_ofile();
 exit 0;
 
 # ----------------------------------------------------------------------------
@@ -117,6 +115,14 @@ sub close_ofile {
   $nrec  = 0;
   $rlmin = 0;
   $rlmax = 0;
+}
+
+#-------------------------------------------------------------------------------
+
+sub bailout {
+  my ($msg) = @_;
+  print STDERR "tap2file-F: $msg\n";
+  exit 1;
 }
 
 # ----------------------------------------------------------------------------

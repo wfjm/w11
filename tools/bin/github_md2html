@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: github_md2html 1057 2018-10-19 15:06:42Z mueller $
+# $Id: github_md2html 1089 2018-12-19 10:45:41Z mueller $
 #
 # Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-12-18  1089   1.1.4  add and use bailout
 # 2018-10-19  1057   1.1.3  add --verbose; don't list up-to-date files anymore
 # 2018-07-02  1033   1.1.2  use non-greedy match in -stand code
 # 2018-05-13  1021   1.1.1  handle fragment identifiers in -standalone mapping
@@ -31,21 +32,19 @@ my %opts = ();
 
 GetOptions(\%opts,
            "context:s", "force", "standalone", "trace", "verbose",
-           "dump", "help") || exit 1;
+           "dump", "help")
+  or bailout("bad command options");
 
 my $url_ghapi_md     = "https://api.github.com/markdown";
 my $url_ghapi_mdraw  = "https://api.github.com/markdown/raw";
 my $url_css_ghmd     = "https://wfjm.github.io/css/github-markdown.css";
 my $url_css_ghmdbody = "https://wfjm.github.io/css/github-markdown-body.css";
 
-sub print_help;
-sub do_md2html;
-
 autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
 autoflush STDOUT 1 if (-t STDOUT);          # autoflush if output into term
 
 if (exists $opts{help}) {
-  print_help;
+  print_help();
   exit 0;
 }
 
@@ -57,7 +56,7 @@ foreach my $arg (@ARGV) {
     push @flist, $arg;
   } elsif (-d $arg) {
     open (FFILE, "find $arg -name '*.md' -type f | sort |")
-      or die "Failed to run 'find $arg': $!";
+      or bailout("Failed to run 'find $arg': $!");
     while (<FFILE>) {
       chomp;
       push @flist, $_;
@@ -72,7 +71,7 @@ foreach my $arg (@ARGV) {
 
 unless (scalar @flist) {
   print STDERR "github_md2html-E: no files specified of found\n";
-  print_help;
+  print_help();
   exit 1;
 }
 
@@ -150,7 +149,7 @@ sub do_md2html {
   my $idata;
   {
     local $/;                               # slurp file ...
-    open IFILE, $ifile or die "file open read failed";
+    open IFILE, $ifile or bailout("file read open for '$ifile' failed: $!");
     $idata = <IFILE>;
     close IFILE;
   }
@@ -212,7 +211,7 @@ sub do_md2html {
     }gex;
   }
 
-  open OFILE, ">$ofile" or die "file open write failed";
+  open OFILE, ">$ofile" or bailout("file write open for '$ofile' failed: $!");
   print OFILE '<!DOCTYPE html>',"\n";
   print OFILE '<html>',"\n";
   print OFILE '<head>',"\n";
@@ -244,6 +243,14 @@ sub do_md2html {
 
   printf "%s: done, rate %d of %d for %2dm%02ds\n",
     $ifile, $rate_remain, $rate_limit, $reset_min, $reset_sec;
+}
+
+#-------------------------------------------------------------------------------
+
+sub bailout {
+  my ($msg) = @_;
+  print STDERR "github_md2html-F: $msg\n";
+  exit 1;
 }
 
 #-------------------------------------------------------------------------------

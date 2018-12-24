@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tmuconv 1053 2018-10-06 20:34:52Z mueller $
+# $Id: tmuconv 1089 2018-12-19 10:45:41Z mueller $
 #
 # Copyright 2008-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-12-18  1089   1.1.3  add and use bailout
 # 2018-10-05  1053   1.1.2  use 'ca.*' instead of 'sy.*' fields
 # 2015-11-01   712   1.1.1  BUGFIX: fix '.' handling for br/sob instructions
 #                           BUGFIX: correct xor (now r,dst, and not src,r)
@@ -92,12 +93,7 @@ my %opts = ();
 
 GetOptions(\%opts, "help", "dump", "cdump",
 	   "t_id", "t_ru", "t_em", "t_ib")
-  or die "bad options";
-
-sub print_help;
-sub do_file;
-sub code2mnemo;
-sub regmod;
+  or bailout("bad command options");
 
 my @var_name;
 my @var_type;
@@ -449,7 +445,7 @@ my %pdp11_regs = (			    # use simh naming convention
 autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
 
 if (exists $opts{help}) {
-  print_help;
+  print_help();
   exit 0;
 }
 
@@ -473,7 +469,7 @@ foreach my $file (@ARGV) {
 sub do_file {
   my ($file) = @_;
 
-  open IFILE,"<$file" or die "failed to open $file";
+  open IFILE,"<$file" or bailout("failed to open '$file': $!");
 
   my $idec_cyc = 0;
   my $change_cyc = 0;
@@ -954,6 +950,14 @@ sub regmod {
     my $ind = ($mod == 7) ? "@" : "";
     return "${ind}nnn($reg_str)";
   }
+}
+
+#-------------------------------------------------------------------------------
+
+sub bailout {
+  my ($msg) = @_;
+  print STDERR "tmuconv-F: $msg\n";
+  exit 1;
 }
 
 #-------------------------------------------------------------------------------

@@ -1,10 +1,11 @@
-# $Id: generic_vivado.mk 830 2016-12-26 20:25:49Z mueller $
+# $Id: generic_vivado.mk 1091 2018-12-23 12:38:29Z mueller $
 #
-# Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History: 
 # Date         Rev Version  Comment
+# 2018-12-22  1091   1.4.2  add bitgen flow checking
 # 2016-08-27   802   1.4.1  viv_clean: rm only vivado logs
 # 2016-07-22   792   1.4    relocate viv tcl code to tools/vivado
 # 2016-06-24   778   1.3    add rsim.vhd and [sorep]sim.v targets
@@ -76,10 +77,14 @@ endif
 	@ if [ -r $*_syn.log ]; \
 	     then xviv_msg_filter syn $*.vmfset $*_syn.log; \
 	     else echo "   !!! no $*_syn.log found"; fi
-	@ echo "=== Implementation flow summary=============================="
+	@ echo "=== Implementation flow summary ============================="
 	@ if [ -r $*_imp.log ]; \
 	     then xviv_msg_filter imp $*.vmfset $*_imp.log; \
 	     else echo "   !!! no $*_imp.log found"; fi
+	@ echo "=== Bitgen flow summary ====================================="
+	@ if [ -r $*_bit.log ]; \
+	     then xviv_msg_filter bit $*.vmfset $*_bit.log; \
+	     else echo "   !!! no $*_bit.log found"; fi
 #
 # Configure FPGA with vivado hardware server
 #   input:   %.bit

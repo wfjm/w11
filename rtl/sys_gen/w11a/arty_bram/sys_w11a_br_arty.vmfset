@@ -1,4 +1,4 @@
-# $Id: sys_w11a_br_arty.vmfset 1073 2018-11-23 18:05:51Z mueller $
+# $Id: sys_w11a_br_arty.vmfset 1091 2018-12-23 12:38:29Z mueller $
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
@@ -190,3 +190,9 @@ r [Synth 8-3354] R_REGS_reg[state].*'one-hot'.*'sysmon_rbus_core'
 [imp]
 I [Vivado 12-2489]                                # multiple of 1 ps
 I [Physopt 32-742]                                # BRAM Flop Optimization
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+[bit]
+# --> DSP multiplier is not pipelined, ok                       # OK 2018-12-22
+i [DRC DPOP-1] PREG Output pipelining
+i [DRC DPOP-2] MREG Output pipelining

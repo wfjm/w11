@@ -85,7 +85,10 @@ The full set of tests is only run for tagged releases.
 - tbcore_rlink: wait 40 cycles after CONF_DONE
 - serport_master_tb: add 100 ps RXSD,TXSD delay to allow clock jitter
 - tools changes
-  - xviv_msg_filter: display INFO Common 17-14 'further message disabled'
+  - xviv_msg_filter
+    - display INFO Common 17-14 'further message disabled'
+    - add c type rules for 'count-only' filters
+    - add support for bitstream generation checking ([bit] section)
   - tbrun: add --all option
   - (all perl scripts): add and use bailout instead of die
   - viv_tools_build.tcl: increase message limits (all 200, some 5000)

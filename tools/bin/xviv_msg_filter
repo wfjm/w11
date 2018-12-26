@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: xviv_msg_filter 1072 2018-11-18 22:27:35Z mueller $
+# $Id: xviv_msg_filter 1091 2018-12-23 12:38:29Z mueller $
 #
 # Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2018-12-22  1091   1.1.3  add count-only rules; add -pcnt; add [bit] handling
 # 2018-11-18  1072   1.1.2  display INFO Common 17-14 'further message disabled'
 # 2018-08-11  1039   1.1.1  allow {yyyy.x} tags (in addition to ranges)
 # 2017-06-06   909   1.1    add version-range tags
@@ -28,23 +29,25 @@ use Getopt::Long;
 
 my %opts = ();
 
-GetOptions(\%opts, "help", "pacc") || exit 1;
-
-sub print_help;
-sub read_mfs;
-sub read_log;
+GetOptions(\%opts, "help", "pacc", "pcnt")
+  or bailout("bad command options");
 
 my $type   = shift @ARGV;
 my $mfsnam = shift @ARGV;
 my $lognam = shift @ARGV;
+my %finfokill;
 my @flist;
 my @mlist;
+my %msgcnt;
+my %msgsev;
 my $nackcnt  = 0;
 my $ackcnt   = 0;
 my $imisscnt = 0;
 my $rmisscnt = 0;
+my $cntcnt   = 0;
 my $timebad  = 0;
 my $timegood = 0;
+my $bitgood  = 0;
 
 my $vercur;
 my $vermin = "0000.0";
@@ -55,19 +58,16 @@ my $retrobase = $ENV{RETROBASE};
 autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
 
 if (exists $opts{help}) {
-  print_help;
+  print_help();
   exit 0;
 }
 
 if (!defined $type || !defined $mfsnam || !defined $lognam) {
-  print STDERR "xviv_msg_filter-E: one of 'type mfset log' missing \n\n";
-  print_help;
-  exit 1;
+  bailout("one of 'type mfset log' missing");
 }
 
-if ($type !~ m{^(syn|imp)$}) {
-  print STDERR "xviv_msg_filter-E: type must be syn or imp\n";
-  exit 1;
+if ($type !~ m{^(syn|imp|bit)$}) {
+  bailout("type must be syn, imp or bit");
 }
 
 if (read_ver($lognam)) {exit 1;}
@@ -75,41 +75,50 @@ if (read_mfs($mfsnam)) {exit 1;}
 if (read_log($lognam)) {exit 1;}
 
 foreach my $m (@mlist) {
-  my $msev  = $m->[0];
-  my $mcode = $m->[1];
-  my $mtext = $m->[2];
   my $msgmatch = 0;
 
   # check for timing closure
-  #  bad:  [Route 35-39] The design did not meet timing requirements
-  #  bad:  [Timing 38-282] The design failed to meet the timing ...
-  #  good: [Route 35-61] The design met the timing requirement
-  $timebad  += 1 if $type eq 'imp' && $mcode eq 'Route 35-39';
-  $timebad  += 1 if $type eq 'imp' && $mcode eq 'Timing 38-282';
-  $timegood += 1 if $type eq 'imp' && $mcode eq 'Route 35-61';
+  #   bad:  [Route 35-39] The design did not meet timing requirements
+  #   bad:  [Timing 38-282] The design failed to meet the timing ...
+  #   good: [Route 35-61] The design met the timing requirement
+  $timebad  += 1 if $type eq 'imp' && $$m{code} eq 'Route 35-39';
+  $timebad  += 1 if $type eq 'imp' && $$m{code} eq 'Timing 38-282';
+  $timegood += 1 if $type eq 'imp' && $$m{code} eq 'Route 35-61';
+  # check for proper bitstream generation
+  #   good: [Vivado 12-1842] Bitgen Completed Successfully
+  $bitgood  += 1 if $type eq 'bit' && $$m{code} eq 'Vivado 12-1842';
 
   foreach my $f (@flist) {
-    my $fmode = $f->[0];
-    my $fcode = $f->[1];
-    my $frege = $f->[2];
-    if ($frege eq '') {
-      $msgmatch = $mcode eq $fcode;
+    if ($$f{rege} eq '') {
+      $msgmatch = $$m{code} eq $$f{code};
     } else {
-      $msgmatch = $mcode eq $fcode && $mtext =~ m{$frege};
+      $msgmatch = $$m{code} eq $$f{code} && $$m{text} =~ m{$$f{rege}};
     }
     if ($msgmatch) {
       #print "+++m '$fmode' '$fcode' '$frege' : '$mcode' '$mtext'\n";
-      $f->[3] += 1;
+      $$f{cnt} += 1;
       last;
     }
   }
 
-  if ($mcode ne 'Common 17-14' && $msev eq 'INFO') {
-    $msgmatch = 1;         # accept all INFO except 'further msg disabled'
+  # accept all INFO except 'further msg disabled'
+  # show 'further msg disabled' only
+  #   if the code is not an INFO messages
+  #   if the code is not covered by a 'I' rule
+  if ($$m{sev} eq 'INFO') {
+    if ($$m{code} eq 'Common 17-14') {
+      if ($$m{text} =~ m/Message '(.*?)' appears/) {
+        my $code = $1;
+        $msgmatch = 1 if exists $msgsev{$code} && $msgsev{$code} eq 'INFO';
+        $msgmatch = 1 if $finfokill{$code};
+      }
+    } else {
+      $msgmatch = 1;
+    }
   }
 
   if ($msgmatch) {
-    $m->[3] += 1;
+    $$m{cnt} += 1;
   } else {
     $nackcnt += 1;
   }
@@ -118,16 +127,16 @@ foreach my $m (@mlist) {
 if ($nackcnt) {
   print "Unexpected messages of type [$type] from $lognam:\n";
   foreach my $m (@mlist) {
-    next if $m->[3];
+    next if $$m{cnt};
 
     # now prety print the message
     #   remove $RETROBASE from file names
-    my $mtext = $m->[2];
+    my $mtext = $$m{text};
     $mtext =~ s/${retrobase}/.../g if defined $retrobase;
     #   and break it up into 80 character wide lines
     my @mwl = split /\s+/,$mtext;
-    unshift @mwl, '[' . $m->[1] . ']';
-    unshift @mwl, $m->[0] . ':';
+    unshift @mwl, '[' . $$m{code} . ']';
+    unshift @mwl, $$m{sev} . ':';
     my $pref = '   ';
     my $line = ' ';
     while (scalar(@mwl)) {
@@ -144,13 +153,15 @@ if ($nackcnt) {
 }
 
 foreach my $f (@flist) {
-  if ($f->[3] != 0) {                       # matches seen
+  if ($$f{cnt} != 0) {                     # matches seen
     $ackcnt  += 1;
-  } else {                                  # matches not seen
-    if ($f->[0] eq 'i') {                     # complain if 'i'
+  } else {                                 # matches not seen
+    if ($$f{mode} eq 'i') {                  # complain if 'i'
       $imisscnt += 1;
-    } elsif ($f->[0] eq 'r') {                # complain if 'r'
+    } elsif ($$f{mode} eq 'r') {             # complain if 'r'
       $rmisscnt += 1;
+    } elsif ($$f{mode} eq 'c') {             # show count if 'c'
+      $cntcnt += 1;
     }
   }
 }
@@ -158,8 +169,17 @@ foreach my $f (@flist) {
 if ($ackcnt && exists $opts{pacc}) {
   print "Accepted messages for type [$type] from $lognam:\n";
   foreach my $f (@flist) {
-    next if $f->[3] == 0;
-    printf "%4d: [%s] %s\n", $f->[3], $f->[1], $f->[2];
+    next if $$f{cnt} == 0;
+    printf "%4d: [%s] %s\n", $$f{cnt}, $$f{code}, $$f{rege};
+  }
+  print "\n";
+}
+
+if ($cntcnt) {
+  print "Count-only filter rules for $lognam:\n";
+  foreach my $f (@flist) {
+    printf "%4d: [%s] %s\n", $$f{cnt}, $$f{code}, $$f{rege}
+      if $$f{mode} eq 'c';
   }
   print "\n";
 }
@@ -167,8 +187,8 @@ if ($ackcnt && exists $opts{pacc}) {
 if ($imisscnt) {
   print "Ignore filter rules with no matches for type [$type] from $lognam:\n";
   foreach my $f (@flist) {
-    next if $f->[3] != 0;
-    printf "%4d: [%s] %s\n", $f->[3], $f->[1], $f->[2] if $f->[0] eq 'i';
+    next if $$f{cnt} != 0;
+    printf "%4d: [%s] %s\n", $$f{cnt}, $$f{code}, $$f{rege} if $$f{mode} eq 'i';
   }
   print "\n";
 }
@@ -176,8 +196,16 @@ if ($imisscnt) {
 if ($rmisscnt) {
   print "Missed required messages for type [$type] from $lognam:\n";
   foreach my $f (@flist) {
-    next if $f->[3] != 0;
-    printf "%4d: [%s] %s\n", $f->[3], $f->[1], $f->[2] if $f->[0] eq 'r';
+    next if $$f{cnt} != 0;
+    printf "%4d: [%s] %s\n", $$f{cnt}, $$f{code}, $$f{rege} if $$f{mode} eq 'r';
+  }
+  print "\n";
+}
+
+if ($opts{pcnt}) {
+  print "Message statistics:\n";
+  foreach my $code (sort keys %msgcnt) {
+    printf "%4d  %s : %s\n", $msgcnt{$code}, $code, $msgsev{$code};
   }
   print "\n";
 }
@@ -187,18 +215,23 @@ if ($type eq 'imp' && ($timebad > 0 || $timegood == 0)) {
   printf "!! FAILED TO REACH TIMING CLOSURE !!\n";
   printf "!! ------------------------------ !!\n";
 }
+if ($type eq 'bit' && $bitgood == 0) {
+  printf "!! --------------------------- !!\n";
+  printf "!! FAILED TO CREATE BIT STREAM !!\n";
+  printf "!! --------------------------- !!\n";
+}
 
 #-------------------------------------------------------------------------------
 sub read_mfs {
   my ($fname) = @_;
 
   if (not -r $fname) {
-    print STDERR "xviv_msg_filter-E: \'$fname\' not existing or readable\n";
+    print STDERR "xviv_msg_filter-E: '$fname' not existing or readable\n";
     return 1;
   }
 
   my $fh = new FileHandle;
-  $fh->open($fname)    or die "can't open for read $fname: $!";
+  $fh->open($fname) or bailout("can't open for read '$fname': $!");
 
   my $intyp = 0;
 
@@ -241,14 +274,18 @@ sub read_mfs {
 
     next if $vercur lt $vermin || $vercur gt $vermax;
 
-    if (/^([iIr])\s+\[(.+?)\]\s*(.*)\s*$/) {
+    if (/^([iIrc])\s+\[(.+?)\]\s*(.*)\s*$/) {
       #print "+++0m '$1' '$2' '$3'\n";
       my $fmode = $1;
       my $fcode = $2;
       my $frege = $3;
       $frege =~ s/\[/\\\[/g;
       $frege =~ s/\]/\\\]/g;
-      push @flist, [$fmode,$fcode,$frege, 0];
+      push @flist, {mode => $fmode,
+                    code => $fcode,
+                    rege => $frege,
+                    cnt  => 0};
+      $finfokill{$fcode} += 1 if $fmode eq 'I';
     } else {
       printf STDERR "xviv_msg_filter-E: bad line in mfset: '%s'\n", $_;
     }
@@ -268,13 +305,25 @@ sub read_log {
     return 1;
   }
 
-  open (LFILE, $fname)    or die "can't open for read $fname: $!";
+  open (LFILE, $fname) or bailout("can't open for read '$fname': $!");
+
+  my $skip = $type eq 'bit';                # enable skip for bit
 
   while (<LFILE>) {
     chomp;
+    if ($type eq 'bit') {
+      $skip = 0 if m/INFO: \[Common 17-206\] Exiting Vivado/;
+      next if $skip;
+    }
+
     if (m{^(INFO|WARNING|CRITICAL WARNING|ERROR):\s*\[(.+?)\]\s*(.*)}) {
-      #print "+++0l '$1' '$2' '$3'\n";
-      push @mlist, [$1,$2,$3,0];
+      # print "+++0l '$1' '$2' '$3'\n";
+      push @mlist, {sev  => $1,
+                    code => $2,
+                    text => $3,
+                    cnt  => 0};
+      $msgcnt{"$2"} += 1;                   # message counter
+      $msgsev{"$2"}  = $1;                  # message severity tracking
     }
   }
 
@@ -292,7 +341,7 @@ sub read_ver {
     return 1;
   }
 
-  open (LFILE, $fname)    or die "can't open for read $fname: $!";
+  open (LFILE, $fname) or bailout("can't open for read '$fname': $!");
 
   my $nline = 0;
   while (<LFILE>) {
@@ -312,12 +361,21 @@ sub read_ver {
 
 #-------------------------------------------------------------------------------
 
+sub bailout {
+  my ($msg) = @_;
+  print STDERR "xviv_msg_filter-F: $msg\n";
+  exit 1;
+}
+
+#-------------------------------------------------------------------------------
+
 sub print_help {
   print "usage: xviv_msg_filter [options] type mfset log\n";
-  print "  type   log file type: syn or imp\n";
+  print "  type   log file type: syn, imp or bit\n";
   print "  mfset  message filter set file\n";
   print "  log    log file\n";
   print "  Options:\n";
   print "    --pacc           print summary of accepted messages\n";
+  print "    --pcnt           print message counts\n";
   print "    --help           this message\n";
 }

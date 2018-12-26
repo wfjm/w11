@@ -1,10 +1,10 @@
 .\"  -*- nroff -*-
-.\"  $Id: xviv_msg_filter.1 909 2017-06-09 16:21:55Z mueller $
+.\"  $Id: xviv_msg_filter.1 1093 2018-12-25 19:52:53Z mueller $
 .\"
-.\" Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
-.TH XVIV_MSG_FILTER 1 2017-06-06 "Retro Project" "Retro Project Manual"
+.TH XVIV_MSG_FILTER 1 2018-12-24 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 xviv_msg_filter \- message filter for Xilinx Vivado tool chain log files
@@ -12,7 +12,7 @@ xviv_msg_filter \- message filter for Xilinx Vivado tool chain log files
 .SH SYNOPSIS
 .
 .SY xviv_msg_filter
-.OP \-\-pack
+.RI [ OPTION ]...
 .I TYPE
 .I VMFSET
 .I LOGFILE
@@ -43,6 +43,8 @@ The accepted values for \fITYPE\fP are:
 Vivado synthesis flow
 .IP \fBimp\fP
 Vivado implementation flow
+.IP \fBbit\fP
+Vivado bitfile generation step
 .PD
 .RE
 .
@@ -52,6 +54,9 @@ Vivado implementation flow
 .IP \fB\-\-pacc\fP
 Print a summary of all accepted messages. The match count for each rule is 
 listed.
+.
+.IP \fB\-\-pcnt\fP
+Print a statistics of all detected messages.
 .
 .\" ----------------------------------------------
 .IP \fB\-\-help\fP
@@ -73,7 +78,7 @@ A line of the form
    {yyyy.n:}
    {:}
 .EE
-acts as version range tag and specifies a range of vivado versions for which the 
+acts as version range tag and specifies a range of Vivado versions for which the 
 following rules shall be applied.
 "{:2016.4}" means up to version 2016.4, "{:2017.1}" from 2017.1 on, while
 "{:}" cancels version range checking.
@@ -95,17 +100,20 @@ determines how the rule is applied
 matching messages are ignored
 .IP \fBi\fP 4
 matching messages are not printed, if no matching message is found a 
-notifivation is printed.
+notification is printed.
+.IP \fBc\fP 4
+matching messages are counted, only a summary of the message counts is
+printed.
 .IP \fBr\fP 4
 signals that at least one matching message is required, if none seen, a
-notifivation is printed.
+notification is printed.
 .PD
 .RE
 .IP \fBname\fP
 Vivado message name, enclosed in [] brackets
 .IP \fBpattern\fP
 regular expression to match the message text. This field is optional, if 
-omitted all messages with th given name will match. '[' and ']' characters
+omitted all messages with the given name will match. '[' and ']' characters
 are escaped to '\\[' and '\\]', because [] is very often part of signal 
 names. Character set matches are therefore not possible, unfortunately.
 
@@ -120,6 +128,10 @@ names. Character set matches are therefore not possible, unfortunately.
   # -----------
   [imp]
   I [Vivado 12-2489]                # multiple of 1 ps
+  # -----------
+  [bit]
+  i [DRC DPOP-1] PREG Output pipelining
+  i [DRC DPOP-2] MREG Output pipelining
 .EE
 .\" ------------------------------------------------------------------
 .SH EXIT STATUS

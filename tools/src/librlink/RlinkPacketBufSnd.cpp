@@ -1,4 +1,4 @@
-// $Id: RlinkPacketBufSnd.cpp 1090 2018-12-21 12:17:35Z mueller $
+// $Id: RlinkPacketBufSnd.cpp 1091 2018-12-23 12:38:29Z mueller $
 //
 // Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-23  1091   1.2.3  SndRaw(): remove port open check, done at caller
 // 2018-12-19  1090   1.2.2  use RosPrintf(bool)
 // 2018-12-18  1089   1.2.1  use c++ style casts
 // 2018-12-08  1079   1.2    use ref not ptr for RlinkPort
@@ -35,7 +36,6 @@
 #include "librtools/RosFill.hpp"
 #include "librtools/RosPrintf.hpp"
 #include "librtools/RosPrintBvi.hpp"
-#include "librtools/Rexception.hpp"
 
 using namespace std;
 
@@ -241,9 +241,6 @@ void RlinkPacketBufSnd::Dump(std::ostream& os, int ind, const char* text,
 
 bool RlinkPacketBufSnd::SndRaw(RlinkPort& port, RerrMsg& emsg)
 {
-  if (&port==nullptr || !port.IsOpen())
-    throw Rexception("RlinkPacketBufSnd::SndRaw()", "Bad state: port not open");
-
   size_t rawbufsize = fRawBuf.size();
   int irc = port.Write(fRawBuf.data(), rawbufsize, emsg);
   if (irc < 0) return false;

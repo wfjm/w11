@@ -1,4 +1,4 @@
-// $Id: RlinkPacketBufRcv.cpp 1079 2018-12-09 10:56:59Z mueller $
+// $Id: RlinkPacketBufRcv.cpp 1091 2018-12-23 12:38:29Z mueller $
 //
 // Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-23  1091   1.2.1  ReadData(): remove port open check, done at caller
 // 2018-12-08  1079   1.2    use ref not ptr for RlinkPort
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2017-02-19   853   1.1    use Rtime
@@ -80,9 +81,6 @@ RlinkPacketBufRcv::~RlinkPacketBufRcv()
 int RlinkPacketBufRcv::ReadData(RlinkPort& port, const Rtime& timeout, 
                                 RerrMsg& emsg)
 {
-  if (&port==nullptr || !port.IsOpen()) 
-    throw Rexception("RlinkPacketBufRcv::ReadData()", 
-                     "Bad state: port not open");
   if (fRawBufDone != fRawBufSize)
     throw Rexception("RlinkPacketBufRcv::ReadData()", 
                      "Bad state: called while data pending in buffer");

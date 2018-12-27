@@ -1,4 +1,4 @@
-// $Id: RtclSystem.cpp 1089 2018-12-19 10:45:41Z mueller $
+// $Id: RtclSystem.cpp 1091 2018-12-23 12:38:29Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2018-12-18  1089   1.0.2  use c++ style casts
+// 2018-12-23  1091   1.0.2  use c++ style casts; use range loop
 // 2014-08-22   584   1.0.1  use nullptr
 // 2013-05-17   521   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -125,7 +125,6 @@ int RtclSystem::SignalAction(ClientData /*cdata*/, Tcl_Interp* interp,
 
   // check if initialized, if not, do it
   if (!RtclSignalAction::Obj()) {
-    RerrMsg emsg;
     if (!RtclSignalAction::Init(interp, emsg)) return args.Quit(emsg);
   }
   RtclSignalAction* pact = RtclSignalAction::Obj();
@@ -147,12 +146,12 @@ int RtclSystem::SignalAction(ClientData /*cdata*/, Tcl_Interp* interp,
       } else if (opt == "-info") {          // -info
         RtclOPtr pres(Tcl_NewListObj(0,nullptr));
         int siglist[] = {SIGHUP,SIGINT,SIGTERM,SIGUSR1,SIGUSR2};
-        for (size_t i=0; i<sizeof(siglist)/sizeof(int); i++) {
+        for (auto& sig : siglist) {
           Tcl_Obj* pobj;
-          if (pact->GetAction(siglist[i], pobj, emsg)) {
+          if (pact->GetAction(sig, pobj, emsg)) {
             RtclOPtr pele(Tcl_NewListObj(0,0));
             Tcl_ListObjAppendElement(nullptr, pele, 
-                     Tcl_NewStringObj(signum2nam(siglist[i]),-1));
+                     Tcl_NewStringObj(signum2nam(sig),-1));
             if (pobj) {
               Tcl_ListObjAppendElement(nullptr, pele, pobj);
             } else {

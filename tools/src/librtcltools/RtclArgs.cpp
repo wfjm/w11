@@ -1,4 +1,4 @@
-// $Id: RtclArgs.cpp 1089 2018-12-19 10:45:41Z mueller $
+// $Id: RtclArgs.cpp 1091 2018-12-23 12:38:29Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-22  1091   1.0.12 GetArg(float): float cast (-Wdouble-promotion fix)
 // 2018-12-18  1089   1.0.11 use c++ style casts
 // 2018-09-22  1048   1.0.10 BUFFIX: GetArg(): coverity (argument in wrong order)
 // 2018-09-16  1047   1.0.9  coverity fixup (uninitialized scalar)
@@ -61,7 +62,7 @@ namespace Retro {
 RtclArgs::RtclArgs()
   : fpInterp(nullptr),
     fObjc(0),
-    fObjv(0),
+    fObjv(nullptr),
     fNDone(0),
     fNOptMiss(0),
     fNConfigRead(0),
@@ -247,7 +248,7 @@ bool RtclArgs::GetArg(const char* name, uint32_t& val, uint32_t max,
 
 bool RtclArgs::GetArg(const char* name, float& val, float min, float max)
 {
-  double vald = val;
+  double vald = double(val);
   bool ret = GetArg(name, vald, double(min), double(max));
   val = float(vald);
   return ret;

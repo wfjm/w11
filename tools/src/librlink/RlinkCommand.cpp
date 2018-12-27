@@ -1,4 +1,4 @@
-// $Id: RlinkCommand.cpp 1090 2018-12-21 12:17:35Z mueller $
+// $Id: RlinkCommand.cpp 1091 2018-12-23 12:38:29Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-23  1091   1.4.2  CmdWblk(),SetBlockWrite(): add move version
 // 2018-12-19  1090   1.4.1  use RosPrintf(bool)
 // 2018-12-01  1076   1.4    use unique_ptr
 // 2017-04-07   868   1.3.2  Dump(): add detail arg
@@ -167,6 +168,16 @@ void RlinkCommand::CmdWblk(uint16_t addr, const std::vector<uint16_t>& block)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
+void RlinkCommand::CmdWblk(uint16_t addr, std::vector<uint16_t>&& block)
+{
+  SetCommand(kCmdWblk, addr);
+  SetBlockWrite(move(block));
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
 void RlinkCommand::CmdWblk(uint16_t addr, const uint16_t* pblock, size_t size)
 {
   SetCommand(kCmdWblk, addr);
@@ -211,7 +222,22 @@ void RlinkCommand::SetBlockWrite(const std::vector<uint16_t>& block)
   if (block.size() == 0 || block.size() > 65535) 
     throw Rexception("RlinkCommand::SetBlockWrite()",
                      "Bad args: invalid block size");
-  fBlock = block;
+  fBlock        = block;
+  fpBlockExt    = nullptr;
+  fBlockExtSize = 0;
+  fBlockDone    = 0;
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void RlinkCommand::SetBlockWrite(std::vector<uint16_t>&& block)
+{
+  if (block.size() == 0 || block.size() > 65535) 
+    throw Rexception("RlinkCommand::SetBlockWrite()",
+                     "Bad args: invalid block size");
+  fBlock        = move(block);
   fpBlockExt    = nullptr;
   fBlockExtSize = 0;
   fBlockDone    = 0;

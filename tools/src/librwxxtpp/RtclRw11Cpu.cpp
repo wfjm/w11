@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.cpp 1089 2018-12-19 10:45:41Z mueller $
+// $Id: RtclRw11Cpu.cpp 1091 2018-12-23 12:38:29Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-23  1091   1.2.24 use AddWbibr(move),AddWblk(move)
 // 2018-12-18  1089   1.2.23 use c++ style casts
 // 2018-12-17  1085   1.2.22 use std::lock_guard instead of boost
 // 2018-12-15  1082   1.2.21 use lambda instead of bind
@@ -426,7 +427,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       if (!GetRAddr(args, addr)) return kERR;
       if (!args.GetArg("data", block, 1, Connect().BlockSizeMax())) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
-      clist.AddWblk(addr, block);
+      clist.AddWblk(addr, move(block));
 
     } else if (opt == "-labo") {            // -labo varData ?varStat ---------
       if (!GetVarName(args, "??varData", lsize, vardata)) return kERR;
@@ -556,7 +557,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       vector<uint16_t> block;
       if (!args.GetArg("data", block, 1, Connect().BlockSizeMax())) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
-      clist.AddWblk(base + Rw11Cpu::kCPMEMI, block);
+      clist.AddWblk(base + Rw11Cpu::kCPMEMI, move(block));
     
     } else if (opt == "-start") {           // -start ?varStat ---------------
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
@@ -649,7 +650,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       if (!GetIAddr(args, ibaddr)) return kERR;
       if (!args.GetArg("data", block, 1, Connect().BlockSizeMax())) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
-      Obj().AddWbibr(clist, ibaddr, block);
+      Obj().AddWbibr(clist, ibaddr, move(block));
 
     } else if (opt == "-rconf") {           // -rconf ?varData ?varStat ------
       if (!GetVarName(args, "??varData", lsize, vardata)) return kERR;

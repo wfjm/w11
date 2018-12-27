@@ -1,4 +1,4 @@
-// $Id: RtclProxyOwned.hpp 1078 2018-12-08 14:19:03Z mueller $
+// $Id: RtclProxyOwned.hpp 1090 2018-12-21 12:17:35Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -39,7 +39,7 @@ namespace Retro {
                     RtclProxyOwned();
                     RtclProxyOwned(const std::string& type);
                     RtclProxyOwned(const std::string& type, Tcl_Interp* interp,
-                                   const char* name, TO* pobj=0);
+                                   const char* name, TO* pobj=nullptr);
                    ~RtclProxyOwned();
 
       TO&           Obj();

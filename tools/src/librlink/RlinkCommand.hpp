@@ -1,4 +1,4 @@
-// $Id: RlinkCommand.hpp 1076 2018-12-02 12:45:49Z mueller $
+// $Id: RlinkCommand.hpp 1092 2018-12-24 08:01:50Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-24  1092   1.4.2  rename IsBlockExt -> HasBlockExt
+// 2018-12-23  1091   1.4.1  CmdWblk(),SetBlockWrite(): add move version
 // 2018-12-01  1076   1.4    use unique_ptr
 // 2017-04-07   868   1.3.2  Dump(): add detail arg
 // 2017-03-11   859   1.3.1  add CommandInfo()
@@ -64,6 +66,7 @@ namespace Retro {
       void          CmdRblk(uint16_t addr, uint16_t* pblock, size_t size);
       void          CmdWreg(uint16_t addr, uint16_t data);
       void          CmdWblk(uint16_t addr, const std::vector<uint16_t>& block);
+      void          CmdWblk(uint16_t addr, std::vector<uint16_t>&& block);
       void          CmdWblk(uint16_t addr, const uint16_t* pblock, size_t size);
       void          CmdLabo();
       void          CmdAttn();
@@ -74,6 +77,7 @@ namespace Retro {
       void          SetAddress(uint16_t addr);
       void          SetData(uint16_t data);
       void          SetBlockWrite(const std::vector<uint16_t>& block);
+      void          SetBlockWrite(std::vector<uint16_t>&& block);
       void          SetBlockRead(size_t size) ;
       void          SetBlockExt(uint16_t* pblock, size_t size);
       void          SetBlockDone(uint16_t dcnt);
@@ -93,7 +97,7 @@ namespace Retro {
       uint16_t      Address() const;
       uint16_t      Data() const;
       const std::vector<uint16_t>& Block() const;
-      bool          IsBlockExt() const;
+      bool          HasBlockExt() const;
       uint16_t*        BlockPointer();
       const uint16_t*  BlockPointer() const;
       size_t        BlockSize() const;

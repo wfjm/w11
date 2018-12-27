@@ -1,4 +1,4 @@
-// $Id: RlinkCommandList.hpp 1077 2018-12-07 19:37:03Z mueller $
+// $Id: RlinkCommandList.hpp 1091 2018-12-23 12:38:29Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-23  1091   1.4.2  AddWblk(): add move version
 // 2018-12-07  1077   1.4.1  SetLastExpectBlock: add move versions
 // 2018-12-01  1076   1.4    use unique_ptr
 // 2017-04-02   865   1.3.1  Dump(): add detail arg
@@ -62,7 +63,8 @@ namespace Retro {
       size_t        AddRblk(uint16_t addr, size_t size);
       size_t        AddRblk(uint16_t addr, uint16_t* block, size_t size);
       size_t        AddWreg(uint16_t addr, uint16_t data);
-      size_t        AddWblk(uint16_t addr, std::vector<uint16_t> block);
+      size_t        AddWblk(uint16_t addr, const std::vector<uint16_t>& block);
+      size_t        AddWblk(uint16_t addr, std::vector<uint16_t>&& block);
       size_t        AddWblk(uint16_t addr, const uint16_t* block, size_t size);
       size_t        AddLabo();
       size_t        AddAttn();

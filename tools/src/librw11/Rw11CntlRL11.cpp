@@ -1,4 +1,4 @@
-// $Id: Rw11CntlRL11.cpp 1090 2018-12-21 12:17:35Z mueller $
+// $Id: Rw11CntlRL11.cpp 1091 2018-12-23 12:38:29Z mueller $
 //
 // Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -16,6 +16,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-22  1091   1.0.10 AttnHandler(): sa->san (-Wshadow fix)
 // 2018-12-19  1090   1.0.9  use RosPrintf(bool)
 // 2018-12-15  1082   1.0.8  use std::bind or lambda instead of bind
 // 2018-12-09  1080   1.0.7  use HasVirt(); Virt() returns ref
@@ -500,9 +501,9 @@ int Rw11CntlRL11::AttnHandler(RlinkServer::AttnArgs& args)
     cpu.AddWibr(clist, fBase+kRLMP, crc);
 
     // simulate rotation, inc sector number, wrap at end of track 
-    uint16_t sa  = (pos & kRLDA_RW_B_SA) + 1;
-    if (sa >= unit.NSector()) sa = 0;    // wrap to begin of track
-    uint16_t posn = (pos & (kRLDA_RW_M_CA|kRLDA_RW_M_HS)) + sa; 
+    uint16_t san = (pos & kRLDA_RW_B_SA) + 1;
+    if (san >= unit.NSector()) san = 0;    // wrap to begin of track
+    uint16_t posn = (pos & (kRLDA_RW_M_CA|kRLDA_RW_M_HS)) + san; 
     AddSetPosition(clist, ds, posn);
 
     uint16_t cs = kRLCS_M_CRDY |            // signal command done

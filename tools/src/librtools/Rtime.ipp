@@ -1,6 +1,6 @@
-// $Id: Rtime.ipp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rtime.ipp 1091 2018-12-23 12:38:29Z mueller $
 //
-// Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,9 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-22  1091   1.0.2  Drop empty dtors for pod-only classes
+//                           Set(): add time_t cast (-Wfloat-conversion fix)
+// 2018-12-21  1090   1.0.1  use list-init
 // 2017-02-20   854   1.0    Initial version
 // ---------------------------------------------------------------------------
 
@@ -30,10 +33,8 @@ namespace Retro {
 //! Default constructor
 
 inline Rtime::Rtime()
-{
-  fTime.tv_sec  = 0;
-  fTime.tv_nsec = 0;
-}
+  : fTime{}
+{}
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
@@ -50,12 +51,6 @@ inline Rtime::Rtime(double dt)
 {
   Set(dt);
 }
-
-//------------------------------------------+-----------------------------------
-//! Destructor
-
-inline Rtime::~Rtime()
-{}
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
@@ -80,8 +75,8 @@ inline void Rtime::Set(double dt)
 {
   double nsec = floor(1.e9*dt);
   double  sec = floor(dt);
-  fTime.tv_sec  = sec;
-  fTime.tv_nsec = nsec - 1.e9*sec;
+  fTime.tv_sec  = time_t(sec);
+  fTime.tv_nsec = long(nsec - 1.e9*sec);
   return;
 }
 

@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.hpp 1088 2018-12-17 17:37:00Z mueller $
+// $Id: RlinkConnect.hpp 1091 2018-12-23 12:38:29Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-23  1091   2.8.3  add BadPort()
 // 2018-12-17  1085   2.8.2  use std::recursive_mutex instead of boost
 // 2018-12-16  1084   2.8.1  use =delete for noncopyable instead of boost
 // 2018-12-08  1079   2.8    add HasPort(); return ref for Port()
@@ -65,6 +66,7 @@
 #include "librtools/Rtime.hpp"
 #include "librtools/Rstats.hpp"
 #include "librtools/RlogFile.hpp"
+#include "librtools/Rexception.hpp"
 
 #include "RlinkPort.hpp"
 #include "RlinkCommandList.hpp"
@@ -240,6 +242,7 @@ namespace Retro {
       void          AcceptResponse();
       void          ProcessUnsolicitedData();
       void          ProcessAttnNotify();
+      [[noreturn]] void BadPort(const char* meth);
 
     protected: 
       RlinkPort::port_uptr_t fupPort;       //!< uptr to port

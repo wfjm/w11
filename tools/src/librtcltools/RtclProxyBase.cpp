@@ -1,4 +1,4 @@
-// $Id: RtclProxyBase.cpp 1089 2018-12-19 10:45:41Z mueller $
+// $Id: RtclProxyBase.cpp 1090 2018-12-21 12:17:35Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -54,7 +54,7 @@ namespace Retro {
 RtclProxyBase::RtclProxyBase(const std::string& type)
   : RtclCmdBase(),
     fType(type),
-    fInterp(0),
+    fInterp(nullptr),
     fCmdToken(0)
 {}
 
@@ -65,7 +65,7 @@ RtclProxyBase::RtclProxyBase(const std::string& type, Tcl_Interp* interp,
                              const char* name)
   : RtclCmdBase(),
     fType(type),
-    fInterp(0)
+    fInterp(nullptr)
 {
   CreateObjectCmd(interp, name);
 }

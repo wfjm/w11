@@ -1,4 +1,4 @@
-// $Id: RiosState.cpp 1060 2018-10-27 11:32:39Z mueller $
+// $Id: RiosState.cpp 1090 2018-12-21 12:17:35Z mueller $
 //
 // Copyright 2006-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-21  1090   1.0.1  use constructor delegation
 // 2011-01-30   357   1.0    Adopted from CTBioState
 // 2006-04-16     -   -      Last change on CTBioState
 // ---------------------------------------------------------------------------
@@ -38,23 +39,19 @@ namespace Retro {
 //! Construct with stream.
 
 RiosState::RiosState(ios& stream)
-  : fStream(stream)
-{
-  fOldFlags     = fStream.flags();
-  fOldPrecision = -1;
-  fOldFill      =  0;
-  fCtype        =  0;
-}
+  : fStream(stream),
+    fOldFlags(fStream.flags()),
+    fOldPrecision(-1),
+    fOldFill(0),
+    fCtype(0)
+{}
 
 //------------------------------------------+-----------------------------------
 //! Construct from stream and format.
 
 RiosState::RiosState(ios& stream, const char* form, int prec)
-  : fStream(stream)
+  : RiosState(stream)
 {
-  fOldFlags     = fStream.flags();
-  fOldPrecision = -1;
-  fOldFill      =  0;
   SetFormat(form, prec);
 }
 

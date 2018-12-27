@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.hpp 1085 2018-12-16 14:11:16Z mueller $
+// $Id: Rw11Cpu.hpp 1091 2018-12-23 12:38:29Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-23  1091   1.2.15 AddWbibr(): add move version
 // 2018-12-17  1085   1.2.14 use std::mutex,condition_variable instead of boost
 // 2018-12-16  1084   1.2.13 use =delete for noncopyable instead of boost
 // 2018-12-07  1078   1.2.12 use std::shared_ptr instead of boost
@@ -113,7 +114,9 @@ namespace Retro {
       int           AddRbibr(RlinkCommandList& clist, uint16_t ibaddr, 
                              size_t size);
       int           AddWbibr(RlinkCommandList& clist, uint16_t ibaddr, 
-                             std::vector<uint16_t> block);
+                             const std::vector<uint16_t>& block);
+      int           AddWbibr(RlinkCommandList& clist, uint16_t ibaddr, 
+                             std::vector<uint16_t>&& block);
 
       int           AddLalh(RlinkCommandList& clist, uint32_t addr, 
                             uint16_t mode=kCPAH_M_22BIT);

@@ -1,4 +1,4 @@
-// $Id: RlinkCommand.ipp 1076 2018-12-02 12:45:49Z mueller $
+// $Id: RlinkCommand.ipp 1092 2018-12-24 08:01:50Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-24  1092   1.4.1  rename IsBlockExt -> HasBlockExt
 // 2018-12-01  1076   1.4    use unique_ptr
 // 2015-04-02   661   1.3    expect logic: add stat check, Print() without cntx
 // 2014-11-02   600   1.2    new rlink v4 iface
@@ -219,9 +220,9 @@ inline const std::vector<uint16_t>&  RlinkCommand::Block() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline bool RlinkCommand::IsBlockExt() const
+inline bool RlinkCommand::HasBlockExt() const
 {
-  return fpBlockExt != 0;
+  return bool(fpBlockExt);
 }
 
 //------------------------------------------+-----------------------------------
@@ -229,7 +230,7 @@ inline bool RlinkCommand::IsBlockExt() const
 
 inline uint16_t* RlinkCommand::BlockPointer()
 {
-  return IsBlockExt() ? fpBlockExt : (fBlock.size() ? &fBlock[0] : 0);
+  return HasBlockExt() ? fpBlockExt : (fBlock.size() ? &fBlock[0] : nullptr);
 }
 
 //------------------------------------------+-----------------------------------
@@ -237,7 +238,7 @@ inline uint16_t* RlinkCommand::BlockPointer()
 
 inline const uint16_t* RlinkCommand::BlockPointer() const
 {
-  return IsBlockExt() ? fpBlockExt : (fBlock.size() ? &fBlock[0] : 0);
+  return HasBlockExt() ? fpBlockExt : (fBlock.size() ? &fBlock[0] : nullptr);
 }
 
 //------------------------------------------+-----------------------------------
@@ -245,7 +246,7 @@ inline const uint16_t* RlinkCommand::BlockPointer() const
 
 inline size_t RlinkCommand::BlockSize() const
 {
-  return IsBlockExt() ? fBlockExtSize : fBlock.size();
+  return HasBlockExt() ? fBlockExtSize : fBlock.size();
 }
 
 //------------------------------------------+-----------------------------------

@@ -1,4 +1,4 @@
-// $Id: RtclRlinkPort.cpp 1089 2018-12-19 10:45:41Z mueller $
+// $Id: RtclRlinkPort.cpp 1091 2018-12-23 12:38:29Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-22  1091   1.4.3  M_Open(): drop move() (-Wpessimizing-move fix)
 // 2018-12-18  1089   1.4.2  use c++ style casts
 // 2018-12-15  1082   1.4.1  use lambda instead of bind
 // 2018-12-08  1079   1.4    use ref not ptr for RlinkPort
@@ -104,7 +105,7 @@ int RtclRlinkPort::M_open(RtclArgs& args)
 
   RerrMsg emsg;
   if (args.NOptMiss() == 0) {               // open path
-    fupObj = move(RlinkPortFactory::Open(path, emsg));
+    fupObj = RlinkPortFactory::Open(path, emsg);
     SetupGetSet();
     if (!fupObj) return args.Quit(emsg);
     fupObj->SetLogFile(fspLog);
@@ -294,7 +295,7 @@ void RtclRlinkPort::SetLogFileName(const std::string& name)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline const std::string& RtclRlinkPort::LogFileName() const
+const std::string& RtclRlinkPort::LogFileName() const
 {
   return fspLog->Name();
 }

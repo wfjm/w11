@@ -1,4 +1,4 @@
-// $Id: RlinkPortTerm.cpp 1075 2018-12-01 11:55:07Z mueller $
+// $Id: RlinkPortTerm.cpp 1091 2018-12-23 12:38:29Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-22  1091   1.3.5  Open(): add time_t cast (-Wfloat-conversion fix)
 // 2018-11-30  1075   1.3.4  use list-init
 // 2018-09-21  1048   1.3.3  coverity fixup (uninitialized field)
 // 2017-04-15   875   1.3.2  Open(): set default scheme
@@ -172,7 +173,7 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
       return false;
     }
     double fcdivisor = double(sioctl.baud_base) / double(nsbaud);
-    cdivisor = fcdivisor + 0.5;
+    cdivisor = int(fcdivisor + 0.5);
     speed    = B38400;
   }
 

@@ -1,4 +1,4 @@
-// $Id: RiosState.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RiosState.hpp 1091 2018-12-23 12:38:29Z mueller $
 //
 // Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -34,7 +34,7 @@ namespace Retro {
     public:
                     RiosState(std::ios& stream);
                     RiosState(std::ios& stream, const char* form, int prec=-1);
-                    ~RiosState();
+                   ~RiosState();
 
       void          SetFormat(const char* form, int prec=-1);
       char          Ctype();

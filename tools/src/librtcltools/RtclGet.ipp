@@ -1,4 +1,4 @@
-// $Id: RtclGet.ipp 1089 2018-12-19 10:45:41Z mueller $
+// $Id: RtclGet.ipp 1091 2018-12-23 12:38:29Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-22  1091   1.2.4  <float> add float cast (-Wdouble-promotion fix)
 // 2018-12-18  1089   1.2.3  use c++ style casts
 // 2018-12-15  1083   1.2.2  ctor: use rval ref and move semantics
 // 2018-12-14  1081   1.2.1  use std::function instead of boost
@@ -158,7 +159,7 @@ template <>
 inline Tcl_Obj* RtclGet<float>::operator()() const 
 {
   float val = fGet();
-  return Tcl_NewDoubleObj(val);
+  return Tcl_NewDoubleObj(double(val));
 }
 
 //------------------------------------------+-----------------------------------

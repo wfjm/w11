@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.cpp 1090 2018-12-21 12:17:35Z mueller $
+// $Id: Rw11Cpu.cpp 1091 2018-12-23 12:38:29Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-23  1091   1.2.19 AddWbibr(): add move version
 // 2018-12-19  1090   1.2.18 use RosPrintf(bool)
 // 2018-12-17  1085   1.2.17 use std::mutex,condition_variable instead of boost
 // 2018-12-07  1078   1.2.16 use std::shared_ptr instead of boost
@@ -347,12 +348,23 @@ int Rw11Cpu::AddRbibr(RlinkCommandList& clist, uint16_t ibaddr, size_t size)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 int Rw11Cpu::AddWbibr(RlinkCommandList& clist, uint16_t ibaddr, 
-                      std::vector<uint16_t> block)
+                      const std::vector<uint16_t>& block)
 {
   if ((ibaddr & 0160001) != 0160000) 
     throw Rexception("Rw11Cpu::AddWbibr", "ibaddr out of IO page or odd");
   
   return clist.AddWblk(IbusRemoteAddr(ibaddr), block);
+}
+  
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+int Rw11Cpu::AddWbibr(RlinkCommandList& clist, uint16_t ibaddr, 
+                      std::vector<uint16_t>&& block)
+{
+  if ((ibaddr & 0160001) != 0160000) 
+    throw Rexception("Rw11Cpu::AddWbibr", "ibaddr out of IO page or odd");
+  
+  return clist.AddWblk(IbusRemoteAddr(ibaddr), move(block));
 }
   
 //------------------------------------------+-----------------------------------

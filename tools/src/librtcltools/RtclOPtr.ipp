@@ -1,4 +1,4 @@
-// $Id: RtclOPtr.ipp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclOPtr.ipp 1090 2018-12-21 12:17:35Z mueller $
 //
 // Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -33,7 +33,7 @@ namespace Retro {
 //! Default constructor
 
 inline RtclOPtr::RtclOPtr()
-  : fpObj(0)
+  : fpObj(nullptr)
 {}
 
 //------------------------------------------+-----------------------------------
@@ -75,7 +75,7 @@ inline RtclOPtr::operator Tcl_Obj*() const
 
 inline bool RtclOPtr::operator !() const
 {
-  return fpObj==0;
+  return fpObj==nullptr;
 }
   
 //------------------------------------------+-----------------------------------

@@ -1,4 +1,4 @@
-// $Id: RlinkConnect.cpp 1090 2018-12-21 12:17:35Z mueller $
+// $Id: RlinkConnect.cpp 1091 2018-12-23 12:38:29Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-22  1091   2.8.4  Open():  (-Wpessimizing-move fix); add BadPort()
 // 2018-12-19  1090   2.8.3  use RosPrintf(bool)
 // 2018-12-18  1089   2.8.2  use c++ style casts
 // 2018-12-17  1085   2.8.1  use std::lock_guard instead of boost
@@ -177,7 +178,7 @@ bool RlinkConnect::Open(const std::string& name, RerrMsg& emsg)
 {
   Close();
 
-  fupPort = move(RlinkPortFactory::Open(name, emsg));
+  fupPort = RlinkPortFactory::Open(name, emsg);
   if (!HasPort()) return false;
 
   fSndPkt.SetXonEscape(Port().XonEnable()); // transfer XON enable
@@ -209,7 +210,7 @@ void RlinkConnect::Close()
 
   if (fpServ) fpServ->Stop();               // stop server in case still running
 
-  if (Port().Url().FindOpt("keep")) {
+  if (IsOpen() && Port().Url().FindOpt("keep")) {
     RerrMsg emsg;
     fSndPkt.SndKeep(Port(), emsg);
   }
@@ -515,12 +516,13 @@ int RlinkConnect::WaitAttn(const Rtime& timeout, Rtime& twait,
   Rtime tbeg = tnow;
 
   while (tnow < tend) {
+    if (!IsOpen()) BadPort("RlinkConnect::WaitAttn");
     int irc = fRcvPkt.ReadData(Port(), tend-tnow, emsg);
     if (irc == RlinkPort::kTout) return -1;
     if (irc == RlinkPort::kErr)  return -2;
     tnow.GetClock(CLOCK_MONOTONIC);    
     while (fRcvPkt.ProcessData()) {
-      int irc = fRcvPkt.PacketState();
+      irc = fRcvPkt.PacketState();
       if (irc == RlinkPacketBufRcv::kPktPend) break;
       if (irc == RlinkPacketBufRcv::kPktAttn) {
         ProcessAttnNotify();
@@ -547,6 +549,7 @@ int RlinkConnect::WaitAttn(const Rtime& timeout, Rtime& twait,
 
 bool RlinkConnect::SndOob(uint16_t addr, uint16_t data, RerrMsg& emsg)
 {
+  if (!IsOpen()) BadPort("RlinkConnect::SndOob");
   lock_guard<RlinkConnect> lock(*this);
   fStats.Inc(kStatNSndOob);
   return fSndPkt.SndOob(Port(), addr, data, emsg);
@@ -557,6 +560,7 @@ bool RlinkConnect::SndOob(uint16_t addr, uint16_t data, RerrMsg& emsg)
 
 bool RlinkConnect::SndAttn(RerrMsg& emsg)
 {
+  if (!IsOpen()) BadPort("RlinkConnect::SndAttn");
   lock_guard<RlinkConnect> lock(*this);
   return fSndPkt.SndAttn(Port(), emsg);
 }
@@ -743,6 +747,7 @@ void RlinkConnect::HandleUnsolicitedData()
 
   lock_guard<RlinkConnect> lock(*this);
   RerrMsg emsg;
+  if (!IsOpen()) BadPort("RlinkConnect::HandleUnsolicitedData");
   int irc = fRcvPkt.ReadData(Port(), Rtime(), emsg);
   if (irc == 0) return;
   if (irc < 0) {
@@ -1087,6 +1092,7 @@ bool RlinkConnect::ReadResponse(const Rtime& timeout, RerrMsg& emsg)
   Rtime tend = tnow + timeout;
 
   while (tnow < tend) {
+    if (!IsOpen()) BadPort("RlinkConnect::ReadResponse");
     int irc = fRcvPkt.ReadData(Port(), tend-tnow, emsg);
     if (irc <= 0) {
       RlogMsg lmsg(*fspLog, 'E');
@@ -1095,7 +1101,7 @@ bool RlinkConnect::ReadResponse(const Rtime& timeout, RerrMsg& emsg)
     }
 
     while (fRcvPkt.ProcessData()) {
-      int irc = fRcvPkt.PacketState();
+      irc = fRcvPkt.PacketState();
       if (irc == RlinkPacketBufRcv::kPktPend) break;
       if (irc == RlinkPacketBufRcv::kPktAttn) {
         ProcessAttnNotify();
@@ -1211,4 +1217,14 @@ void RlinkConnect::ProcessAttnNotify()
   return;
 }
 
+//------------------------------------------+-----------------------------------
+//! Port not connected or not open abort.
+
+[[noreturn]]
+void RlinkConnect::BadPort(const char* meth)
+{
+  throw Rexception(meth, "Bad state: port not open");
+}
+
+  
 } // end namespace Retro

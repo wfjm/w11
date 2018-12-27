@@ -1,4 +1,4 @@
-// $Id: RtclSet.ipp 1089 2018-12-19 10:45:41Z mueller $
+// $Id: RtclSet.ipp 1091 2018-12-23 12:38:29Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-22  1091   1.1.4  <float> add float cast (-Wdouble-promotion fix)
 // 2018-12-18  1089   1.1.3  use c++ style casts
 // 2018-12-15  1083   1.1.2  ctor: use rval ref and move semantics
 // 2018-12-14  1081   1.1.1  use std::function instead of boost
@@ -217,7 +218,7 @@ inline void RtclSet<float>::operator()(RtclArgs& args) const
   double val;
   if(Tcl_GetDoubleFromObj(args.Interp(), args.CurrentArg(), &val) != TCL_OK)
     throw Rexception("RtclSet<>::oper()", "conversion error");
-  if (val < -FLT_MAX || val > FLT_MAX)
+  if (val < -double(FLT_MAX) || val > double(FLT_MAX))
     throw Rexception("RtclSet<>::oper()", 
                      "out of range for type 'float'");
 

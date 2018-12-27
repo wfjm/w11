@@ -101,7 +101,6 @@ The full set of tests is only run for tagged releases.
   - use for C++ compiles `-Wpedantic` (in addition to `-Wall` and `-Wextra`)
   - fixes for uninitialized variables (coverity, all uncritical)
   - catch exceptions in dtors (coverity, use Catch2Cerr)
-  - use `nullptr` instead of plain '0'
   - use `[[noreturn]]` (clang -Wmissing-noreturn)
   - drop never reached returns (clang -Wunreachable-code-return)
   - drop `throw()` lists, use `noexcept` (clang -Wdeprecated)
@@ -110,12 +109,19 @@ The full set of tests is only run for tagged releases.
   - now -Wunused-variable clean (comment out so far unused code)
   - move `using namespace std` after includes (clang warning)
   - some selected clang -Weverything aspects
-  - now -Wdocumentation clean (some wrong doxygen trailing comments)
-  - use auto, emplace() and range loops
-  - use unique_ptr instead of free pointers, avoid explicit `delete`
-  - add and use move semantic in RlinkCommandExpect
-  - use c++ style casts (gcc/clang -Wold-style-cast)
-  - use std::boolalpha; add and use Rprintf(bool);
+    - use c++ style casts (gcc/clang -Wold-style-cast)
+    - now -Wdocumentation clean (some wrong doxygen trailing comments)
+    - rename variables in shadow situations (-Wshadow)
+    - add casts (-Wfloat-conversion, -Wdouble-promotion)
+    - make Dump non virtual in some cases (-Wnon-virtual-dtor)
+  - use c++11 language features
+    - use `nullptr` instead of plain '0'
+    - use auto, emplace() and range loops
+    - use unique_ptr instead of free pointers, avoid explicit `delete`
+    - add and use move semantic
+    - use constructor delegation
+    - use range loops
+    - use std::boolalpha; add and use Rprintf(bool);
   - completely replace boost with std
     - use std::unique_ptr instead of boost::scoped_ptr
     - use std::shared_ptr instead of boost

@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTermTcp.cpp 1090 2018-12-21 12:17:35Z mueller $
+// $Id: Rw11VirtTermTcp.cpp 1091 2018-12-23 12:38:29Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-22  1091   1.0.13 pfd->pfd1 (-Wshadow fix)
 // 2018-12-19  1090   1.0.12 use RosPrintf(bool)
 // 2018-12-18  1089   1.0.11 use c++ style casts
 // 2018-12-15  1082   1.0.10 use lambda instead of bind
@@ -344,8 +345,8 @@ int Rw11VirtTermTcp::ListenPollHandler(const pollfd& pfd)
   fState = ts_Stream;
 
   Server().RemovePollHandler(fFdListen);
-  Server().AddPollHandler([this](const pollfd& pfd)
-                            { return RcvPollHandler(pfd); }, 
+  Server().AddPollHandler([this](const pollfd& pfd1)
+                            { return RcvPollHandler(pfd1); }, 
                           fFd, POLLIN);
   return 0;
 }
@@ -431,8 +432,8 @@ int Rw11VirtTermTcp::RcvPollHandler(const pollfd& pfd)
     }
     ::close(fFd);
     fFd = -1;
-    Server().AddPollHandler([this](const pollfd& pfd)
-                              { return ListenPollHandler(pfd); }, 
+    Server().AddPollHandler([this](const pollfd& pfd1)
+                              { return ListenPollHandler(pfd1); }, 
                             fFdListen, POLLIN);    
     fState = ts_Listen;
     return -1;

@@ -1,4 +1,4 @@
-// $Id: RlinkCommandList.cpp 1077 2018-12-07 19:37:03Z mueller $
+// $Id: RlinkCommandList.cpp 1091 2018-12-23 12:38:29Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-23  1091   1.4.2  AddWblk(): add move version
 // 2018-12-07  1077   1.4.1  SetLastExpectBlock: add move versions
 // 2018-12-01  1076   1.4    use unique_ptr
 // 2018-10-28  1062   1.3.3  replace boost/foreach
@@ -148,10 +149,21 @@ size_t RlinkCommandList::AddWreg(uint16_t addr, uint16_t data)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-size_t RlinkCommandList::AddWblk(uint16_t addr, std::vector<uint16_t> block)
+size_t RlinkCommandList::AddWblk(uint16_t addr,
+                                 const std::vector<uint16_t>& block)
 {
   cmd_uptr_t upcmd(new RlinkCommand());
   upcmd->CmdWblk(addr, block);
+  return AddCommand(move(upcmd));
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+size_t RlinkCommandList::AddWblk(uint16_t addr, std::vector<uint16_t>&& block)
+{
+  cmd_uptr_t upcmd(new RlinkCommand());
+  upcmd->CmdWblk(addr, move(block));
   return AddCommand(move(upcmd));
 }
 

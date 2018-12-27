@@ -1,6 +1,6 @@
-// $Id: RlinkCrc16.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkCrc16.hpp 1091 2018-12-23 12:38:29Z mueller $
 //
-// Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-22  1091   1.0.1  Drop empty dtors for pod-only classes
 // 2014-11-08   602   1.0    Initial version
 // ---------------------------------------------------------------------------
 
@@ -33,7 +34,6 @@ namespace Retro {
   class RlinkCrc16 {
     public:
                     RlinkCrc16();
-                   ~RlinkCrc16();
 
       void          Clear();
       void          AddData(uint8_t data);

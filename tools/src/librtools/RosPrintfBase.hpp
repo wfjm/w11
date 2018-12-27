@@ -1,4 +1,4 @@
-// $Id: RosPrintfBase.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RosPrintfBase.hpp 1091 2018-12-23 12:38:29Z mueller $
 //
 // Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -34,7 +34,7 @@ namespace Retro {
   class RosPrintfBase {
     public:
                     RosPrintfBase(const char* form, int width, int prec);
-      virtual       ~RosPrintfBase();
+      virtual      ~RosPrintfBase();
 
       virtual void  ToStream(std::ostream& os) const = 0;
 

@@ -1,4 +1,4 @@
-// $Id: RtclRlinkConnect.cpp 1089 2018-12-19 10:45:41Z mueller $
+// $Id: RtclRlinkConnect.cpp 1091 2018-12-23 12:38:29Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-23  1091   1.6.8  use AddWblk(move)
 // 2018-12-18  1089   1.6.7  use c++ style casts
 // 2018-12-17  1085   1.6.6  use std::lock_guard instead of boost
 // 2018-12-15  1082   1.6.5  use lambda instead of bind
@@ -265,7 +266,7 @@ int RtclRlinkConnect::M_exec(RtclArgs& args)
       if (!GetAddr(args, addr)) return kERR;
       if (!args.GetArg("data", block, 1, Obj().BlockSizeMax())) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
-      clist.AddWblk(addr, block);
+      clist.AddWblk(addr, move(block));
 
     } else if (opt == "-labo") {            // -labo varData ?varStat ---------
       if (!GetVarName(args, "??varData", lsize, vardata)) return kERR;

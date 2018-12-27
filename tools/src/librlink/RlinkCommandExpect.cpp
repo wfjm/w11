@@ -1,4 +1,4 @@
-// $Id: RlinkCommandExpect.cpp 1089 2018-12-19 10:45:41Z mueller $
+// $Id: RlinkCommandExpect.cpp 1090 2018-12-21 12:17:35Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2018-12-21  1090   1.1.3  use constructor delegation
 // 2018-12-18  1089   1.1.2  use c++ style casts
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2015-04-02   661   1.1    expect logic: remove stat from Expect, invert mask
@@ -51,10 +52,7 @@ namespace Retro {
 //! Default constructor
 
 RlinkCommandExpect::RlinkCommandExpect()
-  : fDataVal(0),
-    fDataMsk(0x0),
-    fBlockVal(),
-    fBlockMsk()
+  : RlinkCommandExpect(0,0x0)
 {}
 
 //------------------------------------------+-----------------------------------

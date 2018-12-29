@@ -2,6 +2,7 @@
 
 ### Table of contents
 - Current [HEAD](#user-content-head)
+- Release [w11a_V0.753](#user-content-w11a_V0.753)
 - Release [w11a_V0.752](#user-content-w11a_V0.752)
 - Release [w11a_V0.751](#user-content-w11a_V0.751)
 - Release [w11a_V0.75](#user-content-w11a_V0.75)
@@ -19,6 +20,9 @@ The HEAD version shows the current development. No guarantees that
 software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
+<!-- --------------------------------------------------------------------- -->
+---
+## <a id="w11a_V0.753">2018-12-29: [w11a_V0.753](https://github.com/wfjm/w11/releases/tag/w11a_V0.753) - rev 1096(wfjm)</a>
 ### Summary
 - add continuous integration support via [Travis CI](https://travis-ci.org),
   add [project wfjm/w11](https://travis-ci.org/wfjm/w11), and setup
@@ -60,44 +64,49 @@ The full set of tests is only run for tagged releases.
   - generates create_disk compatible test patterns
 
 ### Changes
-- remove ISE 14.x build support for 7Series (mostly nexys4 designs)
-- Makefile: `make all_tcl` now quiet, use setup_packages_filt
-- vbomconv: now allows to inject Tcl scripts into the vivado project setup
-  sequence via the `@tcl` directive.
-- sys_w11_n4: reduce cache from 64 to 32 kB to keep timing closure
-- changes for DM_STAT_* signals (debug and monitoring)
-  - DM_STAT_SE: add elements cpbusy,idec,pcload,itimer
-  - DM_STAT_CA: added, used for cache monitoring
-  - DM_STAT_SY: removed, now replaced by DM_STAT_CA
-  - DM_STAT_EXP: added, for signals exported by pdp11_sys70
-- pdp11_sys70:
-  - instantiate pdp11_dmpcnt, setup performance counter sigs
-  - drop ITIMER,DM_STAT_DP, use DM_STAT_EXP, add PERFEXT port
-- pdp11_sequencer: drive DM_STAT_SE.(cpbusy,idec,pcload,itimer), drop ITIMER
-- pdp11_cache: drop CHIT, add DM_STAT_CA port, add detailed monitoring
-- pdp11_tmu(_sb): use DM_STAT_CA instead of DM_STAT_SY
-- ibdr_maxisys: add IDEC port, connect to EXTEVT of KW11P
-- sys_w11a_*.vhd: use DM_STAT_EXP; IDEC to maxisys; setup PERFEXT
-- sfs_gsim_core: new common simulation core
-  - use in {dcm,s6_cmt,s7_cmt}_sfs_gsim simulation models
-  - use in rtl/bplib/*/tb/tb_* test benches
-  - remove s7_cmt_sfs_tb
-- tbcore_rlink: wait 40 cycles after CONF_DONE
-- serport_master_tb: add 100 ps RXSD,TXSD delay to allow clock jitter
+- general
+  - remove ISE 14.x build support for 7Series (mostly nexys4 designs)
+  - Makefile: `make all_tcl` now quiet, use setup_packages_filt
 - tools changes
+  - vbomconv: now allows to inject Tcl scripts into the vivado project setup
+    sequence via the `@tcl` directive.
   - xviv_msg_filter
     - display INFO Common 17-14 'further message disabled'
     - add c type rules for 'count-only' filters
     - add support for bitstream generation checking ([bit] section)
-  - tbrun: add --all option
+  - tbrun:
+    - add --all option
+    - show correct 'found count' in summary message
   - (all perl scripts): add and use bailout instead of die
   - viv_tools_build.tcl: increase message limits (all 200, some 5000)
-- tbench changes:
+  - rw11/shell.tcl: add workaround for tclreadline and `after` interference
+- firmware changes
+  - sys_w11_n4: reduce cache from 64 to 32 kB to keep timing closure
+  - changes for DM_STAT_* signals (debug and monitoring)
+    - DM_STAT_SE: add elements cpbusy,idec,pcload,itimer
+    - DM_STAT_CA: added, used for cache monitoring
+    - DM_STAT_SY: removed, now replaced by DM_STAT_CA
+    - DM_STAT_EXP: added, for signals exported by pdp11_sys70
+  - pdp11_sys70:
+    - instantiate pdp11_dmpcnt, setup performance counter sigs
+    - drop ITIMER,DM_STAT_DP, use DM_STAT_EXP, add PERFEXT port
+  - pdp11_sequencer: drive DM_STAT_SE.(cpbusy,idec,pcload,itimer), drop ITIMER
+  - pdp11_cache: drop CHIT, add DM_STAT_CA port, add detailed monitoring
+  - pdp11_tmu(_sb): use DM_STAT_CA instead of DM_STAT_SY
+  - ibdr_maxisys: add IDEC port, connect to EXTEVT of KW11P
+  - sys_w11a_*.vhd: use DM_STAT_EXP; IDEC to maxisys; setup PERFEXT
+  - sfs_gsim_core: new common simulation core
+    - use in {dcm,s6_cmt,s7_cmt}_sfs_gsim simulation models
+    - use in rtl/bplib/*/tb/tb_* test benches
+    - remove s7_cmt_sfs_tb
+  - tbcore_rlink: wait 40 cycles after CONF_DONE
+  - serport_master_tb: add 100 ps RXSD,TXSD delay to allow clock jitter
+- tbench changes
   - tst_sram: don't test memory controller reset anymore
 - backend changes
   - RtclRw11Unit: fix for clang: M_virt() now public
   - Rw11VirtDisk: keep track of disk geometry
-- backend code review:
+- backend code review
   - use for C++ compiles `-Wpedantic` (in addition to `-Wall` and `-Wextra`)
   - fixes for uninitialized variables (coverity, all uncritical)
   - catch exceptions in dtors (coverity, use Catch2Cerr)
@@ -136,7 +145,6 @@ The full set of tests is only run for tagged releases.
     - use =delete for noncopyable instead of boost
   - reduce usage of pointers in APIs
     - add HasPort/HasVirt(); Port() and Virt() return reference
-- rw11/shell.tcl: add workaround for tclreadline and `after` interference
 
 ### Bug Fixes
 - RtclArgs.hpp: BUGFIX: get *_min limits correct (gcc -Wpedantic)

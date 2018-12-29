@@ -1,6 +1,5 @@
 # libs
 ../../../vlib/slvtypes.vhd
-../../../vlib/genlib/genlib.vhd
 ../../../bplib/bpgen/bpgenlib.vbom
 ../tst_serlooplib.vbom
 ../../../vlib/serport/serportlib.vbom

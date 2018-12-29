@@ -1,4 +1,4 @@
-# $Id: sys_tst_sram_c7.vmfset 1039 2018-08-12 10:04:09Z mueller $
+# $Id: sys_tst_sram_c7.vmfset 1097 2018-12-29 11:20:14Z mueller $
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
@@ -44,10 +44,10 @@ i [Synth 8-3332] RLINK/CORE/RL/R_LREGS_reg[moneop]
 i [Synth 8-3332] RLINK/CORE/RL/R_LREGS_reg[monattn]
 # --> only RB_STAT 0,1 used by tst_sram                         # OK 2017-06-11
 i [Synth 8-3332] RLINK/CORE/RL/R_BREGS_reg[stat][(2|3)]
-# --> CE_USEC isn't used (also not in rlink_sp2c)               # OK 2017-06-11
-i [Synth 8-3332] CLKDIV_CLK/R_REGS_reg[usec]
-# --> CES_USEC isn't used                                       # OK 2017-06-11
-i [Synth 8-3332] CLKDIV_CLKS/R_REGS_reg[usec]
+# --> CE_USEC isn't used (also not in rlink_sp2c)               # OK 2018-12-29
+i [Synth 8-3332] GEN_CLKALL/DIV_CLK0/R_REGS_reg[usec]
+# --> CES_USEC isn't used                                       # OK 2018-12-29
+i [Synth 8-3332] GEN_CLKALL/DIV_CLK1/R_REGS_reg[usec]
 
 {2018.1:}
 I [Synth 8-3332] R_LREGS_reg[attn][\d*]                         # generic

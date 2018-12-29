@@ -1,4 +1,4 @@
--- $Id: sys_w11a_c7.vhd 1086 2018-12-16 18:29:55Z mueller $
+-- $Id: sys_w11a_c7.vhd 1094 2018-12-27 15:18:27Z mueller $
 --
 -- Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -63,7 +63,6 @@ use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.xlib.all;
-use work.genlib.all;
 use work.serportlib.all;
 use work.rblib.all;
 use work.rbdlib.all;

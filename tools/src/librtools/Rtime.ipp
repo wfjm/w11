@@ -1,4 +1,4 @@
-// $Id: Rtime.ipp 1091 2018-12-23 12:38:29Z mueller $
+// $Id: Rtime.ipp 1095 2018-12-28 11:53:13Z mueller $
 //
 // Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -33,7 +33,7 @@ namespace Retro {
 //! Default constructor
 
 inline Rtime::Rtime()
-  : fTime{}
+  : fTime{0,0}                              // {0,0} to make some gcc happy
 {}
 
 //------------------------------------------+-----------------------------------

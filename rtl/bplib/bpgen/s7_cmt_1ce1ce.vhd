@@ -1,4 +1,4 @@
--- $Id: s7_cmt_1ce1ce.vhd 1086 2018-12-16 18:29:55Z mueller $
+-- $Id: s7_cmt_1ce1ce.vhd 1091 2018-12-23 12:38:29Z mueller $
 --
 -- Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -99,7 +99,7 @@ begin
       CE_MSEC => CE0_MSEC
     );
 
-  GEN_CLK1 : s7_cmt_sfs                 -- clock generator serport------------
+  GEN_CLK1 : s7_cmt_sfs                 -- clock generator serport -----------
     generic map (
       VCO_DIVIDE     => CLK1_VCODIV,
       VCO_MULTIPLY   => CLK1_VCOMUL,

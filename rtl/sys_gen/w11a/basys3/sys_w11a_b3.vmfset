@@ -1,4 +1,4 @@
-# $Id: sys_w11a_b3.vmfset 1091 2018-12-23 12:38:29Z mueller $
+# $Id: sys_w11a_b3.vmfset 1097 2018-12-29 11:20:14Z mueller $
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
@@ -83,8 +83,8 @@ i [Synth 8-3332] SEQ/SNUM0.R_VMWAIT_reg
 {2017.1:}
 I [Synth 8-3332] R_LREGS_reg[attn][\d*]                         # generic
 I [Synth 8-3332] R_REGS_reg[(btn|swi)(eff)?][\d*]               # generic
-# --> usec not used for serport clock domain                    # OK 2017-06-06
-i [Synth 8-3332] R_REGS_reg[usec].* clkdivce
+# --> usec not used for serport clock domain                    # OK 2018-12-29
+i [Synth 8-3332] R_REGS_reg[usec].* s7_cmt_1ce1ce
 # --> not yet used                                              # OK 2017-06-06
 i [Synth 8-3332] R_STATUS_reg[suspext].* pdp11_sequencer
 # --> mawidth=4, nblock=11, so some cellen unused               # OK 2016-06-05

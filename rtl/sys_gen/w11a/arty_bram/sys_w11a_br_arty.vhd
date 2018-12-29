@@ -1,4 +1,4 @@
--- $Id: sys_w11a_br_arty.vhd 1086 2018-12-16 18:29:55Z mueller $
+-- $Id: sys_w11a_br_arty.vhd 1094 2018-12-27 15:18:27Z mueller $
 --
 -- Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -111,7 +111,6 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 use work.slvtypes.all;
-use work.genlib.all;
 use work.serportlib.all;
 use work.rblib.all;
 use work.rbdlib.all;

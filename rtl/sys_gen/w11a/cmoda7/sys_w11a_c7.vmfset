@@ -1,4 +1,4 @@
-# $Id: sys_w11a_c7.vmfset 1091 2018-12-23 12:38:29Z mueller $
+# $Id: sys_w11a_c7.vmfset 1097 2018-12-29 11:20:14Z mueller $
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
@@ -112,8 +112,8 @@ i [Synth 8-3332] R_REGS_reg[psig][2(4|5|6)]
 i [Synth 8-3332] PRE[2(4|5|6)].ENA.CNT/R_CNT_reg[\d*]
 
 {2017.1:2017.4}
-# --> usec not used for serport clock domain                    # OK 2017-06-24
-i [Synth 8-3332] R_REGS_reg[usec].* clkdivce
+# --> usec not used for serport clock domain                    # OK 2018-12-29
+i [Synth 8-3332] R_REGS_reg[usec].* s7_cmt_1ce1ce
 # --> monitor outputs moneop,monattn currently not used         # OK 2017-06-24
 i [Synth 8-3332] CORE/RL/R_LREGS_reg[moneop].* rlink_sp2c
 i [Synth 8-3332] CORE/RL/R_LREGS_reg[monattn].* rlink_sp2c

@@ -1,4 +1,4 @@
-# $Id: Makefile 776 2016-06-18 17:22:51Z mueller $
+# $Id: Makefile 1063 2018-10-29 18:37:42Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -6,7 +6,7 @@
 # 2016-04-22   763   1.1    add include dep_vsim
 # 2016-01-31   726   1.0    Initial version
 #
-EXE_all = tb_arty_dummy
+EXE_all = tb_arty_dummy tb_arty_dram_dummy
 #
 include ${RETROBASE}/rtl/make_viv/viv_default_arty.mk
 #

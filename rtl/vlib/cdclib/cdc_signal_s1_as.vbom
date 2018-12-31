@@ -1,0 +1,4 @@
+# libs
+../slvtypes.vhd
+# design
+cdc_signal_s1_as.vhd

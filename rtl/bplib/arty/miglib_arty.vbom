@@ -1,0 +1,4 @@
+# libs
+../../vlib/slvtypes.vhd
+../mig/miglib.vbom
+miglib_arty.vhd

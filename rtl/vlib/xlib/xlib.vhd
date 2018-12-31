@@ -1,4 +1,4 @@
--- $Id: xlib.vhd 1065 2018-11-04 11:32:06Z mueller $
+-- $Id: xlib.vhd 1072 2018-11-18 22:27:35Z mueller $
 --
 -- Copyright 2007-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  ise 8.2-14.7; viv 2014.4-2018.2; ghdl 0.18-0.34
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2018-11-18  1072   1.1.1  add s7_cmt_sfs_3 and s7_cmt_sfs_2
 -- 2018-11-03  1064   1.1    add sfs_gsim_core
 -- 2016-04-02   758   1.0.11 add usr_access_unisim
 -- 2013-10-06   538   1.0.10 add s6_cmt_sfs
@@ -197,6 +198,44 @@ component s7_cmt_sfs is                 -- 7-Series CMT for simple freq. synth.
     CLKIN  : in slbit;                  -- clock input
     CLKFX  : out slbit;                 -- clock output (synthesized freq.) 
     LOCKED : out slbit                  -- pll/mmcm locked
+  );
+end component;
+
+component s7_cmt_sfs_2 is               -- 7-Series CMT for dual freq. synth.
+  generic (
+    VCO_DIVIDE   : positive := 1;       -- vco clock divide
+    VCO_MULTIPLY : positive := 1;       -- vco clock multiply 
+    OUT0_DIVIDE  : positive := 1;       -- output 0 divide
+    OUT1_DIVIDE  : positive := 1;       -- output 1 divide
+    CLKIN_PERIOD : real := 10.0;        -- CLKIN period (def is 10.0 ns)
+    CLKIN_JITTER : real := 0.01;        -- CLKIN jitter (def is 10 ps)
+    STARTUP_WAIT : boolean := false;    -- hold FPGA startup till LOCKED
+    GEN_TYPE     : string := "PLL");    -- PLL or MMCM
+  port (
+    CLKIN   : in slbit;                 -- clock input
+    CLKOUT0 : out slbit;                -- clock output 0
+    CLKOUT1 : out slbit;                -- clock output 1
+    LOCKED  : out slbit                 -- pll/mmcm locked
+  );
+end component;
+
+component s7_cmt_sfs_3 is               -- 7-Series CMT for tripple freq. synth.
+  generic (
+    VCO_DIVIDE   : positive := 1;       -- vco clock divide
+    VCO_MULTIPLY : positive := 1;       -- vco clock multiply 
+    OUT0_DIVIDE  : positive := 1;       -- output 0 divide
+    OUT1_DIVIDE  : positive := 1;       -- output 1 divide
+    OUT2_DIVIDE  : positive := 1;       -- output 2 divide
+    CLKIN_PERIOD : real := 10.0;        -- CLKIN period (def is 10.0 ns)
+    CLKIN_JITTER : real := 0.01;        -- CLKIN jitter (def is 10 ps)
+    STARTUP_WAIT : boolean := false;    -- hold FPGA startup till LOCKED
+    GEN_TYPE     : string := "PLL");    -- PLL or MMCM
+  port (
+    CLKIN   : in slbit;                 -- clock input
+    CLKOUT0 : out slbit;                -- clock output 0
+    CLKOUT1 : out slbit;                -- clock output 1
+    CLKOUT2 : out slbit;                -- clock output 2
+    LOCKED  : out slbit                 -- pll/mmcm locked
   );
 end component;
 

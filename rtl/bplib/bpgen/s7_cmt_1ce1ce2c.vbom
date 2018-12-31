@@ -1,0 +1,10 @@
+# libs
+../../vlib/slvtypes.vhd
+# components
+[vsyn]../../vlib/xlib/s7_cmt_sfs_unisim.vbom
+[ghdl,vsim]../../vlib/xlib/s7_cmt_sfs_gsim.vbom
+[vsyn]../../vlib/xlib/s7_cmt_sfs_2_unisim.vbom
+[ghdl,vsim]../../vlib/xlib/s7_cmt_sfs_2_gsim.vbom
+../../vlib/genlib/clkdivce.vbom
+# design
+s7_cmt_1ce1ce2c.vhd

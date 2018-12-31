@@ -1,0 +1,24 @@
+# Not meant for direct top level usage. Used with 
+# tb_arty_dram_(....)[_ssim].vbom and config
+# lines to generate the different cases.
+#
+# libs
+../../../vlib/slvtypes.vhd
+../../../vlib/rlink/rlinklib.vbom
+../../../vlib/xlib/xlib.vhd
+../artylib.vhd
+../../../vlib/simlib/simlib.vhd
+../../../vlib/simlib/simbus.vhd
+${sys_conf := sys_conf_sim.vhd}
+# components
+${gsr_pulse := ../../../vlib/xlib/gsr_pulse_dummy.vbom}
+../../../vlib/simlib/simclk.vbom
+../../../vlib/simlib/simclkcnt.vbom
+../../../vlib/rlink/tbcore/tbcore_rlink.vbom
+../../../vlib/xlib/sfs_gsim_core.vbom
+tb_arty_core.vbom
+../../../vlib/serport/tb/serport_master_tb.vbom
+${arty_dram_aif := arty_dram_dummy.vbom}  -UUT
+# design
+tb_arty_dram.vhd
+@top:tb_arty_dram

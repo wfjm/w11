@@ -12,6 +12,7 @@ and is organized in
 | [fx2rlink](fx2rlink)   | modules for rlink over Cypress FX2 |
 | [issi](issi)           | simulation models for ISSI components |
 | [micron](micron)       | simulation models for Micron components |
+| [mig](mig)             | interface for MIG cores |
 | [nexys2](nexys2)       | support for Digilent Nexys2 board |
 | [nexys3](nexys3)       | support for Digilent Nexys3 board |
 | [nexys4](nexys4)       | support for Digilent Nexys4 board (cram version) |

@@ -20,6 +20,22 @@ The HEAD version shows the current development. No guarantees that
 software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
+### Summary
+- add support DDR memory via Vivado MIG cores
+  - arty board support
+
+### New features
+- s7_cmt_sfs_2: dual-channel frequency synthesis MMCM/PLL wrapper
+- s7_cmt_1ce1ce2c: clocking block for 7-Series: 2 clk+CEs + 2 clk
+- cdc_signal_s1_as: clock domain crossing for a signal, 2 stage, asyn input
+- migui_core_gsim: highly simplified MIG UI simulation model
+
+### Changes
+- viv_tools_build: export log and rpt generated in OOC synthesis runs
+
+### Bug Fixes
+### Known issues
+
 <!-- --------------------------------------------------------------------- -->
 ---
 ## <a id="w11a_V0.753">2018-12-29: [w11a_V0.753](https://github.com/wfjm/w11/releases/tag/w11a_V0.753) - rev 1096(wfjm)</a>

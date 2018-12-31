@@ -1,10 +1,11 @@
-# $Id: viv_tools_build.tcl 1072 2018-11-18 22:27:35Z mueller $
+# $Id: viv_tools_build.tcl 1090 2018-12-21 12:17:35Z mueller $
 #
 # Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2018-12-19  1090   1.2.3  export log and rpt generated in OOC synthesis runs
 # 2018-11-18  1072   1.2.2  increase message limits (all 200, some 5000)
 # 2016-09-18   809   1.2.1  keep hierarchy for synthesis only runs 
 # 2016-05-22   767   1.2    cleaner setup handling; use explore flows
@@ -234,6 +235,19 @@ proc rvtb_default_build {stem step} {
   rvtb_cp_file "$path_syn1/${stem}_utilization_synth.rpt" "${stem}_syn_util.rpt"
   rvtb_cp_file "$path_syn1/${stem}.dcp"                   "${stem}_syn.dcp"
 
+  # export log and syn_util generated in OOC synthesis runs
+  set ooc_dirs [glob -nocomplain -dir $path_runs -tails -type d "*_synth_1"]
+  foreach ooc_dir $ooc_dirs {
+    puts "# process OOC build $ooc_dir"
+    set ooc_core [regsub -- {_synth_1$} $ooc_dir {}]
+    rvtb_cp_file \
+      "${path_runs}/${ooc_dir}/runme.log" \
+      "${stem}_${ooc_core}_syn.log"
+    rvtb_cp_file \
+      "${path_runs}/${ooc_dir}/${ooc_core}_utilization_synth.rpt" \
+      "${stem}_${ooc_core}_syn_util.rpt"
+  }
+  
   if {$step eq "syn"} {return [rvtb_build_check $step]}
 
   # build: implement -------------------------------------------------

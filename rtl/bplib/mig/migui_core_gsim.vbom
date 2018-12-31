@@ -1,0 +1,8 @@
+# libs
+../../vlib/slvtypes.vhd
+../../vlib/xlib/xlib.vhd
+miglib.vhd
+# components
+../../vlib/xlib/sfs_gsim_core.vbom
+# design
+migui_core_gsim.vhd

@@ -3,6 +3,7 @@ and is organized in
 
 | Directory | Content |
 | --------- | ------- |
+| [tst_mig](tst_mig)               | MIG core tester |
 | [tst_rlink](tst_rlink)           | rlink tester (over serial links) |
 | [tst_rlink_cuff](tst_rlink_cuff) | rlink tester (over Cypress FX2 USB) |
 | [tst_serloop](tst_serloop)       | serial port loop back tester |

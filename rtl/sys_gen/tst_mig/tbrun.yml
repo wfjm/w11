@@ -1,0 +1,7 @@
+# $Id: tbrun.yml 1092 2018-12-24 08:01:50Z mueller $
+#
+# Revision History:
+# Date         Rev Version  Comment
+# 2018-12-23  1092   1.0    Initial version
+#
+- include: arty/tb/tbrun.yml

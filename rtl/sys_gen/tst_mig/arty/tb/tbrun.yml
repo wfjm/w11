@@ -1,0 +1,13 @@
+# $Id: tbrun.yml 1092 2018-12-24 08:01:50Z mueller $
+#
+# Revision History:
+# Date         Rev Version  Comment
+# 2018-12-23  1092   1.0    Initial version
+#
+- default:
+    mode: ${viv_modes}
+#
+- tag:  [default, viv, sys_tst_mig, arty, base]
+  test: |
+    tbrun_tbwrri --hxon --lsuf base --pack tst_mig   tb_tst_mig_arty${ms} \
+      tst_mig::setup  tst_mig::test_all

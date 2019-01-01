@@ -1,4 +1,4 @@
-# $Id: mig_arty.tcl 1092 2018-12-24 08:01:50Z mueller $
+# $Id: mig_arty.tcl 1099 2018-12-31 09:07:36Z mueller $
 #
 # Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
@@ -32,7 +32,7 @@ puts [format "## available MIG version:  %s" $vers]
 if {$mprj ne ""} {
   puts [format "## selected  MIG version:  %s with %s" $vers $mprj]
 } else {
-  error "sramif_mig_arty: no tested MIG version found"
+  error "mig_arty: no tested MIG version found"
 }
 
 create_ip -vlnv "xilinx.com:ip:mig_7series:$vers" -module_name migui_arty

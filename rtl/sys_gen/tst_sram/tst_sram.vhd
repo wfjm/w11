@@ -1,4 +1,4 @@
--- $Id: tst_sram.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: tst_sram.vhd 1092 2018-12-24 08:01:50Z mueller $
 --
 -- Copyright 2007-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -17,9 +17,9 @@
 --
 -- Dependencies:   vlib/memlib/ram_1swsr_wfirst_gen
 --                 vlib/memlib/ram_2swsr_wfirst_gen
---                 vlib/rlink/rlink_base_serport
 --
--- Test bench:     cmoda7/tb/tb_tst_sram_c7       (with sram)
+-- Test bench:     arty/tb/tb_tst_sram_arty       (with ddr3 via mig)
+--                 cmoda7/tb/tb_tst_sram_c7       (with sram)
 --                 nexys4/tb/tb_tst_sram_n4       (with cram)
 --                 nexys3/tb/tb_tst_sram_n3       (with cram)
 --                 nexys2/tb/tb_tst_sram_n2       (with cram)

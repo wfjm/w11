@@ -1,0 +1,56 @@
+# $Id: sys_tst_mig_arty.vmfset 1095 2018-12-28 11:53:13Z mueller $
+#
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+[syn]
+# general issues -----------------------------------------------
+{2018.2:}
+# stupid new warning, Xilinx suggests to safely ingnore
+i [Constraints 18-5210]                                         # generic
+{:}
+
+# false_path -hold ignored by synth ----------------------------
+I [Designutils 20-1567]                                         # generic
+
+# port driven by constant --------------------------------------
+
+# tying undriven pin to constant -------------------------------
+# only few LAMs used                                            # OK 2018-12-23
+i [Synth 8-3295] RLINK:RB_LAM[\d*]
+
+# unconnected ports --------------------------------------------
+I [Synth 8-3331] RB_MREQ                                        # generic
+# --> I_SWI not used                                            # OK 2018-12-23
+i [Synth 8-3331] I_SWI[\d]
+# --> O_LED only partially used                                 # OK 2018-12-23
+i [Synth 8-3331] O_LED[(2|3)]
+# --> rlink_sp2c doesn't use CE_USEC and CE_MSEC                # OK 2018-12-23
+i [Synth 8-3331] rlink_sp2c.*CE_(USEC|MSEC)
+# --> APP_SR_ACTIVE is unused (reserved port)                   # OK 2018-12-23
+i [Synth 8-3331] APP_SR_ACTIVE
+
+# sequential element removed (2017.1 nonsense) -----------------
+I [Synth 8-6014] _reg                                           # generic
+
+# unused sequential element ------------------------------------
+I [Synth 8-3332] R_LREGS_reg[attn][\d*]                         # generic
+# --> usec unused                                               # OK 2018-12-23
+i [Synth 8-3332] R_REGS_reg[usec].* sys_tst_mig_arty
+# --> no stat used; moneop and monattn unused                   # OK 2018-12-23
+i [Synth 8-3332] R_BREGS_reg[stat][(0|1|2|3)].* sys_tst_mig_arty
+i [Synth 8-3332] R_LREGS_reg[(moneop|monattn)].* sys_tst_mig_arty
+# --> no rbinit used                                            # OK 2018-12-27
+i [Synth 8-3332] R_BREGS_reg[rbinit].* sys_tst_mig_arty
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+[imp]
+I [Vivado 12-2489]                                # multiple of 1 ps
+I [Physopt 32-742]                                # BRAM Flop Optimization
+# --> spurious Invalid VCCINTIO messages                        # OK 2018-11-25
+{:2017.2}
+i [Designutils 20-266] Invalid Voltage Source VCCINTIO
+{:}
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+[bit]
+# see https://www.xilinx.com/support/answers/64180.html         # OK 2018-12-22
+i [DRC REQP-1709] PLLE2_ADV

@@ -25,15 +25,22 @@ The full set of tests is only run for tagged releases.
   - arty board support
 
 ### New features
-- s7_cmt_sfs_2: dual-channel frequency synthesis MMCM/PLL wrapper
-- s7_cmt_1ce1ce2c: clocking block for 7-Series: 2 clk+CEs + 2 clk
-- cdc_signal_s1_as: clock domain crossing for a signal, 2 stage, asyn input
-- migui_core_gsim: highly simplified MIG UI simulation model
+- new systems
+  - sys_tst_mig_arty design: a MIG tester
+- new components
+  - s7_cmt_sfs_2: dual-channel frequency synthesis MMCM/PLL wrapper
+  - s7_cmt_1ce1ce2c: clocking block for 7-Series: 2 clk+CEs + 2 clk
+  - cdc_signal_s1_as: clock domain crossing for a signal, 2 stage, asyn input
+  - migui_core_gsim: highly simplified MIG UI simulation model
 
 ### Changes
-- viv_tools_build: export log and rpt generated in OOC synthesis runs
+- viv_tools_build
+  - export log and rpt generated in OOC synthesis runs
+  - downgrade SSN critical warnings to warnings
 
 ### Bug Fixes
+- nexys4d_pins.xdc: BUFFIX: Fix faulty IO voltage for I_SWI[8,9]
+
 ### Known issues
 
 <!-- --------------------------------------------------------------------- -->

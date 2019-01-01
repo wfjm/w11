@@ -1,7 +1,8 @@
-# $Id: tbrun.yml 913 2017-06-13 20:18:49Z mueller $
+# $Id: tbrun.yml 1098 2018-12-30 11:40:42Z mueller $
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2018-12-30  1097   1.0.1  add tst_mig
 # 2016-08-27   802   1.0    Initial version
 #
 - include: rtl/vlib/comlib/tb/tbrun.yml
@@ -16,5 +17,6 @@
 - include: rtl/sys_gen/tst_serloop/tbrun.yml
 - include: rtl/sys_gen/tst_rlink/tbrun.yml
 - include: rtl/sys_gen/tst_rlink_cuff/tbrun.yml
+- include: rtl/sys_gen/tst_mig/tbrun.yml
 - include: rtl/sys_gen/tst_sram/tbrun.yml
 - include: rtl/sys_gen/w11a/tbrun.yml

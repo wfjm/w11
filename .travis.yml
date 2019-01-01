@@ -48,19 +48,20 @@ before_script:
 
 #
 script:
-  - make -C tools/src
-  - make -C tools/src/testtclsh
+  - make -j 2 -C tools/src
+  - make -j 2 -C tools/src/testtclsh
   - make all_tcl
   - make -C tools/asm-11/tests allexp
   - make -C tools/asm-11/tests-err allexp
   - |
-    tbrun -nomake \
+    tbrun -j 2 -nomake \
       -tag default,memlib \
       -tag default,genlib \
       -tag default,comlib \
       -tag default,rlink \
       -tag default,serport \
       -tag default,bplib \
+      -tag default,mig \
       -tag default,w11a \
       -tag default,sys_tst_serloop \
       -tag default,sys_tst_serloop1 \
@@ -70,6 +71,7 @@ script:
       -tag default,sys_tst_rlink_cuff,baseser \
       -tag default,sys_tst_sram,base \
       -tag default,sys_tst_sram,n4 \
+      -tag default,sys_tst_mig,base \
       -tag default,sys_w11a,stim1 \
       -tag default,sys_w11a,n4
   - tbfilt -all -sum -comp

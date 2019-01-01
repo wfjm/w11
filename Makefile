@@ -1,4 +1,4 @@
-# $Id: Makefile 1055 2018-10-12 17:53:52Z mueller $
+# $Id: Makefile 1098 2018-12-30 11:40:42Z mueller $
 #
 # 'Meta Makefile' for whole retro project
 #   allows to make all synthesis targets
@@ -74,6 +74,7 @@ SYN_viv += rtl/sys_gen/tst_sram/nexys4
 SYN_viv += rtl/sys_gen/w11a/nexys4
 
 #     Arty ---------------------------------------
+SYN_viv += rtl/sys_gen/tst_mig/arty
 SYN_viv += rtl/sys_gen/tst_rlink/arty
 SYN_viv += rtl/sys_gen/w11a/arty_bram
 
@@ -130,6 +131,7 @@ SIM_viv += rtl/sys_gen/tst_sram/nexys4/tb
 SIM_viv += rtl/sys_gen/w11a/nexys4/tb
 
 #     Arty ---------------------------------------
+SIM_viv += rtl/sys_gen/tst_mig/arty/tb
 SIM_viv += rtl/sys_gen/tst_rlink/arty/tb
 SIM_viv += rtl/sys_gen/w11a/arty_bram/tb
 

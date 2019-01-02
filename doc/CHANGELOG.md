@@ -32,11 +32,15 @@ The full set of tests is only run for tagged releases.
   - s7_cmt_1ce1ce2c: clocking block for 7-Series: 2 clk+CEs + 2 clk
   - cdc_signal_s1_as: clock domain crossing for a signal, 2 stage, asyn input
   - migui_core_gsim: highly simplified MIG UI simulation model
+  - sramif2migui_core: w11a SRAM to MIG UI interface core
 
 ### Changes
-- viv_tools_build
-  - export log and rpt generated in OOC synthesis runs
-  - downgrade SSN critical warnings to warnings
+- general
+  - travis: use -j 2
+- tools changes
+  - viv_tools_build
+    - export log and rpt generated in OOC synthesis runs
+    - downgrade SSN critical warnings to warnings
 
 ### Bug Fixes
 - nexys4d_pins.xdc: BUFFIX: Fix faulty IO voltage for I_SWI[8,9]

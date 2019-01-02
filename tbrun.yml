@@ -1,8 +1,8 @@
-# $Id: tbrun.yml 1098 2018-12-30 11:40:42Z mueller $
+# $Id: tbrun.yml 1099 2018-12-31 09:07:36Z mueller $
 #
 # Revision History:
 # Date         Rev Version  Comment
-# 2018-12-30  1097   1.0.1  add tst_mig
+# 2018-12-30  1099   1.0.1  add tst_mig, bplib/mig
 # 2016-08-27   802   1.0    Initial version
 #
 - include: rtl/vlib/comlib/tb/tbrun.yml
@@ -13,6 +13,7 @@
 - include: rtl/bplib/nxcramlib/tb/tbrun.yml
 - include: rtl/bplib/s3board/tb/tbrun.yml
 - include: rtl/bplib/cmoda7/tb/tbrun.yml
+- include: rtl/bplib/mig/tb/tbrun.yml
 - include: rtl/w11a/tb/tbrun.yml
 - include: rtl/sys_gen/tst_serloop/tbrun.yml
 - include: rtl/sys_gen/tst_rlink/tbrun.yml

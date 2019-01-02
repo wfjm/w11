@@ -1,0 +1,26 @@
+# $Id: tbrun.yml 1069 2018-11-16 17:11:30Z mueller $
+#
+# Revision History:
+# Date         Rev Version  Comment
+# 2018-11-16  1069   1.0    Initial version
+#
+- default:
+    mode: ${viv_modes}
+#
+- tag:  [default, viv, mig, sramif2migui_core, ba3, bram]
+  test: |
+    tbrun_tbw tb_sramif2migui_core_ba3_bram${ms}
+#
+- tag:  [default, viv, mig, sramif2migui_core, ba3, msim]
+  test: |
+    tbrun_tbw tb_sramif2migui_core_ba3_msim${ms}
+#
+- tag:  [default, viv, mig, sramif2migui_core, ba4, bram]
+  test: |
+    tbrun_tbw tb_sramif2migui_core_ba4_bram${ms}
+#
+- tag:  [default, viv, mig, sramif2migui_core, ba4, msim]
+  test: |
+    tbrun_tbw tb_sramif2migui_core_ba4_msim${ms}
+
+

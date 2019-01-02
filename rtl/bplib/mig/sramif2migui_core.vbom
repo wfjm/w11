@@ -1,0 +1,10 @@
+# libs
+../../vlib/slvtypes.vhd
+../../vlib/memlib/memlib.vhd
+../../vlib/cdclib/cdclib.vhd
+miglib.vhd
+# components
+../../vlib/memlib/fifo_2c_dram2.vbom
+../../vlib/cdclib/cdc_signal_s1.vbom
+# design
+sramif2migui_core.vhd

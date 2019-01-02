@@ -1,0 +1,10 @@
+# $Id: tbw.dat 1069 2018-11-16 17:11:30Z mueller $
+#
+[tb_sramif2migui_core_ba3_bram]
+tb_sramif2migui_core_stim = tb_sramif2migui_core_stim.dat
+[tb_sramif2migui_core_ba3_msim]
+tb_sramif2migui_core_stim = tb_sramif2migui_core_stim.dat
+[tb_sramif2migui_core_ba4_bram]
+tb_sramif2migui_core_stim = tb_sramif2migui_core_stim.dat
+[tb_sramif2migui_core_ba4_msim]
+tb_sramif2migui_core_stim = tb_sramif2migui_core_stim.dat

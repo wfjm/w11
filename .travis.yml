@@ -5,25 +5,27 @@ sudo: required
 #
 matrix:
   include:
-    - name: "gcc 4.8"
+    - name: "Ub 14.04 -- gcc 4.8"
       env: MATRIX_EVAL="CC=gcc && CXX=g++"
 
-    - name: "gcc 7"
+    - name: "Ub 14.04 -- gcc 7"
       addons:
         apt:
           sources:  ubuntu-toolchain-r-test
           packages: g++-7
       env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
 
-    - name: "clang"
+    - name: "Ub 14.04 -- clang"
       env: MATRIX_EVAL="CC=clang && CXX=clang++"
+
+    - name: "Ub 16.04 -- gcc"
+      dist: xenial
+      env: MATRIX_EVAL="CC=gcc && CXX=g++"
 
 #
 before_install:
   - |
     sudo apt-get install -y \
-      libboost-dev libboost-date-time-dev \
-      libboost-thread-dev libboost-regex-dev \
       libusb-1.0-0-dev \
       tcl8.6 tcl8.6-dev tcllib tclreadline \
       libyaml-libyaml-perl
@@ -34,7 +36,8 @@ before_install:
 
 #
 before_script:
-  - less /proc/cpuinfo | grep "^model name" | head -n 1
+  - cat /proc/cpuinfo
+  - lsb_release -d
   - bash -c '${CC}  --version'
   - bash -c '${CXX} --version'
   - export RETROBASE=$PWD
@@ -48,13 +51,13 @@ before_script:
 
 #
 script:
-  - make -j 2 -C tools/src
+  - time make -j 2 -C tools/src
   - make -j 2 -C tools/src/testtclsh
   - make all_tcl
   - make -C tools/asm-11/tests allexp
   - make -C tools/asm-11/tests-err allexp
   - |
-    tbrun -j 2 -nomake \
+    time tbrun -j 2 -nomake \
       -tag default,memlib \
       -tag default,genlib \
       -tag default,comlib \

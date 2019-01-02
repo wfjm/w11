@@ -1,0 +1,6 @@
+# configure tb_sramif2migui_core for bawidth=4 and msim backend
+# configure
+sys_conf = sys_conf_ba4_msim.vhd
+# design
+tb_sramif2migui_core.vbom
+@top:tb_sramif2migui_core

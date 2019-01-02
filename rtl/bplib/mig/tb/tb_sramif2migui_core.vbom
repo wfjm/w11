@@ -1,0 +1,13 @@
+# libs
+../../../vlib/slvtypes.vhd
+../../../vlib/simlib/simlib.vhd
+../miglib.vhd
+${sys_conf :=  sys_conf_ba4_msim.vhd}
+# components
+../../../vlib/simlib/simclk.vbom
+../../../vlib/simlib/simclkcnt.vbom
+../sramif2migui_core.vbom
+../migui_core_gsim.vbom
+../migui2bram.vbom
+# design
+tb_sramif2migui_core.vhd

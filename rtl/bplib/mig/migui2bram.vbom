@@ -1,0 +1,12 @@
+# libs
+../../vlib/slvtypes.vhd
+../../vlib/memlib/memlib.vhd
+../../vlib/cdclib/cdclib.vhd
+../../vlib/xlib/xlib.vhd
+# components
+[vsyn]../../vlib/xlib/s7_cmt_sfs_unisim.vbom
+[ghdl,vsim]../../vlib/xlib/s7_cmt_sfs_gsim.vbom
+../../vlib/memlib/ram_1swsr_wfirst_gen.vbom
+../../vlib/cdclib/cdc_signal_s1_as.vbom
+# design
+migui2bram.vhd

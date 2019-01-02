@@ -1,7 +1,8 @@
-# $Id: Makefile 733 2016-02-20 12:24:13Z mueller $
+# $Id: Makefile 1100 2019-01-02 10:56:47Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2019-01-02  1100   1.1.2  drop boost includes and libs
 # 2013-02-01   479   1.1.1  use checkpath_cpp.mk
 # 2011-07-31   401   1.1    rename realclean->distclean
 # 2011-07-01   386   1.0.1  add BOOSTINC
@@ -18,9 +19,8 @@ SOMINV     = 0
 #
 include ../checkpath_cpp.mk
 #
-INCLFLAGS  = -I${RETROBASE}/tools/src -I${BOOSTINC}
+INCLFLAGS  = -I${RETROBASE}/tools/src
 LDLIBS     = -lusb-1.0
-LDLIBS    += -L${BOOSTLIB} -lboost_thread
 LDLIBS    += -L${RETROBASE}/tools/lib -lrtools
 #
 # Object files to be included

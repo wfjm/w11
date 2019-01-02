@@ -36,7 +36,10 @@ The full set of tests is only run for tagged releases.
 
 ### Changes
 - general
-  - travis: use -j 2
+  - travis:
+    - use make -j 2 and tbrun -j 2 (VM has 2 cores, one real, one HT)
+    - use xenial in matrix
+  - Makefile: drop boost includes and libs (boost not used anymore)
 - tools changes
   - viv_tools_build
     - export log and rpt generated in OOC synthesis runs

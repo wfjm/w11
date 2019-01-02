@@ -1,4 +1,4 @@
-# $Id: Makefile 1098 2018-12-30 11:40:42Z mueller $
+# $Id: Makefile 1100 2019-01-02 10:56:47Z mueller $
 #
 # 'Meta Makefile' for whole retro project
 #   allows to make all synthesis targets
@@ -114,6 +114,7 @@ SIM_ise += rtl/sys_gen/w11a/nexys3/tb
 SIM_viv += rtl/bplib/issi/tb
 SIM_viv += rtl/bplib/micron/tb
 SIM_viv += rtl/bplib/nxcramlib/tb
+SIM_viv += rtl/bplib/mig/tb
 SIM_viv += rtl/vlib/comlib/tb
 SIM_viv += rtl/vlib/rlink/tb
 SIM_viv += rtl/vlib/serport/tb

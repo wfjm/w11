@@ -1,7 +1,8 @@
-# $Id: Makefile 733 2016-02-20 12:24:13Z mueller $
+# $Id: Makefile 1100 2019-01-02 10:56:47Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2019-01-02  1100   1.1.5  drop boost includes
 # 2014-11-08   602   1.1.4  add  TCLLIB/TCLLIBNAME to LDLIBS
 # 2013-02-01   479   1.1.3  use checkpath_cpp.mk
 # 2013-01-27   478   1.1.2  add RtclRlinkPort
@@ -22,7 +23,7 @@ SOMINV     = 0
 #
 include ../checkpath_cpp.mk
 #
-INCLFLAGS  = -I${RETROBASE}/tools/src -I${TCLINC} -I${BOOSTINC}
+INCLFLAGS  = -I${RETROBASE}/tools/src -I${TCLINC}
 LDLIBS     = -L${TCLLIB} -l${TCLLIBNAME}
 LDLIBS    += -L${RETROBASE}/tools/lib -lrtools -lrtcltools -lrlink
 #

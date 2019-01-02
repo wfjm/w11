@@ -1,7 +1,8 @@
-# $Id: Makefile 733 2016-02-20 12:24:13Z mueller $
+# $Id: Makefile 1100 2019-01-02 10:56:47Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2019-01-02  1100   1.1.3  drop boost includes
 # 2013-02-01   479   1.1.2  use checkpath_cpp.mk
 # 2012-12-24   464   1.1.1  add TCLINC
 # 2011-07-31   401   1.1    rename realclean->distclean
@@ -19,7 +20,7 @@ SOMINV     = 0
 #
 include ../checkpath_cpp.mk
 #
-INCLFLAGS  = -I${RETROBASE}/tools/src -I${TCLINC} -I${BOOSTINC}
+INCLFLAGS  = -I${RETROBASE}/tools/src -I${TCLINC}
 LDLIBS     = -L${RETROBASE}/tools/lib -lrtools
 #
 # Object files to be included

@@ -75,9 +75,9 @@ script:
       -tag default,sys_tst_rlink,base \
       -tag default,sys_tst_rlink_cuff,basefx2 \
       -tag default,sys_tst_rlink_cuff,baseser \
+      -tag default,sys_tst_mig,base \
       -tag default,sys_tst_sram,base \
       -tag default,sys_tst_sram,n4 \
-      -tag default,sys_tst_mig,base \
       -tag default,sys_w11a,stim1 \
       -tag default,sys_w11a,n4
   - tbfilt -all -sum -comp

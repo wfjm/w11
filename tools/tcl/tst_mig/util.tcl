@@ -1,4 +1,4 @@
-# $Id: util.tcl 1096 2018-12-29 07:54:17Z mueller $
+# $Id: util.tcl 1101 2019-01-02 21:22:37Z mueller $
 #
 # Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-01-02  1101   1.0.1  test_rwait: add optional lena argument
 # 2018-12-28  1096   1.0    Initial version
 # 2018-12-24  1093   0.1    First draft
 #
@@ -387,37 +388,49 @@ namespace eval tst_mig {
   #
   # test_rwait: determine read latency with read commands --------------------
   # 
-  proc test_rwait {addr {cnt 16} {inc 0x0}} {
+  proc test_rwait {addr {cnt 16} {inc 0x0} {lena 0}} {
     set cwaitlist {}
     set rwaitlist {}
     set addr0  $addr
     set addr1  [expr {$addr + 1*$inc}]
     set addr2  [expr {$addr + 2*$inc}]
     set addr3  [expr {$addr + 3*$inc}]
+
     for {set i 0} { $i < $cnt } {incr i} {
-      rlc exec \
-        -wreg mt.addrl  [expr { $addr0      & 0xffff}] \
-        -wreg mt.addrh  [expr {($addr0>>16) & 0xffff}] \
-        -wreg mt.cntl   [regbld tst_mig::CNTL {func "RD"}] \
-        -rreg mt.cwait  cwait0 \
-        -rreg mt.rwait  rwait0 \
-        -wreg mt.addrl  [expr { $addr1      & 0xffff}] \
-        -wreg mt.addrh  [expr {($addr1>>16) & 0xffff}] \
-        -wreg mt.cntl   [regbld tst_mig::CNTL {func "RD"}] \
-        -rreg mt.cwait  cwait1 \
-        -rreg mt.rwait  rwait1 \
-        -wreg mt.addrl  [expr { $addr2      & 0xffff}] \
-        -wreg mt.addrh  [expr {($addr0>>16) & 0xffff}] \
-        -wreg mt.cntl   [regbld tst_mig::CNTL {func "RD"}] \
-        -rreg mt.cwait  cwait2 \
-        -rreg mt.rwait  rwait2 \
-        -wreg mt.addrl  [expr { $addr3      & 0xffff}] \
-        -wreg mt.addrh  [expr {($addr3>>16) & 0xffff}] \
-        -wreg mt.cntl   [regbld tst_mig::CNTL {func "RD"}] \
-        -rreg mt.cwait  cwait3 \
-        -rreg mt.rwait  rwait3
-      lappend cwaitlist $cwait0 $cwait1 $cwait2 $cwait3
-      lappend rwaitlist $rwait0 $rwait1 $rwait2 $rwait3
+      if { $lena } {
+        rlc exec \
+          -wreg mt.addrl  [expr { $addr0      & 0xffff}] \
+          -wreg mt.addrh  [expr {($addr0>>16) & 0xffff}] \
+          -wreg mt.cntl   [regbld tst_mig::CNTL {func "RD"}] \
+          -rreg mt.cwait  cwait0 \
+          -rreg mt.rwait  rwait0 \
+          -wreg mt.addrl  [expr { $addr1      & 0xffff}] \
+          -wreg mt.addrh  [expr {($addr1>>16) & 0xffff}] \
+          -wreg mt.cntl   [regbld tst_mig::CNTL {func "RD"}] \
+          -rreg mt.cwait  cwait1 \
+          -rreg mt.rwait  rwait1 \
+          -wreg mt.addrl  [expr { $addr2      & 0xffff}] \
+          -wreg mt.addrh  [expr {($addr0>>16) & 0xffff}] \
+          -wreg mt.cntl   [regbld tst_mig::CNTL {func "RD"}] \
+          -rreg mt.cwait  cwait2 \
+          -rreg mt.rwait  rwait2 \
+          -wreg mt.addrl  [expr { $addr3      & 0xffff}] \
+          -wreg mt.addrh  [expr {($addr3>>16) & 0xffff}] \
+          -wreg mt.cntl   [regbld tst_mig::CNTL {func "RD"}] \
+          -rreg mt.cwait  cwait3 \
+          -rreg mt.rwait  rwait3
+        lappend cwaitlist $cwait0 $cwait1 $cwait2 $cwait3
+        lappend rwaitlist $rwait0 $rwait1 $rwait2 $rwait3
+      } else {
+        rlc exec \
+          -wreg mt.addrl  [expr { $addr0      & 0xffff}] \
+          -wreg mt.addrh  [expr {($addr0>>16) & 0xffff}] \
+          -wreg mt.cntl   [regbld tst_mig::CNTL {func "RD"}] \
+          -rreg mt.cwait  cwait0 \
+          -rreg mt.rwait  rwait0 
+        lappend cwaitlist $cwait0
+        lappend rwaitlist $rwait0
+      }
     }
     set cwaitlist [lsort -integer $cwaitlist]
     set rwaitlist [lsort -integer $rwaitlist]
@@ -428,6 +441,7 @@ namespace eval tst_mig {
     set waitmax   [expr {max($cwaitmax,$rwaitmax)}]
     set cwaithist [lrepeat [expr {$waitmax+1}] 0]
     set rwaithist [lrepeat [expr {$waitmax+1}] 0]
+    set tcnt      [llength $cwaitlist] 
     foreach cwait $cwaitlist {
       incr cwaitsum $cwait
       lset cwaithist $cwait [expr {1+[lindex $cwaithist $cwait]}]
@@ -438,9 +452,9 @@ namespace eval tst_mig {
     }
     set rval ""
     append rval [format   "cwait: min: %3d  max: %3d  avr: %6.1f" \
-                   $cwaitmin $cwaitmax [expr {$cwaitsum/(4.*$cnt)}]]
+                   $cwaitmin $cwaitmax [expr {$cwaitsum/(1.*$tcnt)}]]
     append rval [format "\nrwait: min: %3d  max: %3d  avr: %6.1f" \
-                   $rwaitmin $rwaitmax [expr {$rwaitsum/(4.*$cnt)}]]
+                   $rwaitmin $rwaitmax [expr {$rwaitsum/(1.*$tcnt)}]]
     append rval "\ndistribution histogram:"
     append rval "\n time:  cwait  rwait"
     for {set i 0} { $i <= $waitmax } {incr i} {

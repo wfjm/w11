@@ -1,0 +1,7 @@
+# libs
+../slvtypes.vhd
+# components
+cdc_pulse.vbom
+cdc_vector_s0.vbom
+# design
+cdc_value.vhd

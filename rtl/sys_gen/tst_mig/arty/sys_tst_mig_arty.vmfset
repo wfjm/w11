@@ -1,4 +1,4 @@
-# $Id: sys_tst_mig_arty.vmfset 1095 2018-12-28 11:53:13Z mueller $
+# $Id: sys_tst_mig_arty.vmfset 1101 2019-01-02 21:22:37Z mueller $
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
@@ -45,8 +45,8 @@ i [Synth 8-3332] R_BREGS_reg[rbinit].* sys_tst_mig_arty
 [imp]
 I [Vivado 12-2489]                                # multiple of 1 ps
 I [Physopt 32-742]                                # BRAM Flop Optimization
-# --> spurious Invalid VCCINTIO messages                        # OK 2018-11-25
 {:2017.2}
+# --> spurious Invalid VCCINTIO messages                        # OK 2018-11-25
 i [Designutils 20-266] Invalid Voltage Source VCCINTIO
 {:}
 

@@ -1,4 +1,4 @@
--- $Id: tst_mig.vhd 1096 2018-12-29 07:54:17Z mueller $
+-- $Id: tst_mig.vhd 1101 2019-01-02 21:22:37Z mueller $
 --
 -- Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,6 +18,7 @@
 -- Dependencies:   -
 --
 -- Test bench:     arty/tb/tb_tst_mig_arty        (with ddr3 via mig)
+--                 nexys4d/tb/tb_tst_mig_n4d      (with ddr2 via mig)
 --
 -- Target Devices: generic
 -- Tool versions:  viv 2017.2; ghdl 0.34

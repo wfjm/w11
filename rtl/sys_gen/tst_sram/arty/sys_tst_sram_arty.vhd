@@ -1,4 +1,4 @@
--- $Id: sys_tst_mig_arty.vhd 1101 2019-01-02 21:22:37Z mueller $
+-- $Id: sys_tst_sram_arty.vhd 1101 2019-01-02 21:22:37Z mueller $
 --
 -- Copyright 2018-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -12,33 +12,33 @@
 -- for complete details.
 --
 ------------------------------------------------------------------------------
--- Module Name:    sys_tst_mig_arty - syn
+-- Module Name:    sys_tst_sram_arty - syn
 -- Description:    test of arty ddr and its mig controller
 --
 -- Dependencies:   bplib/bpgen/s7_cmt_1ce1ce2c
 --                 cdclib/cdc_signal_s1_as
---                 cdclib/cdc_pulse
 --                 bplib/bpgen/bp_rs232_2line_iob
 --                 rlink/rlink_sp2c
---                 tst_mig
---                 bplib/arty/migui_arty             (generated core)
+--                 tst_sram
+--                 bplib/arty/sramif_mig_arty
+--                 bplib/bpgen/sn_humanio_eum_rbus
 --                 bplib/sysmon/sysmonx_rbus_arty
 --                 rbus/rbd_usracc
---                 rbus/rb_sres_or_3
+--                 rbus/rb_sres_or_4
 --
--- Test bench:     tb/tb_tst_mig_arty
+-- Test bench:     tb/tb_tst_sram_arty
 --
 -- Target Devices: generic
 -- Tool versions:  viv 2017.2; ghdl 0.34
 --
 -- Synthesized (viv):
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
--- 2019-01-02  1101 2017.2  xc7a35t-1l   4320  4773   462     1  1770
+-- 2019-01-02  1101 2017.2  xc7a35t-1l   4643  5334   644     5  1929 
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2018-12-26  1094   1.0    Initial version
--- 2018-12-23  1092   0.1    First draft
+-- 2018-12-20  1090   1.0    Initial version
+-- 2018-11-17  1071   0.1    First draft (derived from sys_tst_sram_c7)
 ------------------------------------------------------------------------------
 
 library ieee;
@@ -52,7 +52,9 @@ use work.rblib.all;
 use work.rbdlib.all;
 use work.rlinklib.all;
 use work.bpgenlib.all;
+use work.bpgenrbuslib.all;
 use work.sysmonrbuslib.all;
+use work.miglib.all;
 use work.miglib_arty.all;
 use work.sys_conf.all;
 
@@ -61,8 +63,8 @@ use unisim.vcomponents.ALL;
 
 -- ----------------------------------------------------------------------------
 
-entity sys_tst_mig_arty is              -- top level
-                                        -- implements arty_mig_aif
+entity sys_tst_sram_arty is             -- top level
+                                        -- implements arty_sram_aif
   port (
     I_CLK100 : in slbit;                -- 100 MHz clock
     I_RXD : in slbit;                   -- receive data (board view)
@@ -92,17 +94,14 @@ entity sys_tst_mig_arty is              -- top level
     DDR3_DM      : out   slv2;          -- dram: data input mask
     DDR3_ODT     : out   slv1           -- dram: on-die termination
   );
-end sys_tst_mig_arty;
+end sys_tst_sram_arty;
 
-architecture syn of sys_tst_mig_arty is
+architecture syn of sys_tst_sram_arty is
   
   signal CLK100_BUF :   slbit := '0';
 
-  signal XX_CLK :   slbit := '0';       -- kept to keep clock setup similar
-  signal XX_CE_USEC :  slbit := '0';    --   to w11a or other 'normal' systems
-  signal XX_CE_MSEC :  slbit := '0';    --
+  signal CLK :   slbit := '0';
 
-  signal CLK  :  slbit := '0';
   signal CE_USEC :  slbit := '0';
   signal CE_MSEC :  slbit := '0';
 
@@ -112,9 +111,10 @@ architecture syn of sys_tst_mig_arty is
   signal CLKMIG : slbit := '0';
   signal CLKREF : slbit := '0';
   
-  signal LOCKED        : slbit := '0';   -- raw LOCKED
-  signal LOCKED_CLKMIG : slbit := '0';   -- sync'ed to CLKMIG
+  signal LOCKED     : slbit := '0';   -- raw LOCKED
+  signal LOCKED_CLK : slbit := '0';   -- sync'ed to CLK
 
+  signal GBL_RESET : slbit := '0';
   signal MEM_RESET : slbit := '0';
   signal MEM_RESET_RRI : slbit := '0';
   
@@ -135,34 +135,25 @@ architecture syn of sys_tst_mig_arty is
   signal SER_MONI : serport_moni_type := serport_moni_init;
 
   signal RB_SRES_TST    : rb_sres_type := rb_sres_init;
+  signal RB_SRES_HIO    : rb_sres_type := rb_sres_init;
   signal RB_SRES_SYSMON : rb_sres_type := rb_sres_init;
   signal RB_SRES_USRACC : rb_sres_type := rb_sres_init;
 
   signal RB_LAM_TST  : slbit := '0';
 
-  signal APP_ADDR          : slv(mig_mawidth-1 downto 0) := (others=>'0');
-  signal APP_CMD           : slv3  := (others=>'0');
-  signal APP_EN            : slbit := '0';
-  signal APP_WDF_DATA      : slv(mig_dwidth-1 downto 0) := (others=>'0'); 
-  signal APP_WDF_END       : slbit := '0';
-  signal APP_WDF_MASK      : slv(mig_mwidth-1 downto 0) := (others=>'0');
-  signal APP_WDF_WREN      : slbit := '0';
-  signal APP_RD_DATA       : slv(mig_dwidth-1 downto 0) := (others=>'0');
-  signal APP_RD_DATA_END   : slbit := '0';
-  signal APP_RD_DATA_VALID : slbit := '0';
-  signal APP_RDY           : slbit := '0';
-  signal APP_WDF_RDY       : slbit := '0';
-  signal APP_SR_REQ        : slbit := '0';
-  signal APP_REF_REQ       : slbit := '0';
-  signal APP_ZQ_REQ        : slbit := '0';
-  signal APP_SR_ACTIVE     : slbit := '0';
-  signal APP_REF_ACK       : slbit := '0';
-  signal APP_ZQ_ACK        : slbit := '0';
-  signal MIG_UI_CLK              : slbit := '0';
-  signal MIG_UI_CLK_SYNC_RST     : slbit := '0';
-  signal MIG_INIT_CALIB_COMPLETE : slbit := '0';
-  signal MIG_SYS_RST             : slbit := '0';
+  signal MEM_REQ   : slbit := '0';
+  signal MEM_WE    : slbit := '0';
+  signal MEM_BUSY  : slbit := '0';
+  signal MEM_ACK_R : slbit := '0';
+  signal MEM_ACK_W : slbit := '0';
+  signal MEM_ACT_R : slbit := '0';
+  signal MEM_ACT_W : slbit := '0';
+  signal MEM_ADDR  : slv20 := (others=>'0');
+  signal MEM_BE    : slv4  := (others=>'0');
+  signal MEM_DI    : slv32 := (others=>'0');
+  signal MEM_DO    : slv32 := (others=>'0');
   
+  signal MIG_MONI : sramif2migui_moni_type := sramif2migui_moni_init;
   signal XADC_TEMP : slv12 := (others=>'0'); -- xadc die temp; on CLK
 
   signal R_DIMCNT : slv2  := (others=>'0');
@@ -171,7 +162,7 @@ architecture syn of sys_tst_mig_arty is
   constant rbaddr_rbmon : slv16 := x"ffe8"; -- ffe8/0008: 1111 1111 1110 1xxx
   constant rbaddr_sysmon: slv16 := x"fb00"; -- fb00/0080: 1111 1011 0xxx xxxx
 
-  constant sysid_proj  : slv16 := x"0105";   -- tst_mig
+  constant sysid_proj  : slv16 := x"0104";   -- tst_sram
   constant sysid_board : slv8  := x"07";     -- arty
   constant sysid_vers  : slv8  := x"00";
 
@@ -209,9 +200,9 @@ begin
       CLK23_GENTYPE  => "PLL")
     port map (
       CLKIN     => CLK100_BUF,
-      CLK0      => XX_CLK,
-      CE0_USEC  => XX_CE_USEC,
-      CE0_MSEC  => XX_CE_MSEC,
+      CLK0      => CLK,
+      CE0_USEC  => CE_USEC,
+      CE0_MSEC  => CE_MSEC,
       CLK1      => CLKS,
       CE1_USEC  => open,
       CE1_MSEC  => CES_MSEC,
@@ -219,44 +210,16 @@ begin
       CLK3      => CLKREF,
       LOCKED    => LOCKED
     );
-
-  -- Note: CLK0 is generated as in 'normal' systems to keep PPL/MMCM setup
-  --   as similar as possible. The CE_USEC and CE_MSEC pulses are forwarded
-  --   from the 80 MHz CLK0 domain to the 83.333 MHz MIG UI_CLK domain
-
-  CDC_CEUSEC : cdc_pulse                -- provide CLK side CE_USEC
-    generic map (
-    POUT_SINGLE => true,
-    BUSY_WACK   => false)
-  port map (
-    CLKM     => XX_CLK,
-    RESET    => '0',
-    CLKS     => CLK,
-    PIN      => XX_CE_USEC,
-    BUSY     => open,
-    POUT     => CE_USEC
-    );
-  
-  CDC_CEMSEC : cdc_pulse                -- provide CLK side CE_MSEC
-    generic map (
-    POUT_SINGLE => true,
-    BUSY_WACK   => false)
-  port map (
-    CLKM     => XX_CLK,
-    RESET    => '0',
-    CLKS     => CLK,
-    PIN      => XX_CE_MSEC,
-    BUSY     => open,
-    POUT     => CE_MSEC
-  );
-  
-  CDC_CLKMIG_LOCKED : cdc_signal_s1_as
+    
+  CDC_CLK_LOCKED : cdc_signal_s1_as
     port map (
-      CLKO  => CLKMIG,
+      CLKO  => CLK,
       DI    => LOCKED,
-      DO    => LOCKED_CLKMIG
+      DO    => LOCKED_CLK
     );
   
+  GBL_RESET <= not LOCKED_CLK;
+
   IOB_RS232 : bp_rs232_2line_iob
     port map (
       CLK     => CLKS,
@@ -284,7 +247,7 @@ begin
       CE_USEC  => CE_USEC,
       CE_MSEC  => CE_MSEC,
       CE_INT   => CE_MSEC,
-      RESET    => '0',                  -- FIXME: no RESET
+      RESET    => GBL_RESET,
       CLKS     => CLKS,
       CES_MSEC => CES_MSEC,
       ENAXON   => '1',
@@ -301,44 +264,58 @@ begin
       SER_MONI => SER_MONI
     );
 
-  TST : entity work.tst_mig
+  TST : entity work.tst_sram
     generic map (
       RB_ADDR => slv(to_unsigned(2#0000000000000000#,16)),
-      MAWIDTH => mig_mawidth,
-      MWIDTH  => mig_mwidth)
+      AWIDTH  => 18)
     port map (
       CLK       => CLK,
-      CE_USEC   => CE_USEC,
-      RESET     => '0',                 -- FIXME: no RESET
+      RESET     => GBL_RESET,
       RB_MREQ   => RB_MREQ,
       RB_SRES   => RB_SRES_TST,
       RB_STAT   => RB_STAT,
       RB_LAM    => RB_LAM_TST,
-      APP_ADDR            => APP_ADDR,
-      APP_CMD             => APP_CMD,
-      APP_EN              => APP_EN,
-      APP_WDF_DATA        => APP_WDF_DATA,
-      APP_WDF_END         => APP_WDF_END,
-      APP_WDF_MASK        => APP_WDF_MASK,
-      APP_WDF_WREN        => APP_WDF_WREN,
-      APP_RD_DATA         => APP_RD_DATA,
-      APP_RD_DATA_END     => APP_RD_DATA_END,
-      APP_RD_DATA_VALID   => APP_RD_DATA_VALID,
-      APP_RDY             => APP_RDY,
-      APP_WDF_RDY         => APP_WDF_RDY,
-      APP_SR_REQ          => APP_SR_REQ,
-      APP_REF_REQ         => APP_REF_REQ,
-      APP_ZQ_REQ          => APP_ZQ_REQ,
-      APP_SR_ACTIVE       => APP_SR_ACTIVE,
-      APP_REF_ACK         => APP_REF_ACK,
-      APP_ZQ_ACK          => APP_ZQ_ACK,
-      MIG_UI_CLK_SYNC_RST     => MIG_UI_CLK_SYNC_RST,
-      MIG_INIT_CALIB_COMPLETE => MIG_INIT_CALIB_COMPLETE,
-      MIG_DEVICE_TEMP_I       => XADC_TEMP
+      SWI       => SWI(7 downto 0),
+      BTN       => BTN(3 downto 0),
+      LED       => LED(7 downto 0),
+      DSP_DAT   => DSP_DAT(15 downto 0),
+      MEM_RESET => MEM_RESET_RRI,
+      MEM_REQ   => MEM_REQ,
+      MEM_WE    => MEM_WE,
+      MEM_BUSY  => MEM_BUSY,
+      MEM_ACK_R => MEM_ACK_R,
+      MEM_ACK_W => MEM_ACK_W,
+      MEM_ACT_R => MEM_ACT_R,
+      MEM_ACT_W => MEM_ACT_W,
+      MEM_ADDR  => MEM_ADDR(17 downto 0), -- ?? FIXME ?? allow AWIDTH=20
+      MEM_BE    => MEM_BE,
+      MEM_DI    => MEM_DI,
+      MEM_DO    => MEM_DO
     );
+
+  MEM_ADDR(19 downto 18) <= (others=>'0'); --?? FIXME ?? allow AWIDTH=20
   
-  MIG_CTL: migui_arty                   -- MIG iface -----------------
+  MEM_RESET <= not LOCKED_CLK or MEM_RESET_RRI;
+  
+  MEMCTL: sramif_mig_arty               -- SRAM to MIG iface -----------------
     port map (
+      CLK          => CLK,
+      RESET        => MEM_RESET,
+      REQ          => MEM_REQ,
+      WE           => MEM_WE,
+      BUSY         => MEM_BUSY,
+      ACK_R        => MEM_ACK_R,
+      ACK_W        => MEM_ACK_W,
+      ACT_R        => MEM_ACT_R,
+      ACT_W        => MEM_ACT_W,
+      ADDR         => MEM_ADDR,
+      BE           => MEM_BE,
+      DI           => MEM_DI,
+      DO           => MEM_DO,
+      CLKMIG       => CLKMIG,
+      CLKREF       => CLKREF,
+      TEMP         => XADC_TEMP,
+      MONI         => MIG_MONI,
       DDR3_DQ      => DDR3_DQ,
       DDR3_DQS_P   => DDR3_DQS_P,
       DDR3_DQS_N   => DDR3_DQS_N,
@@ -353,43 +330,34 @@ begin
       DDR3_CKE     => DDR3_CKE,
       DDR3_CS_N    => DDR3_CS_N,
       DDR3_DM      => DDR3_DM,
-      DDR3_ODT     => DDR3_ODT,
-      APP_ADDR            => APP_ADDR,
-      APP_CMD             => APP_CMD,
-      APP_EN              => APP_EN,
-      APP_WDF_DATA        => APP_WDF_DATA,
-      APP_WDF_END         => APP_WDF_END,
-      APP_WDF_MASK        => APP_WDF_MASK,
-      APP_WDF_WREN        => APP_WDF_WREN,
-      APP_RD_DATA         => APP_RD_DATA,
-      APP_RD_DATA_END     => APP_RD_DATA_END,
-      APP_RD_DATA_VALID   => APP_RD_DATA_VALID,
-      APP_RDY             => APP_RDY,
-      APP_WDF_RDY         => APP_WDF_RDY,
-      APP_SR_REQ          => APP_SR_REQ,
-      APP_REF_REQ         => APP_REF_REQ,
-      APP_ZQ_REQ          => APP_ZQ_REQ,
-      APP_SR_ACTIVE       => APP_SR_ACTIVE,
-      APP_REF_ACK         => APP_REF_ACK,
-      APP_ZQ_ACK          => APP_ZQ_ACK,
-      UI_CLK              => CLK,
-      UI_CLK_SYNC_RST     => MIG_UI_CLK_SYNC_RST,
-      INIT_CALIB_COMPLETE => MIG_INIT_CALIB_COMPLETE,
-      SYS_CLK_I           => CLKMIG,
-      CLK_REF_I           => CLKREF,
-      DEVICE_TEMP_I       => XADC_TEMP,
-      SYS_RST             => MIG_SYS_RST
+      DDR3_ODT     => DDR3_ODT
     );
 
-  MIG_SYS_RST <= (not LOCKED_CLKMIG) or I_BTN(3); -- provisional !
-  
+  HIO : sn_humanio_emu_rbus
+    generic map (
+      SWIDTH   => 16,
+      BWIDTH   =>  5,
+      LWIDTH   => 16,
+      DCWIDTH  =>  3)
+    port map (
+      CLK     => CLK,
+      RESET   => '0',
+      RB_MREQ => RB_MREQ,
+      RB_SRES => RB_SRES_HIO,
+      SWI     => SWI,
+      BTN     => BTN,
+      LED     => LED,
+      DSP_DAT => DSP_DAT,
+      DSP_DP  => DSP_DP
+    );
+
   SMRB: sysmonx_rbus_arty
     generic map (                     -- use default INIT_ (LP: Vccint=0.95)
       CLK_MHZ  => sys_conf_clksys_mhz,
       RB_ADDR  => rbaddr_sysmon)
     port map (
       CLK      => CLK,
-      RESET    => '0',                  -- FIXME: no RESET
+      RESET    => GBL_RESET,
       RB_MREQ  => RB_MREQ,
       RB_SRES  => RB_SRES_SYSMON,
       ALM      => open,
@@ -406,11 +374,12 @@ begin
       RB_SRES => RB_SRES_USRACC
     );
 
-  RB_SRES_OR : rb_sres_or_3             -- rbus or ---------------------------
+  RB_SRES_OR : rb_sres_or_4             -- rbus or ---------------------------
     port map (
       RB_SRES_1  => RB_SRES_TST,
-      RB_SRES_2  => RB_SRES_SYSMON,
-      RB_SRES_3  => RB_SRES_USRACC,
+      RB_SRES_2  => RB_SRES_HIO,
+      RB_SRES_3  => RB_SRES_SYSMON,
+      RB_SRES_4  => RB_SRES_USRACC,
       RB_SRES_OR => RB_SRES
     );
   
@@ -433,17 +402,26 @@ begin
   O_LED(1) <= SER_MONI.txact;
   O_LED(0) <= SER_MONI.rxact;
 
+  DSP_DP(3) <= not SER_MONI.txok;
+  DSP_DP(2) <= SER_MONI.txact;
+  DSP_DP(1) <= not SER_MONI.rxok;
+  DSP_DP(0) <= SER_MONI.rxact;
+
+  DSP_DP(7 downto 4) <= "0010";
+  DSP_DAT(31 downto 16) <= SER_MONI.abclkdiv(11 downto 0) &
+                           '0' & SER_MONI.abclkdiv_f;
+
   -- red LED for serious error conditions
   O_RGBLED0(0) <= R_DIMFLG and (I_BTN(0) or not LOCKED);
   O_RGBLED1(0) <= R_DIMFLG and (I_BTN(0));
-  O_RGBLED2(0) <= R_DIMFLG and (I_BTN(0) or MIG_UI_CLK_SYNC_RST);
-  O_RGBLED3(0) <= R_DIMFLG and (I_BTN(0) or not MIG_INIT_CALIB_COMPLETE);
+  O_RGBLED2(0) <= R_DIMFLG and (I_BTN(0) or MIG_MONI.miguirst);
+  O_RGBLED3(0) <= R_DIMFLG and (I_BTN(0) or MIG_MONI.migcacow);
 
   -- green LED for activity
-  O_RGBLED0(1) <= R_DIMFLG and (I_BTN(1));
-  O_RGBLED1(1) <= R_DIMFLG and (I_BTN(1));
-  O_RGBLED2(1) <= R_DIMFLG and (I_BTN(1) or not APP_RDY);
-  O_RGBLED3(1) <= R_DIMFLG and (I_BTN(1) or not APP_WDF_RDY);
+  O_RGBLED0(1) <= R_DIMFLG and (I_BTN(1) or  MEM_ACT_R);
+  O_RGBLED1(1) <= R_DIMFLG and (I_BTN(1) or  MEM_ACT_W);
+  O_RGBLED2(1) <= R_DIMFLG and (I_BTN(1) or (MIG_MONI.migcbusy xor I_BTN(3)));
+  O_RGBLED3(1) <= R_DIMFLG and (I_BTN(1) or  MIG_MONI.migwbusy);
   
   -- blue LED currently unused
   O_RGBLED0(2) <= R_DIMFLG and (I_BTN(2));
@@ -452,3 +430,4 @@ begin
   O_RGBLED3(2) <= R_DIMFLG and (I_BTN(2));
 
 end syn;
+

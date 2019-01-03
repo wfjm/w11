@@ -1,0 +1,13 @@
+# libs
+../../vlib/slvtypes.vhd
+../../vlib/cdclib/cdclib.vhd
+../mig/miglib.vbom
+miglib_arty.vbom
+# components
+../mig/sramif2migui_core.vbom
+../../vlib/cdclib/cdc_pulse.vbom
+../../vlib/cdclib/cdc_value.vbom
+@tcl:mig_arty.tcl
+[ghdl,vsim]migui_arty_gsim.vbom
+# design
+sramif_mig_arty.vhd

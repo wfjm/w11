@@ -1,6 +1,6 @@
--- $Id: cdclib.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: cdclib.vhd 1101 2019-01-02 21:22:37Z mueller $
 --
--- Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2016-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    clock domain crossing components
 --
 -- Dependencies:   -
--- Tool versions:  viv 2016.1-2016.2; ghdl 0.33
+-- Tool versions:  viv 2016.1-2017.2; ghdl 0.33-0.34
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-01-02  1101   1.0.2  cdc_vector_s0,cdc_pulse interface changed
 -- 2016-06-11   774   1.0.1  add cdc_signal_s1_as; add INIT generic
 -- 2016-04-02   757   1.0    Initial version 
 ------------------------------------------------------------------------------
@@ -55,6 +56,7 @@ component cdc_vector_s0 is              -- cdc for vector (1 stage)
     DWIDTH : positive := 16);           -- data port width
   port (
     CLKO : in slbit;                    -- O|output clock
+    ENA  : in slbit := '1';             -- O|capture enable
     DI   : in slv(DWIDTH-1 downto 0);   -- I|input data
     DO   : out slv(DWIDTH-1 downto 0)   -- O|output data
   );
@@ -89,10 +91,11 @@ component cdc_value is                  -- cdc for value (slow change)
   generic (
     DWIDTH : positive := 16);           -- data port width
   port (
+    CLKI : in slbit;                    -- I|input clock
     CLKO : in slbit;                    -- O|output clock
     DI   : in slv(DWIDTH-1 downto 0);   -- I|input data
     DO   : out slv(DWIDTH-1 downto 0);  -- O|output data
-    DFIX : out slbit                    -- O|output data frozen
+    UPDT : out slbit                    -- O|output data updated
   );
 end component;
 

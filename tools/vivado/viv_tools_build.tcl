@@ -1,10 +1,11 @@
-# $Id: viv_tools_build.tcl 1090 2018-12-21 12:17:35Z mueller $
+# $Id: viv_tools_build.tcl 1099 2018-12-31 09:07:36Z mueller $
 #
 # Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2018-12-30  1099   1.2.4  downgrade SSN critical warnings to warnings
 # 2018-12-19  1090   1.2.3  export log and rpt generated in OOC synthesis runs
 # 2018-11-18  1072   1.2.2  increase message limits (all 200, some 5000)
 # 2016-09-18   809   1.2.1  keep hierarchy for synthesis only runs 
@@ -149,9 +150,9 @@ proc rvtb_default_build {stem step} {
   
   # general setups -----------------------------------------
   #   suppress message which don't convey useful information
-  set_msg_config -suppress -id {DRC 23-20};       # DSP48 output pilelining
-  set_msg_config -suppress -id {Project 1-120};   # WebTalk mandatory
-  set_msg_config -suppress -id {Common 17-186};   # WebTalk info send
+  set_msg_config -suppress -id {[DRC 23-20]};       # DSP48 output pilelining
+  set_msg_config -suppress -id {[Project 1-120]};   # WebTalk mandatory
+  set_msg_config -suppress -id {[Common 17-186]};   # WebTalk info send
   #   set message default limit to 200 (buildin default is 100)
   set_param messaging.defaultLimit 200
   #   set message limit to 5000 for some cases
@@ -159,6 +160,10 @@ proc rvtb_default_build {stem step} {
   #     Synth 8-3332 : Sequential element xxx is unused .. removed from yyy
   set_msg_config -id {[Synth 8-3331]} -limit 5000
   set_msg_config -id {[Synth 8-3332]} -limit 5000
+  #   downgrade 'exceed allowable noise margins' from 'critical' to 'warnings'
+  #   otherwise some MIG designs will not accepted to generate a bit file
+  #   see https://www.xilinx.com/support/answers/36141.html
+  set_msg_config -id {[Designutils 20-923]} -new_severity {WARNING}
   
   # Setup list of extra synthesis options (for later rodinMoreOptions)
   set synth_more_opts {}

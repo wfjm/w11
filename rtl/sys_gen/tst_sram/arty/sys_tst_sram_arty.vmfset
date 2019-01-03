@@ -1,0 +1,83 @@
+# $Id: sys_tst_sram_arty.vmfset 1101 2019-01-02 21:22:37Z mueller $
+#
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+[syn]
+# general issues -----------------------------------------------
+{2018.2:}
+# stupid new warning, Xilinx suggests to safely ingnore
+i [Constraints 18-5210]                                         # generic
+{:}
+
+# false_path -hold ignored by synth ----------------------------
+I [Designutils 20-1567]                                         # generic
+
+# port driven by constant --------------------------------------
+
+# tying undriven pin to constant -------------------------------
+# upper 8 LEDs unused                                           # OK 2018-11-25
+i [Synth 8-3295] HIO:LED[\d*]
+# only few LAMs used                                            # OK 2017-11-25
+i [Synth 8-3295] RLINK:RB_LAM[\d*]
+
+# unconnected ports --------------------------------------------
+I [Synth 8-3331] RB_MREQ                                        # generic
+# --> I_SWI not used                                            # OK 2018-11-25
+i [Synth 8-3331] I_SWI[\d]
+# --> O_LED only partially used                                 # OK 2018-11-25
+i [Synth 8-3331] O_LED[(2|3)]
+# --> MEM_ACK_W not used by current tst_sram                    # OK 2018-11-25
+i [Synth 8-3331] tst_sram.*MEM_ACK_W
+# --> rlink_sp2c doesn't use CE_USEC and CE_MSEC                # OK 2018-11-25
+i [Synth 8-3331] rlink_sp2c.*CE_(USEC|MSEC)
+# --> data end marker not used                                  # OK 2018-12-20
+i [Synth 8-3331] sramif2migui_core .*APP_RD_DATA_END
+
+# sequential element removed (2017.1 nonsense) -----------------
+I [Synth 8-6014] _reg                                           # generic
+
+# unused sequential element ------------------------------------
+I [Synth 8-3332] R_LREGS_reg[attn][\d*]                         # generic
+{:}
+# --> only 18 bit address                                       # OK 2018-12-22
+i [Synth 8-3332] R_REGS_reg[wrtag][1(6|7)].* sramif2migui_core
+i [Synth 8-3332] R_REGS_reg[rdtag][1(6|7)].* sramif2migui_core
+i [Synth 8-3332] R_REGS_reg[req_addr][1(8|9)].* sramif2migui_core
+# --> rdnew only used in MONI, that not used in tst_sram        # OK 2018-12-22
+i [Synth 8-3332] R_REGS_reg[rdnew].* sramif2migui_core
+# --> usec unused                                               # OK 2018-12-22
+i [Synth 8-3332] R_REGS_reg[usec].* sys_tst_sram_arty
+# --> only stat 1,2 used , moneop and monattn unused            # OK 2018-12-22
+i [Synth 8-3332] R_BREGS_reg[stat][(2|3)].* sys_tst_sram_arty
+i [Synth 8-3332] R_LREGS_reg[(moneop|monattn)].* sys_tst_sram_arty
+# --> not all led etc used in HIO emu                           # OK 2018-12-22
+i [Synth 8-3332] R_REGS_reg[led][\d*].* sys_tst_sram_arty
+i [Synth 8-3332] R_REGS_reg[dsp_dp][\d*].* sys_tst_sram_arty
+i [Synth 8-3332] R_REGS_reg[dsp_dat][\d*].* sys_tst_sram_arty
+{:}
+
+# messages from MIG core  ------------------------------------
+#c [Synth 8-3331] mig_7series_v4
+#c [Synth 8-3332] u_migui_arty_mig
+#c [Synth 8-3332] mig_7series_v4
+#c [Synth 8-3295] u_migui_arty_mig
+#c [Synth 8-3295] ip/migui_arty/migui_arty
+#c [Synth 8-3936] ip/migui_arty/migui_arty
+#c [Synth 8-3848] mig_7series_v4
+#c [Synth 8-5856] 3D RAM
+#{2018.2}
+#c [Synth 8-6104] mig_7series_v4
+#{:}
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+[imp]
+I [Vivado 12-2489]                                # multiple of 1 ps
+I [Physopt 32-742]                                # BRAM Flop Optimization
+{:2017.2}
+# --> spurious Invalid VCCINTIO messages                        # OK 2018-11-25
+i [Designutils 20-266] Invalid Voltage Source VCCINTIO
+{:}
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+[bit]
+# see https://www.xilinx.com/support/answers/64180.html         # OK 2018-12-22
+i [DRC REQP-1709] PLLE2_ADV

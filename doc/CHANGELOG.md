@@ -26,13 +26,16 @@ The full set of tests is only run for tagged releases.
 
 ### New features
 - new systems
-  - sys_tst_mig_arty design: a MIG tester
+  - sys_tst_mig_arty: low level MIG interface test
+  - sys_tst_sram_arty: memory test
 - new components
   - s7_cmt_sfs_2: dual-channel frequency synthesis MMCM/PLL wrapper
   - s7_cmt_1ce1ce2c: clocking block for 7-Series: 2 clk+CEs + 2 clk
   - cdc_signal_s1_as: clock domain crossing for a signal, 2 stage, asyn input
+  - cdc_pulse: clock domain crossing for a slowly changing value
   - migui_core_gsim: highly simplified MIG UI simulation model
   - sramif2migui_core: w11a SRAM to MIG UI interface core
+  - sramif_mig_arty: SRAM to DDR via MIG adapter for arty
 
 ### Changes
 - general
@@ -41,9 +44,11 @@ The full set of tests is only run for tagged releases.
     - use xenial in matrix
   - Makefile: drop boost includes and libs (boost not used anymore)
 - tools changes
-  - viv_tools_build
+  - viv_tools_build.tcl
     - export log and rpt generated in OOC synthesis runs
     - downgrade SSN critical warnings to warnings
+- firmware changes
+  - cdc_vector_s0: add ENA port (now used in cdc_pulse)
 
 ### Bug Fixes
 - nexys4d_pins.xdc: BUFFIX: Fix faulty IO voltage for I_SWI[8,9]

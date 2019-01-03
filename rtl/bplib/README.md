@@ -4,6 +4,7 @@ and is organized in
 | Directory | Content |
 | --------- | ------- |
 | [arty](arty)           | support for Digilent Arty board |
+| [artys7](artys7)       | support for Digilent Arty S7 board |
 | [atlys](atlys)         | support for Digilent Atlys board |
 | [basys3](basys3)       | support for Digilent Basys3 board |
 | [bpgen](bpgen)         | interfaces for IO devices common on Digilent boards |

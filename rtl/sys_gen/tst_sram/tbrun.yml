@@ -1,10 +1,12 @@
-# $Id: tbrun.yml 917 2017-06-25 18:05:28Z mueller $
+# $Id: tbrun.yml 1101 2019-01-02 21:22:37Z mueller $
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2019-01-02  1101   1.2    add arty
 # 2017-06-25   917   1.1    add cmoda7
 # 2016-08-13   798   1.0    Initial version
 #
+- include: arty/tb/tbrun.yml
 - include: s3board/tb/tbrun.yml
 - include: nexys2/tb/tbrun.yml
 - include: nexys3/tb/tbrun.yml

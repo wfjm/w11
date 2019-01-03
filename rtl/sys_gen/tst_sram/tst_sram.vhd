@@ -1,4 +1,4 @@
--- $Id: tst_sram.vhd 1092 2018-12-24 08:01:50Z mueller $
+-- $Id: tst_sram.vhd 1101 2019-01-02 21:22:37Z mueller $
 --
 -- Copyright 2007-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 --                 vlib/memlib/ram_2swsr_wfirst_gen
 --
 -- Test bench:     arty/tb/tb_tst_sram_arty       (with ddr3 via mig)
+--                 nexys4d/tb/tb_tst_mig_n4d      (with ddr2 via mig)
 --                 cmoda7/tb/tb_tst_sram_c7       (with sram)
 --                 nexys4/tb/tb_tst_sram_n4       (with cram)
 --                 nexys3/tb/tb_tst_sram_n3       (with cram)

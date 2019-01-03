@@ -1,6 +1,6 @@
--- $Id: cdc_vector_s0.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: cdc_vector_s0.vhd 1101 2019-01-02 21:22:37Z mueller $
 --
--- Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2016-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,9 +18,10 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  viv 2015.4; ghdl 0.33
+-- Tool versions:  viv 2015.4-2017.2; ghdl 0.33-0.34
 -- Revision History: 
 -- Date         Rev Version    Comment
+-- 2019-01-02  1101   1.1      add ENA port
 -- 2016-04-08   459   1.0      Initial version
 -- 
 ------------------------------------------------------------------------------
@@ -35,6 +36,7 @@ entity cdc_vector_s0 is                  -- cdc for vector (1 stage)
     DWIDTH : positive := 16);            -- data port width
   port (
     CLKO : in slbit;                     -- O|output clock
+    ENA  : in slbit := '1';              -- O|capture enable
     DI   : in slv(DWIDTH-1 downto 0);    -- I|input data
     DO   : out slv(DWIDTH-1 downto 0)    -- O|output data
   );
@@ -56,7 +58,9 @@ begin
   proc_regs: process (CLKO)
   begin
     if rising_edge(CLKO) then
-      R_DO_S0 <= DI;                -- synch 0: CLKI->CLKO
+      if ENA = '1' then
+        R_DO_S0 <= DI;              -- synch 0: CLKI->CLKO
+      end if;
     end if;
   end process proc_regs;
 

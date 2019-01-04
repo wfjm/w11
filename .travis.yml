@@ -17,7 +17,7 @@ matrix:
           packages: g++-7
       env: MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
 
-    - name: "Ub 16.04 -- clang 5.0.0"
+    - name: "Ub 16.04 -- clang 7.0.0"
       dist: xenial
       env: MATRIX_EVAL="CC=clang && CXX=clang++"
 

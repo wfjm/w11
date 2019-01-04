@@ -1,0 +1,9 @@
+# configure tb_arty_dram with sys_w11a_arty target;
+# use vhdl configure file (tb_w11a_arty.vhd) to allow
+# that all configurations will co-exist in work library
+# configure
+arty_dram_aif = ../sys_w11a_arty.vbom
+sys_conf = sys_conf_sim.vhd
+# design
+../../../../bplib/arty/tb/tb_arty_dram.vbom
+tb_w11a_arty.vhd

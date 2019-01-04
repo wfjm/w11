@@ -23,11 +23,13 @@ The full set of tests is only run for tagged releases.
 ### Summary
 - add support DDR memory via Vivado MIG cores
   - arty board support
+  - add w11a, tst_sram and tst_mig systems
 
 ### New features
 - new systems
   - sys_tst_mig_arty: low level MIG interface test
   - sys_tst_sram_arty: memory test
+  - sys_w11a_arty: w11a with full 3840 MB memory
 - new components
   - s7_cmt_sfs_2: dual-channel frequency synthesis MMCM/PLL wrapper
   - s7_cmt_1ce1ce2c: clocking block for 7-Series: 2 clk+CEs + 2 clk

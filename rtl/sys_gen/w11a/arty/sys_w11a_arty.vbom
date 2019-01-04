@@ -1,0 +1,35 @@
+# libs
+../../../vlib/slvtypes.vhd
+../../../vlib/cdclib/cdclib.vhd
+../../../vlib/serport/serportlib.vbom
+../../../vlib/rbus/rblib.vhd
+../../../vlib/rbus/rbdlib.vhd
+../../../vlib/rlink/rlinklib.vbom
+../../../bplib/bpgen/bpgenlib.vbom
+../../../bplib/sysmon/sysmonrbuslib.vbom
+../../../bplib/mig/miglib.vbom
+../../../bplib/arty/miglib_arty.vbom
+../../../ibus/iblib.vhd
+../../../ibus/ibdlib.vhd
+../../../w11a/pdp11.vhd
+${sys_conf := sys_conf.vhd}
+@lib:unisim
+# components
+../../../bplib/bpgen/s7_cmt_1ce1ce2c.vbom
+../../../vlib/cdclib/cdc_signal_s1_as.vbom
+../../../bplib/bpgen/bp_rs232_2line_iob.vbom
+../../../vlib/rlink/rlink_sp2c.vbom
+../../../w11a/pdp11_sys70.vbom
+../../../ibus/ibdr_maxisys.vbom
+../../../bplib/arty/sramif_mig_arty.vbom
+../../../vlib/rlink/ioleds_sp1c.vbom
+../arty_bram/pdp11_hio70_arty.vbom
+../../../bplib/bpgen/bp_swibtnled.vbom
+../../../bplib/bpgen/rgbdrv_3x4mux.vbom
+../../../bplib/sysmon/sysmonx_rbus_arty.vbom
+../../../vlib/rbus/rbd_usracc.vbom
+../../../vlib/rbus/rb_sres_or_3.vbom
+# design
+sys_w11a_arty.vhd
+@xdc:../../../bplib/arty/arty_pclk.xdc
+@xdc:../../../bplib/arty/arty_pins.xdc

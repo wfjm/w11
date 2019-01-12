@@ -1,7 +1,7 @@
 # -*- tcl -*-
-# $Id: nexys4d_pins.xdc 838 2017-01-04 20:57:57Z mueller $
+# $Id: nexys4d_pins.xdc 1099 2018-12-31 09:07:36Z mueller $
 #
-# Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Nexys 4DDR core functionality
@@ -14,6 +14,7 @@
 #
 # Revision History: 
 # Date         Rev Version  Comment
+# 2018-12-30  1099   1.1    BUFFIX: Fix faulty IO voltage for I_SWI[8,9]
 # 2017-01-04   838   1.0    Initial version
 #
 
@@ -38,7 +39,7 @@ set_property DRIVE 12   [get_ports {O_TXD O_RTS_N}]
 set_property SLEW SLOW  [get_ports {O_TXD O_RTS_N}]
 
 #
-# switches -- in bank 14+15 -------------------------------------------------
+# switches -- in bank 14+15+34 -------------------------------------------------
 set_property PACKAGE_PIN j15 [get_ports {I_SWI[0]}]
 set_property PACKAGE_PIN l16 [get_ports {I_SWI[1]}]
 set_property PACKAGE_PIN m13 [get_ports {I_SWI[2]}]
@@ -56,7 +57,9 @@ set_property PACKAGE_PIN u12 [get_ports {I_SWI[13]}]
 set_property PACKAGE_PIN u11 [get_ports {I_SWI[14]}]
 set_property PACKAGE_PIN v10 [get_ports {I_SWI[15]}]
 
-set_property IOSTANDARD LVCMOS33 [get_ports {I_SWI[*]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {I_SWI[*]}]; # bank 14+15
+set_property IOSTANDARD LVCMOS18 [get_ports {I_SWI[8]}]; # bank 34
+set_property IOSTANDARD LVCMOS18 [get_ports {I_SWI[9]}]; # bank 34
 
 #
 # buttons -- in bank 14+15 --------------------------------------------------

@@ -21,9 +21,10 @@ software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
 ### Summary
-- add support DDR memory via Vivado MIG cores
-  - arty board support
-  - add w11a, tst_sram and tst_mig systems
+- add support for DDR memory via Vivado MIG cores for
+  - Digilent Arty
+  - Digilent Nexys4 DDR
+- add a low level MIG interface test design
 
 ### New features
 - new systems

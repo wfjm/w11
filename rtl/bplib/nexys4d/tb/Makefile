@@ -1,10 +1,10 @@
-# $Id: Makefile 838 2017-01-04 20:57:57Z mueller $
+# $Id: Makefile 1099 2018-12-31 09:07:36Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
 # 2017-01-04   838   1.0    Initial version
 #
-EXE_all = tb_nexys4d_dummy
+EXE_all = tb_nexys4d_dummy tb_nexys4d_dram_dummy
 #
 include ${RETROBASE}/rtl/make_viv/viv_default_nexys4d.mk
 #

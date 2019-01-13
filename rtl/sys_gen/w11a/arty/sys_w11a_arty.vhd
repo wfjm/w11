@@ -1,4 +1,4 @@
--- $Id: sys_w11a_arty.vhd 1101 2019-01-02 21:22:37Z mueller $
+-- $Id: sys_w11a_arty.vhd 1105 2019-01-12 19:52:45Z mueller $
 --
 -- Copyright 2018-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,7 +13,7 @@
 --
 ------------------------------------------------------------------------------
 -- Module Name:    sys_w11a_arty - syn
--- Description:    w11a test design for arty (with dram via mig)
+-- Description:    w11a design for arty (with dram via mig)
 --
 -- Dependencies:   bplib/bpgen/s7_cmt_1ce1ce2c
 --                 cdclib/cdc_signal_s1_as
@@ -115,7 +115,7 @@ use unisim.vcomponents.ALL;
 -- ----------------------------------------------------------------------------
 
 entity sys_w11a_arty is                 -- top level
-                                        -- implements arty_aif
+                                        -- implements arty_dram_aif
   port (
     I_CLK100 : in slbit;                -- 100 MHz clock
     I_RXD : in slbit;                   -- receive data (board view)

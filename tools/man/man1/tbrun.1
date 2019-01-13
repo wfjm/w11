@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: tbrun.1 1069 2018-11-16 17:11:30Z mueller $
+.\"  $Id: tbrun.1 1102 2019-01-03 08:46:04Z mueller $
 .\"
-.\" Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2016-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH TBRUN 1 2018-11-16 "Retro Project" "Retro Project Manual"
+.TH TBRUN 1 2019-01-03 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 tbrun \- test bench driver
@@ -172,6 +172,10 @@ which generates progress line output only when stdout is a terminal
 device.
 Using shell pipes and \fBtee\fP(1) will therefore prevent progress lines,
 use the \fB\-\-tee\fP instead to save the output into a file.
+.
+.\" -- --list ------------------------------------
+.IP \fB\-\-list\fP
+list selected tags and quit.
 .
 .\" -- --dry -------------------------------------
 .IP \fB\-\-dry\fP

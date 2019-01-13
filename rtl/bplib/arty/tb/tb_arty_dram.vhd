@@ -1,4 +1,4 @@
--- $Id: tb_arty_dram.vhd 1069 2018-11-16 17:11:30Z mueller $
+-- $Id: tb_arty_dram.vhd 1105 2019-01-12 19:52:45Z mueller $
 --
 -- Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,7 +19,7 @@
 --                 simlib/simclkcnt
 --                 rlink/tbcore/tbcore_rlink
 --                 xlib/sfs_gsim_core
---                 tb_basys3_core
+--                 tb_arty_core
 --                 serport/tb/serport_master_tb
 --                 arty_dram_aif [UUT]
 --

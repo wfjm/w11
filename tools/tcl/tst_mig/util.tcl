@@ -1,6 +1,6 @@
-# $Id: util.tcl 1101 2019-01-02 21:22:37Z mueller $
+# $Id: util.tcl 1103 2019-01-04 13:18:54Z mueller $
 #
-# Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2018-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-01-04  1103   1.0.2  add defs for CNTL cmd field
 # 2019-01-02  1101   1.0.1  test_rwait: add optional lena argument
 # 2018-12-28  1096   1.0    Initial version
 # 2018-12-24  1093   0.1    First draft
@@ -34,7 +35,8 @@ namespace eval tst_mig {
   #
   # setup register descriptions for tst_mig core design ----------------------
   # 
-  regdsc CNTL  {cmd 15 3} {wren 12} {dwend 11} \
+  regdsc CNTL  {cmd 15 3 "s:WR:RD:F2:F3:F4:F5:F6:F7"} \
+               {wren 12} {dwend 11} \
                {func 3 4 \
             "s:NOOP:RD:WR:PAT:REF:CAL:CMD:WREN:F8:F9:F10:F11:F12:F13:F14:F15"}
   regdsc STAT  {zqpend 6} {refpend 5} {rdend 4} \

@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: tbrun 1097 2018-12-29 11:20:14Z mueller $
+# $Id: tbrun 1103 2019-01-04 13:18:54Z mueller $
 #
-# Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2016-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-01-04  1103   1.1.3  add --list option
 # 2018-12-29  1097   1.1.2  show correct 'found count' in summary message
 # 2018-11-16  1069   1.1.1  add --all
 # 2018-11-09  1066   1.1    add and use bailout; update exit code usage
@@ -35,7 +36,7 @@ use Time::HiRes qw(gettimeofday);
 my %opts = ();
 
 GetOptions(\%opts, "tag=s@", "exclude=s@", "mode=s", "all",
-           "jobs=i", "tee=s", "tmax=i", "dry", "trace",
+           "jobs=i", "tee=s", "tmax=i", "dry", "list", "trace",
            "nomake", "norun",
            "rlmon", "rbmon", "bwait=i", "swait=i",
            "help"
@@ -117,6 +118,12 @@ $ntest = scalar(@tlist);
 unless ($ntest) {
   tpre(sprintf "tbrun-E: %d tests found, none selected\n", $nseen);
   exit 1;
+}
+
+if (defined $opts{list}) {
+  foreach my $titem (@tlist) { tpr("$titem->{tmsg}\n"); }
+  tpr(sprintf "#tbrun-I: %d tests found, %d selected\n", $nseen,$ntest);
+  exit 0;
 }
 
 if (defined $opts{jobs}) {

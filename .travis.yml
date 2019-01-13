@@ -78,8 +78,10 @@ script:
       -tag default,sys_tst_mig,base \
       -tag default,sys_tst_sram,base \
       -tag default,sys_tst_sram,n4 \
+      -tag default,sys_tst_sram,arty \
       -tag default,sys_w11a,stim1 \
-      -tag default,sys_w11a,n4
+      -tag default,sys_w11a,n4 \
+      -tag default,sys_w11a,arty
   - tbfilt -all -sum -comp
 #
   - .travis/deploy.sh

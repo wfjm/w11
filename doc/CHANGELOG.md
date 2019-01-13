@@ -50,6 +50,8 @@ The full set of tests is only run for tagged releases.
   - viv_tools_build.tcl
     - export log and rpt generated in OOC synthesis runs
     - downgrade SSN critical warnings to warnings
+  - tbrun: add --list option
+  - ti_w11: add add -ar,-n4d (ddr versions)
 - firmware changes
   - cdc_vector_s0: add ENA port (now used in cdc_pulse)
 

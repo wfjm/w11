@@ -1,11 +1,12 @@
 #!/usr/bin/perl -w
-# $Id: ti_w11 1089 2018-12-19 10:45:41Z mueller $
+# $Id: ti_w11 1103 2019-01-04 13:18:54Z mueller $
 #
-# Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-01-04  1103   1.4.3  add -ar,-n4d (ddr versions)
 # 2017-06-25   916   1.4.2  add -c7 (cmoda7 support)
 # 2017-01-08   843   1.4.1  allow -tuD,.... for Digilent autodetect; add -bn4d
 # 2016-12-31   834   1.4    use rw11::shell by default; add -ns to suppress it
@@ -51,7 +52,9 @@ my $val_tb_b3   = "tbw $sysbase/basys3/tb/tb_w11a_b3 -fifo";
 my $val_tb_n4   = "tbw $sysbase/nexys4/tb/tb_w11a_n4 -fifo";
 my $val_tb_bn4  = "tbw $sysbase/nexys4_bram/tb/tb_w11a_br_n4 -fifo";
 my $val_tb_bn4d = "tbw $sysbase/nexys4d_bram/tb/tb_w11a_br_n4d -fifo";
+my $val_tb_n4d  = "tbw $sysbase/nexys4d/tb/tb_w11a_n4d -fifo";
 my $val_tb_bar  = "tbw $sysbase/arty_bram/tb/tb_w11a_br_arty -fifo";
+my $val_tb_ar   = "tbw $sysbase/arty/tb/tb_w11a_arty -fifo";
 my $val_tb_c7   = "tbw $sysbase/cmoda7/tb/tb_w11a_c7 -fifo";
 my $val_tb;
 my $val_e;
@@ -120,16 +123,28 @@ while (scalar(@ARGV)) {
     $val_tb = $val_tb_bn4;
     shift @ARGV;
 
-  } elsif ($curarg =~ m{^-bn4s$} ) {	    # -bn4d (prim serport fine)
+  } elsif ($curarg =~ m{^-bn4d$} ) {	    # -bn4d (prim serport fine)
     $opt_io = 'f';
     $opt_f  = '1';
     $val_tb = $val_tb_bn4d;
+    shift @ARGV;
+
+  } elsif ($curarg =~ m{^-n4d$} ) {	    # -n4d (prim serport fine)
+    $opt_io = 'f';
+    $opt_f  = '1';
+    $val_tb = $val_tb_n4d;
     shift @ARGV;
 
   } elsif ($curarg =~ m{^-bar$} ) {	    # -bar (use -fx by default)
     $opt_io = 'f';
     $opt_f  = 'x';
     $val_tb = $val_tb_bar;
+    shift @ARGV;
+
+  } elsif ($curarg =~ m{^-ar$} ) {	    # -ar (use -fx by default)
+    $opt_io = 'f';
+    $opt_f  = 'x';
+    $val_tb = $val_tb_ar;
     shift @ARGV;
 
   } elsif ($curarg =~ m{^-c7$} ) {	    # -c7 (use -fx by default)

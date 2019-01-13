@@ -1,6 +1,6 @@
-# $Id: test_mem.tcl 1096 2018-12-29 07:54:17Z mueller $
+# $Id: test_mem.tcl 1103 2019-01-04 13:18:54Z mueller $
 #
-# Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2018-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-01-04  1103   1.1    add very basic low level interface tests
 # 2018-12-28  1096   1.0    Initial version
 #
 
@@ -94,6 +95,37 @@ namespace eval tst_mig {
       -rreg mt.xwait calwait
     rlc log [format "    # rwait: %2d  refwait: %2d  calwait: %2d" \
                $rwait $refwait $calwait]
+    #
+    #-------------------------------------------------------------------------
+    rlc log "  test 5: CMD function - low level write/read"
+    rlc exec \
+      -wreg mt.mask    0x0000 \
+      -wreg mt.addrh   0x0000 \
+      -wreg mt.addrl   0x4400 \
+      -wreg mt.datwr0  0x4400 \
+      -wreg mt.datwr1  0x4401 \
+      -wreg mt.datwr2  0x4402 \
+      -wreg mt.datwr3  0x4403 \
+      -wreg mt.cntl [regbld tst_mig::CNTL wren {cmd "WR"} {func "CMD"}] \
+      -wreg mt.addrl   0x4500 \
+      -wreg mt.datwr0  0x4500 \
+      -wreg mt.datwr1  0x4501 \
+      -wreg mt.datwr2  0x4502 \
+      -wreg mt.datwr3  0x4503 \
+      -wreg mt.cntl [regbld tst_mig::CNTL wren {cmd "WR"} {func "CMD"}]
+    rlc exec \
+      -wreg mt.addrl   0x4400 \
+      -wreg mt.cntl [regbld tst_mig::CNTL {cmd "RD"} {func "CMD"}] \
+      -rreg mt.datrd0  -edata 0x4400 \
+      -rreg mt.datrd1  -edata 0x4401 \
+      -rreg mt.datrd2  -edata 0x4402 \
+      -rreg mt.datrd3  -edata 0x4403 \
+      -wreg mt.addrl   0x4500 \
+      -wreg mt.cntl [regbld tst_mig::CNTL {cmd "RD"} {func "CMD"}] \
+      -rreg mt.datrd0  -edata 0x4500 \
+      -rreg mt.datrd1  -edata 0x4501 \
+      -rreg mt.datrd2  -edata 0x4502 \
+      -rreg mt.datrd3  -edata 0x4503
 
     #
     #-------------------------------------------------------------------------

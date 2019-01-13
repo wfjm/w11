@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: ti_w11.1 916 2017-06-25 13:30:07Z mueller $
+.\"  $Id: ti_w11.1 1103 2019-01-04 13:18:54Z mueller $
 .\"
-.\" Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH TI_W11 1 2017-06-25 "Retro Project" "Retro Project Manual"
+.TH TI_W11 1 2019-01-04 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 ti_w11 \- Quick starter for \fBti_rri\fP with \fBw11\fP CPU designs
@@ -61,18 +61,24 @@ start \fItb_w11a_c7\fP simulation (Cmod A7, default \fB-fx\fP)
 start \fItb_w11a_b3\fP simulation (Basys3, default \fB-fx\fP)
 .IP \fB-n4\fP
 start \fItb_w11a_n4\fP simulation (Nexys4)
-.IP \fB-bn4\fP
-start \fItb_w11a_br_n4\fP simulation (Nexys4, BRAM only)
-.IP \fB-bn4d\fP
-start \fItb_w11a_br_n4d\fP simulation (Nexys4 DDR, BRAM only)
-.IP \fB-bar\fP
-start \fItb_w11a_br_arty\fP simulation (Arty, BRAM only, default \fB-fx\fP)
+.IP \fB-n4d\fP
+start \fItb_w11a_n4d\fP simulation (Nexys4 DDR)
+.IP \fB-ar\fP
+start \fItb_w11a_arty\fP simulation (Arty, default \fB-fx\fP)
 .IP \fB-n3\fP
 start \fItb_w11a_n3\fP simulation (Nexys3, default \fB-fc\fP)
 .IP \fB-n2\fP
 start \fItb_w11a_n2\fP simulation (Nexys2, default \fB-fc\fP)
 .IP \fB-s3\fP
 start \fItb_w11a_s3\fP simulation (S3board, default \fB-f2\fP)
+.PD
+.IP \fB-bn4\fP
+start \fItb_w11a_br_n4\fP simulation (Nexys4, BRAM only)
+.PD 0
+.IP \fB-bn4d\fP
+start \fItb_w11a_br_n4d\fP simulation (Nexys4 DDR, BRAM only)
+.IP \fB-bar\fP
+start \fItb_w11a_br_arty\fP simulation (Arty, BRAM only, default \fB-fx\fP)
 .PD
 .IP \fB-f\fIm\fR
 select communication mode for simulation. The \fB-f\fIm\fR can be used after

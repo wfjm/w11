@@ -1,0 +1,9 @@
+# configure tb_nexys4d_dram with sys_tst_mig_nexys4d target;
+# use vhdl configure file (tb_tst_mig_nexys4d.vhd) to allow
+# that all configurations will co-exist in work library
+# configure
+nexys4d_dram_aif = ../sys_tst_mig_n4d.vbom
+sys_conf = sys_conf_sim.vhd
+# design
+../../../../bplib/nexys4d/tb/tb_nexys4d_dram.vbom
+tb_tst_mig_n4d.vhd

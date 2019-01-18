@@ -1,0 +1,7 @@
+# $Id: tbw.dat 1104 2019-01-06 09:17:06Z mueller $
+#
+[tb_tst_mig_n4d]
+rlink_cext_fifo_rx = <fifo>
+rlink_cext_fifo_tx = <fifo>
+rlink_cext_conf = <null>
+sysmon_stim = ../../../../bplib/sysmon/tb/sysmon_stim_n4.dat

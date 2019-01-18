@@ -1,7 +1,8 @@
-# $Id: tbrun.yml 1092 2018-12-24 08:01:50Z mueller $
+# $Id: tbrun.yml 1103 2019-01-04 13:18:54Z mueller $
 #
 # Revision History:
 # Date         Rev Version  Comment
 # 2018-12-23  1092   1.0    Initial version
 #
 - include: arty/tb/tbrun.yml
+- include: nexys4d/tb/tbrun.yml

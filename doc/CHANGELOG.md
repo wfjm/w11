@@ -28,9 +28,12 @@ The full set of tests is only run for tagged releases.
 
 ### New features
 - new systems
-  - sys_tst_mig_arty: low level MIG interface test
-  - sys_tst_sram_arty: memory test
-  - sys_w11a_arty: w11a with full 3840 MB memory
+  - for Digilent Arty (classic and A7)
+    - sys_tst_mig_arty: low level MIG interface test
+    - sys_tst_sram_arty: memory test
+    - sys_w11a_arty: w11a with full 3840 MB memory
+  - for Digilent Nexys4 DDR
+    - sys_tst_mig_n4d: low level MIG interface test
 - new components
   - s7_cmt_sfs_2: dual-channel frequency synthesis MMCM/PLL wrapper
   - s7_cmt_1ce1ce2c: clocking block for 7-Series: 2 clk+CEs + 2 clk

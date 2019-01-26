@@ -34,6 +34,7 @@ The full set of tests is only run for tagged releases.
     - sys_w11a_arty: w11a with full 3840 MB memory
   - for Digilent Nexys4 DDR
     - sys_tst_mig_n4d: low level MIG interface test
+    - sys_tst_sram_n4d: memory test
 - new components
   - s7_cmt_sfs_2: dual-channel frequency synthesis MMCM/PLL wrapper
   - s7_cmt_1ce1ce2c: clocking block for 7-Series: 2 clk+CEs + 2 clk

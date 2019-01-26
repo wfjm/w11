@@ -1,8 +1,8 @@
-# $Id: tbrun.yml 1101 2019-01-02 21:22:37Z mueller $
+# $Id: tbrun.yml 1103 2019-01-04 13:18:54Z mueller $
 #
 # Revision History:
 # Date         Rev Version  Comment
-# 2019-01-02  1101   1.2    add arty
+# 2019-01-04  1103   1.2    add arty,nexys4d
 # 2017-06-25   917   1.1    add cmoda7
 # 2016-08-13   798   1.0    Initial version
 #
@@ -11,4 +11,5 @@
 - include: nexys2/tb/tbrun.yml
 - include: nexys3/tb/tbrun.yml
 - include: nexys4/tb/tbrun.yml
+- include: nexys4d/tb/tbrun.yml
 - include: cmoda7/tb/tbrun.yml

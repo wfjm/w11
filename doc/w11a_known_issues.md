@@ -5,7 +5,7 @@ General issues are listed on a separate document
 
 This file descibes issues of the w11 CPU.
 
-###Table of content
+### Table of content
 
 - [Known differences between w11a and KB11-C (11/70)](#user-content-diff)
 - [Known limitations](#user-content-lim)
@@ -16,12 +16,13 @@ This file descibes issues of the w11 CPU.
 - the `SPL` instruction in the 11/70 always fetched the next instruction
   regardless of pending device or even console interrupts. This is known
   as the infamous _spl bug_, see
-  - http://minnie.tuhs.org/pipermail/tuhs/2006-September/001086.html
-  - http://minnie.tuhs.org/pipermail/tuhs/2006-October/001087.html
-  - http://minnie.tuhs.org/pipermail/tuhs/2006-October/001088.html
-  - http://minnie.tuhs.org/pipermail/tuhs/2006-October/001089.html
-  - http://minnie.tuhs.org/pipermail/tuhs/2006-October/001095.html
-  - http://minnie.tuhs.org/pipermail/tuhs/2006-October/001096.html
+  - https://minnie.tuhs.org/pipermail/tuhs/2006-September/002692.html
+  - https://minnie.tuhs.org/pipermail/tuhs/2006-October/002693.html
+  - https://minnie.tuhs.org/pipermail/tuhs/2006-October/002694.html
+  - https://minnie.tuhs.org/pipermail/tuhs/2006-October/002695.html
+  - https://minnie.tuhs.org/pipermail/tuhs/2006-October/002701.html
+  - https://minnie.tuhs.org/pipermail/tuhs/2006-October/002695.html
+  - https://minnie.tuhs.org/pipermail/tuhs/2006-October/002702.html
 
   In the w11a the `SPL` has 11/70 semantics in kernel mode, thus next no 
   traps or interrupts, but in supervisor and user mode `SPL` really acts as 

@@ -141,7 +141,8 @@ work areas, but in general this is not needed (since V0.73).
 
 Notes:
 - Many post-synthesis functional currently fail due to startup and 
-  initialization problems (see issue V0.73-2).
+  initialization problems
+  (see [issue #10](https://github.com/wfjm/w11/issues/10)).
 
 #### <a id="buildtb-xsim">With Vivado xsim</a>
 
@@ -169,10 +170,12 @@ functional and timing models.
 
 Notes:
 - as of vivado 2016.2 `xelab` shows sometimes extremely long build times, 
-  especially for generated post-synthesis vhdl models (see issue V0.73-1).
+  especially for generated post-synthesis vhdl models
+  (see [issue #9](https://github.com/wfjm/w11/issues/9)).
 - Many post-synthesis functional and especially post-routing timing 
   simulations currently fail due to startup and initialization problems
-  (see issue V0.73-2).
+  (see [issue #10](https://github.com/wfjm/w11/issues/10)).
+
  
 ### <a id="buildfpga">Building FPGA bit files</a>
 

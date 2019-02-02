@@ -1,6 +1,6 @@
--- $Id: artys7lib.vhd 1105 2019-01-12 19:52:45Z mueller $
+-- $Id: artys7_dram_dummy.vhd 1105 2019-01-12 19:52:45Z mueller $
 --
--- Copyright 2018-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -10,18 +10,19 @@
 -- WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
 -- or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 -- for complete details.
---
-------------------------------------------------------------------------------
--- Package Name:   artys7lib
--- Description:    Digilent Arty S7 components
 -- 
+------------------------------------------------------------------------------
+-- Module Name:    artys7_dram_dummy - syn
+-- Description:    artys7target (base; serport loopback, dram project)
+--
 -- Dependencies:   -
--- Tool versions:  viv 2017.2-2018.2; ghdl 0.34-0.35
+-- To test:        tb_artys7_dram
+-- Target Devices: generic
+-- Tool versions:  viv 2017.2; ghdl 0.35
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2019-01-12  1105   1.1    add artys7_dram_aif
--- 2018-08-05  1028   1.0    Initial version 
+-- 2019-01-12  1105   1.0    Initial version (cloned from artys7)
 ------------------------------------------------------------------------------
 
 library ieee;
@@ -29,24 +30,10 @@ use ieee.std_logic_1164.all;
 
 use work.slvtypes.all;
 
-package artys7lib is
-
-component artys7_aif is                 -- ARTY S7, abstract iface, base
+entity artys7_dram_dummy is             -- ARTY S7 dummy (base+dram)
+                                        -- implements artys7_dram_aif
   port (
-    I_CLK100 : in slbit;                -- 100 MHz clock
-    I_RXD : in slbit;                   -- receive data (board view)
-    O_TXD : out slbit;                  -- transmit data (board view)
-    I_SWI : in slv4;                    -- artys7 switches
-    I_BTN : in slv4;                    -- artys7 buttons
-    O_LED : out slv4;                   -- artys7 leds
-    O_RGBLED0 : out slv3;               -- artys7 rgb-led 0
-    O_RGBLED1 : out slv3                -- artys7 rgb-led 1
-  );
-end component;
-
-component artys7_dram_aif is            -- ARTY S7, abstract iface, base+dram
-  port (
-    I_CLK100 : in slbit;                -- 100 MHz clock
+    I_CLK100 : in slbit;                -- 100 MHz board clock
     I_RXD : in slbit;                   -- receive data (board view)
     O_TXD : out slbit;                  -- transmit data (board view)
     I_SWI : in slv4;                    -- artys7 switches
@@ -70,6 +57,33 @@ component artys7_dram_aif is            -- ARTY S7, abstract iface, base+dram
     DDR3_DM      : out   slv2;          -- dram: data input mask
     DDR3_ODT     : out   slv1           -- dram: on-die termination
   );
-end component;
+end artys7_dram_dummy;
 
-end package artys7lib;
+architecture syn of artys7_dram_dummy is
+  
+begin
+
+  O_TXD    <= I_RXD;                    -- loop back serport
+
+  O_LED    <= I_SWI;                    -- mirror SWI on LED
+
+  O_RGBLED0 <= I_BTN(2 downto 0);       -- mirror BTN on RGBLED0
+  O_RGBLED1 <= (others=>'0');
+
+  DDR3_DQ      <= (others=>'Z');
+  DDR3_DQS_P   <= (others=>'Z');
+  DDR3_DQS_N   <= (others=>'Z');
+  DDR3_ADDR    <= (others=>'0');
+  DDR3_BA      <= (others=>'0');
+  DDR3_RAS_N   <= '1';
+  DDR3_CAS_N   <= '1';
+  DDR3_WE_N    <= '1';
+  DDR3_RESET_N <= '1';
+  DDR3_CK_P    <= (others=>'0');
+  DDR3_CK_N    <= (others=>'1');
+  DDR3_CKE     <= (others=>'0');
+  DDR3_CS_N    <= (others=>'1');
+  DDR3_DM      <= (others=>'0');
+  DDR3_ODT     <= (others=>'0');
+
+end syn;

@@ -1,10 +1,10 @@
-# $Id: Makefile 1038 2018-08-11 12:39:52Z mueller $
+# $Id: Makefile 1105 2019-01-12 19:52:45Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
 # 2018-08-05  1038   1.0    Initial version
 #
-EXE_all = tb_artys7_dummy
+EXE_all = tb_artys7_dummy tb_artys7_dram_dummy
 #
 include ${RETROBASE}/rtl/make_viv/viv_default_artys7.mk
 #

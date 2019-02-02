@@ -1,6 +1,6 @@
--- $Id: tb_artys7.vhd 1105 2019-01-12 19:52:45Z mueller $
+-- $Id: tb_artys7_dram.vhd 1105 2019-01-12 19:52:45Z mueller $
 --
--- Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -12,26 +12,25 @@
 -- for complete details.
 -- 
 ------------------------------------------------------------------------------
--- Module Name:    tb_artys7 - sim
--- Description:    Test bench for artys7 (base)
+-- Module Name:    tb_artys7_dram - sim
+-- Description:    Test bench for artys7 (base+dram)
 --
 -- Dependencies:   simlib/simclk
 --                 simlib/simclkcnt
 --                 rlink/tbcore/tbcore_rlink
 --                 xlib/sfs_gsim_core
---                 tb_basys3_core
+--                 tb_artys7_core
 --                 serport/tb/serport_master_tb
---                 artys7_aif [UUT]
+--                 artys7_dram_aif [UUT]
 --
--- To test:        generic, any artys7_aif target
+-- To test:        generic, any artys7_dram_aif target
 --
 -- Target Devices: generic
--- Tool versions:  viv 2017.2-2018.2; ghdl 0.34
+-- Tool versions:  viv 2017.2; ghdl 0.35
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2018-11-03  1064   1.0.1  use sfs_gsim_core
--- 2018-08-05  1038   1.0    Initial version (derived from tb_artya7)
+-- 2019-01-12  1105   1.0    Initial version (derived from tb_artya7)
 ------------------------------------------------------------------------------
 
 library ieee;
@@ -48,10 +47,10 @@ use work.simlib.all;
 use work.simbus.all;
 use work.sys_conf.all;
 
-entity tb_artys7 is
-end tb_artys7;
+entity tb_artys7_dram is
+end tb_artys7_dram;
 
-architecture sim of tb_artys7 is
+architecture sim of tb_artys7_dram is
   
   signal CLKOSC : slbit := '0';         -- board clock (100 Mhz)
   signal CLKCOM : slbit := '0';         -- communication clock
@@ -75,6 +74,10 @@ architecture sim of tb_artys7 is
   signal O_LED : slv4 := (others=>'0');
   signal O_RGBLED0 : slv3 := (others=>'0');
   signal O_RGBLED1 : slv3 := (others=>'0');
+  
+  signal IO_DDR3_DQ    : slv16 := (others=>'Z');
+  signal IO_DDR3_DQS_P : slv2 := (others=>'Z');
+  signal IO_DDR3_DQS_N : slv2 := (others=>'Z');
 
   signal R_PORTSEL_XON : slbit := '0';       -- if 1 use xon/xoff
 
@@ -124,7 +127,7 @@ begin
       I_BTN       => I_BTN
     );
 
-  UUT : artys7_aif
+  UUT : artys7_dram_aif
     port map (
       I_CLK100    => CLKOSC,
       I_RXD       => I_RXD,
@@ -133,7 +136,22 @@ begin
       I_BTN       => I_BTN,
       O_LED       => O_LED,
       O_RGBLED0   => O_RGBLED0,
-      O_RGBLED1   => O_RGBLED1
+      O_RGBLED1   => O_RGBLED1,
+      DDR3_DQ      => IO_DDR3_DQ,
+      DDR3_DQS_P   => IO_DDR3_DQS_P,
+      DDR3_DQS_N   => IO_DDR3_DQS_N,
+      DDR3_ADDR    => open,
+      DDR3_BA      => open,
+      DDR3_RAS_N   => open,
+      DDR3_CAS_N   => open,
+      DDR3_WE_N    => open,
+      DDR3_RESET_N => open,
+      DDR3_CK_P    => open,
+      DDR3_CK_N    => open,
+      DDR3_CKE     => open,
+      DDR3_CS_N    => open,
+      DDR3_DM      => open,
+      DDR3_ODT     => open
     );
   
   SERMSTR : entity work.serport_master_tb

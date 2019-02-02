@@ -24,6 +24,7 @@ The full set of tests is only run for tagged releases.
 - add support for DDR memory via Vivado MIG cores for
   - Digilent Arty
   - Digilent Nexys4 DDR
+  - Digilent Arty S7
 - add a low level MIG interface test design
 
 ### New features

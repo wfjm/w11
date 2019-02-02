@@ -1,0 +1,8 @@
+# libs
+../../vlib/slvtypes.vhd
+../mig/miglib.vbom
+miglib_artys7.vbom
+# components
+../mig/migui_core_gsim.vbom
+# design
+migui_artys7_gsim.vhd

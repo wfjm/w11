@@ -1,0 +1,9 @@
+# configure tb_artys7_dram with sys_w11a_as7 target;
+# use vhdl configure file (tb_w11a_as7.vhd) to allow
+# that all configurations will co-exist in work library
+# configure
+artys7_dram_aif = ../sys_w11a_as7.vbom
+sys_conf = sys_conf_sim.vhd
+# design
+../../../../bplib/artys7/tb/tb_artys7_dram.vbom
+tb_w11a_as7.vhd

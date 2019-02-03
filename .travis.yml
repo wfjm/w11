@@ -61,27 +61,26 @@ script:
   - make -C tools/asm-11/tests-err allexp
   - |
     time tbrun -j 2 -nomake \
-      -tag default,memlib \
-      -tag default,genlib \
-      -tag default,comlib \
-      -tag default,rlink \
-      -tag default,serport \
-      -tag default,bplib \
-      -tag default,mig \
-      -tag default,w11a \
-      -tag default,sys_tst_serloop \
-      -tag default,sys_tst_serloop1 \
-      -tag default,sys_tst_serloop2 \
-      -tag default,sys_tst_rlink,base \
-      -tag default,sys_tst_rlink_cuff,basefx2 \
-      -tag default,sys_tst_rlink_cuff,baseser \
-      -tag default,sys_tst_mig,base \
-      -tag default,sys_tst_sram,base \
-      -tag default,sys_tst_sram,n4 \
-      -tag default,sys_tst_sram,arty \
-      -tag default,sys_w11a,stim1 \
-      -tag default,sys_w11a,n4 \
-      -tag default,sys_w11a,arty
+      -tag memlib \
+      -tag genlib \
+      -tag comlib \
+      -tag rlink \
+      -tag serport \
+      -tag bplib \
+      -tag mig \
+      -tag w11a \
+      -tag sys_tst_serloop \
+      -tag sys_tst_serloop1 \
+      -tag sys_tst_serloop2 \
+      -tag sys_tst_rlink,base \
+      -tag sys_tst_rlink_cuff,basefx2 \
+      -tag sys_tst_mig,base \
+      -tag sys_tst_sram,base \
+      -tag sys_tst_sram,n4 \
+      -tag sys_tst_sram,arty \
+      -tag sys_w11a,stim1 \
+      -tag sys_w11a,n4 \
+      -tag sys_w11a,arty
   - tbfilt -all -sum -comp
 #
   - .travis/deploy.sh

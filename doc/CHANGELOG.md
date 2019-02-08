@@ -25,7 +25,12 @@ The full set of tests is only run for tagged releases.
   - Digilent Arty
   - Digilent Nexys4 DDR
   - Digilent Arty S7
-- add a low level MIG interface test design
+- add a low level MIG interface test design `sys_tst_mig_*`
+- update tool support
+  - all designs build under Vivado 2017.2 and 2018.3
+  - sys_w11a_as7 must be build under 2018.3 (due to MIG support constraints)
+  - sys_w11a_arty runs only with 75 MHz under 2018.3
+  - 2018.3 is slower and for w11a less efficient, so 2017.2 stays default
 
 ### New features
 - new systems

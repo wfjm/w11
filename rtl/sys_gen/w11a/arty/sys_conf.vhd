@@ -1,6 +1,6 @@
--- $Id: sys_conf.vhd 1072 2018-11-18 22:27:35Z mueller $
+-- $Id: sys_conf.vhd 1108 2019-02-02 23:04:38Z mueller $
 --
--- Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2018-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Definitions for sys_w11a_arty (for synthesis)
 --
 -- Dependencies:   -
--- Tool versions:  viv 2017.2; ghdl 0.34
+-- Tool versions:  viv 2017.2-2018.3; ghdl 0.34-0.35
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-01-27  1108   1.0.1  down-rate to 75 MHz, viv 2018.3 fails with 80 MHz
 -- 2018-11-17  1071   1.0    Initial version (derived from _br_arty version)
 ------------------------------------------------------------------------------
 
@@ -31,8 +32,8 @@ package sys_conf is
 
   -- configure clocks --------------------------------------------------------
   constant sys_conf_clksys_vcodivide   : positive :=   1;
-  constant sys_conf_clksys_vcomultiply : positive :=   8;   -- vco  800 MHz
-  constant sys_conf_clksys_outdivide   : positive :=  10;   -- sys   80 MHz
+  constant sys_conf_clksys_vcomultiply : positive :=   9;   -- vco  900 MHz
+  constant sys_conf_clksys_outdivide   : positive :=  12;   -- sys   75 MHz
   constant sys_conf_clksys_gentype     : string   := "MMCM";
   -- dual clock design, clkser = 120 MHz
   constant sys_conf_clkser_vcodivide   : positive :=   1;

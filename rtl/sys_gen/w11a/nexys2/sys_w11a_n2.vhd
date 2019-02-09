@@ -1,6 +1,6 @@
--- $Id: sys_w11a_n2.vhd 1056 2018-10-13 16:01:17Z mueller $
+-- $Id: sys_w11a_n2.vhd 1108 2019-02-02 23:04:38Z mueller $
 --
--- Copyright 2010-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -30,10 +30,11 @@
 -- Test bench:     tb/tb_sys_w11a_n2
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.2-14.7; ghdl 0.26-0.34
+-- Tool versions:  xst 8.2-14.7; ghdl 0.26-0.35
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2019-01-27  1108 14.7  131013 xc3s1200e-4 2976 8101  510 5201 ok: -iist
 -- 2018-10-13  1055 14.7  131013 xc3s1200e-4 3097 8484  510 5471 ok: +dmpcnt
 -- 2018-09-15  1045 14.7  131013 xc3s1200e-4 2860 7983  446 5098 ok: +KW11P
 -- 2017-04-30   888 14.7  131013 xc3s1200e-4 2806 7865  446 5043 ok: +fx2dbg

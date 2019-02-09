@@ -30,7 +30,8 @@ The full set of tests is only run for tagged releases.
   - all designs build under Vivado 2017.2 and 2018.3
   - sys_w11a_as7 must be build under 2018.3 (due to MIG support constraints)
   - sys_w11a_arty runs only with 75 MHz under 2018.3
-  - 2018.3 is slower and for w11a less efficient, so 2017.2 stays default
+- 2018.3 is slower and for w11a less efficient, so 2017.2 stays default
+- remove iist from Spartan-3,6 designs (will never be used on small FPGAs)
 
 ### New features
 - new systems

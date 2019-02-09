@@ -1,6 +1,6 @@
--- $Id: ibdr_maxisys.vhd 1056 2018-10-13 16:01:17Z mueller $
+-- $Id: ibdr_maxisys.vhd 1108 2019-02-02 23:04:38Z mueller $
 --
--- Copyright 2009-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2009-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -32,7 +32,7 @@
 --                 ib_intmap24
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4-2018.2; ghdl 0.18-0.34
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2018.3; ghdl 0.18-0.35
 --
 -- Synthesized:
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -49,6 +49,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-01-29  1108   1.5.1  move IIST signals into generate
 -- 2018-10-13  1055   1.5    add IDEC port, connect to EXTEVT of KW11P
 -- 2018-09-08  1043   1.4.2  add KW11P;
 -- 2017-01-29   847   1.4.1  add DEUNA; rename generic labels
@@ -225,14 +226,13 @@ architecture syn of ibdr_maxisys is
   signal EI_ACK_PC11PTP  : slbit := '0';
   signal EI_ACK_LP11     : slbit := '0';
 
-  signal IIST_BUS        : iist_bus_type := iist_bus_init;
-  signal IIST_OUT_0      : iist_line_type := iist_line_init;
-  signal IIST_MREQ       : iist_mreq_type := iist_mreq_init;
-  signal IIST_SRES       : iist_sres_type := iist_sres_init;
-
 begin
 
   IIST: if sys_conf_ibd_iist generate
+    signal IIST_BUS        : iist_bus_type := iist_bus_init;
+    signal IIST_OUT_0      : iist_line_type := iist_line_init;
+    signal IIST_MREQ       : iist_mreq_type := iist_mreq_init;
+    signal IIST_SRES       : iist_sres_type := iist_sres_init;
   begin
     I0 : ibd_iist
       port map (

@@ -1,6 +1,6 @@
--- $Id: sys_conf_sim.vhd 1050 2018-09-23 15:46:42Z mueller $
+-- $Id: sys_conf_sim.vhd 1108 2019-02-02 23:04:38Z mueller $
 --
--- Copyright 2010-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Definitions for sys_w11a_n2 (for simulation)
 --
 -- Dependencies:   -
--- Tool versions:  xst 11.4-14.7; ghdl 0.26-0.34
+-- Tool versions:  xst 11.4-14.7; ghdl 0.26-0.35
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-01-27  1108   1.6.5  drop iist
 -- 2018-09-22  1050   1.6.4  add sys_conf_dmpcnt
 -- 2018-09-08  1043   1.6.3  add sys_conf_ibd_kw11p
 -- 2017-04-22   884   1.6.2  use sys_conf_dmcmon_awidth=8 (proper value)
@@ -89,7 +90,7 @@ package sys_conf is
   constant sys_conf_ibd_tm11   : boolean := true;  -- TM11
 
   -- configure other devices
-  constant sys_conf_ibd_iist   : boolean := true;  -- IIST
+  constant sys_conf_ibd_iist   : boolean := false; -- IIST
   constant sys_conf_ibd_kw11p  : boolean := true;  -- KW11P
 
   -- derived constants =======================================================

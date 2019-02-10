@@ -1,6 +1,6 @@
--- $Id: sys_tst_rlink_b3.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: sys_tst_rlink_b3.vhd 1108 2019-02-02 23:04:38Z mueller $
 --
--- Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -28,10 +28,12 @@
 -- Test bench:     tb/tb_tst_rlink_b3
 --
 -- Target Devices: generic
--- Tool versions:  viv 2014.4-2016.4; ghdl 0.31-0.34
+-- Tool versions:  viv 2014.4-2018.3; ghdl 0.31-0.35
 --
 -- Synthesized (viv):
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2019-02-02  1108 2018.3  xc7a35t-1    1040  1594    36   3.0   546 
+-- 2019-02-02  1108 2017.2  xc7a35t-1    1040  1682    36   3.0   587 
 -- 2016-03-27   753 2015.4  xc7a35t-1     986  1352    36   3.0   473 meminf
 -- 2016-03-13   743 2015.4  xc7a35t-1     988  1372    64   4.5   503 +XADC
 -- 2015-01-30   636 2014.4  xc7a35t-1     946  1319    64   4.5   476  

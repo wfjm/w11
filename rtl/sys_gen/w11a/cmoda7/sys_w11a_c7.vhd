@@ -1,6 +1,6 @@
--- $Id: sys_w11a_c7.vhd 1094 2018-12-27 15:18:27Z mueller $
+-- $Id: sys_w11a_c7.vhd 1108 2019-02-02 23:04:38Z mueller $
 --
--- Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2017-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -33,10 +33,12 @@
 -- Test bench:     tb/tb_sys_w11a_c7
 --
 -- Target Devices: generic
--- Tool versions:  viv 2017.2-2018.2; ghdl 0.34
+-- Tool versions:  viv 2017.2-2018.3; ghdl 0.34-0.35
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2019-02-02  1108 2018.3  xc7a35t-1    3112  6457   182  50.0  1936 
+-- 2019-02-02  1108 2017.2  xc7a35t-1    3107  6216   182  50.0  1884 
 -- 2018-10-13  1055 2017.2  xc7a35t-1    3107  6215   182  50.0  1889 +dmpcnt
 -- 2018-09-15  1045 2017.2  xc7a35t-1    2883  5891   150  50.0  1826 +KW11P
 -- 2017-06-27   918 2017.1  xc7a35t-1    2823  5827   150  50.0  1814 16kB cache

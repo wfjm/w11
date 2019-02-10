@@ -1,4 +1,4 @@
--- $Id: sys_w11a_arty.vhd 1105 2019-01-12 19:52:45Z mueller $
+-- $Id: sys_w11a_arty.vhd 1108 2019-02-02 23:04:38Z mueller $
 --
 -- Copyright 2018-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -33,11 +33,12 @@
 -- Test bench:     tb/tb_sys_w11a_arty
 --
 -- Target Devices: generic
--- Tool versions:  viv 2017.2; ghdl 0.34
+-- Tool versions:  viv 2017.2-2018.3; ghdl 0.34-0.35
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
--- 2019-01-02  1101 2017.2  xc7a35t-1l   6575 10610   820  17.0  3144
+-- 2019-02-02  1108 2018.3  xc7a35t-1l   6579  9839   819  17.0  3225
+-- 2019-02-02  1108 2017.2  xc7a35t-1l   6575  9798   802  17.0  3182
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

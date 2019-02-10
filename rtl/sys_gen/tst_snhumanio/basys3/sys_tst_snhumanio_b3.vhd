@@ -1,6 +1,6 @@
--- $Id: sys_tst_snhumanio_b3.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: sys_tst_snhumanio_b3.vhd 1108 2019-02-02 23:04:38Z mueller $
 --
--- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -22,10 +22,12 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  viv 2014.4-2016.4; ghdl 0.31-0.34
+-- Tool versions:  viv 2014.4-2018.3; ghdl 0.31-0.35
 --
 -- Synthesized (viv):
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2019-02-02  1108 2018.3  xc7a35t-1     154   187     0     0    75  
+-- 2019-02-02  1108 2017.2  xc7a35t-1     154   184     0     0    69  
 -- 2015-01-30   636 2014.4  xc7a35t-1     154   133     0     0    63  
 --
 -- Revision History: 

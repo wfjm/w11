@@ -1,6 +1,6 @@
--- $Id: sys_w11a_br_n4d.vhd 1094 2018-12-27 15:18:27Z mueller $
+-- $Id: sys_w11a_br_n4d.vhd 1108 2019-02-02 23:04:38Z mueller $
 --
--- Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2017-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -31,10 +31,12 @@
 -- Test bench:     tb/tb_sys_w11a_br_n4d
 --
 -- Target Devices: generic
--- Tool versions:  viv 2016.2-2018.2; ghdl 0.34
+-- Tool versions:  viv 2016.2-2018.3; ghdl 0.34-0.35
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2019-02-02  1108 2018.3  xc7a100t-1   2837  6083   170 131.5  1957
+-- 2019-02-02  1108 2017.2  xc7a100t-1   2825  5843   170 131.5  1824 +dmpcnt
 -- 2018-09-15  1045 2017.2  xc7a100t-1   2602  5490   138 131.5  1754 +KW11P
 -- 2017-05-25   898 2016.4  xc7a100t-1   2541  5500   138 131.5  1750 +DEUNA
 -- 2017-01-07   842 2016.4  xc7a100t-1   2491  5335   138 131.5  1728  

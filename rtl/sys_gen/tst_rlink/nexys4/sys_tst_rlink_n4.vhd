@@ -1,6 +1,6 @@
--- $Id: sys_tst_rlink_n4.vhd 1073 2018-11-23 18:05:51Z mueller $
+-- $Id: sys_tst_rlink_n4.vhd 1108 2019-02-02 23:04:38Z mueller $
 --
--- Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -31,10 +31,12 @@
 -- Test bench:     tb/tb_tst_rlink_n4
 --
 -- Target Devices: generic
--- Tool versions:  viv 2014.4-2017.2; ghdl 0.29-0.34    (ise 14.5-14.7 retired)
+-- Tool versions:  viv 2014.4-2018.3; ghdl 0.29-0.35    (ise 14.5-14.7 retired)
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2019-02-02  1108 2018.3  xc7a100t-1   1179  1725    36   3.0   606 
+-- 2019-02-02  1108 2017.2  xc7a100t-1   1179  1813    36   3.0   627 
 -- 2016-04-02   758 2015.4  xc7a100t-1   1113  1461    36   3.0   528 usracc
 -- 2016-03-27   753 2015.4  xc7a100t-1   1124  1461    36   3.0   522 meminf
 -- 2016-03-13   743 2015.4  xc7a100t-1   1124  1463    64   4.5   567 +XADC

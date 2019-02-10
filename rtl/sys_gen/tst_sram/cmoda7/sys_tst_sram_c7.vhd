@@ -1,6 +1,6 @@
--- $Id: sys_tst_sram_c7.vhd 1094 2018-12-27 15:18:27Z mueller $
+-- $Id: sys_tst_sram_c7.vhd 1108 2019-02-02 23:04:38Z mueller $
 --
--- Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2017-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -28,11 +28,12 @@
 -- Test bench:     tb/tb_tst_sram_c7
 --
 -- Target Devices: generic
--- Tool versions:  viv 2017.1-2018.2; ghdl 0.34
+-- Tool versions:  viv 2017.1-2018.3; ghdl 0.34-0.35
 --
 -- Synthesized (viv):
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
--- 2017-06-11   912 2017.1  xc7a35t-1       x     x     x     x     x 
+-- 2019-02-02  1108 2018.3  xc7a35t-1    1045  1537    24   5.0   490 
+-- 2019-02-02  1108 2017.2  xc7a35t-1    1042  1541    24   5.0   494 
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

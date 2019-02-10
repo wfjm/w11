@@ -1,6 +1,6 @@
--- $Id: sys_tst_sram_n4.vhd 1094 2018-12-27 15:18:27Z mueller $
+-- $Id: sys_tst_sram_n4.vhd 1108 2019-02-02 23:04:38Z mueller $
 --
--- Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -28,10 +28,12 @@
 -- Test bench:     tb/tb_tst_sram_n4
 --
 -- Target Devices: generic
--- Tool versions:  viv 2014.4-2018.2; ghdl 0.29-0.34    (ise 14.5-14.7 retired)
+-- Tool versions:  viv 2014.4-2018.3; ghdl 0.29-0.35    (ise 14.5-14.7 retired)
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2019-02-02  1108 2018.3  xc7a100t-1   1042  1550    24     5   530 
+-- 2019-02-02  1108 2017.2  xc7a100t-1   1043  1642    24     5   564 
 -- 2017-01-14   844 2016.4  xc7a100t-1   1042  1677    24     5   557 +sysmon
 -- 2016-03-29   756 2015.4  xc7a100t-1    918  1207    24     5   428  
 --

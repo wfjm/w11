@@ -1,4 +1,4 @@
--- $Id: sys_tst_mig_arty.vhd 1101 2019-01-02 21:22:37Z mueller $
+-- $Id: sys_tst_mig_arty.vhd 1108 2019-02-02 23:04:38Z mueller $
 --
 -- Copyright 2018-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -29,10 +29,12 @@
 -- Test bench:     tb/tb_tst_mig_arty
 --
 -- Target Devices: generic
--- Tool versions:  viv 2017.2; ghdl 0.34
+-- Tool versions:  viv 2017.2-2018.3; ghdl 0.34-0.35
 --
 -- Synthesized (viv):
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2019-02-02  1108 2018.3  xc7a35t-1l   4323  4537   444     1  1874
+-- 2019-02-02  1108 2017.2  xc7a35t-1l   4330  4773   444     1  1774
 -- 2019-01-02  1101 2017.2  xc7a35t-1l   4320  4773   462     1  1770
 --
 -- Revision History: 

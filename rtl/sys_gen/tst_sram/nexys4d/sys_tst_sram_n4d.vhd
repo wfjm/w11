@@ -1,4 +1,4 @@
--- $Id: sys_tst_sram_n4d.vhd 1101 2019-01-02 21:22:37Z mueller $
+-- $Id: sys_tst_sram_n4d.vhd 1108 2019-02-02 23:04:38Z mueller $
 --
 -- Copyright 2018-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -29,10 +29,12 @@
 -- Test bench:     tb/tb_tst_sram_n4d
 --
 -- Target Devices: generic
--- Tool versions:  viv 2017.2; ghdl 0.34
+-- Tool versions:  viv 2017.2-2018.3; ghdl 0.34-0.35
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2019-02-02  1108 2018.3  xc7a100t-1   4408  4606   656     5  1895
+-- 2019-02-02  1108 2017.2  xc7a100t-1   4403  4900   657     5  1983
 -- 2019-01-02  1101 2017.2  xc7a100t-1   4403  4900   640     5  1983
 --
 -- Revision History: 

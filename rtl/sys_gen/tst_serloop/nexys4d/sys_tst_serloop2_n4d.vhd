@@ -1,6 +1,6 @@
--- $Id: sys_tst_serloop2_n4d.vhd 1094 2018-12-27 15:18:27Z mueller $
+-- $Id: sys_tst_serloop2_n4d.vhd 1108 2019-02-02 23:04:38Z mueller $
 --
--- Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2017-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -25,11 +25,12 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  viv 2016.2; ghdl 0.33
+-- Tool versions:  viv 2016.2-2018.3; ghdl 0.33-0.35
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
--- 2017-xx-xx   xxx 2016.2  xc7a100t-1    xxx  xxxx    xx     0   xxx  
+-- 2019-02-02  1108 2018.3  xc7a100t-1    537   510    16     0   232  
+-- 2019-02-02  1108 2017.2  xc7a100t-1    537   552    16     0   238  
 --
 -- Revision History: 
 -- Date         Rev Version  Comment

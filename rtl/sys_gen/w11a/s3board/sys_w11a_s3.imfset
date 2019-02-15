@@ -1,30 +1,37 @@
-# $Id: sys_w11a_s3.imfset 769 2016-05-28 11:36:22Z mueller $
+# $Id: sys_w11a_s3.imfset 1108 2019-02-02 23:04:38Z mueller $
 #
 # ----------------------------------------------------------------------------
 [xst]
 INFO:.*Mux is complete : default of case is discarded
+INFO:Xst:2117 .* was re-encoded using one-hot encoding
+INFO:Xst:1767 .* can share the same physical resources
+INFO:Xst:2261 .* FF/Latch .* is equivalent to the following
+INFO:Xst:1901 .* Instance .* of type .* has been replaced by RAMB16
 
-Node <IBD_MAXI.IBDR_SYS/IIST.I0/R_REGS.req_boot> of sequential type is unconnected
-Node <IBD_MAXI.IBDR_SYS/IIST.I0/R_REGS.req_lock> of sequential type is unconnected
-Node <CORE/VMBOX/R_REGS.ibcacc> of sequential type is unconnected
+Node <HIO/R_REGS.btneff_\d*> of sequential type is unconnected
+Node <HIO/R_REGS.btn_\d*> of sequential type is unconnected
+Node <RLINK/CORE/RL/R_LREGS.monattn> of sequential type is unconnected
+Node <RLINK/CORE/RL/R_LREGS.moneop> of sequential type is unconnected
+Node <RLINK/SERPORT/XONRX/R_REGS.rxovr> of sequential type is unconnected
+Node <HIO/R_REGS.swieff_\d> of sequential type is unconnected
+Node <HIO/R_REGS.swi_\d> of sequential type is unconnected
 
 Unconnected output port 'DOA' of component 'ram_1swar_1ar_gen'
+Unconnected output port 'DOA' of component 'ram_2swsr_rfirst_gen'
 Unconnected output port 'DOB' of component 'ram_2swsr_rfirst_gen'
+Unconnected output port 'BUSY' of component 'fifo_1c_dram'
+Unconnected output port 'SIZE' of component 'fifo_1c_dram'
+Unconnected output port 'ESUSP_O' of component 'pdp11_core'
+Unconnected output port 'RL_MONI' of component 'rlink_sp1c'
 Unconnected output port 'ACK_W' of component 's3_sram_memctl'
 
-Input <CP_STAT.cpuwait> is never used
-Input <CP_STAT.cmdbusy> is never used
-Input <IB_MREQ.cacc> is never used
-Input <IB_MREQ.rmw> is never used
-Input <IB_MREQ.din<\d*:\d*>> is never used
-Input <IB_MREQ.din<\d*>> is never used
-Input <IB_MREQ.racc> is never used
-Input <IB_MREQ.be0> is never used
-Input <IB_MREQ.be1> is never used
-Input <IB_MREQ.din> is never used
-Input <IB_MREQ.re> is never used
-Input <IB_MREQ.we> is never used
-Input <IB_MREQ.addr<\d*:\d*>> is never used
+Input <CE_MSEC> is never used
+Input <DM_STAT_.*> is never used
+Input <CP_STAT\..*> is never used
+Input <RB_MREQ\..*> is never used
+Input <IB_MREQ\..*> is never used
+Input <SER_MONI\..*> is never used
+
 Input <CCIN<2:1>> is never used
 Input <EI_ACK> is never used
 Input <IREG<\d*:\d*>> is never used
@@ -33,72 +40,60 @@ Input <MONI.trace_prev> is never used
 Input <DIN<\d*:\d*>> is never used
 Input <CNTL.trap_done> is never used
 Input <VADDR<\d*:\d*>> is never used
+Input <CE_USEC> is never used
 
-Signal <R_VMSTAT.trap_ysv> is assigned but never used
-Signal <R_VMSTAT.trap_mmu> is assigned but never used
-Signal <R_VMSTAT.ack> is assigned but never used
-Signal <R_IDSTAT.is_res> is assigned but never used
-Signal <R_IDSTAT.fork_srcr> is assigned but never used
-Signal <R_IDSTAT.fork_op> is assigned but never used
-Signal <R_IDSTAT.force_srcsp> is assigned but never used
-Signal <R_IDSTAT.do_pref_dec> is assigned but never used
-Signal <R_IDSTAT.do_fork_srcr> is assigned but never used
-Signal <R_IDSTAT.do_fork_opg> is assigned but never used
-Signal <R_IDSTAT.do_fork_op> is assigned but never used
-Signal <R_IDSTAT.do_fork_dsta> is assigned but never used
+Signal <RXFIFO_SIZE<2:0>> is assigned but never used
+Signal <SWI<7:6>> is assigned but never used
+Signal <SWI<2>> is assigned but never used
+Signal <MEM_ADDR<19:18>> is assigned but never used
 
-Signal <DM_STAT_VM.ibsres.dout> is assigned but never used
-Signal <DM_STAT_VM.ibsres.busy> is assigned but never used
-Signal <DM_STAT_VM.ibsres.ack> is assigned but never used
-Signal <DM_STAT_VM.ibmreq.we> is assigned but never used
-Signal <DM_STAT_VM.ibmreq.rmw> is assigned but never used
-Signal <DM_STAT_VM.ibmreq.re> is assigned but never used
-Signal <DM_STAT_VM.ibmreq.racc> is assigned but never used
-Signal <DM_STAT_VM.ibmreq.din> is assigned but never used
-Signal <DM_STAT_VM.ibmreq.cacc> is assigned but never used
-Signal <DM_STAT_VM.ibmreq.be1> is assigned but never used
-Signal <DM_STAT_VM.ibmreq.be0> is assigned but never used
-Signal <DM_STAT_VM.ibmreq.aval> is assigned but never used
-Signal <DM_STAT_VM.ibmreq.addr> is assigned but never used
-Signal <DM_STAT_DP.psw.tflag> is assigned but never used
-Signal <DM_STAT_DP.psw.rset> is assigned but never used
-Signal <DM_STAT_DP.psw.pmode> is assigned but never used
-Signal <DM_STAT_DP.psw.cc> is assigned but never used
-Signal <DM_STAT_DP.pc> is assigned but never used
-Signal <DM_STAT_DP.ireg_we> is assigned but never used
-Signal <DM_STAT_DP.ireg> is assigned but never used
-Signal <DM_STAT_DP.gpr_we> is assigned but never used
-Signal <DM_STAT_DP.gpr_mode> is assigned but never used
-Signal <DM_STAT_DP.gpr_bytop> is assigned but never used
-Signal <DM_STAT_DP.gpr_adst> is assigned but never used
-Signal <DM_STAT_DP.dtmp> is assigned but never used
-Signal <DM_STAT_DP.dsrc> is assigned but never used
-Signal <DM_STAT_DP.dres> is assigned but never used
-Signal <DM_STAT_DP.ddst> is assigned but never used
-Signal <DM_STAT_CO.cpuhalt> is assigned but never used
-Signal <DM_STAT_CO.cpugo> is assigned but never used
+Signal <EI_ACK<\d*:\d*>> is assigned but never used
 
-Signal <IIST_MREQ.lock> is assigned but never used
-Signal <IIST_MREQ.boot> is assigned but never used
+Signal <R_VMSTAT\.trap_ysv> is assigned but never used
+Signal <R_VMSTAT\.trap_mmu> is assigned but never used
+Signal <R_VMSTAT\.ack> is assigned but never used
+Signal <R_IDSTAT\.is_res> is assigned but never used
+Signal <R_IDSTAT\.fork_srcr> is assigned but never used
+Signal <R_IDSTAT\.fork_op> is assigned but never used
+Signal <R_IDSTAT\.force_srcsp> is assigned but never used
+Signal <R_IDSTAT\.do_pref_dec> is assigned but never used
+Signal <R_IDSTAT\.do_fork_srcr> is assigned but never used
+Signal <R_IDSTAT\.do_fork_opg> is assigned but never used
+Signal <R_IDSTAT\.do_fork_op> is assigned but never used
+Signal <R_IDSTAT\.do_fork_dsta> is assigned but never used
 
-Signal <EI_ACK_RL11> is assigned but never used
-Signal <EI_ACK_KW11P> is assigned but never used
+Signal <VM_CNTL_L\..*> is assigned but never used
+Signal <BTN> is assigned but never used
+Signal <R_REGS.crdone> is assigned but never used
+
+# DZ11 signals
 Signal <EI_ACK_DZ11TX> is assigned but never used
 Signal <EI_ACK_DZ11RX> is assigned but never used
-Signal <EI_ACK<\d*>> is assigned but never used
+Signal <IB_SRES_DZ11\..*> is used but never assigned
+Signal <EI_REQ_DZ11TX> is used but never assigned
+Signal <EI_REQ_DZ11RX> is used but never assigned
+Signal <RB_LAM_DZ11> is used but never assigned
 
-Signal <MEM_ADDR<\d*:\d*>> is assigned but never used
+# IIST signals
+Signal <IB_SRES_IIST\..*> is used but never assigned
+Signal <EI_REQ_IIST> is used but never assigned
+Signal <EI_ACK_IIST> is assigned but never used
 
-FF/Latch <R_REGS.dcf_brk_1> in Unit <ibd_iist> is equivalent
-FF/Latch <R_REGS.paddr_iopage_\d*> in Unit <pdp11_vmbox> is equivalent
-FF/Latch <R_REGS.rbre> in Unit <rlink_core> is equivalent
-FF/Latch <CORE/SEQ/R_IDSTAT.fork_dsta_\d*> in Unit <sys_w11a_s3> is equivalent
-FF/Latch <CORE/SEQ/R_IDSTAT.aunit_srcmod_\d*> in Unit <sys_w11a_s3> is equivalent
-FF/Latch <IBD_MAXI.IBDR_SYS/IIST.I0/R_REGS.dcf_brk_\d*> in Unit <sys_w11a_s3> is equivalent
+FF/Latch <R_REGS.escseen> has a constant value of 0
+FF/Latch <R_REGS.escpend> has a constant value of 0
+FF/Latch <R_STATUS.suspext> has a constant value of 0
+FF/Latch <R_REGS.dtyp_3> has a constant value of 0
 
+FF/Latch <SYS70/W11A/SEQ/R_IDSTAT.res_sel_2> has a constant value of 0
+FF/Latch <SYS70/W11A/SEQ/R_STATUS.intvect_8> has a constant value of 0
 FF/Latch <R_SSR0.inst_compl> has a constant value of 0
-FF/Latch <CORE/SEQ/R_STATUS.intvect_8> has a constant value of 0
-FF/Latch <CORE/SEQ/R_IDSTAT.res_sel_2> has a constant value of 0
+FF/Latch <RLINK/CORE/RL/R_LREGS\.attn_.*> has a constant value of 0 
+FF/Latch <SYS70/DMPCNT.I0/R_REGS\.psig_\d*> has a constant value of 0
+FF/Latch <SYS70/DMPCNT.I0/PRE\[\d*\]\.ENA.CNT/R_CNT_\d*> has a constant value
+
+WARNING:Xst:38 - Value "one_hot" of property "fsm_encoding" not applicable
+
+WARNING:Xst:790 .*ibus/ib_intmap24.vhd.*does not match array range
 
 #
 # ----------------------------------------------------------------------------
@@ -107,7 +102,7 @@ FF/Latch <CORE/SEQ/R_IDSTAT.res_sel_2> has a constant value of 0
 #
 # ----------------------------------------------------------------------------
 [map]
-There is a dangling output parity pin
+WARNING:Pack:266
 INFO:.*
 
 #
@@ -117,4 +112,3 @@ INFO:.*
 #
 # ----------------------------------------------------------------------------
 [bgn]
-There is a dangling output parity pin

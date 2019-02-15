@@ -1,8 +1,7 @@
-# $Id: sys_tst_snhumanio_s3.imfset 769 2016-05-28 11:36:22Z mueller $
+# $Id: sys_tst_snhumanio_s3.imfset 1108 2019-02-02 23:04:38Z mueller $
 #
 # ----------------------------------------------------------------------------
 [xst]
-INFO:.*Mux is complete : default of case is discarded
 
 Unconnected output port 'CE_USEC' of component 'clkdivce'
 

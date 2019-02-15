@@ -1,4 +1,9 @@
-# $Id: sys_tst_rlink_n4.vmfset 1039 2018-08-12 10:04:09Z mueller $
+# $Id: sys_tst_rlink_n4.vmfset 1108 2019-02-02 23:04:38Z mueller $
+#
+# Validated code/tool version combinations
+#   Date          rev   viv   
+#   2019-02-02   1108   2017.2
+#   2019-02-02   1108   2018.3
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
@@ -19,6 +24,7 @@ i [Synth 8-3331] rlink_sp1c.*CE_USEC
 I [Synth 8-6014] _reg                                           # generic
 
 # unused sequential element ------------------------------------
+{2017.2:2018.2}
 I [Synth 8-3332] R_REGS_reg[(btn|swi)(eff)?][\d*]               # generic
 # --> monitor outputs moneop,monattn currently not used         # OK 2016-06-05
 i [Synth 8-3332] CORE/RL/R_LREGS_reg[moneop]
@@ -30,6 +36,7 @@ i [Synth 8-3332] SERPORT/XONRX/R_REGS_reg[escseen]
 i [Synth 8-3332] SERPORT/XONTX/R_REGS_reg[escpend]
 # --> SER_MONI.rxovr indeed unused                              # OK 2016-06-05
 i [Synth 8-3332] SERPORT/XONRX/R_REGS_reg[rxovr]
+{:}
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [imp]

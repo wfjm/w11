@@ -1,45 +1,121 @@
-# $Id: sys_w11a_n3.imfset 776 2016-06-18 17:22:51Z mueller $
+# $Id: sys_w11a_n3.imfset 1108 2019-02-02 23:04:38Z mueller $
 #
 # ----------------------------------------------------------------------------
 [xst]
-INFO:.*Case statement is complete. others clause is never selected
-INFO:.*The small RAM <.*> will be implemented on LUTs
+INFO:Xst:2261 .* FF/Latch .* is equivalent to the following
+INFO:HDLCompiler:679 .* Case statement is complete
+INFO:Xst:3210 .* unconnected or connected to loadless signal
+INFO:Xst:3216 .* LUT implementation is currently selected
+INFO:Xst:3218 .* will be implemented on LUTs
+INFO:Xst:3212 .* Asynchronous or synchronous initialization
+INFO:Xst:3231 .* The small RAM
+INFO:Xst:2774 .* IOB property attached
+INFO:Xst:1901 .* has been replaced by RAMB16
 
-Output port <LOCKED> of the instance <GEN_CLKSYS> is unconnected
-Output port <FX2_MONI_.*> of the instance <RLINK> is unconnected
-Output port <BTN> of the instance <HIO> is unconnected
-Output port <RL_MONI_.*> of the instance <RLINK> is unconnected
-#
-Input <CP_STAT_.*> is never used
-Input <MONI_.*> is never used
-Input <SER_MONI_.*> is never used
-Input <IB_MREQ_.*> is never used
-Input <RB_MREQ_.*> is never used
-Input <RB_SRES_.*> is never used
-Input <DM_STAT_(DP|VM|CO|SE)_.*> is never used
-#
-INFO:.*Instance.*has been replaced by RAMB16BWER
+Value "none" of property "fsm_encoding" is not applicable
+Value "one_hot" of property "fsm_encoding" is not applicable
+
+Using initial value '0' for rb_lam_dz11 since it is never assigned
+Using initial value .* for ib_sres_dz11 since it is never assigned
+Using initial value '0' for ei_req_dz11rx since it is never assigned
+Using initial value '0' for ei_req_dz11tx since it is never assigned
+
+ibdr_deuna.vhd.* Assignment to ibrd ignored
+ibdr_rhrp.vhd.* Assignment to ibrd ignored
+ibdr_rl11.vhd.* Assignment to ibwrem ignored
+ibdr_rk11.vhd.* Assignment to ibrd ignored
+ibdr_tm11.vhd.* Assignment to ibrd ignored
+ibdr_maxisys.vhd.* Assignment to ei_ack_dz11rx ignored
+ibdr_maxisys.vhd.* Assignment to ei_ack_dz11tx ignored
+
+Net <IB_SRES_IIST_ack> does not have a driver
+Net <EI_REQ_IIST> does not have a driver
+
+Signal 'IB_SRES_IIST_dout', unconnected in block 'ibdr_maxisys'
+Signal 'IB_SRES_IIST_ack', unconnected in block 'ibdr_maxisys'
+Signal 'IB_SRES_IIST_busy', unconnected in block 'ibdr_maxisys'
+Signal 'EI_REQ_IIST', unconnected in block 'ibdr_maxisys'
+
+Input <RB_MREQ_.*> is never used.
+Input <RB_SRES_.*> is never used.
+Input <CP_STAT_.*> is never used.
+Input <IB_MREQ_.*> is never used.
+Input <SER_MONI_.*> is never used.
+Input <RLB_MONI_.*> is never used.
+
+Node <HIO/R_REGS.btneff_\d*> of sequential type is unconnected
+Node <HIO/R_REGS.btn_\d*> of sequential type is unconnected
+Node <RLINK/FX2CNTL/RXFIFO/R_REGR.sizer_\d> of sequential type is unconnected
+Node <RLINK/FX2CNTL/RXFIFO/R_REGW.sizew_\d> of sequential type is unconnected
+Node <RLINK/FX2CNTL/TXFIFO/R_REGR.sizer_\d> of sequential type is unconnected
+Node <RLINK/FX2CNTL/TXFIFO/R_REGW.sizew_\d> of sequential type is unconnected
+Node <RLINK/FX2CNTL/R_MONI_S.*> of sequential type is unconnected
+Node <RLINK/FX2CNTL/R_MONI_C.*> of sequential type is unconnected
+Node <RLINK/CORE/RL/R_LREGS.monattn> of sequential type is unconnected
+Node <RLINK/CORE/RL/R_LREGS.moneop> of sequential type is unconnected
+Node <RLINK/SERPORT/XONRX/R_REGS.rxovr> of sequential type is unconnected
+
+Input <RESET> is never used
+Input <CE_MSEC> is never used
+Input <DM_STAT_.*> is never used
+
+Input <CCIN<2:1>> is never used
+Input <EI_ACK> is never used
+Input <IREG<\d*:\d*>> is never used
+Input <MONI.idone> is never used
+Input <MONI.trace_prev> is never used
+Input <DIN<\d*:\d*>> is never used
+Input <I_MEM_WAIT> is never used
+Input <CNTL.trap_done> is never used
+Input <VADDR<\d*:\d*>> is never used
+Input <CE_USEC> is never used
+
+FF/Latch <R_STATUS.suspext> has a constant value of 0
+FF/Latch <R_REGS.dtyp_3> has a constant value of 0
+FF/Latch <SYS70/DMCMON.I0/R_REGS_se_snum.*> has a constant value
+FF/Latch <SYS70/DMSCNT.I0/R_REGS_snum.*> has a constant value
+FF/Latch <RLINK/CORE/RL/R_LREGS_attn_\d*> has a constant value
+FF/Latch <CLKDIV/R_REGS_ucnt_\d*> has a constant value
+
+FF/Latch <RLINK/FX2CNTL/RXFIFO/R_REGR.rstr> has a constant value of 0
+FF/Latch <RLINK/FX2CNTL/TXFIFO/R_REGW.rstw> has a constant value of 0
+FF/Latch <RLINK/FX2CNTL/RXFIFO/R_REGR.rstr_sc> has a constant value of 0
+FF/Latch <RLINK/FX2CNTL/TXFIFO/R_REGW.rstr_c> has a constant value of 0
+FF/Latch <RLINK/FX2CNTL/TXFIFO/R_REGW.rstw_sc> has a constant value of 0
+
+FF/Latch <SYS70/W11A/SEQ/R_IDSTAT.res_sel_2> has a constant value of 0
+FF/Latch <SYS70/W11A/SEQ/R_STATUS.intvect_8> has a constant value of 0
+FF/Latch <CRAMCTL/IOB_MEM_ADDRH/R_DO_21> has a constant value of 0
+FF/Latch <CRAMCTL/IOB_MEM_ADDRH/R_DO_20> has a constant value of 0
+
+The FF/Latch <SYS70/DMCMON.I0/R_REGS_cnum_\d> .* is the opposite
+The FF/Latch <HIO/HIO/DRV/R_REGS_cdiv_0> .* is the opposite
+The FF/Latch <RLINK/FX2CNTL/IOB_FX2_SLRD/IOB/R_DO_0> .* is the opposite
+
+WARNING:Xst:1896 - Due to other FF/Latch trimming
+
 #
 # ----------------------------------------------------------------------------
 [tra]
-INFO:.*TNM 'I_CLK100'.*was traced into DCM_SP
-INFO:.*Setting CLKIN_PERIOD attribute associated with DCM instance
+INFO:.*TNM.*used in period specification.*was traced into DCM_SP
+INFO:NgdBuild:1222
+
 #
 # ----------------------------------------------------------------------------
 [map]
-WARNING:.*has the attribute CLK_FEEDBACK set to NONE
-WARNING:.*The signal <I_MEM_WAIT_IBUF> is incomplete
-WARNING:.*to use input parity pin.*dangling output for parity pin
+Logical network I_MEM_WAIT_IBUF has no load
+Signal I_FX2_FLAG<3> connected to .* I_FX2_FLAG<3> has been removed
+WARNING:PhysDesignRules:1176
+WARNING:Timing:3402 .* No phase relationship
 INFO:.*
 #
 # ----------------------------------------------------------------------------
 [par]
-WARNING:.*has the attribute CLK_FEEDBACK set to NONE
-WARNING:.*The signal I_MEM_WAIT_IBUF has no load
-WARNING:.*There are 1 loadless signals in this design
+There are 1 loadless signals in this design
+WARNING:Timing:3402 .* No phase relationship
+The signal I_MEM_WAIT_IBUF has no load
 #
 # ----------------------------------------------------------------------------
 [bgn]
-WARNING:.*The signal <I_MEM_WAIT_IBUF> is incomplete
-WARNING:.*to use input parity pin.*dangling output for parity pin
 INFO:.*To achieve optimal frequency synthesis performance
+WARNING:PhysDesignRules:1176

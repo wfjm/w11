@@ -1,9 +1,7 @@
-# $Id: sys_tst_serloop_s3.imfset 769 2016-05-28 11:36:22Z mueller $
+# $Id: sys_tst_serloop_s3.imfset 1108 2019-02-02 23:04:38Z mueller $
 #
 # ----------------------------------------------------------------------------
 [xst]
-INFO:.*Mux is complete : default of case is discarded
-
 Unconnected output port 'LOCKED' of component 'dcm_sfs'
 Unconnected output port 'SIZE' of component 'fifo_1c_dram'
 Unconnected output port 'DOA' of component 'ram_1swar_1ar_gen'
@@ -12,10 +10,22 @@ Input <BTN<3:2>> is never used
 Input <BTN<0>> is never used
 Input <SWI<3>> is never used
 Input <SWI<0>> is never used
+Input <SER_MONI\..*> is never used.
+Input <HIO_CNTL.enaftdi> is never used
 
 Signal <RXFIFO_SIZE<2:0>> is assigned but never used
 Signal <CE_USEC> is assigned but never used
 
+Node <HIOMAP/R_REGS.enaftdi> of sequential type is unconnected
+Node <CLKDIV/R_REGS.usec> of sequential type is unconnected in
+Node <HIO/HIO/IOB_BTN/R_DI_\d> of sequential type is unconnected
+Node <HIO/HIO/IOB_SWI/R_DI_\d> of sequential type is unconnected
+Node <HIO/HIO/DEB.DEB_SWI/R_REGS.dout_\d> of sequential type is unconnected
+Node <HIO/HIO/DEB.DEB_BTN/R_REGS.dout_\d> of sequential type is unconnected
+Node <HIO/HIO/DEB.DEB_SWI/R_REGS.dchange_\d> of sequential type is unconnected
+Node <HIO/HIO/DEB.DEB_BTN/R_REGS.dchange_\d> of sequential type is unconnected
+Node <HIO/HIO/DEB.DEB_SWI/R_REGS.dref_\d> of sequential type is unconnected
+Node <HIO/HIO/DEB.DEB_BTN/R_REGS.dref_\d> of sequential type is unconnected
 #
 # ----------------------------------------------------------------------------
 [tra]
@@ -24,11 +34,17 @@ Signal <CE_USEC> is assigned but never used
 # ----------------------------------------------------------------------------
 [map]
 INFO:.*
+WARNING:LIT:162 .* Proper phase relationship
 
 #
 # ----------------------------------------------------------------------------
 [par]
+The signal I_SWI<3>_IBUF has no load
+The signal I_BTN<2>_IBUF has no load
+The signal I_BTN<3>_IBUF has no load
+There are \d+ loadless signals in this design
 
 #
 # ----------------------------------------------------------------------------
 [bgn]
+INFO:PhysDesignRules:772 .* To achieve optimal frequency synthesis performance

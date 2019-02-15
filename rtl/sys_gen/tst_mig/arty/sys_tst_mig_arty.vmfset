@@ -1,4 +1,9 @@
-# $Id: sys_tst_mig_arty.vmfset 1101 2019-01-02 21:22:37Z mueller $
+# $Id: sys_tst_mig_arty.vmfset 1108 2019-02-02 23:04:38Z mueller $
+#
+# Validated code/tool version combinations
+#   Date          rev   viv   
+#   2019-02-02   1108   2017.2
+#   2019-02-02   1108   2018.3
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
@@ -32,6 +37,7 @@ i [Synth 8-3331] APP_SR_ACTIVE
 I [Synth 8-6014] _reg                                           # generic
 
 # unused sequential element ------------------------------------
+{2017.2:2018.2}
 I [Synth 8-3332] R_LREGS_reg[attn][\d*]                         # generic
 # --> usec unused                                               # OK 2018-12-23
 i [Synth 8-3332] R_REGS_reg[usec].* sys_tst_mig_arty
@@ -40,6 +46,7 @@ i [Synth 8-3332] R_BREGS_reg[stat][(0|1|2|3)].* sys_tst_mig_arty
 i [Synth 8-3332] R_LREGS_reg[(moneop|monattn)].* sys_tst_mig_arty
 # --> no rbinit used                                            # OK 2018-12-27
 i [Synth 8-3332] R_BREGS_reg[rbinit].* sys_tst_mig_arty
+{:}
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [imp]

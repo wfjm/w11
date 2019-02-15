@@ -1,4 +1,9 @@
-# $Id: sys_tst_sram_n4.vmfset 1097 2018-12-29 11:20:14Z mueller $
+# $Id: sys_tst_sram_n4.vmfset 1108 2019-02-02 23:04:38Z mueller $
+#
+# Validated code/tool version combinations
+#   Date          rev   viv   
+#   2019-02-02   1108   2017.2
+#   2019-02-02   1108   2018.3
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
@@ -33,13 +38,12 @@ i [Synth 8-3331] rlink_sp2c.*CE_(USEC|MSEC)
 I [Synth 8-6014] _reg                                           # generic
 
 # unused sequential element ------------------------------------
+{2017.2:2018.2}
 I [Synth 8-3332] R_LREGS_reg[attn][\d*]                         # generic
 # --> many HIO pins not used                                    # OK 2016-06-05
 i [Synth 8-3332] HIO/IOB_LED/R_DO_reg[\d*] 
 i [Synth 8-3332] HIO/IOB_(SWI|BTN)/R_DI_reg[\d*]
 i [Synth 8-3332] HIO/DEB.DEB_(SWI|BTN)/R_REGS_reg[(dref|dout|dchange)][\d*]
-
-{:2017.4}
 # --> monitor outputs moneop,monattn currently not used         # OK 2016-06-05
 i [Synth 8-3332] RLINK/CORE/RL/R_LREGS_reg[moneop]
 i [Synth 8-3332] RLINK/CORE/RL/R_LREGS_reg[monattn]
@@ -50,15 +54,7 @@ i [Synth 8-3332] CLKALL/DIV_CLK0/R_REGS_reg[usec]
 # --> CES_USEC isn't used                                       # OK 2018-12-29
 i [Synth 8-3332] GEN_CLKALL/DIV_CLK1/R_REGS_reg[usec]
 
-{2018.1:}
-# --> monitor outputs moneop,monattn currently not used         # OK 2018-08-12
-i [Synth 8-3332] CORE/RL/R_LREGS_reg[moneop]
-i [Synth 8-3332] CORE/RL/R_LREGS_reg[monattn]
-# --> only RB_STAT 0,1 used by tst_sram                         # OK 2018-08-12
-i [Synth 8-3332] CORE/RL/R_BREGS_reg[stat][(2|3)]
-# --> CE_USEC isn't used (also not in rlink_sp2c)               # OK 2018-08-12
-# --> CES_USEC isn't used                                       # OK 2018-08-12
-i [Synth 8-3332] R_REGS_reg[usec].* module clkdivce
+{:}
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [imp]

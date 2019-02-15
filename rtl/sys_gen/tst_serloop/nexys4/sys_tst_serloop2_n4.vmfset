@@ -1,4 +1,9 @@
-# $Id: sys_tst_serloop2_n4.vmfset 1097 2018-12-29 11:20:14Z mueller $
+# $Id: sys_tst_serloop2_n4.vmfset 1108 2019-02-02 23:04:38Z mueller $
+#
+# Validated code/tool version combinations
+#   Date          rev   viv   
+#   2019-02-02   1108   2017.2
+#   2019-02-02   1108   2018.3
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
@@ -36,12 +41,14 @@ i [Synth 8-3331] HIO_CNTL[enaftdi]
 I [Synth 8-6014] _reg                                           # generic
 
 # unused sequential element ------------------------------------
+{2017.2:2018.2}
 I [Synth 8-3332] R_REGS_reg[(btn|swi)(eff)?][\d*]               # generic
 # --> currently CDUWIDTH=8, but clock below 127 MHz             # OK 2018-12-29
 i [Synth 8-3332] GEN_CLKALL/DIV_CLK0/R_REGS_reg[ucnt][7]
 # --> many HIO pins not used                                    # OK 2016-06-05
 i [Synth 8-3332] HIO/IOB_(SWI|BTN)/R_DI_reg[\d*]
 i [Synth 8-3332] HIO/DEB.DEB_(SWI|BTN)/R_REGS_reg[(dref|dout|dchange)][\d*]
+{:}
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [imp]

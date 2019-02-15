@@ -1,4 +1,9 @@
-# $Id: sys_w11a_c7.vmfset 1097 2018-12-29 11:20:14Z mueller $
+# $Id: sys_w11a_c7.vmfset 1108 2019-02-02 23:04:38Z mueller $
+#
+# Validated code/tool version combinations
+#   Date          rev   viv   
+#   2019-02-02   1108   2017.2
+#   2019-02-02   1108   2018.3
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
@@ -59,36 +64,7 @@ i [Synth 8-3331] ibd_iist .* EI_ACK
 I [Synth 8-6014] _reg                                           # generic
 
 # unused sequential element ------------------------------------
-{:2016.4}
-I [Synth 8-3332] R_LREGS_reg[attn][\d*]                         # generic
-I [Synth 8-3332] HIO/R_REGS_reg[(btn|swi)(eff)?][\d*]           # generic
-# --> usec not used for serport clock domain                    # OK 2017-06-24
-i [Synth 8-3332] CLKDIV_CLKS/R_REGS_reg[usec]
-# --> inst_compl logic disabled in pdp11_mmu                    # OK 2017-06-24
-i [Synth 8-3332] VMBOX/MMU/R_SSR0_reg[inst_compl]
-# --> not yet used                                              # OK 2017-06-24
-i [Synth 8-3332] SEQ/R_STATUS_reg[suspext]
-# --> mawidth=4, nblock=10, so some cellen unused               # OK 2017-06-25
-i [Synth 8-3332] BRAM_CTL/R_REGS_reg[cellen][1\d]
-# --> indeed no types with [3] set                              # OK 2017-06-24
-i [Synth 8-3332] R_REGS_reg[dtyp][3].*ibdr_rhrp
-# --> not yet used                                              # OK 2017-06-24
-i [Synth 8-3332] R_REGS_reg[req_lock].*ibd_iist
-i [Synth 8-3332] R_REGS_reg[req_boot].*ibd_iist
-# --> [8] is for DZ11TX, not yet available                      # OK 2017-06-24
-# --> [9] is for DZ11RX, unclear why this one isn't removed too !!
-i [Synth 8-3332] SEQ/R_STATUS_reg[intvect][8]
-# --> _decode only uses _[oalm]unit -> [2] always '0' in decode # OK 2017-06-24
-i [Synth 8-3332] SEQ/R_IDSTAT_reg[res_sel][2]
-# --> monitor outputs moneop,monattn currently not used         # OK 2017-06-24
-i [Synth 8-3332] RLINK/CORE/RL/R_LREGS_reg[moneop]
-i [Synth 8-3332] RLINK/CORE/RL/R_LREGS_reg[monattn]
-# --> scnt disabled, thus 3 SNUM bits '0'                       # OK 2017-06-24
-i [Synth 8-3332] R_REGS_reg[se_snum][(4|5|6)]
-# --> upper 4 DSP_DP unused                                     # OK 2017-06-24
-i [Synth 8-3332] R_REGS_reg[dsp_dp][(4|5|6|7)]
-
-{2017.1:}
+{2017.2:2018.2}
 I [Synth 8-3332] R_LREGS_reg[attn][\d*]                         # generic
 I [Synth 8-3332] R_REGS_reg[(btn|swi)(eff)?][\d*]               # generic
 # --> not yet used                                              # OK 2017-06-24
@@ -110,8 +86,6 @@ i [Synth 8-3332] R_REGS_reg[dsp_dp][(4|5|6|7)]
 # --> PERFEXT(0:2) not used                                     # OK 2018-10-13
 i [Synth 8-3332] R_REGS_reg[psig][2(4|5|6)]
 i [Synth 8-3332] PRE[2(4|5|6)].ENA.CNT/R_CNT_reg[\d*]
-
-{2017.1:2017.4}
 # --> usec not used for serport clock domain                    # OK 2018-12-29
 i [Synth 8-3332] R_REGS_reg[usec].* s7_cmt_1ce1ce
 # --> monitor outputs moneop,monattn currently not used         # OK 2017-06-24
@@ -121,17 +95,6 @@ i [Synth 8-3332] CORE/RL/R_LREGS_reg[monattn].* rlink_sp2c
 i [Synth 8-3332] MMU/R_SSR0_reg[inst_compl].* pdp11_vmbox
 # --> mawidth=4, nblock=11, so some cellen unused               # OK 2017-06-25
 i [Synth 8-3332] R_REGS_reg[cellen][1\d].* pdp11_bram_memctl
-
-{2018.1:}
-# --> usec not used for serport clock domain                    # OK 2018-08-12
-i [Synth 8-3332] R_REGS_reg[usec].* sys_w11a_c7
-# --> monitor outputs moneop,monattn currently not used         # OK 2018-08-12
-i [Synth 8-3332] R_LREGS_reg[moneop].* rlink_core
-i [Synth 8-3332] R_LREGS_reg[monattn].* rlink_core
-# --> inst_compl logic disabled in pdp11_mmu                    # OK 2018-08-12
-i [Synth 8-3332] MMU/R_SSR0_reg[inst_compl].* pdp11_core
-# --> mawidth=4, nblock=11, so some cellen unused               # OK 2018-08-12
-i [Synth 8-3332] R_REGS_reg[cellen][1\d].* sys_w11a_c7
 
 {:}
 

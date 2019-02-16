@@ -2,6 +2,7 @@
 
 ### Table of contents
 - Current [HEAD](#user-content-head)
+- Release [w11a_V0.76](#user-content-w11a_V0.76)
 - Release [w11a_V0.753](#user-content-w11a_V0.753)
 - Release [w11a_V0.752](#user-content-w11a_V0.752)
 - Release [w11a_V0.751](#user-content-w11a_V0.751)
@@ -20,6 +21,9 @@ The HEAD version shows the current development. No guarantees that
 software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
+<!-- --------------------------------------------------------------------- -->
+---
+## <a id="w11a_V0.76">2019-02-16: [w11a_V0.76](https://github.com/wfjm/w11/releases/tag/w11a_V0.76) - rev 1108(wfjm)</a>
 ### Summary
 - add support for DDR memory via Vivado MIG cores for
   - Digilent Arty
@@ -73,6 +77,11 @@ The full set of tests is only run for tagged releases.
 - nexys4d_pins.xdc: BUFFIX: Fix faulty IO voltage for I_SWI[8,9]
 
 ### Known issues
+- Nexys4 DDR and Arty S7 designs only simulation tested
+  (see [#16](https://github.com/wfjm/w11/issues/16) and
+  [#17](https://github.com/wfjm/w11/issues/17) )
+- w11 clock rate limited by CACHE-to-CACHE false path
+  (see [#18](https://github.com/wfjm/w11/issues/18) )
 
 <!-- --------------------------------------------------------------------- -->
 ---

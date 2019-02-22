@@ -1,0 +1,21 @@
+# $Id: tbrun.yml 1109 2019-02-09 13:36:41Z mueller $
+#
+# Revision History:
+# Date         Rev Version  Comment
+# 2019-02-01  1109   1.1    Add tb_fifo_simple_dram
+# 2016-08-12   797   1.0    Initial version
+#
+- default:
+    mode: ${viv_modes}
+#
+- tag:  [default, viv, memlib, fifo_simple_dram]
+  test: |
+    tbrun_tbw tb_fifo_simple_dram${ms}
+    
+- tag:  [default, viv, memlib, fifo_2c_dram]
+  test: |
+    tbrun_tbw tb_fifo_2c_dram${ms}
+    
+- tag:  [default, viv, memlib, fifo_2c_dram2]
+  test: |
+    tbrun_tbw tb_fifo_2c_dram2${ms}

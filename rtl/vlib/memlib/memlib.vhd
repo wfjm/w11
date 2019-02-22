@@ -1,6 +1,6 @@
--- $Id: memlib.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: memlib.vhd 1109 2019-02-09 13:36:41Z mueller $
 --
--- Copyright 2006-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -17,9 +17,10 @@
 --                 asynchronus rams; Fifo's.
 --
 -- Dependencies:   -
--- Tool versions:  ise 8.2-14.7; viv 2014.4-2015.4; ghdl 0.18-0.33
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2018.3; ghdl 0.18-0.35
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-02-03  1109   1.1.1  add fifo_simple_dram
 -- 2016-03-25   751   1.1    add fifo_2c_dram2
 -- 2008-03-08   123   1.0.3  add ram_2swsr_xfirst_gen_unisim
 -- 2008-03-02   122   1.0.2  change generic default for BRAM models
@@ -163,6 +164,23 @@ component ram_2swsr_xfirst_gen_unisim is -- RAM, 2 sync r/w ports
     DIB   : in slv(DWIDTH-1 downto 0);  -- data in port B
     DOA   : out slv(DWIDTH-1 downto 0); -- data out port A
     DOB   : out slv(DWIDTH-1 downto 0)  -- data out port B
+  );
+end component;
+
+component fifo_simple_dram is           -- fifo, CE/WE interface, dram based
+  generic (
+    AWIDTH : positive :=  6;            -- address width (sets size)
+    DWIDTH : positive := 16);           -- data width
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit;                   -- reset
+    CE : in slbit;                      -- clock enable
+    WE : in slbit;                      -- write enable
+    DI : in slv(DWIDTH-1 downto 0);     -- input data
+    DO : out slv(DWIDTH-1 downto 0);    -- output data
+    EMPTY : out slbit;                  -- fifo empty status
+    FULL : out slbit;                   -- fifo full status
+    SIZE : out slv(AWIDTH-1 downto 0)   -- number of used slots
   );
 end component;
 

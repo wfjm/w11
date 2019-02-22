@@ -1,0 +1,6 @@
+# configure for _*sim case
+# configure
+uut = tbd_fifo_2c_dram_ssim.vhd
+# design
+tb_fifo_2c_dram.vbom
+@top:tb_fifo_2c_dram

@@ -1,0 +1,7 @@
+# libs
+../../slvtypes.vhd
+../memlib.vhd
+# components
+../fifo_2c_dram2.vbom
+# design
+tbd_fifo_2c_dram2.vhd

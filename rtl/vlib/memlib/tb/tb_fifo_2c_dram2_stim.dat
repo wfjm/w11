@@ -1,0 +1,254 @@
+# $Id: tb_fifo_2c_dram2_stim.dat 751 2016-03-25 19:46:11Z mueller $
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2016-03-25   751   1.0    Initial version (derived from tb_fifo_2c_dram2_stim)
+#
+C ------------------------------------------------
+C setup CLKW=20ns CLKR=23ns
+# 
+.cdef  20 ns 5 ns  23 ns 10 ns
+.chold 200 ns
+#
+C test reset handling
+#
+.wait 10
+resetw 1
+.wait 20
+resetr 1
+.wait 20
+#
+resetw 5
+.wait 20
+resetr 5
+.wait 20
+#
+.hold 400 ns
+send 0 10
+resetw 1
+#
+.wait 20
+#
+.hold 400 ns
+send 0 10
+resetr 1
+#
+.wait 20
+.hold 0 ns
+.ndata 0
+.wait 20
+#
+C normal tests
+#
+send  0 50
+send  1 50
+.wait 30
+# test small holds
+send  0 10
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.wait 30
+# test long hold (for >32 clkw, so it blocks)
+.hold 750 ns
+send  1 50
+.wait 30
+C ------------------------------------------------
+C setup CLKW=20ns CLKR=17ns
+.cdef  20 ns 5 ns  17 ns 10 ns
+# send 50
+send  0 50
+send  1 50
+.wait 30
+# test small holds
+send  0 10
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.wait 30
+# test long hold (for >32 clkw, so it blocks)
+.hold 750 ns
+send  1 50
+.wait 30
+C ------------------------------------------------
+C setup CLKW=20ns CLKR=53ns
+.cdef  20 ns 5 ns  53 ns 10 ns
+# send 50
+send  0 50
+send  1 50
+.wait 30
+# test small holds
+send  0 10
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.hold 25 ns
+send  0 2
+.wait 30
+# test long hold (for >32 clkw, so it blocks)
+.hold 750 ns
+send  1 50
+.wait 30
+C ------------------------------------------------
+C setup CLKW=50ns CLKR=23ns
+.cdef  50 ns 5 ns  23 ns 10 ns
+# send 50
+send  0 50
+send  1 50
+.wait 30
+# test small holds
+send  0 10
+.hold 75 ns
+send  0 2
+.hold 75 ns
+send  0 2
+.hold 75 ns
+send  0 2
+.hold 75 ns
+send  0 2
+.hold 75 ns
+send  0 2
+.hold 75 ns
+send  0 2
+.hold 75 ns
+send  0 2
+.hold 75 ns
+send  0 2
+.hold 75 ns
+send  0 2
+.hold 75 ns
+send  0 2
+.hold 75 ns
+send  0 2
+.hold 75 ns
+send  0 2
+.hold 75 ns
+send  0 2
+.hold 75 ns
+send  0 2
+.hold 75 ns
+send  0 2
+.hold 75 ns
+send  0 2
+.hold 75 ns
+send  0 2
+.hold 75 ns
+send  0 2
+.hold 75 ns
+send  0 2
+.hold 75 ns
+send  0 2
+.wait 30
+# test long hold (for >32 clkw, so it blocks)
+.hold 2000 ns
+send  1 50
+.wait 60

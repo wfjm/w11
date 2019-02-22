@@ -1,0 +1,78 @@
+# $Id: tb_fifo_simple_dram_stim.dat 1109 2019-02-09 13:36:41Z mueller $
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2019-02-09  1109   1.0    Initial version
+#
+C ------------------------------------------------
+C single write-read
+#
+.wait 10
+write  0101
+read   0101
+write  0102
+read   0102
+write  0103
+read   0103
+#
+C paired write-read
+#
+.wait 5
+write  0201
+write  0202
+read   0201
+read   0202
+#
+C write-reset-write-read
+#
+.wait 5
+write  0301
+write  0302
+write  0303
+reset
+write  0304
+read   0304
+#
+C write till full
+write  0401
+write  0402
+write  0403
+write  0404
+write  0405
+write  0406
+write  0407
+write  0408
+write  0409
+write  040a
+write  040b
+write  040c
+write  040d
+write  040e
+write  040f
+.wait 5
+#
+read   0401
+read   0402
+read   0403
+read   0404
+#
+write  0501
+write  0502
+write  0503
+write  0504
+#
+read   0405
+read   0406
+read   0407
+read   0408
+read   0409
+read   040a
+read   040b
+read   040c
+read   040d
+read   040e
+read   040f
+read   0501
+read   0502
+read   0503
+read   0504

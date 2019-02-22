@@ -1,0 +1,9 @@
+# libs
+../../slvtypes.vhd
+../../simlib/simlib.vhd
+# components
+../../simlib/simclkv.vbom
+../../simlib/simclkcnt.vbom
+${uut := tbd_fifo_2c_dram2.vbom}  -UUT
+# design
+tb_fifo_2c_dram2.vhd

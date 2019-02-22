@@ -1,0 +1,9 @@
+# libs
+../slvtypes.vhd
+memlib.vhd
+# components
+[sim]ram_1swar_gen.vbom
+[xst]ram_1swar_gen_unisim.vbom
+[vsyn]ram_1swar_gen.vbom
+# design
+fifo_simple_dram.vhd

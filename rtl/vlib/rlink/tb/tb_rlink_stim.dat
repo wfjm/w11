@@ -1,7 +1,8 @@
-# $Id: tb_rlink_stim.dat 892 2017-05-01 17:57:34Z mueller $
+# $Id: tb_rlink_stim.dat 1109 2019-02-09 13:36:41Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2019-02-09  1109   4.2    adapt to fifo_simple (full at 15 writes)
 # 2017-05-01   892   4.1    start section B (error aborts) and C (retransmit)
 # 2014-12-21   617   4.0.1  rlink signals now tout and nak on separate stat bits
 # 2014-10-12   596   4.0    rewritten for rlink v4
@@ -389,12 +390,12 @@ C Test A4.4: wblk, rblk (with fifo, -> rberr response when fifo full)
 sop
 .dclr
 .dseq  18  x"4400"  -- seq(18,4400)
-wblkd   0  x"ffe6" 16  00000001             -- fifo := .... {err=1,dc=16}
+wblkd   0  x"ffe6" 15  00000001             -- fifo := .... {err=1,dc=15}
 .dclr
-.dseq  16  x"4400"  -- seq(16,4400)
+.dseq  15  x"4400"  -- seq(15,4400)
 .dwrd      x"0055"  -- 1st lsb from rbus
 .dwrd      x"0000"  -- rest will be 0 from abort states
-rblkd   1  x"ffe6" 16  00000001             -- lnak >? .... {err=1,dc=16)
+rblkd   1  x"ffe6" 15  00000001             -- lnak >? .... {err=1,dc=15)
 eop
 .iowt 10
 #
@@ -508,7 +509,7 @@ sop
 .dclr
 .dseq  18  x"4400"  -- seq(18,4400)
 init    0  x"ffe0"  x"0007"  00000000       -- clear all
-wblkd   1  x"ffe6"  16       00000001       -- fifo := .... {err=1,dc=16}
+wblkd   1  x"ffe6"  15       00000001       -- fifo := .... {err=1,dc=15}
 rreg    2  x"fffe"  x"0b81"  00000000       -- stat >? 0b81  (see above)
 labo    3           x"01"    00000000
 wreg    4  x"ffe4"  x"0101"  00000000       -- data := 0101
@@ -525,10 +526,10 @@ eop
 C    aborted rblk, labo, wreg(data),rreg(dinc)
 sop
 .dclr
-.dseq  16  x"4400"  -- seq(16,4400)
+.dseq  15  x"4400"  -- seq(15,4400)
 .dwrd      x"0055"  -- 1st lsb from rbus
 .dwrd      x"0000"  -- rest will be 0 from abort states
-rblkd   1  x"ffe6" 16  00000001             -- lnak >? .... {err=1,dc=16)
+rblkd   1  x"ffe6" 15  00000001             -- lnak >? .... {err=1,dc=15)
 rreg    2  x"fffe"  x"0981"  00000000       -- stat >? 0981  (see above)
 labo    3           x"01"    00000000
 wreg    4  x"ffe4"  x"0101"  00000000       -- data := 0101

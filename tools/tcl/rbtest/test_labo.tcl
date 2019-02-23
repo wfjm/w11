@@ -1,6 +1,6 @@
-# $Id: test_labo.tcl 985 2018-01-03 08:59:40Z mueller $
+# $Id: test_labo.tcl 1109 2019-02-09 13:36:41Z mueller $
 #
-# Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-02-09  1109   1.1    adapt to fifo_simple (full at 15 writes)
 # 2015-04-03   662   1.0    Initial version
 #
 
@@ -87,7 +88,7 @@ namespace eval rbtest {
     }
     rlc exec \
       -wreg te.data 0x0020 \
-      -wblk te.fifo $blk -edone 16 -estaterr \
+      -wblk te.fifo $blk -edone 15 -estaterr \
       -labo -edata 1 \
       -wreg te.data 0x0021 \
       -rreg te.data -edata 0xffff \
@@ -127,7 +128,7 @@ namespace eval rbtest {
       -wreg te.data 0x0040 \
       -rblk te.fifo 8 -edata [lrange $blk 0 7] \
       -rreg $rlink::ADDR_RLSTAT -edata 0x0 $babomsk \
-      -rblk te.fifo 8 -edata [lrange $blk 8 15] \
+      -rblk te.fifo 7 -edata [lrange $blk 8 14] \
       -rreg $rlink::ADDR_RLSTAT -edata 0x0 $babomsk \
       -rblk te.fifo 8 -edone 0 -estaterr \
       -rreg $rlink::ADDR_RLSTAT -edata $babomsk $babomsk \

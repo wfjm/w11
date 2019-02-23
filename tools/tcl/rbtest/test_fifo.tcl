@@ -1,6 +1,6 @@
-# $Id: test_fifo.tcl 985 2018-01-03 08:59:40Z mueller $
+# $Id: test_fifo.tcl 1109 2019-02-09 13:36:41Z mueller $
 #
-# Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-02-09  1109   2.2    adapt to fifo_simple (full at 15 writes)
 # 2015-04-03   661   2.1    drop estatdef; use estaterr
 # 2014-11-09   603   2.0    use rlink v4 address layout and iface
 # 2011-03-27   374   1.0    Initial version
@@ -74,14 +75,14 @@ namespace eval rbtest {
       -rblk te.fifo 4 -edata $blk -edone 3 -estaterr
     #
     #
-    rlc log "  test 3b: fifo write error (write 17, read 16)"
+    rlc log "  test 3b: fifo write error (write 17, read 15)"
     set blk {}
     for { set i 0 } { $i < 17 } { incr i } {
       lappend blk [expr {$i | ( $i << 8 ) }]
     }
     rlc exec \
-      -wblk te.fifo $blk -edone 16 -estaterr \
-      -rblk te.fifo 16 -edata [lrange $blk 0 15] -edone 16
+      -wblk te.fifo $blk -edone 15 -estaterr \
+      -rblk te.fifo 15 -edata [lrange $blk 0 14] -edone 15
     #
     #-------------------------------------------------------------------------
     rlc log "  test 4a: verify that init 100 clears fifo and not cntl&data"
@@ -117,9 +118,12 @@ namespace eval rbtest {
         set bcode [expr {32 * $i + 2 * $j}]
         lappend blk [expr {( $bcode << 8 ) | ( $bcode + 1 )}]
       }
+      # write/read in two chunks of 8 words because fifo holds only 15 words
       rlc exec \
-        -wblk te.fifo $blk \
-        -rblk te.fifo [llength $blk] -edata $blk
+        -wblk te.fifo [lrange $blk 0 7] \
+        -rblk te.fifo 8 -edata [lrange $blk 0 7] \
+        -wblk te.fifo [lrange $blk 8 15] \
+        -rblk te.fifo 8 -edata [lrange $blk 8 15]
     }
     #
     #-------------------------------------------------------------------------

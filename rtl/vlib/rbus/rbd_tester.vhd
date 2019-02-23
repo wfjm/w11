@@ -1,6 +1,6 @@
--- $Id: rbd_tester.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: rbd_tester.vhd 1109 2019-02-09 13:36:41Z mueller $
 --
--- Copyright 2010-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -15,12 +15,12 @@
 -- Module Name:    rbd_tester - syn
 -- Description:    rbus dev: rbus tester
 --
--- Dependencies:   memlib/fifo_1c_dram_raw
+-- Dependencies:   memlib/fifo_simple_dram
 --
 -- Test bench:     rlink/tb/tb_rlink (used as test target)
 --
 -- Target Devices: generic
--- Tool versions:  xst 12.1-14.7; viv 2014.4-2015.4; ghdl 0.29-0.33
+-- Tool versions:  xst 12.1-14.7; viv 2014.4-2017.2; ghdl 0.29-0.35
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -30,6 +30,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-02-09  1109   4.2    use fifo_simple_dram (instead of _1c_dram_raw)
 -- 2014-09-05   591   4.1    use new iface with 8 regs
 -- 2014-08-30   589   4.0    use new rlink v4 iface and 4 bit STAT
 -- 2014-08-15   583   3.5    rb_mreq addr now 16 bit
@@ -127,7 +128,7 @@ architecture syn of rbd_tester is
   signal N_REGS : regs_type := regs_init;
    
   signal FIFO_RESET : slbit := '0';
-  signal FIFO_RE : slbit := '0';
+  signal FIFO_CE : slbit := '0';
   signal FIFO_WE : slbit := '0';
   signal FIFO_EMPTY : slbit := '0';
   signal FIFO_FULL : slbit := '0';
@@ -136,20 +137,20 @@ architecture syn of rbd_tester is
   
 begin
 
-  FIFO : fifo_1c_dram_raw
+  FIFO : fifo_simple_dram
     generic map (
       AWIDTH => awidth,
       DWIDTH => 16)
     port map (
       CLK   => CLK,
       RESET => FIFO_RESET,
-      RE    => FIFO_RE,
+      CE    => FIFO_CE,
       WE    => FIFO_WE,
       DI    => RB_MREQ.din,
       DO    => FIFO_DO,
-      SIZE  => FIFO_SIZE,      
       EMPTY => FIFO_EMPTY,
-      FULL  => FIFO_FULL
+      FULL  => FIFO_FULL,
+      SIZE  => FIFO_SIZE
     );
 
   proc_regs: process (CLK)
@@ -172,7 +173,7 @@ begin
     variable irb_dout : slv16 := (others=>'0');
     variable irbena : slbit := '0';
     variable irblam : slv16 := (others=>'0');
-    variable ififo_re : slbit := '0';
+    variable ififo_ce : slbit := '0';
     variable ififo_we : slbit := '0';
     variable ififo_reset : slbit := '0';
     variable isbusy : slbit := '0';
@@ -189,7 +190,7 @@ begin
 
     irbena  := RB_MREQ.re or RB_MREQ.we;
         
-    ififo_re := '0';
+    ififo_ce := '0';
     ififo_we := '0';
     ififo_reset := '0';
 
@@ -274,13 +275,14 @@ begin
             if FIFO_EMPTY = '1' then
               irb_err := '1';
             else
-              ififo_re := '1';
+              ififo_ce := '1';
             end if;
           end if;
           if RB_MREQ.we='1' and isbusy='0' then
             if FIFO_FULL = '1' then
               irb_err := '1';
             else
+              ififo_ce := '1';
               ififo_we := '1';
             end if;
           end if;
@@ -350,7 +352,7 @@ begin
     
     N_REGS <= n;
 
-    FIFO_RE    <= ififo_re;
+    FIFO_CE    <= ififo_ce;
     FIFO_WE    <= ififo_we;
     FIFO_RESET <= ififo_reset;
       

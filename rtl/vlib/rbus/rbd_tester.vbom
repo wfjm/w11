@@ -3,6 +3,6 @@
 ../memlib/memlib.vhd
 rblib.vhd
 # components
-../memlib/fifo_1c_dram_raw.vbom
+../memlib/fifo_simple_dram.vbom
 # design
 rbd_tester.vhd

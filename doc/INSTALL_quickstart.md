@@ -65,10 +65,9 @@ All details of the Vivado implementation flow are encapsulated by the
 with the currently supported combinations
 
     board           btype     memory   Comment
-    cmoda7          c7        672 kB   Digilent Cmod A7 board
-    arty_bram       br_arty   176 kB   Digilent Arty A7-35 board
+    arty            arty     3840 kB   Digilent Arty A7-35 board
     basys3          b3        176 kB   Digilent Basys3 board
-    nexys4d_bram    br_n4d    512 kB   Digilent Nexys4 board (DDR RAM)
+    cmoda7          c7        672 kB   Digilent Cmod A7 board
     nexys4          n4       3840 kB   Digilent Nexys4 board (cellular RAM)
 
 The FPGA is configured via the vivado hardware server with

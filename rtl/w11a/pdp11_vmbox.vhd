@@ -1,4 +1,4 @@
--- $Id: pdp11_vmbox.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: pdp11_vmbox.vhd 1112 2019-02-17 11:10:04Z mueller $
 --
 -- Copyright 2006-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -100,6 +100,8 @@ architecture syn of pdp11_vmbox is
 
   constant ibaddr_slim : slv16 := slv(to_unsigned(8#177774#,16)); 
   constant atowidth : natural := 6;     -- size of access timeout counter
+                                        -- ! rbus tout must be > ibus tout !
+                                        -- ! ensure all BTOWIDTH > atowidth !
   
   type state_type is (
     s_idle,                             -- s_idle: wait for vm_cntl request

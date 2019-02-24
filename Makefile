@@ -1,4 +1,4 @@
-# $Id: Makefile 1102 2019-01-03 08:46:04Z mueller $
+# $Id: Makefile 1111 2019-02-10 16:13:55Z mueller $
 #
 # 'Meta Makefile' for whole retro project
 #   allows to make all synthesis targets
@@ -6,6 +6,7 @@
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2019-01-10  1111   1.2.11 drop w11a/arty_bram
 # 2019-01-02  1101   1.2.10 add tst_{mig,sram}/arty; add w11a/arty
 # 2018-10-12  1055   1.2.9  use setup_package_filt
 # 2017-06-28   918   1.2.8  add cmoda7 port for tst_rlink,tst_sram,w11a
@@ -79,7 +80,6 @@ SYN_viv += rtl/sys_gen/tst_mig/arty
 SYN_viv += rtl/sys_gen/tst_rlink/arty
 SYN_viv += rtl/sys_gen/tst_sram/arty
 SYN_viv += rtl/sys_gen/w11a/arty
-SYN_viv += rtl/sys_gen/w11a/arty_bram
 
 #     CmodA7 -------------------------------------
 SYN_viv += rtl/sys_gen/tst_rlink/cmoda7
@@ -139,7 +139,6 @@ SIM_viv += rtl/sys_gen/tst_mig/arty/tb
 SIM_viv += rtl/sys_gen/tst_rlink/arty/tb
 SIM_viv += rtl/sys_gen/tst_sram/arty/tb
 SIM_viv += rtl/sys_gen/w11a/arty/tb
-SIM_viv += rtl/sys_gen/w11a/arty_bram/tb
 
 #     CmodA7 -------------------------------------
 SIM_viv += rtl/sys_gen/tst_rlink/cmoda7/tb

@@ -1,4 +1,4 @@
-## Notes on oskit: Unix 7th Edition system on RP04 volumes
+## Notes on oskit: Unix 7th Edition system on a RP04 volume
 
 ### Proviso
 

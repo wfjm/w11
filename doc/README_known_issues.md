@@ -7,16 +7,68 @@ This file descibes general issues.
 
 The case id indicates the release when the issue was first recognized.
 
-### V0.73-3 {[issue #11](https://github.com/wfjm/w11/issues/11)}
-The 'state number generator' code in `pdp11_sequencer` causes in vivado
-2016.1 (and .2) that the main FSM isn't re-coded anymore, which has high 
-impact on achievable clock rate. The two optional debug units depending on 
-the state number, `dmscnt` and `dmcmon`, are therefore currently deactivated in
-all Artix based systems (but are available on all Spartan based systems).
+### V0.77-1 {[issue #19](https://github.com/wfjm/w11/issues/19)}
+tcl commands like
+```
+  cpu0 get type
+  cpu0rka get class
+  rlc get timeout
+```
+crash with a `SIGSEGV`. Apparently all getters which internally return a
+const reference are affected. Observed with gcc 5.4.0. Unclear whether this
+is a coding bug introduced when boost::bind was replaced by lambdas
+(in commit [1620ee3](https://github.com/wfjm/w11/commit/1620ee3)) or a
+compiler issue.
 
-Issue is still in Vivado 2016.4. `dmcmon` can be enabled if wanted, this
-might require a reduced clock rate. See procedure given in
-[comment to issue #11](https://github.com/wfjm/w11/issues/11).
+### V0.76-3 {[issue #18](https://github.com/wfjm/w11/issues/18)}
+So far all Series-7 w11a systems ran with 80 MHz clock. The sys_w11_arty
+design (with DDR memory support via MIG) also achieves timing closure under
+Vivado 2017.2, but fails (with a small negative slack) under Vivado 2018.3.
+
+The failing data path has
+```
+  Source:      SYS70/CACHE/CMEM_DAT1/sv_ram_reg_0/DOADO[1]
+  Destination: SYS70/CACHE/CMEM_DAT3/sv_ram_reg_0/DIADI[1]
+  via            VMBOX->SEQ->OUNIT->SEQ->DPATH->SEQ->VMBOX
+```
+The connectivity of the multiplexers in `pdp_dpath` in principle allows such
+a data flow, but `pdp11_sequencer` will never configure the multiplexers in
+such a way. So technically this is a false path.
+
+It seems that the placer strategy changed from Vivado 2017.2 to 2018.3 and
+that 2018.3 is less tolerant to the sub-optimal w11a design.
+
+This will be fixed in a future release, either by setting up an appropriate
+false_path constraint, or by changing the data path structure.
+
+### V0.76-2 {[issue #17](https://github.com/wfjm/w11/issues/17)}
+The w11a design for Arty S7 (50 die size), see rtl/sys_gen/w11a/artys7,
+was provided to support also an up-to-date Spartan-7 based board. Turned
+out that speed is equivalent to Artix-7. It is so far only simulation tested.
+
+Testing done with a real Arty S7, would be highly appreciated. Please double
+check the pin assignments (see _mig_a.prj and artys7*.xdc_) with the
+documentation of your board to avoid potential damage.
+
+Looking forward to receive test reports.
+
+### V0.76-1 {[issue #16](https://github.com/wfjm/w11/issues/16)}
+The w11a design for Nexys4 DDR, see rtl/sys_gen/w11a/nexys4d, was provided
+to support also an up-to-date Nexys4 board. It is so far only simulation tested.
+
+Testing done with a real Nexyx4 DDR, or a newer Nexys A7-100T, would be highly
+appreciated. Please double check the pin assignments
+(see _mig_a.prj and nexys4d*.xdc_) with the documentation of your board
+to avoid potential damage.
+
+Looking forward to receive test reports.
+
+### V0.742-1 {[issue #14](https://github.com/wfjm/w11/issues/14)}
+The detach of a `tcp` type virtual terminal or a `tap` type virtual
+ethernet device can lead to a SEGFAULT core dump, e.g. after a
+`cpu0ttb0 det` command.
+This is caused by a race condition between the detach run-down and the
+implementation of `ReventLoop::RemovePollHandler()`.
 
 ### V0.73-2 {[issue #10](https://github.com/wfjm/w11/issues/10)}
 Many post-synthesis functional and especially post-routing timing 
@@ -78,3 +130,17 @@ rlink command lists aren't split to fit in retransmit buffer size.
 _{the last two issues are not relevant for w11 backend over USB usage because
 the backend produces proper command lists and the USB channel is usually error
 free}_
+
+## Resolved Issues
+### V0.73-3 {[issue #11](https://github.com/wfjm/w11/issues/11)}
+#### Original Issue
+The 'state number generator' code in `pdp11_sequencer` causes in vivado
+2016.1 (and .2) that the main FSM isn't re-coded anymore, which has high 
+impact on achievable clock rate. The two optional debug units depending on 
+the state number, `dmscnt` and `dmcmon`, are therefore currently deactivated in
+all Artix based systems (but are available on all Spartan based systems).
+#### Fix
+At least mitigated with [d14626c](https://github.com/wfjm/w11/commit/d14626c)
+which allows to use `dmcmon` without the full state number generation logic
+in `pdp11_sequencer`. Reintroduced `dmcmon` in `sys_w11a_n4` again. `dmscnt` is
+still deconfigured for vivado designs, but this has much less practical impact.

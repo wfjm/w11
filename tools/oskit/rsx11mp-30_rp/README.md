@@ -1,4 +1,4 @@
-## Notes on oskit: RSX-11Mplus V3.0 system on RP06 volumes
+## Notes on oskit: RSX-11Mplus V3.0 system on a RP06 volume
 
 ### General remarks
 

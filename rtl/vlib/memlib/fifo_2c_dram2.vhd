@@ -1,4 +1,4 @@
--- $Id: fifo_2c_dram2.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: fifo_2c_dram2.vhd 1109 2019-02-09 13:36:41Z mueller $
 --
 -- Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -22,7 +22,9 @@
 --
 -- Test bench:     tb/tb_fifo_2c_dram
 -- Target Devices: generic
--- Tool versions:  viv 2015.4; ghdl 0.33
+-- Tool versions:  viv 2015.4-2018.3; ghdl 0.33-0.35    !! NOT FOR ISE !!
+-- Note:           for usage with ISE use fifo_2c_dram
+--
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2016-03-24   751   1.0    Initial version (derived from fifo_2c_dram, is

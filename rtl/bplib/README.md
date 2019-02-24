@@ -17,6 +17,7 @@ and is organized in
 | [nexys2](nexys2)       | support for Digilent Nexys2 board |
 | [nexys3](nexys3)       | support for Digilent Nexys3 board |
 | [nexys4](nexys4)       | support for Digilent Nexys4 board (cram version) |
+| [nexys4d](nexys4d)     | support for Digilent Nexys4 DDR board |
 | [nxcramlib](nxcramlib) | interface for ISSI CRAM |
 | [s3board](s3board)     | support for Digilent S3BOARD board |
 | [sysmon](sysmon)       | interface for Xilinx Series-7 sysmon |

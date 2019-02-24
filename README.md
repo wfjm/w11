@@ -8,9 +8,10 @@ The project contains the VHDL code for a **complete DEC PDP-11 system**:
 a PDP-11/70 CPU with memory management unit, but without floating point unit,
 a complete set of mass storage peripherals
 (RK11/RK05, RL11/RL02, RK70/RP06, TM11/TU10)
-and a basic set of UNIBUS peripherals
-(DL11, LP11, PC11),
-and last but not least a cache and memory controllers for SRAM and PSRAM.
+and a rather complete set of UNIBUS peripherals
+(DL11, LP11, PC11, and DEUNA),
+and last but not least a cache and memory controllers for SRAM, PSRAM and
+SDRAM (via Xilinx MIG core).
 The design is **FPGA proven**, runs currently on
 Digilent Arty, Basys3, CmodA7, Nexys4, Nexys3, Nexys2 and S3board boards
 and boots 5th Edition UNIX and 2.11BSD UNIX. 

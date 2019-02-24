@@ -1,4 +1,4 @@
--- $Id: sys_w11a_s3.vhd 1108 2019-02-02 23:04:38Z mueller $
+-- $Id: sys_w11a_s3.vhd 1112 2019-02-17 11:10:04Z mueller $
 --
 -- Copyright 2007-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -79,6 +79,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-02-16  1112   2.2.1  set BTOWIDTH 7 (was 6, must > vmbox atowidth (6))
 -- 2018-10-13  1055   2.2    use DM_STAT_EXP; IDEC to maxisys; setup PERFEXT
 -- 2016-03-19   748   2.1.1  define rlink SYSID
 -- 2015-05-09   677   2.1    start/stop/suspend overhaul; reset overhaul
@@ -321,7 +322,7 @@ begin
 
   RLINK : rlink_sp1c                    -- rlink for serport -----------------
     generic map (
-      BTOWIDTH     => 6,                --  64 cycles access timeout
+      BTOWIDTH     => 7,                -- 128 cycles access timeout
       RTAWIDTH     => 12,
       SYSID        => sysid_proj & sysid_board & sysid_vers,
       IFAWIDTH     => 5,                --  32 word input fifo

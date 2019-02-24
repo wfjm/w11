@@ -1,4 +1,4 @@
--- $Id: ibdlib.vhd 1056 2018-10-13 16:01:17Z mueller $
+-- $Id: ibdlib.vhd 1111 2019-02-10 16:13:55Z mueller $
 --
 -- Copyright 2008-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,7 +16,7 @@
 -- Description:    Definitions for ibus devices
 --
 -- Dependencies:   -
--- Tool versions:  ise 8.2-14.7; viv 2014.4-2018.2; ghdl 0.18-0.34
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2018.3; ghdl 0.18-0.35
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2018-10-13  1055   1.3.2  update ibdr_maxisys (add IDEC port)

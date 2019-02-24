@@ -1,6 +1,6 @@
-// $Id: RtclGet.ipp 1091 2018-12-23 12:38:29Z mueller $
+// $Id: RtclGet.ipp 1112 2019-02-17 11:10:04Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-02-16  1112   1.2.5  use const& for oper() of string& and Rtime&
 // 2018-12-22  1091   1.2.4  <float> add float cast (-Wdouble-promotion fix)
 // 2018-12-18  1089   1.2.3  use c++ style casts
 // 2018-12-15  1083   1.2.2  ctor: use rval ref and move semantics
@@ -33,6 +34,7 @@
 */
 
 #include "librtools/Rtime.hpp"
+#include <iostream>
 
 // all method definitions in namespace Retro
 namespace Retro {
@@ -188,7 +190,7 @@ inline Tcl_Obj* RtclGet<std::string>::operator()() const
 template <>
 inline Tcl_Obj* RtclGet<const std::string&>::operator()() const 
 {
-  std::string val = fGet();
+  const std::string& val = fGet();
   return Tcl_NewStringObj(val.data(), val.length());
 }
 
@@ -208,7 +210,7 @@ inline Tcl_Obj* RtclGet<Rtime>::operator()() const
 template <>
 inline Tcl_Obj* RtclGet<const Rtime&>::operator()() const 
 {
-  Rtime val = fGet();
+  const Rtime& val = fGet();
   return Tcl_NewDoubleObj(double(val));
 }
 

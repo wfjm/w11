@@ -1,4 +1,4 @@
--- $Id: fifo_2c_dram.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: fifo_2c_dram.vhd 1109 2019-02-09 13:36:41Z mueller $
 --
 -- Copyright 2007-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -22,7 +22,9 @@
 --
 -- Test bench:     tb/tb_fifo_2c_dram
 -- Target Devices: generic Spartan, Virtex
--- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.33
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.35         !! NOT FOR VIVADO !!
+-- Note:           for usage with Vivado use fifo_2c_dram2
+--
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2011-11-13   424   1.1    use capture+sync flops; reset now glitch free 

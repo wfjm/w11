@@ -21,6 +21,24 @@ The HEAD version shows the current development. No guarantees that
 software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
+### Summary
+
+### New features
+- new components
+  - fifo_simple_dram: simple fifo with CE/WE interface, dram based
+  - simclkv: test bench clock generator with variable period
+
+### Changes
+- tools changes
+  - RtclGet.ipp: use const& for oper() of string& and Rtime&
+- firmware changes
+  - rbd_tester: use now fifo_simple_dram
+  - sys_w11a_s3: set BTOWIDTH 7 (was 6, must be > vmbox atowidth (6))
+
+### Bug Fixes
+
+### Known issues
+
 <!-- --------------------------------------------------------------------- -->
 ---
 ## <a id="w11a_V0.76">2019-02-16: [w11a_V0.76](https://github.com/wfjm/w11/releases/tag/w11a_V0.76) - rev 1108(wfjm)</a>

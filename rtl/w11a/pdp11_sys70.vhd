@@ -1,6 +1,6 @@
--- $Id: pdp11_sys70.vhd 1056 2018-10-13 16:01:17Z mueller $
+-- $Id: pdp11_sys70.vhd 1112 2019-02-17 11:10:04Z mueller $
 --
--- Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,7 +20,8 @@
 --                 w11a/pdp11_cache
 --                 w11a/pdp11_mem70
 --                 ibus/ibd_ibmon
---                 ibus/ib_sres_or_3
+--                 ibus/ibd_ibtst
+--                 ibus/ib_sres_or_4
 --                 w11a/pdp11_dmscnt
 --                 w11a/pdp11_dmcmon
 --                 w11a/pdp11_dmhpbt
@@ -31,10 +32,11 @@
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 14.7; viv 2014.4-2018.2; ghdl 0.33-0.34
+-- Tool versions:  ise 14.7; viv 2014.4-2018.3; ghdl 0.33-0.35
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-02-16  1112   1.3.1  add ibd_ibtst
 -- 2018-10-13  1055   1.3    drop ITIMER,DM_STAT_DP out ports, use DM_STAT_EXP
 --                           add PERFEXT in port
 -- 2018-10-06  1053   1.2.3  drop DM_STAT_SY; add DM_STAT_CA; use _SE.pcload
@@ -132,6 +134,7 @@ architecture syn of pdp11_sys70 is
   signal IB_SRES_M : ib_sres_type := ib_sres_init;
   signal IB_SRES_MEM70 : ib_sres_type := ib_sres_init;
   signal IB_SRES_IBMON : ib_sres_type := ib_sres_init;
+  signal IB_SRES_IBTST : ib_sres_type := ib_sres_init;
 
   constant rbaddr_ibus0 : slv16 := x"4000"; -- 4000/1000: 0100 xxxx xxxx xxxx
   constant rbaddr_core0 : slv16 := x"0000"; -- 0000/0020: 0000 0000 000x xxxx
@@ -233,11 +236,27 @@ begin
       );
   end generate IBMON;
 
-  IB_SRES_OR : ib_sres_or_3
+  IBTST : if sys_conf_ibtst generate
+    signal RESET_IBTST : slbit := '0';
+  begin
+    RESET_IBTST <= RESET or GRESET_L or BRESET_L;
+    I0 : ibd_ibtst
+      generic map (
+        IB_ADDR => slv(to_unsigned(8#170000#,16)))
+      port map (
+        CLK         => CLK,
+        RESET       => RESET_IBTST,
+        IB_MREQ     => IB_MREQ_M,
+        IB_SRES     => IB_SRES_IBTST
+      );
+  end generate IBTST;
+
+  IB_SRES_OR : ib_sres_or_4
     port map (
       IB_SRES_1  => IB_SRES_MEM70,
       IB_SRES_2  => IB_SRES,
       IB_SRES_3  => IB_SRES_IBMON,
+      IB_SRES_4  => IB_SRES_IBTST,
       IB_SRES_OR => IB_SRES_M
     );
 

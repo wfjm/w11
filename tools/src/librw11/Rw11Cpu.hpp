@@ -1,6 +1,6 @@
-// $Id: Rw11Cpu.hpp 1091 2018-12-23 12:38:29Z mueller $
+// $Id: Rw11Cpu.hpp 1112 2019-02-17 11:10:04Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-02-15  1112   1.2.16 add HasIbtst()
 // 2018-12-23  1091   1.2.15 AddWbibr(): add move version
 // 2018-12-17  1085   1.2.14 use std::mutex,condition_variable instead of boost
 // 2018-12-16  1084   1.2.13 use =delete for noncopyable instead of boost
@@ -92,6 +93,7 @@ namespace Retro {
       bool          HasCmon() const;
       uint16_t      HasHbpt() const;
       bool          HasIbmon() const;
+      bool          HasIbtst() const;
       bool          HasKw11l() const;
       bool          HasKw11p() const;
       bool          HasIist() const;
@@ -259,13 +261,19 @@ namespace Retro {
       static const uint16_t  kPCSTAT  = 0x0001;   //!< PC.STAT  reg offset
       static const uint16_t  kPCDATA  = 0x0002;   //!< PC.DATA  reg offset
 
-    static const uint16_t  kIMBASE  = 0160000;  //!< Ibmon ibus address
+      static const uint16_t  kIMBASE  = 0160000;  //!< Ibmon ibus address
       static const uint16_t  kIMCNTL  = 0x0000;   //!< IM.CNTL  reg offset
       static const uint16_t  kIMSTAT  = 0x0002;   //!< IM.STAT  reg offset
       static const uint16_t  kIMHILIM = 0x0004;   //!< IM.HILIM reg offset
       static const uint16_t  kIMLOLIM = 0x0006;   //!< IM.LOLIM reg offset
       static const uint16_t  kIMADDR  = 0x0008;   //!< IM.ADDR  reg offset
       static const uint16_t  kIMDATA  = 0x000a;   //!< IM.DATA  reg offset
+    
+      static const uint16_t  kITBASE  = 0170000;  //!< Ibtst ibus address
+      static const uint16_t  kITCNTL  = 0x0000;   //!< IT.CNTL  reg offset
+      static const uint16_t  kITSTAT  = 0x0002;   //!< IT.STAT  reg offset
+      static const uint16_t  kITDATA  = 0x0004;   //!< IT.DATA  reg offset
+      static const uint16_t  kITFIFO  = 0x0006;   //!< IT.FIFO  reg offset
 
     // defs for optional w11 aux components
       static const uint16_t  kKWLBASE = 0177546;  //!< KW11-L ibus address
@@ -295,6 +303,7 @@ namespace Retro {
       bool          fHasCmon;               //!< has dmcmon (cpu monitor)
       uint16_t      fHasHbpt;               //!< has dmhbpt (hardware breakpoint)
       bool          fHasIbmon;              //!< has ibmon  (ibus monitor)
+      bool          fHasIbtst;              //!< has ibtst  (ibus tester)
       bool          fHasKw11l;              //!< has kw11-l (line clock)
       bool          fHasKw11p;              //!< has kw11-p (prog clock)
       bool          fHasIist;               //!< has iist   (smp comm)

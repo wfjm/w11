@@ -26,14 +26,20 @@ The full set of tests is only run for tagged releases.
 ### New features
 - new components
   - fifo_simple_dram: simple fifo with CE/WE interface, dram based
+  - ibd_ibtst: ibus tester device
   - simclkv: test bench clock generator with variable period
+- new verification codes
+  - tbench/w11a_ibtst/*: tbench for ibd_ibtst
+  - test_w11a_sdreg.tcl: tbench for sdreg
 
 ### Changes
 - tools changes
+  - Rw11Cpu,RtclRw11Cpu: add ibmon setup and HasIbtst()
   - RtclGet.ipp: use const& for oper() of string& and Rtime&
 - firmware changes
   - rbd_tester: use now fifo_simple_dram
   - sys_w11a_s3: set BTOWIDTH 7 (was 6, must be > vmbox atowidth (6))
+  - pdp11_sys70: instantiate ibd_ibtst (when sys_conf_ibtst = true)
 
 ### Bug Fixes
 

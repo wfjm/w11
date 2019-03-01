@@ -1,6 +1,6 @@
-// $Id: Rw11Cpu.cpp 1091 2018-12-23 12:38:29Z mueller $
+// $Id: Rw11Cpu.cpp 1112 2019-02-17 11:10:04Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-02-16  1112   1.2.16 add ibmon setup and HasIbtst()
 // 2018-12-23  1091   1.2.19 AddWbibr(): add move version
 // 2018-12-19  1090   1.2.18 use RosPrintf(bool)
 // 2018-12-17  1085   1.2.17 use std::mutex,condition_variable instead of boost
@@ -195,6 +196,7 @@ Rw11Cpu::Rw11Cpu(const std::string& type)
     fHasCmon(false),
     fHasHbpt(0),
     fHasIbmon(false),
+    fHasIbtst(false),
     fHasKw11l(false),
     fHasKw11p(false),
     fHasIist(false),
@@ -891,6 +893,7 @@ void Rw11Cpu::Dump(std::ostream& os, int ind, const char* text,
   os << bl << "  fHasCmon:        " << RosPrintf(fHasCmon) << endl;
   os << bl << "  fHasHbpt:        " << fHasHbpt << endl;
   os << bl << "  fHasIbmon:       " << RosPrintf(fHasIbmon) << endl;
+  os << bl << "  fHasIbtst:       " << RosPrintf(fHasIbtst) << endl;
   os << bl << "  fHasKw11l:       " << RosPrintf(fHasKw11l) << endl;
   os << bl << "  fHasKw11p:       " << RosPrintf(fHasKw11p) << endl;
   os << bl << "  fHasIist:        " << RosPrintf(fHasIist)  << endl;
@@ -983,7 +986,7 @@ void Rw11Cpu::SetupStd()
 
 void Rw11Cpu::SetupOpt()
 {
-  // probe optional cpu components: dmscnt, dmcmon, dmhbpt and ibmon
+  // probe optional cpu components: dmscnt, dmcmon, dmhbpt and ibmon, ibtst
   RlinkCommandList clist;
 
   int isc =  clist.AddRreg(Base()+kSCBASE+kSCCNTL);
@@ -997,7 +1000,11 @@ void Rw11Cpu::SetupOpt()
     ihb[i] =  clist.AddRreg(Base()+kHBBASE+i*kHBSIZE+kHBCNTL);
     clist.SetLastExpectStatus(0,0); 
   }
+  
   int iim = AddRibr(clist, kIMBASE+kIMCNTL);  // ibmon probe rem (no loc resp)
+  clist.SetLastExpectStatus(0,0);
+  
+  int iit = AddRibr(clist, kITBASE+kITCNTL);  // ibtst probe rem (loc disabled)
   clist.SetLastExpectStatus(0,0);
   
   int ipc =  clist.AddRreg(Base()+kPCBASE+kPCCNTL);
@@ -1069,6 +1076,14 @@ void Rw11Cpu::SetupOpt()
     AllIAddrMapInsert("im.lolim", kIMBASE + kIMLOLIM);
     AllIAddrMapInsert("im.addr",  kIMBASE + kIMADDR);
     AllIAddrMapInsert("im.data",  kIMBASE + kIMDATA);
+  }
+
+  fHasIbtst = (clist[iit].Status() & statmsk) == 0;
+  if (fHasIbtst) {
+    AllIAddrMapInsert("it.cntl", kITBASE + kITCNTL);
+    AllIAddrMapInsert("it.stat", kITBASE + kITSTAT);
+    AllIAddrMapInsert("it.data", kITBASE + kITDATA);
+    AllIAddrMapInsert("it.fifo", kITBASE + kITFIFO);
   }
 
   fHasKw11l = (clist[ikwl].Status() & statmsk) == 0;

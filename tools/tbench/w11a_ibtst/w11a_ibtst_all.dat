@@ -1,0 +1,9 @@
+# $Id: w11a_ibtst_all.dat 1112 2019-02-17 11:10:04Z mueller $
+#
+## steering file for all w11a_ibtst tests
+#
+test_ibtst_regs.tcl
+test_ibtst_data.tcl
+test_ibtst_stat.tcl
+test_ibtst_fifo.tcl
+#

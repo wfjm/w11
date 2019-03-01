@@ -1,6 +1,6 @@
--- $Id: iblib.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: iblib.vhd 1111 2019-02-10 16:13:55Z mueller $
 --
--- Copyright 2008-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Definitions for ibus interface and bus entities
 --
 -- Dependencies:   -
--- Tool versions:  ise 8.1-14.7; viv 2014.4-2016.4; ghdl 0.18-0.33
+-- Tool versions:  ise 8.1-14.7; viv 2014.4-2018.3; ghdl 0.18-0.35
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-02-10  1111   2.2.1  add ibd_ibtst
 -- 2017-01-28   846   2.2    add ib_intmap24
 -- 2016-05-28   770   2.1.1  use type natural for vec,pri fields of intmap_type
 -- 2015-04-24   668   2.1    add ibd_ibmon
@@ -162,6 +163,17 @@ component ibd_ibmon is                  -- ibus dev: ibus monitor
     IB_MREQ : in ib_mreq_type;          -- ibus: request
     IB_SRES : out ib_sres_type;         -- ibus: response
     IB_SRES_SUM : in ib_sres_type       -- ibus: response (sum for monitor)
+  );
+end component;
+
+component ibd_ibtst is                  -- ibus dev(rem): ibus tester
+  generic (
+    IB_ADDR : slv16 := slv(to_unsigned(8#170000#,16)));
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit;                   -- reset
+    IB_MREQ : in ib_mreq_type;          -- ibus request
+    IB_SRES : out ib_sres_type          -- ibus response
   );
 end component;
 

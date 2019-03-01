@@ -1,6 +1,6 @@
-// $Id: RtclRw11Cpu.cpp 1091 2018-12-23 12:38:29Z mueller $
+// $Id: RtclRw11Cpu.cpp 1112 2019-02-17 11:10:04Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-02-15  1112   1.2.25 add HasIbtst() getter
+//                           add return type for lambdas with const type&
 // 2018-12-23  1091   1.2.24 use AddWbibr(move),AddWblk(move)
 // 2018-12-18  1089   1.2.23 use c++ style casts
 // 2018-12-17  1085   1.2.22 use std::lock_guard instead of boost
@@ -1480,7 +1482,8 @@ int RtclRw11Cpu::M_default(RtclArgs& args)
 void RtclRw11Cpu::SetupGetSet()
 {
   Rw11Cpu* pobj = &Obj();
-  fGets.Add<const string&>("type",     [pobj](){ return pobj->Type(); });
+  fGets.Add<const string&>("type",     [pobj]() -> const string&
+                                               { return pobj->Type(); });
   fGets.Add<size_t>       ("index",    [pobj](){ return pobj->Index(); });
   fGets.Add<uint16_t>     ("base",     [pobj](){ return pobj->Base(); });
   fGets.Add<uint16_t>     ("ibase",    [pobj](){ return pobj->IBase(); });
@@ -1489,6 +1492,7 @@ void RtclRw11Cpu::SetupGetSet()
   fGets.Add<bool>         ("hascmon",  [pobj](){ return pobj->HasCmon(); });
   fGets.Add<uint16_t>     ("hashbpt",  [pobj](){ return pobj->HasHbpt(); });
   fGets.Add<bool>         ("hasibmon", [pobj](){ return pobj->HasIbmon(); });
+  fGets.Add<bool>         ("hasibtst", [pobj](){ return pobj->HasIbtst(); });
   fGets.Add<bool>         ("haskw11l", [pobj](){ return pobj->HasKw11l(); });
   fGets.Add<bool>         ("haskw11p", [pobj](){ return pobj->HasKw11p(); });
   fGets.Add<bool>         ("hasiist",  [pobj](){ return pobj->HasIist(); });

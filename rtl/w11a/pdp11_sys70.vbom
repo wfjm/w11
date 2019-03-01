@@ -10,7 +10,8 @@ pdp11_core.vbom
 pdp11_cache.vbom
 pdp11_mem70.vbom
 ../ibus/ibd_ibmon.vbom
-../ibus/ib_sres_or_3.vbom
+../ibus/ibd_ibtst.vbom
+../ibus/ib_sres_or_4.vbom
 pdp11_dmscnt.vbom
 pdp11_dmcmon.vbom
 pdp11_dmhbpt.vbom

@@ -1,6 +1,6 @@
-// $Id: Rw11Cpu.ipp 1066 2018-11-10 11:21:53Z mueller $
+// $Id: Rw11Cpu.ipp 1112 2019-02-17 11:10:04Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-02-15  1112   1.2.4  add HasIbtst()
 // 2018-09-23  1050   1.2.3  add HasPcnt()
 // 2017-02-17   851   1.2.2  probe/setup auxilliary devices: kw11l,kw11p,iist
 // 2015-07-12   700   1.2.1  use ..CpuAct instead ..CpuGo (new active based lam)
@@ -132,6 +133,14 @@ inline uint16_t Rw11Cpu::HasHbpt() const
 inline bool Rw11Cpu::HasIbmon() const
 {
   return fHasIbmon;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline bool Rw11Cpu::HasIbtst() const
+{
+  return fHasIbtst;
 }
 
 //------------------------------------------+-----------------------------------

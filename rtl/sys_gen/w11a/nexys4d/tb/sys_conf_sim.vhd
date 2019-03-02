@@ -1,4 +1,4 @@
--- $Id: sys_conf_sim.vhd 1101 2019-01-02 21:22:37Z mueller $
+-- $Id: sys_conf_sim.vhd 1111 2019-02-10 16:13:55Z mueller $
 --
 -- Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,9 +16,10 @@
 -- Description:    Definitions for sys_w11a_n4d (for simulation)
 --
 -- Dependencies:   -
--- Tool versions:  viv 2017.2; ghdl 0.34
+-- Tool versions:  viv 2017.2-2018.3; ghdl 0.34-0.35
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-02-09  1110   1.1    use typ for DL,PC,LP; add dz11,ibtst
 -- 2019-01-02  1101   1.0    Initial version (cloned from _n4)
 ------------------------------------------------------------------------------
 
@@ -49,6 +50,7 @@ package sys_conf is
   -- configure debug and monitoring units ------------------------------------
   constant sys_conf_rbmon_awidth  : integer := 9; -- use 0 to disable
   constant sys_conf_ibmon_awidth  : integer := 9; -- use 0 to disable
+  constant sys_conf_ibtst         : boolean := true;
   constant sys_conf_dmscnt        : boolean := false;
   constant sys_conf_dmpcnt        : boolean := true;
   constant sys_conf_dmhbpt_nunit  : integer := 2; -- use 0 to disable
@@ -61,9 +63,12 @@ package sys_conf is
 
   -- configure w11 system devices --------------------------------------------
   -- configure character and communication devices
-  constant sys_conf_ibd_dl11_1 : boolean := true;  -- 2nd DL11
-  constant sys_conf_ibd_pc11   : boolean := true;  -- PC11
-  constant sys_conf_ibd_lp11   : boolean := true;  -- LP11
+  -- typ for DL,DZ,PC,LP: -1->none; 0->unbuffered; 4-7 buffered (typ=AWIDTH)
+  constant sys_conf_ibd_dl11_0 : integer :=  6;    -- 1st DL11
+  constant sys_conf_ibd_dl11_1 : integer :=  6;    -- 2nd DL11
+  constant sys_conf_ibd_dz11   : integer :=  6;    -- DZ11
+  constant sys_conf_ibd_pc11   : integer :=  6;    -- PC11
+  constant sys_conf_ibd_lp11   : integer :=  7;    -- LP11
   constant sys_conf_ibd_deuna  : boolean := true;  -- DEUNA
 
   -- configure mass storage devices

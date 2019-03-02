@@ -1,4 +1,4 @@
--- $Id: ibdr_maxisys.vhd 1108 2019-02-02 23:04:38Z mueller $
+-- $Id: ibdr_maxisys.vhd 1111 2019-02-10 16:13:55Z mueller $
 --
 -- Copyright 2009-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -49,6 +49,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-02-10  1111   1.6    use typ for DL,PC,LP
 -- 2019-01-29  1108   1.5.1  move IIST signals into generate
 -- 2018-10-13  1055   1.5    add IDEC port, connect to EXTEVT of KW11P
 -- 2018-09-08  1043   1.4.2  add KW11P;
@@ -377,7 +378,7 @@ begin
       EI_ACK_TX => EI_ACK_DL11TX_0
     );
   
-  DL11_1: if sys_conf_ibd_dl11_1 generate
+  DL11_1: if sys_conf_ibd_dl11_1 >= 0 generate
   begin
     TTB : ibdr_dl11
       generic map (
@@ -397,7 +398,7 @@ begin
       );
   end generate DL11_1;
 
-  PC11: if sys_conf_ibd_pc11 generate
+  PC11: if sys_conf_ibd_pc11 >= 0 generate
   begin
     PCA : ibdr_pc11
       port map (
@@ -414,7 +415,7 @@ begin
       );
   end generate PC11;
 
-  LP11: if sys_conf_ibd_lp11 generate
+  LP11: if sys_conf_ibd_lp11 >= 0 generate
   begin
     LPA : ibdr_lp11
       port map (

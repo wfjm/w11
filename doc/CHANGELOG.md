@@ -40,6 +40,10 @@ The full set of tests is only run for tagged releases.
   - rbd_tester: use now fifo_simple_dram
   - sys_w11a_s3: set BTOWIDTH 7 (was 6, must be > vmbox atowidth (6))
   - pdp11_sys70: instantiate ibd_ibtst (when sys_conf_ibtst = true)
+  - ibdr_maxisys,sys_conf ready for buffered DL,PC,LP and dz11,ibtst
+    - use type code instead of boolean for sys_conf_ibd_{dl11,lp11,pc11}
+    - add sys_conf_ibtst (enabled in all systems)
+    - add sys_conf_ibd_dz11 (enabled in all systems)
 
 ### Bug Fixes
 

@@ -1,6 +1,6 @@
--- $Id: sys_conf.vhd 1050 2018-09-23 15:46:42Z mueller $
+-- $Id: sys_conf.vhd 1111 2019-02-10 16:13:55Z mueller $
 --
--- Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2017-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,9 +16,10 @@
 -- Description:    Definitions for sys_w11a_c7 (for synthesis)
 --
 -- Dependencies:   -
--- Tool versions:  viv 2017.1-2018.2; ghdl 0.34
+-- Tool versions:  viv 2017.1-2018.3; ghdl 0.34-0.35
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-02-09  1110   1.1    use typ for DL,PC,LP; add dz11,ibtst
 -- 2018-09-22  1050   1.0.2  add sys_conf_dmpcnt
 -- 2018-09-08  1043   1.0.1  add sys_conf_ibd_kw11p
 -- 2017-06-24   914   1.0    Initial version (derived from _n4 version)
@@ -53,6 +54,7 @@ package sys_conf is
   -- configure debug and monitoring units ------------------------------------
   constant sys_conf_rbmon_awidth  : integer := 9; -- use 0 to disable
   constant sys_conf_ibmon_awidth  : integer := 9; -- use 0 to disable
+  constant sys_conf_ibtst         : boolean := true;
   constant sys_conf_dmscnt        : boolean := false;
   constant sys_conf_dmpcnt        : boolean := true;
   constant sys_conf_dmhbpt_nunit  : integer := 2; -- use 0 to disable
@@ -71,9 +73,12 @@ package sys_conf is
     
   -- configure w11 system devices --------------------------------------------
   -- configure character and communication devices
-  constant sys_conf_ibd_dl11_1 : boolean := true;  -- 2nd DL11
-  constant sys_conf_ibd_pc11   : boolean := true;  -- PC11
-  constant sys_conf_ibd_lp11   : boolean := true;  -- LP11
+  -- typ for DL,DZ,PC,LP: -1->none; 0->unbuffered; 4-7 buffered (typ=AWIDTH)
+  constant sys_conf_ibd_dl11_0 : integer :=  6;    -- 1st DL11
+  constant sys_conf_ibd_dl11_1 : integer :=  6;    -- 2nd DL11
+  constant sys_conf_ibd_dz11   : integer :=  6;    -- DZ11
+  constant sys_conf_ibd_pc11   : integer :=  6;    -- PC11
+  constant sys_conf_ibd_lp11   : integer :=  7;    -- LP11
   constant sys_conf_ibd_deuna  : boolean := true;  -- DEUNA
 
   -- configure mass storage devices

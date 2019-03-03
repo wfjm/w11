@@ -1,6 +1,6 @@
-// $Id: RtclRw11UnitDisk.cpp 1082 2018-12-15 13:56:20Z mueller $
+// $Id: RtclRw11UnitDisk.cpp 1114 2019-02-23 18:01:55Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,7 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2018-12-15  1082   1.2.2  use lambda instead of bind
+// 2019-02-23  1114   1.2.3  use std::bind instead of lambda
+// 2018-12-15  1082   1.2.2  use lambda instead of boost::bind
 // 2018-10-06  1053   1.2.1  move using after includes (clang warning)
 // 2017-04-08   870   1.2    use Rw11UnitDisk& ObjUV(); inherit from RtclRw11Unit
 // 2015-05-14   680   1.1.1  fGets: remove enabled, now in RtclRw11UnitBase
@@ -27,9 +28,12 @@
   \brief   Implemenation of RtclRw11UnitDisk.
 */
 
+#include <functional>
+
 #include "RtclRw11UnitDisk.hpp"
 
 using namespace std;
+using namespace std::placeholders;
 
 /*!
   \class Retro::RtclRw11UnitDisk
@@ -63,16 +67,16 @@ void RtclRw11UnitDisk::SetupGetSet()
 
   Rw11UnitDisk* pobj = &ObjUV();
   
-  fGets.Add<const string&> ("type",      [pobj](){ return pobj->Type(); });
-  fGets.Add<size_t>        ("ncylinder", [pobj](){ return pobj->NCylinder(); });
-  fGets.Add<size_t>        ("nhead",     [pobj](){ return pobj->NHead(); });
-  fGets.Add<size_t>        ("nsector",   [pobj](){ return pobj->NSector(); });
-  fGets.Add<size_t>        ("blocksize", [pobj](){ return pobj->BlockSize(); });
-  fGets.Add<size_t>        ("nblock",    [pobj](){ return pobj->NBlock(); });
-  fGets.Add<bool>          ("wprot",     [pobj](){ return pobj->WProt(); });
+  fGets.Add<const string&> ("type",      bind(&Rw11UnitDisk::Type,  pobj));
+  fGets.Add<size_t>        ("ncylinder", bind(&Rw11UnitDisk::NCylinder,  pobj));
+  fGets.Add<size_t>        ("nhead",     bind(&Rw11UnitDisk::NHead,  pobj));
+  fGets.Add<size_t>        ("nsector",   bind(&Rw11UnitDisk::NSector,  pobj));
+  fGets.Add<size_t>        ("blocksize", bind(&Rw11UnitDisk::BlockSize,  pobj));
+  fGets.Add<size_t>        ("nblock",    bind(&Rw11UnitDisk::NBlock,  pobj));
+  fGets.Add<bool>          ("wprot",     bind(&Rw11UnitDisk::WProt, pobj));
 
-  fSets.Add<const string&> ("type",  
-                            [pobj](const string& v){ pobj->SetType(v); });
+  fSets.Add<const string&> ("type", bind(&Rw11UnitDisk::SetType,pobj, _1));
+  
   return;
 }
 

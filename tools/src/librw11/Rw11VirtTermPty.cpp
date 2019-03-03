@@ -1,6 +1,6 @@
-// $Id: Rw11VirtTermPty.cpp 1082 2018-12-15 13:56:20Z mueller $
+// $Id: Rw11VirtTermPty.cpp 1114 2019-02-23 18:01:55Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,7 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2018-12-15  1082   1.0.4  use lambda instead of bind
+// 2019-02-23  1114   1.0.5  use std::bind instead of lambda
+// 2018-12-15  1082   1.0.4  use lambda instead of boost::bind
 // 2018-10-27  1059   1.0.3  coverity fixup (uncaught exception in dtor)
 // 2017-04-15   875   1.0.2  Open(): set default scheme
 // 2017-04-07   868   1.0.1  Dump(): add detail arg
@@ -32,10 +33,13 @@
 #include <errno.h>
 #include <unistd.h>
 
+#include <functional>
+
 #include "librtools/RosFill.hpp"
 #include "Rw11VirtTermPty.hpp"
 
 using namespace std;
+using namespace std::placeholders;
 
 /*!
   \class Retro::Rw11VirtTermPty
@@ -102,8 +106,7 @@ bool Rw11VirtTermPty::Open(const std::string& url, RerrMsg& emsg)
   fFd = fd;
   fChannelId = pname;
 
-  Server().AddPollHandler([this](const pollfd& pfd)
-                            { return RcvPollHandler(pfd); }, 
+  Server().AddPollHandler(bind(&Rw11VirtTermPty::RcvPollHandler, this, _1), 
                           fFd, POLLIN);
 
   return true;

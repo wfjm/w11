@@ -1,6 +1,6 @@
-// $Id: RtclRw11CntlDEUNA.cpp 1082 2018-12-15 13:56:20Z mueller $
+// $Id: RtclRw11CntlDEUNA.cpp 1114 2019-02-23 18:01:55Z mueller $
 //
-// Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,7 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2018-12-15  1082   1.0.1  use lambda instead of bind
+// 2019-02-23  1114   1.0.2  use std::bind instead of lambda
+// 2018-12-15  1082   1.0.1  use lambda instead of boost::bind
 // 2017-04-16   878   1.0    Initial version
 // 2014-06-09   561   0.1    First draft 
 // ---------------------------------------------------------------------------
@@ -24,6 +25,7 @@
 */
 
 #include <sstream>
+#include <functional>
 
 #include "librtcltools/RtclNameSet.hpp"
 
@@ -31,6 +33,7 @@
 #include "RtclRw11UnitDEUNA.hpp"
 
 using namespace std;
+using namespace std::placeholders;
 
 /*!
   \class Retro::RtclRw11CntlDEUNA
@@ -47,19 +50,20 @@ RtclRw11CntlDEUNA::RtclRw11CntlDEUNA()
   : RtclRw11CntlBase<Rw11CntlDEUNA>("Rw11CntlDEUNA","ether")
 {
   Rw11CntlDEUNA* pobj = &Obj();
-  fGets.Add<string>        ("dpa",    [pobj](){ return pobj->MacDefault(); });
-  fGets.Add<const Rtime&>  ("rxpoll", [pobj](){ return pobj->RxPollTime(); });
-  fGets.Add<size_t>        ("rxqlim", [pobj](){ return pobj->RxQueLimit(); });
-  fGets.Add<bool>          ("run",    [pobj](){ return pobj->Running(); });
 
-  fSets.Add<const string&> ("type",  
-                            [pobj](const string& v){ pobj->SetType(v); });
-  fSets.Add<const string&> ("dpa",  
-                            [pobj](const string& v){ pobj->SetMacDefault(v); });
-  fSets.Add<const Rtime&>  ("rxpoll",  
-                            [pobj](const Rtime& v){ pobj->SetRxPollTime(v); });
-  fSets.Add<size_t>        ("rxqlim",  
-                            [pobj](size_t v){ pobj->SetRxQueLimit(v); });
+  fGets.Add<string>        ("dpa",    bind(&Rw11CntlDEUNA::MacDefault,  pobj));
+  fGets.Add<const Rtime&>  ("rxpoll", bind(&Rw11CntlDEUNA::RxPollTime,  pobj));
+  fGets.Add<size_t>        ("rxqlim", bind(&Rw11CntlDEUNA::RxQueLimit,  pobj));
+  fGets.Add<bool>          ("run",    bind(&Rw11CntlDEUNA::Running,     pobj));
+
+  fSets.Add<const string&> ("type",
+                              bind(&Rw11CntlDEUNA::SetType,pobj, _1));
+  fSets.Add<const string&> ("dpa",
+                              bind(&Rw11CntlDEUNA::SetMacDefault,pobj, _1));
+  fSets.Add<const Rtime&>  ("rxpoll",
+                              bind(&Rw11CntlDEUNA::SetRxPollTime,pobj, _1));
+  fSets.Add<size_t>        ("rxqlim",
+                              bind(&Rw11CntlDEUNA::SetRxQueLimit,pobj, _1));
 }
 
 //------------------------------------------+-----------------------------------

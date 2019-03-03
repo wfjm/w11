@@ -1,6 +1,6 @@
-// $Id: Rw11CntlLP11.cpp 1089 2018-12-19 10:45:41Z mueller $
+// $Id: Rw11CntlLP11.cpp 1114 2019-02-23 18:01:55Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,7 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2018-12-15  1082   1.2.5  use lambda instead of bind
+// 2019-02-23  1114   1.2.6  use std::bind instead of lambda
+// 2018-12-15  1082   1.2.5  use lambda instead of boost::bind
 // 2018-12-09  1080   1.2.4  use HasVirt()
 // 2017-04-02   865   1.2.3  Dump(): add detail arg
 // 2017-03-03   858   1.2.2  use cntl name as message prefix
@@ -29,6 +30,8 @@
   \brief   Implemenation of Rw11CntlLP11.
 */
 
+#include <functional>
+
 #include "librtools/RosFill.hpp"
 #include "librtools/RosPrintBvi.hpp"
 #include "librtools/RosPrintf.hpp"
@@ -38,6 +41,7 @@
 #include "Rw11CntlLP11.hpp"
 
 using namespace std;
+using namespace std::placeholders;
 
 /*!
   \class Retro::Rw11CntlLP11
@@ -110,8 +114,7 @@ void Rw11CntlLP11::Start()
   fPC_buf = Cpu().AddRibr(fPrimClist, fBase+kBUF);
 
   // add attn handler
-  Server().AddAttnHandler([this](RlinkServer::AttnArgs& args)
-                            { return AttnHandler(args); }, 
+  Server().AddAttnHandler(bind(&Rw11CntlLP11::AttnHandler, this, _1), 
                           uint16_t(1)<<fLam, this);
 
   fStarted = true;

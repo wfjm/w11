@@ -1,4 +1,4 @@
-// $Id: Rw11UnitTerm.cpp 1090 2018-12-21 12:17:35Z mueller $
+// $Id: Rw11UnitTerm.cpp 1114 2019-02-23 18:01:55Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -30,6 +30,8 @@
   \brief   Implemenation of Rw11UnitTerm.
 */
 
+#include <functional>
+
 #include "librtools/RparseUrl.hpp"
 #include "librtools/RosFill.hpp"
 #include "librtools/RosPrintf.hpp"
@@ -38,6 +40,7 @@
 #include "Rw11UnitTerm.hpp"
 
 using namespace std;
+using namespace std::placeholders;
 
 /*!
   \class Retro::Rw11UnitTerm
@@ -295,8 +298,7 @@ void Rw11UnitTerm::Dump(std::ostream& os, int ind, const char* text,
 
 void Rw11UnitTerm::AttachDone()
 {
-  Virt().SetupRcvCallback(std::bind(&Rw11UnitTerm::RcvCallback,
-                                    this, placeholders::_1, placeholders::_2));
+  Virt().SetupRcvCallback(std::bind(&Rw11UnitTerm::RcvCallback, this, _1, _2));
   return;
 }
 

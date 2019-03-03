@@ -1,6 +1,6 @@
-// $Id: Rw11VirtEthTap.cpp 1088 2018-12-17 17:37:00Z mueller $
+// $Id: Rw11VirtEthTap.cpp 1114 2019-02-23 18:01:55Z mueller $
 //
-// Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,7 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2018-12-15  1082   1.0.3  use lambda instead of bind
+// 2019-02-23  1114   1.0.4  use std::bind instead of lambda
+// 2018-12-15  1082   1.0.3  use lambda instead of boost::bind
 // 2018-11-30  1075   1.0.2  use list-init
 // 2018-10-27  1059   1.0.1  coverity fixup (uncaught exception in dtor)
 //                           BUGFIX: coverity (buffer not null terminated)
@@ -37,12 +38,15 @@
 #include <net/if.h>
 #include <linux/if_tun.h>
 
+#include <functional>
+
 #include "librtools/RosFill.hpp"
 #include "librtools/Rtools.hpp"
 
 #include "Rw11VirtEthTap.hpp"
 
 using namespace std;
+using namespace std::placeholders;
 
 /*!
   \class Retro::Rw11VirtEthTap
@@ -105,8 +109,7 @@ bool Rw11VirtEthTap::Open(const std::string& url, RerrMsg& emsg)
   
   fFd = fd;
 
-  Server().AddPollHandler([this](const pollfd& pfd)
-                            { return RcvPollHandler(pfd); }, 
+  Server().AddPollHandler(bind(&Rw11VirtEthTap::RcvPollHandler, this, _1), 
                           fFd, POLLIN);
   return true;
 }

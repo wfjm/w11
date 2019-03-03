@@ -1,6 +1,6 @@
-// $Id: RlinkServer.cpp 1088 2018-12-17 17:37:00Z mueller $
+// $Id: RlinkServer.cpp 1114 2019-02-23 18:01:55Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-02-23  1114   2.2.9  use std::bind instead of lambda
 // 2018-12-17  1088   2.2.8  use std::lock_guard, std::thread instead of boost
 // 2018-12-15  1083   2.2.7  for std::function setups: use rval ref and move
 // 2018-12-14  1081   2.2.6  use std::bind instead of boost
@@ -38,6 +39,8 @@
 
 #include <unistd.h>
 
+#include <functional>
+
 #include "librtools/Rexception.hpp"
 #include "librtools/RosFill.hpp"
 #include "librtools/RosPrintf.hpp"
@@ -49,6 +52,7 @@
 #include "RlinkServer.hpp"
 
 using namespace std;
+using namespace std::placeholders;
 
 /*!
   \class Retro::RlinkServer
@@ -78,8 +82,7 @@ RlinkServer::RlinkServer()
                         RlinkCommand::kStat_M_RbNak  |
                         RlinkCommand::kStat_M_RbErr);
 
-  fELoop.AddPollHandler([this](const pollfd& pfd)
-                          { return WakeupHandler(pfd); }, 
+  fELoop.AddPollHandler(bind(&RlinkServer::WakeupHandler, this, _1), 
                         fWakeupEvent, POLLIN);
 
   // Statistic setup
@@ -418,8 +421,7 @@ void RlinkServer::StartOrResume(bool resume)
   // setup poll handler for Rlink traffic
   int rlinkfd = fspConn->Port().FdRead();
   if (!fELoop.TestPollHandler(rlinkfd, POLLIN))
-    fELoop.AddPollHandler([this](const pollfd& pfd)
-                            { return RlinkHandler(pfd); }, 
+    fELoop.AddPollHandler(bind(&RlinkServer::RlinkHandler, this, _1), 
                           rlinkfd, POLLIN);
   
   // and start server thread

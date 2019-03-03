@@ -1,6 +1,6 @@
-// $Id: RtclRw11CntlDL11.cpp 1082 2018-12-15 13:56:20Z mueller $
+// $Id: RtclRw11CntlDL11.cpp 1114 2019-02-23 18:01:55Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,7 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2018-12-15  1082   1.1.1  use lambda instead of bind
+// 2019-02-23  1114   1.1.2  use std::bind instead of lambda
+// 2018-12-15  1082   1.1.1  use lambda instead of boost::bind
 // 2017-04-16   878   1.1    add class in ctor; derive from RtclRw11CntlTermBase
 // 2013-05-04   516   1.0.1  add RxRlim support (receive interrupt rate limit)
 // 2013-03-06   495   1.0    Initial version
@@ -25,12 +26,15 @@
   \brief   Implemenation of RtclRw11CntlDL11.
 */
 
+#include <functional>
+
 #include "librtcltools/RtclNameSet.hpp"
 
 #include "RtclRw11CntlDL11.hpp"
 #include "RtclRw11UnitDL11.hpp"
 
 using namespace std;
+using namespace std::placeholders;
 
 /*!
   \class Retro::RtclRw11CntlDL11
@@ -47,8 +51,8 @@ RtclRw11CntlDL11::RtclRw11CntlDL11()
   : RtclRw11CntlTermBase<Rw11CntlDL11>("Rw11CntlDL11","term")
 {
   Rw11CntlDL11* pobj = &Obj();
-  fGets.Add<uint16_t> ("rxrlim", [pobj](){ return pobj->RxRlim(); });
-  fSets.Add<uint16_t> ("rxrlim", [pobj](uint16_t v){ pobj->SetRxRlim(v); });
+  fGets.Add<uint16_t>  ("rxrlim", bind(&Rw11CntlDL11::RxRlim, pobj));
+  fSets.Add<uint16_t>  ("rxrlim", bind(&Rw11CntlDL11::SetRxRlim,pobj, _1));
 }
 
 //------------------------------------------+-----------------------------------

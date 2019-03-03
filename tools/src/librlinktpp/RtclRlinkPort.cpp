@@ -1,6 +1,6 @@
-// $Id: RtclRlinkPort.cpp 1091 2018-12-23 12:38:29Z mueller $
+// $Id: RtclRlinkPort.cpp 1114 2019-02-23 18:01:55Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,9 +13,10 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-02-23  1114   1.4.4  use std::bind instead of lambda
 // 2018-12-22  1091   1.4.3  M_Open(): drop move() (-Wpessimizing-move fix)
 // 2018-12-18  1089   1.4.2  use c++ style casts
-// 2018-12-15  1082   1.4.1  use lambda instead of bind
+// 2018-12-15  1082   1.4.1  use lambda instead of boost::bind
 // 2018-12-08  1079   1.4    use ref not ptr for RlinkPort
 // 2018-12-01  1076   1.3    use unique_ptr
 // 2017-04-29   888   1.2    LogFileName(): returns now const std::string&
@@ -37,6 +38,7 @@
 #include <ctype.h>
 
 #include <iostream>
+#include <functional>
 
 #include "librtcltools/Rtcl.hpp"
 #include "librtcltools/RtclOPtr.hpp"
@@ -49,6 +51,7 @@
 #include "RtclRlinkPort.hpp"
 
 using namespace std;
+using namespace std::placeholders;
 
 /*!
   \class Retro::RtclRlinkPort
@@ -71,18 +74,18 @@ RtclRlinkPort::RtclRlinkPort(Tcl_Interp* interp, const char* name)
     fSets()
 {
   CreateObjectCmd(interp, name);
-  AddMeth("open",     [this](RtclArgs& args){ return M_open(args); });
-  AddMeth("close",    [this](RtclArgs& args){ return M_close(args); });
-  AddMeth("errcnt",   [this](RtclArgs& args){ return M_errcnt(args); });
-  AddMeth("rawread",  [this](RtclArgs& args){ return M_rawread(args); });
-  AddMeth("rawrblk",  [this](RtclArgs& args){ return M_rawrblk(args); });
-  AddMeth("rawwblk",  [this](RtclArgs& args){ return M_rawwblk(args); });
-  AddMeth("stats",    [this](RtclArgs& args){ return M_stats(args); });
-  AddMeth("log",      [this](RtclArgs& args){ return M_log(args); });
-  AddMeth("dump",     [this](RtclArgs& args){ return M_dump(args); });
-  AddMeth("get",      [this](RtclArgs& args){ return M_get(args); });
-  AddMeth("set",      [this](RtclArgs& args){ return M_set(args); });
-  AddMeth("$default", [this](RtclArgs& args){ return M_default(args); });
+  AddMeth("open",     bind(&RtclRlinkPort::M_open,    this, _1));
+  AddMeth("close",    bind(&RtclRlinkPort::M_close,   this, _1));
+  AddMeth("errcnt",   bind(&RtclRlinkPort::M_errcnt,  this, _1));
+  AddMeth("rawread",  bind(&RtclRlinkPort::M_rawread, this, _1));
+  AddMeth("rawrblk",  bind(&RtclRlinkPort::M_rawrblk, this, _1));
+  AddMeth("rawwblk",  bind(&RtclRlinkPort::M_rawwblk, this, _1));
+  AddMeth("stats",    bind(&RtclRlinkPort::M_stats,   this, _1));
+  AddMeth("log",      bind(&RtclRlinkPort::M_log,     this, _1));
+  AddMeth("dump",     bind(&RtclRlinkPort::M_dump,    this, _1));
+  AddMeth("get",      bind(&RtclRlinkPort::M_get,     this, _1));
+  AddMeth("set",      bind(&RtclRlinkPort::M_set,     this, _1));
+  AddMeth("$default", bind(&RtclRlinkPort::M_default, this, _1));
 
   SetupGetSet();
 }
@@ -255,17 +258,17 @@ void RtclRlinkPort::SetupGetSet()
 {
   fGets.Clear();
   fSets.Clear();
-
-  fGets.Add<const string&>  ("logfile", [this](){ return LogFileName(); });
+  
+  fGets.Add<const string&>  ("logfile",
+                                bind(&RtclRlinkPort::LogFileName, this));
   fSets.Add<const string&>  ("logfile", 
-                             [this](const string& v){ SetLogFileName(v); });
+                                bind(&RtclRlinkPort::SetLogFileName, this, _1));
 
   if (!fupObj) return;
-  RlinkPort* pobj = fupObj.get();
-
-  fGets.Add<uint32_t>  ("tracelevel", [pobj](){ return pobj->TraceLevel(); });
+  fGets.Add<uint32_t>  ("tracelevel", 
+                          bind(&RlinkPort::TraceLevel, fupObj.get()));
   fSets.Add<uint32_t>  ("tracelevel", 
-                        [pobj](uint32_t v){pobj->SetTraceLevel(v); });
+                          bind(&RlinkPort::SetTraceLevel, fupObj.get(), _1));
 }
 
 //------------------------------------------+-----------------------------------

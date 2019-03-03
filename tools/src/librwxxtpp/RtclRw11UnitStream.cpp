@@ -1,4 +1,4 @@
-// $Id: RtclRw11UnitStream.cpp 1082 2018-12-15 13:56:20Z mueller $
+// $Id: RtclRw11UnitStream.cpp 1114 2019-02-23 18:01:55Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2018-12-15  1082   1.1.2  use lambda instead of bind
+// 2019-02-23  1114   1.1.3  use std::bind instead of lambda
+// 2018-12-15  1082   1.1.2  use lambda instead of boost::bind
 // 2018-10-06  1053   1.1.1  move using after includes (clang warning)
 // 2017-04-08   870   1.1    use Rw11UnitStream& ObjUV(); inh from RtclRw11Unit
 // 2013-05-01   513   1.0    Initial version
@@ -24,9 +25,12 @@
   \brief   Implemenation of RtclRw11UnitStream.
 */
 
+#include <functional>
+
 #include "RtclRw11UnitStream.hpp"
 
 using namespace std;
+using namespace std::placeholders;
 
 /*!
   \class Retro::RtclRw11UnitStream
@@ -61,9 +65,10 @@ void RtclRw11UnitStream::SetupGetSet()
 
   Rw11UnitStream* pobj = &ObjUV();
 
-  fGets.Add<int>           ("pos", [pobj](){ return pobj->Pos(); });
+  fGets.Add<int>           ("pos", bind(&Rw11UnitStream::Pos,  pobj));
 
-  fSets.Add<int>           ("pos", [pobj](int v){ pobj->SetPos(v); });
+  fSets.Add<int>           ("pos", bind(&Rw11UnitStream::SetPos,pobj, _1));
+
   return;
 }
 } // end namespace Retro

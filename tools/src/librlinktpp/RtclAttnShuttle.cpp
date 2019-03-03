@@ -1,6 +1,6 @@
-// $Id: RtclAttnShuttle.cpp 1089 2018-12-19 10:45:41Z mueller $
+// $Id: RtclAttnShuttle.cpp 1114 2019-02-23 18:01:55Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,8 +13,9 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-02-23  1114   1.1.4  use std::bind instead of lambda
 // 2018-12-18  1089   1.1.3  use c++ style casts
-// 2018-12-15  1082   1.1.2  use lambda instead of bind
+// 2018-12-15  1082   1.1.2  use lambda instead of boost::bind
 // 2018-10-27  1059   1.1.1  coverity fixup (uncaught exception in dtor)
 // 2014-12-30   625   1.1    adopt to Rlink V4 attn logic
 // 2014-11-08   602   1.0.3  cast int first to ptrdiff_t, than to ClientData
@@ -32,12 +33,15 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include <functional>
+
 #include "librtools/Rexception.hpp"
 #include "librtools/Rtools.hpp"
 
 #include "RtclAttnShuttle.hpp"
 
 using namespace std;
+using namespace std::placeholders;
 
 /*!
   \class Retro::RtclAttnShuttle
@@ -83,8 +87,7 @@ RtclAttnShuttle::~RtclAttnShuttle()
 void RtclAttnShuttle::Add(RlinkServer* pserv, Tcl_Interp* interp)
 {
   // connect to RlinkServer
-  pserv->AddAttnHandler([this](RlinkServer::AttnArgs& args)
-                            { return AttnHandler(args); },
+  pserv->AddAttnHandler(bind(&RtclAttnShuttle::AttnHandler, this, _1),
                         fMask, this);
   fpServ = pserv;
 

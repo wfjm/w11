@@ -1,6 +1,6 @@
-// $Id: Rw11Rdma.cpp 1090 2018-12-21 12:17:35Z mueller $
+// $Id: Rw11Rdma.cpp 1114 2019-02-23 18:01:55Z mueller $
 //
-// Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,9 +13,10 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-02-23  1114   1.1.5  use std::bind instead of lambda
 // 2018-12-19  1090   1.1.4  use RosPrintf(bool)
 // 2018-12-15  1083   1.1.3  for std::function setups: use rval ref and move
-// 2018-12-15  1082   1.1.2  use lambda instead of bind
+// 2018-12-15  1082   1.1.2  use lambda instead of boost::bind
 // 2017-04-02   865   1.1.1  Dump(): add detail arg
 // 2015-02-17   647   1.1    PreExecCB with nwdone and nwnext
 // 2015-01-04   627   1.0    Initial version
@@ -27,6 +28,7 @@
 */
 
 #include <algorithm>
+#include <functional>
 
 #include "librtools/Rexception.hpp"
 #include "librtools/RosFill.hpp"
@@ -96,7 +98,7 @@ void Rw11Rdma::QueueRMem(uint32_t addr, uint16_t* block, size_t size,
 {
   fStats.Inc(kStatNQueRMem);
   SetupRdma(false, addr, block, size, mode);
-  Server().QueueAction([this](){ return RdmaHandler(); });
+  Server().QueueAction(bind(&Rw11Rdma::RdmaHandler, this));
   return;
 }
 
@@ -108,7 +110,7 @@ void Rw11Rdma::QueueWMem(uint32_t addr, const uint16_t* block, size_t size,
 {
   fStats.Inc(kStatNQueWMem);
   SetupRdma(true, addr, const_cast<uint16_t*>(block), size, mode);
-  Server().QueueAction([this](){ return RdmaHandler(); });
+  Server().QueueAction(bind(&Rw11Rdma::RdmaHandler, this));
   return;
 }
 

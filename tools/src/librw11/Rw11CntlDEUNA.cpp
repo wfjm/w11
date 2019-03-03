@@ -1,6 +1,6 @@
-// $Id: Rw11CntlDEUNA.cpp 1090 2018-12-21 12:17:35Z mueller $
+// $Id: Rw11CntlDEUNA.cpp 1114 2019-02-23 18:01:55Z mueller $
 //
-// Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,9 +13,10 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-02-23  1114   0.5.8  use std::bind instead of lambda
 // 2018-12-19  1090   0.5.7  use RosPrintf(bool)
 // 2018-12-17  1087   0.5.6  use std::lock_guard instead of boost
-// 2018-12-15  1082   0.5.5  use lambda instead of bind
+// 2018-12-15  1082   0.5.5  use lambda instead of boost::bind
 // 2018-12-09  1080   0.5.4  use HasVirt(); Virt() returns ref
 // 2018-12-08  1078   0.5.3  BUGFIX: Start(Tx|Rx)Ring, was broken in r1049
 //                             when fixing -Wunused-variable warnings
@@ -35,6 +36,7 @@
 #include <unistd.h>
 
 #include <sstream>
+#include <functional>
 
 #include "librtools/RosFill.hpp"
 #include "librtools/RosPrintBvi.hpp"
@@ -48,6 +50,7 @@
 #include "Rw11CntlDEUNA.hpp"
 
 using namespace std;
+using namespace std::placeholders;
 
 /*!
   \class Retro::Rw11CntlDEUNA
@@ -354,8 +357,7 @@ void Rw11CntlDEUNA::Start()
   UnitSetup(0);
 
   // add attn handler
-  Server().AddAttnHandler([this](RlinkServer::AttnArgs& args)
-                            { return AttnHandler(args); }, 
+  Server().AddAttnHandler(bind(&Rw11CntlDEUNA::AttnHandler, this, _1), 
                           uint16_t(1)<<fLam, this);
   fStarted = true;
 

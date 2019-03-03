@@ -1,6 +1,6 @@
-// $Id: RtclRw11Virt.cpp 1087 2018-12-17 08:25:37Z mueller $
+// $Id: RtclRw11Virt.cpp 1114 2019-02-23 18:01:55Z mueller $
 //
-// Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2017-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,8 +13,9 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-02-23  1114   1.0.4  use std::bind instead of lambda
 // 2018-12-17  1087   1.0.3  use std::lock_guard instead of boost
-// 2018-12-15  1082   1.0.2  use lambda instead of bind
+// 2018-12-15  1082   1.0.2  use lambda instead of boost::bind
 // 2017-04-07   868   1.0.1  M_dump: use GetArgsDump and Dump detail
 // 2017-03-11   859   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -24,11 +25,14 @@
   \brief   Implemenation of RtclRw11Virt.
 */
 
+#include <functional>
+
 #include "librtcltools/RtclStats.hpp"
 
 #include "RtclRw11Virt.hpp"
 
 using namespace std;
+using namespace std::placeholders;
 
 /*!
   \class Retro::RtclRw11Virt
@@ -48,10 +52,10 @@ RtclRw11Virt::RtclRw11Virt(Rw11Virt* pvirt)
     fGets(),
     fSets()
 {
-  AddMeth("get",    [this](RtclArgs& args){ return M_get(args); });
-  AddMeth("set",    [this](RtclArgs& args){ return M_set(args); });
-  AddMeth("stats",  [this](RtclArgs& args){ return M_stats(args); });
-  AddMeth("dump",   [this](RtclArgs& args){ return M_dump(args); });
+  AddMeth("get",    bind(&RtclRw11Virt::M_get,   this, _1));
+  AddMeth("set",    bind(&RtclRw11Virt::M_set,   this, _1));
+  AddMeth("stats",  bind(&RtclRw11Virt::M_stats, this, _1));
+  AddMeth("dump",   bind(&RtclRw11Virt::M_dump,  this, _1));
 }
 
 //------------------------------------------+-----------------------------------

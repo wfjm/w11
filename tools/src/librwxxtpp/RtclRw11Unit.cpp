@@ -1,6 +1,6 @@
-// $Id: RtclRw11Unit.cpp 1085 2018-12-16 14:11:16Z mueller $
+// $Id: RtclRw11Unit.cpp 1114 2019-02-23 18:01:55Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,8 +13,9 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-02-23  1114   1.3.3  use std::bind instead of lambda
 // 2018-12-17  1085   1.3.2  use std::lock_guard instead of boost
-// 2018-12-15  1082   1.3.1  use lambda instead of bind
+// 2018-12-15  1082   1.3.1  use lambda instead of boost::bind
 // 2018-12-01  1076   1.3    use unique_ptr instead of scoped_ptr
 // 2017-04-08   870   1.2    drop fpCpu, use added Cpu()=0 instead
 // 2017-04-07   868   1.1.1  M_dump: use GetArgsDump and Dump detail
@@ -28,12 +29,15 @@
   \brief   Implemenation of RtclRw11Unit.
 */
 
+#include <functional>
+
 #include "librtools/Rexception.hpp"
 #include "librtcltools/RtclStats.hpp"
 
 #include "RtclRw11Unit.hpp"
 
 using namespace std;
+using namespace std::placeholders;
 
 /*!
   \class Retro::RtclRw11Unit
@@ -52,12 +56,12 @@ RtclRw11Unit::RtclRw11Unit(const std::string& type)
     fSets(),
     fupVirt()
 {
-  AddMeth("get",      [this](RtclArgs& args){ return M_get(args); });
-  AddMeth("set",      [this](RtclArgs& args){ return M_set(args); });
-  AddMeth("attach",   [this](RtclArgs& args){ return M_attach(args); });
-  AddMeth("detach",   [this](RtclArgs& args){ return M_detach(args); });
-  AddMeth("dump",     [this](RtclArgs& args){ return M_dump(args); });
-  AddMeth("$default", [this](RtclArgs& args){ return M_default(args); });
+  AddMeth("get",      bind(&RtclRw11Unit::M_get,     this, _1));
+  AddMeth("set",      bind(&RtclRw11Unit::M_set,     this, _1));
+  AddMeth("attach",   bind(&RtclRw11Unit::M_attach,  this, _1));
+  AddMeth("detach",   bind(&RtclRw11Unit::M_detach,  this, _1));
+  AddMeth("dump",     bind(&RtclRw11Unit::M_dump,    this, _1));
+  AddMeth("$default", bind(&RtclRw11Unit::M_default, this, _1));
 }
 
 //------------------------------------------+-----------------------------------

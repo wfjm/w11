@@ -1,6 +1,6 @@
-// $Id: Rw11CntlRHRP.cpp 1090 2018-12-21 12:17:35Z mueller $
+// $Id: Rw11CntlRHRP.cpp 1114 2019-02-23 18:01:55Z mueller $
 //
-// Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
 //   the boot code is from the simh project and Copyright Robert M Supnik
 // 
@@ -15,8 +15,9 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-02-23  1114   1.0.10 use std::bind instead of lambda
 // 2018-12-19  1090   1.0.9  use RosPrintf(bool)
-// 2018-12-15  1082   1.0.8  use std::bind or lambda instead of bind
+// 2018-12-15  1082   1.0.8  use std::bind or lambda instead of boost::bind
 // 2018-12-09  1080   1.0.7  use HasVirt(); Virt() returns ref
 // 2018-10-28  1062   1.0.6  replace boost/foreach
 // 2017-04-02   865   1.0.5  Dump(): add detail arg
@@ -33,6 +34,8 @@
   \brief   Implemenation of Rw11CntlRHRP.
 */
 
+#include <functional>
+
 #include "librtools/RosFill.hpp"
 #include "librtools/RosPrintBvi.hpp"
 #include "librtools/RosPrintf.hpp"
@@ -42,6 +45,7 @@
 #include "Rw11CntlRHRP.hpp"
 
 using namespace std;
+using namespace std::placeholders;
 
 /*!
   \class Retro::Rw11CntlRHRP
@@ -187,12 +191,8 @@ Rw11CntlRHRP::Rw11CntlRHRP()
     fRd_fu(0),
     fRd_ovr(false),
     fRdma(this,
-          std::bind(&Rw11CntlRHRP::RdmaPreExecCB,  this,
-                    placeholders::_1, placeholders::_2,
-                    placeholders::_3, placeholders::_4),
-          std::bind(&Rw11CntlRHRP::RdmaPostExecCB, this,
-                    placeholders::_1, placeholders::_2,
-                    placeholders::_3, placeholders::_4))
+          std::bind(&Rw11CntlRHRP::RdmaPreExecCB,  this, _1, _2, _3, _4),
+          std::bind(&Rw11CntlRHRP::RdmaPostExecCB, this, _1, _2, _3, _4))
 {
   // must be here because Units have a back-ptr (not available at Rw11CntlBase)
   for (size_t i=0; i<NUnit(); i++) {
@@ -275,8 +275,7 @@ void Rw11CntlRHRP::Start()
   fPC_rpdc  = Cpu().AddRibr(fPrimClist, fBase+kRPDC);
 
   // add attn handler
-  Server().AddAttnHandler([this](RlinkServer::AttnArgs& args)
-                            { return AttnHandler(args); }, 
+  Server().AddAttnHandler(bind(&Rw11CntlRHRP::AttnHandler, this, _1), 
                           uint16_t(1)<<fLam, this);
 
   fStarted = true;

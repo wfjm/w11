@@ -1,6 +1,6 @@
-// $Id: RtclRw11UnitBase.ipp 1082 2018-12-15 13:56:20Z mueller $
+// $Id: RtclRw11UnitBase.ipp 1114 2019-02-23 18:01:55Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,7 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2018-12-15  1082   1.3.5  use lambda instead of bind
+// 2019-02-23  1114   1.3.6  use std::bind instead of lambda
+// 2018-12-15  1082   1.3.5  use lambda instead of boost::bind
 // 2018-12-09  1080   1.3.4  use HasVirt(); Virt() returns ref
 // 2018-12-07  1078   1.3.3  use std::shared_ptr instead of boost
 // 2018-12-01  1076   1.3.2  use unique_ptr
@@ -29,6 +30,8 @@
   \file
   \brief   Implemenation (all inline) of RtclRw11UnitBase.
 */
+
+#include <functional>
 
 #include "librtcltools/RtclStats.hpp"
 #include "RtclRw11VirtFactory.hpp"
@@ -62,7 +65,8 @@ inline RtclRw11UnitBase<TU,TUV,TB>::RtclRw11UnitBase(const std::string& type,
   : TB(type),
     fspObj(spunit)
 {
-  this->AddMeth("stats",    [this](RtclArgs& args){ return M_stats(args); });
+  this->AddMeth("stats", std::bind(&RtclRw11UnitBase<TU,TUV,TB>::M_stats,
+                                   this, std::placeholders::_1));
   
   TU* pobj = fspObj.get();
 
@@ -73,13 +77,11 @@ inline RtclRw11UnitBase<TU,TUV,TB>::RtclRw11UnitBase(const std::string& type,
   // error messages. Simply too much nested templating...
   
   RtclGetList& gets = this->fGets;
-  gets.Add<size_t>          ("index",    [pobj](){ return pobj->Index(); });
-  gets.Add<std::string>     ("name",     [pobj](){ return pobj->Name(); });
-  gets.Add<bool>            ("enabled",  [pobj](){ return pobj->Enabled(); });
-  gets.Add<bool>            ("attached",
-                             [pobj](){ return pobj->IsAttached(); });
-  gets.Add<const std::string&> ("attachurl",
-                                [pobj](){ return pobj->AttachUrl(); });
+  gets.Add<size_t>             ("index",    std::bind(&TU::Index,       pobj));
+  gets.Add<std::string>        ("name",     std::bind(&TU::Name,        pobj));
+  gets.Add<bool>               ("enabled",  std::bind(&TU::Enabled,     pobj));
+  gets.Add<bool>               ("attached", std::bind(&TU::IsAttached,  pobj));
+  gets.Add<const std::string&> ("attachurl",std::bind(&TU::AttachUrl,pobj));
 }
 
 //------------------------------------------+-----------------------------------
@@ -135,7 +137,8 @@ void RtclRw11UnitBase<TU,TUV,TB>::AttachDone()
   std::unique_ptr<RtclRw11Virt> pvirt(RtclRw11VirtFactory(&Obj().Virt()));
   if (!pvirt) return;
   this->fupVirt = move(pvirt);
-  this->AddMeth("virt", [this](RtclArgs& args){ return this->M_virt(args); });
+  this->AddMeth("virt", std::bind(&RtclRw11Unit::M_virt, this,
+                                  std::placeholders::_1));
   return;
 }
 

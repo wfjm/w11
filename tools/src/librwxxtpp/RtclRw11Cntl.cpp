@@ -1,6 +1,6 @@
-// $Id: RtclRw11Cntl.cpp 1085 2018-12-16 14:11:16Z mueller $
+// $Id: RtclRw11Cntl.cpp 1114 2019-02-23 18:01:55Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,8 +13,9 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-02-23  1114   1.1.5  use std::bind instead of lambda
 // 2018-12-17  1085   1.1.4  use std::lock_guard instead of boost
-// 2018-12-15  1082   1.1.3  use lambda instead of bind
+// 2018-12-15  1082   1.1.3  use lambda instead of boost::bind
 // 2017-04-16   877   1.1.2  add UnitCommands(); add Class()
 // 2017-04-02   865   1.0.2  M_dump: use GetArgsDump and Dump detail
 // 2015-03-27   660   1.0.1  add M_start
@@ -27,12 +28,15 @@
   \brief   Implemenation of RtclRw11Cntl.
 */
 
+#include <functional>
+
 #include "librtcltools/RtclStats.hpp"
 #include "librtcltools/RtclOPtr.hpp"
 
 #include "RtclRw11Cntl.hpp"
 
 using namespace std;
+using namespace std::placeholders;
 
 /*!
   \class Retro::RtclRw11Cntl
@@ -52,16 +56,18 @@ RtclRw11Cntl::RtclRw11Cntl(const std::string& type,
     fGets(),
     fSets()
 {
-  AddMeth("get",      [this](RtclArgs& args){ return M_get(args); });
-  AddMeth("set",      [this](RtclArgs& args){ return M_set(args); });
-  AddMeth("probe",    [this](RtclArgs& args){ return M_probe(args); });
-  AddMeth("start",    [this](RtclArgs& args){ return M_start(args); });
-  AddMeth("stats",    [this](RtclArgs& args){ return M_stats(args); });
-  AddMeth("dump",     [this](RtclArgs& args){ return M_dump(args); });
-  AddMeth("$default", [this](RtclArgs& args){ return M_default(args); });
+  AddMeth("get",      bind(&RtclRw11Cntl::M_get,     this, _1));
+  AddMeth("set",      bind(&RtclRw11Cntl::M_set,     this, _1));
+  AddMeth("probe",    bind(&RtclRw11Cntl::M_probe,   this, _1));
+  AddMeth("start",    bind(&RtclRw11Cntl::M_start,   this, _1));
+  AddMeth("stats",    bind(&RtclRw11Cntl::M_stats,   this, _1));
+  AddMeth("dump",     bind(&RtclRw11Cntl::M_dump,    this, _1));
+  AddMeth("$default", bind(&RtclRw11Cntl::M_default, this, _1));
 
-  fGets.Add<Tcl_Obj*>      ("units", [this](){ return UnitCommands(); });
-  fGets.Add<const string&> ("class", [this](){ return Class(); });
+  fGets.Add<Tcl_Obj*>      ("units",  
+                              bind(&RtclRw11Cntl::UnitCommands, this));
+  fGets.Add<const string&> ("class",  
+                              bind(&RtclRw11Cntl::Class, this));
 }
 
 //------------------------------------------+-----------------------------------

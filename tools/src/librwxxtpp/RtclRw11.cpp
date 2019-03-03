@@ -1,6 +1,6 @@
-// $Id: RtclRw11.cpp 1087 2018-12-17 08:25:37Z mueller $
+// $Id: RtclRw11.cpp 1114 2019-02-23 18:01:55Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,8 +13,9 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-02-23  1114   1.0.7  use std::bind instead of lambda
 // 2018-12-17  1087   1.0.6  use std::lock_guard instead of boost
-// 2018-12-15  1082   1.0.5  use lambda instead of bind
+// 2018-12-15  1082   1.0.5  use lambda instead of boost::bind
 // 2017-04-16   876   1.0.4  add CpuCommands()
 // 2017-04-07   868   1.0.3  M_dump: use GetArgsDump and Dump detail
 // 2017-04-02   866   1.0.2  add M_set; handle default disk scheme
@@ -33,6 +34,7 @@
 
 #include <iostream>
 #include <string>
+#include <functional>
 
 #include "librtools/RosPrintf.hpp"
 #include "librtcltools/RtclContext.hpp"
@@ -45,6 +47,7 @@
 #include "RtclRw11.hpp"
 
 using namespace std;
+using namespace std::placeholders;
 
 /*!
   \class Retro::RtclRw11
@@ -63,22 +66,20 @@ RtclRw11::RtclRw11(Tcl_Interp* interp, const char* name)
     fGets(),
     fSets()
 {
-  AddMeth("get",      [this](RtclArgs& args){ return M_get(args); });
-  AddMeth("set",      [this](RtclArgs& args){ return M_set(args); });
-  AddMeth("start",    [this](RtclArgs& args){ return M_start(args); });
-  AddMeth("dump",     [this](RtclArgs& args){ return M_dump(args); });
-  AddMeth("$default", [this](RtclArgs& args){ return M_default(args); });
+  AddMeth("get",      bind(&RtclRw11::M_get,     this, _1));
+  AddMeth("set",      bind(&RtclRw11::M_set,     this, _1));
+  AddMeth("start",    bind(&RtclRw11::M_start,   this, _1));
+  AddMeth("dump",     bind(&RtclRw11::M_dump,    this, _1));
+  AddMeth("$default", bind(&RtclRw11::M_default, this, _1));
 
   Rw11* pobj = &Obj();
-  fGets.Add<bool>          ("started", [pobj](){ return pobj->IsStarted(); });
-  fGets.Add<const string&> ("diskscheme",
-                            [](){ return Rw11VirtDisk::DefaultScheme(); });  
-  fGets.Add<Tcl_Obj*>      ("cpus", [this](){ return CpuCommands(); });
+  fGets.Add<bool>           ("started",    bind(&Rw11::IsStarted, pobj));  
+  fGets.Add<const string&>  ("diskscheme", bind(&Rw11VirtDisk::DefaultScheme));  
 
-  fSets.Add<const string&> ("diskscheme",  
-                            [](const string& v)
-                              { Rw11VirtDisk::SetDefaultScheme(v);} );
-  
+  fSets.Add<const string&>  ("diskscheme",
+                               bind(&Rw11VirtDisk::SetDefaultScheme, _1));
+  fGets.Add<Tcl_Obj*>       ("cpus",
+                               bind(&RtclRw11::CpuCommands, this));  
 }
 
 //------------------------------------------+-----------------------------------

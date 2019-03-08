@@ -1,6 +1,6 @@
-# $Id: util.tcl 985 2018-01-03 08:59:40Z mueller $
+# $Id: util.tcl 1116 2019-03-03 08:24:07Z mueller $
 #
-# Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-03-01  1116   4.0.2  streamline raw_check
 # 2017-04-22   883   4.0.1  setup: now idempotent; add procs filter,rme,rmf
 # 2017-04-13   873   4.0    revised interface, add suspend and repeat collect
 # 2015-04-03   661   3.1    drop estatdef; invert mask in raw_edata
@@ -295,12 +296,14 @@ namespace eval rbmoni {
   # raw_check: check raw data against expect values prepared by raw_edata ----
   #
   proc raw_check {edat emsk} {
+    set ledat [llength $edat]
+    if {$ledat == 0} { return }
 
     rlc exec \
-      -rreg rm.addr -edata [llength $edat] \
-      -wreg rm.addr 0 \
-      -rblk rm.data [llength $edat] -edata $edat $emsk \
-      -rreg rm.addr -edata [llength $edat]
+      -rreg rm.addr -edata $ledat \
+      -wreg rm.addr        0 \
+      -rblk rm.data $ledat -edata $edat $emsk \
+      -rreg rm.addr        -edata $ledat
     return
   }
   #

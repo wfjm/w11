@@ -1,6 +1,6 @@
-# $Id: util.tcl 985 2018-01-03 08:59:40Z mueller $
+# $Id: util.tcl 1116 2019-03-03 08:24:07Z mueller $
 #
-# Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-03-02  1116   1.3.1  define INIT
 # 2017-06-19   914   1.3    17bit support; use sstat(awidth); add isnarrow
 # 2017-04-22   883   1.2.1  setup: now idempotent
 # 2016-07-09   784   1.2    22bit support: mask sstat(wide); add iswide
@@ -38,6 +39,7 @@ namespace eval tst_sram {
   #
   # setup register descriptions for tst_sram core design ---------------------
   # 
+  regdsc INIT  {mem 1} {seq 0}; # for rbus init against base addr
   regdsc MCMD  {ld 14} {inc 13} {we 12} {be 11 4} {addrh 5 6}
   regdsc SSTAT {awidth 15 3} {wswap 9} {wloop 8} \
                {loop 7} {xord 6} {xora 5} {veri 4} {fail 1} {run 0}

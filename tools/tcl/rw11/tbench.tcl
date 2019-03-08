@@ -1,6 +1,6 @@
-# $Id: tbench.tcl 985 2018-01-03 08:59:40Z mueller $
+# $Id: tbench.tcl 1117 2019-03-03 12:49:26Z mueller $
 #
-# Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-03-03  1117   2.2.1  tbench_list: ignore whitespace and empty lines
 # 2015-05-17   683   2.2    support sub directories and return in tests
 # 2015-05-09   676   2.1    use 'rlc log -bare' instead of 'puts'
 # 2014-11-30   607   2.0    use new rlink v4 iface
@@ -69,6 +70,8 @@ namespace eval rw11 {
     if {$islist} {
       set fh [open "$tbase/$fname"]
       while {[gets $fh line] >= 0} {
+        set line [string trim $line];       # trim white space 
+        if {$line eq ""} {continue};        # skip empty lines
         if {[string match "#*" $line]} {
           if {[string match "##*" $line]} { rlc log -bare $line }
         } elseif {[string match "@*" $line]} {

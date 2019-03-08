@@ -1,6 +1,6 @@
--- $Id: pdp11.vhd 1055 2018-10-12 17:53:52Z mueller $
+-- $Id: pdp11.vhd 1116 2019-03-03 08:24:07Z mueller $
 --
--- Copyright 2006-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,10 +16,11 @@
 -- Description:    Definitions for pdp11 components
 --
 -- Dependencies:   -
--- Tool versions:  ise 8.2-14.7; viv 2016.2-2018.2; ghdl 0.18-0.34
+-- Tool versions:  ise 8.2-14.7; viv 2016.2-2018.3; ghdl 0.18-0.35
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-03-01  1116   1.6.11 define c_init_rbf_greset
 -- 2018-10-07  1054   1.6.10 add DM_STAT_EXP; add DM_STAT_SE.itimer
 -- 2018-10-05  1053   1.6.9  drop DM_STAT_SY; add DM_STAT_CA, use in pdp11_cache
 --                           add DM_STAT_SE.pcload
@@ -755,6 +756,8 @@ package pdp11 is
   
   constant c_rbaddr_membe: slv5 := "10000"; -- R/W memory write byte enables
 
+  constant c_init_rbf_greset:   integer :=  0;
+  
   subtype  c_al_rbf_addr        is integer range 15 downto 1;  -- al: address
   constant c_ah_rbf_ena_ubmap:  integer :=  7;                 -- ah: ubmap
   constant c_ah_rbf_ena_22bit:  integer :=  6;                 -- ah: 22bit

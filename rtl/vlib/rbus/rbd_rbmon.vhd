@@ -1,6 +1,6 @@
--- $Id: rbd_rbmon.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: rbd_rbmon.vhd 1116 2019-03-03 08:24:07Z mueller $
 --
--- Copyright 2010-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,7 +20,7 @@
 -- Test bench:     rlink/tb/tb_rlink_tba_ttcombo
 --
 -- Target Devices: generic
--- Tool versions:  xst 12.1-14.7; viv 2014.4-2016.4; ghdl 0.29-0.34
+-- Tool versions:  xst 12.1-14.7; viv 2014.4-2018.3; ghdl 0.29-0.35
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -32,6 +32,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-03-02  1116   6.0.1  more robust ack,err trace when busy
 -- 2017-04-16   879   6.0    revised interface, add suspend and repeat collapse
 -- 2015-05-02   672   5.0.1  use natural for AWIDTH to work around a ghdl issue
 -- 2014-12-22   619   5.0    reorganized, supports now 16 bit addresses
@@ -461,9 +462,8 @@ begin
         n.rberr  := RB_SRES_SUM.err;
         n.rbnbusy := (others=>'0');
       else                                -- if non-initial cycles
-        if RB_SRES_SUM.err = '1' then       -- keep track of err flags
-          n.rberr := '1';
-        end if;
+        n.rback := r.rback or RB_SRES_SUM.ack; -- keep track of ack
+        n.rberr := r.rberr or RB_SRES_SUM.err; -- keep track of err
         if r.rbnbusy /= rbnbusylast then      -- and count  
           n.rbnbusy := slv(unsigned(r.rbnbusy) + 1);
         end if;

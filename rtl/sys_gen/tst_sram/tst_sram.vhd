@@ -1,6 +1,6 @@
--- $Id: tst_sram.vhd 1101 2019-01-02 21:22:37Z mueller $
+-- $Id: tst_sram.vhd 1116 2019-03-03 08:24:07Z mueller $
 --
--- Copyright 2007-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -27,10 +27,11 @@
 --                 s3board/tb/tb_tst_sram_s3      (with sram)
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.2-14.7; viv 2014.4-2017.1; ghdl 0.18-0.34
+-- Tool versions:  xst 8.2-14.7; viv 2014.4-2018.3; ghdl 0.18-0.35
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-03-02  1116   1.6.1  define init_rbf_*
 -- 2017-06-25   917   1.6    allow AWIDTH=17; sstat_rbf_awidth instead of _wide
 -- 2016-07-10   785   1.5.1  std SWI layout: now (7:4) disp select, SWI(1)->XON
 -- 2016-07-09   784   1.5    AWIDTH generic, add 22bit support for cram
@@ -300,6 +301,9 @@ architecture syn of tst_sram is
   subtype  df_word0        is integer range  15 downto  0;
   subtype  df_word1        is integer range  31 downto 16;
 
+  constant init_rbf_seq:    integer :=  0;
+  constant init_rbf_mem:    integer :=  1;
+  
   subtype  maddrh_rbf_h    is integer range  AWIDTH-1-16 downto 0;
 
   constant mcmd_rbf_ld:    integer :=  14;
@@ -439,8 +443,8 @@ begin
     MEM_RESET <= RESET;
 
     if RB_MREQ.init='1' and RB_MREQ.addr=RB_ADDR then
-      SEQ_RESET <= RB_MREQ.din(0);
-      MEM_RESET <= RB_MREQ.din(1);
+      SEQ_RESET <= RB_MREQ.din(init_rbf_seq);
+      MEM_RESET <= RB_MREQ.din(init_rbf_mem);
     end if;
     
   end process proc_reset;

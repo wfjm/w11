@@ -1,6 +1,6 @@
-# $Id: test_regs.tcl 1044 2018-09-15 11:12:07Z mueller $
+# $Id: test_regs.tcl 1116 2019-03-03 08:24:07Z mueller $
 #
-# Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-03-02  1116   3.1.1  add a few cntl logic tests
 # 2017-04-29   888   3.1    add data/addr logic tests
 # 2017-04-13   873   3.0    adopt to revised interface
 # 2015-04-03   661   2.1    drop estatdef (stat err check default now)
@@ -42,6 +43,7 @@ namespace eval rbmoni {
     rlc log "  A basic register access tests -----------------------------"
     rlc log "    A1: write/read cntl---------------------------------"
     # test that starting captures option flags, and that stoping keeps them
+    # test that NOOP is a noop and doesn't change flags
     rlc exec \
       -wreg rm.cntl [regbld rbmoni::CNTL {func "STA"}] \
       -rreg rm.cntl -edata [regbld rbmoni::CNTL] \
@@ -54,17 +56,23 @@ namespace eval rbmoni {
       -wreg rm.cntl [regbld rbmoni::CNTL rcolw rcolr {func "STA"}] \
       -rreg rm.cntl -edata  [regbld rbmoni::CNTL rcolw rcolr] \
       -wreg rm.cntl [regbld rbmoni::CNTL {func "STO"}] \
-      -rreg rm.cntl -edata  [regbld rbmoni::CNTL rcolw rcolr] 
+      -rreg rm.cntl -edata  [regbld rbmoni::CNTL rcolw rcolr] \
+      -wreg rm.cntl [regbld rbmoni::CNTL {func "NOOP"}] \
+      -rreg rm.cntl -edata  [regbld rbmoni::CNTL rcolw rcolr]
     #
     #-------------------------------------------------------------------------
     rlc log "    A2: write cntl, read stat --------------------------"
     # test that susp/run follow functions set to cntl
+    # test that sus/res does not change option flags
     rlc exec \
-      -wreg rm.cntl [regbld rbmoni::CNTL {func "STA"}] \
+      -wreg rm.cntl [regbld rbmoni::CNTL wstop rcolr {func "STA"}] \
+      -rreg rm.cntl -edata  [regbld rbmoni::CNTL wstop rcolr] \
       -rreg rm.stat -edata [regbld rbmoni::STAT run] \
       -wreg rm.cntl [regbld rbmoni::CNTL {func "SUS"}] \
+      -rreg rm.cntl -edata  [regbld rbmoni::CNTL wstop rcolr] \
       -rreg rm.stat -edata [regbld rbmoni::STAT susp run] \
       -wreg rm.cntl [regbld rbmoni::CNTL {func "RES"}] \
+      -rreg rm.cntl -edata  [regbld rbmoni::CNTL wstop rcolr] \
       -rreg rm.stat -edata [regbld rbmoni::STAT run] \
       -wreg rm.cntl [regbld rbmoni::CNTL {func "STO"}] \
       -rreg rm.stat -edata [regbld rbmoni::STAT]

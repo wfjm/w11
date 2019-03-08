@@ -37,6 +37,7 @@ The full set of tests is only run for tagged releases.
   - Rw11Cpu,RtclRw11Cpu: add ibmon setup and HasIbtst()
   - RtclGet.ipp: use const& for oper() of string& and Rtime&
 - firmware changes
+  - rbd_rbmon: more robust ack,err trace when busy
   - rbd_tester: use now fifo_simple_dram
   - sys_w11a_s3: set BTOWIDTH 7 (was 6, must be > vmbox atowidth (6))
   - pdp11_sys70: instantiate ibd_ibtst (when sys_conf_ibtst = true)
@@ -46,7 +47,12 @@ The full set of tests is only run for tagged releases.
     - add sys_conf_ibd_dz11 (enabled in all systems)
 
 ### Bug Fixes
-
+- backend code: some getters crashed with `SIGSEGV`, see
+  [issue #19](https://github.com/wfjm/w11/issues/19). The culprit was the
+  automatic return type determination for the getter lambdas. Changed back
+  to using bind, now `std::bind`, for method forwarders. This is safer and
+  also more compact.
+  
 ### Known issues
 
 <!-- --------------------------------------------------------------------- -->

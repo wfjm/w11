@@ -1,4 +1,4 @@
--- $Id: pdp11_sys70.vhd 1112 2019-02-17 11:10:04Z mueller $
+-- $Id: pdp11_sys70.vhd 1116 2019-03-03 08:24:07Z mueller $
 --
 -- Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -36,6 +36,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-03-02  1116   1.3.2  add RESET_SYS; fix pdp11_mem70 reset
 -- 2019-02-16  1112   1.3.1  add ibd_ibtst
 -- 2018-10-13  1055   1.3    drop ITIMER,DM_STAT_DP out ports, use DM_STAT_EXP
 --                           add PERFEXT in port
@@ -114,9 +115,11 @@ architecture syn of pdp11_sys70 is
   signal EM_MREQ : em_mreq_type := em_mreq_init;
   signal EM_SRES : em_sres_type := em_sres_init;
   
-  signal GRESET_L : slbit := '0';
-  signal CRESET_L : slbit := '0';
-  signal BRESET_L : slbit := '0';
+  signal GRESET_L : slbit := '0';       -- general reset (from rbus init)
+  signal CRESET_L : slbit := '0';       -- cpu reset (from -creset command)
+  signal BRESET_L : slbit := '0';       -- bus reset (RESET inst or -breset)
+
+  signal RESET_SYS : slbit := '0';      -- or of RESET (port) and GRESET (rbus)
 
   signal HM_ENA      : slbit := '0';
   signal MEM70_FMISS : slbit := '0';
@@ -160,10 +163,12 @@ begin
       CP_DOUT   => CP_DOUT      
     );
 
+  RESET_SYS <= RESET or GRESET_L;       -- use as reset of w11 sub-system
+  
   W11A : pdp11_core
     port map (
       CLK       => CLK,
-      RESET     => GRESET_L,
+      RESET     => RESET_SYS,
       CP_CNTL   => CP_CNTL,
       CP_ADDR   => CP_ADDR,
       CP_DIN    => CP_DIN,
@@ -192,7 +197,7 @@ begin
       TWIDTH => sys_conf_cache_twidth)
     port map (
       CLK        => CLK,
-      GRESET     => GRESET_L,
+      GRESET     => RESET_SYS,
       EM_MREQ    => EM_MREQ,
       EM_SRES    => EM_SRES,
       FMISS      => CACHE_FMISS,
@@ -210,7 +215,7 @@ begin
   MEM70: pdp11_mem70
     port map (
       CLK         => CLK,
-      CRESET      => BRESET_L,
+      CRESET      => CRESET_L,
       HM_ENA      => HM_ENA,
       HM_VAL      => DM_STAT_CA.rdhit,
       CACHE_FMISS => MEM70_FMISS,
@@ -229,7 +234,7 @@ begin
         AWIDTH  => sys_conf_ibmon_awidth)
       port map (
         CLK         => CLK,
-        RESET       => RESET,
+        RESET       => RESET_SYS,
         IB_MREQ     => IB_MREQ_M,
         IB_SRES     => IB_SRES_IBMON,
         IB_SRES_SUM => DM_STAT_VM.ibsres
@@ -239,7 +244,7 @@ begin
   IBTST : if sys_conf_ibtst generate
     signal RESET_IBTST : slbit := '0';
   begin
-    RESET_IBTST <= RESET or GRESET_L or BRESET_L;
+    RESET_IBTST <= RESET_SYS or BRESET_L;
     I0 : ibd_ibtst
       generic map (
         IB_ADDR => slv(to_unsigned(8#170000#,16)))
@@ -267,7 +272,7 @@ begin
         RB_ADDR => slv(to_unsigned(16#0040#,16)))
       port map (
         CLK         => CLK,
-        RESET       => RESET,
+        RESET       => RESET_SYS,
         RB_MREQ     => RB_MREQ,
         RB_SRES     => RB_SRES_DMSCNT,
         DM_STAT_SE  => DM_STAT_SE,
@@ -285,7 +290,7 @@ begin
         SNUM    => sys_conf_dmscnt)
       port map (
         CLK         => CLK,
-        RESET       => RESET,
+        RESET       => RESET_SYS,
         RB_MREQ     => RB_MREQ,
         RB_SRES     => RB_SRES_DMCMON,
         DM_STAT_SE  => DM_STAT_SE,
@@ -303,7 +308,7 @@ begin
         NUNIT   => sys_conf_dmhbpt_nunit)
       port map (
         CLK         => CLK,
-        RESET       => RESET,
+        RESET       => RESET_SYS,
         RB_MREQ     => RB_MREQ,
         RB_SRES     => RB_SRES_DMHBPT,
         DM_STAT_SE  => DM_STAT_SE,
@@ -401,7 +406,7 @@ begin
         CENA    => "11111111111111111111111111111111") -- counter enables
       port map (
         CLK         => CLK,
-        RESET       => RESET,
+        RESET       => RESET_SYS,
         RB_MREQ     => RB_MREQ,
         RB_SRES     => RB_SRES_DMPCNT,
         PERFSIG     => PERFSIG

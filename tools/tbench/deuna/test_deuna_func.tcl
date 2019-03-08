@@ -1,6 +1,6 @@
-# $Id: test_deuna_func.tcl 894 2017-05-07 07:18:32Z mueller $
+# $Id: test_deuna_func.tcl 1119 2019-03-08 16:46:46Z mueller $
 #
-# Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2017-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
@@ -167,3 +167,7 @@ $cpu cp \
   -ribr xua.pr0 -edata [regbld ibd_deuna::PR0RR busy brst] \
   -wibr xua.pr0  [regbld ibd_deuna::PR0RW brst] \
   -ribr xua.pr0 -edata 0
+
+# harvest breset/creset triggered attn's
+rlc wtlam 0.
+rlc exec -attn -edata 0

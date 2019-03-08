@@ -1,11 +1,11 @@
-# $Id: test_w11a_sdreg.tcl 1118 2019-03-05 19:26:39Z mueller $
+# $Id: test_w11a_sdreg.tcl 1119 2019-03-08 16:46:46Z mueller $
 #
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
-# 2019-03-05  1118   1.01   use -wal
+# 2019-03-05  1118   1.0.1  use -wal
 # 2019-02-17  1113   1.0    Initial version
 #
 # Test cntl register response

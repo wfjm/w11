@@ -1,10 +1,11 @@
-# $Id: test_cmon_regs.tcl 1044 2018-09-15 11:12:07Z mueller $
+# $Id: test_cmon_regs.tcl 1116 2019-03-03 08:24:07Z mueller $
 #
-# Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2019-03-02  1116   2.0.1  add a few cntl logic tests
 # 2017-04-23   885   2.0    adopt to revised interface
 # 2015-07-18   701   1.0    Initial version
 #
@@ -23,6 +24,7 @@ rlc log "  A basic register access tests -----------------------------"
 
 rlc log "    A1: write/read cntl---------------------------------"
 # test that starting captures option flags, and that stoping keeps them
+# test that NOOP is a noop and doesn't change flags
 $cpu cp \
   -wreg cm.cntl [regbld rw11::CM_CNTL {func "STA"}] \
   -rreg cm.cntl -edata [regbld rw11::CM_CNTL] \
@@ -35,17 +37,23 @@ $cpu cp \
   -wreg cm.cntl [regbld rw11::CM_CNTL wstop mwsup {func "STA"}] \
   -rreg cm.cntl -edata  [regbld rw11::CM_CNTL wstop mwsup] \
   -wreg cm.cntl [regbld rw11::CM_CNTL {func "STO"}] \
+  -rreg cm.cntl -edata  [regbld rw11::CM_CNTL wstop mwsup] \
+  -wreg cm.cntl [regbld rw11::CM_CNTL {func "NOOP"}] \
   -rreg cm.cntl -edata  [regbld rw11::CM_CNTL wstop mwsup]
 
 rlc log "    A2: write cntl, read stat --------------------------"
 # test that susp/run follow functions set to cntl
+# test that sus/res does not change option flags
 set statmsk [regbld rw11::CM_STAT wrap susp run] 
 $cpu cp \
-  -wreg cm.cntl [regbld rw11::CM_CNTL {func "STA"}] \
+  -wreg cm.cntl [regbld rw11::CM_CNTL wstop imode {func "STA"}] \
+  -rreg cm.cntl -edata  [regbld rw11::CM_CNTL wstop imode] \
   -rreg cm.stat -edata [regbld rw11::CM_STAT run] $statmsk \
   -wreg cm.cntl [regbld rw11::CM_CNTL {func "SUS"}] \
+  -rreg cm.cntl -edata  [regbld rw11::CM_CNTL wstop imode] \
   -rreg cm.stat -edata [regbld rw11::CM_STAT susp run] $statmsk \
   -wreg cm.cntl [regbld rw11::CM_CNTL {func "RES"}] \
+  -rreg cm.cntl -edata  [regbld rw11::CM_CNTL wstop imode] \
   -rreg cm.stat -edata [regbld rw11::CM_STAT run] $statmsk \
   -wreg cm.cntl [regbld rw11::CM_CNTL {func "STO"}] \
   -rreg cm.stat -edata [regbld rw11::CM_STAT] $statmsk 

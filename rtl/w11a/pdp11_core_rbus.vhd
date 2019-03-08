@@ -1,6 +1,6 @@
--- $Id: pdp11_core_rbus.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: pdp11_core_rbus.vhd 1116 2019-03-03 08:24:07Z mueller $
 --
--- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,7 +19,7 @@
 -- Test bench:     tb/tb_rlink_tba_pdp11core
 --
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.1; ghdl 0.18-0.33
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2018.3; ghdl 0.18-0.35
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -27,6 +27,7 @@
 --
 -- Revision History: -
 -- Date         Rev Version  Comment
+-- 2019-03-02  1116   1.5.3  rename state field rbinit to greset 
 -- 2016-05-22   767   1.5.2  don't init N_REGS (vivado fix for fsm inference)
 -- 2015-07-10   700   1.5.1  add cpuact logic, redefine lam as cpuact 1->0
 -- 2015-05-09   677   1.5    start/stop/suspend overhaul; reset overhaul
@@ -138,7 +139,7 @@ architecture syn of pdp11_core_rbus is
     state : state_type;                 -- state
     rbselc : slbit;                     -- rbus select for core
     rbseli : slbit;                     -- rbus select for ibus
-    rbinit : slbit;                     -- rbus init seen (1 cycle pulse)
+    greset : slbit;                     -- greset from rbus init (1 cycle pulse)
     cpreq : slbit;                      -- cp request flag
     cpfunc : slv5;                      -- cp function
     cpuact_1 : slbit;                   -- prev cycle cpuact
@@ -154,7 +155,7 @@ architecture syn of pdp11_core_rbus is
   constant regs_init : regs_type := (
     s_idle,                             -- state
     '0','0',                            -- rbselc,rbseli
-    '0',                                -- rbinit
+    '0',                                -- greset
     '0',                                -- cpreq
     (others=>'0'),                      -- cpfunc
     '0',                                -- cpuact_1
@@ -215,9 +216,9 @@ architecture syn of pdp11_core_rbus is
 
     -- generate single cycle pulse in case init against rbus base address seen
     -- is used to generate some state machine resets via GRESET
-    n.rbinit := '0';
+    n.greset := '0';
     if RB_MREQ.init='1' and RB_MREQ.addr=RB_ADDR_CORE then
-      n.rbinit := RB_MREQ.din(0);
+      n.greset := RB_MREQ.din(c_init_rbf_greset);
     end if;    
 
     -- rbus address decoder
@@ -431,7 +432,7 @@ architecture syn of pdp11_core_rbus is
 
     RB_LAM     <= irb_lam;
 
-    GRESET     <= R_REGS.rbinit;
+    GRESET     <= R_REGS.greset;
     
     CP_CNTL.req  <= r.cpreq;
     CP_CNTL.func <= r.cpfunc;

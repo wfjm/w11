@@ -1,4 +1,4 @@
-# $Id: util.tcl 985 2018-01-03 08:59:40Z mueller $
+# $Id: util.tcl 1116 2019-03-03 08:24:07Z mueller $
 #
 # Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -30,8 +30,8 @@ namespace eval rbtest {
   #
   # setup register descriptions for rbd_tester
   # 
+  regdsc INIT {fifo 2} {data 1} {cntl 0}; # for rbus init against base addr
   regdsc CNTL {wchk 15} {nbusy 9 10}
-  regdsc INIT {fifo 2} {data 1} {cntl 0}
   #
   # setup: amap definitions for rbd_tester
   # 

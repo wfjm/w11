@@ -1,4 +1,4 @@
-// $Id: Rw11.cpp 1114 2019-02-23 18:01:55Z mueller $
+// $Id: Rw11.cpp 1117 2019-03-03 12:49:26Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-02-23  1114   1.1.5  use std::bind instead of lambda
 // 2018-12-19  1090   1.1.4  use RosPrintf(bool)
 // 2018-12-15  1082   1.1.3  use lambda instead of boost::bind
 // 2018-12-09  1080   1.1.2  use std::shared_ptr instead of boost and range loop

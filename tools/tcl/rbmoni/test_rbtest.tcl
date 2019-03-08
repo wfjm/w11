@@ -1,4 +1,4 @@
-# $Id: test_rbtest.tcl 985 2018-01-03 08:59:40Z mueller $
+# $Id: test_rbtest.tcl 1115 2019-02-24 12:53:04Z mueller $
 #
 # Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -56,7 +56,7 @@ namespace eval rbmoni {
     set vtestat 0xf
     set vtedata 0x1234
 
-    # write/read te.stat and te.data with rbmoni on; check that 4 lines aquired
+    # write/read te.stat and te.data with rbmoni on; check 4 lines acquired
     rlc exec \
       -wreg rm.cntl [regbld rbmoni::CNTL {func "STA"}] \
       -wreg te.stat $vtestat  \

@@ -1,4 +1,4 @@
--- $Id: sys_w11a_n3.vhd 1108 2019-02-02 23:04:38Z mueller $
+-- $Id: sys_w11a_n3.vhd 1116 2019-03-03 08:24:07Z mueller $
 --
 -- Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -34,6 +34,7 @@
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2019-03-02  1116 14.7  131013 xc6slx16-2  3048 5741  212 2030 ok: +ibtst  89%
 -- 2019-01-27  1108 14.7  131013 xc6slx16-2  2979 5542  201 2018 ok: -iist   88%
 -- 2018-10-13  1055 14.7  131013 xc6slx16-2  3057 5822  201 2064 ok: +dmpcnt 90%
 -- 2018-09-15  1045 14.7  131013 xc6slx16-2  2851 5453  177 1932 ok: +KW11P  84%

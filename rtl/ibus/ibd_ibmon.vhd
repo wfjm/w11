@@ -1,6 +1,6 @@
--- $Id: ibd_ibmon.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: ibd_ibmon.vhd 1116 2019-03-03 08:24:07Z mueller $
 --
--- Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,7 +20,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 14.7; viv 2014.4-2016.4; ghdl 0.31-0.34
+-- Tool versions:  xst 14.7; viv 2014.4-2018.3; ghdl 0.31-0.35
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -29,6 +29,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-03-01  1116   2.1.1  track ack properly
+-- 2019-02-23  1115   2.1    revised iface, busy 10->8, delay 14->16 bits
 -- 2017-04-16   879   2.0    revised interface, add suspend and repeat collapse
 -- 2017-03-04   858   1.0.2  BUGFIX: wrap set when go=0 due to wena=0
 -- 2015-05-02   672   1.0.1  use natural for AWIDTH to work around a ghdl issue
@@ -67,12 +69,11 @@
 --                13 : nak        (no ack in last non-busy cycle)
 --                12 : ack        (ack  seen)
 --                11 : busy       (busy seen)
---                10 : --         (reserved in case err is implemented)
+--                10 : --         (reserved)
 --                09 : we         (write cycle)
 --                08 : rmw        (read-modify-write)
---             07:00 : delay to prev (msb's)
---     word 2  15:10 : delay to prev (lsb's)
---             09:00 : number of busy cycles
+--             07:00 : nbusy      (number of busy cycles)
+--     word 2        : ndly       (delay to previous request)
 --     word 1        : data
 --     word 0     15 : be1        (byte enable low)
 --                14 : be0        (byte enable high)
@@ -143,9 +144,7 @@ architecture syn of ibd_ibmon is
   constant dat3_ibf_busy     : integer :=    11;
   constant dat3_ibf_we       : integer :=     9;
   constant dat3_ibf_rmw      : integer :=     8;
-  subtype  dat3_ibf_ndlymsb is integer range  7 downto  0;
-  subtype  dat2_ibf_ndlylsb is integer range 15 downto 10;
-  subtype  dat2_ibf_nbusy   is integer range  9 downto  0;
+  subtype  dat3_ibf_nbusy   is integer range  7 downto  0;
   constant dat0_ibf_be1      : integer :=    15;
   constant dat0_ibf_be0      : integer :=    14;
   constant dat0_ibf_racc     : integer :=    13;
@@ -194,8 +193,8 @@ architecture syn of ibd_ibmon is
     ibtout  : slbit;                    -- ibus trace: tout detected
     ibburst : slbit;                    -- ibus trace: burst detected
     ibdata  : slv16;                    -- ibus trace: data
-    ibnbusy : slv10;                    -- ibus number of busy cycles
-    ibndly  : slv14;                    -- ibus delay to prev. access
+    ibnbusy : slv8;                     -- ibus number of busy cycles
+    ibndly  : slv16;                    -- ibus delay to prev. access
   end record regs_type;
 
   constant laddrzero : slv(AWIDTH-1 downto 0) := (others=>'0');
@@ -223,8 +222,8 @@ architecture syn of ibd_ibmon is
     (others=>'0')                       -- ibndly
   );
 
-  constant ibnbusylast : slv10 := (others=>'1');
-  constant ibndlylast  : slv14 := (others=>'1');
+  constant ibnbusylast : slv8  := (others=>'1');
+  constant ibndlylast  : slv16 := (others=>'1');
 
   signal R_REGS : regs_type := regs_init;
   signal N_REGS : regs_type := regs_init;
@@ -487,6 +486,7 @@ begin
         n.ibbusy := IB_SRES_SUM.busy;
         n.ibnbusy := (others=>'0');
       else                                -- if non-initial cycles
+        n.iback  := r.iback or IB_SRES_SUM.ack;
         if r.ibnbusy /= ibnbusylast then      -- and count  
           n.ibnbusy := slv(unsigned(r.ibnbusy) + 1);
         end if;
@@ -546,9 +546,8 @@ begin
     idat3(dat3_ibf_busy)   := r.ibbusy;
     idat3(dat3_ibf_we)     := r.ibwe;
     idat3(dat3_ibf_rmw)    := r.ibrmw;
-    idat3(dat3_ibf_ndlymsb):= r.ibndly(13 downto 6);
-    idat2(dat2_ibf_ndlylsb):= r.ibndly( 5 downto 0);
-    idat2(dat2_ibf_nbusy)  := r.ibnbusy;
+    idat3(dat3_ibf_nbusy)  := r.ibnbusy;
+    idat2                  := r.ibndly;
     idat1                  := r.ibdata;
     idat0(dat0_ibf_be1)    := r.ibbe1;
     idat0(dat0_ibf_be0)    := r.ibbe0;

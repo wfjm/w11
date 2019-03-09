@@ -1,4 +1,4 @@
--- $Id: ibd_ibtst.vhd 1112 2019-02-17 11:10:04Z mueller $
+-- $Id: ibd_ibtst.vhd 1116 2019-03-03 08:24:07Z mueller $
 --
 -- Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -22,8 +22,9 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-03-01  1116   1.0.1  rnam dly[rw]->bsy[rw]; datto for write; add datab
 -- 2019-02-16  1112   1.0    Initial version
--- 2019-02-09  1110   0.1    First draft 
+-- 2019-02-09  1110   0.1    First draft
 ------------------------------------------------------------------------------
 --
 -- ibus registers:
@@ -31,10 +32,11 @@
 -- Addr   Bits IB RB IR  Name          Function
 --   00                  cntl          Control register
 --          15 -- 0W 00    fclr          fifo clear
---           7 -- RW 00    datto         ibus timeout for bad loc data access
+--           8 -- RW 00    datab         ibus ack while busy for data nak
+--           7 -- RW 00    datto         ibus timeout for data nak
 --           6 -- RW 00    nobyt         disallow byte writes to data (loc+rem)
---           5 -- RW 00    dlyw          enable loc write delay for fifo/data
---           4 -- RW 00    dlyr          enable loc read  delay for fifo/data
+--           5 -- RW 00    bsyw          enable loc write busy for fifo/data
+--           4 -- RW 00    bsyr          enable loc read  busy for fifo/data
 --           3 -- RW 11    remw          enable rem write for fifo/data
 --           2 -- RW 11    remr          enable rem read  for fifo/data
 --           1 -- RW 00    locw          enable loc write for fifo/data
@@ -80,10 +82,11 @@ architecture syn of ibd_ibtst is
   constant ibaddr_fifo : slv2 := "11";  -- wdat address offset
   
   constant cntl_ibf_fclr   : integer := 15;
+  constant cntl_ibf_datab  : integer :=  8;
   constant cntl_ibf_datto  : integer :=  7;
   constant cntl_ibf_nobyt  : integer :=  6;
-  constant cntl_ibf_dlyw   : integer :=  5;
-  constant cntl_ibf_dlyr   : integer :=  4;
+  constant cntl_ibf_bsyw   : integer :=  5;
+  constant cntl_ibf_bsyr   : integer :=  4;
   constant cntl_ibf_remw   : integer :=  3;
   constant cntl_ibf_remr   : integer :=  2;
   constant cntl_ibf_locw   : integer :=  1;
@@ -100,10 +103,11 @@ architecture syn of ibd_ibtst is
 
   type regs_type is record              -- state registers
     ibsel : slbit;                      -- ibus select
+    datab : slbit;                      -- cntl: ibus busy for bad loc data
     datto : slbit;                      -- cntl: ibus timeout for bad loc data
     nobyt : slbit;                      -- cntl: disallow byte writes to data
-    dlyw  : slbit;                      -- cntl: enable loc write delay
-    dlyr  : slbit;                      -- cntl: enable loc read  delay
+    bsyw  : slbit;                      -- cntl: enable loc write busy
+    bsyr  : slbit;                      -- cntl: enable loc read  busy
     remw  : slbit;                      -- cntl: enable rem write
     remr  : slbit;                      -- cntl: enable rem read
     locw  : slbit;                      -- cntl: enable loc write
@@ -123,7 +127,7 @@ architecture syn of ibd_ibtst is
 
   constant regs_init : regs_type := (
     '0',                                -- ibsel
-    '0','0','0','0',                    -- datto,nobyt,dlyw,dlyr
+    '0','0','0','0','0',                -- datab,datto,nobyt,bsyw,bsyr
     '1','1','0','0',                    -- remw,remr,locw,locr
     '0','0','0','0',                    -- racc,cacc,be1,be0
     '0','0','0',                        -- rmw,we,re
@@ -182,8 +186,8 @@ begin
     variable ififo_rst : slbit := '0';
     variable ififo_ce  : slbit := '0';
     variable ififo_we  : slbit := '0';
-    variable dlyok : slbit := '0';      -- fifo/data delay ok
-    variable dodly : slbit := '0';      -- fifo/data do delay
+    variable bsyok : slbit := '0';      -- fifo/data busy ok
+    variable dobsy : slbit := '0';      -- fifo/data do busy
     variable wrok  : slbit := '0';      -- fifo/data write ok
     variable rdok  : slbit := '0';      -- fifo/data read ok
   begin
@@ -199,11 +203,11 @@ begin
     ififo_ce  := '0';
     ififo_we  := '0';
 
-    dlyok := '0';
+    bsyok := '0';
     if IB_MREQ.racc = '0' then          -- loc
-      dlyok := (r.dlyr and IB_MREQ.re) or (r.dlyw and IB_MREQ.we);
+      bsyok := (r.bsyr and IB_MREQ.re) or (r.bsyw and IB_MREQ.we);
     end if;
-    dodly := '0';
+    dobsy := '0';
     
     if IB_MREQ.racc = '1' then          -- rem
       wrok := r.remw;
@@ -243,14 +247,14 @@ begin
     end if;
 
     -- delay counter
-    if r.ibsel='1' and ibreq='1' and dlyok='1' then -- selected,active,delayed
+    if r.ibsel='1' and ibreq='1' and bsyok='1' then -- selected,active,busy
       if r.req_1 = '0' then                           -- leading edge
         n.dcnt := "111";
-        dodly  := '1';
+        dobsy  := '1';
       else                                            -- later
         if r.dcnt /= "000" then
           n.dcnt := slv(unsigned(r.dcnt) - 1);
-          dodly  := '1';
+          dobsy  := '1';
         end if;
       end if;
     end if;
@@ -262,10 +266,11 @@ begin
           if IB_MREQ.racc = '1' then    -- rem
             if IB_MREQ.we = '1' then      -- write
               ififo_rst := IB_MREQ.din(cntl_ibf_fclr);
+              n.datab := IB_MREQ.din(cntl_ibf_datab);
               n.datto := IB_MREQ.din(cntl_ibf_datto);
               n.nobyt := IB_MREQ.din(cntl_ibf_nobyt);
-              n.dlyw  := IB_MREQ.din(cntl_ibf_dlyw);
-              n.dlyr  := IB_MREQ.din(cntl_ibf_dlyr);
+              n.bsyw  := IB_MREQ.din(cntl_ibf_bsyw);
+              n.bsyr  := IB_MREQ.din(cntl_ibf_bsyr);
               n.remw  := IB_MREQ.din(cntl_ibf_remw);
               n.remr  := IB_MREQ.din(cntl_ibf_remr);
               n.locw  := IB_MREQ.din(cntl_ibf_locw);
@@ -282,76 +287,91 @@ begin
           
         when ibaddr_data =>           -- DATA
           if IB_MREQ.we = '1' then      -- write
-            if wrok = '1' then            -- write ok
+            if wrok = '1' then            -- write enabled
               if r.nobyt = '1' and          -- byte write allowed check
                 (IB_MREQ.be1='0' or IB_MREQ.be0='0') then
                 iback := '0';                 -- send nak
               else                          -- byte check ok
-                if dodly = '1' then           -- delay active 
+                if dobsy = '1' then           -- busy active 
                   iback  := '0';
                   ibbusy := '1';
-                else                          -- no delay active
+                else                          -- no busy active
                   if IB_MREQ.be1 = '1' then
                     n.data(ibf_byte1) := IB_MREQ.din(ibf_byte1);
                   end if;
                   if IB_MREQ.be0 = '1' then
                     n.data(ibf_byte0) := IB_MREQ.din(ibf_byte0);
                   end if;
-                end if; --  dodly = '1'
+                end if; --  dobsy = '1'
               end if; -- byte check
-            else                          -- write not ok
-              iback := '0';                 -- send nak
+            else                          -- write disabled
+              if dobsy = '1' then           -- busy active
+                iback  := r.datab;            -- send ack when busy for nak
+                ibbusy := '1';
+              else                          -- no busy active
+                if r.datto = '1' then         -- data time out enabled
+                  iback  := '0';
+                  ibbusy := '1';                -- will cause timeout !
+                else
+                  iback := '0';                 -- send nak
+                end if;
+              end if; -- dobsy = '1'
             end if; -- wrok = '1'
           end if; -- IB_MREQ.we = '1'
           
           if IB_MREQ.re = '1' then      -- read
             if rdok = '1' then            -- read enabled
-              if dodly = '1' then           -- delay active 
+              if dobsy = '1' then           -- busy active 
                 iback  := '0';
                 ibbusy := '1';
               end if;
             else                          -- read disabled
-              if r.datto = '1' then         -- data time out enabled
-                iback  := '0';
-                ibbusy := '1';                -- will cause timeout !
-              else
-                iback := '0';                 -- send nak
-              end if;
+              if dobsy = '1' then           -- busy active
+                iback  := r.datab;            -- send ack when busy for nak
+                ibbusy := '1';
+              else                          -- no busy active
+                if r.datto = '1' then         -- data time out enabled
+                  iback  := '0';
+                  ibbusy := '1';                -- will cause timeout !
+                else
+                  iback := '0';                 -- send nak
+                end if;
+              end if; -- dobsy = '1'
             end if; -- rdok = '0'
           end if; -- IB_MREQ.re = '1'
  
         when ibaddr_fifo =>           -- FIFO
           if IB_MREQ.we = '1' then      -- write
-            if wrok = '1' then            -- write ok
-              if dodly = '1' then           -- delay active 
+            if wrok = '1' then            -- write enabled
+              if dobsy = '1' then           -- busy active 
                 iback  := '0';
                 ibbusy := '1';
-              else                          -- delay not active
+              else                          -- busy not active
                 if FIFO_FULL = '0' then       -- fifo not full
                   ififo_ce := '1';
                   ififo_we := '1';
                 else                          -- fifo full
                   iback := '0';                 -- send nak
                 end if; -- FIFO_FULL = '0'
-              end if; -- dodly = '1'
-            else                          -- write not ok
+              end if; -- dobsy = '1'
+            else                          -- write disabled
               iback := '0';                 -- send nak
             end if; -- wrok = '1'
           end if; -- IB_MREQ.we = '1'
           
           if IB_MREQ.re = '1' then      -- read
-            if rdok = '1' then            -- read ok
-              if dodly = '1' then           -- delay active 
+            if rdok = '1' then            -- read enabled
+              if dobsy = '1' then           -- busy active 
                 iback  := '0';
                 ibbusy := '1';
-              else                          -- delay not active
+              else                          -- busy not active
                 if FIFO_EMPTY = '0' then      -- fifo not empty
                   ififo_ce := '1';
                 else                          -- fifo empty
                   iback := '0';                 -- send nak
                 end if; -- FIFO_EMPTY = '0'
-              end if; -- dodly = '1'
-            else                          -- read not ok
+              end if; -- dobsy = '1'
+            else                          -- read disabled
               iback := '0';                 -- send nak
             end if; -- rdok = '1'
           end if; -- IB_MREQ.re = '1'
@@ -364,10 +384,11 @@ begin
     if r.ibsel = '1' then
       case IB_MREQ.addr(2 downto 1) is
         when ibaddr_cntl =>           -- CNTL
+          idout(cntl_ibf_datab) := r.datab;
           idout(cntl_ibf_datto) := r.datto;
           idout(cntl_ibf_nobyt) := r.nobyt;
-          idout(cntl_ibf_dlyw)  := r.dlyw;
-          idout(cntl_ibf_dlyr)  := r.dlyr;
+          idout(cntl_ibf_bsyw)  := r.bsyw;
+          idout(cntl_ibf_bsyr)  := r.bsyr;
           idout(cntl_ibf_remw)  := r.remw;
           idout(cntl_ibf_remr)  := r.remr;
           idout(cntl_ibf_locw)  := r.locw;

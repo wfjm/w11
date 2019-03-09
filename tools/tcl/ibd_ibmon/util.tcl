@@ -1,6 +1,6 @@
-# $Id: util.tcl 985 2018-01-03 08:59:40Z mueller $
+# $Id: util.tcl 1116 2019-03-03 08:24:07Z mueller $
 #
-# Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,8 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-03-01  1116   2.1.1  streamline raw_check; bugfix in raw_edata
+# 2019-02-23  1115   2.1    revised iface, busy 10->8, delay 14->16 bits
 # 2017-04-22   883   2.0.1  setup: now idempotent; move out imap_reg2addr
 # 2017-04-16   880   2.0    revised interface, add suspend and repeat collect
 # 2017-01-02   837   1.1.1  add procs ime,imf
@@ -40,14 +42,15 @@ namespace eval ibd_ibmon {
   regdsc ADDR {laddr 15 14} {waddr 1 2}
   #
   regdsc DAT3 {burst 15} {tout 14} {nak 13} {ack 12} \
-              {busy 11} {we 9} {rmw 8} {ndlymsb 7 8}
-  regdsc DAT2 {ndlylsb 15 6} {nbusy  9 10}
+              {busy 11} {we 9} {rmw 8} {nbusy 7 8}
   regdsc DAT0 {be1 15} {be0 14} {racc 13} {addr 12 12} {cacc 0}
   #
   # 'pseudo register', describes 1st word in return list element of read proc
-  #  all flag bits from DAT3 and DAT0
-  regdsc FLAGS {burst 11} {tout 10} {nak 9} {ack 8} \
-               {busy 7} {cacc 5} {racc 4} {rmw 3} {be1 2} {be0 1} {we 0}   
+  #  all flag bits from DAT3 and DAT0;
+  #  use short names to keep tb code compact
+  #    burst->bu tout->to; busy->bsy; cacc->ca; racc->ra
+  regdsc FLAGS {bu 11} {to 10} {nak 9} {ack 8} \
+               {bsy 7} {ca 5} {ra 4} {rmw 3} {be1 2} {be0 1} {we 0}   
   #
   rw11util::regmap_add ibd_ibmon im.cntl {r? CNTL}
   rw11util::regmap_add ibd_ibmon im.stat {r? STAT}
@@ -181,22 +184,21 @@ namespace eval ibd_ibmon {
         set d0cacc  [regget ibd_ibmon::DAT0(cacc)  $d0]
 
         set eflag   [regbld ibd_ibmon::FLAGS \
-                       [list burst  $d3burst] \
-                       [list tout   $d3tout]  \
-                       [list nak    $d3nak]   \
-                       [list ack    $d3ack]   \
-                       [list busy   $d3busy]  \
-                       [list cacc   $d0cacc]  \
-                       [list racc   $d0racc]  \
-                       [list rmw    $d3rmw]   \
-                       [list be1    $d0be1]   \
-                       [list be0    $d0be0]   \
-                       [list we     $d3we]    \
+                       [list bu   $d3burst] \
+                       [list to   $d3tout]  \
+                       [list nak  $d3nak]   \
+                       [list ack  $d3ack]   \
+                       [list bsy  $d3busy]  \
+                       [list ca   $d0cacc]  \
+                       [list ra   $d0racc]  \
+                       [list rmw  $d3rmw]   \
+                       [list be1  $d0be1]   \
+                       [list be0  $d0be0]   \
+                       [list we   $d3we]    \
                     ]
 
-        set edelay [expr {( [regget ibd_ibmon::DAT3(ndlymsb) $d3] << 6 ) | 
-                            [regget ibd_ibmon::DAT2(ndlylsb) $d2] }]
-        set enbusy [regget ibd_ibmon::DAT2(nbusy) $d2]
+        set enbusy [regget ibd_ibmon::DAT3(nbusy) $d3]
+        set edelay $d2
         set edata  $d1
         set eaddr  [expr {0160000 | ($d0addr<<1)}]
         lappend rval [list $eflag $eaddr $edata $edelay $enbusy]
@@ -227,18 +229,18 @@ namespace eval ibd_ibmon {
     }
 
     set rval {}
-    set edlymax 16383
+    set edlymax 65535
 
     set eind [expr {1 - [llength $mondat] }]
     append rval \
       "  ind  addr         data  delay nbsy  btnab-crm10w  acc-mod"
 
-    set mtout  [regbld ibd_ibmon::FLAGS tout ]
+    set mtout  [regbld ibd_ibmon::FLAGS to   ]
     set mnak   [regbld ibd_ibmon::FLAGS nak  ]
     set mack   [regbld ibd_ibmon::FLAGS ack  ]
-    set mbusy  [regbld ibd_ibmon::FLAGS busy ]
-    set mcacc  [regbld ibd_ibmon::FLAGS cacc ]
-    set mracc  [regbld ibd_ibmon::FLAGS racc ]
+    set mbusy  [regbld ibd_ibmon::FLAGS bsy  ]
+    set mcacc  [regbld ibd_ibmon::FLAGS ca   ]
+    set mracc  [regbld ibd_ibmon::FLAGS ra   ]
     set mrmw   [regbld ibd_ibmon::FLAGS rmw  ]
     set mbe1   [regbld ibd_ibmon::FLAGS be1  ]
     set mbe0   [regbld ibd_ibmon::FLAGS be0  ]
@@ -318,15 +320,23 @@ namespace eval ibd_ibmon {
     set uedat {}
     set uemsk {}
 
-    set m3 [rutil::com16 [regbld ibd_ibmon::DAT3 {ndlymsb -1}]]; # all but ndly
-    set m2 [rutil::com16 [regbld ibd_ibmon::DAT2 {ndlylsb -1}]]; # all but ndly
+    set m3 0xffff
+    set m2 0x0000;              # ignore ndly
     set m1 0xffff
     set m0 0xffff
 
     foreach line $args {
       foreach {eflags eaddr edata enbusy} $line { break }
-      set d3 [regbld ibd_ibmon::DAT3 [list flags $eflags]]
-      set d2 [regbld ibd_ibmon::DAT2 [list nbusy $enbusy]]
+      set d3 [regbldkv ibd_ibmon::DAT3 \
+                burst  [regget ibd_ibmon::FLAGS(bu)  $eflags] \
+                tout   [regget ibd_ibmon::FLAGS(to)  $eflags] \
+                nak    [regget ibd_ibmon::FLAGS(nak) $eflags] \
+                ack    [regget ibd_ibmon::FLAGS(ack) $eflags] \
+                busy   [regget ibd_ibmon::FLAGS(bsy) $eflags] \
+                we     [regget ibd_ibmon::FLAGS(we)  $eflags] \
+                rmw    [regget ibd_ibmon::FLAGS(rmw) $eflags] \
+                nbusy  $enbusy ]
+      set d2 0x0000
       if {$edata ne ""} {
         set m1 0xffff
         set d1 $edata
@@ -334,7 +344,12 @@ namespace eval ibd_ibmon {
         set m1 0x0000
         set d1 0x0000
       }
-      set d0 $eaddr
+      set d0 [regbldkv ibd_ibmon::DAT0 \
+                be1    [regget ibd_ibmon::FLAGS(be1) $eflags] \
+                be0    [regget ibd_ibmon::FLAGS(be0) $eflags] \
+                racc   [regget ibd_ibmon::FLAGS(ra)  $eflags] \
+                addr   [expr { ($eaddr>>1) & 0x0fff }] \
+                cacc   [regget ibd_ibmon::FLAGS(ca)  $eflags] ]
 
       lappend uedat $d0 $d1 $d2 $d3
       lappend uemsk $m0 $m1 $m2 $m3
@@ -347,12 +362,14 @@ namespace eval ibd_ibmon {
   # raw_check: check raw data against expect values prepared by raw_edata ----
   #
   proc raw_check {{cpu "cpu0"} edat emsk} {
-
+    set ledat [llength $edat]
+    if {$ledat == 0} { return }
+    
     $cpu cp \
-      -ribr  im.addr -edata [llength $edat] \
-      -wibr  im.addr 0 \
-      -rbibr im.data [llength $edat] -edata $edat $emsk \
-      -ribr  im.addr -edata [llength $edat]
+      -ribr  im.addr -edata $ledat \
+      -wibr  im.addr        0 \
+      -rbibr im.data $ledat -edata $edat $emsk \
+      -ribr  im.addr        -edata $ledat
     return
   }
 

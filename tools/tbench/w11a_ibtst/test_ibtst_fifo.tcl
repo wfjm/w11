@@ -1,10 +1,11 @@
-# $Id: test_ibtst_fifo.tcl 1112 2019-02-17 11:10:04Z mueller $
+# $Id: test_ibtst_fifo.tcl 1120 2019-03-09 18:19:31Z mueller $
 #
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2019-03-05  1118   1.0.1  use -wal
 # 2019-02-16  1112   1.0    Initial version
 #
 # Test fifo register response 
@@ -20,7 +21,7 @@
 rlc log "test_ibtst_fifo: test fifo register response -------------------------"
 
 if {[$cpu get hasibtst] == 0} {
-  rlc log "  test_ibtst_fifo-W: no ibtest unit found, test aborted"
+  rlc log "  test_ibtst_fifo-W: no ibtst unit found, test aborted"
   return
 }
 package require ibd_ibtst
@@ -28,7 +29,7 @@ package require ibd_ibtst
 rlc log "    A1: fifo loc/rem access ----------------------------"
 # test off->off; loc->loc; loc->rem; rem->loc; rem->rem
 $cpu cp \
-  -wa [cpu0 imap  it.fifo] \
+  -wal [cpu0 imap  it.fifo] \
   -wreg it.cntl [regbld ibd_ibtst::CNTL fclr ] \
   -wm                  0xdead -estaterr \
   -wibr it.fifo        0xdead -estaterr \
@@ -132,3 +133,7 @@ $cpu cp \
   -breset \
   -ribr it.stat -edata [regbld ibd_ibtst::STAT] \
   -ribr it.fifo -estaterr
+
+# harvest breset/creset triggered attn's
+rlc exec -attn -edata 0
+rlc wtlam 0.

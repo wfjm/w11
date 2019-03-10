@@ -1,0 +1,7 @@
+# $Id: w11a_ibmon_all.dat 1117 2019-03-03 12:49:26Z mueller $
+#
+## steering file for all w11a_ibmon tests
+#
+test_ibmon_regs.tcl
+test_ibmon_cpu.tcl
+test_ibmon_ibtst.tcl

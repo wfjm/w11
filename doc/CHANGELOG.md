@@ -30,6 +30,7 @@ The full set of tests is only run for tagged releases.
   - simclkv: test bench clock generator with variable period
 - new verification codes
   - tbench/w11a_ibtst/*: tbench for ibd_ibtst
+  - tbench/w11a_ibmon/*: tbench for ibd_ibmon
   - test_w11a_sdreg.tcl: tbench for sdreg
 
 ### Changes

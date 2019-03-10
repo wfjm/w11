@@ -1,10 +1,11 @@
-# $Id: test_ibtst_stat.tcl 1112 2019-02-17 11:10:04Z mueller $
+# $Id: test_ibtst_stat.tcl 1118 2019-03-05 19:26:39Z mueller $
 #
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2019-03-05  1118   1.0.1  rename dly[rw] -> bsy[rw]; use -wal
 # 2019-02-16  1112   1.0    Initial version
 #
 # Test stat register response 
@@ -20,14 +21,14 @@
 rlc log "test_ibtst_stat: test stat register response -------------------------"
 
 if {[$cpu get hasibtst] == 0} {
-  rlc log "  test_ibtst_data-W: no ibtest unit found, test aborted"
+  rlc log "  test_ibtst_data-W: no ibtst unit found, test aborted"
   return
 }
 package require ibd_ibtst
 
 rlc log "    A1: data rem access --------------------------------"
 $cpu cp \
-  -wa [cpu0 imap  it.data] \
+  -wal [cpu0 imap  it.data] \
   -wreg it.cntl [regbld ibd_ibtst::CNTL fclr remw remr ] \
   -wibr it.data 0x1234 \
   -ribr it.stat -edata [regbld ibd_ibtst::STAT racc cacc be1 be0 we ] \
@@ -68,7 +69,7 @@ $cpu cp \
   -wr1 [expr {[cpu0 imap  it.data] + 1}] \
   -wr2 0xdead \
   -wpc 02000 \
-  -wa [cpu0 imap  it.data] \
+  -wal [cpu0 imap  it.data] \
   -wreg it.cntl [regbld ibd_ibtst::CNTL fclr remr locw locr ]
 
 # step through code and check
@@ -101,7 +102,7 @@ rlc log "    A4: data cpu write -> rem read (busy=8) ------------"
 $cpu cp \
   -wr2 0xdead \
   -wpc 02000 \
-  -wreg it.cntl [regbld ibd_ibtst::CNTL fclr dlyw dlyr remr locw locr ]
+  -wreg it.cntl [regbld ibd_ibtst::CNTL fclr bsyw bsyr remr locw locr ]
 
 # step through code and check (same sequence as above)
 $cpu cp \

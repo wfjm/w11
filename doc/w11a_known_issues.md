@@ -63,11 +63,6 @@ differences.
 The RK11/RK05 hardware poll logic is probably not reflecting the
 behaviour of the real drive.
 
-- **TCK-035 pri=L: RK11: no proper `NXM` check in 18bit systems**  
-No `NXM` error is generated when a RK11 read or write reaches the top 
-of memory in 18 bit addressing. Crash dump routines use this to detect
-end-of-memory.
-
 - **TCK-032 pri=M: RK11: polling on `DRY` in `RKDS` doesn't work**  
 `DRY` in `RKDS` goes 1->0 immediately with `RDY` in `RKCS` when a function is
 started. In a real RK05 drive `DRY` went to 0 after a short delay. Some

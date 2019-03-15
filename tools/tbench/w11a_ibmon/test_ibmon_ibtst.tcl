@@ -1,10 +1,11 @@
-# $Id: test_ibmon_ibtst.tcl 1118 2019-03-05 19:26:39Z mueller $
+# $Id: test_ibmon_ibtst.tcl 1120 2019-03-09 18:19:31Z mueller $
 #
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2019-03-09  1120   1.0.1  use -brm,-bwf
 # 2019-03-05  1118   1.0    Initial version
 #
 # Test register response 
@@ -201,7 +202,7 @@ $cpu cp \
   -wal  $itfifo \
   -wreg  it.cntl [regbld ibd_ibtst::CNTL fclr remw locr] \
   -wbibr it.fifo {0x0101 0x0102} \
-  -rblk  mem 3 -edone 2 -edata {0x0101 0x0102} -estaterr
+  -brf   3 -edone 2 -edata {0x0101 0x0102} -estaterr
 ibd_ibmon::stop $cpu
 if {$print} {puts [ibd_ibmon::print $cpu]}
 ibd_ibmon::raw_check $cpu $edat $emsk
@@ -244,8 +245,8 @@ ibd_ibmon::raw_edata edat emsk \
 ibd_ibmon::start $cpu
 $cpu cp \
   -wreg  it.cntl [regbld ibd_ibtst::CNTL fclr locw remr] \
-  -wblk  mem {0x0200 0x0201 0x0202 0x0203 0x0204 0x0205 0x0206 0x0207  \
-              0x0208 0x0209 0x020a 0x020b 0x020c 0x020d 0x020e 0x020f} \
+  -bwf   {0x0200 0x0201 0x0202 0x0203 0x0204 0x0205 0x0206 0x0207  \
+         0x0208 0x0209 0x020a 0x020b 0x020c 0x020d 0x020e 0x020f} \
          -edone 15 -estaterr \
   -rbibr it.fifo 15 \
          -edata {0x0200 0x0201 0x0202 0x0203 0x0204 0x0205 0x0206 0x0207 \

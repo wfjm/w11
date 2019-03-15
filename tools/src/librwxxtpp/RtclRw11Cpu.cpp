@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.cpp 1114 2019-02-23 18:01:55Z mueller $
+// $Id: RtclRw11Cpu.cpp 1121 2019-03-11 08:59:12Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-03-10  1121   1.2.28 M_cp(): tranfer BlockDone values after rblk
+// 2019-03-09  1120   1.2.27 add -brf,-bwf; add range checks for -wa
 // 2019-02-23  1114   1.2.26 use std::bind instead of lambda
 // 2019-02-15  1112   1.2.25 add HasIbtst() getter
 // 2018-12-23  1091   1.2.24 use AddWbibr(move),AddWblk(move)
@@ -55,7 +57,6 @@
 // ---------------------------------------------------------------------------
 
 /*!
-  \file
   \brief   Implemenation of RtclRw11Cpu.
 */
 
@@ -359,7 +360,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
                             "-rsp|-rpc|-wsp|-wpc|"
                             "-rps|-wps|"
                             "-ral|-rah|-wal|-wah|-wa|"
-                            "-rm|-rmi|-rma|-wm|-wmi|-wma|-brm|-bwm|"
+                            "-rm|-rmi|-rma|-wm|-wmi|-wma|-brm|-bwm|-brf|-bwf|"
                             "-start|-stop|-step|-creset|-breset|"
                             "-suspend|-resume|"
                             "-stapc|"
@@ -495,6 +496,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       clist.AddWreg(base + Rw11Cpu::kCPAH, data);
 
+    // Note: -wa without -p22 or -ubm options is equivalent to -wal
     } else if (opt == "-wa") {              // -wa addr ?varStat [-p22 -ubm]--
       uint32_t addr=0;
       if (!args.GetArg("addr", addr, 017777776)) return kERR;
@@ -509,8 +511,24 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
           ah |= Rw11Cpu::kCPAH_M_22BIT;
         } else if (subopt == "-ubm") {      // -ubm 
           ah |= Rw11Cpu::kCPAH_M_UBM22;
+          if (addr > 0777776) {
+            ostringstream sos;
+            sos << "-E: value '" << addr
+                << "' for 'addr' out of range 0...0777776";
+            args.AppendResult(sos);
+            return kERR;
+          }
         }
       }
+      if ((ah & (Rw11Cpu::kCPAH_M_22BIT|Rw11Cpu::kCPAH_M_UBM22)) == 0 &&
+          addr > 0177776) {
+        ostringstream sos;
+        sos << "-E: value '" << addr
+            << "' for 'addr' out of range 0...0177776";
+        args.AppendResult(sos);
+        return kERR;
+      }
+      
       clist.AddWreg(base + Rw11Cpu::kCPAL, al);
       if (ah!=0) clist.AddWreg(base + Rw11Cpu::kCPAH, ah);
 
@@ -562,6 +580,19 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
       if (!args.GetArg("data", block, 1, Connect().BlockSizeMax())) return kERR;
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
       clist.AddWblk(base + Rw11Cpu::kCPMEMI, move(block));
+    
+    } else if (opt == "-brf") {             // -brf size ?varData ?varStat ---
+      int32_t bsize=0;
+      if (!args.GetArg("bsize", bsize, 1, Connect().BlockSizeMax())) return kERR;
+      if (!GetVarName(args, "??varData", lsize, vardata)) return kERR;
+      if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
+      clist.AddRblk(base + Rw11Cpu::kCPMEM, size_t(bsize));
+
+    } else if (opt == "-bwf") {             // -bwf block ?varStat -----------
+      vector<uint16_t> block;
+      if (!args.GetArg("data", block, 1, Connect().BlockSizeMax())) return kERR;
+      if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
+      clist.AddWblk(base + Rw11Cpu::kCPMEM, move(block));
     
     } else if (opt == "-start") {           // -start ?varStat ---------------
       if (!GetVarName(args, "??varStat", lsize, varstat)) return kERR;
@@ -766,7 +797,7 @@ int RtclRw11Cpu::M_cp(RtclArgs& args)
           break;
 
         case RlinkCommand::kCmdRblk:
-          pres = Rtcl::NewListIntObj(cmd.Block());
+          pres = Rtcl::NewListIntObj(cmd.Block().data(), cmd.BlockDone());
           break;
       }
       if(!Rtcl::SetVar(interp, vardata[icmd], pres)) return kERR;

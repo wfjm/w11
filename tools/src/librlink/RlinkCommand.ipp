@@ -1,6 +1,6 @@
-// $Id: RlinkCommand.ipp 1092 2018-12-24 08:01:50Z mueller $
+// $Id: RlinkCommand.ipp 1121 2019-03-11 08:59:12Z mueller $
 //
-// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-03-10  1121   1.4.2  add BlockDoneAll()
 // 2018-12-24  1092   1.4.1  rename IsBlockExt -> HasBlockExt
 // 2018-12-01  1076   1.4    use unique_ptr
 // 2015-04-02   661   1.3    expect logic: add stat check, Print() without cntx
@@ -23,7 +24,6 @@
 // ---------------------------------------------------------------------------
 
 /*!
-  \file
   \brief   Implemenation (inline) of class RlinkCommand.
 */
 
@@ -255,6 +255,14 @@ inline size_t RlinkCommand::BlockSize() const
 inline size_t RlinkCommand::BlockDone() const
 {
   return fBlockDone;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline bool RlinkCommand::BlockDoneAll() const
+{
+  return BlockDone() == BlockSize();
 }
 
 //------------------------------------------+-----------------------------------

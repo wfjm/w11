@@ -7,6 +7,17 @@ This file descibes general issues.
 
 The case id indicates the release when the issue was first recognized.
 
+### V0.50-8 {[issue #21](https://github.com/wfjm/w11/issues/21)} --RK11,RL11: no proper NXM check in 18bit systems
+
+No `NXM` error is generated when a UNIBUS device DMA transfer reaches the top
+of memory in 18 bit addressing. Seen originally for RK11, but RL11 and DEUNA
+are also affected.
+
+In normal operation is minor non-conformity is not relevant because operating
+systems never setup DMA transfers to/from non-existing memory. However, some
+highly space optimized crash dump routines use this to detect end-of-memory
+and might endless loop. Also maindec's might test this border case and fail.
+
 ### V0.50-10 {[issue #20](https://github.com/wfjm/w11/issues/20)} -- DL11: output chars lost when device polling used
 Part of the console output can be lost when `xxdp` test `eqkce1` is
 run on FPGA, also some kernel messages during the 2.11bsd boot sequence.

@@ -1,6 +1,6 @@
-// $Id: RlinkCommand.cpp 1091 2018-12-23 12:38:29Z mueller $
+// $Id: RlinkCommand.cpp 1121 2019-03-11 08:59:12Z mueller $
 //
-// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-03-10  1121   1.4.3  Print(): use BlockDone() as length for rblk data
 // 2018-12-23  1091   1.4.2  CmdWblk(),SetBlockWrite(): add move version
 // 2018-12-19  1090   1.4.1  use RosPrintf(bool)
 // 2018-12-01  1076   1.4    use unique_ptr
@@ -31,7 +32,6 @@
 // ---------------------------------------------------------------------------
 
 /*!
-  \file
   \brief   Implemenation of class RlinkCommand.
  */
 
@@ -407,7 +407,7 @@ void RlinkCommand::Print(std::ostream& os,
     bool  dcheck = (HasExpect() && Expect().BlockValue().size() > 0);
     size_t ncol  = (80-4-5)/(dwidth+2);
     
-    size_t size  = BlockSize();
+    size_t size  = BlockDone();
     const uint16_t* pdat = BlockPointer();
 
     for (size_t i=0; i<size; i++) {

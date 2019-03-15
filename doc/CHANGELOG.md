@@ -37,6 +37,13 @@ The full set of tests is only run for tagged releases.
 - tools changes
   - Rw11Cpu,RtclRw11Cpu: add ibmon setup and HasIbtst()
   - RtclGet.ipp: use const& for oper() of string& and Rtime&
+  - RlinkCommand: add BlockDoneAll()
+  - RtclRw11Cpu: add cp -brf and -bwf; add range checks for cp -wa
+  - ensure that after aborted rblk only BlockDone words are processed
+    - RlinkCommand: Print(): use BlockDone() as length for rblk
+    - RlinkConnect: DecodeResponse(): rblk expect check over BlockDone
+    - RtclRlinkConnect: M_exec(): tranfer BlockDone values after rblk
+    - RtclRw11Cpu: M_cp(): tranfer BlockDone values after rblk
 - firmware changes
   - rbd_rbmon: more robust ack,err trace when busy
   - rbd_tester: use now fifo_simple_dram

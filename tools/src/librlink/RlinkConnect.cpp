@@ -1,6 +1,6 @@
-// $Id: RlinkConnect.cpp 1091 2018-12-23 12:38:29Z mueller $
+// $Id: RlinkConnect.cpp 1121 2019-03-11 08:59:12Z mueller $
 //
-// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-03-10  1121   2.8.5  DecodeResponse(): rblk expect check over BlockDone
 // 2018-12-22  1091   2.8.4  Open():  (-Wpessimizing-move fix); add BadPort()
 // 2018-12-19  1090   2.8.3  use RosPrintf(bool)
 // 2018-12-18  1089   2.8.2  use c++ style casts
@@ -48,7 +49,6 @@
 // ---------------------------------------------------------------------------
 
 /*!
-  \file
   \brief   Implemenation of RlinkConnect.
 */
 
@@ -996,7 +996,7 @@ int RlinkConnect::DecodeResponse(RlinkCommandList& clist, size_t ibeg,
           cmd.SetFlagBit(RlinkCommand::kFlagChkData);
         }
       } else if (ccode==RlinkCommand::kCmdRblk) {
-        size_t nerr = expect.BlockCheck(cmd.BlockPointer(), cmd.BlockSize());
+        size_t nerr = expect.BlockCheck(cmd.BlockPointer(), cmd.BlockDone());
         if (nerr != 0) {
           fStats.Inc(kStatNChkData);
           cmd.SetFlagBit(RlinkCommand::kFlagChkData);

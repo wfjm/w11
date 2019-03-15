@@ -1,4 +1,4 @@
-// $Id: RtclRlinkConnect.cpp 1114 2019-02-23 18:01:55Z mueller $
+// $Id: RtclRlinkConnect.cpp 1121 2019-03-11 08:59:12Z mueller $
 //
 // Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-03-10  1121   1.6.10 M_exec(): tranfer BlockDone values after rblk
 // 2019-02-23  1114   1.6.9  use std::bind instead of lambda
 // 2018-12-23  1091   1.6.8  use AddWblk(move)
 // 2018-12-18  1089   1.6.7  use c++ style casts
@@ -52,7 +53,6 @@
 // ---------------------------------------------------------------------------
 
 /*!
-  \file
   \brief   Implemenation of class RtclRlinkConnect.
  */
 
@@ -380,7 +380,7 @@ int RtclRlinkConnect::M_exec(RtclArgs& args)
           pres = Tcl_NewIntObj(int(cmd.Data()));
           break;
         case RlinkCommand::kCmdRblk:
-          pres = Rtcl::NewListIntObj(cmd.Block());
+          pres = Rtcl::NewListIntObj(cmd.Block().data(), cmd.BlockDone());
           break;
       }
       if(!Rtcl::SetVar(interp, vardata[icmd], pres)) return kERR;

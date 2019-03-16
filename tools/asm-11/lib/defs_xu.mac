@@ -1,8 +1,13 @@
-; $Id: defs_xu.mac 848 2017-02-04 14:55:30Z mueller $
+; $Id: defs_xu.mac 1122 2019-03-17 08:15:42Z mueller $
 ; Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ; License disclaimer see License.txt in $RETROBASE directory
 ;
 ; definitions for DEUNA controler
+; 
+; vector address/priority definition
+; 
+        va.xu=000120
+        vp.xu=5
 ; 
 ; register addresses
 ; 

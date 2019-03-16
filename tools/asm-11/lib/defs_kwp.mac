@@ -1,8 +1,13 @@
-; $Id: defs_kwp.mac 1045 2018-09-15 15:20:57Z mueller $
+; $Id: defs_kwp.mac 1122 2019-03-17 08:15:42Z mueller $
 ; Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ; License disclaimer see License.txt in $RETROBASE directory
 ;
 ; definitions for KW11-P programmable clock
+; 
+; vector address/priority definition
+; 
+        va.kwp=000104
+        vp.kwp=7
 ; 
 ; register addresses
 ; 

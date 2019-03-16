@@ -1,10 +1,11 @@
-# $Id: test_tm11_regs.tcl 830 2016-12-26 20:25:49Z mueller $
+# $Id: test_tm11_regs.tcl 1120 2019-03-09 18:19:31Z mueller $
 #
-# Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2019-03-09  1120   1.0.1  add proper device check
 # 2015-05-17   683   1.0    Initial version
 #
 # Test register response 
@@ -13,7 +14,10 @@
 # ----------------------------------------------------------------------------
 rlc log "test_tm11_regs: test register response ------------------------------"
 package require ibd_tm11
-ibd_tm11::setup
+if {![ibd_tm11::setup]} {
+  rlc log "  test_tm11_regs-W: device not found, test aborted"
+  return
+}
 
 rlc set statmask  $rw11::STAT_DEFMASK
 rlc set statvalue 0

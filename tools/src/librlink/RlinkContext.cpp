@@ -1,6 +1,6 @@
-// $Id: RlinkContext.cpp 1089 2018-12-19 10:45:41Z mueller $
+// $Id: RlinkContext.cpp 1122 2019-03-17 08:15:42Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-03-16  1122   1.1    BUGFIX: use proper polarity of status mask
 // 2018-12-18  1089   1.0.2  use c++ style casts
 // 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2013-02-23   492   1.0    Initial version
@@ -44,7 +45,7 @@ namespace Retro {
 
 RlinkContext::RlinkContext()
   : fStatusVal(0),
-    fStatusMsk(0xff),
+    fStatusMsk(0x00),
     fErrCnt(0)
 {}
 

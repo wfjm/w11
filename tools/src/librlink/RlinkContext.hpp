@@ -1,6 +1,6 @@
-// $Id: RlinkContext.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkContext.hpp 1122 2019-03-17 08:15:42Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-03-16  1122   1.2    BUGFIX: use proper polarity of status mask
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2015-03-28   660   1.1    add SetStatus(Value|Mask)()
 // 2013-02-23   492   1.0    Initial version
@@ -36,7 +37,7 @@ namespace Retro {
                     RlinkContext();
                    ~RlinkContext();
 
-      void          SetStatus(uint8_t stat, uint8_t statmsk=0xff);
+      void          SetStatus(uint8_t stat, uint8_t statmsk=0x00);
 
       void          SetStatusValue(uint8_t stat);
       void          SetStatusMask(uint8_t statmsk);

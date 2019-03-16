@@ -1,6 +1,6 @@
-// $Id: RlinkContext.ipp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkContext.ipp 1122 2019-03-17 08:15:42Z mueller $
 //
-// Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-03-16  1122   1.2    BUGFIX: use proper polarity of status mask
 // 2015-03-28   660   1.1    add SetStatus(Value|Mask)()
 // 2013-02-23   492   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -74,7 +75,7 @@ inline uint8_t RlinkContext::StatusMask() const
 
 inline bool RlinkContext::StatusIsChecked() const
 {
-  return fStatusMsk != 0xff;
+  return fStatusMsk != 0x00;
 }
 
 //------------------------------------------+-----------------------------------
@@ -82,7 +83,7 @@ inline bool RlinkContext::StatusIsChecked() const
 
 inline bool RlinkContext::StatusCheck(uint8_t val) const
 {
-  return (val|fStatusMsk) == (fStatusVal|fStatusMsk);
+  return (val & fStatusMsk) == fStatusVal;
 }
 
 //------------------------------------------+-----------------------------------

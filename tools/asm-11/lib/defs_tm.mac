@@ -1,8 +1,13 @@
-; $Id: defs_tm.mac 830 2016-12-26 20:25:49Z mueller $
+; $Id: defs_tm.mac 1122 2019-03-17 08:15:42Z mueller $
 ; Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ; License disclaimer see License.txt in $RETROBASE directory
 ;
 ; definitions for RK11 controler
+; 
+; vector address/priority definition
+; 
+        va.tm=000224
+        vp.tm=5
 ; 
 ; register addresses
 ; 

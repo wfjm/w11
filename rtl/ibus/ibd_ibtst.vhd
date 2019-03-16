@@ -1,4 +1,4 @@
--- $Id: ibd_ibtst.vhd 1116 2019-03-03 08:24:07Z mueller $
+-- $Id: ibd_ibtst.vhd 1122 2019-03-17 08:15:42Z mueller $
 --
 -- Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -176,7 +176,8 @@ begin
     end if;
   end process proc_regs;
 
-  proc_next : process (R_REGS, IB_MREQ, RESET, FIFO_DO, FIFO_EMPTY, FIFO_FULL)
+  proc_next : process (R_REGS, IB_MREQ, RESET, FIFO_DO, FIFO_EMPTY,
+                       FIFO_FULL, FIFO_SIZE)
     variable r : regs_type := regs_init;
     variable n : regs_type := regs_init;
     variable ibreq : slbit := '0';

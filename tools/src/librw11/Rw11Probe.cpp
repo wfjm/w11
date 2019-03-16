@@ -1,6 +1,6 @@
-// $Id: Rw11Probe.cpp 1090 2018-12-21 12:17:35Z mueller $
+// $Id: Rw11Probe.cpp 1121 2019-03-11 08:59:12Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-03-10  1121   1.1.3  ctor: fData* initialized as 0 (not false)
 // 2018-12-19  1090   1.1.2  use RosPrintf(bool)
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
 // 2017-02-04   848   1.1    Keep probe data; add DataInt(), DataRem()
@@ -20,7 +21,6 @@
 // ---------------------------------------------------------------------------
 
 /*!
-  \file
   \brief   Implemenation of Rw11Probe.
 */
 
@@ -51,8 +51,8 @@ Rw11Probe::Rw11Probe(uint16_t addr, bool probeint, bool proberem)
     fProbeDone(false),
     fFoundInt(false),
     fFoundRem(false),
-    fDataInt(false),
-    fDataRem(false)
+    fDataInt(0),
+    fDataRem(0)
 {}
 
 //------------------------------------------+-----------------------------------

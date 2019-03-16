@@ -1,10 +1,11 @@
-# $Id: test_rhrp_func_reg.tcl 830 2016-12-26 20:25:49Z mueller $
+# $Id: test_rhrp_func_reg.tcl 1120 2019-03-09 18:19:31Z mueller $
 #
-# Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2019-03-09  1120   1.0.2  add proper device check
 # 2015-06-20   692   1.0.1  de-configure all drives at begin
 # 2015-03-29   660   1.0    Initial version
 #
@@ -15,7 +16,10 @@
 rlc log "test_rhrp_func_reg: test functions - register level -----------------"
 rlc log "  setup: unit 0:RP06(mol), 1:RM05(mol,wrl), 2: RP07(mol=0), 3: off"
 package require ibd_rhrp
-ibd_rhrp::setup
+if {![ibd_rhrp::setup]} {
+  rlc log "  test_rhrp_regs-W: device not found, test aborted"
+  return
+}
 
 rlc set statmask  $rw11::STAT_DEFMASK
 rlc set statvalue 0

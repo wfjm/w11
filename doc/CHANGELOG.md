@@ -61,7 +61,10 @@ The full set of tests is only run for tagged releases.
   automatic return type determination for the getter lambdas. Changed back
   to using bind, now `std::bind`, for method forwarders. This is safer and
   also more compact.
-  
+- RlinkContext: use now proper polarity of status mask. Was wrong since
+  2015-05-12 release w11a_V0.753 which inverted the mask polarity. Had no
+  practical consequences, went therefore undetected for such a long time.
+
 ### Known issues
 
 <!-- --------------------------------------------------------------------- -->

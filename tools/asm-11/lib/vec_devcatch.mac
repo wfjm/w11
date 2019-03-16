@@ -1,4 +1,4 @@
-; $Id: vec_devcatch.mac 848 2017-02-04 14:55:30Z mueller $
+; $Id: vec_devcatch.mac 1122 2019-03-17 08:15:42Z mueller $
 ; Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ; License disclaimer see License.txt in $RETROBASE directory
 ;
@@ -43,7 +43,7 @@ v..kwp: .word   v..kwp+2        ; vec 104 (KW11-P)
         .word   0
 ;
         . = 000120
-v..deu: .word   v..deu+2        ; vec 120 (DEUNA)
+v..xu:  .word   v..xu+2         ; vec 120 (DEUNA)
         .word   0
 ;
         . = 000160

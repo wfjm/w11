@@ -1,10 +1,11 @@
-# $Id: test_rhrp_int.tcl 895 2017-05-07 07:38:47Z mueller $
+# $Id: test_rhrp_int.tcl 1120 2019-03-09 18:19:31Z mueller $
 #
-# Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2019-03-09  1120   1.1.3  add proper device check
 # 2015-07-25   704   1.1.2  tmpproc_dotest: use args rather opts
 # 2015-06-20   692   1.1.1  de-configure all drives at begin
 # 2015-05-04   674   1.1    w11a start/stop/suspend overhaul
@@ -17,7 +18,10 @@
 rlc log "test_rhrp_int: test interrupt response ------------------------------"
 rlc log "  setup: unit 0:RP06(mol), 1:RM05(mol,wrl), 2: RP07(mol=0), 3: off"
 package require ibd_rhrp
-ibd_rhrp::setup
+if {![ibd_rhrp::setup]} {
+  rlc log "  test_rhrp_regs-W: device not found, test aborted"
+  return
+}
 
 rlc set statmask  $rw11::STAT_DEFMASK
 rlc set statvalue 0

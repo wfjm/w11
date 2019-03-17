@@ -1,6 +1,6 @@
--- $Id: ibdr_lp11.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: ibdr_lp11.vhd 1121 2019-03-11 08:59:12Z mueller $
 --
--- Copyright 2009-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2009-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,7 +18,7 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2018.3; ghdl 0.18-0.35
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -27,6 +27,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-03-10  1121   1.3.2  ignore buf write if csr.err=1 for lp11_buf compat
+-- 2019-03-03  1118   1.3.1  VAL in bit 15 and 8 for lp11_buf compat
 -- 2013-05-04   515   1.3    BUGFIX: r.err was cleared in racc read !
 -- 2011-11-18   427   1.2.2  now numeric_std clean
 -- 2010-10-23   335   1.2.1  rename RRI_LAM->RB_LAM;
@@ -74,7 +76,8 @@ architecture syn of ibdr_lp11 is
   constant csr_ibf_err :   integer := 15;
   constant csr_ibf_done :  integer :=  7;
   constant csr_ibf_ie :    integer :=  6;
-  constant buf_ibf_val :   integer :=  8;
+  constant buf_ibf_val :   integer := 15;
+  constant buf_ibf_val8:   integer :=  8;
 
   type regs_type is record              -- state registers
     ibsel : slbit;                      -- ibus select
@@ -160,30 +163,37 @@ begin
                 n.intreq := '0';
               end if;
             end if;
-          else                          -- rri
+          else                            -- rri
             if ibw1 = '1' then
               n.err := IB_MREQ.din(csr_ibf_err);
+              if IB_MREQ.din(csr_ibf_err) = '1' then
+                n.done   := '1';
+                n.intreq := '0';                    -- clear irupt (like simh!)
+              end if;
             end if;
           end if;
 
         when ibaddr_buf =>              -- BUF -- data buffer ----------------
           if IB_MREQ.racc = '0' then      -- cpu
             if ibw0 = '1' then
-              n.buf    := IB_MREQ.din(n.buf'range);
-              if r.err = '0' then         -- if online (handle via rbus)
-                ilam     := '1';            -- request attention
-                n.done   := '0';            -- clear done
-                n.intreq := '0';            -- clear interrupt
-              else                        -- if offline (discard locally)
-                n.done   := '1';            -- set done
-                if r.ie = '1' then          -- if interrupts enabled
-                  n.intreq := '1';            -- request interrupt
-                end if;
-              end if;
-            end if;
-          else                          -- rri
+              if r.done = '1' then          -- ignore buf write when done=0
+                n.buf    := IB_MREQ.din(n.buf'range);
+                if r.err = '0' then           -- if online (handle via rbus)
+                  ilam     := '1';              -- request attention
+                  n.done   := '0';              -- clear done
+                  n.intreq := '0';              -- clear interrupt
+                else                          -- if offline (discard locally)
+                  n.done   := '1';              -- set done
+                  if r.ie = '1' then            -- if interrupts enabled
+                    n.intreq := '1';              -- request interrupt
+                  end if;
+                end if;  -- r.err = '0'
+              end if;  -- r.done = '1'
+            end if;  -- ibw0 = '1'
+          else                            -- rri
             idout(r.buf'range)  := r.buf;
             idout(buf_ibf_val)  := not r.done;
+            idout(buf_ibf_val8) := not r.done;
             if ibrd = '1' then
               n.done := '1';
               if r.ie = '1' then

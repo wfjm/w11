@@ -1,0 +1,21 @@
+; $Id: defs_lp.mac 1122 2019-03-17 08:15:42Z mueller $
+; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; License disclaimer see License.txt in $RETROBASE directory
+;
+; definitions for LP11 controler (as in defs_lp.das)
+; 
+; vector address/priority definition
+; 
+        va.lp=000200
+        vp.lp=4
+; 
+; register addresses
+; 
+        lp.csr=177514
+        lp.buf=177516
+;
+; symbol definitions for lp.csr
+;
+        lp.err=100000
+        lp.don=000200
+        lp.ie=000100

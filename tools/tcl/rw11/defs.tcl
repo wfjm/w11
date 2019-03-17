@@ -1,4 +1,4 @@
-# $Id: defs.tcl 1116 2019-03-03 08:24:07Z mueller $
+# $Id: defs.tcl 1121 2019-03-11 08:59:12Z mueller $
 #
 # Copyright 2014-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,7 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
-# 2019-03-02  1116   1.0.7  define INIT bits
+# 2019-03-10  1121   1.0.7  define INIT bits; define ANUM
 # 2018-09-09  1044   1.0.6  update defs kw11p, literals for KW11P_CSR(rate)
 # 2017-02-17   851   1.0.5  defs for auxilliary devices (kw11l,kw11p,iist)
 # 2016-12-30   834   1.0.4  fix typo in regmap_add for SDR's
@@ -112,6 +112,9 @@ namespace eval rw11 {
   rw11util::regmap_add rw11 cpuerr    {?? CPUERR}
   #
   rw11util::regmap_add rw11 cntrl     {?? CNTRL}
+  #
+  # define attn channel for W11 CPU cluster
+  variable ANUM 0
   #
   # other w11a definitions ---------------------------------------------------
   #

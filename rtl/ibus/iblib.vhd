@@ -1,4 +1,4 @@
--- $Id: iblib.vhd 1111 2019-02-10 16:13:55Z mueller $
+-- $Id: iblib.vhd 1123 2019-03-17 17:55:12Z mueller $
 --
 -- Copyright 2008-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  ise 8.1-14.7; viv 2014.4-2018.3; ghdl 0.18-0.35
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-03-17  1123   2.2.2  add ib_rlim_gen,ib_rlim_slv
 -- 2019-02-10  1111   2.2.1  add ibd_ibtst
 -- 2017-01-28   846   2.2    add ib_intmap24
 -- 2016-05-28   770   2.1.1  use type natural for vec,pri fields of intmap_type
@@ -174,6 +175,28 @@ component ibd_ibtst is                  -- ibus dev(rem): ibus tester
     RESET : in slbit;                   -- reset
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type          -- ibus response
+  );
+end component;
+
+component ib_rlim_gen is                -- ibus rate limter - master
+  port (
+    CLK : in slbit;                     -- clock
+    CE_USEC : in slbit;                 -- usec pulse
+    RESET : in slbit;                   -- system reset
+    RLIM_CEV : out slv7                 -- clock enable vector
+  );
+end component;
+
+component ib_rlim_slv is                -- ibus rate limter - slave
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit;                   -- system reset
+    RLIM_CEV : in  slv7;                -- clock enable vector
+    SEL : in  slv3;                     -- rlim select
+    START : in slbit;                   -- start timer
+    STOP : in slbit;                    -- stop timer
+    DONE : out slbit;                   -- 1 cycle pulse when expired 
+    BUSY : out slbit                    -- timer running
   );
 end component;
 

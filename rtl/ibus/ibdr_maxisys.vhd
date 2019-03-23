@@ -1,4 +1,4 @@
--- $Id: ibdr_maxisys.vhd 1111 2019-02-10 16:13:55Z mueller $
+-- $Id: ibdr_maxisys.vhd 1123 2019-03-17 17:55:12Z mueller $
 --
 -- Copyright 2009-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -15,7 +15,8 @@
 -- Module Name:    ibdr_maxisys - syn
 -- Description:    ibus(rem) devices for full system
 --
--- Dependencies:   ibd_iist
+-- Dependencies:   ib_rlim_gen
+--                 ibd_iist
 --                 ibd_kw11l
 --                 ibd_kw11p
 --                 ibdr_deuna
@@ -26,6 +27,7 @@
 --                 ibdr_dl11
 --                 ibdr_pc11
 --                 ibdr_lp11
+--                 ibdr_lp11_buf
 --                 ibdr_sdreg
 --                 ib_sres_or_4
 --                 ib_sres_or_3
@@ -49,6 +51,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-03-17  1123   1.6.2  add ib_rlim_gen, use with ibdr_lp11_buf
+-- 2019-03-09  1121   1.6.1  add ibdr_lp11_buf
 -- 2019-02-10  1111   1.6    use typ for DL,PC,LP
 -- 2019-01-29  1108   1.5.1  move IIST signals into generate
 -- 2018-10-13  1055   1.5    add IDEC port, connect to EXTEVT of KW11P
@@ -226,8 +230,18 @@ architecture syn of ibdr_maxisys is
   signal EI_ACK_PC11PTR  : slbit := '0';
   signal EI_ACK_PC11PTP  : slbit := '0';
   signal EI_ACK_LP11     : slbit := '0';
+  
+  signal RLIM_CEV : slv7 := (others=>'0');
 
 begin
+
+  RLIM : ib_rlim_gen
+    port map (
+      CLK      => CLK,
+      CE_USEC  => CE_USEC,
+      RESET    => '0',
+      RLIM_CEV => RLIM_CEV
+    );
 
   IIST: if sys_conf_ibd_iist generate
     signal IIST_BUS        : iist_bus_type := iist_bus_init;
@@ -415,7 +429,7 @@ begin
       );
   end generate PC11;
 
-  LP11: if sys_conf_ibd_lp11 >= 0 generate
+  LP11: if sys_conf_ibd_lp11 = 0 generate
   begin
     LPA : ibdr_lp11
       port map (
@@ -429,6 +443,24 @@ begin
         EI_ACK  => EI_ACK_LP11
       );
   end generate LP11;
+
+  LP11BUF: if sys_conf_ibd_lp11 > 0 generate
+  begin
+    LPA : ibdr_lp11_buf
+      generic map (
+        AWIDTH  => sys_conf_ibd_lp11)
+      port map (
+        CLK      => CLK,
+        RESET    => RESET,
+        BRESET   => BRESET,
+        RLIM_CEV => RLIM_CEV,
+        RB_LAM   => RB_LAM_LP11,
+        IB_MREQ  => IB_MREQ,
+        IB_SRES  => IB_SRES_LP11,
+        EI_REQ   => EI_REQ_LP11,
+        EI_ACK   => EI_ACK_LP11
+      );
+  end generate LP11BUF;
 
   SDREG : ibdr_sdreg
     port map (

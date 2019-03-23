@@ -7,7 +7,23 @@ This file descibes general issues.
 
 The case id indicates the release when the issue was first recognized.
 
-### V0.50-8 {[issue #21](https://github.com/wfjm/w11/issues/21)} --RK11,RL11: no proper NXM check in 18bit systems
+### V0.50-1 {[issue #23](https://github.com/wfjm/w11/issues/23)} -- CPU: several deficits in trap logic
+
+The current w11a implementation has several deficits in the handling of
+traps and interrupts which lead to non-conforming behavior when multiple
+trap, fault and interrupt conditions occur simultaneously, for example
+- bad stack frame when `IOT` trigger stack violation (TCK-003)
+- bad stack frame when interrupt triggers stack violation (TCK-004)
+- no yellow stack abort when `jsr` triggers a stack violation (TCK-006)
+- no odd address trap when `EMT` is executed with odd `SP` (TCK-007)
+- no yellow stack abort for `mov (sp),(sp)` (TCK-028)
+
+These situations never occur during the execution of operation systems, and
+in case they do, the operating system will crash anyway. Thus there is no
+impact in normal usage, but diagnostics programs do complain. Will be fixed
+in an upcoming release.
+
+### V0.50-8 {[issue #21](https://github.com/wfjm/w11/issues/21)} -- RK11,RL11: no proper NXM check in 18bit systems
 
 No `NXM` error is generated when a UNIBUS device DMA transfer reaches the top
 of memory in 18 bit addressing. Seen originally for RK11, but RL11 and DEUNA

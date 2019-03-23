@@ -1,0 +1,9 @@
+# libs
+../vlib/slvtypes.vhd
+../vlib/memlib/memlib.vhd
+iblib.vhd
+# components
+../vlib/memlib/fifo_simple_dram.vbom
+ib_rlim_slv.vbom
+# design
+ibdr_lp11_buf.vhd

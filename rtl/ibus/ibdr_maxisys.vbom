@@ -4,6 +4,7 @@ iblib.vhd
 ibdlib.vhd
 ${sys_conf := sys_conf.vhd}
 # components
+ib_rlim_gen.vbom
 ibd_iist.vbom
 ibd_kw11l.vbom
 ibd_kw11p.vbom
@@ -15,6 +16,7 @@ ibdr_tm11.vbom
 ibdr_dl11.vbom
 ibdr_pc11.vbom
 ibdr_lp11.vbom
+ibdr_lp11_buf.vbom
 ibdr_sdreg.vbom
 ib_sres_or_4.vbom
 ib_sres_or_3.vbom

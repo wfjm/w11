@@ -27,11 +27,14 @@ The full set of tests is only run for tagged releases.
 - new components
   - fifo_simple_dram: simple fifo with CE/WE interface, dram based
   - ibd_ibtst: ibus tester device
+  - ib_rlim_{gen,slv}: new modules for implementation of rate limiters
+  - ibdr_lp11_buf: new LP11 interface with fifo buffering
   - simclkv: test bench clock generator with variable period
 - new verification codes
-  - tbench/w11a_ibtst/*: tbench for ibd_ibtst
-  - tbench/w11a_ibmon/*: tbench for ibd_ibmon
-  - test_w11a_sdreg.tcl: tbench for sdreg
+  - w11a_ibtst/*: tbench for ibd_ibtst
+  - w11a_ibmon/*: tbench for ibd_ibmon
+  - w11a/test_w11a_sdreg.tcl: tbench for sdreg
+  - test_lp11_all.tcl: tbench for lp11 and lp11_buf
 
 ### Changes
 - tools changes
@@ -51,10 +54,13 @@ The full set of tests is only run for tagged releases.
   - ibdr_lp11: move valid bit to msb of buf (for ibdr_lp11_buf compatibility)
   - sys_w11a_s3: set BTOWIDTH 7 (was 6, must be > vmbox atowidth (6))
   - pdp11_sys70: instantiate ibd_ibtst (when sys_conf_ibtst = true)
-  - ibdr_maxisys,sys_conf ready for buffered DL,PC,LP and dz11,ibtst
+  - ibdr_maxisys,sys_conf ready for buffered DL,PC and dz11
     - use type code instead of boolean for sys_conf_ibd_{dl11,lp11,pc11}
     - add sys_conf_ibtst (enabled in all systems)
     - add sys_conf_ibd_dz11 (enabled in all systems)
+    - add ib_rlim_gen to support rate limiters
+    - instantiate ibd_ibtst
+    - instantiate ibdr_lp11_buf
 
 ### Bug Fixes
 - backend code: some getters crashed with `SIGSEGV`, see

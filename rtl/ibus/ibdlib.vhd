@@ -1,6 +1,6 @@
--- $Id: ibdlib.vhd 1111 2019-02-10 16:13:55Z mueller $
+-- $Id: ibdlib.vhd 1123 2019-03-17 17:55:12Z mueller $
 --
--- Copyright 2008-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,6 +19,7 @@
 -- Tool versions:  ise 8.2-14.7; viv 2014.4-2018.3; ghdl 0.18-0.35
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-03-09  1121   1.3.3  add ibdr_lp11_buf
 -- 2018-10-13  1055   1.3.2  update ibdr_maxisys (add IDEC port)
 -- 2018-09-08  1043   1.3.1  update ibd_kw11p
 -- 2017-01-29   847   1.3.1  add ibdr_deuna
@@ -258,6 +259,23 @@ component ibdr_lp11 is                  -- ibus dev(rem): LP11
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- system reset
     BRESET : in slbit;                  -- ibus reset
+    RB_LAM : out slbit;                 -- remote attention
+    IB_MREQ : in ib_mreq_type;          -- ibus request
+    IB_SRES : out ib_sres_type;         -- ibus response
+    EI_REQ : out slbit;                 -- interrupt request
+    EI_ACK : in slbit                   -- interrupt acknowledge
+  );
+end component;
+
+component ibdr_lp11_buf is              -- ibus dev(rem): LP11
+                                        -- fixed address: 177514
+  generic (
+    AWIDTH : natural :=  5);            -- fifo address width
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit;                   -- system reset
+    BRESET : in slbit;                  -- ibus reset
+    RLIM_CEV : in  slv7;                -- clock enable vector
     RB_LAM : out slbit;                 -- remote attention
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response

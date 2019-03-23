@@ -1,6 +1,6 @@
-// $Id: RtclRw11CntlLP11.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclRw11CntlLP11.cpp 1123 2019-03-17 17:55:12Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,12 +13,12 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-03-17  1123   1.2    add getters& setters for lp11_buf readout
 // 2017-04-16   878   1.1    add class in ctor;derive from RtclRw11CntlStreamBase
 // 2013-05-01   513   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
-  \file
   \brief   Implemenation of RtclRw11CntlLP11.
 */
 
@@ -28,6 +28,7 @@
 #include "RtclRw11UnitLP11.hpp"
 
 using namespace std;
+using namespace std::placeholders;
 
 /*!
   \class Retro::RtclRw11CntlLP11
@@ -42,7 +43,15 @@ namespace Retro {
 
 RtclRw11CntlLP11::RtclRw11CntlLP11()
   : RtclRw11CntlStreamBase<Rw11CntlLP11>("Rw11CntlLP11","stream")
-{}
+{
+  Rw11CntlLP11* pobj = &Obj();
+  fGets.Add<uint16_t>     ("rlim",     bind(&Rw11CntlLP11::Rlim,     pobj));
+  fGets.Add<uint16_t>     ("itype",    bind(&Rw11CntlLP11::Itype,    pobj));
+  fGets.Add<bool>         ("buffered", bind(&Rw11CntlLP11::Buffered, pobj));
+  fGets.Add<uint16_t>     ("fifosize", bind(&Rw11CntlLP11::FifoSize, pobj));
+  
+  fSets.Add<uint16_t>     ("rlim",     bind(&Rw11CntlLP11::SetRlim,pobj, _1));
+}
 
 //------------------------------------------+-----------------------------------
 //! Destructor

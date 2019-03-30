@@ -1,7 +1,8 @@
-# $Id: Makefile 1100 2019-01-02 10:56:47Z mueller $
+# $Id: Makefile 1125 2019-03-30 07:34:54Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2019-03-30  1125   1.1.3  drop ReventFd,RtimerFd
 # 2019-01-02  1100   1.1.2  drop boost includes and libs
 # 2013-02-01   479   1.1.1  use checkpath_cpp.mk
 # 2011-07-31   401   1.1    rename realclean->distclean
@@ -32,7 +33,7 @@ OBJ_all   += RlinkCrc16.o
 OBJ_all   += RlinkPacketBuf.o RlinkPacketBufSnd.o RlinkPacketBufRcv.o 
 OBJ_all   += RlinkPort.o RlinkPortFactory.o 
 OBJ_all   += RlinkPortFifo.o RlinkPortTerm.o RlinkPortCuff.o 
-OBJ_all   += RtimerFd.o ReventFd.o ReventLoop.o 
+OBJ_all   += ReventLoop.o 
 OBJ_all   += RlinkServer.o RlinkServerEventLoop.o 
 #
 DEP_all    = $(OBJ_all:.o=.dep)

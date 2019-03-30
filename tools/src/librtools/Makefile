@@ -1,7 +1,8 @@
-# $Id: Makefile 1100 2019-01-02 10:56:47Z mueller $
+# $Id: Makefile 1125 2019-03-30 07:34:54Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2019-03-30  1125   1.1.4  add ReventFd,RtimerFd
 # 2019-01-02  1100   1.1.3  drop boost includes and libs
 # 2014-11-01   600   1.1.2  add -lboost_system (needed in boost 1.54)
 # 2013-02-01   479   1.1.1  use checkpath_cpp.mk
@@ -24,6 +25,7 @@ include ../checkpath_cpp.mk
 #
 OBJ_all    = Rbits.o
 OBJ_all   += RerrMsg.o
+OBJ_all   += ReventFd.o
 OBJ_all   += Rexception.o
 OBJ_all   += RiosState.o
 OBJ_all   += RlogFile.o RlogFileCatalog.o RlogMsg.o
@@ -32,6 +34,7 @@ OBJ_all   += RosPrintBvi.o RosPrintfBase.o RosPrintfS.o
 OBJ_all   += RparseUrl.o
 OBJ_all   += Rstats.o
 OBJ_all   += Rtime.o
+OBJ_all   += RtimerFd.o
 OBJ_all   += Rtools.o
 #
 DEP_all    = $(OBJ_all:.o=.dep)

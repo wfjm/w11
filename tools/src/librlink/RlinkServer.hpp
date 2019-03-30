@@ -1,6 +1,6 @@
-// $Id: RlinkServer.hpp 1088 2018-12-17 17:37:00Z mueller $
+// $Id: RlinkServer.hpp 1125 2019-03-30 07:34:54Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -29,7 +29,6 @@
 // ---------------------------------------------------------------------------
 
 /*!
-  \file
   \brief   Declaration of class \c RlinkServer.
 */
 
@@ -46,8 +45,8 @@
 #include <thread>
 
 #include "librtools/Rstats.hpp"
+#include "librtools/ReventFd.hpp"
 
-#include "ReventFd.hpp"
 #include "RlinkConnect.hpp"
 #include "RlinkContext.hpp"
 #include "RlinkServerEventLoop.hpp"

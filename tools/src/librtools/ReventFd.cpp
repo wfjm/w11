@@ -1,6 +1,6 @@
-// $Id: ReventFd.cpp 1089 2018-12-19 10:45:41Z mueller $
+// $Id: ReventFd.cpp 1125 2019-03-30 07:34:54Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -19,7 +19,6 @@
 // ---------------------------------------------------------------------------
 
 /*!
-  \file
   \brief   Implemenation of class ReventFd.
 */
 
@@ -29,7 +28,7 @@
 
 #include "ReventFd.hpp"
 
-#include "librtools/Rexception.hpp"
+#include "Rexception.hpp"
 
 using namespace std;
 

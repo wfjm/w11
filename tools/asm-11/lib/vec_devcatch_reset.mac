@@ -1,5 +1,5 @@
-; $Id: vec_devcatch_reset.mac 1122 2019-03-17 08:15:42Z mueller $
-; Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; $Id: vec_devcatch_reset.mac 1124 2019-03-24 21:20:33Z mueller $
+; Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ; License disclaimer see License.txt in $RETROBASE directory
 ;
 ; re-write vector catcher for device interrupts (subset used by w11)
@@ -20,7 +20,7 @@
         clr     v..kwp+2
 ;
         mov     #v..xu+2,v..xu   ; vec 120 (DEUNA)
-        clr     v..deu+2
+        clr     v..xu+2
 ;
         mov     #v..rl+2,v..rl   ; vec 160 (RL11)
         clr     v..rl+2

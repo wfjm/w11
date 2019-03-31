@@ -1,6 +1,6 @@
-// $Id: RtimerFd.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtimerFd.cpp 1125 2019-03-30 07:34:54Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -18,7 +18,6 @@
 // ---------------------------------------------------------------------------
 
 /*!
-  \file
   \brief   Implemenation of class RtimerFd.
 */
 
@@ -28,7 +27,7 @@
 
 #include "RtimerFd.hpp"
 
-#include "librtools/Rexception.hpp"
+#include "Rexception.hpp"
 
 using namespace std;
 

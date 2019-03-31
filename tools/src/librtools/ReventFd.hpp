@@ -1,4 +1,4 @@
-// $Id: ReventFd.hpp 1084 2018-12-16 12:23:53Z mueller $
+// $Id: ReventFd.hpp 1125 2019-03-30 07:34:54Z mueller $
 //
 // Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -20,7 +20,6 @@
 
 
 /*!
-  \file
   \brief   Declaration of class \c ReventFd.
 */
 

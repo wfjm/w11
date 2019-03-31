@@ -1,6 +1,6 @@
--- $Id: tb_pdp11core.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: tb_pdp11core.vhd 1124 2019-03-24 21:20:33Z mueller $
 --
--- Copyright 2006-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -47,6 +47,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-03-17  1123   1.5.1  print header
 -- 2015-05-08   675   1.5    start/stop/suspend overhaul
 -- 2014-12-26   621   1.4.1  adopt wmembe,ribr,wibr emulation to new 4k window
 -- 2011-12-23   444   1.4    use new simclk/simclkcnt
@@ -228,7 +229,48 @@ begin
 
     RESET <= '0';
     wait for 9*clock_period;
-    
+
+    -- write header
+    write(oline, string'("   # cycles"));
+    writeline(output, oline);
+    write(oline, string'("   | function"));
+    writeline(output, oline);
+    write(oline, string'("   | |    register"));
+    writeline(output, oline);
+    write(oline, string'("   | |    |  input data"));
+    writeline(output, oline);
+    write(oline, string'("   | |    |  |       cmdbusy"));
+    writeline(output, oline);
+    write(oline, string'("   | |    |  |       | cmdack"));
+    writeline(output, oline);
+    write(oline, string'("   | |    |  |       | | cmderr"));
+    writeline(output, oline);
+    write(oline, string'("   | |    |  |       | | | cmdmerr"));
+    writeline(output, oline);
+    write(oline, string'("   | |    |  |       | | | |  output data"));
+    writeline(output, oline);
+    write(oline, string'("   | |    |  |       | | | |  |       cpugo"));
+    writeline(output, oline);
+    write(oline, string'("   | |    |  |       | | | |  |       |cpustep"));
+    writeline(output, oline);
+    write(oline, string'("   | |    |  |       | | | |  |       ||cpuwait"));
+    writeline(output, oline);
+    write(oline, string'("   | |    |  |       | | | |  |       |||cpususp"));
+    writeline(output, oline);
+    write(oline, string'("   | |    |  |       | | | |  |       ||||suspint"));
+    writeline(output, oline);
+    write(oline, string'("   | |    |  |       | | | |  |       |||||suspext"));
+    writeline(output, oline);
+    write(oline,
+      string'("   | |    |  |       | | | |  |       |||||| cpurust"));
+    writeline(output, oline);
+    write(oline,
+      string'("   | |    |  |       | | | |  |       |||||| |   Check result"));
+    writeline(output, oline);
+    write(oline,
+      string'("   | |    |  |       | | | |  |       |||||| |   |"));
+    writeline(output, oline);
+
     file_loop: while not endfile(ifile) loop
 
       -- this logic is a quick hack to implement the 'stapc' command

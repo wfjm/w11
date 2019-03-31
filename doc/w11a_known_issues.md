@@ -71,17 +71,6 @@ basic hardware tests are sensitive to this.
 - **TCK-030 pri=L: CPU: `SSR0` trap bit set when access aborted**  
 The 'trap bit' (bit 12: 10000) is set even when the access is aborted.
 
-- **TCK-029 pri=L: CPU: `AIB` `A` bit set for all accesses**  
-The MMU trap condition isn't properly decoded
-   
-- **TCK-028 pri=H: CPU: interrupt and trap precedence**  
-In case of multiple trap, fault, or interrupt conditions the precedence
-isn't implemented correctly.
-
-- **TCK-026 pri=L: CPU: src+dst delta added in `SSR1` when same register**  
-The `SSR1` content after a fault is logically correct in w11a, but
-different from 11/70.
-
 - **TCK-025 pri=L: CPU: no mmu trap when bit9 clearing instruction traps**  
 In the 11/70 the instruction which affects mmu trap can cause a trap
 already, in w11a only the next instruction will trap.
@@ -89,12 +78,3 @@ already, in w11a only the next instruction will trap.
 - **TCK-014 pri=M: RK11: write protect action too slow**  
 Some simple RK11 drivers, especially in tests, don't poll for completion
 of a write protect command. Due to the emulated I/O this can cause errors.
-
-- The last four issues are caused by an incorrect implementation of the trap
-logic, which leads to a different precendence when multiple trap, fault,
-or interrupt occur
-  - **TCK-007 pri=H: CPU: no trap-4 after emt on odd stack**
-  - **TCK-006 pri=H: CPU: no yel-stack trap after `jsr pc,nnn(pc)`**
-  - **TCK-004 pri=H: CPU: yel-stack by interrupt causes loop-up**
-  - **TCK-003 pri=H: CPU: yel-stack by `IOT` pushes two stack frames**
-

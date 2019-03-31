@@ -1,4 +1,4 @@
-// $Id: ReventFd.ipp 983 2018-01-02 20:35:59Z mueller $
+// $Id: ReventFd.ipp 1125 2019-03-30 07:34:54Z mueller $
 //
 // Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -18,7 +18,6 @@
 // ---------------------------------------------------------------------------
 
 /*!
-  \file
   \brief   Implemenation (inline) of class ReventFd.
 */
 

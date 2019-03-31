@@ -7,6 +7,54 @@ This file descibes general issues.
 
 The case id indicates the release when the issue was first recognized.
 
+### V0.50-5 {[issue #25](https://github.com/wfjm/w11/issues/25)} -- CPU: The AIB bit in MMU SDR register set independant of ACF field
+
+The MMU should set the AIB A bit in the the SDR only when _"trap condition is 
+met by the Access Control Field (ACF)"_. Thus for
+```
+   ACF=001 read-only  trap on read
+   ACF=100 read/write trap on read or write
+   ACF=101 read/write trap on write
+```
+The current pdp11_mmu implementation always sets the bit, the logic is simply
+```
+    if doabort = '0' then
+      AIB_SETA <= '1';
+      AIB_SETW <= CNTL.wacc or CNTL.macc;
+    end if;
+```
+
+Since the MMU trap mechanism is is only available on 11/45 and 11/70, but not
+in the J11, it is not used by common operating systems.
+
+Therefore this is considered a to be a minor deficit. Will be fixed in an
+upcoming release.
+
+
+### V0.50-4 {[issue #24](https://github.com/wfjm/w11/issues/24)} -- CPU: src+dst deltas summed in ssr1 if register identical
+
+Test 12 of maindec `ekbee1` fails because it expects after a
+```
+        mov    #100000,@#ssr0
+```
+which sets an error bit in `ssr0` and thus freezes `ssr0`, that `ssr1` contains
+```
+  013427 (00010 111 00010 111) (+2,r7;+2,r7)
+```
+while w11a gives
+```
+  000047 (00000 000 00100 111) (--,--;+4,r7)
+```
+The `ssr1` content is _different_ compared to the original 11/70 behavior,
+but is _logically correct_, fault recovery in OS (like in 211bsd) will work
+correctly.  Therefore this is considered a to be a _minor deficit_.
+
+The 11/70 documentation clearly states that there is an additional state bit
+that counts the write accesses to `ssr1`. This ensures that each of the two
+logged accesses end in separate bytes (byte 0 filled first).
+
+The w11a only uses byte 1 when the register number differs.
+
 ### V0.50-1 {[issue #23](https://github.com/wfjm/w11/issues/23)} -- CPU: several deficits in trap logic
 
 The current w11a implementation has several deficits in the handling of

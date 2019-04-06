@@ -1,4 +1,4 @@
--- $Id: ibdr_lp11.vhd 1121 2019-03-11 08:59:12Z mueller $
+-- $Id: ibdr_lp11.vhd 1126 2019-04-06 17:37:40Z mueller $
 --
 -- Copyright 2009-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -152,7 +152,7 @@ begin
           idout(csr_ibf_err)  := r.err;
           idout(csr_ibf_done) := r.done;
           idout(csr_ibf_ie)   := r.ie;
-          if IB_MREQ.racc = '0' then      -- cpu
+          if IB_MREQ.racc = '0' then      -- cpu ---------------------
             if ibw0 = '1' then
               n.ie   := IB_MREQ.din(csr_ibf_ie);
               if IB_MREQ.din(csr_ibf_ie) = '1' then
@@ -163,7 +163,7 @@ begin
                 n.intreq := '0';
               end if;
             end if;
-          else                            -- rri
+          else                            -- rri ---------------------
             if ibw1 = '1' then
               n.err := IB_MREQ.din(csr_ibf_err);
               if IB_MREQ.din(csr_ibf_err) = '1' then
@@ -174,7 +174,7 @@ begin
           end if;
 
         when ibaddr_buf =>              -- BUF -- data buffer ----------------
-          if IB_MREQ.racc = '0' then      -- cpu
+          if IB_MREQ.racc = '0' then      -- cpu ---------------------
             if ibw0 = '1' then
               if r.done = '1' then          -- ignore buf write when done=0
                 n.buf    := IB_MREQ.din(n.buf'range);
@@ -190,7 +190,7 @@ begin
                 end if;  -- r.err = '0'
               end if;  -- r.done = '1'
             end if;  -- ibw0 = '1'
-          else                            -- rri
+          else                            -- rri ---------------------
             idout(r.buf'range)  := r.buf;
             idout(buf_ibf_val)  := not r.done;
             idout(buf_ibf_val8) := not r.done;

@@ -7,6 +7,20 @@ This file descibes general issues.
 
 The case id indicates the release when the issue was first recognized.
 
+### V0.50-6 {[issue #26](https://github.com/wfjm/w11/issues/26)} -- CPU: SSR0 trap bit set when access aborted
+
+The MMU should set the 'trap bit' in `SSR0` only when the access is not
+aborted. The current pdp11_mmu implementation sets the bit even when the
+access is aborted.
+
+This is the reason why test 064 of the `ekbee1` diagnostics currently fails.
+
+Since the MMU trap mechanism is is only available on 11/45 and 11/70, but
+not in the J11, it is not used by common operating systems.
+
+Therefore this is considered a to be a minor deficit. Will be fixed in an
+upcoming release.
+
 ### V0.50-5 {[issue #25](https://github.com/wfjm/w11/issues/25)} -- CPU: The AIB bit in MMU SDR register set independant of ACF field
 
 The MMU should set the AIB A bit in the the SDR only when _"trap condition is 
@@ -29,7 +43,6 @@ in the J11, it is not used by common operating systems.
 
 Therefore this is considered a to be a minor deficit. Will be fixed in an
 upcoming release.
-
 
 ### V0.50-4 {[issue #24](https://github.com/wfjm/w11/issues/24)} -- CPU: src+dst deltas summed in ssr1 if register identical
 

@@ -1,4 +1,4 @@
-// $Id: RlinkServer.cpp 1114 2019-02-23 18:01:55Z mueller $
+// $Id: RlinkServer.cpp 1127 2019-04-07 10:59:07Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-07  1127   2.2.10 trace now with timestamp and selective
 // 2019-02-23  1114   2.2.9  use std::bind instead of lambda
 // 2018-12-17  1088   2.2.8  use std::lock_guard, std::thread instead of boost
 // 2018-12-15  1083   2.2.7  for std::function setups: use rval ref and move
@@ -33,7 +34,6 @@
 // ---------------------------------------------------------------------------
 
 /*!
-  \file
   \brief   Implemenation of RlinkServer.
 */
 
@@ -445,18 +445,18 @@ void RlinkServer::StartOrResume(bool resume)
 void RlinkServer::CallAttnHandler()
 {
   fStats.Inc(kStatNAttnHdl);
-  if (fTraceLevel>0) {
-    RlogMsg lmsg(LogFile());
-    lmsg << "-I attnhdl-beg: patt=" << RosPrintBvi(fAttnPatt,8);
+  if (fTraceLevel > 1) {
+    RlogMsg lmsg(LogFile(),'I');
+    lmsg << "attnhdl-beg: patt=" << RosPrintBvi(fAttnPatt,8);
   }
 
   // if notifier pending, transfer it to current attn pattern
   if (fAttnNotiPatt) {
     lock_guard<RlinkConnect> lock(*fspConn);
     fStats.Inc(kStatNAttnNoti);
-    if (fTraceLevel>0) {
-      RlogMsg lmsg(LogFile());
-      lmsg << "-I attnhdl-add: patt=" << RosPrintBvi(fAttnPatt,8)
+    if (fTraceLevel > 1) {
+      RlogMsg lmsg(LogFile(),'I');
+      lmsg << "attnhdl-add: patt=" << RosPrintBvi(fAttnPatt,8)
            << " noti=" << RosPrintBvi(fAttnNotiPatt,8);
     }
     fAttnPatt |= fAttnNotiPatt;    
@@ -477,11 +477,11 @@ void RlinkServer::CallAttnHandler()
       AttnArgs args(fAttnPatt, fAttnDsc[i].fId.fMask);
       lock_guard<RlinkConnect> lock(*fspConn);
 
-      if (fTraceLevel>0) {
-        RlogMsg lmsg(LogFile());
-        lmsg << "-I attnhdl-bef: patt=" << RosPrintBvi(fAttnPatt,8)
+      if (fTraceLevel > 0) {
+        RlogMsg lmsg(LogFile(),'I');
+        lmsg << "attnhdl-bef: patt=" << RosPrintBvi(fAttnPatt,8)
              << " hmat=" << RosPrintBvi(hmatch,8);
-      }
+     }
 
       // FIXME_code: return code not used, yet
       fAttnDsc[i].fHandler(args);
@@ -496,9 +496,9 @@ void RlinkServer::CallAttnHandler()
                              //   ok for now, but will not work in general !!
       hdone |=  hmatch;
 
-      if (fTraceLevel>0) {
-        RlogMsg lmsg(LogFile());
-        lmsg << "-I attnhdl-aft: patt=" << RosPrintBvi(fAttnPatt,8)
+      if (fTraceLevel > 1) {
+        RlogMsg lmsg(LogFile(),'I');
+        lmsg << "attnhdl-aft: patt=" << RosPrintBvi(fAttnPatt,8)
              << " done=" << RosPrintBvi(hdone,8)
              << " next=" << RosPrintBvi(hnext,8);
       }
@@ -513,7 +513,7 @@ void RlinkServer::CallAttnHandler()
     AttnArgs args(fAttnPatt, fAttnPatt);
     GetAttnInfo(args);
     hnext |= args.fAttnHarvest & ~fAttnPatt;
-    if (fTraceLevel>0) {
+    if (fTraceLevel > 0) {
       RlogMsg lmsg(LogFile(), 'I');
       lmsg << "eloop: unhandled attn, mask="
            << RosPrintBvi(fAttnPatt,16) << endl;

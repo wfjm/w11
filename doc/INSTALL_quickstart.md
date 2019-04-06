@@ -152,6 +152,6 @@ The recipe was tested
         login: {root}
 
   - when done with exploring 2.11BSD do proper system shutdown
-    - in 211bsd session type `shutdown`
+    - in 211bsd session type `shutdown -h now`
     - in ti_w11 session wait for `CPU attention` and `H:cpu0` prompt,
       than exit with `^D`.

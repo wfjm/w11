@@ -1,4 +1,4 @@
-// $Id: Rw11CntlLP11.cpp 1123 2019-03-17 17:55:12Z mueller $
+// $Id: Rw11CntlLP11.cpp 1127 2019-04-07 10:59:07Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-07  1127   1.3.1  add fQueBusy, queue protection; fix logic;
+//                           Start(): ensure unit offline; better tracing
 // 2019-03-17  1123   1.3    add lp11_buf readout
 // 2019-02-23  1114   1.2.6  use std::bind instead of lambda
 // 2018-12-15  1082   1.2.5  use lambda instead of boost::bind
@@ -31,6 +33,7 @@
 */
 
 #include <functional>
+#include <algorithm>
 
 #include "librtools/RosFill.hpp"
 #include "librtools/RosPrintBvi.hpp"
@@ -83,7 +86,8 @@ Rw11CntlLP11::Rw11CntlLP11()
   fRlim(0),
   fItype(0),
   fFsize(0),
-  fRblkSize(4)
+  fRblkSize(4),
+  fQueBusy(false)
 {
   // must be here because Units have a back-ptr (not available at Rw11CntlBase)
   fspUnit[0].reset(new Rw11UnitLP11(this, 0)); // single unit controller
@@ -124,6 +128,9 @@ void Rw11CntlLP11::Start()
   Cpu().AllIAddrMapInsert(Name()+".csr", Base() + kCSR);
   Cpu().AllIAddrMapInsert(Name()+".buf", Base() + kBUF);
 
+  // ensure that printer is set offline at startup time
+  SetOnline(false);
+  
   // detect device type
   fItype = (fProbe.DataRem()>>kCSR_V_TYPE) & kCSR_B_TYPE;
   fFsize = (1<<fItype) - 1;
@@ -199,9 +206,9 @@ int Rw11CntlLP11::AttnHandler(RlinkServer::AttnArgs& args)
   Server().GetAttnInfo(args, fPrimClist);
 
   if (!Buffered()) {                        // un-buffered iface -------------
-    ProcessChar(fPrimClist[fPC_buf].Data());
+    ProcessUnbuf(fPrimClist[fPC_buf].Data());
   } else {                                  // buffered iface ----------------
-    ProcessCmd(fPrimClist[fPC_buf], true);
+    ProcessBuf(fPrimClist[fPC_buf], true);
   }
   
   return 0;
@@ -224,18 +231,18 @@ void Rw11CntlLP11::SetOnline(bool online)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-void Rw11CntlLP11::ProcessChar(uint16_t buf)
+void Rw11CntlLP11::ProcessUnbuf(uint16_t buf)
 {
-  bool     val  =  buf               & kBUF_M_VAL;
-  uint16_t size = (buf>>kBUF_V_SIZE) & kBUF_B_SIZE;
-  uint8_t  ochr =  buf               & kBUF_M_BUF;
+  bool     val  =  buf & kBUF_M_VAL;
+  uint8_t  ochr =  buf & kBUF_M_BUF;
+
+  if (val) WriteChar(ochr);
     
   if (fTraceLevel>0) {
     RlogMsg lmsg(LogFile());
     lmsg << "-I " << Name() << ":"
          << " buf=" << RosPrintBvi(buf,8)
          << " val=" << val;
-    if (Buffered()) lmsg << " size=" << RosPrintf(size,"d",3);
     if (val) {
       lmsg << " char=";
       if (ochr>=040 && ochr<0177) {
@@ -245,56 +252,125 @@ void Rw11CntlLP11::ProcessChar(uint16_t buf)
       }
     }
   }
-    
-  if (val) {                                // valid chars
-    if (ochr == 0) {                          // count NULL char
-      fStats.Inc(kStatNNull);
-    } else {                                  // forward only non-NULL char
-      fStats.Inc(kStatNChar);
-      RerrMsg emsg;
-      bool rc = fspUnit[0]->VirtWrite(&ochr, 1, emsg);
-      if (!rc) {
-        RlogMsg lmsg(LogFile());
-        lmsg << emsg;
-        SetOnline(false);
-      }
-      if (ochr == '\f') {                     // ^L = FF = FormFeed seen ?
-        fStats.Inc(kStatNPage);
-        rc = fspUnit[0]->VirtFlush(emsg);
-      } else if (ochr == '\n') {              // ^J = LF = LineFeed seen ?
-        fStats.Inc(kStatNLine);
-      }
-    }
-  }
   
   return;
 }
 
+  
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
-void Rw11CntlLP11::ProcessCmd(const RlinkCommand& cmd, bool prim)
+
+void Rw11CntlLP11::WriteChar(uint8_t ochr)
+{
+  if (ochr == 0) {                          // count NULL char
+    fStats.Inc(kStatNNull);
+    return;
+  }
+  
+  fStats.Inc(kStatNChar);
+  RerrMsg emsg;
+  bool rc = fspUnit[0]->VirtWrite(&ochr, 1, emsg);
+  if (!rc) {
+    RlogMsg lmsg(LogFile());
+    lmsg << emsg;
+    SetOnline(false);
+  }
+  if (ochr == '\f') {                     // ^L = FF = FormFeed seen ?
+    fStats.Inc(kStatNPage);
+    rc = fspUnit[0]->VirtFlush(emsg);
+  } else if (ochr == '\n') {              // ^J = LF = LineFeed seen ?
+    fStats.Inc(kStatNLine);
+  }
+  return;  
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+void Rw11CntlLP11::ProcessBuf(const RlinkCommand& cmd, bool prim)
 {
   const uint16_t* pbuf = cmd.BlockPointer();
   size_t done = cmd.BlockDone();
-  for (size_t i=0; i < done; i++) {
-    ProcessChar(pbuf[i]);
+
+  if (fQueBusy && prim) {
+    RlogMsg lmsg(LogFile());
+    lmsg <<  "-E " << Name()
+         << ": prim=1 call and queue busy";
   }
 
-  // determine next chunk size from fifo 'size' field of first item
-  uint16_t buf  = pbuf[0];
-  uint16_t size = (buf>>kBUF_V_SIZE) & kBUF_B_SIZE;
-  fRblkSize = size;                         // use last size
-  if (fRblkSize < 4)      fRblkSize = 4;
-  if (fRblkSize > fFsize) fRblkSize = fFsize;
+  uint16_t fbeg = 0;
+  uint16_t fend = 0;
+  uint16_t fdel = 0;
+  uint16_t smin = 0;
+  uint16_t smax = 0;
+
+  if (done > 0) {
+    fbeg = (pbuf[0]     >>kBUF_V_SIZE) & kBUF_B_SIZE;
+    fend = (pbuf[done-1]>>kBUF_V_SIZE) & kBUF_B_SIZE;
+    fdel = fbeg-fend+1;
+    smin = 128;
+  }
   
-  // check whether last entry emptied fifo -> check whether 'size=1'
-  buf  = pbuf[done-1];
-  size = (buf>>kBUF_V_SIZE) & kBUF_B_SIZE;
-  if (size > 1) {                           // fifo not emptied, continue
-    fStats.Inc(kStatNQue);
-    Server().QueueAction(bind(&Rw11CntlLP11::RcvHandler, this));
+  for (size_t i=0; i < done; i++) {
+    uint8_t  ochr =  pbuf[i]               & kBUF_M_BUF;
+    uint16_t size = (pbuf[i]>>kBUF_V_SIZE) & kBUF_B_SIZE;
+    smin = min(smin,size);
+    smax = max(smax,size);
+    WriteChar(ochr);
   }
 
+  // determine next chunk size from highest fifo 'size' field, at least 4
+  fRblkSize = max(uint16_t(4), max(uint16_t(done),smax));
+
+  // queue further reads when fifo not emptied
+  // check for 'size==1' not seen in current read
+  if (smin > 1) {                           // if smin>1 no size==1 seen
+    if (fQueBusy) {
+      RlogMsg lmsg(LogFile());
+      lmsg <<  "-E " << Name()
+           << ": queue attempt while queue busy, prim=" << prim;
+    } else {
+      fStats.Inc(kStatNQue);
+      fQueBusy = true;
+      Server().QueueAction(bind(&Rw11CntlLP11::RcvHandler, this));
+    }
+  }
+
+  if (fTraceLevel > 0) {
+    RlogMsg lmsg(LogFile());
+    lmsg << "-I " << Name() << ":"
+         << " prim="  << prim
+         << " size=" << RosPrintf(cmd.BlockSize(),"d",3)
+         << " done=" << RosPrintf(done,"d",3)
+         << "  fifo=" << RosPrintf(fbeg,"d",3)
+         << "," << RosPrintf(fend,"d",3)
+         << ";" << RosPrintf(fdel,"d",3)
+         << "," << RosPrintf(done-fdel,"d",3)
+         << ";" << RosPrintf(smax,"d",3)
+         << "," << RosPrintf(smin,"d",3)
+         << "  que="   << fQueBusy;
+    
+    if (fTraceLevel > 1 && done > 0) {
+      size_t nchar = 0;
+      for (size_t i=0; i < done; i++) {
+        uint8_t ochr = pbuf[i] & kBUF_M_BUF;
+        if (ochr>=040 && ochr<0177) {
+          if (nchar == 0) lmsg << "\n      '";
+          lmsg << char(ochr);
+          nchar += 1;
+          if (nchar >= 64) {
+            lmsg << "'";
+            nchar = 0;
+          }          
+        } else {
+          if (nchar > 0) lmsg << "'";
+          lmsg << "\n      " << RosPrintBvi(ochr,8);
+          nchar = 0;
+        }
+      }
+      if (nchar > 0) lmsg << "'";
+    }
+  }
+  
   // re-sizing the prim rblk invalidates pbuf -> so must be done last
   if (prim) {                               // if primary list
     fPrimClist[fPC_buf].SetBlockRead(fRblkSize);   // setup size for next attn
@@ -307,12 +383,13 @@ void Rw11CntlLP11::ProcessCmd(const RlinkCommand& cmd, bool prim)
 //! FIXME_docs
 int Rw11CntlLP11::RcvHandler()
 {
+  fQueBusy = false;
   RlinkCommandList clist;
   Cpu().AddRbibr(clist, fBase+kBUF, fRblkSize);
   clist[0].SetExpectStatus(0, RlinkCommand::kStat_M_RbTout |
                               RlinkCommand::kStat_M_RbNak);
   Server().Exec(clist);
-  ProcessCmd(clist[0], false);
+  ProcessBuf(clist[0], false);
   return 0;
 }
 

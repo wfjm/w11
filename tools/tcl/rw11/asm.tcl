@@ -1,6 +1,6 @@
-# $Id: asm.tcl 985 2018-01-03 08:59:40Z mueller $
+# $Id: asm.tcl 1126 2019-04-06 17:37:40Z mueller $
 #
-# Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-04-06  1126   1.0.6  asmwait: allow alternate stop symbol
 # 2017-02-04   784   1.0.5  asmrun: allow 'ps' in initializer list
 # 2015-07-25   704   1.0.4  asmrun,asmtreg,asmtmem: use args in proc definition
 # 2014-07-26   575   1.0.3  add asmwait_tout variable, use in asmwait
@@ -76,15 +77,15 @@ namespace eval rw11 {
   #
   # asmwait: wait for completion of a program loaded with ldasm
   # 
-  proc asmwait {cpu symName {tout 0.}} {
+  proc asmwait {cpu symName {tout 0.} {symstop "stop"}} {
     upvar 1 $symName sym
     variable asmwait_tout
     if {$tout <= 0.} {          # if not specified
       set tout $asmwait_tout;   # use default value
     }
     set dt [$cpu wtcpu -reset $tout]
-    if {$dt >= 0 && [info exists sym(stop)]} {
-      $cpu cp -rpc -edata $sym(stop)
+    if {$dt >= 0 && [info exists sym($symstop)]} {
+      $cpu cp -rpc -edata $sym($symstop)
     }
     return $dt
   }

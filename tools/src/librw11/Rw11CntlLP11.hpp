@@ -1,4 +1,4 @@
-// $Id: Rw11CntlLP11.hpp 1123 2019-03-17 17:55:12Z mueller $
+// $Id: Rw11CntlLP11.hpp 1127 2019-04-07 10:59:07Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History:
 // Date         Rev Version  Comment
+// 2019-04-07  1127   1.2.1  add fQueBusy and queue protection
 // 2019-03-17  1123   1.2    buf.val in msb; add lp11_buf readout
 // 2017-04-02   865   1.1.1  Dump(): add detail arg
 // 2014-12-29   623   1.1    adopt to Rlink V4 attn logic
@@ -88,8 +89,9 @@ namespace Retro {
     protected:
       int           AttnHandler(RlinkServer::AttnArgs& args);
       void          SetOnline(bool online);
-      void          ProcessChar(uint16_t buf);
-      void          ProcessCmd(const RlinkCommand& cmd, bool prim);
+      void          ProcessUnbuf(uint16_t buf);
+      void          WriteChar(uint8_t ochr);
+      void          ProcessBuf(const RlinkCommand& cmd, bool prim);
       int           RcvHandler();
 
     protected:
@@ -98,7 +100,7 @@ namespace Retro {
       uint16_t      fItype;                //!< interface type
       uint16_t      fFsize;                //!< fifo size
       uint16_t      fRblkSize;             //!< rblk chunk size
-
+      bool          fQueBusy;              //!< rcv queue busy
   };
   
 } // end namespace Retro

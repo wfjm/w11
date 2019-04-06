@@ -1,10 +1,11 @@
-# $Id: test_lp11_all.tcl 1123 2019-03-17 17:55:12Z mueller $
+# $Id: test_lp11_all.tcl 1126 2019-04-06 17:37:40Z mueller $
 #
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2019-04-06  1126   1.0.1  check csr.err and csr.rlim not changed by breset
 # 2019-03-17  1123   1.0    Initial version
 # 2019-03-11  1121   0.1    First draft
 #
@@ -32,6 +33,7 @@ rlc log "    A1.1: csr err, done --------------------------------"
 #    rem ERR=1           --> test ERR=1,DONE=1,IE=0   (DONE not rem writable)
 #    loc ERR=0           --> test ERR=1,DONE=1,IE=0   (ERR  not loc writable)
 #    rem ERR=0           --> test ERR=0,DONE=1,IE=0
+#    breset              --> test ERR=0  (not set by breset)
 set rcsrmask [regbld ibd_lp11::RCSR err done ie]
 
 $cpu cp \
@@ -46,7 +48,9 @@ $cpu cp \
   -rma  lpa.csr        -edata [regbld ibd_lp11::CSR err done] \
   -wibr lpa.csr 0x0 \
   -ribr lpa.csr        -edata [regbld ibd_lp11::RCSR done] $rcsrmask \
-  -rma  lpa.csr lpcsr  -edata [regbld ibd_lp11::CSR done]
+  -rma  lpa.csr        -edata [regbld ibd_lp11::CSR done] \
+  -breset \
+  -rma  lpa.csr        -edata [regbld ibd_lp11::CSR done]
 
 # remember 'type' retrieved from csr for later tests
 set type  [regget ibd_lp11::RCSR(type) $lprcsr]
@@ -70,6 +74,7 @@ if {$type > 0} {                # if buffered test rlim
   rlc log "    A1.3: csr rlim -------------------------------------"
   #   rem write rlim --> seen rem, not loc
   #   loc write rlim --> stays, rlim not loc writable
+  #   breset         --> rlim not cleared
   set rcsrmaskbuf [regbld ibd_lp11::RCSR err {rlim -1} done ie]
   $cpu cp \
     -wibr lpa.csr        [regbld ibd_lp11::RCSR {rlim 1}] \
@@ -78,6 +83,8 @@ if {$type > 0} {                # if buffered test rlim
     -wibr lpa.csr        [regbld ibd_lp11::RCSR {rlim 7}] \
     -ribr lpa.csr -edata [regbld ibd_lp11::RCSR {rlim 7} done] $rcsrmaskbuf \
     -wma  lpa.csr 0x0 \
+    -ribr lpa.csr -edata [regbld ibd_lp11::RCSR {rlim 7} done] $rcsrmaskbuf \
+    -breset \
     -ribr lpa.csr -edata [regbld ibd_lp11::RCSR {rlim 7} done] $rcsrmaskbuf \
     -wibr lpa.csr        [regbld ibd_lp11::RCSR {rlim 0}] \
     -ribr lpa.csr -edata [regbld ibd_lp11::RCSR {rlim 0} done] $rcsrmaskbuf  
@@ -445,6 +452,7 @@ if {$type == 0} {                # unbuffered --------------------------
   #   AWIDTH  7   127+31 = 158
   set nchar [expr {$fsize + ($fsize>>2)}]
   set rsize [expr {$fsize>>2}]
+  set wttout 10.;               # wtlam timeout 
 
   set fstatmsk [regbld rw11::STAT cmderr rbtout rbnak]; # don't check err !!
 
@@ -453,7 +461,7 @@ if {$type == 0} {                # unbuffered --------------------------
   
   rw11::asmrun  $cpu sym r0 $nchar
   while (1) {
-    if {[rlc wtlam 10.] >= 10.} { break }
+    if {[rlc wtlam $wttout] >= $wttout} { break }; # quit on timeout
     rlc exec -attn attnpat
     
     if {$attnpat & $attncpu} {    # cpu attn

@@ -1,0 +1,29 @@
+; $Id: defs_dl.mac 1127 2019-04-07 10:59:07Z mueller $
+; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; License disclaimer see License.txt in $RETROBASE directory
+;
+; definitions for primary DL11 controler (console) (as in defs_cons.das)
+; 
+; vector address/priority definition
+; 
+        va.tti=000060
+        vp.tti=4
+        va.tto=000064
+        vp.tto=4
+; 
+; register addresses
+; 
+        pr.csr=177560
+        pr.buf=177562
+        pp.csr=177564
+        pp.buf=177566
+;
+; symbol definitions for ti.csr
+;
+        ti.don=000200
+        ti.ie=000100
+;
+; symbol definitions for to.csr
+;
+        to.rdy=000200
+        to.ie=000100

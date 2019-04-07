@@ -1,6 +1,6 @@
-# $Id: util.tcl 1044 2018-09-15 11:12:07Z mueller $
+# $Id: util.tcl 1128 2019-04-07 13:12:47Z mueller $
 #
-# Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-04-07  1128   1.3.9  setup_tt: rename dlrlim to dlrrlim
 # 2017-04-22   883   1.3.8  move in imap_reg2addr; add imap_range2addr
 # 2017-02-04   848   1.3.7  add DEUNA; setup_cntl: handle not found devices
 # 2015-12-30   721   1.3.6  BUGFIX: setup_ostr: adopt to use args2opts
@@ -87,7 +88,7 @@ namespace eval rw11 {
   # 
   proc setup_tt {{cpu "cpu0"} args} {
     # process and check options
-    args2opts opt {ndl 2 dlrlim 0 ndz 0 to7bit 0 app 0 nbck 1} {*}$args
+    args2opts opt {ndl 2 dlrrlim 0 ndz 0 to7bit 0 app 0 nbck 1} {*}$args
 
     # check option values
     if {$opt(ndl) < 1 || $opt(ndl) > 2} {
@@ -118,8 +119,8 @@ namespace eval rw11 {
       set unit "${cntl}0"
       ${cpu}${unit} att "tcp:?port=${port}"
       ${cpu}${unit} set log "tirri_${unit}.log${urlopt}"
-      if {$opt(dlrlim) != 0} {
-        ${cpu}${cntl} set rxrlim 7
+      if {$opt(dlrrlim) != 0} {
+        ${cpu}${cntl} set rxrlim $opt(dlrrlim)
       }
       if {$opt(to7bit) != 0} {
         ${cpu}${unit} set to7bit 1

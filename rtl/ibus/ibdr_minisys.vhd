@@ -1,6 +1,6 @@
--- $Id: ibdr_minisys.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: ibdr_minisys.vhd 1129 2019-04-07 13:27:35Z mueller $
 --
--- Copyright 2008-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -15,7 +15,8 @@
 -- Module Name:    ibdr_minisys - syn
 -- Description:    ibus(rem) devices for minimal system:SDR+KW+DL+RK
 --
--- Dependencies:   ibdr_sdreg
+-- Dependencies:   ib_rlim_gen
+--                 ibdr_sdreg
 --                 ibd_kw11l
 --                 ibdr_dl11
 --                 ibdr_rk11
@@ -23,7 +24,7 @@
 --                 ib_intmap
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2017.2; ghdl 0.18-0.35
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -32,6 +33,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-04-07  1129   1.1.3  ibdr_dl11: use RLIM_CEV, drop CE_USEC
 -- 2011-11-18   427   1.1.2  now numeric_std clean
 -- 2010-10-23   335   1.1.1  rename RRI_LAM->RB_LAM;
 -- 2010-06-11   303   1.1    use IB_MREQ.racc instead of RRI_REQ
@@ -124,8 +126,18 @@ architecture syn of ibdr_minisys is
   signal EI_ACK_DL11RX : slbit := '0';
   signal EI_ACK_DL11TX : slbit := '0';
   signal EI_ACK_RK11 : slbit := '0';
+  
+  signal RLIM_CEV : slv7 := (others=>'0');
 
 begin
+
+  RLIM : ib_rlim_gen
+    port map (
+      CLK      => CLK,
+      CE_USEC  => CE_USEC,
+      RESET    => '0',
+      RLIM_CEV => RLIM_CEV
+    );
 
   SDREG : ibdr_sdreg
     port map (
@@ -152,9 +164,9 @@ begin
   DL11 : ibdr_dl11
     port map (
       CLK       => CLK,
-      CE_USEC   => CE_USEC,
       RESET     => RESET,
       BRESET    => BRESET,
+      RLIM_CEV  => RLIM_CEV,
       RB_LAM    => RB_LAM_DL11,
       IB_MREQ   => IB_MREQ,
       IB_SRES   => IB_SRES_DL11,

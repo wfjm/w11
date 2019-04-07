@@ -1,6 +1,6 @@
-// $Id: Rw11CntlPC11.hpp 1052 2018-09-30 08:10:52Z mueller $
+// $Id: Rw11CntlPC11.hpp 1126 2019-04-06 17:37:40Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,14 +13,14 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-06  1126   1.3    pbuf.val in msb; rbusy in rbuf (new iface)
 // 2017-04-02   865   1.2.1  Dump(): add detail arg
-// 2014-12-29   623   1.1    adopt to Rlink V4 attn logic
+// 2014-12-29   623   1.1    adapt to Rlink V4 attn logic
 // 2013-05-03   515   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 
 /*!
-  \file
   \brief   Declaration of class Rw11CntlPC11.
 */
 
@@ -66,11 +66,24 @@ namespace Retro {
       static const bool     kProbeInt = true;  //!< probe int active
       static const bool     kProbeRem = true;  //!< probr rem active
 
-      static const uint16_t kRCSR_M_ERROR = kWBit15;
-      static const uint16_t kPCSR_M_ERROR = kWBit15;
-      static const uint16_t kPBUF_M_RBUSY = kWBit09;
-      static const uint16_t kPBUF_M_PVAL  = kWBit08;
-      static const uint16_t kPBUF_M_BUF   = 0377;
+      static const uint16_t kRCSR_M_ERROR = kWBit15; //!< rcsr.err mask
+      static const uint16_t kRCSR_V_RLIM  = 12;      //!< rcsr.rlim shift 
+      static const uint16_t kRCSR_B_RLIM  = 007;     //!< rcsr.rlim bit mask
+      static const uint16_t kRCSR_V_TYPE  =  8;      //!< rcsr.type shift
+      static const uint16_t kRCSR_B_TYPE  = 0007;    //!< rcsr.type bit mask
+      static const uint16_t kRCSR_M_FCLR  = kWBit05; //!< rcsr.fclr mask
+      static const uint16_t kRBUF_M_RBUSY = kWBit15; //!< rbuf.rbusy mask
+      static const uint16_t kRBUF_V_SIZE =  8;       //!< rbuf.size shift
+      static const uint16_t kRBUF_B_SIZE = 0177;     //!< rbuf.size bit mask
+      static const uint16_t kRBUF_M_BUF   = 0377;    //!< rbuf data mask
+    
+      static const uint16_t kPCSR_M_ERROR = kWBit15; //!< pcsr.err mask
+      static const uint16_t kPCSR_V_RLIM  = 12;      //!< pcsr.rlim shift 
+      static const uint16_t kPCSR_B_RLIM  = 007;     //!< pcsr.rlim bit mask
+      static const uint16_t kPBUF_M_VAL   = kWBit15; //!< pbuf.val mask
+      static const uint16_t kPBUF_V_SIZE  =  8;      //!< pbuf.size shift
+      static const uint16_t kPBUF_B_SIZE  = 0177;    //!< pbuf.size bit mask
+      static const uint16_t kPBUF_M_BUF   = 0377;    //!< pbuf data mask
 
     protected:
       int           AttnHandler(RlinkServer::AttnArgs& args);
@@ -78,6 +91,7 @@ namespace Retro {
     
     protected:
       size_t        fPC_pbuf;               //!< PrimClist: pbuf index
+      size_t        fPC_rbuf;               //!< PrimClist: rbuf index
   };
   
 } // end namespace Retro

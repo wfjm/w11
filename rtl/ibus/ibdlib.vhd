@@ -1,4 +1,4 @@
--- $Id: ibdlib.vhd 1123 2019-03-17 17:55:12Z mueller $
+-- $Id: ibdlib.vhd 1128 2019-04-07 13:12:47Z mueller $
 --
 -- Copyright 2008-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  ise 8.2-14.7; viv 2014.4-2018.3; ghdl 0.18-0.35
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-04-07  1128   1.3.4  ibdr_dl11: use RLIM_CEV, drop CE_USEC
 -- 2019-03-09  1121   1.3.3  add ibdr_lp11_buf
 -- 2018-10-13  1055   1.3.2  update ibdr_maxisys (add IDEC port)
 -- 2018-09-08  1043   1.3.1  update ibd_kw11p
@@ -224,9 +225,9 @@ component ibdr_dl11 is                  -- ibus dev(rem): DL11-A/B
     IB_ADDR : slv16 := ibaddr_dl11);
   port (
     CLK : in slbit;                     -- clock
-    CE_USEC : in slbit;                 -- usec pulse
     RESET : in slbit;                   -- system reset
     BRESET : in slbit;                  -- ibus reset
+    RLIM_CEV : in  slv7;                -- clock enable vector
     RB_LAM : out slbit;                 -- remote attention
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response

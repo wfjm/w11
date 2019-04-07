@@ -1,9 +1,10 @@
-# $Id: tb_rlink_tba_pdp11core_ibdr.dat 675 2015-05-08 21:05:08Z mueller $
+# $Id: tb_rlink_tba_pdp11core_ibdr.dat 1126 2019-04-06 17:37:40Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2019-04-06  1126   1.6    adapt to new dl11 iface
 # 2015-05-03   674   1.5    start/stop/suspend overhaul
-# 2014-12-26   621   1.4    adopt wmembe,ribr,wibr testing to new 4k window
+# 2014-12-26   621   1.4    adapt wmembe,ribr,wibr testing to new 4k window
 # 2014-09-27   595   1.3    now for rlink v4 iface
 # 2014-08-15   583   1.2    rb_mreq addr now 16 bit
 # 2010-06-18   306   1.1    adapt to new rri<->cp implementation
@@ -44,11 +45,13 @@
 # ibus -> ibr mapping: (addr-160000)/2 + 40000
 #   RKWC: 177406 -> ibr 047603
 #   RKBA: 177410 -> ibr 047604
+#   RBUF: 177562 -> ibr 047671
 #   XCSR: 177564 -> ibr 047672
 #   XBUF: 177566 -> ibr 047673
 #
 .amdef RKWC  o"047603"
 .amdef RKBA  o"047604"
+.amdef RBUF  o"047671"
 .amdef XCSR  o"047672"
 .amdef XBUF  o"047673"
 #
@@ -140,12 +143,13 @@ C -----------------------------------------------------------------------------
 C test device attention (use DL11 XCSR/XBUF [177564/177566])
 #
 rreg .XCSR      d=o"000200"             -- read  XCSR via RRI: XRDY=1
-rreg .XBUF      d=o"001000"             -- read  XBUF via RRI: RRDY=1,XDONE=0
+rreg .RBUF      d=o"100000"             -- read  RBUF via RRI: RRDY=1
+rreg .XBUF      d=o"000000"             -- read  XBUF via RRI: XDONE=0
 wreg .al          o"177566"             -- #XBUF
 wreg .mem         o"000123" s=00001000  -- write XBUF via CPU
 rreg .XCSR      d=o"000000" s=00001000  -- read  XCSR via RRI: XRDY=0
-rreg .XBUF      d=o"001523" s=00001000  -- read  XBUF via RRI: RRDY=1,XDONE=1
-rreg .XBUF      d=o"001123" s=00001000  -- read2 XBUF via RRI: RRDY=1,XDONE=0
+rreg .XBUF      d=o"100523" s=00001000  -- read  XBUF via RRI: VAL,VAL8=1
+rreg .XBUF      d=o"000123" s=00001000  -- read2 XBUF via RRI: VAL,VAL8=0
 rreg .XCSR      d=o"000200" s=00001000  -- read  XCSR via RRI: XRDY=1
 attn            d=o"000002" s=00000000  -- read/clean LAM's: lam(1) used by DL11
 #

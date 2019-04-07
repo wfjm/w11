@@ -1,0 +1,33 @@
+; $Id: defs_pc.mac 1122 2019-03-17 08:15:42Z mueller $
+; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; License disclaimer see License.txt in $RETROBASE directory
+;
+; definitions for PC11 controler (as in defs_pc.das)
+; 
+; vector address/priority definition
+; 
+        va.ptr=000070
+        vp.ptr=4
+        va.ptp=000074
+        vp.ptp=4
+; 
+; register addresses
+; 
+        pr.csr=177550
+        pr.buf=177552
+        pp.csr=177554
+        pp.buf=177556
+;
+; symbol definitions for pr.csr
+;
+        pr.err=100000
+        pr.bsy=004000
+        pr.don=000200
+        pr.ie=000100
+        pr.ena=000001
+;
+; symbol definitions for pp.csr
+;
+        pp.err=100000
+        pp.rdy=000200
+        pp.ie=000100

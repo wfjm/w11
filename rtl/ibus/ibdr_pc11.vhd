@@ -1,6 +1,6 @@
--- $Id: ibdr_pc11.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: ibdr_pc11.vhd 1126 2019-04-06 17:37:40Z mueller $
 --
--- Copyright 2009-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2009-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,7 +18,7 @@
 -- Dependencies:   -
 -- Test bench:     xxdp: zpcae0
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2017.2; ghdl 0.18-0.35
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -27,6 +27,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-04-06  1126   1.4    for pc11_buf compat: pbuf.pval in bit 15 and 8;
+--                           move rbusy reporting from pbuf to rbuf register
 -- 2013-05-04   515   1.3    BUGFIX: r.rbuf was immediately cleared ! Was broken
 --                             since ibus V2 update, never tested afterwards...
 -- 2011-11-18   427   1.2.2  now numeric_std clean
@@ -76,13 +78,15 @@ architecture syn of ibdr_pc11 is
   constant rcsr_ibf_rdone : integer :=  7;
   constant rcsr_ibf_rie :   integer :=  6;
   constant rcsr_ibf_renb :  integer :=  0;
-  
+
+  constant rbuf_ibf_rbusy : integer := 15;
+
   constant pcsr_ibf_perr :  integer := 15;
   constant pcsr_ibf_prdy :  integer :=  7;
   constant pcsr_ibf_pie :   integer :=  6;
 
-  constant pbuf_ibf_pval :  integer :=  8;
-  constant pbuf_ibf_rbusy : integer :=  9;
+  constant pbuf_ibf_pval :  integer := 15;
+  constant pbuf_ibf_pval8 : integer :=  8;
 
   type regs_type is record              -- state registers
     ibsel : slbit;                      -- ibus select
@@ -224,6 +228,7 @@ begin
             end if;
 
           else                          -- rri ---------------------
+            idout(rbuf_ibf_rbusy) := r.rbusy;
             if ibw0 = '1' then
               n.rbuf := IB_MREQ.din(n.rbuf'range);
               n.rbusy := '0';
@@ -285,7 +290,7 @@ begin
           else                          -- rri ---------------------
             idout(r.pbuf'range) := r.pbuf;
             idout(pbuf_ibf_pval)  := not r.prdy;
-            idout(pbuf_ibf_rbusy) := r.rbusy;
+            idout(pbuf_ibf_pval8) := not r.prdy;
             if ibrd = '1' then
               n.prdy := '1';
               if r.pie = '1' then

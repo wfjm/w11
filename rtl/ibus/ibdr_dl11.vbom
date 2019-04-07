@@ -1,5 +1,7 @@
 # libs
 ../vlib/slvtypes.vhd
 iblib.vhd
+# components
+ib_rlim_slv.vbom
 # design
 ibdr_dl11.vhd

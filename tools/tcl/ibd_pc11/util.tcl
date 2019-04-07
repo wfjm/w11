@@ -1,6 +1,6 @@
-# $Id: util.tcl 985 2018-01-03 08:59:40Z mueller $
+# $Id: util.tcl 1126 2019-04-06 17:37:40Z mueller $
 #
-# Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-04-06  1126   1.1    updates for buffered pc11
 # 2015-12-26   719   1.0    Initial version
 #
 
@@ -27,12 +28,27 @@ namespace eval ibd_pc11 {
   # setup register descriptions for ibd_pc11 ---------------------------------
   #
 
-  regdsc RCSR  {err 15} {busy 11} {done 7} {ie 6} {enb 0}
+  regdsc RCSR   {err 15} {busy 11} {done 7} {ie 6} {enb 0}
+  regdsc RRCSR  {err 15} {rlim 14 3} {busy 11} {type 10 3} \
+                  {done 7} {ie 6} {fclr 5}
+  regdsc RRBUF  {rbusy 15} {size 14 7 "d"}
 
-  regdsc PCSR  {err 15} {done 7} {ie 6}
+  regdsc PCSR   {err 15} {done 7} {ie 6}
+  regdsc RPCSR  {err 15} {rlim 14 3} {done 7} {ie 6}
+  
+  regdsc RPBUF  {val 15} {size 14 7 "d"} {data 7 8 "o"}
 
-  rw11util::regmap_add ibd_pc11 pc?.rcsr {?? RCSR}
-  rw11util::regmap_add ibd_pc11 pc?.xcsr {?? PCSR}
+  rw11util::regmap_add ibd_pc11 pc?.rcsr {l? RCSR r? RRCSR}
+  rw11util::regmap_add ibd_pc11 pc?.rbuf {r? RRBUF}
+  rw11util::regmap_add ibd_pc11 pc?.pcsr {l? PCSR r? RPCSR}
+  rw11util::regmap_add ibd_pc11 pc?.pbuf {r? RPBUF}
 
   variable ANUM 10
+
+  #
+  # setup: create controller with default attributes -------------------------
+  #
+  proc setup {{cpu "cpu0"}} {
+    return [rw11::setup_cntl $cpu "pc11" "pca"]
+  }
 }

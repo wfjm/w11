@@ -3,6 +3,7 @@
 iblib.vhd
 ibdlib.vhd
 # components
+ib_rlim_gen.vbom
 ibdr_sdreg.vbom
 ibd_kw11l.vbom
 ibdr_dl11.vbom

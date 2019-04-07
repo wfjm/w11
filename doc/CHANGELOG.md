@@ -53,7 +53,9 @@ The full set of tests is only run for tagged releases.
   - rbd_rbmon: more robust ack,err trace when busy
   - rbd_tester: use now fifo_simple_dram
   - ibd_ibtst: rename dly[rw]->bsy[rw]; datto for write; add datab
+  - ibdr_dl11: changes for ibdr_dl11_buf compatibility (val in msb, ib_rlim_slv) 
   - ibdr_lp11: move valid bit to msb of buf (for ibdr_lp11_buf compatibility)
+  - ibdr_pc11: changes for ibdr_pc11_buf compatibility
   - sys_w11a_s3: set BTOWIDTH 7 (was 6, must be > vmbox atowidth (6))
   - pdp11_sys70: instantiate ibd_ibtst (when sys_conf_ibtst = true)
   - ibdr_maxisys,sys_conf ready for buffered DL,PC and dz11

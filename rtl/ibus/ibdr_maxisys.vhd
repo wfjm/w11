@@ -1,4 +1,4 @@
--- $Id: ibdr_maxisys.vhd 1123 2019-03-17 17:55:12Z mueller $
+-- $Id: ibdr_maxisys.vhd 1128 2019-04-07 13:12:47Z mueller $
 --
 -- Copyright 2009-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -51,6 +51,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-04-07  1127   1.6.3  ibdr_dl11: use RLIM_CEV, drop CE_USEC
 -- 2019-03-17  1123   1.6.2  add ib_rlim_gen, use with ibdr_lp11_buf
 -- 2019-03-09  1121   1.6.1  add ibdr_lp11_buf
 -- 2019-02-10  1111   1.6    use typ for DL,PC,LP
@@ -380,9 +381,9 @@ begin
   DL11_0 : ibdr_dl11
     port map (
       CLK       => CLK,
-      CE_USEC   => CE_USEC,
       RESET     => RESET,
       BRESET    => BRESET,
+      RLIM_CEV  => RLIM_CEV,
       RB_LAM    => RB_LAM_DL11_0,
       IB_MREQ   => IB_MREQ,
       IB_SRES   => IB_SRES_DL11_0,
@@ -399,9 +400,9 @@ begin
         IB_ADDR   => slv(to_unsigned(8#176500#,16)))
       port map (
         CLK       => CLK,
-        CE_USEC   => CE_USEC,
         RESET     => RESET,
         BRESET    => BRESET,
+        RLIM_CEV  => RLIM_CEV,
         RB_LAM    => RB_LAM_DL11_1,
         IB_MREQ   => IB_MREQ,
         IB_SRES   => IB_SRES_DL11_1,

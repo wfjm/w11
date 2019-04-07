@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDL11.cpp 1114 2019-02-23 18:01:55Z mueller $
+// $Id: Rw11CntlDL11.cpp 1126 2019-04-06 17:37:40Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-06  1126   1.4    xbuf.val in msb; rrdy in rbuf (new iface)
 // 2019-02-23  1114   1.3.2  use std::bind instead of lambda
 // 2018-12-15  1082   1.3.1  use lambda instead of boost::bind
 // 2017-05-14   897   1.3    add RcvChar(),TraceChar(); trace received chars
@@ -28,7 +29,6 @@
 // ---------------------------------------------------------------------------
 
 /*!
-  \file
   \brief   Implemenation of Rw11CntlDL11.
 */
 
@@ -68,14 +68,25 @@ const uint16_t Rw11CntlDL11::kProbeOff;
 const bool     Rw11CntlDL11::kProbeInt;
 const bool     Rw11CntlDL11::kProbeRem;
 
-const uint16_t Rw11CntlDL11::kRCSR_M_RXRLIM;
-const uint16_t Rw11CntlDL11::kRCSR_V_RXRLIM;
-const uint16_t Rw11CntlDL11::kRCSR_B_RXRLIM;
+const uint16_t Rw11CntlDL11::kRCSR_M_RLIM;
+const uint16_t Rw11CntlDL11::kRCSR_V_RLIM;
+const uint16_t Rw11CntlDL11::kRCSR_B_RLIM;
+const uint16_t Rw11CntlDL11::kRCSR_V_TYPE;
+const uint16_t Rw11CntlDL11::kRCSR_B_TYPE;
 const uint16_t Rw11CntlDL11::kRCSR_M_RDONE;
+const uint16_t Rw11CntlDL11::kRCSR_M_FCLR;
+const uint16_t Rw11CntlDL11::kRBUF_M_RRDY;
+const uint16_t Rw11CntlDL11::kRBUF_V_SIZE;
+const uint16_t Rw11CntlDL11::kRBUF_B_SIZE;
+const uint16_t Rw11CntlDL11::kRBUF_M_BUF;
+  
+const uint16_t Rw11CntlDL11::kXCSR_V_RLIM;
+const uint16_t Rw11CntlDL11::kXCSR_B_RLIM;
 const uint16_t Rw11CntlDL11::kXCSR_M_XRDY;
-const uint16_t Rw11CntlDL11::kXBUF_M_RRDY;
-const uint16_t Rw11CntlDL11::kXBUF_M_XVAL;
-const uint16_t Rw11CntlDL11::kXBUF_M_XBUF;
+const uint16_t Rw11CntlDL11::kXBUF_M_VAL;
+const uint16_t Rw11CntlDL11::kXBUF_V_SIZE;
+const uint16_t Rw11CntlDL11::kXBUF_B_SIZE;
+const uint16_t Rw11CntlDL11::kXBUF_M_BUF;
 
 //------------------------------------------+-----------------------------------
 //! Default constructor
@@ -83,6 +94,7 @@ const uint16_t Rw11CntlDL11::kXBUF_M_XBUF;
 Rw11CntlDL11::Rw11CntlDL11()
   : Rw11CntlBase<Rw11UnitDL11,1>("dl11"),
     fPC_xbuf(0),
+    fPC_rbuf(0),
     fRxRlim(0)
 {
   // must be here because Units have a back-ptr (not available at Rw11CntlBase)
@@ -124,6 +136,7 @@ void Rw11CntlDL11::Start()
   fPrimClist.Clear();
   fPrimClist.AddAttn();
   fPC_xbuf = Cpu().AddRibr(fPrimClist, fBase+kXBUF);
+  fPC_rbuf = Cpu().AddRibr(fPrimClist, fBase+kRBUF);
 
   // add attn handler
   Server().AddAttnHandler(bind(&Rw11CntlDL11::AttnHandler, this, _1), 
@@ -138,7 +151,7 @@ void Rw11CntlDL11::Start()
 void Rw11CntlDL11::UnitSetup(size_t /*ind*/)
 {
   Rw11Cpu& cpu  = Cpu();
-  uint16_t rcsr = (fRxRlim<<kRCSR_V_RXRLIM) & kRCSR_M_RXRLIM;
+  uint16_t rcsr = (fRxRlim<<kRCSR_V_RLIM) & kRCSR_M_RLIM;
   RlinkCommandList clist;
   cpu.AddWibr(clist, fBase+kRCSR, rcsr);
   Server().Exec(clist);
@@ -166,7 +179,7 @@ void Rw11CntlDL11::Wakeup()
 
 void Rw11CntlDL11::SetRxRlim(uint16_t rlim)
 {
-  if (rlim > kRCSR_B_RXRLIM)
+  if (rlim > kRCSR_B_RLIM)
     throw Rexception("Rw11CntlDL11::SetRxRlim","Bad args: rlim too large");
 
   fRxRlim = rlim;
@@ -191,6 +204,7 @@ void Rw11CntlDL11::Dump(std::ostream& os, int ind, const char* text,
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11CntlDL11 @ " << this << endl;
   os << bl << "  fPC_xbuf:        " << fPC_xbuf << endl;
+  os << bl << "  fPC_rbuf:        " << fPC_rbuf << endl;
   os << bl << "  fRxRlim:         " << fRxRlim  << endl;
 
   Rw11CntlBase<Rw11UnitDL11,1>::Dump(os, ind, " ^", detail);
@@ -206,10 +220,11 @@ int Rw11CntlDL11::AttnHandler(RlinkServer::AttnArgs& args)
   Server().GetAttnInfo(args, fPrimClist);
 
   uint16_t xbuf = fPrimClist[fPC_xbuf].Data();
+  uint16_t rbuf = fPrimClist[fPC_rbuf].Data();
 
-  uint8_t ochr = xbuf & kXBUF_M_XBUF;
-  bool xval = xbuf & kXBUF_M_XVAL;
-  bool rrdy = xbuf & kXBUF_M_RRDY;
+  uint8_t ochr = xbuf & kXBUF_M_BUF;
+  bool xval = xbuf & kXBUF_M_VAL;
+  bool rrdy = rbuf & kRBUF_M_RRDY;
 
   if (fTraceLevel>0) TraceChar('t', xbuf, ochr);
   if (xval) fspUnit[0]->Snd(&ochr, 1);
@@ -236,14 +251,12 @@ void Rw11CntlDL11::RcvChar()
 //! FIXME_docs
 void Rw11CntlDL11::TraceChar(char dir, uint16_t xbuf, uint8_t chr)
 {
-  bool xval = xbuf & kXBUF_M_XVAL;
-  bool rrdy = xbuf & kXBUF_M_RRDY;
+  bool xval = xbuf & kXBUF_M_VAL;
   RlogMsg lmsg(LogFile());
   lmsg << "-I " << Name() << ":" << ' ' << dir << 'x';
   if (dir == 't') {
     lmsg << " xbuf=" << RosPrintBvi(xbuf,8)
-         << " xval=" << xval
-         << " rrdy=" << rrdy;
+         << " xval=" << xval;
   } else {
     lmsg << "                          ";
   }

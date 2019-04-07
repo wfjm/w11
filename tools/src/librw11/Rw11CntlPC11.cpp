@@ -1,4 +1,4 @@
-// $Id: Rw11CntlPC11.cpp 1114 2019-02-23 18:01:55Z mueller $
+// $Id: Rw11CntlPC11.cpp 1126 2019-04-06 17:37:40Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-06  1126   1.4    pbuf.val in msb; rbusy in rbuf (new unbuf iface)
+//                           Start(): ensure unit offline; BootCode(): 56k top
 // 2019-02-23  1114   1.3.4  use std::bind instead of lambda
 // 2018-12-15  1082   1.3.3  use lambda instead of boost::bind
 // 2018-12-09  1080   1.3.2  use HasVirt(); Virt() returns ref
@@ -26,7 +28,6 @@
 // ---------------------------------------------------------------------------
 
 /*!
-  \file
   \brief   Implemenation of Rw11CntlPC11.
 */
 
@@ -70,9 +71,22 @@ const bool     Rw11CntlPC11::kProbeInt;
 const bool     Rw11CntlPC11::kProbeRem;
 
 const uint16_t Rw11CntlPC11::kRCSR_M_ERROR;
+const uint16_t Rw11CntlPC11::kRCSR_V_RLIM;
+const uint16_t Rw11CntlPC11::kRCSR_B_RLIM;
+const uint16_t Rw11CntlPC11::kRCSR_V_TYPE;
+const uint16_t Rw11CntlPC11::kRCSR_B_TYPE;
+const uint16_t Rw11CntlPC11::kRCSR_M_FCLR;  
+const uint16_t Rw11CntlPC11::kRBUF_M_RBUSY;
+const uint16_t Rw11CntlPC11::kRBUF_V_SIZE;
+const uint16_t Rw11CntlPC11::kRBUF_B_SIZE;
+const uint16_t Rw11CntlPC11::kRBUF_M_BUF;
+  
 const uint16_t Rw11CntlPC11::kPCSR_M_ERROR;
-const uint16_t Rw11CntlPC11::kPBUF_M_RBUSY;
-const uint16_t Rw11CntlPC11::kPBUF_M_PVAL;
+const uint16_t Rw11CntlPC11::kPCSR_V_RLIM;
+const uint16_t Rw11CntlPC11::kPCSR_B_RLIM;
+const uint16_t Rw11CntlPC11::kPBUF_M_VAL;
+const uint16_t Rw11CntlPC11::kPBUF_V_SIZE;
+const uint16_t Rw11CntlPC11::kPBUF_B_SIZE;
 const uint16_t Rw11CntlPC11::kPBUF_M_BUF;
 
 //------------------------------------------+-----------------------------------
@@ -80,7 +94,8 @@ const uint16_t Rw11CntlPC11::kPBUF_M_BUF;
 
 Rw11CntlPC11::Rw11CntlPC11()
   : Rw11CntlBase<Rw11UnitPC11,2>("pc11"),
-    fPC_pbuf(0)
+    fPC_pbuf(0),
+    fPC_rbuf(0)
 {
   // must be here because Units have a back-ptr (not available at Rw11CntlBase)
   for (size_t i=0; i<NUnit(); i++) {
@@ -119,10 +134,15 @@ void Rw11CntlPC11::Start()
   Cpu().AllIAddrMapInsert(Name()+".pcsr", Base() + kPCSR);
   Cpu().AllIAddrMapInsert(Name()+".pbuf", Base() + kPBUF);
 
+  // ensure that reader and puncher are set offline at startup time
+  SetOnline(0, false);
+  SetOnline(1, false);
+  
   // setup primary info clist
   fPrimClist.Clear();
   fPrimClist.AddAttn();
   fPC_pbuf = Cpu().AddRibr(fPrimClist, fBase+kPBUF);
+  fPC_rbuf = Cpu().AddRibr(fPrimClist, fBase+kRBUF);
 
   // add attn handler
   Server().AddAttnHandler(bind(&Rw11CntlPC11::AttnHandler, this, _1), 
@@ -138,7 +158,9 @@ void Rw11CntlPC11::Start()
 bool Rw11CntlPC11::BootCode(size_t /*unit*/, std::vector<uint16_t>& code, 
                             uint16_t& aload, uint16_t& astart)
 {
-  uint16_t kBOOT_START = 0017476;
+  // use 0017476 for 8kB system and 0157476 of 56kB system
+  // FIXME_code: should be inquired from Cpu() dynamically
+  uint16_t kBOOT_START = 0157476;           // top of 56kB minus code size
   uint16_t bootcode[] = {      // papertape lda loader, from dec-11-l2pc-po
     0000000,                   // C000:   halt
     0010706,                   // astart: mov     pc,sp
@@ -243,6 +265,7 @@ void Rw11CntlPC11::Dump(std::ostream& os, int ind, const char* text,
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11CntlPC11 @ " << this << endl;
   os << bl << "  fPC_pbuf:        " << fPC_pbuf << endl;
+  os << bl << "  fPC_rbuf:        " << fPC_rbuf << endl;
 
   Rw11CntlBase<Rw11UnitPC11,2>::Dump(os, ind, " ^", detail);
   return;
@@ -257,8 +280,9 @@ int Rw11CntlPC11::AttnHandler(RlinkServer::AttnArgs& args)
   Server().GetAttnInfo(args, fPrimClist);
 
   uint16_t pbuf = fPrimClist[fPC_pbuf].Data();
-  bool pval     = pbuf & kPBUF_M_PVAL;
-  bool rbusy    = pbuf & kPBUF_M_RBUSY;
+  uint16_t rbuf = fPrimClist[fPC_rbuf].Data();
+  bool rbusy    = rbuf & kRBUF_M_RBUSY;
+  bool pval     = pbuf & kPBUF_M_VAL;
   uint8_t ochr  = pbuf & kPBUF_M_BUF;
   
   if (pval) {                               // punch valid -------------------

@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.cpp 1112 2019-02-17 11:10:04Z mueller $
+// $Id: Rw11Cpu.cpp 1131 2019-04-14 13:24:25Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,9 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-13  1131   1.2.17 add defs for w11 cpu component addresses; add
+//                           MemSize(),MemWriteByte(); LoadAbs(): return start,
+//                           better odd byte handling;
 // 2019-02-16  1112   1.2.16 add ibmon setup and HasIbtst()
 // 2018-12-23  1091   1.2.19 AddWbibr(): add move version
 // 2018-12-19  1090   1.2.18 use RosPrintf(bool)
@@ -131,11 +134,41 @@ const uint16_t  Rw11Cpu::kCPAH_M_UBM22;
 
 const uint16_t  Rw11Cpu::kCPMEMBE_M_STICK;
 const uint16_t  Rw11Cpu::kCPMEMBE_M_BE;
+const uint16_t  Rw11Cpu::kCPMEMBE_M_BE0;
+const uint16_t  Rw11Cpu::kCPMEMBE_M_BE1;
 
 const uint8_t   Rw11Cpu::kStat_M_CmdErr;
 const uint8_t   Rw11Cpu::kStat_M_CmdMErr;
 const uint8_t   Rw11Cpu::kStat_M_CpuSusp;
 const uint8_t   Rw11Cpu::kStat_M_CpuGo;
+
+const uint16_t  Rw11Cpu::kCPUPSW;
+const uint16_t  Rw11Cpu::kCPUSTKLIM;
+const uint16_t  Rw11Cpu::kCPUPIRQ;
+const uint16_t  Rw11Cpu::kCPUMBRK;
+const uint16_t  Rw11Cpu::kCPUERR;
+const uint16_t  Rw11Cpu::kCPUSYSID;
+const uint16_t  Rw11Cpu::kCPUSDREG;
+    
+const uint16_t  Rw11Cpu::kMEMHISIZE;
+const uint16_t  Rw11Cpu::kMEMLOSIZE;
+const uint16_t  Rw11Cpu::kMEMHM;
+const uint16_t  Rw11Cpu::kMEMMAINT;
+const uint16_t  Rw11Cpu::kMEMCNTRL;
+const uint16_t  Rw11Cpu::kMEMSYSERR;
+const uint16_t  Rw11Cpu::kMEMHIADDR;
+const uint16_t  Rw11Cpu::kMEMLOADDR;
+
+const uint16_t  Rw11Cpu::kMMUSSR3;
+const uint16_t  Rw11Cpu::kMMUSSR2;
+const uint16_t  Rw11Cpu::kMMUSSR1;
+const uint16_t  Rw11Cpu::kMMUSSR0;
+const uint16_t  Rw11Cpu::kMMUSDRK;
+const uint16_t  Rw11Cpu::kMMUSARK;
+const uint16_t  Rw11Cpu::kMMUSDRS;
+const uint16_t  Rw11Cpu::kMMUSARS;
+const uint16_t  Rw11Cpu::kMMUSDRU;
+const uint16_t  Rw11Cpu::kMMUSARU;
 
 const uint16_t  Rw11Cpu::kSCBASE;
 const uint16_t  Rw11Cpu::kSCCNTL;
@@ -191,6 +224,7 @@ Rw11Cpu::Rw11Cpu(const std::string& type)
     fIndex(0),
     fBase(0),
     fIBase(0x4000),
+    fMemSize(0),
     fHasScnt(false),
     fHasPcnt(false),
     fHasCmon(false),
@@ -495,6 +529,37 @@ bool Rw11Cpu::MemWrite(uint16_t addr, const std::vector<uint16_t>& data,
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
+bool Rw11Cpu::MemWriteByte(uint32_t addr, uint8_t data, RerrMsg& emsg)
+{
+  if (addr >= MemSize()) {
+    emsg.Init("Rw11Cpu::MemWriteByte", "addr out of range");
+    return false;
+  }
+
+  // FIXME_code: this is a kludge because membe only works for ibus, not for
+  //             memory. When pdp11_vmbox is fixed a single write can be used.
+  RlinkCommandList clist;
+  AddLalh(clist, addr&0x3ffffe, kCPAH_M_22BIT); // setup address
+  int irm = clist.AddRreg(fBase+kCPMEM);        // read word
+  if (!Server().Exec(clist, emsg)) return false;
+  uint16_t word = clist[irm].Data();            // get word
+
+  if ((addr & 0x1) == 0) {                      // even address
+    word = (word & 0xff00) | uint16_t(data);
+  } else {                                      // odd  address
+    word = (word & 0x00ff) | (uint16_t(data)<<8);
+  }
+  
+  clist.Clear();
+  AddLalh(clist, addr&0x3ffffe, kCPAH_M_22BIT); // setup address
+  clist.AddWreg(fBase+kCPMEM, word);            // write word
+  if (!Server().Exec(clist, emsg)) return false;
+  return true;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
 bool Rw11Cpu::ProbeCntl(Rw11Probe& dsc)
 {
   if (!(dsc.fProbeInt | dsc.fProbeRem) || dsc.fAddr == 0) 
@@ -547,8 +612,10 @@ bool Rw11Cpu::ProbeCntl(Rw11Probe& dsc)
 
 // absolute binary format described in notes_ptape.txt
 
-bool Rw11Cpu::LoadAbs(const std::string& fname, RerrMsg& emsg, bool trace)
+bool Rw11Cpu::LoadAbs(const std::string& fname, RerrMsg& emsg,
+                      uint16_t& start, bool trace)
 {
+  start = -1;
   int fd = open(fname.c_str(), O_RDONLY);
 
   if (fd < 0) {
@@ -558,20 +625,16 @@ bool Rw11Cpu::LoadAbs(const std::string& fname, RerrMsg& emsg, bool trace)
   }
   
   enum states {
-    s_chr0,
-    s_chr1,
-    s_cntlow,
-    s_cnthgh,
-    s_adrlow,
-    s_adrhgh,
-    s_data,
-    s_chksum
+    s_chr0,                                 // skip 000; search 001 start code
+    s_chr1,                                 // read 000 record starte code
+    s_cntlow,                               // read count lsb
+    s_cnthgh,                               // read count msb
+    s_adrlow,                               // read address lsb
+    s_adrhgh,                               // read address msb
+    s_data,                                 // read data
+    s_chksum                                // read checksum
   };
-
-  typedef std::map<uint16_t, uint16_t> obmap_t;
-
-  obmap_t oddbyte;                          // odd byte cache
-
+  
   vector<uint16_t> data;
   data.reserve(256);
   
@@ -583,6 +646,8 @@ bool Rw11Cpu::LoadAbs(const std::string& fname, RerrMsg& emsg, bool trace)
   uint16_t addr = 0;                        // current address
   uint16_t word = 0;                        // current word
 
+  bool firstodd = false;                    // first byte to odd address
+  
   bool ok = false;
   bool go = true;
   enum states state = s_chr0;
@@ -609,7 +674,7 @@ bool Rw11Cpu::LoadAbs(const std::string& fname, RerrMsg& emsg, bool trace)
     //     << RosPrintBvi(byte,8) << endl;
 
     switch (state) {
-    case s_chr0:
+    case s_chr0:                            // skip 000; search 001 start code
       if (byte == 0) {
         chrnum = -1;
         state = s_chr0;
@@ -622,7 +687,7 @@ bool Rw11Cpu::LoadAbs(const std::string& fname, RerrMsg& emsg, bool trace)
       }
       break;
 
-    case s_chr1:
+    case s_chr1:                            // read 000 record starte code ---
       if (byte == 0) {
         state = s_cntlow;
       } else {
@@ -632,36 +697,26 @@ bool Rw11Cpu::LoadAbs(const std::string& fname, RerrMsg& emsg, bool trace)
       }
       break;
       
-    case s_cntlow:
+    case s_cntlow:                          // read count lsb ----------------
       bytcnt = byte;
       state  = s_cnthgh;
       break;
       
-    case s_cnthgh:
+    case s_cnthgh:                          // read count msb ----------------
       bytcnt |= uint16_t(byte) << 8;
       state  = s_adrlow;
       break;
       
-    case s_adrlow:
+    case s_adrlow:                          // read address lsb --------------
       ldaddr = byte;
       state = s_adrhgh;
       break;
       
-    case s_adrhgh:
+    case s_adrhgh:                          // read address msb --------------
       ldaddr |= uint16_t(byte) << 8;
       addr = ldaddr;
       word = 0;
-      if ((addr & 0x01) == 1 && bytcnt > 6) {
-        auto it = oddbyte.find(addr);
-        if (it != oddbyte.end()) {
-          word = it->second;
-        } else {
-          if (trace) {
-            RlogMsg lmsg(LogFile());
-            lmsg << "LoadAbs-W: no low byte data for " << RosPrintBvi(addr,8);
-          }
-        }
-      }
+      firstodd = (addr & 0x01) == 1;
       
       if (trace) {
         RlogMsg lmsg(Connect().LogFile());
@@ -673,22 +728,29 @@ bool Rw11Cpu::LoadAbs(const std::string& fname, RerrMsg& emsg, bool trace)
       state = (bytcnt == 6) ? s_chksum : s_data;
       break;
     
-    case s_data:
+    case s_data:                            // read data ---------------------
       if ((addr & 0x01) == 0) {             // even (low) byte
         word = byte;
       } else {                              // odd (high) byte
-        word |= uint16_t(byte) << 8;
-        data.push_back(word);
+        if (firstodd) {                       // first odd byte
+          if (!MemWriteByte(addr, byte, emsg)) go = false; // write byte and
+          ldaddr += 1;                                     // update blk addr
+          firstodd = false;
+        } else {
+          word |= uint16_t(byte) << 8;
+          data.push_back(word);
+        }
       }
       addr += 1;
       if (chrnum == bytcnt-1) state = s_chksum;
       break;
       
-    case s_chksum:
+    case s_chksum:                          // read checksum -----------------
       if (chksum != 0) {
         emsg.InitPrintf("Rw11Cpu::LoadAbs()", "check sum error %3.3o", chksum);
         go = false;
       } else if (bytcnt == 6) {
+        start = ldaddr;
         if (trace) {
           RlogMsg lmsg(Connect().LogFile());
           lmsg << "LoadAbs-I: start address " << RosPrintBvi(ldaddr,8);
@@ -696,16 +758,9 @@ bool Rw11Cpu::LoadAbs(const std::string& fname, RerrMsg& emsg, bool trace)
         go = false;
         ok = true;
       } else {
-        if ((addr & 0x01) == 1) {           // high byte not yet seen
-          data.push_back(word);             // zero fill high byte
-          oddbyte.emplace(make_pair(addr,word)); // store even byte for later
-        }
-
-        //cout << "+++2 " << RosPrintBvi(ldaddr,8) 
-        //     << " " << data.size() << endl;
-        
-        if (!MemWrite(ldaddr, data, emsg)) {
-          go = false;
+        if (!MemWrite(ldaddr, data, emsg)) go = false;
+        if ((addr & 0x01) == 1) {           // last byte even -> write it
+          if (!MemWriteByte(addr-1, uint8_t(word), emsg)) go = false;
         }
         data.clear();
       }
@@ -935,47 +990,45 @@ void Rw11Cpu::SetupStd()
   AllRAddrMapInsert("membe", Base()+kCPMEMBE);
 
   // add cpu register address ibus and rbus mappings
-  AllIAddrMapInsert("psw"    , 0177776);
-  AllIAddrMapInsert("stklim" , 0177774);
-  AllIAddrMapInsert("pirq"   , 0177772);
-  AllIAddrMapInsert("mbrk"   , 0177770);
-  AllIAddrMapInsert("cpuerr" , 0177766);
-  AllIAddrMapInsert("sysid"  , 0177764);
-  AllIAddrMapInsert("hisize" , 0177762);
-  AllIAddrMapInsert("losize" , 0177760);
+  AllIAddrMapInsert("psw"    , kCPUPSW);
+  AllIAddrMapInsert("stklim" , kCPUSTKLIM);
+  AllIAddrMapInsert("pirq"   , kCPUPIRQ);
+  AllIAddrMapInsert("mbrk"   , kCPUMBRK);
+  AllIAddrMapInsert("cpuerr" , kCPUERR);
+  AllIAddrMapInsert("sysid"  , kCPUSYSID);
+  AllIAddrMapInsert("sdreg"  , kCPUSDREG);
+  
+  AllIAddrMapInsert("hisize" , kMEMHISIZE);
+  AllIAddrMapInsert("losize" , kMEMLOSIZE);
+  AllIAddrMapInsert("hm"     , kMEMHM);
+  AllIAddrMapInsert("maint"  , kMEMMAINT);
+  AllIAddrMapInsert("cntrl"  , kMEMCNTRL);
+  AllIAddrMapInsert("syserr" , kMEMSYSERR);
+  AllIAddrMapInsert("hiaddr" , kMEMHIADDR);
+  AllIAddrMapInsert("loaddr" , kMEMLOADDR);
 
-  AllIAddrMapInsert("hm"     , 0177752);
-  AllIAddrMapInsert("maint"  , 0177750);
-  AllIAddrMapInsert("cntrl"  , 0177746);
-  AllIAddrMapInsert("syserr" , 0177744);
-  AllIAddrMapInsert("hiaddr" , 0177742);
-  AllIAddrMapInsert("loaddr" , 0177740);
-
-  AllIAddrMapInsert("ssr2"   , 0177576);
-  AllIAddrMapInsert("ssr1"   , 0177574);
-  AllIAddrMapInsert("ssr0"   , 0177572);
-
-  AllIAddrMapInsert("sdreg"  , 0177570);
-
-  AllIAddrMapInsert("ssr3"   , 0172516);
-
+  AllIAddrMapInsert("ssr3"   , kMMUSSR3);
+  AllIAddrMapInsert("ssr2"   , kMMUSSR2);
+  AllIAddrMapInsert("ssr1"   , kMMUSSR1);
+  AllIAddrMapInsert("ssr0"   , kMMUSSR0);
+  
   // add mmu segment register files
   string sdr = "sdr";
   string sar = "sar";
   for (char i=0; i<8; i++) {
     char ichar = '0'+i;
-    AllIAddrMapInsert(sdr+"ki."+ichar, 0172300+2*i);
-    AllIAddrMapInsert(sdr+"kd."+ichar, 0172320+2*i);
-    AllIAddrMapInsert(sar+"ki."+ichar, 0172340+2*i);
-    AllIAddrMapInsert(sar+"kd."+ichar, 0172360+2*i);
-    AllIAddrMapInsert(sdr+"si."+ichar, 0172200+2*i);
-    AllIAddrMapInsert(sdr+"sd."+ichar, 0172220+2*i);
-    AllIAddrMapInsert(sar+"si."+ichar, 0172240+2*i);
-    AllIAddrMapInsert(sar+"sd."+ichar, 0172260+2*i);
-    AllIAddrMapInsert(sdr+"ui."+ichar, 0177600+2*i);
-    AllIAddrMapInsert(sdr+"ud."+ichar, 0177620+2*i);
-    AllIAddrMapInsert(sar+"ui."+ichar, 0177640+2*i);
-    AllIAddrMapInsert(sar+"ud."+ichar, 0177660+2*i);
+    AllIAddrMapInsert(sdr+"ki."+ichar, kMMUSDRK+000+2*i);
+    AllIAddrMapInsert(sdr+"kd."+ichar, kMMUSDRK+020+2*i);
+    AllIAddrMapInsert(sar+"ki."+ichar, kMMUSARK+000+2*i);
+    AllIAddrMapInsert(sar+"kd."+ichar, kMMUSARK+020+2*i);
+    AllIAddrMapInsert(sdr+"si."+ichar, kMMUSDRS+000+2*i);
+    AllIAddrMapInsert(sdr+"sd."+ichar, kMMUSDRS+020+2*i);
+    AllIAddrMapInsert(sar+"si."+ichar, kMMUSARS+000+2*i);
+    AllIAddrMapInsert(sar+"sd."+ichar, kMMUSARS+020+2*i);
+    AllIAddrMapInsert(sdr+"ui."+ichar, kMMUSDRU+000+2*i);
+    AllIAddrMapInsert(sdr+"ud."+ichar, kMMUSDRU+020+2*i);
+    AllIAddrMapInsert(sar+"ui."+ichar, kMMUSARU+000+2*i);
+    AllIAddrMapInsert(sar+"ud."+ichar, kMMUSARU+020+2*i);
   }
 
   return;
@@ -986,8 +1039,13 @@ void Rw11Cpu::SetupStd()
 
 void Rw11Cpu::SetupOpt()
 {
-  // probe optional cpu components: dmscnt, dmcmon, dmhbpt and ibmon, ibtst
+  // probe
+  //   - memory size: read losize register
+  //   - optional cpu components: dmscnt, dmcmon, dmhbpt and ibmon, ibtst
+  //   - optional devices: Kw11-L, KW11-P, IIST
   RlinkCommandList clist;
+
+  int ims = AddRibr(clist, kMEMLOSIZE);  // read losize
 
   int isc =  clist.AddRreg(Base()+kSCBASE+kSCCNTL);
   clist.SetLastExpectStatus(0,0);        // disable stat check
@@ -1017,11 +1075,13 @@ void Rw11Cpu::SetupOpt()
   int ikwp= AddRibr(clist, kKWPBASE + kKWPCSR);  // kw11-p probe rem 
   clist.SetLastExpectStatus(0,0); 
 
-  int iii= AddRibr(clist, kIISTBASE + kIISTACR); // iist probe rem
+  int iii = AddRibr(clist, kIISTBASE + kIISTACR); // iist probe rem
   clist.SetLastExpectStatus(0,0); 
 
   Connect().Exec(clist);
 
+  fMemSize = uint32_t(clist[ims].Data()+1)<<6; // losize is click count -1
+  
   uint8_t statmsk = RlinkCommand::kStat_M_RbTout |
                     RlinkCommand::kStat_M_RbNak  |
                     RlinkCommand::kStat_M_RbErr;

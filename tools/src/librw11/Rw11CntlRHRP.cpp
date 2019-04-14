@@ -1,4 +1,4 @@
-// $Id: Rw11CntlRHRP.cpp 1114 2019-02-23 18:01:55Z mueller $
+// $Id: Rw11CntlRHRP.cpp 1131 2019-04-14 13:24:25Z mueller $
 //
 // Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -15,6 +15,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-14  1131   1.0.11 proper unit init, call UnitSetupAll() in Start()
 // 2019-02-23  1114   1.0.10 use std::bind instead of lambda
 // 2018-12-19  1090   1.0.9  use RosPrintf(bool)
 // 2018-12-15  1082   1.0.8  use std::bind or lambda instead of boost::bind
@@ -256,6 +257,9 @@ void Rw11CntlRHRP::Start()
   Cpu().AllIAddrMapInsert(Name()+".ec2", Base() + kRPEC2);
   Cpu().AllIAddrMapInsert(Name()+".bae", Base() + kRPBAE);
   Cpu().AllIAddrMapInsert(Name()+".cs3", Base() + kRPCS3);
+
+  // ensure unit status is initialized
+  UnitSetupAll();
 
   // setup primary info clist
   fPrimClist.Clear();

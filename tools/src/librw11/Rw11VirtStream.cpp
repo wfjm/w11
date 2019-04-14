@@ -1,6 +1,6 @@
-// $Id: Rw11VirtStream.cpp 1090 2018-12-21 12:17:35Z mueller $
+// $Id: Rw11VirtStream.cpp 1131 2019-04-14 13:24:25Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-14  1131   1.1.2  add Error(),Eof()
 // 2018-12-19  1090   1.1.1  use RosPrintf(bool)
 // 2018-12-02  1076   1.1    use unique_ptr for New()
 // 2017-04-07   868   1.0.3  Dump(): add detail arg
@@ -120,7 +121,7 @@ int Rw11VirtStream::Read(uint8_t* data, size_t count, RerrMsg& emsg)
 
   fStats.Inc(kStatNVSRead);
   size_t irc = ::fread(data, 1, count, fFile);
-  if (irc == 0 && ferror(fFile)) {
+  if (irc == 0 && ::ferror(fFile)) {
     emsg.InitErrno("Rw11VirtStream::Read()", "fread() failed: ", errno);
     return -1;
   }
@@ -215,6 +216,22 @@ bool Rw11VirtStream::Seek(int pos, RerrMsg& emsg)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
+bool Rw11VirtStream::Error() const
+{
+  return fFile ? ::ferror(fFile) : true;
+}
+  
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+bool Rw11VirtStream::Eof() const
+{
+  return fFile ? ::feof(fFile) : true;
+}
+  
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
 void Rw11VirtStream::Dump(std::ostream& os, int ind, const char* text,
                           int detail) const
 {
@@ -224,6 +241,12 @@ void Rw11VirtStream::Dump(std::ostream& os, int ind, const char* text,
   os << bl << "  fIStream:        " << RosPrintf(fIStream) << endl;
   os << bl << "  fOStream:        " << RosPrintf(fOStream) << endl;
   os << bl << "  fFile:           " << fFile << endl;
+  if (fFile) {
+    os << bl << "  fFile.tell       " << ::ftell(fFile) << endl;
+    os << bl << "  fFile.error      " << ::ferror(fFile) << endl;
+    os << bl << "  fFile.eof        " << ::feof(fFile) << endl;
+  }
+  
   Rw11Virt::Dump(os, ind, " ^", detail);
   return;
 }

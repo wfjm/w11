@@ -1,4 +1,4 @@
--- $Id: ib_rlim_slv.vhd 1123 2019-03-17 17:55:12Z mueller $
+-- $Id: ib_rlim_slv.vhd 1131 2019-04-14 13:24:25Z mueller $
 --
 -- Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -22,12 +22,13 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-04-14  1131   1.1    RLIM_CEV now slv8
 -- 2019-03-17  1123   1.0    Initial version
 -- 2019-03-15  1122   0.1    First draft
 --
 -- Notes:
 --   sel ce-scale   rate in slv
---    0     -         7 cycles
+--    0     -         8 cycles
 --    1    1:  1      8 usec  125.0 kHz
 --    2    1:  2     16 usec   62.5 kHz
 --    3    1:  4     32 usec   31.2 kHz
@@ -48,7 +49,7 @@ entity ib_rlim_slv is                   -- ibus rate limter - slave
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- system reset
-    RLIM_CEV : in  slv7;                -- clock enable vector
+    RLIM_CEV : in  slv8;                -- clock enable vector
     SEL : in  slv3;                     -- rlim select
     START : in slbit;                   -- start timer
     STOP : in slbit;                    -- stop timer
@@ -97,14 +98,14 @@ begin
 
     ice := '0';
     case SEL is
-      when "000" => ice := '1';         -- every cycle
-      when "001" => ice := RLIM_CEV(0); -- every       CE_USEC
-      when "010" => ice := RLIM_CEV(1); -- every   2nd CE_USEC
-      when "011" => ice := RLIM_CEV(2); -- every   4th CE_USEC
-      when "100" => ice := RLIM_CEV(3); -- every   8th CE_USEC
-      when "101" => ice := RLIM_CEV(4); -- every  32nd CE_USEC
-      when "110" => ice := RLIM_CEV(5); -- every  64th CE_USEC
-      when "111" => ice := RLIM_CEV(6); -- every 128th CE_USEC
+      when "000" => ice := RLIM_CEV(0); -- every cycle
+      when "001" => ice := RLIM_CEV(1); -- every       CE_USEC
+      when "010" => ice := RLIM_CEV(2); -- every   2nd CE_USEC
+      when "011" => ice := RLIM_CEV(3); -- every   4th CE_USEC
+      when "100" => ice := RLIM_CEV(4); -- every   8th CE_USEC
+      when "101" => ice := RLIM_CEV(5); -- every  32nd CE_USEC
+      when "110" => ice := RLIM_CEV(6); -- every  64th CE_USEC
+      when "111" => ice := RLIM_CEV(7); -- every 128th CE_USEC
       when others => null;
     end case;
     

@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.hpp 1112 2019-02-17 11:10:04Z mueller $
+// $Id: Rw11Cpu.hpp 1131 2019-04-14 13:24:25Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-13  1131   1.2.17 add defs for w11 cpu component addresses; add
+//                           MemSize(),MemWriteByte(); LoadAbs() returns start
 // 2019-02-15  1112   1.2.16 add HasIbtst()
 // 2018-12-23  1091   1.2.15 AddWbibr(): add move version
 // 2018-12-17  1085   1.2.14 use std::mutex,condition_variable instead of boost
@@ -88,6 +90,7 @@ namespace Retro {
       uint16_t      Base() const;
       uint16_t      IBase() const;
 
+      uint32_t      MemSize() const;
       bool          HasScnt() const;
       bool          HasPcnt() const;
       bool          HasCmon() const;
@@ -138,11 +141,12 @@ namespace Retro {
                             size_t nword, RerrMsg& emsg);
       bool          MemWrite(uint16_t addr, const std::vector<uint16_t>& data,
                              RerrMsg& emsg);
+      bool          MemWriteByte(uint32_t addr, uint8_t data, RerrMsg& emsg);
 
       bool          ProbeCntl(Rw11Probe& dsc);
 
       bool          LoadAbs(const std::string& fname, RerrMsg& emsg,
-                            bool trace=false);
+                            uint16_t& start, bool trace=false);
       bool          Boot(const std::string& uname, RerrMsg& emsg);
 
       void          SetCpuActUp();
@@ -186,24 +190,24 @@ namespace Retro {
       static const uint16_t  kCPPC    = 0x000f; //!< CPPC    reg offset
       static const uint16_t  kCPMEMBE = 0x0010; //!< CPMEMBE reg offset
 
-      static const uint16_t  kCPFUNC_NOOP    = 0x0000; //!< 
-      static const uint16_t  kCPFUNC_START   = 0x0001; //!< 
-      static const uint16_t  kCPFUNC_STOP    = 0x0002; //!< 
-      static const uint16_t  kCPFUNC_STEP    = 0x0003; //!< 
-      static const uint16_t  kCPFUNC_CRESET  = 0x0004; //!< 
-      static const uint16_t  kCPFUNC_BRESET  = 0x0005; //!<
-      static const uint16_t  kCPFUNC_SUSPEND = 0x0006; //!<
-      static const uint16_t  kCPFUNC_RESUME  = 0x0007; //!<
+      static const uint16_t  kCPFUNC_NOOP    = 0x0000; //!< NOOP    func code
+      static const uint16_t  kCPFUNC_START   = 0x0001; //!< START   func code
+      static const uint16_t  kCPFUNC_STOP    = 0x0002; //!< STOP    func code
+      static const uint16_t  kCPFUNC_STEP    = 0x0003; //!< STEP    func code
+      static const uint16_t  kCPFUNC_CRESET  = 0x0004; //!< CRESET  func code
+      static const uint16_t  kCPFUNC_BRESET  = 0x0005; //!< BRESET  func code
+      static const uint16_t  kCPFUNC_SUSPEND = 0x0006; //!< SUSPEND func code
+      static const uint16_t  kCPFUNC_RESUME  = 0x0007; //!< RESUME  func code
 
-      static const uint16_t  kCPSTAT_M_SuspExt = kWBit09; //!<
-      static const uint16_t  kCPSTAT_M_SuspInt = kWBit08; //!<
-      static const uint16_t  kCPSTAT_M_CpuRust = 0x00f0;  //!<
-      static const uint16_t  kCPSTAT_V_CpuRust = 4;       //!<
-      static const uint16_t  kCPSTAT_B_CpuRust = 0x000f;  //!<
-      static const uint16_t  kCPSTAT_M_CpuSusp = kWBit03; //!<
-      static const uint16_t  kCPSTAT_M_CpuGo   = kWBit02; //!<
-      static const uint16_t  kCPSTAT_M_CmdMErr = kWBit01; //!<
-      static const uint16_t  kCPSTAT_M_CmdErr  = kWBit00; //!<
+      static const uint16_t  kCPSTAT_M_SuspExt = kWBit09; //!< suspext mask
+      static const uint16_t  kCPSTAT_M_SuspInt = kWBit08; //!< suspint mask
+      static const uint16_t  kCPSTAT_M_CpuRust = 0x00f0;  //!< cpurust mask
+      static const uint16_t  kCPSTAT_V_CpuRust = 4;       //!< cpurust shift
+      static const uint16_t  kCPSTAT_B_CpuRust = 0x000f;  //!< cpurust bit mask
+      static const uint16_t  kCPSTAT_M_CpuSusp = kWBit03; //!< cpususp mask
+      static const uint16_t  kCPSTAT_M_CpuGo   = kWBit02; //!< cpugo   mask
+      static const uint16_t  kCPSTAT_M_CmdMErr = kWBit01; //!< cmdmerr mask
+      static const uint16_t  kCPSTAT_M_CmdErr  = kWBit00; //!< cmderr  mask
 
       static const uint16_t  kCPURUST_INIT   = 0x0;  //!< cpu in init state
       static const uint16_t  kCPURUST_HALT   = 0x1;  //!< cpu executed HALT
@@ -223,8 +227,10 @@ namespace Retro {
       static const uint16_t  kCPAH_M_UBMAP = kWBit07; //!< ena ubmap
       static const uint16_t  kCPAH_M_UBM22 = kWBit06|kWBit07; //!< ubmap+22bit
 
-      static const uint16_t  kCPMEMBE_M_STICK = kWBit02; //!< 
-      static const uint16_t  kCPMEMBE_M_BE    = 0x0003;  //!< 
+      static const uint16_t  kCPMEMBE_M_STICK = kWBit02; //!< membe: sticky flag
+      static const uint16_t  kCPMEMBE_M_BE    = 0x0003;  //!< membe: be field
+      static const uint16_t  kCPMEMBE_M_BE0   = 0x0001;  //!< membe: be0 flag
+      static const uint16_t  kCPMEMBE_M_BE1   = 0x0002;  //!< membe: be1 flag
 
     // defs for the four status bits defined by w11 rbus iface
       static const uint8_t   kStat_M_CmdErr  = kBBit07; //!< stat: cmderr  flag
@@ -232,6 +238,36 @@ namespace Retro {
       static const uint8_t   kStat_M_CpuSusp = kBBit05; //!< stat: cpususp flag
       static const uint8_t   kStat_M_CpuGo   = kBBit04; //!< stat: cpugo   flag
 
+    // defs for w11 cpu components (ibus addresses)
+      static const uint16_t  kCPUPSW    = 0177776; //!< CPU PSW    address
+      static const uint16_t  kCPUSTKLIM = 0177774; //!< CPU STKLIM address
+      static const uint16_t  kCPUPIRQ   = 0177772; //!< CPU PIRQ   address
+      static const uint16_t  kCPUMBRK   = 0177770; //!< CPU MBRK   address
+      static const uint16_t  kCPUERR    = 0177766; //!< CPU CPUERR address
+      static const uint16_t  kCPUSYSID  = 0177764; //!< CPU SYSID  address
+      static const uint16_t  kCPUSDREG  = 0177570; //!< CPU SDREG  address
+    
+      static const uint16_t  kMEMHISIZE = 0177762; //!< MEM HISIZE address
+      static const uint16_t  kMEMLOSIZE = 0177760; //!< MEM HISIZE address
+      static const uint16_t  kMEMHM     = 0177752; //!< MEM HM     address
+      static const uint16_t  kMEMMAINT  = 0177750; //!< MEM MAINT  address
+      static const uint16_t  kMEMCNTRL  = 0177746; //!< MEM CNTRL  address
+      static const uint16_t  kMEMSYSERR = 0177744; //!< MEM SYSERR address
+      static const uint16_t  kMEMHIADDR = 0177742; //!< MEM HIADDR address
+      static const uint16_t  kMEMLOADDR = 0177740; //!< MEM LOADDR address
+    
+      static const uint16_t  kMMUSSR3   = 0172516; //!< MMU SSR3   address
+      static const uint16_t  kMMUSSR2   = 0177576; //!< MMU SSR2   address
+      static const uint16_t  kMMUSSR1   = 0177574; //!< MMU SSR1   address
+      static const uint16_t  kMMUSSR0   = 0177572; //!< MMU SSR0   address
+
+      static const uint16_t  kMMUSDRK   = 0172300; //!< MMU SDRK   address
+      static const uint16_t  kMMUSARK   = 0172340; //!< MMU SARK   address
+      static const uint16_t  kMMUSDRS   = 0172200; //!< MMU SDRS   address
+      static const uint16_t  kMMUSARS   = 0172240; //!< MMU SARS   address
+      static const uint16_t  kMMUSDRU   = 0177600; //!< MMU SDRU   address
+      static const uint16_t  kMMUSARU   = 0177640; //!< MMU SARU   address
+    
     // defs for optional w11 cpu components
       static const uint16_t  kSCBASE  = 0x0040;   //!< DMSCNT reg base offset
       static const uint16_t  kSCCNTL  = 0x0000;   //!< SC.CNTL  reg offset
@@ -298,6 +334,7 @@ namespace Retro {
       size_t        fIndex;
       uint16_t      fBase;
       uint16_t      fIBase;
+      uint32_t      fMemSize;               //!< memory size in byte
       bool          fHasScnt;               //!< has dmscnt (state counter) 
       bool          fHasPcnt;               //!< has dmpcnt (perf counters) 
       bool          fHasCmon;               //!< has dmcmon (cpu monitor)

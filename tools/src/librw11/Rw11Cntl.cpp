@@ -1,6 +1,6 @@
-// $Id: Rw11Cntl.cpp 1090 2018-12-21 12:17:35Z mueller $
+// $Id: Rw11Cntl.cpp 1131 2019-04-14 13:24:25Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-14  1131   1.1.4  add UnitSetup(), UnitSetupAll()
 // 2018-12-19  1090   1.1.3  use RosPrintf(bool)
 // 2017-04-15   874   1.1.2  remove NUnit()
 // 2017-04-02   865   1.1.1  use Dump(detail) for PrimClist
@@ -99,13 +100,30 @@ void Rw11Cntl::Start()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-  bool Rw11Cntl::BootCode(size_t /*unit*/, std::vector<uint16_t>& code, 
+bool Rw11Cntl::BootCode(size_t /*unit*/, std::vector<uint16_t>& code, 
                         uint16_t& aload, uint16_t& astart)
 {
   code.clear();
   aload  = 0;
   astart = 0;
   return false;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rw11Cntl::UnitSetup(size_t /*ind*/)
+{
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rw11Cntl::UnitSetupAll()
+{
+  for (size_t i=0; i<NUnit(); i++) UnitSetup(i);
+  return;
 }
 
 //------------------------------------------+-----------------------------------

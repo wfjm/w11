@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: asm-11 1065 2018-11-04 11:32:06Z mueller $
+# $Id: asm-11 1131 2019-04-14 13:24:25Z mueller $
 #
 # Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -2419,6 +2419,8 @@ sub print_help {
   print "  --olda        create absolute loader output (concrete file name)\n";
   print "  --cof         create compound output (default file name)\n";
   print "  --ocof=fnam   create compound output (concrete file name)\n";
+  print "  --lsm         create lsmem style memory dump (default file name)\n";
+  print "  --olsm=fnam   create lsmem style memory dump (concrete file name)\n";
   print "  --tpass1      trace line context in pass 1\n";
   print "  --tpass2      trace line context in pass 2\n";
   print "  --dsym1       dump psect and ust tables after pass 1\n";

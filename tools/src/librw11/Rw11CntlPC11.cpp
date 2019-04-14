@@ -1,4 +1,4 @@
-// $Id: Rw11CntlPC11.cpp 1126 2019-04-06 17:37:40Z mueller $
+// $Id: Rw11CntlPC11.cpp 1131 2019-04-14 13:24:25Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-13  1131   1.4.1  BootCode(): boot loader rewritten
+//                           remove SetOnline(), use UnitSetup()
 // 2019-04-06  1126   1.4    pbuf.val in msb; rbusy in rbuf (new unbuf iface)
 //                           Start(): ensure unit offline; BootCode(): 56k top
 // 2019-02-23  1114   1.3.4  use std::bind instead of lambda
@@ -134,9 +136,8 @@ void Rw11CntlPC11::Start()
   Cpu().AllIAddrMapInsert(Name()+".pcsr", Base() + kPCSR);
   Cpu().AllIAddrMapInsert(Name()+".pbuf", Base() + kPBUF);
 
-  // ensure that reader and puncher are set offline at startup time
-  SetOnline(0, false);
-  SetOnline(1, false);
+  // ensure unit status is initialized (online, rlim,...)
+  UnitSetupAll();
   
   // setup primary info clist
   fPrimClist.Clear();
@@ -158,91 +159,70 @@ void Rw11CntlPC11::Start()
 bool Rw11CntlPC11::BootCode(size_t /*unit*/, std::vector<uint16_t>& code, 
                             uint16_t& aload, uint16_t& astart)
 {
-  // use 0017476 for 8kB system and 0157476 of 56kB system
-  // FIXME_code: should be inquired from Cpu() dynamically
-  uint16_t kBOOT_START = 0157476;           // top of 56kB minus code size
-  uint16_t bootcode[] = {      // papertape lda loader, from dec-11-l2pc-po
-    0000000,                   // C000:   halt
-    0010706,                   // astart: mov     pc,sp
-    0024646,                   //         cmp     -(sp),-(sp)
-    0010705,                   //         mov     pc,r5
-    0062705, 0000112,          //         add     #000112,r5
-    0005001,                   //         clr     r1
-    0013716, 0177570,          // B000:   mov     @#cp.dsr,(sp)
-    0006016,                   //         ror     (sp)
-    0103402,                   //         bcs     B001
-    0005016,                   //         clr     (sp)
-    0000403,                   //         br      B002
-    0006316,                   // B001:   asl     (sp)
-    0001001,                   //         bne     B002
-    0010116,                   //         mov     r1,(sp)
-    0005000,                   // B002:   clr     r0
-    0004715,                   //         jsr     pc,(r5)
-    0105303,                   //         decb    r3
-    0001374,                   //         bne     B002
-    0004715,                   //         jsr     pc,(r5)
-    0004767, 0000074,          //         jsr     pc,R000
-    0010402,                   //         mov     r4,r2
-    0162702, 0000004,          //         sub     #000004,r2
-    0022702, 0000002,          //         cmp     #000002,r2
-    0001441,                   //         beq     B007
-    0004767, 0000054,          //         jsr     pc,R000
-    0061604,                   //         add     (sp),r4
-    0010401,                   //         mov     r4,r1
-    0004715,                   // B003:   jsr     pc,(r5)
-    0002004,                   //         bge     B005
-    0105700,                   //         tstb    r0
-    0001753,                   //         beq     B002
-    0000000,                   // B004:   halt
-    0000751,                   //         br      B002
-    0110321,                   // B005:   movb    r3,(r1)+
-    0000770,                   //         br      B003
-    0016703, 0000152,          // ldchr:  mov     p.prcs,r3
-    0105213,                   //         incb    (r3)
-    0105713,                   // B006:   tstb    (r3)
-    0100376,                   //         bpl     B006
-    0116303, 0000002,          //         movb    000002(r3),r3
-    0060300,                   //         add     r3,r0
-    0042703, 0177400,          //         bic     #177400,r3
-    0005302,                   //         dec     r2
-    0000207,                   //         rts     pc
-    0012667, 0000046,          // R000:   mov     (sp)+,D000
-    0004715,                   //         jsr     pc,(r5)
-    0010304,                   //         mov     r3,r4
-    0004715,                   //         jsr     pc,(r5)
-    0000303,                   //         swap    r3
-    0050304,                   //         bis     r3,r4
-    0016707, 0000030,          //         mov     D000,pc
-    0004767, 0177752,          // B007:   jsr     pc,R000
-    0004715,                   //         jsr     pc,(r5)
-    0105700,                   //         tstb    r0
-    0001342,                   //         bne     B004
-    0006204,                   //         asr     r4
-    0103002,                   //         bcc     B008
+  uint16_t bootcode[] = {      // papertape lda loader (see pc11boot.mac)
     0000000,                   //         halt
-    0000700,                   //         br      B000
-    0006304,                   // B008:   asl     r4
-    0061604,                   //         add     (sp),r4
-    0000114,                   //         jmp     (r4)
-    0000000,                   // D000:   .word   000000
-    0012767, 0000352, 0000020, // L000:   mov     #000352,B009+2
-    0012767, 0000765, 0000034, //         mov     #000765,D001
-    0000167, 0177532,          //         jmp     C000
-    0016701, 0000026,          // bstart: mov     p.prcs,r1
-    0012702, 0000352,          // B009:   mov     #000352,r2
-    0005211,                   //         inc     (r1)
-    0105711,                   // B010:   tstb    (r1)
-    0100376,                   //         bpl     B010
-    0116162, 0000002, 0157400, //         movb    000002(r1),157400(r2)
-    0005267, 0177756,          //         inc     B009+2
-    0000765,                   // D001:   br      B009
-    0177550                    // p.prcs: .word   177550
+    0010706,                   // start:  mov     pc,sp       ; setup stack
+    0024646,                   //         cmp     -(sp),-(sp)
+    0012705, 0177550,          //         mov     #pr.csr,r5
+    0005715,                   // 1$:     tst     (r5)        ; error bit set ?
+    0100776,                   //         bmi     1$          ; if mi yes, wait
+    0005002,                   // rdrec:  clr     r2          ; check checksum
+    0004767, 0000142,          // 1$:     jsr     pc,rdbyte   ; read 000 or 001
+    0105700,                   //         tstb    r0          ; is zero ?
+    0001774,                   //         beq     1$          ; if eq yes, retry
+    0005300,                   //         dec     r0          ; test for 001
+    0001030,                   //         bne     err1        ; if ne not, quit
+    0004767, 0000126,          //         jsr     pc,rdbyte   ; read 000
+    0105700,                   //         tstb    r0          ; is zero ?
+    0001024,                   //         bne     err1        ; if ne not, quit
+    0004767, 0000076,          //         jsr     pc,rdword   ; read count
+    0010104,                   //         mov     r1,r4       ; store count
+    0004767, 0000070,          //         jsr     pc,rdword   ; read addr
+    0010103,                   //         mov     r1,r3       ; store addr
+    0162704, 0000006,          //         sub     #6,r4       ; sub 6 from count
+    0002414,                   //         blt     err2        ; if <6 halt
+    0003016,                   //         bgt     rddata      ; if >6 read data
+    0004767, 0000072,          //         jsr     pc,rdbyte   ; read checksum
+    0105702,                   //         tstb    r2          ; test checksum
+    0001010,                   //         bne     err3        ; if ne bad, quit
+    0032703, 0000001,          //         bit     #1,r3       ; address odd ?
+    0001402,                   //         beq     2$          ; if eq not
+    0012703, 0000200,          //         mov     #200,r3     ; else use #200
+    0000113,                   // 2$:     jmp     (r3)        ; start code
+    0000000,                   // err1:   halt                ; halt: bad frame
+    0000000,                   // err2:   halt                ; halt: bad count
+    0000000,                   // err3:   halt                ; halt: bad chksum
+    0000000,                   // err4:   halt                ; halt: csr.err
+    0004767, 0000036,          // rddata: jsr     pc,rdbyte   ; read byte
+    0110023,                   //         movb    r0,(r3)+    ; store byte
+    0077404,                   //         sob     r4,rddata   ; loop till done
+    0004767, 0000026,          //         jsr     pc,rdbyte   ; read checksum
+    0105702,                   //         tstb    r2          ; test checksum
+    0001366,                   //         bne     err3        ; if ne bad, quit
+    0000724,                   //         br      rdrec       ; next record
+    0004767, 0000014,          // rdword: jsr     pc,rdbyte   ; read low  byte
+    0010001,                   //         mov     r0,r1       ; low byte to r1
+    0004767, 0000006,          //         jsr     pc,rdbyte   ; read high byte
+    0000300,                   //         swab    r0
+    0050001,                   //         bis     r0,r1       ; high byte to r1
+    0000207,                   //         rts     pc
+    0005215,                   // rdbyte: inc     (r5)        ; set enable
+    0005715,                   // 1$:     tst     (r5)        ; error set ?
+    0100753,                   //         bmi     err4        ; if mi yes, quit
+    0105715,                   //         tstb    (r5)        ; done set ?
+    0100374,                   //         bpl     1$          ; if pl not, retry
+    0016500, 0000002,          //         mov     2(r5),r0    ; read byte
+    0060002,                   //         add     r0,r2       ; sum checksum
+    0000207                    //         rts     pc
   };
   
   code.clear();
   code.insert(code.end(), std::begin(bootcode), std::end(bootcode));
-  aload  = kBOOT_START;
-  astart = kBOOT_START+2;
+
+  uint32_t memsize = Cpu().MemSize();
+  uint16_t boottop = (memsize > 56*1024) ? 56*1024 : memsize;
+  aload  = boottop - sizeof(bootcode);
+  astart = aload+2;
   return true;
 }
 
@@ -252,7 +232,19 @@ bool Rw11CntlPC11::BootCode(size_t /*unit*/, std::vector<uint16_t>& code,
 void Rw11CntlPC11::UnitSetup(size_t ind)
 {
   Rw11UnitPC11& unit = *fspUnit[ind];
-  SetOnline(ind, unit.HasVirt());           // online if stream attached
+  bool online = unit.HasVirt() && ! (unit.Virt().Error() ||
+                                     unit.Virt().Eof());
+
+  Rw11Cpu& cpu  = Cpu();
+  RlinkCommandList clist;
+  if (ind == kUnit_PR) {                    // reader on/offline
+    uint16_t rcsr  = online ? 0 : kRCSR_M_ERROR;
+    cpu.AddWibr(clist, fBase+kRCSR, rcsr);
+  } else {                                  // puncher on/offline
+    uint16_t pcsr  = online ? 0 : kPCSR_M_ERROR;
+    cpu.AddWibr(clist, fBase+kPCSR, pcsr);
+  }
+  Server().Exec(clist);  
   return;
 }
 
@@ -301,7 +293,7 @@ int Rw11CntlPC11::AttnHandler(RlinkServer::AttnArgs& args)
     if (!rc) {
       RlogMsg lmsg(LogFile());
       lmsg << "-E " << Name() << ":" << emsg;
-      SetOnline(1, false);
+      UnitSetup(1);
     }
   }
 
@@ -319,7 +311,7 @@ int Rw11CntlPC11::AttnHandler(RlinkServer::AttnArgs& args)
         RlogMsg lmsg(LogFile());
         lmsg << "-I " << Name() << ": set reader offline";  
       }  
-      SetOnline(0, false);
+      UnitSetup(0);
       
     } else {
       if (fTraceLevel>0) {
@@ -339,22 +331,5 @@ int Rw11CntlPC11::AttnHandler(RlinkServer::AttnArgs& args)
   return 0;
 }
 
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-void Rw11CntlPC11::SetOnline(size_t ind, bool online)
-{
-  Rw11Cpu& cpu  = Cpu();
-  RlinkCommandList clist;
-  if (ind == kUnit_PR) {                    // reader on/offline
-    uint16_t rcsr  = online ? 0 : kRCSR_M_ERROR;
-    cpu.AddWibr(clist, fBase+kRCSR, rcsr);
-  } else {                                  // puncher on/offline
-    uint16_t pcsr  = online ? 0 : kPCSR_M_ERROR;
-    cpu.AddWibr(clist, fBase+kPCSR, pcsr);
-  }
-  Server().Exec(clist);
-  return;
-}
   
 } // end namespace Retro

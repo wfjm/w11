@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.cpp 1121 2019-03-11 08:59:12Z mueller $
+// $Id: RtclRw11Cpu.cpp 1131 2019-04-14 13:24:25Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,8 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-12  1131   1.2.30 BUGFIX: M_wtcpu(): check cpu attn in no-server case
+//                           add MemSize() getter; loadabs: add -trace and start
 // 2019-03-10  1121   1.2.28 M_cp(): tranfer BlockDone values after rblk
 // 2019-03-09  1120   1.2.27 add -brf,-bwf; add range checks for -wa
 // 2019-02-23  1114   1.2.26 use std::bind instead of lambda
@@ -837,7 +839,7 @@ int RtclRw11Cpu::M_wtcpu(RtclArgs& args)
 
   string opt;
   bool reset = false;
-  double dtout;
+  double dtout = 0.;
 
   while (args.NextOpt(opt, optset)) {
     if (opt == "-reset") reset = true;
@@ -845,25 +847,32 @@ int RtclRw11Cpu::M_wtcpu(RtclArgs& args)
   if (!args.GetArg("tout", dtout, 0.001)) return kERR;
   if (!args.AllDone()) return kERR;
 
+  Rtime tout(dtout);
   Rtime twait;
   int irc = -1;
 
   if (!Server().IsActive()) {               // server is not active
+    Rtime twait1;
     RerrMsg emsg;
     uint16_t apat;
+    uint16_t apatcpu = uint16_t(1)<<Rw11::kLam;
     // FIXME_code: make apat accessible in  tcl
-    irc = Connect().WaitAttn(Rtime(dtout), twait, apat, emsg);
-    if (irc == -2) {                       // wait failed, quit
-      return args.Quit(emsg);
-    }
-    if (irc >= 0) {                        // wait succeeded
+    while (true) {
+      irc = Connect().WaitAttn(tout, twait1, apat, emsg);
+      twait += twait1;
+      tout  -= twait1;
+      if (irc == -2) return args.Quit(emsg); // if fail, quit
+      if (irc < 0) break;                    // if timeout, quit loop 
+
       RlinkCommandList clist;               // get and discard attn pattern 
       clist.AddAttn();
       if (!Connect().Exec(clist, emsg)) return args.Quit(emsg);
+      apat = clist[0].Data();               // get attn pattern
+      if (apat & apatcpu) break;            // cpu seen, quit loop
     }
 
   } else {                                  // server is active
-    irc = Obj().WaitCpuActDown(Rtime(dtout), twait);
+    irc = Obj().WaitCpuActDown(tout, twait);
   } 
 
   if (irc < 0) {                            // timeout
@@ -962,12 +971,28 @@ int RtclRw11Cpu::M_lsmem(RtclArgs& args)
 
 int RtclRw11Cpu::M_ldabs(RtclArgs& args)
 {
+  static RtclNameSet optset("-trace");
+  
+  string opt;
+  bool trace = false;
+  while (args.NextOpt(opt, optset)) {
+    if (opt == "-trace") trace = true;
+  }
+
   string file;
+  string varstart;
   if (!args.GetArg("file", file)) return kERR;
+  if (!args.GetArg("??start", varstart)) return kERR;
   if (!args.AllDone()) return kERR;
   RerrMsg emsg;
+  uint16_t start;
   // FIXME_code: handle memory read/write error
-  if (!Obj().LoadAbs(file, emsg, true)) return args.Quit(emsg);
+  if (!Obj().LoadAbs(file, emsg, start, trace)) return args.Quit(emsg);
+  if (varstart.length()) {
+    Tcl_Interp* interp = args.Interp();
+    RtclOPtr pres(Tcl_NewIntObj(int(start)));
+    if (!Rtcl::SetVar(interp, varstart, pres)) return kERR;
+  }
   return kOK;
 }
   
@@ -1519,6 +1544,7 @@ void RtclRw11Cpu::SetupGetSet()
   fGets.Add<size_t>       ("index",    bind(&Rw11Cpu::Index,    pobj));
   fGets.Add<uint16_t>     ("base",     bind(&Rw11Cpu::Base,     pobj));
   fGets.Add<uint16_t>     ("ibase",    bind(&Rw11Cpu::IBase,    pobj));
+  fGets.Add<uint32_t>     ("memsize",  bind(&Rw11Cpu::MemSize,  pobj));
   fGets.Add<bool>         ("hasscnt",  bind(&Rw11Cpu::HasScnt,  pobj));
   fGets.Add<bool>         ("haspcnt",  bind(&Rw11Cpu::HasPcnt,  pobj));
   fGets.Add<bool>         ("hascmon",  bind(&Rw11Cpu::HasCmon,  pobj));

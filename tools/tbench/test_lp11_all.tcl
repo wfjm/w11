@@ -1,4 +1,4 @@
-# $Id: test_lp11_all.tcl 1126 2019-04-06 17:37:40Z mueller $
+# $Id: test_lp11_all.tcl 1130 2019-04-12 14:54:57Z mueller $
 #
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
@@ -41,7 +41,7 @@ $cpu cp \
   -wibr lpa.csr 0x0 \
   -ribr lpa.csr lprcsr -edata [regbld ibd_lp11::RCSR done] $rcsrmask \
   -rma  lpa.csr        -edata [regbld ibd_lp11::CSR done] \
-  -wibr lpa.csr [regbld ibd_lp11::CSR err] \
+  -wibr lpa.csr               [regbld ibd_lp11::RCSR err] \
   -ribr lpa.csr        -edata [regbld ibd_lp11::RCSR err done] $rcsrmask \
   -rma  lpa.csr        -edata [regbld ibd_lp11::CSR err done] \
   -wma  lpa.csr 0x0 \
@@ -62,13 +62,13 @@ rlc log "    A1.2: csr ie ---------------------------------------"
 $cpu cp \
   -wma  lpa.csr        [regbld ibd_lp11::CSR ie] \
   -rma  lpa.csr -edata [regbld ibd_lp11::CSR ie done] \
-  -ribr lpa.csr -edata [regbld ibd_lp11::CSR ie done]  $rcsrmask\
+  -ribr lpa.csr -edata [regbld ibd_lp11::RCSR ie done]  $rcsrmask\
   -wibr lpa.csr 0x0 \
   -rma  lpa.csr -edata [regbld ibd_lp11::CSR ie done] \
-  -ribr lpa.csr -edata [regbld ibd_lp11::CSR ie done]  $rcsrmask\
+  -ribr lpa.csr -edata [regbld ibd_lp11::RCSR ie done]  $rcsrmask\
   -wma  lpa.csr 0x0 \
   -rma  lpa.csr -edata [regbld ibd_lp11::CSR done] \
-  -ribr lpa.csr -edata [regbld ibd_lp11::CSR done] $rcsrmask
+  -ribr lpa.csr -edata [regbld ibd_lp11::RCSR done] $rcsrmask
 
 if {$type > 0} {                # if buffered test rlim
   rlc log "    A1.3: csr rlim -------------------------------------"
@@ -109,7 +109,7 @@ if {$type == 0} {                # unbuffered --------------------------
 
   rlc log "    A2.2: csr.err=1, no attn, DONE=1, no val data ------"
     $cpu cp \
-    -wibr lpa.csr [regbld ibd_lp11::CSR err] \
+    -wibr lpa.csr [regbld ibd_lp11::RCSR err] \
     -rma  lpa.csr -edata [regbld ibd_lp11::CSR err done] \
     -wma  lpa.buf 031 \
     -rma  lpa.csr -edata [regbld ibd_lp11::CSR err done] \
@@ -135,7 +135,7 @@ if {$type == 0} {                # unbuffered --------------------------
     $cpu cp \
     -wma  lpa.buf 032 \
     -rma  lpa.csr -edata [regbld ibd_lp11::CSR] \
-    -wibr lpa.csr [regbld ibd_lp11::CSR err] \
+    -wibr lpa.csr [regbld ibd_lp11::RCSR err] \
     -wibr lpa.csr 0x0 \
     -rma  lpa.csr -edata [regbld ibd_lp11::CSR done] \
     -ribr lpa.buf -edata [regbld ibd_lp11::RBUF {size 0} {data 032} ]
@@ -207,7 +207,7 @@ if {$type == 0} {                # unbuffered --------------------------
   $cpu cp \
     -wma   lpa.buf 043 \
     -wma   lpa.buf 044 \
-    -wibr  lpa.csr [regbld ibd_lp11::CSR err] \
+    -wibr  lpa.csr [regbld ibd_lp11::RCSR err] \
     -wibr  lpa.csr 0x0 \
     -rbibr lpa.buf 3 -estaterr -edone 0 
   # expect and harvest attn (drop other attn potentially triggered by breset)
@@ -312,11 +312,11 @@ stop:
   }
   $cpu cp \
     -rbibr lpa.buf $fs4 -edata $edata \
-    -ribr lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 size 2 data 066] \
-    -rma  lpa.csr -edata [regbld ibd_lp11::CSR done] \
-    -ribr lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 size 1 data 066] \
-    -rma  lpa.csr -edata [regbld ibd_lp11::CSR done] \
-    -ribr lpa.buf -estaterr
+    -ribr  lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 size 2 data 066] \
+    -rma   lpa.csr -edata [regbld ibd_lp11::CSR done] \
+    -ribr  lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 size 1 data 066] \
+    -rma   lpa.csr -edata [regbld ibd_lp11::CSR done] \
+    -ribr  lpa.buf -estaterr
   
   rlc log "    A3.7: BRESET on full fifo sets DONE=1 --------------"
   #     1 loc wr -> get attn (1 in fifo; DONE=1)

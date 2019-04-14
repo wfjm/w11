@@ -1,0 +1,183 @@
+#!/usr/bin/perl -w
+# $Id: ldadump 1131 2019-04-14 13:24:25Z mueller $
+#
+# Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+#
+# This program is free software; you may redistribute and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 3, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# for complete details.
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2019-04-13  1131   1.0    Initial version
+#
+#
+
+use 5.14.0;                                 # require Perl 5.14 or higher
+use strict;                                 # require strict checking
+
+use Getopt::Long;
+
+my %opts = ();
+
+GetOptions(\%opts, "help", "lsm", "tbyt", "trec")
+  or bailout("bad command options");
+
+if (exists $opts{help}) {
+  print_help();
+  exit 0;
+}
+
+foreach my $files (@ARGV) {
+  do_file($files);
+}
+
+#-------------------------------------------------------------------------------
+
+sub do_file {
+  my ($file) = @_;
+  my $fh;
+
+  if ($file eq '-') {
+    $fh = *STDIN;
+  } else {
+    open($fh,'<:raw',$file) or bailout("failed to open '$file': $!");
+  }
+
+  my @bytes;
+  while (1) {
+    my $buf;
+    my $rc = read($fh, $buf, 1024);
+    bailout("failed to read '$file': $!") unless defined $rc;
+    last if $rc == 0;
+    push @bytes,unpack 'C*',$buf;
+  }
+  close $fh;
+
+  my $addr = 0;                             # current address
+  my $ldaddr = 0;                           # block load address
+  my $chksum = 0;                           # check sum
+  my $chrnum = -1;                          # char number in bock
+  my $blknum = 0;                           # char number in bock
+  my $bytcnt = 0;                           # byte count
+  my $state  = 'chr0';
+  my $cstate = 'chr0';
+  my $caddr  = 0;
+
+  my %mem;
+
+  foreach my $byte (@bytes) {
+    $cstate = $state;
+    $caddr  = $addr;
+    $chrnum += 1;
+    $chksum  = ($chksum + $byte) & 0xff;    # 8 bit arithmetic
+
+    if      ($state eq 'chr0') {            # state: chr0 --------------------
+      if ($byte == 0) {
+        $chrnum = -1;
+        $state  = 'chr0';
+      } elsif ($byte == 1) {
+        $state = 'chr1';
+      } else {
+        bailout("unexpected byte in 'chr0':" . sprintf('%3.3o',$byte));
+      }
+
+    } elsif ($state eq 'chr1') {            # state: chr1 --------------------
+      if ($byte == 0) {
+        $state = 'cntlow';
+      } else {
+        bailout("unexpected byte in 'chr1:" . sprintf('%3.3o',$byte));
+      }
+
+    } elsif ($state eq 'cntlow') {          # state: cntlow ------------------
+      $bytcnt = $byte;
+      $state = 'cnthgh';
+
+    } elsif ($state eq 'cnthgh') {          # state: cnthgh ------------------
+      $bytcnt |= ($byte<<8);
+      $state = 'adrlow';
+
+    } elsif ($state eq 'adrlow') {          # state: adrlow ------------------
+      $addr = $byte;
+      $state = 'adrhgh';
+
+    } elsif ($state eq 'adrhgh') {          # state: adrhgh ------------------
+      $addr |= ($byte<<8);
+      $ldaddr = $addr;
+      $state = ($bytcnt == 6) ? 'chksum' : 'data';
+      if ($opts{trec}) {
+        printf "block %3d, length %4d byte, address %6.6o:%6.6o\n",
+          $blknum, $bytcnt-6, $ldaddr, $ldaddr+($bytcnt-6)-1;
+      }
+
+    } elsif ($state eq 'data') {            # state: data --------------------
+      my $oaddr = sprintf '%6.6o', ($addr & 0xfffe);
+      my $b0 = 0;
+      my $b1 = 0;
+      if (exists $mem{$oaddr}) {
+        $b0 =  $mem{$oaddr}     & 0xff;
+        $b1 = ($mem{$oaddr}>>8) & 0xff;
+      }
+      $b0 = $byte if ($addr & 0x1) == 0;
+      $b1 = $byte if ($addr & 0x1) != 0;
+      $mem{$oaddr} = ($b1 << 8) | $b0;
+
+      $addr += 1;
+      $state = ($chrnum == $bytcnt-1) ? 'chksum' : 'data';
+
+    } elsif ($state eq 'chksum') {          # state: chksum ------------------
+      $chrnum  = -1;
+      $blknum +=  1;
+      $state  = 'chr0';
+    } else {                                # state: BAD ---------------------
+      bailout("BUGCHECK: bad state '$state'");
+    }
+    if ($opts{tbyt}) {
+      printf "%-6s: n=%4d c=%4d cs=%3.3o a=%6.6o: %3.3o\n",
+        $cstate, $chrnum, $bytcnt, $chksum, $caddr, $byte;
+    }
+    last if $cstate eq 'chksum' && $bytcnt == 6;
+  }
+
+  bailout("unexpected EOF in state '$cstate'")
+    unless $cstate eq 'chksum' && $bytcnt == 6;
+
+  my $nmax = $opts{lsm} ? 1 : 8;
+  my $nval = 0;
+  $caddr = 0;
+  foreach my $oaddr (sort keys %mem) {
+    my $addr = oct($oaddr);
+    if ($nval >= $nmax || ($nval > 0 && $caddr != $addr)) {
+      print  "\n";
+      $nval = 0;
+    }
+    printf "%s :",$oaddr if $nval == 0;
+    printf " %6.6o", $mem{$oaddr};
+    $caddr = $addr + 2;
+    $nval += 1;
+  }
+  print  "\n" if $nval > 0;
+}
+
+#-------------------------------------------------------------------------------
+
+sub bailout {
+  my ($msg) = @_;
+  print STDERR "ldadump-F: $msg\n";
+  exit 1;
+}
+
+#-------------------------------------------------------------------------------
+
+sub print_help {
+  print "usage: ldadump [opts] <file>\n";
+  print "  --lsm    dump in lsmem format\n";
+  print "  --tbyt   trace input bytes and states\n";
+  print "  --trec   trace records\n";
+  print "  --help   this message\n";
+}

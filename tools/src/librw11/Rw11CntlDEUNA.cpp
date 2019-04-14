@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDEUNA.cpp 1114 2019-02-23 18:01:55Z mueller $
+// $Id: Rw11CntlDEUNA.cpp 1131 2019-04-14 13:24:25Z mueller $
 //
 // Copyright 2014-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -353,8 +353,9 @@ void Rw11CntlDEUNA::Start()
   // setup primary info clist
   SetupPrimClist();
 
+  // ensure unit status is initialized
   fPr1State = kSTATE_READY;
-  UnitSetup(0);
+  UnitSetupAll();
 
   // add attn handler
   Server().AddAttnHandler(bind(&Rw11CntlDEUNA::AttnHandler, this, _1), 

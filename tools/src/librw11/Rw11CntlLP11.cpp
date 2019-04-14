@@ -1,4 +1,4 @@
-// $Id: Rw11CntlLP11.cpp 1127 2019-04-07 10:59:07Z mueller $
+// $Id: Rw11CntlLP11.cpp 1131 2019-04-14 13:24:25Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-14  1131   1.3.2  remove SetOnline(), use UnitSetup()
 // 2019-04-07  1127   1.3.1  add fQueBusy, queue protection; fix logic;
 //                           Start(): ensure unit offline; better tracing
 // 2019-03-17  1123   1.3    add lp11_buf readout
@@ -128,12 +129,12 @@ void Rw11CntlLP11::Start()
   Cpu().AllIAddrMapInsert(Name()+".csr", Base() + kCSR);
   Cpu().AllIAddrMapInsert(Name()+".buf", Base() + kBUF);
 
-  // ensure that printer is set offline at startup time
-  SetOnline(false);
-  
   // detect device type
   fItype = (fProbe.DataRem()>>kCSR_V_TYPE) & kCSR_B_TYPE;
   fFsize = (1<<fItype) - 1;
+  
+  // ensure unit status is initialized (online, rlim,...)
+  UnitSetupAll();
   
   // setup primary info clist
   fPrimClist.Clear();
@@ -160,7 +161,15 @@ void Rw11CntlLP11::Start()
 void Rw11CntlLP11::UnitSetup(size_t ind)
 {
   Rw11UnitLP11& unit = *fspUnit[ind];
-  SetOnline(unit.HasVirt());                // online if stream attached
+  bool online = unit.HasVirt() && ! unit.Virt().Error();
+  
+  Rw11Cpu& cpu  = Cpu();
+  uint16_t csr  = (online ? 0 : kCSR_M_ERROR) |             //  err field 
+                  ((fRlim & kCSR_B_RLIM) << kCSR_V_RLIM);   // rlim field
+  RlinkCommandList clist;
+  cpu.AddWibr(clist, fBase+kCSR, csr);
+  Server().Exec(clist);
+  
   return;
 }
 
@@ -173,9 +182,7 @@ void Rw11CntlLP11::SetRlim(uint16_t rlim)
     throw Rexception("Rw11CntlLP11::SetRlim","Bad args: rlim too large");
 
   fRlim = rlim;
-  
-  Rw11UnitLP11& unit = *fspUnit[0];
-  SetOnline(unit.HasVirt());
+  UnitSetup(0);
   return;
 }
   
@@ -212,20 +219,6 @@ int Rw11CntlLP11::AttnHandler(RlinkServer::AttnArgs& args)
   }
   
   return 0;
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-void Rw11CntlLP11::SetOnline(bool online)
-{
-  Rw11Cpu& cpu  = Cpu();
-  uint16_t csr  = (online ? 0 : kCSR_M_ERROR) |             //  err field 
-                  ((fRlim & kCSR_B_RLIM) << kCSR_V_RLIM);   // rlim field
-  RlinkCommandList clist;
-  cpu.AddWibr(clist, fBase+kCSR, csr);
-  Server().Exec(clist);
-  return;
 }
   
 //------------------------------------------+-----------------------------------
@@ -273,7 +266,7 @@ void Rw11CntlLP11::WriteChar(uint8_t ochr)
   if (!rc) {
     RlogMsg lmsg(LogFile());
     lmsg << emsg;
-    SetOnline(false);
+    UnitSetup(0);
   }
   if (ochr == '\f') {                     // ^L = FF = FormFeed seen ?
     fStats.Inc(kStatNPage);

@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.ipp 1112 2019-02-17 11:10:04Z mueller $
+// $Id: Rw11Cpu.ipp 1131 2019-04-14 13:24:25Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-13  1131   1.2.5  add MemSize()
 // 2019-02-15  1112   1.2.4  add HasIbtst()
 // 2018-09-23  1050   1.2.3  add HasPcnt()
 // 2017-02-17   851   1.2.2  probe/setup auxilliary devices: kw11l,kw11p,iist
@@ -93,6 +94,14 @@ inline uint16_t Rw11Cpu::Base() const
 inline uint16_t Rw11Cpu::IBase() const
 {
   return fIBase;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline uint32_t Rw11Cpu::MemSize() const
+{
+  return fMemSize;
 }
 
 //------------------------------------------+-----------------------------------

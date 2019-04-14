@@ -1,4 +1,4 @@
-// $Id: Rw11CntlRL11.cpp 1114 2019-02-23 18:01:55Z mueller $
+// $Id: Rw11CntlRL11.cpp 1131 2019-04-14 13:24:25Z mueller $
 //
 // Copyright 2014-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -16,6 +16,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-14  1131   1.0.12 proper unit init, call UnitSetupAll() in Start()
 // 2019-02-23  1114   1.0.11 use std::bind instead of lambda
 // 2018-12-22  1091   1.0.10 AttnHandler(): sa->san (-Wshadow fix)
 // 2018-12-19  1090   1.0.9  use RosPrintf(bool)
@@ -245,6 +246,9 @@ void Rw11CntlRL11::Start()
   Cpu().AllIAddrMapInsert(Name()+".ba", Base() + kRLBA);
   Cpu().AllIAddrMapInsert(Name()+".da", Base() + kRLDA);
   Cpu().AllIAddrMapInsert(Name()+".mp", Base() + kRLMP);
+
+  // ensure unit status is initialized
+  UnitSetupAll();
 
   // setup primary info clist
   fPrimClist.Clear();

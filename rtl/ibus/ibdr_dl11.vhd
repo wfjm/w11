@@ -1,4 +1,4 @@
--- $Id: ibdr_dl11.vhd 1128 2019-04-07 13:12:47Z mueller $
+-- $Id: ibdr_dl11.vhd 1131 2019-04-14 13:24:25Z mueller $
 --
 -- Copyright 2008-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -28,6 +28,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-04-14  1131   1.3.1  RLIM_CEV now slv8
 -- 2019-04-07  1127   1.3    for dl11_buf compat: xbuf.val in bit 15 and 8;
 --                           use rbuf instead xbuf for rdry reporting; remove
 --                           maintenance mode; use ib_rlim_slv; drop CE_USEC
@@ -61,7 +62,7 @@ entity ibdr_dl11 is                     -- ibus dev(rem): DL11-A/B
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- system reset
     BRESET : in slbit;                  -- ibus reset
-    RLIM_CEV : in  slv7;                -- clock enable vector
+    RLIM_CEV : in  slv8;                -- clock enable vector
     RB_LAM : out slbit;                 -- remote attention
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response

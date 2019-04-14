@@ -7,6 +7,20 @@ This file descibes general issues.
 
 The case id indicates the release when the issue was first recognized.
 
+### V0.50-3 {[issue #27](https://github.com/wfjm/w11/issues/27)} -- CPU: no mmu trap when instruction which clears trap enable itself causes a trap
+
+The MMU should issue an mmu trap if the instruction clearing the
+'mmu trap enable' bit (bit 9 in ssr0) itself causes a trap. 
+The 11/70 documentation clearly describes this behavior.
+
+This is the reason why test 063 of the `ekbee1` diagnostics currently fails.
+
+Since the MMU trap mechanism is is only available on 11/45 and 11/70, but
+not in the J11, it is not used by common operating systems.
+
+Therefore this is considered a to be a minor deficit. Will be fixed in an
+upcoming release.
+
 ### V0.50-6 {[issue #26](https://github.com/wfjm/w11/issues/26)} -- CPU: SSR0 trap bit set when access aborted
 
 The MMU should set the 'trap bit' in `SSR0` only when the access is not

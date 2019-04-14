@@ -1,4 +1,4 @@
--- $Id: iblib.vhd 1123 2019-03-17 17:55:12Z mueller $
+-- $Id: iblib.vhd 1131 2019-04-14 13:24:25Z mueller $
 --
 -- Copyright 2008-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  ise 8.1-14.7; viv 2014.4-2018.3; ghdl 0.18-0.35
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-04-14  1131   2.2.3  ib_rlim_gen: add CPUSUSP port; RLIM_CEV now slv8
 -- 2019-03-17  1123   2.2.2  add ib_rlim_gen,ib_rlim_slv
 -- 2019-02-10  1111   2.2.1  add ibd_ibtst
 -- 2017-01-28   846   2.2    add ib_intmap24
@@ -183,7 +184,8 @@ component ib_rlim_gen is                -- ibus rate limter - master
     CLK : in slbit;                     -- clock
     CE_USEC : in slbit;                 -- usec pulse
     RESET : in slbit;                   -- system reset
-    RLIM_CEV : out slv7                 -- clock enable vector
+    CPUSUSP : in slbit;                 -- cpu suspended
+    RLIM_CEV : out slv8                 -- clock enable vector
   );
 end component;
 
@@ -191,7 +193,7 @@ component ib_rlim_slv is                -- ibus rate limter - slave
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- system reset
-    RLIM_CEV : in  slv7;                -- clock enable vector
+    RLIM_CEV : in  slv8;                -- clock enable vector
     SEL : in  slv3;                     -- rlim select
     START : in slbit;                   -- start timer
     STOP : in slbit;                    -- stop timer

@@ -1,0 +1,88 @@
+.\"  -*- nroff -*-
+.\"  $Id: ldadump.1 1131 2019-04-14 13:24:25Z mueller $
+.\"
+.\" Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" 
+.\" ------------------------------------------------------------------
+.
+.TH DMPCNTANAL 1 2019-04-14 "Retro Project" "Retro Project Manual"
+.\" ------------------------------------------------------------------
+.SH NAME
+ldadump \- dump lda file (absolute loader papertape format)
+.\" ------------------------------------------------------------------
+.SH SYNOPSIS
+.
+.SY ldadump
+.RI [ OPTION ]...
+.IR FILE ...
+.
+.SY ldadump
+.B \-\-help
+.YS
+.
+.\" ------------------------------------------------------------------
+.SH DESCRIPTION
+Reads files in \fIlda\fP format, also known as absolute loader papertape
+format, and prints a dump of the memory image. The default dump format
+is a compact with up to 8 words per line. The \fB\-\-lsm\fP option changes
+this to a \fIlsmem\fP command style address data list with a single word
+per line.
+
+.\" ------------------------------------------------------------------
+.SH OPTIONS
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-lsm\fR"
+use one word per line \fIlsmem\fP command style output format.
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-trec\fR"
+add a list of \fIlda\fP file record descriptions in front of the
+memory dump.
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-tbyt\fR"
+prints a byte-by-byte trace of the input processing. Mainly useful for
+for low level debuging.
+
+.\" ------------------------------------------------------------------
+.SH EXAMPLES
+.IP "\fBldadump xxx.lda\fR" 4
+reads the file \fIxxx.lda\fR and prints a compact memory dump like
+
+.EX
+000300 : 000302 000000 000306 000000 000312 000000 000316 000000
+001000 : 000000 000000 000001 000000 000000 000000 000000 000000
+001020 : 002370 002404 002440 002510 000000
+002000 : 000237 010067 176772 010167 176770 010267 176766 005067
+002020 : 176764 005067 176762 005067 176760 005067 176756 012737
+.EE
+
+.IP "\fBldadump -trec xxx.lda\fR" 4
+reads the file \fIxxx.lda\fR and adds before the memory dump
+a lda record list like
+
+.EX
+block   0, length   28 byte, address 000004:000037
+block   1, length   12 byte, address 000240:000253
+block   2, length   24 byte, address 000060:000107
+block   3, length    4 byte, address 000120:000123
+block   4, length    4 byte, address 000160:000163
+block   5, length    4 byte, address 000200:000203
+block   6, length    8 byte, address 000220:000227
+block   7, length    8 byte, address 000254:000263
+block   8, length   16 byte, address 000300:000317
+block   9, length    4 byte, address 000220:000223
+block  10, length   26 byte, address 001000:001031
+block  11, length  336 byte, address 002000:002517
+block  12, length   26 byte, address 002520:002551
+block  13, length    0 byte, address 000001:000000
+.EE
+
+.\" ------------------------------------------------------------------
+.SH "SEE ALSO"
+.BR asm-11 (1)
+
+.\" ------------------------------------------------------------------
+.SH AUTHOR
+Walter F.J. Mueller <W.F.J.Mueller@gsi.de>

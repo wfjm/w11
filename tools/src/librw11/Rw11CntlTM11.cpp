@@ -1,4 +1,4 @@
-// $Id: Rw11CntlTM11.cpp 1114 2019-02-23 18:01:55Z mueller $
+// $Id: Rw11CntlTM11.cpp 1131 2019-04-14 13:24:25Z mueller $
 //
 // Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -15,6 +15,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-14  1131   1.0.9  proper unit init, call UnitSetupAll() in Start()
 // 2019-02-23  1114   1.0.8  use std::bind instead of lambda
 // 2018-12-15  1082   1.0.7  use std::bind or lambda instead of boost::bind
 // 2018-12-09  1080   1.0.6  use HasVirt(); Virt() returns ref
@@ -193,6 +194,9 @@ void Rw11CntlTM11::Start()
   Cpu().AllIAddrMapInsert(Name()+".ba", Base() + kTMBA);
   Cpu().AllIAddrMapInsert(Name()+".db", Base() + kTMDB);
   Cpu().AllIAddrMapInsert(Name()+".rl", Base() + kTMRL);
+
+  // ensure unit status is initialized
+  UnitSetupAll();
 
   // setup primary info clist
   fPrimClist.Clear();

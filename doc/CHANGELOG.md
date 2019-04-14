@@ -35,20 +35,33 @@ The full set of tests is only run for tagged releases.
   - w11a_ibmon/*: tbench for ibd_ibmon
   - w11a/test_w11a_sdreg.tcl: tbench for sdreg
   - test_lp11_all.tcl: tbench for lp11 and lp11_buf
+- new tools
+  - ldadump: lda file dumper
 
 ### Changes
 - tools changes
-  - RlinkServer: trace now with timestamp and selective
-  - Rw11Cpu,RtclRw11Cpu: add ibmon setup and HasIbtst()
   - RtclGet.ipp: use const& for oper() of string& and Rtime&
+  - RtimerFd,ReventFd: move to librtools
   - RlinkCommand: add BlockDoneAll()
-  - RtclRw11Cpu: add cp -brf and -bwf; add range checks for cp -wa
+  - RlinkServer: trace now with timestamp and selective
+  - Rw11Cpu,RtclRw11Cpu:
+    - add ibmon setup and HasIbtst()
+    - added defs for w11 cpu component addresses
+    - added MemSize() and MemWriteByte()
+    - LoadAbs(): return start, better odd byte handling
+    - add cp -brf and -bwf; add range checks for cp -wa
+  - Rw11VirtStream: added Error(),Eof()
   - ensure that after aborted rblk only BlockDone words are processed
     - RlinkCommand: Print(): use BlockDone() as length for rblk
     - RlinkConnect: DecodeResponse(): rblk expect check over BlockDone
     - RtclRlinkConnect: M_exec(): tranfer BlockDone values after rblk
     - RtclRw11Cpu: M_cp(): tranfer BlockDone values after rblk
-  - RtimerFd,ReventFd: move to librtools
+  - Rw11Cntl: add UnitSetup(), UnitSetupAll()
+  - Rw11Cntl{DEUNA,DL11,RHRP,RK11,RL11,TM11}: call UnitSetupAll() in Start()
+  - Rw11CntlLP11: remove SetOnline(), use UnitSetup()
+  - Rw11CntlPC11
+    - BootCode(): boot loader rewritten 
+    - remove SetOnline(), use UnitSetup()  
 - firmware changes
   - rbd_rbmon: more robust ack,err trace when busy
   - rbd_tester: use now fifo_simple_dram
@@ -75,6 +88,7 @@ The full set of tests is only run for tagged releases.
 - RlinkContext: use now proper polarity of status mask. Was wrong since
   2015-05-12 release w11a_V0.753 which inverted the mask polarity. Had no
   practical consequences, went therefore undetected for such a long time.
+- RtclRw11Cpu: now proper cpu attn test in the server inactive case
 
 ### Known issues
 

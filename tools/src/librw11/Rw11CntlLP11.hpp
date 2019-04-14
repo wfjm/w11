@@ -1,4 +1,4 @@
-// $Id: Rw11CntlLP11.hpp 1127 2019-04-07 10:59:07Z mueller $
+// $Id: Rw11CntlLP11.hpp 1131 2019-04-14 13:24:25Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History:
 // Date         Rev Version  Comment
+// 2019-04-14  1131   1.2.2  remove SetOnline(), use UnitSetup()
 // 2019-04-07  1127   1.2.1  add fQueBusy and queue protection
 // 2019-03-17  1123   1.2    buf.val in msb; add lp11_buf readout
 // 2017-04-02   865   1.1.1  Dump(): add detail arg
@@ -88,7 +89,6 @@ namespace Retro {
 
     protected:
       int           AttnHandler(RlinkServer::AttnArgs& args);
-      void          SetOnline(bool online);
       void          ProcessUnbuf(uint16_t buf);
       void          WriteChar(uint8_t ochr);
       void          ProcessBuf(const RlinkCommand& cmd, bool prim);

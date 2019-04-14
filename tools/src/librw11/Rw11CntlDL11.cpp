@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDL11.cpp 1126 2019-04-06 17:37:40Z mueller $
+// $Id: Rw11CntlDL11.cpp 1131 2019-04-14 13:24:25Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-14  1131   1.4.1  proper unit init, call UnitSetupAll() in Start()
 // 2019-04-06  1126   1.4    xbuf.val in msb; rrdy in rbuf (new iface)
 // 2019-02-23  1114   1.3.2  use std::bind instead of lambda
 // 2018-12-15  1082   1.3.1  use lambda instead of boost::bind
@@ -131,6 +132,9 @@ void Rw11CntlDL11::Start()
   Cpu().AllIAddrMapInsert(Name()+".rbuf", Base() + kRBUF);
   Cpu().AllIAddrMapInsert(Name()+".xcsr", Base() + kXCSR);
   Cpu().AllIAddrMapInsert(Name()+".xbuf", Base() + kXBUF);
+
+  // ensure unit status is initialized (rlim,...)
+  UnitSetupAll();
 
   // setup primary info clist
   fPrimClist.Clear();

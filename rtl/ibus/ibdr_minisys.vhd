@@ -1,4 +1,4 @@
--- $Id: ibdr_minisys.vhd 1129 2019-04-07 13:27:35Z mueller $
+-- $Id: ibdr_minisys.vhd 1131 2019-04-14 13:24:25Z mueller $
 --
 -- Copyright 2008-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -33,6 +33,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-04-14  1131   1.1.4  ib_rlim_gen has CPUSUSP port; RLIM_CEV now slv8
 -- 2019-04-07  1129   1.1.3  ibdr_dl11: use RLIM_CEV, drop CE_USEC
 -- 2011-11-18   427   1.1.2  now numeric_std clean
 -- 2010-10-23   335   1.1.1  rename RRI_LAM->RB_LAM;
@@ -127,7 +128,7 @@ architecture syn of ibdr_minisys is
   signal EI_ACK_DL11TX : slbit := '0';
   signal EI_ACK_RK11 : slbit := '0';
   
-  signal RLIM_CEV : slv7 := (others=>'0');
+  signal RLIM_CEV : slv8 := (others=>'0');
 
 begin
 
@@ -136,6 +137,7 @@ begin
       CLK      => CLK,
       CE_USEC  => CE_USEC,
       RESET    => '0',
+      CPUSUSP  => '0',
       RLIM_CEV => RLIM_CEV
     );
 

@@ -1,4 +1,4 @@
--- $Id: ibdr_maxisys.vhd 1128 2019-04-07 13:12:47Z mueller $
+-- $Id: ibdr_maxisys.vhd 1131 2019-04-14 13:24:25Z mueller $
 --
 -- Copyright 2009-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -51,6 +51,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-04-14  1131   1.6.5  ib_rlim_gen has CPUSUSP port; RLIM_CEV now slv8
 -- 2019-04-07  1127   1.6.3  ibdr_dl11: use RLIM_CEV, drop CE_USEC
 -- 2019-03-17  1123   1.6.2  add ib_rlim_gen, use with ibdr_lp11_buf
 -- 2019-03-09  1121   1.6.1  add ibdr_lp11_buf
@@ -232,7 +233,7 @@ architecture syn of ibdr_maxisys is
   signal EI_ACK_PC11PTP  : slbit := '0';
   signal EI_ACK_LP11     : slbit := '0';
   
-  signal RLIM_CEV : slv7 := (others=>'0');
+  signal RLIM_CEV : slv8 := (others=>'0');
 
 begin
 
@@ -241,6 +242,7 @@ begin
       CLK      => CLK,
       CE_USEC  => CE_USEC,
       RESET    => '0',
+      CPUSUSP  => CPUSUSP,
       RLIM_CEV => RLIM_CEV
     );
 

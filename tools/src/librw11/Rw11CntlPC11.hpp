@@ -1,4 +1,4 @@
-// $Id: Rw11CntlPC11.hpp 1126 2019-04-06 17:37:40Z mueller $
+// $Id: Rw11CntlPC11.hpp 1131 2019-04-14 13:24:25Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-14  1131   1.3.1  remove SetOnline(), use UnitSetup()
 // 2019-04-06  1126   1.3    pbuf.val in msb; rbusy in rbuf (new iface)
 // 2017-04-02   865   1.2.1  Dump(): add detail arg
 // 2014-12-29   623   1.1    adapt to Rlink V4 attn logic
@@ -87,7 +88,6 @@ namespace Retro {
 
     protected:
       int           AttnHandler(RlinkServer::AttnArgs& args);
-      void          SetOnline(size_t ind, bool online);
     
     protected:
       size_t        fPC_pbuf;               //!< PrimClist: pbuf index

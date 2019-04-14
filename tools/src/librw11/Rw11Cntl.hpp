@@ -1,6 +1,6 @@
-// $Id: Rw11Cntl.hpp 1084 2018-12-16 12:23:53Z mueller $
+// $Id: Rw11Cntl.hpp 1131 2019-04-14 13:24:25Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-14  1131   1.2.4  add UnitSetup(), UnitSetupAll()
 // 2018-12-16  1084   1.2.3  use =delete for noncopyable instead of boost
 // 2017-04-15   874   1.2.2  NUnit() now pure; add UnitBase()
 // 2017-04-02   865   1.2.1  Dump(): add detail arg
@@ -83,6 +84,8 @@ namespace Retro {
       virtual Rw11Unit& UnitBase(size_t index) const = 0;
       virtual bool  BootCode(size_t unit, std::vector<uint16_t>& code, 
                              uint16_t& aload, uint16_t& astart);
+      virtual void  UnitSetup(size_t ind);
+      void          UnitSetupAll();
 
       void          SetTraceLevel(uint32_t level);
       uint32_t      TraceLevel() const;

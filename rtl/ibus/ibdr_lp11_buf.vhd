@@ -1,4 +1,4 @@
--- $Id: ibdr_lp11_buf.vhd 1123 2019-03-17 17:55:12Z mueller $
+-- $Id: ibdr_lp11_buf.vhd 1131 2019-04-14 13:24:25Z mueller $
 --
 -- Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -23,6 +23,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-04-14  1131   1.0.1  RLIM_CEV now slv8
 -- 2019-03-17  1123   1.0    Initial version
 -- 2019-03-10  1121   0.1    First draft (derived from ibdr_lp11)
 ------------------------------------------------------------------------------
@@ -42,7 +43,7 @@ use work.memlib.all;
 use work.iblib.all;
 
 -- ----------------------------------------------------------------------------
-entity ibdr_lp11_buf is                 -- ibus dev(rem): LP11
+entity ibdr_lp11_buf is                 -- ibus dev(rem): LP11  (buffered)
                                         -- fixed address: 177514
   generic (
     AWIDTH : natural :=  5);            -- fifo address width
@@ -50,7 +51,7 @@ entity ibdr_lp11_buf is                 -- ibus dev(rem): LP11
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- system reset
     BRESET : in slbit;                  -- ibus reset
-    RLIM_CEV : in  slv7;                -- clock enable vector
+    RLIM_CEV : in  slv8;                -- clock enable vector
     RB_LAM : out slbit;                 -- remote attention
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response
@@ -199,9 +200,6 @@ begin
 
         when ibaddr_csr =>              -- CSR -- control status -------------
           idout(csr_ibf_err)  := r.err;
-          if IB_MREQ.racc = '1' then
-            idout(csr_ibf_type) := slv(to_unsigned(AWIDTH,3));
-          end if;
           idout(csr_ibf_done) := r.done;
           idout(csr_ibf_ie)   := r.ie;
           if IB_MREQ.racc = '0' then      -- cpu
@@ -217,6 +215,7 @@ begin
             end if;
           else                            -- rri
             idout(csr_ibf_rlim) := r.rlim;
+            idout(csr_ibf_type) := slv(to_unsigned(AWIDTH,3));
             if ibw1 = '1' then
               n.err  := IB_MREQ.din(csr_ibf_err);
               n.rlim := IB_MREQ.din(csr_ibf_rlim);

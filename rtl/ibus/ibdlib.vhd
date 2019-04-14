@@ -1,4 +1,4 @@
--- $Id: ibdlib.vhd 1128 2019-04-07 13:12:47Z mueller $
+-- $Id: ibdlib.vhd 1131 2019-04-14 13:24:25Z mueller $
 --
 -- Copyright 2008-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  ise 8.2-14.7; viv 2014.4-2018.3; ghdl 0.18-0.35
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-04-14  1131   1.3.6  RLIM_CEV now slv8
 -- 2019-04-07  1128   1.3.4  ibdr_dl11: use RLIM_CEV, drop CE_USEC
 -- 2019-03-09  1121   1.3.3  add ibdr_lp11_buf
 -- 2018-10-13  1055   1.3.2  update ibdr_maxisys (add IDEC port)
@@ -227,7 +228,7 @@ component ibdr_dl11 is                  -- ibus dev(rem): DL11-A/B
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- system reset
     BRESET : in slbit;                  -- ibus reset
-    RLIM_CEV : in  slv7;                -- clock enable vector
+    RLIM_CEV : in  slv8;                -- clock enable vector
     RB_LAM : out slbit;                 -- remote attention
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response
@@ -268,7 +269,7 @@ component ibdr_lp11 is                  -- ibus dev(rem): LP11
   );
 end component;
 
-component ibdr_lp11_buf is              -- ibus dev(rem): LP11
+component ibdr_lp11_buf is              -- ibus dev(rem): LP11 (buffered)
                                         -- fixed address: 177514
   generic (
     AWIDTH : natural :=  5);            -- fifo address width
@@ -276,7 +277,7 @@ component ibdr_lp11_buf is              -- ibus dev(rem): LP11
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- system reset
     BRESET : in slbit;                  -- ibus reset
-    RLIM_CEV : in  slv7;                -- clock enable vector
+    RLIM_CEV : in  slv8;                -- clock enable vector
     RB_LAM : out slbit;                 -- remote attention
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response

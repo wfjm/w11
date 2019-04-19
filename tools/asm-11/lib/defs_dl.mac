@@ -1,4 +1,4 @@
-; $Id: defs_dl.mac 1127 2019-04-07 10:59:07Z mueller $
+; $Id: defs_dl.mac 1133 2019-04-19 18:43:00Z mueller $
 ; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ; License disclaimer see License.txt in $RETROBASE directory
 ;
@@ -13,10 +13,10 @@
 ; 
 ; register addresses
 ; 
-        pr.csr=177560
-        pr.buf=177562
-        pp.csr=177564
-        pp.buf=177566
+        ti.csr=177560
+        ti.buf=177562
+        to.csr=177564
+        to.buf=177566
 ;
 ; symbol definitions for ti.csr
 ;

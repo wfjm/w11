@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDEUNA.cpp 1131 2019-04-14 13:24:25Z mueller $
+// $Id: Rw11CntlDEUNA.cpp 1133 2019-04-19 18:43:00Z mueller $
 //
 // Copyright 2014-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-19  1133   0.5.9  use ExecWibr()
 // 2019-02-23  1114   0.5.8  use std::bind instead of lambda
 // 2018-12-19  1090   0.5.7  use RosPrintf(bool)
 // 2018-12-17  1087   0.5.6  use std::lock_guard instead of boost
@@ -370,13 +371,7 @@ void Rw11CntlDEUNA::Start()
 
 void Rw11CntlDEUNA::UnitSetup(size_t /*ind*/)
 {
-  RlinkCommandList clist;
-  Rw11Cpu& cpu  = Cpu();
-
-  cpu.AddWibr(clist, fBase+kPR1, GetPr1());
-
-  Server().Exec(clist);
-
+  Cpu().ExecWibr(fBase+kPR1, GetPr1());
   // FIXME_code !!! Is that all ???
   return;
 }

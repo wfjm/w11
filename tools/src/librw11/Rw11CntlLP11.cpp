@@ -1,4 +1,4 @@
-// $Id: Rw11CntlLP11.cpp 1131 2019-04-14 13:24:25Z mueller $
+// $Id: Rw11CntlLP11.cpp 1133 2019-04-19 18:43:00Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-19  1133   1.3.3  use ExecWibr()
 // 2019-04-14  1131   1.3.2  remove SetOnline(), use UnitSetup()
 // 2019-04-07  1127   1.3.1  add fQueBusy, queue protection; fix logic;
 //                           Start(): ensure unit offline; better tracing
@@ -161,15 +162,10 @@ void Rw11CntlLP11::Start()
 void Rw11CntlLP11::UnitSetup(size_t ind)
 {
   Rw11UnitLP11& unit = *fspUnit[ind];
-  bool online = unit.HasVirt() && ! unit.Virt().Error();
-  
-  Rw11Cpu& cpu  = Cpu();
-  uint16_t csr  = (online ? 0 : kCSR_M_ERROR) |             //  err field 
-                  ((fRlim & kCSR_B_RLIM) << kCSR_V_RLIM);   // rlim field
-  RlinkCommandList clist;
-  cpu.AddWibr(clist, fBase+kCSR, csr);
-  Server().Exec(clist);
-  
+  bool online  = unit.HasVirt() && ! unit.Virt().Error();
+  uint16_t csr = (online ? 0 : kCSR_M_ERROR) |             //  err field
+                 ((fRlim & kCSR_B_RLIM) << kCSR_V_RLIM);   // rlim field
+  Cpu().ExecWibr(fBase+kCSR, csr);
   return;
 }
 
@@ -199,6 +195,7 @@ void Rw11CntlLP11::Dump(std::ostream& os, int ind, const char* text,
   os << bl << "  fItype:          " << RosPrintf(fItype,"d",3)  << endl;
   os << bl << "  fFsize:          " << RosPrintf(fFsize,"d",3) << endl;
   os << bl << "  fRblkSize:       " << RosPrintf(fRblkSize,"d",3) << endl;
+  os << bl << "  fQueBusy:        " << RosPrintf(fQueBusy) << endl;
 
   Rw11CntlBase<Rw11UnitLP11,1>::Dump(os, ind, " ^", detail);
   return;

@@ -1,4 +1,4 @@
-// $Id: Rw11CntlRK11.cpp 1131 2019-04-14 13:24:25Z mueller $
+// $Id: Rw11CntlRK11.cpp 1133 2019-04-19 18:43:00Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -15,6 +15,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-19  1133   2.0.12 use ExecWibr()
 // 2019-04-14  1131   2.0.11 proper unit init, call UnitSetupAll() in Start()
 // 2019-02-23  1114   2.0.10 use std::bind instead of lambda
 // 2018-12-19  1090   2.0.9  use RosPrintf(bool)
@@ -237,8 +238,6 @@ void Rw11CntlRK11::Start()
 void Rw11CntlRK11::UnitSetup(size_t ind)
 {
   Rw11UnitRK11& unit = *fspUnit[ind];
-  Rw11Cpu& cpu  = Cpu();
-  RlinkCommandList clist;
 
   uint16_t rkds = ind<<kRKDS_V_ID;
   if (unit.HasVirt()) {                     // file attached
@@ -250,8 +249,7 @@ void Rw11CntlRK11::UnitSetup(size_t ind)
       rkds |= kRKDS_M_WPS;
   }
   unit.SetRkds(rkds);
-  cpu.AddWibr(clist, fBase+kRKDS, rkds);
-  Server().Exec(clist);
+  Cpu().ExecWibr(fBase+kRKDS, rkds);
 
   return;
 }  

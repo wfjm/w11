@@ -1,4 +1,4 @@
-// $Id: Rw11CntlRHRP.cpp 1131 2019-04-14 13:24:25Z mueller $
+// $Id: Rw11CntlRHRP.cpp 1133 2019-04-19 18:43:00Z mueller $
 //
 // Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -15,6 +15,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-19  1133   1.0.12 use ExecWibr()
 // 2019-04-14  1131   1.0.11 proper unit init, call UnitSetupAll() in Start()
 // 2019-02-23  1114   1.0.10 use std::bind instead of lambda
 // 2018-12-19  1090   1.0.9  use RosPrintf(bool)
@@ -292,8 +293,6 @@ void Rw11CntlRHRP::Start()
 void Rw11CntlRHRP::UnitSetup(size_t ind)
 {
   Rw11UnitRHRP& unit = *fspUnit[ind];
-  RlinkCommandList clist;
-  Rw11Cpu& cpu  = Cpu();
 
   // only two mayor drive states are used
   //  power medium  wlock : ds flags
@@ -318,12 +317,10 @@ void Rw11CntlRHRP::UnitSetup(size_t ind)
   }
   
   unit.SetRpds(rpds);                       // remember new DS
-  cpu.AddWibr(clist, fBase+kRPCS1,          // setup unit
-              (ind << kRPCS1_V_RUNIT) | 
-              (kRFUNC_WUNIT << kRPCS1_V_FUNC) );
-  cpu.AddWibr(clist, fBase+kRPDT, unit.Rpdt()); // setup DT
-  cpu.AddWibr(clist, fBase+kRPDS, rpds);        // setup DS
-  Server().Exec(clist);
+  Cpu().ExecWibr(fBase+kRPCS1, (ind << kRPCS1_V_RUNIT) |          // setup unit
+                               (kRFUNC_WUNIT << kRPCS1_V_FUNC),
+                 fBase+kRPDT,  unit.Rpdt(),                       // setup DT
+                 fBase+kRPDS,  rpds);                             // setup DS
 
   return;
 }  
@@ -433,8 +430,8 @@ int Rw11CntlRHRP::AttnHandler(RlinkServer::AttnArgs& args)
   uint32_t nwrd = (~uint32_t(rpwc)&0xffff) + 1; // transfer size in words
 
   // all 4 units are always available, but check anyway
-  if (unum > NUnit())
-    throw Rexception("Rw11CntlRHRP::AttnHandler","Bad state: unum > NUnit()");
+  if (unum >= NUnit())
+    throw Rexception("Rw11CntlRHRP::AttnHandler","Bad state: unum >= NUnit()");
 
   Rw11UnitRHRP& unit = *fspUnit[unum];
   //Rw11Cpu& cpu = Cpu();

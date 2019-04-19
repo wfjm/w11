@@ -1,4 +1,4 @@
-// $Id: Rw11CntlLP11.hpp 1131 2019-04-14 13:24:25Z mueller $
+// $Id: Rw11CntlLP11.hpp 1132 2019-04-14 20:23:40Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -95,12 +95,12 @@ namespace Retro {
       int           RcvHandler();
 
     protected:
-      size_t        fPC_buf;               //!< PrimClist: buf index
-      uint16_t      fRlim;                 //!< interrupt rate limit
-      uint16_t      fItype;                //!< interface type
-      uint16_t      fFsize;                //!< fifo size
-      uint16_t      fRblkSize;             //!< rblk chunk size
-      bool          fQueBusy;              //!< rcv queue busy
+      size_t        fPC_buf;                //!< PrimClist: buf index
+      uint16_t      fRlim;                  //!< interrupt rate limit
+      uint16_t      fItype;                 //!< interface type
+      uint16_t      fFsize;                 //!< fifo size
+      uint16_t      fRblkSize;              //!< rblk chunk size
+      bool          fQueBusy;               //!< rcv queue busy
   };
   
 } // end namespace Retro

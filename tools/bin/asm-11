@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: asm-11 1131 2019-04-14 13:24:25Z mueller $
+# $Id: asm-11 1133 2019-04-19 18:43:00Z mueller $
 #
-# Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-04-19  1133   1.0.6  .end directive autocreates '...end' label
 # 2018-11-03  1065   1.0.5  add and use bailout
 # 2015-11-01   712   1.0.4  BUGFIX: fix '.' handling in instructions
 # 2014-07-26   575   1.0.3  add 'call' and 'return' to pst (as in macro-11)
@@ -273,7 +274,6 @@ my @t_pushback;
 my $defincdot = 0;                          # defered increment for '.'
 my $out_dot;                                # current . for output
 my @out_data;                               # output data
-my $out_start = 1;                          # absolute start address
 
 autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
 
@@ -983,7 +983,10 @@ sub parse_line {
         }
         if (defined $val) {
           $l{lstval} = $val;                # set aval to get it in listing
-          $out_start = $val;
+          $lst{'...end'} = {name => '...end', # and generate marker label
+                            val  => $val,
+                            typ  => 'lbl',
+                            psect=> '.abs'};
         } else {
           $l{lstval} = 0;
           add_err(\%l, 'U');
@@ -1133,10 +1136,9 @@ sub setsym {
     return;
   }
 
-  my $isllbl = check_llbl($name);
   if (check_llbl($name)) {
     if ($typ eq 'lbl') {
-      $name = $llbl_scope . ':' . $name if $isllbl;
+      $name = $llbl_scope . ':' . $name;
       $typ  = 'llbl';
     } else {
       die "BUGCHECK: name looks like local label, but typ=$typ";
@@ -1152,10 +1154,10 @@ sub setsym {
     return;
   }
 
-  $lst{$namelc}{name}  = $name;
-  $lst{$namelc}{val}   = $val;
-  $lst{$namelc}{typ}   = $typ;
-  $lst{$namelc}{psect} = $cur_psect;
+  $lst{$namelc} = {name => $name,
+                   val  => $val,
+                   typ  => $typ,
+                   psect=> $cur_psect};
 
   return;
 }
@@ -2133,6 +2135,7 @@ sub write_lda {
   @blist = ();
 
   # write terminating frame
+  my $out_start = (exists $lst{'...end'}) ? $lst{'...end'}{val} : 1;
   write_lda_frame($fh, $out_start, \@blist);
 
   return;

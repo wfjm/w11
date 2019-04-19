@@ -7,6 +7,35 @@ This file descibes general issues.
 
 The case id indicates the release when the issue was first recognized.
 
+### V0.50-2 {[issue #28](https://github.com/wfjm/w11/issues/28)} -- RK11: write protect action too slow
+
+Some simple RK11 drivers, especially in test codes, don't poll for completion
+of a write protect command. Due to the emulated I/O this can cause errors.
+
+One example is the boot sequence of RK based XXDP, as seen for example for
+the `dzzza` disk. On simh the disk is immediately switched to write protect
+mode, on w11 it is not. The pertinent part of the code is
+```
+    000214  B003:  mov	#000017,@#rk.cs   ; #rk.fwl+rk.go;  func=write_lock
+    000222         bic	#017777,r2      
+    000226         clc	
+    000230         rol	r2
+    000232         rol	r2
+    000234         rol	r2
+    000236         rol	r2
+    000240         mov	r2,D040
+    000244         mov	#000001,@#rk.cs   ; #rk.go;         func=control reset
+```
+The monitor does two writes to the RK11 CSR without busy polling and just a
+few instructions in between. In the w11 implementation the first write will
+set func=write_lock and cause an attn request. But before the attn can be
+serviced the CSR is overwritten with func=creset. The write lock is lost,
+only the creset is executed.
+
+Can be resolved by handling write lock locally. Normal OS always do
+a busy poll before starting a function, therefore this is considered
+a minor deficit. Might be fixed in an upcoming release.
+
 ### V0.50-3 {[issue #27](https://github.com/wfjm/w11/issues/27)} -- CPU: no mmu trap when instruction which clears trap enable itself causes a trap
 
 The MMU should issue an mmu trap if the instruction clearing the

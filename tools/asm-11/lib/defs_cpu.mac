@@ -1,11 +1,17 @@
-; $Id: defs_cpu.mac 830 2016-12-26 20:25:49Z mueller $
-; Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; $Id: defs_cpu.mac 1133 2019-04-19 18:43:00Z mueller $
+; Copyright 2014-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ; License disclaimer see License.txt in $RETROBASE directory 
 ;
 ; definitions for basic CPU registers (as in defs_cpu.das)
 ;
-        cp.psw = 177776
-        cp.dsr = 177570
+        cp.psw=177776
+        cp.sli=177774           ; stack limit
+        cp.pir=177772           ; pirq
+        cp.mbr=177770           ; mbrk
+        cp.err=177766           ; cpuerr
+        cp.sid=177764           ; system id
+        cp.dsr=177570           ; display/status register
+        cp.los=177760           ; memory losize register
 ;
 ; symbol definitions for cp.psw
 ;

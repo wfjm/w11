@@ -1,11 +1,12 @@
 #!/usr/bin/perl -w
-# $Id: ti_w11 1103 2019-01-04 13:18:54Z mueller $
+# $Id: ti_w11 1133 2019-04-19 18:43:00Z mueller $
 #
 # Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-04-19  1133   1.4.4  for -e use .end start address when available
 # 2019-01-04  1103   1.4.3  add -ar,-n4d (ddr versions)
 # 2017-06-25   916   1.4.2  add -c7 (cmoda7 support)
 # 2017-01-08   843   1.4.1  allow -tuD,.... for Digilent autodetect; add -bn4d
@@ -322,10 +323,13 @@ unless ($opt_ns) {
 if (defined $val_e) {
   if ($val_e =~ m/\.mac$/) {
     push @arglist, "cpu0 ldasm -file $val_e -sym ldasm_sym -lst ldasm_lst";
+    push @arglist, 'set ldabs_start 0200';
+    push @arglist, 'if {[info exists ldasm_sym(...end)]} {set ldabs_start $ldasm_sym(...end)}';
   } else {
-    push @arglist, "cpu0 ldabs $val_e";
+    push @arglist, "cpu0 ldabs $val_e ldabs_start";
+    push @arglist, 'if {$ldabs_start==1} {set ldabs_start 0200}';
   }
-  push @arglist, 'cpu0 cp -stapc 0200';
+  push @arglist, 'cpu0 cp -stapc $ldabs_start';
 }
 
 push @arglist, @ticmds;                     # add commands from ARGV

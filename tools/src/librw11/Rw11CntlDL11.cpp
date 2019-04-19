@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDL11.cpp 1131 2019-04-14 13:24:25Z mueller $
+// $Id: Rw11CntlDL11.cpp 1133 2019-04-19 18:43:00Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-19  1133   1.4.2  use ExecWibr(),ExecRibr()
 // 2019-04-14  1131   1.4.1  proper unit init, call UnitSetupAll() in Start()
 // 2019-04-06  1126   1.4    xbuf.val in msb; rrdy in rbuf (new iface)
 // 2019-02-23  1114   1.3.2  use std::bind instead of lambda
@@ -154,11 +155,8 @@ void Rw11CntlDL11::Start()
 
 void Rw11CntlDL11::UnitSetup(size_t /*ind*/)
 {
-  Rw11Cpu& cpu  = Cpu();
   uint16_t rcsr = (fRxRlim<<kRCSR_V_RLIM) & kRCSR_M_RLIM;
-  RlinkCommandList clist;
-  cpu.AddWibr(clist, fBase+kRCSR, rcsr);
-  Server().Exec(clist);
+  Cpu().ExecWibr(fBase+kRCSR, rcsr);
   return;
 }
 
@@ -168,10 +166,7 @@ void Rw11CntlDL11::UnitSetup(size_t /*ind*/)
 void Rw11CntlDL11::Wakeup()
 {
   if (!fspUnit[0]->RcvQueueEmpty()) {
-    RlinkCommandList clist;
-    size_t ircsr = Cpu().AddRibr(clist, fBase+kRCSR);
-    Server().Exec(clist);
-    uint16_t rcsr = clist[ircsr].Data();
+    uint16_t rcsr = Cpu().ExecRibr(fBase+kRCSR);
     if ((rcsr & kRCSR_M_RDONE) == 0) RcvChar(); // send if RBUF not full
   }
 
@@ -245,9 +240,7 @@ void Rw11CntlDL11::RcvChar()
 {
   uint8_t ichr = fspUnit[0]->RcvQueueNext();
   if (fTraceLevel>0) TraceChar('r', 0, ichr);
-  RlinkCommandList clist;
-  Cpu().AddWibr(clist, fBase+kRBUF, ichr);
-  Server().Exec(clist);
+  Cpu().ExecWibr(fBase+kRBUF, ichr);
   return;
 }
 

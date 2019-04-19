@@ -67,7 +67,3 @@ behaviour of the real drive.
 `DRY` in `RKDS` goes 1->0 immediately with `RDY` in `RKCS` when a function is
 started. In a real RK05 drive `DRY` went to 0 after a short delay. Some
 basic hardware tests are sensitive to this.
-
-- **TCK-014 pri=M: RK11: write protect action too slow**  
-Some simple RK11 drivers, especially in tests, don't poll for completion
-of a write protect command. Due to the emulated I/O this can cause errors.

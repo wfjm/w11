@@ -1,8 +1,8 @@
-; $Id: defs_tm.mac 1122 2019-03-17 08:15:42Z mueller $
-; Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; $Id: defs_tm.mac 1133 2019-04-19 18:43:00Z mueller $
+; Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ; License disclaimer see License.txt in $RETROBASE directory
 ;
-; definitions for RK11 controler
+; definitions for TM11 controler
 ; 
 ; vector address/priority definition
 ; 
@@ -36,8 +36,20 @@
 ; symbol definitions for tm.cr
 ;
         tm.err=100000
+        tm.d72=000000
+        tm.d75=020000
+        tm.d78=040000
+        tm.d98=060000
         tm.ini=010000
         tm.pev=004000
         tm.rdy=000200
         tm.ie =000100
+        tm.fun=000000
+        tm.frd=000002
+        tm.fwr=000004
+        tm.fwe=000006
+        tm.fsf=000010
+        tm.fsr=000012
+        tm.fwg=000014
+        tm.frw=000016
         tm.go =000001

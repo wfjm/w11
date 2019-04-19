@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: ldadump 1131 2019-04-14 13:24:25Z mueller $
+# $Id: ldadump 1133 2019-04-19 18:43:00Z mueller $
 #
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-04-19  1133   1.0.1  better -trec format of start address record
 # 2019-04-13  1131   1.0    Initial version
 #
 #
@@ -111,8 +112,10 @@ sub do_file {
       $ldaddr = $addr;
       $state = ($bytcnt == 6) ? 'chksum' : 'data';
       if ($opts{trec}) {
-        printf "block %3d, length %4d byte, address %6.6o:%6.6o\n",
-          $blknum, $bytcnt-6, $ldaddr, $ldaddr+($bytcnt-6)-1;
+        printf "block %3d, length %4d byte, address %6.6o",
+          $blknum, $bytcnt-6, $ldaddr;
+        printf ":%6.6o", $ldaddr+($bytcnt-6)-1 if $bytcnt > 6;
+        printf "\n",
       }
 
     } elsif ($state eq 'data') {            # state: data --------------------

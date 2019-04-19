@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.hpp 1131 2019-04-14 13:24:25Z mueller $
+// $Id: Rw11Cpu.hpp 1133 2019-04-19 18:43:00Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-19  1133   1.2.18 add ExecWibr(),ExecRibr()
 // 2019-04-13  1131   1.2.17 add defs for w11 cpu component addresses; add
 //                           MemSize(),MemWriteByte(); LoadAbs() returns start
 // 2019-02-15  1112   1.2.16 add HasIbtst()
@@ -136,6 +137,11 @@ namespace Retro {
                             const uint16_t* buf, size_t size, 
                             uint16_t mode=kCPAH_M_22BIT,
                             bool singleblk=false);
+    
+      void          ExecWibr(uint16_t ibaddr0, uint16_t data0,
+                             uint16_t ibaddr1=0, uint16_t data1=0,
+                             uint16_t ibaddr2=0, uint16_t data2=0);
+      uint16_t      ExecRibr(uint16_t ibaddr);
 
       bool          MemRead(uint16_t addr, std::vector<uint16_t>& data, 
                             size_t nword, RerrMsg& emsg);
@@ -248,7 +254,7 @@ namespace Retro {
       static const uint16_t  kCPUSDREG  = 0177570; //!< CPU SDREG  address
     
       static const uint16_t  kMEMHISIZE = 0177762; //!< MEM HISIZE address
-      static const uint16_t  kMEMLOSIZE = 0177760; //!< MEM HISIZE address
+      static const uint16_t  kMEMLOSIZE = 0177760; //!< MEM LOSIZE address
       static const uint16_t  kMEMHM     = 0177752; //!< MEM HM     address
       static const uint16_t  kMEMMAINT  = 0177750; //!< MEM MAINT  address
       static const uint16_t  kMEMCNTRL  = 0177746; //!< MEM CNTRL  address

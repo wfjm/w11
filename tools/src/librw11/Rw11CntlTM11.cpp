@@ -1,4 +1,4 @@
-// $Id: Rw11CntlTM11.cpp 1131 2019-04-14 13:24:25Z mueller $
+// $Id: Rw11CntlTM11.cpp 1133 2019-04-19 18:43:00Z mueller $
 //
 // Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -15,6 +15,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-19  1133   1.0.10 use ExecWibr()
 // 2019-04-14  1131   1.0.9  proper unit init, call UnitSetupAll() in Start()
 // 2019-02-23  1114   1.0.8  use std::bind instead of lambda
 // 2018-12-15  1082   1.0.7  use std::bind or lambda instead of boost::bind
@@ -220,8 +221,6 @@ void Rw11CntlTM11::Start()
 void Rw11CntlTM11::UnitSetup(size_t ind)
 {
   Rw11UnitTM11& unit = *fspUnit[ind];
-  Rw11Cpu& cpu  = Cpu();
-  RlinkCommandList clist;
 
   uint16_t tmds = 0;
   if (unit.HasVirt()) {                     // file attached
@@ -230,10 +229,9 @@ void Rw11CntlTM11::UnitSetup(size_t ind)
     if (unit.Virt().Bot())   tmds |= kTMRL_M_BOT;
   }
   unit.SetTmds(tmds);
-  cpu.AddWibr(clist, fBase+kTMCR, (uint16_t(ind)<<kTMCR_V_RUNIT)|
-                                  (kRFUNC_WUNIT<<kTMCR_V_FUNC) );
-  cpu.AddWibr(clist, fBase+kTMRL, tmds);
-  Server().Exec(clist);
+  Cpu().ExecWibr(fBase+kTMCR, (uint16_t(ind)<<kTMCR_V_RUNIT)|
+                              (kRFUNC_WUNIT<<kTMCR_V_FUNC),
+                 fBase+kTMRL, tmds);
 
   return;
 }  
@@ -357,7 +355,7 @@ int Rw11CntlTM11::AttnHandler(RlinkServer::AttnArgs& args)
   }
 
   // check for general abort conditions: invalid unit number
-  if (unum > NUnit()) {
+  if (unum >= NUnit()) {
     AddErrorExit(clist, kTMCR_M_RICMD);
     Server().Exec(clist);
     return 0;

@@ -50,6 +50,7 @@ The full set of tests is only run for tagged releases.
     - added MemSize() and MemWriteByte()
     - LoadAbs(): return start, better odd byte handling
     - add cp -brf and -bwf; add range checks for cp -wa
+    - add ExecWibr(),ExecRibr()
   - Rw11VirtStream: added Error(),Eof()
   - ensure that after aborted rblk only BlockDone words are processed
     - RlinkCommand: Print(): use BlockDone() as length for rblk
@@ -61,7 +62,9 @@ The full set of tests is only run for tagged releases.
   - Rw11CntlLP11: remove SetOnline(), use UnitSetup()
   - Rw11CntlPC11
     - BootCode(): boot loader rewritten 
-    - remove SetOnline(), use UnitSetup()  
+    - remove SetOnline(), use UnitSetup()
+  - asm-11: .end directive autocreates '...end' label
+  - ti_w11: for -e use .end start address when available
 - firmware changes
   - rbd_rbmon: more robust ack,err trace when busy
   - rbd_tester: use now fifo_simple_dram

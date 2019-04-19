@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.cpp 1131 2019-04-14 13:24:25Z mueller $
+// $Id: Rw11Cpu.cpp 1133 2019-04-19 18:43:00Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-19  1133   1.2.18 add ExecWibr(),ExecRibr(); LoadAbs(): better trace
 // 2019-04-13  1131   1.2.17 add defs for w11 cpu component addresses; add
 //                           MemSize(),MemWriteByte(); LoadAbs(): return start,
 //                           better odd byte handling;
@@ -489,6 +490,32 @@ int Rw11Cpu::AddWMem(RlinkCommandList& clist, uint32_t addr,
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
+void Rw11Cpu::ExecWibr(uint16_t ibaddr0, uint16_t data0,
+                       uint16_t ibaddr1, uint16_t data1,
+                       uint16_t ibaddr2, uint16_t data2)
+{
+  RlinkCommandList clist;
+  AddWibr(clist, ibaddr0, data0);
+  if (ibaddr1 > 0) AddWibr(clist, ibaddr1, data1);
+  if (ibaddr2 > 0) AddWibr(clist, ibaddr2, data2);
+  Server().Exec(clist);
+  return;
+}
+  
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+uint16_t Rw11Cpu::ExecRibr(uint16_t ibaddr)
+{
+  RlinkCommandList clist;
+  int ic = AddRibr(clist, ibaddr);
+  Server().Exec(clist);
+  return clist[ic].Data();
+}
+  
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
 bool Rw11Cpu::MemRead(uint16_t addr, std::vector<uint16_t>& data, 
                       size_t nword, RerrMsg& emsg)
 {
@@ -722,8 +749,9 @@ bool Rw11Cpu::LoadAbs(const std::string& fname, RerrMsg& emsg,
         RlogMsg lmsg(Connect().LogFile());
         lmsg << "LoadAbs-I: block " << RosPrintf(blknum,"d",3)
              << ", length " << RosPrintf(bytcnt-6,"d",5)
-             << " byte, address " << RosPrintBvi(ldaddr,8)
-             << ":" << RosPrintBvi(uint16_t(ldaddr+(bytcnt-6)-1),8);
+             << " byte, address " << RosPrintBvi(ldaddr,8);
+        if (bytcnt > 6)
+          lmsg << ":" << RosPrintBvi(uint16_t(ldaddr+(bytcnt-6)-1),8);
       }
       state = (bytcnt == 6) ? s_chksum : s_data;
       break;

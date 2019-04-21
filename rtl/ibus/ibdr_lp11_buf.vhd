@@ -1,4 +1,4 @@
--- $Id: ibdr_lp11_buf.vhd 1131 2019-04-14 13:24:25Z mueller $
+-- $Id: ibdr_lp11_buf.vhd 1134 2019-04-21 17:18:03Z mueller $
 --
 -- Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -23,6 +23,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-04-20  1134   1.0.2  remove fifo clear on BRESET
 -- 2019-04-14  1131   1.0.1  RLIM_CEV now slv8
 -- 2019-03-17  1123   1.0    Initial version
 -- 2019-03-10  1121   0.1    First draft (derived from ibdr_lp11)
@@ -281,7 +282,7 @@ begin
 
     N_REGS <= n;
 
-    PBUF_RESET <= RESET or BRESET or r.err;
+    PBUF_RESET <= RESET or r.err;
     PBUF_CE    <= ipbufce;
     PBUF_WE    <= ipbufwe;
     RLIM_START <= irlimsta;

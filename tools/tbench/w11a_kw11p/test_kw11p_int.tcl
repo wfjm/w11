@@ -1,4 +1,4 @@
-# $Id: test_kw11p_int.tcl 1056 2018-10-13 16:01:17Z mueller $
+# $Id: test_kw11p_int.tcl 1134 2019-04-21 17:18:03Z mueller $
 #
 # Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
@@ -41,8 +41,8 @@ stack:
         . = 2000                ; code area
 start:  spl     7               ; lock out interrupts
 ;
-        mov     #2,@#kw.csb     ; load kw11-p counter
-        mov     #<kw.ie+kw.rhk+kw.run>,@#kw.csr  ; setup: 100 kHz down single
+        mov     #2,@#kp.csb     ; load kw11-p counter
+        mov     #<kp.ie+kp.rhk+kp.run>,@#kp.csr  ; setup: 100 kHz down single
         spl     0               ; allow interrupts
         mov     #1000.,r0
 1$:     sob     r0,1$           ; wait some time
@@ -81,8 +81,8 @@ start:  spl     7               ; lock out interrupts
   
 ;
         mov     #3,r1           ; setup interrupt counter
-        mov     #1,@#kw.csb     ; load kw11-p counter
-        mov     #<kw.ie+kw.mod+kw.rhk+kw.run>,@#kw.csr  ; setup: 100 kHz dn rep
+        mov     #1,@#kp.csb     ; load kw11-p counter
+        mov     #<kp.ie+kp.rep+kp.rhk+kp.run>,@#kp.csr  ; setup: 100 kHz dn rep
         spl     0               ; allow interrupts
         mov     #1500.,r0
 1$:     sob     r0,1$           ; wait some time
@@ -129,8 +129,8 @@ start:  spl     7               ; lock out interrupts
   
 ;
         mov     #3,r1           ; setup interrupt counter
-        mov     #20.,@#kw.csb   ; load kw11-p counter
-        mov     #<kw.ie+kw.mod+kw.rex+kw.run>,@#kw.csr  ; setup: extevt dn rep
+        mov     #20.,@#kp.csb   ; load kw11-p counter
+        mov     #<kp.ie+kp.rep+kp.rex+kp.run>,@#kp.csr  ; setup: extevt dn rep
         spl     0               ; allow interrupts
         mov     #70.,r0;        ; timeout after 70 instructions
 1$:     sob     r0,1$           ; wait some time

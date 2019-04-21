@@ -1,8 +1,8 @@
-; $Id: defs_kwp.mac 1122 2019-03-17 08:15:42Z mueller $
-; Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; $Id: defs_kwp.mac 1134 2019-04-21 17:18:03Z mueller $
+; Copyright 2018-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ; License disclaimer see License.txt in $RETROBASE directory
 ;
-; definitions for KW11-P programmable clock
+; definitions for KW11-P programmable clock (as in defs_kwp.das)
 ; 
 ; vector address/priority definition
 ; 
@@ -11,20 +11,20 @@
 ; 
 ; register addresses
 ; 
-        kw.csr=172540
-        kw.csb=172542
-        kw.ctr=172544
+        kp.csr=172540
+        kp.csb=172542
+        kp.ctr=172544
 ;
-; symbol definitions for rw.csr
+; symbol definitions for kp.csr
 ;
-        kw.err=100000
-        kw.don=000200
-        kw.ie =000100
-        kw.fix=000040
-        kw.upd=000020           ; 0=down;1=up
-        kw.mod=000010           ; 0=single;1=repeat
-        kw.rex=000006           ; rate=ext
-        kw.rlf=000004           ; rate=line
-        kw.rtk=000002           ; rate=10 kHz
-        kw.rhk=000000           ; rate=100 kHz
-        kw.run=000001
+        kp.err=100000
+        kp.don=000200
+        kp.ie =000100
+        kp.fix=000040
+        kp.up=000020            ; 0=down;1=up
+        kp.rep=000010           ; 0=single;1=repeat
+        kp.rex=000006           ; rate=ext
+        kp.rlf=000004           ; rate=line
+        kp.rtk=000002           ; rate=10 kHz
+        kp.rhk=000000           ; rate=100 kHz
+        kp.run=000001

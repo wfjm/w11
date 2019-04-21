@@ -1,6 +1,6 @@
-// $Id: Rw11Unit.cpp 1049 2018-09-22 13:56:52Z mueller $
+// $Id: Rw11Unit.cpp 1134 2019-04-21 17:18:03Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -112,6 +112,7 @@ void Rw11Unit::Dump(std::ostream& os, int ind, const char* text,
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11Unit @ " << this << endl;
 
+  os << bl << "  fpCntlBase:      " << fpCntlBase << endl;
   os << bl << "  fIndex:          " << fIndex << endl;
   os << bl << "  fAttachOpts:     " << fAttachOpts << endl;
   fStats.Dump(os, ind+2, "fStats: ", detail-1);

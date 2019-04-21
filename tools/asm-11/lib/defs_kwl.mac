@@ -1,0 +1,19 @@
+; $Id: defs_kwl.mac 1134 2019-04-21 17:18:03Z mueller $
+; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; License disclaimer see License.txt in $RETROBASE directory
+;
+; definitions for KW11-L line clock (as in defs_kwl.das)
+; 
+; vector address/priority definition
+; 
+        va.kwl=000100
+        vp.kwl=6
+; 
+; register addresses
+; 
+        kl.csr=177546
+;
+; symbol definitions for kl.csr
+;
+        kl.don=000200
+        kl.ie =000100

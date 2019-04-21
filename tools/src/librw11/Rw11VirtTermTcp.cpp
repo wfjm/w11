@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTermTcp.cpp 1114 2019-02-23 18:01:55Z mueller $
+// $Id: Rw11VirtTermTcp.cpp 1134 2019-04-21 17:18:03Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -217,10 +217,11 @@ bool Rw11VirtTermTcp::Snd(const uint8_t* data, size_t count, RerrMsg& /*emsg*/)
     return true;
   }
 
-  uint8_t  obuf[1024];
+  const size_t c_bufsiz=1024;
+  uint8_t  obuf[c_bufsiz];
   while (pdata < pdataend) {
     uint8_t* pobuf = obuf;
-    uint8_t* pobufend = obuf+1024;
+    uint8_t* pobufend = obuf+sizeof(obuf);
     while (pdata < pdataend && pobuf < pobufend-1) {
       if (*pdata == kCode_IAC) *pobuf++ = kCode_IAC;
       *pobuf++ = *pdata++;
@@ -279,7 +280,7 @@ int Rw11VirtTermTcp::ListenPollHandler(const pollfd& pfd)
   // bail-out and cancel handler if poll returns an error event
   if (pfd.revents & (~pfd.events)) return -1;
 
-  fFd = accept(fFdListen, nullptr, 0);
+  fFd = ::accept(fFdListen, nullptr, 0);
 
   if (fFd < 0) {
     RlogMsg lmsg(LogFile(),'E');
@@ -314,7 +315,7 @@ int Rw11VirtTermTcp::ListenPollHandler(const pollfd& pfd)
     msg << "\r\nconnect on port " << fChannelId 
         << " for " << Unit().Name() << "\r\n\r\n";
     string str = msg.str();
-    if (write(fFd, str.c_str(), str.length()) < 0) nerr += 1;
+    if (::write(fFd, str.c_str(), str.length()) < 0) nerr += 1;
   }
 
   // send chars buffered while attached but not connected
@@ -325,7 +326,7 @@ int Rw11VirtTermTcp::ListenPollHandler(const pollfd& pfd)
       fSndPreConQue.pop_front();
     }
     string str = msg.str();
-    if (write(fFd, str.c_str(), str.length()) < 0) nerr += 1;
+    if (::write(fFd, str.c_str(), str.length()) < 0) nerr += 1;
   }
 
   if (nerr) {
@@ -362,11 +363,12 @@ int Rw11VirtTermTcp::RcvPollHandler(const pollfd& pfd)
   int irc = -1;
 
   if (pfd.revents & POLLIN) {
-    uint8_t ibuf[1024];
-    uint8_t obuf[1024];
+    const size_t c_bufsiz=1024;
+    uint8_t ibuf[c_bufsiz];
+    uint8_t obuf[c_bufsiz];
     uint8_t* pobuf = obuf;
 
-    irc = ::read(fFd, ibuf, 1024);
+    irc = ::read(fFd, ibuf, sizeof(ibuf));
 
     if (irc < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) return 0;
 

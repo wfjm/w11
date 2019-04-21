@@ -1,10 +1,11 @@
-# $Id: test_lp11_all.tcl 1130 2019-04-12 14:54:57Z mueller $
+# $Id: test_lp11_all.tcl 1134 2019-04-21 17:18:03Z mueller $
 #
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2019-04-19  1134   1.0.2  fifo not longer cleared by breset
 # 2019-04-06  1126   1.0.1  check csr.err and csr.rlim not changed by breset
 # 2019-03-17  1123   1.0    Initial version
 # 2019-03-11  1121   0.1    First draft
@@ -193,12 +194,14 @@ if {$type == 0} {                # unbuffered --------------------------
   rlc wtlam 1.
   rlc exec -attn -edata $attnlp
   
-  rlc log "    A2.4: loc write, breset clears fifo ----------------"
+  rlc log "    A2.4: loc write, breset does not clear fifo --------"
   $cpu cp \
     -wma   lpa.buf 041 \
     -wma   lpa.buf 042 \
     -breset \
-    -rbibr lpa.buf 3 -estaterr -edone 0 
+    -rbibr lpa.buf 3 -estaterr -edata \
+             [list [regbldkv ibd_lp11::RBUF val 1 size 2 data 0041] \
+                   [regbldkv ibd_lp11::RBUF val 1 size 1 data 0042] ] 
   # expect and harvest attn (drop other attn potentially triggered by breset)
   rlc wtlam 1.
   rlc exec -attn -edata $attnlp $attnlp
@@ -317,31 +320,6 @@ stop:
     -ribr  lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 size 1 data 066] \
     -rma   lpa.csr -edata [regbld ibd_lp11::CSR done] \
     -ribr  lpa.buf -estaterr
-  
-  rlc log "    A3.7: BRESET on full fifo sets DONE=1 --------------"
-  #     1 loc wr -> get attn (1 in fifo; DONE=1)
-  $cpu cp \
-    -wma  lpa.buf 067 \
-    -rma  lpa.csr -edata [regbld ibd_lp11::CSR done] 
-  # expect and harvest attn 
-  rlc wtlam 1.
-  rlc exec -attn -edata $attnlp
-  
-  #   x   loc wr             (x   in fifo; DONE=0)
-  rw11::asmrun  $cpu sym r0 [$cpu imap lpa.buf] \
-                         r1 $fs0 \
-                         r2 067 \
-                         ps [regbld rw11::PSW {cmode k} {pri 7}]
-  rw11::asmwait $cpu sym
-  rw11::asmtreg $cpu     r1 0
-  
-  #     breset   -> DONE=1
-  #     1 rem rd ->  error
-  $cpu cp \
-    -rma  lpa.csr -edata [regbld ibd_lp11::CSR] \
-    -breset \
-    -rma  lpa.csr -edata [regbld ibd_lp11::CSR done] \
-    -ribr lpa.buf -estaterr
 }
 
 # harvest triggered attn's

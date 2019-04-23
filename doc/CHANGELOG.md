@@ -35,6 +35,9 @@ The full set of tests is only run for tagged releases.
   - w11a_ibmon/*: tbench for ibd_ibmon
   - w11a/test_w11a_sdreg.tcl: tbench for sdreg
   - test_lp11_all.tcl: tbench for lp11 and lp11_buf
+- new test and demonstration codes under tools/mcode
+  - dl11/dl11echo.mac: console interface echo tester
+  - sys/blink.mac: 'blinking lights' demo (rsx,bsd and other modes)
 - new tools
   - ldadump: lda file dumper
 

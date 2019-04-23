@@ -9,6 +9,7 @@ This directory tree contains **many tools** and is organized in
 | [fx2](fx2)       | firmware for Cypress FX2 USB interface |
 | [make](make)     | make includes |
 | [man](man)       | man pages |
+| [mcode](mcode)   | miscellaneous codes |
 | [oskit](oskit)   | support files for OS disk/tape image kits |
 | [simh](simh)     | configuration files for `simh pdp11` |
 | [src](src)       | C++ sources for rlink backend |

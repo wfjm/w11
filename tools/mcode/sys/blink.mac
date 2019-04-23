@@ -1,0 +1,258 @@
+; $Id: blink.mac 1135 2019-04-23 12:56:23Z mueller $
+; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; License disclaimer see License.txt in $RETROBASE directory
+;
+; Revision History:
+; Date         Rev Version  Comment
+; 2019-04-22  1135   1.0    Initial version
+;
+; Show different 'blinking lights' patterns
+;   can be controlled with single letter keyboard commands
+;     styles
+;        r   RSX-11M style
+;        b   2.11BSD style
+;        f   flipper
+;        c   counter
+;        R   random pattern
+;     other controls
+;        0   use default speed
+;       1-9  set update speed
+;        a   auto, cycle styles         ! to come !
+;        s   surprise, random styles    ! to come !
+;
+; definitions ----------------------------------------------
+;
+        .include  |lib/defs_cpu.mac|
+        .include  |lib/defs_kwl.mac|
+        .include  |lib/defs_dl.mac|
+;
+        smstat = 0              ; static styles
+        smauto = 1              ; auto styles
+        smrand = 2              ; random styles
+        smtime = 500            ; time to style switch (50Hz cycles)
+;
+; vector area ----------------------------------------------
+;
+        .include  |lib/vec_cpucatch.mac|
+        .include  |lib/vec_devcatch.mac|
+
+        . = v..dlr              ; DL11 rx vector
+        .word   vh.dlr
+        .word   cp.ars!cp.pr7   ; use alt-reg-set !
+
+        . = v..kwl              ; KW11-L vector
+        .word   vh.kwl
+        .word   cp.ars!cp.pr7   ; use alt-reg-set !
+;
+; stack area -----------------------------------------------
+;
+        . = 1000                        ; stack (below); code (above)
+stack:  
+;
+; code area ------------------------------------------------
+;
+; main program -----------------------------------
+;
+start:  mov     #stack,sp               ; setup stack
+        jsr     pc,inir                 ; setup 'f' mode
+        spl     7
+        mov     #ti.ie,@#ti.csr         ; activate input
+        mov     #kl.ie,@#kl.csr
+        spl     0                       ; allow interrupts
+;
+nultsk: mov     curspd,r5               ; load speed
+        bne     1$                      ; if eq
+        mov     defspd,r5               ; use default
+1$:     mov     pat,r0                  ; load pattern
+        wait                            ; and proudly show it
+        sob     r5,1$                   ; wait for interrupt
+        jsr     pc,@curhdl              ; update pattern
+;
+        tst     smode                   ; static mode ?
+        beq     nultsk                  ; if eq yes, no action
+        cmp     styage,#smtime          ; time to change style ?
+        blo     nultsk                  ; if lo, not yet
+        clr     styage                  ; reset timer
+;
+        cmp     smode,#smauto           ; auto mode ?
+        bne     100$
+        mov     cursty,r0               ; get style index
+        inc     r0                      ; get next
+        cmp     r0,#nstyle              ; wrap ?
+        blt     2$
+        clr     r0
+2$:     mov     r0,cursty
+        asl     r0                      ; index to offset
+        jsr     pc,@initbl(r0)          ; call initializer
+        br      nultsk
+;        
+100$:   cmp     smode,#smrand           ; random mode ?
+        bne     nultsk
+        jsr     pc,randzp               ; get random number
+        mov     r0,r1
+        clr     r0
+        div     #nstyle,r0              ; do rand % %nstyle
+        mov     r1,cursty               ; reminder is new style index
+        asl     r1                      ; index to offset
+        jsr     pc,@initbl(r1)          ; call initializer
+        br      nultsk
+;
+; receive interrupt handler ----------------------
+;
+vh.dlr: mov     @#ti.buf,r0             ; read char
+        mov     r0,r1
+        sub     #'0,r1                  ; in 0..9 range ?
+        blt     100$
+        cmp     r1,#9.
+        bgt     100$
+        mov     r1,curspd               ; if yes, set current speed
+        br      999$
+;        
+100$:   mov     #acttbl,r1              ; ptr to action table
+101$:   mov     (r1)+,r2                ; next char
+        beq     999$                    ; end of table ?
+        cmp     r0,r2                   ; match ?
+        beq     102$
+        cmp     (r1)+,(r1)+             ; if not, try next
+        br      101$
+102$:   jsr     pc,@(r1)+               ; if yes: call action
+        jsr     pc,@(r1)+               ;         call initializer
+
+999$:   rti
+;
+; kw11-l line clock handler ----------------------
+;
+vh.kwl: inc     styage
+        rti
+;
+; control character actions ----------------------
+;
+;   style switch
+;
+actsty: clr     smode                   ; use static styles
+actnop: rts     pc
+;
+acta:   mov     #smauto,smode
+        br      actem
+acts:   mov     #smrand,smode
+actem:  mov     #smtime,styage          ; expire timer
+        rts     pc
+;
+;  other control actions
+;
+;
+; style initializer ------------------------------
+;
+inir:   mov     #170017,pat
+        mov     #4,defspd
+        mov     #hdlr,curhdl
+        rts     pc
+;
+inib:   mov     #000377,pat
+        mov     #2,defspd
+        mov     #hdlb,curhdl
+        rts     pc
+;
+inif:   mov     #000001,pat
+        mov     #2,defspd
+        mov     #hdlf,curhdl
+        rts     pc
+;
+inic:   clr     pat
+        mov     #1,defspd
+        mov     #hdlc,curhdl
+        rts     pc
+;
+inirr:  mov     #hdlrr,curhdl
+        mov     #6,defspd
+ininop: rts     pc
+;
+;
+; display pattern handlers -----------------------
+;
+; RSX-11M style ------------------------
+;   code from RSX-11M V3.1 NULTK.MAC
+;   note: RSX-11M updates every 4 wait fall-thru
+;
+hdlr:   mov     #pat,r1
+        aslb    (r1)+
+        rorb    (r1)
+        adcb    -(r1)
+        rts     pc
+;
+; 2.11BSD style ------------------------
+;  code from 2.11BSD mch_xxx.s
+;   note: 2.11BSD updates every 2 wait fall-thru
+;
+hdlb:   clc
+        rol     pat
+        bpl     1$
+        bis     #1,pat
+1$:     rts     pc
+;
+; flipper style ------------------------
+;
+hdlf:   mov     #pat,r0
+        tst     fdir                    ; shift direction ?
+        blt     10$                     ; if -1 to right
+        
+        rol     (r0)                    ; if +1 to left
+        bcc     100$                    ; end reached ?
+        ror     (r0)                    ; get bit back
+        ror     (r0)                    ; and shift
+        br      20$
+        
+10$:    ror     (r0)                    ; shift right
+        bcc     100$                    ; end reached ?
+        rol     (r0)                    ; get bit back
+        rol     (r0)                    ; and shift
+
+20$:    neg     fdir                    ; and switch direction
+100$:   rts     pc
+;
+; counter style ------------------------
+;
+hdlc:   inc     pat
+        rts     pc
+;
+; random pattern style -----------------
+;
+hdlrr:  jsr     pc,randzp
+        mov     r0,pat
+        rts	pc
+;
+; code imports
+;
+        .include  |lib/randzp.mac|
+
+;
+; data area ------------------------------------------------
+;
+acttbl: .word   'r,actsty,inir          ; 'r -> use RSX-11M style
+        .word   'b,actsty,inib          ; 'b -> use 2.11BSD style
+        .word   'f,actsty,inif          ; 'f -> use flipper style
+        .word   'c,actsty,inic          ; 'c -> use counter style
+        .word   'R,actsty,inirr         ; 'R -> use random number style
+        .word   'a,acta  ,ininop        ; 'a -> auto: cycle through styles
+        .word   's,acts  ,ininop        ; 's -> surprise: random styles
+        .word   0
+;
+initbl: .word   inir
+        .word   inib
+        .word   inif
+        .word   inic
+        .word   inirr
+        nstyle = <. - initbl / 2>
+;
+defspd: .word   2               ; default speed of style
+curspd: .word   0               ; current speed
+curhdl: .word   hdlf            ; style handler
+cursty: .word   2               ; current style index
+;
+pat:    .word   000001          ; display pattern
+smode:  .word   0               ; switching mode
+styage: .word   0               ; style age
+;
+fdir:   .word   1
+
+        .end    start

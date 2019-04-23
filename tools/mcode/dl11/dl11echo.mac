@@ -1,0 +1,235 @@
+; $Id: dl11echo.mac 1135 2019-04-23 12:56:23Z mueller $
+; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; License disclaimer see License.txt in $RETROBASE directory
+;
+; Revision History:
+; Date         Rev Version  Comment
+; 2019-04-21  1134   1.0    Initial version
+;
+; DL11 echo
+;   default is direct echo, only modification is to add a LF after CR
+;   other mode can be selected by two ESC plus a character:
+;     ESC + ESC + u -> uppercase
+;     ESC + ESC + l -> lowercase
+;     ESC + ESC + o -> octal echo (16 per line)
+;     ESC + ESC + a -> direct echo
+;
+; definitions ----------------------------------------------
+;
+        .include  |lib/defs_cpu.mac|
+        .include  |lib/defs_kwl.mac|
+        .include  |lib/defs_dl.mac|
+
+        bsize = 1024.
+;
+        CR  = 015
+        LF  = 012
+        ESC = 033
+        SPC = 040
+;
+; vector area ----------------------------------------------
+;
+        .include  |lib/vec_cpucatch.mac|
+        .include  |lib/vec_devcatch.mac|
+
+        . = v..dlr              ; DL11 rx vector
+        .word   vh.dlr
+        .word   cp.ars!cp.pr7   ; use alt-reg-set !
+        
+        . = v..dlt              ; DL11 tx vector
+        .word   vh.dlt
+        .word   cp.ars!cp.pr7   ; use alt-reg-set !
+        
+        . = v..kwl              ; KW11-L vector
+        .word   vh.kwl
+        .word   cp.ars!cp.pr7   ; use alt-reg-set !
+;
+; stack area -----------------------------------------------
+;
+        . = 1000                        ; stack (below); code (above)
+stack:  
+;
+; code area ------------------------------------------------
+;
+; main program -----------------------------------
+;
+start:  mov     #stack,sp               ; setup stack
+        spl     7
+        mov     #ti.ie,@#ti.csr         ; activate input
+        mov     #kl.ie,@#kl.csr
+        spl     0                       ; allow interrupts
+;
+; simple blinking lights null task
+; RSX-11M style display, code from RSX-11M V3.1 NULTK.MAC
+;
+nultsk: mov     #pat,r0
+        aslb    (r0)+
+        rorb    (r0)
+        adcb    -(r0)
+;
+        mov     pat,r0                  ; load pattern
+        wait                            ; and wait
+        mov     pat,r0
+        wait
+        mov     pat,r0
+        wait
+        mov     pat,r0
+        wait
+;
+        br      nultsk
+;
+; receive interrupt handler ----------------------
+;
+vh.dlr: mov     @#ti.buf,r0             ; read char
+        movb    r0,curchr               ; and remember
+        jsr     pc,@curhdl              ; call handler
+        jsr     pc,chkesc               ; check for ESC
+        cmp     nfree,#6.               ; enough buffer ?
+        bgt     100$                    ; if <= 6
+        bic     #ti.ie,@#ti.csr         ; disable ti irupt
+100$:   rti
+;
+; transmit interrupt handler ---------------------
+;
+vh.dlt: mov     rptr,r1                 ; load pointer
+        movb    (r1)+,@#to.buf          ; send char
+        cmp     r1,#bufe                ; ring wrap ?
+        blo     1$
+        mov     #buf,r1
+1$:     mov     r1,rptr                 ; store pointer
+        inc     nfree
+        cmp     nfree,#bsize            ; more to do ?
+        bne     2$
+        bic     #to.ie,@#to.csr         ; if not disable to irupt
+2$:     cmp     nfree,#6.               ; enough buffer ?
+        ble     100$                    ; if > 6
+        bis     #ti.ie,@#ti.csr         ; enable ti irupt
+100$:   rti
+;
+; kw11-l line clock handler ----------------------
+;
+vh.kwl: rti
+;
+; ring buffer write routine ----------------------
+;   in  r0  current character
+;   use r1
+;
+wchar:  tst     nfree                   ; free buffer
+        beq     100$                    ; if not, discard !
+        mov     wptr,r1                 ; load pointer
+        movb    r0,(r1)+                ; store char
+        cmp     r1,#bufe                ; ring wrap ?
+        blo     1$
+        mov     #buf,r1
+1$:     mov     r1,wptr                 ; store pointer
+        bis     #to.ie,@#to.csr         ; enable to irupt
+        dec     nfree
+100$:   rts     pc        
+;
+; write CR/LF ------------------------------------
+;   use r0
+;
+wcrlf:  mov     #CR,r0
+        jsr     pc,wchar
+wlf:    mov     #LF,r0
+        jsr     pc,wchar
+        rts     pc
+
+;
+; escape detection -------------------------------
+;   use r0
+;
+chkesc: movb    curchr,r0
+        cmpb    #ESC,r0
+        bne     1$
+        incb    esccnt
+        rts     pc
+1$:     cmpb    esccnt,#2               ; 2 ESC seen ?
+        blt     200$
+        cmpb    #'u,r0                  ; u -> hdluc
+        bne     100$
+        mov     #hdluc,curhdl
+        br      200$
+100$:   cmpb    #'l,r0                  ; l -> hdllc
+        bne     110$
+        mov     #hdllc,curhdl
+        br      200$
+110$:   cmpb    #'a,r0                  ; a -> hdldir
+        bne     120$
+        mov     #hdldir,curhdl
+        br      200$
+120$:   cmpb    #'o,r0                  ; o -> hdloct
+        bne     200$
+        mov     #hdloct,curhdl
+        jsr     pc,wcrlf                ; force new line
+        clrb    octcnt
+200$:   clrb    esccnt
+        rts     pc
+;
+; character handler ------------------------------
+;   in  r0  current character
+;   use r1,r2
+;
+hdldir: jsr     pc,wchar                ; direct mode
+        cmp     #CR,r0                  ; CR seen
+        bne     100$
+        jsr     pc,wlf                  ; then add LF
+100$:   rts     pc
+
+hdllc:  cmp     r0,#'A                  ; lower case mode
+        blt     hdldir
+        cmp     r0,#'Z
+        bgt     hdldir
+        add     #<'a-'A>,r0
+        br      hdldir
+
+hdluc:  cmp     r0,#'a                  ; upper case mode
+        blt     hdldir
+        cmp     r0,#'z
+        bgt     hdldir
+        sub     #<'a-'A>,r0
+        br      hdldir
+
+hdloct: mov     r0,r2                   ; octal mode
+        ash     #-6.,r0
+        jsr     pc,woct
+        mov     r2,r0
+        ash     #-3.,r0
+        jsr     pc,woct
+        mov     r2,r0
+        jsr     pc,woct
+        mov     #SPC,r0
+        jsr     pc,wchar
+        cmpb    #CR,curchr
+        beq     10$
+        incb    octcnt
+        cmpb    octcnt,#16.
+        blt     100$
+10$:    jsr     pc,wcrlf
+        clrb    octcnt
+100$:   rts     pc
+;
+; print octal digit ------------------------------
+;   in  r0  current character
+;
+woct:   bic     #370,r0                 ; mask
+        add     #'0,r0                  ; bin->ascii
+        jmp     wchar                   ; and print
+;
+; data area ------------------------------------------------
+;
+pat:    .word   170017
+;
+curhdl: .word   hdldir
+curchr: .byte   0
+esccnt: .byte   0
+octcnt: .byte   0
+        .even
+;
+nfree:  .word   bsize
+wptr:   .word   buf
+rptr:   .word   buf
+buf:    .blkb   bsize
+bufe:
+
+        .end    start

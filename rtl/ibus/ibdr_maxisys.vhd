@@ -1,4 +1,4 @@
--- $Id: ibdr_maxisys.vhd 1131 2019-04-14 13:24:25Z mueller $
+-- $Id: ibdr_maxisys.vhd 1136 2019-04-24 09:27:28Z mueller $
 --
 -- Copyright 2009-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -51,6 +51,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-04-23  1136   1.6.6  add CLK port to ib_intmap24
 -- 2019-04-14  1131   1.6.5  ib_rlim_gen has CPUSUSP port; RLIM_CEV now slv8
 -- 2019-04-07  1127   1.6.3  ibdr_dl11: use RLIM_CEV, drop CE_USEC
 -- 2019-03-17  1123   1.6.2  add ib_rlim_gen, use with ibdr_lp11_buf
@@ -521,6 +522,7 @@ begin
     generic map (
       INTMAP => conf_intmap24)
     port map (
+      CLK     => CLK,
       EI_REQ  => EI_REQ,
       EI_ACKM => EI_ACKM,
       EI_ACK  => EI_ACK,

@@ -64,7 +64,7 @@ The full set of tests is only run for tagged releases.
   - Rw11Cntl{DEUNA,DL11,RHRP,RK11,RL11,TM11}: call UnitSetupAll() in Start()
   - Rw11CntlLP11: remove SetOnline(), use UnitSetup()
   - Rw11CntlPC11
-    - BootCode(): boot loader rewritten 
+    - BootCode(): boot loader rewritten
     - remove SetOnline(), use UnitSetup()
   - asm-11: .end directive autocreates '...end' label
   - ti_w11: for -e use .end start address when available
@@ -72,7 +72,7 @@ The full set of tests is only run for tagged releases.
   - rbd_rbmon: more robust ack,err trace when busy
   - rbd_tester: use now fifo_simple_dram
   - ibd_ibtst: rename dly[rw]->bsy[rw]; datto for write; add datab
-  - ibdr_dl11: changes for ibdr_dl11_buf compatibility (val in msb, ib_rlim_slv) 
+  - ibdr_dl11: changes for ibdr_dl11_buf compatibility (val in msb, ib_rlim_slv)
   - ibdr_lp11: move valid bit to msb of buf (for ibdr_lp11_buf compatibility)
   - ibdr_pc11: changes for ibdr_pc11_buf compatibility
   - sys_w11a_s3: set BTOWIDTH 7 (was 6, must be > vmbox atowidth (6))
@@ -95,6 +95,8 @@ The full set of tests is only run for tagged releases.
   2015-05-12 release w11a_V0.753 which inverted the mask polarity. Had no
   practical consequences, went therefore undetected for such a long time.
 - RtclRw11Cpu: now proper cpu attn test in the server inactive case
+- pdp11_irq,ib_intmap24: now proper EI_ACK routing, for all detail see
+  [ECO-030](ECO-030-EI_ACK-misroute.md).
 
 ### Known issues
 

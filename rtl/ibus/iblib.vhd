@@ -1,4 +1,4 @@
--- $Id: iblib.vhd 1131 2019-04-14 13:24:25Z mueller $
+-- $Id: iblib.vhd 1136 2019-04-24 09:27:28Z mueller $
 --
 -- Copyright 2008-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  ise 8.1-14.7; viv 2014.4-2018.3; ghdl 0.18-0.35
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-04-23  1136   2.2.4  add CLK port to ib_intmap,ib_intmap24
 -- 2019-04-14  1131   2.2.3  ib_rlim_gen: add CPUSUSP port; RLIM_CEV now slv8
 -- 2019-03-17  1123   2.2.2  add ib_rlim_gen,ib_rlim_slv
 -- 2019-02-10  1111   2.2.1  add ibd_ibtst
@@ -132,6 +133,7 @@ component ib_intmap is                  -- external interrupt mapper (15 line)
   generic (
     INTMAP : intmap_array_type := intmap_array_init);                       
   port (
+    CLK : in slbit;                     -- clock
     EI_REQ : in slv16_1;                -- interrupt request lines
     EI_ACKM : in slbit;                 -- interrupt acknowledge (from master)
     EI_ACK : out slv16_1;               -- interrupt acknowledge (to requestor)
@@ -147,6 +149,7 @@ component ib_intmap24 is                -- external interrupt mapper (23 line)
   generic (
     INTMAP : intmap24_array_type := intmap24_array_init);                       
   port (
+    CLK : in slbit;                     -- clock
     EI_REQ : in slv24_1;                -- interrupt request lines
     EI_ACKM : in slbit;                 -- interrupt acknowledge (from master)
     EI_ACK : out slv24_1;               -- interrupt acknowledge (to requestor)

@@ -1,6 +1,6 @@
--- $Id: ib_intmap.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: ib_intmap.vhd 1136 2019-04-24 09:27:28Z mueller $
 --
--- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,7 +18,7 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.4; ghdl 0.18-0.33
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2017.2; ghdl 0.18-0.35
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic MHz
@@ -27,6 +27,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-04-23  1136   1.2    BUGFIX: ensure ACK send to correct device
 -- 2011-11-18   427   1.2.2  now numeric_std clean
 -- 2008-08-22   161   1.2.1  renamed pdp11_ -> ib_; use iblib
 -- 2008-01-20   112   1.2    add INTMAP generic to externalize config
@@ -49,6 +50,7 @@ entity ib_intmap is                     -- external interrupt mapper
   generic (
     INTMAP : intmap_array_type := intmap_array_init);                       
   port (
+    CLK : in slbit;                     -- clock
     EI_REQ : in slv16_1;                -- interrupt request lines
     EI_ACKM : in slbit;                 -- interrupt acknowledge (from master)
     EI_ACK : out slv16_1;               -- interrupt acknowledge (to requestor)
@@ -60,6 +62,7 @@ end ib_intmap;
 architecture syn of ib_intmap is
 
   signal EI_LINE : slv4 := (others=>'0');    -- external interrupt line
+  signal R_LINE :  slv4 := (others=>'0');    -- line on last cycle
 
   type intp_type is array (15 downto 0) of slv3;
   type intv_type is array (15 downto 0) of slv9;
@@ -124,21 +127,35 @@ begin
              "0001" when EI_REQ( 1)='1' else
              "0000";
 
-  proc_intmap : process (EI_LINE, EI_ACKM)
-    variable iline : integer := 0;
+  proc_line: process (CLK)
+  begin
+    if rising_edge(CLK) then
+        R_LINE <= EI_LINE;
+    end if;
+  end process proc_line;
+  
+  -- Note: EI_ACKM comes one cycle after vector is latched ! Therefore
+  -- - use EI_LINE to select vector to send to EI_PRI and EI_VECT
+  -- - use  R_LINE to select EI_ACM line for acknowledge
+  proc_intmap : process (EI_LINE, EI_ACKM, R_LINE)
+    variable ilinecur : integer := 0;
+    variable ilinelst : integer := 0;
     variable iei_ack : slv16 := (others=>'0');
   begin
 
-    iline := to_integer(unsigned(EI_LINE));
+    ilinecur := to_integer(unsigned(EI_LINE));
+    ilinelst := to_integer(unsigned(R_LINE));
 
+    -- send info of currently highest priority request
+    EI_PRI  <= conf_intp(ilinecur);
+    EI_VECT <= conf_intv(ilinecur)(8 downto 2);
+    
+    -- route acknowledge back to winner line of last cycle
     iei_ack := (others=>'0');
     if EI_ACKM = '1' then
-      iei_ack(iline) := '1';
+      iei_ack(ilinelst) := '1';
     end if;
-
     EI_ACK  <= iei_ack(EI_ACK'range);
-    EI_PRI  <= conf_intp(iline);
-    EI_VECT <= conf_intv(iline)(8 downto 2);  
     
   end process proc_intmap;
   

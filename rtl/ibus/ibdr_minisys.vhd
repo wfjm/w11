@@ -1,4 +1,4 @@
--- $Id: ibdr_minisys.vhd 1131 2019-04-14 13:24:25Z mueller $
+-- $Id: ibdr_minisys.vhd 1136 2019-04-24 09:27:28Z mueller $
 --
 -- Copyright 2008-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -33,6 +33,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-04-23  1136   1.1.5  add CLK port to ib_intmap
 -- 2019-04-14  1131   1.1.4  ib_rlim_gen has CPUSUSP port; RLIM_CEV now slv8
 -- 2019-04-07  1129   1.1.3  ibdr_dl11: use RLIM_CEV, drop CE_USEC
 -- 2011-11-18   427   1.1.2  now numeric_std clean
@@ -203,6 +204,7 @@ begin
     generic map (
       INTMAP => conf_intmap)
     port map (
+      CLK     => CLK,
       EI_REQ  => EI_REQ,
       EI_ACKM => EI_ACKM,
       EI_ACK  => EI_ACK,

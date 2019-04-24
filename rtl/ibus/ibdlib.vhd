@@ -20,6 +20,7 @@
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2019-04-14  1131   1.3.6  RLIM_CEV now slv8
+-- 2019-04-07  1129   1.3.5  add ibdr_pc11_buf
 -- 2019-04-07  1128   1.3.4  ibdr_dl11: use RLIM_CEV, drop CE_USEC
 -- 2019-03-09  1121   1.3.3  add ibdr_lp11_buf
 -- 2018-10-13  1055   1.3.2  update ibdr_maxisys (add IDEC port)
@@ -245,6 +246,25 @@ component ibdr_pc11 is                  -- ibus dev(rem): PC11
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- system reset
     BRESET : in slbit;                  -- ibus reset
+    RB_LAM : out slbit;                 -- remote attention
+    IB_MREQ : in ib_mreq_type;          -- ibus request
+    IB_SRES : out ib_sres_type;         -- ibus response
+    EI_REQ_PTR : out slbit;             -- interrupt request, reader
+    EI_REQ_PTP : out slbit;             -- interrupt request, punch
+    EI_ACK_PTR : in slbit;              -- interrupt acknowledge, reader
+    EI_ACK_PTP : in slbit               -- interrupt acknowledge, punch
+  );
+end component;
+
+component ibdr_pc11_buf is              -- ibus dev(rem): PC11 (buffered)
+                                        -- fixed address: 177550
+  generic (
+    AWIDTH : natural :=  5);            -- fifo address width
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit;                   -- system reset
+    BRESET : in slbit;                  -- ibus reset
+    RLIM_CEV : in  slv8;                -- clock enable vector
     RB_LAM : out slbit;                 -- remote attention
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response

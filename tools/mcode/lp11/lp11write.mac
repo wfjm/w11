@@ -1,0 +1,112 @@
+; $Id: lp11write.mac 1134 2019-04-21 17:18:03Z mueller $
+; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; License disclaimer see License.txt in $RETROBASE directory
+;
+; Revision History:
+; Date         Rev Version  Comment
+; 2019-04-21  1134   1.0    Initial version
+;
+; write test tape
+;
+; definitions ----------------------------------------------
+;
+        .include  |lib/defs_cpu.mac|
+        .include  |lib/defs_lp.mac|
+;
+        lcnt = 1000.                    ; number of lines to print
+;
+        CR  = 015
+        LF  = 012
+;
+; vector area ----------------------------------------------
+;
+        .include  |lib/vec_cpucatch.mac|
+        .include  |lib/vec_devcatch.mac|
+
+        . = v..lp
+        .word   vh.lp
+        .word   cp.pr7
+;
+; stack area -----------------------------------------------
+;
+        . = 1000                        ; stack (below); code (above)
+stack:  
+;
+; code area ------------------------------------------------
+;
+; gobal register usage
+;   r0   line count                     ; !! visible in wait !!
+;   r1   write buffer pointer
+;
+; start/stop area ---------------------------------
+;
+start:  br      start1
+stop:   halt                            ; sucessfull stop
+        reset                           ; and allow re-start
+;
+; main program ------------------------------------
+;
+start1: mov     #stack,sp               ; setup stack
+2$:     tst     @#lp.csr                ; wait printer online
+        bmi     2$
+;
+        clr     r0                      ; clear line count
+        mov     #bnum,r1                ; write buffer pointer
+        clr     r2
+        clr     r3
+        clr     r4
+        clr     r5
+        mov     #"00,bnum
+        mov     #"00,bnum+2
+;
+        mov     #lp.ie,@#lp.csr         ; start printer
+        spl     0                       ; allow interrupts
+3$:     wait                            ; and idle
+        br      3$
+;
+; printer interrupt handler -----------------------
+;
+vh.lp:  tst     @#lp.csr                ; printer offline ?
+        bmi     perr                    ; if mi yes, error halt
+1$:     movb    (r1)+,@#lp.buf          ; send byte
+        cmp     r1,#bend                ; end of buffer ?
+        bhis    100$                    ; if his yes, handle new line
+        tstb    @#lp.csr                ; ready for next char
+        bmi     1$                      ; if mi yes, doit
+        rti                             ; else quit irupt
+
+100$:   mov     #bnum+3,r1              ; if yes, increment number
+        jsr     pc,incnum
+        inc     r0                      ; inc line counter
+        cmp     r0,#lcnt                ; enough lines send ?
+        beq     200$
+        mov     #bnum,r1                ; ready for next line
+        rti
+
+200$:   jmp     stop
+
+perr:   halt                            ; printer error halt
+        br      perr
+;
+; increment 4 digit decimal number ---------------
+;
+incnum: mov     #4,r5                   ; max 4 digits
+1$:     incb    (r1)
+        cmpb    (r1),#'9                ; went above 9
+        ble     100$                    ; if not, done
+        movb    #'0,(r1)                ; if yes, restore 0
+        dec     r1                      ; and go for next digit
+        sob     r5,1$
+100$:   rts     pc
+;
+; data area ------------------------------------------------
+;
+bnum:   .ascii  /0000/
+btxt:   .ascii  /: /
+        .ascii  /ABCDEFGHIJKLMNOPQRSTUVWXYZ/
+        .ascii  /abcdefghijklmnopqrstuvwxyz/
+        .ascii  /!@#$%^&*()/
+        .byte   CR,LF
+bend:
+
+        .end    start

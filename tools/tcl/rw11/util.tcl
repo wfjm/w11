@@ -1,4 +1,4 @@
-# $Id: util.tcl 1131 2019-04-14 13:24:25Z mueller $
+# $Id: util.tcl 1134 2019-04-21 17:18:03Z mueller $
 #
 # Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-04-20  1134   1.3.11 setup_pp: add {pr,pp}rlim and prqlim options
 # 2019-04-14  1131   1.3.10 setup_lp: add rlim option
 # 2019-04-07  1128   1.3.9  setup_tt: rename dlrlim to dlrrlim
 # 2017-04-22   883   1.3.8  move in imap_reg2addr; add imap_range2addr
@@ -120,12 +121,8 @@ namespace eval rw11 {
       set unit "${cntl}0"
       ${cpu}${unit} att "tcp:?port=${port}"
       ${cpu}${unit} set log "tirri_${unit}.log${urlopt}"
-      if {$opt(dlrrlim) != 0} {
-        ${cpu}${cntl} set rxrlim $opt(dlrrlim)
-      }
-      if {$opt(to7bit) != 0} {
-        ${cpu}${unit} set to7bit 1
-      }
+      ${cpu}${cntl} set rxrlim $opt(dlrrlim)
+      ${cpu}${unit} set to7bit $opt(to7bit)
     }
     return
   }
@@ -164,9 +161,7 @@ namespace eval rw11 {
     args2opts opt {nlp 1 rlim 0 app 0 nbck 1} {*}$args
     if {$opt(nlp) != 0} {
       setup_ostr $cpu "lpa0" app $opt(app) nbck $opt(nbck)
-      if {$opt(rlim) != 0} {
-        ${cpu}lpa set rlim $opt(rlim)
-      }
+      ${cpu}lpa set rlim $opt(rlim)
     }
   }
   #
@@ -174,9 +169,12 @@ namespace eval rw11 {
   # 
   proc setup_pp {{cpu "cpu0"} args} {
     # process and check options
-    args2opts opt {npc 1 app 0 nbck 1} {*}$args
+    args2opts opt {npc 1 pprlim 0 prrlim 0 prqlim 0 app 0 nbck 1} {*}$args
     if {$opt(npc) != 0} {
       setup_ostr $cpu "pp" app $opt(app) nbck $opt(nbck)
+      ${cpu}pca set pprlim $opt(pprlim)
+      ${cpu}pca set prrlim $opt(prrlim)
+      ${cpu}pca set prqlim $opt(prqlim)
     }
   }
 

@@ -1,6 +1,6 @@
-// $Id: Rw11UnitPC11.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11UnitPC11.hpp 1134 2019-04-21 17:18:03Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-20  1134   1.1    add AttachDone()
 // 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2013-05-03   515   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -42,6 +43,7 @@ namespace Retro {
                          int detail=0) const;
 
     protected:
+      virtual void  AttachDone();
 
   };
   

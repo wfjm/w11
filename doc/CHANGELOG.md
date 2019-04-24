@@ -29,12 +29,14 @@ The full set of tests is only run for tagged releases.
   - ibd_ibtst: ibus tester device
   - ib_rlim_{gen,slv}: new modules for implementation of rate limiters
   - ibdr_lp11_buf: new LP11 interface with fifo buffering
+  - ibdr_pc11_buf: new PC11 interface with fifo buffering
   - simclkv: test bench clock generator with variable period
 - new verification codes
   - w11a_ibtst/*: tbench for ibd_ibtst
   - w11a_ibmon/*: tbench for ibd_ibmon
   - w11a/test_w11a_sdreg.tcl: tbench for sdreg
   - test_lp11_all.tcl: tbench for lp11 and lp11_buf
+  - test_pc11_*.tcl: tbench for pc11 and pc11_buf
 - new test and demonstration codes under tools/mcode
   - dl11/dl11echo.mac: console interface echo tester
   - sys/blink.mac: 'blinking lights' demo (rsx,bsd and other modes)

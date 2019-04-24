@@ -1,4 +1,4 @@
-# $Id: sys_w11a_s3.imfset 1108 2019-02-02 23:04:38Z mueller $
+# $Id: sys_w11a_s3.imfset 1136 2019-04-24 09:27:28Z mueller $
 #
 # ----------------------------------------------------------------------------
 [xst]
@@ -24,6 +24,7 @@ Unconnected output port 'SIZE' of component 'fifo_1c_dram'
 Unconnected output port 'ESUSP_O' of component 'pdp11_core'
 Unconnected output port 'RL_MONI' of component 'rlink_sp1c'
 Unconnected output port 'ACK_W' of component 's3_sram_memctl'
+Unconnected output port 'DONE' of component 'ib_rlim_slv'
 
 Input <CE_MSEC> is never used
 Input <DM_STAT_.*> is never used

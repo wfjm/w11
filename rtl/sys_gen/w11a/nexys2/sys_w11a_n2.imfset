@@ -1,4 +1,4 @@
-# $Id: sys_w11a_n2.imfset 1108 2019-02-02 23:04:38Z mueller $
+# $Id: sys_w11a_n2.imfset 1136 2019-04-24 09:27:28Z mueller $
 #
 # ----------------------------------------------------------------------------
 [xst]
@@ -31,6 +31,7 @@ Unconnected output port 'DOB' of component 'ram_2swsr_rfirst_gen'
 Unconnected output port 'BUSY' of component 'fifo_1c_dram'
 Unconnected output port 'SIZE' of component 'fifo_1c_dram'
 Unconnected output port 'ESUSP_O' of component 'pdp11_core'
+Unconnected output port 'DONE' of component 'ib_rlim_slv'
 
 Input <RESET> is never used
 Input <CE_MSEC> is never used

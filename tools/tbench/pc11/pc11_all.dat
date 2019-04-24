@@ -1,0 +1,7 @@
+# $Id: pc11_all.dat 1131 2019-04-14 13:24:25Z mueller $
+#
+## steering file for all pc11 tests
+#
+test_pc11_pp.tcl
+test_pc11_pr.tcl
+test_pc11_loop.tcl

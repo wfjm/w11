@@ -1,4 +1,4 @@
-// $Id: Rw11CntlPC11.hpp 1131 2019-04-14 13:24:25Z mueller $
+// $Id: Rw11CntlPC11.hpp 1134 2019-04-21 17:18:03Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-20  1134   1.4    add pc11_buf readout
 // 2019-04-14  1131   1.3.1  remove SetOnline(), use UnitSetup()
 // 2019-04-06  1126   1.3    pbuf.val in msb; rbusy in rbuf (new iface)
 // 2017-04-02   865   1.2.1  Dump(): add detail arg
@@ -47,6 +48,19 @@ namespace Retro {
                              uint16_t& aload, uint16_t& astart);
 
       virtual void  UnitSetup(size_t ind);
+    
+      void          SetPrQlim(uint16_t qlim);
+      uint16_t      PrQlim() const;
+      void          SetPrRlim(uint16_t rlim);
+      uint16_t      PrRlim() const;
+      void          SetPpRlim(uint16_t rlim);
+      uint16_t      PpRlim() const;
+    
+      uint16_t      Itype() const;
+      bool          Buffered() const;
+      uint16_t      FifoSize() const;
+
+      void          AttachDone(size_t ind);
 
       virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
                          int detail=0) const;
@@ -85,17 +99,45 @@ namespace Retro {
       static const uint16_t kPBUF_V_SIZE  =  8;      //!< pbuf.size shift
       static const uint16_t kPBUF_B_SIZE  = 0177;    //!< pbuf.size bit mask
       static const uint16_t kPBUF_M_BUF   = 0377;    //!< pbuf data mask
+    
+    // statistics counter indices
+      enum stats {
+        kStatNPrBlk= Rw11Cntl::kDimStat,    //!< done wblk
+        kStatNPpQue,                        //!< queue rblk
+        kDimStat
+      };    
 
+    // PrDrain state definitions
+      enum prdrain {
+        kPrDrain_Idle = 0,                  //!< draining not active
+        kPrDrain_Pend,                      //!< draining pending
+        kPrDrain_Done                       //!< draining done
+      };    
+    
     protected:
       int           AttnHandler(RlinkServer::AttnArgs& args);
+      void          ProcessUnbuf(uint16_t rbuf, uint16_t pbuf);
+      void          PpWriteChar(uint8_t ochr);
+      void          PrProcessBuf(uint16_t rbuf);
+      void          PpProcessBuf(const RlinkCommand& cmd, bool prim,
+                                 uint16_t rbuf);
+      int           PpRcvHandler();
     
     protected:
       size_t        fPC_pbuf;               //!< PrimClist: pbuf index
       size_t        fPC_rbuf;               //!< PrimClist: rbuf index
+      uint16_t      fPrQlim;                //!< reader queue limit
+      uint16_t      fPrRlim;                //!< reader interrupt rate limit
+      uint16_t      fPpRlim;                //!< puncher interrupt rate limit
+      uint16_t      fItype;                 //!< interface type
+      uint16_t      fFsize;                 //!< fifo size
+      uint16_t      fPpRblkSize;            //!< puncher rblk chunk size
+      bool          fPpQueBusy;             //!< puncher queue busy
+      int           fPrDrain;               //!< reader drain state
   };
   
 } // end namespace Retro
 
-//#include "Rw11CntlPC11.ipp"
+#include "Rw11CntlPC11.ipp"
 
 #endif

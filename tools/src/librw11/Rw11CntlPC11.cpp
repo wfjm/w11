@@ -1,4 +1,4 @@
-// $Id: Rw11CntlPC11.cpp 1131 2019-04-14 13:24:25Z mueller $
+// $Id: Rw11CntlPC11.cpp 1134 2019-04-21 17:18:03Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-20  1134   1.5    add pc11_buf readout
 // 2019-04-13  1131   1.4.1  BootCode(): boot loader rewritten
 //                           remove SetOnline(), use UnitSetup()
 // 2019-04-06  1126   1.4    pbuf.val in msb; rbusy in rbuf (new unbuf iface)
@@ -34,6 +35,7 @@
 */
 
 #include <functional>
+#include <vector>
 
 #include "librtools/RosFill.hpp"
 #include "librtools/RosPrintBvi.hpp"
@@ -97,12 +99,23 @@ const uint16_t Rw11CntlPC11::kPBUF_M_BUF;
 Rw11CntlPC11::Rw11CntlPC11()
   : Rw11CntlBase<Rw11UnitPC11,2>("pc11"),
     fPC_pbuf(0),
-    fPC_rbuf(0)
+    fPC_rbuf(0),
+    fPrQlim(1),
+    fPrRlim(0),
+    fPpRlim(0),
+    fItype(0),
+    fFsize(0),
+    fPpRblkSize(4),
+    fPpQueBusy(false),
+    fPrDrain(kPrDrain_Idle)
 {
   // must be here because Units have a back-ptr (not available at Rw11CntlBase)
   for (size_t i=0; i<NUnit(); i++) {
     fspUnit[i].reset(new Rw11UnitPC11(this, i));
   }
+  
+  fStats.Define(kStatNPrBlk, "NPrBlk" , "wblk done");
+  fStats.Define(kStatNPpQue, "NPpQue" , "rblk queued");
 }
 
 //------------------------------------------+-----------------------------------
@@ -136,13 +149,24 @@ void Rw11CntlPC11::Start()
   Cpu().AllIAddrMapInsert(Name()+".pcsr", Base() + kPCSR);
   Cpu().AllIAddrMapInsert(Name()+".pbuf", Base() + kPBUF);
 
+  // detect device type
+  fItype  = (fProbe.DataRem()>>kRCSR_V_TYPE) & kRCSR_B_TYPE;
+  fFsize  = (1<<fItype) - 1;
+  fPrQlim = fFsize;
+  
   // ensure unit status is initialized (online, rlim,...)
   UnitSetupAll();
   
   // setup primary info clist
   fPrimClist.Clear();
   fPrimClist.AddAttn();
-  fPC_pbuf = Cpu().AddRibr(fPrimClist, fBase+kPBUF);
+  if (!Buffered()) {
+    fPC_pbuf = Cpu().AddRibr(fPrimClist, fBase+kPBUF);
+  } else {
+    fPC_pbuf = Cpu().AddRbibr(fPrimClist, fBase+kPBUF, fPpRblkSize);
+    fPrimClist[fPC_pbuf].SetExpectStatus(0, RlinkCommand::kStat_M_RbTout |
+                                            RlinkCommand::kStat_M_RbNak);
+  }
   fPC_rbuf = Cpu().AddRibr(fPrimClist, fBase+kRBUF);
 
   // add attn handler
@@ -232,22 +256,81 @@ bool Rw11CntlPC11::BootCode(size_t /*unit*/, std::vector<uint16_t>& code,
 void Rw11CntlPC11::UnitSetup(size_t ind)
 {
   Rw11UnitPC11& unit = *fspUnit[ind];
-  bool online = unit.HasVirt() && ! (unit.Virt().Error() ||
-                                     unit.Virt().Eof());
 
-  Rw11Cpu& cpu  = Cpu();
-  RlinkCommandList clist;
-  if (ind == kUnit_PR) {                    // reader on/offline
-    uint16_t rcsr  = online ? 0 : kRCSR_M_ERROR;
-    cpu.AddWibr(clist, fBase+kRCSR, rcsr);
-  } else {                                  // puncher on/offline
-    uint16_t pcsr  = online ? 0 : kPCSR_M_ERROR;
-    cpu.AddWibr(clist, fBase+kPCSR, pcsr);
+  if (ind == kUnit_PR) {                    // reader
+    // reader is online when attached but not when virt in eof or error state
+    // and the reader fifo has been emptied
+    bool online = unit.HasVirt() && !
+      ( (unit.Virt().Eof() || unit.Virt().Error()) &&
+          ! (fPrDrain == kPrDrain_Pend) );    
+    uint16_t rcsr  = (online ? 0 : kRCSR_M_ERROR) |              // err field
+                     ((fPrRlim & kRCSR_B_RLIM) << kRCSR_V_RLIM); // rlim field
+    Cpu().ExecWibr(fBase+kRCSR, rcsr);
+    
+  } else {                                  // puncher
+    // puncher is online when attached and virt not in error state
+    bool online = unit.HasVirt() && ! unit.Virt().Error();
+    uint16_t pcsr  = (online ? 0 : kPCSR_M_ERROR) |              // err field
+                     ((fPpRlim & kPCSR_B_RLIM) << kPCSR_V_RLIM); // rlim field
+    Cpu().ExecWibr(fBase+kPCSR, pcsr);
   }
-  Server().Exec(clist);  
+
   return;
 }
 
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rw11CntlPC11::SetPrQlim(uint16_t qlim)
+{
+  if (qlim == 0) qlim = fFsize;
+  if (qlim > fFsize)
+    throw Rexception("Rw11CntlPC11::SetPrQlim",
+                     "Bad args: qlim larger than fifosize");
+
+  fPrQlim = qlim;
+  return;
+}
+  
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rw11CntlPC11::SetPrRlim(uint16_t rlim)
+{
+  if (rlim > kRCSR_B_RLIM)
+    throw Rexception("Rw11CntlPC11::SetPrRlim","Bad args: rlim too large");
+
+  fPrRlim = rlim;
+  UnitSetup(kUnit_PR);
+  return;
+}
+  
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rw11CntlPC11::SetPpRlim(uint16_t rlim)
+{
+  if (rlim > kRCSR_B_RLIM)
+    throw Rexception("Rw11CntlPC11::SetPpRlim","Bad args: rlim too large");
+
+  fPpRlim = rlim;
+  UnitSetup(kUnit_PP);
+  return;
+}
+  
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rw11CntlPC11::AttachDone(size_t ind)
+{
+  // if reader is attached pre-fill the fifo
+  if (ind == kUnit_PR && Buffered()) {
+    fPrDrain = kPrDrain_Idle;               // clear drain state
+    PrProcessBuf(0);                        // and pre-fill
+  }
+  return;
+}
+  
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
@@ -258,7 +341,21 @@ void Rw11CntlPC11::Dump(std::ostream& os, int ind, const char* text,
   os << bl << (text?text:"--") << "Rw11CntlPC11 @ " << this << endl;
   os << bl << "  fPC_pbuf:        " << fPC_pbuf << endl;
   os << bl << "  fPC_rbuf:        " << fPC_rbuf << endl;
-
+  os << bl << "  fPrQlim:         " << RosPrintf(fPrQlim,"d",3)  << endl;
+  os << bl << "  fPrRlim:         " << RosPrintf(fPrRlim,"d",3)  << endl;
+  os << bl << "  fPpRlim:         " << RosPrintf(fPpRlim,"d",3)  << endl;
+  os << bl << "  fItype:          " << RosPrintf(fItype,"d",3)  << endl;
+  os << bl << "  fFsize:          " << RosPrintf(fFsize,"d",3) << endl;
+  os << bl << "  fPpRblkSize:     " << RosPrintf(fPpRblkSize,"d",3) << endl;
+  os << bl << "  fPpQueBusy:      " << RosPrintf(fPpQueBusy) << endl;
+  os << bl << "  fPrDrain:        ";
+  switch (fPrDrain) {
+    case kPrDrain_Idle: os << "Idle";  break;
+    case kPrDrain_Pend: os << "Pend";  break;
+    case kPrDrain_Done: os << "Done";  break;
+    default: os << "????";
+  };
+  os << endl;
   Rw11CntlBase<Rw11UnitPC11,2>::Dump(os, ind, " ^", detail);
   return;
 }
@@ -270,14 +367,29 @@ int Rw11CntlPC11::AttnHandler(RlinkServer::AttnArgs& args)
 {
   fStats.Inc(kStatNAttnHdl);
   Server().GetAttnInfo(args, fPrimClist);
+  
+  if (!Buffered()) {                        // un-buffered iface -------------
+    ProcessUnbuf(fPrimClist[fPC_rbuf].Data(),
+                 fPrimClist[fPC_pbuf].Data());
+  } else {                                  // buffered iface ----------------
+    PrProcessBuf(fPrimClist[fPC_rbuf].Data());
+    PpProcessBuf(fPrimClist[fPC_pbuf], true, fPrimClist[fPC_rbuf].Data());
+  }
+  
+  return 0;
+}
 
-  uint16_t pbuf = fPrimClist[fPC_pbuf].Data();
-  uint16_t rbuf = fPrimClist[fPC_rbuf].Data();
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rw11CntlPC11::ProcessUnbuf(uint16_t rbuf, uint16_t pbuf)
+{
   bool rbusy    = rbuf & kRBUF_M_RBUSY;
   bool pval     = pbuf & kPBUF_M_VAL;
   uint8_t ochr  = pbuf & kPBUF_M_BUF;
   
   if (pval) {                               // punch valid -------------------
+    if (pval) PpWriteChar(ochr);
     if (fTraceLevel>0) {
       RlogMsg lmsg(LogFile());
       lmsg << "-I " << Name() << ": pp"
@@ -287,16 +399,8 @@ int Rw11CntlPC11::AttnHandler(RlinkServer::AttnArgs& args)
            << " char=" << RosPrintBvi(ochr,8);
       if (ochr>=040 && ochr<0177)  lmsg << "  '" << char(ochr) << "'";
     }
-    
-    RerrMsg emsg;
-    bool rc = fspUnit[kUnit_PP]->VirtWrite(&ochr, 1, emsg);
-    if (!rc) {
-      RlogMsg lmsg(LogFile());
-      lmsg << "-E " << Name() << ":" << emsg;
-      UnitSetup(1);
-    }
   }
-
+    
   if (rbusy) {                              // reader busy -------------------
     uint8_t ichr = 0;
     RerrMsg emsg;
@@ -311,7 +415,7 @@ int Rw11CntlPC11::AttnHandler(RlinkServer::AttnArgs& args)
         RlogMsg lmsg(LogFile());
         lmsg << "-I " << Name() << ": set reader offline";  
       }  
-      UnitSetup(0);
+      UnitSetup(kUnit_PR);
       
     } else {
       if (fTraceLevel>0) {
@@ -322,14 +426,204 @@ int Rw11CntlPC11::AttnHandler(RlinkServer::AttnArgs& args)
         if (ichr>=040 && ichr<0177) lmsg << "  '" << char(ichr) << "'";
       }
       
-      RlinkCommandList clist;
-      Cpu().AddWibr(clist, fBase+kRBUF, ichr);
-      Server().Exec(clist);
+      Cpu().ExecWibr(fBase+kRBUF, ichr);
+    }
+  }
+  return;
+}
+  
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rw11CntlPC11::PpWriteChar(uint8_t ochr)
+{
+  RerrMsg emsg;
+  bool rc = fspUnit[kUnit_PP]->VirtWrite(&ochr, 1, emsg);
+  if (!rc) {
+    RlogMsg lmsg(LogFile());
+    lmsg << "-E " << Name() << ":" << emsg;
+    UnitSetup(kUnit_PP);
+  }
+
+  return;
+}
+  
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rw11CntlPC11::PrProcessBuf(uint16_t rbuf)
+{
+  uint16_t rsize = (rbuf >>kRBUF_V_SIZE) & kRBUF_B_SIZE;
+  uint8_t ichr = 0;
+  RerrMsg emsg;
+
+  if (fPrDrain == kPrDrain_Pend) {    // eof/err seen and draining
+    if (rsize == 0) {                 // draining done, last char read
+      if (fTraceLevel>0) {
+        RlogMsg lmsg(LogFile());
+        lmsg << "-I " << Name() << ": set reader offline after fifo drained";  
+      }
+      fPrDrain = kPrDrain_Done;
+      UnitSetup(kUnit_PR);
+    }
+    return;
+  }
+  
+  if (fPrDrain == kPrDrain_Pend ||          // draining ongoing or done -> quit
+      fPrDrain == kPrDrain_Done) return;
+  if (rsize >= fPrQlim) return;             // no space in fifo -> quit
+  
+  uint16_t nmax = fPrQlim - rsize;
+  vector<uint16_t> iblock;
+  iblock.reserve(nmax);
+  for (uint16_t i = 0; i<nmax; i++) {
+    int irc = fspUnit[kUnit_PR]->VirtRead(&ichr, 1, emsg);
+    if (irc <= 0) {
+      if (irc < 0) {
+        RlogMsg lmsg(LogFile());
+        lmsg << "-E " << Name() << ":" << emsg;
+      }
+      if (irc == 0 && fTraceLevel>0) {
+        RlogMsg lmsg(LogFile());
+        lmsg << "-I " << Name() << ": eof seen on input stream";
+      }
+      fPrDrain = kPrDrain_Pend;
+      break;
+    } else {
+      iblock.push_back(uint16_t(ichr));
     }
   }
   
+  if (iblock.size() > 0) {
+    if (fTraceLevel > 0) {
+      RlogMsg lmsg(LogFile());
+      lmsg << "-I " << Name() << ":"
+           << " rsize=" << RosPrintf(rsize,"d",3)
+             << " drain=" << fPrDrain
+           << " size=" << RosPrintf(iblock.size(),"d",3);
+      if (fTraceLevel > 1) {
+        size_t nchar = 0;
+        for (auto& o: iblock) {
+            if (nchar == 0) lmsg << "\n      '";
+            lmsg << ' ' << RosPrintBvi(uint8_t(o),8);
+            nchar += 1;
+            if (nchar >= 16) nchar = 0;
+        }
+      }
+    }
+    
+    fStats.Inc(kStatNPrBlk);
+    RlinkCommandList clist;
+    Cpu().AddWbibr(clist, fBase+kRBUF, move(iblock));
+    Server().Exec(clist);
+    
+  } else {
+    // if no byte to send, eof seen, and fifo empty --> go offline immediately
+    if (rsize == 0 && fPrDrain == kPrDrain_Pend) {
+      if (fTraceLevel>0) {
+        RlogMsg lmsg(LogFile());
+        lmsg << "-I " << Name() << ": set reader offline immediately";
+      }
+      fPrDrain = kPrDrain_Done;
+      UnitSetup(kUnit_PR);
+    }
+  }
+  
+  return;
+}
+  
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rw11CntlPC11::PpProcessBuf(const RlinkCommand& cmd, bool prim,
+                                uint16_t rbuf)
+{
+  const uint16_t* pbuf = cmd.BlockPointer();
+  size_t done = cmd.BlockDone();
+
+  uint16_t fbeg = 0;
+  uint16_t fend = 0;
+  uint16_t fdel = 0;
+  uint16_t smin = 0;
+  uint16_t smax = 0;
+
+  if (done > 0) {
+    fbeg = (pbuf[0]     >>kPBUF_V_SIZE) & kPBUF_B_SIZE;
+    fend = (pbuf[done-1]>>kPBUF_V_SIZE) & kPBUF_B_SIZE;
+    fdel = fbeg-fend+1;
+    smin = 128;
+  }
+  
+  for (size_t i=0; i < done; i++) {
+    uint8_t  ochr =  pbuf[i]                & kPBUF_M_BUF;
+    uint16_t size = (pbuf[i]>>kPBUF_V_SIZE) & kPBUF_B_SIZE;
+    smin = min(smin,size);
+    smax = max(smax,size);
+    PpWriteChar(ochr);
+  }
+
+  // determine next chunk size from highest fifo 'size' field, at least 4
+  fPpRblkSize = max(uint16_t(4), max(uint16_t(done),smax));
+  
+  // queue further reads when queue idle and fifo not emptied
+  // check for 'size==1' not seen in current read
+  if ((!fPpQueBusy) && smin > 1) {        // if smin>1 no size==1 seen
+    fStats.Inc(kStatNPpQue);
+    fPpQueBusy = true;
+    Server().QueueAction(bind(&Rw11CntlPC11::PpRcvHandler, this));
+  }
+  
+  if (fTraceLevel > 0) {
+    RlogMsg lmsg(LogFile());
+    lmsg << "-I " << Name() << ":"
+         << " prim="  << prim
+         << " size=" << RosPrintf(cmd.BlockSize(),"d",3)
+         << " done=" << RosPrintf(done,"d",3)
+         << "  fifo=" << RosPrintf(fbeg,"d",3)
+         << "," << RosPrintf(fend,"d",3)
+         << ";" << RosPrintf(fdel,"d",3)
+         << "," << RosPrintf(done-fdel,"d",3)
+         << ";" << RosPrintf(smax,"d",3)
+         << "," << RosPrintf(smin,"d",3)
+         << "  que="   << fPpQueBusy;
+    if (prim) {
+      uint16_t rsize = (rbuf >>kRBUF_V_SIZE) & kRBUF_B_SIZE;
+      lmsg << " rsize=" << RosPrintf(rsize,"d",3);
+    }
+    
+    if (fTraceLevel > 1 && done > 0) {
+      size_t nchar = 0;
+      for (size_t i=0; i < done; i++) {
+        if (nchar == 0) lmsg << "\n      '";
+        uint8_t ochr = pbuf[i] & kPBUF_M_BUF;
+        lmsg << ' ' << RosPrintBvi(ochr,8);
+        nchar += 1;
+        if (nchar >= 16) nchar = 0;
+      }
+    }
+  }
+  
+  // re-sizing the prim rblk invalidates pbuf -> so must be done last
+  if (prim) {                               // if primary list
+    fPrimClist[fPC_pbuf].SetBlockRead(fPpRblkSize); // setup size for next attn
+  }
+  
+  return;
+}
+  
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+  
+int Rw11CntlPC11::PpRcvHandler()
+{
+  fPpQueBusy = false;
+  RlinkCommandList clist;
+  Cpu().AddRbibr(clist, fBase+kPBUF, fPpRblkSize);
+  clist[0].SetExpectStatus(0, RlinkCommand::kStat_M_RbTout |
+                              RlinkCommand::kStat_M_RbNak);
+  Server().Exec(clist);
+  PpProcessBuf(clist[0], false, 0);
   return 0;
 }
 
-  
 } // end namespace Retro

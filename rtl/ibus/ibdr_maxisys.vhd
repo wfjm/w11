@@ -26,6 +26,7 @@
 --                 ibdr_tm11
 --                 ibdr_dl11
 --                 ibdr_pc11
+--                 ibdr_pc11_buf
 --                 ibdr_lp11
 --                 ibdr_lp11_buf
 --                 ibdr_sdreg
@@ -53,6 +54,7 @@
 -- Date         Rev Version  Comment
 -- 2019-04-23  1136   1.6.6  add CLK port to ib_intmap24
 -- 2019-04-14  1131   1.6.5  ib_rlim_gen has CPUSUSP port; RLIM_CEV now slv8
+-- 2019-04-07  1129   1.6.4  add ibdr_pc11_buf
 -- 2019-04-07  1127   1.6.3  ibdr_dl11: use RLIM_CEV, drop CE_USEC
 -- 2019-03-17  1123   1.6.2  add ib_rlim_gen, use with ibdr_lp11_buf
 -- 2019-03-09  1121   1.6.1  add ibdr_lp11_buf
@@ -416,7 +418,7 @@ begin
       );
   end generate DL11_1;
 
-  PC11: if sys_conf_ibd_pc11 >= 0 generate
+  PC11: if sys_conf_ibd_pc11 = 0 generate
   begin
     PCA : ibdr_pc11
       port map (
@@ -432,6 +434,26 @@ begin
         EI_ACK_PTP => EI_ACK_PC11PTP
       );
   end generate PC11;
+
+  PC11BUF: if sys_conf_ibd_pc11 > 0 generate
+  begin
+    PCA : ibdr_pc11_buf
+      generic map (
+        AWIDTH  => sys_conf_ibd_pc11)
+      port map (
+        CLK        => CLK,
+        RESET      => RESET,
+        BRESET     => BRESET,
+        RLIM_CEV   => RLIM_CEV,
+        RB_LAM     => RB_LAM_PC11,
+        IB_MREQ    => IB_MREQ,
+        IB_SRES    => IB_SRES_PC11,
+        EI_REQ_PTR => EI_REQ_PC11PTR,
+        EI_REQ_PTP => EI_REQ_PC11PTP,
+        EI_ACK_PTR => EI_ACK_PC11PTR,
+        EI_ACK_PTP => EI_ACK_PC11PTP
+      );
+  end generate PC11BUF;
 
   LP11: if sys_conf_ibd_lp11 = 0 generate
   begin

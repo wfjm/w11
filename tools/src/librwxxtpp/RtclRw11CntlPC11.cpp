@@ -1,4 +1,4 @@
-// $Id: RtclRw11CntlPC11.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclRw11CntlPC11.cpp 1132 2019-04-14 20:23:40Z mueller $
 //
 // Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-14  1132   1.2    add getters& setters for pc11_buf readout
 // 2017-04-16   878   1.1    add class in ctor;derive from RtclRw11CntlStreamBase
 // 2013-05-03   515   1.0    Initial version
 // ---------------------------------------------------------------------------
@@ -28,6 +29,7 @@
 #include "RtclRw11UnitPC11.hpp"
 
 using namespace std;
+using namespace std::placeholders;
 
 /*!
   \class Retro::RtclRw11CntlPC11
@@ -42,7 +44,19 @@ namespace Retro {
 
 RtclRw11CntlPC11::RtclRw11CntlPC11()
   : RtclRw11CntlStreamBase<Rw11CntlPC11>("Rw11CntlPC11","stream")
-{}
+{
+  Rw11CntlPC11* pobj = &Obj();
+  fGets.Add<uint16_t>     ("prqlim",   bind(&Rw11CntlPC11::PrQlim,   pobj));
+  fGets.Add<uint16_t>     ("prrlim",   bind(&Rw11CntlPC11::PrRlim,   pobj));
+  fGets.Add<uint16_t>     ("pprlim",   bind(&Rw11CntlPC11::PpRlim,   pobj));
+  fGets.Add<uint16_t>     ("itype",    bind(&Rw11CntlPC11::Itype,    pobj));
+  fGets.Add<bool>         ("buffered", bind(&Rw11CntlPC11::Buffered, pobj));
+  fGets.Add<uint16_t>     ("fifosize", bind(&Rw11CntlPC11::FifoSize, pobj));
+  
+  fSets.Add<uint16_t>     ("prqlim",   bind(&Rw11CntlPC11::SetPrQlim,pobj, _1));
+  fSets.Add<uint16_t>     ("prrlim",   bind(&Rw11CntlPC11::SetPrRlim,pobj, _1));
+  fSets.Add<uint16_t>     ("pprlim",   bind(&Rw11CntlPC11::SetPpRlim,pobj, _1));
+}
 
 //------------------------------------------+-----------------------------------
 //! Destructor

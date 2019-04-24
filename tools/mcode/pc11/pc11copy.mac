@@ -1,0 +1,139 @@
+; $Id: pc11copy.mac 1136 2019-04-24 09:27:28Z mueller $
+; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; License disclaimer see License.txt in $RETROBASE directory
+;
+; Revision History:
+; Date         Rev Version  Comment
+; 2019-04-21  1134   1.0    Initial version
+;
+; copy input to output tape
+;
+; definitions ----------------------------------------------
+;
+        .include  |lib/defs_cpu.mac|
+        .include  |lib/defs_pc.mac|
+
+        bsize = 256.
+;
+; vector area ----------------------------------------------
+;
+        .include  |lib/vec_cpucatch.mac|
+        .include  |lib/vec_devcatch.mac|
+
+        . = v..ptr
+        .word   vh.ptr
+        .word   cp.pr7
+        . = v..ptp
+        .word   vh.ptp
+        .word   cp.pr7
+;
+; stack area -----------------------------------------------
+;
+        . = 1000                        ; stack (below); code (above)
+stack:  
+;
+; code area ------------------------------------------------
+;
+; all context is in 6 register
+;   r0   bytes read                     ; !! visible in wait !!
+;   r1   bytes written
+;   r2   bytes in buffer
+;   r3   eof seen flag
+;   r4   ring buffer write pointer
+;   r5   ring buffer read  pointer
+;
+; start/stop area ---------------------------------
+;
+start:  br      start1
+stop:   halt                            ; sucessfull stop
+        reset                           ; and allow re-start
+;
+; main program ------------------------------------
+;
+start1: mov     #stack,sp               ; setup stack
+1$:     tst     @#pr.csr                ; wait reader online
+        bmi     1$
+2$:     tst     @#pp.csr                ; wait punch online
+        bmi     2$
+;
+        mov     #buf,r4                 ; setup wptr
+        mov     #buf,r5                 ; setup rptr
+        clr     r2                      ; clear cnt
+        clr     r3                      ; clear eof
+        clr     r0                      ; clear rcnt
+        clr     r1                      ; clear wcnt
+;
+        mov     #<pr.ie!pr.ena>,@#pr.csr ; start reader
+        spl     0                       ; allow interrupts
+3$:     wait                            ; and idle
+        br      3$
+;
+; reader interrupt handler ------------------------
+;
+vh.ptr: tst     @#pr.csr                ; at eof ?
+        bmi     100$                    ; if mi yes, stop reader
+        tstb    @#pr.csr                ; done ?
+        bpl     rerr                    ; if pl no, error halt
+        movb    @#pr.buf,(r4)+          ; write char to buffer
+        inc     r0                      ; inc rcnt
+        cmp     r4,#bufe                ; wrap ?
+        blo     1$
+        mov     #buf,r4
+1$:     tst     r2                      ; test buffer count
+        bne     2$                      ; was buffer empty ?
+        bis     #pp.ie,@#pp.csr         ; then start punch
+2$:     inc     r2                      ; inc cnt
+        cmp     r2,#<bsize-2>           ; still space in buffer ?
+        bge     200$                    ; no: stop reader
+        inc     @#pr.csr                ; yes: else request next
+        rti
+
+100$:   inc     r3                      ; set eof flag
+        tst     r2                      ; any chars pending ?
+        beq     300$                    ; if eq not, all done
+        rti
+
+200$:   bic     #pr.ie,@#pr.csr         ; stop reader
+        rti
+
+300$:   jmp     stop
+
+rerr:   halt                            ; reader error halt
+        br      rerr
+;
+; puncher interrupt handler -----------------------
+;
+vh.ptp: tst     @#pp.csr                ; punch error
+        bmi     perr                    ; if mi yes, error halt
+        tstb    @#pp.csr                ; ready ?
+        bpl     perr                    ; if pl no, error halt
+        tst     r2                      ; test buffer count
+        beq     100$                    ; if eq suspend or stop
+        movb    (r5)+,@#pp.buf          ; and punch next char
+        inc     r1                      ; inc wcnt
+        cmp     r5,#bufe                ; wrap ?
+        blo     1$
+        mov     #buf,r5
+1$:     dec     r2                      ; dec cnt
+        bit     #pr.ie,@#pr.csr         ; reader active ?
+        bne     2$                      ;
+        mov     #<pr.ie!pr.ena>,@#pr.csr ; if not, start reader
+2$:     rti
+
+100$:   bic     #pp.ie,@#pp.csr         ; stop punch
+        tstb    r3                      ; eof seen ?
+        bne     200$                    ; if yes, all done
+        rti
+        
+200$:   jmp     stop
+        
+perr:   halt                            ; puncher error halt
+        br      perr
+
+;
+; data area ------------------------------------------------
+;
+buf:    .blkb   bsize
+bufe:
+
+        .end    start

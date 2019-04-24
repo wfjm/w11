@@ -1,6 +1,6 @@
-# $Id: shell_egd.tcl 1056 2018-10-13 16:01:17Z mueller $
+# $Id: shell_egd.tcl 1134 2019-04-21 17:18:03Z mueller $
 #
-# Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-04-21  1134   1.1.2  shell_aspec_parse: allow 8,9 in numeric address
 # 2017-06-09   910   1.1.1  BUGFIX: shell_pspec_map: fix mapping for addr>20000
 # 2017-03-10   859   1.1    .egd: add /u option (memory access via ubmap)
 # 2015-12-28   720   1.0    Initial version
@@ -101,7 +102,7 @@ namespace eval rw11 {
 
     # Note: put regexp patterns in {} to prevent that tcl modifies them !
     switch -regexp -matchvar mvar -- $saddr {
-      {^([0-7]+)$} { 
+      {^([0-9]+)$} { 
         set paddr [list "pa" $opt_am [lindex $mvar 1]]
         }
       {^(r0|r1|r2|r3|r4|r5|r6|r7|sp|pc|ps)$} { 

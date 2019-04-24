@@ -1,0 +1,28 @@
+; $Id: randzp.mac 1135 2019-04-23 12:56:23Z mueller $
+; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; License disclaimer see License.txt in $RETROBASE directory
+;
+; pseudo random number generator
+;   seen in zpcae0; certainly not crypto grade quality !!
+;
+; Call:
+;   jsr  pc, randzp
+; 
+; All registers preserved
+;  
+randzp: mov     1000$,r0
+	rol     r0
+	rol     r0
+	add     1001$,r0
+	mov     r0,1000$
+	rol     r0
+	rol     r0
+	add     1001$,r0
+	rol     r0
+	rol     r0
+	mov     r0,1001$
+	mov     1000$,r0
+        rts     pc
+;
+1000$:  .word	001233
+1001$:  .word	007622

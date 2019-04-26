@@ -1,4 +1,4 @@
-# $Id: test_kw11p_int.tcl 1134 2019-04-21 17:18:03Z mueller $
+# $Id: test_kw11p_int.tcl 1138 2019-04-26 08:14:56Z mueller $
 #
 # Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
@@ -42,7 +42,7 @@ stack:
 start:  spl     7               ; lock out interrupts
 ;
         mov     #2,@#kp.csb     ; load kw11-p counter
-        mov     #<kp.ie+kp.rhk+kp.run>,@#kp.csr  ; setup: 100 kHz down single
+        mov     #<kp.ie!kp.rhk!kp.run>,@#kp.csr  ; setup: 100 kHz down single
         spl     0               ; allow interrupts
         mov     #1000.,r0
 1$:     sob     r0,1$           ; wait some time
@@ -82,7 +82,7 @@ start:  spl     7               ; lock out interrupts
 ;
         mov     #3,r1           ; setup interrupt counter
         mov     #1,@#kp.csb     ; load kw11-p counter
-        mov     #<kp.ie+kp.rep+kp.rhk+kp.run>,@#kp.csr  ; setup: 100 kHz dn rep
+        mov     #<kp.ie!kp.rep!kp.rhk!kp.run>,@#kp.csr  ; setup: 100 kHz dn rep
         spl     0               ; allow interrupts
         mov     #1500.,r0
 1$:     sob     r0,1$           ; wait some time
@@ -105,6 +105,10 @@ rlc log [format "      3 x 100 kHz ticks took %4d sob" [expr {1500-$reg0}]]
 # -- Section B ---------------------------------------------------------------
 rlc log "  B test interrupts via extevt=idec -------------------------"
 rlc log "    B1: repeat interrupt (mode=1) ----------------------"
+
+# set erate to rext
+$cpu cp \
+  -wibr kwp.csr        [regbld rw11::KW11P_RCSR {erate "rext"}]
 
 # setup three interrupts after 20 ticks of extevt counter
 #   wait loop will see
@@ -130,7 +134,7 @@ start:  spl     7               ; lock out interrupts
 ;
         mov     #3,r1           ; setup interrupt counter
         mov     #20.,@#kp.csb   ; load kw11-p counter
-        mov     #<kp.ie+kp.rep+kp.rex+kp.run>,@#kp.csr  ; setup: extevt dn rep
+        mov     #<kp.ie!kp.rep!kp.rex!kp.run>,@#kp.csr  ; setup: extevt dn rep
         spl     0               ; allow interrupts
         mov     #70.,r0;        ; timeout after 70 instructions
 1$:     sob     r0,1$           ; wait some time

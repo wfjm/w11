@@ -1,9 +1,10 @@
-; $Id: pc11copy.mac 1136 2019-04-24 09:27:28Z mueller $
+; $Id: pc11copy.mac 1138 2019-04-26 08:14:56Z mueller $
 ; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ; License disclaimer see License.txt in $RETROBASE directory
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
+; 2019-04-25  1138   1.1    add kw11-l/p stress
 ; 2019-04-21  1134   1.0    Initial version
 ;
 ; copy input to output tape
@@ -11,21 +12,35 @@
 ; definitions ----------------------------------------------
 ;
         .include  |lib/defs_cpu.mac|
+        .include  |lib/defs_kwl.mac|
+        .include  |lib/defs_kwp.mac|
         .include  |lib/defs_pc.mac|
 
-        bsize = 256.
+        bsize   = 256.          ; elasticity ring buffer size
+        kpwait  = 997.          ; kp wait (in cycles, intentionally prime)
+        cbsize  = 250.          ; kp-per-kl trace buffer size (for last 5 sec)
 ;
 ; vector area ----------------------------------------------
 ;
         .include  |lib/vec_cpucatch.mac|
         .include  |lib/vec_devcatch.mac|
 
-        . = v..ptr
+        . = v..ptr              ; PC11 pr vector
         .word   vh.ptr
         .word   cp.pr7
-        . = v..ptp
+
+        . = v..ptp              ; PC11 pp vector
         .word   vh.ptp
         .word   cp.pr7
+
+        . = v..kwl              ; KW11-L vector
+        .word   vh.kwl
+        .word   cp.ars!cp.pr7   ; use alt-reg-set !
+
+        . = v..kwp              ; KW11-P vector
+        .word   vh.kwp
+        .word   cp.ars!cp.pr7   ; use alt-reg-set !
+
 ;
 ; stack area -----------------------------------------------
 ;
@@ -34,7 +49,7 @@ stack:
 ;
 ; code area ------------------------------------------------
 ;
-; all context is in 6 register
+; all context of the pr-to-pp copy is in 6 registers
 ;   r0   bytes read                     ; !! visible in wait !!
 ;   r1   bytes written
 ;   r2   bytes in buffer
@@ -63,6 +78,14 @@ start1: mov     #stack,sp               ; setup stack
         clr     r0                      ; clear rcnt
         clr     r1                      ; clear wcnt
 ;
+        clr     klcnt
+        clr     kpcnt
+        mov     #cbuf,cbptr
+;
+        spl     7
+        mov     #kl.ie,@#kl.csr         ; start kw11-l
+        mov     #kpwait,@#kp.csb        ; load kw11-p counter
+        mov     #<kp.ie!kp.rep!kp.rex!kp.run>,@#kp.csr ; kw11-p: ext down repeat
         mov     #<pr.ie!pr.ena>,@#pr.csr ; start reader
         spl     0                       ; allow interrupts
 3$:     wait                            ; and idle
@@ -131,9 +154,61 @@ perr:   halt                            ; puncher error halt
         br      perr
 
 ;
+; kw11-l interrupt handler ------------------------
+;   checks that
+;     1. kl.mon is set  (to detect spurious interrupts)
+;     2. that kp is tricking
+;
+vh.kwl: tstb    @#kl.csr                ; done, moni set ?
+        bpl     klerr
+        mov     #kl.ie,@#kl.csr         ; clear moni
+;
+        tst     klcnt                   ; no kp check on first kl
+        beq     1$
+        tst     kpcnt                   ; kwp ticking ?
+        beq     kpold                   ; if not halt
+;
+1$:     mov     cbptr,r0                ; log kpcnt to trace buffer
+        mov     kpcnt,(r0)+
+        cmp     r0,#cbufe
+        blo     2$
+        mov     #cbuf,r0
+2$:     mov     r0,cbptr
+        clr     kpcnt                   ; and finally clear
+;
+        inc     klcnt                   ; inc kl counter, prevent wrap
+        bne     900$
+        dec     klcnt
+900$:   rti
+;
+klerr:  halt
+kpold:  halt
+;
+; kw11-p interrupt handler ------------------------
+;   checks that
+;     1. kp.mon is set  (to detect spurious interrupts)
+;     2. that kl is tricking (if kl stops, kpcnt saturates)
+;
+vh.kwp: tstb    @#kp.csr                ; done, moni set ?
+        bpl     kperr
+;
+        inc     kpcnt                   ; inc kp counter, prevent wrap
+        beq     klold                   ; if not also err halt
+        rti
+;
+kperr:  halt
+klold:  halt
+;
 ; data area ------------------------------------------------
 ;
 buf:    .blkb   bsize
 bufe:
+;
+klcnt:  .word   0
+kpcnt:  .word   0
+;
+cbptr:  .word   cbuf
+cbuf:   .blkw   cbsize
+cbufe:
 
         .end    start

@@ -1,10 +1,11 @@
-# $Id: test_hbpt_basics.tcl 830 2016-12-26 20:25:49Z mueller $
+# $Id: test_hbpt_basics.tcl 1138 2019-04-26 08:14:56Z mueller $
 #
-# Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2019-04-26  1138   1.0.3  leave system in clean state at end
 # 2016-01-02   724   1.0.2  use s: defs for CP_STAT(rust)
 # 2015-12-30   721   1.0.1  BUGFIX: add missing wtcpu in mfpd/mtpd tests
 # 2015-07-11   700   1.0    Initial version
@@ -287,4 +288,8 @@ $cpu wtcpu -reset $rw11::asmwait_tout
 $cpu cp -rreg  "hb0.stat" -edata [regbld rw11::HB_STAT dwseen] \
         -rstat -edata [regbld rw11::CP_STAT suspint {rust hbpt} susp go] \
         -rpc   -edata $sym(I7)
-
+#
+# be nice to later tests and reset cpu and hbpt unit
+$cpu cp -stop \
+        -creset
+rw11::hb_remove cpu0 0

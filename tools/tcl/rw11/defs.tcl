@@ -1,4 +1,4 @@
-# $Id: defs.tcl 1121 2019-03-11 08:59:12Z mueller $
+# $Id: defs.tcl 1138 2019-04-26 08:14:56Z mueller $
 #
 # Copyright 2014-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-04-24  1138   1.0.8  add RCSR defs for KW11-L and KW11-P
 # 2019-03-10  1121   1.0.7  define INIT bits; define ANUM
 # 2018-09-09  1044   1.0.6  update defs kw11p, literals for KW11P_CSR(rate)
 # 2017-02-17   851   1.0.5  defs for auxilliary devices (kw11l,kw11p,iist)
@@ -121,7 +122,8 @@ namespace eval rw11 {
   # KW11-L line clock
   set A_KW11L_CSR  0177546
   regdsc KW11L_CSR  {moni 7} {ie 6}
-  rw11util::regmap_add rw11 kwl.csr    {?? KW11L_CSR}
+  regdsc KW11L_RCSR {moni 7} {ie 6} {ir 5}
+  rw11util::regmap_add rw11 kwl.csr    {l? KW11L_CSR r? KW11L_RCSR}
   #
   # KW11-P line clock
   set A_KW11P_CSR  0172540
@@ -129,7 +131,10 @@ namespace eval rw11 {
   set A_KW11P_CTR  0172544
   regdsc KW11P_CSR  {err 15} {done 7} {ie 6} {fix 5} {updn 4} {mode 3} \
                     {rate 2 2 "s:r100k:r10k:rline:rext"} {run 0}
-  rw11util::regmap_add rw11 kwp.csr    {?? KW11P_CSR}
+  regdsc KW11P_RCSR {err 15} {ir 10} {erate 9 2 "s:sclk:usec:rext:noop"} \
+                    {done 7} {ie 6} {fix 5} {updn 4} {mode 3} \
+                    {rate 2 2 "s:r100k:r10k:rline:rext"} {run 0}
+  rw11util::regmap_add rw11 kwp.csr    {l? KW11P_CSR r? KW11P_RCSR}
   #
   # IIST - interprocessor communication
   set A_IIST_ACR   0177500

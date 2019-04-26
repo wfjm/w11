@@ -1,6 +1,6 @@
--- $Id: ibd_kw11p.vhd 1056 2018-10-13 16:01:17Z mueller $
+-- $Id: ibd_kw11p.vhd 1138 2019-04-26 08:14:56Z mueller $
 --
--- Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2018-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -26,6 +26,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-04-24  1138   1.1    add csr.ir; add rem controllable options for
+--                           RATE=11: sysclk, 1 Mhz, extevt, none
 -- 2018-09-09  1043   1.0    Initial version 
 ------------------------------------------------------------------------------
 
@@ -63,6 +65,8 @@ architecture syn of ibd_kw11p is
   constant ibaddr_ctr : slv2 := "10";   -- ctr address offset
 
   constant csr_ibf_err :    integer := 15;
+  constant csr_ibf_ir :     integer := 10;
+  subtype  csr_ibf_erate    is integer range 9 downto 8;
   constant csr_ibf_done :   integer :=  7;
   constant csr_ibf_ie :     integer :=  6;
   constant csr_ibf_fix :    integer :=  5;
@@ -75,6 +79,11 @@ architecture syn of ibd_kw11p is
   constant rate_10k  : slv2 :=  "01";
   constant rate_line : slv2 :=  "10";
   constant rate_ext  : slv2 :=  "11";
+  
+  constant erate_sclk : slv2 :=  "00";
+  constant erate_usec : slv2 :=  "01";
+  constant erate_ext  : slv2 :=  "10";
+  constant erate_noop : slv2 :=  "11";
 
   constant dwidth : natural  :=  4;     -- decade divider
   constant ddivide : natural := 10;
@@ -85,6 +94,7 @@ architecture syn of ibd_kw11p is
 
   type regs_type is record              -- state registers
     ibsel : slbit;                      -- ibus select    
+    erate : slv2;                       -- ext rate mode
     err : slbit;                        -- re-interrupt error
     done : slbit;                       -- counter wrap occured
     ie : slbit;                         -- interrupt enable
@@ -108,6 +118,7 @@ architecture syn of ibd_kw11p is
 
   constant regs_init : regs_type := (
     '0',                                -- ibsel
+    "00",                               -- erate
     '0','0','0','0','0',                -- err,done,ie,updn,mode
     "00",'0',                           -- rate,run
     (others=>'0'),                      -- csb
@@ -131,6 +142,7 @@ begin
       if BRESET = '1' then             -- BRESET is 1 for system and ibus reset
         R_REGS <= regs_init;
         if RESET = '0' then               -- if RESET=0 we do just an ibus reset
+          R_REGS.erate <= N_REGS.erate;      -- keep ERATE field
           R_REGS.lcnt  <= N_REGS.lcnt;       -- don't clear clock dividers
           R_REGS.d1cnt <= N_REGS.d1cnt;      -- "
           R_REGS.d2cnt <= N_REGS.d2cnt;      -- "
@@ -162,7 +174,14 @@ begin
     
     ievt  := '0';
 
-    n.evtext  := EXTEVT;                -- buffer
+    n.evtext  := '0';
+    case r.erate is
+      when erate_sclk => n.evtext := '1';
+      when erate_usec => n.evtext := CE_USEC;
+      when erate_ext  => n.evtext := EXTEVT;
+      when erate_noop => n.evtext := '0';
+      when others => null;
+    end case;
     n.evt100k := '0';                   -- one shot
     n.evt10k  := '0';                   -- one shot
     n.evtline := '0';                   -- one shot
@@ -193,23 +212,34 @@ begin
             n.done := '0';                -- done is read and clear
           end if;
 
-          if ibwr = '1' then
-            n.evtfix := IB_MREQ.din(csr_ibf_fix);
-            n.ie     := IB_MREQ.din(csr_ibf_ie);
-            n.updn   := IB_MREQ.din(csr_ibf_updn);
-            n.mode   := IB_MREQ.din(csr_ibf_mode);
-            n.rate   := IB_MREQ.din(csr_ibf_rate);
-            n.run    := IB_MREQ.din(csr_ibf_run);
-            if IB_MREQ.din(csr_ibf_ie)='0' then
-              n.intreq := '0';
+          if IB_MREQ.racc = '0' then      -- cpu ---------------------
+            if ibwr = '1' then
+              n.evtfix := IB_MREQ.din(csr_ibf_fix);
+              n.ie     := IB_MREQ.din(csr_ibf_ie);
+              n.updn   := IB_MREQ.din(csr_ibf_updn);
+              n.mode   := IB_MREQ.din(csr_ibf_mode);
+              n.rate   := IB_MREQ.din(csr_ibf_rate);
+              n.run    := IB_MREQ.din(csr_ibf_run);
+              if IB_MREQ.din(csr_ibf_ie)='0' then
+                n.intreq := '0';
+              end if;
+            end if;
+
+          else                            -- rri ---------------------
+            idout(csr_ibf_ir)    := r.intreq;
+            idout(csr_ibf_erate) := r.erate;
+            if ibwr = '1' then
+              n.erate   := IB_MREQ.din(csr_ibf_erate);
             end if;
           end if;
           
         when ibaddr_csb =>              -- CSB -- count set buffer -----------
           idout := (others=>'0');         -- csb is not readable, return zero !
-          if ibwr = '1' then
-            n.csb := IB_MREQ.din;
-            n.evtload := '1';
+          if IB_MREQ.racc = '0' then      -- cpu ---------------------
+            if ibwr = '1' then
+              n.csb := IB_MREQ.din;
+              n.evtload := '1';
+            end if;
           end if;
 
         when ibaddr_ctr =>              -- CTR -- counter --------------------

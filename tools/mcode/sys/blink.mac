@@ -1,4 +1,4 @@
-; $Id: blink.mac 1135 2019-04-23 12:56:23Z mueller $
+; $Id: blink.mac 1138 2019-04-26 08:14:56Z mueller $
 ; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ; License disclaimer see License.txt in $RETROBASE directory
 ;
@@ -91,7 +91,7 @@ nultsk: mov     curspd,r5               ; load speed
         jsr     pc,randzp               ; get random number
         mov     r0,r1
         clr     r0
-        div     #nstyle,r0              ; do rand % %nstyle
+        div     #nstyle,r0              ; calculate: rand % nstyle
         mov     r1,cursty               ; reminder is new style index
         asl     r1                      ; index to offset
         jsr     pc,@initbl(r1)          ; call initializer
@@ -224,7 +224,6 @@ hdlrr:  jsr     pc,randzp
 ; code imports
 ;
         .include  |lib/randzp.mac|
-
 ;
 ; data area ------------------------------------------------
 ;

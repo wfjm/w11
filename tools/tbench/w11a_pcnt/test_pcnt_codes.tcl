@@ -1,4 +1,4 @@
-# $Id: test_pcnt_codes.tcl 1134 2019-04-21 17:18:03Z mueller $
+# $Id: test_pcnt_codes.tcl 1138 2019-04-26 08:14:56Z mueller $
 #
 # Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
@@ -461,7 +461,7 @@ start:  spl     7               ; lock out interrupts
 ;
         mov     #3,r1           ; setup interrupt counter
         mov     #20.,@#kp.csb   ; load kw11-p counter
-        mov     #<kp.ie+kp.rep+kp.rex+kp.run>,@#kp.csr  ; setup: extevt dn rep
+        mov     #<kp.ie!kp.rep!kp.rex!kp.run>,@#kp.csr  ; setup: extevt dn rep
         spl     0               ; allow interrupts
         mov     #70.,r0;        ; timeout after 70 instructions
 1$:     sob     r0,1$           ; wait some time

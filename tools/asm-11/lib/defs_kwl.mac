@@ -1,4 +1,4 @@
-; $Id: defs_kwl.mac 1134 2019-04-21 17:18:03Z mueller $
+; $Id: defs_kwl.mac 1138 2019-04-26 08:14:56Z mueller $
 ; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ; License disclaimer see License.txt in $RETROBASE directory
 ;
@@ -15,5 +15,5 @@
 ;
 ; symbol definitions for kl.csr
 ;
-        kl.don=000200
+        kl.mon=000200
         kl.ie =000100

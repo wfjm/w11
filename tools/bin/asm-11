@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: asm-11 1133 2019-04-19 18:43:00Z mueller $
+# $Id: asm-11 1138 2019-04-26 08:14:56Z mueller $
 #
 # Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-04-25  1138   1.0.7  print lines with errors to stderr unless -lst seen
 # 2019-04-19  1133   1.0.6  .end directive autocreates '...end' label
 # 2018-11-03  1065   1.0.5  add and use bailout
 # 2015-11-01   712   1.0.4  BUGFIX: fix '.' handling in instructions
@@ -340,11 +341,11 @@ write_lsm($lsm_fname) if $lsm_do;
 
 # and exit
 if ($errcnt_tot > 0) {
-  print "asm-11-E: compilation errors:";
+  print STDERR "asm-11-E: compilation errors:";
   foreach my $err (sort keys %errcnt) {
-    printf "  %s: %d", $err, $errcnt{$err};
+    printf STDERR "  %s: %d", $err, $errcnt{$err};
   }
-  print "\n";
+  print STDERR "\n";
   exit 1;
 }
 exit 0;
@@ -1619,7 +1620,7 @@ sub to_rad50 {
 
 sub pass2 {
 
-  my $fh;
+  my $fh = *STDERR;                         # for error line only print
   if ($lst_do) {
     if ($lst_fname eq "-") {
       $fh = *STDOUT;
@@ -1650,8 +1651,12 @@ sub pass2 {
 
     # generate output data
     pass2_out($rl);
-    # listing requested
-    pass2_lst_line($rl, $fh) if $lst_do;
+    # listing if requested or error detected in this line
+    if ($lst_do) {
+      pass2_lst_line($rl, $fh);
+    } else {
+      pass2_lst_line($rl, $fh) if $$rl{err} ne '';
+    }
     # pass 2 dump requested
     dump_rl($rl) if $opts{tpass2};
 
@@ -1879,7 +1884,19 @@ sub pass2_lst_line {
     $str .= ' ' x 21;
   }
 
-  $str .= '  ' . $$rl{line} . "\n";
+  my $line = $$rl{line};
+  # if only error reporting is done strip the comments. Use that the last
+  #   token is always type EOL and holds the comment in {val}. Therefore
+  #   @{$$rl{tl}}[-1]->{val} is either undefined, or the comment string
+  if (not $lst_do) {                        # only error reporting ?
+    my $comm = @{$$rl{tl}}[-1]->{val};      # get comment (see above)
+    if (defined $comm) {                    # if comment seem
+      $line = substr($line,0,length($line)-length($comm));  # drop comment
+      $line =~ s/\s*$//;                                    # drop traing blanks
+    }
+  }
+  $str .= '  ' . $line;
+  $str .= "\n";
   print $fh $str;
   if (1) {
     while (scalar(@ow)) {

@@ -1,4 +1,4 @@
-# $Id: util.tcl 1134 2019-04-21 17:18:03Z mueller $
+# $Id: util.tcl 1138 2019-04-26 08:14:56Z mueller $
 #
 # Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,7 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
-# 2019-04-21  1134   1.1    updates for buffered dl11
+# 2019-04-24  1138   1.1    updates for buffered dl11
 # 2015-12-26   719   1.0    Initial version
 #
 
@@ -29,11 +29,11 @@ namespace eval ibd_dl11 {
   #
 
   regdsc RCSR   {done 7} {ie 6}
-  regdsc RRCSR  {rlim 14 3} {type 10 3} {done 7} {ie 6} {fclr 5}
+  regdsc RRCSR  {rlim 14 3} {type 10 3} {done 7} {ie 6} {ir 5} {rlb 4} {fclr 1}
   regdsc RRBUF  {rrdy 15} {rsize 14 7 "d"} {tsize 6 7 "d"}
 
   regdsc XCSR   {done 7} {ie 6}
-  regdsc RXCSR  {rlim 14 3} {done 7} {ie 6}
+  regdsc RXCSR  {rlim 14 3} {done 7} {ie 6} {ir 5} {rlb 4}
   regdsc RXBUF  {val 15} {size 14 7 "d"} {data 7 8 "o"}
 
   rw11util::regmap_add ibd_dl11 tt?.rcsr {l? RCSR r? RRCSR}

@@ -1,6 +1,6 @@
--- $Id: ibd_kw11l.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: ibd_kw11l.vhd 1138 2019-04-26 08:14:56Z mueller $
 --
--- Copyright 2008-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -18,7 +18,7 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2017.2; ghdl 0.18-0.35
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -27,6 +27,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-04-24  1138   1.2.1  add csr.ir; csr only loc writable;
+--                           csr.moni can be cleared, but not set by loc write
 -- 2015-05-09   676   1.2    add CPUSUSP, freeze timer when cpu suspended
 -- 2011-11-18   427   1.1.1  now numeric_std clean
 -- 2010-10-17   333   1.1    use ibus V2 interface
@@ -65,8 +67,9 @@ architecture syn of ibd_kw11l is
 
   constant ibaddr_kw11l : slv16 := slv(to_unsigned(8#177546#,16));
 
-  constant lks_ibf_ie :   integer :=  6;
   constant lks_ibf_moni : integer :=  7;
+  constant lks_ibf_ie :   integer :=  6;
+  constant lks_ibf_ir :   integer :=  5;
 
   constant twidth : natural  :=  5;
   constant tdivide : natural := 20;
@@ -130,16 +133,23 @@ begin
 
     -- ibus output driver
     if r.ibsel = '1' then
-      idout(lks_ibf_ie)   := R_REGS.ie;
-      idout(lks_ibf_moni) := R_REGS.moni;
+      idout(lks_ibf_moni) := r.moni;
+      idout(lks_ibf_ie)   := r.ie;
+      if IB_MREQ.racc = '1' then      -- rri ---------------------
+        idout(lks_ibf_ir) := r.intreq;
+      end if;
     end if;
 
     -- ibus write transactions
     if r.ibsel='1' and ibw0='1' then
-      n.ie   := IB_MREQ.din(lks_ibf_ie);
-      n.moni := IB_MREQ.din(lks_ibf_moni);
-      if IB_MREQ.din(lks_ibf_ie)='0' or IB_MREQ.din(lks_ibf_moni)='0' then
-        n.intreq := '0';
+      if IB_MREQ.racc = '0' then      -- cpu ---------------------
+        n.ie   := IB_MREQ.din(lks_ibf_ie);
+        if IB_MREQ.din(lks_ibf_moni) = '0' then -- write 0 to moni
+          n.moni   := '0';                        -- clears moni 
+        end if;
+        if IB_MREQ.din(lks_ibf_ie) = '0' then   -- ie set 0
+          n.intreq := '0';                        -- cancel interrupt
+        end if;
       end if;
     end if;
     

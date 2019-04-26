@@ -1,4 +1,4 @@
--- $Id: ibdr_lp11_buf.vhd 1134 2019-04-21 17:18:03Z mueller $
+-- $Id: ibdr_lp11_buf.vhd 1138 2019-04-26 08:14:56Z mueller $
 --
 -- Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -23,6 +23,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-04-24  1138   1.0.3  add csr.ir (intreq monitor)
 -- 2019-04-20  1134   1.0.2  remove fifo clear on BRESET
 -- 2019-04-14  1131   1.0.1  RLIM_CEV now slv8
 -- 2019-03-17  1123   1.0    Initial version
@@ -73,6 +74,7 @@ architecture syn of ibdr_lp11_buf is
   subtype  csr_ibf_type    is integer range 10 downto  8;
   constant csr_ibf_done :  integer :=  7;
   constant csr_ibf_ie :    integer :=  6;
+  constant csr_ibf_ir :    integer :=  5;
   constant buf_ibf_val :   integer := 15;
   subtype  buf_ibf_size    is integer range AWIDTH-1+8 downto 8;
   subtype  buf_ibf_data    is integer range  6 downto 0;
@@ -203,6 +205,7 @@ begin
           idout(csr_ibf_err)  := r.err;
           idout(csr_ibf_done) := r.done;
           idout(csr_ibf_ie)   := r.ie;
+
           if IB_MREQ.racc = '0' then      -- cpu
             if ibw0 = '1' then
               n.ie   := IB_MREQ.din(csr_ibf_ie);
@@ -214,9 +217,11 @@ begin
                 n.intreq := '0';
               end if;
             end if;
+
           else                            -- rri
             idout(csr_ibf_rlim) := r.rlim;
             idout(csr_ibf_type) := slv(to_unsigned(AWIDTH,3));
+            idout(csr_ibf_ir)   := r.intreq;
             if ibw1 = '1' then
               n.err  := IB_MREQ.din(csr_ibf_err);
               n.rlim := IB_MREQ.din(csr_ibf_rlim);
@@ -228,6 +233,7 @@ begin
           end if;
 
         when ibaddr_buf =>              -- BUF -- data buffer ----------------
+
           if IB_MREQ.racc = '0' then      -- cpu
             if ibw0 = '1' then
               irlimsta := '1';              -- in all cases start timer
@@ -245,6 +251,7 @@ begin
                 end if;  -- r.err = '0'
               end if;  -- r.done = '1'
             end if;  -- ibw0 = '1'
+
           else                            -- rri
             idout(buf_ibf_val)  := not PBUF_EMPTY;
             idout(buf_ibf_size) := PBUF_SIZE;

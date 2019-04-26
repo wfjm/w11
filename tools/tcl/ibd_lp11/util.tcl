@@ -1,4 +1,4 @@
-# $Id: util.tcl 1123 2019-03-17 17:55:12Z mueller $
+# $Id: util.tcl 1138 2019-04-26 08:14:56Z mueller $
 #
 # Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -30,7 +30,7 @@ namespace eval ibd_lp11 {
   #
 
   regdsc CSR   {err 15} {done 7} {ie 6}
-  regdsc RCSR  {err 15} {rlim 14 3} {type 10 3} {done 7} {ie 6}
+  regdsc RCSR  {err 15} {rlim 14 3} {type 10 3} {done 7} {ie 6} {ir 5}
   regdsc RBUF  {val 15} {size 14 7 "d"} {data 6 7 "o"}
 
   rw11util::regmap_add ibd_lp11 lp?.csr {l? CSR r? RCSR}

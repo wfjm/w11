@@ -1,4 +1,4 @@
--- $Id: ibdr_lp11.vhd 1126 2019-04-06 17:37:40Z mueller $
+-- $Id: ibdr_lp11.vhd 1138 2019-04-26 08:14:56Z mueller $
 --
 -- Copyright 2009-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -27,6 +27,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-04-24  1138   1.3.3  add csr.ir (intreq monitor)
 -- 2019-03-10  1121   1.3.2  ignore buf write if csr.err=1 for lp11_buf compat
 -- 2019-03-03  1118   1.3.1  VAL in bit 15 and 8 for lp11_buf compat
 -- 2013-05-04   515   1.3    BUGFIX: r.err was cleared in racc read !
@@ -76,6 +77,7 @@ architecture syn of ibdr_lp11 is
   constant csr_ibf_err :   integer := 15;
   constant csr_ibf_done :  integer :=  7;
   constant csr_ibf_ie :    integer :=  6;
+  constant csr_ibf_ir :    integer :=  5;
   constant buf_ibf_val :   integer := 15;
   constant buf_ibf_val8:   integer :=  8;
 
@@ -152,6 +154,7 @@ begin
           idout(csr_ibf_err)  := r.err;
           idout(csr_ibf_done) := r.done;
           idout(csr_ibf_ie)   := r.ie;
+
           if IB_MREQ.racc = '0' then      -- cpu ---------------------
             if ibw0 = '1' then
               n.ie   := IB_MREQ.din(csr_ibf_ie);
@@ -163,7 +166,9 @@ begin
                 n.intreq := '0';
               end if;
             end if;
+
           else                            -- rri ---------------------
+            idout(csr_ibf_ir)  := r.intreq;
             if ibw1 = '1' then
               n.err := IB_MREQ.din(csr_ibf_err);
               if IB_MREQ.din(csr_ibf_err) = '1' then
@@ -174,6 +179,7 @@ begin
           end if;
 
         when ibaddr_buf =>              -- BUF -- data buffer ----------------
+
           if IB_MREQ.racc = '0' then      -- cpu ---------------------
             if ibw0 = '1' then
               if r.done = '1' then          -- ignore buf write when done=0
@@ -190,6 +196,7 @@ begin
                 end if;  -- r.err = '0'
               end if;  -- r.done = '1'
             end if;  -- ibw0 = '1'
+
           else                            -- rri ---------------------
             idout(r.buf'range)  := r.buf;
             idout(buf_ibf_val)  := not r.done;

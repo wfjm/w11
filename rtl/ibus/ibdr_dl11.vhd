@@ -1,4 +1,4 @@
--- $Id: ibdr_dl11.vhd 1131 2019-04-14 13:24:25Z mueller $
+-- $Id: ibdr_dl11.vhd 1138 2019-04-26 08:14:56Z mueller $
 --
 -- Copyright 2008-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -28,6 +28,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-04-24  1138   1.3.2  add rcsr.ir and xcsr.ir (intreq monitors)
 -- 2019-04-14  1131   1.3.1  RLIM_CEV now slv8
 -- 2019-04-07  1127   1.3    for dl11_buf compat: xbuf.val in bit 15 and 8;
 --                           use rbuf instead xbuf for rdry reporting; remove
@@ -83,11 +84,13 @@ architecture syn of ibdr_dl11 is
   subtype  rcsr_ibf_rrlim   is integer range 14 downto 12;
   constant rcsr_ibf_rdone : integer :=  7;
   constant rcsr_ibf_rie :   integer :=  6;
+  constant rcsr_ibf_rir :   integer :=  5;
   
   constant rbuf_ibf_rrdy :  integer := 15;
   
   constant xcsr_ibf_xrdy :  integer :=  7;
   constant xcsr_ibf_xie :   integer :=  6;
+  constant xcsr_ibf_xir :   integer :=  5;
 
   constant xbuf_ibf_xval :  integer := 15;
   constant xbuf_ibf_xval8 : integer :=  8;
@@ -204,6 +207,7 @@ begin
 
           else                          -- rri ---------------------
             idout(rcsr_ibf_rrlim) := r.rrlim;
+            idout(rcsr_ibf_rir)   := r.rintreq;
             if ibw1 = '1' then
               n.rrlim := IB_MREQ.din(rcsr_ibf_rrlim);
             end if;
@@ -244,6 +248,9 @@ begin
                 n.xintreq := '0';
               end if;
             end if;
+
+          else                          -- rri ---------------------
+            idout(xcsr_ibf_xir)   := r.xintreq;
           end if;
           
         when ibaddr_xbuf =>             -- XBUF -- transmit data buffer ------

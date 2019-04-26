@@ -1,4 +1,4 @@
-# $Id: test_lp11_all.tcl 1134 2019-04-21 17:18:03Z mueller $
+# $Id: test_lp11_all.tcl 1138 2019-04-26 08:14:56Z mueller $
 #
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
@@ -35,7 +35,7 @@ rlc log "    A1.1: csr err, done --------------------------------"
 #    loc ERR=0           --> test ERR=1,DONE=1,IE=0   (ERR  not loc writable)
 #    rem ERR=0           --> test ERR=0,DONE=1,IE=0
 #    breset              --> test ERR=0  (not set by breset)
-set rcsrmask [regbld ibd_lp11::RCSR err done ie]
+set rcsrmask [regbld ibd_lp11::RCSR err done ie ir]
 
 $cpu cp \
   -breset \
@@ -56,17 +56,17 @@ $cpu cp \
 # remember 'type' retrieved from csr for later tests
 set type  [regget ibd_lp11::RCSR(type) $lprcsr]
 
-rlc log "    A1.2: csr ie ---------------------------------------"
-#   loc IE=1   --> seen on loc and rem
+rlc log "    A1.2: csr ie,ir ------------------------------------"
+#   loc IE=1   --> seen on loc and rem (check also ir=1)
 #   rem IE=0   --> stays, IE not rem writable
 #   loc IE=0   --> seen on loc and rem
 $cpu cp \
   -wma  lpa.csr        [regbld ibd_lp11::CSR ie] \
-  -rma  lpa.csr -edata [regbld ibd_lp11::CSR ie done] \
-  -ribr lpa.csr -edata [regbld ibd_lp11::RCSR ie done]  $rcsrmask\
+  -rma  lpa.csr -edata [regbld ibd_lp11::CSR done ie] \
+  -ribr lpa.csr -edata [regbld ibd_lp11::RCSR done ie ir]  $rcsrmask\
   -wibr lpa.csr 0x0 \
-  -rma  lpa.csr -edata [regbld ibd_lp11::CSR ie done] \
-  -ribr lpa.csr -edata [regbld ibd_lp11::RCSR ie done]  $rcsrmask\
+  -rma  lpa.csr -edata [regbld ibd_lp11::CSR done ie] \
+  -ribr lpa.csr -edata [regbld ibd_lp11::RCSR done ie ir]  $rcsrmask\
   -wma  lpa.csr 0x0 \
   -rma  lpa.csr -edata [regbld ibd_lp11::CSR done] \
   -ribr lpa.csr -edata [regbld ibd_lp11::RCSR done] $rcsrmask
@@ -76,7 +76,7 @@ if {$type > 0} {                # if buffered test rlim
   #   rem write rlim --> seen rem, not loc
   #   loc write rlim --> stays, rlim not loc writable
   #   breset         --> rlim not cleared
-  set rcsrmaskbuf [regbld ibd_lp11::RCSR err {rlim -1} done ie]
+  set rcsrmaskbuf [regbld ibd_lp11::RCSR err {rlim -1} done ie ir]
   $cpu cp \
     -wibr lpa.csr        [regbld ibd_lp11::RCSR {rlim 1}] \
     -ribr lpa.csr -edata [regbld ibd_lp11::RCSR {rlim 1} done] $rcsrmaskbuf \

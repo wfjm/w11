@@ -1,0 +1,5 @@
+# $Id: lp11_all.dat 1138 2019-04-26 08:14:56Z mueller $
+#
+## steering file for all lp11 tests
+#
+test_lp11_all.tcl

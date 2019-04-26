@@ -1,8 +1,8 @@
-# $Id: dev_all.dat 1132 2019-04-14 20:23:40Z mueller $
+# $Id: dev_all.dat 1138 2019-04-26 08:14:56Z mueller $
 #
 ## steering file for all devices tests
 #
-test_lp11_all.tcl
+@lp11/lp11_all.dat
 @pc11/pc11_all.dat
 @rhrp/rhrp_all.dat
 @tm11/tm11_all.dat

@@ -1,0 +1,7 @@
+# $Id: dl11_all.dat 1139 2019-04-27 14:00:38Z mueller $
+#
+## steering file for all dl11 tests
+#
+test_dl11_tx.tcl
+test_dl11_rx.tcl
+test_dl11_loop.tcl

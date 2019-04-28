@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDL11.cpp 1133 2019-04-19 18:43:00Z mueller $
+// $Id: Rw11CntlDL11.cpp 1140 2019-04-28 10:21:21Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-27  1139   1.5    add dl11_buf readout
 // 2019-04-19  1133   1.4.2  use ExecWibr(),ExecRibr()
 // 2019-04-14  1131   1.4.1  proper unit init, call UnitSetupAll() in Start()
 // 2019-04-06  1126   1.4    xbuf.val in msb; rrdy in rbuf (new iface)
@@ -35,6 +36,7 @@
 */
 
 #include <functional>
+#include <algorithm>
 
 #include "librtools/RosFill.hpp"
 #include "librtools/RosPrintBvi.hpp"
@@ -42,6 +44,7 @@
 #include "librtools/Rexception.hpp"
 #include "librtools/RlogMsg.hpp"
 
+#include "RtraceTools.hpp"
 #include "Rw11CntlDL11.hpp"
 
 using namespace std;
@@ -70,21 +73,22 @@ const uint16_t Rw11CntlDL11::kProbeOff;
 const bool     Rw11CntlDL11::kProbeInt;
 const bool     Rw11CntlDL11::kProbeRem;
 
-const uint16_t Rw11CntlDL11::kRCSR_M_RLIM;
+const uint16_t Rw11CntlDL11::kFifoMaxSize;
+
 const uint16_t Rw11CntlDL11::kRCSR_V_RLIM;
 const uint16_t Rw11CntlDL11::kRCSR_B_RLIM;
 const uint16_t Rw11CntlDL11::kRCSR_V_TYPE;
 const uint16_t Rw11CntlDL11::kRCSR_B_TYPE;
 const uint16_t Rw11CntlDL11::kRCSR_M_RDONE;
 const uint16_t Rw11CntlDL11::kRCSR_M_FCLR;
-const uint16_t Rw11CntlDL11::kRBUF_M_RRDY;
-const uint16_t Rw11CntlDL11::kRBUF_V_SIZE;
-const uint16_t Rw11CntlDL11::kRBUF_B_SIZE;
+const uint16_t Rw11CntlDL11::kRBUF_V_RSIZE;
+const uint16_t Rw11CntlDL11::kRBUF_B_RSIZE;
 const uint16_t Rw11CntlDL11::kRBUF_M_BUF;
   
 const uint16_t Rw11CntlDL11::kXCSR_V_RLIM;
 const uint16_t Rw11CntlDL11::kXCSR_B_RLIM;
 const uint16_t Rw11CntlDL11::kXCSR_M_XRDY;
+const uint16_t Rw11CntlDL11::kXCSR_M_FCLR;
 const uint16_t Rw11CntlDL11::kXBUF_M_VAL;
 const uint16_t Rw11CntlDL11::kXBUF_V_SIZE;
 const uint16_t Rw11CntlDL11::kXBUF_B_SIZE;
@@ -97,10 +101,21 @@ Rw11CntlDL11::Rw11CntlDL11()
   : Rw11CntlBase<Rw11UnitDL11,1>("dl11"),
     fPC_xbuf(0),
     fPC_rbuf(0),
-    fRxRlim(0)
+    fRxRlim(0),
+    fItype(0),
+    fFsize(0),
+    fTxRblkSize(4),
+    fTxQueBusy(false)
 {
   // must be here because Units have a back-ptr (not available at Rw11CntlBase)
   fspUnit[0].reset(new Rw11UnitDL11(this, 0)); // single unit controller
+  
+  fStats.Define(kStatNRxBlk,  "NRxBlk" , "wblk done");
+  fStats.Define(kStatNTxQue,  "NTxQue" , "rblk queued");
+  fStats.Define(kStatNRxChar, "NRxChar", "input  char");
+  fStats.Define(kStatNRxLine, "NRxLine", "input  lines");
+  fStats.Define(kStatNTxChar, "NTxChar", "output char");
+  fStats.Define(kStatNTxLine, "NTxLine", "output lines");
 }
 
 //------------------------------------------+-----------------------------------
@@ -134,13 +149,26 @@ void Rw11CntlDL11::Start()
   Cpu().AllIAddrMapInsert(Name()+".xcsr", Base() + kXCSR);
   Cpu().AllIAddrMapInsert(Name()+".xbuf", Base() + kXBUF);
 
-  // ensure unit status is initialized (rlim,...)
-  UnitSetupAll();
+  // detect device type
+  fItype  = (fProbe.DataRem()>>kRCSR_V_TYPE) & kRCSR_B_TYPE;
+  fFsize  = (1<<fItype) - 1;
+  fRxQlim = fFsize;
+
+  // ensure unit status is initialized
+  Cpu().ExecWibr(fBase+kRCSR, kRCSR_M_FCLR,      // clear rx fifo 
+                 fBase+kXCSR, kXCSR_M_FCLR);     // clear tx fifo
+  UnitSetupAll();                                // setup rlim,...
 
   // setup primary info clist
   fPrimClist.Clear();
   fPrimClist.AddAttn();
-  fPC_xbuf = Cpu().AddRibr(fPrimClist, fBase+kXBUF);
+  if (!Buffered()) {
+    fPC_xbuf = Cpu().AddRibr(fPrimClist, fBase+kXBUF);
+  } else {
+    fPC_xbuf = Cpu().AddRbibr(fPrimClist, fBase+kXBUF, fTxRblkSize);
+    fPrimClist[fPC_xbuf].SetExpectStatus(0, RlinkCommand::kStat_M_RbTout |
+                                            RlinkCommand::kStat_M_RbNak);
+  }
   fPC_rbuf = Cpu().AddRibr(fPrimClist, fBase+kRBUF);
 
   // add attn handler
@@ -155,8 +183,9 @@ void Rw11CntlDL11::Start()
 
 void Rw11CntlDL11::UnitSetup(size_t /*ind*/)
 {
-  uint16_t rcsr = (fRxRlim<<kRCSR_V_RLIM) & kRCSR_M_RLIM;
-  Cpu().ExecWibr(fBase+kRCSR, rcsr);
+  uint16_t rcsr = (fRxRlim & kRCSR_B_RLIM) << kRCSR_V_RLIM;
+  uint16_t xcsr = (fTxRlim & kXCSR_B_RLIM) << kXCSR_V_RLIM;
+  Cpu().ExecWibr(fBase+kRCSR, rcsr, fBase+kXCSR, xcsr);
   return;
 }
 
@@ -165,14 +194,32 @@ void Rw11CntlDL11::UnitSetup(size_t /*ind*/)
 
 void Rw11CntlDL11::Wakeup()
 {
-  if (!fspUnit[0]->RcvQueueEmpty()) {
-    uint16_t rcsr = Cpu().ExecRibr(fBase+kRCSR);
-    if ((rcsr & kRCSR_M_RDONE) == 0) RcvChar(); // send if RBUF not full
+  if (fspUnit[0]->RcvQueueEmpty()) return;  // spurious call 
+
+  uint16_t rbuf = Cpu().ExecRibr(fBase+kRBUF);
+  if (!Buffered()) {
+    RxProcessUnbuf();
+  } else {
+    RxProcessBuf(rbuf);
   }
 
   return;
 }
 
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rw11CntlDL11::SetRxQlim(uint16_t qlim)
+{
+  if (qlim == 0) qlim = fFsize;
+  if (qlim > fFsize)
+    throw Rexception("Rw11CntlDL11::SetRxQlim",
+                     "Bad args: qlim larger than fifosize");
+
+  fRxQlim = qlim;
+  return;
+}
+  
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
@@ -189,9 +236,14 @@ void Rw11CntlDL11::SetRxRlim(uint16_t rlim)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-uint16_t Rw11CntlDL11::RxRlim() const
+void Rw11CntlDL11::SetTxRlim(uint16_t rlim)
 {
-  return fRxRlim;
+  if (rlim > kXCSR_B_RLIM)
+    throw Rexception("Rw11CntlDL11::SetTxRlim","Bad args: rlim too large");
+
+  fTxRlim = rlim;
+  UnitSetup(0);
+  return;
 }
   
 //------------------------------------------+-----------------------------------
@@ -204,12 +256,18 @@ void Rw11CntlDL11::Dump(std::ostream& os, int ind, const char* text,
   os << bl << (text?text:"--") << "Rw11CntlDL11 @ " << this << endl;
   os << bl << "  fPC_xbuf:        " << fPC_xbuf << endl;
   os << bl << "  fPC_rbuf:        " << fPC_rbuf << endl;
+  os << bl << "  fRxQlim:         " << RosPrintf(fRxQlim,"d",3)  << endl;
   os << bl << "  fRxRlim:         " << fRxRlim  << endl;
+  os << bl << "  fTxRlim:         " << RosPrintf(fTxRlim,"d",3)  << endl;
+  os << bl << "  fItype:          " << RosPrintf(fItype,"d",3)  << endl;
+  os << bl << "  fFsize:          " << RosPrintf(fFsize,"d",3) << endl;
+  os << bl << "  fTxRblkSize:     " << RosPrintf(fTxRblkSize,"d",3) << endl;
+  os << bl << "  fTxQueBusy:      " << RosPrintf(fTxQueBusy) << endl;
 
   Rw11CntlBase<Rw11UnitDL11,1>::Dump(os, ind, " ^", detail);
   return;
-}
-  
+}  
+
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
@@ -218,30 +276,175 @@ int Rw11CntlDL11::AttnHandler(RlinkServer::AttnArgs& args)
   fStats.Inc(kStatNAttnHdl);
   Server().GetAttnInfo(args, fPrimClist);
 
-  uint16_t xbuf = fPrimClist[fPC_xbuf].Data();
-  uint16_t rbuf = fPrimClist[fPC_rbuf].Data();
-
-  uint8_t ochr = xbuf & kXBUF_M_BUF;
-  bool xval = xbuf & kXBUF_M_VAL;
-  bool rrdy = rbuf & kRBUF_M_RRDY;
-
-  if (fTraceLevel>0) TraceChar('t', xbuf, ochr);
-  if (xval) fspUnit[0]->Snd(&ochr, 1);
-  if (rrdy && !fspUnit[0]->RcvQueueEmpty()) RcvChar();
+  if (!Buffered()) {                        // un-buffered iface -------------
+    ProcessUnbuf(fPrimClist[fPC_rbuf].Data(),
+                 fPrimClist[fPC_xbuf].Data());
+  } else {                                  // buffered iface ----------------
+    RxProcessBuf(fPrimClist[fPC_rbuf].Data());
+    TxProcessBuf(fPrimClist[fPC_xbuf], true, fPrimClist[fPC_rbuf].Data());
+  }
 
   return 0;
 }
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
+
+void Rw11CntlDL11::ProcessUnbuf(uint16_t rbuf, uint16_t xbuf)
+{
+  uint8_t  ochr  = xbuf & kXBUF_M_BUF;
+  uint16_t rsize = (rbuf >>kRBUF_V_RSIZE) & kRBUF_B_RSIZE;
+  bool xval = xbuf & kXBUF_M_VAL;
+
+  if (fTraceLevel>0) TraceChar('t', xbuf, ochr);
+  if (xval) {
+    fspUnit[0]->Snd(&ochr, 1);
+    fStats.Inc(kStatNTxChar);
+    if (ochr == '\n') fStats.Inc(kStatNTxLine); // for output count LF
+  }
+  if (rsize==0 && !fspUnit[0]->RcvQueueEmpty()) RxProcessUnbuf();
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
 // RcvQueueEmpty() must be false !!
   
-void Rw11CntlDL11::RcvChar()
+void Rw11CntlDL11::RxProcessUnbuf()
 {
   uint8_t ichr = fspUnit[0]->RcvQueueNext();
+  fStats.Inc(kStatNRxChar);
+  if (ichr == '\r') fStats.Inc(kStatNRxLine); // on input count CR
   if (fTraceLevel>0) TraceChar('r', 0, ichr);
   Cpu().ExecWibr(fBase+kRBUF, ichr);
   return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rw11CntlDL11::RxProcessBuf(uint16_t rbuf)
+{
+  uint16_t rsize = (rbuf >>kRBUF_V_RSIZE) & kRBUF_B_RSIZE;
+  
+  if (rsize >= fRxQlim) return;             // no space in fifo  -> quit
+  if (fspUnit[0]->RcvQueueEmpty()) return;  // no data available -> quit
+  
+  uint16_t qsiz = fspUnit[0]->RcvQueueSize();
+  uint16_t nmax = fRxQlim - rsize;          // limit is fifo space
+  if (qsiz < nmax) nmax = qsiz;             //       or avail data
+
+  vector<uint16_t> iblock;
+  iblock.reserve(nmax);
+  for (uint16_t i = 0; i<nmax; i++) {
+    uint8_t ichr = fspUnit[0]->RcvQueueNext();
+    if (ichr == '\r') fStats.Inc(kStatNRxLine); // on input count CR
+    iblock.push_back(uint16_t(ichr));
+  }
+  fStats.Inc(kStatNRxChar,double(nmax));
+  
+  if (fTraceLevel > 0) {
+    RlogMsg lmsg(LogFile());
+    lmsg << "-I " << Name() << ":"
+         << " rsize=" << RosPrintf(rsize,"d",3)
+         << " size=" << RosPrintf(iblock.size(),"d",3);
+    if (fTraceLevel > 1) RtraceTools::TraceBuffer(lmsg, iblock.data(),
+                                                  iblock.size(), fTraceLevel);
+  }
+    
+  fStats.Inc(kStatNRxBlk);
+  RlinkCommandList clist;
+  Cpu().AddWbibr(clist, fBase+kRBUF, move(iblock));
+  Server().Exec(clist);
+
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rw11CntlDL11::TxProcessBuf(const RlinkCommand& cmd, bool prim,
+                                uint16_t rbuf)
+{
+  const uint16_t* xbuf = cmd.BlockPointer();
+  size_t done = cmd.BlockDone();
+
+  uint16_t fbeg = 0;
+  uint16_t fend = 0;
+  uint16_t fdel = 0;
+  uint16_t smin = 0;
+  uint16_t smax = 0;
+
+  if (done > 0) {
+    fbeg = (xbuf[0]     >>kXBUF_V_SIZE) & kXBUF_B_SIZE;
+    fend = (xbuf[done-1]>>kXBUF_V_SIZE) & kXBUF_B_SIZE;
+    fdel = fbeg-fend+1;
+    smin = kFifoMaxSize;
+
+    uint8_t ochr[kFifoMaxSize];
+    for (size_t i=0; i < done; i++) {
+      uint16_t size = (xbuf[i]>>kXBUF_V_SIZE) & kXBUF_B_SIZE;
+      ochr[i]       =  xbuf[i]                & kXBUF_M_BUF;
+      if (ochr[i] == '\n') fStats.Inc(kStatNTxLine); // for output count LF
+      smin = min(smin,size);
+      smax = max(smax,size);
+    }
+    fStats.Inc(kStatNTxChar,double(done));
+    fspUnit[0]->Snd(ochr, done);
+  }
+
+  // determine next chunk size from highest fifo 'size' field, at least 4
+  fTxRblkSize = max(uint16_t(4), max(uint16_t(done),smax));
+  
+  // queue further reads when queue idle and fifo not emptied
+  // check for 'size==1' not seen in current read
+  if ((!fTxQueBusy) && smin > 1) {        // if smin>1 no size==1 seen
+    fStats.Inc(kStatNTxQue);
+    fTxQueBusy = true;
+    Server().QueueAction(bind(&Rw11CntlDL11::TxRcvHandler, this));
+  }
+  
+  if (fTraceLevel > 0) {
+    RlogMsg lmsg(LogFile());
+    lmsg << "-I " << Name() << ":"
+         << " prim="  << prim
+         << " size=" << RosPrintf(cmd.BlockSize(),"d",3)
+         << " done=" << RosPrintf(done,"d",3)
+         << "  fifo=" << RosPrintf(fbeg,"d",3)
+         << "," << RosPrintf(fend,"d",3)
+         << ";" << RosPrintf(fdel,"d",3)
+         << "," << RosPrintf(done-fdel,"d",3)
+         << ";" << RosPrintf(smax,"d",3)
+         << "," << RosPrintf(smin,"d",3)
+         << "  que="   << fTxQueBusy;
+    if (prim) {
+      uint16_t rsize = (rbuf >>kRBUF_V_RSIZE) & kRBUF_B_RSIZE;
+      lmsg << " rsize=" << RosPrintf(rsize,"d",3);
+    }
+    
+    if (fTraceLevel > 1) RtraceTools::TraceBuffer(lmsg, xbuf,
+                                                  done, fTraceLevel);
+  }
+  
+  // re-sizing the prim rblk invalidates pbuf -> so must be done last
+  if (prim) {                               // if primary list
+    fPrimClist[fPC_xbuf].SetBlockRead(fTxRblkSize); // setup size for next attn
+  }
+   
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+  
+int Rw11CntlDL11::TxRcvHandler()
+{
+  fTxQueBusy = false;
+  RlinkCommandList clist;
+  Cpu().AddRbibr(clist, fBase+kXBUF, fTxRblkSize);
+  clist[0].SetExpectStatus(0, RlinkCommand::kStat_M_RbTout |
+                              RlinkCommand::kStat_M_RbNak);
+  Server().Exec(clist);
+  TxProcessBuf(clist[0], false, 0);
+  return 0;
 }
 
 //------------------------------------------+-----------------------------------
@@ -259,32 +462,8 @@ void Rw11CntlDL11::TraceChar(char dir, uint16_t xbuf, uint8_t chr)
   }
   lmsg << " rcvq=" << RosPrintf(fspUnit[0]->RcvQueueSize(),"d",3);
   if (xval || dir != 't') {
-    lmsg << " char=";
-    if (chr>=040 && chr<0177) {
-      lmsg << "'" << char(chr) << "'";
-    } else {
-      lmsg << RosPrintBvi(chr,8);
-      lmsg << " " << ((chr&0200) ? "|" : " ");
-      uint8_t chr7 = chr & 0177;
-      if (chr7 < 040) {
-        switch (chr7) {
-        case 010: lmsg << "BS"; break;
-        case 011: lmsg << "HT"; break;
-        case 012: lmsg << "LF"; break;
-        case 013: lmsg << "VT"; break;
-        case 014: lmsg << "FF"; break;
-        case 015: lmsg << "CR"; break;
-        case 033: lmsg << "ESC"; break;
-        default:  lmsg << "^" << char('@'+chr7);
-        }
-      } else {
-        if (chr7 < 0177) {
-          lmsg << "'" << char(chr7) << "'";
-        } else {
-          lmsg << "DEL";
-        }
-      }
-    }
+    lmsg << " char=" << RosPrintBvi(chr,8) << " ";
+    RtraceTools::TraceChar(lmsg, chr);
   }
   return;
 }

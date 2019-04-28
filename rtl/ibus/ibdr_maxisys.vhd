@@ -1,4 +1,4 @@
--- $Id: ibdr_maxisys.vhd 1136 2019-04-24 09:27:28Z mueller $
+-- $Id: ibdr_maxisys.vhd 1139 2019-04-27 14:00:38Z mueller $
 --
 -- Copyright 2009-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -25,6 +25,7 @@
 --                 ibdr_rk11
 --                 ibdr_tm11
 --                 ibdr_dl11
+--                 ibdr_dl11_buf
 --                 ibdr_pc11
 --                 ibdr_pc11_buf
 --                 ibdr_lp11
@@ -52,6 +53,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-04-26  1139   1.6.7  add ibdr_dl11_buf
 -- 2019-04-23  1136   1.6.6  add CLK port to ib_intmap24
 -- 2019-04-14  1131   1.6.5  ib_rlim_gen has CPUSUSP port; RLIM_CEV now slv8
 -- 2019-04-07  1129   1.6.4  add ibdr_pc11_buf
@@ -383,22 +385,43 @@ begin
       );
   end generate TM11;
 
-  DL11_0 : ibdr_dl11
-    port map (
-      CLK       => CLK,
-      RESET     => RESET,
-      BRESET    => BRESET,
-      RLIM_CEV  => RLIM_CEV,
-      RB_LAM    => RB_LAM_DL11_0,
-      IB_MREQ   => IB_MREQ,
-      IB_SRES   => IB_SRES_DL11_0,
-      EI_REQ_RX => EI_REQ_DL11RX_0,
-      EI_REQ_TX => EI_REQ_DL11TX_0,
-      EI_ACK_RX => EI_ACK_DL11RX_0,
-      EI_ACK_TX => EI_ACK_DL11TX_0
-    );
+  DL11_0: if sys_conf_ibd_dl11_0 = 0 generate
+    TTA : ibdr_dl11
+      port map (
+        CLK       => CLK,
+        RESET     => RESET,
+        BRESET    => BRESET,
+        RLIM_CEV  => RLIM_CEV,
+        RB_LAM    => RB_LAM_DL11_0,
+        IB_MREQ   => IB_MREQ,
+        IB_SRES   => IB_SRES_DL11_0,
+        EI_REQ_RX => EI_REQ_DL11RX_0,
+        EI_REQ_TX => EI_REQ_DL11TX_0,
+        EI_ACK_RX => EI_ACK_DL11RX_0,
+        EI_ACK_TX => EI_ACK_DL11TX_0
+      );
+  end generate DL11_0;
   
-  DL11_1: if sys_conf_ibd_dl11_1 >= 0 generate
+  DL11_0BUF: if sys_conf_ibd_dl11_0 > 0 generate
+    TTA : ibdr_dl11_buf
+      generic map (
+        AWIDTH  => sys_conf_ibd_dl11_0)
+      port map (
+        CLK       => CLK,
+        RESET     => RESET,
+        BRESET    => BRESET,
+        RLIM_CEV  => RLIM_CEV,
+        RB_LAM    => RB_LAM_DL11_0,
+        IB_MREQ   => IB_MREQ,
+        IB_SRES   => IB_SRES_DL11_0,
+        EI_REQ_RX => EI_REQ_DL11RX_0,
+        EI_REQ_TX => EI_REQ_DL11TX_0,
+        EI_ACK_RX => EI_ACK_DL11RX_0,
+        EI_ACK_TX => EI_ACK_DL11TX_0
+      );
+  end generate DL11_0BUF;
+  
+  DL11_1: if sys_conf_ibd_dl11_1 = 0 generate
   begin
     TTB : ibdr_dl11
       generic map (
@@ -417,6 +440,27 @@ begin
         EI_ACK_TX => EI_ACK_DL11TX_1
       );
   end generate DL11_1;
+
+  DL11_1BUF: if sys_conf_ibd_dl11_1 > 0 generate
+  begin
+    TTB : ibdr_dl11_buf
+      generic map (
+        IB_ADDR   => slv(to_unsigned(8#176500#,16)),
+        AWIDTH  => sys_conf_ibd_dl11_1)
+      port map (
+        CLK       => CLK,
+        RESET     => RESET,
+        BRESET    => BRESET,
+        RLIM_CEV  => RLIM_CEV,
+        RB_LAM    => RB_LAM_DL11_1,
+        IB_MREQ   => IB_MREQ,
+        IB_SRES   => IB_SRES_DL11_1,
+        EI_REQ_RX => EI_REQ_DL11RX_1,
+        EI_REQ_TX => EI_REQ_DL11TX_1,
+        EI_ACK_RX => EI_ACK_DL11RX_1,
+        EI_ACK_TX => EI_ACK_DL11TX_1
+      );
+  end generate DL11_1BUF;
 
   PC11: if sys_conf_ibd_pc11 = 0 generate
   begin

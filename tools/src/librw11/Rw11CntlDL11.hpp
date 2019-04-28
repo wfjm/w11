@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDL11.hpp 1126 2019-04-06 17:37:40Z mueller $
+// $Id: Rw11CntlDL11.hpp 1140 2019-04-28 10:21:21Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-26  1139   1.4    add dl11_buf readout
 // 2019-04-06  1126   1.3    xbuf.val in msb; rrdy in rbuf (new iface)
 // 2017-05-14   897   1.2    add RcvChar(),TraceChar()
 // 2017-04-02   865   1.1.1  Dump(): add detail arg
@@ -48,8 +49,16 @@ namespace Retro {
       virtual void  UnitSetup(size_t ind);
       void          Wakeup();
 
+      void          SetRxQlim(uint16_t qlim);
+      uint16_t      RxQlim() const;
       void          SetRxRlim(uint16_t rlim);
       uint16_t      RxRlim() const;
+      void          SetTxRlim(uint16_t rlim);
+      uint16_t      TxRlim() const;
+    
+      uint16_t      Itype() const;
+      bool          Buffered() const;
+      uint16_t      FifoSize() const;
 
       virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
                          int detail=0) const;
@@ -67,39 +76,62 @@ namespace Retro {
       static const bool     kProbeInt = true;  //!< probe int active
       static const bool     kProbeRem = true;  //!< probr rem active
 
-      static const uint16_t kRCSR_M_RLIM  = 0070000;
+      static const uint16_t kFifoMaxSize  = 127;     //!< maximal fifo size
+    
       static const uint16_t kRCSR_V_RLIM  = 12;      //!< rcsr.rlim shift
       static const uint16_t kRCSR_B_RLIM  = 007;     //!< rcsr.rlim bit mask
       static const uint16_t kRCSR_V_TYPE  =  8;      //!< rcsr.type shift
       static const uint16_t kRCSR_B_TYPE  = 0007;    //!< rcsr.type bit mask
       static const uint16_t kRCSR_M_RDONE = kWBit07; //!< rcsr.rdone mask
-      static const uint16_t kRCSR_M_FCLR  = kWBit05; //!< rcsr.fclr mask    
-      static const uint16_t kRBUF_M_RRDY  = kWBit15; //!< rbuf.rrdy mask
-      static const uint16_t kRBUF_V_SIZE  =  8;      //!< rbuf.size shift
-      static const uint16_t kRBUF_B_SIZE  = 0177;    //!< rbuf.size bit mask
+      static const uint16_t kRCSR_M_FCLR  = kWBit01; //!< rcsr.fclr mask    
+      static const uint16_t kRBUF_V_RSIZE =  8;      //!< rbuf.rsize shift
+      static const uint16_t kRBUF_B_RSIZE = 0177;    //!< rbuf.rsize bit mask
       static const uint16_t kRBUF_M_BUF   = 0377;    //!< rbuf data mask
   
       static const uint16_t kXCSR_V_RLIM  = 12;      //!< xcsr.rlim shift 
       static const uint16_t kXCSR_B_RLIM  = 007;     //!< xcsr.rlim bit mask
       static const uint16_t kXCSR_M_XRDY  = kWBit07; //!< xcsr.xrdy mask
+      static const uint16_t kXCSR_M_FCLR  = kWBit01; //!< xcsr.fclr mask    
       static const uint16_t kXBUF_M_VAL   = kWBit15; //!< xbuf.val mask
       static const uint16_t kXBUF_V_SIZE  =  8;      //!< xbuf.size shift
       static const uint16_t kXBUF_B_SIZE  = 0177;    //!< xbuf.size bit mask
       static const uint16_t kXBUF_M_BUF   = 0xff;    //!< xbuf data mask
 
+    // statistics counter indices
+      enum stats {
+        kStatNRxBlk= Rw11Cntl::kDimStat,    //!< done wblk
+        kStatNTxQue,                        //!< queue rblk
+        kStatNRxChar,                       //!< input  char
+        kStatNRxLine,                       //!< input  lines
+        kStatNTxChar,                       //!< output char
+        kStatNTxLine,                       //!< output lines
+        kDimStat
+      };
+    
     protected:
       int           AttnHandler(RlinkServer::AttnArgs& args);
-      void          RcvChar();
+      void          ProcessUnbuf(uint16_t rbuf, uint16_t xbuf);
+      void          RxProcessUnbuf();
+      void          RxProcessBuf(uint16_t rbuf);
+      void          TxProcessBuf(const RlinkCommand& cmd, bool prim,
+                                 uint16_t rbuf);
+      int           TxRcvHandler();
       void          TraceChar(char dir, uint16_t xbuf, uint8_t chr);
     
     protected:
       size_t        fPC_xbuf;               //!< PrimClist: xbuf index
       size_t        fPC_rbuf;               //!< PrimClist: rbuf index
+      uint16_t      fRxQlim;                //!< rx queue limit
       uint16_t      fRxRlim;                //!< rx interrupt rate limit
+      uint16_t      fTxRlim;                //!< tx interrupt rate limit
+      uint16_t      fItype;                 //!< interface type
+      uint16_t      fFsize;                 //!< fifo size
+      uint16_t      fTxRblkSize;            //!< tx rblk chunk size
+      bool          fTxQueBusy;             //!< tx queue busy
   };
   
 } // end namespace Retro
 
-//#include "Rw11CntlDL11.ipp"
+#include "Rw11CntlDL11.ipp"
 
 #endif

@@ -1,4 +1,4 @@
-// $Id: RtclRw11CntlDL11.cpp 1114 2019-02-23 18:01:55Z mueller $
+// $Id: RtclRw11CntlDL11.cpp 1139 2019-04-27 14:00:38Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-26  1139   1.2    add getters& setters for dl11_buf readout
 // 2019-02-23  1114   1.1.2  use std::bind instead of lambda
 // 2018-12-15  1082   1.1.1  use lambda instead of boost::bind
 // 2017-04-16   878   1.1    add class in ctor; derive from RtclRw11CntlTermBase
@@ -51,8 +52,16 @@ RtclRw11CntlDL11::RtclRw11CntlDL11()
   : RtclRw11CntlTermBase<Rw11CntlDL11>("Rw11CntlDL11","term")
 {
   Rw11CntlDL11* pobj = &Obj();
-  fGets.Add<uint16_t>  ("rxrlim", bind(&Rw11CntlDL11::RxRlim, pobj));
-  fSets.Add<uint16_t>  ("rxrlim", bind(&Rw11CntlDL11::SetRxRlim,pobj, _1));
+  fGets.Add<uint16_t>  ("rxqlim",   bind(&Rw11CntlDL11::RxQlim,   pobj));
+  fGets.Add<uint16_t>  ("rxrlim",   bind(&Rw11CntlDL11::RxRlim,   pobj));
+  fGets.Add<uint16_t>  ("txrlim",   bind(&Rw11CntlDL11::TxRlim,   pobj));
+  fGets.Add<uint16_t>  ("itype",    bind(&Rw11CntlDL11::Itype,    pobj));
+  fGets.Add<bool>      ("buffered", bind(&Rw11CntlDL11::Buffered, pobj));
+  fGets.Add<uint16_t>  ("fifosize", bind(&Rw11CntlDL11::FifoSize, pobj));
+  
+  fSets.Add<uint16_t>  ("rxqlim",   bind(&Rw11CntlDL11::SetRxQlim,pobj, _1));
+  fSets.Add<uint16_t>  ("rxrlim",   bind(&Rw11CntlDL11::SetRxRlim,pobj, _1));
+  fSets.Add<uint16_t>  ("txrlim",   bind(&Rw11CntlDL11::SetTxRlim,pobj, _1));
 }
 
 //------------------------------------------+-----------------------------------

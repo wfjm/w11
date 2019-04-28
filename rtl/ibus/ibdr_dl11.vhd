@@ -1,4 +1,4 @@
--- $Id: ibdr_dl11.vhd 1138 2019-04-26 08:14:56Z mueller $
+-- $Id: ibdr_dl11.vhd 1140 2019-04-28 10:21:21Z mueller $
 --
 -- Copyright 2008-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -28,6 +28,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-04-27  1140   1.3.3  drop rbuf.rrdy, set rbuf.[rx]size0 instead
 -- 2019-04-24  1138   1.3.2  add rcsr.ir and xcsr.ir (intreq monitors)
 -- 2019-04-14  1131   1.3.1  RLIM_CEV now slv8
 -- 2019-04-07  1127   1.3    for dl11_buf compat: xbuf.val in bit 15 and 8;
@@ -86,7 +87,9 @@ architecture syn of ibdr_dl11 is
   constant rcsr_ibf_rie :   integer :=  6;
   constant rcsr_ibf_rir :   integer :=  5;
   
-  constant rbuf_ibf_rrdy :  integer := 15;
+  constant rbuf_ibf_rsize0: integer :=  8;
+  constant rbuf_ibf_xsize0: integer :=  0;
+  subtype  rbuf_ibf_data    is integer range  7 downto 0;
   
   constant xcsr_ibf_xrdy :  integer :=  7;
   constant xcsr_ibf_xie :   integer :=  6;
@@ -194,7 +197,7 @@ begin
           idout(rcsr_ibf_rie)   := r.rie;
           
           if IB_MREQ.racc = '0' then     -- cpu ---------------------
-            if ibw0 = '1' then
+            if ibw0 = '1' then               -- rcsr write
               n.rie := IB_MREQ.din(rcsr_ibf_rie);
               if IB_MREQ.din(rcsr_ibf_rie) = '1' then
                 if r.rdone='1' and r.rie='0' then -- ie set while done=1
@@ -215,9 +218,11 @@ begin
 
         when ibaddr_rbuf =>             -- RBUF -- receive data buffer -------
 
-          idout(r.rbuf'range)   := r.rbuf;
-
           if IB_MREQ.racc = '0' then    -- cpu ---------------------
+            idout(rbuf_ibf_data) := r.rbuf;
+            if ibrd = '1' then             -- rbuf read
+              n.rintreq := '0';               -- cancel interrupt
+            end if;
             if ibrd='1' and r.rdone='1' then
               n.rval    := '0';           -- clear rbuf valid
               irrlimsta := '1';           -- start rx timer
@@ -225,9 +230,10 @@ begin
             end if;
 
           else                          -- rri ---------------------
-            idout(rbuf_ibf_rrdy) := not r.rval;
+            idout(rbuf_ibf_rsize0) := r.rval;      -- rbuf occupied when rval=1
+            idout(rbuf_ibf_xsize0) := not r.xrdy;  -- xbuf empty    when xrdy=1
             if ibw0 = '1' then
-              n.rbuf := IB_MREQ.din(n.rbuf'range);
+              n.rbuf := IB_MREQ.din(rbuf_ibf_data);
               n.rval := '1';              -- set rbuf valid
             end if;
           end if;
@@ -293,7 +299,7 @@ begin
       n.rdone   := '0';                          -- clear done
       n.rintreq := '0';                          -- clear pending interrupts
     else                                       -- not busy and data valid
-      n.rdone := '1';                            -- clear done
+      n.rdone := '1';                            -- set done
       if r.rdone='0' and r.rie='1' then          -- done going 0->1 and ie=1
         n.rintreq := '1';                        -- request rx interrupt
       end if;

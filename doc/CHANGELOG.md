@@ -30,6 +30,7 @@ The full set of tests is only run for tagged releases.
   - ib_rlim_{gen,slv}: new modules for implementation of rate limiters
   - ibdr_lp11_buf: new LP11 interface with fifo buffering
   - ibdr_pc11_buf: new PC11 interface with fifo buffering
+  - ibdr_dl11_buf: new DL11 interface with fifo buffering
   - simclkv: test bench clock generator with variable period
 - new verification codes
   - w11a_ibtst/*: tbench for ibd_ibtst
@@ -37,10 +38,12 @@ The full set of tests is only run for tagged releases.
   - w11a/test_w11a_sdreg.tcl: tbench for sdreg
   - test_lp11_all.tcl: tbench for lp11 and lp11_buf
   - test_pc11_*.tcl: tbench for pc11 and pc11_buf
+  - test_dl11_*.tcl: tbench for dl11 and dl11_buf
 - new test and demonstration codes under tools/mcode
   - dl11/dl11echo.mac: console interface echo tester
   - sys/blink.mac: 'blinking lights' demo (rsx,bsd and other modes)
 - new tools
+  - librw11/RtraceTools: some helper methods for buffer tracing
   - ldadump: lda file dumper
 
 ### Changes
@@ -68,24 +71,31 @@ The full set of tests is only run for tagged releases.
   - Rw11CntlPC11
     - BootCode(): boot loader rewritten
     - remove SetOnline(), use UnitSetup()
-  - asm-11: .end directive autocreates '...end' label
+  - asm-11:
+    - .end directive autocreates '...end' label
+    - print lines with errors to stderr unless -lst seen
   - ti_w11: for -e use .end start address when available
 - firmware changes
   - rbd_rbmon: more robust ack,err trace when busy
   - rbd_tester: use now fifo_simple_dram
   - ibd_ibtst: rename dly[rw]->bsy[rw]; datto for write; add datab
+  - ibd_kw11p:
+    - add csr.ir (rem; as intreq monitor)
+    - the source of external events (rate=11) is now selectable vai an new rem
+      accessible csr.erate field. options: sysclk, 1 Mhz, extevt, none
   - ibdr_dl11: changes for ibdr_dl11_buf compatibility (val in msb, ib_rlim_slv)
   - ibdr_lp11: move valid bit to msb of buf (for ibdr_lp11_buf compatibility)
   - ibdr_pc11: changes for ibdr_pc11_buf compatibility
   - sys_w11a_s3: set BTOWIDTH 7 (was 6, must be > vmbox atowidth (6))
   - pdp11_sys70: instantiate ibd_ibtst (when sys_conf_ibtst = true)
-  - ibdr_maxisys,sys_conf ready for buffered DL,PC and dz11
+  - ibdr_maxisys,sys_conf ready for buffered LP11,PC11 and DL11
     - use type code instead of boolean for sys_conf_ibd_{dl11,lp11,pc11}
     - add sys_conf_ibtst (enabled in all systems)
     - add sys_conf_ibd_dz11 (enabled in all systems)
     - add ib_rlim_gen to support rate limiters
     - instantiate ibd_ibtst
     - instantiate ibdr_lp11_buf
+    - instantiate ibdr_pc11_buf
 
 ### Bug Fixes
 - backend code: some getters crashed with `SIGSEGV`, see

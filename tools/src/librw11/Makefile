@@ -1,4 +1,4 @@
-# $Id: Makefile 1100 2019-01-02 10:56:47Z mueller $
+# $Id: Makefile 1140 2019-04-28 10:21:21Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -47,6 +47,7 @@ OBJ_all   +=   Rw11VirtEth.o Rw11VirtEthTap.o
 OBJ_all   +=   Rw11VirtStream.o
 OBJ_all   +=   Rw11Rdma.o Rw11RdmaDisk.o
 OBJ_all   +=   RethTools.o RethBuf.o
+OBJ_all   +=   RtraceTools.o
 #
 DEP_all    = $(OBJ_all:.o=.dep)
 #

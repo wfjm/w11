@@ -1,4 +1,4 @@
-# $Id: 211bsd_rpmin_boot.tcl 899 2017-05-27 13:25:41Z mueller $
+# $Id: 211bsd_rpmin_boot.tcl 1139 2019-04-27 14:00:38Z mueller $
 #
 # Setup file for 211bsd RP06 based minimal memory system
 #
@@ -14,7 +14,7 @@ rutil::dohook "preinithook"
 puts [rlw]
 
 # setup tt,lp (211bsd uses parity -> use 7 bit mode)
-rw11::setup_tt "cpu0" to7bit 1
+rw11::setup_tt "cpu0" dlrxrlim 5 to7bit 1
 rw11::setup_lp 
 
 # mount disks

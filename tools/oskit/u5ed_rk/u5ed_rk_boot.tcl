@@ -1,4 +1,4 @@
-# $Id: u5ed_rk_boot.tcl 922 2017-07-02 12:13:36Z mueller $
+# $Id: u5ed_rk_boot.tcl 1139 2019-04-27 14:00:38Z mueller $
 #
 # Setup file for Unix 5th Edition RK05 based system
 #
@@ -12,7 +12,7 @@ rutil::dohook "preinithook"
 puts [rlw]
 
 # setup tt,lp (uses only 1 console; uses parity -> use 7 bit mode)
-rw11::setup_tt "cpu0" ndl 1 to7bit 1
+rw11::setup_tt "cpu0" ndl 1 dlrxrlim 5 to7bit 1
 rw11::setup_lp 
 
 # mount disks

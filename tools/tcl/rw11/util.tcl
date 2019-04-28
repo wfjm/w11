@@ -1,4 +1,4 @@
-# $Id: util.tcl 1134 2019-04-21 17:18:03Z mueller $
+# $Id: util.tcl 1140 2019-04-28 10:21:21Z mueller $
 #
 # Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-04-27  1140   1.3.12 setup_tt: add dl{rxqlim,txrlim}; dlrrlim->dlrxrlim
 # 2019-04-20  1134   1.3.11 setup_pp: add {pr,pp}rlim and prqlim options
 # 2019-04-14  1131   1.3.10 setup_lp: add rlim option
 # 2019-04-07  1128   1.3.9  setup_tt: rename dlrlim to dlrrlim
@@ -90,7 +91,9 @@ namespace eval rw11 {
   # 
   proc setup_tt {{cpu "cpu0"} args} {
     # process and check options
-    args2opts opt {ndl 2 dlrrlim 0 ndz 0 to7bit 0 app 0 nbck 1} {*}$args
+    args2opts opt {ndl 2 dlrxqlim 0 dlrxrlim 0 dltxrlim 0 
+                   ndz 0
+                   to7bit 0 app 0 nbck 1} {*}$args
 
     # check option values
     if {$opt(ndl) < 1 || $opt(ndl) > 2} {
@@ -121,7 +124,9 @@ namespace eval rw11 {
       set unit "${cntl}0"
       ${cpu}${unit} att "tcp:?port=${port}"
       ${cpu}${unit} set log "tirri_${unit}.log${urlopt}"
-      ${cpu}${cntl} set rxrlim $opt(dlrrlim)
+      ${cpu}${cntl} set rxqlim $opt(dlrxqlim)
+      ${cpu}${cntl} set rxrlim $opt(dlrxrlim)
+      ${cpu}${cntl} set txrlim $opt(dltxrlim)
       ${cpu}${unit} set to7bit $opt(to7bit)
     }
     return

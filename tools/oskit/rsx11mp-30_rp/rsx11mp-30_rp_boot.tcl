@@ -1,4 +1,4 @@
-# $Id: rsx11mp-30_rp_boot.tcl 1126 2019-04-06 17:37:40Z mueller $
+# $Id: rsx11mp-30_rp_boot.tcl 1139 2019-04-27 14:00:38Z mueller $
 #
 # Setup file for RSX11-M+ V3.0 RP06 based system
 #
@@ -14,7 +14,7 @@ rutil::dohook "preinithook"
 puts [rlw]
 
 # setup tt,lp,pp
-rw11::setup_tt "cpu0" to7bit 1
+rw11::setup_tt "cpu0" dlrxrlim 5 to7bit 1
 rw11::setup_lp 
 rw11::setup_pp
 

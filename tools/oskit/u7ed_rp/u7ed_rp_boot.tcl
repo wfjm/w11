@@ -1,4 +1,4 @@
-# $Id: u7ed_rp_boot.tcl 921 2017-07-02 11:55:14Z mueller $
+# $Id: u7ed_rp_boot.tcl 1139 2019-04-27 14:00:38Z mueller $
 #
 # Setup file for Unix 7th Edition RP04 based system
 #
@@ -12,7 +12,7 @@ rutil::dohook "preinithook"
 puts [rlw]
 
 # setup tt,lp (uses only 1 console; uses parity -> use 7 bit mode)
-rw11::setup_tt "cpu0" ndl 1 to7bit 1
+rw11::setup_tt "cpu0" ndl 1 dlrxrlim 5 to7bit 1
 rw11::setup_lp 
 
 # mount disks

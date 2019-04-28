@@ -1,4 +1,4 @@
-# $Id: util.tcl 1138 2019-04-26 08:14:56Z mueller $
+# $Id: util.tcl 1140 2019-04-28 10:21:21Z mueller $
 #
 # Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -30,10 +30,10 @@ namespace eval ibd_dl11 {
 
   regdsc RCSR   {done 7} {ie 6}
   regdsc RRCSR  {rlim 14 3} {type 10 3} {done 7} {ie 6} {ir 5} {rlb 4} {fclr 1}
-  regdsc RRBUF  {rrdy 15} {rsize 14 7 "d"} {tsize 6 7 "d"}
+  regdsc RRBUF  {rsize 14 7 "d"} {xsize 6 7 "d"}
 
-  regdsc XCSR   {done 7} {ie 6}
-  regdsc RXCSR  {rlim 14 3} {done 7} {ie 6} {ir 5} {rlb 4}
+  regdsc XCSR   {rdy 7} {ie 6}
+  regdsc RXCSR  {rlim 14 3} {rdy 7} {ie 6} {ir 5} {rlb 4}
   regdsc RXBUF  {val 15} {size 14 7 "d"} {data 7 8 "o"}
 
   rw11util::regmap_add ibd_dl11 tt?.rcsr {l? RCSR r? RRCSR}
@@ -48,5 +48,22 @@ namespace eval ibd_dl11 {
   #
   proc setup {{cpu "cpu0"}} {
     return [rw11::setup_cntl $cpu "dl11" "tta"]
+  }
+  #
+  # rdump: register dump - rem view ------------------------------------------
+  #
+  proc rdump {{cpu "cpu0"}} {
+    set rval {}
+    $cpu cp -ribr "tta.rcsr" rcsr \
+            -ribr "tta.rbuf" rbuf \
+            -ribr "tta.xcsr" xcsr
+    append rval "Controller registers:"
+    append rval [format "\n  rcsr: %6.6o  %s" $rcsr \
+                                              [regtxt ibd_dl11::RRCSR $rcsr]]
+    append rval [format "\n  rbuf: %6.6o  %s" $rbuf \
+                                              [regtxt ibd_dl11::RRBUF $rbuf]]
+    append rval [format "\n  xcsr: %6.6o  %s" $xcsr \
+                                              [regtxt ibd_dl11::RXCSR $xcsr]]
+    
   }
 }

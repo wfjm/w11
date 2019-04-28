@@ -1,4 +1,4 @@
--- $Id: ibdlib.vhd 1131 2019-04-14 13:24:25Z mueller $
+-- $Id: ibdlib.vhd 1139 2019-04-27 14:00:38Z mueller $
 --
 -- Copyright 2008-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  ise 8.2-14.7; viv 2014.4-2018.3; ghdl 0.18-0.35
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-04-26  1139   1.3.7  add ibdr_dl11_buf
 -- 2019-04-14  1131   1.3.6  RLIM_CEV now slv8
 -- 2019-04-07  1129   1.3.5  add ibdr_pc11_buf
 -- 2019-04-07  1128   1.3.4  ibdr_dl11: use RLIM_CEV, drop CE_USEC
@@ -225,6 +226,25 @@ end component;
 component ibdr_dl11 is                  -- ibus dev(rem): DL11-A/B
   generic (
     IB_ADDR : slv16 := ibaddr_dl11);
+  port (
+    CLK : in slbit;                     -- clock
+    RESET : in slbit;                   -- system reset
+    BRESET : in slbit;                  -- ibus reset
+    RLIM_CEV : in  slv8;                -- clock enable vector
+    RB_LAM : out slbit;                 -- remote attention
+    IB_MREQ : in ib_mreq_type;          -- ibus request
+    IB_SRES : out ib_sres_type;         -- ibus response
+    EI_REQ_RX : out slbit;              -- interrupt request, receiver
+    EI_REQ_TX : out slbit;              -- interrupt request, transmitter
+    EI_ACK_RX : in slbit;               -- interrupt acknowledge, receiver
+    EI_ACK_TX : in slbit                -- interrupt acknowledge, transmitter
+  );
+end component;
+
+component ibdr_dl11_buf is              -- ibus dev(rem): DL11-A/B
+  generic (
+    IB_ADDR : slv16 := ibaddr_dl11;
+    AWIDTH : natural :=  5);            -- fifo address width
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- system reset

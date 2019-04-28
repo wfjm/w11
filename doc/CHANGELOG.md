@@ -2,6 +2,7 @@
 
 ### Table of contents
 - Current [HEAD](#user-content-head)
+- Release [w11a_V0.77](#user-content-w11a_V0.77)
 - Release [w11a_V0.76](#user-content-w11a_V0.76)
 - Release [w11a_V0.753](#user-content-w11a_V0.753)
 - Release [w11a_V0.752](#user-content-w11a_V0.752)
@@ -22,6 +23,20 @@ software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
 ### Summary
+### New features
+### Changes
+### Bug Fixes
+### Known issues
+
+<!-- --------------------------------------------------------------------- -->
+---
+## <a id="w11a_V0.77">2019-04-28: [w11a_V0.77](https://github.com/wfjm/w11/releases/tag/w11a_V0.77) - rev 1141(wfjm)</a>
+### Summary
+- add support for buffered character interfaces
+  - LP11: ibdr_lp11_buf
+  - PC11: ibdr_pc11_buf
+  - DL11: ibdr_dl11_buf
+- add mcodes: new test and demonstration codes
 
 ### New features
 - new components

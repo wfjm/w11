@@ -2,7 +2,7 @@
 #
 #  Revision History: 
 # Date         Rev Version  Comment
-# 2019-04-06  1126   1.6    adapt to new dl11 iface
+# 2019-04-28  1141   1.6    adapt to new dl11 iface
 # 2015-05-03   674   1.5    start/stop/suspend overhaul
 # 2014-12-26   621   1.4    adapt wmembe,ribr,wibr testing to new 4k window
 # 2014-09-27   595   1.3    now for rlink v4 iface
@@ -143,10 +143,11 @@ C -----------------------------------------------------------------------------
 C test device attention (use DL11 XCSR/XBUF [177564/177566])
 #
 rreg .XCSR      d=o"000200"             -- read  XCSR via RRI: XRDY=1
-rreg .RBUF      d=o"100000"             -- read  RBUF via RRI: RRDY=1
+rreg .RBUF      d=o"000000"             -- read  RBUF via RRI: RSIZE=0
 rreg .XBUF      d=o"000000"             -- read  XBUF via RRI: XDONE=0
 wreg .al          o"177566"             -- #XBUF
 wreg .mem         o"000123" s=00001000  -- write XBUF via CPU
+rreg .RBUF      d=o"000001" s=00001000  -- read  RBUF via RRI: RSIZE=1
 rreg .XCSR      d=o"000000" s=00001000  -- read  XCSR via RRI: XRDY=0
 rreg .XBUF      d=o"100523" s=00001000  -- read  XBUF via RRI: VAL,VAL8=1
 rreg .XBUF      d=o"000123" s=00001000  -- read2 XBUF via RRI: VAL,VAL8=0

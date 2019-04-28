@@ -138,16 +138,6 @@ systems never setup DMA transfers to/from non-existing memory. However, some
 highly space optimized crash dump routines use this to detect end-of-memory
 and might endless loop. Also maindec's might test this border case and fail.
 
-### V0.50-10 {[issue #20](https://github.com/wfjm/w11/issues/20)} -- DL11: output chars lost when device polling used
-Part of the console output can be lost when `xxdp` test `eqkce1` is
-run on FPGA, also some kernel messages during the 2.11bsd boot sequence.
-In both cases very simple polling output routines are used. Most likely
-cause is that device ready polls timeout before the rlink interface can
-serve the output request.
-
-Will be overcome by a DL11 controller with more buffering and improved
-interrupt rate control.
-
 ### V0.76-3 {[issue #18](https://github.com/wfjm/w11/issues/18)} -- w11 clock rate limited by CACHE-to-CACHE false path
 So far all Series-7 w11a systems ran with 80 MHz clock. The sys_w11_arty
 design (with DDR memory support via MIG) also achieves timing closure under
@@ -260,6 +250,19 @@ the backend produces proper command lists and the USB channel is usually error
 free}_
 
 ## Resolved Issues
+### V0.50-10 {[issue #20](https://github.com/wfjm/w11/issues/20)} -- DL11: output chars lost when device polling used
+#### Original Issue
+Part of the console output can be lost when `xxdp` test `eqkce1` is
+run on FPGA, also some kernel messages during the 2.11bsd boot sequence.
+In both cases very simple polling output routines are used. Most likely
+cause is that device ready polls timeout before the rlink interface can
+serve the output request.
+#### Fix
+Is overcome with buffered DL11 controller with much higher throughput and
+improved interrupt rate control.
+
+Fixed with commit [1c9dbeb](https://github.com/wfjm/w11/commit/1c9dbeb).
+
 ### V0.77-1 {[issue #19](https://github.com/wfjm/w11/issues/19)} -- tcl getters accessing a const reference crash with a SIGSEGV
 #### Original Issue
 tcl commands like

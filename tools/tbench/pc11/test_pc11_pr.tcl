@@ -1,4 +1,4 @@
-# $Id: test_pc11_pr.tcl 1137 2019-04-24 10:49:19Z mueller $
+# $Id: test_pc11_pr.tcl 1140 2019-04-28 10:21:21Z mueller $
 #
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
@@ -8,7 +8,7 @@
 # 2019-04-21  1134   1.0    Initial version
 # 2019-04-12  1131   0.1    First draft
 #
-# Test paper reader response 
+# Test PC11 reader response 
 
 # ----------------------------------------------------------------------------
 rlc log "test_pc11_pr: test pc11 paper reader resonse ------------------------"
@@ -23,6 +23,10 @@ rlc set statvalue 0
 
 set attnpc  [expr {1<<$ibd_pc11::ANUM}]
 set attncpu [expr {1<<$rw11::ANUM}]
+
+# remember 'type' retrieved from rcsr for later tests
+$cpu cp -ribr pca.rcsr pcrcsr
+set type  [regget ibd_pc11::RRCSR(type) $pcrcsr]
 
 # -- Section A ---------------------------------------------------------------
 rlc log "  A1: test csr response -------------------------------------"
@@ -49,10 +53,6 @@ $cpu cp \
   -rma  pca.rcsr -edata [regbld ibd_pc11::RCSR ] \
   -breset \
   -rma  pca.rcsr -edata [regbld ibd_pc11::RCSR ]
-
-# remember 'type' retrieved from rcsr for later tests
-$cpu cp -ribr pca.rcsr pcrcsr
-set type  [regget ibd_pc11::RRCSR(type) $pcrcsr]
 
 rlc log "    A1.2: csr ie ---------------------------------------"
 #   loc IE=1   --> seen on loc and rem
@@ -94,23 +94,24 @@ if {$type == 0} {                # unbuffered --------------------------
   rlc log "    A2.1: rem write, loc read ------------------------"
   #    loc wr csr.ena --> test BUSY=1; test rem rbuf.busy; test attn send
   $cpu cp \
-    -ribr pca.rbuf -edata [regbld ibd_pc11::RRBUF] \
+    -ribr pca.rbuf -edata [regbld ibd_pc11::RRBUF {rsize 0}] \
     -wma  pca.rcsr        [regbld ibd_pc11::RCSR ena] \
     -rma  pca.rcsr -edata [regbld ibd_pc11::RCSR busy] \
-    -ribr pca.rbuf -edata [regbld ibd_pc11::RRBUF rbusy]
+    -ribr pca.rbuf -edata [regbld ibd_pc11::RRBUF rbusy {rsize 0}]
   # expect and harvest attn (drop other attn potentially triggered by breset)
   rlc wtlam 1.
   rlc exec -attn -edata $attnpc $attnpc
-  #    rem wr buf --> test DONE=1 (1 cmd delay)
-  #    loc rd buf --> test DONE=0; test rem rbuf.busy=0
+  #    rem wr buf --> test DONE=1 RSIZE=1 (1 cmd delay)
+  #    loc rd buf --> test DONE=0 RRIZE=0  test rem rbuf.busy=0
   #    loc rd buf --> test that buf cleared
   $cpu cp \
     -wibr pca.rbuf 0107 \
+    -ribr pca.rbuf -edata [regbld ibd_pc11::RRBUF {rsize 1}] \
     -rma  pca.rcsr \
     -rma  pca.rcsr -edata [regbld ibd_pc11::RCSR done] \
     -rma  pca.rbuf -edata 0107 \
     -rma  pca.rcsr -edata [regbld ibd_pc11::RCSR ] \
-    -ribr pca.rbuf -edata [regbld ibd_pc11::RRBUF ] \
+    -ribr pca.rbuf -edata [regbld ibd_pc11::RRBUF {rsize 0}] \
     -rma  pca.rbuf -edata 0x0
 
   rlc log "    A2.2: rem write, loc write (discards data) -------"
@@ -195,7 +196,7 @@ if {$type == 0} {                # unbuffered --------------------------
   #    rem wr buf --> test rbuf.size=2
   # 2* rem wr buf --> test rbuf.size=4
   #    breset     --> test rbuf.size=4
-  # 2* rem wr buf --> test rbuf.size=3
+  # 3* rem wr buf --> test rbuf.size=7
   #    csr.fclr   --> test rbuf.size=0
   $cpu cp \
     -wibr  pca.rbuf 0xaa \
@@ -286,7 +287,7 @@ stack:
 ;
 start:  spl     7                       ;;; lock-out interrupts
         mov     #vh.ptr,@#va.ptr        ;;; setup ptr handler
-        mov     #pr.ie,@#pr.csr         ;;; enable ptr interrupts
+        mov     #pr.ie,@#pr.csr         ;;; enable ptr interrupt
         bis     #pr.ena,@#pr.csr        ;;; reader enable (read next)
 1$:     tstb    @#pr.csr                ;;; wait for done set
         bpl     1$                      ;;; 
@@ -358,7 +359,7 @@ $cpu ldasm -lst lst -sym sym {
 stack:
 ; 
 start:  mov     #buf,r5                 ; set output buffer
-        mov     #pp.ie,@#pr.csr         ; enable interrupt
+        mov     #pr.ie,@#pr.csr         ; enable interrupt
         bis     #pr.ena,@#pr.csr        ; reader enable (read next)
 1$:     wait                            ; wait for interrupt
         br      1$                      ; forever

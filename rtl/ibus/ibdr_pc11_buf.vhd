@@ -1,4 +1,4 @@
--- $Id: ibdr_pc11_buf.vhd 1137 2019-04-24 10:49:19Z mueller $
+-- $Id: ibdr_pc11_buf.vhd 1139 2019-04-27 14:00:38Z mueller $
 --
 -- Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -169,7 +169,7 @@ begin
       EMPTY => RBUF_EMPTY,
       FULL  => RBUF_FULL,
       SIZE  => RBUF_SIZE
-      );
+    );
   
   PBUF : fifo_simple_dram
     generic map (
@@ -185,7 +185,7 @@ begin
       EMPTY => PBUF_EMPTY,
       FULL  => PBUF_FULL,
       SIZE  => PBUF_SIZE
-      );
+    );
   
   RRLIM : ib_rlim_slv
     port map (
@@ -197,7 +197,7 @@ begin
       STOP     => BRESET,
       DONE     => open,
       BUSY     => RRLIM_BUSY
-      );
+    );
   
   PRLIM : ib_rlim_slv
     port map (
@@ -217,10 +217,10 @@ begin
       if BRESET = '1' then              -- BRESET is 1 for system and ibus reset
         R_REGS <= regs_init;            --
         if RESET = '0' then               -- if RESET=0 we do just an ibus reset
-          R_REGS.rerr  <= N_REGS.rerr;      -- keep RERR flag
-          R_REGS.rrlim <= N_REGS.rrlim;     -- keep RRLIM flag
-          R_REGS.perr  <= N_REGS.perr;      -- keep PERR flag
-          R_REGS.prlim <= N_REGS.prlim;     -- keep PRLIM flag
+          R_REGS.rerr  <= N_REGS.rerr;      -- keep RERR  flag
+          R_REGS.rrlim <= N_REGS.rrlim;     -- keep RRLIM field
+          R_REGS.perr  <= N_REGS.perr;      -- keep PERR  flag
+          R_REGS.prlim <= N_REGS.prlim;     -- keep PRLIM field
         end if;
       else
         R_REGS <= N_REGS;
@@ -228,7 +228,7 @@ begin
     end if;
   end process proc_regs;
 
-  proc_next : process (R_REGS, IB_MREQ, EI_ACK_PTR, EI_ACK_PTP, RESET, BRESET,
+  proc_next : process (R_REGS, IB_MREQ, EI_ACK_PTR, EI_ACK_PTP, RESET,
                        RBUF_DO, RBUF_EMPTY, RBUF_FULL, RBUF_SIZE, RRLIM_BUSY,
                        PBUF_DO, PBUF_EMPTY, PBUF_FULL, PBUF_SIZE, PRLIM_BUSY)
     variable r : regs_type := regs_init;
@@ -448,7 +448,7 @@ begin
         when others => null;
       end case;
       
-    end if;    
+    end if;
 
     -- other state changes
     if EI_ACK_PTR = '1' then
@@ -477,8 +477,8 @@ begin
       n.prdy    := '0';                      -- clear ready
       n.pintreq := '0';                      -- clear interrupt
     else                                  -- not busy and fifo not full
-      n.prdy    := '1';                      -- set done
-      if r.prdy='0' and                     -- done going 0->1
+      n.prdy    := '1';                      -- set ready
+      if r.prdy='0' and                     -- ready going 0->1
          r.perr='0' and r.pie='1' then        -- and err=0 and interrupt enabled 
         n.pintreq := '1';                      -- request interrupt
       end if;

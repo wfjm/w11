@@ -1,4 +1,4 @@
-// $Id: Rw11CntlPC11.hpp 1134 2019-04-21 17:18:03Z mueller $
+// $Id: Rw11CntlPC11.hpp 1140 2019-04-28 10:21:21Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -81,12 +81,14 @@ namespace Retro {
       static const bool     kProbeInt = true;  //!< probe int active
       static const bool     kProbeRem = true;  //!< probr rem active
 
+      static const uint16_t kFifoMaxSize  = 127;     //!< maximal fifo size
+
       static const uint16_t kRCSR_M_ERROR = kWBit15; //!< rcsr.err mask
       static const uint16_t kRCSR_V_RLIM  = 12;      //!< rcsr.rlim shift 
       static const uint16_t kRCSR_B_RLIM  = 007;     //!< rcsr.rlim bit mask
       static const uint16_t kRCSR_V_TYPE  =  8;      //!< rcsr.type shift
       static const uint16_t kRCSR_B_TYPE  = 0007;    //!< rcsr.type bit mask
-      static const uint16_t kRCSR_M_FCLR  = kWBit05; //!< rcsr.fclr mask
+      static const uint16_t kRCSR_M_FCLR  = kWBit01; //!< rcsr.fclr mask
       static const uint16_t kRBUF_M_RBUSY = kWBit15; //!< rbuf.rbusy mask
       static const uint16_t kRBUF_V_SIZE =  8;       //!< rbuf.size shift
       static const uint16_t kRBUF_B_SIZE = 0177;     //!< rbuf.size bit mask
@@ -105,14 +107,14 @@ namespace Retro {
         kStatNPrBlk= Rw11Cntl::kDimStat,    //!< done wblk
         kStatNPpQue,                        //!< queue rblk
         kDimStat
-      };    
+      };
 
     // PrDrain state definitions
       enum prdrain {
         kPrDrain_Idle = 0,                  //!< draining not active
         kPrDrain_Pend,                      //!< draining pending
         kPrDrain_Done                       //!< draining done
-      };    
+      };
     
     protected:
       int           AttnHandler(RlinkServer::AttnArgs& args);

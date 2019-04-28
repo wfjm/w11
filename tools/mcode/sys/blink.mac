@@ -1,4 +1,4 @@
-; $Id: blink.mac 1138 2019-04-26 08:14:56Z mueller $
+; $Id: blink.mac 1139 2019-04-27 14:00:38Z mueller $
 ; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ; License disclaimer see License.txt in $RETROBASE directory
 ;
@@ -36,8 +36,8 @@
         .include  |lib/vec_cpucatch.mac|
         .include  |lib/vec_devcatch.mac|
 
-        . = v..dlr              ; DL11 rx vector
-        .word   vh.dlr
+        . = v..tti              ; DL11 rx vector
+        .word   vh.tti
         .word   cp.ars!cp.pr7   ; use alt-reg-set !
 
         . = v..kwl              ; KW11-L vector
@@ -99,7 +99,7 @@ nultsk: mov     curspd,r5               ; load speed
 ;
 ; receive interrupt handler ----------------------
 ;
-vh.dlr: mov     @#ti.buf,r0             ; read char
+vh.tti: mov     @#ti.buf,r0             ; read char
         mov     r0,r1
         sub     #'0,r1                  ; in 0..9 range ?
         blt     100$

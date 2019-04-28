@@ -1,4 +1,4 @@
-; $Id: dl11echo.mac 1135 2019-04-23 12:56:23Z mueller $
+; $Id: dl11echo.mac 1139 2019-04-27 14:00:38Z mueller $
 ; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ; License disclaimer see License.txt in $RETROBASE directory
 ;
@@ -32,12 +32,12 @@
         .include  |lib/vec_cpucatch.mac|
         .include  |lib/vec_devcatch.mac|
 
-        . = v..dlr              ; DL11 rx vector
-        .word   vh.dlr
+        . = v..tti              ; DL11 rx vector
+        .word   vh.tti
         .word   cp.ars!cp.pr7   ; use alt-reg-set !
         
-        . = v..dlt              ; DL11 tx vector
-        .word   vh.dlt
+        . = v..tto              ; DL11 tx vector
+        .word   vh.tto
         .word   cp.ars!cp.pr7   ; use alt-reg-set !
         
         . = v..kwl              ; KW11-L vector
@@ -80,7 +80,7 @@ nultsk: mov     #pat,r0
 ;
 ; receive interrupt handler ----------------------
 ;
-vh.dlr: mov     @#ti.buf,r0             ; read char
+vh.tti: mov     @#ti.buf,r0             ; read char
         movb    r0,curchr               ; and remember
         jsr     pc,@curhdl              ; call handler
         jsr     pc,chkesc               ; check for ESC
@@ -91,7 +91,7 @@ vh.dlr: mov     @#ti.buf,r0             ; read char
 ;
 ; transmit interrupt handler ---------------------
 ;
-vh.dlt: mov     rptr,r1                 ; load pointer
+vh.tto: mov     rptr,r1                 ; load pointer
         movb    (r1)+,@#to.buf          ; send char
         cmp     r1,#bufe                ; ring wrap ?
         blo     1$

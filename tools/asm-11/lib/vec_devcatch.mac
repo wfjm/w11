@@ -1,4 +1,4 @@
-; $Id: vec_devcatch.mac 1122 2019-03-17 08:15:42Z mueller $
+; $Id: vec_devcatch.mac 1139 2019-04-27 14:00:38Z mueller $
 ; Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ; License disclaimer see License.txt in $RETROBASE directory
 ;
@@ -26,9 +26,9 @@
 ;           314?   5  8  8    ^       DZ11-TX
 ;
         . = 000060
-v..dlr: .word   v..dlr+2        ; vec  60 (DL11-RX  1st)
+v..tti: .word   v..tti+2        ; vec  60 (DL11-RX  1st)
         .word   0
-v..dlt: .word   v..dlt+2        ; vec  64 (DL11-TX  1st)
+v..tto: .word   v..tto+2        ; vec  64 (DL11-TX  1st)
         .word   0
 ;
 v..ptr: .word   v..ptr+2        ; vec  70 (PC11/PTR)

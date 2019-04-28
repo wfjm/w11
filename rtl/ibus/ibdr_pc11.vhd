@@ -1,4 +1,4 @@
--- $Id: ibdr_pc11.vhd 1137 2019-04-24 10:49:19Z mueller $
+-- $Id: ibdr_pc11.vhd 1140 2019-04-28 10:21:21Z mueller $
 --
 -- Copyright 2009-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -27,6 +27,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-04-27  1140   1.4.2  set rbuf.[rp]size0
 -- 2019-04-24  1137   1.4.1  add rcsr.ir,ique,iack and pcsr.ir fields (rem)
 -- 2019-04-06  1126   1.4    for pc11_buf compat: pbuf.pval in bit 15 and 8;
 --                           move rbusy reporting from pbuf to rbuf register
@@ -84,6 +85,9 @@ architecture syn of ibdr_pc11 is
   constant rcsr_ibf_renb :  integer :=  0;
 
   constant rbuf_ibf_rbusy : integer := 15;
+  constant rbuf_ibf_rsize0: integer :=  8;
+  constant rbuf_ibf_psize0: integer :=  0;
+  subtype  rbuf_ibf_data    is integer range  7 downto 0;
 
   constant pcsr_ibf_perr :  integer := 15;
   constant pcsr_ibf_prdy :  integer :=  7;
@@ -234,9 +238,8 @@ begin
 
         when ibaddr_rbuf =>             -- RBUF -- reader data buffer --------
 
-          idout(r.rbuf'range)   := r.rbuf;
-
           if IB_MREQ.racc = '0' then    -- cpu ---------------------
+            idout(rbuf_ibf_data) := r.rbuf;
             if ibreq = '1' then           -- !! PC11 is unusual !!
               n.rdone := '0';             -- *any* read or write will clear done
               n.rbuf  := (others=>'0');   -- and the reader buffer 
@@ -244,9 +247,11 @@ begin
             end if;
 
           else                          -- rri ---------------------
-            idout(rbuf_ibf_rbusy) := r.rbusy;
+            idout(rbuf_ibf_rbusy)  := r.rbusy;
+            idout(rbuf_ibf_rsize0) := r.rdone;     -- rbuf occupied when rdone=1
+            idout(rbuf_ibf_psize0) := not r.prdy;  -- pbuf empty    when prdy=1
             if ibw0 = '1' then
-              n.rbuf := IB_MREQ.din(n.rbuf'range);
+              n.rbuf := IB_MREQ.din(rbuf_ibf_data);
               n.rbusy := '0';
               n.rdone := '1';
               if r.rie = '1' then         -- if interrupts on

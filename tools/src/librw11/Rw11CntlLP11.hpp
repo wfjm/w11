@@ -1,4 +1,4 @@
-// $Id: Rw11CntlLP11.hpp 1132 2019-04-14 20:23:40Z mueller $
+// $Id: Rw11CntlLP11.hpp 1140 2019-04-28 10:21:21Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -66,7 +66,9 @@ namespace Retro {
       static const uint16_t kProbeOff = kCSR;  //!< probe address offset (rcsr)
       static const bool     kProbeInt = true;  //!< probe int active
       static const bool     kProbeRem = true;  //!< probr rem active
-
+ 
+      static const uint16_t kFifoMaxSize  = 127;     //!< maximal fifo size
+    
       static const uint16_t kCSR_M_ERROR = kWBit15; //!< csr.err mask
       static const uint16_t kCSR_V_RLIM  = 12;      //!< csr.rlim shift 
       static const uint16_t kCSR_B_RLIM  = 007;     //!< csr.rlim bit mask

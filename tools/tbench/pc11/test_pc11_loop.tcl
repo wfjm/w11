@@ -1,4 +1,4 @@
-# $Id: test_pc11_loop.tcl 1134 2019-04-21 17:18:03Z mueller $
+# $Id: test_pc11_loop.tcl 1139 2019-04-27 14:00:38Z mueller $
 #
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
@@ -8,7 +8,7 @@
 # 2019-04-20  1134   1.0    Initial version
 # 2019-04-07  1129   0.1    First draft
 #
-# Test paper reader + puncher response
+# Test PC11 reader + puncher response
 
 # ----------------------------------------------------------------------------
 rlc log "test_pc11_loop: test pc11 reader+puncher response -------------------"

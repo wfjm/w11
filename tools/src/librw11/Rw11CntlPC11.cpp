@@ -1,4 +1,4 @@
-// $Id: Rw11CntlPC11.cpp 1134 2019-04-21 17:18:03Z mueller $
+// $Id: Rw11CntlPC11.cpp 1140 2019-04-28 10:21:21Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-27  1140   1.5.1  use RtraceTools::
 // 2019-04-20  1134   1.5    add pc11_buf readout
 // 2019-04-13  1131   1.4.1  BootCode(): boot loader rewritten
 //                           remove SetOnline(), use UnitSetup()
@@ -35,6 +36,7 @@
 */
 
 #include <functional>
+#include <algorithm>
 #include <vector>
 
 #include "librtools/RosFill.hpp"
@@ -43,6 +45,7 @@
 #include "librtools/Rexception.hpp"
 #include "librtools/RlogMsg.hpp"
 
+#include "RtraceTools.hpp"
 #include "Rw11CntlPC11.hpp"
 
 using namespace std;
@@ -73,6 +76,8 @@ const uint16_t Rw11CntlPC11::kUnit_PP;
 const uint16_t Rw11CntlPC11::kProbeOff;
 const bool     Rw11CntlPC11::kProbeInt;
 const bool     Rw11CntlPC11::kProbeRem;
+  
+const uint16_t Rw11CntlPC11::kFifoMaxSize;
 
 const uint16_t Rw11CntlPC11::kRCSR_M_ERROR;
 const uint16_t Rw11CntlPC11::kRCSR_V_RLIM;
@@ -310,7 +315,7 @@ void Rw11CntlPC11::SetPrRlim(uint16_t rlim)
 
 void Rw11CntlPC11::SetPpRlim(uint16_t rlim)
 {
-  if (rlim > kRCSR_B_RLIM)
+  if (rlim > kPCSR_B_RLIM)
     throw Rexception("Rw11CntlPC11::SetPpRlim","Bad args: rlim too large");
 
   fPpRlim = rlim;
@@ -396,8 +401,8 @@ void Rw11CntlPC11::ProcessUnbuf(uint16_t rbuf, uint16_t pbuf)
            << " pbuf=" << RosPrintBvi(pbuf,8)
            << " pval=" << pval
            << " rbusy=" << rbusy
-           << " char=" << RosPrintBvi(ochr,8);
-      if (ochr>=040 && ochr<0177)  lmsg << "  '" << char(ochr) << "'";
+           << " char=" << RosPrintBvi(ochr,8) << " ";
+      RtraceTools::TraceChar(lmsg, ochr);
     }
   }
     
@@ -422,8 +427,8 @@ void Rw11CntlPC11::ProcessUnbuf(uint16_t rbuf, uint16_t pbuf)
         RlogMsg lmsg(LogFile());
         lmsg << "-I " << Name() << ": pr"
              << " rbusy=" << rbusy
-             << " char=" << RosPrintBvi(ichr,8);
-        if (ichr>=040 && ichr<0177) lmsg << "  '" << char(ichr) << "'";
+             << " char=" << RosPrintBvi(ichr,8) << " ";
+        RtraceTools::TraceChar(lmsg, ochr);
       }
       
       Cpu().ExecWibr(fBase+kRBUF, ichr);
@@ -501,15 +506,8 @@ void Rw11CntlPC11::PrProcessBuf(uint16_t rbuf)
            << " rsize=" << RosPrintf(rsize,"d",3)
              << " drain=" << fPrDrain
            << " size=" << RosPrintf(iblock.size(),"d",3);
-      if (fTraceLevel > 1) {
-        size_t nchar = 0;
-        for (auto& o: iblock) {
-            if (nchar == 0) lmsg << "\n      '";
-            lmsg << ' ' << RosPrintBvi(uint8_t(o),8);
-            nchar += 1;
-            if (nchar >= 16) nchar = 0;
-        }
-      }
+      if (fTraceLevel > 1) RtraceTools::TraceBuffer(lmsg, iblock.data(),
+                                                    iblock.size(), fTraceLevel);
     }
     
     fStats.Inc(kStatNPrBlk);
@@ -551,7 +549,7 @@ void Rw11CntlPC11::PpProcessBuf(const RlinkCommand& cmd, bool prim,
     fbeg = (pbuf[0]     >>kPBUF_V_SIZE) & kPBUF_B_SIZE;
     fend = (pbuf[done-1]>>kPBUF_V_SIZE) & kPBUF_B_SIZE;
     fdel = fbeg-fend+1;
-    smin = 128;
+    smin = kFifoMaxSize;
   }
   
   for (size_t i=0; i < done; i++) {
@@ -591,16 +589,8 @@ void Rw11CntlPC11::PpProcessBuf(const RlinkCommand& cmd, bool prim,
       lmsg << " rsize=" << RosPrintf(rsize,"d",3);
     }
     
-    if (fTraceLevel > 1 && done > 0) {
-      size_t nchar = 0;
-      for (size_t i=0; i < done; i++) {
-        if (nchar == 0) lmsg << "\n      '";
-        uint8_t ochr = pbuf[i] & kPBUF_M_BUF;
-        lmsg << ' ' << RosPrintBvi(ochr,8);
-        nchar += 1;
-        if (nchar >= 16) nchar = 0;
-      }
-    }
+    if (fTraceLevel > 1) RtraceTools::TraceBuffer(lmsg, pbuf,
+                                                  done, fTraceLevel);
   }
   
   // re-sizing the prim rblk invalidates pbuf -> so must be done last

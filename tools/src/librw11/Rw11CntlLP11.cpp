@@ -1,4 +1,4 @@
-// $Id: Rw11CntlLP11.cpp 1133 2019-04-19 18:43:00Z mueller $
+// $Id: Rw11CntlLP11.cpp 1140 2019-04-28 10:21:21Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-27  1140   1.3.4  use RtraceTools::
 // 2019-04-19  1133   1.3.3  use ExecWibr()
 // 2019-04-14  1131   1.3.2  remove SetOnline(), use UnitSetup()
 // 2019-04-07  1127   1.3.1  add fQueBusy, queue protection; fix logic;
@@ -43,6 +44,7 @@
 #include "librtools/Rexception.hpp"
 #include "librtools/RlogMsg.hpp"
 
+#include "RtraceTools.hpp"
 #include "Rw11CntlLP11.hpp"
 
 using namespace std;
@@ -68,6 +70,8 @@ const uint16_t Rw11CntlLP11::kBUF;
 const uint16_t Rw11CntlLP11::kProbeOff;
 const bool     Rw11CntlLP11::kProbeInt;
 const bool     Rw11CntlLP11::kProbeRem;
+  
+const uint16_t Rw11CntlLP11::kFifoMaxSize;
 
 const uint16_t Rw11CntlLP11::kCSR_M_ERROR;
 const uint16_t Rw11CntlLP11::kCSR_V_RLIM;
@@ -234,12 +238,8 @@ void Rw11CntlLP11::ProcessUnbuf(uint16_t buf)
          << " buf=" << RosPrintBvi(buf,8)
          << " val=" << val;
     if (val) {
-      lmsg << " char=";
-      if (ochr>=040 && ochr<0177) {
-        lmsg << "'" << char(ochr) << "'";
-      } else {
-        lmsg << RosPrintBvi(ochr,8);
-      }
+      lmsg << " char=" << RosPrintBvi(ochr,8) << " ";
+      RtraceTools::TraceChar(lmsg, ochr);
     }
   }
   
@@ -297,7 +297,7 @@ void Rw11CntlLP11::ProcessBuf(const RlinkCommand& cmd, bool prim)
     fbeg = (pbuf[0]     >>kBUF_V_SIZE) & kBUF_B_SIZE;
     fend = (pbuf[done-1]>>kBUF_V_SIZE) & kBUF_B_SIZE;
     fdel = fbeg-fend+1;
-    smin = 128;
+    smin = kFifoMaxSize;
   }
   
   for (size_t i=0; i < done; i++) {
@@ -339,27 +339,10 @@ void Rw11CntlLP11::ProcessBuf(const RlinkCommand& cmd, bool prim)
          << "," << RosPrintf(smin,"d",3)
          << "  que="   << fQueBusy;
     
-    if (fTraceLevel > 1 && done > 0) {
-      size_t nchar = 0;
-      for (size_t i=0; i < done; i++) {
-        uint8_t ochr = pbuf[i] & kBUF_M_BUF;
-        if (ochr>=040 && ochr<0177) {
-          if (nchar == 0) lmsg << "\n      '";
-          lmsg << char(ochr);
-          nchar += 1;
-          if (nchar >= 64) {
-            lmsg << "'";
-            nchar = 0;
-          }          
-        } else {
-          if (nchar > 0) lmsg << "'";
-          lmsg << "\n      " << RosPrintBvi(ochr,8);
-          nchar = 0;
-        }
-      }
-      if (nchar > 0) lmsg << "'";
-    }
+    if (fTraceLevel > 1) RtraceTools::TraceBuffer(lmsg, pbuf,
+                                                  done, fTraceLevel);
   }
+  
   
   // re-sizing the prim rblk invalidates pbuf -> so must be done last
   if (prim) {                               // if primary list

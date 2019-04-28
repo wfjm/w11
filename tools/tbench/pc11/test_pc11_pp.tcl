@@ -1,4 +1,4 @@
-# $Id: test_pc11_pp.tcl 1137 2019-04-24 10:49:19Z mueller $
+# $Id: test_pc11_pp.tcl 1140 2019-04-28 10:21:21Z mueller $
 #
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
@@ -8,8 +8,7 @@
 # 2019-04-21  1134   1.0    Initial version
 # 2019-04-07  1129   0.1    First draft
 #
-# Test paper puncher response 
-#  A: register basics
+# Test PC11 puncher response 
 
 # ----------------------------------------------------------------------------
 rlc log "test_pc11_pp: test pc11 paper puncher resonse -----------------------"
@@ -24,6 +23,10 @@ rlc set statvalue 0
 
 set attnpc  [expr {1<<$ibd_pc11::ANUM}]
 set attncpu [expr {1<<$rw11::ANUM}]
+
+# remember 'type' retrieved from rcsr for later tests
+$cpu cp -ribr pca.rcsr pcrcsr
+set type  [regget ibd_pc11::RRCSR(type) $pcrcsr]
 
 # -- Section A ---------------------------------------------------------------
 rlc log "  A1: test csr response -------------------------------------"
@@ -50,10 +53,6 @@ $cpu cp \
   -rma  pca.pcsr -edata [regbld ibd_pc11::PCSR rdy] \
   -breset \
   -rma  pca.pcsr -edata [regbld ibd_pc11::PCSR rdy]
-
-# remember 'type' retrieved from rcsr for later tests
-$cpu cp -ribr pca.rcsr pcrcsr
-set type  [regget ibd_pc11::RRCSR(type) $pcrcsr]
 
 rlc log "    A1.2: csr ie, ir -----------------------------------"
 #   loc IE=1   --> seen on loc and rem; rem sees IR=1
@@ -93,15 +92,19 @@ if {$type > 0} {                # if buffered test rlim
 if {$type == 0} {                # unbuffered --------------------------
   rlc log "  A2: test data response (unbuffered) -----------------------"
   rlc log "    A2.1: loc write, rem read ------------------------"
-  #    loc wr buf --> test RDY=0
+  #               --> test        PSIZE=0
+  #    loc wr buf --> test RDY=0  PSIZE=1
   #    loc rd buf --> test RDY=0  (loc read is noop); test attn send
-  #    rem wr buf --> test RDY=1
+  #    rem wr buf --> test RDY=1  PSIZE=0
   $cpu cp \
+    -ribr pca.rbuf -edata [regbld ibd_pc11::RRBUF {psize 0}] \
     -wma  pca.pbuf 0107 \
+    -ribr pca.rbuf -edata [regbld ibd_pc11::RRBUF {psize 1}] \
     -rma  pca.pcsr -edata [regbld ibd_pc11::PCSR] \
     -rma  pca.pbuf \
     -rma  pca.pcsr -edata [regbld ibd_pc11::PCSR] \
     -ribr pca.pbuf -edata [regbld ibd_pc11::RPBUF val {size 1} {data 0107} ] \
+    -ribr pca.rbuf -edata [regbld ibd_pc11::RRBUF {psize 0}] \
     -rma  pca.pcsr -edata [regbld ibd_pc11::PCSR rdy]
   # expect and harvest attn (drop other attn potentially triggered by breset)
   rlc wtlam 1.

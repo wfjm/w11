@@ -1,13 +1,13 @@
-; $Id: vec_devcatch_reset.mac 1124 2019-03-24 21:20:33Z mueller $
+; $Id: vec_devcatch_reset.mac 1139 2019-04-27 14:00:38Z mueller $
 ; Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ; License disclaimer see License.txt in $RETROBASE directory
 ;
 ; re-write vector catcher for device interrupts (subset used by w11)
 ; 
-        mov     #v..dlr+2,v..dlr ; vec  60 (DL11-RX  1st)
-        clr     v..dlr+2
-        mov     #v..dlt+2,v..dlt ; vec  64 (DL11-TX  1st)
-        clr     v..dlt+2
+        mov     #v..tti+2,v..tti ; vec  60 (DL11-RX  1st)
+        clr     v..tti+2
+        mov     #v..tto+2,v..tto ; vec  64 (DL11-TX  1st)
+        clr     v..tto+2
 ;
         mov     #v..ptr+2,v..ptr ; vec  70 (PC11/PTR)
         clr     v..ptr+2
@@ -42,6 +42,7 @@
         clr     v..d2r+2
         mov     #v..d2t+2,v..d2t ; vec 304 (DL11-TX  2nd)
         clr     v..d2t+2
+;
         mov     #v..dzr+2,v..dzr ; vec 310 (DZ11-RX)
         clr     v..dzr+2
         mov     #v..dzt+2,v..dzt ; vec 314 (DZ11-TX)

@@ -1,4 +1,4 @@
--- $Id: sys_conf.vhd 1111 2019-02-10 16:13:55Z mueller $
+-- $Id: sys_conf.vhd 1142 2019-04-28 19:27:57Z mueller $
 --
 -- Copyright 2016-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  viv 2015.4-2018.3; ghdl 0.33-0.35
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-04-28  1142   1.4.1  add sys_conf_ibd_m9312
 -- 2019-02-09  1110   1.4    use typ for DL,PC,LP; add dz11,ibtst
 -- 2018-09-22  1050   1.3.7  add sys_conf_dmpcnt
 -- 2018-09-08  1043   1.3.6  add sys_conf_ibd_kw11p
@@ -96,6 +97,7 @@ package sys_conf is
   -- configure other devices
   constant sys_conf_ibd_iist   : boolean := true;  -- IIST
   constant sys_conf_ibd_kw11p  : boolean := true;  -- KW11P
+  constant sys_conf_ibd_m9312  : boolean := true;  -- M9312
 
   -- derived constants =======================================================
   constant sys_conf_clksys : integer :=

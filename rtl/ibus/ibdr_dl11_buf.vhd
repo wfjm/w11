@@ -1,4 +1,4 @@
--- $Id: ibdr_dl11_buf.vhd 1140 2019-04-28 10:21:21Z mueller $
+-- $Id: ibdr_dl11_buf.vhd 1144 2019-05-01 18:39:26Z mueller $
 --
 -- Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -229,7 +229,7 @@ begin
     variable ixbufwe   : slbit := '0';
     variable ixbufrst  : slbit := '0';
     variable ixrlimsta : slbit := '0';
-   begin
+  begin
 
     r := R_REGS;
     n := R_REGS;
@@ -320,7 +320,7 @@ begin
               else                          -- write to full fifo
                 iback := '0';                 -- signal nak
               end if;
-             end if;
+            end if;
           end if;
 
         when ibaddr_xcsr =>             -- XCSR -- transmit control status ---

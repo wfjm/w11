@@ -23,8 +23,17 @@ software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
 ### Summary
+- add m9312 boot prom emulation
+
 ### New features
+- new components
+  - ibd_m9312: new boot prom emulation
+- new verification codes
+  - test_m9312_all.tcl: tbench for m9312
+
 ### Changes
+  - renamed kw11p tbench from w11a_kw11p to kw11p
+
 ### Bug Fixes
 ### Known issues
 

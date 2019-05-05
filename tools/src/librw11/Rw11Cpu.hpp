@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.hpp 1133 2019-04-19 18:43:00Z mueller $
+// $Id: Rw11Cpu.hpp 1143 2019-05-01 13:25:51Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-30  1143   1.2.19 add HasM9312()
 // 2019-04-19  1133   1.2.18 add ExecWibr(),ExecRibr()
 // 2019-04-13  1131   1.2.17 add defs for w11 cpu component addresses; add
 //                           MemSize(),MemWriteByte(); LoadAbs() returns start
@@ -98,6 +99,7 @@ namespace Retro {
       uint16_t      HasHbpt() const;
       bool          HasIbmon() const;
       bool          HasIbtst() const;
+      bool          HasM9312() const;
       bool          HasKw11l() const;
       bool          HasKw11p() const;
       bool          HasIist() const;
@@ -318,6 +320,7 @@ namespace Retro {
       static const uint16_t  kITFIFO  = 0x0006;   //!< IT.FIFO  reg offset
 
     // defs for optional w11 aux components
+      static const uint16_t  kM9BASE  = 0165000;  //!< M9312 ibus address
       static const uint16_t  kKWLBASE = 0177546;  //!< KW11-L ibus address
       static const uint16_t  kKWPBASE = 0172540;  //!< KW11-P ibus address
       static const uint16_t  kKWPCSR  = 0x0000;   //!< KWP.CSR  reg offset
@@ -347,6 +350,7 @@ namespace Retro {
       uint16_t      fHasHbpt;               //!< has dmhbpt (hardware breakpoint)
       bool          fHasIbmon;              //!< has ibmon  (ibus monitor)
       bool          fHasIbtst;              //!< has ibtst  (ibus tester)
+      bool          fHasM9312;              //!< has m9312  (boot rom)
       bool          fHasKw11l;              //!< has kw11-l (line clock)
       bool          fHasKw11p;              //!< has kw11-p (prog clock)
       bool          fHasIist;               //!< has iist   (smp comm)

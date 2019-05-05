@@ -1,4 +1,4 @@
-# $Id: cpu_all.dat 1115 2019-02-24 12:53:04Z mueller $
+# $Id: cpu_all.dat 1143 2019-05-01 13:25:51Z mueller $
 #
 ## steering file for all cpu tests
 #
@@ -11,6 +11,5 @@
 #
 @w11a_cmon/w11a_cmon_all.dat
 @w11a_hbpt/w11a_hbpt_all.dat
-@w11a_kw11p/w11a_kw11p_all.dat
 @w11a_pcnt/w11a_pcnt_all.dat
 #

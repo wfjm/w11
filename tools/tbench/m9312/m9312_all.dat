@@ -1,0 +1,5 @@
+# $Id: m9312_all.dat 1143 2019-05-01 13:25:51Z mueller $
+#
+## steering file for all m9312 tests
+#
+test_m9312_all.tcl

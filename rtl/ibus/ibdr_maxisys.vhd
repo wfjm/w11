@@ -1,4 +1,4 @@
--- $Id: ibdr_maxisys.vhd 1139 2019-04-27 14:00:38Z mueller $
+-- $Id: ibdr_maxisys.vhd 1142 2019-04-28 19:27:57Z mueller $
 --
 -- Copyright 2009-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -30,6 +30,7 @@
 --                 ibdr_pc11_buf
 --                 ibdr_lp11
 --                 ibdr_lp11_buf
+--                 ibd_m9312
 --                 ibdr_sdreg
 --                 ib_sres_or_4
 --                 ib_sres_or_3
@@ -192,6 +193,7 @@ architecture syn of ibdr_maxisys is
   signal IB_SRES_DL11_1 : ib_sres_type := ib_sres_init;
   signal IB_SRES_PC11   : ib_sres_type := ib_sres_init;
   signal IB_SRES_LP11   : ib_sres_type := ib_sres_init;
+  signal IB_SRES_M9312  : ib_sres_type := ib_sres_init;
   signal IB_SRES_SDREG  : ib_sres_type := ib_sres_init;
 
   signal IB_SRES_1      : ib_sres_type := ib_sres_init;
@@ -532,6 +534,17 @@ begin
       );
   end generate LP11BUF;
 
+  M9312: if sys_conf_ibd_m9312 generate
+  begin
+    ROM : ibd_m9312
+      port map (
+        CLK     => CLK,
+        RESET   => RESET,
+        IB_MREQ => IB_MREQ,
+        IB_SRES => IB_SRES_M9312
+      );
+  end generate M9312;
+
   SDREG : ibdr_sdreg
     port map (
       CLK     => CLK,
@@ -567,11 +580,12 @@ begin
       IB_SRES_OR => IB_SRES_3
     );
 
-  SRES_OR_4 : ib_sres_or_3
+  SRES_OR_4 : ib_sres_or_4
     port map (
       IB_SRES_1  => IB_SRES_PC11,
       IB_SRES_2  => IB_SRES_LP11,
-      IB_SRES_3  => IB_SRES_SDREG,
+      IB_SRES_3  => IB_SRES_M9312,
+      IB_SRES_4  => IB_SRES_SDREG,
       IB_SRES_OR => IB_SRES_4
     );
 

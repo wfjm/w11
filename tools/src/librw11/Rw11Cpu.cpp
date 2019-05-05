@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.cpp 1133 2019-04-19 18:43:00Z mueller $
+// $Id: Rw11Cpu.cpp 1143 2019-05-01 13:25:51Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-30  1143   1.2.19 add m9312 setup and HasM9312()
 // 2019-04-19  1133   1.2.18 add ExecWibr(),ExecRibr(); LoadAbs(): better trace
 // 2019-04-13  1131   1.2.17 add defs for w11 cpu component addresses; add
 //                           MemSize(),MemWriteByte(); LoadAbs(): return start,
@@ -207,6 +208,7 @@ const uint16_t  Rw11Cpu::kIMLOLIM;
 const uint16_t  Rw11Cpu::kIMADDR;
 const uint16_t  Rw11Cpu::kIMDATA;
 
+const uint16_t  Rw11Cpu::kM9BASE;
 const uint16_t  Rw11Cpu::kKWLBASE;
 const uint16_t  Rw11Cpu::kKWPBASE;
 const uint16_t  Rw11Cpu::kKWPCSR;
@@ -232,6 +234,7 @@ Rw11Cpu::Rw11Cpu(const std::string& type)
     fHasHbpt(0),
     fHasIbmon(false),
     fHasIbtst(false),
+    fHasM9312(false),
     fHasKw11l(false),
     fHasKw11p(false),
     fHasIist(false),
@@ -977,6 +980,7 @@ void Rw11Cpu::Dump(std::ostream& os, int ind, const char* text,
   os << bl << "  fHasHbpt:        " << fHasHbpt << endl;
   os << bl << "  fHasIbmon:       " << RosPrintf(fHasIbmon) << endl;
   os << bl << "  fHasIbtst:       " << RosPrintf(fHasIbtst) << endl;
+  os << bl << "  fHasM9312:       " << RosPrintf(fHasM9312) << endl;
   os << bl << "  fHasKw11l:       " << RosPrintf(fHasKw11l) << endl;
   os << bl << "  fHasKw11p:       " << RosPrintf(fHasKw11p) << endl;
   os << bl << "  fHasIist:        " << RosPrintf(fHasIist)  << endl;
@@ -1070,13 +1074,13 @@ void Rw11Cpu::SetupOpt()
   // probe
   //   - memory size: read losize register
   //   - optional cpu components: dmscnt, dmcmon, dmhbpt and ibmon, ibtst
-  //   - optional devices: Kw11-L, KW11-P, IIST
+  //   - optional devices: KW11-L, KW11-P, M9312, IIST
   RlinkCommandList clist;
 
   int ims = AddRibr(clist, kMEMLOSIZE);  // read losize
 
   int isc =  clist.AddRreg(Base()+kSCBASE+kSCCNTL);
-  clist.SetLastExpectStatus(0,0);        // disable stat check
+  clist.SetLastExpectStatus(0,0);
 
   int icm =  clist.AddRreg(Base()+kCMBASE+kCMCNTL);
   clist.SetLastExpectStatus(0,0); 
@@ -1094,14 +1098,17 @@ void Rw11Cpu::SetupOpt()
   clist.SetLastExpectStatus(0,0);
   
   int ipc =  clist.AddRreg(Base()+kPCBASE+kPCCNTL);
-  clist.SetLastExpectStatus(0,0);        // disable stat check
+  clist.SetLastExpectStatus(0,0);
 
-  // probe auxilliary cpu components: kw11-l, kw11-p, iist
+  // probe auxilliary cpu components: m9312, kw11-l, kw11-p, iist
+  int im9= AddRibr(clist, kM9BASE);              // m9312 probe rem 
+  clist.SetLastExpectStatus(0,0); 
+
   int ikwl= AddRibr(clist, kKWLBASE);            // kw11-l probe rem 
   clist.SetLastExpectStatus(0,0); 
 
   int ikwp= AddRibr(clist, kKWPBASE + kKWPCSR);  // kw11-p probe rem 
-  clist.SetLastExpectStatus(0,0); 
+  clist.SetLastExpectStatus(0,0);
 
   int iii = AddRibr(clist, kIISTBASE + kIISTACR); // iist probe rem
   clist.SetLastExpectStatus(0,0); 
@@ -1177,6 +1184,11 @@ void Rw11Cpu::SetupOpt()
   fHasKw11l = (clist[ikwl].Status() & statmsk) == 0;
   if (fHasKw11l) {
     AllIAddrMapInsert("kwl.csr",  kKWLBASE);
+  }
+
+  fHasM9312 = (clist[im9].Status() & statmsk) == 0;
+  if (fHasM9312) {
+    AllIAddrMapInsert("m9.csr",  kM9BASE);
   }
 
   fHasKw11p = (clist[ikwp].Status() & statmsk) == 0;

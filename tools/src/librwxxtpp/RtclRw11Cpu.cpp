@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.cpp 1131 2019-04-14 13:24:25Z mueller $
+// $Id: RtclRw11Cpu.cpp 1143 2019-05-01 13:25:51Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-30  1143   1.2.31 add HasM9312() getter
 // 2019-04-12  1131   1.2.30 BUGFIX: M_wtcpu(): check cpu attn in no-server case
 //                           add MemSize() getter; loadabs: add -trace and start
 // 2019-03-10  1121   1.2.28 M_cp(): tranfer BlockDone values after rblk
@@ -1551,6 +1552,7 @@ void RtclRw11Cpu::SetupGetSet()
   fGets.Add<uint16_t>     ("hashbpt",  bind(&Rw11Cpu::HasHbpt,  pobj));
   fGets.Add<bool>         ("hasibmon", bind(&Rw11Cpu::HasIbmon, pobj));
   fGets.Add<bool>         ("hasibtst", bind(&Rw11Cpu::HasIbtst, pobj));
+  fGets.Add<bool>         ("hasm9312", bind(&Rw11Cpu::HasM9312, pobj));
   fGets.Add<bool>         ("haskw11l", bind(&Rw11Cpu::HasKw11l, pobj));
   fGets.Add<bool>         ("haskw11p", bind(&Rw11Cpu::HasKw11p, pobj));
   fGets.Add<bool>         ("hasiist",  bind(&Rw11Cpu::HasIist,  pobj));

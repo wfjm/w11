@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.ipp 1131 2019-04-14 13:24:25Z mueller $
+// $Id: Rw11Cpu.ipp 1143 2019-05-01 13:25:51Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-04-30  1143   1.2.6  add HasM9312()
 // 2019-04-13  1131   1.2.5  add MemSize()
 // 2019-02-15  1112   1.2.4  add HasIbtst()
 // 2018-09-23  1050   1.2.3  add HasPcnt()
@@ -150,6 +151,14 @@ inline bool Rw11Cpu::HasIbmon() const
 inline bool Rw11Cpu::HasIbtst() const
 {
   return fHasIbtst;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline bool Rw11Cpu::HasM9312() const
+{
+  return fHasM9312;
 }
 
 //------------------------------------------+-----------------------------------

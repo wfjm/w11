@@ -1,0 +1,352 @@
+; $Id: bootw11.mac 1143 2019-05-01 13:25:51Z mueller $
+; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; License disclaimer see License.txt in $RETROBASE directory
+;
+; Revision History:
+; Date         Rev Version  Comment
+; 2019-05-01  1143   1.0    Initial version
+; 2019-04-19  1133   0.1    First draft
+;
+;
+; definitions ----------------------------------------------
+;
+        .include  |lib/defs_cpu.mac|
+        .include  |lib/defs_dl.mac|
+        
+        lorom = 165000
+        hirom = 173000
+;
+        CR = 015
+        LF = 012
+;
+; low rom area #############################################
+;
+        . = lorom
+
+start:  spl     7
+        mov     #160000,sp      ; default stack
+        mov     @#cp.los,r0     ; get memory size in clicks
+        cmp     r0,#1600        ; > 56k 
+        bhis    1$              ; if his yes, use 160000
+        inc     r0              ; otherwise sp=(los+1)<<6
+        ash     #6,r0
+        mov     r0,sp
+1$:
+;
+; print prompt
+;
+        mov     #strpro,r1
+nxtpro: jsr     pc,prtstr
+;
+; read boot device name and unit
+;
+getnam: jsr     pc,getlet       ; get 1st char
+        mov     r0,r2           ; move into low  byte
+        jsr     pc,getlet       ; get 2nd char
+        swab    r0
+        bis     r0,r2           ; move into high byte
+        jsr     pc,getchr       ; get unit number or <CR>
+        cmp     #CR,r0          ; is <CR> ?
+        beq     fnddev          ; if eq yes, done
+        mov     r0,r3
+        sub     #'0,r3          ; convert ascii to binary
+        blt     errpro          ; below 0, error quit
+        cmp     r3,#7           ; check 0-7 range
+        bgt     errpro          ; above 7, error quit
+        jsr     pc,prtchr       ; echo character
+        jsr     pc,getchr       ; get <CR>
+        cmp     #CR,r0          ; is <CR> ?
+        bne     errpro
+;
+; find boot loader
+;   in  r2  device code
+;   in  r3  unit number
+;   use r0,r1,r4
+;
+fnddev: mov     #devtbl,r4
+1$:     tst     (r4)            ; end of list ?
+        beq     errpro          ; if eq yes, error quit
+        cmp     (r4)+,r2        ; match ?
+        beq     2$              ; if eq yes
+        cmp     (r4)+,(r4)+     ; skip two words
+        br      1$              ; and try next device in table
+2$:     cmp     r3,(r4)+        ; is unit number in range ?
+        bgt     errpro          ; if gt not, error quit
+        mov     #strnl,r1       ; print <CR><LF>
+        jsr     pc,prtstr
+        mov     r3,r0           ; get unit to r0
+        jmp     @(r4)+          ; and execute boot code
+
+;
+errpro: mov     #strerr,r1      ; point to error string
+        br      nxtpro
+;
+; getlet: read drive name letter ---------------------------
+;   out r0  character (only A-Z, other error quit)
+;
+getlet: jsr     pc,getchr
+        cmp     r0,#'Z          ; above Z ?
+        ble     1$              ; if le not
+        sub     #<'a-'A>,r0     ; otherwise convert to upper
+1$:     cmp     r0,#'A          ; below A ?
+        blt     2$              ; if lt yes, error quit
+        cmp     r0,#'Z          ; above Z ?
+        bgt     2$              ; if gt yes, error quit
+        jsr     pc,prtchr       ; echo character
+        rts     pc
+2$:     tst     (sp)+           ; drop return address
+        br      errpro          ; error quit
+;
+; getchr: read character routine ---------------------------
+;   out  r0  character
+;
+getchr: tstb    @#ti.csr        ; wait ti ready
+        bpl     getchr
+        mov     @#ti.buf,r0     ; and read character
+        rts     pc
+;
+; prtstr: print string routine -----------------------------
+;   in  r1  pointer to zero terminated string
+;   use r0
+;
+prtstr: movb    (r1)+,r0        ; get next char
+        beq     prtrts          ; if eq return
+        jsr     pc,prtchr       ; else print char
+        br      prtstr          ; and go for next
+;
+; prtchr: print character routine --------------------------
+;   in  r0  character to be printed
+;
+prtchr: tstb    @#to.csr        ; wait to ready
+        bpl     prtchr
+        movb    r0,@#to.buf     ; and print
+prtrts: rts     pc
+;
+; rstoff: reset/restart after unit offline detected --------
+;
+rstoff: reset
+        spl     7
+        mov     #stroff,r1      ; load string pointer
+        br      nxtpro          ; and go for error re-prompt
+;
+stroff: .ascii  /off/           ; to print "off?\n@"
+strerr: .ascii  /?/             ; to print "?\n@"
+strpro: .asciz  <CR><LF>/@/     ; to print "\n@"
+strnl:  .asciz  <CR><LF>        ; to print "\n"
+        .even
+;
+; device descriptor table ----------------------------------
+;
+devtbl: .word   "DK, 7, bootrk  ; "DK --> RK11/RK05 boot
+        .word   "DL, 3, bootrl  ; "DL --> RL11/RL02 boot
+        .word   "DB, 3, bootrp  ; "DB --> RH70/RP06 boot
+        .word   "MT, 3, boottm  ; "MT --> TM11 boot
+        .word   "PR, 0, bootpc  ; "PR --> PC11 boot
+        .word   0
+;
+; common boot exit -----------------------------------------
+;
+bootgo: clr       r2            ; why ?
+        clr       r3            ; why ?
+        clr       r4            ; why ?
+        clr       r5            ; why ?
+        clr       pc
+;
+; RK11 boot loader +++++++++++++++++++++++++++++++++++++++++
+;   RK boot loader code adapted from simh project
+;
+        .include  |lib/defs_rk.mac|
+;
+bootrk: mov     r0,r3
+        ash     #13.,r3
+        mov     r3,@#rk.da      ; load da with unit number
+        tstb    @#rk.ds         ; drive ready ?
+        bmi     1$              ; if mi, ready
+        jmp     rstoff          ; else offline fail
+1$:     clr     @#rk.ba         ; clear ba
+        mov     #-512.,@#rk.wc  ; set wc (2 blocks)
+        mov     #rk.cs,r1
+        mov     #<rk.frd!rk.go>,(r1)  ; start read
+2$:     tstb    (r1)            ; wait ready
+        bpl     2$
+        tst     @#rk.er         ; did read succeed ?
+        beq     3$              ; if eq yes
+        halt                    ; else halt
+3$:     clrb    (r1)
+        jmp     bootgo
+;
+; RL11 boot loader +++++++++++++++++++++++++++++++++++++++++
+;   RL boot loader code adapted from simh project
+;
+        .include  |lib/defs_rl.mac|
+;
+bootrl: mov     r0,r3
+        swab    r3
+        mov     #rl.cs,r1
+        mov     #13,4(r1)       ; clr err 
+        bis     #rl.fgs,r3      ; unit+gstat 
+        mov     r3,(r1)         ; issue cmd 
+1$:     tstb    (r1)            ; wait 
+        bpl     1$
+        mov     6(r1),r2        ; inspect status
+        bit     #<rl.dse!rl.co>,r2  ; select error or cover open ?
+        beq     2$              ; if eq not
+        jmp     rstoff          ; else offline fail
+2$:     clrb    r3 
+        bis     #rl.frh,r3      ; unit+rdhdr 
+        mov     r3,(r1)         ; issue cmd 
+3$:     tstb    (r1)            ; wait 
+        bpl     3$
+        mov     6(r1),r2        ; get hdr
+        bic     #077,r2         ; clr head+sector 
+        inc     r2              ; magic bit 
+        mov     r2,4(r1)        ; seek to 0 
+        clrb    r3 
+        bis     #rl.fse,r3      ; unit+seek 
+        mov     r3,(r1)         ; issue cmd 
+4$:     tstb    (r1)            ; wait 
+        bpl     4$
+        clr     2(r1)           ; clr ba 
+        clr     4(r1)           ; clr da 
+        mov     #-512., 6(r1)   ; set wc 
+        clrb    r3 
+        bis     #rl.frd,r3      ; unit+read 
+        mov     r3, (r1)        ; issue cmd 
+5$:     tstb    (r1)            ; wait 
+        bpl     5$
+        tst     (r1)            ; did read succeed ?
+        bpl     6$              ; if pl yes (cs.err = 0)
+        halt                    ; else halt
+6$:     bic     #377, (r1)
+        jmp     bootgo
+;
+; RH70 boot loader +++++++++++++++++++++++++++++++++++++++++
+;   RH70 boot loader code adapted from simh project
+;
+        .include  |lib/defs_rp.mac|
+;
+bootrp: mov     #rp.cs1,r1              ;
+        mov     #rp.clr,@#rp.cs2        ; #CS2_CLR
+        mov     r0,@#rp.cs2             ; set unit
+        tstb    @#rp.ds                 ; check drive ready
+        bmi     1$                      ; if mi yes
+        jmp     rstoff                  ; else offline fail
+1$:     mov     #<rp.frp!rp.go>,(r1)    ; #RIP+GO: pack ack
+        mov     #rp.f16, @#rp.of        ; #FMT16B: 16b mode
+        mov     #-512., @#rp.wc         ; set wc
+        clr     @#rp.ba                 ; clr ba
+        clr     @#rp.da                 ; clr da
+        clr     @#rp.dc                 ; clr cyl
+        mov     #<rp.frd!rp.go>,(r1)    ; read 
+2$:     tstb    (r1)                    ; wait
+        bpl     2$
+        tst     @#rp.ds                 ; did read succeed ?
+        bpl     3$                      ; if pl yes (ds.ata = 0)
+        halt                            ; else halt
+3$:     clrb    (r1)
+        jmp     bootgo
+;
+; high rom area ############################################
+;
+        . = hirom
+;
+; TM11 boot loader +++++++++++++++++++++++++++++++++++++++++
+;   TM boot loader code adapted from simh project
+;
+        .include  |lib/defs_tm.mac|
+boottm: mov     #tm.cr,r1               ; load csr
+        mov     r0,r2
+        swab    r2 
+        mov     r2,(r1)                 ; load unit number to cr
+        bit     #tm.onl,@#tm.sr         ; is unit online ?
+        bne     1$                      ; if ne yes
+        jmp     rstoff                  ; else offline fail
+1$:     clr     @#tm.ba                 ; tmba = 0
+        mov     #-1,@#tm.bc             ; tmbc = -1
+        bis     #<tm.d98!tm.fsf!tm.go>,r2 
+        mov     r2,(r1)                 ; tmcr = space + go 
+2$:     tstb    (r1)                    ; test tmcr.rdy
+        bpl     2$
+        mov     r0,r2                   ; note: tmbc=0 now
+        swab    r2 
+        bis     #<tm.d98!tm.frd!tm.go>,r2  ; note: tmbc still = 0!
+        mov     r2,(r1)                 ; tmcr = read + go 
+3$:     tstb    (r1)                    ; test tmcr.rdy
+        bpl     3$
+        tstb    #tm.sr+1                ; check upper 8 error bits
+        beq     4$                      ; if eq, all fine
+        halt                            ; else error halt
+4$:     jmp     bootgo  
+;
+; PC11 boot loader +++++++++++++++++++++++++++++++++++++++++
+;   RL boot loader code adapted pc11boot.mac
+;
+        .include  |lib/defs_pc.mac|
+; 
+; register usage
+;   r0   byte
+;   r1   word
+;   r2   checksum
+;   r3   addr
+;   r4   count
+;   r5   #pr.csr
+;
+bootpc: mov     #pr.csr,r5
+        tst     (r5)            ; error bit set ?
+        bpl     pcrec           ; if pl no, continue
+        jmp     rstoff          ; otherwise quit offline
+;
+pcrec:  clr     r2              ; clear checksum
+1$:     jsr     pc,pcbyte       ; read 000 prefix or 001
+        tstb    r0              ; is zero ?
+        beq     1$              ; if eq yes, keep trying
+        dec     r0              ; decrement to test for 001
+        bne     pcerr1          ; if ne, quit
+        jsr     pc,pcbyte       ; read 000 after 001
+        tstb    r0              ; is zero ?
+        bne     pcerr1          ; if ne fail
+        jsr     pc,pcword       ; read count
+        mov     r1,r4           ; store count
+        jsr     pc,pcword       ; read addr
+        mov     r1,r3           ; store addr
+        sub     #6,r4           ; subtract 6 from count
+        blt     pcerr2          ; if <6 fail
+        bgt     pcdata          ; if >6 read data
+        jsr     pc,pcbyte       ; read checksum
+        tstb    r2              ; test checksum
+        bne     pcerr3          ; if ne bad, fail
+        bit     #1,r3           ; address odd ?
+        beq     2$              ; if eq fine, use address
+        mov     #200,r3         ; else use default start addres
+2$:     jmp     (r3)            ; and start code
+;
+pcerr1: halt                    ; halt: bad frame
+pcerr2: halt                    ; halt: bad count
+pcerr3: halt                    ; halt: bad checksum
+pcerr4: halt                    ; halt: error bit set
+;
+pcdata: jsr     pc,pcbyte       ; read byte
+        movb    r0,(r3)+        ; store byte
+        sob     r4,pcdata       ; dec count and loop if >0
+        jsr     pc,pcbyte       ; get checksum
+        tstb    r2              ; test checksum
+        bne     pcerr3          ; if ne bad, fail
+        br      pcrec           ; otherwise next record
+
+pcword: jsr     pc,pcbyte       ; read low byte
+        mov     r0,r1           ; low byte to r1
+        jsr     pc,pcbyte       ; read high byte
+        swab    r0
+        bis     r0,r1           ; high byte to r1
+        rts     pc
+
+pcbyte: inc     (r5)            ; set enable
+1$:     tst     (r5)            ; error set ?
+        bmi     pcerr4          ; if mi yes, fail
+        tstb    (r5)            ; done set ?
+        bpl     1$              ; if pl not yet
+        mov     2(r5),r0        ; read byte
+        add     r0,r2           ; accumulate checksum
+        rts     pc
+;
+        .end start

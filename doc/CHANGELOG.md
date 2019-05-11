@@ -30,8 +30,13 @@ The full set of tests is only run for tagged releases.
   - ibd_m9312: new boot prom emulation
 - new verification codes
   - test_m9312_all.tcl: tbench for m9312
+- new test and demonstration codes under tools/mcode
+  - m9312/bootw11.mac: w11 boot for m9312
+  - sys/noboot.mac: boot blocker code for block 0 of disks
 
 ### Changes
+- tools changes
+  - Rw11VirtDiskRam: add noboot attach option
   - renamed kw11p tbench from w11a_kw11p to kw11p
 
 ### Bug Fixes

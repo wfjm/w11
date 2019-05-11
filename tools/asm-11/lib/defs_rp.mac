@@ -1,5 +1,5 @@
-; $Id: defs_rp.mac 1122 2019-03-17 08:15:42Z mueller $
-; Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; $Id: defs_rp.mac 1143 2019-05-01 13:25:51Z mueller $
+; Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ; License disclaimer see License.txt in $RETROBASE directory
 ;
 ; definitions for RH70/RPRM controler
@@ -43,10 +43,24 @@
         rp.ie =000100
         rp.fsk=000004           ; seek
         rp.fcl=000010           ; drive clear
+        rp.frp=000020           ; read-in preset
         rp.fse=000030           ; search
         rp.fwr=000060           ; write
         rp.frd=000070           ; read
         rp.go =000001
+;
+; symbol definitions for rp.cs2
+;
+        rp.wce=040000
+        rp.ned=010000
+        rp.nem=004000
+        rp.pge=002000
+        rp.mxf=001000
+        rp.or=000200
+        rp.ir=000100
+        rp.clr=000040
+        rp.pat=000020
+        rp.bai=000010
 ;
 ; symbol definitions for rp.ds
 ;
@@ -80,3 +94,7 @@
         rp.rmr=000004
         rp.ilr=000002
         rp.ilf=000001
+;
+; symbol definitions for rp.of
+;
+        rp.f16=010000           ; 16bit format

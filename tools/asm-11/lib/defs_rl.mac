@@ -1,0 +1,50 @@
+; $Id:  $
+; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; License disclaimer see License.txt in $RETROBASE directory
+;
+; definitions for RL11 controler
+; 
+; vector address/priority definition
+; 
+        va.rl=000160
+        vp.rl=5
+; 
+; register addresses
+; 
+        rl.cs=174400
+        rl.ba=174402
+        rl.da=174404
+        rl.mp=174406
+;
+; symbol definitions for rl.cs
+;
+        rl.err=100000
+        rl.de=040000
+        rl.crd=000200
+        rl.ie=000100
+        rl.fwc=000002           ; write check
+        rl.fgs=000004           ; get status
+        rl.fse=000006           ; seek
+        rl.frh=000010           ; read header
+        rl.fwr=000012           ; write data
+        rl.frd=000014           ; read data
+        rl.frn=000016           ; read data no header check
+        rl.drd=000001
+;
+; symbol definitions for rl.mp after get statu command
+; 
+        rl.wge=002000           ; write gate error
+        rl.dse=000400           ; drive select error
+        rl.dt2=000200           ; drive type (rl02 when set)
+        rl.hs=000100            ; head select
+        rl.co=000040            ; cover open
+        rl.ho=000020            ; heads out
+        rl.bh=000010            ; brush home
+        rl.ssu=00001            ; status: spin up
+        rl.sbr=00002            ; status: brushing
+        rl.slh=00003            ; status: load(ing) heads
+        rl.sse=00004            ; status: seek(ing)
+        rl.slo=00005            ; status: lock(ed)
+        rl.suh=00006            ; status: unload(ing)
+        rl.ssd=00007            ; status: spin down
+        

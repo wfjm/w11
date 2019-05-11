@@ -1,6 +1,6 @@
-// $Id: Rw11VirtDiskRam.hpp 1066 2018-11-10 11:21:53Z mueller $
+// $Id: Rw11VirtDiskRam.hpp 1143 2019-05-01 13:25:51Z mueller $
 //
-// Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2018-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-05-01  1143   1.1    add noboot option 
 // 2018-10-28  1063   1.0    Initial version
 // 2018-10-27  1061   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -74,6 +75,7 @@ namespace Retro {
         kPatTest
       };
     
+      bool          fNoBoot;
       pattyp        fPatTyp;                //!< pattern type
       bmap_t        fBlkMap;
   };

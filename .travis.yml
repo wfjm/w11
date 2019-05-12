@@ -59,6 +59,7 @@ script:
   - make all_tcl
   - make -C tools/asm-11/tests allexp
   - make -C tools/asm-11/tests-err allexp
+  - make -C tools/mcode all
   - |
     time tbrun -j 2 -nomake \
       -tag memlib \

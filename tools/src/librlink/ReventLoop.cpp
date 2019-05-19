@@ -1,6 +1,6 @@
-// $Id: ReventLoop.cpp 1090 2018-12-21 12:17:35Z mueller $
+// $Id: ReventLoop.cpp 1150 2019-05-19 17:52:54Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-05-17  1150   1.3    BUGFIX: don't call handler when fUpdatePoll true
 // 2018-12-19  1090   1.2.6  use RosPrintf(bool)
 // 2018-12-18  1089   1.2.5  use c++ style casts
 // 2018-12-17  1085   1.2.4  use std::lock_guard instead of boost
@@ -218,42 +219,46 @@ void ReventLoop::Dump(std::ostream& os, int ind, const char* text,
 
 int ReventLoop::DoPoll(int timeout)
 {
-  if (fUpdatePoll) {
-    lock_guard<mutex> lock(fPollDscMutex);
+  int irc = 0;
+  do {
+    if (fUpdatePoll) {
+      lock_guard<mutex> lock(fPollDscMutex);
     
-    fPollFd.resize(fPollDsc.size());
-    fPollHdl.resize(fPollDsc.size());
-    for (size_t i=0; i<fPollDsc.size(); i++) {
-      fPollFd[i].fd      = fPollDsc[i].fFd;
-      fPollFd[i].events  = fPollDsc[i].fEvents;
-      fPollFd[i].revents = 0;
-      fPollHdl[i] = fPollDsc[i].fHandler;
+      fPollFd.resize(fPollDsc.size());
+      fPollHdl.resize(fPollDsc.size());
+      for (size_t i=0; i<fPollDsc.size(); i++) {
+        fPollFd[i].fd      = fPollDsc[i].fFd;
+        fPollFd[i].events  = fPollDsc[i].fEvents;
+        fPollFd[i].revents = 0;
+        fPollHdl[i] = fPollDsc[i].fHandler;
+      }
+      fUpdatePoll = false;
+      
+      if (fspLog && fTraceLevel >= 1) {
+        RlogMsg lmsg(*fspLog, 'I');
+        lmsg << "eloop: redo pollfd list, size=" << fPollDsc.size() << endl;
+      }
     }
-    fUpdatePoll = false;
-
-    if (fspLog && fTraceLevel >= 1) {
-      RlogMsg lmsg(*fspLog, 'I');
-      lmsg << "eloop: redo pollfd list, size=" << fPollDsc.size() << endl;
-    }
-  }
   
-  if (fPollFd.size() == 0) return 0;
+    if (fPollFd.size() == 0) return 0;
+    irc = poll(fPollFd.data(), fPollFd.size(), timeout);
+    if (irc < 0 && errno == EINTR) return 0;
+    if (irc < 0) 
+      throw Rexception("ReventLoop::EventLoop()", "poll() failed: ", errno);
 
-  int irc = poll(fPollFd.data(), fPollFd.size(), timeout);
-  if (irc < 0 && errno == EINTR) return 0;
-  if (irc < 0) 
-    throw Rexception("ReventLoop::EventLoop()", "poll() failed: ", errno);
-
-  if (fspLog && fTraceLevel >= 2) {
-    RlogMsg lmsg(*fspLog, 'I');
-    lmsg << "eloop: poll(): rc=" << irc;
-    for (size_t i=0; i<fPollFd.size(); i++) {
-      if (fPollFd[i].revents == 0) continue;
-      lmsg << " (" << fPollFd[i].fd 
-           << "," << RosPrintf(fPollFd[i].events,"x") 
-           << "," << RosPrintf(fPollFd[i].revents,"x") << ")";
+    if (fspLog && fTraceLevel >= 2) {
+      RlogMsg lmsg(*fspLog, 'I');
+      lmsg << "eloop: poll(): rc=" << irc;
+      for (size_t i=0; i<fPollFd.size(); i++) {
+        if (fPollFd[i].revents == 0) continue;
+        lmsg << " (" << fPollFd[i].fd 
+             << "," << RosPrintf(fPollFd[i].events,"x") 
+             << "," << RosPrintf(fPollFd[i].revents,"x") << ")";
+      }
     }
-  }
+
+    // repeat poll in case fUpdatePoll is active
+  } while (fUpdatePoll);
 
   return irc;
 }
@@ -264,9 +269,10 @@ int ReventLoop::DoPoll(int timeout)
 void ReventLoop::DoCall(void)
 {
   for (size_t i=0; i<fPollFd.size(); i++) {
+    if (fUpdatePoll) break;
     if (fPollFd[i].revents) {      
       int irc = fPollHdl[i](fPollFd[i]);
-      // remove handler negative return (nothrow=true to prevent remove race)
+      // remove handler on negative return (nothrow=true to prevent remove race)
       if (irc < 0) {
         if (fspLog && fTraceLevel >= 1) {
           RlogMsg lmsg(*fspLog, 'I');

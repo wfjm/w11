@@ -40,6 +40,13 @@ The full set of tests is only run for tagged releases.
   - renamed kw11p tbench from w11a_kw11p to kw11p
 
 ### Bug Fixes
+- ReventLoop: fixed a design error in the `RemovePollHandler` flow, which
+  allowed that `DoPoll` returned while poll list updates were still pending
+  and the subsequent execution of `DoCall` called removed handlers. This
+  lead to `SIGSEGV` crashes when a `detach` command was executed for a
+  a `tcp` type virtual terminal or a `tap` type virtual ethernet device, see
+  [issue #14](https://github.com/wfjm/w11/issues/14).
+
 ### Known issues
 
 <!-- --------------------------------------------------------------------- -->

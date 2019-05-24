@@ -1,6 +1,6 @@
-// $Id: Rw11UnitTermBase.ipp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11UnitTermBase.ipp 1149 2019-05-12 21:00:29Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-05-12  1149   1.1    add AttachDone(),DetachDone()
 // 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2013-03-03   494   1.0    Initial version
 // 2013-02-22   490   0.1    First draft
@@ -80,6 +81,27 @@ void Rw11UnitTermBase<TC>::Dump(std::ostream& os, int ind, const char* text,
   os << bl << "  fpCntl:          " << fpCntl   << std::endl;
   Rw11UnitTerm::Dump(os, ind, " ^", detail);
   return;
-} 
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+template <class TC>
+void  Rw11UnitTermBase<TC>::AttachDone()
+{
+  Rw11UnitTerm::AttachDone();               // call base class handler
+  Cntl().UnitSetup(Index());                // inform controller
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+template <class TC>
+void  Rw11UnitTermBase<TC>::DetachDone()
+{
+  Cntl().UnitSetup(Index());
+  return;
+}
 
 } // end namespace Retro

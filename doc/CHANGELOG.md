@@ -36,6 +36,8 @@ The full set of tests is only run for tagged releases.
 
 ### Changes
 - tools changes
+  - Rw11UnitTerm: add detailed stats and StatInc{Rx,Tx}
+  - Rw11UnitTermBase: add AttachDone(),DetachDone()
   - Rw11VirtDiskRam: add noboot attach option
   - renamed kw11p tbench from w11a_kw11p to kw11p
 

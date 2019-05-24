@@ -1,4 +1,4 @@
-// $Id: Rw11UnitPC11.cpp 1134 2019-04-21 17:18:03Z mueller $
+// $Id: Rw11UnitPC11.cpp 1149 2019-05-12 21:00:29Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-05-12  1149   1.1.1  AttachDone(): use base class AttachDone()
 // 2019-04-20  1134   1.1    add AttachDone()
 // 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2013-05-03   515   1.0    Initial version
@@ -73,8 +74,10 @@ void Rw11UnitPC11::Dump(std::ostream& os, int ind, const char* text,
 
 void Rw11UnitPC11::AttachDone()
 {
-  Cntl().UnitSetup(fIndex);
-  Cntl().AttachDone(fIndex);
+  // the base class AttachDone() calls Cntl().UnitSetup() for all UnitStream's
+  // the UnitPC11 specialization calls Cntl().AttachDone in addition
+  Rw11UnitStreamBase<Rw11CntlPC11>::AttachDone();
+  Cntl().AttachDone(Index());
   return;
 }
   

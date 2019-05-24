@@ -1,6 +1,6 @@
-// $Id: Rw11UnitTerm.hpp 1052 2018-09-30 08:10:52Z mueller $
+// $Id: Rw11UnitTerm.hpp 1150 2019-05-19 17:52:54Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-05-18  1150   1.2    add detailed stats and StatInc{Rx,Tx}
 // 2017-04-07   868   1.1.2  Dump(): add detail arg
 // 2017-02-25   855   1.1.1  RcvNext() --> RcvQueueNext(); WakeupCntl() now pure
 // 2013-05-03   515   1.1    use AttachDone(),DetachCleanup(),DetachDone()
@@ -57,6 +58,9 @@ namespace Retro {
       void          SetLog(const std::string& fname);
       const std::string&  Log() const;
 
+      void          StatIncRx(uint8_t ichr, bool ferr=false);
+      void          StatIncTx(uint8_t ochr, bool ferr=false);
+
       virtual bool    RcvQueueEmpty();
       virtual size_t  RcvQueueSize();
       virtual uint8_t RcvQueueNext();
@@ -72,7 +76,17 @@ namespace Retro {
 
     // statistics counter indices
       enum stats {
-        kStatNPreAttDrop = Rw11Unit::kDimStat,
+        kStatNPreAttDrop = Rw11Unit::kDimStat, //!< dropped prior to attach
+        kStatNRxFerr,                          //!< rx frame error
+        kStatNRxChar,                          //!< rx char (no ferr)
+        kStatNRxNull,                          //!< rx null char
+        kStatNRx8bit,                          //!< rx with bit 8 set
+        kStatNRxLine,                          //!< rx lines (CR)
+        kStatNTxFerr,                          //!< tx frame error
+        kStatNTxChar,                          //!< tx char (no ferr)
+        kStatNTxNull,                          //!< tx null char
+        kStatNTx8bit,                          //!< tx with bit 8 set
+        kStatNTxLine,                          //!< tx lines (LF)
         kDimStat
       };
     

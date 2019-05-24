@@ -1,6 +1,6 @@
-// $Id: Rw11UnitTerm.cpp 1114 2019-02-23 18:01:55Z mueller $
+// $Id: Rw11UnitTerm.cpp 1150 2019-05-19 17:52:54Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-05-18  1150   1.2    add detailed stats and StatInc{Rx,Tx}
 // 2018-12-19  1090   1.1.7  use RosPrintf(bool)
 // 2018-12-17  1085   1.1.6  use std::lock_guard instead of boost
 // 2018-12-14  1081   1.1.5  use std::bind instead of boost
@@ -67,6 +68,16 @@ Rw11UnitTerm::Rw11UnitTerm(Rw11Cntl* pcntl, size_t index)
 {
   fStats.Define(kStatNPreAttDrop,    "NPreAttDrop",
                 "snd bytes dropped prior attach");
+  fStats.Define(kStatNRxFerr,  "NRxFerr",  "rx frame error");
+  fStats.Define(kStatNRxChar,  "NRxChar",  "rx char (no ferr)");
+  fStats.Define(kStatNRxNull,  "NRxNull",  "rx null char");
+  fStats.Define(kStatNRx8bit,  "NRx8bit",  "rx with bit 8 set");
+  fStats.Define(kStatNRxLine,  "NRxline",  "rx lines (CR)");
+  fStats.Define(kStatNTxFerr,  "NTxFerr",  "tx frame error");
+  fStats.Define(kStatNTxChar,  "NTxChar",  "tx char (no ferr)");
+  fStats.Define(kStatNTxNull,  "NTxNull",  "tx null char");
+  fStats.Define(kStatNTx8bit,  "NTx8bit",  "tx with bit 8 set");
+  fStats.Define(kStatNTxLine,  "NTxline",  "tx lines (LF)");
 }
 
 //------------------------------------------+-----------------------------------
@@ -123,6 +134,40 @@ void Rw11UnitTerm::SetLog(const std::string& fname)
   return;
 }  
 
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rw11UnitTerm::StatIncRx(uint8_t ichr, bool ferr) 
+{
+  if (ferr) {
+    fStats.Inc(kStatNRxFerr);
+  } else {
+    fStats.Inc(kStatNRxChar);
+    if (ichr == 0)    fStats.Inc(kStatNRxNull);
+    if (ichr & 0x80)  fStats.Inc(kStatNRx8bit);
+    if (fTi7bit)      ichr &= 0x80;
+    if (ichr == '\r') fStats.Inc(kStatNRxLine);   // count CR 
+  }
+  return;
+}
+  
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rw11UnitTerm::StatIncTx(uint8_t ochr, bool ferr) 
+{
+  if (ferr) {
+    fStats.Inc(kStatNTxFerr);
+  } else {
+    fStats.Inc(kStatNTxChar);
+    if (ochr == 0)    fStats.Inc(kStatNTxNull);
+    if (ochr & 0x80)  fStats.Inc(kStatNTx8bit);
+    if (fTo7bit)      ochr &= 0x80;
+    if (ochr == '\n') fStats.Inc(kStatNTxLine);   // count LF
+  }
+  return;
+}
+  
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 

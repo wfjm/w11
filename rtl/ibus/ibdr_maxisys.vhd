@@ -1,4 +1,4 @@
--- $Id: ibdr_maxisys.vhd 1142 2019-04-28 19:27:57Z mueller $
+-- $Id: ibdr_maxisys.vhd 1148 2019-05-12 10:10:44Z mueller $
 --
 -- Copyright 2009-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -26,6 +26,7 @@
 --                 ibdr_tm11
 --                 ibdr_dl11
 --                 ibdr_dl11_buf
+--                 ibdr_dz11
 --                 ibdr_pc11
 --                 ibdr_pc11_buf
 --                 ibdr_lp11
@@ -54,6 +55,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-05-04  1146   1.6.9  add ibdr_dz11
+-- 2019-04-28  1142   1.6.8  add ibd_m9312
 -- 2019-04-26  1139   1.6.7  add ibdr_dl11_buf
 -- 2019-04-23  1136   1.6.6  add CLK port to ib_intmap24
 -- 2019-04-14  1131   1.6.5  ib_rlim_gen has CPUSUSP port; RLIM_CEV now slv8
@@ -98,8 +101,8 @@
 -- 174400  160    5 12 12    5  2/2  RL11
 -- 177400  220    5 11 11    4  2/3  RK11
 -- 172520  224    5 10 10    7  2/4  TM11
--- 160100  310?   5  9  9    3  3/1  DZ11-RX
---         314?   5  8  8    ^       DZ11-TX
+-- 160100  310    5  9  9    3  3/1  DZ11-RX
+--         314    5  8  8    ^       DZ11-TX
 -- 177560  060    4  7  7    1  3/2  DL11-RX  1st
 --         064    4  6  6    ^       DL11-TX  1st
 -- 176500  300    4  5  5    2  3/3  DL11-RX  2nd
@@ -142,6 +145,9 @@ end ibdr_maxisys;
 
 architecture syn of ibdr_maxisys is
 
+  constant ibaddr_dl11_1 : slv16 := slv(to_unsigned(8#176500#,16));
+  constant ibaddr_dz11   : slv16 := slv(to_unsigned(8#160100#,16));
+  
   constant conf_intmap24 : intmap24_array_type :=
     (intmap_init,                       -- line 23  (unused)
      intmap_init,                       -- line 22  (unused)
@@ -167,16 +173,16 @@ architecture syn of ibdr_maxisys is
      (8#074#,4),                        -- line  2  PC11-PTP
      (8#200#,4),                        -- line  1  LP11
      intmap_init                        -- line  0  (must be unused!)
-     );
+    );
 
   signal RB_LAM_DEUNA  : slbit := '0';
   signal RB_LAM_RHRP   : slbit := '0';
   signal RB_LAM_RL11   : slbit := '0';
   signal RB_LAM_RK11   : slbit := '0';
   signal RB_LAM_TM11   : slbit := '0';
-  signal RB_LAM_DZ11   : slbit := '0';
   signal RB_LAM_DL11_0 : slbit := '0';
   signal RB_LAM_DL11_1 : slbit := '0';
+  signal RB_LAM_DZ11   : slbit := '0';
   signal RB_LAM_PC11   : slbit := '0';
   signal RB_LAM_LP11   : slbit := '0';
 
@@ -188,9 +194,9 @@ architecture syn of ibdr_maxisys is
   signal IB_SRES_RL11   : ib_sres_type := ib_sres_init;
   signal IB_SRES_RK11   : ib_sres_type := ib_sres_init;
   signal IB_SRES_TM11   : ib_sres_type := ib_sres_init;
-  signal IB_SRES_DZ11   : ib_sres_type := ib_sres_init;
   signal IB_SRES_DL11_0 : ib_sres_type := ib_sres_init;
   signal IB_SRES_DL11_1 : ib_sres_type := ib_sres_init;
+  signal IB_SRES_DZ11   : ib_sres_type := ib_sres_init;
   signal IB_SRES_PC11   : ib_sres_type := ib_sres_init;
   signal IB_SRES_LP11   : ib_sres_type := ib_sres_init;
   signal IB_SRES_M9312  : ib_sres_type := ib_sres_init;
@@ -212,12 +218,12 @@ architecture syn of ibdr_maxisys is
   signal EI_REQ_RL11     : slbit := '0';
   signal EI_REQ_RK11     : slbit := '0';
   signal EI_REQ_TM11     : slbit := '0';
-  signal EI_REQ_DZ11RX   : slbit := '0';
-  signal EI_REQ_DZ11TX   : slbit := '0';
   signal EI_REQ_DL11RX_0 : slbit := '0';
   signal EI_REQ_DL11TX_0 : slbit := '0';
   signal EI_REQ_DL11RX_1 : slbit := '0';
   signal EI_REQ_DL11TX_1 : slbit := '0';
+  signal EI_REQ_DZ11RX   : slbit := '0';
+  signal EI_REQ_DZ11TX   : slbit := '0';
   signal EI_REQ_PC11PTR  : slbit := '0';
   signal EI_REQ_PC11PTP  : slbit := '0';
   signal EI_REQ_LP11     : slbit := '0';
@@ -230,12 +236,12 @@ architecture syn of ibdr_maxisys is
   signal EI_ACK_RL11     : slbit := '0';
   signal EI_ACK_RK11     : slbit := '0';
   signal EI_ACK_TM11     : slbit := '0';
-  signal EI_ACK_DZ11RX   : slbit := '0';
-  signal EI_ACK_DZ11TX   : slbit := '0';
   signal EI_ACK_DL11RX_0 : slbit := '0';
   signal EI_ACK_DL11TX_0 : slbit := '0';
   signal EI_ACK_DL11RX_1 : slbit := '0';
   signal EI_ACK_DL11TX_1 : slbit := '0';
+  signal EI_ACK_DZ11RX   : slbit := '0';
+  signal EI_ACK_DZ11TX   : slbit := '0';
   signal EI_ACK_PC11PTR  : slbit := '0';
   signal EI_ACK_PC11PTP  : slbit := '0';
   signal EI_ACK_LP11     : slbit := '0';
@@ -427,7 +433,7 @@ begin
   begin
     TTB : ibdr_dl11
       generic map (
-        IB_ADDR   => slv(to_unsigned(8#176500#,16)))
+        IB_ADDR   => ibaddr_dl11_1)
       port map (
         CLK       => CLK,
         RESET     => RESET,
@@ -447,7 +453,7 @@ begin
   begin
     TTB : ibdr_dl11_buf
       generic map (
-        IB_ADDR   => slv(to_unsigned(8#176500#,16)),
+        IB_ADDR => ibaddr_dl11_1,
         AWIDTH  => sys_conf_ibd_dl11_1)
       port map (
         CLK       => CLK,
@@ -463,6 +469,26 @@ begin
         EI_ACK_TX => EI_ACK_DL11TX_1
       );
   end generate DL11_1BUF;
+
+  DZ11: if sys_conf_ibd_dz11 > 0 generate
+    DZA : ibdr_dz11
+      generic map (
+        IB_ADDR   => ibaddr_dz11,
+        AWIDTH  => sys_conf_ibd_dz11)
+      port map (
+        CLK       => CLK,
+        RESET     => RESET,
+        BRESET    => BRESET,
+        RLIM_CEV  => RLIM_CEV,
+        RB_LAM    => RB_LAM_DZ11,
+        IB_MREQ   => IB_MREQ,
+        IB_SRES   => IB_SRES_DZ11,
+        EI_REQ_RX => EI_REQ_DZ11RX,
+        EI_REQ_TX => EI_REQ_DZ11TX,
+        EI_ACK_RX => EI_ACK_DZ11RX,
+        EI_ACK_TX => EI_ACK_DZ11TX
+      );
+  end generate DZ11;
 
   PC11: if sys_conf_ibd_pc11 = 0 generate
   begin
@@ -574,9 +600,9 @@ begin
 
   SRES_OR_3 : ib_sres_or_3
     port map (
-      IB_SRES_1  => IB_SRES_DZ11,
-      IB_SRES_2  => IB_SRES_DL11_0,
-      IB_SRES_3  => IB_SRES_DL11_1,
+      IB_SRES_1  => IB_SRES_DL11_0,
+      IB_SRES_2  => IB_SRES_DL11_1,
+      IB_SRES_3  => IB_SRES_DZ11,
       IB_SRES_OR => IB_SRES_3
     );
 

@@ -1,4 +1,4 @@
--- $Id: ibdlib.vhd 1142 2019-04-28 19:27:57Z mueller $
+-- $Id: ibdlib.vhd 1147 2019-05-11 07:08:40Z mueller $
 --
 -- Copyright 2008-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -209,11 +209,13 @@ end component;
 
 component ibdr_dz11 is                  -- ibus dev(rem): DZ11
   generic (
-    IB_ADDR : slv16 := ibaddr_dz11);
+    IB_ADDR : slv16 := ibaddr_dz11;
+    AWIDTH : natural :=  5);            -- fifo address width
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- system reset
     BRESET : in slbit;                  -- ibus reset
+    RLIM_CEV : in  slv8;                -- clock enable vector
     RB_LAM : out slbit;                 -- remote attention
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type;         -- ibus response

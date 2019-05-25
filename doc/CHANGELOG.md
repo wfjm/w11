@@ -24,10 +24,12 @@ The full set of tests is only run for tagged releases.
 
 ### Summary
 - add m9312 boot prom emulation
+- add dz11 8 line serial port multiplexer
 
 ### New features
 - new components
   - ibd_m9312: new boot prom emulation
+  - ibdr_dz11: 8 line serial port multiplexer
 - new verification codes
   - test_m9312_all.tcl: tbench for m9312
 - new test and demonstration codes under tools/mcode

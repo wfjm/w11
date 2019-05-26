@@ -1,4 +1,4 @@
-// $Id: RtraceTools.cpp 1140 2019-04-28 10:21:21Z mueller $
+// $Id: RtraceTools.cpp 1149 2019-05-12 21:00:29Z mueller $
 //
 // Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-05-12  1149   1.0.1  add level 5 (full word dump)
 // 2019-04-27  1140   1.0    Initial version
 // ---------------------------------------------------------------------------
 
@@ -22,6 +23,7 @@
 */
 
 #include "librtools/RosPrintBvi.hpp"
+#include "librtools/RosPrintf.hpp"
 
 #include "RtraceTools.hpp"
 
@@ -83,6 +85,21 @@ void TraceBuffer(RlogMsg& lmsg, const uint16_t* pbuf, size_t done,
       TraceChar(lmsg, ochr);
       nchar += 1;
       if (nchar >= 6) nchar = 0;
+    }
+    break;
+    
+  case 5:                                   // level=4: full word dump -------
+    for (size_t i=0; i < done; i++) {
+      bool    val  = (pbuf[i]     & 0x8000) != 0;
+      uint8_t size = (pbuf[i]>>8) & 0177;
+      uint8_t ochr =  pbuf[i] & 0377;
+      lmsg << "\n      " << RosPrintf(i,"d",3)
+           << " : " << val
+           << " " << RosPrintf(size,"d",3)
+           << " " << RosPrintBvi(size,8)
+           << " : " << RosPrintBvi(ochr,8)
+           << " ";
+      TraceChar(lmsg, ochr);
     }
     break;
   }

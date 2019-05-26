@@ -1,4 +1,4 @@
-# $Id: rsx11m-31_rk_boot.tcl 1139 2019-04-27 14:00:38Z mueller $
+# $Id: rsx11m-31_rk_boot.tcl 1151 2019-05-24 16:25:26Z mueller $
 #
 # Setup file for RSX11-M V3.1 RK05 based system
 #
@@ -6,6 +6,8 @@
 #   
 # console_starter -d DL0 &
 # console_starter -d DL1 &
+# console_starter -d DZ0 &
+# console_starter -d DZ1 &
 # ti_w11 -xxx @rsx11m-31_rk_boot.tcl     ( -xxx depends on sim or fpga connect)
 #
 
@@ -14,7 +16,7 @@ rutil::dohook "preinithook"
 puts [rlw]
 
 # setup tt,lp,pp (enable rx rate limiter on old DEC OS)
-rw11::setup_tt "cpu0" dlrxrlim 5
+rw11::setup_tt "cpu0" dlrxrlim 5 ndz 2 dzrxrlim 5
 rw11::setup_lp 
 rw11::setup_pp
 

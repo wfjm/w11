@@ -1,6 +1,6 @@
-// $Id: Rw11CntlBase.hpp 1078 2018-12-08 14:19:03Z mueller $
+// $Id: Rw11CntlBase.hpp 1150 2019-05-19 17:52:54Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-05-19  1150   1.0,4  add kNUnit
 // 2018-12-07  1078   1.0.3  use std::shared_ptr instead of boost
 // 2017-04-15   874   1.0.2  add UnitBase()
 // 2017-04-02   865   1.0.1  Dump(): add detail arg
@@ -50,6 +51,9 @@ namespace Retro {
       virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
                          int detail=0) const;
 
+    // some constants (no cpp definition, so no references possible)
+    static const size_t kNUnit = NU;        //!< number of units
+    
     protected:
       std::shared_ptr<TU> fspUnit[NU];
   };

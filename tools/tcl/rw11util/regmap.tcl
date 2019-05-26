@@ -1,4 +1,4 @@
-# $Id: regmap.tcl 1143 2019-05-01 13:25:51Z mueller $
+# $Id: regmap.tcl 1146 2019-05-05 06:25:13Z mueller $
 #
 # Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-05-04  1146   1.0.4  add ibd_dz11
 # 2019-04-30  1143   1.0.3  add ibd_m9312
 # 2019-03-03  1118   1.0.2  add ibd_ibtst
 # 2017-03-04   858   1.0.1  add ibd_deuna
@@ -86,6 +87,7 @@ namespace eval rw11util {
     package require rw11
     package require ibd_deuna
     package require ibd_dl11
+    package require ibd_dz11
     package require ibd_ibmon
     package require ibd_ibtst
     package require ibd_lp11
@@ -98,6 +100,5 @@ namespace eval rw11util {
     set regmap_loaded 1
     return
   }
-
 
 }

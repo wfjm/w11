@@ -1,4 +1,4 @@
-# $Id: Makefile 1140 2019-04-28 10:21:21Z mueller $
+# $Id: Makefile 1146 2019-05-05 06:25:13Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
@@ -30,6 +30,7 @@ OBJ_all   +=   Rw11UnitDisk.o
 OBJ_all   +=   Rw11UnitTape.o
 OBJ_all   +=   Rw11UnitStream.o
 OBJ_all   +=   Rw11CntlDL11.o Rw11UnitDL11.o
+OBJ_all   +=   Rw11CntlDZ11.o Rw11UnitDZ11.o
 OBJ_all   +=   Rw11CntlLP11.o Rw11UnitLP11.o
 OBJ_all   +=   Rw11CntlPC11.o Rw11UnitPC11.o
 OBJ_all   +=   Rw11CntlRL11.o Rw11UnitRL11.o

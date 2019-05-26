@@ -1,7 +1,8 @@
-# $Id: Makefile 1100 2019-01-02 10:56:47Z mueller $
+# $Id: Makefile 1146 2019-05-05 06:25:13Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2019-05-04  1146   1.0.4  add DZ11
 # 2019-01-02  1100   1.0.3  drop boost includes
 # 2014-11-08   602   1.0.2  add  TCLLIB/TCLLIBNAME to LDLIBS
 # 2013-02-01   479   1.0.1  correct so name (no digits allowed in tcl load...)
@@ -35,6 +36,7 @@ OBJ_all   +=   RtclRw11UnitDisk.o
 OBJ_all   +=   RtclRw11UnitTape.o
 OBJ_all   +=   RtclRw11UnitStream.o
 OBJ_all   +=   RtclRw11CntlDL11.o RtclRw11UnitDL11.o
+OBJ_all   +=   RtclRw11CntlDZ11.o RtclRw11UnitDZ11.o
 OBJ_all   +=   RtclRw11CntlLP11.o RtclRw11UnitLP11.o
 OBJ_all   +=   RtclRw11CntlPC11.o RtclRw11UnitPC11.o
 OBJ_all   +=   RtclRw11CntlRK11.o RtclRw11UnitRK11.o

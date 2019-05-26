@@ -1,6 +1,6 @@
-// $Id: RtclRw11CntlFactory.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclRw11CntlFactory.cpp 1146 2019-05-05 06:25:13Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2017-01-29  1146   1.1.5  add DZ11
 // 2017-01-29   847   1.1.4  add DEUNA
 // 2015-03-21   659   1.1.3  add RPRM (later renamed to RHRP)
 // 2015-01-04   630   1.1.2  RL11 back in
@@ -33,6 +34,7 @@
 #include "RtclRw11CntlFactory.hpp"
 
 #include "RtclRw11CntlDL11.hpp"
+#include "RtclRw11CntlDZ11.hpp"
 #include "RtclRw11CntlRK11.hpp"
 #include "RtclRw11CntlRL11.hpp"
 #include "RtclRw11CntlRHRP.hpp"
@@ -57,6 +59,11 @@ int RtclRw11CntlFactory(RtclArgs& args, RtclRw11Cpu& cpu)
   // 'factory section', create concrete Rw11Cntl objects
   if        (type == "dl11") {              // dl11 --------------------------
     unique_ptr<RtclRw11CntlDL11> pobj(new RtclRw11CntlDL11());
+    if(pobj->FactoryCmdConfig(args, cpu) != TCL_OK) return TCL_ERROR;
+    pobj.release();
+    
+  } else if (type == "dz11") {              // dz11 --------------------------
+    unique_ptr<RtclRw11CntlDZ11> pobj(new RtclRw11CntlDZ11());
     if(pobj->FactoryCmdConfig(args, cpu) != TCL_OK) return TCL_ERROR;
     pobj.release();
     

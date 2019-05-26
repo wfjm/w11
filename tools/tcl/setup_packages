@@ -1,5 +1,5 @@
 #! /usr/bin/env tclshcpp
-# $Id: setup_packages 1143 2019-05-01 13:25:51Z mueller $
+# $Id: setup_packages 1146 2019-05-05 06:25:13Z mueller $
 #
 # pkg_mkIndex uses tclLog to write, which by default writes to stderr
 # this is 'make -s' unfriendly, so redefined tclLog to use plain puts
@@ -29,6 +29,7 @@ pkg_mkIndex -verbose rw11util *.tcl
 # each package in following section should be also included in regmap.tcl
 pkg_mkIndex -verbose ibd_deuna  *.tcl
 pkg_mkIndex -verbose ibd_dl11   *.tcl
+pkg_mkIndex -verbose ibd_dz11   *.tcl
 pkg_mkIndex -verbose ibd_ibmon  *.tcl
 pkg_mkIndex -verbose ibd_ibtst  *.tcl
 pkg_mkIndex -verbose ibd_lp11   *.tcl

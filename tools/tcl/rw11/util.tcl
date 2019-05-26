@@ -1,4 +1,4 @@
-# $Id: util.tcl 1140 2019-04-28 10:21:21Z mueller $
+# $Id: util.tcl 1148 2019-05-12 10:10:44Z mueller $
 #
 # Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-05-04  1146   1.3.13 add dz11 support
 # 2019-04-27  1140   1.3.12 setup_tt: add dl{rxqlim,txrlim}; dlrrlim->dlrxrlim
 # 2019-04-20  1134   1.3.11 setup_pp: add {pr,pp}rlim and prqlim options
 # 2019-04-14  1131   1.3.10 setup_lp: add rlim option
@@ -75,6 +76,7 @@ namespace eval rw11 {
     }
     cpu0 add dl11
     cpu0 add dl11 -base 0176500 -lam 2
+    cpu0 add dz11
     cpu0 add rk11
     cpu0 add rl11
     cpu0 add rhrp
@@ -92,15 +94,15 @@ namespace eval rw11 {
   proc setup_tt {{cpu "cpu0"} args} {
     # process and check options
     args2opts opt {ndl 2 dlrxqlim 0 dlrxrlim 0 dltxrlim 0 
-                   ndz 0
+                   ndz 0 dzrxqlim 0 dzrxrlim 0 dztxrlim 0 dzmodcntl 0
                    to7bit 0 app 0 nbck 1} {*}$args
 
     # check option values
     if {$opt(ndl) < 1 || $opt(ndl) > 2} {
       error "ndl option must be 1 or 2"
     }
-    if {$opt(ndz) != 0} {
-      error "ndz option must be 0 (till dz11 support is added)"
+    if {$opt(ndz) < 0 || $opt(ndz) > 8} {
+      error "ndz option must be 0...8"
     }
 
     # setup attach url options
@@ -122,12 +124,27 @@ namespace eval rw11 {
     # handle DL11 controllers
     foreach {cntl port} $dllist {
       set unit "${cntl}0"
-      ${cpu}${unit} att "tcp:?port=${port}"
-      ${cpu}${unit} set log "tirri_${unit}.log${urlopt}"
       ${cpu}${cntl} set rxqlim $opt(dlrxqlim)
       ${cpu}${cntl} set rxrlim $opt(dlrxrlim)
       ${cpu}${cntl} set txrlim $opt(dltxrlim)
       ${cpu}${unit} set to7bit $opt(to7bit)
+      ${cpu}${unit} att "tcp:?port=${port}"
+      ${cpu}${unit} set log "tirri_${unit}.log${urlopt}"
+    }
+    
+    # handle DZ11 controller and DZ11 units
+    if {$opt(ndz) > 0} {
+      ${cpu}dza set rxqlim  $opt(dzrxqlim)
+      ${cpu}dza set rxrlim  $opt(dzrxrlim)
+      ${cpu}dza set txrlim  $opt(dztxrlim)
+      ${cpu}dza set modcntl $opt(dzmodcntl)
+      for {set i 0} {$i < $opt(ndz)} {incr i} {
+        set unit "dza$i"
+        set port [expr {8002+$i}]
+        ${cpu}${unit} set to7bit $opt(to7bit)
+        ${cpu}${unit} att "tcp:?port=${port}"
+        ${cpu}${unit} set log "tirri_${unit}.log${urlopt}"
+      }
     }
     return
   }

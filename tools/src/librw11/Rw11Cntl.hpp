@@ -1,4 +1,4 @@
-// $Id: Rw11Cntl.hpp 1131 2019-04-14 13:24:25Z mueller $
+// $Id: Rw11Cntl.hpp 1146 2019-05-05 06:25:13Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-05-04  1146   1.2.5  UnitSetupAll(): now virtual
 // 2019-04-14  1131   1.2.4  add UnitSetup(), UnitSetupAll()
 // 2018-12-16  1084   1.2.3  use =delete for noncopyable instead of boost
 // 2017-04-15   874   1.2.2  NUnit() now pure; add UnitBase()
@@ -85,7 +86,7 @@ namespace Retro {
       virtual bool  BootCode(size_t unit, std::vector<uint16_t>& code, 
                              uint16_t& aload, uint16_t& astart);
       virtual void  UnitSetup(size_t ind);
-      void          UnitSetupAll();
+      virtual void  UnitSetupAll();
 
       void          SetTraceLevel(uint32_t level);
       uint32_t      TraceLevel() const;

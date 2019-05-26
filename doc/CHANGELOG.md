@@ -30,14 +30,21 @@ The full set of tests is only run for tagged releases.
 - new components
   - ibd_m9312: new boot prom emulation
   - ibdr_dz11: 8 line serial port multiplexer
+  - backend for DZ11
+    - Rw11CntlDZ11: controller and almost all logic
+    - Rw11UnitDZ11: unit
 - new verification codes
   - test_m9312_all.tcl: tbench for m9312
 - new test and demonstration codes under tools/mcode
   - m9312/bootw11.mac: w11 boot for m9312
   - sys/noboot.mac: boot blocker code for block 0 of disks
+- 
 
 ### Changes
 - tools changes
+  - RtraceTools: TraceBuffer: add level 5 (full word dump)
+  - Rw11Cntl: UnitSetupAll(): now virtual
+  - Rw11CntlBase: add kNUnit constant
   - Rw11UnitTerm: add detailed stats and StatInc{Rx,Tx}
   - Rw11UnitTermBase: add AttachDone(),DetachDone()
   - Rw11VirtDiskRam: add noboot attach option

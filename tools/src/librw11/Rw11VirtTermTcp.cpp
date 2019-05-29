@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTermTcp.cpp 1134 2019-04-21 17:18:03Z mueller $
+// $Id: Rw11VirtTermTcp.cpp 1150 2019-05-19 17:52:54Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -424,7 +424,7 @@ int Rw11VirtTermTcp::RcvPollHandler(const pollfd& pfd)
   if (irc <= 0) {
     if (irc < 0) {
       RlogMsg lmsg(LogFile(),'E');
-      RerrMsg emsg("Rw11VirtTermTcp::ListenPollHandler", 
+      RerrMsg emsg("Rw11VirtTermTcp::RcvPollHandler", 
                    string("read() for port ") + fChannelId + " failed: ", 
                    errno);
       lmsg << emsg;

@@ -1,15 +1,14 @@
-# Summary of known issues for w11a CPU and systems
+# Summary of known differences and limitations for w11a CPU and systems
 
 General issues are listed on a separate document
 [README_known_issues.md](README_known_issues.md).
 
-This file descibes issues of the w11 CPU.
+This file descibes differences and limitations of the w11 CPU and systems.
 
 ### Table of content
 
 - [Known differences between w11a and KB11-C (11/70)](#user-content-diff)
 - [Known limitations](#user-content-lim)
-- [Known bugs](#user-content-bug)
 
 ### <a id="diff">Known differences between w11a and KB11-C (11/70)</a>
 
@@ -56,14 +55,3 @@ differences.
   to timeout, again mostly in test programs.  
   **--> a 'watch dog' mechanism will be added in a future version which
   suspends the CPU when the server doesn't respond fast enough.**
-
-### <a id="bug">Known bugs</a>
-
-- **TCK-036 pri=L: RK11: hardware poll not working**  
-The RK11/RK05 hardware poll logic is probably not reflecting the
-behaviour of the real drive.
-
-- **TCK-032 pri=M: RK11: polling on `DRY` in `RKDS` doesn't work**  
-`DRY` in `RKDS` goes 1->0 immediately with `RDY` in `RKCS` when a function is
-started. In a real RK05 drive `DRY` went to 0 after a short delay. Some
-basic hardware tests are sensitive to this.

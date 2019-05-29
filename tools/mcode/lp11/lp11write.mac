@@ -1,4 +1,4 @@
-; $Id: lp11write.mac 1134 2019-04-21 17:18:03Z mueller $
+; $Id: lp11write.mac 1152 2019-05-26 08:13:18Z mueller $
 ; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ; License disclaimer see License.txt in $RETROBASE directory
 ;
@@ -6,7 +6,7 @@
 ; Date         Rev Version  Comment
 ; 2019-04-21  1134   1.0    Initial version
 ;
-; write test tape
+; write test output
 ;
 ; definitions ----------------------------------------------
 ;

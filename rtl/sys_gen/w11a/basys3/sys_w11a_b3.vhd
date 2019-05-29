@@ -1,4 +1,4 @@
--- $Id: sys_w11a_b3.vhd 1140 2019-04-28 10:21:21Z mueller $
+-- $Id: sys_w11a_b3.vhd 1151 2019-05-24 16:25:26Z mueller $
 --
 -- Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -35,6 +35,7 @@
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2019-05-19  1150 2017.2  xc7a35t-1    2968  6360   273  48.0  1963 +dz11
 -- 2019-04-27  1140 2017.2  xc7a35t-1    2835  6032   248  47.5  1879 +*buf
 -- 2019-03-02  1116 2017.2  xc7a35t-1    2748  5725   186  47.5  1811 +ibtst
 -- 2019-02-02  1108 2018.3  xc7a35t-1    2711  5910   170  47.5  1825 

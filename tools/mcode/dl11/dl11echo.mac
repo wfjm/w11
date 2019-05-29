@@ -1,4 +1,4 @@
-; $Id: dl11echo.mac 1139 2019-04-27 14:00:38Z mueller $
+; $Id: dl11echo.mac 1149 2019-05-12 21:00:29Z mueller $
 ; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ; License disclaimer see License.txt in $RETROBASE directory
 ;
@@ -171,21 +171,21 @@ chkesc: movb    curchr,r0
 ;   use r1,r2
 ;
 hdldir: jsr     pc,wchar                ; direct mode
-        cmp     #CR,r0                  ; CR seen
+        cmpb    #CR,r0                  ; CR seen
         bne     100$
         jsr     pc,wlf                  ; then add LF
 100$:   rts     pc
 
-hdllc:  cmp     r0,#'A                  ; lower case mode
+hdllc:  cmpb    r0,#'A                  ; lower case mode
         blt     hdldir
-        cmp     r0,#'Z
+        cmpb    r0,#'Z
         bgt     hdldir
         add     #<'a-'A>,r0
         br      hdldir
 
-hdluc:  cmp     r0,#'a                  ; upper case mode
+hdluc:  cmpb    r0,#'a                  ; upper case mode
         blt     hdldir
-        cmp     r0,#'z
+        cmpb    r0,#'z
         bgt     hdldir
         sub     #<'a-'A>,r0
         br      hdldir
@@ -212,7 +212,7 @@ hdloct: mov     r0,r2                   ; octal mode
 ; print octal digit ------------------------------
 ;   in  r0  current character
 ;
-woct:   bic     #370,r0                 ; mask
+woct:   bic     #177770,r0              ; mask
         add     #'0,r0                  ; bin->ascii
         jmp     wchar                   ; and print
 ;

@@ -1,4 +1,4 @@
-# $Id: sys_w11a_n3.imfset 1108 2019-02-02 23:04:38Z mueller $
+# $Id: sys_w11a_n3.imfset 1150 2019-05-19 17:52:54Z mueller $
 #
 # ----------------------------------------------------------------------------
 [xst]
@@ -15,18 +15,11 @@ INFO:Xst:1901 .* has been replaced by RAMB16
 Value "none" of property "fsm_encoding" is not applicable
 Value "one_hot" of property "fsm_encoding" is not applicable
 
-Using initial value '0' for rb_lam_dz11 since it is never assigned
-Using initial value .* for ib_sres_dz11 since it is never assigned
-Using initial value '0' for ei_req_dz11rx since it is never assigned
-Using initial value '0' for ei_req_dz11tx since it is never assigned
-
 ibdr_deuna.vhd.* Assignment to ibrd ignored
 ibdr_rhrp.vhd.* Assignment to ibrd ignored
 ibdr_rl11.vhd.* Assignment to ibwrem ignored
 ibdr_rk11.vhd.* Assignment to ibrd ignored
 ibdr_tm11.vhd.* Assignment to ibrd ignored
-ibdr_maxisys.vhd.* Assignment to ei_ack_dz11rx ignored
-ibdr_maxisys.vhd.* Assignment to ei_ack_dz11tx ignored
 
 Net <IB_SRES_IIST_ack> does not have a driver
 Net <EI_REQ_IIST> does not have a driver

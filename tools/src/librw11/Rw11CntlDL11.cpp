@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDL11.cpp 1140 2019-04-28 10:21:21Z mueller $
+// $Id: Rw11CntlDL11.cpp 1148 2019-05-12 10:10:44Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -101,7 +101,9 @@ Rw11CntlDL11::Rw11CntlDL11()
   : Rw11CntlBase<Rw11UnitDL11,1>("dl11"),
     fPC_xbuf(0),
     fPC_rbuf(0),
+    fRxQlim(0),
     fRxRlim(0),
+    fTxRlim(0),
     fItype(0),
     fFsize(0),
     fTxRblkSize(4),
@@ -257,7 +259,7 @@ void Rw11CntlDL11::Dump(std::ostream& os, int ind, const char* text,
   os << bl << "  fPC_xbuf:        " << fPC_xbuf << endl;
   os << bl << "  fPC_rbuf:        " << fPC_rbuf << endl;
   os << bl << "  fRxQlim:         " << RosPrintf(fRxQlim,"d",3)  << endl;
-  os << bl << "  fRxRlim:         " << fRxRlim  << endl;
+  os << bl << "  fRxRlim:         " << RosPrintf(fRxRlim,"d",3)  << endl;
   os << bl << "  fTxRlim:         " << RosPrintf(fTxRlim,"d",3)  << endl;
   os << bl << "  fItype:          " << RosPrintf(fItype,"d",3)  << endl;
   os << bl << "  fFsize:          " << RosPrintf(fFsize,"d",3) << endl;

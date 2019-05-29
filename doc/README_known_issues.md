@@ -181,13 +181,6 @@ to avoid potential damage.
 
 Looking forward to receive test reports.
 
-### V0.742-1 {[issue #14](https://github.com/wfjm/w11/issues/14)} -- SEGFAULT core dump after detach
-The detach of a `tcp` type virtual terminal or a `tap` type virtual
-ethernet device can lead to a SEGFAULT core dump, e.g. after a
-`cpu0ttb0 det` command.
-This is caused by a race condition between the detach run-down and the
-implementation of `ReventLoop::RemovePollHandler()`.
-
 ### V0.73-2 {[issue #10](https://github.com/wfjm/w11/issues/10)} -- Many post-synthesis simulations fail
 Many post-synthesis functional and especially post-routing timing 
 simulations currently fail due to startup and initialization problems. 
@@ -250,6 +243,23 @@ the backend produces proper command lists and the USB channel is usually error
 free}_
 
 ## Resolved Issues
+### V0.742-1 {[issue #14](https://github.com/wfjm/w11/issues/14)} -- SEGFAULT core dump after detach
+#### Original Issue
+The detach of a `tcp` type virtual terminal or a `tap` type virtual
+ethernet device can lead to a SEGFAULT core dump, e.g. after a
+`cpu0ttb0 det` command.
+This is caused by a race condition between the detach run-down and the
+implementation of `ReventLoop::RemovePollHandler()`.
+#### Fix
+The culprit was a design error in the `RemovePollHandler` flow, which
+allowed that `DoPoll` returned while poll list updates were still pending
+and the subsequent execution of `DoCall` called removed handlers.
+`DoPoll` now loops until there are no pending poll list updates and
+`DoCall` quits processing poll change notifications when it detects
+pending poll list updates.
+
+Fixed with commit [6f56f29](https://github.com/wfjm/w11/commit/6f56f29).
+
 ### V0.50-10 {[issue #20](https://github.com/wfjm/w11/issues/20)} -- DL11: output chars lost when device polling used
 #### Original Issue
 Part of the console output can be lost when `xxdp` test `eqkce1` is

@@ -1,4 +1,4 @@
-# $Id: sys_w11a_s3.imfset 1136 2019-04-24 09:27:28Z mueller $
+# $Id: sys_w11a_s3.imfset 1150 2019-05-19 17:52:54Z mueller $
 #
 # ----------------------------------------------------------------------------
 [xst]
@@ -66,14 +66,6 @@ Signal <R_IDSTAT\.do_fork_dsta> is assigned but never used
 Signal <VM_CNTL_L\..*> is assigned but never used
 Signal <BTN> is assigned but never used
 Signal <R_REGS.crdone> is assigned but never used
-
-# DZ11 signals
-Signal <EI_ACK_DZ11TX> is assigned but never used
-Signal <EI_ACK_DZ11RX> is assigned but never used
-Signal <IB_SRES_DZ11\..*> is used but never assigned
-Signal <EI_REQ_DZ11TX> is used but never assigned
-Signal <EI_REQ_DZ11RX> is used but never assigned
-Signal <RB_LAM_DZ11> is used but never assigned
 
 # IIST signals
 Signal <IB_SRES_IIST\..*> is used but never assigned

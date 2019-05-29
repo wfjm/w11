@@ -1,4 +1,4 @@
-// $Id: Rw11UnitTerm.cpp 1150 2019-05-19 17:52:54Z mueller $
+// $Id: Rw11UnitTerm.cpp 1152 2019-05-26 08:13:18Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -265,7 +265,7 @@ bool Rw11UnitTerm::Snd(const uint8_t* buf, size_t count)
         cout << char(bufout[i]) << flush;
       }
     } else {                                // otherwise discard
-      fStats.Inc(kStatNPreAttDrop);         // and count at least...
+      fStats.Inc(kStatNPreAttDrop, double(bufcnt));  // and count at least...
     }
   }
   return ok;

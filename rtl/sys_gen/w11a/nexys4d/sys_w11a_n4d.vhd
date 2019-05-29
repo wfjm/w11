@@ -1,4 +1,4 @@
--- $Id: sys_w11a_n4d.vhd 1108 2019-02-02 23:04:38Z mueller $
+-- $Id: sys_w11a_n4d.vhd 1151 2019-05-24 16:25:26Z mueller $
 --
 -- Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -36,6 +36,7 @@
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic MHz
+-- 2019-05-19  1150 2017.2  xc7a100t-1   6811 10322   901  17.5  3496  80 +dz11
 -- 2019-02-02  1108 2018.3  xc7a100t-1   6558  9537   814  17.0  3443  80
 -- 2019-02-02  1108 2017.2  xc7a100t-1   6538  9496   798  17.0  3308  80
 --

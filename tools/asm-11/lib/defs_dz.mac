@@ -1,0 +1,49 @@
+; $Id: defs_dz.mac 1148 2019-05-12 10:10:44Z mueller $
+; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; License disclaimer see License.txt in $RETROBASE directory
+;
+; definitions for primary DZ11 controler (as in defs_dz.das)
+; 
+; vector address/priority definition
+; 
+        va.dzr=000310
+        vp.dzr=4
+        va.dzt=000314
+        vp.dzt=4
+; 
+; register addresses
+; 
+        dz.csr=160100
+        dz.rbu=160102         ; read
+        dz.lpr=160102         ; write
+        dz.tcr=160104         ; word
+        dz.len=160104         ; byte
+        dz.dtr=160105         ; byte
+        dz.tbu=160106         ; write-byte
+        dz.brk=160107         ; write-byte
+        dz.msr=160106         ; read-word
+        dz.rin=160106         ; read-byte
+        dz.co =160107         ; read-byte
+;
+; symbol definitions for dz.csr
+;
+        dz.trd=100000
+        dz.tie=040000
+        dz.sa=020000
+        dz.sae=010000
+        dz.rdo=000200
+        dz.rie=000100
+        dz.mse=000040
+        dz.clr=000020
+        dz.mai=000010
+;
+; symbol definitions for dz.rbu (read used as rbuf)
+;
+        dz.val=100000
+        dz.fer=020000
+;
+; symbol definitions for dz.lpr (write used as lpr)
+;
+        dz.rxo=010000
+        dz.f96=007000           ; freq=1110 -> 9600 Baud
+        dz.cl8=000030           ; clgth=11  -> 8 bits

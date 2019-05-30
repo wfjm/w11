@@ -35,10 +35,10 @@ The full set of tests is only run for tagged releases.
     - Rw11UnitDZ11: unit
 - new verification codes
   - test_m9312_all.tcl: tbench for m9312
+  - test_dz11_*.tcl: tbench for dz11
 - new test and demonstration codes under tools/mcode
   - m9312/bootw11.mac: w11 boot for m9312
   - sys/noboot.mac: boot blocker code for block 0 of disks
-- 
 
 ### Changes
 - tools changes
@@ -456,7 +456,7 @@ The full set of tests is only run for tagged releases.
     proper operation of vivado under Ubuntu 16.04
   - use -std=c++11 (gcc 4.7 or later)
   - for all FTDI USB-UART it is essential to set them to `low latency` mode.
-    That was default for linux kernels 2.6.32 to 4.4.52. Since about March
+    That was default for Linux kernels 2.6.32 to 4.4.52. Since about March
     2017 one gets kernels with 16 ms default latency again, thanks to
     [kernel patch 9589541](https://patchwork.kernel.org/patch/9589541/).
     **For newer systems it is essential to install a udev rule** which

@@ -1,4 +1,4 @@
-# $Id: dev_all.dat 1143 2019-05-01 13:25:51Z mueller $
+# $Id: dev_all.dat 1148 2019-05-12 10:10:44Z mueller $
 #
 ## steering file for all devices tests
 #
@@ -6,6 +6,7 @@
 @m9312/m9312_all.dat
 #
 @dl11/dl11_all.dat
+@dz11/dz11_all.dat
 @lp11/lp11_all.dat
 @pc11/pc11_all.dat
 @rhrp/rhrp_all.dat

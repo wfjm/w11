@@ -1,0 +1,8 @@
+# $Id: dz11_all.dat 1148 2019-05-12 10:10:44Z mueller $
+#
+## steering file for all dz11 tests
+#
+test_dz11_regs.tcl
+test_dz11_tx.tcl
+test_dz11_rx.tcl
+test_dz11_loop.tcl

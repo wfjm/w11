@@ -1,0 +1,784 @@
+; $Id: dz11echo.mac 1152 2019-05-26 08:13:18Z mueller $
+; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; License disclaimer see License.txt in $RETROBASE directory
+;
+; Revision History:
+; Date         Rev Version  Comment
+; 2019-05-25  1152   1.0    Initial version
+; 2019-05-05  1147   0.1    First draft
+;
+; DZ11 echo
+;   default is direct echo, only modification is to add a LF after CR
+;   other mode can be selected by two ESC plus a character:
+;     ESC + ESC + u -> uppercase
+;     ESC + ESC + l -> lowercase
+;     ESC + ESC + o -> octal echo (16 per line)
+;     ESC + ESC + a -> direct echo
+;
+;   console commands
+;     ?   help text
+;     c   char: only rie
+;     s   silo: only sae
+;     a   auto: rie or sae
+;     i   info: print line status
+;    0-7  define current line
+;     h   hangup: set dtr=0
+;     r   ready: set dtr=1
+;     b   break: set brk=0 and send one char
+;     u   unbreak: set brk=1
+;     g   generate test output on line
+;     q   quit generating test output
+;
+;   blinking lights pattern
+;     no lines connected:  2.11BSD style
+;     >0 lines connected:  RSX11-M style
+;     ring active:         msb: 11111111-00000000  lsb: ring mask
+;     co change: :         msb: 10101010-01010101  lsb: co   mask
+;
+; definitions ----------------------------------------------
+;
+        .include  |lib/defs_cpu.mac|
+        .include  |lib/defs_kwl.mac|
+        .include  |lib/defs_dl.mac|
+        .include  |lib/defs_dz.mac|
+
+        dlbsiz = 1024.          ; dl11 buffer size
+        dzbsiz = 1024.          ; dz11 line buffer size
+        atim   = 5.             ; alert time (in itim ticks)
+        itim   = 20.            ; interval time (in clock ticks)
+        ltim   = 100.           ; current line valid time (in clock ticks)
+        silthr = 5.             ; silo threshold (in char per tick)
+;
+        CR  = 015
+        LF  = 012
+        ESC = 033
+        SPC = 040
+;
+; vector area ----------------------------------------------
+;
+        .include  |lib/vec_cpucatch.mac|
+        .include  |lib/vec_devcatch.mac|
+
+        . = v..tti              ; DL11 rx vector
+        .word   vh.tti
+        .word   cp.ars!cp.pr7   ; use alt-reg-set !
+        
+        . = v..tto              ; DL11 tx vector
+        .word   vh.tto
+        .word   cp.ars!cp.pr7   ; use alt-reg-set !
+        
+        . = v..kwl              ; KW11-L vector
+        .word   vh.kwl
+        .word   cp.ars!cp.pr7   ; use alt-reg-set !
+        
+        . = v..dzr              ; DZ11 rx vector
+        .word   vh.dzr
+        .word   cp.ars!cp.pr7   ; use alt-reg-set !
+        
+        . = v..dzt              ; DZ11 tx vector
+        .word   vh.dzt
+        .word   cp.ars!cp.pr7   ; use alt-reg-set !
+;
+; stack area -----------------------------------------------
+;
+        . = 1000                        ; stack (below); code (above)
+stack:  
+;
+; code area ------------------------------------------------
+;
+; main program -----------------------------------
+;
+start:  mov     #stack,sp               ; setup stack
+;
+        mov     #dz.mse,@#dz.csr        ; csr: mse=1
+        mov     #<dz.rxo!dz.f96!dz.cl8>,r0     ; rxon=1,9600 baud, 8 bit
+        mov     #8.,r1
+1$:     mov     r0,@#dz.lpr             ; enable all lines
+        inc     r0
+        sob     r1,1$
+        movb    #377,@#dz.dtr           ; dtr for all lines
+        clrb    @#dz.brk                ; no brk
+;
+        spl     7
+        mov     #ti.ie,@#ti.csr         ; activate console input
+        mov     #kl.ie,@#kl.csr         ; activate clock
+        mov     #<dz.tie!dz.rie!dz.mse>,@#dz.csr
+        spl     0                       ; allow interrupts
+;
+; blinking lights null task (pattern setup in clock handler)
+;
+100$:   mov     dsppat,r0               ; load pattern
+        wait                            ; and wait
+;
+        tstb    curgen                  ; traffic to generate ?
+        beq     100$
+;
+; traffic generator, writes output line at a time of enough space in buffer
+; this simple strategy works because wait falls through after each transmit
+; interrupt.
+;
+120$:   movb    tgline,r2               ; get line
+        spl     7
+        bitb    bitmsk(r2),curgen       ;;; enabled ?
+        beq     150$                    ;;; if eq not
+        asl     r2                      ;;; word offset
+        cmp     dznfre(r2),#160.        ;;; enough space ?
+        blt     150$                    ;;; if lt not
+        mov     gentbl(r2),r1           ;;; 
+        add     #3,r1                   ;;; point to last digit of count
+        jsr     pc,incnum               ;;; increment line counter
+        mov     gentbl(r2),r1           ;;;
+        movb    tgline,cline            ;;;
+        jsr     pc,dzwstr               ;;; write head part
+        mov     #gentxt,r1              ;;;
+        jsr     pc,dzwstr               ;;; write body part
+        spl     0
+        br      120$
+150$:   spl     0
+        incb    tgline
+        bicb    #^c007,tgline           ; next line
+        br      100$
+;
+; increment 4 digit decimal number ---------------
+;   in  r1  pointer to last digit
+;   use r0
+;
+incnum: mov     #4,r0                   ; max 4 digits
+1$:     incb    (r1)
+        cmpb    (r1),#'9                ; went above 9
+        ble     100$                    ; if not, done
+        movb    #'0,(r1)                ; if yes, restore 0
+        dec     r1                      ; and go for next digit
+        sob     r0,1$
+100$:   rts     pc
+;
+; cons rx interrupt handler ----------------------
+;
+vh.tti: mov     @#ti.buf,r0
+        mov     #conhdl,r1              ; look for command
+1$:     mov     (r1)+,r2                ; get handler
+        beq     2$                      ; end of list ?
+        cmp     r0,(r1)+                ; char match ?
+        bne     1$                      ; if not try next
+        jsr     pc,(r2)                 ; else call handler
+        rti
+;
+2$:     sub     #'0,r0                  ; look for octal digit
+        blt     3$
+        cmp     r0,#7
+        bgt     3$
+        movb    r0,clnum                ; store line number
+        mov     #ltim,timcln            ; start timer
+        rti
+;
+3$:     mov     #msgerr,r1              ; otherwise complain
+        jsr     pc,dlwstr
+        rti
+;
+; cons tx interrupt handler ----------------------
+;
+vh.tto: mov     dlrptr,r1               ; load pointer
+        movb    (r1)+,@#to.buf          ; send char
+        cmp     r1,#dlbufe              ; ring wrap ?
+        blo     1$
+        mov     #dlbuf,r1
+1$:     mov     r1,dlrptr               ; store pointer
+        inc     dlnfre
+        cmp     dlnfre,#dlbsiz          ; more to do ?
+        bne     100$
+        bic     #to.ie,@#to.csr         ; if not disable to irupt
+100$:   rti
+;
+; handler for '?': print help ---------------
+;
+conhlp: mov     #msghlp,r1
+        jsr     pc,dlwstr
+        rts     pc
+;
+; handler for 'c': char mode; disable silo --
+;
+conchr: bic     #dz.sae,@#dz.csr
+        movb    #-1,smode
+        rts     pc
+;
+; handler for 's': silo mode ----------------
+;
+consil: bis     #dz.sae,@#dz.csr
+        movb    #1,smode
+        rts     pc
+;
+; handler for 'a': auto mode for silo -------
+;
+conaut: bic     #dz.sae,@#dz.csr
+        clrb    smode
+        rts     pc
+;
+; handler for 'i': print status info --------
+;
+coninf: mov     #msginf,r1              ; print info header
+        jsr     pc,dlwstr
+        clr     r3                      ; loop over lines
+1$:     mov     #msg3b,r1
+        jsr     pc,dlwstr               ; print 3 blank
+        mov     r3,r0
+        add     #'0,r0
+        jsr     pc,dlwchr               ; print line number
+        movb    @#dz.co,r4              ; print co
+        jsr     pc,prtinf
+        movb    @#dz.rin,r4             ; print ring
+        jsr     pc,prtinf
+        movb    @#dz.dtr,r4             ; print dtr
+        jsr     pc,prtinf
+        movb    curbrk,r4               ; print brk
+        jsr     pc,prtinf
+
+        mov     r3,r4
+        asl     r4                      ; word offset
+        mov     lhdl(r4),r4             ; get mode handler
+        mov     #msgdir,r1
+        cmp     #hdldir,r4
+        beq     2$
+        mov     #msglc,r1
+        cmp     #hdllc,r4
+        beq     2$
+        mov     #msguc,r1
+        cmp     #hdluc,r4
+        beq     2$
+        mov     #msgoct,r1
+        cmp     #hdloct,r4
+        beq     2$
+        mov     #msgerr,r1
+2$:     jsr     pc,dlwstr               ; print mode
+        inc     r3
+        cmp     r3,#7
+        ble     1$
+        rts     pc
+;
+; handler for 'h': hangup line (dtr=0) ------
+;
+conhup: jsr     pc,getcli
+        bicb    bitmsk(r2),@#dz.dtr     ; clear dtr bit
+        rts     pc
+;
+; handler for 'r': line ready (dtr=1) -------
+;
+conrdy: jsr     pc,getcli
+        bisb    bitmsk(r2),@#dz.dtr     ; set dtr bit
+        rts     pc
+;
+; handler for 'b': break line (brk=1) -------
+;
+conbrk: jsr     pc,getcli
+        bisb    bitmsk(r2),curbrk       ; set brk bit
+        movb    curbrk,@#dz.brk         ; set brk register
+        movb    r2,cline                ; setup line for dzwchr
+        clr     r0                      ; null char
+        jmp     dzwchr                  ; and write char to dz line
+;
+; handler for 'a': unbreak line (brk=0) -----
+;
+conubr: jsr     pc,getcli
+        bicb    bitmsk(r2),curbrk       ; clear brk bit
+        movb    curbrk,@#dz.brk         ; set brk register
+        rts     pc
+;
+; handler for 'g': generate: start traffic generator
+;
+contgg: jsr     pc,getcli
+        bisb    bitmsk(r2),curgen      ; set gen bit
+        rts     pc
+;
+; handler for 'q': quit: stop traffic generator
+;
+contgq: jsr     pc,getcli
+        bicb    bitmsk(r2),curgen      ; clear gen bit
+        rts     pc
+;
+; helper for coninf --------------------
+;   in  r3  line number
+;   in  r4  status byte to inspect
+;   use r0
+;
+prtinf: mov     #msg3b,r1
+        jsr     pc,dlwstr               ; print 3 blank
+        movb    #'0,r0                  ; assume 0
+        bitb    bitmsk(r3),r4           ; test bit
+        beq     1$
+        incb    r0                      ; if set use 1
+1$:     jmp     dlwchr                  ; and continue with print
+;
+; helper for conhup,rdy.brk,ubr --------
+;
+getcli: movb    clnum,r2                ; load line number
+        blt     1$                      ; if lt not valid
+        rts     pc                      ; if yes return
+1$:     tst     (sp)+                   ; else pop return address
+        mov     #msgerr,r1              ; load error message
+        jmp     dlwstr                  ; execute dlwstr instead of handler
+;
+;
+; kw11-l line clock handler ----------------------
+;
+vh.kwl:
+;
+; read silo when sae=1
+;
+        bit     #dz.sae,@#dz.csr        ; silo enabled ?
+        beq     10$
+        jsr     pc,dzread
+;
+; determine sae when automatic mode
+;
+10$:    tstb    smode
+        bne     30$
+        cmp     nchar,#silthr           ; activity above silo threshold
+        bge     20$
+        bic     #dz.sae,@#dz.csr        ; sae=0 if low activity
+        br      30$
+20$:    bis     #dz.sae,@#dz.csr        ; sae=0 if high activity
+30$:    clr     nchar                   ; clear counter
+;
+; clnum time out
+;
+        tst     timcln                  ; clnum timer active
+        beq     40$
+        dec     timcln                  ; if yes, decrement
+        bne     40$
+        movb    #-1,clnum               ; if expired, invalidate clnum
+;
+; co change monitor
+;
+40$:    swab    curco                   ; cur -> lst
+        movb    @#dz.co,curco
+        cmpb    lstco,curco             ; co changed ?
+        beq     100$
+        mov     #curco,r5               ; print change messages
+        mov     #txtco,msgpre
+        jsr     pc,msgpat               
+        mov     #atim,timco             ; if yes, setup co timer
+        clr     timint                  ; expire interval timer
+;
+; ring change monitor
+;
+100$:   swab    currin                  ; cur -> lst
+        movb    @#dz.rin,currin
+        cmpb    lstrin,currin           ; ring changed ?
+        beq     200$
+        mov     #currin,r5              ; print change messages
+        mov     #txtrin,msgpre
+        jsr     pc,msgpat                       
+        mov     #atim,timrin            ; if yes, setup ring timer
+        clr     timint                  ; expire interval timer
+        bisb    currin,dsprin           ; accumulate ring bits
+;
+200$:   dec     timint                  ; interval expired ?
+        ble     300$                    ; if eq, update pattern
+        rti                             ; else wait for next clock
+;
+; ring alarm handling
+;
+300$:   tst     timrin                  ; ring alarm ?
+        blt     400$
+        dec     timrin                  ; advance timer
+301$:   movb    dsprin,dsppat           ; load lsb pattern
+        movb    #^b11111111,dsppat+1    ; load msb pattern
+        bit     #1,timrin               ; blink ?
+        beq     402$                    ; if eq not
+        movb    currin,dsppat           ; else show curent
+        br      401$                    ; and invert msb
+;
+; co alarm handling
+;
+400$:   movb    currin,dsprin           ; reset ring pattern
+        tst     timco                   ; co alarm ?
+        blt     500$
+        dec     timco                   ; advance timer
+        movb    curco,dsppat            ; load lsb pattern
+        movb    #^b10101010,dsppat+1    ; load msb pattern
+        bit     #1,timco                ; blink ?
+        beq     402$                    ; if eq not
+401$:   comb    dsppat+1                ; else invert msb
+402$:   mov     #itim,timint            ; restart interval timer
+        rti        
+;
+; no lines -> bsd pattern
+;
+500$:   tstb    curco                   ; lines connected ?
+        bne     600$                    ; if ne yes, to rsx pattern
+        clc                             ; advance bsd pattern
+        rol     bsdpat
+        bpl     501$
+        bis     #1,bsdpat
+501$:   mov     bsdpat,dsppat           ; show it
+        mov     #2,timint               ; setup interval
+        rti
+;
+; >0 lines -> rsx pattern
+;
+600$:   mov     #rsxpat,r0              ; advance rsx pattern
+        aslb    (r0)+
+        rorb    (r0)
+        adcb    -(r0)
+        mov     rsxpat,dsppat           ; show it
+        mov     #4,timint               ; setup interval
+        rti
+;
+; dz11 rx interrupt handler ----------------------
+;
+vh.dzr: jsr     pc,dzread
+        rti
+;
+dzread: mov     @#dz.rbu,r0             ; read rbuf
+        bpl     999$                    ; done of not valid
+        inc     nchar                   ; count char
+        bit     #dz.fer,r0              ; ferr set ?
+        bne     dzread                  ; if ne yes, discard
+        movb    r0,cchar                ; save char
+        mov     r0,r2
+        swab    r2
+        bic     #^c007,r2
+        movb    r2,cline                ; save line
+        asl     r2                      ; word offset
+        bic     #^c377,r0               ; get char
+        jsr     pc,@lhdl(r2)            ; call char handler
+        jsr     pc,chkesc               ; check for ESC
+                                        ; FIXME: ?? disable rie when nfree<=6 ?
+        br      dzread                  ; and go for next
+999$:   rts     pc
+;
+; dz11 tx interrupt handler ----------------------
+;
+vh.dzt: movb    @#dz.csr+1,r2           ; get tline
+        bic     #^c007,r2
+        asl     r2                      ; word offset
+        cmp     dznfre(r2),#dzbsiz      ; chars available ?
+        beq     100$                    ; if eq no
+        mov     dzrptr(r2),r3           ; load pointer
+        movb    (r3)+,@#dz.tbu          ; write char to tbuf
+        cmp     r3,dzeptr(r2)           ; ring wrap ?
+        blo     1$
+        sub     #dzbsiz,r3
+1$:     mov     r3,dzrptr(r2)           ; store pointer
+        inc     dznfre(r2)
+        rti
+;
+100$:   asr     r2                      ; byte offset
+        bicb    bitmsk(r2),@#dz.len     ; and disable line
+        rti
+;
+; dl11 co/ring change message print driver -------
+;   in  r5  pointer to cur,lst pattern
+;   use r4
+;
+msgpat: movb    (r5)+,r4                ; get cur
+        bicb    (r5),r4                 ; cur and not lst -> new bits
+        mov     #txton,msgsuf
+        jsr     pc,msgbit
+        movb    (r5),r4                 ; get lst
+        bicb    -(r5),r4                ; lst and not cur -> old bits
+        mov     #txtoff,msgsuf
+        jsr     pc,msgbit
+        rts     pc
+;
+; dl11 co/ring change message print --------------
+;   in  r4  changed bits
+;   use r3
+;
+msgbit: mov     #7,r3
+1$:     rolb    r4                      ; probe lsb
+        bcc     2$
+        mov     msgpre,r1               ; write prefix (line or ring)
+        jsr     pc,dlwstr
+        mov     r3,r0
+        add     #'0,r0                  ; write line number
+        jsr     pc,dlwchr
+        mov     msgsuf,r1               ; write suffix (on or off)
+        jsr     pc,dlwstr
+2$:     dec     r3
+        bge     1$
+        rts     pc
+;
+; dl11 ring buffer write char routine ------------
+;   in  r0  current character
+;   use r2
+;
+dlwchr: tst     dlnfre                  ; free buffer
+        beq     100$                    ; if not, discard !
+        mov     dlwptr,r2               ; load pointer
+        movb    r0,(r2)+                ; store char
+        cmp     r2,#dlbufe              ; ring wrap ?
+        blo     1$
+        mov     #dlbuf,r2
+1$:     mov     r2,dlwptr               ; store pointer
+        bis     #to.ie,@#to.csr         ; enable to irupt
+        dec     dlnfre
+100$:   rts     pc        
+;
+; dl11 ring buffer write asciz routine -----------
+;   in  r1  asciz string pointer
+;   use r0
+;
+dlwstr: movb    (r1)+,r0                ; get next char
+        beq     100$                    ; end ?
+        jsr     pc,dlwchr
+        br      dlwstr
+100$:   rts     pc
+;
+; dz11 ring buffer write char routine ------------
+;   in  r0  current character
+;   use r2,r3
+;
+dzwchr: movb    cline,r2                ; line number
+        asl     r2                      ; word offset
+        tst     dznfre(r2)              ; free buffer ?
+        beq     100$                    ; if not, discard !
+        mov     dzwptr(r2),r3           ; load pointer
+        movb    r0,(r3)+                ; store char
+        cmp     r3,dzeptr(r2)           ; ring wrap ?
+        blo     1$
+        sub     #dzbsiz,r3
+1$:     mov     r3,dzwptr(r2)           ; store pointer
+        dec     dznfre(r2)
+        cmp     dznfre(r2),#dzbsiz-1    ; 1st char ?
+        bne     100$
+        asr     r2                      ; byte offset
+        bisb    bitmsk(r2),@#dz.len     ; and enable line
+100$:   rts     pc
+;
+; dz11 ring buffer write string routine ----------
+;   in  r1  pointer to asciz string
+;   use r0,r2,r3
+dzwstr: movb    (r1)+,r0                ; get next char
+        beq     100$                    ; end ?
+        jsr     pc,dzwchr
+        br      dzwstr
+100$:   rts     pc
+;
+; dz11 write CR/LF -------------------------------
+;   use r0
+;
+dzcrlf: mov     #CR,r0
+        jsr     pc,dzwchr
+dzlf:   mov     #LF,r0
+        jsr     pc,dzwchr
+        rts     pc
+;
+; escape detection -------------------------------
+;   use r0,r2
+;
+chkesc: movb    cchar,r0
+        movb    cline,r2
+        cmpb    #ESC,r0                 ; ESC seen ?
+        bne     1$
+        incb    ecnt(r2)
+        rts     pc
+;
+1$:     cmpb    ecnt(r2),#2             ; 2 ESC seen ?
+        blt     200$
+;
+        asl     r2                      ; word offset
+        cmpb    #'u,r0                  ; u -> hdluc
+        bne     100$
+        mov     #hdluc,lhdl(r2)
+        br      200$
+100$:   cmpb    #'l,r0                  ; l -> hdllc
+        bne     110$
+        mov     #hdllc,lhdl(r2)
+        br      200$
+110$:   cmpb    #'a,r0                  ; a -> hdldir
+        bne     120$
+        mov     #hdldir,lhdl(r2)
+        br      200$
+120$:   cmpb    #'o,r0                  ; o -> hdloct
+        bne     200$
+        mov     #hdloct,lhdl(r2)
+        jsr     pc,dzcrlf               ; force new line
+        movb    cline,r2
+        clrb    ocnt(r2)
+;
+200$:   movb    cline,r2
+        clrb    ecnt(r2)
+        rts     pc
+;
+; character handler ------------------------------
+;   in  r0  current character
+;   use r2
+;
+hdldir: jsr     pc,dzwchr               ; direct mode
+        cmpb     #CR,r0                  ; CR seen
+        bne     100$
+        jsr     pc,dzlf                 ; then add LF
+100$:   rts     pc
+
+hdllc:  cmpb    r0,#'A                  ; lower case mode
+        blt     hdldir
+        cmpb    r0,#'Z
+        bgt     hdldir
+        add     #<'a-'A>,r0
+        br      hdldir
+
+hdluc:  cmpb    r0,#'a                  ; upper case mode
+        blt     hdldir
+        cmpb    r0,#'z
+        bgt     hdldir
+        sub     #<'a-'A>,r0
+        br      hdldir
+
+hdloct: ash     #-6.,r0
+        jsr     pc,dzoct
+        movb    cchar,r0
+        ash     #-3.,r0
+        jsr     pc,dzoct
+        movb    cchar,r0
+        jsr     pc,dzoct
+        mov     #SPC,r0
+        jsr     pc,dzwchr
+        cmpb    #CR,cchar
+        beq     10$
+        movb    cline,r2
+        incb    ocnt(r2)
+        cmpb    ocnt(r2),#16.
+        blt     100$
+10$:    jsr     pc,dzcrlf
+        movb    cline,r2
+        clrb    ocnt(r2)
+100$:   rts     pc
+;
+; print octal digit ------------------------------
+;   in  r0  current character
+;
+dzoct:  bic     #^c007,r0               ; mask
+        add     #'0,r0                  ; bin->ascii
+        jmp     dzwchr                  ; and print
+;
+; data area ------------------------------------------------
+;
+;   general status
+;
+        .even
+curco:  .byte   0               ; current dz11 co
+lstco:  .byte   0               ; last    dz11 co
+currin: .byte   0               ; current dz11 ring
+lstrin: .byte   0               ; last    dz11 ring
+;
+dsprin: .byte   0               ; display dz11 ring
+;
+        .even
+bsdpat: .word   ^b0000000011111111  ; 211bsd style pattern start
+rsxpat: .word   ^b1111000000001111  ; rsx11m style pattern start
+dsppat: .word   0               ; pattern to display
+;
+timint: .word   0               ; display interval timer
+timco:  .word   0               ; co   timer
+timrin: .word   0               ; ring timer
+;
+nchar:  .word   0               ; chars in last clock tick
+cline:  .byte   0               ; current line
+cchar:  .byte   0               ; current char
+;
+curgen: .byte   0               ; active traffic generator pattern
+tgline: .byte   0               ; current traffic generator line
+
+;
+        .even
+msgpre: .word   0
+msgsuf: .word   0
+txtco:  .asciz  /line /
+txtrin: .asciz  /ring /
+txton:  .asciz  / on/<CR><LF>
+txtoff: .asciz  / off/<CR><LF>
+        .even
+;
+;   for console
+;
+conhdl: .word   conhlp,'?
+        .word   conchr,'c
+        .word   consil,'s
+        .word   conaut,'a
+        .word   coninf,'i
+        .word   conhup,'h
+        .word   conrdy,'r
+        .word   conbrk,'b
+        .word   conubr,'u
+        .word   contgg,'g
+        .word   contgq,'q
+        .word   0                       ; end-of-list
+;
+msgerr: .asciz  /?/<CR><LF>
+msghlp: .ascii  /dz11echo console commands:/<CR><LF>
+        .ascii  /   ?   help text/<CR><LF>
+        .ascii  /   c   char: only rie/<CR><LF>
+        .ascii  /   s   silo: only sae/<CR><LF>
+        .ascii  /   a   auto: rie or sae/<CR><LF>
+        .ascii  /   i   info: print line status/<CR><LF>
+        .ascii  /  0-7  define current line/<CR><LF>
+        .ascii  /   h   hangup: set dtr=0/<CR><LF>
+        .ascii  /   r   ready: set dtr=1/<CR><LF>
+        .ascii  /   b   break: set brk=0 and send one char/<CR><LF>
+        .ascii  /   u   unbreak: set brk=1/<CR><LF>
+        .ascii  /   g   generate test output on line/<CR><LF>
+        .ascii  /   q   quit generating test output/<CR><LF>
+        .byte   0
+;
+msginf: .asciz  /line  co rin dtr brk mode/<CR><LF>
+msg3b:  .asciz  /   /
+msgdir: .asciz  /  a/<CR><LF>
+msglc:  .asciz  /  l/<CR><LF>
+msguc:  .asciz  /  u/<CR><LF>
+msgoct: .asciz  /  o/<CR><LF>
+;
+curbrk: .byte   0
+clnum:  .byte   -1                        ; cmd active line number
+smode:  .byte   -1                        ; silo mode: -1=char,1=silo,0=auto
+.even
+timcln: .word   0                         ; clnum timer
+;
+dlnfre: .word   dlbsiz
+dlwptr: .word   dlbuf
+dlrptr: .word   dlbuf
+dlbuf:  .blkb   dlbsiz
+dlbufe:
+        .even
+;
+;   for dz11 lines
+;
+lhdl:   .word   hdldir,hdldir,hdldir,hdldir,hdldir,hdldir,hdldir,hdldir
+ecnt:   .byte   0,0,0,0,0,0,0,0
+ocnt:   .byte   0,0,0,0,0,0,0,0
+;
+bitmsk: .byte   ^b00000001,^b00000010,^b00000100,^b00001000
+        .byte   ^b00010000,^b00100000,^b01000000,^b10000000
+;
+gentbl: .word   genp0,genp1,genp2,genp3,genp4,genp5,genp6,genp7
+genp0:  .asciz  /0000: dza0: /
+genp1:  .asciz  /0000: dza1: /
+genp2:  .asciz  /0000: dza2: /
+genp3:  .asciz  /0000: dza3: /
+genp4:  .asciz  /0000: dza4: /
+genp5:  .asciz  /0000: dza5: /
+genp6:  .asciz  /0000: dza6: /
+genp7:  .asciz  /0000: dza7: /
+gentxt: .ascii  /ABCDEFGHIJKLMNOPQRSTUVWXYZ/
+        .ascii  /abcdefghijklmnopqrstuvwxyz/
+        .ascii  /!@#$%^&*()/
+        .byte   CR,LF
+        .byte   0
+        .even
+;
+dznfre: .word   dzbsiz,dzbsiz,dzbsiz,dzbsiz,dzbsiz,dzbsiz,dzbsiz,dzbsiz
+dzwptr: .word   dzbuf0,dzbuf1,dzbuf2,dzbuf3,dzbuf4,dzbuf5,dzbuf6,dzbuf7
+dzrptr: .word   dzbuf0,dzbuf1,dzbuf2,dzbuf3,dzbuf4,dzbuf5,dzbuf6,dzbuf7
+dzeptr: .word   dzbuf0+dzbsiz,dzbuf1+dzbsiz,dzbuf2+dzbsiz,dzbuf3+dzbsiz
+        .word   dzbuf4+dzbsiz,dzbuf5+dzbsiz,dzbuf6+dzbsiz,dzbuf7+dzbsiz
+;
+dzbuf0: .blkb   dzbsiz
+dzbuf1: .blkb   dzbsiz
+dzbuf2: .blkb   dzbsiz
+dzbuf3: .blkb   dzbsiz
+dzbuf4: .blkb   dzbsiz
+dzbuf5: .blkb   dzbsiz
+dzbuf6: .blkb   dzbsiz
+dzbuf7: .blkb   dzbsiz
+        .even
+
+        .end    start

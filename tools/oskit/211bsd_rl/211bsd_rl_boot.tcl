@@ -1,4 +1,4 @@
-# $Id: 211bsd_rl_boot.tcl 1151 2019-05-24 16:25:26Z mueller $
+# $Id: 211bsd_rl_boot.tcl 1154 2019-05-30 13:21:01Z mueller $
 #
 # Setup file for 211bsd RL02 based system
 #
@@ -16,7 +16,7 @@ rutil::dohook "preinithook"
 puts [rlw]
 
 # setup tt,lp (211bsd uses parity -> use 7 bit mode)
-rw11::setup_tt "cpu0" dlrxrlim 5 ndz 2 dzrxrlim 5 to7bit 1
+rw11::setup_tt "cpu0" ndl 2 dlrxrlim 5 ndz 2 dzrxrlim 5 to7bit 1
 rw11::setup_lp 
 
 # mount disks

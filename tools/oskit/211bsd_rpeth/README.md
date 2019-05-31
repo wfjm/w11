@@ -9,7 +9,7 @@ See notes in [w11a_os_guide.md](../../../doc/w11a_os_guide.md) on
 
 ### System properties and intended usage
 This system is build with Ethernet based networking via a DEUNA network
-interface. The kernel is configured with
+interface. The `RETRONFPETH` kernel is configured with
 ```
     NETHER 1        # ethernet support
     NDE 1           # DEUNA interface driver
@@ -50,16 +50,16 @@ Download, unpack and copy the disk images (*.dsk), e.g.
        : xp(0,0,0)unix
        Boot: bootdev=05000 bootcsr=0176700
 
-       2.11 BSD UNIX #1: Fri May 26 12:50:05 PDT 2017
+       2.11 BSD UNIX #2: Thu May 30 10:29:00 PDT 2019
            root@w11a:/usr/src/sys/RETRONFPETH
 
        phys mem  = 3932160
        avail mem = 3451968
        user mem  = 307200
 
-       May 26 12:53:10 init: configure system
+       May 30 11:34:36 init: configure system
 
-       dz ? csr 160100 vector 310 skipped:  No CSR.
+       dz 0 csr 160100 vector 310 attached
        lp 0 csr 177514 vector 200 attached
        rk 0 csr 177400 vector 220 attached
        rl 0 csr 174400 vector 160 attached
@@ -84,9 +84,9 @@ Download, unpack and copy the disk images (*.dsk), e.g.
        clearing /tmp
        standard daemons: update cron accounting.
        starting network daemons: inetd printer.
-       starting local daemons:Fri May 26 12:53:20 PDT 2017
-       May 26 12:53:20 w11a init: kernel security level changed from 0 to 1
-       
+       starting local daemons:Thu May 30 11:34:48 PDT 2019
+       May 30 11:34:48 w11a init: kernel security level changed from 0 to 1
+
        
        2.11 BSD UNIX (w11a) (console)
        
@@ -106,12 +106,12 @@ Download, unpack and copy the disk images (*.dsk), e.g.
   At the end is important to shutdown properly with a `halt`:
   ```
        # {pstat -T}
-        43/186 files
-        59/208 inodes
-        11/150 processes
-        10/ 46 texts active,  36 used
-         2/135 swapmap entries,  525 kB used, 3654 kB free, 3648 kB max
-        32/150 coremap entries, 2661 kB free, 2586 kB max
+        48/186 files
+        66/208 inodes
+        16/150 processes
+        11/ 46 texts active,  38 used
+         3/135 swapmap entries,  669 kB used, 3510 kB free, 3504 kB max
+        34/150 coremap entries, 2417 kB free, 2339 kB max
          1/ 10  ub_map entries,    7    free,    7    max
        # {mount}
        /dev/xp0a on /
@@ -130,7 +130,6 @@ Download, unpack and copy the disk images (*.dsk), e.g.
 
   prompt. When the w11 has halted after 211bsd shutdown a message like
   ```
-
        CPU down attention
        Processor registers and status:
          PS: 030350 cm,pm=k,u s,p,t=0,7,0 NZVC=1000  rust: 01 HALTed

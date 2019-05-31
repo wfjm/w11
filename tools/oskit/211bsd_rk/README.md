@@ -20,6 +20,13 @@ Download, unpack and copy the disk images (*.dsk), e.g.
     tar -xzf 211bsd_rkset.tgz
 ```
 
+### System properties and intended usage
+- **absolute minimal** system !! Not for practical use !!
+- was useful at a time when w11a had only RK11 type disk support
+- `/tmp` stays on '/'
+- `/home` is not mounted
+- suitable for a 'root' user, other accounts not supported
+
 ### Usage
 
 - Start backend server and boot system
@@ -39,16 +46,16 @@ Download, unpack and copy the disk images (*.dsk), e.g.
        : rk(0,0,0)unix
        Boot: bootdev=03000 bootcsr=0177404
        
-       2.11 BSD UNIX #27: Sat May 20 22:55:12 PDT 2017
+       2.11 BSD UNIX #28: Wed May 29 22:28:06 PDT 2019
            root@w11a:/usr/src/sys/RETRONFPRK
        
        phys mem  = 3932160
        avail mem = 3577856
        user mem  = 307200
        
-       May 20 23:02:13 init: configure system
+       May 29 22:29:10 init: configure system
        
-       dz ? csr 160100 vector 310 skipped:  No CSR.
+       dz 0 csr 160100 vector 310 attached
        lp 0 csr 177514 vector 200 attached
        rk 0 csr 177400 vector 220 attached
        rl 0 csr 174400 vector 160 attached
@@ -91,12 +98,12 @@ Download, unpack and copy the disk images (*.dsk), e.g.
   At the end is important to shutdown properly with a `halt`:
   ```
        # {pstat -T}
-         7/186 files
-        39/208 inodes
-        11/150 processes
-         6/ 46 texts active,  28 used
-         2/135 swapmap entries,  366 kB used, 2069 kB free, 2063 kB max
-        33/150 coremap entries, 2960 kB free, 2867 kB max
+        10/186 files
+        44/208 inodes
+        10/150 processes
+         7/ 46 texts active,  30 used
+         2/135 swapmap entries,  496 kB used, 1939 kB free, 1933 kB max
+        35/150 coremap entries, 2828 kB free, 2744 kB max
          1/ 10  ub_map entries,   10    free,   10    max
        # {mount}
        /dev/rk0h on /
@@ -123,10 +130,3 @@ Download, unpack and copy the disk images (*.dsk), e.g.
    ```
 
   will be visible. Now the server process can be stopped with `^D`.
-
-### Provisos
-- **absolute minimal** system !! Not for practical use !!
-- was useful at a time when w11a had only RK11 type disk support
-- /tmp stays on '/'
-- /home is not mounted
-- suitable for a 'root' user, other accounts not supported

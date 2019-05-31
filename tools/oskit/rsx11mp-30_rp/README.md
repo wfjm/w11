@@ -80,5 +80,5 @@ Download, unpack and copy the disk images (*.dsk), e.g.
   Now you are at the MCR prompt and can exercise the system.
 
   At the end it is important to shutdown properly with a `run $shutup`.
-  The simululaor (or the rlink backend) can be stopped when the
+  The simulator (or the rlink backend) can be stopped when the
   CPU has halted.

@@ -217,7 +217,7 @@ a root file system, but not yet a hardward boot block. In the following
   
   June  8 21:21:24 init: configure system
   
-  dz ? csr 160100 vector 310 skipped:  No CSR.
+  dz 0 csr 160100 vector 310 attached
   lp 0 csr 177514 vector 200 attached
   rk 0 csr 177400 vector 220 attached
   rl 0 csr 174400 vector 160 attached

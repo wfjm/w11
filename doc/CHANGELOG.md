@@ -25,6 +25,10 @@ The full set of tests is only run for tagged releases.
 ### Summary
 - add m9312 boot prom emulation
 - add dz11 8 line serial port multiplexer
+- update 211bsd system images (oskits)
+  - apply fpsim+tcsh patch (see [w11a blog 2017-06-06](https://wfjm.github.io/blogs/211bsd/2017-06-06-kernel-panic-here-doc-tcsh.html))
+  - support dz11 lines
+  - update network setup
 
 ### New features
 - new components
@@ -39,6 +43,7 @@ The full set of tests is only run for tagged releases.
 - new test and demonstration codes under tools/mcode
   - m9312/bootw11.mac: w11 boot for m9312
   - sys/noboot.mac: boot blocker code for block 0 of disks
+  - dz11/dz11echo.mac: port multiplexer echo tester and traffic generator
 
 ### Changes
 - tools changes
@@ -49,6 +54,12 @@ The full set of tests is only run for tagged releases.
   - Rw11UnitTermBase: add AttachDone(),DetachDone()
   - Rw11VirtDiskRam: add noboot attach option
   - renamed kw11p tbench from w11a_kw11p to kw11p
+- oskit updates
+  - 211bsd_rp, see [CHANGELOG](../tools/oskit/211bsd_rp/CHANGELOG.md)
+  - 211bsd_rpeth, see [CHANGELOG](../tools/oskit/211bsd_rpeth/CHANGELOG.md)
+  - 211bsd_rpmin, see [CHANGELOG](../tools/oskit/211bsd_rpmin/CHANGELOG.md)
+  - 211bsd_rk, see [CHANGELOG](../tools/oskit/211bsd_rk/CHANGELOG.md)
+  - 211bsd_rl, see [CHANGELOG](../tools/oskit/211bsd_rl/CHANGELOG.md)
 
 ### Bug Fixes
 - ReventLoop: fixed a design error in the `RemovePollHandler` flow, which

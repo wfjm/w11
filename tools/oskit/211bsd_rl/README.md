@@ -20,6 +20,13 @@ Download, unpack and copy the disk images (*.dsk), e.g.
        tar -xzf 211bsd_rlset.tgz
 ```
 
+### System properties and intended usage
+- **minimal** system !! Maybe useful as recovery system.
+- was useful at a time when w11a had only RK11 and RL11 type disk support
+- `/tmp` stays on '/'
+- `/home` is not mounted
+- suitable for a 'root' user, other accounts not supported
+
 ### Usage
 
 - Start backend server and boot system
@@ -39,16 +46,16 @@ Download, unpack and copy the disk images (*.dsk), e.g.
        : rl(0,0,0)unix
        Boot: bootdev=03400 bootcsr=0174400
 
-       2.11 BSD UNIX #2: Sat May 20 22:55:40 PDT 2017
+       2.11 BSD UNIX #3: Wed May 29 22:28:05 PDT 2019
            root@w11a:/usr/src/sys/RETRONFPRL
 
        phys mem  = 3932160
        avail mem = 3577344
        user mem  = 307200
 
-       May 20 23:28:34 init: configure system
+       May 29 22:29:16 init: configure system
 
-       dz ? csr 160100 vector 310 skipped:  No CSR.
+       dz 0 csr 160100 vector 310 attached
        lp 0 csr 177514 vector 200 attached
        rk 0 csr 177400 vector 220 attached
        rl 0 csr 174400 vector 160 attached
@@ -69,8 +76,8 @@ Download, unpack and copy the disk images (*.dsk), e.g.
        clearing /tmp
        standard daemons: update cron accounting.
        starting lpd
-       starting local daemons:Sat May 20 23:28:41 PDT 2017
-       May 20 23:28:41 init: kernel security level changed from 0 to 1
+       starting local daemons:Wed May 29 22:29:26 PDT 2019
+       May 29 22:29:26 init: kernel security level changed from 0 to 1
        
        
        2.11 BSD UNIX (w11a) (console)
@@ -90,12 +97,12 @@ Download, unpack and copy the disk images (*.dsk), e.g.
   At the end is important to shutdown properly with a `halt`:
   ```
        # {pstat -T}
-         7/186 files
-        40/208 inodes
+        13/186 files
+        49/208 inodes
         11/150 processes
-         6/ 46 texts active,  31 used
-         2/135 swapmap entries,  420 kB used, 2139 kB free, 2133 kB max
-        34/150 coremap entries, 2906 kB free, 2818 kB max
+         8/ 46 texts active,  35 used
+         3/135 swapmap entries,  655 kB used, 1904 kB free, 1897 kB max
+        33/150 coremap entries, 2659 kB free, 2556 kB max
          1/ 10  ub_map entries,   10    free,   10    max
        # {mount}
        /dev/rl0a on /
@@ -120,10 +127,3 @@ Download, unpack and copy the disk images (*.dsk), e.g.
    ```
 
    will be visible. Now the server process can be stopped with `^D`.
-
-### Provisos
-- **minimal** system !! Maybe useful as recovery system.
-- was useful at a time when w11a had only RK11 and RL11 type disk support
-- /tmp stays on '/'
-- /home is not mounted
-- suitable for a 'root' user, other accounts not supported

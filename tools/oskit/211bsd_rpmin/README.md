@@ -9,7 +9,7 @@ See notes in [w11a_os_guide.md](../../../doc/w11a_os_guide.md) on
 
 ### System properties and intended usage
 This system is created for usage on systems with limited memory. The
-kernel is configured with
+`RETRONFPMIN` kernel is configured with
 ```
     NBUF 40         # only 60 blocks disk cache (usual is 160)
     MAXUSERS 10     # this reduces number of file, process, ... slots
@@ -54,16 +54,16 @@ Download, unpack and copy the disk images (*.dsk), e.g.
        : xp(0,0,0)unix
        Boot: bootdev=05000 bootcsr=0176700
 
-       2.11 BSD UNIX #1: Fri May 26 12:48:54 PDT 2017
+       2.11 BSD UNIX #2: Thu May 30 12:47:59 PDT 2019
            root@w11a:/usr/src/sys/RETRONFPMIN
 
        phys mem  = 524288
        avail mem = 313536
        user mem  = 307200
 
-       May 26 12:49:35 init: configure system
+       May 30 12:55:30 init: configure system
        
-       dz ? csr 160100 vector 310 skipped:  No CSR.
+       dz 0 csr 160100 vector 310 attached
        lp 0 csr 177514 vector 200 attached
        rk 0 csr 177400 vector 220 attached
        rl 0 csr 174400 vector 160 attached
@@ -85,7 +85,7 @@ Download, unpack and copy the disk images (*.dsk), e.g.
        clearing /tmp
        standard daemons: update cron accounting.
        starting lpd
-       starting local daemons:Fri May 26 12:50:44 PDT 2017
+       starting local daemons:Thu May 30 12:55:43 PDT 2019
        
        
        2.11 BSD UNIX (w11a) (console)
@@ -106,10 +106,10 @@ Download, unpack and copy the disk images (*.dsk), e.g.
   At the end is important to shutdown properly with a `halt`:
   ```
        # {pstat -T}
-        15/122 files
-        47/128 inodes
-         9/ 80 processes
-         8/ 36 texts active,  32 used
+        16/122 files
+        50/128 inodes
+        10/ 80 processes
+         9/ 36 texts active,  34 used
          6/ 72 swapmap entries,  475 kB used, 3704 kB free, 3673 kB max
         15/ 80 coremap entries,  107 kB free,   43 kB max
          1/ 10  ub_map entries,   25    free,   25    max
@@ -130,7 +130,6 @@ Download, unpack and copy the disk images (*.dsk), e.g.
 
   prompt. When the w11 has halted after 211bsd shutdown a message like
   ```
-
        CPU down attention
        Processor registers and status:
          PS: 030350 cm,pm=k,u s,p,t=0,7,0 NZVC=1000  rust: 01 HALTed

@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDZ11.cpp 1150 2019-05-19 17:52:54Z mueller $
+// $Id: Rw11CntlDZ11.cpp 1156 2019-05-31 18:22:40Z mueller $
 //
 // Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -419,9 +419,9 @@ void Rw11CntlDZ11::TxProcess(const RlinkCommand& cmd, bool prim, uint16_t fuse)
   
   for (size_t i=0; i < done; i++) {
     uint16_t xwrd = xbuf[i];
-    bool     last = (xwrd & kFDAT_M_LAST) != 0;
-    bool     ferr = (xwrd & kFDAT_M_FERR) != 0;
-    bool     cal  = (xwrd & kFDAT_M_CAL)  != 0;
+    bool     last = xwrd & kFDAT_M_LAST;
+    bool     ferr = xwrd & kFDAT_M_FERR;
+    bool     cal  = xwrd & kFDAT_M_CAL;
     uint16_t line = (xwrd>>kFDAT_V_LINE) & kFDAT_B_LINE;
     uint8_t  ochr = xwrd                 & kFDAT_M_BUF;
     if (last) lastseen = true;
@@ -502,9 +502,9 @@ void Rw11CntlDZ11::TxProcess(const RlinkCommand& cmd, bool prim, uint16_t fuse)
   if (fTraceLevel > 0) {
     RlogMsg lmsg(LogFile());
     lmsg << "-I " << Name() << ": tx "
-         << " prim=" << prim
-         << " size=" << RosPrintf(cmd.BlockSize(),"d",3)
-         << " done=" << RosPrintf(done,"d",3)
+         << " pr,si,do=" << prim
+         << "," << RosPrintf(cmd.BlockSize(),"d",3)
+         << "," << RosPrintf(done,"d",3)
          << " last=" << lastseen
          << " tfuse=" << RosPrintf(tfuse,"d",3)
          << "  que=" << fTxQueBusy;

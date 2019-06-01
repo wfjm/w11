@@ -22,7 +22,7 @@ communication between FPGA board and backend server can be via
       allows up to 12M Baud
     - on Nexys3 with a `FT232R`, allows up to 2M Baud
     - for all FTDI USB-UART it is essential to set them to `low latency` mode.
-      That was default for linux kernels 2.6.32 to 4.4.52. Since about March
+      That was default for Linux kernels 2.6.32 to 4.4.52. Since about March
       2017 one gets kernels with 16 ms default latency again, thanks to
       [kernel patch 9589541](https://patchwork.kernel.org/patch/9589541/).
       **For newer systems it is essential to install a udev rule** which

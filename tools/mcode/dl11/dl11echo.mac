@@ -1,4 +1,4 @@
-; $Id: dl11echo.mac 1149 2019-05-12 21:00:29Z mueller $
+; $Id: dl11echo.mac 1155 2019-05-31 06:38:06Z mueller $
 ; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ; License disclaimer see License.txt in $RETROBASE directory
 ;
@@ -212,7 +212,7 @@ hdloct: mov     r0,r2                   ; octal mode
 ; print octal digit ------------------------------
 ;   in  r0  current character
 ;
-woct:   bic     #177770,r0              ; mask
+woct:   bic     #^c7,r0                 ; mask
         add     #'0,r0                  ; bin->ascii
         jmp     wchar                   ; and print
 ;

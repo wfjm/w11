@@ -26,8 +26,8 @@ For more information look into:
   and [Xilinx ISE](doc/README_buildsystem_ISE.md)
 - guides to [run test benches](doc/w11a_tb_guide.md)
   and to [boot operating systems](doc/w11a_os_guide.md)
-- known issues [general](doc/README_known_issues.md)
-  and [w11a CPU](doc/w11a_known_issues.md)
+- known [issues](doc/README_known_issues.md)
+- known [differenes](doc/w11a_known_differences.md)
 - the impatient readers can try their luck with the
   [quick start guide](doc/INSTALL_quickstart.md)
 

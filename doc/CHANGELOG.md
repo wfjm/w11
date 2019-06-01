@@ -2,6 +2,7 @@
 
 ### Table of contents
 - Current [HEAD](#user-content-head)
+- Release [w11a_V0.78](#user-content-w11a_V0.78)
 - Release [w11a_V0.77](#user-content-w11a_V0.77)
 - Release [w11a_V0.76](#user-content-w11a_V0.76)
 - Release [w11a_V0.753](#user-content-w11a_V0.753)
@@ -22,6 +23,9 @@ The HEAD version shows the current development. No guarantees that
 software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
+<!-- --------------------------------------------------------------------- -->
+---
+## <a id="w11a_V0.78">2019-06-01: [w11a_V0.78](https://github.com/wfjm/w11/releases/tag/w11a_V0.78) - rev 1158(wfjm)</a>
 ### Summary
 - add m9312 boot prom emulation
 - add dz11 8 line serial port multiplexer

@@ -1,10 +1,5 @@
 # Known issues
 
-The issues of the w11 CPU are listed in a separate document
-[w11a_known_issues.md](w11a_known_issues.md).
-
-This file descibes general issues.
-
 The case id indicates the release when the issue was first recognized.
 
 ### V0.50-2 {[issue #28](https://github.com/wfjm/w11/issues/28)} -- RK11: write protect action too slow

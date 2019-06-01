@@ -128,7 +128,7 @@ The recipe was tested
       # real 0m32.747s   user 0m15.996s   sys 0m0.736s
       
 - for oskit `211bsd_rp`
-  - in linux terminal
+  - in Linux terminal
   
         cd $RETROBASE/tools/oskit/211bsd_rp
         wget http://www.retro11.de/data/oc_w11/oskits/211bsd_rpset.tgz

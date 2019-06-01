@@ -1,10 +1,11 @@
-# $Id: test_dl11_loop.tcl 1139 2019-04-27 14:00:38Z mueller $
+# $Id: test_dl11_loop.tcl 1155 2019-05-31 06:38:06Z mueller $
 #
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2019-05-30  1155   1.0.1  size->fuse rename
 # 2019-04-26  1139   1.0    Initial version (derived from test_pc11_loop.tcl)
 #
 # Test DL11 combined receiver + transmitter response
@@ -95,7 +96,7 @@ set pdata {}
 for {set i 0} { $i < $nbyte } {incr i} {
   set v [expr {$nbyte-$i-1}]
   lappend rdata $v
-  lappend pdata [regbldkv ibd_dl11::RXBUF val 1 size [expr {$nbyte-$i}] data $v]
+  lappend pdata [regbldkv ibd_dl11::RXBUF val 1 fuse [expr {$nbyte-$i}] data $v]
 }
 
 rw11::asmrun  $cpu sym

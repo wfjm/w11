@@ -1,4 +1,4 @@
-// $Id: Rw11CntlLP11.cpp 1140 2019-04-28 10:21:21Z mueller $
+// $Id: Rw11CntlLP11.cpp 1156 2019-05-31 18:22:40Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-05-30  1155   1.3.5  size->fuse rename
 // 2019-04-27  1140   1.3.4  use RtraceTools::
 // 2019-04-19  1133   1.3.3  use ExecWibr()
 // 2019-04-14  1131   1.3.2  remove SetOnline(), use UnitSetup()
@@ -79,9 +80,9 @@ const uint16_t Rw11CntlLP11::kCSR_B_RLIM;
 const uint16_t Rw11CntlLP11::kCSR_V_TYPE;
 const uint16_t Rw11CntlLP11::kCSR_B_TYPE;
 const uint16_t Rw11CntlLP11::kBUF_M_VAL;
-const uint16_t Rw11CntlLP11::kBUF_V_SIZE;
-const uint16_t Rw11CntlLP11::kBUF_B_SIZE;  
-const uint16_t Rw11CntlLP11::kBUF_M_BUF;
+const uint16_t Rw11CntlLP11::kBUF_V_FUSE;
+const uint16_t Rw11CntlLP11::kBUF_B_FUSE;  
+const uint16_t Rw11CntlLP11::kBUF_M_DATA;
 
 //------------------------------------------+-----------------------------------
 //! Default constructor
@@ -228,7 +229,7 @@ int Rw11CntlLP11::AttnHandler(RlinkServer::AttnArgs& args)
 void Rw11CntlLP11::ProcessUnbuf(uint16_t buf)
 {
   bool     val  =  buf & kBUF_M_VAL;
-  uint8_t  ochr =  buf & kBUF_M_BUF;
+  uint8_t  ochr =  buf & kBUF_M_DATA;
 
   if (val) WriteChar(ochr);
     
@@ -287,33 +288,33 @@ void Rw11CntlLP11::ProcessBuf(const RlinkCommand& cmd, bool prim)
          << ": prim=1 call and queue busy";
   }
 
-  uint16_t fbeg = 0;
-  uint16_t fend = 0;
-  uint16_t fdel = 0;
-  uint16_t smin = 0;
-  uint16_t smax = 0;
+  uint16_t fbeg  = 0;
+  uint16_t fend  = 0;
+  uint16_t fdel  = 0;
+  uint16_t fumin  = 0;
+  uint16_t fumax  = 0;
 
   if (done > 0) {
-    fbeg = (pbuf[0]     >>kBUF_V_SIZE) & kBUF_B_SIZE;
-    fend = (pbuf[done-1]>>kBUF_V_SIZE) & kBUF_B_SIZE;
-    fdel = fbeg-fend+1;
-    smin = kFifoMaxSize;
+    fbeg  = (pbuf[0]     >>kBUF_V_FUSE) & kBUF_B_FUSE;
+    fend  = (pbuf[done-1]>>kBUF_V_FUSE) & kBUF_B_FUSE;
+    fdel  = fbeg-fend+1;
+    fumin = kFifoMaxSize;
   }
   
   for (size_t i=0; i < done; i++) {
-    uint8_t  ochr =  pbuf[i]               & kBUF_M_BUF;
-    uint16_t size = (pbuf[i]>>kBUF_V_SIZE) & kBUF_B_SIZE;
-    smin = min(smin,size);
-    smax = max(smax,size);
+    uint8_t  ochr =  pbuf[i]               & kBUF_M_DATA;
+    uint16_t fuse = (pbuf[i]>>kBUF_V_FUSE) & kBUF_B_FUSE;
+    fumin = min(fumin,fuse);
+    fumax = max(fumax,fuse);
     WriteChar(ochr);
   }
 
-  // determine next chunk size from highest fifo 'size' field, at least 4
-  fRblkSize = max(uint16_t(4), max(uint16_t(done),smax));
+  // determine next chunk size from highest fifo 'fuse' field, at least 4
+  fRblkSize = max(uint16_t(4), max(uint16_t(done),fumax));
 
   // queue further reads when fifo not emptied
-  // check for 'size==1' not seen in current read
-  if (smin > 1) {                           // if smin>1 no size==1 seen
+  // check for 'fuse==1' not seen in current read
+  if (fumin > 1) {                          // if fumin>1 no fuse==1 seen
     if (fQueBusy) {
       RlogMsg lmsg(LogFile());
       lmsg <<  "-E " << Name()
@@ -328,15 +329,15 @@ void Rw11CntlLP11::ProcessBuf(const RlinkCommand& cmd, bool prim)
   if (fTraceLevel > 0) {
     RlogMsg lmsg(LogFile());
     lmsg << "-I " << Name() << ":"
-         << " prim="  << prim
-         << " size=" << RosPrintf(cmd.BlockSize(),"d",3)
-         << " done=" << RosPrintf(done,"d",3)
+         << " pr,si,do="  << prim
+         << "," << RosPrintf(cmd.BlockSize(),"d",3)
+         << "," << RosPrintf(done,"d",3)
          << "  fifo=" << RosPrintf(fbeg,"d",3)
          << "," << RosPrintf(fend,"d",3)
          << ";" << RosPrintf(fdel,"d",3)
          << "," << RosPrintf(done-fdel,"d",3)
-         << ";" << RosPrintf(smax,"d",3)
-         << "," << RosPrintf(smin,"d",3)
+         << ";" << RosPrintf(fumax,"d",3)
+         << "," << RosPrintf(fumin,"d",3)
          << "  que="   << fQueBusy;
     
     if (fTraceLevel > 1) RtraceTools::TraceBuffer(lmsg, pbuf,

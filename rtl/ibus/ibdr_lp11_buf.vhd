@@ -1,4 +1,4 @@
--- $Id: ibdr_lp11_buf.vhd 1138 2019-04-26 08:14:56Z mueller $
+-- $Id: ibdr_lp11_buf.vhd 1156 2019-05-31 18:22:40Z mueller $
 --
 -- Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -23,6 +23,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-05-31  1156   1.0.4  size->fuse rename; re-organize rlim handling
 -- 2019-04-24  1138   1.0.3  add csr.ir (intreq monitor)
 -- 2019-04-20  1134   1.0.2  remove fifo clear on BRESET
 -- 2019-04-14  1131   1.0.1  RLIM_CEV now slv8
@@ -76,7 +77,7 @@ architecture syn of ibdr_lp11_buf is
   constant csr_ibf_ie :    integer :=  6;
   constant csr_ibf_ir :    integer :=  5;
   constant buf_ibf_val :   integer := 15;
-  subtype  buf_ibf_size    is integer range AWIDTH-1+8 downto 8;
+  subtype  buf_ibf_fuse    is integer range AWIDTH-1+8 downto 8;
   subtype  buf_ibf_data    is integer range  6 downto 0;
 
   type regs_type is record              -- state registers
@@ -106,7 +107,7 @@ architecture syn of ibdr_lp11_buf is
   signal PBUF_RESET : slbit := '0';
   signal PBUF_EMPTY : slbit := '0';
   signal PBUF_FULL  : slbit := '0';
-  signal PBUF_SIZE  : slv(AWIDTH-1 downto 0) := (others=>'0');
+  signal PBUF_FUSE  : slv(AWIDTH-1 downto 0) := (others=>'0');
 
   signal RLIM_START : slbit := '0';
   signal RLIM_BUSY  : slbit := '0';
@@ -130,7 +131,7 @@ begin
       DO    => PBUF_DO,
       EMPTY => PBUF_EMPTY,
       FULL  => PBUF_FULL,
-      SIZE  => PBUF_SIZE
+      SIZE  => PBUF_FUSE
       );
   
   RLIM : ib_rlim_slv
@@ -161,7 +162,7 @@ begin
   end process proc_regs;
 
   proc_next : process (R_REGS, IB_MREQ, EI_ACK, RESET, BRESET,
-                       PBUF_DO, PBUF_EMPTY, PBUF_FULL, PBUF_SIZE, RLIM_BUSY)
+                       PBUF_DO, PBUF_EMPTY, PBUF_FULL, PBUF_FUSE, RLIM_BUSY)
     variable r : regs_type := regs_init;
     variable n : regs_type := regs_init;
     variable idout : slv16 := (others=>'0');
@@ -198,7 +199,7 @@ begin
     end if;
 
     -- ibus transactions
-    if r.ibsel = '1' then
+    if r.ibsel = '1' then               -- ibus selected ---------------------
       case IB_MREQ.addr(1 downto 1) is
 
         when ibaddr_csr =>              -- CSR -- control status -------------
@@ -236,8 +237,9 @@ begin
 
           if IB_MREQ.racc = '0' then      -- cpu
             if ibw0 = '1' then
-              irlimsta := '1';              -- in all cases start timer
               if r.done = '1' then          -- ignore buf write when done=0
+                n.done   := '0';              -- clear done
+                n.intreq := '0';              -- clear interrupt
                 if r.err = '0' then           -- if online (handle via rbus)
                   if PBUF_FULL = '0' then       -- fifo not full
                     ipbufce  := '1';              -- write to fifo
@@ -254,7 +256,7 @@ begin
 
           else                            -- rri
             idout(buf_ibf_val)  := not PBUF_EMPTY;
-            idout(buf_ibf_size) := PBUF_SIZE;
+            idout(buf_ibf_fuse) := PBUF_FUSE;
             idout(buf_ibf_data) := PBUF_DO;
             if ibrd = '1' then
               if PBUF_EMPTY = '0' then      -- fifo not empty
@@ -269,24 +271,24 @@ begin
         when others => null;
       end case;
 
-    end if;    
+    else                                -- ibus not selected -----------------
+      -- handle done, timer and interrupt
+      if PBUF_FULL='0' and RLIM_BUSY='0' then -- not full and not busy ?
+        if r.done = '0' then                    -- done not set ?
+          n.done   := '1';                      -- set done
+          irlimsta := '1';                      -- start timer
+          if r.err='0' and r.ie='1' then        -- err=0 and irupt enabled ?
+            n.intreq := '1';                      -- request interrupt
+          end if;
+        end if;
+      end if;    
+    end if; -- else r.ibsel='1'
     
     -- other state changes
     if EI_ACK = '1' then
       n.intreq := '0';
     end if;
     
-    if (RLIM_BUSY or PBUF_FULL) ='1' then -- busy or fifo full
-      n.done   := '0';                      -- clear done
-      n.intreq := '0';                      -- clear interrupt
-    else                                  -- not busy and fifo not full
-      n.done   := '1';                      -- set done
-      if r.done='0' and                     -- done going 0->1
-         r.err='0' and r.ie='1' then        -- and err=0 and interrupt enabled 
-        n.intreq := '1';                      -- request interrupt
-      end if;
-    end if;
-
     N_REGS <= n;
 
     PBUF_RESET <= RESET or r.err;

@@ -1,4 +1,4 @@
-# $Id: util.tcl 1135 2019-04-23 12:56:23Z mueller $
+# $Id: util.tcl 1155 2019-05-31 06:38:06Z mueller $
 #
 # Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -13,6 +13,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-05-30  1155   1.1.1  size->fuse rename;
 # 2019-04-22  1135   1.1    updates for buffered pc11
 # 2015-12-26   719   1.0    Initial version
 #
@@ -31,12 +32,12 @@ namespace eval ibd_pc11 {
   regdsc RCSR   {err 15} {busy 11} {done 7} {ie 6} {ena 0}
   regdsc RRCSR  {err 15} {rlim 14 3} {busy 11} {type 10 3} \
                   {done 7} {ie 6} {ir 5} {rlb 4} {ique 3} {iack 2} {fclr 1}
-  regdsc RRBUF  {rbusy 15} {rsize 14 7 "d"} {psize 6 7 "d"}
+  regdsc RRBUF  {rbusy 15} {rfuse 14 7 "d"} {pfuse 6 7 "d"}
 
   regdsc PCSR   {err 15} {rdy 7} {ie 6}
   regdsc RPCSR  {err 15} {rlim 14 3} {rdy 7} {ie 6} {ir 5} {rlb 4}
   
-  regdsc RPBUF  {val 15} {size 14 7 "d"} {data 7 8 "o"}
+  regdsc RPBUF  {val 15} {fuse 14 7 "d"} {data 7 8 "o"}
 
   rw11util::regmap_add ibd_pc11 pc?.rcsr {l? RCSR r? RRCSR}
   rw11util::regmap_add ibd_pc11 pc?.rbuf {r? RRBUF}

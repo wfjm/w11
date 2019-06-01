@@ -1,10 +1,11 @@
-# $Id: test_pc11_loop.tcl 1139 2019-04-27 14:00:38Z mueller $
+# $Id: test_pc11_loop.tcl 1155 2019-05-31 06:38:06Z mueller $
 #
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2019-05-30  1155   1.0.1  size->fuse rename
 # 2019-04-20  1134   1.0    Initial version
 # 2019-04-07  1129   0.1    First draft
 #
@@ -104,7 +105,7 @@ set pdata {}
 for {set i 0} { $i < $nbyte } {incr i} {
   set v [expr {$nbyte-$i-1}]
   lappend rdata $v
-  lappend pdata [regbldkv ibd_pc11::RPBUF val 1 size [expr {$nbyte-$i}] data $v]
+  lappend pdata [regbldkv ibd_pc11::RPBUF val 1 fuse [expr {$nbyte-$i}] data $v]
 }
 
 # ensure pr and pp err=0

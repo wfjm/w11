@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDL11.hpp 1140 2019-04-28 10:21:21Z mueller $
+// $Id: Rw11CntlDL11.hpp 1156 2019-05-31 18:22:40Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-05-30  1155   1.4.1  size->fuse rename; use unit.StatInc[RT]x
 // 2019-04-26  1139   1.4    add dl11_buf readout
 // 2019-04-06  1126   1.3    xbuf.val in msb; rrdy in rbuf (new iface)
 // 2017-05-14   897   1.2    add RcvChar(),TraceChar()
@@ -84,27 +85,23 @@ namespace Retro {
       static const uint16_t kRCSR_B_TYPE  = 0007;    //!< rcsr.type bit mask
       static const uint16_t kRCSR_M_RDONE = kWBit07; //!< rcsr.rdone mask
       static const uint16_t kRCSR_M_FCLR  = kWBit01; //!< rcsr.fclr mask    
-      static const uint16_t kRBUF_V_RSIZE =  8;      //!< rbuf.rsize shift
-      static const uint16_t kRBUF_B_RSIZE = 0177;    //!< rbuf.rsize bit mask
-      static const uint16_t kRBUF_M_BUF   = 0377;    //!< rbuf data mask
+      static const uint16_t kRBUF_V_RFUSE =  8;      //!< rbuf.rfuse shift
+      static const uint16_t kRBUF_B_RFUSE = 0177;    //!< rbuf.rfuse bit mask
+      static const uint16_t kRBUF_M_DATA  = 0377;    //!< rbuf data mask
   
       static const uint16_t kXCSR_V_RLIM  = 12;      //!< xcsr.rlim shift 
       static const uint16_t kXCSR_B_RLIM  = 007;     //!< xcsr.rlim bit mask
       static const uint16_t kXCSR_M_XRDY  = kWBit07; //!< xcsr.xrdy mask
       static const uint16_t kXCSR_M_FCLR  = kWBit01; //!< xcsr.fclr mask    
       static const uint16_t kXBUF_M_VAL   = kWBit15; //!< xbuf.val mask
-      static const uint16_t kXBUF_V_SIZE  =  8;      //!< xbuf.size shift
-      static const uint16_t kXBUF_B_SIZE  = 0177;    //!< xbuf.size bit mask
-      static const uint16_t kXBUF_M_BUF   = 0xff;    //!< xbuf data mask
+      static const uint16_t kXBUF_V_FUSE  =  8;      //!< xbuf.fuse shift
+      static const uint16_t kXBUF_B_FUSE  = 0177;    //!< xbuf.fuse bit mask
+      static const uint16_t kXBUF_M_DATA  = 0xff;    //!< xbuf data mask
 
     // statistics counter indices
       enum stats {
         kStatNRxBlk= Rw11Cntl::kDimStat,    //!< done wblk
         kStatNTxQue,                        //!< queue rblk
-        kStatNRxChar,                       //!< input  char
-        kStatNRxLine,                       //!< input  lines
-        kStatNTxChar,                       //!< output char
-        kStatNTxLine,                       //!< output lines
         kDimStat
       };
     
@@ -128,6 +125,7 @@ namespace Retro {
       uint16_t      fFsize;                 //!< fifo size
       uint16_t      fTxRblkSize;            //!< tx rblk chunk size
       bool          fTxQueBusy;             //!< tx queue busy
+      uint16_t      fLastRbuf;              //!< last seen rbuf
   };
   
 } // end namespace Retro

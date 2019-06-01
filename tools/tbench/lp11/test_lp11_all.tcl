@@ -1,10 +1,11 @@
-# $Id: test_lp11_all.tcl 1138 2019-04-26 08:14:56Z mueller $
+# $Id: test_lp11_all.tcl 1155 2019-05-31 06:38:06Z mueller $
 #
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2019-05-30  1155   1.0.3  size->fuse rename
 # 2019-04-19  1134   1.0.2  fifo not longer cleared by breset
 # 2019-04-06  1126   1.0.1  check csr.err and csr.rlim not changed by breset
 # 2019-03-17  1123   1.0    Initial version
@@ -102,7 +103,7 @@ if {$type == 0} {                # unbuffered --------------------------
     -rma  lpa.csr -edata [regbld ibd_lp11::CSR] \
     -rma  lpa.buf \
     -rma  lpa.csr -edata [regbld ibd_lp11::CSR] \
-    -ribr lpa.buf -edata [regbld ibd_lp11::RBUF val {size 1} {data 0107} ] \
+    -ribr lpa.buf -edata [regbld ibd_lp11::RBUF val {fuse 1} {data 0107} ] \
     -rma  lpa.csr -edata [regbld ibd_lp11::CSR done]
   # expect and harvest attn (drop other attn potentially triggered by breset)
   rlc wtlam 1.
@@ -116,14 +117,14 @@ if {$type == 0} {                # unbuffered --------------------------
     -rma  lpa.csr -edata [regbld ibd_lp11::CSR err done] \
     -wibr lpa.csr 0x0 \
     -rma  lpa.csr -edata [regbld ibd_lp11::CSR done] \
-    -ribr lpa.buf -edata [regbld ibd_lp11::RBUF {size 0} {data 031} ]
+    -ribr lpa.buf -edata [regbld ibd_lp11::RBUF {fuse 0} {data 031} ]
   # test that no attn send
   rlc exec -attn -edata 0x0
 
   rlc log "    A2.3: 7 bit data; done set on breset ---------------"
   $cpu cp \
     -wma  lpa.buf 0370 \
-    -ribr lpa.buf -edata [regbld ibd_lp11::RBUF val {size 1} {data 0170} ] \
+    -ribr lpa.buf -edata [regbld ibd_lp11::RBUF val {fuse 1} {data 0170} ] \
     -wma  lpa.buf 040 \
     -rma  lpa.csr -edata [regbld ibd_lp11::CSR] \
     -breset \
@@ -139,7 +140,7 @@ if {$type == 0} {                # unbuffered --------------------------
     -wibr lpa.csr [regbld ibd_lp11::RCSR err] \
     -wibr lpa.csr 0x0 \
     -rma  lpa.csr -edata [regbld ibd_lp11::CSR done] \
-    -ribr lpa.buf -edata [regbld ibd_lp11::RBUF {size 0} {data 032} ]
+    -ribr lpa.buf -edata [regbld ibd_lp11::RBUF {fuse 0} {data 032} ]
   # expect and harvest attn
   rlc wtlam 1.
   rlc exec -attn -edata $attnlp
@@ -153,9 +154,9 @@ if {$type == 0} {                # unbuffered --------------------------
   #    loc rd buf --> test DONE=1  (loc read is noop); test attn send
   #    loc wr buf --> test DONE=1
   #    loc wr buf --> test DONE=1
-  #    rem wr buf --> test VAL=1,SIZE=3
-  #    rem wr buf --> test VAL=1,SIZE=2
-  #    rem wr buf --> test VAL=1,SIZE=1
+  #    rem wr buf --> test VAL=1,FUSE=3
+  #    rem wr buf --> test VAL=1,FUSE=2
+  #    rem wr buf --> test VAL=1,FUSE=1
   $cpu cp \
     -wma  lpa.buf 031 \
     -rma  lpa.csr -edata [regbld ibd_lp11::CSR done] \
@@ -164,9 +165,9 @@ if {$type == 0} {                # unbuffered --------------------------
     -rma  lpa.csr -edata [regbld ibd_lp11::CSR done] \
     -wma  lpa.buf 033 \
     -rma  lpa.csr -edata [regbld ibd_lp11::CSR done] \
-    -ribr lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 size 3 data 031] \
-    -ribr lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 size 2 data 032] \
-    -ribr lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 size 1 data 033] \
+    -ribr lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 fuse 3 data 031] \
+    -ribr lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 fuse 2 data 032] \
+    -ribr lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 fuse 1 data 033] \
     -rma  lpa.csr -edata [regbld ibd_lp11::CSR done]
   # expect and harvest attn (drop other attn potentially triggered by breset)
   rlc wtlam 1.
@@ -188,8 +189,8 @@ if {$type == 0} {                # unbuffered --------------------------
     -wma   lpa.buf 0340 \
     -wma   lpa.buf 0037 \
     -rbibr lpa.buf 4 -estaterr -edone 2 -edata \
-             [list [regbldkv ibd_lp11::RBUF val 1 size 2 data 0140] \
-                   [regbldkv ibd_lp11::RBUF val 1 size 1 data 0037] ] 
+             [list [regbldkv ibd_lp11::RBUF val 1 fuse 2 data 0140] \
+                   [regbldkv ibd_lp11::RBUF val 1 fuse 1 data 0037] ] 
   # expect and harvest attn 
   rlc wtlam 1.
   rlc exec -attn -edata $attnlp
@@ -200,8 +201,8 @@ if {$type == 0} {                # unbuffered --------------------------
     -wma   lpa.buf 042 \
     -breset \
     -rbibr lpa.buf 3 -estaterr -edata \
-             [list [regbldkv ibd_lp11::RBUF val 1 size 2 data 0041] \
-                   [regbldkv ibd_lp11::RBUF val 1 size 1 data 0042] ] 
+             [list [regbldkv ibd_lp11::RBUF val 1 fuse 2 data 0041] \
+                   [regbldkv ibd_lp11::RBUF val 1 fuse 1 data 0042] ] 
   # expect and harvest attn (drop other attn potentially triggered by breset)
   rlc wtlam 1.
   rlc exec -attn -edata $attnlp $attnlp
@@ -239,13 +240,13 @@ if {$type == 0} {                # unbuffered --------------------------
   #     1 loc wr -> no attn  (2 in fifo; DONE=1)
   #     1 rem rd             (1 in fifo; DONE=1)
   $cpu cp \
-    -ribr lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 size 2 data 051] \
+    -ribr lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 fuse 2 data 051] \
     -wma  lpa.buf 053 \
     -rma  lpa.csr -edata [regbld ibd_lp11::CSR done]
 
   rlc exec -attn -edata 0x0
   $cpu cp \
-    -ribr lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 size 2 data 052] \
+    -ribr lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 fuse 2 data 052] \
     -rma  lpa.csr -edata [regbld ibd_lp11::CSR done]
 
   rlc log "    A3.4: fill fifo, DONE 1->0 on $fsize char -------------"
@@ -277,8 +278,8 @@ stop:
   
   $cpu cp \
     -rma  lpa.csr -edata [regbld ibd_lp11::CSR done] \
-    -ribr lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 size $fs1 data 053] \
-    -ribr lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 size $fs2 data 066] \
+    -ribr lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 fuse $fs1 data 053] \
+    -ribr lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 fuse $fs2 data 066] \
     -rma  lpa.csr -edata [regbld ibd_lp11::CSR done]
 
   #     1 loc wr ->  (x-2 in fifo; DONE=1)
@@ -299,9 +300,9 @@ stop:
   #     1 rem rd ->  (x-1 in fifo; DONE=1)
   #     1 rem rd ->  (x-2 in fifo; DONE=1)
   $cpu cp \
-    -ribr lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 size $fs0 data 066] \
+    -ribr lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 fuse $fs0 data 066] \
     -rma  lpa.csr -edata [regbld ibd_lp11::CSR done] \
-    -ribr lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 size $fs1 data 066] \
+    -ribr lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 fuse $fs1 data 066] \
     -rma  lpa.csr -edata [regbld ibd_lp11::CSR done]
   
   rlc log "    A3.6: full fifo read -------------------------------"
@@ -311,13 +312,13 @@ stop:
   #     1 rem rd ->  error
   set edata {}
   for {set i 0} { $i < $fs4 } {incr i} {
-    lappend edata [regbldkv ibd_lp11::RBUF val 1 size [expr {$fs2-$i}] data 066]
+    lappend edata [regbldkv ibd_lp11::RBUF val 1 fuse [expr {$fs2-$i}] data 066]
   }
   $cpu cp \
     -rbibr lpa.buf $fs4 -edata $edata \
-    -ribr  lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 size 2 data 066] \
+    -ribr  lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 fuse 2 data 066] \
     -rma   lpa.csr -edata [regbld ibd_lp11::CSR done] \
-    -ribr  lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 size 1 data 066] \
+    -ribr  lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 fuse 1 data 066] \
     -rma   lpa.csr -edata [regbld ibd_lp11::CSR done] \
     -ribr  lpa.buf -estaterr
 }
@@ -415,7 +416,7 @@ if {$type == 0} {                # unbuffered --------------------------
     }
     if {$attnpat & $attnlp} {     # lp attn
       $cpu cp \
-        -ribr lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 size 1 data $charcur]
+        -ribr lpa.buf -edata [regbldkv ibd_lp11::RBUF val 1 fuse 1 data $charcur]
       set charcur [expr { ($charcur+1) & 0177 }]
       incr charseen
     }
@@ -429,7 +430,7 @@ if {$type == 0} {                # unbuffered --------------------------
   #   AWIDTH  6    63+15 =  78
   #   AWIDTH  7   127+31 = 158
   set nchar [expr {$fsize + ($fsize>>2)}]
-  set rsize [expr {$fsize>>2}]
+  set rfuse [expr {$fsize>>2}]
   set wttout 10.;               # wtlam timeout 
 
   set fstatmsk [regbld rw11::STAT cmderr rbtout rbnak]; # don't check err !!
@@ -448,22 +449,22 @@ if {$type == 0} {                # unbuffered --------------------------
     if {$attnpat & $attnlp} {     # lp attn
       while (1) {
         $cpu cp \
-          -rbibr lpa.buf $rsize fdata -estat 0x0 $fstatmsk
+          -rbibr lpa.buf $rfuse fdata -estat 0x0 $fstatmsk
         for {set i 0} { $i < [llength $fdata] } {incr i} {
           set rbuf [lindex $fdata $i]
           set val  [regget ibd_lp11::RBUF(val)  $rbuf]
-          set size [regget ibd_lp11::RBUF(size) $rbuf]
+          set fuse [regget ibd_lp11::RBUF(fuse) $rbuf]
           set data [regget ibd_lp11::RBUF(data) $rbuf]
           if {$val != 1 || $data != $charcur} {
             rlc log "FAIL: bad data: val: $val; data: $data, exp: $charcur"
             rlc errcnt -inc
           }
-          if {$i   == 0} { set rsize $size }
+          if {$i   == 0} { set rfuse $fuse }
           set charcur [expr { ($charcur+1) & 0177 }]
           incr charseen
         }
-        if {$size <= 1} {
-          rlc log "    rbibr chain ends with size=1 after $charseen"
+        if {$fuse <= 1} {
+          rlc log "    rbibr chain ends with fuse=1 after $charseen"
           break;
         }
       }

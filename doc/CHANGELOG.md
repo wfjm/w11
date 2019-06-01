@@ -46,6 +46,9 @@ The full set of tests is only run for tagged releases.
   - dz11/dz11echo.mac: port multiplexer echo tester and traffic generator
 
 ### Changes
+- consolidate DL,LP,PC after lessons learned in DZ implementation
+  - use 'fuse' for fifo usage instead of 'size'
+  - re-organize rlim handling (move to r.ibsel = '0' section)
 - tools changes
   - RtraceTools: TraceBuffer: add level 5 (full word dump)
   - Rw11Cntl: UnitSetupAll(): now virtual

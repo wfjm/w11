@@ -1,10 +1,11 @@
-# $Id: test_dl11_tx.tcl 1140 2019-04-28 10:21:21Z mueller $
+# $Id: test_dl11_tx.tcl 1155 2019-05-31 06:38:06Z mueller $
 #
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2019-05-30  1155   1.0.1  size->fuse rename
 # 2019-04-26  1139   1.0    Initial version (derived from test_pc11_pp.tcl)
 #
 # Test DL11 transmitter response
@@ -74,19 +75,19 @@ if {$type > 0} {                # if buffered test rlim
 if {$type == 0} {                # unbuffered --------------------------
   rlc log "  A2: test data response (unbuffered) -----------------------"
   rlc log "    A2.1: loc write, rem read ------------------------"
-  #               --> test        XSIZE=0
-  #    loc wr buf --> test RDY=0  XSIZE=1
+  #               --> test        XFUSE=0
+  #    loc wr buf --> test RDY=0  XFUSE=1
   #    loc rd buf --> test RDY=0  (loc read is noop); test attn send
-  #    rem wr buf --> test RDY=1  XSIZE=0
+  #    rem wr buf --> test RDY=1  XFUSE=0
   $cpu cp \
-    -ribr tta.rbuf -edata [regbld ibd_dl11::RRBUF {xsize 0}] \
+    -ribr tta.rbuf -edata [regbld ibd_dl11::RRBUF {xfuse 0}] \
     -wma  tta.xbuf 0107 \
-    -ribr tta.rbuf -edata [regbld ibd_dl11::RRBUF {xsize 1}] \
+    -ribr tta.rbuf -edata [regbld ibd_dl11::RRBUF {xfuse 1}] \
     -rma  tta.xcsr -edata [regbld ibd_dl11::XCSR] \
     -rma  tta.xbuf \
     -rma  tta.xcsr -edata [regbld ibd_dl11::XCSR] \
-    -ribr tta.xbuf -edata [regbld ibd_dl11::RXBUF val {size 1} {data 0107} ] \
-    -ribr tta.rbuf -edata [regbld ibd_dl11::RRBUF {xsize 0}] \
+    -ribr tta.xbuf -edata [regbld ibd_dl11::RXBUF val {fuse 1} {data 0107} ] \
+    -ribr tta.rbuf -edata [regbld ibd_dl11::RRBUF {xfuse 0}] \
     -rma  tta.xcsr -edata [regbld ibd_dl11::XCSR rdy]
   # expect and harvest attn (drop other attn potentially triggered by breset)
   rlc wtlam 1.
@@ -95,7 +96,7 @@ if {$type == 0} {                # unbuffered --------------------------
   rlc log "    A2.2: 8 bit data; rdy set on breset --------------"
   $cpu cp \
     -wma  tta.xbuf 0370 \
-    -ribr tta.xbuf -edata [regbld ibd_dl11::RXBUF val {size 1} {data 0370} ] \
+    -ribr tta.xbuf -edata [regbld ibd_dl11::RXBUF val {fuse 1} {data 0370} ] \
     -wma  tta.xbuf 040 \
     -rma  tta.xcsr -edata [regbld ibd_dl11::XCSR] \
     -breset \
@@ -108,32 +109,32 @@ if {$type == 0} {                # unbuffered --------------------------
   set fsize [expr {(1<<$type)-1}]
   
   rlc log "  A2: test data response (basic fifo; AWIDTH=$type) --"
-  rlc log "    A2.1: loc write, rem read; rbuf.xsize check -------"
-  #    loc wr buf --> test RDY=1  rbuf.xsize=1
+  rlc log "    A2.1: loc write, rem read; rbuf.xfuse check -------"
+  #    loc wr buf --> test RDY=1  rbuf.xfuse=1
   #    loc rd buf --> test RDY=1  (loc read is noop); test attn send
-  #    loc wr buf --> test RDY=1  rbuf.xsize=2
-  #    loc wr buf --> test RDY=1  rbuf.xsize=3
-  #    rem wr buf --> test VAL=1,SIZE=3  rbuf.xsize=2
-  #    rem wr buf --> test VAL=1,SIZE=2  rbuf.xsize=1
-  #    rem wr buf --> test VAL=1,SIZE=1  rbuf.xsize=0
+  #    loc wr buf --> test RDY=1  rbuf.xfuse=2
+  #    loc wr buf --> test RDY=1  rbuf.xfuse=3
+  #    rem wr buf --> test VAL=1,FUSE=3  rbuf.xfuse=2
+  #    rem wr buf --> test VAL=1,FUSE=2  rbuf.xfuse=1
+  #    rem wr buf --> test VAL=1,FUSE=1  rbuf.xfuse=0
   $cpu cp \
-    -ribr tta.rbuf -edata [regbldkv ibd_dl11::RRBUF xsize 0] \
+    -ribr tta.rbuf -edata [regbldkv ibd_dl11::RRBUF xfuse 0] \
     -wma  tta.xbuf 031 \
     -rma  tta.xcsr -edata [regbld ibd_dl11::XCSR rdy] \
-    -ribr tta.rbuf -edata [regbldkv ibd_dl11::RRBUF xsize 1] \
+    -ribr tta.rbuf -edata [regbldkv ibd_dl11::RRBUF xfuse 1] \
     -rma  tta.xbuf \
     -wma  tta.xbuf 032 \
     -rma  tta.xcsr -edata [regbld ibd_dl11::XCSR rdy] \
-    -ribr tta.rbuf -edata [regbldkv ibd_dl11::RRBUF xsize 2] \
+    -ribr tta.rbuf -edata [regbldkv ibd_dl11::RRBUF xfuse 2] \
     -wma  tta.xbuf 033 \
     -rma  tta.xcsr -edata [regbld ibd_dl11::XCSR rdy] \
-    -ribr tta.rbuf -edata [regbldkv ibd_dl11::RRBUF xsize 3] \
-    -ribr tta.xbuf -edata [regbldkv ibd_dl11::RXBUF val 1 size 3 data 031] \
-    -ribr tta.rbuf -edata [regbldkv ibd_dl11::RRBUF xsize 2] \
-    -ribr tta.xbuf -edata [regbldkv ibd_dl11::RXBUF val 1 size 2 data 032] \
-    -ribr tta.rbuf -edata [regbldkv ibd_dl11::RRBUF xsize 1] \
-    -ribr tta.xbuf -edata [regbldkv ibd_dl11::RXBUF val 1 size 1 data 033] \
-    -ribr tta.rbuf -edata [regbldkv ibd_dl11::RRBUF xsize 0] \
+    -ribr tta.rbuf -edata [regbldkv ibd_dl11::RRBUF xfuse 3] \
+    -ribr tta.xbuf -edata [regbldkv ibd_dl11::RXBUF val 1 fuse 3 data 031] \
+    -ribr tta.rbuf -edata [regbldkv ibd_dl11::RRBUF xfuse 2] \
+    -ribr tta.xbuf -edata [regbldkv ibd_dl11::RXBUF val 1 fuse 2 data 032] \
+    -ribr tta.rbuf -edata [regbldkv ibd_dl11::RRBUF xfuse 1] \
+    -ribr tta.xbuf -edata [regbldkv ibd_dl11::RXBUF val 1 fuse 1 data 033] \
+    -ribr tta.rbuf -edata [regbldkv ibd_dl11::RRBUF xfuse 0] \
     -rma  tta.xcsr -edata [regbld ibd_dl11::XCSR rdy]
   # expect and harvest attn (drop other attn potentially triggered by breset)
   rlc wtlam 1.
@@ -146,8 +147,8 @@ if {$type == 0} {                # unbuffered --------------------------
     -wma   tta.xbuf 0340 \
     -wma   tta.xbuf 0037 \
     -rbibr tta.xbuf 4 -estaterr -edone 2 -edata \
-             [list [regbldkv ibd_dl11::RXBUF val 1 size 2 data 0340] \
-                   [regbldkv ibd_dl11::RXBUF val 1 size 1 data 0037] ] 
+             [list [regbldkv ibd_dl11::RXBUF val 1 fuse 2 data 0340] \
+                   [regbldkv ibd_dl11::RXBUF val 1 fuse 1 data 0037] ] 
   # expect and harvest attn 
   rlc wtlam 1.
   rlc exec -attn -edata $attndl
@@ -158,8 +159,8 @@ if {$type == 0} {                # unbuffered --------------------------
     -wma   tta.xbuf 042 \
     -breset \
     -rbibr tta.xbuf 3 -estaterr -edata \
-             [list [regbldkv ibd_dl11::RXBUF val 1 size 2 data 0041] \
-                   [regbldkv ibd_dl11::RXBUF val 1 size 1 data 0042] ]
+             [list [regbldkv ibd_dl11::RXBUF val 1 fuse 2 data 0041] \
+                   [regbldkv ibd_dl11::RXBUF val 1 fuse 1 data 0042] ]
   # expect and harvest attn (drop other attn potentially triggered by breset)
   rlc wtlam 1.
   rlc exec -attn -edata $attndl $attndl
@@ -186,13 +187,13 @@ if {$type == 0} {                # unbuffered --------------------------
   #     1 loc wr -> no attn  (2 in fifo; RDY=1)
   #     1 rem rd             (1 in fifo; RDY=1)
   $cpu cp \
-    -ribr tta.xbuf -edata [regbldkv ibd_dl11::RXBUF val 1 size 2 data 051] \
+    -ribr tta.xbuf -edata [regbldkv ibd_dl11::RXBUF val 1 fuse 2 data 051] \
     -wma  tta.xbuf 053 \
     -rma  tta.xcsr -edata [regbld ibd_dl11::XCSR rdy]
 
   rlc exec -attn -edata 0x0
   $cpu cp \
-    -ribr tta.xbuf -edata [regbldkv ibd_dl11::RXBUF val 1 size 2 data 052] \
+    -ribr tta.xbuf -edata [regbldkv ibd_dl11::RXBUF val 1 fuse 2 data 052] \
     -rma  tta.xcsr -edata [regbld ibd_dl11::XCSR rdy]
 
   rlc log "    A3.4: fill fifo, RDY 1->0 on $fsize char ---------"
@@ -224,8 +225,8 @@ stop:
   
   $cpu cp \
     -rma  tta.xcsr -edata [regbld ibd_dl11::XCSR rdy] \
-    -ribr tta.xbuf -edata [regbldkv ibd_dl11::RXBUF val 1 size $fs1 data 053] \
-    -ribr tta.xbuf -edata [regbldkv ibd_dl11::RXBUF val 1 size $fs2 data 066] \
+    -ribr tta.xbuf -edata [regbldkv ibd_dl11::RXBUF val 1 fuse $fs1 data 053] \
+    -ribr tta.xbuf -edata [regbldkv ibd_dl11::RXBUF val 1 fuse $fs2 data 066] \
     -rma  tta.xcsr -edata [regbld ibd_dl11::XCSR rdy]
 
   #     1 loc wr ->  (x-2 in fifo; RDY=1)
@@ -246,9 +247,9 @@ stop:
   #     1 rem rd ->  (x-1 in fifo; RDY=1)
   #     1 rem rd ->  (x-2 in fifo; RDY=1)
   $cpu cp \
-    -ribr tta.xbuf -edata [regbldkv ibd_dl11::RXBUF val 1 size $fs0 data 066] \
+    -ribr tta.xbuf -edata [regbldkv ibd_dl11::RXBUF val 1 fuse $fs0 data 066] \
     -rma  tta.xcsr -edata [regbld ibd_dl11::XCSR rdy] \
-    -ribr tta.xbuf -edata [regbldkv ibd_dl11::RXBUF val 1 size $fs1 data 066] \
+    -ribr tta.xbuf -edata [regbldkv ibd_dl11::RXBUF val 1 fuse $fs1 data 066] \
     -rma  tta.xcsr -edata [regbld ibd_dl11::XCSR rdy]
   
   rlc log "    A3.6: full fifo read -----------------------------"
@@ -258,13 +259,13 @@ stop:
   #     1 rem rd ->  error
   set edata {}
   for {set i 0} { $i < $fs4 } {incr i} {
-    lappend edata [regbldkv ibd_dl11::RXBUF val 1 size [expr {$fs2-$i}] data 066]
+    lappend edata [regbldkv ibd_dl11::RXBUF val 1 fuse [expr {$fs2-$i}] data 066]
   }
   $cpu cp \
     -rbibr tta.xbuf $fs4 -edata $edata \
-    -ribr  tta.xbuf -edata [regbldkv ibd_dl11::RXBUF val 1 size 2 data 066] \
+    -ribr  tta.xbuf -edata [regbldkv ibd_dl11::RXBUF val 1 fuse 2 data 066] \
     -rma   tta.xcsr -edata [regbld ibd_dl11::XCSR rdy] \
-    -ribr  tta.xbuf -edata [regbldkv ibd_dl11::RXBUF val 1 size 1 data 066] \
+    -ribr  tta.xbuf -edata [regbldkv ibd_dl11::RXBUF val 1 fuse 1 data 066] \
     -rma   tta.xcsr -edata [regbld ibd_dl11::XCSR rdy] \
     -ribr  tta.xbuf -estaterr
 }
@@ -363,7 +364,7 @@ if {$type == 0} {                # unbuffered --------------------------
     if {$attnpat & $attndl} {     # dl attn
       $cpu cp \
         -ribr tta.xbuf -edata [regbldkv ibd_dl11::RXBUF \
-                                 val 1 size 1 data $charcur]
+                                 val 1 fuse 1 data $charcur]
       set charcur [expr { ($charcur+1) & 0377 }]
       incr charseen
     }
@@ -377,7 +378,7 @@ if {$type == 0} {                # unbuffered --------------------------
   #   AWIDTH  6    63+15 =  78
   #   AWIDTH  7   127+31 = 158
   set nchar [expr {$fsize + ($fsize>>2)}]
-  set rsize [expr {$fsize>>2}]
+  set rfuse [expr {$fsize>>2}]
   set wttout 10.;               # wtlam timeout 
 
   set fstatmsk [regbld rw11::STAT cmderr rbtout rbnak]; # don't check err !!
@@ -396,22 +397,22 @@ if {$type == 0} {                # unbuffered --------------------------
     if {$attnpat & $attndl} {     # dl attn
       while (1) {
         $cpu cp \
-          -rbibr tta.xbuf $rsize fdata -estat 0x0 $fstatmsk
+          -rbibr tta.xbuf $rfuse fdata -estat 0x0 $fstatmsk
         for {set i 0} { $i < [llength $fdata] } {incr i} {
           set rbuf [lindex $fdata $i]
           set val  [regget ibd_dl11::RXBUF(val)  $rbuf]
-          set size [regget ibd_dl11::RXBUF(size) $rbuf]
+          set fuse [regget ibd_dl11::RXBUF(fuse) $rbuf]
           set data [regget ibd_dl11::RXBUF(data) $rbuf]
           if {$val != 1 || $data != $charcur} {
             rlc log "FAIL: bad data: val: $val; data: $data, exp: $charcur"
             rlc errcnt -inc
           }
-          if {$i   == 0} { set rsize $size }
+          if {$i   == 0} { set rfuse $fuse }
           set charcur [expr { ($charcur+1) & 0177 }]
           incr charseen
         }
-        if {$size <= 1} {
-          rlc log "    rbibr chain ends with size=1 after $charseen"
+        if {$fuse <= 1} {
+          rlc log "    rbibr chain ends with fuse=1 after $charseen"
           break;
         }
       }

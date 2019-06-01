@@ -1,10 +1,11 @@
-# $Id: test_pc11_pr.tcl 1140 2019-04-28 10:21:21Z mueller $
+# $Id: test_pc11_pr.tcl 1155 2019-05-31 06:38:06Z mueller $
 #
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2019-05-30  1155   1.0.1  size->fuse rename
 # 2019-04-21  1134   1.0    Initial version
 # 2019-04-12  1131   0.1    First draft
 #
@@ -94,24 +95,24 @@ if {$type == 0} {                # unbuffered --------------------------
   rlc log "    A2.1: rem write, loc read ------------------------"
   #    loc wr csr.ena --> test BUSY=1; test rem rbuf.busy; test attn send
   $cpu cp \
-    -ribr pca.rbuf -edata [regbld ibd_pc11::RRBUF {rsize 0}] \
+    -ribr pca.rbuf -edata [regbld ibd_pc11::RRBUF {rfuse 0}] \
     -wma  pca.rcsr        [regbld ibd_pc11::RCSR ena] \
     -rma  pca.rcsr -edata [regbld ibd_pc11::RCSR busy] \
-    -ribr pca.rbuf -edata [regbld ibd_pc11::RRBUF rbusy {rsize 0}]
+    -ribr pca.rbuf -edata [regbld ibd_pc11::RRBUF rbusy {rfuse 0}]
   # expect and harvest attn (drop other attn potentially triggered by breset)
   rlc wtlam 1.
   rlc exec -attn -edata $attnpc $attnpc
-  #    rem wr buf --> test DONE=1 RSIZE=1 (1 cmd delay)
+  #    rem wr buf --> test DONE=1 RFUSE=1 (1 cmd delay)
   #    loc rd buf --> test DONE=0 RRIZE=0  test rem rbuf.busy=0
   #    loc rd buf --> test that buf cleared
   $cpu cp \
     -wibr pca.rbuf 0107 \
-    -ribr pca.rbuf -edata [regbld ibd_pc11::RRBUF {rsize 1}] \
+    -ribr pca.rbuf -edata [regbld ibd_pc11::RRBUF {rfuse 1}] \
     -rma  pca.rcsr \
     -rma  pca.rcsr -edata [regbld ibd_pc11::RCSR done] \
     -rma  pca.rbuf -edata 0107 \
     -rma  pca.rcsr -edata [regbld ibd_pc11::RCSR ] \
-    -ribr pca.rbuf -edata [regbld ibd_pc11::RRBUF {rsize 0}] \
+    -ribr pca.rbuf -edata [regbld ibd_pc11::RRBUF {rfuse 0}] \
     -rma  pca.rbuf -edata 0x0
 
   rlc log "    A2.2: rem write, loc write (discards data) -------"
@@ -192,79 +193,79 @@ if {$type == 0} {                # unbuffered --------------------------
   rlc exec -attn -edata $attnpc $attnpc
   
   rlc log "    A2.3: test fifo csr.fclr clears and breset doesn't"
-  #    rem wr buf --> test rbuf.size=1
-  #    rem wr buf --> test rbuf.size=2
-  # 2* rem wr buf --> test rbuf.size=4
-  #    breset     --> test rbuf.size=4
-  # 3* rem wr buf --> test rbuf.size=7
-  #    csr.fclr   --> test rbuf.size=0
+  #    rem wr buf --> test rbuf.fuse=1
+  #    rem wr buf --> test rbuf.fuse=2
+  # 2* rem wr buf --> test rbuf.fuse=4
+  #    breset     --> test rbuf.fuse=4
+  # 3* rem wr buf --> test rbuf.fuse=7
+  #    csr.fclr   --> test rbuf.fuse=0
   $cpu cp \
     -wibr  pca.rbuf 0xaa \
-    -ribr  pca.rbuf -edata [regbld ibd_pc11::RRBUF {rsize 1}] \
+    -ribr  pca.rbuf -edata [regbld ibd_pc11::RRBUF {rfuse 1}] \
     -wibr  pca.rbuf 0x55 \
-    -ribr  pca.rbuf -edata [regbld ibd_pc11::RRBUF {rsize 2}] \
+    -ribr  pca.rbuf -edata [regbld ibd_pc11::RRBUF {rfuse 2}] \
     -wbibr pca.rbuf {0x11 0x22} \
-    -ribr  pca.rbuf -edata [regbld ibd_pc11::RRBUF {rsize 4}] \
+    -ribr  pca.rbuf -edata [regbld ibd_pc11::RRBUF {rfuse 4}] \
     -breset \
-    -ribr  pca.rbuf -edata [regbld ibd_pc11::RRBUF {rsize 4}] \
+    -ribr  pca.rbuf -edata [regbld ibd_pc11::RRBUF {rfuse 4}] \
     -wbibr pca.rbuf {0x33 0x44 0x55} \
-    -ribr  pca.rbuf -edata [regbld ibd_pc11::RRBUF {rsize 7}] \
+    -ribr  pca.rbuf -edata [regbld ibd_pc11::RRBUF {rfuse 7}] \
     -wibr  pca.rcsr [regbld ibd_pc11::RRCSR fclr] \
-    -ribr  pca.rbuf -edata [regbld ibd_pc11::RRBUF {rsize 0}]
+    -ribr  pca.rbuf -edata [regbld ibd_pc11::RRBUF {rfuse 0}]
   # harvest breset/creset triggered attn's
   rlc exec -attn
   rlc wtlam 0.
   
   rlc log "    A2.4: test fifo clear on csr.err=1 ---------------"
-  # 2* rem wr buf --> test rbuf.size=2
-  #    csr.err=1  --> test rbuf.size=0
-  #    rem wr buf --> test rbuf.size=0
+  # 2* rem wr buf --> test rbuf.fuse=2
+  #    csr.err=1  --> test rbuf.fuse=0
+  #    rem wr buf --> test rbuf.fuse=0
   #    csr.err=0 
   $cpu cp \
     -wbibr pca.rbuf {0x66 0x77} \
-    -ribr  pca.rbuf -edata [regbld ibd_pc11::RRBUF {rsize 2}] \
+    -ribr  pca.rbuf -edata [regbld ibd_pc11::RRBUF {rfuse 2}] \
     -wibr  pca.rcsr        [regbld ibd_pc11::RRCSR err] \
-    -ribr  pca.rbuf -edata [regbld ibd_pc11::RRBUF {rsize 0}] \
+    -ribr  pca.rbuf -edata [regbld ibd_pc11::RRBUF {rfuse 0}] \
     -wibr  pca.rbuf 0x88 \
-    -ribr  pca.rbuf -edata [regbld ibd_pc11::RRBUF {rsize 0}] \
+    -ribr  pca.rbuf -edata [regbld ibd_pc11::RRBUF {rfuse 0}] \
     -wibr  pca.rcsr 0x0
   
   rlc log "  A3: test fifo logic -------------------------------------"
   rlc log "    A3.1: fill and overfill fifo ---------------------"
   set rdata {}
   for {set i 0} { $i < $fsize } {incr i} { lappend rdata [expr {$i+0100}] }
-  #    rem wr fsize bytes --> test rbuf.size=fsize
-  #    rem wr buf         --> test error and rbuf.size=fsize
+  #    rem wr fsize bytes --> test rbuf.fuse=fsize
+  #    rem wr buf         --> test error and rbuf.fuse=fsize
   #    csr.fclr to discard data
   $cpu cp \
     -wbibr pca.rbuf $rdata \
-    -ribr  pca.rbuf -edata [regbldkv ibd_pc11::RRBUF rsize $fsize] \
+    -ribr  pca.rbuf -edata [regbldkv ibd_pc11::RRBUF rfuse $fsize] \
     -wibr  pca.rbuf 0xff -estaterr \
-    -ribr  pca.rbuf -edata [regbldkv ibd_pc11::RRBUF rsize $fsize] \
+    -ribr  pca.rbuf -edata [regbldkv ibd_pc11::RRBUF rfuse $fsize] \
     -wibr  pca.rcsr [regbld ibd_pc11::RRCSR fclr]
   
   rlc log "    A3.2: fill and empty fifo, attn on last read -----"
-  #    rem wr 2 bytes --> test rbuf.size=2
+  #    rem wr 2 bytes --> test rbuf.fuse=2
   #    loc wr csr.ena --> test DONE=1 (1 cmd delay)
-  #    loc rd buf     --> test data; test rbuf.size=1; test no attn
+  #    loc rd buf     --> test data; test rbuf.fuse=1; test no attn
   $cpu cp \
     -wbibr pca.rbuf {0x55 0xaa} \
-    -ribr  pca.rbuf -edata [regbld ibd_pc11::RRBUF {rsize 2}] \
+    -ribr  pca.rbuf -edata [regbld ibd_pc11::RRBUF {rfuse 2}] \
     -wma   pca.rcsr        [regbld ibd_pc11::RCSR ena] \
     -rma   pca.rcsr \
     -rma   pca.rcsr -edata [regbld ibd_pc11::RCSR done] \
     -rma   pca.rbuf -edata 0x55 \
-    -ribr  pca.rbuf -edata [regbld ibd_pc11::RRBUF {rsize 1}]
+    -ribr  pca.rbuf -edata [regbld ibd_pc11::RRBUF {rfuse 1}]
   # test that no attn send
   rlc exec -attn -edata 0x0
   #    loc wr csr.ena --> test DONE=1 (1 cmd delay)
-  #    loc rd buf     --> test data; test rbuf.size=0; test attn seen
+  #    loc rd buf     --> test data; test rbuf.fuse=0; test attn seen
   $cpu cp \
     -wma   pca.rcsr        [regbld ibd_pc11::RCSR ena] \
     -rma   pca.rcsr \
     -rma   pca.rcsr -edata [regbld ibd_pc11::RCSR done] \
     -rma   pca.rbuf -edata 0xaa \
-    -ribr  pca.rbuf -edata [regbld ibd_pc11::RRBUF {rsize 0}]
+    -ribr  pca.rbuf -edata [regbld ibd_pc11::RRBUF {rfuse 0}]
   # expect and harvest attn
   rlc wtlam 1.
   rlc exec -attn -edata $attnpc $attnpc

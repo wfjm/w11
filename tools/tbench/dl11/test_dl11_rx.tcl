@@ -1,10 +1,11 @@
-# $Id: test_dl11_rx.tcl 1140 2019-04-28 10:21:21Z mueller $
+# $Id: test_dl11_rx.tcl 1155 2019-05-31 06:38:06Z mueller $
 #
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 # License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2019-05-30  1155   1.0.1  size->fuse rename
 # 2019-04-26  1139   1.0    Initial version (derived from test_pc11_pr.tcl)
 #
 # Test DL11 receiver response 
@@ -70,18 +71,18 @@ if {$type == 0} {                # unbuffered --------------------------
   rlc log "  A2: test data response (unbuffered) -----------------------"
   rlc log "    A2.1: rem write, loc read ------------------------"
     
-  #                   test        RSIZE=0
-  #    rem wr buf --> test DONE=1 RSIZE=1 (1 cmd delay)
-  #    loc rd buf --> test DONE=0 RSIZE=0;
+  #                   test        RFUSE=0
+  #    rem wr buf --> test DONE=1 RFUSE=1 (1 cmd delay)
+  #    loc rd buf --> test DONE=0 RFUSE=0;
   $cpu cp \
-    -ribr tta.rbuf -edata [regbld ibd_dl11::RRBUF {rsize 0}] \
+    -ribr tta.rbuf -edata [regbld ibd_dl11::RRBUF {rfuse 0}] \
     -wibr tta.rbuf 0107 \
-    -ribr tta.rbuf -edata [regbld ibd_dl11::RRBUF {rsize 1}] \
+    -ribr tta.rbuf -edata [regbld ibd_dl11::RRBUF {rfuse 1}] \
     -rma  tta.rcsr \
     -rma  tta.rcsr -edata [regbld ibd_dl11::RCSR done] \
     -rma  tta.rbuf -edata 0107 \
     -rma  tta.rcsr -edata [regbld ibd_dl11::RCSR ] \
-    -ribr tta.rbuf -edata [regbld ibd_dl11::RRBUF {rsize 0}]
+    -ribr tta.rbuf -edata [regbld ibd_dl11::RRBUF {rfuse 0}]
 
   # expect and harvest attn (drop other attn potentially triggered by breset)
   rlc wtlam 1.
@@ -108,25 +109,25 @@ if {$type == 0} {                # unbuffered --------------------------
   rlc exec -attn -edata $attndl $attndl
   
   rlc log "    A2.2: test fifo csr.fclr clears and breset doesn't"
-  #    rem wr buf --> test rbuf.size=1
-  #    rem wr buf --> test rbuf.size=2
-  # 2* rem wr buf --> test rbuf.size=4
-  #    breset     --> test rbuf.size=4
-  # 3* rem wr buf --> test rbuf.size=7
-  #    csr.fclr   --> test rbuf.size=0
+  #    rem wr buf --> test rbuf.fuse=1
+  #    rem wr buf --> test rbuf.fuse=2
+  # 2* rem wr buf --> test rbuf.fuse=4
+  #    breset     --> test rbuf.fuse=4
+  # 3* rem wr buf --> test rbuf.fuse=7
+  #    csr.fclr   --> test rbuf.fuse=0
   $cpu cp \
     -wibr  tta.rbuf 0xaa \
-    -ribr  tta.rbuf -edata [regbld ibd_dl11::RRBUF {rsize 1}] \
+    -ribr  tta.rbuf -edata [regbld ibd_dl11::RRBUF {rfuse 1}] \
     -wibr  tta.rbuf 0x55 \
-    -ribr  tta.rbuf -edata [regbld ibd_dl11::RRBUF {rsize 2}] \
+    -ribr  tta.rbuf -edata [regbld ibd_dl11::RRBUF {rfuse 2}] \
     -wbibr tta.rbuf {0x11 0x22} \
-    -ribr  tta.rbuf -edata [regbld ibd_dl11::RRBUF {rsize 4}] \
+    -ribr  tta.rbuf -edata [regbld ibd_dl11::RRBUF {rfuse 4}] \
     -breset \
-    -ribr  tta.rbuf -edata [regbld ibd_dl11::RRBUF {rsize 4}] \
+    -ribr  tta.rbuf -edata [regbld ibd_dl11::RRBUF {rfuse 4}] \
     -wbibr tta.rbuf {0x33 0x44 0x55} \
-    -ribr  tta.rbuf -edata [regbld ibd_dl11::RRBUF {rsize 7}] \
+    -ribr  tta.rbuf -edata [regbld ibd_dl11::RRBUF {rfuse 7}] \
     -wibr  tta.rcsr [regbld ibd_dl11::RRCSR fclr] \
-    -ribr  tta.rbuf -edata [regbld ibd_dl11::RRBUF {rsize 0}]
+    -ribr  tta.rbuf -edata [regbld ibd_dl11::RRBUF {rfuse 0}]
   # harvest breset/creset triggered attn's
   rlc exec -attn
   rlc wtlam 0.
@@ -135,34 +136,34 @@ if {$type == 0} {                # unbuffered --------------------------
   rlc log "    A3.1: fill and overfill fifo ---------------------"
   set rdata {}
   for {set i 0} { $i < $fsize } {incr i} { lappend rdata [expr {$i+0100}] }
-  #    rem wr fsize bytes --> test rbuf.size=fsize
-  #    rem wr buf         --> test error and rbuf.size=fsize
+  #    rem wr fsize bytes --> test rbuf.fuse=fsize
+  #    rem wr buf         --> test error and rbuf.fuse=fsize
   #    csr.fclr to discard data
   $cpu cp \
     -wbibr tta.rbuf $rdata \
-    -ribr  tta.rbuf -edata [regbldkv ibd_dl11::RRBUF rsize $fsize] \
+    -ribr  tta.rbuf -edata [regbldkv ibd_dl11::RRBUF rfuse $fsize] \
     -wibr  tta.rbuf 0xff -estaterr \
-    -ribr  tta.rbuf -edata [regbldkv ibd_dl11::RRBUF rsize $fsize] \
+    -ribr  tta.rbuf -edata [regbldkv ibd_dl11::RRBUF rfuse $fsize] \
     -wibr  tta.rcsr [regbld ibd_dl11::RRCSR fclr]
   
   rlc log "    A3.2: fill and empty fifo, attn on last read -----"
-  #    rem wr 2 bytes --> test rbuf.size=2
-  #    loc rd buf     --> test data; test rbuf.size=1; test no attn
+  #    rem wr 2 bytes --> test rbuf.fuse=2
+  #    loc rd buf     --> test data; test rbuf.fuse=1; test no attn
   $cpu cp \
     -wbibr tta.rbuf {0x55 0xaa} \
-    -ribr  tta.rbuf -edata [regbld ibd_dl11::RRBUF {rsize 2}] \
+    -ribr  tta.rbuf -edata [regbld ibd_dl11::RRBUF {rfuse 2}] \
     -rma   tta.rcsr \
     -rma   tta.rcsr -edata [regbld ibd_dl11::RCSR done] \
     -rma   tta.rbuf -edata 0x55 \
-    -ribr  tta.rbuf -edata [regbld ibd_dl11::RRBUF {rsize 1}]
+    -ribr  tta.rbuf -edata [regbld ibd_dl11::RRBUF {rfuse 1}]
   # test that no attn send
   rlc exec -attn -edata 0x0
-  #    loc rd buf     --> test data; test rbuf.size=0; test attn seen
+  #    loc rd buf     --> test data; test rbuf.fuse=0; test attn seen
   $cpu cp \
     -rma   tta.rcsr \
     -rma   tta.rcsr -edata [regbld ibd_dl11::RCSR done] \
     -rma   tta.rbuf -edata 0xaa \
-    -ribr  tta.rbuf -edata [regbld ibd_dl11::RRBUF {rsize 0}]
+    -ribr  tta.rbuf -edata [regbld ibd_dl11::RRBUF {rfuse 0}]
   # expect and harvest attn
   rlc wtlam 1.
   rlc exec -attn -edata $attndl $attndl

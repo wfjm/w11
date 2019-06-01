@@ -1,4 +1,4 @@
-// $Id: Rw11CntlLP11.hpp 1140 2019-04-28 10:21:21Z mueller $
+// $Id: Rw11CntlLP11.hpp 1155 2019-05-31 06:38:06Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History:
 // Date         Rev Version  Comment
+// 2019-05-30  1155   1.2.3  size->fuse rename
 // 2019-04-14  1131   1.2.2  remove SetOnline(), use UnitSetup()
 // 2019-04-07  1127   1.2.1  add fQueBusy and queue protection
 // 2019-03-17  1123   1.2    buf.val in msb; add lp11_buf readout
@@ -75,9 +76,9 @@ namespace Retro {
       static const uint16_t kCSR_V_TYPE  =  8;      //!< csr.type shift
       static const uint16_t kCSR_B_TYPE  = 0007;    //!< csr.type bit mask
       static const uint16_t kBUF_M_VAL   = kWBit15; //!< buf.val mask
-      static const uint16_t kBUF_V_SIZE  =  8;      //!< buf.size shift
-      static const uint16_t kBUF_B_SIZE  = 0177;    //!< buf.size bit mask
-      static const uint16_t kBUF_M_BUF   = 0177;    //!< buf data mask
+      static const uint16_t kBUF_V_FUSE  =  8;      //!< buf.fuse shift
+      static const uint16_t kBUF_B_FUSE  = 0177;    //!< buf.fuse bit mask
+      static const uint16_t kBUF_M_DATA  = 0177;    //!< buf data mask
 
     // statistics counter indices
       enum stats {

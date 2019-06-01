@@ -1,4 +1,4 @@
-// $Id: Rw11CntlPC11.hpp 1140 2019-04-28 10:21:21Z mueller $
+// $Id: Rw11CntlPC11.hpp 1155 2019-05-31 06:38:06Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-05-30  1155   1.4.1  size->fuse rename
 // 2019-04-20  1134   1.4    add pc11_buf readout
 // 2019-04-14  1131   1.3.1  remove SetOnline(), use UnitSetup()
 // 2019-04-06  1126   1.3    pbuf.val in msb; rbusy in rbuf (new iface)
@@ -90,17 +91,17 @@ namespace Retro {
       static const uint16_t kRCSR_B_TYPE  = 0007;    //!< rcsr.type bit mask
       static const uint16_t kRCSR_M_FCLR  = kWBit01; //!< rcsr.fclr mask
       static const uint16_t kRBUF_M_RBUSY = kWBit15; //!< rbuf.rbusy mask
-      static const uint16_t kRBUF_V_SIZE =  8;       //!< rbuf.size shift
-      static const uint16_t kRBUF_B_SIZE = 0177;     //!< rbuf.size bit mask
-      static const uint16_t kRBUF_M_BUF   = 0377;    //!< rbuf data mask
+      static const uint16_t kRBUF_V_FUSE =  8;       //!< rbuf.fuse shift
+      static const uint16_t kRBUF_B_FUSE = 0177;     //!< rbuf.fuse bit mask
+      static const uint16_t kRBUF_M_DATA  = 0377;    //!< rbuf data mask
     
       static const uint16_t kPCSR_M_ERROR = kWBit15; //!< pcsr.err mask
       static const uint16_t kPCSR_V_RLIM  = 12;      //!< pcsr.rlim shift 
       static const uint16_t kPCSR_B_RLIM  = 007;     //!< pcsr.rlim bit mask
       static const uint16_t kPBUF_M_VAL   = kWBit15; //!< pbuf.val mask
-      static const uint16_t kPBUF_V_SIZE  =  8;      //!< pbuf.size shift
-      static const uint16_t kPBUF_B_SIZE  = 0177;    //!< pbuf.size bit mask
-      static const uint16_t kPBUF_M_BUF   = 0377;    //!< pbuf data mask
+      static const uint16_t kPBUF_V_FUSE  =  8;      //!< pbuf.fuse shift
+      static const uint16_t kPBUF_B_FUSE  = 0177;    //!< pbuf.fuse bit mask
+      static const uint16_t kPBUF_M_DATA  = 0377;    //!< pbuf data mask
     
     // statistics counter indices
       enum stats {

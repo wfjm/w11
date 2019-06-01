@@ -1,4 +1,4 @@
--- $Id: ibdr_pc11_buf.vhd 1139 2019-04-27 14:00:38Z mueller $
+-- $Id: ibdr_pc11_buf.vhd 1156 2019-05-31 18:22:40Z mueller $
 --
 -- Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -23,6 +23,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-05-31  1156   1.0.1  size->fuse rename; re-organize rlim handling
 -- 2019-04-24  1137   1.0    Initial version
 -- 2019-04-07  1129   0.1    First draft (derived from ibdr_pc11)
 ------------------------------------------------------------------------------
@@ -78,8 +79,8 @@ architecture syn of ibdr_pc11_buf is
   constant rcsr_ibf_renb :  integer :=  0;
 
   constant rbuf_ibf_rbusy : integer := 15;
-  subtype  rbuf_ibf_rsize   is integer range AWIDTH-1+8 downto 8;
-  subtype  rbuf_ibf_psize   is integer range AWIDTH-1   downto 0;
+  subtype  rbuf_ibf_rfuse   is integer range AWIDTH-1+8 downto 8;
+  subtype  rbuf_ibf_pfuse   is integer range AWIDTH-1   downto 0;
   subtype  rbuf_ibf_data    is integer range  7 downto 0;
 
   constant pcsr_ibf_perr :  integer := 15;
@@ -90,7 +91,7 @@ architecture syn of ibdr_pc11_buf is
   constant pcsr_ibf_rlb :   integer :=  4;
 
   constant pbuf_ibf_pval :  integer := 15;
-  subtype  pbuf_ibf_size    is integer range AWIDTH-1+8 downto 8;
+  subtype  pbuf_ibf_fuse    is integer range AWIDTH-1+8 downto 8;
   subtype  pbuf_ibf_data    is integer range  7 downto 0;
 
   type regs_type is record              -- state registers
@@ -123,7 +124,7 @@ architecture syn of ibdr_pc11_buf is
     '0'                                 -- pintreq
   );
 
-  constant c_size1 : slv(AWIDTH-1 downto 0) := slv(to_unsigned(1,AWIDTH));
+  constant c_fuse1 : slv(AWIDTH-1 downto 0) := slv(to_unsigned(1,AWIDTH));
 
   signal R_REGS : regs_type := regs_init;
   signal N_REGS : regs_type := regs_init;
@@ -134,7 +135,7 @@ architecture syn of ibdr_pc11_buf is
   signal RBUF_RESET : slbit := '0';
   signal RBUF_EMPTY : slbit := '0';
   signal RBUF_FULL  : slbit := '0';
-  signal RBUF_SIZE  : slv(AWIDTH-1 downto 0) := (others=>'0');
+  signal RBUF_FUSE  : slv(AWIDTH-1 downto 0) := (others=>'0');
   
   signal PBUF_CE : slbit := '0';
   signal PBUF_WE : slbit := '0';
@@ -142,7 +143,7 @@ architecture syn of ibdr_pc11_buf is
   signal PBUF_RESET : slbit := '0';
   signal PBUF_EMPTY : slbit := '0';
   signal PBUF_FULL  : slbit := '0';
-  signal PBUF_SIZE  : slv(AWIDTH-1 downto 0) := (others=>'0');
+  signal PBUF_FUSE  : slv(AWIDTH-1 downto 0) := (others=>'0');
 
   signal RRLIM_START : slbit := '0';
   signal RRLIM_BUSY  : slbit := '0';
@@ -168,7 +169,7 @@ begin
       DO    => RBUF_DO,
       EMPTY => RBUF_EMPTY,
       FULL  => RBUF_FULL,
-      SIZE  => RBUF_SIZE
+      SIZE  => RBUF_FUSE
     );
   
   PBUF : fifo_simple_dram
@@ -184,7 +185,7 @@ begin
       DO    => PBUF_DO,
       EMPTY => PBUF_EMPTY,
       FULL  => PBUF_FULL,
-      SIZE  => PBUF_SIZE
+      SIZE  => PBUF_FUSE
     );
   
   RRLIM : ib_rlim_slv
@@ -229,8 +230,8 @@ begin
   end process proc_regs;
 
   proc_next : process (R_REGS, IB_MREQ, EI_ACK_PTR, EI_ACK_PTP, RESET,
-                       RBUF_DO, RBUF_EMPTY, RBUF_FULL, RBUF_SIZE, RRLIM_BUSY,
-                       PBUF_DO, PBUF_EMPTY, PBUF_FULL, PBUF_SIZE, PRLIM_BUSY)
+                       RBUF_DO, RBUF_EMPTY, RBUF_FULL, RBUF_FUSE, RRLIM_BUSY,
+                       PBUF_DO, PBUF_EMPTY, PBUF_FULL, PBUF_FUSE, PRLIM_BUSY)
     variable r : regs_type := regs_init;
     variable n : regs_type := regs_init;
     variable idout : slv16 := (others=>'0');
@@ -275,7 +276,7 @@ begin
     end if;
 
     -- ibus transactions
-    if r.ibsel = '1' then
+    if r.ibsel = '1' then               -- ibus selected ---------------------
       case IB_MREQ.addr(2 downto 1) is
 
         when ibaddr_rcsr =>             -- RCSR -- reader control status -----
@@ -300,11 +301,11 @@ begin
               end if;
               if IB_MREQ.din(rcsr_ibf_renb) = '1' then -- set RENB
                 if r.rerr = '0' then                   -- if not in error state
-                  n.rbusy := '1';                        -- set busy
+                  n.rbusy   := '1';                      -- set busy
+                  n.rdone   := '0';                      -- clear done
                   n.rintreq := '0';                      -- cancel interrupt
-                  n.rique := '0';                        --   and que flag
-                  n.riack := '0';                        --   and ack flag
-                  irrlimsta := '1';                      -- start reader timer
+                  n.rique   := '0';                      --   and que flag
+                  n.riack   := '0';                      --   and ack flag
                 else                                   -- if in error state
                   if r.rie = '1' then                    -- if interrupts on
                     n.rintreq := '1';                      -- request interrupt
@@ -352,7 +353,7 @@ begin
               if r.rdone = '1'  then      -- data available
                 irbufce := '1';             -- read next value from fifo
                 irbufwe := '0';
-                if RBUF_SIZE = c_size1 then -- last value (size=1)
+                if RBUF_FUSE = c_fuse1 then -- last value (fuse=1)
                   ilam := '1';                -- rri lam
                 end if;
               end if;
@@ -360,8 +361,8 @@ begin
 
           else                          -- rri ---------------------
             idout(rbuf_ibf_rbusy) := r.rbusy;
-            idout(rbuf_ibf_rsize) := RBUF_SIZE;
-            idout(rbuf_ibf_psize) := PBUF_SIZE;
+            idout(rbuf_ibf_rfuse) := RBUF_FUSE;
+            idout(rbuf_ibf_pfuse) := PBUF_FUSE;
             if ibw0 = '1' then
               if RBUF_FULL = '0' then       -- fifo not full
                 irbufce  := '1';              -- write to fifo
@@ -414,8 +415,9 @@ begin
           if IB_MREQ.racc = '0' then    -- cpu ---------------------
             if ibw0 = '1' then
               if r.perr = '0' then        -- if not in error state
-                iprlimsta := '1';           -- start puncher timer
-                if r.prdy = '1' then        -- ignore buf write when rdy=0
+               if r.prdy = '1' then        -- ignore buf write when rdy=0
+                  n.prdy    := '0';           -- clear ready
+                  n.pintreq := '0';           -- cancel interrupt
                   if PBUF_FULL = '0' then     -- fifo not full
                     ipbufce  := '1';            -- write to fifo
                     ipbufwe  := '1';
@@ -433,7 +435,7 @@ begin
 
           else                          -- rri ---------------------
             idout(pbuf_ibf_pval)  := not PBUF_EMPTY;
-            idout(pbuf_ibf_size)  := PBUF_SIZE;
+            idout(pbuf_ibf_fuse)  := PBUF_FUSE;
             idout(pbuf_ibf_data)  := PBUF_DO;
             if ibrd = '1' then
               if PBUF_EMPTY = '0' then      -- fifo not empty
@@ -448,7 +450,32 @@ begin
         when others => null;
       end case;
       
-    end if;
+    else                                -- ibus not selected -----------------
+      -- handle pr done, timer and interrupt
+      if RBUF_EMPTY='0' and RRLIM_BUSY='0' then -- not empty and not busy ?
+        if r.rbusy = '1' then                   -- reader enabled ?
+          n.rbusy   := '0';                       -- clear busy
+          n.rdone   := '1';                       -- set done
+          irrlimsta := '1';                       -- start timer
+          if r.rdone='0' and                      -- done going 0->1
+             r.rerr='0' and r.rie='1' then        -- and err=0 and ie=1 
+            n.rintreq := '1';                       -- request interrupt
+            n.rique   := '1';                       -- and set que flag
+          end if;
+        end if;
+      end if;
+ 
+      -- handle pp ready, timer and interrupt
+      if PBUF_FULL='0' and PRLIM_BUSY='0' then -- not full and not busy ?
+        if r.prdy = '0' then                     -- ready not set ? 
+          n.prdy    := '1';                        -- set ready
+          iprlimsta := '1';                        -- start timer
+          if r.perr='0' and r.pie='1' then         -- err=0 and irupt enabled 
+            n.pintreq := '1';                        -- request interrupt
+          end if;
+        end if;
+      end if;
+    end if; -- else r.ibsel='1'
 
     -- other state changes
     if EI_ACK_PTR = '1' then
@@ -457,31 +484,6 @@ begin
     end if;
     if EI_ACK_PTP = '1' then
       n.pintreq := '0';
-    end if;
-
-    if (RRLIM_BUSY or RBUF_EMPTY) ='1' then -- timer busy or fifo empty
-      n.rdone   := '0';                       -- clear done
-    else                                    -- timer not busy and fifo not empty
-      if r.rbusy = '1' then                   -- reader enabled ?
-        n.rbusy := '0';                         -- clear busy
-        n.rdone := '1';                         -- set done
-        if r.rdone='0' and                        -- done going 0->1
-           r.rerr='0' and r.rie='1' then          -- and err=0 and ie=1 
-          n.rintreq := '1';                         -- request interrupt
-          n.rique   := '1';                         -- and set que flag
-        end if;
-      end if;
-    end if;
-    
-    if (PRLIM_BUSY or PBUF_FULL) ='1' then -- busy or fifo full
-      n.prdy    := '0';                      -- clear ready
-      n.pintreq := '0';                      -- clear interrupt
-    else                                  -- not busy and fifo not full
-      n.prdy    := '1';                      -- set ready
-      if r.prdy='0' and                     -- ready going 0->1
-         r.perr='0' and r.pie='1' then        -- and err=0 and interrupt enabled 
-        n.pintreq := '1';                      -- request interrupt
-      end if;
     end if;
     
     N_REGS <= n;

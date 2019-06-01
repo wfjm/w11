@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDL11.cpp 1148 2019-05-12 10:10:44Z mueller $
+// $Id: Rw11CntlDL11.cpp 1157 2019-05-31 18:32:14Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-05-31  1156   1.5.1  size->fuse rename; use unit.StatInc[RT]x
 // 2019-04-27  1139   1.5    add dl11_buf readout
 // 2019-04-19  1133   1.4.2  use ExecWibr(),ExecRibr()
 // 2019-04-14  1131   1.4.1  proper unit init, call UnitSetupAll() in Start()
@@ -81,18 +82,18 @@ const uint16_t Rw11CntlDL11::kRCSR_V_TYPE;
 const uint16_t Rw11CntlDL11::kRCSR_B_TYPE;
 const uint16_t Rw11CntlDL11::kRCSR_M_RDONE;
 const uint16_t Rw11CntlDL11::kRCSR_M_FCLR;
-const uint16_t Rw11CntlDL11::kRBUF_V_RSIZE;
-const uint16_t Rw11CntlDL11::kRBUF_B_RSIZE;
-const uint16_t Rw11CntlDL11::kRBUF_M_BUF;
+const uint16_t Rw11CntlDL11::kRBUF_V_RFUSE;
+const uint16_t Rw11CntlDL11::kRBUF_B_RFUSE;
+const uint16_t Rw11CntlDL11::kRBUF_M_DATA;
   
 const uint16_t Rw11CntlDL11::kXCSR_V_RLIM;
 const uint16_t Rw11CntlDL11::kXCSR_B_RLIM;
 const uint16_t Rw11CntlDL11::kXCSR_M_XRDY;
 const uint16_t Rw11CntlDL11::kXCSR_M_FCLR;
 const uint16_t Rw11CntlDL11::kXBUF_M_VAL;
-const uint16_t Rw11CntlDL11::kXBUF_V_SIZE;
-const uint16_t Rw11CntlDL11::kXBUF_B_SIZE;
-const uint16_t Rw11CntlDL11::kXBUF_M_BUF;
+const uint16_t Rw11CntlDL11::kXBUF_V_FUSE;
+const uint16_t Rw11CntlDL11::kXBUF_B_FUSE;
+const uint16_t Rw11CntlDL11::kXBUF_M_DATA;
 
 //------------------------------------------+-----------------------------------
 //! Default constructor
@@ -107,17 +108,14 @@ Rw11CntlDL11::Rw11CntlDL11()
     fItype(0),
     fFsize(0),
     fTxRblkSize(4),
-    fTxQueBusy(false)
+    fTxQueBusy(false),
+    fLastRbuf(0)
 {
   // must be here because Units have a back-ptr (not available at Rw11CntlBase)
   fspUnit[0].reset(new Rw11UnitDL11(this, 0)); // single unit controller
   
   fStats.Define(kStatNRxBlk,  "NRxBlk" , "wblk done");
   fStats.Define(kStatNTxQue,  "NTxQue" , "rblk queued");
-  fStats.Define(kStatNRxChar, "NRxChar", "input  char");
-  fStats.Define(kStatNRxLine, "NRxLine", "input  lines");
-  fStats.Define(kStatNTxChar, "NTxChar", "output char");
-  fStats.Define(kStatNTxLine, "NTxLine", "output lines");
 }
 
 //------------------------------------------+-----------------------------------
@@ -198,11 +196,16 @@ void Rw11CntlDL11::Wakeup()
 {
   if (fspUnit[0]->RcvQueueEmpty()) return;  // spurious call 
 
-  uint16_t rbuf = Cpu().ExecRibr(fBase+kRBUF);
   if (!Buffered()) {
-    RxProcessUnbuf();
+    uint16_t rbuf  = Cpu().ExecRibr(fBase+kRBUF);
+    uint16_t rfuse = (rbuf >>kRBUF_V_RFUSE) & kRBUF_B_RFUSE;
+    if (rfuse == 0) RxProcessUnbuf();
   } else {
-    RxProcessBuf(rbuf);
+    uint16_t rfuse = (fLastRbuf>>kRBUF_V_RFUSE) & kRBUF_B_RFUSE;
+    if (rfuse > fFsize/2) {
+      fLastRbuf = Cpu().ExecRibr(fBase+kRBUF);
+    }
+    RxProcessBuf(fLastRbuf);
   }
 
   return;
@@ -265,6 +268,7 @@ void Rw11CntlDL11::Dump(std::ostream& os, int ind, const char* text,
   os << bl << "  fFsize:          " << RosPrintf(fFsize,"d",3) << endl;
   os << bl << "  fTxRblkSize:     " << RosPrintf(fTxRblkSize,"d",3) << endl;
   os << bl << "  fTxQueBusy:      " << RosPrintf(fTxQueBusy) << endl;
+  os << bl << "  fTLastRbuf:      " << RosPrintf(fLastRbuf) << endl;
 
   Rw11CntlBase<Rw11UnitDL11,1>::Dump(os, ind, " ^", detail);
   return;
@@ -282,8 +286,9 @@ int Rw11CntlDL11::AttnHandler(RlinkServer::AttnArgs& args)
     ProcessUnbuf(fPrimClist[fPC_rbuf].Data(),
                  fPrimClist[fPC_xbuf].Data());
   } else {                                  // buffered iface ----------------
-    RxProcessBuf(fPrimClist[fPC_rbuf].Data());
-    TxProcessBuf(fPrimClist[fPC_xbuf], true, fPrimClist[fPC_rbuf].Data());
+    fLastRbuf = fPrimClist[fPC_rbuf].Data();
+    TxProcessBuf(fPrimClist[fPC_xbuf], true, fLastRbuf);
+    RxProcessBuf(fLastRbuf);
   }
 
   return 0;
@@ -294,17 +299,16 @@ int Rw11CntlDL11::AttnHandler(RlinkServer::AttnArgs& args)
 
 void Rw11CntlDL11::ProcessUnbuf(uint16_t rbuf, uint16_t xbuf)
 {
-  uint8_t  ochr  = xbuf & kXBUF_M_BUF;
-  uint16_t rsize = (rbuf >>kRBUF_V_RSIZE) & kRBUF_B_RSIZE;
+  uint8_t  ochr  = xbuf & kXBUF_M_DATA;
+  uint16_t rfuse = (rbuf >>kRBUF_V_RFUSE) & kRBUF_B_RFUSE;
   bool xval = xbuf & kXBUF_M_VAL;
 
   if (fTraceLevel>0) TraceChar('t', xbuf, ochr);
   if (xval) {
     fspUnit[0]->Snd(&ochr, 1);
-    fStats.Inc(kStatNTxChar);
-    if (ochr == '\n') fStats.Inc(kStatNTxLine); // for output count LF
+    fspUnit[0]->StatIncTx(ochr);
   }
-  if (rsize==0 && !fspUnit[0]->RcvQueueEmpty()) RxProcessUnbuf();
+  if (rfuse==0 && !fspUnit[0]->RcvQueueEmpty()) RxProcessUnbuf();
 }
 
 //------------------------------------------+-----------------------------------
@@ -314,8 +318,7 @@ void Rw11CntlDL11::ProcessUnbuf(uint16_t rbuf, uint16_t xbuf)
 void Rw11CntlDL11::RxProcessUnbuf()
 {
   uint8_t ichr = fspUnit[0]->RcvQueueNext();
-  fStats.Inc(kStatNRxChar);
-  if (ichr == '\r') fStats.Inc(kStatNRxLine); // on input count CR
+  fspUnit[0]->StatIncRx(ichr);
   if (fTraceLevel>0) TraceChar('r', 0, ichr);
   Cpu().ExecWibr(fBase+kRBUF, ichr);
   return;
@@ -326,28 +329,27 @@ void Rw11CntlDL11::RxProcessUnbuf()
 
 void Rw11CntlDL11::RxProcessBuf(uint16_t rbuf)
 {
-  uint16_t rsize = (rbuf >>kRBUF_V_RSIZE) & kRBUF_B_RSIZE;
+  uint16_t rfuse = (rbuf >>kRBUF_V_RFUSE) & kRBUF_B_RFUSE;
   
-  if (rsize >= fRxQlim) return;             // no space in fifo  -> quit
+  if (rfuse >= fRxQlim) return;             // no space in fifo  -> quit
   if (fspUnit[0]->RcvQueueEmpty()) return;  // no data available -> quit
   
   uint16_t qsiz = fspUnit[0]->RcvQueueSize();
-  uint16_t nmax = fRxQlim - rsize;          // limit is fifo space
+  uint16_t nmax = fRxQlim - rfuse;          // limit is fifo space
   if (qsiz < nmax) nmax = qsiz;             //       or avail data
 
   vector<uint16_t> iblock;
   iblock.reserve(nmax);
   for (uint16_t i = 0; i<nmax; i++) {
     uint8_t ichr = fspUnit[0]->RcvQueueNext();
-    if (ichr == '\r') fStats.Inc(kStatNRxLine); // on input count CR
     iblock.push_back(uint16_t(ichr));
+    fspUnit[0]->StatIncRx(ichr);
   }
-  fStats.Inc(kStatNRxChar,double(nmax));
   
   if (fTraceLevel > 0) {
     RlogMsg lmsg(LogFile());
-    lmsg << "-I " << Name() << ":"
-         << " rsize=" << RosPrintf(rsize,"d",3)
+    lmsg << "-I " << Name() << ": rx"
+         << " rfuse=" << RosPrintf(rfuse,"d",3)
          << " size=" << RosPrintf(iblock.size(),"d",3);
     if (fTraceLevel > 1) RtraceTools::TraceBuffer(lmsg, iblock.data(),
                                                   iblock.size(), fTraceLevel);
@@ -356,7 +358,10 @@ void Rw11CntlDL11::RxProcessBuf(uint16_t rbuf)
   fStats.Inc(kStatNRxBlk);
   RlinkCommandList clist;
   Cpu().AddWbibr(clist, fBase+kRBUF, move(iblock));
+  int irbuf = Cpu().AddRibr(clist, fBase+kRBUF);
   Server().Exec(clist);
+  
+  fLastRbuf = clist[irbuf].Data();          // remember rbuf after fifo write
 
   return;
 }
@@ -369,37 +374,35 @@ void Rw11CntlDL11::TxProcessBuf(const RlinkCommand& cmd, bool prim,
 {
   const uint16_t* xbuf = cmd.BlockPointer();
   size_t done = cmd.BlockDone();
+  if (done == 0) return;
 
   uint16_t fbeg = 0;
   uint16_t fend = 0;
   uint16_t fdel = 0;
-  uint16_t smin = 0;
-  uint16_t smax = 0;
+  uint16_t fumin = 0;
+  uint16_t fumax = 0;
 
-  if (done > 0) {
-    fbeg = (xbuf[0]     >>kXBUF_V_SIZE) & kXBUF_B_SIZE;
-    fend = (xbuf[done-1]>>kXBUF_V_SIZE) & kXBUF_B_SIZE;
-    fdel = fbeg-fend+1;
-    smin = kFifoMaxSize;
+  fbeg  = (xbuf[0]     >>kXBUF_V_FUSE) & kXBUF_B_FUSE;
+  fend  = (xbuf[done-1]>>kXBUF_V_FUSE) & kXBUF_B_FUSE;
+  fdel  = fbeg-fend+1;
+  fumin = kFifoMaxSize;
 
-    uint8_t ochr[kFifoMaxSize];
-    for (size_t i=0; i < done; i++) {
-      uint16_t size = (xbuf[i]>>kXBUF_V_SIZE) & kXBUF_B_SIZE;
-      ochr[i]       =  xbuf[i]                & kXBUF_M_BUF;
-      if (ochr[i] == '\n') fStats.Inc(kStatNTxLine); // for output count LF
-      smin = min(smin,size);
-      smax = max(smax,size);
-    }
-    fStats.Inc(kStatNTxChar,double(done));
-    fspUnit[0]->Snd(ochr, done);
+  uint8_t ochr[kFifoMaxSize];
+  for (size_t i=0; i < done; i++) {
+    uint16_t fuse = (xbuf[i]>>kXBUF_V_FUSE) & kXBUF_B_FUSE;
+    ochr[i]       =  xbuf[i]                & kXBUF_M_DATA;
+    fumin = min(fumin,fuse);
+    fumax = max(fumax,fuse);
+    fspUnit[0]->StatIncTx(ochr[i]);
   }
+  fspUnit[0]->Snd(ochr, done);
 
-  // determine next chunk size from highest fifo 'size' field, at least 4
-  fTxRblkSize = max(uint16_t(4), max(uint16_t(done),smax));
+  // determine next chunk size from highest fifo 'fuse' field, at least 4
+  fTxRblkSize = max(uint16_t(4), max(uint16_t(done),fumax));
   
   // queue further reads when queue idle and fifo not emptied
   // check for 'size==1' not seen in current read
-  if ((!fTxQueBusy) && smin > 1) {        // if smin>1 no size==1 seen
+  if ((!fTxQueBusy) && fumin > 1) {       // if fumin>1 no fuse==1 seen
     fStats.Inc(kStatNTxQue);
     fTxQueBusy = true;
     Server().QueueAction(bind(&Rw11CntlDL11::TxRcvHandler, this));
@@ -407,20 +410,20 @@ void Rw11CntlDL11::TxProcessBuf(const RlinkCommand& cmd, bool prim,
   
   if (fTraceLevel > 0) {
     RlogMsg lmsg(LogFile());
-    lmsg << "-I " << Name() << ":"
-         << " prim="  << prim
-         << " size=" << RosPrintf(cmd.BlockSize(),"d",3)
-         << " done=" << RosPrintf(done,"d",3)
+    lmsg << "-I " << Name() << ": tx"
+         << " pr,si,do="  << prim
+         << "," << RosPrintf(cmd.BlockSize(),"d",3)
+         << "," << RosPrintf(done,"d",3)
          << "  fifo=" << RosPrintf(fbeg,"d",3)
          << "," << RosPrintf(fend,"d",3)
          << ";" << RosPrintf(fdel,"d",3)
          << "," << RosPrintf(done-fdel,"d",3)
-         << ";" << RosPrintf(smax,"d",3)
-         << "," << RosPrintf(smin,"d",3)
+         << ";" << RosPrintf(fumax,"d",3)
+         << "," << RosPrintf(fumin,"d",3)
          << "  que="   << fTxQueBusy;
     if (prim) {
-      uint16_t rsize = (rbuf >>kRBUF_V_RSIZE) & kRBUF_B_RSIZE;
-      lmsg << " rsize=" << RosPrintf(rsize,"d",3);
+      uint16_t rfuse = (rbuf >>kRBUF_V_RFUSE) & kRBUF_B_RFUSE;
+      lmsg << " rfuse=" << RosPrintf(rfuse,"d",3);
     }
     
     if (fTraceLevel > 1) RtraceTools::TraceBuffer(lmsg, xbuf,
@@ -444,8 +447,12 @@ int Rw11CntlDL11::TxRcvHandler()
   Cpu().AddRbibr(clist, fBase+kXBUF, fTxRblkSize);
   clist[0].SetExpectStatus(0, RlinkCommand::kStat_M_RbTout |
                               RlinkCommand::kStat_M_RbNak);
+  int irbuf = Cpu().AddRibr(clist, fBase+kRBUF);
+  
   Server().Exec(clist);
-  TxProcessBuf(clist[0], false, 0);
+  
+  fLastRbuf = clist[irbuf].Data();
+  TxProcessBuf(clist[0], false, fLastRbuf);
   return 0;
 }
 

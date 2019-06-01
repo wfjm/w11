@@ -1,4 +1,4 @@
-// $Id: Rw11CntlPC11.cpp 1140 2019-04-28 10:21:21Z mueller $
+// $Id: Rw11CntlPC11.cpp 1157 2019-05-31 18:32:14Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-05-31  1156   1.5.2  size->fuse rename
 // 2019-04-27  1140   1.5.1  use RtraceTools::
 // 2019-04-20  1134   1.5    add pc11_buf readout
 // 2019-04-13  1131   1.4.1  BootCode(): boot loader rewritten
@@ -86,17 +87,17 @@ const uint16_t Rw11CntlPC11::kRCSR_V_TYPE;
 const uint16_t Rw11CntlPC11::kRCSR_B_TYPE;
 const uint16_t Rw11CntlPC11::kRCSR_M_FCLR;  
 const uint16_t Rw11CntlPC11::kRBUF_M_RBUSY;
-const uint16_t Rw11CntlPC11::kRBUF_V_SIZE;
-const uint16_t Rw11CntlPC11::kRBUF_B_SIZE;
-const uint16_t Rw11CntlPC11::kRBUF_M_BUF;
+const uint16_t Rw11CntlPC11::kRBUF_V_FUSE;
+const uint16_t Rw11CntlPC11::kRBUF_B_FUSE;
+const uint16_t Rw11CntlPC11::kRBUF_M_DATA;
   
 const uint16_t Rw11CntlPC11::kPCSR_M_ERROR;
 const uint16_t Rw11CntlPC11::kPCSR_V_RLIM;
 const uint16_t Rw11CntlPC11::kPCSR_B_RLIM;
 const uint16_t Rw11CntlPC11::kPBUF_M_VAL;
-const uint16_t Rw11CntlPC11::kPBUF_V_SIZE;
-const uint16_t Rw11CntlPC11::kPBUF_B_SIZE;
-const uint16_t Rw11CntlPC11::kPBUF_M_BUF;
+const uint16_t Rw11CntlPC11::kPBUF_V_FUSE;
+const uint16_t Rw11CntlPC11::kPBUF_B_FUSE;
+const uint16_t Rw11CntlPC11::kPBUF_M_DATA;
 
 //------------------------------------------+-----------------------------------
 //! Default constructor
@@ -331,7 +332,7 @@ void Rw11CntlPC11::AttachDone(size_t ind)
   // if reader is attached pre-fill the fifo
   if (ind == kUnit_PR && Buffered()) {
     fPrDrain = kPrDrain_Idle;               // clear drain state
-    PrProcessBuf(0);                        // and pre-fill
+    PrProcessBuf(kRBUF_M_RBUSY);            // and pre-fill
   }
   return;
 }
@@ -377,8 +378,8 @@ int Rw11CntlPC11::AttnHandler(RlinkServer::AttnArgs& args)
     ProcessUnbuf(fPrimClist[fPC_rbuf].Data(),
                  fPrimClist[fPC_pbuf].Data());
   } else {                                  // buffered iface ----------------
-    PrProcessBuf(fPrimClist[fPC_rbuf].Data());
     PpProcessBuf(fPrimClist[fPC_pbuf], true, fPrimClist[fPC_rbuf].Data());
+    PrProcessBuf(fPrimClist[fPC_rbuf].Data());
   }
   
   return 0;
@@ -391,7 +392,7 @@ void Rw11CntlPC11::ProcessUnbuf(uint16_t rbuf, uint16_t pbuf)
 {
   bool rbusy    = rbuf & kRBUF_M_RBUSY;
   bool pval     = pbuf & kPBUF_M_VAL;
-  uint8_t ochr  = pbuf & kPBUF_M_BUF;
+  uint8_t ochr  = pbuf & kPBUF_M_DATA;
   
   if (pval) {                               // punch valid -------------------
     if (pval) PpWriteChar(ochr);
@@ -458,12 +459,15 @@ void Rw11CntlPC11::PpWriteChar(uint8_t ochr)
 
 void Rw11CntlPC11::PrProcessBuf(uint16_t rbuf)
 {
-  uint16_t rsize = (rbuf >>kRBUF_V_SIZE) & kRBUF_B_SIZE;
+  bool     rbusy = rbuf & kRBUF_M_RBUSY;
+  uint16_t rfuse = (rbuf >>kRBUF_V_FUSE) & kRBUF_B_FUSE;
   uint8_t ichr = 0;
   RerrMsg emsg;
 
+  if (! rbusy) return;                // quit if no data requested
+  
   if (fPrDrain == kPrDrain_Pend) {    // eof/err seen and draining
-    if (rsize == 0) {                 // draining done, last char read
+    if (rfuse == 0) {                 // draining done, last char read
       if (fTraceLevel>0) {
         RlogMsg lmsg(LogFile());
         lmsg << "-I " << Name() << ": set reader offline after fifo drained";  
@@ -476,9 +480,9 @@ void Rw11CntlPC11::PrProcessBuf(uint16_t rbuf)
   
   if (fPrDrain == kPrDrain_Pend ||          // draining ongoing or done -> quit
       fPrDrain == kPrDrain_Done) return;
-  if (rsize >= fPrQlim) return;             // no space in fifo -> quit
+  if (rfuse >= fPrQlim) return;             // no space in fifo -> quit
   
-  uint16_t nmax = fPrQlim - rsize;
+  uint16_t nmax = fPrQlim - rfuse;
   vector<uint16_t> iblock;
   iblock.reserve(nmax);
   for (uint16_t i = 0; i<nmax; i++) {
@@ -502,8 +506,8 @@ void Rw11CntlPC11::PrProcessBuf(uint16_t rbuf)
   if (iblock.size() > 0) {
     if (fTraceLevel > 0) {
       RlogMsg lmsg(LogFile());
-      lmsg << "-I " << Name() << ":"
-           << " rsize=" << RosPrintf(rsize,"d",3)
+      lmsg << "-I " << Name() << ": pr"
+           << " rfuse=" << RosPrintf(rfuse,"d",3)
              << " drain=" << fPrDrain
            << " size=" << RosPrintf(iblock.size(),"d",3);
       if (fTraceLevel > 1) RtraceTools::TraceBuffer(lmsg, iblock.data(),
@@ -517,7 +521,7 @@ void Rw11CntlPC11::PrProcessBuf(uint16_t rbuf)
     
   } else {
     // if no byte to send, eof seen, and fifo empty --> go offline immediately
-    if (rsize == 0 && fPrDrain == kPrDrain_Pend) {
+    if (rfuse == 0 && fPrDrain == kPrDrain_Pend) {
       if (fTraceLevel>0) {
         RlogMsg lmsg(LogFile());
         lmsg << "-I " << Name() << ": set reader offline immediately";
@@ -538,34 +542,33 @@ void Rw11CntlPC11::PpProcessBuf(const RlinkCommand& cmd, bool prim,
 {
   const uint16_t* pbuf = cmd.BlockPointer();
   size_t done = cmd.BlockDone();
+  if (done == 0) return;
 
-  uint16_t fbeg = 0;
-  uint16_t fend = 0;
-  uint16_t fdel = 0;
-  uint16_t smin = 0;
-  uint16_t smax = 0;
+  uint16_t fbeg  = 0;
+  uint16_t fend  = 0;
+  uint16_t fdel  = 0;
+  uint16_t fumin = 0;
+  uint16_t fumax = 0;
 
-  if (done > 0) {
-    fbeg = (pbuf[0]     >>kPBUF_V_SIZE) & kPBUF_B_SIZE;
-    fend = (pbuf[done-1]>>kPBUF_V_SIZE) & kPBUF_B_SIZE;
-    fdel = fbeg-fend+1;
-    smin = kFifoMaxSize;
-  }
+  fbeg  = (pbuf[0]     >>kPBUF_V_FUSE) & kPBUF_B_FUSE;
+  fend  = (pbuf[done-1]>>kPBUF_V_FUSE) & kPBUF_B_FUSE;
+  fdel  = fbeg-fend+1;
+  fumin = kFifoMaxSize;
   
   for (size_t i=0; i < done; i++) {
-    uint8_t  ochr =  pbuf[i]                & kPBUF_M_BUF;
-    uint16_t size = (pbuf[i]>>kPBUF_V_SIZE) & kPBUF_B_SIZE;
-    smin = min(smin,size);
-    smax = max(smax,size);
+    uint8_t  ochr =  pbuf[i]                & kPBUF_M_DATA;
+    uint16_t fuse = (pbuf[i]>>kPBUF_V_FUSE) & kPBUF_B_FUSE;
+    fumin = min(fumin,fuse);
+    fumax = max(fumax,fuse);
     PpWriteChar(ochr);
   }
 
-  // determine next chunk size from highest fifo 'size' field, at least 4
-  fPpRblkSize = max(uint16_t(4), max(uint16_t(done),smax));
+  // determine next chunk size from highest fifo 'fuse' field, at least 4
+  fPpRblkSize = max(uint16_t(4), max(uint16_t(done),fumax));
   
   // queue further reads when queue idle and fifo not emptied
-  // check for 'size==1' not seen in current read
-  if ((!fPpQueBusy) && smin > 1) {        // if smin>1 no size==1 seen
+  // check for 'fuse==1' not seen in current read
+  if ((!fPpQueBusy) && fumin > 1) {       // if fumin>1 no fuse==1 seen
     fStats.Inc(kStatNPpQue);
     fPpQueBusy = true;
     Server().QueueAction(bind(&Rw11CntlPC11::PpRcvHandler, this));
@@ -573,20 +576,20 @@ void Rw11CntlPC11::PpProcessBuf(const RlinkCommand& cmd, bool prim,
   
   if (fTraceLevel > 0) {
     RlogMsg lmsg(LogFile());
-    lmsg << "-I " << Name() << ":"
-         << " prim="  << prim
-         << " size=" << RosPrintf(cmd.BlockSize(),"d",3)
-         << " done=" << RosPrintf(done,"d",3)
+    lmsg << "-I " << Name() << ": pp"
+         << " pr,si,do="  << prim
+         << "," << RosPrintf(cmd.BlockSize(),"d",3)
+         << "," << RosPrintf(done,"d",3)
          << "  fifo=" << RosPrintf(fbeg,"d",3)
          << "," << RosPrintf(fend,"d",3)
          << ";" << RosPrintf(fdel,"d",3)
          << "," << RosPrintf(done-fdel,"d",3)
-         << ";" << RosPrintf(smax,"d",3)
-         << "," << RosPrintf(smin,"d",3)
+         << ";" << RosPrintf(fumax,"d",3)
+         << "," << RosPrintf(fumin,"d",3)
          << "  que="   << fPpQueBusy;
     if (prim) {
-      uint16_t rsize = (rbuf >>kRBUF_V_SIZE) & kRBUF_B_SIZE;
-      lmsg << " rsize=" << RosPrintf(rsize,"d",3);
+      uint16_t rfuse = (rbuf >>kRBUF_V_FUSE) & kRBUF_B_FUSE;
+      lmsg << " rfuse=" << RosPrintf(rfuse,"d",3);
     }
     
     if (fTraceLevel > 1) RtraceTools::TraceBuffer(lmsg, pbuf,

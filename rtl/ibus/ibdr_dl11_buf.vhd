@@ -1,4 +1,4 @@
--- $Id: ibdr_dl11_buf.vhd 1144 2019-05-01 18:39:26Z mueller $
+-- $Id: ibdr_dl11_buf.vhd 1156 2019-05-31 18:22:40Z mueller $
 --
 -- Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -23,6 +23,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-05-31  1156   1.0.1  size->fuse rename; re-organize rlim handling
 -- 2019-04-26  1139   1.0    Initial version (derived from ibdr_{dl11,pc11_buf})
 ------------------------------------------------------------------------------
 
@@ -69,8 +70,8 @@ architecture syn of ibdr_dl11_buf is
   constant rcsr_ibf_rlb :   integer :=  4;
   constant rcsr_ibf_fclr :  integer :=  1;
   
-  subtype  rbuf_ibf_rsize   is integer range AWIDTH-1+8 downto 8;
-  subtype  rbuf_ibf_xsize   is integer range AWIDTH-1   downto 0;
+  subtype  rbuf_ibf_rfuse   is integer range AWIDTH-1+8 downto 8;
+  subtype  rbuf_ibf_xfuse   is integer range AWIDTH-1   downto 0;
   subtype  rbuf_ibf_data    is integer range  7 downto 0;
   
   subtype  xcsr_ibf_xrlim   is integer range 14 downto 12;
@@ -81,7 +82,7 @@ architecture syn of ibdr_dl11_buf is
   constant xcsr_ibf_fclr :  integer :=  1;
 
   constant xbuf_ibf_xval :  integer := 15;
-  subtype  xbuf_ibf_size    is integer range AWIDTH-1+8 downto 8;
+  subtype  xbuf_ibf_fuse    is integer range AWIDTH-1+8 downto 8;
   subtype  xbuf_ibf_data    is integer range  7 downto 0;
 
   type regs_type is record              -- state registers
@@ -106,7 +107,7 @@ architecture syn of ibdr_dl11_buf is
     '0'                                 -- xintreq
   );
 
-  constant c_size1 : slv(AWIDTH-1 downto 0) := slv(to_unsigned(1,AWIDTH));
+  constant c_fuse1 : slv(AWIDTH-1 downto 0) := slv(to_unsigned(1,AWIDTH));
 
   signal R_REGS : regs_type := regs_init;
   signal N_REGS : regs_type := regs_init;
@@ -117,7 +118,7 @@ architecture syn of ibdr_dl11_buf is
   signal RBUF_RESET : slbit := '0';
   signal RBUF_EMPTY : slbit := '0';
   signal RBUF_FULL  : slbit := '0';
-  signal RBUF_SIZE  : slv(AWIDTH-1 downto 0) := (others=>'0');
+  signal RBUF_FUSE  : slv(AWIDTH-1 downto 0) := (others=>'0');
   
   signal XBUF_CE : slbit := '0';
   signal XBUF_WE : slbit := '0';
@@ -125,7 +126,7 @@ architecture syn of ibdr_dl11_buf is
   signal XBUF_RESET : slbit := '0';
   signal XBUF_EMPTY : slbit := '0';
   signal XBUF_FULL  : slbit := '0';
-  signal XBUF_SIZE  : slv(AWIDTH-1 downto 0) := (others=>'0');
+  signal XBUF_FUSE  : slv(AWIDTH-1 downto 0) := (others=>'0');
   
   signal RRLIM_START : slbit := '0';
   signal RRLIM_BUSY  : slbit := '0';
@@ -151,7 +152,7 @@ begin
       DO    => RBUF_DO,
       EMPTY => RBUF_EMPTY,
       FULL  => RBUF_FULL,
-      SIZE  => RBUF_SIZE
+      SIZE  => RBUF_FUSE
     );
   
   XBUF : fifo_simple_dram
@@ -167,7 +168,7 @@ begin
       DO    => XBUF_DO,
       EMPTY => XBUF_EMPTY,
       FULL  => XBUF_FULL,
-      SIZE  => XBUF_SIZE
+      SIZE  => XBUF_FUSE
     );
   
   RRLIM : ib_rlim_slv
@@ -210,8 +211,8 @@ begin
   end process proc_regs;
 
   proc_next : process (R_REGS, IB_MREQ, EI_ACK_RX, EI_ACK_TX, RESET,
-                       RBUF_DO, RBUF_EMPTY, RBUF_FULL, RBUF_SIZE, RRLIM_BUSY,
-                       XBUF_DO, XBUF_EMPTY, XBUF_FULL, XBUF_SIZE, XRLIM_BUSY)
+                       RBUF_DO, RBUF_EMPTY, RBUF_FULL, RBUF_FUSE, RRLIM_BUSY,
+                       XBUF_DO, XBUF_EMPTY, XBUF_FULL, XBUF_FUSE, XRLIM_BUSY)
     variable r : regs_type := regs_init;
     variable n : regs_type := regs_init;
     variable idout : slv16 := (others=>'0');
@@ -258,7 +259,7 @@ begin
     end if;
 
     -- ibus transactions
-    if r.ibsel = '1' then
+    if r.ibsel = '1' then               -- ibus selected ---------------------
       case IB_MREQ.addr(2 downto 1) is
 
         when ibaddr_rcsr =>             -- RCSR -- receive control status ----
@@ -299,20 +300,20 @@ begin
           if IB_MREQ.racc = '0' then    -- cpu ---------------------
             idout(rbuf_ibf_data) := RBUF_DO;
             if ibrd = '1' then                -- rbuf read
+              n.rdone   := '0';                 -- clear done
               n.rintreq := '0';                 -- cancel interrupt
-            end if;
-            if ibrd='1' and r.rdone='1' then  -- rbuf write
-              irbufce := '1';             -- read next value from fifo
-              irbufwe := '0';
-              if RBUF_SIZE = c_size1 then -- last value (size=1)
-                ilam := '1';                -- rri lam
+              if r.rdone='1' then               -- data available ?
+                irbufce := '1';                    -- read next from fifo
+                irbufwe := '0';
+                if RBUF_FUSE = c_fuse1 then        -- last value (fuse=1) ?
+                  ilam := '1';                       -- rri lam
+                end if;
               end if;
-              irrlimsta := '1';           -- start rx timer
             end if;
 
           else                          -- rri ---------------------
-            idout(rbuf_ibf_rsize) := RBUF_SIZE;
-            idout(rbuf_ibf_xsize) := XBUF_SIZE;
+            idout(rbuf_ibf_rfuse) := RBUF_FUSE;
+            idout(rbuf_ibf_xfuse) := XBUF_FUSE;
             if ibw0 = '1' then
               if RBUF_FULL = '0' then       -- fifo not full
                 irbufce  := '1';              -- write to fifo
@@ -359,8 +360,9 @@ begin
 
           if IB_MREQ.racc = '0' then    -- cpu ---------------------
             if ibw0 = '1' then
-              ixrlimsta := '1';           -- start transmitter timer
               if r.xrdy = '1' then        -- ignore buf write when rdy=0
+                n.xrdy    := '0';           -- clear ready
+                n.xintreq := '0';           -- cancel interrupt
                 if XBUF_FULL = '0' then     -- fifo not full
                   ixbufce  := '1';            -- write to fifo
                   ixbufwe  := '1';
@@ -373,7 +375,7 @@ begin
 
           else                          -- rri ---------------------
             idout(xbuf_ibf_xval)  := not XBUF_EMPTY;
-            idout(xbuf_ibf_size)  := XBUF_SIZE;
+            idout(xbuf_ibf_fuse)  := XBUF_FUSE;
             idout(xbuf_ibf_data)  := XBUF_DO;
             if ibrd = '1' then
               if XBUF_EMPTY = '0' then      -- fifo not empty
@@ -387,8 +389,30 @@ begin
 
         when others => null;
       end case;
+      
+    else                                -- ibus not selected -----------------
+      -- handle rx done, timer and interrupt
+      if RBUF_EMPTY='0' and RRLIM_BUSY='0' then -- not empty and not busy ?
+        if r.rdone = '0' then                     -- done not set ?
+          n.rdone   := '1';                         -- set done
+          irrlimsta := '1';                         -- start timer
+          if r.rie = '1' then                       -- irupts enabled ?
+            n.rintreq := '1';                         -- request rx interrupt
+          end if;
+        end if;
+      end if;
 
-    end if;    
+      -- handle tx ready, timer and interrupt
+      if XBUF_FULL='0' and XRLIM_BUSY='0' then -- not full and not busy ?
+        if r.xrdy = '0' then                     -- ready not set ?
+          n.xrdy    := '1';                        -- set ready
+          ixrlimsta := '1';                        -- start timer
+          if r.xie = '1' then                      -- irupts enabled ?
+            n.xintreq := '1';                        -- request tx interrupt
+          end if;
+        end if;
+      end if;
+    end if;     -- else r.ibsel='1'
 
     -- other state changes
   
@@ -399,25 +423,6 @@ begin
       n.xintreq := '0';
     end if;
 
-    if (RRLIM_BUSY or RBUF_EMPTY) = '1' then   -- busy or fifo empty
-      n.rdone   := '0';                          -- clear done
-    else                                       -- not busy and data valid
-      n.rdone := '1';                            -- set done
-      if r.rdone='0' and r.rie='1' then          -- done going 0->1 and ie=1
-        n.rintreq := '1';                        -- request rx interrupt
-      end if;
-    end if;
-
-    if (XRLIM_BUSY or XBUF_FULL) ='1' then -- busy or fifo full
-      n.xrdy    := '0';                      -- clear ready
-      n.xintreq := '0';                      -- clear interrupt
-    else                                  -- not busy and fifo not full
-      n.xrdy    := '1';                      -- set ready
-      if r.xrdy='0' and r.xie='1' then         -- ready going 0->1 and ie=1
-        n.xintreq := '1';                      -- request interrupt
-      end if;
-    end if;
-    
     N_REGS <= n;
     
     RBUF_RESET  <= irbufrst;

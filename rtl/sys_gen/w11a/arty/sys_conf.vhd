@@ -1,4 +1,4 @@
--- $Id: sys_conf.vhd 1142 2019-04-28 19:27:57Z mueller $
+-- $Id: sys_conf.vhd 1159 2019-06-06 19:15:50Z mueller $
 --
 -- Copyright 2018-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 -- Tool versions:  viv 2017.2-2018.3; ghdl 0.34-0.35
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-06-05  1159   1.1.2  down-rate to 72 MHz, viv 2019.1 fails with 75 MHz
 -- 2019-04-28  1142   1.1.1  add sys_conf_ibd_m9312
 -- 2019-02-09  1110   1.1    use typ for DL,PC,LP; add dz11,ibtst
 -- 2019-01-27  1108   1.0.1  down-rate to 75 MHz, viv 2018.3 fails with 80 MHz
@@ -33,9 +34,9 @@ use work.slvtypes.all;
 package sys_conf is
 
   -- configure clocks --------------------------------------------------------
-  constant sys_conf_clksys_vcodivide   : positive :=   1;
-  constant sys_conf_clksys_vcomultiply : positive :=   9;   -- vco  900 MHz
-  constant sys_conf_clksys_outdivide   : positive :=  12;   -- sys   75 MHz
+  constant sys_conf_clksys_vcodivide   : positive :=   5;
+  constant sys_conf_clksys_vcomultiply : positive :=  54;   -- vco 1080 MHz
+  constant sys_conf_clksys_outdivide   : positive :=  15;   -- sys   72 MHz
   constant sys_conf_clksys_gentype     : string   := "MMCM";
   -- dual clock design, clkser = 120 MHz
   constant sys_conf_clkser_vcodivide   : positive :=   1;

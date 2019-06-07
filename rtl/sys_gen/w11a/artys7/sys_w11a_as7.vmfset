@@ -1,4 +1,4 @@
-# $Id: sys_w11a_as7.vmfset 1108 2019-02-02 23:04:38Z mueller $
+# $Id: sys_w11a_as7.vmfset 1159 2019-06-06 19:15:50Z mueller $
 #
 # Validated code/tool version combinations
 #   Date          rev   viv   
@@ -80,6 +80,8 @@ I [Physopt 32-742]                                # BRAM Flop Optimization
 # see https://www.xilinx.com/support/answers/64180.html         # OK 2019-01-12
 i [DRC REQP-1709] PLLE2_ADV
 # --> DSP multiplier is not pipelined, ok                       # OK 2018-12-22
-# indicated everywhere, but not in as7 ??
+# DRC DPOP-1 indicated in Artix-7 designs, but not in Spartan-7 as7 ??
 #i [DRC DPOP-1] PREG Output pipelining
 #i [DRC DPOP-2] MREG Output pipelining
+{2019.1:}
+i [DRC DPIP-1] Input pipelining

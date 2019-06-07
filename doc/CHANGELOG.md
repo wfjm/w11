@@ -23,6 +23,14 @@ The HEAD version shows the current development. No guarantees that
 software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
+### Summary
+- use vivado 2019.1 as default
+
+### Changes
+- firmware changes
+  - sys_w11a_arty: down-rate to 72 MHz, viv 2019.1 fails with 75 MHz
+  - sys_w11a_*.vmfset: add new rule for vivado 2019.1
+
 <!-- --------------------------------------------------------------------- -->
 ---
 ## <a id="w11a_V0.78">2019-06-01: [w11a_V0.78](https://github.com/wfjm/w11/releases/tag/w11a_V0.78) - rev 1158(wfjm)</a>

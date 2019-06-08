@@ -1,6 +1,6 @@
-// $Id: Rstats.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rstats.hpp 1160 2019-06-07 17:30:17Z mueller $
 //
-// Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1160   1.0.3  add Reset(); drop operator-=() and operator*=()
 // 2017-02-04   865   1.0.2  add NameMaxLength(); Dump(): add detail arg
 // 2017-02-18   851   1.0.1  add IncLogHist; fix + and * operator definition
 // 2011-02-06   359   1.0    Initial version
@@ -46,6 +47,8 @@ namespace Retro {
       void          Set(size_t ind, double val);
       void          Inc(size_t ind, double val=1.);
 
+      void          Reset();
+
       void          IncLogHist(size_t ind, size_t maskfirst,
                                size_t masklast, size_t val);
 
@@ -65,8 +68,6 @@ namespace Retro {
       double        operator[](size_t ind) const;
 
       Rstats&       operator=(const Rstats& rhs);
-      Rstats&       operator-=(const Rstats& rhs);
-      Rstats&       operator*=(double rhs);
 
   private:
       std::vector<double> fValue;           //!< counter value

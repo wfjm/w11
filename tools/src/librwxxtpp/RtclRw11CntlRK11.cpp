@@ -1,6 +1,6 @@
-// $Id: RtclRw11CntlRK11.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclRw11CntlRK11.cpp 1160 2019-06-07 17:30:17Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1160   1.2.1  use RtclStats::Exec()
 // 2017-04-16   878   1.2    add class in ctor; derive from RtclRw11CntlDiskBase
 // 2015-01-04   627   1.1    add Get/Set for chunksize
 // 2013-03-06   495   1.0    Initial version
@@ -99,8 +100,8 @@ int RtclRw11CntlRK11::M_stats(RtclArgs& args)
 {
   RtclStats::Context cntx;
   if (!RtclStats::GetArgs(args, cntx)) return kERR;
-  if (!RtclStats::Collect(args, cntx, Obj().Stats())) return kERR;
-  if (!RtclStats::Collect(args, cntx, Obj().RdmaStats())) return kERR;
+  if (!RtclStats::Exec(args, cntx, Obj().Stats())) return kERR;
+  if (!RtclStats::Exec(args, cntx, Obj().RdmaStats())) return kERR;
   return kOK;
 }
 

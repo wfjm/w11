@@ -1,6 +1,6 @@
-// $Id: Rw11Cntl.ipp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11Cntl.ipp 1160 2019-06-07 17:30:17Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1160   1.1.1  Stats() not longer const
 // 2017-02-04   848   1.1    add ProbeFound(),ProbeDataInt,Rem()
 // 2013-03-06   495   1.0    Initial version
 // 2013-02-05   483   0.1    First draft
@@ -175,7 +176,7 @@ inline uint32_t Rw11Cntl::TraceLevel() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline const Rstats& Rw11Cntl::Stats() const
+inline Rstats& Rw11Cntl::Stats()
 {
   return fStats;
 }

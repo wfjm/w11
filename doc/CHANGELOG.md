@@ -27,6 +27,11 @@ The full set of tests is only run for tagged releases.
 - use vivado 2019.1 as default
 
 ### Changes
+- tools changes
+  - add -reset option to stats subcommand
+    - librtools/Rstats: add Reset(); drop operator-=() and operator*=()
+    - librtcltools/RtclStats: Rename Collect->Exec, not longer const; add -reset
+    - libr*/*: Stats() not longer const; use RtclStats::Exec()
 - firmware changes
   - sys_w11a_arty: down-rate to 72 MHz, viv 2019.1 fails with 75 MHz
   - sys_w11a_*.vmfset: add new rule for vivado 2019.1

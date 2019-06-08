@@ -1,6 +1,6 @@
-// $Id: Rw11CntlTM11.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11CntlTM11.hpp 1160 2019-06-07 17:30:17Z mueller $
 //
-// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1160   1.0.2  RdmaStats() not longer const
 // 2017-04-02   865   1.0.1  Dump(): add detail arg
 // 2015-06-04   686   1.0    Initial version
 // 2015-05-17   683   0.1    First draft
@@ -51,7 +52,7 @@ namespace Retro {
       void          SetChunkSize(size_t chunk);
       size_t        ChunkSize() const;
 
-      const Rstats& RdmaStats() const;
+      Rstats&       RdmaStats();
 
       virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
                          int detail=0) const;

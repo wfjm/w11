@@ -1,4 +1,4 @@
-// $Id: RtclRlinkConnect.cpp 1121 2019-03-11 08:59:12Z mueller $
+// $Id: RtclRlinkConnect.cpp 1160 2019-06-07 17:30:17Z mueller $
 //
 // Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1160   1.6.11 use RtclStats::Exec()
 // 2019-03-10  1121   1.6.10 M_exec(): tranfer BlockDone values after rblk
 // 2019-02-23  1114   1.6.9  use std::bind instead of lambda
 // 2018-12-23  1091   1.6.8  use AddWblk(move)
@@ -710,11 +711,11 @@ int RtclRlinkConnect::M_stats(RtclArgs& args)
 {
   RtclStats::Context cntx;
   if (!RtclStats::GetArgs(args, cntx)) return kERR;
-  if (!RtclStats::Collect(args, cntx, Obj().Stats())) return kERR;
-  if (!RtclStats::Collect(args, cntx, Obj().SndStats())) return kERR;
-  if (!RtclStats::Collect(args, cntx, Obj().RcvStats())) return kERR;
+  if (!RtclStats::Exec(args, cntx, Obj().Stats())) return kERR;
+  if (!RtclStats::Exec(args, cntx, Obj().SndStats())) return kERR;
+  if (!RtclStats::Exec(args, cntx, Obj().RcvStats())) return kERR;
   if (Obj().HasPort()) {
-    if (!RtclStats::Collect(args, cntx, Obj().Port().Stats())) return kERR;
+    if (!RtclStats::Exec(args, cntx, Obj().Port().Stats())) return kERR;
   }
   return kOK;
 }

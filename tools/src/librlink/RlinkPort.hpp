@@ -1,6 +1,6 @@
-// $Id: RlinkPort.hpp 1084 2018-12-16 12:23:53Z mueller $
+// $Id: RlinkPort.hpp 1160 2019-06-07 17:30:17Z mueller $
 //
-// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1160   1.4.5  Stats() not longer const
 // 2018-12-16  1084   1.4.4  use =delete for noncopyable instead of boost
 // 2018-12-07  1078   1.4.3  use std::shared_ptr instead of boost
 // 2018-12-01  1076   1.4 2  use unique_ptr
@@ -86,7 +87,7 @@ namespace Retro {
 
       uint32_t      TraceLevel() const;
 
-      const Rstats& Stats() const;
+      Rstats&       Stats();
 
       virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
                          int detail=0) const;

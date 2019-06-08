@@ -1,4 +1,4 @@
-// $Id: RtclRlinkServer.cpp 1114 2019-02-23 18:01:55Z mueller $
+// $Id: RtclRlinkServer.cpp 1160 2019-06-07 17:30:17Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1160   1.2.4  use RtclStats::Exec()
 // 2019-02-23  1114   1.2.3  use std::bind instead of lambda
 // 2018-12-17  1087   1.2.2  use std::lock_guard instead of boost
 // 2018-12-14  1081   1.2.1  use std::bind instead of boost
@@ -273,7 +274,7 @@ int RtclRlinkServer::M_stats(RtclArgs& args)
 {
   RtclStats::Context cntx;
   if (!RtclStats::GetArgs(args, cntx)) return kERR;
-  if (!RtclStats::Collect(args, cntx, Obj().Stats())) return kERR;
+  if (!RtclStats::Exec(args, cntx, Obj().Stats())) return kERR;
   return kOK;
 }
 

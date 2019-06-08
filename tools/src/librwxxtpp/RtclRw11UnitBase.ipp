@@ -1,4 +1,4 @@
-// $Id: RtclRw11UnitBase.ipp 1114 2019-02-23 18:01:55Z mueller $
+// $Id: RtclRw11UnitBase.ipp 1160 2019-06-07 17:30:17Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1160   1.3.7  use RtclStats::Exec()
 // 2019-02-23  1114   1.3.6  use std::bind instead of lambda
 // 2018-12-15  1082   1.3.5  use lambda instead of boost::bind
 // 2018-12-09  1080   1.3.4  use HasVirt(); Virt() returns ref
@@ -150,9 +151,9 @@ int RtclRw11UnitBase<TU,TUV,TB>::M_stats(RtclArgs& args)
 {
   RtclStats::Context cntx;
   if (!RtclStats::GetArgs(args, cntx)) return TB::kERR;
-  if (!RtclStats::Collect(args, cntx, Obj().Stats())) return TB::kERR;
+  if (!RtclStats::Exec(args, cntx, Obj().Stats())) return TB::kERR;
   if (Obj().HasVirt()) {
-    if (!RtclStats::Collect(args, cntx, Obj().Virt().Stats())) return TB::kERR;
+    if (!RtclStats::Exec(args, cntx, Obj().Virt().Stats())) return TB::kERR;
   }
   return TB::kOK;
 }

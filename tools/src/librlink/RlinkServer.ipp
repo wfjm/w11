@@ -1,6 +1,6 @@
-// $Id: RlinkServer.ipp 1083 2018-12-15 19:19:16Z mueller $
+// $Id: RlinkServer.ipp 1160 2019-06-07 17:30:17Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1160   2.2.3  Stats() not longer const
 // 2018-12-15  1083   2.2.2  for std::function setups: use rval ref and move
 // 2018-12-07  1078   2.2.1  use std::shared_ptr instead of boost
 // 2015-01-10   632   2.2    Exec() without emsg now void, will throw
@@ -91,7 +92,7 @@ inline uint32_t RlinkServer::TraceLevel() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline const Rstats& RlinkServer::Stats() const
+inline Rstats& RlinkServer::Stats()
 {
   return fStats;
 }

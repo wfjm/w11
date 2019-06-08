@@ -1,6 +1,6 @@
-// $Id: Rstats.cpp 1089 2018-12-19 10:45:41Z mueller $
+// $Id: Rstats.cpp 1160 2019-06-07 17:30:17Z mueller $
 //
-// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1160   1.0.6  add Reset(); drop operator-=() and operator*=()
 // 2018-12-18  1089   1.0.5  use c++ style casts
 // 2017-02-04   865   1.0.4  add NameMaxLength(); Print(): add counter name
 // 2017-02-18   851   1.0.3  add IncLogHist; fix + and * operator definition
@@ -105,6 +106,15 @@ void Rstats::Define(size_t ind, const std::string& name,
     fText[ind]  = text;
   }
   
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rstats::Reset()
+{
+  for (auto& o: fValue) o = 0.;
   return;
 }
 
@@ -228,33 +238,6 @@ Rstats& Rstats::operator=(const Rstats& rhs)
     fValue = rhs.fValue;
   }
 
-  return *this;
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-Rstats& Rstats::operator-=(const Rstats& rhs)
-{
-  if (Size() != rhs.Size() || fHash != rhs.fHash) {
-    throw Rexception("Rstats::oper-()",
-                     "Bad args: subtract incompatible stats");
-  }
-
-  for (size_t i=0; i<fValue.size(); i++) {
-    fValue[i] -= rhs.fValue[i];
-  }
-  return *this;
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-Rstats& Rstats::operator*=(double rhs)
-{
-  for (size_t i=0; i<fValue.size(); i++) {
-    fValue[i] *= rhs;
-  }
   return *this;
 }
 

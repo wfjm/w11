@@ -1,6 +1,6 @@
-// $Id: Rw11Rdma.ipp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11Rdma.ipp 1160 2019-06-07 17:30:17Z mueller $
 //
-// Copyright 20154- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1160   1.0.1  Stats() not longer const
 // 2015-01-04   627   1.0    Initial version
 // ---------------------------------------------------------------------------
 
@@ -91,7 +92,7 @@ inline bool Rw11Rdma::IsActive() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline const Rstats& Rw11Rdma::Stats() const
+inline Rstats& Rw11Rdma::Stats()
 {
   return fStats;
 }

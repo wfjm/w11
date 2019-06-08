@@ -1,4 +1,4 @@
-// $Id: RtclRw11Virt.cpp 1114 2019-02-23 18:01:55Z mueller $
+// $Id: RtclRw11Virt.cpp 1160 2019-06-07 17:30:17Z mueller $
 //
 // Copyright 2017-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1160   1.0.5  use RtclStats::Exec()
 // 2019-02-23  1114   1.0.4  use std::bind instead of lambda
 // 2018-12-17  1087   1.0.3  use std::lock_guard instead of boost
 // 2018-12-15  1082   1.0.2  use lambda instead of boost::bind
@@ -91,7 +92,7 @@ int RtclRw11Virt::M_stats(RtclArgs& args)
 {
   RtclStats::Context cntx;
   if (!RtclStats::GetArgs(args, cntx)) return kERR;
-  if (!RtclStats::Collect(args, cntx, Virt()->Stats())) return kERR;
+  if (!RtclStats::Exec(args, cntx, Virt()->Stats())) return kERR;
   return kOK;
 }
 

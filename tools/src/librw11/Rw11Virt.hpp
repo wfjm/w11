@@ -1,6 +1,6 @@
-// $Id: Rw11Virt.hpp 1084 2018-12-16 12:23:53Z mueller $
+// $Id: Rw11Virt.hpp 1160 2019-06-07 17:30:17Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1160   1.1.4  Stats() not longer const
 // 2018-12-16  1084   1.1.3  use =delete for noncopyable instead of boost
 // 2017-04-15   875   1.1.2  add Url() const getter
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
@@ -60,7 +61,7 @@ namespace Retro {
     
       virtual bool  Open(const std::string& url, RerrMsg& emsg) = 0;
 
-      const Rstats& Stats() const;
+      Rstats&       Stats();
 
       virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
                          int detail=0) const;

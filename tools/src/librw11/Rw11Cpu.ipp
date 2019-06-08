@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.ipp 1143 2019-05-01 13:25:51Z mueller $
+// $Id: Rw11Cpu.ipp 1160 2019-06-07 17:30:17Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1160   1.2.7  Stats() not longer const
 // 2019-04-30  1143   1.2.6  add HasM9312()
 // 2019-04-13  1131   1.2.5  add MemSize()
 // 2019-02-15  1112   1.2.4  add HasIbtst()
@@ -292,7 +293,7 @@ inline const RlinkAddrMap& Rw11Cpu::RAddrMap() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline const Rstats& Rw11Cpu::Stats() const
+inline Rstats& Rw11Cpu::Stats()
 {
   return fStats;
 }

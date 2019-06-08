@@ -1,4 +1,4 @@
-// $Id: RtclRw11Cpu.cpp 1143 2019-05-01 13:25:51Z mueller $
+// $Id: RtclRw11Cpu.cpp 1160 2019-06-07 17:30:17Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1160   1.2.32 use RtclStats::Exec()
 // 2019-04-30  1143   1.2.31 add HasM9312() getter
 // 2019-04-12  1131   1.2.30 BUGFIX: M_wtcpu(): check cpu attn in no-server case
 //                           add MemSize() getter; loadabs: add -trace and start
@@ -1471,7 +1472,7 @@ int RtclRw11Cpu::M_stats(RtclArgs& args)
 {
   RtclStats::Context cntx;
   if (!RtclStats::GetArgs(args, cntx)) return kERR;
-  if (!RtclStats::Collect(args, cntx, Obj().Stats())) return kERR;
+  if (!RtclStats::Exec(args, cntx, Obj().Stats())) return kERR;
   return kOK;
 }
 

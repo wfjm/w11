@@ -1,4 +1,4 @@
-// $Id: RlinkServer.hpp 1125 2019-03-30 07:34:54Z mueller $
+// $Id: RlinkServer.hpp 1160 2019-06-07 17:30:17Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1160   2.2.7  Stats() not longer const
 // 2018-12-17  1088   2.2.6  use std::thread instead of boost
 // 2018-12-16  1084   2.2.5  use =delete for noncopyable instead of boost
 // 2018-12-15  1083   2.2.4  for std::function setups: use rval ref and move
@@ -111,7 +112,7 @@ namespace Retro {
       void          SetTraceLevel(uint32_t level);
       uint32_t      TraceLevel() const;
 
-      const Rstats& Stats() const;
+      Rstats&       Stats();
 
       void          Print(std::ostream& os) const;
       void          Dump(std::ostream& os, int ind=0, const char* text=0,

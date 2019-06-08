@@ -1,6 +1,6 @@
-// $Id: Rw11CntlRK11.ipp 983 2018-01-02 20:35:59Z mueller $
+// $Id: Rw11CntlRK11.ipp 1160 2019-06-07 17:30:17Z mueller $
 //
-// Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1160   1.0.1  Stats() not longer const
 // 2015-01-03   627   1.0    Initial version
 // ---------------------------------------------------------------------------
 
@@ -45,7 +46,7 @@ inline size_t Rw11CntlRK11::ChunkSize() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline const Rstats& Rw11CntlRK11::RdmaStats() const
+inline Rstats& Rw11CntlRK11::RdmaStats()
 {
   return fRdma.Stats();
 }

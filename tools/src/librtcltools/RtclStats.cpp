@@ -1,6 +1,6 @@
-// $Id: RtclStats.cpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RtclStats.cpp 1160 2019-06-07 17:30:17Z mueller $
 //
-// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1160   1.1    Rename Collect->Exec, not longer const; add -reset
 // 2014-08-22   584   1.0.2  use nullptr
 // 2013-03-06   495   1.0.1  Rename Exec->Collect
 // 2011-02-26   364   1.0    Initial version
@@ -46,7 +47,7 @@ namespace Retro {
 bool RtclStats::GetArgs(RtclArgs& args, Context& cntx)
 {
   static RtclNameSet optset("-lname|-ltext|-lvalue|-lpair|-lall|"
-                            "-atext|-avalue|-print");
+                            "-atext|-avalue|-print|-reset");
 
   string opt;
   string varname;
@@ -81,8 +82,7 @@ bool RtclStats::GetArgs(RtclArgs& args, Context& cntx)
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-bool RtclStats::Collect(RtclArgs& args, const Context& cntx, 
-                        const Rstats& stats)
+bool RtclStats::Exec(RtclArgs& args, const Context& cntx, Rstats& stats)
 {
   Tcl_Interp* interp = args.Interp();
   Tcl_Obj*    plist   = Tcl_GetObjResult(interp);
@@ -101,8 +101,8 @@ bool RtclStats::Collect(RtclArgs& args, const Context& cntx,
       if (Tcl_ListObjAppendElement(interp, plist, pobj) != TCL_OK) return false;
     }
 
-  } else if (cntx.opt == "-lvalue") {
-    for (size_t i=0; i<stats.Size(); i++) { // -lvalue ------------------------
+  } else if (cntx.opt == "-lvalue") {       // -lvalue ------------------------
+    for (size_t i=0; i<stats.Size(); i++) {
       RtclOPtr pobj(Tcl_NewDoubleObj(stats.Value(i)));
       if (Tcl_ListObjAppendElement(interp, plist, pobj) != TCL_OK) return false;
     }
@@ -142,6 +142,9 @@ bool RtclStats::Collect(RtclArgs& args, const Context& cntx,
     ostringstream sos;
     stats.Print(sos, cntx.format.c_str(), cntx.width, cntx.prec);
     args.AppendResultLines(sos);
+
+  } else if (cntx.opt == "-reset") {        // -reset -------------------------
+    stats.Reset();
 
   } else {
     args.AppendResult("-E: BUG! RtclStats::Collect: bad option '", 

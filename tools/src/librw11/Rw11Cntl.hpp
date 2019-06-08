@@ -1,4 +1,4 @@
-// $Id: Rw11Cntl.hpp 1146 2019-05-05 06:25:13Z mueller $
+// $Id: Rw11Cntl.hpp 1160 2019-06-07 17:30:17Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1160   1.2.6  Stats() not longer const
 // 2019-05-04  1146   1.2.5  UnitSetupAll(): now virtual
 // 2019-04-14  1131   1.2.4  add UnitSetup(), UnitSetupAll()
 // 2018-12-16  1084   1.2.3  use =delete for noncopyable instead of boost
@@ -93,7 +94,7 @@ namespace Retro {
 
       std::string   UnitName(size_t index) const;
 
-      const Rstats& Stats() const;
+      Rstats&       Stats();
       virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
                          int detail=0) const;
 

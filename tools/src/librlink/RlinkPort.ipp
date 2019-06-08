@@ -1,6 +1,6 @@
-// $Id: RlinkPort.ipp 1078 2018-12-08 14:19:03Z mueller $
+// $Id: RlinkPort.ipp 1160 2019-06-07 17:30:17Z mueller $
 //
-// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1160   1.3.2  Stats() not longer const
 // 2018-12-07  1078   1.3.1  use std::shared_ptr instead of boost
 // 2015-04-11   666   1.3    add fXon, XonEnable()
 // 2013-05-01   513   1.2.1  fTraceLevel now uint32_t
@@ -99,7 +100,7 @@ inline uint32_t RlinkPort::TraceLevel() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline const Rstats& RlinkPort::Stats() const
+inline Rstats& RlinkPort::Stats()
 {
   return fStats;
 }

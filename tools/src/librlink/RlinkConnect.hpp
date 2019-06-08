@@ -1,6 +1,6 @@
-// $Id: RlinkConnect.hpp 1091 2018-12-23 12:38:29Z mueller $
+// $Id: RlinkConnect.hpp 1160 2019-06-07 17:30:17Z mueller $
 //
-// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1160   2.8.4  *Stats() not longer const
 // 2018-12-23  1091   2.8.3  add BadPort()
 // 2018-12-17  1085   2.8.2  use std::recursive_mutex instead of boost
 // 2018-12-16  1084   2.8.1  use =delete for noncopyable instead of boost
@@ -137,9 +138,9 @@ namespace Retro {
       void          AddrMapClear();
       const RlinkAddrMap& AddrMap() const;
 
-      const Rstats& Stats() const;
-      const Rstats& SndStats() const;
-      const Rstats& RcvStats() const;
+      Rstats&       Stats();
+      Rstats&       SndStats();
+      Rstats&       RcvStats();
 
       void          SetLogBaseAddr(uint32_t base);
       void          SetLogBaseData(uint32_t base);

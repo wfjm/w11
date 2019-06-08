@@ -1,6 +1,6 @@
-// $Id: RlinkPacketBuf.ipp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RlinkPacketBuf.ipp 1160 2019-06-07 17:30:17Z mueller $
 //
-// Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1160   2.0.1  Stats() not longer const
 // 2014-11-15   604   2.0    re-organize for rlink v4
 // 2011-04-02   375   1.0    Initial version
 // 2011-03-05   366   0.1    First draft
@@ -62,7 +63,7 @@ inline bool RlinkPacketBuf::TestFlag(uint32_t mask) const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline const Rstats& RlinkPacketBuf::Stats() const
+inline Rstats& RlinkPacketBuf::Stats()
 {
   return fStats;
 }

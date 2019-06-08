@@ -1,6 +1,6 @@
-// $Id: RlinkConnect.ipp 1079 2018-12-09 10:56:59Z mueller $
+// $Id: RlinkConnect.ipp 1160 2019-06-07 17:30:17Z mueller $
 //
-// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1160   2.7.1  Stats() not longer const
 // 2018-12-08  1079   2.7    add HasPort; return ref for Port()
 // 2018-12-07  1078   2.6.1  use std::shared_ptr instead of boost
 // 2018-12-01  1076   2.6    use unique_ptr instead of scoped_ptr
@@ -205,7 +206,7 @@ inline const RlinkAddrMap& RlinkConnect::AddrMap() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline const Rstats& RlinkConnect::Stats() const
+inline Rstats& RlinkConnect::Stats()
 {
   return fStats;
 }
@@ -213,7 +214,7 @@ inline const Rstats& RlinkConnect::Stats() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline const Rstats& RlinkConnect::SndStats() const
+inline Rstats& RlinkConnect::SndStats()
 {
   return fSndPkt.Stats();
 }
@@ -221,7 +222,7 @@ inline const Rstats& RlinkConnect::SndStats() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline const Rstats& RlinkConnect::RcvStats() const
+inline Rstats& RlinkConnect::RcvStats()
 {
   return fRcvPkt.Stats();
 }

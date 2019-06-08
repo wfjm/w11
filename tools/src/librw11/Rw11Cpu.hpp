@@ -1,4 +1,4 @@
-// $Id: Rw11Cpu.hpp 1143 2019-05-01 13:25:51Z mueller $
+// $Id: Rw11Cpu.hpp 1160 2019-06-07 17:30:17Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1160   1.2.20 Stats() not longer const
 // 2019-04-30  1143   1.2.19 add HasM9312()
 // 2019-04-19  1133   1.2.18 add ExecWibr(),ExecRibr()
 // 2019-04-13  1131   1.2.17 add defs for w11 cpu component addresses; add
@@ -181,7 +182,7 @@ namespace Retro {
 
       void          W11AttnHandler();
 
-      const Rstats& Stats() const;
+      Rstats&       Stats();
       virtual void  Dump(std::ostream& os, int ind=0, const char* text=0,
                          int detail=0) const;
 

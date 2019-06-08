@@ -1,4 +1,4 @@
-// $Id: RtclRlinkPort.cpp 1114 2019-02-23 18:01:55Z mueller $
+// $Id: RtclRlinkPort.cpp 1160 2019-06-07 17:30:17Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1160   1.4.5  use RtclStats::Exec()
 // 2019-02-23  1114   1.4.4  use std::bind instead of lambda
 // 2018-12-22  1091   1.4.3  M_Open(): drop move() (-Wpessimizing-move fix)
 // 2018-12-18  1089   1.4.2  use c++ style casts
@@ -188,7 +189,7 @@ int RtclRlinkPort::M_stats(RtclArgs& args)
 
   if (!TestPort(args, false)) return kERR;
   if (!RtclStats::GetArgs(args, cntx)) return kERR;
-  if (!RtclStats::Collect(args, cntx, fupObj->Stats())) return kERR;
+  if (!RtclStats::Exec(args, cntx, fupObj->Stats())) return kERR;
   return kOK;
 }
 

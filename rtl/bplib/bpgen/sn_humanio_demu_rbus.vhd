@@ -1,6 +1,6 @@
--- $Id: sn_humanio_demu_rbus.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: sn_humanio_demu_rbus.vhd 1159 2019-06-06 19:15:50Z mueller $
 --
--- Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,7 +20,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  xst 13.3-14.7; ghdl 0.0.29-0.31
+-- Tool versions:  xst 13.3-14.7; ghdl 0.0.29-0.35
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -69,7 +69,7 @@ use work.bpgenlib.all;
 entity sn_humanio_demu_rbus is          -- human i/o swi,btn,led only /w rbus
   generic (
     DEBOUNCE : boolean := true;         -- instantiate debouncer for SWI,BTN
-    RB_ADDR : slv16 := slv(to_unsigned(16#fef0#,16)));
+    RB_ADDR : slv16 := x"fef0");
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit := '0';            -- reset

@@ -1,4 +1,4 @@
--- $Id: rbd_rbmon.vhd 1116 2019-03-03 08:24:07Z mueller $
+-- $Id: rbd_rbmon.vhd 1159 2019-06-06 19:15:50Z mueller $
 --
 -- Copyright 2010-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -32,6 +32,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-06-02  1159   6.0.2  use rbaddr_ constants
 -- 2019-03-02  1116   6.0.1  more robust ack,err trace when busy
 -- 2017-04-16   879   6.0    revised interface, add suspend and repeat collapse
 -- 2015-05-02   672   5.0.1  use natural for AWIDTH to work around a ghdl issue
@@ -91,6 +92,7 @@ use ieee.numeric_std.all;
 use work.slvtypes.all;
 use work.memlib.all;
 use work.rblib.all;
+use work.rbdlib.all;
 
 -- Note: AWIDTH has type natural to allow AWIDTH=0 can be used in if generates
 --       to control the instantiation. ghdl checks even for not instantiated
@@ -98,8 +100,8 @@ use work.rblib.all;
 
 entity rbd_rbmon is                     -- rbus dev: rbus monitor
   generic (
-    RB_ADDR : slv16 := slv(to_unsigned(16#ffe8#,16));
-    AWIDTH : natural := 9);
+    RB_ADDR : slv16 := rbaddr_rbmon;
+    AWIDTH  : natural := 9);
   port (
     CLK  : in slbit;                    -- clock
     RESET : in slbit;                   -- reset

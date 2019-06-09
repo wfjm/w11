@@ -1,6 +1,6 @@
--- $Id: pdp11_dmhbpt_unit.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: pdp11_dmhbpt_unit.vhd 1159 2019-06-06 19:15:50Z mueller $
 --
--- Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,7 +19,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  ise 14.7; viv 2014.4; ghdl 0.31
+-- Tool versions:  ise 14.7; viv 2014.4-2019.1; ghdl 0.31-0.35
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -27,6 +27,7 @@
 --
 -- Revision History: -
 -- Date         Rev Version  Comment
+-- 2019-06-02  1159   1.0.1  use rbaddr_ constants
 -- 2015-07-19   702   1.0    Initial version
 -- 2015-07-05   698   0.1    First draft
 ------------------------------------------------------------------------------
@@ -59,7 +60,7 @@ use work.pdp11.all;
 
 entity pdp11_dmhbpt_unit is             -- dmhbpt - indivitial unit
   generic (
-    RB_ADDR : slv16 := slv(to_unsigned(16#0050#,16));
+    RB_ADDR : slv16 := rbaddr_dmhbpt_off;
     INDEX : natural := 0);
   port (
     CLK : in slbit;                     -- clock

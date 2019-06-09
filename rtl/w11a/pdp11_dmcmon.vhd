@@ -1,6 +1,6 @@
--- $Id: pdp11_dmcmon.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: pdp11_dmcmon.vhd 1159 2019-06-06 19:15:50Z mueller $
 --
--- Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,7 +20,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  ise 14.7; viv 2014.4-2017.1; ghdl 0.31-0.34
+-- Tool versions:  ise 14.7; viv 2014.4-2019.1; ghdl 0.31-0.35
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -28,6 +28,7 @@
 --
 -- Revision History: -
 -- Date         Rev Version  Comment
+-- 2019-06-02  1159   2.0.1  use rbaddr_ constants
 -- 2017-04-22   884   2.0    use DM_STAT_SE.idle; revised interface, add suspend
 -- 2015-08-03   709   1.0    Initial version
 -- 2015-07-05   697   0.1    First draft
@@ -140,7 +141,7 @@ use work.pdp11.all;
 
 entity pdp11_dmcmon is                  -- debug&moni: cpu monitor
   generic (
-    RB_ADDR : slv16 := slv(to_unsigned(16#0048#,16));
+    RB_ADDR : slv16 := rbaddr_dmcmon_off;
     AWIDTH : natural := 8;
     SNUM : boolean := false);
   port (

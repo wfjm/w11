@@ -1,6 +1,6 @@
--- $Id: rlink_sp2c.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: rlink_sp2c.vhd 1159 2019-06-06 19:15:50Z mueller $
 --
--- Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2016-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -23,10 +23,11 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  viv 2015.4; ghdl 0.33
+-- Tool versions:  viv 2015.4-2019.1; ghdl 0.33-0.35
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-06-02  1159   1.0.1  use rbaddr_ constants
 -- 2016-03-28   755   1.0    Initial version (derived from rlink_sp1c)
 ------------------------------------------------------------------------------
 
@@ -53,7 +54,7 @@ entity rlink_sp2c is                    -- rlink_core8+serport_2clock2 combo
     CDWIDTH : positive := 13;           -- clk divider width
     CDINIT : natural   := 15;           -- clk divider initial/reset setting
     RBMON_AWIDTH : natural := 0;        -- rbmon: buffer size, (0=none)
-    RBMON_RBADDR : slv16 := slv(to_unsigned(16#ffe8#,16))); -- rbmon: base addr
+    RBMON_RBADDR : slv16 := rbaddr_rbmon); -- rbmon: base addr
   port (
     CLK  : in slbit;                    -- U|clock (user design)
     CE_USEC : in slbit;                 -- U|1 usec clock enable

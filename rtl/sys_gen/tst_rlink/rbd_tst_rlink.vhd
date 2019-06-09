@@ -1,4 +1,4 @@
--- $Id: rbd_tst_rlink.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: rbd_tst_rlink.vhd 1159 2019-06-06 19:15:50Z mueller $
 --
 -- Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -83,8 +83,8 @@ architecture syn of rbd_tst_rlink is
   signal TIM1_DONE : slbit := '0';
   signal TIM1_BUSY : slbit := '0';
 
-  constant rbaddr_rbmon  : slv16 := x"ffe8"; -- ffe8/8: 1111 1111 1110 1xxx
-  constant rbaddr_tester : slv16 := x"ffe0"; -- ffe0/8: 1111 1111 1110 0xxx
+  --       rbaddr_rbmon       -- default addr - ffe8/8: 1111 1111 1110 1xxx
+  --       rbaddr_tester      -- default addr - ffe0/8: 1111 1111 1110 0xxx
   constant rbaddr_eyemon : slv16 := x"ffd0"; -- ffd0/4: 1111 1111 1101 00xx
   constant rbaddr_tim1   : slv16 := x"fe11"; -- fe11/1: 1111 1110 0001 0001
   constant rbaddr_tim0   : slv16 := x"fe10"; -- fe10/1: 1111 1110 0001 0000

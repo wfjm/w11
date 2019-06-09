@@ -1,6 +1,6 @@
--- $Id: pdp11_dmpcnt.vhd 1051 2018-09-29 15:29:11Z mueller $
+-- $Id: pdp11_dmpcnt.vhd 1159 2019-06-06 19:15:50Z mueller $
 --
--- Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2018-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,7 +19,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  ise 14.7; viv 2017.2-2018.2; ghdl 0.34
+-- Tool versions:  ise 14.7; viv 2017.2-2019.1; ghdl 0.34-0.35
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -27,6 +27,7 @@
 --
 -- Revision History: -
 -- Date         Rev Version  Comment
+-- 2019-06-02  1159   1.0.1  use rbaddr_ constants
 -- 2018-09-29  1051   1.0    Initial version
 -- 2018-09-23  1050   0.1    First draft
 ------------------------------------------------------------------------------
@@ -102,12 +103,13 @@ use ieee.numeric_std.all;
 use work.slvtypes.all;
 use work.memlib.all;
 use work.rblib.all;
+use work.pdp11.all;
 
 entity pdp11_dmpcnt is                  -- debug&moni: performance counters
   generic (
-    RB_ADDR : slv16 := slv(to_unsigned(16#0060#,16));  -- rbus address
-    VERS    : slv8  := slv(to_unsigned(1, 8));         -- counter layout version
-    CENA    : slv32 := (others=>'1'));                 -- counter enables
+    RB_ADDR : slv16 := rbaddr_dmpcnt_off;       -- rbus address
+    VERS    : slv8  := slv(to_unsigned(1, 8));  -- counter layout version
+    CENA    : slv32 := (others=>'1'));          -- counter enables
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- reset

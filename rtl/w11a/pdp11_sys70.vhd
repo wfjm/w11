@@ -1,4 +1,4 @@
--- $Id: pdp11_sys70.vhd 1116 2019-03-03 08:24:07Z mueller $
+-- $Id: pdp11_sys70.vhd 1159 2019-06-06 19:15:50Z mueller $
 --
 -- Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -32,10 +32,11 @@
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 14.7; viv 2014.4-2018.3; ghdl 0.33-0.35
+-- Tool versions:  ise 14.7; viv 2014.4-2019.1; ghdl 0.33-0.35
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-06-02  1159   1.3.3  use rbaddr_ constants
 -- 2019-03-02  1116   1.3.2  add RESET_SYS; fix pdp11_mem70 reset
 -- 2019-02-16  1112   1.3.1  add ibd_ibtst
 -- 2018-10-13  1055   1.3    drop ITIMER,DM_STAT_DP out ports, use DM_STAT_EXP
@@ -269,7 +270,7 @@ begin
   begin
     I0: pdp11_dmscnt
       generic map (
-        RB_ADDR => slv(to_unsigned(16#0040#,16)))
+        RB_ADDR => rbaddr_dmscnt_off)
       port map (
         CLK         => CLK,
         RESET       => RESET_SYS,
@@ -285,7 +286,7 @@ begin
   begin
     I0: pdp11_dmcmon
       generic map (
-        RB_ADDR => slv(to_unsigned(16#0048#,16)),
+        RB_ADDR => rbaddr_dmcmon_off,
         AWIDTH  => sys_conf_dmcmon_awidth,
         SNUM    => sys_conf_dmscnt)
       port map (
@@ -304,7 +305,7 @@ begin
   begin
     I0: pdp11_dmhbpt
       generic map (
-        RB_ADDR => slv(to_unsigned(16#0050#,16)),
+        RB_ADDR => rbaddr_dmhbpt_off,
         NUNIT   => sys_conf_dmhbpt_nunit)
       port map (
         CLK         => CLK,
@@ -399,7 +400,7 @@ begin
       
     I0: pdp11_dmpcnt
       generic map (
-        RB_ADDR => slv(to_unsigned(16#0060#,16)),  -- rbus address
+        RB_ADDR => rbaddr_dmpcnt_off,              -- rbus address
         VERS    => slv(to_unsigned(1, 8)),         -- counter layout version
                 --  33222222222211111111110000000000
                 --  10987654321098765432109876543210

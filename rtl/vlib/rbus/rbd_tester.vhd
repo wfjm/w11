@@ -1,4 +1,4 @@
--- $Id: rbd_tester.vhd 1109 2019-02-09 13:36:41Z mueller $
+-- $Id: rbd_tester.vhd 1159 2019-06-06 19:15:50Z mueller $
 --
 -- Copyright 2010-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,7 +20,7 @@
 -- Test bench:     rlink/tb/tb_rlink (used as test target)
 --
 -- Target Devices: generic
--- Tool versions:  xst 12.1-14.7; viv 2014.4-2017.2; ghdl 0.29-0.35
+-- Tool versions:  xst 12.1-14.7; viv 2014.4-2019.1; ghdl 0.29-0.35
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -30,6 +30,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-06-02  1159   4.2.1  use rbaddr_ constants
 -- 2019-02-09  1109   4.2    use fifo_simple_dram (instead of _1c_dram_raw)
 -- 2014-09-05   591   4.1    use new iface with 8 regs
 -- 2014-08-30   589   4.0    use new rlink v4 iface and 4 bit STAT
@@ -63,11 +64,12 @@ use ieee.numeric_std.all;
 use work.slvtypes.all;
 use work.memlib.all;
 use work.rblib.all;
+use work.rbdlib.all;
 
 entity rbd_tester is                    -- rbus dev: rbus tester
                                         -- complete rrirp_aif interface
   generic (
-    RB_ADDR : slv16 := slv(to_unsigned(16#ffe0#,16)));
+    RB_ADDR : slv16 := rbaddr_tester);
   port (
     CLK  : in slbit;                    -- clock
     RESET : in slbit;                   -- reset

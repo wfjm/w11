@@ -2,6 +2,7 @@
 ../slvtypes.vhd
 ../memlib/memlib.vhd
 rblib.vhd
+rbdlib.vhd
 # components
 [sim]../memlib/ram_1swsr_wfirst_gen.vbom
 [xst]../memlib/ram_1swsr_wfirst_gen_unisim.vbom

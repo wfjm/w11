@@ -1,6 +1,6 @@
--- $Id: pdp11_dmscnt.vhd 1050 2018-09-23 15:46:42Z mueller $
+-- $Id: pdp11_dmscnt.vhd 1159 2019-06-06 19:15:50Z mueller $
 --
--- Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -19,7 +19,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  ise 14.7; viv 2014.4-2016.1; ghdl 0.31-0.33
+-- Tool versions:  ise 14.7; viv 2014.4-2019.1; ghdl 0.31-0.35
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -27,6 +27,7 @@
 --
 -- Revision History: -
 -- Date         Rev Version  Comment
+-- 2019-06-02  1159   1.1.2  use rbaddr_ constants
 -- 2016-05-22   767   1.1.1  don't init N_REGS (vivado fix for fsm inference)
 -- 2015-12-28   721   1.1    use laddr/waddr; use ena instead of cnt;
 -- 2015-07-19   702   1.0    Initial version
@@ -59,7 +60,7 @@ use work.pdp11.all;
 
 entity pdp11_dmscnt is                  -- debug&moni: state counter
   generic (
-    RB_ADDR : slv16 := slv(to_unsigned(16#0040#,16)));
+    RB_ADDR : slv16 := rbaddr_dmscnt_off);
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- reset

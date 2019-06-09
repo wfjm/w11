@@ -1,6 +1,6 @@
--- $Id: tbd_tba_ttcombo.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: tbd_tba_ttcombo.vhd 1159 2019-06-06 19:15:50Z mueller $
 --
--- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -29,10 +29,11 @@
 -- 2010-12-29   351 12.1    M53d xc3s1000-4   192  538   32  342 s 10.1
 -- 2010-12-23   347 12.1    M53d xc3s1000-4    78  204   32  133 s  8.1
 --
--- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.35
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-06-02  1159   4.0.1  use rbaddr_ constants
 -- 2014-09-13   593   4.0    use new rlink v4 iface and 4 bit STAT; new addr
 -- 2014-08-15   583   3.5    rb_mreq addr now 16 bit
 -- 2011-11-22   432   3.1.2  now numeric_std clean
@@ -46,8 +47,8 @@
 --
 -- address layout:
 --
---   rbd_rbmon     ffe8/8
---   rbd_tester    ffe0/8
+--   rbd_rbmon     ffe8/8  -- default
+--   rbd_tester    ffe0/8  -- default
 --   rbd_bram      fe00/2
 --
 
@@ -105,7 +106,7 @@ begin
 
   TEST: rbd_tester
     generic map (
-      RB_ADDR => slv(to_unsigned(16#ffe0#,16)))
+      RB_ADDR => rbaddr_tester)
     port map (
       CLK      => CLK,
       RESET    => RESET,
@@ -117,7 +118,7 @@ begin
   
   MON: rbd_rbmon
     generic map (
-      RB_ADDR => slv(to_unsigned(16#ffe8#,16)),
+      RB_ADDR => rbaddr_rbmon,
       AWIDTH  => 9)
     port map (
       CLK         => CLK,
@@ -129,7 +130,7 @@ begin
   
   BRAM: rbd_bram
     generic map (
-      RB_ADDR => slv(to_unsigned(16#fe00#,16)))
+      RB_ADDR => x"fe00")
     port map (
       CLK      => CLK,
       RESET    => RESET,

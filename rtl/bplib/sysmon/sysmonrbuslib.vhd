@@ -1,6 +1,6 @@
--- $Id: sysmonrbuslib.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: sysmonrbuslib.vhd 1159 2019-06-06 19:15:50Z mueller $
 --
--- Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2016-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,7 +16,7 @@
 -- Description:    generic (all with SYSMON or XADC)
 -- 
 -- Dependencies:   -
--- Tool versions:  viv2015.4; ghdl 0.33
+-- Tool versions:  viv 2015.4-2019.1; ghdl 0.33-0.35
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2016-05-28   770   1.0.1  ensure to_unsigned() has a type natural argument
@@ -117,8 +117,8 @@ component sysmon_rbus_core is           -- SYSMON interface to rbus
     DAWIDTH : positive :=  7;           -- drp address bus width
     ALWIDTH : positive :=  8;           -- alm width
     TEWIDTH : positive := 12;           -- temp width
-    IBASE   : slv8 := x"78";            -- base of controller register window
-    RB_ADDR : slv16 := slv(to_unsigned(16#0000#,16)));
+    IBASE   : slv8  := x"78";            -- base of controller register window
+    RB_ADDR : slv16 := x"fb00");
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit := '0';            -- reset
@@ -152,7 +152,7 @@ component sysmonx_rbus_base is          -- XADC interface to rbus (basic monitor
     INIT_VCCBRAM_UP  : real :=   1.05;  -- INIT_58  (default for non-L types)
     INIT_VCCBRAM_LOW : real :=   0.95;  -- INIT_5C  (default for non-L types)
     CLK_MHZ : integer := 250;           -- clock frequency in MHz
-    RB_ADDR : slv16 := slv(to_unsigned(16#0000#,16)));
+    RB_ADDR : slv16 := x"fb00");
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit := '0';            -- reset
@@ -175,7 +175,7 @@ component sysmonx_rbus_arty is          -- XADC interface to rbus (arty pwrmon)
     INIT_VCCBRAM_UP  : real :=   0.98;  -- INIT_58  (default for -1L types)
     INIT_VCCBRAM_LOW : real :=   0.92;  -- INIT_5C  (default for -1L types)
     CLK_MHZ : integer := 250;           -- clock frequency in MHz
-    RB_ADDR : slv16 := slv(to_unsigned(16#0000#,16)));
+    RB_ADDR : slv16 := x"fb00");
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit := '0';            -- reset

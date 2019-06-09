@@ -1,6 +1,6 @@
--- $Id: tb_rlink.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: tb_rlink.vhd 1159 2019-06-06 19:15:50Z mueller $
 --
--- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -26,10 +26,11 @@
 --                 rlink_serport  (via tbd_rlink_serport)
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.2-14.7; viv 2016.2; ghdl 0.18-0.33
+-- Tool versions:  xst 8.2-14.7; viv 2019.1; ghdl 0.18-0.35
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-06-02  1159   4.1.2  use rbaddr_ constants
 -- 2016-09-10   806   4.1.1  use clkdivce_tb
 -- 2014-10-12   596   4.1    use readgen_ea; add get_cmd_ea; labo instead of stat
 --                           add txblk,rxblk,rxrbeg,rxrend,rxcbs,anmsg commands
@@ -266,7 +267,7 @@ begin
 
   RBTEST : rbd_tester
     generic map (
-      RB_ADDR => slv(to_unsigned(16#ffe0#,16)))
+      RB_ADDR => rbaddr_tester)
     port map (
       CLK      => CLK,
       RESET    => '0',

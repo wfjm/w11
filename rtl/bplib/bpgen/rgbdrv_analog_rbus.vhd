@@ -1,4 +1,4 @@
--- $Id: rgbdrv_analog_rbus.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: rgbdrv_analog_rbus.vhd 1159 2019-06-06 19:15:50Z mueller $
 --
 -- Copyright 2016-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -50,7 +50,7 @@ entity rgbdrv_analog_rbus is   -- rgb analog from rbus
   generic (
     DWIDTH : positive := 8;             -- dimmer width
     ACTLOW : slbit := '0';              -- invert output polarity
-    RB_ADDR : slv16 := slv(to_unsigned(16#0000#,16)));
+    RB_ADDR : slv16 := x"0000");
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit := '0';            -- reset

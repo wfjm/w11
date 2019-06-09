@@ -1,6 +1,6 @@
--- $Id: sn_humanio_rbus.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: sn_humanio_rbus.vhd 1159 2019-06-06 19:15:50Z mueller $
 --
--- Copyright 2010-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,7 +20,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  ise 11.4-14.7; viv 2014.4-2017.1; ghdl 0.26-0.34
+-- Tool versions:  ise 11.4-14.7; viv 2014.4-2019.1; ghdl 0.26-0.35
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -98,7 +98,7 @@ entity sn_humanio_rbus is               -- human i/o handling /w rbus intercept
     LWIDTH : positive := 8;             -- LED port width
     DCWIDTH : positive := 2;            -- digit counter width (2 or 3)
     DEBOUNCE : boolean := true;         -- instantiate debouncer for SWI,BTN
-    RB_ADDR : slv16 := slv(to_unsigned(16#fef0#,16)));
+    RB_ADDR : slv16 := x"fef0");
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit := '0';            -- reset

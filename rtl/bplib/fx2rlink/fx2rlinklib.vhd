@@ -1,6 +1,6 @@
--- $Id: fx2rlinklib.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: fx2rlinklib.vhd 1159 2019-06-06 19:15:50Z mueller $
 --
--- Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,10 +16,11 @@
 -- Description:    Definitions for rlink + fx2 interface combos
 --
 -- Dependencies:   -
--- Tool versions:  xst 13.3-14.7; ghdl 0.29-0.31
+-- Tool versions:  xst 13.3-14.7; ghdl 0.29-0.35
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-06-02  1159   1.2.1  use rbaddr_ constants
 -- 2015-04-11   666   1.2    rlink_sp1c_fx2: drop ENAESC
 -- 2014-08-28   588   1.1    use new rlink v4 iface generics and 4 bit STAT
 -- 2013-04-20   509   1.0    Initial version 
@@ -31,6 +32,7 @@ use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.rblib.all;
+use work.rbdlib.all;
 use work.rlinklib.all;
 use work.serportlib.all;
 use work.fx2lib.all;
@@ -56,7 +58,7 @@ component rlink_sp1c_fx2 is             -- rlink_core8+serport_1clk+fx2_ic combo
     CDWIDTH : positive := 13;           -- clk divider width
     CDINIT : natural   := 15;           -- clk divider initial/reset setting
     RBMON_AWIDTH : natural := 0;        -- rbmon: buffer size (0=none)
-    RBMON_RBADDR : slv16 := slv(to_unsigned(16#ffe8#,16))); -- rbmon: base addr
+    RBMON_RBADDR : slv16 := rbaddr_rbmon); -- rbmon: base addr
   port (
     CLK  : in slbit;                    -- clock
     CE_USEC : in slbit;                 -- 1 usec clock enable

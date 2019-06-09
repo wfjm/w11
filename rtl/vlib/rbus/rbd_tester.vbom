@@ -2,6 +2,7 @@
 ../slvtypes.vhd
 ../memlib/memlib.vhd
 rblib.vhd
+rbdlib.vhd
 # components
 ../memlib/fifo_simple_dram.vbom
 # design

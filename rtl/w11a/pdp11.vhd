@@ -1,4 +1,4 @@
--- $Id: pdp11.vhd 1116 2019-03-03 08:24:07Z mueller $
+-- $Id: pdp11.vhd 1159 2019-06-06 19:15:50Z mueller $
 --
 -- Copyright 2006-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -16,10 +16,11 @@
 -- Description:    Definitions for pdp11 components
 --
 -- Dependencies:   -
--- Tool versions:  ise 8.2-14.7; viv 2016.2-2018.3; ghdl 0.18-0.35
+-- Tool versions:  ise 8.2-14.7; viv 2016.2-2019.1; ghdl 0.18-0.35
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-06-02  1159   1.6.12 add rbaddr_ constants
 -- 2019-03-01  1116   1.6.11 define c_init_rbf_greset
 -- 2018-10-07  1054   1.6.10 add DM_STAT_EXP; add DM_STAT_SE.itimer
 -- 2018-10-05  1053   1.6.9  drop DM_STAT_SY; add DM_STAT_CA, use in pdp11_cache
@@ -112,6 +113,14 @@ use work.iblib.all;
 use work.rblib.all;
 
 package pdp11 is
+
+  -- default rbus base addresses and offsets
+  constant rbaddr_cpu0_core     : slv16 := x"0000";   -- cpu0 core base
+  constant rbaddr_cpu0_ibus     : slv16 := x"4000";   -- cpu0 ibus window base
+  constant rbaddr_dmscnt_off    : slv16 := x"0040";   -- dmscnt offset
+  constant rbaddr_dmcmon_off    : slv16 := x"0048";   -- dmcmon offset
+  constant rbaddr_dmhbpt_off    : slv16 := x"0050";   -- dmhbpt offset
+  constant rbaddr_dmpcnt_off    : slv16 := x"0060";   -- dmpcnt offset
 
   type psw_type is record               -- processor status
     cmode : slv2;                       -- current mode
@@ -1259,8 +1268,8 @@ end component;
 
 component pdp11_core_rbus is            -- core to rbus interface
   generic (
-    RB_ADDR_CORE : slv16 := slv(to_unsigned(16#0000#,16));
-    RB_ADDR_IBUS : slv16 := slv(to_unsigned(16#4000#,16)));
+    RB_ADDR_CORE : slv16 := rbaddr_cpu0_core;
+    RB_ADDR_IBUS : slv16 := rbaddr_cpu0_ibus);
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- reset
@@ -1327,7 +1336,7 @@ end component;
 
 component pdp11_dmscnt is               -- debug&moni: state counter
   generic (
-    RB_ADDR : slv16 := slv(to_unsigned(16#0040#,16)));
+    RB_ADDR : slv16 := rbaddr_dmscnt_off);
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- reset
@@ -1341,7 +1350,7 @@ end component;
 
 component pdp11_dmcmon is               -- debug&moni: cpu monitor
   generic (
-    RB_ADDR : slv16 := slv(to_unsigned(16#0048#,16));
+    RB_ADDR : slv16 := rbaddr_dmcmon_off;
     AWIDTH : natural := 8;
     SNUM : boolean := false);
   port (
@@ -1358,7 +1367,7 @@ end component;
 
 component pdp11_dmhbpt is               -- debug&moni: hardware breakpoint
   generic (
-    RB_ADDR : slv16 := slv(to_unsigned(16#0050#,16));
+    RB_ADDR : slv16 := rbaddr_dmhbpt_off;
     NUNIT : natural := 2);
   port (
     CLK : in slbit;                     -- clock
@@ -1375,7 +1384,7 @@ end component;
 
 component pdp11_dmhbpt_unit is          -- dmhbpt - indivitial unit
   generic (
-    RB_ADDR : slv16 := slv(to_unsigned(16#0050#,16));
+    RB_ADDR : slv16 := rbaddr_dmhbpt_off;
     INDEX : natural := 0);
   port (
     CLK : in slbit;                     -- clock
@@ -1392,9 +1401,9 @@ end component;
 
 component pdp11_dmpcnt is               -- debug&moni: performance counters
   generic (
-    RB_ADDR : slv16 := slv(to_unsigned(16#0060#,16));  -- rbus address
-    VERS    : slv8  := slv(to_unsigned(0, 8));         -- counter layout version
-    CENA    : slv32 := (others=>'1'));                 -- counter enables
+    RB_ADDR : slv16 := rbaddr_dmpcnt_off;       -- rbus address
+    VERS    : slv8  := slv(to_unsigned(0, 8));  -- counter layout version
+    CENA    : slv32 := (others=>'1'));          -- counter enables
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- reset

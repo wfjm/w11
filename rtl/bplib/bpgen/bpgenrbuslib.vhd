@@ -1,6 +1,6 @@
--- $Id: bpgenrbuslib.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: bpgenrbuslib.vhd 1159 2019-06-06 19:15:50Z mueller $
 --
--- Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,7 +16,7 @@
 -- Description:    Generic Board/Part components using rbus
 -- 
 -- Dependencies:   -
--- Tool versions:  ise 12.1-14.7; viv 2014.4-2017.1; ghdl 0.26-0.34
+-- Tool versions:  ise 12.1-14.7; viv 2014.4-2019.1; ghdl 0.26-0.35
 -- Revision History: 
 -- Date         Rev Version  Comment
 -- 2017-06-11   912   1.3.2  add sn_humanio_emu_rbus
@@ -35,14 +35,14 @@ use work.slvtypes.all;
 use work.rblib.all;
 
 package bpgenrbuslib is
-
+  
 component bp_swibtnled_rbus is          -- swi,btn,led handling /w rbus icept
   generic (
     SWIDTH : positive := 4;             -- SWI port width
     BWIDTH : positive := 4;             -- BTN port width
     LWIDTH : positive := 4;             -- LED port width
     DEBOUNCE : boolean := true;         -- instantiate debouncer for SWI,BTN
-    RB_ADDR : slv16 := slv(to_unsigned(16#fef0#,16)));
+    RB_ADDR : slv16 := x"fef0");
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit := '0';            -- reset
@@ -65,7 +65,7 @@ component sn_humanio_rbus is            -- human i/o handling /w rbus intercept
     LWIDTH : positive := 8;             -- LED port width
     DCWIDTH : positive := 2;            -- digit counter width (2 or 3)
     DEBOUNCE : boolean := true;         -- instantiate debouncer for SWI,BTN
-    RB_ADDR : slv16 := slv(to_unsigned(16#fef0#,16)));
+    RB_ADDR : slv16 := x"fef0");
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit := '0';            -- reset
@@ -88,7 +88,7 @@ end component;
 component sn_humanio_demu_rbus is       -- human i/o swi,btn,led only /w rbus
   generic (
     DEBOUNCE : boolean := true;         -- instantiate debouncer for SWI,BTN
-    RB_ADDR : slv16 := slv(to_unsigned(16#fef0#,16)));
+    RB_ADDR : slv16 := x"fef0");
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit := '0';            -- reset
@@ -112,7 +112,7 @@ component sn_humanio_emu_rbus is        -- sn_humanio rbus emulator
     BWIDTH : positive := 4;             -- BTN port width
     LWIDTH : positive := 8;             -- LED port width
     DCWIDTH : positive := 2;            -- digit counter width (2 or 3)
-    RB_ADDR : slv16 := slv(to_unsigned(16#fef0#,16)));
+    RB_ADDR : slv16 := x"fef0");
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit := '0';            -- reset
@@ -130,7 +130,7 @@ component rgbdrv_analog_rbus is         -- rgb analog from rbus
   generic (
     DWIDTH : positive := 8;             -- dimmer width
     ACTLOW : slbit := '0';              -- invert output polarity
-    RB_ADDR : slv16 := slv(to_unsigned(16#0000#,16)));
+    RB_ADDR : slv16 := x"0000");
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit := '0';            -- reset

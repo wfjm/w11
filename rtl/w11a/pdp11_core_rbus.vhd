@@ -1,4 +1,4 @@
--- $Id: pdp11_core_rbus.vhd 1116 2019-03-03 08:24:07Z mueller $
+-- $Id: pdp11_core_rbus.vhd 1159 2019-06-06 19:15:50Z mueller $
 --
 -- Copyright 2007-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,7 +19,7 @@
 -- Test bench:     tb/tb_rlink_tba_pdp11core
 --
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4-2018.3; ghdl 0.18-0.35
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2019.1; ghdl 0.18-0.35
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -27,6 +27,7 @@
 --
 -- Revision History: -
 -- Date         Rev Version  Comment
+-- 2019-06-02  1159   1.5.4  use rbaddr_ constants
 -- 2019-03-02  1116   1.5.3  rename state field rbinit to greset 
 -- 2016-05-22   767   1.5.2  don't init N_REGS (vivado fix for fsm inference)
 -- 2015-07-10   700   1.5.1  add cpuact logic, redefine lam as cpuact 1->0
@@ -108,8 +109,8 @@ use work.pdp11.all;
 
 entity pdp11_core_rbus is               -- core to rbus interface
   generic (
-    RB_ADDR_CORE : slv16 := slv(to_unsigned(16#0000#,16));
-    RB_ADDR_IBUS : slv16 := slv(to_unsigned(16#4000#,16)));
+    RB_ADDR_CORE : slv16 := rbaddr_cpu0_core;
+    RB_ADDR_IBUS : slv16 := rbaddr_cpu0_ibus);
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit;                   -- reset

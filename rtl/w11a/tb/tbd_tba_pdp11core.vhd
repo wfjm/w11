@@ -1,6 +1,6 @@
--- $Id: tbd_tba_pdp11core.vhd 1055 2018-10-12 17:53:52Z mueller $
+-- $Id: tbd_tba_pdp11core.vhd 1159 2019-06-06 19:15:50Z mueller $
 --
--- Copyright 2008-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -29,9 +29,10 @@
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
 --
--- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.34
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.35
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-06-02  1159   1.6.2  use rbaddr_ constants
 -- 2018-10-07  1054   1.6.1  drop ITIMER from core
 -- 2015-05-09   677   1.6    start/stop/suspend overhaul; reset overhaul
 -- 2014-08-28   588   1.5.1  use new rlink v4 iface and 4 bit STAT
@@ -141,8 +142,8 @@ begin
 
   RB2CP : pdp11_core_rbus
     generic map (
-      RB_ADDR_CORE => slv(to_unsigned(16#0000#,16)),
-      RB_ADDR_IBUS => slv(to_unsigned(16#4000#,16)))
+      RB_ADDR_CORE => rbaddr_cpu0_core,
+      RB_ADDR_IBUS => rbaddr_cpu0_ibus)
     port map (
       CLK => CLK,
       RESET     => RESET,

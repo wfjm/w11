@@ -1,6 +1,6 @@
--- $Id: rlinklib.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: rlinklib.vhd 1159 2019-06-06 19:15:50Z mueller $
 --
--- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -16,11 +16,12 @@
 -- Description:    Definitions for rlink interface and bus entities
 --
 -- Dependencies:   -
--- Tool versions:  ise 8.2-14.7; viv 2014.4-2015.4; ghdl 0.18-0.33
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2019.1; ghdl 0.18-0.35
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
 --
+-- 2019-06-02  1159   4.2.1  use rbaddr_ constants
 -- 2016-03-28   755   4.2    add rlink_sp2c
 -- 2015-04-11   666   4.1.2  rlink_core8: add ESC(XON|FILL);
 --                           rlink_sp1c: rename ENAESC->ESCFILL
@@ -65,6 +66,7 @@ use ieee.numeric_std.all;
 
 use work.slvtypes.all;
 use work.rblib.all;
+use work.rbdlib.all;
 use work.serportlib.all;
 
 package rlinklib is
@@ -232,7 +234,7 @@ component rlink_sp1c is                 -- rlink_core8+serport_1clock combo
     CDWIDTH : positive := 13;           -- clk divider width
     CDINIT : natural   := 15;           -- clk divider initial/reset setting
     RBMON_AWIDTH : natural := 0;        -- rbmon: buffer size, (0=none)
-    RBMON_RBADDR : slv16 := slv(to_unsigned(16#ffe8#,16))); -- rbmon: base addr
+    RBMON_RBADDR : slv16 := rbaddr_rbmon); -- rbmon: base addr
   port (
     CLK  : in slbit;                    -- clock
     CE_USEC : in slbit;                 -- 1 usec clock enable
@@ -267,7 +269,7 @@ component rlink_sp2c is                 -- rlink_core8+serport_2clock2 combo
     CDWIDTH : positive := 13;           -- clk divider width
     CDINIT : natural   := 15;           -- clk divider initial/reset setting
     RBMON_AWIDTH : natural := 0;        -- rbmon: buffer size, (0=none)
-    RBMON_RBADDR : slv16 := slv(to_unsigned(16#ffe8#,16))); -- rbmon: base addr
+    RBMON_RBADDR : slv16 := rbaddr_rbmon); -- rbmon: base addr
   port (
     CLK  : in slbit;                    -- U|clock (user design)
     CE_USEC : in slbit;                 -- U|1 usec clock enable

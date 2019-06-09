@@ -1,5 +1,6 @@
 # libs
 ../slvtypes.vhd
 ../rbus/rblib.vhd
+../rbus/rbdlib.vhd
 ../serport/serportlib.vbom
 rlinklib.vhd

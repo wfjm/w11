@@ -1,6 +1,6 @@
--- $Id: sn_humanio_emu_rbus.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: sn_humanio_emu_rbus.vhd 1159 2019-06-06 19:15:50Z mueller $
 --
--- Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2017-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -20,7 +20,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  viv 2017.1; ghdl 0.34
+-- Tool versions:  viv 2017.1-2019,1; ghdl 0.34-0.35
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
@@ -67,7 +67,7 @@ entity sn_humanio_emu_rbus is           -- sn_humanio rbus emulator
     BWIDTH : positive := 4;             -- BTN port width
     LWIDTH : positive := 8;             -- LED port width
     DCWIDTH : positive := 2;            -- digit counter width (2 or 3)
-    RB_ADDR : slv16 := slv(to_unsigned(16#fef0#,16)));
+    RB_ADDR : slv16 := x"fef0");
   port (
     CLK : in slbit;                     -- clock
     RESET : in slbit := '0';            -- reset

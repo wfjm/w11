@@ -1,6 +1,6 @@
--- $Id: rlink_sp1c.vhd 984 2018-01-02 20:56:27Z mueller $
+-- $Id: rlink_sp1c.vhd 1159 2019-06-06 19:15:50Z mueller $
 --
--- Copyright 2011-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 -- This program is free software; you may redistribute and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
@@ -23,7 +23,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  ise 13.1-14.7; viv 2014.4; ghdl 0.29-0.31
+-- Tool versions:  ise 13.1-14.7; viv 2014.4-2019.1; ghdl 0.29-0.35
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri ifa ofa
@@ -32,6 +32,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-06-02  1159   4.2.1  use rbaddr_ constants
 -- 2015-05-02   672   4.2    add rbd_rbmon (optional via generics)
 -- 2015-04-11   666   4.1    rename ENAESC->ESCFILL, rearrange XON handling
 -- 2014-08-28   588   4.0    use rlink v4 iface, 4 bit STAT
@@ -61,7 +62,7 @@ entity rlink_sp1c is                    -- rlink_core8+serport_1clock combo
     CDWIDTH : positive := 13;           -- clk divider width
     CDINIT : natural   := 15;           -- clk divider initial/reset setting
     RBMON_AWIDTH : natural := 0;        -- rbmon: buffer size, (0=none)
-    RBMON_RBADDR : slv16 := slv(to_unsigned(16#ffe8#,16))); -- rbmon: base addr
+    RBMON_RBADDR : slv16 := rbaddr_rbmon); -- rbmon: base addr
   port (
     CLK  : in slbit;                    -- clock
     CE_USEC : in slbit;                 -- 1 usec clock enable

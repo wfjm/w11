@@ -1,4 +1,4 @@
-// $Id: RerrMsg.hpp 983 2018-01-02 20:35:59Z mueller $
+// $Id: RerrMsg.hpp 1161 2019-06-08 11:52:01Z mueller $
 //
 // Copyright 2011-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -39,7 +39,7 @@ namespace Retro {
                     RerrMsg(const std::string& meth, const std::string& text);
                     RerrMsg(const std::string& meth, const std::string& text,
                             int errnum);
-                    ~RerrMsg();
+                   ~RerrMsg();
 
       void          Init(const std::string& meth, const std::string& text);
       void          InitErrno(const std::string& meth, 

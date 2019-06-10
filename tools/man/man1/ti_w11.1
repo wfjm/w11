@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: ti_w11.1 1103 2019-01-04 13:18:54Z mueller $
+.\"  $Id: ti_w11.1 1159 2019-06-06 19:15:50Z mueller $
 .\"
 .\" Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -143,15 +143,11 @@ trigger auto-bauding, and \fIcts\fP to use hardware handshake.
 Like above, but now the USB device will be autodetected.
 Typical way to start a Nexys4 board.
 
-.IP "\fBti_w11 -n3 -e $RETROBASE/tools/asm-11/w11/sys/dl11/simple_out.mac\fR"
+.IP "\fBti_w11 -n3 -e $RETROBASE/tools/mcode/dl11/dl11echo.mac\fR"
 Will start the \fItb_w11a_n3\fP test bench in \fBghdl\fP(1), on the fly 
-compile the \fIsimple_out.mac\fP test program with \fBasm-11\fP(1), load 
-and execute it. This little test code just produces
-.EX
-   Hello world!
-   Hello world!
-.EE
-forever, just abort with ^C if you have seen enough.
+compile the \fIdz11echo.mac\fP test program with \fBasm-11\fP(1), load 
+and execute it. This little test code echos console input, just abort
+with ^C if you have seen enough.
 .
 .\" ------------------------------------------------------------------
 .SH "SEE ALSO"

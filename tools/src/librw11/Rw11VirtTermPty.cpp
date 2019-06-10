@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTermPty.cpp 1114 2019-02-23 18:01:55Z mueller $
+// $Id: Rw11VirtTermPty.cpp 1161 2019-06-08 11:52:01Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -85,21 +85,21 @@ bool Rw11VirtTermPty::Open(const std::string& url, RerrMsg& emsg)
   int irc = grantpt(fd);
   if (irc < 0) {
     emsg.InitErrno("Rw11VirtTermPty::Open", "grantpt() failed: ", errno);
-    close(fd);
+    ::close(fd);
     return false;
   }
   
   irc = unlockpt(fd);
   if (irc < 0) {
     emsg.InitErrno("Rw11VirtTermPty::Open", "unlockpt() failed: ", errno);
-    close(fd);
+    ::close(fd);
     return false;
   }
   
   char* pname = ptsname(fd);
   if (pname == nullptr) {
     emsg.InitErrno("Rw11VirtTermPty::Open", "ptsname() failed: ", errno);
-    close(fd);
+    ::close(fd);
     return false;
   }
   

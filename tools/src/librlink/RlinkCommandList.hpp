@@ -1,4 +1,4 @@
-// $Id: RlinkCommandList.hpp 1091 2018-12-23 12:38:29Z mueller $
+// $Id: RlinkCommandList.hpp 1161 2019-06-08 11:52:01Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -53,7 +53,7 @@ namespace Retro {
       typedef std::unique_ptr<RlinkCommandExpect>  exp_uptr_t;
 
                     RlinkCommandList();
-                    RlinkCommandList(const RlinkCommandList&);
+                    RlinkCommandList(const RlinkCommandList& rhs);
                    ~RlinkCommandList();
 
       size_t        AddCommand(cmd_uptr_t&& upcmd);

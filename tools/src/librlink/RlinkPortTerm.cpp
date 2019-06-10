@@ -1,4 +1,4 @@
-// $Id: RlinkPortTerm.cpp 1091 2018-12-23 12:38:29Z mueller $
+// $Id: RlinkPortTerm.cpp 1161 2019-06-08 11:52:01Z mueller $
 //
 // Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -149,7 +149,7 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
     emsg.Init("RlinkPortTerm::Open()", 
               string("isatty() check for '") + fUrl.Path() +
               "' failed: not a TTY");
-    close(fd);
+    ::close(fd);
     return false;
   }
 
@@ -206,7 +206,7 @@ bool RlinkPortTerm::Open(const std::string& url, RerrMsg& emsg)
     emsg.InitErrno("RlinkPortTerm::Open()", 
                    string("cfsetspeed() for '") + baud + "' failed: ",
                    errno);
-    close(fd);
+    ::close(fd);
     return false;
   }
 

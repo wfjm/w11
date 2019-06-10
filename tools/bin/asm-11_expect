@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: asm-11_expect 1065 2018-11-04 11:32:06Z mueller $
+# $Id: asm-11_expect 1152 2019-05-26 08:13:18Z mueller $
 #
-# Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -14,6 +14,7 @@
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-05-25  1152   1.1.1  skip data checks if dot not defined
 # 2018-11-03  1065   1.1    add and use bailout; update exit code usage
 # 2013-03-29   500   1.0    Initial version
 # 2013-03-24   499   0.1    First draft
@@ -232,7 +233,7 @@ sub do_file {
       }
     }
 
-    if (scalar(@c_dat)) {
+    if (defined $dot && scalar(@c_dat)) {
       my $nc = scalar(@c_dat);
       $nc = scalar(@dat) if $nc < scalar(@dat);
       for (my $i=0; $i<$nc; $i++) {

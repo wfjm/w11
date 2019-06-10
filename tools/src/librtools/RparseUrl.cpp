@@ -1,6 +1,6 @@
-// $Id: RparseUrl.cpp 1070 2018-11-17 09:48:04Z mueller $
+// $Id: RparseUrl.cpp 1161 2019-06-08 11:52:01Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1161   1.2    add DirName,FileName,FileStem,FileType
 // 2018-11-16  1070   1.1.1  use auto; use emplace,make_pair; use range loop
 // 2017-04-15   875   1.1    add Set() with default scheme handling
 // 2015-06-04   686   1.0.2  Set(): add check that optlist is enclosed by '|'
@@ -157,6 +158,46 @@ void RparseUrl::Clear()
   fPath.clear();
   fOptMap.clear();
   return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+std::string RparseUrl::DirName() const
+{
+  size_t ddel = fPath.find_last_of('/');
+  return (ddel == string::npos) ? "." : fPath.substr(0,ddel);
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+std::string RparseUrl::FileName() const
+{
+  size_t ddel = fPath.find_last_of('/');
+  return (ddel != string::npos && ddel+1 <= fPath.length()) ?
+    fPath.substr(ddel+1) : fPath;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+std::string RparseUrl::FileStem() const
+{
+  string fname = FileName();
+  size_t ddel = fname.find_last_of('.');
+  return (ddel == string::npos) ? "" : fname.substr(0,ddel);
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+std::string RparseUrl::FileType() const
+{
+  string fname = FileName();
+  size_t ddel = fname.find_last_of('.');
+  return (ddel != string::npos && ddel+1 <= fname.length()) ?
+    fname.substr(ddel+1) : "";
 }
 
 //------------------------------------------+-----------------------------------

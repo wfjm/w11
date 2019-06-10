@@ -1,6 +1,6 @@
-// $Id: RparseUrl.hpp 1066 2018-11-10 11:21:53Z mueller $
+// $Id: RparseUrl.hpp 1161 2019-06-08 11:52:01Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-07  1161   1.2    add DirName,FileName,FileStem,FileType
 // 2017-04-15   875   1.1    add Set() with default scheme handling
 // 2013-02-23   492   1.0.1  add static FindScheme(); allow no or empty scheme
 // 2013-02-03   481   1.0    Initial version, extracted from RlinkPort
@@ -51,10 +52,14 @@ namespace Retro {
       const std::string&  Url() const;
       const std::string&  Scheme() const;
       const std::string&  Path() const;
-      const omap_t&       Opts() const;
-      bool                FindOpt(const std::string& name) const;
-      bool                FindOpt(const std::string& name, 
-                                  std::string& value) const;
+      std::string   DirName() const;
+      std::string   FileName() const;
+      std::string   FileStem() const;
+      std::string   FileType() const;
+      const omap_t& Opts() const;
+      bool          FindOpt(const std::string& name) const;
+      bool          FindOpt(const std::string& name, 
+                            std::string& value) const;
 
       virtual void  Dump(std::ostream& os, int ind=0, const char* text=0) const;
 

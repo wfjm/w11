@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTapeTap.cpp 1090 2018-12-21 12:17:35Z mueller $
+// $Id: Rw11VirtTapeTap.cpp 1161 2019-06-08 11:52:01Z mueller $
 //
 // Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -504,7 +504,7 @@ bool Rw11VirtTapeTap::Write(size_t nbyt, const uint8_t* data, bool back,
                                RerrMsg& emsg)
 {
   if (fTruncPend) {
-    if (ftruncate(fFd, fPos) < 0) {
+    if (::ftruncate(fFd, fPos) < 0) {
       emsg.InitErrno("Rw11VirtTapeTap::Write()", "ftruncate() failed: ", errno);
       return false;
     }

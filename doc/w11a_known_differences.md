@@ -1,9 +1,8 @@
 # Summary of known differences and limitations for w11a CPU and systems
 
-General issues are listed on a separate document
-[README_known_issues.md](README_known_issues.md).
-
 This file descibes differences and limitations of the w11 CPU and systems.
+The issues of the w11 CPU and systems are listed in a separate document
+[README_known_issues.md](README_known_issues.md).
 
 ### Table of content
 

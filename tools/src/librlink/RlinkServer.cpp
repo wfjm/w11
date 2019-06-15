@@ -1,4 +1,4 @@
-// $Id: RlinkServer.cpp 1127 2019-04-07 10:59:07Z mueller $
+// $Id: RlinkServer.cpp 1161 2019-06-08 11:52:01Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-08  1161   2.2.11 adapt to new ReventFd API
 // 2019-04-07  1127   2.2.10 trace now with timestamp and selective
 // 2019-02-23  1114   2.2.9  use std::bind instead of lambda
 // 2018-12-17  1088   2.2.8  use std::lock_guard, std::thread instead of boost
@@ -70,7 +71,7 @@ RlinkServer::RlinkServer()
     fContext(),
     fAttnDsc(),
     fActnList(),
-    fWakeupEvent(),
+    fWakeupEvent("RlinkServer::fWakeupEvent."),
     fELoop(this),
     fServerThread(),
     fAttnPatt(0),
@@ -83,7 +84,7 @@ RlinkServer::RlinkServer()
                         RlinkCommand::kStat_M_RbErr);
 
   fELoop.AddPollHandler(bind(&RlinkServer::WakeupHandler, this, _1), 
-                        fWakeupEvent, POLLIN);
+                        fWakeupEvent.Fd(), POLLIN);
 
   // Statistic setup
   fStats.Define(kStatNEloopWait,"NEloopWait","event loop turns (wait)");
@@ -296,11 +297,7 @@ void RlinkServer::Resume()
 
 void RlinkServer::Wakeup()
 {
-  uint64_t one(1);
-  int irc = ::write(fWakeupEvent, &one, sizeof(one));
-  if (irc < 0) 
-    throw Rexception("RlinkServer::Wakeup()", 
-                     "write() to eventfd failed: ", errno);
+  fWakeupEvent.Signal();
   return;
 }
 
@@ -560,11 +557,7 @@ int RlinkServer::WakeupHandler(const pollfd& pfd)
   // bail-out and cancel handler if poll returns an error event
   if (pfd.revents & (~pfd.events)) return -1;
 
-  uint64_t buf;
-  int irc = ::read(fWakeupEvent, &buf, sizeof(buf));
-  if (irc < 0) 
-    throw Rexception("RlinkServer::WakeupHandler()", 
-                     "read() from eventfd failed: ", errno);
+  fWakeupEvent.Wait();                      // read event
   return 0;
 }
 

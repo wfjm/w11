@@ -1,4 +1,4 @@
-// $Id: ReventFd.cpp 1125 2019-03-30 07:34:54Z mueller $
+// $Id: ReventFd.cpp 1161 2019-06-08 11:52:01Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-08  1161   1.1    derive from Rfd, inherit Fd
 // 2018-12-18  1089   1.0.1  use c++ style casts
 // 2013-01-14   475   1.0    Initial version
 // 2013-01-11   473   0.5    First draft
@@ -44,38 +45,44 @@ namespace Retro {
 //! FIXME_docs
 
 ReventFd::ReventFd()
+  : ReventFd("ReventFd::")
+{}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+ReventFd::ReventFd(const char* cnam)
+  : Rfd(cnam)
 {
   fFd = ::eventfd(0,0);                    // ini value = 0; no flags
   if (fFd < 0) 
-    throw Rexception("ReventFd::ctor", "eventfd() failed: ", errno);
+    throw Rexception(fCnam+"ctor", "eventfd() failed: ", errno);
 }
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-ReventFd::~ReventFd()
+void ReventFd::Signal(uint64_t val)
 {
-  ::close(fFd);
+  int irc = ::write(fFd, &val, sizeof(val));
+  if (irc < 0) {
+    throw Rexception(fCnam+"Signal()", "write() failed: ", errno);
+  }
+  return;
 }
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-int ReventFd::SignalFd(int fd)
-{
-  uint64_t one(1);
-  int irc = ::write(fd, &one, sizeof(one));
-  return irc;
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-int ReventFd::WaitFd(int fd)
+uint64_t ReventFd::Wait()
 {
   uint64_t buf;
-  int irc = ::read(fd, &buf, sizeof(buf));
-  return (irc <= 0) ? irc : int(buf);
+  int irc = ::read(fFd, &buf, sizeof(buf));
+  if (irc < 0) {
+    if (errno == EAGAIN) return 0;
+    throw Rexception(fCnam+"Wait()", "read() failed: ", errno);
+  }
+  return buf;  
 }
 
 } // end namespace Retro

@@ -26,6 +26,10 @@ The full set of tests is only run for tagged releases.
 ### Summary
 - use vivado 2019.1 as default
 
+### New features
+- new tools
+  - ibrtools/Rfd: added, encapsulates a file descriptor
+
 ### Changes
 - tools changes
   - add -reset option to stats subcommand
@@ -33,6 +37,7 @@ The full set of tests is only run for tagged releases.
     - librtcltools/RtclStats: Rename Collect->Exec, not longer const; add -reset
     - libr*/*: Stats() not longer const; use RtclStats::Exec()
     - librtools/RparseUrl: add DirName,FileName,FileStem,FileType
+  - derive ReventFd and RtimerFd from Rfd
 - firmware changes
   - sys_w11a_arty: down-rate to 72 MHz, viv 2019.1 fails with 75 MHz
   - sys_w11a_*.vmfset: add new rule for vivado 2019.1

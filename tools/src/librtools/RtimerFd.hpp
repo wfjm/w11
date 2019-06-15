@@ -1,6 +1,6 @@
-// $Id: RtimerFd.hpp 1125 2019-03-30 07:34:54Z mueller $
+// $Id: RtimerFd.hpp 1161 2019-06-08 11:52:01Z mueller $
 //
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-08  1161   1.1    derive from Rfd, inherit IsOpen,Close,Fd
 // 2018-12-16  1084   1.0.1  use =delete for noncopyable instead of boost
 // 2017-02-18   852   1.0    Initial version
 // 2013-01-11   473   0.1    First draft
@@ -28,33 +29,26 @@
 
 #include <time.h>
 
+#include "Rfd.hpp"
 #include "Rtime.hpp"
 
 
 namespace Retro {
 
-  class RtimerFd {
+  class RtimerFd : public Rfd {
     public:
                     RtimerFd();
-      virtual      ~RtimerFd();
+      explicit      RtimerFd(const char* cnam);
     
                     RtimerFd(const RtimerFd&) = delete;   // noncopyable 
       RtimerFd&     operator=(const RtimerFd&) = delete;  // noncopyable
 
       void          Open(clockid_t clkid=CLOCK_MONOTONIC);
-      bool          IsOpen() const;
-      void          Close();
       void          SetRelative(const Rtime& dt);
       void          SetRelative(double dt);
       void          Cancel();
       uint64_t      Read();
 
-      int           Fd() const;
-      explicit      operator bool() const;
-
-    protected:
-
-      int           fFd;
 };
   
 } // end namespace Retro

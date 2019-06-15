@@ -1,6 +1,6 @@
-// $Id: ReventFd.ipp 1125 2019-03-30 07:34:54Z mueller $
+// $Id: Rfd.ipp 1161 2019-06-08 11:52:01Z mueller $
 //
-// Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,12 +13,11 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2013-01-14   475   1.0    Initial version
-// 2013-01-11   473   0.5    First draft
+// 2019-06-07  1161   1.0    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
-  \brief   Implemenation (inline) of class ReventFd.
+  \brief   Implemenation (inline) of class Rfd.
 */
 
 // all method definitions in namespace Retro
@@ -27,7 +26,7 @@ namespace Retro {
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline int ReventFd::Fd() const
+inline int Rfd::Fd() const
 {
   return fFd;
 }
@@ -35,25 +34,27 @@ inline int ReventFd::Fd() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline int ReventFd::Signal()
+inline bool Rfd::IsOpen() const
 {
-  return SignalFd(fFd);
+  return fFd >= 0;
 }
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline int ReventFd::Wait()
+inline bool Rfd::IsOpenNonStd() const
 {
-  return WaitFd(fFd);
+  return fFd > 2;
 }
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline ReventFd::operator int() const
+inline Rfd::operator bool() const
 {
-  return fFd;
+  return IsOpen();
 }
 
 } // end namespace Retro
+
+

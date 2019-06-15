@@ -1,6 +1,6 @@
-// $Id: RtimerFd.ipp 1125 2019-03-30 07:34:54Z mueller $
+// $Id: RtimerFd.ipp 1161 2019-06-08 11:52:01Z mueller $
 //
-// Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-08  1161   1.1    derive from Rfd, inherit IsOpen,Close,Fd
 // 2017-02-18   851   1.0    Initial version
 // 2013-01-11   473   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -27,33 +28,9 @@ namespace Retro {
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline bool RtimerFd::IsOpen() const
-{
-  return fFd >= 0;
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
 inline void RtimerFd::SetRelative(double dt)
 {
   return SetRelative(Rtime(dt));
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-inline int RtimerFd::Fd() const
-{
-  return fFd;
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
-inline RtimerFd::operator bool() const
-{
-  return IsOpen();
 }
 
 } // end namespace Retro

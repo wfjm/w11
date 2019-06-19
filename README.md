@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/wfjm/w11.svg?branch=master)](https://travis-ci.org/wfjm/w11)
 [![Coverity Status](https://scan.coverity.com/projects/16546/badge.svg?flat=1)](https://scan.coverity.com/projects/wfjm-w11)
+[![Commits since latest release](https://img.shields.io/github/commits-since/wfjm/w11/latest.svg?longCache=true)](https://github.com/wfjm/w11/releases)
+
 
 ### Overview
 The project contains the VHDL code for a **complete DEC PDP-11 system**:
@@ -27,7 +29,7 @@ For more information look into:
 - guides to [run test benches](doc/w11a_tb_guide.md)
   and to [boot operating systems](doc/w11a_os_guide.md)
 - known [issues](doc/README_known_issues.md)
-- known [differenes](doc/w11a_known_differences.md)
+- known [differences](doc/w11a_known_differences.md)
 - the impatient readers can try their luck with the
   [quick start guide](doc/INSTALL_quickstart.md)
 

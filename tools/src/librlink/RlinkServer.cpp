@@ -1,4 +1,4 @@
-// $Id: RlinkServer.cpp 1161 2019-06-08 11:52:01Z mueller $
+// $Id: RlinkServer.cpp 1164 2019-06-15 18:56:34Z mueller $
 //
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2019-06-08  1161   2.2.11 adapt to new ReventFd API
+// 2019-06-15  1164   2.2.11 adapt to new ReventFd API
 // 2019-04-07  1127   2.2.10 trace now with timestamp and selective
 // 2019-02-23  1114   2.2.9  use std::bind instead of lambda
 // 2018-12-17  1088   2.2.8  use std::lock_guard, std::thread instead of boost
@@ -388,6 +388,7 @@ void RlinkServer::Dump(std::ostream& os, int ind, const char* text,
        << RosPrintBvi(fAttnDsc[i].fId.fMask,16)
        << ", " << fAttnDsc[i].fId.fCdata << endl;
   os << bl << "  fActnList.size:  " << fActnList.size() << endl;
+  os << bl << "  fWakeupEvent:    " << fWakeupEvent.Fd() << endl;
   fELoop.Dump(os, ind+2, "fELoop", detail);
   os << bl << "  fServerThread:   " << fServerThread.get_id() << endl;
   os << bl << "  fAttnPatt:       " << RosPrintBvi(fAttnPatt,16) << endl;

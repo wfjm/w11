@@ -221,12 +221,6 @@ explicitly IOB flops, thus timing well defined.
 rlink throughput on basys3/nexys4 limited by serial port stack 
 round trip times. Will be overcome by libusb based custom driver.
 
-### V0.64-1 {[issue #3](https://github.com/wfjm/w11/issues/3)} -- Bad throughput for DL11 emulation for low speed links
-The large default transfer size for disk accesses leads to bad
-throughput in the DL11 emulation for low speed links, like the
-460kBaud the S3board is limited to. Will be overcome by a DL11
-controller with more buffering.
-
 ### V0.62-2 {[issue #2](https://github.com/wfjm/w11/issues/2)} -- rlink v4 error recovery not yet implemented, will crash on error
 rlink v4 error recovery not yet implemented, will crash on error.
 
@@ -238,6 +232,7 @@ the backend produces proper command lists and the USB channel is usually error
 free}_
 
 ## Resolved Issues
+
 ### V0.742-1 {[issue #14](https://github.com/wfjm/w11/issues/14)} -- SEGFAULT core dump after detach
 #### Original Issue
 The detach of a `tcp` type virtual terminal or a `tap` type virtual
@@ -254,6 +249,16 @@ and the subsequent execution of `DoCall` called removed handlers.
 pending poll list updates.
 
 Fixed with commit [6f56f29](https://github.com/wfjm/w11/commit/6f56f29).
+
+### V0.64-1 {[issue #3](https://github.com/wfjm/w11/issues/3)} -- Bad throughput for DL11 emulation for low speed links
+#### Original Issue
+The large default transfer size for disk accesses leads to bad
+throughput in the DL11 emulation for low speed links, like the
+460kBaud the S3board is limited to. Will be overcome by a DL11
+controller with more buffering.
+#### Fix
+Fixed Resolved with buffered DL11 in commit
+[1c9dbeb](https://github.com/wfjm/w11/commit/1c9dbeb).
 
 ### V0.50-10 {[issue #20](https://github.com/wfjm/w11/issues/20)} -- DL11: output chars lost when device polling used
 #### Original Issue

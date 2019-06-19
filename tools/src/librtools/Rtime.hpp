@@ -1,4 +1,4 @@
-// $Id: Rtime.hpp 1091 2018-12-23 12:38:29Z mueller $
+// $Id: Rtime.hpp 1161 2019-06-08 11:52:01Z mueller $
 //
 // Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -35,8 +35,8 @@ namespace Retro {
   class Rtime {
     public: 
 		    Rtime();
-     explicit       Rtime(clockid_t clkid);
-     explicit       Rtime(double dt);
+      explicit      Rtime(clockid_t clkid);
+      explicit      Rtime(double dt);
 
       void          GetClock(clockid_t clkid);
       void          SetSec(time_t sec);

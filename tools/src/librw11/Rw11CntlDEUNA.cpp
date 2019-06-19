@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDEUNA.cpp 1161 2019-06-08 11:52:01Z mueller $
+// $Id: Rw11CntlDEUNA.cpp 1164 2019-06-15 18:56:34Z mueller $
 //
 // Copyright 2014-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,7 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2019-06-08  1161   0.5.10 adapt to new RtimerFd API
+// 2019-06-15  1164   0.5.10 adapt to new RtimerFd API
 // 2019-04-19  1133   0.5.9  use ExecWibr()
 // 2019-02-23  1114   0.5.8  use std::bind instead of lambda
 // 2018-12-19  1090   0.5.7  use RosPrintf(bool)
@@ -665,6 +665,7 @@ void Rw11CntlDEUNA::Dump(std::ostream& os, int ind, const char* text,
 
   os << bl << "  fRxPollTime:      " << fRxPollTime << endl;
   os << bl << "  fRxQueLimit:      " << RosPrintf(fRxQueLimit,"d", 4)  << endl;
+  os << bl << "  fRxPollTimer:     " << fRxPollTimer.Fd()  << endl;
   size_t rxquesize = fRxBufQueue.size();
   os << bl << "  fRxBufQueue.size: " << RosPrintf(rxquesize,"d", 4) << endl;
   for (size_t i=0; i<rxquesize; i++) {

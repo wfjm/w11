@@ -1,8 +1,8 @@
 #! /usr/bin/env tclshcpp
 # -*- tcl -*-
-# $Id: ti_rri 985 2018-01-03 08:59:40Z mueller $
+# $Id: ti_rri 1165 2019-06-16 11:51:33Z mueller $
 #
-# Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # This program is free software; you may redistribute and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -129,8 +129,8 @@ foreach arg $argv {
     ^--?int$      { set opts(int) 1 }
     ^--?help$     { set opts(help) 1 }
     ^--$          { set optsendseen 1 }
-    ^--.+$        { puts "-E: bad option $arg, see --help for proper usage"
-                    return 1
+    ^--?.+$       { puts "-E: bad option $arg, see --help for proper usage"
+                    exit 1
                   }
     default       { lappend clist $arg }
   }
@@ -145,7 +145,7 @@ if { [llength clist] } {
 }
 
 if { $opts(help) } {
-  # use {} as defimiter here to avoid that escaping of all [] 
+  # use {} as delimiter here to avoid escaping of all [] 
   puts {usage: ti_rri [OPTION]... [COMMAND]...}
   puts {}
   puts {Options:}
@@ -174,12 +174,12 @@ if { $opts(help) } {
   puts {  with eval.}
   puts {}
   puts {For further details consults the ti_rri man page.}
-  return 0
+  exit 0
 }
 
 if {![info exists env(RETROBASE)]} {
   puts "-E: RETROBASE environment variable not defined"
-  return 1
+  exit 1
 }
 
 # check consistency of connection open options
@@ -190,7 +190,7 @@ if { $opts(cuff) } { incr nopen }
 
 if { $nopen > 1 } {
   puts "-E: more than one of --fifo,--term,--cuff given, only one allowed"
-  return 1
+  exit 1
 }
 
 # setup auto path
@@ -233,7 +233,7 @@ if { $opts(run_) ne "" } {
   if { [catch {exec sh -c $opts(run_) &} runpid] } {
     puts "-E: failed to execute \"$opts(run_)\" with error message\n  $runpid"
     puts "-E: aborting..."
-    return 1
+    exit 1
   }
 }
 
@@ -291,7 +291,7 @@ if { $opts(term) } {
       # puts "-I: Digilent USB interface detected: $dev_usbd"
     } else {
       puts "-E: no Digilent USB interface detected"
-      return 1
+      exit 1
     }
   }
 
@@ -386,4 +386,4 @@ if { $tcl_interactive && $tirri_interactive } {
   tirri_exit 0
 }
 
-return 0
+exit 0

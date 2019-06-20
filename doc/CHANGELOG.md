@@ -25,6 +25,7 @@ The full set of tests is only run for tagged releases.
 
 ### Summary
 - use vivado 2019.1 as default
+- finalize coverity fixups, now defect free
 
 ### New features
 - new tools

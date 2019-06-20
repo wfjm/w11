@@ -1,6 +1,6 @@
-// $Id: RlinkPacketBufRcv.cpp 1091 2018-12-23 12:38:29Z mueller $
+// $Id: RlinkPacketBufRcv.cpp 1163 2019-06-15 07:26:57Z mueller $
 //
-// Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-14  1163   1.2.2  ReadData(): coverity fixup (logically dead code)
 // 2018-12-23  1091   1.2.1  ReadData(): remove port open check, done at caller
 // 2018-12-08  1079   1.2    use ref not ptr for RlinkPort
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
@@ -92,7 +93,7 @@ int RlinkPacketBufRcv::ReadData(RlinkPort& port, const Rtime& timeout,
 
   if (timeout.IsZero() && irc == RlinkPort::kTout) return 0;
 
-  if (irc < 0) {
+  if (irc <= 0) {
     if (irc == RlinkPort::kTout) {
       SetFlagBit(kFlagErrTout);
     } else {

@@ -1,4 +1,4 @@
-// $Id: Rfd.hpp 1161 2019-06-08 11:52:01Z mueller $
+// $Id: Rfd.hpp 1163 2019-06-15 07:26:57Z mueller $
 //
 // Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-15  1163   1.0.1  SetFd() now type bool
 // 2019-06-07  1161   1.0    Initial version
 // ---------------------------------------------------------------------------
 
@@ -40,7 +41,7 @@ namespace Retro {
                     Rfd(const Rfd&) = delete;        // noncopyable 
       Rfd&          operator=(const Rfd&) = delete;  // noncopyable
 
-      void          SetFd(int fd);
+      bool          SetFd(int fd);
       int           Fd() const;
 
       bool          IsOpen() const;

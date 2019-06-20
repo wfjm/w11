@@ -1,4 +1,4 @@
-// $Id: Rw11CntlRHRP.cpp 1133 2019-04-19 18:43:00Z mueller $
+// $Id: Rw11CntlRHRP.cpp 1163 2019-06-15 07:26:57Z mueller $
 //
 // Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
@@ -589,6 +589,7 @@ void Rw11CntlRHRP::RdmaPostExecCB(int stat, size_t ndone,
   if (clist.Size() > ncmd) {
     uint8_t  ccode = clist[ncmd].Command();
     uint16_t cdata = clist[ncmd].Data();
+    /* coverity[deadcode] */ /* unused until rper1 is really set */
     if (ccode != RlinkCommand::kCmdLabo || (rper1 != 0 && cdata == 0))
       throw Rexception("Rw11CntlRHRP::RdmaPostExecCB",
                        "Bad state: Labo not found or missed abort");

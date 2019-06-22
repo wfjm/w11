@@ -1,6 +1,6 @@
-// $Id: Rw11VirtDisk.cpp 1076 2018-12-02 12:45:49Z mueller $
-//
-// Copyright 2013-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// $Id: Rw11VirtDisk.cpp 1167 2019-06-20 10:17:11Z mueller $
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // This program is free software; you may redistribute and/or modify it under
 // the terms of the GNU General Public License as published by the Free
@@ -13,6 +13,7 @@
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-21  1167   1.4.1  remove dtor
 // 2018-12-02  1076   1.4    use unique_ptr for New()
 // 2018-10-27  1061   1.3    add fNCyl,fNHead,fNSect; add Rw11VirtDiskRam
 // 2017-04-07   868   1.2.1  Dump(): add detail arg
@@ -68,12 +69,6 @@ Rw11VirtDisk::Rw11VirtDisk(Rw11Unit* punit)
   fStats.Define(kStatNVDWrite,   "NVDWrite",    "Write() calls");
   fStats.Define(kStatNVDWriteBlk,"NVDWriteBlk", "blocks written");
 }
-
-//------------------------------------------+-----------------------------------
-//! Destructor
-
-Rw11VirtDisk::~Rw11VirtDisk()
-{}
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs

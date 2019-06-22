@@ -1,7 +1,8 @@
-# $Id: Makefile 1161 2019-06-08 11:52:01Z mueller $
+# $Id: Makefile 1163 2019-06-15 07:26:57Z mueller $
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2019-06-15  1163   1.1.6  add Rfilefd
 # 2019-06-07  1161   1.1.5  add Rfd
 # 2019-03-30  1125   1.1.4  add ReventFd,RtimerFd
 # 2019-01-02  1100   1.1.3  drop boost includes and libs
@@ -29,6 +30,7 @@ OBJ_all   += RerrMsg.o
 OBJ_all   += ReventFd.o
 OBJ_all   += Rexception.o
 OBJ_all   += Rfd.o
+OBJ_all   += RfileFd.o
 OBJ_all   += RiosState.o
 OBJ_all   += RlogFile.o RlogFileCatalog.o RlogMsg.o
 OBJ_all   += RosFill.o 

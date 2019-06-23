@@ -1,4 +1,6 @@
-# $Id: generic_cpp.mk 1049 2018-09-22 13:56:52Z mueller $
+# $Id: generic_cpp.mk 1168 2019-06-20 11:52:51Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History: 
 # Date         Rev Version  Comment

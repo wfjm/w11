@@ -1,4 +1,6 @@
-# $Id: generic_dep.mk 354 2011-01-09 22:38:53Z mueller $
+# $Id: generic_dep.mk 1168 2019-06-20 11:52:51Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History: 
 # Date         Rev Version  Comment

@@ -1,4 +1,6 @@
-# $Id: generic_asm11.mk 503 2013-04-06 19:44:13Z mueller $
+# $Id: generic_asm11.mk 1168 2019-06-20 11:52:51Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History: 
 # Date         Rev Version  Comment

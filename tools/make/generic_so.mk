@@ -1,7 +1,10 @@
-# $Id: generic_so.mk 733 2016-02-20 12:24:13Z mueller $
+# $Id: generic_so.mk 1168 2019-06-20 11:52:51Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2019-06-20  1168   1.1    use -scrUuv for ar to avoid "'u' modifier ignored"
 # 2013-05-03   515   1.0.1  use 'mkdir -p' to prevent aborts with -j 4
 # 2011-01-09   354   1.0    Initial version (from wrepo/make/generic_so.mk)
 #---
@@ -40,5 +43,5 @@ $(SOPATH)/$(SOFILEVV) : $(OBJ_all)
 #
 $(SOPATH)/$(AFILE) : $(OBJ_all)
 	if [ ! -d $(SOPATH) ]; then mkdir -p $(SOPATH); fi
-	ar -scruv $(SOPATH)/$(AFILE) $?
+	ar -scrUuv $(SOPATH)/$(AFILE) $?
 #

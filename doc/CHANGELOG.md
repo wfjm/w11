@@ -41,6 +41,7 @@ The full set of tests is only run for tagged releases.
     - librtools/RparseUrl: add DirName,FileName,FileStem,FileType
   - derive ReventFd and RtimerFd from Rfd
   - generic_so.mk: use -scrUuv for ar to avoid "'u' modifier ignored"
+  - tools/oskit/hook/hook_ibmon_*.tcl: check ibmon availability
 - firmware changes
   - sys_w11a_arty: down-rate to 72 MHz, viv 2019.1 fails with 75 MHz
   - sys_w11a_*.vmfset: add new rule for vivado 2019.1

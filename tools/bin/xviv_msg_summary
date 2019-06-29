@@ -1,8 +1,7 @@
 #!/bin/bash
-# $Id: xviv_msg_summary 1040 2018-08-18 07:40:07Z mueller $
-#
-# Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see License.txt in $RETROBASE directory
+# $Id: xviv_msg_summary 1172 2019-06-29 07:27:24Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2016-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev  Vers    Comment

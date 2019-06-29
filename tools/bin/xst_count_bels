@@ -1,18 +1,9 @@
 #!/usr/bin/perl -w
-# $Id: xst_count_bels 1089 2018-12-19 10:45:41Z mueller $
+# $Id: xst_count_bels 1172 2019-06-29 07:27:24Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2007-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
-# Copyright 2007-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-#
-# This program is free software; you may redistribute and/or modify it under
-# the terms of the GNU General Public License as published by the Free
-# Software Foundation, either version 3, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
-# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-# for complete details.
-#
-#  Revision History: 
+#  Revision History:
 # Date         Rev Version  Comment
 # 2018-12-18  1089   1.2.2  add and use bailout
 # 2010-04-26   284   1.2.1  add error check for GetOptions

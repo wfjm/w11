@@ -1,8 +1,7 @@
 #!/usr/bin/perl -w
-# $Id: ti_w11 1133 2019-04-19 18:43:00Z mueller $
-#
+# $Id: ti_w11 1172 2019-06-29 07:27:24Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see License.txt in $RETROBASE directory
 #
 #  Revision History:
 # Date         Rev Version  Comment

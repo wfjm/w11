@@ -45,6 +45,7 @@ The full set of tests is only run for tagged releases.
 - firmware changes
   - sys_w11a_arty: down-rate to 72 MHz, viv 2019.1 fails with 75 MHz
   - sys_w11a_*.vmfset: add new rule for vivado 2019.1
+  - pdp11_vmbox: support membe for em cacc access
 
 <!-- --------------------------------------------------------------------- -->
 ---

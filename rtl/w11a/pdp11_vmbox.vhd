@@ -1,15 +1,6 @@
--- $Id: pdp11_vmbox.vhd 1112 2019-02-17 11:10:04Z mueller $
---
--- Copyright 2006-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
---
--- This program is free software; you may redistribute and/or modify it under
--- the terms of the GNU General Public License as published by the Free
--- Software Foundation, either version 3, or (at your option) any later version.
---
--- This program is distributed in the hope that it will be useful, but
--- WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
--- or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
--- for complete details.
+-- $Id: pdp11_vmbox.vhd 1170 2019-06-22 20:58:52Z mueller $
+-- SPDX-License-Identifier: GPL-3.0-or-later
+-- Copyright 2006-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    pdp11_vmbox - syn
@@ -27,6 +18,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-06-22  1170   1.6.7  support membe for em cacc access
 -- 2016-05-22   767   1.6.6  don't init N_REGS (vivado fix for fsm inference)
 -- 2015-07-03   697   1.6.5  much wider DM_STAT_VM
 -- 2015-04-04   662   1.6.4  atowidth now 6 (was 5) to support ibdr_rprm reset
@@ -315,7 +307,9 @@ begin
     iem_mreq  := em_mreq_init;
     iem_mreq.din  := VM_DIN;
 
-    if VM_CNTL.bytop = '0' then         -- if word access
+    if VM_CNTL.cacc = '1' then          -- if cacc access
+      iem_mreq.be := CP_ADDR.be;          -- use membe setup
+    elsif VM_CNTL.bytop = '0' then      -- if word access
       iem_mreq.be := "11";                -- both be's
     else
       if VM_ADDR(0) = '0' then            -- if low byte

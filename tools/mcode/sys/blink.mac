@@ -1,6 +1,6 @@
-; $Id: blink.mac 1139 2019-04-27 14:00:38Z mueller $
+; $Id: blink.mac 1174 2019-06-29 18:00:47Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-; License disclaimer see License.txt in $RETROBASE directory
 ;
 ; Revision History:
 ; Date         Rev Version  Comment

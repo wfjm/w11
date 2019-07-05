@@ -1,7 +1,6 @@
-# $Id: generic_isim.mk 830 2016-12-26 20:25:49Z mueller $
-#
+# $Id: generic_isim.mk 1176 2019-06-30 07:16:06Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2009-2013 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see License.txt in $RETROBASE directory
 #
 #  Revision History: 
 # Date         Rev Version  Comment

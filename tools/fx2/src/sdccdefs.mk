@@ -1,4 +1,6 @@
-# $Id: sdccdefs.mk 604 2014-11-16 22:33:09Z mueller $
+# $Id: sdccdefs.mk 1176 2019-06-30 07:16:06Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History: 
 # Date         Rev Version  Comment

@@ -1,7 +1,6 @@
-# $Id: viv_default_cmoda7.mk 906 2017-06-04 21:59:13Z mueller $
-#
+# $Id: viv_default_cmoda7.mk 1176 2019-06-30 07:16:06Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History: 
 # Date         Rev Version  Comment

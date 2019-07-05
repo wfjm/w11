@@ -1,4 +1,6 @@
-# $Id: checkpath_cpp.mk 602 2014-11-08 21:42:47Z mueller $
+# $Id: checkpath_cpp.mk 1176 2019-06-30 07:16:06Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History: 
 # Date         Rev Version  Comment

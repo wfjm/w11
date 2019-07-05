@@ -1,4 +1,6 @@
-# $Id: Makefile 1067 2018-11-11 08:30:29Z mueller $
+# $Id: Makefile 1176 2019-06-30 07:16:06Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History: 
 # Date         Rev Version  Comment

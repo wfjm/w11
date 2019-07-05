@@ -1,4 +1,6 @@
-# $Id: Makefile 1111 2019-02-10 16:13:55Z mueller $
+# $Id: Makefile 1176 2019-06-30 07:16:06Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # 'Meta Makefile' for whole retro project
 #   allows to make all synthesis targets

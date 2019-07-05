@@ -1,4 +1,6 @@
-# $Id: Makefile 601 2014-11-07 22:44:43Z mueller $
+# $Id: Makefile 1176 2019-06-30 07:16:06Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Top level makefile, using the recipe found in
 #    http://www.lackof.org/taggart/hacking/make-example/

@@ -1,18 +1,10 @@
-// $Id: RtclRw11Cpu.cpp 1160 2019-06-07 17:30:17Z mueller $
-//
+// $Id: RtclRw11Cpu.cpp 1175 2019-06-30 06:13:17Z mueller $
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-//
-// This program is free software; you may redistribute and/or modify it under
-// the terms of the GNU General Public License as published by the Free
-// Software Foundation, either version 3, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
-// or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-// for complete details.
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-29  1175   1.2.33 M_ldabs(): add missing OptValid() call
 // 2019-06-07  1160   1.2.32 use RtclStats::Exec()
 // 2019-04-30  1143   1.2.31 add HasM9312() getter
 // 2019-04-12  1131   1.2.30 BUGFIX: M_wtcpu(): check cpu attn in no-server case
@@ -846,6 +838,7 @@ int RtclRw11Cpu::M_wtcpu(RtclArgs& args)
   while (args.NextOpt(opt, optset)) {
     if (opt == "-reset") reset = true;
   }
+  if (!args.OptValid()) return kERR;
   if (!args.GetArg("tout", dtout, 0.001)) return kERR;
   if (!args.AllDone()) return kERR;
 
@@ -980,6 +973,7 @@ int RtclRw11Cpu::M_ldabs(RtclArgs& args)
   while (args.NextOpt(opt, optset)) {
     if (opt == "-trace") trace = true;
   }
+  if (!args.OptValid()) return kERR;
 
   string file;
   string varstart;
@@ -1025,6 +1019,7 @@ int RtclRw11Cpu::M_ldasm(RtclArgs& args)
       if (!args.GetArg("??file", file)) return kERR;
     }
   }
+  if (!args.OptValid()) return kERR;
 
   if (file.length() == 0) {
     if (!args.GetArg("code", code)) return kERR;

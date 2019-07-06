@@ -1,18 +1,10 @@
-// $Id: Rw11Cpu.cpp 1143 2019-05-01 13:25:51Z mueller $
-//
+// $Id: Rw11Cpu.cpp 1175 2019-06-30 06:13:17Z mueller $
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-//
-// This program is free software; you may redistribute and/or modify it under
-// the terms of the GNU General Public License as published by the Free
-// Software Foundation, either version 3, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
-// or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-// for complete details.
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-29  1175   1.2.20 MemWriteByte(): use membe 
 // 2019-04-30  1143   1.2.19 add m9312 setup and HasM9312()
 // 2019-04-19  1133   1.2.18 add ExecWibr(),ExecRibr(); LoadAbs(): better trace
 // 2019-04-13  1131   1.2.17 add defs for w11 cpu component addresses; add
@@ -50,9 +42,9 @@
 // ---------------------------------------------------------------------------
 
 /*!
-  \file
   \brief   Implemenation of Rw11Cpu.
 */
+
 #include <stdlib.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -566,23 +558,12 @@ bool Rw11Cpu::MemWriteByte(uint32_t addr, uint8_t data, RerrMsg& emsg)
     return false;
   }
 
-  // FIXME_code: this is a kludge because membe only works for ibus, not for
-  //             memory. When pdp11_vmbox is fixed a single write can be used.
   RlinkCommandList clist;
+  uint16_t be    = (addr & 0x01) ? kCPMEMBE_M_BE1 : kCPMEMBE_M_BE0;
+  uint16_t wdata = (uint16_t(data)<<8) | data;  // fill byte into word
   AddLalh(clist, addr&0x3ffffe, kCPAH_M_22BIT); // setup address
-  int irm = clist.AddRreg(fBase+kCPMEM);        // read word
-  if (!Server().Exec(clist, emsg)) return false;
-  uint16_t word = clist[irm].Data();            // get word
-
-  if ((addr & 0x1) == 0) {                      // even address
-    word = (word & 0xff00) | uint16_t(data);
-  } else {                                      // odd  address
-    word = (word & 0x00ff) | (uint16_t(data)<<8);
-  }
-  
-  clist.Clear();
-  AddLalh(clist, addr&0x3ffffe, kCPAH_M_22BIT); // setup address
-  clist.AddWreg(fBase+kCPMEM, word);            // write word
+  AddMembe(clist, be);                          // setup byte enable
+  clist.AddWreg(fBase+kCPMEM, wdata);           // and finally write byte  
   if (!Server().Exec(clist, emsg)) return false;
   return true;
 }

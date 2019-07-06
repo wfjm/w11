@@ -1,18 +1,10 @@
-// $Id: RtclRlinkConnect.cpp 1160 2019-06-07 17:30:17Z mueller $
-//
+// $Id: RtclRlinkConnect.cpp 1175 2019-06-30 06:13:17Z mueller $
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-//
-// This program is free software; you may redistribute and/or modify it under
-// the terms of the GNU General Public License as published by the Free
-// Software Foundation, either version 3, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
-// or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-// for complete details.
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-29  1175   1.6.12 M_log(): add missing OptValid() call
 // 2019-06-07  1160   1.6.11 use RtclStats::Exec()
 // 2019-03-10  1121   1.6.10 M_exec(): tranfer BlockDone values after rblk
 // 2019-02-23  1114   1.6.9  use std::bind instead of lambda
@@ -736,6 +728,7 @@ int RtclRlinkConnect::M_log(RtclArgs& args)
     if (opt == "-error") tag = 'E';
     if (opt == "-fatal") tag = 'F';
   }
+  if (!args.OptValid()) return kERR;
 
   string msg;
   if (!args.GetArg("msg", msg)) return kERR;

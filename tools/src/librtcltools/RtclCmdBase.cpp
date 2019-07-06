@@ -1,18 +1,10 @@
-// $Id: RtclCmdBase.cpp 1083 2018-12-15 19:19:16Z mueller $
-//
-// Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-//
-// This program is free software; you may redistribute and/or modify it under
-// the terms of the GNU General Public License as published by the Free
-// Software Foundation, either version 3, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
-// or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-// for complete details.
+// $Id: RtclCmdBase.cpp 1175 2019-06-30 06:13:17Z mueller $
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-06-29  1175   1.1.4  GetArgsDump(): add missing OptValid() call
 // 2018-12-15  1083   1.1.3  AddMeth(): use rval ref and move semantics
 // 2018-11-09  1066   1.1.2  use auto
 // 2017-04-02   865   1.1.1  add GetArgsDump()
@@ -26,7 +18,6 @@
 // ---------------------------------------------------------------------------
 
 /*!
-  \file
   \brief   Implemenation of RtclCmdBase.
 */
 
@@ -183,7 +174,7 @@ bool RtclCmdBase::GetArgsDump(RtclArgs& args, int& detail)
     else                      { detail =  0;}
   }
   
-  return true;
+  return args.OptValid();
 }
 
 //------------------------------------------+-----------------------------------

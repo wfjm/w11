@@ -30,7 +30,8 @@ The full set of tests is only run for tagged releases.
 
 ### New features
 - new tools
-  - ibrtools/Rfd: added, encapsulates a file descriptor
+  - ibrtools/Rfd: added, encapsulates a raw file descriptor
+  - ibrtools/RfileFd: add, encapsulates basic file operations
 
 ### Changes
 - tools changes
@@ -39,6 +40,8 @@ The full set of tests is only run for tagged releases.
     - librtcltools/RtclStats: Rename Collect->Exec, not longer const; add -reset
     - libr*/*: Stats() not longer const; use RtclStats::Exec()
     - librtools/RparseUrl: add DirName,FileName,FileStem,FileType
+    - librw11/Rw11VirtDisk(File): use RfileFd
+    - librw11/Rw11Cpu: MemWriteByte(): use AddMembe()
   - derive ReventFd and RtimerFd from Rfd
   - generic_so.mk: use -scrUuv for ar to avoid "'u' modifier ignored"
   - tools/oskit/hook/hook_ibmon_*.tcl: check ibmon availability

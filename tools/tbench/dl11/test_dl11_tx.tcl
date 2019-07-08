@@ -1,7 +1,6 @@
-# $Id: test_dl11_tx.tcl 1155 2019-05-31 06:38:06Z mueller $
-#
+# $Id: test_dl11_tx.tcl 1178 2019-06-30 12:39:40Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment

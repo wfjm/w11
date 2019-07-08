@@ -1,7 +1,6 @@
-# $Id: test_pcnt_basics.tcl 1054 2018-10-07 07:47:28Z mueller $
-#
+# $Id: test_pcnt_basics.tcl 1178 2019-06-30 12:39:40Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment

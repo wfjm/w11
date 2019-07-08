@@ -1,7 +1,6 @@
-# $Id: test_w11a_mem70.tcl 1069 2018-11-16 17:11:30Z mueller $
-#
+# $Id: test_w11a_mem70.tcl 1178 2019-06-30 12:39:40Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment

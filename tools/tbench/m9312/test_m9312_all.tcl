@@ -1,7 +1,6 @@
-# $Id: test_m9312_all.tcl 1143 2019-05-01 13:25:51Z mueller $
-#
+# $Id: test_m9312_all.tcl 1178 2019-06-30 12:39:40Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment

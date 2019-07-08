@@ -1,7 +1,6 @@
-# $Id: test_cmon_imon.tcl 885 2017-04-23 15:54:01Z mueller $
-#
+# $Id: test_cmon_imon.tcl 1178 2019-06-30 12:39:40Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment

@@ -1,4 +1,4 @@
-# $Id: test_dz11_rx.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_dz11_rx.tcl 1179 2019-06-30 14:11:11Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -44,7 +44,7 @@ rlc log "    A2.1: reset and setup with line 4 ------------------"
 set csrmask [regbld ibd_dz11::CSR trdy tie sa sae rdone rie mse maint]
 
 # - loc csr.mse=1
-# - loc rx enable line 4
+# - loc rx enable line 4 (via LPR)
 # - rem check rxon value
 # - rem check  csr cal message
 # - rem check rxon cal message

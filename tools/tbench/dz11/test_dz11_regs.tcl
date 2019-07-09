@@ -1,9 +1,10 @@
-# $Id: test_dz11_regs.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_dz11_regs.tcl 1179 2019-06-30 14:11:11Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2019-06-30  1179   1.0.1  add tdr(brk)->stat test
 # 2019-05-11  1148   1.0    Initial version
 # 2019-05-04  1146   0.1    First draft
 #
@@ -93,7 +94,33 @@ $cpu cp \
   -wma  dza.csr         [regbld ibd_dz11::CSR] \
   -ribr dza.csr  -edata [regbld ibd_dz11::RCNTLR] $cntlmask
 
-rlc log "  A3: test tcr -> stat response ------------------------"
+rlc log "    A2.3: csr sae -> cntl sam---------------------------"
+
+set cntlmask [regbld ibd_dz11::RCNTLR sam mse maint]
+
+# rem wr  clear sam
+# rem rd  check sam=0
+# loc wr  sae=1
+# loc rd  check sae=0
+# loc wr  sae=0
+# rem rd  check sam=1
+# rem wr  clear sam
+# rem rd  check sam=0
+
+$cpu cp \
+  -breset \
+  -wibr dza.csr         [regbld ibd_dz11::RCNTLR sam] \
+  -ribr dza.csr  -edata [regbld ibd_dz11::RCNTLR] $cntlmask \
+  -wma  dza.csr         [regbld ibd_dz11::CSR sae] \
+  -rma  dza.csr  -edata [regbld ibd_dz11::CSR sae] \
+  -wma  dza.csr         [regbld ibd_dz11::CSR] \
+  -rma  dza.csr  -edata [regbld ibd_dz11::CSR] \
+  -ribr dza.csr  -edata [regbld ibd_dz11::RCNTLR sam] $cntlmask \
+  -wibr dza.csr         [regbld ibd_dz11::RCNTLR sam] \
+  -ribr dza.csr  -edata [regbld ibd_dz11::RCNTLR] $cntlmask
+
+rlc log "  A3: test stat response -------------------------------"
+rlc log "    A3.1: test tcr -> stat response --------------------"
 
 $cpu cp \
   -wma  dza.tcr         [regbld ibd_dz11::TCR {dtr 0xaa} {lena 0x55}] \
@@ -106,7 +133,7 @@ $cpu cp \
   -wibr dza.csr         [regbld ibd_dz11::RCNTLW {ssel "DTLE"}] \
   -ribr dza.rbuf -edata [regbld ibd_dz11::RSDTLE {dtr 0x0} {lena 0x0}]
 
-rlc log "  A4: test cntl -> msr and stat response ---------------"
+rlc log "    A3.2: test cntl -> msr and stat response -----------"
 
 # rem wr SCO    0x45 
 # rem wr SRING  0x67
@@ -140,7 +167,7 @@ $cpu cp \
   -ribr dza.rbuf -edata [regbld ibd_dz11::RSCORI {co 0x00} {ring 0x00}] \
   -rma  dza.tdr  -edata [regbld ibd_dz11::MSR    {co 0x00} {ring 0x00}]
 
-rlc log "  A5: test lpr(rxon) -> stat response ------------------"
+rlc log "    A3.3: test lpr(rxon) -> stat response --------------"
 
 # loc wr LPR  line 1  txon=1
 # rem rd      rxon= 0000 0010 = 0x02
@@ -173,7 +200,35 @@ $cpu cp \
   -wibr dza.csr         [regbld ibd_dz11::RCNTLW {ssel "BRRX"}] \
   -ribr dza.rbuf -edata [regbld ibd_dz11::RSBRRX {brk 0x0} {rxon 0x00}]
 
-rlc log "  A5: test stat auto-inc read --------------------------"
+rlc log "    A3.4: test tdr(brk) -> stat response ---------------"
+
+# loc wr tdr.brk   0x01  (byte 1 write!)
+# rem rd     brk   0x01
+# loc wr tdr.brk   0x55  (byte 1 write!)
+# rem rd     brk   0x55
+# loc wr tdr.brk   0xaa  (byte 1 write!)
+# rem rd     brk   0xaa
+# loc wr tdr.brk   0x00  (byte 1 write!)
+# rem rd     brk   0x00
+$cpu cp \
+  -wmembe 2 \
+  -wma  dza.tdr         [regbld ibd_dz11::TDR {brk 0x01}] \
+  -wibr dza.csr         [regbld ibd_dz11::RCNTLW {ssel "BRRX"}] \
+  -ribr dza.rbuf -edata [regbld ibd_dz11::RSBRRX {brk 0x01} {rxon 0x0}] \
+  -wmembe 2 \
+  -wma  dza.tdr         [regbld ibd_dz11::TDR {brk 0x55}] \
+  -wibr dza.csr         [regbld ibd_dz11::RCNTLW {ssel "BRRX"}] \
+  -ribr dza.rbuf -edata [regbld ibd_dz11::RSBRRX {brk 0x55} {rxon 0x0}] \
+  -wmembe 2 \
+  -wma  dza.tdr         [regbld ibd_dz11::TDR {brk 0xaa}] \
+  -wibr dza.csr         [regbld ibd_dz11::RCNTLW {ssel "BRRX"}] \
+  -ribr dza.rbuf -edata [regbld ibd_dz11::RSBRRX {brk 0xaa} {rxon 0x0}] \
+  -wmembe 2 \
+  -wma  dza.tdr         [regbld ibd_dz11::TDR {brk 0x00}] \
+  -wibr dza.csr         [regbld ibd_dz11::RCNTLW {ssel "BRRX"}] \
+  -ribr dza.rbuf -edata [regbld ibd_dz11::RSBRRX {brk 0x00} {rxon 0x0}]
+
+rlc log "  A4: test stat auto-inc read --------------------------"
 
 # loc wr TCR  (dtr=0xbe lena=0xaf)
 # loc wr LPR  line 3  txon=1

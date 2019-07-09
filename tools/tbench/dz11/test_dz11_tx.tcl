@@ -1,9 +1,10 @@
-# $Id: test_dz11_tx.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_dz11_tx.tcl 1179 2019-06-30 14:11:11Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2019-06-30  1179   1.0.1  add basic tbuf -> fdat test
 # 2019-05-18  1150   1.0    Initial version
 # 2019-05-04  1146   0.1    First draft
 #
@@ -35,6 +36,43 @@ $cpu cp \
   -wibr  dza.csr         [regbld ibd_dz11::RRLIMW {rrlim 0} {trlim 0} \
                             rcl tcl {func "SRLIM"}]
 set awdth  [regget ibd_dz11::RCNTLR(awdth) $dzcntl]
+rlc exec -attn 
+rlc wtlam 0.
+
+rlc log "  A2: basic data path ---------------------------------------"
+rlc log "    A2.1: reset and setup with line 4 ------------------"
+set csrmask [regbld ibd_dz11::CSR trdy tie sa sae {tline -1} \
+                                  rdone rie mse maint]
+
+# - loc csr.mse=1
+# - loc tx enable line 4 (via LENA byte write)
+# - rem check  csr cal message
+# - loc check  trdy=1 and tline=4
+$cpu cp \
+  -breset \
+  -wma   dza.csr         [regbld ibd_dz11::CSR mse] \
+  -wmembe 1 \
+  -wma   dza.tcr         [regbld ibd_dz11::TCR {lena 0x10}] \
+  -ribr  dza.tcr  -edata [regbld ibd_dz11::RFUSE {rfuse 0} {tfuse 1}] \
+  -ribr  dza.tdr  -edata [regbldkv ibd_dz11::RFDAT val 1 last 1 cal 1 \
+                            line $ibd_dz11::CAL_CSR \
+                            data [regbld ibd_dz11::CSR mse]] \
+  -rma  dza.csr  -edata [regbld ibd_dz11::CSR trdy {tline 4} mse] $csrmask
+
+# - loc wr tbuf (byte write!)
+# - rem rd fifo
+rlc log "    A2.2: loc tbuf -> rem fdat - 1 char ----------------"
+$cpu cp \
+  -wmembe 1 \
+  -wma   dza.tdr         [regbld ibd_dz11::TDR {tbuf 0101}] \
+  -ribr  dza.tdr  -edata [regbldkv ibd_dz11::RFDAT val 1 last 1 \
+                            line 4  data 0101]
+
+# clear LENA again
+$cpu cp \
+  -wmembe 1 \
+  -wma   dza.tcr         [regbld ibd_dz11::TCR {lena 0x0}]
+# harvest any dangling attn
 rlc exec -attn 
 rlc wtlam 0.
 

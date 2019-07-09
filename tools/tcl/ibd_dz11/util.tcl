@@ -1,4 +1,4 @@
-# $Id: util.tcl 1177 2019-06-30 12:34:07Z mueller $
+# $Id: util.tcl 1179 2019-06-30 14:11:11Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -17,6 +17,13 @@ package require rw11
 namespace eval ibd_dz11 {
   #
   # setup register descriptions for ibd_dz11 ---------------------------------
+  # register mapping is different for loc read/write and rem accesses
+  #  off   name        -- loc --    rem
+  #                    rd    wr  
+  #    0   dza.csr     CSR   CSR    CSR
+  #    2   dza.rbuf    RBUF  LPR    STAT
+  #    4   dza.tcr     TCR   TCR    FUSE
+  #    6   dza.tdr     MSR   TDR    FDAT
   #
 
   regdsc CSR    {trdy 15} {tie 14} {sa 13} {sae 12} {tline 10 3} \

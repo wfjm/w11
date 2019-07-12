@@ -1,15 +1,6 @@
--- $Id: tb_artys7_core.vhd 1038 2018-08-11 12:39:52Z mueller $
---
+-- $Id: tb_artys7_core.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
---
--- This program is free software; you may redistribute and/or modify it under
--- the terms of the GNU General Public License as published by the Free
--- Software Foundation, either version 3, or (at your option) any later version.
---
--- This program is distributed in the hope that it will be useful, but
--- WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
--- or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
--- for complete details.
 -- 
 ------------------------------------------------------------------------------
 -- Module Name:    tb_artys7_core - sim

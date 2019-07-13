@@ -1,18 +1,10 @@
-// $Id: Rw11VirtTapeTap.hpp 983 2018-01-02 20:35:59Z mueller $
-//
-// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-//
-// This program is free software; you may redistribute and/or modify it under
-// the terms of the GNU General Public License as published by the Free
-// Software Foundation, either version 3, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
-// or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-// for complete details.
+// $Id: Rw11VirtTapeTap.hpp 1180 2019-07-08 15:46:59Z mueller $
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-07-08  1180   1.1    use RfileFd; remove dtor
 // 2017-04-07   868   1.0.1  Dump(): add detail arg
 // 2015-06-04   686   1.0    Initial version
 // 2015-05-17   683   0.1    First draft
@@ -27,6 +19,8 @@
 #ifndef included_Retro_Rw11VirtTapeTap
 #define included_Retro_Rw11VirtTapeTap 1
 
+#include "librtools/RfileFd.hpp"
+
 #include "Rw11VirtTape.hpp"
 
 namespace Retro {
@@ -35,7 +29,6 @@ namespace Retro {
     public:
 
       explicit      Rw11VirtTapeTap(Rw11Unit* punit);
-                   ~Rw11VirtTapeTap();
 
       virtual bool  Open(const std::string& url, RerrMsg& emsg);
 
@@ -76,7 +69,7 @@ namespace Retro {
       void          IncPosRecord(int delta);
 
     protected:
-      int           fFd;                    //!< file number
+      RfileFd       fFd;                    //!< file number
       size_t        fSize;                  //!< file size
       size_t        fPos;                   //!< file position
       bool          fBad;                   //!< BAD file format flag

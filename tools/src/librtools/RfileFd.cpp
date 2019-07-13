@@ -1,9 +1,10 @@
-// $Id: RfileFd.cpp 1167 2019-06-20 10:17:11Z mueller $
+// $Id: RfileFd.cpp 1180 2019-07-08 15:46:59Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 //
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-07-08  1180   1.1    add Open(fnam,flags,mode,emsg)
 // 2019-06-15  1163   1.0    Initial version
 // ---------------------------------------------------------------------------
 
@@ -45,6 +46,19 @@ bool RfileFd::Open(const char* fname, int flags, RerrMsg& emsg)
 {
   Close();
   if (!SetFd(::open(fname, flags))) {
+    emsg.InitErrno(fCnam+"Open()", 
+                   string("open() for '") + fname + "' failed: ", errno);
+  }
+  return IsOpen();
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+bool RfileFd::Open(const char* fname, int flags, mode_t mode, RerrMsg& emsg)
+{
+  Close();
+  if (!SetFd(::open(fname, flags, mode))) {
     emsg.InitErrno(fCnam+"Open()", 
                    string("open() for '") + fname + "' failed: ", errno);
   }

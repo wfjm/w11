@@ -1,18 +1,10 @@
-// $Id: Rw11VirtTape.cpp 1090 2018-12-21 12:17:35Z mueller $
-//
-// Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-//
-// This program is free software; you may redistribute and/or modify it under
-// the terms of the GNU General Public License as published by the Free
-// Software Foundation, either version 3, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
-// or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-// for complete details.
+// $Id: Rw11VirtTape.cpp 1180 2019-07-08 15:46:59Z mueller $
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-07-08  1180   1.2.2  remove dtor
 // 2018-12-19  1090   1.2.1  use RosPrintf(bool)
 // 2018-12-02  1076   1.2    use unique_ptr for New()
 // 2017-04-07   868   1.1.1  Dump(): add detail arg
@@ -70,12 +62,6 @@ Rw11VirtTape::Rw11VirtTape(Rw11Unit* punit)
   fStats.Define(kStatNVTSpaBack,  "NVTSpaBack",  "SpaceBack() calls");
   fStats.Define(kStatNVTRewind,   "NVTRewind",   "Rewind() calls");
 }
-
-//------------------------------------------+-----------------------------------
-//! Destructor
-
-Rw11VirtTape::~Rw11VirtTape()
-{}
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs

@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDiskFile.cpp 1167 2019-06-20 10:17:11Z mueller $
+// $Id: Rw11VirtDiskFile.cpp 1180 2019-07-08 15:46:59Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
@@ -18,11 +18,6 @@
   \file
   \brief   Implemenation of Rw11VirtDiskFile.
 */
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
 
 #include "librtools/RosFill.hpp"
 

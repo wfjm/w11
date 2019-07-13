@@ -1,18 +1,10 @@
-// $Id: Rw11VirtTapeTap.cpp 1161 2019-06-08 11:52:01Z mueller $
-//
-// Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-//
-// This program is free software; you may redistribute and/or modify it under
-// the terms of the GNU General Public License as published by the Free
-// Software Foundation, either version 3, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
-// or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-// for complete details.
+// $Id: Rw11VirtTapeTap.cpp 1180 2019-07-08 15:46:59Z mueller $
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-07-08  1180   1.1    use RfileFd; remove dtor
 // 2018-12-19  1090   1.0.4  use RosPrintf(bool)
 // 2018-09-22  1048   1.0.3  BUGFIX: coverity (resource leak; bad expression)
 // 2017-04-15   875   1.0.2  Open(): set default scheme
@@ -25,11 +17,6 @@
   \file
   \brief   Implemenation of Rw11VirtTapeTap.
 */
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
 
 #include "librtools/RosFill.hpp"
 #include "librtools/RosPrintf.hpp"
@@ -61,21 +48,13 @@ const uint32_t Rw11VirtTapeTap::kMeta_B_Rlen;
 
 Rw11VirtTapeTap::Rw11VirtTapeTap(Rw11Unit* punit)
   : Rw11VirtTape(punit),
-    fFd(0),
+    fFd("Rw11VirtTapeTap::fFd."),
     fSize(0),
     fPos(0),
     fBad(true),
     fPadOdd(false),
     fTruncPend(false)
 {}
-
-//------------------------------------------+-----------------------------------
-//! Destructor
-
-Rw11VirtTapeTap::~Rw11VirtTapeTap()
-{
-  if (fFd > 2) ::close(fFd);
-}
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
@@ -125,25 +104,17 @@ bool Rw11VirtTapeTap::Open(const std::string& url, RerrMsg& emsg)
     }    
   }
 
-  int fd = ::open(fUrl.Path().c_str(), fWProt ? O_RDONLY : O_CREAT|O_RDWR,
-                  S_IRUSR|S_IWUSR|S_IRGRP);
-  if (fd < 0) {
-    emsg.InitErrno("Rw11VirtTapeTap::Open()", 
-                   string("open() for '") + fUrl.Path() + "' failed: ", errno);
-    return false;
-  }
+  if (!fFd.Open(fUrl.Path().c_str(), fWProt ? O_RDONLY : O_CREAT|O_RDWR,
+                S_IRUSR|S_IWUSR|S_IRGRP, emsg)) return false;  
 
   struct stat sbuf;
-  if (::fstat(fd, &sbuf) < 0) {
-    emsg.InitErrno("Rw11VirtTapeTap::Open()", 
-                   string("stat() for '") + fUrl.Path() + "' failed: ", errno);
-    ::close(fd);
+  if (!fFd.Stat(&sbuf, emsg)) {
+    fFd.Close();
     return false;
   }
-
+  
   if ((sbuf.st_mode & S_IWUSR) == 0) fWProt = true;
 
-  fFd   = fd;
   fSize = sbuf.st_size;
   fPos  = 0;
   fBad  = false;
@@ -162,7 +133,7 @@ bool Rw11VirtTapeTap::Open(const std::string& url, RerrMsg& emsg)
 //! FIXME_docs
 
 bool Rw11VirtTapeTap::ReadRecord(size_t nbyt, uint8_t* data, size_t& ndone, 
-                                  int& opcode, RerrMsg& emsg)
+                                 int& opcode, RerrMsg& emsg)
 {
   fStats.Inc(kStatNVTReadRec);
   
@@ -242,7 +213,7 @@ bool Rw11VirtTapeTap::ReadRecord(size_t nbyt, uint8_t* data, size_t& ndone,
 //! FIXME_docs
 
 bool Rw11VirtTapeTap::WriteRecord(size_t nbyt, const uint8_t* data, 
-                                int& opcode, RerrMsg& emsg)
+                                  int& opcode, RerrMsg& emsg)
 {
   fStats.Inc(kStatNVTWriteRec);
   fStats.Inc(kStatNVTWriteByt, nbyt);
@@ -301,7 +272,7 @@ bool Rw11VirtTapeTap::WriteEof(RerrMsg& emsg)
 //! FIXME_docs
 
 bool Rw11VirtTapeTap::SpaceForw(size_t nrec, size_t& ndone, 
-                              int& opcode, RerrMsg& emsg)
+                                int& opcode, RerrMsg& emsg)
 {
   fStats.Inc(kStatNVTSpaForw);
 
@@ -360,7 +331,7 @@ bool Rw11VirtTapeTap::SpaceForw(size_t nrec, size_t& ndone,
 //! FIXME_docs
 
 bool Rw11VirtTapeTap::SpaceBack(size_t nrec, size_t& ndone, 
-                              int& opcode, RerrMsg& emsg)
+                                int& opcode, RerrMsg& emsg)
 {
   fStats.Inc(kStatNVTSpaBack);
 
@@ -450,7 +421,7 @@ void Rw11VirtTapeTap::Dump(std::ostream& os, int ind, const char* text,
   RosFill bl(ind);
   os << bl << (text?text:"--") << "Rw11VirtTapeTap @ " << this << endl;
 
-  os << bl << "  fFd:             " << fFd << endl;
+  os << bl << "  fFd:             " << fFd.Fd() << endl;
   os << bl << "  fSize:           " << fSize << endl;
   os << bl << "  fPos:            " << fPos << endl;
   os << bl << "  fBad:            " << RosPrintf(fBad) << endl;
@@ -473,10 +444,7 @@ bool Rw11VirtTapeTap::Seek(size_t seekpos, int dir, RerrMsg& emsg)
     whence = SEEK_CUR;
     offset = -offset;
   }
-  if (::lseek(fFd, offset, whence) < 0) {
-    emsg.InitErrno("Rw11VirtTapeTap::Seek()", "seek() failed: ", errno);
-    return false;
-  }
+  if (!fFd.Seek(offset, whence, emsg)) return false;
 
   UpdatePos(seekpos, dir);
 
@@ -488,11 +456,8 @@ bool Rw11VirtTapeTap::Seek(size_t seekpos, int dir, RerrMsg& emsg)
 
 bool Rw11VirtTapeTap::Read(size_t nbyt, uint8_t* data, RerrMsg& emsg)
 {
-   ssize_t irc = ::read(fFd, data, nbyt);
-  if (irc < 0) {
-    emsg.InitErrno("Rw11VirtTapeTap::Read()", "read() failed: ", errno);
-    return false;
-  }
+  ssize_t irc = fFd.Read(data, nbyt, emsg);
+  if (irc < 0) return false;
   UpdatePos(nbyt, +1);
   return true;
 }
@@ -501,23 +466,15 @@ bool Rw11VirtTapeTap::Read(size_t nbyt, uint8_t* data, RerrMsg& emsg)
 //! FIXME_docs
 
 bool Rw11VirtTapeTap::Write(size_t nbyt, const uint8_t* data, bool back,
-                               RerrMsg& emsg)
+                            RerrMsg& emsg)
 {
   if (fTruncPend) {
-    if (::ftruncate(fFd, fPos) < 0) {
-      emsg.InitErrno("Rw11VirtTapeTap::Write()", "ftruncate() failed: ", errno);
-      return false;
-    }
+    if (!fFd.Truncate(fPos, emsg)) return false;
     fTruncPend = false;    
     fSize = fPos;
   }
 
-  ssize_t irc = ::write(fFd, data, nbyt);
-  if (irc < 0) {
-    emsg.InitErrno("Rw11VirtTapeTap::Write()", "write() failed: ", errno);
-    return false;
-  }
-
+  if (!fFd.WriteAll(data, nbyt, emsg)) return false;
   UpdatePos(nbyt, +1);
   if (fPos > fSize) fSize = fPos;
 
@@ -532,7 +489,7 @@ bool Rw11VirtTapeTap::Write(size_t nbyt, const uint8_t* data, bool back,
 //! FIXME_docs
 
 bool Rw11VirtTapeTap::CheckSizeForw(size_t nbyt, const char* text, 
-                                     RerrMsg& emsg)
+                                    RerrMsg& emsg)
 {
   if (fPos+nbyt <= fSize) return true;
   emsg.Init("Rw11VirtTapeTap::CheckSizeForw()", text);
@@ -542,8 +499,8 @@ bool Rw11VirtTapeTap::CheckSizeForw(size_t nbyt, const char* text,
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-bool Rw11VirtTapeTap::CheckSizeBack(size_t nbyt, const char* text, 
-                                     RerrMsg& emsg)
+bool Rw11VirtTapeTap::CheckSizeBack(size_t nbyt, const char* text,
+                                    RerrMsg& emsg)
 {
   if (nbyt <= fPos) return true;
   emsg.Init("Rw11VirtTapeTap::CheckSizeBack()", text);
@@ -573,7 +530,7 @@ void Rw11VirtTapeTap::UpdatePos(size_t nbyt, int dir)
 //! FIXME_docs
 
 bool Rw11VirtTapeTap::ParseMeta(uint32_t meta, size_t& rlen, bool& perr, 
-                                 RerrMsg& emsg)
+                                RerrMsg& emsg)
 {
   rlen = meta & kMeta_B_Rlen;
   perr = meta & kMeta_M_Perr;

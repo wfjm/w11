@@ -1,9 +1,10 @@
-// $Id: RfileFd.hpp 1167 2019-06-20 10:17:11Z mueller $
+// $Id: RfileFd.hpp 1180 2019-07-08 15:46:59Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-07-08  1180   1.1    add Open(fnam,flags,mode,emsg)
 // 2019-06-15  1163   1.0    Initial version
 // ---------------------------------------------------------------------------
 
@@ -35,12 +36,13 @@ namespace Retro {
       RfileFd&      operator=(const RfileFd&) = delete;  // noncopyable
 
       bool          Open(const char* fname, int flags, RerrMsg& emsg);
+      bool          Open(const char* fname, int flags, mode_t mode,
+                         RerrMsg& emsg);
       bool          Stat(struct stat *sbuf, RerrMsg& emsg);
       off_t         Seek(off_t offset, int whence, RerrMsg& emsg);
       bool          Truncate(off_t length, RerrMsg& emsg);
       ssize_t       Read(void *buf, size_t count, RerrMsg& emsg);
       bool          WriteAll(const void *buf, size_t count, RerrMsg& emsg);
-
 };
   
 } // end namespace Retro

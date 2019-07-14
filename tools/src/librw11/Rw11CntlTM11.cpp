@@ -1,20 +1,13 @@
-// $Id: Rw11CntlTM11.cpp 1133 2019-04-19 18:43:00Z mueller $
-//
+// $Id: Rw11CntlTM11.cpp 1183 2019-07-10 18:48:41Z mueller $
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // Other credits: 
 //   the boot code is from the simh project and Copyright Robert M Supnik
 // 
-// This program is free software; you may redistribute and/or modify it under
-// the terms of the GNU General Public License as published by the Free
-// Software Foundation, either version 3, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
-// or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-// for complete details.
-// 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-07-10  1183   1.1    support odd record length
+// 2019-07-08  1182   1.0.11 BUGFIX: AddNormalExit(): get tmds logic right
 // 2019-04-19  1133   1.0.10 use ExecWibr()
 // 2019-04-14  1131   1.0.9  proper unit init, call UnitSetupAll() in Start()
 // 2019-02-23  1114   1.0.8  use std::bind instead of lambda
@@ -30,7 +23,6 @@
 // ---------------------------------------------------------------------------
 
 /*!
-  \file
   \brief   Implemenation of Rw11CntlTM11.
 */
 
@@ -138,10 +130,10 @@ Rw11CntlTM11::Rw11CntlTM11()
     fRd_tmsr(0), 
     fRd_tmbc(0), 
     fRd_tmba(0), 
-    fRd_bc(0),
     fRd_addr(0),
     fRd_nwrd(0),
     fRd_fu(0),
+    fRd_rddone(0),
     fRd_opcode(0),
     fBuf(),
     fRdma(this,
@@ -292,10 +284,10 @@ void Rw11CntlTM11::Dump(std::ostream& os, int ind, const char* text,
   os << bl << "  fRd_tmsr:        " << RosPrintBvi(fRd_tmsr,8) << endl;
   os << bl << "  fRd_tmbc:        " << RosPrintBvi(fRd_tmbc,8) << endl;
   os << bl << "  fRd_tmba:        " << RosPrintBvi(fRd_tmba,8) << endl;
-  os << bl << "  fRd_bc:          " << RosPrintf(fRd_bc,"d",6) << endl;
   os << bl << "  fRd_addr:        " << RosPrintBvi(fRd_addr,8,18) << endl;
   os << bl << "  fRd_nwrd:        " << RosPrintf(fRd_nwrd,"d",6) << endl;
   os << bl << "  fRd_fu:          " << fRd_fu  << endl;
+  os << bl << "  fRd_rddone:      " << RosPrintf(fRd_rddone,"d",6)  << endl;
   os << bl << "  fRd_opcode:      " << fRd_opcode  << endl;
   os << bl << "  fBuf.size:       " << RosPrintf(fBuf.size(),"d",6) << endl;
   fRdma.Dump(os, ind+2, "fRdma: ", detail);
@@ -400,16 +392,13 @@ int Rw11CntlTM11::AttnHandler(RlinkServer::AttnArgs& args)
     fStats.Inc(kStatNFuncRead);
     size_t nwalloc = (nbyt+1)/2;
     if (fBuf.size() < nwalloc) fBuf.resize(nwalloc);
-    size_t ndone;
     bool rc = unit.VirtReadRecord(nbyt, reinterpret_cast<uint8_t*>(fBuf.data()),
-                                  ndone, fRd_opcode, emsg);
+                                  fRd_rddone, fRd_opcode, emsg);
     if (!rc) WriteLog("read", emsg);
-    if ((!rc) || ndone == 0) {
+    if ((!rc) || fRd_rddone == 0) {
       AddFastExit(clist, fRd_opcode, 0);
-    } else if (ndone&0x1) {                 // FIXME_code: add odd rlen handling
-      AddErrorExit(clist, kTMCR_M_RICMD|kTMSR_M_BTE);   // now just bail out !!
     } else {
-      size_t nwdma = ndone/2;
+      size_t nwdma = fRd_rddone/2;
       fRdma.QueueWMem(addr, fBuf.data(), nwdma, Rw11Cpu::kCPAH_M_UBM22);
     }
 
@@ -418,11 +407,7 @@ int Rw11CntlTM11::AttnHandler(RlinkServer::AttnArgs& args)
     fStats.Inc((fu==kFUNC_WRITE) ? kStatNFuncWrite : kStatNFuncWrteg);
     size_t nwdma = (nbyt+1)/2;
     if (fBuf.size() < nwdma) fBuf.resize(nwdma);
-    if (nbyt&0x1) {                         // FIXME_code: add odd rlen handling
-      AddErrorExit(clist, kTMCR_M_RICMD|kTMSR_M_BTE);   // now just bail out !!
-    } else {
-      fRdma.QueueRMem(addr, fBuf.data(), nwdma, Rw11Cpu::kCPAH_M_UBM22);
-    }
+    fRdma.QueueRMem(addr, fBuf.data(), nwdma, Rw11Cpu::kCPAH_M_UBM22);
 
   } else if (fu == kFUNC_WEOF) {            // Write Eof ---------------------
     fStats.Inc(kStatNFuncWeof);
@@ -547,16 +532,7 @@ void Rw11CntlTM11::AddFastExit(RlinkCommandList& clist, int opcode, size_t ndone
   tmcr |= (kRFUNC_DONE<<kTMCR_V_FUNC);
   cpu.AddWibr(clist, fBase+kTMCR, tmcr);
 
- if (fTraceLevel>1) {
-    RlogMsg lmsg(LogFile());
-    bool err = tmcr & (kTMCR_M_RBTE);
-    lmsg << "-I " << Name() << (err ? ":   err " : ":    ok ")
-         << " un=" << unum
-         << " cr=" << RosPrintBvi(tmcr,8)
-         << "          "
-         << " bc=" << RosPrintBvi(tmbc,8)
-         << " ds=" << RosPrintBvi(tmds,8);
-  }
+ if (fTraceLevel>1) WriteExitLog(tmcr, fRd_addr, tmbc, tmds);
 
   return;
 }
@@ -570,19 +546,26 @@ void Rw11CntlTM11::AddNormalExit(RlinkCommandList& clist, size_t ndone,
   uint16_t unum = (fRd_tmcr>>kTMCR_V_UNIT)  & kTMCR_B_UNIT;
   Rw11UnitTM11& unit = *fspUnit[unum];
   Rw11Cpu& cpu = Cpu();
-
-  uint16_t tmds = kTMRL_M_ONL;
-  if (unit.Virt().WProt()) tmds |= kTMRL_M_WRL;
-  if (unit.Virt().Bot())   tmds |= kTMRL_M_BOT;
-  if (unit.Virt().Eot())   tmds |= kTMRL_M_EOT;
-
+  
   uint32_t addr = fRd_addr + 2*ndone;
   uint16_t tmbc = fRd_tmbc + 2*uint16_t(ndone);
+  size_t   nbyt = 2*ndone;
 
   if (fRd_fu == kFUNC_READ) {               // handle READ
+    if (fRd_rddone & 0x1) {                 // odd rlen corrections
+      addr += 1;
+      tmbc += 1;
+    }
+    
     switch (fRd_opcode) {
 
-    case Rw11VirtTape::kOpCodeOK: 
+    case Rw11VirtTape::kOpCodeOK:
+      if (fRd_rddone & 0x1) {                 // write trailing byte
+        nbyt += 1;
+        Cpu().AddLalh(clist, fRd_addr + 2*ndone, Rw11Cpu::kCPAH_M_UBM22);
+        Cpu().AddMembe(clist, Rw11Cpu::kCPMEMBE_M_BE0);
+        clist.AddWreg(Rw11Cpu::kCPMEM, fBuf[ndone]);
+      }
       break;
 
     case Rw11VirtTape::kOpCodeRecLenErr:
@@ -601,11 +584,22 @@ void Rw11CntlTM11::AddNormalExit(RlinkCommandList& clist, size_t ndone,
   } else {                                  // handle WRITE or WEIRG
     int opcode;
     RerrMsg emsg;
-    size_t nbyt = 2*ndone;
+    if (fRd_tmbc & 0x1) {                   // odd rlen corrections
+      nbyt -= 1;
+      addr -= 1;
+      tmbc -= 1;
+    }
+    
     if (!unit.VirtWriteRecord(nbyt, reinterpret_cast<uint8_t*>(fBuf.data()), 
                               opcode, emsg)) 
       WriteLog("write", emsg);
   }
+
+  // now Virt status up-to-date, even for writes
+  uint16_t tmds = kTMRL_M_ONL;
+  if (unit.Virt().WProt()) tmds |= kTMRL_M_WRL;
+  if (unit.Virt().Bot())   tmds |= kTMRL_M_BOT;
+  if (unit.Virt().Eot())   tmds |= kTMRL_M_EOT;
 
   uint16_t tmba = uint16_t(addr & 0xfffe);
   uint16_t ea   = uint16_t((addr>>16)&0x0003);
@@ -620,16 +614,7 @@ void Rw11CntlTM11::AddNormalExit(RlinkCommandList& clist, size_t ndone,
   tmcr |= (kRFUNC_DONE<<kTMCR_V_FUNC);
   cpu.AddWibr(clist, fBase+kTMCR, tmcr);
 
- if (fTraceLevel>1) {
-    RlogMsg lmsg(LogFile());
-    bool err = tmcr & (kTMCR_M_RPAE|kTMCR_M_RRLE|kTMCR_M_RBTE|kTMCR_M_RNXM);
-    lmsg << "-I " << Name() << (err ? ":   err " : ":    ok ")
-         << " un=" << unum
-         << " cr=" << RosPrintBvi(tmcr,8)
-         << " ad=" << RosPrintBvi(addr,8,18)
-         << " bc=" << RosPrintBvi(tmbc,8) 
-         << " ds=" << RosPrintBvi(tmds,8);
-  }
+  if (fTraceLevel>1) WriteExitLog(tmcr, addr, tmbc, tmds);
 
   return;
 }
@@ -647,5 +632,28 @@ void Rw11CntlTM11::WriteLog(const char* func, RerrMsg&  emsg)
   return;
 }
 
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rw11CntlTM11::WriteExitLog(uint16_t tmcr, uint32_t addr,
+                                uint16_t tmbc, uint16_t tmds)
+{
+  uint16_t unum = (fRd_tmcr>>kTMCR_V_UNIT)  & kTMCR_B_UNIT;
+  RlogMsg lmsg(LogFile());
+
+  bool err = tmcr & (kTMCR_M_RPAE|kTMCR_M_RRLE|kTMCR_M_RBTE|kTMCR_M_RNXM);
+  uint16_t nbyt = tmbc - fRd_tmbc;
+  lmsg << "-I " << Name() << (err ? ":   err " : ":    ok ")
+       << " un=" << unum
+       << " cr=" << RosPrintBvi(tmcr,8)
+       << " ad=" << RosPrintBvi(addr,8,18)
+       << " bc=" << RosPrintBvi(tmbc,8)
+       << " nb=" << RosPrintf(nbyt,"d",5)
+       << " ds=" << RosPrintBvi(tmds,8);
+  if (tmds & kTMRL_M_EOF) lmsg << " EOF";
+  if (tmds & kTMRL_M_EOT) lmsg << " EOT";
+  if (tmds & kTMRL_M_BOT) lmsg << " BOT";
+  return;
+}
 
 } // end namespace Retro

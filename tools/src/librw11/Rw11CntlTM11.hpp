@@ -1,18 +1,10 @@
-// $Id: Rw11CntlTM11.hpp 1160 2019-06-07 17:30:17Z mueller $
-//
+// $Id: Rw11CntlTM11.hpp 1183 2019-07-10 18:48:41Z mueller $
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-//
-// This program is free software; you may redistribute and/or modify it under
-// the terms of the GNU General Public License as published by the Free
-// Software Foundation, either version 3, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
-// or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-// for complete details.
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-07-10  1183   1.1    support odd record length
 // 2019-06-07  1160   1.0.2  RdmaStats() not longer const
 // 2017-04-02   865   1.0.1  Dump(): add detail arg
 // 2015-06-04   686   1.0    Initial version
@@ -21,7 +13,6 @@
 
 
 /*!
-  \file
   \brief   Declaration of class Rw11CntlTM11.
 */
 
@@ -155,6 +146,8 @@ namespace Retro {
       void          AddNormalExit(RlinkCommandList& clist, size_t ndone,
                                   uint16_t tmcr=0);
       void          WriteLog(const char* func, RerrMsg&  emsg);
+      void          WriteExitLog(uint16_t tmcr, uint32_t addr,
+                                 uint16_t tmbc, uint16_t tmds);
 
     protected:
       size_t        fPC_tmcr;               //!< PrimClist: tmcr index
@@ -166,10 +159,10 @@ namespace Retro {
       uint16_t      fRd_tmsr;               //!< Rdma: request tmsr
       uint16_t      fRd_tmbc;               //!< Rdma: request tmbc
       uint16_t      fRd_tmba;               //!< Rdma: request tmba
-      uint32_t      fRd_bc;                 //!< Rdma: request bc
       uint32_t      fRd_addr;               //!< Rdma: current addr
       uint32_t      fRd_nwrd;               //!< Rdma: current nwrd
       uint16_t      fRd_fu;                 //!< Rdma: request fu code
+      size_t        fRd_rddone;             //!< Rdma: bytes read
       int           fRd_opcode;             //!< Rdma: read opcode
       std::vector<uint16_t>  fBuf;          //!< data buffer
       Rw11Rdma      fRdma;                  //!< Rdma controller

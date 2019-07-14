@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: tap2file 1172 2019-06-29 07:27:24Z mueller $
+# $Id: tap2file 1180 2019-07-08 15:46:59Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-07-08  1180   1.0.3  BUGFIX in rlmax calculation; add -v option
 # 2018-12-18  1089   1.0.2  add and use bailout
 # 2015-06-03   686   1.0.1  add print_usage; cleanups
 # 2015-05-24   684   1.0    Initial version
@@ -20,7 +21,7 @@ use Getopt::Long;
 
 my %opts = ();
 
-GetOptions(\%opts, "pref=s", "help")
+GetOptions(\%opts, "pref=s", "v", "help")
   or bailout("bad command options");
 
 if (scalar(@ARGV) == 0 || exists $opts{help}) {
@@ -53,11 +54,13 @@ while ($nb = read(IFILE, $block, 4)) {
   my $metabeg = unpack("V", $block);
 
   if ($metabeg == 0x00000000) {
+    printf "%4d,%5d : ---EOF---\n",$nfile,$nrec if $opts{v};
     close_ofile();
     $nfile += 1;
     next;
   }
   if ($metabeg == 0xffffffff) {
+    printf "%4d,%5d : ---EOT---\n",$nfile,$nrec if $opts{v};
     last;
   }
 
@@ -73,7 +76,13 @@ while ($nb = read(IFILE, $block, 4)) {
     $rlmax = $metabeg;
   } else {
     $rlmin = $metabeg if $metabeg < $rlmin;
-    $rlmax = $metabeg if $metabeg > $rlmin;
+    $rlmax = $metabeg if $metabeg > $rlmax;
+  }
+  if ($opts{v}) {
+    printf "%4d,%5d : %6d :",$nfile,$nrec,$metabeg;
+    foreach (unpack("C16", $block)) {printf " %2.2x", $_};
+    print " ..." if $metabeg > 16;
+    print "\n";
   }
   $nrec += 1;
 
@@ -122,5 +131,6 @@ sub print_usage {
   print "  ifile    input tap file\n";
   print "  Options\n";
   print "    --pref=p     use p as prefix for generated files\n";
+  print "    --v          verbose, trace each record\n";
   print "    --help       this message\n";
 }

@@ -1,15 +1,6 @@
-// $Id: Rw11UnitTM11.cpp 1081 2018-12-14 22:29:42Z mueller $
-//
-// Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-//
-// This program is free software; you may redistribute and/or modify it under
-// the terms of the GNU General Public License as published by the Free
-// Software Foundation, either version 3, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
-// or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-// for complete details.
+// $Id: Rw11UnitTM11.cpp 1180 2019-07-08 15:46:59Z mueller $
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
@@ -44,7 +35,7 @@ Rw11UnitTM11::Rw11UnitTM11(Rw11CntlTM11* pcntl, size_t index)
   : Rw11UnitTapeBase<Rw11CntlTM11>(pcntl, index),
     fTmds(0)
 {
-  // setup disk geometry: only rk05 supported, no rk05f !
+  // setup tape unit type: only tu10 supported !
   fType    = "tu10";
   fEnabled = true;
 }

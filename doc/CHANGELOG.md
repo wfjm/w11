@@ -25,7 +25,7 @@ The full set of tests is only run for tagged releases.
 
 ### Summary
 - use vivado 2019.1 as default
-- finalize coverity fixups, now defect free
+- finalize coverity fixups, now defect free ([see blog](https://wfjm.github.io/blogs/w11/2019-06-14-coverity-fixes-done.html))
 - use SPDX license tags, remove boilerplate license disclaimers
 
 ### New features
@@ -39,16 +39,23 @@ The full set of tests is only run for tagged releases.
     - librtools/Rstats: add Reset(); drop operator-=() and operator*=()
     - librtcltools/RtclStats: Rename Collect->Exec, not longer const; add -reset
     - libr*/*: Stats() not longer const; use RtclStats::Exec()
-    - librtools/RparseUrl: add DirName,FileName,FileStem,FileType
-    - librw11/Rw11VirtDisk(File): use RfileFd
-    - librw11/Rw11Cpu: MemWriteByte(): use AddMembe()
-  - derive ReventFd and RtimerFd from Rfd
+  - other backend updates
+    - RparseUrl: add DirName,FileName,FileStem,FileType
+    - derive ReventFd and RtimerFd from Rfd
+    - Rw11VirtDiskFile,Rw11VirtTapeTap: use RfileFd
+    - Rw11Cpu: MemWriteByte(): use AddMembe()
+    - Rw11CntlTM11: support odd record length
   - generic_so.mk: use -scrUuv for ar to avoid "'u' modifier ignored"
   - tools/oskit/hook/hook_ibmon_*.tcl: check ibmon availability
+  - tap2file: add -v option
 - firmware changes
   - sys_w11a_arty: down-rate to 72 MHz, viv 2019.1 fails with 75 MHz
   - sys_w11a_*.vmfset: add new rule for vivado 2019.1
   - pdp11_vmbox: support membe for em cacc access
+
+### Bug Fixes
+- tap2file: correct rlmax calculation
+- Rw11CntlTM11: AddNormalExit(): get tmds logic right
 
 <!-- --------------------------------------------------------------------- -->
 ---

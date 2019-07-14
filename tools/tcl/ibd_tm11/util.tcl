@@ -1,9 +1,10 @@
-# $Id: util.tcl 1177 2019-06-30 12:34:07Z mueller $
+# $Id: util.tcl 1180 2019-07-08 15:46:59Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-07-08  1180   1.0.2  add sym def for CR.den values
 # 2015-12-26   719   1.0.1  add regmap_add defs
 # 2015-05-17   683   1.0    Initial version
 #
@@ -22,8 +23,8 @@ namespace eval ibd_tm11 {
   regdsc SR {icmd 15} {eof 14} {pae 12} {eot 10} {rle 9} {bte 8} {nxm 7} \
     {onl 6} {bot 5} {wrl 2} {rew 1} {tur 0}
 
-  regdsc CR {err 15} {den 14 2} {ini 12} {pevn 11} {unit 10 3} \
-    {rdy 7} {ie 6} {ea 5 2} \
+  regdsc CR {err 15} {den 14 2 "s:D72:D75:D78:D98"} \
+    {ini 12} {pevn 11} {unit 10 3} {rdy 7} {ie 6} {ea 5 2} \
     {func 3 3 "s:UNLOAD:READ:WRITE:WEOF:SFORW:SBACK:WRTEG:REWIND"} \
     {go 0}
   variable FUNC_UNLOAD [bvi b3 "000"]
@@ -99,7 +100,7 @@ namespace eval ibd_tm11 {
     append rval "Controller registers:"
     append rval [format "\n  sr:  %6.6o  %s" $sr [regtxt ibd_tm11::SR $sr]]
     append rval [format "\n  cr:  %6.6o  %s" $cr [regtxt ibd_tm11::CR $cr]]
-    append rval [format "\n  bc:  %6.6o  nw=%s" $bc $fbc]
+    append rval [format "\n  bc:  %6.6o  nb=%s" $bc $fbc]
     append rval [format "\n  ba:  %6.6o"     $ba]
 
     append rval "\nUnit registers:"

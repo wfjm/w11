@@ -1,4 +1,4 @@
-// $Id: Rw11VirtTapeTap.hpp 1180 2019-07-08 15:46:59Z mueller $
+// $Id: Rw11VirtTapeTap.hpp 1186 2019-07-12 17:49:59Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
@@ -12,7 +12,6 @@
 
 
 /*!
-  \file
   \brief   Declaration of class Rw11VirtTapeTap.
 */
 

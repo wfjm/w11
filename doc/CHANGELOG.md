@@ -44,7 +44,8 @@ The full set of tests is only run for tagged releases.
     - derive ReventFd and RtimerFd from Rfd
     - Rw11VirtDiskFile,Rw11VirtTapeTap: use RfileFd
     - Rw11Cpu: MemWriteByte(): use AddMembe()
-    - Rw11CntlTM11: support odd record length
+    - Rw11CntlTM11: support odd record length, close [issue #8](https://github.com/wfjm/w11/issues/8)
+    - *: drop superfluous \file Doxygen tag (clang -Weverything fix)
   - generic_so.mk: use -scrUuv for ar to avoid "'u' modifier ignored"
   - tools/oskit/hook/hook_ibmon_*.tcl: check ibmon availability
   - tap2file: add -v option

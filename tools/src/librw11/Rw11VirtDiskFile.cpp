@@ -1,4 +1,4 @@
-// $Id: Rw11VirtDiskFile.cpp 1180 2019-07-08 15:46:59Z mueller $
+// $Id: Rw11VirtDiskFile.cpp 1186 2019-07-12 17:49:59Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
@@ -15,7 +15,6 @@
 // ---------------------------------------------------------------------------
 
 /*!
-  \file
   \brief   Implemenation of Rw11VirtDiskFile.
 */
 

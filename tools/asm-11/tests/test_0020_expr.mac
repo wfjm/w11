@@ -1,4 +1,6 @@
-; $Id: test_0020_expr.mac 501 2013-03-30 13:53:39Z mueller $
+; $Id: test_0020_expr.mac 1184 2019-07-10 20:39:44Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; test assignment and expressions
 ; 
@@ -36,7 +38,12 @@
         r5 = ^d11               ;;!! 000013
         r6 = 99.                ;;!! 000143
         r7 = ^d99               ;;!! 000143
-;;      r8 = ^x1234             
+
+; combine ^c with radix prefixes and suffixes
+
+        r10 = ^c^o377           ;;!! 177400
+        r11 = ^c^b111           ;;!! 177770
+        r12 = ^c254.            ;;!! 177401
 
 ; other prefixes
 

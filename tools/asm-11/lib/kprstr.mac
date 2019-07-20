@@ -1,6 +1,6 @@
-; $Id: kprstr.mac 830 2016-12-26 20:25:49Z mueller $
+; $Id: kprstr.mac 1184 2019-07-10 20:39:44Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-; License disclaimer see License.txt in $RETROBASE directory
 ;
 ; synchronous (polling) console print: print 0-terminated string
 ; Call:

@@ -1,6 +1,6 @@
-; $Id:  $
+; $Id: defs_rl.mac 1184 2019-07-10 20:39:44Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-; License disclaimer see License.txt in $RETROBASE directory
 ;
 ; definitions for RL11 controler
 ; 

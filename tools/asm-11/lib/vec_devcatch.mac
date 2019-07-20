@@ -1,6 +1,6 @@
-; $Id: vec_devcatch.mac 1139 2019-04-27 14:00:38Z mueller $
+; $Id: vec_devcatch.mac 1184 2019-07-10 20:39:44Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-; License disclaimer see License.txt in $RETROBASE directory
 ;
 ; vector catcher for device interrupts (subset used by w11)
 ; 

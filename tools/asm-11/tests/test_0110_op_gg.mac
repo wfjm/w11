@@ -1,5 +1,7 @@
-; $Id: test_0110_op_gg.mac 501 2013-03-30 13:53:39Z mueller $
-;
+; $Id: test_0110_op_gg.mac 1184 2019-07-10 20:39:44Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+
 ; test opcodes with two general operands
 ;
         .asect

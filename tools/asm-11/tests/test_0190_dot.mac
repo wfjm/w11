@@ -1,4 +1,6 @@
-; $Id: test_0190_dot.mac 712 2015-11-01 22:53:45Z mueller $
+; $Id: test_0190_dot.mac 1184 2019-07-10 20:39:44Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; test dot '.' handling
 ;    '.' refers in MACRO-11 (RT11 V4.0) to

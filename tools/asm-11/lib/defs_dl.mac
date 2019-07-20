@@ -1,6 +1,6 @@
-; $Id: defs_dl.mac 1133 2019-04-19 18:43:00Z mueller $
+; $Id: defs_dl.mac 1184 2019-07-10 20:39:44Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-; License disclaimer see License.txt in $RETROBASE directory
 ;
 ; definitions for primary DL11 controler (console) (as in defs_cons.das)
 ; 

@@ -1,5 +1,7 @@
-; $Id: test_0050_iword.mac 502 2013-04-02 19:29:30Z mueller $
-;
+; $Id: test_0050_iword.mac 1184 2019-07-10 20:39:44Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+
 ; test implicit .word
 ;   when a statement does not start with pst symbol (opcode or directive)
 ;   assume an implicit .word

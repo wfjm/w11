@@ -1,25 +1,14 @@
 /* -*- c++ -*- */
-/* $Id: syncdelay.h 985 2018-01-03 08:59:40Z mueller $ */
-/*
+/* $Id: syncdelay.h 1194 2019-07-20 07:43:21Z mueller $ */
+/* SPDX-License-Identifier: GPL-3.0-or-later
  * Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
  * Code was forked from USRP2 firmware (GNU Radio Project), version 3.0.2
  *
  * - original copyright and licence disclaimers -------------------------------
  * Copyright 2003 Free Software Foundation, Inc.
- * This code is part of usbjtag.
+ * This code is part of usbjtag. usbjtag is free software;
  *-----------------------------------------------------------------------------
  * 
- * This program is free software; you may redistribute and/or modify it under
- * the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * for complete details.
- *  
- *-----------------------------------------------------------------------------
- *
  * Synchronization delay for FX2 access to specific registers
  *
  * Revision History:

@@ -1,4 +1,6 @@
-# $Id: 90-retro-usb-permissions.rules 902 2017-06-03 14:02:17Z mueller $
+# $Id: 90-retro-usb-permissions.rules 1194 2019-07-20 07:43:21Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # udev rules to make some USB adaptors writable to group plugdev
 #

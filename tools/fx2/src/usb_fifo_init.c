@@ -1,6 +1,7 @@
-/* $Id: usb_fifo_init.c 985 2018-01-03 08:59:40Z mueller $ */
-/*
+/* $Id: usb_fifo_init.c 1194 2019-07-20 07:43:21Z mueller $ */
+/* SPDX-License-Identifier: GPL-3.0-or-later
  * Copyright 2011-2012 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+ *
  * Code was forked from ixo-jtag.svn.sourceforge.net on 2011-07-17
  * The data fifo treatment is partially inspired by work of Marco Oster
  * done at ZITI, Heidelberg in 2010.
@@ -11,17 +12,6 @@
  * - This code is part of usbjtag. usbjtag is free software;
  *-----------------------------------------------------------------------------
  * 
- * This program is free software; you may redistribute and/or modify it under
- * the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * for complete details.
- *  
- *-----------------------------------------------------------------------------
- *
  * USB FIFO setup
  *
  * Revision History:

@@ -26,7 +26,7 @@ The full set of tests is only run for tagged releases.
 ### Summary
 - use vivado 2019.1 as default
 - finalize coverity fixups, now defect free ([see blog](https://wfjm.github.io/blogs/w11/2019-06-14-coverity-fixes-done.html))
-- use SPDX license tags, remove boilerplate license disclaimers
+- use SPDX license tags, remove boilerplate license disclaimers ([see blog](https://wfjm.github.io/blogs/w11/2019-07-21-spdx.html))
 
 ### New features
 - new tools

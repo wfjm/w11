@@ -1,7 +1,8 @@
 ;;; -*- asm -*-
-;;; $Id: dscr_gen.A51 985 2018-01-03 08:59:40Z mueller $ 
-;;;
+;;; $Id: dscr_gen.A51 1194 2019-07-20 07:43:21Z mueller $ 
+;;; SPDX-License-Identifier: GPL-3.0-or-later
 ;;; Copyright 2011-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;;;
 ;;; Code was forked from ixo-jtag.svn.sourceforge.net on 2011-07-17
 ;;;
 ;;;- original copyright and licence disclaimer ---------------------------------
@@ -11,16 +12,6 @@
 ;;;- This code is part of usbjtag. usbjtag is free software;
 ;;;- ---------------------------------------------------------------------------
 ;;;
-;;; This program is free software; you may redistribute and/or modify it under
-;;; the terms of the GNU General Public License as published by the Free
-;;; Software Foundation, either version 3, or (at your option) any later version.
-;;;
-;;; This program is distributed in the hope that it will be useful, but
-;;; WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
-;;; or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-;;; for complete details.
-;;; 
-;;;-----------------------------------------------------------------------------
 ;;; USB Descriptor, common source for jtag + 0, 2, or 3 hardware fifo interface
 ;;; 
 ;;; Use C preprocessor to create an assembler source for the configurations:

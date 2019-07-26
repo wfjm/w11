@@ -1,4 +1,6 @@
-# $Id: tb_sramif2migui_core_stim.dat 1069 2018-11-16 17:11:30Z mueller $
+# $Id: tb_sramif2migui_core_stim.dat 1192 2019-07-13 17:29:57Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # annotation assumes a 128 bit wide mig iface 
 #   ->  8  16bit words per row buffer

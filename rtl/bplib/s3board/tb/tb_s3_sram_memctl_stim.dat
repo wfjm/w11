@@ -1,4 +1,6 @@
-# $Id: tb_s3_sram_memctl_stim.dat 290 2010-05-16 08:44:36Z mueller $
+# $Id: tb_s3_sram_memctl_stim.dat 1192 2019-07-13 17:29:57Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2010- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 .memon 0
 #

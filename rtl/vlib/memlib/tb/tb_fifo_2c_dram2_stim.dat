@@ -1,4 +1,6 @@
-# $Id: tb_fifo_2c_dram2_stim.dat 751 2016-03-25 19:46:11Z mueller $
+# $Id: tb_fifo_2c_dram2_stim.dat 1191 2019-07-13 17:21:02Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment

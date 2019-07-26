@@ -1,4 +1,6 @@
-# $Id: tb_mt45w8mw16b_stim.dat 787 2016-07-16 14:40:41Z mueller $
+# $Id: tb_mt45w8mw16b_stim.dat 1192 2019-07-13 17:29:57Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 C Write first 8 cells, full words
 #

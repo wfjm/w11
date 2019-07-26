@@ -1,8 +1,7 @@
 # -*- tcl -*-
-# $Id: artys7_pclk.xdc 1038 2018-08-11 12:39:52Z mueller $
-#
+# $Id: artys7_pclk.xdc 1190 2019-07-13 17:05:39Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see License.txt in $RETROBASE directory
 #
 # Primary clocks for Digilent Arty
 #

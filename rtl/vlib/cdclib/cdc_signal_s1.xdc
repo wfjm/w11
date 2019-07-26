@@ -1,8 +1,7 @@
 # -*- tcl -*-
-# $Id: cdc_signal_s1.xdc 830 2016-12-26 20:25:49Z mueller $
-#
+# $Id: cdc_signal_s1.xdc 1190 2019-07-13 17:05:39Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see License.txt in $RETROBASE directory
 #
 # cdc constraints for cdc_signal_s1
 #

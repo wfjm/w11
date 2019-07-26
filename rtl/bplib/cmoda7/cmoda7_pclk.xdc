@@ -1,8 +1,7 @@
 # -*- tcl -*-
-# $Id: cmoda7_pclk.xdc 906 2017-06-04 21:59:13Z mueller $
-#
+# $Id: cmoda7_pclk.xdc 1190 2019-07-13 17:05:39Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see License.txt in $RETROBASE directory
 #
 # Primary clocks for Digilent CmodA7
 #

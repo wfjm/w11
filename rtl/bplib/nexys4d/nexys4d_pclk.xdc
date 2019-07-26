@@ -1,7 +1,7 @@
-# $Id: nexys4d_pclk.xdc 838 2017-01-04 20:57:57Z mueller $
-#
+# -*- tcl -*-
+# $Id: nexys4d_pclk.xdc 1190 2019-07-13 17:05:39Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see License.txt in $RETROBASE directory
 #
 # Primary clocks for Nexys4 DDR
 #

@@ -1,8 +1,7 @@
 # -*- tcl -*-
-# $Id: cdc_vector_s0.xdc 1101 2019-01-02 21:22:37Z mueller $
-#
+# $Id: cdc_vector_s0.xdc 1190 2019-07-13 17:05:39Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2016-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see License.txt in $RETROBASE directory
 #
 # cdc constraints for cdc_vector_s0
 #

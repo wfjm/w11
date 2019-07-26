@@ -1,8 +1,7 @@
 # -*- tcl -*-
-# $Id: nexys4_pins.xdc 830 2016-12-26 20:25:49Z mueller $
-#
+# $Id: nexys4_pins.xdc 1190 2019-07-13 17:05:39Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see License.txt in $RETROBASE directory
 #
 # Nexys 4 core functionality
 # - Configuration setup

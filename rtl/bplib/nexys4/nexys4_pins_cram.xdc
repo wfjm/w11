@@ -1,5 +1,7 @@
 # -*- tcl -*-
-# $Id: nexys4_pins_cram.xdc 643 2015-02-07 17:41:53Z mueller $
+# $Id: nexys4_pins_cram.xdc 1190 2019-07-13 17:05:39Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Pin locks for Nexys 4 cram
 #

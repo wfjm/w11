@@ -1,7 +1,6 @@
-# $Id: viv_tools_build.tcl 1099 2018-12-31 09:07:36Z mueller $
-#
+# $Id: viv_tools_build.tcl 1194 2019-07-20 07:43:21Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment

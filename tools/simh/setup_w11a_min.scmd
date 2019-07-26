@@ -1,4 +1,6 @@
-; $Id: setup_w11a_min.scmd 559 2014-06-06 21:26:47Z mueller $
+; $Id: setup_w11a_min.scmd 1194 2019-07-20 07:43:21Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2009-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Setup file for 'minimal' w11a configuration under simh 3.8 and above
 ;

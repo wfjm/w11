@@ -1,7 +1,6 @@
-# $Id: mig_artys7.tcl 1105 2019-01-12 19:52:45Z mueller $
-#
+# $Id: mig_artys7.tcl 1194 2019-07-20 07:43:21Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-# License disclaimer see License.txt in $RETROBASE directory
 #
 # Revision History:
 # Date         Rev Version  Comment

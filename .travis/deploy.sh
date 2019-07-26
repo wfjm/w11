@@ -1,4 +1,7 @@
 #!/bin/bash
+# $Id: deploy.sh 1194 2019-07-20 07:43:21Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 
 # get environment
 printenv | sort | grep "^TRAVIS_" > environment.log

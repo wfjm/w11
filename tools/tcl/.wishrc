@@ -1,5 +1,7 @@
 # -*- tcl -*-
-# $Id: .wishrc 379 2011-04-22 20:56:19Z mueller $
+# $Id: .wishrc 1194 2019-07-20 07:43:21Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 if {[info exists env(RETROBASE)]} {
   lappend auto_path [file join $env(RETROBASE) tools tcl]

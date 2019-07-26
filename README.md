@@ -55,11 +55,9 @@ which is
 ### License
 This project is released under the 
 [GPL V3 license](https://www.gnu.org/licenses/gpl-3.0.html),
-all files contain the disclaimer:
+all files contain a [SPDX](https://spdx.org/)-style disclaimer:
 
-    This program is free software; you may redistribute and/or modify
-    it under the terms of the GNU General Public License version 3.
-    See License.txt in distribition directory for further details.
+    SPDX-License-Identifier: GPL-3.0-or-later
 
 The full text of the GPL license is in this directory as
 [License.txt](License.txt).

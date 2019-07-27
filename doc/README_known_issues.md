@@ -189,13 +189,6 @@ behavioral simulation for a w11a design can take 25 min. Even though
 post-synthesis or post-routing models are now generated in verilog working 
 with `xsim` is cumbersome and time consuming.
 
-### V0.66-1 {[issue #8](https://github.com/wfjm/w11/issues/8)} -- TM11 controller doesn't support odd transfer size
-the TM11 controller transfers data byte wise (all disk do it 16bit 
-word wise) and allows for odd byte length transfers. Odd length transfers
-are currently not supported and rejected as invalid command. Odd byte 
-length records aren't used by OS, so in practice this limitation 
-isn't relevant.
-
 ### V0.65-2 {[issue #7](https://github.com/wfjm/w11/issues/7)} -- Some exotic RH70/RP/RM features not implemented
 some exotic RH70/RP/RM features and conditions not implemented yet
 - last block transfered flag (in DS)
@@ -232,6 +225,17 @@ the backend produces proper command lists and the USB channel is usually error
 free}_
 
 ## Resolved Issues
+
+### V0.66-1 {[issue #8](https://github.com/wfjm/w11/issues/8)} -- TM11 controller doesn't support odd transfer size
+#### Original Issue
+The TM11 controller transfers data byte wise (all disk do it 16bit 
+word wise) and allows for odd byte length transfers. Odd length transfers
+are currently not supported and rejected as invalid command. Odd byte 
+length records aren't used by OS, so in practice this limitation 
+isn't relevant.
+#### Fix
+Odd record length support added with commit
+[5b52e54](https://github.com/wfjm/w11/commit/5b52e54).
 
 ### V0.742-1 {[issue #14](https://github.com/wfjm/w11/issues/14)} -- SEGFAULT core dump after detach
 #### Original Issue

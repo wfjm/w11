@@ -2,6 +2,7 @@
 
 ### Table of contents
 - Current [HEAD](#user-content-head)
+- Release [w11a_V0.79](#user-content-w11a_V0.79)
 - Release [w11a_V0.78](#user-content-w11a_V0.78)
 - Release [w11a_V0.77](#user-content-w11a_V0.77)
 - Release [w11a_V0.76](#user-content-w11a_V0.76)
@@ -23,10 +24,14 @@ The HEAD version shows the current development. No guarantees that
 software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
+<!-- --------------------------------------------------------------------- -->
+---
+## <a id="w11a_V0.79">2019-07-27: [w11a_V0.79](https://github.com/wfjm/w11/releases/tag/w11a_V0.79) - rev 1197(wfjm)</a>
 ### Summary
 - use vivado 2019.1 as default
 - finalize coverity fixups, now defect free ([see blog](https://wfjm.github.io/blogs/w11/2019-06-14-coverity-fixes-done.html))
 - use SPDX license tags, remove boilerplate license disclaimers ([see blog](https://wfjm.github.io/blogs/w11/2019-07-21-spdx.html))
+- TM11: support odd record length, close [issue #8](https://github.com/wfjm/w11/issues/8)
 
 ### New features
 - new tools

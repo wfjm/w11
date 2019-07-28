@@ -17,8 +17,7 @@ http://www.retro11.de/data/oc_w11/oskits/rt11-53_rlset.tgz
 Download, unpack and copy the disk images (*.dsk), e.g.
 ```bash
        cd $RETROBASE/tools/oskit/rt11-53_rl
-       wget http://www.retro11.de/data/oc_w11/oskits/rt11-53_rlset.tgz
-       tar -xzf rt11-53_rlset.tgz
+       rt11-53_rl_setup
 ```
 
 ### Usage

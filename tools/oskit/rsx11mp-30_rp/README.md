@@ -17,8 +17,7 @@ http://www.retro11.de/data/oc_w11/oskits/rsx11mp-30_rpset.tgz
 Download, unpack and copy the disk images (*.dsk), e.g.
 ```bash
        cd $RETROBASE/tools/oskit/rsx11mp-30_rp
-       wget http://www.retro11.de/data/oc_w11/oskits/rsx11mp-30_rpset.tgz
-       tar -xzf rsx11mp-30_rpset.tgz
+       rsx11mp-30_rp_setup
 ```
 
 ### Usage

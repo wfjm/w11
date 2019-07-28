@@ -26,8 +26,7 @@ http://www.retro11.de/data/oc_w11/oskits/211bsd_rpethset.tgz
 Download, unpack and copy the disk images (*.dsk), e.g.
 ```bash
        cd $RETROBASE/tools/oskit/211bsd_rpeth/
-       wget http://www.retro11.de/data/oc_w11/oskits/211bsd_rpethset.tgz
-       tar -xzf 211bsd_rpethset.tgz
+       211bsd_rpeth_setup
 ```
 
 ### Usage

@@ -17,8 +17,7 @@ http://www.retro11.de/data/oc_w11/oskits/rsx11m-31_rkset.tgz
 Download, unpack and copy the disk images (*.dsk), e.g.
 ```bash
        cd $RETROBASE/tools/oskit/rsx11m-31_rk
-       wget http://www.retro11.de/data/oc_w11/oskits/rsx11m-31_rkset.tgz
-       tar -xzf rsx11m-31_rkset.tgz
+       rsx11m-31_rk_setup
 ```
 
 ### Usage

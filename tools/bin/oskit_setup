@@ -1,0 +1,67 @@
+#!/usr/bin/perl -w
+# $Id: oskit_setup 1187 2019-07-13 14:21:29Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2019-07-13  1187   1.0    Initial version
+#
+use 5.14.0;                                 # require Perl 5.14 or higher
+use strict;                                 # require strict checking
+
+use Getopt::Long;
+
+my %opts = ();
+
+GetOptions(\%opts, "fkit", "fdsk", "help")
+  or bailout("bad command options");
+
+my $kit_path = "https://www.retro11.de/data/oc_w11/oskits";
+
+if (scalar(@ARGV) == 0 || $opts{help}) {
+  print_usage();
+  exit 0;
+}
+
+my $kball = shift @ARGV;
+
+if ($opts{fkit} || not -r $kball) {
+  system("wget $kit_path/$kball -nv -O $kball 2>&1") == 0 or
+    bailout("wget of '$kball' failed");
+  system("tar", "-xvzf", "$kball") == 0 or
+    bailout("tar failed");
+  exit 0;
+}
+
+my @fmis;
+if (scalar @ARGV) {
+  foreach my $fnam (@ARGV) {
+    push @fmis,$fnam unless -r $fnam; }
+}
+@fmis = @ARGV if $opts{fdsk};
+exit 0 unless scalar @fmis;
+
+system("tar", "-xvzf", "$kball", @fmis) == 0 or
+  bailout("tar failed");
+
+exit 0;
+
+#-------------------------------------------------------------------------------
+
+sub bailout {
+  my ($msg) = @_;
+  print STDERR "oskit_setup-F: $msg\n";
+  exit 1;
+}
+
+# ----------------------------------------------------------------------------
+sub print_usage {
+  print "usage: oskit_setup [options] kitball files...\n";
+  print "  kitball  name of tarball\n";
+  print "  files    list of container files\n";
+  print "  Options\n";
+  print "    --fkit       force tarball download\n";
+  print "    --fdsk       force container restore\n";
+  print "    --help       this message\n";
+}

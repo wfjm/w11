@@ -30,8 +30,7 @@ http://www.retro11.de/data/oc_w11/oskits/211bsd_rpminset.tgz
 Download, unpack and copy the disk images (*.dsk), e.g.
 ```bash
        cd $RETROBASE/tools/oskit/211bsd_rpmin/
-       wget http://www.retro11.de/data/oc_w11/oskits/211bsd_rpminset.tgz
-       tar -xzf 211bsd_rpminset.tgz
+       211bsd_rpmin_setup
 ```
 
 ### Usage

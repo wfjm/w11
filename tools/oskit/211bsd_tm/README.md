@@ -15,8 +15,7 @@ http://www.retro11.de/data/oc_w11/oskits/211bsd_tmset.tgz
 Download, unpack and copy the tape images (*.tap), e.g.
 ```bash
        cd $RETROBASE/tools/oskit/211bsd_tm/
-       wget http://www.retro11.de/data/oc_w11/oskits/211bsd_tmset.tgz
-       tar -xzf 211bsd_tmset.tgz
+       211bsd_tm_setup
 ```
 
 ### Usage

@@ -24,6 +24,14 @@ The HEAD version shows the current development. No guarantees that
 software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
+### Summary
+- automate oskit download and container file setup
+
+### New features
+- new tools
+  - bin/oskit_setup: helper for oskit download and container file setup
+  - oskit/*/*_setup: scripts for oskit download and container file setup
+
 <!-- --------------------------------------------------------------------- -->
 ---
 ## <a id="w11a_V0.79">2019-07-27: [w11a_V0.79](https://github.com/wfjm/w11/releases/tag/w11a_V0.79) - rev 1197(wfjm)</a>

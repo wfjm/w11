@@ -1,0 +1,7 @@
+#!/bin/bash
+# $Id: rt11-53_rl_setup 1187 2019-07-13 14:21:29Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+#
+oskit_setup "$@" rt11-53_rlset.tgz \
+            ./RT11_V5.3_SYSTEM.dsk

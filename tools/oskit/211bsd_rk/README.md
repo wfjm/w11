@@ -16,8 +16,7 @@ http://www.retro11.de/data/oc_w11/oskits/211bsd_rkset.tgz
 Download, unpack and copy the disk images (*.dsk), e.g.
 ```bash
     cd $RETROBASE/tools/oskit/211bsd_rk/
-    wget http://www.retro11.de/data/oc_w11/oskits/211bsd_rkset.tgz
-    tar -xzf 211bsd_rkset.tgz
+    211bsd_rk_setup
 ```
 
 ### System properties and intended usage

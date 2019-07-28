@@ -1,0 +1,9 @@
+#!/bin/bash
+# $Id: rsx11m-40_rk_setup 1187 2019-07-13 14:21:29Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+#
+oskit_setup "$@" rsx11m-40_rkset.tgz \
+            ./RSX11M_USER.dsk \
+            ./RSX11M_V4.0_SYSTEM0.dsk \
+            ./RSX11M_V4.0_SYSTEM1.dsk

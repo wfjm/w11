@@ -17,8 +17,7 @@ http://www.retro11.de/data/oc_w11/oskits/rt11-40_rkset.tgz
 Download, unpack and copy the disk images (*.dsk), e.g.
 ```bash
        cd $RETROBASE/tools/oskit/rt11-40_rk
-       wget http://www.retro11.de/data/oc_w11/oskits/rt11-40_rkset.tgz
-       tar -xzf rt11-40_rkset.tgz
+       rt11-40_rk_setup
 ```
 
 ### Usage

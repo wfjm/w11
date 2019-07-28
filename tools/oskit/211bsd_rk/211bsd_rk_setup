@@ -1,0 +1,11 @@
+#!/bin/bash
+# $Id: 211bsd_rk_setup 1187 2019-07-13 14:21:29Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+#
+oskit_setup "$@" 211bsd_rkset.tgz \
+            ./211bsd_rk_bin.dsk \
+            ./211bsd_rk_root.dsk \
+            ./211bsd_rk_swap.dsk \
+            ./211bsd_rk_tmp.dsk \
+            ./211bsd_rk_usr.dsk 

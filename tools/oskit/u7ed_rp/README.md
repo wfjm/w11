@@ -33,8 +33,7 @@ Download, unpack and copy the disk images (*.dsk), e.g.
 ```bash
 
        cd $RETROBASE/tools/oskit/u7ed_rp
-       wget http://www.retro11.de/data/oc_w11/oskits/u7ed_rpset.tgz
-       tar -xzf u7ed_rpset.tgz
+       u7ed_rp_setup
 ```
 
 ### Usage

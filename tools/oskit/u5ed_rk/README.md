@@ -15,8 +15,7 @@ Download, unpack and copy the disk images (*.dsk), e.g.
 ```bash
 
        cd $RETROBASE/tools/oskit/u5ed_rk
-       wget http://www.retro11.de/data/oc_w11/oskits/u5ed_rkset.tgz
-       tar -xzf u5ed_rkset.tgz
+       u5ed_rk_setup
 ```
 
 ### Usage

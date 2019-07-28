@@ -1,0 +1,55 @@
+.\"  -*- nroff -*-
+.\"  $Id: oskit_setup.1 1188 2019-07-13 14:31:51Z mueller $
+.\" SPDX-License-Identifier: GPL-3.0-or-later
+.\" Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" 
+.\" ------------------------------------------------------------------
+.
+.TH OSKIT_SETUP 1 2019-07-13 "Retro Project" "Retro Project Manual"
+.\" ------------------------------------------------------------------
+.SH NAME
+oskit_setup \- download oskit and setup container files
+.\" ------------------------------------------------------------------
+.SH SYNOPSIS
+.
+.SY oskit_setup
+.RI [ OPTION ]...
+.I  KITBALL
+.IR FILE ...
+.
+.SY oskit_setup
+.B \-\-help
+.YS
+.
+.\" ------------------------------------------------------------------
+.SH DESCRIPTION
+If the tar archive \fIKITBALL\fR is not present in the current working
+directory it is downloaded and unpacked in full. If \fIKITBALL\fR is
+present, the existence of the specified container files \fIFILE\fR is
+tested, and if one is missing, the file is restored from \fIKITBALL\fR.
+.
+.\" ------------------------------------------------------------------
+.SH OPTIONS
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-fkit\fR"
+\fIKITBALL\fR will be downloaded and unpacked unconditionally.
+All containers will be overwritten.
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-fdsk\fR"
+The specified container files \fIFILE\fR will be restored unconditionally
+from \fIKITBALL\fR, which will be downloaded if missing.
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-help\fR"
+print full help text and exit.
+.\" ------------------------------------------------------------------
+.SH EXAMPLES
+.IP "\fBoskit_setup 211bsd_rpset.tgz ./211bsd_rp.dsk\fR" 4
+download the tar archive \fI211bsd_rpset.tgz\fR is missing and restores
+\fI./211bsd_rp.dsk\fR if missing.
+
+.\" ------------------------------------------------------------------
+.SH AUTHOR
+Walter F.J. Mueller <W.F.J.Mueller@gsi.de>

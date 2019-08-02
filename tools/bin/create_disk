@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: create_disk 1172 2019-06-29 07:27:24Z mueller $
+# $Id: create_disk 1189 2019-07-13 16:41:07Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-07-13  1189   1.1.4  drop superfluous exists for $opts
 # 2018-12-18  1089   1.1.3  add and use bailout
 # 2015-06-21   692   1.1.2  use sysseek rather seek; add RM80
 # 2015-04-06   665   1.1.1  add alias RM03 (for RM02) and RP05 (for RP04)
@@ -40,7 +41,7 @@ my %disktype = (
 
 autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
 
-if (exists $opts{help}) {
+if ($opts{help}) {
   print_help(1);
   exit 0;
 }

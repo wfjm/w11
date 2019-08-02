@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: vbomconv 1172 2019-06-29 07:27:24Z mueller $
+# $Id: vbomconv 1189 2019-07-13 16:41:07Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2007-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-07-13  1189   1.18.1  drop superfluous exists for $opts
 # 2018-11-09  1066   1.18   add and use bailout; add @tcl
 # 2016-08-28   804   1.17.3 xsim work dir now xsim.<mode>.<stem>
 # 2016-07-02   782   1.17.2 add VBOMCONV_GHDL_OPTS and VBOMCONV_GHDL_GCOV
@@ -125,7 +126,7 @@ my $has_unisim;                             # @lib:unisim seen or implied
 my $has_unimacro;                           # @lib:unimacro seen
 my $has_simprim;                            # @lib:simprim seen or implied
 my $sim_mode = 'bsim';
-my $do_trace = exists $opts{trace};
+my $do_trace = $opts{trace};
 my $level = 0;                              # vbom nesting level
 my $xst_writevhdl = 1;
 my $xlpath=$opts{xlpath};
@@ -152,7 +153,7 @@ $is_veri = $xsim_lang eq 'verilog';
 
 autoflush STDOUT 1;		# autoflush, so nothing lost on exec later
 
-if (exists $opts{help}) {
+if ($opts{help}) {
   print_help();
   exit 0;
 }
@@ -329,7 +330,7 @@ if ($do_trace) {
 
 # --ghdl_a -- ghdl analysis command ----------------------------------
 
-if (exists $opts{ghdl_a} || exists $opts{ghdl_a_cmd}) {
+if ($opts{ghdl_a} || $opts{ghdl_a_cmd}) {
   if ($no_xlpath && ($has_unisim || $has_unimacro || $has_simprim) ) {
     print STDERR "vbomconv-E: --xlpath required with ghdl_a or ghdl_a_cmd";
     exit 1;
@@ -346,7 +347,7 @@ if (exists $opts{ghdl_a} || exists $opts{ghdl_a_cmd}) {
     $cmd .= " ${ghdl_opts}";
     $cmd .= " $file";
     print "$cmd\n";
-    if (exists $opts{ghdl_a}) {
+    if ($opts{ghdl_a}) {
       my $wrc = system "/bin/sh", "-c", $cmd;
       if ($wrc != 0) {
 	my $rc = int($wrc/256);
@@ -365,7 +366,7 @@ if (exists $opts{ghdl_a} || exists $opts{ghdl_a_cmd}) {
 
 # --ghdl_i -- ghdl inspection command --------------------------------
 
-if (exists $opts{ghdl_i} || exists $opts{ghdl_i_cmd}) {
+if ($opts{ghdl_i} || $opts{ghdl_i_cmd}) {
   my $workdir = "ghdl.${sim_mode}";
   my %ghdl_work;
 
@@ -400,7 +401,7 @@ if (exists $opts{ghdl_i} || exists $opts{ghdl_i_cmd}) {
 
   if ($nfile) {
     print "$cmd\n";
-    if (exists $opts{ghdl_i}) {
+    if ($opts{ghdl_i}) {
       exec "/bin/sh", "-c", $cmd or
         bailout("failed to exec /bin/sh -c $cmd: $!");
     }
@@ -416,7 +417,7 @@ if (exists $opts{ghdl_i} || exists $opts{ghdl_i_cmd}) {
 #       If used from make with proper dependencies, this will just do
 #       the right thing.
 
-if (exists $opts{ghdl_m} || exists $opts{ghdl_m_cmd} ) {
+if ($opts{ghdl_m} || $opts{ghdl_m_cmd} ) {
   my $workdir = "ghdl.${sim_mode}";
   my $cmd = "";
 
@@ -449,7 +450,7 @@ if (exists $opts{ghdl_m} || exists $opts{ghdl_m_cmd} ) {
   }
   $cmd .= " $top";
   print "$cmd\n";
-  if (exists $opts{ghdl_m}) {
+  if ($opts{ghdl_m}) {
     exec "/bin/sh", "-c", $cmd or
       bailout("failed to exec /bin/sh -c $cmd: $!");
   }
@@ -457,7 +458,7 @@ if (exists $opts{ghdl_m} || exists $opts{ghdl_m_cmd} ) {
 
 # --xst_prj ----------------------------------------------------------
 
-if (exists $opts{xst_prj}) {
+if ($opts{xst_prj}) {
   ## $xst_writevhdl = 0; # needed in case "-use_new_parser yes" used
   foreach (@srcfile_list) {
     if ($xst_writevhdl) {
@@ -470,7 +471,7 @@ if (exists $opts{xst_prj}) {
 
 # --isim_prj ---------------------------------------------------------
 
-if (exists $opts{isim_prj}) {
+if ($opts{isim_prj}) {
   foreach (@srcfile_list) {
     print "vhdl work $_\n";
   }
@@ -478,7 +479,7 @@ if (exists $opts{isim_prj}) {
 
 # --vsyn_prj ---------------------------------------------------------
 
-if (exists $opts{vsyn_prj}) {
+if ($opts{vsyn_prj}) {
   # determine source and simulation file sets
   my @fl_syn;
   my @fl_sim;
@@ -583,7 +584,7 @@ if (exists $opts{vsyn_prj}) {
 
 # --vsim_prj ---------------------------------------------------------
 
-if (exists $opts{vsim_prj}) {
+if ($opts{vsim_prj}) {
   # Note: use a separate workdir for each sim_mode and each model (given
   # by stem). This allows to have all co-existant, and to delete the workdir
   # each time one of them is re-build.
@@ -717,7 +718,7 @@ if (exists $opts{vsim_prj}) {
 
 # --dep_ghdl ---------------------------------------------------------
 
-if (exists $opts{dep_ghdl}) {
+if ($opts{dep_ghdl}) {
 
   print "#\n";
   print "$stem : $stem.dep_ghdl\n";
@@ -776,7 +777,7 @@ if (exists $opts{dep_ghdl}) {
 
 # --dep_xst ----------------------------------------------------------
 
-if (exists $opts{dep_xst}) {
+if ($opts{dep_xst}) {
   print "#\n";
   print "$stem.ngc : $stem.dep_xst\n";
   print "#\n";
@@ -801,7 +802,7 @@ if (exists $opts{dep_xst}) {
 
 # --dep_isim ---------------------------------------------------------
 
-if (exists $opts{dep_isim}) {
+if ($opts{dep_isim}) {
   my $stem_isim = $stem . "_ISim";
 
   $stem_isim =~ s/_ssim_ISim$/_ISim_ssim/ if ($sim_mode eq 'ssim');
@@ -846,7 +847,7 @@ if (exists $opts{dep_isim}) {
 
 # --dep_vsyn ---------------------------------------------------------
 
-if (exists $opts{dep_vsyn}) {
+if ($opts{dep_vsyn}) {
   print "#\n";
   print "$stem.bit : $stem.dep_vsyn\n";
   print "#\n";
@@ -870,7 +871,7 @@ if (exists $opts{dep_vsyn}) {
 
 # --dep_vsim ---------------------------------------------------------
 
-if (exists $opts{dep_vsim}) {
+if ($opts{dep_vsim}) {
   my $stem_vsim = $stem . "_XSim";
 
   $stem_vsim =~ s/_ssim_XSim$/_XSim_ssim/ if ($sim_mode eq 'ssim');
@@ -1063,13 +1064,13 @@ if (exists $opts{vsyn_export}  or
 
 # --get_top ----------------------------------------------------------
 
-if (exists $opts{get_top}) {
+if ($opts{get_top}) {
   print "$top\n";
 }
 
 # --flist ------------------------------------------------------------
 
-if (exists $opts{flist}) {
+if ($opts{flist}) {
 
   my @flist;
 

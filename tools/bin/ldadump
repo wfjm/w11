@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: ldadump 1172 2019-06-29 07:27:24Z mueller $
+# $Id: ldadump 1189 2019-07-13 16:41:07Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-07-13  1189   1.0.2  drop superfluous exists for $opts
 # 2019-04-19  1133   1.0.1  better -trec format of start address record
 # 2019-04-13  1131   1.0    Initial version
 #
@@ -20,7 +21,7 @@ my %opts = ();
 GetOptions(\%opts, "help", "lsm", "tbyt", "trec")
   or bailout("bad command options");
 
-if (exists $opts{help}) {
+if ($opts{help}) {
   print_help();
   exit 0;
 }

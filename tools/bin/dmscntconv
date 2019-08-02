@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: dmscntconv 1172 2019-06-29 07:27:24Z mueller $
+# $Id: dmscntconv 1189 2019-07-13 16:41:07Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-07-13  1189   1.0.3  drop superfluous exists for $opts
 # 2018-12-18  1089   1.0.2  add and use bailout
 # 2015-12-28   721   1.0.1  adopt to new syntax of STATE2SNUM mapper
 # 2015-06-27   695   1.0    Initial version
@@ -28,7 +29,7 @@ my %dat_um;
 
 autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
 
-if (exists $opts{help}) {
+if ($opts{help}) {
   print_help();
   exit 0;
 }

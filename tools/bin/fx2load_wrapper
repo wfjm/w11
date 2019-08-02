@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: fx2load_wrapper 1172 2019-06-29 07:27:24Z mueller $
+# $Id: fx2load_wrapper 1189 2019-07-13 16:41:07Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-07-13  1189   1.1.1  drop superfluous exists for $opts
 # 2014-08-10   581   1.1    use _ic instead of _as as default firmware
 # 2012-02-11   457   1.0.1  use RETRO_FX2_VID/PID; check iProduct string
 # 2011-12-29   446   1.0    Initial version
@@ -44,7 +45,7 @@ if (not defined $opts{ihx_path}) {
 
 autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
 
-if (exists $opts{help}) {
+if ($opts{help}) {
   print_help();
   exit 0;
 }

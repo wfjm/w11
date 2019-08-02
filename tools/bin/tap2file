@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: tap2file 1180 2019-07-08 15:46:59Z mueller $
+# $Id: tap2file 1189 2019-07-13 16:41:07Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-07-13  1189   1.0.4  drop superfluous exists for $opts
 # 2019-07-08  1180   1.0.3  BUGFIX in rlmax calculation; add -v option
 # 2018-12-18  1089   1.0.2  add and use bailout
 # 2015-06-03   686   1.0.1  add print_usage; cleanups
@@ -24,7 +25,7 @@ my %opts = ();
 GetOptions(\%opts, "pref=s", "v", "help")
   or bailout("bad command options");
 
-if (scalar(@ARGV) == 0 || exists $opts{help}) {
+if (scalar(@ARGV) == 0 || $opts{help}) {
   print_usage();
   exit 0;
 }

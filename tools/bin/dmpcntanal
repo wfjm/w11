@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: dmpcntanal 1172 2019-06-29 07:27:24Z mueller $
+# $Id: dmpcntanal 1189 2019-07-13 16:41:07Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2018-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-07-13  1189   1.0.1  drop superfluous exists for $opts
 # 2018-10-19  1057   1.0    Initial version
 # 2018-10-06  1053   0.1    First draft
 #
@@ -76,7 +77,7 @@ my %hdif;
 
 autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
 
-if (exists $opts{help}) {
+if ($opts{help}) {
   print_help();
   exit 0;
 }

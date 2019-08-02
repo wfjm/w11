@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: xviv_msg_filter 1172 2019-06-29 07:27:24Z mueller $
+# $Id: xviv_msg_filter 1189 2019-07-13 16:41:07Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2016-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-07-13  1189   1.1.4  drop superfluous exists for $opts
 # 2018-12-22  1091   1.1.3  add count-only rules; add -pcnt; add [bit] handling
 # 2018-11-18  1072   1.1.2  display INFO Common 17-14 'further message disabled'
 # 2018-08-11  1039   1.1.1  allow {yyyy.x} tags (in addition to ranges)
@@ -48,7 +49,7 @@ my $retrobase = $ENV{RETROBASE};
 
 autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
 
-if (exists $opts{help}) {
+if ($opts{help}) {
   print_help();
   exit 0;
 }
@@ -157,7 +158,7 @@ foreach my $f (@flist) {
   }
 }
 
-if ($ackcnt && exists $opts{pacc}) {
+if ($ackcnt && $opts{pacc}) {
   print "Accepted messages for type [$type] from $lognam:\n";
   foreach my $f (@flist) {
     next if $$f{cnt} == 0;

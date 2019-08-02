@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: console_starter 1172 2019-06-29 07:27:24Z mueller $
+# $Id: console_starter 1189 2019-07-13 16:41:07Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2009-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev  Vers    Comment
+# 2019-07-13  1189   1.1.1  drop superfluous exists for $opts
 # 2014-08-10   581   1.1    rename to console_starter
 # 2010-07-04   312   1.0.3  correct telnet_wrapper path
 # 2010-04-26   284   1.0.2  add error check for GetOptions
@@ -21,7 +22,7 @@ my %opts = ();
 GetOptions(\%opts, "h", "t:s", "d:s", "s", "w", "l")
   or die "bad options";
 
-if (exists $opts{h}) {
+if ($opts{h}) {
   print "usage: console_starter [-h] [-t type] [-d type] [-s] [-w] [-l]\n";
   print "  -h       help, print this text and quit\n";
   print "  -t term  set terminal type, vt100 or vt52 (def: vt100)\n";
@@ -61,7 +62,7 @@ if (exists $opts{d}) {
   }
 }
 
-if (exists $opts{s}) {                      # simh ports
+if ($opts{s}) {                             # simh ports
   $port = 5670 if ($dev eq "DL");
   $port = 5671 if ($dev eq "DZ");
   $title = sprintf "\"%s %s\"", $dev, $term;
@@ -73,8 +74,8 @@ if (exists $opts{s}) {                      # simh ports
 
 my $geo_w = 80;
 my $geo_l = 24;
-$geo_w = 132 if exists $opts{w};
-$geo_l =  48 if exists $opts{l};
+$geo_w = 132 if $opts{w};
+$geo_l =  48 if $opts{l};
 
 push @args, "-j", "-rightbar", "-sb", "-sl", "500";
 push @args, "-bg", "gray90", "-fg", "black";

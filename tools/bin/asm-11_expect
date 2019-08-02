@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: asm-11_expect 1172 2019-06-29 07:27:24Z mueller $
+# $Id: asm-11_expect 1189 2019-07-13 16:41:07Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-07-13  1189   1.1.2  drop superfluous exists for $opts
 # 2019-05-25  1152   1.1.1  skip data checks if dot not defined
 # 2018-11-03  1065   1.1    add and use bailout; update exit code usage
 # 2013-03-29   500   1.0    Initial version
@@ -28,7 +29,7 @@ my $errcnt;                                 # total error count
 
 autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
 
-if (exists $opts{help}) {
+if ($opts{help}) {
   print_help();
   exit 0;
 }

@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: tmuconv 1172 2019-06-29 07:27:24Z mueller $
+# $Id: tmuconv 1189 2019-07-13 16:41:07Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2008-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-07-13  1189   1.1.4  drop superfluous exists for $opts
 # 2018-12-18  1089   1.1.3  add and use bailout
 # 2018-10-05  1053   1.1.2  use 'ca.*' instead of 'sy.*' fields
 # 2015-11-01   712   1.1.1  BUGFIX: fix '.' handling for br/sob instructions
@@ -435,7 +436,7 @@ my %pdp11_regs = (			    # use simh naming convention
 
 autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
 
-if (exists $opts{help}) {
+if ($opts{help}) {
   print_help();
   exit 0;
 }
@@ -557,7 +558,7 @@ sub do_file {
 	next;
       }
 
-      @val_curr_text = @val_curr  if exists $opts{dump} || exists $opts{cdump};
+      @val_curr_text = @val_curr  if $opts{dump} || $opts{cdump};
 
       my $cyc_curr = int $val_curr[0];
       my $cyc_str  = sprintf "%8d", $cyc_curr;
@@ -577,7 +578,7 @@ sub do_file {
       my $ibreq_we  = 0;
       my $ibreq_act = 0;
 
-      if (exists $opts{dump} || exists $opts{cdump}) {
+      if ($opts{dump} || $opts{cdump}) {
 	my @val_change;
 	my $any_change;
 
@@ -587,16 +588,16 @@ sub do_file {
 	  $any_change |= $change;
 	}
 
-	if (exists $opts{dump} || $any_change) {
+	if ($opts{dump} || $any_change) {
 	  printf "cycle $cyc_str %s", "-" x 32;
-	  if ($notfirst && exists $opts{cdump}) {
+	  if ($notfirst && $opts{cdump}) {
 	    printf " (%d)",$cyc_curr-$change_cyc;
 	  }
 	  print "\n";
 
 	  for (my $i=1; $i<scalar(@val_curr); $i++) {
 	    my $oper = $val_change[$i] ? "<=" : " =";
-	    if (exists $opts{dump} || $val_change[$i]) {
+	    if ($opts{dump} || $val_change[$i]) {
 	      printf "   %-16s:%s %s %s\n", $var_name[$i], $var_type[$i],
 		                            $oper, $val_curr_text[$i];
 	    }
@@ -608,7 +609,7 @@ sub do_file {
 # handle t_id
 #   uses cycles with dp_ireg_we = '1'
 #
-      if (exists $opts{t_id} and $notfirst) {
+      if ($opts{t_id} and $notfirst) {
 	if ($val_curr[$ind_dp_ireg_we_last]) {
 	  my $pc   = $val_curr[$ind_dp_pc] - 2;
 	  my $psw  = $val_curr[$ind_dp_psw];
@@ -630,7 +631,7 @@ sub do_file {
 # handle t_ru
 #   uses cycles with dp_gpr_we = '1'
 #
-      if (exists $opts{t_ru}) {
+      if ($opts{t_ru}) {
 	if ($val_curr[$ind_dp_gpr_we]) {
 	  my $adst  = $val_curr[$ind_dp_gpr_adst];
 	  my $mode  = $val_curr[$ind_dp_gpr_mode];
@@ -671,7 +672,7 @@ sub do_file {
 #                    vm_emsres_ack_w = '1'
 #                    vm_emsreq_cancel = '1'
 #
-      if (exists $opts{t_em}) {
+      if ($opts{t_em}) {
 	if ($val_curr[$ind_vm_emmreq_req]) {
 	  $emreq_cyc = $cyc_curr;
 	  $emreq_str = sprintf "%s %s %8.8o",
@@ -745,7 +746,7 @@ sub do_file {
 #                    sy_ibsres_ack = '1'
 #                    vm_ibsres_busy '1' -> '0' transition
 #
-      if (exists $opts{t_ib}) {
+      if ($opts{t_ib}) {
 	if ($val_curr[$ind_vm_ibmreq_re] || $val_curr[$ind_vm_ibmreq_we]) {
 	  my $addr_str = sprintf "%6.6o", $val_curr[$ind_vm_ibmreq_addr];
 	  $ibreq_cyc = $cyc_curr;

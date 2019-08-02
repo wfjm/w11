@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: svn_set_ignore 1172 2019-06-29 07:27:24Z mueller $
+# $Id: svn_set_ignore 1189 2019-07-13 16:41:07Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2007-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev  Vers    Comment
+# 2019-07-13  1189   1.2.3  drop superfluous exists for $opts
 # 2018-12-18  1089   1.2.2  add and use bailout
 # 2017-05-27   899   1.2.1  check svn:ignore existance before reading it
 # 2016-12-17   821   1.2    use .gitignore rather .cvsignore
@@ -62,7 +63,7 @@ sub do_dir {
     if (not exists $ignores{$d}) {
       $ignores{$d} = ();
       if (-r "$d/.gitignore") {
-        print "read $d/.gitignore\n" if exists $opts{trace};
+        print "read $d/.gitignore\n" if $opts{trace};
         open (CVSIG, "$d/.gitignore")
           or bailout("failed to read '$d/.gitignore': $!");
         while (<CVSIG>) {
@@ -70,7 +71,7 @@ sub do_dir {
           next if /^\s*$/;                  # ignore empty or space only lines
           next if /^#/;                     # ignore comments
           push @{$ignores{$d}}, $_;
-          print "   $_\n" if exists $opts{trace};
+          print "   $_\n" if $opts{trace};
         }
         close (CVSIG);
       }
@@ -118,7 +119,7 @@ sub do_dir {
     print "new svn:ignore:\n";
     print "   ", join("\n   ",@new_ipat),"\n";
 
-    if (not exists $opts{"dry-run"}) {
+    if (not $opts{"dry-run"}) {
       open (TMP, ">/tmp/svn_set_ignore_$$")
         or bailout("failed to open tmp file: $1");
       print TMP join("\n",@new_ipat),"\n";

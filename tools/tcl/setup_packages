@@ -1,5 +1,7 @@
 #! /usr/bin/env tclshcpp
-# $Id: setup_packages 1146 2019-05-05 06:25:13Z mueller $
+# $Id: setup_packages 1194 2019-07-20 07:43:21Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # pkg_mkIndex uses tclLog to write, which by default writes to stderr
 # this is 'make -s' unfriendly, so redefined tclLog to use plain puts
@@ -13,6 +15,9 @@ pkg_mkIndex -verbose ../lib \
             librusbtpp.so \
             librutiltpp.so \
             librwxxtpp.so
+#
+pkg_mkIndex -verbose exptest      *.tcl
+pkg_mkIndex -verbose exptest_rri  *.tcl
 #
 pkg_mkIndex -verbose rutil    *.tcl
 pkg_mkIndex -verbose rlink    *.tcl

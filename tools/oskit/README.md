@@ -4,6 +4,7 @@ This directory tree contains **OS disk/tape image kits** and is organized in
 | --------- | ------- |
 | [doc](doc)   | auxiliary documentation |
 | [hook](hook) | `ti_w11` startup hook files |
+| [test](test) | `ostest` configuration files |
 | _all other_  | folders with individual OS kits |
 
 The available OS kits are summarized in the table below with

@@ -26,11 +26,13 @@ The full set of tests is only run for tagged releases.
 
 ### Summary
 - automate oskit download and container file setup
+- automate testing of oskits
 
 ### New features
 - new tools
   - bin/oskit_setup: helper for oskit download and container file setup
-  - oskit/*/*_setup: scripts for oskit download and container file setup
+  - oskit/\*/\*_setup: scripts for oskit download and container file setup
+  - ostest: automation of oskit tests
 
 <!-- --------------------------------------------------------------------- -->
 ---
@@ -51,7 +53,7 @@ The full set of tests is only run for tagged releases.
   - add -reset option to stats subcommand
     - librtools/Rstats: add Reset(); drop operator-=() and operator*=()
     - librtcltools/RtclStats: Rename Collect->Exec, not longer const; add -reset
-    - libr*/*: Stats() not longer const; use RtclStats::Exec()
+    - libr\*/*\: Stats() not longer const; use RtclStats::Exec()
   - other backend updates
     - RparseUrl: add DirName,FileName,FileStem,FileType
     - derive ReventFd and RtimerFd from Rfd
@@ -364,7 +366,7 @@ The full set of tests is only run for tagged releases.
   - sys_w11a_*.vhd: use DM_STAT_EXP; IDEC to maxisys; setup PERFEXT
   - sfs_gsim_core: new common simulation core
     - use in {dcm,s6_cmt,s7_cmt}_sfs_gsim simulation models
-    - use in rtl/bplib/*/tb/tb_* test benches
+    - use in rtl/bplib/\*/tb/tb_\* test benches
     - remove s7_cmt_sfs_tb
   - tbcore_rlink: wait 40 cycles after CONF_DONE
   - serport_master_tb: add 100 ps RXSD,TXSD delay to allow clock jitter

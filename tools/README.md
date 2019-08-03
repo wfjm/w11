@@ -6,6 +6,7 @@ This directory tree contains **many tools** and is organized in
 | [bin](bin)       | support scripts and tools |
 | [bin_xilinx_wrapper](bin_xilinx_wrapper) | wrappers for Xilinx environments |
 | [dox](dox)       | configuration files for Doxygen |
+| [exptest](exptest) | configuration files for `ostest` and other expect based tests |
 | [fx2](fx2)       | firmware for Cypress FX2 USB interface |
 | [make](make)     | make includes |
 | [man](man)       | man pages |

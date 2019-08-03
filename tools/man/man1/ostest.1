@@ -1,0 +1,123 @@
+.\"  -*- nroff -*-
+.\"  $Id: ostest.1 1196 2019-07-20 18:18:16Z mueller $
+.\" SPDX-License-Identifier: GPL-3.0-or-later
+.\" Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" 
+.\" ------------------------------------------------------------------
+.
+.TH OSTEST 1 2019-07-20 "Retro Project" "Retro Project Manual"
+.\" ------------------------------------------------------------------
+.SH NAME
+ostest \- oskit test driver
+.\" ------------------------------------------------------------------
+.SH SYNOPSIS
+.
+.SY ostest
+.RI [ OPTION ]...
+.RI [ TEST ]...
+.
+.SY ostest
+.B \-\-help
+.YS
+.
+.\" ------------------------------------------------------------------
+.SH DESCRIPTION
+\fBostest\fP organizes the automatized testing of operating systems.
+It will
+
+.RS 2
+.PD 0
+.IP "-" 2
+configure the connected board if the \fB\-\-config\fP option is specified
+.IP "-"
+determine, based on the available memory size, which operating systems
+can be run on the board.
+.IP "-"
+check for each eligible operating system whether the oskit and the
+required container files are available, and download or unpack them
+in case they aren't.
+.IP "-"
+boot each eligible operating system and execute a variety of system tests.
+.PD
+.RE
+.PP
+
+.
+.\" ------------------------------------------------------------------
+.SH OPTIONS
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-sys=\fIsys\fP"
+Defines the system which is configured, or in case the \fB\-\-config\fP
+is given, is to be configured.
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-mode=\fImode\fP"
+Defines the execution mode. The default is \fIrri\fP and currently the
+only supported mode.
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-log[=\fIfnam\fP]"
+The output is written to a logfile. In case no name is specified an
+automatically generated name will be used.
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-logu\fP"
+Show full session on \fIstdout\fP even when \fI\-\-log\fP is active.
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-config\fP"
+The connected board is configured with the system defined with the
+\fB\-\-sys\fP option or the \fBEXPTEST_SYS\fP environment variable.
+First is checked with a \fImake -n\fP whether the \fI<sys>.bit\fP file is
+available and up-to-date. The script is aborted if the test fails.
+.
+.\" ----------------------------------------------
+.IP "\fB\-help\fP"
+print full help text and exit.
+.
+.\" ------------------------------------------------------------------
+.SH ENVIRONMENT
+.IP \fBEXPTEST_SYS\fP 4
+Defines the default system in case no \fB\-\-sys\fP option is given.
+.IP \fBRETROBASE\fP
+Defines root of all retro project files.
+.
+\" ------------------------------------------------------------------
+.SH FILES
+.IP "\fI$RETROBASE/tools/tcl/exptest_<mode>.tcl\fP" 4
+Implementation for mode \fImode\fP.
+.IP "\fI$RETROBASE/tools/exptest/sys/<sys>_setup.tcl\fP"
+Setup file for system \fIsys\fP.
+.IP "\fI$RETROBASE/tools/oskit/test/kit/<kit>_setup.tcl\fP"
+Setup file for oskit \fIkit\fP.
+.IP "\fI$RETROBASE/tools/oskit/test/os/<os>/\fP"
+Path for ostest environment for os \fIos\fP.
+.IP "\fI$RETROBASE/tools/oskit/<kit>/\fP"
+Path for execution environment for oskit \fIkit\fP.
+
+.
+.\" ------------------------------------------------------------------
+.SH EXAMPLES
+.IP "\fBostest --sys=sys_w11a_n4 -log\fP" 4
+This command expects that a Digilent Nexys4 board is connected and already
+configured with the \fIsys_w11a_n4\fP system. It will run tests for all
+available operating systems and produce an output like
+
+.EX
+    -I: log to ostest-2019-07-13-151006-sys_w11a_n4.log
+    ----- 15:10:06 (   0.0,   0.0): 211bsd_rpmin
+    ----- 15:10:34 (  27.9,  27.9): 211bsd_rk
+    ----- 15:11:00 (  53.9,  26.0): 211bsd_rl
+    ----- 15:11:27 (  80.7,  26.8): 211bsd_rp
+    ----- 15:11:55 ( 109.0,  28.3): 211bsd_rpeth
+    -I: 'tap0' device required but not available
+    -I: skip kit '211bsd_rpeth'  
+.EE
+
+The \fI211bsd_rpeth\fP test was skipped because preconditions were not
+fulfilled.
+
+.\" ------------------------------------------------------------------
+.SH AUTHOR
+Walter F.J. Mueller <W.F.J.Mueller@gsi.de>

@@ -1,0 +1,116 @@
+#! /usr/bin/env tclsh
+# -*- tcl -*-
+# $Id: ostest 1196 2019-07-20 18:18:16Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2019-07-20  1194   1.2    use per os namespace
+# 2019-07-13  1187   1.1    add kit_setup script support
+# 2019-06-29  1173   1.0    Initial version
+# 2019-06-09  1162   0.1    First draft
+#
+
+lappend auto_path [file join $env(RETROBASE) tools tcl]
+
+package require Expect
+package require exptest
+
+#
+# --------------------------------------------------------------------
+#
+proc dokit {kit} {
+  
+  # cleanup kit context left-overs
+  et_tenv_cleanup
+
+  # setup new kit context
+  et_prttesthead $kit
+  array set ::tenv { FAIL 0}
+  set ::tenv(kit)       $kit
+  set ::tenv(dsk_setup) "${kit}_setup"
+  set ::tenv(boot_rri)  "${kit}_boot.tcl"
+  set ::tenv(boot_simh) "${kit}_boot.scmd"
+  
+  set base_kit "$::env(RETROBASE)/tools/oskit/test/kit"
+  if {[catch {cd $base_kit}]} { error "$base_kit not existing" }
+  set kit_setup_fname "${kit}_setup.tcl"
+  if {[catch {source $kit_setup_fname} emsg]} {
+    error "failed to setup kit '$kit': \n$emsg"
+  }
+  
+  putl [et_parray ::tenv]
+  putl "-----"
+  putl ""
+  
+  if {![info exists ::tenv(namespace)]} {
+    error "no os namespace defined for kit '$kit'"
+  }
+  if {![info exists ::tenv(proc_boot)]} {
+    error "no boot proc defined for kit '$kit'"
+  }
+  if {![info exists ::tenv(proc_halt)]} {
+    error "no halt proc defined for kit '$kit'"
+  }
+  if {![info exists ::tenv(procs_test)] || [llength ::tenv(procs_test)] == 0} {
+    error "no test procs for defined for kit '$kit'"
+  }
+  
+  set quitkit 0
+  if {[info exists ::tenv(procs_preboot)]} {
+    foreach pnam $::tenv(procs_preboot) {
+      if {[$pnam]} { set quitkit 1 }
+    }
+  }
+  if {$quitkit} {
+    putb "-I: skip kit '$kit'"
+    return
+  }
+  
+  set base_oskit "$::env(RETROBASE)/tools/oskit/$kit"
+  if {[catch {cd $base_oskit}]} { error "$base_oskit not existing" }
+
+  if {[file executable $::tenv(dsk_setup)]} {
+    putl "$::tenv(dsk_setup)"
+    putl [exec ./$::tenv(dsk_setup)]
+    putl "-----"
+    putl ""
+  }
+  
+  et_dostep sv_boot
+  if {$::tenv(FAIL)} {return}
+
+  et_dostep $::tenv(proc_boot)
+  if {$::tenv(FAIL)} {return}
+  foreach step $::tenv(procs_test) {
+    et_dostep $step
+  }
+  et_dostep $::tenv(proc_halt)
+
+  et_dostep sv_halt
+  et_close_allterm
+  
+  putl ""
+  putl "-----"
+  putl [et_parray ::tenv "c_*"]
+  putl ""
+  return
+}
+
+#
+# --------------------------------------------------------------------
+# main program code
+
+et_init;                        # basic init, load mode
+et_init2 $et_oskitdef;          # setup tests;
+et_prtrunhead;                  # print run header
+et_config;                      # configure sys if requested
+
+# and execute kit tests
+foreach kit $et_tests {
+  incr ::genv(FAIL) [et_cmdl dokit $kit]
+  incr ::genv(FAIL) $::tenv(FAIL)
+}
+
+exit [expr {$::genv(FAIL) ? 1 : 0}]

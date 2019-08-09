@@ -1,9 +1,10 @@
-// $Id: RlinkConnect.hpp 1186 2019-07-12 17:49:59Z mueller $
+// $Id: RlinkConnect.hpp 1198 2019-07-27 19:08:31Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-07-27  1198   2.8.5  add Nak handling
 // 2019-06-07  1160   2.8.4  *Stats() not longer const
 // 2018-12-23  1091   2.8.3  add BadPort()
 // 2018-12-17  1085   2.8.2  use std::recursive_mutex instead of boost
@@ -217,6 +218,7 @@ namespace Retro {
         kStatNErrCmd,                       //!< decode: command mismatch
         kStatNErrLen,                       //!< decode: length mismatch
         kStatNErrCrc,                       //!< decode: crc mismatch
+        kStatNErrNak,                       //!< decode: nak seen
         kDimStat
       };
 

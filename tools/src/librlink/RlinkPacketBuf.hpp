@@ -1,9 +1,10 @@
-// $Id: RlinkPacketBuf.hpp 1186 2019-07-12 17:49:59Z mueller $
+// $Id: RlinkPacketBuf.hpp 1198 2019-07-27 19:08:31Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-07-27  1198   2.0.4  add kNc* definitions
 // 2019-06-07  1160   2.0.3  Stats() not longer const
 // 2018-12-16  1084   2.0.2  use =delete for noncopyable instead of boost
 // 2017-04-07   868   2.0.1  Dump(): add detail arg
@@ -74,7 +75,16 @@ namespace Retro {
       static const uint8_t kEcXoff    = 0x05;   //!< VHDL def ec_xoff       101
       static const uint8_t kEcFill    = 0x06;   //!< VHDL def ec_fill       110
       static const uint8_t kEcEsc     = 0x07;   //!< VHDL def ec_esc        111
-      static const uint8_t kEcClobber = 0xff;   //!< invalid Ecode             
+      static const uint8_t kEcClobber = 0xff;   //!< invalid Ecode
+      static const uint8_t kNcCcrc    = 0x00;   //!< VHDL def nak_ccrc      000
+      static const uint8_t kNcDcrc    = 0x01;   //!< VHDL def nak_dcrc      001
+      static const uint8_t kNcFrame   = 0x02;   //!< VHDL def nak_frame     010
+      static const uint8_t kNcUnused  = 0x03;   //!< VHDL def nak_unused    011
+      static const uint8_t kNcCmd     = 0x04;   //!< VHDL def nak_cmd       100
+      static const uint8_t kNcCnt     = 0x05;   //!< VHDL def nak_cnt       101
+      static const uint8_t kNcRtOvlf  = 0x06;   //!< VHDL def nak_rtovfl    110
+      static const uint8_t kNcRtWblk  = 0x07;   //!< VHDL def nak_rtwblk    111
+      static const uint8_t kNcInval   = 0x08;   //!< invalid NAK
 
     protected:
       void          SetFlagBit(uint32_t mask);

@@ -1,9 +1,10 @@
-// $Id: RlinkPacketBuf.cpp 1186 2019-07-12 17:49:59Z mueller $
+// $Id: RlinkPacketBuf.cpp 1198 2019-07-27 19:08:31Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2011-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-07-27  1198   2.0.4  add kNc* definitions
 // 2017-04-07   868   2.0.1  Dump(): add detail arg
 // 2014-11-23   606   2.0    re-organize for rlink v4
 // 2013-04-21   509   1.0.4  add SndAttn() method
@@ -60,6 +61,15 @@ const uint8_t RlinkPacketBuf::kEcXoff;
 const uint8_t RlinkPacketBuf::kEcFill;
 const uint8_t RlinkPacketBuf::kEcEsc;
 const uint8_t RlinkPacketBuf::kEcClobber;
+const uint8_t RlinkPacketBuf::kNcCcrc;
+const uint8_t RlinkPacketBuf::kNcDcrc;
+const uint8_t RlinkPacketBuf::kNcFrame;
+const uint8_t RlinkPacketBuf::kNcUnused;
+const uint8_t RlinkPacketBuf::kNcCmd;
+const uint8_t RlinkPacketBuf::kNcCnt;
+const uint8_t RlinkPacketBuf::kNcRtOvlf;
+const uint8_t RlinkPacketBuf::kNcRtWblk;
+const uint8_t RlinkPacketBuf::kNcInval;
 
 //------------------------------------------+-----------------------------------
 //! Default constructor

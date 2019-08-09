@@ -1,9 +1,10 @@
-// $Id: RlinkPacketBufRcv.ipp 1186 2019-07-12 17:49:59Z mueller $
+// $Id: RlinkPacketBufRcv.ipp 1198 2019-07-27 19:08:31Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-07-27  1198   1.0.1  add Nak handling
 // 2014-11-23   606   1.0    Initial version
 // 2014-11-02   600   0.1    First draft (re-organize PacketBuf for rlink v4)
 // ---------------------------------------------------------------------------
@@ -14,6 +15,14 @@
 
 // all method definitions in namespace Retro
 namespace Retro {
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline bool RlinkPacketBufRcv::CheckNak() const
+{
+  return fNakIndex >= 0 && int(fNDone) == fNakIndex;
+}
 
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
@@ -61,6 +70,14 @@ inline bool RlinkPacketBufRcv::CheckCrc()
 inline int RlinkPacketBufRcv::NakIndex() const
 {
   return fNakIndex;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+inline uint8_t RlinkPacketBufRcv::NakCode() const
+{
+  return fNakCode;
 }
 
 } // end namespace Retro

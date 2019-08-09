@@ -1,9 +1,10 @@
-// $Id: RlinkConnect.cpp 1185 2019-07-12 17:29:12Z mueller $
+// $Id: RlinkConnect.cpp 1198 2019-07-27 19:08:31Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2019-07-27  1198   2.8.6  add Nak handling
 // 2019-03-10  1121   2.8.5  DecodeResponse(): rblk expect check over BlockDone
 // 2018-12-22  1091   2.8.4  Open():  (-Wpessimizing-move fix); add BadPort()
 // 2018-12-19  1090   2.8.3  use RosPrintf(bool)
@@ -152,6 +153,7 @@ RlinkConnect::RlinkConnect()
   fStats.Define(kStatNErrCmd,   "NErrCmd",   "decode: command mismatch");
   fStats.Define(kStatNErrLen,   "NErrLen",   "decode: length mismatch");
   fStats.Define(kStatNErrCrc,   "NErrCrc",   "decode: crc mismatch");
+  fStats.Define(kStatNErrNak,   "NErrNak",   "decode: nak seen");
 }
 
 //------------------------------------------+-----------------------------------
@@ -874,7 +876,7 @@ int RlinkConnect::DecodeResponse(RlinkCommandList& clist, size_t ibeg,
                                  size_t iend)
 {
   size_t ncmd = 0;
-  
+
   for (size_t i=ibeg; i<=iend; i++) {
     RlinkCommand& cmd = clist[i];
     uint8_t   ccode = cmd.Command();
@@ -888,7 +890,24 @@ int RlinkConnect::DecodeResponse(RlinkCommandList& clist, size_t ibeg,
       continue;
     }
 
-    // FIXME_code: handle NAK properly !!
+    if (fRcvPkt.CheckNak()) {               // NAK seen
+      cmd.SetFlagBit(RlinkCommand::kFlagErrNak);
+      fStats.Inc(kStatNErrNak);
+      RlogMsg lmsg(*fspLog, 'E');
+      lmsg << "DecodeResponse: NAK seen, code ";
+      switch (fRcvPkt.NakCode()) {
+      case RlinkPacketBufRcv::kNcCcrc:   lmsg << "Ccrc";   break;
+      case RlinkPacketBufRcv::kNcDcrc:   lmsg << "Dcrc";   break;
+      case RlinkPacketBufRcv::kNcFrame:  lmsg << "Frame";  break;
+      case RlinkPacketBufRcv::kNcUnused: lmsg << "Unused"; break;
+      case RlinkPacketBufRcv::kNcCmd:    lmsg << "Cmd";    break;
+      case RlinkPacketBufRcv::kNcCnt:    lmsg << "Cnt";    break;
+      case RlinkPacketBufRcv::kNcRtOvlf: lmsg << "RtOvlf"; break;
+      case RlinkPacketBufRcv::kNcRtWblk: lmsg << "RtWblk"; break;
+      case RlinkPacketBufRcv::kNcInval:  lmsg << "Inval";  break;
+      }
+      return -1;      
+    }
 
     if (!fRcvPkt.CheckSize(cmd.RcvSize())) {   // not enough data for cmd
       cmd.SetFlagBit(RlinkCommand::kFlagErrDec);
@@ -899,7 +918,7 @@ int RlinkConnect::DecodeResponse(RlinkCommandList& clist, size_t ibeg,
     }
     
     fRcvPkt.GetWithCrc(rdata8);
-    if (rdata8 != cmd.Request()) { // command mismatch
+    if (rdata8 != cmd.Request()) {          // command mismatch
       cmd.SetFlagBit(RlinkCommand::kFlagErrDec);
       fStats.Inc(kStatNErrCmd);
       RlogMsg lmsg(*fspLog, 'E');

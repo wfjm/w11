@@ -1,18 +1,19 @@
-# $Id: tbrun.yml 807 2016-09-17 07:49:26Z mueller $
+# $Id: tbrun.yml 1201 2019-08-10 16:51:22Z mueller $
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2019-08-10  1201   1.0.1  remove n4 from default
 # 2016-08-21   799   1.0    Initial version
 #
 - default:
     mode: ${viv_modes}
 #
-- tag:  [default, viv, sys_tst_sram, n4, base]
+- tag:  [viv, sys_tst_sram, n4, base]
   test: |
     tbrun_tbwrri --lsuf base --pack tst_sram   tb_tst_sram_n4${ms} \
       tst_sram::setup  tst_sram::test_all
 
-- tag:  [default, viv, sys_tst_sram, n4, stress]
+- tag:  [viv, sys_tst_sram, n4, stress]
   test: |
     tbrun_tbwrri --lsuf stress  --pack tst_sram   tb_tst_sram_n4${ms} \
       tst_sram::setup  tst_sram::test_sim

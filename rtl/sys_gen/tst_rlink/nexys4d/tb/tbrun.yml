@@ -1,18 +1,19 @@
-# $Id: tbrun.yml 838 2017-01-04 20:57:57Z mueller $
+# $Id: tbrun.yml 1201 2019-08-10 16:51:22Z mueller $
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2019-08-10  1201   1.0.1  add n4d to default
 # 2017-01-04   838   1.0    Initial version
 #
 - default:
     mode: ${viv_modes}
 #
-- tag:  [viv, sys_tst_rlink, n4d, base]
+- tag:  [default, viv, sys_tst_rlink, n4d, base]
   test: |
     tbrun_tbwrri --lsuf base --pack tst_rlink   tb_tst_rlink_n4d${ms} \
       "tst_rlink::setup"  "tst_rlink::test_all"
 #
-- tag:  [viv, sys_tst_rlink, n4d, emon]
+- tag:  [default, viv, sys_tst_rlink, n4d, emon]
   test: |
     tbrun_tbwrri --lsuf emon --pack tst_rlink   tb_tst_rlink_n4d${ms} \
       "tst_rlink::setup"  "tst_rlink::test_all_emon"

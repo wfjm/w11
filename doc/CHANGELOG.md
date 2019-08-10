@@ -27,12 +27,23 @@ The full set of tests is only run for tagged releases.
 ### Summary
 - automate oskit download and container file setup
 - automate testing of oskits
+- get Nexys A7 board working and fully integrated
 
 ### New features
 - new tools
   - bin/oskit_setup: helper for oskit download and container file setup
   - oskit/\*/\*_setup: scripts for oskit download and container file setup
   - ostest: automation of oskit tests
+
+### Changes
+- firmware changes
+  - nexys4d/mig_a.prj: InputClk 100 MHz
+  - tst_mig/nexys4d/sys_tst_mig_n4d: use 100 MHz MIG SYS_CLK; add clock monitor
+  - tst_sram/nexys4d/sys_tst_sram_n4d: use 100 MHz MIG SYS_CLK
+  - w11a/nexys4d/sys_w11a_n4d: use 100 MHz MIG SYS_CLK
+
+### Bug Fixes
+  - nexys4d/mig_a.prj: BUGFIX: SysResetPolarity ACTIVE HIGH
 
 <!-- --------------------------------------------------------------------- -->
 ---

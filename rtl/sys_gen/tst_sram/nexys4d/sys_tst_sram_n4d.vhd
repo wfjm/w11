@@ -1,4 +1,4 @@
--- $Id: sys_tst_sram_n4d.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: sys_tst_sram_n4d.vhd 1201 2019-08-10 16:51:22Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2018-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,16 +20,18 @@
 -- Test bench:     tb/tb_tst_sram_n4d
 --
 -- Target Devices: generic
--- Tool versions:  viv 2017.2-2018.3; ghdl 0.34-0.35
+-- Tool versions:  viv 2017.2-2019.1; ghdl 0.34-0.35
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2019-08-10  1201 2019.1  xc7a100t-1   4409  4606   656     5  1875
 -- 2019-02-02  1108 2018.3  xc7a100t-1   4408  4606   656     5  1895
 -- 2019-02-02  1108 2017.2  xc7a100t-1   4403  4900   657     5  1983
 -- 2019-01-02  1101 2017.2  xc7a100t-1   4403  4900   640     5  1983
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-08-10  1201   1.1    use 100 MHz MIG SYS_CLK
 -- 2019-01-02  1101   1.0    Initial version
 -- 2018-12-30  1099   0.1    First draft (derived from sys_tst_sram_n4/arty)
 ------------------------------------------------------------------------------
@@ -100,11 +102,10 @@ architecture syn of sys_tst_sram_n4d is
   signal CLKS :  slbit := '0';
   signal CES_MSEC : slbit := '0';
 
-  signal CLKMIG : slbit := '0';
   signal CLKREF : slbit := '0';
 
-  signal LOCKED     : slbit := '0';   -- raw LOCKED
-  signal LOCKED_CLK : slbit := '0';   -- sync'ed to CLKMIG
+  signal LOCKED        : slbit := '0';   -- raw LOCKED
+  signal LOCKED_CLKMIG : slbit := '0';   -- sync'ed to CLKMIG
 
   signal GBL_RESET : slbit := '0';
   signal MEM_RESET : slbit := '0';
@@ -184,7 +185,7 @@ begin
       CLK1_MSECDIV   => 1000,
       CLK23_VCODIV   =>  1,
       CLK23_VCOMUL   => 12,             -- vco 1200 MHz
-      CLK2_OUTDIV    =>  8,             -- mig sys 150.0 MHz
+      CLK2_OUTDIV    => 12,             -- mig sys 100.0 MHz (unused)
       CLK3_OUTDIV    =>  6,             -- mig ref 200.0 MHz
       CLK23_GENTYPE  => "PLL")
     port map (
@@ -195,16 +196,16 @@ begin
       CLK1      => CLKS,
       CE1_USEC  => open,
       CE1_MSEC  => CES_MSEC,
-      CLK2      => CLKMIG,
+      CLK2      => open,
       CLK3      => CLKREF,
       LOCKED    => LOCKED
     );
 
-  CDC_CLK_LOCKED : cdc_signal_s1_as
+  CDC_CLKMIG_LOCKED : cdc_signal_s1_as
     port map (
-      CLKO  => CLKMIG,
+      CLKO  => CLK100_BUF,
       DI    => LOCKED,
-      DO    => LOCKED_CLK
+      DO    => LOCKED_CLKMIG
     );
   
   IOB_RS232 : bp_rs232_4line_iob
@@ -308,7 +309,7 @@ begin
   
   MEM_ADDR(19 downto 18) <= (others=>'0'); --?? FIXME ?? allow AWIDTH=20
   
-  MEM_RESET <= not LOCKED_CLK or MEM_RESET_RRI;
+  MEM_RESET <= not LOCKED_CLKMIG or MEM_RESET_RRI;
 
   MEMCTL: sramif_mig_nexys4d            -- SRAM to MIG iface -----------------
     port map (
@@ -325,7 +326,7 @@ begin
       BE           => MEM_BE,
       DI           => MEM_DI,
       DO           => MEM_DO,
-      CLKMIG       => CLKMIG,
+      CLKMIG       => CLK100_BUF,
       CLKREF       => CLKREF,
       TEMP         => XADC_TEMP,
       MONI         => MIG_MONI,

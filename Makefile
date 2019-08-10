@@ -1,4 +1,4 @@
-# $Id: Makefile 1176 2019-06-30 07:16:06Z mueller $
+# $Id: Makefile 1201 2019-08-10 16:51:22Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -8,6 +8,7 @@
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2019-08-07  1201   1.2.12 drop nexys4, add nexys4d
 # 2019-01-10  1111   1.2.11 drop w11a/arty_bram
 # 2019-01-02  1101   1.2.10 add tst_{mig,sram}/arty; add w11a/arty
 # 2018-10-12  1055   1.2.9  use setup_package_filt
@@ -70,12 +71,13 @@ SYN_viv += rtl/sys_gen/tst_snhumanio/basys3
 SYN_viv += rtl/sys_gen/tst_rlink/basys3
 SYN_viv += rtl/sys_gen/w11a/basys3
 
-#     Nexys4 -------------------------------------
-SYN_viv += rtl/sys_gen/tst_rlink/nexys4
-SYN_viv += rtl/sys_gen/tst_serloop/nexys4
-SYN_viv += rtl/sys_gen/tst_snhumanio/nexys4
-SYN_viv += rtl/sys_gen/tst_sram/nexys4
-SYN_viv += rtl/sys_gen/w11a/nexys4
+#     Nexys4d ------------------------------------
+SYN_viv += rtl/sys_gen/tst_rlink/nexys4d
+SYN_viv += rtl/sys_gen/tst_serloop/nexys4d
+SYN_viv += rtl/sys_gen/tst_snhumanio/nexys4d
+SYN_viv += rtl/sys_gen/tst_sram/nexys4d
+SYN_viv += rtl/sys_gen/w11a/nexys4d
+SYN_viv += rtl/sys_gen/w11a/nexys4d_bram
 
 #     Arty ---------------------------------------
 SYN_viv += rtl/sys_gen/tst_mig/arty
@@ -130,11 +132,12 @@ SIM_viv += rtl/sys_gen/tst_rlink/basys3/tb
 #SIM_viv += rtl/sys_gen/tst_serloop/basys3/tb
 SIM_viv += rtl/sys_gen/w11a/basys3/tb
 
-#     Nexys4 -------------------------------------
-SIM_viv += rtl/sys_gen/tst_rlink/nexys4/tb
-SIM_viv += rtl/sys_gen/tst_serloop/nexys4/tb
-SIM_viv += rtl/sys_gen/tst_sram/nexys4/tb
-SIM_viv += rtl/sys_gen/w11a/nexys4/tb
+#     Nexys4d ------------------------------------
+SIM_viv += rtl/sys_gen/tst_rlink/nexys4d/tb
+SIM_viv += rtl/sys_gen/tst_serloop/nexys4d/tb
+SIM_viv += rtl/sys_gen/tst_sram/nexys4d/tb
+SIM_viv += rtl/sys_gen/w11a/nexys4d/tb
+SIM_viv += rtl/sys_gen/w11a/nexys4d_bram/tb
 
 #     Arty ---------------------------------------
 SIM_viv += rtl/sys_gen/tst_mig/arty/tb

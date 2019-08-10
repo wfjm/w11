@@ -1,15 +1,17 @@
 # -*- tcl -*-
-# $Id: nexys4d_pins.xdc 1190 2019-07-13 17:05:39Z mueller $
+# $Id: nexys4d_pins.xdc 1201 2019-08-10 16:51:22Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2017-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
-# Nexys 4DDR core functionality
+# Nexys4 DDR or Nexys A7-100 core functionality
 # - Configuration setup
 #   - config voltage
 #   - enable bitstream timestamp
 # - Pin Locks for
 #   - USB UART
 #   - human I/O (switches, buttons, leds, display)
+#
+# Note 2019-08-07: checked against Nexys A7 pin-out (is identical)
 #
 # Revision History: 
 # Date         Rev Version  Comment

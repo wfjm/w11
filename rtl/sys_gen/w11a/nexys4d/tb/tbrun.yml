@@ -1,29 +1,30 @@
-# $Id: tbrun.yml 1103 2019-01-04 13:18:54Z mueller $
+# $Id: tbrun.yml 1201 2019-08-10 16:51:22Z mueller $
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2019-08-10  1201   1.0.1  add n4d to default
 # 2019-01-02  1101   1.0    Initial version
 #
 - default:
     mode: ${viv_modes}
 #
-- tag:  [viv, sys_w11a, n4d, stim1]
+- tag:  [default, viv, sys_w11a, n4d, stim1]
   test: |
     tbrun_tbwrri --lsuf stim1  tb_w11a_n4d${ms} \
       "rlink::run_rri ../../../../w11a/tb/tb_rlink_tba_pdp11core_stim.dat"
 
-- tag:  [viv, sys_w11a, n4d, stim2]
+- tag:  [default, viv, sys_w11a, n4d, stim2]
   test: |
     tbrun_tbwrri --lsuf stim2  --pack rw11  tb_w11a_n4d${ms} \
       "rw11::setup_cpu" \
       "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat 60."
 
-- tag:  [viv, sys_w11a, n4d, tbcpu]
+- tag:  [default, viv, sys_w11a, n4d, tbcpu]
   test: |
     tbrun_tbwrri --lsuf tbcpu  --pack rw11  tb_w11a_n4d${ms} \
       "rw11::setup_cpu" "rw11::tbench @cpu_all.dat"
 
-- tag:  [viv, sys_w11a, n4d, tbdev]
+- tag:  [default, viv, sys_w11a, n4d, tbdev]
   test: |
     tbrun_tbwrri --lsuf tbdev  --pack rw11  tb_w11a_n4d${ms} \
       "rw11::setup_cpu" "rw11::tbench @dev_all.dat"

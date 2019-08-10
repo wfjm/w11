@@ -1,16 +1,17 @@
-# $Id: tbrun.yml 807 2016-09-17 07:49:26Z mueller $
+# $Id: tbrun.yml 1201 2019-08-10 16:51:22Z mueller $
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2019-08-10  1201   1.0.1  remove n4 from default
 # 2016-08-21   799   1.0    Initial version
 #
 - default:
     mode: ${viv_modes}
 #
-- tag:  [default, viv, sys_tst_serloop1, n4]
+- tag:  [viv, sys_tst_serloop1, n4]
   test: |
     tbrun_tbw tb_tst_serloop1_n4${ms}
 
-- tag:  [default, viv, sys_tst_serloop2, n4]
+- tag:  [viv, sys_tst_serloop2, n4]
   test: |
     tbrun_tbw tb_tst_serloop2_n4${ms}

@@ -1,4 +1,4 @@
--- $Id: sys_w11a_n4d.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: sys_w11a_n4d.vhd 1201 2019-08-10 16:51:22Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -27,12 +27,14 @@
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic MHz
+-- 2019-08-10  1201 2019.1  xc7a100t-1   6850 10258   901  17.5  3563  80
 -- 2019-05-19  1150 2017.2  xc7a100t-1   6811 10322   901  17.5  3496  80 +dz11
 -- 2019-02-02  1108 2018.3  xc7a100t-1   6558  9537   814  17.0  3443  80
 -- 2019-02-02  1108 2017.2  xc7a100t-1   6538  9496   798  17.0  3308  80
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-08-10  1201   1.1    use 100 MHz MIG SYS_CLK
 -- 2019-01-02  1101   1.0    Initial version (derived from sys_w11a_n4 and arty)
 ------------------------------------------------------------------------------
 --
@@ -152,7 +154,6 @@ architecture syn of sys_w11a_n4d is
   signal CLKS :  slbit := '0';
   signal CES_MSEC : slbit := '0';
 
-  signal CLKMIG : slbit := '0';
   signal CLKREF : slbit := '0';
   
   signal LOCKED     : slbit := '0';   -- raw LOCKED
@@ -257,7 +258,7 @@ begin
       CLK1_MSECDIV   => 1000,
       CLK23_VCODIV   =>  1,
       CLK23_VCOMUL   => 12,             -- vco 1000 MHz
-      CLK2_OUTDIV    =>  8,             -- mig sys 150.0 MHz
+      CLK2_OUTDIV    => 12,             -- mig sys 100.0 MHz (unused)
       CLK3_OUTDIV    =>  6,             -- mig ref 200.0 MHz
       CLK23_GENTYPE  => "PLL")
     port map (
@@ -268,7 +269,7 @@ begin
       CLK1      => CLKS,
       CE1_USEC  => open,
       CE1_MSEC  => CES_MSEC,
-      CLK2      => CLKMIG,
+      CLK2      => open,
       CLK3      => CLKREF,
       LOCKED    => LOCKED
     );
@@ -402,7 +403,7 @@ begin
       BE           => MEM_BE,
       DI           => MEM_DI,
       DO           => MEM_DO,
-      CLKMIG       => CLKMIG,
+      CLKMIG       => CLK100_BUF,
       CLKREF       => CLKREF,
       TEMP         => XADC_TEMP,
       MONI         => MIG_MONI,

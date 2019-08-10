@@ -1,7 +1,8 @@
-# $Id: sys_tst_mig_n4d.vmfset 1108 2019-02-02 23:04:38Z mueller $
+# $Id: sys_tst_mig_n4d.vmfset 1201 2019-08-10 16:51:22Z mueller $
 #
 # Validated code/tool version combinations
-#   Date          rev   viv   
+#   Date          rev   viv
+#   2019-08-10   1201   2019.1
 #   2019-02-02   1108   2017.2
 #   2019-02-02   1108   2018.3
 #
@@ -18,7 +19,6 @@ I [Designutils 20-1567]                                         # generic
 
 # port driven by constant --------------------------------------
 # not all LEDs used                                             # OK 2018-12-30
-i [Synth 8-3917] O_LED[(2|3)]
 i [Synth 8-3917] O_RGBLED0[\d]
 i [Synth 8-3917] O_RGBLED1[\d]
 # 7 segment display unused                                      # OK 2018-12-30

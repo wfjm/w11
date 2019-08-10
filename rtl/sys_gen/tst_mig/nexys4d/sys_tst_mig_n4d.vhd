@@ -1,4 +1,4 @@
--- $Id: sys_tst_mig_n4d.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: sys_tst_mig_n4d.vhd 1201 2019-08-10 16:51:22Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2018-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -20,18 +20,49 @@
 -- Test bench:     tb/tb_tst_mig_n4d
 --
 -- Target Devices: generic
--- Tool versions:  viv 2017.2-2018.3; ghdl 0.34-0.35
+-- Tool versions:  viv 2017.2-2019.1; ghdl 0.34-0.35
 --
 -- Synthesized (viv):
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2019-08-10  1201 2019.1  xc7a100t-1l  4217  4173   440     1  1709 +clkmon
 -- 2019-02-02  1108 2018.3  xc7a100t-1l  4106  4145   440     1  1689
 -- 2019-02-02  1108 2017.2  xc7a100t-1l  4097  4310   440     1  1767
 -- 2019-01-02  1101 2017.2  xc7a100t-1l  4097  4310   457     1  1767
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-08-10  1201   1.1    use 100 MHz MIG SYS_CLK; add clock monitor 
 -- 2018-12-30  1099   1.0    Initial version
 ------------------------------------------------------------------------------
+--
+-- Usage of Nexys 4 Switches, Buttons, LEDs
+--
+--    SWI    -- unused --
+--
+--    BTN
+--       (4) ce  -- unused --
+--       (3) le  issue MIG_SYS_RST
+--       (2) do  light LED(12:15)
+--       (1) ri  light LED(8:11)
+--       (0) up  light LED(4:7)
+--
+--    LEDs
+--       (15)    I_BTN(2) or R_FLG_UI_CLK  (MIG UI clock monitor  75 MHz)
+--       (14)    I_BTN(2) or R_FLG_CLKREF  (CLKREF clock monitor 200 MHz)
+--       (13)    I_BTN(2) or R_FLG_CLKSER  (CLKSER clock monitor 120 MHz)
+--       (12)    I_BTN(2) or R_FLG_XX_CLK  (sysclk clock monitor  80 MHz)
+--       (11)    I_BTN(1) or not APP_WDF_RDY
+--       (10)    I_BTN(1) or not APP_RDY
+--      (8:9)    I_BTN(1)
+--        (7)    I_BTN(0) or not MIG_INIT_CALIB_COMPLETE
+--        (6)    I_BTN(0) or MIG_UI_CLK_SYNC_RST
+--        (5)    I_BTN(0)
+--        (4)    I_BTN(0) or not LOCKED
+--        (3)    not SER_MONI.txok       (shows tx back pressure)
+--        (2)    SER_MONI.txact          (shows tx activity)
+--        (1)    not SER_MONI.rxok       (shows rx back pressure)
+--        (0)    SER_MONI.rxact          (shows rx activity)
+
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -101,7 +132,6 @@ architecture syn of sys_tst_mig_n4d is
   signal CLKS :  slbit := '0';
   signal CES_MSEC : slbit := '0';
 
-  signal CLKMIG : slbit := '0';
   signal CLKREF : slbit := '0';
   
   signal LOCKED        : slbit := '0';   -- raw LOCKED
@@ -155,9 +185,15 @@ architecture syn of sys_tst_mig_n4d is
   signal MIG_SYS_RST             : slbit := '0';
   
   signal XADC_TEMP : slv12 := (others=>'0'); -- xadc die temp; on CLK
-
-  signal R_DIMCNT : slv2  := (others=>'0');
-  signal R_DIMFLG : slbit := '0';
+  
+  signal R_CNT_UI_CLK : slv(25 downto 0) := (others=>'0');
+  signal R_CNT_CLKREF : slv(26 downto 0) := (others=>'0');
+  signal R_CNT_CLKSER : slv(25 downto 0) := (others=>'0');
+  signal R_CNT_XX_CLK : slv(25 downto 0) := (others=>'0');
+  signal R_FLG_UI_CLK : slbit := '0';
+  signal R_FLG_CLKREF : slbit := '0';
+  signal R_FLG_CLKSER : slbit := '0';
+  signal R_FLG_XX_CLK : slbit := '0';
 
   constant rbaddr_rbmon : slv16 := x"ffe8"; -- ffe8/0008: 1111 1111 1110 1xxx
   constant rbaddr_sysmon: slv16 := x"fb00"; -- fb00/0080: 1111 1011 0xxx xxxx
@@ -195,7 +231,7 @@ begin
       CLK1_MSECDIV   => 1000,
       CLK23_VCODIV   =>  1,
       CLK23_VCOMUL   => 12,             -- vco 1200 MHz
-      CLK2_OUTDIV    =>  8,             -- mig sys 150.0 MHz
+      CLK2_OUTDIV    => 12,             -- mig sys 100.0 MHz (unused)
       CLK3_OUTDIV    =>  6,             -- mig ref 200.0 MHz
       CLK23_GENTYPE  => "PLL")
     port map (
@@ -206,7 +242,7 @@ begin
       CLK1      => CLKS,
       CE1_USEC  => open,
       CE1_MSEC  => CES_MSEC,
-      CLK2      => CLKMIG,
+      CLK2      => open,
       CLK3      => CLKREF,
       LOCKED    => LOCKED
     );
@@ -243,7 +279,7 @@ begin
   
   CDC_CLKMIG_LOCKED : cdc_signal_s1_as
     port map (
-      CLKO  => CLKMIG,
+      CLKO  => CLK100_BUF,
       DI    => LOCKED,
       DO    => LOCKED_CLKMIG
     );
@@ -369,7 +405,7 @@ begin
       UI_CLK              => CLK,
       UI_CLK_SYNC_RST     => MIG_UI_CLK_SYNC_RST,
       INIT_CALIB_COMPLETE => MIG_INIT_CALIB_COMPLETE,
-      SYS_CLK_I           => CLKMIG,
+      SYS_CLK_I           => CLK100_BUF,
       CLK_REF_I           => CLKREF,
       DEVICE_TEMP_I       => XADC_TEMP,
       SYS_RST             => MIG_SYS_RST
@@ -406,45 +442,103 @@ begin
       RB_SRES_OR => RB_SRES
     );
   
-  proc_dim: process (CLKMIG)
+  proc_mon_ui_clk: process (CLK, I_BTN(3))
   begin
 
-    if rising_edge(CLKMIG) then
-      R_DIMCNT <= slv(unsigned(R_DIMCNT) + 1);
-      if unsigned(R_DIMCNT) = 0 then
-        R_DIMFLG <= '1';
+    if I_BTN(3) = '1' then
+      R_FLG_UI_CLK <= '1';
+      R_CNT_UI_CLK <= (others=>'0');
+    end if;
+    if rising_edge(CLK) then
+      if unsigned(R_CNT_UI_CLK) =  37500000-1 then
+        R_FLG_UI_CLK <= not R_FLG_UI_CLK;
+        R_CNT_UI_CLK <= (others=>'0');
       else
-        R_DIMFLG <= '0';
+        R_CNT_UI_CLK <= slv(unsigned(R_CNT_UI_CLK) + 1);
       end if;
     end if;
 
-  end process proc_dim;
+  end process proc_mon_ui_clk;
+
+  proc_mon_clkref: process (CLKREF, I_BTN(3))
+  begin
+
+    if I_BTN(3) = '1' then
+      R_FLG_CLKREF <= '1';
+      R_CNT_CLKREF <= (others=>'0');
+    end if;
+    if rising_edge(CLKREF) then
+      if unsigned(R_CNT_CLKREF) = 100000000-1 then
+        R_FLG_CLKREF <= not R_FLG_CLKREF;
+        R_CNT_CLKREF <= (others=>'0');
+      else
+        R_CNT_CLKREF <= slv(unsigned(R_CNT_CLKREF) + 1);
+      end if;
+    end if;
+
+  end process proc_mon_clkref;
+
+  proc_mon_clkser: process (CLKS, I_BTN(3))
+  begin
+
+    if I_BTN(3) = '1' then
+      R_FLG_CLKSER <= '1';
+      R_CNT_CLKSER <= (others=>'0');
+    end if;
+    if rising_edge(CLKS) then
+      if unsigned(R_CNT_CLKSER) =  60000000-1 then
+        R_FLG_CLKSER <= not R_FLG_CLKSER;
+        R_CNT_CLKSER <= (others=>'0');
+      else
+        R_CNT_CLKSER <= slv(unsigned(R_CNT_CLKSER) + 1);
+      end if;
+    end if;
+
+  end process proc_mon_clkser;
+
+  proc_mon_xx_clk: process (XX_CLK, I_BTN(3))
+  begin
+
+    if I_BTN(3) = '1' then
+      R_FLG_XX_CLK <= '1';
+      R_CNT_XX_CLK <= (others=>'0');
+    end if;
+    if rising_edge(XX_CLK) then
+      if unsigned(R_CNT_XX_CLK) =  40000000-1 then
+        R_FLG_XX_CLK <= not R_FLG_XX_CLK;
+        R_CNT_XX_CLK <= (others=>'0');
+      else
+        R_CNT_XX_CLK <= slv(unsigned(R_CNT_XX_CLK) + 1);
+      end if;
+    end if;
+
+  end process proc_mon_xx_clk;
 
   RB_LAM(0) <= RB_LAM_TST;
 
   -- LED group(0:3): rlink traffic
   O_LED(0)  <= SER_MONI.rxact;
-  O_LED(1)  <= SER_MONI.txact;
-  O_LED(2)  <= '0';
-  O_LED(3)  <= '0';
+  O_LED(1)  <= not SER_MONI.rxok;
+  O_LED(2)  <= SER_MONI.txact;
+  O_LED(3)  <= not SER_MONI.txok;
 
   -- LED group(4:7) serious error conditions
-  O_LED(4)  <= R_DIMFLG and (I_BTN(0) or not LOCKED);
-  O_LED(5)  <= R_DIMFLG and (I_BTN(0));
-  O_LED(6)  <= R_DIMFLG and (I_BTN(0) or MIG_UI_CLK_SYNC_RST);
-  O_LED(7)  <= R_DIMFLG and (I_BTN(0) or not MIG_INIT_CALIB_COMPLETE);
+  O_LED(4)  <= I_BTN(0) or not LOCKED;
+  O_LED(5)  <= I_BTN(0);
+  O_LED(6)  <= I_BTN(0) or MIG_UI_CLK_SYNC_RST;
+  O_LED(7)  <= I_BTN(0) or not MIG_INIT_CALIB_COMPLETE;
 
-  -- green LED for activity
-  O_LED(8)  <= R_DIMFLG and (I_BTN(1));
-  O_LED(9)  <= R_DIMFLG and (I_BTN(1));
-  O_LED(10) <= R_DIMFLG and (I_BTN(1) or not APP_RDY);
-  O_LED(11) <= R_DIMFLG and (I_BTN(1) or not APP_WDF_RDY);
+  -- LED group(8:11) for activity
+  O_LED(8)  <= I_BTN(1);
+  O_LED(9)  <= I_BTN(1);
+  O_LED(10) <= I_BTN(1) or not APP_RDY;
+  O_LED(11) <= I_BTN(1) or not APP_WDF_RDY;
   
-  -- blue LED currently unused
-  O_LED(12) <= R_DIMFLG and (I_BTN(2));
-  O_LED(13) <= R_DIMFLG and (I_BTN(2));
-  O_LED(14) <= R_DIMFLG and (I_BTN(2));
-  O_LED(15) <= R_DIMFLG and (I_BTN(2));
+  -- LED group(12:15) for clock monitoring
+  O_LED(12) <= I_BTN(2) or R_FLG_XX_CLK;
+  O_LED(13) <= I_BTN(2) or R_FLG_CLKSER;
+  O_LED(14) <= I_BTN(2) or R_FLG_CLKREF;
+  O_LED(15) <= I_BTN(2) or R_FLG_UI_CLK;
 
   -- RGB LEDs unused
   O_RGBLED0 <= (others=>'0');

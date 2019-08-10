@@ -1,4 +1,4 @@
--- $Id: migui_nexys4d_gsim.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: migui_nexys4d_gsim.vhd 1201 2019-08-10 16:51:22Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 -- 
@@ -74,13 +74,22 @@ architecture sim of migui_nexys4d is
   
 begin
 
+  -- On Nexys4 we have
+  --   SYS_CLK_I   100 Mhz
+  --   controller  300 MHz
+  --   UI_CLK       75 MHz   (4:1)
+  -- therefore for simulation
+  --   f_vco    1200 MHz
+  --   --> mul  12        (f_vco/SYS_CLK)
+  --   --> div  16        (f_vco/UI_CLK)
+  
   MIG_SIM : migui_core_gsim
     generic map (
       BAWIDTH => mig_bawidth,
       MAWIDTH => mig_mawidth,
       SAWIDTH => 24,
-      CLKMUI_MUL =>  7,
-      CLKMUI_DIV => 14)
+      CLKMUI_MUL => 12,
+      CLKMUI_DIV => 16)
     port map (
       SYS_CLK             => SYS_CLK_I,
       SYS_RST             => SYS_RST,

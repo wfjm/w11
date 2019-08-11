@@ -27,7 +27,8 @@ The full set of tests is only run for tagged releases.
 ### Summary
 - automate oskit download and container file setup
 - automate testing of oskits
-- get Nexys A7 board working and fully integrated
+- get Nexys A7 board working and fully integrated,
+  close [issue #16](https://github.com/wfjm/w11/issues/16)
 
 ### New features
 - new tools
@@ -244,7 +245,7 @@ The full set of tests is only run for tagged releases.
 ### Summary
 - add support for DDR memory via Vivado MIG cores for
   - Digilent Arty
-  - Digilent Nexys4 DDR
+  - Digilent Nexys4 DDR (or Nexys A7-100)
   - Digilent Arty S7
 - add a low level MIG interface test design `sys_tst_mig_*`
 - update tool support

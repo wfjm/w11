@@ -165,17 +165,6 @@ documentation of your board to avoid potential damage.
 
 Looking forward to receive test reports.
 
-### V0.76-1 {[issue #16](https://github.com/wfjm/w11/issues/16)} -- Help wanted: Testing with Nexys4 DDR appreciated
-The w11a design for Nexys4 DDR, see rtl/sys_gen/w11a/nexys4d, was provided
-to support also an up-to-date Nexys4 board. It is so far only simulation tested.
-
-Testing done with a real Nexyx4 DDR, or a newer Nexys A7-100T, would be highly
-appreciated. Please double check the pin assignments
-(see _mig_a.prj and nexys4d*.xdc_) with the documentation of your board
-to avoid potential damage.
-
-Looking forward to receive test reports.
-
 ### V0.73-2 {[issue #10](https://github.com/wfjm/w11/issues/10)} -- Many post-synthesis simulations fail
 Many post-synthesis functional and especially post-routing timing 
 simulations currently fail due to startup and initialization problems. 
@@ -225,6 +214,26 @@ the backend produces proper command lists and the USB channel is usually error
 free}_
 
 ## Resolved Issues
+
+### V0.76-1 {[issue #16](https://github.com/wfjm/w11/issues/16)} -- Help wanted: Testing with Nexys4 DDR appreciated
+#### Original Issue
+The w11a design for Nexys4 DDR, see
+[rtl/sys_gen/w11a/nexys4d](https://github.com/wfjm/w11/tree/master/rtl/sys_gen/w11a/nexys4d),
+was provided to support also an up-to-date Nexys4 board. It is so far only
+simulation tested.
+
+Testing done with a real Nexyx4 DDR, or a newer Nexys A7-100T, would be highly
+appreciated. Please double check the pin assignments
+(see _mig_a.prj and nexys4d*.xdc_) with the documentation of your board
+to avoid potential damage.
+
+Looking forward to receive test reports.
+
+#### Fix
+Purchased Nexys A7-100 board after the
+[Nexys4 board broke](https://wfjm.github.io/blogs/w11/2019-07-27-nexys4-obituary.html),
+tested, and fixed one silly mistake. Closed with commit
+[563e230](https://github.com/wfjm/w11/commit/563e230).
 
 ### V0.66-1 {[issue #8](https://github.com/wfjm/w11/issues/8)} -- TM11 controller doesn't support odd transfer size
 #### Original Issue

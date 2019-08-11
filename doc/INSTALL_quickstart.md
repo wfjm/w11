@@ -3,8 +3,10 @@
 This _quick start guide_ describes the fastest possible path to a running
 operating system on a w11 on current Series-7 based boards. It leaves out
 legacy Spartan-3 and Spartan-6 designs, verification, test benches, test
-designs, and many other aspects, for all this consult the full
-[INSTALL](INSTALL.md) and the READMEs in [doc](.). This write-up
+designs, and many other aspects. For all this consult the full
+[INSTALL](INSTALL.md), the
+[guide to boot operating systems](w11a_os_guide.md),
+and the READMEs in [doc](.). This write-up
 focuses on the steps _[prepare](#user-content-prepare)_,
 _[build](#user-content-build)_ and _[boot](#user-content-boot)_,
 and gives one [concrete example](#user-content-tested).
@@ -69,6 +71,7 @@ with the currently supported combinations
     basys3          b3        176 kB   Digilent Basys3 board
     cmoda7          c7        672 kB   Digilent Cmod A7 board
     nexys4          n4       3840 kB   Digilent Nexys4 board (cellular RAM)
+    nexys4d         n4d      3840 kB   Digilent Nexys A7-100 board (DDR2)
 
 The FPGA is configured via the vivado hardware server with
 
@@ -110,37 +113,41 @@ Key steps are
 The recipe was tested
 - system environment
   - Kubuntu 16.04 LTS
-  - Vivado 2017.1
-  - on 2018-08-04
+  - Vivado 2019.1
+  - on 2019-08-11
 
-- after commit [6ee3ed6](https://github.com/wfjm/w11/commit/6ee3ed6)
+- after commit [563e230](https://github.com/wfjm/w11/commit/563e230)
 
       cd $RETROBASE/tools/src
       time make -j 4
-        # real 2m58.501s   user 5m4.244s   sys 0m35.600s
+        # real 1m40.556s   user 2m53.704s   sys 0m14.668s
 
-- for design `nexys4`
+- for design `nexys4d` for
+  [Nexys4 DDR](https://wfjm.github.io/home/w11/inst/boards.html#digi_nexys4d) or
+  [Nexys A7-100](https://wfjm.github.io/home/w11/inst/boards.html#digi_nexysa7)
+  boards.
       
-      cd $RETROBASE/rtl/sys_gen/w11a/nexys4
-      time make sys_w11a_n4.bit
-      # real 10m48.274s   user 0m55.660s   sys 0m3.160s
-      time make sys_w11a_n4.vconfig
-      # real 0m32.747s   user 0m15.996s   sys 0m0.736s
+      cd $RETROBASE/rtl/sys_gen/w11a/nexys4d
+      time make sys_w11a_n4d.bit
+      # real 18m21.066s   user 8m41.300s   sys 0m53.416s
+      time make sys_w11a_n4d.vconfig
+      # real 0m34.484s   user 0m15.540s   sys 0m1.660s
       
 - for oskit `211bsd_rp`
   - in Linux terminal
   
         cd $RETROBASE/tools/oskit/211bsd_rp
-        wget http://www.retro11.de/data/oc_w11/oskits/211bsd_rpset.tgz
-        tar -xzf 211bsd_rpset.tgz
-
+        211bsd_rp_setup
+ 
         console_starter -d DL0 &
         console_starter -d DL1 &
 
         # set board switches to SWI = 00000000 00101000
         ti_w11 -tuD,12M,break,cts  @211bsd_rp_boot.tcl
 
-  - in window `DL1vt100` hit `<ENTER>` to connect to backend, than see output and do required inputs as written in [README](../tools/oskit/211bsd_rp/README.md):
+  - in window `DL1vt100` hit `<ENTER>` to connect to backend, than see output
+    and do required inputs as written in the
+    [README](../tools/oskit/211bsd_rp/README.md):
   
         70Boot from xp(0,0,0) at 0176700
         : {<CR>}

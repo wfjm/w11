@@ -18,7 +18,7 @@ communication between FPGA board and backend server can be via
 
 - Serial port
   - via an integrated USB-UART bridge
-    - on Arty, Basys3, CmodA7 and Nexys4 and Nexys4 DDR with a `FT2232HQ`, 
+    - on Arty A7, Basys3, Cmod A7 and Nexys4 and Nexys A7 with a `FT2232HQ`, 
       allows up to 12M Baud
     - on Nexys3 with a `FT232R`, allows up to 2M Baud
     - for all FTDI USB-UART it is essential to set them to `low latency` mode.
@@ -52,10 +52,10 @@ Recommended setup for best performance (boards ordered by vintage):
 
 | Board      | Channel/Interface      | nom. speed   | peak transfer rate |
 | :--------- | :--------------------- | :----------- | -----------------: |
-| Arty       | USB-UART bridge        | 12M Baud     |  1090 kB/sec |
+| Arty A7    | USB-UART bridge        | 12M Baud     |  1090 kB/sec |
 | Basys3     | USB-UART bridge        | 12M Baud     |  1090 kB/sec |
 | Cmod A7    | USB-UART bridge        | 12M Baud     |  1090 kB/sec |
-| Nexys4 DDR | USB-UART bridge        | 12M Baud     |  1090 kb/sec |
+| Nexys A7   | USB-UART bridge        | 12M Baud     |  1090 kb/sec |
 | Nexys4     | USB-UART bridge        | 12M Baud     |  1090 kb/sec |
 | Nexys3     | Cypress FX2 USB        | USB2.0 speed | 30000 kB/sec |
 | Nexys2     | Cypress FX2 USB        | USB2.0 speed | 30000 kB/sec |
@@ -77,7 +77,7 @@ Recommended setups
   - connect USB cable to micro-USB connector
   - to configure via vivado hardware server `make <sys>.vconfig`
 
-- Nexys4 and Nexys4 DDR
+- Nexys4 and Nexys A7 (or Nexys4 DDR)
   - connect USB cable to micro-USB connector labeled 'PROG'
   - to configure via vivado hardware server `make <sys>.vconfig`
 

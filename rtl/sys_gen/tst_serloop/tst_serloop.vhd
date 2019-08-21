@@ -1,6 +1,6 @@
--- $Id: tst_serloop.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: tst_serloop.vhd 1203 2019-08-19 21:41:03Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    tst_serloop - syn
@@ -10,10 +10,11 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  ise 13.1-14.7; viv 2014.4-2015.4; ghdl 0.29-0.33
+-- Tool versions:  ise 13.1-14.7; viv 2014.4-2019.1; ghdl 0.29-0.36
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-08-17  1203   1.0.3  fix for ghdl V0.36 -Whide warnings
 -- 2011-12-10   438   1.0.2  clr fecnt when abact; add rxui(cnt|dat) regs
 -- 2011-12-09   437   1.0.1  rename serport stat->moni port
 -- 2011-11-06   420   1.0    Initial version
@@ -111,14 +112,14 @@ begin
     variable itxdata : slv8 := (others=>'0');
     variable skipxon : slbit := '0';
 
-    function nextchar(skipxon: in slbit; data: in slv8) return slv8 is
+    function nextchar(pskipxon: in slbit; pdata: in slv8) return slv8 is
       variable inc : slv8 := (others=>'0');
     begin
       inc := "00000001";
-      if skipxon='1' and (data=c_serport_xon or data=c_serport_xoff) then
+      if pskipxon='1' and (pdata=c_serport_xon or pdata=c_serport_xoff) then
         inc := "00000010";
       end if;
-      return slv(unsigned(data)+unsigned(inc));
+      return slv(unsigned(pdata)+unsigned(inc));
     end function nextchar; 
     
   begin

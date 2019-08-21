@@ -1,6 +1,6 @@
--- $Id: pdp11_aunit.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: pdp11_aunit.vhd 1203 2019-08-19 21:41:03Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2006-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    pdp11_aunit - syn
@@ -9,9 +9,10 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2019.1; ghdl 0.18-0.36
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-08-17  1203   1.1.2  fix for ghdl V0.36 -Whide warnings
 -- 2014-08-10   581   1.1.1  use c_cc_f_*
 -- 2010-09-18   300   1.1    renamed from abox
 -- 2007-06-14    56   1.0.1  Use slvtypes.all
@@ -90,21 +91,21 @@ begin
     --   implemented following the recommended pattern for XST ISE V8.1
     
     procedure do_add8_ci_co (
-      variable a : in slv8;             -- input a
-      variable b : in slv8;             -- input b
-      variable ci : in slbit;           -- carry in
-      variable sum : out slv8;          -- sum out
-      variable co : out slbit           -- carry out
+      variable pa : in slv8;            -- input a
+      variable pb : in slv8;            -- input b
+      variable pci : in slbit;          -- carry in
+      variable psum : out slv8;         -- sum out
+      variable pco : out slbit          -- carry out
     ) is
       
       variable tmp: slv9;
 
     begin
 
-      tmp := conv_std_logic_vector((conv_integer(a) + conv_integer(b) +
-                                    conv_integer(ci)),9);
-      sum := tmp(7 downto 0);
-      co := tmp(8);
+      tmp  := conv_std_logic_vector((conv_integer(pa) + conv_integer(pb) +
+                                     conv_integer(pci)),9);
+      psum := tmp(7 downto 0);
+      pco  := tmp(8);
       
     end procedure do_add8_ci_co;    
 

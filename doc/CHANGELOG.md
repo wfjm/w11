@@ -42,6 +42,7 @@ The full set of tests is only run for tagged releases.
   - tst_mig/nexys4d/sys_tst_mig_n4d: use 100 MHz MIG SYS_CLK; add clock monitor
   - tst_sram/nexys4d/sys_tst_sram_n4d: use 100 MHz MIG SYS_CLK
   - w11a/nexys4d/sys_w11a_n4d: use 100 MHz MIG SYS_CLK
+  - */*.vhd: fixes for ghdl V0.36 -Whide warnings
 
 ### Bug Fixes
   - nexys4d/mig_a.prj: BUGFIX: SysResetPolarity ACTIVE HIGH

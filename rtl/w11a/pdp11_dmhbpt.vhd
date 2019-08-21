@@ -1,4 +1,4 @@
--- $Id: pdp11_dmhbpt.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: pdp11_dmhbpt.vhd 1203 2019-08-19 21:41:03Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -11,7 +11,7 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  ise 14.7; viv 2014.4-2019.1; ghdl 0.31-0.35
+-- Tool versions:  ise 14.7; viv 2014.4-2019.1; ghdl 0.31-0.36
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -19,6 +19,7 @@
 --
 -- Revision History: -
 -- Date         Rev Version  Comment
+-- 2019-08-17  1203   1.0.2  fix for ghdl V0.36 -Whide warnings
 -- 2019-06-02  1159   1.0.1  use rbaddr_ constants
 -- 2015-07-19   702   1.0    Initial version
 -- 2015-07-05   698   0.1    First draft
@@ -66,7 +67,7 @@ architecture syn of pdp11_dmhbpt is
     severity failure;
 
   GU: for i in NUNIT-1 downto 0 generate
-    HBPT : pdp11_dmhbpt_unit
+    HB : pdp11_dmhbpt_unit
     generic map (
       RB_ADDR => RB_ADDR,
       INDEX   => i)

@@ -1,6 +1,6 @@
--- $Id: rb_mon.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: rb_mon.vhd 1203 2019-08-19 21:41:03Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2007-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    rb_mon - sim
@@ -8,10 +8,11 @@
 --
 -- Dependencies:   -
 -- Test bench:     -
--- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.31
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.36
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-08-17  1203   4.1.2  fix for ghdl V0.36 -Whide warnings
 -- 2014-10-25   599   4.1.1  use writeoptint()
 -- 2014-09-03   591   4.1    add burst counter; add state checker
 -- 2014-08-30   589   4.0    use hex for addr; 4 bit STAT; monitor ACK=0
@@ -69,23 +70,23 @@ begin
     variable r_sel : slbit := '0';
 
     procedure write_data(L: inout line;
-                         tag: in string;
-                         data: in slv16;
-                         nhold:  in integer := 0;
-                         nburst: in integer := 0;
-                         cond: in boolean := false;
-                         ctxt: in string := " ") is
+                         ptag: in string;
+                         pdata: in slv16;
+                         pnhold:  in integer := 0;
+                         pnburst: in integer := 0;
+                         pcond: in boolean := false;
+                         pctxt: in string := " ") is
     begin
-      writetimestamp(L, CLK_CYCLE, tag);
+      writetimestamp(L, CLK_CYCLE, ptag);
       writehex(L, RB_MREQ.addr, right, 4);
       write(L, string'("  "));
-      writegen(L, data, right, 0, DBASE);
+      writegen(L, pdata, right, 0, DBASE);
       write(L, string'("  "));
       write(L, RB_STAT, right, 4);
-      writeoptint(L, "  hold=", nhold,  2);
-      writeoptint(L, "  b=",    nburst, 2);
-      if cond then
-        write(L, ctxt);
+      writeoptint(L, "  hold=", pnhold,  2);
+      writeoptint(L, "  b=",    pnburst, 2);
+      if pcond then
+        write(L, pctxt);
       end if;
       writeline(output, L);
     end procedure write_data;

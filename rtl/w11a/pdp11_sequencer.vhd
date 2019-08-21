@@ -1,6 +1,6 @@
--- $Id: pdp11_sequencer.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: pdp11_sequencer.vhd 1203 2019-08-19 21:41:03Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2006-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    pdp11_sequencer - syn
@@ -9,10 +9,11 @@
 -- Dependencies:   ib_sel
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4-2018.2; ghdl 0.18-0.34
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2019.1; ghdl 0.18-0.36
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-08-17  1203   1.6.12 fix for ghdl V0.36 -Whide warnings
 -- 2018-10-07  1054   1.6.11 drop ITIMER, use DM_STAT_SE.itimer
 -- 2018-10-06  1053   1.6.10 add DM_STAT_SE.(cpbusy,idec,pcload)
 -- 2017-04-23   885   1.6.9  not sys_conf_dmscnt: set SNUM from state category;
@@ -376,209 +377,209 @@ begin
     alias DSTDEF : slbit is IREG(3);           -- dst register mode defered
     alias DSTREG : slv3 is IREG(2 downto 0);   -- dst register number
 
-    procedure do_memread_i(nstate  : inout state_type;
-                           ndpcntl : inout dpath_cntl_type;
-                           nvmcntl : inout vm_cntl_type;
-                           wstate  : in state_type) is
+    procedure do_memread_i(pnstate  : inout state_type;
+                           pndpcntl : inout dpath_cntl_type;
+                           pnvmcntl : inout vm_cntl_type;
+                           pwstate  : in state_type) is
     begin
-      ndpcntl.vmaddr_sel := c_dpath_vmaddr_pc;       -- VA = PC
-      nvmcntl.dspace := '0';
-      nvmcntl.req := '1';
-      ndpcntl.gpr_pcinc := '1';                      -- (pc)++
-      nstate := wstate;
+      pndpcntl.vmaddr_sel := c_dpath_vmaddr_pc;       -- VA = PC
+      pnvmcntl.dspace := '0';
+      pnvmcntl.req := '1';
+      pndpcntl.gpr_pcinc := '1';                      -- (pc)++
+      pnstate := pwstate;
     end procedure do_memread_i;
     
-    procedure do_memread_d(nstate  : inout state_type;
-                           nvmcntl : inout vm_cntl_type;
-                           wstate  : in state_type;
-                           bytop   : in slbit := '0';
-                           macc    : in slbit := '0';
-                           is_pci  : in slbit := '0') is
+    procedure do_memread_d(pnstate  : inout state_type;
+                           pnvmcntl : inout vm_cntl_type;
+                           pwstate  : in state_type;
+                           pbytop   : in slbit := '0';
+                           pmacc    : in slbit := '0';
+                           pis_pci  : in slbit := '0') is
     begin
-      nvmcntl.dspace := not is_pci;        -- ispace if pc immediate modes
+      pnvmcntl.dspace := not pis_pci;        -- ispace if pc immediate modes
 --      bytop := R_IDSTAT.is_bytop and not is_addr;
-      nvmcntl.bytop := bytop;
-      nvmcntl.macc  := macc;
-      nvmcntl.req   := '1';
-      nstate := wstate;
+      pnvmcntl.bytop := pbytop;
+      pnvmcntl.macc  := pmacc;
+      pnvmcntl.req   := '1';
+      pnstate := pwstate;
     end procedure do_memread_d;
     
-    procedure do_memread_srcinc(nstate   : inout state_type;
-                                ndpcntl  : inout dpath_cntl_type;
-                                nvmcntl  : inout vm_cntl_type;
-                                wstate   : in state_type;
-                                nmmumoni : inout mmu_moni_type;
-                                updt_sp  : in slbit := '0') is
+    procedure do_memread_srcinc(pnstate   : inout state_type;
+                                pndpcntl  : inout dpath_cntl_type;
+                                pnvmcntl  : inout vm_cntl_type;
+                                pwstate   : in state_type;
+                                pnmmumoni : inout mmu_moni_type;
+                                pupdt_sp  : in slbit := '0') is
     begin
-      ndpcntl.ounit_asel := c_ounit_asel_dsrc;   -- OUNIT A=DSRC
-      ndpcntl.ounit_const := "000000010";        -- OUNIT const=2
-      ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const
-      ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
-      ndpcntl.dsrc_sel := c_dpath_dsrc_res;      -- DSRC = DRES
-      ndpcntl.dsrc_we := '1';                    -- update DSRC
-      if updt_sp = '1' then
-        nmmumoni.regmod := '1';
-        nmmumoni.isdec := '0';
-        ndpcntl.gpr_adst := c_gpr_sp;            -- update SP too
-        ndpcntl.gpr_we := '1';
+      pndpcntl.ounit_asel := c_ounit_asel_dsrc;   -- OUNIT A=DSRC
+      pndpcntl.ounit_const := "000000010";        -- OUNIT const=2
+      pndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const
+      pndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
+      pndpcntl.dsrc_sel := c_dpath_dsrc_res;      -- DSRC = DRES
+      pndpcntl.dsrc_we := '1';                    -- update DSRC
+      if pupdt_sp = '1' then
+        pnmmumoni.regmod := '1';
+        pnmmumoni.isdec := '0';
+        pndpcntl.gpr_adst := c_gpr_sp;            -- update SP too
+        pndpcntl.gpr_we := '1';
       end if;
-      ndpcntl.vmaddr_sel := c_dpath_vmaddr_dsrc; -- VA = DSRC
-      nvmcntl.dspace := '1';
-      nvmcntl.req := '1';
-      nstate := wstate;
+      pndpcntl.vmaddr_sel := c_dpath_vmaddr_dsrc; -- VA = DSRC
+      pnvmcntl.dspace := '1';
+      pnvmcntl.req := '1';
+      pnstate := pwstate;
     end procedure do_memread_srcinc;
     
-    procedure do_memwrite(nstate  : inout state_type;
-                          nvmcntl : inout vm_cntl_type;
-                          wstate  : in state_type;
-                          macc    : in slbit :='0') is
+    procedure do_memwrite(pnstate  : inout state_type;
+                          pnvmcntl : inout vm_cntl_type;
+                          pwstate  : in state_type;
+                          pmacc    : in slbit :='0') is
     begin
-      nvmcntl.dspace := '1';
-      nvmcntl.bytop := R_IDSTAT.is_bytop;
-      nvmcntl.wacc := '1';
-      nvmcntl.macc := macc;
-      nvmcntl.req := '1';
-      nstate := wstate;
+      pnvmcntl.dspace := '1';
+      pnvmcntl.bytop := R_IDSTAT.is_bytop;
+      pnvmcntl.wacc := '1';
+      pnvmcntl.macc := pmacc;
+      pnvmcntl.req := '1';
+      pnstate := pwstate;
     end procedure do_memwrite;
     
-    procedure do_memcheck(nstate  : inout state_type;
-                          nstatus : inout cpustat_type;
-                          mok     : out boolean) is
+    procedure do_memcheck(pnstate  : inout state_type;
+                          pnstatus : inout cpustat_type;
+                          pmok     : out boolean) is
     begin
-      nstate  := nstate;                -- dummy to add driver (vivado)
-      nstatus := nstatus;               -- "
-      mok := false;
+      pnstate  := pnstate;              -- dummy to add driver (vivado)
+      pnstatus := pnstatus;             -- "
+      pmok := false;
       if VM_STAT.ack = '1' then
-        mok := true;
+        pmok := true;
         if VM_STAT.trap_mmu = '1' then  -- remember trap_mmu, may happen on any
-          nstatus.trap_mmu := '1';      --   memory access of an instruction
+          pnstatus.trap_mmu := '1';       --   memory access of an instruction
         end if;
         if VM_STAT.trap_ysv = '1' then  -- remember trap_ysv (on any access)
-          if R_CPUERR.ysv = '0' then      -- ysv trap when cpuerr not yet set
-            nstatus.trap_ysv := '1';
+          if R_CPUERR.ysv = '0' then       -- ysv trap when cpuerr not yet set
+            pnstatus.trap_ysv := '1';
           end if;
         end if;
       elsif VM_STAT.err='1' or VM_STAT.fail='1' then
-        nstate := s_vmerr;
+        pnstate := s_vmerr;
       end if;
     end procedure do_memcheck;
 
-    procedure do_const_opsize(ndpcntl : inout dpath_cntl_type;
-                              bytop   : in slbit;
-                              isdef   : in slbit;
-                              regnum  : in slv3) is
+    procedure do_const_opsize(pndpcntl : inout dpath_cntl_type;
+                              pbytop   : in slbit;
+                              pisdef   : in slbit;
+                              pregnum  : in slv3) is
     begin
-      ndpcntl := ndpcntl;               -- dummy to add driver (vivado)
-      if bytop='0' or isdef='1' or
-         regnum=c_gpr_pc or regnum=c_gpr_sp then
-        ndpcntl.ounit_const := "000000010";
+      pndpcntl := pndpcntl;             -- dummy to add driver (vivado)
+      if pbytop='0' or pisdef='1' or
+         pregnum=c_gpr_pc or pregnum=c_gpr_sp then
+        pndpcntl.ounit_const := "000000010";
       else
-        ndpcntl.ounit_const := "000000001";
+        pndpcntl.ounit_const := "000000001";
       end if;
     end procedure do_const_opsize;
 
-    procedure do_fork_dstr(nstate : inout state_type;
-                           idstat : in decode_stat_type) is
+    procedure do_fork_dstr(pnstate : inout state_type;
+                           pidstat : in decode_stat_type) is
     begin
-      case idstat.fork_dstr is
-        when c_fork_dstr_def => nstate := s_dstr_def;
-        when c_fork_dstr_inc => nstate := s_dstr_inc;
-        when c_fork_dstr_dec => nstate := s_dstr_dec;
-        when c_fork_dstr_ind => nstate := s_dstr_ind;
-        when others => nstate := s_cpufail;
+      case pidstat.fork_dstr is
+        when c_fork_dstr_def => pnstate := s_dstr_def;
+        when c_fork_dstr_inc => pnstate := s_dstr_inc;
+        when c_fork_dstr_dec => pnstate := s_dstr_dec;
+        when c_fork_dstr_ind => pnstate := s_dstr_ind;
+        when others => pnstate := s_cpufail;
       end case;
     end procedure do_fork_dstr;
 
-    procedure do_fork_opg(nstate : inout state_type;
-                          idstat : in decode_stat_type) is
+    procedure do_fork_opg(pnstate : inout state_type;
+                          pidstat : in decode_stat_type) is
     begin
-      case idstat.fork_opg is
-        when c_fork_opg_gen  => nstate := s_opg_gen;
-        when c_fork_opg_wdef => nstate := s_dstw_def;
-        when c_fork_opg_winc => nstate := s_dstw_inc;
-        when c_fork_opg_wdec => nstate := s_dstw_dec;
-        when c_fork_opg_wind => nstate := s_dstw_ind;
-        when c_fork_opg_mul  => nstate := s_opg_mul;
-        when c_fork_opg_div  => nstate := s_opg_div;
-        when c_fork_opg_ash  => nstate := s_opg_ash;
-        when c_fork_opg_ashc => nstate := s_opg_ashc;
-        when others => nstate := s_cpufail;
+      case pidstat.fork_opg is
+        when c_fork_opg_gen  => pnstate := s_opg_gen;
+        when c_fork_opg_wdef => pnstate := s_dstw_def;
+        when c_fork_opg_winc => pnstate := s_dstw_inc;
+        when c_fork_opg_wdec => pnstate := s_dstw_dec;
+        when c_fork_opg_wind => pnstate := s_dstw_ind;
+        when c_fork_opg_mul  => pnstate := s_opg_mul;
+        when c_fork_opg_div  => pnstate := s_opg_div;
+        when c_fork_opg_ash  => pnstate := s_opg_ash;
+        when c_fork_opg_ashc => pnstate := s_opg_ashc;
+        when others => pnstate := s_cpufail;
       end case;
     end procedure do_fork_opg;
 
-    procedure do_fork_opa(nstate : inout state_type;
-                          idstat : in decode_stat_type) is
+    procedure do_fork_opa(pnstate : inout state_type;
+                          pidstat : in decode_stat_type) is
     begin
-      case idstat.fork_opa is
-        when c_fork_opa_jmp => nstate := s_opa_jmp;
-        when c_fork_opa_jsr => nstate := s_opa_jsr;
-        when c_fork_opa_mtp => nstate := s_opa_mtp_mem;
-        when c_fork_opa_mfp_reg => nstate := s_opa_mfp_reg;
-        when c_fork_opa_mfp_mem => nstate := s_opa_mfp_mem;
-        when others => nstate := s_cpufail;
+      case pidstat.fork_opa is
+        when c_fork_opa_jmp => pnstate := s_opa_jmp;
+        when c_fork_opa_jsr => pnstate := s_opa_jsr;
+        when c_fork_opa_mtp => pnstate := s_opa_mtp_mem;
+        when c_fork_opa_mfp_reg => pnstate := s_opa_mfp_reg;
+        when c_fork_opa_mfp_mem => pnstate := s_opa_mfp_mem;
+        when others => pnstate := s_cpufail;
       end case;
     end procedure do_fork_opa;
 
-    procedure do_fork_next(nstate   : inout state_type;
-                           nstatus  : inout cpustat_type;
-                           nmmumoni : inout mmu_moni_type) is
+    procedure do_fork_next(pnstate   : inout state_type;
+                           pnstatus  : inout cpustat_type;
+                           pnmmumoni : inout mmu_moni_type) is
     begin
-      nmmumoni.idone := '1';
+      pnmmumoni.idone := '1';
       if unsigned(INT_PRI) > unsigned(PSW.pri) then
-        nstate := s_idle;
-      elsif R_STATUS.trap_mmu='1' or nstatus.trap_mmu='1' or
-            R_STATUS.trap_ysv='1' or nstatus.trap_ysv='1' or
+        pnstate := s_idle;
+      elsif R_STATUS.trap_mmu='1' or pnstatus.trap_mmu='1' or
+            R_STATUS.trap_ysv='1' or pnstatus.trap_ysv='1' or
             PSW.tflag='1' then
-        nstate := s_trap_disp;
+        pnstate := s_trap_disp;
       elsif R_STATUS.cpugo='1' and        -- running
             R_STATUS.cpususp='0' and      --   and not suspended
             not R_STATUS.cmdbusy='1' then --   and no cmd pending
-        nstate := s_ifetch;                               -- fetch next
+        pnstate := s_ifetch;                -- fetch next
       else
-        nstate := s_idle;                                 -- otherwise idle
+        pnstate := s_idle;                  -- otherwise idle
       end if;
     end procedure do_fork_next;
     
-    procedure do_fork_next_pref(nstate   : inout state_type;
-                                nstatus  : inout cpustat_type;
-                                ndpcntl  : inout dpath_cntl_type;
-                                nvmcntl  : inout vm_cntl_type;
-                                nmmumoni : inout mmu_moni_type) is
+    procedure do_fork_next_pref(pnstate   : inout state_type;
+                                pnstatus  : inout cpustat_type;
+                                pndpcntl  : inout dpath_cntl_type;
+                                pnvmcntl  : inout vm_cntl_type;
+                                pnmmumoni : inout mmu_moni_type) is
     begin
-      ndpcntl := ndpcntl;               -- dummy to add driver (vivado)
-      nvmcntl := nvmcntl;               -- "
-      nmmumoni.idone := '1';
+      pndpcntl := pndpcntl;             -- dummy to add driver (vivado)
+      pnvmcntl := pnvmcntl;             -- "
+      pnmmumoni.idone := '1';
       if unsigned(INT_PRI) > unsigned(PSW.pri) then
-        nstate := s_idle;
-      elsif R_STATUS.trap_mmu='1' or nstatus.trap_mmu='1' or
-            R_STATUS.trap_ysv='1' or nstatus.trap_ysv='1' or
+        pnstate := s_idle;
+      elsif R_STATUS.trap_mmu='1' or pnstatus.trap_mmu='1' or
+            R_STATUS.trap_ysv='1' or pnstatus.trap_ysv='1' or
             PSW.tflag='1' then
-        nstate := s_trap_disp;
+        pnstate := s_trap_disp;
       elsif R_STATUS.cpugo='1' and       -- running
             R_STATUS.cpususp='0' and      --   and not suspended
             not R_STATUS.cmdbusy='1' then --   and no cmd pending
-        nvmcntl.req := '1';                 -- read next instruction
-        ndpcntl.gpr_pcinc := '1';           -- inc PC
-        nmmumoni.istart := '1';             -- signal istart to MMU
-        nstate := s_ifetch_w;               -- next: wait for fetched instruction
+        pnvmcntl.req := '1';                -- read next instruction
+        pndpcntl.gpr_pcinc := '1';          -- inc PC
+        pnmmumoni.istart := '1';            -- signal istart to MMU
+        pnstate := s_ifetch_w;              -- next: wait for fetched instruction
       else
-        nstate := s_idle;                   -- otherwise idle
+        pnstate := s_idle;                  -- otherwise idle
       end if;
     end procedure do_fork_next_pref;
     
-    procedure do_start_int(nstate  : inout state_type;
-                           ndpcntl : inout dpath_cntl_type;
-                           vector  : in slv9_2) is
+    procedure do_start_int(pnstate  : inout state_type;
+                           pndpcntl : inout dpath_cntl_type;
+                           pvector  : in slv9_2) is
     begin
-      ndpcntl.dtmp_sel := c_dpath_dtmp_psw;    -- DTMP = PSW 
-      ndpcntl.dtmp_we := '1';
-      ndpcntl.ounit_azero := '1';              -- OUNIT A = 0
-      ndpcntl.ounit_const := vector & "00";    -- vector
-      ndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B=const(vector)
-      ndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
-      ndpcntl.dsrc_sel := c_dpath_dsrc_res;    -- DSRC = DRES
-      ndpcntl.dsrc_we := '1';                  -- DSRC = vector
-      nstate := s_int_getpc;
+      pndpcntl.dtmp_sel := c_dpath_dtmp_psw;    -- DTMP = PSW 
+      pndpcntl.dtmp_we := '1';
+      pndpcntl.ounit_azero := '1';              -- OUNIT A = 0
+      pndpcntl.ounit_const := pvector & "00";   -- vector
+      pndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B=const(vector)
+      pndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
+      pndpcntl.dsrc_sel := c_dpath_dsrc_res;    -- DSRC = DRES
+      pndpcntl.dsrc_we := '1';                  -- DSRC = vector
+      pnstate := s_int_getpc;
     end procedure do_start_int;
     
   begin
@@ -1019,8 +1020,8 @@ begin
       when s_srcr_def =>                -- -----------------------------------
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_dsrc; -- VA = DSRC
         do_memread_d(nstate, nvmcntl, s_srcr_def_w,
-                     bytop=>R_IDSTAT.is_bytop,
-                     is_pci=>R_IDSTAT.is_srcpcmode1);
+                     pbytop=>R_IDSTAT.is_bytop,
+                     pis_pci=>R_IDSTAT.is_srcpcmode1);
 
       when s_srcr_def_w =>              -- -----------------------------------
         nstate := s_srcr_def_w;
@@ -1052,7 +1053,7 @@ begin
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_dsrc; -- VA = DSRC
         bytop := R_IDSTAT.is_bytop and not SRCDEF;
         do_memread_d(nstate, nvmcntl, s_srcr_inc_w,
-                     bytop=>bytop, is_pci=>R_IDSTAT.is_srcpc);
+                     pbytop=>bytop, pis_pci=>R_IDSTAT.is_srcpc);
         
       when s_srcr_inc_w =>              -- -----------------------------------
         nstate := s_srcr_inc_w;
@@ -1093,7 +1094,7 @@ begin
       when s_srcr_dec1 =>               -- -----------------------------------
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_dsrc; -- VA = DSRC
         bytop := R_IDSTAT.is_bytop and not SRCDEF;
-        do_memread_d(nstate, nvmcntl, s_srcr_inc_w, bytop=>bytop);
+        do_memread_d(nstate, nvmcntl, s_srcr_inc_w, pbytop=>bytop);
 
       when s_srcr_ind =>                -- -----------------------------------
         do_memread_i(nstate, ndpcntl, nvmcntl, s_srcr_ind1_w);
@@ -1119,7 +1120,7 @@ begin
       when s_srcr_ind2 =>               -- -----------------------------------
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_dsrc; -- VA = DSRC
         bytop := R_IDSTAT.is_bytop and not SRCDEF;
-        do_memread_d(nstate, nvmcntl, s_srcr_ind2_w, bytop=>bytop);
+        do_memread_d(nstate, nvmcntl, s_srcr_ind2_w, pbytop=>bytop);
 
       when s_srcr_ind2_w =>             -- -----------------------------------
         nstate := s_srcr_ind2_w;
@@ -1184,7 +1185,7 @@ begin
       when s_dstr_def =>                -- -----------------------------------
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_ddst; -- VA = DDST
         do_memread_d(nstate, nvmcntl, s_dstr_def_w,
-                     bytop=>R_IDSTAT.is_bytop, macc=>R_IDSTAT.is_rmwop);
+                     pbytop=>R_IDSTAT.is_bytop, pmacc=>R_IDSTAT.is_rmwop);
 
       when s_dstr_def_w =>              -- -----------------------------------
         nstate := s_dstr_def_w;
@@ -1209,7 +1210,7 @@ begin
         macc  := R_IDSTAT.is_rmwop and not DSTDEF;
         bytop := R_IDSTAT.is_bytop and not DSTDEF;
         do_memread_d(nstate, nvmcntl, s_dstr_inc_w,
-                     bytop=>bytop, macc=>macc, is_pci=>R_IDSTAT.is_dstpc);
+                     pbytop=>bytop, pmacc=>macc, pis_pci=>R_IDSTAT.is_dstpc);
         
       when s_dstr_inc_w =>              -- -----------------------------------
         nstate := s_dstr_inc_w;
@@ -1244,7 +1245,7 @@ begin
         macc  := R_IDSTAT.is_rmwop and not DSTDEF;
         bytop := R_IDSTAT.is_bytop and not DSTDEF;
         do_memread_d(nstate, nvmcntl, s_dstr_inc_w,
-                     bytop=>bytop, macc=>macc);
+                     pbytop=>bytop, pmacc=>macc);
 
       when s_dstr_ind =>                -- -----------------------------------
         do_memread_i(nstate, ndpcntl, nvmcntl, s_dstr_ind1_w);
@@ -1270,7 +1271,7 @@ begin
         macc  := R_IDSTAT.is_rmwop and not DSTDEF;
         bytop := R_IDSTAT.is_bytop and not DSTDEF;
         do_memread_d(nstate, nvmcntl, s_dstr_ind2_w,
-                     bytop=>bytop, macc=>macc);
+                     pbytop=>bytop, pmacc=>macc);
 
       when s_dstr_ind2_w =>             -- -----------------------------------
         nstate := s_dstr_ind2_w;
@@ -1361,7 +1362,7 @@ begin
           nmmumoni.regmod := '1';
           nmmumoni.isdec := '0';
           do_memread_d(nstate, nvmcntl, s_dstw_incdef_w,
-                       is_pci=>R_IDSTAT.is_dstpc);
+                       pis_pci=>R_IDSTAT.is_dstpc);
         end if;
         
       when s_dstw_inc_w =>              -- -----------------------------------
@@ -1493,7 +1494,7 @@ begin
           do_fork_opa(nstate, R_IDSTAT);
         else
           do_memread_d(nstate, nvmcntl, s_dsta_incdef_w,
-                       is_pci=>R_IDSTAT.is_dstpc);          
+                       pis_pci=>R_IDSTAT.is_dstpc);          
         end if;
           
       when s_dsta_incdef_w =>           -- -----------------------------------
@@ -1618,7 +1619,7 @@ begin
 
       when s_op_rts_pop =>              -- -----------------------------------
         do_memread_srcinc(nstate, ndpcntl, nvmcntl, s_op_rts_pop_w,
-                          nmmumoni, updt_sp=>'1');
+                          nmmumoni, pupdt_sp=>'1');
         
       when s_op_rts_pop_w =>            -- -----------------------------------
         nstate := s_op_rts_pop_w;
@@ -1710,7 +1711,7 @@ begin
 
       when s_op_mark_pop =>             -- -----------------------------------
         do_memread_srcinc(nstate, ndpcntl, nvmcntl, s_op_mark_pop_w,
-                          nmmumoni, updt_sp=>'1');
+                          nmmumoni, pupdt_sp=>'1');
 
       when s_op_mark_pop_w =>           -- -----------------------------------
         nstate := s_op_mark_pop_w;
@@ -1767,7 +1768,7 @@ begin
         end if;
 
         if R_IDSTAT.is_rmwop = '1' then
-          do_memwrite(nstate, nvmcntl, s_opg_gen_rmw_w, macc=>'1');
+          do_memwrite(nstate, nvmcntl, s_opg_gen_rmw_w, pmacc=>'1');
         else           
           idm_idone := '1';                      -- instruction done
           if R_STATUS.prefdone = '1' then
@@ -2014,7 +2015,7 @@ begin
 
       when s_opa_mtp =>                 -- -----------------------------------
         do_memread_srcinc(nstate, ndpcntl, nvmcntl, s_opa_mtp_pop_w,
-                          nmmumoni, updt_sp=>'1');
+                          nmmumoni, pupdt_sp=>'1');
         
       when s_opa_mtp_pop_w =>           -- -----------------------------------
         nstate := s_opa_mtp_pop_w;
@@ -2273,7 +2274,7 @@ begin
 
       when s_rti_getpc =>               -- -----------------------------------
         do_memread_srcinc(nstate, ndpcntl, nvmcntl, s_rti_getpc_w,
-                          nmmumoni, updt_sp=>'1');
+                          nmmumoni, pupdt_sp=>'1');
 
       when s_rti_getpc_w =>             -- -----------------------------------
         nstate := s_rti_getpc_w;
@@ -2287,7 +2288,7 @@ begin
 
       when s_rti_getps =>               -- -----------------------------------
         do_memread_srcinc(nstate, ndpcntl, nvmcntl, s_rti_getps_w,
-                          nmmumoni, updt_sp=>'1');
+                          nmmumoni, pupdt_sp=>'1');
 
       when s_rti_getps_w =>             -- -----------------------------------
         nstate := s_rti_getps_w;

@@ -1,6 +1,6 @@
--- $Id: pdp11_gpr.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: pdp11_gpr.vhd 1203 2019-08-19 21:41:03Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    pdp11_gpr - syn
@@ -10,9 +10,10 @@
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2019.1; ghdl 0.18-0.36
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-08-17  1203   1.0.2  fix for ghdl V0.36 -Whide warnings
 -- 2011-11-18   427   1.0.4  now numeric_std clean
 -- 2008-08-22   161   1.0.3  rename ubf_ -> ibf_; use iblib
 -- 2007-12-30   108   1.0.2  use ubf_byte[01]
@@ -72,18 +73,18 @@ architecture syn of pdp11_gpr is
 --    1111   110  -  11    SP user mode
 
   procedure do_regmap (
-      signal RNUM : in slv3;            -- register number
-      signal MODE : in slv2;            -- processor mode (k=>00,s=>01,u=>11)
-      signal RSET : in slbit;           -- register set
-      signal ADDR : out slv4            -- internal address in regfile
+      signal PRNUM : in slv3;           -- register number
+      signal PMODE : in slv2;           -- processor mode (k=>00,s=>01,u=>11)
+      signal PRSET : in slbit;          -- register set
+      signal PADDR : out slv4           -- internal address in regfile
     ) is
   begin
-    if RNUM = c_gpr_pc then
-      ADDR <= "1110";
-    elsif RNUM = c_gpr_sp then
-      ADDR <= MODE(1) & "11" & MODE(0);
+    if PRNUM = c_gpr_pc then
+      PADDR <= "1110";
+    elsif PRNUM = c_gpr_sp then
+      PADDR <= PMODE(1) & "11" & PMODE(0);
     else
-      ADDR <= RSET & RNUM;
+      PADDR <= PRSET & PRNUM;
     end if;
   end procedure do_regmap;
 
@@ -98,8 +99,8 @@ architecture syn of pdp11_gpr is
 
 begin
 
-  do_regmap(RNUM => ASRC, MODE => MODE, RSET => RSET, ADDR => MASRC);
-  do_regmap(RNUM => ADST, MODE => MODE, RSET => RSET, ADDR => MADST);
+  do_regmap(PRNUM => ASRC, PMODE => MODE, PRSET => RSET, PADDR => MASRC);
+  do_regmap(PRNUM => ADST, PMODE => MODE, PRSET => RSET, PADDR => MADST);
 
   WE1 <= WE and not BYTOP;
 

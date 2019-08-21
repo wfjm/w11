@@ -1,6 +1,6 @@
--- $Id: tb_rlink_tba.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: tb_rlink_tba.vhd 1203 2019-08-19 21:41:03Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 -- 
 ------------------------------------------------------------------------------
 -- Module Name:    tb_rlink_tba - sim
@@ -18,10 +18,11 @@
 -- To test:        generic, any rbtba_aif target
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.2-14.7; viv 2016.2; ghdl 0.18-0.33
+-- Tool versions:  xst 8.2-14.7; viv 2016.2-2019.1; ghdl 0.18-0.36
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-08-17  1203   4.0.2  fix for ghdl V0.36 -Whide warnings
 -- 2016-09-10   806   4.0.1  use clkdivce_tb
 -- 2014-12-20   616   4.0.1  add dcnt check (with -n=) and .ndef
 -- 2014-09-21   595   4.0    now full rlink v4 iface, 4 bit STAT
@@ -301,29 +302,29 @@ begin
                        addr: out slv16) is
       variable ichar : character := ' ';
       variable name : string(1 to 6) := (others=>' ');
-      variable ok : boolean := false;
-      variable iaddr : slv16 := (others=>'0');
+      variable lok : boolean := false;
+      variable liaddr : slv16 := (others=>'0');
       variable iaddr_or : slv16 := (others=>'0');
     begin
 
       readwhite(L);
 
-      readoptchar(L, '.', ok);
-      if ok then
+      readoptchar(L, '.', lok);
+      if lok then
         readword_ea(L, name);
         for i in 1 to amtbl_defs loop
           if amtbl(i).name = name then
-            iaddr := amtbl(i).addr;
-            readoptchar(L, '|', ok);
-            if ok then
+            liaddr := amtbl(i).addr;
+            readoptchar(L, '|', lok);
+            if lok then
               readgen_ea(L, iaddr_or);
-              for i in iaddr_or'range loop
-                if iaddr_or(i) = '1' then
-                  iaddr(i) := '1';
+              for j in iaddr_or'range loop
+                if iaddr_or(j) = '1' then
+                  liaddr(j) := '1';
                 end if;
               end loop;
             end if;
-            addr := iaddr;
+            addr := liaddr;
             return;
           end if;
         end loop;
@@ -336,18 +337,18 @@ begin
     end procedure get_addr;
 
     procedure cmd_waitdone is
-      variable nwait : integer := 0;
+      variable lnwait : integer := 0;
     begin
-      nwait := 0;
+      lnwait := 0;
       while TBA_STAT.busy='1' loop
-        nwait := nwait + 1;
-        assert nwait<2000 report "assert(nwait<2000)" severity failure;
+        lnwait := lnwait + 1;
+        assert lnwait<2000 report "assert(lnwait<2000)" severity failure;
         wait for clock_period;
       end loop;
     end procedure cmd_waitdone;
 
     procedure setup_check_n (
-      bcnt : in integer)
+      pbcnt : in integer)
     is
       variable chk_done : boolean := false;
       variable ref_done : slv16 := (others=>'0');
@@ -358,31 +359,31 @@ begin
         N_REF_DONE <= ref_done;
       else
         N_CHK_DONE <= chk_ndef;
-        N_REF_DONE <= slv(to_unsigned(bcnt,16));
+        N_REF_DONE <= slv(to_unsigned(pbcnt,16));
       end if;
     end procedure setup_check_n;
 
     procedure setup_check_d is
-      variable chk_data : boolean := false;
-      variable ref_data : slv16 := (others=>'0');
-      variable msk_data : slv16 := (others=>'0');
+      variable lchk_data : boolean := false;
+      variable lref_data : slv16 := (others=>'0');
+      variable lmsk_data : slv16 := (others=>'0');
     begin
-      readtagval2_ea(iline, "d", chk_data, ref_data, msk_data, sv_dbasi);
-      N_CHK_DATA <= chk_data;
-      N_REF_DATA <= ref_data;
-      N_MSK_DATA <= msk_data;
+      readtagval2_ea(iline, "d", lchk_data, lref_data, lmsk_data, sv_dbasi);
+      N_CHK_DATA <= lchk_data;
+      N_REF_DATA <= lref_data;
+      N_MSK_DATA <= lmsk_data;
     end procedure setup_check_d;
 
     procedure setup_check_s is
-      variable chk_stat : boolean := false;
-      variable ref_stat : slv8 := (others=>'0');
-      variable msk_stat : slv8 := (others=>'0');
+      variable lchk_stat : boolean := false;
+      variable lref_stat : slv8 := (others=>'0');
+      variable lmsk_stat : slv8 := (others=>'0');
     begin
-      readtagval2_ea(iline, "s", chk_stat, ref_stat, msk_stat);
-      if chk_stat then
-        N_CHK_STAT <= chk_stat;
-        N_REF_STAT <= ref_stat;
-        N_MSK_STAT <= msk_stat;
+      readtagval2_ea(iline, "s", lchk_stat, lref_stat, lmsk_stat);
+      if lchk_stat then
+        N_CHK_STAT <= lchk_stat;
+        N_REF_STAT <= lref_stat;
+        N_MSK_STAT <= lmsk_stat;
       else
         N_CHK_STAT <= chk_sdef;
         N_REF_STAT <= ref_sdef;
@@ -391,16 +392,16 @@ begin
     end procedure setup_check_s;
 
     procedure cmd_start (
-      cmd : in slv3;
-      addr : in slv16 := (others=>'0');
-      data : in slv16 := (others=>'0');
-      bcnt : in integer := 1) is
+      pcmd : in slv3;
+      paddr : in slv16 := (others=>'0');
+      pdata : in slv16 := (others=>'0');
+      pbcnt : in integer := 1) is
     begin                  
       TBA_CNTL      <= rlink_tba_cntl_init;
-      TBA_CNTL.cmd  <= cmd;
-      TBA_CNTl.addr <= addr;
-      TBA_CNTL.cnt  <= slv(to_unsigned(bcnt,16));
-      TBA_DI        <= data;
+      TBA_CNTL.cmd  <= pcmd;
+      TBA_CNTl.addr <= paddr;
+      TBA_CNTL.cnt  <= slv(to_unsigned(pbcnt,16));
+      TBA_DI        <= pdata;
 
       ccnt := ccnt + 1;
       if ccnt >= cmax then
@@ -540,7 +541,7 @@ begin
             N_CMD_DATA <= (others=>'Z');
             setup_check_d;
             setup_check_s;
-            cmd_start(cmd=>c_rlink_cmd_rreg, addr=>iaddr);
+            cmd_start(pcmd=>c_rlink_cmd_rreg, paddr=>iaddr);
             cmd_waitdone;
                         
           when "rblk  " =>              -- rblk
@@ -552,7 +553,7 @@ begin
             assert bcnt>0 report "assert(bcnt>0)" severity failure;
             setup_check_n(bcnt);
             setup_check_s;
-            cmd_start(cmd=>c_rlink_cmd_rblk, addr=>iaddr, bcnt=>bcnt);
+            cmd_start(pcmd=>c_rlink_cmd_rblk, paddr=>iaddr, pbcnt=>bcnt);
 
             testempty_ea(iline);
             newline := true;
@@ -585,7 +586,7 @@ begin
             readgen_ea(iline, idata, sv_dbasi);
             N_CMD_DATA <= idata;
             setup_check_s;
-            cmd_start(cmd=>c_rlink_cmd_wreg, addr=>iaddr, data=>idata);
+            cmd_start(pcmd=>c_rlink_cmd_wreg, paddr=>iaddr, pdata=>idata);
             cmd_waitdone;
             
           when "wblk  " =>              -- wblk
@@ -597,7 +598,7 @@ begin
             assert bcnt>0 report "assert(bcnt>0)" severity failure;
             setup_check_n(bcnt);
             setup_check_s;
-            cmd_start(cmd=>c_rlink_cmd_wblk, addr=>iaddr, bcnt=>bcnt);
+            cmd_start(pcmd=>c_rlink_cmd_wblk, paddr=>iaddr, pbcnt=>bcnt);
 
             testempty_ea(iline);
             newline := true;
@@ -625,7 +626,7 @@ begin
             N_CMD_DATA <= (others=>'Z');
             setup_check_d;
             setup_check_s;
-            cmd_start(cmd=>c_rlink_cmd_labo);
+            cmd_start(pcmd=>c_rlink_cmd_labo);
             cmd_waitdone;
             
           when "attn  " =>              -- attn
@@ -634,7 +635,7 @@ begin
             N_CMD_DATA <= (others=>'Z');
             setup_check_d;
             setup_check_s;
-            cmd_start(cmd=>c_rlink_cmd_attn);
+            cmd_start(pcmd=>c_rlink_cmd_attn);
             cmd_waitdone;
             
           when "init  " =>              -- init
@@ -644,7 +645,7 @@ begin
             readgen_ea(iline, idata, sv_dbasi);
             N_CMD_DATA <= idata;
             setup_check_s;
-            cmd_start(cmd=>c_rlink_cmd_init, addr=>iaddr, data=>idata);
+            cmd_start(pcmd=>c_rlink_cmd_init, paddr=>iaddr, pdata=>idata);
             cmd_waitdone;
             
           when others =>                -- bad command

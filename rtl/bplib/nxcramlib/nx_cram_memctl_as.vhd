@@ -1,6 +1,6 @@
--- $Id: nx_cram_memctl_as.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: nx_cram_memctl_as.vhd 1203 2019-08-19 21:41:03Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 -- 
 ------------------------------------------------------------------------------
 -- Module Name:    nx_cram_memctl_as - syn
@@ -14,7 +14,7 @@
 --                 sys_gen/tst_sram/nexys3/tb/tb_tst_sram_n3
 --                 sys_gen/tst_sram/nexys4/tb/tb_tst_sram_n4
 -- Target Devices: generic
--- Tool versions:  ise 11.4-14.7; viv 2014.4-2016.4; ghdl 0.26-0.34
+-- Tool versions:  ise 11.4-14.7; viv 2014.4-2019.1; ghdl 0.26-0.36
 --
 -- Synthesized (viv):
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic    
@@ -30,6 +30,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-08-17  1203   2.1.1  fix for ghdl V0.36 -Whide warnings
 -- 2016-07-16   788   2.1    change *DELAY generics, now absolute delay cycles
 --                           add s_init1; drop "KEEP" for data (better for dbg)
 -- 2016-07-10   786   2.0    add page mode support
@@ -359,37 +360,37 @@ begin
     variable idata_ceo : slbit := '0';
     variable idata_oe  : slbit := '0';
     
-    procedure do_dispatch(nstate  : out state_type;
-                          iaddrh_ce : out slbit;
-                          iaddr0_ce : out slbit;
-                          iaddr0  : out slbit;
-                          ibe_ce  : out slbit;
-                          imem_be : out slv2;
-                          imem_ce : out slbit;
-                          imem_oe : out slbit;
-                          nbe2nd  : out slv2) is
+    procedure do_dispatch(pnstate  : out state_type;
+                          piaddrh_ce : out slbit;
+                          piaddr0_ce : out slbit;
+                          piaddr0  : out slbit;
+                          pibe_ce  : out slbit;
+                          pimem_be : out slv2;
+                          pimem_ce : out slbit;
+                          pimem_oe : out slbit;
+                          pnbe2nd  : out slv2) is
     begin
-      iaddrh_ce := '1';                 -- latch address (high part)
-      iaddr0_ce := '1';                 -- latch address 0 bit
-      ibe_ce    := '1';                 -- latch be's
-      imem_ce   := '1';                 -- ce CRAM next cycle
-      nbe2nd    := "00";                -- assume no 2nd write cycle
+      piaddrh_ce := '1';                -- latch address (high part)
+      piaddr0_ce := '1';                -- latch address 0 bit
+      pibe_ce    := '1';                -- latch be's
+      pimem_ce   := '1';                -- ce CRAM next cycle
+      pnbe2nd    := "00";               -- assume no 2nd write cycle
       if WE = '0' then                  -- if READ requested
-        iaddr0  := '0';                   -- go first for low word
-        imem_be := "11";                  -- on read always on
-        imem_oe := '1';                   -- oe CRAM next cycle
-        nstate  := s_rdinit;              -- next: read init part
+        piaddr0  := '0';                  -- go first for low word
+        pimem_be := "11";                 -- on read always on
+        pimem_oe := '1';                  -- oe CRAM next cycle
+        pnstate  := s_rdinit;             -- next: read init part
       else                              -- if WRITE requested
         if BE(1 downto 0) /= "00" then    -- low word write
-          iaddr0  := '0';                   -- access word 0 
-          imem_be := BE(1 downto 0);        -- set be's for 1st cycle
-          nbe2nd  := BE(3 downto 2);        -- keep be's for 2nd cycle
+          piaddr0  := '0';                  -- access word 0 
+          pimem_be := BE(1 downto 0);       -- set be's for 1st cycle
+          pnbe2nd  := BE(3 downto 2);       -- keep be's for 2nd cycle
         else                              -- high word write
-          iaddr0  := '1';                   -- access word 1 
-          imem_be := BE(3 downto 2);        -- set be's for 1st cycle
+          piaddr0  := '1';                  -- access word 1 
+          pimem_be := BE(3 downto 2);       -- set be's for 1st cycle
         end if;
-        imem_oe := '0';                   -- oe=0
-        nstate := s_wrinit;               -- next: write init part
+        pimem_oe := '0';                  -- oe=0
+        pnstate := s_wrinit;              -- next: write init part
       end if;
     end procedure do_dispatch;
 

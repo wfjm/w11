@@ -1,4 +1,4 @@
--- $Id: tb_rlink.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: tb_rlink.vhd 1203 2019-08-19 21:41:03Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2007-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -17,10 +17,11 @@
 --                 rlink_serport  (via tbd_rlink_serport)
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.2-14.7; viv 2019.1; ghdl 0.18-0.35
+-- Tool versions:  xst 8.2-14.7; viv 2019.1; ghdl 0.18-0.36
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-08-17  1203   4.1.3  fix for ghdl V0.36 -Whide warnings
 -- 2019-06-02  1159   4.1.2  use rbaddr_ constants
 -- 2016-09-10   806   4.1.1  use clkdivce_tb
 -- 2014-10-12   596   4.1    use readgen_ea; add get_cmd_ea; labo instead of stat
@@ -329,17 +330,17 @@ begin
     -- read command line  helpers ------------------------------------
     procedure get_cmd_ea (              -- ---- get_cmd_ea -----------
       L : inout line;
-      icmd : out slv8)  is
+      picmd : out slv8)  is
       variable cname : string(1 to 4) := (others=>' ');
       variable ival : natural;
-      variable ok : boolean;
+      variable lok : boolean;
       variable cmd : slv3;
       variable dat : slv8;
     begin
       readword_ea(L, cname);
       ival := 0;
-      readoptchar(L, ',', ok);
-      if ok then
+      readoptchar(L, ',', lok);
+      if lok then
         readint_ea(L, ival, 0, 31);
       end if;
       case cname is
@@ -356,21 +357,21 @@ begin
       dat := (others=>'0');
       dat(c_rlink_cmd_rbf_seq)  := slv(to_unsigned(ival,5));
       dat(c_rlink_cmd_rbf_code) := cmd;
-      icmd := dat;
+      picmd := dat;
     end procedure get_cmd_ea;
     
     procedure get_seq_ea (              -- ---- get_seq_ea -----------
       L : inout line;
-      code : in slv3;
-      icmd : out slv8)  is
+      pcode : in slv3;
+      picmd : out slv8)  is
       variable ival : natural;
       variable dat : slv8;
     begin
       readint_ea(L, ival, 0, 31);
       dat := (others=>'0');
       dat(c_rlink_cmd_rbf_seq)  := slv(to_unsigned(ival,5));
-      dat(c_rlink_cmd_rbf_code) := code;
-      icmd := dat;
+      dat(c_rlink_cmd_rbf_code) := pcode;
+      picmd := dat;
     end procedure get_seq_ea;
     
     -- tx helpers ----------------------------------------------------
@@ -409,41 +410,41 @@ begin
       do_tx9(c_rlink_dat_eop);
     end procedure do_txeop;
             
-    procedure do_txc (icmd  : in slv8) is -- ---- do_txc -------------
+    procedure do_txc (picmd  : in slv8) is -- ---- do_txc -------------
     begin
-      do_tx8(icmd);
+      do_tx8(picmd);
       do_txcrc;
     end procedure do_txc;
 
     procedure do_txca (                 -- ---- do_txca --------------
-      icmd  : in slv8; 
-      iaddr : in slv16) is 
+      picmd  : in slv8; 
+      piaddr : in slv16) is 
     begin
-      do_tx8(icmd);
-      do_tx16(iaddr);
+      do_tx8(picmd);
+      do_tx16(piaddr);
       do_txcrc;
     end procedure do_txca;
 
     procedure do_txcad (                -- ---- do_txcad -------------
-      icmd  : in slv8; 
-      iaddr : in slv16;
-      idata : in slv16) is 
+      picmd  : in slv8; 
+      piaddr : in slv16;
+      pidata : in slv16) is 
     begin
-      do_tx8(icmd);
-      do_tx16(iaddr);
-      do_tx16(idata);
+      do_tx8(picmd);
+      do_tx16(piaddr);
+      do_tx16(pidata);
       do_txcrc;
     end procedure do_txcad;
 
     procedure do_txblks (               -- ---- do_txblks ------------
-      nblk  : in natural; 
-      start : in slv16) is
-      variable idata : slv16;
+      pnblk  : in natural; 
+      pstart : in slv16) is
+      variable lidata : slv16;
     begin
-      idata := start;
-      for i in 1 to nblk loop
-        do_tx16(idata);
-        idata := slv(unsigned(idata) + 1);
+      lidata := pstart;
+      for i in 1 to pnblk loop
+        do_tx16(lidata);
+        lidata := slv(unsigned(lidata) + 1);
       end loop;
     end procedure do_txblks;
 
@@ -512,62 +513,62 @@ begin
     end procedure do_rxeop;
 
     procedure do_rxcs (                 -- ---- do_rxcs ----------
-      icmd  : in slv8;
-      istat : in slv8) is                                      
+      picmd  : in slv8;
+      pistat : in slv8) is                                      
     begin
-      do_rx8(icmd);
-      do_rx8(istat);
+      do_rx8(picmd);
+      do_rx8(pistat);
       do_rxcrc;
     end procedure do_rxcs;
 
     procedure do_rxcds (                -- ---- do_rxcds ----------
-      icmd  : in slv8;
-      idata : in slv16;
-      istat : in slv8) is                                      
+      picmd  : in slv8;
+      pidata : in slv16;
+      pistat : in slv8) is                                      
     begin
-      do_rx8(icmd);
-      do_rx16(idata);
-      do_rx8(istat);
+      do_rx8(picmd);
+      do_rx16(pidata);
+      do_rx8(pistat);
       do_rxcrc;
     end procedure do_rxcds;
 
     procedure do_rxcbs (                -- ---- do_rxcbs ----------
-      icmd  : in slv8;
-      ibabo : in slv8;
-      istat : in slv8) is                                      
+      picmd  : in slv8;
+      pibabo : in slv8;
+      pistat : in slv8) is                                      
     begin
-      do_rx8(icmd);
-      do_rx8(ibabo);
-      do_rx8(istat);
+      do_rx8(picmd);
+      do_rx8(pibabo);
+      do_rx8(pistat);
       do_rxcrc;
     end procedure do_rxcbs;
 
     procedure do_rxrbeg (              -- ---- do_rxrbeg -------------
-      icmd  : in slv8;
-      nblk  : in natural) is
+      picmd  : in slv8;
+      pnblk  : in natural) is
     begin
-      do_rx8(icmd);
-      do_rx16(slv(to_unsigned(nblk,16)));
+      do_rx8(picmd);
+      do_rx16(slv(to_unsigned(pnblk,16)));
     end procedure do_rxrbeg;
 
     procedure do_rxrend (              -- ---- do_rxrend -------------
-      nblk  : in natural;
-      istat  : in slv8) is
+      pnblk  : in natural;
+      pistat  : in slv8) is
     begin
-      do_rx16(slv(to_unsigned(nblk,16)));
-      do_rx8(istat);  
+      do_rx16(slv(to_unsigned(pnblk,16)));
+      do_rx8(pistat);  
       do_rxcrc;
     end procedure do_rxrend;
 
     procedure do_rxblks (               -- ---- do_rxblks ------------
-      nblk  : in natural; 
-      start : in slv16) is
-      variable idata : slv16;
+      pnblk  : in natural; 
+      pstart : in slv16) is
+      variable lidata : slv16;
     begin
-      idata := start;
-      for i in 1 to nblk loop
-        do_rx16(idata);
-        idata := slv(unsigned(idata) + 1);
+      lidata := pstart;
+      for i in 1 to pnblk loop
+        do_rx16(lidata);
+        lidata := slv(unsigned(lidata) + 1);
       end loop;
     end procedure do_rxblks;
 

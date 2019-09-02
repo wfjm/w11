@@ -7,16 +7,32 @@
 
 ### Overview
 The project contains the VHDL code for a **complete DEC PDP-11 system**:
-a PDP-11/70 CPU with memory management unit, but without floating point unit,
+a
+[PDP-11/70](http://www.bitsavers.org/pdf/dec/pdp11/1170/EK-KB11C-TM-001_1170procMan.pdf)
+CPU with memory management unit, but without floating point unit,
 a complete set of mass storage peripherals
-(RK11/RK05, RL11/RL02, RK70/RP06, TM11/TU10)
+([RK11/RK05](http://www.bitsavers.org/pdf/dec/unibus/RK11-C_manual1971.pdf),
+[RL11/RL02](http://www.bitsavers.org/pdf/dec/disc/rl01_rl02/EK-RL122-TM-001_techAug82.pdf),
+[RH70](http://www.bitsavers.org/pdf/dec/unibus/CSS-MO-F-5.2-27_RH70_Option_Description_Feb77.pdf)/[RP06](http://www.bitsavers.org/pdf/dec/disc/rp04_rp05_rp06/EK-RP056-MM-01_maint_Dec75.pdf),
+[TM11/TU10](http://www.bitsavers.org/pdf/dec/magtape/tm11/TM11_Manual.pdf))
 and a rather complete set of UNIBUS peripherals
-(DL11, LP11, PC11, and DEUNA),
+([DL11](http://www.bitsavers.org/pdf/dec/unibus/EK-DL11-TM-003_DL11_Asynchronous_Line_Interface_Manual_Sep75.pdf),
+[LP11](http://www.bitsavers.org/pdf/dec/unibus/LP11_UsersMan.pdf),
+[PC11](http://www.bitsavers.org/pdf/dec/unibus/PC11_Reader-Punch_Manual.pdf),
+[DZ11](http://www.bitsavers.org/pdf/dec/unibus/EK-DZ110-TM-002_DZ11_Asynchronous_Multiplexer_Technical_Manual_Oct78.pdf), and
+[DEUNA](http://www.bitsavers.org/pdf/dec/unibus/EK-DEUNA-TM-PRE_TechMan_Dec82.pdf)),
 and last but not least a cache and memory controllers for SRAM, PSRAM and
 SDRAM (via Xilinx MIG core).
-The design is **FPGA proven**, runs currently on
-Digilent Arty, Basys3, CmodA7, Nexys4, Nexys3, Nexys2 and S3board boards
-and boots 5th Edition UNIX and 2.11BSD UNIX. 
+The design is **FPGA proven**, runs currently on Digilent
+[Arty A7](rtl/sys_gen/w11a/arty),
+[Basys3](rtl/sys_gen/w11a/basys3),
+[Cmod A7](rtl/sys_gen/w11a/cmoda7),
+[Nexys A7](rtl/sys_gen/w11a/nexys4d),
+[Nexys4](rtl/sys_gen/w11a/nexys4),
+[Nexys3](rtl/sys_gen/w11a/nexys3),
+[Nexys2](rtl/sys_gen/w11a/nexys2) and
+[S3board](rtl/sys_gen/w11a/s3board)
+boards and boots 5th Edition UNIX and 2.11BSD UNIX. 
 
 For more information look into:
 - w11 project [home page](https://wfjm.github.io/home/w11/)

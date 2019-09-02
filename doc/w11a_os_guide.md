@@ -12,9 +12,9 @@
 
 ### <a id="io-emu">I/O emulation setup</a>
 
-All UNIBUS peripherals which exchange data (currently DL11, LP11, PC11, RK11,
-RL11, RPRH, TM11, and DENUA ) are currently emulated via a backend process. The 
-communication between FPGA board and backend server can be via
+All UNIBUS peripherals which exchange data (currently DL11, DZ11, LP11, PC11,
+DEUNA, RK11, RL11, RPRH, and TM11) are currently emulated via a backend
+process. The communication between FPGA board and backend server can be via
 
 - Serial port
   - via an integrated USB-UART bridge
@@ -26,7 +26,8 @@ communication between FPGA board and backend server can be via
       2017 one gets kernels with 16 ms default latency again, thanks to
       [kernel patch 9589541](https://patchwork.kernel.org/patch/9589541/).
       **For newer systems it is essential to install a udev rule** which
-      automatically sets low latency, see [docu](../tools/sys/README.md).
+      automatically sets low latency, see
+      [documentation in tools/sys](../tools/sys/README.md).
   - via RS232 port, as on S3board and Nexys2
     - using a serial port (/dev/ttySx) is limited to 115 kBaud on most PCs.
     - using a USB-RS232 adapter was tested up to 460k Baud. 
@@ -52,45 +53,50 @@ Recommended setup for best performance (boards ordered by vintage):
 
 | Board      | Channel/Interface      | nom. speed   | peak transfer rate |
 | :--------- | :--------------------- | :----------- | -----------------: |
-| Arty A7    | USB-UART bridge        | 12M Baud     |  1090 kB/sec |
-| Basys3     | USB-UART bridge        | 12M Baud     |  1090 kB/sec |
-| Cmod A7    | USB-UART bridge        | 12M Baud     |  1090 kB/sec |
-| Nexys A7   | USB-UART bridge        | 12M Baud     |  1090 kb/sec |
-| Nexys4     | USB-UART bridge        | 12M Baud     |  1090 kb/sec |
-| Nexys3     | Cypress FX2 USB        | USB2.0 speed | 30000 kB/sec |
-| Nexys2     | Cypress FX2 USB        | USB2.0 speed | 30000 kB/sec |
-| S3board    |  RS232+USB-RS232 cable | 460k Baud    |    41 kB/sec |
+| [Arty S7](https://wfjm.github.io/home/w11/inst/boards.html#digi_artys7)   | USB-UART bridge        | 12M Baud     |  1090 kB/sec |
+| [Arty A7](https://wfjm.github.io/home/w11/inst/boards.html#digi_arty)     | USB-UART bridge        | 12M Baud     |  1090 kB/sec |
+| [Basys3](https://wfjm.github.io/home/w11/inst/boards.html#digi_basys3)    | USB-UART bridge        | 12M Baud     |  1090 kB/sec |
+| [Cmod A7](https://wfjm.github.io/home/w11/inst/boards.html#digi_cmoda7)   | USB-UART bridge        | 12M Baud     |  1090 kB/sec |
+| [Nexys A7](https://wfjm.github.io/home/w11/inst/boards.html#digi_nexysa7) | USB-UART bridge        | 12M Baud     |  1090 kb/sec |
+| [Nexys4](https://wfjm.github.io/home/w11/inst/boards.html#digi_nexys4)    | USB-UART bridge        | 12M Baud     |  1090 kb/sec |
+| [Nexys3](https://wfjm.github.io/home/w11/inst/boards.html#digi_nexys3)    | Cypress FX2 USB        | USB2.0 speed | 30000 kB/sec |
+| [Nexys2](https://wfjm.github.io/home/w11/inst/boards.html#digi_nexys2)    | Cypress FX2 USB        | USB2.0 speed | 30000 kB/sec |
+| [S3board](https://wfjm.github.io/home/w11/inst/boards.html#digi_s3board)  |  RS232+USB-RS232 cable | 460k Baud    |    41 kB/sec |
     
 ### <a id="fpga-setup">FPGA Board setup</a>
 
 Recommended setups
 
-- Arty
+- [Arty A7](https://wfjm.github.io/home/w11/inst/boards.html#digi_arty) or
+  [Arty S7](https://wfjm.github.io/home/w11/inst/boards.html#digi_artys7)
   - connect USB cable to micro-USB connector labeled 'J10'
   - to configure via vivado hardware server `make <sys>.vconfig`
 
-- Basys3
+- [Basys3](https://wfjm.github.io/home/w11/inst/boards.html#digi_basys3)
   - connect USB cable to micro-USB connector labeled 'PROG'
   - to configure via vivado hardware server `make <sys>.vconfig`
 
-- Cmod A7
+- [Cmod A7](https://wfjm.github.io/home/w11/inst/boards.html#digi_cmoda7)
   - connect USB cable to micro-USB connector
   - to configure via vivado hardware server `make <sys>.vconfig`
 
-- Nexys4 and Nexys A7 (or Nexys4 DDR)
+- [Nexys4](https://wfjm.github.io/home/w11/inst/boards.html#digi_nexys4)
+  and [Nexys A7](https://wfjm.github.io/home/w11/inst/boards.html#digi_nexysa7)
+  (or
+  [Nexys4 DDR](https://wfjm.github.io/home/w11/inst/boards.html#digi_nexys4d))
   - connect USB cable to micro-USB connector labeled 'PROG'
   - to configure via vivado hardware server `make <sys>.vconfig`
 
-- Nexys3
+- [Nexys3](https://wfjm.github.io/home/w11/inst/boards.html#digi_nexys3)
   - use Cypress FX for configure and and rlink communication
   - connect USB cable to micro-USB connector labeled 'USB PROG'
   - to configure via FX2 and jtag tool `make <sys>.jconfig`
 
-- Nexys2
+- [Nexys2](https://wfjm.github.io/home/w11/inst/boards.html#digi_nexys2)
   - connect USB cable to mini-USB connector (between RS232 and PS/2 port)
   - to configure via FX2 and jtag tool `make <sys>.jconfig`
 
-- S3board
+- [S3board](https://wfjm.github.io/home/w11/inst/boards.html#digi_s3board)
   - connect the USB-RS232 cable to the RS232 port
   - connect a JTAG programmer (e.g. Xilinx USB Cable II) to JTAG pins
   - to configure via ISE Impact `make <sys>.iconfig`
@@ -110,46 +116,44 @@ All examples below use the same basic setup
   are in the indicated positions (SWI=...). The concrete boot script
   name is given in the following sections
 
-  - for arty over serial
+  - for [sys_w11a_arty](../rtl/sys_gen/w11a/arty/README.md) or
+    [sys_w11a_as7](../rtl/sys_gen/w11a/artys7/README.md) over serial
 
           SWI = 0110                (gives console light emulation...)
           ti_w11 -tuD,12M,break,xon  @<oskit-name>_boot.tcl
 
-     **Note**: the arty w11a has currently only 176 kB memory (all from BRAMS!).
-     u5ed works fine. XXDP, RT11 and RSX-11M should work.
-     211bsd will not boot, neither most RSX-11M+ systems.
-
-  - for b3 over serial
+  - for [sys_w11a_b3](../rtl/sys_gen/w11a/basys3/README.md) over serial
 
           SWI = 00000000 00101000   (gives console light display on LEDS)
           ti_w11 -tuD,12M,break,xon  @<oskit-name>_boot.tcl
-
 
      **Note**: the basys3 w11a has only 176 kB memory (all from BRAMS!).
      u5ed works fine. XXDP, RT11 and RSX-11M should work.
      211bsd will not boot, neither most RSX-11M+ systems.
 
-  - for c7 over serial
+  - for [sys_w11a_c7](../rtl/sys_gen/w11a/cmoda7/README.md) over serial
 
           ti_w11 -tuD,12M,break,xon  @<oskit-name>_boot.tcl
 
-     **Note**: the c7 w11a has currently only 672 kB memory
+     **Note**: the c7 w11a has only 672 kB memory
      (512 SRAM + 160 BRAM).
      u5ed, u7ed, XXDP, RT11, RSX-11M and most most RSX-11M+ systems should work.
      211bsd works only in the 'non-networking' configuration
-     [211bsd_rpmin](../tools/oskit/211bsd_rpmin)
+     [211bsd_rpmin](../tools/oskit/211bsd_rpmin).
 
-  - for n4 or n4d over serial
+  - for [sys_w11a_n4](../rtl/sys_gen/w11a/nexys4/README.md)
+    or [sys_w11a_n4d](../rtl/sys_gen/w11a/nexys4d/README.md) over serial
 
           SWI = 00000000 00101000   (gives console light display on LEDS)
           ti_w11 -tuD,12M,break,cts  @<oskit-name>_boot.tcl
 
-  - for n2,n3 over fx2
+  - for [sys_w11a_n3](../rtl/sys_gen/w11a/nexys3/README.md)
+    or [sys_w11a_n2](../rtl/sys_gen/w11a/nexys2/README.md) over fx2
 
           SWI = 00101100
           ti_w11 -u @<oskit-name>_boot.tcl
 
-  - for s3 over serial
+  - for [sys_w11a_s3](../rtl/sys_gen/w11a/s3board/README.md) over serial
 
           SWI = 00101010
           ti_w11 -tu<dn>,460k,break,xon @<oskit-name>_boot.tcl
@@ -158,7 +162,7 @@ All examples below use the same basic setup
     - the letter after `-tu` is either the serial device number,
       denoted as `<dn>`, or the letter `D` for auto-detection of
       Digilent boards with a FT2232HQ based interface.
-      - for Arty, Basys3, CmodA7 and Nexys4 board simply use `D`
+      - for Arty A7, Basys3, Cmod A7, Nexys4, and Nexys A7 board simply use `D`
       - otherwise check with `ls /dev/ttyUSB*` to see what is available
       - `<dn>` is typically '1' if a single `FT2232HQ` based board is connected,
         like an Arty, Basys3, CmodA7, or Nexys4. Initially two ttyUSB devices
@@ -167,22 +171,22 @@ All examples below use the same basic setup
         connection.
       - `<dn>` is typically '0' if only a single USB-RS232 cable is connected
 
-     - on LED display
-       - is controlled by SWI(3)
+    - on LED display
+      - is controlled by SWI(3)
 
                 0 -> system status
                 1 -> DR emulation --> OS specific light patterns
 
-     - on Hex display
-       - is controlled by SWI(5:4)
-       - boards with a 4 digit display
+    - on Hex display
+      - is controlled by SWI(5:4)
+      - boards with a 4 digit display
 
                 00 -> serial link rate divider
                 01 -> PC
                 10 -> DISPREG
                 11 -> DR emulation
 
-       - boards with 8 digit display
+      - boards with 8 digit display
 
                 SWI(5) select for DSP(7:4) display
                     0 -> serial link rate divider
@@ -300,4 +304,5 @@ Several oskits are provided:
 | [rt11-53_rl](../tools/oskit/rt11-53_rl)    | RT-11 V5.3      | RL02 | |
 | [xxdp_rl](../tools/oskit/xxdp_rl)       | XXDP 22 and 25  | RL02 | |
 
-For further details consult the `README.md` file in the oskit directory.
+For further details consult the [README.md](../tools/oskit/README.md)
+file in the oskit directory.

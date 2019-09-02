@@ -230,9 +230,37 @@ to avoid potential damage.
 Looking forward to receive test reports.
 
 #### Fix
-Purchased Nexys A7-100 board after the
-[Nexys4 board broke](https://wfjm.github.io/blogs/w11/2019-07-27-nexys4-obituary.html),
-tested, and fixed one silly mistake. Closed with commit
+The Nexys4 _(classic, with 16 MByte PSRAM)_ board, on which most of the recent
+w11 was done, broke in late July 2019
+(see [blog](https://wfjm.github.io/blogs/w11/2019-07-27-nexys4-obituary.html))
+and a Nexys A7 was ordered as replacement.
+
+Basic tests with the test designs
+[sys_tst_serloop2](https://github.com/wfjm/w11/blob/master/rtl/sys_gen/tst_serloop/nexys4d/sys_tst_serloop2_n4d.vhd) and
+[sys_tst_rlink_n4d](https://github.com/wfjm/w11/blob/master/rtl/sys_gen/tst_rlink/nexys4d/sys_tst_rlink_n4d.vhd)
+and the BRAM-only w11 design
+[sys_w11a_br_n4d](https://github.com/wfjm/w11/blob/master/rtl/sys_gen/w11a/nexys4d_bram/sys_w11a_br_n4d.vhd) worked fine.
+
+But all tests involving the DDR2 memory interface failed. The culprit was
+quickly found, it was a mistake in the MIG configuration
+[mig_a.prj](https://github.com/wfjm/w11/blob/master/rtl/bplib/nexys4d/mig_a.prj),
+the polarity of the `SYS_RST` signal was `ACTIVE LOW` instead of `ACTIVE HIGH`.
+After fixing this, the test designs
+[sys_tst_mig_n4d](https://github.com/wfjm/w11/blob/master/rtl/sys_gen/tst_mig/nexys4d/sys_tst_mig_n4d.vhd) and
+[sys_tst_sram_n4d](https://github.com/wfjm/w11/blob/master/rtl/sys_gen/tst_sram/nexys4d/sys_tst_sram_n4d.vhd)
+as well as the w11 implementation
+[sys_w11a_n4d](https://github.com/wfjm/w11/blob/master/rtl/sys_gen/w11a/nexys4d/sys_w11a_n4d.vhd) worked right away.
+
+The [tst_sram](https://github.com/wfjm/w11/tree/master/rtl/sys_gen/tst_sram)
+designs show nicely that the DDR2 on the Nexys A7 board is slightly slower
+than the DDR3 on the Arty A7 board
+```
+   Board     test time   clock period     UI_CLK
+  Nexys A7     37.36 s        3333 ps   75.0 MHz 
+  Arty A7      35.77 s        3000 ps   83.3 MHz
+```
+
+Closed with commit
 [563e230](https://github.com/wfjm/w11/commit/563e230).
 
 ### V0.66-1 {[issue #8](https://github.com/wfjm/w11/issues/8)} -- TM11 controller doesn't support odd transfer size

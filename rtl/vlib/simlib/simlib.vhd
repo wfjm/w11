@@ -1,6 +1,6 @@
--- $Id: simlib.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: simlib.vhd 1202 2019-08-13 17:23:16Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2006-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    simlib - sim
@@ -9,10 +9,11 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.2-14.7; viv 2015.4-2016.2; ghdl 0.18-0.33
+-- Tool versions:  xst 8.2-14.7; viv 2015.4-2016.2; ghdl 0.18-0.36
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2019-08-13  1202   2.1.5  write{oct,hex}: fix for ghdl V0.36 -Whide warnings
 -- 2016-09-03   805   2.1.4  simclk(v): CLK_STOP,CLK_HOLD now optional ports
 -- 2016-07-16   787   2.1.3  add simbididly component
 -- 2016-06-12   774   2.1.2  add writetimens()
@@ -1063,15 +1064,15 @@ begin
     nibble := "000";
     nibble(iwidth-1 downto 0) := value(ioffset+iwidth-1 downto ioffset);
     ochar := ' ';
-    for i in nibble'range loop
-      case nibble(i) is
+    for j in nibble'range loop
+      case nibble(j) is
         when 'U' => ochar := 'U';
         when 'X' => ochar := 'X';
         when 'Z' => ochar := 'Z';
         when '-' => ochar := '-';
         when others => null;
       end case;
-    end loop;  -- i
+    end loop;  -- j
     if ochar = ' ' then
       write(L,to_integer(unsigned(nibble)));
     else
@@ -1125,15 +1126,15 @@ begin
     nibble := "0000";
     nibble(iwidth-1 downto 0) := value(ioffset+iwidth-1 downto ioffset);
     ochar := ' ';
-    for i in nibble'range loop
-      case nibble(i) is
+    for j in nibble'range loop
+      case nibble(j) is
         when 'U' => ochar := 'U';
         when 'X' => ochar := 'X';
         when 'Z' => ochar := 'Z';
         when '-' => ochar := '-';
         when others => null;
       end case;
-    end loop;  -- i
+    end loop;  -- j
     if ochar = ' ' then
       write(L,hextab(to_integer(unsigned(nibble))+1));
     else

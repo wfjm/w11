@@ -165,7 +165,7 @@ All examples below use the same basic setup
       - for Arty A7, Basys3, Cmod A7, Nexys4, and Nexys A7 board simply use `D`
       - otherwise check with `ls /dev/ttyUSB*` to see what is available
       - `<dn>` is typically '1' if a single `FT2232HQ` based board is connected,
-        like an Arty, Basys3, CmodA7, or Nexys4. Initially two ttyUSB devices
+        like an Arty, Basys3, Cmod A7, or Nexys4. Initially two ttyUSB devices
         show up, the lower is for FPGA configuration and will disappear when
         the Vivado hardware server is used once. The upper provides the data
         connection.

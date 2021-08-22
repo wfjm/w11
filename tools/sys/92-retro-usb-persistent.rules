@@ -1,6 +1,6 @@
-# $Id: 92-retro-usb-persistent.rules 1194 2019-07-20 07:43:21Z mueller $
+# $Id: 92-retro-usb-persistent.rules 1205 2020-04-19 08:24:55Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2017-2020 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # udev rules to create persistent names for Digilent FT2232C style FPGA boards
 #
@@ -13,11 +13,17 @@
 #   interface number are properties of different device layers and multiple
 #   ATTRS{} must match in one layer
 #
-# NOTE: this is an example, adopt ID_SERIAL_SHORT to your needs, use
-#         udevadm info -q all -n /dev/ttyUSB2        # change USB2 to need
+# !!------------------------------------------------------------------------!!
+# !! NOTE: this is an example, using the SERIAL_SHORT of the authors boards !!
+# !!       adopt ID_SERIAL_SHORT to your needs, use                         !!
+# !!       udevadm info -q all -n /dev/ttyUSB1    # change USB1 to needs    !!
+# !!------------------------------------------------------------------------!!
 #
 # - Digilent nexys4 board ------------------------------------------------
 SUBSYSTEM=="tty", ENV{ID_USB_INTERFACE_NUM}=="01", ENV{ID_MODEL}=="Digilent_USB_Device", ENV{ID_SERIAL_SHORT}=="210274628291", SYMLINK="fpga_n4"
+#
+# - Digilent nexys a7 board ----------------------------------------------
+SUBSYSTEM=="tty", ENV{ID_USB_INTERFACE_NUM}=="01", ENV{ID_MODEL}=="Digilent_USB_Device", ENV{ID_SERIAL_SHORT}=="210292AA799F", SYMLINK="fpga_n4d"
 #
 # - Digilent basys3 board ------------------------------------------------
 SUBSYSTEM=="tty", ENV{ID_USB_INTERFACE_NUM}=="01", ENV{ID_MODEL}=="Digilent_USB_Device", ENV{ID_SERIAL_SHORT}=="210183638100", SYMLINK="fpga_b3"
@@ -25,5 +31,5 @@ SUBSYSTEM=="tty", ENV{ID_USB_INTERFACE_NUM}=="01", ENV{ID_MODEL}=="Digilent_USB_
 # - Digilent arty board --------------------------------------------------
 SUBSYSTEM=="tty", ENV{ID_USB_INTERFACE_NUM}=="01", ENV{ID_MODEL}=="Digilent_USB_Device", ENV{ID_SERIAL_SHORT}=="210319788597", SYMLINK="fpga_arty"
 #
-# - Digilent arty board --------------------------------------------------
+# - Digilent cmod a7 board -----------------------------------------------
 SUBSYSTEM=="tty", ENV{ID_USB_INTERFACE_NUM}=="01", ENV{ID_MODEL}=="Digilent_Adept_USB_Device", ENV{ID_SERIAL_SHORT}=="210328A414AD", SYMLINK="fpga_c7"

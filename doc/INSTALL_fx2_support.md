@@ -71,8 +71,8 @@ In case sdcc 2.x is installed use
 
     make SDCC29=1
 
-instead. See also tools/fx2/src/README.txt.
+instead. See also [tools/fx2/src/README.md](../tools/fx2/src/README.md).
 
-Please read [README_USB_VID-PID.md](README_USB_VID-PID.md) carefully to 
+Please read [README_USB-VID-PID.md](README_USB-VID-PID.md) carefully to
 understand the usage of USB VID and PID.
 

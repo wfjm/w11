@@ -260,7 +260,8 @@ Vivado hardware server. Simply use
 
     make <sys>.vconfig
 
-Note: works with Arty, Basys3, and Nexys4, only one board must connected.
+Note: works with Arty, Basys3, Cmod A7, and Nexys4,
+only one board must connected.
 
 ### <a id="ise">Note on ISE</a>
 

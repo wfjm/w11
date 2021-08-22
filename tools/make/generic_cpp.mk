@@ -1,9 +1,10 @@
-# $Id: generic_cpp.mk 1168 2019-06-20 11:52:51Z mueller $
+# $Id: generic_cpp.mk 1209 2021-08-22 13:17:33Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2011-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2021 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2021-08-17  1209   1.0.4  use -std=c++17 (gcc 7.3 or later)
 # 2018-09-22  1049   1.0.3  use -Wpedantic
 # 2017-02-03   848   1.0.4  use -std=c++11 (gcc 4.7 or later)
 # 2015-01-04   630   1.0.3  use -Wextra
@@ -47,7 +48,7 @@ ifndef CXXOPTFLAGS
 CXXOPTFLAGS = -O3
 endif
 #
-CXXFLAGS   = -Wall -Wextra -Wpedantic -fPIC -fno-strict-aliasing -std=c++11 
+CXXFLAGS   = -Wall -Wextra -Wpedantic -fPIC -fno-strict-aliasing -std=c++17
 CXXFLAGS  += $(CXXOPTFLAGS) $(INCLFLAGS)
 COMPILE.cc = $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
 #

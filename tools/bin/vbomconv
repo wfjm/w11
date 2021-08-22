@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: vbomconv 1189 2019-07-13 16:41:07Z mueller $
+# $Id: vbomconv 1202 2019-08-13 17:23:16Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2007-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-08-13  1202   1.18.2  ghdl_m: use -Wl,--no-pie (for UB 18.04 gcc)
 # 2019-07-13  1189   1.18.1  drop superfluous exists for $opts
 # 2018-11-09  1066   1.18   add and use bailout; add @tcl
 # 2016-08-28   804   1.17.3 xsim work dir now xsim.<mode>.<stem>
@@ -432,7 +433,8 @@ if ($opts{ghdl_m} || $opts{ghdl_m_cmd} ) {
 
   $cmd .= "ghdl -m --workdir=${workdir}";
   $cmd .= " -o $stem";
-                                 # -fexplicit needed for ISE 13.1,13.3
+  $cmd .= '  -Wl,-no-pie';   # needed when gcc built with --enable-default-pie
+                             # -fexplicit needed for ISE 13.1,13.3
   $cmd .= ' -fexplicit'          if $has_unisim or $has_unimacro or $has_simprim;
   $cmd .= " -P$xlpath/unisim"    if $has_unisim;
   $cmd .= " -P$xlpath/unimacro"  if $has_unimacro;

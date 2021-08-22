@@ -1,9 +1,10 @@
-// $Id: RlinkPortCuff.cpp 1186 2019-07-12 17:49:59Z mueller $
+// $Id: RlinkPortCuff.cpp 1209 2021-08-22 13:17:33Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright 2012-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2012-2021 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2021-08-17  1209   1.1.11 drop libusb_set_debug (now deprecated)
 // 2018-12-18  1089   1.1.10 use c++ style casts
 // 2018-12-17  1088   1.1.9  use std::thread instead of boost
 // 2018-12-14  1081   1.1.8  use std::bind instead of boost
@@ -105,8 +106,8 @@ bool RlinkPortCuff::Open(const std::string& url, RerrMsg& emsg)
     Cleanup();
     return false;
   }
-  // setup libusb level debug
-  libusb_set_debug(fpUsbContext, 3);        // info->stdout, warn+err->stderr
+  //libusb_set_debug is deprecated, libusb_set_option has different features
+  //libusb_set_debug(fpUsbContext, 3);        // info->stdout, warn+err->stderr
 
   // check for internal timeout handling support
   if (libusb_pollfds_handle_timeouts(fpUsbContext) == 0) {

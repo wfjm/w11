@@ -16,7 +16,7 @@ Most in fact work fine because floating point is rarely used, but a simple
 will generate a `core` because awk for example does use floating point
 arithmetic.
 
-**So far only minimal testing on the CmodA7 system (672 kB memory) done.**
+**So far only minimal testing on the Cmod A7 system (672 kB memory) done.**
 
 ### General remarks
 See notes in [w11a_os_guide.md](../../../doc/w11a_os_guide.md) on

@@ -1,9 +1,10 @@
-# $Id: viv_tools_config.tcl 1194 2019-07-20 07:43:21Z mueller $
+# $Id: viv_tools_config.tcl 1209 2021-08-22 13:17:33Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2021 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2021-08-17  1209   1.2.1  use open_hw_manager
 # 2017-01-07   840   1.2    use get_hw_servers localhost:*
 # 2016-04-02   758   1.1    add USR_ACCESS readback
 # 2015-02-14   646   1.0    Initial version
@@ -27,7 +28,7 @@ proc rvtb_format_usracc {usracc} {
 #
 proc rvtb_default_config {stem} {
   # open and connect to hardware server
-  open_hw
+  open_hw_manager
   connect_hw_server
 
   # connect to target (Note: localhost:* will fail on vivado 2015.1 and before)

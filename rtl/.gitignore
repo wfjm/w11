@@ -53,3 +53,6 @@ tmu_ofile
 *.tap
 *.lst
 *.cof
+
+# saved synthesis
+viv_20??.*

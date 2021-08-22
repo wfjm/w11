@@ -25,6 +25,9 @@ software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
 ### Summary
+- drop Travis (now defunct)
+- use vivado 2020.1 as default
+- use std=c++17 (requires gcc 7.3 or later)
 - automate oskit download and container file setup
 - automate testing of oskits
 - get Nexys A7 board working and fully integrated,
@@ -37,6 +40,10 @@ The full set of tests is only run for tagged releases.
   - ostest: automation of oskit tests
 
 ### Changes
+- tools changes
+  - RlinkPortCuff,/RtclRusb: drop libusb_set_debug (now deprecated)
+  - viv_tools_config.tcl: use open_hw_manager
+  - vbomconv: ghdl_m: use -Wl,--no-pie (for UB 18.04 gcc)
 - firmware changes
   - nexys4d/mig_a.prj: InputClk 100 MHz
   - tst_mig/nexys4d/sys_tst_mig_n4d: use 100 MHz MIG SYS_CLK; add clock monitor
@@ -479,7 +486,7 @@ The full set of tests is only run for tagged releases.
 - get vivado 2017.1 ready
 - Added Unix 7th Edition oskit; rename 5th Edition kit
   - u5ed_rk: renamed from unix-v5_rk
-  - u7ed_rp: added, very preliminary, boots on CmodA7, further testing needed
+  - u7ed_rp: added, very preliminary, boots on Cmod A7, further testing needed
 
 ### New features
 - Add Digilent Cmod A7 (35 die size) support
@@ -491,7 +498,7 @@ The full set of tests is only run for tagged releases.
   - associated changes
     - sn_humanio_rbus: add stat_rbf_emu (=0); single cycle btn pulses
     - rgbdrv_analog(_rbus): add ACTLOW generic to invert output polarity
-    - ti_rri: adopt Digilent autodetect for CmodA7
+    - ti_rri: adopt Digilent autodetect for Cmod A7
   - add systems
     - tst_rlink: rlink tester
     - tst_sram: SRAM tester

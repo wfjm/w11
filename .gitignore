@@ -12,6 +12,7 @@
 *.dep_*
 
 # temporary and generated
+*.md.html
 *.o
 *.tmp
 *.log

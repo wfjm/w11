@@ -1,4 +1,4 @@
--- $Id: tb_arty.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: tb_arty.vhd 1211 2021-08-28 11:20:34Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 -- 
@@ -10,7 +10,7 @@
 --                 simlib/simclkcnt
 --                 rlink/tbcore/tbcore_rlink
 --                 xlib/sfs_gsim_core
---                 tb_basys3_core
+--                 tb_arty_core
 --                 serport/tb/serport_master_tb
 --                 arty_aif [UUT]
 --

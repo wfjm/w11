@@ -1,4 +1,4 @@
--- $Id: sys_w11a_c7.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: sys_w11a_c7.vhd 1211 2021-08-28 11:20:34Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2017-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -15,7 +15,7 @@
 --                 w11a/pdp11_bram_memctl
 --                 bplib/fx2rlink/ioleds_sp1c
 --                 w11a/pdp11_hio70
---                 bplib/bpgen/sn_humanio_eum_rbus
+--                 bplib/bpgen/sn_humanio_emu_rbus
 --                 bplib/sysmon/sysmonx_rbus_base
 --                 vlib/rbus/rbd_usracc
 --                 vlib/rbus/rb_sres_or_4

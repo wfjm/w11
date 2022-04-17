@@ -1,6 +1,6 @@
 # w11: PDP 11/70 CPU and SoC
 
-[![Build Status](https://travis-ci.org/wfjm/w11.svg?branch=master)](https://travis-ci.org/wfjm/w11)
+[![ci](https://github.com/wfjm/w11/actions/workflows/ci.yml/badge.svg)](https://github.com/wfjm/w11/actions/workflows/ci.yml)
 [![Coverity Status](https://scan.coverity.com/projects/16546/badge.svg?flat=1)](https://scan.coverity.com/projects/wfjm-w11)
 [![Commits since latest release](https://img.shields.io/github/commits-since/wfjm/w11/latest.svg?longCache=true)](https://github.com/wfjm/w11/releases)
 

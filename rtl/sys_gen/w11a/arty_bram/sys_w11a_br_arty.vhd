@@ -1,4 +1,4 @@
--- $Id: sys_w11a_br_arty.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: sys_w11a_br_arty.vhd 1211 2021-08-28 11:20:34Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2016-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -153,7 +153,6 @@ architecture syn of sys_w11a_br_arty is
   signal RB_MREQ        : rb_mreq_type := rb_mreq_init;
   signal RB_SRES        : rb_sres_type := rb_sres_init;
   signal RB_SRES_CPU    : rb_sres_type := rb_sres_init;
-  signal RB_SRES_HIO    : rb_sres_type := rb_sres_init;
   signal RB_SRES_SYSMON : rb_sres_type := rb_sres_init;
   signal RB_SRES_USRACC : rb_sres_type := rb_sres_init;
 

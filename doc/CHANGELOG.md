@@ -26,6 +26,7 @@ The full set of tests is only run for tagged releases.
 
 ### Summary
 - drop Travis (now defunct)
+- add preliminary GitHub Actions support
 - use vivado 2020.1 as default
 - use std=c++17 (requires gcc 7.3 or later)
 - automate oskit download and container file setup

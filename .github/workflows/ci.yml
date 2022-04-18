@@ -1,4 +1,4 @@
-# $Id: ci.yml 1220 2022-04-17 16:41:28Z mueller $
+# $Id: ci.yml 1223 2022-04-18 10:39:00Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 
@@ -6,10 +6,17 @@ name: ci
 on: [push,workflow_dispatch]
 jobs:
   ci:
-    runs-on: ubuntu-20.04
-    env:
-      CC: gcc
-      CXX: g++
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-20.04            # Ub 20.4 && gcc
+            cc: gcc
+            cxx: g++
+          - os: ubuntu-20.04            # Ub 40.4 && clang
+            cc: clang
+            cxx: clang++
     steps:
     - uses: actions/checkout@v3
     - name: install
@@ -23,15 +30,15 @@ jobs:
         wget -nv https://www.retro11.de/data/oc_w11/travis/allsim.tgz
         tar -tvf allsim.tgz | perl -pe 's/^.*\s(\d\d\d\d-)/$1/'
         tar -xvf allsim.tgz && rm allsim.tgz
-    - name: info
-      run: |
-        lscpu
-        lsb_release -d
-        bash -c '${CC}  --version'
-        bash -c '${CXX} --version'
-        printenv | grep ^GITHUB_ | sort
+    - run: lscpu
+    - run: lsb_release -d
+    - run: bash -c '${{ matrix.cc }}  --version'
+    - run: bash -c '${{ matrix.cxx }} --version'
+    - run: printenv | grep ^GITHUB_ | sort
     - name: build
       run: |
+        export CC=${{ matrix.cc }}
+        export CXX=${{ matrix.cxx }}
         export RETROBASE=$PWD
         export PATH=$PATH:$RETROBASE/tools/bin:.
         export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$RETROBASE/tools/lib

@@ -5,7 +5,7 @@
 - [Download](#user-content-download)
 - [System requirements](#user-content-sysreq)
 - [Setup environment variables](#user-content-envvar)
-- [Compile UNISIM/UNIMACRO/SIMPRIM libraries for ghdl](#user-content-ghdl-lib)
+- [Compile UNISIM/UNIMACRO/SIMPRIM libraries for GHDL](#user-content-ghdl-lib)
 - [Compile and install the support software](#user-content-build-tools)
   - [Compile sharable libraries](#user-content-build-cpp)
   - [Setup Tcl packages](#user-content-build-tcl)
@@ -40,7 +40,7 @@ working directory with the name represented as `<install-dir>`
         git checkout tags/<tag>
 
 The GitHub repository contains the full version history since 2010.
-Prior to October 2016 the project was maintained on OpenCores, access
+Prior to October 2016, the project was maintained on OpenCores, access
 to the legacy svn repository is described in
 [INSTALL_from_opencores.md](INSTALL_from_opencores.md).
 
@@ -49,7 +49,7 @@ to the legacy svn repository is described in
 This project contains not only VHDL code but also support software. Therefore
 quite a few software packages are expected to be installed. The following
 list gives the Ubuntu/Debian package names, but mapping this to other
-distributions should be straight forward. 
+distributions should be straightforward. 
 
 - building the FPGA bit files requires the Xilinx design tools 
   - Vivado WebPACK (for Series-7 based designs)
@@ -64,9 +64,9 @@ distributions should be straight forward.
     -> package: `tcl` `tcl-dev` `tcllib` `tclreadline`
 
 - for VHDL simulations one needs
-  - ghdl  
+  - GHDL  
     -> see [INSTALL_ghdl.md](INSTALL_ghdl.md) for the unfortunately gory details
-  - gtkwave  
+  - GTKWave  
     -> package: `gtkwave`
 
 - additional requirements for using Cypress FX (on Nexys2/3) see
@@ -78,9 +78,9 @@ distributions should be straight forward.
 
 ### <a id="envvar">Setup environment variables</a>
 
-The make flows for building test benches (ghdl, Vivado xsim or ISE ISim based)
-and FPGA bit files (with Vivado or ISE) as well as the support software
-(mainly the rlink backend server) requires the definition of the environment 
+The `make` flows for building test benches (GHDL, Vivado xsim or ISE ISim based)
+and FPGA bit files (with Vivado or ISE), as well as the support software
+(mainly the rlink backend server), requires the definition of the environment 
 variables:
 
 | Variable | Comment |
@@ -105,7 +105,7 @@ For bash and alike use
       export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$RETROBASE/tools/lib
       export MANPATH=$MANPATH:$RETROBASE/tools/man
 
-Boost was essential in the pre-c++11 times, but has been completely replaced
+Boost was essential in the pre-c++11 times but has been completely replaced
 by std:: classes provided by c++11. In most cases the Tcl version coming with
 the distribution will work, in those cases simply use
 
@@ -116,15 +116,15 @@ and don't setup `BOOSTINC` and `BOOSTLIB`.
 
 After that building functional model based test benches will work. If you 
 want to also build post-synthesis or post-place&route test benches 
-read next section.
+read the next section.
 
 For Cypress FX2 (on Nexys2/3) related setup see 
 [INSTALL_fx2_support.md](INSTALL_fx2_support.md).
 
-### <a id="ghdl-lib">Compile UNISIM/UNIMACRO/SIMPRIM libraries for ghdl</a>
+### <a id="ghdl-lib">Compile UNISIM/UNIMACRO/SIMPRIM libraries for GHDL</a>
 
 The build system for test benches also supports test benches run against the
-gate level models derived after synthesis or place&route. In this case ghdl
+gate level models derived after synthesis or place&route. In this case GHDL
 has to link against a compiled a `UNISIM`, `UNIMACRO` or `SIMPRIM` library.
 The details are described in
 - [README_buildsystem_Vivado.md](README_buildsystem_Vivado.md#user-content-ghdllibs)
@@ -134,7 +134,7 @@ The details are described in
 
 #### <a id="build-cpp">Compile sharable libraries</a>
 
-The backend code base uses now many `c++11` langauge features, e.g.
+The backend codebase uses now many `c++11` language features, e.g.
 `nullptr`, `auto`, lambda functions, list initialization, range-based `for`,
 to name the most prominent.
 A C++ compiler with full `c++11` support is therefore needed, so either
@@ -158,7 +158,7 @@ To build all sharable libraries
     make -j 4
 
 Default is to compile with `-O2` and without `-g`. These options can be
-overwritten with the `CXXOPTFLAGS` enviromnent variable (or make opion).
+overwritten with the `CXXOPTFLAGS` environment variable (or make option).
 To build with `-O3` optimize use
 
     make -j 4 CXXOPTFLAGS=-O3
@@ -187,7 +187,7 @@ To use these packages it is convenient to make them available via the
     lappend auto_path [file join $env(RETROBASE) tools tcl]
     lappend auto_path [file join $env(RETROBASE) tools lib]
 
-The w11 project contains two ready to use `.tclshrc` or `.wishrc`
+The w11 project contains two ready-to-use `.tclshrc` or `.wishrc`
 files which
 - include the auto_path statements above
 - activate `tclreadline` (and thus in `tclshrc` an event loop)
@@ -249,7 +249,7 @@ with in most cases
 
 ### <a id="bitkits">Available bitkits with bit and log files</a>
 
-Tarballs with ready to use bit files and all logfiles from the tool 
+Tarballs with ready-to-use bit files and all logfiles from the tool 
 chain can be downloaded from
 http://www.retro11.de/data/oc_w11/bitkits/ .
 

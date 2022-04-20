@@ -27,7 +27,7 @@ The full set of tests is only run for tagged releases.
 ### Summary
 - drop Travis (now defunct)
 - add preliminary GitHub Actions support
-- use vivado 2020.1 as default
+- use Vivado 2020.1 as default
 - use std=c++17 (requires gcc 7.3 or later)
 - automate oskit download and container file setup
 - automate testing of oskits
@@ -50,7 +50,7 @@ The full set of tests is only run for tagged releases.
   - tst_mig/nexys4d/sys_tst_mig_n4d: use 100 MHz MIG SYS_CLK; add clock monitor
   - tst_sram/nexys4d/sys_tst_sram_n4d: use 100 MHz MIG SYS_CLK
   - w11a/nexys4d/sys_w11a_n4d: use 100 MHz MIG SYS_CLK
-  - */*.vhd: fixes for ghdl V0.36 -Whide warnings
+  - */*.vhd: fixes for GHDL V0.36 -Whide warnings
 
 ### Bug Fixes
   - nexys4d/mig_a.prj: BUGFIX: SysResetPolarity ACTIVE HIGH
@@ -59,7 +59,7 @@ The full set of tests is only run for tagged releases.
 ---
 ## <a id="w11a_V0.79">2019-07-27: [w11a_V0.79](https://github.com/wfjm/w11/releases/tag/w11a_V0.79) - rev 1197(wfjm)</a>
 ### Summary
-- use vivado 2019.1 as default
+- use Vivado 2019.1 as default
 - finalize coverity fixups, now defect free ([see blog](https://wfjm.github.io/blogs/w11/2019-06-14-coverity-fixes-done.html))
 - use SPDX license tags, remove boilerplate license disclaimers ([see blog](https://wfjm.github.io/blogs/w11/2019-07-21-spdx.html))
 - TM11: support odd record length, close [issue #8](https://github.com/wfjm/w11/issues/8)
@@ -87,7 +87,7 @@ The full set of tests is only run for tagged releases.
   - tap2file: add -v option
 - firmware changes
   - sys_w11a_arty: down-rate to 72 MHz, viv 2019.1 fails with 75 MHz
-  - sys_w11a_*.vmfset: add new rule for vivado 2019.1
+  - sys_w11a_*.vmfset: add new rule for Vivado 2019.1
   - pdp11_vmbox: support membe for em cacc access
 
 ### Bug Fixes
@@ -319,7 +319,7 @@ The full set of tests is only run for tagged releases.
   a `.travis.yml`.
 - use static source code analysis [Coverity Scan](https://scan.coverity.com),
   add [project wfjm/w11](https://scan.coverity.com/projects/wfjm-w11).
-  The scans are manually uploaded, not automated via Travis (w11 is a `vhdl`
+  The scans are manually uploaded, not automated via Travis (w11 is a `VHDL`
   project after all, so C++ backend code doesn't change so often). Coverity
   found a modest number of defects,  most uncritical, but some real bugs.
 - the Coverity results triggered a general backend code review
@@ -330,7 +330,7 @@ The full set of tests is only run for tagged releases.
 - add KW11-P (programmable clock) to all w11 systems. It is usefull in test
   benches (fast interrupt source) and enables on the long run to port the
   2.10BSD kernel profiling code to 2.11BSD.
-- stay with vivado 2017.2 as default tool, 2017.2 to 2018.2 exhibit much
+- stay with Vivado 2017.2 as default tool, 2017.2 to 2018.2 exhibit much
   longer build times for w11 designs (see [w11 blog posting](https://wfjm.github.io/blogs/w11/2018-09-01-vivado-2018.2-much-slower.html))
 - the first Artix-7 designs for the nexys4 board where done in 2013 with
   ISE 14.5, later with 14.7, simply because the early Vivado versions were
@@ -341,7 +341,7 @@ The full set of tests is only run for tagged releases.
 ### New features
 - travis support via `.travis.yml`
   - compiles the C++ backend
-  - download the `ghdl` based test benches (can't be build under Travis)
+  - download the `GHDL` based test benches (can't be build under Travis)
   - execute the test benches with `tbrun`
 - add KW11-P support, enable it in all w11a systems
 - add performance counters
@@ -358,7 +358,7 @@ The full set of tests is only run for tagged releases.
   - remove ISE 14.x build support for 7Series (mostly nexys4 designs)
   - Makefile: `make all_tcl` now quiet, use setup_packages_filt
 - tools changes
-  - vbomconv: now allows to inject Tcl scripts into the vivado project setup
+  - vbomconv: now allows to inject Tcl scripts into the Vivado project setup
     sequence via the `@tcl` directive.
   - xviv_msg_filter
     - display INFO Common 17-14 'further message disabled'
@@ -456,9 +456,9 @@ The full set of tests is only run for tagged releases.
   Spartan vs Artix performance a w11a port to the Arty S7 board was added.
   The design runs with 80 MHz, same clock rate as achieved with Artix-7 FPGAs.
   _Note_: the design is only simulation tested, was _not FPGA tested_ !!
-- use vivado 2017.2 as default (needed for Spartan-7 support). All vivado
+- use Vivado 2017.2 as default (needed for Spartan-7 support). All Vivado
   versions from 2017.3 to 2018.2 were tested. All designs build properly under
-  vivado 2018.2, but the CPU time for a build increased very substantially,
+  Vivado 2018.2, but the CPU time for a build increased very substantially,
   so they are currently not used as default build tool.
 
 ### New features
@@ -470,8 +470,8 @@ The full set of tests is only run for tagged releases.
 ### Changes
 - xviv_msg_filter: allow {yyyy.x} tags (in addition to ranges)
 - xviv_msg_summary: check also for .bit and .dcp files
-- get vivado 2017.2 ready (needed for Spartan-7 support)
-- test vivado 2017.3 - 2018.2 ready
+- get Vivado 2017.2 ready (needed for Spartan-7 support)
+- test Vivado 2017.3 - 2018.2 ready
   - *.vmfset: update rules to cover 2017.4-2018.2
   - all designs build under 2017.2 and 2018.2
 
@@ -484,7 +484,7 @@ The full set of tests is only run for tagged releases.
   They are now consistent with the License.txt file, which refers to GPL V3.
 - Add Digilent Cmod A7 (35 die size) support
 - Add [INSTALL_quickstart](INSTALL_quickstart.md)
-- get vivado 2017.1 ready
+- get Vivado 2017.1 ready
 - Added Unix 7th Edition oskit; rename 5th Edition kit
   - u5ed_rk: renamed from unix-v5_rk
   - u7ed_rp: added, very preliminary, boots on Cmod A7, further testing needed
@@ -512,7 +512,7 @@ The full set of tests is only run for tagged releases.
 - 17bit support for tst_sram
   - tst_sram.vhd: allow AWIDTH=17; sstat_rbf_awidth instead of _wide
   - tcl/tst_sram/*.tcl: 17bit support; use sstat(awidth); add isnarrow
-- get vivado 2017.1 ready
+- get Vivado 2017.1 ready
   - xviv_msg_filter: add version-range tag support
   - *.vmfset:
     - drop the nonsense 'Synth 8-6014' messages
@@ -542,7 +542,7 @@ The full set of tests is only run for tagged releases.
 - move to Ubuntu 16.04 as development platform
   - document urjtag build (jtag in Ubuntu 16.04 is broken)
   - add environment sanity wrappers for acroread,awk,firefox to ensure
-    proper operation of vivado under Ubuntu 16.04
+    proper operation of Vivado under Ubuntu 16.04
   - use -std=c++11 (gcc 4.7 or later)
   - for all FTDI USB-UART it is essential to set them to `low latency` mode.
     That was default for Linux kernels 2.6.32 to 4.4.52. Since about March
@@ -550,7 +550,7 @@ The full set of tests is only run for tagged releases.
     [kernel patch 9589541](https://patchwork.kernel.org/patch/9589541/).
     **For newer systems it is essential to install a udev rule** which
     automatically sets low latency, see [documentation](../tools/sys/README.md).
-- the cpu monitor dmcmon was not available in vivado systems due to synthesis
+- the cpu monitor dmcmon was not available in Vivado systems due to synthesis
   issues caused by dmscnt. Is resolved, dmcmon now part of sys_w11a_n4.
 - many improvements to the w11 shell in ti_w11: rbmon integrated, usage
   of ibmon and dmcmon streamlined.
@@ -613,7 +613,7 @@ The full set of tests is only run for tagged releases.
   - does not depend on full state number generation anymore
   - missed WAIT instructions so far, has been fixed
 - dmcmon included in sys_w11a_n4 again
-  - full snum generation code gives bad synthesis under vivado (fine in ISE)
+  - full snum generation code gives bad synthesis under Vivado (fine in ISE)
   - the updated dmcmon can life with a simple, category based, snum
 - move hook_*.tcl files to tools/oskiit/hook directory
 - w11 shell .bs now support ibus register names and ranges
@@ -711,7 +711,7 @@ The full set of tests is only run for tagged releases.
 ## <a id="w11a_V0.742">2017-01-07: [w11a_V0.742](https://github.com/wfjm/w11/releases/tag/w11a_V0.742) - rev 841(wfjm)</a>
 
 ### Summary
-- fixes for Vivado 2016.4; all designs build under vivado 2016.4
+- fixes for Vivado 2016.4; all designs build under Vivado 2016.4
 - added **preliminary** support for Nexys4 DDR board (thanks to [Michael Lyle](https://github.com/mlyle) for testing!)
 - [w11 shell](../tools/tcl/rw11/shell.tcl) re-organized and expanded,
   now default in [ti_w11](../tools/bin/ti_w11)

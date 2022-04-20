@@ -14,19 +14,19 @@
 
 All UNIBUS peripherals which exchange data (currently DL11, DZ11, LP11, PC11,
 DEUNA, RK11, RL11, RPRH, and TM11) are currently emulated via a backend
-process. The communication between FPGA board and backend server can be via
+process. The communication between the FPGA board and backend server can be via
 
 - Serial port
   - via an integrated USB-UART bridge
-    - on Arty A7, Basys3, Cmod A7 and Nexys4 and Nexys A7 with a `FT2232HQ`, 
+    - on Arty A7, Basys3, Cmod A7 and Nexys4, and Nexys A7 with a `FT2232HQ`, 
       allows up to 12M Baud
     - on Nexys3 with a `FT232R`, allows up to 2M Baud
     - for all FTDI USB-UART it is essential to set them to `low latency` mode.
-      That was default for Linux kernels 2.6.32 to 4.4.52. Since about March
-      2017 one gets kernels with 16 ms default latency again, thanks to
+      That was the default for Linux kernels 2.6.32 to 4.4.52. Since about March
+      2017, one gets kernels with 16 ms default latency again, thanks to
       [kernel patch 9589541](https://patchwork.kernel.org/patch/9589541/).
-      **For newer systems it is essential to install a udev rule** which
-      automatically sets low latency, see
+      **On newer systems, it is essential to install a udev rule** which
+      automatically sets low latency, see the
       [documentation in tools/sys](../tools/sys/README.md).
   - via RS232 port, as on S3board and Nexys2
     - using a serial port (/dev/ttySx) is limited to 115 kBaud on most PCs.
@@ -35,7 +35,7 @@ process. The communication between FPGA board and backend server can be via
 - Direct USB connection using a Cypress FX2 USB controller
   - is supported on the Nexys2 and Nexys3 FPGA boards
   - much faster than serial port connections (see below)
-  - also allows to configure the FPGA over the same USB connection
+  - also allows configuring the FPGA over the same USB connection
 
 - Notes: 
   - A 12M Baud connection, like on a Nexys4, gives disk access rates and 
@@ -45,7 +45,7 @@ process. The communication between FPGA board and backend server can be via
     is actually smaller than the bare numbers suggest.
   - A 460k Baud connection gives in practice a disk throughput of ~20 kB/s. 
     This allows to test the system but is a bit slow for real usage.
-  - USB-RS232 cables with a FTDI `FT232R` chip work fine, tests with Prolific 
+  - USB-RS232 cables with an FTDI `FT232R` chip work fine, tests with Prolific 
     Technology `PL2303` based cable never gave reliable connections for higher 
     Baud rates.
 
@@ -70,22 +70,22 @@ Recommended setups
 - [Arty A7](https://wfjm.github.io/home/w11/inst/boards.html#digi_arty) or
   [Arty S7](https://wfjm.github.io/home/w11/inst/boards.html#digi_artys7)
   - connect USB cable to micro-USB connector labeled 'J10'
-  - to configure via vivado hardware server `make <sys>.vconfig`
+  - to configure via Vivado hardware server `make <sys>.vconfig`
 
 - [Basys3](https://wfjm.github.io/home/w11/inst/boards.html#digi_basys3)
   - connect USB cable to micro-USB connector labeled 'PROG'
-  - to configure via vivado hardware server `make <sys>.vconfig`
+  - to configure via ivado hardware server `make <sys>.vconfig`
 
 - [Cmod A7](https://wfjm.github.io/home/w11/inst/boards.html#digi_cmoda7)
   - connect USB cable to micro-USB connector
-  - to configure via vivado hardware server `make <sys>.vconfig`
+  - to configure via Vivado hardware server `make <sys>.vconfig`
 
 - [Nexys4](https://wfjm.github.io/home/w11/inst/boards.html#digi_nexys4)
   and [Nexys A7](https://wfjm.github.io/home/w11/inst/boards.html#digi_nexysa7)
   (or
   [Nexys4 DDR](https://wfjm.github.io/home/w11/inst/boards.html#digi_nexys4d))
   - connect USB cable to micro-USB connector labeled 'PROG'
-  - to configure via vivado hardware server `make <sys>.vconfig`
+  - to configure via Vivado hardware server `make <sys>.vconfig`
 
 - [Nexys3](https://wfjm.github.io/home/w11/inst/boards.html#digi_nexys3)
   - use Cypress FX for configure and and rlink communication
@@ -161,11 +161,11 @@ All examples below use the same basic setup
     Notes: 
     - the letter after `-tu` is either the serial device number,
       denoted as `<dn>`, or the letter `D` for auto-detection of
-      Digilent boards with a FT2232HQ based interface.
+      Digilent boards with an FT2232HQ based interface.
       - for Arty A7, Basys3, Cmod A7, Nexys4, and Nexys A7 board simply use `D`
       - otherwise check with `ls /dev/ttyUSB*` to see what is available
       - `<dn>` is typically '1' if a single `FT2232HQ` based board is connected,
-        like an Arty, Basys3, Cmod A7, or Nexys4. Initially two ttyUSB devices
+        like an Arty, Basys3, Cmod A7, or Nexys4. Initially, two ttyUSB devices
         show up, the lower is for FPGA configuration and will disappear when
         the Vivado hardware server is used once. The upper provides the data
         connection.
@@ -198,12 +198,12 @@ All examples below use the same basic setup
 ### <a id="simh">simh simulator setup</a>
 
 Sometimes it is good to compare the w11a behavior with the PDP-11 software
-emulator from the simh project (see http://simh.trailing-edge.com/).
+emulator from the simh project (see https://github.com/simh/simh).
 
-Under `$RETROBASE/tools/simh` two setup files are provided with configure
+Under `$RETROBASE/tools/simh` two setup files are provided which configure
 simh to reflect the w11a setup as close as possible:
 - `setup_w11a_min.scmd`  
-  Very close the current w11a state when it runs on an s3board
+  Very close to the current w11a state when it runs on an s3board
   - processor: 11/70, no FPP, 1 Mbyte
   - periphery:   2 DL11, LP11, RK11, PC11
 - `setup_w11a_max.scmd`  
@@ -216,9 +216,10 @@ configuration, so will show in the emulator what w11a can do when
 finished.
 
 All examples below use the same basic setup
-- setup vt100 emulator window for 2nd DL11
+- setup vt100 emulator window for 1st and 2nd DL11
 
          cd $RETROBASE/tools/oskit/<oskit-name>
+         console_starter -s -d DL0 &
          console_starter -s -d DL1 &
 
    **Note**: the -s ensures that the port numbers used by simh are taken!
@@ -267,9 +268,9 @@ For further details consult the `README.md` file in the oskit directory.
 
 #### Legal and license issues
 
-Unfortunately there is no general hobbyist license for DEC operating 
+Unfortunately, there is no general hobbyist license for DEC operating 
 systems for PDP-11 computers. The 'Mentec license' is commonly understood 
-to cover the some older versions of DEC operating systems, for example
+to cover some older versions of DEC operating systems, for example
 
 - RT-11 V5.3 or prior
 - RSX-11M V4.3 or prior

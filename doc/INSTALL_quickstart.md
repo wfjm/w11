@@ -73,7 +73,7 @@ with the currently supported combinations
     nexys4          n4       3840 kB   Digilent Nexys4 board (cellular RAM)
     nexys4d         n4d      3840 kB   Digilent Nexys A7-100 board (DDR2)
 
-The FPGA is configured via the vivado hardware server with
+The FPGA is configured via the Vivado hardware server with
 
     make sys_w11a_<btype>.vconfig
 
@@ -81,7 +81,7 @@ The FPGA is configured via the vivado hardware server with
 
 A variety of _oskits_ is provided under [tools/oskit](../tools/oskit).
 The quick start guide describes only how to boot plain 2.11BSD. The
-full featured [211bsd_rp](../tools/oskit/211bsd_rp/README.md) can be
+full-featured [211bsd_rp](../tools/oskit/211bsd_rp/README.md) can be
 used when more than 1024 kB memory is available, for systems with 512 to
 1024 kB memory use the pruned down
 [211bsd_rpmin](../tools/oskit/211bsd_rpmin/README.md).

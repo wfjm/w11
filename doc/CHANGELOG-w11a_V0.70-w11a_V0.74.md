@@ -38,10 +38,10 @@
   results in a bit faster cache line load times. The overall performance
   of a w11a design is measurably, but marginally better.
 - many unit tests still used a ISE environment. All board independent
-  tests were converted now to a vivado environment, only tests which
-  really depend a FPGA not supported by vivado stay with ISE.
+  tests were converted now to a Vivado environment, only tests which
+  really depend an FPGA not supported by Vivado stay with ISE.
 - a total of 82 unit or system tests are currently available. Many of them
-  can be executed by different simulation engines, ghdl or the ISE/vivado 
+  can be executed by different simulation engines, GHDL or the ISE/Vivado 
   build-in simulators, and for different stages of the implementation flow, 
   from initial behavioral simulation over post-synthesis functional to final 
   post-routing timing simulation. This results in a large number of possible
@@ -76,7 +76,7 @@
   bench configuration is done in the first ns of the simulation and has
   thus completed well before all other activities.
 - finally a caveat: post-synthesis simulations work fine with ISE, but
-  currently not with vivado, even in case of almost identical designs,
+  currently not with Vivado, even in case of almost identical designs,
   like `sys_tst_rlink_n3` vs `sys_tst_rlink_n4`. Is under investigation.
 
 ### Summary
@@ -143,7 +143,7 @@
       - generic_ghdl.mk               - ghdl_clean: remove also gcov files
     - rtl/make_viv
       - generic_ghdl.mk               - ghdl_clean: remove also gcov files
-      - generic_vivado.mk             - viv_clean: rm only vivado logs
+      - generic_vivado.mk             - viv_clean: rm only Vivado logs
       - generic_xsim.mk               - xsim work dir now xsim.<mode>.<stem>
     - rtl/sys_gen/tst_serloop
       - */tb/tb_tst_serloop*.vhd      - remove CLK_STOP logic
@@ -185,46 +185,46 @@
 ---
 ## <a id="w11a_V0.73">2016-06-26: w11a_V0.73 - svn rev 36(oc) 779(wfjm)</a>
 ### Preface
-- the 'basic vivado support' added with V0.64 was a minimal effort port of
-  the code base used under ISE, leading to sub-optimal results under vivado.
-  - the FSM inference under vivado is quirky and has several issues. The
+- the 'basic Vivado support' added with V0.64 was a minimal effort port of
+  the code base used under ISE, leading to sub-optimal results under Vivado.
+  - the FSM inference under Vivado is quirky and has several issues. The
     most essential one prevented re-coding with 'one_hot' encoding, which
     lead to high logic depth and low clock rates. Proper work-arounds were
-    applied to almost all FSMs, now vivado infers all (but one) properly
+    applied to almost all FSMs, now Vivado infers all (but one) properly
     and re-codes them as 'one_hot'. That is especially important for the
     pdp11_sequencer, which has 113 states. The sys_w11a_n4 system can now
     run with up to 90 MHz (was 75-80 MHz before).
   - due to a remaining synthesis issue the dmscnt and dmcmon debug units
     are currently disabled for Artix based systems (see issue V0.73-3).
   - memory inference is now used for all distributed and block rams under
-    vivado. The memory generators in memlib are still used under ISE
+    Vivado. The memory generators in memlib are still used under ISE
     Note: they were initially setup to work around ISE synthesis issues.
-  - vivado synthesis and implementation use now 'explore' type flows for
+  - Vivado synthesis and implementation use now 'explore' type flows for
     optimal timing performance.
   - the two clock dram based fifo was re-written (as `fifo_2c_dram2`) to allow
-    proper usage of vivado constraints (e.g. scoped xdc).
-- vivado is now the prime platform for all further development
+    proper usage of Vivado constraints (e.g. scoped xdc).
+- Vivado is now the prime platform for all further development
   - the component test benches run now by default under Vivado with an
     Artix-7 as default target. The makefiles for ISE with a Spartan-6 target
     are available as `Makefile.ise` and via the `makeise` command.
   - a message filter (`xviv_msg_filter`) has been developed which lists only
     the unexpected message of a synthesis or implementation run. Filter
     rule sets (`.vmfset` files) are available for all designs.
-  - full support for the vivado simuator `xsim` has been added, there are
+  - full support for the Vivado simuator `xsim` has been added, there are
     make targets to build a behavioral simulation as well as post-synthesis,
     post-optimize, and post-routing functional and timing models. All these
     models are now created in separate sub-directories and can now co-exist.
     However see issues V0.73-1 and V0.73-2 for severe caveats on xsim.
-  - vivado write_vhdl generates code which violates a vhdl language rule. 
+  - Vivado write_vhdl generates code which violates a VHDL language rule. 
     Attributes of port signals are declared in the wrong place. xsim and 
-    other simulators accept this, but ghdl doesn't. As a work-around the
+    other simulators accept this, but GHDL doesn't. As a work-around the
     generated code is cleaned up by a filter (see xviv_sim_vhdl_cleanup).  
 - additional rlink devices
   - the XADC block, available on all 7Series FPGAs, is now accessible via
     rlink on all Arty, Basys3 and Nexys4 designs. Especially useful on the
     Arty board because on this board also the currents are monitored.
   - the USR_ACCESS register, available on all 7Series FPGAs, is now readable
-    via rlink on all Arty, Basys3 and Nexys4 designs. The vivado build flow
+    via rlink on all Arty, Basys3 and Nexys4 designs. The Vivado build flow
     initializes this register with the build timestamp. This allows to
     verify the build time of a design at run time.
 - the cache used by the w11a (`pdp11_cache`) was initialy developed with the
@@ -250,7 +250,7 @@
 
 ### Summary
 - new reference system: switched to Vivado 2016.2 (from 2015.4)
-- code base cleaned-up for vivado, fsm now inferred
+- code base cleaned-up for Vivado, fsm now inferred
 - xsim support complete (but many issues to be resolved yet)
 - added configurable w11a cache
 - removed some never documented and now strategically obsolete designs:
@@ -268,7 +268,7 @@
         - cdc_vector_s0.vhd           - cdc for a vector, 1 stage
       - rtl/vlib/memlib
         - fifo_2c_dram2.vhd             - re-write of fifo_2c_dram to allow
-                                          proper usage of vivado constraints
+                                          proper usage of Vivado constraints
       - rtl/vlib/rbus
         - rb_sres_or_6.vhd              - rbus result or, 6 input
         - rbd_usracc.vhd                - return usr_access register
@@ -281,9 +281,9 @@
     - new files
       - tools/bin
         - xise_msg_summary            - list all filtered ISE messages
-        - xviv_msg_filter             - message filter for vivado
-        - xviv_msg_summary            - list all filtered vivado messages
-        - xviv_sim_vhdl_cleanup       - cleanup vivado generated vhdl for ghdl
+        - xviv_msg_filter             - message filter for Vivado
+        - xviv_msg_summary            - list all filtered Vivado messages
+        - xviv_sim_vhdl_cleanup       - cleanup Vivado generated VHDL for GHDL
         - makeise                     - wrapper for make -f Makefile.ise
       - tools/tcl/rbtest
         - test_flow.tcl               - test back pressure and flow control
@@ -294,10 +294,10 @@
     - rtl/bplib/*/tb/tb_*.vbom      - use -UUT attribute
     - rtl/sys_gen/*/*/tb/tb_*.vbom  - use -UUT attribute
     - rtl/make_ise
-      - generic_ghdl.mk               - use ghdl.?sim as workdir for ghdl
+      - generic_ghdl.mk               - use ghdl.?sim as workdir for GHDL
       - generic_xflow.mk              - use .imfset for ISE message rules
     - rtl/make_viv
-      - generic_ghdl.mk               - use ghdl.?sim as workdir for ghdl
+      - generic_ghdl.mk               - use ghdl.?sim as workdir for GHDL
       - generic_vivado.mk             - add [sorep]sim.v and %.vivado targets
                                       - vmfset support, use xviv_sim_vhdl_cleanup
       - generic_xsim.mk               - [rep]sim models; use xsim.?sim as workdir
@@ -322,8 +322,8 @@
     - rtl/w11a
       - pdp11_bram_memctl.vhd         - use memory inference now
       - pdp11_cache.vhd               - now configurable size (8,16,32,64,128 kB)
-      - pdp11_sequencer.vhd           - proc_snum conditional (vivado fsm fix)
-    - rtl/*/*.vbom                  - use memory inference for vivado
+      - pdp11_sequencer.vhd           - proc_snum conditional (Vivado fsm fix)
+    - rtl/*/*.vbom                  - use memory inference for Vivado
     - rtl/*/*.vhd                   - workarounds and fixes to many FSMs
     - tools/bin
       - tbrun_tbw                     - use _bsim.log for behavioral sim log
@@ -365,24 +365,24 @@
 ### Known issues
 - all issues: see README_known_issues.txt
 - resolved issues:
-  - **V0.72-1**: since vivado 2016.1 xelab builds models which use DPI in a
-      mixed vhdl-verilog language environment.
+  - **V0.72-1**: since Vivado 2016.1 xelab builds models which use DPI in a
+      mixed VHDL-Verilog language environment.
   - **V0.72-2**: now full support to build behavioral as well as functional and
       timing simulations with xsim. See V.073-1 and 0.73-2 for caveats.
   - **V0.64-7**: flow control issues with simulation models resolved
   - **V0.64-3**: basys3, nexys4 and arty designs support now 12 MBaud.
 - new issues:
-  - **V0.73-1**: as of vivado 2016.2 `xelab` shows sometimes extremely long
-    build times, especially for generated post-synthesis vhdl models. But also 
+  - **V0.73-1**: as of Vivado 2016.2 `xelab` shows sometimes extremely long
+    build times, especially for generated post-synthesis VHDL models. But also 
     building a behavioral simulation for a w11a design can take 25 min.
     Even though post-synthesis or post-routing models are now generated
-    in verilog working with xsim is cumbersome and time consuming.
+    in Verilog working with xsim is cumbersome and time consuming.
   - **V0.73-2**: Many post-synthesis functional and especially post-routing
     timing simulations currently fail due to startup and initialization
     problems. Cause is MMCM/PLL startup, which is not properly reflected
     in the test bench. Will be resolved in an upcoming release.
   - **V0.73-3**: The 'state number generator' code in `pdp11_sequencer` causes
-    in vivado 2016.1 (and .2) that the main FSM isn't re-coded anymore, which
+    in Vivado 2016.1 (and .2) that the main FSM isn't re-coded anymore, which
     has high impact on achievable clock rate. The two optional debug units
     depending on the state number, `dmscnt` and `dmcmon`, are therefore
     currently deactivated in all Artix based systems (but are available on
@@ -412,10 +412,10 @@
 - re-factored tbcore_rlink to support DPI and VHPI
 - Vivado supports with DPI (from SystemVerilog) a mechanism to call
   external C code. The rlink test bench code so far relies on VHPI, which
-  is supported by ghdl, but not by ISE ISim or Vivado xsim. The code was
-  restructured and can use now DPI or VHPI to support both ghdl and
+  is supported by GHDL, but not by ISE ISim or Vivado xsim. The code was
+  restructured and can use now DPI or VHPI to support both GHDL and
   Vivado. Unfortunately has Vivado 2015.4 a bug, DPI doesn't work in a
-  mixed vhdl-verilog language environment (see Known issues), so the
+  mixed VHDL-Verilog language environment (see Known issues), so the
   code base is there, but utilization will habe to wait.
 - Vivado synthesis by default keeps hierarchy. This leads to doubly defined
   modules if a component is used in both test bench and unit under test.
@@ -457,7 +457,7 @@
     - */tb/Makefile                 - Vivado now default, keep Makefile.ise
     - rtl/bplib/*/tb/tb_*.vhd       - use s7_cmt_sfs_tb and serport_master_tb
     - rtl/vlib/comlib
-      - comlib.vhd                  - add work-around for vivado 2015.4 issue
+      - comlib.vhd                  - add work-around for Vivado 2015.4 issue
     - rtl/vlib/rbus
       - rb_sres_or_mon              - supports 6 inputs now
     - rtl/vlib/serport
@@ -470,13 +470,13 @@
       - sys_w11a_b3                 - hardwire XON=1, support XADC; 72 MHz now
       - sys_w11a_n4                 - support XADC
     - tools/bin
-      - tbrun_tbw                   - add vivado xsim and Makefile.ise support
+      - tbrun_tbw                   - add Vivado xsim and Makefile.ise support
       - tbrun_tbwrri                - use --sxon and --hxon instead of --xon
       - tbw                         - add XSim support
       - ti_w11                      - add arty support, add -fx
       - vbomconv                    - add [ise,viv]; add @uut tag handling;
                                       add preliminary --(vsyn|vsim)_export;
-                                      add vivado xsim support;
+                                      add Vivado xsim support;
       - xtwi,xtwv                   - add BARE_PATH to provide clean environment
 
 ### Bug fixes
@@ -492,7 +492,7 @@
 
 - new issues:
   - **V0.72-1**: Vivado 2015.4 xelab crashes when DPI is used in a mxied
-    vhdl-verilog language environment. This prevents currently to
+    VHDL-Verilog language environment. This prevents currently to
     build a xsim simulation model for rlink based test benches.
   - **V0.72-2**: xsim simulations with timing annotation not yet available.
 

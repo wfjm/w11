@@ -2,6 +2,11 @@
 
 The case id indicates the release when the issue was first recognized.
 
+### V0.79 {[issue #29](https://github.com/wfjm/w11/issues/29)} -- migrate from Travis to GitHub actions
+
+Travis is now defunct and has been removed in [6b8c063](https://github.com/wfjm/w11/commit/6b8c063).
+So it's time to migrate CI/CD to GitHub actions.
+
 ### V0.50-2 {[issue #28](https://github.com/wfjm/w11/issues/28)} -- RK11: write protect action too slow
 
 Some simple RK11 drivers, especially in test codes, don't poll for completion
@@ -154,17 +159,6 @@ that 2018.3 is less tolerant to the sub-optimal w11a design.
 This will be fixed in a future release, either by setting up an appropriate
 false_path constraint, or by changing the data path structure.
 
-### V0.76-2 {[issue #17](https://github.com/wfjm/w11/issues/17)} -- Help wanted: Testing with Arty S7 appreciated
-The w11a design for Arty S7 (50 die size), see rtl/sys_gen/w11a/artys7,
-was provided to support also an up-to-date Spartan-7 based board. Turned
-out that speed is equivalent to Artix-7. It is so far only simulation tested.
-
-Testing done with a real Arty S7, would be highly appreciated. Please double
-check the pin assignments (see _mig_a.prj and artys7*.xdc_) with the
-documentation of your board to avoid potential damage.
-
-Looking forward to receive test reports.
-
 ### V0.73-2 {[issue #10](https://github.com/wfjm/w11/issues/10)} -- Many post-synthesis simulations fail
 Many post-synthesis functional and especially post-routing timing 
 simulations currently fail due to startup and initialization problems. 
@@ -172,10 +166,10 @@ Cause is MMCM/PLL startup, which is not properly reflected in the test
 bench. Will be resolved in an upcoming release.
 
 ### V0.73-1 {[issue #9](https://github.com/wfjm/w11/issues/9)} -- Vivado xelab sometimes extremely slow
-as of vivado 2016.2 `xelab` shows sometimes extremely long build times,
-especially for generated post-synthesis vhdl models. But also building a 
+as of Vivado 2016.2 `xelab` shows sometimes extremely long build times,
+especially for generated post-synthesis VHDL models. But also building a 
 behavioral simulation for a w11a design can take 25 min. Even though 
-post-synthesis or post-routing models are now generated in verilog working 
+post-synthesis or post-routing models are now generated in Verilog working 
 with `xsim` is cumbersome and time consuming.
 
 ### V0.65-2 {[issue #7](https://github.com/wfjm/w11/issues/7)} -- Some exotic RH70/RP/RM features not implemented
@@ -341,7 +335,7 @@ Fixed with commit [6024dce](https://github.com/wfjm/w11/commit/6024dce).
 
 ### V0.73-3 {[issue #11](https://github.com/wfjm/w11/issues/11)} -- dmscnt and dmcmon disabled in Vivado based flows
 #### Original Issue
-The 'state number generator' code in `pdp11_sequencer` causes in vivado
+The 'state number generator' code in `pdp11_sequencer` causes in Vivado
 2016.1 (and .2) that the main FSM isn't re-coded anymore, which has high 
 impact on achievable clock rate. The two optional debug units depending on 
 the state number, `dmscnt` and `dmcmon`, are therefore currently deactivated in
@@ -350,4 +344,23 @@ all Artix based systems (but are available on all Spartan based systems).
 At least mitigated with [d14626c](https://github.com/wfjm/w11/commit/d14626c)
 which allows to use `dmcmon` without the full state number generation logic
 in `pdp11_sequencer`. Reintroduced `dmcmon` in `sys_w11a_n4` again. `dmscnt` is
-still deconfigured for vivado designs, but this has much less practical impact.
+still deconfigured for Vivado designs, but this has much less practical impact.
+
+## Closed issues
+
+### V0.76-2 {[issue #17](https://github.com/wfjm/w11/issues/17)} -- Help wanted: Testing with Arty S7 appreciated
+#### Original Issue
+The w11a design for Arty S7 (50 die size), see rtl/sys_gen/w11a/artys7,
+was provided to support also an up-to-date Spartan-7 based board. Turned
+out that speed is equivalent to Artix-7. It is so far only simulation tested.
+
+Testing done with a real Arty S7, would be highly appreciated. Please double
+check the pin assignments (see _mig_a.prj and artys7*.xdc_) with the
+documentation of your board to avoid potential damage.
+
+Looking forward to receive test reports.
+
+#### Reason for closure
+Apparently nobody invested into an Arty S7.
+The sys_w11a_as7 will be marked untested, removed from the default build
+and test flows, but kept in the repository.

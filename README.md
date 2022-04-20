@@ -4,7 +4,6 @@
 [![Coverity Status](https://scan.coverity.com/projects/16546/badge.svg?flat=1)](https://scan.coverity.com/projects/wfjm-w11)
 [![Commits since latest release](https://img.shields.io/github/commits-since/wfjm/w11/latest.svg?longCache=true)](https://github.com/wfjm/w11/releases)
 
-
 ### Overview
 The project contains the VHDL code for a **complete DEC PDP-11 system**:
 a
@@ -51,12 +50,12 @@ For more information look into:
 
 A short description of the directory layout
 [is provided separately](https://wfjm.github.io/home/w11/impl/dirlayout.html),
-the top level directories are
+the top-level directories are
 
 | Directory | Content |
 | --------- | ------- |
 | [doc](doc)     | documentation |
-| [rtl](rtl)     | HDL sources (mostly vhdl) |
+| [rtl](rtl)     | HDL sources (mostly VHDL) |
 | [tools](tools) | many tools |
 
 ### Note on freecores/w11

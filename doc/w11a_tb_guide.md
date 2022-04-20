@@ -11,27 +11,27 @@
 - [Available system test benches](#user-content-list-tb-sys)
 
 ### General Notes
-- Ghdl is used for all behavioral simulations
+- GHDL is used for all behavioral simulations
 - Optionally Vivado xsim can be used
-- For post synthesis or post implementation functionnal simulations 
-  either Ghdl or Vivado xsim can be used.
-- For timing simulations only Vivado xsim can be used.
+- For post-synthesis or post-implementation functional simulations 
+  either GHDL or Vivado xsim can be used.
+- For timing simulations, only Vivado xsim can be used.
 - ISE isim is also available, but considered legacy support
 
 ### <a id="env">Tests bench environment</a>
 
 All test benches have the same simple structure:
 
-- the test benches are 'self-checking'. For unit tests a stimulus process 
+- the test benches are 'self-checking'. For unit tests, a stimulus process 
   reads test patterns as well as the expected responses from a stimulus file
 
 - the responses are checked in very simple cases by the stimulus process,
   in general by a monitoring process
 
 - the test bench produces a comprehensive log file. For each checked
-  response the line contains the word "CHECK" and either an "OK" or a
-  "FAIL", in the later case in general with an indication of whats wrong.
-  Other unexpected behaviour, like timeouts, will also result in a line
+  response, the line contains the word "CHECK" and either an "OK" or a
+  "FAIL", in the latter case in general with an indication of what's wrong.
+  Other unexpected behavior, like timeouts, will also result in a line
   containing the word "FAIL".
 
 - at the end a line with the word "DONE" is printed.
@@ -50,12 +50,12 @@ All test benches have the same simple structure:
 
   Building the simulation models is handled by the build environment. See 
   [README_buildsystem_Vivado.md](README_buildsystem_Vivado.md) for details
-  of the vivado flow and 
+  of the Vivado flow and 
   [README_buildsystem_ISE.md](README_buildsystem_ISE.md) for the ISE flow.
 
 ### <a id="tb-unit">Unit test benches</a>
 
-All unit test are executed via `tbw` (test bench warpper) script.
+All unit test are executed via `tbw` (test bench wrapper) script.
 
 - the test bench is run like
 
@@ -65,47 +65,47 @@ All unit test are executed via `tbw` (test bench warpper) script.
    - tbw sets up the environment of the test bench and starts it.
      It generates required symbolic links, e.g. to the stimulus file,
      the defaults extracted from the file tbw.dat, if an optional file
-     name is give this one will be used instead.
+     name is given this one will be used instead.
    - tbfilt saves the full test bench output to a logfile and filters
      the output for PASS/FAIL criteria
 
-- for convenience a wrapper script `tbrun_tbw` is used to generate the 
+- for convenience, a wrapper script `tbrun_tbw` is used to generate the 
   tbw|tbfilt pipe. This script also checks with `make` whether the
   test bench is up-to-date or must be (re)-compiled.
 
 ### <a id="tb-sys">System test benches</a>
 
-The system tests allow to verify to verify a full system design.
-In this case vhdl test bench code contains
+The system tests allow verification of a full system design.
+In this case, VHDL test bench code contains
 - (simple) models of the memories used on the FPGA boards
-- drivers for the rlink connection (currently just serialport)
+- drivers for the rlink connection (currently just serial port)
 - code to interface the rlink data stream to a UNIX 'named pipe',
   implemented with a C routine which is called via VHPI from VHDL.
 
-This way the whole ghdl simulation can be controlled via a di-directional
+This way the whole GHDL simulation can be controlled via a bi-directional
 byte stream. 
 
-The rlink backend process can connect either via a named pipe to a ghdl 
-simulation, or via a serial port to a FPGA board. This way the same tests 
+The rlink backend process can connect either via a named pipe to a GHDL 
+simulation, or via a serial port to an FPGA board. This way the same tests 
 can be executed in simulation and on real hardware.
 
-In general the script `tbrun_tbwrri` is used to generate the quite lengthy 
-command to properly setup the tbw|tbfilt pipe.  This script also checks 
+In general, the script `tbrun_tbwrri` is used to generate the quite lengthy 
+command to properly set up the tbw|tbfilt pipe.  This script also checks 
 with `make` whether the test bench is up-to-date or must be (re)-compiled.
 
 ### <a id="tb-driver">Test bench driver</a>
 
 All available tests (unit and system test benches) are described in a
-set of descriptor files, usually called `tbrun.yml`. The top level file
+set of descriptor files, usually called `tbrun.yml`. The top-level file
 in `$RETROBASE` includes other descriptor files located in the source 
 directories of the tests.
 
 The script `tbrun` reads these descriptor files, selects tests based
 on `--tag` and `--exclude` options, and executes the tests with the
 simulation engine and simulation type given by the `--mode` option.
-For full description of see `man tbrun`.
+For a full description see `man tbrun`.
 
-The low level drivers `tbrun_tbw` and `tbrun_tbwrri` will automatically 
+The low-level drivers `tbrun_tbw` and `tbrun_tbwrri` will automatically 
 build the model if it is not available or outdated. This is very convenient
 when working with a single test bench during development.
 
@@ -114,21 +114,21 @@ the model building (make phase) made model execution (run phase). Both
 the low level drivers as well as `tbrun` support this via the options
 `--nomake` and `--norun`.
 
-The individial test benches are simplest started via tbrun and a proper
+The individual test benches are simplest started via tbrun and a proper
 selection via `--tag`. Very helpful is
 
      cd $RETROBASE
      tbrun --dry --tag=.*
 
-which gives a listing of all available test. The tag list as well as
-the shell commands to execute the test are shown.
+which gives a listing of all available tests. The tag list, as well as
+the shell commands to execute the test, are shown.
 
 ### <a id="tb-exec">Execute all available tests</a>
 
-As stated above it is in general better to to separate the model building 
+As stated above it is in general better to separate the model building 
 (make phase) made model execution (run phase). The currently recommended
 way to execute all test benches is given below.
-The run time is measured on a 3 GHz dual core system.
+The run time is measured on a 3 GHz dual-core system.
 
      cd $RETROBASE
      # build all behavioral models
@@ -136,7 +136,7 @@ The run time is measured on a 3 GHz dual core system.
      time nice tbrun -j 2 -norun -tag=ise -tee=tbrun_make_ise_bsim.log
        # --> real 3m41.732s   user 6m3.381s   sys 0m24.224s
 
-     #   than all with vivado work flow
+     #   than all with Vivado work flow
      time nice tbrun -j 2 -norun -tag=viv -tee=tbrun_make_viv_bsim.log
        # --> real 3m36.532s   user 5m58.319s   sys 0m25.235s
      

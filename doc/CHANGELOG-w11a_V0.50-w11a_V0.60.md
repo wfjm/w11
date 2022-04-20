@@ -15,7 +15,7 @@
   and [w11a_V0.57](#user-content-w11a_V0.57))
 - added LP11,PC11 support
   (in [w11a_V0.58](#user-content-w11a_V0.58))
-- reference system now ISE 14.7 and Ubuntu 12.04 64 bit, ghdl 0.31
+- reference system now ISE 14.7 and Ubuntu 12.04 64 bit, GHDL 0.31
 - many code cleanups; use `numeric_std`
 - many documentation improvements
 - development status upgraded to beta (from alpha)
@@ -66,7 +66,7 @@
 ### Summary
 - new reference system
   - switched from ISE 13.3 to 14.7.
-  - map/par behaviour changed, unfortunately unfavorably for w11a. 
+  - map/par behavior changed, unfortunately unfavorably for w11a. 
     On Nexys3 no timing closure anymore for 80 MHz, only 72 MHz can 
     be achieved now.
 - new man pages (in `doc/man/man1/`)
@@ -77,7 +77,7 @@
     - new modules
       - rtl/vlib/xlib
         - s6_cmt_sfs_unisim       - Spartan-6 CMT for simple frequency synthesis
-        - s6_cmt_sfs_gsim         - dito, simple ghdl simulation model
+        - s6_cmt_sfs_gsim         - dito, simple GHDL simulation model
       - tools/src/librutiltpp
         - RtclSignalAction        - Tcl signal handler
         - RtclSystem              - Tcl Unix system interface
@@ -113,7 +113,7 @@
 
 ### Other updates
 
-    - INSTALL_ghdl.txt - text reflects current situation on ghdl packages
+    - INSTALL_ghdl.txt - text reflects current situation on GHDL packages
 
 <!-- --------------------------------------------------------------------- -->
 ---
@@ -165,7 +165,7 @@
 ### New features
 
     - new modules
-      - rtl/bplib/fx2rlink      - new vhdl lib with rlink over fx2 modules
+      - rtl/bplib/fx2rlink      - new VHDL lib with rlink over fx2 modules
         - ioleds_sp1c_fx2         - io activity leds for rlink_sp1c_fx2
         - rlink_sp1c_fx2          - rlink over serport + fx2 combo
       - tools/src/librw11
@@ -199,7 +199,7 @@
   Can be used stand-alone to generate 'absolute loader' format files,
   but also integrates tightly into the Tcl environment and is used as
   building block in the creation of CPU test benches.
-- use now doxygen 1.8.3.1, generate c++, tcl, and vhdl source docs
+- use now doxygen 1.8.3.1, generate c++, tcl, and VHDL source docs
   See section 9. in INSTALL.txt for details.
 
 ### New features
@@ -216,14 +216,14 @@
         - asm-11         - simple, Macro-11 syntax subset compatible, assembler
         - asm-11_expect  - expect checker for asm-11 test bench
       - tools/dox
-        - *.Doxyfile     - new descriptors c++,tcl,vhdl docs
-        - make_dox       - driver script to generate c++,tcl,vhdl doxygen docs
+        - *.Doxyfile     - new descriptors C++,Tcl,VHDL docs
+        - make_dox       - driver script to generate C++,Tcl,VHDL doxygen docs
 
 ### Changes
 
-    - vhdl module renames:
+    - VHDL module renames:
         vlib/serport               -> vlib/serportlib
-    - vhdl module splits:
+    - VHDL module splits:
         bplib/bpgen/bpgenlib       -> bpgenlib + bpgenrbuslib
     - C++ class splits
         librtcltools/RtclProxyBase -> RtclCmdBase + RtclProxyBase
@@ -297,13 +297,13 @@ The version of several key tools and libraries changed:
       - rtl/sys_gen/tst_fx2loop/nexys2/ic3/sys_tst_fx2loop_ic3_n2
       - rtl/sys_gen/tst_rlink_cuff/nexys2/ic/sys_tst_rlink_cuff_ic_n2
     - tools/bin
-      - xilinx_sdf_ghdl_filter: tool to patch ISE sdf files for usage with ghdl
+      - xilinx_sdf_ghdl_filter: tool to patch ISE sdf files for usage with GHDL
 
 ### Changes
 
     - documentation
       - added a 'system requirements' section in INSTALL.txt
-      - added INSTALL_ghdl.txt and INSTALL_urjtag.txt covering ghdl and urjtag
+      - added INSTALL_ghdl.txt and INSTALL_urjtag.txt covering GHDL and urjtag
       - added README_USB-VID-PID.txt
     - organizational changes
       - added TCLINC,RETRO_FX2_VID,RETRO_FX2_PID environment variables
@@ -385,7 +385,7 @@ The version of several key tools and libraries changed:
 
     - functional changes
       - use now 'a6' polynomial of Koopman et al for crc8 in rlink
-    - with one exception all vhdl sources use now numeric_std
+    - with one exception all VHDL sources use now numeric_std
     - module renames:
         vlib/xlib/dcm_sp_sfs_gsim   -> vlib/xlib/dcm_sfs_gsim
         vlib/xlib/dcm_sp_sfs_unisim -> vlib/xlib/dcm_sfs_unisim_s3e

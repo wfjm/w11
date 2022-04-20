@@ -6,7 +6,7 @@
 
 ### Symptom summary
 - the `cpuerr` register is not cleared by a `$cpu cp -creset` command
-- the `cpuerr` status can affect cpu behaviour, e.g. yellow stack traps are
+- the `cpuerr` status can affect cpu behavior, e.g. yellow stack traps are
   only taken when the corresponding `cpuerr` flag is not set
 - this makes tbench test execution on FPGA potentially depending on pre-history
 

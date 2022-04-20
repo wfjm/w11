@@ -1,6 +1,6 @@
 # Summary of known differences and limitations for w11a CPU and systems
 
-This file descibes differences and limitations of the w11 CPU and systems.
+This file describes the differences and limitations of the w11 CPU and systems.
 The issues of the w11 CPU and systems are listed in a separate document
 [README_known_issues.md](README_known_issues.md).
 
@@ -22,11 +22,11 @@ The issues of the w11 CPU and systems are listed in a separate document
   - https://minnie.tuhs.org/pipermail/tuhs/2006-October/002695.html
   - https://minnie.tuhs.org/pipermail/tuhs/2006-October/002702.html
 
-  In the w11a the `SPL` has 11/70 semantics in kernel mode, thus next no 
+  In the w11a the `SPL` has 11/70 semantics in kernel mode, thus no 
   traps or interrupts, but in supervisor and user mode `SPL` really acts as 
   `NOOP`, so traps and interrupts are taken as for all other instructions.   
   **--> The w11a isn't bug compatible with the 11/70.**
-- A 'red stack violation' looses PSW, a 0 is pushed in stack.
+- A 'red stack violation' loses PSW, a 0 is pushed onto the stack.
 - The 'instruction complete flag' in `SSR0` is not implemented, it is 
   permanently '0', `SSR2` will not record vector addresses in case of a
   vector fetch fault. Recovery of vector fetch faults is therefore not
@@ -36,9 +36,9 @@ The issues of the w11 CPU and systems are listed in a separate document
   the 22bit extended mode address space. With UNIBUS mapping enabled, this
   allowed to access via 17000000:17757777 the memory exactly as a UNIBUS
   device would see it. The w11a doesn't implement this remapping, an access
-  in the range 17000000:17757777 causes a NXM fault.
+  in the range 17000000:17757777 causes an NXM fault.
 
-All four points relate to very 11/70 specific behaviour, no operating system
+All four points relate to very 11/70 specific behavior, no operating system
 depends on them, therefore they are considered acceptable implementation
 differences.
 
@@ -50,7 +50,7 @@ differences.
   **--> a 'CPU throttle mechanism' will be added in a future version to 
   circumvent this for some old test codes.**
 - the emulated I/O can lead to apparently slow device reaction times,
-  especially when the server runs as normal user process. This can lead
-  to timeout, again mostly in test programs.  
+  especially when the server runs as a normal user process. This can lead
+  to a timeout, again mostly in test programs.  
   **--> a 'watch dog' mechanism will be added in a future version which
   suspends the CPU when the server doesn't respond fast enough.**

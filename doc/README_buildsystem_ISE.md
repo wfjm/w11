@@ -5,9 +5,9 @@
 - [Concept](#user-content-concept)
 - [Setup system environment](#user-content-sysenv)
   - [Setup environment variables](#user-content-envvar)
-  - [Compile UNISIM/UNIMACRO/SIMPRIM libraries for ghdl](#user-content-ghdllibs)
+  - [Compile UNISIM/UNIMACRO/SIMPRIM libraries for GHDL](#user-content-ghdllibs)
 - [Building test benches](#user-content-buildtb)
-  - [With ghdl](#user-content-buildtb-ghdl)
+  - [With GHDL](#user-content-buildtb-ghdl)
   - [With ISE ISim](#user-content-buildtb-isim)
 - [Building FPGA bit files](#user-content-buildfpga)
 - [Configuring FPGAs (via make flow)](#user-content-config-make)
@@ -16,9 +16,9 @@
 
 ### <a id="concept">Concept</a>
 
-This projects uses GNU make to
+This project uses GNU make to
 - generate bit files     (synthesis with xst and place&route with par)
-- generate test benches  (with ghdl or Xilinx ISim)
+- generate test benches  (with GHDL or Xilinx ISim)
 - configure the FPGA     (with Xilinx Impact or Linux jtag)
 
 The Makefile's in general contain only a few definitions, all the make logic
@@ -32,18 +32,18 @@ The build system employed in this project is based on manifest files called
 
      'vbom' or "VHDL bill of material" files
 
-which list for each vhdl source file the libraries and sources for the
-instantiated components, the later via their vbom, and last but not least
-the name of the vhdl source file. 
+which list for each VHDL source file the libraries and sources for the
+instantiated components, the latter via their vbom, and last but not least
+the name of the VHDL source file. 
 
-All file name are relative to the current directory. A recursive traversal 
+All file names are relative to the current directory. A recursive traversal 
 through all vbom's gives for each vhld module all sources needed to compile
-it. The vbomconv script in tools/bin does this, and generates depending on 
+it. The vbomconv script in tools/bin does this and generates depending on 
 options
 - make dependency files
 - ISE xst project files  (synthesis)
 - ISE ISim project files (simulation)
-- ghdl commands for analysis, inspection and make step
+- GHDL commands for analysis, inspection and make step
 
 The master make files contain pattern rules like
 
@@ -52,7 +52,7 @@ The master make files contain pattern rules like
 
 which encapsulate all the vbomconv magic
 
-A full w11a system is build from about 100 source files, test benches 
+A full w11a system is built from about 100 source files, test benches 
 from even more. Using the vbom's a large number of designs can be easily 
 maintained.
 
@@ -73,15 +73,15 @@ For details on `RETRO_FX2_VID` and `RETRO_FX2_PID` see
 
 Notes:  
 - The build system uses a small wrapper script called `xtwi` to encapsulate
-  the Xilinx environment. It uses `XTWI_PATH` to setup the ISE environment on 
+  the Xilinx environment. It uses `XTWI_PATH` to set up the ISE environment on 
   the fly. For details consult 'man xtwi'. 
 - don't run the ISE setup scripts ..../settings(32|64).sh in your working 
   shell. Setup only `XTWI_PATH` !
   
-#### <a id="ghdllibs">Compile UNISIM/UNIMACRO/SIMPRIM libraries for ghdl</a>
+#### <a id="ghdllibs">Compile UNISIM/UNIMACRO/SIMPRIM libraries for GHDL</a>
 
 A few entities use `UNISIM` or `UNIMACRO` primitives, and models derived after
-the par step require also `SIMPRIM` primitives. In these cases ghdl has to
+the par step require also `SIMPRIM` primitives. In these cases, GHDL has to
 link against a compiled `UNISIM`, `UNIMACRO` or `SIMPRIM` libraries.
 
 To make handling of the parallel installation of several ISE versions
@@ -102,17 +102,17 @@ Run these scripts for each ISE version which is installed.
 ### <a id="buildtb">Building test benches</a>
 
 The build flows support two simulators
-- ghdl      -> open source, with VHPI support, doesn't accept sdf files
+- GHDL      -> open source, with VHPI support, doesn't accept sdf files
 - ISE ISim  -> limited to 50k lines in WebPack, no VHPI support
 
-#### <a id="buildtb-ghdl">With ghdl</a>
+#### <a id="buildtb-ghdl">With GHDL</a>
 
-To compile a ghdl based test bench named `<tbench>` all is needed is
+To compile a GHDL based test bench named `<tbench>` all is needed is
 
     make <tbench>
 
 The make file will use `<tbench>.vbom`, create all make dependency files,
-and generate the needed ghdl commands.
+and generate the needed GHDL commands.
 
 In many cases the test benches can also be compiled against the gate
 level models derived after the `xst`, `map` or `par` step. To compile them
@@ -128,12 +128,12 @@ Individual working directories are used for the different models
     ghdl.fsim        for post-map
     ghdl.tsim        for post-par
 
-and can co-exist. The `make ghdl_tmp_clean` can be used to flush the ghdl
+and can co-exist. The `make ghdl_tmp_clean` can be used to flush the GHDL
 work areas, but in general this is not needed (since V0.73).
 
 Notes:
 - the post-xst simulation (_ssim targets) proved to be a valuable tool.
-- ghdl fails to read sdf files generated by Xilinx tools, and thus does
+- GHDL fails to read sdf files generated by Xilinx tools, and thus does
   not support a post-par simulation with full timing.
 - post-par simulations without timing annotation often fail, most likely
   due to clocking and delta cycle issues due to inserted clock buffers.
@@ -163,7 +163,7 @@ Notes:
   simulation engine throttles to snails speed.
 - ISim does not support VHPI (interfacing of external C routines to VHDL).
   Since VHPI is used in the rlink simulation all system test benches with
-  an rlink interface, thus most, will only run with ghdl and not with ISim.
+  an rlink interface, thus most, will only run with GHDL and not with ISim.
  
 ### <a id="buildfpga">Building FPGA bit files</a>
 
@@ -235,7 +235,7 @@ the FPGA. For detailed documentation see the respective man pages.
 
 ### <a id="artix">Note on Artix-7 based designs</a>
 
-The development for Nexys4 started with ISE, but has now fully moved to
+The development for Nexys4 started with ISE but has now fully moved to
 Vivado. The make files for the ISE build flows have been kept for comparison
 are have the name `Makefile.ise`. So for some Nexys4 designs and associated
 one can still start with a 

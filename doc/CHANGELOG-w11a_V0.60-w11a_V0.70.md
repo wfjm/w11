@@ -17,7 +17,7 @@
   (in [w11a_V0.65](#user-content-w11a_V0.65))
 - add TM11/TY10 tape support
   (in [w11a_V0.66](#user-content-w11a_V0.66))
-- reference system now ISE 14.7, Vivado 2014.4; Ubuntu 14.04 64 bit, ghdl 0.31
+- reference system now ISE 14.7, Vivado 2014.4; Ubuntu 14.04 64 bit, GHDL 0.31
 
 ### Table of contents
 - Release [w11a_V0.70](#user-content-w11a_V0.70)
@@ -331,12 +331,12 @@
       - rtl/bplib/nexys4            - support for Digilent Nexys4 board
       - rtl/make_viv                - make includes for Vivado
     - new files
-      - tools/bin/xviv_ghdl_unisim  - ghdl compile Vivado UNISIM & UNIMACRO libs
+      - tools/bin/xviv_ghdl_unisim  - GHDL compile Vivado UNISIM & UNIMACRO libs
     - new modules
       - rtl/ibus/ibdr_rl11          - ibus controller for RL11
       - rtl/vlib/rlink/ioleds_sp1c  - io activity leds for rlink+serport_1clk
       - rtl/vlib/xlib
-        - s7_cmt_sfs_gsim             - Series-7 CMT: simple vhdl model
+        - s7_cmt_sfs_gsim             - Series-7 CMT: simple VHDL model
         - s7_cmt_sfs_unisim           - Series-7 CMT: wrapper for UNISIM
       - rtl/w11a
         - pdp11_bram_memctl           - simple BRAM based memctl
@@ -420,13 +420,13 @@
 ### Known issues
 - resolved issues: _none_
 - new issues:
-  - **V0.64-7**: ghdl simulated OS boots via ti_w11 (-n4 ect options) fail due to
+  - **V0.64-7**: GHDL simulated OS boots via ti_w11 (-n4 ect options) fail due to
     a flow control issue (likely since V0.63).
   - **V0.64-6**: IO delays still unconstraint in vivado. All critical IOs use
     explicitly IOB flops, thus timing well defined.
   - **V0.64-5**: w11a_tb_guide.txt covers only ISE based tests
     (see also V0.64-4).
-  - **V0.64-4**: No support for the Vivado simulator (xsim) yet. With ghdl only
+  - **V0.64-4**: No support for the Vivado simulator (xsim) yet. With GHDL only
     functional simulations, post synthesis (_ssim) fails to compile.
   - **V0.64-3**: Highest baud rate with basys3 and nexys4 is 10 MBaud. 10 MBaud 
     is not supported according to FTDI, but works. 12 MBaud in next release.
@@ -453,7 +453,7 @@
 
 ### Remarks on reference system
 - still using tcl 8.5 (even though 8.6 is now default in Ubuntu 14.04)
-- don't use doxygen 1.8.8 and 1.8.9, it fails to generate vhdl docs
+- don't use doxygen 1.8.8 and 1.8.9, it fails to generate VHDL docs
 
 ### New features
 
@@ -530,7 +530,7 @@ Notes:
   1. still using tcl 8.5 (even though 8.6 is now default in Ub 14.04)
   2. sdcc 3.x is not source compatible with sdcc 2.9. The Makefile
      allows to use both, see tools/fx2/src/README.txt .
-  3. don't use doxygen 1.8.8, it fails to generate vhdl docs
+  3. don't use doxygen 1.8.8, it fails to generate VHDL docs
 
 ### New features
 

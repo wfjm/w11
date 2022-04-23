@@ -12,7 +12,7 @@ This directory tree contains **many tools** and is organized in
 | [man](man)       | man pages |
 | [mcode](mcode)   | miscellaneous codes |
 | [oskit](oskit)   | support files for OS disk/tape image kits |
-| [simh](simh)     | configuration files for `simh pdp11` |
+| [simh](simh)     | configuration files for `SimH pdp11` |
 | [src](src)       | C++ sources for rlink backend |
 | [sys](sys)       | udev rules for USB device handling |
 | [tbench](tbench) | w11 test bench |

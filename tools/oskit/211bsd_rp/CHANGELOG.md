@@ -88,7 +88,7 @@ Setup 211bsd system from tape distribution kit obtained from
 [TUHS](https://www.tuhs.org/).
 - get tape distribution kit from [UnixArchive/Distributions/UCB/2.11BSD](https://www.tuhs.org/Archive/Distributions/UCB/2.11BSD/)
 - get patches from [UnixArchive/Distributions/UCB/2.11BSD/Patches](https://www.tuhs.org/Archive/Distributions/UCB/2.11BSD/Patches/)
-- setup initial system using `simh`
+- setup initial system using `SimH`
   - load tape distribution kit (is version 431)
   - install all patches: 432,...,444
   - `FPSIM` didn't work. Fixed with [patch #445](https://wfjm.github.io/blogs/211bsd/2007-01-03-patch-445.html).

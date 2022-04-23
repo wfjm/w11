@@ -5,7 +5,8 @@ See notes in [w11a_os_guide.md](../../../doc/w11a_os_guide.md) on
   1. I/O emulation setup
   2. FPGA Board setup
   3. Rlink and Backend Server setup
-  4. Legal terms
+  4. SimH simulator setup
+  5. Legal terms
   
 For history see [CHANGELOG.md](CHANGELOG.md).
 
@@ -32,12 +33,17 @@ and [211bsd_rpmin](../211bsd_rpmin/README.md) for a minimal memory system.
 
 ### Usage
 
-- Start backend server and boot system
-  (see section Rlink in [w11a_os_guide.md](../../../doc/w11a_os_guide.md))
+- Start backend server and boot system (see section Rlink in
+  [w11a_os_guide](../../../doc/w11a_os_guide.md#user-content-rlink))
   ```
        boot script:  211bsd_rp_boot.tcl
        example:      ti_w11 <opt> @211bsd_rp_boot.tcl
                      where <opt> is the proper option set for the board.
+  ```
+  or use for verification the SimH simulator  (see section SimH in
+  [w11a_os_guide](../../../doc/w11a_os_guide.md#user-content-simh))
+  ```
+  pdp11 211bsd_rp_boot.scmd
   ```
 
 - Hit `<ENTER>` in the `xterm` window to connect to backend server.

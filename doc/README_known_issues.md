@@ -2,6 +2,33 @@
 
 The case id indicates the release when the issue was first recognized.
 
+### V0.79 {[issue #30](https://github.com/wfjm/w11/issues/30)} -- SimH scmd files fail on current 4.* version; only 3.* supported
+
+The SimH scmd scripts were originally developed for SimH 3.8, and worked for
+SimH 3.9 and later releases. The SimH 4.* development team decided not to
+provide releases anymore, and over time this version became incompatible with
+the scmd scripts used for w11. That is most pronounced for the RT11 V4.3 oskit.
+A simple
+```
+  cd $RETROBASE/tools/oskit/rt11-53_rl
+  console_starter -s -d DL0  &
+  pdp11 rt11-53_rl_boot.scmd
+```
+works fine for SimH V3.9, V3.10 and V3.11-1, but fails
+- for pdp11-4.0-beta1 with core dump
+- for pdp11-2016-12-26-5ced037b with signal SIGSEGV in pdp11_xu
+- for pdp11-2019-07-28-2f707ffc with signal SIGSEGV in pdp11_xu
+- for pdp11-2020-03-26-261abfc3 with signal SIGSEGV in pdp11_xu
+- for pdp11-2021-08-22-64b12234 with signal SIGSEGV in pdp11_xu
+- for pdp11-2022-04-17-d3f1ee09 with with errors like
+  - Device auto configuration is now disabled
+  - Command not allowed (for set rha enabled)
+  - container incompatible with the RL device
+
+Bottom line:
+- the provided scmd scripts work only with SimH V3.9, V3.10 or V3.11-1
+- an update to the SimH V4.* has low priority
+
 ### V0.79 {[issue #29](https://github.com/wfjm/w11/issues/29)} -- migrate from Travis to GitHub actions
 
 Travis is now defunct and has been removed in [6b8c063](https://github.com/wfjm/w11/commit/6b8c063).
@@ -13,7 +40,7 @@ Some simple RK11 drivers, especially in test codes, don't poll for completion
 of a write protect command. Due to the emulated I/O this can cause errors.
 
 One example is the boot sequence of RK based XXDP, as seen for example for
-the `dzzza` disk. On simh the disk is immediately switched to write protect
+the `dzzza` disk. On SimH the disk is immediately switched to write protect
 mode, on w11 it is not. The pertinent part of the code is
 ```
     000214  B003:  mov	#000017,@#rk.cs   ; #rk.fwl+rk.go;  func=write_lock

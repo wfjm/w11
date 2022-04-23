@@ -6,7 +6,8 @@ See notes in [w11a_os_guide.md](../../../doc/w11a_os_guide.md) on
   1. I/O emulation setup
   2. FPGA Board setup
   3. Rlink and Backend Server setup
-  4. Legal terms
+  4. SimH simulator setup
+  5. Legal terms
 
 **Also read [README_license.md](README_license.md) !!**
 
@@ -32,13 +33,15 @@ Download, unpack and copy the disk images (*.dsk), e.g.
 
 ### Usage
 
-- Start disk in simulator
+- Start disk imge in SimH simulator (see section SimH in
+  [w11a_os_guide](../../../doc/w11a_os_guide.md#user-content-simh))
   ```
        pdp11 xxdp22_rl_boot.scmd
        pdp11 xxdp25_rl_boot.scmd
   ```
 
-  or on w11a
+  or on w11a (see section Rlink in
+  [w11a_os_guide](../../../doc/w11a_os_guide.md#user-content-rlink))
   ```
        ti_w11 <opt> @xxdp22_rl_boot.tcl
        ti_w11 <opt> @xxdp25_rl_boot.tcl
@@ -46,7 +49,7 @@ Download, unpack and copy the disk images (*.dsk), e.g.
 
   where `<opt>` is the proper option set for the board.
 
-- Hit `<ENTER>` in the `xterm` window to connect to simh or backend server.
+- Hit `<ENTER>` in the `xterm` window to connect to SimH or backend server.
   The boot dialog in the console `xterm` window will look like
   (required input is in `{..}`, with `{<CR>}` denoting a carriage return.
   ```

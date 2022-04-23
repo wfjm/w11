@@ -5,7 +5,7 @@
 - [I/O emulation setup](#user-content-io-emu)
 - [FPGA Board setup](#user-content-fpga-setup)
 - [Rlink and Backend Server setup](#user-content-rlink)
-- [simh simulator setup](#user-content-simh)
+- [SimH simulator setup](#user-content-simh)
 - [oskits](#user-content-oskits)
   - [Unix systems](#user-content-oskits-unix)
   - [DEC operating systems](#user-content-oskits-dec)
@@ -195,13 +195,14 @@ All examples below use the same basic setup
                     0 -> DISPREG
                     1 -> DR emulation
 
-### <a id="simh">simh simulator setup</a>
+### <a id="simh">SimH simulator setup</a>
 
 Sometimes it is good to compare the w11a behavior with the PDP-11 software
-emulator from the simh project (see https://github.com/simh/simh).
+emulator from the SimH project. See [INSTALL_simh](INSTALL_simh.md) for
+installation instructions and supported versions.
 
 Under `$RETROBASE/tools/simh` two setup files are provided which configure
-simh to reflect the w11a setup as close as possible:
+SimH to reflect the w11a setup as close as possible:
 - `setup_w11a_min.scmd`  
   Very close to the current w11a state when it runs on an s3board
   - processor: 11/70, no FPP, 1 Mbyte
@@ -222,7 +223,7 @@ All examples below use the same basic setup
          console_starter -s -d DL0 &
          console_starter -s -d DL1 &
 
-   **Note**: the -s ensures that the port numbers used by simh are taken!
+   **Note**: the -s ensures that the port numbers used by SimH are taken!
 
 - start the simulator
 
@@ -262,7 +263,8 @@ Several oskits are provided:
 | [211bsd_rpmin](../tools/oskit/211bsd_rpmin)  | 2.11BSD system  | RP06 | _full system; tuned for small memory (min 512 kB, better 640 kB)_ |
 | [211bsd_rpeth](../tools/oskit/211bsd_rpeth)  | 2.11BSD system  | RP06 | _full system; with DEUNA Ethernet_ |
 
-For further details consult the `README.md` file in the oskit directory.
+For further details consult the [README.md](../tools/oskit/README.md) file
+in the oskit directory.
 
 ### <a id="oskits-dec">DEC operating systems</a>
 
@@ -277,7 +279,7 @@ to cover some older versions of DEC operating systems, for example
 - RSX-11M PLUS V3.0 or prior
 
 on a simulator. It is commonly assumed that the license terms cover the
-usage of the PDP11 simulator from the 'simh' suite. Usage of the e11
+usage of the PDP11 simulator from the 'SimH' suite. Usage of the e11
 simulator is not covered according to the author of e11.
 
 >  **THIS LICENSE DOES NOT COVER THE USAGE OF THESE HISTORIC DEC**  
@@ -287,8 +289,8 @@ simulator is not covered according to the author of e11.
 Some oskits are provided with systems sysgen'ed to run on a configuration 
 like the w11a.
 
-- Feel free to explore them with the simh simulator.
-  The boot scripts for simh are included ( `<kit>.simh` )
+- Feel free to explore them with the SimH simulator.
+  The boot scripts for SimH are included ( `<kit>.simh` )
    
 - In case you happen to have a valid license feel free to try them
   out the w11a and let the author know whether is works as it should.

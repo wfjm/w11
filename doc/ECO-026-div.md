@@ -87,7 +87,7 @@ algorithms need special rules and checks for this.
 - the J11 never updates registers in case of overflow. A case like 
   0,177777 / 177777 were w11a now updates regs is known from J11
   diagnostics to not update in J11.
-- simh always preserves the destination registers in case of overflow.
+- SimH always preserves the destination registers in case of overflow.
 
 **The pdp11 processor handbook considers the destination registers as**  
 **undefined in case of division overflow, so the w11a behavior is OK.**
@@ -101,7 +101,7 @@ algorithms need special rules and checks for this.
                  but in cases different from w11a
       11/44  --> regs updated under some conditions
       J11    --> regs never updated
-      simh   --> regs never updated
+      SimH   --> regs never updated
    ```
    - that can lead to spurious failures in original DEC diagnostics when
      they test the complete response

@@ -17,7 +17,7 @@ See the full story in the exhaustive commit message for
 [simh commit f0d41f1](https://github.com/simh/simh/commit/f0d41f15d792b9abc31e8530ee275453c7440a8c).
 
 ### Fixes
-`PS` now initialized with `000000` to stay in line with the real 11/70 and simh.
+`PS` now initialized with `000000` to stay in line with the real 11/70 and SimH.
 
 ### Side effects
 Hopefully none. All `ibus` devices come up with interrupts disabled, so there

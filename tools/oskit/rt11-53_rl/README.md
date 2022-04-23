@@ -6,7 +6,8 @@ See notes in [w11a_os_guide.md](../../../doc/w11a_os_guide.md) on
   1. I/O emulation setup
   2. FPGA Board setup
   3. Rlink and Backend Server setup
-  4. Legal terms
+  4. SimH simulator setup
+  5. Legal terms
 
 **Also read README_license.txt which is included in the oskit !!**
 
@@ -22,19 +23,21 @@ Download, unpack and copy the disk images (*.dsk), e.g.
 
 ### Usage
 
-- Start disk image in simulator
+- Start disk imge in SimH simulator (see section SimH in
+  [w11a_os_guide](../../../doc/w11a_os_guide.md#user-content-simh))
   ```
        pdp11 rt11-53_rl_boot.scmd
   ```
 
-  or **ONLY IF YOU HAVE A VALID LICENSE** on w11a
+  or **ONLY IF YOU HAVE A VALID LICENSE** on w11a (see section Rlink in
+  [w11a_os_guide](../../../doc/w11a_os_guide.md#user-content-rlink))
   ```
        ti_w11 <opt> @rt11-53_rl_boot.tcl
   ```
 
   where `<opt>` is the proper option set for the board.
 
-- Hit `<ENTER>` in the `xterm` window to connect to simh or backend server.
+- Hit `<ENTER>` in the `xterm` window to connect to SimH or backend server.
      The boot dialog in the console `xterm` window will look like
      (required input is in `{..}`, with `{<CR>}` denoting a carriage return:
   ```

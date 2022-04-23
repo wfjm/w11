@@ -5,7 +5,8 @@ See notes in [w11a_os_guide.md](../../../doc/w11a_os_guide.md) on
   1. I/O emulation setup
   2. FPGA Board setup
   3. Rlink and Backend Server setup
-  4. Legal terms
+  4. SimH simulator setup
+  5. Legal terms
 
 ### Installation
 
@@ -32,8 +33,8 @@ Download, unpack and copy the tape images (*.tap), e.g.
        create_disk --typ=rm05 --bad 211bsd_rm05.dsk
   ```
 
-- Start backend server and boot system
-  (see section Rlink in [w11a_os_guide.md](../../../doc/w11a_os_guide.md))
+- Start backend server and boot system (see section Rlink in
+  [w11a_os_guide](../../../doc/w11a_os_guide.md#user-content-rlink))
   ```
        boot script:  211bsd_tm_rp06_boot.tcl or
                      211bsd_tm_rm05_boot.tcl

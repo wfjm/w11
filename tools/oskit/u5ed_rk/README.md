@@ -5,7 +5,8 @@ See notes in [w11a_os_guide.md](../../../doc/w11a_os_guide.md) on
   1. I/O emulation setup
   2. FPGA Board setup
   3. Rlink and Backend Server setup
-  4. Legal terms
+  4. SimH simulator setup
+  5. Legal terms
 
 ### Installation
 A disk set is available from
@@ -20,8 +21,8 @@ Download, unpack and copy the disk images (*.dsk), e.g.
 
 ### Usage
 
-- Start backend server and boot system
-  (see section Rlink in [w11a_os_guide.md](../../../doc/w11a_os_guide.md))
+- Start backend server and boot system (see section Rlink in
+  [w11a_os_guide](../../../doc/w11a_os_guide.md#user-content-rlink))
   ```
        boot script:  uv5_rk_boot.tcl
        example:      ti_w11 <opt> @u5ed_rk_boot.tcl

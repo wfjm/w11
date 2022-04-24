@@ -1,6 +1,6 @@
-; $Id: setup_w11a_max.scmd 1194 2019-07-20 07:43:21Z mueller $
+; $Id: setup_w11a_max.scmd 1200 2019-08-04 16:17:20Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2008-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2008-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Setup file for 'maximal' w11a configuration under simh 3.8 and above
 ;
@@ -30,6 +30,11 @@ set cpu idle
 ;
 set clk  50hz
 ;
+; setup pdp11 console via telnet (default is mixed with simh console)
+;
+set cons telnet=5670
+set cons telnet=buffered
+;
 ; terminal interface options
 ;   the default tti time=0 setting gives 50 chars/sec, slow
 ;   setting time=50000 (means 1 char every 50000 instructions) is much
@@ -45,18 +50,18 @@ set tto 8b
 ;
 set dli  enabled
 set dli  lines=1
-att dli  5670
+att dli  5671
 set dlo0 log=simh_dl1.log
 set dlo0 8b
 ;
 set dz   enabled
 set dz   lines=8
 set dz   vector=310
-att dz   -m 5671
+att dz   -m 5672
 set dz   log=0=simh_dz0.log
 set dz   log=1=simh_dz1.log
 set dz   log=2=simh_dz2.log
-; dz log file names must be quoted, otherwise they'll be uppercased !
+set dz   log=3=simh_dz3.log
 ;
 ; line printer
 ;

@@ -18,9 +18,9 @@ process. The communication between the FPGA board and backend server can be via
 
 - Serial port
   - via an integrated USB-UART bridge
-    - on Arty A7, Basys3, Cmod A7 and Nexys4, and Nexys A7 with a `FT2232HQ`, 
+    - on Arty A7, Basys3, Cmod A7 and Nexys4, and Nexys A7 with an `FT2232HQ`, 
       allows up to 12M Baud
-    - on Nexys3 with a `FT232R`, allows up to 2M Baud
+    - on Nexys3 with an `FT232R`, allows up to 2M Baud
     - for all FTDI USB-UART it is essential to set them to `low latency` mode.
       That was the default for Linux kernels 2.6.32 to 4.4.52. Since about March
       2017, one gets kernels with 16 ms default latency again, thanks to
@@ -212,7 +212,7 @@ SimH to reflect the w11a setup as close as possible:
   - processor: 4 Mbyte memory (as on Nexys2, Nexys3,...)
   - periphery: in addition DZ11, RL11/RL02, RK70/RP06, TM11/TU10
 
-Startup scripts are provided with each oskit. They call the w11a_max
+Startup scripts are provided with each oskit. They call the `w11a_max`
 configuration, so will show in the emulator what w11a can do when
 finished.
 
@@ -223,7 +223,7 @@ All examples below use the same basic setup
          console_starter -s -d DL0 &
          console_starter -s -d DL1 &
 
-   **Note**: the -s ensures that the port numbers used by SimH are taken!
+   **Note**: the `-s` ensures that the port numbers used by SimH are taken!
 
 - start the simulator
 

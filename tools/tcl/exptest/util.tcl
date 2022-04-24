@@ -1,9 +1,10 @@
-# $Id: util.tcl 1196 2019-07-20 18:18:16Z mueller $
+# $Id: util.tcl 1209 2021-08-22 13:17:33Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2019-08-04  1200   1.1    add proc et_tstline{0,1}; add et_exp el sub command
 # 2019-07-20  1196   1.0.1  et_tenv_cleanup: use test namespaces
 # 2019-06-29  1174   1.0    Initial version
 # 2019-06-10  1162   0.1    First draft
@@ -33,6 +34,11 @@ array set genv {
 
 set et_args  {}
 set et_tests {}
+
+set et_tline0 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#\$%^&*()"
+set et_tline1 \
+"abcdefghijklmnopqrstuvwxyz`~!@#$%^&*()-_=+\[{\]}\\|;:'\",<.>/?ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+set et_tline1d "${et_tline1}${et_tline1}"
 
 #
 # --------------------------------------------------------------------
@@ -285,7 +291,7 @@ proc et_exp {args} {
     switch -glob -- $cmd {
       i   { set ::spawn_id $val }
       t   { set ::timeout  $val }
-      s   { send $val }
+      s   { send -- $val }
       e   { if {$val eq "eof"} {
               expect {
                 eof      { }
@@ -294,6 +300,19 @@ proc et_exp {args} {
             } else {
               expect {
                 -re $val { } 
+                eof      { error "FAIL: unexpected 'eof' seen" }
+                timeout  { error "FAIL: missed '$val'" }
+              }
+            }
+          }
+      el  { if {$val eq "eof"} {
+              expect {
+                eof      { }
+                timeout  { error "FAIL: missed 'eof'" }
+              }
+            } else {
+              expect {
+                -ex "$val" { }
                 eof      { error "FAIL: unexpected 'eof' seen" }
                 timeout  { error "FAIL: missed '$val'" }
               }
@@ -353,4 +372,24 @@ proc et_tenv_cleanup {} {
     }
     unset ::tenv
   }
+}
+
+#
+# --------------------------------------------------------------------
+#
+proc et_tstline0 {lnum} {
+  return [format "%04d: %s" [expr {$lnum%10000}] $::et_tline0]
+}
+
+#
+# --------------------------------------------------------------------
+#
+proc et_tstline1 {lnum {cnum 0}} {
+  set len [string length $::et_tline1]
+  set beg [expr {$lnum%$len}]
+  set end [expr {$beg+67}]
+  return [format "%02d-%06d: %s" \
+            [expr {$cnum%100}] \
+            [expr {$lnum%1000000}] \
+            [string range $::et_tline1d $beg $end]]
 }

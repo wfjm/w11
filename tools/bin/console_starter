@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: console_starter 1189 2019-07-13 16:41:07Z mueller $
+# $Id: console_starter 1200 2019-08-04 16:17:20Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2009-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev  Vers    Comment
+# 2019-08-04  1200   1.2    change simh port handling
 # 2019-07-13  1189   1.1.1  drop superfluous exists for $opts
 # 2014-08-10   581   1.1    rename to console_starter
 # 2010-07-04   312   1.0.3  correct telnet_wrapper path
@@ -63,13 +64,13 @@ if (exists $opts{d}) {
 }
 
 if ($opts{s}) {                             # simh ports
-  $port = 5670 if ($dev eq "DL");
-  $port = 5671 if ($dev eq "DZ");
-  $title = sprintf "\"%s %s\"", $dev, $term;
+  $port = 5670+$line if ($dev eq "DL");       # telnet cons + 1 line DL mux
+  $port = 5672       if ($dev eq "DZ");       # 8 line DZ mux
+  $title = sprintf "\"%s%d %s (%4d)\"", $dev, $line, $term, $port;
 } else {                                    # rri ports
   $port = 8000+$line if ($dev eq "DL");
   $port = 8002+$line if ($dev eq "DZ");
-  $title = sprintf "\"%s%d %s\"", $dev, $line, $term;
+  $title = sprintf "\"%s%d %s (%4d)\"", $dev, $line, $term, $port;
 }
 
 my $geo_w = 80;

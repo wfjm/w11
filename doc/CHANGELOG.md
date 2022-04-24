@@ -2,6 +2,7 @@
 
 ### Table of contents
 - Current [HEAD](#user-content-head)
+- Release [w11a_V0.791](#user-content-w11a_v0.791)
 - Release [w11a_V0.79](#user-content-w11a_v0.79)
 - Release [w11a_V0.78](#user-content-w11a_v0.78)
 - Release [w11a_V0.77](#user-content-w11a_v0.77)
@@ -24,6 +25,14 @@ The HEAD version shows the current development. No guarantees that
 software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
+### Summary
+### New features
+### Changes
+### Bug Fixes
+
+<!-- --------------------------------------------------------------------- -->
+---
+## <a id="w11a_v0.791">2022-04-24: [w11a_V0.791](https://github.com/wfjm/w11/releases/tag/w11a_V0.791) - rev 1229(wfjm)</a>
 ### Summary
 - drop Travis (now defunct)
 - add preliminary GitHub Actions support

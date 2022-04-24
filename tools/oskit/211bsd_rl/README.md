@@ -7,8 +7,15 @@ See notes in [w11a_os_guide.md](../../../doc/w11a_os_guide.md) on
   3. Rlink and Backend Server setup
   4. SimH simulator setup
   5. Legal terms
-  
-For history see [CHANGELOG.md](CHANGELOG.md).
+
+### System properties and intended usage
+- patch level is #447 plus [fpsim+tcsh patch](https://wfjm.github.io/blogs/211bsd/2017-06-06-kernel-panic-here-doc-tcsh.html)
+- for history see [CHANGELOG.md](CHANGELOG.md)
+- **minimal** system !! Maybe useful as recovery system.
+- was useful at a time when w11a had only RK11 and RL11 type disk support
+- `/tmp` stays on '/'
+- `/home` is not mounted
+- suitable for a 'root' user, other accounts not supported
 
 ### Installation
 A disk set is available from
@@ -19,13 +26,6 @@ Download, unpack and copy the disk images (*.dsk), e.g.
        cd $RETROBASE/tools/oskit/211bsd_rl/
        211bsd_rl_setup
 ```
-
-### System properties and intended usage
-- **minimal** system !! Maybe useful as recovery system.
-- was useful at a time when w11a had only RK11 and RL11 type disk support
-- `/tmp` stays on '/'
-- `/home` is not mounted
-- suitable for a 'root' user, other accounts not supported
 
 ### Usage
 

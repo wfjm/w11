@@ -20,18 +20,18 @@
 - reference system now ISE 14.7, Vivado 2014.4; Ubuntu 14.04 64 bit, GHDL 0.31
 
 ### Table of contents
-- Release [w11a_V0.70](#user-content-w11a_V0.70)
-- Release [w11a_V0.66](#user-content-w11a_V0.66)
-- Release [w11a_V0.65](#user-content-w11a_V0.65)
-- Release [w11a_V0.64](#user-content-w11a_V0.64)
-- Release [w11a_V0.63](#user-content-w11a_V0.63)
-- Release [w11a_V0.62](#user-content-w11a_V0.62)
-- Release [w11a_V0.61](#user-content-w11a_V0.61)
+- Release [w11a_V0.70](#user-content-w11a_v0.70)
+- Release [w11a_V0.66](#user-content-w11a_v0.66)
+- Release [w11a_V0.65](#user-content-w11a_v0.65)
+- Release [w11a_V0.64](#user-content-w11a_v0.64)
+- Release [w11a_V0.63](#user-content-w11a_v0.63)
+- Release [w11a_V0.62](#user-content-w11a_v0.62)
+- Release [w11a_V0.61](#user-content-w11a_v0.61)
 - [CHANGELOG for w11a_V.50 to w11a_V0.60](CHANGELOG-w11a_V0.50-w11a_V0.60.md)
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## <a id="w11a_V0.70">2015-06-21: w11a_V0.70 - svn rev 33(oc) 693(wfjm)</a>
+## <a id="w11a_v0.70">2015-06-21: w11a_V0.70 - svn rev 33(oc) 693(wfjm)</a>
 
 ### Preface
 - resolved known issue V0.66-2: operation with multiple RP or RM disks
@@ -86,7 +86,7 @@
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## <a id="w11a_V0.66">2015-06-05: w11a_V0.66 - svn rev 31(oc) 687(wfjm)</a>
+## <a id="w11a_v0.66">2015-06-05: w11a_V0.66 - svn rev 31(oc) 687(wfjm)</a>
 
 ### Preface
 - Since the previous release a full set of small, medium and large sized 
@@ -161,7 +161,7 @@
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## <a id="w11a_V0.65">2015-05-14: w11a_V0.65 - svn rev 30(oc) 681(wfjm)</a>
+## <a id="w11a_v0.65">2015-05-14: w11a_V0.65 - svn rev 30(oc) 681(wfjm)</a>
 
 ### Preface
 - With small RK05 or RL02 sized disks only quite reduced OS setups could
@@ -290,7 +290,7 @@
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## <a id="w11a_V0.64">2015-03-01: w11a_V0.64 - svn rev 29(oc) 655(wfjm)</a>
+## <a id="w11a_v0.64">2015-03-01: w11a_V0.64 - svn rev 29(oc) 655(wfjm)</a>
 
 ### Preface
 - The w11 project started on a Spartan-3 based Digilent S3board, and soon 
@@ -439,7 +439,7 @@
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## <a id="w11a_V0.63">2015-01-04: w11a_V0.63 - svn rev 28(oc) 629(wfjm)</a>
+## <a id="w11a_v0.63">2015-01-04: w11a_V0.63 - svn rev 28(oc) 629(wfjm)</a>
 
 ### Summary
 - the w11a rbus interface used so far a narrow dynamically adjusted 
@@ -495,7 +495,7 @@
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## <a id="w11a_V0.62">2014-12-20: w11a_V0.62 - svn rev 27(oc) 614(wfjm)</a>
+## <a id="w11a_v0.62">2014-12-20: w11a_V0.62 - svn rev 27(oc) 614(wfjm)</a>
 
 ### Summary
 - migrate to rlink protocol version 4
@@ -581,7 +581,7 @@ Notes:
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## <a id="w11a_V0.61">2014-08-08: w11a_V0.61 - svn rev 25(oc) 579(wfjm)</a>
+## <a id="w11a_v0.61">2014-08-08: w11a_V0.61 - svn rev 25(oc) 579(wfjm)</a>
 ### Summary
 - The `div` instruction gave wrong results in some corner cases when either
   divisor or quotient were the largest negative integer (100000 or -32768).

@@ -28,6 +28,11 @@ Download, unpack and copy the disk images (*.dsk), e.g.
        example:      ti_w11 <opt> @u5ed_rk_boot.tcl
                      where <opt> is the proper option set for the board.
   ```
+  or use for verification the SimH simulator  (see section SimH in
+  [w11a_os_guide](../../../doc/w11a_os_guide.md#user-content-simh))
+  ```
+  pdp11 u5ed_rk_boot.scmd
+  ```
 
 - Hit `<ENTER>` in the xterm window to connect to backend server.
   The boot dialog in the console `xterm` window will look like

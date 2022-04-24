@@ -23,7 +23,7 @@ Download, unpack and copy the tape images (*.tap), e.g.
 
 - This is a tape distribution kit and tailoed to be installed on massbus
   disks of RP or RM type. The 211bsd system doesn't contain a ready to 
-  used boot block for RP07 disks, while RM03 and RP05 disks are too small 
+  use boot block for RP07 disks, while RM03 and RP05 disks are too small 
   for a full 211bsd system. Therefore RP06 and RM05 disks are the supported
   disk types.
 

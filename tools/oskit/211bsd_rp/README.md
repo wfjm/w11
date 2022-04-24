@@ -7,8 +7,19 @@ See notes in [w11a_os_guide.md](../../../doc/w11a_os_guide.md) on
   3. Rlink and Backend Server setup
   4. SimH simulator setup
   5. Legal terms
-  
-For history see [CHANGELOG.md](CHANGELOG.md).
+
+### System properties and intended usage
+- patch level is #447 plus [fpsim+tcsh patch](https://wfjm.github.io/blogs/211bsd/2017-06-06-kernel-panic-here-doc-tcsh.html)
+- for history see [CHANGELOG.md](CHANGELOG.md)
+- This system is created for multi-user usage without Ethernet. The
+  `RETRONFPNW` kernel is configured with
+  ```
+    INET    YES        # networking available
+    NETHER  0          # no Ethernet
+    NSL     1          # Serial Line IP enabled
+  ```
+- see [211bsd_rpeth](../211bsd_rpeth/README.md) for a system with `DEUNA` support
+- see [211bsd_rpmin](../211bsd_rpmin/README.md) for a minimal memory system.
 
 ### Installation
 A disk set is available from
@@ -19,17 +30,6 @@ Download, unpack and copy the disk images (*.dsk), e.g.
        cd $RETROBASE/tools/oskit/211bsd_rp/
        211bsd_rp_setup
 ```
-
-### System properties and intended usage
-This system is created for multi-user usage without Ethernet. The
-`RETRONFPNW` kernel is configured with
-```
-    INET    YES        # networking available
-    NETHER  0          # no Ethernet
-    NSL     1          # Serial Line IP enabled
-```
-See [211bsd_rpeth](../211bsd_rpeth/README.md) for a system with `DEUNA` support
-and [211bsd_rpmin](../211bsd_rpmin/README.md) for a minimal memory system.
 
 ### Usage
 

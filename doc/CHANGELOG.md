@@ -2,16 +2,16 @@
 
 ### Table of contents
 - Current [HEAD](#user-content-head)
-- Release [w11a_V0.79](#user-content-w11a_V0.79)
-- Release [w11a_V0.78](#user-content-w11a_V0.78)
-- Release [w11a_V0.77](#user-content-w11a_V0.77)
-- Release [w11a_V0.76](#user-content-w11a_V0.76)
-- Release [w11a_V0.753](#user-content-w11a_V0.753)
-- Release [w11a_V0.752](#user-content-w11a_V0.752)
-- Release [w11a_V0.751](#user-content-w11a_V0.751)
-- Release [w11a_V0.75](#user-content-w11a_V0.75)
-- Release [w11a_V0.742](#user-content-w11a_V0.742)
-- Release [w11a_V0.741](#user-content-w11a_V0.741)
+- Release [w11a_V0.79](#user-content-w11a_v0.79)
+- Release [w11a_V0.78](#user-content-w11a_v0.78)
+- Release [w11a_V0.77](#user-content-w11a_v0.77)
+- Release [w11a_V0.76](#user-content-w11a_v0.76)
+- Release [w11a_V0.753](#user-content-w11a_v0.753)
+- Release [w11a_V0.752](#user-content-w11a_v0.752)
+- Release [w11a_V0.751](#user-content-w11a_v0.751)
+- Release [w11a_V0.75](#user-content-w11a_v0.75)
+- Release [w11a_V0.742](#user-content-w11a_v0.742)
+- Release [w11a_V0.741](#user-content-w11a_v0.741)
 - [CHANGELOG for w11a_V.70 to w11a_V0.74](CHANGELOG-w11a_V0.70-w11a_V0.74.md)
 - [CHANGELOG for w11a_V.60 to w11a_V0.70](CHANGELOG-w11a_V0.60-w11a_V0.70.md)
 - [CHANGELOG for w11a_V.50 to w11a_V0.60](CHANGELOG-w11a_V0.50-w11a_V0.60.md)
@@ -57,7 +57,7 @@ The full set of tests is only run for tagged releases.
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## <a id="w11a_V0.79">2019-07-27: [w11a_V0.79](https://github.com/wfjm/w11/releases/tag/w11a_V0.79) - rev 1197(wfjm)</a>
+## <a id="w11a_v0.79">2019-07-27: [w11a_V0.79](https://github.com/wfjm/w11/releases/tag/w11a_V0.79) - rev 1197(wfjm)</a>
 ### Summary
 - use Vivado 2019.1 as default
 - finalize coverity fixups, now defect free ([see blog](https://wfjm.github.io/blogs/w11/2019-06-14-coverity-fixes-done.html))
@@ -96,7 +96,7 @@ The full set of tests is only run for tagged releases.
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## <a id="w11a_V0.78">2019-06-01: [w11a_V0.78](https://github.com/wfjm/w11/releases/tag/w11a_V0.78) - rev 1158(wfjm)</a>
+## <a id="w11a_v0.78">2019-06-01: [w11a_V0.78](https://github.com/wfjm/w11/releases/tag/w11a_V0.78) - rev 1158(wfjm)</a>
 ### Summary
 - add m9312 boot prom emulation
 - add dz11 8 line serial port multiplexer
@@ -151,7 +151,7 @@ The full set of tests is only run for tagged releases.
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## <a id="w11a_V0.77">2019-04-28: [w11a_V0.77](https://github.com/wfjm/w11/releases/tag/w11a_V0.77) - rev 1141(wfjm)</a>
+## <a id="w11a_v0.77">2019-04-28: [w11a_V0.77](https://github.com/wfjm/w11/releases/tag/w11a_V0.77) - rev 1141(wfjm)</a>
 ### Summary
 - add support for buffered character interfaces
   - LP11: ibdr_lp11_buf
@@ -250,7 +250,7 @@ The full set of tests is only run for tagged releases.
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## <a id="w11a_V0.76">2019-02-16: [w11a_V0.76](https://github.com/wfjm/w11/releases/tag/w11a_V0.76) - rev 1108(wfjm)</a>
+## <a id="w11a_v0.76">2019-02-16: [w11a_V0.76](https://github.com/wfjm/w11/releases/tag/w11a_V0.76) - rev 1108(wfjm)</a>
 ### Summary
 - add support for DDR memory via Vivado MIG cores for
   - Digilent Arty
@@ -312,7 +312,7 @@ The full set of tests is only run for tagged releases.
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## <a id="w11a_V0.753">2018-12-29: [w11a_V0.753](https://github.com/wfjm/w11/releases/tag/w11a_V0.753) - rev 1096(wfjm)</a>
+## <a id="w11a_v0.753">2018-12-29: [w11a_V0.753](https://github.com/wfjm/w11/releases/tag/w11a_V0.753) - rev 1096(wfjm)</a>
 ### Summary
 - add continuous integration support via [Travis CI](https://travis-ci.org),
   add [project wfjm/w11](https://travis-ci.org/wfjm/w11), and setup
@@ -450,7 +450,7 @@ The full set of tests is only run for tagged releases.
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## <a id="w11a_V0.752">2018-08-26: [w11a_V0.752](https://github.com/wfjm/w11/releases/tag/w11a_V0.752) - rev 1041(wfjm)</a>
+## <a id="w11a_v0.752">2018-08-26: [w11a_V0.752](https://github.com/wfjm/w11/releases/tag/w11a_V0.752) - rev 1041(wfjm)</a>
 ### Summary
 - the Arty board is now also offered with a Spartan-7 FPGA. To evaluate the
   Spartan vs Artix performance a w11a port to the Arty S7 board was added.
@@ -477,7 +477,7 @@ The full set of tests is only run for tagged releases.
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## <a id="w11a_V0.751">2018-08-10: [w11a_V0.751](https://github.com/wfjm/w11/releases/tag/w11a_V0.751) - rev 1037(wfjm)</a>
+## <a id="w11a_v0.751">2018-08-10: [w11a_V0.751](https://github.com/wfjm/w11/releases/tag/w11a_V0.751) - rev 1037(wfjm)</a>
 
 ### Summary
 - The license disclaimers in the source files referred so far to GPL V2 or later
@@ -527,7 +527,7 @@ The full set of tests is only run for tagged releases.
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## <a id="w11a_V0.75">2017-06-04: [w11a_V0.75](https://github.com/wfjm/w11/releases/tag/w11a_V0.75) - rev 904(wfjm)</a>
+## <a id="w11a_v0.75">2017-06-04: [w11a_V0.75](https://github.com/wfjm/w11/releases/tag/w11a_V0.75) - rev 904(wfjm)</a>
 
 ### Summary
 - the only device class missing so far for the w11 was *network interfaces*.
@@ -708,7 +708,7 @@ The full set of tests is only run for tagged releases.
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## <a id="w11a_V0.742">2017-01-07: [w11a_V0.742](https://github.com/wfjm/w11/releases/tag/w11a_V0.742) - rev 841(wfjm)</a>
+## <a id="w11a_v0.742">2017-01-07: [w11a_V0.742](https://github.com/wfjm/w11/releases/tag/w11a_V0.742) - rev 841(wfjm)</a>
 
 ### Summary
 - fixes for Vivado 2016.4; all designs build under Vivado 2016.4
@@ -720,7 +720,7 @@ The full set of tests is only run for tagged releases.
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## <a id="w11a_V0.741">2016-12-23: [w11a_V0.741](https://github.com/wfjm/w11/releases/tag/w11a_V0.741) - rev 826(wfjm)</a>
+## <a id="w11a_v0.741">2016-12-23: [w11a_V0.741](https://github.com/wfjm/w11/releases/tag/w11a_V0.741) - rev 826(wfjm)</a>
 ### Summary
 - moved w11 repository from OpenCores to GitHub
   [wfjm/w11](https://github.com/wfjm/w11/)

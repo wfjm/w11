@@ -9,20 +9,18 @@ See notes in [w11a_os_guide.md](../../../doc/w11a_os_guide.md) on
   5. Legal terms
 
 ### System properties and intended usage
-This system is created for usage on systems with limited memory. The
-`RETRONFPMIN` kernel is configured with
+- patch level is #447 plus [fpsim+tcsh patch](https://wfjm.github.io/blogs/211bsd/2017-06-06-kernel-panic-here-doc-tcsh.html)
+- for history see [CHANGELOG.md](CHANGELOG.md)
+- This system is created for usage on systems with limited memory. The
+  `RETRONFPMIN` kernel is configured with
 ```
     NBUF 40         # only 60 blocks disk cache (usual is 160)
     MAXUSERS 10     # this reduces number of file, process, ... slots
     INET NO         # no networking available
 ```
-
-The system will boot on as little as 512 kB memory. Will work reasonably with
-640 kB if only one or two sessions are active. Usage of `tcsh` should be
-avoided because it has a large memory footprint.
-
-### History
-For history see [CHANGELOG.md](CHANGELOG.md).
+- The system will boot on as little as 512 kB memory. Will work reasonably with
+  640 kB if only one or two sessions are active. Usage of `tcsh` should be
+  avoided because it has a large memory footprint.
 
 ### Installation
 A disk set is available from

@@ -39,7 +39,7 @@ instantiated components, the latter via their vbom, and last but not least
 the name of the VHDL source file. 
 
 All file names are relative to the current directory. A recursive traversal 
-through all vbom's gives for each vhld module all sources needed to compile
+through all vbom's gives for each VHDL module all sources needed to compile
 it. The `vbomconv` script in `tools/bin` does this and generates depending on 
 options
 - make dependency files
@@ -218,6 +218,14 @@ If only the post synthesis, optimize or route design checkpoints are wanted
     make <sys>_opt.dcp
     make <sys>_rou.dcp
 
+A simple _message filter_ system is also integrated into the make build flow.
+For many (though not all) systems a `.vmfset` file has been provided which
+defines the synthesis, implementation, and bitfile messages which are
+considered ok. To see only the remaining message extracted from the various
+`.log` files simply use the make target
+
+    make <sys>.mfsum
+
 ### <a id="buildviv">Building Vivado projects, creating gate level models</a>
 
 Vivado is used in 'project mode', whenever one of the targets mentioned
@@ -265,10 +273,10 @@ only one board must connected.
 
 ### <a id="ise">Note on ISE</a>
 
-The development for Nexys4 started with ISE but has now fully moved to
-Vivado. The make files for the ISE build flows have been kept for comparison
-are have the name `Makefile.ise`. So for some Nexys4 designs and associated
-one can still start with a 
+The development for Nexys4 started in 2013 with ISE but moved to Vivado when
+it matured in 2015. The make files for the ISE build flows have been kept for
+comparison are have the name `Makefile.ise`. So for some Nexys4 designs one
+can still start with a 
 
       make -f Makefile.ise  <target>
     or

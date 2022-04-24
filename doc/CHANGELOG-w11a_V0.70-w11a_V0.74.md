@@ -19,16 +19,16 @@
   (in [w11a_V0.74](#user-content-w11a_V0.74))
 
 ### Table of contents
-- Release [w11a_V0.74](#user-content-w11a_V0.74)
-- Release [w11a_V0.73](#user-content-w11a_V0.73)
-- Release [w11a_V0.72](#user-content-w11a_V0.72)
-- Release [w11a_V0.71](#user-content-w11a_V0.71)
+- Release [w11a_V0.74](#user-content-w11a_v0.74)
+- Release [w11a_V0.73](#user-content-w11a_v0.73)
+- Release [w11a_V0.72](#user-content-w11a_v0.72)
+- Release [w11a_V0.71](#user-content-w11a_v0.71)
 - [CHANGELOG for w11a_V.60 to w11a_V0.70](CHANGELOG-w11a_V0.60-w11a_V0.70.md)
 - [CHANGELOG for w11a_V.50 to w11a_V0.60](CHANGELOG-w11a_V0.50-w11a_V0.60.md)
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## <a id="w11a_V0.74">2016-10-02: w11a_V0.74 - svn rev 37(oc) 811(wfjm)</a>
+## <a id="w11a_v0.74">2016-10-02: w11a_V0.74 - svn rev 37(oc) 811(wfjm)</a>
 ### Preface
 - the current version of the  memory controller for the micron `mt45w8mw16b`
   'cellular ram' used on nexys2, nexys3, and nexys4 uses the asynchronous
@@ -183,7 +183,7 @@
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## <a id="w11a_V0.73">2016-06-26: w11a_V0.73 - svn rev 36(oc) 779(wfjm)</a>
+## <a id="w11a_v0.73">2016-06-26: w11a_V0.73 - svn rev 36(oc) 779(wfjm)</a>
 ### Preface
 - the 'basic Vivado support' added with V0.64 was a minimal effort port of
   the code base used under ISE, leading to sub-optimal results under Vivado.
@@ -390,7 +390,7 @@
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## <a id="w11a_V0.72">2016-03-19: w11a_V0.72 - svn rev 35(oc) 746(wfjm)</a>
+## <a id="w11a_v0.72">2016-03-19: w11a_V0.72 - svn rev 35(oc) 746(wfjm)</a>
 ### Preface
 - The new low-cost Digilent Arty board is a very attractive platform.
   The DDR3 memory will take some time to integrate, in this release thus
@@ -498,7 +498,7 @@
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## <a id="w11a_V0.71">2015-12-30: w11a_V0.71 - svn rev 34(oc) 722(wfjm)</a>
+## <a id="w11a_v0.71">2015-12-30: w11a_V0.71 - svn rev 34(oc) 722(wfjm)</a>
 ### Preface
 - the w11a so far lacked any 'hardware debugger' support, which made the
   debugging of CPU core issues a bit tedious. This release added a first

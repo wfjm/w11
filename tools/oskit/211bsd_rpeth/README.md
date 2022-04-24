@@ -9,16 +9,15 @@ See notes in [w11a_os_guide.md](../../../doc/w11a_os_guide.md) on
   5. Legal terms
 
 ### System properties and intended usage
-This system is build with Ethernet based networking via a DEUNA network
-interface. The `RETRONFPETH` kernel is configured with
-```
+- patch level is #447 plus [fpsim+tcsh patch](https://wfjm.github.io/blogs/211bsd/2017-06-06-kernel-panic-here-doc-tcsh.html)
+- for history see [CHANGELOG.md](CHANGELOG.md)
+- This system is build with Ethernet based networking via a DEUNA network
+  interface. The `RETRONFPETH` kernel is configured with
+  ```
     NETHER 1        # ethernet support
     NDE 1           # DEUNA interface driver
     NSL 0           # no slip available
-```
-
-### History
-For history see [CHANGELOG.md](CHANGELOG.md).
+  ```
 
 ### Installation
 A disk set is available from

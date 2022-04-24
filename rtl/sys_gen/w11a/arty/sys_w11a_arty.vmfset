@@ -1,10 +1,11 @@
-# $Id: sys_w11a_arty.vmfset 1159 2019-06-06 19:15:50Z mueller $
+# $Id: sys_w11a_arty.vmfset 1226 2022-04-23 11:19:32Z mueller $
 #
 # Validated code/tool version combinations
 #   Date          rev   viv   
+#   2022-04-23   1225   2020.1
 #   2019-06-05   1159   2019.1
-#   2019-02-02   1108   2017.2
 #   2019-02-02   1108   2018.3
+#   2019-02-02   1108   2017.2
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
@@ -23,6 +24,7 @@ I [Designutils 20-1567]                                         # generic
 # net without driver -------------------------------------------
 
 # unconnected ports --------------------------------------------
+{:2019.2}
 I [Synth 8-3331] IB_MREQ                                        # generic
 I [Synth 8-3331] RB_MREQ                                        # generic
 I [Synth 8-3331] DM_STAT_CO                                     # generic
@@ -52,6 +54,7 @@ i [Synth 8-3331] ibdr_deuna .* EI_ACK
 i [Synth 8-3331] ibd_iist .* EI_ACK
 # --> data end marker not used                                  # OK 2019-01-02
 i [Synth 8-3331] sramif2migui_core .*APP_RD_DATA_END
+{:}
 
 # sequential element removed (2017.1 nonsense) -----------------
 I [Synth 8-6014] _reg                                           # generic

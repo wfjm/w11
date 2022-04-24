@@ -1,9 +1,10 @@
-# $Id: sys_tst_sram_n4d.vmfset 1108 2019-02-02 23:04:38Z mueller $
+# $Id: sys_tst_sram_n4d.vmfset 1226 2022-04-23 11:19:32Z mueller $
 #
 # Validated code/tool version combinations
 #   Date          rev   viv   
-#   2019-02-02   1108   2017.2
+#   2022-04-23   1225   2020.1
 #   2019-02-02   1108   2018.3
+#   2019-02-02   1108   2017.2
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
@@ -17,15 +18,20 @@ i [Constraints 18-5210]                                         # generic
 I [Designutils 20-1567]                                         # generic
 
 # port driven by constant --------------------------------------
+{:2019.2}
 i [Synth 8-3917] O_RGBLED0[\d]                                  # OK 2019-01-02
+{:}
 
 # tying undriven pin to constant -------------------------------
+{:2019.2}
 # upper 8 LEDs unused                                           # OK 2019-01-02
 i [Synth 8-3295] HIO:LED[\d*]
 # only few LAMs used                                            # OK 2019-01-02
 i [Synth 8-3295] RLINK:RB_LAM[\d*]
+{:}
 
 # unconnected ports --------------------------------------------
+{:2019.2}
 I [Synth 8-3331] RB_MREQ                                        # generic
 # --> MEM_ACK_W not used by current tst_sram                    # OK 2019-01-02
 i [Synth 8-3331] tst_sram.*MEM_ACK_W
@@ -33,6 +39,7 @@ i [Synth 8-3331] tst_sram.*MEM_ACK_W
 i [Synth 8-3331] rlink_sp2c.*CE_(USEC|MSEC)
 # --> data end marker not used                                  # OK 2019-01-02
 i [Synth 8-3331] sramif2migui_core .*APP_RD_DATA_END
+{:}
 
 # sequential element removed (2017.1 nonsense) -----------------
 I [Synth 8-6014] _reg                                           # generic

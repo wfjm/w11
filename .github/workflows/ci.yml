@@ -1,4 +1,4 @@
-# $Id: ci.yml 1223 2022-04-18 10:39:00Z mueller $
+# $Id: ci.yml 1227 2022-04-24 10:08:48Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 
@@ -17,6 +17,14 @@ jobs:
           - os: ubuntu-20.04            # Ub 40.4 && clang
             cc: clang
             cxx: clang++
+    env:
+      CC: ${{ matrix.cc }}
+      CXX: ${{ matrix.cxx }}
+      BOOSTINC: /usr/include
+      BOOSTLIB: /usr/lib
+      TCLINC: /usr/include/tcl8.6
+      TCLLIB: /usr/lib/x86_64-linux-gnu
+      TCLLIBNAME: tcl8.6
     steps:
     - uses: actions/checkout@v3
     - name: install
@@ -37,16 +45,9 @@ jobs:
     - run: printenv | grep ^GITHUB_ | sort
     - name: build
       run: |
-        export CC=${{ matrix.cc }}
-        export CXX=${{ matrix.cxx }}
         export RETROBASE=$PWD
         export PATH=$PATH:$RETROBASE/tools/bin:.
         export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$RETROBASE/tools/lib
-        export BOOSTINC=/usr/include
-        export BOOSTLIB=/usr/lib
-        export TCLINC=/usr/include/tcl8.6
-        export TCLLIB=/usr/lib/x86_64-linux-gnu
-        export TCLLIBNAME=tcl8.6
         make -j 2 -C tools/src
         make -j 2 -C tools/src/testtclsh
         make all_tcl
@@ -80,3 +81,9 @@ jobs:
           -tag sys_w11a,n4 \
           -tag sys_w11a,arty
         tbfilt -all -sum -comp
+    - name: deploy
+      run: |
+        export RETROBASE=$PWD
+        export PATH=$PATH:$RETROBASE/tools/bin:.
+        export JOBID=${{ matrix.cxx }}
+        .github/bin/deploy.sh

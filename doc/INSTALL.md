@@ -40,9 +40,10 @@ working directory with the name represented as `<install-dir>`
         git checkout tags/<tag>
 
 The GitHub repository contains the full version history since 2010.
-Prior to October 2016, the project was maintained on OpenCores, access
-to the legacy svn repository is described in
-[INSTALL_from_opencores.md](INSTALL_from_opencores.md).
+Prior to October 2016, the project was maintained on
+[OpenCores](http://opencores.org) as project
+[w11](http://opencores.org/project,w11). In October 2016 the repository was
+[moved from OpenCores to GitHub](https://wfjm.github.io/blogs/w11/2016-12-11-w11-moved-to-github.html) including all revision history.
 
 ### <a id="sysreq">System requirements</a>
   
@@ -68,6 +69,9 @@ distributions should be straightforward.
     -> see [INSTALL_ghdl.md](INSTALL_ghdl.md) for the unfortunately gory details
   - GTKWave  
     -> package: `gtkwave`
+
+- for cross-verification the SimH simulator is used.
+  See [INSTALL_simh.md](INSTALL_simh.md) for the unfortunately gory details.
 
 - additional requirements for using Cypress FX (on Nexys2/3) see
   [INSTALL_fx2_support.md](INSTALL_fx2_support.md).
@@ -106,7 +110,7 @@ For bash and alike use
       export MANPATH=$MANPATH:$RETROBASE/tools/man
 
 Boost was essential in the pre-c++11 times but has been completely replaced
-by std:: classes provided by c++11. In most cases the Tcl version coming with
+by `std::` classes provided by c++11. In most cases the Tcl version coming with
 the distribution will work, in those cases simply use
 
       export TCLINC=/usr/include/tcl8.6
@@ -134,23 +138,19 @@ The details are described in
 
 #### <a id="build-cpp">Compile sharable libraries</a>
 
-The backend codebase uses now many `c++11` language features, e.g.
+The backend codebase uses many `c++11` language features, e.g.
 `nullptr`, `auto`, lambda functions, list initialization, range-based `for`,
-to name the most prominent.
-A C++ compiler with full `c++11` support is therefore needed, so either
-`gcc 4.8.1` or `clang 3.3`. Current experience is:
-- gcc 5.4.0 and clang 3.8.0, as in Ubuntu 16.04 LTS, _will work !!_
-- gcc 4.7.2 and clang 3.0-6.2, as in Debian 7, _will not work !!_
+to name the most prominent. Recently some `c++17` language features are
+used as well.
+A C++ compiler with full `c++17` support is therefore needed, so either
+`gcc 7.3` or `clang 7`. Current experience is:
+- gcc 9.3.0 and clang 10, as in Ubuntu 20.04 LTS, _will work !!_
+- gcc 8.3.0 and clang 7, as in Debian 10, _should work !!_
 
 Required tools and libraries:
 
-    g++    >= 4.8.1  (see c++11 usage above)
+    g++    >= 7.3    (see c++17 usage above)
     libusb >= 1.0.5  (timerfd support)
-
-Build was tested under:
-
-    ubuntu xenial  (16.04 LTS):  gcc 5.4.0  boost 1.58    libusb 1.0.20
-    ubuntu trusty  (14.04 LTS):  gcc 4.8.2  boost 1.54    libusb 1.0.17
 
 To build all sharable libraries
 

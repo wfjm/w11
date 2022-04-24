@@ -28,6 +28,7 @@ The full set of tests is only run for tagged releases.
 - drop Travis (now defunct)
 - add preliminary GitHub Actions support
 - use Vivado 2020.1 as default
+- use GHDL 2.0.0 as default
 - use std=c++17 (requires gcc 7.3 or later)
 - automate oskit download and container file setup
 - automate testing of oskits

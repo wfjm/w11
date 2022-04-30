@@ -26,8 +26,11 @@ software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
 ### Summary
+- cleanup tbrun setup, drop nexys4 and add nexys4d ([see blog](https://wfjm.github.io/blogs/w11/2019-07-27-nexys4-obituary.html))
 ### New features
 ### Changes
+- tools changes
+  - **/tbrun.yml: since nexys4 not longer available switch to nexys4d
 ### Bug Fixes
 
 <!-- --------------------------------------------------------------------- -->
@@ -35,7 +38,7 @@ The full set of tests is only run for tagged releases.
 ## <a id="w11a_v0.791">2022-04-24: [w11a_V0.791](https://github.com/wfjm/w11/releases/tag/w11a_V0.791) - rev 1229(wfjm)</a>
 ### Summary
 - drop Travis (now defunct)
-- add preliminary GitHub Actions support
+- add GitHub Actions support ([see blog](https://wfjm.github.io/blogs/w11/2022-04-24-ci-cd-workflow-now-github-actions-based.html))
 - use Vivado 2020.1 as default
 - use GHDL 2.0.0 as default
 - use std=c++17 (requires gcc 7.3 or later)
@@ -111,7 +114,7 @@ The full set of tests is only run for tagged releases.
 - add m9312 boot prom emulation
 - add dz11 8 line serial port multiplexer
 - update 211bsd system images (oskits)
-  - apply fpsim+tcsh patch (see [w11a blog 2017-06-06](https://wfjm.github.io/blogs/211bsd/2017-06-06-kernel-panic-here-doc-tcsh.html))
+  - apply fpsim+tcsh patch ([see blog](https://wfjm.github.io/blogs/211bsd/2017-06-06-kernel-panic-here-doc-tcsh.html))
   - support dz11 lines
   - update network setup
 
@@ -326,7 +329,7 @@ The full set of tests is only run for tagged releases.
 ### Summary
 - add continuous integration support via [Travis CI](https://travis-ci.org),
   add [project wfjm/w11](https://travis-ci.org/wfjm/w11), and setup
-  a `.travis.yml`.
+  a `.travis.yml` ([see blog](https://wfjm.github.io/blogs/w11/2018-09-16-travis-based-ci-cd-workflow.html)).
 - use static source code analysis [Coverity Scan](https://scan.coverity.com),
   add [project wfjm/w11](https://scan.coverity.com/projects/wfjm-w11).
   The scans are manually uploaded, not automated via Travis (w11 is a `VHDL`
@@ -339,9 +342,9 @@ The full set of tests is only run for tagged releases.
   - completely replace boost with std
 - add KW11-P (programmable clock) to all w11 systems. It is usefull in test
   benches (fast interrupt source) and enables on the long run to port the
-  2.10BSD kernel profiling code to 2.11BSD.
+  2.10BSD kernel profiling code to 2.11BSD ([see blog](https://wfjm.github.io/blogs/w11/2018-10-14-kw11-p-added.html))
 - stay with Vivado 2017.2 as default tool, 2017.2 to 2018.2 exhibit much
-  longer build times for w11 designs (see [w11 blog posting](https://wfjm.github.io/blogs/w11/2018-09-01-vivado-2018.2-much-slower.html))
+  longer build times for w11 designs ([see blog](https://wfjm.github.io/blogs/w11/2018-09-01-vivado-2018.2-much-slower.html))
 - the first Artix-7 designs for the nexys4 board where done in 2013 with
   ISE 14.5, later with 14.7, simply because the early Vivado versions were
   nice technology demonstrators, but didn't compile the w11 code base. That
@@ -733,7 +736,7 @@ The full set of tests is only run for tagged releases.
 ## <a id="w11a_v0.741">2016-12-23: [w11a_V0.741](https://github.com/wfjm/w11/releases/tag/w11a_V0.741) - rev 826(wfjm)</a>
 ### Summary
 - moved w11 repository from OpenCores to GitHub
-  [wfjm/w11](https://github.com/wfjm/w11/)
+  [wfjm/w11](https://github.com/wfjm/w11/) ([see blog](https://wfjm.github.io/blogs/w11/2016-12-11-w11-moved-to-github.html))
 - moved w11 project pages from OpenCores to GitHub-Pages
   [wfjm.github.io/home/w11](https://wfjm.github.io/home/w11/)
 - converted existing documentation from plain text to markdown

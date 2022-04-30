@@ -1,4 +1,4 @@
-# $Id: ci.yml 1227 2022-04-24 10:08:48Z mueller $
+# $Id: ci.yml 1231 2022-04-28 08:40:50Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 
@@ -11,10 +11,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-20.04            # Ub 20.4 && gcc
+          - os: ubuntu-20.04            # Ub 20.4 - gcc
             cc: gcc
             cxx: g++
-          - os: ubuntu-20.04            # Ub 40.4 && clang
+          - os: ubuntu-20.04            # Ub 20.4 - clang
             cc: clang
             cxx: clang++
     env:

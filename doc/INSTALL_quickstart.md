@@ -85,7 +85,7 @@ full-featured [211bsd_rp](../tools/oskit/211bsd_rp/README.md) can be
 used when more than 1024 kB memory is available, for systems with 512 to
 1024 kB memory use the pruned down
 [211bsd_rpmin](../tools/oskit/211bsd_rpmin/README.md).
-For 2.11BSD with Ethernet, other OS and more details consult
+For 2.11BSD with Ethernet, other OS, and more details consult
 [w11a_os_guide](w11a_os_guide.md).
 
 Key steps are
@@ -112,15 +112,15 @@ Key steps are
 ### <a id="tested">Concrete test run</a>
 The recipe was tested
 - system environment
-  - Kubuntu 16.04 LTS
-  - Vivado 2019.1
-  - on 2019-08-11
+  - Kubuntu 20.04 LTS (focal) with gcc 9.4.0
+  - Vivado 2020.1
+  - on 2022-04-29
 
-- after commit [563e230](https://github.com/wfjm/w11/commit/563e230)
+- after commit [7ec5be2a](https://github.com/wfjm/w11/commit/7ec5be2a)
 
       cd $RETROBASE/tools/src
       time make -j 4
-        # real 1m40.556s   user 2m53.704s   sys 0m14.668s
+        # real 3m5.530s   user 5m9.533s   sys 0m22.052s
 
 - for design `nexys4d` for
   [Nexys4 DDR](https://wfjm.github.io/home/w11/inst/boards.html#digi_nexys4d) or
@@ -129,9 +129,9 @@ The recipe was tested
       
       cd $RETROBASE/rtl/sys_gen/w11a/nexys4d
       time make sys_w11a_n4d.bit
-      # real 18m21.066s   user 8m41.300s   sys 0m53.416s
+      # real 21m40.918s   user 10m39.529s   sys 1m17.014s
       time make sys_w11a_n4d.vconfig
-      # real 0m34.484s   user 0m15.540s   sys 0m1.660s
+      # real 0m35.288s   user 0m21.578s   sys 0m2.369s
       
 - for oskit `211bsd_rp`
   - in Linux terminal
@@ -145,7 +145,7 @@ The recipe was tested
         # set board switches to SWI = 00000000 00101000
         ti_w11 -tuD,12M,break,cts  @211bsd_rp_boot.tcl
 
-  - in window `DL1vt100` hit `<ENTER>` to connect to backend, than see output
+  - in window `DL0 vt100` hit `<ENTER>` to connect to backend, than see output
     and do required inputs as written in the
     [README](../tools/oskit/211bsd_rp/README.md):
   
@@ -158,7 +158,10 @@ The recipe was tested
         ...
         login: {root}
 
+  - feel free to explore also the second console in window `DL1 vt100`,
+    hit `<ENTER>` and start a 2nd session on the 2.11BSD system.
+
   - when done with exploring 2.11BSD do proper system shutdown
     - in 211bsd session type `shutdown -h now`
-    - in ti_w11 session wait for `CPU attention` and `H:cpu0` prompt,
+    - in `ti_w11` session wait for `CPU attention` and `H:cpu0` prompt,
       than exit with `^D`.

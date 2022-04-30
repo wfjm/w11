@@ -1,10 +1,11 @@
-# $Id: tbrun.yml 807 2016-09-17 07:49:26Z mueller $
+# $Id: tbrun.yml 1231 2022-04-28 08:40:50Z mueller $
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2022-04-25  1231   1.1    drop nexys4,atlys; add nexys4d
 # 2016-08-22   800   1.0    Initial version
 #
 - include: s3board/tb/tbrun.yml
 - include: nexys2/tb/tbrun.yml
 - include: nexys3/tb/tbrun.yml
-- include: nexys4/tb/tbrun.yml
+- include: nexys4d/tb/tbrun.yml

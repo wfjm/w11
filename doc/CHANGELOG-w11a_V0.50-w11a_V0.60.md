@@ -608,3 +608,4 @@ The version of several key tools and libraries changed:
 - two complete system configurations with 
   - for a Digilent S3BOARD    rtl/sys_gen/w11a/s3board/sys_w11a_s3
   - for a Digilent Nexys2     rtl/sys_gen/w11a/nexys2/sys_w11a_n2
+- see also [blog on w11](https://wfjm.github.io/blogs/w11/2010-06-21-yet-another-pdp11-in-fpga.html) and [blog on Opencores](https://wfjm.github.io/blogs/w11/2010-07-23-w11-on-opencores.html)

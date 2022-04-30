@@ -1,7 +1,8 @@
-# $Id: tbrun.yml 1224 2022-04-20 10:25:52Z mueller $
+# $Id: tbrun.yml 1231 2022-04-28 08:40:50Z mueller $
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2022-04-25  1231   1.4    drop nexys4(dram),nexys4(bram)
 # 2022-04-20  1224   1.3    drop artys7(dram)
 # 2019-01-27  1107   1.2    add arty(dram),nexys4d(dram),artys7(dram)
 # 2018-08-11  1038   1.1    add artys7(bram)
@@ -11,7 +12,6 @@
 - include: s3board/tb/tbrun.yml
 - include: nexys2/tb/tbrun.yml
 - include: nexys3/tb/tbrun.yml
-- include: nexys4/tb/tbrun.yml
 - include: nexys4d/tb/tbrun.yml
 - include: nexys4d_bram/tb/tbrun.yml
 - include: basys3/tb/tbrun.yml

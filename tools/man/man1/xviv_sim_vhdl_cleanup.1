@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: xviv_sim_vhdl_cleanup.1 1188 2019-07-13 14:31:51Z mueller $
+.\"  $Id: xviv_sim_vhdl_cleanup.1 1231 2022-04-28 08:40:50Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -7,7 +7,7 @@
 .TH XVIV_SIM_VHDL_CLEANUP 1 2016-06-05 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
-xviv_sim_vhdl_cleanup \- cleanup Vivado generated vhdl for ghdl
+xviv_sim_vhdl_cleanup \- cleanup Vivado generated VHDL for GHDL
 .\" ------------------------------------------------------------------
 .SH SYNOPSIS
 .
@@ -18,10 +18,10 @@ xviv_sim_vhdl_cleanup \- cleanup Vivado generated vhdl for ghdl
 .\" ------------------------------------------------------------------
 .SH DESCRIPTION
 .\" ----------------------------------------------
-The Vivado \fIwrite_vhdl\fP command generates code which violates a vhdl 
+The Vivado \fIwrite_vhdl\fP command generates code that violates a VHDL
 language rule. 
-Attributes of port signals are declared in the architecture, but should be in
-the entiry declaration. xsim and other simulators accept this, but 
+Attributes of port signals are declared in the architecture but should be in
+the entity declaration. xsim and other simulators accept this, but
 \fBghdl\fP(1) doesn't. This script simply filters out lines like
 .EX
    attribute .... RTL_KEEP

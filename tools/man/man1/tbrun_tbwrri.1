@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: tbrun_tbwrri.1 1188 2019-07-13 14:31:51Z mueller $
+.\"  $Id: tbrun_tbwrri.1 1231 2022-04-28 08:40:50Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -39,15 +39,15 @@ setup commands resulting from \fB\-\-cuff\fP, \fB\-\-fusp\fP, ...
 all optional \fICOMMANDS\fP
 .IP "-" 2
 create shell pipe to filter the output with \fBtbfilt\fP(1) to determine 
-success of failure.
+the success or failure.
 .PD
 .RE
 .PP
 .
 .\" ------------------------------------------------------------------
 .SH OPTIONS
-Note: \fBtbrun_tbwrri\fP is implemented as shell script. If options have an
-argument it is separated white space and not by '='! So write '--ghw\ xxx'
+Note: \fBtbrun_tbwrri\fP is implemented as a shell script. If options have an
+argument it is separated by white space and not by '='! So write '--ghw\ xxx'
 and not '--ghw=xxx' !
 .
 .\" -- --dry -------------------------------------
@@ -64,7 +64,7 @@ don't execute test bench (useful to only execute make step)
 .
 .\" -- --lsuf ------------------------------------
 .IP \fB\-\-lsuf\ \fIsuff\fR
-use '_\fIsuff\fR.log' as suffix for log file. Default is '_bsim.log'
+use '_\fIsuff\fR.log' as thesuffix for the log file. The default is '_bsim.log'
 .
 .\" -- --stack -----------------------------------
 .IP \fB\-\-stack\ \fInnn\fR

@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: asm-11_expect.1 1188 2019-07-13 14:31:51Z mueller $
+.\"  $Id: asm-11_expect.1 1231 2022-04-28 08:40:50Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2014-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -24,12 +24,12 @@ asm-11_expect \- expect checker for asm-11 test bench
 .SH DESCRIPTION
 Reads one of more \fBasm-11\fP(1) listing files and checks for unexpected 
 assembly errors and tests for expected address and generated data values.
-What is expected is specified by comments, described in section EXPECT COMMENTS,
-which are added to the asm-11 source code. 
+What is expected is specified by comments, described in the
+section EXPECT COMMENTS, which are added to the asm-11 source code.
 asm-11 will copy these comments to the listing file and asm-11_expect extracts
 them and checks whether the actual assembly results match the expected ones.
 .PP
-asm-11_expect produces at least a one line summary per file like
+asm-11_expect produces at least a one-line summary per file like
 .PP
 .EX
    asm-11_expect: test_0010_alloc.lst OK
@@ -37,7 +37,7 @@ asm-11_expect produces at least a one line summary per file like
 .EE
 .PP
 where each file is marked either \fBOK\fR or \fBFAILED\fR. 
-In case of detected errors additional output follows which gives a description
+In case of detected errors additional output follows which describes
 of each error and the affected listing line, like
 .PP
 .EX
@@ -46,7 +46,7 @@ of each error and the affected listing line, like
        in:  1 27 001042 067700 177736   add  @pa,r0  ;;!! 067700 177734
 .EE
 .PP
-Main application for asm-11_expect is to build self-checking test benches
+Main application for asm-11_expect is to build a self-checking test benches
 for \fBasm-11\fP(1).
 .
 .
@@ -63,7 +63,7 @@ with
 .PP
 .PD 0
 .IP "\fBetags\fP"
-list of expected assembly error flags, given as sequence of uppercase letters
+list of expected assembly error flags, given as a sequence of uppercase letters
 without white space between letters.
 .IP "\fBaddr\fP"
 expected location counter (value of '.'), given as 6 digit octal number. 
@@ -74,7 +74,7 @@ of either 3 (for byte output) or 6 (for word output) digit octal numbers.
 Again, all 3 or 6 digits must be specified, even leading zeros.
 This is checked against the data section of the assembly listing. 
 .br
-In general this is used to check data emitted into the binary output.
+In general, this is used to check data emitted into the binary output.
 However, some assembler statements, e.g. assignments or directives like .end, 
 indicate some result value in data section, and this can of course be 
 checked as well. 
@@ -86,19 +86,19 @@ been generated for the line. Address and data tests are only done in case
 \fIaddr\fP or \fIdata\fP components have been given.
 .PP
 If a line starts with an expect comment it will be applied to the asm-11 
-statement in the following line. Or it is simply appended to a asm-11
+statement in the following line. Or it is simply appended to an asm-11
 statement.
 .SS Comment examples
 .IP "\fB;;!! DM\fR" 4
 expect a D and a M error flag
 .IP "\fB;;!! 001020:\fR"
-expect that current location will be 001020, data not checked
+expect that the current location will be 001020, data not checked
 .IP "\fB;;!! 074167 177762\fR"
 expect that the listing data section shows two words, 074167 and 177762.
-Address is not checked.
+The address is not checked.
 .IP "\fB;;!! 001004: 000207\fR"
-expect that current location will be 001004 and that the listing data section
-shows one word with value 000207.
+expect that the current location will be 001004 and that the listing data section
+shows one word with the value 000207.
 
 .SS Some practical cases
 .EX
@@ -160,8 +160,8 @@ at least one expect FAILed, test bench has FAILed
 .\" ------------------------------------------------------------------
 .SH EXAMPLES
 .IP "\fBasm-11_expect *.lst\fR" 4
-Will check all listing files in current directory and produce a listing with 
-at least one summary line per file as described in section DESCRIPTION.
+Will check all listing files in the current directory and produce a listing
+with at least one summary line per file as described in section DESCRIPTION.
 
 .\" ------------------------------------------------------------------
 .SH "SEE ALSO"

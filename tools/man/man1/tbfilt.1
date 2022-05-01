@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: tbfilt.1 1188 2019-07-13 14:31:51Z mueller $
+.\"  $Id: tbfilt.1 1231 2022-04-28 08:40:50Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -32,7 +32,7 @@ It can be used in two modes:
 
 .RS 2
 .IP "-" 2
-as filter during test bench execution, typically in a setup like
+as a filter during test bench execution, typically in a setup like
 .EX
     tbw <test_bench> 2>&1 | tbfilt --tee=<log_file>
 .EE
@@ -47,10 +47,10 @@ pipeline with a very involved egrep selection expression.
 The exit status of tbfilt is 1 in case the test is considered as \fBFAIL\fPed.
 .
 .IP "-" 2
-as log file analysis tool. In this case the test bench log files are either
+as log file analysis tool. In this case, the test bench log files are either
 specified explicitly as arguments or determined via the \fB\-\-find\fP or
 \fB\-\-all\fP options.
-If the \fB\-\-summary\fP option is specified a one line summary for each
+If the \fB\-\-summary\fP option is specified a one-line summary for each
 test log file is displayed. The format of this summary is configurable via
 the \fB\-\-format\fP, \fB\-\-wide\fP, and \fB\-\-compact\fP options and via
 the \fB\TBFILT_FORMAT\fP environment variable.
@@ -61,7 +61,7 @@ The exit status of tbfilt is 1 in case any of the tests is considered as
 .PP
 .
 .SS Filter Criteria
-A line which contains any of the following strings is considered as an
+A line that contains any of the following strings is considered as an
 indication of a \fBFAIL\fPed test:
 .RS 2
 .PD 0
@@ -75,15 +75,15 @@ indication of a \fBFAIL\fPed test:
 .PD
 .RE
 
-As excption to the general rules above the following assertion messages
+As an exception to the general rules above the following assertion messages
 are accepted:
 Assertion warnings from IEEE libraries at startup (t=0) are ignored. They are
-hard to avoid in complex models and in general don't indicate a real issue.
+hard to avoid in complex models and generally don't indicate a real issue.
 .RS 2
 .PD 0
 .IP  "-" 2
 assertion warnings from IEEE libraries at startup (t=0). They are hard to
-avoid in complex models and in general don't indicate a real issue. Best
+avoid in complex models and in general don't indicate a real issue. The best
 is to suppress them in \fBghdl\fP(1) with the
 option '--ieee-asserts=disable-at-0'.
 .IP  "-" 2
@@ -100,7 +100,7 @@ tbfilt also expects a line in one of the formats
 .EE
 and considers a test \fBFAIL\fPed if it is missing.
 
-In addition lines containing
+In addition, lines containing
 .RS 4
 .PD 0
 .IP "\fB-W:\fR"
@@ -202,11 +202,11 @@ information. Uses a format of "%fd %fs %tr %tc %sc %ec %pf %nf".
 .\" -- --compact ---------------------------------
 .IP \fB\-\-compact\fP
 Selects a compact format for summary outputs, designed to give the key info
-on a 80 character wide line. Uses a format of "%fa %tg %sg %ec %pf %ns".
+on an 80 character wide line. Uses a format of "%fa %tg %sg %ec %pf %ns".
 .
 .\" -- --nohead ----------------------------------
 .IP \fB\-\-nohead\fP
-Suppresses the head line of summary outputs. Useful of summary output is
+Suppresses the headline of summary outputs. Useful of summary output is
 piped into sort or other tools.
 .
 .\" -- --format ----------------------------------
@@ -236,7 +236,7 @@ system time of test bench run
 .IP \fB%tc\fP
 total cpu (user+system) time of test bench run
 .IP \fB%tg\fP
-show '%tc c' if cpu time significant, otherwise '%tr r'
+show '%tc c' if cpu time is significant, otherwise '%tr r'
 .IP \fB%st\fP
 simulation time in ns
 .IP \fB%ss\fP

@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: ti_rri.1 1188 2019-07-13 14:31:51Z mueller $
+.\"  $Id: ti_rri.1 1231 2022-04-28 08:40:50Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2013-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -21,7 +21,7 @@ ti_rri \- \fBRlink\fP Backend Server
 .SH DESCRIPTION
 The \fBti_rri\fP command creates a \fBtclsh\fP(1) based \fBRlink\fP backend
 server session. After loading all basic packages and shared libraries which
-implement the tcl binding of the \fBRlink\fP server the command
+implement the Tcl binding of the \fBRlink\fP server the command
 
 .RS 2
 .PD 0
@@ -29,7 +29,7 @@ implement the tcl binding of the \fBRlink\fP server the command
 creates the default \fIrlc\fP and \fIrls\fP commands representing the connection
 and the server objects
 .IP "-"
-loads additional tcl packages when requested with \fB\-\-pack\fP
+loads additional Tcl packages when requested with \fB\-\-pack\fP
 .IP "-"
 sets up logging and debug according to  \fB\-\-log\fP,  \fB\-\-logl\fP,
 \fB\-\-dmpl\fP, and \fB\-\-tiol\fP
@@ -41,7 +41,7 @@ starts an additional process if requested with \fB\-\-run\fP
 opens a connection when requested with \fB\-\-fifo\fP, 
 \fB\-\-term\fP, or \fB\-\-cuff\fP
 .IP "-"
-and finally executes all remaining \fICOMMANDS\fP arguments as tcl commands
+and finally executes all remaining \fICOMMANDS\fP arguments as Tcl commands
 .PD
 .RE
 .PP
@@ -78,7 +78,7 @@ name prefix for the named pipe file names. Default is 'rlink_cext_fifo'.
 Two fifo's are generated, one with a '_tx' and one with a '_tx' appended
 to the name prefix.
 .IP \fBopts\fP
-comma separated list of further fifo port options:
+comma-separated list of further fifo port options:
 .RS
 .PD 0
 .IP \fBkeep\fP
@@ -90,8 +90,8 @@ defer link initialization (debug or test benches)
 .PD
 .RE
 
-Note: in general the default pipe names are used, thus \fIname\fP is almost
-never specified. If only options are given an empty \fIname\fP field must be
+Note: in general the default pipe names are used, thus \fIname\fP is rarely
+specified. If only options are given an empty \fIname\fP field must be
 specified like in \fB\-\-fifo=,xon\fP.
 .RE
 
@@ -103,7 +103,7 @@ open a serial port type \fBrlink\fP port. Optional arguments are
 .IP \fBname\fP
 tty device name, default is 'USB0'. If \fIname\fP does not start with '/'
 the name is prefixed with '/dev/tty'. The special device name 'USBD'
-triggers the auto-detection of a Digilent board with a FT2232C based
+triggers the auto-detection of a Digilent board with an FT2232C based
 interface.
 .IP \fBbaud\fP
 serial port baud rate, default is '115k'. Allowed baud rate settings are:
@@ -122,7 +122,7 @@ serial port baud rate, default is '115k'. Allowed baud rate settings are:
 .PD
 .RE
 .IP \fBopts\fP
-comma separated list of further term port options:
+comma-separated list of further term port options:
 .RS
 .PD 0
 .IP \fBbreak\fP
@@ -145,7 +145,7 @@ open a USB via Cypress FX2 type \fBrlink\fP port. Optional arguments are
 USB path, default derived from environment variables RETRO_FX2_VID and 
 RETRO_FX2_PID.
 .IP \fBopts\fP
-comma separated list of further cuff port options:
+comma-separated list of further cuff port options:
 .RS
 .PD 0
 .IP \fBtrace\fP
@@ -198,12 +198,12 @@ trace character activities
 .\" -- --tout -----------------------------------
 .IP \fB\-\-tout=\fIdt\fR
 set connection timeout. Default is '1.'. Must be >0. . Should be set to a
-larger value when slow simulators are connected, e.g. post-implentation 
+larger value when slow simulators are connected, e.g. post-implementation
 timing models.
 .
 .\" -- --int ------------------------------------
 .IP \fB\-\-int\fP
-enter interactive mode even when further tcl commands are given on the
+enter interactive mode even when further Tcl commands are given on the
 \fBti_rri\fP command line.
 .
 .\" -- --help -----------------------------------
@@ -212,7 +212,7 @@ print help text and exit
 .
 .\" -- -- ---------------------------------------
 .IP \fB\-\-\fP
-all following arguments are treated as tcl commands.
+all following arguments are treated as Tcl commands.
 .
 .\" ------------------------------------------------------------------
 .SH COMMANDS
@@ -230,7 +230,7 @@ fifo communication for the test bench.
 .IP "\fBti_rri --fifo=,xon --run='tbw tb_tst_rlink_arty'" 4
 Like above, starts arty rather n4 test bench. The rlink is operated with
 software flow control. Note the comma in front of \fIxon\fP, required to
-ensure that default pipe name is used !
+ensure that the default pipe name is used !
 
 .\" ------------------------------------------------------------------
 .SH "SEE ALSO"

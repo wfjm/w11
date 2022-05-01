@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: create_disk.1 1188 2019-07-13 14:31:51Z mueller $
+.\"  $Id: create_disk.1 1231 2022-04-28 08:40:50Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -40,7 +40,7 @@ option.
 .
 .\" ----------------------------------------------
 .IP \fB\-\-ini=\fIpat\fR
-determines whether the container file will be initialized with specific
+determines whether the container file will be initialized with a specific
 data pattern. Note that the \fB\-\-bad\fP and \fB\-\-boot\fP options will 
 overwrite the last track or the first sector(s) respectively.
 The default without \fB\-\-ini\fR is to create a container with all zero data.
@@ -50,7 +50,7 @@ the actual allocation of disk space to the point when sectors are written.
 Allowed values for \fIpat\fP are
 .RS
 .IP \fBzero\fP
-creates a disk with all sectors zero'ed. In this case zero's are explicitely
+creates a disk with all sectors zero'ed. In this case zero's are explicitly
 written. The explicit allocation of disk space is the main effect of this
 option.
 .IP \fBones\fP
@@ -70,13 +70,13 @@ absolute disk byte address, lower word
 .IP 1: 4
 absolute disk byte address, upper word
 .IP 2: 4
-current cyclinder number (0 based)
+current cylinder number (0 based)
 .IP 3: 4
 current track/head number (0 based)
 .IP 4: 4
 current sector number (0 based)
 .IP 5: 4
-number of cyclinders for disk type
+number of cylinders for disk type
 .IP 6: 4
 number of tracks/heads for disk type
 .IP 7: 4
@@ -143,16 +143,16 @@ can not be created an exit status 1 is returned.
 .\" ------------------------------------------------------------------
 .SH EXAMPLES
 .IP "\fBcreate_disk -typ=rk05 rk05.dsk\fR" 4
-This will create a zero'ed disk contained sized for a RK05 disk. In most 
+This will create a zero'ed disk contained sized for an RK05 disk. In most
 cases it is sufficient to create such plain zero'ed disk images.
 .
 .IP "\fBcreate_disk -typ=rl02 -bad rl02.dsk\fR"
-Creates a RL02 sized disk with a 'factory bad block table'. When using 
-RLxx, RPxx, or RMxx type disks, especially in conjunction with DEC 
+Creates an RL02 sized disk with a 'factory bad block table'. When using
+RLxx, RPxx, or RMxx type disks, especially in conjunction with DEC
 operating systems, it is advisable to create disks with \fB\-\-bad\fP.
 .
 .IP "\fBcreate_disk -typ=rk05 -ini=test rk05_test.dsk\fR"
-Creates a RK05 sized disk with test pattern.
+Creates an RK05 sized disk with test pattern.
 .
 .\" ------------------------------------------------------------------
 .SH "SEE ALSO"

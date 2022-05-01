@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: vbom.5 1188 2019-07-13 14:31:51Z mueller $
+.\"  $Id: vbom.5 1231 2022-04-28 08:40:50Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2010-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -12,27 +12,28 @@ vbom \- vhdl manifest file format - 'vhdl bill of material'
 .
 .\" ------------------------------------------------------------------
 .SH DESCRIPTION
-\fBvbom\fP files describe the sources needed to build a \fIvhdl\fP
-entity. The source files are either given directly in case of libraries
-or via other \fBvbom\fP's in case of instantiated components. 
+\fBvbom\fP files describe the sources needed to build a \fIVHDL\fP
+entity. The source files are either given directly in the case of libraries
+or via other \fBvbom\fP's in the case of instantiated components.
 They are used by \fBvbomconv\fP(1) to build project descriptions 
 for synthesis and simulation tools.
 
 \fBvbomconv\fP expects that the entries in the \fBvbom\fP's
-are ordered, libraries first, than the components in the order they are
-instantiated, finally the name of the associated source file.
+are ordered, libraries first, then the components in the order they are
+instantiated, and finally the name of the associated source file.
 
 The format has five types of lines:
 .
 .\" ----------------------------------------------
 .IP \fBComments\fP 4
-Each line starting with '\fB#\fP' is treated as comment and ignored.
+Each line starting with '\fB#\fP' is treated as a comment and ignored.
 .
 .\" ----------------------------------------------
 .IP "\fBFile names\fP"
 Either source files or nested \fBvbom\fP's. The file names  must be given
-as relative path name from the directory the \fBvbom\fP file is located in. 
-Absolute path names are not allowed, nor is expansion of environment variables.
+as relative path names from the directory the \fBvbom\fP file is located in.
+Absolute path names are not allowed, nor is an expansion of environment
+variables.
 
 Currently the following file types are accepted:
 .RS
@@ -40,23 +41,23 @@ Currently the following file types are accepted:
 refers to a nested \fBvbom\fP. Usually used for instantiated components.
 .
 .IP "\fB.vhd\fP"
-refers to a source file. Usually used for libraries refered to in 'use'
-clauses, and as last file, the source file of the entity which is
+refers to a source file. Usually used for libraries referred to in 'use'
+clauses, and as the last file, the source file of the entity which is
 described by this \fBvbom\fP file.
 .
 .TP
 .B "\fB.v\fP"
 .TQ
 .B "\fB.sv\fP"
-refers to a verilog or system verilog source file. Accepted by the vivado
+refers to a Verilog or System Verilog source file. Accepted by the Vivado
 xsim simulator. Typically used for DPI wrappers or simprim based models
-in vivado.
+in Vivado.
 .
 .IP "\fB.c\fP"
-refers to the C sources which implement either a vhdl function or 
-procedure via the VHPI mechanism or a system verilog functions
-via the DPI mechanism. Supported only in conjunction with ghdl
-and vivado simulator.
+refers to the C sources which implement either a VHDL function or
+procedure via the VHPI mechanism or a System Verilog function
+via the DPI mechanism. Supported only in conjunction with GHDL
+and Vivado simulator.
 .
 .RE
 .
@@ -66,7 +67,7 @@ File names can be followed by a list of attributes of the form
 .EX
     -\fIname\fP[:\fIvalue\fP] ...
 .EE
-Currently the following attributes are recognized
+Currently, the following attributes are recognized
 .RS
 .IP "\fB-UUT\fP" 6
 Signals that the \fIvbom\fP descibes a test bench and that file is
@@ -77,14 +78,14 @@ name of a generated model for a functional or timing simulation.
 .
 .IP "\fB-SCOPE_REF[:\fIentity\fP]\fP" 6
 Signals that the xdc file should be 'scoped to reference' to \fIentity\fP.
-If \fIentity\fP is omitted the filename is taken as entity name.
+If \fIentity\fP is omitted the filename is taken as the entity name.
 In general used together with the \fB@xdc:\fP directive.
 .
 .RE
 .
 .\" ----------------------------------------------
 .IP "\fBConditional file names\fP"
-File names can be preceeded by a condition prefix of the form
+File names can be preceded by a condition prefix of the form
 
 .EX
    [\fItag\fP]filename
@@ -92,19 +93,19 @@ File names can be preceeded by a condition prefix of the form
 .EE
 
 The main purpose of this mechanism is to handle libraries and components 
-which are only refered in 
+which are only referred in
 .EX
     -- synthesis translate_off
     -- synthesis translate_on
 .EE
 sections and are used only for simulation.
 
-Currently supported \fItag\fP names are
+Currently, supported \fItag\fP names are
 .RS
 .RS 3
 .PD 0
 .IP "\fBghdl\fP" 6
-included in conjunction with ghdl simulation
+included in conjunction with GHDL simulation
 .IP "\fBviv\fP" 6
 included in conjunction with Vivado targets
 .IP "\fBvsyn\fP" 6
@@ -137,8 +138,8 @@ A logical name can be used with
    ${\fIlname\fP}
    ${\fIlname\fP := \fIdefault\fP} 
 .EE
-In the first form \fIlname\fP must have been defined before.
-The second form allows to specify a \fIdefault\fP which is used when
+In the first form, \fIlname\fP must have been defined before.
+The second form allows specifying a \fIdefault\fP which is used when
 \fIlname\fP hasn't been defined so far.
 
 Again, the filenames must be given as relative path name from the directory 
@@ -154,7 +155,7 @@ from the stem of the \fBvbom\fP file name.
 .
 .IP "\fB@lib\fP:\fIname\fP"
 Specifies an additional system library. Allowed values for \fIname\fP are
-\fIunisim\fP, \fIunimacro\fP and \fIsimprim\fP. 
+\fIunisim\fP, \fIunimacro\fP, and \fIsimprim\fP.
 Currently used to generate the appropriate -L options for \fBghdl\fP commands, 
 e.g. generated by the \fBvbomconv\fP action \fB\-\-ghdl_m\fP.
 .
@@ -164,18 +165,18 @@ be included in the constraints fileset.
 .
 .IP "\fB@tcl\fP:\fIfile\fP"
 specifies that \fIfile\fP is a Tcl script to be executed when building 
-the vivado project. The Tcl script generated by the  \fBvbomconv\fP action
+the Vivado project. The Tcl script generated by the  \fBvbomconv\fP action
 \fB\-\-vsyn_prj\fP will contain statements with source \fIfile\fP.
 .
 .IP "\fB@ucf_cpp\fP:\fIfile\fP"
 Specifies that a \fIfile\fP.ucf file is to be generated by \fBcpp\fP(1)
-from a \fIfile\fP.ucf_cpp source file. This allows to modularize ISE ucf files.
+from a \fIfile\fP.ucf_cpp source file. This allows modularizing ISE ucf files.
 .RE
 .
 .\" ------------------------------------------------------------------
 .SH EXAMPLES
 .SS Simple entity
-A simple vhdl entity named \fIbp_2l4l\fP which is defined in the source
+A simple VHDL entity named \fIbp_2l4l\fP which is defined in the source
 file \fIbp_2l4l.vhd\fP, which uses the library \fIslvtypes\fP and
 instantiates \fIbp_2line\fP and \fIbp_4line\fP, might have a 
 \fIbp_2l4l.vbom\fP like
@@ -190,7 +191,7 @@ instantiates \fIbp_2line\fP and \fIbp_4line\fP, might have a
     bp_2l4l.vhd
 .EE
 .PP
-Note that the vhdl source file \fIbp_2l4l.vhd\fP is always given in the 
+Note that the VHDL source file \fIbp_2l4l.vhd\fP is always given in the
 \fBvbom\fP file which describes this source file. 
 The comments are put in by convention to help the human reader and 
 are not interpreted by \fBvbomconv\fP.

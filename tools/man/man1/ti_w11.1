@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: ti_w11.1 1188 2019-07-13 14:31:51Z mueller $
+.\"  $Id: ti_w11.1 1231 2022-04-28 08:40:50Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -39,9 +39,9 @@ use \fB\-\-cuff\fP connect (USB via Cypress FX2)
 .IP \fB-t\fIDN\fR[,\fIopts\fP]
 use \fB\-\-term\fP connect.
 \fID\fP specifies device name. \fIN\fP specifies 
-the device number, or in case of the character 'D' the auto-detection of a
-Digilent board with a FT2232C based interface.
-\fIopts\fP specified the addtional options a \fB\-\-term\fP can hold
+the device number, or in the case of the character 'D' the auto-detection of a
+Digilent board with an FT2232C based interface.
+\fIopts\fP specified the additional options a \fB\-\-term\fP can hold
 (e.g. break or xon). 
 \fID\fP is mapped as
 .RS
@@ -53,7 +53,7 @@ use /dev/ttyUSB*  (* is device number \fIN\fP or 'D')
 .PD
 .RE
 .
-.SS "setup options for ghdl simulation runs"
+.SS "setup options for GHDL simulation runs"
 .PD 0
 .IP \fB-c7\fP
 start \fItb_w11a_c7\fP simulation (Cmod A7, default \fB-fx\fP)
@@ -103,7 +103,7 @@ use 2nd serport with switched xon
 .IP \fB-tmu\fP
 activate trace and monitoring unit
 .IP \fB-ghw\fP
-activate ghdl wave dump, will write a dump file with the name
+activate GHDL wave dump, will write a dump file with the name
 \fB<tb>.ghw\fR where <tb> is the filename of the test bench
 .PD 0
 .PD
@@ -127,14 +127,14 @@ dry run, prints the commands but doesn't execute
 .\" ------------------------------------------------------------------
 .SH EXAMPLES
 .IP "\fBti_w11 -u @211bsd_rk_boot.tcl\fR" 4
-Assumes a FPGA board with a \fBw11\fP CPU design already configured.
+Assumes an FPGA board with a \fBw11\fP CPU design already configured.
 Connected via USB, communication via Cypress FX2.
 \fBti_rri\fP(1) will be started and the given boot script executed.
-Typical way to start Nexys2 and Nexys3 boards.
+The typical way to start Nexys2 and Nexys3 boards.
 
 .IP "\fBti_w11 -tu2,12M,break,cts @211bsd_rl_boot.tcl\fR" 4
-Assumes a FPGA board with a \fBw11\fP CPU design already configured.
-Connected via USB, communication via an USB UART. In this case the
+Assumes an FPGA board with a \fBw11\fP CPU design already configured.
+Connected via USB, communication via a USB UART. In this case the
 device \fI/dev/ttyUSB2\fP will be used, with \fI12 MBaud\fP, \fIbreak\fP to
 trigger auto-bauding, and \fIcts\fP to use hardware handshake.
 \fBti_rri\fP(1) will be started and the given boot script executed.

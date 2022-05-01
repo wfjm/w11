@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: xise_ghdl_unisim.1 1188 2019-07-13 14:31:51Z mueller $
+.\"  $Id: xise_ghdl_unisim.1 1231 2022-04-28 08:40:50Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -8,7 +8,7 @@
 .TH XISE_GHDL_UNISIM 1 2016-07-02 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
-xise_ghdl_unisim \- compile Xilinx ISE UNISIM and UNIMACRO libraries for ghdl
+xise_ghdl_unisim \- compile Xilinx ISE UNISIM and UNIMACRO libraries for GHDL
 .\" ------------------------------------------------------------------
 .SH SYNOPSIS
 .
@@ -25,7 +25,7 @@ ISE under \fI$XILINX/ghdl/unisim\fP and \fI$XILINX/ghdl/unimacro\fP.
 
 Since direct calls to ISE tools are in general encapsulated with \fBxtwi\fP(1) 
 the \fI$XTWI_PATH\fP is used instead of \fI$XILINX\fP. 
-This allows to use this script and \fBghdl\fP without a \fBxtwi\fP wrapper.
+This allows using this script and \fBghdl\fP without an \fBxtwi\fP wrapper.
 
 Just use the \fBghdl\fP option
 
@@ -37,7 +37,7 @@ Just use the \fBghdl\fP option
 to link to the UNISIM or UNIMACRO library.
 
 The Xilinx source code has since many releases some buggy statements with
-self-referencial initializations. They seem to be tolerated by the commercial 
+self-referential initializations. They seem to be tolerated by the commercial
 tools but not by \fBghdl\fP.
 The \fBxilinx_vhdl_memcolltype_fix\fP
 helper script simply removes them, no further problems seen so far.
@@ -45,7 +45,7 @@ helper script simply removes them, no further problems seen so far.
 .\" ------------------------------------------------------------------
 .SH OPTIONS
 Options added after the xise_ghdl_unisim command are simply forwarded to
-the 'ghdl -a' commands. In general used to specify the optimize level.
+the 'ghdl -a' commands. In general, used to specify the optimize level.
 If no options given \fI-O2 -g\fP is used.
 
 .\" ------------------------------------------------------------------
@@ -56,9 +56,9 @@ points to the root of the currently active ISE installation.
 .\" ------------------------------------------------------------------
 .SH FILES
 .IP \fI$XTWI_PATH/ISE_DS/ISE/vhdl/src/unisims\fP
-The vhdl sources for the Xilinx ISE UNISIM library
+The VHDL sources for the Xilinx ISE UNISIM library
 .IP \fI$XTWI_PATH/ISE_DS/ISE/vhdl/src/unimacro\fP
-The vhdl sources for the  Xilinx ISE UNIMACRO library
+The VHDL sources for the  Xilinx ISE UNIMACRO library
 .IP \fI$XTWI_PATH/ISE_DS/ISE/ghdl\fP
 The created object files will be written into this directory. The directory
 is created if not yet existing. Note that the \fI$XTWI_PATH\fP

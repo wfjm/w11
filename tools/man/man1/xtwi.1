@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: xtwi.1 1188 2019-07-13 14:31:51Z mueller $
+.\"  $Id: xtwi.1 1231 2022-04-28 08:40:50Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2014-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -23,7 +23,7 @@ tools run fine in this environment, but other installed programs on the
 system can (and actually do) fail. \fBxtwi\fP helps to keep the ISE 
 environment separate from the normal working environment.
 
-The environment variable XTWI_PATH must be setup to the install path 
+The environment variable XTWI_PATH must be set up to the install path
 of the ISE version to be used. Without the /ISE_DS/ which is added
 by the ISE installation procedure.
 
@@ -31,7 +31,7 @@ by the ISE installation procedure.
 and execs the \fICOMMAND\fP. This way \fICOMMAND\fP is executed in the
 ISE environment, while the login shell stays clean.
 
-\fBxtwi\fP can also setup a clean environment when BARE_PATH and
+\fBxtwi\fP can also set up a clean environment when BARE_PATH and
 BARE_LD_LIBRARY_PATH are defined.
 
 .
@@ -69,7 +69,7 @@ ISE setup script located and sourced on 32 or 64 bit systems
 .\" ------------------------------------------------------------------
 .SH EXAMPLES
 .IP "\fBxtwi netgen -sim  -intstyle xflow -ofmt vhdl -w test.ngc" 4
-Starts the ISE netlister and generates a vhdl model from \fItest.ngc\fP.
+Starts the ISE netlister and generates a VHDL model from \fItest.ngc\fP.
 .
 .\" ------------------------------------------------------------------
 .SH "NOTES"

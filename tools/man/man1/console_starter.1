@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: console_starter.1 1188 2019-07-13 14:31:51Z mueller $
+.\"  $Id: console_starter.1 1231 2022-04-28 08:40:50Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -25,12 +25,12 @@ console_starter \- setup vt52/vt100 emulator windows for ti_rri or simh
 .
 .\" ------------------------------------------------------------------
 .SH DESCRIPTION
-Script to setup a \fBxterm\fP vt52 or vt100 emulator window which
+Script to setup an \fBxterm\fP vt52 or vt100 emulator window which
 will connect to a DL11 or DZ11 serial interface emulation port of
 \fBti_rri\fP or a CPU emulator from the \fBsimh\fP suite, 
 e.g. \fBpdp11\fP, via a \fBtelnet\fP connection.
 
-If the connect to the interface emulation port fails or is terminated
+If the connection to the interface emulation port fails or is terminated
 a message like
 
 .EX
@@ -84,7 +84,7 @@ eight lines of the first DZ11. \fIn\fP = 0,...,7.
 .
 .\" ----------------------------------------------
 .IP "\fB\-s\fR"
-Use simh port numbers. Default is to use \fBti_rri\fP ports.
+Use simh port numbers. The default is to use \fBti_rri\fP ports.
 .
 .\" ----------------------------------------------
 .IP "\fB\-w\fR"
@@ -101,19 +101,19 @@ print full help text and exit.
 .
 .\" ------------------------------------------------------------------
 .SH EXIT STATUS
-In case of an error an exit status 1 is returned.
+In case of an error, an exit status 1 is returned.
 .
 .
 .\" ------------------------------------------------------------------
 .SH EXAMPLES
 .IP "\fBconsole_starter -d DL0 &\fR" 4
-Creates a background process with a \fBxterm\fP in VT100 emulation mode
-with a 80x24 screen size which will try to connect to the primary DL11 
+Creates a background process with an \fBxterm\fP in VT100 emulation mode
+with a 80x24 screen size which will try to connect to the primary DL11
 emulator port of \fBti_rri\fP.
 .
 .IP "\fBconsole_starter -t vt52 -d DL1 -s &\fR"
-Creates a background process with a \fBxterm\fP in VT52 emulation mode
-with a 80x24 screen size which will try to connect to the secondary DL11 
+Creates a background process with an \fBxterm\fP in VT52 emulation mode
+with an 80x24 screen size which will try to connect to the secondary DL11
 emulator port of a \fBsimh\fP suite CPU emulator.
 .
 .\" ------------------------------------------------------------------

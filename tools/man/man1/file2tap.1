@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: file2tap.1 1188 2019-07-13 14:31:51Z mueller $
+.\"  $Id: file2tap.1 1231 2022-04-28 08:40:50Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -31,11 +31,11 @@ file2tap \- create a tap format tape container from individual files
 Creates (\fB-c\fR) a new or appends (\fB-a\fR) to an existing tap format tape 
 container file \fTNAM\fR and adds files. The tape record size is specified
 with a \fB-b\fR option followed by the record size in units 512 bytes.
-Each tape file is build from a comma separated list of disk files \fIFLIST\fR, 
+Each tape file is built from a comma-separated list of disk files \fIFLIST\fR,
 which are concatenated and written with a record size given by the last 
 \fB-b\fR option.
 
-\fBfile2tap\fR writes to stdout a one line message for each created file which
+\fBfile2tap\fR writes to stdout a one-line message for each created file which
 gives the file number, number of records, the record size in bytes and the 
 names of the disk files used to build the tape file.
 .

@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: tbrun.1 1188 2019-07-13 14:31:51Z mueller $
+.\"  $Id: tbrun.1 1231 2022-04-28 08:40:50Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2016-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -25,8 +25,8 @@ tbrun \- test bench driver
 .PD 0
 .IP "-" 2
 read the file \fIDSCFILE\fP, which describes the full set of test benches.
-The top level \fIDSCFILE\fP typically includes other files which allows to 
-organize the description in a well structured manner. If no \fIDSCFILE\fP
+The top-level \fIDSCFILE\fP typically includes other files which allow
+organizing the description in a well-structured manner. If no \fIDSCFILE\fP
 is specified the file \fItbrun.yml\fP in the current working directory is
 used.
 .IP "-"
@@ -38,7 +38,7 @@ the simulation type, behavioral or post-synthesis or later. See section
 MODES for details.
 .IP "-"
 execute the tests which as much parallelism as possible. The \fB\-\-jobs\fP
-option specifies the maximal number of jobs, and a locking logic prevents that
+option specifies the maximal number of jobs and a locking logic prevents that
 more than one test is run in one working directory.
 .PD
 .RE
@@ -50,7 +50,7 @@ more than one test is run in one working directory.
 .\" -- --tag -------------------------------------
 .IP \fB\-\-tag=\fItlist\fR
 specifies the tags a test must match to be selected for execution.
-\fItlist\fR can be a comma separated list of tags, a test must match
+\fItlist\fR can be a comma-separated list of tags, a test must match
 all tags given in \fItlist\fR to be selected.
 .br
 \fB\-\-tag\fP can be specified multiple times, the selections are ored.
@@ -62,8 +62,8 @@ assumed, so all tests with the tag 'default' are executed.
 .
 .\" -- --exclude ---------------------------------
 .IP \fB\-\-exclude=\fItlist\fR
-specifies the tags a test must not match. \fItlist\fR can again be a comma
-separated list, a test which matches all the tags given is excluded.
+specifies the tags a test must not match. \fItlist\fR can again be a
+comma-separated list, a test that matches all the tags given is excluded.
 .br
 \fB\-\-exclude\fP can be specified multiple times, the rejections are ored.
 In effect, a test is rejected if it matches all tags in the \fItlist\fR of 
@@ -72,7 +72,7 @@ one of the specified \fB\-\-exclude\fP options.
 .\" -- --all -------------------------------------
 .IP \fB\-\-all\fR
 is simply a shortcut for \fB\-\-tag=".*"\fR and selects all tags. Can be
-combined with \fB\-\-exclude\fP but not with other \fB\-\-tag\P options.
+combined with \fB\-\-exclude\fP but not with other \fB\-\-tag\fP options.
 .
 .\" -- --mode ------------------------------------
 .IP \fB\-\-mode=\fImlist\fR
@@ -155,7 +155,7 @@ number of tasks still waiting for execution
 .IP "*w"
 number of tasks currently running
 .IP "*o"
-number of tasks in pending output queue
+number of tasks in the pending output queue
 .PD
 .RE
 
@@ -165,7 +165,7 @@ buffering and progress line output even when \fInjob\fP is '1' !
 .
 .\" -- --tee -------------------------------------
 .IP \fB\-\-tee=\fIoutfile\fR
-if specified the all output send to stdout with the exception of the
+if specified all output send to stdout except for the
 progress line updates is also written in the file \fIoutfile\fR.
 This is very convenient in conjunction with the \fB\-\-jobs\fP option
 which generates progress line output only when stdout is a terminal
@@ -199,7 +199,7 @@ based test benches.
 .
 \" -- --norun -----------------------------------
 .IP \fB\-\-norun\fP
-don't execute run step of test bench, useful to only execute make step.
+don't execute run step of the test bench, useful to only execute make step.
 Will be forwarded to \fBtbrun_tbw\fP(1) and \fBtbrun_tbwrri\fP(1) 
 based test benches.
 .
@@ -216,13 +216,13 @@ based test benches.
 .\" -- --bwait ----------------------------------
 .IP \fB\-\-bwait=\fItwait\fR
 specifies startup wait for behavioral simulations. 
-\fItwait\fR must be an integer, time unit is 1 ns.  Will be forwarded 
+\fItwait\fR must be an integer, the time unit is 1 ns.  Will be forwarded
 to \fBtbrun_tbwrri\fP(1) based test benches.
 .
 .\" -- --swait ----------------------------------
 .IP \fB\-\-swait=\fItwait\fR
 specifies startup wait for post-synthesis and higher simulations. 
-\fItwait\fR must be an integer, time unit is 1 ns.  Will be forwarded 
+\fItwait\fR must be an integer, the time unit is 1 ns.  Will be forwarded
 to \fBtbrun_tbwrri\fP(1) based test benches.
 .
 \" -- --help -------------------------------------
@@ -244,8 +244,8 @@ at least one test FAILed, test bench has FAILed
 .\" ------------------------------------------------------------------
 .SH EXAMPLES
 .IP "\fBtbrun" 4
-Simplest default case, will use the \fItbrun.yml\fP file in the current
-working directory, assume \fI\-\-tag=default\fP and \fI\-\-mode=bsim\fP 
+The simplest default case, will use the \fItbrun.yml\fP file in the current
+working directory, assume \fI\-\-tag=default\fP, and \fI\-\-mode=bsim\fP
 and this select all tests tagged with 'default' and run the behavioral
 simulation with \fBghdl\fP(1). Done in simple sequential mode.
 .IP "\fBtbrun --jobs=2 --tag=viv,sys_w11a --mode=XSim" 4

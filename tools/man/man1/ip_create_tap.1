@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: ip_create_tap.1 1188 2019-07-13 14:31:51Z mueller $
+.\"  $Id: ip_create_tap.1 1231 2022-04-28 08:40:50Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -19,16 +19,16 @@ ip_create_tap \- add a user-mode tap device to a bridge
 .\" ------------------------------------------------------------------
 .SH DESCRIPTION
 
-This script adds user-mode a tap device to a bridge, and creates the bridge
+This script adds user-mode a tap device to a bridge and creates the bridge
 in case it doesn't exist already.
 
 The script first checks whether 'br0' exists, if not \fBip_create_br\fR(1)
-is executed. Than a tap device is created, named \fITAPNAME\fP or 'tap0'
-by default. The tap device will be accessible for the user which executes
-the script. Finally the created tap device is connected to bridge 'br0'.
+is executed. Then a tap device is created, named \fITAPNAME\fP or 'tap0'
+by default. The tap device will be accessible to the user which executes
+the script. Finally, the created tap device is connected to bridge 'br0'.
 
-The script should be started as normal user, but uses \fBsudo\fR(8) to
-execute priviledged commands and might therefore ask for the user password.
+The script should be started as a normal user, but uses \fBsudo\fR(8) to
+execute privileged commands and might therefore ask for the user password.
 
 .
 .\" ------------------------------------------------------------------

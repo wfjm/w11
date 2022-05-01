@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: tbw.1 1188 2019-07-13 14:31:51Z mueller $
+.\"  $Id: tbw.1 1231 2022-04-28 08:40:50Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2013-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -8,7 +8,7 @@
 .TH TBW 1 2016-10-02 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
-tbw \- wrapper script to start ghdl based VHDL test benches
+tbw \- wrapper script to start GHDL based VHDL test benches
 .\" ------------------------------------------------------------------
 .SH SYNOPSIS
 .
@@ -29,19 +29,19 @@ defined by the descriptor file \fItbw.dat\fP and the \fIFILEDEF\fP
 arguments. Any additional options \fIGHDL-OPTIONS\fP are passed on to the test
 bench executable.
 
-.SS Backgroud
+.SS Background
 The VHDL implementation in \fBghdl\fP has no direct support for passing 
 command line arguments to the VHDL code. All test benches in the Retro
-project use therefore fixed build-in generic file names. By convention
-they refer to symlinks (see \fBsymlink\fP(7)) which are setup by 
+project use, therefore, fixed build-in generic file names. By convention,
+they refer to symlinks (see \fBsymlink\fP(7)) which are set up by
 \fBtbw\fP to point to a specific file prior to the execution of the
 test bench.
 
-.SS Default behaviour
-In the simplest case \fBtbw\fP assumes a test bench with a single stimulus
+.SS Default behavior
+In the simplest case, \fBtbw\fP assumes a test bench with a single stimulus
 file which is opened by convention as \'<TBPROG>_stim\'. The default
 stimulus file is named \'<TBPROG>_stim.dat\'. \fBtbw\fP will simply 
-define \'<TBPROG>_stim\' as a symlink refering to \'<TBPROG>_stim.dat\', 
+define \'<TBPROG>_stim\' as a symlink referring to \'<TBPROG>_stim.dat\',
 or if defined to \fIFILEDEF\fP, and execute \fITBPROG\fP. In essence
 
 .EX
@@ -53,16 +53,16 @@ or if defined to \fIFILEDEF\fP, and execute \fITBPROG\fP. In essence
 When the generic file name or the stimulus file name does not follow the 
 simple default pattern or more than one input file is required a 
 configuration file can be used to define the setup. It has the fixed name 
-\fItbw.dat\fP and is searched the directory of the test bench program
+\fItbw.dat\fP and is searched in the directory of the test bench program
 \fITBPROG\fP.
 The format is described in section FILES.
 
-In this case the \fIFILEDEF\fP argument can be specified as 'tag=value'
+In this case, the \fIFILEDEF\fP argument can be specified as 'tag=value'
 pairs where tag refers to a generic name and value gives the concrete
 file name. Useful when several input files are to be specified.
 .
 .SS Test benches controlled with \fBti_rri\fP
-In this case the communication between test bench and the controlling
+In this case, the communication between the test bench and the controlling
 \fBti_rri\fP is done via two named pipes (see \fBfifo\fP(7)). The test
 bench might open in addition a configuration file. This setup is also
 defined via the \fItbw.dat\fP file, for details see section FILES.
@@ -78,8 +78,8 @@ matching \fITBPROG\fP is found in tbw.dat.
 Show the used tag,value settings before execution
 .IP \fB\-norun\fR
 Start simulator in interactive mode.
-Default for _XSim or _ISim tb's is to ensure that the simulation runs till 
-the end, as for ghdl. Therefore a '-R' option for XSim or a 'run all' command 
+The default for _XSim or _ISim tb's is to ensure that the simulation runs till
+the end, as for GHDL. Therefore a '-R' option for XSim or a 'run all' command
 for ISim  is generated. The -norun option suppresses this.
 
 .\" ------------------------------------------------------------------
@@ -91,8 +91,8 @@ with the "\fB\-\-help\fR" option. Some especially useful options are:
 .\" ----------------------------------------------
 .IP "\fB\-\-wave=\fIfile\fR"
 dump signal values into a wave file (use file type .ghw). Far superior
-to the VCD format and allows to inspect all VHDL records and all data types
-with \fBgtkwave\fP(1).
+to the VCD format and allows for inspecting all VHDL records and all data
+types with \fBgtkwave\fP(1).
 .
 .\" ----------------------------------------------
 .IP "\fB\-\-stack-max-size\fP=\fIn\fR"
@@ -116,16 +116,16 @@ display process name before each cycle.
 .
 .SH ENVIRONMENT
 .IP \fBTBW_GHDL_OPTS\fP 4
-Additional options which are passed to ghdl based simulations.
+Additional options which are passed to GHDL based simulations.
 Of particular value are
 .RS
 .IP "\fB\-\-ieee\-asserts=disable\-at\-0\fP" 4
 suppresses assertion warnings from the ieee libraries at startup time (t=0ns).
 .IP "\fB\-\-unbuffered\fP"
 sets output at all files (stdout, stderr, and files opened for write) to
-unbuffered mode. This is very helpful to keep output from the ghdl
+unbuffered mode. This is very helpful to keep output from the GHDL
 simulation and other programs in a co-simulation environment in synch.
-Note: only available for ghdl 0.34dev after merge of  Jonsba/master #100 on
+Note: only available for GHDL 0.34dev after merge of  Jonsba/master #100 on
 2016-06-26.
 .RE
 .
@@ -156,10 +156,10 @@ refers to the given concrete file name. A typical example is
 
 .IP "\fBUsage with test benches controlled with ti_rri\fR"
 The special token \fI<fifo>\fP indicates that a named pipe is used
-rather than a normal file. In this case \fBtbw\fP will create a
+rather than a normal file. In this case, \fBtbw\fP will create a
 \fBfifo\fP(7) rather than a symlink. Another special token is
  \fI<null>\fP, it simply translates to \fI/dev/null\fP and can be
-used as default value for configuration files. Currently all
+used as a default value for configuration files. Currently, all
 \fBrlink\fP based test benches use the same generic names and have
 a setup like
 
@@ -176,10 +176,10 @@ a setup like
 .SH EXAMPLES
 .SS Stimulus file based test benches
 Test benches are usually self-checking and produce a comprehensive log file.
-For each checked response the line contains the word \fICHECK\fP and either 
-an \fIOK\fP or a \fIFAIL\fP, in the later case in general with an indication
-of whats wrong. 
-Other unexpected behaviour, like timeouts, will also result in a line 
+For each checked response, the line contains the word \fICHECK\fP and either
+an \fIOK\fP or a \fIFAIL\fP, in the latter case in general with an indication
+of what\'s wrong.
+Other unexpected behavior, like timeouts, will also result in a line
 containing the word \fIFAIL\fP. 
 When the simulation stops a line with the word \fIDONE\fP is printed.
 These test benches are usually run like

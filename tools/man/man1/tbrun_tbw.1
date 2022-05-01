@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: tbrun_tbw.1 1188 2019-07-13 14:31:51Z mueller $
+.\"  $Id: tbrun_tbw.1 1231 2022-04-28 08:40:50Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -31,14 +31,14 @@ issue a \fBmake\fP(1) command to (re)-build \fITBENCH\fP.
 build a \fBtbw\fP(1) command, using \fISTIMFILE\fP if specified.
 .IP "-"
 create a shell pipe to which runs tbw and handles the test bench output with
-\fBtbfilt\fP(1) to determine success of failure.
+\fBtbfilt\fP(1) to determine success or failure.
 .PD
 .RE
 .PP
 .
 .\" ------------------------------------------------------------------
 .SH OPTIONS
-Note: \fBtbrun_tbw\fP is implemented as shell script. If options have an
+Note: \fBtbrun_tbw\fP is implemented as a shell script. If options have an
 argument it is separated white space and not by '='! So write '--ghw\ xxx'
 and not '--ghw=xxx' !
 .
@@ -56,7 +56,7 @@ don't execute test bench (useful to only execute make step)
 .
 .\" -- --lsuf ------------------------------------
 .IP \fB\-\-lsuf\ \fIsuff\fR
-use '_\fIsuff\fR.log' as suffix for log file. Default is '_bsim.log'
+use '_\fIsuff\fR.log' as a suffix for the log file. Default is '_bsim.log'
 .
 .\" -- --stack -----------------------------------
 .IP \fB\-\-stack\ \fInnn\fR
@@ -82,7 +82,7 @@ Simplest default case, will execute in essence
    tbw tb_serport_uart_rx 2>&1 | tbfilt
 .EE
 The issued command is more involved, defines TIMEFORMAT, adds a bash 'time',
-and some redirects to ensure that the 'time' output ends up un the log file.
+and some redirects to ensure that the 'time' output ends up in the log file.
 
 .\" ------------------------------------------------------------------
 .SH "SEE ALSO"

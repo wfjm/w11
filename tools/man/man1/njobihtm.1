@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: njobihtm.1 1188 2019-07-13 14:31:51Z mueller $
+.\"  $Id: njobihtm.1 1231 2022-04-28 08:40:50Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -31,7 +31,7 @@ determines the number of physical cores and the number of threads per core
 assumes that only a quarter of the additional hyper-threads are useful
 .IP "-"
 if \fB-m\fP is given. determines the memory size, assumes that at least
-one GB should be available for general usage, and limits the number of
+one GB should be available for general usage and limits the number of
 jobs accordingly.
 .PD
 .RE
@@ -44,7 +44,7 @@ The number of jobs is written to STDOUT, and can be used like `njobs`.
 .\" -- --mem -------------------------------------
 .IP \fB\-m\ \fIsize\fR
 gives the required physical memory per job.
-\fIsize\fP must be given as integer with either a 'M' or 'G', indicating MB 
+\fIsize\fP must be given as an integer with either a 'M' or 'G', indicating MB
 or GB.
 .
 .\" -- --verbose ---------------------------------

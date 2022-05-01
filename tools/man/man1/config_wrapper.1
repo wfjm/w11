@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: config_wrapper.1 1188 2019-07-13 14:31:51Z mueller $
+.\"  $Id: config_wrapper.1 1231 2022-04-28 08:40:50Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -65,8 +65,8 @@ Xilinx SP605. Default path: xc6slx45t
 .
 .\" ----------------------------------------------
 .IP \fB\-\-path=\fIp\fR
-determines the type of FPGA to be configured. It usually properly defaulted 
-based on the \fB\-\-board\fP option. Only in cases were a board is available
+determines the type of FPGA to be configured. It is usually properly defaulted
+based on the \fB\-\-board\fP option. Only in cases where a board is available
 with several die sizes this option will be needed.
 .
 .\" ----------------------------------------------
@@ -78,22 +78,22 @@ print help text and exit.
 .
 .\" ----------------------------------------------
 .IP \fBbit2svf\fP
-Convert a FPGA configuration file from \fI.bit\fP format (the native XILINX
+Convert an FPGA configuration file from \fI.bit\fP format (the native XILINX
 format) to  \fI.svf\fP format (the portable Serial Vector Format). The
 XILINX ISE \fBimpact\fP program is used, the input \fIFILE\fP must be in
 \fI.bit\fP format.
 .
 .\" ----------------------------------------------
 .IP \fBiconfig\fP
-Configure a FPGA with XILINX ISE \fBimpact\fP. The input \fIFILE\fP must be in
+Configure an FPGA with XILINX ISE \fBimpact\fP. The input \fIFILE\fP must be in
 \fI.bit\fP format.
 .
 .\" ----------------------------------------------
 .IP \fBjconfig\fP
-Configure a FPGA with \fBjtag\fP(1). The input \fIFILE\fP must be in
+Configure an FPGA with \fBjtag\fP(1). The input \fIFILE\fP must be in
 \fI.svf\fP format. This sub command is usually used for boards with a
 Cypress FX2 USB controller, like the Digilent Nexys2, Nexys3 or Atlys, 
-and a FX2 firmware which emulates an Altera USB-Blaster programming cable.
+and an FX2 firmware that emulates an Altera USB-Blaster programming cable.
 
 The USB device path is defined by the environment variables RETRO_FX2_VID
 and RETRO_FX2_PID, or defaults to vid=16c0 and pid=03ef.

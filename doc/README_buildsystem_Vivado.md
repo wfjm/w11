@@ -274,7 +274,7 @@ only one board must connected.
 ### <a id="ise">Note on ISE</a>
 
 The development for Nexys4 started in 2013 with ISE but moved to Vivado when
-it matured in 2015. The make files for the ISE build flows have been kept for
+it matured in 2014. The make files for the ISE build flows have been kept for
 comparison are have the name `Makefile.ise`. So for some Nexys4 designs one
 can still start with a 
 

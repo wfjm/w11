@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: tbfilt.1 1231 2022-04-28 08:40:50Z mueller $
+.\"  $Id: tbfilt.1 1234 2022-05-03 18:28:48Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
-.\" Copyright 2016-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2016-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH TBFILT 1 2018-11-03 "Retro Project" "Retro Project Manual"
+.TH TBFILT 1 2022-05-02 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 tbfilt \- filter for and analysis of test bench log files
@@ -53,7 +53,7 @@ specified explicitly as arguments or determined via the \fB\-\-find\fP or
 If the \fB\-\-summary\fP option is specified a one-line summary for each
 test log file is displayed. The format of this summary is configurable via
 the \fB\-\-format\fP, \fB\-\-wide\fP, and \fB\-\-compact\fP options and via
-the \fB\TBFILT_FORMAT\fP environment variable.
+the \fBTBFILT_FORMAT\fP environment variable.
 The exit status of tbfilt is 1 in case any of the tests is considered as
 \fBFAIL\fPed.
 .
@@ -77,15 +77,17 @@ indication of a \fBFAIL\fPed test:
 
 As an exception to the general rules above the following assertion messages
 are accepted:
-Assertion warnings from IEEE libraries at startup (t=0) are ignored. They are
+Assertion warnings from IEEE libraries at startup (t=0ns) are ignored. They are
 hard to avoid in complex models and generally don't indicate a real issue.
 .RS 2
 .PD 0
 .IP  "-" 2
-assertion warnings from IEEE libraries at startup (t=0). They are hard to
+assertion warnings from IEEE libraries at startup (t=0ns). They are hard to
 avoid in complex models and in general don't indicate a real issue. The best
 is to suppress them in \fBghdl\fP(1) with the
 option '--ieee-asserts=disable-at-0'.
+That's usually done via the \fBTBW_GHDL_OPTS\fP environment variable used
+by \fBtbw\fP(1).
 .IP  "-" 2
 assertion failure with the text 'Simulation Finished'. It is used to end
 simulations in \fBghdl\fP(1) in some test benches.
@@ -277,6 +279,10 @@ at least one test FAILed, test bench has FAILed
 .IP "\fBTBFILT_FORMAT\fR" 4
 Defines the default summary format and overwrites the build-in default of
 "%ec %pf %nf".
+.IP "\fBTBW_GHDL_OPTS\fR"
+Used by \fBtbw\fP(1) to define additional options for GHDL based simulations.
+Usually set to "--unbuffered --ieee-asserts=disable-at-0", see \fBtbw\fP(1)
+documentation.
 .
 .\" ------------------------------------------------------------------
 .SH EXAMPLES

@@ -1,7 +1,7 @@
 .\"  -*- nroff -*-
-.\"  $Id: xtwv.1 1231 2022-04-28 08:40:50Z mueller $
+.\"  $Id: xtwv.1 1234 2022-05-03 18:28:48Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
-.\" Copyright 2014-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2014-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
@@ -18,20 +18,20 @@ xtwv \- Xilinx Tool Wrapper script for Vivado
 .
 .\" ------------------------------------------------------------------
 .SH DESCRIPTION
-The Xilinx Vivado setup script redefines PATH and LD_LIBRARY_PATH. 
+The Xilinx Vivado setup script redefines \fBPATH\fP and \fBLD_LIBRARY_PATH\fP. 
 The Vivado tools run fine in this environment, but other installed programs
 on the system might fail. \fBxtwv\fP helps to keep the Vivado environment
 separate from the normal working environment.
 
-The environment variable XTWV_PATH must be set up to the install path
+The environment variable \fBXTWV_PATH\fP must be set up to the install path
 of the Vivado version to be used. 
 
-\fBxtwv\fP uses XTWV_PATH to locate the Vivado setup script, sources it, 
+\fBxtwv\fP uses \fBXTWV_PATH\fP to locate the Vivado setup script, sources it, 
 and execs the \fICOMMAND\fP. This way \fICOMMAND\fP is executed in the
 Vivado environment, while the login shell stays clean.
 
-\fBxtwi\fP can also set up a clean environment when BARE_PATH and
-BARE_LD_LIBRARY_PATH are defined.
+\fBxtwi\fP can also set up a clean environment when \fBBARE_PATH\fP and
+\fBBARE_LD_LIBRARY_PATH\fP are defined.
 
 .
 .\" ------------------------------------------------------------------

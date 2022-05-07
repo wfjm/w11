@@ -236,11 +236,13 @@ the FPGA. For detailed documentation see the respective man pages.
 ### <a id="artix">Note on Artix-7 based designs</a>
 
 The development for Nexys4 started in 2013 with ISE but moved to Vivado when
-it matured in 2015. The make files for the ISE build flows have been kept for
-comparison are have the name `Makefile.ise`. So for some Nexys4 designs one can
-still start with a 
+it matured 2014. The make files for the ISE build flows have been kept for
+comparison are have the name `Makefile.ise`. So for some Nexys4 designs one
+can still start with a 
 
-    make -f Makefile.ise  <target>
+      make -f Makefile.ise  <target>
+    or
+      makeise <target>
 
 an ISE based build. To be used for tool comparisons, the ISE generated bit 
 files were never tested in an FPGA.

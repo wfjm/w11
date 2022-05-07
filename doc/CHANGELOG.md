@@ -30,6 +30,7 @@ The full set of tests is only run for tagged releases.
 ### New features
 ### Changes
 - tools changes
+  - ci.yml: define TBW_GHDL_OPTS and suppress IEEE package warnings at t=0ms
   - **/tbrun.yml: since nexys4 not longer available switch to nexys4d
 ### Bug Fixes
 

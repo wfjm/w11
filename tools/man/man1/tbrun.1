@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: tbrun.1 1231 2022-04-28 08:40:50Z mueller $
+.\"  $Id: tbrun.1 1234 2022-05-03 18:28:48Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
-.\" Copyright 2016-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2016-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
-.TH TBRUN 1 2019-01-03 "Retro Project" "Retro Project Manual"
+.TH TBRUN 1 2022-05-02 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 tbrun \- test bench driver
@@ -240,6 +240,13 @@ run time errors, like bad option, file not found, etc
 at least one test FAILed, test bench has FAILed
 .PD
 .RE
+.
+.\" ------------------------------------------------------------------
+.SH ENVIRONMENT
+.IP "\fBTBW_GHDL_OPTS\fR" 4
+Used by \fBtbw\fP(1) to define additional options for GHDL based simulations.
+Usually set to "--unbuffered --ieee-asserts=disable-at-0", see \fBtbw\fP(1)
+documentation.
 .
 .\" ------------------------------------------------------------------
 .SH EXAMPLES

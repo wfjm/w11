@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: config_wrapper.1 1231 2022-04-28 08:40:50Z mueller $
+.\"  $Id: config_wrapper.1 1234 2022-05-03 18:28:48Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -95,8 +95,8 @@ Configure an FPGA with \fBjtag\fP(1). The input \fIFILE\fP must be in
 Cypress FX2 USB controller, like the Digilent Nexys2, Nexys3 or Atlys, 
 and an FX2 firmware that emulates an Altera USB-Blaster programming cable.
 
-The USB device path is defined by the environment variables RETRO_FX2_VID
-and RETRO_FX2_PID, or defaults to vid=16c0 and pid=03ef.
+The USB device path is defined by the environment variables \fBRETRO_FX2_VID\fP
+and \fBRETRO_FX2_PID\fP, or defaults to vid=16c0 and pid=03ef.
 
 Use the \fBfx2load_wrapper\fP(1) command to ensure that the proper firmware
 is loaded in the Cypress FX2 USB controller.

@@ -1,7 +1,7 @@
 .\"  -*- nroff -*-
-.\"  $Id: fx2load_wrapper.1 1231 2022-04-28 08:40:50Z mueller $
+.\"  $Id: fx2load_wrapper.1 1234 2022-05-03 18:28:48Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
-.\" Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
@@ -30,10 +30,11 @@ Checks firmware state of a Cypress FX2 USB controller and re-loads the
 firmware in case of a mismatch of currently active and desired firmware.
 
 The command locates a USB device with a USB path defined by the environment 
-variables RETRO_FX2_VID and RETRO_FX2_PID, or default vid=16c0 and pid=03ef.
+variables \fBRETRO_FX2_VID\fP and \fBRETRO_FX2_PID\fP, or default vid=16c0 and
+pid=03ef.
 It inquires with \fBlsusb\fP(1) the 'iProduct' attribute of the currently
 active USB descriptor. If this attribute is defined and equals the basename
-of the firmware image given with  \fB-\-file\fP it is assumed the proper
+of the firmware image given with \fB-\-file\fP it is assumed the proper
 firmware is already active. Otherwise the firmware image is loaded with
 either \fBfxload\fP(1) or \fBcycfx2prog\fP.
 

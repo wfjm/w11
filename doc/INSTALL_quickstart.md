@@ -9,7 +9,9 @@ designs, and many other aspects. For all this consult the full
 and the READMEs in [doc](.). This write-up
 focuses on the steps _[prepare](#user-content-prepare)_,
 _[build](#user-content-build)_ and _[boot](#user-content-boot)_,
-and gives one [concrete example](#user-content-tested).
+and gives one [concrete example](#user-content-tested). For a quick
+look at the source code see
+[doxygen source viewer](../tools/dox/README.md).
 
 ### <a id="prepare">Prepare</a>
 

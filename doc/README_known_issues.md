@@ -2,7 +2,7 @@
 
 The case id indicates the release when the issue was first recognized.
 
-### V0.79 {[issue #30](https://github.com/wfjm/w11/issues/30)} -- SimH scmd files fail on current 4.* version; only 3.* supported
+### V0.79-2 {[issue #30](https://github.com/wfjm/w11/issues/30)} -- SimH scmd files fail on current 4.* version; only 3.* supported
 
 The SimH scmd scripts were originally developed for SimH 3.8, and worked for
 SimH 3.9 and later releases. The SimH 4.* development team decided not to
@@ -28,11 +28,6 @@ works fine for SimH V3.9, V3.10 and V3.11-1, but fails
 Bottom line:
 - the provided scmd scripts work only with SimH V3.9, V3.10 or V3.11-1
 - an update to the SimH V4.* has low priority
-
-### V0.79 {[issue #29](https://github.com/wfjm/w11/issues/29)} -- migrate from Travis to GitHub actions
-
-Travis is now defunct and has been removed in [6b8c063](https://github.com/wfjm/w11/commit/6b8c063).
-So it's time to migrate CI/CD to GitHub actions.
 
 ### V0.50-2 {[issue #28](https://github.com/wfjm/w11/issues/28)} -- RK11: write protect action too slow
 
@@ -235,6 +230,18 @@ the backend produces proper command lists and the USB channel is usually error
 free}_
 
 ## Resolved Issues
+
+### V0.79-1 {[issue #29](https://github.com/wfjm/w11/issues/29)} -- migrate from Travis to GitHub actions
+
+#### Original Issue
+Travis is now defunct and has been removed in
+[6b8c063](https://github.com/wfjm/w11/commit/6b8c063).
+So it's time to migrate CI/CD to GitHub actions.
+
+#### Fix
+GitHub Actions fully implemented with commit
+[db7556a4](https://github.com/wfjm/w11/commit/db7556a4), fine tuned with commit
+[66f3f5d0](https://github.com/wfjm/w11/commit/66f3f5d0).
 
 ### V0.76-1 {[issue #16](https://github.com/wfjm/w11/issues/16)} -- Help wanted: Testing with Nexys4 DDR appreciated
 #### Original Issue

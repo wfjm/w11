@@ -28,11 +28,15 @@ The full set of tests is only run for tagged releases.
 ### Summary
 - cleanup tbrun setup, drop nexys4 and add nexys4d ([see blog](https://wfjm.github.io/blogs/w11/2019-07-27-nexys4-obituary.html))
 - add ostest support for rsx11m-31_rk, rsx11m-40_rk and rsx11mp-30_rp oskits
+- Doxygen support now for V1.9.4 and without discontinued Tcl
 ### New features
 ### Changes
 - tools changes
   - ci.yml: define TBW_GHDL_OPTS and suppress IEEE package warnings at t=0ms
   - **/tbrun.yml: since nexys4 not longer available switch to nexys4d
+  - tools/dox
+    - w11_(cpp|vhd_all).Doxyfile: for Doxygen V1.9.4
+    - w11_tcl.Doxyfile: removed, Tcl support removed in Doxygen V1.8.18
 ### Bug Fixes
 
 <!-- --------------------------------------------------------------------- -->

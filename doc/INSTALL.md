@@ -13,7 +13,7 @@
 - [Available designs](#user-content-build-fpga)
 - [Available bitkits with bit and log files](#user-content-bitkits)
 - [Configure FPGA](#user-content-fpgaconf)
-- [Generate Doxygen based source code view](#user-content-build-doxy)
+- [Generate doxygen based source code view](#user-content-build-doxy)
 
 ### <a id="download">Download</a>
 
@@ -77,7 +77,7 @@ distributions should be straightforward.
   [INSTALL_fx2_support.md](INSTALL_fx2_support.md).
 
 - for doxygen documentation an up-to-date installation of doxygen is
-  required, version 1.8.3.1 or later
+  required, version 1.8.3.1 or later.
 
 
 ### <a id="envvar">Setup environment variables</a>
@@ -291,17 +291,5 @@ file names contain information about release, Xlinix tool, and design:
 
 Currently there is not much real documentation included in the source
 files. The doxygen generated html output is nevertheless very useful
-to browse the code. C++, Tcl and Vhdl source are covered by setup files
-contained in the project files.
-
-To generate the html files
-
-     cd $RETROBASE/tools/dox
-     export RETRODOXY <desired root of html documentation>
-     ./make_doxy
-
-If `RETRODOXY` is not defined `/tmp` is used. To view the docs use
-
-     firefox $RETRODOXY/w11/cpp/html/index.html &
-     firefox $RETRODOXY/w11/tcl/html/index.html &
-     firefox $RETRODOXY/w11/vhd/html/index.html &
+to browse and navigate the source code. For details see
+[README.md](../tools/dox/README.md) in directory `tools/dox`.

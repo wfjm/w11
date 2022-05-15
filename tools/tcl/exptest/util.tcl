@@ -1,9 +1,10 @@
-# $Id: util.tcl 1209 2021-08-22 13:17:33Z mueller $
+# $Id: util.tcl 1237 2022-05-15 07:51:47Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2019-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2022-05-09  1236   1.1.1  in --help text: use sys_w11a_n4d instead of _n4
 # 2019-08-04  1200   1.1    add proc et_tstline{0,1}; add et_exp el sub command
 # 2019-07-20  1196   1.0.1  et_tenv_cleanup: use test namespaces
 # 2019-06-29  1174   1.0    Initial version
@@ -194,7 +195,7 @@ proc et_help {} {
   puts "usage: $::genv(cmd) \[OPTION\]... \[TEST\]..."
   puts {}
   puts {Options:}
-  puts {  --sys=SNAME    system name, e.g. sys_w11a_n4. Default is taken from}
+  puts {  --sys=SNAME    system name, e.g. sys_w11a_n4d. Default is taken from}
   puts {                   $EXPTEST_SYS environment variable}
   puts {  --mode=MODE    currently 'rri' the only option}
   puts {  --log[=FNAM]   log session to file FNAM}
@@ -284,6 +285,14 @@ proc et_close {id} {
 
 #
 # --------------------------------------------------------------------
+# process list of cmd val pairs with commands
+#   i   val  set spawn_id to <val>
+#   t   val  set timeout to <val> seconds for following expects in et_exp chain
+#   s   val  send string <val>
+#   e   val  expect <val> as Tcl regexp match; if <val>=="eof" expect 'eof'
+#   el  val  expect <val> as exact string; if <val>=="eof" an 'eof' is expected
+#   ctn val  n=[0-9]: set ::tenv(c_<val>) to the n'th match of last 'e' pattern
+#   cgn val  n=[0-9]: set ::genv(c_<val>) to the n'th match of last 'e' pattern
 #
 proc et_exp {args} {
   set ::timeout 10.

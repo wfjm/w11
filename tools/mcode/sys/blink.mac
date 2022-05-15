@@ -1,6 +1,6 @@
-; $Id: blink.mac 1174 2019-06-29 18:00:47Z mueller $
+; $Id: blink.mac 1237 2022-05-15 07:51:47Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2019-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
@@ -16,9 +16,9 @@
 ;        R   random pattern
 ;     other controls
 ;        0   use default speed
-;       1-9  set update speed
-;        a   auto, cycle styles         ! to come !
-;        s   surprise, random styles    ! to come !
+;       1-9  set update speed (1 fastest, 9 slowest)
+;        a   auto, cycle styles
+;        s   surprise, random styles
 ;
 ; definitions ----------------------------------------------
 ;

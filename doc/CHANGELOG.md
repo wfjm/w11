@@ -39,6 +39,8 @@ The full set of tests is only run for tagged releases.
     - w11_(cpp|vhd_all).Doxyfile: for Doxygen V1.9.4
     - w11_tcl.Doxyfile: removed, Tcl support removed in Doxygen V1.8.18
 ### Bug Fixes
+  - tools/mcode
+    - m9312/bootw11.mac: proper init of unit number in getnam
 
 <!-- --------------------------------------------------------------------- -->
 ---

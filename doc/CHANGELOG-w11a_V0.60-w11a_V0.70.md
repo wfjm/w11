@@ -300,7 +300,8 @@
   is far superior to ISE. But tests with the first versions were sobering,
   the w11a design either didn't compile at all, or produced faulty synthesis
   results. In 2014 Vivado matured, and the current version 2014.4 works
-  fine with the w11a code base.
+  fine with the w11a code base (see
+  [blog](https://wfjm.github.io/blogs/w11/2015-02-01-vivado-and-nexys4.html)).
 - The original Nexys4 board allowed to quickly port Nexys3 version because 
   both have the same memory chip. The newer Nexys4 DDR will be addressed 
   later.

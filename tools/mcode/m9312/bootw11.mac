@@ -1,12 +1,16 @@
-; $Id: bootw11.mac 1174 2019-06-29 18:00:47Z mueller $
+; $Id: bootw11.mac 1237 2022-05-15 07:51:47Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2019-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
+; 2022-05-14  1237   1.0.1  BUGFIX: proper init of unit number in getnam
 ; 2019-05-01  1143   1.0    Initial version
 ; 2019-04-19  1133   0.1    First draft
 ;
+; current ROM usage
+;   low   165000 to 165770 --> 503 bytes  base + RK11 + RL11 + RH70
+;   high  173000 to 173312 --> 202 bytes         TM11 + PC11
 ;
 ; definitions ----------------------------------------------
 ;
@@ -39,12 +43,15 @@ start:  spl     7
 nxtpro: jsr     pc,prtstr
 ;
 ; read boot device name and unit
+;   out r2  device name
+;   out r3  unit number
 ;
 getnam: jsr     pc,getlet       ; get 1st char
         mov     r0,r2           ; move into low  byte
         jsr     pc,getlet       ; get 2nd char
         swab    r0
         bis     r0,r2           ; move into high byte
+        clr     r3              ; default unit is 0
         jsr     pc,getchr       ; get unit number or <CR>
         cmp     #CR,r0          ; is <CR> ?
         beq     fnddev          ; if eq yes, done
@@ -279,7 +286,7 @@ boottm: mov     #tm.cr,r1               ; load csr
 4$:     jmp     bootgo  
 ;
 ; PC11 boot loader +++++++++++++++++++++++++++++++++++++++++
-;   RL boot loader code adapted pc11boot.mac
+;   PC boot loader code adapted pc11boot.mac
 ;
         .include  |lib/defs_pc.mac|
 ; 

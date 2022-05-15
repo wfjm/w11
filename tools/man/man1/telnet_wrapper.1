@@ -1,0 +1,33 @@
+.\"  -*- nroff -*-
+.\"  $Id: telnet_wrapper.1 1237 2022-05-15 07:51:47Z mueller $
+.\" SPDX-License-Identifier: GPL-3.0-or-later
+.\" Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\"
+.\" ------------------------------------------------------------------
+.
+.TH TELNET_WRAPPER 1 2017-05-25 "Retro Project" "Retro Project Manual"
+.\" ------------------------------------------------------------------
+.SH NAME
+telnet_wrapper \- handle telnet connection in a console_starter window
+.\" ------------------------------------------------------------------
+.SH SYNOPSIS
+.
+.SY telnet_wrapper
+.I HOST
+.I PORT
+.YS
+.
+.\" ------------------------------------------------------------------
+.SH DESCRIPTION
+Used by \fBconsole_starter\fP to establish the \fBtelnet\fP(1) connection
+to either a \fBti_w11\fP backend or SimH simulator running on host \fIHOST\fP
+and port \fIPORT\fP.
+.
+.\" ------------------------------------------------------------------
+.SH "SEE ALSO"
+.BR console_starter (1)
+.BR ti_w11 (1)
+
+.\" ------------------------------------------------------------------
+.SH AUTHOR
+Walter F.J. Mueller <W.F.J.Mueller@gsi.de>

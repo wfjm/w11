@@ -8,7 +8,7 @@ covered by setup files contained in this directory.
 The doxygen generated source code view of the latest release is
 directly available from
 - [VHDL module list](https://www.retro11.de/doxy/w11/vhd/html/hierarchy.html)
-- [sys_w11a_arty source](https://www.retro11.de/doxy/w11/vhd/html/sys__w11a__n3_8vhd_source.html)
+- [sys_w11a_arty source](https://www.retro11.de/doxy/w11/vhd/html/sys__w11a__arty_8vhd_source.html)
 - [C++ class list](https://www.retro11.de/doxy/w11/cpp/html/hierarchy.html)
 
 To locally generate the html files use

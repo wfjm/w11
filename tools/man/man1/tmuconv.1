@@ -1,0 +1,101 @@
+.\"  -*- nroff -*-
+.\"  $Id: tmuconv.1 1237 2022-05-15 07:51:47Z mueller $
+.\" SPDX-License-Identifier: GPL-3.0-or-later
+.\" Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\"
+.\" ------------------------------------------------------------------
+.
+.TH TMUCONV 1 2010-10-22 "Retro Project" "Retro Project Manual"
+.\" ------------------------------------------------------------------
+.SH NAME
+tmuconv \- convert w11a tmu output into human readable format
+.\" ------------------------------------------------------------------
+.SH SYNOPSIS
+.
+.SY tmuconv
+.OP \-dump
+.OP \-cdump
+.OP \-t_id
+.OP \-t_ru
+.OP \-t_em
+.OP \-t_ib
+.I FILE
+.
+.SY tmuconv
+.B \-\-help
+.YS
+.
+.\" ------------------------------------------------------------------
+.SH DESCRIPTION
+Converts the output of the \fBw11a\fR trace and monitoring unit (tmu)
+into a human readable format.
+.
+.\" ------------------------------------------------------------------
+.SH OPTIONS
+.
+.\" ----------------------------------------------
+.IP "\fB\-dump\fR"
+dump all information
+.
+.\" ----------------------------------------------
+.IP "\fB\-cdump\fR"
+dump only changes relative to previous cycle
+.
+.\" ----------------------------------------------
+.IP "\fB\-t_id\fR"
+trace instruction decodes
+.
+.\" ----------------------------------------------
+.IP "\fB\-t_ru\fR"
+trace register updates
+.
+.\" ----------------------------------------------
+.IP "\fB\-t_em\fR"
+trace em transactions (external memory bus)
+.
+.\" ----------------------------------------------
+.IP "\fB\-t_ib\fR"
+trace ib transactions (ibus cycles)
+.
+.\" ----------------------------------------------
+.IP "\fB\-help\fR"
+print full help text and exit.
+.
+.\" ------------------------------------------------------------------
+.SH EXAMPLES
+.IP "\fBtmuconv --t_id --t_em --t_ib tmu_ofile\fR" 4
+Produces an output with all instruction decodes and external memory interface
+and ibus transactions. The execution of a 'bisb #4,4(r4)' instruction which
+accesses the output CSR of a DL11 interface will look like
+
+.EX
+   429 id           002002 000340 152764  bisb #nnn,nnn(r4)      (5)
+   431 em    r 01 00002004        000004  0100 (1)
+   433 em    r 11 00002006        000004  0100 (1)
+   435 em    r 01 00177564        cancel  1100 (1)
+   436 ib -- rm01   177564        000200     1 (0) to.csr
+   439 ib -- wm01   177564 000204            1 (0) to.csr
+.EE
+
+and shows the canceled em access and the ibus read-modify-write.
+
+.IP "\fBtmuconv --t_id --t_em --t_ib --t_ru tmu_ofile\fR" 4
+Like above, in addition, also all register updates are shown. The execution
+of a 'cmp (r2),(r4)+' where r2 points to the psw will look like
+
+.EX
+   934 id           003014 000011 021224  cmp  (r2),(r4)+        (9)
+   936 em    r 11 00177776        cancel  1000 (1)
+   937 ib -- r 11   177776        000011     1 (0) psw
+   939 ru    0 04   005676 003036 003040 177776 005700 005676*005570  r04
+   940 em    r 11 00005674        000011  0101 (1)
+.EE
+
+
+.\" ------------------------------------------------------------------
+.SH "SEE ALSO"
+.BR ti_rri (1)
+
+.\" ------------------------------------------------------------------
+.SH AUTHOR
+Walter F.J. Mueller <W.F.J.Mueller@gsi.de>

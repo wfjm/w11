@@ -1,0 +1,45 @@
+.\"  -*- nroff -*-
+.\"  $Id: xilinx_vhdl_memcolltype_fix.1 1237 2022-05-15 07:51:47Z mueller $
+.\" SPDX-License-Identifier: GPL-3.0-or-later
+.\" Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\"
+.\" ------------------------------------------------------------------
+.
+.TH XILINX_VHDL_MEMCOLLTYPE_FIX 1 2007-10-28 "Retro Project" "Retro Project Manual"
+.\" ------------------------------------------------------------------
+.SH NAME
+xilinx_vhdl_memcolltype_fix \- cleanup faulty VHDL in Xilinx libraries
+.\" ------------------------------------------------------------------
+.SH SYNOPSIS
+.
+.SY xilinx_vhdl_memcolltype_fix
+.YS
+.
+.\" ------------------------------------------------------------------
+.SH DESCRIPTION
+The Xilinx \fIsimprim\fP and \fIunisim\fP libraries contain code like
+
+.EX
+  variable Write_A_Write_B : memory_collision_type := Write_A_Write_B;
+  variable Read_A_Write_B  : memory_collision_type := Read_A_Write_B;
+  variable Write_A_Read_B  : memory_collision_type := Write_A_Read_B;
+  variable Write_B_Write_A : memory_collision_type := Write_B_Write_A;
+  variable Read_B_Write_A  : memory_collision_type := Read_B_Write_A;
+  variable Write_B_Read_A  : memory_collision_type := Write_B_Read_A;
+.EE
+
+These are a self-referential init and causes \fBghdl\fP compilation errors.
+
+This script scans all \fI.vhd\fP files in the current working directory,
+and removes lines like this. Used by \fBxise_ghdl_simprim\fP,
+\fBxise_ghdl_unisim\fP, and \fBxviv_ghdl_unisim\fP.
+
+.\" ------------------------------------------------------------------
+.SH "SEE ALSO"
+.BR xise_ghdl_simprim (1),
+.BR xise_ghdl_unisim (1),
+.BR xviv_ghdl_unisim (1)
+
+.\" ------------------------------------------------------------------
+.SH AUTHOR
+Walter F.J. Mueller <W.F.J.Mueller@gsi.de>

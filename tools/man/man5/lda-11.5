@@ -1,0 +1,76 @@
+.\"  -*- nroff -*-
+.\"  $Id: lda-11.5 1237 2022-05-15 07:51:47Z mueller $
+.\" SPDX-License-Identifier: GPL-3.0-or-later
+.\" Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\"
+.\" ------------------------------------------------------------------
+.
+.TH LDA-11 5 2022-05-13 "Retro Project" "Retro Project Manual"
+.\" ------------------------------------------------------------------
+.SH NAME
+lda-11 \- absolute loader paper tape format
+.
+.\" ------------------------------------------------------------------
+.SH DESCRIPTION
+\fBlda-11\fP files contain an absolute binary executable for a PDP-11 system.
+They were initially defined for usage with paper tapes, see
+.EX
+  Paper Tape Software Programming Handbook  DEC-11-OOPB-D     Mar 1971
+  Paper Tape Software Handbook              DEC-11-XPTSA-B-D  Apr 1976
+.EE
+and later used in the disk-based \fBxxdp\fP system. DEC RT-11 and RSX tools
+also supported this file format.
+
+An \fBlda-11\fP file contains one or more blocks of the format
+
+.EX
+    0 001    start frame
+    1 000    null frame
+    2 xxx    byte count low
+    3 xxx    byte count hight
+    4 yyy    load address low
+    5 yyy    load address high
+      ...    data
+      zzz    block checksum
+.EE
+
+and the properties
+.
+.RS 0
+.PD 0
+.IP "-" 2
+the byte count is the total number of bytes in a block, excluding the checksum
+but including the 6 header frames.
+.IP "-"
+the checksum is the 2-complement of the sum of the whole block,
+including the 6 byte header
+.IP "-"
+if the byte count is 6:
+.RS 2
+.PD 0
+.IP "-" 2
+if the load address is even, the loader will transfer control to that address
+.IP "-"
+if the load address is odd, the loader stops the CPU with a HALT
+.PD
+.RE
+.PP
+.
+.PD
+.RE
+.PP
+.
+.\" ------------------------------------------------------------------
+.SH "NOTES"
+\fBlda-11\fP files can be created with \fBasm-11\fP, inspected with
+\fBldadump\fP, and loaded into a system with \fBti_w11\fP.
+.
+.\" ------------------------------------------------------------------
+.SH "SEE ALSO"
+.BR asm-11 (1),
+.BR ldadump (1),
+.BR ti_w11 (1)
+.
+.\" ------------------------------------------------------------------
+.SH AUTHOR
+Walter F.J. Mueller <W.F.J.Mueller@gsi.de>

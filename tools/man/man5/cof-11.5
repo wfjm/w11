@@ -1,0 +1,86 @@
+.\"  -*- nroff -*-
+.\"  $Id: cof-11.5 1237 2022-05-15 07:51:47Z mueller $
+.\" SPDX-License-Identifier: GPL-3.0-or-later
+.\" Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\"
+.\" ------------------------------------------------------------------
+.
+.TH COF-11 5 2022-05-13 "Retro Project" "Retro Project Manual"
+.\" ------------------------------------------------------------------
+.SH NAME
+cof-11 \- compound output format for absolute loader images
+.
+.\" ------------------------------------------------------------------
+.SH DESCRIPTION
+\fBcof-11\fP files contain both the full symbol table and the absolute binary
+of an \fBasm-11\fP compilation in an easy to process text format.
+It is usually used to transfer the compilation result when \fBasm-11\fP is
+embedded.
+A \fBcof-11\fP has a symbol section with a list of name-value pairs and
+a data section with a list of word or byte blocks. Each block has a
+word/byte indicator, the starting address, and a blank-separated list of values.
+All numerical values are in octal format.
+
+.EX
+    sym {
+    <name> => <value>
+    ...
+    }
+    dat {
+    w <addr> {
+    <val1> <val2> <val3> ...
+    }
+    b <addr> {
+    <val1> <val2> <val3> ...
+    }
+    ...
+    }
+.EE
+
+The symbol table also contains local labels in the form
+.EX
+  incnum => 001154
+  incnum:1$ => 001160
+  incnum:100$ => 001200
+.EE
+with the normal label followed by a ':' and the local label.
+
+.\" ------------------------------------------------------------------
+.SH EXAMPLES
+.IP "\fBasm-11 -cof lp11write.mac\fR" 4
+produces a \fBcof-11\fP file like (shortened for brevity)
+
+.EX
+  sym {
+  ...end => 001000
+  bend => 001310
+  bnum => 001202
+  btxt => 001206
+  incnum => 001154
+  incnum:1$ => 001160
+  incnum:100$ => 001200
+  perr => 001150
+  ...
+  dat {
+  w 000004 {
+  000006 000000 000012 000000 000016 000000 000022 000000 000026
+  000032 000000 000036 000000
+  }
+  w 000240 {
+  000242 000000 000246 000000 000252 000000
+  }
+  ...
+  b 001202 {
+  060 060 060 060 072 040 101 102 103 104 105 106 107 110 111 112
+  ...
+  }
+  }
+.EE
+.
+.\" ------------------------------------------------------------------
+.SH "SEE ALSO"
+.BR asm-11 (1)
+.
+.\" ------------------------------------------------------------------
+.SH AUTHOR
+Walter F.J. Mueller <W.F.J.Mueller@gsi.de>

@@ -1,0 +1,40 @@
+.\"  -*- nroff -*-
+.\"  $Id: lsm-11.5 1237 2022-05-15 07:51:47Z mueller $
+.\" SPDX-License-Identifier: GPL-3.0-or-later
+.\" Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\"
+.\" ------------------------------------------------------------------
+.
+.TH LSM-11 5 2022-05-13 "Retro Project" "Retro Project Manual"
+.\" ------------------------------------------------------------------
+.SH NAME
+lsm-11 \- lsmem style memory dump format
+.
+.\" ------------------------------------------------------------------
+.SH DESCRIPTION
+\fBlsm-11\fP files contain a 16 bit memory dump in the format produced
+by the \fIlsmem\fP subcommand. It is simply a list with one \fIaddr:data\fP
+pair per line, both \fIaddr\fP and \fIdata\fP are given as 16 bit octal numbers.
+Like for example
+.EX
+000000 : 012700
+000002 : 000026
+000004 : 105710
+000006 : 001406
+000010 : 105737
+000012 : 177564
+.EE
+.
+.\" ------------------------------------------------------------------
+.SH "NOTES"
+\fBlsm-11\fP files can be created with \fBasm-11\fP.
+\fBlda-11\fP files can be converted into \fBlsm-11\fP format with \fBldadump\fP.
+.
+.\" ------------------------------------------------------------------
+.SH "SEE ALSO"
+.BR asm-11 (1),
+.BR ldadump (1)
+.
+.\" ------------------------------------------------------------------
+.SH AUTHOR
+Walter F.J. Mueller <W.F.J.Mueller@gsi.de>

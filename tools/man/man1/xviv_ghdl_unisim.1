@@ -1,7 +1,7 @@
 .\"  -*- nroff -*-
-.\"  $Id: xviv_ghdl_unisim.1 1233 2022-04-30 07:01:23Z mueller $
+.\"  $Id: xviv_ghdl_unisim.1 1236 2022-05-14 10:11:35Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
-.\" Copyright 2015-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
@@ -35,7 +35,7 @@ Just use the \fBghdl\fP option
 .EE
 
 to link to the UNISIM or UNIMACRO library.
-\fBghdl\fP can be used without a \fBxtwv\fP wrapper.
+\fBghdl\fP can be used without an \fBxtwv\fP wrapper.
 
 The Xilinx source code has since many releases some buggy statements with
 self-referential initializations. They seem to be tolerated by the commercial
@@ -61,14 +61,16 @@ The VHDL sources for the Xilinx Vivado UNISIM library
 .IP \fI$XTWV_PATH/data/vhdl/src/unimacro\fP
 The VHDL sources for the  Xilinx Vivado UNIMACRO library
 .IP \fI$XTWV_PATH/ghdl\fP
-The created object files will be written into this directory. The directory
-is created if not yet existing. Note that the \fI$XTWV_PATH\fP
-directory must be writable for the script.
+The created object files will be written into this directory.
+The directory is created if it does not exist yet.
+Note that the \fI$XTWV_PATH\fP directory must be writable for the script.
 .
 .\" ------------------------------------------------------------------
 .SH "SEE ALSO"
 .BR xtwv (1),
-.BR ghdl (1)
+.BR ghdl (1),
+.BR xilinx_vhdl_memcolltype_fix (1)
+
 .
 .\" ------------------------------------------------------------------
 .SH AUTHOR

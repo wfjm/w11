@@ -1,8 +1,8 @@
 .\"  -*- nroff -*-
-.\"  $Id: console_starter.1 1233 2022-04-30 07:01:23Z mueller $
+.\"  $Id: console_starter.1 1237 2022-05-15 07:51:47Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
-.\" Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-.\" 
+.\" Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\"
 .\" ------------------------------------------------------------------
 .
 .TH CONSOLE_STARTER 1 2010-07-09 "Retro Project" "Retro Project Manual"
@@ -25,9 +25,9 @@ console_starter \- setup vt52/vt100 emulator windows for ti_rri or simh
 .
 .\" ------------------------------------------------------------------
 .SH DESCRIPTION
-Script to setup an \fBxterm\fP vt52 or vt100 emulator window which
+Script to set up an \fBxterm\fP vt52 or vt100 emulator window which
 will connect to a DL11 or DZ11 serial interface emulation port of
-\fBti_rri\fP or a CPU emulator from the \fBsimh\fP suite, 
+\fBti_rri\fP or a CPU emulator from the \fBsimh\fP suite,
 e.g. \fBpdp11\fP, via a \fBtelnet\fP connection.
 
 If the connection to the interface emulation port fails or is terminated
@@ -38,7 +38,7 @@ a message like
     Trying 127.0.0.1...
     telnet: Unable to connect to remote host: Connection refused
     telnet failed with rc=256
-    enter q or <^D> to quit, otherwise hit <ENTER> to reconnect: 
+    enter q or <^D> to quit, otherwise hit <ENTER> to reconnect:
 .EE
 
 is displayed in the \fBxterm\fP window. Entering a 'q' or 'Control-D'
@@ -58,7 +58,7 @@ defines the terminal emulator type. Allowed values are:
 .IP \fBvt100\fP 8
 use VT100 emulation. The default.
 .IP \fBvt52\fP
-use VT52 emulation. Useful in conjunction with OS which do not have VT100
+use VT52 emulation. Useful in conjunction with OS which does not have VT100
 support, like early DEC RSX-11M versions.
 .RE
 .RE
@@ -67,7 +67,7 @@ support, like early DEC RSX-11M versions.
 .\" ----------------------------------------------
 .IP "\fB\-d \fIdev\fR"
 defines the serial interface emulation port to connect to. Supported
-are currently primary and secondary DL11 interface and eight lines of
+are currently primary and secondary DL11 interfaces and eight lines of
 the first DZ11 interface. Allowed values for \fIdev\fP are:
 .RS
 .RS 3

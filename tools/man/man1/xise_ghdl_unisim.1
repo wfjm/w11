@@ -1,7 +1,7 @@
 .\"  -*- nroff -*-
-.\"  $Id: xise_ghdl_unisim.1 1233 2022-04-30 07:01:23Z mueller $
+.\"  $Id: xise_ghdl_unisim.1 1236 2022-05-14 10:11:35Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
-.\" Copyright 2010-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2010-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .
@@ -60,16 +60,18 @@ The VHDL sources for the Xilinx ISE UNISIM library
 .IP \fI$XTWI_PATH/ISE_DS/ISE/vhdl/src/unimacro\fP
 The VHDL sources for the  Xilinx ISE UNIMACRO library
 .IP \fI$XTWI_PATH/ISE_DS/ISE/ghdl\fP
-The created object files will be written into this directory. The directory
-is created if not yet existing. Note that the \fI$XTWI_PATH\fP
-directory must be writable for the script.
+The created object files will be written into this directory.
+The directory is created if it does not exist yet.
+Note that the \fI$XTWI_PATH\fP directory must be writable for the script.
 .
 .\" ------------------------------------------------------------------
 .SH "SEE ALSO"
 .BR xtwi (1),
 .BR ghdl (1),
 .BR xise_ghdl_simprim (1),
-.BR xviv_ghdl_unisim (1)
+.BR xviv_ghdl_unisim (1),
+.BR xilinx_vhdl_memcolltype_fix (1)
+
 .
 .\" ------------------------------------------------------------------
 .SH AUTHOR

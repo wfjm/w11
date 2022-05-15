@@ -1,8 +1,8 @@
 .\"  -*- nroff -*-
-.\"  $Id: github_md2html.1 1233 2022-04-30 07:01:23Z mueller $
+.\"  $Id: github_md2html.1 1237 2022-05-15 07:51:47Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
-.\" Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-.\" 
+.\" Copyright 2017-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\"
 .\" ------------------------------------------------------------------
 .
 .TH GITHUB_MD2HTML 1 2018-11-03 "Retro Project" "Retro Project Manual"
@@ -22,10 +22,10 @@ github_md2html \- convert markdown to HTML with GitHub API
 Converts Markdown files to HTML using the GitHub converter API.
 \fIFILE\fP can either be a file name or a directory name (e.g. '.').
 If it's a directory, the whole sub-tree will be scanned and all files
-with an extension of \fI.md\fP will be converted. 
+with an extension of \fI.md\fP will be converted.
 The created HTML files have the extension \fI.md.html\fP.
 
-Unless the \fB-force\fP option is given the script checks whether the 
+Unless the \fB-force\fP option is given the script checks whether the
 \fI.md.html\fP
 file already exists and converts only when the markdown file is newer than
 the HTML file.
@@ -55,7 +55,7 @@ print status of each inspected file. The default is to list only converted files
 .
 .\" ----------------------------------------------
 .IP "\fB\-context \fIcont\fR"
-defines the GitHub repository context. 
+defines the GitHub repository context.
 .
 .\" ----------------------------------------------
 .IP "\fB\-dump\fR"

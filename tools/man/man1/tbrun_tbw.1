@@ -1,14 +1,14 @@
 .\"  -*- nroff -*-
-.\"  $Id: tbrun_tbw.1 1231 2022-04-28 08:40:50Z mueller $
+.\"  $Id: tbrun_tbw.1 1237 2022-05-15 07:51:47Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
-.\" Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-.\" 
+.\" Copyright 2016-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\"
 .\" ------------------------------------------------------------------
 .
 .TH TBRUN_TBW 1 2016-08-21 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
-tbrun_tbw \- \fBtbw\fP based test bench starter
+tbrun_tbw \- \fBtbw\fP-based test bench starter
 .\" ------------------------------------------------------------------
 .SH SYNOPSIS
 .
@@ -20,7 +20,7 @@ tbrun_tbw \- \fBtbw\fP based test bench starter
 .
 .\" ------------------------------------------------------------------
 .SH DESCRIPTION
-\fBtbrun_tbw\fP is a convenience script for starting \fBtbw\fP(1) based
+\fBtbrun_tbw\fP is a convenience script for starting \fBtbw\fP(1)-based
 test benches. It will
 
 .RS 2
@@ -30,7 +30,7 @@ issue a \fBmake\fP(1) command to (re)-build \fITBENCH\fP.
 .IP "-"
 build a \fBtbw\fP(1) command, using \fISTIMFILE\fP if specified.
 .IP "-"
-create a shell pipe to which runs tbw and handles the test bench output with
+create a shell pipe which runs tbw and handles the test bench output with
 \fBtbfilt\fP(1) to determine success or failure.
 .PD
 .RE
@@ -39,7 +39,7 @@ create a shell pipe to which runs tbw and handles the test bench output with
 .\" ------------------------------------------------------------------
 .SH OPTIONS
 Note: \fBtbrun_tbw\fP is implemented as a shell script. If options have an
-argument it is separated white space and not by '='! So write '--ghw\ xxx'
+argument it is separated by white space and not by '='! So write '--ghw\ xxx'
 and not '--ghw=xxx' !
 .
 .\" -- --dry -------------------------------------
@@ -71,7 +71,7 @@ write a ghw file with name '\fIfname\fP.ghw'
 append \fIopts\fP to the \fBtbw\fP(1) command
 .\" -- --pcom ------------------------------------
 .IP \fB\-\-pcom\fR
-enables that test bench comments are passed to stdout.
+enables that test bench comments are passed to \fIstdout\fP.
 .
 .\" ------------------------------------------------------------------
 .SH EXAMPLES

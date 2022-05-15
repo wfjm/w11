@@ -1,8 +1,8 @@
 .\"  -*- nroff -*-
-.\"  $Id: config_wrapper.1 1234 2022-05-03 18:28:48Z mueller $
+.\"  $Id: config_wrapper.1 1237 2022-05-15 07:51:47Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
-.\" Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-.\" 
+.\" Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\"
 .\" ------------------------------------------------------------------
 .
 .TH CONFIG_WRAPPER 1 2013-01-02 "Retro Project" "Retro Project Manual"
@@ -91,8 +91,8 @@ Configure an FPGA with XILINX ISE \fBimpact\fP. The input \fIFILE\fP must be in
 .\" ----------------------------------------------
 .IP \fBjconfig\fP
 Configure an FPGA with \fBjtag\fP(1). The input \fIFILE\fP must be in
-\fI.svf\fP format. This sub command is usually used for boards with a
-Cypress FX2 USB controller, like the Digilent Nexys2, Nexys3 or Atlys, 
+\fI.svf\fP format. This subcommand is usually used for boards with a
+Cypress FX2 USB controller, like the Digilent Nexys2, Nexys3, or Atlys,
 and an FX2 firmware that emulates an Altera USB-Blaster programming cable.
 
 The USB device path is defined by the environment variables \fBRETRO_FX2_VID\fP
@@ -100,25 +100,25 @@ and \fBRETRO_FX2_PID\fP, or defaults to vid=16c0 and pid=03ef.
 
 Use the \fBfx2load_wrapper\fP(1) command to ensure that the proper firmware
 is loaded in the Cypress FX2 USB controller.
-The \fBbit2svf\fP sub command can be used to create a \fI.svf\fP from
+The \fBbit2svf\fP subcommand can be used to create a \fI.svf\fP from
 a \fI.bit\fP file.
 .
 .\" ------------------------------------------------------------------
 .SH EXIT STATUS
-In case of an error an exit status 1 is returned.
+In case of an error, an exit status 1 is returned.
 .
 .\" ------------------------------------------------------------------
 .SH ENVIRONMENT
 .IP "\fBRETRO_FX2_VID, RETRO_FX2_PID\fR" 4
-Used by the \fBjconfig\fP sub command to define the USB path of the
+Used by the \fBjconfig\fP subcommand to define the USB path of the
 Cypress FX2 USB controller emulating an Altera USB-Blaster cable.
 .IP \fBXILINX\fR
-Path to current XILINX ISE installation. Required by all sub commands,
+Path to current XILINX ISE installation. Required by all subcommands,
 mainly to locate the \fI.bsdl\fP files which describe the JTAG commands
 of all devices in the JTAG chain.
 .br
-Best is to use \fBconfig_wrapper\fP with the \fBxtwi\fP(1) wrapper, this will
-automatically define this environment variable.
+The best is to use \fBconfig_wrapper\fP with the \fBxtwi\fP(1) wrapper, this
+will automatically define this environment variable.
 .
 .\" ------------------------------------------------------------------
 .SH EXAMPLES

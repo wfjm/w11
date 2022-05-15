@@ -1,8 +1,8 @@
 .\"  -*- nroff -*-
-.\"  $Id: njobihtm.1 1233 2022-04-30 07:01:23Z mueller $
+.\"  $Id: njobihtm.1 1237 2022-05-15 07:51:47Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
-.\" Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-.\" 
+.\" Copyright 2016-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\"
 .\" ------------------------------------------------------------------
 .
 .TH NJOBIHTM 1 2016-10-01 "Retro Project" "Retro Project Manual"
@@ -21,7 +21,7 @@ njobihtm \- number of jobs considering hyper-threading and memory
 .SH DESCRIPTION
 \fBnjobihtm\fP determines the number of CPU-intensive jobs based on the
 number of CPU and memory resources. The 'ihtm' stands for 'intelligent
-hyper-threading and memory'. The script 
+hyper-threading and memory'. The script
 
 .RS 2
 .PD 0
@@ -30,8 +30,8 @@ determines the number of physical cores and the number of threads per core
 .IP "-"
 assumes that only a quarter of the additional hyper-threads are useful
 .IP "-"
-if \fB-m\fP is given. determines the memory size, assumes that at least
-one GB should be available for general usage and limits the number of
+if \fB-m\fP is given, determines the memory size, assumes that at least
+one GB should be available for general usage, and limits the number of
 jobs accordingly.
 .PD
 .RE
@@ -44,7 +44,7 @@ The number of jobs is written to STDOUT, and can be used like `njobs`.
 .\" -- --mem -------------------------------------
 .IP \fB\-m\ \fIsize\fR
 gives the required physical memory per job.
-\fIsize\fP must be given as an integer with either a 'M' or 'G', indicating MB
+\fIsize\fP must be given as an integer with either an 'M' or 'G', indicating MB
 or GB.
 .
 .\" -- --verbose ---------------------------------
@@ -54,7 +54,7 @@ if given the found system parameters and the reasoning is printed to STDERR.
 .\" ------------------------------------------------------------------
 .SH EXAMPLES
 .IP "\fBmake -j `njobihtm` all\fR" 4
-Start \fBmake\fR(1) with a reasonable number of jobs. 
+Start \fBmake\fR(1) with a reasonable number of jobs.
 .IP "\fBnjobihtm -v -m=2G\fR" 4
 Determines the number of jobs with 2 GB memory per job. On a system with 4 cores
 and hyper-threading and 8 GB installed memory one gets due to the '-v' the

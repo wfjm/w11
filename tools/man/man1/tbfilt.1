@@ -1,8 +1,8 @@
 .\"  -*- nroff -*-
-.\"  $Id: tbfilt.1 1234 2022-05-03 18:28:48Z mueller $
+.\"  $Id: tbfilt.1 1237 2022-05-15 07:51:47Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2016-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-.\" 
+.\"
 .\" ------------------------------------------------------------------
 .
 .TH TBFILT 1 2022-05-02 "Retro Project" "Retro Project Manual"
@@ -36,8 +36,8 @@ as a filter during test bench execution, typically in a setup like
 .EX
     tbw <test_bench> 2>&1 | tbfilt --tee=<log_file>
 .EE
-tbfilt reads the output from the test bench via stdin and a pipe, filters
-out the messages indicating a failure and shows them on stdout, and saves
+tbfilt reads the output from the test bench via \fIstdin\fP and a pipe, filters
+out the messages indicating a failure and shows them on \fIstdout\fP, and saves
 the full test bench output to the file given in the \fB\-\-tee\fP option.
 In this mode tbfilt works similar to a
 .EX
@@ -61,7 +61,7 @@ The exit status of tbfilt is 1 in case any of the tests is considered as
 .PP
 .
 .SS Filter Criteria
-A line that contains any of the following strings is considered as an
+A line that contains any of the following strings is considered an
 indication of a \fBFAIL\fPed test:
 .RS 2
 .PD 0
@@ -83,7 +83,7 @@ hard to avoid in complex models and generally don't indicate a real issue.
 .PD 0
 .IP  "-" 2
 assertion warnings from IEEE libraries at startup (t=0ns). They are hard to
-avoid in complex models and in general don't indicate a real issue. The best
+avoid in complex models and in general, don't indicate a real issue. The best
 is to suppress them in \fBghdl\fP(1) with the
 option '--ieee-asserts=disable-at-0'.
 That's usually done via the \fBTBW_GHDL_OPTS\fP environment variable used
@@ -122,19 +122,19 @@ by a \fBbash\fP(1) 'time' command when
     export TIMEFORMAT=$'real %3lR   user %3lU   sys %3lS'
 .EE
 is set. The wrapper scripts \fB\tbrun_tbw\fP(1) or \fBtbrun_tbwrri\fP(1)
-are in general used to set this up correctly. 
+are in general used to set this up correctly.
 .
 .\" ------------------------------------------------------------------
 .SH OPTIONS
 .
 .\" --------------------------------------------------------
-.SS Filter Options 
+.SS Filter Options
 .
 .\" -- --tee -------------------------------------
 .IP "\fB\-\-tee=\fIofile\fR"
 All log file input is written to \fIofile\fP. Typically used to save the
 test bench output in a file when tbfilt is used in filter mode in a pipeline
-and reads from stdin.
+and reads from \fIstdin\fP.
 .
 .\" -- --pcom ------------------------------------
 .IP \fB\-\-pcom\fP
@@ -153,7 +153,7 @@ This is functionally similar to a
 .EE
 pipeline.
 
-When no '*' wildcard is found in \fIpatt\fR it is assumed to be a mode 
+When no '*' wildcard is found in \fIpatt\fR it is assumed to be a mode
 specification and the pattern is prefixed by
 .EX
     .*/tb_.*_
@@ -181,17 +181,17 @@ Selects summary mode. Only a single summary line per input file is written.
 The format is configurable via the \fB\-\-format\fP, \fB\-\-wide\fP, and
 \fB\-\-compact\fP options and via the \fBTBFILT_FORMAT\fP environment variable.
 The precedence is (in increasing priority):
-.RS 
+.RS
 .PD 0
 .IP "  -" 4
 build default ('%ec %pf %nf')
-.IP "  -" 
+.IP "  -"
 \fBTBFILT_FORMAT\fP option
-.IP "  -" 
+.IP "  -"
 \fB\-\-wide\fP option
-.IP "  -" 
+.IP "  -"
 \fB\-\-compact\fP option
-.IP "  -" 
+.IP "  -"
 \fB\-\-format\fP option
 .PD
 .RE
@@ -208,14 +208,14 @@ on an 80 character wide line. Uses a format of "%fa %tg %sg %ec %pf %ns".
 .
 .\" -- --nohead ----------------------------------
 .IP \fB\-\-nohead\fP
-Suppresses the headline of summary outputs. Useful of summary output is
+Suppresses the headline of summary outputs. Useful if the summary output is
 piped into sort or other tools.
 .
 .\" -- --format ----------------------------------
 .IP "\fB\-\-format=\fIfmt\fR"
 Defined the format of the summary lines.
 The format specification \fIfmt\fR string is a sequence of conversion
-specifications of the form '%xx', which will be replaces by the respective
+specifications of the form '%xx', which will be replaced by the respective
 values and other characters which are simply copied (usually a blank as
 delimiter).
 The supported conversion specifications are:
@@ -223,11 +223,11 @@ The supported conversion specifications are:
 .PD 0
 .IP \fB%fd\fP 5
 modification date of input file (as yyyy-mm-dd)
-.IP \fB%ft\fP 
+.IP \fB%ft\fP
 modification time of input file (as hh:mm:ss)
-.IP \fB%fs\fP 
+.IP \fB%fs\fP
 modification time of input file short format (as hh:mm)
-.IP \fB%fa\fP 
+.IP \fB%fa\fP
 age of input file in seconds, minutes, hours or days
 .IP \fB%tr\fP
 real (wall clock) time of test bench run
@@ -264,11 +264,11 @@ short file name (without path)
 .
 .\" ------------------------------------------------------------------
 .SH EXIT STATUS
-In case of an error the exit codes are:
+In case of an error, the exit codes are:
 .RS
 .PD 0
 .IP \fB1\fP 3
-run time errors, like bad option, file not found, etc
+run time errors, like a bad option, file not found, etc
 .IP \fB2\fP 3
 at least one test FAILed, test bench has FAILed
 .PD
@@ -280,7 +280,8 @@ at least one test FAILed, test bench has FAILed
 Defines the default summary format and overwrites the build-in default of
 "%ec %pf %nf".
 .IP "\fBTBW_GHDL_OPTS\fR"
-Used by \fBtbw\fP(1) to define additional options for GHDL based simulations.
+Used by \fBtbw\fP(1) to define additional options for \fBghld\fP-based
+simulations.
 Usually set to "--unbuffered --ieee-asserts=disable-at-0", see \fBtbw\fP(1)
 documentation.
 .

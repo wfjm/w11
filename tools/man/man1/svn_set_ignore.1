@@ -1,8 +1,8 @@
 .\"  -*- nroff -*-
-.\"  $Id: svn_set_ignore.1 1231 2022-04-28 08:40:50Z mueller $
+.\"  $Id: svn_set_ignore.1 1237 2022-05-15 07:51:47Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
-.\" Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-.\" 
+.\" Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\"
 .\" ------------------------------------------------------------------
 .
 .TH SVN_SET_IGNORE 1 2010-04-26 "Retro Project" "Retro Project Manual"
@@ -18,14 +18,14 @@ svn_set_ignore \- setup svn:ignore properties based on .gitignore files
 .
 .\" ------------------------------------------------------------------
 .SH DESCRIPTION
-Creates or updates a \fIsvn:ignore\fP property for the current directory
+Creates or updates an \fIsvn:ignore\fP property for the current directory
 and all sub-directories. The current directory must contain a
 \fI.gitignore\fP file which defines the default list of ignore patterns for the
-whole project. The local ignore pattern for each directory is the concatination
+whole project. The local ignore pattern for each directory is the concatenation
 of all \fI.gitignore\fP files found in the directory hierarchy.
 .
 If no \fIsvn:ignore\fP property exists or the existing one differs from
-the ignore pattern list determined from the top level and local 
+the ignore pattern list determined from the top level and local
 \fI.gitignore\fP file the property is set or updated.
 .
 .\" ------------------------------------------------------------------

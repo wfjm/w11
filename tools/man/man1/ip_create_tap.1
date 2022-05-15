@@ -1,8 +1,8 @@
 .\"  -*- nroff -*-
-.\"  $Id: ip_create_tap.1 1231 2022-04-28 08:40:50Z mueller $
+.\"  $Id: ip_create_tap.1 1237 2022-05-15 07:51:47Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
-.\" Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-.\" 
+.\" Copyright 2017-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\"
 .\" ------------------------------------------------------------------
 .
 .TH IP_CREATE_TAP 1 2017-04-14 "Retro Project" "Retro Project Manual"
@@ -28,7 +28,7 @@ by default. The tap device will be accessible to the user which executes
 the script. Finally, the created tap device is connected to bridge 'br0'.
 
 The script should be started as a normal user, but uses \fBsudo\fR(8) to
-execute privileged commands and might therefore ask for the user password.
+execute privileged commands, and might therefore ask for the user password.
 
 .
 .\" ------------------------------------------------------------------

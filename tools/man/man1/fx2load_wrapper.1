@@ -1,8 +1,8 @@
 .\"  -*- nroff -*-
-.\"  $Id: fx2load_wrapper.1 1234 2022-05-03 18:28:48Z mueller $
+.\"  $Id: fx2load_wrapper.1 1237 2022-05-15 07:51:47Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-.\" 
+.\"
 .\" ------------------------------------------------------------------
 .
 .TH FX2LOAD_WRAPPER 1 2013-01-05 "Retro Project" "Retro Project Manual"
@@ -29,7 +29,7 @@ fx2load_wrapper \- auto-load firmware into Cypress FX2 USB controller
 Checks firmware state of a Cypress FX2 USB controller and re-loads the
 firmware in case of a mismatch of currently active and desired firmware.
 
-The command locates a USB device with a USB path defined by the environment 
+The command locates a USB device with a USB path defined by the environment
 variables \fBRETRO_FX2_VID\fP and \fBRETRO_FX2_PID\fP, or default vid=16c0 and
 pid=03ef.
 It inquires with \fBlsusb\fP(1) the 'iProduct' attribute of the currently
@@ -38,10 +38,10 @@ of the firmware image given with \fB-\-file\fP it is assumed the proper
 firmware is already active. Otherwise the firmware image is loaded with
 either \fBfxload\fP(1) or \fBcycfx2prog\fP.
 
-\fBNote:\fP after a firmware load the Cypress FX2 USB controller restarts. 
-This causes a USB re-enumeratation, the USB device disconnects and reconnects
+\fBNote:\fP after a firmware load the Cypress FX2 USB controller restarts.
+This causes a USB re-enumeration, the USB device disconnects and reconnects
 with a new device descriptor. It can take some time till the Linux USB stack
-shows the new device descriptor. The command sleeps for 1.5 seconds, this is 
+shows the new device descriptor. The command sleeps for 1.5 seconds, this is
 usually enough to ensure that subsequent commands see the new state.
 .
 .\" ------------------------------------------------------------------
@@ -78,7 +78,7 @@ Use \fBcycfx2prog\fP instead of \fBfxload\fP(1) to load the firmware.
 .
 .\" ----------------------------------------------
 .IP \fB\-\-force\fP
-Unconditionally load the firmware, even when a 'iProduct' attribute match 
+Unconditionally load the firmware, even when an 'iProduct' attribute match
 is seen. Useful to reset the Cypress FX2 controller.
 .
 .\" ----------------------------------------------
@@ -106,7 +106,7 @@ firmware path in case no \fB\-\-ihx_path\fP option is given.
 .SH EXAMPLES
 .IP "\fBfx2load_wrapper --board=nexys2 --file=nexys2_jtag_2fifo_ic.ihx\fR" 4
 Checks whether the 'nexys2_jtag_2fifo_ic' version of the firmware is loaded
-and in case not loads the firmware image.
+and in case not, loads the firmware image.
 
 .\" ------------------------------------------------------------------
 .SH "SEE ALSO"

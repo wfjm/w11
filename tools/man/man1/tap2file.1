@@ -1,8 +1,8 @@
 .\"  -*- nroff -*-
-.\"  $Id: tap2file.1 1231 2022-04-28 08:40:50Z mueller $
+.\"  $Id: tap2file.1 1237 2022-05-15 07:51:47Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
-.\" Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-.\" 
+.\" Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\"
 .\" ------------------------------------------------------------------
 .
 .TH TAP2FILE 1 2019-07-08 "Retro Project" "Retro Project Manual"
@@ -23,14 +23,15 @@ tap2file \- split a tap format tape container into individual files
 .
 .\" ------------------------------------------------------------------
 .SH DESCRIPTION
-Reads the tap format tape container \fIFILE\fR and creates for tape file an 
-individual disk file. The created files are named \fIpref\fR_nn.dat, where 
-\fIpref\fR is either the prefix given with the \fB\-\-pref\fR option or the 
+Reads the tap format tape container \fIFILE\fR and creates for tape file an
+individual disk file. The created files are named \fIpref\fR_nn.dat, where
+\fIpref\fR is either the prefix given with the \fB\-\-pref\fR option or the
 stem of \fIFILE\fR.
 
-\fBtap2file\fR writes to stdout a one-line message for each created file which
-gives the filename, the number of tape records, and the record length. In case
-the record length is variable the minimal and the maximal record length is given.
+\fBtap2file\fR writes to \fIstdout\fP a one-line message for each created file
+which gives the filename, the number of tape records, and the record length.
+In case the record length is variable the minimal and the maximal record
+length is given.
 .
 .\" ------------------------------------------------------------------
 .SH OPTIONS
@@ -55,7 +56,7 @@ print full help text and exit.
 .IP "\fBtap2file tmscptape.tap\fR" 4
 reads the file \fItmscptape.tap\fR and creates a file for each tape file.
 Because no \fB\-\-pref\fR option is given the output files will be named
-"tmscptape_nn.dat". The stdout output might look like
+"tmscptape_nn.dat". The \fIstdout\fP output might look like
 
 .EX
   tmscptape_00.dat:     73 records, length   512
@@ -76,7 +77,7 @@ file contains a \fBtar\fR(1) archive.
 
 .IP "\fBtap2file -v test.tap\fR" 4
 reads the file \fItest.tap\fR and writes a one-line trace info for each record.
-The stdout output might look like
+The \fIstdout\fP output might look like
 
 .EX
    0,    0 :     80 : 00 00 00 00 50 00 06 07 08 09 0a 0b 0c 0d ...

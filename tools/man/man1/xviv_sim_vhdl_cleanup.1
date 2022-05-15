@@ -1,8 +1,8 @@
 .\"  -*- nroff -*-
-.\"  $Id: xviv_sim_vhdl_cleanup.1 1233 2022-04-30 07:01:23Z mueller $
+.\"  $Id: xviv_sim_vhdl_cleanup.1 1237 2022-05-15 07:51:47Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
-.\" Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-.\" 
+.\" Copyright 2016-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\"
 .\" ------------------------------------------------------------------
 .TH XVIV_SIM_VHDL_CLEANUP 1 2016-06-05 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
@@ -19,7 +19,7 @@ xviv_sim_vhdl_cleanup \- cleanup Vivado generated VHDL for GHDL
 .SH DESCRIPTION
 .\" ----------------------------------------------
 The Vivado \fIwrite_vhdl\fP command generates code that violates a VHDL
-language rule. 
+language rule.
 Attributes of port signals are declared in the architecture but should be in
 the entity declaration. xsim and other simulators accept this, but
 \fBghdl\fP(1) doesn't. This script simply filters out lines like

@@ -1,14 +1,14 @@
 .\"  -*- nroff -*-
-.\"  $Id: tbrun_tbwrri.1 1231 2022-04-28 08:40:50Z mueller $
+.\"  $Id: tbrun_tbwrri.1 1237 2022-05-15 07:51:47Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
-.\" Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-.\" 
+.\" Copyright 2016-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\"
 .\" ------------------------------------------------------------------
 .
 .TH TBRUN_TBWRRI 1 2016-09-17 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
-tbrun_tbw \- \fBti_rri\fP plus \fBtbw\fP based test bench starter
+tbrun_tbw \- \fBti_rri\fP plus \fBtbw\fP-based test bench starter
 .\" ------------------------------------------------------------------
 .SH SYNOPSIS
 .
@@ -20,8 +20,8 @@ tbrun_tbw \- \fBti_rri\fP plus \fBtbw\fP based test bench starter
 .
 .\" ------------------------------------------------------------------
 .SH DESCRIPTION
-\fBtbrun_tbwrri\fP is a convenience script for starting \fBti_rri\fP(1) plus 
-\fBtbw\fP(1) based test benches. It will
+\fBtbrun_tbwrri\fP is a convenience script for starting \fBti_rri\fP(1) plus
+\fBtbw\fP(1)-based test benches. It will
 
 .RS 2
 .PD 0
@@ -38,7 +38,7 @@ setup commands resulting from \fB\-\-cuff\fP, \fB\-\-fusp\fP, ...
 .IP "  -"
 all optional \fICOMMANDS\fP
 .IP "-" 2
-create shell pipe to filter the output with \fBtbfilt\fP(1) to determine 
+create a shell pipe to filter the output with \fBtbfilt\fP(1) to determine
 the success or failure.
 .PD
 .RE
@@ -64,7 +64,7 @@ don't execute test bench (useful to only execute make step)
 .
 .\" -- --lsuf ------------------------------------
 .IP \fB\-\-lsuf\ \fIsuff\fR
-use '_\fIsuff\fR.log' as thesuffix for the log file. The default is '_bsim.log'
+use '_\fIsuff\fR.log' as the suffix for the log file. The default is '_bsim.log'
 .
 .\" -- --stack -----------------------------------
 .IP \fB\-\-stack\ \fInnn\fR
@@ -98,18 +98,18 @@ For s3board, nexys2, and nexys3 designs.
 .
 .\" -- --sxon ------------------------------------
 .IP \fB\-\-sxon\fR
-switched\ XON: enable XON flow control with SWI(1), will generate 
-appropriate 'rlc oob' commands and ti_rri \-\-fifo options. 
+switched\ XON: enable XON flow control with SWI(1), will generate
+appropriate 'rlc oob' commands and ti_rri \-\-fifo options.
 For nexys4 designs.
 .
 .\" -- --hxon ------------------------------------
 .IP \fB\-\-hxon\fR
-hardwired\ XON: will generate appropriate \fBti_rri\fP \fB\-\-fifo\fP options. 
+hardwired\ XON: will generate appropriate \fBti_rri\fP \fB\-\-fifo\fP options.
 For basys3 and arty designs.
 .
 .\" -- --pcom ------------------------------------
 .IP \fB\-\-pcom\fR
-enables that test bench comments are passed to stdout.
+enables that test bench comments are passed to \fIstdout\fP.
 .
 .\" -- --rlmon -----------------------------------
 .IP \fB\-\-rlmon\fR

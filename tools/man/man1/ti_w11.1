@@ -1,8 +1,8 @@
 .\"  -*- nroff -*-
-.\"  $Id: ti_w11.1 1231 2022-04-28 08:40:50Z mueller $
+.\"  $Id: ti_w11.1 1237 2022-05-15 07:51:47Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
-.\" Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-.\" 
+.\" Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\"
 .\" ------------------------------------------------------------------
 .
 .TH TI_W11 1 2019-01-04 "Retro Project" "Retro Project Manual"
@@ -22,27 +22,27 @@ ti_w11 \- Quick starter for \fBti_rri\fP with \fBw11\fP CPU designs
 .SH DESCRIPTION
 Generates the \fBti_rri\fP(1) commands for starting the \fBrri\fP backend
 in standard configurations with \fBw11\fP CPU designs. Connections to
-FPGA boards as well as to \fPghdl\fP based simulations are supported.
+FPGA boards as well as to \fPghdl\fP-based simulations are supported.
 
 Since \fBti_w11\fP is only a quick starter for \fBti_rri\fP(1) this man page
 will only describe briefly the \fBti_w11\fP specific options, for any further
 detail consult the \fBti_rri\fP(1) man page.
 
-\fBti_w11\fP will print the generated \fBti_rri\fP(1) command to stdout before
-executing it.
+\fBti_w11\fP will print the generated \fBti_rri\fP(1) command to \fIstdout\fP
+before executing it.
 .
 .\" ------------------------------------------------------------------
 .SH OPTIONS
-.SS "setup options for FPGA connects"
+.SS "setup options for FPGA connections"
 .IP \fB-u\fP
 use \fB\-\-cuff\fP connect (USB via Cypress FX2)
 .IP \fB-t\fIDN\fR[,\fIopts\fP]
 use \fB\-\-term\fP connect.
-\fID\fP specifies device name. \fIN\fP specifies 
+\fID\fP specifies device name. \fIN\fP specifies
 the device number, or in the case of the character 'D' the auto-detection of a
-Digilent board with an FT2232C based interface.
+Digilent board with an FT2232C-based interface.
 \fIopts\fP specified the additional options a \fB\-\-term\fP can hold
-(e.g. break or xon). 
+(e.g. break or xon).
 \fID\fP is mapped as
 .RS
 .PD 0
@@ -82,7 +82,7 @@ start \fItb_w11a_br_arty\fP simulation (Arty, BRAM only, default \fB-fx\fP)
 .PD
 .IP \fB-f\fIm\fR
 select communication mode for simulation. The \fB-f\fIm\fR can be used after
-the \fB-b3\fP,...,\fB-s3\fP options to overwrite the default. Valid values 
+the \fB-b3\fP,...,\fB-s3\fP options to overwrite the default. Valid values
 for mode \fIm\fP are
 .RS
 .PD 0
@@ -120,7 +120,7 @@ batch mode
 .IP "\fB-e \fR\fIfile\fR"
 load and execute \fIfile\fP. If the file type is '.mac' the file will
 be on the fly compiled with \fBasm-11\fP(1), for all other file types
-it is assumed that they are in \fBlda\fP(5) format.
+it is assumed that they are in \fBlda-11\fP(5) format.
 .IP \fB-dry\fR
 dry run, prints the commands but doesn't execute
 .
@@ -134,25 +134,26 @@ The typical way to start Nexys2 and Nexys3 boards.
 
 .IP "\fBti_w11 -tu2,12M,break,cts @211bsd_rl_boot.tcl\fR" 4
 Assumes an FPGA board with a \fBw11\fP CPU design already configured.
-Connected via USB, communication via a USB UART. In this case the
+Connected via USB, communication via a USB UART. In this case, the
 device \fI/dev/ttyUSB2\fP will be used, with \fI12 MBaud\fP, \fIbreak\fP to
 trigger auto-bauding, and \fIcts\fP to use hardware handshake.
 \fBti_rri\fP(1) will be started and the given boot script executed.
 
 .IP "\fBti_w11 -tuD,12M,break,cts @211bsd_rl_boot.tcl\fR" 4
 Like above, but now the USB device will be autodetected.
-Typical way to start a Nexys4 board.
+The typical way to start a Nexys4 board.
 
 .IP "\fBti_w11 -n3 -e $RETROBASE/tools/mcode/dl11/dl11echo.mac\fR"
-Will start the \fItb_w11a_n3\fP test bench in \fBghdl\fP(1), on the fly 
-compile the \fIdz11echo.mac\fP test program with \fBasm-11\fP(1), load 
+Will start the \fItb_w11a_n3\fP test bench in \fBghdl\fP(1), on the fly
+compile the \fIdz11echo.mac\fP test program with \fBasm-11\fP(1), load
 and execute it. This little test code echos console input, just abort
 with ^C if you have seen enough.
 .
 .\" ------------------------------------------------------------------
 .SH "SEE ALSO"
 .BR ti_rri (1),
-.BR asm-11 (1)
+.BR asm-11 (1),
+.BR lda-11 (1)
 
 .\" ------------------------------------------------------------------
 .SH AUTHOR

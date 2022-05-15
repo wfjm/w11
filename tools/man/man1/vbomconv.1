@@ -1,9 +1,8 @@
 .\"  -*- nroff -*-
-.\"  $Id: vbomconv.1 1233 2022-04-30 07:01:23Z mueller $
+.\"  $Id: vbomconv.1 1237 2022-05-15 07:51:47Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
-.\" Copyright 2010-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-.\" 
-.\" 
+.\" Copyright 2010-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\"
 .\" ------------------------------------------------------------------
 .
 .TH VBOMCONV 1 2018-11-09 "Retro Project" "Retro Project Manual"
@@ -109,22 +108,22 @@ vbomconv \- generate files and actions from vbom manifest files
 .SH DESCRIPTION
 .
 .\" --------------------------------------------------------
-.SS Introduction 
-\fBvbomconv\fP is the central tool in a build system for 
+.SS Introduction
+\fBvbomconv\fP is the central tool in a build system for
 \fIVHDL\fP projects. Each \fIVHDL\fP source file has an associated
 manifest file in \fBvbom\fP(5) format which contains a list of used
-libraries and instantiated components, and the name of the 
+libraries and instantiated components, and the name of the
 associated VHDL source file.
 The instantiated components are defined via their \fBvbom\fP file.
-All file names are relative to the current directory. 
-A recursive traversal through all \fBvbom\fP's 
-gives for each VHDL entity all the sources files needed to compile it,
-with duplicates removed and in proper compilation order, thus libraries first 
+All file names are relative to the current directory.
+A recursive traversal through all \fBvbom\fP's
+gives for each VHDL entity all the source files needed to compile it,
+with duplicates removed and in proper compilation order, thus libraries first
 and top-level design last.
 
 The \fBvbomconv\fP tool does this traversal of \fBvbom\fP
-files and generates, depending on command line options, the files and/or
-commands needed to run a synthesis tool or to build a simulation model. 
+files and generates, depending on command-line options, the files and/or
+commands needed to run a synthesis tool or to build a simulation model.
 Currently supported is synthesis with Xilinx ISE \fBxst\fP and Xilinx Vivado
 and simulation with \fBghdl\fP(1), Xilinx ISE \fBISim\fP, or
 Xilinx Vivado \fBxsim\fP.
@@ -147,27 +146,27 @@ dependency files
 
 .PP
 The key advantage of this approach is that the individual \fBvbom\fP
-files are easy to maintain. They reflect the libraries and components used 
+files are easy to maintain. They reflect the libraries and components used
 in the VHDL source they describe, a structural change in the VHDL source
 usually implies an update of the vbom. The project files are automatically
-generated from this 'local' information, which can be of great help in 
+generated from this 'local' information, which can be of great help in
 projects with many top-level designs with a large number of entities in
 different constellations.
 
-\fBvbomconv\fP is usually embedded in a GNU \fBmake\fP(1) based build system.
-The \fIMakefile\fP's in general just contain a few definitions and includes, 
-the whole \fBvbomconv\fP magic is encapsulated in some pattern rules for 
-simulation and synthesis. 
+\fBvbomconv\fP is usually embedded in a GNU \fBmake\fP(1)-based build system.
+The \fIMakefile\fP's in general just contain a few definitions and includes,
+the whole \fBvbomconv\fP magic is encapsulated in some pattern rules for
+simulation and synthesis.
 Some are given in the EXAMPLES section.
 .
 .\" --------------------------------------------------------
 .SS Principle of Operation
 \fBvbomconv\fP will start with processing the \fIvbom\fP
 file given as an argument.
-Each file name extracted from a \fBvbom\fP is prepended with the directory 
+Each file name extracted from a \fBvbom\fP is prepended with the directory
 path of the \fBvbom\fP.
 This ensures that all file names are relative to the working directory under
-which \fBvbomconv\fP was started, even though each \fBvbom\fP file holds 
+which \fBvbomconv\fP was started, even though each \fBvbom\fP file holds
 only file names that are relative to the \fBvbom\fP.
 
 \fBvbomconv\fP expects that the entries in the \fBvbom\fP's
@@ -175,19 +174,19 @@ are ordered, libraries first, then the components in the order they are
 instantiated, and finally the name of the associated source file.
 Each \fI.vhd\fP file is added to a table of source files.
 Each \fI.vbom\fP file is added to a list of \fBvbom\fP's
-to be processed if it hasn't been processed yet. 
-The sub-\fBvbom\fP's are processed in the order they were found which 
+to be processed if it hasn't been processed yet.
+The sub-\fBvbom\fP's are processed in the order they were found which
 leads to breadth-first traversal of the \fBvbom\fP tree.
 
 After all \fBvbom\fP's
 are processed a ranking algorithm will generate an ordered list of source
 files in proper compilation order. This ensures that libraries are compiled
-before a source refers to them with a '\fIuse\fP' clause, and that entities 
+before a source refers to them with a '\fIuse\fP' clause, and that entities
 are compiled before they are referred to by an explicit instatiation.
 
 The \fBvbom\fP file format supports conditional inclusion of files via a
 condition prefix.
-The main purpose of this mechanism is to handle libraries and components 
+The main purpose of this mechanism is to handle libraries and components
 which are only referred in
 .EX
     -- synthesis translate_off
@@ -195,15 +194,15 @@ which are only referred in
 .EE
 sections and are used only for simulation.
 
-The \fBvbom\fP file format has a logical name mechanism to support the 
+The \fBvbom\fP file format has a logical name mechanism to support the
 \fIconfiguration\fP mechanism of VHDL. A logical name can be defined with
 .EX
-    <lname> = <filename> 
+    <lname> = <filename>
 .EE
 and it can be used with
 .EX
    ${\fIlname\fP}
-   ${\fIlname\fP := \fIdefault\fP} 
+   ${\fIlname\fP := \fIdefault\fP}
 .EE
 The first definition seen in the \fIvbom\fP
 traversal is taken, all others are ignored. The filename in the usage clause
@@ -217,8 +216,8 @@ allows to specify the top-level design name in case it differs from the
 stem of the \fIvbom\fP file name.
 .
 .IP "\fB@lib\fP:\fIname\fP"
-allows to specify additional system libraries. Currently used to indicate 
-that the \fIunisim\fP, \fIunimacro\fP or  \fIsimprim\fP libraries are 
+allows to specify additional system libraries. Currently used to indicate
+that the \fIunisim\fP, \fIunimacro\fP, or \fIsimprim\fP libraries are
 needed by \fBghdl\fP.
 .
 .IP "\fB@xdc\fP:\fIfile\fP"
@@ -226,13 +225,13 @@ specifies that \fIfile\fP is a constraint file for Vivado synthesis and should
 be included in the constraints fileset.
 .
 .IP "\fB@tcl\fP:\fIfile\fP"
-specifies that \fIfile\fP is a Tcl script to be executed when building 
+specifies that \fIfile\fP is a Tcl script to be executed when building
 the Vivado project. The Tcl script generated by \fB\-\-vsyn_prj\fP
 will contain statements with source \fIfile\fP.
 .
 .IP "\fB@ucf_cpp\fP:\fIfile\fP"
 specifies that a \fIfile\fP.ucf file is to be generated by \fBcpp\fP(1)
-from a \fIfile\fP.ucf_cpp source file. This allows to modularize ISE ucf files.
+from a \fIfile\fP.ucf_cpp source file. This allows modularizing ISE ucf files.
 .PP
 The full description of the file format and examples are given in a
 separate man page \fBvbom\fP(5).
@@ -242,8 +241,8 @@ separate man page \fBvbom\fP(5).
 The \fBvbomconv\fP command has the form
 .IP "" 4
 .B vbomconv
-.RI [ options ] 
-.RI [ action ] 
+.RI [ options ]
+.RI [ action ]
 .I vbom
 .PP
 and must be called, except for the \fB\-\-help\fP case, with
@@ -255,17 +254,17 @@ exactly one \fIvbom\fP file.
 .IP \fB\-\-trace\fP
 Gives a detailed trace, written to \fIstderr\fP,
 of the vbom file traversal and processing, the process of source file ranking
-to determine the compilation order, and of the final internal file list and 
+to determine the compilation order, and of the final internal file list and
 property table.
 .
 .\" ----------------------------------------------
 .TP
 .BI \-\-xlpath \fR=\fPpath
-Defines the location where the \fBghdl\fP compiled Xilinx unisim, unimacro 
-or simprim libraries are located. This option is mandatory for 
-\fB\-\-ghdl_a\fP and \fB\-\-ghdl_m\fP commands when the design contains 
+Defines the location where the \fBghdl\fP compiled Xilinx unisim, unimacro,
+or simprim libraries are located. This option is mandatory for
+\fB\-\-ghdl_a\fP and \fB\-\-ghdl_m\fP commands when the design contains
 a \fB@lib\fP directive.
-These compiled libs are typically created with the 
+These compiled libs are typically created with the
 \fBxviv_ghdl_unisim\fP(1) command for Vivado and
 \fBxise_ghdl_unisim\fP(1) or \fBxise_ghdl_simprim\fP(1) commands
 for ISE environments.
@@ -275,7 +274,7 @@ for ISE environments.
 .P
 .\" ----------------------------------------------
 .IP \fB\-\-help\fP
-Prints a usage summary to \fIstdout\fP and quits. This action is the only 
+Prints a usage summary to \fIstdout\fP and quits. This action is the only
 one not requiring a \fIvbom\fP file.
 .
 .\" ----------------------------------------------
@@ -289,8 +288,8 @@ one not requiring a \fIvbom\fP file.
 .B \-\-dep_vsyn
 .TQ
 .B \-\-dep_vsim
-These four actions write to \fIstdout\fP dependency rules for inclusion in 
-\fIMakefile\fPs. 
+These four actions write to \fIstdout\fP dependency rules for inclusion in
+\fIMakefile\fPs.
 Together with an appropriate pattern rule, they allow to automatize
 the dependency handling, see the EXAMPLES section for practical usage.
 
@@ -312,15 +311,14 @@ synthesis make flows and produces the following types of dependencies
 with \fB*\fP indicating that one rule will be generated for each file
 involved.
 
-If a \fB@ucf_cpp\fP directive was found also rules describing the
-.I ucf
+If a \fB@ucf_cpp\fP directive was found also rules describing the \fIucf\fP
 file handling are added
 .EX
    <stem>.ncd : <stem>.ucf
    include sys_w11a_n2.dep_ucf_cpp
 .EE
-If this mechanism is used the \fIMakefile\fP must contain, usually via 
-another include, a pattern rule to create the \fI.dep_ucf_cpp\fP file, 
+If this mechanism is used the \fIMakefile\fP must contain, usually via
+another include, a pattern rule to create the \fI.dep_ucf_cpp\fP file,
 for example
 .EX
     %.dep_ucf_cpp : %.ucf_cpp
@@ -360,7 +358,7 @@ based simulation models and produces the following types of dependencies
 .TQ
 .B \-\-ghdl_i
 The \fB\-\-ghdl_i_cmd\fP action writes to \fIstdout\fP
-a \fB"ghdl -i"\fP command for the \fBghdl\fP inspection step with all 
+a \fB"ghdl -i"\fP command for the \fBghdl\fP inspection step with all
 source file names in proper compilation order. The \fB\-\-ghdl_i\fP
 action immediately executes this command via \fBexec\fP(3).
 .
@@ -369,8 +367,8 @@ action immediately executes this command via \fBexec\fP(3).
 .B \-\-ghdl_a_cmd
 .TQ
 .B \-\-ghdl_a
-The \fB\-\-ghdl_a_cmd\fP action writes to \fIstdout\fP a list of 
-\fB"ghdl -a"\fP commands for the \fBghdl\fP analysis step. 
+The \fB\-\-ghdl_a_cmd\fP action writes to \fIstdout\fP a list of
+\fB"ghdl -a"\fP commands for the \fBghdl\fP analysis step.
 The commands are in proper compilation order. The \fB\-\-ghdl_a\fP
 action immediately executes these commands via \fBexec\fP(3).
 .
@@ -380,7 +378,7 @@ action immediately executes these commands via \fBexec\fP(3).
 .TQ
 .B \-\-ghdl_m
 The \fB\-\-ghdl_m_cmd\fP action writes to \fIstdout\fP
-a \fB"ghdl -m"\fP command for the \fBghdl\fP inspection make with all 
+a \fB"ghdl -m"\fP command for the \fBghdl\fP inspection make with all
 required library and external object file qualifiers.
 The \fB\-\-ghdl_m\fP action immediately executes this command via
 \fBexec\fP(3).
@@ -391,7 +389,7 @@ The \fB\-\-ghdl_m\fP action immediately executes this command via
 .TQ
 .B \-\-isim_prj
 These two actions write to \fIstdout\fP a project file suitable for ISE
-\fBxst\fP or \fBISim\fP, respectively. 
+\fBxst\fP or \fBISim\fP, respectively.
 The VHDL source files are in proper compilation order. See
 the EXAMPLES section for practical usage in a make flow.
 .
@@ -401,7 +399,7 @@ the EXAMPLES section for practical usage in a make flow.
 This action writes to \fIstdout\fP a Tcl script suitable as project definition
 for Vivado synthesis. This script is source'ed or eval'ed and defines the
 source fileset and the constraints fileset. The VHDL source files are in
-proper compilation order. 
+proper compilation order.
 .
 .\" ----------------------------------------------
 .TP
@@ -439,18 +437,17 @@ Write an alphabetically sorted list of all source and vbom files to
 \fIstdout\fP.
 This information for example helps to build a project export tool.
 Note that in contrast to most other actions the files are not in compilation
-but alphabetic order, and that also the \fBvbom\fP files are included
+but in alphabetic order, and that also the \fBvbom\fP files are included
 in this list.
 .
 .\" ------------------------------------------------------------------
 .SH EXIT STATUS
-Returns a non-zero exit status when the
-.I vbom
+Returns a non-zero exit status when the \fIvbom\fP
 file is not found or readable or none or multiple actions are given.
 .PP
 The \fB\-\-ghdl_a\fP, \fB\-\-ghdl_i\fP, or \fB\-\-ghdl_m\fP
-actions use \fBexec\fP(3) to execute the \fBghdl\fP command. 
-In these cases the caller will see the exit status of \fBghdl\fP.
+actions use \fBexec\fP(3) to execute the \fBghdl\fP command.
+In these cases, the caller will see the exit status of \fBghdl\fP.
 .
 .\" ------------------------------------------------------------------
 .SH ENVIRONMENT
@@ -467,12 +464,12 @@ taken to enable optimization (is not default for gcc backend!) and debug
 symbols (needed for assertion failure backtrace).
 .
 .IP \fBVBOMCONV_GHDL_GCOV\fP
-If defined and set to '1' \fBghdl\fP(1) models will be compiled with 
+If defined and set to '1' \fBghdl\fP(1) models will be compiled with
 \fBgcov\fP(1) coverage support. This option is only available when ghdl
 was compiled with gcc backend, the llvm and mcode backend do not support
 coverage analysis. The generated ghdl options will be appended after the
 ones given by \fBVBOMCONV_GHDL_OPTS\fP. Note that no default options are
-assume, so -Ox or -g options must be explicitly given via 
+assumed, so '-Ox' or '-g' options must be explicitly given via
 \fBVBOMCONV_GHDL_OPTS\fP.
 The additional ghdl options are
 .EX
@@ -486,11 +483,8 @@ The additional ghdl options are
 .IP \(bu 2
 Duplicate file elimination fails when one source file is refered to by
 different \fIvbom\fP's
-with different paths, like for example the file 
-.I aa/bb/cc/foo.vdh
-seen from
-.I aa/xx/yy
-via
+with different paths, like for example the file \fIaa/bb/cc/foo.vdh\fP
+seen from \fIaa/xx/yy\fP via
 .EX
     ../../bb/cc/foo.vhd
     ../../../aa/bb/cc/foo.vdh
@@ -510,13 +504,13 @@ is a kludge and should be revised.
 .
 .\" --------------------------------------------------------
 .SS Auto-Dependency Generation
-The \fB\-\-dep_xst\fP, \fB\-\-dep_ghdl\fP and \fB\-\-dep_isim\fP
-actions allow to setup together with the auto-rebuild and restart semantics 
+The \fB\-\-dep_xst\fP, \fB\-\-dep_ghdl\fP, and \fB\-\-dep_isim\fP
+actions allow to set up together with the auto-rebuild and restart semantics
 of the GNU \fBmake\fP(1) \fIinclude\fP directive to fully automatize the
-proper generation of dependencies. 
+proper generation of dependencies.
 Just add to the \fIMakefile\fP
-a pattern rule to create the dependency rule files from the \fBvbom\fP 
-files and include them. In case they don't yet exist or are out of date 
+a pattern rule to create the dependency rule files from the \fBvbom\fP
+files and include them. In case they don't yet exist or are out of date
 \fBmake\fP(1) will (re-)create them and restart. Example for using
 \fB\-\-dep_xst\fP in a \fIMakefile\fP :
 .PP
@@ -536,30 +530,30 @@ will do that recursively for a whole directory tree.
 .
 .\" --------------------------------------------------------
 .SS Xst Synthesis
-A simple \fBmake\fP(1) flow for synthesis with \fBxst\fP using 
-ISE \fBxflow\fP and the \fB\-\-xst_prj\fP action and a pattern 
-rule looks like 
+A simple \fBmake\fP(1) flow for synthesis with \fBxst\fP using
+ISE \fBxflow\fP and the \fB\-\-xst_prj\fP action and a pattern
+rule looks like
 .PP
 .EX
     %.ngc: %.vbom
             if [ ! -d ./ise ]; then mkdir ./ise; fi
             (cd ./ise; vbomconv --xst_prj ../$< > $*.prj)
             (cd ./ise; touch $*.xcf)
-            xtwi xflow -wd ise -synth xst_vhdl.opt $*.prj 
+            xtwi xflow -wd ise -synth xst_vhdl.opt $*.prj
             (cd ./ise; chmod -x *.* )
             if [ -r ./ise/$*.ngc ]; then cp -p ./ise/$*.ngc .; fi
             if [ -r ./ise/$*_xst.log ]; then cp -p ./ise/$*_xst.log .; fi
 .EE
 .PP
-It creates a working directory \fI./ise\fP, the xst project file, runs 
-\fBxst\fP via ISE \fBxflow\fP, and copies the \fIngc\fP and \fIlog\fP files 
-back into the working directory. 
+It creates a working directory \fI./ise\fP, the xst project file, runs
+\fBxst\fP via ISE \fBxflow\fP, and copies the \fIngc\fP and \fIlog\fP files
+back into the working directory.
 The ISE environment is started with \fBxtwi\fR(1) wrapper.
 .
 .\" --------------------------------------------------------
 .SS Ghdl Simulation
-A simple \fBmake\fP(1) flow for building a \fBghdl\fP simulation model from 
-the sources described by a \fBvbom\fP file is given by the following 
+A simple \fBmake\fP(1) flow for building a \fBghdl\fP simulation model from
+the sources described by a \fBvbom\fP file is given by the following
 pattern rule:
 .PP
 .EX

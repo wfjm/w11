@@ -1,8 +1,8 @@
 .\"  -*- nroff -*-
-.\"  $Id: dmpcntanal.1 1231 2022-04-28 08:40:50Z mueller $
+.\"  $Id: dmpcntanal.1 1237 2022-05-15 07:51:47Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
-.\" Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-.\" 
+.\" Copyright 2018-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\"
 .\" ------------------------------------------------------------------
 .
 .TH DMPCNTANAL 1 2018-10-21 "Retro Project" "Retro Project Manual"
@@ -57,7 +57,7 @@ show the CPU events columns
 instruction rate in MHz
 .PD 0
 .IP \fIvfetc\fP
-vector fetch rate, sum of traps, exceptions, and interrupts.
+vector-fetch rate, the sum of traps, exceptions, and interrupts.
 .IP \fIirupt\fP
 interrupt rate
 .IP \fIi/b\fP
@@ -94,7 +94,7 @@ write hit rate in %.
 .IP \fIrwt\fP
 average number of wait cycles per memory read (in miss case).
 .IP \fIwwt\fP
-average number of wait cycles per memory write (from back pressure).
+average number of wait cycles per memory write (from backpressure).
 .IP \fIwt/i\fP
 average number of memory wait cycles per instruction.
 .PD
@@ -157,7 +157,7 @@ format in the form like \fIw.p\fR with a single-digit field width \fIw\fR
 and single-digit precision \fIp\fR. If \fIp\fR is \fI0\fR no decimal point
 is printed. If omitted \fI4.1\fR is assumed.
 .IP \fBmul\fP
-multiplier, given as integer of floating point number.
+multiplier, given as integer of floating-point number.
 If omitted 1. is assumed.
 .IP \fBnum\fP
 name of numerator counter

@@ -1,8 +1,8 @@
 .\"  -*- nroff -*-
-.\"  $Id: ti_rri.1 1234 2022-05-03 18:28:48Z mueller $
+.\"  $Id: ti_rri.1 1237 2022-05-15 07:51:47Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-.\" 
+.\"
 .\" ------------------------------------------------------------------
 .
 .TH TI_RRI 1 2017-01-08 "Retro Project" "Retro Project Manual"
@@ -19,8 +19,8 @@ ti_rri \- \fBRlink\fP Backend Server
 .
 .\" ------------------------------------------------------------------
 .SH DESCRIPTION
-The \fBti_rri\fP command creates a \fBtclsh\fP(1) based \fBRlink\fP backend
-server session. After loading all basic packages and shared libraries which
+The \fBti_rri\fP command creates a \fBtclsh\fP(1)-based \fBRlink\fP backend
+server session. After loading all basic packages and shared libraries that
 implement the Tcl binding of the \fBRlink\fP server the command
 
 .RS 2
@@ -38,14 +38,14 @@ sets up connection timeout according to  \fB\-\-tout\fP
 .IP "-"
 starts an additional process if requested with \fB\-\-run\fP
 .IP "-"
-opens a connection when requested with \fB\-\-fifo\fP, 
+opens a connection when requested with \fB\-\-fifo\fP,
 \fB\-\-term\fP, or \fB\-\-cuff\fP
 .IP "-"
 and finally executes all remaining \fICOMMANDS\fP arguments as Tcl commands
 .PD
 .RE
 .PP
-If no \fICOMMANDS\fP are present or if the \fB\-\-int\fP options is given
+If no \fICOMMANDS\fP are present or if the \fB\-\-int\fP options are given
 an interactive mode is entered with all features of \fBtclsh\fP(1) with
 tclreadline loaded.
 .
@@ -53,8 +53,8 @@ tclreadline loaded.
 .SH OPTIONS
 .\" ----------------------------------------------
 .IP \fB\-\-pack=\fIplist\fR
-load, with 'package require', additional packages. \fIplist\fP is a comma
-separated list of package names. Note that the packages
+load, with 'package require', additional packages. \fIplist\fP is a
+comma-separated list of package names. Note that the packages
 .BR rutiltpp ,
 .BR rlinktpp ,
 and
@@ -63,13 +63,13 @@ are automatically loaded already by \fBti_rri\fP.
 .
 .\" -- --run -------------------------------------
 .IP \fB\-\-run=\fIcmd\fR
-execute the shell command \fIcmd\fP as subprocess before the \fBrlink\fP
-port is opened. This is mainly used to start \fBghdl\fP(1) based test
+execute the shell command \fIcmd\fP as a subprocess before the \fBrlink\fP
+port is opened. This is mainly used to start \fBghdl\fP(1)-based test
 benches, usually via the \fBtbw\fP(1) wrapper script.
 .
 .\" -- --fifo ------------------------------------
 .IP \fB\-\-fifo\fR[=\fIname\fR[,\fIopts\fR]]
-open a fifo type \fBrlink\fP port. It uses a named pipe, and is usually
+open a fifo type \fBrlink\fP port. It uses a named pipe and is usually
 employed in conjunction with the \fB\-\-run\fP option.
 Optional arguments are
 .RS
@@ -103,7 +103,7 @@ open a serial port type \fBrlink\fP port. Optional arguments are
 .IP \fBname\fP
 tty device name, default is 'USB0'. If \fIname\fP does not start with '/'
 the name is prefixed with '/dev/tty'. The special device name 'USBD'
-triggers the auto-detection of a Digilent board with an FT2232C based
+triggers the auto-detection of a Digilent board with an FT2232C-based
 interface.
 .IP \fBbaud\fP
 serial port baud rate, default is '115k'. Allowed baud rate settings are:
@@ -142,7 +142,7 @@ defer link initialization (debug or test benches)
 open a USB via Cypress FX2 type \fBrlink\fP port. Optional arguments are
 .RS
 .IP \fBname\fP
-USB path, default derived from environment variables \fBRETRO_FX2_VID\fP and 
+USB path, default derived from environment variables \fBRETRO_FX2_VID\fP and
 \fBRETRO_FX2_PID\fP.
 .IP \fBopts\fP
 comma-separated list of further cuff port options:
@@ -222,13 +222,13 @@ with eval.
 .
 .\" ------------------------------------------------------------------
 .SH EXAMPLES
-.IP "\fBti_rri --fifo --run='tbw tb_tst_rlink_n4'" 4
-Starts the \fBghdl\fP(1) test bench 'tb_tst_rlink_n4' located in CWD via 
+.IP "\fBti_rri --fifo --run='tbw tb_tst_rlink_n4d'" 4
+Starts the \fBghdl\fP(1) test bench 'tb_tst_rlink_n4d' located in CWD via
 \fBtbw\fP(1). It is assumed that the local \fItbw.dat\fP file configures
 fifo communication for the test bench.
 .
 .IP "\fBti_rri --fifo=,xon --run='tbw tb_tst_rlink_arty'" 4
-Like above, starts arty rather n4 test bench. The rlink is operated with
+Like above, starts arty rather n4d test bench. The rlink is operated with
 software flow control. Note the comma in front of \fIxon\fP, required to
 ensure that the default pipe name is used !
 

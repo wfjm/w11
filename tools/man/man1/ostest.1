@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: ostest.1 1234 2022-05-03 18:28:48Z mueller $
+.\"  $Id: ostest.1 1237 2022-05-15 07:51:47Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
-.\" Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-.\" 
+.\" Copyright 2019-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\"
 .\" ------------------------------------------------------------------
 .
-.TH OSTEST 1 2019-07-20 "Retro Project" "Retro Project Manual"
+.TH OSTEST 1 2022-05-09 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 ostest \- oskit test driver
@@ -14,7 +14,7 @@ ostest \- oskit test driver
 .
 .SY ostest
 .RI [ OPTION ]...
-.RI [ TEST ]...
+.RI [ KIT ]...
 .
 .SY ostest
 .B \-\-help
@@ -22,22 +22,52 @@ ostest \- oskit test driver
 .
 .\" ------------------------------------------------------------------
 .SH DESCRIPTION
-\fBostest\fP organizes the automatized testing of operating systems.
-It will
+\fBostest\fP organizes the automatized testing of oskits. If no \fIKIT\fP
+argument is given a default set of oskits is tested. The default set depends
+on the available memory and thus on the board (specified with \fB\-\-sys\fP).
+If  \fIKIT\fP arguments are given only these oskits will be tested.
+\fBostest\fP starts for each oskit the operating system and executes
+some commands to verify basic system functionality.
+
+The major steps are:
 .
 .RS 2
 .PD 0
 .IP "-" 2
-configure the connected board if the \fB\-\-config\fP option is specified
+determine the execution mode, either from the \fB\-\-mode\fP option or the
+default \fIrri\fP, and load the execution mode package.
 .IP "-"
-determine, based on the available memory size, which operating systems
-can be run on the board.
+determine the target board, either from the \fB\-\-sys\fP option or from
+the \fBEXPTEST_SYS\fP environment variable, and source the setup definition.
+That defines board properties, like memory size, and the default set of oskits.
 .IP "-"
-check for each eligible operating system whether the oskit and the
-required container files are available, and download or unpack them
-in case they aren't.
+configure the connected board if the \fB\-\-config\fP option is specified.
 .IP "-"
-boot each eligible operating system and execute a variety of system tests.
+for each oskit:
+.
+.RS 2
+.PD 0
+.IP "-" 2
+source the oskit definition. That loads os family-specific code and defines
+oskit-specific parameters.
+.IP "-"
+verify in the preboot procedure whether all preconditions for the execution
+of the oskit are met, e.g. a network environment.
+.IP "-"
+check whether disk/tape images for the oskit are loaded, and if not,
+download and unpack them with \fBoskit_setup\fP(1).
+.IP "-"
+boot the operating system and set the system time.
+.IP "-"
+execute some tests.
+.IP "-"
+execute shutdown procedure.
+.IP "-"
+wait till the CPU enters the HALT state.
+.PD
+.RE
+.PP
+.
 .PD
 .RE
 .PP
@@ -49,11 +79,12 @@ boot each eligible operating system and execute a variety of system tests.
 .\" ----------------------------------------------
 .IP "\fB\-\-sys=\fIsys\fP"
 Defines the system which is configured, or in case the \fB\-\-config\fP
-is given, is to be configured.
+is given, is to be configured. Must be specified if the \fBEXPTEST_SYS\fP
+environment variable is not specified.
 .
 .\" ----------------------------------------------
 .IP "\fB\-\-mode=\fImode\fP"
-Defines the execution mode. The default is \fIrri\fP and currently the
+Defines the execution mode. The default is \fIrri\fP and is currently the
 only supported mode.
 .
 .\" ----------------------------------------------
@@ -86,7 +117,7 @@ Defines root of all retro project files.
 \" ------------------------------------------------------------------
 .SH FILES
 .IP "\fI$RETROBASE/tools/tcl/exptest_<mode>.tcl\fP" 4
-Implementation for mode \fImode\fP.
+Implementation for execution mode \fImode\fP.
 .IP "\fI$RETROBASE/tools/exptest/sys/<sys>_setup.tcl\fP"
 Setup file for system \fIsys\fP.
 .IP "\fI$RETROBASE/tools/oskit/test/kit/<kit>_setup.tcl\fP"
@@ -99,24 +130,34 @@ Path for execution environment for oskit \fIkit\fP.
 .
 .\" ------------------------------------------------------------------
 .SH EXAMPLES
-.IP "\fBostest --sys=sys_w11a_n4 -log\fP" 4
-This command expects that a Digilent Nexys4 board is connected and already
-configured with the \fIsys_w11a_n4\fP system. It will run tests for all
-available operating systems and produce an output like
+.IP "\fBostest --sys=sys_w11a_n4d -log\fP" 4
+This command expects that a Digilent Nexys4 A7 board is connected and already
+configured with the \fIsys_w11a_n4d\fP system. It will execute the set of
+default tests for this board and produce output like
 
 .EX
-    -I: log to ostest-2019-07-13-151006-sys_w11a_n4.log
+    -I: log to ostest-2019-07-13-151006-sys_w11a_n4d.log
     ----- 15:10:06 (   0.0,   0.0): 211bsd_rpmin
     ----- 15:10:34 (  27.9,  27.9): 211bsd_rk
     ----- 15:11:00 (  53.9,  26.0): 211bsd_rl
     ----- 15:11:27 (  80.7,  26.8): 211bsd_rp
     ----- 15:11:55 ( 109.0,  28.3): 211bsd_rpeth
     -I: 'tap0' device required but not available
-    -I: skip kit '211bsd_rpeth'  
+    -I: skip kit '211bsd_rpeth'
 .EE
 
 The \fI211bsd_rpeth\fP test was skipped because preconditions were not
 fulfilled.
+
+.IP "\fBostest --sys=sys_w11a_arty -log 211bsd_rpmin rsx11mp-30_rp\fP"
+This command expects that a Digilent Arty board is connected and already
+configured with the \fIsys_w11a_arty\fP system and executes the
+\fI211bsd_rpmin\fP and \fIrsx11mp-30_rp\fP tests.
+
+.\" ------------------------------------------------------------------
+.SH "SEE ALSO"
+.BR oskit_setup (1),
+.BR mctest (1)
 
 .\" ------------------------------------------------------------------
 .SH AUTHOR

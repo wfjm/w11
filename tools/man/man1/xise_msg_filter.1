@@ -1,7 +1,7 @@
 .\"  -*- nroff -*-
-.\"  $Id: xise_msg_filter.1 1233 2022-04-30 07:01:23Z mueller $
+.\"  $Id: xise_msg_filter.1 1236 2022-05-14 10:11:35Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
-.\" Copyright 2014-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2014-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
 .\" ------------------------------------------------------------------
 .TH XISE_MSG_FILTER 1 2015-01-30 "Retro Project" "Retro Project Manual"
@@ -32,8 +32,8 @@ xise_msg_filter will print all non-matching messages.
 All filter rules which do not match a message are also listed, these
 messages are considered missing.
 Matched messages are considered accepted. 
-In normal operation they will not create output.
-xise_msg_filter is useful for example in \fBmake\fP(1) based flows to 
+In normal operation, they will not create any output.
+xise_msg_filter is useful for example in \fBmake\fP(1)-based flows to 
 create a short summary from the log files.
 
 The accepted values for \fITYPE\fP are:

@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: xtwv.1 1234 2022-05-03 18:28:48Z mueller $
+.\"  $Id: xtwv.1 1235 2022-05-07 12:47:28Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2014-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\" 
@@ -66,17 +66,17 @@ $XTWV_PATH/settings64.sh
 Vivado setup script located and sourced on 32 or 64 bit systems
 .
 .\" ------------------------------------------------------------------
-.SH EXAMPLES
-.IP "\fBxtwv vivado -mode batch -source test.tcl" 4
-Starts Vivado in batch mode and executes the script \fItest.tcl\fP.
-.
-.\" ------------------------------------------------------------------
 .SH "NOTES"
 Vivado is a lot less intrusive than ISE, but it's still a good precaution to
 wrap calls of Vivado tools with \fBxtwv\fP.
 .br
 If both Vivado and ISE are used \fBxtwv\fP and \fBxtwi\fP(1) offer a convenient
 way to have both tools available in one session without interference.
+.
+.\" ------------------------------------------------------------------
+.SH EXAMPLES
+.IP "\fBxtwv vivado -mode batch -source test.tcl" 4
+Starts Vivado in batch mode and executes the script \fItest.tcl\fP.
 .
 .\" ------------------------------------------------------------------
 .SH "SEE ALSO"

@@ -1,14 +1,14 @@
 .\"  -*- nroff -*-
-.\"  $Id: ldadump.1 1188 2019-07-13 14:31:51Z mueller $
+.\"  $Id: ldadump.1 1237 2022-05-15 07:51:47Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
-.\" Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-.\" 
+.\" Copyright 2019-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\"
 .\" ------------------------------------------------------------------
 .
-.TH DMPCNTANAL 1 2019-04-14 "Retro Project" "Retro Project Manual"
+.TH LDADUMP 1 2019-04-14 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
-ldadump \- dump lda file (absolute loader papertape format)
+ldadump \- dump lda file (absolute loader paper tape format)
 .\" ------------------------------------------------------------------
 .SH SYNOPSIS
 .
@@ -22,18 +22,18 @@ ldadump \- dump lda file (absolute loader papertape format)
 .
 .\" ------------------------------------------------------------------
 .SH DESCRIPTION
-Reads files in \fIlda\fP format, also known as absolute loader papertape
+Reads files in \fBlda-11\fP(5) format, also known as absolute loader paper tape
 format, and prints a dump of the memory image. The default dump format
 is a compact with up to 8 words per line. The \fB\-\-lsm\fP option changes
-this to a \fIlsmem\fP command style address data list with a single word
-per line.
+this \fBlsm-11\fP(5) format, an \fIlsmem\fP command style address data list
+with a single word per line.
 
 .\" ------------------------------------------------------------------
 .SH OPTIONS
 .
 .\" ----------------------------------------------
 .IP "\fB\-\-lsm\fR"
-use one word per line \fIlsmem\fP command style output format.
+use one word per line in \fBlsm-11\fP(5) format.
 .
 .\" ----------------------------------------------
 .IP "\fB\-\-trec\fR"
@@ -81,7 +81,9 @@ block  13, length    0 byte, address 000001:000000
 
 .\" ------------------------------------------------------------------
 .SH "SEE ALSO"
-.BR asm-11 (1)
+.BR asm-11 (1),
+.BR lda-11 (5),
+.BR lsm-11 (5)
 
 .\" ------------------------------------------------------------------
 .SH AUTHOR

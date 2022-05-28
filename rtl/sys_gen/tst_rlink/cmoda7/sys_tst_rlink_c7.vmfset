@@ -1,7 +1,8 @@
-# $Id: sys_tst_rlink_c7.vmfset 1226 2022-04-23 11:19:32Z mueller $
+# $Id: sys_tst_rlink_c7.vmfset 1242 2022-05-27 17:08:43Z mueller $
 #
 # Validated code/tool version combinations
 #   Date          rev   viv   
+#   2022-05-26   1242   2022.1
 #   2022-04-23   1225   2020.1
 #   2019-02-02   1108   2018.3
 #   2019-02-02   1108   2017.2
@@ -11,7 +12,10 @@
 # general issues -----------------------------------------------
 {2018.2:}
 # stupid new warning, Xilinx suggests to safely ingnore
-i [Constraints 18-5210]                                         # generic
+I [Constraints 18-5210]                                         # generic
+{2022.1:}
+# new warning on 'Parallel synthesis criteria is not met', safe tp ignore
+I [Synth 8-7080]
 {:}
 
 # unconnected ports --------------------------------------------
@@ -21,6 +25,13 @@ I [Synth 8-3331] RB_MREQ                                        # generic
 i [Synth 8-3331] rlink_sp1c.*CE_USEC
 # --> I_BTN unused                                              # OK 2017-06-05
 i [Synth 8-3331] I_BTN[\d+]
+# ------------------
+{2022.1:}
+I [Synth 8-7129] RB_MREQ                                        # generic
+# --> rlink_sp1c doesn't use CE_USEC                            # OK 2022-05-26
+i [Synth 8-7129] CE_USEC .* rlink_sp1c
+# --> I_BTN unused                                              # OK 2022-05-26
+i [Synth 8-7129] I_BTN[\d+]
 {:}
 
 # sequential element removed (2017.1 nonsense) -----------------

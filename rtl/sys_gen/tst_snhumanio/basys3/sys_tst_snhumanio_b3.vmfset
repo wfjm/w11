@@ -1,7 +1,8 @@
-# $Id: sys_tst_snhumanio_b3.vmfset 1226 2022-04-23 11:19:32Z mueller $
+# $Id: sys_tst_snhumanio_b3.vmfset 1242 2022-05-27 17:08:43Z mueller $
 #
 # Validated code/tool version combinations
 #   Date          rev   viv   
+#   2022-05-26   1242   2022.1
 #   2019-02-02   1108   2018.3
 #   2019-02-02   1108   2017.2
 #
@@ -10,7 +11,10 @@
 # general issues -----------------------------------------------
 {2018.2:}
 # stupid new warning, Xilinx suggests to safely ingnore
-i [Constraints 18-5210]                                         # generic
+I [Constraints 18-5210]                                         # generic
+{2022.1:}
+# new warning on 'Parallel synthesis criteria is not met', safe tp ignore
+I [Synth 8-7080]
 {:}
 
 # sequential element removed (2017.1 nonsense) -----------------

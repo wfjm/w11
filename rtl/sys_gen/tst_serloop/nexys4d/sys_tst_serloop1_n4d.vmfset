@@ -1,13 +1,12 @@
-# $Id: sys_tst_serloop2_n4.vmfset 1242 2022-05-27 17:08:43Z mueller $
+# $Id: sys_tst_serloop1_n4d.vmfset 1242 2022-05-27 17:08:43Z mueller $
 #
 # Validated code/tool version combinations
 #   Date          rev   viv   
 #   2022-05-26   1242   2022.1
-#   2019-02-02   1108   2018.3
-#   2019-02-02   1108   2017.2
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
+
 # general issues -----------------------------------------------
 {2018.2:}
 # stupid new warning, Xilinx suggests to safely ingnore
@@ -17,10 +16,7 @@ I [Constraints 18-5210]                                         # generic
 I [Synth 8-7080]
 {:}
 
-# false_path -hold ignored by synth ----------------------------
-I [Designutils 20-1567]                                         # generic
-
-# port driven by constant --------------------------------------
+# +++# port driven by constant --------------------------------------
 # --> RGBLED0 unused                                            # OK 2016-06-05
 i [Synth 8-3917] O_RGBLED0[\d]
 # --> upper 8 LEDs unused
@@ -57,15 +53,12 @@ I [Synth 8-6014] _reg                                           # generic
 
 # unused sequential element ------------------------------------
 {2017.2:2018.2}
-I [Synth 8-3332] R_REGS_reg[(btn|swi)(eff)?][\d*]               # generic
-# --> currently CDUWIDTH=8, but clock below 127 MHz             # OK 2018-12-29
-i [Synth 8-3332] GEN_CLKALL/DIV_CLK0/R_REGS_reg[ucnt][7]
 # --> many HIO pins not used                                    # OK 2016-06-05
 i [Synth 8-3332] HIO/IOB_(SWI|BTN)/R_DI_reg[\d*]
 i [Synth 8-3332] HIO/DEB.DEB_(SWI|BTN)/R_REGS_reg[(dref|dout|dchange)][\d*]
 {:}
 
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [imp]
 I [Vivado 12-2489]                                # multiple of 1 ps
 I [Physopt 32-742]                                # BRAM Flop Optimization

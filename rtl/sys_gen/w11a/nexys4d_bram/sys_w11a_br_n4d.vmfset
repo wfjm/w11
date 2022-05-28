@@ -1,12 +1,8 @@
-# $Id: sys_w11a_c7.vmfset 1242 2022-05-27 17:08:43Z mueller $
+# $Id: sys_w11a_br_n4d.vmfset 1242 2022-05-27 17:08:43Z mueller $
 #
 # Validated code/tool version combinations
 #   Date          rev   viv   
 #   2022-05-26   1242   2022.1
-#   2022-04-23   1225   2020.1
-#   2019-06-05   1159   2019.1
-#   2019-02-02   1108   2018.3
-#   2019-02-02   1108   2017.2
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
@@ -23,15 +19,9 @@ I [Synth 8-7080]
 I [Synth 8-115]                                                 # generic
 
 # false_path -hold ignored by synth ----------------------------
-I [Designutils 20-1567]
+I [Designutils 20-1567]                                         # generic
 
-# port driven by constant --------------------------------------
-# --> RGBLED0 currently unused                                  # OK 2017-06-24
-i [Synth 8-3917] O_RGBLED0_N[\d]
-
-# tying undriven pin to constant -------------------------------
-# --> upper 4 DSP_DP unused                                     # OK 2017-06-24
-i [Synth 8-3295] EHIO:DSP_DP[(4|5|6|7)]
+# net without driver -------------------------------------------
 
 # unconnected ports --------------------------------------------
 {:2019.2}
@@ -44,8 +34,6 @@ I [Synth 8-3331] DM_STAT_SE                                     # generic
 I [Synth 8-3331] DM_STAT_VM                                     # generic
 I [Synth 8-3331] CP_STAT                                        # generic
 I [Synth 8-3331] SER_MONI                                       # generic
-# --> I_BTN not used                                            # OK 2018-12-22
-i [Synth 8-3331] I_BTN[\d]
 # --> ireg indeed not fully used                                # OK 2018-11-18
 i [Synth 8-3331] pdp11_sequencer .* IREG[1(1|2|3|4)]
 # --> ccin indedd not fully used                                # OK 2018-11-18
@@ -59,10 +47,10 @@ i [Synth 8-3331] pdp11_mmu .* CNTL[trap_done]
 i [Synth 8-3331] pdp11_mmu .* VADDR[(0|1|2|3|4|5)]
 # --> so far no usage of usec and msec pulse                    # OK 2018-11-18
 i [Synth 8-3331] rlink_sp2c .* (CE_USEC|CE_MSEC)
-# --> small memory, not all addr lines connected                # OK 2018-11-23
+# --> only small memory available                               # OK 2018-11-23
 i [Synth 8-3331] pdp11_bram_memctl .* ADDR[1(6|7|8|9)]
 # --> msec indeed not used                                      # OK 2018-11-23
-i [Synth 8-3331] ibdr_rl11 .* CE_MSEC
+i [Synth 8-3331] ibdr_rl11 .* CE_MSEC 
 # --> ei_ack not used, interrupt request cleared via register   # OK 2018-11-23
 i [Synth 8-3331] ibdr_deuna .* EI_ACK
 i [Synth 8-3331] ibd_iist .* EI_ACK
@@ -77,8 +65,6 @@ I [Synth 8-7129] DM_STAT_SE                                     # generic
 I [Synth 8-7129] DM_STAT_VM                                     # generic
 I [Synth 8-7129] CP_STAT                                        # generic
 I [Synth 8-7129] SER_MONI                                       # generic
-# --> I_BTN not used                                            # OK 2022-05-26
-i [Synth 8-7129] I_BTN[\d]
 # --> ireg indeed not fully used                                # OK 2022-05-26
 i [Synth 8-7129] IREG[1(1|2|3|4)] .* pdp11_sequencer
 # --> ccin indedd not fully used                                # OK 2022-05-26
@@ -92,7 +78,7 @@ i [Synth 8-7129] CNTL[trap_done] .* pdp11_mmu
 i [Synth 8-7129] VADDR[(0|1|2|3|4|5)] .* pdp11_mmu
 # --> so far no usage of usec and msec pulse                    # OK 2022-05-26
 i [Synth 8-7129] (CE_USEC|CE_MSEC) .* rlink_sp2c
-# --> small memory, not all addr lines connected                # OK 2022-05-26
+# --> only small memory available                               # OK 2022-05-26
 i [Synth 8-7129] ADDR[1(6|7|8|9)] .* pdp11_bram_memctl
 # --> msec indeed not used                                      # OK 2022-05-26
 i [Synth 8-7129] CE_MSEC .* ibdr_rl11
@@ -107,40 +93,46 @@ I [Synth 8-6014] _reg                                           # generic
 # unused sequential element ------------------------------------
 {2017.2:2018.2}
 I [Synth 8-3332] R_LREGS_reg[attn][\d*]                         # generic
-I [Synth 8-3332] R_REGS_reg[(btn|swi)(eff)?][\d*]               # generic
-# --> not yet used                                              # OK 2017-06-24
-i [Synth 8-3332] R_STATUS_reg[suspext].* pdp11_sequencer
-# --> indeed no types with [3] set                              # OK 2017-06-24
+
+# --> many HIO pins not used                                    # OK 2018-10-13
+I [Synth 8-3332] HIO/R_REGS_reg[(btn|swi)(eff)?][\d*]
+i [Synth 8-3332] IOB_BTN/R_DI_reg[\d*]
+i [Synth 8-3332] DEB.DEB_BTN/R_REGS_reg[(dref|dout|dchange|cecnt)][\d*]
+# --> usec not used for serport clock domain                    # OK 2018-10-13
+i [Synth 8-3332] R_REGS_reg[usec]
+# --> mawidth=4, nblock=11, so some cellen unused               # OK 2016-06-05
+### i [Synth 8-3332] BRAM_CTL/R_REGS_reg[cellen][1\d]
+# --> indeed no types with [3] set                              # OK 2017-06-06
 i [Synth 8-3332] R_REGS_reg[dtyp][3].* ibdr_rhrp
-# --> not yet used                                              # OK 2017-06-24
+# --> not yet used                                              # OK 2017-06-06
 i [Synth 8-3332] R_REGS_reg[req_lock].* ibd_iist
 i [Synth 8-3332] R_REGS_reg[req_boot].* ibd_iist
-# --> [8] is for DZ11TX, not yet available                      # OK 2017-06-24
-# --> [9] is for DZ11RX, unclear why this one isn't removed too !!
-i [Synth 8-3332] R_STATUS_reg[intvect][8].* pdp11_sequencer
-# --> _decode only uses _[oalm]unit -> [2] always '0' in decode # OK 2017-06-24
-i [Synth 8-3332] R_IDSTAT_reg[res_sel][2].* pdp11_sequencer
-# --> scnt disabled, thus 3 SNUM bits '0'                       # OK 2017-06-24
-i [Synth 8-3332] R_REGS_reg[se_snum][(4|5|6)]
-# --> upper 4 DSP_DP unused                                     # OK 2017-06-24
-i [Synth 8-3332] R_REGS_reg[dsp_dp][(4|5|6|7)]
+# --> monitor outputs moneop,monattn currently not used         # OK 2018-10-13
+i [Synth 8-3332] CORE/RL/R_LREGS_reg[moneop]
+i [Synth 8-3332] CORE/RL/R_LREGS_reg[monattn]
 # --> PERFEXT(0:2) not used                                     # OK 2018-10-13
 i [Synth 8-3332] R_REGS_reg[psig][2(4|5|6)]
 i [Synth 8-3332] PRE[2(4|5|6)].ENA.CNT/R_CNT_reg[\d*]
-# --> usec not used for serport clock domain                    # OK 2018-12-29
-i [Synth 8-3332] R_REGS_reg[usec].* s7_cmt_1ce1ce
-# --> monitor outputs moneop,monattn currently not used         # OK 2017-06-24
-i [Synth 8-3332] CORE/RL/R_LREGS_reg[moneop].* rlink_sp2c
-i [Synth 8-3332] CORE/RL/R_LREGS_reg[monattn].* rlink_sp2c
-# --> inst_compl logic disabled in pdp11_mmu                    # OK 2017-06-24
+# --> inst_compl logic disabled in pdp11_mmu                    # OK 2017-06-06
 i [Synth 8-3332] MMU/R_SSR0_reg[inst_compl].* pdp11_vmbox
-# --> mawidth=4, nblock=11, so some cellen unused               # OK 2017-06-25
-i [Synth 8-3332] R_REGS_reg[cellen][1\d].* pdp11_bram_memctl
+# --> IB_MREQ.cacc only used in ibd_ibmon, which is disabled    # OK 2017-06-06
+i [Synth 8-3332] R_REGS_reg[ibcacc].* pdp11_vmbox
+# --> not yet used                                              # OK 2017-06-06
+i [Synth 8-3332] R_STATUS_reg[suspext].* pdp11_sequencer
+# --> [8] is for DZ11TX, not yet available                      # OK 2017-06-06
+# --> [9] is for DZ11RX, unclear why this one isn't removed too !!
+i [Synth 8-3332] R_STATUS_reg[intvect][8].* pdp11_sequencer
+# --> _decode only uses _[oalm]unit -> [2] always '0' in decode # OK 2017-06-06
+i [Synth 8-3332] R_IDSTAT_reg[res_sel][2].* pdp11_sequencer
+# --> dmcmon not configured, snum not used                      # OK 2017-06-06
+i [Synth 8-3332] SNUM0.R_VMWAIT_reg.* pdp11_sequencer           # OK 2017-06-06
+# --> mawidth=4, nblock=11, so some cellen unused               # OK 2018-10-13
+i [Synth 8-3332] R_REGS_reg[cellen][1\d]
 
 {:}
 
 # INFO: encoded FSM with state register as --------------------
-# test for sys_w11a_c7 that all FSMs are one_hot
+# test for sys_w11a_br_arty that all FSMs are one_hot
 r [Synth 8-3354] R_BREGS_reg[state.*'one-hot'.*'rlink_core'
 r [Synth 8-3354] R_LREGS_reg[state].*'one-hot'.*'rlink_core'
 r [Synth 8-3354] R_REGS_reg[state].*'one-hot'.*'serport_uart_autobaud'
@@ -151,7 +143,6 @@ r [Synth 8-3354] R_STATE_reg.*'one-hot'.*'pdp11_sequencer'
 r [Synth 8-3354] R_REGS_reg[state].*'one-hot'.*'pdp11_cache'
 r [Synth 8-3354] R_REGS_reg[state].*'one-hot'.*'ibdr_rhrp'
 r [Synth 8-3354] R_REGS_reg[state].*'one-hot'.*'ibdr_rl11'
-r [Synth 8-3354] R_REGS_reg[state].*'one-hot'.*'c7_sram_memctl'
 r [Synth 8-3354] R_REGS_reg[state].*'one-hot'.*'sysmon_rbus_core'
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

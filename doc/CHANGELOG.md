@@ -28,8 +28,9 @@ The full set of tests is only run for tagged releases.
 ### Summary
 - cleanup tbrun setup, drop nexys4 and add nexys4d ([see blog](https://wfjm.github.io/blogs/w11/2019-07-27-nexys4-obituary.html))
 - add ostest support for rsx11m-31_rk, rsx11m-40_rk and rsx11mp-30_rp oskits
-- Doxygen support now for V1.9.4 and without discontinued Tcl
 - all actively used commands have now a man page
+- Doxygen support now for V1.9.4; remove discontinued Tcl support
+- build flow Vivado 2022.1 ready; handle synth 8-3331 -> 8-7129 transition)
 ### New features
 ### Changes
 - tools changes

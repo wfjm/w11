@@ -1,7 +1,8 @@
-# $Id: sys_w11a_n4d.vmfset 1226 2022-04-23 11:19:32Z mueller $
+# $Id: sys_w11a_n4d.vmfset 1242 2022-05-27 17:08:43Z mueller $
 #
 # Validated code/tool version combinations
 #   Date          rev   viv   
+#   2022-05-26   1242   2022.1
 #   2022-04-23   1225   2020.1
 #   2019-06-05   1159   2019.1
 #   2019-02-02   1108   2018.3
@@ -12,7 +13,10 @@
 # general issues -----------------------------------------------
 {2018.2:}
 # stupid new warning, Xilinx suggests to safely ingnore
-i [Constraints 18-5210]                                         # generic
+I [Constraints 18-5210]                                         # generic
+{2022.1:}
+# new warning on 'Parallel synthesis criteria is not met', safe tp ignore
+I [Synth 8-7080]
 {:}
 
 # binding instance .. which has no pins ------------------------
@@ -40,7 +44,7 @@ I [Synth 8-3331] SER_MONI                                       # generic
 i [Synth 8-3331] pdp11_sequencer .* IREG[1(1|2|3|4)]
 # --> ccin indedd not fully used                                # OK 2019-01-02
 i [Synth 8-3331] pdp11_lunit .* CCIN[(1|2)]
-# --> some psr bits are used                                    # OK 2019-01-02
+# --> some psr bits are unused                                  # OK 2019-01-02
 i [Synth 8-3331] pdp11_psr .* DIN[(8|9|10)]
 # --> not all moni fields used                                  # OK 2019-01-02
 i [Synth 8-3331] pdp11_mmu_ssr12 .* MONI[(idone|trace_prev)]
@@ -56,6 +60,37 @@ i [Synth 8-3331] ibdr_deuna .* EI_ACK
 i [Synth 8-3331] ibd_iist .* EI_ACK
 # --> data end marker not used                                  # OK 2019-01-02
 i [Synth 8-3331] sramif2migui_core .*APP_RD_DATA_END
+# ------------------
+{2022.1:}
+I [Synth 8-7129] IB_MREQ                                        # generic
+I [Synth 8-7129] RB_MREQ                                        # generic
+I [Synth 8-7129] DM_STAT_CO                                     # generic
+I [Synth 8-7129] DM_STAT_DP                                     # generic
+I [Synth 8-7129] DM_STAT_EXP                                    # generic
+I [Synth 8-7129] DM_STAT_SE                                     # generic
+I [Synth 8-7129] DM_STAT_VM                                     # generic
+I [Synth 8-7129] CP_STAT                                        # generic
+I [Synth 8-7129] SER_MONI                                       # generic
+# --> ireg indeed not fully used                                # OK 2022-05-26
+i [Synth 8-7129] IREG[1(1|2|3|4)] .* pdp11_sequencer
+# --> ccin indedd not fully used                                # OK 2022-05-26
+i [Synth 8-7129] CCIN[(1|2)] .* pdp11_lunit
+# --> some psr bits are unused                                  # OK 2022-05-26
+i [Synth 8-7129] DIN[(8|9|10)] .* pdp11_psr
+# --> not all moni fields used                                  # OK 2022-05-26
+i [Synth 8-7129] MONI[(idone|trace_prev)] .* pdp11_mmu_ssr12
+# --> not all CNTL fieds used; also 6 LSBs from vaddr           # OK 2022-05-26
+i [Synth 8-7129] CNTL[trap_done] .* pdp11_mmu
+i [Synth 8-7129] VADDR[(0|1|2|3|4|5)] .* pdp11_mmu
+# --> so far no usage of usec and msec pulse                    # OK 2022-05-26
+i [Synth 8-7129] (CE_USEC|CE_MSEC) .* rlink_sp2c
+# --> msec indeed not used                                      # OK 2022-05-26
+i [Synth 8-7129] CE_MSEC .* ibdr_rl11
+# --> ei_ack not used, interrupt request cleared via register   # OK 2022-05-26
+i [Synth 8-7129] EI_ACK .* ibdr_deuna
+i [Synth 8-7129] EI_ACK .* ibd_iist
+# --> data end marker not used                                  # OK 2019-01-02
+i [Synth 8-7129] APP_RD_DATA_END .* sramif2migui_core
 {:}
 
 # sequential element removed (2017.1 nonsense) -----------------

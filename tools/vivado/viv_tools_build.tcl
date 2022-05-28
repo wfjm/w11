@@ -1,9 +1,10 @@
-# $Id: viv_tools_build.tcl 1194 2019-07-20 07:43:21Z mueller $
+# $Id: viv_tools_build.tcl 1242 2022-05-27 17:08:43Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2022-05-26  1242   1.2.5  increase message limit for Synth 8-7129
 # 2018-12-30  1099   1.2.4  downgrade SSN critical warnings to warnings
 # 2018-12-19  1090   1.2.3  export log and rpt generated in OOC synthesis runs
 # 2018-11-18  1072   1.2.2  increase message limits (all 200, some 5000)
@@ -157,8 +158,10 @@ proc rvtb_default_build {stem step} {
   #   set message limit to 5000 for some cases
   #     Synth 8-3331 : design xxx has unconnected port yyy
   #     Synth 8-3332 : Sequential element xxx is unused .. removed from yyy
+  #     Synth 8-7129 : Port xxx in module yyy is either unconnected or no load
   set_msg_config -id {[Synth 8-3331]} -limit 5000
   set_msg_config -id {[Synth 8-3332]} -limit 5000
+  set_msg_config -id {[Synth 8-7129]} -limit 5000
   #   downgrade 'exceed allowable noise margins' from 'critical' to 'warnings'
   #   otherwise some MIG designs will not accepted to generate a bit file
   #   see https://www.xilinx.com/support/answers/36141.html

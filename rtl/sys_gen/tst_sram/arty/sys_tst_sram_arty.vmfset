@@ -1,7 +1,8 @@
-# $Id: sys_tst_sram_arty.vmfset 1226 2022-04-23 11:19:32Z mueller $
+# $Id: sys_tst_sram_arty.vmfset 1242 2022-05-27 17:08:43Z mueller $
 #
 # Validated code/tool version combinations
 #   Date          rev   viv   
+#   2022-05-26   1242   2022.1
 #   2022-04-23   1225   2020.1
 #   2019-02-02   1108   2018.3
 #   2019-02-02   1108   2017.2
@@ -11,7 +12,10 @@
 # general issues -----------------------------------------------
 {2018.2:}
 # stupid new warning, Xilinx suggests to safely ingnore
-i [Constraints 18-5210]                                         # generic
+I [Constraints 18-5210]                                         # generic
+{2022.1:}
+# new warning on 'Parallel synthesis criteria is not met', safe tp ignore
+I [Synth 8-7080]
 {:}
 
 # false_path -hold ignored by synth ----------------------------
@@ -40,6 +44,19 @@ i [Synth 8-3331] tst_sram.*MEM_ACK_W
 i [Synth 8-3331] rlink_sp2c.*CE_(USEC|MSEC)
 # --> data end marker not used                                  # OK 2018-12-20
 i [Synth 8-3331] sramif2migui_core .*APP_RD_DATA_END
+# ------------------
+{2022.1:}
+I [Synth 8-7129] RB_MREQ                                        # generic
+# --> I_SWI not used                                            # OK 2022-05-26
+i [Synth 8-7129] I_SWI[\d]
+# --> O_LED only partially used                                 # OK 2022-05-26
+i [Synth 8-7129] O_LED[(2|3)]
+# --> MEM_ACK_W not used by current tst_sram                    # OK 2022-05-26
+i [Synth 8-7129] MEM_ACK_W .* tst_sram
+# --> rlink_sp2c doesn't use CE_USEC and CE_MSEC                # OK 2022-05-26
+i [Synth 8-7129] CE_(USEC|MSEC) .* rlink_sp2c
+# --> data end marker not used                                  # OK 2022-05-26
+i [Synth 8-7129] APP_RD_DATA_END .* sramif2migui_core
 {:}
 
 # sequential element removed (2017.1 nonsense) -----------------

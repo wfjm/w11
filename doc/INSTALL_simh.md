@@ -32,7 +32,7 @@ The maintainer of the [simh/simh](https://github.com/simh/simh) GitHub project,
 [Mark Pizzolato](https://github.com/markpizz), decided on May 15th, 2022 with
 commit [ce2adce6](https://github.com/simh/simh/commit/ce2adce6) to change the
 license of the repository. The bottom line of the change is, that some files
-are declared proprietary and this repository is not longer a
+are declared proprietary and this repository is no longer a
 [FOSS](https://en.wikipedia.org/wiki/Free_and_open-source_software) project,
 see also issue [#1163](https://github.com/simh/simh/issues/1163).
 This triggered massive reactions, see issue
@@ -40,7 +40,7 @@ This triggered massive reactions, see issue
 SimH mailing list [simh@groups.io](https://groups.io/g/simh), starting with post
 [New license?](https://groups.io/g/simh/topic/new_license/91108560).
 See especially Bob Supnik's post
-[SimH licensing and the state of the project](https://groups.io/g/simh/topic/simh_licensing_and_the_state/91173868)
+[SimH licensing and the state of the project](https://groups.io/g/simh/topic/simh_licensing_and_the_state/91173868).
 
 Given that situation using version `v3.11-1` as described above is the
 only prudent option for the time being.

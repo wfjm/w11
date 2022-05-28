@@ -1,10 +1,8 @@
-# $Id: sys_tst_serloop2_n4.vmfset 1242 2022-05-27 17:08:43Z mueller $
+# $Id: sys_tst_serloop2_n4d.vmfset 1242 2022-05-27 17:08:43Z mueller $
 #
 # Validated code/tool version combinations
 #   Date          rev   viv   
 #   2022-05-26   1242   2022.1
-#   2019-02-02   1108   2018.3
-#   2019-02-02   1108   2017.2
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]

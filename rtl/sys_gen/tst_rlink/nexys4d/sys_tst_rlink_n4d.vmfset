@@ -1,11 +1,8 @@
-# $Id: sys_tst_rlink_arty.vmfset 1242 2022-05-27 17:08:43Z mueller $
+# $Id: sys_tst_rlink_n4d.vmfset 1242 2022-05-27 17:08:43Z mueller $
 #
 # Validated code/tool version combinations
 #   Date          rev   viv   
 #   2022-05-26   1242   2022.1
-#   2022-04-23   1225   2020.1
-#   2019-02-02   1108   2018.3
-#   2019-02-02   1108   2017.2
 #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 [syn]
@@ -21,11 +18,15 @@ I [Synth 8-7080]
 # unconnected ports --------------------------------------------
 {:2019.2}
 I [Synth 8-3331] RB_MREQ                                        # generic
+# --> I_BTNRST_N unused in design                               # OK 2016-06-05
+i [Synth 8-3331] I_BTNRST_N
 # --> rlink_sp1c doesn't use CE_USEC                            # OK 2016-06-05
 i [Synth 8-3331] rlink_sp1c.*CE_USEC
 # ------------------
 {2022.1:}
 I [Synth 8-7129] RB_MREQ                                        # generic
+# --> I_BTNRST_N unused in design                               # OK 2022-05-26
+i [Synth 8-7129] I_BTNRST_N
 # --> rlink_sp1c doesn't use CE_USEC                            # OK 2022-05-26
 i [Synth 8-7129] CE_USEC .* rlink_sp1c
 {:}
@@ -35,13 +36,12 @@ I [Synth 8-6014] _reg                                           # generic
 
 # unused sequential element ------------------------------------
 {2017.2:2018.2}
-# --> many HIO pins not used                                    # OK 2016-06-05
-i [Synth 8-3332] IOB_(SWI|BTN)/R_DI_reg[\d*]
-i [Synth 8-3332] DEB.DEB_(SWI|BTN)/R_REGS_reg[(dref|dout|dchange|cecnt)][\d*]
-
+I [Synth 8-3332] R_REGS_reg[(btn|swi)(eff)?][\d*]               # generic
 # --> monitor outputs moneop,monattn currently not used         # OK 2016-06-05
 i [Synth 8-3332] CORE/RL/R_LREGS_reg[moneop]
 i [Synth 8-3332] CORE/RL/R_LREGS_reg[monattn]
+# --> LED(6:2) currently not driven                             # OK 2016-06-05
+i [Synth 8-3332] R_REGS_reg[ledin][\d].*sn_humanio_rbus
 # ENAESC=0, therefore esc logic inactive                        # OK 2016-06-05
 i [Synth 8-3332] SERPORT/XONRX/R_REGS_reg[escseen]
 i [Synth 8-3332] SERPORT/XONTX/R_REGS_reg[escpend]

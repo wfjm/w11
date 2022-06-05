@@ -44,3 +44,17 @@ See especially Bob Supnik's post
 
 Given that situation using version `v3.11-1` as described above is the
 only prudent option for the time being.
+
+## Open-SimH relaunch
+The post
+[Announcing the Open SIMH project](https://groups.io/g/simh/topic/91528716)
+announed on 2022-06-03 a re-launch of SimH as FOSS project.
+A new repository [open-simh/simh](https://github.com/open-simh/simh#readme)
+was setup and provides the SimH code-base under an
+[MIT-style licence](https://en.wikipedia.org/wiki/MIT_License), see
+[LICENSE.txt](https://github.com/open-simh/simh/blob/master/LICENSE.txt).
+
+The community will certainly move to open-simh, so best solution is currently
+- install SimH from [open-simh/simh](https://github.com/simh/open-simh)
+- checkout `v3.11-1`
+

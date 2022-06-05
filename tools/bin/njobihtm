@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: njobihtm 1172 2019-06-29 07:27:24Z mueller $
+# $Id: njobihtm 1244 2022-06-03 14:06:30Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2016-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2016-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2022-06-03  1244   1.1    add -n and -h options
 # 2018-12-18  1089   1.0.1  add and use bailout
 # 2016-10-01   810   1.0    Initial version
 #
@@ -16,7 +17,7 @@ use Getopt::Long;
 
 my %opts = ();
 
-GetOptions(\%opts, "verbose", "mem=s"
+GetOptions(\%opts, "nohyper", "mem=s", "verbose", "help"
           )
   or bailout("bad command options");
 
@@ -24,6 +25,11 @@ my $ncpu;
 my $ntpc;
 my $nkb;
 my $njob = 1;
+
+if ($opts{help}) {
+  print_help();
+  exit 0;
+}
 
 get_cpuinfo();
 get_meminfo();
@@ -34,13 +40,14 @@ bailout("failed to obtain cpu or mem size")
 my $ncore = $ncpu / $ntpc;                  # number of cores
 my $nht   = $ncpu - $ncore;
 
-$njob = $ncore + int($nht/4);
+$njob = $ncore;
+$njob += int($nht/4) unless (defined $opts{nohyper});
 
 if ($opts{verbose}) {
   printf STDERR "#cpus:        %d\n", $ncpu;
   printf STDERR "#thread/cpu:  %d\n", $ntpc;
   printf STDERR "#cores:       %d\n", $ncore;
-  printf STDERR "mem(MB):      %d\n", int($nkb/1024);
+  printf STDERR "#mem(MB):     %d\n", int($nkb/1024);
   printf STDERR "#job (cpus):  %d\n", $njob;
 }
 
@@ -107,4 +114,15 @@ sub bailout {
   my ($msg) = @_;
   print STDERR "njobihtm-F: $msg\n";
   exit 1;
+}
+
+#-------------------------------------------------------------------------------
+
+sub print_help {
+  print "usage: njobihtm [options]\n";
+  print "  Options:\n";
+  print "    -n         ignore hyperthreads\n";
+  print "    -m nn[MG]  memory per job as integer followed M or G\n";
+  print "    -v         print system parameters to STDERR\n";
+  print "    -h         this message\n";
 }

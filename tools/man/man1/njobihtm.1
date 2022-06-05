@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: njobihtm.1 1237 2022-05-15 07:51:47Z mueller $
+.\"  $Id: njobihtm.1 1244 2022-06-03 14:06:30Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2016-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\"
 .\" ------------------------------------------------------------------
 .
-.TH NJOBIHTM 1 2016-10-01 "Retro Project" "Retro Project Manual"
+.TH NJOBIHTM 1 2022-06-03 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 njobihtm \- number of jobs considering hyper-threading and memory
@@ -13,12 +13,22 @@ njobihtm \- number of jobs considering hyper-threading and memory
 .SH SYNOPSIS
 .
 .SY njobihtm
-.OP -v
+.OP -h
 .OP -m nnn[MG]
+.OP -v
 .YS
 .
 .\" ------------------------------------------------------------------
 .SH DESCRIPTION
+The standard system \fBnproc\fP(1) command is often used to determine the
+number of parallel jobs, e.g. in a 'make -j'.
+It simply returns the total number of available threads.
+On many processors with hyper-threading the usage of all hyper-threads is
+contra-productive and can lead to a reduction of the throughput.
+Experience showed that the optimum throughput is reached when one quarter of
+the hyper-threads are used. If jobs require a substantial amount of memory
+this can also limit the number of parallel jobs.
+
 \fBnjobihtm\fP determines the number of CPU-intensive jobs based on the
 number of CPU and memory resources. The 'ihtm' stands for 'intelligent
 hyper-threading and memory'. The script
@@ -26,9 +36,9 @@ hyper-threading and memory'. The script
 .RS 2
 .PD 0
 .IP "-" 2
-determines the number of physical cores and the number of threads per core
+determines the number of physical cores and the number of threads per core.
 .IP "-"
-assumes that only a quarter of the additional hyper-threads are useful
+adds a quarter of the hyper-threads unless the \fB\-n\fP option is given.
 .IP "-"
 if \fB-m\fP is given, determines the memory size, assumes that at least
 one GB should be available for general usage, and limits the number of
@@ -36,11 +46,15 @@ jobs accordingly.
 .PD
 .RE
 .PP
-The number of jobs is written to STDOUT, and can be used like `njobs`.
+The number of jobs is written to \fIstdout\fP, and can be used like
+\fBnproc\fP(1).
 .
 .\" ------------------------------------------------------------------
 .SH OPTIONS
 .
+.\" -- --nohyper ---------------------------------
+.IP \fB\-n\fR 9
+ignore hyper-threads, use only physical cores.
 .\" -- --mem -------------------------------------
 .IP \fB\-m\ \fIsize\fR
 gives the required physical memory per job.
@@ -49,7 +63,7 @@ or GB.
 .
 .\" -- --verbose ---------------------------------
 .IP \fB\-v\fP
-if given the found system parameters and the reasoning is printed to STDERR.
+the found system parameters and the reasoning is printed to \fIstderr\fP.
 .
 .\" ------------------------------------------------------------------
 .SH EXAMPLES
@@ -57,18 +71,32 @@ if given the found system parameters and the reasoning is printed to STDERR.
 Start \fBmake\fR(1) with a reasonable number of jobs.
 .IP "\fBnjobihtm -v -m=2G\fR" 4
 Determines the number of jobs with 2 GB memory per job. On a system with 4 cores
-and hyper-threading and 8 GB installed memory one gets due to the '-v' the
-output
+and hyper-threading and 32 GB installed memory one gets due to the \fB\-v\fP
+the output
 .EX
     #cpus:        8
     #thread/cpu:  2
     #cores:       4
-    mem(MB):      7961
+    #mem(MB):     31731
     #job (cpus):  5
-    #job (mem):   3
-    3
+    #job (mem):   14
+    5
 .EE
-Note that the '-v' output goes to STDERR, only the answer '3' to STDOUT.
+Note that the \fB\-v\fP output goes to \fIstderr\fP, only the answer '5'
+to \fIstdout\fP.
+.IP "\fBnjobihtm -v -n -m=3G\fR" 4
+Determines the number of jobs with 3 GB memory per job. Only physical cores
+are used. On a system with 4 cores and 32 GB installed memory one gets due
+to the \fB\-v\fP the output
+.EX
+    #cpus:        8
+    #thread/cpu:  2
+    #cores:       4
+    #mem(MB):     31731
+    #job (cpus):  4
+    #job (mem):   9
+    4
+.EE
 
 .\" ------------------------------------------------------------------
 .SH AUTHOR

@@ -1,6 +1,6 @@
-# $Id: Makefile 1201 2019-08-10 16:51:22Z mueller $
+# $Id: Makefile 1244 2022-06-03 14:06:30Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2011-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # 'Meta Makefile' for whole retro project
 #   allows to make all synthesis targets
@@ -8,6 +8,7 @@
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2022-06-03  1244   1.2.13 use 3G memory for njobihtm in vivado targets
 # 2019-08-07  1201   1.2.12 drop nexys4, add nexys4d
 # 2019-01-10  1111   1.2.11 drop w11a/arty_bram
 # 2019-01-02  1101   1.2.10 add tst_{mig,sram}/arty; add w11a/arty
@@ -166,13 +167,13 @@ SIM_viv += rtl/sys_gen/w11a/cmoda7/tb
 default :
 	@echo "No default action defined:"
 	@echo "  for VHDL simulation/synthesis use:"
-	@echo "    make -j `njobihtm -m=2G` all"
-	@echo "    make -j `njobihtm -m=1G` all_ise"
-	@echo "    make -j `njobihtm -m=2G` all_viv"
-	@echo "    make -j `njobihtm` all_sim_ise"
-	@echo "    make -j `njobihtm -m=1G` all_syn_ise"
-	@echo "    make -j `njobihtm` all_sim_viv"
-	@echo "    make -j `njobihtm -m=2G` all_syn_viv"
+	@echo "    make -j `njobihtm -n -m=3G` all"
+	@echo "    make -j `njobihtm -n -m=1G` all_ise"
+	@echo "    make -j `njobihtm -n -m=3G` all_viv"
+	@echo "    make -j `njobihtm -n` all_sim_ise"
+	@echo "    make -j `njobihtm -n -m=1G` all_syn_ise"
+	@echo "    make -j `njobihtm -n` all_sim_viv"
+	@echo "    make -j `njobihtm -n -m=3G` all_syn_viv"
 	@echo "    make vmfsum"
 	@echo "    make imfsum"
 	@echo "    make clean"
@@ -185,7 +186,7 @@ default :
 	@echo "    make clean_sim_viv_tmp"
 	@echo "    make clean_syn_viv_tmp"
 	@echo "  for tool/documentation generation use:"
-	@echo "    make -j `njobihtm` all_lib"
+	@echo "    make -j `njobihtm -n` all_lib"
 	@echo "    make clean_lib"
 	@echo "    make all_tcl"
 	@echo "    make all_dox"

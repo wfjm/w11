@@ -36,6 +36,8 @@ The full set of tests is only run for tagged releases.
 - tools changes
   - ci.yml: define TBW_GHDL_OPTS and suppress IEEE package warnings at t=0ms
   - **/tbrun.yml: since nexys4 not longer available switch to nexys4d
+  - tools/bin
+    - njobihtm: add -n and -h options
   - tools/dox
     - w11_(cpp|vhd_all).Doxyfile: for Doxygen V1.9.4
     - w11_tcl.Doxyfile: removed, Tcl support removed in Doxygen V1.8.18

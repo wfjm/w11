@@ -1,12 +1,13 @@
--- $Id: sys_w11a_as7.vhd 1211 2021-08-28 11:20:34Z mueller $
+-- $Id: sys_w11a_as7.vhd 1247 2022-07-06 07:04:33Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2019-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    sys_w11a_br_as7 - syn
 -- Description:    w11a design for as7 (with dram via mig)
 --
--- Dependencies:   bplib/bpgen/s7_cmt_1ce1ce2c
+-- Dependencies:   vlib/xlib/bufg_unisim
+--                 bplib/bpgen/s7_cmt_1ce1ce2c
 --                 cdclib/cdc_signal_s1_as
 --                 bplib/bpgen/bp_rs232_2line_iob
 --                 vlib/rlink/rlink_sp2c
@@ -24,15 +25,17 @@
 -- Test bench:     tb/tb_sys_w11a_as7
 --
 -- Target Devices: generic
--- Tool versions:  viv 2018.3; ghdl 0.35
+-- Tool versions:  viv 2018.3-2022.1; ghdl 0.35-2.0.0
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2022-07-05  1247 2022.1  xc7s50       6843  9162   878  17.5  3184
 -- 2019-05-19  1150 2018.3  xc7s50       6843 10554   926  17.5  3425 +dz11
 -- 2019-01-12  1105 2018.3  xc7s50       6585  9837   806  17.0  3250  
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-07-05  1247   1.0.1  use bufg_unisim
 -- 2019-01-12  1105   1.0    Initial version (derived from sys_w11a_arty/br_as7)
 ------------------------------------------------------------------------------
 --
@@ -80,6 +83,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 use work.slvtypes.all;
+use work.xlib.all;
 use work.cdclib.all;
 use work.serportlib.all;
 use work.rblib.all;
@@ -93,9 +97,6 @@ use work.iblib.all;
 use work.ibdlib.all;
 use work.pdp11.all;
 use work.sys_conf.all;
-
-library unisim;
-use unisim.vcomponents.ALL;
 
 -- ----------------------------------------------------------------------------
 
@@ -216,7 +217,7 @@ begin
     report "assert sys_conf_clksys on MHz grid"
     severity failure;
   
-  CLK100_BUFG: bufg
+  CLK100_BUFG: bufg_unisim
     port map (
       I => I_CLK100,
       O => CLK100_BUF

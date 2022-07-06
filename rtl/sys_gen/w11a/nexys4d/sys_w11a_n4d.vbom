@@ -1,5 +1,6 @@
 # libs
 ../../../vlib/slvtypes.vhd
+../../../vlib/xlib/xlib.vhd
 ../../../vlib/cdclib/cdclib.vhd
 ../../../vlib/serport/serportlib.vbom
 ../../../vlib/rbus/rblib.vhd
@@ -14,8 +15,8 @@
 ../../../ibus/ibdlib.vhd
 ../../../w11a/pdp11.vhd
 ${sys_conf := sys_conf.vhd}
-@lib:unisim
 # components
+../../../vlib/xlib/bufg_unisim.vbom
 ../../../bplib/bpgen/s7_cmt_1ce1ce2c.vbom
 ../../../vlib/cdclib/cdc_signal_s1_as.vbom
 ../../../bplib/bpgen/bp_rs232_4line_iob.vbom

@@ -1,6 +1,6 @@
--- $Id: sys_tst_rlink_b3.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: sys_tst_rlink_b3.vhd 1247 2022-07-06 07:04:33Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    sys_tst_rlink_b3 - syn
@@ -19,10 +19,11 @@
 -- Test bench:     tb/tb_tst_rlink_b3
 --
 -- Target Devices: generic
--- Tool versions:  viv 2014.4-2018.3; ghdl 0.31-0.35
+-- Tool versions:  viv 2014.4-2022.1; ghdl 0.31-2.0.0
 --
 -- Synthesized (viv):
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2022-07-05  1247 2022.1  xc7a35t-1    1039  1492    34   3.0   527
 -- 2019-02-02  1108 2018.3  xc7a35t-1    1040  1594    36   3.0   546 
 -- 2019-02-02  1108 2017.2  xc7a35t-1    1040  1682    36   3.0   587 
 -- 2016-03-27   753 2015.4  xc7a35t-1     986  1352    36   3.0   473 meminf

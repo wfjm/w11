@@ -1,5 +1,6 @@
 # libs
 ../../../vlib/slvtypes.vhd
+../../../vlib/xlib/xlib.vhd
 ../../../vlib/cdclib/cdclib.vhd
 ../../../vlib/serport/serportlib.vbom
 ../../../vlib/rbus/rblib.vhd
@@ -9,8 +10,8 @@
 ../../../bplib/sysmon/sysmonrbuslib.vbom
 ../../../bplib/arty/miglib_arty.vbom
 ${sys_conf := sys_conf.vhd}
-@lib:unisim
 # components
+../../../vlib/xlib/bufg_unisim.vbom
 ../../../bplib/bpgen/s7_cmt_1ce1ce2c.vbom
 ../../../vlib/cdclib/cdc_pulse.vbom
 ../../../vlib/cdclib/cdc_signal_s1_as.vbom

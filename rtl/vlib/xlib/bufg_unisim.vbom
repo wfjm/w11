@@ -1,0 +1,4 @@
+# libs
+@lib:unisim
+# design
+bufg_unisim.vhd

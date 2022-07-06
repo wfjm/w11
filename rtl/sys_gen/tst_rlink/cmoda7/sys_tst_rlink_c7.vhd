@@ -1,6 +1,6 @@
--- $Id: sys_tst_rlink_c7.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: sys_tst_rlink_c7.vhd 1247 2022-07-06 07:04:33Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2017-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2017-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    sys_tst_rlink_c7 - syn
@@ -21,10 +21,11 @@
 -- Test bench:     tb/tb_tst_rlink_c7
 --
 -- Target Devices: generic
--- Tool versions:  viv 2016.4-2018.3; ghdl 0.34-0.35
+-- Tool versions:  viv 2016.4-2022.1; ghdl 0.34-2.0.0
 --
 -- Synthesized (viv):
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2022-07-05  1247 2022.1  xc7a35t-1     913  1402    34   3.0   494
 -- 2019-02-02  1108 2018.3  xc7a35t-1     913  1494    36   3.0   496 
 -- 2019-02-02  1108 2017.2  xc7a35t-1     914  1581    36   3.0   510 
 -- 2017-06-05   907 2016.4  xc7a35t-1     913  1556    36   3.0   513 

@@ -1,6 +1,6 @@
--- $Id: sys_tst_rlink_arty.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: sys_tst_rlink_arty.vhd 1247 2022-07-06 07:04:33Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2016-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2016-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    sys_tst_rlink_arty - syn
@@ -21,10 +21,11 @@
 -- Test bench:     tb/tb_tst_rlink_arty
 --
 -- Target Devices: generic
--- Tool versions:  viv 2015.4-2018.3; ghdl 0.33-0.35
+-- Tool versions:  viv 2015.4-2022.1; ghdl 0.33-2.0.0
 --
 -- Synthesized (viv):
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2022-07-05  1247 2022.1  xc7a35t-1L   1033  1528    34   3.0   543
 -- 2019-02-02  1108 2018.3  xc7a35t-1L   1034  1613    36   3.0   550
 -- 2019-02-02  1108 2017.2  xc7a35t-1L   1036  1678    36   3.0   557
 -- 2017-06-05   907 2016.4  xc7a35t-1L   1033  1658    36   3.0   544

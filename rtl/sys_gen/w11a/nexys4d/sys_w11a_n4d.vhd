@@ -1,12 +1,13 @@
--- $Id: sys_w11a_n4d.vhd 1201 2019-08-10 16:51:22Z mueller $
+-- $Id: sys_w11a_n4d.vhd 1247 2022-07-06 07:04:33Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2019-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    sys_w11a_n4d - syn
 -- Description:    w11a design for nexys4 DDR (with dram via mig)
 --
--- Dependencies:   bplib/bpgen/s7_cmt_1ce1ce
+-- Dependencies:   vlib/xlib/bufg_unisim
+--                 bplib/bpgen/s7_cmt_1ce1ce
 --                 cdclib/cdc_signal_s1_as
 --                 bplib/bpgen/bp_rs232_4line_iob
 --                 vlib/rlink/rlink_sp2c
@@ -23,10 +24,11 @@
 -- Test bench:     tb/tb_sys_w11a_n4d
 --
 -- Target Devices: generic
--- Tool versions:  viv 2017.2-2018.3; ghdl 0.34-0.35
+-- Tool versions:  viv 2017.2-2022.1; ghdl 0.34-2.0.0
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic MHz
+-- 2022-07-05  1247 2022.1  xc7a100t-1   6805  8961   869  17.5  3282  80
 -- 2019-08-10  1201 2019.1  xc7a100t-1   6850 10258   901  17.5  3563  80
 -- 2019-05-19  1150 2017.2  xc7a100t-1   6811 10322   901  17.5  3496  80 +dz11
 -- 2019-02-02  1108 2018.3  xc7a100t-1   6558  9537   814  17.0  3443  80
@@ -34,6 +36,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-07-05  1247   1.1.1  use bufg_unisim
 -- 2019-08-10  1201   1.1    use 100 MHz MIG SYS_CLK
 -- 2019-01-02  1101   1.0    Initial version (derived from sys_w11a_n4 and arty)
 ------------------------------------------------------------------------------
@@ -88,6 +91,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 use work.slvtypes.all;
+use work.xlib.all;
 use work.cdclib.all;
 use work.serportlib.all;
 use work.rblib.all;
@@ -102,9 +106,6 @@ use work.iblib.all;
 use work.ibdlib.all;
 use work.pdp11.all;
 use work.sys_conf.all;
-
-library unisim;
-use unisim.vcomponents.ALL;
 
 -- ----------------------------------------------------------------------------
 
@@ -231,7 +232,7 @@ begin
     report "assert sys_conf_clksys on MHz grid"
     severity failure;
   
-  CLK100_BUFG: bufg
+  CLK100_BUFG: bufg_unisim
     port map (
       I => I_CLK100,
       O => CLK100_BUF

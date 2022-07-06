@@ -1,12 +1,13 @@
--- $Id: sys_tst_sram_n4d.vhd 1201 2019-08-10 16:51:22Z mueller $
+-- $Id: sys_tst_sram_n4d.vhd 1247 2022-07-06 07:04:33Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2018-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2018-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    sys_tst_sram_n4d - syn
 -- Description:    test of nexys4d ddr and its mig controller
 --
--- Dependencies:   bplib/bpgen/s7_cmt_1ce1ce2c
+-- Dependencies:   vlib/xlib/bufg_unisim
+--                 bplib/bpgen/s7_cmt_1ce1ce2c
 --                 cdclib/cdc_signal_s1_as
 --                 bplib/bpgen/bp_rs232_4line_iob
 --                 bplib/bpgen/sn_humanio
@@ -20,10 +21,11 @@
 -- Test bench:     tb/tb_tst_sram_n4d
 --
 -- Target Devices: generic
--- Tool versions:  viv 2017.2-2019.1; ghdl 0.34-0.35
+-- Tool versions:  viv 2017.2-2022.1; ghdl 0.34-2.0.0
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2022-07-05  1247 2022.1  xc7a100t-1   4408  4197   608     5  1761
 -- 2019-08-10  1201 2019.1  xc7a100t-1   4409  4606   656     5  1875
 -- 2019-02-02  1108 2018.3  xc7a100t-1   4408  4606   656     5  1895
 -- 2019-02-02  1108 2017.2  xc7a100t-1   4403  4900   657     5  1983
@@ -31,6 +33,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-07-05  1247   1.1.1  use bufg_unisim
 -- 2019-08-10  1201   1.1    use 100 MHz MIG SYS_CLK
 -- 2019-01-02  1101   1.0    Initial version
 -- 2018-12-30  1099   0.1    First draft (derived from sys_tst_sram_n4/arty)
@@ -41,6 +44,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 use work.slvtypes.all;
+use work.xlib.all;
 use work.cdclib.all;
 use work.serportlib.all;
 use work.rblib.all;
@@ -52,9 +56,6 @@ use work.s3boardlib.all;
 use work.miglib.all;
 use work.miglib_nexys4d.all;
 use work.sys_conf.all;
-
-library unisim;
-use unisim.vcomponents.ALL;
 
 -- ----------------------------------------------------------------------------
 
@@ -158,7 +159,7 @@ architecture syn of sys_tst_sram_n4d is
 
 begin
 
-  CLK100_BUFG: bufg
+  CLK100_BUFG: bufg_unisim
     port map (
       I => I_CLK100,
       O => CLK100_BUF

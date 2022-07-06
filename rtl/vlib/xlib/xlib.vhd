@@ -1,15 +1,16 @@
--- $Id: xlib.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: xlib.vhd 1247 2022-07-06 07:04:33Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2007-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Package Name:   xlib
 -- Description:    Xilinx specific components
 --
 -- Dependencies:   -
--- Tool versions:  ise 8.2-14.7; viv 2014.4-2018.2; ghdl 0.18-0.34
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2022.1; ghdl 0.18-2.0.0
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-07-05  1247   1.1.2  add bufg_unisim
 -- 2018-11-18  1072   1.1.1  add s7_cmt_sfs_3 and s7_cmt_sfs_2
 -- 2018-11-03  1064   1.1    add sfs_gsim_core
 -- 2016-04-02   758   1.0.11 add usr_access_unisim
@@ -261,6 +262,13 @@ end component;
 component usr_access_unisim is          -- wrapper for USR_ACCESS family
   port (
     DATA : out slv32                    -- usr_access register value
+  );
+end component;
+
+component bufg_unisim is                -- wrapper for bufg
+  port (
+    O : out std_ulogic;                 -- input
+    I : in std_ulogic                   -- output
   );
 end component;
 

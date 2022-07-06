@@ -1,6 +1,6 @@
--- $Id: sys_w11a_c7.vhd 1211 2021-08-28 11:20:34Z mueller $
+-- $Id: sys_w11a_c7.vhd 1247 2022-07-06 07:04:33Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2017-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2017-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    sys_w11a_c7 - syn
@@ -24,10 +24,11 @@
 -- Test bench:     tb/tb_sys_w11a_c7
 --
 -- Target Devices: generic
--- Tool versions:  viv 2017.2-2018.3; ghdl 0.34-0.35
+-- Tool versions:  viv 2017.2-2022.1; ghdl 0.34-2.0.0
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2022-07-05  1247 2022.1  xc7a35t-1    3411  6189   279  50.0  2021
 -- 2019-05-19  1150 2017.2  xc7a35t-1    3369  6994   285  50.0  2099 +dz11
 -- 2019-04-27  1140 2017.2  xc7a35t-1    3243  6618   260  50.0  2009 +ibtst
 -- 2019-03-02  1116 2017.2  xc7a35t-1    3156  6332   198  50.0  1918 +ibtst

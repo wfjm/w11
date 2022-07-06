@@ -1,12 +1,13 @@
--- $Id: sys_tst_sram_arty.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: sys_tst_sram_arty.vhd 1247 2022-07-06 07:04:33Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2018-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2018-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    sys_tst_sram_arty - syn
 -- Description:    test of arty ddr and its mig controller
 --
--- Dependencies:   bplib/bpgen/s7_cmt_1ce1ce2c
+-- Dependencies:   vlib/xlib/bufg_unisim
+--                 bplib/bpgen/s7_cmt_1ce1ce2c
 --                 cdclib/cdc_signal_s1_as
 --                 bplib/bpgen/bp_rs232_2line_iob
 --                 rlink/rlink_sp2c
@@ -20,16 +21,18 @@
 -- Test bench:     tb/tb_tst_sram_arty
 --
 -- Target Devices: generic
--- Tool versions:  viv 2017.2-2018.3; ghdl 0.34-0.35
+-- Tool versions:  viv 2017.2-2022.1; ghdl 0.34-2.0.0
 --
 -- Synthesized (viv):
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2022-07-05  1247 2022.1  xc7a35t-1l   4648  4594   611     5  1849
 -- 2019-02-02  1108 2018.3  xc7a35t-1l   4648  4968   644     5  1983 
 -- 2019-02-02  1108 2017.2  xc7a35t-1l   4643  5334   644     5  1929 
 -- 2019-01-02  1101 2017.2  xc7a35t-1l   4643  5334   644     5  1929 
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-07-05  1247   1.0.1  use bufg_unisim
 -- 2018-12-20  1090   1.0    Initial version
 -- 2018-11-17  1071   0.1    First draft (derived from sys_tst_sram_c7)
 ------------------------------------------------------------------------------
@@ -39,6 +42,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 use work.slvtypes.all;
+use work.xlib.all;
 use work.cdclib.all;
 use work.serportlib.all;
 use work.rblib.all;
@@ -50,9 +54,6 @@ use work.sysmonrbuslib.all;
 use work.miglib.all;
 use work.miglib_arty.all;
 use work.sys_conf.all;
-
-library unisim;
-use unisim.vcomponents.ALL;
 
 -- ----------------------------------------------------------------------------
 
@@ -161,7 +162,7 @@ architecture syn of sys_tst_sram_arty is
 
 begin
 
-  CLK100_BUFG: bufg
+  CLK100_BUFG: bufg_unisim
     port map (
       I => I_CLK100,
       O => CLK100_BUF

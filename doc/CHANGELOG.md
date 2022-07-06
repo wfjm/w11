@@ -30,7 +30,7 @@ The full set of tests is only run for tagged releases.
 - add ostest support for rsx11m-31_rk, rsx11m-40_rk and rsx11mp-30_rp oskits
 - all actively used commands have now a man page
 - Doxygen support now for V1.9.4; remove discontinued Tcl support
-- build flow Vivado 2022.1 ready; handle synth 8-3331 -> 8-7129 transition)
+- build flow Vivado 2022.1 ready; handle synth 8-3331 -> 8-7129 transition
 ### New features
 ### Changes
 - tools changes
@@ -41,6 +41,8 @@ The full set of tests is only run for tagged releases.
   - tools/dox
     - w11_(cpp|vhd_all).Doxyfile: for Doxygen V1.9.4
     - w11_tcl.Doxyfile: removed, Tcl support removed in Doxygen V1.8.18
+- firmware changes
+  - vlib/xlib/bufg_unisim: added, encapulate unisim BUFG
 ### Bug Fixes
   - tools/mcode
     - m9312/bootw11.mac: proper init of unit number in getnam

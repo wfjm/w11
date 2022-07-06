@@ -1,6 +1,6 @@
--- $Id: sys_tst_rlink_n4d.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: sys_tst_rlink_n4d.vhd 1247 2022-07-06 07:04:33Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2017-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2017-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    sys_tst_rlink_n4d - syn
@@ -22,10 +22,11 @@
 -- Test bench:     tb/tb_tst_rlink_n4d
 --
 -- Target Devices: generic
--- Tool versions:  viv 2014.4-2018.3; ghdl 0.29-0.35
+-- Tool versions:  viv 2014.4-2022.1; ghdl 0.29-2.0.0
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2022-07-05  1247 2022.1  xc7a100t-1   1181  1611    34   3.0   581
 -- 2019-02-02  1108 2018.3  xc7a100t-1   1179  1721    36   3.0   597 
 -- 2019-02-02  1108 2017.2  xc7a100t-1   1179  1802    36   3.0   619 
 -- 2016-04-02   758 2015.4  xc7a100t-1   1113  1461    36   3.0   528 usracc

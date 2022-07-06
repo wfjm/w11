@@ -1,6 +1,6 @@
--- $Id: sys_tst_serloop2_n4d.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: sys_tst_serloop2_n4d.vhd 1247 2022-07-06 07:04:33Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2017-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2017-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    sys_tst_serloop2_n4d - syn
@@ -16,10 +16,11 @@
 -- Test bench:     -
 --
 -- Target Devices: generic
--- Tool versions:  viv 2016.2-2018.3; ghdl 0.33-0.35
+-- Tool versions:  viv 2016.2-2022.1; ghdl 0.33-2.0.0
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2022-07-05  1247 2022.1  xc7a100t-1    537   482    12     0   238
 -- 2019-02-02  1108 2018.3  xc7a100t-1    537   510    16     0   232  
 -- 2019-02-02  1108 2017.2  xc7a100t-1    537   552    16     0   238  
 --

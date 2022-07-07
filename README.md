@@ -70,7 +70,7 @@ which is
 ### License
 This project is released under the 
 [GPL V3 license](https://www.gnu.org/licenses/gpl-3.0.html),
-all files contain a [SPDX](https://spdx.org/)-style disclaimer:
+all files contain an [SPDX](https://spdx.org/)-style disclaimer:
 
     SPDX-License-Identifier: GPL-3.0-or-later
 

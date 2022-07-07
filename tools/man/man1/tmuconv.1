@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: tmuconv.1 1237 2022-05-15 07:51:47Z mueller $
+.\"  $Id: tmuconv.1 1248 2022-07-07 06:25:50Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\"
 .\" ------------------------------------------------------------------
 .
-.TH TMUCONV 1 2010-10-22 "Retro Project" "Retro Project Manual"
+.TH TMUCONV 1 2022-07-06 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 tmuconv \- convert w11a tmu output into human readable format
@@ -60,6 +60,139 @@ trace ib transactions (ibus cycles)
 .\" ----------------------------------------------
 .IP "\fB\-help\fR"
 print full help text and exit.
+.
+.\" ------------------------------------------------------------------
+.SH TRACE OUTPUT FORMAT
+Each output line starts with the cycle number and the trace type.
+The format of the rest of the line depends on trace type.
+
+\fB\-t_id\fP: the instruction decode trace gives
+.RS 2
+.PD 0
+.IP "-" 2
+the PC of the instruction
+.IP "-"
+the PSW at the beginning(!) of the instruction
+.IP "-"
+the instruction word (as loaded into the instruction register)
+.IP "-"
+the instruction in MACRO-11 syntax
+.IP "-"
+the number of cycles of the previous(!) instruction
+.PD
+.RE
+.PP
+
+.EX
+  cycle                  pc    psw   ireg  code                    nc
+  71587 id           006054 000011 012410  mov  (r4)+,(r0)        (4)
+  71683 id           002146 000340 116767  movb nnn(pc),nnn(pc)   (9)
+.EE
+
+\fB\-t_ru\fP: the register update trace gives
+.RS 2
+.PD 0
+.IP "-" 2
+the byte update indicator
+.IP "-"
+the register set (0 pr 1)
+.IP "-"
+the register number (0 to 7)
+.IP "-"
+the loaded data value
+.IP "-"
+in case of a stack pointer update the values of kernel, supervisor and user
+stack pointers
+.IP "-"
+in case of an R0-R5 update the values of all these six registers
+.IP "-"
+the symbolic name of the register
+.PD
+.RE
+.PP
+
+.EX
+  cycle       b sr     data 
+  71578 ru    0 07   006102 pc
+  71649 ru    0 06   002000 002000*------ ------  ksp
+  71634 ru    0 04   010752 006110 006112 177776 010752 010752*010642 r04
+.EE
+
+\fB\-t_em\fP: the memory transaction trace gives
+.RS 2
+.PD 0
+.IP "-" 2
+the r/w flag
+.IP "-"
+the byte enables
+.IP "-"
+the memory address (as 22bit number)
+.IP "-"
+the data written to memory
+.IP "-"
+the data received from memory
+.IP "-"
+four flag bits 'crwh' indicating cancel, read, write, and cache-hit
+.IP "-"
+the number of extra wait cycles
+.IP "-"
+in case of vector fetches and associated stack pushes some descriptive text
+.PD
+.RE
+.PP
+
+.EX
+  cycle         be     addr   wdat   rdat  crwh  nc
+  11374 em    w 11 00000004 000006         0010 (1) 
+  52574 em    r 11 00002164        177624  0101 (1) 
+
+  52530 em    r 11 00000020        002142  0101 (1) 
+  52532 em    r 11 00000022        000340  0101 (1) VFETCH 020 IOT
+  52536 em    w 11 00001776 000017         0010 (1) 
+  52538 em    w 11 00001774 004316         0010 (1) SPUSH
+.EE
+
+\fB\-t_ib\fP: the ibus transaction trace gives
+.RS 2
+.PD 0
+.IP "-" 2
+two flag bits 'cr' indicating console and remote access
+.IP "-"
+two flag bits 'rm' indicating read/write and modify
+.IP "-"
+the byte enables
+.IP "-"
+the bus address (as 16bit number)
+.IP "-"
+the data written to bus
+.IP "-"
+the data received from bus
+.IP "-"
+the acknowledge flag
+.IP "-"
+the number of extra wait cycles
+.IP "-"
+if known, the symbolic name of the register
+.PD
+.RE
+.PP
+
+.EX
+  cycle    cr rmbe     addr   wdat   rdat     a  nc name
+    988 ib cr r 11   177500        000000     1 (0) ii.acr
+  52583 ib -- w 11   177570 000001            1 (0) sdreg
+  70729 ib -- r 11   177776        000004     1 (0) psw
+.EE
+
+The w11 CPU starts a cache cycle for each read or write, and cancels the
+cache request when an ibus access is detected. That's why an 'ib' line
+is usually preceded by an 'em' line with the 'cancel' flag, like
+
+.EX
+   52582 em    w 11 00177570 000001 cancel  1000 (1) 
+   52583 ib -- w 11   177570 000001            1 (0) sdreg
+.EE
+
 .
 .\" ------------------------------------------------------------------
 .SH EXAMPLES

@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: tmuconv 1189 2019-07-13 16:41:07Z mueller $
+# $Id: tmuconv 1248 2022-07-07 06:25:50Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2008-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2008-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2022-07-06  1246   1.1.5  add DEUNA defs
 # 2019-07-13  1189   1.1.4  drop superfluous exists for $opts
 # 2018-12-18  1089   1.1.3  add and use bailout
 # 2018-10-05  1053   1.1.2  use 'ca.*' instead of 'sy.*' fields
@@ -350,6 +351,10 @@ my %pdp11_regs = (			    # use simh naming convention
      176502=> "tib.bu",
      176504=> "tob.cs",
      176506=> "tob.bu",
+     174516=> "de.pr3",
+     174514=> "de.pr2",
+     174512=> "de.pr1",
+     174510=> "de.pr0",
      174400=> "rl.cs ",
      174402=> "rl.ba ",
      174404=> "rl.da ",
@@ -722,6 +727,7 @@ sub do_file {
 		$emtyp_str .= " 074 PC11-PTP"   if ($emlast_addr == 0074);
 		$emtyp_str .= " 100 KW11-L"     if ($emlast_addr == 0100);
 		$emtyp_str .= " 104 KW11-P"     if ($emlast_addr == 0104);
+		$emtyp_str .= " 120 DEUNA"      if ($emlast_addr == 0120);
 		$emtyp_str .= " 160 RL11"       if ($emlast_addr == 0160);
 		$emtyp_str .= " 200 LP11"       if ($emlast_addr == 0200);
 		$emtyp_str .= " 220 RK11"       if ($emlast_addr == 0220);

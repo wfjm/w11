@@ -187,13 +187,6 @@ simulations currently fail due to startup and initialization problems.
 Cause is MMCM/PLL startup, which is not properly reflected in the test 
 bench. Will be resolved in an upcoming release.
 
-### V0.73-1 {[issue #9](https://github.com/wfjm/w11/issues/9)} -- Vivado xelab sometimes extremely slow
-as of Vivado 2016.2 `xelab` shows sometimes extremely long build times,
-especially for generated post-synthesis VHDL models. But also building a 
-behavioral simulation for a w11a design can take 25 min. Even though 
-post-synthesis or post-routing models are now generated in Verilog working 
-with `xsim` is cumbersome and time consuming.
-
 ### V0.65-2 {[issue #7](https://github.com/wfjm/w11/issues/7)} -- Some exotic RH70/RP/RM features not implemented
 some exotic RH70/RP/RM features and conditions not implemented yet
 - last block transfered flag (in DS)
@@ -382,6 +375,19 @@ still deconfigured for Vivado designs, but this has much less practical impact.
 
 ## Closed issues
 
+### V0.73-1 {[issue #9](https://github.com/wfjm/w11/issues/9)} -- Vivado xelab sometimes extremely slow
+#### Original Issue
+as of Vivado 2016.2 `xelab` shows sometimes extremely long build times,
+especially for generated post-synthesis VHDL models. But also building a
+behavioral simulation for a w11a design can take 25 min. Even though
+post-synthesis or post-routing models are now generated in Verilog working
+with `xsim` is cumbersome and time consuming.
+
+#### Reason for closure on 2022-07-05
+Re-checked with Vivado 2022.1.
+Building models with `xelab` is now quite fast.
+The issue disappeared somewhere between Vivado 2016.3 and 2022.1.
+
 ### V0.76-2 {[issue #17](https://github.com/wfjm/w11/issues/17)} -- Help wanted: Testing with Arty S7 appreciated
 #### Original Issue
 The w11a design for Arty S7 (50 die size), see rtl/sys_gen/w11a/artys7,
@@ -394,7 +400,7 @@ documentation of your board to avoid potential damage.
 
 Looking forward to receive test reports.
 
-#### Reason for closure
+#### Reason for closure on 2020-04-20
 Apparently nobody invested into an Arty S7.
 The sys_w11a_as7 will be marked untested, removed from the default build
 and test flows, but kept in the repository.

@@ -1,9 +1,10 @@
-// $Id: RtclRw11Cpu.cpp 1175 2019-06-30 06:13:17Z mueller $
+// $Id: RtclRw11Cpu.cpp 1249 2022-07-08 06:27:59Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2022--7-07  1249   1.2.34 BUGFIX: quit before mem write if asm-11 error seen
 // 2019-06-29  1175   1.2.33 M_ldabs(): add missing OptValid() call
 // 2019-06-07  1160   1.2.32 use RtclStats::Exec()
 // 2019-04-30  1143   1.2.31 add HasM9312() getter
@@ -1213,8 +1214,14 @@ int RtclRw11Cpu::M_ldasm(RtclArgs& args)
     if (!Rtcl::SetVar(interp, varlst, Rtcl::NewLinesObj(los))) return kERR;
   }
 
-  // now, finally, iterate over cmap and write code to memory
+  // in case of asm-11 error quit (after lst and sym processing)
+  if (wexit != 0) {
+    args.AppendResultLines("asm-11 compilation failed with:");
+    args.AppendResultLines(eos);
+    return kERR;
+  }
 
+  // now, finally, iterate over cmap and write code to memory
   vector<uint16_t> block;
   uint16_t base = 0;
   dot = 0;
@@ -1235,12 +1242,6 @@ int RtclRw11Cpu::M_ldasm(RtclArgs& args)
   if (block.size()) {
     if (!Obj().MemWrite(base, block, emsg)) return args.Quit(emsg);
     block.clear();
-  }
-
-  if (wexit != 0) {
-    args.AppendResultLines("asm-11 compilation failed with:");
-    args.AppendResultLines(eos);
-    return kERR;
   }
 
   return kOK;

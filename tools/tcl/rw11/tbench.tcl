@@ -1,6 +1,6 @@
-# $Id: tbench.tcl 1177 2019-06-30 12:34:07Z mueller $
+# $Id: tbench.tcl 1249 2022-07-08 06:27:59Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
@@ -35,7 +35,7 @@ namespace eval rw11 {
   }
 
   #
-  # tbench_file: execute list of tbench steps
+  # tbench_list: execute list of tbench steps
   #
   proc tbench_list {tname tbase} {
     set errcnt 0

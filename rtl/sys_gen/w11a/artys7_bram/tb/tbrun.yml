@@ -1,7 +1,8 @@
-# $Id: tbrun.yml 1038 2018-08-11 12:39:52Z mueller $
+# $Id: tbrun.yml 1249 2022-07-08 06:27:59Z mueller $
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2022-07-07  1249   1.1    add rw11::tcodes @cpu_all.dat
 # 2018-08-11  1038   1.0    Initial version
 #
 - default:
@@ -27,3 +28,8 @@
   test: |
     tbrun_tbwrri --hxon --lsuf tbdev  --pack rw11  tb_w11a_br_as7${ms} \
       "rw11::setup_cpu" "rw11::tbench @dev_all.dat"
+
+- tag:  [viv, sys_w11a, br_as7, tccpu]
+  test: |
+    tbrun_tbwrri --hxon --lsuf tccpu  --pack rw11  tb_w11a_br_as7${ms} \
+      "rw11::setup_cpu" "rw11::tcodes @cpu_all.dat"

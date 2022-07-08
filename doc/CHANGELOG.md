@@ -27,11 +27,14 @@ The full set of tests is only run for tagged releases.
 
 ### Summary
 - cleanup tbrun setup, drop nexys4 and add nexys4d ([see blog](https://wfjm.github.io/blogs/w11/2019-07-27-nexys4-obituary.html))
+- add fast mac-only verification codes under tool/tcode, integrated with tbrun
 - add ostest support for rsx11m-31_rk, rsx11m-40_rk and rsx11mp-30_rp oskits
 - all actively used commands have now a man page
 - Doxygen support now for V1.9.4; remove discontinued Tcl support
 - build flow Vivado 2022.1 ready; handle synth 8-3331 -> 8-7129 transition
 ### New features
+- new verification codes
+  - tools/tcode: fast cpu verification codes
 ### Changes
 - tools changes
   - ci.yml: define TBW_GHDL_OPTS and suppress IEEE package warnings at t=0ms
@@ -40,6 +43,8 @@ The full set of tests is only run for tagged releases.
     - njobihtm: add -n and -h options
     - ti_w11: update --help text, add -ar,-n4d,-bn4d
     - tmuconv: add DEUNA defs
+  - tools/tcl
+    - w11/tcodes.tcl: driver for tcode execution
   - tools/dox
     - w11_(cpp|vhd_all).Doxyfile: for Doxygen V1.9.4
     - w11_tcl.Doxyfile: removed, Tcl support removed in Doxygen V1.8.18
@@ -48,6 +53,8 @@ The full set of tests is only run for tagged releases.
 ### Bug Fixes
   - tools/mcode
     - m9312/bootw11.mac: proper init of unit number in getnam
+  - src/librwxxtpp
+    - RtclRw11Cpu.cpp: quit before mem write if asm-11 error seen
 
 <!-- --------------------------------------------------------------------- -->
 ---

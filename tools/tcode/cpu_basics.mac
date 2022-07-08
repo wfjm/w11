@@ -1,0 +1,1369 @@
+; $Id: cpu_basics.mac 1249 2022-07-08 06:27:59Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; Revision History:
+; Date         Rev Version  Comment
+; 2015-08-30   710   0.1    First draft
+;
+; Test CPU basics
+;
+        .include        |lib/tcode_std_base.mac|
+;
+; Section A: ccops + flow control bxx, sob, jmp, jsr, rts, mark ==============
+;
+; Test A1.1 -- ccop + bxx ++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 000 000 010 10n zvc NZVC CLx
+;     0 000 000 010 11n zvc NZVC SEx
+;
+;     0 000 000 1bb bbb bbb ---- BR  always
+;
+;     0 000 001 0bb bbb bbb ---- BNE if Z = 0
+;     0 000 001 1bb bbb bbb ---- BEQ if Z = 1
+;     0 000 010 0bb bbb bbb ---- BGE if (N xor V) = 0
+;     0 000 010 1bb bbb bbb ---- BLT if (N xor V) = 1
+;     0 000 011 0bb bbb bbb ---- BGT if (Z or (N xor V)) = 0
+;     0 000 011 1bb bbb bbb ---- BLE if (Z or (N xor V)) = 1
+;
+;     1 000 000 0bb bbb bbb ---- BPL  if N = 0
+;     1 000 000 1bb bbb bbb ---- BMI  if N = 1
+;     1 000 001 0bb bbb bbb ---- BHI  if (C or Z) = 0
+;     1 000 001 1bb bbb bbb ---- BLOS if (C or Z) = 1
+;     1 000 010 0bb bbb bbb ---- BVC  if V = 0
+;     1 000 010 1bb bbb bbb ---- BVS  if V = 1
+;     1 000 011 0bb bbb bbb ---- BCC  if C = 0
+;     1 000 011 1bb bbb bbb ---- BCS  if C = 1
+;
+;   This test sets all possible combinations of condition code bits
+;   (with cc ops) and verifies the branch instruction response
+;   Note: after normal compares N will never be 1 if Z=1 (a number can not
+;         zero and negative simultaneously). Thus not all combinations are
+;         used in normal code execution. 
+;
+ta0101: clr     @#cp.psw
+        ;
+        ; case NZVC = 0000 -- N=0 Z=0 V=0 C=0 ------------------------
+        ;
+        ccc
+        ;
+        ;
+        bne     1$              ; yes Z=0
+        halt
+1$:     beq     99$             ; no  Z=1
+        ;
+2$:     bge     3$              ; yes (N xor V) = 0
+        halt
+3$:     blt     99$             ; no  (N xor V) = 1
+        ;
+4$:     bgt     5$              ; yes (Z or (N xor V)) = 0
+        halt
+5$:     ble     99$             ; no  (Z or (N xor V)) = 1
+        ;
+6$:     bpl     7$              ; yes N = 0
+        halt
+7$:     bmi     99$             ; no  N = 1
+        ;
+8$:     bhi     9$              ; yes (C or Z) = 0
+        halt
+9$:     blos    99$             ; no  (C or Z) = 1
+        ;
+10$:    bvc     11$             ; yes V = 0
+        halt
+11$:    bvs     99$             ; no  V = 1
+        ;
+12$:    bcc     13$             ; yes C = 0
+        halt
+13$:    bcs     99$             ; no  C = 1
+        ;
+14$:    br      100$
+99$:    halt
+        ;
+        ; case NZVC = 0001 -- N=0 Z=0 V=0 C=1 ------------------------
+        ;
+100$:   ccc
+        sec
+        ;
+        bne     101$            ; yes Z=0
+        halt
+101$:   beq     199$            ; no  Z=1
+        ;
+102$:   bge     103$            ; yes (N xor V) = 0
+        halt
+103$:   blt     199$            ; no  (N xor V) = 1
+        ;
+104$:   bgt     105$            ; yes (Z or (N xor V)) = 0
+        halt
+105$:   ble     199$            ; no  (Z or (N xor V)) = 1
+        ;
+106$:   bpl     107$            ; yes N = 0
+        halt
+107$:   bmi     199$            ; no  N = 1
+        ;
+108$:   bhi     199$            ; no  (C or Z) = 0
+        ;
+109$:   blos    110$            ; yes (C or Z) = 1
+        halt
+110$:   bvc     111$            ; yes V = 0
+        halt
+111$:   bvs     199$            ; no  V = 1
+        ;
+112$:   bcc     199$            ; no  C = 0
+        ;
+113$:   bcs     114$            ; yes C = 1
+        halt
+114$:   br      200$
+199$:   halt
+        ;
+        ; case NZVC = 0010 -- N=0 Z=0 V=1 C=0 ------------------------
+        ;
+200$:   ccc
+        sev
+        ;
+        bne     201$            ; yes Z=0
+        halt
+201$:   beq     299$            ; no  Z=1
+        ;
+202$:   bge     299$            ; no  (N xor V) = 0
+        ;
+203$:   blt     204$            ; yes (N xor V) = 1
+        halt
+204$:   bgt     299$            ; no  (Z or (N xor V)) = 0
+        ;
+205$:   ble     206$            ; yes (Z or (N xor V)) = 1
+        halt
+206$:   bpl     207$            ; yes N = 0
+        halt
+207$:   bmi     299$            ; no  N = 1
+        ;
+208$:   bhi     209$            ; yes (C or Z) = 0
+        halt
+209$:   blos    299$            ; no  (C or Z) = 1
+        ;
+210$:   bvc     299$            ; no  V = 0
+        ;
+211$:   bvs     212$            ; yes V = 1
+        halt
+212$:   bcc     213$            ; yes C = 0
+        halt
+213$:   bcs     299$            ; no  C = 1
+        ;
+214$:   br      300$
+299$:   halt
+        ;
+        ; case NZVC = 0011 -- N=0 Z=0 V=1 C=1 ------------------------
+        ;
+300$:   ccc
+        <sev!sec>
+        ;
+        bne     301$            ; yes Z=0
+        halt
+301$:   beq     399$            ; no  Z=1
+        ;
+302$:   bge     399$            ; no  (N xor V) = 0
+        ;
+303$:   blt     304$            ; yes (N xor V) = 1
+        halt
+304$:   bgt     399$            ; no  (Z or (N xor V)) = 0
+        ;
+305$:   ble     306$            ; yes (Z or (N xor V)) = 1
+        halt
+306$:   bpl     307$            ; yes N = 0
+        halt
+307$:   bmi     399$            ; no  N = 1
+        ;
+308$:   bhi     399$            ; no  (C or Z) = 0
+        ;
+309$:   blos    310$            ; yes (C or Z) = 1
+        halt
+310$:   bvc     399$            ; no  V = 0
+        ;
+311$:   bvs     312$            ; yes V = 1
+        halt
+312$:   bcc     399$            ; no  C = 0
+        ;
+313$:   bcs     314$            ; yes C = 1
+        halt
+314$:   br      400$
+399$:   halt
+        ;
+        ; case NZVC = 0100 -- N=0 Z=1 V=0 C=0 ------------------------
+        ;
+400$:   ccc
+        sez
+        ;
+        bne     499$            ; no  Z=0
+        ;
+401$:   beq     402$            ; yes Z=1
+        halt
+402$:   bge     403$            ; yes (N xor V) = 0
+        halt
+403$:   blt     499$            ; no  (N xor V) = 1
+        ;
+404$:   bgt     499$            ; no  (Z or (N xor V)) = 0
+        ;
+405$:   ble     406$            ; yes (Z or (N xor V)) = 1
+        halt
+406$:   bpl     407$            ; yes N = 0
+        halt
+407$:   bmi     499$            ; no  N = 1
+        ;
+408$:   bhi     499$            ; no  (C or Z) = 0
+        ;
+409$:   blos    410$            ; yes (C or Z) = 1
+        halt
+410$:   bvc     411$            ; yes V = 0
+        halt
+411$:   bvs     499$            ; no  V = 1
+        ;
+412$:   bcc     413$            ; yes C = 0
+        halt
+413$:   bcs     499$            ; no  C = 1
+        ;
+414$:   br      500$
+499$:   halt
+        ;
+        ; case NZVC = 0101 -- N=0 Z=1 V=0 C=1 ------------------------
+        ;
+500$:   ccc
+        <sez!sec>
+        ;
+        bne     599$            ; no  Z=0
+        ;
+501$:   beq     502$            ; yes Z=1
+        halt
+502$:   bge     503$            ; yes (N xor V) = 0
+        halt
+503$:   blt     599$            ; no  (N xor V) = 1
+        ;
+504$:   bgt     599$            ; no  (Z or (N xor V)) = 0
+        ;
+505$:   ble     506$            ; yes (Z or (N xor V)) = 1
+        halt
+506$:   bpl     507$            ; yes N = 0
+        halt
+507$:   bmi     599$            ; no  N = 1
+        ;
+508$:   bhi     599$            ; no  (C or Z) = 0
+        ;
+509$:   blos    510$            ; yes (C or Z) = 1
+        halt
+510$:   bvc     511$            ; yes V = 0
+        halt
+511$:   bvs     599$            ; no  V = 1
+        ;
+512$:   bcc     599$            ; no  C = 0
+        ;
+513$:   bcs     514$            ; yes C = 1
+        halt
+514$:   br      600$
+599$:   halt
+        ;
+        ; case NZVC = 0110 -- N=0 Z=1 V=1 C=0 ------------------------
+        ;
+600$:   ccc
+        <sez!sev>
+        ;
+        bne     699$            ; no  Z=0
+        ;
+601$:   beq     602$            ; yes Z=1
+        halt
+602$:   bge     699$            ; no  (N xor V) = 0
+        ;
+603$:   blt     604$            ; yes (N xor V) = 1
+        halt
+604$:   bgt     699$            ; no  (Z or (N xor V)) = 0
+        ;
+605$:   ble     606$            ; yes (Z or (N xor V)) = 1
+        halt
+606$:   bpl     607$            ; yes N = 0
+        halt
+607$:   bmi     699$            ; no  N = 1
+        ;
+608$:   bhi     699$            ; no  (C or Z) = 0
+        ;
+609$:   blos    610$            ; yes (C or Z) = 1
+        halt
+610$:   bvc     699$            ; no  V = 0
+        ;
+611$:   bvs     612$            ; yes V = 1
+        halt
+612$:   bcc     613$            ; yes C = 0
+        halt
+613$:   bcs     699$            ; no  C = 1
+        ;
+614$:   br      700$
+699$:   halt
+        ;
+        ; case NZVC = 0111 -- N=0 Z=1 V=1 C=1 ------------------------
+        ;
+700$:   scc
+        cln
+        ;
+        bne     799$            ; no  Z=0
+        ;
+701$:   beq     702$            ; yes Z=1
+        halt
+702$:   bge     799$            ; no  (N xor V) = 0
+        ;
+703$:   blt     704$            ; yes (N xor V) = 1
+        halt
+704$:   bgt     799$            ; no  (Z or (N xor V)) = 0
+        ;
+705$:   ble     706$            ; yes (Z or (N xor V)) = 1
+        halt
+706$:   bpl     707$            ; yes N = 0
+        halt
+707$:   bmi     799$            ; no  N = 1
+        ;
+708$:   bhi     799$            ; no  (C or Z) = 0
+        ;
+709$:   blos    710$            ; yes (C or Z) = 1
+        halt
+710$:   bvc     799$            ; no  V = 0
+        ;
+711$:   bvs     712$            ; yes V = 1
+        halt
+712$:   bcc     799$            ; no  C = 0
+        ;
+713$:   bcs     714$            ; yes C = 1
+        halt
+714$:   br      1000$
+799$:   halt
+        ;
+        ; case NZVC = 1000 -- N=1 Z=0 V=0 C=0 ------------------------
+        ;
+1000$:  ccc
+        sen
+        ;
+        bne     1001$           ; yes Z=0
+        halt
+1001$:  beq     1099$           ; no  Z=1
+        ;
+1002$:  bge     1099$           ; no  (N xor V) = 0
+        ;
+1003$:  blt     1004$           ; yes (N xor V) = 1
+        halt
+1004$:  bgt     1099$           ; no  (Z or (N xor V)) = 0
+        ;
+1005$:  ble     1006$           ; yes (Z or (N xor V)) = 1
+        halt
+1006$:  bpl     1099$           ; no  N = 0
+        ;
+1007$:  bmi     1008$           ; yes N = 1
+        halt
+1008$:  bhi     1009$           ; yes (C or Z) = 0
+        halt
+1009$:  blos    1099$           ; no  (C or Z) = 1
+        ;
+1010$:  bvc     1011$           ; yes V = 0
+        halt
+1011$:  bvs     1099$           ; no  V = 1
+        ;
+1012$:  bcc     1013$           ; yes C = 0
+        halt
+1013$:  bcs     1099$           ; no  C = 1
+        ;
+1014$:  br      1100$
+1099$:  halt
+        ;
+        ; case NZVC = 1001 -- N=1 Z=0 V=0 C=1 ------------------------
+        ;
+1100$:  ccc
+        <sen!sec>
+        ;
+        bne     1101$           ; yes Z=0
+        halt
+1101$:  beq     1199$           ; no  Z=1
+        ;
+1102$:  bge     1199$           ; no  (N xor V) = 0
+        ;
+1103$:  blt     1104$           ; yes (N xor V) = 1
+        halt
+1104$:  bgt     1199$           ; no  (Z or (N xor V)) = 0
+        ;
+1105$:  ble     1106$           ; yes (Z or (N xor V)) = 1
+        halt
+1106$:  bpl     1199$           ; no  N = 0
+        ;
+1107$:  bmi     1108$           ; yes N = 1
+        halt
+1108$:  bhi     1199$           ; no  (C or Z) = 0
+        ;
+1109$:  blos    1110$           ; yes (C or Z) = 1
+        halt
+1110$:  bvc     1111$           ; yes V = 0
+        halt
+1111$:  bvs     1199$           ; no  V = 1
+        ;
+1112$:  bcc     1199$           ; no  C = 0
+        ;
+1113$:  bcs     1114$           ; yes C = 1
+        halt
+1114$:  br      1200$
+1199$:  halt
+        ;
+        ; case NZVC = 1010 -- N=1 Z=0 V=1 C=0 ------------------------
+        ;
+1200$:  ccc
+        <sen!sev>
+        ;
+        bne     1201$           ; yes Z=0
+        halt
+1201$:  beq     1299$           ; no  Z=1
+        ;
+1202$:  bge     1203$           ; yes (N xor V) = 0
+        halt
+1203$:  blt     1299$           ; no  (N xor V) = 1
+        ;
+1204$:  bgt     1205$           ; yes (Z or (N xor V)) = 0
+        halt
+1205$:  ble     1299$           ; no  (Z or (N xor V)) = 1
+        ;
+1206$:  bpl     1299$           ; no  N = 0
+        ;
+1207$:  bmi     1208$           ; yes N = 1
+        halt
+1208$:  bhi     1209$           ; yes (C or Z) = 0
+        halt
+1209$:  blos    1299$           ; no  (C or Z) = 1
+        ;
+1210$:  bvc     1299$           ; no  V = 0
+        ;
+1211$:  bvs     1212$           ; yes V = 1
+        halt
+1212$:  bcc     1213$           ; yes C = 0
+        halt
+1213$:  bcs     1299$           ; no  C = 1
+        ;
+1214$:  br      1300$
+1299$:  halt
+        ;
+        ; case NZVC = 1011 -- N=1 Z=0 V=1 C=1 ------------------------
+        ;
+1300$:  scc
+        clz
+        ;
+        bne     1301$           ; yes Z=0
+        halt
+1301$:  beq     1399$           ; no  Z=1
+        ;
+1302$:  bge     1303$           ; yes (N xor V) = 0
+        halt
+1303$:  blt     1399$           ; no  (N xor V) = 1
+        ;
+1304$:  bgt     1305$           ; yes (Z or (N xor V)) = 0
+        halt
+1305$:  ble     1399$           ; no  (Z or (N xor V)) = 1
+        ;
+1306$:  bpl     1399$           ; no  N = 0
+        ;
+1307$:  bmi     1308$           ; yes N = 1
+        halt
+1308$:  bhi     1399$           ; no  (C or Z) = 0
+        ;
+1309$:  blos    1310$           ; yes (C or Z) = 1
+        halt
+1310$:  bvc     1399$           ; no  V = 0
+        ;
+1311$:  bvs     1312$           ; yes V = 1
+        halt
+1312$:  bcc     1399$           ; no  C = 0
+        ;
+1313$:  bcs     1314$           ; yes C = 1
+        halt
+1314$:  br      1400$
+1399$:  halt
+        ;
+        ; case NZVC = 1100 -- N=1 Z=1 V=0 C=0 ------------------------
+        ;
+1400$:  ccc
+        <sen!sez>
+        ;
+        bne     1499$           ; no  Z=0
+        ;
+1401$:  beq     1402$           ; yes Z=1
+        halt
+1402$:  bge     1499$           ; no  (N xor V) = 0
+        ;
+1403$:  blt     1404$           ; yes (N xor V) = 1
+        halt
+1404$:  bgt     1499$           ; no  (Z or (N xor V)) = 0
+        ;
+1405$:  ble     1406$           ; yes (Z or (N xor V)) = 1
+        halt
+1406$:  bpl     1499$           ; no  N = 0
+        ;
+1407$:  bmi     1408$           ; yes N = 1
+        halt
+1408$:  bhi     1499$           ; no  (C or Z) = 0
+        ;
+1409$:  blos    1410$           ; yes (C or Z) = 1
+        halt
+1410$:  bvc     1411$           ; yes V = 0
+        halt
+1411$:  bvs     1499$           ; no  V = 1
+        ;
+1412$:  bcc     1413$           ; yes C = 0
+        halt
+1413$:  bcs     1499$           ; no  C = 1
+        ;
+1414$:  br      1500$
+1499$:  halt
+        ;
+        ; case NZVC = 1101 -- N=1 Z=1 V=0 C=1 ------------------------
+        ;
+1500$:  scc
+        clv
+        ;
+        bne     1599$           ; no  Z=0
+        ;
+1501$:  beq     1502$           ; yes Z=1
+        halt
+1502$:  bge     1599$           ; no  (N xor V) = 0
+        ;
+1503$:  blt     1504$           ; yes (N xor V) = 1
+        halt
+1504$:  bgt     1599$           ; no  (Z or (N xor V)) = 0
+        ;
+1505$:  ble     1506$           ; yes (Z or (N xor V)) = 1
+        halt
+1506$:  bpl     1599$           ; no  N = 0
+        ;
+1507$:  bmi     1508$           ; yes N = 1
+        halt
+1508$:  bhi     1599$           ; no  (C or Z) = 0
+        ;
+1509$:  blos    1510$           ; yes (C or Z) = 1
+        halt
+1510$:  bvc     1511$           ; yes V = 0
+        halt
+1511$:  bvs     1599$           ; no  V = 1
+        ;
+1512$:  bcc     1599$           ; no  C = 0
+        ;
+1513$:  bcs     1514$           ; yes C = 1
+        halt
+1514$:  br      1600$
+1599$:  halt
+        ;
+        ; case NZVC = 1110 -- N=1 Z=1 V=1 C=0 ------------------------
+        ;
+1600$:  scc
+        clc
+        ;
+        bne     1699$           ; no  Z=0
+        ;
+1601$:  beq     1602$           ; yes Z=1
+        halt
+1602$:  bge     1603$           ; yes (N xor V) = 0
+        halt
+1603$:  blt     1699$           ; no  (N xor V) = 1
+        ;
+1604$:  bgt     1699$           ; no  (Z or (N xor V)) = 0
+        ;
+1605$:  ble     1606$           ; yes (Z or (N xor V)) = 1
+        halt
+1606$:  bpl     1699$           ; no  N = 0
+        ;
+1607$:  bmi     1608$           ; yes N = 1
+        halt
+1608$:  bhi     1699$           ; no  (C or Z) = 0
+        ;
+1609$:  blos    1610$           ; yes (C or Z) = 1
+        halt
+1610$:  bvc     1699$           ; no  V = 0
+        ;
+1611$:  bvs     1612$           ; yes V = 1
+        halt
+1612$:  bcc     1613$           ; yes C = 0
+        halt
+1613$:  bcs     1699$           ; no  C = 1
+        ;
+1614$:  br      1700$
+1699$:  halt
+        ;
+        ; case NZVC = 1111 -- N=1 Z=1 V=1 C=1 ------------------------
+        ;
+1700$:  scc
+        ;
+        bne     1799$           ; no  Z=0
+        ;
+1701$:  beq     1702$           ; yes Z=1
+        halt
+1702$:  bge     1703$           ; yes (N xor V) = 0
+        halt
+1703$:  blt     1799$           ; no  (N xor V) = 1
+        ;
+1704$:  bgt     1799$           ; no  (Z or (N xor V)) = 0
+        ;
+1705$:  ble     1706$           ; yes (Z or (N xor V)) = 1
+        halt
+1706$:  bpl     1799$           ; no  N = 0
+        ;
+1707$:  bmi     1708$           ; yes N = 1
+        halt
+1708$:  bhi     1799$           ; no  (C or Z) = 0
+        ;
+1709$:  blos    1710$           ; yes (C or Z) = 1
+        halt
+1710$:  bvc     1799$           ; no  V = 0
+        ;
+1711$:  bvs     1712$           ; yes V = 1
+        halt
+1712$:  bcc     1799$           ; no  C = 0
+        ;
+1713$:  bcs     1714$           ; yes C = 1
+        ;
+1714$:  br      9999$
+1799$:  halt
+        ;
+;;;
+9999$:  iot                     ; end of test A1.1
+;
+; Test A1.2 -- ccop + psw ++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This test sets and clears all four condition codes and verifies that
+;   the psw properly reflects this.
+;
+ta0102: mov     #cp.psw,r0
+        clr     (r0)
+;
+        ccc                     ; nzvc = 0000
+        cmp     (r0),#cp0000
+        beq     .+4
+        halt
+;
+        ccc
+        sec                     ; nzvc = 0001
+        cmp     (r0),#cp000c
+        beq     .+4
+        halt
+;
+        ccc
+        sev                     ; nzvc = 0010
+        cmp     (r0),#cp00v0
+        beq     .+4
+        halt
+;
+        ccc
+        sez                     ; nzvc = 0100
+        cmp     (r0),#cp0z00
+        beq     .+4
+        halt
+;
+        ccc
+        sen                     ; nzvc = 1000
+        cmp     (r0),#cpn000
+        beq     .+4
+        halt
+;
+        scc                     ; nzvc = 1111
+        cmp     (r0),#cpnzvc
+        beq     .+4
+        halt
+;
+        scc
+        clc                     ; nzvc = 1110
+        cmp     (r0),#cpnzv0
+        beq     .+4
+        halt
+;
+        scc
+        clv                     ; nzvc = 1101
+        cmp     (r0),#cpnz0c
+        beq     .+4
+        halt
+;
+        scc
+        clz                     ; nzvc = 1011
+        cmp     (r0),#cpn0vc
+        beq     .+4
+        halt
+;
+        scc
+        cln                     ; nzvc = 0111
+        cmp     (r0),#cp0zvc
+        beq     .+4
+        halt
+;
+9999$:  iot                     ; end of test A1.2
+;
+; Test A2 -- sob +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 111 111 rrr bbb bbb ---- SOB
+;
+; Test A2.1 -- sob +++++++++++++++++++++++++++++++++++++++++++++++++++
+;   check that SOB
+;     a. decrements register
+;     b. does not change cc
+;     c. only falls through when register decremented to zero
+;
+ta0201: mov     #cp.psw,r5
+        clr     (r5)
+        mov     #3,r0           ; setup loop count
+        ccc                     ; nzvc = 0000
+        br      11$             ; branch to 1st SOB
+;
+10$:    cmp     (r5),#cp0000    ; cc still 0000 ?
+        beq     .+4
+        halt
+        cmp     r0,#2           ; counter dec-ed ?
+        beq     .+4
+        halt
+        scc                     ; now nzvc = 1111
+        br      21$             ; branch to 2nd SOB
+;
+11$:    sob     r0,10$          ; 1st SOB (r0=3)
+        halt                    ; should not fall through
+;
+20$:    cmp     (r5),#cpnzvc    ; cc still 1111 ?
+        beq     .+4
+        halt
+        cmp     r0,#1          ; counter dec-ed ?
+        beq     .+4
+        halt
+        ccc
+        <sen!sez>               ; now nzvc = 1100
+        br      31$             ; branch to 3rd SOB
+;
+21$:    sob     r0,20$          ; 2nd SOB (r0=2)
+        halt                    ; should not fall through
+;
+30$:    halt                    ; should not branch now !
+31$:    sob     r0,30$          ; 3rd SOB (r0=1 -> fall through)
+        cmp     (r5),#cpnz00    ; cc still 1100 ?
+        beq     .+4
+        halt
+        tst     r0              ; counter dec-ed ?
+        beq     .+4
+        halt
+;
+; finally a typical simple SOB loop
+;
+        mov     #2,r0
+        clr     r1
+100$:   inc     r1
+        sob     r0,100$
+;
+        tst     r0
+        beq     .+4
+        halt
+        cmp     r1,#2
+        beq     .+4
+        halt
+;
+9999$:  iot                     ; end of test A1.3
+;
+; Test A3 -- jmp +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 000 000 001 ddd ddd ---- JMP (mode /= R !!)
+;
+; Test A3.1 -- jmp + dsta +++++++++++++++++++++++++++++++++++++++++++++
+;   check that JMP works for all modes
+;
+ta0301: mov     #10$,r2
+        jmp     (r2)            ; mode = 1,reg
+        halt
+;
+10$:    mov     #20$,r2
+        jmp     (r2)+           ; mode = 2,reg
+        halt
+20$:    cmp     r2,#20$+2
+        beq     .+4
+        halt
+;
+        mov     #40$+2,r2
+        jmp     -(r2)           ; mode = 4,reg
+        halt
+40$:    cmp     r2,#40$
+        beq     .+4
+        halt
+;
+        mov     #60$-10,r2
+        jmp     10(r2)          ; mode = 6,reg
+;
+60$:    jmp     67$             ; mode = 6,pc  (rel)
+        halt
+;
+67$:    jmp     @#37$           ; mode = 3,pc  (abs)
+        halt
+;
+37$:    mov     #1030$,r3
+        jmp     @(r3)+          ; mode = 3,reg
+        halt
+30$:    cmp     r3,#1030$+2
+        beq     .+4
+        halt
+;
+        mov     #1050$+2,r3
+        jmp     @-(r3)          ; mode = 5,reg
+        halt
+50$:    cmp     r3,#1050$
+        beq     .+4
+        halt
+;
+        mov     #1070$-20,r3
+        jmp     @20(r3)         ; mode = 7,reg
+        halt
+;
+70$:    jmp     @1077$          ; mode = 7,pc  (ind)
+        halt
+;
+77$:    br      9999$
+;
+1030$:  .word   30$
+1050$:  .word   50$
+1070$:  .word   70$
+1077$:  .word   77$
+;        
+9999$:  iot                     ; end of test A3.1
+;
+; Test A3.2 -- jmp + cc +++++++++++++++++++++++++++++++++++++++++++++++
+;   check that JMP doesnt change cc
+;
+ta0302: mov     #cp.psw,r5
+        clr     (r5)
+;
+        ccc                     ; nzvc = 0000
+        jmp     1$
+        halt
+1$:     cmp     (r5),#cp0000    ; cc still 0000 ?
+        beq     .+4
+        halt
+;
+        scc                     ; nzvc = 1111
+        jmp     @1002$
+        halt
+2$:     cmp     (r5),#cpnzvc    ; cc still 1111 ?
+        beq     .+4
+        halt
+        br      9999$        
+;
+1002$:  .word   2$
+;
+9999$:  iot                     ; end of test A3.2
+;
+;
+; Section B: unary instructions ==============================================
+;
+        jmp     tb0101
+;
+; test driver for unary instruction tests
+;
+top1br: 
+top1wr: mov     (r5),101$       ; setup cc setter
+        mov     2(r5),102$      ; setup instruction
+        mov     4(r5),r4        ; setup expect data pointer
+        mov     6(r5),r3        ; setup expect end
+        mov     #cp.psw,r2
+;
+100$:   mov     (r4)+,r1        ; setup dst
+        ccc                     ; clear cc
+101$:   nop                     ; REPLACED with cc setter
+102$:   nop                     ; REPLACED with instruction, e.g. inc r1
+        cmp     (r2),(r4)+      ; check psw
+        beq     .+4
+        halt
+        cmp     r1,(r4)+        ; check new dst
+        beq     .+4
+        halt
+        cmp     r4,r3           ; more to do ?
+        blo     100$
+        rts     pc
+;
+top1bm: 
+top1wm: mov     (r5),101$       ; setup cc setter
+        mov     2(r5),102$      ; setup instruction
+        mov     4(r5),r4        ; setup expect data pointer
+        mov     6(r5),r3        ; setup expect end
+        mov     #200$,r1        ; setup dst pointer
+        mov     #cp.psw,r2
+;
+100$:   mov     (r4)+,(r1)      ; setup old dst
+        ccc                     ; clear cc
+101$:   nop                     ; REPLACED with cc setter
+102$:   nop                     ; REPLACED with instruction, e.g. inc (r1)
+        cmp     (r2),(r4)+      ; check psw
+        beq     .+4
+        halt
+        cmp     (r1),(r4)+      ; check new dst
+        beq     .+4
+        halt
+        cmp     r4,r3           ; more to do ?
+        blo     100$
+        rts     pc
+;
+200$:   .word   0
+;         
+; Test B1 -- inc +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 000 101 010 ddd ddd NZV- INC
+;
+; Test B1.1 -- inc instruction ++++++++++++++++++++++++++++++++++++++++
+;
+tb0101: clr     cp.psw
+        mov     #1000$,r5       ; reg mode tests
+        jsr     pc,top1wr
+        mov     #2000$,r5       ; mem mode tests
+        jsr     pc,top1wm
+        jmp     9999$
+;
+1000$:  ccc
+        inc     r1
+        .word   1010$
+        .word   1011$
+;
+;               olddst  psw     newdst
+1010$:  .word   000000, cp0000, 000001
+        .word   000001, cp0000, 000002
+        .word   077776, cp0000, 077777
+        .word   077777, cpn0v0, 100000
+        .word   100000, cpn000, 100001
+        .word   100001, cpn000, 100002
+        .word   177776, cpn000, 177777
+        .word   177777, cp0z00, 000000
+1011$:  
+;
+2000$:  scc
+        inc     (r1)
+        .word   2010$
+        .word   2011$
+;
+;               olddst     psw  newdst
+2010$:  .word   000000, cp000c, 000001
+        .word   000001, cp000c, 000002
+        .word   077776, cp000c, 077777
+        .word   077777, cpn0vc, 100000
+        .word   100000, cpn00c, 100001
+        .word   100001, cpn00c, 100002
+        .word   177776, cpn00c, 177777
+        .word   177777, cp0z0c, 000000
+2011$:  
+;
+9999$:  iot                     ; end of test B1.1
+;        
+; Test B2 -- dec +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 000 101 011 ddd ddd NZV- DEC
+;
+; Test B2.1 -- dec instruction ++++++++++++++++++++++++++++++++++++++++
+;
+tb0201: clr     cp.psw
+        mov     #1000$,r5       ; reg mode tests
+        jsr     pc,top1wr
+        mov     #2000$,r5       ; mem mode tests
+        jsr     pc,top1wm
+        jmp     9999$
+;
+1000$:  ccc                     ; c=0
+        dec     r1              ; dec preserves c, so stays 0
+        .word   1010$
+        .word   1011$
+;
+;               olddst  psw     newdst
+1010$:  .word   000000, cpn000, 177777
+        .word   000001, cp0z00, 000000
+        .word   077776, cp0000, 077775
+        .word   077777, cp0000, 077776
+        .word   100000, cp00v0, 077777
+        .word   100001, cpn000, 100000
+        .word   177776, cpn000, 177775
+        .word   177777, cpn000, 177776
+1011$:  
+;
+2000$:  scc                     ; c=1
+        dec     (r1)            ; dec preserves c, so stays 1
+        .word   2010$
+        .word   2011$
+;
+;               olddst     psw  newdst
+2010$:  .word   000000, cpn00c, 177777
+        .word   000001, cp0z0c, 000000
+        .word   077776, cp000c, 077775
+        .word   077777, cp000c, 077776
+        .word   100000, cp00vc, 077777
+        .word   100001, cpn00c, 100000
+        .word   177776, cpn00c, 177775
+        .word   177777, cpn00c, 177776 
+2011$:  
+;
+9999$:  iot                     ; end of test B2.1
+
+;
+; Section C: binary instructions =============================================
+;
+        jmp     tc0101
+;
+; test driver for binary instruction tests
+;
+top2br: 
+top2wr: mov     (r5),101$       ; setup cc setter
+        mov     2(r5),102$      ; setup instruction
+        mov     4(r5),r4        ; setup expect data pointer
+        mov     6(r5),r3        ; setup expect end
+        mov     #cp.psw,r2
+;
+100$:   mov     (r4)+,r0        ; setup src
+        mov     (r4)+,r1        ; setup old dst
+        ccc                     ; clear cc
+101$:   nop                     ; REPLACED with cc setter
+102$:   nop                     ; REPLACED with instruction, e.g. add r0,r1
+        cmp     (r2),(r4)+      ; check psw
+        beq     .+4
+        halt
+        cmp     r1,(r4)+        ; check new dst
+        beq     .+4
+        halt
+        cmp     r4,r3           ; more to do ?
+        blo     100$
+        rts     pc
+;
+top2bm: 
+top2wm: mov     (r5),101$       ; setup cc setter
+        mov     2(r5),102$      ; setup instruction
+        mov     4(r5),r4        ; setup expect data pointer
+        mov     6(r5),r3        ; setup expect end
+        mov     #200$,r0        ; setup src pointer
+        mov     #300$,r1        ; setup dst pointer
+        mov     #cp.psw,r2
+;
+100$:   mov     (r4)+,(r0)      ; setup src
+        mov     (r4)+,(r1)      ; setup old dst
+        ccc                     ; clear cc
+101$:   nop                     ; REPLACED with cc setter
+102$:   nop                     ; REPLACED with instruction, e.g. add (r0),(r1)
+        cmp     (r2),(r4)+      ; check psw
+        beq     .+4
+        halt
+        cmp     (r1),(r4)+      ; check new dst
+        beq     .+4
+        halt
+        cmp     r4,r3           ; more to do ?
+        blo     100$
+        rts     pc
+;
+200$:   .word   0
+300$:   .word   0
+;
+;        
+; Test C1 -- add +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 110 sss sss ddd ddd NZVC ADD
+;
+; Test C1.1 -- add instructions ++++++++++++++++++++++++++++++++++++++
+;
+tc0101: clr     cp.psw
+        mov     #1000$,r5       ; reg mode tests
+        jsr     pc,top2wr
+        mov     #2000$,r5       ; mem mode tests
+        jsr     pc,top2wm
+        jmp     9999$
+;
+1000$:  ccc
+        add     r0,r1
+        .word   1010$
+        .word   1011$
+;
+;                  src  olddst     psw  newdst
+1010$:  .word   000000, 000000, cp0z00, 000000
+        .word   000001, 000000, cp0000, 000001
+        .word   077777, 000000, cp0000, 077777
+        .word   100000, 000000, cpn000, 100000
+        .word   100001, 000000, cpn000, 100001
+        .word   177777, 000000, cpn000, 177777
+
+        .word   000000, 000001, cp0000, 000001
+        .word   000001, 000001, cp0000, 000002
+        .word   077776, 000001, cp0000, 077777
+        .word   077777, 000001, cpn0v0, 100000
+        .word   100000, 000001, cpn000, 100001
+        .word   100001, 000001, cpn000, 100002
+        .word   177776, 000001, cpn000, 177777
+        .word   177777, 000001, cp0z0c, 000000
+
+        .word   000001, 077776, cp0000, 077777
+        .word   000002, 077776, cpn0v0, 100000
+        .word   077777, 077776, cpn0v0, 177775
+        .word   100000, 077776, cpn000, 177776
+        .word   100001, 077776, cpn000, 177777
+        .word   100002, 077776, cp0z0c, 000000
+        .word   100003, 077776, cp000c, 000001
+        .word   177776, 077776, cp000c, 077774
+        .word   177777, 077776, cp000c, 077775
+
+        .word   000001, 077777, cpn0v0, 100000
+        .word   000002, 077777, cpn0v0, 100001
+        .word   077777, 077777, cpn0v0, 177776
+        .word   100000, 077777, cpn000, 177777
+        .word   100001, 077777, cp0z0c, 000000
+        .word   100002, 077777, cp000c, 000001
+        .word   177776, 077777, cp000c, 077775
+        .word   177777, 077777, cp000c, 077776
+
+        .word   000001, 100000, cpn000, 100001
+        .word   000002, 100000, cpn000, 100002
+        .word   077777, 100000, cpn000, 177777
+        .word   100000, 100000, cp0zvc, 000000
+        .word   100001, 100000, cp00vc, 000001
+        .word   100002, 100000, cp00vc, 000002
+        .word   177776, 100000, cp00vc, 077776
+        .word   177777, 100000, cp00vc, 077777
+
+        .word   000001, 100001, cpn000, 100002
+        .word   000002, 100001, cpn000, 100003
+        .word   077777, 100001, cp0z0c, 000000
+        .word   100000, 100001, cp00vc, 000001
+        .word   100001, 100001, cp00vc, 000002
+        .word   177776, 100001, cp00vc, 077777
+        .word   177777, 100001, cpn00c, 100000
+
+        .word   000001, 177776, cpn000, 177777
+        .word   000002, 177776, cp0z0c, 000000
+        .word   077777, 177776, cp000c, 077775
+        .word   100000, 177776, cp00vc, 077776
+        .word   100001, 177776, cp00vc, 077777
+        .word   100002, 177776, cpn00c, 100000
+        .word   177776, 177776, cpn00c, 177774
+        .word   177777, 177776, cpn00c, 177775
+
+        .word   000001, 177777, cp0z0c, 000000
+        .word   000002, 177777, cp000c, 000001
+        .word   077777, 177777, cp000c, 077776
+        .word   100000, 177777, cp00vc, 077777
+        .word   100001, 177777, cpn00c, 100000
+        .word   100002, 177777, cpn00c, 100001
+        .word   177776, 177777, cpn00c, 177775
+        .word   177777, 177777, cpn00c, 177776
+1011$:  
+;
+2000$:  scc
+        add     (r0),(r1)
+        .word   1010$
+        .word   1011$
+;
+9999$:  iot                     ; end of test C1.1
+;
+; Test C2 -- sub +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     1 110 sss sss ddd ddd NZVC SUB
+;
+; Test C2.1 -- sub instruction +++++++++++++++++++++++++++++++++++++++
+;
+tc0201: clr     cp.psw
+        mov     #1000$,r5       ; reg mode tests
+        jsr     pc,top2wr
+        mov     #2000$,r5       ; mem mode tests
+        jsr     pc,top2wm
+        jmp     9999$
+;
+1000$:  ccc
+        sub     r0,r1
+        .word   1010$
+        .word   1011$
+;
+;                  src  olddst     psw  newdst
+1010$:  .word   000000, 000000, cp0z00, 000000
+        .word   000001, 000000, cpn00c, 177777
+        .word   077777, 000000, cpn00c, 100001
+        .word   100000, 000000, cpn0vc, 100000
+        .word   100001, 000000, cp000c, 077777
+        .word   177777, 000000, cp000c, 000001
+
+        .word   000000, 000001, cp0000, 000001
+        .word   000001, 000001, cp0z00, 000000
+        .word   077777, 000001, cpn00c, 100002
+        .word   100000, 000001, cpn0vc, 100001
+        .word   100001, 000001, cpn0vc, 100000
+        .word   100002, 000001, cp000c, 077777
+        .word   177776, 000001, cp000c, 000003
+        .word   177777, 000001, cp000c, 000002
+
+        .word   000001, 077776, cp0000, 077775
+        .word   077775, 077776, cp0000, 000001
+        .word   077776, 077776, cp0z00, 000000
+        .word   077777, 077776, cpn00c, 177777
+        .word   100000, 077776, cpn0vc, 177776
+        .word   100001, 077776, cpn0vc, 177775
+        .word   177775, 077776, cpn0vc, 100001
+        .word   177776, 077776, cpn0vc, 100000
+        .word   177777, 077776, cp000c, 077777
+
+        .word   000001, 077777, cp0000, 077776
+        .word   077775, 077777, cp0000, 000002
+        .word   077776, 077777, cp0000, 000001
+        .word   077777, 077777, cp0z00, 000000
+        .word   100000, 077777, cpn0vc, 177777
+        .word   100001, 077777, cpn0vc, 177776
+        .word   177776, 077777, cpn0vc, 100001
+        .word   177777, 077777, cpn0vc, 100000
+
+        .word   000001, 100000, cp00v0, 077777
+        .word   000002, 100000, cp00v0, 077776
+        .word   077776, 100000, cp00v0, 000002
+        .word   077777, 100000, cp00v0, 000001
+        .word   100000, 100000, cp0z00, 000000
+        .word   100001, 100000, cpn00c, 177777
+        .word   177776, 100000, cpn00c, 100002
+        .word   177777, 100000, cpn00c, 100001
+
+        .word   000001, 100001, cpn000, 100000
+        .word   000002, 100001, cp00v0, 077777
+        .word   077776, 100001, cp00v0, 000003
+        .word   077777, 100001, cp00v0, 000002
+        .word   100000, 100001, cp0000, 000001
+        .word   100001, 100001, cp0z00, 000000
+        .word   177776, 100001, cpn00c, 100003
+        .word   177777, 100001, cpn00c, 100002
+
+        .word   000001, 177776, cpn000, 177775
+        .word   077775, 177776, cpn000, 100001
+        .word   077776, 177776, cpn000, 100000
+        .word   077777, 177776, cp00v0, 077777
+        .word   100000, 177776, cp0000, 077776
+        .word   100001, 177776, cp0000, 077775
+        .word   177775, 177776, cp0000, 000001
+        .word   177776, 177776, cp0z00, 000000
+        .word   177777, 177776, cpn00c, 177777
+
+        .word   000001, 177777, cpn000, 177776
+        .word   077776, 177777, cpn000, 100001
+        .word   077777, 177777, cpn000, 100000
+        .word   100000, 177777, cp0000, 077777
+        .word   100001, 177777, cp0000, 077776
+        .word   177776, 177777, cp0000, 000001
+        .word   177777, 177777, cp0z00, 000000
+1011$:  
+;
+2000$:  scc
+        sub     (r0),(r1)
+        .word   1010$
+        .word   1011$
+;
+9999$:  iot                     ; end of test C2.1
+;
+; Test C3 -- bic +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 100 sss sss ddd ddd NZ0- BIC
+;
+; Test C3.1 -- bic instruction +++++++++++++++++++++++++++++++++++++++
+;
+tc0301: clr     cp.psw
+        mov     #1000$,r5       ; reg mode tests
+        jsr     pc,top2wr
+        mov     #2000$,r5       ; mem mode tests
+        jsr     pc,top2wm
+        jmp     9999$
+;
+1000$:  ccc
+        bic     r0,r1
+        .word   1010$
+        .word   1011$
+;
+;                  src  olddst     psw  newdst
+1010$:  .word   000000, 000000, cp0z00, 000000
+        .word   177777, 000000, cp0z00, 000000
+
+        .word   000000, 077077, cp0000, 077077
+        .word   070007, 077077, cp0000, 007070
+        .word   177777, 077077, cp0z00, 000000
+
+        .word   000000, 100770, cpn000, 100770
+        .word   000070, 100770, cpn000, 100700
+        .word   100700, 100770, cp0000, 000070
+        .word   177777, 100770, cp0z00, 000000
+
+1011$:  
+;
+2000$:  scc
+        bic     (r0),(r1)
+        .word   2010$
+        .word   2011$
+;
+;                  src  olddst     psw  newdst
+2010$:  .word   000000, 000000, cp0z0c, 000000
+        .word   177777, 000000, cp0z0c, 000000
+
+        .word   000000, 077077, cp000c, 077077
+        .word   070007, 077077, cp000c, 007070
+        .word   177777, 077077, cp0z0c, 000000
+
+        .word   000000, 100770, cpn00c, 100770
+        .word   000070, 100770, cpn00c, 100700
+        .word   100700, 100770, cp000c, 000070
+        .word   177777, 100770, cp0z0c, 000000
+
+2011$:  
+;
+9999$:  iot                     ; end of test C3.1
+;
+; Test C4 -- bis +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 101 sss sss ddd ddd NZ0- BIS
+;
+; Test C4.1 -- bis instructions ++++++++++++++++++++++++++++++++++++++
+;
+tc0401: clr     cp.psw
+        mov     #1000$,r5       ; reg mode tests
+        jsr     pc,top2wr
+        mov     #2000$,r5       ; mem mode tests
+        jsr     pc,top2wm
+        jmp     9999$
+;
+1000$:  ccc
+        bis     r0,r1
+        .word   1010$
+        .word   1011$
+;
+;                  src  olddst     psw  newdst
+1010$:  .word   000000, 000000, cp0z00, 000000
+        .word   077077, 000000, cp0000, 077077
+        .word   100770, 000000, cpn000, 100770
+
+        .word   000000, 070007, cp0000, 070007
+        .word   007070, 070007, cp0000, 077077
+        .word   100770, 070007, cpn000, 170777
+
+        .word   000000, 100770, cpn000, 100770
+        .word   007070, 100770, cpn000, 107770
+
+1011$:  
+;
+2000$:  scc
+        bis     (r0),(r1)
+        .word   2010$
+        .word   2011$
+;
+;                  src  olddst     psw  newdst
+2010$:  .word   000000, 000000, cp0z0c, 000000
+        .word   077077, 000000, cp000c, 077077
+        .word   100770, 000000, cpn00c, 100770
+
+        .word   000000, 070007, cp000c, 070007
+        .word   007070, 070007, cp000c, 077077
+        .word   100770, 070007, cpn00c, 170777
+
+        .word   000000, 100770, cpn00c, 100770
+        .word   007070, 100770, cpn00c, 107770
+
+2011$:  
+;
+9999$:  iot                     ; end of test C4.1
+;
+;
+; END OF ALL TESTS - loop closure ============================================
+;
+        mov     tstno,r0        ; hack, for easy monitoring ...
+        cmp     tstno,#11.      ; all tests done ?
+        beq     .+4
+        halt
+;
+        jmp     loop

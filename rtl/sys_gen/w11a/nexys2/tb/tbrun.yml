@@ -1,7 +1,8 @@
-# $Id: tbrun.yml 916 2017-06-25 13:30:07Z mueller $
+# $Id: tbrun.yml 1249 2022-07-08 06:27:59Z mueller $
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2022-07-07  1249   1.3    add rw11::tcodes @cpu_all.dat
 # 2017-06-25   916   1.2    retire mem70,mem70_n2 - now in tbcpu
 # 2016-09-18   809   1.1.1  use 60 sec tout for run_pdpcp tb_pdp11core_stim
 # 2016-08-28   803   1.1    use ${ise_modes_noisim} when ISim can't be used
@@ -30,3 +31,8 @@
   test: |
     tbrun_tbwrri --cuff --lsuf tbdev --pack rw11  tb_w11a_n2${ms} \
       "rw11::setup_cpu" "rw11::tbench @dev_all.dat"
+
+- tag:  [default, ise, sys_w11a, n2, tccpu]
+  test: |
+    tbrun_tbwrri --cuff --lsuf tccpu --pack rw11  tb_w11a_n2${ms} \
+      "rw11::setup_cpu" "rw11::tcodes @cpu_all.dat"

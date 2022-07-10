@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: tbw.1 1238 2022-05-15 15:19:08Z mueller $
+.\"  $Id: tbw.1 1250 2022-07-10 10:21:03Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\"
@@ -60,6 +60,22 @@ The format is described in section FILES.
 In this case, the \fIFILEDEF\fP argument can be specified as 'tag=value'
 pairs where 'tag' refers to a generic name and 'value' gives the concrete
 file name. Useful when several input files are to be specified.
+.
+.SS Using inline configurations
+A \fIFILEDEF\fP argument can have the form 'tag={line1;line2;...}'.
+In that case, a temporary file is created with the given lines and the name
+of the temporary file is associated with the tag as described above.
+This is often used in conjunction with the tag referring to the
+configuration file.
+This mechanism allows for rlink based test benches to
+specify '.scntl', '.sdata', 'rlmon', 'rbmon', and '.wait' startup commands
+on the \fBtbw\fP command line and is for example used by \fBtbrun_tbwrri\fP(1).
+The '-sxon' option of \fBtbrun_tbwrri\fP(1) creates for example
+.EX
+  _conf={.sdata 08 0002;.sdata 10 0002;}
+.EE
+which generates two 'simbus' configuration cycles before the simulation body
+starts.
 .
 .SS Test benches controlled with \fBti_rri\fP
 In this case, the communication between the test bench and the controlling
@@ -177,12 +193,12 @@ a setup like
 .SH EXAMPLES
 .SS Stimulus file based test benches
 Test benches are usually self-checking and produce a comprehensive log file.
-For each checked response, the line contains the word \fICHECK\fP and either
-an \fIOK\fP or a \fIFAIL\fP, in the latter case in general with an indication
+For each checked response, the line contains the word "CHECK" and either
+an "OK" or a "FAIL", in the latter case in general with an indication
 of what\'s wrong.
 Other unexpected behavior, like timeouts, will also result in a line
-containing the word \fIFAIL\fP.
-When the simulation stops a line with the word \fIDONE\fP is printed.
+containing the word "FAIL".
+When the simulation stops a line with the word "DONE" is printed.
 These test benches are usually run like
 
 .EX

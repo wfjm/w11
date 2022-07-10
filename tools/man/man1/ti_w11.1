@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: ti_w11.1 1237 2022-05-15 07:51:47Z mueller $
+.\"  $Id: ti_w11.1 1250 2022-07-10 10:21:03Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\"
 .\" ------------------------------------------------------------------
 .
-.TH TI_W11 1 2019-01-04 "Retro Project" "Retro Project Manual"
+.TH TI_W11 1 2022-07-08 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 ti_w11 \- Quick starter for \fBti_rri\fP with \fBw11\fP CPU designs
@@ -109,18 +109,25 @@ activate GHDL wave dump, will write a dump file with the name
 .PD
 .
 .SS "common options"
-.IP \fB-ll\fIn\fR
+.IP \fB-ll\fIn\fR 6
 set rlink logging level to \fIn\fR (will issue a --logl=\fIn\fR).
 .IP \fB-dl\fIn\fR
 set rlink dump level to \fIn\fR (will issue a --dmpl=\fIn\fR).
 .IP \fB-tl\fIn\fR
 set rlink I/O trace level to \fIn\fR (will issue a --tiol=\fIn\fR).
+.IP "\fB-to \fIval\fP"
+set timeout for rlink and \fB-w\fP waits (default FPGA 10., sim 120.)
 .IP \fB-b\fR
-batch mode
+batch mode (default is to start interactive session)
+.IP \fB-w\fP
+wait till CPU halted (used with \fB-e\fP, implies \fB-b\fP)
+.IP \fB-ns\fP
+don't start w11 shell
 .IP "\fB-e \fR\fIfile\fR"
 load and execute \fIfile\fP. If the file type is '.mac' the file will
 be on the fly compiled with \fBasm-11\fP(1), for all other file types
 it is assumed that they are in \fBlda-11\fP(5) format.
+Can be combined with \fB-w\fP wait for completion of code.
 .IP \fB-dry\fR
 dry run, prints the commands but doesn't execute
 .
@@ -146,14 +153,20 @@ The typical way to start a Nexys4 board.
 .IP "\fBti_w11 -n3 -e $RETROBASE/tools/mcode/dl11/dl11echo.mac\fR"
 Will start the \fItb_w11a_n3\fP test bench in \fBghdl\fP(1), on the fly
 compile the \fIdz11echo.mac\fP test program with \fBasm-11\fP(1), load
-and execute it. This little test code echos console input, just abort
+and start it. This little test code echos console input, just abort
 with ^C if you have seen enough.
+
+.IP "\fBti_w11 -c7 -tmu -w -e $RETROBASE/tools/tcode/cpu_basics.mac\fR"
+Will start the \fItb_w11a_c7\fP test bench in \fBghdl\fP(1), on the fly
+compile the \fIcpu_basics.mac\fP test code with \fBasm-11\fP(1), load and
+start it, wait for CPU halted, and finally terminate. A tmu trace is written
+to file \fItmu_ofile\fP and can be analysed with \fBtmuconv\fP(1).
 .
 .\" ------------------------------------------------------------------
 .SH "SEE ALSO"
 .BR ti_rri (1),
 .BR asm-11 (1),
-.BR lda-11 (1)
+.BR lda-11 (5)
 
 .\" ------------------------------------------------------------------
 .SH AUTHOR

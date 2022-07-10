@@ -41,7 +41,8 @@ The full set of tests is only run for tagged releases.
   - **/tbrun.yml: since nexys4 not longer available switch to nexys4d
   - tools/bin
     - njobihtm: add -n and -h options
-    - ti_w11: update --help text, add -ar,-n4d,-bn4d
+    - tbrun_tbwrri: fully implement --r(l|b)mon
+    - ti_w11: update --help text, add -ar,-n4d,-bn4d; add -w and -to options
     - tmuconv: add DEUNA defs
   - tools/tcl
     - w11/tcodes.tcl: driver for tcode execution

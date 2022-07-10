@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: ti_w11 1248 2022-07-07 06:25:50Z mueller $
+# $Id: ti_w11 1250 2022-07-10 10:21:03Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2022-07-08  1250   1.4.6  add -w and -to options
 # 2022-07-06  1248   1.4.5  update --help text, add -ar,-n4d,-bn4d
 # 2019-04-19  1133   1.4.4  for -e use .end start address when available
 # 2019-01-04  1103   1.4.3  add -ar,-n4d (ddr versions)
@@ -35,6 +36,7 @@ my $sysbase = "$ENV{RETROBASE}/rtl/sys_gen/w11a";
 
 my $opt_dry;
 my $opt_b;
+my $opt_w;
 my $opt_ns;
 my $opt_io = '';
 my $opt_f  = '';
@@ -76,6 +78,11 @@ while (scalar(@ARGV)) {
     $opt_b = 1;
     shift @ARGV;
 
+  } elsif ($curarg =~ m{^-w$} ) {	    # -w
+    $opt_b = 1;                             # -w implies -b
+    $opt_w = 1;
+    shift @ARGV;
+
   } elsif ($curarg =~ m{^-ns$} ) {	    # -ns
     $opt_ns = 1;
     shift @ARGV;
@@ -86,6 +93,15 @@ while (scalar(@ARGV)) {
 
   } elsif ($curarg =~ m{^-ghw$} ) {	    # -ghw
     $opt_ghw = 1;
+    shift @ARGV;
+
+  } elsif ($curarg =~ m{^-to$} ) {	    # -to
+    shift @ARGV;
+    if (scalar(@ARGV) == 0 || $ARGV[0] !~ /^[0-9]+\.?[0-9]*$/) {
+      print STDERR "ti_w11-E: no decimal value after -to\n";
+        exit 1;
+    }
+    $opt_to = $ARGV[0];
     shift @ARGV;
 
   } elsif ($curarg =~ m{^-s3$} ) {	    # -s3 (use -f2 by default)
@@ -255,8 +271,8 @@ if ($opt_io eq 'f') {
   exit 1;
 }
 
-# setup timeout
-if ($opt_io eq 'f') {
+# setup default timeout
+if ($opt_io eq 'f' && $opt_to eq '') {
   $opt_to = '120.';                   # 120 sec timeout for simulation
 }
 
@@ -335,6 +351,17 @@ if (defined $val_e) {
 push @arglist, @ticmds;                     # add commands from ARGV
 
 #
+# handle -w option
+#
+if ($opt_w) {
+  unless (defined $val_e) {
+    print STDERR "ti_w11-E: -w only allowed with -e\n";
+    exit 1;
+  }
+  push @arglist, "rw11::asmwait cpu0 ldasm_sym $opt_to";
+}
+
+#
 # find ti_rri executable
 #
 
@@ -398,11 +425,14 @@ sub print_usage {
   print "    -ll<n>    set rlink logging level to <n> (using --logl=<n>)\n";
   print "    -dl<n>    set rlink dump level to <n> (using --dmpl=<n>)\n";
   print "    -tl<n>    set rlink trace level to <n> (using --tiol=<n>)\n";
-  print "    -b        batch mode\n";
+  print "    -to <val> timeout for rlink and -w waits\n";
+  print "    -b        batch mode (default is to start interactive session)\n";
+  print "    -w        wait till CPU halted (used with -e, implies -b)\n";
   print "    -ns       don't start w11 shell\n";
   print "    -e <file> load and execute file\n";
   print "                file type '.mac': on the fly compile with asm-11\n";
   print "                any other file type: assume lda format\n";
+  print "    -dry      dry run, prints the commands but doesn't execute\n";
   print "\n";
   print "  either one of -c7,-ar,-arb, ... ,-n2,-s3  must be given -> sim run\n";
   print "  or one of -t or -u must be given -> fpga run\n";

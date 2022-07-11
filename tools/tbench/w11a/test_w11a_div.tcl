@@ -1,9 +1,10 @@
-# $Id: test_w11a_div.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_w11a_div.tcl 1250 2022-07-10 10:21:03Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2014-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2022-07-09  1250   1.0.3  add div_show_exp for export of test cases
 # 2014-07-27   575   1.0.2  drop tout value from asmwait, reply on asmwait_tout
 # 2014-07-20   570   1.0.2  add rw11::div_show_test; test late div quit cases
 # 2014-07-12   569   1.0.1  move sxt16/32 to rutil
@@ -71,7 +72,7 @@ namespace eval rw11 {
   }
 
   #
-  # div_testd3: test division ddh,ddl,,dr + expected result ------------------
+  # div_testd3: test division ddh,ddl,dr + expected result -------------------
   #
   proc div_testd3 {cpu symName ddh ddl dr q r n z v c} {
     upvar 1 $symName sym
@@ -89,6 +90,21 @@ namespace eval rw11 {
       set ri  [rutil::sxt16 $r16]
       puts [format "%06o %06o %06o : %d%d%d%d %06o %06o # %11d/%6d:%6d,%6d" \
                    $ddh $ddl $dr16 $n $z $v $c $q16 $r16 $ddi $dri $qi $ri ]
+    }
+    # use rw11::div_show_exp to export test cases
+    if {[info exists rw11::div_show_exp] && $rw11::div_show_exp} {
+      set ddi [expr (($ddh&0xffff)<<16) + ($ddl&0xffff)]
+      set ddi [rutil::sxt32 $ddi]
+      set dri [rutil::sxt16 $dr16]
+      set qi  [rutil::sxt16 $q16]
+      set ri  [rutil::sxt16 $r16]
+      set psw "cp"
+      append psw [expr {$n ? "n" : "0"}]
+      append psw [expr {$z ? "z" : "0"}]
+      append psw [expr {$v ? "v" : "0"}]
+      append psw [expr {$c ? "c" : "0"}]
+      puts [format "        .word %07o,%07o,%7d., %s,%7d.,%7d.;dd=%11d" \
+                   $ddh $ddl $dri $psw $qi $ri $ddi]
     }
 
     rw11::asmrun  $cpu sym r0 $ddh r1 $ddl r2 $dr16

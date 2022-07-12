@@ -1,4 +1,4 @@
-# $Id: tb_pdp11core_stim.dat 1191 2019-07-13 17:21:02Z mueller $
+# $Id: tb_pdp11core_stim.dat 1251 2022-07-11 06:31:00Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -50,6 +50,7 @@
 #
 C "Code 0" Some elementary initial tests
 C   write registers
+# ==> now tested with cp/test_cp_gpr.tcl
 #
 wr0     000001    -- set r0,..,r7
 wr1     000101    -- 
@@ -61,6 +62,7 @@ wsp     000601    --
 wpc     000701    -- 
 #
 C   read registers
+# ==> now tested with cp/test_cp_gpr.tcl
 #
 rr0   d=000001    -- ! r0
 rr1   d=000101    -- ! r1
@@ -72,6 +74,7 @@ rsp   d=000601    -- ! sp
 rpc   d=000701    -- ! pc
 #
 C   write memory
+# ==> now tested with cp/test_cp_membasics.tcl
 #
 wal     002000    -- write mem(2000,...,2006)
 bwm     4
@@ -81,6 +84,7 @@ bwm     4
         007730    -- 
 #
 C   read memory
+# ==> now tested with cp/test_cp_membasics.tcl
 #
 wal     002000
 brm     4
@@ -91,6 +95,7 @@ brm     4
 #
 C   write/read PSW via various mechanisms
 C     via wps/rps
+# ==> now tested with cp/cp/test_cp_psw.tcl
 #
 wps     000017
 rps   d=000017
@@ -98,6 +103,7 @@ wps     000000
 rps   d=000000
 #
 C     via 16bit cp addressing (wal 177776)
+# ==> now tested with cp/test_cp_psw.tcl
 #
 wal     177776
 wm      000017    -- set all cc flags in psw
@@ -108,6 +114,7 @@ rm    d=000000    -- ! psw
 rps   d=000000
 #
 C     via 22bit cp addressing (wal 177776; wah 177)
+# ==> now tested with cp/test_cp_psw.tcl
 #
 wal     177776
 wah     000177
@@ -119,6 +126,7 @@ rm    d=000000    -- ! psw
 rps   d=000000
 #
 C     via ibr (ibrb 177700)
+# ==> now tested with cp/test_cp_psw.tcl
 #
 wibr 177776 000017    -- set all cc flags in psw
 ribr 177776 d=000017  -- ! psw
@@ -128,6 +136,7 @@ ribr 177776 d=000000  -- ! psw
 rps   d=000000
 #
 C   write register set 1, sm,um stack
+# ==> now tested with cp/test_cp_gpr.tcl
 #
 wps     004000    -- psw: cm=kernel, set=1
 wr0     010001    -- set r0,..,r5					[[r10]]
@@ -142,6 +151,7 @@ wps     144000    -- psw: cm=user(11),set=1
 wsp     110601    -- set usp						[[usp]]
 #
 C   read all registers set 0/1, km,sm,um stack
+# ==> now tested with cp/test_cp_gpr.tcl
 #
 wps     000000    -- psw: cm=kernel(00),set=0
 rr0   d=000001    -- ! r0
@@ -165,6 +175,7 @@ rr4   d=010401    -- ! r4						[[r14]]
 rr5   d=010501    -- ! r5						[[r15]]
 #
 C   write IB space: MMU SAR supervisor mode (16 bit regs)
+# ==> now tested with cp/test_cp_ibrbasics.tcl
 #
 wal     172240    -- set first three SM I space address regs
 bwm     3
@@ -173,6 +184,7 @@ bwm     3
         012344
 #
 C   read IB space: MMU SAR supervisor mode (16 bit regs)
+# ==> now tested with cp/test_cp_ibrbasics.tcl
 #
 wal     172240    -- ! verify first three SM I space address regs
 brm     3
@@ -181,6 +193,7 @@ brm     3
       d=012344
 #
 C   read IB space via ibr: MMU SAR supervisor mode (16 bit regs)
+# ==> now tested with cp/test_cp_ibrbasics.tcl
 #
 ribr 172240 d=012340
 ribr 172242 d=012342
@@ -943,6 +956,7 @@ rpc   d=003542    -- !
 # Setup code 14 --- code 14 doesn't exist anymore...
 #-----------------------------------------------------------------------------
 C Setup code 15 [base 3600; use 36-37] (test 4 traps)
+# ==> now tested with test_w11a_inst_traps.tcl
 #
 wal     003600    -- code:
 bwm     5
@@ -1143,7 +1157,7 @@ bwm     32
         005524    -- adc (r4)+         (#200)   
         160124    -- sub r1,(r4)+      (#4711,   #4700)
         005624    -- sbc (r4)+         (#200)
-        000324    -- swap (r4)+        (#111000)
+        000324    -- swab (r4)+        (#111000)
         006724    -- sxt (r4)+         (#111111 with N=1)
         074124    -- xor r1,(r4)+      (#070707,#4711)
         006724    -- sxt (r4)+         (#111111 with N=0)
@@ -1246,7 +1260,7 @@ brm     31
       d=000201    -- ! mem(4360)=000201; adc (r4)+    (#200)
       d=177770    -- ! mem(4362)=177770; sub r1,(r4)+ (#4711,  #4701)
       d=000177    -- ! mem(4364)=000177; sbc (r4)+    (#200)
-      d=000222    -- ! mem(4366)=000222; swap (r4)+   (#111000)
+      d=000222    -- ! mem(4366)=000222; swab (r4)+   (#111000)
       d=177777    -- ! mem(4370)=177777; sxt (r4)+    (#111111)
       d=074016    -- ! mem(4372)=074016; xor r1,(r4)+ (#070707)
       d=000000    -- ! mem(4374)=000000; sxt (r4)+    (#111111)
@@ -1280,7 +1294,7 @@ brm     31
       d=000020    -- ! mem(4560)=0000; adc (r4)+    (#200)
       d=000031    -- ! mem(4562)=N00C; sub r1,(r4)+ (#4711,  #4701)
       d=000020    -- ! mem(4564)=0000; sbc (r4)+    (#200)
-      d=000030    -- ! mem(4566)=N000; swap (r4)+   (#111000)
+      d=000030    -- ! mem(4566)=N000; swab (r4)+   (#111000)
       d=000030    -- ! mem(4570)=N000; sxt (r4)+    (#111111 with N=1)
       d=000020    -- ! mem(4572)=0000; xor r1,(r4)+ (#4711,   #070707)
       d=000024    -- ! mem(4574)=0Z00; sxt (r4)+    (#111111 with N=0)
@@ -1887,7 +1901,7 @@ bwm     68
         006203    -- asr r3
         006203    -- asr r3
         160312    -- sub r3,(r2)         ; correct register contents
-        000300    -- swap r0
+        000300    -- swab r0
         077114    -- sob r1,L1 (.-12)
         052737    -- bis #004000,psw
         004000    
@@ -2149,6 +2163,7 @@ bwm     14
 #
 C Exec code 23 (test cmp and conditional branch)
 C Exec test 23.1 (explict cc setting)
+# ==> now tested with cpu_basics.mac:A1.2
 #
 wr0     006200    -- r0=6200   (input data)
 wr1     000005    -- r1=5
@@ -2177,6 +2192,7 @@ brm     10
       d=053244    -- ! mem(6322) 5 BNE,BLT,BLE,BMI,BHI,BVC,BCC
 #
 C Exec test 23.2 (tst testing)
+# ==> now tested with cpu_basics.mac:A1.2
 #
 wr0     006220    -- r0=6220   (input data)
 wr1     000003    -- r1=3
@@ -3765,6 +3781,7 @@ brm     11
       d=000002    --  100000, 077777 --> nzvc=0010
 #-----------------------------------------------------------------------------
 C Setup code 37 [base 12300] (systematic DIV test)
+# ==> now tested with cpu_eis.mac:A*
 #
 wal     012300    -- code:
 bwm     9
@@ -3793,11 +3810,11 @@ bwm     57
         000000    --      0,     6,     2,  0,     3,     0# 6/ 2 -> 0000 3 0
         000006    -- 
         000002    -- 
-        000000    --      0,     4,    -2, 10,    -2,     0# 4/-2 ->1000 -2 0
+        000000    --      0,     4,    -2, 10,    -2,     0# 4/-2 -> 1000 -2 0
         000004    -- 
         177776    -- 
 #36030
-        000002    --      2,     0,     1,  2,     2,    0# 0x20000 / 1
+        000002    --      2,     0,     1,  2,     2,     0# 0x20000 / 1
         000000    -- 
         000001    -- 
         000002    --      2,     0,    -2, 12,     2,     0# 0x20000 / -2
@@ -3873,7 +3890,7 @@ brm     57
       d=177776    --!
       d=000000    --!
 #37030
-      d=000002    --!     2,     0,     1,  2,     2,    0# 0x20000 / 1
+      d=000002    --!     2,     0,     1,  2,     2,     0# 0x20000 / 1
       d=000002    --!
       d=000000    --!
       d=000012    --!     2,     0,    -2, 12,     2,     0# 0x20000 / -2
@@ -5837,6 +5854,7 @@ bwm     9
 #----
 C Exec code 46 pass 1 (systematic result+cc test of 1+2op instructions; word)
 C Exec test 46.1wr: COM - reg
+# ==> tested now with cpu_basics.mac:B3.*
 #
 wal     036000    -- setup test vector: for com,inc,dec,neg,adc,sbc,tst
 bwm     5
@@ -5875,6 +5893,7 @@ brm     10
       d=000000    -- !
 #--------
 C Exec test 46.1wm: COM - mem
+# ==> tested now with cpu_basics.mac:B3.*
 #
 wal     013224    -- setup test instructions:
 bwm     2
@@ -5906,6 +5925,7 @@ brm     10
       d=000000    -- !
 #--------
 C Exec test 46.2wrc0: INC - reg,C=0
+# ==> now tested with cpu_basics.mac:B1.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -5937,6 +5957,7 @@ brm     10
       d=000000    -- !
 #--------
 C Exec test 46.2wrc1: INC - reg,C=1
+# ==> now tested with cpu_basics.mac:B1.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -5968,6 +5989,7 @@ brm     10
       d=000000    -- !
 #--------
 C Exec test 46.3wrc0: DEC - reg,C=0
+# ==> now tested with cpu_basics.mac:B2.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -5999,6 +6021,7 @@ brm     10
       d=177776    -- !
 #--------
 C Exec test 46.3wrc1: DEC - reg,C=1
+# ==> now tested with cpu_basics.mac:B2.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -6030,6 +6053,7 @@ brm     10
       d=177776    -- !
 #--------
 C Exec test 46.4wr: NEG - reg
+# ==> tested now with cou_basics.mac:B4.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -6061,6 +6085,7 @@ brm     10
       d=000001    -- !
 #--------
 C Exec test 46.5wrc0: ADC - reg,C=0
+# ==> tested now with cou_basics.mac:B5.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -6092,6 +6117,7 @@ brm     10
       d=177777    -- !
 #--------
 C Exec test 46.5wrc1: ADC - reg,C=1
+# ==> tested now with cou_basics.mac:B5.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -6123,6 +6149,7 @@ brm     10
       d=000000    -- !
 #--------
 C Exec test 46.6wrc0: SBC - reg,C=0
+# ==> tested now with cou_basics.mac:B6.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -6154,6 +6181,7 @@ brm     10
       d=177777    -- !
 #--------
 C Exec test 46.6wrc1: SBC - reg,C=1
+# ==> tested now with cou_basics.mac:B6.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -6185,6 +6213,7 @@ brm     10
       d=177776    -- !
 #--------
 C Exec test 46.7wr: TST - reg
+# ==> tested now with cou_basics.mac:B7.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -6216,6 +6245,7 @@ brm     10
       d=177777    -- !
 #--------
 C Exec test 46.7wm: TST - mem
+# ==> tested now with cou_basics.mac:B7.*
 #
 wal     013224    -- setup test instructions:
 bwm     2
@@ -6247,6 +6277,7 @@ brm     10
       d=177777    -- !
 #--------
 C Exec test 46.8wrc0: ROR - reg, C=0
+# ==> tested now with cou_basics.mac:B8.*
 #
 wal     036000    -- setup test vector: for ror,rol,ars,asl
 bwm     7
@@ -6291,6 +6322,7 @@ brm     14
       d=040040    -- !
 #--------
 C Exec test 46.8wrc1: ROR - reg, C=1
+# ==> tested now with cou_basics.mac:B8.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -6326,6 +6358,7 @@ brm     14
       d=140040    -- !
 #--------
 C Exec test 46.9wrc0: ROL - reg, C=0
+# ==> tested now with cou_basics.mac:B9.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -6361,6 +6394,7 @@ brm     14
       d=000200    -- !
 #--------
 C Exec test 46.9wrc1: ROL - reg, C=1
+# ==> tested now with cou_basics.mac:B9.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -6396,6 +6430,7 @@ brm     14
       d=000201    -- !
 #--------
 C Exec test 46.10wrc0: ASR - reg, C=0
+# ==> tested now with cou_basics.mac:B10.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -6431,6 +6466,7 @@ brm     14
       d=140040    -- !
 #--------
 C Exec test 46.10wrc1: ASR - reg, C=1
+# ==> tested now with cou_basics.mac:B10.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -6466,6 +6502,7 @@ brm     14
       d=140040    -- !
 #--------
 C Exec test 46.11wrc0: ASL - reg, C=0
+# ==> tested now with cou_basics.mac:B11.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -6501,6 +6538,7 @@ brm     14
       d=000200    -- !
 #--------
 C Exec test 46.11wrc1: ASL - reg, C=1
+# ==> tested now with cou_basics.mac:B11.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -6536,6 +6574,7 @@ brm     14
       d=000200    -- !
 #--------
 C Exec test 46.12wrc0: MOV - reg, C=0
+# ==> tested now with cou_basics.mac:C7.*
 #
 wal     036000    -- setup test vector: for mov
 bwm     6
@@ -6571,6 +6610,7 @@ brm     6
       d=100000    -- !
 #--------
 C Exec test 46.12wrc1: MOV - reg, C=1
+# ==> tested now with cou_basics.mac:C7.*
 #
 wal     013246    -- setup test instructions:
 bwm     2
@@ -6598,6 +6638,7 @@ brm     6
       d=100000    -- !
 #--------
 C Exec test 46.12mc0: MOV - mem, C=0
+# ==> tested now with cou_basics.mac:C7.*
 #
 wal     013276    -- setup test instructions:
 bwm     2
@@ -6625,6 +6666,7 @@ brm     6
       d=100000    -- !
 #--------
 C Exec test 46.13wrc0: BIT - reg, C=0
+# ==> now tested with cpu_basics.mac:C6.*
 #
 wal     036000    -- setup test vector: for bit,bic,bis,xor
 bwm     12
@@ -6668,10 +6710,11 @@ brm     12
       d=001100    -- !
       d=000000    -- ! bit 110000,011000 -> n0z0v0c0; (010000)
       d=011000    -- !
-      d=000010    -- ! bit 110000,110000 -> n1z0v0c0; (100000)
+      d=000010    -- ! bit 110000,110000 -> n1z0v0c0; (110000)
       d=110000    -- !
 #--------
 C Exec test 46.13wrc1: BIT - reg, C=1
+# ==> now tested with cpu_basics.mac:C6.*
 #
 wal     013246    -- setup test instructions:
 bwm     2
@@ -6701,10 +6744,11 @@ brm     12
       d=001100    -- !
       d=000001    -- ! bit 110000,011000 -> n0z0v0c1; (010000)
       d=011000    -- !
-      d=000011    -- ! bit 110000,110000 -> n1z0v0c1; (100000)
+      d=000011    -- ! bit 110000,110000 -> n1z0v0c1; (110000)
       d=110000    -- !
 #--------
 C Exec test 46.13wmc0: BIT - mem, C=0
+# ==> now tested with cpu_basics.mac:C6.*
 #
 wal     013276    -- setup test instructions:
 bwm     2
@@ -6734,10 +6778,11 @@ brm     12
       d=001100    -- !
       d=000000    -- ! bit 110000,011000 -> n0z0v0c0; (010000)
       d=011000    -- !
-      d=000010    -- ! bit 110000,110000 -> n1z0v0c0; (100000)
+      d=000010    -- ! bit 110000,110000 -> n1z0v0c0; (110000)
       d=110000    -- !
 #--------
 C Exec test 46.14wrc0: BIC - reg, C=0
+# ==> now tested with cpu_basics.mac:C3.*
 #
 wal     013246    -- setup test instructions:
 bwm     2
@@ -6771,6 +6816,7 @@ brm     12
       d=000000    -- !
 #--------
 C Exec test 46.14wrc1: BIC - reg, C=1
+# ==> now tested with cpu_basics.mac:C3.*
 #
 wal     013246    -- setup test instructions:
 bwm     2
@@ -6804,6 +6850,7 @@ brm     12
       d=000000    -- !
 #--------
 C Exec test 46.14wrc0: BIC - mem, C=0
+# ==> now tested with cpu_basics.mac:C3.*
 #
 wal     013276    -- setup test instructions:
 bwm     2
@@ -6837,6 +6884,7 @@ brm     12
       d=000000    -- !
 #--------
 C Exec test 46.15wrc0: BIS - reg, C=0
+# ==> now tested with cpu_basics.mac:C4.*
 #
 wal     013246    -- setup test instructions:
 bwm     2
@@ -6870,6 +6918,7 @@ brm     12
       d=110000    -- !
 #--------
 C Exec test 46.15wrc1: BIS - reg, C=1
+# ==> now tested with cpu_basics.mac:C4.*
 #
 wal     013246    -- setup test instructions:
 bwm     2
@@ -6969,6 +7018,7 @@ brm     12
       d=000000    -- !
 #--------
 C Exec test 46.17wr: CMP - reg
+# ==> now tested with cpu_basic.mac:C5.*
 #
 wal     036000    -- setup test vector: for cmp,add,sub
 bwm     38
@@ -7068,6 +7118,7 @@ brm     38
       d=177777    -- !
 #--------
 C Exec test 46.18r: ADD - reg
+# ==> now tested with cpu_basics.mac:C1.*
 #
 wal     013246    -- setup test instructions:
 bwm     2
@@ -7127,6 +7178,7 @@ brm     38
       d=177776    -- !
 #--------
 C Exec test 46.19r: SUB - reg
+# ==> now tested with cpu_basics.mac:C2.*
 #
 wal     013246    -- setup test instructions:
 bwm     2
@@ -7185,23 +7237,24 @@ brm     38
       d=000004    -- ! sub 177777,177777 -> n0z1v0c0; 000000  
       d=000000    -- !
 #
-C Exec test 46.20r: SWAP - reg
+C Exec test 46.20r: SWAB - reg
+# ==> now tested with cpu_basics.mac:B13.*
 #
-wal     036000    -- setup test vector: for swap
+wal     036000    -- setup test vector: for swab
 bwm     9
-        000000    --   swap 000000
-        000001    --   swap 000001
-        000200    --   swap 000200
-        000400    --   swap 000400
-        100000    --   swap 100000
-        000401    --   swap 000401
-        000600    --   swap 000600
-        100001    --   swap 100001
-        100200    --   swap 100200
+        000000    --   swab 000000
+        000001    --   swab 000001
+        000200    --   swab 000200
+        000400    --   swab 000400
+        100000    --   swab 100000
+        000401    --   swab 000401
+        000600    --   swab 000600
+        100001    --   swab 100001
+        100200    --   swab 100200
 wal     013204    -- setup test instructions:
 bwm     2
         000241    --   ccmov= clc
-        000305    --     iut= swap r5
+        000305    --     iut= swab r5
 wr0     177776    -- r0=177776
 wr1     000011    -- r1=11  (9.)
 wr2     036000    -- r2=36000
@@ -7216,23 +7269,23 @@ rpc   d=013220    -- ! pc=halt
 rr1   d=000000    -- ! r1=0
 wal     037000    -- check result area  (Note: N,Z from lsb of result)
 brm     18
-      d=000004    -- ! swap 000000 -> n0z1v0c0; 000000
+      d=000004    -- ! swab 000000 -> n0z1v0c0; 000000
       d=000000    -- !
-      d=000004    -- ! swap 000001 -> n0z1v0c0; 000400
+      d=000004    -- ! swab 000001 -> n0z1v0c0; 000400
       d=000400    -- !
-      d=000004    -- ! swap 000200 -> n0z1v0c0; 100000
+      d=000004    -- ! swab 000200 -> n0z1v0c0; 100000
       d=100000    -- !
-      d=000000    -- ! swap 000400 -> n0z0v0c0; 000001
+      d=000000    -- ! swab 000400 -> n0z0v0c0; 000001
       d=000001    -- !
-      d=000010    -- ! swap 100000 -> n1z0v0c0; 000200
+      d=000010    -- ! swab 100000 -> n1z0v0c0; 000200
       d=000200    -- !
-      d=000000    -- ! swap 000401 -> n0z0v0c0; 000401
+      d=000000    -- ! swab 000401 -> n0z0v0c0; 000401
       d=000401    -- !
-      d=000000    -- ! swap 000600 -> n0z0v0c0; 100001
+      d=000000    -- ! swab 000600 -> n0z0v0c0; 100001
       d=100001    -- !
-      d=000010    -- ! swap 100001 -> n1z0v0c0; 000600
+      d=000010    -- ! swab 100001 -> n1z0v0c0; 000600
       d=000600    -- !
-      d=000010    -- ! swap 100200 -> n1z0v0c0; 100200
+      d=000010    -- ! swab 100200 -> n1z0v0c0; 100200
       d=100200    -- !
 #--------
 C Exec code 46 pass 2 (systematic result+cc test of 1+2op instructions; byte)
@@ -8478,7 +8531,7 @@ brm     13
       d=005200    -- ! inc r0            ; 
       d=000000    -- ! halt              ; 
 #
-C Exec test 47.1 (pipeline tester adapted from KDJ11A.MAC, test 121, p. 70)
+C Exec test 47.2 (pipeline tester adapted from KDJ11A.MAC, test 121, p. 70)
 #
 wr1     013474    -- r1=13474  (alternate halt)
 cres

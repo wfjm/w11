@@ -1,9 +1,10 @@
-; $Id: cpu_basics.mac 1249 2022-07-08 06:27:59Z mueller $
+; $Id: cpu_basics.mac 1252 2022-07-11 09:22:42Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
+; 2022-07-10  1251   1.0    Initial version
 ; 2015-08-30   710   0.1    First draft
 ;
 ; Test CPU basics
@@ -12,7 +13,7 @@
 ;
 ; Section A: ccops + flow control bxx, sob, jmp, jsr, rts, mark ==============
 ;
-; Test A1.1 -- ccop + bxx ++++++++++++++++++++++++++++++++++++++++++++++++++++
+; Test A1:  ccop + bxx +++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;   This sub-section verifies
 ;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
 ;     0 000 000 010 10n zvc NZVC CLx
@@ -36,13 +37,105 @@
 ;     1 000 011 0bb bbb bbb ---- BCC  if C = 0
 ;     1 000 011 1bb bbb bbb ---- BCS  if C = 1
 ;
+; Test A1.1 -- ccop + psw ++++++++++++++++++++++++++++++++++++++++++++
+;   This test sets and clears all four condition codes and verifies that
+;   the psw properly reflects this.
+;
+ta0101: mov     #cp.psw,r0
+        clr     (r0)
+;
+        ccc                     ; nzvc = 0000
+        cmp     (r0),#cp0000
+        beq     .+4
+        halt
+; sec
+        ccc
+        sec                     ; nzvc = 0001
+        cmp     (r0),#cp000c
+        beq     .+4
+        halt
+; sev
+        ccc
+        sev                     ; nzvc = 0010
+        cmp     (r0),#cp00v0
+        beq     .+4
+        halt
+; sez
+        ccc
+        sez                     ; nzvc = 0100
+        cmp     (r0),#cp0z00
+        beq     .+4
+        halt
+; sen
+        ccc
+        sen                     ; nzvc = 1000
+        cmp     (r0),#cpn000
+        beq     .+4
+        halt
+; sen!sec
+        ccc
+        <sen!sec>               ; nzvc = 1001
+        cmp     (r0),#cpn00c
+        beq     .+4
+        halt
+; sez!sev
+        ccc
+        <sez!sev>               ; nzvc = 1001
+        cmp     (r0),#cp0zv0
+        beq     .+4
+        halt
+;
+        scc                     ; nzvc = 1111
+        cmp     (r0),#cpnzvc
+        beq     .+4
+        halt
+; clc
+        scc
+        clc                     ; nzvc = 1110
+        cmp     (r0),#cpnzv0
+        beq     .+4
+        halt
+; clv
+        scc
+        clv                     ; nzvc = 1101
+        cmp     (r0),#cpnz0c
+        beq     .+4
+        halt
+; clz
+        scc
+        clz                     ; nzvc = 1011
+        cmp     (r0),#cpn0vc
+        beq     .+4
+        halt
+; cln
+        scc
+        cln                     ; nzvc = 0111
+        cmp     (r0),#cp0zvc
+        beq     .+4
+        halt
+; cln!clc
+        scc
+        <cln!clc>               ; nzvc = 0110
+        cmp     (r0),#cp0zv0
+        beq     .+4
+        halt
+; clz!clv
+        scc
+        <clz!clv>               ; nzvc = 1001
+        cmp     (r0),#cpn00c
+        beq     .+4
+        halt
+;
+9999$:  iot                     ; end of test A1.1
+
+; Test A1.2 -- ccop + bxx ++++++++++++++++++++++++++++++++++++++++++++
 ;   This test sets all possible combinations of condition code bits
 ;   (with cc ops) and verifies the branch instruction response
 ;   Note: after normal compares N will never be 1 if Z=1 (a number can not
 ;         zero and negative simultaneously). Thus not all combinations are
 ;         used in normal code execution. 
 ;
-ta0101: clr     @#cp.psw
+ta0102: clr     @#cp.psw
         ;
         ; case NZVC = 0000 -- N=0 Z=0 V=0 C=0 ------------------------
         ;
@@ -619,73 +712,6 @@ ta0101: clr     @#cp.psw
 1714$:  br      9999$
 1799$:  halt
         ;
-;;;
-9999$:  iot                     ; end of test A1.1
-;
-; Test A1.2 -- ccop + psw ++++++++++++++++++++++++++++++++++++++++++++++++++++
-;   This test sets and clears all four condition codes and verifies that
-;   the psw properly reflects this.
-;
-ta0102: mov     #cp.psw,r0
-        clr     (r0)
-;
-        ccc                     ; nzvc = 0000
-        cmp     (r0),#cp0000
-        beq     .+4
-        halt
-;
-        ccc
-        sec                     ; nzvc = 0001
-        cmp     (r0),#cp000c
-        beq     .+4
-        halt
-;
-        ccc
-        sev                     ; nzvc = 0010
-        cmp     (r0),#cp00v0
-        beq     .+4
-        halt
-;
-        ccc
-        sez                     ; nzvc = 0100
-        cmp     (r0),#cp0z00
-        beq     .+4
-        halt
-;
-        ccc
-        sen                     ; nzvc = 1000
-        cmp     (r0),#cpn000
-        beq     .+4
-        halt
-;
-        scc                     ; nzvc = 1111
-        cmp     (r0),#cpnzvc
-        beq     .+4
-        halt
-;
-        scc
-        clc                     ; nzvc = 1110
-        cmp     (r0),#cpnzv0
-        beq     .+4
-        halt
-;
-        scc
-        clv                     ; nzvc = 1101
-        cmp     (r0),#cpnz0c
-        beq     .+4
-        halt
-;
-        scc
-        clz                     ; nzvc = 1011
-        cmp     (r0),#cpn0vc
-        beq     .+4
-        halt
-;
-        scc
-        cln                     ; nzvc = 0111
-        cmp     (r0),#cp0zvc
-        beq     .+4
-        halt
 ;
 9999$:  iot                     ; end of test A1.2
 ;
@@ -754,7 +780,7 @@ ta0201: mov     #cp.psw,r5
         beq     .+4
         halt
 ;
-9999$:  iot                     ; end of test A1.3
+9999$:  iot                     ; end of test A2.1
 ;
 ; Test A3 -- jmp +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;   This sub-section verifies
@@ -897,7 +923,7 @@ top1wm: mov     (r5),101$       ; setup cc setter
         rts     pc
 ;
 200$:   .word   0
-;         
+;
 ; Test B1 -- inc +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;   This sub-section verifies
 ;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
@@ -906,9 +932,9 @@ top1wm: mov     (r5),101$       ; setup cc setter
 ; Test B1.1 -- inc instruction ++++++++++++++++++++++++++++++++++++++++
 ;
 tb0101: clr     cp.psw
-        mov     #1000$,r5       ; reg mode tests
+        mov     #1000$,r5       ; reg mode tests (with ccc)
         jsr     pc,top1wr
-        mov     #2000$,r5       ; mem mode tests
+        mov     #2000$,r5       ; mem mode tests (with scc)
         jsr     pc,top1wm
         jmp     9999$
 ;
@@ -926,7 +952,7 @@ tb0101: clr     cp.psw
         .word   100001, cpn000, 100002
         .word   177776, cpn000, 177777
         .word   177777, cp0z00, 000000
-1011$:  
+1011$:
 ;
 2000$:  scc
         inc     (r1)
@@ -942,21 +968,21 @@ tb0101: clr     cp.psw
         .word   100001, cpn00c, 100002
         .word   177776, cpn00c, 177777
         .word   177777, cp0z0c, 000000
-2011$:  
+2011$:
 ;
 9999$:  iot                     ; end of test B1.1
-;        
+;
 ; Test B2 -- dec +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;   This sub-section verifies
 ;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
 ;     0 000 101 011 ddd ddd NZV- DEC
 ;
-; Test B2.1 -- dec instruction ++++++++++++++++++++++++++++++++++++++++
+; Test B2.1 -- dec instruction +++++++++++++++++++++++++++++++++++++++
 ;
 tb0201: clr     cp.psw
-        mov     #1000$,r5       ; reg mode tests
+        mov     #1000$,r5       ; reg mode tests (with ccc)
         jsr     pc,top1wr
-        mov     #2000$,r5       ; mem mode tests
+        mov     #2000$,r5       ; mem mode tests (with scc)
         jsr     pc,top1wm
         jmp     9999$
 ;
@@ -974,7 +1000,7 @@ tb0201: clr     cp.psw
         .word   100001, cpn000, 100000
         .word   177776, cpn000, 177775
         .word   177777, cpn000, 177776
-1011$:  
+1011$:
 ;
 2000$:  scc                     ; c=1
         dec     (r1)            ; dec preserves c, so stays 1
@@ -990,9 +1016,478 @@ tb0201: clr     cp.psw
         .word   100001, cpn00c, 100000
         .word   177776, cpn00c, 177775
         .word   177777, cpn00c, 177776 
-2011$:  
+2011$:
 ;
 9999$:  iot                     ; end of test B2.1
+;
+; Test B3 -- com +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 000 101 001 ddd ddd NZ01 COM
+;
+; Test B3.1 -- com instruction +++++++++++++++++++++++++++++++++++++++
+;
+tb0301: clr     cp.psw
+        mov     #1000$,r5       ; reg mode tests (with ccc)
+        jsr     pc,top1wr
+        mov     #2000$,r5       ; mem mode tests (with scc)
+        jsr     pc,top1wm
+        jmp     9999$
+;
+1000$:  ccc
+        com     r1
+        .word   1010$
+        .word   1011$
+;
+;               olddst  psw     newdst
+1010$:  .word   000000, cpn00c, 177777
+        .word   000001, cpn00c, 177776
+        .word   077777, cpn00c, 100000
+        .word   100000, cp000c, 077777
+        .word   177777, cp0z0c, 000000
+1011$:
+;
+2000$:  scc
+        com     (r1)
+        .word   1010$
+        .word   1011$
+;
+9999$:  iot                     ; end of test B3.1
+;
+; Test B4 -- neg +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 000 101 100 ddd ddd NZVC NEG
+;
+; Test B4.1 -- neg instruction +++++++++++++++++++++++++++++++++++++++
+;
+tb0401: clr     cp.psw
+        mov     #1000$,r5       ; reg mode tests (with ccc)
+        jsr     pc,top1wr
+        mov     #2000$,r5       ; mem mode tests (with scc)
+        jsr     pc,top1wm
+        jmp     9999$
+;
+1000$:  ccc
+        neg     r1
+        .word   1010$
+        .word   1011$
+;
+;               olddst  psw     newdst
+1010$:  .word   000000, cp0z00, 000000
+        .word   000001, cpn00c, 177777
+        .word   077777, cpn00c, 100001
+        .word   100000, cpn0vc, 100000
+        .word   177777, cp000c, 000001
+1011$:
+;
+2000$:  scc
+        neg     (r1)
+        .word   1010$
+        .word   1011$
+;
+9999$:  iot                     ; end of test B4.1
+;
+; Test B5 -- adc +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 000 101 101 ddd ddd NZVC ADC
+;
+; Test B5.1 -- adc instruction +++++++++++++++++++++++++++++++++++++++
+;
+tb0501: clr     cp.psw
+        mov     #1000$,r5       ; reg mode tests (with ccc; C=0)
+        jsr     pc,top1wr
+        mov     #2000$,r5       ; mem mode tests (with scc; C=1)
+        jsr     pc,top1wm
+        jmp     9999$
+;
+1000$:  ccc                     ; c=0
+        adc     r1
+        .word   1010$
+        .word   1011$
+;
+;               olddst  psw     newdst
+1010$:  .word   000000, cp0z00, 000000
+        .word   000001, cp0000, 000001
+        .word   077777, cp0000, 077777
+        .word   100000, cpn000, 100000
+        .word   177777, cpn000, 177777
+1011$:
+;
+2000$:  scc                     ; c=1
+        adc     (r1)
+        .word   2010$
+        .word   2011$
+;
+;               olddst  psw     newdst
+2010$:  .word   000000, cp0000, 000001
+        .word   000001, cp0000, 000002
+        .word   077777, cpn0v0, 100000
+        .word   100000, cpn000, 100001
+        .word   177777, cp0z0c, 000000
+2011$:
+;
+9999$:  iot                     ; end of test B5.1
+;
+; Test B6 -- sbc +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 000 101 110 ddd ddd NZVC SBC
+;
+; Test B6.1 -- sbc instruction +++++++++++++++++++++++++++++++++++++++
+;
+tb0601: clr     cp.psw
+        mov     #1000$,r5       ; reg mode tests (with ccc; C=0)
+        jsr     pc,top1wr
+        mov     #2000$,r5       ; mem mode tests (with scc; C=1)
+        jsr     pc,top1wm
+        jmp     9999$
+;
+1000$:  ccc                     ; c=0
+        sbc     r1
+        .word   1010$
+        .word   1011$
+;
+;               olddst  psw     newdst
+1010$:  .word   000000, cp0z00, 000000
+        .word   000001, cp0000, 000001
+        .word   077777, cp0000, 077777
+        .word   100000, cpn000, 100000
+        .word   177777, cpn000, 177777
+1011$:
+;
+2000$:  scc                     ; c=1
+        sbc     (r1)
+        .word   2010$
+        .word   2011$
+;
+;               olddst  psw     newdst
+2010$:  .word   000000, cpn00c, 177777
+        .word   000001, cp0z00, 000000
+        .word   077777, cp0000, 077776
+        .word   100000, cp00v0, 077777
+        .word   177777, cpn000, 177776
+2011$:
+;
+9999$:  iot                     ; end of test B6.1
+;
+; Test B7 -- tst +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 000 101 111 ddd ddd NZ00 TST
+;
+; Test B7.1 -- tst instruction +++++++++++++++++++++++++++++++++++++++
+;
+tb0701: clr     cp.psw
+        mov     #1000$,r5       ; reg mode tests (with ccc)
+        jsr     pc,top1wr
+        mov     #2000$,r5       ; mem mode tests (with scc)
+        jsr     pc,top1wm
+        jmp     9999$
+;
+1000$:  ccc
+        tst     r1
+        .word   1010$
+        .word   1011$
+;
+;               olddst  psw     newdst
+1010$:  .word   000000, cp0z00, 000000
+        .word   000001, cp0000, 000001
+        .word   077777, cp0000, 077777
+        .word   100000, cpn000, 100000
+        .word   177777, cpn000, 177777
+1011$:
+;
+2000$:  scc
+        tst     (r1)
+        .word   1010$
+        .word   1011$
+;
+9999$:  iot                     ; end of test B7.1
+;
+; Test B8 -- ror +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 000 110 000 ddd ddd NZVC ROR
+;
+; Test B8.1 -- ror instruction +++++++++++++++++++++++++++++++++++++++
+;
+tb0801: clr     cp.psw
+        mov     #1000$,r5       ; reg mode tests (with ccc; C=0)
+        jsr     pc,top1wr
+        mov     #2000$,r5       ; mem mode tests (with scc; C=1)
+        jsr     pc,top1wm
+        jmp     9999$
+;
+1000$:  ccc                     ; c=0
+        ror     r1
+        .word   1010$
+        .word   1011$
+;
+;               olddst  psw     newdst
+1010$:  .word   000000, cp0z00, 000000
+        .word   000001, cp0zvc, 000000
+        .word   100000, cp0000, 040000
+        .word   000100, cp0000, 000040
+        .word   000101, cp00vc, 000040
+        .word   040100, cp0000, 020040
+        .word   100100, cp0000, 040040
+1011$:
+;
+2000$:  scc                     ; c=1
+        ror     (r1)
+        .word   2010$
+        .word   2011$
+;
+;               olddst  psw     newdst
+2010$:  .word   000000, cpn0v0, 100000
+        .word   000001, cpn00c, 100000
+        .word   100000, cpn0v0, 140000
+        .word   000100, cpn0v0, 100040
+        .word   000101, cpn00c, 100040
+        .word   040100, cpn0v0, 120040
+        .word   100100, cpn0v0, 140040
+2011$:
+;
+;               olddst  psw     newdst
+;
+9999$:  iot                     ; end of test B8.1
+;
+; Test B9 -- rol +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 000 110 001 ddd ddd NZVC ROL
+;
+; Test B9.1 -- rol instruction +++++++++++++++++++++++++++++++++++++++
+;
+tb0901: clr     cp.psw
+        mov     #1000$,r5       ; reg mode tests (with ccc; C=0)
+        jsr     pc,top1wr
+        mov     #2000$,r5       ; mem mode tests (with scc; C=1)
+        jsr     pc,top1wm
+        jmp     9999$
+;
+1000$:  ccc                     ; c=0
+        rol     r1
+        .word   1010$
+        .word   1011$
+;
+;               olddst  psw     newdst
+1010$:  .word   000000, cp0z00, 000000
+        .word   000001, cp0000, 000002
+        .word   100000, cp0zvc, 000000
+        .word   000100, cp0000, 000200
+        .word   000101, cp0000, 000202
+        .word   040100, cpn0v0, 100200
+        .word   100100, cp00vc, 000200
+1011$:
+;
+2000$:  scc                     ; c=1
+        rol     (r1)
+        .word   2010$
+        .word   2011$
+;
+;               olddst  psw     newdst
+2010$:  .word   000000, cp0000, 000001
+        .word   000001, cp0000, 000003
+        .word   100000, cp00vc, 000001
+        .word   000100, cp0000, 000201
+        .word   000101, cp0000, 000203
+        .word   040100, cpn0v0, 100201
+        .word   100100, cp00vc, 000201
+2011$:
+;
+;               olddst  psw     newdst
+;
+9999$:  iot                     ; end of test B9.1
+;
+; Test B10 -- asr ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 000 110 010 ddd ddd NZVC ASR
+;
+; Test B10.1 -- asr instruction ++++++++++++++++++++++++++++++++++++++
+;
+tb1001: clr     cp.psw
+        mov     #1000$,r5       ; reg mode tests (with ccc)
+        jsr     pc,top1wr
+        mov     #2000$,r5       ; mem mode tests (with scc)
+        jsr     pc,top1wm
+        jmp     9999$
+;
+1000$:  ccc
+        asr     r1
+        .word   1010$
+        .word   1011$
+;
+;               olddst  psw     newdst
+1010$:  .word   000000, cp0z00, 000000
+        .word   000001, cp0zvc, 000000
+        .word   100000, cpn0v0, 140000
+        .word   000100, cp0000, 000040
+        .word   000101, cp00vc, 000040
+        .word   040100, cp0000, 020040
+        .word   100100, cpn0v0, 140040
+1011$:
+;
+2000$:  scc
+        asr     (r1)
+        .word   1010$
+        .word   1011$
+;
+;               olddst  psw     newdst
+;
+9999$:  iot                     ; end of test B10.1
+;
+; Test B11 -- asl ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 000 110 011 ddd ddd NZVC ASL
+;
+; Test B11.1 -- asl instruction ++++++++++++++++++++++++++++++++++++++
+;
+tb1101: clr     cp.psw
+        mov     #1000$,r5       ; reg mode tests (with ccc)
+        jsr     pc,top1wr
+        mov     #2000$,r5       ; mem mode tests (with scc)
+        jsr     pc,top1wm
+        jmp     9999$
+;
+1000$:  ccc
+        asl     r1
+        .word   1010$
+        .word   1011$
+;
+;               olddst  psw     newdst
+1010$:  .word   000000, cp0z00, 000000
+        .word   000001, cp0000, 000002
+        .word   100000, cp0zvc, 000000
+        .word   000100, cp0000, 000200
+        .word   000101, cp0000, 000202
+        .word   040100, cpn0v0, 100200
+        .word   100100, cp00vc, 000200
+1011$:
+;
+2000$:  scc
+        asl     (r1)
+        .word   1010$
+        .word   1011$
+;
+;               olddst  psw     newdst
+;
+9999$:  iot                     ; end of test B11.1
+;
+; Test B12 -- sxt ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 000 110 111 ddd ddd -Z0- SXT
+;
+; Test B12.1 -- sxt instruction ++++++++++++++++++++++++++++++++++++++
+;
+tb1201: clr     cp.psw
+        mov     #1000$,r5       ; reg mode tests (with ccc; N=0)
+        jsr     pc,top1wr
+        mov     #2000$,r5       ; mem mode tests (with scc; N=1)
+        jsr     pc,top1wm
+        jmp     9999$
+;
+1000$:  ccc                     ; n=0
+        sxt     r1
+        .word   1010$
+        .word   1011$
+;
+;               olddst  psw     newdst
+1010$:  .word   000000, cp0z00, 000000
+        .word   177777, cp0z00, 000000
+1011$:
+;
+2000$:  scc                     ; n=1
+        sxt     (r1)
+        .word   2010$
+        .word   2011$
+;
+;               olddst  psw     newdst
+2010$:  .word   000000, cpn00c, 177777
+        .word   177777, cpn00c, 177777
+2011$:
+;
+;               olddst  psw     newdst
+;
+9999$:  iot                     ; end of test B12.1
+;
+; Test B13 -- swab +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 000 000 011 ddd ddd NZ00 SWAB
+;
+; Test B13.1 -- swab instruction +++++++++++++++++++++++++++++++++++++
+;
+tb1301: clr     cp.psw
+        mov     #1000$,r5       ; reg mode tests (with ccc)
+        jsr     pc,top1wr
+        mov     #2000$,r5       ; mem mode tests (with scc)
+        jsr     pc,top1wm
+        jmp     9999$
+;
+1000$:  ccc
+        swab    r1
+        .word   1010$
+        .word   1011$
+;
+;               olddst  psw     newdst
+1010$:  .word   000000, cp0z00, 000000
+        .word   000001, cp0z00, 000400
+        .word   000200, cp0z00, 100000
+        .word   000400, cp0000, 000001
+        .word   100000, cpn000, 000200
+        .word   000401, cp0000, 000401
+        .word   000600, cp0000, 100001
+        .word   100001, cpn000, 000600
+        .word   100200, cpn000, 100200
+1011$:
+;
+2000$:  scc
+        swab    (r1)
+        .word   1010$
+        .word   1011$
+;
+;               olddst  psw     newdst
+;
+9999$:  iot                     ; end of test B13.1
+;
+; Test B14 -- clr ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 000 101 000 ddd ddd 0100 CLR
+;
+; Test B14.1 -- clr instruction ++++++++++++++++++++++++++++++++++++++
+;
+tb1401: clr     cp.psw
+        mov     #1000$,r5       ; reg mode tests (with ccc)
+        jsr     pc,top1wr
+        mov     #2000$,r5       ; mem mode tests (with scc)
+        jsr     pc,top1wm
+        jmp     9999$
+;
+1000$:  ccc
+        clr     r1
+        .word   1010$
+        .word   1011$
+;
+;               olddst  psw     newdst
+1010$:  .word   000000, cp0z00, 000000
+        .word   177777, cp0z00, 000000
+1011$:
+;
+2000$:  scc                     ; c=1
+        clr     (r1)
+        .word   1010$
+        .word   1011$
+;
+;               olddst  psw     newdst
+;
+9999$:  iot                     ; end of test B14.1
 
 ;
 ; Section C: binary instructions =============================================
@@ -1050,18 +1545,17 @@ top2wm: mov     (r5),101$       ; setup cc setter
 200$:   .word   0
 300$:   .word   0
 ;
-;        
 ; Test C1 -- add +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;   This sub-section verifies
 ;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
 ;     0 110 sss sss ddd ddd NZVC ADD
 ;
-; Test C1.1 -- add instructions ++++++++++++++++++++++++++++++++++++++
+; Test C1.1 -- add instruction +++++++++++++++++++++++++++++++++++++++
 ;
 tc0101: clr     cp.psw
-        mov     #1000$,r5       ; reg mode tests
+        mov     #1000$,r5       ; reg mode tests (with ccc)
         jsr     pc,top2wr
-        mov     #2000$,r5       ; mem mode tests
+        mov     #2000$,r5       ; mem mode tests (with scc)
         jsr     pc,top2wm
         jmp     9999$
 ;
@@ -1140,7 +1634,7 @@ tc0101: clr     cp.psw
         .word   100002, 177777, cpn00c, 100001
         .word   177776, 177777, cpn00c, 177775
         .word   177777, 177777, cpn00c, 177776
-1011$:  
+1011$:
 ;
 2000$:  scc
         add     (r0),(r1)
@@ -1157,9 +1651,9 @@ tc0101: clr     cp.psw
 ; Test C2.1 -- sub instruction +++++++++++++++++++++++++++++++++++++++
 ;
 tc0201: clr     cp.psw
-        mov     #1000$,r5       ; reg mode tests
+        mov     #1000$,r5       ; reg mode tests (with ccc)
         jsr     pc,top2wr
-        mov     #2000$,r5       ; mem mode tests
+        mov     #2000$,r5       ; mem mode tests (with scc)
         jsr     pc,top2wm
         jmp     9999$
 ;
@@ -1239,7 +1733,7 @@ tc0201: clr     cp.psw
         .word   100001, 177777, cp0000, 077776
         .word   177776, 177777, cp0000, 000001
         .word   177777, 177777, cp0z00, 000000
-1011$:  
+1011$:
 ;
 2000$:  scc
         sub     (r0),(r1)
@@ -1256,9 +1750,9 @@ tc0201: clr     cp.psw
 ; Test C3.1 -- bic instruction +++++++++++++++++++++++++++++++++++++++
 ;
 tc0301: clr     cp.psw
-        mov     #1000$,r5       ; reg mode tests
+        mov     #1000$,r5       ; reg mode tests (with ccc)
         jsr     pc,top2wr
-        mov     #2000$,r5       ; mem mode tests
+        mov     #2000$,r5       ; mem mode tests (with scc)
         jsr     pc,top2wm
         jmp     9999$
 ;
@@ -1280,7 +1774,7 @@ tc0301: clr     cp.psw
         .word   100700, 100770, cp0000, 000070
         .word   177777, 100770, cp0z00, 000000
 
-1011$:  
+1011$:
 ;
 2000$:  scc
         bic     (r0),(r1)
@@ -1300,7 +1794,7 @@ tc0301: clr     cp.psw
         .word   100700, 100770, cp000c, 000070
         .word   177777, 100770, cp0z0c, 000000
 
-2011$:  
+2011$:
 ;
 9999$:  iot                     ; end of test C3.1
 ;
@@ -1309,12 +1803,12 @@ tc0301: clr     cp.psw
 ;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
 ;     0 101 sss sss ddd ddd NZ0- BIS
 ;
-; Test C4.1 -- bis instructions ++++++++++++++++++++++++++++++++++++++
+; Test C4.1 -- bis instruction +++++++++++++++++++++++++++++++++++++++
 ;
 tc0401: clr     cp.psw
-        mov     #1000$,r5       ; reg mode tests
+        mov     #1000$,r5       ; reg mode tests (with ccc)
         jsr     pc,top2wr
-        mov     #2000$,r5       ; mem mode tests
+        mov     #2000$,r5       ; mem mode tests (with scc)
         jsr     pc,top2wm
         jmp     9999$
 ;
@@ -1335,7 +1829,7 @@ tc0401: clr     cp.psw
         .word   000000, 100770, cpn000, 100770
         .word   007070, 100770, cpn000, 107770
 
-1011$:  
+1011$:
 ;
 2000$:  scc
         bis     (r0),(r1)
@@ -1354,15 +1848,144 @@ tc0401: clr     cp.psw
         .word   000000, 100770, cpn00c, 100770
         .word   007070, 100770, cpn00c, 107770
 
-2011$:  
+2011$:
 ;
 9999$:  iot                     ; end of test C4.1
 ;
+; Test C5 -- cmp +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 010 sss sss ddd ddd NZVC CMP
+;
+; Test C5.1 -- cmp instruction +++++++++++++++++++++++++++++++++++++++
+;
+tc0501: clr     cp.psw
+        mov     #1000$,r5       ; reg mode tests (with ccc)
+        jsr     pc,top2wr
+        mov     #2000$,r5       ; mem mode tests (with scc)
+        jsr     pc,top2wm
+        jmp     9999$
+;
+1000$:  ccc
+        cmp     r0,r1
+        .word   1010$
+        .word   1011$
+;
+;                  src  olddst     psw  newdst    ; src-dst
+1010$:  .word   000000, 000000, cp0z00, 000000    ; (000000)
+        .word   000001, 000000, cp0000, 000000    ; (000001)
+        .word   177777, 000000, cpn000, 000000    ; (177777)
+        .word   000000, 000001, cpn00c, 000001    ; (177777+C)
+        .word   000001, 000001, cp0z00, 000001    ; (000000)
+        .word   177777, 000001, cpn000, 000001    ; (177776)
+        .word   077776, 077777, cpn00c, 077777    ; (177777+C)
+        .word   077777, 077777, cp0z00, 077777    ; (000000)
+        .word   100000, 077777, cp00v0, 077777    ; (000001)
+        .word   000001, 077777, cpn00c, 077777    ; (100002+C)
+        .word   177777, 077777, cpn000, 077777    ; (100000)
+        .word   077777, 100000, cpn0vc, 100000    ; (177777+C)
+        .word   100000, 100000, cp0z00, 100000    ; (000000)
+        .word   100001, 100000, cp0000, 100000    ; (000001)
+        .word   000001, 100000, cpn0vc, 100000    ; (100001+C)
+        .word   177777, 100000, cp0000, 100000    ; (077777)
+        .word   000000, 177777, cp000c, 177777    ; (000001+C)
+        .word   000001, 177777, cp000c, 177777    ; (000002+C)
+        .word   177777, 177777, cp0z00, 177777    ; (000000)
+1011$:
+;
+2000$:  scc
+        cmp     (r0),(r1)
+        .word   1010$
+        .word   1011$
+;
+9999$:  iot                     ; end of test C5.1
+;
+; Test C6 -- bit +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 011 sss sss ddd ddd NZ0- BIT
+;
+; Test C6.1 -- bit instruction +++++++++++++++++++++++++++++++++++++++
+;
+tc0601: clr     cp.psw
+        mov     #1000$,r5       ; reg mode tests (with ccc)
+        jsr     pc,top2wr
+        mov     #2000$,r5       ; mem mode tests (with scc)
+        jsr     pc,top2wm
+        jmp     9999$
+;
+1000$:  ccc
+        bit     r0,r1
+        .word   1010$
+        .word   1011$
+;
+;                  src  olddst     psw  newdst    ; src&dst
+1010$:  .word   000000, 000000, cp0z00, 000000    ; (000000)
+        .word   000011, 000000, cp0z00, 000000    ; (000000)
+        .word   000011, 000110, cp0000, 000110    ; (000010)
+        .word   000011, 001100, cp0z00, 001100    ; (000000)
+        .word   110000, 011000, cp0000, 011000    ; (010000)
+        .word   110000, 110000, cpn000, 110000    ; (110000)
+1011$:
+;
+2000$:  scc
+        bit     (r0),(r1)
+        .word   2010$
+        .word   2011$
+;
+;                  src  olddst     psw  newdst    ; src&dst
+2010$:  .word   000000, 000000, cp0z0c, 000000    ; (000000)
+        .word   000011, 000000, cp0z0c, 000000    ; (000000)
+        .word   000011, 000110, cp000c, 000110    ; (000010)
+        .word   000011, 001100, cp0z0c, 001100    ; (000000)
+        .word   110000, 011000, cp000c, 011000    ; (010000)
+        .word   110000, 110000, cpn00c, 110000    ; (110000)
+2011$:
+;
+9999$:  iot                     ; end of test C6.1
+;
+; Test C7 -- mov +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 001 sss sss ddd ddd NZ0- MOV
+;
+; Test C7.1 -- mov instruction +++++++++++++++++++++++++++++++++++++++
+;
+tc0701: clr     cp.psw
+        mov     #1000$,r5       ; reg mode tests (with ccc; c=0)
+        jsr     pc,top2wr
+        mov     #2000$,r5       ; mem mode tests (with scc; c=1)
+        jsr     pc,top2wm
+        jmp     9999$
+;
+1000$:  ccc                     ; c=0
+        mov     r0,r1
+        .word   1010$
+        .word   1011$
+;
+;                  src  olddst     psw  newdst
+1010$:  .word   000000, 000000, cp0z00, 000000
+        .word   000001, 000000, cp0000, 000001
+        .word   100000, 000000, cpn000, 100000
+1011$:
+;
+2000$:  scc                     ; c=1
+        mov     (r0),(r1)
+        .word   2010$
+        .word   2011$
+;
+;                  src  olddst     psw  newdst
+2010$:  .word   000000, 177777, cp0z0c, 000000
+        .word   000001, 177777, cp000c, 000001
+        .word   100000, 177777, cpn00c, 100000
+2011$:
+;
+9999$:  iot                     ; end of test C7.1
 ;
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        cmp     tstno,#11.      ; all tests done ?
+        cmp     tstno,#26.      ; all tests done ?
         beq     .+4
         halt
 ;

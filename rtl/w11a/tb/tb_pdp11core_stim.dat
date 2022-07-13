@@ -1,4 +1,4 @@
-# $Id: tb_pdp11core_stim.dat 1251 2022-07-11 06:31:00Z mueller $
+# $Id: tb_pdp11core_stim.dat 1253 2022-07-12 06:32:22Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -7290,6 +7290,7 @@ brm     18
 #--------
 C Exec code 46 pass 2 (systematic result+cc test of 1+2op instructions; byte)
 C Exec test 46.1br: COMB - reg
+# ==> now tested with cpu_basics.mac:D3.*
 #
 wal     036000    -- setup test vector: for com,inc,dec,neg,adc,sbc,tst (b)
 bwm     5
@@ -7328,6 +7329,7 @@ brm     10
       d=000000    -- !
 #--------
 C Exec test 46.1bm: COMB - mem
+# ==> now tested with cpu_basics.mac:D3.*
 #
 wal     013224    -- setup test instructions:
 bwm     2
@@ -7359,6 +7361,7 @@ brm     10
       d=000000    -- !
 #--------
 C Exec test 46.2brc0: INCB - reg,C=0
+# ==> now tested with cpu_basics.mac:D1.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -7390,6 +7393,7 @@ brm     10
       d=000000    -- !
 #--------
 C Exec test 46.2brc1: INCB - reg,C=1
+# ==> now tested with cpu_basics.mac:D1.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -7421,6 +7425,7 @@ brm     10
       d=000000    -- !
 #--------
 C Exec test 46.3brc0: DECB - reg,C=0
+# ==> now tested with cpu_basics.mac:D2.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -7452,6 +7457,7 @@ brm     10
       d=000376    -- !
 #--------
 C Exec test 46.3brc1: DECB - reg,C=1
+# ==> now tested with cpu_basics.mac:D2.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -7483,6 +7489,7 @@ brm     10
       d=000376    -- !
 #--------
 C Exec test 46.4br: NEGB - reg
+# ==> now tested with cpu_basics.mac:D4.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -7514,6 +7521,7 @@ brm     10
       d=000001    -- !
 #--------
 C Exec test 46.5brc0: ADCB - reg,C=0
+# ==> now tested with cpu_basics.mac:D5.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -7545,6 +7553,7 @@ brm     10
       d=000377    -- !
 #--------
 C Exec test 46.5brc1: ADCB - reg,C=1
+# ==> now tested with cpu_basics.mac:D5.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -7576,6 +7585,7 @@ brm     10
       d=000000    -- !
 #--------
 C Exec test 46.6brc0: SBCB - reg,C=0
+# ==> now tested with cpu_basics.mac:D6.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -7607,6 +7617,7 @@ brm     10
       d=000377    -- !
 #--------
 C Exec test 46.6brc1: SBCB - reg,C=1
+# ==> now tested with cpu_basics.mac:D6.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -7638,6 +7649,7 @@ brm     10
       d=000376    -- !
 #--------
 C Exec test 46.7br: TSTB - reg
+# ==> now tested with cpu_basics.mac:D7.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -7669,6 +7681,7 @@ brm     10
       d=000377    -- !
 #--------
 C Exec test 46.7bm: TSTB - mem
+# ==> now tested with cpu_basics.mac:D7.*
 #
 wal     013224    -- setup test instructions:
 bwm     2
@@ -7700,6 +7713,7 @@ brm     10
       d=000377    -- !
 #--------
 C Exec test 46.8brc0: RORB - reg, C=0
+# ==> now tested with cpu_basics.mac:D8.*
 #
 wal     036000    -- setup test vector: for ror,rol,ars,asl (b)
 bwm     7
@@ -7744,6 +7758,7 @@ brm     14
       d=000104    -- !
 #--------
 C Exec test 46.8brc1: RORB - reg, C=1
+# ==> now tested with cpu_basics.mac:D8.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -7779,6 +7794,7 @@ brm     14
       d=000304    -- !
 #--------
 C Exec test 46.9brc0: ROLB - reg, C=0
+# ==> now tested with cpu_basics.mac:D9.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -7814,6 +7830,7 @@ brm     14
       d=000020    -- !
 #--------
 C Exec test 46.9brc1: ROLB - reg, C=1
+# ==> now tested with cpu_basics.mac:D9.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -7849,6 +7866,7 @@ brm     14
       d=000021    -- !
 #--------
 C Exec test 46.10brc0: ASRB - reg, C=0
+# ==> now tested with cpu_basics.mac:D10.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -7884,6 +7902,7 @@ brm     14
       d=000304    -- !
 #--------
 C Exec test 46.10brc1: ASRB - reg, C=1
+# ==> now tested with cpu_basics.mac:D10.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -7919,6 +7938,7 @@ brm     14
       d=000304    -- !
 #--------
 C Exec test 46.11brc0: ASLB - reg, C=0
+# ==> now tested with cpu_basics.mac:D11.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -7954,6 +7974,7 @@ brm     14
       d=000020    -- !
 #--------
 C Exec test 46.11brc1: ASLB - reg, C=1
+# ==> now tested with cpu_basics.mac:D11.*
 #
 wal     013204    -- setup test instructions:
 bwm     2
@@ -7989,6 +8010,7 @@ brm     14
       d=000020    -- !
 #--------
 C Exec test 46.12brc0: MOVB - reg, C=0
+# ==> now tested with cpu_basics.mac:E5.*
 #
 wal     036000    -- setup test vector: for mov
 bwm     6
@@ -8024,6 +8046,7 @@ brm     6
       d=177600    -- !
 #--------
 C Exec test 46.12brc1: MOVB - reg, C=1
+# ==> now tested with cpu_basics.mac:E5.*
 #
 wal     013246    -- setup test instructions:
 bwm     2
@@ -8051,6 +8074,7 @@ brm     6
       d=177600    -- !
 #--------
 C Exec test 46.12bmc0: MOVB - mem, C=0
+# ==> now tested with cpu_basics.mac:E5.*
 #
 wal     013276    -- setup test instructions:
 bwm     2
@@ -8078,6 +8102,7 @@ brm     6
       d=000200    -- !
 #--------
 C Exec test 46.13brc0: BITB - reg, C=0
+# ==> now tested with cpu_basics.mac:E4.*
 #
 wal     036000    -- setup test vector: for bit,bic,bis (b)
 bwm     12
@@ -8125,6 +8150,7 @@ brm     12
       d=000300    -- !
 #--------
 C Exec test 46.13brc1: BITB - reg, C=1
+# ==> now tested with cpu_basics.mac:E4.*
 #
 wal     013246    -- setup test instructions:
 bwm     2
@@ -8158,6 +8184,7 @@ brm     12
       d=000300    -- !
 #--------
 C Exec test 46.13bmc0: BITB - mem, C=0
+# ==> now tested with cpu_basics.mac:E4.*
 #
 wal     013276    -- setup test instructions:
 bwm     2
@@ -8191,6 +8218,7 @@ brm     12
       d=000300    -- !
 #--------
 C Exec test 46.14brc0: BICB - reg, C=0
+# ==> now tested with cpu_basics.mac:E1.*
 #
 wal     013246    -- setup test instructions:
 bwm     2
@@ -8224,6 +8252,7 @@ brm     12
       d=000000    -- !
 #--------
 C Exec test 46.14brc1: BICB - reg, C=1
+# ==> now tested with cpu_basics.mac:E1.*
 #
 wal     013246    -- setup test instructions:
 bwm     2
@@ -8257,6 +8286,7 @@ brm     12
       d=000000    -- !
 #--------
 C Exec test 46.14bmrc0: BICB - mem, C=0
+# ==> now tested with cpu_basics.mac:E1.*
 #
 wal     013276    -- setup test instructions:
 bwm     2
@@ -8290,6 +8320,7 @@ brm     12
       d=000000    -- !
 #--------
 C Exec test 46.15brc0: BISB - reg, C=0
+# ==> now tested with cpu_basics.mac:E2.*
 #
 wal     013246    -- setup test instructions:
 bwm     2
@@ -8323,6 +8354,7 @@ brm     12
       d=000300    -- !
 #--------
 C Exec test 46.15brc1: BISB - reg, C=1
+# ==> now tested with cpu_basics.mac:E2.*
 #
 wal     013246    -- setup test instructions:
 bwm     2
@@ -8356,6 +8388,7 @@ brm     12
       d=000300    -- !
 #--------
 C Exec test 46.17br: CMPB - reg
+# ==> now tested with cpu_basics.mac:E3.*
 #
 wal     036000    -- setup test vector: for cmp (b)
 bwm     38

@@ -1,7 +1,6 @@
 This directory contains udev rules which ensure that the Cypress FX2 on
 - Digilent Nexys2
 - Digilent Nexys3
-- Digilent Atlys
 
 is read/write accessible for user land processes, either in
 - original power on state          _(thus Digilent VID/PID)_

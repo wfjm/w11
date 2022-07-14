@@ -213,8 +213,8 @@ simply use
 
     make <sys>.iconfig
 
-For using the Cypress FX2 USB controller on Digilent Nexys2, Nexys3 and
-Atlys boards just connect the USB cable and
+For using the Cypress FX2 USB controller on Digilent Nexys2 and Nexys3
+boards just connect the USB cable and
 
     make <sys>.jconfig
 

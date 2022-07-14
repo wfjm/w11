@@ -38,8 +38,8 @@ For internal lab use one can use
 
 ### <a id="usb-access">Setup USB access</a>
 
-For using the Cypress FX2 USB interface on Digilent Nexys2, Nexys3 and
-Atlys boards `udev` rules must be setup to allow user level access to
+For using the Cypress FX2 USB interface on Digilent Nexys2 and Nexys3
+boards `udev` rules must be setup to allow user level access to
 these devices. A set of rules is provided under
 
     $RETROBASE/tools/fx2/sys
@@ -54,7 +54,7 @@ Notes:
 ### <a id="fx2-firmware">Rebuild Cypress FX2 firmware</a>
 
 The download includes pre-build firmware images for the Cypress FX2
-USB interface used on the Digilent Nexys2, Nexys3 and Atlys Boards.
+USB interface used on the Digilent Nexys2 and Nexys3 boards.
 These firmware images are under
 
     $RETROBASE/tools/fx2/bin

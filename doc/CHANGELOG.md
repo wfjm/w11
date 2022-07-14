@@ -32,6 +32,7 @@ The full set of tests is only run for tagged releases.
 - all actively used commands have now a man page
 - Doxygen support now for V1.9.4; remove discontinued Tcl support
 - build flow Vivado 2022.1 ready; handle synth 8-3331 -> 8-7129 transition
+- remove Atlys support (only test designs, a w11 design was never done)
 ### New features
 - new verification codes
   - tools/tcode: fast cpu verification codes
@@ -51,6 +52,9 @@ The full set of tests is only run for tagged releases.
     - w11_tcl.Doxyfile: removed, Tcl support removed in Doxygen V1.8.18
 - firmware changes
   - vlib/xlib/bufg_unisim: added, encapulate unisim BUFG
+  - removed designs (drop Atlys)
+    - rtl/sys_gen/tst_rlink_cuff/atlys/sys_tst_rlink_cuff_atlys
+    - rtl/sys_gen/tst_snhumanio/atlys/sys_tst_snhumanio_atlys
 ### Bug Fixes
   - tools/mcode
     - m9312/bootw11.mac: proper init of unit number in getnam

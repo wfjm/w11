@@ -1,8 +1,0 @@
-# libs
-../../vlib/slvtypes.vhd
-../../vlib/rbus/rblib.vhd
-bpgenlib.vbom
-# components
-sn_humanio_demu.vbom
-# design
-sn_humanio_demu_rbus.vhd

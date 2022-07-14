@@ -5,7 +5,6 @@ and is organized in
 | --------- | ------- |
 | [arty](arty)           | support for Digilent Arty A7-35 board |
 | [artys7](artys7)       | support for Digilent Arty S7-50 board |
-| [atlys](atlys)         | support for Digilent Atlys board |
 | [basys3](basys3)       | support for Digilent Basys3 board |
 | [bpgen](bpgen)         | interfaces for IO devices common on Digilent boards |
 | [cmoda7](cmoda7)       | support for Digilent Cmod A7-35 board |

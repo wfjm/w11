@@ -1,4 +1,4 @@
-# $Id: test_w11a_cpuerr.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_w11a_cpuerr.tcl 1254 2022-07-13 06:16:19Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -50,7 +50,7 @@ t.002:
 ;
 ; test 004: non-existent memory abort, will set bit cp.nxm -------------------
 ;
-; The address space jusr below the I/O page is never accessible in the
+; The address space just below the I/O page is never accessible in the
 ; w11 (the 11/70 has ubmap window in this addess space).
 ; So setup MMU kernel I space AR(6) to point to the 8 kbyte below I/O page
 ; don't clear CPUERR at end of test ! 

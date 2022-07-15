@@ -1,0 +1,215 @@
+; $Id: cpu_selftest.mac 1254 2022-07-13 06:16:19Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; Revision History:
+; Date         Rev Version  Comment
+; 2022-07-12  1254   1.0    Initial version
+;
+; Test CPU basics
+;
+        .include        |lib/tcode_std_base.mac|
+;
+; Section A: Self-Test codes
+;
+; Test A1 -- 11/34 self test ++++++++++++++++++++++++++++++++++++++++++
+;  adopted from tb_pdp11core_stim.dat code 34
+;  heavily inspired from 23-248F1, the 11/04-34 Diagnostic PROM
+;
+ta0101: clr     r0              ; r0=000000 c=0
+        inc     r0              ; r0=000001 c=0
+        com     r0              ; r0=177776 c=1
+        asr     r0              ; r0=177777 c=0
+        asl     r0              ; r0=177776 c=1
+        ror     r0              ; r0=177777 c=0
+        tst     r0              ; r0=177777 c=0  ?impact unclear?
+        neg     r0              ; r0=000001 c=1
+        dec     r0              ; r0=000000 c=1
+        sbc     r0              ; r0=177777 c=1
+        rol     r0              ; r0=177777 c=1
+        adc     r0              ; r0=000000 c=1
+        swab    r0              ; r0=000000 c=0
+        beq     1$
+        halt 
+1$:     mov     #300$,r2        ; r2=300$
+        mov     (r2),r3         ; r2=300$   r3=300$
+        cmp     (r2)+,r3        ; r2=300$+2 r3=300$
+        beq     2$
+        halt 
+2$:     add     @(r2)+,r3       ; r2=300$+4 r3=<2*300$>
+        sub     @-(r2),r3       ; r2=300$+2 r3=300$
+        bic     -(r2),r3        ; r2=300$   r3=000000
+        bis     12(r2),r3       ; r2=300$   r3=003122
+        bit     @12(r2),r3      ; r2=300$   r3=003122
+        bne     3$
+        halt 
+3$:     mov     pc,r1           ; r1 points to jmp
+        jmp     (r1)+           ; jumps 1st to itself, 2nd to next instruction
+        mov     #102$,r1
+        jmp     @(r1)+          ; jump to next jmp
+101$:   jmp     (r1)            ; jump to instruction after 102$
+102$:   .word   101$
+        tstb    301$
+        beq     4$
+        halt 
+4$:     mov     r2,r4
+        cmp     (r4)+,(r4)+     ; r4=011564
+        tstb    (r4)+           ; r4=011565 (r4)+=000 
+        beq     5$
+        halt
+5$:     tstb    (r4)            ; r4=011565 (r4)=200
+        bmi     6$
+        halt
+6$:     mov     #302$,r5        ; r5=302$
+        mov     #400$,r2        ; r2=400$
+        mov     (r5),r3         ; r3=177777
+        clr     (r2)            ; 400$[0] =   0
+        movb    (r5)+,(r2)      ; 400$[0] = 377; r5=302$+1
+        inc     r2              ; r2=400$+1
+        movb    (r5)+,(r2)      ; 400$[1] = 377; r5=302$+2
+        dec     r2              ; r2=400$
+        cmp	@(r5)+,(r2)     ; 302$[0] == 400$[0]; r5=302$+4
+        beq     7$
+        halt
+7$:     inc     r2              ; r2=400$+1
+        bicb	@(r5)+,(r2)+    ; 400$[1] =   0; r2=400$+2; r5=302$+6
+        cmp	-(r5),-(r2)     ;                r2=400$;   r5=302$+4
+        bicb	@(r5)+,(r2)+    ; 400$[0] =   0; r2=400$+1; r5=302$+6
+        beq     8$
+        halt
+8$:     mov     r5,r2           ; r2=302$+6
+	mov     -6(r5),r5       ; r5=177777
+	movb    r5,@(r2)+       ; 400$[0] = 377; r2=302$+10
+	bisb    r5,@0(r2)       ; 400$[1] = 377
+	cmp     r3,@-(r2)       ; r2=302$+6
+	beq     9$
+        halt
+9$:     jmp     9999$
+;
+300$:   .word   300$            ; 300$ + 0
+        .word   300$            ;      + 2
+301$:   .byte   000,200         ;      + 4
+302$:   .word   177777          ;      + 6; 302$ + 0
+        .word   302$            ;      +10       + 2
+        .word   302$            ;      +12       + 4
+        .word   400$            ;                + 6
+        .word   400$+1          ;                +10
+400$:   .word   0,0
+;
+9999$:  iot                     ; end of test A1
+;
+; Test A2 -- 11/70 self test ++++++++++++++++++++++++++++++++++++++++++
+;  adopted from tb_pdp11core_stim.dat code 35
+;  heavily inspired from 23-616F1, the 11/60-70 Diagnostic PROM
+;
+ta0201: 
+        clr     sp              ; sp=000000
+        bmi     1$ 
+        bvs     1$ 
+        bhi     1$ 
+        blt     1$ 
+        blos    2$
+1$:     halt
+2$:     dec     sp              ; sp=177777
+        bpl     3$
+        beq     3$ 
+        bge     3$ 
+        ble     4$
+3$:     halt
+4$:     ror     sp              ; sp=077777
+        bvc     5$ 
+        bcc     5$
+        bne     6$
+5$:     halt 
+6$:     mov     #125252,sp      ; sp=125252
+        mov     sp,r0           ; r0=125252
+        mov     r0,r1           ; r1=125252
+        mov     r1,r2           ; r2=125252
+        mov     r2,r3           ; r3=125252
+        mov     r3,r4           ; r4=125252
+        mov     r4,r5           ; r5=125252
+        sub     r5,r1           ; r1=00000
+        blt     7$
+        beq     8$
+7$:     halt
+8$:     rol     r2              ; r2=052524 c=1
+        bcc     9$
+        blt     10$
+9$:     halt
+10$:    add     r2,r3           ; r3=177776 (125252+052524)
+        inc     r3              ; r3=177777
+        com     r3              ; r3=000000
+        add     r3,r1           ; r1=000000 c=0
+        bcs     11$ 
+        ble     12$
+11$:    halt
+12$:    ror     r4              ; r4=052525
+        bis     r4,r3           ; r3=052525 (r3 was 0)
+        add     r5,r3           ; r3=177777 c=0 (125252+052525)
+        inc     r3              ; r3=000000 c=0 (kept)
+        bcs     13$ 
+        dec     r1              ; r1=177777
+        blt     14$ 
+13$:    halt
+14$:    com     r0              ; r0=052525
+        blos    16$
+        halt
+16$:    bic     r0,r1           ; r1=125252
+        add     r1,r1           ; r1=052524 c=1
+        bgt     17$
+        ble     18$
+17$:    halt
+18$:    swab    r1              ; r1=052125
+        cmp     r1,#052125 
+        bne     19$ 
+        bit     r4,r5
+        bgt     19$
+        com     r5              ; r5=052525
+        bne     20$
+19$:    halt
+20$:    movb    #177401,r0      ; r0=000001
+        bpl     22$
+21$:    halt 
+22$:    sob     r0,21$          ; r0=1 so sob falls through; r0=000000
+        sec                     ; c=1
+        rol     r0              ; r0=000001
+        rol     r0              ; r0=000002
+        rol     r0              ; r0=000004
+        mov     r0,r1           ; r1=000004
+        neg     r1              ; r1=177774
+24$:    inc     r1 
+        sob     r0,24$          ; sob will do 4 iterations
+        tst     r0              ; here r0=0; r1=0
+        bne     25$
+        tst     r1
+        beq     26$ 
+25$:    halt
+26$:    mov     #stack,sp       ; sp=002000
+        jsr     pc,100$
+27$:    halt
+100$:   cmp     #27$,(sp)       ; check return address
+        beq     101$ 
+        halt
+101$:   mov     #200$,(sp)      ; set new return
+        rts     pc              ; and rts to 200$
+        halt
+200$:   clr     -(sp)           ; setup vector return
+        mov     #300$,-(sp)     ; 
+        rti                     ; and rti to 300$
+        halt 
+300$:   jmp     @#400$
+        halt
+400$:   mov     #160000,r5      ; r5=160000
+        mov     #500$,v..iit    ; setup iit vector
+        clr     v..iit+2
+        mov     #stack,sp       ; sp=002000
+        tst     (r5)            ; will fail, first word of I/O page
+        halt
+500$:   mov     #v..iit+2,v..iit ; restore iit catcher
+        clr     v..iit+2
+;
+9999$:  iot                     ; end of test A2
+;
+; END OF ALL TESTS - loop closure --------------------------------------------
+;
+        jmp     loop

@@ -1,4 +1,4 @@
-# $Id: tb_pdp11core_stim.dat 1253 2022-07-12 06:32:22Z mueller $
+# $Id: tb_pdp11core_stim.dat 1254 2022-07-13 06:16:19Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -349,6 +349,7 @@ bwm     8
         177600    --  177600    (map to I/O page)
 #-----------------------------------------------------------------------------
 C Setup code 1 [base 2100] (very basics: cont,start; 'simple' instructions)
+# ==> obsolete, covered by test_cp_cpubasics.tcl (2) others
 #
 wal     002100    -- code test 1: (sec+clc+halt)
 bwm     3
@@ -502,6 +503,7 @@ bwm     2
         000000    --   PS:0
 #-----------------------------------------------------------------------------
 C Setup code 5 [base 2500] (srcr modes: mov xxx,rn: (r0),(r0)+,-(r0),@(r0))
+# ==> now tested with test_w11a_srcr_word_flow.tcl
 #
 wal     002500    -- code:
 bwm     6
@@ -543,6 +545,7 @@ rsp   d=001400    -- ! sp
 rpc   d=002514    -- ! pc
 #-----------------------------------------------------------------------------
 C Setup code 6 [base 2600] (srcr modes: mov xxx,rn: x(r0),@x(r0), pc modes)
+# ==> now tested with test_w11a_srcr_word_flow.tcl
 #
 wal     002600    -- code:
 bwm     11
@@ -581,6 +584,7 @@ rsp   d=001400    -- ! sp
 rpc   d=002626    -- ! pc
 #-----------------------------------------------------------------------------
 C Setup code 7 [base 2700] (dstw modes: mov rn,xxx: all non-r modes)
+# ==> now test_w11a_dstw_word_flow.tcl
 #
 wal     002700    -- code:
 bwm     18
@@ -644,6 +648,7 @@ wal     001376
 rmi   d=000666    -- ! mem(sp)=666
 #-----------------------------------------------------------------------------
 C Setup code 10 [base 3000] (dstm modes: inc xxx: all non-r modes)
+# ==> now tested with test_w11a_dstm_word_flow.tcl
 #
 wal     003000    -- code:
 bwm     10
@@ -702,6 +707,7 @@ brm     7
       d=000171    -- ! mem(3064)=171
 #-----------------------------------------------------------------------------
 C Setup code 11 [base 3100; use 31-32] (dsta modes: jsr pc,xxx: all non-r modes)
+# ==> now tested with test_w11a_dsta_flow.tcl
 #
 wal     003100    -- code:
 bwm     10
@@ -1124,6 +1130,7 @@ wal     177572    -- SSR0
 rmi   d=000000    -- ! cleared by CRESET 
 #-----------------------------------------------------------------------------
 C Setup code 17 [base 4100; use 41-46] (basic instruction and cc test)
+# ==> now tested with w11a/test_w11a_inst_quick.tcl
 #
 wal     004100    -- code: (length 70)
 bwm     32
@@ -1306,6 +1313,7 @@ bwm     2
         000000    --   PS:0
 #-----------------------------------------------------------------------------
 C Setup code 20 [base 4700] (check CPUERR and error handling)
+#  !! test_w11a_cpuerr.tcl --> only partial implementation !!
 #[[off]]
 wal     004700    -- code (to be single stepped...)
 bwm     11
@@ -2317,6 +2325,7 @@ brm     3
 #
 #-----------------------------------------------------------------------------
 C Setup code 25 [base 6500; use 65-66] (basic byte instruction and cc test)
+# ==> now tested with w11a/test_w11a_inst_quick.tcl
 #
 wal     006500    -- code: 
 bwm     22
@@ -2394,25 +2403,25 @@ rpc   d=006554    -- ! pc=6554
 wal     006600
 brm     11
       d=155523    -- ! mem(6600)=123;  movb r1,(r4)+ (#123, #333)
-#                             ! mem(6601)=333;  cmpb r1,(r4)+ (#123, #333)
+#                    ! mem(6601)=333;  cmpb r1,(r4)+ (#123, #333)
       d=051511    -- ! mem(6602)=111;  cmpb r1,(r4)+ (#321, #111)  
-#                             ! mem(6603)=123;  cmpb r1,(r4)+ (#123, #123)  
+#                    ! mem(6603)=123;  cmpb r1,(r4)+ (#123, #123)  
       d=044000    -- ! mem(6604)=000;  clrb (r4)+    (#333)
-#                             ! mem(6605)=011;  bitb r1,(r4)+ (#123, #11)    
+#                    ! mem(6605)=011;  bitb r1,(r4)+ (#123, #11)    
       d=104044    -- ! mem(6606)=044;  bitb r1,(r4)+ (#123, #44)    
-#                             ! mem(6607)=210;  bicb r1,(r4)+ (#123, #333)
+#                    ! mem(6607)=210;  bicb r1,(r4)+ (#123, #333)
       d=027133    -- ! mem(6610)=133;  bisb r1,(r4)+ (#123, #111)
-#                             ! mem(6611)=056;  comb (r4)+    (#321)
+#                    ! mem(6611)=056;  comb (r4)+    (#321)
       d=150322    -- ! mem(6612)=322;  incb (r4)+    (#321)
-#                             ! mem(6613)=320;  decb (r4)+    (#321)
+#                    ! mem(6613)=320;  decb (r4)+    (#321)
       d=150457    -- ! mem(6614)=057;  negb (r4)+    (#321)
-#                             ! mem(6615)=321;  tstb (r4)+    (#321)
+#                    ! mem(6615)=321;  tstb (r4)+    (#321)
       d=104100    -- ! mem(6616)=100;  rorb (r4)+    (#201) Cout=1
-#                             ! mem(6617)=210;  rorb (r4)+    (#021) Cout=1
+#                    ! mem(6617)=210;  rorb (r4)+    (#021) Cout=1
       d=004021    -- ! mem(6620)=021;  rolb (r4)+    (#210) Cout=1
-#                             ! mem(6621)=010;  asrb (r4)+    (#020)   
+#                    ! mem(6621)=010;  asrb (r4)+    (#020)   
       d=020310    -- ! mem(6622)=310;  asrb (r4)+    (#220)   
-#                             ! mem(6623)=040;  aslb (r4)+    (#020)   
+#                    ! mem(6623)=040;  aslb (r4)+    (#020)   
       d=000040    -- ! mem(6624)=040;  aslb (r4)+    (#220)   
 #
 wal     006626    --             NZVC
@@ -3474,6 +3483,7 @@ brm     6
       d=000777    -- ! mem(11377)=000000   
 #-----------------------------------------------------------------------------
 C Setup code 34 [base 11400; use 114-115] (11/34 self test code)
+# ==> now tested with cpu_selftest.mac:A1
 # code adapted from M9312 23-248F1 console PROM, the 11/04-34 Diagnostic PROM
 #
 wal     011400    -- code:
@@ -3507,7 +3517,7 @@ bwm     51
 #11460
         056203    -- bis 12(r2),r3       ; r2=011560 r3=011566
         000012
-        037203    -- bis @12(r2),r3      ; r2=011560 r3=011566
+        037203    -- bit @12(r2),r3      ; r2=011560 r3=011566
         000012
         001001    -- bne .+1             ; 
         000000    -- halt                ; 
@@ -3560,6 +3570,7 @@ rr4   d=011565    -- ! r4
 rpc   d=011546    -- ! pc
 #-----------------------------------------------------------------------------
 C Setup code 35 [base 11600; use 116-121] (11/70 self test code)
+# ==> now tested with cpu_selftest.mac:A2
 # code adapted from M9312 23-616F1 console PROM, the 11/60-70 Diagnostic PROM
 #
 wal     011600    -- code:
@@ -3571,7 +3582,7 @@ bwm     117
         002401    --      blt L3          ; 
         101401    --      blos L4         ; 
         000000    -- L3:  halt            ; 
-        005306    -- L3:  dec sp          ; sp=177777
+        005306    -- L4:  dec sp          ; sp=177777
 #11620
         100003    --      bpl L5          ; 
         001402    --      beq L5          ; 
@@ -3623,7 +3634,7 @@ bwm     117
         101401    --      blos L16        ; 
         000000    --      halt            ; 
         040001    -- L16: bic r0,r1       ; r1=125252
-        060101    -- L16: add r1,r1       ; r1=052524 c=1
+        060101    --      add r1,r1       ; r1=052524 c=1
         003001    --      bgt L17         ; 
         003401    --      ble L18         ; 
 #11760
@@ -3715,6 +3726,7 @@ bwm     2
 #   result data:  037000   (512 byte area)
 #-----------------------------------------------------------------------------
 C Setup code 36 [base 12200] (systematic CMP test)
+# ==> now tested with cpu_basic.mac:C5.*  (redundant with 46.17wr)
 #
 wal     012200    -- code:
 bwm     7

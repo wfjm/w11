@@ -1,4 +1,4 @@
-# $Id: w11a_all.dat 1250 2022-07-10 10:21:03Z mueller $
+# $Id: w11a_all.dat 1254 2022-07-13 06:16:19Z mueller $
 #
 ## steering file for all w11a tests
 #
@@ -10,6 +10,8 @@ test_w11a_srcr_word_flow.tcl
 test_w11a_dstw_word_flow.tcl
 test_w11a_dstm_word_flow.tcl
 test_w11a_dsta_flow.tcl
+#
+test_w11a_inst_quick.tcl
 test_w11a_inst_traps.tcl
 #
 test_w11a_cpuerr.tcl

@@ -1,4 +1,4 @@
-; $Id: 211bsd_rpmin_boot.scmd 899 2017-05-27 13:25:41Z mueller $
+; $Id: 211bsd_rpmin_boot.scmd 1256 2022-07-15 09:14:14Z mueller $
 ;
 ; Setup file for 211bsd RP06 based minimal memory system
 ;
@@ -20,6 +20,6 @@ set rl1 rl02
 set rl2 rl02
 set rl3 rl02
 ;
-att rp0 211bsd_rp512_simh.dsk
+att rp0 211bsd_rpmin.dsk
 ;
 boo rp0

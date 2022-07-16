@@ -33,6 +33,7 @@ The full set of tests is only run for tagged releases.
 - Doxygen support now for V1.9.4; remove discontinued Tcl support
 - build flow Vivado 2022.1 ready; handle synth 8-3331 -> 8-7129 transition
 - remove Atlys support (only test designs, a w11 design was never done)
+- cleanup SimH setup files (*.scmd), use autoconfig, set disk types
 ### New features
 - new verification codes
   - tools/tcode: fast cpu verification codes
@@ -41,12 +42,18 @@ The full set of tests is only run for tagged releases.
   - ci.yml: define TBW_GHDL_OPTS and suppress IEEE package warnings at t=0ms
   - **/tbrun.yml: since nexys4 not longer available switch to nexys4d
   - tools/bin
+    - create_disk: -help: print byte size of disk
     - njobihtm: add -n and -h options
     - tbrun_tbwrri: fully implement --r(l|b)mon
     - ti_w11: update --help text, add -ar,-n4d,-bn4d; add -w and -to options
     - tmuconv: add DEUNA defs
   - tools/tcl
     - w11/tcodes.tcl: driver for tcode execution
+  - tools/oskit/*
+    - *.scmd: set RL/RP disk types
+    - rsx11mp-30_rp_boot.scmd: disable STOP_TRAPS simulator stops
+    - u7ed_rp_boot.scmd: use setup_w11a_max.scmd and 2M memory
+  - tools/simh/setup_w11a_(min|max).scmd: use autoconfig, cleanups
   - tools/dox
     - w11_(cpp|vhd_all).Doxyfile: for Doxygen V1.9.4
     - w11_tcl.Doxyfile: removed, Tcl support removed in Doxygen V1.8.18

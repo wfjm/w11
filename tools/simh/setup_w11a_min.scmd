@@ -1,22 +1,32 @@
-; $Id: setup_w11a_min.scmd 1200 2019-08-04 16:17:20Z mueller $
+; $Id: setup_w11a_min.scmd 1256 2022-07-15 09:14:14Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2009-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2009-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Setup file for 'minimal' w11a configuration under simh 3.8 and above
 ;
 ; This setup reflects the minimal w11a system on a S3BOARD
 ;   --> 1MByte, 2 DL11, LP+PC, RK05
 ;
+; Address and vector assignments are done by simh autoconfig (marked with *)
+; These assignments match the real w11a implementation
+;
 ; 11/70 CPU no FPP, 1 MByte memory
-; 2 DL11
-; 0 DZ11
-; 1 LP11
-; 1 PC11
-; 1 RK11 + 8 RK05    drives
-; 0 RL11 + 0 RL01/02 drives
-; 0 RH70 + 0 RP06    drives
-; 0 TM11 + 0 drives
-; 0 DEUNA
+; 1 KL11-L                      177546/100/BR6
+; 2 DL11                        177560/060/BR4   (cons)
+;                               176500/300/BR4 * (2nd)
+; 0 DZ11                        -
+; 1 LP11                        177514/200/BR4
+; 1 PC11                        177550/070/BR4
+; 1 RK11 + 8 RK05    drives     177400/220/BR5
+; 0 RL11 + 0 RL01/02 drives     -
+; 0 RH70 + 0 RP06    drives     -
+; 0 TM11 + 0 drives             -
+; 0 DEUNA                       -
+;
+; Revision History: 
+; Date         Rev Version  Comment
+; 2022-07-14  1256  1.1     use autoconfig, cleanups
+; 2009-09-13   238  1.0     Initial version
 ;
 ; processor options
 ;
@@ -33,7 +43,6 @@ set clk  50hz
 ; setup pdp11 console via telnet (default is mixed with simh console)
 ;
 set cons telnet=5670
-set cons telnet=buffered
 ;
 ; terminal interface options
 ;   the default tti time=0 setting gives 50 chars/sec, slow
@@ -45,7 +54,6 @@ dep tti time 50000
 set tto 8b
 ;
 ; 2nd DL11 interface options
-;   Note: set dli  vector=300 not allowed, rely on autoconf to set vec->300
 ;   Note: default for DLO's is UC ! -> set to 8bit
 ;
 set dli  enabled
@@ -74,15 +82,13 @@ set rk  enabled
 ;
 ; DISABLE all else
 ;
-set dz   disabled
+set dz  disabled
 set rl  disabled
-set rha disabled
 set rp  disabled
 set tm  disabled
 set xu  disabled
 ;
 set cr  disabled
-set vh  disabled
 set hk  disabled
 set rx  disabled
 set rq  disabled

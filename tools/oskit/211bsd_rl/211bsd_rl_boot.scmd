@@ -1,4 +1,4 @@
-; $Id: 211bsd_rl_boot.scmd 633 2015-01-11 22:58:48Z mueller $
+; $Id: 211bsd_rl_boot.scmd 1256 2022-07-15 09:14:14Z mueller $
 ;
 ; Setup file for 211bsd RL02 based system
 ;
@@ -9,6 +9,9 @@
 do ../../simh/setup_w11a_max.scmd
 set tto 7b
 set dlo0 7b
+;
+set rl0 rl02
+set rl1 rl02
 ;
 att rl0 211bsd_rl_root.dsk
 att rl1 211bsd_rl_usr.dsk

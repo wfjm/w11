@@ -23,7 +23,7 @@ Download, unpack and copy the disk images (*.dsk), e.g.
 
 ### Usage
 
-- Start disk imge in SimH simulator (see section SimH in
+- Start disk image in SimH simulator (see section SimH in
   [w11a_os_guide](../../../doc/w11a_os_guide.md#user-content-simh))
 
   ```

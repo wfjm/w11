@@ -17,6 +17,7 @@ will generate a `core` because awk for example does use floating point
 arithmetic.
 
 **So far only minimal testing on the Cmod A7 system (672 kB memory) done.**
+**The kernel panics with negative memory size if more than 2MB memory seen.**
 
 ### General remarks
 See notes in [w11a_os_guide.md](../../../doc/w11a_os_guide.md) on

@@ -1,4 +1,4 @@
-; $Id: rsx11mp-30_rp_boot.scmd 669 2015-04-26 21:20:32Z mueller $
+; $Id: rsx11mp-30_rp_boot.scmd 1256 2022-07-15 09:14:14Z mueller $
 ;
 ; Setup file for RSX11-M+ V3.0 RP06 based system
 ;
@@ -9,6 +9,15 @@
 do ../../simh/setup_w11a_max.scmd
 set tto 7b
 set dlo0 7b
+;
+; The RSX11-M+ V3.0 secondary bootstrap produces a 11/70 "Red stack trap".
+; It is properly handled, and on a real 11/70 or the w11 the system boots.
+; In SimH the "Red stack trap" is by default a simulator stop condition.
+; This must be disabled by setting the STOP_TRAPS register to 0.
+;
+dep STOP_TRAPS 0
+;
+; disk setup
 ;
 set rp0 rp06
 set rp1 rp06

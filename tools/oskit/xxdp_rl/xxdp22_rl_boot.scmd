@@ -1,4 +1,4 @@
-; $Id: xxdp22_rl_boot.scmd 633 2015-01-11 22:58:48Z mueller $
+; $Id: xxdp22_rl_boot.scmd 1256 2022-07-15 09:14:14Z mueller $
 ;
 ; Setup file for XXDP V2.2 RL02 based system
 ;
@@ -7,6 +7,8 @@
 ; pdp11 xxdp22_rl_boot.scmd
 ;
 do ../../simh/setup_w11a_max.scmd
+;
+set rl0 rl02
 ;
 att rl0 xxdp22.dsk
 ;

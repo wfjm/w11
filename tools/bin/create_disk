@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: create_disk 1189 2019-07-13 16:41:07Z mueller $
+# $Id: create_disk 1256 2022-07-15 09:14:14Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2022-07-14  1256   1.1.5  --help: print byte size of disk
 # 2019-07-13  1189   1.1.4  drop superfluous exists for $opts
 # 2018-12-18  1089   1.1.3  add and use bailout
 # 2015-06-21   692   1.1.2  use sysseek rather seek; add RM80
@@ -248,15 +249,15 @@ sub print_help {
 
   print "\n";
   print "currently supported disk types:\n";
-  print "  type #cyl #trk #sec  bps tot_sec  blocks  -bad\n";
+  print "  type #cyl #trk #sec  bps tot_sec  blocks      bytes  -bad\n";
   foreach my $typ (sort keys %disktype) {
     my $cyl = $disktype{$typ}{cyl};
     my $hd  = $disktype{$typ}{hd};
     my $sec = $disktype{$typ}{sec};
     my $bps = $disktype{$typ}{bps};
-    printf "  %4s %4d %4d %4d %4d %7d %7d   %3s\n",
+    printf "  %4s %4d %4d %4d %4d %7d %7d %10d  %3s\n",
       $typ, $cyl, $hd, $sec, $bps,
-      ($cyl*$hd*$sec), ($cyl*$hd*$sec*$bps)/1024,
+      ($cyl*$hd*$sec), ($cyl*$hd*$sec*$bps)/1024,($cyl*$hd*$sec*$bps),
       ($disktype{$typ}{bad} ? 'yes' : ' no');
   }
 

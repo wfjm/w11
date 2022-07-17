@@ -1,0 +1,156 @@
+; $Id: cpu_badinst_nofpp.mac 1257 2022-07-16 21:49:08Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; Revision History:
+; Date         Rev Version  Comment
+; 2015-07-16  1257   1.0    Initial version
+;
+; Test that invalid instructions trap (including fpp)
+;
+        .include        |lib/tcode_std_base.mac|
+;
+; Section A: verify that invalid instructions trap ===========================
+        jmp     ta0101
+;
+vh.exp: inc     trpcnt
+        add     #2,(sp)
+        rti
+trpcnt: .word   0
+;
+; Test A1.1 -- jsr,jmp +++++++++++++++++++++++++++++++++++++++++++++++
+;   check that the following instructions trap to 10 (rit)
+;     jsr  to register
+;     jmp  to register
+;   Note: 44,45,70 and J11 trap to 10, all other trap to 4
+;
+ta0101: mov     #vh.exp,v..rit          ; setup rit handler
+        clr     trpcnt
+;
+        jsr     pc,r0
+        halt
+        jsr     pc,r5
+        halt
+        jmp     r0
+        halt
+        jmp     r5
+        halt
+;
+        mov     #v..rit+2,v..rit        ; restore rit catcher
+        cmp     trpcnt,#4.
+        beq     .+4
+        halt
+;
+9999$:  iot                     ; end of test A1.1
+;
+; Test A1.2 -- halt ++++++++++++++++++++++++++++++++++++++++++++++++++
+;   check that the following instructions trap to 4 (iit)
+;     halt in supervisor and user mode
+;
+ta0102: mov     #vh.exp,v..iit          ; setup iit handler
+        clr     trpcnt
+;
+        mov     #cp.cms,cp.psw          ; supervisor mode
+        halt                            ; instruction under test
+        nop                             ; skipped by vh.exp
+        mov     #cp.cmu,cp.psw          ; user mode
+        halt                            ; instruction under test
+        nop                             ; skipped by vh.exp
+        clr     cp.psw                  ; back to kernel mode
+;
+        mov     #v..iit+2,v..iit        ; restore iit catcher
+        cmp     trpcnt,#2.
+        beq     .+4
+        halt
+;
+9999$:  iot                     ; end of test A1.2
+;
+; Test A1.3 -- reserved (except fpp) +++++++++++++++++++++++++++++++++
+;   check that reserved instruction code trap to 10 (rit)
+;
+ta0103: mov     #vh.exp,v..rit          ; setup iit handler
+        clr     trpcnt
+;
+        .word   000007                  ; 000007        {MFPT in 11/44, J11}
+        halt
+        .word   000010                  ; 000010-000077
+        halt
+        .word   000077
+        halt
+        .word   000210                  ; 000210-000227
+        halt
+        .word   000227
+        halt
+        .word   007000                  ; 007000-007077  {CSM in 11/44, J11}
+        halt
+        .word   007077
+        halt
+        .word   007100                  ; 007100-007177
+        halt
+        .word   007177
+        halt
+        .word   007200                  ; 007200-007277  {TSTSET in J11}
+        halt
+        .word   007277
+        halt
+        .word   007300                  ; 007300-007377  {WRTLCK in J11}
+        halt
+        .word   007377
+        halt
+        .word   007400                  ; 007400-007777
+        halt
+        .word   007777
+        halt
+        .word   075000                  ; 075000-075777
+        halt
+        .word   075777
+        halt
+        .word   076000                  ; 076000-076177  {CIS}
+        halt
+        .word   076177
+        halt
+        .word   076200                  ; 076200-076777
+        halt
+        .word   076777
+        halt
+        .word   106400                  ; 106400-106477  {MTPS, on 11/34A, J11}
+        halt
+        .word   106477
+        halt
+        .word   106700                  ; 106700-106777  {MFPS, on 11/34A, J11}
+        halt
+        .word   106777
+        halt
+        .word   107000                  ; 107000-107777
+        halt
+        .word   107777
+        halt
+;
+        mov     #v..rit+2,v..rit        ; restore iit catcher
+        cmp     trpcnt,#27.
+        beq     .+4
+        halt
+;
+9999$:  iot                     ; end of test A1.3
+;
+; Test A1.4 -- reserved (nofpp) ++++++++++++++++++++++++++++++++++++++
+;   check that fpp instructions code trap to 10 (rit)
+;
+ta0104: mov     #vh.exp,v..rit          ; setup iit handler
+        clr     trpcnt
+;
+        .word   170000                  ; 170000-177777
+        halt
+        .word   177777
+        halt
+;
+        mov     #v..rit+2,v..rit        ; restore iit catcher
+        cmp     trpcnt,#2.
+        beq     .+4
+        halt
+;
+9999$:  iot                     ; end of test A1.4
+;
+; END OF ALL TESTS - loop closure --------------------------------------------
+;
+        jmp     loop

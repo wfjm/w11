@@ -1,4 +1,4 @@
-# $Id: tb_pdp11core_stim.dat 1254 2022-07-13 06:16:19Z mueller $
+# $Id: tb_pdp11core_stim.dat 1257 2022-07-16 21:49:08Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -5282,6 +5282,7 @@ rr4   d=013076    -- ! r4=13076
 #
 C test 44.5: JMP R : traps to 10 {44,45,70;J11} or 4 {all others} 
 C                    Note: J11 doc is wrong, 11/70 traps 10, not 4, as stated
+# ==> tested now with cpu_badinst_nofpp.mac:A1.1
 #
 wal     177766    -- clear CPUERR
 wm      000000    -- 
@@ -6993,7 +6994,7 @@ brm     12
       d=001111    -- !
       d=000010    -- ! xor 110000,011000 -> n1z0v0c0; 101000
       d=101000    -- !
-      d=000004    -- ! xor 110000,110000 -> n1z0v0c0; 000000
+      d=000004    -- ! xor 110000,110000 -> n0z1v0c0; 000000
       d=000000    -- !
 #--------
 C Exec test 46.16wrc1: XOR - reg, C=1
@@ -7026,7 +7027,7 @@ brm     12
       d=001111    -- !
       d=000011    -- ! xor 110000,011000 -> n1z0v0c1; 101000
       d=101000    -- !
-      d=000005    -- ! xor 110000,110000 -> n1z0v0c1; 000000
+      d=000005    -- ! xor 110000,110000 -> n0z1v0c1; 000000
       d=000000    -- !
 #--------
 C Exec test 46.17wr: CMP - reg
@@ -8601,6 +8602,7 @@ brm     13
       d=000000    -- ! halt              ; 
 #-----------------------------------------------------------------------------
 C Setup code 50 [base 13500] (check that all reserved instructions trap to 10)
+# ==> now tested with cpu_badinst_nofpp.mac
 #
 wal     013500    -- code (to be single stepped...)
 bwm     17

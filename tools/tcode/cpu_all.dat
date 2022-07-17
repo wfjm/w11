@@ -1,7 +1,8 @@
-# $Id: cpu_all.dat 1254 2022-07-13 06:16:19Z mueller $
+# $Id: cpu_all.dat 1257 2022-07-16 21:49:08Z mueller $
 #
 ## steering file for all cpu tests
 #
 cpu_basics.mac
 cpu_eis.mac
+cpu_badinst_nofpp.mac
 cpu_selftest.mac

@@ -1,4 +1,4 @@
-; $Id: cpu_eis.mac 1251 2022-07-11 06:31:00Z mueller $
+; $Id: cpu_eis.mac 1257 2022-07-16 21:49:08Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -11,6 +11,9 @@
         .include        |lib/tcode_std_base.mac|
 ;
 ; Section A: div =============================================================
+;   This section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 111 001 rrr sss sss NZVC DIV
 ;
 
         jmp     ta0101
@@ -282,10 +285,232 @@ ta0102: mov     #1000$,r5
 
 9999$:  iot                     ; end of test A1.2
 ;
+; Section C: ash =============================================================
+;   This section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 111 010 rrr sss sss NZVC ASH
+;
+; Test C1.1 -- ash +++++++++++++++++++++++++++++++++++++++++++++++++++
+;
+tc0101: mov     #1000$,r4       ; setup data pointer
+        mov     #1010$,r5       ; setup end pointer
+        mov     #cp.psw,r3      ; setup psw pointer
+100$:   mov     (r4)+,r0        ; load src
+        ash     (r4)+,r0        ; ash
+        cmp     (r4)+,(r3)      ; check psw
+        beq     .+4
+        halt
+        cmp     (r4)+,r0        ; check
+        beq     .+4
+        halt
+        cmp     r4,r5
+        blo     100$
+        jmp     9999$
+;
+200$:   .word   0
+;
+;                  src,  shift,    psw,    res ;
+1000$:  .word   000000,     0., cp0z00, 000000
+        .word   000200,     0., cp0000, 000200
+        .word   000200,     1., cp0000, 000400
+        .word   000200,     7., cp0000, 040000
+        .word   000200,     8., cpn0v0, 100000 ; sign!
+        .word   000200,     9., cp0zvc, 000000 ; sign!, C=1
+        .word   000200,    10., cp0zv0, 000000 ; sign!
+        .word   000200,    31., cp0zv0, 000000 ; sign!; max pos count
+        .word   000200,    32., cp0z00, 000000 ; !! 0040 --> like -32.
+        .word   000200,    60., cp0000, 000010 ; !! 0074 --> like  -4.
+        .word   000200,    65., cp0000, 000400 ; !! 0101 --> like   1.
+        .word   000200,    -1., cp0000, 000100
+        .word   000200,    -7., cp0000, 000001
+        .word   000200,    -8., cp0z0c, 000000 ; C=1
+        .word   000200,    -9., cp0z00, 000000
+        .word   000200,   -31., cp0z00, 000000
+        .word   000200,   -32., cp0z00, 000000 ; max neg count
+        .word   000200,   -33., cp0zv0, 000000 ; !! 0737 --> like  31.
+        .word   000200,   -60., cp0000, 004000 ; !! 0704 --> like   4.
+        .word   000200,   -65., cp0000, 000100 ; !! 0677 --> like  -1.
+        .word   000200, 000077, cp0000, 000100 ; -1. only 6 bits
+        .word   000200, 000071, cp0000, 000001 ; -7. only 6 bits
+        .word   000200, 000070, cp0z0c, 000000 ; -8. only 6 bits
+        .word   100200,     0., cpn000, 100200
+        .word   100200,     1., cp00vc, 000400 ; sign change, C=1
+        .word   100200,     7., cp00v0, 040000 ; sign change
+        .word   100200,     8., cpn0v0, 100000 ; sign change
+        .word   100200,     9., cp0zvc, 000000 ; sign change, C=1
+        .word   100200,    -1., cpn000, 140100
+        .word   100200,    -7., cpn000, 177401
+        .word   100200,    -8., cpn00c, 177600 ; C=1
+        .word   100200,    -9., cpn000, 177700
+        .word   100200,   -15., cpn000, 177777
+        .word   100200,   -16., cpn00c, 177777 ; C=1
+        .word   100200,   -17., cpn00c, 177777 ; C=1
+1010$:
+;
+9999$:  iot                     ; end of test C1.1
+;
+; Section D: ashc ============================================================
+;   This section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 111 011 rrr sss sss NZVC ASHC
+;
+; Test D1.1 -- ashc even register  +++++++++++++++++++++++++++++++++++
+;
+td0101: mov     #1000$,r4       ; setup data pointer
+        mov     #1010$,r5       ; setup end pointer
+        mov     #cp.psw,r3      ; setup psw pointer
+100$:   mov     (r4)+,r0        ; load src_h
+        mov     (r4)+,r1        ; load src_l
+        ashc    (r4)+,r0        ; ashc
+        cmp     (r4)+,(r3)      ; check psw
+        beq     .+4
+        halt
+        cmp     (r4)+,r0        ; check res_h
+        beq     .+4
+        halt
+        cmp     (r4)+,r1        ; check res_l
+        beq     .+4
+        halt
+        cmp     r4,r5
+        blo     100$
+        jmp     9999$
+;
+;                src_h,  src_h,  shift,    psw,  res_h,  res_l ;
+1000$:  .word   000000, 000000,     0., cp0z00, 000000, 000000
+        .word   000020, 000200,     0., cp0000, 000020, 000200
+        .word   000020, 000200,     1., cp0000, 000040, 000400
+        .word   000020, 000200,     8., cp0000, 010000, 100000
+        .word   000020, 000200,     9., cp0000, 020001, 000000
+        .word   000020, 000200,    10., cp0000, 040002, 000000
+        .word   000020, 000200,    11., cpn0v0, 100004, 000000 ; sign!
+        .word   000020, 000200,    12., cp00vc, 000010, 000000 ; sign! C=1
+        .word   000020, 000200,    13., cp00v0, 000020, 000000 ; sign!
+        .word   000020, 000200,    23., cp00v0, 040000, 000000 ; sign!
+        .word   000020, 000200,    24., cpn0v0, 100000, 000000 ; sign!
+        .word   000020, 000200,    25., cp0zvc, 000000, 000000 ; sign! C=1
+        .word   000020, 000200,    26., cp0zv0, 000000, 000000 ; sign!
+        .word   000020, 000200,    31., cp0zv0, 000000, 000000 ; sign! max pos
+        .word   000020, 000200,    32., cp0z00, 000000, 000000 ; 0040 like -32.
+        .word   000020, 000200,    60., cp0000, 000001, 000010 ; 0074 like  -4.
+        .word   000020, 000200,    65., cp0000, 000040, 000400 ; 0101 like   1.
+        .word   000020, 000200,    -1., cp0000, 000010, 000100
+        .word   000020, 000200,    -4., cp0000, 000001, 000010
+        .word   000020, 000200,    -5., cp0000, 000000, 100004
+        .word   000020, 000200,    -7., cp0000, 000000, 020001
+        .word   000020, 000200,    -8., cp000c, 000000, 010000 ; C=1
+        .word   000020, 000200,    -9., cp0000, 000000, 004000
+        .word   000020, 000200,   -20., cp0000, 000000, 000001
+        .word   000020, 000200,   -21., cp0z0c, 000000, 000000 ; C=1
+        .word   000020, 000200,   -22., cp0z00, 000000, 000000
+        .word   000020, 000200,   -32., cp0z00, 000000, 000000 ; max neg
+        .word   000020, 000200,   -33., cp0zv0, 000000, 000000 ; 0737 like  31.
+        .word   000020, 000200,   -60., cp0000, 000400, 004000 ; 0704 like   4.
+        .word   000020, 000200,   -65., cp0000, 000010, 000100 ; 0677 like  -1.
+        .word   100020, 000200,     0., cpn000, 100020, 000200
+        .word   100020, 000200,     1., cp00vc, 000040, 000400 ; sign! C=1
+        .word   100020, 000200,    10., cp00v0, 040002, 000000 ; sign!
+        .word   100020, 000200,    11., cpn0v0, 100004, 000000 ; sign!
+        .word   100020, 000200,    12., cp00vc, 000010, 000000 ; sign! C=1
+        .word   100020, 000200,    13., cp00v0, 000020, 000000 ; sign!
+        .word   100020, 000200,    -1., cpn000, 140010, 000100
+        .word   100020, 000200,    -4., cpn000, 174001, 000010
+        .word   100020, 000200,    -5., cpn000, 176000, 100004
+        .word   100020, 000200,    -7., cpn000, 177400, 020001
+        .word   100020, 000200,    -8., cpn00c, 177600, 010000 ; C=1
+        .word   100020, 000200,    -9., cpn000, 177700, 004000
+        .word   100020, 000200,   -15., cpn000, 177777, 000040
+        .word   100020, 000200,   -16., cpn000, 177777, 100020
+        .word   100020, 000200,   -20., cpn000, 177777, 174001
+        .word   100020, 000200,   -21., cpn00c, 177777, 176000 ; C=1
+        .word   100020, 000200,   -22., cpn000, 177777, 177000
+        .word   100020, 000200,   -30., cpn000, 177777, 177776
+        .word   100020, 000200,   -31., cpn000, 177777, 177777
+        .word   100020, 000200,   -32., cpn00c, 177777, 177777 ; C=1
+1010$:
+;
+9999$:  iot                     ; end of test D1.1
+;
+; Test D1.2 -- ashc odd register  ++++++++++++++++++++++++++++++++++++
+;   Note: ashc has very non-obvious cc semantics because the non visible
+;         upper half plays a role. see 'h:' in data below
+;
+td0102: mov     #1000$,r4       ; setup data pointer
+        mov     #1010$,r5       ; setup end pointer
+        mov     #cp.psw,r3      ; setup psw pointer
+        clr     r0              ; for tmu optics
+100$:   mov     (r4)+,r1        ; load src
+        ashc    (r4)+,r1        ; ashc
+        cmp     (r4)+,(r3)      ; check psw
+        beq     .+4
+        halt
+        cmp     (r4)+,r1        ; check res
+        beq     .+4
+        halt
+        cmp     r4,r5
+        blo     100$
+        jmp     9999$
+;
+;                  src,  shift,    psw,    res ;
+1000$:  .word   000000,     0., cp0z00, 000000 ;                 h: 000000
+        .word   002010,     0., cp0000, 002010 ;                 h: 002010
+        .word   002010,     1., cp0000, 004020 ;                 h: 004020
+        .word   002010,     4., cp0000, 040200 ;                 h: 040200
+        .word   002010,     5., cpn0v0, 100400 ; sign!           h: 100400
+        .word   002010,     6., cp00vc, 001000 ; sign! C=1       h: 001001
+        .word   002010,     7., cp00v0, 002000 ; sign!           h: 002002
+        .word   002010,    11., cp00v0, 040000 ; sign!           h: 040004
+        .word   002010,    12., cpn0v0, 100000 ; sign!           h: 100100
+        .word   002010,    13., cp00vc, 000000 ; sign! C=1  Z=0! h: 000201
+        .word   002010,    14., cp00v0, 000000 ; sign!      Z=0! h: 000402
+        .word   002010,    20., cp00v0, 000000 ; sign!      Z=0! h: 040200
+        .word   002010,    21., cpn0v0, 000000 ; sign! N=1! Z=0! h: 100400
+        .word   002010,    22., cp00vc, 000000 ; sign! C=1! Z=0! h: 001000
+        .word   002010,    23., cp00v0, 000000 ; sign!      Z=0! h: 002000
+        .word   002010,    27., cp00v0, 000000 ; sign!      Z=0! h: 040000
+        .word   002010,    28., cpn0v0, 000000 ; sign! N=1! Z=0! h: 100000
+        .word   002010,    29., cp0zvc, 000000 ; sign!           h: 000000
+        .word   002010,    30., cp0zv0, 000000 ; sign!           h: 000000
+        .word   002010,    -1., cp0000, 001004 ;                 h: 001004
+        .word   002010,    -3., cp0000, 000201 ;                 h: 000201
+        .word   002010,    -4., cp000c, 100100 ; C=1   N=0!      h: 000100
+        .word   002010,    -5., cp0000, 040040 ;                 h: 000040
+        .word   002010,   -10., cp0000, 001001 ;                 h: 000001
+        .word   002010,   -11., cp000c, 100400 ; C=1   N=0!      h: 000000
+        .word   002010,   -12., cp0000, 040200 ;                 h: 000000
+        .word   002010,   -15., cp0000, 004020 ;                 h: 000000
+        .word   002010,   -16., cp0000, 002010 ;                 h: 000000
+        .word   002010,   -19., cp0000, 000201 ;                 h: 000000
+        .word   002010,   -20., cp000c, 000100 ; C=1 !no rol!    h: 000000
+        .word   002010,   -21., cp0000, 000040 ;                 h: 000000
+        .word   002010,   -26., cp0000, 000001 ;                 h: 000000
+        .word   002010,   -27., cp0z0c, 000000 ; C=1 Z=1         h: 000000
+        .word   002010,   -28., cp0z00, 000000 ;     Z=1         h: 000000
+        .word   102010,     0., cpn000, 102010 ;                 h: 102010
+        .word   102010,    -1., cpn000, 041004 ;     N=1!        h: 141004
+        .word   102010,    -3., cpn000, 010201 ;     N=1!        h: 170201
+        .word   102010,    -4., cpn00c, 104100 ; C=1 N=1!        h: 174100
+        .word   102010,    -5., cpn000, 042040 ;     N=1!        h: 176040
+        .word   102010,   -10., cpn000, 001041 ;     N=1!        h: 177741
+        .word   102010,   -11., cpn00c, 100420 ; C=1 N=1!        h: 177760
+        .word   102010,   -12., cpn000, 040210 ;     N=1!        h: 177770
+        .word   102010,   -15., cpn000, 004021 ;     N=1!        h: 177777
+        .word   102010,   -16., cpn00c, 102010 ; C=1             h: 177777
+        .word   102010,   -17., cpn000, 141004 ;                 h: 177777
+        .word   102010,   -19., cpn000, 170201 ;                 h: 177777
+        .word   102010,   -20., cpn00c, 174100 ; C=1             h: 177777
+        .word   102010,   -21., cpn000, 176040 ;                 h: 177777
+        .word   102010,   -26., cpn000, 177741 ;                 h: 177777
+        .word   102010,   -27., cpn00c, 177760 ; C=1             h: 177777
+        .word   102010,   -28., cpn000, 177770 ;                 h: 177777
+        .word   102010,   -31., cpn000, 177777 ;                 h: 177777
+1010$:
+;
+9999$:  iot                     ; end of test D1.2
+;
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        cmp     tstno,#2.       ; all tests done ?
+        cmp     tstno,#5.       ; all tests done ?
         beq     .+4
         halt
 ;

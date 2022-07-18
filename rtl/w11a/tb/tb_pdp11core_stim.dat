@@ -2630,6 +2630,7 @@ rr1   d=000002    -- ! r1
 rpc   d=007046    -- ! pc
 #-----------------------------------------------------------------------------
 C Setup code 27 [base 7100; use 71-101] (test ASH/ASHC instruction)
+# ==> now tested with cpu_eis.mac:C1.* (ash) and cpu_eis.mac:D1.* (ashc)
 #
 wal     007100    -- code test 1 (ash)
 bwm     7
@@ -4074,6 +4075,9 @@ brm     51
       d=010222    --!
 #-----------------------------------------------------------------------------
 C Setup code 40 [base 12400] (systematic ASH test)
+# ==> now tested with cpu_eis.mac:C1.*
+# ==> Begemot test cases were extensive due to J11 microcode bugs
+# ==> systematic testing of w11 can be done in a more compact form
 #
 wal     012400    -- code:
 bwm     15
@@ -4393,6 +4397,9 @@ brm     100
 #
 #-----------------------------------------------------------------------------
 C Setup code 41 [base 12500] (systematic ASHC even test)
+# ==> now tested with cpu_eis.mac:D1.1
+# ==> Begemot test cases were extensive due to J11 microcode bugs
+# ==> systematic testing of w11 can be done in a more compact form
 #
 wal     012500    -- code:
 bwm     19
@@ -4794,6 +4801,9 @@ brm     141
       d=000011    --!
 #-----------------------------------------------------------------------------
 C Setup code 42 [base 12600] (systematic ASHC odd test)
+# ==> now tested with cpu_eis.mac:D1.2
+# ==> Begemot test cases were extensive due to J11 microcode bugs
+# ==> systematic testing of w11 can be done in a more compact form
 #
 wal     012600    -- code:
 bwm     15

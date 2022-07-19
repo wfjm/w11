@@ -1,11 +1,11 @@
-.\"  -*- nroff -*-
-.\"  $Id: tmuconv.1 1248 2022-07-07 06:25:50Z mueller $
+.\" -*- nroff -*-
+.\" $Id: tmuconv.1 1258 2022-07-18 10:07:22Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\"
 .\" ------------------------------------------------------------------
 .
-.TH TMUCONV 1 2022-07-06 "Retro Project" "Retro Project Manual"
+.TH TMUCONV 1 2022-07-18 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 tmuconv \- convert w11a tmu output into human readable format
@@ -18,7 +18,9 @@ tmuconv \- convert w11a tmu output into human readable format
 .OP \-t_id
 .OP \-t_ru
 .OP \-t_em
+.OP \-t_vf
 .OP \-t_ib
+.OP \-t_all
 .I FILE
 .
 .SY tmuconv
@@ -28,34 +30,49 @@ tmuconv \- convert w11a tmu output into human readable format
 .\" ------------------------------------------------------------------
 .SH DESCRIPTION
 Converts the output of the \fBw11a\fR trace and monitoring unit (tmu)
-into a human readable format.
+into a human readable format. If no options are given, the default
+output is \fB\-t_id\fR \fB\-t_vf\fR.
 .
 .\" ------------------------------------------------------------------
 .SH OPTIONS
 .
 .\" ----------------------------------------------
 .IP "\fB\-dump\fR"
-dump all information
+dump all information.
 .
 .\" ----------------------------------------------
 .IP "\fB\-cdump\fR"
-dump only changes relative to previous cycle
+dump only changes relative to previous cycle.
 .
 .\" ----------------------------------------------
 .IP "\fB\-t_id\fR"
-trace instruction decodes
+trace instruction decodes.
 .
 .\" ----------------------------------------------
 .IP "\fB\-t_ru\fR"
-trace register updates
+trace register updates.
 .
 .\" ----------------------------------------------
 .IP "\fB\-t_em\fR"
-trace em transactions (external memory bus)
+trace em transactions (external memory bus).
+Reads from well known vector addresses are labeled 'VFETCH'.
+This is very helpful for the detection of interrupts.
+See also \fB\-t_vf\fR.
+Note: every read from location 200 will therefore be labeled 'VFETCH 200 LP11',
+also when it is an instruction fetch for a 'JMP' instruction in old maindecs
+with start address 200.
+.
+.\" ----------------------------------------------
+.IP "\fB\-t_vf\fR"
+trace only vector fetch em transactions (subset of \fB\-t_em\fR)
 .
 .\" ----------------------------------------------
 .IP "\fB\-t_ib\fR"
 trace ib transactions (ibus cycles)
+.
+.\" ----------------------------------------------
+.IP "\fB\-t_all\fR"
+trace all, equivalent to \fB\-t_id\fR \fB\-t_ru\fR \fB\-t_em\fR \fB\-t_ib\fR
 .
 .\" ----------------------------------------------
 .IP "\fB\-help\fR"
@@ -212,7 +229,7 @@ accesses the output CSR of a DL11 interface will look like
 
 and shows the canceled em access and the ibus read-modify-write.
 
-.IP "\fBtmuconv --t_id --t_em --t_ib --t_ru tmu_ofile\fR" 4
+.IP "\fBtmuconv --t_all tmu_ofile\fR" 4
 Like above, in addition, also all register updates are shown. The execution
 of a 'cmp (r2),(r4)+' where r2 points to the psw will look like
 
@@ -223,7 +240,6 @@ of a 'cmp (r2),(r4)+' where r2 points to the psw will look like
    939 ru    0 04   005676 003036 003040 177776 005700 005676*005570  r04
    940 em    r 11 00005674        000011  0101 (1)
 .EE
-
 
 .\" ------------------------------------------------------------------
 .SH "SEE ALSO"

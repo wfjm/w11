@@ -3,7 +3,6 @@
 ../../vlib/rutil.vhd
 ../../vlib/memlib/memlib.vhd
 ../../vlib/rbus/rblib.vhd
-${sys_conf}
 # components
 [sim]../../vlib/memlib/ram_1swsr_wfirst_gen.vbom
 [sim]../../vlib/memlib/ram_2swsr_wfirst_gen.vbom

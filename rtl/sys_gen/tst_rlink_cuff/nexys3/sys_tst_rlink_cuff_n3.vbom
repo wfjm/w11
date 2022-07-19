@@ -12,7 +12,7 @@
 ../../../vlib/rbus/rblib.vhd
 ../../../bplib/fx2lib/fx2lib.vhd
 ../../../bplib/nxcramlib/nxcramlib.vhd
-${sys_conf}
+${sys_conf := ic/sys_conf.vhd}
 # components
 [xst,vsyn]../../../vlib/xlib/s6_cmt_sfs_unisim.vbom
 [ghdl,isim,vsim]../../../vlib/xlib/s6_cmt_sfs_gsim.vbom

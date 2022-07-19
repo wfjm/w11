@@ -2,7 +2,6 @@
 ../../vlib/slvtypes.vhd
 ../../vlib/rutil.vhd
 ../../vlib/rbus/rblib.vhd
-${sys_conf}
 # components
 # design
 tst_mig.vhd

@@ -46,7 +46,7 @@ The full set of tests is only run for tagged releases.
     - njobihtm: add -n and -h options
     - tbrun_tbwrri: fully implement --r(l|b)mon
     - ti_w11: update --help text, add -ar,-n4d,-bn4d; add -w and -to options
-    - tmuconv: add DEUNA defs
+    - tmuconv: add DEUNA defs; add -t_vf -t_all; fis mnemos; add headers
   - tools/tcl
     - w11/tcodes.tcl: driver for tcode execution
   - tools/oskit/*

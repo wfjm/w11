@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: tmuconv 1248 2022-07-07 06:25:50Z mueller $
+# $Id: tmuconv 1258 2022-07-18 10:07:22Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2008-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2022-07-17  1258   1.1.6  add -t_vf -t_all; fis mnemos; add headers
 # 2022-07-06  1246   1.1.5  add DEUNA defs
 # 2019-07-13  1189   1.1.4  drop superfluous exists for $opts
 # 2018-12-18  1089   1.1.3  add and use bailout
@@ -85,7 +86,7 @@ use Getopt::Long;
 my %opts = ();
 
 GetOptions(\%opts, "help", "dump", "cdump",
-	   "t_id", "t_ru", "t_em", "t_ib")
+	   "t_id", "t_ru", "t_em","t_vf", "t_ib", "t_all")
   or bailout("bad command options");
 
 my @var_name;
@@ -154,7 +155,7 @@ my @pdp11_opcode_tbl = (
     {code=>0000004, mask=>0000000, name=>"iot ", type=>"0arg"},
     {code=>0000005, mask=>0000000, name=>"reset",type=>"0arg"},
     {code=>0000006, mask=>0000000, name=>"rtt ", type=>"0arg"},
-    {code=>0000007, mask=>0000000, name=>"!!mfpt", type=>"0arg"},
+    {code=>0000007, mask=>0000000, name=>"!!mfpt", type=>"0arg"}, # 11/44,J11
     {code=>0000100, mask=>0000077, name=>"jmp ", type=>"1arg"},
     {code=>0000200, mask=>0000007, name=>"rts ", type=>"1reg"},
     {code=>0000230, mask=>0000007, name=>"spl ", type=>"spl"},
@@ -185,9 +186,9 @@ my @pdp11_opcode_tbl = (
     {code=>0006500, mask=>0000077, name=>"mfpi", type=>"1arg"},
     {code=>0006600, mask=>0000077, name=>"mtpi", type=>"1arg"},
     {code=>0006700, mask=>0000077, name=>"sxt ", type=>"1arg"},
-    {code=>0007000, mask=>0000077, name=>"!!csm",  type=>"1arg"},
-    {code=>0007200, mask=>0000077, name=>"!!tstset",type=>"1arg"},
-    {code=>0007300, mask=>0000077, name=>"!!wrtlck",type=>"1arg"},
+    {code=>0007000, mask=>0000077, name=>"!!csm",  type=>"1arg"}, # 11/44;J11
+    {code=>0007200, mask=>0000077, name=>"!!tstset",type=>"1arg"},# J11
+    {code=>0007300, mask=>0000077, name=>"!!wrtlck",type=>"1arg"},# J11
     {code=>0010000, mask=>0007777, name=>"mov ", type=>"2arg"},
     {code=>0020000, mask=>0007777, name=>"cmp ", type=>"2arg"},
     {code=>0030000, mask=>0007777, name=>"bit ", type=>"2arg"},
@@ -199,6 +200,10 @@ my @pdp11_opcode_tbl = (
     {code=>0072000, mask=>0000777, name=>"ash ", type=>"rdst"},
     {code=>0073000, mask=>0000777, name=>"ashc", type=>"rdst"},
     {code=>0074000, mask=>0000777, name=>"xor ", type=>"rsrc"},
+    {code=>0075000, mask=>0000007, name=>"!!fadd", type=>"1reg"}, # fis
+    {code=>0075010, mask=>0000007, name=>"!!fsub", type=>"1reg"}, # fis
+    {code=>0075020, mask=>0000007, name=>"!!fmul", type=>"1reg"}, # fis
+    {code=>0075030, mask=>0000007, name=>"!!fdiv", type=>"1reg"}, # fis
     {code=>0077000, mask=>0000777, name=>"sob ", type=>"sob"},
     {code=>0100000, mask=>0000377, name=>"bpl ", type=>"br"},
     {code=>0100400, mask=>0000377, name=>"bmi ", type=>"br"},
@@ -222,10 +227,10 @@ my @pdp11_opcode_tbl = (
     {code=>0106100, mask=>0000077, name=>"rolb", type=>"1arg"},
     {code=>0106200, mask=>0000077, name=>"asrb", type=>"1arg"},
     {code=>0106300, mask=>0000077, name=>"aslb", type=>"1arg"},
-    {code=>0106400, mask=>0000077, name=>"!!mtps", type=>"1arg"},
+    {code=>0106400, mask=>0000077, name=>"!!mtps", type=>"1arg"}, # 11/34A,J11
     {code=>0106500, mask=>0000077, name=>"mfpd", type=>"1arg"},
     {code=>0106600, mask=>0000077, name=>"mtpd", type=>"1arg"},
-    {code=>0106700, mask=>0000077, name=>"!!mfps", type=>"1arg"},
+    {code=>0106700, mask=>0000077, name=>"!!mfps", type=>"1arg"}, # 11/34A,J11
     {code=>0110000, mask=>0007777, name=>"movb", type=>"2arg"},
     {code=>0120000, mask=>0007777, name=>"cmpb", type=>"2arg"},
     {code=>0130000, mask=>0007777, name=>"bitb", type=>"2arg"},
@@ -449,12 +454,33 @@ if ($opts{help}) {
 my $nopts = 0;                              # count options
 $nopts += 1 if $opts{dump};
 $nopts += 1 if $opts{cdump};
+if ($opts{t_all}) {                         # t_all implies all t_*
+  $opts{t_id} = 1;
+  $opts{t_ru} = 1;
+  $opts{t_em} = 1;
+  $opts{t_id} = 1;
+  $opts{t_ib} = 1;
+}
 $nopts += 1 if $opts{t_id};
 $nopts += 1 if $opts{t_ru};
 $nopts += 1 if $opts{t_em};
+$nopts += 1 if $opts{t_vf};
 $nopts += 1 if $opts{t_ib};
 
-$opts{t_id} = 1 if $nopts == 0;             # if no opts, assume t_id
+if ($nopts == 0) {                          # if no opts, assume t_id i_vf
+  $opts{t_id} = 1;
+  $opts{t_vf} = 1;
+}
+
+# write header
+print "#  cycle id               pc    psw   ireg  code                   nc\n"
+  if $opts{t_id};
+print "#  cycle ru    b sr     data\n"
+  if $opts{t_ru};
+print "#  cycle em    d be     addr   wdat   rdat  crwh nc\n"
+  if $opts{t_em} or $opts{t_vf};
+print "#  cycle ib cr rmbe     addr   wdat   rdat     a  nc name\n"
+  if $opts{t_ib};
 
 foreach my $file (@ARGV) {
   do_file($file);
@@ -626,7 +652,7 @@ sub do_file {
 	  $id_str .= sprintf " (%d)",$cyc_curr-$idec_cyc;
 	  $idec_cyc = $cyc_curr;
 	}
-      }
+      } # if t_id
 #
 
 #    1706 ru  0 06   000002 000002 000002 000002 000002 000002 000002  ksp
@@ -669,7 +695,7 @@ sub do_file {
 	    $ru_str .= sprintf " r%o%o", $rset, $adst;
 	  }
 	}
-      }
+      } # if t_ru
 #
 # handle t_em
 #   uses cycles with vm_emmreq_req = '1'
@@ -677,7 +703,7 @@ sub do_file {
 #                    vm_emsres_ack_w = '1'
 #                    vm_emsreq_cancel = '1'
 #
-      if ($opts{t_em}) {
+      if ($opts{t_em} or $opts{t_vf}) {
 	if ($val_curr[$ind_vm_emmreq_req]) {
 	  $emreq_cyc = $cyc_curr;
 	  $emreq_str = sprintf "%s %s %8.8o",
@@ -742,10 +768,13 @@ sub do_file {
 	      }
 	    }
 	  }
+          if ($opts{t_vf} and not $opts{t_em}) { # only -t_vf
+            $emres_str = "" unless $emtyp_str =~ m/^VFETCH/;
+          }
 	  $emlast_we   = $emcurr_we;
 	  $emlast_addr = $emcurr_addr;
 	}
-      }
+      }  # if t_em or t_vf
 #
 # handle t_ib
 #   uses cycles with sy_ibmreq_re = '1' or sy_ibmreq_we = '1'
@@ -968,5 +997,7 @@ sub print_help {
   print "  --t_id           trace instruction decodes\n";
   print "  --t_ru           trace register updates\n";
   print "  --t_em           trace em transactions\n";
+  print "  --t_vf           trace onfy vector fetch em transactions\n";
   print "  --t_ib           trace ib transactions\n";
+  print "  --t_all          trace id,ru,em, and ib transactions\n";
 }

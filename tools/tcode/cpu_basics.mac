@@ -1,4 +1,4 @@
-; $Id: cpu_basics.mac 1253 2022-07-12 06:32:22Z mueller $
+; $Id: cpu_basics.mac 1259 2022-07-18 17:39:40Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -7,9 +7,16 @@
 ; 2022-07-11  1253   1.0    Initial version
 ; 2015-08-30   710   0.1    First draft
 ;
-; Test CPU basics
+; Test CPU basics: most instructions except traps, EIS and FPP
+;   Section A: ccops + flow control bxx, sob, jmp, jsr, rts, mark
+;   Section B: unary instructions (word)
+;   Section C: binary instructions (word)
+;   Section D: unary instructions (byte)
+;   Section E: binary instructions (byte)
+;   Section F: miscellaneous (spl, reset)
 ;
         .include        |lib/tcode_std_base.mac|
+        .include        |lib/defs_kwl.mac|
 ;
 ; Section A: ccops + flow control bxx, sob, jmp, jsr, rts, mark ==============
 ;
@@ -871,6 +878,200 @@ ta0302: mov     #cp.psw,r5
 1002$:  .word   2$
 ;
 9999$:  iot                     ; end of test A3.2
+;
+; Test A4 -- jsr + rts +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 000 100 rrr ddd ddd ---- JSR (mode /= R !!)
+;     0 000 000 010 000 rrr ---- RTS
+;
+; Test A4.1 -- jsr + dsta +++++++++++++++++++++++++++++++++++++++++++++
+;   check that JSR PC,xxx works for all modes
+;
+ta0401: mov     #1006$,r2
+        mov     #2000$,r3
+        mov     #3000$,r5
+        clr     r4
+;
+        jsr     pc,(r2)+        ; mode = 2,reg  -> 1006  inc 6
+        jsr     pc,(r2)         ; mode = 1,reg  -> 1005  inc 5
+        jsr     pc,2(r2)        ; mode = 6,reg  -> 1004  inc 4
+        jsr     pc,-(r2)        ; mode = 4,reg  -> 1006  inc 6
+        jsr     pc,@(r3)+       ; mode = 3,reg  -> 1003  inc 3
+        jsr     pc,@2(r3)       ; mode = 7,reg  -> 1001  inc 1
+        jsr     pc,@-(r3)       ; mode = 5,reg  -> 1003  inc 3
+;
+        jmp     9999$
+;
+1006$:  inc     r4
+1005$:  inc     r4
+1004$:  inc     r4
+1003$:  inc     r4
+1002$:  inc     r4
+1001$:  inc     r4
+        cmp     r4,(r5)+
+        beq     .+4
+        halt
+        rts     pc
+;
+2000$:  .word   1003$
+        .word   1002$
+        .word   1001$
+;
+3000$:  .word   6
+        .word   6+5
+        .word   6+5+4
+        .word   6+5+4+6
+        .word   6+5+4+6+3
+        .word   6+5+4+6+3+1
+        .word   6+5+4+6+3+1+3
+;
+9999$:  iot                     ; end of test A4.1
+;
+; Test A4.2 -- jsr + cc +++++++++++++++++++++++++++++++++++++++++++++++
+;   check that JSR and RTS doesnt change cc
+;
+ta0402: mov     #cp.psw,r5
+        clr     (r5)
+;
+        ccc                     ; nzvc = 0000
+        jsr     pc,100$         ; call with cp0000
+        cmp     (r5),#cpnzvc    ; expect cpnzvc
+        beq     .+4
+        halt
+        scc
+        jsr     pc,200$
+        cmp     (r5),#cp0000
+        beq     .+4
+        halt
+        jmp     9999$
+;
+100$:   cmp     (r5),#cp0000    ; expect cp0000
+        beq     .+4
+        halt
+        scc                     ; return with cpnzvc
+        rts     pc
+;
+200$:   cmp     (r5),#cpnzvc    ; expect cpnzvc
+        beq     .+4
+        halt
+        ccc                     ; return with cp0000
+        rts     pc
+;
+9999$:  iot                     ; end of test A4.2
+;
+; Test A4.3 -- jsr r0-r5 ++++++++++++++++++++++++++++++++++++++++++++++
+;   check that JSR and RTS for R0...R5 linkage
+;   Note: use reserved opcodes as arguments to detect fall through
+;
+ta0403: clr     900$            ; reset call counter
+        jsr     r0,100$
+        jsr     r1,110$
+        .word   000211
+        jsr     r2,120$
+        .word   000212
+        jsr     r3,130$
+        .word   000213
+        jsr     r4,140$
+        .word   000214
+        jsr     r5,150$
+        .word   000215
+        .word   000216
+        .word   000217
+        cmp     900$,#6.        ; check number of calls
+        beq     .+4
+        halt
+        jmp     9999$
+;
+100$:   inc     900$
+        rts     r0
+;
+110$:   inc     900$
+        cmp     (r1)+,#000211
+        beq     .+4
+        halt
+        rts     r1
+;
+120$:   inc     900$
+        cmp     (r2)+,#000212
+        beq     .+4
+        halt
+        rts     r2
+;
+130$:   inc     900$
+        cmp     (r3)+,#000213
+        beq     .+4
+        halt
+        rts     r3
+;
+140$:   inc     900$
+        cmp     (r4)+,#000214
+        beq     .+4
+        halt
+        rts     r4
+;
+150$:   inc     900$
+        cmp     (r5)+,#000215
+        beq     .+4
+        halt
+        cmp     (r5)+,#000216
+        beq     .+4
+        halt
+        cmp     (r5)+,#000217
+        beq     .+4
+        halt
+        rts     r5
+;
+900$:   .word   0
+;
+9999$:  iot                     ; end of test A4.3
+;
+; Test A5 -- mark ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 000 110 100 nnn nnn ---- MARK
+;
+; Test A5.1 -- mark +++++++++++++++++++++++++++++++++++++++++++++++++++
+;   check that MARK works
+;   Note: this instruction is a bastard, the only PDP-11 instruction which
+;         is outright ugly and should have neven been invented.
+;         Not used in all surviving OS so this test is most likely the only
+;         occasion where MARK is executed on a target system.
+;
+ta0501: mov     #123456,r5      ; token
+        mov     r5,-(sp)        ; from here processor handbook example
+        mov     #101,-(sp)      ; push 1st parameter
+        mov     #102,-(sp)      ; push 2nd parameter
+        mov     #103,-(sp)      ; push 3rd parameter
+        mov     #<mark+3>,-(sp) ; push MARK 3
+        mov     sp,r5           ; push address of MARK 3
+        jsr     pc,100$         ; call procedure
+        cmp     r5,#123456      ; check token
+        beq     .+4
+        halt
+        jmp     9999$
+;
+; stack of procedure when called:
+;                        content
+;        12(sp)  10(r5)  old r5
+;        10(sp)   6(r5)  param1
+;         6(sp)   4(r5)  param2
+;         4(sp)   2(r5)  param3
+;         2(sp)    (r5)  mark 3
+;          (sp)          return pc
+;
+100$:   cmp     6(r5),#101      ; check 1st parameter
+        beq     .+4
+        halt
+        cmp     4(r5),#102      ; check 2nd parameter
+        beq     .+4
+        halt
+        cmp     2(r5),#103      ; check 3rd parameter
+        beq     .+4
+        halt
+        rts     r5              ; return
+;
+9999$:  iot                     ; end of test A5.1
 ;
 ; Section B: unary instructions (word) =======================================
 ;
@@ -2790,11 +2991,178 @@ te0501: clr     cp.psw
 ;
 9999$:  iot                     ; end of test E5.1
 ;
+; Section F: miscellaneous (spl, reset) ======================================
+;
+; Test F1:  spl ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 000 000 010 011 nnn ---- SPL
+;
+; Test F1.1 -- spl in kernel mode ++++++++++++++++++++++++++++++++++++
+;   Test that PSW is changed
+;
+tf0101: mov     #cp.psw,r0
+        clr     (r0)
+;
+        ccc
+        sen
+        spl     1
+        cmp     (r0),#<cp.pr1+cpn000>
+        beq     .+4
+        halt
+;
+        ccc
+        sez
+        spl     2
+        cmp     (r0),#<cp.pr2+cp0z00>
+        beq     .+4
+        halt
+;
+        ccc
+        sev
+        spl     3
+        cmp     (r0),#<cp.pr3+cp00v0>
+        beq     .+4
+        halt
+;
+        ccc
+        sec
+        spl     4
+        cmp     (r0),#<cp.pr4+cp000c>
+        beq     .+4
+        halt
+;
+        scc
+        cln
+        spl     5
+        cmp     (r0),#<cp.pr5+cp0zvc>
+        beq     .+4
+        halt
+;
+        scc
+        clz
+        spl     6
+        cmp     (r0),#<cp.pr6+cpn0vc>
+        beq     .+4
+        halt
+;
+        scc
+        clv
+        spl     7
+        cmp     (r0),#<cp.pr7+cpnz0c>
+        beq     .+4
+        halt
+;
+        scc
+        clc
+        spl     0
+        cmp     (r0),#<cp.pr0+cpnzv0>
+        beq     .+4
+        halt
+;
+9999$:  iot                     ; end of test F1.1
+;
+; Test F1.2 -- spl in supervisor and user mode +++++++++++++++++++++++
+;   Test that SPL is nop when not in kernel mode
+;
+tf0102: mov     #cp.psw,r0
+;
+        mov     #cp.cms,(r0)    ; to supervisor mode
+        ccc
+        spl     4
+        cmp     (r0),#<cp.cms+cp.pr0+cp0000>
+        beq     .+4
+        halt
+;
+        mov     #cp.cmu,(r0)    ; to user mode
+        scc
+        spl     5
+        cmp     (r0),#<cp.cmu+cp.pr0+cpnzvc>
+        beq     .+4
+        halt
+;
+        clr     (r0)            ; back to kernel mode
+;
+9999$:  iot                     ; end of test F1.2
+;
+; Test F2:  reset ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 000 000 000 000 101 ---- RESET
+;
+; Test F2.1 -- reset in kernel mode ++++++++++++++++++++++++++++++++++
+;   This test checks whether
+;   - KW11-L line clock csr is cleared (representing all devices)
+;   - PIRQ   is cleared
+;   - STKLIM is cleared
+;   Effect on MMR0 and MMR3 is tested in MMU test
+;
+tf0201: mov     #cp.psw,r0
+        mov     #cp.pr7,(r0)    ; lock-out interrupts
+        mov     #kl.ie,kl.csr   ; enable KW11-L interrupt
+        bit     #kl.ie,kl.csr   ; check that kl.ie bit is set
+        bne     .+4
+        halt
+        movb    #bit01,cp.pir+1 ; set PIRQ bit
+        cmpb    #bit01,cp.pir+1 ; check
+        beq     .+4
+        halt
+        mov     #400,cp.sli     ; bump STKLIM
+        cmp     #400,cp.sli     ; check
+        beq     .+4
+        halt
+;
+        reset                   ; and RESET
+        bit     #kl.ie,kl.csr   ; check that kl.ie bit is cleared
+        beq     .+4
+        halt
+        tstb    cp.pir+1        ; check that PIRQ cleared
+        beq     .+4
+        halt
+        tst     cp.sli          ; check that STKLIM cleared
+        beq     .+4
+        halt
+        ccc                     ; clear cc
+        cmp     (r0),#cp.pr7    ; check that prio still 7 (CPU not(!) reset)
+        beq     .+4
+        halt
+        clr     (r0)            ; back to normal
+;
+9999$:  iot                     ; end of test F2.1
+;
+; Test F2.2 -- reset in supervisor and user mode +++++++++++++++++++++
+;   This test checks whether
+;   - KW11-L line clock csr is not(!) cleared (representing all devices)
+;
+tf0202: mov     #cp.psw,r0
+        mov     #cp.pr7,(r0)    ; lock-out interrupts
+        mov     #kl.ie,kl.csr   ; enable KW11-L interrupt
+;
+        mov     #<cp.cms+cp.pr7>,(r0)   ; supervisor mode, keep pr7 !
+        reset                   ; and RESET
+        bit     #kl.ie,kl.csr   ; check that bit is set
+        bne     .+4
+        halt
+;
+        mov     #<cp.cmu+cp.pr7>,(r0)   ; user mode, keep pr7 !
+        reset                   ; and RESET
+        bit     #kl.ie,kl.csr   ; check that bit is set
+        bne     .+4
+        halt
+;
+        mov     #<cp.pr7>,(r0)  ; kernel mode, keep pr7 !
+        clr     kl.csr          ; disable KW11-L interrupt
+        clr     (r0)            ; back to normal
+;
+9999$:  iot                     ; end of test F2.2
+;
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        cmp     tstno,#43.      ; all tests done ?
+        cmp     tstno,#51.      ; all tests done ?
         beq     .+4
         halt
 ;
         jmp     loop
+;
+        .end    start

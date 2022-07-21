@@ -1,4 +1,4 @@
-; $Id: cpu_selftest.mac 1254 2022-07-13 06:16:19Z mueller $
+; $Id: cpu_selftest.mac 1258 2022-07-18 10:07:22Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -213,3 +213,5 @@ ta0201:
 ; END OF ALL TESTS - loop closure --------------------------------------------
 ;
         jmp     loop
+;
+        .end    start

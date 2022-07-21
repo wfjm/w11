@@ -1,4 +1,4 @@
-; $Id: cpu_eis.mac 1257 2022-07-16 21:49:08Z mueller $
+; $Id: cpu_eis.mac 1259 2022-07-18 17:39:40Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -282,8 +282,179 @@ ta0102: mov     #1000$,r5
         .word 0137777,0177777, -32768., cp00v0, -16385.,     -1.;dd=-1073741825
 ;
 1011$:
-
+;
 9999$:  iot                     ; end of test A1.2
+;
+;
+; Test A1.3 -- div odd register +++++++++++++++++++++++++++++++++++++++
+;   check div odd register behavior
+;   Note: The div instruction has, in contrast to ashc, no useful semantics when
+;         called with an odd register. DEC documentation doesn't specify the
+;         behavior. SimH assumes, that register handling is done like for ashc,
+;         so effective dd is 'R<<16 | R' and reminder is stored. w11 implements
+;         div like this. This test briefly verifies this behavior.
+
+ta0103: mov     #1000$,r4       ; setup data pointer
+        mov     #1010$,r5       ; setup end pointer
+        mov     #cp.psw,r3      ; setup psw pointer
+        clr     r0              ; for tmu optics
+100$:   mov     (r4)+,r1        ; load dd
+        div     (r4)+,r1        ; div
+        cmp     (r4)+,(r3)      ; check psw
+        beq     .+4
+        halt
+        cmp     (r4)+,r1        ; check res (reminder)
+        beq     .+4
+        halt
+        cmp     r4,r5
+        blo     100$
+        jmp     9999$
+;
+;                   dd,     dr,    psw,    res ;
+1000$:  .word   000000,     1., cp0z00, 000000 ;                       h: 000000
+        .word   000007,    16., cp0000, 000007 ; 458759/16: 28672, 7   h: 070000
+        .word   000007,    17., cp0000, 000016 ; 458759/17: 26985,14   h: 064551
+        .word   000007,    19., cp0000, 000004 ; 458759/19: 24145, 4   h: 057121
+        .word   000007,    15., cp0000, 000016 ; 458759/15: 30583,14   h: 073567
+1010$:
+;
+9999$:  iot                     ; end of test A1.3
+;
+; Section B: mul =============================================================
+;   This section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 111 000 rrr sss sss NZ0C MUL
+;
+; Test B1.1 -- mul even and odd ++++++++++++++++++++++++++++++++++++++
+;   check that mul works with even and odd destination register
+;
+        jmp     tb0101
+;
+; driver for mul even tests
+;
+tbmule: mov     #cp.psw,r3      ; setup psw pointer
+100$:   mov     (r4)+,r0        ; load f1
+        mul     (r4)+,r0        ; mul
+        cmp     (r4)+,(r3)      ; check psw
+        beq     .+4
+        halt
+        cmp     (r4)+,r0        ; check p_high
+        beq     .+4
+        halt
+        cmp     (r4)+,r1        ; check p_low
+        beq     .+4
+        halt
+        cmp     r4,r5
+        blo     100$
+        rts     pc
+;
+; driver for mul odd  tests
+;
+tbmulo: mov     #cp.psw,r3      ; setup psw pointer
+100$:   mov     (r4)+,r1        ; load f1
+        mul     (r4)+,r1        ; mul
+        cmp     (r4)+,(r3)      ; check psw
+        beq     .+4
+        halt
+        tst     (r4)+           ; skip p_high
+        cmp     (r4)+,r1        ; check p_low
+        beq     .+4
+        halt
+        cmp     r4,r5
+        blo     100$
+        rts     pc
+;
+tb0101: mov     #1000$,r4       ; setup data pointer
+        mov     #1010$,r5       ; setup end pointer
+        jsr     pc,tbmule       ; test even
+;
+        mov     #1000$,r4       ; setup data pointer
+        mov     #1010$,r5       ; setup end pointer
+        jsr     pc,tbmulo       ; test odd
+;
+        jmp     9999$
+;
+;                   fx,     f2,    psw,     ph,     pl ;
+1000$:  .word       0.,     0., cp0z00,      0,      0 ; p =         0.
+        .word       0.,     1., cp0z00,      0,      0 ; p =         0.
+        .word       0.,    -1., cp0z00,      0,      0 ; p =         0.
+        .word       1.,     0., cp0z00,      0,      0 ; p =         0.
+        .word       1.,     1., cp0000,      0,      1 ; p =         1.
+        .word       1.,    -1., cpn000, 177777, 177777 ; p =        -1.
+        .word      -1.,     0., cp0z00,      0,      0 ; p =         0.
+        .word      -1.,     1., cpn000, 177777, 177777 ; p =        -1.
+        .word      -1.,    -1., cp0000,      0,      1 ; p =         1.
+        .word     181.,   181., cp0000,      0, 077771 ; p =     32761.
+        .word     181.,   182., cp000c,      0, 100256 ; p =     32942.
+        .word     181.,  -182., cpn00c, 177777, 077522 ; p =    -32942.
+        .word   31022.,  9562., cp000c, 010656, 040054 ; p = 296632364.
+        .word   18494.,-24041., cpn00c, 162577, 134622 ; p =-444614254.
+        .word  -12549.,  2397., cpn00c, 177065, 002057 ; p = -30079953.
+        .word  -20493.,-23858., cp000c, 016444, 055612 ; p = 488921994.
+1010$:
+;
+9999$:  iot                     ; end of test B1.1
+;
+; Test B1.2 -- mul+div (and adc,adc,sxt) +++++++++++++++++++++++++++++
+;   combined div and mul test
+;
+tb0102: mov     #1000$,r4       ; setup data pointer
+        mov     #1010$,r5       ; setup end pointer
+;
+100$:   mov     (r4)+,r0        ; load divident high
+        mov     (r4)+,r1        ; load divident low
+        div     (r4)+,r0        ; divide by divisor
+        mov     r0,r2           ; get quotient
+        mul     -2(r4),r2       ; multiply with divisor
+        add     r1,r3           ; add reminder on p_low
+        adc     r2              ; propagate carry to p_high
+        tst     r1              ; sign extend reminder
+        sxt     r1
+        add     r1,r2           ; and add to p_high
+        cmp     -4(r4),r3       ; check p_low against divident low
+        beq     .+4
+        halt
+        cmp     -6(r4),r2       ; check p_high against divident high
+        beq     .+4
+        halt
+        cmp     r4,r5
+        blo     100$
+        jmp     9999$
+;
+;                  ddh     ddl      dr
+1000$:  .word        0,      0,      0
+        .word        0,      1,      3
+        .word        0,      2,      3
+        .word        0,      3,      3
+        .word        0,      4,      3
+        .word       -1,     -1,      3
+        .word       -1,     -2,      3
+        .word       -1,     -3,      3
+        .word       -1,     -4,      3
+        .word        0,      0,     -3
+        .word        0,      1,     -3
+        .word        0,      2,     -3
+        .word        0,      3,     -3
+        .word        0,      4,     -3
+        .word       -1,     -1,     -3
+        .word       -1,     -2,     -3
+        .word       -1,     -3,     -3
+        .word       -1,     -4,     -3
+        .word   010656, 040054,  9562.  ; dd =  296632364.
+        .word   010656, 040053,  9562.  ; dd =  296632363.
+        .word   010656, 040055,  9562.  ; dd =  296632365.
+        .word   010656, 040054, -9562.  ; dd =  296632364.
+        .word   010656, 040053, -9562.  ; dd =  296632363.
+        .word   010656, 040055, -9562.  ; dd =  296632365.
+        .word   162577, 134622, 24041.  ; dd = -444614254.
+        .word   162577, 134621, 24041.  ; dd = -444614255.
+        .word   162577, 134623, 24041.  ; dd = -444614253.
+        .word   162577, 134622,-24041.  ; dd = -444614254.
+        .word   162577, 134621,-24041.  ; dd = -444614255.
+        .word   162577, 134623,-24041.  ; dd = -444614253.
+1010$:
+;
+9999$:  iot                     ; end of test B1.2
 ;
 ; Section C: ash =============================================================
 ;   This section verifies
@@ -507,11 +678,83 @@ td0102: mov     #1000$,r4       ; setup data pointer
 ;
 9999$:  iot                     ; end of test D1.2
 ;
+; Section E: xor =============================================================
+;   This section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 111 100 rrr ddd ddd NZ0- XOR
+;
+; Test E1.1 -- xor znvc=0 ++++++++++++++++++++++++++++++++++++++++++++
+;   check xor with all cc's cleared; memory destination
+;
+te0101: mov     #1000$,r4       ; setup data pointer
+        mov     #1010$,r5       ; setup end pointer
+        mov     #cp.psw,r3      ; setup psw pointer
+        mov     #200$,r1        ; setup dst pointer
+100$:   mov     (r4)+,r0        ; load src
+        mov     (r4)+,(r1)      ; load dst
+        ccc                     ; nzvc=0
+        xor     r0,(r1)         ; xor
+        cmp     (r4)+,(r3)      ; check psw
+        beq     .+4
+        halt
+        cmp     (r4)+,(r1)      ; check
+        beq     .+4
+        halt
+        cmp     r4,r5
+        blo     100$
+        jmp     9999$
+;
+200$:   .word   0
+;
+;                  dst,    src,    psw,    res
+1000$:  .word   000000, 000000, cp0z00, 000000
+        .word   000011, 000000, cp0000, 000011
+        .word   000011, 000110, cp0000, 000101
+        .word   000011, 001100, cp0000, 001111
+        .word   110000, 011000, cpn000, 101000
+        .word   110000, 110000, cp0z00, 000000
+1010$:
+;
+9999$:  iot                     ; end of test E1.1
+;
+; Test X1.2 -- xor znvc=1 ++++++++++++++++++++++++++++++++++++++++++++
+;   check xor with all cc's set; register destination
+;
+te0102: mov     #1000$,r4       ; setup data pointer
+        mov     #1010$,r5       ; setup end pointer
+        mov     #cp.psw,r3      ; setup psw pointer
+100$:   mov     (r4)+,r0        ; load src
+        mov     (r4)+,r1        ; load dst
+        scc                     ; nzvc=1
+        xor     r0,r1           ; xor
+        cmp     (r4)+,(r3)      ; check psw
+        beq     .+4
+        halt
+        cmp     (r4)+,r1        ; check
+        beq     .+4
+        halt
+        cmp     r4,r5
+        blo     100$
+        jmp     9999$
+;
+;                  dst,    src,    psw,    res
+1000$:  .word   000000, 000000, cp0z0c, 000000
+        .word   000011, 000000, cp000c, 000011
+        .word   000011, 000110, cp000c, 000101
+        .word   000011, 001100, cp000c, 001111
+        .word   110000, 011000, cpn00c, 101000
+        .word   110000, 110000, cp0z0c, 000000
+1010$:
+;
+9999$:  iot                     ; end of test E1.2
+;
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        cmp     tstno,#5.       ; all tests done ?
+        cmp     tstno,#10.      ; all tests done ?
         beq     .+4
         halt
 ;
         jmp     loop
+;
+        .end    start

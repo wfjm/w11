@@ -1,4 +1,4 @@
-; $Id: cpu_badinst_nofpp.mac 1257 2022-07-16 21:49:08Z mueller $
+; $Id: cpu_badinst_nofpp.mac 1258 2022-07-18 10:07:22Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -101,7 +101,11 @@ ta0103: mov     #vh.exp,v..rit          ; setup iit handler
         halt
         .word   007777
         halt
-        .word   075000                  ; 075000-075777
+        .word   075000                  ; 075000-075037  {FIS in 11/40}
+        halt
+        .word   075037
+        halt
+        .word   075040                  ; 075040-075777
         halt
         .word   075777
         halt
@@ -127,7 +131,7 @@ ta0103: mov     #vh.exp,v..rit          ; setup iit handler
         halt
 ;
         mov     #v..rit+2,v..rit        ; restore iit catcher
-        cmp     trpcnt,#27.
+        cmp     trpcnt,#29.
         beq     .+4
         halt
 ;
@@ -154,3 +158,5 @@ ta0104: mov     #vh.exp,v..rit          ; setup iit handler
 ; END OF ALL TESTS - loop closure --------------------------------------------
 ;
         jmp     loop
+;
+        .end    start

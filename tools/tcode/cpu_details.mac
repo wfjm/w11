@@ -1,0 +1,136 @@
+; $Id: cpu_details.mac 1259 2022-07-18 17:39:40Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; Revision History:
+; Date         Rev Version  Comment
+; 2022-07-18  1259   1.0    Initial version
+;
+; Test CPU details
+;   Section A: CPUERR
+;   Section B: PIRQ
+;   Section C: stress tests
+;   Section D: 11/70 specifics
+;
+        .include        |lib/tcode_std_base.mac|
+;
+; Section B: PIRQ ============================================================
+;
+; Test B1:  PIRQ +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies operation of PIRQ register
+;
+; Test B1.1 -- PIRQ + spl ++++++++++++++++++++++++++++++++++++++++++++
+;   This test will exercise all 7 pirq interrupt levels:
+;     set 1+3 -> handle 3, set 7
+;             -> handle 7, set 6+4
+;             -> handle 6
+;             -> handle 4, set 5+2
+;             -> handle 5
+;             -> handle 2
+;             -> handle 1
+;
+; some useful definitions
+        pi.r00=bit08            ; pir 0 bit
+        pi.r01=bit09            ; pir 1 bit
+        pi.r02=bit10            ; pir 2 bit
+        pi.r03=bit11            ; pir 3 bit
+        pi.r04=bit12            ; pir 4 bit
+        pi.r05=bit13            ; pir 5 bit
+        pi.r06=bit14            ; pir 6 bit
+        pi.r07=bit15            ; pir 7 bit
+        pi.n00=0.               ; lsb for no pir pending
+        pi.n01=1*042            ; lsb for pir 1 next
+        pi.n02=2*042            ; lsb for pir 2 next
+        pi.n03=3*042            ; lsb for pir 3 next
+        pi.n04=4*042            ; lsb for pir 4 next
+        pi.n05=5*042            ; lsb for pir 5 next
+        pi.n06=6*042            ; lsb for pir 6 next
+        pi.n07=7*042            ; lsb for pir 7 next
+;
+tb0101: mov     #1000$,v..pir     ; setup handler
+        mov     #cp.pr7,v..pir+2  ; which runs at pr7
+        mov     #cp.pir,r3      ; ptr to PIRQ
+        mov     #cp.psw,r4      ; ptr to PSW
+        mov     #1200$,r5       ; ptr to check data
+        clr     1300$           ; clear nesting counter
+;
+        spl     7               ; lockout interrupts
+        bisb    #bit01,1(r3)    ; set PIRQ 1
+        cmp     (r3),#<pi.r01+pi.n01>                   ; check set 1
+        beq     .+4
+        halt
+        bisb    #bit03,1(r3)    ; set PIRQ 3
+        cmp     (r3),#<pi.r01+pi.r03+pi.n03>            ; check set 1+3
+        beq     .+4
+        halt
+        spl     2
+        nop                     ; allow interrupts to happen
+        spl     0
+        nop                     ; allow interrupts to happen
+        tst     (r3)            ; PIRQ should clear now
+        beq     .+4
+        halt
+        mov     #v..pir+2,v..pir; restore pirq vector catcher
+        clr     v..pir+2
+        jmp     9999$
+;
+; PIRQ interrupt handler
+;   - it starts at pr7 from the vector
+;   - quickly lowers the priority to what is currently processed
+;   - new pirq bits are set at lowered priority
+;   - that leads to nested interrupts (tracked by a level counter)
+;
+1000$:  inc     1300$           ; up level counter
+        mov     (r3),r0         ; get PIRQ value
+        cmp     1300$,(r5)+     ; check nesting level
+        beq     .+4
+        halt
+        cmp     r0,(r5)+        ; check pirq value
+        beq     .+4
+        halt
+        movb    r0,(r4)         ; PSW=PIRQ (sets priority)
+        bic     #177761,r0      ; mask out index bits
+        mov     r0,r1           ; r0 is word index (pri*2)
+        asr     r1              ; r1 is byte index (pri*1)
+        mov     #pi.r00,r2
+        ash     r1,r2           ; r2 = pi.r00 <<(pri)
+        bic     r2,(r3)         ; clear current level in pirq
+        bis     1100$(r0),(r3)  ; trigger new pirqs
+        nop                     ; allow nestec interrupts to happem
+        nop                     ; "
+        dec     1300$           ; down level counter
+        rti
+;
+; table with new pirqs triggered at a level
+1100$:  .word   0               ; new pirq @ level 0
+        .word   0               ; new pirq @ level 1
+        .word   0               ; new pirq @ level 2
+        .word   pi.r07          ; new pirq @ level 3  -> 7
+        .word   pi.r05+pi.r02   ; new pirq @ level 4  -> 5+2
+        .word   0               ; new pirq @ level 5
+        .word   0               ; new pirq @ level 6
+        .word   pi.r06+pi.r04   ; new pirq @ level 7  -> 6+4
+;
+; table with expected values of pirq register in interrupt sequence
+1200$:  .word   1,pi.r01+pi.r03+pi.n03          ; set 1+3   -> handle 3, set 7
+        .word   2,pi.r01+pi.r07+pi.n07          ; set 1+7   -> handle 7, set 6+4
+        .word   2,pi.r01+pi.r04+pi.r06+pi.n06   ; set 1+4+6 -> handle 6
+        .word   2,pi.r01+pi.r04+pi.n04          ; set 1+4   -> handle 4, set 5+2
+        .word   3,pi.r01+pi.r02+pi.r05+pi.n05   ; set 1+2+5 -> handle 5
+        .word   1,pi.r01+pi.r02+pi.n02          ; set 1+2   -> handle 2
+        .word   1,pi.r01+pi.n01                 ; set 1     -> handle 1
+; nesting level counter
+1300$:  .word   0
+;
+9999$:  iot                     ; end of test B1.1
+;
+; END OF ALL TESTS - loop closure ============================================
+;
+        mov     tstno,r0        ; hack, for easy monitoring ...
+        cmp     tstno,#1.       ; all tests done ?
+        beq     .+4
+        halt
+;
+        jmp     loop
+;
+        .end    start

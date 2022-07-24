@@ -1,4 +1,4 @@
-; $Id: cpu_basics.mac 1259 2022-07-18 17:39:40Z mueller $
+; $Id: cpu_basics.mac 1261 2022-07-23 16:15:03Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -13,7 +13,7 @@
 ;   Section C: binary instructions (word)
 ;   Section D: unary instructions (byte)
 ;   Section E: binary instructions (byte)
-;   Section F: miscellaneous (spl, reset)
+;   Section F: miscellaneous (spl, reset, bpt,...)
 ;
         .include        |lib/tcode_std_base.mac|
         .include        |lib/defs_kwl.mac|
@@ -1043,7 +1043,7 @@ ta0501: mov     #123456,r5      ; token
         mov     #101,-(sp)      ; push 1st parameter
         mov     #102,-(sp)      ; push 2nd parameter
         mov     #103,-(sp)      ; push 3rd parameter
-        mov     #<mark+3>,-(sp) ; push MARK 3
+        mov     #<mark!3>,-(sp) ; push MARK 3
         mov     sp,r5           ; push address of MARK 3
         jsr     pc,100$         ; call procedure
         cmp     r5,#123456      ; check token
@@ -3007,56 +3007,56 @@ tf0101: mov     #cp.psw,r0
         ccc
         sen
         spl     1
-        cmp     (r0),#<cp.pr1+cpn000>
+        cmp     (r0),#<cp.pr1!cpn000>
         beq     .+4
         halt
 ;
         ccc
         sez
         spl     2
-        cmp     (r0),#<cp.pr2+cp0z00>
+        cmp     (r0),#<cp.pr2!cp0z00>
         beq     .+4
         halt
 ;
         ccc
         sev
         spl     3
-        cmp     (r0),#<cp.pr3+cp00v0>
+        cmp     (r0),#<cp.pr3!cp00v0>
         beq     .+4
         halt
 ;
         ccc
         sec
         spl     4
-        cmp     (r0),#<cp.pr4+cp000c>
+        cmp     (r0),#<cp.pr4!cp000c>
         beq     .+4
         halt
 ;
         scc
         cln
         spl     5
-        cmp     (r0),#<cp.pr5+cp0zvc>
+        cmp     (r0),#<cp.pr5!cp0zvc>
         beq     .+4
         halt
 ;
         scc
         clz
         spl     6
-        cmp     (r0),#<cp.pr6+cpn0vc>
+        cmp     (r0),#<cp.pr6!cpn0vc>
         beq     .+4
         halt
 ;
         scc
         clv
         spl     7
-        cmp     (r0),#<cp.pr7+cpnz0c>
+        cmp     (r0),#<cp.pr7!cpnz0c>
         beq     .+4
         halt
 ;
         scc
         clc
         spl     0
-        cmp     (r0),#<cp.pr0+cpnzv0>
+        cmp     (r0),#<cp.pr0!cpnzv0>
         beq     .+4
         halt
 ;
@@ -3070,14 +3070,14 @@ tf0102: mov     #cp.psw,r0
         mov     #cp.cms,(r0)    ; to supervisor mode
         ccc
         spl     4
-        cmp     (r0),#<cp.cms+cp.pr0+cp0000>
+        cmp     (r0),#<cp.cms!cp.pr0!cp0000>
         beq     .+4
         halt
 ;
         mov     #cp.cmu,(r0)    ; to user mode
         scc
         spl     5
-        cmp     (r0),#<cp.cmu+cp.pr0+cpnzvc>
+        cmp     (r0),#<cp.cmu!cp.pr0!cpnzvc>
         beq     .+4
         halt
 ;
@@ -3095,7 +3095,7 @@ tf0102: mov     #cp.psw,r0
 ;   - KW11-L line clock csr is cleared (representing all devices)
 ;   - PIRQ   is cleared
 ;   - STKLIM is cleared
-;   Effect on MMR0 and MMR3 is tested in MMU test
+;   Effect on MMR0 and MMR3 is tested in MMU test cpu_mmu.mac
 ;
 tf0201: mov     #cp.psw,r0
         mov     #cp.pr7,(r0)    ; lock-out interrupts
@@ -3138,13 +3138,13 @@ tf0202: mov     #cp.psw,r0
         mov     #cp.pr7,(r0)    ; lock-out interrupts
         mov     #kl.ie,kl.csr   ; enable KW11-L interrupt
 ;
-        mov     #<cp.cms+cp.pr7>,(r0)   ; supervisor mode, keep pr7 !
+        mov     #<cp.cms!cp.pr7>,(r0)   ; supervisor mode, keep pr7 !
         reset                   ; and RESET
         bit     #kl.ie,kl.csr   ; check that bit is set
         bne     .+4
         halt
 ;
-        mov     #<cp.cmu+cp.pr7>,(r0)   ; user mode, keep pr7 !
+        mov     #<cp.cmu!cp.pr7>,(r0)   ; user mode, keep pr7 !
         reset                   ; and RESET
         bit     #kl.ie,kl.csr   ; check that bit is set
         bne     .+4
@@ -3156,10 +3156,111 @@ tf0202: mov     #cp.psw,r0
 ;
 9999$:  iot                     ; end of test F2.2
 ;
+; Test F3: trap instructions: bpt,iot,emt,trap +++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 000 000 000 000 011 NZVC BPT
+;     0 000 000 000 000 100 NZVC IOT
+;     1 000 100 0ii iii iii NZVC EMT
+;     1 000 100 1ii iii iii NZVC TRAP
+;     0 000 000 000 000 010 NZVC RTI
+;
+; Test F3.1 trap instructions: bpt,iot,emt,trap ++++++++++++++++++++++
+;
+tf0301: mov     #v..iot+2,v..iot ; block iot handler
+        clr     v..iot+2
+        clr     cp.psw          ; clear psw
+        mov     #3000$,r5       ; setup expect buffer
+;
+; test bpt
+;
+        mov     #2000$,v..bpt   ; setup bpt handler: nzvc = 0011
+        mov     #cp.pr7!cp00vc,v..bpt+2
+        spl     1
+        ccc
+        sec
+        bpt                     ; bpt with pr1 + nzvc = 0001
+        mov     #v..bpt+2,v..bpt ; block bpt again
+        clr     v..bpt+2
+;
+; test iot
+;
+        mov     #2000$,v..iot   ; setup bpt handler: nzvc = 0100
+        mov     #cp.pr7!cp0z00,v..iot+2
+        spl     2
+        ccc
+        sev
+        iot                     ; iot with pr2 + nzvc = 0010
+        mov     #v..iot+2,v..iot ; block iot again
+        clr     v..iot+2
+;
+; test emt 123
+;
+        mov     #2000$,v..emt   ; setup emt handler: nzvc = 0101
+        mov     #cp.pr7!cp0z0c,v..emt+2
+        spl     3
+        ccc
+        sez
+        emt     123              ; emt with pr3 + nzvc = 0100
+; test emt 234
+        spl     4
+        ccc
+        sez
+        emt     234              ; emt with pr4 + nzvc = 0100
+        mov     #v..emt+2,v..emt ; block emt again
+        clr     v..emt+2
+;
+; test trap 321
+;
+        mov     #2000$,v..trp   ; setup trap handler: nzvc = 0110
+        mov     #cp.pr7!cp0zv0,v..trp+2
+        spl     5
+        ccc
+        sen
+        trap    321              ; trap with pr5 + nzvc = 1000
+; test trap 135
+        spl     6
+        ccc
+        sen
+        trap    135              ; trap with pr6 + nzvc = 1000
+        mov     #v..trp+2,v..trp ; block trap again
+        clr     v..trp+2
+;
+; end of trap instruction tests
+;
+        cmp     r5,#3001$
+        mov     #vh.iot,v..iot  ; restore iot handler
+        mov     #cp.pr7,v..iot+2
+        jmp     9999$
+;
+; vector handler (used for all trap type instructions)
+2000$:  cmp     cp.psw,(r5)+    ; check new psw
+        beq     .+4
+        halt
+        cmp     2(sp),(r5)+     ; check saved saved psw
+        beq     .+4
+        halt
+        mov     (sp),r0         ; get return address
+        cmp     -2(r0),(r5)+    ; check instruction
+        beq     .+4
+        halt
+        rti
+
+; expect:       new psw        saved psw      instruction
+3000$:  .word   cp.pr7!cp00vc, cp.pr1!cp000c, <bpt>
+        .word   cp.pr7!cp0z00, cp.pr2!cp00v0, <iot>
+        .word   cp.pr7!cp0z0c, cp.pr3!cp0z00, <emt!123>
+        .word   cp.pr7!cp0z0c, cp.pr4!cp0z00, <emt!234>
+        .word   cp.pr7!cp0zv0, cp.pr5!cpn000, <trap!321>
+        .word   cp.pr7!cp0zv0, cp.pr6!cpn000, <trap!135>
+3001$:
+;
+9999$:  iot                     ; end of test F3.1
+;
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        cmp     tstno,#51.      ; all tests done ?
+        cmp     tstno,#52.      ; all tests done ?
         beq     .+4
         halt
 ;

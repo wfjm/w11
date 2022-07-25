@@ -1,4 +1,4 @@
-# $Id: tb_pdp11core_stim.dat 1259 2022-07-18 17:39:40Z mueller $
+# $Id: tb_pdp11core_stim.dat 1261 2022-07-23 16:15:03Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -2547,6 +2547,7 @@ bwm     4
         000444    
 C Exec code 26 (address modes torture tests)
 C Exec test 26.1 (test src-dst update hazards with (r0)+,(r0)+ ect):
+# ==> now tested with cpu_details.mac:B1.1
 #
 wr0     007060    -- r0=7060   (input data for (r0)+...)
 wr1     007100    -- r1=7100   (input data for -(r1)...)
@@ -2570,6 +2571,7 @@ brm     4
       d=000444    -- ! mem(7074)    
       d=000444    -- ! mem(7076)    
 C Exec test 26.2 (test indexed mode with pc (mode 67)):
+# ==> unclear why this was tested seperately
 #
 wsp     001400    -- sp=1400
 cres
@@ -2583,6 +2585,7 @@ brm     4
       d=000011    -- ! mem(6744)
       d=006757    -- ! mem(6746) 
 C Exec test 26.3 (test (pc)+ as dst):
+# ==> now tested with cpu_details.mac:B1.2
 #
 wr0     000111    -- r0=0111
 wsp     001400    -- sp=1400
@@ -2602,6 +2605,7 @@ brm     2
 wal     006774    -- ! 
 rmi   d=000001    -- ! mem(6774) dst mov -12(pc),2(pc)
 C Exec test 26.4 (test pc as dst in clr):
+# ==> now tested with cpu_details.mac:B1.3
 #
 wr0     000100    -- r0=0100
 wr1     000110    -- r1=0110
@@ -2622,6 +2626,7 @@ bwm     2
         000000
         000000
 C Exec test 26.5 (test pc as dst in mov and add):
+# ==> now tested with cpu_details.mac:B1.3
 #
 wr1     000000    -- r1=0
 wsp     001400    -- sp=1400
@@ -3218,7 +3223,7 @@ rr5   d=000000    -- ! r5
 rpc   d=010500    -- ! pc
 #-----------------------------------------------------------------------------
 C Setup code 32 [base 11100; use 111-112] (PIRQ test)
-# ==> now tested with cpu_details.mac:B1.*
+# ==> now tested with cpu_details.mac:A1.*
 # The code will exercise all 7 pirq interrupt levels:
 #   set 1+3 -> handle 3, set 7 -> handle 7, set 6+4 -> handle 6
 #           -> handle 4, set 5+2 -> handle 5 -> handle 2 > handle 1
@@ -5315,6 +5320,7 @@ rm    d=000000    -- ! CPUERR: no bit set
 wm      000000    --   clear CPUERR
 #
 C test 44.6: SWAB does not change V {15,20} or clears V {all others}
+# ==> now tested with cpu_basics.mac:B14.1
 #
 wr4     000300    -- r4=3000
 wsp     001400    -- sp=1400
@@ -8562,6 +8568,7 @@ bwm     15
 #
 C Exec code 47 (pipeline torture tests)
 C Exec test 47.1 (some self-modifying code, use (pc)+, (pc), -(pc)):
+# ==> now tested with cpu_details.mac:B2.1
 #
 wr0     000000    -- r0=0
 wr1     000000    -- r1=0
@@ -8598,6 +8605,7 @@ brm     13
       d=000000    -- ! halt              ; 
 #
 C Exec test 47.2 (pipeline tester adapted from KDJ11A.MAC, test 121, p. 70)
+# ==> now tested with cpu_details.mac:B2.2
 #
 wr1     013474    -- r1=13474  (alternate halt)
 cres

@@ -1,4 +1,4 @@
-; $Id: cpu_details.mac 1259 2022-07-18 17:39:40Z mueller $
+; $Id: cpu_details.mac 1261 2022-07-23 16:15:03Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -7,19 +7,18 @@
 ; 2022-07-18  1259   1.0    Initial version
 ;
 ; Test CPU details
-;   Section A: CPUERR
-;   Section B: PIRQ
-;   Section C: stress tests
-;   Section D: 11/70 specifics
+;   Section A: CPU registers
+;   Section B: stress tests
+;   Section C: 11/70 specifics
 ;
         .include        |lib/tcode_std_base.mac|
 ;
-; Section B: PIRQ ============================================================
+; Section A: CPU registers ===================================================
 ;
-; Test B1:  PIRQ +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+; Test A1:  PIRQ +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;   This sub-section verifies operation of PIRQ register
 ;
-; Test B1.1 -- PIRQ + spl ++++++++++++++++++++++++++++++++++++++++++++
+; Test A1.1 -- PIRQ + spl ++++++++++++++++++++++++++++++++++++++++++++
 ;   This test will exercise all 7 pirq interrupt levels:
 ;     set 1+3 -> handle 3, set 7
 ;             -> handle 7, set 6+4
@@ -47,7 +46,7 @@
         pi.n06=6*042            ; lsb for pir 6 next
         pi.n07=7*042            ; lsb for pir 7 next
 ;
-tb0101: mov     #1000$,v..pir     ; setup handler
+ta0101: mov     #1000$,v..pir     ; setup handler
         mov     #cp.pr7,v..pir+2  ; which runs at pr7
         mov     #cp.pir,r3      ; ptr to PIRQ
         mov     #cp.psw,r4      ; ptr to PSW
@@ -56,11 +55,11 @@ tb0101: mov     #1000$,v..pir     ; setup handler
 ;
         spl     7               ; lockout interrupts
         bisb    #bit01,1(r3)    ; set PIRQ 1
-        cmp     (r3),#<pi.r01+pi.n01>                   ; check set 1
+        cmp     (r3),#<pi.r01!pi.n01>                   ; check set 1
         beq     .+4
         halt
         bisb    #bit03,1(r3)    ; set PIRQ 3
-        cmp     (r3),#<pi.r01+pi.r03+pi.n03>            ; check set 1+3
+        cmp     (r3),#<pi.r01!pi.r03!pi.n03>            ; check set 1+3
         beq     .+4
         halt
         spl     2
@@ -106,28 +105,208 @@ tb0101: mov     #1000$,v..pir     ; setup handler
         .word   0               ; new pirq @ level 1
         .word   0               ; new pirq @ level 2
         .word   pi.r07          ; new pirq @ level 3  -> 7
-        .word   pi.r05+pi.r02   ; new pirq @ level 4  -> 5+2
+        .word   pi.r05!pi.r02   ; new pirq @ level 4  -> 5+2
         .word   0               ; new pirq @ level 5
         .word   0               ; new pirq @ level 6
-        .word   pi.r06+pi.r04   ; new pirq @ level 7  -> 6+4
+        .word   pi.r06!pi.r04   ; new pirq @ level 7  -> 6+4
 ;
 ; table with expected values of pirq register in interrupt sequence
-1200$:  .word   1,pi.r01+pi.r03+pi.n03          ; set 1+3   -> handle 3, set 7
-        .word   2,pi.r01+pi.r07+pi.n07          ; set 1+7   -> handle 7, set 6+4
-        .word   2,pi.r01+pi.r04+pi.r06+pi.n06   ; set 1+4+6 -> handle 6
-        .word   2,pi.r01+pi.r04+pi.n04          ; set 1+4   -> handle 4, set 5+2
-        .word   3,pi.r01+pi.r02+pi.r05+pi.n05   ; set 1+2+5 -> handle 5
-        .word   1,pi.r01+pi.r02+pi.n02          ; set 1+2   -> handle 2
-        .word   1,pi.r01+pi.n01                 ; set 1     -> handle 1
+1200$:  .word   1,pi.r01!pi.r03!pi.n03          ; set 1+3   -> handle 3, set 7
+        .word   2,pi.r01!pi.r07!pi.n07          ; set 1+7   -> handle 7, set 6+4
+        .word   2,pi.r01!pi.r04!pi.r06!pi.n06   ; set 1+4+6 -> handle 6
+        .word   2,pi.r01!pi.r04!pi.n04          ; set 1+4   -> handle 4, set 5+2
+        .word   3,pi.r01!pi.r02!pi.r05!pi.n05   ; set 1+2+5 -> handle 5
+        .word   1,pi.r01!pi.r02!pi.n02          ; set 1+2   -> handle 2
+        .word   1,pi.r01!pi.n01                 ; set 1     -> handle 1
 ; nesting level counter
 1300$:  .word   0
 ;
+9999$:  iot                     ; end of test A1.1
+;
+; Section B: Stress tests ====================================================
+;
+; Test B1:  address mode torture tests +++++++++++++++++++++++++++++++++++++++
+;   This sub-section tests peculiar address node usage
+;
+; Test B1.1 -- src-dst update hazards with (r0)+,(r0) ++++++++++++++++
+;
+tb0101: mov     #2,r5
+100$:   mov     #1000$,r0
+        mov     #1110$,r1
+        mov     1000$+2,-(sp)   ; save data that will change
+        mov     1000$+6,-(sp)
+        mov     1100$+0,-(sp)
+        mov     1100$+4,-(sp)
+;
+        mov     (r0)+,(r0)+     ; mov 111 over 222
+        add     (r0)+,(r0)+     ; add 333 to   444
+        mov     -(r1),-(r1)     ; mov 444 over 333
+        add     -(r1),-(r1)     ; add 222 to   111
+;
+        cmp     1000$+2,#000111
+        beq     .+4
+        halt
+        cmp     1000$+6,#000777
+        beq     .+4
+        halt
+        cmp     1100$+4,#000444
+        beq     .+4
+        halt
+        cmp     1100$+0,#000333
+        beq     .+4
+        halt
+;
+        mov     (sp)+,1100$+4   ; restore data
+        mov     (sp)+,1100$+0
+        mov     (sp)+,1000$+6
+        mov     (sp)+,1000$+2
+        sob     r5,100$
+        jmp     9999$
+;
+1000$:  .word   000111          ; data for (r0)+ part
+        .word   000222
+        .word   000333
+        .word   000444
+;
+1100$:  .word   000111          ; data for -(r0) part
+        .word   000222
+        .word   000333
+        .word   000444
+1110$:
+;
 9999$:  iot                     ; end of test B1.1
+;
+; Test B1.2 -- (pc)+ as destination ++++++++++++++++++++++++++++++++++
+;
+tb0102: mov     #2,r5
+100$:   mov     1000$+4,-(sp)   ; save data that will change
+        mov     1100$+4,-(sp)
+        mov     1200$+2,-(sp)
+;
+        clr     r0
+1000$:  mov     #1,#0           ; (pc)+,(pc)+: write #1 over #0
+1100$:  add     #1,#2           ; (pc)+,(pc)+: add #1 to #2
+        mov     1000$+4,1200$+2 ; -14(pc),2(pc): dst of mov -> src of add
+1200$:  add     #0,r0           ; add #1(!) to r0
+;
+        cmp     1000$+4,#1
+        beq     .+4
+        halt
+        cmp     1100$+4,#3
+        beq     .+4
+        halt
+        cmp     r0,#1
+        beq     .+4
+        halt
+;
+        mov     (sp)+,1200$+2   ; restore data
+        mov     (sp)+,1100$+4
+        mov     (sp)+,1000$+4
+        sob     r5,100$
+;
+9999$:  iot                     ; end of test B1.2
+;
+; Test B1.3 -- pc as destination in clr, mov, and add ++++++++++++++++
+;
+tb0103: mov     #000137,@#0  ; setup jmp 1000$ at mem(0)
+        mov     #1000$,@#2
+        clr     pc
+        halt
+        halt
+        halt
+1000$:  mov     #1100$,pc
+        halt
+        halt
+        halt
+1100$:  clr     r0
+        add     #4,pc           ; skip two instructions
+        inc     r0
+        inc     r0
+        inc     r0              ; lands here
+        inc     r0
+        cmp     r0,#2
+        beq     .+4
+        halt
+;
+        clr     @#0             ; remove jmp 1000$ at mem(0)
+        clr     @#2
+;
+9999$:  iot                     ; end of test B1.3
+;
+; Test B2:  pipeline torture tests +++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section tests self-modifying code
+;
+; Test B2.1 -- self-modifying code, use (pc), -(pc) ++++++++++++++++++
+;
+tb0201: mov     #2,r5
+100$:   mov     1000$,-(sp)
+        mov     1100$,-(sp)
+;
+        clr     r0
+        clr     r1
+        clr     r2
+        mov     #005201,r3      ; r3= inc r1
+        mov     #005202,r4      ; r4= inc r2
+;
+        inc     r0
+        mov     r3,(pc)         ; will overwrite next instruction
+1000$:  halt                    ; will be overwritten with 'inc r1'
+        inc     r0
+1100$:  mov     r4,-(pc)        ; will overwrite itself and re-execute(!)
+        inc     r0
+;
+        cmp     r0,#3           ; 3 inc r0 in code
+        beq     .+4
+        halt
+        cmp     r1,#1           ; check that 'inc r1' was executed
+        beq     .+4
+        halt
+        cmp     r2,#1           ; check that 'inc r2' was executed
+        beq     .+4
+        halt
+;
+        mov     (sp)+,1100$
+        mov     (sp)+,1000$
+        sob     r5,100$
+;
+9999$:  iot                     ; end of test B2.1
+;
+; Test B2.2 -- self-modifying code, use (pc) case 2 ++++++++++++++++++
+;   Was insprired by KDJ11A.MAC (J11 is indeed pipelined)
+;
+tb0202: mov     #2,r5
+100$:   mov     1000$,-(sp)
+        mov     1100$,-(sp)
+        mov     1200$,-(sp)
+;
+        mov     #1999$,r1
+        clr     r2
+;
+        mov     #005202,(pc)    ; will replace jmp (r1) with 'inc r2'
+1000$:  jmp     (r1)
+        mov     #005202,(pc)    ; will replace jmp (r1) with 'inc r2'
+1100$:  jmp     (r1)
+        mov     #005202,(pc)    ; will replace jmp (r1) with 'inc r2'
+1200$:  jmp     (r1)
+;
+        cmp     r2,#3           ; check that 'inc r2' was executed
+        beq     .+4
+        halt
+;
+        mov     (sp)+,1200$
+        mov     (sp)+,1100$
+        mov     (sp)+,1000$
+        sob     r5,100$
+        jmp     9999$
+;
+1999$:  halt                    ; halt as target for 'jmp (r1)'
+;
+9999$:  iot                     ; end of test B2.2
 ;
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        cmp     tstno,#1.       ; all tests done ?
+        cmp     tstno,#6.       ; all tests done ?
         beq     .+4
         halt
 ;

@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: asm-11.1 1237 2022-05-15 07:51:47Z mueller $
+.\"  $Id: asm-11.1 1262 2022-07-25 09:44:55Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\"
 .\" ------------------------------------------------------------------
 .
-.TH ASM-11 1 2019-04-19 "Retro Project" "Retro Project Manual"
+.TH ASM-11 1 2019-05-25 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 asm-11 \- simple assembler for MACRO-11 style PDP-11 code
@@ -61,13 +61,36 @@ Activated with the \fB\-\-lst\fP or \fB\-\-olst\fP options.
   .blkw     allocate words of storage
   .byte     store bytes of data
   .end      end of source
+  .endm     end of macro
   .even     ensure word aligment
   .include  include another source file
+  .list     parsed but otherwise ignored; me always enabled
+  .nlist    parsed but otherwise ignored
+  .macro    subset of macro functionality
   .odd      align to odd byte address
   .word     store words of data
 .EE
 
-and thus neither macro, nor conditional assembly, nor psect support.
+and thus restricted macro support and neither conditional assembly,
+nor psect support.
+.
+.SS Level of macro support
+Enough for simple macros and useful for writing test benches.
+Auto-labels are supported (?name syntax). Main limitations:
+.RS 2
+.PD 0
+.IP "-" 2
+no \\var support (pass by value)
+.IP "-"
+only positional parameters
+.IP "-"
+no concatination support
+.IP "-"
+no .mexit, .mdelete, .mcall support
+.PD
+.RE
+.PP
+
 .
 .\" ------------------------------------------------------------------
 .SH OPTIONS

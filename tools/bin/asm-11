@@ -1,19 +1,12 @@
 #!/usr/bin/perl -w
-# $Id: asm-11 1138 2019-04-26 08:14:56Z mueller $
-#
+# $Id: asm-11 1236 2022-05-14 10:11:35Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-#
-# This program is free software; you may redistribute and/or modify it under
-# the terms of the GNU General Public License as published by the Free
-# Software Foundation, either version 3, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY
-# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-# for complete details.
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2019-07-13  1189   1.1.1  drop superfluous exists for $opts
+# 2019-05-25  1152   1.1    add .macro,.endm,.list,.nlist
 # 2019-04-25  1138   1.0.7  print lines with errors to stderr unless -lst seen
 # 2019-04-19  1133   1.0.6  .end directive autocreates '...end' label
 # 2018-11-03  1065   1.0.5  add and use bailout
@@ -35,6 +28,7 @@ use Getopt::Long;
 
 use constant TMASK_STRING     => 0x0001;
 use constant TMASK_STRINGEXP  => 0x0002;
+use constant TMASK_MACROARG   => 0x0004;
 
 my %opts = ();
 
@@ -66,6 +60,10 @@ my %pst = (
  '.even'    => {typ=>'dir'},                #
  '.odd'     => {typ=>'dir'},                #
  '.asect'   => {typ=>'dir'},                #
+ '.macro'   => {typ=>'dir'},                #
+ '.endm'    => {typ=>'dir'},                #
+ '.list'    => {typ=>'dir'},                #
+ '.nlist'   => {typ=>'dir'},                #
  '.end'     => {typ=>'dir'},                #
 #register defs
  'r0'     => {typ=>'reg', val=>0},
@@ -253,6 +251,9 @@ my $llbl_ascope = 0;                        # annonymous local label scope count
 
 # macro table
 my %mst;
+my $mdefnam;                                # macro currently being defined
+my @mdefstk;                                # open .macro,.rept defs stack
+my $mautolbl = 30000;                       # auto-generated label
 
 my @flist;                                  # list of filenames
 my $fstem;                                  # stem or last file name
@@ -278,7 +279,7 @@ my @out_data;                               # output data
 
 autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
 
-if (exists $opts{help}) {
+if ($opts{help}) {
   print_help();
   exit 0;
 }
@@ -384,26 +385,60 @@ sub read_file {
     chomp;
     my $line = $_;
     $lineno += 1;
-    my $rl = parse_line($fileno, $lineno, $line);
-    dump_rl($rl) if $opts{tpass1};
-    push @src, $rl;
-
-    # handle .include
-    if (defined $$rl{oper} && $$rl{oper} eq '.include' && defined $$rl{ifile}) {
-      my $fnam = $$rl{ifile};
-      unless ($fnam =~ m|^/|) {
-        foreach (@{$opts{I}}) {
-          if (-r "$_/$fnam") {
-            $fnam = "$_/$fnam";
-            last;
-          }
-        }
-      }
-      read_file($fnam);
-    }
-
+    pass1_line($fileno, $lineno, $line);
   }
 
+  return;
+}
+
+#-------------------------------------------------------------------------------
+
+sub exec_macro {
+  my ($rmexec) = @_;
+  my $mname = $rmexec->{name};
+  foreach my $rmline (@{$mst{$mname}{body}}) {
+    my $lrest  = $rmline->{line};
+    my $fileno = $rmline->{fileno};
+    my $lineno = $rmline->{lineno};
+    my $line   = '';
+    while ($lrest =~ m/([a-zA-Z\$\.][a-zA-Z0-9\$\.]*)/) {
+      $line .= $`;
+      $line .= (defined $rmexec->{vals}{$1}) ? $rmexec->{vals}{$1} : $1;
+      $lrest = $';
+    }
+    $line .= $lrest;
+    pass1_line($fileno, $lineno, $line);
+  }
+  return;
+}
+
+#-------------------------------------------------------------------------------
+
+sub pass1_line {
+  my ($fileno,$lineno,$line) = @_;
+
+  my $rl = parse_line($fileno, $lineno, $line);
+  dump_rl($rl) if $opts{tpass1};
+  push @src, $rl;
+
+  # handle .include
+  if (defined $$rl{oper} && $$rl{oper} eq '.include' && defined $$rl{ifile}) {
+    my $fnam = $$rl{ifile};
+    unless ($fnam =~ m|^/|) {
+      foreach (@{$opts{I}}) {
+        if (-r "$_/$fnam") {
+          $fnam = "$_/$fnam";
+          last;
+        }
+      }
+    }
+    read_file($fnam);
+  }
+
+  # handle macro expansions
+  if (defined $$rl{oper} && defined $$rl{mexec}) {
+    exec_macro($$rl{mexec});
+  }
   return;
 }
 
@@ -466,9 +501,45 @@ sub parse_line {
     }
   }
 
+  if (defined $mdefnam) {                   # handle .macro,... definitions
+    my $ltrim = $line;
+    my $mdefend;
+    $ltrim =~ s/^[a-zA-Z\$\.][a-zA-Z0-9\$\.]*://; # trim label
+    $ltrim =~ s/^[0-9]+\$]://;                    # trim local label
+    $ltrim =~ s/^\s*//;                           # trim leading white
+    if ($ltrim =~ m/^(\.[a-zA-Z\$\.][a-zA-Z0-9\$\.]*)/) {  # directive seen
+      my $dnam = $1;
+      if ($dnam =~ m/^\.(macro|rept)/) {          # nested .macro etc seen
+        push @mdefstk, $dnam;
+      } elsif ($dnam =~ m/^\.(endm|endr)/) {      # .endm or .endr seen
+        if (scalar(@mdefstk) > 1) {
+          pop @mdefstk;
+        } else {
+          $mdefend = 1;
+        }
+      }
+    }
+    unless ($mdefend) {
+      push @{$mst{$mdefnam}{body}}, {line   => $l{line},
+                                     fileno => $l{fileno},
+                                     lineno => $l{lineno}
+                                    };
+      return \%l;
+    }
+  }
+
   while (1) {
     if ($opts{tparse}) {
-      printf "-- state = $state";
+      printf "-- state = %-8s",$state;
+      my $rest = '';
+      foreach my $t (@t_pushback) { $rest .= $t->{val} if defined $t->{val}; }
+      foreach my $c (@{$l{cl}})   { $rest .= $c; }
+      $rest =~ s/\s+/ /g;
+      if (length($rest)>17) {
+        $rest = substr($rest,0,17) . '...';
+      }
+      while (length($rest) < 20) { $rest .= ' ' }
+      printf "@ \"%s\"", $rest;
       printf ", nest = %d", scalar(@e_pbeg) if $state =~ m/^e_/;
       print  "\n";
     }
@@ -484,6 +555,9 @@ sub parse_line {
       } elsif ($$rt{tag} eq 'SYM') {
         # directive name seen ?
         if (exists $pst{$$rt{val}} && $pst{$$rt{val}}{typ} eq 'dir') {
+          $state = 'oper';
+        # macro name seen ?
+        } elsif (exists $mst{$$rt{val}}) {
           $state = 'oper';
 
         # otherwise check for label or assignment
@@ -520,7 +594,7 @@ sub parse_line {
           }
         }
 
-      # anything else seen, treat a implicit .word
+      # anything else seen, treat as implicit .word
       } else {
         pushback_token(\%l);
         $state = 'iword';
@@ -546,21 +620,21 @@ sub parse_line {
         my $rs = $pst{$op};
         if ($$rs{typ} eq 'dir') {           # directives ------------------
           $d_dire = $op;
-          if      ($op eq '.word' ||          # .word
-                   $op eq '.byte') {          # .byte
+          if      ($op eq '.word' ||          # .word ----------------
+                   $op eq '.byte') {          # .byte ----------------
             $state = 'dl_beg';
 
-          } elsif ($op eq '.blkw' ||          # .blkw
-                   $op eq '.blkb') {          # .blkb
+          } elsif ($op eq '.blkw' ||          # .blkw ----------------
+                   $op eq '.blkb') {          # .blkb ----------------
             $state = 'dl_beg';
 
-          } elsif ($op eq '.ascii' ||         # .ascii
-                   $op eq '.asciz') {         # .asciz
+          } elsif ($op eq '.ascii' ||         # .ascii ---------------
+                   $op eq '.asciz') {         # .asciz ---------------
             $tmask = TMASK_STRING;
             $state = 'al_next';
 
-          } elsif ($op eq '.even' ||          # .even
-                   $op eq '.odd') {           # .odd
+          } elsif ($op eq '.even' ||          # .even ----------------
+                   $op eq '.odd') {           # .odd -----------------
             my $dot = getdot();
             my $inc = 0;
             $inc = 1 if $op eq '.even' && ($dot&01)==1;
@@ -571,12 +645,12 @@ sub parse_line {
             $l{lstdot} = 1;
             $state = 'end';
 
-          } elsif ($op eq '.asect') {         # .asect
+          } elsif ($op eq '.asect') {         # .asect ---------------
             # .asect is currently a noop because asect is start default
             $l{lstdot} = 1;
             $state = 'end';
 
-          } elsif ($op eq '.include') {       # .include
+          } elsif ($op eq '.include') {       # .include -------------
             $rt = get_token(\%l, TMASK_STRING);
             if ($$rt{tag} eq 'STR') {
               my $ifile = $$rt{val};
@@ -591,7 +665,82 @@ sub parse_line {
               $state = 'q';
             }
 
-          } elsif ($op eq '.end') {           # .end
+          } elsif ($op eq '.macro') {         # .macro ---------------
+            $rt = get_token(\%l, $tmask);
+            if ($$rt{tag} eq 'SYM') {
+              $mdefnam = $$rt{val};
+              $mst{$mdefnam} = {name => $mdefnam,
+                                typ  => '.macro',
+                                args => [],
+                                body => []
+                               };
+              my $mod;
+              $state = 'end';
+              while (1) {                   # loop over argument definitions
+                $rt = get_token(\%l, TMASK_MACROARG);
+                last if $$rt{tag} eq 'EOL';
+                next if $$rt{tag} eq 'DEL'; # FIXME_code: that's likely not OK
+                if ($$rt{tag} eq 'MMOD') {  # modifier seen ?
+                  $mod = $$rt{val};
+                  $rt = get_token(\%l, TMASK_MACROARG);
+                  if ($$rt{tag} eq 'SYM') {   # ensure next token is symbol
+                    pushback_token(\%l);
+                    next;
+                  } else {
+                    $state = 'q';
+                    last;
+                  }
+                }
+                if ($$rt{tag} eq 'SYM') {   # key name seen
+                  my $key = $$rt{val};
+                  my $val;
+                  $rt = get_token(\%l, TMASK_MACROARG);
+                  if ($$rt{tag} eq 'ASS') {   # is it key=val pair ?
+                    $rt = get_token(\%l, TMASK_MACROARG);
+                    if ($$rt{tag} eq 'SYM' || $$rt{tag} eq 'MVAL') {
+                      $val = $$rt{val};
+                    } elsif ($$rt{tag} eq 'DEL' || $$rt{tag} eq 'EOL') {
+                      $val = '';
+                    } else {
+                      $state = 'q';
+                      last;
+                    }
+                  } else {
+                    pushback_token(\%l);
+                  }
+                  push @{$mst{$mdefnam}{args}}, {key => $key,
+                                                 val => $val,
+                                                 mod => $mod
+                                                };
+                } else {
+                  $state = 'q';
+                  last;
+                }
+              }
+            } else {
+              $state = 'q';
+            }
+
+          } elsif ($op eq '.endm') {          # .endm ----------------
+            $rt = get_token(\%l, $tmask);
+            if ($$rt{tag} eq 'EOL' || $$rt{tag} eq 'SYM') {
+              add_err(\%l, 'A') if $$rt{tag} eq 'SYM' && $$rt{val} ne $mdefnam;
+              $mdefnam = undef;
+              $state = 'end';
+            } else {
+              $state = 'q';
+            }
+
+          } elsif ($op eq '.list' ||          # .list ----------------
+                   $op eq '.nlist') {         # .nlist ---------------
+            while (1) {                       # loop over options
+              $rt = get_token(\%l, $tmask);
+              last if $$rt{tag} eq 'EOL';
+              next if $$rt{tag} eq 'DEL';     # FIXME_code: check delimiter
+              # FIXME_code: handle .list/.nlist
+            }
+            $state = 'end';
+          } elsif ($op eq '.end') {           # .end -----------------
             $state = 'dl_beg';
 
           } else {
@@ -621,8 +770,41 @@ sub parse_line {
           }
 
         }
-      } else {                              # oper noy in pst --> implicit .word
-        pushback_token(\%l);
+
+      } elsif (exists $mst{$op}) {          # op in mst -> expand macro ---
+        my %mexec = (name => $op,
+                     keys => [],
+                     vals => {}
+                    );
+        foreach my $marg (@{$mst{$op}{args}}) {
+          push @{$mexec{keys}}, $marg->{key};
+          $mexec{vals}{$marg->{key}} = $marg->{val}; # set defaults
+        }
+        my $iarg = 0;
+        while (1) {
+          $rt = get_token(\%l, TMASK_MACROARG);
+          last if $$rt{tag} eq 'EOL';
+          next if $$rt{tag} eq 'DEL'; # FIXME_code: that's for sure not OK
+          if ($$rt{tag} eq 'SYM' || $$rt{tag} eq 'MVAL' ||
+              $$rt{tag} eq 'MSTR') {
+            my $key = $mexec{keys}[$iarg];   # FIXME_code: check valid index !
+            my $val = $$rt{val};             # FIXME_code: strip <> or ^// !
+            $mexec{vals}{$key} = $val;
+            $iarg += 1;
+          }
+        }
+        # finally setup auto-generated labels
+        foreach my $marg (@{$mst{$op}{args}}) {
+          next unless defined $marg->{mod} && $marg->{mod} eq '?';
+          my $key = $marg->{key};
+          next if defined $mexec{vals}{$key} && $mexec{vals}{$key} ne '';
+          $mexec{vals}{$key} = sprintf '%5d$', $mautolbl++;
+        }
+        $l{mexec} = \%mexec;
+        $state = 'end';
+
+      } else {                              # oper not in pst and mst -----
+        pushback_token(\%l);                # --> implicit .word
         $state = 'iword';
       }
 
@@ -1416,8 +1598,57 @@ sub get_token1 {
         $str .= $c;
         return finish_token(\%t, tag=> 'STR', val=> $str) if $c eq $del;
       }
-      add_err($rl, 'A');
+      add_err($rl, 'A');                    # indeed 'A' error, not 'Q' !!
       return finish_token(\%t, tag=> 'STR', val=> $str);
+    }
+  }
+
+  if ($tmask & TMASK_MACROARG) {
+    if ($c eq '<' || $c eq '^') {           # <...> and ^/..../
+      my $del = shift @$rcl;
+      my $str = $del;
+      if ($del eq '^') {
+        $del = shift @$rcl;
+        if (not defined $del) {
+          add_err($rl, 'A');
+          return finish_token(\%t, tag=> 'MSTR', val=> $str);
+        }
+        $str .= $del;
+      }
+      while (scalar(@$rcl)) {
+        my $c = shift @$rcl;
+        $str .= $c;
+        return finish_token(\%t, tag=> 'MSTR', val=> $str) if $c eq $del;
+      }
+      add_err($rl, 'A');
+      return finish_token(\%t, tag=> 'MSTR', val=> $str);
+    } elsif ($c =~ m/[a-zA-Z\$\.]/) {       # symbol names
+      while (scalar(@$rcl)) {
+        last if ($$rcl[0] !~ m/[a-zA-Z0-9\$\.]/);
+        $val .= shift @$rcl;
+      }
+      if ((not defined $$rcl[0]) || $$rcl[0]=~ m/(\s|=|,|;)/) { # delimiter seen
+        return finish_token(\%t, tag=> 'SYM', val=> $val);  # it's a symbol
+      } else {                                              # else swallow rest
+        while (scalar(@$rcl)) {
+          last if $$rcl[0] =~ m/(\s|,|;)/;      # stop at white, comma, comment
+          $val .= shift @$rcl;
+        }
+        return finish_token(\%t, tag=> 'MVAL', val=> $val);
+      }
+    } elsif ($c eq '?' || $c eq '\\') {     # ? or \ modifiers
+      return finish_token(\%t, tag=> 'MMOD', val=> shift @$rcl);
+    } elsif ($c eq '=') {                   # = key/val
+      return finish_token(\%t, tag=> 'ASS', val=> shift @$rcl);
+    } elsif ($c eq ',') {                   # ' seperator
+      return finish_token(\%t, tag=> 'DEL', val=> shift @$rcl);
+    } else {
+      $val = shift @$rcl;
+      while (scalar(@$rcl)) {
+        last if $$rcl[0] =~ m/(\s|,|;)/;      # stop at white, comma, comment
+        $val .= shift @$rcl;
+      }
+      return finish_token(\%t, tag=> 'MVAL', val=> $val);
     }
   }
 
@@ -2317,7 +2548,7 @@ sub dump_rl {
     }
   }
   if (defined $$rl{opcode}) {
-    printf "   code: %6.6o,fmt=%-2s", $$rl{opcode}, $$rl{opfmt};
+    printf "   code  : %6.6o,fmt=%-2s", $$rl{opcode}, $$rl{opfmt};
     if (defined $$rl{o1mod}) {
       printf ", o1=%s%s", $$rl{o1mod},$$rl{o1reg};
       printf ",ei=%d:%d,val=%s", $$rl{o1ebeg}, $$rl{o1eend},
@@ -2336,17 +2567,31 @@ sub dump_rl {
     print "\n";
   }
   if (scalar(@{$$rl{outw}})) {
-    print "   outw:";
+    print "   outw  :";
     foreach (@{$$rl{outw}}) { printf " %6.6o", $_; }
     print "\n";
   }
   if (scalar(@{$$rl{outb}})) {
-    print "   outb:";
+    print "   outb  :";
     foreach (@{$$rl{outb}}) { printf " %3.3o", $_; }
     print "\n";
   }
+  if (defined $$rl{cl}) {
+    my $str = join '',@{$$rl{cl}};
+    print "   cl    : $str\n" if length($str);
+  }
+  if (defined $$rl{mexec}) {
+    printf "   mexec : %-6s : ", $$rl{mexec}{name};
+    my $del = '';
+    foreach my $key (@{$$rl{mexec}{keys}}) {
+      printf '%s%s', $del,$key;
+      printf '=%s', $$rl{mexec}{vals}{$key} if defined $$rl{mexec}{vals}{$key};
+      $del = ',';
+    }
+    printf "\n";
+  }
   foreach my $key (sort keys %{$rl}) {
-    next if $key =~ m/^(line|err|typ|oper|lineno|psect|dot|opcode|opfmt|o[12](mod|reg|ebeg|eend)|ebeg|eend|tl|delist|outw|outb)$/;
+    next if $key =~ m/^(line|err|typ|oper|lineno|psect|dot|opcode|opfmt|o[12](mod|reg|ebeg|eend)|ebeg|eend|tl|delist|outw|outb|cl|mexec)$/;
     printf "   %-6s: %s\n", $key, savestr($$rl{$key});
   }
   return;
@@ -2375,6 +2620,26 @@ sub dump_sym {
     }
     printf "%-6s %-6s %-4s %-6s  %s\n", $scope, $name, $lst{$key}{typ},
       $lst{$key}{psect}, save66o($lst{$key}{val});
+  }
+
+  my @mlist = sort keys %mst;
+  if (scalar @mlist) {
+    print "\n";
+    print "macro  typ    body argument-list\n";
+    print "------ ------ ---- -------------\n";
+    foreach my $mnam (@mlist) {
+      printf '%-6s %-6s %4d ', $mnam,
+        $mst{$mnam}{typ}, scalar(@{$mst{$mnam}{body}});
+      my $del = '';
+      foreach my $arg (@{$mst{$mnam}{args}}) {
+        printf '%s', $del;
+        printf '%s',$arg->{mod} if defined $arg->{mod};
+        printf '%s',$arg->{key};
+        printf '=%s',$arg->{val} if defined $arg->{val};
+        $del = ',';
+      }
+      print "\n";
+    }
   }
 
   return;
@@ -2436,7 +2701,7 @@ sub print_help {
   print "  --lst         create listing (default file name)\n";
   print "  --olst=fnam   create listing (concrete file name)\n";
   print "  --lda         create absolute loader output (default file name)\n";
-  print "  --olda        create absolute loader output (concrete file name)\n";
+  print "  --olda=fnam   create absolute loader output (concrete file name)\n";
   print "  --cof         create compound output (default file name)\n";
   print "  --ocof=fnam   create compound output (concrete file name)\n";
   print "  --lsm         create lsmem style memory dump (default file name)\n";

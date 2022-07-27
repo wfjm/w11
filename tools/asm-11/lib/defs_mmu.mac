@@ -1,4 +1,4 @@
-; $Id: defs_mmu.mac 1184 2019-07-10 20:39:44Z mueller $
+; $Id: defs_mmu.mac 1261 2022-07-23 16:15:03Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -24,33 +24,34 @@
 ;
 ; symbol definitions for ssr0
 ;
-        m0.anr = 100000
-        m0.ale = 040000
-        m0.ard = 020000
-        m0.trp = 010000
-        m0.ent = 001000
-        m0.mai = 000400
-        m0.ico = 000200
-        m0.dsp = 000020
-        m0.ena = 000001
+        m0.anr = 100000                 ; abort non-resident
+        m0.ale = 040000                 ; abort segment length
+        m0.ard = 020000                 ; abort read-only violation
+        m0.trp = 010000                 ; trap taken
+        m0.ent = 001000                 ; enable traps
+        m0.mai = 000400                 ; maintenance mode
+        m0.ico = 000200                 ; instruction complete flag
+        m0.dsp = 000020                 ; enable i/d space
+        m0.ena = 000001                 ; enable mmu
 ;
 ; symbol definitions for ssr3
 ;
-        m3.eub = 000040
-        m3.e22 = 000020
-        m3.dkm = 000004
-        m3.dsm = 000002
-        m3.dum = 000001
+        m3.eub = 000040                 ; enable unibus map
+        m3.e22 = 000020                 ; enable 22bit addressing
+        m3.dkm = 000004                 ; enable d space kernel
+        m3.dsm = 000002                 ; enable d space supervisor
+        m3.dum = 000001                 ; enable d space user
 ;
 ; symbol definitions for pdr regs
 ;
-        md.aia = 000200
-        md.aiw = 000100
-        md.dwn = 000010
-        md.an7 = 000007
-        md.arw = 000006
-        md.atw = 000005
-        md.atr = 000004
-        md.an3 = 000003
-        md.aro = 000002
-        md.art = 000001
+        md.slf = 000400                 ; LSB of slf field
+        md.aia = 000200                 ; access a, any access
+        md.aiw = 000100                 ; access w, write access
+        md.dwn = 000010                 ; ed field 1, down expansion
+        md.an7 = 000007                 ; abort all; reserved
+        md.arw = 000006                 ; allow r+w; no traps
+        md.atw = 000005                 ; allow r+w; trap w
+        md.atr = 000004                 ; allow r+w; trap r+w
+        md.an3 = 000003                 ; abort all; reserved
+        md.aro = 000002                 ; allow r; abort w; no traps
+        md.art = 000001                 ; allow r; abort w; trap r

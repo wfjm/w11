@@ -1,0 +1,500 @@
+; $Id: cpu_mmu.mac 1262 2022-07-25 09:44:55Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; Revision History:
+; Date         Rev Version  Comment
+; 2022-07-24  1262   1.0    Initial version
+;
+; Test CPU MMU: all aspects of the MMU
+;   Section A: pdr,par registers
+;   Section B: ssr0,ssr3 registers, mapping, instructions
+;   Section C: ssr1,ssr2 registers and traps
+;   Section D: aborts
+;
+        .include        |lib/tcode_std_base.mac|
+        .include        |lib/defs_mmu.mac|
+; some useful definitions
+       uipdr0 = uipdr+ 0
+       uipar0 = uipar+ 0
+       udpdr0 = udpdr+ 0
+       udpar0 = udpar+ 0
+       sipdr0 = sipdr+ 0
+       sipar0 = sipar+ 0
+       kipar6 = kipar+14
+       kipar7 = kipar+16
+;
+; Section A: pdr,par registers ===============================================
+;
+; Test A1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;
+; Test A1.1 -- test that pdr/par are 16 bit write/readable +++++++++++
+;   Write unique patterns to first and last pdr/par of each mode and read back
+;
+ta0101: mov     #000401,r5      ; pattern master
+;;;     mov     #077717,r5      ; bit mask for pdr
+;
+; write 000401,001002,002004,004010,...   for pdr; complement for par
+        mov     r5,r0           ; start pattern
+        mov     #12.,r1         ; number tested regs
+        mov     #9000$,r2
+1000$:  mov     (r2)+,r3
+        mov     r0,(r3)         ; write pdr
+        add     r5,r0
+        dec     r0
+        mov     r0,40(r3)       ; write par
+        add     r5,r0
+        sob     r1,1000$
+;
+; read back
+        mov     r5,r0           ; start pattern
+        mov     #12.,r1         ; number of modes
+        mov     #9000$,r2
+1100$:  mov     (r2)+,r3
+        hcmpeq  (r3),r0         ; check pdr
+        add     r5,r0
+        dec     r0
+        hcmpeq  40(r3),r0       ; check par
+        add     r5,r0
+        sob     r1,1100$
+;
+; complement all pattern
+        mov     #12.,r1         ; number of modes
+        mov     #9000$,r2
+1200$:  mov     (r2)+,r3
+        mov     (r3),r4         ; complement pdr only writable bits
+        com     r4
+        bic     #100360,r4      ; mask non-writable (incl A and W)
+        mov     r4,(r3)
+        com     40(r3)          ; complement par
+        sob     r1,1200$
+;
+; and read back again
+;   pdr only slf,ed and acf fields are checked
+;   par all 18 bits are write/readable
+        mov     r5,r0           ; start pattern
+        com     r0              ; complemented
+        mov     #12.,r1         ; number of modes
+        mov     #9000$,r2
+1300$:  mov     (r2)+,r3
+        mov     r0,r4
+        bic     #100360,r4      ; mask non-writable (incl A and W)
+        hcmpeq  (r3),r4         ; check pdr only writable bits
+        sub     r5,r0
+        inc     r0
+        hcmpeq  40(r3),r0       ; check par
+        sub     r5,r0
+        sob     r1,1300$
+;
+        jmp     9999$
+;
+9000$:  .word   uipdr           ; usr i page dsc base  0
+        .word   uipdr+16
+        .word   udpdr           ; usr d page dsc base  0
+        .word   udpdr+16
+        .word   sipdr           ; sup i page dsc base  0
+        .word   sipdr+16
+        .word   sdpdr           ; sup d page dsc base  0
+        .word   sdpdr+16
+        .word   kipdr           ; ker i page dsc base  0
+        .word   kipdr+16
+        .word   kdpdr           ; ker d page dsc base  0
+        .word   kdpdr+16
+;
+9999$:  iot                     ; end of test A1.1
+;
+; Test A1.2 -- setup MMU default configuration +++++++++++++++++++++++
+;   Nothing is verified, just sets the MMU for all further tests
+;   kernel I: 1-to-1   and seg7 to io-page
+;   kernel D: unmapped but seg7 to io-page
+;   supervisor and user I and D: unmapped (acf=0)
+;
+ta0102:
+; first clear all pdr/par, that disables mapping (acf=0)
+        mov     #1000$,r0
+        mov     #3,r1
+100$:   mov     (r0)+,r2        ; ptr to pdr+par I+D set (32 regs)
+        mov     #8.,r3          ; 8 chunks of 4
+200$:   clr     (r2)+
+        clr     (r2)+
+        clr     (r2)+
+        clr     (r2)+
+        sob     r3,200$
+        sob     r1,100$
+; setup kernel I
+        mov     #kipdr,r0
+        mov     #<127.*md.slf>!md.arw,r1  ; slf=127; ed=0(up); acf=6(w/r)
+        mov     r1,(r0)+        ; kipdr0
+        mov     r1,(r0)+        ; kipdr1
+        mov     r1,(r0)+        ; kipdr2
+        mov     r1,(r0)+        ; kipdr3
+        mov     r1,(r0)+        ; kipdr4
+        mov     r1,(r0)+        ; kipdr5
+        mov     r1,(r0)+        ; kipdr6
+        mov     r1,(r0)+        ; kipdr7
+        mov     #kipar,r0
+        mov     #000000,(r0)+   ; kipar0 000000 base
+        mov     #000200,(r0)+   ; kipar1 020000 base
+        mov     #000400,(r0)+   ; kipar2 040000 base
+        mov     #000600,(r0)+   ; kipar3 060000 base
+        mov     #001000,(r0)+   ; kipar4 100000 base
+        mov     #001200,(r0)+   ; kipar5 120000 base
+        mov     #001400,(r0)+   ; kipar6 140000 base
+        mov     #177600,(r0)+   ; kipar7 (map I/O page)
+; setup kernel D
+        mov    #kdpdr,r0
+        mov    r1,16(r0)        ; kdpdr7 slf=127; ed=0(up); acf=6(w/r)
+        mov    #kdpar,r0
+        mov     #177600,16(r0)  ; kdpar7 (map I/O page)
+;
+        jmp     9999$
+;
+1000$:  .word   uipdr
+        .word   sipdr
+        .word   kipdr
+;
+9999$:  iot                     ; end of test A1.2
+;
+; Section B: ssr0,ssr3 registers, mapping, instructions ======================
+;   Test whether address mapping works (traps and aborts avoided)
+;
+; Test B1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   Test kernel mode
+;
+; Test B1.1 -- test 1-to-1 kernel mode mapping +++++++++++++++++++++++
+;   simply enable MMU, shouldnt make a difference
+;   test that 18bit mode extends I/O page addressing
+;   test that RESET clears ssr0 and ssr3
+;
+;   This test verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 000 000 000 000 101 ---- RESET   (clear ssr0,ssr3)
+;
+tb0101: mov     #123456,1000$
+; enable mmu in 18bit mode
+        clr     ssr3            ; no d dspace, no 22bit
+        mov     #m0.ena,ssr0    ; enable mmu
+        hbitne  #m0.ena,ssr0    ; test bit                      ;! MMU 18
+        hcmpeq  1000$,#123456   ; check marker
+; verify I/O page mapping in 18bit mode (007600 must be OK)
+        mov     #kipar7,r0      ; ptr to kipar7
+        bic     #170000,(r0)    ; clear to 4 bits in kipar7
+        hcmpeq  (r0),#007600    ; kipar7 still seen ???
+        bis     #170000,(r0)    ; restore kipar7
+        hcmpeq  (r0),#177600
+; enable mmu in 22bit mode; check that ssr3 still seen
+        mov     #m3.e22,ssr3
+        hcmpeq  ssr3,#m3.e22    ; test ssr3 stll seen ???       ;! MMU 22
+; test RESET
+        reset                   ; should clear ssr0 and ssr3
+        htsteq  ssr0            ; check ssr0 cleared            ;! MMU off
+        htsteq  ssr3            ; check ssr3 cleared
+        jmp     9999$
+;
+1000$:  .word   0
+;
+9999$:  iot                     ; end of test B1.1
+;
+; Test B1.2 -- test variable kernel mode mapping +++++++++++++++++++++
+;   change seg6 mapping
+;   test that 18bit mode discards the 4 MSB of the par
+;
+tb0102: mov     #kipar6,r0      ; ptr to kipar6
+        mov     #140000,r5      ; seg6 base
+        mov     #140000,(r5)    ; init markers
+        clr     2(r5)
+        mov     #140100,100(r5) ; init markers
+        clr     102(r5)
+;
+        clr     ssr3            ; no d dspace, no 22bit
+        mov     #m0.ena,ssr0    ; enable mmu                    ;! MMU 18
+; check in 1-to-1 mapping
+        hcmpeq  (r5),#140000
+        htsteq  2(r5)
+        hcmpeq  100(r5),#140100
+        htsteq  102(r5)
+; move seg6 mapping up by one click
+        inc     (r0)            ; move kipar6 base up
+        hcmpeq  (r0),#001401
+        hcmpeq  0(r5),#140100
+        mov     #010000,2(r5)   ; write marker
+; set MSBs in kipar6, should be discarded in 18bit mode, check markers
+        bis     #170000,(r0)
+        hcmpeq  (r0),#171401
+        hcmpeq  (r5),#140100   ; check marker
+        bic     #170000,(r0)
+        hcmpeq  (r0),#001401
+; move seg6 mapping down by one click
+        dec     (r0)            ; move kipar6 base up
+        hcmpeq  (r0),#001400
+        mov     #020000,2(r5)   ; write marker
+        hcmpeq  2(r5),#020000  ; check marker
+        hcmpeq  102(r5),#010000  ; check marker
+; disable MMU
+        reset                   ; mmu off                       ;! MMU off
+;
+9999$:  iot                     ; end of test B1.2
+;
+; Test B2:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   Test user and supervisor mode
+;
+; Test B2.1 -- run code in user/supervisor mode ++++++++++++++++++++++
+;   code vc0 is executed in user and in supervisor mode
+;   the code runs in seg0 with D space disabled
+;
+tb0201:
+; setup emt handler
+        mov     #vhuemt,v..emt
+        clr    v..emt+2         ; pr0 kernel
+; enable mmu
+        clr     ssr3            ; no d dspace, no 22bit
+        mov     #m0.ena,ssr0    ; enable mmu                    ;! MMU 18
+;
+; run code vc0 in user mode --------------------------------
+;
+; set user mode pdr/par, only short segment 0
+        mov     #<8.*md.slf>!md.arw,uipdr0
+        mov     #<vc0/100>,uipar0
+; setup data for user mode run
+        mov     #023456,vc0v0;
+        mov     #000123,vc0v1
+        mov     #077321,vc0v2
+; start code in user mode
+        mov     #1000$,vhustp   ; setup continuation address
+        mov     #cp.cmu,-(sp)   ; next psw: user mode
+        clr     -(sp)           ; will start at 0
+        rti                     ; and launch it
+        halt
+1000$:                          ; continuation point
+; check psw
+        ccc                     ; clear cc -> psw reflects pm setting
+        hcmpeq  cp.psw,#cp.pmu  ; check pm
+; check data 
+        hcmpeq  vc0v0,#154321
+        hcmpeq  vc0v2,#077444
+; reset user mode pdr/par
+        clr     uipdr0
+        clr     uipar0
+;
+; run code vc0 in supervisor mode --------------------------
+;
+; set supervisor mode pdr/par, only short segment 0
+        mov     #<8.*md.slf>!md.arw,sipdr0
+        mov     #<vc0/100>,sipar0
+; setup data for user mode run
+        mov     #017171,vc0v0
+        mov     #000321,vc0v1
+        mov     #100123,vc0v2
+; start code in supervisor mode
+        mov     #2000$,vhustp   ; setup continuation address
+        mov     #cp.cms,-(sp)   ; next psw: supervisor mode
+        clr     -(sp)           ; will start at 0
+        rti                     ; and launch it
+        halt
+2000$:                          ; continuation point
+; check psw
+        ccc                     ; clear cc -> psw reflects pm setting
+        hcmpeq  cp.psw,#cp.pms  ; check pm
+; check data
+        hcmpeq  vc0v0,#160606
+        hcmpeq  vc0v2,#100444
+; reset supervsior mode pdr/par
+        clr     sipdr0
+        clr     sipar0
+;
+        reset                   ; mmu off                       ;! MMU off
+        mov     #v..emt+2,v..emt        ; restore emt catcher
+        clr     v..emt+2
+;
+9999$:  iot                     ; end of test B2.1
+;
+; Test B2.2 -- run code in user mode with D space enabled ++++++++++++
+;   code vc1 is executed in user and in supervisor mode
+;   the code runs in seg0 with D space enabled
+;
+;   This test verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 000 110 101 ddd ddd NZ0- MFPI
+;     0 000 110 110 ddd ddd NZ0- MTPI
+;     1 000 110 101 ddd ddd NZ0- MFPD
+;     1 000 110 110 ddd ddd NZ0- MTPD
+;
+tb0202:
+; setup emt handler
+        mov     #vhuemt,v..emt
+        clr     v..emt+2        ; pr0 kernel
+; enable mmu
+        mov     #m3.dum,ssr3    ; user d dspace, no 22bit
+        mov     #m0.ena,ssr0    ; enable mmu                    ;! MMU 18
+;
+; run code vc1 in user mode --------------------------------
+;
+; set user mode pdr/par, only short segment 0; I and D
+        mov     #<8.*md.slf>!md.arw,uipdr0
+        mov     #<vc1/100>,uipar0
+        mov     #<8.*md.slf>!md.arw,udpdr0
+        mov     #<vc1dat/100>,udpar0
+; setup data for user mode run
+        mov     #020305,vc1v0
+        mov     #000212,vc1v1
+        mov     #033121,vc1v2
+; start code in user mode
+        mov     #1000$,vhustp   ; setup continuation address
+        mov     #cp.cmu,-(sp)   ; next psw: user mode
+        clr     -(sp)           ; will start at 0
+        rti                     ; and launch it
+        halt
+1000$:                          ; continuation point
+; check psw
+        ccc                     ; clear cc -> psw reflects pm setting
+        hcmpeq  cp.psw,#cp.pmu  ; check pm
+; check data
+        hcmpeq  vc1v0,#157472
+        hcmpeq  vc1v2,#033333
+;
+; psw has now pm=user and cm=kernel; good setup to test MFPI and friends
+;
+; test MFPD
+;
+        mov     #<vc1v0-vc1dat>,r5      ; initialize data pointer
+        mfpd    (r5)              ; read vc1v0
+        hcmpeq  (sp)+,#157472
+        mfpd    @#<vc1v2-vc1dat>  ; read vc1v2
+        hcmpeq  (sp)+,#033333
+;
+; test MTPD and MFPD, incl cc
+;
+        mov     #2010$,r4       ; ptr to test data
+        mov     #2011$,r3       ; ptr to test end
+2000$:  mov     (r4)+,-(sp)
+        ccc                     ; C=0
+        mtpd    (r5)            ; write vc1v0
+        hcmpeq  cp.psw,(r4)+    ; check cc
+        hcmpeq  vc1v0,-4(r4)    ; check target
+        scc                     ; C=1
+        mfpd    (r5)
+        hcmpeq  cp.psw,(r4)+    ; check cc
+        cmp     r4,r3           ; more to do ?
+        blo     2000$
+;
+; test MFPI
+;
+        mov     #<vc1-vc1>,r5     ; initialize data pointer
+        mfpi    (r5)              ; read 1st instruction word
+        hcmpeq  (sp)+,vc1
+;
+; test MTPI and MFPI, incl cc
+;
+        mov     #<vc1ida-vc1>,r5 ; initialize data pointer
+        mov     #3010$,r4       ; ptr to test data
+        mov     #3011$,r3       ; ptr to test end
+3000$:  mov     (r4)+,-(sp)
+        scc                     ; C=1
+        mtpi    (r5)            ; write vc1ida
+        hcmpeq  cp.psw,(r4)+    ; check cc
+        hcmpeq  vc1ida,-4(r4)   ; check target
+        ccc                     ; C=0
+        mfpi    (r5)
+        hcmpeq  cp.psw,(r4)+    ; check cc
+        cmp     r4,r3           ; more to do ?
+        blo     3000$
+;
+; reset user mode pdr/par
+        clr     uipdr0
+        clr     uipar0
+        clr     udpdr0
+        clr     udpar0
+;
+        reset                   ; mmu off                       ;! MMU off
+        mov     #v..emt+2,v..emt        ; restore emt catcher
+        clr     v..emt+2
+        jmp     9999$
+;
+; test data for m*pd tests (C=0 for T and C=1 for F)
+2010$:  .word   000000,cp.pmu!cp0z00,cp.pmu!cp0z0c
+        .word   000001,cp.pmu!cp0000,cp.pmu!cp000c
+        .word   100000,cp.pmu!cpn000,cp.pmu!cpn00c
+2011$:
+;
+; test data for m*pi tests (C=1 for T and C=0 for F)
+3010$:  .word   000000,cp.pmu!cp0z0c,cp.pmu!cp0z00
+        .word   000001,cp.pmu!cp000c,cp.pmu!cp0000
+        .word   100000,cp.pmu!cpn00c,cp.pmu!cpn000
+3011$:
+;
+9999$:  iot                     ; end of test B2.2
+;
+; END OF ALL TESTS - loop closure ============================================
+;
+        mov     tstno,r0        ; hack, for easy monitoring ...
+        hcmpeq  tstno,#6.       ; all tests done ?
+;
+        jmp     loop
+;
+; kernel handlers ============================================================
+;
+; vhuemt - emt handler, drop frame, continue in kernel mode ++++++++++++++++++
+;   use to end user/supervisor mode code with an emt xxx
+;   the kernel continution address must be written to vhustp
+;   execution will reset vhustp to a catcher value
+;   --> vhustp must be set for each execution
+;
+vhuemt: tst     (sp)+           ; discard on word of vector push
+        mov     vhustp,(sp)     ; setup kernel return address
+        mov     vhuhlt,vhustp   ; reset stop address by catcher
+        rts     pc              ; end return to continuation address
+vhustp: .word   vhuhlt
+vhuhlt: halt
+;
+; Test codes that will be mapped in user or supervisor mode ==================
+; They are located at 100000 and above and are position-independent code.
+; That allows to assemble and load them together with the main code.
+;
+; vc0 - simple code ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;    uses jsr, has stack below 1000 (no problem in user/supervisor mode)
+;    does operations with vc0v0, vc0v1, vc0v2
+;    these location are usually set before and checked afterwards in kernel mode
+;
+        . = 100000
+vc0:    jmp     100$
+        .blkw   14.             ; small stack space
+100$:   mov     #40,sp          ; initialize stack
+        jsr     pc,1000$
+        emt     100             ; will end user/supervisor code
+;
+1000$:  com     vc0v0
+        jsr     pc,2000$
+        rts     pc
+2000$:  add     vc0v1,vc0v2
+        rts     pc
+;
+vc0v0:  .word   0
+vc0v1:  .word   0
+vc0v2:  .word   0
+;
+; vc1 - simple I/D code ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;    uses jsr, has stack below 1000 (no problem in user/supervisor mode)
+;    does operations with vc1v0, vc1v1, vc1v2
+;    these location are usually set before and checked afterwards in kernel mode
+;
+        . = 101000              ; I space
+vc1:    mov     #<vc1v0-vc1dat>,sp      ; initialize stack
+        mov     #<vc1v0-vc1dat>,r5      ; initialize data pointer
+        jsr     pc,1000$
+        emt     100             ; will end user/supervisor code
+;
+1000$:  com     (r5)            ; will access vc1v0
+        jsr     pc,2000$
+        rts     pc
+2000$:  add     2(r5),4(r5)     ; will access vc1v1 and vc1v2
+        rts     pc
+;
+vc1ida: .word   0               ; I space location, MTPI target
+;
+        . = 102000              ; D space
+vc1dat: .blkw   16.             ; small stack space
+vc1v0:  .word   0
+vc1v1:  .word   0
+vc1v2:  .word   0
+;
+        .end    start

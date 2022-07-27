@@ -1,0 +1,42 @@
+; $Id: halt_checks.mac 1262 2022-07-25 09:44:55Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; Macros for checking a location and halt on error
+;
+; cmp on eq
+        .macro  hcmpeq,src,dst
+        cmp     src,dst
+        beq     .+4
+        halt
+        .endm
+; cmpb on eq
+        .macro  hcmbeq,src,dst
+        cmpb    src,dst
+        beq     .+4
+        halt
+        .endm
+; bit on ne
+        .macro  hbitne,src,dst
+        bit     src,dst
+        bne     .+4
+        halt
+        .endm
+; bit on eq
+        .macro  hbiteq,src,dst
+        bit     src,dst
+        beq     .+4
+        halt
+        .endm
+; tst on eq
+        .macro  htsteq,src
+        tst     src
+        beq     .+4
+        halt
+        .endm
+; tstb on eq
+        .macro  htsbeq,src
+        tstb    src
+        beq     .+4
+        halt
+        .endm

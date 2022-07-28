@@ -1,10 +1,11 @@
-; $Id: cpu_details.mac 1261 2022-07-23 16:15:03Z mueller $
+; $Id: cpu_details.mac 1262 2022-07-25 09:44:55Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2022-07-18  1259   1.0    Initial version
+; 2022-07-24  1262   1.0    Initial version
+; 2022-07-18  1259   0.1    First draft
 ;
 ; Test CPU details
 ;   Section A: CPU registers
@@ -55,20 +56,14 @@ ta0101: mov     #1000$,v..pir     ; setup handler
 ;
         spl     7               ; lockout interrupts
         bisb    #bit01,1(r3)    ; set PIRQ 1
-        cmp     (r3),#<pi.r01!pi.n01>                   ; check set 1
-        beq     .+4
-        halt
+        hcmpeq  (r3),#<pi.r01!pi.n01>                   ; check set 1
         bisb    #bit03,1(r3)    ; set PIRQ 3
-        cmp     (r3),#<pi.r01!pi.r03!pi.n03>            ; check set 1+3
-        beq     .+4
-        halt
+        hcmpeq  (r3),#<pi.r01!pi.r03!pi.n03>            ; check set 1+3
         spl     2
         nop                     ; allow interrupts to happen
         spl     0
         nop                     ; allow interrupts to happen
-        tst     (r3)            ; PIRQ should clear now
-        beq     .+4
-        halt
+        htsteq  (r3)            ; PIRQ should clear now
         mov     #v..pir+2,v..pir; restore pirq vector catcher
         clr     v..pir+2
         jmp     9999$
@@ -81,12 +76,8 @@ ta0101: mov     #1000$,v..pir     ; setup handler
 ;
 1000$:  inc     1300$           ; up level counter
         mov     (r3),r0         ; get PIRQ value
-        cmp     1300$,(r5)+     ; check nesting level
-        beq     .+4
-        halt
-        cmp     r0,(r5)+        ; check pirq value
-        beq     .+4
-        halt
+        hcmpeq  1300$,(r5)+     ; check nesting level
+        hcmpeq  r0,(r5)+        ; check pirq value
         movb    r0,(r4)         ; PSW=PIRQ (sets priority)
         bic     #177761,r0      ; mask out index bits
         mov     r0,r1           ; r0 is word index (pri*2)
@@ -143,18 +134,10 @@ tb0101: mov     #2,r5
         mov     -(r1),-(r1)     ; mov 444 over 333
         add     -(r1),-(r1)     ; add 222 to   111
 ;
-        cmp     1000$+2,#000111
-        beq     .+4
-        halt
-        cmp     1000$+6,#000777
-        beq     .+4
-        halt
-        cmp     1100$+4,#000444
-        beq     .+4
-        halt
-        cmp     1100$+0,#000333
-        beq     .+4
-        halt
+        hcmpeq  1000$+2,#000111
+        hcmpeq  1000$+6,#000777
+        hcmpeq  1100$+4,#000444
+        hcmpeq  1100$+0,#000333
 ;
         mov     (sp)+,1100$+4   ; restore data
         mov     (sp)+,1100$+0
@@ -189,15 +172,9 @@ tb0102: mov     #2,r5
         mov     1000$+4,1200$+2 ; -14(pc),2(pc): dst of mov -> src of add
 1200$:  add     #0,r0           ; add #1(!) to r0
 ;
-        cmp     1000$+4,#1
-        beq     .+4
-        halt
-        cmp     1100$+4,#3
-        beq     .+4
-        halt
-        cmp     r0,#1
-        beq     .+4
-        halt
+        hcmpeq  1000$+4,#1
+        hcmpeq  1100$+4,#3
+        hcmpeq  r0,#1
 ;
         mov     (sp)+,1200$+2   ; restore data
         mov     (sp)+,1100$+4
@@ -224,9 +201,7 @@ tb0103: mov     #000137,@#0  ; setup jmp 1000$ at mem(0)
         inc     r0
         inc     r0              ; lands here
         inc     r0
-        cmp     r0,#2
-        beq     .+4
-        halt
+        hcmpeq  r0,#2
 ;
         clr     @#0             ; remove jmp 1000$ at mem(0)
         clr     @#2
@@ -255,15 +230,9 @@ tb0201: mov     #2,r5
 1100$:  mov     r4,-(pc)        ; will overwrite itself and re-execute(!)
         inc     r0
 ;
-        cmp     r0,#3           ; 3 inc r0 in code
-        beq     .+4
-        halt
-        cmp     r1,#1           ; check that 'inc r1' was executed
-        beq     .+4
-        halt
-        cmp     r2,#1           ; check that 'inc r2' was executed
-        beq     .+4
-        halt
+        hcmpeq  r0,#3           ; 3 inc r0 in code
+        hcmpeq  r1,#1           ; check that 'inc r1' was executed
+        hcmpeq  r2,#1           ; check that 'inc r2' was executed
 ;
         mov     (sp)+,1100$
         mov     (sp)+,1000$
@@ -289,9 +258,7 @@ tb0202: mov     #2,r5
         mov     #005202,(pc)    ; will replace jmp (r1) with 'inc r2'
 1200$:  jmp     (r1)
 ;
-        cmp     r2,#3           ; check that 'inc r2' was executed
-        beq     .+4
-        halt
+        hcmpeq  r2,#3           ; check that 'inc r2' was executed
 ;
         mov     (sp)+,1200$
         mov     (sp)+,1100$
@@ -306,9 +273,7 @@ tb0202: mov     #2,r5
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        cmp     tstno,#6.       ; all tests done ?
-        beq     .+4
-        halt
+        hcmpeq  tstno,#6.       ; all tests done ?
 ;
         jmp     loop
 ;

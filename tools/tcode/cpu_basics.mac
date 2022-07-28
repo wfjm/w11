@@ -1,10 +1,10 @@
-; $Id: cpu_basics.mac 1261 2022-07-23 16:15:03Z mueller $
+; $Id: cpu_basics.mac 1262 2022-07-25 09:44:55Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2022-07-11  1253   1.0    Initial version
+; 2022-07-24  1262   1.0    Initial version
 ; 2015-08-30   710   0.1    First draft
 ;
 ; Test CPU basics: most instructions except traps, EIS and FPP
@@ -52,86 +52,58 @@ ta0101: mov     #cp.psw,r0
         clr     (r0)
 ;
         ccc                     ; nzvc = 0000
-        cmp     (r0),#cp0000
-        beq     .+4
-        halt
+        hcmpeq  (r0),#cp0000
 ; sec
         ccc
         sec                     ; nzvc = 0001
-        cmp     (r0),#cp000c
-        beq     .+4
-        halt
+        hcmpeq  (r0),#cp000c
 ; sev
         ccc
         sev                     ; nzvc = 0010
-        cmp     (r0),#cp00v0
-        beq     .+4
-        halt
+        hcmpeq  (r0),#cp00v0
 ; sez
         ccc
         sez                     ; nzvc = 0100
-        cmp     (r0),#cp0z00
-        beq     .+4
-        halt
+        hcmpeq  (r0),#cp0z00
 ; sen
         ccc
         sen                     ; nzvc = 1000
-        cmp     (r0),#cpn000
-        beq     .+4
-        halt
+        hcmpeq  (r0),#cpn000
 ; sen!sec
         ccc
         <sen!sec>               ; nzvc = 1001
-        cmp     (r0),#cpn00c
-        beq     .+4
-        halt
+        hcmpeq  (r0),#cpn00c
 ; sez!sev
         ccc
         <sez!sev>               ; nzvc = 1001
-        cmp     (r0),#cp0zv0
-        beq     .+4
-        halt
+        hcmpeq  (r0),#cp0zv0
 ;
         scc                     ; nzvc = 1111
-        cmp     (r0),#cpnzvc
-        beq     .+4
-        halt
+        hcmpeq  (r0),#cpnzvc
 ; clc
         scc
         clc                     ; nzvc = 1110
-        cmp     (r0),#cpnzv0
-        beq     .+4
-        halt
+        hcmpeq  (r0),#cpnzv0
 ; clv
         scc
         clv                     ; nzvc = 1101
-        cmp     (r0),#cpnz0c
-        beq     .+4
-        halt
+        hcmpeq  (r0),#cpnz0c
 ; clz
         scc
         clz                     ; nzvc = 1011
-        cmp     (r0),#cpn0vc
-        beq     .+4
-        halt
+        hcmpeq  (r0),#cpn0vc
 ; cln
         scc
         cln                     ; nzvc = 0111
-        cmp     (r0),#cp0zvc
-        beq     .+4
-        halt
+        hcmpeq  (r0),#cp0zvc
 ; cln!clc
         scc
         <cln!clc>               ; nzvc = 0110
-        cmp     (r0),#cp0zv0
-        beq     .+4
-        halt
+        hcmpeq  (r0),#cp0zv0
 ; clz!clv
         scc
         <clz!clv>               ; nzvc = 1001
-        cmp     (r0),#cpn00c
-        beq     .+4
-        halt
+        hcmpeq  (r0),#cpn00c
 ;
 9999$:  iot                     ; end of test A1.1
 
@@ -739,24 +711,16 @@ ta0201: mov     #cp.psw,r5
         ccc                     ; nzvc = 0000
         br      11$             ; branch to 1st SOB
 ;
-10$:    cmp     (r5),#cp0000    ; cc still 0000 ?
-        beq     .+4
-        halt
-        cmp     r0,#2           ; counter dec-ed ?
-        beq     .+4
-        halt
+10$:    hcmpeq  (r5),#cp0000    ; cc still 0000 ?
+        hcmpeq  r0,#2           ; counter dec-ed ?
         scc                     ; now nzvc = 1111
         br      21$             ; branch to 2nd SOB
 ;
 11$:    sob     r0,10$          ; 1st SOB (r0=3)
         halt                    ; should not fall through
 ;
-20$:    cmp     (r5),#cpnzvc    ; cc still 1111 ?
-        beq     .+4
-        halt
-        cmp     r0,#1          ; counter dec-ed ?
-        beq     .+4
-        halt
+20$:    hcmpeq  (r5),#cpnzvc    ; cc still 1111 ?
+        hcmpeq  r0,#1           ; counter dec-ed ?
         ccc
         <sen!sez>               ; now nzvc = 1100
         br      31$             ; branch to 3rd SOB
@@ -766,12 +730,8 @@ ta0201: mov     #cp.psw,r5
 ;
 30$:    halt                    ; should not branch now !
 31$:    sob     r0,30$          ; 3rd SOB (r0=1 -> fall through)
-        cmp     (r5),#cpnz00    ; cc still 1100 ?
-        beq     .+4
-        halt
-        tst     r0              ; counter dec-ed ?
-        beq     .+4
-        halt
+        hcmpeq  (r5),#cpnz00    ; cc still 1100 ?
+        htsteq  r0              ; counter dec-ed ?
 ;
 ; finally a typical simple SOB loop
 ;
@@ -780,12 +740,8 @@ ta0201: mov     #cp.psw,r5
 100$:   inc     r1
         sob     r0,100$
 ;
-        tst     r0
-        beq     .+4
-        halt
-        cmp     r1,#2
-        beq     .+4
-        halt
+        htsteq  r0
+        hcmpeq  r1,#2
 ;
 9999$:  iot                     ; end of test A2.1
 ;
@@ -804,16 +760,12 @@ ta0301: mov     #10$,r2
 10$:    mov     #20$,r2
         jmp     (r2)+           ; mode = 2,reg
         halt
-20$:    cmp     r2,#20$+2
-        beq     .+4
-        halt
+20$:    hcmpeq  r2,#20$+2
 ;
         mov     #40$+2,r2
         jmp     -(r2)           ; mode = 4,reg
         halt
-40$:    cmp     r2,#40$
-        beq     .+4
-        halt
+40$:    hcmpeq  r2,#40$
 ;
         mov     #60$-10,r2
         jmp     10(r2)          ; mode = 6,reg
@@ -827,16 +779,12 @@ ta0301: mov     #10$,r2
 37$:    mov     #1030$,r3
         jmp     @(r3)+          ; mode = 3,reg
         halt
-30$:    cmp     r3,#1030$+2
-        beq     .+4
-        halt
+30$:    hcmpeq  r3,#1030$+2
 ;
         mov     #1050$+2,r3
         jmp     @-(r3)          ; mode = 5,reg
         halt
-50$:    cmp     r3,#1050$
-        beq     .+4
-        halt
+50$:    hcmpeq  r3,#1050$
 ;
         mov     #1070$-20,r3
         jmp     @20(r3)         ; mode = 7,reg
@@ -863,16 +811,12 @@ ta0302: mov     #cp.psw,r5
         ccc                     ; nzvc = 0000
         jmp     1$
         halt
-1$:     cmp     (r5),#cp0000    ; cc still 0000 ?
-        beq     .+4
-        halt
+1$:     hcmpeq  (r5),#cp0000    ; cc still 0000 ?
 ;
         scc                     ; nzvc = 1111
         jmp     @1002$
         halt
-2$:     cmp     (r5),#cpnzvc    ; cc still 1111 ?
-        beq     .+4
-        halt
+2$:     hcmpeq  (r5),#cpnzvc    ; cc still 1111 ?
         br      9999$        
 ;
 1002$:  .word   2$
@@ -909,9 +853,7 @@ ta0401: mov     #1006$,r2
 1003$:  inc     r4
 1002$:  inc     r4
 1001$:  inc     r4
-        cmp     r4,(r5)+
-        beq     .+4
-        halt
+        hcmpeq  r4,(r5)+
         rts     pc
 ;
 2000$:  .word   1003$
@@ -936,25 +878,17 @@ ta0402: mov     #cp.psw,r5
 ;
         ccc                     ; nzvc = 0000
         jsr     pc,100$         ; call with cp0000
-        cmp     (r5),#cpnzvc    ; expect cpnzvc
-        beq     .+4
-        halt
+        hcmpeq  (r5),#cpnzvc    ; expect cpnzvc
         scc
         jsr     pc,200$
-        cmp     (r5),#cp0000
-        beq     .+4
-        halt
+        hcmpeq  (r5),#cp0000
         jmp     9999$
 ;
-100$:   cmp     (r5),#cp0000    ; expect cp0000
-        beq     .+4
-        halt
+100$:   hcmpeq  (r5),#cp0000    ; expect cp0000
         scc                     ; return with cpnzvc
         rts     pc
 ;
-200$:   cmp     (r5),#cpnzvc    ; expect cpnzvc
-        beq     .+4
-        halt
+200$:   hcmpeq  (r5),#cpnzvc    ; expect cpnzvc
         ccc                     ; return with cp0000
         rts     pc
 ;
@@ -978,48 +912,32 @@ ta0403: clr     900$            ; reset call counter
         .word   000215
         .word   000216
         .word   000217
-        cmp     900$,#6.        ; check number of calls
-        beq     .+4
-        halt
+        hcmpeq  900$,#6.        ; check number of calls
         jmp     9999$
 ;
 100$:   inc     900$
         rts     r0
 ;
 110$:   inc     900$
-        cmp     (r1)+,#000211
-        beq     .+4
-        halt
+        hcmpeq  (r1)+,#000211
         rts     r1
 ;
 120$:   inc     900$
-        cmp     (r2)+,#000212
-        beq     .+4
-        halt
+        hcmpeq  (r2)+,#000212
         rts     r2
 ;
 130$:   inc     900$
-        cmp     (r3)+,#000213
-        beq     .+4
-        halt
+        hcmpeq  (r3)+,#000213
         rts     r3
 ;
 140$:   inc     900$
-        cmp     (r4)+,#000214
-        beq     .+4
-        halt
+        hcmpeq  (r4)+,#000214
         rts     r4
 ;
 150$:   inc     900$
-        cmp     (r5)+,#000215
-        beq     .+4
-        halt
-        cmp     (r5)+,#000216
-        beq     .+4
-        halt
-        cmp     (r5)+,#000217
-        beq     .+4
-        halt
+        hcmpeq  (r5)+,#000215
+        hcmpeq  (r5)+,#000216
+        hcmpeq  (r5)+,#000217
         rts     r5
 ;
 900$:   .word   0
@@ -1046,9 +964,7 @@ ta0501: mov     #123456,r5      ; token
         mov     #<mark!3>,-(sp) ; push MARK 3
         mov     sp,r5           ; push address of MARK 3
         jsr     pc,100$         ; call procedure
-        cmp     r5,#123456      ; check token
-        beq     .+4
-        halt
+        hcmpeq  r5,#123456      ; check token
         jmp     9999$
 ;
 ; stack of procedure when called:
@@ -1060,15 +976,9 @@ ta0501: mov     #123456,r5      ; token
 ;         2(sp)    (r5)  mark 3
 ;          (sp)          return pc
 ;
-100$:   cmp     6(r5),#101      ; check 1st parameter
-        beq     .+4
-        halt
-        cmp     4(r5),#102      ; check 2nd parameter
-        beq     .+4
-        halt
-        cmp     2(r5),#103      ; check 3rd parameter
-        beq     .+4
-        halt
+100$:   hcmpeq  6(r5),#101      ; check 1st parameter
+        hcmpeq  4(r5),#102      ; check 2nd parameter
+        hcmpeq  2(r5),#103      ; check 3rd parameter
         rts     r5              ; return
 ;
 9999$:  iot                     ; end of test A5.1
@@ -1089,12 +999,8 @@ top1wr: mov     (r5),101$       ; setup cc setter
         ccc                     ; clear cc
 101$:   nop                     ; REPLACED with cc setter
 102$:   nop                     ; REPLACED with instruction, e.g. inc r1
-        cmp     (r2),(r4)+      ; check psw
-        beq     .+4
-        halt
-        cmp     r1,(r4)+        ; check new dst
-        beq     .+4
-        halt
+        hcmpeq  (r2),(r4)+      ; check psw
+        hcmpeq  r1,(r4)+        ; check new dst
         cmp     r4,r3           ; more to do ?
         blo     100$
         rts     pc
@@ -1110,12 +1016,8 @@ top1wm: mov     (r5),101$       ; setup cc setter
         ccc                     ; clear cc
 101$:   nop                     ; REPLACED with cc setter
 102$:   nop                     ; REPLACED with instruction, e.g. inc (r1)
-        cmp     (r2),(r4)+      ; check psw
-        beq     .+4
-        halt
-        cmp     (r1),(r4)+      ; check new dst
-        beq     .+4
-        halt
+        hcmpeq  (r2),(r4)+      ; check psw
+        hcmpeq  (r1),(r4)+      ; check new dst
         cmp     r4,r3           ; more to do ?
         blo     100$
         rts     pc
@@ -1704,12 +1606,8 @@ top2wr: mov     (r5),101$       ; setup cc setter
         ccc                     ; clear cc
 101$:   nop                     ; REPLACED with cc setter
 102$:   nop                     ; REPLACED with instruction, e.g. add r0,r1
-        cmp     (r2),(r4)+      ; check psw
-        beq     .+4
-        halt
-        cmp     r1,(r4)+        ; check new dst
-        beq     .+4
-        halt
+        hcmpeq  (r2),(r4)+      ; check psw
+        hcmpeq  r1,(r4)+        ; check new dst
         cmp     r4,r3           ; more to do ?
         blo     100$
         rts     pc
@@ -1727,12 +1625,8 @@ top2wm: mov     (r5),101$       ; setup cc setter
         ccc                     ; clear cc
 101$:   nop                     ; REPLACED with cc setter
 102$:   nop                     ; REPLACED with instruction, e.g. add (r0),(r1)
-        cmp     (r2),(r4)+      ; check psw
-        beq     .+4
-        halt
-        cmp     (r1),(r4)+      ; check new dst
-        beq     .+4
-        halt
+        hcmpeq  (r2),(r4)+      ; check psw
+        hcmpeq  (r1),(r4)+      ; check new dst
         cmp     r4,r3           ; more to do ?
         blo     100$
         rts     pc
@@ -2191,12 +2085,8 @@ top1br: mov     (r5),101$       ; setup cc setter
         ccc                     ; clear cc
 101$:   nop                     ; REPLACED with cc setter
 102$:   nop                     ; REPLACED with instruction, e.g. inc r1
-        cmpb    (r2),(r4)+      ; check psw
-        beq     .+4
-        halt
-        cmpb    r1,(r4)+        ; check new dst
-        beq     .+4
-        halt
+        hcmbeq  (r2),(r4)+      ; check psw
+        hcmbeq  r1,(r4)+        ; check new dst
         cmp     r4,r3           ; more to do ?
         blo     100$
         rts     pc
@@ -2212,12 +2102,8 @@ top1bm: mov     (r5),101$       ; setup cc setter
         ccc                     ; clear cc
 101$:   nop                     ; REPLACED with cc setter
 102$:   nop                     ; REPLACED with instruction, e.g. inc (r1)
-        cmpb    (r2),(r4)+      ; check psw
-        beq     .+4
-        halt
-        cmpb    (r1),(r4)+      ; check new dst
-        beq     .+4
-        halt
+        hcmbeq  (r2),(r4)+      ; check psw
+        hcmbeq  (r1),(r4)+      ; check new dst
         cmp     r4,r3           ; more to do ?
         blo     100$
         rts     pc
@@ -2737,12 +2623,8 @@ top2br: mov     (r5),101$       ; setup cc setter
         ccc                     ; clear cc
 101$:   nop                     ; REPLACED with cc setter
 102$:   nop                     ; REPLACED with instruction, e.g. add r0,r1
-        cmpb    (r2),(r4)+      ; check psw
-        beq     .+4
-        halt
-        cmpb    r1,(r4)+        ; check new dst
-        beq     .+4
-        halt
+        hcmbeq  (r2),(r4)+      ; check psw
+        hcmbeq  r1,(r4)+        ; check new dst
         cmp     r4,r3           ; more to do ?
         blo     100$
         rts     pc
@@ -2760,12 +2642,8 @@ top2bm: mov     (r5),101$       ; setup cc setter
         ccc                     ; clear cc
 101$:   nop                     ; REPLACED with cc setter
 102$:   nop                     ; REPLACED with instruction, e.g. add (r0),(r1)
-        cmpb    (r2),(r4)+      ; check psw
-        beq     .+4
-        halt
-        cmpb    (r1),(r4)+      ; check new dst
-        beq     .+4
-        halt
+        hcmbeq  (r2),(r4)+      ; check psw
+        hcmbeq  (r1),(r4)+      ; check new dst
         cmp     r4,r3           ; more to do ?
         blo     100$
         rts     pc
@@ -3007,58 +2885,42 @@ tf0101: mov     #cp.psw,r0
         ccc
         sen
         spl     1
-        cmp     (r0),#<cp.pr1!cpn000>
-        beq     .+4
-        halt
+        hcmpeq  (r0),#<cp.pr1!cpn000>
 ;
         ccc
         sez
         spl     2
-        cmp     (r0),#<cp.pr2!cp0z00>
-        beq     .+4
-        halt
+        hcmpeq  (r0),#<cp.pr2!cp0z00>
 ;
         ccc
         sev
         spl     3
-        cmp     (r0),#<cp.pr3!cp00v0>
-        beq     .+4
-        halt
+        hcmpeq  (r0),#<cp.pr3!cp00v0>
 ;
         ccc
         sec
         spl     4
-        cmp     (r0),#<cp.pr4!cp000c>
-        beq     .+4
-        halt
+        hcmpeq  (r0),#<cp.pr4!cp000c>
 ;
         scc
         cln
         spl     5
-        cmp     (r0),#<cp.pr5!cp0zvc>
-        beq     .+4
-        halt
+        hcmpeq  (r0),#<cp.pr5!cp0zvc>
 ;
         scc
         clz
         spl     6
-        cmp     (r0),#<cp.pr6!cpn0vc>
-        beq     .+4
-        halt
+        hcmpeq  (r0),#<cp.pr6!cpn0vc>
 ;
         scc
         clv
         spl     7
-        cmp     (r0),#<cp.pr7!cpnz0c>
-        beq     .+4
-        halt
+        hcmpeq  (r0),#<cp.pr7!cpnz0c>
 ;
         scc
         clc
         spl     0
-        cmp     (r0),#<cp.pr0!cpnzv0>
-        beq     .+4
-        halt
+        hcmpeq  (r0),#<cp.pr0!cpnzv0>
 ;
 9999$:  iot                     ; end of test F1.1
 ;
@@ -3070,16 +2932,12 @@ tf0102: mov     #cp.psw,r0
         mov     #cp.cms,(r0)    ; to supervisor mode
         ccc
         spl     4
-        cmp     (r0),#<cp.cms!cp.pr0!cp0000>
-        beq     .+4
-        halt
+        hcmpeq  (r0),#<cp.cms!cp.pr0!cp0000>
 ;
         mov     #cp.cmu,(r0)    ; to user mode
         scc
         spl     5
-        cmp     (r0),#<cp.cmu!cp.pr0!cpnzvc>
-        beq     .+4
-        halt
+        hcmpeq  (r0),#<cp.cmu!cp.pr0!cpnzvc>
 ;
         clr     (r0)            ; back to kernel mode
 ;
@@ -3100,32 +2958,18 @@ tf0102: mov     #cp.psw,r0
 tf0201: mov     #cp.psw,r0
         mov     #cp.pr7,(r0)    ; lock-out interrupts
         mov     #kl.ie,kl.csr   ; enable KW11-L interrupt
-        bit     #kl.ie,kl.csr   ; check that kl.ie bit is set
-        bne     .+4
-        halt
+        hbitne  #kl.ie,kl.csr   ; check that kl.ie bit is set
         movb    #bit01,cp.pir+1 ; set PIRQ bit
-        cmpb    #bit01,cp.pir+1 ; check
-        beq     .+4
-        halt
+        hcmbeq  #bit01,cp.pir+1 ; check
         mov     #400,cp.sli     ; bump STKLIM
-        cmp     #400,cp.sli     ; check
-        beq     .+4
-        halt
+        hcmpeq  #400,cp.sli     ; check
 ;
         reset                   ; and RESET
-        bit     #kl.ie,kl.csr   ; check that kl.ie bit is cleared
-        beq     .+4
-        halt
-        tstb    cp.pir+1        ; check that PIRQ cleared
-        beq     .+4
-        halt
-        tst     cp.sli          ; check that STKLIM cleared
-        beq     .+4
-        halt
+        hbiteq  #kl.ie,kl.csr   ; check that kl.ie bit is cleared
+        htsbeq  cp.pir+1        ; check that PIRQ cleared
+        htsteq  cp.sli          ; check that STKLIM cleared
         ccc                     ; clear cc
-        cmp     (r0),#cp.pr7    ; check that prio still 7 (CPU not(!) reset)
-        beq     .+4
-        halt
+        hcmpeq  (r0),#cp.pr7    ; check that prio still 7 (CPU not(!) reset)
         clr     (r0)            ; back to normal
 ;
 9999$:  iot                     ; end of test F2.1
@@ -3140,15 +2984,11 @@ tf0202: mov     #cp.psw,r0
 ;
         mov     #<cp.cms!cp.pr7>,(r0)   ; supervisor mode, keep pr7 !
         reset                   ; and RESET
-        bit     #kl.ie,kl.csr   ; check that bit is set
-        bne     .+4
-        halt
+        hbitne  #kl.ie,kl.csr   ; check that bit is set
 ;
         mov     #<cp.cmu!cp.pr7>,(r0)   ; user mode, keep pr7 !
         reset                   ; and RESET
-        bit     #kl.ie,kl.csr   ; check that bit is set
-        bne     .+4
-        halt
+        hbitne  #kl.ie,kl.csr   ; check that bit is set
 ;
         mov     #<cp.pr7>,(r0)  ; kernel mode, keep pr7 !
         clr     kl.csr          ; disable KW11-L interrupt
@@ -3234,18 +3074,12 @@ tf0301: mov     #v..iot+2,v..iot ; block iot handler
         jmp     9999$
 ;
 ; vector handler (used for all trap type instructions)
-2000$:  cmp     cp.psw,(r5)+    ; check new psw
-        beq     .+4
-        halt
-        cmp     2(sp),(r5)+     ; check saved saved psw
-        beq     .+4
-        halt
+2000$:  hcmpeq  cp.psw,(r5)+    ; check new psw
+        hcmpeq  2(sp),(r5)+     ; check saved saved psw
         mov     (sp),r0         ; get return address
-        cmp     -2(r0),(r5)+    ; check instruction
-        beq     .+4
-        halt
+        hcmpeq  -2(r0),(r5)+    ; check instruction
         rti
-
+;
 ; expect:       new psw        saved psw      instruction
 3000$:  .word   cp.pr7!cp00vc, cp.pr1!cp000c, <bpt>
         .word   cp.pr7!cp0z00, cp.pr2!cp00v0, <iot>
@@ -3260,9 +3094,7 @@ tf0301: mov     #v..iot+2,v..iot ; block iot handler
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        cmp     tstno,#52.      ; all tests done ?
-        beq     .+4
-        halt
+        hcmpeq  tstno,#52.      ; all tests done ?
 ;
         jmp     loop
 ;

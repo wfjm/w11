@@ -1,10 +1,11 @@
-; $Id: cpu_eis.mac 1259 2022-07-18 17:39:40Z mueller $
+; $Id: cpu_eis.mac 1262 2022-07-25 09:44:55Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2022-07-09  1450   1.0    Initial version
+; 2022-07-24  1262   1.0    Initial version
+; 2022-07-11  1251   0.1    First draft
 ;
 ; Test CPU EIS instructions
 ;
@@ -28,20 +29,14 @@ topdiv: mov     (r5),r4         ; setup data pointer
         mov     (r4)+,r1        ; load divident low
         div     (r4)+,r0        ; divide by divisor
         mov     (r3),r2         ; get psw
-        cmp     (r4)+,r2        ; check psw
-        beq     .+4
-        halt
+        hcmpeq  (r4)+,r2        ; check psw
         bit     #cp00vc, r2     ; V or C set ?
         beq     200$            ; eq if V=0 and C=0
         add     #4,r4           ; skip q and r check
         br      300$
 ;
-200$:   cmp     (r4)+,r0        ; check quotient
-        beq     .+4
-        halt
-        cmp     (r4)+,r1        ; check reminder
-        beq     .+4
-        halt
+200$:   hcmpeq  (r4)+,r0        ; check quotient
+        hcmpeq  (r4)+,r1        ; check reminder
 ;
 300$:   cmp     r4,r5           ; more to do ?
         blo     100$
@@ -300,12 +295,8 @@ ta0103: mov     #1000$,r4       ; setup data pointer
         clr     r0              ; for tmu optics
 100$:   mov     (r4)+,r1        ; load dd
         div     (r4)+,r1        ; div
-        cmp     (r4)+,(r3)      ; check psw
-        beq     .+4
-        halt
-        cmp     (r4)+,r1        ; check res (reminder)
-        beq     .+4
-        halt
+        hcmpeq  (r4)+,(r3)      ; check psw
+        hcmpeq  (r4)+,r1        ; check res (reminder)
         cmp     r4,r5
         blo     100$
         jmp     9999$
@@ -335,15 +326,9 @@ ta0103: mov     #1000$,r4       ; setup data pointer
 tbmule: mov     #cp.psw,r3      ; setup psw pointer
 100$:   mov     (r4)+,r0        ; load f1
         mul     (r4)+,r0        ; mul
-        cmp     (r4)+,(r3)      ; check psw
-        beq     .+4
-        halt
-        cmp     (r4)+,r0        ; check p_high
-        beq     .+4
-        halt
-        cmp     (r4)+,r1        ; check p_low
-        beq     .+4
-        halt
+        hcmpeq  (r4)+,(r3)      ; check psw
+        hcmpeq  (r4)+,r0        ; check p_high
+        hcmpeq  (r4)+,r1        ; check p_low
         cmp     r4,r5
         blo     100$
         rts     pc
@@ -353,13 +338,9 @@ tbmule: mov     #cp.psw,r3      ; setup psw pointer
 tbmulo: mov     #cp.psw,r3      ; setup psw pointer
 100$:   mov     (r4)+,r1        ; load f1
         mul     (r4)+,r1        ; mul
-        cmp     (r4)+,(r3)      ; check psw
-        beq     .+4
-        halt
+        hcmpeq  (r4)+,(r3)      ; check psw
         tst     (r4)+           ; skip p_high
-        cmp     (r4)+,r1        ; check p_low
-        beq     .+4
-        halt
+        hcmpeq  (r4)+,r1        ; check p_low
         cmp     r4,r5
         blo     100$
         rts     pc
@@ -411,12 +392,8 @@ tb0102: mov     #1000$,r4       ; setup data pointer
         tst     r1              ; sign extend reminder
         sxt     r1
         add     r1,r2           ; and add to p_high
-        cmp     -4(r4),r3       ; check p_low against divident low
-        beq     .+4
-        halt
-        cmp     -6(r4),r2       ; check p_high against divident high
-        beq     .+4
-        halt
+        hcmpeq  -4(r4),r3       ; check p_low against divident low
+        hcmpeq  -6(r4),r2       ; check p_high against divident high
         cmp     r4,r5
         blo     100$
         jmp     9999$
@@ -468,12 +445,8 @@ tc0101: mov     #1000$,r4       ; setup data pointer
         mov     #cp.psw,r3      ; setup psw pointer
 100$:   mov     (r4)+,r0        ; load src
         ash     (r4)+,r0        ; ash
-        cmp     (r4)+,(r3)      ; check psw
-        beq     .+4
-        halt
-        cmp     (r4)+,r0        ; check
-        beq     .+4
-        halt
+        hcmpeq  (r4)+,(r3)      ; check psw
+        hcmpeq  (r4)+,r0        ; check
         cmp     r4,r5
         blo     100$
         jmp     9999$
@@ -533,15 +506,9 @@ td0101: mov     #1000$,r4       ; setup data pointer
 100$:   mov     (r4)+,r0        ; load src_h
         mov     (r4)+,r1        ; load src_l
         ashc    (r4)+,r0        ; ashc
-        cmp     (r4)+,(r3)      ; check psw
-        beq     .+4
-        halt
-        cmp     (r4)+,r0        ; check res_h
-        beq     .+4
-        halt
-        cmp     (r4)+,r1        ; check res_l
-        beq     .+4
-        halt
+        hcmpeq  (r4)+,(r3)      ; check psw
+        hcmpeq  (r4)+,r0        ; check res_h
+        hcmpeq  (r4)+,r1        ; check res_l
         cmp     r4,r5
         blo     100$
         jmp     9999$
@@ -611,12 +578,8 @@ td0102: mov     #1000$,r4       ; setup data pointer
         clr     r0              ; for tmu optics
 100$:   mov     (r4)+,r1        ; load src
         ashc    (r4)+,r1        ; ashc
-        cmp     (r4)+,(r3)      ; check psw
-        beq     .+4
-        halt
-        cmp     (r4)+,r1        ; check res
-        beq     .+4
-        halt
+        hcmpeq  (r4)+,(r3)      ; check psw
+        hcmpeq  (r4)+,r1        ; check res
         cmp     r4,r5
         blo     100$
         jmp     9999$
@@ -694,12 +657,8 @@ te0101: mov     #1000$,r4       ; setup data pointer
         mov     (r4)+,(r1)      ; load dst
         ccc                     ; nzvc=0
         xor     r0,(r1)         ; xor
-        cmp     (r4)+,(r3)      ; check psw
-        beq     .+4
-        halt
-        cmp     (r4)+,(r1)      ; check
-        beq     .+4
-        halt
+        hcmpeq  (r4)+,(r3)      ; check psw
+        hcmpeq  (r4)+,(r1)      ; check
         cmp     r4,r5
         blo     100$
         jmp     9999$
@@ -727,12 +686,8 @@ te0102: mov     #1000$,r4       ; setup data pointer
         mov     (r4)+,r1        ; load dst
         scc                     ; nzvc=1
         xor     r0,r1           ; xor
-        cmp     (r4)+,(r3)      ; check psw
-        beq     .+4
-        halt
-        cmp     (r4)+,r1        ; check
-        beq     .+4
-        halt
+        hcmpeq  (r4)+,(r3)      ; check psw
+        hcmpeq  (r4)+,r1        ; check
         cmp     r4,r5
         blo     100$
         jmp     9999$
@@ -751,9 +706,7 @@ te0102: mov     #1000$,r4       ; setup data pointer
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        cmp     tstno,#10.      ; all tests done ?
-        beq     .+4
-        halt
+        hcmpeq  tstno,#10.      ; all tests done ?
 ;
         jmp     loop
 ;

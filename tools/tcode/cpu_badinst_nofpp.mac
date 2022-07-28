@@ -1,10 +1,11 @@
-; $Id: cpu_badinst_nofpp.mac 1258 2022-07-18 10:07:22Z mueller $
+; $Id: cpu_badinst_nofpp.mac 1262 2022-07-25 09:44:55Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2015-07-16  1257   1.0    Initial version
+; 2022-07-24  1262   1.0    Initial version
+; 2022-07-16  1257   0.1    First draft
 ;
 ; Test that invalid instructions trap (including fpp)
 ;
@@ -37,9 +38,7 @@ ta0101: mov     #vh.exp,v..rit          ; setup rit handler
         halt
 ;
         mov     #v..rit+2,v..rit        ; restore rit catcher
-        cmp     trpcnt,#4.
-        beq     .+4
-        halt
+        hcmpeq  trpcnt,#4.
 ;
 9999$:  iot                     ; end of test A1.1
 ;
@@ -59,9 +58,7 @@ ta0102: mov     #vh.exp,v..iit          ; setup iit handler
         clr     cp.psw                  ; back to kernel mode
 ;
         mov     #v..iit+2,v..iit        ; restore iit catcher
-        cmp     trpcnt,#2.
-        beq     .+4
-        halt
+        hcmpeq  trpcnt,#2.
 ;
 9999$:  iot                     ; end of test A1.2
 ;
@@ -131,9 +128,7 @@ ta0103: mov     #vh.exp,v..rit          ; setup iit handler
         halt
 ;
         mov     #v..rit+2,v..rit        ; restore iit catcher
-        cmp     trpcnt,#29.
-        beq     .+4
-        halt
+        hcmpeq  trpcnt,#29.
 ;
 9999$:  iot                     ; end of test A1.3
 ;
@@ -149,13 +144,14 @@ ta0104: mov     #vh.exp,v..rit          ; setup iit handler
         halt
 ;
         mov     #v..rit+2,v..rit        ; restore iit catcher
-        cmp     trpcnt,#2.
-        beq     .+4
-        halt
+        hcmpeq  trpcnt,#2.
 ;
 9999$:  iot                     ; end of test A1.4
 ;
 ; END OF ALL TESTS - loop closure --------------------------------------------
+;
+        mov     tstno,r0        ; hack, for easy monitoring ...
+        hcmpeq  tstno,#4.       ; all tests done ?
 ;
         jmp     loop
 ;

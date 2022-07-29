@@ -1,6 +1,6 @@
-; $Id: test_0110_op_gg.mac 1184 2019-07-10 20:39:44Z mueller $
+; $Id: test_0110_op_gg.mac 1262 2022-07-25 09:44:55Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 
 ; test opcodes with two general operands
 ;
@@ -76,5 +76,11 @@ p4:
         bitb    @1234(r4),@pa   ;;!! 137477 001234 177546
         bicb    -(r1),1234(r3)  ;;!! 144163 001234
         bisb    a,@#b           ;;!! 156737 177532 001002
-        
+
+; explicit pc offset addressing
+p5:     add     100(pc),r0      ;;!! 066700  000100
+        add     @100(pc),r0     ;;!! 067700  000100
+        add     r0,100(pc)      ;;!! 060067  000100
+        add     r0,@100(pc)     ;;!! 060077  000100
+
         .end

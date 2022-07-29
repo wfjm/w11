@@ -1,6 +1,6 @@
-; $Id: test_0140_op_o.mac 1184 2019-07-10 20:39:44Z mueller $
+; $Id: test_0140_op_o.mac 1262 2022-07-25 09:44:55Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; test opcodes offset operands
 ;
@@ -9,28 +9,28 @@
 
 ; branch
 
-start:  br      start
-        bne     start
-        beq     start
-        bge     2$
-        blt     2$
-        bgt     2$
-1$:     ble     2$
+start:  br      start           ;;!! 000777
+        bne     start           ;;!! 001376
+        beq     start           ;;!! 001775
+        bge     2$              ;;!! 002003
+        blt     2$              ;;!! 002402
+        bgt     2$              ;;!! 003001
+1$:     ble     2$              ;;!! 003400
 
-2$:     bpl     1$
-        bmi     1$
-        bhi     1$
-        blos    1$
-        bvc     1$
-        bvs     1$
-        bcc     1$
-        bhis    3$
-        bcs     3$
-3$:     blo     3$
+2$:     bpl     1$              ;;!! 100376
+        bmi     1$              ;;!! 100775
+        bhi     1$              ;;!! 101374
+        blos    1$              ;;!! 101773
+        bvc     1$              ;;!! 102372
+        bvs     1$              ;;!! 102771
+        bcc     1$              ;;!! 103370
+        bhis    3$              ;;!! 103001
+        bcs     3$              ;;!! 103400
+3$:     blo     3$              ;;!! 103777
 
 ; sob
 
-loop:   sob     r1,loop
-        sob     r2,loop
+loop:   sob     r1,loop         ;;!! 077101
+        sob     r2,loop         ;;!! 077202
 
         .end

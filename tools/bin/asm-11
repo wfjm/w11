@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: asm-11 1236 2022-05-14 10:11:35Z mueller $
+# $Id: asm-11 1262 2022-07-25 09:44:55Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2022-07-23  1262   1.1.2  BUGFIX: '100(pc)' was compiled as '100'
 # 2019-07-13  1189   1.1.1  drop superfluous exists for $opts
 # 2019-05-25  1152   1.1    add .macro,.endm,.list,.nlist
 # 2019-04-25  1138   1.0.7  print lines with errors to stderr unless -lst seen
@@ -469,8 +470,9 @@ sub parse_line {
 
   my $s_incok;
   my $op_ibeg;
-  my $op_creg;
-  my $op_cmod;
+  my $op_creg;                              # current register
+  my $op_cmod;                              # current modifier
+  my $op_crel;                              # current pc relative flag
   my $op_cmod_def;
 
   my @e_pbeg;
@@ -813,6 +815,7 @@ sub parse_line {
       $op_creg = undef;
       $op_cmod = undef;
       $op_cmod_def = undef;
+      $op_crel = undef;
       $e_ibeg = undef;
       $e_iend = undef;
       if      ($$op_rop{typ} eq 'r') {      # operand: register
@@ -831,7 +834,7 @@ sub parse_line {
       } elsif ($$op_rop{typ} eq 'e') {      # operand: expression
         push @stack, 'op_end';
         $state = 'e_beg';
-      } elsif ($$op_rop{typ} eq 'g') {     # operand: general
+      } elsif ($$op_rop{typ} eq 'g') {      # operand: general
         push @stack, 'op_end';
         $state = 'g_beg';
       } else {
@@ -847,6 +850,7 @@ sub parse_line {
       if      ($$op_rop{typ} =~  m/^[gr]$/) {
         $l{$pref.'reg'} = $op_creg;
         $l{$pref.'mod'} = $op_cmod;
+        $l{$pref.'rel'} = $op_crel;
         if (defined $e_ibeg) {
           $l{$pref.'ebeg'} = $e_ibeg;
           $l{$pref.'eend'} = $e_iend;
@@ -972,10 +976,11 @@ sub parse_line {
         } else {
           $state = 'q';
         }
-      } else {
+      } else {                              # here if PC relative
         pushback_token(\%l);
         $op_creg = 7;
         $op_cmod = $op_cmod_def ? 7 : 6;
+        $op_crel = 1;
         $state = 'g_end';
       }
 
@@ -1923,22 +1928,22 @@ sub pass2_out {
 
     } elsif ($opfmt eq 'g') {
       out_opcode($rl, $opcode | $$rl{o1mod}<<3 | $$rl{o1reg});
-      out_opdata($rl, $$rl{o1mod}, $$rl{o1reg},
+      out_opdata($rl, $$rl{o1mod}, $$rl{o1reg}, $$rl{o1rel},
                       $$rl{o1ebeg}, $$rl{o1eend});
 
     } elsif ($opfmt eq 'gg') {
       out_opcode($rl, $opcode | $$rl{o1mod}<<9 | $$rl{o1reg}<<6 |
                                 $$rl{o2mod}<<3 | $$rl{o2reg});
-      out_opdata($rl, $$rl{o1mod}, $$rl{o1reg},
+      out_opdata($rl, $$rl{o1mod}, $$rl{o1reg}, $$rl{o1rel},
                       $$rl{o1ebeg}, $$rl{o1eend});
-      out_opdata($rl, $$rl{o2mod}, $$rl{o2reg},
+      out_opdata($rl, $$rl{o2mod}, $$rl{o2reg}, $$rl{o2rel},
                       $$rl{o2ebeg}, $$rl{o2eend});
     } elsif ($opfmt eq 'r') {
       out_opcode($rl, $opcode | $$rl{o1reg});
     } elsif ($opfmt eq 'rg' || $opfmt eq 'gr') {
       out_opcode($rl, $opcode | $$rl{o1reg}<<6 |
                                 $$rl{o2mod}<<3 | $$rl{o2reg});
-      out_opdata($rl, $$rl{o2mod}, $$rl{o2reg},
+      out_opdata($rl, $$rl{o2mod}, $$rl{o2reg}, $$rl{o2rel},
                       $$rl{o2ebeg}, $$rl{o2eend});
     } elsif ($opfmt eq 'n3') {
       out_opcode_n($rl, $opcode, 07, $$rl{ebeg}, $$rl{eend});
@@ -2234,7 +2239,7 @@ sub out_opcode_o {
 #-------------------------------------------------------------------------------
 
 sub out_opdata {
-  my ($rl,$mod,$reg,$ebeg,$eend) = @_;
+  my ($rl,$mod,$reg,$rel,$ebeg,$eend) = @_;
   # FIXME_code: shouldn't we die here ?
   return unless defined $ebeg;
 
@@ -2244,7 +2249,7 @@ sub out_opdata {
     add_err($rl, 'U');
     return;
   }
-  if ($mod>=6 && $reg==7) {                 # handle pc relative offsets
+  if ($rel) {                             # handle pc relative offsets
     $val = ($val - (getdot()+$defincdot+2)) & 0177777;
   }
   out_wop($rl, $val);
@@ -2551,12 +2556,14 @@ sub dump_rl {
     printf "   code  : %6.6o,fmt=%-2s", $$rl{opcode}, $$rl{opfmt};
     if (defined $$rl{o1mod}) {
       printf ", o1=%s%s", $$rl{o1mod},$$rl{o1reg};
+      printf "r" if $$rl{o1rel};
       printf ",ei=%d:%d,val=%s", $$rl{o1ebeg}, $$rl{o1eend},
         save66o(eval_exp($rl, $$rl{o1ebeg}, $$rl{o1eend}))
           if defined $$rl{o1ebeg};
     }
     if (defined $$rl{o2mod}) {
       printf ", o2=%s%s", $$rl{o2mod},$$rl{o2reg};
+      printf "r" if $$rl{o2rel};
       printf ",ei=%d:%d,val=%s", $$rl{o2ebeg}, $$rl{o2eend},
         save66o(eval_exp($rl, $$rl{o2ebeg}, $$rl{o2eend}))
           if defined $$rl{o2ebeg};

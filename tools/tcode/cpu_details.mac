@@ -1,10 +1,10 @@
-; $Id: cpu_details.mac 1262 2022-07-25 09:44:55Z mueller $
+; $Id: cpu_details.mac 1264 2022-07-30 07:42:17Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2022-07-24  1262   1.0    Initial version
+; 2022-07-28  1264   1.0    Initial version
 ; 2022-07-18  1259   0.1    First draft
 ;
 ; Test CPU details
@@ -124,10 +124,10 @@ ta0101: mov     #1000$,v..pir     ; setup handler
 tb0101: mov     #2,r5
 100$:   mov     #1000$,r0
         mov     #1110$,r1
-        mov     1000$+2,-(sp)   ; save data that will change
-        mov     1000$+6,-(sp)
-        mov     1100$+0,-(sp)
-        mov     1100$+4,-(sp)
+        push    1000$+2         ; save data that will change
+        push    1000$+6
+        push    1100$+0
+        push    1100$+4
 ;
         mov     (r0)+,(r0)+     ; mov 111 over 222
         add     (r0)+,(r0)+     ; add 333 to   444
@@ -139,10 +139,10 @@ tb0101: mov     #2,r5
         hcmpeq  1100$+4,#000444
         hcmpeq  1100$+0,#000333
 ;
-        mov     (sp)+,1100$+4   ; restore data
-        mov     (sp)+,1100$+0
-        mov     (sp)+,1000$+6
-        mov     (sp)+,1000$+2
+        pop     1100$+4         ; restore data
+        pop     1100$+0
+        pop     1000$+6
+        pop     1000$+2
         sob     r5,100$
         jmp     9999$
 ;
@@ -162,9 +162,9 @@ tb0101: mov     #2,r5
 ; Test B1.2 -- (pc)+ as destination ++++++++++++++++++++++++++++++++++
 ;
 tb0102: mov     #2,r5
-100$:   mov     1000$+4,-(sp)   ; save data that will change
-        mov     1100$+4,-(sp)
-        mov     1200$+2,-(sp)
+100$:   push    1000$+4         ; save data that will change
+        push    1100$+4
+        push    1200$+2
 ;
         clr     r0
 1000$:  mov     #1,#0           ; (pc)+,(pc)+: write #1 over #0
@@ -176,9 +176,9 @@ tb0102: mov     #2,r5
         hcmpeq  1100$+4,#3
         hcmpeq  r0,#1
 ;
-        mov     (sp)+,1200$+2   ; restore data
-        mov     (sp)+,1100$+4
-        mov     (sp)+,1000$+4
+        pop     1200$+2         ; restore data
+        pop     1100$+4
+        pop     1000$+4
         sob     r5,100$
 ;
 9999$:  iot                     ; end of test B1.2

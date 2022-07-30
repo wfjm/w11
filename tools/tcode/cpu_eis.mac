@@ -1,10 +1,10 @@
-; $Id: cpu_eis.mac 1262 2022-07-25 09:44:55Z mueller $
+; $Id: cpu_eis.mac 1263 2022-07-28 09:00:42Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2022-07-24  1262   1.0    Initial version
+; 2022-07-25  1263   1.0    Initial version
 ; 2022-07-11  1251   0.1    First draft
 ;
 ; Test CPU EIS instructions
@@ -40,13 +40,13 @@ topdiv: mov     (r5),r4         ; setup data pointer
 ;
 300$:   cmp     r4,r5           ; more to do ?
         blo     100$
-        rts     pc
+        return
 ;
 ; Test A1.1 -- div test basics ++++++++++++++++++++++++++++++++++++++++++++++++
 ;   from test_w11a_div.tcl, div_testd2 cases, translated 1-to-1
 ;
 ta0101: mov     #1000$,r5
-        jsr     pc,topdiv
+        call    topdiv
         jmp     9999$
 ;
 1000$:  .word   1010$
@@ -111,7 +111,7 @@ ta0101: mov     #1000$,r5
 ;   from test_w11a_div.tcl, div_testdqr cases, exported via div_show_exp
 ;
 ta0102: mov     #1000$,r5
-        jsr     pc,topdiv
+        call    topdiv
         jmp     9999$
 ;
 1000$:  .word   1010$
@@ -284,7 +284,7 @@ ta0102: mov     #1000$,r5
 ; Test A1.3 -- div odd register +++++++++++++++++++++++++++++++++++++++
 ;   check div odd register behavior
 ;   Note: The div instruction has, in contrast to ashc, no useful semantics when
-;         called with an odd register. DEC documentation doesn't specify the
+;         called with an odd register. DEC documentation doesnt specify the
 ;         behavior. SimH assumes, that register handling is done like for ashc,
 ;         so effective dd is 'R<<16 | R' and reminder is stored. w11 implements
 ;         div like this. This test briefly verifies this behavior.
@@ -331,7 +331,7 @@ tbmule: mov     #cp.psw,r3      ; setup psw pointer
         hcmpeq  (r4)+,r1        ; check p_low
         cmp     r4,r5
         blo     100$
-        rts     pc
+        return
 ;
 ; driver for mul odd  tests
 ;
@@ -343,15 +343,15 @@ tbmulo: mov     #cp.psw,r3      ; setup psw pointer
         hcmpeq  (r4)+,r1        ; check p_low
         cmp     r4,r5
         blo     100$
-        rts     pc
+        return
 ;
 tb0101: mov     #1000$,r4       ; setup data pointer
         mov     #1010$,r5       ; setup end pointer
-        jsr     pc,tbmule       ; test even
+        call    tbmule       ; test even
 ;
         mov     #1000$,r4       ; setup data pointer
         mov     #1010$,r5       ; setup end pointer
-        jsr     pc,tbmulo       ; test odd
+        call    tbmulo       ; test odd
 ;
         jmp     9999$
 ;
@@ -647,7 +647,7 @@ td0102: mov     #1000$,r4       ; setup data pointer
 ;     0 111 100 rrr ddd ddd NZ0- XOR
 ;
 ; Test E1.1 -- xor znvc=0 ++++++++++++++++++++++++++++++++++++++++++++
-;   check xor with all cc's cleared; memory destination
+;   check xor with all ccs cleared; memory destination
 ;
 te0101: mov     #1000$,r4       ; setup data pointer
         mov     #1010$,r5       ; setup end pointer
@@ -677,7 +677,7 @@ te0101: mov     #1000$,r4       ; setup data pointer
 9999$:  iot                     ; end of test E1.1
 ;
 ; Test X1.2 -- xor znvc=1 ++++++++++++++++++++++++++++++++++++++++++++
-;   check xor with all cc's set; register destination
+;   check xor with all ccs set; register destination
 ;
 te0102: mov     #1000$,r4       ; setup data pointer
         mov     #1010$,r5       ; setup end pointer

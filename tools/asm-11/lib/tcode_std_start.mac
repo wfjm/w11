@@ -1,6 +1,6 @@
-; $Id: tcode_std_start.mac 1262 2022-07-25 09:44:55Z mueller $
+; $Id: tcode_std_start.mac 1263 2022-07-28 09:00:42Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Default tcode startup code
 ;
@@ -12,6 +12,7 @@
         .include        |lib/vec_devcatch.mac|
 ;
         .include        |lib/halt_checks.mac|
+        .include        |lib/push_pop.mac|
 ;
         . = 000200
         jmp     @#start
@@ -33,6 +34,7 @@ runno:  .word   0               ; run number
 ;
 start:  reset                   ; general reset
         mov     #stack,sp       ; setup stack
+        spl     0               ; ensure PR0, ignore startup state
 ;
         mov     #v..lp+2,v..lp  ; setup LP11 vector catcher
         clr     v..lp

@@ -1,10 +1,10 @@
-; $Id: cpu_basics.mac 1262 2022-07-25 09:44:55Z mueller $
+; $Id: cpu_basics.mac 1263 2022-07-28 09:00:42Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2022-07-24  1262   1.0    Initial version
+; 2022-07-25  1263   1.0    Initial version
 ; 2015-08-30   710   0.1    First draft
 ;
 ; Test CPU basics: most instructions except traps, EIS and FPP
@@ -1003,7 +1003,7 @@ top1wr: mov     (r5),101$       ; setup cc setter
         hcmpeq  r1,(r4)+        ; check new dst
         cmp     r4,r3           ; more to do ?
         blo     100$
-        rts     pc
+        return
 ;
 top1wm: mov     (r5),101$       ; setup cc setter
         mov     2(r5),102$      ; setup instruction
@@ -1020,7 +1020,7 @@ top1wm: mov     (r5),101$       ; setup cc setter
         hcmpeq  (r1),(r4)+      ; check new dst
         cmp     r4,r3           ; more to do ?
         blo     100$
-        rts     pc
+        return
 ;
 200$:   .word   0
 ;
@@ -1033,9 +1033,9 @@ top1wm: mov     (r5),101$       ; setup cc setter
 ;
 tb0101: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests (with ccc)
-        jsr     pc,top1wr
+        call    top1wr
         mov     #2000$,r5       ; mem mode tests (with scc)
-        jsr     pc,top1wm
+        call    top1wm
         jmp     9999$
 ;
 1000$:  ccc                     ; c=0
@@ -1081,9 +1081,9 @@ tb0101: clr     cp.psw
 ;
 tb0201: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests (with ccc)
-        jsr     pc,top1wr
+        call    top1wr
         mov     #2000$,r5       ; mem mode tests (with scc)
-        jsr     pc,top1wm
+        call    top1wm
         jmp     9999$
 ;
 1000$:  ccc                     ; c=0
@@ -1129,9 +1129,9 @@ tb0201: clr     cp.psw
 ;
 tb0301: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests (with ccc)
-        jsr     pc,top1wr
+        call    top1wr
         mov     #2000$,r5       ; mem mode tests (with scc)
-        jsr     pc,top1wm
+        call    top1wm
         jmp     9999$
 ;
 1000$:  ccc
@@ -1163,9 +1163,9 @@ tb0301: clr     cp.psw
 ;
 tb0401: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests (with ccc)
-        jsr     pc,top1wr
+        call    top1wr
         mov     #2000$,r5       ; mem mode tests (with scc)
-        jsr     pc,top1wm
+        call    top1wm
         jmp     9999$
 ;
 1000$:  ccc
@@ -1197,9 +1197,9 @@ tb0401: clr     cp.psw
 ;
 tb0501: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests (with ccc; C=0)
-        jsr     pc,top1wr
+        call    top1wr
         mov     #2000$,r5       ; mem mode tests (with scc; C=1)
-        jsr     pc,top1wm
+        call    top1wm
         jmp     9999$
 ;
 1000$:  ccc                     ; c=0
@@ -1239,9 +1239,9 @@ tb0501: clr     cp.psw
 ;
 tb0601: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests (with ccc; C=0)
-        jsr     pc,top1wr
+        call    top1wr
         mov     #2000$,r5       ; mem mode tests (with scc; C=1)
-        jsr     pc,top1wm
+        call    top1wm
         jmp     9999$
 ;
 1000$:  ccc                     ; c=0
@@ -1281,9 +1281,9 @@ tb0601: clr     cp.psw
 ;
 tb0701: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests (with ccc)
-        jsr     pc,top1wr
+        call    top1wr
         mov     #2000$,r5       ; mem mode tests (with scc)
-        jsr     pc,top1wm
+        call    top1wm
         jmp     9999$
 ;
 1000$:  ccc
@@ -1315,9 +1315,9 @@ tb0701: clr     cp.psw
 ;
 tb0801: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests (with ccc; C=0)
-        jsr     pc,top1wr
+        call    top1wr
         mov     #2000$,r5       ; mem mode tests (with scc; C=1)
-        jsr     pc,top1wm
+        call    top1wm
         jmp     9999$
 ;
 1000$:  ccc                     ; c=0
@@ -1363,9 +1363,9 @@ tb0801: clr     cp.psw
 ;
 tb0901: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests (with ccc; C=0)
-        jsr     pc,top1wr
+        call    top1wr
         mov     #2000$,r5       ; mem mode tests (with scc; C=1)
-        jsr     pc,top1wm
+        call    top1wm
         jmp     9999$
 ;
 1000$:  ccc                     ; c=0
@@ -1411,9 +1411,9 @@ tb0901: clr     cp.psw
 ;
 tb1001: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests (with ccc)
-        jsr     pc,top1wr
+        call    top1wr
         mov     #2000$,r5       ; mem mode tests (with scc)
-        jsr     pc,top1wm
+        call    top1wm
         jmp     9999$
 ;
 1000$:  ccc
@@ -1449,9 +1449,9 @@ tb1001: clr     cp.psw
 ;
 tb1101: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests (with ccc)
-        jsr     pc,top1wr
+        call    top1wr
         mov     #2000$,r5       ; mem mode tests (with scc)
-        jsr     pc,top1wm
+        call    top1wm
         jmp     9999$
 ;
 1000$:  ccc
@@ -1487,9 +1487,9 @@ tb1101: clr     cp.psw
 ;
 tb1201: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests (with ccc)
-        jsr     pc,top1wr
+        call    top1wr
         mov     #2000$,r5       ; mem mode tests (with scc)
-        jsr     pc,top1wm
+        call    top1wm
         jmp     9999$
 ;
 1000$:  ccc
@@ -1520,9 +1520,9 @@ tb1201: clr     cp.psw
 ;
 tb1301: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests (with ccc; N=0)
-        jsr     pc,top1wr
+        call    top1wr
         mov     #2000$,r5       ; mem mode tests (with scc; N=1)
-        jsr     pc,top1wm
+        call    top1wm
         jmp     9999$
 ;
 1000$:  ccc                     ; n=0
@@ -1558,9 +1558,9 @@ tb1301: clr     cp.psw
 ;
 tb1401: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests (with ccc)
-        jsr     pc,top1wr
+        call    top1wr
         mov     #2000$,r5       ; mem mode tests (with scc)
-        jsr     pc,top1wm
+        call    top1wm
         jmp     9999$
 ;
 1000$:  ccc
@@ -1610,7 +1610,7 @@ top2wr: mov     (r5),101$       ; setup cc setter
         hcmpeq  r1,(r4)+        ; check new dst
         cmp     r4,r3           ; more to do ?
         blo     100$
-        rts     pc
+        return
 ;
 top2wm: mov     (r5),101$       ; setup cc setter
         mov     2(r5),102$      ; setup instruction
@@ -1629,7 +1629,7 @@ top2wm: mov     (r5),101$       ; setup cc setter
         hcmpeq  (r1),(r4)+      ; check new dst
         cmp     r4,r3           ; more to do ?
         blo     100$
-        rts     pc
+        return
 ;
 200$:   .word   0
 300$:   .word   0
@@ -1643,9 +1643,9 @@ top2wm: mov     (r5),101$       ; setup cc setter
 ;
 tc0101: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests (with ccc)
-        jsr     pc,top2wr
+        call    top2wr
         mov     #2000$,r5       ; mem mode tests (with scc)
-        jsr     pc,top2wm
+        call    top2wm
         jmp     9999$
 ;
 1000$:  ccc
@@ -1741,9 +1741,9 @@ tc0101: clr     cp.psw
 ;
 tc0201: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests (with ccc)
-        jsr     pc,top2wr
+        call    top2wr
         mov     #2000$,r5       ; mem mode tests (with scc)
-        jsr     pc,top2wm
+        call    top2wm
         jmp     9999$
 ;
 1000$:  ccc
@@ -1840,9 +1840,9 @@ tc0201: clr     cp.psw
 ;
 tc0301: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests (with ccc)
-        jsr     pc,top2wr
+        call    top2wr
         mov     #2000$,r5       ; mem mode tests (with scc)
-        jsr     pc,top2wm
+        call    top2wm
         jmp     9999$
 ;
 1000$:  ccc
@@ -1895,9 +1895,9 @@ tc0301: clr     cp.psw
 ;
 tc0401: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests (with ccc)
-        jsr     pc,top2wr
+        call    top2wr
         mov     #2000$,r5       ; mem mode tests (with scc)
-        jsr     pc,top2wm
+        call    top2wm
         jmp     9999$
 ;
 1000$:  ccc
@@ -1948,9 +1948,9 @@ tc0401: clr     cp.psw
 ;
 tc0501: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests (with ccc)
-        jsr     pc,top2wr
+        call    top2wr
         mov     #2000$,r5       ; mem mode tests (with scc)
-        jsr     pc,top2wm
+        call    top2wm
         jmp     9999$
 ;
 1000$:  ccc
@@ -1996,9 +1996,9 @@ tc0501: clr     cp.psw
 ;
 tc0601: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests (with ccc)
-        jsr     pc,top2wr
+        call    top2wr
         mov     #2000$,r5       ; mem mode tests (with scc)
-        jsr     pc,top2wm
+        call    top2wm
         jmp     9999$
 ;
 1000$:  ccc
@@ -2040,9 +2040,9 @@ tc0601: clr     cp.psw
 ;
 tc0701: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests (with ccc; c=0)
-        jsr     pc,top2wr
+        call    top2wr
         mov     #2000$,r5       ; mem mode tests (with scc; c=1)
-        jsr     pc,top2wm
+        call    top2wm
         jmp     9999$
 ;
 1000$:  ccc                     ; c=0
@@ -2089,7 +2089,7 @@ top1br: mov     (r5),101$       ; setup cc setter
         hcmbeq  r1,(r4)+        ; check new dst
         cmp     r4,r3           ; more to do ?
         blo     100$
-        rts     pc
+        return
 ;
 top1bm: mov     (r5),101$       ; setup cc setter
         mov     2(r5),102$      ; setup instruction
@@ -2106,7 +2106,7 @@ top1bm: mov     (r5),101$       ; setup cc setter
         hcmbeq  (r1),(r4)+      ; check new dst
         cmp     r4,r3           ; more to do ?
         blo     100$
-        rts     pc
+        return
 ;
 200$:   .word   0
 ;
@@ -2119,9 +2119,9 @@ top1bm: mov     (r5),101$       ; setup cc setter
 ;
 td0101: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests
-        jsr     pc,top1br
+        call    top1br
         mov     #2000$,r5       ; mem mode tests
-        jsr     pc,top1bm
+        call    top1bm
         jmp     9999$
 ;
 1000$:  ccc                     ; c=0
@@ -2169,9 +2169,9 @@ td0101: clr     cp.psw
 ;
 td0201: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests
-        jsr     pc,top1br
+        call    top1br
         mov     #2000$,r5       ; mem mode tests
-        jsr     pc,top1bm
+        call    top1bm
         jmp     9999$
 ;
 1000$:  ccc                     ; c=0
@@ -2219,9 +2219,9 @@ td0201: clr     cp.psw
 ;
 td0301: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests
-        jsr     pc,top1br
+        call    top1br
         mov     #2000$,r5       ; mem mode tests
-        jsr     pc,top1bm
+        call    top1bm
         jmp     9999$
 ;
 1000$:  ccc
@@ -2254,9 +2254,9 @@ td0301: clr     cp.psw
 ;
 td0401: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests
-        jsr     pc,top1br
+        call    top1br
         mov     #2000$,r5       ; mem mode tests
-        jsr     pc,top1bm
+        call    top1bm
         jmp     9999$
 ;
 1000$:  ccc
@@ -2289,9 +2289,9 @@ td0401: clr     cp.psw
 ;
 td0501: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests
-        jsr     pc,top1br
+        call    top1br
         mov     #2000$,r5       ; mem mode tests
-        jsr     pc,top1bm
+        call    top1bm
         jmp     9999$
 ;
 1000$:  ccc                     ; c=0
@@ -2333,9 +2333,9 @@ td0501: clr     cp.psw
 ;
 td0601: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests
-        jsr     pc,top1br
+        call    top1br
         mov     #2000$,r5       ; mem mode tests
-        jsr     pc,top1bm
+        call    top1bm
         jmp     9999$
 ;
 1000$:  ccc                     ; c=0
@@ -2377,9 +2377,9 @@ td0601: clr     cp.psw
 ;
 td0701: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests
-        jsr     pc,top1br
+        call    top1br
         mov     #2000$,r5       ; mem mode tests
-        jsr     pc,top1bm
+        call    top1bm
         jmp     9999$
 ;
 1000$:  ccc
@@ -2412,9 +2412,9 @@ td0701: clr     cp.psw
 ;
 td0801: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests
-        jsr     pc,top1br
+        call    top1br
         mov     #2000$,r5       ; mem mode tests
-        jsr     pc,top1bm
+        call    top1bm
         jmp     9999$
 ;
 1000$:  ccc                     ; c=0
@@ -2460,9 +2460,9 @@ td0801: clr     cp.psw
 ;
 td0901: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests
-        jsr     pc,top1br
+        call    top1br
         mov     #2000$,r5       ; mem mode tests
-        jsr     pc,top1bm
+        call    top1bm
         jmp     9999$
 ;
 1000$:  ccc                     ; c=0
@@ -2508,9 +2508,9 @@ td0901: clr     cp.psw
 ;
 td1001: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests
-        jsr     pc,top1br
+        call    top1br
         mov     #2000$,r5       ; mem mode tests
-        jsr     pc,top1bm
+        call    top1bm
         jmp     9999$
 ;
 1000$:  ccc
@@ -2545,9 +2545,9 @@ td1001: clr     cp.psw
 ;
 td1101: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests
-        jsr     pc,top1br
+        call    top1br
         mov     #2000$,r5       ; mem mode tests
-        jsr     pc,top1bm
+        call    top1bm
         jmp     9999$
 ;
 1000$:  ccc
@@ -2582,9 +2582,9 @@ td1101: clr     cp.psw
 ;
 td1201: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests
-        jsr     pc,top1br
+        call    top1br
         mov     #2000$,r5       ; mem mode tests
-        jsr     pc,top1bm
+        call    top1bm
         jmp     9999$
 ;
 1000$:  ccc
@@ -2627,7 +2627,7 @@ top2br: mov     (r5),101$       ; setup cc setter
         hcmbeq  r1,(r4)+        ; check new dst
         cmp     r4,r3           ; more to do ?
         blo     100$
-        rts     pc
+        return
 ;
 top2bm: mov     (r5),101$       ; setup cc setter
         mov     2(r5),102$      ; setup instruction
@@ -2646,7 +2646,7 @@ top2bm: mov     (r5),101$       ; setup cc setter
         hcmbeq  (r1),(r4)+      ; check new dst
         cmp     r4,r3           ; more to do ?
         blo     100$
-        rts     pc
+        return
 ;
 200$:   .word   0
 300$:   .word   0
@@ -2660,9 +2660,9 @@ top2bm: mov     (r5),101$       ; setup cc setter
 ;
 te0101: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests (with ccc)
-        jsr     pc,top2br
+        call    top2br
         mov     #2000$,r5       ; mem mode tests (with scc)
-        jsr     pc,top2bm
+        call    top2bm
         jmp     9999$
 ;
 1000$:  ccc
@@ -2704,9 +2704,9 @@ te0101: clr     cp.psw
 ;
 te0201: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests (with ccc)
-        jsr     pc,top2br
+        call    top2br
         mov     #2000$,r5       ; mem mode tests (with scc)
-        jsr     pc,top2bm
+        call    top2bm
         jmp     9999$
 ;
 1000$:  ccc
@@ -2748,9 +2748,9 @@ te0201: clr     cp.psw
 ;
 te0301: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests (with ccc)
-        jsr     pc,top2br
+        call    top2br
         mov     #2000$,r5       ; mem mode tests (with scc)
-        jsr     pc,top2bm
+        call    top2bm
         jmp     9999$
 ;
 1000$:  ccc
@@ -2796,9 +2796,9 @@ te0301: clr     cp.psw
 ;
 te0401: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests (with ccc)
-        jsr     pc,top2br
+        call    top2br
         mov     #2000$,r5       ; mem mode tests (with scc)
-        jsr     pc,top2bm
+        call    top2bm
         jmp     9999$
 ;
 1000$:  ccc
@@ -2840,9 +2840,9 @@ te0401: clr     cp.psw
 ;
 te0501: clr     cp.psw
         mov     #1000$,r5       ; reg mode tests (with ccc)
-        jsr     pc,top2br
+        call    top2br
         mov     #2000$,r5       ; mem mode tests (with scc)
-        jsr     pc,top2bm
+        call    top2bm
         jmp     9999$
 ;
 1000$:  ccc

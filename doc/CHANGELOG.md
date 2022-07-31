@@ -38,6 +38,7 @@ The full set of tests is only run for tagged releases.
 ### New features
 - new verification codes
   - tools/tcode: fast cpu verification codes
+  - tools/tests: test programs
 ### Changes
 - tools changes
   - ci.yml: define TBW_GHDL_OPTS and suppress IEEE package warnings at t=0ms

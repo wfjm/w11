@@ -1,0 +1,537 @@
+; $Id: divtst.mac 1266 2022-07-30 17:33:07Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2014-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+;  Test DIV instruction
+;
+; Revision History:
+; Date         Rev Version  Comment
+; 2014-07-26   572   1.0.1  /v now echos command lines on ti:
+; 2014-07-25   571   1.0    Initial version
+;
+        .enabl  lc
+        .mcall  fsrsz$,finit$
+        .mcall  gcmlb$, gcmld$, gcml$
+        .mcall  fdbdf$,fdat$a,fdop$a,nmblk$
+        .mcall  open$w,close$,put$
+        .mcall  qiow$s, exit$s
+
+        fsrsz$  2                       ; 2 open files (cmd and output)
+
+        .psect  data,d,rw
+fdbout: fdbdf$
+        fdat$a  r.var,fd.cr
+        fdop$a  2.,ofdspt,ofdnam,fo.wrt
+ofdspt: .word   0,0
+        .word   0,0
+        .word   0,ofname
+ofname: .blkb   20.
+ofdnam: nmblk$  divtst,log
+
+        ; setup with maxd=3.,prmpt=div,lun=1.,size=134.
+gclblk: gcmlb$  3.,div,gclbuf,1.,,132.
+gclbuf: .blkb   134.                    ; +2 byte to allow zero termination
+
+vflag:  .byte   0                       ; set if /v seen
+oflag:  .byte   0                       ; set if /o seen (file open)
+
+obuf:   .blkb   132.                    ; result line buffer
+
+idat:   .blkw   3.                      ; test input: ddh,ddl,dr
+edat:   .blkw   2.                      ; expected:   q,r
+eccn:   .byte                           ; expected cc's
+eccz:   .byte
+eccv:   .byte
+eccc:   .byte
+
+odat:   .blkw   3.                      ; test output: psw,q,r
+occn:   .byte                           ; output cc's
+occz:   .byte
+occv:   .byte
+occc:   .byte
+
+        .psect
+
+; --------------------------------------------------------------------
+; main program
+
+main:   finit$
+
+        bisb    #ge.lc,gclblk+g.mode
+
+10$:    gcml$   #gclblk
+        tstb    gclblk+g.err
+        bne     20$                     ; read failed
+
+        mov     gclblk+g.cmld+2,r0
+        mov     gclblk+g.cmld,r1
+        beq     10$                     ; ignore empty lines
+
+        mov     r0,r2
+        add     r1,r2
+        clrb    (r2)                    ; add zero termination
+        call    docmd
+        br      10$
+
+20$:    cmpb    gclblk+g.err,#ge.eof    ; eof ?
+        beq     90$                     ; yes: exit
+
+        mov     #mgcl,r0
+        mov     #lmgcl,r1
+        call    pcons
+
+90$:                                    ; all done
+        tstb    oflag                   ; ofile open ?
+        beq     91$
+        close$  #fdbout
+91$:    exit$s
+
+        .psect  text,d,rw
+mgcl:   .ascii  /get command line error/
+lmgcl=.-mgcl
+        .psect
+
+; --------------------------------------------------------------------
+; docmd: handle one input line (look for switches)
+;    r0 buf    (in)  ptr to command string (is zero terminated)
+;    r1 len    (in)  length of string
+
+docmd:  cmpb    (r0),#'#                ; # comment ?
+        bne     1$
+        call    pline                   ; print
+        return                          ; and go for next
+
+1$:     tstb    vflag                   ; /v ?
+        beq     10$
+        call    pcons                   ; if /v, trace input on console
+
+10$:    cmpb    (r0),#'/                ; switch ?
+        bne     30$
+        cmpb    1(r0),#'v               ; /v switch ?
+        bne     20$
+        movb    #1,vflag                ; /v seen
+        return
+
+20$:    cmpb    1(r0),#'o               ; /o switch ?
+        bne     90$
+        cmpb    2(r0),#'=               ; = seen ?
+        bne     90$
+        tstb    oflag                   ; already open ?
+        beq     21$
+        close$  #fdbout
+
+21$:    movb    #1,oflag                ; /o=name seen
+                                        ; filename must be uppercase
+                                        ; --> so convert it !!
+        mov     r2,-(sp)
+        mov     r3,-(sp)
+        mov     r4,-(sp)
+        mov     r5,-(sp)
+
+        mov     #ofname,r2              ; ptr to filename string of ofdspt
+        mov     #20.,r3                 ; max 20 chars
+        mov     r0,r4
+        add     #3,r4                   ; ptr after /o=
+
+22$:    movb    (r4)+,r5                ; get char
+        beq     25$                     ; end of string ?
+        cmpb    r5,#'a                  ; between a and z
+        blt     24$
+        cmpb    r5,#'z
+        bgt     24$
+23$:    sub     #40,r5                  ; yes: convert to uppercase
+24$:    movb    r5,(r2)+                ; store
+        sob     r3,22$
+
+25$:    sub     #ofname,r2              ; calculate size
+        mov     r2,ofdspt+10            ; and store in descriptor
+
+        mov     (sp)+,r5
+        mov     (sp)+,r4
+        mov     (sp)+,r3
+        mov     (sp)+,r2
+
+        open$w  #fdbout                 ; open file
+        bcs     92$
+        return
+
+30$:    call    doidat                  ; get input data
+        bcs     91$                     ; quit on error
+
+        mov     #idat,r0
+        mov     #odat,r1
+        call    dotst                   ; execute div test
+
+        call    dooccx                  ; splitt psw -> occx flags
+
+        mov     #obuf,r0
+        call    doodat                  ; write result line
+
+        call    doochk                  ; do checks, write check remarks
+
+        sub     #obuf,r0
+        mov     r0,r1                   ; r1 output length
+        mov     #obuf,r0
+        call    pline                   ; write result line (to cons or file)
+
+        return
+
+90$:    mov     #mswi,r0
+        mov     #lmswi,r1
+        call    pcons
+        return
+
+91$:    mov     #mconv,r0
+        mov     #lmconv,r1
+        call    pcons
+        return
+
+92$:    mov     #mopen,r0
+        mov     #lmopen,r1
+        call    pcons
+        clrb    oflag
+        return
+
+        .psect  text,d,rw
+mswi:   .ascii  |bad switch, only /o or /o=name allowed|
+lmswi=.-mswi
+mconv:  .ascii  /bad test line, likely conversion error/
+lmconv=.-mconv
+mopen:  .ascii  /open failed/
+lmopen=.-mopen
+        .psect
+
+; --------------------------------------------------------------------
+; doidat: parse test command, get all values to idat and eccx
+;    r0 ibuf   (in)  ptr to command string (is zero terminated)
+
+doidat: mov    r4,-(sp)
+        mov    r5,-(sp)
+
+        mov     #idat,r5                ; fill idat array
+        mov     #3,r4                   ; go for 3 values
+1$:     call    getoct
+        bcs     99$
+        mov     r1,(r5)+
+        sob     r4,1$
+
+        call    getsep                  ; check and eat separator
+        bcs     99$
+
+        mov     #eccn,r5                ; fill eccx flags
+        mov     #4,r4                   ; go for 4 values
+2$:     call    getbit
+        bcs     99$
+        movb    r1,(r5)+
+        sob     r4,2$
+
+        call    getoct                  ; finally get 2 edat values
+        bcs     99$
+        mov     r1,edat
+        call    getoct
+        bcs     99$
+        mov     r1,edat+2
+
+99$:    mov     (sp)+,r5
+        mov     (sp)+,r4
+        return
+
+; --------------------------------------------------------------------
+; dooccx: splitt returned psw to condition code bits
+
+dooccx: mov    r2,-(sp)
+        mov    r4,-(sp)
+        mov    r5,-(sp)
+
+        mov     odat,r1
+        mov     #occn+4,r5              ; fill eccx flags (in C to N order)
+        mov     #4,r4                   ; go for 4 bits
+1$:     clr     r2
+        ror     r1                      ; extract lsb
+        rol     r2                      ; get to reg again
+        movb    r2,-(r5)                ; and store (in C to N order)
+        sob     r4,1$
+
+        mov     (sp)+,r5
+        mov     (sp)+,r4
+        mov     (sp)+,r2
+        return
+
+; --------------------------------------------------------------------
+; doodat: write result line
+;    r0 obuf   (i/o) ptr to output buffer (advanced)
+        
+doodat: mov    r4,-(sp)
+        mov    r5,-(sp)
+
+        mov     #idat,r5                ; write idat array
+        mov     #3,r4                   ; with 3 values
+1$:     mov     (r5)+,r1
+        call    putoct
+        movb    #' ,(r0)+
+        sob     r4,1$
+
+        movb    #':,(r0)+               ; write separator
+        movb    #' ,(r0)+
+
+        mov     #occn,r5                ; write occ flags
+        mov     #4,r4                   ; with 4 values
+2$:     movb    (r5)+,r1
+        call    putbit
+        sob     r4,2$
+
+        movb    #' ,(r0)+
+
+        mov     #odat+2,r5              ; write odat q and r
+        mov     #2,r4                   ; with 2 values
+3$:     mov     (r5)+,r1
+        call    putoct
+        movb    #' ,(r0)+
+        sob     r4,3$
+
+        dec     r0                      ; undo last blank
+
+        mov     (sp)+,r5
+        mov     (sp)+,r4
+        return
+        
+; --------------------------------------------------------------------
+; doochk: do checks, add remarks to result line
+;    r0 obuf   (i/o) ptr to output buffer (advanced)
+
+doochk: mov    r4,-(sp)
+        mov    r5,-(sp)
+
+        cmpb    occv,eccv
+        beq     1$
+        mov     #mvbad,r1
+        call    puttxt
+1$:     cmpb    occc,eccc
+        beq     2$
+        mov     #mcbad,r1
+        call    puttxt
+        
+2$:     tstb    occv
+        beq     20$
+
+        cmp     odat+2,idat             ; r0 modified ? q != ddh
+        beq     11$
+        mov     #mr0mod,r1
+        call    puttxt
+11$:    cmp     odat+4,idat+2           ; r1 modified ? r != ddl
+        beq     30$
+        mov     #mr1mod,r1
+        call    puttxt
+        br      30$
+        
+20$:    cmpb    occn,eccn
+        beq     21$
+        mov     #mnbad,r1
+        call    puttxt
+21$:    cmpb    occz,eccz
+        beq     22$
+        mov     #mzbad,r1
+        call    puttxt
+
+22$:    cmp     odat+2,edat             ; q ok ?
+        beq     23$
+        mov     #mqbad,r1
+        call    puttxt
+23$:    cmp     odat+4,edat+2           ; r ok ?
+        beq     30$
+        mov     #mrbad,r1
+        call    puttxt
+
+30$:    mov     (sp)+,r5
+        mov     (sp)+,r4
+        return
+
+        .psect  text,d,rw
+mnbad:  .asciz  / NBAD/
+mzbad:  .asciz  / ZBAD/
+mvbad:  .asciz  / VBAD/
+mcbad:  .asciz  / CBAD/
+mqbad:  .asciz  / QBAD/
+mrbad:  .asciz  / RBAD/
+mr0mod: .asciz  / R0MOD/
+mr1mod: .asciz  / R1MOD/
+        .psect
+
+; --------------------------------------------------------------------
+; getoct: get octal number
+;    r0 ibuf   (i/o) ptr to ibuf (advanced to char after number)
+;    r1 num    (out) number
+;    C set on error
+
+getoct: call    skipws                  ; skip white space
+        mov     r2,-(sp)
+
+        clr     r1
+1$:     movb    (r0)+,r2                ; get char
+        beq     3$                      ; zero ? end string ?
+        cmpb    r2,#'                   ; blank ?
+        beq     3$
+        sub     #'0,r2                  ; get digit value
+        blt     2$                      ; octal ?
+        cmp     r2,#7                   ; octal ?
+        bgt     2$
+        ash     #3,r1                   ; <<3
+        bis     r2,r1           
+        br      1$
+2$:     sec                             ; bad char seen
+        br      4$
+3$:     clc                             ; ok, blank or end seen
+4$:     mov     (sp)+,r2
+        return
+
+; --------------------------------------------------------------------
+; getbit: get bit (single 0 or 1)
+;    r0 ibuf   (i/o) ptr to ibuf (advanced to char after number)
+;    r1 num    (out) number
+;    C set on error
+        
+getbit: call    skipws
+        movb    (r0),r1
+        sub     #'0,r1
+        beq     3$
+        blt     2$
+        cmp     r1,#1
+        ble     3$
+2$:     sec
+        br      4$
+3$:     inc     r0
+        clc
+4$:     return
+        
+; --------------------------------------------------------------------
+; getsep: look for : separator
+;    r0 ibuf   (i/o) ptr to ibuf (advanced to char after sep)
+;    C set on error
+        
+getsep: call    skipws
+        cmpb    (r0),#':
+        bne     1$
+        inc     r0
+        clc
+        return
+1$:     sec
+        return
+        
+; --------------------------------------------------------------------
+; skipws: skip over blanks
+;    r0 ibuf   (i/o) ptr to ibuf (advanced to char after blanks)
+
+skipws: tstb    (r0)
+        beq     1$
+        cmpb    (r0),#' 
+        bne     1$
+        inc     r0
+        br      skipws
+1$:     return
+        
+; --------------------------------------------------------------------
+; putoct: put octal number
+;    r0 obuf   (i/o) ptr to obuf (advanced)
+;    r1 num    (in)  number
+
+putoct: mov     r2,-(sp)
+        mov     r3,-(sp)
+        mov     #6,r3
+        add     r3,r0
+
+1$:     mov     r1,r2
+        bic     #177770,r2
+        add     #'0,r2
+        movb    r2,-(r0)
+        clc
+        ror     r1
+        clc
+        ror     r1
+        clc
+        ror     r1
+        sob     r3,1$
+
+        add     #6,r0
+        mov     (sp)+,r3
+        mov     (sp)+,r2
+        return
+
+; --------------------------------------------------------------------
+; putbit: put bit (single 0 or 1)
+;    r0 obuf   (i/o) ptr to obuf (advanced)
+;    r1 num    (in)  number
+        
+putbit: tst     r1
+        bne     1$
+        movb    #'0,(r0)+
+        return
+1$:     movb    #'1,(r0)+
+        return
+        
+        
+; --------------------------------------------------------------------
+; puttxt: put asciz text
+;    r0 obuf   (i/o) ptr to obuf (advanced)
+;    r1 num    (in)  ptr to text (zero terminated)
+        
+puttxt: tstb    (r1)                    ; last char ?
+        beq     1$
+        movb    (r1)+,(r0)+
+        br      puttxt
+1$:     return
+        
+
+; --------------------------------------------------------------------
+; pline: print line (to file or console)
+;    r0 buf    (in) ptr to text string
+;    r1 len    (in) length of string
+
+pline:  tstb   oflag                    ; /o seen ?
+        bne    1$
+        call   pcons                    ; no: write console
+        return
+1$:     call   pfile                    ; yes: write file
+        return
+
+; --------------------------------------------------------------------
+; pcons: print line to console
+;    r0 buf    (in) ptr to text string
+;    r1 len    (in) length of string
+
+pcons:  tst     r1
+        bne     1$                      ; is string empty ?
+        return                          ; yes: simply ignore (qio will bark)
+
+1$:     qiow$s  #io.wlb,#5,#1,,#iost,,<r0,r1,#40>  
+        bcs     10$
+        tstb    iost
+        blt     10$
+        return
+
+10$:    mov     $dsw,r2
+        mov     iost,r3
+        mov     iost+2,r4
+        mov     #12345,r5
+        iot
+
+        .psect  data,d,rw
+        .even
+iost:   .blkw   2
+
+; --------------------------------------------------------------------
+; pfile: print line to output file
+;    r0 buf    (in) ptr to text string
+;    r1 len    (in) length of string
+
+pfile:  mov    r2,-(sp)
+        mov    r0,r2                    ; mov obuf ptr to r2
+                                        ; r0 will be used as fdb ptr !!
+        put$   #fdbout,r2,r1
+        mov    (sp)+,r2
+        return
+
+; --------------------------------------------------------------------
+        .end main
+
+        
+

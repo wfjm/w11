@@ -1,0 +1,45 @@
+; $Id: dotst.mac 1266 2022-07-30 17:33:07Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2014-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; called like
+;    mov  #idat,r0
+;    mov  #odat,r1
+;    jsr  pc,dotst
+; with
+;    idat[0]   divident high (even r)
+;    idat[1]   divident low  (odd  r)
+;    idat[2]   divisor
+; and returns in odat
+;    odat[0]   psw
+;    odat[1]   quotient (even r)
+;    odat[2]   reminder (odd  r)
+;
+; Revision History:
+; Date         Rev Version  Comment
+; 2014-07-20   571   1.0    Initial version (cloned from 211bsd version)
+;
+
+        .globl  getpsw
+        .globl  valpsw
+
+dotst:: mov     r2,-(sp)
+        mov     r3,-(sp)
+
+        mov     (r0), r2                    ; load dd high
+        mov     2(r0),r3                    ; load dd low
+        div     4(r0),r2                    ; do divide
+
+        call    getpsw                      ; obtain psw in user mode
+
+        mov     valpsw, (r1)                ; store psw
+        mov     r2, 2(r1)                   ; store quotient
+        mov     r3, 4(r1)                   ; store remainder
+
+        mov     (sp)+,r3
+        mov     (sp)+,r2
+        return
+
+        .end
+
+        

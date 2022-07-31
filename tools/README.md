@@ -17,5 +17,6 @@ This directory tree contains **many tools** and is organized in
 | [sys](sys)       | udev rules for USB device handling |
 | [tbench](tbench) | w11 test bench |
 | [tcode](tcode)   | w11 test codes |
+| [tests](tests)   | test programs |
 | [tcl](tcl)       | TCL sources for rlink backend |
 | [vivado](vivado) | scripts for Xilinx Vivado |

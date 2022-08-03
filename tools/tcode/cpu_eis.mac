@@ -1,4 +1,4 @@
-; $Id: cpu_eis.mac 1263 2022-07-28 09:00:42Z mueller $
+; $Id: cpu_eis.mac 1264 2022-07-30 07:42:17Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -29,7 +29,10 @@ topdiv: mov     (r5),r4         ; setup data pointer
         mov     (r4)+,r1        ; load divident low
         div     (r4)+,r0        ; divide by divisor
         mov     (r3),r2         ; get psw
-        hcmpeq  (r4)+,r2        ; check psw
+        bit     #cp00v0,r2      ; V set ?
+        beq     101$            ; if yes
+        bic     #cpnz00,r2      ; ignore N and Z (differ in e11 and SimH)
+101$:   hcmpeq  (r4)+,r2        ; check psw
         bit     #cp00vc, r2     ; V or C set ?
         beq     200$            ; eq if V=0 and C=0
         add     #4,r4           ; skip q and r check
@@ -43,7 +46,16 @@ topdiv: mov     (r5),r4         ; setup data pointer
         return
 ;
 ; Test A1.1 -- div test basics ++++++++++++++++++++++++++++++++++++++++++++++++
-;   from test_w11a_div.tcl, div_testd2 cases, translated 1-to-1
+;   Notes:
+;   - from test_w11a_div.tcl, div_testd2 cases, translated almost 1-to-1
+;   - the state of Z,N is according to Processor Handbook 1979 undefined for
+;     a DIV when V=1 (so after zero divide and overflow).
+;   - SimH, e11, and real 11/70 differ in the Z state when V=1
+;     - SimH:  always Z=0 for overflow (V=1,C=0)
+;     - 11/70: sometimes Z=1 after overflow
+;     - e11:   sometimes Z=1 after overflow, whether 11/70 precise unknown
+;     - w11:   always Z=0 for overflow, as in SimH
+;   - should execute on w11, SimH and e11, so Z and N are excluded from PSW check
 ;
 ta0101: mov     #1000$,r5
         call    topdiv
@@ -76,9 +88,9 @@ ta0101: mov     #1000$,r5
         .word       -1,     -3,     -3, cp0000,      1,      0
         .word       -1,     -4,     -3, cp0000,      1,     -1
 ; --- dr==0
-        .word        0,      0,      0, cp0zvc,      0,      0 ; !vc
-        .word        0,      1,      0, cp0zvc,      0,      0 ; !vc
-        .word       -1,     -1,      0, cp0zvc,      0,      0 ; !vc
+        .word        0,      0,      0, cp00vc,      0,      0 ; !vc
+        .word        0,      1,      0, cp00vc,      0,      0 ; !vc
+        .word       -1,     -1,      0, cp00vc,      0,      0 ; !vc
 ; --- 4 quadrant  basics
         .word        0,    34.,     5., cp0000,     6.,     4.
         .word        0,    34.,    -5., cpn000,    -6.,     4.
@@ -96,10 +108,10 @@ ta0101: mov     #1000$,r5
 ; --- big divident overflow cases
         .word    77777, 177777,     1., cp00v0,      0,      0 ;0x7fffffff/ 1 !v
         .word    77777, 177777,     2., cp00v0,      0,      0 ;0x7fffffff/ 2 !v
-        .word    77777, 177777,    -1., cpn0v0,      0,      0 ;0x7fffffff/-1 !v
-        .word    77777, 177777,    -2., cpn0v0,      0,      0 ;0x7fffffff/-2 !v
-        .word   100000, 000000,     1., cpn0v0,      0,      0 ;0x80000000/ 1 !v
-        .word   100000, 000000,     2., cpn0v0,      0,      0 ;0x80000000/ 2 !v
+        .word    77777, 177777,    -1., cp00v0,      0,      0 ;0x7fffffff/-1 !v
+        .word    77777, 177777,    -2., cp00v0,      0,      0 ;0x7fffffff/-2 !v
+        .word   100000, 000000,     1., cp00v0,      0,      0 ;0x80000000/ 1 !v
+        .word   100000, 000000,     2., cp00v0,      0,      0 ;0x80000000/ 2 !v
         .word   100000, 000000,    -1., cp00v0,      0,      0 ;0x80000000/-1 !v
         .word   100000, 000000,    -2., cp00v0,      0,      0 ;0x80000000/-2 !v
 ;
@@ -126,29 +138,29 @@ ta0102: mov     #1000$,r5
         .word 0025253,0000001, -21846., cpn000, -32768.,      1.;dd=  715849729
         .word 0025253,0052524, -21846., cpn000, -32768.,  21844.;dd=  715871572
         .word 0025253,0052525, -21846., cpn000, -32768.,  21845.;dd=  715871573
-        .word 0025253,0052526, -21846., cpn0v0,  10923.,  21846.;dd=  715871574
-        .word 0025253,0052527, -21846., cpn0v0,  10923.,  21847.;dd=  715871575
+        .word 0025253,0052526, -21846., cp00v0,  10923.,  21846.;dd=  715871574
+        .word 0025253,0052527, -21846., cp00v0,  10923.,  21847.;dd=  715871575
 ;     case dd<0, dr>0 -- factor 21846
         .word 0152525,0000000,  21846., cpn000, -32768.,      0.;dd= -715849728
         .word 0152524,0177777,  21846., cpn000, -32768.,     -1.;dd= -715849729
         .word 0152524,0125254,  21846., cpn000, -32768., -21844.;dd= -715871572
         .word 0152524,0125253,  21846., cpn000, -32768., -21845.;dd= -715871573
-        .word 0152524,0125252,  21846., cpn0v0, -10924., -21846.;dd= -715871574
-        .word 0152524,0125251,  21846., cpn0v0, -10924., -21847.;dd= -715871575
+        .word 0152524,0125252,  21846., cp00v0, -10924., -21846.;dd= -715871574
+        .word 0152524,0125251,  21846., cp00v0, -10924., -21847.;dd= -715871575
 ;     case dd>0, dr<0 -- factor 21847
         .word 0025253,0100000, -21847., cpn000, -32768.,      0.;dd=  715882496
         .word 0025253,0100001, -21847., cpn000, -32768.,      1.;dd=  715882497
         .word 0025253,0152525, -21847., cpn000, -32768.,  21845.;dd=  715904341
         .word 0025253,0152526, -21847., cpn000, -32768.,  21846.;dd=  715904342
-        .word 0025253,0152527, -21847., cpn0v0,  10923., -10921.;dd=  715904343
-        .word 0025253,0152530, -21847., cpn0v0,  10923., -10920.;dd=  715904344
+        .word 0025253,0152527, -21847., cp00v0,  10923., -10921.;dd=  715904343
+        .word 0025253,0152530, -21847., cp00v0,  10923., -10920.;dd=  715904344
 ;     case dd<0, dr>0 -- factor 21847
         .word 0152524,0100000,  21847., cpn000, -32768.,      0.;dd= -715882496
         .word 0152524,0077777,  21847., cpn000, -32768.,     -1.;dd= -715882497
         .word 0152524,0025253,  21847., cpn000, -32768., -21845.;dd= -715904341
         .word 0152524,0025252,  21847., cpn000, -32768., -21846.;dd= -715904342
-        .word 0152524,0025251,  21847., cpn0v0, -10924.,  10921.;dd= -715904343
-        .word 0152524,0025250,  21847., cpn0v0, -10924.,  10920.;dd= -715904344
+        .word 0152524,0025251,  21847., cp00v0, -10924.,  10921.;dd= -715904343
+        .word 0152524,0025250,  21847., cp00v0, -10924.,  10920.;dd= -715904344
 ;   test q=077777 boundary cases (q = max pos value)
 ;     case dd>0, dr>0 -- factor 21846
         .word 0025252,0125252,  21846., cp0000,  32767.,      0.;dd=  715827882
@@ -265,8 +277,8 @@ ta0102: mov     #1000$,r5
         .word 0140000,0077777,  32767., cpn000, -32768.,     -1.;dd=-1073709057
         .word 0140000,0000003,  32767., cpn000, -32768., -32765.;dd=-1073741821
         .word 0140000,0000002,  32767., cpn000, -32768., -32766.;dd=-1073741822
-        .word 0140000,0000001,  32767., cpn0v0, -16384.,      1.;dd=-1073741823
-        .word 0140000,0000000,  32767., cpn0v0, -16384.,      0.;dd=-1073741824
+        .word 0140000,0000001,  32767., cp00v0, -16384.,      1.;dd=-1073741823
+        .word 0140000,0000000,  32767., cp00v0, -16384.,      0.;dd=-1073741824
 ;     case dd<0 dr<0 near  pmax*nmax+nmax-1 = -1073741823
         .word 0140000,0100001, -32768., cp0000,  32766., -32767.;dd=-1073709055
         .word 0140000,0100000, -32768., cp0000,  32767.,      0.;dd=-1073709056

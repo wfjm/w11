@@ -1,10 +1,10 @@
-/* $Id:  $ */
+/* $Id: stktst.c 1268 2022-08-04 07:03:08Z mueller $ */
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 /* Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de> */
 
 /* Revision History:                                                         */
 /* Date         Rev Version  Comment                                         */
-/* 2022-08-01  1267   1.0    Initial version                                 */
+/* 2022-08-03  1268   1.0    Initial version                                 */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -37,6 +37,15 @@ int doconv(arg)
   return ires;
 }
 
+print_stack(val)
+  unsigned int val;
+{
+  unsigned int ns = 7-(val>>13);
+  unsigned int nc = 127-((val&017777)>>6);
+  unsigned int no = 64-(val&077);
+  fprintf(stdout," %06o (%1d,%3d,%2d);", val, ns, nc, no);
+}
+
 
 int main(argc, argv)
   int     argc;
@@ -47,7 +56,7 @@ int main(argc, argv)
   int   rcnt = 0;
   int   cnt  = 0;
   int   idat[5];
-  int   odat[3];
+  unsigned int   odat[3];
   int   optrwh = 0;
   int   dotst();
 
@@ -105,12 +114,19 @@ int main(argc, argv)
   /* call test: 1st round */
   dotst(idat, odat);
   if (optrwh) exit(0);
-  fprintf(stdout, "stktst-I: before sp %06o %06o\n", odat[0], odat[1]);
+  printf("stktst-I: before sp");
+  print_stack(odat[0]);
+  print_stack(odat[1]);
+  printf("\n");
 
   /* call test: 2nd round */
   idat[1] = rcnt;
   dotst(idat, odat);
-  fprintf(stdout, "stktst-I: after  sp %06o %06o %6o\n",
-          odat[0], odat[1], odat[2]);
+  printf("stktst-I: after  sp");
+  print_stack(odat[0]);
+  print_stack(odat[1]);
+  print_stack(odat[2]);
+  printf("\n");
+
   exit(0);
 }

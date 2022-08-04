@@ -1,4 +1,4 @@
-/ $Id:  $
+/ $Id: dotst.s 1268 2022-08-04 07:03:08Z mueller $
 / SPDX-License-Identifier: GPL-3.0-or-later
 / Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 /
@@ -17,7 +17,7 @@
 /
 / Revision History:
 / Date         Rev Version  Comment
-/ 2022-08-01  1267   1.0    Initial version
+/ 2022-08-03  1268   1.0    Initial version
 /
 
 .globl  _dotst
@@ -82,7 +82,7 @@ testx:
         mov     sp,r4
 / handle -s
         tst     6(r2)                       / idat[3] -s count > 0 ?
-        beq     optc
+        ble     optc
         bic     $017777,r4                  / sp &= 017777
         mov     6(r2),r1
         dec     r1                          / idat[3]-1
@@ -90,7 +90,7 @@ testx:
         sub     r1,r4                       / sp -= 8192 * (idat[3]-1)
 / handle -c
 optc:   tst     4(r2)                       / idat[2] -c count > 0 ?
-        beq     opto
+        ble     opto
         bic     $000077,r4                  / sp &= 077
         mov     4(r2),r1
         dec     r1                          / idat[2]-1

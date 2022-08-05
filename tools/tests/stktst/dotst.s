@@ -1,4 +1,4 @@
-/ $Id: dotst.s 1268 2022-08-04 07:03:08Z mueller $
+/ $Id: dotst.s 1269 2022-08-05 06:00:38Z mueller $
 / SPDX-License-Identifier: GPL-3.0-or-later
 / Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 /
@@ -8,7 +8,7 @@
 /    idat[0]   command ('I','i','l','f','d','r','w', or 'h')
 /    idat[1]   command repeat count
 /    idat[2]   -c repeat count
-/    idat[3]   -s repeat count
+/    idat[3]   -p repeat count
 /    idat[4]   -o byte offset
 / and returns in odat
 /    odat[0]   sp before align and offset
@@ -70,20 +70,20 @@ testx:
 / apply sp aligns and offset. In python pseudo code do
 /   # segmemt align
 /   if idat[3] > 0:
-/     sp &= 017777
+/     sp &= ~017777
 /     sp -= 8192 * (idat[3]-1)
 /   # click align 
 /   if idat[2] > 0:
-/     sp &= 077
+/     sp &= ~077
 /     sp -= 64 * (idat[2]-1)
 /   # byte offset
 /   sp += idat[4]
 /
         mov     sp,r4
-/ handle -s
+/ handle -p
         tst     6(r2)                       / idat[3] -s count > 0 ?
         ble     optc
-        bic     $017777,r4                  / sp &= 017777
+        bic     $017777,r4                  / sp &= ~017777
         mov     6(r2),r1
         dec     r1                          / idat[3]-1
         mul     $020000,r1
@@ -91,7 +91,7 @@ testx:
 / handle -c
 optc:   tst     4(r2)                       / idat[2] -c count > 0 ?
         ble     opto
-        bic     $000077,r4                  / sp &= 077
+        bic     $000077,r4                  / sp &= ~077
         mov     4(r2),r1
         dec     r1                          / idat[2]-1
         mul     $000100,r1

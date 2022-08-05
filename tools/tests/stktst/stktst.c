@@ -1,9 +1,10 @@
-/* $Id: stktst.c 1268 2022-08-04 07:03:08Z mueller $ */
+/* $Id: stktst.c 1269 2022-08-05 06:00:38Z mueller $ */
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 /* Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de> */
 
 /* Revision History:                                                         */
 /* Date         Rev Version  Comment                                         */
+/* 2022-08-04  1269   1.1    rename -s to -p; warmup before r,w,h            */
 /* 2022-08-03  1268   1.0    Initial version                                 */
 
 #include <stdlib.h>
@@ -37,15 +38,23 @@ int doconv(arg)
   return ires;
 }
 
-print_stack(val)
-  unsigned int val;
+print_stack(str, odat, nodat)
+  char *str;
+  unsigned int *odat;
+  int nodat;
 {
-  unsigned int ns = 7-(val>>13);
-  unsigned int nc = 127-((val&017777)>>6);
-  unsigned int no = 64-(val&077);
-  fprintf(stdout," %06o (%1d,%3d,%2d);", val, ns, nc, no);
+  unsigned int val, np, nc, no;
+  int i;
+  printf("%s", str);
+  for (i=0; i<nodat; i++) {
+    val = *odat++;
+    np = 7-(val>>13);
+    nc = 127-((val&017777)>>6);
+    no = 64-(val&077);
+    printf(" %06o (%1d,%3d,%2d);", val, np, nc, no);
+  }
+  printf("\n");
 }
-
 
 int main(argc, argv)
   int     argc;
@@ -67,10 +76,10 @@ int main(argc, argv)
 
   cmd  = argv[1][0];                        /* get command */
   rcnt = doconv(argv[2]);
-  idat[0] = cmd;                            /* command code */
+  idat[0] = 0;                              /* command code */
   idat[1] = 0;                              /* command repeat */
   idat[2] = 0;                              /* -c repeat */
-  idat[3] = 0;                              /* -s repeat */
+  idat[3] = 0;                              /* -p repeat */
   idat[4] = 0;                              /* -o offset */
 
   /* check that command is valid */
@@ -91,7 +100,19 @@ int main(argc, argv)
     exit(1);
   }
 
-  /* process options */
+  if (optrwh) {           /* handle r,w,h tests */
+    /* warmup: noop test to get ps and call printf to get stack action */
+    idat[0] = 'I';
+    dotst(idat, odat);
+    print_stack("stktst-I: before sp", odat, 1);
+    /* now do r,w, or h test, nothing to print afterwards */
+    idat[0] = cmd;
+    idat[1] = rcnt;
+    dotst(idat, odat);
+    exit(0);
+  }
+  
+  /* process options only for normal tests */
   for (argi=3; argi<argc; argi+=2) {
     if (argi+1 >= argc) {
       fprintf(stderr, "stktst-E: no value after %s \n", argv[argi]);
@@ -100,7 +121,7 @@ int main(argc, argv)
     cnt = doconv(argv[argi+1]);
     if (strcmp(argv[argi], "-c") == 0) {
       idat[2] = cnt;
-    } else if (strcmp(argv[argi], "-s") == 0) {
+    } else if (strcmp(argv[argi], "-p") == 0) {
       idat[3] = cnt;
     } else if (strcmp(argv[argi], "-o") == 0) {
       idat[4] = cnt;
@@ -110,23 +131,15 @@ int main(argc, argv)
     }  
   }
 
-  if (optrwh) idat[1] = rcnt;
   /* call test: 1st round */
+  idat[0] = cmd;
   dotst(idat, odat);
-  if (optrwh) exit(0);
-  printf("stktst-I: before sp");
-  print_stack(odat[0]);
-  print_stack(odat[1]);
-  printf("\n");
+  print_stack("stktst-I: before sp", odat, 2);
 
   /* call test: 2nd round */
   idat[1] = rcnt;
   dotst(idat, odat);
-  printf("stktst-I: after  sp");
-  print_stack(odat[0]);
-  print_stack(odat[1]);
-  print_stack(odat[2]);
-  printf("\n");
+  print_stack("stktst-I: after  sp", odat, 3);
 
   exit(0);
 }

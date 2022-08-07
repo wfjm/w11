@@ -1,16 +1,17 @@
-; $Id: cpu_mmu.mac 1262 2022-07-25 09:44:55Z mueller $
+; $Id: cpu_mmu.mac 1264 2022-07-30 07:42:17Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2022-07-24  1262   1.0    Initial version
+; 2022-07-28  1264   1.0    Initial version
+; 2022-07-24  1262   0.1    First draft
 ;
 ; Test CPU MMU: all aspects of the MMU
 ;   Section A: pdr,par registers
 ;   Section B: ssr0,ssr3 registers, mapping, instructions
-;   Section C: ssr1,ssr2 registers and traps
-;   Section D: aborts
+;   Section C: ssr1 register and traps
+;   Section D: ssr2 register and aborts
 ;
         .include        |lib/tcode_std_base.mac|
         .include        |lib/defs_mmu.mac|
@@ -159,18 +160,76 @@ ta0102:
 ;   Test whether address mapping works (traps and aborts avoided)
 ;
 ; Test B1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-;   Test kernel mode
-;
-; Test B1.1 -- test 1-to-1 kernel mode mapping +++++++++++++++++++++++
-;   simply enable MMU, shouldnt make a difference
-;   test that 18bit mode extends I/O page addressing
-;   test that RESET clears ssr0 and ssr3
+;   Test ssr0, ssr3 write/read and clear by RESET
 ;
 ;   This test verifies
 ;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
 ;     0 000 000 000 000 101 ---- RESET   (clear ssr0,ssr3)
 ;
-tb0101: mov     #123456,1000$
+; Test B1.1 -- test ssr0 write/read ++++++++++++++++++++++++++++++++++
+;   Test all writable bits except m0.ena
+;
+tb0101: mov     #ssr0,r0        ; ptr to ssr0
+        mov     #m0.ico,r1      ; instruction complete flag
+        mov     #1010$,r4       ; ptr to data
+        mov     #1011$,r3       ; ptr to data end
+100$:   mov     (r4),(r0)       ; write ssr0
+        mov     (r0),r5         ; read ssr0
+        bic     r1,r5           ; mask instruction complete
+        hcmpeq  r5,(r4)+        ; check
+        cmp     r4,r3           ; more to do ?
+        blo     100$
+;
+        reset                   ; ssr0 has 5 bits set, check clear
+        mov     (r0),r5         ; read ssr0
+        bic     r1,r5           ; mask instruction complete
+        htsteq  r5              ; check ssr0 cleared
+        jmp     9999$
+;
+1010$:  .word   m0.anr          ; abort flags
+        .word   m0.ale
+        .word   m0.ard
+        .word   m0.trp          ; trap flag
+        .word   m0.ent          ; trap enable
+        .word   m0.anr!m0.ale!m0.ard!m0.trp!m0.ent
+1011$:
+;
+9999$:  iot                     ; end of test B1.1
+;
+; Test B1.2 -- test ssr3 write/read ++++++++++++++++++++++++++++++++++
+;   Test all writable bits; mmu is off, and unibus map not used
+;
+tb0102: mov     #ssr3,r0        ; ptr to ssr3
+        mov     #1010$,r4       ; ptr to data
+        mov     #1011$,r3       ; ptr to data end
+100$:   mov     (r4),(r0)       ; write ssr3
+        hcmpeq  (r0),(r4)+      ; check
+        cmp     r4,r3           ; more to do ?
+        blo     100$
+;
+        reset                   ; ssr3 has 5 bits set, check clear
+        htsteq  (r0)            ; check ssr3 cleared
+        jmp     9999$
+;
+1010$:  .word   m3.eub
+        .word   m3.e22
+        .word   m3.dkm
+        .word   m3.dsm
+        .word   m3.dum
+        .word   m3.eub!m3.e22!m3.dkm!m3.dsm!m3.dum
+1011$:
+;
+9999$:  iot                     ; end of test B1.2
+;
+; Test B2:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   Test kernel mode mapping
+;
+; Test B2.1 -- test 1-to-1 kernel mode mapping +++++++++++++++++++++++
+;   simply enable MMU, shouldnt make a difference
+;   test that 18bit mode extends I/O page addressing
+;   test that RESET clears ssr0 and ssr3
+;
+tb0201: mov     #123456,1000$
 ; enable mmu in 18bit mode
         clr     ssr3            ; no d dspace, no 22bit
         mov     #m0.ena,ssr0    ; enable mmu
@@ -193,13 +252,13 @@ tb0101: mov     #123456,1000$
 ;
 1000$:  .word   0
 ;
-9999$:  iot                     ; end of test B1.1
+9999$:  iot                     ; end of test B2.1
 ;
-; Test B1.2 -- test variable kernel mode mapping +++++++++++++++++++++
+; Test B2.2 -- test variable kernel mode mapping +++++++++++++++++++++
 ;   change seg6 mapping
 ;   test that 18bit mode discards the 4 MSB of the par
 ;
-tb0102: mov     #kipar6,r0      ; ptr to kipar6
+tb0202: mov     #kipar6,r0      ; ptr to kipar6
         mov     #140000,r5      ; seg6 base
         mov     #140000,(r5)    ; init markers
         clr     2(r5)
@@ -233,16 +292,16 @@ tb0102: mov     #kipar6,r0      ; ptr to kipar6
 ; disable MMU
         reset                   ; mmu off                       ;! MMU off
 ;
-9999$:  iot                     ; end of test B1.2
+9999$:  iot                     ; end of test B2.2
 ;
-; Test B2:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+; Test B3:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;   Test user and supervisor mode
 ;
-; Test B2.1 -- run code in user/supervisor mode ++++++++++++++++++++++
+; Test B3.1 -- run code in user/supervisor mode ++++++++++++++++++++++
 ;   code vc0 is executed in user and in supervisor mode
 ;   the code runs in seg0 with D space disabled
 ;
-tb0201:
+tb0301:
 ; setup emt handler
         mov     #vhuemt,v..emt
         clr    v..emt+2         ; pr0 kernel
@@ -306,9 +365,9 @@ tb0201:
         mov     #v..emt+2,v..emt        ; restore emt catcher
         clr     v..emt+2
 ;
-9999$:  iot                     ; end of test B2.1
+9999$:  iot                     ; end of test B3.1
 ;
-; Test B2.2 -- run code in user mode with D space enabled ++++++++++++
+; Test B3.2 -- run code in user mode with D space enabled ++++++++++++
 ;   code vc1 is executed in user and in supervisor mode
 ;   the code runs in seg0 with D space enabled
 ;
@@ -319,7 +378,7 @@ tb0201:
 ;     1 000 110 101 ddd ddd NZ0- MFPD
 ;     1 000 110 110 ddd ddd NZ0- MTPD
 ;
-tb0202:
+tb0302:
 ; setup emt handler
         mov     #vhuemt,v..emt
         clr     v..emt+2        ; pr0 kernel
@@ -354,7 +413,7 @@ tb0202:
 ;
 ; psw has now pm=user and cm=kernel; good setup to test MFPI and friends
 ;
-; test MFPD
+; test MFPD (data access)
 ;
         mov     #<vc1v0-vc1dat>,r5      ; initialize data pointer
         mfpd    (r5)              ; read vc1v0
@@ -362,11 +421,11 @@ tb0202:
         mfpd    @#<vc1v2-vc1dat>  ; read vc1v2
         hcmpeq  (sp)+,#033333
 ;
-; test MTPD and MFPD, incl cc
+; test MTPD and MFPD, incl cc (data access)
 ;
         mov     #2010$,r4       ; ptr to test data
         mov     #2011$,r3       ; ptr to test end
-2000$:  mov     (r4)+,-(sp)
+2000$:  push    (r4)+
         ccc                     ; C=0
         mtpd    (r5)            ; write vc1v0
         hcmpeq  cp.psw,(r4)+    ; check cc
@@ -377,18 +436,18 @@ tb0202:
         cmp     r4,r3           ; more to do ?
         blo     2000$
 ;
-; test MFPI
+; test MFPI (data access)
 ;
         mov     #<vc1-vc1>,r5     ; initialize data pointer
         mfpi    (r5)              ; read 1st instruction word
         hcmpeq  (sp)+,vc1
 ;
-; test MTPI and MFPI, incl cc
+; test MTPI and MFPI, incl cc  (data access)
 ;
         mov     #<vc1ida-vc1>,r5 ; initialize data pointer
         mov     #3010$,r4       ; ptr to test data
         mov     #3011$,r3       ; ptr to test end
-3000$:  mov     (r4)+,-(sp)
+3000$:  push    (r4)+
         scc                     ; C=1
         mtpi    (r5)            ; write vc1ida
         hcmpeq  cp.psw,(r4)+    ; check cc
@@ -398,6 +457,49 @@ tb0202:
         hcmpeq  cp.psw,(r4)+    ; check cc
         cmp     r4,r3           ; more to do ?
         blo     3000$
+;
+; Test MFPD,MFPI and MTPD,MTPI for sp register access
+;   accessing sp will access user mode stack pointer (which is != kernel stack)
+;
+; read sp via mfpd and mfpi
+        mfpd    sp              ; read user mode sp
+        hcmbeq  (sp)+,#<vc1stk-vc1dat>      ; check
+        mfpi    sp              ; read user mode sp (same for I and D)
+        hcmbeq  (sp)+,#<vc1stk-vc1dat>      ; check
+; write sp via mtpd, readback via mfpi
+        mov    sp,r4            ; remember kernel stack
+        mov    #77,r5
+        push   r5
+        mtpd   sp               ; change user stack
+        hcmpeq sp,r4            ; check kernel stack unchanged
+        mfpi   sp               ; read back user stack
+        hcmpeq (sp)+,r5         ; check
+; write sp via mtpi, readback via mfpd
+        mov    #177,r5
+        push   r5
+        mtpi   sp               ; change user stack
+        hcmpeq sp,r4            ; check kernel stack unchanged
+        mfpd   sp               ; read back user stack
+        hcmpeq (sp)+,r5         ; check
+;
+; Test MFPD,MFPI and MTPD,MTPI for register r0-r5 access
+;   accessing r0-r5 simply acccesses common registers
+;   that is usually not used, but should work
+;
+; write registers via mtpd,mtpi
+        push    #277
+        mtpd    r5              ; effective mov #277,r5
+        push    #377
+        mtpi    r4              ; effective mov #377,r4
+        hcmpeq  r5,#277         ; check
+        hcmpeq  r4,#377         ; check
+; read registers via mtpd,mtpi
+       mov       #477,r5
+       mov       #577,r4
+       mfpd      r5
+       hcmpeq    (sp)+,#477     ; check
+       mfpd      r4
+       hcmpeq    (sp)+,#577     ; check
 ;
 ; reset user mode pdr/par
         clr     uipdr0
@@ -422,12 +524,83 @@ tb0202:
         .word   100000,cp.pmu!cpn00c,cp.pmu!cpn000
 3011$:
 ;
-9999$:  iot                     ; end of test B2.2
+9999$:  iot                     ; end of test B3.2
+;
+; Section C: ssr1 register and traps =========================================
+;
+; Test C1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;
+; Test C1.1 -- test ssr1 response via set abort in ssr0 trick ++++++++
+;   Test method (concept seen in ekbee1)
+;   - start with ssr1 cleared, ssr1 will track
+;   - write one of the 3 abort bits in ssr1 (all three are tested)
+;   - that will freeze ssr1
+;   - the register signature of the write can be inspected
+;
+tc0101: mov     #1000$,r1       ; ptr to abort bit table
+        mov     #ssr0,r2        ; ptr to ssr0
+        mov     #ssr1,r3        ; ptr to ssr3
+;
+        reset
+        mov     (r1),(r2)       ; no regs changed !
+        hcmpeq  (r3),#^b0000000000000000;
+;
+        reset
+        mov     (r1)+,(r2)      ; r1,2          00000 000 00010 001 via anr
+        hcmpeq  (r3),#^b0000000000010001;
+;
+        reset
+        mov     -(r1),(r2)      ; r1,-2         00000 000 11110 001 via anr
+        hcmpeq  (r3),#^b0000000011110001;
+;
+        reset
+        mov     (r1),(r2)+      ; r2,2          00000 000 00010 010 via anr
+        hcmpeq  (r3),#^b0000000000010010;
+;
+        reset
+        mov     (r1),-(r2)      ; r2,-2         00000 000 11110 010 via anr
+        hcmpeq  (r3),#^b0000000011110010;
+;
+        reset
+        mov     (r1)+,(r2)+     ; r1,2,r2,2     00010 010 00010 001 via anr
+        hcmpeq  (r3),#^b0001001000010001;
+;
+        reset
+        mov     -(r1),-(r2)      ; r1,-2,r2,-2  11110 010 11110 001 via anr
+        hcmpeq  (r3),#^b1111001011110001;
+;
+        reset
+        tst     (r1)+           ; bump ptr to ale
+        mov     (r1)+,(r2)+     ; r1,2,r2,2     00010 010 00010 001 via ale
+        hcmpeq  (r3),#^b0001001000010001;
+;
+; check that index reads are not accounted in ssr1
+        reset
+        tst     (r1)+           ; bump ptr beyond ard
+        mov     -(r1),-2(r2)    ; r1,-1         00000 000 11110 001 via ard
+        hcmpeq  (r3),#^b0000000011110001;
+;
+; check @(pc)+ behavior
+;   Simh only adds 'general purpose register updates, thus not pc
+;   w11  updates ssr1 in this case, as is also expected in ekbee1
+;   case commented out to ensure that cpu_mmu.mac runs on both
+;;      reset
+;;      mov     -(r1),@#ssr0    ; r1,-2,pc,2    00010 111 11110 001 via ale
+;;      hcmpeq  (r3),#^b0001011111110001;
+;
+        reset
+        jmp     9999$
+;
+1000$:  .word   m0.anr
+        .word   m0.ale
+        .word   m0.ard
+;
+9999$:  iot                     ; end of test C1.1
 ;
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#6.       ; all tests done ?
+        hcmpeq  tstno,#9.       ; all tests done ?
 ;
         jmp     loop
 ;
@@ -459,14 +632,14 @@ vhuhlt: halt
 vc0:    jmp     100$
         .blkw   14.             ; small stack space
 100$:   mov     #40,sp          ; initialize stack
-        jsr     pc,1000$
+        call    1000$
         emt     100             ; will end user/supervisor code
 ;
 1000$:  com     vc0v0
-        jsr     pc,2000$
-        rts     pc
+        call    2000$
+        return
 2000$:  add     vc0v1,vc0v2
-        rts     pc
+        return
 ;
 vc0v0:  .word   0
 vc0v1:  .word   0
@@ -480,19 +653,20 @@ vc0v2:  .word   0
         . = 101000              ; I space
 vc1:    mov     #<vc1v0-vc1dat>,sp      ; initialize stack
         mov     #<vc1v0-vc1dat>,r5      ; initialize data pointer
-        jsr     pc,1000$
+        call    1000$
         emt     100             ; will end user/supervisor code
 ;
 1000$:  com     (r5)            ; will access vc1v0
-        jsr     pc,2000$
-        rts     pc
+        call    2000$
+        return
 2000$:  add     2(r5),4(r5)     ; will access vc1v1 and vc1v2
-        rts     pc
+        return
 ;
 vc1ida: .word   0               ; I space location, MTPI target
 ;
         . = 102000              ; D space
 vc1dat: .blkw   16.             ; small stack space
+vc1stk:
 vc1v0:  .word   0
 vc1v1:  .word   0
 vc1v2:  .word   0

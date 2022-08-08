@@ -1,0 +1,22 @@
+; $Id: tcode_exec.scmd 1264 2022-07-30 07:42:17Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; setup w11 like processor configuration
+;   like ../simh/setup_w11a_max.scmd
+;   but only cpu, devices are all default
+;
+set cpu 11/70
+set cpu nofpp
+set cpu 4m
+set cpu oct
+set cpu idle
+;
+; disable simulator stop conditions, especially "read stack trap"
+;
+dep STOP_TRAPS 0
+;
+load %1.lda
+dep pc 200
+cont
+quit

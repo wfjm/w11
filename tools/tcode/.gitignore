@@ -1,7 +1,12 @@
 *.cof
-*.lst
+*.exp.mac
+*.lda
 *.lsm
-*.lsm_scmd
+*.lst
+
+# e11 tmp stuff
+tmp_e11.ini
+tmp_e11_tt0.log
 
 # simulation stuff
 rlink_cext_conf

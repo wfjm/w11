@@ -1,0 +1,14 @@
+! $Id: tcode.ecmd 1264 2022-07-30 07:42:17Z mueller $
+! SPDX-License-Identifier: GPL-3.0-or-later
+! Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+!
+! setup w11 like processor configuration
+!
+set cpu 70
+set cpu nofpp
+set idle delay=1
+!
+! create log file, the only way to capture e11 output
+! no rediction to stdout possible
+!
+log tt0: tmp_e11_tt0

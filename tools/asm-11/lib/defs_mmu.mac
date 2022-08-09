@@ -1,13 +1,13 @@
-; $Id: defs_mmu.mac 1261 2022-07-23 16:15:03Z mueller $
+; $Id: defs_mmu.mac 1272 2022-08-07 17:37:51Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; definitions for mmu registers (as in defs_mmu.das)
 ;
-        ssr0 = 177572
-        ssr1 = 177574
-        ssr2 = 177576
-        ssr3 = 172516
+        mmr0 = 177572
+        mmr1 = 177574
+        mmr2 = 177576
+        mmr3 = 172516
 ;
         uipdr = 177600                  ; usr i page dsc base
         udpdr = 177620                  ; usr d page dsc base
@@ -22,7 +22,7 @@
         kipar = 172340                  ; ker i page addr base
         kdpar = 172360                  ; ker d page addr base
 ;
-; symbol definitions for ssr0
+; symbol definitions for mmr0
 ;
         m0.anr = 100000                 ; abort non-resident
         m0.ale = 040000                 ; abort segment length
@@ -34,7 +34,7 @@
         m0.dsp = 000020                 ; enable i/d space
         m0.ena = 000001                 ; enable mmu
 ;
-; symbol definitions for ssr3
+; symbol definitions for mmr3
 ;
         m3.eub = 000040                 ; enable unibus map
         m3.e22 = 000020                 ; enable 22bit addressing

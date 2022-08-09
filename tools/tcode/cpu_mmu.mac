@@ -1,17 +1,18 @@
-; $Id: cpu_mmu.mac 1264 2022-07-30 07:42:17Z mueller $
+; $Id: cpu_mmu.mac 1272 2022-08-07 17:37:51Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
+; 2022-08-06  1272   1.0.1  ssr->mmr rename
 ; 2022-07-28  1264   1.0    Initial version
 ; 2022-07-24  1262   0.1    First draft
 ;
 ; Test CPU MMU: all aspects of the MMU
 ;   Section A: pdr,par registers
-;   Section B: ssr0,ssr3 registers, mapping, instructions
-;   Section C: ssr1 register and traps
-;   Section D: ssr2 register and aborts
+;   Section B: mmr0,mmr3 registers, mapping, instructions
+;   Section C: mmr1 register and traps
+;   Section D: mmr2 register and aborts
 ;
         .include        |lib/tcode_std_base.mac|
         .include        |lib/defs_mmu.mac|
@@ -156,34 +157,34 @@ ta0102:
 ;
 9999$:  iot                     ; end of test A1.2
 ;
-; Section B: ssr0,ssr3 registers, mapping, instructions ======================
+; Section B: mmr0,mmr3 registers, mapping, instructions ======================
 ;   Test whether address mapping works (traps and aborts avoided)
 ;
 ; Test B1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-;   Test ssr0, ssr3 write/read and clear by RESET
+;   Test mmr0, mmr3 write/read and clear by RESET
 ;
 ;   This test verifies
 ;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
-;     0 000 000 000 000 101 ---- RESET   (clear ssr0,ssr3)
+;     0 000 000 000 000 101 ---- RESET   (clear mmr0,mmr3)
 ;
-; Test B1.1 -- test ssr0 write/read ++++++++++++++++++++++++++++++++++
+; Test B1.1 -- test mmr0 write/read ++++++++++++++++++++++++++++++++++
 ;   Test all writable bits except m0.ena
 ;
-tb0101: mov     #ssr0,r0        ; ptr to ssr0
+tb0101: mov     #mmr0,r0        ; ptr to mmr0
         mov     #m0.ico,r1      ; instruction complete flag
         mov     #1010$,r4       ; ptr to data
         mov     #1011$,r3       ; ptr to data end
-100$:   mov     (r4),(r0)       ; write ssr0
-        mov     (r0),r5         ; read ssr0
+100$:   mov     (r4),(r0)       ; write mmr0
+        mov     (r0),r5         ; read mmr0
         bic     r1,r5           ; mask instruction complete
         hcmpeq  r5,(r4)+        ; check
         cmp     r4,r3           ; more to do ?
         blo     100$
 ;
-        reset                   ; ssr0 has 5 bits set, check clear
-        mov     (r0),r5         ; read ssr0
+        reset                   ; mmr0 has 5 bits set, check clear
+        mov     (r0),r5         ; read mmr0
         bic     r1,r5           ; mask instruction complete
-        htsteq  r5              ; check ssr0 cleared
+        htsteq  r5              ; check mmr0 cleared
         jmp     9999$
 ;
 1010$:  .word   m0.anr          ; abort flags
@@ -196,19 +197,19 @@ tb0101: mov     #ssr0,r0        ; ptr to ssr0
 ;
 9999$:  iot                     ; end of test B1.1
 ;
-; Test B1.2 -- test ssr3 write/read ++++++++++++++++++++++++++++++++++
+; Test B1.2 -- test mmr3 write/read ++++++++++++++++++++++++++++++++++
 ;   Test all writable bits; mmu is off, and unibus map not used
 ;
-tb0102: mov     #ssr3,r0        ; ptr to ssr3
+tb0102: mov     #mmr3,r0        ; ptr to mmr3
         mov     #1010$,r4       ; ptr to data
         mov     #1011$,r3       ; ptr to data end
-100$:   mov     (r4),(r0)       ; write ssr3
+100$:   mov     (r4),(r0)       ; write mmr3
         hcmpeq  (r0),(r4)+      ; check
         cmp     r4,r3           ; more to do ?
         blo     100$
 ;
-        reset                   ; ssr3 has 5 bits set, check clear
-        htsteq  (r0)            ; check ssr3 cleared
+        reset                   ; mmr3 has 5 bits set, check clear
+        htsteq  (r0)            ; check mmr3 cleared
         jmp     9999$
 ;
 1010$:  .word   m3.eub
@@ -227,13 +228,13 @@ tb0102: mov     #ssr3,r0        ; ptr to ssr3
 ; Test B2.1 -- test 1-to-1 kernel mode mapping +++++++++++++++++++++++
 ;   simply enable MMU, shouldnt make a difference
 ;   test that 18bit mode extends I/O page addressing
-;   test that RESET clears ssr0 and ssr3
+;   test that RESET clears mmr0 and mmr3
 ;
 tb0201: mov     #123456,1000$
 ; enable mmu in 18bit mode
-        clr     ssr3            ; no d dspace, no 22bit
-        mov     #m0.ena,ssr0    ; enable mmu
-        hbitne  #m0.ena,ssr0    ; test bit                      ;! MMU 18
+        clr     mmr3            ; no d dspace, no 22bit
+        mov     #m0.ena,mmr0    ; enable mmu
+        hbitne  #m0.ena,mmr0    ; test bit                      ;! MMU 18
         hcmpeq  1000$,#123456   ; check marker
 ; verify I/O page mapping in 18bit mode (007600 must be OK)
         mov     #kipar7,r0      ; ptr to kipar7
@@ -241,13 +242,13 @@ tb0201: mov     #123456,1000$
         hcmpeq  (r0),#007600    ; kipar7 still seen ???
         bis     #170000,(r0)    ; restore kipar7
         hcmpeq  (r0),#177600
-; enable mmu in 22bit mode; check that ssr3 still seen
-        mov     #m3.e22,ssr3
-        hcmpeq  ssr3,#m3.e22    ; test ssr3 stll seen ???       ;! MMU 22
+; enable mmu in 22bit mode; check that mmr3 still seen
+        mov     #m3.e22,mmr3
+        hcmpeq  mmr3,#m3.e22    ; test mmr3 stll seen ???       ;! MMU 22
 ; test RESET
-        reset                   ; should clear ssr0 and ssr3
-        htsteq  ssr0            ; check ssr0 cleared            ;! MMU off
-        htsteq  ssr3            ; check ssr3 cleared
+        reset                   ; should clear mmr0 and mmr3
+        htsteq  mmr0            ; check mmr0 cleared            ;! MMU off
+        htsteq  mmr3            ; check mmr3 cleared
         jmp     9999$
 ;
 1000$:  .word   0
@@ -265,8 +266,8 @@ tb0202: mov     #kipar6,r0      ; ptr to kipar6
         mov     #140100,100(r5) ; init markers
         clr     102(r5)
 ;
-        clr     ssr3            ; no d dspace, no 22bit
-        mov     #m0.ena,ssr0    ; enable mmu                    ;! MMU 18
+        clr     mmr3            ; no d dspace, no 22bit
+        mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 18
 ; check in 1-to-1 mapping
         hcmpeq  (r5),#140000
         htsteq  2(r5)
@@ -306,8 +307,8 @@ tb0301:
         mov     #vhuemt,v..emt
         clr    v..emt+2         ; pr0 kernel
 ; enable mmu
-        clr     ssr3            ; no d dspace, no 22bit
-        mov     #m0.ena,ssr0    ; enable mmu                    ;! MMU 18
+        clr     mmr3            ; no d dspace, no 22bit
+        mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 18
 ;
 ; run code vc0 in user mode --------------------------------
 ;
@@ -383,8 +384,8 @@ tb0302:
         mov     #vhuemt,v..emt
         clr     v..emt+2        ; pr0 kernel
 ; enable mmu
-        mov     #m3.dum,ssr3    ; user d dspace, no 22bit
-        mov     #m0.ena,ssr0    ; enable mmu                    ;! MMU 18
+        mov     #m3.dum,mmr3    ; user d dspace, no 22bit
+        mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 18
 ;
 ; run code vc1 in user mode --------------------------------
 ;
@@ -526,20 +527,20 @@ tb0302:
 ;
 9999$:  iot                     ; end of test B3.2
 ;
-; Section C: ssr1 register and traps =========================================
+; Section C: mmr1 register and traps =========================================
 ;
 ; Test C1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;
-; Test C1.1 -- test ssr1 response via set abort in ssr0 trick ++++++++
+; Test C1.1 -- test mmr1 response via set abort in mmr0 trick ++++++++
 ;   Test method (concept seen in ekbee1)
-;   - start with ssr1 cleared, ssr1 will track
-;   - write one of the 3 abort bits in ssr1 (all three are tested)
-;   - that will freeze ssr1
+;   - start with mmr1 cleared, mmr1 will track
+;   - write one of the 3 abort bits in mmr1 (all three are tested)
+;   - that will freeze mmr1
 ;   - the register signature of the write can be inspected
 ;
 tc0101: mov     #1000$,r1       ; ptr to abort bit table
-        mov     #ssr0,r2        ; ptr to ssr0
-        mov     #ssr1,r3        ; ptr to ssr3
+        mov     #mmr0,r2        ; ptr to mmr0
+        mov     #mmr1,r3        ; ptr to mmr3
 ;
         reset
         mov     (r1),(r2)       ; no regs changed !
@@ -574,7 +575,7 @@ tc0101: mov     #1000$,r1       ; ptr to abort bit table
         mov     (r1)+,(r2)+     ; r1,2,r2,2     00010 010 00010 001 via ale
         hcmpeq  (r3),#^b0001001000010001;
 ;
-; check that index reads are not accounted in ssr1
+; check that index reads are not accounted in mmr1
         reset
         tst     (r1)+           ; bump ptr beyond ard
         mov     -(r1),-2(r2)    ; r1,-1         00000 000 11110 001 via ard
@@ -582,10 +583,10 @@ tc0101: mov     #1000$,r1       ; ptr to abort bit table
 ;
 ; check @(pc)+ behavior
 ;   Simh only adds 'general purpose register updates, thus not pc
-;   w11  updates ssr1 in this case, as is also expected in ekbee1
+;   w11  updates mmr1 in this case, as is also expected in ekbee1
 ;   case commented out to ensure that cpu_mmu.mac runs on both
 ;;      reset
-;;      mov     -(r1),@#ssr0    ; r1,-2,pc,2    00010 111 11110 001 via ale
+;;      mov     -(r1),@#mmr0    ; r1,-2,pc,2    00010 111 11110 001 via ale
 ;;      hcmpeq  (r3),#^b0001011111110001;
 ;
         reset

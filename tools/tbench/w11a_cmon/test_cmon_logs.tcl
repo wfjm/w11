@@ -1,9 +1,10 @@
-# $Id: test_cmon_logs.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_cmon_logs.tcl 1272 2022-08-07 17:37:51Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2022-08-06  1272   2.0.1  ssr->mmr rename
 # 2017-04-23   885   2.0    adopt to revised interface
 # 2015-08-02   707   1.0    Initial version
 #
@@ -578,19 +579,19 @@ start:  mov     #<77400+md.arw>,@#<kipdr+00> ; s0: slf=127; ed=0; acf=rw
         mov     #<77400+md.arw>,@#<kipdr+16> ; s7: slf=127; ed=0; acf=rw
         mov     #177600,@#<kipar+16>         ;     to io page (22 bit)
         mov     #234,vtst
-        mov     #m3.e22,@#ssr3               ; enable 22bit mode
-        mov     #<m0.ent+m0.ena>,@#ssr0      ; enable mmu, enable traps
+        mov     #m3.e22,@#mmr3               ; enable 22bit mode
+        mov     #<m0.ent+m0.ena>,@#mmr0      ; enable mmu, enable traps
 ;
         mov     vtst,r0         ; no trap (is read)
         inc     r0
         mov     r0,vtst         ; should trap (is write)
         inc     vtst            ; should trap (is read-mod-write)
 ;
-        clr     @#ssr0
+        clr     @#mmr0
         halt
 stop:
 ;
-vh.mmu: mov     #<m0.ent+m0.ena>,@#ssr0  ; clear error flags, keep enables
+vh.mmu: mov     #<m0.ent+m0.ena>,@#mmr0  ; clear error flags, keep enables
         rti
 ;
 vh.xxx: halt
@@ -776,8 +777,8 @@ start:  mov     #<77400+md.arw>,@#<kipdr+00> ; s0: slf=127; ed=0; acf=rw
         mov     #077400,@#<kipdr+02>         ; s1: slf=127; ed=0; acf=abo
         mov     #<77400+md.arw>,@#<kipdr+16> ; s7: slf=127; ed=0; acf=rw
         mov     #177600,@#<kipar+16>         ;     to io page (22 bit)
-        mov     #m3.e22,@#ssr3               ; enable 22bit mode
-        mov     #m0.ena,@#ssr0               ; enable mmu
+        mov     #m3.e22,@#mmr3               ; enable 22bit mode
+        mov     #m0.ena,@#mmr0               ; enable mmu
 ;
         mov     #bad,r5         ; to blocker
         mov     vok,a           ; should be ok
@@ -787,7 +788,7 @@ start:  mov     #<77400+md.arw>,@#<kipdr+00> ; s0: slf=127; ed=0; acf=rw
 ok:     mov     #bad,r5         ; to blocker
         mov     vok,a           ; should be ok again
 ; 
-        clr     @#ssr0
+        clr     @#mmr0
         halt
 stop:
 bad:    halt
@@ -795,10 +796,10 @@ bad:    halt
 a:      .word   0
 b:      .word   0
 ;
-vh.mmu: mov     @#ssr0,r0       ; check ssr0
-        mov     @#ssr1,r1       ; check ssr1
-        mov     @#ssr2,r2       ; check ssr2
-        mov     #m0.ena,@#ssr0  ; clear error flags, keep enable
+vh.mmu: mov     @#mmr0,r0       ; check mmr0
+        mov     @#mmr1,r1       ; check mmr1
+        mov     @#mmr2,r2       ; check mmr2
+        mov     #m0.ena,@#mmr0  ; clear error flags, keep enable
         mov     r5,(sp)         ; use recovery address
         rti
 ;

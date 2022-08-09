@@ -1,9 +1,10 @@
-# $Id: test_w11a_cpuerr.tcl 1254 2022-07-13 06:16:19Z mueller $
+# $Id: test_w11a_cpuerr.tcl 1272 2022-08-07 17:37:51Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2016-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2022-08-06  1272   1.0.1  ssr->mmr rename
 # 2016-12-27   831   1.0    Initial version
 #
 # Test cpuerr register
@@ -57,15 +58,15 @@ t.002:
 ;
         jsr     pc, mminki              ; init MMU, kernel I space only
         mov     #177400,@#kipar+014     ; kipar(6): to page below I/O page
-        mov     #m3.e22,@#ssr3          ; enable 22bit
-        mov     #m0.ena,@#ssr0          ; enable MMU
+        mov     #m3.e22,@#mmr3          ; enable 22bit
+        mov     #m0.ena,@#mmr0          ; enable MMU
 ;
         mov     #t.004,r4               ; setup continuation address
         mov     #140000,r0              ; r0 points to non-existent memory 
         tst     (r0)                    ; access 
                                         ; !! will trap to 004 and set 000040 !!
         halt                            ; blocker
-t.004:  clr     @#ssr0                  ; disable MMU
+t.004:  clr     @#mmr0                  ; disable MMU
 ;
 ; test 005: I/O bus timeout abort; will set bit cp.ito -----------------------
 ;

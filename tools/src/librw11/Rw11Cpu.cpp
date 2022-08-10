@@ -1,9 +1,10 @@
-// $Id: Rw11Cpu.cpp 1175 2019-06-30 06:13:17Z mueller $
+// $Id: Rw11Cpu.cpp 1274 2022-08-08 09:21:53Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2022-08-08  1274   1.2.21 ssr->mmr rename
 // 2019-06-29  1175   1.2.20 MemWriteByte(): use membe 
 // 2019-04-30  1143   1.2.19 add m9312 setup and HasM9312()
 // 2019-04-19  1133   1.2.18 add ExecWibr(),ExecRibr(); LoadAbs(): better trace
@@ -153,16 +154,16 @@ const uint16_t  Rw11Cpu::kMEMSYSERR;
 const uint16_t  Rw11Cpu::kMEMHIADDR;
 const uint16_t  Rw11Cpu::kMEMLOADDR;
 
-const uint16_t  Rw11Cpu::kMMUSSR3;
-const uint16_t  Rw11Cpu::kMMUSSR2;
-const uint16_t  Rw11Cpu::kMMUSSR1;
-const uint16_t  Rw11Cpu::kMMUSSR0;
-const uint16_t  Rw11Cpu::kMMUSDRK;
-const uint16_t  Rw11Cpu::kMMUSARK;
-const uint16_t  Rw11Cpu::kMMUSDRS;
-const uint16_t  Rw11Cpu::kMMUSARS;
-const uint16_t  Rw11Cpu::kMMUSDRU;
-const uint16_t  Rw11Cpu::kMMUSARU;
+const uint16_t  Rw11Cpu::kMMUMMR3;
+const uint16_t  Rw11Cpu::kMMUMMR2;
+const uint16_t  Rw11Cpu::kMMUMMR1;
+const uint16_t  Rw11Cpu::kMMUMMR0;
+const uint16_t  Rw11Cpu::kMMUPDRK;
+const uint16_t  Rw11Cpu::kMMUPARK;
+const uint16_t  Rw11Cpu::kMMUPDRS;
+const uint16_t  Rw11Cpu::kMMUPARS;
+const uint16_t  Rw11Cpu::kMMUPDRU;
+const uint16_t  Rw11Cpu::kMMUPARU;
 
 const uint16_t  Rw11Cpu::kSCBASE;
 const uint16_t  Rw11Cpu::kSCCNTL;
@@ -1020,28 +1021,28 @@ void Rw11Cpu::SetupStd()
   AllIAddrMapInsert("hiaddr" , kMEMHIADDR);
   AllIAddrMapInsert("loaddr" , kMEMLOADDR);
 
-  AllIAddrMapInsert("ssr3"   , kMMUSSR3);
-  AllIAddrMapInsert("ssr2"   , kMMUSSR2);
-  AllIAddrMapInsert("ssr1"   , kMMUSSR1);
-  AllIAddrMapInsert("ssr0"   , kMMUSSR0);
+  AllIAddrMapInsert("mmr3"   , kMMUMMR3);
+  AllIAddrMapInsert("mmr2"   , kMMUMMR2);
+  AllIAddrMapInsert("mmr1"   , kMMUMMR1);
+  AllIAddrMapInsert("mmr0"   , kMMUMMR0);
   
   // add mmu segment register files
-  string sdr = "sdr";
-  string sar = "sar";
+  string pdr = "pdr";
+  string par = "par";
   for (char i=0; i<8; i++) {
     char ichar = '0'+i;
-    AllIAddrMapInsert(sdr+"ki."+ichar, kMMUSDRK+000+2*i);
-    AllIAddrMapInsert(sdr+"kd."+ichar, kMMUSDRK+020+2*i);
-    AllIAddrMapInsert(sar+"ki."+ichar, kMMUSARK+000+2*i);
-    AllIAddrMapInsert(sar+"kd."+ichar, kMMUSARK+020+2*i);
-    AllIAddrMapInsert(sdr+"si."+ichar, kMMUSDRS+000+2*i);
-    AllIAddrMapInsert(sdr+"sd."+ichar, kMMUSDRS+020+2*i);
-    AllIAddrMapInsert(sar+"si."+ichar, kMMUSARS+000+2*i);
-    AllIAddrMapInsert(sar+"sd."+ichar, kMMUSARS+020+2*i);
-    AllIAddrMapInsert(sdr+"ui."+ichar, kMMUSDRU+000+2*i);
-    AllIAddrMapInsert(sdr+"ud."+ichar, kMMUSDRU+020+2*i);
-    AllIAddrMapInsert(sar+"ui."+ichar, kMMUSARU+000+2*i);
-    AllIAddrMapInsert(sar+"ud."+ichar, kMMUSARU+020+2*i);
+    AllIAddrMapInsert(pdr+"ki."+ichar, kMMUPDRK+000+2*i);
+    AllIAddrMapInsert(pdr+"kd."+ichar, kMMUPDRK+020+2*i);
+    AllIAddrMapInsert(par+"ki."+ichar, kMMUPARK+000+2*i);
+    AllIAddrMapInsert(par+"kd."+ichar, kMMUPARK+020+2*i);
+    AllIAddrMapInsert(pdr+"si."+ichar, kMMUPDRS+000+2*i);
+    AllIAddrMapInsert(pdr+"sd."+ichar, kMMUPDRS+020+2*i);
+    AllIAddrMapInsert(par+"si."+ichar, kMMUPARS+000+2*i);
+    AllIAddrMapInsert(par+"sd."+ichar, kMMUPARS+020+2*i);
+    AllIAddrMapInsert(pdr+"ui."+ichar, kMMUPDRU+000+2*i);
+    AllIAddrMapInsert(pdr+"ud."+ichar, kMMUPDRU+020+2*i);
+    AllIAddrMapInsert(par+"ui."+ichar, kMMUPARU+000+2*i);
+    AllIAddrMapInsert(par+"ud."+ichar, kMMUPARU+020+2*i);
   }
 
   return;

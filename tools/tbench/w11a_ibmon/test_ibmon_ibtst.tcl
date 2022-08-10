@@ -1,16 +1,12 @@
-# $Id: test_ibmon_ibtst.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_ibmon_ibtst.tcl 1274 2022-08-08 09:21:53Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2019-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
 # 2019-03-09  1120   1.0.1  use -brm,-bwf
 # 2019-03-05  1118   1.0    Initial version
 #
-# Test register response 
-#  1. write/read IB space via bwm/brm   (use MMU SAR SM I regs)
-#  2. write/read IB space via wibr/ribr (use MMU SAR SM I regs)
-#  3. test membe (byte write) via wibr/ribr
 
 # ----------------------------------------------------------------------------
 rlc log "test_ibmon_ibtest: tests with ibd_ibtst as target -------------------"

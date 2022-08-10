@@ -1,9 +1,10 @@
-# $Id: test_pcnt_codes.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_pcnt_codes.tcl 1273 2022-08-07 18:40:56Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2018-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2022-08-07  1273   1.0.1  ssr->mmr rename
 # 2018-10-13  1055   1.0    Initial version
 # 2018-10-06  1053   0.1    First draft
 #
@@ -126,7 +127,7 @@ $cpu cp -creset
 $cpu cp \
   -wreg pc.cntl [regbld rw11::PC_CNTL {func "CLR"}] \
   -wreg pc.cntl [regbld rw11::PC_CNTL {func "STA"}] \
-  -wal $rw11::A_SAR_UM \
+  -wal $rw11::A_PAR_UM \
   -bwm {0200 0201 0202 0203 0204 0205 0206 0207
         0210 0211 0212 0213 0214 0215 0216 0217} \
   -wreg pc.cntl [regbld rw11::PC_CNTL {func "STO"}]
@@ -143,7 +144,7 @@ rlc log "    A4: ibus via rbus read -----------------------------"
 $cpu cp \
   -wreg pc.cntl [regbld rw11::PC_CNTL {func "CLR"}] \
   -wreg pc.cntl [regbld rw11::PC_CNTL {func "STA"}] \
-  -wal $rw11::A_SAR_UM \
+  -wal $rw11::A_PAR_UM \
   -brm 16 -edata {0200 0201 0202 0203 0204 0205 0206 0207
                   0210 0211 0212 0213 0214 0215 0216 0217} \
   -wreg pc.cntl [regbld rw11::PC_CNTL {func "STO"}]

@@ -1,9 +1,10 @@
-# $Id: shell_egd.tcl 1177 2019-06-30 12:34:07Z mueller $
+# $Id: shell_egd.tcl 1274 2022-08-08 09:21:53Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2022-08-08  1274   1.1.3  ssr->mmr rename
 # 2019-04-21  1134   1.1.2  shell_aspec_parse: allow 8,9 in numeric address
 # 2017-06-09   910   1.1.1  BUGFIX: shell_pspec_map: fix mapping for addr>20000
 # 2017-03-10   859   1.1    .egd: add /u option (memory access via ubmap)
@@ -165,9 +166,9 @@ namespace eval rw11 {
             set am0 [string range "ksxu" $xmode $xmode]
           }
           set segnum [expr {$addr>>13}]
-          set sarname "sar${am0}${am1}.${segnum}"
-          $shell_cpu cp -rreg $sarname sarval
-          set addr [expr {($addr & 017777) + 64 * $sarval}]
+          set parname "par${am0}${am1}.${segnum}"
+          $shell_cpu cp -rreg $parname parval
+          set addr [expr {($addr & 017777) + 64 * $parval}]
           set am "e"
         }
         return [list "mem" $am $addr $cnt $fmt ]

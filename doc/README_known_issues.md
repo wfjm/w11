@@ -61,7 +61,7 @@ a minor deficit. Might be fixed in an upcoming release.
 ### V0.50-3 {[issue #27](https://github.com/wfjm/w11/issues/27)} -- CPU: no mmu trap when instruction which clears trap enable itself causes a trap
 
 The MMU should issue an mmu trap if the instruction clearing the
-'mmu trap enable' bit (bit 9 in ssr0) itself causes a trap. 
+'mmu trap enable' bit (bit 9 in mmr0) itself causes a trap.
 The 11/70 documentation clearly describes this behavior.
 
 This is the reason why test 063 of the `ekbee1` diagnostics currently fails.
@@ -72,9 +72,9 @@ not in the J11, it is not used by common operating systems.
 Therefore this is considered a to be a minor deficit. Will be fixed in an
 upcoming release.
 
-### V0.50-6 {[issue #26](https://github.com/wfjm/w11/issues/26)} -- CPU: SSR0 trap bit set when access aborted
+### V0.50-6 {[issue #26](https://github.com/wfjm/w11/issues/26)} -- CPU: MMR0 trap bit set when access aborted
 
-The MMU should set the 'trap bit' in `SSR0` only when the access is not
+The MMU should set the 'trap bit' in `MMR0` only when the access is not
 aborted. The current pdp11_mmu implementation sets the bit even when the
 access is aborted.
 
@@ -86,9 +86,9 @@ not in the J11, it is not used by common operating systems.
 Therefore this is considered a to be a minor deficit. Will be fixed in an
 upcoming release.
 
-### V0.50-5 {[issue #25](https://github.com/wfjm/w11/issues/25)} -- CPU: The AIB bit in MMU SDR register set independant of ACF field
+### V0.50-5 {[issue #25](https://github.com/wfjm/w11/issues/25)} -- CPU: The AIB bit in MMU PDR register set independant of ACF field
 
-The MMU should set the AIB A bit in the the SDR only when _"trap condition is 
+The MMU should set the AIB A bit in the the PDR only when _"trap condition is
 met by the Access Control Field (ACF)"_. Thus for
 ```
    ACF=001 read-only  trap on read
@@ -109,13 +109,13 @@ in the J11, it is not used by common operating systems.
 Therefore this is considered a to be a minor deficit. Will be fixed in an
 upcoming release.
 
-### V0.50-4 {[issue #24](https://github.com/wfjm/w11/issues/24)} -- CPU: src+dst deltas summed in ssr1 if register identical
+### V0.50-4 {[issue #24](https://github.com/wfjm/w11/issues/24)} -- CPU: src+dst deltas summed in mmr1 if register identical
 
 Test 12 of maindec `ekbee1` fails because it expects after a
 ```
-        mov    #100000,@#ssr0
+        mov    #100000,@#mmr0
 ```
-which sets an error bit in `ssr0` and thus freezes `ssr0`, that `ssr1` contains
+which sets an error bit in `mmr0` and thus freezes `mmr0`, that `mmr1` contains
 ```
   013427 (00010 111 00010 111) (+2,r7;+2,r7)
 ```
@@ -123,12 +123,12 @@ while w11a gives
 ```
   000047 (00000 000 00100 111) (--,--;+4,r7)
 ```
-The `ssr1` content is _different_ compared to the original 11/70 behavior,
+The `mmr1` content is _different_ compared to the original 11/70 behavior,
 but is _logically correct_, fault recovery in OS (like in 211bsd) will work
 correctly.  Therefore this is considered a to be a _minor deficit_.
 
 The 11/70 documentation clearly states that there is an additional state bit
-that counts the write accesses to `ssr1`. This ensures that each of the two
+that counts the write accesses to `mmr1`. This ensures that each of the two
 logged accesses end in separate bytes (byte 0 filled first).
 
 The w11a only uses byte 1 when the register number differs.

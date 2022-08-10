@@ -1,14 +1,15 @@
-# $Id: defs.tcl 1177 2019-06-30 12:34:07Z mueller $
+# $Id: defs.tcl 1274 2022-08-08 09:21:53Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2014-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2014-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2022-08-07  1273   1.0.9  ssr->mmr rename
 # 2019-04-24  1138   1.0.8  add RCSR defs for KW11-L and KW11-P
 # 2019-03-10  1121   1.0.7  define INIT bits; define ANUM
 # 2018-09-09  1044   1.0.6  update defs kw11p, literals for KW11P_CSR(rate)
 # 2017-02-17   851   1.0.5  defs for auxilliary devices (kw11l,kw11p,iist)
-# 2016-12-30   834   1.0.4  fix typo in regmap_add for SDR's
+# 2016-12-30   834   1.0.4  fix typo in regmap_add for PDR's
 # 2016-01-02   724   1.0.3  add s: defs for CP_STAT(rust)
 # 2015-12-26   719   1.0.2  add regmap_add defs; add CNTRL def
 # 2015-09-06   710   1.0.1  regdsc PSW: add silent n,z,v,c; *mode syms; fix tflag
@@ -55,31 +56,31 @@ namespace eval rw11 {
              {rset 11} {pri 7 3 "d"} {tflag 4} {cc 3 4} \
              {n 3 1 "-"} {z 2 1 "-"} {v 1 1 "-"} {c 0 1 "-"}
   #
-  # SSR0 - MMU Segment Status Register #0 ----------------------------
-  set A_SSR0     0177572
-  regdsc SSR0 {abo_nonres 15} {abo_len 14}  {abo_rd 13} \
+  # MMR0 - MMU Page Status Register #0 -------------------------------
+  set A_MMR0     0177572
+  regdsc MMR0 {abo_nonres 15} {abo_len 14}  {abo_rd 13} \
               {trap_mmu 12} {ena_trap 9} {inst_compl 7} \
               {mode 6 2} {dspace 4} {num 3 3} {ena 0}
   #
-  # SSR1 - MMU Segment Status Register #1 ----------------------------
-  set A_SSR1     0177574
-  regdsc SSR1 {delta1 15 5} {rnum1 10 3} {delta0 7 5} {rnum0 2 3} 
+  # MMR1 - MMU Page Status Register #1 -------------------------------
+  set A_MMR1     0177574
+  regdsc MMR1 {delta1 15 5} {rnum1 10 3} {delta0 7 5} {rnum0 2 3}
   #
-  # SSR2 - MMU Segment Status Register #2 ----------------------------
-  set A_SSR2     0177576
+  # MMR2 - MMU Page Status Register #2 -------------------------------
+  set A_MMR2     0177576
   #
-  # SSR3 - MMU Segment Status Register #3 ----------------------------
-  set A_SSR3     0172516
-  regdsc SSR3 {ena_ubm 5} {ena_22bit 4} {d_km 2} {d_sm 1} {d_um 0}
+  # MMR3 - MMU Page Status Register #3 -------------------------------
+  set A_MMR3     0172516
+  regdsc MMR3 {ena_ubm 5} {ena_22bit 4} {d_km 2} {d_sm 1} {d_um 0}
   #
-  # SAR/SDR - MMU Address/Segment Descriptor Register ----------------
-  set A_SDR_KM   0172300
-  set A_SAR_KM   0172340
-  set A_SDR_SM   0172200
-  set A_SAR_SM   0172240
-  set A_SDR_UM   0177600
-  set A_SAR_UM   0177640
-  regdsc SDR {slf 14 7} {aia  7} {aiw 6} {ed 3} {acf 2 3}
+  # PAR/PDR - MMU Page Descriptor/Address  Register -----------------
+  set A_PDR_KM   0172300
+  set A_PAR_KM   0172340
+  set A_PDR_SM   0172200
+  set A_PAR_SM   0172240
+  set A_PDR_UM   0177600
+  set A_PAR_UM   0177640
+  regdsc PDR {slf 14 7} {aia  7} {aiw 6} {ed 3} {acf 2 3}
   #
   # PIRQ - Program Interrupt Requests -------------------------------
   set A_PIRQ     0177772
@@ -96,10 +97,10 @@ namespace eval rw11 {
   # setup regmap
   #
   rw11util::regmap_add rw11 psw       {?? PSW}
-  rw11util::regmap_add rw11 ssr0      {?? SSR0}
-  rw11util::regmap_add rw11 ssr1      {?? SSR1}
-  rw11util::regmap_add rw11 ssr3      {?? SSR3}
-  rw11util::regmap_add rw11 sdr??.?   {?? SDR}
+  rw11util::regmap_add rw11 mmr0      {?? MMR0}
+  rw11util::regmap_add rw11 mmr1      {?? MMR1}
+  rw11util::regmap_add rw11 mmr3      {?? MMR3}
+  rw11util::regmap_add rw11 pdr??.?   {?? PDR}
   rw11util::regmap_add rw11 pirq      {?? PIRQ}
   rw11util::regmap_add rw11 cpuerr    {?? CPUERR}
   #

@@ -1,6 +1,6 @@
-# $Id: tb_pdp11core_stim.dat 1261 2022-07-23 16:15:03Z mueller $
+# $Id: tb_pdp11core_stim.dat 1274 2022-08-08 09:21:53Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2007-2016 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2007-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History: 
 # Date         Rev Version  Comment
@@ -13,10 +13,10 @@
 #                           correct test 37.2: 2 V=1 cases have regs now updated
 # 2010-06-20   308   2.2.1  add wibrb, ribr, wibr based tests
 # 2010-06-13   305   2.2    adopt to new rri address and function semantics
-# 2009-11-22   252   2.1.14 change SSR0 expects, adapt to ECO-021.
+# 2009-11-22   252   2.1.14 change MMR0 expects, adapt to ECO-021.
 # 2009-05-02   211   2.1.13 add nop after spl in pirq test, 11/70 spl now !!
 # 2008-08-29   163   2.1.12 add wtlam to harvest attn after sto in test 13
-# 2008-04-27   139   2.1.11 adapt expected ssr1 after mtpi/d after ECO-009 fix
+# 2008-04-27   139   2.1.11 adapt expected mmr1 after mtpi/d after ECO-009 fix
 # 2008-03-15   125   2.1.10 exclude some tests from simh ([[off/on]]
 # 2008-03-09   124   2.1.9  fixed addr-mode in code 34, shifted 47+50
 # 2008-03-02   121   2.1.8  add meory access error tests
@@ -174,7 +174,7 @@ rr3   d=010301    -- ! r3						[[r13]]
 rr4   d=010401    -- ! r4						[[r14]]
 rr5   d=010501    -- ! r5						[[r15]]
 #
-C   write IB space: MMU SAR supervisor mode (16 bit regs)
+C   write IB space: MMU PAR supervisor mode (16 bit regs)
 # ==> now tested with cp/test_cp_ibrbasics.tcl
 #
 wal     172240    -- set first three SM I space address regs
@@ -183,7 +183,7 @@ bwm     3
         012342
         012344
 #
-C   read IB space: MMU SAR supervisor mode (16 bit regs)
+C   read IB space: MMU PAR supervisor mode (16 bit regs)
 # ==> now tested with cp/test_cp_ibrbasics.tcl
 #
 wal     172240    -- ! verify first three SM I space address regs
@@ -192,14 +192,14 @@ brm     3
       d=012342
       d=012344
 #
-C   read IB space via ibr: MMU SAR supervisor mode (16 bit regs)
+C   read IB space via ibr: MMU PAR supervisor mode (16 bit regs)
 # ==> now tested with cp/test_cp_ibrbasics.tcl
 #
 ribr 172240 d=012340
 ribr 172242 d=012342
 ribr 172244 d=012344
 #
-C   byte write IB space via ibr: MMU SAR supervisor mode (16 bit regs)
+C   byte write IB space via ibr: MMU PAR supervisor mode (16 bit regs)
 #
 wmembe  101    -- write low byte (set sticky flag)
 wibr 172240 177000
@@ -1038,11 +1038,11 @@ bwm     4
         000036    --   PC:36
         000000    --   PS:0
 #-----------------------------------------------------------------------------
-C Setup code 16 [base 4000] (enable MMU, check ssr1, ssr2 response)
+C Setup code 16 [base 4000] (enable MMU, check mmr1, mmr2 response)
 #
-wal     172516    -- SSR3
+wal     172516    -- MMR3
 wmi     000002    --   I/D enabled for sm only (to check CRESET)
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wmi     000001    --   set enable bit
 #
 wal     004000    -- code (to be single stepped...)
@@ -1063,61 +1063,61 @@ bwm     2
         000001 
         000300 
 #
-C Exec code 16 (enable MMU, check ssr1, ssr2 response)
+C Exec code 16 (enable MMU, check mmr1, mmr2 response)
 #
 wr1     004040    -- r1=4040
 wr2     004060    -- r2=4060
 wsp     001400    -- sp=1400
 wpc     004000    -- pc=4000
 step              -- step (mov (r1),r5)
-wal     177572    -- check SSR0/1/2
+wal     177572    -- check MMR0/1/2
 brm     3
-      d=000001    -- ! SSR0: (ena=1)
-      d=000000    -- ! SSR1:
-      d=004000    -- ! SSR2: 4000 (eff. PC)
+      d=000001    -- ! MMR0: (ena=1)
+      d=000000    -- ! MMR1:
+      d=004000    -- ! MMR2: 4000 (eff. PC)
 rr1   d=004040    -- ! r1
 rr5   d=000001    -- ! r5
 step              -- step (mov (r1)+,r5)
-wal     177572    -- check SSR0/1/2
+wal     177572    -- check MMR0/1/2
 brm     3
-      d=000001    -- ! SSR0: (ena=1)
-      d=000021    -- ! SSR1: rb none; ra=1,+2
-      d=004002    -- ! SSR2: 4002 (eff. PC)
+      d=000001    -- ! MMR0: (ena=1)
+      d=000021    -- ! MMR1: rb none; ra=1,+2
+      d=004002    -- ! MMR2: 4002 (eff. PC)
 rr1   d=004042    -- ! r1
 rr5   d=000001    -- ! r5
 step              -- step (mov -(r1),r5)
-wal     177572    -- check SSR0/1/2
+wal     177572    -- check MMR0/1/2
 brm     3
-      d=000001    -- ! SSR0: (ena=1)
-      d=000361    -- ! SSR1: rb none; ra=1,-2
-      d=004004    -- ! SSR2: 4004 (eff. PC)
+      d=000001    -- ! MMR0: (ena=1)
+      d=000361    -- ! MMR1: rb none; ra=1,-2
+      d=004004    -- ! MMR2: 4004 (eff. PC)
 rr1   d=004040    -- ! r1
 rr5   d=000001    -- ! r5
 step              -- step (mov (r1)+,(r2)+)
-wal     177572    -- check SSR0/1/2
+wal     177572    -- check MMR0/1/2
 brm     3
-      d=000001    -- ! SSR0: (ena=1)
-      d=011021    -- ! SSR1: rb=2,2; ra=1,2
-      d=004006    -- ! SSR2: 4006 (eff. PC)
+      d=000001    -- ! MMR0: (ena=1)
+      d=011021    -- ! MMR1: rb=2,2; ra=1,2
+      d=004006    -- ! MMR2: 4006 (eff. PC)
 rr1   d=004042    -- ! r1
 rr2   d=004062    -- ! r2
 step              -- step (movb (r1)+,r5)
-wal     177572    -- check SSR0/1/2
+wal     177572    -- check MMR0/1/2
 brm     3
-      d=000001    -- ! SSR0: (ena=1)
-      d=000011    -- ! SSR1: rb=none; ra=1,1
-      d=004010    -- ! SSR2: 4010 (eff. PC)
+      d=000001    -- ! MMR0: (ena=1)
+      d=000011    -- ! MMR1: rb=none; ra=1,1
+      d=004010    -- ! MMR2: 4010 (eff. PC)
 rr1   d=004043    -- ! r1
 rr5   d=177700    -- ! r5
 step              -- step (movb #200,(r1)+)
-wal     177572    -- check SSR0/1/2
+wal     177572    -- check MMR0/1/2
 brm     3
-      d=000001    -- ! SSR0: (ena=1)
-      d=004427    -- ! SSR1: rb=1,1; ra=7,2
-      d=004012    -- ! SSR2: 4012 (eff. PC)
+      d=000001    -- ! MMR0: (ena=1)
+      d=004427    -- ! MMR1: rb=1,1; ra=7,2
+      d=004012    -- ! MMR2: 4012 (eff. PC)
 rr1   d=004044    -- ! r1
 #
-C Exec test 16.1 (check CRESET of PSW, SSR0, SSR3 after start)
+C Exec test 16.1 (check CRESET of PSW, MMR0, MMR3 after start)
 #
 wps     000000    -- psw:  set pri=0
 cres
@@ -1125,9 +1125,9 @@ stapc   004030    -- start @ 4030  (just HALT, testing console reset)
 wtgo    
 rpc   d=004032    -- ! pc=4032
 rps   d=000000    -- ! psw: reset by CRESET
-wal     172516    -- SSR3
+wal     172516    -- MMR3
 rmi   d=000000    -- ! cleared by CRESET
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 rmi   d=000000    -- ! cleared by CRESET 
 #-----------------------------------------------------------------------------
 C Setup code 17 [base 4100; use 41-46] (basic instruction and cc test)
@@ -1367,9 +1367,9 @@ rm    d=000000    -- ! CPUERR: 0
 C Exec test 20.2 (non-existent memory abort)
 wal     172354    -- kernel I space AR(6)
 wm      177400    --  (map to 8 k below I/O page, never available in w11a)
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wmi     000001    --   enable
-wal     172516    -- SSR3
+wal     172516    -- MMR3
 wmi     000020    --   ena_22bit=1
 #
 wr5     140000    -- r5=140000
@@ -1383,7 +1383,7 @@ rm    d=000040    -- ! CPUERR: (nxm=1)
 wm      000000    --   any write access will clear CPUERR
 rm    d=000000    -- ! CPUERR: 0
 #
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wmi     000000    --   disable
 wal     172354    -- kernel I space AR(6)
 wm      001400    --    1400    140000 base (default 1-to-1 map)
@@ -1444,7 +1444,7 @@ bwm     2
         000252    --   PC:252
         000000    --   PS:0
 #
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wmi     000001    --   enable
 wal     172302    -- kernel I space DR segment 1  (base 20000)
 wmi     077400    --   slf=127; ed=0(up); acf=0 (non-resident)
@@ -1459,13 +1459,13 @@ rr1   d=020002    -- ! r1=20002 (inc done before trap (here dstw))
 rr3   d=000014    -- ! r3=16    (dec done before trap)
 rpc   d=000252    -- ! pc=252 (trap 250 catch)
 rsp   d=001374    -- ! sp=1374              
-wal     177572    -- check SSR0/1/2
+wal     177572    -- check MMR0/1/2
 brm     3
-      d=100003    -- ! SSR0: (abo_nonres=1,seg=1,ena=1)
-      d=010763    -- ! SSR1: rb=1,2; ra=3,-2
-      d=004714    -- ! SSR2: 4714 (eff. PC)
+      d=100003    -- ! MMR0: (abo_nonres=1,seg=1,ena=1)
+      d=010763    -- ! MMR1: rb=1,2; ra=3,-2
+      d=004714    -- ! MMR2: 4714 (eff. PC)
 #
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wmi     000001    --   enable and clear error bits
 #----------
 C Exec test 20.8 (segment length violation abort)
@@ -1481,13 +1481,13 @@ rr1   d=020402    -- ! r1=20402 (inc done before trap (here dstr))
 rr3   d=000014    -- ! r3=16    (dec done before trap)
 rpc   d=000252    -- ! pc=252 (trap 250 catch)
 rsp   d=001374    -- ! sp=1374              
-wal     177572    -- check SSR0/1/2
+wal     177572    -- check MMR0/1/2
 brm     3
-      d=040003    -- ! SSR0: (abo_length=1,seg=1,ena=1)
-      d=010763    -- ! SSR1: rb=1,2; ra=3,-2
-      d=004716    -- ! SSR2: 4716 (eff. PC)
+      d=040003    -- ! MMR0: (abo_length=1,seg=1,ena=1)
+      d=010763    -- ! MMR1: rb=1,2; ra=3,-2
+      d=004716    -- ! MMR2: 4716 (eff. PC)
 #
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wmi     000001    --   enable and clear error bits
 #----------
 C Exec test 20.9 (read-only abort)
@@ -1503,22 +1503,22 @@ rr1   d=020002    -- ! r1=20000 (inc done before trap (here dstm))
 rr3   d=000014    -- ! r3=16    (dec done before trap)
 rpc   d=000252    -- ! pc=252 (trap 250 catch)
 rsp   d=001374    -- ! sp=1374              
-wal     177572    -- check SSR0/1/2
+wal     177572    -- check MMR0/1/2
 brm     3
-      d=020003    -- ! SSR0: (abo_rdonly=1,seg=1,ena=1)
-      d=010763    -- ! SSR1: rb=1,2; ra=3,-2
-      d=004720    -- ! SSR2: 4720 (eff. PC)
+      d=020003    -- ! MMR0: (abo_rdonly=1,seg=1,ena=1)
+      d=010763    -- ! MMR1: rb=1,2; ra=3,-2
+      d=004720    -- ! MMR2: 4720 (eff. PC)
 #
 # mmu back to default setup, disable
 wal     172302    -- kernel I space DR segment 1  (base 20000)
 wmi     077406    --   slf=127; ed=0(up); acf=6 (r/w)
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wmi     000000    --   disable
 #----------
 #
 # test mmu trap
 #
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wmi     001001    --   enable, trap enable
 wal     172302    -- kernel I space DR segment 1  (base 20000)
 wmi     077404    --   slf=127; ed=0(up); acf=4 (r/w, trap on r/w)
@@ -1536,11 +1536,11 @@ rsp   d=001374    -- ! sp=1374
 wal     020000    -- check target area
 rm    d=000016    -- ! mem(20000)=16
 wm      000000    --   clean tainted memory
-wal     177572    -- check SSR0
+wal     177572    -- check MMR0
 brm     3
-      d=011001    -- ! SSR0: (trap_mmu=1,ena_trap=1,seg=0,ena=1)
-      d=010763    -- ! SSR1: rb=1,2; ra=3,-2
-      d=004714    -- ! SSR2: 4714 (eff. PC)
+      d=011001    -- ! MMR0: (trap_mmu=1,ena_trap=1,seg=0,ena=1)
+      d=010763    -- ! MMR1: rb=1,2; ra=3,-2
+      d=004714    -- ! MMR2: 4714 (eff. PC)
 #----------
 C Exec test 20.11 (2nd write, should not trap again) 
 wr1     020002    -- r1=20002
@@ -1555,16 +1555,16 @@ rsp   d=001400    -- ! sp=1374
 wal     020002    -- check target area
 rm    d=000016    -- ! mem(20002)=16
 wm      000000    --   clean tainted memory
-wal     177572    -- check SSR0
+wal     177572    -- check MMR0
 brm     3
-      d=011003    -- ! SSR0: (trap_mmu=1,ena_trap=1,seg=1,ena=1)
-      d=010763    -- ! SSR1: rb=1,2; ra=3,-2
-      d=004714    -- ! SSR2: 4714 (eff. PC)
+      d=011003    -- ! MMR0: (trap_mmu=1,ena_trap=1,seg=1,ena=1)
+      d=010763    -- ! MMR1: rb=1,2; ra=3,-2
+      d=004714    -- ! MMR2: 4714 (eff. PC)
 #
 # mmu back to default setup, disable
 wal     172302    -- kernel I space DR segment 1  (base 20000)
 wmi     077406    --   slf=127; ed=0(up); acf=6 (r/w)
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wmi     000000    --   disable
 #----------
 #
@@ -1660,9 +1660,9 @@ wm      000000    --   clear CPUERR
 C Exec test 20.17 (red stack escalation: abort kernel stack in non-mem)
 wal     172354    -- kernel I space AR(6)
 wm      177400    --  (map to 8 k below I/O page, never available in w11a)
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wmi     000001    --   enable
-wal     172516    -- SSR3
+wal     172516    -- MMR3
 wmi     000020    --   ena_22bit=1
 #
 wr0     123456    -- r0=123456
@@ -1679,7 +1679,7 @@ wal     177766    -- check CPUERR
 rm    d=000044    -- ! CPUERR: (rsv=1,nxm=1)
 wm      000000    --   clear CPUERR
 #
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wmi     000000    --   disable
 wal     172354    -- kernel I space AR(6)
 wm      001400    --    1400    140000 base (default 1-to-1 map)
@@ -1701,7 +1701,7 @@ wm      000000    --   clear CPUERR
 #----------
 C Exec test 20.19 (red stack escalation: abort kernel stack mmu abort;sp=020004)
 #
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wmi     000001    --   enable
 wal     172302    -- kernel I space DR segment 1  (base 20000)
 wmi     077400    --   slf=127; ed=0(up); acf=0 (non-resident)
@@ -1724,9 +1724,9 @@ wm      000000    --   clear CPUERR
 # mmu back to default setup
 wal     172302    -- kernel I space DR segment 1  (base 20000)
 wmi     077406    --   slf=127; ed=0(up); acf=6 (r/w)
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wmi     000000    --   disable
-wal     172516    -- SSR3
+wal     172516    -- MMR3
 wmi     000000    --   disable
 #
 #[[on]]
@@ -1742,9 +1742,9 @@ wal     177640    -- user I space AR
 wmi     000053    --      53 -> maps 0 -> 5300 
 wal     177660    -- user D space AR
 wmi     000055    --      55 -> maps 0 -> 5500
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wmi     000001    --   set enable bit
-wal     172516    -- SSR3
+wal     172516    -- MMR3
 wmi     000001    --   enable D space for user mode
 #
 wal     004740    -- code (to be single stepped...)
@@ -1828,9 +1828,9 @@ wal     177640    -- user I space AR
 wmi     000053    --      53 -> maps 0 -> 5300 
 wal     177660    -- user D space AR
 wmi     000055    --      55 -> maps 0 -> 5500
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wmi     000001    --   set enable bit
-wal     172516    -- SSR3
+wal     172516    -- MMR3
 wmi     000001    --   enable D space for user mode
 #
 wal     005000    -- code (kernel):
@@ -1864,7 +1864,7 @@ bwm     68
         005256    
         001001    -- bne .+2
         000000    -- halt
-        013700    -- mov ssr0,r0
+        013700    -- mov mmr0,r0
         177572 
         042700    -- bic #177741,r0    ; clear all but id+asn fields
         177741    
@@ -1877,7 +1877,7 @@ bwm     68
         000001    
         010025    -- mov r0,(r5)+
         012025    -- mov (r0),(r5)+
-        013700    -- mov ssr1,r0
+        013700    -- mov mmr1,r0
         177574    
 #5100
         010025    -- mov r0,(r5)+
@@ -1928,11 +1928,11 @@ bwm     68
         042737    -- bic #004000,psw
         004000    
         177776     
-        013700    -- mov ssr2,r0
+        013700    -- mov mmr2,r0
         177576    
         010025    -- mov r0,(r5)+
         010016    -- mov r0,(sp)
-        042737    -- bic #160000,ssr0   ; clear abort bits
+        042737    -- bic #160000,mmr0   ; clear abort bits
 #5240
         160000 
         177572 
@@ -1993,12 +1993,12 @@ brm     9
       d=000001    -- ! mem(5256)     (mmu 3 - trap count)
       d=177620    -- ! mem(5260)     (1st trap: address fixed DR)
       d=000406    -- ! mem(5262)     (1st trap: new content of DR)
-      d=010420    -- ! mem(5264)     (1st trap: ssr1: ra=0,2;rb=1,2)
-      d=000076    -- ! mem(5266)     (1st trap: ssr2: pc)
+      d=010420    -- ! mem(5264)     (1st trap: mmr1: ra=0,2;rb=1,2)
+      d=000076    -- ! mem(5266)     (1st trap: mmr2: pc)
       d=177600    -- ! mem(5270)     (2nd trap: address fixed DR)
       d=000402    -- ! mem(5272)     (2nd trap: new content of DR)
-      d=000000    -- ! mem(5274)     (2nd trap: ssr1: none)
-      d=000100    -- ! mem(5276)     (2nd trap: ssr2: pc)
+      d=000000    -- ! mem(5274)     (2nd trap: mmr1: none)
+      d=000100    -- ! mem(5276)     (2nd trap: mmr2: pc)
 #
 wal     005574
 brm     4
@@ -5418,7 +5418,7 @@ wmi     077400    --   slf=127; ed=0(up); acf=0 (non resident)
 C test 44.28: If PC->bad memory, PC incremented {others} / not inc'ed {35,40}
 #
 cres
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wmi     000001    --   set enable bit
 wr4     100000    -- r4=100000
 wsp     001400    -- sp=1400
@@ -5439,7 +5439,7 @@ cres              -- console reset (to clear CPUERR reg)
 C test 44.29/30a: If R->bad in mode 2, R inc'ed {others} / or not {4,34,44}
 C                 test for dstw chain (mov r0,(r1)+)
 #
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wmi     000001    --   set enable bit
 wr1     100000    -- r1=100000
 wsp     001400    -- sp=1400
@@ -5448,16 +5448,16 @@ step              -- step (mov r0,(r1)+)			       [[s:2]]
 rpc   d=000252    -- ! pc=252 ; trap 250			       [[s:254]]
 rsp   d=001374    -- ! sp=1374
 rr1   d=100002    -- ! r1=100002
-wal     177572    -- check SSR0/1
+wal     177572    -- check MMR0/1
 brm     2
-      d=100011    -- ! SSR0: (abo_nonres=1,seg=4,ena=1) see note    [[s:100211]]
-      d=000021    -- ! SSR1: ra=1,2
+      d=100011    -- ! MMR0: (abo_nonres=1,seg=4,ena=1) see note    [[s:100211]]
+      d=000021    -- ! MMR1: ra=1,2
 cres              -- console reset (to clear CPUERR reg)
 #
 C test 44.29/30b: If R->bad in mode 2, R inc'ed {others} / or not {4,34,44}
 C                 test for srcr chain (mov (r1)+,r0)
 #
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wmi     000001    --   set enable bit
 wr1     100000    -- r1=100000
 wsp     001400    -- sp=1400
@@ -5466,16 +5466,16 @@ step              -- step ((mov (r1)+,r0)			       [[s:2]]
 rpc   d=000252    -- ! pc=252 ; trap 250			       [[s:254]]
 rsp   d=001374    -- ! sp=1374
 rr1   d=100002    -- ! r1=100002
-wal     177572    -- check SSR0/1
+wal     177572    -- check MMR0/1
 brm     2
-      d=100011    -- ! SSR0: (abo_nonres=1,seg=4,ena=1) see note    [[s:100211]]
-      d=000021    -- ! SSR1: ra=1,2
+      d=100011    -- ! MMR0: (abo_nonres=1,seg=4,ena=1) see note    [[s:100211]]
+      d=000021    -- ! MMR1: ra=1,2
 cres              -- console reset (to clear CPUERR reg)
 #
 C test 44.29/30c: If R->bad in mode 2, R inc'ed {others} / or not {4,34,44}
 C                 test for dstr chain (inc (r1)+)
 #
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wmi     000001    --   set enable bit
 wr1     100000    -- r1=100000
 wsp     001400    -- sp=1400
@@ -5484,15 +5484,15 @@ step              -- step (inc (r1)+)			       		[[s:2]]
 rpc   d=000252    -- ! pc=252 ; trap 250			       [[s:254]]
 rsp   d=001374    -- ! sp=1374
 rr1   d=100002    -- ! r1=100002
-wal     177572    -- check SSR0/1
+wal     177572    -- check MMR0/1
 brm     2
-      d=100011    -- ! SSR0: (abo_nonres=1,seg=4,ena=1) see note    [[s:100211]]
-      d=000021    -- ! SSR1: ra=1,2
+      d=100011    -- ! MMR0: (abo_nonres=1,seg=4,ena=1) see note    [[s:100211]]
+      d=000021    -- ! MMR1: ra=1,2
 cres              -- console reset (to clear CPUERR reg)
 C test 44.29/30d: If R->bad in mode 2, R inc'ed {others} / or not {4,34,44}
 C                 test for dsta chain (mtpd (r1)+)
 #
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wmi     000001    --   set enable bit
 wr1     100000    -- r1=100000
 wsp     001376    -- sp=1376
@@ -5503,14 +5503,14 @@ step              -- step (mtpd (r1)+)			       		[[s:2]]
 rpc   d=000252    -- ! pc=252 ; trap 250			       [[s:254]]
 rsp   d=001374    -- ! sp=1374
 rr1   d=100002    -- ! r1=100002
-wal     177572    -- check SSR0/1
+wal     177572    -- check MMR0/1
 brm     2
-      d=100011    -- ! SSR0: (abo_nonres=1,seg=4,ena=1) see note    [[s:100211]]
-      d=010426    -- ! SSR1: rb=1,2; ra=6,2
+      d=100011    -- ! MMR0: (abo_nonres=1,seg=4,ena=1) see note    [[s:100211]]
+      d=010426    -- ! MMR1: rb=1,2; ra=6,2
 cres              -- console reset (to clear CPUERR reg)
 #
 # simh notes:
-# 1. simh first pops, than writes to destination, reversing ra,rb in SSR1
+# 1. simh first pops, than writes to destination, reversing ra,rb in MMR1
 #
 # now reset MMU to default
 #
@@ -5519,7 +5519,7 @@ wmi     077406    --   slf=127; ed=0(up); acf=6 (r/w)
 #
 C test 44.39: cmode=10 will cause abort {70,J11}, treated as kmode {23,24}
 #
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wmi     000001    --   set enable bit
 wr1     001400    -- r1=1400
 wsp     001400    -- sp=1400
@@ -5529,11 +5529,11 @@ step              -- step (inc (r1)+)			       		[[s:2]]
 rpc   d=000252    -- ! pc=252 ; trap 250;  as expected for 11/70       [[s:254]]
 rsp   d=001374    -- ! sp=1374
 rr1   d=001400    -- ! r1=1400
-wal     177572    -- check SSR0/1
+wal     177572    -- check MMR0/1
 brm     3
-      d=140101    -- ! SSR0: (abo_nr=1,abo_l=1,m=10,seg=0,ena=1)    [[s:140301]]
-      d=000000    -- ! SSR1: ra=none
-      d=013042    -- ! SSR2: PC of failed instruction
+      d=140101    -- ! MMR0: (abo_nr=1,abo_l=1,m=10,seg=0,ena=1)    [[s:140301]]
+      d=000000    -- ! MMR1: ra=none
+      d=013042    -- ! MMR2: PC of failed instruction
 wal     001374    -- check stack
 brm     2
       d=013044    -- ! PC after failed instruction		    [[s:013042]]
@@ -5578,7 +5578,7 @@ wal     172300    -- check kernel I space DR, segment 0 and 1
 brm     2
       d=077404    -- ! 
       d=077404    -- ! 
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wmi     000001    --   set enable bit
 wr0     123456    -- r0=123456
 wr1     030000    -- r1=30000
@@ -5609,54 +5609,54 @@ wm      001000    --   restore:    1000    100000 base
 #
 C test 44.47: MMR0<9>(mmu trap) implemented {70} or not {others}
 #
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wm      001000    --   set trap enable
 rm    d=001000    -- ! check; works as expected for 11/70
 wm      000000    --   restore
 #
 C test 44.48: MMR3<2:0>(D space) implemented {44,70,J11} or not {others}
 #
-wal     172516    -- SSR3
+wal     172516    -- MMR3
 wm      000007    --   set D space bis
 rm    d=000007    -- ! check; works as expected for 11/70
 wm      000000    --   restore
 #
 C test 44.49: MMR3<5:4>(UMAP, 22 bit) implemented {44,70,J11} or not {others}
 #
-wal     172516    -- SSR3
+wal     172516    -- MMR3
 wm      000060    --   set D space bits
 rm    d=000060    -- ! check; available, as expected for 11/70
 wm      000000    --   restore
 #
 C test 44.50: MMR3<3>(CSM enable) implemented {44,J11} or not {others}
 #
-wal     172516    -- SSR3
+wal     172516    -- MMR3
 wm      000010    --   set D space bit
 rm    d=000000    -- ! check; not available, as expected for 11/70
 wm      000000    --   restore
 #
 C test 44.51: MMR2 tracks fetches {70} or instructions only {others}
-C          here W11 behaves like {others}, fetches are not tracked in SSR2
-C          Also: instruction complete flag set in SSR0 after bpt.
+C          here W11 behaves like {others}, fetches are not tracked in MMR2
+C          Also: instruction complete flag set in MMR0 after bpt.
 #
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wmi     000001    --   set enable bit
 wsp     001400    -- sp=1400
 wpc     013052    -- pc=13052
 step              -- step (bpt)
 rpc   d=000016    -- ! pc=16; trap 14		  see note   	     [[s:13054]]
-wal     177572    -- check SSR0/1/2
+wal     177572    -- check MMR0/1/2
 brm     3
-      d=000001    -- ! SSR0: (ena=1)
-      d=000000    -- ! SSR1: ra=none
-      d=013052    -- ! SSR2: PC of bpt
+      d=000001    -- ! MMR0: (ena=1)
+      d=000000    -- ! MMR1: ra=none
+      d=013052    -- ! MMR2: PC of bpt
 step              -- step (halt)
 rpc   d=000020    -- ! pc=20 (after halt)
-wal     177572    -- check SSR0/1/2
+wal     177572    -- check MMR0/1/2
 brm     3
-      d=000001    -- ! SSR0: (ena=1)
-      d=000000    -- ! SSR1: ra=none
-      d=000016    -- ! SSR2: PC of halt
+      d=000001    -- ! MMR0: (ena=1)
+      d=000000    -- ! MMR1: ra=none
+      d=000016    -- ! MMR2: PC of halt
 cres              -- console reset (to clear CPUERR reg, PSW)
 #
 # simh notes:
@@ -5757,7 +5757,7 @@ C Exec code 45 (mmr1 and instructions with implicit stack push/pop)
 C test 45.1: mtpd (r1)+
 #
 cres
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wmi     000001    --   set enable bit
 wal     001376    -- setup stack with value for mtpd
 wmi     123456    --   
@@ -5768,18 +5768,18 @@ step              -- step (mtpd (r1)+)
 rpc   d=013102    -- ! pc=next
 rsp   d=001400    -- ! sp=1400
 rr1   d=030002    -- ! r1=30002
-wal     177572    -- check SSR0/1/2
+wal     177572    -- check MMR0/1/2
 brm     3
-      d=000003    -- ! SSR0: (seg=1,ena=1)
-      d=010426    -- ! SSR1: rb=1,2; ra=6,2
-      d=013100    -- ! SSR2: PC of mtpd
+      d=000003    -- ! MMR0: (seg=1,ena=1)
+      d=010426    -- ! MMR1: rb=1,2; ra=6,2
+      d=013100    -- ! MMR2: PC of mtpd
 wal     030000    -- check target memory
 rm    d=123456    -- ! 
 cres              -- console reset
 #
 C test 45.2: mfpd (r1)+
 #
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wmi     000001    --   set enable bit
 wr1     030000    -- r1=30000
 wsp     001400    -- sp=1400
@@ -5788,11 +5788,11 @@ step              -- step (mfpd (r1)+)
 rpc   d=013104    -- ! pc=next
 rsp   d=001376    -- ! sp=1376
 rr1   d=030002    -- ! r1=30002
-wal     177572    -- check SSR0/1/2
+wal     177572    -- check MMR0/1/2
 brm     3
-      d=000001    -- ! SSR0: (seg=0,ena=1)
-      d=173021    -- ! SSR1: rb=6,-2; ra=1,2
-      d=013102    -- ! SSR2: PC of mtpd
+      d=000001    -- ! MMR0: (seg=0,ena=1)
+      d=173021    -- ! MMR1: rb=6,-2; ra=1,2
+      d=013102    -- ! MMR2: PC of mtpd
 wal     001376    -- check stack
 rmi   d=123456    -- ! 
 wal     030000    -- clear tainted target memory
@@ -5801,7 +5801,7 @@ cres              -- console reset
 #
 C test 45.3: jsr pc,(r1)+ and rts pc
 #
-wal     177572    -- SSR0
+wal     177572    -- MMR0
 wmi     000001    --   set enable bit
 wr1     013110    -- r1=13110
 wsp     001400    -- sp=1400
@@ -5810,26 +5810,26 @@ step              -- step (jsr pc,(r1)+)
 rpc   d=013110    -- ! pc=target
 rsp   d=001376    -- ! sp=1376
 rr1   d=013112    -- ! r1=13112
-wal     177572    -- check SSR0/1/2
+wal     177572    -- check MMR0/1/2
 brm     3
-      d=000001    -- ! SSR0: (seg=0,ena=1)
-      d=173021    -- ! SSR1: rb=6,-2; ra=1,2
-      d=013104    -- ! SSR2: PC of jsr
+      d=000001    -- ! MMR0: (seg=0,ena=1)
+      d=173021    -- ! MMR1: rb=6,-2; ra=1,2
+      d=013104    -- ! MMR2: PC of jsr
 wal     001376    -- check stack
 rmi   d=013106    -- ! PC after jsr
 step              -- step (rts pc)
 rpc   d=013106    -- ! pc=target
 rsp   d=001400    -- ! sp=1400
-wal     177572    -- check SSR0/1/2
+wal     177572    -- check MMR0/1/2
 brm     3
-      d=000001    -- ! SSR0: (seg=0,ena=1)
-      d=000026    -- ! SSR1: ra=6,2					[[s:0]]
-      d=013110    -- ! SSR2: PC of rts
+      d=000001    -- ! MMR0: (seg=0,ena=1)
+      d=000026    -- ! MMR1: ra=6,2					[[s:0]]
+      d=013110    -- ! MMR2: PC of rts
 cres              -- console reset
 #
 # simh notes:
 # 1. simh reads stack and incremets sp later. In case of an MMU abort on
-#    stack read, simh SSR1 will be 0, while W11 shows the sp increment
+#    stack read, simh MMR1 will be 0, while W11 shows the sp increment
 #
 #-----------------------------------------------------------------------------
 C Setup code 46 [base 13200] (systematic result+cc test of 1+2op instructions)

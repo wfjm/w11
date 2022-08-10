@@ -1,9 +1,10 @@
-# $Id: tb_pdp11core_ubmap.dat 1191 2019-07-13 17:21:02Z mueller $
+# $Id: tb_pdp11core_ubmap.dat 1274 2022-08-08 09:21:53Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2008-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2008-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History: 
 # Date         Rev Version  Comment
+# 2022-08-08  1274   1.5.1  ssr->mmr rename
 # 2015-05-03   674   1.5    start/stop/suspend overhaul
 # 2008-03-02   121   1.0    extracted from sys/tb/tb_s3board_pdp11core_mem70
 #
@@ -187,7 +188,7 @@ brm     4
 #
 C Test 2.2 write/read with ubmap on in MMU
 #
-wal     172516    -- SSR3
+wal     172516    -- MMR3
 wm      000040    --   set ubmap=1
 wal     020000    -- Page 1
 wah     000200    -- ubmap=1
@@ -255,7 +256,7 @@ wr0     000000    -- 0 for looping
 wr1     002100    -- a mem  addr
 wr2     172256    -- a ubus addr: MMU SM mode AR page 7 (is a 16bit r/w reg)
 wpc     002000
-sta               -- 'start' does no reset (keeps SSR3.ubmap=1)
+sta               -- 'start' does no reset (keeps MMR3.ubmap=1)
 #
 wal     020200    -- Page 1
 wah     000200    -- ubmap=1

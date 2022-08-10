@@ -1,9 +1,10 @@
-// $Id: Rw11Cpu.hpp 1186 2019-07-12 17:49:59Z mueller $
+// $Id: Rw11Cpu.hpp 1274 2022-08-08 09:21:53Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2022-08-08  1274   1.2.21 ssr->mmr rename
 // 2019-06-07  1160   1.2.20 Stats() not longer const
 // 2019-04-30  1143   1.2.19 add HasM9312()
 // 2019-04-19  1133   1.2.18 add ExecWibr(),ExecRibr()
@@ -255,17 +256,17 @@ namespace Retro {
       static const uint16_t  kMEMHIADDR = 0177742; //!< MEM HIADDR address
       static const uint16_t  kMEMLOADDR = 0177740; //!< MEM LOADDR address
     
-      static const uint16_t  kMMUSSR3   = 0172516; //!< MMU SSR3   address
-      static const uint16_t  kMMUSSR2   = 0177576; //!< MMU SSR2   address
-      static const uint16_t  kMMUSSR1   = 0177574; //!< MMU SSR1   address
-      static const uint16_t  kMMUSSR0   = 0177572; //!< MMU SSR0   address
+      static const uint16_t  kMMUMMR3   = 0172516; //!< MMU MMR3   address
+      static const uint16_t  kMMUMMR2   = 0177576; //!< MMU MMR2   address
+      static const uint16_t  kMMUMMR1   = 0177574; //!< MMU MMR1   address
+      static const uint16_t  kMMUMMR0   = 0177572; //!< MMU MMR0   address
 
-      static const uint16_t  kMMUSDRK   = 0172300; //!< MMU SDRK   address
-      static const uint16_t  kMMUSARK   = 0172340; //!< MMU SARK   address
-      static const uint16_t  kMMUSDRS   = 0172200; //!< MMU SDRS   address
-      static const uint16_t  kMMUSARS   = 0172240; //!< MMU SARS   address
-      static const uint16_t  kMMUSDRU   = 0177600; //!< MMU SDRU   address
-      static const uint16_t  kMMUSARU   = 0177640; //!< MMU SARU   address
+      static const uint16_t  kMMUPDRK   = 0172300; //!< MMU PDRK   address
+      static const uint16_t  kMMUPARK   = 0172340; //!< MMU PARK   address
+      static const uint16_t  kMMUPDRS   = 0172200; //!< MMU PDRS   address
+      static const uint16_t  kMMUPARS   = 0172240; //!< MMU PARS   address
+      static const uint16_t  kMMUPDRU   = 0177600; //!< MMU PDRU   address
+      static const uint16_t  kMMUPARU   = 0177640; //!< MMU PARU   address
     
     // defs for optional w11 cpu components
       static const uint16_t  kSCBASE  = 0x0040;   //!< DMSCNT reg base offset

@@ -11,7 +11,7 @@
 The PDP-11/70 and 11/45 MMU offers a 'mmu trap' feature, which can cause
 a trap when a memory location is read or written. This can be enabled with
 special `ACF` values in the page descriptor registers for each segment end
-globally enabled with an enable bit in `SSR0`.
+globally enabled with an enable bit in `MMR0`.
 
 Since only 11/70 and 11/45 offer this (and J11 does not) this feature is
 in general not used by operations systems.

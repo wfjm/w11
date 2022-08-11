@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: asm-11 1262 2022-07-25 09:44:55Z mueller $
+# $Id: asm-11 1264 2022-07-30 07:42:17Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2022-07-28  1264   1.1.3  add -E and -M options
 # 2022-07-23  1262   1.1.2  BUGFIX: '100(pc)' was compiled as '100'
 # 2019-07-13  1189   1.1.1  drop superfluous exists for $opts
 # 2019-05-25  1152   1.1    add .macro,.endm,.list,.nlist
@@ -33,7 +34,7 @@ use constant TMASK_MACROARG   => 0x0004;
 
 my %opts = ();
 
-GetOptions(\%opts, "help",
+GetOptions(\%opts, "help", "E", "M",
                    "tpass1", "tpass2",
                    "dsym1",  "dsym2",
                    "ttoken", "tparse", "temit", "tout",
@@ -257,7 +258,7 @@ my @mdefstk;                                # open .macro,.rept defs stack
 my $mautolbl = 30000;                       # auto-generated label
 
 my @flist;                                  # list of filenames
-my $fstem;                                  # stem or last file name
+my $fstem;                                  # stem of last file name
 my $lst_do;                                 # generate listing
 my $lst_fname;                              # listing file name
 my $lda_do;                                 # generate lda output
@@ -317,6 +318,7 @@ $pass = 1;
 foreach my $fname (@ARGV) {
   read_file($fname);
 }
+exit 0 if $opts{E} || $opts{M};             # stop after pass1 for -E -M
 dump_sym() if $opts{dsym1};
 
 # prepare pass 2
@@ -379,12 +381,19 @@ sub read_file {
   }
 
   push @flist, $fname;
+  if ($opts{M}) {
+    printf "%s : %s\n", create_fname($opts{olda},'.lda'), $fname;
+    printf "%s : %s\n", create_fname($opts{olda},'.lst'), $fname;
+  }
 
   my $lineno = 0;
   my $fileno = scalar(@flist);
   while (<$fh>) {
     chomp;
     my $line = $_;
+    if ($opts{E} && $line !~ m/\s*\.include/) {   # if -E and not .include
+      printf "$line\n";                           # write to stdout
+    }
     $lineno += 1;
     pass1_line($fileno, $lineno, $line);
   }
@@ -2705,6 +2714,7 @@ sub bailout {
 sub print_help {
   print "usage: asm-11 [OPTIONS]... [FILE]...\n";
   print "  --I=path      adds path to the .include search path\n";
+  print "  --E           write .include processed input to stdout\n";
   print "  --lst         create listing (default file name)\n";
   print "  --olst=fnam   create listing (concrete file name)\n";
   print "  --lda         create absolute loader output (default file name)\n";

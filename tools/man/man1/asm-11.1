@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: asm-11.1 1262 2022-07-25 09:44:55Z mueller $
+.\"  $Id: asm-11.1 1264 2022-07-30 07:42:17Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\"
@@ -97,11 +97,29 @@ no .mexit, .mdelete, .mcall support
 .
 .\" ----------------------------------------------
 .IP "\fB\-I\fI path\fR"
-adds path to the .include search path.
+adds \fIpath\fP to the .include search path.
+The default search path is '.'  plus \fI$RETROBASE/tools/asm-11\fP if
+\fBRETROBASE\fP is defined. Each \fB\-I\fP adds \fIpath\P after '.'.
+\fB\-I\fP can be given multiple times und must have a single path name.
+.
+.\" ----------------------------------------------
+.IP "\fB\-E\fR"
+write .include processed code to \fIstdout\fP and stop after 1st pass.
+No other outputs are created, options like \fB\-\-lst\fR are ignored.
+Useful for the generation of self-contained macro files that are free
+of .include directives and thus free of external references. Was inspired
+by the -E option of gcc(1).
+.
+.\" ----------------------------------------------
+.IP "\fB\-M\fR"
+write rules to \fIstdout\fP suitable for \fBmake\fP(1) describing the
+dependencies of generated .lda and .lst files from the source files.
+Outputs for .lda and .lst targets one rule per input or included file.
+Only useful when \fIFILE\fP is not '-'. Was inspired by the -M option of gcc(1).
 .
 .\" ----------------------------------------------
 .IP "\fB\-\-lst\fR"
-create listing with a default file name built from the basename of the first
+create listing with a default file name built from the basename of the last
 \fIFILE\fP plus a \fI.lst\fP extension.
 If \fIFILE\fP is '-' the output is written to \fIstdout\fP.
 .
@@ -113,7 +131,7 @@ If \fIfnam\fP is '-' the listing is written to \fIstdout\fP.
 .\" ----------------------------------------------
 .IP "\fB\-\-lda\fR"
 create absolute loader output in \fBlda-11\fP(5) format with a default file name
-built from the basename of the first \fIFILE\fP plus a \fI.lda\fP extension.
+built from the basename of the last \fIFILE\fP plus a \fI.lda\fP extension.
 If \fIFILE\fP is '-' the output is written to \fIstdout\fP.
 
 .
@@ -126,7 +144,7 @@ If \fIfnam\fP is '-' the compound output is written to \fIstdout\fP.
 .\" ----------------------------------------------
 .IP "\fB\-\-cof\fR"
 create compound output in \fBcof-11\fP(5) format with a default file name
-built from the basename of the first \fIFILE\fP plus a \fI.cof\fP extension.
+built from the basename of the last \fIFILE\fP plus a \fI.cof\fP extension.
 If \fIFILE\fP is '-' the output is written to \fIstdout\fP.
 .
 .\" ----------------------------------------------
@@ -139,7 +157,7 @@ output comes first, followed by the compound output.
 .\" ----------------------------------------------
 .IP "\fB\-\-lsm\fR"
 create lsmem style memory dump in \fBlsm-11\fP(5) format with a default file
-name built from the basename of the first \fIFILE\fP plus a \fI.lsm\fP extension.
+name built from the basename of the last \fIFILE\fP plus a \fI.lsm\fP extension.
 If \fIFILE\fP is '-' the output is written to \fIstdout\fP.
 .
 .\" ----------------------------------------------
@@ -186,6 +204,11 @@ trace code emit.
 .\" ----------------------------------------------
 .IP "\fB\-\-tout\fR"
 trace output file write.
+.
+.\" ------------------------------------------------------------------
+.SH ENVIRONMENT
+.IP \fBRETROBASE\fP
+If defined adds an include path to the \fBasm-11\fP standard library.
 .
 .\" ------------------------------------------------------------------
 .SH EXIT STATUS

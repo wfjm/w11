@@ -1,9 +1,10 @@
-# $Id: generic_asm11.mk 1168 2019-06-20 11:52:51Z mueller $
+# $Id: generic_asm11.mk 1275 2022-08-10 08:10:40Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2022-08-08  1275   1.1    add auto-dependency rule
 # 2013-04-06   503   1.0.1  use --hostinc for mac2lda
 # 2013-03-22   496   1.0    Initial version
 #---
@@ -45,3 +46,8 @@ endif
 #
 %.lstexp : %.lsterr
 	$(ASM11EXP) $<
+#
+# auto-dependency rule
+#
+%.dep : %.mac
+	$(ASM11) -M $< > $@

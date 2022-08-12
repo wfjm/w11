@@ -1,13 +1,15 @@
-# $Id: Makefile 1264 2022-07-30 07:42:17Z mueller $
+# $Id: Makefile 1275 2022-08-10 08:10:40Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2022-08-08  1275   1.1    add auto-dependency rule
 # 2022-07-29  1264   1.0    Initial version
 #---
 #
 include ${RETROBASE}/tools/make/generic_asm11.mk
+include ${RETROBASE}/tools/make/dontincdep.mk
 #
 MAC_all += cpu_badinst_nofpp.mac
 MAC_all += cpu_basics.mac
@@ -22,6 +24,8 @@ EXP_all  = $(MAC_all:.mac=.exp.mac)
 TSIM_all = $(MAC_all:.mac=.tsim)
 TE11_all = $(MAC_all:.mac=.te11)
 TW11_all = $(MAC_all:.mac=.tw11)
+#
+DEP_all  = $(MAC_all:.mac=.dep)
 #
 # create export mac (with asm-11 -E)
 %.exp.mac : %.mac
@@ -73,6 +77,18 @@ allte11 : $(TE11_all)
 alltw11 : $(TW11_all)
 #
 clean :
-	rm -rf *.lst
-	rm -rf *.lda
-	rm -rf *.exp.mac
+	rm -f *.lst
+	rm -f *.lda
+	rm -f *.exp.mac
+#
+cleandep :
+	rm -f *.dep
+#
+distclean : clean cleandep
+
+
+# The magic auto-dependency include
+#
+ifndef DONTINCDEP
+include $(DEP_all)
+endif

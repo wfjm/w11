@@ -44,7 +44,9 @@ The full set of tests is only run for tagged releases.
   - ci.yml: define TBW_GHDL_OPTS and suppress IEEE package warnings at t=0ms
   - **/tbrun.yml: since nexys4 not longer available switch to nexys4d
   - tools/bin
-    - asm-11: limited macro support (.macro,.endm); added -E,-M option
+    - asm-11:
+      - limited macro support (.macro,.endm)
+      - added -E (export code) and -M (dependency rules) options
     - create_disk: -help: print byte size of disk
     - njobihtm: add -n and -h options
     - tbrun_tbwrri: fully implement --r(l|b)mon

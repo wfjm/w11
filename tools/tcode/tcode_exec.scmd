@@ -1,4 +1,4 @@
-; $Id: tcode_exec.scmd 1264 2022-07-30 07:42:17Z mueller $
+; $Id: tcode_exec.scmd 1275 2022-08-10 08:10:40Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -16,7 +16,7 @@ set cpu idle
 ;
 dep STOP_TRAPS 0
 ;
+dep pc 0200
 load %1.lda
-dep pc 200
 cont
 quit

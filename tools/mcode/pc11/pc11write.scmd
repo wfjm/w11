@@ -1,0 +1,15 @@
+; $Id: pc11write.scmd 1275 2022-08-10 08:10:40Z mueller $
+;
+; Setup file for pc11write
+;
+! make pc11write.lda
+;
+do ../../simh/setup_w11a_mcode.scmd
+;
+; attach PC11, ensure fresh file
+! rm -f simh_pc11write.dat
+det ptr
+att ptp simh_pc11write.dat
+;
+load pc11write.lda
+cont

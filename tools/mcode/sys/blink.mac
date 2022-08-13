@@ -1,9 +1,10 @@
-; $Id: blink.mac 1237 2022-05-15 07:51:47Z mueller $
+; $Id: blink.mac 1275 2022-08-10 08:10:40Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2019-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
+; 2022-08-09  1275   1.0.1  use call/return
 ; 2019-04-22  1135   1.0    Initial version
 ;
 ; Show different 'blinking lights' patterns
@@ -54,7 +55,7 @@ stack:
 ; main program -----------------------------------
 ;
 start:  mov     #stack,sp               ; setup stack
-        jsr     pc,inir                 ; setup 'f' mode
+        call    inir                    ; setup 'f' mode
         spl     7
         mov     #ti.ie,@#ti.csr         ; activate input
         mov     #kl.ie,@#kl.csr
@@ -66,7 +67,7 @@ nultsk: mov     curspd,r5               ; load speed
 1$:     mov     pat,r0                  ; load pattern
         wait                            ; and proudly show it
         sob     r5,1$                   ; wait for interrupt
-        jsr     pc,@curhdl              ; update pattern
+        call    @curhdl                 ; update pattern
 ;
         tst     smode                   ; static mode ?
         beq     nultsk                  ; if eq yes, no action
@@ -83,18 +84,18 @@ nultsk: mov     curspd,r5               ; load speed
         clr     r0
 2$:     mov     r0,cursty
         asl     r0                      ; index to offset
-        jsr     pc,@initbl(r0)          ; call initializer
+        call    @initbl(r0)             ; call initializer
         br      nultsk
 ;        
 100$:   cmp     smode,#smrand           ; random mode ?
         bne     nultsk
-        jsr     pc,randzp               ; get random number
+        call    randzp                  ; get random number
         mov     r0,r1
         clr     r0
         div     #nstyle,r0              ; calculate: rand % nstyle
         mov     r1,cursty               ; reminder is new style index
         asl     r1                      ; index to offset
-        jsr     pc,@initbl(r1)          ; call initializer
+        call    @initbl(r1)             ; call initializer
         br      nultsk
 ;
 ; receive interrupt handler ----------------------
@@ -115,8 +116,8 @@ vh.tti: mov     @#ti.buf,r0             ; read char
         beq     102$
         cmp     (r1)+,(r1)+             ; if not, try next
         br      101$
-102$:   jsr     pc,@(r1)+               ; if yes: call action
-        jsr     pc,@(r1)+               ;         call initializer
+102$:   call    @(r1)+                  ; if yes: call action
+        call    @(r1)+                  ;         call initializer
 
 999$:   rti
 ;
@@ -130,13 +131,13 @@ vh.kwl: inc     styage
 ;   style switch
 ;
 actsty: clr     smode                   ; use static styles
-actnop: rts     pc
+actnop: return
 ;
 acta:   mov     #smauto,smode
         br      actem
 acts:   mov     #smrand,smode
 actem:  mov     #smtime,styage          ; expire timer
-        rts     pc
+        return
 ;
 ;  other control actions
 ;
@@ -146,26 +147,26 @@ actem:  mov     #smtime,styage          ; expire timer
 inir:   mov     #170017,pat
         mov     #4,defspd
         mov     #hdlr,curhdl
-        rts     pc
+        return
 ;
 inib:   mov     #000377,pat
         mov     #2,defspd
         mov     #hdlb,curhdl
-        rts     pc
+        return
 ;
 inif:   mov     #000001,pat
         mov     #2,defspd
         mov     #hdlf,curhdl
-        rts     pc
+        return
 ;
 inic:   clr     pat
         mov     #1,defspd
         mov     #hdlc,curhdl
-        rts     pc
+        return
 ;
 inirr:  mov     #hdlrr,curhdl
         mov     #6,defspd
-ininop: rts     pc
+ininop: return
 ;
 ;
 ; display pattern handlers -----------------------
@@ -178,7 +179,7 @@ hdlr:   mov     #pat,r1
         aslb    (r1)+
         rorb    (r1)
         adcb    -(r1)
-        rts     pc
+        return
 ;
 ; 2.11BSD style ------------------------
 ;  code from 2.11BSD mch_xxx.s
@@ -188,7 +189,7 @@ hdlb:   clc
         rol     pat
         bpl     1$
         bis     #1,pat
-1$:     rts     pc
+1$:     return
 ;
 ; flipper style ------------------------
 ;
@@ -208,16 +209,16 @@ hdlf:   mov     #pat,r0
         rol     (r0)                    ; and shift
 
 20$:    neg     fdir                    ; and switch direction
-100$:   rts     pc
+100$:   return
 ;
 ; counter style ------------------------
 ;
 hdlc:   inc     pat
-        rts     pc
+        return
 ;
 ; random pattern style -----------------
 ;
-hdlrr:  jsr     pc,randzp
+hdlrr:  call    randzp
         mov     r0,pat
         rts	pc
 ;

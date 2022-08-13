@@ -1,13 +1,15 @@
-; $Id: pc11copy.mac 1174 2019-06-29 18:00:47Z mueller $
+; $Id: pc11copy.mac 1277 2022-08-12 15:00:20Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2019-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
+; 2022-08-10  1276   1.2    kw11-p: use 100 kHz/13.; ensure last puncher irupt
 ; 2019-04-25  1138   1.1    add kw11-l/p stress
 ; 2019-04-21  1134   1.0    Initial version
 ;
-; copy input to output tape
+; Copy input to output tape
+; Interrupt stress test with KW11-P (four interrupt sources in parallel)
 ;
 ; definitions ----------------------------------------------
 ;
@@ -17,7 +19,7 @@
         .include  |lib/defs_pc.mac|
 
         bsize   = 256.          ; elasticity ring buffer size
-        kpwait  = 997.          ; kp wait (in cycles, intentionally prime)
+        kpwait  =  17.          ; kp wait (in 100kHz, intentionally prime)
         cbsize  = 250.          ; kp-per-kl trace buffer size (for last 5 sec)
 ;
 ; vector area ----------------------------------------------
@@ -85,7 +87,7 @@ start1: mov     #stack,sp               ; setup stack
         spl     7
         mov     #kl.ie,@#kl.csr         ; start kw11-l
         mov     #kpwait,@#kp.csb        ; load kw11-p counter
-        mov     #<kp.ie!kp.rep!kp.rex!kp.run>,@#kp.csr ; kw11-p: ext down repeat
+        mov     #<kp.ie!kp.rep!kp.rhk!kp.run>,@#kp.csr ; kw11-p: 100k down repeat
         mov     #<pr.ie!pr.ena>,@#pr.csr ; start reader
         spl     0                       ; allow interrupts
 3$:     wait                            ; and idle
@@ -119,7 +121,15 @@ vh.ptr: tst     @#pr.csr                ; at eof ?
 200$:   bic     #pr.ie,@#pr.csr         ; stop reader
         rti
 
-300$:   jmp     stop
+; eof detected. ensure program halts after the final puncher interupt is taken
+; do a wait loop while puncher active, puncher will end program (Simh compat)
+300$:   cmp     (sp)+,(sp)+             ; drop vector
+        spl     0                       ; allow interrupts
+310$:   bit     #pp.ie,@#pp.csr         ; puncher still active ?
+        beq     320$                    ; if not stop
+        wait                            ; if yes  wait
+        br      310$
+320$:   jmp     stop
 
 rerr:   halt                            ; reader error halt
         br      rerr
@@ -128,6 +138,8 @@ rerr:   halt                            ; reader error halt
 ;
 vh.ptp: tst     @#pp.csr                ; punch error
         bmi     perr                    ; if mi yes, error halt
+        tstb    r3                      ; eof seen ?
+        bne     200$                    ; if yes, all done
         tstb    @#pp.csr                ; ready ?
         bpl     perr                    ; if pl no, error halt
         tst     r2                      ; test buffer count
@@ -143,11 +155,12 @@ vh.ptp: tst     @#pp.csr                ; punch error
         mov     #<pr.ie!pr.ena>,@#pr.csr ; if not, start reader
 2$:     rti
 
-100$:   bic     #pp.ie,@#pp.csr         ; stop punch
-        tstb    r3                      ; eof seen ?
-        bne     200$                    ; if yes, all done
-        rti
-        
+; eof detected. ensure that final puncher interrupt is taken (Simh compat)
+100$:   tstb    r3                      ; eof seen ?
+        bne     110$                    ; if yes, go for final interrupt
+        bic     #pp.ie,@#pp.csr         ; otherwise stop punch
+110$:   rti
+
 200$:   jmp     stop
         
 perr:   halt                            ; puncher error halt

@@ -1,5 +1,11 @@
 *.cof
 *.lda
 *.lst
+
+# simulation stuff
 rlink_cext_*
 sysmon_stim
+tmu_ofile
+
+# Simh stuff
+simh_*.dat

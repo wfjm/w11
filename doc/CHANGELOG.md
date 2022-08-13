@@ -68,6 +68,8 @@ The full set of tests is only run for tagged releases.
     - rtl/sys_gen/tst_rlink_cuff/atlys/sys_tst_rlink_cuff_atlys
     - rtl/sys_gen/tst_snhumanio/atlys/sys_tst_snhumanio_atlys
 ### Bug Fixes
+  - tools/asm-11/lib
+    - tcode_std_start.mac: fix sdreg probe code
   - tools/mcode
     - m9312/bootw11.mac: proper init of unit number in getnam
   - src/librwxxtpp

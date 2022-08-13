@@ -1,4 +1,4 @@
-; $Id: setup_w11a_max.scmd 1256 2022-07-15 09:14:14Z mueller $
+; $Id: setup_w11a_max.scmd 1275 2022-08-10 08:10:40Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2008-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -8,8 +8,8 @@
 ;   --> 4 MByte, 2 DL11, DZ+LP+PC, RK05+RL02+RP06+TM11, DEUNA
 ;
 ; 11/70 CPU no FPP, 4 MByte memory
-; 1 KL11-L                      177546/100/BR6
-; 1 KL11-P                      172540/104/BR6
+; 1 KW11-L                      177546/100/BR6
+; 1 KW11-P                      172540/104/BR6
 ; 2 DL11                        177560/060/BR4   (cons)
 ;                               176500/300/BR4 * (2nd)
 ; 1 DZ11                        160100/310/BR5 *
@@ -37,6 +37,7 @@ set cpu idle
 ; clock options
 ;
 set clk  50hz
+set pclk enabled
 set pclk 50hz
 ;
 ; setup pdp11 console via telnet (default is mixed with simh console)

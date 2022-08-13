@@ -1,0 +1,13 @@
+; $Id: dz11echo.scmd 1275 2022-08-10 08:10:40Z mueller $
+;
+; Setup file for dz11echo
+;
+! make dz11echo.lda
+;
+do ../../simh/setup_w11a_mcode.scmd
+; attach console and DZ11 to telnet
+set cons telnet=5670
+att dz   -m 5672
+;
+load dz11echo.lda
+cont

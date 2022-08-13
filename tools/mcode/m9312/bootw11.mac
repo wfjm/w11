@@ -1,9 +1,10 @@
-; $Id: bootw11.mac 1237 2022-05-15 07:51:47Z mueller $
+; $Id: bootw11.mac 1275 2022-08-10 08:10:40Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2019-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
+; 2022-08-09  1275   1.0.2  use call/return
 ; 2022-05-14  1237   1.0.1  BUGFIX: proper init of unit number in getnam
 ; 2019-05-01  1143   1.0    Initial version
 ; 2019-04-19  1133   0.1    First draft
@@ -40,19 +41,19 @@ start:  spl     7
 ; print prompt
 ;
         mov     #strpro,r1
-nxtpro: jsr     pc,prtstr
+nxtpro: call    prtstr
 ;
 ; read boot device name and unit
 ;   out r2  device name
 ;   out r3  unit number
 ;
-getnam: jsr     pc,getlet       ; get 1st char
+getnam: call    getlet          ; get 1st char
         mov     r0,r2           ; move into low  byte
-        jsr     pc,getlet       ; get 2nd char
+        call    getlet          ; get 2nd char
         swab    r0
         bis     r0,r2           ; move into high byte
         clr     r3              ; default unit is 0
-        jsr     pc,getchr       ; get unit number or <CR>
+        call    getchr          ; get unit number or <CR>
         cmp     #CR,r0          ; is <CR> ?
         beq     fnddev          ; if eq yes, done
         mov     r0,r3
@@ -60,8 +61,8 @@ getnam: jsr     pc,getlet       ; get 1st char
         blt     errpro          ; below 0, error quit
         cmp     r3,#7           ; check 0-7 range
         bgt     errpro          ; above 7, error quit
-        jsr     pc,prtchr       ; echo character
-        jsr     pc,getchr       ; get <CR>
+        call    prtchr          ; echo character
+        call    getchr          ; get <CR>
         cmp     #CR,r0          ; is <CR> ?
         bne     errpro
 ;
@@ -80,7 +81,7 @@ fnddev: mov     #devtbl,r4
 2$:     cmp     r3,(r4)+        ; is unit number in range ?
         bgt     errpro          ; if gt not, error quit
         mov     #strnl,r1       ; print <CR><LF>
-        jsr     pc,prtstr
+        call    prtstr
         mov     r3,r0           ; get unit to r0
         jmp     @(r4)+          ; and execute boot code
 
@@ -91,7 +92,7 @@ errpro: mov     #strerr,r1      ; point to error string
 ; getlet: read drive name letter ---------------------------
 ;   out r0  character (only A-Z, other error quit)
 ;
-getlet: jsr     pc,getchr
+getlet: call    getchr
         cmp     r0,#'Z          ; above Z ?
         ble     1$              ; if le not
         sub     #<'a-'A>,r0     ; otherwise convert to upper
@@ -99,8 +100,8 @@ getlet: jsr     pc,getchr
         blt     2$              ; if lt yes, error quit
         cmp     r0,#'Z          ; above Z ?
         bgt     2$              ; if gt yes, error quit
-        jsr     pc,prtchr       ; echo character
-        rts     pc
+        call    prtchr          ; echo character
+        return
 2$:     tst     (sp)+           ; drop return address
         br      errpro          ; error quit
 ;
@@ -110,7 +111,7 @@ getlet: jsr     pc,getchr
 getchr: tstb    @#ti.csr        ; wait ti ready
         bpl     getchr
         mov     @#ti.buf,r0     ; and read character
-        rts     pc
+        return
 ;
 ; prtstr: print string routine -----------------------------
 ;   in  r1  pointer to zero terminated string
@@ -118,7 +119,7 @@ getchr: tstb    @#ti.csr        ; wait ti ready
 ;
 prtstr: movb    (r1)+,r0        ; get next char
         beq     prtrts          ; if eq return
-        jsr     pc,prtchr       ; else print char
+        call    prtchr          ; else print char
         br      prtstr          ; and go for next
 ;
 ; prtchr: print character routine --------------------------
@@ -127,7 +128,7 @@ prtstr: movb    (r1)+,r0        ; get next char
 prtchr: tstb    @#to.csr        ; wait to ready
         bpl     prtchr
         movb    r0,@#to.buf     ; and print
-prtrts: rts     pc
+prtrts: return
 ;
 ; rstoff: reset/restart after unit offline detected --------
 ;
@@ -304,22 +305,22 @@ bootpc: mov     #pr.csr,r5
         jmp     rstoff          ; otherwise quit offline
 ;
 pcrec:  clr     r2              ; clear checksum
-1$:     jsr     pc,pcbyte       ; read 000 prefix or 001
+1$:     call    pcbyte          ; read 000 prefix or 001
         tstb    r0              ; is zero ?
         beq     1$              ; if eq yes, keep trying
         dec     r0              ; decrement to test for 001
         bne     pcerr1          ; if ne, quit
-        jsr     pc,pcbyte       ; read 000 after 001
+        call    pcbyte          ; read 000 after 001
         tstb    r0              ; is zero ?
         bne     pcerr1          ; if ne fail
-        jsr     pc,pcword       ; read count
+        call    pcword          ; read count
         mov     r1,r4           ; store count
-        jsr     pc,pcword       ; read addr
+        call    pcword          ; read addr
         mov     r1,r3           ; store addr
         sub     #6,r4           ; subtract 6 from count
         blt     pcerr2          ; if <6 fail
         bgt     pcdata          ; if >6 read data
-        jsr     pc,pcbyte       ; read checksum
+        call    pcbyte          ; read checksum
         tstb    r2              ; test checksum
         bne     pcerr3          ; if ne bad, fail
         bit     #1,r3           ; address odd ?
@@ -332,20 +333,20 @@ pcerr2: halt                    ; halt: bad count
 pcerr3: halt                    ; halt: bad checksum
 pcerr4: halt                    ; halt: error bit set
 ;
-pcdata: jsr     pc,pcbyte       ; read byte
+pcdata: call    pcbyte          ; read byte
         movb    r0,(r3)+        ; store byte
         sob     r4,pcdata       ; dec count and loop if >0
-        jsr     pc,pcbyte       ; get checksum
+        call    pcbyte          ; get checksum
         tstb    r2              ; test checksum
         bne     pcerr3          ; if ne bad, fail
         br      pcrec           ; otherwise next record
 
-pcword: jsr     pc,pcbyte       ; read low byte
+pcword: call    pcbyte          ; read low byte
         mov     r0,r1           ; low byte to r1
-        jsr     pc,pcbyte       ; read high byte
+        call    pcbyte          ; read high byte
         swab    r0
         bis     r0,r1           ; high byte to r1
-        rts     pc
+        return
 
 pcbyte: inc     (r5)            ; set enable
 1$:     tst     (r5)            ; error set ?
@@ -354,6 +355,6 @@ pcbyte: inc     (r5)            ; set enable
         bpl     1$              ; if pl not yet
         mov     2(r5),r0        ; read byte
         add     r0,r2           ; accumulate checksum
-        rts     pc
+        return
 ;
         .end start

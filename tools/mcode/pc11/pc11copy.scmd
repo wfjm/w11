@@ -1,0 +1,15 @@
+; $Id: pc11copy.scmd 1275 2022-08-10 08:10:40Z mueller $
+;
+; Setup file for pc11copy
+;
+! make pc11copy.lda
+;
+do ../../simh/setup_w11a_mcode.scmd
+;
+; attach PC11, ensure new file written
+! rm -f simh_pc11copy.dat
+att ptr simh_pc11write.dat
+att ptp simh_pc11copy.dat
+;
+load pc11copy.lda
+cont

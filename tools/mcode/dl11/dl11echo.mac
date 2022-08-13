@@ -1,9 +1,10 @@
-; $Id: dl11echo.mac 1174 2019-06-29 18:00:47Z mueller $
+; $Id: dl11echo.mac 1275 2022-08-10 08:10:40Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2019-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
+; 2022-08-09  1275   1.0.1  use call/return
 ; 2019-04-21  1134   1.0    Initial version
 ;
 ; DL11 echo
@@ -82,8 +83,8 @@ nultsk: mov     #pat,r0
 ;
 vh.tti: mov     @#ti.buf,r0             ; read char
         movb    r0,curchr               ; and remember
-        jsr     pc,@curhdl              ; call handler
-        jsr     pc,chkesc               ; check for ESC
+        call    @curhdl                 ; call handler
+        call    chkesc                  ; check for ESC
         cmp     nfree,#6.               ; enough buffer ?
         bgt     100$                    ; if <= 6
         bic     #ti.ie,@#ti.csr         ; disable ti irupt
@@ -124,16 +125,16 @@ wchar:  tst     nfree                   ; free buffer
 1$:     mov     r1,wptr                 ; store pointer
         bis     #to.ie,@#to.csr         ; enable to irupt
         dec     nfree
-100$:   rts     pc        
+100$:   return
 ;
 ; write CR/LF ------------------------------------
 ;   use r0
 ;
 wcrlf:  mov     #CR,r0
-        jsr     pc,wchar
+        call    wchar
 wlf:    mov     #LF,r0
-        jsr     pc,wchar
-        rts     pc
+        call    wchar
+        return
 
 ;
 ; escape detection -------------------------------
@@ -143,7 +144,7 @@ chkesc: movb    curchr,r0
         cmpb    #ESC,r0
         bne     1$
         incb    esccnt
-        rts     pc
+        return
 1$:     cmpb    esccnt,#2               ; 2 ESC seen ?
         blt     200$
         cmpb    #'u,r0                  ; u -> hdluc
@@ -161,20 +162,20 @@ chkesc: movb    curchr,r0
 120$:   cmpb    #'o,r0                  ; o -> hdloct
         bne     200$
         mov     #hdloct,curhdl
-        jsr     pc,wcrlf                ; force new line
+        call    wcrlf                   ; force new line
         clrb    octcnt
 200$:   clrb    esccnt
-        rts     pc
+        return
 ;
 ; character handler ------------------------------
 ;   in  r0  current character
 ;   use r1,r2
 ;
-hdldir: jsr     pc,wchar                ; direct mode
+hdldir: call    wchar                   ; direct mode
         cmpb    #CR,r0                  ; CR seen
         bne     100$
-        jsr     pc,wlf                  ; then add LF
-100$:   rts     pc
+        call    wlf                     ; then add LF
+100$:   return
 
 hdllc:  cmpb    r0,#'A                  ; lower case mode
         blt     hdldir
@@ -192,22 +193,22 @@ hdluc:  cmpb    r0,#'a                  ; upper case mode
 
 hdloct: mov     r0,r2                   ; octal mode
         ash     #-6.,r0
-        jsr     pc,woct
+        call    woct
         mov     r2,r0
         ash     #-3.,r0
-        jsr     pc,woct
+        call    woct
         mov     r2,r0
-        jsr     pc,woct
+        call    woct
         mov     #SPC,r0
-        jsr     pc,wchar
+        call    wchar
         cmpb    #CR,curchr
         beq     10$
         incb    octcnt
         cmpb    octcnt,#16.
         blt     100$
-10$:    jsr     pc,wcrlf
+10$:    call    wcrlf
         clrb    octcnt
-100$:   rts     pc
+100$:   return
 ;
 ; print octal digit ------------------------------
 ;   in  r0  current character

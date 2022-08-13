@@ -1,0 +1,14 @@
+; $Id: lp11write.scmd 1275 2022-08-10 08:10:40Z mueller $
+;
+; Setup file for lp11write
+;
+! make lp11write.lda
+;
+do ../../simh/setup_w11a_mcode.scmd
+;
+; attach lp11 output, ensure fresh file
+! rm -f simh_lp11write.dat
+att lpt simh_lp11write.dat
+;
+load lp11write.lda
+cont

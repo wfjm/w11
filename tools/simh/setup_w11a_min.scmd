@@ -1,4 +1,4 @@
-; $Id: setup_w11a_min.scmd 1256 2022-07-15 09:14:14Z mueller $
+; $Id: setup_w11a_min.scmd 1275 2022-08-10 08:10:40Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2009-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -11,7 +11,7 @@
 ; These assignments match the real w11a implementation
 ;
 ; 11/70 CPU no FPP, 1 MByte memory
-; 1 KL11-L                      177546/100/BR6
+; 1 KW11-L                      177546/100/BR6
 ; 2 DL11                        177560/060/BR4   (cons)
 ;                               176500/300/BR4 * (2nd)
 ; 0 DZ11                        -

@@ -3,8 +3,8 @@
 ../ibus/iblib.vhd
 pdp11.vbom
 # components
-pdp11_mmu_sadr.vbom
-pdp11_mmu_ssr12.vbom
+pdp11_mmu_padr.vbom
+pdp11_mmu_mmr12.vbom
 ../ibus/ib_sres_or_3.vbom
 ../ibus/ib_sel.vbom
 # design

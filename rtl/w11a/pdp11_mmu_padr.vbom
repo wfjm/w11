@@ -8,4 +8,4 @@ pdp11.vbom
 [xst]../vlib/memlib/ram_1swar_gen_unisim.vbom
 [vsyn]../vlib/memlib/ram_1swar_gen.vbom
 # design
-pdp11_mmu_sadr.vhd
+pdp11_mmu_padr.vhd

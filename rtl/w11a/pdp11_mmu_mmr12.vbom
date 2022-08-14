@@ -5,4 +5,4 @@ pdp11.vbom
 # components
 ../ibus/ib_sel.vbom
 # design
-pdp11_mmu_ssr12.vhd
+pdp11_mmu_mmr12.vhd

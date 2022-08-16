@@ -1,19 +1,20 @@
--- $Id: pdp11_mmu_sadr.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: pdp11_mmu_padr.vhd 1279 2022-08-14 08:02:21Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    pdp11_mmu_sadr - syn
--- Description:    pdp11: mmu SAR/SDR register set
+-- Description:    pdp11: mmu PAR/PDR register set
 --
 -- Dependencies:   memlib/ram_1swar_gen
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2022.1; ghdl 0.18-2.0.0
 --
--- Revision History: 
+-- Revision History:
 -- Date         Rev Version  Comment
+-- 2022-08-13  1279   1.3.4  ssr->mmr rename
 -- 2011-11-18   427   1.3.3  now numeric_std clean
 -- 2010-12-30   351   1.3.2  BUGFIX: fix sensitivity list of proc_eaddr
 -- 2010-10-23   335   1.3.1  change proc_eaddr logic, shorten logic path
@@ -27,7 +28,7 @@
 -- 2007-12-30   108   1.1.1  use ubf_byte[01]; move SADR memory address mux here
 -- 2007-12-30   107   1.1    use IB_MREQ/IB_SRES interface now
 -- 2007-06-14    56   1.0.1  Use slvtypes.all
--- 2007-05-12    26   1.0    Initial version 
+-- 2007-05-12    26   1.0    Initial version
 ------------------------------------------------------------------------------
 
 library ieee;
@@ -41,21 +42,21 @@ use work.pdp11.all;
 
 -- ----------------------------------------------------------------------------
 
-entity pdp11_mmu_sadr is                -- mmu SAR/SDR register set
+entity pdp11_mmu_padr is                -- mmu PAR/PDR register set
   port (
     CLK : in slbit;                     -- clock
     MODE : in slv2;                     -- mode
-    ASN : in slv4;                      -- augmented segment number (1+3 bit)
+    APN : in slv4;                      -- augmented page number (1+3 bit)
     AIB_WE : in slbit;                  -- update AIB
     AIB_SETA : in slbit;                -- set access AIB
     AIB_SETW : in slbit;                -- set write AIB
-    SARSDR : out sarsdr_type;           -- combined SAR/SDR
+    PARPDR : out parpdr_type;           -- combined PAR/PDR
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type          -- ibus response
   );
-end pdp11_mmu_sadr;
+end pdp11_mmu_padr;
 
-architecture syn of pdp11_mmu_sadr is
+architecture syn of pdp11_mmu_padr is
 
   --             bit 1 111 1
   --             bit 5 432 109 876 543 210
@@ -73,85 +74,85 @@ architecture syn of pdp11_mmu_sadr is
   constant ibaddr_smdar : slv16 := slv(to_unsigned(8#172200#,16));
   constant ibaddr_umdar : slv16 := slv(to_unsigned(8#177600#,16));
 
-  subtype sdr_ibf_slf is integer range 14 downto 8;
-  subtype sdr_ibf_aib is integer range  7 downto 6;
-  subtype sdr_ibf_acf is integer range  3 downto 0;
+  subtype pdr_ibf_plf is integer range 14 downto 8;
+  subtype pdr_ibf_aib is integer range  7 downto 6;
+  subtype pdr_ibf_acf is integer range  3 downto 0;
 
-  signal SADR_ADDR : slv6 := (others=>'0'); -- address (from mmu or ibus)
+  signal PADR_ADDR : slv6 := (others=>'0'); -- address (from mmu or ibus)
 
-  signal SAR_HIGH_WE : slbit := '0';    -- write enables
-  signal SAR_LOW_WE : slbit := '0';     -- ...
-  signal SDR_SLF_WE : slbit := '0';     -- ...
-  signal SDR_AIB_WE : slbit := '0';     -- ...
-  signal SDR_LOW_WE : slbit := '0';     -- ...
+  signal PAR_HIGH_WE : slbit := '0';    -- write enables
+  signal PAR_LOW_WE : slbit := '0';     -- ...
+  signal PDR_PLF_WE : slbit := '0';     -- ...
+  signal PDR_AIB_WE : slbit := '0';     -- ...
+  signal PDR_LOW_WE : slbit := '0';     -- ...
 
   signal R_IBSEL_DR : slbit := '0';     -- DR's selected from ibus
   signal R_IBSEL_AR : slbit := '0';     -- AR's selected from ibus
 
-  signal SAF : slv16 := (others=>'0');  -- current SAF
-  signal SLF : slv7 := (others=>'0');   -- current SLF
+  signal PAF : slv16 := (others=>'0');  -- current PAF
+  signal PLF : slv7 := (others=>'0');   -- current PLF
   signal AIB : slv2 := "00";            -- current AIB flags
   signal N_AIB : slv2 := "00";          -- next AIB flags
   signal ED_ACF : slv4 := "0000";       -- current ED & ACF
   
 begin
   
-  SAR_HIGH : ram_1swar_gen
+  PAR_HIGH : ram_1swar_gen
     generic map (
       AWIDTH => 6,
       DWIDTH => 8)
     port map (
       CLK  => CLK,
-      WE   => SAR_HIGH_WE,
-      ADDR => SADR_ADDR,
+      WE   => PAR_HIGH_WE,
+      ADDR => PADR_ADDR,
       DI   => IB_MREQ.din(ibf_byte1),
-      DO   => SAF(ibf_byte1));
+      DO   => PAF(ibf_byte1));
 
-  SAR_LOW : ram_1swar_gen
+  PAR_LOW : ram_1swar_gen
     generic map (
       AWIDTH => 6,
       DWIDTH => 8)
     port map (
       CLK  => CLK,
-      WE   => SAR_LOW_WE,
-      ADDR => SADR_ADDR,
+      WE   => PAR_LOW_WE,
+      ADDR => PADR_ADDR,
       DI   => IB_MREQ.din(ibf_byte0),
-      DO   => SAF(ibf_byte0));
+      DO   => PAF(ibf_byte0));
 
-  SDR_SLF : ram_1swar_gen
+  PDR_PLF : ram_1swar_gen
     generic map (
       AWIDTH => 6,
       DWIDTH => 7)
     port map (
       CLK  => CLK,
-      WE   => SDR_SLF_WE,
-      ADDR => SADR_ADDR,
-      DI   => IB_MREQ.din(sdr_ibf_slf),
-      DO   => SLF);
+      WE   => PDR_PLF_WE,
+      ADDR => PADR_ADDR,
+      DI   => IB_MREQ.din(pdr_ibf_plf),
+      DO   => PLF);
 
-  SDR_AIB : ram_1swar_gen
+  PDR_AIB : ram_1swar_gen
     generic map (
       AWIDTH => 6,
       DWIDTH => 2)
     port map (
       CLK  => CLK,
-      WE   => SDR_AIB_WE,
-      ADDR => SADR_ADDR,
+      WE   => PDR_AIB_WE,
+      ADDR => PADR_ADDR,
       DI   => N_AIB,
       DO   => AIB);
     
-  SDR_LOW : ram_1swar_gen
+  PDR_LOW : ram_1swar_gen
     generic map (
       AWIDTH => 6,
       DWIDTH => 4)
     port map (
       CLK  => CLK,
-      WE   => SDR_LOW_WE,
-      ADDR => SADR_ADDR,
-      DI   => IB_MREQ.din(sdr_ibf_acf),
+      WE   => PDR_LOW_WE,
+      ADDR => PADR_ADDR,
+      DI   => IB_MREQ.din(pdr_ibf_acf),
       DO   => ED_ACF);
 
-  -- determine IBSEL's and the address for accessing the SADR's
+  -- determine IBSEL's and the address for accessing the PADR's
 
   proc_ibsel: process (CLK)
     variable ibsel_dr : slbit := '0';
@@ -176,24 +177,24 @@ begin
     end if;
   end process proc_ibsel;
   
-  proc_ibres : process (R_IBSEL_DR, R_IBSEL_AR, IB_MREQ, SAF, SLF, AIB, ED_ACF)
-    variable sarout : slv16 := (others=>'0');  -- IB sar out
-    variable sdrout : slv16 := (others=>'0');  -- IB sdr out
+  proc_ibres : process (R_IBSEL_DR, R_IBSEL_AR, IB_MREQ, PAF, PLF, AIB, ED_ACF)
+    variable parout : slv16 := (others=>'0');  -- IB par out
+    variable pdrout : slv16 := (others=>'0');  -- IB pdr out
   begin
 
-    sarout := (others=>'0');
+    parout := (others=>'0');
     if R_IBSEL_AR = '1' then
-      sarout := SAF;
+      parout := PAF;
     end if;
     
-    sdrout := (others=>'0');
+    pdrout := (others=>'0');
     if R_IBSEL_DR = '1' then
-      sdrout(sdr_ibf_slf) := SLF;
-      sdrout(sdr_ibf_aib) := AIB;
-      sdrout(sdr_ibf_acf) := ED_ACF;
+      pdrout(pdr_ibf_plf) := PLF;
+      pdrout(pdr_ibf_aib) := AIB;
+      pdrout(pdr_ibf_acf) := ED_ACF;
     end if;
 
-    IB_SRES.dout <= sarout or sdrout;
+    IB_SRES.dout <= parout or pdrout;
     IB_SRES.ack  <= (R_IBSEL_DR or R_IBSEL_AR) and
                     (IB_MREQ.re or IB_MREQ.we); -- ack all
     IB_SRES.busy <= '0';
@@ -206,13 +207,13 @@ begin
   -- and reduce the eaddr mux to a 4-input LUT. Last resort is a 2 cycle ibus
   -- access with a state flop marking the 2nd cycle of a re/we transaction.
   
-  proc_eaddr: process (IB_MREQ, MODE, ASN, R_IBSEL_DR, R_IBSEL_AR)
+  proc_eaddr: process (IB_MREQ, MODE, APN, R_IBSEL_DR, R_IBSEL_AR)
     variable eaddr : slv6 := (others=>'0');
     variable idr : slbit := '0';
     variable iar : slbit := '0';
   begin
     
-    eaddr := MODE & ASN;
+    eaddr := MODE & APN;
     
     if (R_IBSEL_DR='1' or R_IBSEL_AR='1') and
        (IB_MREQ.re='1' or IB_MREQ.we='1') then
@@ -221,57 +222,57 @@ begin
       eaddr(3 downto 0) := IB_MREQ.addr(4 downto 1);
     end if;
     
-    SADR_ADDR    <= eaddr;
+    PADR_ADDR    <= eaddr;
 
   end process proc_eaddr;
 
   proc_comb : process (R_IBSEL_AR, R_IBSEL_DR, IB_MREQ, AIB_WE,
                        AIB_SETA, AIB_SETW,
-                       SAF, SLF, AIB, ED_ACF)
-  begin 
+                       PAF, PLF, AIB, ED_ACF)
+  begin
 
     N_AIB <= "00";
-    SAR_HIGH_WE <= '0';
-    SAR_LOW_WE <= '0';
-    SDR_SLF_WE <= '0';
-    SDR_AIB_WE <= '0';
-    SDR_LOW_WE <= '0';
+    PAR_HIGH_WE <= '0';
+    PAR_LOW_WE <= '0';
+    PDR_PLF_WE <= '0';
+    PDR_AIB_WE <= '0';
+    PDR_LOW_WE <= '0';
     
     if IB_MREQ.we = '1' then
       if R_IBSEL_AR = '1' then
         if IB_MREQ.be1 = '1' then
-          SAR_HIGH_WE <= '1';
+          PAR_HIGH_WE <= '1';
         end if;
         if IB_MREQ.be0 = '1' then
-          SAR_LOW_WE <= '1';
+          PAR_LOW_WE <= '1';
         end if;
       end if;
 
       if R_IBSEL_DR = '1' then
         if IB_MREQ.be1 = '1' then
-          SDR_SLF_WE <= '1';
+          PDR_PLF_WE <= '1';
         end if;
         if IB_MREQ.be0 = '1' then
-          SDR_LOW_WE <= '1';
+          PDR_LOW_WE <= '1';
         end if;
       end if;
 
       if (R_IBSEL_AR or R_IBSEL_DR)='1' then
         N_AIB <= "00";
-        SDR_AIB_WE <= '1';
+        PDR_AIB_WE <= '1';
       end if;
     end if;
 
     if AIB_WE = '1' then
       N_AIB(0) <= AIB(0) or AIB_SETW;
       N_AIB(1) <= AIB(1) or AIB_SETA;
-      SDR_AIB_WE  <= '1';
+      PDR_AIB_WE  <= '1';
     end if;
 
-    SARSDR.saf <= SAF;
-    SARSDR.slf <= SLF;
-    SARSDR.ed  <= ED_ACF(3);
-    SARSDR.acf <= ED_ACF(2 downto 0);
+    PARPDR.paf <= PAF;
+    PARPDR.plf <= PLF;
+    PARPDR.ed  <= ED_ACF(3);
+    PARPDR.acf <= ED_ACF(2 downto 0);
     
   end process proc_comb;
   

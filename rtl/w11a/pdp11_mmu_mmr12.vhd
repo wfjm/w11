@@ -1,18 +1,19 @@
--- $Id: pdp11_mmu_ssr12.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: pdp11_mmu_mmr12.vhd 1279 2022-08-14 08:02:21Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
--- Module Name:    pdp11_mmu_ssr12 - syn
--- Description:    pdp11: mmu register ssr1 and ssr2
+-- Module Name:    pdp11_mmu_mmr12 - syn
+-- Description:    pdp11: mmu register mmr1 and mmr2
 --
 -- Dependencies:   ib_sel
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2022.1; ghdl 0.18-2.0.0
 -- 
--- Revision History: 
+-- Revision History:
 -- Date         Rev Version  Comment
+-- 2022-08-13  1279   1.2.3  ssr->mmr rename
 -- 2011-11-18   427   1.2.2  now numeric_std clean
 -- 2010-10-23   335   1.2.1  use ib_sel
 -- 2010-10-17   333   1.2    use ibus V2 interface
@@ -22,7 +23,7 @@
 -- 2008-01-05   110   1.1.1  rename IB_MREQ(ena->req) SRES(sel->ack, hold->busy)
 -- 2007-12-30   107   1.1    use IB_MREQ/IB_SRES interface now
 -- 2007-06-14    56   1.0.1  Use slvtypes.all
--- 2007-05-12    26   1.0    Initial version 
+-- 2007-05-12    26   1.0    Initial version
 ------------------------------------------------------------------------------
 
 library ieee;
@@ -35,7 +36,7 @@ use work.pdp11.all;
 
 -- ----------------------------------------------------------------------------
 
-entity pdp11_mmu_ssr12 is               -- mmu register ssr1 and ssr2
+entity pdp11_mmu_mmr12 is               -- mmu register mmr1 and mmr2
   port (
     CLK : in slbit;                     -- clock
     CRESET : in slbit;                  -- cpu reset
@@ -44,64 +45,64 @@ entity pdp11_mmu_ssr12 is               -- mmu register ssr1 and ssr2
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type          -- ibus response
   );
-end pdp11_mmu_ssr12;
+end pdp11_mmu_mmr12;
 
-architecture syn of pdp11_mmu_ssr12 is
+architecture syn of pdp11_mmu_mmr12 is
 
-  constant ibaddr_ssr1 : slv16 := slv(to_unsigned(8#177574#,16));
-  constant ibaddr_ssr2 : slv16 := slv(to_unsigned(8#177576#,16));
+  constant ibaddr_mmr1 : slv16 := slv(to_unsigned(8#177574#,16));
+  constant ibaddr_mmr2 : slv16 := slv(to_unsigned(8#177576#,16));
   
-  subtype ssr1_ibf_rb_delta is integer range 15 downto 11;
-  subtype ssr1_ibf_rb_num is integer range 10 downto 8;
-  subtype ssr1_ibf_ra_delta is integer range 7 downto 3;
-  subtype ssr1_ibf_ra_num is integer range 2 downto 0;
+  subtype mmr1_ibf_rb_delta is integer range 15 downto 11;
+  subtype mmr1_ibf_rb_num is integer range 10 downto 8;
+  subtype mmr1_ibf_ra_delta is integer range 7 downto 3;
+  subtype mmr1_ibf_ra_num is integer range 2 downto 0;
 
-  signal IBSEL_SSR1 : slbit := '0';
-  signal IBSEL_SSR2 : slbit := '0';
-  signal R_SSR1 : mmu_ssr1_type := mmu_ssr1_init;
-  signal R_SSR2 : slv16 := (others=>'0');
-  signal N_SSR1 : mmu_ssr1_type := mmu_ssr1_init;
-  signal N_SSR2 : slv16 := (others=>'0');
+  signal IBSEL_MMR1 : slbit := '0';
+  signal IBSEL_MMR2 : slbit := '0';
+  signal R_MMR1 : mmu_mmr1_type := mmu_mmr1_init;
+  signal R_MMR2 : slv16 := (others=>'0');
+  signal N_MMR1 : mmu_mmr1_type := mmu_mmr1_init;
+  signal N_MMR2 : slv16 := (others=>'0');
 
 begin
 
-  SEL_SSR1 : ib_sel
+  SEL_MMR1 : ib_sel
     generic map (
-      IB_ADDR => ibaddr_ssr1)
+      IB_ADDR => ibaddr_mmr1)
     port map (
       CLK     => CLK,
       IB_MREQ => IB_MREQ,
-      SEL     => IBSEL_SSR1
+      SEL     => IBSEL_MMR1
     );
-  SEL_SSR2 : ib_sel
+  SEL_MMR2 : ib_sel
     generic map (
-      IB_ADDR => ibaddr_ssr2)
+      IB_ADDR => ibaddr_mmr2)
     port map (
       CLK     => CLK,
       IB_MREQ => IB_MREQ,
-      SEL     => IBSEL_SSR2
+      SEL     => IBSEL_MMR2
     );
 
-  proc_ibres : process (IBSEL_SSR1, IBSEL_SSR2, IB_MREQ, R_SSR1, R_SSR2)
-    variable ssr1out : slv16 := (others=>'0');
-    variable ssr2out : slv16 := (others=>'0');
+  proc_ibres : process (IBSEL_MMR1, IBSEL_MMR2, IB_MREQ, R_MMR1, R_MMR2)
+    variable mmr1out : slv16 := (others=>'0');
+    variable mmr2out : slv16 := (others=>'0');
   begin
 
-    ssr1out := (others=>'0');
-    if IBSEL_SSR1 = '1' then
-      ssr1out(ssr1_ibf_rb_delta) := R_SSR1.rb_delta;
-      ssr1out(ssr1_ibf_rb_num)   := R_SSR1.rb_num;
-      ssr1out(ssr1_ibf_ra_delta) := R_SSR1.ra_delta;
-      ssr1out(ssr1_ibf_ra_num)   := R_SSR1.ra_num;
+    mmr1out := (others=>'0');
+    if IBSEL_MMR1 = '1' then
+      mmr1out(mmr1_ibf_rb_delta) := R_MMR1.rb_delta;
+      mmr1out(mmr1_ibf_rb_num)   := R_MMR1.rb_num;
+      mmr1out(mmr1_ibf_ra_delta) := R_MMR1.ra_delta;
+      mmr1out(mmr1_ibf_ra_num)   := R_MMR1.ra_num;
     end if;
     
-    ssr2out := (others=>'0');
-    if IBSEL_SSR2 = '1' then
-      ssr2out := R_SSR2;
+    mmr2out := (others=>'0');
+    if IBSEL_MMR2 = '1' then
+      mmr2out := R_MMR2;
     end if;
      
-    IB_SRES.dout <= ssr1out or ssr2out;
-    IB_SRES.ack  <= (IBSEL_SSR1 or IBSEL_SSR2) and
+    IB_SRES.dout <= mmr1out or mmr2out;
+    IB_SRES.ack  <= (IBSEL_MMR1 or IBSEL_MMR2) and
                     (IB_MREQ.re or IB_MREQ.we); -- ack all
     IB_SRES.busy <= '0';
 
@@ -110,74 +111,74 @@ begin
   proc_regs : process (CLK)
   begin
     if rising_edge(CLK) then
-      R_SSR1 <= N_SSR1;
-      R_SSR2 <= N_SSR2;
+      R_MMR1 <= N_MMR1;
+      R_MMR2 <= N_MMR2;
     end if;
   end process proc_regs;
 
-  proc_comb : process (CRESET, IBSEL_SSR1, IB_MREQ,
-                       R_SSR1, R_SSR2, TRACE, MONI)
+  proc_comb : process (CRESET, IBSEL_MMR1, IB_MREQ,
+                       R_MMR1, R_MMR2, TRACE, MONI)
 
-    variable nssr1 : mmu_ssr1_type := mmu_ssr1_init;
-    variable nssr2 : slv16 := (others=>'0');
+    variable nmmr1 : mmu_mmr1_type := mmu_mmr1_init;
+    variable nmmr2 : slv16 := (others=>'0');
     variable delta : slv5 := (others=>'0');
     variable use_rb : slbit := '0';
     
   begin
 
-    nssr1 := R_SSR1;
-    nssr2 := R_SSR2;
+    nmmr1 := R_MMR1;
+    nmmr2 := R_MMR2;
     delta := "0" & MONI.delta;
 
     use_rb := '0';
-    if MONI.regnum/=nssr1.ra_num and unsigned(nssr1.ra_delta)/=0 then
+    if MONI.regnum/=nmmr1.ra_num and unsigned(nmmr1.ra_delta)/=0 then
       use_rb := '1';
     end if;
 
     if CRESET = '1' then
-      nssr1 := mmu_ssr1_init;
-      nssr2 := (others=>'0');
+      nmmr1 := mmu_mmr1_init;
+      nmmr2 := (others=>'0');
       
-    elsif IBSEL_SSR1='1' and IB_MREQ.we='1' then
+    elsif IBSEL_MMR1='1' and IB_MREQ.we='1' then
       
       if IB_MREQ.be1 = '1' then
-        nssr1.rb_delta := IB_MREQ.din(ssr1_ibf_rb_delta);
-        nssr1.rb_num   := IB_MREQ.din(ssr1_ibf_rb_num);
+        nmmr1.rb_delta := IB_MREQ.din(mmr1_ibf_rb_delta);
+        nmmr1.rb_num   := IB_MREQ.din(mmr1_ibf_rb_num);
       end if;
       if IB_MREQ.be0 = '1' then
-        nssr1.ra_delta := IB_MREQ.din(ssr1_ibf_ra_delta);
-        nssr1.ra_num   := IB_MREQ.din(ssr1_ibf_ra_num);
+        nmmr1.ra_delta := IB_MREQ.din(mmr1_ibf_ra_delta);
+        nmmr1.ra_num   := IB_MREQ.din(mmr1_ibf_ra_num);
       end if;
       
     elsif TRACE = '1' then
 
       if MONI.istart = '1' then
-        nssr1 := mmu_ssr1_init;
-        nssr2 := MONI.pc;
+        nmmr1 := mmu_mmr1_init;
+        nmmr2 := MONI.pc;
 
       elsif MONI.regmod = '1' then
         if use_rb = '0' then
-          nssr1.ra_num := MONI.regnum;
+          nmmr1.ra_num := MONI.regnum;
           if MONI.isdec = '0' then
-            nssr1.ra_delta := slv(signed(nssr1.ra_delta) + signed(delta));
+            nmmr1.ra_delta := slv(signed(nmmr1.ra_delta) + signed(delta));
           else
-            nssr1.ra_delta := slv(signed(nssr1.ra_delta) - signed(delta));
+            nmmr1.ra_delta := slv(signed(nmmr1.ra_delta) - signed(delta));
           end if;
         else
-          nssr1.rb_num := MONI.regnum;
+          nmmr1.rb_num := MONI.regnum;
           if MONI.isdec = '0' then
-            nssr1.rb_delta := slv(signed(nssr1.rb_delta) + signed(delta));
+            nmmr1.rb_delta := slv(signed(nmmr1.rb_delta) + signed(delta));
           else
-            nssr1.rb_delta := slv(signed(nssr1.rb_delta) - signed(delta));
+            nmmr1.rb_delta := slv(signed(nmmr1.rb_delta) - signed(delta));
           end if;
         end if;
       end if;
 
     end if;
 
-    N_SSR1 <= nssr1;
-    N_SSR2 <= nssr2;
+    N_MMR1 <= nmmr1;
+    N_MMR2 <= nmmr2;
 
-  end process proc_comb;  
+  end process proc_comb;
 
 end syn;

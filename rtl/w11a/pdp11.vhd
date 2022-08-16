@@ -1,16 +1,17 @@
--- $Id: pdp11.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: pdp11.vhd 1279 2022-08-14 08:02:21Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2006-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Package Name:   pdp11
 -- Description:    Definitions for pdp11 components
 --
 -- Dependencies:   -
--- Tool versions:  ise 8.2-14.7; viv 2016.2-2019.1; ghdl 0.18-0.35
+-- Tool versions:  ise 8.2-14.7; viv 2016.2-2022.1; ghdl 0.18-2.0.0
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-08-13  1279   1.6.13 ssr->mmr rename
 -- 2019-06-02  1159   1.6.12 add rbaddr_ constants
 -- 2019-03-01  1116   1.6.11 define c_init_rbf_greset
 -- 2018-10-07  1054   1.6.10 add DM_STAT_EXP; add DM_STAT_SE.itimer
@@ -144,16 +145,16 @@ package pdp11 is
   constant psw_ibf_tflag: integer :=  4;
   subtype  psw_ibf_cc     is integer range  3 downto  0;  
 
-  type sarsdr_type is record            -- combined SAR/SDR MMU status
-    saf : slv16;                        -- segment address field
-    slf : slv7;                         -- segment length field
+  type parpdr_type is record            -- combined PAR/PDR MMU status
+    paf : slv16;                        -- page address field
+    plf : slv7;                         -- page length field
     ed : slbit;                         -- expansion direction
     acf : slv3;                         -- access control field
-  end record sarsdr_type;
+  end record parpdr_type;
 
-  constant sarsdr_init : sarsdr_type := (
-    (others=>'0'),                      -- saf
-    "0000000",'0',"000"                 -- slf, ed, acf
+  constant parpdr_init : parpdr_type := (
+    (others=>'0'),                      -- paf
+    "0000000",'0',"000"                 -- plf, ed, acf
   );
 
   type dpath_cntl_type is record        -- data path control
@@ -413,7 +414,7 @@ package pdp11 is
     kstack : slbit;                     -- access through kernel stack
     intrsv : slbit;                     -- active rsv interrupt sequence
     mode : slv2;                        -- mode
-    trap_done : slbit;                  -- mmu trap taken (to set ssr0 bit)
+    trap_done : slbit;                  -- mmu trap taken (to set mmr0 bit)
   end record vm_cntl_type;
 
   constant vm_cntl_init : vm_cntl_type := (
@@ -469,7 +470,7 @@ package pdp11 is
     cacc : slbit;                       -- console access (bypass mmu)
     dspace : slbit;                     -- dspace access
     mode : slv2;                        -- processor mode
-    trap_done : slbit;                  -- mmu trap taken (set ssr0 bit)
+    trap_done : slbit;                  -- mmu trap taken (set mmr0 bit)
   end record mmu_cntl_type;
 
   constant mmu_cntl_init : mmu_cntl_type := (
@@ -480,9 +481,9 @@ package pdp11 is
   type mmu_stat_type is record          -- mmu status port
     vaok : slbit;                       -- virtual address valid
     trap : slbit;                       -- mmu trap request
-    ena_mmu : slbit;                    -- mmu enable (ssr0 bit 0)
-    ena_22bit : slbit;                  -- mmu in 22 bit mode (ssr3 bit 4)
-    ena_ubmap : slbit;                  -- ubmap enable (ssr3 bit 5)
+    ena_mmu : slbit;                    -- mmu enable (mmr0 bit 0)
+    ena_22bit : slbit;                  -- mmu in 22 bit mode (mmr3 bit 4)
+    ena_ubmap : slbit;                  -- ubmap enable (mmr3 bit 5)
   end record mmu_stat_type;
 
   constant mmu_stat_init : mmu_stat_type := (others=>'0');
@@ -495,7 +496,7 @@ package pdp11 is
     regnum : slv3;                      -- register number
     delta : slv4;                       -- register offset
     isdec : slbit;                      -- offset to be subtracted
-    trace_prev : slbit;                 -- use ssr12 trace state of prev. state
+    trace_prev : slbit;                 -- use mmr12 trace state of prev. state
   end record mmu_moni_type;
 
   constant mmu_moni_init : mmu_moni_type := (
@@ -504,46 +505,46 @@ package pdp11 is
     '0','0'                             -- isdec, trace_prev
   );
 
-  type mmu_ssr0_type is record          -- MMU ssr0
+  type mmu_mmr0_type is record          -- MMU mmr0
     abo_nonres : slbit;                 -- abort non resident
-    abo_length : slbit;                 -- abort segment length
+    abo_length : slbit;                 -- abort page length
     abo_rdonly : slbit;                 -- abort read-only
     trap_mmu : slbit;                   -- trap management
     ena_trap : slbit;                   -- enable traps
     inst_compl : slbit;                 -- instruction complete
-    seg_mode : slv2;                    -- segement mode
+    page_mode : slv2;                   -- page mode
     dspace : slbit;                     -- address space (D=1, I=0)
-    seg_num : slv3;                     -- segment number
+    page_num : slv3;                    -- page number
     ena_mmu : slbit;                    -- enable memory management
-    trace_prev : slbit;                 -- ssr12 trace status in prev. state
-  end record mmu_ssr0_type;
+    trace_prev : slbit;                 -- mmr12 trace status in prev. state
+  end record mmu_mmr0_type;
 
-  constant mmu_ssr0_init : mmu_ssr0_type := (
-    inst_compl=>'0', seg_mode=>"00", seg_num=>"000",
+  constant mmu_mmr0_init : mmu_mmr0_type := (
+    inst_compl=>'0', page_mode=>"00", page_num=>"000",
     others=>'0'
   );
 
-  type mmu_ssr1_type is record          -- MMU ssr1
+  type mmu_mmr1_type is record          -- MMU mmr1
     rb_delta : slv5;                    -- RB: amount change
     rb_num : slv3;                      -- RB: register number
     ra_delta : slv5;                    -- RA: amount change
     ra_num : slv3;                      -- RA: register number
-  end record mmu_ssr1_type;
+  end record mmu_mmr1_type;
   
-  constant mmu_ssr1_init : mmu_ssr1_type := (
+  constant mmu_mmr1_init : mmu_mmr1_type := (
     "00000","000",                      -- rb_...
     "00000","000"                       -- ra_...
   );
 
-  type mmu_ssr3_type is record          -- MMU ssr3
+  type mmu_mmr3_type is record          -- MMU mmr3
     ena_ubmap : slbit;                  -- enable unibus mapping
     ena_22bit : slbit;                  -- enable 22 bit mapping
     dspace_km : slbit;                  -- enable dspace kernel
     dspace_sm : slbit;                  -- enable dspace supervisor
     dspace_um : slbit;                  -- enable dspace user
-  end record mmu_ssr3_type;
+  end record mmu_mmr3_type;
 
-  constant mmu_ssr3_init : mmu_ssr3_type := (others=>'0');
+  constant mmu_mmr3_init : mmu_mmr3_type := (others=>'0');
 
 -- control port definitions --------------------------------------------------
 
@@ -932,21 +933,21 @@ constant c_munit_func_div  : slv2 := "01"; -- DIV
 constant c_munit_func_ash  : slv2 := "10"; -- ASH
 constant c_munit_func_ashc : slv2 := "11"; -- ASHC
 
-component pdp11_mmu_sadr is             -- mmu SAR/SDR register set
+component pdp11_mmu_padr is             -- mmu PAR/PDR register set
   port (
     CLK : in slbit;                     -- clock
     MODE : in slv2;                     -- mode
-    ASN : in slv4;                      -- augmented segment number (1+3 bit)
+    APN : in slv4;                      -- augmented page number (1+3 bit)
     AIB_WE : in slbit;                  -- update AIB
     AIB_SETA : in slbit;                -- set access AIB
     AIB_SETW : in slbit;                -- set write AIB
-    SARSDR : out sarsdr_type;           -- combined SAR/SDR
+    PARPDR : out parpdr_type;           -- combined PAR/PDR
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type          -- ibus response
   );
 end component;
 
-component pdp11_mmu_ssr12 is            -- mmu register ssr1 and ssr2
+component pdp11_mmu_mmr12 is            -- mmu register mmr1 and mmr2
   port (
     CLK : in slbit;                     -- clock
     CRESET : in slbit;                  -- cpu reset

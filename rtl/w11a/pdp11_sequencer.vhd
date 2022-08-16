@@ -1,6 +1,6 @@
--- $Id: pdp11_sequencer.vhd 1203 2019-08-19 21:41:03Z mueller $
+-- $Id: pdp11_sequencer.vhd 1279 2022-08-14 08:02:21Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2006-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    pdp11_sequencer - syn
@@ -9,10 +9,11 @@
 -- Dependencies:   ib_sel
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4-2019.1; ghdl 0.18-0.36
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2022.1; ghdl 0.18-2.0.0
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-08-13  1279   1.6.13 ssr->mmr rename
 -- 2019-08-17  1203   1.6.12 fix for ghdl V0.36 -Whide warnings
 -- 2018-10-07  1054   1.6.11 drop ITIMER, use DM_STAT_SE.itimer
 -- 2018-10-06  1053   1.6.10 add DM_STAT_SE.(cpbusy,idec,pcload)
@@ -1375,7 +1376,7 @@ begin
         if R_STATUS.do_gprwe = '1' then
           nmmumoni.regmod := '1';
           nmmumoni.isdec := '0';
-          nmmumoni.trace_prev := '1';              -- ssr freeze of prev state
+          nmmumoni.trace_prev := '1';              -- mmr freeze of prev state
           ndpcntl.gpr_we := '1';                   -- update DST reg
         end if;
         nstatus.do_gprwe := '0';
@@ -2144,7 +2145,7 @@ begin
 
       when s_trap_disp =>               -- -----------------------------------
         if R_STATUS.trap_mmu = '1' then
-          nvmcntl.trap_done := '1';     -- mmu trap taken: set ssr0 trap bit
+          nvmcntl.trap_done := '1';     -- mmu trap taken: set mmr0 trap bit
           lvector := "0101010";         -- mmu trap: vector (250)
         elsif R_STATUS.trap_ysv = '1' then
           lvector := "0000001";         -- ysv trap: vector (4)          

@@ -1,32 +1,33 @@
--- $Id: pdp11_mmu.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: pdp11_mmu.vhd 1279 2022-08-14 08:02:21Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    pdp11_mmu - syn
 -- Description:    pdp11: mmu - memory management unit
 --
--- Dependencies:   pdp11_mmu_sadr
---                 pdp11_mmu_ssr12
+-- Dependencies:   pdp11_mmu_padr
+--                 pdp11_mmu_mmr12
 --                 ibus/ib_sres_or_3
 --                 ibus/ib_sel
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2022.1; ghdl 0.18-2.0.0
 --
--- Revision History: 
+-- Revision History:
 -- Date         Rev Version  Comment
+-- 2022-08-13  1279   1.4.3  ssr->mmr rename
 -- 2011-11-18   427   1.4.2  now numeric_std clean
 -- 2010-10-23   335   1.4.1  use ib_sel
 -- 2010-10-17   333   1.4    use ibus V2 interface
 -- 2010-06-20   307   1.3.7  rename cpacc to cacc in mmu_cntl_type
 -- 2009-05-30   220   1.3.6  final removal of snoopers (were already commented)
 -- 2009-05-09   213   1.3.5  BUGFIX: tie inst_compl permanentely '0'
---                           BUGFIX: set ssr0 trap_mmu even when traps disabled
+--                           BUGFIX: set mmr0 trap_mmu even when traps disabled
 -- 2008-08-22   161   1.3.4  rename pdp11_ibres_ -> ib_sres_, ubf_ -> ibf_
--- 2008-04-27   139   1.3.3  allow ssr1/2 tracing even with mmu_ena=0
--- 2008-04-25   138   1.3.2  add BRESET port, clear ssr0/3 with BRESET
+-- 2008-04-27   139   1.3.3  allow mmr1/2 tracing even with mmu_ena=0
+-- 2008-04-25   138   1.3.2  add BRESET port, clear mmr0/3 with BRESET
 -- 2008-03-02   121   1.3.1  remove snoopers
 -- 2008-02-24   119   1.3    return always mapped address in PADDRH; remove
 --                           cpacc handling; PADDR generation now on _vmbox
@@ -36,7 +37,7 @@
 -- 2007-12-31   108   1.1.1  remove SADR memory address mux (-> _mmu_regfile)
 -- 2007-12-30   107   1.1    use IB_MREQ/IB_SRES interface now
 -- 2007-06-14    56   1.0.1  Use slvtypes.all
--- 2007-05-12    26   1.0    Initial version 
+-- 2007-05-12    26   1.0    Initial version
 ------------------------------------------------------------------------------
 
 library ieee;
@@ -66,218 +67,218 @@ end pdp11_mmu;
 
 architecture syn of pdp11_mmu is
   
-  constant ibaddr_ssr0 : slv16 := slv(to_unsigned(8#177572#,16));
-  constant ibaddr_ssr3 : slv16 := slv(to_unsigned(8#172516#,16));
+  constant ibaddr_mmr0 : slv16 := slv(to_unsigned(8#177572#,16));
+  constant ibaddr_mmr3 : slv16 := slv(to_unsigned(8#172516#,16));
 
-  constant ssr0_ibf_abo_nonres : integer := 15;
-  constant ssr0_ibf_abo_length : integer := 14;
-  constant ssr0_ibf_abo_rdonly : integer := 13;
-  constant ssr0_ibf_trap_mmu : integer := 12;
-  constant ssr0_ibf_ena_trap : integer := 9;
-  constant ssr0_ibf_inst_compl : integer := 7;
-  subtype  ssr0_ibf_seg_mode is integer range 6 downto 5;
-  constant ssr0_ibf_dspace : integer := 4;
-  subtype  ssr0_ibf_seg_num is integer range 3 downto 1;
-  constant ssr0_ibf_ena_mmu : integer := 0;
+  constant mmr0_ibf_abo_nonres : integer := 15;
+  constant mmr0_ibf_abo_length : integer := 14;
+  constant mmr0_ibf_abo_rdonly : integer := 13;
+  constant mmr0_ibf_trap_mmu : integer := 12;
+  constant mmr0_ibf_ena_trap : integer := 9;
+  constant mmr0_ibf_inst_compl : integer := 7;
+  subtype  mmr0_ibf_page_mode is integer range 6 downto 5;
+  constant mmr0_ibf_dspace : integer := 4;
+  subtype  mmr0_ibf_page_num is integer range 3 downto 1;
+  constant mmr0_ibf_ena_mmu : integer := 0;
   
-  constant ssr3_ibf_ena_ubmap : integer := 5;
-  constant ssr3_ibf_ena_22bit : integer := 4;
-  constant ssr3_ibf_dspace_km : integer := 2;
-  constant ssr3_ibf_dspace_sm : integer := 1;
-  constant ssr3_ibf_dspace_um : integer := 0;
+  constant mmr3_ibf_ena_ubmap : integer := 5;
+  constant mmr3_ibf_ena_22bit : integer := 4;
+  constant mmr3_ibf_dspace_km : integer := 2;
+  constant mmr3_ibf_dspace_sm : integer := 1;
+  constant mmr3_ibf_dspace_um : integer := 0;
 
-  signal IBSEL_SSR0 : slbit := '0';     -- ibus select SSR0
-  signal IBSEL_SSR3 : slbit := '0';     -- ibus select SSR3
+  signal IBSEL_MMR0 : slbit := '0';     -- ibus select MMR0
+  signal IBSEL_MMR3 : slbit := '0';     -- ibus select MMR3
 
-  signal R_SSR0 : mmu_ssr0_type := mmu_ssr0_init;
-  signal N_SSR0 : mmu_ssr0_type := mmu_ssr0_init;
+  signal R_MMR0 : mmu_mmr0_type := mmu_mmr0_init;
+  signal N_MMR0 : mmu_mmr0_type := mmu_mmr0_init;
 
-  signal R_SSR3 : mmu_ssr3_type := mmu_ssr3_init;
+  signal R_MMR3 : mmu_mmr3_type := mmu_mmr3_init;
 
-  signal ASN : slv4 := "0000";          -- augmented segment number (1+3 bit)
+  signal APN : slv4 := "0000";          -- augmented page number (1+3 bit)
   signal AIB_WE : slbit := '0';         -- update AIB
   signal AIB_SETA : slbit := '0';       -- set A bit in access information bits
   signal AIB_SETW : slbit := '0';       -- set W bit in access information bits
 
-  signal TRACE : slbit := '0';          -- enable tracing in ssr1/2
+  signal TRACE : slbit := '0';          -- enable tracing in mmr1/2
   signal DSPACE : slbit := '0';         -- use dspace
 
-  signal IB_SRES_SADR  : ib_sres_type := ib_sres_init;
-  signal IB_SRES_SSR12 : ib_sres_type := ib_sres_init;
-  signal IB_SRES_SSR03 : ib_sres_type := ib_sres_init;
+  signal IB_SRES_PADR  : ib_sres_type := ib_sres_init;
+  signal IB_SRES_MMR12 : ib_sres_type := ib_sres_init;
+  signal IB_SRES_MMR03 : ib_sres_type := ib_sres_init;
 
-  signal SARSDR : sarsdr_type := sarsdr_init;
+  signal PARPDR : parpdr_type := parpdr_init;
 
 begin
 
-  SADR : pdp11_mmu_sadr port map (
+  PADR : pdp11_mmu_padr port map (
     CLK      => CLK,
     MODE     => CNTL.mode,
-    ASN      => ASN,
+    APN      => APN,
     AIB_WE   => AIB_WE,
     AIB_SETA => AIB_SETA,
     AIB_SETW => AIB_SETW,
-    SARSDR   => SARSDR,
+    PARPDR   => PARPDR,
     IB_MREQ  => IB_MREQ,
-    IB_SRES  => IB_SRES_SADR);
+    IB_SRES  => IB_SRES_PADR);
 
-  SSR12 : pdp11_mmu_ssr12 port map (
+  MMR12 : pdp11_mmu_mmr12 port map (
     CLK     => CLK,
     CRESET  => CRESET,
     TRACE   => TRACE,
     MONI    => MONI,
     IB_MREQ => IB_MREQ,
-    IB_SRES => IB_SRES_SSR12);
+    IB_SRES => IB_SRES_MMR12);
 
   SRES_OR : ib_sres_or_3
     port map (
-      IB_SRES_1  => IB_SRES_SADR,
-      IB_SRES_2  => IB_SRES_SSR12,
-      IB_SRES_3  => IB_SRES_SSR03,
+      IB_SRES_1  => IB_SRES_PADR,
+      IB_SRES_2  => IB_SRES_MMR12,
+      IB_SRES_3  => IB_SRES_MMR03,
       IB_SRES_OR => IB_SRES);
 
-  SEL_SSR0 : ib_sel
+  SEL_MMR0 : ib_sel
     generic map (
-      IB_ADDR => ibaddr_ssr0)
+      IB_ADDR => ibaddr_mmr0)
     port map (
       CLK     => CLK,
       IB_MREQ => IB_MREQ,
-      SEL     => IBSEL_SSR0
+      SEL     => IBSEL_MMR0
     );
-  SEL_SSR3 : ib_sel
+  SEL_MMR3 : ib_sel
     generic map (
-      IB_ADDR => ibaddr_ssr3)
+      IB_ADDR => ibaddr_mmr3)
     port map (
       CLK     => CLK,
       IB_MREQ => IB_MREQ,
-      SEL     => IBSEL_SSR3
+      SEL     => IBSEL_MMR3
     );
 
-  proc_ibres : process (IBSEL_SSR0, IBSEL_SSR3, IB_MREQ, R_SSR0, R_SSR3)
+  proc_ibres : process (IBSEL_MMR0, IBSEL_MMR3, IB_MREQ, R_MMR0, R_MMR3)
 
-    variable ssr0out : slv16 := (others=>'0');
-    variable ssr3out : slv16 := (others=>'0');
+    variable mmr0out : slv16 := (others=>'0');
+    variable mmr3out : slv16 := (others=>'0');
 
   begin
 
-    ssr0out := (others=>'0');
-    if IBSEL_SSR0 = '1' then
-      ssr0out(ssr0_ibf_abo_nonres) := R_SSR0.abo_nonres;
-      ssr0out(ssr0_ibf_abo_length) := R_SSR0.abo_length;
-      ssr0out(ssr0_ibf_abo_rdonly) := R_SSR0.abo_rdonly;
-      ssr0out(ssr0_ibf_trap_mmu)   := R_SSR0.trap_mmu;
-      ssr0out(ssr0_ibf_ena_trap)   := R_SSR0.ena_trap;
-      ssr0out(ssr0_ibf_inst_compl) := R_SSR0.inst_compl;
-      ssr0out(ssr0_ibf_seg_mode)   := R_SSR0.seg_mode;
-      ssr0out(ssr0_ibf_dspace)     := R_SSR0.dspace;
-      ssr0out(ssr0_ibf_seg_num)    := R_SSR0.seg_num;
-      ssr0out(ssr0_ibf_ena_mmu)    := R_SSR0.ena_mmu;
+    mmr0out := (others=>'0');
+    if IBSEL_MMR0 = '1' then
+      mmr0out(mmr0_ibf_abo_nonres) := R_MMR0.abo_nonres;
+      mmr0out(mmr0_ibf_abo_length) := R_MMR0.abo_length;
+      mmr0out(mmr0_ibf_abo_rdonly) := R_MMR0.abo_rdonly;
+      mmr0out(mmr0_ibf_trap_mmu)   := R_MMR0.trap_mmu;
+      mmr0out(mmr0_ibf_ena_trap)   := R_MMR0.ena_trap;
+      mmr0out(mmr0_ibf_inst_compl) := R_MMR0.inst_compl;
+      mmr0out(mmr0_ibf_page_mode)  := R_MMR0.page_mode;
+      mmr0out(mmr0_ibf_dspace)     := R_MMR0.dspace;
+      mmr0out(mmr0_ibf_page_num)   := R_MMR0.page_num;
+      mmr0out(mmr0_ibf_ena_mmu)    := R_MMR0.ena_mmu;
     end if;
     
-    ssr3out := (others=>'0');
-    if IBSEL_SSR3 = '1' then
-      ssr3out(ssr3_ibf_ena_ubmap) := R_SSR3.ena_ubmap;
-      ssr3out(ssr3_ibf_ena_22bit) := R_SSR3.ena_22bit;
-      ssr3out(ssr3_ibf_dspace_km) := R_SSR3.dspace_km;
-      ssr3out(ssr3_ibf_dspace_sm) := R_SSR3.dspace_sm;
-      ssr3out(ssr3_ibf_dspace_um) := R_SSR3.dspace_um;
+    mmr3out := (others=>'0');
+    if IBSEL_MMR3 = '1' then
+      mmr3out(mmr3_ibf_ena_ubmap) := R_MMR3.ena_ubmap;
+      mmr3out(mmr3_ibf_ena_22bit) := R_MMR3.ena_22bit;
+      mmr3out(mmr3_ibf_dspace_km) := R_MMR3.dspace_km;
+      mmr3out(mmr3_ibf_dspace_sm) := R_MMR3.dspace_sm;
+      mmr3out(mmr3_ibf_dspace_um) := R_MMR3.dspace_um;
     end if;
  
-    IB_SRES_SSR03.dout <= ssr0out or ssr3out;
-    IB_SRES_SSR03.ack  <= (IBSEL_SSR0 or IBSEL_SSR3) and
+    IB_SRES_MMR03.dout <= mmr0out or mmr3out;
+    IB_SRES_MMR03.ack  <= (IBSEL_MMR0 or IBSEL_MMR3) and
                           (IB_MREQ.re or IB_MREQ.we); -- ack all
-    IB_SRES_SSR03.busy <= '0';
+    IB_SRES_MMR03.busy <= '0';
 
   end process proc_ibres;
 
-  proc_ssr0 : process (CLK)
+  proc_mmr0 : process (CLK)
   begin
     if rising_edge(CLK) then
       if BRESET = '1' then
-        R_SSR0 <= mmu_ssr0_init;
+        R_MMR0 <= mmu_mmr0_init;
       else
-        R_SSR0 <= N_SSR0;
+        R_MMR0 <= N_MMR0;
       end if;
     end if;
-  end process proc_ssr0;
+  end process proc_mmr0;
 
-  proc_ssr3 : process (CLK)
+  proc_mmr3 : process (CLK)
   begin
     if rising_edge(CLK) then
       if BRESET = '1' then
-        R_SSR3 <= mmu_ssr3_init;
-      elsif IBSEL_SSR3='1' and IB_MREQ.we='1' then
+        R_MMR3 <= mmu_mmr3_init;
+      elsif IBSEL_MMR3='1' and IB_MREQ.we='1' then
         if IB_MREQ.be0 = '1' then
-          R_SSR3.ena_ubmap <= IB_MREQ.din(ssr3_ibf_ena_ubmap);
-          R_SSR3.ena_22bit <= IB_MREQ.din(ssr3_ibf_ena_22bit);
-          R_SSR3.dspace_km <= IB_MREQ.din(ssr3_ibf_dspace_km);
-          R_SSR3.dspace_sm <= IB_MREQ.din(ssr3_ibf_dspace_sm);
-          R_SSR3.dspace_um <= IB_MREQ.din(ssr3_ibf_dspace_um);
+          R_MMR3.ena_ubmap <= IB_MREQ.din(mmr3_ibf_ena_ubmap);
+          R_MMR3.ena_22bit <= IB_MREQ.din(mmr3_ibf_ena_22bit);
+          R_MMR3.dspace_km <= IB_MREQ.din(mmr3_ibf_dspace_km);
+          R_MMR3.dspace_sm <= IB_MREQ.din(mmr3_ibf_dspace_sm);
+          R_MMR3.dspace_um <= IB_MREQ.din(mmr3_ibf_dspace_um);
         end if;
       end if;
     end if;
-  end process proc_ssr3;
+  end process proc_mmr3;
 
-  proc_paddr : process (R_SSR0, R_SSR3, CNTL, SARSDR, VADDR)
+  proc_paddr : process (R_MMR0, R_MMR3, CNTL, PARPDR, VADDR)
     
     variable ipaddrh : slv16 := (others=>'0');
     variable dspace_ok : slbit := '0';
     variable dspace_en : slbit := '0';
-    variable asf : slv3 := (others=>'0'); -- va: active segment field
+    variable apf : slv3 := (others=>'0'); -- va: active page field
     variable bn : slv7 := (others=>'0');  -- va: block number
-    variable iasn : slv4 := (others=>'0');-- augmented segment number
+    variable iapn : slv4 := (others=>'0');-- augmented page number
     
   begin
     
-    asf := VADDR(15 downto 13);
+    apf := VADDR(15 downto 13);
     bn := VADDR(12 downto 6);
 
     dspace_en := '0';
     case CNTL.mode is
-      when "00" => dspace_en := R_SSR3.dspace_km;
-      when "01" => dspace_en := R_SSR3.dspace_sm;
-      when "11" => dspace_en := R_SSR3.dspace_um;
+      when "00" => dspace_en := R_MMR3.dspace_km;
+      when "01" => dspace_en := R_MMR3.dspace_sm;
+      when "11" => dspace_en := R_MMR3.dspace_um;
       when others => null;
     end case;
     dspace_ok := CNTL.dspace and dspace_en;
     
-    iasn(3) := dspace_ok;
-    iasn(2 downto 0) := asf;
+    iapn(3) := dspace_ok;
+    iapn(2 downto 0) := apf;
 
-    ipaddrh := slv(unsigned("000000000"&bn) + unsigned(SARSDR.saf));
+    ipaddrh := slv(unsigned("000000000"&bn) + unsigned(PARPDR.paf));
 
     DSPACE <= dspace_ok;
-    ASN    <= iasn;
+    APN    <= iapn;
     PADDRH <= ipaddrh;
     
   end process proc_paddr;
                          
-  proc_nssr0 : process (R_SSR0, R_SSR3, IB_MREQ, IBSEL_SSR0, DSPACE, 
-                        CNTL, MONI, SARSDR, VADDR)
+  proc_nmmr0 : process (R_MMR0, R_MMR3, IB_MREQ, IBSEL_MMR0, DSPACE,
+                        CNTL, MONI, PARPDR, VADDR)
     
-    variable nssr0 : mmu_ssr0_type := mmu_ssr0_init;
-    variable asf : slv3 := (others=>'0');
-    variable bn : slv7 := (others=>'0'); 
+    variable nmmr0 : mmu_mmr0_type := mmu_mmr0_init;
+    variable apf : slv3 := (others=>'0');
+    variable bn : slv7 := (others=>'0');
     variable abo_nonres : slbit := '0';
     variable abo_length : slbit := '0';
     variable abo_rdonly : slbit := '0';
-    variable ssr_freeze : slbit := '0';
+    variable mmr_freeze : slbit := '0';
     variable doabort : slbit := '0';
     variable dotrap : slbit := '0';
     variable dotrace : slbit := '0';
     
   begin
     
-    nssr0 := R_SSR0;
+    nmmr0 := R_MMR0;
 
     AIB_WE   <= '0';
     AIB_SETA <= '0';
     AIB_SETW <= '0';
 
-    ssr_freeze := R_SSR0.abo_nonres or R_SSR0.abo_length or R_SSR0.abo_rdonly;
-    dotrace := not(CNTL.cacc or ssr_freeze);
+    mmr_freeze := R_MMR0.abo_nonres or R_MMR0.abo_length or R_MMR0.abo_rdonly;
+    dotrace := not(CNTL.cacc or mmr_freeze);
     
-    asf := VADDR(15 downto 13);
+    apf := VADDR(15 downto 13);
     bn := VADDR(12 downto 6);
 
     abo_nonres := '0';
@@ -286,19 +287,19 @@ begin
     doabort := '0';
     dotrap := '0';
     
-    if SARSDR.ed = '0' then             -- ed=0: upward expansion
-      if unsigned(bn) > unsigned(SARSDR.slf) then
+    if PARPDR.ed = '0' then             -- ed=0: upward expansion
+      if unsigned(bn) > unsigned(PARPDR.plf) then
         abo_length := '1';
       end if;
     else                                -- ed=0: downward expansion
-      if unsigned(bn) < unsigned(SARSDR.slf) then
+      if unsigned(bn) < unsigned(PARPDR.plf) then
         abo_length := '1';
       end if;
     end if;
 
-    case SARSDR.acf is                  -- evaluate accecc control field
+    case PARPDR.acf is                  -- evaluate accecc control field
 
-      when "000" =>                     -- segment non-resident
+      when "000" =>                     -- page non-resident
         abo_nonres := '1';
 
       when "001" =>                     -- read-only; trap on read
@@ -324,35 +325,35 @@ begin
         abo_nonres := '1';
     end case;
 
-    if IBSEL_SSR0='1' and IB_MREQ.we='1' then
+    if IBSEL_MMR0='1' and IB_MREQ.we='1' then
 
       if IB_MREQ.be1 = '1' then
-        nssr0.abo_nonres := IB_MREQ.din(ssr0_ibf_abo_nonres);
-        nssr0.abo_length := IB_MREQ.din(ssr0_ibf_abo_length);
-        nssr0.abo_rdonly := IB_MREQ.din(ssr0_ibf_abo_rdonly);
-        nssr0.trap_mmu   := IB_MREQ.din(ssr0_ibf_trap_mmu);
-        nssr0.ena_trap   := IB_MREQ.din(ssr0_ibf_ena_trap);
+        nmmr0.abo_nonres := IB_MREQ.din(mmr0_ibf_abo_nonres);
+        nmmr0.abo_length := IB_MREQ.din(mmr0_ibf_abo_length);
+        nmmr0.abo_rdonly := IB_MREQ.din(mmr0_ibf_abo_rdonly);
+        nmmr0.trap_mmu   := IB_MREQ.din(mmr0_ibf_trap_mmu);
+        nmmr0.ena_trap   := IB_MREQ.din(mmr0_ibf_ena_trap);
       end if;
       if IB_MREQ.be0 = '1' then
-        nssr0.ena_mmu := IB_MREQ.din(ssr0_ibf_ena_mmu);
-      end if;        
+        nmmr0.ena_mmu := IB_MREQ.din(mmr0_ibf_ena_mmu);
+      end if;
       
-    elsif nssr0.ena_mmu='1' and CNTL.cacc='0' then
+    elsif nmmr0.ena_mmu='1' and CNTL.cacc='0' then
 
       if dotrace = '1' then
         if MONI.istart = '1' then
-          nssr0.inst_compl := '0';
+          nmmr0.inst_compl := '0';
         elsif MONI.idone = '1' then
-          nssr0.inst_compl := '0';      -- disable instr.compl logic 
+          nmmr0.inst_compl := '0';      -- disable instr.compl logic
         end if;
       end if;
       
-      if CNTL.req = '1' then      
-        AIB_WE <= '1';        
-        if ssr_freeze = '0' then 
-          nssr0.abo_nonres := abo_nonres;
-          nssr0.abo_length := abo_length;
-          nssr0.abo_rdonly := abo_rdonly;          
+      if CNTL.req = '1' then
+        AIB_WE <= '1';
+        if mmr_freeze = '0' then
+          nmmr0.abo_nonres := abo_nonres;
+          nmmr0.abo_length := abo_length;
+          nmmr0.abo_rdonly := abo_rdonly;
         end if;
         doabort := abo_nonres or abo_length or abo_rdonly;
 
@@ -361,46 +362,46 @@ begin
           AIB_SETW <= CNTL.wacc or CNTL.macc;
         end if;
 
-        if ssr_freeze = '0' then
-          nssr0.dspace   := DSPACE;
-          nssr0.seg_num  := asf;
-          nssr0.seg_mode := CNTL.mode;
+        if mmr_freeze = '0' then
+          nmmr0.dspace    := DSPACE;
+          nmmr0.page_num  := apf;
+          nmmr0.page_mode := CNTL.mode;
         end if;
       end if;
     end if;
 
-    if CNTL.req='1' and R_SSR0.ena_mmu='1' and CNTL.cacc='0' and
+    if CNTL.req='1' and R_MMR0.ena_mmu='1' and CNTL.cacc='0' and
        dotrap='1' then
-      nssr0.trap_mmu := '1';
+      nmmr0.trap_mmu := '1';
     end if;
 
-    nssr0.trace_prev := dotrace;
+    nmmr0.trace_prev := dotrace;
 
     if MONI.trace_prev = '0' then
       TRACE <= dotrace;
     else
-      TRACE <= R_SSR0.trace_prev;
+      TRACE <= R_MMR0.trace_prev;
     end if;
 
-    N_SSR0 <= nssr0;
+    N_MMR0 <= nmmr0;
 
-    if R_SSR0.ena_mmu='1' and CNTL.cacc='0' then
+    if R_MMR0.ena_mmu='1' and CNTL.cacc='0' then
       STAT.vaok <= not doabort;
     else
       STAT.vaok <= '1';
     end if;
 
-    if R_SSR0.ena_mmu='1' and CNTL.cacc='0' and doabort='0' and
-       R_SSR0.ena_trap='1' and R_SSR0.trap_mmu='0' and dotrap='1' then
+    if R_MMR0.ena_mmu='1' and CNTL.cacc='0' and doabort='0' and
+       R_MMR0.ena_trap='1' and R_MMR0.trap_mmu='0' and dotrap='1' then
       STAT.trap <= '1';
     else
       STAT.trap <= '0';
     end if;
 
-    STAT.ena_mmu   <= R_SSR0.ena_mmu;
-    STAT.ena_22bit <= R_SSR3.ena_22bit;
-    STAT.ena_ubmap <= R_SSR3.ena_ubmap;
+    STAT.ena_mmu   <= R_MMR0.ena_mmu;
+    STAT.ena_22bit <= R_MMR3.ena_22bit;
+    STAT.ena_ubmap <= R_MMR3.ena_ubmap;
     
-  end process proc_nssr0;
+  end process proc_nmmr0;
 
 end syn;

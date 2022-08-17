@@ -1,4 +1,4 @@
-/ $Id: dotst.s 1266 2022-07-30 17:33:07Z mueller $
+/ $Id: dotst.s 1276 2022-08-12 10:25:13Z mueller $
 / SPDX-License-Identifier: GPL-3.0-or-later
 / Copyright 2014-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 /
@@ -25,7 +25,7 @@ _dotst: mov     r2,-(sp)                    / save r2 (r0,r1 are volatile)
                                             / now   (sp) -> saved r2
                                             /      2(sp) -> return address
                                             /      4(sp) -> 1st arg: idat
-                                            /      6(sp) -> 2ns arg: odat
+                                            /      6(sp) -> 2nd arg: odat
         
         mov     4(sp), r2                   / r2 = idat
 
@@ -42,8 +42,4 @@ _dotst: mov     r2,-(sp)                    / save r2 (r0,r1 are volatile)
 
         mov     (sp)+,r2                    / restore r2
         rts     pc
-        
 
-
-
-        

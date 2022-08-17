@@ -1,7 +1,7 @@
-/ $Id: getpsw.s 1266 2022-07-30 17:33:07Z mueller $
+/ $Id: getpsw.s 1276 2022-08-12 10:25:13Z mueller $
 / SPDX-License-Identifier: GPL-3.0-or-later
 / Copyright 2014-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-/        
+/
 / Revision History:
 / Date         Rev Version  Comment
 / 2014-07-20   570   1.0    Initial version
@@ -73,6 +73,3 @@ cc111x: bcs     cc1111                      / branch on N=1,Z=1,V=1,C=1
         rts     pc
 cc1111: mov     $017, valpsw                / here      N=1,Z=1,V=1,C=1
         rts     pc
-
-
-        

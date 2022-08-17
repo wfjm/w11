@@ -1,4 +1,4 @@
-## divtst: a test program testing DIV instruction response
+## divtst: a program testing DIV instruction response
 
 The `divtst` program tests the `DIV` instruction with a set of test
 cases and checks whether the response agrees with the expected values.
@@ -44,8 +44,12 @@ The state of the two result registers is also not specified when V=1 is set.
 In some CPUs and some cases the registers preserve the original state, in other
 cases, they are written. This is flagged with two markers
 ```
-R0MOD for R0 changed when V=1 seen
-R1MOD for R1 changed when V=1 seen
+R0MOD for R0 changed when V=1 seen (quotient result register)
+R1MOD for R1 changed when V=1 seen (remainder result register)
 ```
-These markers do not indicate an error, they just flag how `DIV` behaves in
-these unspecified cases.
+Notes:
+- markers do not indicate an error, they just flag how `DIV` behaves in
+  these unspecified cases.
+- the test `DIV` instruction uses `r0` as destination, quotient and remainder
+  go to `r0` and `r1`. Better naming for the flags might have been `RQMOD`
+  and `RRMOD`.

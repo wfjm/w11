@@ -1,4 +1,4 @@
-; $Id: defs_mmu.mac 1272 2022-08-07 17:37:51Z mueller $
+; $Id: defs_mmu.mac 1280 2022-08-15 09:12:03Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -44,7 +44,7 @@
 ;
 ; symbol definitions for pdr regs
 ;
-        md.slf = 000400                 ; LSB of slf field
+        md.plf = 000400                 ; MSB of plf field
         md.aia = 000200                 ; access a, any access
         md.aiw = 000100                 ; access w, write access
         md.dwn = 000010                 ; ed field 1, down expansion

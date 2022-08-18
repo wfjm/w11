@@ -1,4 +1,4 @@
-# $Id: shell.tcl 1177 2019-06-30 12:34:07Z mueller $
+# $Id: shell.tcl 1280 2022-08-15 09:12:03Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -635,7 +635,7 @@ namespace eval rw11 {
     append rval "\n  MS       - for memory access via mmu mode=M and space=S"
     append rval "\n           -   M (mode)  as c,p,k,s,u for cm,pm,kern,sup,user"
     append rval "\n           -   S (space) as i,d for instruction,data"
-    append rval "\n  i        - print as intructuion with dasm"
+    append rval "\n  i        - print as instruction with dasm"
     append rval "\n  a        - print as ascii"
     append rval "\n  d        - print as decimal"
     append rval "\n  x        - print as hex"

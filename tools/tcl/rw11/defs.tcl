@@ -1,4 +1,4 @@
-# $Id: defs.tcl 1274 2022-08-08 09:21:53Z mueller $
+# $Id: defs.tcl 1280 2022-08-15 09:12:03Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2014-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -80,7 +80,7 @@ namespace eval rw11 {
   set A_PAR_SM   0172240
   set A_PDR_UM   0177600
   set A_PAR_UM   0177640
-  regdsc PDR {slf 14 7} {aia  7} {aiw 6} {ed 3} {acf 2 3}
+  regdsc PDR {plf 14 7} {aia  7} {aiw 6} {ed 3} {acf 2 3}
   #
   # PIRQ - Program Interrupt Requests -------------------------------
   set A_PIRQ     0177772

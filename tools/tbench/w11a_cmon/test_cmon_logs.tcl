@@ -1,4 +1,4 @@
-# $Id: test_cmon_logs.tcl 1272 2022-08-07 17:37:51Z mueller $
+# $Id: test_cmon_logs.tcl 1280 2022-08-15 09:12:03Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -572,11 +572,11 @@ v..mmu: .word   vh.mmu          ; vec 250 (MMU)
         .word   cp.pr7
 ; 
         . = 1000
-start:  mov     #<77400+md.arw>,@#<kipdr+00> ; s0: slf=127; ed=0; acf=rw
+start:  mov     #<77400+md.arw>,@#<kipdr+00> ; s0: plf=127; ed=0; acf=rw
         mov     #000000,@#<kipar+00>         ;     1-to-1 
-        mov     #<77400+md.atw>,@#<kipdr+02> ; s1: slf=127; ed=0; acf=rw,trap-w
+        mov     #<77400+md.atw>,@#<kipdr+02> ; s1: plf=127; ed=0; acf=rw,trap-w
         mov     #000200,@#<kipar+02>         ;     1-to-1 
-        mov     #<77400+md.arw>,@#<kipdr+16> ; s7: slf=127; ed=0; acf=rw
+        mov     #<77400+md.arw>,@#<kipdr+16> ; s7: plf=127; ed=0; acf=rw
         mov     #177600,@#<kipar+16>         ;     to io page (22 bit)
         mov     #234,vtst
         mov     #m3.e22,@#mmr3               ; enable 22bit mode
@@ -772,10 +772,10 @@ v..mmu: .word   vh.mmu          ; vec 250 (MMU)
         .word   cp.pr7
 ; 
         . = 1000
-start:  mov     #<77400+md.arw>,@#<kipdr+00> ; s0: slf=127; ed=0; acf=rw
+start:  mov     #<77400+md.arw>,@#<kipdr+00> ; s0: plf=127; ed=0; acf=rw
         mov     #000000,@#<kipar+00>         ;     1-to-1 
-        mov     #077400,@#<kipdr+02>         ; s1: slf=127; ed=0; acf=abo
-        mov     #<77400+md.arw>,@#<kipdr+16> ; s7: slf=127; ed=0; acf=rw
+        mov     #077400,@#<kipdr+02>         ; s1: plf=127; ed=0; acf=abo
+        mov     #<77400+md.arw>,@#<kipdr+16> ; s7: plf=127; ed=0; acf=rw
         mov     #177600,@#<kipar+16>         ;     to io page (22 bit)
         mov     #m3.e22,@#mmr3               ; enable 22bit mode
         mov     #m0.ena,@#mmr0               ; enable mmu

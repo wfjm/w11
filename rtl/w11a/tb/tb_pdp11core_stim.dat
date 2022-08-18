@@ -1,4 +1,4 @@
-# $Id: tb_pdp11core_stim.dat 1274 2022-08-08 09:21:53Z mueller $
+# $Id: tb_pdp11core_stim.dat 1280 2022-08-15 09:12:03Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2007-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -329,14 +329,14 @@ C Setup MMU
 #
 wal     172300    -- kernel I space DR
 bwm     8
-        077406    --   slf=127; ed=0(up); acf=6(w/r)
-        077406    --   slf=127; ed=0(up); acf=6(w/r)
-        077406    --   slf=127; ed=0(up); acf=6(w/r)
-        077406    --   slf=127; ed=0(up); acf=6(w/r)
-        077406    --   slf=127; ed=0(up); acf=6(w/r)
-        077406    --   slf=127; ed=0(up); acf=6(w/r)
-        077406    --   slf=127; ed=0(up); acf=6(w/r)
-        077406    --   slf=127; ed=0(up); acf=6(w/r)
+        077406    --   plf=127; ed=0(up); acf=6(w/r)
+        077406    --   plf=127; ed=0(up); acf=6(w/r)
+        077406    --   plf=127; ed=0(up); acf=6(w/r)
+        077406    --   plf=127; ed=0(up); acf=6(w/r)
+        077406    --   plf=127; ed=0(up); acf=6(w/r)
+        077406    --   plf=127; ed=0(up); acf=6(w/r)
+        077406    --   plf=127; ed=0(up); acf=6(w/r)
+        077406    --   plf=127; ed=0(up); acf=6(w/r)
 wal     172340    -- kernel I space AR
 bwm     8
         000000    --       0 
@@ -1447,7 +1447,7 @@ bwm     2
 wal     177572    -- MMR0
 wmi     000001    --   enable
 wal     172302    -- kernel I space DR segment 1  (base 20000)
-wmi     077400    --   slf=127; ed=0(up); acf=0 (non-resident)
+wmi     077400    --   plf=127; ed=0(up); acf=0 (non-resident)
 #----------
 C Exec test 20.7 (non resident abort)
 wr1     020000    -- r1=20000
@@ -1470,7 +1470,7 @@ wmi     000001    --   enable and clear error bits
 #----------
 C Exec test 20.8 (segment length violation abort)
 wal     172302    -- kernel I space DR segment 1  (base 20000)
-wmi     001406    --   slf=3; ed=0(up); acf=6 (w/r)
+wmi     001406    --   plf=3; ed=0(up); acf=6 (w/r)
 #
 wr1     020400    -- r1=20400
 wr3     000016    -- r3=16       ; the -(r3) fetches the mem(14)=16
@@ -1492,7 +1492,7 @@ wmi     000001    --   enable and clear error bits
 #----------
 C Exec test 20.9 (read-only abort)
 wal     172302    -- kernel I space DR segment 1  (base 20000)
-wmi     077402    --   slf=127; ed=0(up); acf=2 (read-only)
+wmi     077402    --   plf=127; ed=0(up); acf=2 (read-only)
 #
 wr1     020000    -- r1=20000
 wr3     000016    -- r3=16       ; the -(r3) fetches the mem(14)=16
@@ -1511,7 +1511,7 @@ brm     3
 #
 # mmu back to default setup, disable
 wal     172302    -- kernel I space DR segment 1  (base 20000)
-wmi     077406    --   slf=127; ed=0(up); acf=6 (r/w)
+wmi     077406    --   plf=127; ed=0(up); acf=6 (r/w)
 wal     177572    -- MMR0
 wmi     000000    --   disable
 #----------
@@ -1521,7 +1521,7 @@ wmi     000000    --   disable
 wal     177572    -- MMR0
 wmi     001001    --   enable, trap enable
 wal     172302    -- kernel I space DR segment 1  (base 20000)
-wmi     077404    --   slf=127; ed=0(up); acf=4 (r/w, trap on r/w)
+wmi     077404    --   plf=127; ed=0(up); acf=4 (r/w, trap on r/w)
 #----------
 C Exec test 20.10 (trap on write)
 wr1     020000    -- r1=20000
@@ -1563,7 +1563,7 @@ brm     3
 #
 # mmu back to default setup, disable
 wal     172302    -- kernel I space DR segment 1  (base 20000)
-wmi     077406    --   slf=127; ed=0(up); acf=6 (r/w)
+wmi     077406    --   plf=127; ed=0(up); acf=6 (r/w)
 wal     177572    -- MMR0
 wmi     000000    --   disable
 #----------
@@ -1704,7 +1704,7 @@ C Exec test 20.19 (red stack escalation: abort kernel stack mmu abort;sp=020004)
 wal     177572    -- MMR0
 wmi     000001    --   enable
 wal     172302    -- kernel I space DR segment 1  (base 20000)
-wmi     077400    --   slf=127; ed=0(up); acf=0 (non-resident)
+wmi     077400    --   plf=127; ed=0(up); acf=0 (non-resident)
 #
 wr0     123456    -- r0=123456
 wsp     020004    -- sp=020004
@@ -1723,7 +1723,7 @@ rm    d=000104    -- ! CPUERR: (rsv=1,adderr=1)
 wm      000000    --   clear CPUERR
 # mmu back to default setup
 wal     172302    -- kernel I space DR segment 1  (base 20000)
-wmi     077406    --   slf=127; ed=0(up); acf=6 (r/w)
+wmi     077406    --   plf=127; ed=0(up); acf=6 (r/w)
 wal     177572    -- MMR0
 wmi     000000    --   disable
 wal     172516    -- MMR3
@@ -1735,9 +1735,9 @@ C Setup code 21 [base 4740] (MTPx/MFPx; MMU for user mode with I/D)
 #
 #use setting as for test 22
 wal     177600    -- user I space DR
-wmi     077406    --   slf=127; ed=0(up); acf=6(w/r)
+wmi     077406    --   plf=127; ed=0(up); acf=6(w/r)
 wal     177620    -- user D space DR
-wmi     077406    --   slf=127; ed=0(up); acf=6(w/r)
+wmi     077406    --   plf=127; ed=0(up); acf=6(w/r)
 wal     177640    -- user I space AR
 wmi     000053    --      53 -> maps 0 -> 5300 
 wal     177660    -- user D space AR
@@ -1821,9 +1821,9 @@ wps     000000    -- psw: cmode=pmode=0 (kernel)
 C Setup code 22 [base 5000, use 50-57] (MMU ; run user mode code with I/D)
 #
 wal     177600    -- user I space DR
-wmi     000002    --   slf=0; ed=0(up); acf=2(read-only)
+wmi     000002    --   plf=0; ed=0(up); acf=2(read-only)
 wal     177620    -- user D space DR
-wmi     000006    --   slf=0; ed=0(up); acf=6(w/r)
+wmi     000006    --   plf=0; ed=0(up); acf=6(w/r)
 wal     177640    -- user I space AR
 wmi     000053    --      53 -> maps 0 -> 5300 
 wal     177660    -- user D space AR
@@ -5413,7 +5413,7 @@ bwm     2
 # for the test 28/29/30x enable MMU and make address 100000 unavailable
 #
 wal     172310    -- kernel I space DR segment 4 (base 100000)
-wmi     077400    --   slf=127; ed=0(up); acf=0 (non resident)
+wmi     077400    --   plf=127; ed=0(up); acf=0 (non resident)
 #
 C test 44.28: If PC->bad memory, PC incremented {others} / not inc'ed {35,40}
 #
@@ -5515,7 +5515,7 @@ cres              -- console reset (to clear CPUERR reg)
 # now reset MMU to default
 #
 wal     172310    -- kernel I space DR segment 4 (base 100000)
-wmi     077406    --   slf=127; ed=0(up); acf=6 (r/w)
+wmi     077406    --   plf=127; ed=0(up); acf=6 (r/w)
 #
 C test 44.39: cmode=10 will cause abort {70,J11}, treated as kmode {23,24}
 #
@@ -5564,16 +5564,16 @@ cres              -- console reset (to clear CPUERR reg, PSW)
 C test 44.44: PDR bit<0> implemented {70} or not {others}
 #
 wal     172310    -- kernel I space DR, segment 4
-wm      077401    -- set acf bit 0: slf=127; ed=0(up); acf=1 (r+trap)
+wm      077401    -- set acf bit 0: plf=127; ed=0(up); acf=1 (r+trap)
 rm    d=077401    -- ! check; works as expected for 11/70
-wm      077406    --   restore: slf=127; ed=0(up); acf=6(w/r)
+wm      077406    --   restore: plf=127; ed=0(up); acf=6(w/r)
 #
 C test 44.45: PDR bit<7>(AIB any access) implemented {70} or not {others}
 #
 wal     172300    -- kernel I space DR, reset segment 0 and 1
 bwm     2
-        077404    --   slf=127; ed=0(up); acf=4(w/r and trap)
-        077404    --   slf=127; ed=0(up); acf=4(w/r and trap)
+        077404    --   plf=127; ed=0(up); acf=4(w/r and trap)
+        077404    --   plf=127; ed=0(up); acf=4(w/r and trap)
 wal     172300    -- check kernel I space DR, segment 0 and 1
 brm     2
       d=077404    -- ! 
@@ -5592,12 +5592,12 @@ rm    d=123456    -- !
 wm      000000    --  
 wal     172300    -- check kernel I space DR, segment 0 and 1
 brm     2
-      d=077604    -- ! slf=127; ed=0(up); acf=4(w/r+trap); aib=10 (A=1,W=0)
-      d=077704    -- ! slf=127; ed=0(up); acf=4(w/r+trap); aib=11 (A=1,W=1)
+      d=077604    -- ! plf=127; ed=0(up); acf=4(w/r+trap); aib=10 (A=1,W=0)
+      d=077704    -- ! plf=127; ed=0(up); acf=4(w/r+trap); aib=11 (A=1,W=1)
 wal     172300    -- kernel I space DR, reset segment 0 and 1
 bwm     2
-        077406    --   slf=127; ed=0(up); acf=6(w/r)
-        077406    --   slf=127; ed=0(up); acf=6(w/r)
+        077406    --   plf=127; ed=0(up); acf=6(w/r)
+        077406    --   plf=127; ed=0(up); acf=6(w/r)
 cres              -- console reset (to clear CPUERR reg)
 #
 C test 44.46: Full PAR implemented {44,70,J11} or not {others}
@@ -8821,13 +8821,13 @@ bwm     8
 #
 wal     172300    -- kernel I space DR
 brm     8
-      d=077406    -- ! slf=127; ed=0(up); acf=6(w/r)
-      d=077406    -- ! slf=127; ed=0(up); acf=6(w/r)
-      d=077406    -- ! slf=127; ed=0(up); acf=6(w/r)
-      d=077406    -- ! slf=127; ed=0(up); acf=6(w/r)
-      d=077406    -- ! slf=127; ed=0(up); acf=6(w/r)
-      d=077406    -- ! slf=127; ed=0(up); acf=6(w/r)
-      d=077406    -- ! slf=127; ed=0(up); acf=6(w/r)
-      d=077406    -- ! slf=127; ed=0(up); acf=6(w/r)
+      d=077406    -- ! plf=127; ed=0(up); acf=6(w/r)
+      d=077406    -- ! plf=127; ed=0(up); acf=6(w/r)
+      d=077406    -- ! plf=127; ed=0(up); acf=6(w/r)
+      d=077406    -- ! plf=127; ed=0(up); acf=6(w/r)
+      d=077406    -- ! plf=127; ed=0(up); acf=6(w/r)
+      d=077406    -- ! plf=127; ed=0(up); acf=6(w/r)
+      d=077406    -- ! plf=127; ed=0(up); acf=6(w/r)
+      d=077406    -- ! plf=127; ed=0(up); acf=6(w/r)
 #
 wal     000000    -- last cmd shouldn't be 21 or 23 ...

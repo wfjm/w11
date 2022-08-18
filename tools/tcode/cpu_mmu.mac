@@ -1,4 +1,4 @@
-; $Id: cpu_mmu.mac 1272 2022-08-07 17:37:51Z mueller $
+; $Id: cpu_mmu.mac 1280 2022-08-15 09:12:03Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -72,7 +72,7 @@ ta0101: mov     #000401,r5      ; pattern master
         sob     r1,1200$
 ;
 ; and read back again
-;   pdr only slf,ed and acf fields are checked
+;   pdr only plf,ed and acf fields are checked
 ;   par all 18 bits are write/readable
         mov     r5,r0           ; start pattern
         com     r0              ; complemented
@@ -125,7 +125,7 @@ ta0102:
         sob     r1,100$
 ; setup kernel I
         mov     #kipdr,r0
-        mov     #<127.*md.slf>!md.arw,r1  ; slf=127; ed=0(up); acf=6(w/r)
+        mov     #<127.*md.plf>!md.arw,r1  ; plf=127; ed=0(up); acf=6(w/r)
         mov     r1,(r0)+        ; kipdr0
         mov     r1,(r0)+        ; kipdr1
         mov     r1,(r0)+        ; kipdr2
@@ -145,7 +145,7 @@ ta0102:
         mov     #177600,(r0)+   ; kipar7 (map I/O page)
 ; setup kernel D
         mov    #kdpdr,r0
-        mov    r1,16(r0)        ; kdpdr7 slf=127; ed=0(up); acf=6(w/r)
+        mov    r1,16(r0)        ; kdpdr7 plf=127; ed=0(up); acf=6(w/r)
         mov    #kdpar,r0
         mov     #177600,16(r0)  ; kdpar7 (map I/O page)
 ;
@@ -313,7 +313,7 @@ tb0301:
 ; run code vc0 in user mode --------------------------------
 ;
 ; set user mode pdr/par, only short segment 0
-        mov     #<8.*md.slf>!md.arw,uipdr0
+        mov     #<8.*md.plf>!md.arw,uipdr0
         mov     #<vc0/100>,uipar0
 ; setup data for user mode run
         mov     #023456,vc0v0;
@@ -321,7 +321,7 @@ tb0301:
         mov     #077321,vc0v2
 ; start code in user mode
         mov     #1000$,vhustp   ; setup continuation address
-        mov     #cp.cmu,-(sp)   ; next psw: user mode
+        mov     #<cp.cmu!cp.pmu>,-(sp)   ; next psw: user mode
         clr     -(sp)           ; will start at 0
         rti                     ; and launch it
         halt
@@ -339,7 +339,7 @@ tb0301:
 ; run code vc0 in supervisor mode --------------------------
 ;
 ; set supervisor mode pdr/par, only short segment 0
-        mov     #<8.*md.slf>!md.arw,sipdr0
+        mov     #<8.*md.plf>!md.arw,sipdr0
         mov     #<vc0/100>,sipar0
 ; setup data for user mode run
         mov     #017171,vc0v0
@@ -347,7 +347,7 @@ tb0301:
         mov     #100123,vc0v2
 ; start code in supervisor mode
         mov     #2000$,vhustp   ; setup continuation address
-        mov     #cp.cms,-(sp)   ; next psw: supervisor mode
+        mov     #<cp.cms!cp.pms>,-(sp)   ; next psw: supervisor mode
         clr     -(sp)           ; will start at 0
         rti                     ; and launch it
         halt
@@ -390,9 +390,9 @@ tb0302:
 ; run code vc1 in user mode --------------------------------
 ;
 ; set user mode pdr/par, only short segment 0; I and D
-        mov     #<8.*md.slf>!md.arw,uipdr0
+        mov     #<8.*md.plf>!md.arw,uipdr0
         mov     #<vc1/100>,uipar0
-        mov     #<8.*md.slf>!md.arw,udpdr0
+        mov     #<8.*md.plf>!md.arw,udpdr0
         mov     #<vc1dat/100>,udpar0
 ; setup data for user mode run
         mov     #020305,vc1v0
@@ -400,7 +400,7 @@ tb0302:
         mov     #033121,vc1v2
 ; start code in user mode
         mov     #1000$,vhustp   ; setup continuation address
-        mov     #cp.cmu,-(sp)   ; next psw: user mode
+        mov     #<cp.cmu!cp.pmu>,-(sp)   ; next psw: user mode
         clr     -(sp)           ; will start at 0
         rti                     ; and launch it
         halt
@@ -434,6 +434,7 @@ tb0302:
         scc                     ; C=1
         mfpd    (r5)
         hcmpeq  cp.psw,(r4)+    ; check cc
+        hcmpeq  (sp)+,-6(r4)    ; check data
         cmp     r4,r3           ; more to do ?
         blo     2000$
 ;
@@ -456,8 +457,36 @@ tb0302:
         ccc                     ; C=0
         mfpi    (r5)
         hcmpeq  cp.psw,(r4)+    ; check cc
+        hcmpeq  (sp)+,-6(r4)    ; check data
         cmp     r4,r3           ; more to do ?
         blo     3000$
+;
+; Test MTPD,MFPD with @(sp)+
+;   Note: (sp)+ is not a useful address mode for MTPD
+;         It will use the cm sp as address in pm.
+;         So @(sp)+ is the only mode with sp in src worth to be tested
+;
+        clr     vc1v0
+        push    #<vc1v0-vc1dat> ; D addr of vc1v0
+        push    #054321         ; data to mtpd
+        mtpd    @(sp)+          ; reads data first, then dst addr
+        hcmpeq  vc1v0,#054321   ; check at destination
+        inc     vc1v0
+        push    #<vc1v0-vc1dat> ; D addr of vc1v0
+        mfpd    @(sp)+
+        hcmpeq  (sp)+,#054322   ; check
+;
+; Test MTPI,MFPI with @(sp)+
+;
+        clr     vc1ida
+        push    #<vc1ida-vc1>   ; I addr of vc1ida
+        push    #012321         ; data to mtpi
+        mtpi    @(sp)+          ; reads data first, then dst addr
+        hcmpeq  vc1ida,#012321  ; check at destination
+        inc     vc1ida
+        push    #<vc1ida-vc1>   ; I addr of vc1ida
+        mfpi    @(sp)+
+        hcmpeq  (sp)+,#012322   ; check
 ;
 ; Test MFPD,MFPI and MTPD,MTPI for sp register access
 ;   accessing sp will access user mode stack pointer (which is != kernel stack)
@@ -651,7 +680,7 @@ vc0v2:  .word   0
 ;    does operations with vc1v0, vc1v1, vc1v2
 ;    these location are usually set before and checked afterwards in kernel mode
 ;
-        . = 101000              ; I space
+        . = 101000              ; I space ------------------------------------
 vc1:    mov     #<vc1v0-vc1dat>,sp      ; initialize stack
         mov     #<vc1v0-vc1dat>,r5      ; initialize data pointer
         call    1000$
@@ -663,9 +692,9 @@ vc1:    mov     #<vc1v0-vc1dat>,sp      ; initialize stack
 2000$:  add     2(r5),4(r5)     ; will access vc1v1 and vc1v2
         return
 ;
-vc1ida: .word   0               ; I space location, MTPI target
+vc1ida: .word   0               ; I space location, M*PI read/write target
 ;
-        . = 102000              ; D space
+        . = 102000              ; D space ------------------------------------
 vc1dat: .blkw   16.             ; small stack space
 vc1stk:
 vc1v0:  .word   0

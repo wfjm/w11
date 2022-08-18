@@ -1,4 +1,4 @@
-; $Id: mminki.mac 1184 2019-07-10 20:39:44Z mueller $
+; $Id: mminki.mac 1280 2022-08-15 09:12:03Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2016- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -18,7 +18,7 @@ mminki:
         mov     r1,-(sp)
 ;
         mov     #kipdr,r0               ; kerel I space DR
-        mov     #077406,r1              ; slf=127; ed=0(up); acf=6(w/r)
+        mov     #077406,r1              ; plf=127; ed=0(up); acf=6(w/r)
 ;
         mov     r1,(r0)+                ; kipdr(0)
         mov     r1,(r0)+                ; kipdr(1)

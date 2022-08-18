@@ -34,7 +34,8 @@ The full set of tests is only run for tagged releases.
 - Doxygen support now for V1.9.4; remove discontinued Tcl support
 - build flow Vivado 2022.1 ready; handle synth 8-3331 -> 8-7129 transition
 - remove Atlys support (only test designs, a w11 design was never done)
-- cleanup SimH setup files (*.scmd), use autoconfig, set disk types
+- cleanup SimH setup files (\*.scmd), use autoconfig, set disk types
+- cleanup code base, use page,mmr\*,pdr,par instead of segment,ssr\*,sdr,sar
 ### New features
 - new verification codes
   - tools/tcode: fast cpu verification codes
@@ -42,7 +43,7 @@ The full set of tests is only run for tagged releases.
 ### Changes
 - tools changes
   - ci.yml: define TBW_GHDL_OPTS and suppress IEEE package warnings at t=0ms
-  - **/tbrun.yml: since nexys4 not longer available switch to nexys4d
+  - \*\*/tbrun.yml: since nexys4 not longer available switch to nexys4d
   - tools/bin
     - asm-11:
       - limited macro support (.macro,.endm)
@@ -54,8 +55,8 @@ The full set of tests is only run for tagged releases.
     - tmuconv: add DEUNA defs; add -t_vf -t_all; fis mnemos; add headers
   - tools/tcl
     - w11/tcodes.tcl: driver for tcode execution
-  - tools/oskit/*
-    - *.scmd: set RL/RP disk types
+  - tools/oskit/\*
+    - \*.scmd: set RL/RP disk types
     - rsx11mp-30_rp_boot.scmd: disable STOP_TRAPS simulator stops
     - u7ed_rp_boot.scmd: use setup_w11a_max.scmd and 2M memory
   - tools/simh/setup_w11a_(min|max).scmd: use autoconfig, cleanups
@@ -67,6 +68,10 @@ The full set of tests is only run for tagged releases.
   - removed designs (drop Atlys)
     - rtl/sys_gen/tst_rlink_cuff/atlys/sys_tst_rlink_cuff_atlys
     - rtl/sys_gen/tst_snhumanio/atlys/sys_tst_snhumanio_atlys
+- general changes
+  - DEC used in early documents 'segment', later on 'page' for the MMU object
+  - in the w11a code base (\*.vhd,\*.\*pp,\*.tcl,\*.mac) the naming was mixed
+  - now all changed to page,mmr\*,pdr,par; all segment,ssr\*,sdr,sar removed
 ### Bug Fixes
   - tools/asm-11/lib
     - tcode_std_start.mac: fix sdreg probe code
@@ -105,7 +110,7 @@ The full set of tests is only run for tagged releases.
   - tst_mig/nexys4d/sys_tst_mig_n4d: use 100 MHz MIG SYS_CLK; add clock monitor
   - tst_sram/nexys4d/sys_tst_sram_n4d: use 100 MHz MIG SYS_CLK
   - w11a/nexys4d/sys_w11a_n4d: use 100 MHz MIG SYS_CLK
-  - */*.vhd: fixes for GHDL V0.36 -Whide warnings
+  - \*/\*.vhd: fixes for GHDL V0.36 -Whide warnings
 
 ### Bug Fixes
   - nexys4d/mig_a.prj: BUGFIX: SysResetPolarity ACTIVE HIGH
@@ -127,22 +132,22 @@ The full set of tests is only run for tagged releases.
 ### Changes
 - tools changes
   - add -reset option to stats subcommand
-    - librtools/Rstats: add Reset(); drop operator-=() and operator*=()
+    - librtools/Rstats: add Reset(); drop operator-=() and operator\*=()
     - librtcltools/RtclStats: Rename Collect->Exec, not longer const; add -reset
-    - libr\*/*\: Stats() not longer const; use RtclStats::Exec()
+    - libr\*/\*: Stats() not longer const; use RtclStats::Exec()
   - other backend updates
     - RparseUrl: add DirName,FileName,FileStem,FileType
     - derive ReventFd and RtimerFd from Rfd
     - Rw11VirtDiskFile,Rw11VirtTapeTap: use RfileFd
     - Rw11Cpu: MemWriteByte(): use AddMembe()
     - Rw11CntlTM11: support odd record length, close [issue #8](https://github.com/wfjm/w11/issues/8)
-    - *: drop superfluous \file Doxygen tag (clang -Weverything fix)
+    - \*: drop superfluous \file Doxygen tag (clang -Weverything fix)
   - generic_so.mk: use -scrUuv for ar to avoid "'u' modifier ignored"
-  - tools/oskit/hook/hook_ibmon_*.tcl: check ibmon availability
+  - tools/oskit/hook/hook_ibmon_\*.tcl: check ibmon availability
   - tap2file: add -v option
 - firmware changes
   - sys_w11a_arty: down-rate to 72 MHz, viv 2019.1 fails with 75 MHz
-  - sys_w11a_*.vmfset: add new rule for Vivado 2019.1
+  - sys_w11a_\*.vmfset: add new rule for Vivado 2019.1
   - pdp11_vmbox: support membe for em cacc access
 
 ### Bug Fixes
@@ -169,7 +174,7 @@ The full set of tests is only run for tagged releases.
     - Rw11UnitDZ11: unit
 - new verification codes
   - test_m9312_all.tcl: tbench for m9312
-  - test_dz11_*.tcl: tbench for dz11
+  - test_dz11_\*.tcl: tbench for dz11
 - new test and demonstration codes under tools/mcode
   - m9312/bootw11.mac: w11 boot for m9312
   - sys/noboot.mac: boot blocker code for block 0 of disks
@@ -224,12 +229,12 @@ The full set of tests is only run for tagged releases.
   - ibdr_dl11_buf: new DL11 interface with fifo buffering
   - simclkv: test bench clock generator with variable period
 - new verification codes
-  - w11a_ibtst/*: tbench for ibd_ibtst
-  - w11a_ibmon/*: tbench for ibd_ibmon
+  - w11a_ibtst/\*: tbench for ibd_ibtst
+  - w11a_ibmon/\*: tbench for ibd_ibmon
   - w11a/test_w11a_sdreg.tcl: tbench for sdreg
   - test_lp11_all.tcl: tbench for lp11 and lp11_buf
-  - test_pc11_*.tcl: tbench for pc11 and pc11_buf
-  - test_dl11_*.tcl: tbench for dl11 and dl11_buf
+  - test_pc11_\*.tcl: tbench for pc11 and pc11_buf
+  - test_dl11_\*.tcl: tbench for dl11 and dl11_buf
 - new test and demonstration codes under tools/mcode
   - dl11/dl11echo.mac: console interface echo tester
   - sys/blink.mac: 'blinking lights' demo (rsx,bsd and other modes)
@@ -311,7 +316,7 @@ The full set of tests is only run for tagged releases.
   - Digilent Arty
   - Digilent Nexys4 DDR (or Nexys A7-100)
   - Digilent Arty S7
-- add a low level MIG interface test design `sys_tst_mig_*`
+- add a low level MIG interface test design `sys_tst_mig_\*`
 - update tool support
   - all designs build under Vivado 2017.2 and 2018.3
   - sys_w11a_as7 must be build under 2018.3 (due to MIG support constraints)
@@ -427,7 +432,7 @@ The full set of tests is only run for tagged releases.
   - rw11/shell.tcl: add workaround for tclreadline and `after` interference
 - firmware changes
   - sys_w11_n4: reduce cache from 64 to 32 kB to keep timing closure
-  - changes for DM_STAT_* signals (debug and monitoring)
+  - changes for DM_STAT_\* signals (debug and monitoring)
     - DM_STAT_SE: add elements cpbusy,idec,pcload,itimer
     - DM_STAT_CA: added, used for cache monitoring
     - DM_STAT_SY: removed, now replaced by DM_STAT_CA
@@ -439,7 +444,7 @@ The full set of tests is only run for tagged releases.
   - pdp11_cache: drop CHIT, add DM_STAT_CA port, add detailed monitoring
   - pdp11_tmu(_sb): use DM_STAT_CA instead of DM_STAT_SY
   - ibdr_maxisys: add IDEC port, connect to EXTEVT of KW11P
-  - sys_w11a_*.vhd: use DM_STAT_EXP; IDEC to maxisys; setup PERFEXT
+  - sys_w11a_\*.vhd: use DM_STAT_EXP; IDEC to maxisys; setup PERFEXT
   - sfs_gsim_core: new common simulation core
     - use in {dcm,s6_cmt,s7_cmt}_sfs_gsim simulation models
     - use in rtl/bplib/\*/tb/tb_\* test benches
@@ -458,7 +463,7 @@ The full set of tests is only run for tagged releases.
   - use `[[noreturn]]` (clang -Wmissing-noreturn)
   - drop never reached returns (clang -Wunreachable-code-return)
   - drop `throw()` lists, use `noexcept` (clang -Wdeprecated)
-  - add `R*_Init` prototypes (clang -Wmissing-prototypes)
+  - add `R\*_Init` prototypes (clang -Wmissing-prototypes)
   - now -Wunused-parameter clean (comment out unused params)
   - now -Wunused-variable clean (comment out so far unused code)
   - move `using namespace std` after includes (clang warning)
@@ -492,7 +497,7 @@ The full set of tests is only run for tagged releases.
     - add HasPort/HasVirt(); Port() and Virt() return reference
 
 ### Bug Fixes
-- RtclArgs.hpp: BUGFIX: get *_min limits correct (gcc -Wpedantic)
+- RtclArgs.hpp: BUGFIX: get \*_min limits correct (gcc -Wpedantic)
 - RtclArgs.cpp: BUGFIX: GetArg(): argument in wrong order (coverity)
 - Rw11CntlDEUNA.cpp: BUGFIX: SetMacDefault(): resource leak (coverity)
 - Rw11VirtDiskFile.cpp: BUGFIX: Open(): resource leak (coverity)
@@ -527,7 +532,7 @@ The full set of tests is only run for tagged releases.
 - xviv_msg_summary: check also for .bit and .dcp files
 - get Vivado 2017.2 ready (needed for Spartan-7 support)
 - test Vivado 2017.3 - 2018.2 ready
-  - *.vmfset: update rules to cover 2017.4-2018.2
+  - \*.vmfset: update rules to cover 2017.4-2018.2
   - all designs build under 2017.2 and 2018.2
 
 <!-- --------------------------------------------------------------------- -->
@@ -566,14 +571,14 @@ The full set of tests is only run for tagged releases.
   - s3_sram_memctl: drop superfluous idata_cei=1 in s_write2
 - 17bit support for tst_sram
   - tst_sram.vhd: allow AWIDTH=17; sstat_rbf_awidth instead of _wide
-  - tcl/tst_sram/*.tcl: 17bit support; use sstat(awidth); add isnarrow
+  - tcl/tst_sram/\*.tcl: 17bit support; use sstat(awidth); add isnarrow
 - get Vivado 2017.1 ready
   - xviv_msg_filter: add version-range tag support
-  - *.vmfset:
+  - \*.vmfset:
     - drop the nonsense 'Synth 8-6014' messages
     - adopt to different path used by 'Synth 8-3332' messages
 - Rw11VirtDiskOver: more detailed stats
-- add test_w11a_mem70.tcl; retire old tests tb_w11a_mem70*.dat
+- add test_w11a_mem70.tcl; retire old tests tb_w11a_mem70\*.dat
 
 ### Bug Fixes
 - shell_egd.tcl: BUGFIX: shell_pspec_map: fix mapping for addr>20000
@@ -611,7 +616,7 @@ The full set of tests is only run for tagged releases.
   of ibmon and dmcmon streamlined.
 - add *overlay* file system (Rw11VirtDiskOver, scheme over:) which keeps all
   write in backend memory. Very convenient for development. The changes can
-  be written to the disk image with a tcl level command (cpu0* virt flush).
+  be written to the disk image with a tcl level command (cpu0\* virt flush).
 - add two new 211bsd system images (oskits)
   - 211bsd_rpmin: for small memory systems (512 or 672 kB)
   - 211bsd_rpeth: with DEUNA Ethernet support
@@ -670,7 +675,7 @@ The full set of tests is only run for tagged releases.
 - dmcmon included in sys_w11a_n4 again
   - full snum generation code gives bad synthesis under Vivado (fine in ISE)
   - the updated dmcmon can life with a simple, category based, snum
-- move hook_*.tcl files to tools/oskiit/hook directory
+- move hook_\*.tcl files to tools/oskiit/hook directory
 - w11 shell .bs now support ibus register names and ranges
   - rw11/dmhbpt.tcl: hb_set: use imap_range2addr, allow regnam and range
 - integrate rbus monitor in w11 shell
@@ -691,15 +696,15 @@ The full set of tests is only run for tagged releases.
   - RlinkConnect: add rbus monitor probe, add HasRbmon()
   - RtclRlinkConnect: M_amap: -testname opt addr check; add hasrbmon get
   - RtclRw11Cpu: M_(imap|rmap): -testname optional addr check
-  - */util.tcl: setup: now idempotent
+  - \*/util.tcl: setup: now idempotent
 - factor out controller class specifics; add useful M_default output
-  - RtclRw11Cntl*Base: add classes with Rdma,Disk,Stream.Tape,Term specifics
-  - RtclRw11Cntl*: add class in ctor; derive from RtclRw11Cntl*Base
+  - RtclRw11Cntl\*Base: add classes with Rdma,Disk,Stream.Tape,Term specifics
+  - RtclRw11Cntl\*: add class in ctor; derive from RtclRw11Cntl\*Base
 - make list cpus,cntls,units command gettable; make controller class gettable
   - RtclRw11: add CpuCommands() and cpus getter
   - RtclRw11Cntl: add UnitCommands() and uints and class getter
   - RtclRw11Cpu: add ControllerCommands() and cntls getter
-  - RtclGet: add Tcl_Obj* getter
+  - RtclGet: add Tcl_Obj\* getter
 - make attach status and attach url gettable for units
   - Rw11Cntl,Rw11CntlBase: NUnit() now pure; add UnitBase()
   - Rw11Unit: add IsAttached(), AttachUrl()
@@ -710,13 +715,13 @@ The full set of tests is only run for tagged releases.
   - pass default scheme to RparseUrl in Open()
   - add Open() overloads for Rw11VirtDiskFile and Rw11VirtDiskOver
   - RparseUrl: add Set() with default scheme handling
-- remove double inheritance in RtclRw11Unit* stack
+- remove double inheritance in RtclRw11Unit\* stack
   - RtclRw11Unit: drop fpCpu, use added Cpu()=0 instead
-  - RtclRw11UnitBase: add TUV,TB; add TUV* ObjUV(); inherit from TB
+  - RtclRw11UnitBase: add TUV,TB; add TUV\* ObjUV(); inherit from TB
   - RtclRw11Unit(Disk|Stream|Tape|Term): define ObjUV();inherit from RtclRw11Unit
   - RtclRw11Unit(dev): inherit from RtclRw11UnitBase
 - update trace output handling
-  - Rw11Cntl*: use controller name as message prefix
+  - Rw11Cntl\*: use controller name as message prefix
   - Rw11CntlPC11,Rw11CntlDL11: trace received chars
 - more compact dumps, add Dump(..,detail)
   - RlinkCommand: add CommandInfo()
@@ -724,9 +729,9 @@ The full set of tests is only run for tagged releases.
   - RlinkCommandList: Dump(): add detail arg
   - Rstats: add NameMaxLength(); Print(): add counter name
   - Rw11Cntl: use Dump(detail) for PrimClist ect
-  - Rw11(Cntl|Unit|Virt)*,: Dump(): add detail arg
+  - Rw11(Cntl|Unit|Virt)\*,: Dump(): add detail arg
   - many other classes: Dump(): add detail arg
-  - RtclRw11(Cntl|Unit|*): M_dump: use GetArgsDump and Dump detail
+  - RtclRw11(Cntl|Unit|\*): M_dump: use GetArgsDump and Dump detail
 - update time handling
   - use clock_gettime instead of gettimeofday
   - add Rtime support in RtclGet/RtclSet
@@ -746,16 +751,16 @@ The full set of tests is only run for tagged releases.
   - ticonv_rri: use 'rlc rawwblk' instead of 'rlc rawio -wblk'
   - rbmoni/test_regs.tcl: add data/addr logic tests
   - librw11/Rw11Cpu: add ModLalh()
-  - librtools/Rstats: add IncLogHist() and fix + and * operator definition
+  - librtools/Rstats: add IncLogHist() and fix + and \* operator definition
 
 ### Bug Fixes
 - rlink_core: BUGFIX: correct re-transmit after nak aborts
 - resolve hangup of fx2 USB controller
   - was caused by inconsistent use of rx fifo thresholds
-  - adding more lines to monitor output (fsm_* lines for state tracking)
+  - adding more lines to monitor output (fsm_\* lines for state tracking)
 - RlinkPort: BUGFIX: RawRead(): proper irc for exactsize=false
 - Rexception: BUGFIX: add fErrtxt for proper what() return
-- `rlc get logfile` or `rlc get *` crashed with segfault
+- `rlc get logfile` or `rlc get \*` crashed with segfault
   - error was a type mismatch in the getter declaration in RtclRlinkConnect
   - fixed by changing the return type in RlinkConnect
 

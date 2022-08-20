@@ -19,7 +19,7 @@ Use
 ```
 to determine the `ID_SERIAL_SHORT` and create rules for your boards.
 
-To setup udev rules do
+To set up udev rules do
 ```bash
     cd $RETROBASE/tools/sys
     # !! adopt 92-retro-usb-persistent.rules to your needs !!

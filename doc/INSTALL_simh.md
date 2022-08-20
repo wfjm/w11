@@ -50,7 +50,7 @@ The post
 [Announcing the Open SIMH project](https://groups.io/g/simh/topic/91528716)
 announed on 2022-06-03 a re-launch of SimH as FOSS project.
 A new repository [open-simh/simh](https://github.com/open-simh/simh#readme)
-was setup and provides the SimH code-base under an
+has been set up and provides the SimH code-base under an
 [MIT-style licence](https://en.wikipedia.org/wiki/MIT_License), see
 [LICENSE.txt](https://github.com/open-simh/simh/blob/master/LICENSE.txt).
 

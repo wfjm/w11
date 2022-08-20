@@ -198,7 +198,7 @@ End of tape
 
 #### Install 211bsd, disk phase
 
-The last command boots 211bsd form the just setup disk, which has now
+The last command boots 211bsd from the just created disk, which has now
 a root file system, but not yet a hardward boot block. In the following
 - `#` is now the shell prompt
 - `!!` indicates comments

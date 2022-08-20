@@ -4,11 +4,11 @@
   
 - [Download](#user-content-download)
 - [System requirements](#user-content-sysreq)
-- [Setup environment variables](#user-content-envvar)
+- [Set up environment variables](#user-content-envvar)
 - [Compile UNISIM/UNIMACRO/SIMPRIM libraries for GHDL](#user-content-ghdl-lib)
 - [Compile and install the support software](#user-content-build-tools)
   - [Compile sharable libraries](#user-content-build-cpp)
-  - [Setup Tcl packages](#user-content-build-tcl)
+  - [Set up Tcl packages](#user-content-build-tcl)
 - [The build system](#user-content-build-system)
 - [Available designs](#user-content-build-fpga)
 - [Available bitkits with bit and log files](#user-content-bitkits)
@@ -80,7 +80,7 @@ distributions should be straightforward.
   required, version 1.8.3.1 or later.
 
 
-### <a id="envvar">Setup environment variables</a>
+### <a id="envvar">Set up environment variables</a>
 
 The `make` flows for building test benches (GHDL, Vivado xsim or ISE ISim based)
 and FPGA bit files (with Vivado or ISE), as well as the support software
@@ -116,7 +116,7 @@ the distribution will work, in those cases simply use
       export TCLINC=/usr/include/tcl8.6
       export TCLLIBNAME=tcl8.6
 
-and don't setup `BOOSTINC` and `BOOSTLIB`.
+and don't set up `BOOSTINC` and `BOOSTLIB`.
 
 After that building functional model based test benches will work. If you 
 want to also build post-synthesis or post-place&route test benches 
@@ -173,7 +173,7 @@ To cleanup, e.g. before a re-build
     rm_dep
     make realclean
 
-#### <a id="build-tcl">Setup Tcl environment</a>
+#### <a id="build-tcl">Set up Tcl environment</a>
 
 The Tcl files are organized in several packages. To create the Tcl
 package files (`pkgIndex.tcl`)

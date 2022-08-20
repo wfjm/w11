@@ -42,7 +42,7 @@
 
 ## 2017-05-25: Major update
 The oskit was so far an almost 'out-of-the-box' 211bsb tape distribution kit,
-updated to version #447 and setup with a kernel including `FPSIM`.
+updated to version #447 and set up with a kernel including `FPSIM`.
 The current revision for a first time brings a system tuned for w11a.
 
 ### Issues with old oskit (all fixed now)
@@ -88,10 +88,10 @@ Setup 211bsd system from tape distribution kit obtained from
 [TUHS](https://www.tuhs.org/).
 - get tape distribution kit from [UnixArchive/Distributions/UCB/2.11BSD](https://www.tuhs.org/Archive/Distributions/UCB/2.11BSD/)
 - get patches from [UnixArchive/Distributions/UCB/2.11BSD/Patches](https://www.tuhs.org/Archive/Distributions/UCB/2.11BSD/Patches/)
-- setup initial system using `SimH`
+- set up initial system using `SimH`
   - load tape distribution kit (is version 431)
   - install all patches: 432,...,444
   - `FPSIM` didn't work. Fixed with [patch #445](https://wfjm.github.io/blogs/211bsd/2007-01-03-patch-445.html).
   - boot from a `RK05` wasn't possible. Fixed with [patch #446+447](https://wfjm.github.io/blogs/211bsd/2009-01-04-patch-446+447.html).
 - build a kernel with `FPSIM` enabled (see `/sys/conf/RETRONFPNW`)
-- setup oskits for RP06, RL02 and RK05
+- set up oskits for RP06, RL02 and RK05

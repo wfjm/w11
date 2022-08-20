@@ -31,7 +31,8 @@ Download, unpack and copy the disk images (*.dsk), e.g.
 
 ### Usage
 
-- Setup Ethernet environment, see [211bsd_ethernet.md](../doc/211bsd_ethernet.md)
+- Set up Ethernet environment,
+  see [211bsd_ethernet.md](../doc/211bsd_ethernet.md)
 - Start backend server and boot system (see section Rlink in
   [w11a_os_guide](../../../doc/w11a_os_guide.md#user-content-rlink))
   ```

@@ -198,7 +198,7 @@
     are currently disabled for Artix based systems (see issue V0.73-3).
   - memory inference is now used for all distributed and block rams under
     Vivado. The memory generators in memlib are still used under ISE
-    Note: they were initially setup to work around ISE synthesis issues.
+    Note: they were initially set up to work around ISE synthesis issues.
   - Vivado synthesis and implementation use now 'explore' type flows for
     optimal timing performance.
   - the two clock dram based fifo was re-written (as `fifo_2c_dram2`) to allow

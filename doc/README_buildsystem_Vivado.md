@@ -3,8 +3,8 @@
 ###  Table of content
 
 - [Concept](#user-content-concept)
-- [Setup system environment](#user-content-sysenv)
-  - [Setup environment variables](#user-content-envvar)
+- [Set up system environment](#user-content-sysenv)
+  - [Set up environment variables](#user-content-envvar)
   - [Compile UNISIM/UNIMACRO libraries for GHDL](#user-content-ghdllibs)
 - [Building test benches](#user-content-buildtb)
   - [With GHDL](#user-content-buildtb-ghdl)
@@ -60,9 +60,9 @@ maintained.
 
 For more details on `vbomconv` consult the man page.
 
-### <a id="sysenv">Setup system environment</a>
+### <a id="sysenv">Set up system environment</a>
 
-#### <a id="envvar">Setup environment variables</a>
+#### <a id="envvar">Set up environment variables</a>
 
 The build flows require the environment variables:
 - `RETROBASE`:  must refer to the installation root directory
@@ -75,7 +75,7 @@ Notes:
   the Xilinx environment. It uses `XTWV_PATH` to set up the Vivado environment 
   on the fly. For details consult 'man xtwv'. 
 - don't run the Vivado setup scripts ..../settings(32|64).sh in your working 
-  shell. Setup only XTWV_PATH !
+  shell. Set up only XTWV_PATH !
   
 #### <a id="ghdllibs">Compile UNISIM/UNIMACRO libraries for GHDL</a>
 

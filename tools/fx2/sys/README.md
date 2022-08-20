@@ -10,7 +10,7 @@ is read/write accessible for user land processes, either in
 > Check with the `groups` command whether your account is in group `plugdev`,  
 > in not, add this group to your accounts groups list.**
 
-To setup udev rules do
+To set up udev rules do
 ```bash
     sudo cp -a 90-retro-usb-permissions.rules /etc/udev/rules.d/
     sudo chown root:root /etc/udev/rules.d/90-retro-usb-permissions.rules

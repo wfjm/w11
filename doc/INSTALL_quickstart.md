@@ -26,7 +26,7 @@ First all required software must be installed
   see [INSTALL#sysreq](INSTALL.md#user-content-sysreq), and that
   Xilinx Vivado is installed.
 
-- setup the shell environment,
+- set up the shell environment,
   see [INSTALL#envvar](INSTALL.md#user-content-envvar),
   
       export RETROBASE=<install-dir>
@@ -38,14 +38,14 @@ First all required software must be installed
 
       export XTWV_PATH=<install-path-of-vivado>
 
-  setup the TCL environment,
+  set up the TCL environment,
   see [INSTALL#build-tcl](INSTALL.md#user-content-build-tcl)
 
       cd $HOME
       ln -s $RETROBASE/tools/tcl/.tclshrc .
       ln -s $RETROBASE/tools/tcl/.wishrc  .
 
-   and ensure that USB `udev` rules for access and latency are setup,
+   and ensure that USB `udev` rules for access and latency are set up,
    see [tools/sys/README](../tools/sys/README.md).
   
 - compile the backend software tools
@@ -94,7 +94,7 @@ Key steps are
 - consult the README in the oskit directory and download the disk image files,
   typically with a `wget` and `tar` command
   
-- setup `vt100` emulator windows
+- set up `vt100` emulator windows
 
       cd $RETROBASE/tools/oskit/<oskit-name>
       console_starter -d DL0 &

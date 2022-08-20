@@ -11,7 +11,7 @@ The _tap_ device should be created such that it is accessible by the
 account under with _ti_w11_ executes. This way only setting up _tap_
 and _bridge_ require root access, but not subsequent usage.
 
-Two support scripts help in the setup
+Two support scripts help in the set up
 ```
     ip_create_br
 ```

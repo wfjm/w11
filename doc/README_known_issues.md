@@ -156,7 +156,7 @@ of memory in 18 bit addressing. Seen originally for RK11, but RL11 and DEUNA
 are also affected.
 
 In normal operation is minor non-conformity is not relevant because operating
-systems never setup DMA transfers to/from non-existing memory. However, some
+systems never set up DMA transfers to/from non-existing memory. However, some
 highly space optimized crash dump routines use this to detect end-of-memory
 and might endless loop. Also maindec's might test this border case and fail.
 

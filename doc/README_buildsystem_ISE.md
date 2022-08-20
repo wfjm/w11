@@ -3,8 +3,8 @@
 ### Table of content
 
 - [Concept](#user-content-concept)
-- [Setup system environment](#user-content-sysenv)
-  - [Setup environment variables](#user-content-envvar)
+- [Set up system environment](#user-content-sysenv)
+  - [Set up environment variables](#user-content-envvar)
   - [Compile UNISIM/UNIMACRO/SIMPRIM libraries for GHDL](#user-content-ghdllibs)
 - [Building test benches](#user-content-buildtb)
   - [With GHDL](#user-content-buildtb-ghdl)
@@ -58,9 +58,9 @@ maintained.
 
 For more details on vbomconv consult the man page.
 
-### <a id="sysenv">Setup system environment</a>
+### <a id="sysenv">Set up system environment</a>
 
-#### <a id="envvar">Setup environment variables</a>
+#### <a id="envvar">Set up environment variables</a>
 
 The build flows require the environment variables:
 - `RETROBASE`:  must refer to the installation root directory
@@ -76,7 +76,7 @@ Notes:
   the Xilinx environment. It uses `XTWI_PATH` to set up the ISE environment on 
   the fly. For details consult 'man xtwi'. 
 - don't run the ISE setup scripts ..../settings(32|64).sh in your working 
-  shell. Setup only `XTWI_PATH` !
+  shell. Set up only `XTWI_PATH` !
   
 #### <a id="ghdllibs">Compile UNISIM/UNIMACRO/SIMPRIM libraries for GHDL</a>
 
@@ -208,7 +208,7 @@ after a re-build.
 The make flow supports also loading the bitstream into FPGAs, either
 via Xilinx Impact, or via the Cypress FX2 USB controller is available.
 
-For Xilinx Impact a Xilinx USB Cable II has to be properly setup, than
+For Xilinx Impact a Xilinx USB Cable II has to be set up properly, than
 simply use
 
     make <sys>.iconfig

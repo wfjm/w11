@@ -105,13 +105,13 @@ Recommended setups
 
 All examples below use the same basic setup
 
-- setup `vt100` emulator windows
+- set up `vt100` emulator windows
 
         cd $RETROBASE/tools/oskit/<oskit-name>
         console_starter -d DL0 &
         console_starter -d DL1 &
 
-- setup rlink connection using `ti_rri` backend server via the `ti_w11` 
+- set up rlink connection using `ti_rri` backend server via the `ti_w11` 
   quick start wrapper script. Ensure that all 8 switches on the board
   are in the indicated positions (SWI=...). The concrete boot script
   name is given in the following sections
@@ -217,7 +217,7 @@ configuration, so will show in the emulator what w11a can do when
 finished.
 
 All examples below use the same basic setup
-- setup vt100 emulator window for 1st and 2nd DL11
+- set up vt100 emulator window for 1st and 2nd DL11
 
          cd $RETROBASE/tools/oskit/<oskit-name>
          console_starter -s -d DL0 &

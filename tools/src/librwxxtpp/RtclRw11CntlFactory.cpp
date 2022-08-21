@@ -1,9 +1,10 @@
-// $Id: RtclRw11CntlFactory.cpp 1186 2019-07-12 17:49:59Z mueller $
+// $Id: RtclRw11CntlFactory.cpp 1276 2022-08-12 10:25:13Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2022-08-12  1276   1.1.6  add coverity accept comments
 // 2017-01-29  1146   1.1.5  add DZ11
 // 2017-01-29   847   1.1.4  add DEUNA
 // 2015-03-21   659   1.1.3  add RPRM (later renamed to RHRP)
@@ -50,46 +51,55 @@ int RtclRw11CntlFactory(RtclArgs& args, RtclRw11Cpu& cpu)
   if        (type == "dl11") {              // dl11 --------------------------
     unique_ptr<RtclRw11CntlDL11> pobj(new RtclRw11CntlDL11());
     if(pobj->FactoryCmdConfig(args, cpu) != TCL_OK) return TCL_ERROR;
+    /* coverity[resource_leak] */           // object permanent, no owner
     pobj.release();
     
   } else if (type == "dz11") {              // dz11 --------------------------
     unique_ptr<RtclRw11CntlDZ11> pobj(new RtclRw11CntlDZ11());
     if(pobj->FactoryCmdConfig(args, cpu) != TCL_OK) return TCL_ERROR;
+    /* coverity[resource_leak] */           // object permanent, no owner
     pobj.release();
     
   } else if (type == "rk11") {              // rk11 --------------------------
     unique_ptr<RtclRw11CntlRK11> pobj(new RtclRw11CntlRK11());
     if(pobj->FactoryCmdConfig(args, cpu) != TCL_OK) return TCL_ERROR;
+    /* coverity[resource_leak] */           // object permanent, no owner
     pobj.release();
     
   } else if (type == "rl11") {              // rl11 --------------------------
     unique_ptr<RtclRw11CntlRL11> pobj(new RtclRw11CntlRL11());
     if(pobj->FactoryCmdConfig(args, cpu) != TCL_OK) return TCL_ERROR;
+    /* coverity[resource_leak] */           // object permanent, no owner
     pobj.release();
     
   } else if (type == "rhrp") {              // rhrp --------------------------
     unique_ptr<RtclRw11CntlRHRP> pobj(new RtclRw11CntlRHRP());
     if(pobj->FactoryCmdConfig(args, cpu) != TCL_OK) return TCL_ERROR;
+    /* coverity[resource_leak] */           // object permanent, no owner
     pobj.release();
     
   } else if (type == "tm11") {              // tm11 --------------------------
     unique_ptr<RtclRw11CntlTM11> pobj(new RtclRw11CntlTM11());
     if(pobj->FactoryCmdConfig(args, cpu) != TCL_OK) return TCL_ERROR;
+    /* coverity[resource_leak] */           // object permanent, no owner
     pobj.release();
     
   } else if (type == "deuna") {             // deuna -------------------------
     unique_ptr<RtclRw11CntlDEUNA> pobj(new RtclRw11CntlDEUNA());
     if(pobj->FactoryCmdConfig(args, cpu) != TCL_OK) return TCL_ERROR;
+    /* coverity[resource_leak] */           // object permanent, no owner
     pobj.release();
     
   } else if (type == "lp11") {              // lp11 --------------------------
     unique_ptr<RtclRw11CntlLP11> pobj(new RtclRw11CntlLP11());
     if(pobj->FactoryCmdConfig(args, cpu) != TCL_OK) return TCL_ERROR;
+    /* coverity[resource_leak] */           // object permanent, no owner
     pobj.release();
     
   } else if (type == "pc11") {              // pc11 --------------------------
     unique_ptr<RtclRw11CntlPC11> pobj(new RtclRw11CntlPC11());
     if(pobj->FactoryCmdConfig(args, cpu) != TCL_OK) return TCL_ERROR;
+    /* coverity[resource_leak] */           // object permanent, no owner
     pobj.release();
     
   } else {                                  // unknown cntl type -------------

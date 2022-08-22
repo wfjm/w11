@@ -36,6 +36,7 @@ The full set of tests is only run for tagged releases.
 - remove Atlys support (only test designs, a w11 design was never done)
 - cleanup SimH setup files (\*.scmd), use autoconfig, set disk types
 - cleanup code base, use page,mmr\*,pdr,par instead of segment,ssr\*,sdr,sar
+- sysid encodes now system type, allows to distingish w11,SimH,e11
 ### New features
 - new verification codes
   - tools/tcode: fast cpu verification codes
@@ -69,9 +70,15 @@ The full set of tests is only run for tagged releases.
     - rtl/sys_gen/tst_rlink_cuff/atlys/sys_tst_rlink_cuff_atlys
     - rtl/sys_gen/tst_snhumanio/atlys/sys_tst_snhumanio_atlys
 - general changes
-  - DEC used in early documents 'segment', later on 'page' for the MMU object
-  - in the w11a code base (\*.vhd,\*.\*pp,\*.tcl,\*.mac) the naming was mixed
-  - now all changed to page,mmr\*,pdr,par; all segment,ssr\*,sdr,sar removed
+  - segment -< page rename
+    - DEC used in early documents 'segment', later on 'page' for the MMU object
+    - in the w11a code base (\*.vhd,\*.\*pp,\*.tcl,\*.mac) the naming was mixed
+    - now all changed to page,mmr\*,pdr,par; all segment,ssr\*,sdr,sar removed
+  - usage of 11/70 sysid
+    - encodes emulator(15),type(14:12),cpu_number(11:09) and serial number(8:0)
+    - pdp11_reg70: set sysid to 010123 --> real w11
+    - *.scmd:      set sysid to 110234 --> emu Simh
+    - *.ecmd:      set sysid to 120345 --> emu e11
 ### Bug Fixes
   - tools/asm-11/lib
     - tcode_std_start.mac: fix sdreg probe code
@@ -375,7 +382,7 @@ The full set of tests is only run for tagged releases.
 ## <a id="w11a_v0.753">2018-12-29: [w11a_V0.753](https://github.com/wfjm/w11/releases/tag/w11a_V0.753) - rev 1096(wfjm)</a>
 ### Summary
 - add continuous integration support via [Travis CI](https://travis-ci.org),
-  add [project wfjm/w11](https://travis-ci.org/wfjm/w11), and setup
+  add [project wfjm/w11](https://travis-ci.org/wfjm/w11), and set up
   a `.travis.yml` ([see blog](https://wfjm.github.io/blogs/w11/2018-09-16-travis-based-ci-cd-workflow.html)).
 - use static source code analysis [Coverity Scan](https://scan.coverity.com),
   add [project wfjm/w11](https://scan.coverity.com/projects/wfjm-w11).
@@ -438,7 +445,7 @@ The full set of tests is only run for tagged releases.
     - DM_STAT_SY: removed, now replaced by DM_STAT_CA
     - DM_STAT_EXP: added, for signals exported by pdp11_sys70
   - pdp11_sys70:
-    - instantiate pdp11_dmpcnt, setup performance counter sigs
+    - instantiate pdp11_dmpcnt, set up performance counter sigs
     - drop ITIMER,DM_STAT_DP, use DM_STAT_EXP, add PERFEXT port
   - pdp11_sequencer: drive DM_STAT_SE.(cpbusy,idec,pcload,itimer), drop ITIMER
   - pdp11_cache: drop CHIT, add DM_STAT_CA port, add detailed monitoring
@@ -679,7 +686,7 @@ The full set of tests is only run for tagged releases.
 - w11 shell .bs now support ibus register names and ranges
   - rw11/dmhbpt.tcl: hb_set: use imap_range2addr, allow regnam and range
 - integrate rbus monitor in w11 shell
-  - ti_rri: setup rbus monitor if detected
+  - ti_rri: set up rbus monitor if detected
   - rw11/shell.tcl: add .rme,.rmd,.rmf,.rml
   - ibd_ibmon/util.tcl: move out imap_reg2addr
   - rbmoni/util.tcl: add procs filter,rme,rmf

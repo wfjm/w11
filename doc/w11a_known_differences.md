@@ -10,6 +10,7 @@ The issues of the w11 CPU and systems are listed in a separate document
 - [Differences in unspecified behavior cases between w11a and
   KB11-C (11/70)](#user-content-unspec)
 - [Known limitations](#user-content-lim)
+- [Other differences](#user-content-other)
 
 ### <a id="diff">Known differences between w11a and KB11-C (11/70)</a>
 
@@ -82,3 +83,20 @@ this is considered as acceptable implementation difference.
   to a timeout, again mostly in test programs.  
   **--> a 'watch dog' mechanism will be added in a future version which
   suspends the CPU when the server doesn't respond fast enough.**
+
+
+### <a id="other">Other differences</a>
+
+- usage of 11/70 SYSID register
+  - in real 11/70's sysid held the individual serial number
+  - in the w11 project sysid encodes the execution environment
+  - this allows to distinguish between real w11 and emulation under SimH or e11
+  - the SYSID is divided in fields
+    - bit 15: emulator flag (0=w11,1=emulator)
+    - bit 14:12: type, encodes w11 or emulator type
+    - bit 11:09: cpu number on 11/74 systems
+    - bit 8:0: serial number
+  - current assignments are
+    - w11a:  010123
+    - SimH:  110234
+    - e11:   120345

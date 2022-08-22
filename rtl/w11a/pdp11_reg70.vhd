@@ -1,6 +1,6 @@
--- $Id: pdp11_reg70.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: pdp11_reg70.vhd 1279 2022-08-14 08:02:21Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2008-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    pdp11_reg70 - syn
@@ -9,10 +9,11 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.1; ghdl 0.18-0.33
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2022.1; ghdl 0.18-2.0.0
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-08-14  1279   1.1.3  set sysid to 010123
 -- 2015-04-30   670   1.1.2  rename sys70 -> reg70
 -- 2011-11-18   427   1.1.1  now numeric_std clean
 -- 2010-10-17   333   1.1    use ibus V2 interface
@@ -103,7 +104,7 @@ begin
       idout(r.mbrk'range) := r.mbrk;
     end if;
     if r.ibsel_sysid = '1' then
-      idout := slv(to_unsigned(8#123456#,16));
+      idout := slv(to_unsigned(8#010123#,16));
     end if;
 
     if r.ibsel_mbrk='1' and ibw0='1' then

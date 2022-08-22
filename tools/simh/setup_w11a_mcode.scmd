@@ -1,4 +1,4 @@
-; $Id: setup_w11a_mcode.scmd 1276 2022-08-12 10:25:13Z mueller $
+; $Id: setup_w11a_mcode.scmd 1280 2022-08-15 09:12:03Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -17,6 +17,7 @@
 ;
 ; Revision History: 
 ; Date         Rev Version  Comment
+; 2922-08-14  1280  1.1.1   set sysid, indicate simulator and SimH
 ; 2022-08-10  1275  1.0     Initial version (derived from setup_w11a_max.scmd)
 ;
 ; processor options
@@ -27,6 +28,10 @@ set cpu 4m
 set cpu oct
 set cpu idle
 set cpu hist=1000
+;
+; set sysid, leading '1' indicates simulator, next '1' SimH
+;
+dep sysid 110234
 ;
 ; clock options
 ;

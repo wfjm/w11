@@ -1,4 +1,4 @@
-; $Id: setup_w11a_min.scmd 1275 2022-08-10 08:10:40Z mueller $
+; $Id: setup_w11a_min.scmd 1280 2022-08-15 09:12:03Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2009-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -25,6 +25,7 @@
 ;
 ; Revision History: 
 ; Date         Rev Version  Comment
+; 2922-08-14  1280  1.1.1   set sysid, indicate simulator and SimH
 ; 2022-07-14  1256  1.1     use autoconfig, cleanups
 ; 2009-09-13   238  1.0     Initial version
 ;
@@ -35,6 +36,10 @@ set cpu nofpp
 set cpu 1m
 set cpu oct
 set cpu idle
+;
+; set sysid, leading '1' indicates simulator, next '1' SimH
+;
+dep sysid 110234
 ;
 ; clock options
 ;

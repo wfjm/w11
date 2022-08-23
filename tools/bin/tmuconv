@@ -1,10 +1,13 @@
 #!/usr/bin/perl -w
-# $Id: tmuconv 1258 2022-07-18 10:07:22Z mueller $
+# $Id: tmuconv 1283 2022-08-22 10:07:58Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2008-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2022-08-22  1283   1.1.8  print ru after em,ib, best for reg from mem cases
+#                           map r6,r7 to sp,pc for rdst,1reg,rsrc instructions
+# 2022-07-23  1261   1.1.7  add -emcancel; drop em 'cancel' when -t-ib
 # 2022-07-17  1258   1.1.6  add -t_vf -t_all; fis mnemos; add headers
 # 2022-07-06  1246   1.1.5  add DEUNA defs
 # 2019-07-13  1189   1.1.4  drop superfluous exists for $opts
@@ -85,7 +88,7 @@ use Getopt::Long;
 
 my %opts = ();
 
-GetOptions(\%opts, "help", "dump", "cdump",
+GetOptions(\%opts, "help", "dump", "cdump", "emcancel",
 	   "t_id", "t_ru", "t_em","t_vf", "t_ib", "t_all")
   or bailout("bad command options");
 
@@ -729,6 +732,7 @@ sub do_file {
 	  if ($val_curr[$ind_vm_emmreq_cancel]) {
 	    $emreq_str .= " cancel";
 	    $emcurr_we = undef;
+            $emres_str = "" if $opts{t_ib} and not $opts{emcancel};
 	  } else {
 	    if ($val_curr[$ind_vm_emsres_ack_r]) {
 	      $emreq_str .= sprintf " %6.6o", $val_curr[$ind_vm_emsres_dout];
@@ -822,7 +826,6 @@ sub do_file {
       }
 
       print "$cyc_str id    $id_str\n"     if $id_str;
-      print "$cyc_str ru    $ru_str\n"     if $ru_str;
       if ($emres_str) {
 	printf "$cyc_str em    $emreq_str  $emres_str (%d) $emtyp_str\n",
 	  $cyc_curr-$emreq_cyc;
@@ -831,6 +834,7 @@ sub do_file {
 	printf "$cyc_str ib %s $ibreq_str  $ibres_str (%d) $ibreq_nam\n",
 	  $ibreq_typ, $cyc_curr-$ibreq_cyc;
       }
+      print "$cyc_str ru    $ru_str\n"     if $ru_str;
     }
   }
 
@@ -863,16 +867,15 @@ sub code2mnemo {
 	return "$name $src_str,$dst_str";
 
       } elsif ($type eq "rdst") {
-	my $reg = ($code>>6) & 07;
+	my $dst = ($code>>6) & 07;
 	my $src = $code & 077;
 	my $src_str = regmod($src);
-	return "$name $src_str,r$reg";
+	my $dst_str = regmod($dst);
+	return "$name $src_str,$dst_str";
 
       } elsif ($type eq "1reg") {
 	my $reg = $code & 07;
-	my $reg_str = "r$reg";
-	$reg_str = "sp" if $reg == 6;
-	$reg_str = "pc" if $reg == 7;
+	my $reg_str = regmod($reg);
 	return "$name $reg_str";
 
       } elsif ($type eq "br")   {
@@ -922,10 +925,11 @@ sub code2mnemo {
 	return $str;
 
       } elsif ($type eq "rsrc")  {
-	my $reg = ($code>>6) & 07;
+	my $src = ($code>>6) & 07;
 	my $dst = $code & 077;
+	my $src_str = regmod($src);
 	my $dst_str = regmod($dst);
-	return "$name r$reg,$dst_str";
+	return "$name $src_str,$dst_str";
 
       } elsif ($type eq "mark") {
 	my $off = $code & 077;
@@ -994,6 +998,7 @@ sub print_help {
   print "  --help           this message\n";
   print "  --dump           dump all information\n";
   print "  --cdump          dump only changes relative to prev cycle\n";
+  print "  --emcancel       show em 'cancel' cycles when --t_ib active\n";
   print "  --t_id           trace instruction decodes\n";
   print "  --t_ru           trace register updates\n";
   print "  --t_em           trace em transactions\n";

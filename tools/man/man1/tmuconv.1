@@ -1,5 +1,5 @@
 .\" -*- nroff -*-
-.\" $Id: tmuconv.1 1258 2022-07-18 10:07:22Z mueller $
+.\" $Id: tmuconv.1 1261 2022-07-23 16:15:03Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\"
@@ -13,14 +13,7 @@ tmuconv \- convert w11a tmu output into human readable format
 .SH SYNOPSIS
 .
 .SY tmuconv
-.OP \-dump
-.OP \-cdump
-.OP \-t_id
-.OP \-t_ru
-.OP \-t_em
-.OP \-t_vf
-.OP \-t_ib
-.OP \-t_all
+.RI [ OPTION ]...
 .I FILE
 .
 .SY tmuconv
@@ -45,6 +38,10 @@ dump all information.
 dump only changes relative to previous cycle.
 .
 .\" ----------------------------------------------
+.IP "\fB\-emcancel\fR"
+show em 'cancel' cycles when \fB\-t_ib\fR active.
+.
+.\" ----------------------------------------------
 .IP "\fB\-t_id\fR"
 trace instruction decodes.
 .
@@ -55,6 +52,10 @@ trace register updates.
 .\" ----------------------------------------------
 .IP "\fB\-t_em\fR"
 trace em transactions (external memory bus).
+em transactions that converted to an ib transaction are labeled 'cancel'.
+They are not shown when \fB\-t_ib\fR is active and no \fB\-emcancel\fR option
+is given. This gives the most readable output for \fB\-t_all\fR.
+
 Reads from well known vector addresses are labeled 'VFETCH'.
 This is very helpful for the detection of interrupts.
 See also \fB\-t_vf\fR.
@@ -68,7 +69,8 @@ trace only vector fetch em transactions (subset of \fB\-t_em\fR)
 .
 .\" ----------------------------------------------
 .IP "\fB\-t_ib\fR"
-trace ib transactions (ibus cycles)
+trace ib transactions (ibus cycles). em 'cancel' transactions are not shown
+unless the \fB\-emcancel\fR option is given.
 .
 .\" ----------------------------------------------
 .IP "\fB\-t_all\fR"
@@ -202,8 +204,9 @@ if known, the symbolic name of the register
 .EE
 
 The w11 CPU starts a cache cycle for each read or write, and cancels the
-cache request when an ibus access is detected. That's why an 'ib' line
-is usually preceded by an 'em' line with the 'cancel' flag, like
+cache request when an ibus access is detected. These transactions are usually
+suppressed when \fB\-t_ib\fP is active but are shown when \fB\-emcancel\fP
+is given, resulting in output like
 
 .EX
    52582 em    w 11 00177570 000001 cancel  1000 (1) 
@@ -222,12 +225,11 @@ accesses the output CSR of a DL11 interface will look like
    429 id           002002 000340 152764  bisb #nnn,nnn(r4)      (5)
    431 em    r 01 00002004        000004  0100 (1)
    433 em    r 11 00002006        000004  0100 (1)
-   435 em    r 01 00177564        cancel  1100 (1)
    436 ib -- rm01   177564        000200     1 (0) to.csr
    439 ib -- wm01   177564 000204            1 (0) to.csr
 .EE
 
-and shows the canceled em access and the ibus read-modify-write.
+and shows the ibus read-modify-write.
 
 .IP "\fBtmuconv --t_all tmu_ofile\fR" 4
 Like above, in addition, also all register updates are shown. The execution
@@ -235,7 +237,6 @@ of a 'cmp (r2),(r4)+' where r2 points to the psw will look like
 
 .EX
    934 id           003014 000011 021224  cmp  (r2),(r4)+        (9)
-   936 em    r 11 00177776        cancel  1000 (1)
    937 ib -- r 11   177776        000011     1 (0) psw
    939 ru    0 04   005676 003036 003040 177776 005700 005676*005570  r04
    940 em    r 11 00005674        000011  0101 (1)

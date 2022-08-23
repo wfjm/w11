@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: ti_w11.1 1250 2022-07-10 10:21:03Z mueller $
+.\"  $Id: ti_w11.1 1261 2022-07-23 16:15:03Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\"
@@ -101,10 +101,12 @@ use 2nd serport with switched xon
 .PD
 .RE
 .IP \fB-tmu\fP
-activate trace and monitoring unit
+activate in simulations the trace and monitoring unit and write a trace of
+all w11 state transitions to file \fItmu_ofile\fP that can be analysed with
+\fBtmuconv\fP(1).
 .IP \fB-ghw\fP
-activate GHDL wave dump, will write a dump file with the name
-\fB<tb>.ghw\fR where <tb> is the filename of the test bench
+activate in simulations the GHDL wave dump, will write a dump file with the
+name \fB<tb>.ghw\fR where <tb> is the filename of the test bench
 .PD 0
 .PD
 .
@@ -166,6 +168,7 @@ to file \fItmu_ofile\fP and can be analysed with \fBtmuconv\fP(1).
 .SH "SEE ALSO"
 .BR ti_rri (1),
 .BR asm-11 (1),
+.BR tmuconv (1),
 .BR lda-11 (5)
 
 .\" ------------------------------------------------------------------

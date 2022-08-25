@@ -1,4 +1,4 @@
-; $Id: tcode_exec.scmd 1275 2022-08-10 08:10:40Z mueller $
+; $Id: tcode_exec.scmd 1283 2022-08-22 10:07:58Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -11,6 +11,8 @@ set cpu nofpp
 set cpu 4m
 set cpu oct
 set cpu idle
+; set sysid, leading '1' indicates simulator, next '1' SimH
+dep sysid 110234
 ;
 ; disable simulator stop conditions, especially "read stack trap"
 ;

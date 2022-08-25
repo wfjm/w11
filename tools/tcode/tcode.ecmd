@@ -1,4 +1,4 @@
-! $Id: tcode.ecmd 1264 2022-07-30 07:42:17Z mueller $
+! $Id: tcode.ecmd 1283 2022-08-22 10:07:58Z mueller $
 ! SPDX-License-Identifier: GPL-3.0-or-later
 ! Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 !
@@ -7,6 +7,8 @@
 set cpu 70
 set cpu nofpp
 set idle delay=1
+! set sysid, leading '1' indicates simulator, next '2' e11
+set cpu SYSID=0120345
 !
 ! create log file, the only way to capture e11 output
 ! no rediction to stdout possible

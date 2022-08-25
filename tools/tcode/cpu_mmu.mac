@@ -1,4 +1,4 @@
-; $Id: cpu_mmu.mac 1280 2022-08-15 09:12:03Z mueller $
+; $Id: cpu_mmu.mac 1283 2022-08-22 10:07:58Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -611,12 +611,15 @@ tc0101: mov     #1000$,r1       ; ptr to abort bit table
         hcmpeq  (r3),#^b0000000011110001;
 ;
 ; check @(pc)+ behavior
-;   Simh only adds 'general purpose register updates, thus not pc
 ;   w11  updates mmr1 in this case, as is also expected in ekbee1
-;   case commented out to ensure that cpu_mmu.mac runs on both
-;;      reset
-;;      mov     -(r1),@#mmr0    ; r1,-2,pc,2    00010 111 11110 001 via ale
-;;      hcmpeq  (r3),#^b0001011111110001;
+;   Simh only adds 'general purpose register updates', thus not pc
+;   e11  doesn't like this test either
+        tstb     systyp          ; skip test if on SimH or e11
+        blt      100$            ; systyp<0 --> not on w11
+        reset
+        mov     -(r1),@#mmr0    ; r1,-2,pc,2    00010 111 11110 001 via ale
+        hcmpeq  (r3),#^b0001011111110001;
+100$:
 ;
         reset
         jmp     9999$

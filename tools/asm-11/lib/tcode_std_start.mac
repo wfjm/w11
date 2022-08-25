@@ -1,4 +1,4 @@
-; $Id: tcode_std_start.mac 1275 2022-08-10 08:10:40Z mueller $
+; $Id: tcode_std_start.mac 1283 2022-08-22 10:07:58Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -6,6 +6,7 @@
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
+; 2022-08-22  1283   1.1.2  system type (w11,simh,e11) detection via sysid
 ; 2022-08-08  1275   1.1.1  BUGFIX: fix sdreg probe code
 ; 2022-07-28  1263   1.1    ensure PRI=0, ignore startup state (for e11)
 ; 2015-11-02   712   1.0    Initial version
@@ -13,12 +14,17 @@
         .include        |lib/defs_bits.mac|
         .include        |lib/defs_cpu.mac|
         .include        |lib/defs_nzvc.mac|
+        .include        |lib/defs_reg70.mac|
 ;
         .include        |lib/vec_cpucatch.mac|
         .include        |lib/vec_devcatch.mac|
 ;
         .include        |lib/halt_checks.mac|
         .include        |lib/push_pop.mac|
+;
+        sy.w1a = 010000/256.    ; sysid prefix for w11a systems
+        sy.sih = 110000/256.    ; sysid prefix for SimH environment
+        sy.e11 = 120000/256.    ; sysid prefix for e11 environment
 ;
         . = 000200
         jmp     @#start
@@ -29,14 +35,17 @@ stack:
 dostop: halt                    ; successful halt address is 2002  !!
 stop:   br      dostop          ; no restart after successful halt !!
 ;
-psreg:  .word   cp.dsr          ; pointer to switch  reg (default->hardware)
-pdreg:  .word   cp.dsr          ; pointer to display reg (default->hardware)
 swsreg: .word   0               ; software switch  reg
 swdreg: .word   0               ; software display reg
+swsyid: .word   0               ; software sysid   reg
+psreg:  .word   cp.dsr          ; pointer to switch  reg (default->hardware)
+pdreg:  .word   cp.dsr          ; pointer to display reg (default->hardware)
 ;
 tstno:  .word   0               ; test number
 runno:  .word   0               ; run number
 ;
+systyp: .byte   0               ; system type (from sysid)
+cpunum: .byte   0               ; cpu number  (from sysid)
 ;
 start:  reset                   ; general reset
         mov     #stack,sp       ; setup stack
@@ -44,30 +53,47 @@ start:  reset                   ; general reset
 ;
         mov     #v..lp+2,v..lp  ; setup LP11 vector catcher
         clr     v..lp
-;
-        tst     swsreg          ; software switch reg setup ?
-        bne     200$            ; if yes use software swi and disp reg
-;
-        mov     #100$,v..iit    ; setup IIT handler
+        mov     #800$,v..iit    ; setup IIT handler for probing
         mov     #cp.pr7,v..iit+2
 ;
-        mov     #200$,r5        ; setup failed probe code pointer
+        tst     swsreg          ; software switch reg set up ?
+        bne     100$            ; if yes use software swi and disp reg
+;
+        mov     #100$,r5        ; setup failed probe code pointer
         mov     @#cp.dsr,r0     ; test switch register
         clr     @#cp.dsr        ; test display register
-        br      300$
+        br      200$
+;
+100$:   mov     #swsreg,psreg   ; use software switch/display regs
+        mov     #swdreg,pdreg
+;
+200$:   tst     swsyid          ; software sysid set up ?
+        bne     300$
+;
+        mov     #300$,r5        ; setup failed probe code pointer
+        mov     @#sysid,swsyid  ; probe and read sysid
+;
+; reset iit vector catcher after all probing
+;
+300$:   mov     #v..iit+2,v..iit ; reset to iit vector catcher
+        clr     v..iit+2
+;
+; analyse sysid information
+;
+        movb    swsyid+1,r0     ; get sysid upper byte
+        mov     r0,r1
+        bic     #^b00001111,r0  ; mask system type field (sysid[15:12])
+        movb    r0,systyp
+        asr     r1
+        bic     #^b11111100,r1  ; get cpu number (sysid[10:9])
+        movb    r1,cpunum
+        br      900$
 ;
 ; IIT handler for probing. Simply use r5 as return address
 ;   -->   successful probes simply fall through
 ;   --> unsuccessful probes branch to address given in r5
 ;
-100$:   mov     r5,(sp)
+800$:   mov     r5,(sp)
         rti
 ;
-; setup software swi and disp reg
-;
-200$:   mov     #swsreg,psreg
-        mov     #swdreg,pdreg
-;
-300$:   mov     #v..iit+2,v..iit ; reset to iit vector catcher
-        clr     v..iit+2
-;
+900$:

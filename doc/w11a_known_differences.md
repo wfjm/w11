@@ -8,6 +8,7 @@ The issues of the w11 CPU and systems are listed in a separate document
 - [Instruction fetch after `SPL`](w11a_diff_70_spl_bug.md)
 - ['red stack violation' loses PSW](w11a_diff_70_red_stack_abort.md)
 - ['instruction completed flag' in `MMR0` is not implemented](w11a_diff_70_instruction_complete.md)
+- [`jsr sp` pushes original `sp` value](w11a_diff_70_jsr_sp.md)
 - [18-bit UNIBUS address space not mapped](w11a_diff_70_unibus_mapping.md)
 
 All points relate to very 11/70 specific behavior, no operating system

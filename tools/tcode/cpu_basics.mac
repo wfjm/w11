@@ -1,4 +1,4 @@
-; $Id: cpu_basics.mac 1263 2022-07-28 09:00:42Z mueller $
+; $Id: cpu_basics.mac 1285 2022-08-25 06:15:42Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -943,6 +943,50 @@ ta0403: clr     900$            ; reset call counter
 900$:   .word   0
 ;
 9999$:  iot                     ; end of test A4.3
+;
+; Test A4.4 -- jsr sp and rts sp ++++++++++++++++++++++++++++++++++++++
+;   In case of jsr sp and rts sp, the sp register is used both as linkage
+;   register and implicitly as stack pointer. That interferes and gives
+;   quite bizarre semantics, certainly never used, but should work
+;   - jsr sp,<dst> will
+;     - push current SP onto stack
+;     - set SP to the location of following instruction
+;     - jump to <dst>
+;   - rts sp will
+;     - set PC to current SP
+;     - pop SP of the current stack
+;       that will set SP to the opcode of instruction being returned to !
+;
+ta0404: hcmpeq  sp,#stack       ; check stack is default
+        clr     100$            ; clear 'args' after jsr
+        clr     100$+2
+;
+        jsr     sp,300$         ; will push SP to current stack
+100$:   .word   0               ; 'args', will be overwritten
+        .word   0               ; 
+;
+200$:   clr     r1              ; return instruction, also loaded SP
+        hcmpeq  sp,200$         ; check loaded SP
+        mov     #stack-2,sp     ; restore stack to where jsr pushed it
+;
+; w11 saves original sp, 11/70,SimH,e11 save sp after it was decremented
+; This is considered a minor deviation (jsr sp never used!)
+;
+        mov     #stack,r1
+        tstb    systyp          ; check environment
+        bge     210$            ; >=0 is on w11
+        sub     #2,r1           ; if not, subtract 2 (now sp-2)
+210$:   hcmpeq  (sp)+,r1        ; check jsr stored stack pointer
+        hcmpeq  100$,#123       ; check writes via SP in routine
+        hcmpeq  100$+2,#345     ; check writes via SP in routine
+        jmp     9999$
+;
+; this routine must never 'push' that will overwrite the calling jsr !!
+300$:   mov     #123,(sp)+
+        mov     #345,(sp)+
+        rts     sp
+;
+9999$:  iot                     ; end of test A4.4
 ;
 ; Test A5 -- mark ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;   This sub-section verifies
@@ -3094,7 +3138,7 @@ tf0301: mov     #v..iot+2,v..iot ; block iot handler
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#52.      ; all tests done ?
+        hcmpeq  tstno,#53.      ; all tests done ?
 ;
         jmp     loop
 ;

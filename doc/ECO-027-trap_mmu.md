@@ -41,7 +41,7 @@ The later happens due to the logic of state `s_opg_gen_rmw_w`:
 `pdp11_sequencer` was modified to ensure that `R_STATUS.trap_mmu` is only set 
 in `do_memcheck`. Same for `trap_ysv` (which had the same potential bug)
 
-### Provisos
+### Hindsight
 The issue was found by systematic testing of mmu fault and trap behavior.
 Because known OS don't use mmu traps the issue should not have any impact
 on practical usage with OS like rsx or 211bsd.

@@ -52,6 +52,6 @@ clock cycle.
    `EI_REQ` line from last cycle, and use this value to route `EI_ACKM` to the
    `EI_ACK` lines.
 
-### Provisos
+### Hindsight
 That 12 year old code worked with no apparent problems doesn't prove that
 it is free of fundamental bugs.

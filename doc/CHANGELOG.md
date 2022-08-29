@@ -71,6 +71,8 @@ The full set of tests is only run for tagged releases.
   - removed designs (drop Atlys)
     - rtl/sys_gen/tst_rlink_cuff/atlys/sys_tst_rlink_cuff_atlys
     - rtl/sys_gen/tst_snhumanio/atlys/sys_tst_snhumanio_atlys
+  - rtl/w11a/pdp11_psr: handle pm protection like cm, for details see
+      [ECO-031](ECO-031-PSW_protection.md)
 - general changes
   - segment -< page rename
     - DEC used in early documents 'segment', later on 'page' for the MMU object

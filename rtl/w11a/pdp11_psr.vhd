@@ -1,6 +1,6 @@
--- $Id: pdp11_psr.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: pdp11_psr.vhd 1287 2022-08-27 09:40:43Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    pdp11_psr - syn
@@ -9,10 +9,11 @@
 -- Dependencies:   ib_sel
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2022.1; ghdl 0.18-2.0.0
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-08-27  1287   1.2.3  handle pm protection like cm, remove or'ing cm
 -- 2011-11-18   427   1.2.2  now numeric_std clean
 -- 2010-10-23   335   1.2.1  use ib_sel
 -- 2010-10-17   333   1.2    use ibus V2 interface
@@ -121,8 +122,7 @@ begin
             
             when c_psr_func_wrti =>       -- wrti (rti/rtt in non-kernel mode)
               R_PSW.cmode <= R_PSW.cmode or DIN(psw_ibf_cmode);
-              R_PSW.pmode <= R_PSW.pmode or DIN(psw_ibf_pmode) or
-                             R_PSW.cmode or DIN(psw_ibf_cmode); 
+              R_PSW.pmode <= R_PSW.pmode or DIN(psw_ibf_pmode); 
               R_PSW.rset  <= R_PSW.rset or DIN(psw_ibf_rset);
               R_PSW.tflag <= DIN(psw_ibf_tflag);
               R_PSW.cc    <= DIN(psw_ibf_cc);

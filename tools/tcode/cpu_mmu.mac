@@ -21,6 +21,8 @@
        uipar0 = uipar+ 0
        udpdr0 = udpdr+ 0
        udpar0 = udpar+ 0
+       udpdr1 = udpdr+ 2
+       udpar1 = udpar+ 2
        sipdr0 = sipdr+ 0
        sipar0 = sipar+ 0
        kipar6 = kipar+14
@@ -105,7 +107,7 @@ ta0101: mov     #000401,r5      ; pattern master
 ;
 9999$:  iot                     ; end of test A1.1
 ;
-; Test A1.2 -- setup MMU default configuration +++++++++++++++++++++++
+; Test A1.2 -- set up MMU default configuration ++++++++++++++++++++++
 ;   Nothing is verified, just sets the MMU for all further tests
 ;   kernel I: 1-to-1   and seg7 to io-page
 ;   kernel D: unmapped but seg7 to io-page
@@ -123,7 +125,7 @@ ta0102:
         clr     (r2)+
         sob     r3,200$
         sob     r1,100$
-; setup kernel I
+; set up kernel I
         mov     #kipdr,r0
         mov     #<127.*md.plf>!md.arw,r1  ; plf=127; ed=0(up); acf=6(w/r)
         mov     r1,(r0)+        ; kipdr0
@@ -143,7 +145,7 @@ ta0102:
         mov     #001200,(r0)+   ; kipar5 120000 base
         mov     #001400,(r0)+   ; kipar6 140000 base
         mov     #177600,(r0)+   ; kipar7 (map I/O page)
-; setup kernel D
+; set up kernel D
         mov    #kdpdr,r0
         mov    r1,16(r0)        ; kdpdr7 plf=127; ed=0(up); acf=6(w/r)
         mov    #kdpar,r0
@@ -303,7 +305,7 @@ tb0202: mov     #kipar6,r0      ; ptr to kipar6
 ;   the code runs in seg0 with D space disabled
 ;
 tb0301:
-; setup emt handler
+; set up emt handler
         mov     #vhuemt,v..emt
         clr    v..emt+2         ; pr0 kernel
 ; enable mmu
@@ -312,15 +314,15 @@ tb0301:
 ;
 ; run code vc0 in user mode --------------------------------
 ;
-; set user mode pdr/par, only short segment 0
+; set user mode pdr/par, only short page 0
         mov     #<8.*md.plf>!md.arw,uipdr0
         mov     #<vc0/100>,uipar0
-; setup data for user mode run
+; set up data for user mode run
         mov     #023456,vc0v0;
         mov     #000123,vc0v1
         mov     #077321,vc0v2
 ; start code in user mode
-        mov     #1000$,vhustp   ; setup continuation address
+        mov     #1000$,vhustp   ; set up continuation address
         mov     #<cp.cmu!cp.pmu>,-(sp)   ; next psw: user mode
         clr     -(sp)           ; will start at 0
         rti                     ; and launch it
@@ -338,15 +340,15 @@ tb0301:
 ;
 ; run code vc0 in supervisor mode --------------------------
 ;
-; set supervisor mode pdr/par, only short segment 0
+; set supervisor mode pdr/par, only short page 0
         mov     #<8.*md.plf>!md.arw,sipdr0
         mov     #<vc0/100>,sipar0
-; setup data for user mode run
+; set up data for user mode run
         mov     #017171,vc0v0
         mov     #000321,vc0v1
         mov     #100123,vc0v2
 ; start code in supervisor mode
-        mov     #2000$,vhustp   ; setup continuation address
+        mov     #2000$,vhustp   ; set up continuation address
         mov     #<cp.cms!cp.pms>,-(sp)   ; next psw: supervisor mode
         clr     -(sp)           ; will start at 0
         rti                     ; and launch it
@@ -380,7 +382,7 @@ tb0301:
 ;     1 000 110 110 ddd ddd NZ0- MTPD
 ;
 tb0302:
-; setup emt handler
+; set up emt handler
         mov     #vhuemt,v..emt
         clr     v..emt+2        ; pr0 kernel
 ; enable mmu
@@ -389,17 +391,17 @@ tb0302:
 ;
 ; run code vc1 in user mode --------------------------------
 ;
-; set user mode pdr/par, only short segment 0; I and D
+; set user mode pdr/par, only short page 0; I and D
         mov     #<8.*md.plf>!md.arw,uipdr0
         mov     #<vc1/100>,uipar0
         mov     #<8.*md.plf>!md.arw,udpdr0
         mov     #<vc1dat/100>,udpar0
-; setup data for user mode run
+; set up data for user mode run
         mov     #020305,vc1v0
         mov     #000212,vc1v1
         mov     #033121,vc1v2
 ; start code in user mode
-        mov     #1000$,vhustp   ; setup continuation address
+        mov     #1000$,vhustp   ; set up continuation address
         mov     #<cp.cmu!cp.pmu>,-(sp)   ; next psw: user mode
         clr     -(sp)           ; will start at 0
         rti                     ; and launch it
@@ -566,6 +568,8 @@ tb0302:
 ;   - write one of the 3 abort bits in mmr1 (all three are tested)
 ;   - that will freeze mmr1
 ;   - the register signature of the write can be inspected
+;   Note: this gives MMR1 when instruction is not(!) aborted
+;         in principle, MMR1 might hold other values in the case of an abort
 ;
 tc0101: mov     #1000$,r1       ; ptr to abort bit table
         mov     #mmr0,r2        ; ptr to mmr0
@@ -613,7 +617,7 @@ tc0101: mov     #1000$,r1       ; ptr to abort bit table
 ; check @(pc)+ behavior
 ;   w11  updates mmr1 in this case, as is also expected in ekbee1
 ;   Simh only adds 'general purpose register updates', thus not pc
-;   e11  doesn't like this test either
+;   e11  doesnt like this test either
         tstb     systyp          ; skip test if on SimH or e11
         blt      100$            ; systyp<0 --> not on w11
         reset
@@ -630,10 +634,144 @@ tc0101: mov     #1000$,r1       ; ptr to abort bit table
 ;
 9999$:  iot                     ; end of test C1.1
 ;
+; Section D: mmr2 register and aborts ========================================
+;
+; Test D1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;
+; Test D1.1 -- code in user mode with D space, simulated SP extend +++
+;   The code is started with short stack page, stack push fails,
+;   the kernel handler will to stack extension and register roll back.
+;
+td0101:
+; set up emt handler
+        mov     #vhuemt,v..emt
+        clr     v..emt+2        ; pr0 kernel
+; set up mmu handler
+        mov     #2000$,v..mmu
+        mov     #cp.pr7,v..mmu+2
+; set up user mode pdr/par; short code/data page 0
+; short stack page 1, base 140000, length 1 click (plf=127.) --> 157700:157776
+        vc2sek = 157700            ; initial end of stack in kernel view
+        vc2seu = 037700            ; initial end of stack in user view
+;
+        mov     #<8.*md.plf>!md.arw,uipdr0
+        mov     #<vc2/100>,uipar0
+        mov     #<8.*md.plf>!md.arw,udpdr0
+        mov     #<vc2dat/100>,udpar0
+        mov     #<127.*md.plf>!md.arw!md.dwn,udpdr1
+        mov     #<140000/100>,udpar1
+; enable mmu
+        mov     #m3.dum,mmr3    ; user d dspace, no 22bit
+        mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 18
+;
+; run code vc2 in user mode --------------------------------
+;
+; clear stack area seen by user code
+        clr     vc2sek-4
+        clr     vc2sek-2
+        clr     vc2sek
+        clr     vc2sek+2
+; clear mmr0:mmr2 save area
+        clr     3000$
+        clr     3001$
+        clr     3002$
+; start code in user mode
+        mov     #1000$,vhustp   ; set up continuation address
+        mov     #<cp.cmu!cp.pmu>,-(sp)   ; next psw: user mode
+        clr     -(sp)           ; will start at 0
+        rti                     ; and launch it
+        halt
+1000$:                          ; continuation point
+        hcmpeq  r5,#0           ; ran sob to end ?
+        mfpd    sp              ; get user SP
+        hcmpeq  (sp)+,#vc2seu-4 ; check expected value
+        hcmpeq  vc2sek+2,vc2dat   ; 1st push
+        hcmpeq  vc2sek+0,vc2dat+2 ; 2nd push
+        hcmpeq  vc2sek-2,vc2dat+4 ; 3rd push
+        hcmpeq  vc2sek-4,vc2dat+6 ; 4th push
+;
+; SimH wrongly sets m0.ico, skip mmr0 check for SimH
+        cmpb    systyp,#sy.sih
+        beq     1010$
+        hcmpeq  3000$,#<m0.ale!m0.pmu!m0.dsp!<1*m0.pno>!m0.ena>
+;
+1010$:  hcmpeq  3001$,#^b1111011000010100       ; -2,sp;2,r4
+        hcmpeq  3002$,#<vc2l1-vc2>
+;
+; reset user mode pdr/par
+        clr     uipdr0
+        clr     uipar0
+        clr     udpdr0
+        clr     udpar0
+        clr     udpdr1
+        clr     udpar1
+;
+        reset                   ; mmu off                       ;! MMU off
+        mov     #v..emt+2,v..emt        ; restore emt catcher
+        clr     v..emt+2
+        mov     #v..mmu+2,v..mmu        ; restore mmu catcher
+        clr     v..mmu+2
+        jmp     9999$
+;
+; the MMU trap handler
+;   - saves all registers (starting with PC dummp)
+;   - rolls back register changes seen in MMR1
+;   - increases the stack by one click
+;   - restore all registers
+;   - restarts the aborted instruction by setting PC to MMR2
+;
+2000$:  mov     mmr0,3000$      ; record mmr0:mmr2
+        mov     mmr1,3001$
+        mov     mmr2,3002$
+; save all registers
+        clr     -(sp)           ; save dummy PC
+        mfpd    sp              ; save pm SP
+        push    r5              ; and r5..r0
+        push    r4
+        push    r3
+        push    r2
+        push    r1
+        push    r0
+; roll back register changes
+        mov     mmr1,r0         ; get mmr1
+        mov     #2,r1           ; handle both halfes
+2100$:  mov     r0,r2
+        bic     #^c7,r2         ; mask out regnum field
+        asl     r2              ; word offset
+        add     sp,r2           ; address of register on stack
+        movb    r0,r3
+        asr     r3
+        asr     r3
+        asr     r3              ; register correction
+        sub     r3,(r2)         ; and correct register
+        swab    r0              ; go for 2nd half
+        sob     r1,2100$        ; and loop
+; increase stack by one click --> decrease(!) plf
+        mov     #<126.*md.plf>!md.arw!md.dwn,udpdr1
+; restore all registers
+        pop     r0              ; restore r0..r5
+        pop     r1
+        pop     r2
+        pop     r3
+        pop     r4
+        pop     r5
+        mtpd    sp              ; restore pm SP
+        tst     (sp)+           ; pop dummy PC
+; roll back PC to re-run aborted instruction
+        mov     mmr2,(sp)       ; roll back PC
+        bic     #<m0.anr!m0.ale!m0.ard>,mmr0    ; clear abort bits
+        rti                     ; return and restart instruction
+;
+3000$:  .word   0               ; save mmr0
+3001$:  .word   0               ; save mmr1
+3002$:  .word   0               ; save mmr2
+;
+9999$:  iot                     ; end of test D1.1
+
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#9.       ; all tests done ?
+        hcmpeq  tstno,#10.      ; all tests done ?
 ;
         jmp     loop
 ;
@@ -646,7 +784,7 @@ tc0101: mov     #1000$,r1       ; ptr to abort bit table
 ;   --> vhustp must be set for each execution
 ;
 vhuemt: tst     (sp)+           ; discard on word of vector push
-        mov     vhustp,(sp)     ; setup kernel return address
+        mov     vhustp,(sp)     ; set up kernel return address
         mov     vhuhlt,vhustp   ; reset stop address by catcher
         rts     pc              ; end return to continuation address
 vhustp: .word   vhuhlt
@@ -681,7 +819,7 @@ vc0v2:  .word   0
 ; vc1 - simple I/D code ++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;    uses jsr, has stack below 1000 (no problem in user/supervisor mode)
 ;    does operations with vc1v0, vc1v1, vc1v2
-;    these location are usually set before and checked afterwards in kernel mode
+;    these locations are usually set before and checked afterwards in kernel mode
 ;
         . = 101000              ; I space ------------------------------------
 vc1:    mov     #<vc1v0-vc1dat>,sp      ; initialize stack
@@ -703,5 +841,23 @@ vc1stk:
 vc1v0:  .word   0
 vc1v1:  .word   0
 vc1v2:  .word   0
+;
+; vc2 - stack push I/D code ++++++++++++++++++++++++++++++++++++++++++++++++++
+;    set SP just above the stack page end; push data
+;    expect kernel handler to extend the stack and re-run failed push
+;
+        . = 103000              ; I space ------------------------------------
+vc2:    mov     #vc2seu+4,sp    ; 4 bytes above initial end
+        mov     #<vc2dat-vc2dat>,r4    ; initialize data pointer to vc2dat
+        mov     #4.,r5          ; set loop count
+vc2l1:  push    (r4)+           ; push data
+        sob     r5,vc2l1
+        emt     100             ; will end code
+;
+        . = 104000              ; D space ------------------------------------
+vc2dat: .word   010111
+        .word   010222
+        .word   010333
+        .word   010444
 ;
         .end    start

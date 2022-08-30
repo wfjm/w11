@@ -31,7 +31,10 @@
         m0.ent = 001000                 ; enable traps
         m0.mai = 000400                 ; maintenance mode
         m0.ico = 000200                 ; instruction complete flag
+        m0.pmu = 000140                 ; page mode user
+        m0.pms = 000040                 ; page mode supervisor
         m0.dsp = 000020                 ; enable i/d space
+        m0.pno = 000002                 ; page number field lsb
         m0.ena = 000001                 ; enable mmu
 ;
 ; symbol definitions for mmr3

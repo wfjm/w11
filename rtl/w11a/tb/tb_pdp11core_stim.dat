@@ -1819,6 +1819,7 @@ wm      000000    --
 wps     000000    -- psw: cmode=pmode=0 (kernel)
 #-----------------------------------------------------------------------------
 C Setup code 22 [base 5000, use 50-57] (MMU ; run user mode code with I/D)
+# ==> now tested with cpu_mmu.mac:D1.1
 #
 wal     177600    -- user I space DR
 wmi     000002    --   plf=0; ed=0(up); acf=2(read-only)

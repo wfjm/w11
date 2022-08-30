@@ -1,4 +1,4 @@
-; $Id: cpu_basics.mac 1285 2022-08-25 06:15:42Z mueller $
+; $Id: cpu_basics.mac 1287 2022-08-27 09:40:43Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -963,7 +963,7 @@ ta0404: hcmpeq  sp,#stack       ; check stack is default
 ;
         jsr     sp,300$         ; will push SP to current stack
 100$:   .word   0               ; 'args', will be overwritten
-        .word   0               ; 
+        .word   0               ;
 ;
 200$:   clr     r1              ; return instruction, also loaded SP
         hcmpeq  sp,200$         ; check loaded SP

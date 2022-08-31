@@ -1,4 +1,4 @@
-; $Id: cpu_mmu.mac 1283 2022-08-22 10:07:58Z mueller $
+; $Id: cpu_mmu.mac 1290 2022-08-30 06:20:40Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -11,8 +11,8 @@
 ; Test CPU MMU: all aspects of the MMU
 ;   Section A: pdr,par registers
 ;   Section B: mmr0,mmr3 registers, mapping, instructions
-;   Section C: mmr1 register and traps
-;   Section D: mmr2 register and aborts
+;   Section C: mmr1+mmr0 register, aborts and traps
+;   Section D: mmr2+mmr1+mmr0 register, abort recovery
 ;
         .include        |lib/tcode_std_base.mac|
         .include        |lib/defs_mmu.mac|
@@ -23,9 +23,18 @@
        udpar0 = udpar+ 0
        udpdr1 = udpdr+ 2
        udpar1 = udpar+ 2
+       udpdr2 = udpdr+ 4
+       udpar2 = udpar+ 4
+
        sipdr0 = sipdr+ 0
        sipar0 = sipar+ 0
+       sipdr7 = sipdr+16
+       sipar7 = sipar+16
+
+       kipdr0 = kipdr+ 0
+       kipdr6 = kipdr+14
        kipar6 = kipar+14
+       kipdr7 = kipdr+16
        kipar7 = kipar+16
 ;
 ; Section A: pdr,par registers ===============================================
@@ -145,11 +154,8 @@ ta0102:
         mov     #001200,(r0)+   ; kipar5 120000 base
         mov     #001400,(r0)+   ; kipar6 140000 base
         mov     #177600,(r0)+   ; kipar7 (map I/O page)
-; set up kernel D
-        mov    #kdpdr,r0
-        mov    r1,16(r0)        ; kdpdr7 plf=127; ed=0(up); acf=6(w/r)
-        mov    #kdpar,r0
-        mov     #177600,16(r0)  ; kdpar7 (map I/O page)
+; kernel D space is not used in tests, kernel always runs without I/D
+; D space is tested, but in supervisor or user mode
 ;
         jmp     9999$
 ;
@@ -526,12 +532,12 @@ tb0302:
         hcmpeq  r5,#277         ; check
         hcmpeq  r4,#377         ; check
 ; read registers via mtpd,mtpi
-       mov       #477,r5
-       mov       #577,r4
-       mfpd      r5
-       hcmpeq    (sp)+,#477     ; check
-       mfpd      r4
-       hcmpeq    (sp)+,#577     ; check
+        mov     #477,r5
+        mov     #577,r4
+        mfpd    r5
+        hcmpeq  (sp)+,#477     ; check
+        mfpd    r4
+        hcmpeq  (sp)+,#577     ; check
 ;
 ; reset user mode pdr/par
         clr     uipdr0
@@ -540,6 +546,7 @@ tb0302:
         clr     udpar0
 ;
         reset                   ; mmu off                       ;! MMU off
+        clr     cp.psw          ; crop pm in psw
         mov     #v..emt+2,v..emt        ; restore emt catcher
         clr     v..emt+2
         jmp     9999$
@@ -558,7 +565,7 @@ tb0302:
 ;
 9999$:  iot                     ; end of test B3.2
 ;
-; Section C: mmr1 register and traps =========================================
+; Section C: mmr1+mmr0 register, aborts and traps ============================
 ;
 ; Test C1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;
@@ -634,7 +641,253 @@ tc0101: mov     #1000$,r1       ; ptr to abort bit table
 ;
 9999$:  iot                     ; end of test C1.1
 ;
-; Section D: mmr2 register and aborts ========================================
+; Test C2:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   Verify MMU abort response in mmr0 and mmr1
+;
+; Test C2.1 -- test unary/binary instructions ++++++++++++++++++++++++
+;   Excercise access to kernel page 6 and inspect mmr0 and mmr1
+;
+tc0201: mov     #vhemmu,v..mmu
+        clr     v..mmu+2        ; pr0 kernel
+        reset
+        mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 18
+;
+; part 1: unary instructions; test acf to mmr0(15:13) mapping --------
+; Summary:
+;   1000$: tst  (r2)+        ; r   ; dst anr 1           ; pdr=  0.,0,000
+;   1100$: tst  (r3)+        ; r   ; dst ale 1           ; pdr=  0.,0,arw
+;   1200$: tst  -(r4)        ; r   ; dst ale 1           ; pdr=127.,1,arw
+;   1300$: clrb -(r2)        ; w   ; dst ard 1           ; pdr=  0.,0,aro
+;   1400$: inc  (r2)+        ; m   ; dst ard 1           ; pdr=  0.,0,aro
+;   1500$: tstb (r2)+        ; r   ; dst anr 1           ; pdr=  0.,0,011
+;   1600$: tstb -(r2)        ; r   ; dst anr 1           ; pdr=  0.,0,111
+;
+; non-resident abort (only)
+1000$:  clr     kipdr6                          ; plf=  0.;ed=0;acf=nres
+        mov     #1010$,vhvmmu
+        mov     #140000,r2
+        tst     (r2)+           ; will fail
+        halt
+1010$:  .word   m0.anr!<6*m0.pno>!m0.ena        ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000000010010              ; mmr1 +2,2
+;
+; length abort, up direction; length 1 click
+1100$:  mov     #<0.*md.plf>!md.arw,kipdr6      ; plf=  0.;ed=0;acf=w/r
+        mov     #1110$,vhvmmu
+        mov     #140102,r3
+        tst     (r3)+           ; will fail
+        halt
+1110$:  .word   m0.ale!<6*m0.pno>!m0.ena        ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000000010011              ; mmr1 +2,3
+;
+; length abort, down direction; length 1 click
+1200$:  mov     #<127.*md.plf>!md.dwn!md.arw,kipdr6     ; plf=127.;ed=1;acf=w/r
+        mov     #1210$,vhvmmu
+        mov     #157700,r4
+        tst     -(r4)           ; will fail
+        halt
+1210$:  .word   m0.ale!<6*m0.pno>!m0.ena        ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000011110100              ; mmr1 -2,4
+;
+; write abort in mapped area (write access)
+1300$:  mov     #<0.*md.plf>!md.aro,kipdr6      ; plf=  0.;ed=0;acf=r
+        mov     #140002,r2
+        tstb    (r2)+           ; read ok
+        mov     #1310$,vhvmmu
+        clrb    -(r2)           ; write will fail
+        halt
+1310$:  .word   m0.ard!<6*m0.pno>!m0.ena        ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000011111010              ; mmr1 -1,2
+;
+; write abort in mapped area (wmw access)
+1400$:  mov     #1410$,vhvmmu
+        inc     (r2)+           ; rmw will fail
+        halt
+1410$:  .word   m0.ard!<6*m0.pno>!m0.ena        ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000000010010              ; mmr1 +2,2
+;
+; acf=011: reserved, abort all -> handled as non-resident
+1500$:  mov     #^b011,kipdr6                           ; plf=  0.;ed=0;acf=011
+        mov     #1510$,vhvmmu
+        tstb    (r2)+           ; will fail
+        halt
+1510$:  .word   m0.anr!<6*m0.pno>!m0.ena        ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000000001010              ; mmr1 +1,2
+;
+; acf=111: reserved, abort all -> handled as non-resident
+1600$:  mov     #^b111,kipdr6                           ; plf=  0.;ed=0;acf=111
+        mov     #1610$,vhvmmu
+        tstb    -(r2)           ; will fail
+        halt
+1610$:  .word   m0.anr!<6*m0.pno>!m0.ena        ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000011111010              ; mmr1 -1,2
+;
+; part 2: unary instructions; fail in second access ------------------
+; Summary:
+;   2000$: tst  @(r2)+       ; r   ; dst ale 2           ; pdr=  0.,0,arw
+;   2100$: tst  @-(r2)       ; r   ; dst ale 2           ; pdr=  0.,0,arw
+;
+2000$:  mov     #<0.*md.plf>!md.arw,kipdr6      ; plf=  0.;ed=0;acf=r/w
+        mov     #2010$,vhvmmu
+        mov     #2001$,r2
+        tst     @(r2)+          ; will fail
+        halt
+2001$:  .word   140102          ; probed address
+2010$:  .word   m0.ale!<6*m0.pno>!m0.ena        ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000000010010              ; mmr1 +2,2
+;
+2100$:  mov     #2110$,vhvmmu
+        tst     @-(r2)          ; will fail
+        halt
+2110$:  .word   m0.ale!<6*m0.pno>!m0.ena        ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000011110010              ; mmr1 -2,2
+;
+; part 3: binary instructions; fail in src field ---------------------
+; Summary:
+;   3000$: mov  (r2)+,(r3)+  ; r w ; src ale 1           ; pdr=  0.,0,arw
+;   3100$: mov  -(r2),(r3)+  ; r w ; src ale 1           ; pdr=  0.,0,arw
+;   3200$: mov  @(r4)+,(r3)+ ; r w ; src ale 2           ; pdr=  0.,0,arw
+;   3300$: mov  @-(r4),(r3)+ ; r w ; src ale 2           ; pdr=  0.,0,arw
+;
+3000$:  mov     #<0.*md.plf>!md.arw,kipdr6      ; plf=  0.;ed=0;acf=r/w
+        mov     #3010$,vhvmmu
+        mov     #140102,r2
+        mov     #1,r3           ; not used
+        mov     (r2)+,(r3)+     ; will fail
+        halt
+3010$:  .word   m0.ale!<6*m0.pno>!m0.ena        ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000000010010              ; mmr1 +2,2
+;
+3100$:  mov     #3110$,vhvmmu
+        mov     -(r2),(r3)+     ; will fail
+        halt
+3110$:  .word   m0.ale!<6*m0.pno>!m0.ena        ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000011110010              ; mmr1 -2,2
+;
+3200$:  mov     #3210$,vhvmmu
+        mov     #3201$,r4
+        mov     @(r4)+,(r3)+    ; will fail
+        halt
+3201$:  .word   140102          ; probed address
+3210$:  .word   m0.ale!<6*m0.pno>!m0.ena        ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000000010100              ; mmr1 +2,4
+;
+3300$:  mov     #3310$,vhvmmu
+        movb    @-(r4),(r3)+    ; will fail
+        halt
+3310$:  .word   m0.ale!<6*m0.pno>!m0.ena        ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000011110100              ; mmr1 -2,4
+;
+; part 4: binary instructions; fail in dst field ---------------------
+; Summary:
+;   4000$: mov  (r2)+,-(r3)  ; r w ; dst ale 1           ; pdr=  0.,0,arw
+;   4100$: mov  -(r2),(r3)+  ; r w ; dst ale 1           ; pdr=  0.,0,arw
+;   4200$: cmp  (r2)+,@(r5)+ ; r r ; dst ale 2           ; pdr=  0.,0,arw
+;   4300$: bis  -(r2),(r4)+  ; r m ; dst ard 1           ; pdr=  0.,0,aro
+;   4400$: bis  (r2),-(r4)   ; r m ; dst ard 1           ; pdr=  0.,0,aro
+;
+4000$:  mov     #<0.*md.plf>!md.arw,kipdr6      ; plf=  0.;ed=0;acf=r/w
+        mov     #4010$,vhvmmu
+        mov     #4001$,r2
+        mov     #140104,r3
+        mov     (r2)+,-(r3)     ; will fail
+        halt
+4001$:  .word   123456
+4010$:  .word   m0.ale!<6*m0.pno>!m0.ena        ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b1111001100010010              ; mmr1 -2,3; +2,2
+;
+4100$:  mov     #4110$,vhvmmu
+        mov     -(r2),(r3)+     ; will fail
+        halt
+4110$:  .word   m0.ale!<6*m0.pno>!m0.ena        ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0001001111110010              ; mmr1 +2,3; -2,2
+;
+4200$:  mov     #4210$,vhvmmu
+        mov     4201$,r5
+        cmp     (r2)+,@(r5)+    ; will fail
+        halt
+4201$:  .word   140102          ; probed address
+4210$:  .word   m0.ale!<6*m0.pno>!m0.ena        ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0001010100010010              ; mmr1 +2,5; +2,2
+;
+4300$:  mov     #<0.*md.plf>!md.aro,kipdr6      ; plf=  0.;ed=0;acf=r
+        mov     #4310$,vhvmmu
+        mov     #140010,r4
+        bis     -(r2),(r4)+     ; will fail
+        halt
+4310$:  .word   m0.ard!<6*m0.pno>!m0.ena        ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0001010011110010              ; mmr1 +2,4; -2,2
+;
+; no inc/dec for src
+4400$:  mov     #4410$,vhvmmu
+        bis     (r2),-(r4)      ; will fail
+        halt
+4410$:  .word   m0.ard!<6*m0.pno>!m0.ena        ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000011110100              ; mmr1 -2,4;
+;
+; part 5: multiple abort flags ---------------------------------------
+; possible:  anr + ale    (non-resident + length)
+;            ard + ale    (read-only    + length)
+; Summary:
+;   5000$: tst  (r2)+        ; r   ; dst anr+ale 1       ; pdr=  0.,0,000
+;   5100$: clr  (r3)+        ; w   ; dst anr 1           ; pdr=  0.,0,000
+;   5200$: com  (r4)+        ; m   ; dst ale+ard 1       ; pdr=  0.,0,aro
+;
+; non-resident + length abort
+5000$:  clr     kipdr6                          ; plf=  0.;ed=0;acf=nres
+        mov     #5010$,vhvmmu
+        mov     #140102,r2
+        tst     (r2)+           ; will fail
+        halt
+5010$:  .word   m0.anr!m0.ale!<6*m0.pno>!m0.ena ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000000010010              ; mmr1 +2,2
+;
+; non-resident abort + write --> nres only
+5100$:  mov     #5110$,vhvmmu
+        mov     #140002,r3
+        clr     (r3)+           ; will fail
+        halt
+5110$:  .word   m0.anr!<6*m0.pno>!m0.ena ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000000010011              ; mmr1 +2,3
+;
+; length + read-only abort
+5200$:  mov     #<0.*md.plf>!md.aro,kipdr6      ; plf=  0.;ed=0;acf=r
+        mov     #5210$,vhvmmu
+        mov     #140102,r4
+        com     (r4)+           ; will fail
+        halt
+5210$:  .word   m0.ale!m0.ard!<6*m0.pno>!m0.ena ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000000010100              ; mmr1 +2,4
+;
+9000$:  reset                   ; mmu off                       ;! MMU off
+        clr     cp.psw
+        mov     #<127.*md.plf>!md.arw,kipdr6    ; restore kernel mapping
+        mov     #v..mmu+2,v..mmu                ; restore mmu catcher
+        clr     v..mmu+2
+9999$:  iot                     ; end of test C2.1
+;
+; Section D: mmr2+mmr1+mmr0 register, abort recovery =========================
 ;
 ; Test D1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;
@@ -771,11 +1024,33 @@ td0101:
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#10.      ; all tests done ?
+        hcmpeq  tstno,#11.      ; all tests done ?
 ;
         jmp     loop
 ;
 ; kernel handlers ============================================================
+;
+; vhemmu - expected mmu abort/trap handler +++++++++++++++++++++++++++++++++++
+;   used to catch expected MMU aborts or traps
+;   the pointer to expected mmr0/mmr1 values must be in vhvmmu
+;   code will continue after context
+;   execution will clear vhvmmu
+;   --> vhvmmu must be set for each execution
+;   the handler uses and modifies r0,r1
+;   --> tests should only use r2,...,r5
+;
+vhemmu: mov     vhvmmu,r1       ; get context
+        beq     1000$           ; if 0 halt
+        mov     mmr0,r0
+        bic     #m0.ico,r0      ; mask ico (for Simh compatibility)
+        hcmpeq  r0,(r1)+        ; check mmr0
+        hcmpeq  mmr1,(r1)+      ; check mmr1
+        bic     #m0.anr!m0.ale!m0.ard,mmr0      ; reset mmr0 abort flags
+        mov     r1,(sp)         ; set up kernel return address
+        clr     vhvmmu          ; reset context
+        rti                     ; end return to continuation address
+1000$:  halt
+vhvmmu: .word   0               ; context pointer
 ;
 ; vhuemt - emt handler, drop frame, continue in kernel mode ++++++++++++++++++
 ;   use to end user/supervisor mode code with an emt xxx
@@ -783,9 +1058,9 @@ td0101:
 ;   execution will reset vhustp to a catcher value
 ;   --> vhustp must be set for each execution
 ;
-vhuemt: tst     (sp)+           ; discard on word of vector push
+vhuemt: tst     (sp)+           ; discard one word of vector push
         mov     vhustp,(sp)     ; set up kernel return address
-        mov     vhuhlt,vhustp   ; reset stop address by catcher
+        mov     #vhuhlt,vhustp  ; reset stop address by catcher
         rts     pc              ; end return to continuation address
 vhustp: .word   vhuhlt
 vhuhlt: halt

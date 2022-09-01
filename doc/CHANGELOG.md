@@ -37,10 +37,12 @@ The full set of tests is only run for tagged releases.
 - cleanup SimH setup files (\*.scmd), use autoconfig, set disk types
 - cleanup code base, use page,mmr\*,pdr,par instead of segment,ssr\*,sdr,sar
 - sysid encodes now system type, allows to distingish w11,SimH,e11
+- added dasm-11, a PDP-11 disassembler
 ### New features
 - new verification codes
   - tools/tcode: fast cpu verification codes
   - tools/tests: test programs
+  - tools/bin: added dasm-11, a PDP-11 disassembler
 ### Changes
 - tools changes
   - ci.yml: define TBW_GHDL_OPTS and suppress IEEE package warnings at t=0ms

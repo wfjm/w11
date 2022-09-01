@@ -1,0 +1,164 @@
+.\"  -*- nroff -*-
+.\"  $Id: dasm-11.1 1286 2022-08-25 06:53:38Z mueller $
+.\" SPDX-License-Identifier: GPL-3.0-or-later
+.\" Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\"
+.\" ------------------------------------------------------------------
+.
+.TH DASM-11 1 2022-08-25 "Retro Project" "Retro Project Manual"
+.\" ------------------------------------------------------------------
+.SH NAME
+dasm-11 \- simple dis-assembler for PDP-11 binary code
+.\" ------------------------------------------------------------------
+.SH SYNOPSIS
+.
+.SY dasm-11
+.RI [ OPTION ]...
+.I FILE
+.
+.SY dasm-11
+.B \-\-help
+.YS
+.
+.\" ------------------------------------------------------------------
+.SH DESCRIPTION
+\fBdasm-11\fP is a simple disassembler for PDP-11 binary code.
+It reads a core dump in \fBlsm-11\fP(5) format from \fIFILE\fP.
+If \fIFILE\fP is '-' the core dump is read from \fIstdin\fP.
+If \fIFILE\fP ends on '.gz' it is expanded with \fBgunzip\fP(1) on-the-fly.
+The disassembled code is written in MACRO-11 format to \fIstdout\fP,
+followed by a symbol table, a cross-reference table, and a statistics summary.
+
+.SS Basic operation
+In very simplified terms, \fBdasm-11\fP tries to tag each memory word as
+either 'code', 'word', 'byte', or 'asciz' and represent it accordingly
+in MACRO-11 format. Sequences of zero 'word' or 'byte' locations are
+represented with a \fI.blkw\fP or \fI.blkb\fP  directive, respectively.
+
+The MACRO-11 output is always an exact replica of the input and contains an
+equivalent representation of all memory locations defined in the input file.
+
+In the most basic operation mode, \fBdasm-11\fP is used with the \fB\-\-start\fP
+option to specify one or several start addresses.
+\fBdasm-11\fP tags these addresses as 'code' and follows all possible
+code execution paths and tags all instructions as 'code'. All memory
+locations accessed via an absolute or PC relative address mode are
+tagged 'byte' or 'word' depending on the instruction.
+
+Without code start address via \fB\-\-start\fP, \fBdasm-11\fP can't do any
+code tagging, and without any tagging, the output is simply a list of
+\fI.word\fP directives, effectively a 1-to-1 dump of the input file.
+.
+.SS Guided operation
+The basic operation with just a few code start addresses has severe functional
+limitations
+.RS 2
+.PD 0
+.IP "-" 2
+code reached indirectly, e.g. via dispatch tables, is not detected
+.IP "-"
+strings are not detected and dumped as \fI.word\fP lists
+.IP "-"
+parameters following 'jsr r5' and trap instructions aren't handled
+.PD
+.RE
+.PP
+
+Beyond that, the output is not very human-friendly, all labels are
+auto-generated with type letter and a 3-4 digit number, the immediate values
+are numeric, and the whole output is flat without any annotation.
+
+All this is addressed in guided operation. Additional information is
+provided to \fBdasm-11\fP with 'diassembler steering' file, specified
+via the \fB\-\-das\fP option. The steering file allows
+.RS 2
+.PD 0
+.IP "-" 2
+to declare the data type for an address: code, string, but also rad50 or float,
+pointers to and arrays of any of those types.
+.IP "-"
+to declare argument lists for routines (e.g. called with 'jsr r5') and trap
+instructions
+.IP "-"
+to declare symbolic names for literal values
+.IP "-"
+to define a telling label name for an address
+.IP "-"
+to add code annotation, full line or after statement comments
+.IP "-"
+to define interrupt vectors
+.PD
+.RE
+.PP
+
+.\" ------------------------------------------------------------------
+.SH OPTIONS
+.\" ----------------------------------------------
+.IP "\fB\-I\fI path\fR"
+adds \fIpath\fP to the \fIdas\fP file include search path.
+The default search path is '.'  plus \fI$RETROBASE/tools/dasm-11/lib\fP if
+\fBRETROBASE\fP is defined. Each \fB\-I\fP adds \fIpath\fP after '.'.
+\fB\-I\fP can be given multiple times und must have a single path name.
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-das=\fIfnam\fR"
+if specified \fIfnam\fP will be read as steering file.
+If no \fB\-\-das\fP option is given, \fBdasm-11\fP tries to locate and load
+the default steering file. A '.gz' and a '.dmp' suffix is stripped from
+\fIFILE\fP, a '.das' suffix is added, and if that file exists, it's loaded.
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-dmode=\fImode\fR"
+default mode of untagged data. Valid values of \fImode\fP are
+.RS
+.PD 0
+.IP \fBword\fP 7
+represent untagged data with \fI.word\fP directives (the default)
+.IP \fBasciz\fP
+interpret untagged data as zero-terminated ASCII and represent it with
+\fI.asciz\fP directives. Useful for finding strings.
+.IP \fBcode\fP
+interpret untagged data as code. Can be helpful to detect code sequences.
+.PD
+.RE
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-start=\fInn[,...]\fR"
+list of code start addresses. \fInn\fP is interpreted as octal number.
+Either a single value of a comma-separated list of values can be specified.
+Each address is used as starting point of code tagging.
+When \fBdasm-11\fP is used without a steering file and no \fB\-\-start\fP
+option is given, no code tagging will be done and the output is simply a
+list of \fI.word\fP directives.
+.
+.\" ----------------------------------------------
+.IP "\fB\-help\fR"
+print full help text and exit.
+.
+.\" ------------------------------------------------------------------
+.SH OPTIONS FOR DEBUG
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-draw\fR" 8
+dump raw data.
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-dtag\fR"
+dump tagged data.
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-tctag\fR"
+trace code tagging.
+.
+.\" ----------------------------------------------
+.IP "\fB\-\-ttlc\fR"
+trace typlabcref calls.
+.
+.\" ------------------------------------------------------------------
+.SH "SEE ALSO"
+.BR asm-11 (1),
+.BR lsm-11 (5)
+
+.\" ------------------------------------------------------------------
+.SH AUTHOR
+Walter F.J. Mueller <W.F.J.Mueller@gsi.de>

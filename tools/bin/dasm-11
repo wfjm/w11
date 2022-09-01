@@ -1,0 +1,3763 @@
+#!/usr/bin/perl -w
+# $Id: dasm-11 1286 2022-08-25 06:53:38Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2008-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2022-08-25  1286   1.4.12 add -I, .:$RETROBASE/tools/dasm-11/lib default path
+# 2022-06-09  1246   1.4.11 fix -help, fix -dmode allowed values
+# 2019-07-13  1189   1.4.10 drop superfluous exists for $opts
+# 2019-05-07  1147   1.4.9  two bugfixes
+# 2018-12-18  1089   1.4.8  add and use bailout
+# 2013-04-02   503   1.4.7  BUGFIX: correct xor and fpp, now proper rg,gr form
+#                           fix ccops, macro-11 compliant <sec|sen> like output
+# 2013-04-01   502   1.4.6  allow input from STDIN ('-' as file name)
+# 2013-02-23   492   1.4.5  renamed disasm->dasm-11
+# 2010-04-26   284   1.4.4  add error check for GetOptions
+# 2009-09-19   239   1.4.3  use %cp.psw for new psw in mov-mov-rti sequences
+# 2009-07-04   231   1.4.2  propper from addr in "location not typed '.vect'.."
+# 2009-06-20   227   1.4.1  BUGFIX: S### label to 2nd imm/ind now correct;
+#                           BUGFIX: [IN]### autolabel only when no symbolization
+#                           add character symbolization in asci[iz] via @chars
+# 2009-06-14   226   1.4    support use=xxx after .type directive; support
+#                           op[12]sym=xxx in null directive; cleanup vect.psw
+#                           handling; support sym mode "."; .ascooo support;
+#                           tag data when target in mov #addr,<pointer> is typed
+#                           BUGFIX: now correct comment for mov #nnn,<vect*>
+# 2009-06-11   225   1.3.10 support user auto-labels (xx*:)
+# 2009-05-31   221   1.3.9  terminator of type*[] lists now word tagged;
+#                           allow trailing ,code in .struct; add .tryret
+# 2009-05-24   219   1.3.8  catch asciz tags running over end-of-mem; add --ttlc
+#                           proper labcref handling for pointes in typlabcref()
+# 2009-05-09   213   1.3.7  preliminary addition of cis instructions
+# 2009-05-02   212   1.3.6  add @data {comstr} attribute -> full string comments
+# 2009-04-26   209   1.3.5  fix print_usage();
+# 2009-04-25   208   1.3.4  add vector name to vector setup lcomm
+# 2009-04-12   207   1.3.3  add lcomm for all vector setup's
+# 2009-04-09   205   1.3.2  no code tag for 0 after mov #0; datsym all Pxxx vars
+#                           add --info to enable -I messages.
+# 2009-04-05   204   1.3.1  add lblind option/handl.; add fp11-c maint. opcodes
+#                           scomm non 1170 opcodes; reformat scomm's;
+#                           add .patch
+# 2009-04-04   203   1.3    don't follow NULL prt for <type>*; add .code!;
+#                           code tag .vect handler; add anoemt option/handling
+#                           don't emitt unused gsym's; add lblimm option/handl.
+#                           don't V label catcher setup; add .susp option
+# 2009-03-29   202   1.2.6  add {anno} attributes; handle %symset of 0 correctly
+# 2009-03-27   201   1.2.5  correct usage of symchr option
+# 2009-03-22   200   1.2.4  add forgotten $dsc->{pc_seq} to fpp instructions
+#                           handle mov #nnn,pc; handle sob labels
+#                           annotate fpp instructions
+# 2008-07-13   158   1.2.3  fix jmp@xxx and jsr rx,@xxx; add label upgrades;
+#                           implement cref output
+# 2008-07-11   157   1.2.2  added .enabl/.dsabl support (sym***,lbliot);
+#                           support use= attribute, use symset's in symbolize
+# 2008-07-04   156   1.2.1  added dmp.gz support; add scomm for asci pointers
+# 2008-06-29   155   1.2    Many improvements (new typespec system,...)
+# 2008-06-22   154   1.1    Many improvements (labels, symsets, ....)
+# 2008-06-18   153   1.0    Initial version
+#
+# Format of 'das' DisAssember Steering file:
+#
+#    # das comment (not visible in output)
+#    @<fname>                    {read nested das file}
+#    .symbol <symbol> = <addr> <alist>
+#    .symset <symset> = <set definition>
+#    .struct <tlist>             {defines a structure}
+#    .params  (iot|bpt) <list of .word directives>
+#    .params  (trap|emt) ooo[:ooo] <list of .word directives>
+#    ; line comment, will preceed the next statement
+#    oooooo : [label:] directive [;comment]
+#
+#  with
+#  directives
+#     <none>             --> just set label for location and/or comment
+#
+#     .params <list of .word directives> --> params for jsr at oooooo
+#
+#     .enabl <opt> [<val>]
+#     .dsabl <opt> [<val>]
+#       with
+#         symchr       --> convert byte immediates -> #'x if ascii char
+#         symimm ooo   --> convert word immediates -> #label if  match and >ooo
+#         symind ooo   --> convert index -> label if match and >ooo
+#         lbliot ooo   --> auto label and scomm iot statements (start with ooo)
+#         anoemt ooo   --> annotate emt instructions
+#         lblimm       --> auto-create label for an immediate value
+#         lblind       --> auto-create label for an index value
+#
+#     .byte            --> byte
+#     .ascii  n        --> .ascii /.../
+#     .asciz           --> .asciz /.../
+#     .ascooo          --> .ascii /.../  up to ooo terminator
+#     .code            --> start of code sequence
+#     .vect            --> interrupt/trap vector
+#     .<typespec> <alist>
+#     .params <tlist>
+#     .susp <option>
+#     .patch <addr> <value>
+#
+# Generated label types
+#   Annn:   asciz/ascii targets   {is a .asciz/.ascii directive}
+#   Bnnn:   branch targets        {from branch instructions}
+#   Rnnn:   call targets          {from jsr instructions}
+#   Cnnn:   code targets          {from jmp instructions}
+#   Dnnn:   data targets          {from memory access of an instruction}
+#   Innn:                         {from lblimm [anno=1]}
+#   Lnnn:   das code start        {from nnn: .code}
+#   Nnnn:                         {from lblind [anno=1]}
+#   Pnnn:   pointer targets
+#   Snnn+:  pointing into an instruction {self referencing/modifying code}
+#   Vnnn:   vector handler               {from mv #nnn,@#<vector>}
+#
+# ltyp/dtyp on cross refrence table
+#  ltyp
+#    albl         auto-label from code following
+#    asym         ? seems from lblimm or lblind
+#    data         label from das (for data and code)
+#    gsym         ? seems from .symbol or .symset
+#    rlbl         (comes always with vect.psw)
+#
+#  dtyp
+#    word         16 bit data word
+#    byte          8 bit data byte
+#    code         instruction, opcode part
+#    code.imm     instruction, immediate value part
+#    code.ind     instruction, index value part
+#    vect         interrupt vector, pointer to handler
+#    vect.psw     interrupt vector, new psw value
+#    ascii        ascii string value (not zero terminated)
+#    asciz        ascii string zero terminated
+#    ascooo       ascii string <ooo> terminated
+#    rad50        rad50 encoded string
+#    flt2         single precision float
+#    flt4         double precision float
+#    <type>*      pointer to an address holding <type>
+#                 with word,byte,code,asci[iz],rad50,flt[24] and
+#                      $<struct>
+
+use 5.14.0;                                 # require Perl 5.14 or higher
+use strict;                                 # require strict checking
+
+use FileHandle;
+
+use Getopt::Long;
+
+my %opts = ();
+
+GetOptions(\%opts, "help", "das:s", "dmode:s", "start:s",
+                   "I=s@",
+	           "info",
+	           "draw", "dtag", "tctag", "ttlc"
+	           )
+  or bailout("bad command options");
+
+# set up default include path
+unshift @{$opts{I}}, ".";                  # ./ is first in include path
+push @{$opts{I}}, "$ENV{RETROBASE}/tools/dasm-11/lib" if defined $ENV{RETROBASE};
+
+sub load_data;			# load dmp file
+sub load_steer;			# load das file
+sub dump_data;			# dump @data array status
+sub tag_code;			# paint all code sections
+sub tag_undef;			# tag all yet undefined words/bytes
+sub tag_data;			# paint all data sections
+sub gather_ascii;	       	# gather ascii, asciz, or ascooo string
+sub gather_blkw;	       	# gather blkw block
+sub gather_blkb;	       	# gather blkb block
+sub pass_opts1;		        # handle some options (symimm)
+sub pass_opts2;		        # handle most options (symxxx,lbliot,...)
+sub do_lblimmind;	        # helper to handle lblimm and lblind
+sub do_symimmind;		# helper to handle symimm, symind and symchr
+sub name_labels;		# name all autogenerated labels
+sub anal_inst;			# analyse single instruction
+sub anal_operand;		# analyse src or dst operand specifier
+sub anal_cisops;		# analyse cis operands
+sub get_regname;		# return register name
+sub set_type;			# set type tag in @data
+sub write_source;		# write source or list file
+sub print_info;			# print messages on unnamed vect or i/o space
+sub symbolize;			# convert oooooo -> label
+sub word2byte;			# add {byte} values for a {word}
+sub get_lpref;			# return label prefix depending on tspec
+sub set_typlabcref;		# setup type, label and cref
+sub set_labcref;                # define auto label, add cref info
+sub add_adrcref;		# add cref entry in adrtbl
+sub add_symcref;		# add cref entry in symtbl
+sub set_acslabel;               # define auto label from acs info
+sub set_option;                 # setup .enabl/.dsabl option
+sub set_curopt;                 # update current option list %curopt
+sub set_susopt;			# restore suspended options
+sub get_word;			# return word data (or undef)
+sub get_byte;			# return byte data (or undef)
+sub get_taddr;                  # return target address (or undef)
+sub add_symbol;			# add symbol in adrtbl and symtbl
+sub add_adr_rlabel;	       	# add relative label entry in adrtbl
+sub add_adr_alist;	       	# add attribute list to adrtbl entry
+sub add_adr_attr;	       	# add attribute to adrtbl entry
+sub add_sym_attr;	       	# add attribute to symtbl entry
+sub add_dat_attr;	       	# add attribute to data word/byte
+sub add_dat_alist;	       	# add attribute list for data
+sub add_ops_alist;	       	# add attribute list for code
+sub add_ctpend;			# add element in code tag pending list
+sub add_lcomm;			# add full line comment
+sub add_scomm;			# add statement comment
+sub add_symset;		        # add a new %symsettbl entry
+sub add_struct;		        # add a new %structtbl entry
+sub add_params;		        # add a new %paramstbl entry
+sub chk_typespec;		# check validity of typespec (or list)
+sub chk_byte;			# check availability of byte (convert if needed)
+sub chk_data;			# check availability of data (word or byte)
+sub chk_opcode;			# check existence and content of {opcode}
+sub chk_op1typ;			# check existence and content of {op1typ}
+sub chk_op2typ;        		# check existence and content of {op2typ}
+sub chk_op2str;			# check existence and content of {op2str}
+sub chk_op2str;			# check existence and content of {op2str}
+sub chk_type;			# check whether address is typed
+sub convoct;			# convert 16 bit int to %6.6o octal
+sub get_numoctdec;		# convert oct or dec number to binary
+sub print_bugcheck;             # print BUGCHECK message, with line number
+sub print_help;			# --help or error output
+
+my $filename_dmp;		# name of the input dmp file
+
+my $fh_out = *STDOUT;
+
+# @data --> data table; is array of hashes
+#   ->{word}       16 bit value if [addr]
+#   ->{byte}        8 bit value if [addr]
+#   ->{type}       type of data:
+#                    word         16 bit data word
+#                    byte          8 bit data byte
+#                    code         instruction, opcode part
+#                    code.imm     instruction, immediate value part
+#                    code.ind     instruction, index value part
+#                    vect         interrupt vector, pointer to handler
+#                    vect.psw     interrupt vector, new psw value
+#                    ascii        ascii string value (not zero terminated)
+#                    asciz        ascii string zero terminated
+#                    ascooo       ascii string <ooo> terminated
+#                    rad50        rad50 encoded string
+#                    flt2         single precision float
+#                    flt4         double precision float
+#                    <type>*      pointer to an address holding <type>
+#                                 with word,byte,code,asci[iz],rad50,flt[24] and
+#                                      $<struct>
+#   ->{nb}         length in bytes of item (always given)
+#   ->{nw}         length in words of item (for word aligned items)
+#   ->{ibase}      address of item base address (for all but first in item)
+#   ->{dirstr}     directive name (can be word,byte,ascii,asciz,.even)
+#   ->{argstr}     directive args (must be defined when {dirstr} defined)
+#   ->{comstr}     full asciz string (defined when {dirstr} eq asciz)
+#
+my @data;
+
+# %adrtbl --> address table; is hash (by %6.6o addr) of hashs
+#   ->{addr}        address as integer
+#   ->{typ}         type: "gsym", "data", "albl", "asym", "rlbl"
+#   ->{string}      symbol string (might not be unique, might be expression)
+#   ->{cref}        cross reference hash (indexed by from address)
+#                    ->{$from}  ref type
+#   ->{use}         symbolization options
+#
+my %adrtbl;			# address table
+
+# %symtbl --> symbol table; is hash (by symbol) of hashes
+#   ->{val}         value as integer
+#   ->{typ}         type: "gsym", "data", set name (%xxx, @xxx)
+#
+my %symtbl;			# symbol table
+
+# %symsettbl --> symbol set table; is hash (by setname) of arrays of hashs
+#   ->[]->{sym}     symbol name
+#   ->[]->{val}     symbol value
+#   ->[]->{msk}     symbol mask (in case of % sets)
+#
+my %symsettbl;
+
+my @ctpend;			# code tag pending list
+
+# %structtbl --> struct definition table; is hash (by struct name)
+#   ->[<array of typespecs>]
+my %structtbl = (			# struct descriptor table
+    '$cisdsc'=> ["word","word*"]
+  );
+
+my %paramstbl;			# parameter descriptor table
+
+# %opttbl --> options table; is hash (by option name)
+#   ->{ena}         enable state
+#   ->{attr}->{}    hash of option attributes
+#
+my %opttbl = (
+    symchr=> {ena   => 0,
+	      attr  => {anno=>"n"},
+	      anno  => 0},
+    symimm=> {ena   => 0,
+	      attr  => {anno=>"n",
+			min=>"n",
+		        max=>"n"},
+	      anno  => 0,
+	      min   => 01000,
+	      max   => 0177700},
+    symind=> {ena   => 0,
+	      attr  => {anno=>"n",
+			min=>"n",
+		        max=>"n"},
+	      anno  => 0,
+	      min   => 01000,
+	      max   => 0177700},
+    symwrd=> {ena   => 0,
+	      attr  => {anno=>"n",
+			min=>"n",
+		        max=>"n"},
+	      anno  => 0,
+	      min   => 01000,
+	      max   => 0177700},
+    lblimm=> {ena   => 0,
+	      attr  => {anno=>"n",
+			min=>"n",
+		        max=>"n"},
+	      anno  => 0,
+	      min   => 01000,
+	      max   => 0177700},
+    lblind=> {ena   => 0,
+	      attr  => {anno=>"n",
+			min=>"n",
+		        max=>"n"},
+	      anno  => 0,
+	      min   => 01000,
+	      max   => 0177700},
+    lbliot=> {ena   => 0,
+	      attr  => {tnum=>"n"},
+	      tnum  => 1},
+    anoemt=> {ena   => 0,
+	      attr  => {tbl=>"l",
+	                size=>"n",
+		        max=>"n"},
+	      tbl   => "???",
+	      size  => 0,
+	      max   => 377}
+  );
+
+my %curopt = ();		        # current option set
+my @susp_restore;			# list of suspend restores
+
+my $dmode_opt;
+
+#
+# opcode type's:
+#    type   example           decsription
+#    0arg   halt              no operands
+#    1arg   jmp @#1200        one mod/reg operand
+#    2arg   mov #100,2(r4)    two mod/reg operand
+#    gr     mul #12,r2        reg destination, mod/reg source operand
+#    rg     jsr pc,@#1200     reg source form, one reg, one mod/reg operand
+#    rts    rts pc            one register operand
+#    br     br  124           one 8 bit signed displacement operand
+#    sob    sob r2,124        register operand, 6 bit displacement
+#    ccop   clc               one 4 bit operand, opcodes or'ed
+#    spl    spl 7             one 3 bit operand
+#    mark   mark  12          one 6 bit operand
+#    trap   trap  123         one 8 bit operand
+#    0fpp   cfcc              fpp: no operands
+#    gfpp   clrf f0           fpp: one mod/reg operand
+#    grfpp  addf a,f0         fpp: one mod/reg operand, fpp accumulator dst
+#    rgfpp  stf  f0,a         fpp: fpp accumulator src, one mod/reg operand
+#
+
+my @opcode_tbl = (
+    {code=>0000000, mask=>0000000, mnem=>"halt",  type=>"0arg"},
+    {code=>0000001, mask=>0000000, mnem=>"wait",  type=>"0arg"},
+    {code=>0000002, mask=>0000000, mnem=>"rti",   type=>"0arg"},
+    {code=>0000003, mask=>0000000, mnem=>"bpt",   type=>"0arg"},
+    {code=>0000004, mask=>0000000, mnem=>"iot",   type=>"0arg"},
+    {code=>0000005, mask=>0000000, mnem=>"reset", type=>"0arg"},
+    {code=>0000006, mask=>0000000, mnem=>"rtt",   type=>"0arg"},
+    {code=>0000007, mask=>0000000, mnem=>"mfpt",  type=>"0arg", cpu=>"j11"},
+    {code=>0000100, mask=>0000077, mnem=>"jmp",   type=>"1arg", dst=>"j"},
+    {code=>0000200, mask=>0000007, mnem=>"rts",   type=>"rts"},
+    {code=>0000230, mask=>0000007, mnem=>"spl",   type=>"spl"},
+    {code=>0000240, mask=>0000017, mnem=>"cl",    type=>"ccop"},
+    {code=>0000260, mask=>0000017, mnem=>"se",    type=>"ccop"},
+    {code=>0000300, mask=>0000077, mnem=>"swab",  type=>"1arg", dst=>"m"},
+    {code=>0000400, mask=>0000377, mnem=>"br",    type=>"br"},
+    {code=>0001000, mask=>0000377, mnem=>"bne",   type=>"br"},
+    {code=>0001400, mask=>0000377, mnem=>"beq",   type=>"br"},
+    {code=>0002000, mask=>0000377, mnem=>"bge",   type=>"br"},
+    {code=>0002400, mask=>0000377, mnem=>"blt",   type=>"br"},
+    {code=>0003000, mask=>0000377, mnem=>"bgt",   type=>"br"},
+    {code=>0003400, mask=>0000377, mnem=>"ble",   type=>"br"},
+    {code=>0004000, mask=>0000777, mnem=>"jsr",   type=>"rg",   dst=>"e"},
+    {code=>0005000, mask=>0000077, mnem=>"clr",   type=>"1arg", dst=>"w"},
+    {code=>0005100, mask=>0000077, mnem=>"com",   type=>"1arg", dst=>"m"},
+    {code=>0005200, mask=>0000077, mnem=>"inc",   type=>"1arg", dst=>"m"},
+    {code=>0005300, mask=>0000077, mnem=>"dec",   type=>"1arg", dst=>"m"},
+    {code=>0005400, mask=>0000077, mnem=>"neg",   type=>"1arg", dst=>"m"},
+    {code=>0005500, mask=>0000077, mnem=>"adc",   type=>"1arg", dst=>"m"},
+    {code=>0005600, mask=>0000077, mnem=>"sbc",   type=>"1arg", dst=>"m"},
+    {code=>0005700, mask=>0000077, mnem=>"tst",   type=>"1arg", dst=>"r"},
+    {code=>0006000, mask=>0000077, mnem=>"ror",   type=>"1arg", dst=>"m"},
+    {code=>0006100, mask=>0000077, mnem=>"rol",   type=>"1arg", dst=>"m"},
+    {code=>0006200, mask=>0000077, mnem=>"asr",   type=>"1arg", dst=>"m"},
+    {code=>0006300, mask=>0000077, mnem=>"asl",   type=>"1arg", dst=>"m"},
+    {code=>0006400, mask=>0000077, mnem=>"mark",  type=>"mark"},
+    {code=>0006500, mask=>0000077, mnem=>"mfpi",  type=>"1arg", dst=>"r"},
+    {code=>0006600, mask=>0000077, mnem=>"mtpi",  type=>"1arg", dst=>"w"},
+    {code=>0006700, mask=>0000077, mnem=>"sxt",   type=>"1arg", dst=>"w"},
+    {code=>0007000, mask=>0000077, mnem=>"csm",   type=>"1arg", cpu=>"j11"},
+    {code=>0007200, mask=>0000077, mnem=>"tstset",type=>"1arg", cpu=>"j11"},
+    {code=>0007300, mask=>0000077, mnem=>"wrtlck",type=>"1arg", cpu=>"j11"},
+    {code=>0010000, mask=>0007777, mnem=>"mov",   type=>"2arg",
+                                   src=>"r", dst=>"w"},
+    {code=>0020000, mask=>0007777, mnem=>"cmp",   type=>"2arg",
+                                   src=>"r", dst=>"r"},
+    {code=>0030000, mask=>0007777, mnem=>"bit",   type=>"2arg",
+                                   src=>"r", dst=>"r"},
+    {code=>0040000, mask=>0007777, mnem=>"bic",   type=>"2arg",
+                                   src=>"r", dst=>"m"},
+    {code=>0050000, mask=>0007777, mnem=>"bis",   type=>"2arg",
+                                   src=>"r", dst=>"m"},
+    {code=>0060000, mask=>0007777, mnem=>"add",   type=>"2arg",
+                                   src=>"r", dst=>"m"},
+    {code=>0070000, mask=>0000777, mnem=>"mul",   type=>"gr",   dst=>"r"},
+    {code=>0071000, mask=>0000777, mnem=>"div",   type=>"gr",   dst=>"r"},
+    {code=>0072000, mask=>0000777, mnem=>"ash",   type=>"gr",   dst=>"r"},
+    {code=>0073000, mask=>0000777, mnem=>"ashc",  type=>"gr",   dst=>"r"},
+    {code=>0074000, mask=>0000777, mnem=>"xor",   type=>"rg",   dst=>"m"},
+    {code=>0075000, mask=>0000007, mnem=>"fadd",  type=>"1reg", cpu=>"fis"},
+    {code=>0075010, mask=>0000007, mnem=>"fsub",  type=>"1reg", cpu=>"fis"},
+    {code=>0075020, mask=>0000007, mnem=>"fmul",  type=>"1reg", cpu=>"fis"},
+    {code=>0075030, mask=>0000007, mnem=>"fdiv",  type=>"1reg", cpu=>"fis"},
+    {code=>0076020, mask=>0000007, mnem=>"ld2r",  type=>"crdd", cpu=>"cis"},
+    {code=>0076030, mask=>0000000, mnem=>"movc",  type=>"0arg", cpu=>"cis"},
+    {code=>0076031, mask=>0000000, mnem=>"movrc", type=>"0arg", cpu=>"cis"},
+    {code=>0076032, mask=>0000000, mnem=>"movtc", type=>"0arg", cpu=>"cis"},
+    {code=>0076040, mask=>0000000, mnem=>"locc",  type=>"0arg", cpu=>"cis"},
+    {code=>0076041, mask=>0000000, mnem=>"skpc",  type=>"0arg", cpu=>"cis"},
+    {code=>0076042, mask=>0000000, mnem=>"scanc", type=>"0arg", cpu=>"cis"},
+    {code=>0076043, mask=>0000000, mnem=>"spanc", type=>"0arg", cpu=>"cis"},
+    {code=>0076044, mask=>0000000, mnem=>"cmpc",  type=>"0arg", cpu=>"cis"},
+    {code=>0076045, mask=>0000000, mnem=>"matc",  type=>"0arg", cpu=>"cis"},
+    {code=>0076050, mask=>0000000, mnem=>"addn",  type=>"0arg", cpu=>"cis"},
+    {code=>0076051, mask=>0000000, mnem=>"subn",  type=>"0arg", cpu=>"cis"},
+    {code=>0076052, mask=>0000000, mnem=>"cmpn",  type=>"0arg", cpu=>"cis"},
+    {code=>0076053, mask=>0000000, mnem=>"cvtnl", type=>"0arg", cpu=>"cis"},
+    {code=>0076054, mask=>0000000, mnem=>"cvtpn", type=>"0arg", cpu=>"cis"},
+    {code=>0076055, mask=>0000000, mnem=>"cvtnp", type=>"0arg", cpu=>"cis"},
+    {code=>0076056, mask=>0000000, mnem=>"ashn",  type=>"0arg", cpu=>"cis"},
+    {code=>0076057, mask=>0000000, mnem=>"cvtln", type=>"0arg", cpu=>"cis"},
+    {code=>0076060, mask=>0000007, mnem=>"ld3r",  type=>"crddd",cpu=>"cis"},
+    {code=>0076070, mask=>0000000, mnem=>"addp",  type=>"0arg", cpu=>"cis"},
+    {code=>0076071, mask=>0000000, mnem=>"subp",  type=>"0arg", cpu=>"cis"},
+    {code=>0076072, mask=>0000000, mnem=>"cmpp",  type=>"0arg", cpu=>"cis"},
+    {code=>0076073, mask=>0000000, mnem=>"cvtpl", type=>"0arg", cpu=>"cis"},
+    {code=>0076074, mask=>0000000, mnem=>"mulp",  type=>"0arg", cpu=>"cis"},
+    {code=>0076075, mask=>0000000, mnem=>"divp",  type=>"0arg", cpu=>"cis"},
+    {code=>0076076, mask=>0000000, mnem=>"ashp",  type=>"0arg", cpu=>"cis"},
+    {code=>0076077, mask=>0000000, mnem=>"cvtlp", type=>"0arg", cpu=>"cis"},
+    {code=>0076130, mask=>0000000, mnem=>"movci", type=>"cdda", cpu=>"cis"},
+    {code=>0076131, mask=>0000000, mnem=>"movrci",type=>"cdda", cpu=>"cis"},
+    {code=>0076132, mask=>0000000, mnem=>"movtci",type=>"cddaa",cpu=>"cis"},
+    {code=>0076140, mask=>0000000, mnem=>"locci", type=>"cda",  cpu=>"cis"},
+    {code=>0076141, mask=>0000000, mnem=>"skpci", type=>"cda",  cpu=>"cis"},
+    {code=>0076142, mask=>0000000, mnem=>"scanci",type=>"cdd",  cpu=>"cis"},
+    {code=>0076143, mask=>0000000, mnem=>"spanci",type=>"cdd",  cpu=>"cis"},
+    {code=>0076144, mask=>0000000, mnem=>"cmpci", type=>"cdda", cpu=>"cis"},
+    {code=>0076145, mask=>0000000, mnem=>"matci", type=>"cdd",  cpu=>"cis"},
+    {code=>0076150, mask=>0000000, mnem=>"addni", type=>"cddd", cpu=>"cis"},
+    {code=>0076151, mask=>0000000, mnem=>"subni", type=>"cddd", cpu=>"cis"},
+    {code=>0076152, mask=>0000000, mnem=>"cmpni", type=>"cdd",  cpu=>"cis"},
+    {code=>0076153, mask=>0000000, mnem=>"cvtnli",type=>"cda",  cpu=>"cis"},
+    {code=>0076154, mask=>0000000, mnem=>"cvtpni",type=>"cdd",  cpu=>"cis"},
+    {code=>0076155, mask=>0000000, mnem=>"cvtnpi",type=>"cdd",  cpu=>"cis"},
+    {code=>0076156, mask=>0000000, mnem=>"ashni", type=>"cdda", cpu=>"cis"},
+    {code=>0076157, mask=>0000000, mnem=>"cvtlni",type=>"cdd",  cpu=>"cis"},
+    {code=>0076170, mask=>0000000, mnem=>"addpi", type=>"cddd", cpu=>"cis"},
+    {code=>0076171, mask=>0000000, mnem=>"subpi", type=>"cddd", cpu=>"cis"},
+    {code=>0076172, mask=>0000000, mnem=>"cmppi", type=>"cdd",  cpu=>"cis"},
+    {code=>0076173, mask=>0000000, mnem=>"cvtpli",type=>"cda",  cpu=>"cis"},
+    {code=>0076174, mask=>0000000, mnem=>"mulpi", type=>"cddd", cpu=>"cis"},
+    {code=>0076175, mask=>0000000, mnem=>"divpi", type=>"cddd", cpu=>"cis"},
+    {code=>0076176, mask=>0000000, mnem=>"ashpi", type=>"cdda", cpu=>"cis"},
+    {code=>0076177, mask=>0000000, mnem=>"cvtlpi",type=>"cdd",  cpu=>"cis"},
+    {code=>0076600, mask=>0000000, mnem=>"med",   type=>"0reg", cpu=>"11/60"},
+    {code=>0077000, mask=>0000777, mnem=>"sob",   type=>"sob"},
+    {code=>0100000, mask=>0000377, mnem=>"bpl",   type=>"br"},
+    {code=>0100400, mask=>0000377, mnem=>"bmi",   type=>"br"},
+    {code=>0101000, mask=>0000377, mnem=>"bhi",   type=>"br"},
+    {code=>0101400, mask=>0000377, mnem=>"blos",  type=>"br"},
+    {code=>0102000, mask=>0000377, mnem=>"bvc",   type=>"br"},
+    {code=>0102400, mask=>0000377, mnem=>"bvs",   type=>"br"},
+    {code=>0103000, mask=>0000377, mnem=>"bcc",   type=>"br"},
+    {code=>0103400, mask=>0000377, mnem=>"bcs",   type=>"br"},
+    {code=>0104000, mask=>0000377, mnem=>"emt",   type=>"trap"},
+    {code=>0104400, mask=>0000377, mnem=>"trap",  type=>"trap"},
+    {code=>0105000, mask=>0000077, mnem=>"clrb",  type=>"1arg", dst=>"w",
+                                   bytop=>1},
+    {code=>0105100, mask=>0000077, mnem=>"comb",  type=>"1arg", dst=>"m",
+                                   bytop=>1},
+    {code=>0105200, mask=>0000077, mnem=>"incb",  type=>"1arg", dst=>"m",
+                                   bytop=>1},
+    {code=>0105300, mask=>0000077, mnem=>"decb",  type=>"1arg", dst=>"m",
+                                   bytop=>1},
+    {code=>0105400, mask=>0000077, mnem=>"negb",  type=>"1arg", dst=>"m",
+                                   bytop=>1},
+    {code=>0105500, mask=>0000077, mnem=>"adcb",  type=>"1arg", dst=>"m",
+                                   bytop=>1},
+    {code=>0105600, mask=>0000077, mnem=>"sbcb",  type=>"1arg", dst=>"m",
+                                   bytop=>1},
+    {code=>0105700, mask=>0000077, mnem=>"tstb",  type=>"1arg", dst=>"r",
+                                   bytop=>1},
+    {code=>0106000, mask=>0000077, mnem=>"rorb",  type=>"1arg", dst=>"m",
+                                   bytop=>1},
+    {code=>0106100, mask=>0000077, mnem=>"rolb",  type=>"1arg", dst=>"m",
+                                   bytop=>1},
+    {code=>0106200, mask=>0000077, mnem=>"asrb",  type=>"1arg", dst=>"m",
+                                   bytop=>1},
+    {code=>0106300, mask=>0000077, mnem=>"aslb",  type=>"1arg", dst=>"m",
+                                   bytop=>1},
+    {code=>0106400, mask=>0000077, mnem=>"mtps",  type=>"1arg", dst=>"r",
+                                   cpu=>"j11"},
+    {code=>0106500, mask=>0000077, mnem=>"mfpd",  type=>"1arg", dst=>"r"},
+    {code=>0106600, mask=>0000077, mnem=>"mtpd",  type=>"1arg", dst=>"w"},
+    {code=>0106700, mask=>0000077, mnem=>"mfps",  type=>"1arg", dst=>"w",
+                                   cpu=>"j11"},
+    {code=>0110000, mask=>0007777, mnem=>"movb",  type=>"2arg",
+                    src=>"r", dst=>"w", bytop=>1},
+    {code=>0120000, mask=>0007777, mnem=>"cmpb",  type=>"2arg",
+                    src=>"r", dst=>"r", bytop=>1},
+    {code=>0130000, mask=>0007777, mnem=>"bitb",  type=>"2arg",
+                    src=>"r", dst=>"r", bytop=>1},
+    {code=>0140000, mask=>0007777, mnem=>"bicb",  type=>"2arg",
+                    src=>"r", dst=>"m", bytop=>1},
+    {code=>0150000, mask=>0007777, mnem=>"bisb",  type=>"2arg",
+                    src=>"r", dst=>"m", bytop=>1},
+    {code=>0160000, mask=>0007777, mnem=>"sub",   type=>"2arg",
+                    src=>"r", dst=>"m"},
+    {code=>0170000, mask=>0000000, mnem=>"cfcc",  type=>"0fpp"},
+    {code=>0170001, mask=>0000000, mnem=>"setf",  type=>"0fpp"},
+    {code=>0170002, mask=>0000000, mnem=>"seti",  type=>"0fpp"},
+    {code=>0170003, mask=>0000000, mnem=>"ldub",  type=>"0fpp", cpu=>"fp11"},
+    {code=>0170004, mask=>0000000, mnem=>"mns",   type=>"0fpp", cpu=>"fp11"},
+    {code=>0170005, mask=>0000000, mnem=>"sta0",  type=>"0fpp", cpu=>"fp11"},
+    {code=>0170007, mask=>0000000, mnem=>"stq0",  type=>"0fpp", cpu=>"fp11"},
+    {code=>0170011, mask=>0000000, mnem=>"setd",  type=>"0fpp"},
+    {code=>0170012, mask=>0000000, mnem=>"setl",  type=>"0fpp"},
+    {code=>0170100, mask=>0000077, mnem=>"ldfps", type=>"gfpp", dst=>"r"},
+    {code=>0170200, mask=>0000077, mnem=>"stfps", type=>"gfpp", dst=>"w"},
+    {code=>0170300, mask=>0000077, mnem=>"stst",  type=>"gfpp", dst=>"w"},
+    {code=>0170400, mask=>0000077, mnem=>"clrf",  type=>"gfpp", dst=>"w"},
+    {code=>0170500, mask=>0000077, mnem=>"tstf",  type=>"gfpp", dst=>"r"},
+    {code=>0170600, mask=>0000077, mnem=>"absf",  type=>"gfpp", dst=>"m"},
+    {code=>0170700, mask=>0000077, mnem=>"negf",  type=>"gfpp", dst=>"m"},
+    {code=>0171000, mask=>0000377, mnem=>"mulf",  type=>"grfpp", dst=>"r"},
+    {code=>0171400, mask=>0000377, mnem=>"modf",  type=>"grfpp", dst=>"r"},
+    {code=>0172000, mask=>0000377, mnem=>"addf",  type=>"grfpp", dst=>"r"},
+    {code=>0172400, mask=>0000377, mnem=>"ldf",   type=>"grfpp", dst=>"r"},
+    {code=>0173000, mask=>0000377, mnem=>"subf",  type=>"grfpp", dst=>"r"},
+    {code=>0173400, mask=>0000377, mnem=>"cmpf",  type=>"grfpp", dst=>"r"},
+    {code=>0174000, mask=>0000377, mnem=>"stf",   type=>"rgfpp", dst=>"w"},
+    {code=>0174400, mask=>0000377, mnem=>"divf",  type=>"grfpp", dst=>"r"},
+    {code=>0175000, mask=>0000377, mnem=>"stexp", type=>"rgfpp", dst=>"w"},
+    {code=>0175400, mask=>0000377, mnem=>"stcif", type=>"rgfpp", dst=>"w"},
+    {code=>0176000, mask=>0000377, mnem=>"stcfd", type=>"rgfpp", dst=>"w"},
+    {code=>0176400, mask=>0000377, mnem=>"ldexp", type=>"grfpp", dst=>"r"},
+    {code=>0177000, mask=>0000377, mnem=>"ldcif", type=>"grfpp", dst=>"r"},
+    {code=>0177400, mask=>0000377, mnem=>"ldcdf", type=>"grfpp", dst=>"r"}
+  );
+
+# Note: the keys in %adr_info_tbl are 6 digit octal numbers. They must be
+#       put in '' quotes explicitely, otherwise perl converts them first to
+#       a number and then back into a string, but decimal without leading 0.
+
+my %adr_info_vect = (
+    '000004' => "v..iit .vect missed ?",
+    '000010' => "v..rit .vect missed ?",
+    '000014' => "v..bpt .vect missed ?",
+    '000020' => "v..iot .vect missed ?",
+    '000024' => "v..pwr .vect missed ?",
+    '000030' => "v..emt .vect missed ?",
+    '000034' => "v..trp .vect missed ?",
+    '000060' => "v..tti .vect missed ?",
+    '000064' => "v..tto .vect missed ?",
+    '000070' => "v..ptr .vect missed ?",
+    '000074' => "v..ptp .vect missed ?",
+    '000100' => "v..kwl .vect missed ?",
+    '000104' => "v..kwp .vect missed ?",
+    '000114' => "v..mse .vect missed ?",
+    '000120' => "v..deu .vect missed ?",
+    '000160' => "v..rl  .vect missed ?",
+    '000200' => "v..lp  .vect missed ?",
+    '000220' => "v..rk  .vect missed ?",
+    '000224' => "v..tm  .vect missed ?",
+    '000240' => "v..pir .vect missed ?",
+    '000244' => "v..fpp .vect missed ?",
+    '000250' => "v..mmu .vect missed ?",
+    '000254' => "v..rha .vect missed ?",
+    '000260' => "v..iis .vect missed ?"
+  );
+
+my @adr_info_iopage = (
+    [0177760, 0177775, "1170 reg missed ?"],
+    [0177740, 0177753, "1170 reg missed ?"],
+    [0177600, 0177677, "MMU pdr  missed ?"],
+    [0177572, 0177577, "MMU ssr  missed ?"],
+    [0177570, 0177571, "DISP/SW  missed ?"],
+    [0177560, 0177567, "DL11 1st missed ?"],
+    [0177546, 0177547, "KW11-L   missed ?"],
+    [0177570, 0177571, "DISP/SW  missed ?"],
+    [0177514, 0177517, "LP11     missed ?"],
+    [0177500, 0177503, "IIST     missed ?"],
+    [0177440, 0177477, "RK06     missed ?"],
+    [0177400, 0177417, "RK11     missed ?"],
+    [0177170, 0177173, "RX11     missed ?"],
+    [0177160, 0177165, "CR11     missed ?"],
+    [0177060, 0177061, "XOR Test missed ?"],
+    [0176700, 0176753, "RH70     missed ?"],
+    [0176500, 0176507, "DL11 2nd missed ?"],
+    [0174510, 0174517, "DEUNA    missed ?"],
+    [0174400, 0174411, "RL11     missed ?"],
+    [0173000, 0173177, "m9312 boot  missed ?"],
+    [0172540, 0172545, "KW11-P   missed ?"],
+    [0172520, 0172533, "TM11     missed ?"],
+    [0172516, 0172517, "MMU ssr  missed ?"],
+    [0172200, 0172377, "MMU pdr  missed ?"],
+    [0172150, 0172153, "UDA50    missed ?"],
+    [0170200, 0170377, "UBMAP    missed ?"],
+    [0165000, 0165777, "m9312 diag  missed ?"],
+    [0160500, 0160517, "DH11     missed ?"],
+    [0160100, 0160107, "DZ11     missed ?"]
+  );
+
+
+use constant BIT00 => 0000001;
+use constant BIT01 => 0000002;
+use constant BIT02 => 0000004;
+use constant BIT03 => 0000010;
+use constant BIT04 => 0000020;
+use constant BIT05 => 0000040;
+use constant BIT06 => 0000100;
+use constant BIT07 => 0000200;
+use constant BIT08 => 0000400;
+use constant BIT09 => 0001000;
+use constant BIT10 => 0002000;
+use constant BIT11 => 0004000;
+use constant BIT12 => 0010000;
+use constant BIT13 => 0020000;
+use constant BIT14 => 0040000;
+use constant BIT15 => 0100000;
+
+#
+# -- Main program starts here ------------------------------------------------
+#
+
+autoflush STDOUT 1 if (-p STDOUT);          # autoflush if output into pipe
+autoflush STDOUT 1 if (-t STDOUT);          # autoflush if output into term
+
+if ($opts{help}) {
+  print_help();
+  exit 0;
+}
+
+bailout("specify one and only one data file") if (scalar(@ARGV) != 1);
+
+$filename_dmp = $ARGV[0];
+load_data($filename_dmp);
+
+if (exists $opts{dmode}) {
+  if ($opts{dmode} =~ m{^(word|asciz|code)$} ) {
+    $dmode_opt = $opts{dmode};
+  } else {
+    print STDERR "dasm-11-E: word,asciz,code allowed for -dmode\n";
+  }
+}
+
+if (exists $opts{start}) {
+  my @alist = split /,/, $opts{start};
+  foreach my $addr (@alist) {
+    if ($addr =~ m{^[0-7]+$} ) {
+      add_ctpend(oct $addr, "--start");
+    } else {
+      print STDERR "dasm-11-E: only octal values allowed for -start\n";
+    }
+  }
+}
+
+if (exists $opts{das}) {
+  load_steer($opts{das});
+} elsif ($filename_dmp =~ m{^(.*)\.dmp(\.gz)?$} ) {
+  my $filename_das = $1 . ".das";
+  if (-r $filename_das) {
+    load_steer($filename_das);
+  }
+}
+
+dump_data() if $opts{draw};
+
+tag_code();
+pass_opts1();				    # FIXME: opts1 must run before
+                                            #        tag_undef, otherwise
+                                            #        data is merged (why???)
+
+tag_undef();				    # FIXME: tag_undef can tag code
+tag_code() if scalar(@ctpend);
+
+tag_data();
+
+pass_opts2();
+
+name_labels();
+
+dump_data() if $opts{dtag};
+
+write_source();
+
+print_info() if $opts{info};
+
+#-------------------------------------------------------------------------------
+
+sub load_data {			# load dmp file
+  my ($file) = @_;
+
+  my $fh;
+  if ($file eq '-') {
+    $fh = *STDIN;
+  } else {
+    bailout("input file '$file' not found") if (not -r $file);
+    $fh = new FileHandle;
+    if ($file =~ m{\.gz$}) {
+      $fh->open("gunzip -c $file|")
+        or bailout("Failed to open/unzip '$file': $!");
+    } else {
+      $fh->open("<$file")
+        or bailout("Failed to open data file '$file': $!");
+    }
+  }
+
+  while (<$fh>) {
+    chomp;
+    if ( m{^\s*([0-7]+)\s*:\s*([0-7]+)\s*$} ) {
+      my $addr = oct $1;
+      my $val  = oct $2;
+      $data[$addr] = {word => $val};
+    } else {
+      print STDERR "dasm-11-E: bad data line \"$_\"\n";
+    }
+  }
+
+}
+
+#-------------------------------------------------------------------------------
+
+sub load_steer {		# load das file
+  my ($file) = @_;
+  my $fh = new FileHandle;
+  my @lcomm;
+
+  # locate das file in -I path
+  my $fnam = $file;
+  unless ($fnam =~ m|^/|) {
+    foreach (@{$opts{I}}) {
+      if (-r "$_/$fnam") {
+        $fnam = "$_/$fnam";
+        last;
+      }
+    }
+  }
+
+  bailout("file steer file '$file' not found") if (not -r $fnam);
+
+  $fh->open("<$fnam");
+
+  while (<$fh>) {
+    chomp;
+
+    while ( m{\\$} ) {		        # ends with \ --> get continuation line
+      my $cline = <$fh>;
+      last if not defined $cline;
+      chomp $cline;
+      $cline =~ s/^\s*//;	          # drop leading blanks of continuation
+      s/\\$//;			          # drop trailing \
+      $_ .= $cline;		          # and append continuation line
+    }
+
+    next if m{^#} ;                     # ignore # comment
+    next if m{^\s*$} ;		        # ignore empty line
+
+    s{^\s*}{};			        # drop leading blanks
+    s{\s*$}{};			        # drop trailing blanks
+
+    if ( m{^;} ) {		        # ;<line comment>
+      push @lcomm, $_;
+      next;
+    }
+
+    my $cmd = $_;
+    my $comm;
+    if ( m{^
+	    (.+?)                                 # any command       --> $1
+	    \s*                                   #
+	    (;.*)		                  # ; comment         --> $2
+	   $ }x ) {
+      $cmd = $1;
+      $comm = $2;
+    }
+
+    if ($cmd =~  m{^\@(.+)$} ) {	# @filename -> nested files
+      load_steer($1);
+
+                                        # .struct directive
+    } elsif ($cmd =~ m{
+               ^\.struct \s+                      # .struct
+		(\$[a-zA-Z][a-zA-Z0-9]*)          # <name>            --> $1
+		\s* = \s*                         #  =
+		(.*?)                             # <tspec-list>      --> $2
+	       $ }x ) {
+      add_struct($1, $2);
+                                        # .params iot|bpt <list>
+    } elsif ($cmd =~ m{
+	       ^\.params \s+                      # .params
+                (iot|bpt) \s+                     # <trap_inst>       --> $1
+                (.+)                              # <tspec-list>      --> $2
+               $ }x ) {
+      add_params($1, $2);
+	                                # .params emt|trap ooo[:ooo] <list>
+    } elsif ($cmd =~ m{
+	       ^\.params \s+ 	                  # .params
+                (emt|trap) \s+                    # <trap_inst>       --> $1
+                ([0-7]{1,3})                      # <trap_num>        --> $2
+	        (:?)                              # : ?               --> $3
+                ([0-7]{0,3}) \s+                  # <trap_numhigh>    --> $4
+	        (.+)                              # <tspec_list>      --> $5
+	       $ }x ) {
+      my $opcode = $1;
+      my $rlow   = $2;
+      my $rdel   = $3;
+      my $rhigh  = $4;
+      my $plist  = $5;
+      my $beg = oct $rlow;
+      my $end = ($rdel) ? oct $rhigh : $beg;
+      for (my $i=$beg; $i<=$end; $i++) {
+	my $name = sprintf "%s %3.3o", $opcode, $i;
+	add_params($name, $plist);
+      }
+
+                                        # .symbol <symbol> = <addr> <alist>
+    } elsif ($cmd =~ m{
+	       ^\.symbol \s+	                  # .symbol
+	        ([a-zA-Z\$\.][a-zA-Z0-9\$\.]*)    # <symname>         --> $1
+	        \s* = \s*                         # =
+	        ([0-7]+)                          # <addr>            --> $2
+		( (
+		    \s+
+		    [a-zA-Z][a-zA-Z0-9]*            # <name>
+		    =                               # =
+		    \S+                             # <value>
+                  )*                              # <alist>           --> $3
+                )
+	       $ }x ) {
+      my $gsym  = $1;
+      my $addr  = oct $2;
+      my $alist = $3;
+      add_symbol($addr, $gsym, "gsym");
+      add_adr_alist(convoct($addr), $alist) if defined $alist;
+      add_sym_attr($gsym, "scomm", $comm)   if defined $comm;
+
+                                        # .symset <symset> = <set definition>
+    } elsif ($cmd =~ m{
+	       ^\.symset \s+	                  # .symset
+	        ([\@\%][a-zA-Z][a-zA-Z0-9\.]*)    # <setname>         --> $1
+	        \s* = \s*                         # =
+	        (.*?)                             # <setdef>          --> $2
+	       $ }x ) {
+      my $setname = $1;
+      my $setdef  = $2;
+      add_symset($setname, $setdef);
+
+                                        # .(en|ds)abl <option> <attr-list>
+    } elsif ($cmd =~ m{
+               ^(\.enabl|\.dsabl) \s+             # .enabl or .dsabl  --> $1
+                ([a-zA-z][a-zA-Z0-9]*)            # <option>          --> $2
+                ((\s+.+?)*)                       # <attr_list>       --> $3
+	       $ }x ) {
+      my $ends = $1;
+      my $opt  = $2;
+      my $attr = $3;
+      set_option(undef, $ends, $opt, $attr);
+
+	                                # .patch <addr> <value>
+    } elsif ($cmd =~ m{
+	       ^\.patch \s+		          # .patch
+	        ([0-7]+) \s+                      # <addr>            --> $1
+	        ([0-7]+)                          # <value>           --> $2
+	      $ }x ) {
+      my $addr = oct $1;
+      my $val  = oct $2;
+      $data[$addr] = {word => $val};
+      add_scomm($addr, $comm) if $comm;
+
+	                                # <addr> : <das_stmt>
+    } elsif ($cmd =~ m{
+	       ^([0-7]+)                          # <addr>            --> $1
+	        \s* : \s*                         # :
+	        (.*?)                             # <statement>       --> $2
+	       $ }x ) {
+      my $addr = oct $1;
+      my $stmt = $2;
+      my $label;
+      my $dire = $stmt;
+
+      if (scalar(@lcomm)) {	        # any previous lcomm's
+	foreach (@lcomm) { add_lcomm($addr, $_); } # store with addr
+        @lcomm = ();		                   # reset lcomm list
+      }
+
+      if ($stmt =~ m{		        # strip off label
+	    ^([a-zA-Z\$\.][a-zA-Z0-9\$\.]*|[a-zA-Z]+\*)   # <label>    --> $1
+	     \s* : \s*		                  # :
+             (.*)		                  # <directive>       --> $2
+	    $ }x ) {
+	$label = $1;
+	$dire  = $2;
+	my $dtyp = chk_data($addr);
+	if ($dtyp) {
+	  if ($label =~ m{\*$}) {	    # user auto-label
+	    my $lpref = $label;
+	    $lpref =~ s/\*$//;
+	    set_labcref($addr, $lpref);
+	  } else {			    # user label
+	    add_symbol($addr, $label, "data");
+	  }
+        } else {
+	  printf STDERR "dasm-11-E: label '%s' defined but no data for %6.6o," .
+	      "will be ignored\n", $label, $addr;
+        }
+      }
+
+      if (defined $comm) {	        # comments available ?
+	if ($comm =~ m{^;\|} ) {          # inline lcomm
+	  add_lcomm($addr, $comm);
+	} else {		          # scomm
+	  my $text = $comm;
+	  $text =~ s{^;\s*}{};	          # strip leading "; "
+	  add_scomm($addr, $text);
+	}
+      }
+
+                                        # .dmode <type>
+      if ($dire =~ m{
+	         ^.dmode                                    # .dmode
+	          \s+
+	          (byte|word|code|
+		   asci[iz]|asc[0-7]{3}|
+		   rad50|flt[24])   # <type>   --> $1
+		 $ }x ) { 
+	$data[$addr]->{dmode} = $1;
+
+                                        # .vect
+      } elsif ($dire eq ".vect") {                # .vect
+	set_type($addr  , "vect");
+	my $vh = get_word($addr);
+	if (defined $vh && chk_data($vh) eq "w" &&            # point to data
+	    $vh != 0 &&			                      # not null
+	    $vh != $addr+2) {                                 # not catcher
+	  ##printf STDERR "+++1 %6.6o -> %6.6o\n", $addr, $vh;
+	  set_typlabcref($vh, "code", "V");                   # tag it
+	  set_typlabcref($addr, "code*");            # FIXME: wmy this ????
+	}
+
+	                                # .<typespec> <alist>
+      } elsif ($dire =~ m{
+	         ^\.(byte|word|code!?|                        # base types
+                     asci[iz]|asc[0-7]{3}|                    # or asc types
+		     rad50|flt[24]|vect|                      # or ext. types
+		    \$[a-zA-Z][a-zA-Z0-9]*)                   # or structs -->$1
+		  ([\*\[\]\d\.]*)                             # range      -->$2
+		( (
+		    \s+
+		    [a-zA-Z][a-zA-Z0-9]*                      # <name>
+		    =                                         # =
+		    \S+                                       # <value>
+                  )*                                          # <alist>   --> $3
+                )
+		 $ }x ) {
+	my $tspec = $1.$2;
+	my $alist = $3;
+	set_typlabcref($addr, $tspec, "L");
+	add_dat_alist($addr, $alist) if defined $alist;
+
+	                                # .params <plist>
+      } elsif ($dire =~ m{
+                 ^\.params                        # .params
+                  \s+
+                  (.*)                            # <plist> --> $1
+                 $ }x ) {
+	my $plist = $1;
+	my $name  = sprintf "jsr %6.6o", $addr;
+	add_params($name, $plist);
+
+                                        # .(en|ds)abl <option> <attr-list>
+      } elsif ($dire =~ m{
+                 ^(\.enabl|\.dsabl) \s+           # .enabl or .dsabl  --> $1
+                  ([a-zA-z][a-zA-Z0-9]*)          # <option>          --> $2
+                  ((\s+.+?)*)                     # <attr_list>       --> $3
+	         $ }x ) {
+	my $ends = $1;
+	my $opt  = $2;
+	my $attr = $3;
+	set_option($addr, $ends, $opt, $attr);
+
+                                        # .susp <option>
+      } elsif ($dire =~ m{
+               ^\.susp \s+                        # .susp
+                ([a-zA-z][a-zA-Z0-9]*)            # <option>          --> $1
+	       $ }x ) {
+	my $opt  = $1;
+	my $dsc = $data[$addr];
+	push @{$dsc->{optlist}}, { susp => $opt };
+
+	                                # 'null' directive, just <alist>
+      } elsif ($dire =~ m{
+                 ^( (
+		      \s*
+		      [a-zA-Z][a-zA-Z0-9]*                    # <name>
+		      =                                       # =
+		      \S+                                     # <value>
+                    )*                                        # <alist>   --> $1
+                  )
+		 $ }x ) {
+	my $alist = $1;
+	add_ops_alist($addr, $alist);
+
+      } else {
+        print STDERR "dasm-11-E: unknown steer directive: '$_'\n";
+      }
+
+    } else {
+      print STDERR "dasm-11-E: unknown steer directive: '$_'\n";
+    }
+  }
+
+  $fh->close();
+}
+
+#-------------------------------------------------------------------------------
+
+sub dump_data {			# dump @data array status
+  my $iend = scalar(@data);
+  for (my $i = 0; $i < $iend; $i++) {
+    my $dsc = $data[$i];
+    next if not defined $dsc;
+    my $dat = "";
+    $dat = sprintf "%6.6o",    $dsc->{word} if exists $dsc->{word};
+    $dat = sprintf "%3.3o   ", $dsc->{byte} if exists $dsc->{byte};
+    printf "%6.6o : %s", $i, $dat;
+    printf "   type=%s", $dsc->{type} if $dat ne "" && defined $dsc->{type};
+    print  "\n";
+
+    my $col = 0;
+    foreach my $key (sort keys %{$dsc} ) {
+      if ($key !~ m{^(word|byte|type|nzero|src_val|dst_val)$} ) {
+	my $val = $dsc->{$key};
+	my $len = length($key) + 3 + length($val);
+        if ($col && $col+$len > 68) {
+	  print "\n";
+	  $col = 0;
+        }
+        if ($col == 0) {
+          print " " x 10;
+        }
+        if ($val =~ m{^[0-9a-zA-Z\$\.\@\#]*$} ) {
+    	  printf " %s=%s;", $key, $val;
+	  $col += $len;
+        } else {
+	  printf " %s=\"%s\";", $key, $val;
+          $col += $len + 2;
+        }
+      }
+    }
+    print "\n" if ($col);
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub tag_code {			# paint all code sections
+  my $ctdsc;
+  while (defined ($ctdsc = shift @ctpend)) { # loop over code starts to be done
+    my $pc   = $ctdsc->{addr};
+    my $from = $ctdsc->{from};
+    my $type = $data[$pc]->{type};
+
+    next if defined $type && $type =~ m{^code} ;
+
+    printf "ctag: %6.6o queued from %s\n", $pc, $from if $opts{tctag};
+
+    while (defined $pc) {               # loop over code segment
+      my $dsc  = $data[$pc];
+      my $type = $dsc->{type};
+
+      if (defined $type) {
+	last if $type =~ m{^code} ;
+	if ($type =~ m{^vect}) {
+	  add_scomm($pc, "!!vect overlay!!");
+        } else {
+ 	  add_scomm($pc, "!!code tag stop!!");
+	  last;
+        }
+      }
+
+      my $nw   = anal_inst($pc);
+
+      if ($nw) {                       # valid instruction
+	my $opcode = $dsc->{opcode};
+
+	if (defined $dsc->{pc_jmp} &&  # branch label needed ?
+	    $opcode ne "jmp" && $opcode ne "jsr") {
+	  set_labcref($dsc->{pc_jmp}, "B", $pc, lc("B"));
+	  if ($opcode eq "sob") {	    # FIXME: fragile code
+	    $dsc->{op2sym} = "1" unless defined $dsc->{op2sym};
+	  } else {
+	    $dsc->{op1sym} = "1" unless defined $dsc->{op1sym};
+	  }
+	}
+
+	my $op1sym = set_acslabel($dsc->{op1acs}, $dsc->{op1typ},
+				   $dsc->{op1eai}, $pc);
+	my $op2sym = set_acslabel($dsc->{op2acs}, $dsc->{op2typ},
+				    $dsc->{op2eai}, $pc);
+
+	$dsc->{op1sym} = "1" if $op1sym && ! defined $dsc->{op1sym};
+	$dsc->{op2sym} = "1" if $op2sym && ! defined $dsc->{op2sym};
+
+	if ($opcode =~ m{^(bpt|iot|emt|trap|jsr)$} ) {   # params ?
+	  my $key = $opcode;
+	  if ($opcode eq "emt" || $opcode eq "trap") {
+	    $key .= " " . $dsc->{op1str};
+  	  } elsif ($opcode eq "jsr") {
+	    my $op2eai = $dsc->{op2eai};
+	    my $op2typ = $dsc->{op2typ};
+	    if (defined $op2typ && $op2typ eq "addr") {
+  	      $key .= sprintf " %6.6o", $op2eai;
+	    }
+	  }
+	  ##printf "+++1 $key\n";
+
+	  if (defined $paramstbl{$key}) {
+	    my $noret   = 0;
+	    my $skipret = 0;
+	    my $p = $pc + 2*$nw;
+	    foreach my $ptyp (@{$paramstbl{$key}}) {
+	      if ($ptyp eq ".noret") {
+		$noret = 1;
+	      } elsif ($ptyp eq ".tryret") {
+		$noret = (chk_type($p)) ? 1 : 0;
+	      } elsif ($ptyp eq ".skipret") {
+		$skipret = 1;
+	      } else {
+	        my $nb_pi = set_typlabcref($p, $ptyp);
+	        $p += $nb_pi;
+	      }
+	    }
+
+	    $dsc->{pc_seq} = $p;
+	    if ($noret) {
+	      delete $dsc->{pc_seq};
+	    }
+	    if ($skipret) {
+	      add_ctpend($p+2, ".skipret");
+	    }
+	  }
+
+	}
+
+	if ($opcode eq "mov") {        # vector setup ?
+	  my $op1eai = $dsc->{op1eai};
+	  my $op2eai = $dsc->{op2eai};
+	  my $vaddr;
+	  if (chk_op1typ($pc, "const") &&    # mov #addr,...
+	      defined $op2eai) {                # dst address known
+
+	    my $targ_addr;
+	    my $targ_type;
+
+	    if (chk_op2typ($pc, "addr")) {
+	      $targ_addr = $op2eai;
+	      $targ_type = $data[$op2eai]->{type};
+
+	    } elsif (chk_op2typ($pc, "iaddr")) {
+	      $targ_addr = get_word($op2eai);
+	      if ($targ_addr &&
+		  defined $data[$targ_addr]->{type}) {
+		$targ_type = $data[$targ_addr]->{type};
+	      } else {
+		$targ_type = $data[$op2eai]->{type};
+		if ($targ_type) {
+		  if ($targ_type =~ m/(.*)\*$/) {
+		    $targ_type = $1;
+		  } else {
+		    $targ_type = undef;
+		  }
+		}
+	      }
+	    }
+
+	    if ($targ_type) {
+	      if ($targ_type eq "vect" &&
+		  (not chk_type($op1eai, "vect.psw"))) {
+		set_labcref($op1eai, "V", $pc, "i");
+		$dsc->{op1sym} = "1";
+		add_ctpend($op1eai, convoct($pc));
+		if (defined $targ_addr &&	                   # target ok
+		    $adrtbl{convoct($op1eai)}->{string} =~ m{^V#####$}) {# !lbl
+		  my $vlbl = "";
+		  my $taddr_str = convoct($targ_addr);
+		  if (exists $adrtbl{$taddr_str} &&
+		      defined $adrtbl{$taddr_str}->{string} &&
+		      $adrtbl{$taddr_str}->{string} !~ m{#####$}) {
+		    $vlbl = "(" . $adrtbl{$taddr_str}->{string} . ")";
+		  }
+		  my $lcomm =
+		    sprintf ("; vector %3.3o %s handler setup at %6.6o",
+			     $targ_addr, $vlbl, $pc);
+		  add_lcomm($op1eai, $lcomm);
+		}
+
+	      } elsif ($targ_type =~ m/(.*)\*$/) {
+		my $tag_type = $1;
+		my $lpref = get_lpref($tag_type);
+		if ($tag_type eq "code") {
+		  set_labcref($op1eai, "C", $pc, "i");
+		  $dsc->{op1sym} = "1";
+		  add_ctpend($op1eai, convoct($pc));
+		} elsif ($tag_type =~ m/(word|byte)/) {
+		  set_labcref($op1eai, "D", $pc, "i");
+		  $dsc->{op1sym} = "1";
+		} else {
+		  set_typlabcref($op1eai, $tag_type, $lpref, $pc , "i");
+		  $dsc->{op1sym} = "1";
+		}
+	      }
+	    }
+
+	  }
+	}
+
+	if ($opcode eq "halt") {       # halt followed by br or jmp ?
+	  my $p = $pc + 2;
+	  my $next = get_word($p);
+	  if (defined $next &&	                  # next address has data
+	      (not defined  $data[$p]->{type})) { # and is not yet tagged
+	    if (($next & 0177400) == 000400 ||    # code for br
+		($next & 0177700) == 000100) {    # code for jmp
+	      $dsc->{pc_seq} = $p;                # consider that halt continues
+	      add_ctpend($p, convoct($pc));       # declare 'br .-2' as code
+	    }
+	  }
+	}
+
+        # look for code sequence like
+        #   mov #newpsw, -(sp)       (optional)
+        #   mov #newaddr,-(sp)
+        #   rti
+        # and code tag 'newaddr' and use '%cp.psw' for newpsw
+        #
+	if ($opcode =~ m{^rt[it]$} ) { # mode changer via rti/rtt ?
+	  if (chk_opcode($pc-4, "mov") &&
+	      chk_op1typ($pc-4, "const") &&
+	      (chk_op2str($pc-4, "-(sp)") ||       # --> mov #addr,-(sp) ??
+	       chk_op2str($pc-4, "(sp)"))) {       # --> mov #addr,(sp)  ??
+	    $data[$pc-4]->{op1sym} = "1";
+	    my $pc_vec = $data[$pc-4]->{op1eai};   # get #addr
+	    if ($pc_vec == $pc + 2) {              # if target just after rti
+	      $dsc->{pc_seq} = $pc_vec;	           # declare sequential exec
+	    }
+	    set_labcref($pc_vec, "C", $pc-4, "i");
+	    add_ctpend($pc_vec, convoct($pc));     # declare target as code
+            if (chk_opcode($pc-8, "mov") &&
+                chk_op1typ($pc-8, "const") &&
+                (chk_op2str($pc-8, "-(sp)") ||       # --> mov #psw,-(sp) ??
+                 chk_op2str($pc-8, "(sp)"))) {
+              if (! defined $data[$pc-8]->{op1sym} &&
+                  exists $symsettbl{'%cp.psw'} ) {
+                $data[$pc-8]->{op1sym} = "%cp.psw";
+              }
+            }
+          }
+	}
+
+        if (defined $dsc->{pc_jmp}) {   # is alternate pc available ?
+	  my $pc_jmp = $dsc->{pc_jmp};
+          if (defined $data[$pc_jmp]->{word} &&       # if data available
+	      (not defined $data[$pc_jmp]->{type} )) {  # and not yet tagged
+            add_ctpend($pc_jmp, convoct($pc));        # push it on the todo list
+          }
+        }
+
+	$pc = $dsc->{pc_seq};	        # proceed with next instruction, if def
+
+      } else {			        # invalid instruction
+	set_type($pc, "word");
+	$pc = undef;
+      }
+
+    } # while (defined $pc)
+
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub tag_undef {			# tag all yet undefined words/bytes
+
+  my $dmode = $dmode_opt;
+  my $iend = scalar(@data);
+
+  $dmode = "word" if not defined $dmode;
+
+  for (my $p = 0; $p < $iend; $p++) {
+    my $dsc = $data[$p];
+    next if not defined $dsc;
+
+    $dmode = $dsc->{dmode} if defined $dsc->{dmode};
+
+    next if not (defined $dsc->{word} || defined $dsc->{byte});
+    next if defined $dsc->{type};
+
+    if ($dmode eq "code") {
+      add_ctpend($p, "dmode");
+
+    } elsif ($dmode eq "word") {
+      set_type($p, (defined $dsc->{byte}) ? "byte" : "word");
+
+    } elsif ($dmode eq "asciz") {
+      set_type($p, "asciz");
+
+    } else {
+      print_bugcheck(__LINE__, "unexpected dmode '$dmode'");
+    }
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub tag_data {			# paint all data sections
+
+  my $iend = scalar(@data);
+  my $addr = 0;
+
+  while ($addr < $iend) {
+    my $dsc = $data[$addr];
+    if ((not defined $dsc) ||
+	(not defined $dsc->{type})) {
+      $addr += 1;
+
+    } elsif ($dsc->{type} eq "code") {
+      $addr += 2*$dsc->{nw};
+
+    } elsif ($dsc->{type} =~ m{^asc(ii|iz|[0-7]{3})$} ) {
+      my ($nb, $dir, $arg) = gather_ascii($addr, $dsc->{type});
+      $dsc->{dirstr} = $dir;
+      $dsc->{argstr} = $arg;
+      $dsc->{nb}     = $nb;
+      if ($dsc->{type} eq "asciz") {
+	my ($nb, $dir, $arg) = gather_ascii($addr, $dsc->{type}, 1);
+	$dsc->{comstr} = $arg;
+      }
+      $addr += $nb;
+
+    } elsif ($dsc->{type} eq "word" && $dsc->{word} == 0) {
+      my ($nw, $dir, $arg) = gather_blkw($addr);
+      if ($nw == 0) {                       # FIXME_code: HACK
+        $addr += 1;                         # FIXME_code: HACK
+        next;                               # FIXME_code: HACK
+      }
+      if ($nw > 1) {
+        $dsc->{dirstr} = $dir;
+	$dsc->{argstr} = $arg;
+        $dsc->{nb}     = 2*$nw;
+      }
+      $addr += 2*$nw;
+
+    } elsif ($dsc->{type} eq "byte" && $dsc->{byte} == 0) {
+      my ($nb, $dir, $arg) = gather_blkb($addr);
+      if ($nb > 1) {
+        $dsc->{dirstr} = $dir;
+	$dsc->{argstr} = $arg;
+        $dsc->{nb}     = $nb;
+      } elsif ((not defined $dsc->{label}) && ($addr & 01) == 1) {
+        $dsc->{dirstr} = ".even";
+	$dsc->{argstr} = "";
+        $dsc->{nb}     = $nb;
+      }
+      $addr += $nb;
+
+    } else {
+      my $type = $dsc->{type};
+      my $nb = 1;
+
+      $addr += $nb;
+    }
+  }
+
+}
+
+#-------------------------------------------------------------------------------
+
+sub gather_ascii {	       	# gather ascii, asciz or ascooo string
+
+  my ($addr, $type, $till0) = @_;
+  my $clist  = "";
+  my $crlast = 0;
+  my $arg    = "";
+  my $nb     = 0;
+  my $dir    = ".ascii";
+  my $symset = $symsettbl{'@chars'};
+
+  for (my $p=$addr; ; $p++) {
+    my $dsc  = $data[$p];
+    last unless defined $dsc;	        # stop scan if no data
+    last if (not $till0) &&
+            $p != $addr &&
+	    defined $dsc->{label};      # stop scan at a label
+    my $byte = $dsc->{byte};
+    last unless defined $byte;	        # stop scan if no byte data
+    last unless $dsc->{type} eq $type;  # stop scan if not ascii/asciz/ascooo
+
+    if ($byte == 0 && $type eq "asciz") {
+      $nb += 1;
+      $arg .= wrap_ascii($clist);
+      $clist = "";
+      $dir = ".asciz";
+      last;
+    } elsif ($byte>=040 && $byte<0177) {
+      $nb += 1;
+      $clist .= chr($byte);
+    } else {
+      $nb += 1;
+      $arg .= wrap_ascii($clist);
+      $clist = "";
+
+      my $chrsym;
+      if (defined $symset) {
+	foreach my $item ( @{$symset} ) {
+	  if ($byte == $item->{val}) {
+	    $chrsym = $item->{sym};
+	    add_symcref($item->{sym}, $addr) unless $till0;
+	    last;
+	  }
+	}
+      }
+
+      if (defined $chrsym) {
+	$arg .= "<$chrsym>";
+      } else {
+	$arg .= sprintf "<%3.3o>", $byte;
+      }
+
+      if ((not $till0) &&
+	  length($arg) > 20 &&
+	  chk_data($p+1) eq "b" &&
+	  $data[$p+1]->{byte} != 0 &&
+	  $data[$p+1]->{byte} != 012) {	     # FIXME !! more systematic crlf
+	return ($nb, ".ascii", $arg);
+      }
+    }
+
+    if ((not $till0) && $byte == 015) {
+      $crlast = 1;
+    } elsif ($crlast == 1 && $byte == 012) {
+      my $byte_next  = get_byte($p+1);
+      last unless $type eq "asciz" &&
+		  defined $byte_next &&
+		  $byte_next == 0;
+    } else {
+      $crlast = 0;
+    }
+  }
+
+  $arg .= wrap_ascii($clist);
+  $arg = "//" if $arg eq "";
+
+  ##printf "+++8 %1d:%6.6o %3d %s %s\n", defined $till0, $addr, $nb, $dir, $arg;
+
+  return ($nb, $dir, $arg);
+
+}
+
+#-------------------------------------------------------------------------------
+
+sub wrap_ascii {
+  my ($clist) = @_;
+  return "" if $clist eq "";
+  my $del = "";
+  if ($clist !~ m{/}) {
+    $del = "/";
+  } elsif ($clist !~ m{\|}) {	# FIXME: better algorithm for alternate delim
+    $del = "|";
+  } elsif ($clist !~ m{\\}) {
+    $del = "\\";
+  } elsif ($clist !~ m{\"}) {
+    $del = "\"";
+  } elsif ($clist !~ m{\'}) {
+    $del = "\'";
+  }
+
+  print_bugcheck(__LINE__, "failed to get delim for \"$clist\"") if $del eq "";
+
+  return $del . $clist . $del;
+}
+
+#-------------------------------------------------------------------------------
+
+sub gather_blkw {	       	# gather blkw block
+  my ($addr) = @_;
+  my $nw   = 0;
+  my $dir  = ".blkw";
+  my $arg  = "";
+
+  for (my $p=$addr; ; $p+=2) {
+    my $dsc  = $data[$p];
+    last unless defined $dsc;	        # stop scan if no data
+    last if $p != $addr && defined $dsc->{label}; # stop scan at a label
+    my $word = $dsc->{word};
+    last unless defined $word;	        # stop scan if no word data
+    last unless $dsc->{type} eq "word"; # stop scan if not word
+    last if $word |= 0;	                # stop scan if word non-zero
+    $nw += 1;
+  }
+
+  $arg = sprintf "%d.", $nw;
+
+  print_bugcheck(__LINE__, "no zero data for gather_blkw") if $nw eq 0;
+
+  return ($nw, $dir, $arg);
+}
+
+#-------------------------------------------------------------------------------
+
+sub gather_blkb {	       	# gather blkb block
+  my ($addr) = @_;
+  my $nb   = 0;
+  my $dir  = ".blkb";
+  my $arg  = "";
+
+  for (my $p=$addr; ; $p++) {
+    my $dsc  = $data[$p];
+    last unless defined $dsc;	        # stop scan if no data
+    last if $p != $addr && defined $dsc->{label}; # stop scan at a label
+    my $byte = $dsc->{byte};
+    last unless defined $byte;	        # stop scan if no byte data
+    last unless $dsc->{type} eq "byte"; # stop scan if not byte
+    last if $byte |= 0;	                # stop scan if byte non-zero
+    $nb += 1;
+  }
+
+  $arg = sprintf "%d.", $nb;
+
+  print_bugcheck(__LINE__, "no zero data for gather_blkb") if $nb eq 0;
+
+  return ($nb, $dir, $arg);
+}
+
+#-------------------------------------------------------------------------------
+
+sub pass_opts1 {		# handle some options (lblimm,lblind)
+  my $iend = scalar(@data);
+  my $addr = 0;
+
+  %curopt = (%opttbl);			# reset current option set
+  @susp_restore = ();
+
+  while ($addr < $iend) {
+    my $dsc = $data[$addr];
+    if ((not defined $dsc) ||
+	(not defined $dsc->{type})) {
+      $addr += 1;
+      next;
+    }
+
+    set_susopt();
+    set_curopt($dsc->{optlist}) if defined $dsc->{optlist};
+    my $type = $dsc->{type};
+
+    if ($type eq "code") {	        # if instruction
+
+      do_lblimmind($addr, "op1str") unless defined $dsc->{op1sym};
+      do_lblimmind($addr, "op2str") unless defined $dsc->{op2sym};
+
+    }
+
+    $addr += 1;
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub pass_opts2 {		# handle most options (symxxx,lbliot,...)
+  my $iend = scalar(@data);
+  my $addr = 0;
+
+  %curopt = (%opttbl);			# reset current option set
+  @susp_restore = ();
+
+  while ($addr < $iend) {
+    my $dsc = $data[$addr];
+    if ((not defined $dsc) ||
+	(not defined $dsc->{type})) {
+      $addr += 1;
+      next;
+    }
+
+    set_susopt();
+    set_curopt($dsc->{optlist}) if defined $dsc->{optlist};
+    my $type = $dsc->{type};
+
+    if ($type eq "code") {	        # if instruction
+
+      do_symimmind($addr, "op1str", "op1sym") unless defined $dsc->{op1sym};
+      do_symimmind($addr, "op2str", "op2sym") unless defined $dsc->{op2sym};
+
+      if ($curopt{lbliot}->{ena} &&	# if iot and lbliot enabled
+	  $dsc->{opcode} eq "iot") {
+	my $tnum = $curopt{lbliot}->{tnum}++;
+	unshift @{ $dsc->{lcomm} }, ";" unless exists $dsc->{lcomm};
+	unshift @{ $dsc->{lcomm} }, 
+	  sprintf "; Test %3.3o ------------------------------------", $tnum;
+	unshift @{ $dsc->{lcomm} }, ";";
+
+	my $addr_str = convoct($addr);
+	my $iotlbl = sprintf("tst%3.3o", $tnum);
+
+	my $do_iotlbl = 1;
+	$do_iotlbl = 0 if exists $symtbl{$iotlbl};
+	$do_iotlbl = 0 if exists $adrtbl{$addr_str} &&
+	                  $adrtbl{$addr_str}->{typ} ne "albl" ;
+	add_symbol($addr, $iotlbl, "data") if $do_iotlbl;	
+      }
+
+      if ($curopt{anoemt}->{ena} &&	# if emt and anoemt enabled tbl,size
+	  $dsc->{opcode} eq "emt") {
+	my $emtnum = get_word($addr);
+	if (defined $emtnum) {
+	  $emtnum = $emtnum & 0377;
+	  if ($emtnum == 0377 && $curopt{anoemt}->{max} > 0377) {
+	    $emtnum = get_word($addr+2) if defined get_word($addr+2);
+	  }
+	} else {
+	  $emtnum = 0;
+	}
+	if ($emtnum > 0 &&
+	    $emtnum <= $curopt{anoemt}->{max} &&
+	    exists $symtbl{$curopt{anoemt}->{tbl}}) {
+	  my $tbas = $symtbl{$curopt{anoemt}->{tbl}}->{val};
+	  my $tent = $tbas + ($emtnum-1) * $curopt{anoemt}->{size};
+	  my $pt0 = get_word($tent);
+	  my $pt1 = get_word($tent+2);
+	  my $t0  = undef;
+	  my $t1  = undef;
+	  $t0 = $data[$pt0]->{comstr} if (chk_type($pt0, "asciz"));
+	  $t1 = $data[$pt1]->{comstr} if (chk_type($pt1, "asciz"));
+	  $t0 = "?" unless defined $t0;
+	  $t1 = "?" unless defined $t1;
+	  ##printf STDERR "+++1 %6.6o %3.3o %d %d\n", $addr, $emtnum,
+	  ##  (chk_type($pt0, "asciz")), (chk_type($pt1, "asciz"));
+	  add_lcomm($addr, sprintf ("; error %3.3o", $emtnum));
+	  add_lcomm($addr, "; ".$t0);
+	  add_lcomm($addr, "; ".$t1);
+	}
+      }
+
+    } elsif ($type eq "word") {
+      my $targ = $dsc->{word};
+      my $targ_str = convoct($targ);
+      my $targ_lbl = (exists $adrtbl{$targ_str} && 
+	  	      defined $adrtbl{$targ_str}->{string}) ? 1 : 0;
+      if ($curopt{symwrd}->{ena} &&
+	  $targ >= $curopt{symwrd}->{min} &&
+	  $targ <= $curopt{symwrd}->{max}) {
+	add_scomm($addr, "{symwrd $targ_lbl}") if $curopt{symwrd}->{anno};
+	$dsc->{datsym} = "1" if $targ_lbl;
+      }
+    }
+
+    $addr += 1;
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub do_lblimmind {		# helper to handle lblimm and lblind
+  my ($addr, $keystr) = @_;
+  my $dsc = $data[$addr];
+  my $str = $dsc->{$keystr};
+
+  return unless defined $str;
+
+  if ($str =~ m{([0-7]{6})} ) {
+    my $targ = oct $1;
+    my $targ_str = convoct($targ);
+    my $targ_lbl = (exists $adrtbl{$targ_str} &&
+		    defined $adrtbl{$targ_str}->{string}) ? 1 : 0;
+
+    ##printf STDERR "+++1 %6.6o %s %s\n",$addr, $keystr, $str;
+    if (!$targ_lbl && chk_data($targ)) {
+
+      if ($str =~ m{\#} &&
+  	    $curopt{lblimm}->{ena} &&
+	    $targ >= $curopt{lblimm}->{min} &&
+	    $targ <= $curopt{lblimm}->{max}) {
+	add_scomm($addr, "{lblimm}") if $curopt{lblimm}->{anno};
+	set_labcref($targ, "I", $addr, "i");
+      } elsif ($str =~ m{\(.*\)$} &&
+	         $curopt{lblind}->{ena} &&
+	         $targ >= $curopt{lblind}->{min} &&
+	         $targ <= $curopt{lblind}->{max}) {
+	add_scomm($addr, "{lblind}") if $curopt{lblind}->{anno};
+	set_labcref($targ, "N", $addr, "n");
+      }
+    }
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub do_symimmind {		# helper to handle symimm, symind and symchr
+  my ($addr, $keystr, $keysym) = @_;
+  my $dsc = $data[$addr];
+  my $str = $dsc->{$keystr};
+
+  return unless defined $str;
+
+  if ($str =~ m{([0-7]{6})} ) {
+    my $targ = oct $1;
+    my $targ_str = convoct($targ);
+    my $targ_lbl = (exists $adrtbl{$targ_str} &&
+		    defined $adrtbl{$targ_str}->{string}) ? 1 : 0;
+
+    if ($str =~ m{\#} &&
+	        $curopt{symimm}->{ena} &&
+	        $targ >= $curopt{symimm}->{min} &&
+	        $targ <= $curopt{symimm}->{max}) {
+      add_scomm($addr, "{symimm $targ_lbl}") if $curopt{symimm}->{anno};
+      $dsc->{$keysym} = "1" if $targ_lbl;
+    } elsif ($str =~ m{\(.*\)$} && 
+	             $curopt{symind}->{ena} &&
+	             $targ >= $curopt{symind}->{min} &&
+	             $targ <= $curopt{symind}->{max}) {
+      add_scomm($addr, "{symind $targ_lbl}") if $curopt{symind}->{anno};
+      $dsc->{$keysym} = "1" if $targ_lbl;
+    }
+  } elsif ($str =~ m{^\#([0-7]{3})$} ) {
+    my $val = oct $1;
+    if ($curopt{symchr}->{ena} && $val > 040 && $val < 0177) {
+      add_scomm($addr, "{symchr}") if $curopt{symchr}->{anno};
+      $dsc->{$keysym} = "1";
+    }
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub name_labels {		# name all autogenerated labels
+  my $iend = scalar(@data);
+  my %lnum;
+#
+# 1st pass, handle references pointing into an instruction
+#
+  foreach my $key (sort keys %adrtbl) {
+    if ($adrtbl{$key}->{typ} eq "albl") {
+      my $addr = $adrtbl{$key}->{addr};
+      if ($data[$addr]->{type} =~ m{^code\.(imm|ind)$} ) {
+	my $pc = $addr - 2;
+	$pc = $pc - 2 if $data[$pc]->{type} =~ m{^code\.(imm|ind)$} ;
+	my $pc_str = convoct($pc);
+	if (not exists $adrtbl{$pc_str}) {
+          add_symbol($pc, "S#####", "albl");
+	}
+	$adrtbl{$key}->{string} = sprintf "%s+%o",$pc_str, $addr-$pc;
+      }
+    }
+  }
+
+  foreach my $key (sort keys %adrtbl) {
+    if ($adrtbl{$key}->{string} =~ m{^(.+?)\#{5}$}) {
+      $lnum{$1} = 0 unless defined $lnum{$1};
+      while (1) {
+        my $symbol = sprintf "%s%3.3d", $1, $lnum{$1};
+	$lnum{$1} += 1;
+	if (not exists $symtbl{$symbol} ) {
+	  $adrtbl{$key}->{string} = $symbol;
+	  $symtbl{$symbol}->{val} = oct $key;
+	  $symtbl{$symbol}->{typ} = $adrtbl{$key}->{typ};
+	  last;
+	}
+      }
+    } elsif ($adrtbl{$key}->{string} =~ m{^([0-7]{6})\+([0-7]+)$} ) {
+      my $pc_str = $1;
+      my $off    = $2;
+      $adrtbl{$key}->{string} = $adrtbl{$pc_str}->{string} . "+" . $off;
+    }
+  }
+}
+
+#-------------------------------------------------------------------------------
+#
+# Analyse single instruction
+#
+# $nw = anal_inst($pc)
+#
+# with
+#   $pc             pc pointing to instruction in @data
+# returns
+#   $nw             number of word to advance pc
+#                   0 for invalid instruction, or 1-3 for a valid one
+#
+#   @data[$pc] {only for valid instructions}
+#     ->{type}      set to 'code'
+#     ->{opcode}    opcode mnemonic
+#     ->{nw}        number of words of instruction (1-3)
+#     ->{pc_seq}    next pc in case of sequential execution or jsr/trap return
+#     ->{pc_jmp}    target address of taken cond. branches, jmp's or jsr's
+#     ->{op1str}    string representation of 1st operand
+#     ->{op1typ}    type of 1st operand (const, addr, iaddr)
+#     ->{op1eai}    eff.address or immediate value of 1st operand, if available
+#     ->{op2str}    string representation of 2nd operand
+#     ->{op2typ}    type of 2nd operand (const, addr, iaddr)
+#     ->{op2eai}    eff.address or immediate value of 2nd operand, if available
+#
+
+sub anal_inst {			# analyse single instruction
+  my ($pc) = @_;
+  my $dsc  = $data[$pc];
+  if ((not defined $dsc) || (not defined $dsc->{word}) ) {
+    printf STDERR "dasm-11-E: anal_inst: no data for pc=%6.6o\n", $pc;
+    return 0;
+  }
+
+  my $pc_inst = $pc;	                # pc of instruction
+  my $inst  = $dsc->{word};             # 1st word of instruction
+  my $isfpp = $inst >= 0170000;	        # true if FPP instruction
+
+  $pc += 2;
+
+  foreach my $ele (@opcode_tbl) {
+    if (($inst & (~($ele->{mask})) ) == $ele->{code}) {
+      my $mnem  = $ele->{mnem};
+      my $type  = $ele->{type};
+      my $bytop = $ele->{bytop};
+
+      my $src_nw  = 0;
+      my $src_str;
+      my $src_typ;
+      my $src_eai;
+      my $src_sym;
+      my $dst_nw  = 0;
+      my $dst_str;
+      my $dst_typ;
+      my $dst_eai;
+      my $dst_sym;
+
+      if (defined $ele->{src}) {        # src mod/reg field used
+	($src_nw,$src_str,$src_typ,$src_eai,$src_sym) = 
+	    anal_operand(($inst>>6) & 077, $pc, $bytop, $isfpp);
+        $pc += 2*$src_nw if $src_nw >= 0;
+      }
+      if (defined $ele->{dst} && $src_nw >= 0) {  # dst mod/reg field used
+	($dst_nw,$dst_str,$dst_typ,$dst_eai,$dst_sym) = 
+	    anal_operand($inst & 077, $pc, $bytop, $isfpp);
+        $pc += 2*$dst_nw if $dst_nw >= 0;
+      }
+
+      if ($src_nw < 0 || $dst_nw < 0) {
+	printf STDERR
+            "dasm-11-W: code tag clash at pc=%6.6o inst=%6.6o '%s'\n" .
+	    "   word at addr=%6.6o already tagged '%s'\n",
+	    $pc_inst, $inst, $mnem, $pc, $data[$pc]->{type};
+	add_scomm($pc_inst, "!!code tag clash!!");
+	return 0;
+      }
+
+      set_type($pc_inst,"code");
+      $dsc->{opcode} = $mnem;
+      $dsc->{nw}     = 1;
+
+      if ($type eq "0arg" or	        # no argument opcodes (halt,..,cfcc,..)
+	  $type eq "0fpp") {
+	$dsc->{pc_seq} = $pc unless ($mnem =~ m{^(halt|rti|rtt)$} );
+
+      } elsif ($type eq "1arg") {       # 1 argument opcodes  (jmp,clr,....)
+	$dsc->{nw}    += $dst_nw;
+	$dsc->{op1str} = $dst_str;
+	$dsc->{op1typ} = $dst_typ  if defined $dst_typ;
+	$dsc->{op1eai} = $dst_eai  if defined $dst_eai;
+	$dsc->{op1acs} = $ele->{dst};
+	$dsc->{pc_seq} = $pc unless ($mnem eq "jmp");
+	if ($mnem eq "jmp") {
+	  my $taddr = get_taddr($dst_eai, $dst_typ);
+	  $dsc->{pc_jmp} = $taddr if defined $taddr;
+        }
+
+      } elsif ($type eq "2arg") {       # 2 argument opcodes  (mov,...)
+	$dsc->{nw}    += $src_nw;
+	$dsc->{op1str} = $src_str;
+	$dsc->{op1typ} = $src_typ if defined $src_typ;
+	$dsc->{op1eai} = $src_eai if defined $src_eai;
+	$dsc->{op1acs} = $ele->{src};
+	$dsc->{nw}    += $dst_nw;
+	$dsc->{op2str} = $dst_str;
+	$dsc->{op2typ} = $dst_typ if defined $dst_typ;
+	$dsc->{op2eai} = $dst_eai if defined $dst_eai;
+	$dsc->{op2acs} = $ele->{dst};
+	$dsc->{pc_seq} = $pc;
+	if (defined $src_typ && $src_typ eq "const" &&
+	    defined $dst_sym && ! defined $dsc->{op1sym}) {
+	  ##print "+++7a $mnem $src_str, $dst_str\n";
+	  $dsc->{op1sym} = $dst_sym;
+	}
+	if (defined $dst_typ && $dst_typ eq "const" &&
+	    defined $src_sym && ! defined $dsc->{op2sym}) {
+	  ##print "+++7b $mnem $src_str, $dst_str\n";
+	  $dsc->{op2sym} = $src_sym;
+	}
+
+
+      } elsif ($type eq "gr") {       # register dest opcodes (mul,...)
+	$dsc->{nw}    += $dst_nw;
+	$dsc->{op1str} = $dst_str;
+	$dsc->{op1typ} = $dst_typ if defined $dst_typ;
+	$dsc->{op1eai} = $dst_eai if defined $dst_eai;
+	$dsc->{op1acs} = $ele->{dst};
+        $dsc->{op2str} = get_regname(($inst>>6) & 07);
+	$dsc->{pc_seq} = $pc;
+
+      } elsif ($type eq "rg") {        # rg opcode
+	$dsc->{op1str} = get_regname(($inst>>6) & 07);
+	$dsc->{nw}    += $dst_nw;
+	$dsc->{op2str} = $dst_str;
+	$dsc->{op2typ} = $dst_typ if defined $dst_typ;
+	$dsc->{op2eai} = $dst_eai if defined $dst_eai;
+	$dsc->{op2acs} = $ele->{dst};
+	$dsc->{pc_seq} = $pc;
+	my $taddr = get_taddr($dst_eai, $dst_typ);
+	$dsc->{pc_jmp} = $taddr if defined $taddr && $mnem eq "jsr";
+
+      } elsif ($type eq "rts") {        # rts opcode
+	$dsc->{op1str} = get_regname($inst & 07);
+
+      } elsif ($type eq "1reg") {       # 1 reg opcodes (fis)
+	$dsc->{op1str} = get_regname($inst & 07);
+	$dsc->{pc_seq} = $pc;
+
+      } elsif ($type eq "br") {         # branch opcodes
+	my $off  = $inst & 0177;
+	$off  = -(((~$off) & 0177)+1) if ($inst & 0200);
+	my $pc_jmp = ($pc + 2*$off) & 0177777;
+	$dsc->{op1str} = sprintf "%6.6o", $pc_jmp;
+	$dsc->{pc_jmp} = $pc_jmp;
+	$dsc->{pc_seq} = $pc unless ($mnem eq "br");
+
+      } elsif ($type eq "sob") {        # sob opcode
+	my $off  = $inst & 077;
+       	my $pc_jmp = ($pc - 2*$off) & 0177777;
+	$dsc->{op1str} = get_regname(($inst>>6) & 07);
+	$dsc->{op2str} = sprintf "%6.6o", $pc_jmp;
+	$dsc->{pc_jmp} = $pc_jmp;
+	$dsc->{pc_seq} = $pc;
+
+      } elsif ($type eq "ccop")  {      # condition code opcodes
+	my $cc = $inst & 017;
+	my $code = "";
+	my $del  = "";
+	if ($cc   == 0) {
+	  $code = "nop";
+	} elsif ($inst == 0257) {
+	  $code = "ccc";
+	} elsif ($inst == 0277) {
+	  $code = "scc";
+        } else {
+   	  if ($cc & 010) { $code .= $del . $mnem . "n"; $del = "!" }
+	  if ($cc & 004) { $code .= $del . $mnem . "z"; $del = "!" }
+	  if ($cc & 002) { $code .= $del . $mnem . "v"; $del = "!" }
+	  if ($cc & 001) { $code .= $del . $mnem . "c"; $del = "!" }
+          $code = "<" . $code . ">" if $code =~ m/!/;
+	}
+	$dsc->{opcode} = $code;
+	$dsc->{pc_seq} = $pc;
+
+      } elsif ($type eq "spl") {        # spl opcode
+	$dsc->{op1str} = sprintf "%1.1o", $inst & 07;
+	$dsc->{pc_seq} = $pc;
+
+      } elsif ($type eq "mark") {       # mark opcode
+	$dsc->{op1str} = sprintf "%3.3o", $inst & 077;
+	$dsc->{pc_seq} = $pc;
+
+      } elsif ($type eq "trap") {       # trap of arg opcodes (trap,emt)
+	$dsc->{op1str} = sprintf "%3.3o", $inst & 0377;
+	$dsc->{pc_seq} = $pc;
+
+      } elsif ($type eq "gfpp")  {      # fpp 1 operand opcodes
+	$dsc->{nw}    += $dst_nw;
+	$dsc->{op1str} = $dst_str;
+	$dsc->{op1typ} = $dst_typ if defined $dst_typ;
+	$dsc->{op1eai} = $dst_eai if defined $dst_eai;
+	$dsc->{op1acs} = $ele->{dst};
+	$dsc->{pc_seq} = $pc;
+
+      } elsif ($type eq "grfpp")  {     # 1 operand + fpp reg opcodes
+	$dsc->{op2str} = sprintf "f%o", ($inst>>6) & 03;
+	$dsc->{nw}    += $dst_nw;
+	$dsc->{op1str} = $dst_str;
+	$dsc->{op1typ} = $dst_typ if defined $dst_typ;
+	$dsc->{op1eai} = $dst_eai if defined $dst_eai;
+	$dsc->{op1acs} = $ele->{dst};
+	$dsc->{pc_seq} = $pc;
+
+      } elsif ($type eq "rgfpp")  {     # fpp reg + 1 operand opcodes
+	$dsc->{op1str} = sprintf "f%o", ($inst>>6) & 03;
+	$dsc->{nw}    += $dst_nw;
+	$dsc->{op2str} = $dst_str;
+	$dsc->{op2typ} = $dst_typ if defined $dst_typ;
+	$dsc->{op2eai} = $dst_eai if defined $dst_eai;
+	$dsc->{op2acs} = $ele->{dst};
+	$dsc->{pc_seq} = $pc;
+
+      } elsif ($type eq "crdd")  {      # cis: reg,desc,desc (ld2r)
+	anal_cisops($pc, 2, 0);
+	$pc           += 2*2;
+	$dsc->{pc_seq} = $pc;
+      } elsif ($type eq "crddd")  {     # cis: reg,desc,desc,desc (ld3r)
+	anal_cisops($pc, 3, 0);
+	$pc           += 3*2;
+	$dsc->{pc_seq} = $pc;
+      } elsif ($type eq "cda")  {       # cis: desc,arg
+	anal_cisops($pc, 1, 1);
+	$pc           += 2*2;
+	$dsc->{pc_seq} = $pc;
+      } elsif ($type eq "cdd")  {       # cis: desc,desc
+	anal_cisops($pc, 2, 0);
+	$pc           += 2*2;
+	$dsc->{pc_seq} = $pc;
+      } elsif ($type eq "cdda")  {      # cis: desc,desc,arg
+	anal_cisops($pc, 2, 1);
+	$pc           += 3*2;
+	$dsc->{pc_seq} = $pc;
+      } elsif ($type eq "cddaa")  {     # cis: desc,desc,arg,arg
+	anal_cisops($pc, 2, 2);
+	$pc           += 4*2;
+	$dsc->{pc_seq} = $pc;
+      } elsif ($type eq "cddd")  {      # cis: desc,desc,desc
+	anal_cisops($pc, 3, 0);
+	$pc           += 3*2;
+	$dsc->{pc_seq} = $pc;
+
+      } else {
+	print_bugcheck(__LINE__, "unexpected type $type");
+      }
+
+      if (defined $dsc->{op2acs} &&
+	  $dsc->{op2acs} =~ m{[mw]} &&
+	  $dsc->{op2str} eq "pc") {
+	delete $dsc->{pc_seq};
+      } elsif (defined $dsc->{op1acs} &&
+	       $dsc->{op1acs} =~ m{[mw]} &&
+	       $dsc->{op1str} eq "pc") {
+	delete $dsc->{pc_seq};
+      }
+
+      # some tests use mov #nnn,pc instead of jmp @#nnn. Some even use
+      # mov #0,pc and write the jmp target into the code (e.g. emjad0, zqkce0)
+      # thus handle mov #nnn,pc like a jmp, but only if address != 0
+
+      if ($mnem eq "mov" && $dst_str eq "pc") {	# look for mov ...,pc
+	if (defined $src_typ &&
+	    $src_typ eq "const" &&                # mov #nnn,pc
+	    $dsc->{op1eai} != 0) {                # but not mov #0,pc
+	  $dsc->{pc_jmp} = $dsc->{op1eai};               # handle like a jmp
+	} elsif ($src_str eq "pc") {	               # mov pc,pc
+	  $dsc->{pc_seq} = $pc;                          # just a nop
+	}
+      }
+
+      if (1 && $type =~ m{fpp$}) {		    # add [fpp] comment
+	add_scomm($pc_inst, "{fpp}");
+      }
+      if (1 && exists $ele->{cpu}) {		    # add [cpu:] comment
+	my $cpu = $ele->{cpu};
+	add_scomm($pc_inst, "{cpu:$cpu}");
+      }
+
+      return $dsc->{nw};
+    }
+  }
+
+  add_scomm($pc_inst, "!!inv. instr!!");
+
+  return 0;
+}
+
+#-------------------------------------------------------------------------------
+#
+# Analyse the 6 bit address-mode, register field of an operand
+#
+# ($nw, $str, $typ, $eai) = anal_operand($regmod, $pc, $isfpp)
+#
+#   with
+#     $regmod       6 bit src/dst specifier (mod,reg)
+#     $pc           pc, pointing to current index or immediate part of operand
+#     $bytop        1 if byte instruction
+#     $isfpp        1 if fpp instruction (will affect register names)
+#
+#   returns
+#     $nw           number of immediate or index words (0 or 1). Returns -1 if 
+#                   the imm or ind word is already code tagged
+#     $str          string representation of src/dst operand specifier
+#                     0x    rx                 with rx=r0,...,r5,sp,pc
+#                     1x    (rx)
+#                     2x    (rx)+
+#                     27    #oooooo
+#                     3x    @(rx)+
+#                     37    @#oooooo
+#                     4x    -(rx)
+#                     5x    @-(rx)
+#                     6x    oooooo(rx)
+#                     67    oooooo             with oooooo=effective address
+#                     7x    @oooooo(rx)
+#                     77    @oooooo            with oooooo=effective address
+#     $typ          type: const (27), addr (37,67) ,iaddr (77)
+#     $eai          eff.address or imm.value, if available (27,37,67,77)
+#     $sym          symbolize options from {use} attributes
+#
+#   @data[$pc]
+#     ->{type}      set to code.imm (27,37) or code.ind (6x,7x)
+#
+
+sub anal_operand {		# analyse src or dst operand specifier
+  my ($regmod, $pc, $bytop, $isfpp) = @_;
+  my $mod = ($regmod>>3) & 07;
+  my $reg = $regmod & 07;
+
+  my $nw  = 0;
+  my $eai = undef;		        # eff.address or imm.value
+  my $typ = undef;                      # value type: const,addr,iaddr
+  my $str = undef;
+  my $sym = undef;
+
+  my $reg_str = get_regname($reg);
+  my $ind = (($mod & 01) == 1) ? "@" : "";
+
+  if ($mod == 0) {		        # mode 0:    Rx
+    $str = ($isfpp && $reg<=5) ? "f$reg" : $reg_str;
+  } elsif ($mod == 1) {	  	        # mode 1:    (Rx)
+    $str = "($reg_str)";
+  } elsif ($mod == 2 || $mod == 3) {    # mode 2/3:  (Rx)+   @(Rx)+
+    if ($reg == 7) {		          # if reg == pc
+      $nw  = 1;
+      if (defined $data[$pc]->{word}) {
+	if (defined $data[$pc]->{type} && $data[$pc]->{type} =~ m{^code} ) {
+	  $nw = -1;
+	} else {
+	  set_type($pc, "code.imm");
+	}
+	$eai = $data[$pc]->{word};
+      } else {
+	$eai = 0;
+	printf STDERR "dasm-11-E: anal_operand: no data for pc=%6.6o\n", $pc;
+      }
+      $typ = ($mod == 2) ? "const" : "addr";
+      if ($mod == 2 && $bytop) {          # is byte immediate ?
+	$str = sprintf "#%3.3o", $eai;    # than use #ooo format
+      } else {
+	$str = sprintf "%s#%6.6o", $ind, $eai;
+      }
+    } else {			          # if reg != pc
+      $str  = "$ind($reg_str)+";
+    }
+  } elsif ($mod == 4 || $mod == 5) {    # mode 4/5:  -(Rx)   @-(Rx)
+    $str  = "$ind-($reg_str)";
+  } elsif ($mod == 6 || $mod == 7) {    # mode 6/7:  nn(Rx)  @nn(Rx)
+    $nw = 1;
+    my $off = 0;
+    if (defined $data[$pc]->{word}) {
+      if (defined $data[$pc]->{type} && $data[$pc]->{type} =~ m{^code} ) {
+	$nw = -1;
+      } else {
+        set_type($pc, "code.ind");
+      }
+      $off = $data[$pc]->{word};
+    } else {
+      printf STDERR "dasm-11-E: anal_operand: no data for pc=%6.6o\n", $pc;
+    }
+    if ($reg == 7) {		          # if reg == pc
+      $eai = ($pc + 2 + $off) & 0177777;
+      $typ = ($mod == 6) ? "addr" : "iaddr";
+      $str = sprintf "%s%6.6o", $ind, $eai;
+    } else {                              # if reg != pc
+      $str = sprintf "%s%6.6o(%s)", $ind, $off, $reg_str;
+    }
+  }
+
+  if (defined $eai && defined $typ && $typ =~ m{^(addr|iaddr)$} ) {
+    ##printf "+++6a $typ %s\n", convoct($eai);
+    my $taddr = $eai;
+    if ($typ eq "iaddr" && chk_data($eai) eq "w") {
+      my $iaddr = $data[$eai]->{word};
+      ##printf "+++6b $typ %s\n", convoct($iaddr);
+      $taddr = $iaddr;
+    }
+    my $taddr_str = convoct($taddr);
+    if (exists $adrtbl{$taddr_str} && defined $adrtbl{$taddr_str}->{use}) {
+      ##print "+++6c $typ $taddr_str\n";
+      $sym = $adrtbl{$taddr_str}->{use};
+    }
+  }
+
+  return ($nw, $str, $typ, $eai, $sym);
+
+}
+
+#-------------------------------------------------------------------------------
+#
+# Analyse operands of a cis instruction
+#
+# anal_cisops($pc, $ndsc, $narg)
+#
+
+sub anal_cisops {		# analyse cis operands
+  my ($pc, $ndsc, $narg) = @_;
+  my $ntot = $ndsc + $narg;
+  for (my $i=0; $i < $ntot; $i++) {
+    if ($i < $ndsc) {
+      set_typlabcref($pc, '$cisdsc*');
+    } else {
+      set_typlabcref($pc, "word");
+    }
+    $pc += 2;
+  }
+}
+
+#-------------------------------------------------------------------------------
+#
+#  $str = get_regname($reg)
+#
+#  with
+#    $reg           register number (0-7)
+#  returns
+#    $str           string with symbolic register name
+#                     0-5    r0,....r5
+#                     6      sp
+#                     7      pc
+#
+
+sub get_regname {		# return register name
+  my ($reg) = @_;
+  my $str = "r$reg";
+  $str = "sp" if $reg == 6;
+  $str = "pc" if $reg == 7;
+  return $str;
+}
+
+#-------------------------------------------------------------------------------
+
+sub set_type {			# set type tag in @data
+  my ($addr, $type) = @_;
+  my $dsc = $data[$addr];
+  my $nb  = 0;
+
+  if (not chk_data($addr)) {
+    printf STDERR "dasm-11-E: set_type: no data for addr=%6.6o\n", $addr;
+    return 0;
+  }
+
+  my $type_old = $dsc->{type};
+  $type_old = "" if not defined $type_old;
+
+  return 0 if $type_old =~ m{^code}; # never overwrite code type
+  return 0 if $type_old =~ m{^vect}; # never overwrite vect type
+
+  if ($type =~ m{^(byte|ascii)$}) {    # byte or ascii
+    word2byte($addr);
+    $dsc->{type} = $type;
+    $nb = 1;
+
+  } elsif ($type =~ m/^asc(iz|[0-7]{3})$/) {  # asciz or ascooo
+    my $term = ($1 eq "iz") ? 0 : oct $1;
+    for (my $p = $addr; ; $p++) {
+      if (defined $data[$p]->{type}) {
+	add_scomm($p, "!!$type tag stop!!");
+	last;
+      }
+      word2byte($p);
+      if (not defined $data[$p]->{byte}) {
+	printf STDERR "dasm-11-W set_type($type) ran beyond defined memory\n";
+	last;
+      }
+      $data[$p]->{type} = $type;
+      $nb += 1;
+      last if $data[$p]->{byte} == 0;
+      last if $data[$p]->{byte} == $term;
+    }
+
+  } elsif ($type =~ m{^		        # code
+		       (code|code\.imm|code\.ind)
+		       $ }x ) {
+    $dsc->{type} = $type;
+    $nb = 2;
+
+  } elsif ($type eq "vect") {           # vect
+    $dsc->{type} = $type;
+    if (chk_data($addr+2)) {
+      $data[$addr+2]->{type} = "vect.psw";
+      add_adr_rlabel($addr+2, $addr);
+      add_dat_alist($addr+2, 'use=%cp.psw') if exists $symsettbl{'%cp.psw'};
+      if ($data[$addr]->{word} == $addr+2) {      # if just catcher
+	delete $data[$addr+2]->{datsym};          # remove datsym, it's code...
+      }
+    } else {
+      printf STDERR "dasm-11-E: no data for psw part of .vect at %6.6o\n", $addr;
+    }
+    $nb = 4;
+
+  } elsif ($type =~ m{^		        # word or rad50
+		       (word|rad50)
+		       $ }x ) {
+    $dsc->{type} = $type;
+    $nb = 2;
+
+  } elsif ($type =~ m{^flt([24])$} ) {  # flt2 or flt4
+    my $nw = int $1;
+    for (my $i = 0; $i<$nw; $i++) {
+      my $p = $addr + 2*$i;
+      $data[$p]->{type} = $type if chk_data($p);
+      $nb += 2;
+    }
+
+  } elsif ($type =~ m{\*$}) {	         # pointer to
+    $dsc->{type} = $type;
+    $nb = 2;
+
+  } else {
+    print_bugcheck(__LINE__, "unexpected type $type in set_type()");
+  }
+
+  return $nb;
+}
+
+#-------------------------------------------------------------------------------
+
+sub write_source {		# write source or list file
+  my $pc  = -1;
+  my $lst = 1;
+
+  print $fh_out "\t.enable\tlc\n";
+  print $fh_out "\t.asect\n";
+
+  foreach my $key (sort keys %adrtbl) {
+    if ($adrtbl{$key}->{typ} =~ m{^(gsym|asym)$}) {
+      next if ($adrtbl{$key}->{typ} eq "gsym" &&     # skip unused gsym's
+	       (not defined $adrtbl{$key}->{cref}));
+      printf $fh_out "\t%s=%s\n", $adrtbl{$key}->{string}, $key;
+    }
+  }
+
+  foreach my $key (sort keys %symsettbl) {
+    printf $fh_out "\t;\n";
+    printf $fh_out "\t; symbol definitions for set %s\n", $key;
+    printf $fh_out "\t;\n";
+    foreach my $item ( @{ $symsettbl{$key} } ) {
+      printf $fh_out "\t%s=%6.6o\n", $item->{sym}, $item->{val};
+    }
+  }
+
+  my $iend = scalar(@data);
+  my $addr = 0;
+
+  %curopt = (%opttbl);			# reset current option set
+  @susp_restore = ();
+
+  while ($addr < $iend) {
+    my $dsc = $data[$addr];
+    if ((not defined $dsc) ||
+	(not defined $dsc->{type})) {
+      $addr += 1;
+      next;
+    }
+
+    set_susopt();
+    set_curopt($dsc->{optlist}) if defined $dsc->{optlist};
+
+    my $scomm = "";
+    $scomm = join "//", @{ $dsc->{scomm} } if defined $dsc->{scomm};
+
+    if ($pc != $addr) {
+      $pc = $addr;
+      printf $fh_out "%6.6o\t\t\t\t", $pc if ($lst);
+      printf $fh_out "\t.=%6.6o\n", $pc;
+    }
+
+    if (defined $dsc->{lcomm}) {
+      foreach (@{ $dsc->{lcomm} }) {
+	printf $fh_out "%6.6o\t\t\t\t", $pc if ($lst);
+	print  $fh_out $_,"\n";
+      }
+    }
+
+    printf $fh_out "%6.6o\t", $pc if ($lst);
+
+    my $label_str = "";
+    if (defined $data[$pc]->{label}) {
+      $label_str = $adrtbl{$data[$pc]->{label}}->{string} . ":";
+    }
+
+    if (defined $dsc->{opcode}) {
+      if ($lst) {
+	for (my $i=0; $i<3; $i++) {
+	  if ($i < $dsc->{nw}) {
+	    printf $fh_out "%6.6o\t", $data[$pc+2*$i]->{word};
+	  } else {
+	    print  $fh_out "\t";
+	  }
+	}
+      }
+
+      my $op1str = symbolize($addr, $dsc->{op1str}, $dsc->{op1sym});
+      my $op2str = symbolize($addr, $dsc->{op2str}, $dsc->{op2sym});
+
+      printf $fh_out "%s\t%s\t", $label_str, $dsc->{opcode};
+      printf $fh_out "%s",  $op1str if defined $op1str;
+      printf $fh_out ",%s", $op2str if defined $op2str;
+      printf $fh_out "      ; %s", $scomm if $scomm ne ""; # FIXME !!!
+      print  $fh_out "\n";
+      $addr += 2*$dsc->{nw};
+      $pc   += 2*$dsc->{nw};
+
+    } elsif (defined $dsc->{dirstr}) {
+
+      if ($lst) {
+	if ($dsc->{dirstr} =~ m{^\.asci} ) {
+	  for (my $i=0; $i<6; $i++) {
+	    if ($i < $dsc->{nb}) {
+	      printf $fh_out "%3.3o ", $data[$pc+$i]->{byte};
+	    } else {
+	      print  $fh_out "    ";
+	    }
+	  }
+	} else {
+	  printf $fh_out "\t\t\t";
+	}
+      }
+
+      printf $fh_out "%s\t", $label_str;
+      printf $fh_out "%s\t%s", $dsc->{dirstr}, $dsc->{argstr};
+      print  $fh_out "\n";
+
+      if ($lst && $dsc->{dirstr} =~ m{^\.asci} && $dsc->{nb} > 6) {
+	for (my $i=6; $i<$dsc->{nb}; $i++) {
+	  printf $fh_out "%6.6o\t", $addr+$i if $i%6 == 0;
+	  printf $fh_out "%3.3o ", $data[$pc+$i]->{byte};
+	  printf $fh_out "\n", if $i%6 == 5 || $i == $dsc->{nb}-1;
+	}
+      }
+
+      $addr += $dsc->{nb};
+      $pc   += $dsc->{nb};
+
+    } else {
+
+      if (defined $dsc->{byte}) {
+	printf $fh_out "%3.3o\t\t\t%s\t.byte\t%3.3o",
+	       $dsc->{byte}, $label_str, $dsc->{byte};
+	printf $fh_out "      ; %s", $scomm if $scomm ne ""; # FIXME !!!
+	print  $fh_out "\n";
+
+	$addr += 1;
+	$pc   += 1;
+
+      } else {
+	my $str = symbolize($addr, convoct($dsc->{word}), $dsc->{datsym});
+
+	if ($dsc->{datsym} && $scomm eq "" &&
+	    defined $data[$dsc->{word}]->{dirstr} &&
+	    $data[$dsc->{word}]->{dirstr} =~ m{^\.asci}) {
+	  if (defined $data[$dsc->{word}]->{comstr}) {
+	    $scomm = " -> " . $data[$dsc->{word}]->{comstr};
+	  } else {
+	    $scomm = " -> " . $data[$dsc->{word}]->{argstr};
+	  }
+	}
+
+	printf $fh_out "%6.6o\t\t\t%s\t.word\t%s",
+	       $dsc->{word}, $label_str, $str;
+	printf $fh_out "      ; %s", $scomm if $scomm ne ""; # FIXME !!!
+	print  $fh_out "\n";
+
+	$addr += 2;
+	$pc   += 2;
+      }
+    }
+  }
+
+  print $fh_out "\t.end\t1\n";
+
+  if (1) {			        # write symtab
+    my $nsym = 0;
+    print $fh_out "\n";
+    print $fh_out "---------- symbol table ----------\n";
+    print $fh_out "\n";
+    print $fh_out "symbol  value   type      ".
+	          "symbol  value   type      ".
+	          "symbol  value   type      ".
+                  "symbol  value   type      \n";
+    print $fh_out "\n";
+
+    foreach my $item (sort keys %symtbl) {
+      my $val = $symtbl{$item}->{val};
+      my $typ = $symtbl{$item}->{typ};
+
+      next if ($typ eq "gsym" &&
+	       (not defined $adrtbl{convoct($val)}->{cref})); # skip unused gsym's
+
+      if ($nsym > 3) {
+	print $fh_out "\n";
+	$nsym = 0;
+      }
+      printf $fh_out "%-6s  %6.6o  %-10s",
+        $item, $val, $typ;
+      $nsym += 1;
+    }
+    print $fh_out "\n";
+
+  }
+
+  if (1) {			        # write adrtbl cref
+    print $fh_out "\n";
+    print $fh_out "---------- cross reference for address labels ----------\n";
+    print $fh_out "\n";
+    print $fh_out "addr    symbol      ltyp dtyp        crefs\n";
+    print $fh_out "\n";
+
+    foreach my $addr_str (sort keys %adrtbl) {
+      my $addr = $adrtbl{$addr_str}->{addr};
+      my $ltyp = $adrtbl{$addr_str}->{typ};
+      my $str  = $adrtbl{$addr_str}->{string};
+      my $cref = $adrtbl{$addr_str}->{cref};
+      my $dtyp = "";
+      my $nref = 0;
+      $dtyp = $data[$addr]->{type} if chk_data($addr);
+
+      next if $ltyp eq "gsym" && (not defined $cref);     # skip unused gsym's
+
+      printf $fh_out "%6s  %-10s  %4s %-10s", $addr_str, $str, $ltyp, $dtyp;
+
+      if ($cref) {
+	foreach my $item (sort keys %{$cref}) {
+	  if ($nref >=4) {
+	    print $fh_out "\n";
+	    print $fh_out " " x 35;
+	    $nref = 0;
+	  }
+	  printf $fh_out "  %6s %-2s", $item, $cref->{$item};
+	  $nref += 1;
+        }
+      }
+
+      printf $fh_out "\n";
+    }
+
+  }
+
+  if (1) {			        # write symtbl cref
+    print $fh_out "\n";
+    print $fh_out "---------- cross reference for symset symbols ----------\n";
+    print $fh_out "\n";
+    print $fh_out "symbol  value   symset    crefs\n";
+    print $fh_out "\n";
+
+    foreach my $symbol (sort keys %symtbl) {
+      my $typ  = $symtbl{$symbol}->{typ};
+      next unless $typ =~ m{^[\@\%]};
+      my $val  = $symtbl{$symbol}->{val};
+      my $cref = $symtbl{$symbol}->{cref};
+      my $nref = 0;
+
+      printf $fh_out "%-6s  %6.6o  %-8s", $symbol, $val, $typ;
+
+      if ($cref) {
+	foreach my $item (sort keys %{$cref}) {
+	  if ($nref >=8) {
+	    print $fh_out "\n";
+	    print $fh_out " " x 24;
+	    $nref = 0;
+	  }
+	  printf $fh_out "  %6s", $item;
+	  $nref += 1;
+        }
+      }
+
+      printf $fh_out "\n";
+    }
+
+  }
+
+  if (1) {			        # write statistic
+    print $fh_out "\n";
+    print $fh_out "---------- statistics ----------------------------------\n";
+    my %stat_type;
+
+    foreach my $dsc (@data) {
+      next unless defined $dsc;
+      next unless defined $dsc->{type};
+      $stat_type{$dsc->{type}} += 1;
+    }
+
+    foreach my $key (sort keys %stat_type) {
+      printf $fh_out "%12s : %5d\n", $key, $stat_type{$key};
+    }
+
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub print_info {       	        # print messages on unnamed vect or i/o space
+
+  foreach my $addr_str (sort keys %adrtbl) {
+    my $addr  = $adrtbl{$addr_str}->{addr};
+    next unless ($addr < 000300 || $addr > 0160000);
+    my $label = $adrtbl{$addr_str}->{string};
+    next unless ($label =~ m{^D\d\d\d+$});
+    my $msg;
+    if ((($addr >  0000 && $addr < 0040) ||
+	 ($addr >= 0060 && $addr < 0300)) && 
+	$addr%4 == 0) {
+      $msg = "unnamed vector ?";
+      $msg = $adr_info_vect{$addr_str} if (exists $adr_info_vect{$addr_str});
+
+    } elsif ($addr >= 0160000) {
+      $msg = "unnamed device register ?";
+      foreach my $dsc (@adr_info_iopage) {
+	if ($addr >= $dsc->[0] && $addr <= $dsc->[1]) {
+	  $msg = $dsc->[2];
+	}
+      }
+
+    } else {
+      next;
+    }
+
+    printf STDERR "dasm-11-I: %s : %s; %s\n", $addr_str, $label, $msg;
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub symbolize {			# convert oooooo -> label
+  my ($pc, $str, $sym) = @_;
+  return undef if not defined $str;
+
+  if ($sym) {				# any symbolization hint given ?
+
+    if ($str =~ m{^(.*?)([0-7]{6})(.*)$} ) {
+      my $pref = $1;
+      my $addr_str = $2;
+      my $addr = oct $2;
+      my $suff = $3;
+
+      if ($sym =~ m{^[\@\%]} ) {        # use symset
+	if (exists $symsettbl{$sym}) {
+	  my $symset = $symsettbl{$sym};
+	  if ($sym =~ m{^\@} ) {	  # type @ symset
+	    foreach my $item ( @{$symset} ) {
+	      if ($addr == $item->{val}) {
+		$str = $pref . $item->{sym} . $suff;
+		add_symcref($item->{sym}, $pc);
+		last;
+	      }
+	    }
+	  } else {			  # type % symset
+	    my $rest  = $addr;
+	    my $snew  = "";
+	    my $delim = "";
+	    foreach my $item ( @{$symset} ) {
+	      my $msk = (defined $item->{msk}) ? $item->{msk} : $item->{val};
+	      my $part = $rest & $msk;
+	      if ($part == $item->{val}) {
+		$snew  .= $delim . $item->{sym};
+		$delim  = "+";
+		$rest  &= ~ $msk;
+		add_symcref($item->{sym}, $pc);
+	      }
+	    }
+	    $snew .= $delim . convoct($rest) if ($rest != 0);
+	    $snew  = "000000" if ($snew eq "");
+	    $str   = $pref . $snew . $suff;
+	  }
+	} else {
+	  print_bugcheck(__LINE__, "symbolize: symset '$sym' missing");
+	}
+
+      } elsif ($sym eq ".") {		# decimal conversion
+	my $num = $addr;
+	$num = -((-$num) & 0177777) if ($num >= 0100000); # FIXME (sign extend)
+	$str = $pref . sprintf("%d.", $num) . $suff;
+
+      } elsif ($sym eq "1") {		# default label symbolization
+	if (exists $adrtbl{$addr_str} &&
+	    defined $adrtbl{$addr_str}->{string}) {
+	  my $atyp = "?";
+	  $atyp = "p" if $data[$pc]->{type} !~ m{^code};
+	  $atyp = "i" if $pref eq "#";
+	  $atyp = "x" if $suff =~ m{^\(};
+	  add_adrcref($addr_str, $pc, $atyp);
+	  return $pref . $adrtbl{$addr_str}->{string} . $suff;
+	}
+      } else {
+	print_bugcheck(__LINE__, "symbolize: unexpected sym string '$sym'");
+      }
+
+    } elsif ($str =~ m{^#([0-7]{3})$} ) {
+      my $val = oct $1;
+      if ($val > 040 && $val < 0177) {
+	return "#'" . chr($val);
+      }
+    }
+
+  }
+
+  $str =~ s{^\@000000\(}{\@\(};		# edit @000000(xx) -> @(xx)
+
+  return $str;
+}
+
+#-------------------------------------------------------------------------------
+
+sub word2byte {			# add {byte} values for a {word}
+  my ($addr) = @_;
+  $addr &= 0177776;		        # clear lsb, byte->word address
+  return if not defined $data[$addr];
+  return if not defined $data[$addr]->{word};
+  return if defined $data[$addr]->{byte};
+  my $word = $data[$addr]->{word};
+  $data[$addr]->{byte}   = $word      & 0377;  # store lsb in [0]
+  $data[$addr+1]->{byte} = ($word>>8) & 0377;  # store msb in [1]
+}
+
+#-------------------------------------------------------------------------------
+
+sub get_lpref {			# return label prefix depending on tspec
+  my ($tspec) = @_;
+  my $lpref;
+  if ($tspec =~ m{\*$} ) {
+    $lpref = "P";
+  } elsif ($tspec eq "code") {
+    $lpref = "C";
+  } elsif ($tspec =~ m{^asc}) {
+    $lpref = "A";
+  } else {
+    $lpref = "D";
+  }
+  return $lpref;
+}
+
+#-------------------------------------------------------------------------------
+#
+#  Setup type, auto-label and cref-info for an address. Will recursively handle
+#    all references and array's of a typespec
+#
+#  $nb = set_typlabcref($addr,$tspec,$lpref,$from,$atyp)
+#    with
+#      $addr        address to be tagged/labeled
+#      $tspec       typespec to be used
+#      $lpref       autolabel prefix
+#      $from        from address for cross references
+#      $atyp        access type for cross references
+#    returns
+#      $nb          number of bytes typed, 0 in case of error
+#
+
+sub set_typlabcref {		# setup type, label and cref
+  my ($addr, $tspec, $lpref, $from, $atyp) = @_;
+  my $addr_str  = convoct($addr);
+  my $nb = 0;
+
+  if ($opts{ttlc}) {
+    printf "typlabcref: %s <- %-16s lpref=%s atyp=%s from=%s\n",
+      $addr_str, $tspec,
+      (defined $lpref) ? $lpref : "-",
+      (defined $atyp)  ? $atyp  : "-",
+      (defined $from)  ? convoct($from) : "-";
+  }
+
+  if (defined $lpref && $lpref eq "?") {
+    $lpref = get_lpref($tspec);
+  }
+
+  set_labcref($addr, $lpref, $from, $atyp) if defined $lpref;
+
+  if ($tspec eq "vect") {
+    if (chk_type($addr, "vect")) {
+      return 2;
+    } else {
+      printf STDERR "dasm-11-E: location %6.6o not typed '.vect' " .
+	  "but refered as 'vect' from %6.6o\n", $addr,
+	    (defined $from) ? $from : 0;
+      return 0;
+    }
+  }
+
+  if ($tspec =~ /^code!?$/) {	# tspec == "code" or "code!"
+    my $from_str = ".code";
+    $from_str = convoct($from) if defined $from;
+    if ($tspec eq "code") {
+      add_ctpend($addr, $from_str);
+    } else {				    # handle code!, tag this immediately
+      my @ctpend_save = @ctpend;	    # save pending code list
+      @ctpend = ();			    # reset it
+      add_ctpend($addr, $from_str);	    # queue it
+      tag_code();			    # tag it
+      @ctpend = @ctpend_save;		    # restore list
+    }
+    $lpref = "C" unless defined $lpref;
+    return 2;			# note: return 2 to signal success
+                                #       nothing tagged for "code", only queued
+   } elsif ($tspec =~ m{^
+ 		         (ascii|asciz|asc[0-7]{3}|rad50)
+		        $ }x ) {
+    $nb = set_type($addr, $tspec);
+    return $nb;
+  }
+
+  if (not chk_typespec($tspec)) {
+    print_bugcheck(__LINE__, "bad typespec '$tspec' in set_typlabcref()");
+    return 0;
+  }
+  if (not chk_data($addr)) {
+    print_bugcheck(__LINE__, "no data at $addr_str in set_typlabcref()");
+    return 0;
+  }
+
+  if ($tspec =~ m{^
+		   (word|byte|flt[24])
+		  $ }x ) {
+    $nb = set_type($addr, $tspec);
+
+  } elsif ($tspec =~ m{^       	        # pointer to type ?
+                        (.+)	                  # <type>            --> $1
+			\*                        # *
+		       $ }x ) {
+    my $tspec_targ = $1;
+    $nb = set_type($addr, $tspec);
+    my $p = get_word($addr);
+    if ($p != 0) {			  # if not a null pointer
+      $data[$addr]->{datsym} = "1";	    # allow to symbolize pointer
+      if (chk_data($p)) {		    # if real data
+	if (not chk_type($p)) {		    # and not yet typed, type it
+	  set_typlabcref($p, $tspec_targ, "?", $addr, "p");
+	} else {
+	  set_labcref($p, get_lpref($tspec_targ), $addr, "p");
+	}
+      }
+    }
+    $nb = 2;
+
+  } elsif ($tspec =~ m{^                # array of type ?
+                        (.+)                      # <type>            --> $1
+			(\[\d*\.?\])              # [<dim>]           --> $2
+		       $ }x ) {
+    my $tspec_targ = $1;
+    my $dim_str = $2;
+    my $dim = 0;
+    if ($dim_str eq "[]") {
+      $dim = 0;
+    } elsif ($dim_str =~ m{\[([0-7]+)\]}) {
+      $dim = oct $1;
+    } elsif ($dim_str =~ m{\[([0-9]+)\.\]}) {
+      $dim = int $1;
+    } else {
+     print_bugcheck(__LINE__, "bad dimension '$dim_str' in set_typlabcref()");
+    }
+
+    if ($dim == 0) {
+      while (1) {
+	if (not chk_data($addr)) {
+	  printf STDERR "dasm-11-W: typetag '%s' stopped at %6.6o," .
+	    " no data\n", $tspec, $addr;
+	  last;
+	}
+	my $otype = chk_type($addr);
+	if ($otype) {
+	  printf STDERR "dasm-11-W: typetag '%s' stopped at %6.6o," .
+	    " already typed '%s'\n", $tspec, $addr, $otype;
+	  last;
+	}
+	my $nb_ai;
+	my $quit;
+	my $p = get_word($addr);
+	if ( $p != 0 && $p != 0177777 && chk_data($p) ) {
+	  $nb_ai = set_typlabcref($addr, $tspec_targ);
+	} else {
+	  $nb_ai = set_typlabcref($addr, "word");
+	  $quit = 1;
+	}
+	if ($nb_ai <= 0) {
+	  my $addr_str = convoct($addr);
+	  print_bugcheck(__LINE__,
+			 "array '$tspec' abort " .
+			 "at $addr_str in set_typlabcref()");
+	  return 0;
+        } else {
+	  $addr += $nb_ai;
+	  $nb   += $nb_ai;
+	  last if $quit;
+        }
+      }
+
+    } else {
+      for (my $i=0; $i<$dim; $i++) {
+	last unless chk_data($addr);
+	last if chk_type($addr);
+	my $nb_ai = set_typlabcref($addr, $tspec_targ);
+	if ($nb_ai <= 0) {
+	  my $addr_str = convoct($addr);
+	  print_bugcheck(__LINE__,
+			 "array '$tspec' abort " .
+			 "at $addr_str in set_typlabcref()");
+	  return 0;
+        } else {
+	  $addr += $nb_ai;
+	  $nb   += $nb_ai;
+        }
+      }
+    }
+
+
+  } elsif ($tspec =~ m{^(\$[a-zA-Z][a-zA-Z0-9]*)$} ) { # struct ?
+    my $sname = $1;
+    my $sdsc = $structtbl{$sname};
+    if (defined $sdsc) {
+      foreach my $tspec_si ( @{$sdsc} ) {
+	if ($tspec_si eq "code") {	    # handle trailing ,code
+	  add_ctpend($addr, $sname);
+	  return $nb;
+	}
+	my $nb_si = set_typlabcref($addr, $tspec_si);
+	if ($nb_si <= 0) {
+	  my $addr_str = convoct($addr);
+	  print_bugcheck(__LINE__,
+			 "struct '$sname' abort for $tspec_si " .
+			 "at $addr_str in set_typlabcref()");
+	  return 0;
+	} else {
+	  $addr += $nb_si;
+	  $nb   += $nb_si;
+	}
+      }
+    } else {
+      print_bugcheck(__LINE__, "struct '$sname' undefined in set_typlabcref()");
+      return 0;
+    }
+
+  } else {
+    print_bugcheck(__LINE__, "unexpected '$tspec' in set_typlabcref()");
+    return 0;
+  }
+
+  return $nb;
+}
+
+#-------------------------------------------------------------------------------
+#
+# L > D > P , B > C > R > S
+#
+
+sub set_labcref {                 # define auto label, add cref info
+  my ($addr, $lpref, $from, $atyp) = @_;
+
+  my $addr_str = $data[$addr]->{label};
+
+  if (not $addr_str) {		        # not yet labeled
+    $addr_str = convoct($addr);
+    if (not exists $adrtbl{$addr_str}) {
+      my $typ = chk_data($addr) ? "albl" : "asym";
+      add_symbol($addr, $lpref . "#####", $typ);
+    }
+
+  } else {			        # already labeled
+    if ($adrtbl{$addr_str}->{typ} eq "albl") {
+      if ($adrtbl{$addr_str}->{string} =~ m{^(.)\#{5}$} ) {
+	my $opref = $1;
+	my $npref = undef;
+	$npref = $lpref if ($opref eq "D"    and $lpref eq "P");   # D  > P
+	$npref = $lpref if ($opref eq "B"    and $lpref eq "C");   # B  > C
+	$npref = $lpref if ($opref =~ /[BC]/ and $lpref eq "R");   # BC > R
+	$npref = $lpref if ($opref eq "L");                        # L  > .
+	$npref = $lpref if ($lpref eq "S");                        # .  > S
+	$adrtbl{$addr_str}->{string} = $npref . "#####" if $npref;
+        ## print "+++4 upgrade $addr_str: $opref -> $npref\n" if $npref;
+      }
+    }
+  }
+
+  ##printf "+++7 %6.6o %s %6.6o\n", $addr, (defined $atyp) ? $atyp : "??",
+  ##                                 (defined $from) ? $from : -1;
+
+  add_adrcref($addr_str, $from, $atyp) if defined $from;
+}
+
+#-------------------------------------------------------------------------------
+
+sub add_adrcref {	        # add cref entry in adrtbl
+  my ($addr_str, $from, $atyp) = @_;
+  return unless defined $from && defined $atyp;
+  return unless defined $adrtbl{$addr_str};
+  $adrtbl{$addr_str}->{cref} = {} unless exists $adrtbl{$addr_str}->{cref};
+  my $cref = $adrtbl{$addr_str}->{cref};
+  my $from_str = convoct($from);
+  return if exists $cref->{$from_str};
+  $cref->{$from_str} = $atyp;
+}
+
+#-------------------------------------------------------------------------------
+
+sub add_symcref {	        # add cref entry in symtbl
+  my ($symbol, $from) = @_;
+  return unless defined $from;
+  return unless defined $symtbl{$symbol};
+  $symtbl{$symbol}->{cref} = {} unless exists $symtbl{$symbol}->{cref};
+  my $cref = $symtbl{$symbol}->{cref};
+  my $from_str = convoct($from);
+  return if exists $cref->{$from_str};
+  $cref->{$from_str} = 1;
+}
+
+#-------------------------------------------------------------------------------
+
+sub set_option {                # setup .enabl/.dsabl option
+  my ($addr, $ends, $opt, $alist_str) = @_;
+  $alist_str =~ s{^\s+}{};	        # drop leading space
+  $alist_str =~ s{\s+$}{};		# drop trailing space
+  my @alist = split /\s+/, $alist_str;
+
+  if (not exists $opttbl{$opt}) {
+    print STDERR "dasm-11-E: unknown .enabl/.dsabl option '$opt', ignored\n";
+    return;
+  }
+
+  my $odsc = $opttbl{$opt};
+
+  if ($ends eq ".dsabl" && scalar(@alist) > 0) {
+    print STDERR "dasm-11-E: attributes '$alist_str' ignored for .dsabl $opt\n";
+  }
+
+  my %newattr = (ena => ($ends eq ".enabl") ? 1 : 0);
+
+  if ($ends eq ".enabl") {
+    foreach my $attr (@alist) {
+      if ($attr =~ m{^([a-zA-z][a-zA-Z0-9]*)      # <attr_name>
+                      =                           # =
+                      (.*)                        # <attr_value>
+                     $ }x ) {
+        my $aname = $1;
+        my $aval  = $2;
+	if (exists $odsc->{attr}->{$aname}) {
+	  my $atype = $odsc->{attr}->{$aname};
+	  if ($atype eq "n") {		            # atype = n (number oct/dec)
+	    if ($aval =~ m{^([0-7]+|[0-9]+\.)$}) {
+	      $newattr{$aname} = get_numoctdec($aval);
+	    } else {
+	      printf STDERR "dasm-11-E: bad dec/oct number: '$aval'" .
+		            " in '$ends $opt $alist_str'\n";
+	    }
+	  } elsif ($atype eq "l") {	            # atype = l (label)
+	    $newattr{$aname} = $aval;
+	  } else {
+	    print_bugcheck(__LINE__, "unexpected atype '$atype'");
+	  }
+	} else {
+	  printf STDERR "dasm-11-E: unknown attribute: '$aname'" .
+		            " in '$ends $opt $alist_str'\n";
+	}
+      } else {
+	printf STDERR "dasm-11-E: bad attribute syntax: '$attr'" .
+		            " in '$ends $opt $alist_str'\n";
+      }
+    }
+  }
+
+  if (defined $addr) {
+    my $dsc = $data[$addr];
+    push @{$dsc->{optlist}}, { opt   => $opt,
+			       alist => { %newattr } };
+  } else {
+    foreach (keys %newattr) {
+      $odsc->{$_} = $newattr{$_};
+    }
+  }
+
+}
+
+#-------------------------------------------------------------------------------
+
+sub set_curopt {                # update current option list %curopt
+  my ($optlist) = @_;
+  return unless defined $optlist;
+
+  foreach my $odsc (@{$optlist}) {
+    if (exists $odsc->{susp}) {
+      my $opt   = $odsc->{susp};
+      push @susp_restore, [$opt, $curopt{$opt}->{ena}];
+      $curopt{$opt}->{ena} = 0;
+      ##print STDERR "+++8a set_curopt: susp=$opt\n";
+    } else {
+      my $opt   = $odsc->{opt};
+      my $alist = $odsc->{alist};
+      foreach (keys %{$alist}) {
+	$curopt{$opt}->{$_} = $alist->{$_};
+	##print STDERR "+++8b set_curopt: opt=$opt attr=$_ val=$alist->{$_}\n";
+      }
+    }
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub set_susopt {                # restore suspended options
+
+  my $dsc;
+  while ($dsc = shift @susp_restore) {
+    my $opt  = $dsc->[0];
+    my $oena = $dsc->[1];
+    $curopt{$opt}->{ena} = $oena;
+    ##print STDERR "+++8c set_susopt: $opt = $oena\n";
+  }
+
+}
+
+#-------------------------------------------------------------------------------
+
+sub set_acslabel {              # define auto label from acs info
+  my ($acs, $typ, $eai, $pc) = @_;
+
+  return 0 if not defined $acs;
+  return 0 if not defined $typ;
+
+  if ($acs =~ m{^[rwm]$} ) {
+    if ($typ eq "addr") {
+      set_labcref($eai, "D", $pc, $acs);
+      return 1;
+    } elsif ($typ eq "iaddr") {
+      set_labcref($eai, "P", $pc, "@");	          # label pointer variable
+      my $taddr = get_word($eai);
+      if (defined $taddr && $taddr > 0) {
+	set_labcref($taddr, "D", $pc, "@".$acs);  # label final target
+	$data[$eai]->{datsym} = "1";              # FIXME: see 2009-04-10 TODO
+      }
+      return 1;
+    }
+  } elsif ($acs =~ m{^[je]$} ) {
+    my $lblpref = ($acs eq "e") ? "R" : "C";
+    if ($typ eq "addr") {
+      set_labcref($eai, $lblpref, $pc, $acs);
+      return 1;
+    } elsif ($typ eq "iaddr") {
+      set_labcref($eai, "P", $pc, "@");
+      my $taddr = get_word($eai);
+      if (defined $taddr && $taddr > 0 &&         # if indirect target non-zero
+	  chk_data($taddr) eq "w") {              # and pointing to data
+	set_labcref($taddr, $lblpref, $pc, "@".$acs); # setup auto label
+	$data[$eai]->{datsym} = "1";              # FIXME: see 2009-04-10 TODO
+      }
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+#-------------------------------------------------------------------------------
+#
+#  Access word data
+#
+#  $word = get_word($addr)
+#    with
+#      $addr        address (undef is allowed)
+#    returns
+#      $word        $data[$addr]->{word} or undef if byte mode or not available
+#
+
+sub get_word {			# return word data (or undef)
+  my ($addr) = @_;
+  return undef unless defined $addr;
+  return undef unless defined $data[$addr];
+  return undef unless defined $data[$addr]->{word};
+  return undef if defined $data[$addr]->{byte};
+  return $data[$addr]->{word};
+}
+
+#-------------------------------------------------------------------------------
+#
+#  Access byte data
+#
+#  $byte = get_byte($addr)
+#    with
+#      $addr        address (undef is allowed)
+#    returns
+#      $byte        $data[$addr]->{byte} or undef if no byte data available
+#
+
+sub get_byte {			# return byte data (or undef)
+  my ($addr) = @_;
+  return undef unless defined $addr;
+  return undef unless defined $data[$addr];
+  return undef unless defined $data[$addr]->{byte};
+  return $data[$addr]->{byte};
+}
+
+#-------------------------------------------------------------------------------
+#
+#  Get target address of instruction
+#
+#  $word = get_taddr($eai, $typ)
+#    with
+#      $eai         effective address
+#      $typ         operand type (addr or iaddr; other cause undef return)
+#    returns
+#      $addr        target address ($eai or get_word($eai))
+#
+#  will return $eai if $typ is "addr", and the contents of location $eai
+#  if $typ is "iaddr" and the target address if non-zero.
+#
+
+sub get_taddr {                 # return target address (or undef)
+  my ($eai, $typ) = @_;
+
+  return undef unless defined $eai;
+  return undef unless defined $typ;
+
+  my $taddr = undef;
+
+  if ($typ eq "addr") {
+    $taddr = $eai;
+  } elsif ($typ eq "iaddr") {
+    $taddr = get_word($eai);
+    $taddr = undef if defined $taddr && $taddr == 0;
+  }
+
+  return $taddr;
+
+}
+
+#-------------------------------------------------------------------------------
+
+sub add_adr_rlabel {	       	# add relative label entry in adrtbl
+  my ($addr, $base) = @_;
+  my $addr_str = convoct($addr);
+  my $base_str = convoct($base);
+  my $string = ($addr>=$base) ?
+                 sprintf "%s+%o", $base_str, $addr-$base :
+		 sprintf "%s-%o", $base_str, $base-$addr;
+  $adrtbl{$addr_str}->{addr}   = $addr;
+  $adrtbl{$addr_str}->{typ}    = "rlbl";
+  $adrtbl{$addr_str}->{string} = $string;
+}
+
+#-------------------------------------------------------------------------------
+
+sub add_adr_alist {	       	# add attribute list to adrtbl entry
+  my ($addr_str, $alist_str) = @_;
+  $alist_str =~ s{\s*}{};	       	# drop leading blanks
+  my @alist = split /\s+/, $alist_str;
+
+  foreach my $item (@alist) {
+    if ($item =~ m{([a-zA-Z][a-zA-Z0-9]*)=(\S+)} ) {
+      my $attr = $1;
+      my $val  = $2;
+      if ($attr =~ m{^(use)$} ) {
+	add_adr_attr($addr_str, $attr, $val);
+      } else {
+	print STDERR "dasm-11-E: invalid attribute '$item', ignored\n";
+      }
+    } else {
+      print_bugcheck(__LINE__, "bad attribute spec '$item'");
+    }
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub add_adr_attr {	       	# add attribute to adrtbl entry
+  my ($addr_str, $attr, $val) = @_;
+  if (exists $adrtbl{$addr_str}) {
+    $adrtbl{$addr_str}->{$attr} = $val;
+  } else {
+    print_bugcheck(__LINE__, "add_adr_attr: no adrtbl entry for '$addr_str'");
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub add_sym_attr {	       	# add attribute to symtbl entry
+  my ($symbol, $attr, $val) = @_;
+  if (exists $symtbl{$symbol}) {
+    $symtbl{$symbol}->{$attr} = $val;
+  } else {
+    print_bugcheck(__LINE__, "add_sym_attr: no symtbl entry for '$symbol'");
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub add_dat_attr {	       	# add attribute to data word/byte
+  my ($addr, $attr, $val) = @_;
+  if (chk_data($addr)) {
+    $data[$addr]->{$attr} = $val;
+  } else {
+    my $addr_str = convoct($addr);
+    print_bugcheck(__LINE__, "add_dat_attr: no data available for '$addr_str'");
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub add_dat_alist {	       	# add attribute list for data
+  my ($addr, $alist_str) = @_;
+  my $addr_str = convoct($addr);
+  $alist_str =~ s{\s*}{};	       	# drop leading blanks
+  my @alist = split /\s+/, $alist_str;
+
+  foreach my $item (@alist) {
+    if ($item =~ m{([a-zA-Z][a-zA-Z0-9]*)=(\S+)} ) {
+      my $attr = $1;
+      my $val  = $2;
+      if ($attr eq "use" ) {
+	add_adr_attr($addr_str, "use",    $val);
+	add_dat_attr($addr,     "datsym", $val);
+      } else {
+	print STDERR "dasm-11-E: invalid attribute '$item', ignored\n";
+      }
+    } else {
+      print_bugcheck(__LINE__, "add_dat_alist: bad attribute spec '$item'");
+    }
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub add_ops_alist {	       	# add attribute list for code
+  my ($addr, $alist_str) = @_;
+  $alist_str =~ s{\s*}{};	       	# drop leading blanks
+  my @alist = split /\s+/, $alist_str;
+
+  foreach my $item (@alist) {
+    if ($item =~ m{([a-zA-Z][a-zA-Z0-9]*)=(\S+)} ) {
+      my $attr = $1;
+      my $val  = $2;
+      if ($attr =~ m{^op[12]sym$} ) {
+	add_dat_attr($addr, $attr, $val);
+      } else {
+	print STDERR "dasm-11-E: invalid attribute '$item', ignored\n";
+      }
+    } else {
+      print_bugcheck(__LINE__, "add_ops_alist: bad attribute spec '$item'");
+    }
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub add_symbol {	        # add symbol in adrtbl and symtbl
+  my ($addr, $symbol, $typ) = @_;
+  my $addr_str = convoct($addr);
+
+  word2byte($addr) if chk_data($addr) eq "o";
+
+  if ($typ eq "data" && exists $symtbl{$symbol}) {
+    printf STDERR "dasm-11-E: symbol '%s' already defined, value=%6.6o, " .
+		  "new definition for %6.6o will be ignored\n",
+		  $symbol, $symtbl{$symbol}->{val}, $addr;
+    return;
+  }
+
+  if (exists $adrtbl{$addr_str}) {
+    if ($adrtbl{$addr_str}->{typ} eq "albl" && $typ eq "data") {
+      $adrtbl{$addr_str}->{typ}    = $typ;
+      $adrtbl{$addr_str}->{string} = $symbol;
+      $symtbl{$symbol} = {val   => $addr,
+		  	  typ   => $typ};
+      return;
+    }
+    printf STDERR "dasm-11-E: addr=%6.6o already labeled '%s', " .
+		  "new definition '%s' will be ignored\n",
+		  $addr, $adrtbl{$addr_str}->{string}, $symbol;
+    return;
+  }
+
+  $adrtbl{$addr_str} = {addr   => $addr,
+			typ    => $typ,
+			string => $symbol};
+
+  if ($typ =~ m{^(data|gsym)$} ) {
+    $symtbl{$symbol} = {val   => $addr,
+			typ   => $typ};
+  }
+
+  if ($typ =~ m{^(data|albl|asym)$} &&
+      chk_data($addr) =~ m{[bw]} ) {
+    $data[$addr]->{label} = $addr_str;
+  }
+
+}
+
+#-------------------------------------------------------------------------------
+
+sub add_ctpend {		# add element in cod tag pending list
+  my ($addr, $from) = @_;
+  return unless chk_data($addr) eq "w";	    # FIXME: review logic
+  return if defined $data[$addr]->{type} && $data[$addr]->{type} eq "code";
+  push @ctpend, {addr=>$addr, from=>$from};
+}
+
+#-------------------------------------------------------------------------------
+
+sub add_lcomm {			# add full line comment
+  my ($addr, $lcomm) = @_;
+
+  while ($lcomm =~ m{^;\|(.*?)(;\|.*)$} ) {
+    push @{ $data[$addr]->{lcomm} }, ";".$1;
+    $lcomm = $2;
+  }
+  $lcomm =~ s{;\|}{;};
+  push @{ $data[$addr]->{lcomm} }, $lcomm;
+}
+
+#-------------------------------------------------------------------------------
+
+sub add_scomm {			# add statement comment
+  my ($addr, $scomm) = @_;
+  if ($scomm =~ m{^!!.*!!$} ) {	        # if "!!...!!" generated comment
+    foreach (@{ $data[$addr]->{scomm} }) {
+      return if $scomm eq $_;           # quit if already present
+    }
+  }
+  push @{ $data[$addr]->{scomm} }, $scomm;
+}
+
+#-------------------------------------------------------------------------------
+
+sub add_symset {       	        # add a new %symsettbl entry
+  my ($setname, $setdef) = @_;
+
+  if (defined $symsettbl{$setname}) {
+    printf STDERR "dasm-11-E: symbol set '%s' already defined\n", $setname;
+  } else {
+    foreach my $item (split /,/,$setdef) {
+      if ($item =~ m{^
+		      ([a-zA-Z\$\.][a-zA-Z0-9\$\.]*)
+		      =
+		      ([0-7]+)(:[0-7]+)?
+		     $ }x ){
+        my $name = $1;
+	my $val  = oct $2;
+	my $mask = $3;
+	
+	if (exists $symtbl{$name}) {
+	  printf STDERR "dasm-11-E: symbol '%s' already defined, " .
+	                "value=%6.6o, new definition for set '%s' " .
+                        "will be ignored\n", 
+               	        $name, $symtbl{$name}->{val}, $setname;
+	  next;
+        }
+
+	my $href = { sym => $name,
+		     val => $val};
+
+	if (defined $mask && $mask ne "") {
+	  if ($setname =~ m{^\%} ) {
+	    $mask =~ s/://;
+	    $href->{msk} = oct $mask;
+	  } else {
+	    printf STDERR "dasm-11-E: mask field in '%s' " . 
+	                  "for symbol \$ type set '%s' ignored\n",
+	                  $item, $setname;
+	  }
+        }
+
+	push @{ $symsettbl{$setname} }, $href;
+	$symtbl{$name}->{val} = $val;
+	$symtbl{$name}->{typ} = $setname;
+
+      } else {
+	printf STDERR "dasm-11-E: bad item '%s' for symbol set '%s'\n",
+                       $item, $setname;
+      }
+    }
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub add_struct {		# add a new %structtbl entry
+  my ($sname, $tspeclist) = @_;
+  if (exists $structtbl{$sname}) {
+    print STDERR "dasm-11-E: \"$sname\" already defined, .struct ignored\n";
+    return;
+  }
+
+  $structtbl{$sname} = undef;	        # define blank to allow self ref's
+
+  my $tspeclist_chk = $tspeclist;
+  $tspeclist_chk =~ s{,code$}{};	    # hide a trailing 'code'
+  my $ok = chk_typespec($tspeclist_chk, 1); # to typespec checker
+
+  if (not $ok) {
+    delete $structtbl{$sname};	        # undo blank def in case of error
+    print STDERR "dasm-11-E: errors in typespec-list, .struct $sname ignored\n";
+    return;
+  }
+
+  $structtbl{$sname} = [ split /\s*,\s*/,$tspeclist ];
+}
+
+#-------------------------------------------------------------------------------
+
+sub add_params {		# add a new %paramstbl entry
+  my ($name, $pstr) = @_;
+  my @plist = split /,/, $pstr;
+
+  my $pstr_nodir = $pstr;
+  $pstr_nodir =~ s{,?\.(no|skip|try)ret$}{}; # drop trailing . no|skip|try ret
+  if (chk_typespec($pstr_nodir, 1)) {
+    $paramstbl{$name} = [ @plist ];
+  } else {
+    print STDERR "dasm-11-E: invalid .params argument '$pstr'," .
+	           " .params $name ignored\n";
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub chk_typespec {		# check validity of typespec (or list)
+  my ($text, $list) = @_;
+  my @tspeclist = split /\s*,\s*/, $text;
+
+  if (scalar(@tspeclist) > 1 && (not $list)) {
+      print STDERR "dasm-11-E: only single typespec allowed but list \"" .
+	  $text . "\" found\n";
+    return 0;
+  }
+
+  foreach my $tspec (@tspeclist) {
+    if ($tspec =~ m { ^
+		       (byte|word|code|
+                        asci[iz]|asc[0-7]{3}|
+                        rad50|flt[24]|vect|
+			\$[a-zA-Z][a-zA-Z0-9]*)
+		       (\*?)
+		       ((\[\d*\.?\])?)
+	               (\**)
+                      $ }x ) {
+
+      my $tname = $1;
+      my $ptr1  = $2;
+      my $arr   = $3;
+      my $ptr2  = $4;
+
+      if ($tname =~ m{^\$} && not exists $structtbl{$tname}) {
+	print STDERR "dasm-11-E: bad type in typespec '$tspec':" .
+	    " '$tname' not yet defined\n";
+	return 0;
+      }
+
+      if ($tname =~ m{^(rad50|flt[24])$} ) {
+	print STDERR "dasm-11-E: bad type in typespec '$tspec':" .
+	    " '$tname' not yet supported\n";
+	return 0;
+      }
+
+      if ($arr && $arr ne "[]") {
+	if ($arr !~ m{^ \[
+			([1-7][0-7]*|
+		         [1-9][0-9]*\.)
+			\]
+		      $ }x ) {
+	  print STDERR "dasm-11-E: bad array spec in typespec '$tspec'\n";
+	  return 0;
+	}
+      }
+
+      if ($tname =~ m{^(code|vect)$} && (not $ptr1)) {
+	print STDERR "dasm-11-E: bad typespec '$tspec': ".
+	    "'*' required after $tname\n";
+	return 0;
+      }
+      if ($tname =~ m{^(ascii|rad50)$} && $ptr1) {
+	print STDERR "dasm-11-E: bad typespec '$tspec': ".
+	    "$tname* not allowed\n";
+	return 0;
+      }
+      if ($tname =~ m{^(ascii|rad50)$} && ((not $arr) || $arr eq "[]") ) {
+	print STDERR "dasm-11-E: bad typespec '$tspec': ".
+	    "[nn] required after $tname\n";
+	return 0;
+      }
+      if ($tname =~ m{^(asciz|code)$} && (not $ptr1) && $arr) {
+	print STDERR "dasm-11-E: bad typespec '$tspec': ".
+	    "[nn] not allowed after $tname\n";
+	return 0;
+      }
+      if ($arr && $arr eq "[]" && (not $ptr1)) {
+	print STDERR "dasm-11-E: bad typespec '$tspec': ".
+	    "[] only allowed after *\n";
+      } 
+
+
+    } else {
+      print STDERR "dasm-11-E: bad typespec \"$tspec\"\n";
+      return 0;
+    }
+  }
+
+  return 1;
+}
+
+#-------------------------------------------------------------------------------
+#  Check availability of byte data, and convert {word}->{byte} if needed
+#
+#  $rc = chk_byte($addr)
+#    with
+#      $addr        address
+#    returns
+#      $rc          ""   if no data available
+#                   "b"  if {byte} available
+#
+
+sub chk_byte {			# check availability of byte (convert if needed)
+  my ($addr) = @_;
+  my $rc = chk_data($addr);
+  if ($rc eq "w" || $rc eq "o") {
+    word2byte($addr);
+    $rc = "b";
+  }
+  return $rc;
+}
+
+#-------------------------------------------------------------------------------
+#
+#  Check availability of data
+#
+#  $rc = chk_data($addr)
+#    with
+#      $addr        address
+#    returns
+#      $rc          ""   if no data available
+#                   "b"  if {byte} available
+#                   "w"  if {word} available and no {byte} defined yet
+#                   "o"  if odd address of an available {word} and no {byte} yet
+#
+
+sub chk_data {			# check availability of data (word or byte)
+  my ($addr) = @_;
+  return "b" if defined $data[$addr]->{byte};
+  return "w" if defined $data[$addr]->{word};
+  return "o" if defined $data[$addr & 0177776]->{word};
+  return "";
+}
+
+#-------------------------------------------------------------------------------
+
+sub chk_opcode {       		# check existence and content of {opcode}
+  my ($pc, $txt) = @_;
+  my $val = $data[$pc]->{opcode};
+  return (defined $val && $val eq $txt);
+}
+
+#-------------------------------------------------------------------------------
+
+sub chk_op1typ {       		# check existence and content of {op1typ}
+  my ($pc, $txt) = @_;
+  my $val = $data[$pc]->{op1typ};
+  return (defined $val && $val eq $txt);
+}
+
+#-------------------------------------------------------------------------------
+
+sub chk_op2typ {       		# check existence and content of {op2typ}
+  my ($pc, $txt) = @_;
+  my $val = $data[$pc]->{op2typ};
+  return (defined $val && $val eq $txt);
+}
+
+#-------------------------------------------------------------------------------
+
+sub chk_op2str {		# check existence and content of {op2str}
+  my ($pc, $txt) = @_;
+  my $val = $data[$pc]->{op2str};
+  return (defined $val && $val eq $txt);
+}
+
+#-------------------------------------------------------------------------------
+
+sub chk_type {			# check whether address is typed
+  my ($addr, $type) = @_;
+  return 0 unless defined $addr;
+  return 0 unless defined $data[$addr];
+  return 0 unless defined $data[$addr]->{type};
+  if (defined $type) {
+    return $type eq $data[$addr]->{type};
+  } else {
+    return 1;
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub convoct {		        # convert 16 bit int to %6.6o octal
+  my ($dat) = @_;
+  return sprintf "%6.6o", $dat;
+}
+
+#-------------------------------------------------------------------------------
+
+sub get_numoctdec {		# convert oct or dec number to binary
+  my ($str) = @_;
+  if ($str =~ m{^(\d+)\.$} ) {
+    return int $1;
+  } elsif ($str =~ m{^([0-7]+)$} ) {
+    return oct $1;
+  }
+  printf STDERR "dasm-11-E: bad dec/oct number: '$str'\n";
+  return undef;
+}
+
+#-------------------------------------------------------------------------------
+
+sub print_bugcheck {		# print BUGCHECK message, with line number
+  my ($line, $text) = @_;
+  print STDERR "dasm-11-E: BUGCHECK in line $line: $text\n";
+}
+
+#-------------------------------------------------------------------------------
+
+sub bailout {
+  my ($msg) = @_;
+  print STDERR "dasm-11-F: $msg\n";
+  exit 1;
+}
+#-------------------------------------------------------------------------------
+
+sub print_help {		# --help or error output
+  print "usage: dasm-11 [OPTIONS]... FILE\n";
+  print "  --I=path        adds path to the das include search path\n";
+  print "  --das=file      specify steering file (default FILE.das if exists)\n";
+  print "  --dmode=mode    default mode for untagged data\n";
+  print "  --start=nn[,..] list of code start addresses\n";
+  print "  --info          print info on unnamed vector and iospace addresses\n";
+  print "  --draw          dump raw data\n";
+  print "  --dtag          dump tagged data\n";
+  print "  --tctag         trace code tagging\n";
+  print "  --ttlc          trace typlabcref calls\n";
+  print "  --help          this message\n";
+}

@@ -1,4 +1,4 @@
--- $Id: pdp11_mmu_mmr12.vhd 1279 2022-08-14 08:02:21Z mueller $
+-- $Id: pdp11_mmu_mmr12.vhd 1291 2022-09-03 07:00:27Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,6 +13,7 @@
 -- 
 -- Revision History:
 -- Date         Rev Version  Comment
+-- 2022-08-30  1291   1.2.4  use ra_delta to steer mmr1 updates
 -- 2022-08-13  1279   1.2.3  ssr->mmr rename
 -- 2011-11-18   427   1.2.2  now numeric_std clean
 -- 2010-10-23   335   1.2.1  use ib_sel
@@ -122,18 +123,12 @@ begin
     variable nmmr1 : mmu_mmr1_type := mmu_mmr1_init;
     variable nmmr2 : slv16 := (others=>'0');
     variable delta : slv5 := (others=>'0');
-    variable use_rb : slbit := '0';
     
   begin
 
     nmmr1 := R_MMR1;
     nmmr2 := R_MMR2;
     delta := "0" & MONI.delta;
-
-    use_rb := '0';
-    if MONI.regnum/=nmmr1.ra_num and unsigned(nmmr1.ra_delta)/=0 then
-      use_rb := '1';
-    end if;
 
     if CRESET = '1' then
       nmmr1 := mmu_mmr1_init;
@@ -157,19 +152,19 @@ begin
         nmmr2 := MONI.pc;
 
       elsif MONI.regmod = '1' then
-        if use_rb = '0' then
+        if R_MMR1.ra_delta = "00000" then
           nmmr1.ra_num := MONI.regnum;
           if MONI.isdec = '0' then
-            nmmr1.ra_delta := slv(signed(nmmr1.ra_delta) + signed(delta));
+            nmmr1.ra_delta := delta;
           else
-            nmmr1.ra_delta := slv(signed(nmmr1.ra_delta) - signed(delta));
+            nmmr1.ra_delta := slv(-signed(delta));
           end if;
         else
           nmmr1.rb_num := MONI.regnum;
           if MONI.isdec = '0' then
-            nmmr1.rb_delta := slv(signed(nmmr1.rb_delta) + signed(delta));
+            nmmr1.rb_delta := delta;
           else
-            nmmr1.rb_delta := slv(signed(nmmr1.rb_delta) - signed(delta));
+            nmmr1.rb_delta := slv(-signed(delta));
           end if;
         end if;
       end if;

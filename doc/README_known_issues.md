@@ -2,6 +2,23 @@
 
 The case id indicates the release when the issue was first recognized.
 
+### V0.791-1 {[issue #33](https://github.com/wfjm/w11/issues/33)} -- MMU: PDR A bit is set for every access
+
+The `PDR` `A` bit is described in the Technical Manual as
+>  A bit (bit 7) - This bit is used by software to determine whether or not  
+>  any accesses to this page met the trap condition specified by the Access  
+>  Control Field (ACF). (A = I is affirmative). The A bit is used in the  
+>  process of gathering Memory Management statistics.
+
+It is set when the page `ACF` enables an MMU trap, thus for
+-  ACF=1 and read access
+-  ACF=4 and any access
+-  ACF=5 and write access
+
+The w11 currently sets the 'A' bit on any non-aborted access regardless of the ACF value.
+
+No practical impact, the 'A' bit in `PDR` is a 11/45 11/70 only feature and not used in OS software.
+
 ### V0.79-2 {[issue #30](https://github.com/wfjm/w11/issues/30)} -- SimH scmd files fail on current 4.* version; only 3.* supported
 
 The SimH scmd scripts were originally developed for SimH 3.8, and worked for

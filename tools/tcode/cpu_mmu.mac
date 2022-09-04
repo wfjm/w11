@@ -1,11 +1,10 @@
-; $Id: cpu_mmu.mac 1290 2022-08-30 06:20:40Z mueller $
+; $Id: cpu_mmu.mac 1291 2022-09-03 07:00:27Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2022-08-06  1272   1.0.1  ssr->mmr rename
-; 2022-07-28  1264   1.0    Initial version
+; 2022-08-31  1291   1.0    Initial version
 ; 2022-07-24  1262   0.1    First draft
 ;
 ; Test CPU MMU: all aspects of the MMU
@@ -887,6 +886,268 @@ tc0201: mov     #vhemmu,v..mmu
         clr     v..mmu+2
 9999$:  iot                     ; end of test C2.1
 ;
+; Test C2.2 -- test MFPI,MFPD,MTPI,MFPD dst aborts +++++++++++++++++++
+;   Environment:    psw pm=user; mmr3 user I/D
+;                   kipdr6  1 click up   acf=6 w/r
+;                   uipdr0  1 click up   acf=2 read
+;                   udpdr1  1 click up   acr=2 read
+;                   udpdr2  1 click dn   acr=6 w/r
+;
+tc0202: mov     #vhemmu,v..mmu
+        clr     v..mmu+2        ; pr0 kernel
+        reset
+        mov     #cp.pmu,cp.psw  ; pm to user
+        mov     #m3.dum,mmr3    ; enable user D space
+        mov     #<0.*md.plf>!md.arw,kipdr6            ;  plf=  0.;ed=0;acf=w/r
+        mov     #<0.*md.plf>!md.aro,uipdr0            ;  plf=  0.;ed=0;acf=r
+        mov     #<0.*md.plf>!md.aro,udpdr1            ;  plf=  0.;ed=0;acf=r
+        mov     #<127.*md.plf>!md.dwn!md.arw,udpdr2   ;  plf=127.;ed=1;acf=w/r
+        mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 18
+;
+; part 1: -- MFPI, MFPD ----------------------------------------------
+; Summary:
+;   1000$: mfpi (r2)+        ; r   ; dst anr 1           ; pdr=  0.,0,000
+;   1100$: mfpi (r3)+        ; r   ; dst ale 1           ; pdr=  0.,0,aro
+;   1200$: mfpi @(r4)+       ; r   ; dst ale 1           ; pdr=  0.,0,arw
+;   1300$: mfpi @(r5)+       ; r   ; dst ale 2           ; pdr=  0.,0,aro
+;   1400$: mfpd -(r3)        ; r   ; dst ale 1           ; pdr=127.,1,arw
+;
+; MPPI: I space page 1 non-resident
+1000$:  mov     #1010$,vhvmmu
+        mov     #020000,r2
+        mfpi    (r2)+           ; will fail, page 1 unmapped
+        halt
+1010$:  .word   m0.anr!m0.pmu!<1*m0.pno>!m0.ena ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000000010010              ; mmr1 +2,2
+;
+; MFPI: I space page 0 length abort
+1100$:  mov     #1110$,vhvmmu
+        mov     #000102,r3
+        mfpi    (r3)+           ; will fail
+        halt
+1110$:  .word   m0.ale!m0.pmu!<0*m0.pno>!m0.ena ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000000010011              ; mmr1 +2,3
+;
+; MFPI @(R)+: 1st access fails (in kernel space)
+1200$:  mov     #cp.pmu,cp.psw  ; pm to user
+        mov     #1210$,vhvmmu
+        mov     #140102,r4
+        mfpi    @(r4)+          ; will fail
+        halt
+1210$:  .word   m0.ale!<6*m0.pno>!m0.ena        ; mmr0 -> p6 k
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000000010100              ; mmr1 +2,4
+;
+; MFPI @(R)+: 2nd access fails (in user space)
+1300$:  mov     #cp.pmu,cp.psw  ; pm to user
+        mov     #1310$,vhvmmu
+        mov     #1301$,r5
+        mfpi    @(r5)+          ; will fail
+        halt
+1301$:  .word   000104          ; probed address
+1310$:  .word   m0.ale!m0.pmu!<0*m0.pno>!m0.ena ; mmr0 -> p0 u
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000000010101              ; mmr1 +2,5
+;
+; MFPD: D space page 1 length abort (has ed=1)
+1400$:  mov     #cp.pmu,cp.psw  ; pm to user
+        mov     #1410$,vhvmmu
+        mov     #037700,r3
+        mfpd    -(r3)           ; will fail
+        halt
+1410$:  .word   m0.ale!m0.pmu!m0.dsp!<1*m0.pno>!m0.ena ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000011110011              ; mmr1 -2,3
+;
+; part 2: -- MTPD, MTPI ----------------------------------------------
+; Note: mmr1 lsb has stack pop
+; Summary:
+;   2000$: mtpd (r2)+        ; r   ; dst anr 1           ; pdr=  0.,0,000
+;   2100$: mtpd (r3)+        ; r   ; dst ard 1           ; pdr=  0.,0,aro
+;   2200$: mtpd -(r4)        ; r   ; dst ale 1           ; pdr=127.,1,arw
+;   2300$: mtpd @(R5)+       ; r   ; dst ale 1           ; pdr=  0.,0,arw
+;   2400$: mtpd @(R3)+       ; r   ; dst ale 2           ; pdr=127.,1,arw
+;   2500$: mtpi (r2)+        ; r   ; dst ard 1           ; pdr=  0.,0,aro
+;
+; MTPD: D space page 3 non-resident
+2000$:  mov     #cp.pmu,cp.psw  ; pm to user
+        mov     #2010$,vhvmmu
+        mov     #060000,r2
+        push    #1234
+        mtpd    (r2)+           ; will fail, page 3 unmapped
+        halt
+2010$:  .word   m0.anr!m0.pmu!m0.dsp!<3*m0.pno>!m0.ena ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0001001000010110              ; mmr1 +2,2; +2,6
+;
+; MTPD: D space page 1 read-only
+2100$:  mov     #cp.pmu,cp.psw  ; pm to user
+        mov     #2110$,vhvmmu
+        mov     #020002,r3
+        push    #1234
+        mtpd    (r3)+           ; will fail
+        halt
+2110$:  .word   m0.ard!m0.pmu!m0.dsp!<1*m0.pno>!m0.ena ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0001001100010110              ; mmr1 +2,3; +2,6
+;
+; MTPD: D space page 2 length
+2200$:  mov     #2210$,vhvmmu
+        mov     #057700,r4
+        push    #1234
+        mtpd    -(r4)           ; will fail
+        halt
+2210$:  .word   m0.ale!m0.pmu!m0.dsp!<2*m0.pno>!m0.ena ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b1111010000010110              ; mmr1 -2,4; +2,6
+;
+; MTPD @(R)+: 1st access fails (in kernel space)
+2300$:  mov     #2310$,vhvmmu
+        mov     #140102,r5
+        push    #1234
+        mtpd    @(r5)+          ; will fail
+        halt
+2310$:  .word   m0.ale!<6*m0.pno>!m0.ena        ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0001010100010110              ; mmr1 +2,5; +2,6
+;
+; MTPD @(R)+: 2nd access fails (in user space)
+2400$:  mov     #2410$,vhvmmu
+        mov     #2401$,r3
+        push    #1234
+        mtpd    @(r3)+          ; will fail
+        halt
+2401$:  .word   057600          ; probed address
+2410$:  .word   m0.ale!m0.pmu!m0.dsp!<2*m0.pno>!m0.ena ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0001001100010110              ; mmr1 +2,3; +2,6
+;
+; MTPI: I space page 0 read-only
+2500$:  mov     #cp.pmu,cp.psw  ; pm to user
+        mov     #2510$,vhvmmu
+        mov     #000020,r2
+        push    #1234
+        mtpi    (r2)+           ; will fail
+        halt
+2510$:  .word   m0.ard!m0.pmu!<0*m0.pno>!m0.ena ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0001001000010110              ; mmr1 +2,2; +2,6
+;
+9000$:  reset                   ; mmu off                       ;! MMU off
+        clr     cp.psw
+        mov     #<127.*md.plf>!md.arw,kipdr6    ; restore kernel mapping
+        clr     uipdr0                          ; reset user mode pdr
+        clr     udpdr1
+        clr     udpdr2
+        mov     #v..mmu+2,v..mmu                ; restore mmu catcher
+        clr     v..mmu+2
+9999$:  iot                     ; end of test C2.2
+;
+; Test C2.3 -- test aborts in implied push/pop; ++++++++++++++++++++++
+;   jsr,mfp* have an implied push; rts,mft* have an implied pop
+;   This must be tested in supervisor mode to separate 'stack under test'
+;   from the kernel stack used in MMU 250 vector handling
+;   Environment:    psw cm=supervisor;pm=user
+;                   si.0   as 1-to-1  (easy switch between kernel and supervisor)
+;                   si.7   as 1-to-1  (psw access)
+;                   ui.0   as 1-to-1  (for read access)
+;
+tc0203: mov     #vhemmu,v..mmu
+        clr     v..mmu+2        ; pr0 kernel
+        reset
+        mov     kipdr0,sipdr0   ; super 0: 1-to-1
+        clr     sipar0
+        mov     kipdr7,sipdr7   ; super 7: 1-to-1
+        mov     kipar7,sipar7
+        mov     kipdr0,uipdr0   ; user  0: 1-to-1
+        clr     uipar0
+        mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 18
+        mov     #cp.cms!cp.pmu,cp.psw  ; cm to supervisor, pm to user
+;
+; part 1: -- JSR, MFPI, MFPD (push) ----------------------------------
+; Execute implicit push against a non-resident page
+; Summary:
+;   1000$: jsr  pc,(r2)
+;   1100$: mfpi (r2)
+;   1200$: mfpd (r2)
+;
+1000$:  mov     #020100,sp      ; set SP into 1st click page 1, non-resident
+        mov     #1010$,vhvmmu
+        mov     #1001$,r2
+        jsr     pc,(r2)         ; will fail
+1001$:  halt
+1010$:  .word   m0.anr!m0.pms!<1*m0.pno>!m0.ena ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000011110110              ; mmr1 -2,6
+;
+1100$:  mov     #1110$,vhvmmu
+        mov     #swsyid,r2      ; any valid address
+        mfpi    (r2)            ; will fail
+        halt
+1110$:  .word   m0.anr!m0.pms!<1*m0.pno>!m0.ena ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000011110110              ; mmr1 -2,6
+;
+1200$:  mov     #1210$,vhvmmu
+        mfpd    (r2)            ; will fail
+        halt
+1210$:  .word   m0.anr!m0.pms!<1*m0.pno>!m0.ena ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000011110110              ; mmr1 -2,6
+;
+; part 2: -- RTS, MTPI, MTPD (pop) -----------------------------------
+; Execute implicit pop  against a non-resident page
+; Summary:
+;   2000$: rts  pc
+;   2100$: mtpi (r2)
+;   2200$: mtpd (r2)
+;
+; Simh doesnt update SP and set MMR1 on implicit pops
+; Modify expected mmr1 values in case SimH is detected
+        cmpb    systyp,#sy.sih
+        bne     1999$
+        clr     2010$+2         ; expect mmr1 = 0
+        clr     2110$+2         ; expect mmr1 = 0
+        clr     2210$+2         ; expect mmr1 = 0
+1999$:
+;
+2000$:  mov     #020040,sp      ; set SP into 1st click page 1, non-resident
+        mov     #2010$,vhvmmu
+        rts     pc              ; will fail
+        halt
+2010$:  .word   m0.anr!m0.pms!<1*m0.pno>!m0.ena ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000000010110              ; mmr1 +2,6
+;
+2100$:  mov     #2110$,vhvmmu
+        mov     #1,r2           ; not used
+        mtpi    (r2)            ; will fail
+        halt
+2110$:  .word   m0.anr!m0.pms!<1*m0.pno>!m0.ena ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000000010110              ; mmr1 +2,6
+;
+2200$:  mov     #2210$,vhvmmu
+        mov     #1,r2           ; not used
+        mtpd    (r2)            ; will fail
+        halt
+2210$:  .word   m0.anr!m0.pms!<1*m0.pno>!m0.ena ; mmr0
+        ;         dddddrrrdddddrrr
+        .word   ^b0000000000010110              ; mmr1 +2,6
+;
+9000$:  clr     cp.psw
+        reset                   ; mmu off                       ;! MMU off
+        clr     sipdr0                          ; reset super/user pdf
+        clr     sipdr7
+        clr     sipar7
+        clr     uipdr0
+        mov     #v..mmu+2,v..mmu                ; restore mmu catcher
+        clr     v..mmu+2
+9999$:  iot                     ; end of test C2.3
+;
+;
 ; Section D: mmr2+mmr1+mmr0 register, abort recovery =========================
 ;
 ; Test D1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1024,7 +1285,7 @@ td0101:
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#11.      ; all tests done ?
+        hcmpeq  tstno,#13.      ; all tests done ?
 ;
         jmp     loop
 ;

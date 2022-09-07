@@ -40,6 +40,7 @@ The full set of tests is only run for tagged releases.
 - added dasm-11, a PDP-11 disassembler
 ### New features
 - new verification codes
+  - tools/mcode: added memclr.mac (writes zero into memory)
   - tools/tcode: fast cpu verification codes
   - tools/tests: test programs
   - tools/bin: added dasm-11, a PDP-11 disassembler
@@ -79,7 +80,7 @@ The full set of tests is only run for tagged releases.
     - pdp11_mmu_mmr1: MMR1 write logic fix, see
         [ECO-032](ECO-032-MMR1_fix.md)
 - general changes
-  - segment -< page rename
+  - segment -> page rename
     - DEC used in early documents 'segment', later on 'page' for the MMU object
     - in the w11a code base (\*.vhd,\*.\*pp,\*.tcl,\*.mac) the naming was mixed
     - now all changed to page,mmr\*,pdr,par; all segment,ssr\*,sdr,sar removed

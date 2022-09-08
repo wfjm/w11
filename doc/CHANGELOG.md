@@ -40,7 +40,7 @@ The full set of tests is only run for tagged releases.
 - added dasm-11, a PDP-11 disassembler
 ### New features
 - new verification codes
-  - tools/mcode: added memclr.mac (writes zero into memory)
+  - tools/sys/mcode: added memclr.mac (writes zero into memory)
   - tools/tcode: fast cpu verification codes
   - tools/tests: test programs
   - tools/bin: added dasm-11, a PDP-11 disassembler

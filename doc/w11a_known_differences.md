@@ -10,6 +10,7 @@ The issues of the w11 CPU and systems are listed in a separate document
 - ['instruction completed flag' in `MMR0` is not implemented](w11a_diff_70_instruction_complete.md)
 - [`jsr sp` pushes original `sp` value](w11a_diff_70_jsr_sp.md)
 - [18-bit UNIBUS address space not mapped](w11a_diff_70_unibus_mapping.md)
+- [MMU traps not suppressed when MMU register accessed](w11a_diff_70_mmu_trap_suppression.md)
 
 All points relate to very 11/70 specific behavior, no operating system
 depends on them, therefore they are considered acceptable implementation
@@ -36,3 +37,11 @@ this is considered as an acceptable implementation difference.
   to a timeout, again mostly in test programs.  
   **--> a 'watch dog' mechanism will be added in a future version which
   suspends the CPU when the server doesn't respond fast enough.**
+
+### Known differences between w11a and a SimH 11/70
+The SimH emulator models only behavior what is relevant for the normal
+operation of operating systems and user code. Many details which do not
+have impact on normal operation are not modeled for performance reasons.
+Test codes are sometimes sensitive to those details, that's why the most
+relevant are listed here.
+- [SimH: implicit stack pops not recorded in MMR1](w11a_diff_simh_mmr1_rts_mtp.md)

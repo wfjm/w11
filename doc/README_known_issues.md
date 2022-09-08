@@ -2,6 +2,41 @@
 
 The case id indicates the release when the issue was first recognized.
 
+### V0.791-3 {[issue #35](https://github.com/wfjm/w11/issues/35)} -- MMU: D space used instead of I space for PC deferred specifiers
+
+Test 072 of `ekbee1` fails with
+```
+    D-SPACE ENABLE CIRCUITRY HAS FAILED
+    ERROR   AUTOI/D VIRTUAL
+    REGISTR REGISTR ADDRESS TESTNO  PC AT ABORT
+    100027  000000  060410  000072  060412
+    100027  000027  060416  000072  060422
+```
+The test does
+```
+    060410: tst  (pc)
+    060416: cmp  #240,(pc)
+```
+and expects that these accesses are done to I space.  
+They are done to D space instead.
+
+The w11 uses D space only for `(pc)+` and `@(pc)+` specifiers.  
+Clearly a bug.  
+Wasn't detected so far because this access mode has no practical value  
+and this therefore not used in normal software.
+
+### V0.791-2 {[issue #34](https://github.com/wfjm/w11/issues/34)} -- MMU: ACF=1 traps on any access
+
+Test 055 of `ekbee1` fails with
+```
+    MEMORY MANAGEMENT TRAP OR ABORT HAD INCORRECT CONDITION
+    EXPECTD ERROR   AUTOI/D VIRTUAL
+    CONDITN REGISTR REGISTR ADDRESS TESTNO  PC AT ABORT
+    020011  030011  013427  054032  000055  054040
+```
+This is caused by a bug in pdp11_mmu. For ACF=1 a trap is taken for any access,
+it should be taken only for read accesses.
+
 ### V0.791-1 {[issue #33](https://github.com/wfjm/w11/issues/33)} -- MMU: PDR A bit is set for every access
 
 The `PDR` `A` bit is described in the Technical Manual as
@@ -126,30 +161,6 @@ in the J11, it is not used by common operating systems.
 Therefore this is considered a to be a minor deficit. Will be fixed in an
 upcoming release.
 
-### V0.50-4 {[issue #24](https://github.com/wfjm/w11/issues/24)} -- CPU: src+dst deltas summed in mmr1 if register identical
-
-Test 12 of maindec `ekbee1` fails because it expects after a
-```
-        mov    #100000,@#mmr0
-```
-which sets an error bit in `mmr0` and thus freezes `mmr0`, that `mmr1` contains
-```
-  013427 (00010 111 00010 111) (+2,r7;+2,r7)
-```
-while w11a gives
-```
-  000047 (00000 000 00100 111) (--,--;+4,r7)
-```
-The `mmr1` content is _different_ compared to the original 11/70 behavior,
-but is _logically correct_, fault recovery in OS (like in 211bsd) will work
-correctly.  Therefore this is considered a to be a _minor deficit_.
-
-The 11/70 documentation clearly states that there is an additional state bit
-that counts the write accesses to `mmr1`. This ensures that each of the two
-logged accesses end in separate bytes (byte 0 filled first).
-
-The w11a only uses byte 1 when the register number differs.
-
 ### V0.50-1 {[issue #23](https://github.com/wfjm/w11/issues/23)} -- CPU: several deficits in trap logic
 
 The current w11a implementation has several deficits in the handling of
@@ -240,6 +251,33 @@ the backend produces proper command lists and the USB channel is usually error
 free}_
 
 ## Resolved Issues
+
+### V0.50-4 {[issue #24](https://github.com/wfjm/w11/issues/24)} -- CPU: src+dst deltas summed in mmr1 if register identical
+
+Test 12 of maindec `ekbee1` fails because it expects after a
+```
+        mov    #100000,@#mmr0
+```
+which sets an error bit in `mmr0` and thus freezes `mmr0`, that `mmr1` contains
+```
+  013427 (00010 111 00010 111) (+2,r7;+2,r7)
+```
+while w11a gives
+```
+  000047 (00000 000 00100 111) (--,--;+4,r7)
+```
+The `mmr1` content is _different_ compared to the original 11/70 behavior,
+but is _logically correct_, fault recovery in OS (like in 211bsd) will work
+correctly.  Therefore this is considered a to be a _minor deficit_.
+
+The 11/70 documentation clearly states that there is an additional state bit
+that counts the write accesses to `mmr1`. This ensures that each of the two
+logged accesses end in separate bytes (byte 0 filled first).
+
+The w11a only uses byte 1 when the register number differs.
+
+Fixed with commit [3bd23c9](https://github.com/wfjm/w11/commit/3bd23c9),
+see [ECO-032](ECO-032-MMR1_fix.md).
 
 ### V0.79-1 {[issue #29](https://github.com/wfjm/w11/issues/29)} -- migrate from Travis to GitHub actions
 

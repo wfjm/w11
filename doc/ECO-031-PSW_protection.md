@@ -51,6 +51,17 @@ Further analysis
   - pm has the logic to set it from cm in vector pushes
   - but in the RTT/RTI update case, pm is handled like cm and reset
 
+And EK-KB11C-TM-001_1170procMan.pdf page 223 has the clear statememt
+
+> After executing the User program's request, the Kernel program returns
+> control to the User program by an RTI. Before doing this, the Kernel
+> program ensures that both current and previous mode bits are set to User.
+> If this were not done, the User program could read the Kernel proprietary
+> code via the MFPI.
+
+So it's the sole responsibility of the software to set `pmode` properly.
+
+
 ### Fixes
 Simply remove the extra term, now
 ```

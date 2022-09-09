@@ -1,17 +1,18 @@
-; $Id: cpu_mmu.mac 1291 2022-09-03 07:00:27Z mueller $
+; $Id: cpu_mmu.mac 1295 2022-09-07 16:28:55Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2022-08-31  1291   1.0    Initial version
+; 2022-09-06  1294   1.0    Initial version
 ; 2022-07-24  1262   0.1    First draft
 ;
 ; Test CPU MMU: all aspects of the MMU
 ;   Section A: pdr,par registers
 ;   Section B: mmr0,mmr3 registers, mapping, instructions
-;   Section C: mmr1+mmr0 register, aborts and traps
+;   Section C: mmr1+mmr0 register, aborts
 ;   Section D: mmr2+mmr1+mmr0 register, abort recovery
+;   Section E: traps and pdr aia and aiw bits
 ;
         .include        |lib/tcode_std_base.mac|
         .include        |lib/defs_mmu.mac|
@@ -35,6 +36,21 @@
        kipar6 = kipar+14
        kipdr7 = kipdr+16
        kipar7 = kipar+16
+
+       p0p1p2 = <1*100>+2               ; page 0, +1 click, +2
+       p0p1p4 = <1*100>+4               ; page 0, +1 click, +4
+       p1base = <1*20000>               ; page 1
+       p1p0p2 = p1base+2                ; page 1, +2
+       p1m1p0 = p1base+<127.*100>       ; page 1, 128-1 click
+       p2base = <2*20000>               ; page 2
+       p2m1p0 = p2base+<127.*100>       ; page 1, 128-1 click
+       p2m1m4 = p2base+<127.*100>-4     ; page 1, 128-1 click, -4
+       p3base = <3*20000>               ; page 3
+       p4base = <4*20000>               ; page 4
+       p5base = <5*20000>               ; page 5
+       p6base = <6*20000>               ; page 6
+       p6p1p2 = p6base+<1*100>+2        ; page 6, +1 click, +2
+       p7base = <7*20000>               ; page 7
 ;
 ; Section A: pdr,par registers ===============================================
 ;
@@ -564,7 +580,7 @@ tb0302:
 ;
 9999$:  iot                     ; end of test B3.2
 ;
-; Section C: mmr1+mmr0 register, aborts and traps ============================
+; Section C: mmr1+mmr0 register, aborts ======================================
 ;
 ; Test C1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;
@@ -646,7 +662,7 @@ tc0101: mov     #1000$,r1       ; ptr to abort bit table
 ; Test C2.1 -- test unary/binary instructions ++++++++++++++++++++++++
 ;   Excercise access to kernel page 6 and inspect mmr0 and mmr1
 ;
-tc0201: mov     #vhemmu,v..mmu
+tc0201: mov     #vhmmua,v..mmu
         clr     v..mmu+2        ; pr0 kernel
         reset
         mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 18
@@ -692,7 +708,7 @@ tc0201: mov     #vhemmu,v..mmu
         .word   ^b0000000011110100              ; mmr1 -2,4
 ;
 ; write abort in mapped area (write access)
-1300$:  mov     #<0.*md.plf>!md.aro,kipdr6      ; plf=  0.;ed=0;acf=r
+1300$:  mov     #<0.*md.plf>!md.ara,kipdr6      ; plf=  0.;ed=0;acf=r
         mov     #140002,r2
         tstb    (r2)+           ; read ok
         mov     #1310$,vhvmmu
@@ -738,7 +754,7 @@ tc0201: mov     #vhemmu,v..mmu
         mov     #2001$,r2
         tst     @(r2)+          ; will fail
         halt
-2001$:  .word   140102          ; probed address
+2001$:  .word   p6p1p2          ; probed address, page 6, +1 click, +2
 2010$:  .word   m0.ale!<6*m0.pno>!m0.ena        ; mmr0
         ;         dddddrrrdddddrrr
         .word   ^b0000000000010010              ; mmr1 +2,2
@@ -778,7 +794,7 @@ tc0201: mov     #vhemmu,v..mmu
         mov     #3201$,r4
         mov     @(r4)+,(r3)+    ; will fail
         halt
-3201$:  .word   140102          ; probed address
+3201$:  .word   p6p1p2          ; probed address, page 6, +1 click, +2
 3210$:  .word   m0.ale!<6*m0.pno>!m0.ena        ; mmr0
         ;         dddddrrrdddddrrr
         .word   ^b0000000000010100              ; mmr1 +2,4
@@ -820,12 +836,12 @@ tc0201: mov     #vhemmu,v..mmu
         mov     4201$,r5
         cmp     (r2)+,@(r5)+    ; will fail
         halt
-4201$:  .word   140102          ; probed address
+4201$:  .word   p6p1p2          ; probed address, page 6, +1 click, +2
 4210$:  .word   m0.ale!<6*m0.pno>!m0.ena        ; mmr0
         ;         dddddrrrdddddrrr
         .word   ^b0001010100010010              ; mmr1 +2,5; +2,2
 ;
-4300$:  mov     #<0.*md.plf>!md.aro,kipdr6      ; plf=  0.;ed=0;acf=r
+4300$:  mov     #<0.*md.plf>!md.ara,kipdr6      ; plf=  0.;ed=0;acf=r
         mov     #4310$,vhvmmu
         mov     #140010,r4
         bis     -(r2),(r4)+     ; will fail
@@ -870,7 +886,7 @@ tc0201: mov     #vhemmu,v..mmu
         .word   ^b0000000000010011              ; mmr1 +2,3
 ;
 ; length + read-only abort
-5200$:  mov     #<0.*md.plf>!md.aro,kipdr6      ; plf=  0.;ed=0;acf=r
+5200$:  mov     #<0.*md.plf>!md.ara,kipdr6      ; plf=  0.;ed=0;acf=r
         mov     #5210$,vhvmmu
         mov     #140102,r4
         com     (r4)+           ; will fail
@@ -893,14 +909,14 @@ tc0201: mov     #vhemmu,v..mmu
 ;                   udpdr1  1 click up   acr=2 read
 ;                   udpdr2  1 click dn   acr=6 w/r
 ;
-tc0202: mov     #vhemmu,v..mmu
+tc0202: mov     #vhmmua,v..mmu
         clr     v..mmu+2        ; pr0 kernel
         reset
         mov     #cp.pmu,cp.psw  ; pm to user
         mov     #m3.dum,mmr3    ; enable user D space
         mov     #<0.*md.plf>!md.arw,kipdr6            ;  plf=  0.;ed=0;acf=w/r
-        mov     #<0.*md.plf>!md.aro,uipdr0            ;  plf=  0.;ed=0;acf=r
-        mov     #<0.*md.plf>!md.aro,udpdr1            ;  plf=  0.;ed=0;acf=r
+        mov     #<0.*md.plf>!md.ara,uipdr0            ;  plf=  0.;ed=0;acf=r
+        mov     #<0.*md.plf>!md.ara,udpdr1            ;  plf=  0.;ed=0;acf=r
         mov     #<127.*md.plf>!md.dwn!md.arw,udpdr2   ;  plf=127.;ed=1;acf=w/r
         mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 18
 ;
@@ -914,7 +930,7 @@ tc0202: mov     #vhemmu,v..mmu
 ;
 ; MPPI: I space page 1 non-resident
 1000$:  mov     #1010$,vhvmmu
-        mov     #020000,r2
+        mov     #p1base,r2
         mfpi    (r2)+           ; will fail, page 1 unmapped
         halt
 1010$:  .word   m0.anr!m0.pmu!<1*m0.pno>!m0.ena ; mmr0
@@ -923,7 +939,7 @@ tc0202: mov     #vhemmu,v..mmu
 ;
 ; MFPI: I space page 0 length abort
 1100$:  mov     #1110$,vhvmmu
-        mov     #000102,r3
+        mov     #p0p1p2,r3      ; page 0, +1 click, +2
         mfpi    (r3)+           ; will fail
         halt
 1110$:  .word   m0.ale!m0.pmu!<0*m0.pno>!m0.ena ; mmr0
@@ -933,7 +949,7 @@ tc0202: mov     #vhemmu,v..mmu
 ; MFPI @(R)+: 1st access fails (in kernel space)
 1200$:  mov     #cp.pmu,cp.psw  ; pm to user
         mov     #1210$,vhvmmu
-        mov     #140102,r4
+        mov     #p6p1p2,r4      ; page 6, +1 click, +2
         mfpi    @(r4)+          ; will fail
         halt
 1210$:  .word   m0.ale!<6*m0.pno>!m0.ena        ; mmr0 -> p6 k
@@ -946,7 +962,7 @@ tc0202: mov     #vhemmu,v..mmu
         mov     #1301$,r5
         mfpi    @(r5)+          ; will fail
         halt
-1301$:  .word   000104          ; probed address
+1301$:  .word   p0p1p4          ; probed address
 1310$:  .word   m0.ale!m0.pmu!<0*m0.pno>!m0.ena ; mmr0 -> p0 u
         ;         dddddrrrdddddrrr
         .word   ^b0000000000010101              ; mmr1 +2,5
@@ -954,7 +970,7 @@ tc0202: mov     #vhemmu,v..mmu
 ; MFPD: D space page 1 length abort (has ed=1)
 1400$:  mov     #cp.pmu,cp.psw  ; pm to user
         mov     #1410$,vhvmmu
-        mov     #037700,r3
+        mov     #p1m1p0,r3      ; page 1, 128-1 click
         mfpd    -(r3)           ; will fail
         halt
 1410$:  .word   m0.ale!m0.pmu!m0.dsp!<1*m0.pno>!m0.ena ; mmr0
@@ -974,7 +990,7 @@ tc0202: mov     #vhemmu,v..mmu
 ; MTPD: D space page 3 non-resident
 2000$:  mov     #cp.pmu,cp.psw  ; pm to user
         mov     #2010$,vhvmmu
-        mov     #060000,r2
+        mov     #p3base,r2
         push    #1234
         mtpd    (r2)+           ; will fail, page 3 unmapped
         halt
@@ -985,7 +1001,7 @@ tc0202: mov     #vhemmu,v..mmu
 ; MTPD: D space page 1 read-only
 2100$:  mov     #cp.pmu,cp.psw  ; pm to user
         mov     #2110$,vhvmmu
-        mov     #020002,r3
+        mov     #p1p0p2,r3      ; page 1, +2
         push    #1234
         mtpd    (r3)+           ; will fail
         halt
@@ -995,7 +1011,7 @@ tc0202: mov     #vhemmu,v..mmu
 ;
 ; MTPD: D space page 2 length
 2200$:  mov     #2210$,vhvmmu
-        mov     #057700,r4
+        mov     #p2m1p0,r4
         push    #1234
         mtpd    -(r4)           ; will fail
         halt
@@ -1005,7 +1021,7 @@ tc0202: mov     #vhemmu,v..mmu
 ;
 ; MTPD @(R)+: 1st access fails (in kernel space)
 2300$:  mov     #2310$,vhvmmu
-        mov     #140102,r5
+        mov     #p6p1p2,r5      ; page 6, +1 click, +2
         push    #1234
         mtpd    @(r5)+          ; will fail
         halt
@@ -1019,7 +1035,7 @@ tc0202: mov     #vhemmu,v..mmu
         push    #1234
         mtpd    @(r3)+          ; will fail
         halt
-2401$:  .word   057600          ; probed address
+2401$:  .word   p2m1m4          ; probed address, page 1, 128-1 click, -4
 2410$:  .word   m0.ale!m0.pmu!m0.dsp!<2*m0.pno>!m0.ena ; mmr0
         ;         dddddrrrdddddrrr
         .word   ^b0001001100010110              ; mmr1 +2,3; +2,6
@@ -1054,7 +1070,7 @@ tc0202: mov     #vhemmu,v..mmu
 ;                   si.7   as 1-to-1  (psw access)
 ;                   ui.0   as 1-to-1  (for read access)
 ;
-tc0203: mov     #vhemmu,v..mmu
+tc0203: mov     #vhmmua,v..mmu
         clr     v..mmu+2        ; pr0 kernel
         reset
         mov     kipdr0,sipdr0   ; super 0: 1-to-1
@@ -1281,26 +1297,316 @@ td0101:
 3002$:  .word   0               ; save mmr2
 ;
 9999$:  iot                     ; end of test D1.1
-
+;
+; Section E: traps and pdr aia and aiw bits ==================================
+;
+; Test E1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;
+; Test E1.1 -- test m0.trp, pdr aia/aiw transitions ++++++++++++++++++
+; Summary
+;   PDR   MMR0      action        aia aiw trp Trap  Comment
+;   acf=6 ent=0     tst (r3)       0   0   0    no  no ai, no trap
+;                   clr (r3)       0   1   0    no  clr sets aiw
+;                   tst (r3)       0   1   0    no  aiw stays
+;                   pdr->pdr       0   0   0    -   any pdr write clears aia,aiw
+;                   clr (r3)       0   1   0    no  clr sets aiw
+;                   pdr+1 write    0   0   0    -   any pdr write clears aia,aiw
+;                   clr (r3)       0   1   0    no  clr sets aiw
+;                   par->par       0   0   0    -   any par write clears aia,aiw
+;
+;   acf=6 ent=1     tst (r3)       0   0   0    no  no trap
+;                   clr (r3)       0   1   0    no  no trap
+;
+;   acf=4 ent=0     tst (r3)       1   0   1    no  trp set, aia set
+;                   clr (r3)       1   1   1    no  trp stays, aiw set
+;                   trp=0;pdr      0   0   0    -   any par write clears aia,aiw
+;
+;   acf=4 ent=1     tst (r3)       1   0   1   yes  trap taken, trp set, aia set
+;                   clr (r3)       1   1   1    no  no trap, aia set
+;                   trp=0;pdr      0   0   0     -  any pdr write clears aia,aiw
+;                   clr (r3)       1   1   1   yes  trap taken, trp,aia,aiw set
+;                   tst (r3)       1   1   1    no  no trap, no additional bits
+;                   trp=0;pdr      0   0   0     -  any par write clears aia,aiw
+;
+;   Uses page 6 with plf=1 and varying acf
+;
+te0101: mov     #vhmmut,v..mmu  ; setup MMU trap handler
+        clr     v..mmu+2        ; pr0 kernel
+        reset
+        mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 18
+        mov     #kipdr6,r4      ; keep in register
+        mov     #p6base,r3      ; probed address
+        clr     vhvmmu          ; dont expect traps initially
+;
+; acf=6 ent=0     tst (r3)       0   0   0    no  no ai, no trap
+        mov     #md.plf!md.arw,(r4) ; set pdr
+        tst     (r3)                ; probe read
+        hbiteq  mmr0,#m0.trp        ; check trp=0
+        hcmpeq  (r4),#md.plf!md.arw ; check aia,aiw=0
+;
+; clr (r3)       0   1   0    no  clr sets aiw
+        clr     (r3)                ; probe write
+        hbiteq  mmr0,#m0.trp        ; check trp=0
+        hcmpeq  (r4),#md.plf!md.aiw!md.arw  ; check aiw=1
+;
+; tst (r3)       0   1   0    no  aiw stays
+        tst     (r3)                ; probe read
+        hcmpeq  (r4),#md.plf!md.aiw!md.arw  ; check aiw=1
+;
+; pdr->pdr       0   0   0    -   any pdr write clears aia,aiw
+        mov     (r4),(r4)           ; write pdr->pdr, should clear aiw
+        hcmpeq  (r4),#md.plf!md.arw ; check aiw=0
+;
+; clr (r3)       0   1   0    no  clr sets aiw
+        clr     (r3)                 ; probe write
+        hcmpeq  (r4),#md.plf!md.aiw!md.arw  ; check aiw=1
+;
+; pdr+1 write    0   0   0    -   any pdr write clears aia,aiw
+        movb    #1,1(r4)            ; write pdr+1, should clear aiw
+        hcmpeq  (r4),#md.plf!md.arw ; check aiw=0
+;
+; clr (r3)       0   1   0    no  clr sets aiw
+        clr     (r3)                ; probe write
+        hcmpeq  (r4),#md.plf!md.aiw!md.arw  ; check aiw=1
+;
+; par->par       0   0   0    -   any par write clears aia,aiw
+        mov     kipar6,kipar6       ; write par->par, should clear aiw
+        hcmpeq  (r4),#md.plf!md.arw ; check aiw=0
+;
+; acf=6 ent=1     tst (r3)       0   0   0    no  no trap
+        mov     #m0.ent!m0.ena,mmr0 ; enable mmu with traps enabled
+        tst     (r3)                ; probe read
+;
+; clr (r3)       0   1   0    no  no trap
+        clr     (r3)                ; probe write
+;
+; acf=4 ent=0     tst (r3)       1   0   1    no  trp set, aia set
+        mov     #md.plf!md.att,(r4) ; set pdr
+        mov     #m0.ena,mmr0        ; enable mmu with traps disabled
+        tst     (r3)                ; probe read
+        hbitne  mmr0,#m0.trp        ; check trp=1
+        hcmpeq  (r4),#md.plf!md.aia!md.att  ; check aia=1
+;
+; clr (r3)       1   1   1    no  trp stays, aiw set
+        clr     (r3)                ; probe write
+        hbitne  mmr0,#m0.trp        ; check trp=1
+        hcmpeq  (r4),#md.plf!md.aia!md.aiw!md.att  ; check aia=1,aiw=1
+;
+; trp=0;pdr      0   0   0    -   any par write clears aia,aiw
+        bic     #m0.trp,mmr0        ; clear trp
+        hbiteq  mmr0,#m0.trp        ; check trp=0
+        mov     (r4),(r4)           ; write pdr->pdr, should clear aia and aiw
+        hcmpeq  (r4),#md.plf!md.att ; check aia=0,aiw=0
+;
+; acf=4 ent=1     tst (r3)       1   0   1   yes  trap taken, trp set, aia set
+        mov     #m0.ent!m0.ena,mmr0 ; enable mmu with traps enabled
+        mov     #1010$,vhvmmu
+        tst     (r3)                ; probe read
+        halt                        ; expect trap
+1010$:  hbitne  mmr0,#m0.trp        ; check trp=1
+        hcmpeq  (r4),#md.plf!md.aia!md.att  ; check aia=1
+;
+; clr (r3)       1   1   1    no  no trap, aia set
+        clr     (r3)                ; probe write
+        hbitne  mmr0,#m0.trp        ; check trp=1
+        hcmpeq  (r4),#md.plf!md.aia!md.aiw!md.att  ; check aia=1,aiw=1
+;
+; trp=0;pdr      0   0   0     -  any pdr write clears aia,aiw
+        bic     #m0.trp,mmr0        ; clear trp
+        mov     (r4),(r4)           ; write pdr->pdr, should clear aia and aiw
+        hcmpeq  (r4),#md.plf!md.att ; check aia=0,aiw=0
+;
+; clr (r3)       1   1   1   yes  trap taken, trp,aia,aiw set
+        mov     #1020$,vhvmmu
+        clr     (r3)                ; probe write
+        halt                        ; expect trap
+1020$:  hbitne  mmr0,#m0.trp        ; check trp=1
+        hcmpeq  (r4),#md.plf!md.aia!md.aiw!md.att  ; check aia=1,aiw=1
+;
+; tst (r3)       1   1   1    no  no trap, no additional bits
+        tst     (r3)                ; probe read
+        hbitne  mmr0,#m0.trp        ; check trp=1
+        hcmpeq  (r4),#md.plf!md.aia!md.aiw!md.att  ; check aia=1,aiw=1
+;
+; trp=0;pdr      0   0   0     -  any par write clears aia,aiw
+        bic     #m0.trp,mmr0        ; clear trp
+        mov     (r4),(r4)           ; write pdr->pdr, should clear aia and aiw
+        hcmpeq  (r4),#md.plf!md.att ; check aia=0,aiw=0
+;
+9000$:  reset                   ; mmu off                       ;! MMU off
+        clr     cp.psw
+        mov     #<127.*md.plf>!md.arw,kipdr6    ; restore kernel mapping
+        mov     #v..mmu+2,v..mmu                ; restore mmu catcher
+        clr     v..mmu+2
+9999$:  iot                     ; end of test E1.1
+;
+; Test E1.2 -- systematic abort/trap testing for all valid afc +++++++
+; Summary
+;   afc  action       handler  abort aia aiw trap  Comment
+;    0   tst (r3)     r-abo      anr   0   0   no
+;    0   add r0,(r3)  w-abo      anr   0   0   no
+;    1   tst (r3)     r-trap       -   1   0  yes
+;    1   add r0,(r3)  w-abo      ard   0   0   no
+;    2   tst (r3)     r-ok         -   0   0   no
+;    2   add r0,(r3)  w-abo      ard   0   0   no
+;    4   tst (r3)     r-trap       -   1   0  yes
+;    4   clr (r3)     w-trap       -   1   1  yes
+;    5   tst (r3)     r-ok         -   0   0   no
+;    5   clr (r3)     w-trap       -   1   1  yes
+;    6   tst (r3)     r-ok         -   0   0   no
+;    6   mov r0,(r3)  w-ok         -   0   1   no
+;
+te0102: mov     #vhmmut,v..mmu  ; setup MMU trap handler
+        clr     v..mmu+2        ; pr0 kernel
+        reset
+        mov     #m0.ent!m0.ena,mmr0 ; enable mmu with traps     ;! MMU 18
+        clr     vhvmmu          ; dont expect traps initially
+;
+        mov     #3000$,r5       ; ptr to data table
+        mov     #kipdr6,r4      ; keep in register
+        mov     #p6base,r3      ; probed address
+        mov     #vhvmmu,r2      ; ptr to vhvmmu
+;
+1000$:  mov     (r5)+,(r4)      ; load pdr
+        jmp     @(r5)+          ; execute case handler
+;
+; case r-ok: read, no abort, no trap
+1100$:  clr     (r2)            ; no abort/trap expected
+        tst     (r3)            ; probe read
+        br      1900$           ; to ok-check
+;
+; case  r-abo: read, abort
+1200$:  mov     #vhmmua,v..mmu  ; setup MMU abort handler
+        mov    (r5)+,1210$
+        mov    #1210$,(r2)
+        tst     (r3)            ; probe read
+        halt                    ; expect abort
+1210$:  .word   0,0
+        br      1910$           ; to abo-check
+;
+; case r-trap: read, trap
+1300$:  mov     #vhmmut,v..mmu  ; setup MMU trap handler
+        mov     #1900$,(r2)     ; to ok-check
+        tst     (r3)            ; probe read
+        halt                    ; expect trap
+;
+; case w-ok: write, no abort, no trap
+1400$:  clr     (r2)            ; no abort/trap expected
+        mov     r0,(r3)         ; probe write
+        br      1900$           ; to ok-check
+;
+; case w-abo: write, abort
+1500$:  mov     #vhmmua,v..mmu  ; setup MMU abort handler
+        mov    (r5)+,1510$
+        mov    #1510$,(r2)
+        add    r0,(r3)          ; probe write
+        halt                    ; expect abort
+1510$:  .word   0,0
+        br      1910$           ; to tr-check
+;
+; case w-trap: write, trap
+1600$:  mov     #vhmmut,v..mmu  ; setup MMU trap handler
+        mov    #1900$,(r2)
+        clr     (r3)            ; probe write
+        halt                    ; expect trap
+;
+1900$:  tst     (r5)+           ; drop unused mmr0 info
+1910$:  mov     (r5)+,r0        ; get pdrexp
+        hcmpeq  (r4),r0         ; check pdr
+        mov     (r4),(r4)       ; clear pdr aia,aiw
+        bic     #m0.trp,mmr0    ; clear mmr0 trp flag
+        tst     (r5)            ; look at next case
+        beq     9000$           ; if eq end sentinel found ?
+        br      1000$           ; if ne go for next case
+;
+3000$:  .word   md.plf                          ; afc=0 + read:  - anr -------
+        .word   1200$                           ; r-abo
+        .word   m0.anr!m0.ent!<6*m0.pno>!m0.ena ; mmr0
+        .word   md.plf                          ; pdf: no aib
+;
+        .word   md.plf                          ; afc=0 + write: - anr -------
+        .word   1500$                           ; w-abo
+        .word   m0.anr!m0.ent!<6*m0.pno>!m0.ena ; mmr0
+        .word   md.plf                          ; pdf: no aib
+;
+        .word   md.plf!md.ata                   ; afc=1 + read:  - trp aia ---
+        .word   1300$                           ; r-trap
+        .word   0                               ; mmr0
+        .word   md.plf!md.aia!md.ata            ; pdf: aia
+;
+        .word   md.plf!md.ata                   ; afc=1 + write: - ard -------
+        .word   1500$                           ; w-abo
+        .word   m0.ard!m0.ent!<6*m0.pno>!m0.ena ; mmr0
+        .word   md.plf!md.ata                   ; pdf: no aib
+;
+        .word   md.plf!md.ara                   ; afc=2 + read:  -------------
+        .word   1100$                           ; r-ok
+        .word   0                               ; mmr0
+        .word   md.plf!md.ara                   ; pdf: no aib
+;
+        .word   md.plf!md.ara                   ; afc=2 + write: - ard -------
+        .word   1500$                           ; w-abo
+        .word   m0.ard!m0.ent!<6*m0.pno>!m0.ena ; mmr0
+        .word   md.plf!md.ara                   ; pdf: no aib
+;
+        .word   md.plf!md.att                   ; afc=4 + read:  - trp aia ---
+        .word   1300$                           ; r-trap
+        .word   0                               ; mmr0
+        .word   md.plf!md.aia!md.att            ; pdf: aia
+;
+        .word   md.plf!md.att                   ; afc=4 + write  - trp aia,aiw
+        .word   1600$                           ; w-trap
+        .word   0                               ; mmr0
+        .word   md.plf!md.aia!md.aiw!md.att     ; pdf: aia aiw
+;
+        .word   md.plf!md.art                   ; afc=5 + read:  -------------
+        .word   1100$                           ; r-ok
+        .word   0                               ; mmr0
+        .word   md.plf!md.art                   ; pdf: no aib
+;
+        .word   md.plf!md.art                   ; afc=5 + write: - trp aia,aiw
+        .word   1600$                           ; w-trap
+        .word   0                               ; mmr0
+        .word   md.plf!md.aia!md.aiw!md.art     ; pdf: aia aiw
+;
+        .word   md.plf!md.arw                   ; afc=6 + read:  -------------
+        .word   1100$                           ; r-ok
+        .word   0                               ; mmr0
+        .word   md.plf!md.arw                   ; pdf: no aib
+;
+        .word   md.plf!md.arw                   ; afc=6 + write: - aiw -------
+        .word   1400$                           ; w-ok
+        .word   0                               ; mmr0
+        .word   md.plf!md.aiw!md.arw            ; pdf: aiw
+;
+        .word   0               ; end sentinel  ------------------------------
+;
+9000$:  reset                   ; mmu off                       ;! MMU off
+        clr     cp.psw
+        mov     #<127.*md.plf>!md.arw,kipdr6    ; restore kernel mapping
+        mov     #v..mmu+2,v..mmu                ; restore mmu catcher
+        clr     v..mmu+2
+9999$:  iot                     ; end of test E1.2
+;
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#13.      ; all tests done ?
+        hcmpeq  tstno,#15.      ; all tests done ?
 ;
         jmp     loop
 ;
 ; kernel handlers ============================================================
 ;
-; vhemmu - expected mmu abort/trap handler +++++++++++++++++++++++++++++++++++
-;   used to catch expected MMU aborts or traps
+; vhmmua - expected mmu abort handler ++++++++++++++++++++++++++++++++++++++++
+;   used to catch expected MMU aborts
 ;   the pointer to expected mmr0/mmr1 values must be in vhvmmu
-;   code will continue after context
+;   code will continue after the test value context
 ;   execution will clear vhvmmu
 ;   --> vhvmmu must be set for each execution
 ;   the handler uses and modifies r0,r1
 ;   --> tests should only use r2,...,r5
 ;
-vhemmu: mov     vhvmmu,r1       ; get context
+vhmmua: mov     vhvmmu,r1       ; get context
         beq     1000$           ; if 0 halt
         mov     mmr0,r0
         bic     #m0.ico,r0      ; mask ico (for Simh compatibility)
@@ -1312,6 +1618,24 @@ vhemmu: mov     vhvmmu,r1       ; get context
         rti                     ; end return to continuation address
 1000$:  halt
 vhvmmu: .word   0               ; context pointer
+;
+; vhmmut - expected mmu trap handler +++++++++++++++++++++++++++++++++++++++++
+;   used to catch expected MMU traps
+;   the pointer to continuation address must be in vhvmmu
+;   execution will clear vhvmmu
+;   --> vhvmmu must be set for each execution
+;   the handler uses and modifies r0,r1
+;   --> tests should only use r2,...,r5
+;
+vhmmut: mov     vhvmmu,r1       ; get context
+        beq     1000$           ; if 0 halt
+        mov     mmr0,r0
+        hbiteq  r0,#m0.anr!m0.ale!m0.ard    ; check abort flags 0
+        hbitne  r0,#m0.trp                  ; check trap  flag  1
+        mov     r1,(sp)         ; set up kernel return address
+        clr     vhvmmu          ; reset context
+        rti                     ; end return to continuation address
+1000$:  halt
 ;
 ; vhuemt - emt handler, drop frame, continue in kernel mode ++++++++++++++++++
 ;   use to end user/supervisor mode code with an emt xxx

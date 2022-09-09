@@ -36,7 +36,7 @@ The full set of tests is only run for tagged releases.
 - remove Atlys support (only test designs, a w11 design was never done)
 - cleanup SimH setup files (\*.scmd), use autoconfig, set disk types
 - cleanup code base, use page,mmr\*,pdr,par instead of segment,ssr\*,sdr,sar
-- sysid encodes now system type, allows to distingish w11,SimH,e11
+- sysid encodes now system type, allows to distinguish w11,SimH,e11
 - added dasm-11, a PDP-11 disassembler
 ### New features
 - new verification codes
@@ -90,12 +90,15 @@ The full set of tests is only run for tagged releases.
     - *.scmd:      set sysid to 110234 --> emu Simh
     - *.ecmd:      set sysid to 120345 --> emu e11
 ### Bug Fixes
+  - rtl/w11a
+    - pdp11_mmu: BUGFIX: correct trap and PDR A logic, see
+        [ECO-033](ECO-033-MMU_AFC-1_PDR-A.md)
+  - src/librwxxtpp
+    - RtclRw11Cpu.cpp: quit before mem write if asm-11 error seen
   - tools/asm-11/lib
     - tcode_std_start.mac: fix sdreg probe code
   - tools/mcode
     - m9312/bootw11.mac: proper init of unit number in getnam
-  - src/librwxxtpp
-    - RtclRw11Cpu.cpp: quit before mem write if asm-11 error seen
 
 <!-- --------------------------------------------------------------------- -->
 ---

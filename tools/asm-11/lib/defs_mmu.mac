@@ -1,4 +1,4 @@
-; $Id: defs_mmu.mac 1291 2022-09-03 07:00:27Z mueller $
+; $Id: defs_mmu.mac 1295 2022-09-07 16:28:55Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -53,8 +53,8 @@
         md.dwn = 000010                 ; ed field 1, down expansion
         md.an7 = 000007                 ; abort all; reserved
         md.arw = 000006                 ; allow r+w; no traps
-        md.atw = 000005                 ; allow r+w; trap w
-        md.atr = 000004                 ; allow r+w; trap r+w
+        md.art = 000005                 ; allow r+w; trap w
+        md.att = 000004                 ; allow r+w; trap r+w
         md.an3 = 000003                 ; abort all; reserved
-        md.aro = 000002                 ; allow r; abort w; no traps
-        md.art = 000001                 ; allow r; abort w; trap r
+        md.ara = 000002                 ; allow r; abort w; no traps
+        md.ata = 000001                 ; allow r; abort w; trap r

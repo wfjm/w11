@@ -1,4 +1,4 @@
--- $Id: pdp11_mmu.vhd 1279 2022-08-14 08:02:21Z mueller $
+-- $Id: pdp11_mmu.vhd 1294 2022-09-07 14:21:20Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -17,6 +17,7 @@
 --
 -- Revision History:
 -- Date         Rev Version  Comment
+-- 2022-09-05  1294   1,4.4  BUGFIX: correct trap and PDR A logic
 -- 2022-08-13  1279   1.4.3  ssr->mmr rename
 -- 2011-11-18   427   1.4.2  now numeric_std clean
 -- 2010-10-23   335   1.4.1  use ib_sel
@@ -264,9 +265,10 @@ begin
     variable abo_rdonly : slbit := '0';
     variable mmr_freeze : slbit := '0';
     variable doabort : slbit := '0';
-    variable dotrap : slbit := '0';
+    variable dotrap  : slbit := '0';
     variable dotrace : slbit := '0';
-    
+    variable iswrite : slbit := '0';
+
   begin
     
     nmmr0 := R_MMR0;
@@ -277,7 +279,8 @@ begin
 
     mmr_freeze := R_MMR0.abo_nonres or R_MMR0.abo_length or R_MMR0.abo_rdonly;
     dotrace := not(CNTL.cacc or mmr_freeze);
-    
+    iswrite := CNTL.wacc or CNTL.macc;
+
     apf := VADDR(15 downto 13);
     bn := VADDR(12 downto 6);
 
@@ -285,7 +288,7 @@ begin
     abo_length := '0';
     abo_rdonly := '0';
     doabort := '0';
-    dotrap := '0';
+    dotrap  := '0';
     
     if PARPDR.ed = '0' then             -- ed=0: upward expansion
       if unsigned(bn) > unsigned(PARPDR.plf) then
@@ -297,19 +300,39 @@ begin
       end if;
     end if;
 
+    -- ACF decision logic
+    --   w11 has 4 memory cycle types, the ACF is based only on read or write
+    --     wacc='0' macc'0' : read  cycle         --> read
+    --     wacc='1' macc'0' : write cycle         --> write
+    --     wacc='0' macc'1' : read  part of rmw   --> write
+    --     wacc='1' macc'1' : write part of rmw   --> write
+    -- Depending of ACF the MMU aborts, queues a trap, sets A and W bit in PDR
+    --   ACF   abort  trap  Comment
+    --   000  nonres     -  non-resident: abort all accesses
+    --   001  rdonly     R  read-only:    abort on write, trap on read
+    --   010  rdonly        read-only:    abort on write
+    --   011  nonres     -  unused:       abort all accesses
+    --   100       -   R+W  read/write:   no abort, trap on read or write
+    --   101       -     W  read/write:   no abort, trap on write
+    --   110       -     -  read/write:   no abort, no trap
+    --   111  nonres     -  unused:       abort all accesses
+    --
+    -- The PDR W bit is set for non-aborted write accesses
+    -- The PDR A bit is set if the trap condition is fulfilled and not aborted
+    
     case PARPDR.acf is                  -- evaluate accecc control field
 
       when "000" =>                     -- page non-resident
         abo_nonres := '1';
 
       when "001" =>                     -- read-only; trap on read
-        if CNTL.wacc='1' or CNTL.macc='1' then
+        if iswrite='1' then
           abo_rdonly := '1';
         end if;
-        dotrap := '1';
+        dotrap := not iswrite;
 
       when "010" =>                     -- read-only
-        if CNTL.wacc='1'  or CNTL.macc='1' then
+        if iswrite='1' then
           abo_rdonly := '1';
         end if;
 
@@ -317,7 +340,7 @@ begin
         dotrap := '1';
 
       when "101" =>                     -- read/write; trap on write
-        dotrap := CNTL.wacc or CNTL.macc;
+        dotrap := iswrite;
 
       when "110" => null;               -- read/write;
 
@@ -358,8 +381,8 @@ begin
         doabort := abo_nonres or abo_length or abo_rdonly;
 
         if doabort = '0' then
-          AIB_SETA <= '1';
-          AIB_SETW <= CNTL.wacc or CNTL.macc;
+          AIB_SETA <= dotrap;
+          AIB_SETW <= iswrite;
         end if;
 
         if mmr_freeze = '0' then

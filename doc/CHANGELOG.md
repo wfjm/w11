@@ -43,7 +43,7 @@ The full set of tests is only run for tagged releases.
   - tools/sys/mcode: added memclr.mac (writes zero into memory)
   - tools/tcode: fast cpu verification codes
   - tools/tests: test programs
-  - tools/bin: added dasm-11, a PDP-11 disassembler
+- tools/bin: added dasm-11, a PDP-11 disassembler
 ### Changes
 - tools changes
   - ci.yml: define TBW_GHDL_OPTS and suppress IEEE package warnings at t=0ms

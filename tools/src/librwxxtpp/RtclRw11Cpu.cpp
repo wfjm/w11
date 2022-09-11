@@ -1,9 +1,10 @@
-// $Id: RtclRw11Cpu.cpp 1280 2022-08-15 09:12:03Z mueller $
+// $Id: RtclRw11Cpu.cpp 1292 2022-09-04 06:10:05Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2022-09-03  1292   1.2.36 M_show: fix mmr1 display, better mmr0 display
 // 2022-08-11  1276   1.2.35 ssr->mmr rename
 // 2022-07-07  1249   1.2.34 BUGFIX: quit before mem write if asm-11 error seen
 // 2019-06-29  1175   1.2.33 M_ldabs(): add missing OptValid() call
@@ -1384,17 +1385,41 @@ int RtclRw11Cpu::M_show(RtclArgs& args)
         clist.AddRblk(base + Rw11Cpu::kCPMEMI, asr[2], 32);
         if (!Server().Exec(clist, emsg)) return args.Quit(emsg);
       }
-      uint16_t mmr1_0_reg = (mmr[1]    ) & 07;
-       int16_t mmr1_0_val = (mmr[1]>> 3) & 37;
-      uint16_t mmr1_1_reg = (mmr[1]>> 8) & 07;
-       int16_t mmr1_1_val = (mmr[1]>>11) & 37;
-      uint16_t mmr3_ubmap = (mmr[3]>> 5) & 01;
-      uint16_t mmr3_22bit = (mmr[3]>> 4) & 01;
-      uint16_t mmr3_d_km  = (mmr[3]>> 2) & 01;
-      uint16_t mmr3_d_sm  = (mmr[3]>> 1) & 01;
-      uint16_t mmr3_d_um  = (mmr[3]    ) & 01;
+      // use local explicit constants here, avoid to define them system wide
+      uint16_t mmr0_anr   = (mmr[0]>>15) & 001;
+      uint16_t mmr0_ale   = (mmr[0]>>14) & 001;
+      uint16_t mmr0_ard   = (mmr[0]>>13) & 001;
+      uint16_t mmr0_trp   = (mmr[0]>>12) & 001;
+      uint16_t mmr0_ent   = (mmr[0]>> 9) & 001;
+      uint16_t mmr0_ico   = (mmr[0]>> 7) & 001;
+      uint16_t mmr0_mode  = (mmr[0]>> 5) & 003;
+      uint16_t mmr0_ds    = (mmr[0]>> 4) & 001;
+      uint16_t mmr0_page  = (mmr[0]>> 1) & 007;
+      uint16_t mmr0_ena   = (mmr[0]    ) & 001;
+      uint16_t mmr1_0_reg = (mmr[1]    ) & 007;
+       int16_t mmr1_0_val = (mmr[1]>> 3) & 037;
+      uint16_t mmr1_1_reg = (mmr[1]>> 8) & 007;
+       int16_t mmr1_1_val = (mmr[1]>>11) & 037;
+      uint16_t mmr3_ubmap = (mmr[3]>> 5) & 001;
+      uint16_t mmr3_22bit = (mmr[3]>> 4) & 001;
+      uint16_t mmr3_d_km  = (mmr[3]>> 2) & 001;
+      uint16_t mmr3_d_sm  = (mmr[3]>> 1) & 001;
+      uint16_t mmr3_d_um  = (mmr[3]    ) & 001;
+
       sos << "mmu:" << endl;
-      sos << "mmr0=" << RosPrintBvi(mmr[0],8) << endl;
+      sos << "mmr0=" << RosPrintBvi(mmr[0],8);
+      if (mmr0_anr) sos << " anr";
+      if (mmr0_ale) sos << " ale";
+      if (mmr0_ard) sos << " ard";
+      if (mmr0_trp) sos << " trp";
+      if (mmr0_ent) sos << " ent";
+      if (mmr0_ico) sos << " ico";
+      sos << " page: " << RosPrintBvi(mmr0_mode,2,2)
+          << "," << RosPrintf(mmr0_ds,"d",1)
+          << "," << RosPrintf(mmr0_page,"d",1);
+      if (mmr0_ena) sos << " ena";
+      sos << endl;
+
       if (mmr1_0_val & 020) mmr1_0_val |= 0177740;
       if (mmr1_1_val & 020) mmr1_1_val |= 0177740;
       sos << "mmr1=" << RosPrintBvi(mmr[1],8);
@@ -1403,12 +1428,14 @@ int RtclRw11Cpu::M_show(RtclArgs& args)
       if (mmr1_1_val) sos << "  r" << mmr1_1_reg
                           << ":" << RosPrintf(mmr1_1_val,"d",3);
       sos << endl;
+
       sos << "mmr2=" << RosPrintBvi(mmr[2],8) << endl;
       sos << "mmr3=" << RosPrintBvi(mmr[3],8)
           << "  ubmap=" << mmr3_ubmap
           << "  22bit=" << mmr3_22bit
           << "  d-space k,s,u=" << mmr3_d_km
           << "," << mmr3_d_sm << "," << mmr3_d_um << endl;
+
       for (size_t m=0; m<3; m++) {
         sos << pmode[m] << "   "
             << " I pdr plf aw d acf     I par"

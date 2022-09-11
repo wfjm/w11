@@ -59,6 +59,8 @@ The full set of tests is only run for tagged releases.
     - tmuconv:
       - add DEUNA defs; add -t_vf,-t_all,-emcancel; fis mnemos; add headers
       - don't print em 'cancel' lines when -t-ib
+  - tools/src
+    - RtclRw11Cpu.cpp: M_show: fix mmr1 display, better mmr0 display
   - tools/tcl
     - w11/tcodes.tcl: driver for tcode execution
   - tools/oskit/\*

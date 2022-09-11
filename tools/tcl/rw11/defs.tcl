@@ -1,9 +1,10 @@
-# $Id: defs.tcl 1280 2022-08-15 09:12:03Z mueller $
+# $Id: defs.tcl 1294 2022-09-07 14:21:20Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2014-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2022-09-03  1292   1.0.10 shorter field names for MMR0,MMR1
 # 2022-08-07  1273   1.0.9  ssr->mmr rename
 # 2019-04-24  1138   1.0.8  add RCSR defs for KW11-L and KW11-P
 # 2019-03-10  1121   1.0.7  define INIT bits; define ANUM
@@ -58,13 +59,12 @@ namespace eval rw11 {
   #
   # MMR0 - MMU Page Status Register #0 -------------------------------
   set A_MMR0     0177572
-  regdsc MMR0 {abo_nonres 15} {abo_len 14}  {abo_rd 13} \
-              {trap_mmu 12} {ena_trap 9} {inst_compl 7} \
-              {mode 6 2} {dspace 4} {num 3 3} {ena 0}
+  regdsc MMR0 {anr 15} {ale 14} {ard 13} {trp 12} {ent 9} {ico 7} \
+              {mode 6 2 "s:k:s:x:u"} {ds 4 1 "s:I:D"} {page 3 3 "d"} {ena 0}
   #
   # MMR1 - MMU Page Status Register #1 -------------------------------
   set A_MMR1     0177574
-  regdsc MMR1 {delta1 15 5} {rnum1 10 3} {delta0 7 5} {rnum0 2 3}
+  regdsc MMR1 {du 15 5} {ru 10 3 "d"} {dl 7 5} {rl 2 3 "d"}
   #
   # MMR2 - MMU Page Status Register #2 -------------------------------
   set A_MMR2     0177576

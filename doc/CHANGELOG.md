@@ -95,6 +95,8 @@ The full set of tests is only run for tagged releases.
   - rtl/w11a
     - pdp11_mmu: BUGFIX: correct trap and PDR A logic, see
         [ECO-033](ECO-033-MMU_AFC-1_PDR-A.md)
+    - pdp11_sequencer: BUGFIX: use I space for all mode=1,2,3 if reg=pc, see
+        [ECO-034](ECO-034-MMU_d-space-pc.md)
   - src/librwxxtpp
     - RtclRw11Cpu.cpp: quit before mem write if asm-11 error seen
   - tools/asm-11/lib

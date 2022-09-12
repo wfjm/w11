@@ -1,4 +1,4 @@
--- $Id: pdp11_sequencer.vhd 1279 2022-08-14 08:02:21Z mueller $
+-- $Id: pdp11_sequencer.vhd 1297 2022-09-10 13:04:37Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,6 +13,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-09-08  1296   1.6.14 BUGFIX: use I space for all mode=1,2,3 if reg=pc
 -- 2022-08-13  1279   1.6.13 ssr->mmr rename
 -- 2019-08-17  1203   1.6.12 fix for ghdl V0.36 -Whide warnings
 -- 2018-10-07  1054   1.6.11 drop ITIMER, use DM_STAT_SE.itimer
@@ -395,9 +396,9 @@ begin
                            pwstate  : in state_type;
                            pbytop   : in slbit := '0';
                            pmacc    : in slbit := '0';
-                           pis_pci  : in slbit := '0') is
+                           pispace  : in slbit := '0') is
     begin
-      pnvmcntl.dspace := not pis_pci;        -- ispace if pc immediate modes
+      pnvmcntl.dspace := not pispace;
 --      bytop := R_IDSTAT.is_bytop and not is_addr;
       pnvmcntl.bytop := pbytop;
       pnvmcntl.macc  := pmacc;
@@ -433,9 +434,10 @@ begin
     procedure do_memwrite(pnstate  : inout state_type;
                           pnvmcntl : inout vm_cntl_type;
                           pwstate  : in state_type;
-                          pmacc    : in slbit :='0') is
+                          pmacc    : in slbit :='0';
+                          pispace  : in slbit := '0') is
     begin
-      pnvmcntl.dspace := '1';
+      pnvmcntl.dspace := not pispace;
       pnvmcntl.bytop := R_IDSTAT.is_bytop;
       pnvmcntl.wacc := '1';
       pnvmcntl.macc := pmacc;
@@ -1022,7 +1024,7 @@ begin
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_dsrc; -- VA = DSRC
         do_memread_d(nstate, nvmcntl, s_srcr_def_w,
                      pbytop=>R_IDSTAT.is_bytop,
-                     pis_pci=>R_IDSTAT.is_srcpcmode1);
+                     pispace=>R_IDSTAT.is_srcpcmode1);
 
       when s_srcr_def_w =>              -- -----------------------------------
         nstate := s_srcr_def_w;
@@ -1054,7 +1056,7 @@ begin
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_dsrc; -- VA = DSRC
         bytop := R_IDSTAT.is_bytop and not SRCDEF;
         do_memread_d(nstate, nvmcntl, s_srcr_inc_w,
-                     pbytop=>bytop, pis_pci=>R_IDSTAT.is_srcpc);
+                     pbytop=>bytop, pispace=>R_IDSTAT.is_srcpc);
         
       when s_srcr_inc_w =>              -- -----------------------------------
         nstate := s_srcr_inc_w;
@@ -1186,7 +1188,8 @@ begin
       when s_dstr_def =>                -- -----------------------------------
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_ddst; -- VA = DDST
         do_memread_d(nstate, nvmcntl, s_dstr_def_w,
-                     pbytop=>R_IDSTAT.is_bytop, pmacc=>R_IDSTAT.is_rmwop);
+                     pbytop=>R_IDSTAT.is_bytop, pmacc=>R_IDSTAT.is_rmwop,
+                     pispace=>R_IDSTAT.is_dstpc);
 
       when s_dstr_def_w =>              -- -----------------------------------
         nstate := s_dstr_def_w;
@@ -1211,7 +1214,7 @@ begin
         macc  := R_IDSTAT.is_rmwop and not DSTDEF;
         bytop := R_IDSTAT.is_bytop and not DSTDEF;
         do_memread_d(nstate, nvmcntl, s_dstr_inc_w,
-                     pbytop=>bytop, pmacc=>macc, pis_pci=>R_IDSTAT.is_dstpc);
+                     pbytop=>bytop, pmacc=>macc, pispace=>R_IDSTAT.is_dstpc);
         
       when s_dstr_inc_w =>              -- -----------------------------------
         nstate := s_dstr_inc_w;
@@ -1335,7 +1338,7 @@ begin
         ndpcntl.dres_sel := R_IDSTAT.res_sel;      -- DRES = choice of idec
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_ddst; -- VA = DDST
         nvmcntl.kstack := is_dstkstack1246;
-        do_memwrite(nstate, nvmcntl, s_dstw_def_w);
+        do_memwrite(nstate, nvmcntl, s_dstw_def_w, pispace=>R_IDSTAT.is_dstpc);
         
       when s_dstw_def_w =>              -- -----------------------------------
         nstate := s_dstw_def_w;
@@ -1354,7 +1357,7 @@ begin
         if DSTDEF = '0' then
           ndpcntl.dres_sel := R_IDSTAT.res_sel;      -- DRES = choice of idec
           nvmcntl.kstack := is_dstkstack1246;
-          do_memwrite(nstate, nvmcntl, s_dstw_inc_w);
+          do_memwrite(nstate, nvmcntl, s_dstw_inc_w, pispace=>R_IDSTAT.is_dstpc);
           nstatus.do_gprwe := '1';
         else
           ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
@@ -1363,7 +1366,7 @@ begin
           nmmumoni.regmod := '1';
           nmmumoni.isdec := '0';
           do_memread_d(nstate, nvmcntl, s_dstw_incdef_w,
-                       pis_pci=>R_IDSTAT.is_dstpc);
+                       pispace=>R_IDSTAT.is_dstpc);
         end if;
         
       when s_dstw_inc_w =>              -- -----------------------------------
@@ -1495,7 +1498,7 @@ begin
           do_fork_opa(nstate, R_IDSTAT);
         else
           do_memread_d(nstate, nvmcntl, s_dsta_incdef_w,
-                       pis_pci=>R_IDSTAT.is_dstpc);          
+                       pispace=>R_IDSTAT.is_dstpc);
         end if;
           
       when s_dsta_incdef_w =>           -- -----------------------------------

@@ -1,10 +1,10 @@
-; $Id: cpu_mmu.mac 1295 2022-09-07 16:28:55Z mueller $
+; $Id: cpu_mmu.mac 1297 2022-09-10 13:04:37Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2022-09-06  1294   1.0    Initial version
+; 2022-09-10  1297   1.0    Initial version
 ; 2022-07-24  1262   0.1    First draft
 ;
 ; Test CPU MMU: all aspects of the MMU
@@ -13,6 +13,7 @@
 ;   Section C: mmr1+mmr0 register, aborts
 ;   Section D: mmr2+mmr1+mmr0 register, abort recovery
 ;   Section E: traps and pdr aia and aiw bits
+;   Section F: miscellaneous
 ;
         .include        |lib/tcode_std_base.mac|
         .include        |lib/defs_mmu.mac|
@@ -32,8 +33,11 @@
        sipar7 = sipar+16
 
        kipdr0 = kipdr+ 0
+       kdpdr0 = kdpdr+ 0
        kipdr6 = kipdr+14
        kipar6 = kipar+14
+       kdpdr6 = kdpdr+14
+       kdpar6 = kdpar+14
        kipdr7 = kipdr+16
        kipar7 = kipar+16
 
@@ -1588,10 +1592,80 @@ te0102: mov     #vhmmut,v..mmu  ; setup MMU trap handler
         clr     v..mmu+2
 9999$:  iot                     ; end of test E1.2
 ;
+; Section F: miscellaneous ===================================================
+;
+; Test F1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;
+; Test F1.1 -- test D-to-I mapping for (PC) address modes ++++++++++++
+; In case of immediate (pc)+ and absolute @(pc)+ addressing the first read
+; comes from I space. Same holds for (pc) specifiers. The remaining two modes
+; -(pc) and @-(pc) have no practical use and cant even be tested.
+; The test runs with D space disabled and the D page 0 set non-resident.
+; If any access to D space will cause an MMU abort. Because kernel D page 0 is
+; non-resident, the vector fetch will fail and the CPU halts with an F:vecfet.
+;
+; Summary
+;    (pc)+ src:   mov #nnn,r0
+;    (pc)+ dstr:  tst #nnn
+;    (pc)+ dstr:  cmp r0,#nnn
+;    (pc)+ dstw:  mov r0,#nnn
+;   @(pc)+ src:   mov @#val,r0
+;   @(pc)+ dstr:  tst @#val
+;   @(pc)+ dstr:  cmp r0,@#val
+;   @(pc)+ dstw:  mov r0,@#val
+;    (pc)  src:   mov (pc),r0
+;    (pc)  dstr:  tst (pc)
+;    (pc)  dstr:  cmp r0,(pc)
+;    (pc)  dstw:  mov r0,(pc)
+;
+tf0101: mov     #m3.dkm,mmr3    ; enable D space for kernel
+        clr     kdpdr0          ; ensure D space non-resident
+        mov     kipdr6,kdpdr6   ; set up page 6 D space 1-to-0
+        mov     kipar6,kdpar6
+;
+        mov     #234,100$+2     ; restore target
+        mov     #345,p6base     ; restore target
+        mov     #ccc,300$       ; restore target
+        clr     r2
+        mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 18
+;
+; (pc)+
+        mov     #123,r0         ; src  immediate
+        tst     #123            ; dstr immediate
+        cmp     r0,#123         ; dstr immediate
+100$:   mov     r0,#234         ; dstw immediate (overwrites I space!)
+;
+; @(pc)+
+        mov     @#p6base,r1     ; src  absolute
+        tst     @#p6base        ; dstr absolute
+        cmp     r1,@#p6base     ; dstr absolute
+        mov     r0,@#p6base     ; dstw absolute (write #123 to D space)
+;
+; (pc)
+        mov     (pc),r2         ; src  (read next instruction, a ccc)
+200$:   ccc
+        tst     (pc)            ; dstr (read next instruction)
+        cmp     r2,(pc)         ; dstr (read next instruction)
+        mov     r2,(pc)         ; dstw (overwrites I space!)
+300$:   scc
+;
+        reset                   ; mmu off                       ;! MMU off
+        hcmpeq  100$+2,#123     ; I space overwritten ?
+        hcmpeq  p6base,#123     ; D space overwritten ?
+        hcmpeq  r2,200$         ; read from I space ?
+        hcmpeq  300$,#ccc
+;
+        clr     kdpdr6          ; reset kdpdr6
+        clr     kdpar6          ; reset kdpar6
+        mov     #v..mmu+2,v..mmu                ; restore mmu catcher
+        clr     v..mmu+2
+;
+9999$:  iot                     ; end of test F1.1
+;
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#15.      ; all tests done ?
+        hcmpeq  tstno,#16.      ; all tests done ?
 ;
         jmp     loop
 ;

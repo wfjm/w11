@@ -1,5 +1,31 @@
 # Resolved issues
 
+### V0.791-3 {[issue #35](https://github.com/wfjm/w11/issues/35)} -- MMU: D space used instead of I space for PC deferred specifiers
+
+Test 072 of `ekbee1` fails with
+```
+    D-SPACE ENABLE CIRCUITRY HAS FAILED
+    ERROR   AUTOI/D VIRTUAL
+    REGISTR REGISTR ADDRESS TESTNO  PC AT ABORT
+    100027  000000  060410  000072  060412
+    100027  000027  060416  000072  060422
+```
+The test does
+```
+    060410: tst  (pc)
+    060416: cmp  #240,(pc)
+```
+and expects that these accesses are done to I space.  
+They are done to D space instead.
+
+The w11 uses D space only for `(pc)+` and `@(pc)+` specifiers.  
+Clearly a bug.  
+Wasn't detected so far because this access mode has no practical value  
+and this therefore not used in normal software.
+
+Fixed with commit [278d2e2](https://github.com/wfjm/w11/commit/278d2e2),
+see [ECO-034](ECO-034-MMU_d-space-pc.md).
+
 ### V0.791-2 {[issue #34](https://github.com/wfjm/w11/issues/34)} -- MMU: ACF=1 traps on any access
 
 Test 055 of `ekbee1` fails with

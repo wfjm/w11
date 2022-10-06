@@ -1,4 +1,4 @@
--- $Id: pdp11.vhd 1279 2022-08-14 08:02:21Z mueller $
+-- $Id: pdp11.vhd 1301 2022-10-06 08:53:46Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -11,6 +11,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-10-03  1301   1.6.14 add decode_stat_type.is_dstpcmode1
 -- 2022-08-13  1279   1.6.13 ssr->mmr rename
 -- 2019-06-02  1159   1.6.12 add rbaddr_ constants
 -- 2019-03-01  1116   1.6.11 define c_init_rbf_greset
@@ -253,6 +254,7 @@ package pdp11 is
     is_srcpc : slbit;                   -- source is pc
     is_srcpcmode1 : slbit;              -- source is pc and mode=1
     is_dstpc : slbit;                   -- dest. is pc
+    is_dstpcmode1 : slbit;              -- dest. is pc and mode=1
     is_dstw_reg : slbit;                -- dest. register to be written
     is_dstw_pc  : slbit;                -- pc register to be written
     is_rmwop : slbit;                   -- read-modify-write operation
@@ -286,7 +288,7 @@ package pdp11 is
   end record decode_stat_type;
   
   constant decode_stat_init : decode_stat_type := (
-    '0','0','0','0','0','0','0','0','0', -- is_
+    '0','0','0','0','0','0','0','0','0','0', -- is_
     '0','0',"000",'0','0',               -- op_, trap_, force_, updt_
     "00","00","00",'0',"000",            -- aunit_
     "0000","00","000",                   -- lunit_, munit_, res_

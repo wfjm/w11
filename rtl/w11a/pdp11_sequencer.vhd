@@ -1,4 +1,4 @@
--- $Id: pdp11_sequencer.vhd 1297 2022-09-10 13:04:37Z mueller $
+-- $Id: pdp11_sequencer.vhd 1301 2022-10-06 08:53:46Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,6 +13,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-10-03  1301   1.6.15 finalize fix for I space mode=1 in s_dstr_def
 -- 2022-09-08  1296   1.6.14 BUGFIX: use I space for all mode=1,2,3 if reg=pc
 -- 2022-08-13  1279   1.6.13 ssr->mmr rename
 -- 2019-08-17  1203   1.6.12 fix for ghdl V0.36 -Whide warnings
@@ -1189,7 +1190,7 @@ begin
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_ddst; -- VA = DDST
         do_memread_d(nstate, nvmcntl, s_dstr_def_w,
                      pbytop=>R_IDSTAT.is_bytop, pmacc=>R_IDSTAT.is_rmwop,
-                     pispace=>R_IDSTAT.is_dstpc);
+                     pispace=>R_IDSTAT.is_dstpcmode1);
 
       when s_dstr_def_w =>              -- -----------------------------------
         nstate := s_dstr_def_w;

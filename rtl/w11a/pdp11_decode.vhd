@@ -1,4 +1,4 @@
--- $Id: pdp11_decode.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: pdp11_decode.vhd 1301 2022-10-06 08:53:46Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -9,9 +9,10 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2022.1; ghdl 0.18-2.0.0
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-10-03  1301   1.0.7  add STAT.is_dstpcmode1
 -- 2011-11-18   427   1.0.6  now numeric_std clean
 -- 2010-09-18   300   1.0.5  rename (adlm)box->(oalm)unit
 -- 2008-11-30   174   1.0.4  BUGFIX: add updt_dstadsrc; set for MFP(I/D)
@@ -85,6 +86,7 @@ begin
     nstat.is_srcpc := '0';
     nstat.is_srcpcmode1 := '0';
     nstat.is_dstpc := '0';
+    nstat.is_dstpcmode1 := '0';
     nstat.is_dstw_reg := '0';
     nstat.is_dstw_pc := '0';
     nstat.is_rmwop := '0';
@@ -140,6 +142,9 @@ begin
     
     if DSTREG = c_gpr_pc then
       nstat.is_dstpc := '1';
+      if DSTMODF = "001" then
+        nstat.is_dstpcmode1 := '1';
+      end if;
     end if;
 
     if OPPRIM = "000" then

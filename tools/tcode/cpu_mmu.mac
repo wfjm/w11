@@ -1,4 +1,4 @@
-; $Id: cpu_mmu.mac 1297 2022-09-10 13:04:37Z mueller $
+; $Id: cpu_mmu.mac 1301 2022-10-06 08:53:46Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -1596,7 +1596,7 @@ te0102: mov     #vhmmut,v..mmu  ; setup MMU trap handler
 ;
 ; Test F1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;
-; Test F1.1 -- test D-to-I mapping for (PC) address modes ++++++++++++
+; Test F1.1 -- test D-to-I mapping for (PC) address modes I ++++++++++
 ; In case of immediate (pc)+ and absolute @(pc)+ addressing the first read
 ; comes from I space. Same holds for (pc) specifiers. The remaining two modes
 ; -(pc) and @-(pc) have no practical use and cant even be tested.
@@ -1605,22 +1605,22 @@ te0102: mov     #vhmmut,v..mmu  ; setup MMU trap handler
 ; non-resident, the vector fetch will fail and the CPU halts with an F:vecfet.
 ;
 ; Summary
-;    (pc)+ src:   mov #nnn,r0
+;    (pc)+ srcr:  mov #nnn,r0
 ;    (pc)+ dstr:  tst #nnn
 ;    (pc)+ dstr:  cmp r0,#nnn
 ;    (pc)+ dstw:  mov r0,#nnn
-;   @(pc)+ src:   mov @#val,r0
+;   @(pc)+ srcr:  mov @#val,r0
 ;   @(pc)+ dstr:  tst @#val
 ;   @(pc)+ dstr:  cmp r0,@#val
 ;   @(pc)+ dstw:  mov r0,@#val
-;    (pc)  src:   mov (pc),r0
+;    (pc)  srcr:  mov (pc),r0
 ;    (pc)  dstr:  tst (pc)
 ;    (pc)  dstr:  cmp r0,(pc)
 ;    (pc)  dstw:  mov r0,(pc)
 ;
 tf0101: mov     #m3.dkm,mmr3    ; enable D space for kernel
         clr     kdpdr0          ; ensure D space non-resident
-        mov     kipdr6,kdpdr6   ; set up page 6 D space 1-to-0
+        mov     kipdr6,kdpdr6   ; set up page 6 D space 1-to-1
         mov     kipar6,kdpar6
 ;
         mov     #234,100$+2     ; restore target
@@ -1662,10 +1662,50 @@ tf0101: mov     #m3.dkm,mmr3    ; enable D space for kernel
 ;
 9999$:  iot                     ; end of test F1.1
 ;
-; END OF ALL TESTS - loop closure ============================================
+; Test F1.2 -- test D-to-I mapping for (PC) address modes II +++++++++
+; In case of absolute @(pc)+ addressing the first access goes to I space
+; and the second to D space. The test uses page 6 as target and runs with
+; D page 6 mapped and the I page 6 set non-resident.
+;
+; Summary
+;    @(pc)+  srcr:  mov @#val,r0
+;    @(pc)+  dstr:  cmp r0,@#val
+;    @(pc)+  dstw:  mov r0,@#val
+;
+tf0102: mov     #154345,@#p6base ; inititialize target
+        mov     #m3.dkm,mmr3    ; enable D space for kernel
+        mov     kipdr6,kdpdr6   ; set up page 6 D space 1-to-1
+        mov     kipar6,kdpar6
+        push    kipdr6          ; save I page 6
+        clr     kipdr6          ; ensure I page 6 non-resident
+        mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 18
+;
+; @(pc)+  srcr
+        mov     @#p6base,r1
+; @(pc)+  dstr
+        cmp     r1,@#p6base
+        beq     100$
+        halt
+100$:   mov     r1,r2
+        inc     r2
+; @(pc)+  dstw
+        mov     r2,@#p6base
+;
+        reset                   ; mmu off                       ;! MMU off
+        pop     kipdr6          ; restore I page 6
+        clr     kdpdr6          ; reset kdpdr6
+        clr     kdpar6          ; reset kdpar6
+;
+        hcmpeq  r1,#154345
+        hcmpeq  @#p6base,#154346
+;
+9999$:  iot                     ; end of test F1.2
+;
+; Summary
+;; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#16.      ; all tests done ?
+        hcmpeq  tstno,#17.      ; all tests done ?
 ;
         jmp     loop
 ;

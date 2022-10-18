@@ -1,4 +1,4 @@
-# $Id: tb_pdp11core_stim.dat 1289 2022-08-29 12:31:04Z mueller $
+# $Id: tb_pdp11core_stim.dat 1303 2022-10-17 17:55:51Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2007-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -1314,7 +1314,6 @@ bwm     2
         000000    --   PS:0
 #-----------------------------------------------------------------------------
 C Setup code 20 [base 4700] (check CPUERR and error handling)
-#  !! test_w11a_cpuerr.tcl --> only partial implementation !!
 #[[off]]
 wal     004700    -- code (to be single stepped...)
 bwm     11
@@ -1340,6 +1339,8 @@ bwm     4
 #----------
 C Exec code 20 (check CPUERR and error handling)
 C Exec test 20.1 (odd address abort)
+# now tested with cpu_details.mac:A2.2; test_w11a_cpuerr.tcl
+#
 cres              -- console reset
 wps     000000    -- psw: clear
 wal     001374    -- clean stack
@@ -1365,6 +1366,8 @@ wm      000000    --   any write access will clear CPUERR
 rm    d=000000    -- ! CPUERR: 0
 #----------
 C Exec test 20.2 (non-existent memory abort)
+# now tested with cpu_details.mac:A2.3; test_w11a_cpuerr.tcl
+#
 wal     172354    -- kernel I space AR(6)
 wm      177400    --  (map to 8 k below I/O page, never available in w11a)
 wal     177572    -- MMR0
@@ -1389,6 +1392,8 @@ wal     172354    -- kernel I space AR(6)
 wm      001400    --    1400    140000 base (default 1-to-1 map)
 #----------
 C Exec test 20.3 (I/O bus timeout abort)
+# now tested with cpu_details.mac:A2.4; test_w11a_cpuerr.tcl
+#
 wr5     160000    -- r5=160000
 wsp     001400    -- sp=1400
 wpc     004704    -- pc=4704
@@ -1420,6 +1425,8 @@ rm    d=000000    -- ! CPUERR: none
 wm      000000    --   clear CPUERR
 #----------
 C Exec test 20.6 (halt in user mode)
+# now tested with cpu_details.mac:A2.1; test_w11a_cpuerr.tcl
+#
 wsp     001400    -- sp=1400 (kernel)
 wpc     004712    -- pc=4712
 wps     170000    -- psw:  cmode=pmode=11 (user)
@@ -1571,6 +1578,8 @@ wmi     000000    --   disable
 # now test stack limit logic
 #
 C Exec test 20.12 (red stack abort when pushing data to stack)
+# now tested with cpu_details.mac:A2.6; test_w11a_cpuerr.tcl
+#
 wr0     123456    -- r0=123456
 wsp     000340    -- sp=340 
 wpc     004722    -- pc=4722
@@ -1607,6 +1616,8 @@ C Exec test 20.13 (red stack abort on 2nd word of interrupt/trap push)
 #wm      000000    --   clear CPUERR
 #----------
 C Exec test 20.14 (yellow stack trap when pushing data to stack; sp=400)
+# now tested with cpu_details.mac:A2.5; test_w11a_cpuerr.tcl
+#
 wps     000017    -- psw: set all cc flags
 wr0     123456    -- r0=123456
 wsp     000400    -- sp=400
@@ -1643,6 +1654,8 @@ wm      000000    --   clear CPUERR
 # now test red stack escalation
 #
 C Exec test 20.16 (red stack escalation: abort kernel stack odd; sp=1001)
+# now tested with cpu_details.mac:A2.7
+#
 wr0     123456    -- r0=123456
 wsp     001001    -- sp=1001
 wpc     004722    -- pc=4722
@@ -1658,6 +1671,8 @@ rm    d=000104    -- ! CPUERR: (rsv=1,adderr=1)
 wm      000000    --   clear CPUERR
 #----------
 C Exec test 20.17 (red stack escalation: abort kernel stack in non-mem)
+# now tested with cpu_details.mac:A2.8
+#
 wal     172354    -- kernel I space AR(6)
 wm      177400    --  (map to 8 k below I/O page, never available in w11a)
 wal     177572    -- MMR0
@@ -1685,6 +1700,8 @@ wal     172354    -- kernel I space AR(6)
 wm      001400    --    1400    140000 base (default 1-to-1 map)
 #----------
 C Exec test 20.18 (red stack escalation: abort kernel stack iob-to;sp=160004)
+# now tested with cpu_details.mac:A2.9
+#
 wr0     123456    -- r0=123456
 wsp     160004    -- sp=160004
 wpc     004722    -- pc=4722
@@ -1700,6 +1717,7 @@ rm    d=000024    -- ! CPUERR: (rsv=1,iobto=1)
 wm      000000    --   clear CPUERR
 #----------
 C Exec test 20.19 (red stack escalation: abort kernel stack mmu abort;sp=020004)
+# now tested with cpu_details.mac:A2.10
 #
 wal     177572    -- MMR0
 wmi     000001    --   enable

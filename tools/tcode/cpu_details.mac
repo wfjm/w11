@@ -1,4 +1,4 @@
-; $Id: cpu_details.mac 1264 2022-07-30 07:42:17Z mueller $
+; $Id: cpu_details.mac 1303 2022-10-17 17:55:51Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -13,6 +13,35 @@
 ;   Section C: 11/70 specifics
 ;
         .include        |lib/tcode_std_base.mac|
+        .include        |lib/defs_mmu.mac|
+;
+; Preface: set up MMU for kernel mode (for some tests) =======================
+;
+        mov     #kipdr,r0
+        mov     #<127.*md.plf>!md.arw,r1  ; plf=127; ed=0(up); acf=6(w/r)
+        mov     r1,(r0)+        ; kipdr0
+        mov     r1,(r0)+        ; kipdr1
+        mov     r1,(r0)+        ; kipdr2
+        mov     r1,(r0)+        ; kipdr3
+        mov     r1,(r0)+        ; kipdr4
+        mov     r1,(r0)+        ; kipdr5
+        mov     r1,(r0)+        ; kipdr6
+        mov     r1,(r0)+        ; kipdr7
+        mov     #kipar,r0
+        mov     #000000,(r0)+   ; kipar0 000000 base
+        mov     #000200,(r0)+   ; kipar1 020000 base
+        mov     #000400,(r0)+   ; kipar2 040000 base
+        mov     #000600,(r0)+   ; kipar3 060000 base
+        mov     #001000,(r0)+   ; kipar4 100000 base
+        mov     #001200,(r0)+   ; kipar5 120000 base
+        mov     #001400,(r0)+   ; kipar6 140000 base
+        mov     #177600,(r0)+   ; kipar7 (map I/O page)
+;
+; some useful definitions
+       kipdr5 = kipdr+12
+       kipdr6 = kipdr+14
+       kipar6 = kipar+14
+       p6base = <6*20000>               ; page 6
 ;
 ; Section A: CPU registers ===================================================
 ;
@@ -113,6 +142,218 @@ ta0101: mov     #1000$,v..pir     ; setup handler
 1300$:  .word   0
 ;
 9999$:  iot                     ; end of test A1.1
+;
+; Test A2:  CPUERR +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies operation of CPUERR register
+;
+; setup for all A2.* tests
+        mov     #cp.err,r0      ; ptr tp CPUERR
+        mov     #vhugen,v..iit  ; set iit handler
+        clr     v..iit+2        ; pr0 kernel
+;
+; Test A2.1 -- CPUERR cp.hlt +++++++++++++++++++++++++++++++++++++++++
+;   Test cp.hlt: halt in non-kernel mode
+;
+ta0201: mov     #177777,(r0)    ; clear CPUERR (any write should)
+        hcmpeq  (r0),#0         ; ensure that CPUERR is zero
+;
+        mov     #4000$,r2       ; mode list (user,supervisor)
+        mov     #2,r3           ; number of modes
+;
+1000$:  clr     r1              ; clear tracer
+        mov     #3000$,vhustp     ; continuation address
+        push    (r2)+             ; frame: psw
+        push    #2000$            ; frame: address
+        rti                     ; start user mode code
+        halt
+;
+2000$:  inc     r1              ; proof of execution
+        halt                    ; that will abort
+        inc     r1
+        tst     @#001           ; that must abort
+;
+3000$:  hcmpeq  r1,#1           ; check tracer
+        hcmpeq  (r0),#cp.hlt    ; check CPUERR
+        mov     #cp.rsv,(r0)    ; clear CPUERR (any write should)
+        hcmpeq  (r0),#0         ; check CPUERR
+;
+        sob     r3,1000$        ; go for next mode
+;
+        br      9999$
+;
+4000$:  .word   <cp.cmu!cp.pmu> ; user mode
+        .word   <cp.cms!cp.pms> ; supervisor mode
+;
+9999$:  iot                     ; end of test A2.1
+;
+; Test A2.2 -- CPUERR cp.aer +++++++++++++++++++++++++++++++++++++++++
+;   Test cp.aer: address error abort
+;
+ta0202: mov     #1000$,vhustp   ; continuation address
+        tst     @#001           ; odd address access
+        halt
+1000$:  hcmpeq  (r0),#cp.aer    ; check CPUERR
+        clr     (r0)            ; clear CPUERR (any write should)
+        hcmpeq  (r0),#0         ; check CPUERR
+;
+9999$:  iot                     ; end of test A2.2
+;
+; Test A2.3 -- CPUERR cp.nxm +++++++++++++++++++++++++++++++++++++++++
+;   Test cp.nxm: non-existent memory abort
+;   Use unibus map address space (248kB) below the I/O page, the w11
+;   will return a non-existent memory abort even in a maximum memory
+;   configuration.
+;
+ta0203: cmp     systyp,#sy.e11  ; e11 V7.3 return wrong CPUERR value
+        beq     9999$
+        push    kipar6          ; save kipar6
+        mov     #177400,kipar6
+        mov     #m3.e22,mmr3    ; 22-bit mode
+        mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 22
+;
+        mov     #1000$,vhustp   ; continuation address
+        tst     p6base          ; access non-existing memory
+        halt
+1000$:  hcmpeq  (r0),#cp.nxm    ; check CPUERR
+        com     (r0)            ; clear CPUERR (any write should)
+        hcmpeq  (r0),#0         ; check CPUERR
+;
+        reset                   ; disable mmu                   ;! MMU off
+        pop     kipar6          ; restore kipar6
+9999$:  iot                     ; end of test A2.3
+;
+; Test A2.4 -- CPUERR cp.ito +++++++++++++++++++++++++++++++++++++++++
+;   Test cp.ito: unibus timeout abort
+;   Use first address in I/O page (160000), always unused in w11
+;
+ta0204: mov     #1000$,vhustp   ; continuation address
+        tst     @#160000        ; access non-existing unibus device
+        halt
+1000$:  hcmpeq  (r0),#cp.ito    ; check CPUERR
+        clr     (r0)            ; clear CPUERR (any write should)
+        hcmpeq  (r0),#0         ; check CPUERR
+;
+9999$:  iot                     ; end of test A2.4
+;
+; Test A2.5 -- CPUERR cp.ysv +++++++++++++++++++++++++++++++++++++++++
+;   Test cp.ysv: yellow stack trap
+;   Since stack is still usable after the trap, the vhugen handler can be used.
+;
+ta0205: cmp     systyp,#sy.e11  ; e11 V7.3 doesnt trap, runs on hold
+        beq     9999$
+        mov     #1000$,vhustp   ; continuation address
+        mov     #400,sp
+        clr     -(sp)           ; should trap (not abort)
+        halt                    ; not executed, handler continues at 1000$
+1000$:  hcmpeq  (r0),#cp.ysv    ; check CPUERR
+        clr     (r0)            ; clear CPUERR (any write should)
+        hcmpeq  (r0),#0         ; check CPUERR
+;
+        mov     #stack,sp
+9999$:  iot                     ; end of test A2.5
+;
+; Test A2.6 -- CPUERR cp.rsv +++++++++++++++++++++++++++++++++++++++++
+;   Test cp.rsv: red stack trap - simple low stack case
+;
+ta0206: cmp     systyp,#sy.e11  ; e11 V7.3 doesnt abort, runs on hold
+        beq     9999$
+        mov     #1000$,v..iit   ; setup direct iit handler
+        mov     #340,sp
+        clr     -(sp)           ; should abort (not trap)
+        halt
+1000$:  mov     #stack,sp       ; direct iit handler
+        hcmpeq  (r0),#cp.rsv    ; check CPUERR
+        clr     (r0)            ; clear CPUERR (any write should)
+        hcmpeq  (r0),#0         ; check CPUERR
+;
+9999$:  iot                     ; end of test A2.6
+;
+; Test A2.7 -- CPUERR cp.rsv+cp.aer (odd address) ++++++++++++++++++++
+;   Test cp.rsv: red stack escalation after odd stack
+;
+ta0207: cmp     systyp,#sy.e11  ; e11 V7.3 pushes to odd stack, abort after halt
+        beq     9999$
+        mov     #1000$,v..iit   ; setup direct iit handler
+        mov     #stack-1,sp
+        clr     -(sp)           ; odd-address abort, escalated to red stack
+        halt
+1000$:  mov     #stack,sp       ; direct iit handler
+        hcmpeq  (r0),#<cp.rsv+cp.aer> ; check CPUERR
+        clr     (r0)            ; clear CPUERR (any write should)
+        hcmpeq  (r0),#0         ; check CPUERR
+;
+9999$:  iot                     ; end of test A2.7
+;
+; Test A2.8 -- CPUERR cp.rsv+cp.nxm ++++++++++++++++++++++++++++++++++
+;   Test cp.rsv: red stack escalation after non-existent memory abort
+;   Setup like in A2.3, put stack at p6base+4
+;
+ta0208: cmp     systyp,#sy.e11  ; e11 V7.3 pushes to bad stack, abort after halt
+        beq     9999$
+        mov     #1000$,v..iit   ; setup direct iit handler
+        mov     #177400,kipar6
+        mov     #m3.e22,mmr3    ; 22-bit mode
+        mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 22
+;
+        mov     #p6base+4,sp    ; stack in non-existing memory
+        clr     -(sp)           ; non-existing memory, escalated to red stack
+        halt
+1000$:  mov     #stack,sp       ; direct iit handler
+        hcmpeq  (r0),#<cp.rsv+cp.nxm> ; check CPUERR
+        clr     (r0)            ; clear CPUERR (any write should)
+        hcmpeq  (r0),#0         ; check CPUERR
+;
+        reset                                                   ;! MMU off
+        mov     #001400,kipar6  ; restore kipar6
+;
+9999$:  iot                     ; end of test A2.8
+;
+; Test A2.9 -- CPUERR cp.rsv+cp.ito ++++++++++++++++++++++++++++++++++
+;   Test cp.rsv: red stack escalation after unibus timeout
+;   Setup like in A2.4, put stack at 160004
+;
+ta0209: cmp     systyp,#sy.e11  ; e11 V7.3 pushes to bad stack, abort after halt
+        beq     9999$
+        mov     #1000$,v..iit   ; setup direct iit handler
+        mov     #160004,sp      ; stack at non-existing unibus device
+        clr     -(sp)           ; non-existing memory, escalated to red stack
+        halt
+1000$:  mov     #stack,sp       ; direct iit handler
+        hcmpeq  (r0),#<cp.rsv+cp.ito> ; check CPUERR
+        clr     (r0)            ; clear CPUERR (any write should)
+        hcmpeq  (r0),#0         ; check CPUERR
+;
+9999$:  iot                     ; end of test A2.9
+;
+; Test A2.10 -- CPUERR cp.rsv+cp.aer (mmu abort) +++++++++++++++++++++
+;   Test cp.rsv: red stack escalation after mmu timeout
+;   Set kernel I page 6 to non-resident
+;
+ta0210: cmp     systyp,#sy.sih  ; this red stack escalation fails in SimH
+        beq     9999$
+        cmp     systyp,#sy.e11  ; e11 V7.3 pushes to bad stack, does MMU 250
+        beq     9999$
+        mov     #1000$,v..iit   ; setup direct iit handler
+        clr     kipdr6          ; set non-resident
+        mov     #m3.e22,mmr3    ; 22-bit mode
+        mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 22
+;
+        mov     #p6base+4,sp    ; stack in non-resident memory
+        clr     -(sp)           ; MMU abort, escalated to red stack
+        halt
+1000$:  mov     #stack,sp       ; direct iit handler
+        hcmpeq  (r0),#<cp.rsv+cp.aer> ; check CPUERR
+        clr     (r0)            ; clear CPUERR (any write should)
+        hcmpeq  (r0),#0         ; check CPUERR
+;
+        reset                                                   ;! MMU off
+        mov     kipdr5,kipdr6   ; restore kipdr6 (default kipdr are identical)
+;
+9999$:  iot                     ; end of test A2.10
+;
+; -----------------------------------------------
+; end of A2.* tests, restore iit handler
+        mov     v..iit+2,v..iit ; restore iit handler
 ;
 ; Section B: Stress tests ====================================================
 ;
@@ -273,8 +514,22 @@ tb0202: mov     #2,r5
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#6.       ; all tests done ?
+        hcmpeq  tstno,#16.      ; all tests done ?
 ;
         jmp     loop
+;
+; kernel handlers ============================================================
+;
+; vhugen - generic handler for expected traps/abort ++++++++++++++++++++++++++
+;   the kernel continution address must be written to vhustp
+;   execution will reset vhustp to a catcher value
+;   --> vhustp must be set for each execution
+;
+vhugen: tst     (sp)+           ; discard one word of vector push
+        mov     vhustp,(sp)     ; set up kernel return address
+        mov     #vhuhlt,vhustp  ; reset stop address by catcher
+        rts     pc              ; end return to continuation address
+vhustp: .word   vhuhlt
+vhuhlt: halt
 ;
         .end    start

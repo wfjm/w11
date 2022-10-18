@@ -1,4 +1,4 @@
-; $Id: cpu_mmu.mac 1301 2022-10-06 08:53:46Z mueller $
+; $Id: cpu_mmu.mac 1303 2022-10-17 17:55:51Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -260,18 +260,18 @@ tb0102: mov     #mmr3,r0        ; ptr to mmr3
 tb0201: mov     #123456,1000$
 ; enable mmu in 18bit mode
         clr     mmr3            ; no d dspace, no 22bit
-        mov     #m0.ena,mmr0    ; enable mmu
-        hbitne  #m0.ena,mmr0    ; test bit                      ;! MMU 18
+        mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 18
+        hbitne  #m0.ena,mmr0    ; test bit  
         hcmpeq  1000$,#123456   ; check marker
 ; verify I/O page mapping in 18bit mode (007600 must be OK)
         mov     #kipar7,r0      ; ptr to kipar7
         bic     #170000,(r0)    ; clear to 4 bits in kipar7
-        hcmpeq  (r0),#007600    ; kipar7 still seen ???
+        hcmpeq  (r0),#007600    ; kipar7 still seen ?
         bis     #170000,(r0)    ; restore kipar7
         hcmpeq  (r0),#177600
 ; enable mmu in 22bit mode; check that mmr3 still seen
         mov     #m3.e22,mmr3
-        hcmpeq  mmr3,#m3.e22    ; test mmr3 stll seen ???       ;! MMU 22
+        hcmpeq  mmr3,#m3.e22    ; test mmr3 still seen ?        ;! MMU 22
 ; test RESET
         reset                   ; should clear mmr0 and mmr3
         htsteq  mmr0            ; check mmr0 cleared            ;! MMU off

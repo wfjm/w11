@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tmuconv 1283 2022-08-22 10:07:58Z mueller $
+# $Id: tmuconv 1303 2022-10-17 17:55:51Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2008-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -1002,7 +1002,7 @@ sub print_help {
   print "  --t_id           trace instruction decodes\n";
   print "  --t_ru           trace register updates\n";
   print "  --t_em           trace em transactions\n";
-  print "  --t_vf           trace onfy vector fetch em transactions\n";
+  print "  --t_vf           trace only vector fetch em transactions\n";
   print "  --t_ib           trace ib transactions\n";
   print "  --t_all          trace id,ru,em, and ib transactions\n";
 }

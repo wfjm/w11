@@ -1,4 +1,4 @@
-# $Id: tb_pdp11core_stim.dat 1303 2022-10-17 17:55:51Z mueller $
+# $Id: tb_pdp11core_stim.dat 1304 2022-10-22 10:19:34Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2007-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -1339,7 +1339,7 @@ bwm     4
 #----------
 C Exec code 20 (check CPUERR and error handling)
 C Exec test 20.1 (odd address abort)
-# now tested with cpu_details.mac:A2.2; test_w11a_cpuerr.tcl
+# ==> now tested with cpu_details.mac:A2.2; test_w11a_cpuerr.tcl
 #
 cres              -- console reset
 wps     000000    -- psw: clear
@@ -1366,7 +1366,7 @@ wm      000000    --   any write access will clear CPUERR
 rm    d=000000    -- ! CPUERR: 0
 #----------
 C Exec test 20.2 (non-existent memory abort)
-# now tested with cpu_details.mac:A2.3; test_w11a_cpuerr.tcl
+# ==> now tested with cpu_details.mac:A2.3; test_w11a_cpuerr.tcl
 #
 wal     172354    -- kernel I space AR(6)
 wm      177400    --  (map to 8 k below I/O page, never available in w11a)
@@ -1392,7 +1392,7 @@ wal     172354    -- kernel I space AR(6)
 wm      001400    --    1400    140000 base (default 1-to-1 map)
 #----------
 C Exec test 20.3 (I/O bus timeout abort)
-# now tested with cpu_details.mac:A2.4; test_w11a_cpuerr.tcl
+# ==> now tested with cpu_details.mac:A2.4; test_w11a_cpuerr.tcl
 #
 wr5     160000    -- r5=160000
 wsp     001400    -- sp=1400
@@ -1405,6 +1405,8 @@ rm    d=000020    -- ! CPUERR: (iobto=1)
 wm      000000    --   clear CPUERR
 #----------
 C Exec test 20.4 (address error abort after jmp r1)
+# ==> now tested with cpu_badinst_nofpp.mac:A1.1
+#
 wsp     001400    -- sp=1400
 wpc     004706    -- pc=4706
 step              -- step (jmp r1): trap 10                   		[[s:2]]
@@ -1415,6 +1417,8 @@ rm    d=000000    -- ! CPUERR: none
 wm      000000    --   clear CPUERR
 #----------
 C Exec test 20.5 (address error abort after jsr pc,r1)
+# ==> now tested with cpu_badinst_nofpp.mac:A1.1
+#
 wsp     001400    -- sp=1400
 wpc     004710    -- pc=4710
 step              -- step (jsr pc,r1): trap 10				[[s:2]]
@@ -1425,7 +1429,7 @@ rm    d=000000    -- ! CPUERR: none
 wm      000000    --   clear CPUERR
 #----------
 C Exec test 20.6 (halt in user mode)
-# now tested with cpu_details.mac:A2.1; test_w11a_cpuerr.tcl
+# ==> now tested with cpu_details.mac:A2.1; test_w11a_cpuerr.tcl
 #
 wsp     001400    -- sp=1400 (kernel)
 wpc     004712    -- pc=4712
@@ -1457,6 +1461,8 @@ wal     172302    -- kernel I space DR segment 1  (base 20000)
 wmi     077400    --   plf=127; ed=0(up); acf=0 (non-resident)
 #----------
 C Exec test 20.7 (non resident abort)
+# ==> now tested with cpu_mmu.mac:C2.1
+#
 wr1     020000    -- r1=20000
 wr3     000016    -- r3=16       ; the -(r3) fetches the mem(14)=16
 wsp     001400    -- sp=1400 
@@ -1476,6 +1482,8 @@ wal     177572    -- MMR0
 wmi     000001    --   enable and clear error bits
 #----------
 C Exec test 20.8 (segment length violation abort)
+# ==> now tested with cpu_mmu.mac:C2.1
+#
 wal     172302    -- kernel I space DR segment 1  (base 20000)
 wmi     001406    --   plf=3; ed=0(up); acf=6 (w/r)
 #
@@ -1498,6 +1506,8 @@ wal     177572    -- MMR0
 wmi     000001    --   enable and clear error bits
 #----------
 C Exec test 20.9 (read-only abort)
+# ==> now tested with cpu_mmu.mac:C2.1
+#
 wal     172302    -- kernel I space DR segment 1  (base 20000)
 wmi     077402    --   plf=127; ed=0(up); acf=2 (read-only)
 #
@@ -1578,7 +1588,7 @@ wmi     000000    --   disable
 # now test stack limit logic
 #
 C Exec test 20.12 (red stack abort when pushing data to stack)
-# now tested with cpu_details.mac:A2.6; test_w11a_cpuerr.tcl
+# ==> now tested with cpu_details.mac:A2.6; test_w11a_cpuerr.tcl
 #
 wr0     123456    -- r0=123456
 wsp     000340    -- sp=340 
@@ -1616,7 +1626,7 @@ C Exec test 20.13 (red stack abort on 2nd word of interrupt/trap push)
 #wm      000000    --   clear CPUERR
 #----------
 C Exec test 20.14 (yellow stack trap when pushing data to stack; sp=400)
-# now tested with cpu_details.mac:A2.5; test_w11a_cpuerr.tcl
+# ==> now tested with cpu_details.mac:A2.5; test_w11a_cpuerr.tcl
 #
 wps     000017    -- psw: set all cc flags
 wr0     123456    -- r0=123456
@@ -1654,7 +1664,7 @@ wm      000000    --   clear CPUERR
 # now test red stack escalation
 #
 C Exec test 20.16 (red stack escalation: abort kernel stack odd; sp=1001)
-# now tested with cpu_details.mac:A2.7
+# ==> now tested with cpu_details.mac:A2.7
 #
 wr0     123456    -- r0=123456
 wsp     001001    -- sp=1001
@@ -1671,7 +1681,7 @@ rm    d=000104    -- ! CPUERR: (rsv=1,adderr=1)
 wm      000000    --   clear CPUERR
 #----------
 C Exec test 20.17 (red stack escalation: abort kernel stack in non-mem)
-# now tested with cpu_details.mac:A2.8
+# ==> now tested with cpu_details.mac:A2.8
 #
 wal     172354    -- kernel I space AR(6)
 wm      177400    --  (map to 8 k below I/O page, never available in w11a)
@@ -1700,7 +1710,7 @@ wal     172354    -- kernel I space AR(6)
 wm      001400    --    1400    140000 base (default 1-to-1 map)
 #----------
 C Exec test 20.18 (red stack escalation: abort kernel stack iob-to;sp=160004)
-# now tested with cpu_details.mac:A2.9
+# ==> now tested with cpu_details.mac:A2.9
 #
 wr0     123456    -- r0=123456
 wsp     160004    -- sp=160004
@@ -1717,7 +1727,7 @@ rm    d=000024    -- ! CPUERR: (rsv=1,iobto=1)
 wm      000000    --   clear CPUERR
 #----------
 C Exec test 20.19 (red stack escalation: abort kernel stack mmu abort;sp=020004)
-# now tested with cpu_details.mac:A2.10
+# ==> now tested with cpu_details.mac:A2.10
 #
 wal     177572    -- MMR0
 wmi     000001    --   enable
@@ -1750,6 +1760,7 @@ wmi     000000    --   disable
 #[[on]]
 #-----------------------------------------------------------------------------
 C Setup code 21 [base 4740] (MTPx/MFPx; MMU for user mode with I/D)
+# ==> now tested with cpu_details.mac:A3.2
 #
 #use setting as for test 22
 wal     177600    -- user I space DR
@@ -5409,6 +5420,7 @@ rpc   d=013032    -- ! pc=13032
 rps   d=000010    -- ! psw: T bit not set expected for 11/70
 #
 C test 44.15: odd address using SP causes HALT {<=20} or emmergency stack {>35}
+# ==> now tested with cpu_details.mac:A2.7
 #
 wsp     001401    -- sp=1401
 wpc     013032    -- pc=13032
@@ -5537,6 +5549,7 @@ wal     172310    -- kernel I space DR segment 4 (base 100000)
 wmi     077406    --   plf=127; ed=0(up); acf=6 (r/w)
 #
 C test 44.39: cmode=10 will cause abort {70,J11}, treated as kmode {23,24}
+# ==> now tested with cpu_mmu.mac:B4.1
 #
 wal     177572    -- MMR0
 wmi     000001    --   set enable bit
@@ -5563,6 +5576,7 @@ cres              -- console reset (to clear CPUERR reg, PSW)
 # 1. simh saves PC of failed instruction on stack, not PC after instruction
 #
 C test 44.43: user mode HALT: trap 4 {70} or 10 {others}
+# ==> now tested with cpu_details.mac:A2.1
 #
 wal     177766    -- check CPUERR	 ;??? remove if console reset fixed
 wm      000000    --   clear
@@ -5581,6 +5595,7 @@ rm    d=000200    -- ! CPUERR: (illhalt=1)
 cres              -- console reset (to clear CPUERR reg, PSW)
 #
 C test 44.44: PDR bit<0> implemented {70} or not {others}
+# ==> now tested with cpu_mmu.mac:A1.1
 #
 wal     172310    -- kernel I space DR, segment 4
 wm      077401    -- set acf bit 0: plf=127; ed=0(up); acf=1 (r+trap)
@@ -5588,6 +5603,7 @@ rm    d=077401    -- ! check; works as expected for 11/70
 wm      077406    --   restore: plf=127; ed=0(up); acf=6(w/r)
 #
 C test 44.45: PDR bit<7>(AIB any access) implemented {70} or not {others}
+# ==> now tested with cpu_mmu.mac:E1.2
 #
 wal     172300    -- kernel I space DR, reset segment 0 and 1
 bwm     2
@@ -5620,6 +5636,7 @@ bwm     2
 cres              -- console reset (to clear CPUERR reg)
 #
 C test 44.46: Full PAR implemented {44,70,J11} or not {others}
+# ==> now tested with cpu_mmu.mac:A1.1
 #
 wal     172350    -- kernel I space AR, segment 4
 wm      177777    --   set all bits
@@ -5627,6 +5644,7 @@ rm    d=177777    -- ! check; works as expected for 11/70
 wm      001000    --   restore:    1000    100000 base
 #
 C test 44.47: MMR0<9>(mmu trap) implemented {70} or not {others}
+# ==> now tested with cpu_mmu.mac:E1.2
 #
 wal     177572    -- MMR0
 wm      001000    --   set trap enable
@@ -5634,13 +5652,15 @@ rm    d=001000    -- ! check; works as expected for 11/70
 wm      000000    --   restore
 #
 C test 44.48: MMR3<2:0>(D space) implemented {44,70,J11} or not {others}
+# ==> now tested with cpu_mmu.mac:B1.2
 #
 wal     172516    -- MMR3
-wm      000007    --   set D space bis
+wm      000007    --   set D space bits
 rm    d=000007    -- ! check; works as expected for 11/70
 wm      000000    --   restore
 #
 C test 44.49: MMR3<5:4>(UMAP, 22 bit) implemented {44,70,J11} or not {others}
+# ==> now tested with cpu_mmu.mac:B1.2
 #
 wal     172516    -- MMR3
 wm      000060    --   set D space bits
@@ -5648,6 +5668,7 @@ rm    d=000060    -- ! check; available, as expected for 11/70
 wm      000000    --   restore
 #
 C test 44.50: MMR3<3>(CSM enable) implemented {44,J11} or not {others}
+# ==> now tested with cpu_mmu.mac:B1.2
 #
 wal     172516    -- MMR3
 wm      000010    --   set D space bit
@@ -5657,6 +5678,7 @@ wm      000000    --   restore
 C test 44.51: MMR2 tracks fetches {70} or instructions only {others}
 C          here W11 behaves like {others}, fetches are not tracked in MMR2
 C          Also: instruction complete flag set in MMR0 after bpt.
+# ==> tests un-implemented behaviour -> will be addressed later
 #
 wal     177572    -- MMR0
 wmi     000001    --   set enable bit
@@ -5684,6 +5706,8 @@ cres              -- console reset (to clear CPUERR reg, PSW)
 #    executed in next step.
 #
 C test 44.52: MT/FPx SP for pmode=10 unpredictable {others} / user SP {J11}
+# ==> now tested with cpu_mmu.mac:B4.2
+#
 # write registers
 #
 wr0     000001    -- set r0,..,r7
@@ -5708,7 +5732,7 @@ wsp     010601    -- set ssp						[[ssp]]
 wps     144000    -- psw: cm=user(11),set=1
 wsp     110601    -- set usp						[[usp]]
 #
-C        52a: MFPS for pmode=10
+C        52a: MFPD for pmode=10
 #
 wps     020000    -- psw: set cm=00, pm=10
 wpc     013046    -- pc=13046
@@ -5722,7 +5746,7 @@ cres              -- console reset (to clear CPUERR reg)
 # simh note:
 # 1. simh returns 0 here, just unpredictable in a different way ...
 #
-C        52a: MTPS for pmode=10
+C        52a: MTPD for pmode=10
 #
 wal     001376    -- setup stack with value for mtpd
 wmi     123446    --   
@@ -5774,6 +5798,7 @@ bwm     5
 #-----
 C Exec code 45 (mmr1 and instructions with implicit stack push/pop)
 C test 45.1: mtpd (r1)+
+# ==> now tested with cpu_mmu.mac:C2.3
 #
 cres
 wal     177572    -- MMR0
@@ -5797,6 +5822,7 @@ rm    d=123456    -- !
 cres              -- console reset
 #
 C test 45.2: mfpd (r1)+
+# ==> now tested with cpu_mmu.mac:C2.3
 #
 wal     177572    -- MMR0
 wmi     000001    --   set enable bit
@@ -5819,6 +5845,7 @@ wm      000000    --
 cres              -- console reset
 #
 C test 45.3: jsr pc,(r1)+ and rts pc
+# ==> now tested with cpu_mmu.mac:C2.3
 #
 wal     177572    -- MMR0
 wmi     000001    --   set enable bit

@@ -1,4 +1,4 @@
-; $Id: cpu_mmu.mac 1303 2022-10-17 17:55:51Z mueller $
+; $Id: cpu_mmu.mac 1304 2022-10-22 10:19:34Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -103,7 +103,7 @@ ta0101: mov     #000401,r5      ; pattern master
 ;
 ; and read back again
 ;   pdr only plf,ed and acf fields are checked
-;   par all 18 bits are write/readable
+;   par all 16 bits are write/readable
         mov     r5,r0           ; start pattern
         com     r0              ; complemented
         mov     #12.,r1         ; number of modes
@@ -196,6 +196,7 @@ ta0102:
 ;
 ; Test B1.1 -- test mmr0 write/read ++++++++++++++++++++++++++++++++++
 ;   Test all writable bits except m0.ena
+;   Also ensure that unimplemented bits return zero
 ;
 tb0101: mov     #mmr0,r0        ; ptr to mmr0
         mov     #m0.ico,r1      ; instruction complete flag
@@ -212,6 +213,15 @@ tb0101: mov     #mmr0,r0        ; ptr to mmr0
         mov     (r0),r5         ; read mmr0
         bic     r1,r5           ; mask instruction complete
         htsteq  r5              ; check mmr0 cleared
+;
+; ensure unimplemented bits return zero
+; Note: m0.mai is currently unimplemented in w11 (reads zero)
+;       In SimH this bit is writable and reads back, but without function
+        mov     #bit11!bit10,(r0)
+        mov     (r0),r5         ; read mmr0
+        bic     r1,r5           ; mask instruction complete
+        htsteq  r5              ; check mmr0 cleared
+;
         jmp     9999$
 ;
 1010$:  .word   m0.anr          ; abort flags
@@ -226,6 +236,7 @@ tb0101: mov     #mmr0,r0        ; ptr to mmr0
 ;
 ; Test B1.2 -- test mmr3 write/read ++++++++++++++++++++++++++++++++++
 ;   Test all writable bits; mmu is off, and unibus map not used
+;   Also ensure that unimplemented bits return zero
 ;
 tb0102: mov     #mmr3,r0        ; ptr to mmr3
         mov     #1010$,r4       ; ptr to data
@@ -237,6 +248,11 @@ tb0102: mov     #mmr3,r0        ; ptr to mmr3
 ;
         reset                   ; mmr3 has 5 bits set, check clear
         htsteq  (r0)            ; check mmr3 cleared
+;
+; ensure unimplemented bits return zero
+        mov     #^c<m3.eub!m3.e22!m3.dkm!m3.dsm!m3.dum>,(r0)
+        htsteq  (r0)            ; check mmr3 stays cleared
+;
         jmp     9999$
 ;
 1010$:  .word   m3.eub
@@ -273,8 +289,8 @@ tb0201: mov     #123456,1000$
         mov     #m3.e22,mmr3
         hcmpeq  mmr3,#m3.e22    ; test mmr3 still seen ?        ;! MMU 22
 ; test RESET
-        reset                   ; should clear mmr0 and mmr3
-        htsteq  mmr0            ; check mmr0 cleared            ;! MMU off
+        reset                   ; should clear mmr0 and mmr3    ;! MMU off
+        htsteq  mmr0            ; check mmr0 cleared
         htsteq  mmr3            ; check mmr3 cleared
         jmp     9999$
 ;
@@ -584,9 +600,75 @@ tb0302:
 ;
 9999$:  iot                     ; end of test B3.2
 ;
+; Test B4:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   Test invalid cpu mode 10
+;
+; Test B4.1 -- check that cmode=10 causes abort ++++++++++++++++++++++
+;    Should abort with m0.anr and m0.ale for all adresses
+;    w11 aborts with m0.anr, but sets m0.ale only when fail above 1st click
+;    Test an address above the first click to have full 11/70 style response
+;
+tb0401: clr     mmr3            ; no d dspace, no 22bit
+        mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 18
+; setup catcher
+        mov     #1000$,v..mmu
+; try to run a code in mode 10
+        mov     #^b1010000000000000,-(sp)       ; next psw; cm=pm=10
+        mov     #p6base+200,-(sp)               ; start address
+        rti                                     ; fake code start
+        halt
+;
+1000$:  tst     (sp)+                           ; w11 and Simh return PC
+        hcmpeq  (sp)+,#^b1010000000000000       ; abort PS
+        mov     mmr0,r5
+        bic     #m0.ico,r5
+        hcmpeq  r5,#m0.anr!m0.ale!0100!<6*m0.pno>!m0.ena ; check mmr0
+        hcmpeq  mmr2,#p6base+200                      ; check mmr2
+;
+        reset                                                   ;! MMU off
+        mov     #v..mmu+2,v..mmu        ; restore mmu catcher
+        clr     v..mmu+2
+;
+9999$:  iot                     ; end of test B4.1
+;
+; Test B4.2 -- check MFPI/MTPI SP response for pmode=10 ++++++++++++++
+;    That is unspecified for all but J11, which will read/write user SP
+;    w11 return PC on read, the write is a noop
+;    Test on w11 even though its unspecified behavior
+;
+tb0402: tstb    systyp          ; skip if not on w11
+        blt     9999$
+; load values in user and supervisor SP
+        mov     #cp.psw,r0
+        mov     #cp.pmu,(r0)
+        push    #111222
+        mtpi    sp              ; user SP = 111222
+        mov     #cp.pms,(r0)
+        push    #111444
+        mtpi    sp              ; user SP = 111444
+; read from pm=10 SP
+        mov     #^b0010000000000000,(r0)
+1000$:  mfpi    sp              ; read pm=10 sp
+        hcmpeq  (sp)+,#1000$    ; happens to return PC of mfpi
+; write to pm=10 SP
+        push     #111666
+        mtpi     sp             ; write pm=10 sp
+        hcmpeq   sp,#stack      ; check kernel sp
+        mov     #cp.pms,(r0)
+        mfpi    sp
+        hcmpeq  (sp)+,#111444   ; check supervisor sp
+        mov     #cp.pmu,(r0)
+        mfpi    sp
+        hcmpeq  (sp)+,#111222   ; check user sp
+;
+        clr     cp.psw          ; sane psw again
+;
+9999$:  iot
+;
 ; Section C: mmr1+mmr0 register, aborts ======================================
 ;
 ; Test C1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   Verify MMU response in mmr1 after a write to that fakes an abort
 ;
 ; Test C1.1 -- test mmr1 response via set abort in mmr0 trick ++++++++
 ;   Test method (concept seen in ekbee1)
@@ -1705,7 +1787,7 @@ tf0102: mov     #154345,@#p6base ; inititialize target
 ;; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#17.      ; all tests done ?
+        hcmpeq  tstno,#19.      ; all tests done ?
 ;
         jmp     loop
 ;

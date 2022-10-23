@@ -1,4 +1,4 @@
-# $Id: tb_pdp11core_stim.dat 1304 2022-10-22 10:19:34Z mueller $
+# $Id: tb_pdp11core_stim.dat 1305 2022-10-23 07:44:21Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2007-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -418,6 +418,7 @@ rr1   d=000002    -- ! r1=2
 rpc   d=002166    -- ! pc
 #-----------------------------------------------------------------------------
 C Setup code 2 [base 2200] (bpt against trap catcher @14)
+# ==> obsolete, covered by w11a/test_w11a_inst_traps.tcl
 #
 wal     002200    -- code:
 bwm     4
@@ -440,6 +441,7 @@ brm     2
       d=000001    -- ! 2(sp)  old ps
 #-----------------------------------------------------------------------------
 C Setup code 3 [base 2300] (bpt against trap handler doing inc r0; rtt)
+# ==> obsolete, covered by w11a/test_w11a_inst_traps.tcl
 #
 wal     002300    -- code:
 bwm     4
@@ -471,6 +473,7 @@ rsp   d=001400    -- ! sp
 rpc   d=002310    -- ! pc
 #-----------------------------------------------------------------------------
 C Setup code 4 [base 2400] (enable T-trap on handler of code 3; run 2* inc r1)
+# ==> obsolete, covered by w11a/test_w11a_inst_quick.tcl
 #
 wal     002400
 bwm     4
@@ -5291,6 +5294,7 @@ bwm     2
 #-----
 C Exec code 44 (Implementation variations)
 C test 44.1: OPR R,(R)+ : incremented before {J11} or after {70} use as source
+# ==> tested now with cpu_details.mac:C1.1
 #
 cres              -- console reset
 wps     000000    -- clear psw
@@ -5304,6 +5308,7 @@ wal     001600    -- check target location
 rmi   d=001600    -- ! ; initial content of R expected for 11/70
 #
 C test 44.2: OPR R,-(R) : decremented before {J11} or after {70} use as source
+# ==> tested now with cpu_details.mac:C1.1
 #
 wr4     001600    -- r4=1600 
 wsp     001400    -- sp=1400
@@ -5315,6 +5320,7 @@ wal     001600    -- check target location
 rmi   d=001600    -- ! ; initial content of R expected for 11/70
 #
 C test 44.3: OPR PC,A(R) : store PC+2 {70} or PC+4 {J11}
+# ==> tested now with cpu_details.mac:C1.2
 #
 wr4     001600    -- r4=1600 
 wsp     001400    -- sp=1400
@@ -5325,6 +5331,7 @@ wal     001602    -- check target location
 rmi   d=013006    -- ! ; PC+2 expected for 11/70
 #
 C test 44.4: JMP (R)+ : R used {70;J11} or R+2 used {05,10,15,20}
+# ==> tested now with cpu_basics.mac:A3.1:10
 #
 wr4     013074    -- r4=13074
 wsp     001400    -- sp=1400
@@ -5362,6 +5369,7 @@ rr4   d=140000    -- ! r4=140000
 rps   d=000004    -- ! psw: Z=1 ; clear V expected for 11/70
 #
 C test 44.7: CPU access to 177700-177717 (regs) timesout {70,J11} or not {05,10}
+# ==> now tested with cpu_details.mac:C1.3
 #
 wr4     177700    -- r4=177700
 wsp     001400    -- sp=1400
@@ -5374,6 +5382,7 @@ rm    d=000020    -- ! CPUERR: (iobto=1)
 wm      000000    --   clear CPUERR
 #
 C test 44.10: If RTT sets T bit, trap occurs after instr. following RTT {70,J11}
+# ==> obsolete, covered by w11a/test_w11a_inst_quick.tcl
 #
 wal     001374    -- setup stack with rtt return frame setting T flag
 bwm     2
@@ -5447,6 +5456,7 @@ wal     172310    -- kernel I space DR segment 4 (base 100000)
 wmi     077400    --   plf=127; ed=0(up); acf=0 (non resident)
 #
 C test 44.28: If PC->bad memory, PC incremented {others} / not inc'ed {35,40}
+# ==> now tested with cpu_mmu.mac:B4.1
 #
 cres
 wal     177572    -- MMR0
@@ -5469,6 +5479,7 @@ cres              -- console reset (to clear CPUERR reg)
 #
 C test 44.29/30a: If R->bad in mode 2, R inc'ed {others} / or not {4,34,44}
 C                 test for dstw chain (mov r0,(r1)+)
+# ==> now tested with cpu_mmu.mac:C2.1:1300,4000
 #
 wal     177572    -- MMR0
 wmi     000001    --   set enable bit
@@ -5487,6 +5498,7 @@ cres              -- console reset (to clear CPUERR reg)
 #
 C test 44.29/30b: If R->bad in mode 2, R inc'ed {others} / or not {4,34,44}
 C                 test for srcr chain (mov (r1)+,r0)
+# ==> now tested with cpu_mmu.mac:C2.1:3000,3100
 #
 wal     177572    -- MMR0
 wmi     000001    --   set enable bit
@@ -5505,6 +5517,7 @@ cres              -- console reset (to clear CPUERR reg)
 #
 C test 44.29/30c: If R->bad in mode 2, R inc'ed {others} / or not {4,34,44}
 C                 test for dstr chain (inc (r1)+)
+# ==> now tested with cpu_mmu.mac:C2.1:4300,4400
 #
 wal     177572    -- MMR0
 wmi     000001    --   set enable bit
@@ -5522,6 +5535,7 @@ brm     2
 cres              -- console reset (to clear CPUERR reg)
 C test 44.29/30d: If R->bad in mode 2, R inc'ed {others} / or not {4,34,44}
 C                 test for dsta chain (mtpd (r1)+)
+# ==> now tested with cpu_mmu.mac:C2.2
 #
 wal     177572    -- MMR0
 wmi     000001    --   set enable bit

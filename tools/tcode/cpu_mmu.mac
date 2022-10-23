@@ -1,4 +1,4 @@
-; $Id: cpu_mmu.mac 1304 2022-10-22 10:19:34Z mueller $
+; $Id: cpu_mmu.mac 1305 2022-10-23 07:44:21Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -607,6 +607,8 @@ tb0302:
 ;    Should abort with m0.anr and m0.ale for all adresses
 ;    w11 aborts with m0.anr, but sets m0.ale only when fail above 1st click
 ;    Test an address above the first click to have full 11/70 style response
+;    Note: w11 increments PC before abort (as 11/70 does)
+;          SimH increments PC after abort
 ;
 tb0401: clr     mmr3            ; no d dspace, no 22bit
         mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 18
@@ -617,9 +619,15 @@ tb0401: clr     mmr3            ; no d dspace, no 22bit
         mov     #p6base+200,-(sp)               ; start address
         rti                                     ; fake code start
         halt
+; test abort PC on stack
+1000$:  cmpb    systyp,#sy.sih                  ; on SimH ?
+        bne     1010$
+        hcmpeq  (sp)+,#p6base+200               ; SimH doesnt increment PC
+        br      1020$
+1010$:  hcmpeq  (sp)+,#p6base+200+2             ; w11 does increment PC
+; test abort PS on stack
+1020$:  hcmpeq  (sp)+,#^b1010000000000000       ; abort PS
 ;
-1000$:  tst     (sp)+                           ; w11 and Simh return PC
-        hcmpeq  (sp)+,#^b1010000000000000       ; abort PS
         mov     mmr0,r5
         bic     #m0.ico,r5
         hcmpeq  r5,#m0.anr!m0.ale!0100!<6*m0.pno>!m0.ena ; check mmr0

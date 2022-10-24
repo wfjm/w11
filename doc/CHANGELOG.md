@@ -26,18 +26,21 @@ software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
 ### Summary
-- cleanup tbrun setup, drop nexys4 and add nexys4d ([see blog](https://wfjm.github.io/blogs/w11/2019-07-27-nexys4-obituary.html))
+- retire ancient and unmaintainable tb_pdp11core_stim.dat verification code
 - add fast mac-only verification codes under tool/tcode, integrated with tbrun
+- cleanup tbrun setup, drop nexys4 and add nexys4d ([see blog](https://wfjm.github.io/blogs/w11/2019-07-27-nexys4-obituary.html))
 - add ostest support for rsx11m-31_rk, rsx11m-40_rk and rsx11mp-30_rp oskits
-- all actively used commands have now a man page
-- asm-11 has now limited macro support
-- Doxygen support now for V1.9.4; remove discontinued Tcl support
 - build flow Vivado 2022.1 ready; handle synth 8-3331 -> 8-7129 transition
 - remove Atlys support (only test designs, a w11 design was never done)
-- cleanup SimH setup files (\*.scmd), use autoconfig, set disk types
 - cleanup code base, use page,mmr\*,pdr,par instead of segment,ssr\*,sdr,sar
+  ([see blog](https://wfjm.github.io/blogs/w11/2022-08-18-on-segments-and-pages.html))
 - sysid encodes now system type, allows to distinguish w11,SimH,e11
+- CPU bug fixes in pdp11_mmu and pdp11_sequencer
+- cleanup SimH setup files (\*.scmd), use autoconfig, set disk types
+- asm-11 has now limited macro support
 - added dasm-11, a PDP-11 disassembler
+- all actively used commands have now a man page
+- Doxygen support now for V1.9.4; remove discontinued Tcl support
 ### New features
 - new verification codes
   - tools/sys/mcode: added memclr.mac (writes zero into memory)
@@ -47,7 +50,9 @@ The full set of tests is only run for tagged releases.
 ### Changes
 - tools changes
   - ci.yml: define TBW_GHDL_OPTS and suppress IEEE package warnings at t=0ms
-  - \*\*/tbrun.yml: since nexys4 not longer available switch to nexys4d
+  - \*\*/tbrun.yml:
+    - since nexys4 not longer available switch to nexys4d
+    - remove tb_pdp11core_stim.dat based tests
   - tools/bin
     - asm-11:
       - limited macro support (.macro,.endm)
@@ -81,8 +86,9 @@ The full set of tests is only run for tagged releases.
         [ECO-031](ECO-031-PSW_protection.md)
     - pdp11_mmu_mmr1: MMR1 write logic fix, see
         [ECO-032](ECO-032-MMR1_fix.md)
+        close [issue #24](https://github.com/wfjm/w11/issues/24)
 - general changes
-  - segment -> page rename
+  - segment -> page rename ([see blog](https://wfjm.github.io/blogs/w11/2022-08-18-on-segments-and-pages.html))
     - DEC used in early documents 'segment', later on 'page' for the MMU object
     - in the w11a code base (\*.vhd,\*.\*pp,\*.tcl,\*.mac) the naming was mixed
     - now all changed to page,mmr\*,pdr,par; all segment,ssr\*,sdr,sar removed
@@ -95,8 +101,13 @@ The full set of tests is only run for tagged releases.
   - rtl/w11a
     - pdp11_mmu: BUGFIX: correct trap and PDR A logic, see
         [ECO-033](ECO-033-MMU_AFC-1_PDR-A.md)
+        close issues [#34](https://github.com/wfjm/w11/issues/34),
+        [#33](https://github.com/wfjm/w11/issues/33),
+        [#26](https://github.com/wfjm/w11/issues/26),
+        [#25](https://github.com/wfjm/w11/issues/25)
     - pdp11_sequencer: BUGFIX: use I space for all mode=1,2,3 if reg=pc, see
         [ECO-034](ECO-034-MMU_d-space-pc.md)
+        close [issue #35](https://github.com/wfjm/w11/issues/35)
   - src/librwxxtpp
     - RtclRw11Cpu.cpp: quit before mem write if asm-11 error seen
   - tools/asm-11/lib

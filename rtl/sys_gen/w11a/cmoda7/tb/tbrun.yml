@@ -1,7 +1,8 @@
-# $Id: tbrun.yml 1249 2022-07-08 06:27:59Z mueller $
+# $Id: tbrun.yml 1306 2022-10-23 19:27:25Z mueller $
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2022-10-23  1306   1.1.1  retire tb_pdp11core_stim.dat, now in tcodes
 # 2022-07-07  1249   1.1    add rw11::tcodes @cpu_all.dat
 # 2017-06-24   914   1.0    Initial version
 #
@@ -12,12 +13,6 @@
   test: |
     tbrun_tbwrri --hxon --lsuf stim1  tb_w11a_c7${ms} \
       "rlink::run_rri ../../../../w11a/tb/tb_rlink_tba_pdp11core_stim.dat"
-
-- tag:  [default, viv, sys_w11a, c7, stim2]
-  test: |
-    tbrun_tbwrri --hxon --lsuf stim2  --pack rw11  tb_w11a_c7${ms} \
-      "rw11::setup_cpu" \
-      "rw11::run_pdpcp ../../../../w11a/tb/tb_pdp11core_stim.dat 60."
 
 - tag:  [default, viv, sys_w11a, c7, tbcpu]
   test: |

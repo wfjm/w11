@@ -2,6 +2,7 @@
 
 ### Table of contents
 - Current [HEAD](#user-content-head)
+- Release [w11a_V0.792](#user-content-w11a_v0.792)
 - Release [w11a_V0.791](#user-content-w11a_v0.791)
 - Release [w11a_V0.79](#user-content-w11a_v0.79)
 - Release [w11a_V0.78](#user-content-w11a_v0.78)
@@ -24,6 +25,15 @@
 The HEAD version shows the current development. No guarantees that
 software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
+
+### Summary
+### New features
+### Changes
+### Bug Fixes
+
+<!-- --------------------------------------------------------------------- -->
+---
+## <a id="w11a_v0.792">2022-04-26: [w11a_V0.792](https://github.com/wfjm/w11/releases/tag/w11a_V0.792) - rev 1307(wfjm)</a>
 
 ### Summary
 - retire ancient and unmaintainable tb_pdp11core_stim.dat verification code
@@ -87,6 +97,7 @@ The full set of tests is only run for tagged releases.
     - pdp11_mmu_mmr1: MMR1 write logic fix, see
         [ECO-032](ECO-032-MMR1_fix.md)
         close [issue #24](https://github.com/wfjm/w11/issues/24)
+    - remove tb/tb_pdp11core_stim.dat, now unused and obsolete
 - general changes
   - segment -> page rename ([see blog](https://wfjm.github.io/blogs/w11/2022-08-18-on-segments-and-pages.html))
     - DEC used in early documents 'segment', later on 'page' for the MMU object

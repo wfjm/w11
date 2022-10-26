@@ -3,7 +3,7 @@
 ../ibus/iblib.vhd
 pdp11.vbom
 # components
-pdp11_gpr.vbom
+pdp11_gr.vbom
 pdp11_psr.vbom
 pdp11_ounit.vbom
 pdp11_aunit.vbom

@@ -1,6 +1,6 @@
--- $Id: tb_pdp11core.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: tb_pdp11core.vhd 1310 2022-10-27 16:15:50Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2006-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    tb_pdp11core - sim
@@ -13,7 +13,7 @@
 -- To test:        pdp11_core
 --
 -- Target Devices: generic
--- Tool versions:  ghdl 0.18-0.31; ISim 14.7
+-- Tool versions:  ghdl 0.18-2.0.0; ISim 14.7
 --
 -- Verified (with tb_pdp11core_stim.dat):
 -- Date         Rev  Code  ghdl  ise          Target     Comment
@@ -38,6 +38,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-10-25  1309   1.5.2  rename _gpr -> _gr
 -- 2019-03-17  1123   1.5.1  print header
 -- 2015-05-08   675   1.5    start/stop/suspend overhaul
 -- 2014-12-26   621   1.4.1  adopt wmembe,ribr,wibr emulation to new 4k window
@@ -473,7 +474,7 @@ begin
             --       first a wpc followed by a 'sta'.
             when "stapc " =>            -- stapc
               ifunc := c_cpfunc_wreg;
-              irnum := c_gpr_pc;
+              irnum := c_gr_pc;
               readoct_ea(iline, idin);
               idosta := '1';              -- request 'sta' to be done next
 

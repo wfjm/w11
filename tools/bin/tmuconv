@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: tmuconv 1303 2022-10-17 17:55:51Z mueller $
+# $Id: tmuconv 1310 2022-10-27 16:15:50Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2008-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2022-10-25  1309   1.1.9  rename _gpr -> _gr
 # 2022-08-22  1283   1.1.8  print ru after em,ib, best for reg from mem cases
 #                           map r6,r7 to sp,pc for rdst,1reg,rsrc instructions
 # 2022-07-23  1261   1.1.7  add -emcancel; drop em 'cancel' when -t-ib
@@ -40,10 +41,10 @@
 #   dp.ddst:o
 #   dp.dtmp:o
 #   dp.dres:o
-#   dp.gpr_adst:o
-#   dp.gpr_mode:o
-#   dp.gpr_bytop:b
-#   dp.gpr_we:b
+#   dp.gr_adst:o
+#   dp.gr_mode:o
+#   dp.gr_bytop:b
+#   dp.gr_we:b
 #   vm.ibmreq.aval:b
 #   vm.ibmreq.re:b
 #   vm.ibmreq.we:b
@@ -112,10 +113,10 @@ my $ind_dp_ireg;
 my $ind_dp_ireg_we;
 my $ind_dp_ireg_we_last;
 my $ind_dp_dres;
-my $ind_dp_gpr_adst;
-my $ind_dp_gpr_mode;
-my $ind_dp_gpr_bytop;
-my $ind_dp_gpr_we;
+my $ind_dp_gr_adst;
+my $ind_dp_gr_mode;
+my $ind_dp_gr_bytop;
+my $ind_dp_gr_we;
 
 my $ind_vm_ibmreq_aval;
 my $ind_vm_ibmreq_re;
@@ -538,10 +539,10 @@ sub do_file {
       $ind_dp_ireg_we       = $name{'dp.ireg_we'}->{ind};
       $ind_dp_ireg_we_last  = $name{'dp.ireg_we_last'}->{ind};
       $ind_dp_dres          = $name{'dp.dres'}->{ind};
-      $ind_dp_gpr_adst      = $name{'dp.gpr_adst'}->{ind};
-      $ind_dp_gpr_mode      = $name{'dp.gpr_mode'}->{ind};
-      $ind_dp_gpr_bytop     = $name{'dp.gpr_bytop'}->{ind};
-      $ind_dp_gpr_we        = $name{'dp.gpr_we'}->{ind};
+      $ind_dp_gr_adst       = $name{'dp.gr_adst'}->{ind};
+      $ind_dp_gr_mode       = $name{'dp.gr_mode'}->{ind};
+      $ind_dp_gr_bytop      = $name{'dp.gr_bytop'}->{ind};
+      $ind_dp_gr_we         = $name{'dp.gr_we'}->{ind};
 
       $ind_vm_ibmreq_aval   = $name{'vm.ibmreq.aval'}->{ind};
       $ind_vm_ibmreq_re     = $name{'vm.ibmreq.re'}->{ind};
@@ -663,13 +664,13 @@ sub do_file {
 
 
 # handle t_ru
-#   uses cycles with dp_gpr_we = '1'
+#   uses cycles with dp_gr_we = '1'
 #
       if ($opts{t_ru}) {
-	if ($val_curr[$ind_dp_gpr_we]) {
-	  my $adst  = $val_curr[$ind_dp_gpr_adst];
-	  my $mode  = $val_curr[$ind_dp_gpr_mode];
-	  my $bytop = $val_curr[$ind_dp_gpr_bytop];
+	if ($val_curr[$ind_dp_gr_we]) {
+	  my $adst  = $val_curr[$ind_dp_gr_adst];
+	  my $mode  = $val_curr[$ind_dp_gr_mode];
+	  my $bytop = $val_curr[$ind_dp_gr_bytop];
 	  my $psw   = $val_curr[$ind_dp_psw];
 	  my $dres  = $val_curr[$ind_dp_dres];
 	  my $rset  = $psw>>11 & 01;

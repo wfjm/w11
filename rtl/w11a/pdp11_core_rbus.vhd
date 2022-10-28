@@ -1,4 +1,4 @@
--- $Id: pdp11_core_rbus.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: pdp11_core_rbus.vhd 1310 2022-10-27 16:15:50Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2007-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -82,7 +82,7 @@
 --         5:00    addr      r/w/-    addr(21:16)  
 -- 00110         mem         r/w/-  memory access
 -- 00111         memi        r/w/-  memory access, inc address
--- 01rrr         gpr[]       r/w/-  general purpose regs
+-- 01rrr         gr[]        r/w/-  general regs
 -- 10000         membe       r/w/-  memory write byte enables
 --            3    stick     r/w/-    sticky flag
 --         1:00    be        r/w/-    byte enables

@@ -29,11 +29,13 @@ The full set of tests is only run for tagged releases.
 ### Summary
 ### New features
 ### Changes
+- general changes
+  - rename _gpr to _gr, use 'general registers' not 'general purpose registers'
 ### Bug Fixes
 
 <!-- --------------------------------------------------------------------- -->
 ---
-## <a id="w11a_v0.792">2022-04-26: [w11a_V0.792](https://github.com/wfjm/w11/releases/tag/w11a_V0.792) - rev 1307(wfjm)</a>
+## <a id="w11a_v0.792">2022-04-25: [w11a_V0.792](https://github.com/wfjm/w11/releases/tag/w11a_V0.792) - rev 1307(wfjm)</a>
 
 ### Summary
 - retire ancient and unmaintainable tb_pdp11core_stim.dat verification code

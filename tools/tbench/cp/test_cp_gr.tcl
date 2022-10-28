@@ -1,19 +1,20 @@
-# $Id: test_cp_gpr.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_cp_gr.tcl 1310 2022-10-27 16:15:50Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2022-10-27  1309   1.0.1  rename _gpr -> _gr
 # 2013-03-31   502   1.0    Initial version
 #
-# Test that general purpose registers are writable and readable via cp
+# Test that general registers are writable and readable via cp
 # check all 16 registers, especially that
 #   set 0 and 1 are distinct
 #   k,s,u mode sp are distinct
 #
 
 # ----------------------------------------------------------------------------
-rlc log "test_cp_gpr: test cp access to general purpose registers ------------"
+rlc log "test_cp_gr: test cp access to general registers ---------------------"
 rlc log "  write set 0"
 $cpu cp -wps 0000000
 $cpu cp -wr0 0000001 \

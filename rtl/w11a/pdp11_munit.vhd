@@ -1,6 +1,6 @@
--- $Id: pdp11_munit.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: pdp11_munit.vhd 1310 2022-10-27 16:15:50Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2006-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    pdp11_munit - syn
@@ -9,7 +9,7 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2022.1; ghdl 0.18-2.0.0
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -18,6 +18,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-10-25  1309   1.2.5  rename _gpr -> _gr
 -- 2014-08-10   581   1.2.4  rename NEXT_ to N_; use c_cc_f_*
 -- 2014-08-05   578   1.2.3  fix proc_div sensitivity list
 -- 2014-08-03   577   1.2.2  use DTMP_POS rather signed(Q)>0 (xst bug for S-3)
@@ -45,7 +46,7 @@ entity pdp11_munit is                   -- mul/div unit for data (munit)
     DSRC : in slv16;                    -- 'src' data in
     DDST : in slv16;                    -- 'dst' data in
     DTMP : in slv16;                    -- 'tmp' data in
-    GPR_DSRC : in slv16;                -- 'src' data from GPR
+    GR_DSRC : in slv16;                 -- 'src' data from GR
     FUNC : in slv2;                     -- function
     S_DIV : in slbit;                   -- s_opg_div state    (load dd_low)
     S_DIV_CN : in slbit;                -- s_opg_div_cn state (1st..16th cycle)
@@ -186,7 +187,7 @@ begin
     
   end process proc_shc;
   
-  proc_div: process (DDST, DSRC, DTMP, GPR_DSRC, DR, DD_H, Q,
+  proc_div: process (DDST, DSRC, DTMP, GR_DSRC, DR, DD_H, Q,
                      R_DD_L, R_DDO_LT, R_MAXFIX, R_QO_LT, R_DIV_V, R_SHC, R_C1, 
                      S_DIV, S_DIV_CN, S_DIV_CR, S_DIV_SR,
                      DDST_ZERO, DDST_NMAX, DSRC_ZERO, DTMP_ZERO, DTMP_POS)
@@ -269,9 +270,9 @@ begin
     
     if S_DIV = '1' then
       N_DDO_LT <= DD_H(15);
-      N_DD_L   <= GPR_DSRC;
+      N_DD_L   <= GR_DSRC;
       N_MAXFIX <= '0';
-      if DDST_NMAX = '1' and GPR_DSRC = "0000000000000000" then
+      if DDST_NMAX = '1' and GR_DSRC = "0000000000000000" then
         N_MAXFIX <= '1';                   -- b_dr_nmax && (ddi_l == 0)
       end if;
       N_QO_LT <= DD_H(15) xor DR(15);      -- b_di_lt ^ b_dr_lt

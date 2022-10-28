@@ -1,12 +1,12 @@
--- $Id: pdp11_dpath.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: pdp11_dpath.vhd 1310 2022-10-27 16:15:50Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2006-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    pdp11_dpath - syn
 -- Description:    pdp11: CPU datapath
 --
--- Dependencies:   pdp11_gpr
+-- Dependencies:   pdp11_gr
 --                 pdp11_psr
 --                 pdp11_ounit
 --                 pdp11_aunit
@@ -15,10 +15,11 @@
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4; ghdl 0.18-0.31
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2022.1; ghdl 0.18-2.0.0
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-10-25  1309   1.2.6  rename _gpr -> _gr
 -- 2015-07-19   702   1.2.5  set new DM_STAT_DP fields
 -- 2014-08-10   581   1.2.4  use c_cc_f_*
 -- 2014-07-12   569   1.2.3  use DIV_QUIT and S_DIV_SR for pdp11_munit
@@ -78,9 +79,9 @@ architecture syn of pdp11_dpath is
 
   signal R_CPDOUT : slv16 := (others=>'0'); -- cp dout buffer
   
-  signal GPR_DSRC : slv16 := (others=>'0');  -- 
-  signal GPR_DDST : slv16 := (others=>'0');  -- 
-  signal GPR_PC : slv16 := (others=>'0');    -- 
+  signal GR_DSRC : slv16 := (others=>'0');  -- source register
+  signal GR_DDST : slv16 := (others=>'0');  -- destination register
+  signal GR_PC : slv16 := (others=>'0');    -- program counter
 
   signal PSW : psw_type := psw_init;     --
   signal CCIN : slv4 := (others=>'0');   -- cc input to xbox's
@@ -107,19 +108,19 @@ architecture syn of pdp11_dpath is
 
 begin
 
-  GPR : pdp11_gpr port map (
+  GR : pdp11_gr port map (
     CLK   => CLK,
     DIN   => DRES,
-    ASRC  => CNTL.gpr_asrc,
-    ADST  => CNTL.gpr_adst,
-    MODE  => CNTL.gpr_mode,
-    RSET  => CNTL.gpr_rset,
-    WE    => CNTL.gpr_we,
-    BYTOP => CNTL.gpr_bytop,
-    PCINC => CNTL.gpr_pcinc,
-    DSRC  => GPR_DSRC,
-    DDST  => GPR_DDST,
-    PC    => GPR_PC
+    ASRC  => CNTL.gr_asrc,
+    ADST  => CNTL.gr_adst,
+    MODE  => CNTL.gr_mode,
+    RSET  => CNTL.gr_rset,
+    WE    => CNTL.gr_we,
+    BYTOP => CNTL.gr_bytop,
+    PCINC => CNTL.gr_pcinc,
+    DSRC  => GR_DSRC,
+    DDST  => GR_DDST,
+    PC    => GR_PC
   );
 
   PSR : pdp11_psr port map(
@@ -139,7 +140,7 @@ begin
     DSRC   => R_DSRC,
     DDST   => R_DDST,
     DTMP   => R_DTMP,
-    PC     => GPR_PC,
+    PC     => GR_PC,
     ASEL   => CNTL.ounit_asel,
     AZERO  => CNTL.ounit_azero,
     IREG8  => R_IREG(7 downto 0),
@@ -180,7 +181,7 @@ begin
     DSRC      => R_DSRC,
     DDST      => R_DDST,
     DTMP      => R_DTMP,
-    GPR_DSRC  => GPR_DSRC,
+    GR_DSRC   => GR_DSRC,
     FUNC      => CNTL.munit_func,
     S_DIV     => CNTL.munit_s_div,
     S_DIV_CN  => CNTL.munit_s_div_cn,
@@ -242,7 +243,7 @@ begin
       
       if CNTL.dsrc_we = '1' then
         if CNTL.dsrc_sel = '0' then
-          R_DSRC <= GPR_DSRC;
+          R_DSRC <= GR_DSRC;
         else
           R_DSRC <= DRES;
         end if;
@@ -250,7 +251,7 @@ begin
 
       if CNTL.ddst_we = '1' then
         if CNTL.ddst_sel = '0' then
-          R_DDST <= GPR_DDST;
+          R_DDST <= GR_DDST;
         else
           R_DDST <= DRES;
         end if;
@@ -258,7 +259,7 @@ begin
       
       if CNTL.dtmp_we = '1' then
         case CNTL.dtmp_sel is
-          when c_dpath_dtmp_dsrc  => R_DTMP <= GPR_DSRC;
+          when c_dpath_dtmp_dsrc  => R_DTMP <= GR_DSRC;
           when c_dpath_dtmp_psw   =>
             R_DTMP <= (others=>'0');
             R_DTMP(psw_ibf_cmode) <= PSW.cmode;
@@ -302,13 +303,13 @@ begin
     end if;
   end process proc_cpdout;
 
-  proc_vmaddr_sel: process (R_DSRC, R_DDST, R_DTMP, GPR_PC, CNTL)
+  proc_vmaddr_sel: process (R_DSRC, R_DDST, R_DTMP, GR_PC, CNTL)
   begin
     case CNTL.vmaddr_sel is
       when c_dpath_vmaddr_dsrc => VM_ADDR <= R_DSRC;
       when c_dpath_vmaddr_ddst => VM_ADDR <= R_DDST;
       when c_dpath_vmaddr_dtmp => VM_ADDR <= R_DTMP;
-      when c_dpath_vmaddr_pc   => VM_ADDR <= GPR_PC;
+      when c_dpath_vmaddr_pc   => VM_ADDR <= GR_PC;
       when others => null;
     end case;
   end process proc_vmaddr_sel;
@@ -316,12 +317,12 @@ begin
   STAT.ccout_z <= CCOUT(c_cc_f_z);      -- current Z cc flag
     
   PSWOUT  <= PSW;
-  PCOUT   <= GPR_PC;
+  PCOUT   <= GR_PC;
   IREG    <= R_IREG;
   VM_DIN  <= DRES;
   CP_DOUT <= R_CPDOUT;
 
-  DM_STAT_DP.pc        <= GPR_PC;
+  DM_STAT_DP.pc        <= GR_PC;
   DM_STAT_DP.psw       <= PSW;
   DM_STAT_DP.psr_we    <= CNTL.psr_we;
   DM_STAT_DP.ireg      <= R_IREG;
@@ -334,9 +335,9 @@ begin
   DM_STAT_DP.dtmp_we   <= CNTL.dtmp_we;
   DM_STAT_DP.dres      <= DRES;
   DM_STAT_DP.cpdout_we <= CNTL.cpdout_we;
-  DM_STAT_DP.gpr_adst  <= CNTL.gpr_adst;
-  DM_STAT_DP.gpr_mode  <= CNTL.gpr_mode;
-  DM_STAT_DP.gpr_bytop <= CNTL.gpr_bytop;
-  DM_STAT_DP.gpr_we    <= CNTL.gpr_we;
+  DM_STAT_DP.gr_adst   <= CNTL.gr_adst;
+  DM_STAT_DP.gr_mode   <= CNTL.gr_mode;
+  DM_STAT_DP.gr_bytop  <= CNTL.gr_bytop;
+  DM_STAT_DP.gr_we     <= CNTL.gr_we;
   
 end syn;

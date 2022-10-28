@@ -1,4 +1,4 @@
--- $Id: pdp11.vhd 1301 2022-10-06 08:53:46Z mueller $
+-- $Id: pdp11.vhd 1310 2022-10-27 16:15:50Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -11,6 +11,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-10-25  1309   1.6.15 rename _gpr -> _gr
 -- 2022-10-03  1301   1.6.14 add decode_stat_type.is_dstpcmode1
 -- 2022-08-13  1279   1.6.13 ssr->mmr rename
 -- 2019-06-02  1159   1.6.12 add rbaddr_ constants
@@ -159,13 +160,13 @@ package pdp11 is
   );
 
   type dpath_cntl_type is record        -- data path control
-    gpr_asrc : slv3;                    -- src register address
-    gpr_adst : slv3;                    -- dst register address
-    gpr_mode : slv2;                    -- psw mode for gpr access
-    gpr_rset : slbit;                   -- register set
-    gpr_we : slbit;                     -- gpr write enable
-    gpr_bytop : slbit;                  -- gpr high byte enable
-    gpr_pcinc : slbit;                  -- pc increment enable
+    gr_asrc : slv3;                     -- src register address
+    gr_adst : slv3;                     -- dst register address
+    gr_mode : slv2;                     -- psw mode for gr access
+    gr_rset : slbit;                    -- register set
+    gr_we : slbit;                      -- gr write enable
+    gr_bytop : slbit;                   -- gr high byte enable
+    gr_pcinc : slbit;                   -- pc increment enable
     psr_ccwe : slbit;                   -- enable update cc
     psr_we: slbit;                      -- write enable psw (from DIN)
     psr_func : slv3;                    -- write function psw (from DIN)
@@ -205,7 +206,7 @@ package pdp11 is
   end record dpath_cntl_type;
 
   constant dpath_cntl_init : dpath_cntl_type := (
-    "000","000","00",'0','0','0','0',   -- gpr
+    "000","000","00",'0','0','0','0',   -- gr
     '0','0',"000",                      -- psr
     '0','0','0','0',"00",'0',           -- dsrc,..,dtmp
     "00",'0',"000000000","00",'0',      -- ounit
@@ -378,7 +379,7 @@ package pdp11 is
     trap_mmu : slbit;                   -- mmu trace trap pending
     trap_ysv : slbit;                   -- ysv trap pending
     prefdone : slbit;                   -- prefetch done
-    do_gprwe : slbit;                   -- pending gpr_we
+    do_grwe : slbit;                    -- pending gr_we
     do_intrsv : slbit;                  -- active rsv interrupt sequence
   end record cpustat_type;
 
@@ -392,7 +393,7 @@ package pdp11 is
     '0','0','0','0',                    -- itimer,creset,breset,intack
     (others=>'0'),                      -- intvect 
     '0','0','0',                        -- trap_(mmu|ysv), prefdone
-    '0','0'                             -- do_gprwe, do_intrsv
+    '0','0'                             -- do_grwe, do_intrsv
   );
 
   type cpuerr_type is record            -- CPU error register
@@ -650,10 +651,10 @@ package pdp11 is
     dtmp_we : slbit;                    -- dtmp we
     dres : slv16;                       -- dres bus
     cpdout_we : slbit;                  -- cpdout we
-    gpr_adst : slv3;                    -- gpr dst regsiter
-    gpr_mode : slv2;                    -- gpr mode
-    gpr_bytop : slbit;                  -- gpr bytop
-    gpr_we : slbit;                     -- gpr we
+    gr_adst : slv3;                     -- gr dst regsiter
+    gr_mode : slv2;                     -- gr mode
+    gr_bytop : slbit;                   -- gr bytop
+    gr_we : slbit;                      -- gr we
   end record dm_stat_dp_type;
 
   constant dm_stat_dp_init : dm_stat_dp_type := (
@@ -665,8 +666,8 @@ package pdp11 is
     (others=>'0'),'0',                  -- dtmp,dtmp_we
     (others=>'0'),                      -- dres
     '0',                                -- cpdout_we
-    (others=>'0'),(others=>'0'),        -- gpr_adst, gpr_mode
-    '0','0'                             -- gpr_bytop, gpr_we
+    (others=>'0'),(others=>'0'),        -- gr_adst, gr_mode
+    '0','0'                             -- gr_bytop, gr_we
   );
 
   type dm_stat_vm_type is record        -- debug and monitor status - vmbox
@@ -748,14 +749,14 @@ package pdp11 is
   constant c_rbaddr_mem  : slv5 := "00110"; -- R/W memory access
   constant c_rbaddr_memi : slv5 := "00111"; -- R/W memory access; inc addr
 
-  constant c_rbaddr_r0   : slv5 := "01000"; -- R/W gpr 0
-  constant c_rbaddr_r1   : slv5 := "01001"; -- R/W gpr 1
-  constant c_rbaddr_r2   : slv5 := "01010"; -- R/W gpr 2
-  constant c_rbaddr_r3   : slv5 := "01011"; -- R/W gpr 3
-  constant c_rbaddr_r4   : slv5 := "01100"; -- R/W gpr 4
-  constant c_rbaddr_r5   : slv5 := "01101"; -- R/W gpr 5
-  constant c_rbaddr_sp   : slv5 := "01110"; -- R/W gpr 6 (sp)
-  constant c_rbaddr_pc   : slv5 := "01111"; -- R/W gpr 7 (pc)
+  constant c_rbaddr_r0   : slv5 := "01000"; -- R/W gr 0
+  constant c_rbaddr_r1   : slv5 := "01001"; -- R/W gr 1
+  constant c_rbaddr_r2   : slv5 := "01010"; -- R/W gr 2
+  constant c_rbaddr_r3   : slv5 := "01011"; -- R/W gr 3
+  constant c_rbaddr_r4   : slv5 := "01100"; -- R/W gr 4
+  constant c_rbaddr_r5   : slv5 := "01101"; -- R/W gr 5
+  constant c_rbaddr_sp   : slv5 := "01110"; -- R/W gr 6 (sp)
+  constant c_rbaddr_pc   : slv5 := "01111"; -- R/W gr 7 (pc)
   
   constant c_rbaddr_membe: slv5 := "10000"; -- R/W memory write byte enables
 
@@ -779,7 +780,7 @@ package pdp11 is
 
 -- -------------------------------------
   
-component pdp11_gpr is                  -- general purpose registers
+component pdp11_gr is                   -- general registers
   port (
     CLK : in slbit;                     -- clock
     DIN : in slv16;                     -- input data
@@ -796,9 +797,9 @@ component pdp11_gpr is                  -- general purpose registers
   );
 end component;
 
-constant c_gpr_r5 : slv3 := "101";      -- register number of r5
-constant c_gpr_sp : slv3 := "110";      -- register number of SP
-constant c_gpr_pc : slv3 := "111";      -- register number of PC
+constant c_gr_r5 : slv3 := "101";       -- register number of r5
+constant c_gr_sp : slv3 := "110";       -- register number of SP
+constant c_gr_pc : slv3 := "111";       -- register number of PC
 
 component pdp11_psr is                  -- processor status word register
   port (
@@ -910,7 +911,7 @@ component pdp11_munit is                -- mul/div unit for data (munit)
     DSRC : in slv16;                    -- 'src' data in
     DDST : in slv16;                    -- 'dst' data in
     DTMP : in slv16;                    -- 'tmp' data in
-    GPR_DSRC : in slv16;                -- 'src' data from GPR
+    GR_DSRC : in slv16;                 -- 'src' data from GR
     FUNC : in slv2;                     -- function
     S_DIV : in slbit;                   -- s_opg_div state    (load dd_low)
     S_DIV_CN : in slbit;                -- s_opg_div_cn state (1st..16th cycle)

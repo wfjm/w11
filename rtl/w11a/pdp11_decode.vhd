@@ -1,6 +1,6 @@
--- $Id: pdp11_decode.vhd 1301 2022-10-06 08:53:46Z mueller $
+-- $Id: pdp11_decode.vhd 1310 2022-10-27 16:15:50Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2006-2011 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    pdp11_decode - syn
@@ -12,6 +12,7 @@
 -- Tool versions:  ise 8.2-14.7; viv 2014.4-2022.1; ghdl 0.18-2.0.0
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-10-25  1309   1.0.8  rename _gpr -> _gr
 -- 2022-10-03  1301   1.0.7  add STAT.is_dstpcmode1
 -- 2011-11-18   427   1.0.6  now numeric_std clean
 -- 2010-09-18   300   1.0.5  rename (adlm)box->(oalm)unit
@@ -128,19 +129,19 @@ begin
 
     if DSTMODF = "000" then
       nstat.is_dstmode0 := '1';
-      if DSTREG /= c_gpr_pc then
+      if DSTREG /= c_gr_pc then
         is_dstmode0notpc := '1';
       end if;
     end if;
 
-    if SRCREG = c_gpr_pc then
+    if SRCREG = c_gr_pc then
       nstat.is_srcpc := '1';
       if SRCMODF = "001" then
         nstat.is_srcpcmode1 := '1';
       end if;
     end if;
     
-    if DSTREG = c_gpr_pc then
+    if DSTREG = c_gr_pc then
       nstat.is_dstpc := '1';
       if DSTMODF = "001" then
         nstat.is_dstpcmode1 := '1';
@@ -353,7 +354,7 @@ begin
         if OPEXT2 = "101" then          -- MFP(I/D)
           nstat.is_res := '0';
           nstat.force_srcsp := '1';
-          if DSTREG = c_gpr_sp then       -- is dst reg == sp ?
+          if DSTREG = c_gr_sp then        -- is dst reg == sp ?
             nstat.updt_dstadsrc := '1';     -- ensure DSRC update in dsta flow
           end if;
           nstat.res_sel := c_dpath_res_ounit;
@@ -548,7 +549,7 @@ begin
 
     if (is_dstw or is_dstm)='1' and nstat.is_dstmode0='1' then
       nstat.is_dstw_reg := '1';
-      if DSTREG = c_gpr_pc then
+      if DSTREG = c_gr_pc then
         nstat.is_dstw_pc := '1';        --??? hack rename -> is_dstw_pc
       end if;
     end if;

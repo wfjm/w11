@@ -1,6 +1,6 @@
--- $Id: pdp11_tmu.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: pdp11_tmu.vhd 1310 2022-10-27 16:15:50Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2008-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    pdp11_tmu - sim
@@ -10,10 +10,11 @@
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  viv 2016.2-2018.2; ghdl 0.18-0.34
+-- Tool versions:  viv 2016.2-2022.1; ghdl 0.18-2.0.0
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-10-25  1309   1.3.2  rename _gpr -> _gr
 -- 2018-10-05  1053   1.3.1  use DM_STAT_CA instead of DM_STAT_SY
 -- 2016-12-28   833   1.3    open tmu_ofile only when used
 -- 2015-07-03   697   1.2.1  adapt to new DM_STAT_SY/DM_STAT_VM
@@ -95,10 +96,10 @@ begin
         write(oline, string'(" dp.ddst:o"));
         write(oline, string'(" dp.dtmp:o"));
         write(oline, string'(" dp.dres:o"));
-        write(oline, string'(" dp.gpr_adst:o"));
-        write(oline, string'(" dp.gpr_mode:o"));
-        write(oline, string'(" dp.gpr_bytop:b"));
-        write(oline, string'(" dp.gpr_we:b"));
+        write(oline, string'(" dp.gr_adst:o"));
+        write(oline, string'(" dp.gr_mode:o"));
+        write(oline, string'(" dp.gr_bytop:b"));
+        write(oline, string'(" dp.gr_we:b"));
 
         write(oline, string'(" vm.ibmreq.aval:b"));
         write(oline, string'(" vm.ibmreq.re:b"));
@@ -156,7 +157,7 @@ begin
 
       wcycle := false;
       if dp_ireg_we_last='1' or
-         DM_STAT_DP.gpr_we='1' or
+         DM_STAT_DP.gr_we='1' or
          DM_STAT_VM.emmreq.req='1' or
          DM_STAT_VM.emsres.ack_r='1' or
          DM_STAT_VM.emsres.ack_w='1' or
@@ -191,10 +192,10 @@ begin
         writeoct(oline, DM_STAT_DP.ddst, right, 7);
         writeoct(oline, DM_STAT_DP.dtmp, right, 7);
         writeoct(oline, DM_STAT_DP.dres, right, 7);
-        writeoct(oline, DM_STAT_DP.gpr_adst, right, 2);
-        writeoct(oline, DM_STAT_DP.gpr_mode, right, 2);
-        write(oline, DM_STAT_DP.gpr_bytop, right, 2);
-        write(oline, DM_STAT_DP.gpr_we, right, 2);
+        writeoct(oline, DM_STAT_DP.gr_adst, right, 2);
+        writeoct(oline, DM_STAT_DP.gr_mode, right, 2);
+        write(oline, DM_STAT_DP.gr_bytop, right, 2);
+        write(oline, DM_STAT_DP.gr_we, right, 2);
 
         write(oline,    DM_STAT_VM.ibmreq.aval, right, 2);
         write(oline,    DM_STAT_VM.ibmreq.re, right, 2);

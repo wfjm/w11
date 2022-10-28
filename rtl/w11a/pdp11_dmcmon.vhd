@@ -1,6 +1,6 @@
--- $Id: pdp11_dmcmon.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: pdp11_dmcmon.vhd 1310 2022-10-27 16:15:50Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    pdp11_dmcmon- syn
@@ -19,6 +19,7 @@
 --
 -- Revision History: -
 -- Date         Rev Version  Comment
+-- 2022-10-25  1309   2.0.2  rename _gpr -> _gr
 -- 2019-06-02  1159   2.0.1  use rbaddr_ constants
 -- 2017-04-22   884   2.0    use DM_STAT_SE.idle; revised interface, add suspend
 -- 2015-08-03   709   1.0    Initial version
@@ -622,7 +623,7 @@ architecture syn of pdp11_dmcmon is
     n.dp_dsrc_we  := DM_STAT_DP.dsrc_we;
     n.dp_ddst_we  := DM_STAT_DP.ddst_we;
     n.dp_dres_val := '0';
-    if ((DM_STAT_DP.gpr_we  or DM_STAT_DP.psr_we    or -- capture dres only when
+    if ((DM_STAT_DP.gr_we  or DM_STAT_DP.psr_we     or -- capture dres only when
          DM_STAT_DP.dsrc_we or DM_STAT_DP.ddst_we   or -- actually used
          DM_STAT_DP.dtmp_we or DM_STAT_DP.cpdout_we or
          DM_STAT_VM.vmcntl.req) = '1') then

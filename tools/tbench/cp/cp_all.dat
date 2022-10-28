@@ -1,8 +1,8 @@
-# $Id: cp_all.dat 683 2015-05-17 21:54:35Z mueller $
+# $Id: cp_all.dat 1310 2022-10-27 16:15:50Z mueller $
 #
 ## steering file for all cp tests
 #
-test_cp_gpr.tcl
+test_cp_gr.tcl
 test_cp_psw.tcl
 test_cp_membasics.tcl
 test_cp_ibrbasics.tcl

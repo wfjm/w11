@@ -1,18 +1,19 @@
--- $Id: pdp11_gr.vhd 1309 2022-10-25 15:19:00Z mueller $
+-- $Id: pdp11_gr.vhd 1310 2022-10-27 16:15:50Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2006-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
--- Module Name:    pdp11_gpr - syn
--- Description:    pdp11: general purpose registers
+-- Module Name:    pdp11_gr - syn
+-- Description:    pdp11: general registers
 --
 -- Dependencies:   memlib/ram_1swar_1ar_gen
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4-2019.1; ghdl 0.18-0.36
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2022.1; ghdl 0.18-2.0.0
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-10-25  1309   1.0.3  rename _gpr -> _gr
 -- 2019-08-17  1203   1.0.2  fix for ghdl V0.36 -Whide warnings
 -- 2011-11-18   427   1.0.4  now numeric_std clean
 -- 2008-08-22   161   1.0.3  rename ubf_ -> ibf_; use iblib
@@ -32,7 +33,7 @@ use work.pdp11.all;
 
 -- ----------------------------------------------------------------------------
 
-entity pdp11_gpr is                     -- general purpose registers
+entity pdp11_gr is                      -- general registers
   port (
     CLK    : in slbit;                  -- clock
     DIN   : in slv16;                   -- input data
@@ -47,9 +48,9 @@ entity pdp11_gpr is                     -- general purpose registers
     DDST : out slv16;                   -- destination register data
     PC     : out slv16                  -- current PC value
   );
-end pdp11_gpr;
+end pdp11_gr;
 
-architecture syn of pdp11_gpr is
+architecture syn of pdp11_gr is
 
 -- --------------------------------------
 -- the register map determines the internal register file storage address
@@ -79,9 +80,9 @@ architecture syn of pdp11_gpr is
       signal PADDR : out slv4           -- internal address in regfile
     ) is
   begin
-    if PRNUM = c_gpr_pc then
+    if PRNUM = c_gr_pc then
       PADDR <= "1110";
-    elsif PRNUM = c_gpr_sp then
+    elsif PRNUM = c_gr_sp then
       PADDR <= PMODE(1) & "11" & PMODE(0);
     else
       PADDR <= PRSET & PRNUM;
@@ -104,7 +105,7 @@ begin
 
   WE1 <= WE and not BYTOP;
 
-  GPR_LOW : ram_1swar_1ar_gen
+  GR_LOW : ram_1swar_1ar_gen
     generic map (
       AWIDTH => 4,
       DWIDTH => 8)
@@ -117,7 +118,7 @@ begin
       DOA   => MEMDST(ibf_byte0),
       DOB   => MEMSRC(ibf_byte0));
 
-  GPR_HIGH : ram_1swar_1ar_gen
+  GR_HIGH : ram_1swar_1ar_gen
     generic map (
       AWIDTH => 4,
       DWIDTH => 8)
@@ -134,7 +135,7 @@ begin
     alias R_PC15 : slv15 is R_PC(15 downto 1);  -- upper 15 bit of PC
   begin 
     if rising_edge(CLK) then
-      if WE='1' and ADST=c_gpr_pc then
+      if WE='1' and ADST=c_gr_pc then
         R_PC(ibf_byte0) <= DIN(ibf_byte0);
         if BYTOP = '0' then
           R_PC(ibf_byte1) <= DIN(ibf_byte1);
@@ -145,8 +146,8 @@ begin
     end if;
   end process proc_pc;
 
-  DSRC <= R_PC when ASRC=c_gpr_pc else MEMSRC;
-  DDST <= R_PC when ADST=c_gpr_pc else MEMDST;
+  DSRC <= R_PC when ASRC=c_gr_pc else MEMSRC;
+  DDST <= R_PC when ADST=c_gr_pc else MEMDST;
   PC <= R_PC;
     
 end syn;

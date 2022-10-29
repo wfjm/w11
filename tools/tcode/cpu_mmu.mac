@@ -1,4 +1,4 @@
-; $Id: cpu_mmu.mac 1305 2022-10-23 07:44:21Z mueller $
+; $Id: cpu_mmu.mac 1311 2022-10-29 12:57:38Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -1183,7 +1183,7 @@ tc0203: mov     #vhmmua,v..mmu
 ;   1100$: mfpi (r2)
 ;   1200$: mfpd (r2)
 ;
-1000$:  mov     #020100,sp      ; set SP into 1st click page 1, non-resident
+1000$:  mov     #020040,sp      ; set SP into 1st click page 1, non-resident
         mov     #1010$,vhvmmu
         mov     #1001$,r2
         jsr     pc,(r2)         ; will fail
@@ -1231,7 +1231,8 @@ tc0203: mov     #vhmmua,v..mmu
         ;         dddddrrrdddddrrr
         .word   ^b0000000000010110              ; mmr1 +2,6
 ;
-2100$:  mov     #2110$,vhvmmu
+2100$:  mov     #020040,sp      ; set SP into 1st click page 1, non-resident
+        mov     #2110$,vhvmmu
         mov     #1,r2           ; not used
         mtpi    (r2)            ; will fail
         halt
@@ -1239,7 +1240,8 @@ tc0203: mov     #vhmmua,v..mmu
         ;         dddddrrrdddddrrr
         .word   ^b0000000000010110              ; mmr1 +2,6
 ;
-2200$:  mov     #2210$,vhvmmu
+2200$:  mov     #020040,sp      ; set SP into 1st click page 1, non-resident
+        mov     #2210$,vhvmmu
         mov     #1,r2           ; not used
         mtpd    (r2)            ; will fail
         halt

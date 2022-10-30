@@ -1,4 +1,4 @@
--- $Id: pdp11_sequencer.vhd 1310 2022-10-27 16:15:50Z mueller $
+-- $Id: pdp11_sequencer.vhd 1312 2022-10-29 15:03:06Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,6 +13,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-10-29  1312   1.6.17 rename s_int_* -> s_vec_*, s_trap_* -> s_abort_*
 -- 2022-10-25  1309   1.6.16 rename _gpr -> _gr
 -- 2022-10-03  1301   1.6.15 finalize fix for I space mode=1 in s_dstr_def
 -- 2022-09-08  1296   1.6.14 BUGFIX: use I space for all mode=1,2,3 if reg=pc
@@ -225,22 +226,22 @@ architecture syn of pdp11_sequencer is
     s_opa_mfp_push,
     s_opa_mfp_push_w,
     
-    s_trap_4,
-    s_trap_10,
+    s_abort_4,
+    s_abort_10,
     s_trap_disp,
 
     s_int_ext,
 
-    s_int_getpc,
-    s_int_getpc_w,
-    s_int_getps,
-    s_int_getps_w,
-    s_int_getsp,
-    s_int_decsp,
-    s_int_pushps,
-    s_int_pushps_w,
-    s_int_pushpc,
-    s_int_pushpc_w,
+    s_vec_getpc,
+    s_vec_getpc_w,
+    s_vec_getps,
+    s_vec_getps_w,
+    s_vec_getsp,
+    s_vec_decsp,
+    s_vec_pushps,
+    s_vec_pushps_w,
+    s_vec_pushpc,
+    s_vec_pushpc_w,
 
     s_rti_getpc,
     s_rti_getpc_w,
@@ -572,7 +573,7 @@ begin
       end if;
     end procedure do_fork_next_pref;
     
-    procedure do_start_int(pnstate  : inout state_type;
+    procedure do_start_vec(pnstate  : inout state_type;
                            pndpcntl : inout dpath_cntl_type;
                            pvector  : in slv9_2) is
     begin
@@ -584,8 +585,8 @@ begin
       pndpcntl.dres_sel := c_dpath_res_ounit;   -- DRES = OUNIT
       pndpcntl.dsrc_sel := c_dpath_dsrc_res;    -- DSRC = DRES
       pndpcntl.dsrc_we := '1';                  -- DSRC = vector
-      pnstate := s_int_getpc;
-    end procedure do_start_int;
+      pnstate := s_vec_getpc;
+    end procedure do_start_vec;
     
   begin
     
@@ -975,7 +976,7 @@ begin
         elsif ID_STAT.do_fork_opg = '1' then
           do_fork_opg(nstate, ID_STAT);
         elsif ID_STAT.is_res = '1' then
-          nstate := s_trap_10;           -- do trap 10;
+          nstate := s_abort_10;          -- do vector 10 abort;
         else
           nstate := s_cpufail;           -- catch mistakes here...
         end if;
@@ -1569,7 +1570,7 @@ begin
           nstate := s_idle;
         else                            -- otherwise trap
           ncpuerr.illhlt := '1';
-          nstate := s_trap_4;           -- trap 4 like 11/70
+          nstate := s_abort_4;          -- vector 4 abort like 11/70
         end if;
 
       when s_op_wait =>                 -- WAIT ------------------------------
@@ -1606,7 +1607,7 @@ begin
       when s_op_trap =>                 -- traps -----------------------------
         idm_idone := '1';                      -- instruction done
         lvector := "0000" & R_IDSTAT.trap_vec; -- vector
-        do_start_int(nstate, ndpcntl, lvector);
+        do_start_vec(nstate, ndpcntl, lvector);
         
       when s_op_reset =>                -- RESET -----------------------------
         if is_kmode = '1' then          -- if in kernel mode execute
@@ -1948,7 +1949,7 @@ begin
         ndpcntl.gr_asrc := c_gr_sp;                --                (for else)
         ndpcntl.dsrc_sel := c_dpath_dsrc_src;      -- DSRC = regfile (for else)
         if R_IDSTAT.is_dstmode0 = '1' then
-          nstate := s_trap_10;                     -- trap 10 like 11/70
+          nstate := s_abort_10;                    -- vector 10 abort like 11/70
         else
           ndpcntl.dsrc_we := '1';
           nstate := s_opa_jsr1;
@@ -2011,7 +2012,7 @@ begin
         ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
         ndpcntl.gr_adst := c_gr_pc;
         if R_IDSTAT.is_dstmode0 = '1' then
-          nstate := s_trap_10;                     -- trap 10 like 11/70
+          nstate := s_abort_10;                    -- vector 10 abort like 11/70
         else
           ndpcntl.gr_we := '1';                    -- load PC with dsta
           idm_pcload := '1';                       -- signal flow change
@@ -2137,16 +2138,16 @@ begin
           do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
         end if;
 
-  -- trap and interrupt handling states ---------------------------------------
+  -- trap and interrupt handling states --------------------------------------
 
-      when s_trap_4 =>                  -- -----------------------------------
+      when s_abort_4 =>                 -- -----------------------------------
         lvector := "0000001";           -- vector (4)
-        do_start_int(nstate, ndpcntl, lvector);
+        do_start_vec(nstate, ndpcntl, lvector);
 
-      when s_trap_10 =>                 -- -----------------------------------
+      when s_abort_10 =>                -- -----------------------------------
         idm_idone := '1';               -- instruction done
         lvector := "0000010";           -- vector (10)
-        do_start_int(nstate, ndpcntl, lvector);
+        do_start_vec(nstate, ndpcntl, lvector);
 
       when s_trap_disp =>               -- -----------------------------------
         if R_STATUS.trap_mmu = '1' then
@@ -2160,19 +2161,21 @@ begin
         end if;
         nstatus.trap_mmu := '0';        -- clear pending trap flags
         nstatus.trap_ysv := '0';        -- 
-        do_start_int(nstate, ndpcntl, lvector);
+        do_start_vec(nstate, ndpcntl, lvector);
 
       when s_int_ext =>                 -- -----------------------------------
         lvector := R_STATUS.intvect;    -- external vector
-        do_start_int(nstate, ndpcntl, lvector);
+        do_start_vec(nstate, ndpcntl, lvector);
 
-      when s_int_getpc =>               -- -----------------------------------
+  -- vector flow states ------------------------------------------------------
+
+      when s_vec_getpc =>               -- -----------------------------------
         idm_vfetch := '1';              -- signal vfetch
         nvmcntl.mode := c_psw_kmode;    -- fetch PC from kernel D space
-        do_memread_srcinc(nstate, ndpcntl, nvmcntl, s_int_getpc_w, nmmumoni);
+        do_memread_srcinc(nstate, ndpcntl, nvmcntl, s_vec_getpc_w, nmmumoni);
 
-      when s_int_getpc_w =>             -- -----------------------------------
-        nstate := s_int_getpc_w;
+      when s_vec_getpc_w =>             -- -----------------------------------
+        nstate := s_vec_getpc_w;
         ndpcntl.dres_sel := c_dpath_res_vmdout;   -- DRES = VMDOUT
         ndpcntl.ddst_sel := c_dpath_ddst_res;     -- DDST = DRES
         do_memcheck(nstate, nstatus, imemok);
@@ -2183,15 +2186,15 @@ begin
         end if;
         if imemok then
           ndpcntl.ddst_we := '1';                 -- DDST = new PC
-          nstate := s_int_getps;
+          nstate := s_vec_getps;
         end if;
 
-      when s_int_getps =>               -- -----------------------------------
+      when s_vec_getps =>               -- -----------------------------------
         nvmcntl.mode := c_psw_kmode;    -- fetch PS from kernel D space
-        do_memread_srcinc(nstate, ndpcntl, nvmcntl, s_int_getps_w, nmmumoni);
+        do_memread_srcinc(nstate, ndpcntl, nvmcntl, s_vec_getps_w, nmmumoni);
 
-      when s_int_getps_w =>             -- -----------------------------------
-        nstate := s_int_getps_w;
+      when s_vec_getps_w =>             -- -----------------------------------
+        nstate := s_vec_getps_w;
         ndpcntl.dres_sel := c_dpath_res_vmdout;   -- DRES = VMDOUT
         ndpcntl.psr_func := c_psr_func_wint;      -- interupt mode write
         do_memcheck(nstate, nstatus, imemok);
@@ -2202,15 +2205,15 @@ begin
         end if;
         if imemok then
           ndpcntl.psr_we := '1';                  -- store new PS
-          nstate := s_int_getsp;
+          nstate := s_vec_getsp;
         end if;
 
-      when s_int_getsp =>               -- -----------------------------------
+      when s_vec_getsp =>               -- -----------------------------------
         ndpcntl.gr_asrc := c_gr_sp;
         ndpcntl.dsrc_we := '1';                  -- DSRC = SP (in new mode)
-        nstate := s_int_decsp;
+        nstate := s_vec_decsp;
 
-      when s_int_decsp =>               -- -----------------------------------
+      when s_vec_decsp =>               -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_dsrc; -- OUNIT A=DSRC
         ndpcntl.ounit_const := "000000010";      -- OUNIT const=2
         ndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B=const
@@ -2220,9 +2223,9 @@ begin
         ndpcntl.dsrc_we := '1';                  -- update DSRC
         ndpcntl.gr_adst := c_gr_sp;
         ndpcntl.gr_we := '1';                    -- update SP too
-        nstate := s_int_pushps;
+        nstate := s_vec_pushps;
 
-      when s_int_pushps =>              -- -----------------------------------
+      when s_vec_pushps =>              -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_dtmp;   -- OUNIT A=DTMP (old PS)
         ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const (0)
         ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
@@ -2231,9 +2234,9 @@ begin
         nvmcntl.dspace := '1';
         nvmcntl.kstack := is_kmode;
         nvmcntl.req := '1';
-        nstate := s_int_pushps_w;
+        nstate := s_vec_pushps_w;
 
-      when s_int_pushps_w =>            -- -----------------------------------
+      when s_vec_pushps_w =>            -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_dsrc; -- OUNIT A=DSRC
         ndpcntl.ounit_const := "000000010";      -- OUNIT const=2
         ndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B=const
@@ -2242,15 +2245,15 @@ begin
         ndpcntl.dsrc_sel := c_dpath_dsrc_res;    -- DSRC = DRES
         ndpcntl.gr_adst := c_gr_sp;
 
-        nstate := s_int_pushps_w;
+        nstate := s_vec_pushps_w;
         do_memcheck(nstate, nstatus, imemok);
         if imemok then
           ndpcntl.dsrc_we := '1';                -- update DSRC
           ndpcntl.gr_we := '1';                  -- update SP too
-          nstate := s_int_pushpc;
+          nstate := s_vec_pushpc;
         end if;
         
-      when s_int_pushpc =>              -- -----------------------------------
+      when s_vec_pushpc =>              -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_pc;     -- OUNIT A=PC
         ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const (0)
         ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
@@ -2259,15 +2262,15 @@ begin
         nvmcntl.dspace := '1';
         nvmcntl.kstack := is_kmode;
         nvmcntl.req := '1';
-        nstate := s_int_pushpc_w;
+        nstate := s_vec_pushpc_w;
 
-      when s_int_pushpc_w =>            -- -----------------------------------
+      when s_vec_pushpc_w =>            -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_ddst;   -- OUNIT A=DDST
         ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const (0)
         ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
         ndpcntl.gr_adst := c_gr_pc;
 
-        nstate := s_int_pushpc_w;
+        nstate := s_vec_pushpc_w;
         do_memcheck(nstate, nstatus, imemok);
         if imemok then
           nstatus.do_intrsv := '0';                -- signal end of rsv
@@ -2362,21 +2365,21 @@ begin
               ncpuerr.iobto := '1';
             end if;
             ncpuerr.rsv := '1';
-            nstate := s_trap_4;
+            nstate := s_abort_4;
 
           elsif R_VMSTAT.err_odd = '1' then
             ncpuerr.adderr := '1';
-            nstate := s_trap_4;
+            nstate := s_abort_4;
           elsif R_VMSTAT.err_nxm = '1' then
             ncpuerr.nxm := '1';
-            nstate := s_trap_4;
+            nstate := s_abort_4;
           elsif R_VMSTAT.err_iobto = '1' then
             ncpuerr.iobto := '1';
-            nstate := s_trap_4;
+            nstate := s_abort_4;
 
           elsif R_VMSTAT.err_mmu = '1' then
             lvector := "0101010";                    -- vector (250)
-            do_start_int(nstate, ndpcntl, lvector);
+            do_start_vec(nstate, ndpcntl, lvector);
           end if;
         end if;
         
@@ -2564,22 +2567,22 @@ begin
         when s_opa_mfp_push   => isnum := x"5a";
         when s_opa_mfp_push_w => isnum := x"5b";
                                  
-        when s_trap_4         => isnum := x"5c";
-        when s_trap_10        => isnum := x"5d";
+        when s_abort_4        => isnum := x"5c";
+        when s_abort_10       => isnum := x"5d";
         when s_trap_disp      => isnum := x"5e";
                                  
         when s_int_ext        => isnum := x"5f";
                                  
-        when s_int_getpc      => isnum := x"60";
-        when s_int_getpc_w    => isnum := x"61";
-        when s_int_getps      => isnum := x"62";
-        when s_int_getps_w    => isnum := x"63";
-        when s_int_getsp      => isnum := x"64";
-        when s_int_decsp      => isnum := x"65";
-        when s_int_pushps     => isnum := x"66";
-        when s_int_pushps_w   => isnum := x"67";
-        when s_int_pushpc     => isnum := x"68";
-        when s_int_pushpc_w   => isnum := x"69";
+        when s_vec_getpc      => isnum := x"60";
+        when s_vec_getpc_w    => isnum := x"61";
+        when s_vec_getps      => isnum := x"62";
+        when s_vec_getps_w    => isnum := x"63";
+        when s_vec_getsp      => isnum := x"64";
+        when s_vec_decsp      => isnum := x"65";
+        when s_vec_pushps     => isnum := x"66";
+        when s_vec_pushps_w   => isnum := x"67";
+        when s_vec_pushpc     => isnum := x"68";
+        when s_vec_pushpc_w   => isnum := x"69";
                                  
         when s_rti_getpc      => isnum := x"6a";
         when s_rti_getpc_w    => isnum := x"6b";
@@ -2729,22 +2732,22 @@ begin
         when s_opa_mfp_push   => isnum_ins := '1';
         when s_opa_mfp_push_w => isnum_ins := '1';
                                  
-        when s_trap_4         => isnum_ins := '1';
-        when s_trap_10        => isnum_ins := '1';
+        when s_abort_4        => isnum_ins := '1';
+        when s_abort_10       => isnum_ins := '1';
         when s_trap_disp      => isnum_ins := '1';
                                  
         when s_int_ext        => isnum_vec := '1';
                                  
-        when s_int_getpc      => isnum_vec := '1';
-        when s_int_getpc_w    => isnum_vec := '1';
-        when s_int_getps      => isnum_vec := '1';
-        when s_int_getps_w    => isnum_vec := '1';
-        when s_int_getsp      => isnum_vec := '1';
-        when s_int_decsp      => isnum_vec := '1';
-        when s_int_pushps     => isnum_vec := '1';
-        when s_int_pushps_w   => isnum_vec := '1';
-        when s_int_pushpc     => isnum_vec := '1';
-        when s_int_pushpc_w   => isnum_vec := '1';
+        when s_vec_getpc      => isnum_vec := '1';
+        when s_vec_getpc_w    => isnum_vec := '1';
+        when s_vec_getps      => isnum_vec := '1';
+        when s_vec_getps_w    => isnum_vec := '1';
+        when s_vec_getsp      => isnum_vec := '1';
+        when s_vec_decsp      => isnum_vec := '1';
+        when s_vec_pushps     => isnum_vec := '1';
+        when s_vec_pushps_w   => isnum_vec := '1';
+        when s_vec_pushpc     => isnum_vec := '1';
+        when s_vec_pushpc_w   => isnum_vec := '1';
                                  
         when s_rti_getpc      => isnum_vec := '1';
         when s_rti_getpc_w    => isnum_vec := '1';

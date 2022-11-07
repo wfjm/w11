@@ -6,8 +6,10 @@ The issues of the w11 CPU and systems are listed in a separate document
 
 ### Known differences between w11a and KB11-C (11/70)
 - [Instruction fetch after `SPL`](w11a_diff_70_spl_bug.md)
-- ['red stack violation' loses PSW](w11a_diff_70_red_stack_abort.md)
+- ['fatal stack errors' lose PSW](w11a_diff_70_red_stack_abort.md)
+- [Stack limit checks done independent of register set](w11a_diff_70_stklim_rset.md)
 - ['instruction completed flag' in `MMR0` is not implemented](w11a_diff_70_instruction_complete.md)
+- [`CLR` and `SXT` do a write](w11a_diff_70_clr_sxt_write.md)
 - [`jsr sp` pushes original `sp` value](w11a_diff_70_jsr_sp.md)
 - [18-bit UNIBUS address space not mapped](w11a_diff_70_unibus_mapping.md)
 - [MMU traps not suppressed when MMU register accessed](w11a_diff_70_mmu_trap_suppression.md)
@@ -15,6 +17,12 @@ The issues of the w11 CPU and systems are listed in a separate document
 All points relate to very 11/70 specific behavior, no operating system
 depends on them, therefore they are considered acceptable implementation
 differences.
+
+For a comprehensive list of differences between all PDP-11 models consult
+the _PDP-11 Family Differences Table_ in
+- [PDP-11 Architecture Handbook (1983)](http://wwcm.synology.me/pdf/EB-23657-18%20PDP-11%20Architecture%20Handbook.pdf) Appendix B p303
+- [PDP-11 MICRO/PDP-11 Handbook 1983-84](http://www.bitsavers.org/pdf/dec/pdp11/handbooks/EB-24944-18_Micro_PDP-11_Handbook_1983-84.pdf) Appendix G p387
+- and also [PDP-11 family differences appendix](https://gunkies.org/wiki/PDP-11_family_differences_appendix)
 
 ### Differences in unspecified behavior between w11a and KB11-C (11/70)
 - [State of N and Z and registers after a `DIV` abort with `V=1`](w11a_diff_70_div_after_v1.md)

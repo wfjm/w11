@@ -20,3 +20,11 @@ But in supervisor and user mode `SPL` really acts as `NOOP`, so traps and
 interrupts are taken as for all other instructions.   
 
 **--> The w11a isn't bug compatible with the 11/70.**
+
+Drivers most likely do not depend on this specific `SPL` behavior.
+It is not mentioned in Processor or Architecture Handbooks, only in
+the 11/70 Technical Manual.
+But some `xxdp` test either explicitly check this, like `ekbbf0` test 032,
+or use it to set up an _instruction under test_, like `ekbbf0` tests 035, 047.
+So getting the kernel mode `SPL` behavior right is important for
+passing `ekbbf0`.

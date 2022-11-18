@@ -32,6 +32,8 @@ The full set of tests is only run for tagged releases.
 - general changes
   - rename _gpr to _gr, use 'general registers' not 'general purpose registers'
 ### Bug Fixes
+  - rtl/w11a
+    - pdp11_sequencer: BUGFIX: use is_kstackdst1246 also in dstr flow
 
 <!-- --------------------------------------------------------------------- -->
 ---

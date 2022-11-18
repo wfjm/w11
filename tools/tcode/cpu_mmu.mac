@@ -1,4 +1,4 @@
-; $Id: cpu_mmu.mac 1311 2022-10-29 12:57:38Z mueller $
+; $Id: cpu_mmu.mac 1313 2022-11-04 14:01:08Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -1573,8 +1573,8 @@ te0102: mov     #vhmmut,v..mmu  ; setup MMU trap handler
 ;
 ; case  r-abo: read, abort
 1200$:  mov     #vhmmua,v..mmu  ; setup MMU abort handler
-        mov    (r5)+,1210$
-        mov    #1210$,(r2)
+        mov     (r5)+,1210$
+        mov     #1210$,(r2)
         tst     (r3)            ; probe read
         halt                    ; expect abort
 1210$:  .word   0,0
@@ -1593,16 +1593,16 @@ te0102: mov     #vhmmut,v..mmu  ; setup MMU trap handler
 ;
 ; case w-abo: write, abort
 1500$:  mov     #vhmmua,v..mmu  ; setup MMU abort handler
-        mov    (r5)+,1510$
-        mov    #1510$,(r2)
-        add    r0,(r3)          ; probe write
+        mov     (r5)+,1510$
+        mov     #1510$,(r2)
+        add     r0,(r3)         ; probe write
         halt                    ; expect abort
 1510$:  .word   0,0
         br      1910$           ; to tr-check
 ;
 ; case w-trap: write, trap
 1600$:  mov     #vhmmut,v..mmu  ; setup MMU trap handler
-        mov    #1900$,(r2)
+        mov     #1900$,(r2)
         clr     (r3)            ; probe write
         halt                    ; expect trap
 ;

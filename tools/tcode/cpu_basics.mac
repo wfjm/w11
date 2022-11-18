@@ -1,4 +1,4 @@
-; $Id: cpu_basics.mac 1287 2022-08-27 09:40:43Z mueller $
+; $Id: cpu_basics.mac 1316 2022-11-18 15:26:40Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -3005,13 +3005,13 @@ tf0201: mov     #cp.psw,r0
         hbitne  #kl.ie,kl.csr   ; check that kl.ie bit is set
         movb    #bit01,cp.pir+1 ; set PIRQ bit
         hcmbeq  #bit01,cp.pir+1 ; check
-        mov     #400,cp.sli     ; bump STKLIM
-        hcmpeq  #400,cp.sli     ; check
+        mov     #400,cp.slr     ; bump STKLIM
+        hcmpeq  #400,cp.slr     ; check
 ;
         reset                   ; and RESET
         hbiteq  #kl.ie,kl.csr   ; check that kl.ie bit is cleared
         htsbeq  cp.pir+1        ; check that PIRQ cleared
-        htsteq  cp.sli          ; check that STKLIM cleared
+        htsteq  cp.slr          ; check that STKLIM cleared
         ccc                     ; clear cc
         hcmpeq  (r0),#cp.pr7    ; check that prio still 7 (CPU not(!) reset)
         clr     (r0)            ; back to normal

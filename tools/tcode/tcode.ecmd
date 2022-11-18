@@ -1,25 +1,25 @@
-! $Id: tcode.ecmd 1311 2022-10-29 12:57:38Z mueller $
-! SPDX-License-Identifier: GPL-3.0-or-later
-! Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
-!
-! setup w11 like processor configuration
-!   set nouwin to disable UNIBUS window (17000000-17757777) to UNIBUS map
-!   set memory to 3840
-!   this way e11 behaves like w11 and SimH, which simplifies tcodes
-!
+; $Id: tcode.ecmd 1313 2022-11-04 14:01:08Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; setup w11 like processor configuration
+;   set nouwin to disable UNIBUS window (17000000-17757777) to UNIBUS map
+;   set memory to 3840
+;   this way e11 behaves like w11 and SimH, which simplifies tcodes
+;
 set cpu 70
 set cpu nouwin
 set memory 3840
 set cpu nofpp
 set idle delay=1
-! set ^E as break character (like in SimH)
+; set ^E as break character (like in SimH)
 set break 005
-! enable PC value logging (inspect with show pclog)
+; enable PC value logging (inspect with show pclog)
 set pclog on
-! set sysid, leading '1' indicates simulator, next '2' e11
+; set sysid, leading '1' indicates simulator, next '2' e11
 set cpu SYSID=0120345
-!
-! create log file, the only way to capture e11 output
-! no rediction to stdout possible
-!
+;
+; create log file, the only way to capture e11 output
+; no rediction to stdout possible
+;
 log tt0: tmp_e11_tt0

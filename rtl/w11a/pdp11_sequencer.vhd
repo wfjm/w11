@@ -1,4 +1,4 @@
--- $Id: pdp11_sequencer.vhd 1312 2022-10-29 15:03:06Z mueller $
+-- $Id: pdp11_sequencer.vhd 1316 2022-11-18 15:26:40Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,6 +13,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-11-18  1316   1.6.18 BUGFIX: use is_kstackdst1246 also in dstr flow
 -- 2022-10-29  1312   1.6.17 rename s_int_* -> s_vec_*, s_trap_* -> s_abort_*
 -- 2022-10-25  1309   1.6.16 rename _gpr -> _gr
 -- 2022-10-03  1301   1.6.15 finalize fix for I space mode=1 in s_dstr_def
@@ -47,7 +48,7 @@
 --                           CNTL.cpdout_we instead of CPDOUT_WE
 -- 2010-06-12   304   1.2.8  signal cpuwait when spinning in s_op_wait
 -- 2009-05-30   220   1.2.7  final removal of snoopers (were already commented)
--- 2009-05-09   213   1.2.6  BUGFIX: use is_dstkstack1246, stklim for mode=6
+-- 2009-05-09   213   1.2.6  BUGFIX: use is_kstackdst1246, stklim for mode=6
 -- 2009-05-02   211   1.2.5  BUGFIX: 11/70 spl semantics again in kernel mode
 -- 2009-04-26   209   1.2.4  BUGFIX: give interrupts priority over trap handling
 -- 2008-12-14   177   1.2.3  BUGFIX: use is_dstkstack124, fix stklim check bug
@@ -363,7 +364,7 @@ begin
     variable brcond : slbit := '0';          -- br condition value
 
     variable is_kmode : slbit := '0';        -- cmode is kernel mode
-    variable is_dstkstack1246 : slbit := '0'; -- dest is k-stack & mode= 1,2,4,6
+    variable is_kstackdst1246 : slbit := '0'; -- dest is k-stack & mode= 1,2,4,6
 
     variable int_pending : slbit := '0';     -- an interrupt is pending
 
@@ -399,13 +400,15 @@ begin
                            pwstate  : in state_type;
                            pbytop   : in slbit := '0';
                            pmacc    : in slbit := '0';
-                           pispace  : in slbit := '0') is
+                           pispace  : in slbit := '0';
+                           kstack   : in slbit := '0') is
     begin
       pnvmcntl.dspace := not pispace;
 --      bytop := R_IDSTAT.is_bytop and not is_addr;
-      pnvmcntl.bytop := pbytop;
-      pnvmcntl.macc  := pmacc;
-      pnvmcntl.req   := '1';
+      pnvmcntl.bytop  := pbytop;
+      pnvmcntl.macc   := pmacc;
+      pnvmcntl.kstack := kstack;
+      pnvmcntl.req    := '1';
       pnstate := pwstate;
     end procedure do_memread_d;
     
@@ -639,14 +642,14 @@ begin
     brcond := '1';
 
     is_kmode := '0';
-    is_dstkstack1246 := '0';
+    is_kstackdst1246 := '0';
     
     if PSW.cmode = c_psw_kmode then
       is_kmode := '1';
       if DSTREG = c_gr_sp and
          (DSTMODF="001" or DSTMODF="010" or
           DSTMODF="100" or DSTMODF="110") then
-        is_dstkstack1246 := '1';
+        is_kstackdst1246 := '1';
       end if;      
     end if;
       
@@ -1192,7 +1195,8 @@ begin
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_ddst; -- VA = DDST
         do_memread_d(nstate, nvmcntl, s_dstr_def_w,
                      pbytop=>R_IDSTAT.is_bytop, pmacc=>R_IDSTAT.is_rmwop,
-                     pispace=>R_IDSTAT.is_dstpcmode1);
+                     pispace=>R_IDSTAT.is_dstpcmode1,
+                     kstack=>is_kstackdst1246 and R_IDSTAT.is_rmwop);
 
       when s_dstr_def_w =>              -- -----------------------------------
         nstate := s_dstr_def_w;
@@ -1217,7 +1221,8 @@ begin
         macc  := R_IDSTAT.is_rmwop and not DSTDEF;
         bytop := R_IDSTAT.is_bytop and not DSTDEF;
         do_memread_d(nstate, nvmcntl, s_dstr_inc_w,
-                     pbytop=>bytop, pmacc=>macc, pispace=>R_IDSTAT.is_dstpc);
+                     pbytop=>bytop, pmacc=>macc, pispace=>R_IDSTAT.is_dstpc,
+                     kstack=>is_kstackdst1246 and R_IDSTAT.is_rmwop);
         
       when s_dstr_inc_w =>              -- -----------------------------------
         nstate := s_dstr_inc_w;
@@ -1252,7 +1257,8 @@ begin
         macc  := R_IDSTAT.is_rmwop and not DSTDEF;
         bytop := R_IDSTAT.is_bytop and not DSTDEF;
         do_memread_d(nstate, nvmcntl, s_dstr_inc_w,
-                     pbytop=>bytop, pmacc=>macc);
+                     pbytop=>bytop, pmacc=>macc,
+                     kstack=>is_kstackdst1246 and R_IDSTAT.is_rmwop);
 
       when s_dstr_ind =>                -- -----------------------------------
         do_memread_i(nstate, ndpcntl, nvmcntl, s_dstr_ind1_w);
@@ -1278,7 +1284,8 @@ begin
         macc  := R_IDSTAT.is_rmwop and not DSTDEF;
         bytop := R_IDSTAT.is_bytop and not DSTDEF;
         do_memread_d(nstate, nvmcntl, s_dstr_ind2_w,
-                     pbytop=>bytop, pmacc=>macc);
+                     pbytop=>bytop, pmacc=>macc,
+                     kstack=>is_kstackdst1246 and R_IDSTAT.is_rmwop);
 
       when s_dstr_ind2_w =>             -- -----------------------------------
         nstate := s_dstr_ind2_w;
@@ -1335,12 +1342,12 @@ begin
   --               s_dstw_def246        wreq @n(r)
   --               s_dstw_def_w         ack  @n(r)
   --               -> do_fork_next
-        
+
       when s_dstw_def =>                -- -----------------------------------
         ndpcntl.psr_ccwe := '1';
         ndpcntl.dres_sel := R_IDSTAT.res_sel;      -- DRES = choice of idec
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_ddst; -- VA = DDST
-        nvmcntl.kstack := is_dstkstack1246;
+        nvmcntl.kstack := is_kstackdst1246;
         do_memwrite(nstate, nvmcntl, s_dstw_def_w, pispace=>R_IDSTAT.is_dstpc);
         
       when s_dstw_def_w =>              -- -----------------------------------
@@ -1359,7 +1366,7 @@ begin
         ndpcntl.ounit_bsel := c_ounit_bsel_const;    -- OUNIT B=const (for else)
         if DSTDEF = '0' then
           ndpcntl.dres_sel := R_IDSTAT.res_sel;      -- DRES = choice of idec
-          nvmcntl.kstack := is_dstkstack1246;
+          nvmcntl.kstack := is_kstackdst1246;
           do_memwrite(nstate, nvmcntl, s_dstw_inc_w, pispace=>R_IDSTAT.is_dstpc);
           nstatus.do_grwe := '1';
         else
@@ -1421,7 +1428,7 @@ begin
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_ddst; -- VA = DDST
         ndpcntl.dres_sel := R_IDSTAT.res_sel;      -- DRES = from idec (for if)
         if DSTDEF = '0' then
-          nvmcntl.kstack := is_dstkstack1246;
+          nvmcntl.kstack := is_kstackdst1246;
           do_memwrite(nstate, nvmcntl, s_dstw_def_w);
         else
           do_memread_d(nstate, nvmcntl, s_dstw_incdef_w);

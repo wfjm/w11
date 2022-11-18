@@ -1,10 +1,10 @@
-; $Id: cpu_details.mac 1305 2022-10-23 07:44:21Z mueller $
+; $Id: cpu_details.mac 1316 2022-11-18 15:26:40Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2022-07-28  1264   1.0    Initial version
+; 2022-11-18  1316   1.0    Initial version
 ; 2022-07-18  1259   0.1    First draft
 ;
 ; Test CPU details
@@ -355,6 +355,180 @@ ta0210: cmpb    systyp,#sy.sih  ; this fatal stack error fails in SimH
 ; end of A2.* tests, restore iit handler
         mov     v..iit+2,v..iit ; restore iit handler
 ;
+; Test A3:  STKLIM +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies operation of STKLIM register
+;   and the yellow stack trap and red stack abort functionality.
+;
+; Test A3.1 -- STKLIM write/read test ++++++++++++++++++++++++++++++++
+;   STKLIM is a 16 bit register, upper byte is retained, lower reads always 0
+;
+ta0301: mov     #1000$,r0               ; ptr to value list
+        mov     #<1010$-1000$>/2,r1     ; # of values
+        mov     #377,r2                 ; LSB byte mask
+        mov     #cp.slr,r3              ; ptr to STKLIM
+;
+100$:   mov     (r0)+,r4                ; get value
+        mov     r4,(r3)                 ; load STKLIM
+        bic     r2,r4                   ; clear LSB
+        hcmpeq  r4,(r3)                 ; read and ckeck STKLIM
+        sob     r1,100$                 ; go for next STKLIM value
+        br      9999$
+;
+1000$:  .word   ^b0101010101010101
+        .word   ^b1010101010101010
+        .word   ^b0000000011001100      ; STKLIM = 0 at end of test
+1010$:
+;
+9999$:  iot                                     ; end of test A3.1
+;
+; Test A3.2 -- yellow trap + red abort boundary ++++++++++++++++++++++
+;   Verifies push to STKLIM+376 to STKLIM+340 causes a yellow trap
+;   and a push to STKLIM+336 causes a red stack abort for STKLIM
+;         0    yellow below 000400
+;      1400    yellow below 002000
+;    157400    yellow below 156000
+;
+ta0302: mov     #2000$,r0               ; ptr to value list
+        mov     #<2010$-2000$>/2,r1     ; # of values
+        mov     #1000$,v..iit           ; set up iit handler
+        clr     v..iit+2
+;
+100$:   mov     (r0)+,r5                ; get value
+        mov     r5,cp.slr               ; load STKLIM
+        clr     336(r5)                 ; clear word on red boundary
+        mov     r5,sp                   ; load SP
+        add     #400,sp                 ; to yellow boundary
+        clr     r2                      ; clear yellow trap counter
+        mov     #1.,-(sp)               ; push to STKLIM+376 -> trap
+        mov     #2.,-(sp)               ; push to STKLIM+374 -> trap
+        mov     #3.,-(sp)               ; push to STKLIM+372 -> trap
+        mov     #4.,-(sp)               ; push to STKLIM+370 -> trap
+        mov     #5.,-(sp)               ; push to STKLIM+366 -> trap
+        mov     #6.,-(sp)               ; push to STKLIM+364 -> trap
+        mov     #7.,-(sp)               ; push to STKLIM+362 -> trap
+        mov     #8.,-(sp)               ; push to STKLIM+360 -> trap
+        mov     #9.,-(sp)               ; push to STKLIM+356 -> trap
+        mov     #10.,-(sp)              ; push to STKLIM+354 -> trap
+        mov     #11.,-(sp)              ; push to STKLIM+352 -> trap
+        mov     #12.,-(sp)              ; push to STKLIM+350 -> trap
+        mov     #13.,-(sp)              ; push to STKLIM+346 -> trap
+        mov     #14.,-(sp)              ; push to STKLIM+344 -> trap
+        sub     #6,sp                   ; avoid abort in vector flow
+        mov     #123456,-(sp)           ; push to STKLIM+336 -> abort
+        halt
+;
+1000$:  clr     cp.err                  ; HACK: clear CPUERR !!!
+        tst     sp
+        beq     1010$
+        inc     r2
+        rti
+1010$:  hcmpeq  #14.,r2                 ; all traps taken ?
+        htsteq  336(r5)                 ; red zone border clean ?
+        sob     r1,100$                 ; go for next STKLIM value
+;
+        clr     cp.slr                  ; STKLIM to default
+        mov     #stack,sp               ; SP to default
+        mov     #v..iit+2,v..iit        ; v..iit to catcher
+        br      9999$
+;
+2000$:  .word   000000
+        .word   001400
+        .word   157400
+2010$:
+;
+9999$:  iot                                     ; end of test A3.2
+;
+; Test A3.3 -- stack trap address modes ++++++++++++++++++++++++++++++
+;   Verifies that mode 1,2,4,6 trap for dstw flows and dstr when rmw
+;   Verifies that mode 3,5,7 writes do not trap
+;   Verifies that mode 1-7 reads do not trap
+;   Notes:
+;   - dstw (mov,clr,..) and dstr (add,bis,...) flows write to stack -> test both
+;   - inspired by eqkce0 test 041 that verifies do/dont trap instruction cases
+;   - SimH and e11 currently do not support full 11/70 mode semantics
+;
+ta0303: tstb    systyp                  ; skip if not on w11
+        bge     100$
+        jmp     9999$
+;
+100$:   mov     #1000$,v..iit           ; set up iit handler
+        clr     v..iit+2
+        mov     #1100$,v..emt           ; set up emt handler
+        clr     v..emt+2
+        mov     #1200$,v..trp           ; set up trap handler
+        clr     v..trp+2
+        mov     #1400,cp.slr            ; set yellow limit to 1776
+        clr     r2                      ; clear trap counter
+;
+; part 1: test instructions that should trap -------------------------
+;
+; dstw mode 1,2,4,6
+        mov     #1000,-(sp)             ; dstw mode 4: SP now 1776 (1)
+        clr     -(sp)                   ; dstw mode 4: SP now 1774 (2)
+        mov     (sp),(sp)               ; dstw mode 1: SP now 1774 (3)
+        clr     (sp)                    ; dstw mode 1: SP now 1774 (4)
+        mov     (sp),(sp)+              ; dstw mode 2: SP now 1776 (5)
+        clr     0(sp)                   ; dstw mode 6: SP now 1776 (6)
+        mov     (sp),0(sp)              ; dstw mode 6: SP now 1776 (7)
+; implied push
+        jsr     pc,1300$                ; implied push: SP now 1176 (8)
+        mfpi    r0                      ; implied push: SP now 1774 (9)
+; trap instrunctions
+        emt     100                     ; trap push: SP now 1174 (10)
+        trap    200                     ; trap push: SP now 1174 (11)
+; dstr mode 1,2,4,6 when rmw
+        add     (sp),(sp)               ; dstr mode 1: SP now 1174 (12)
+        bis     (sp),-(sp)              ; dstr mode 4: SP now 1172 (13)
+        incb    (sp)+                   ; dstr mode 2: SP now 1174 (14)
+        dec     0(sp)                   ; dstr mode 6: SP now 1174 (15)
+;
+        br      1500$
+;
+1000$:  clr     cp.err                  ; HACK: clear CPUERR !!!
+        htstne  sp                      ; no red stack aborts expected
+        inc     r2
+        rti
+;
+1100$:  rti                             ; dummy emt handler
+1200$:  rti                             ; dummy trap handler
+1300$:  rts     pc                      ; dummy routine
+;
+1500$:  hcmpeq  #15.,r2                 ; all traps taken ?
+        mov     #v..iit+2,v..iit        ; v..iit to catcher
+        mov     #v..emt+2,v..emt        ; v..emt to catcher
+        mov     #v..trp+2,v..trp        ; v..trp to catcher
+;
+; part 2: test instructions that should not trap ---------------------
+;
+        mov     #stack-2,r2             ; in yellow zone
+        mov     r2,(r2)                 ; load on stack (not using SP)
+        mov     r2,sp                   ; SP in yellow zone
+; dstw mode 3,5,7
+        mov     (sp)+,@-(sp)            ; dstw mode 5: SP now 1176
+        mov     @0(sp),@(sp)+           ; dstw mode 3: SP now 1200
+        mov     -(sp),@0(sp)            ; dstw mode 7: SP now 1176
+; dstr mode 3,5,7 when rmw
+        bis     (sp)+,@-(sp)            ; dstw mode 5: SP now 1176
+        bis     @0(sp),@(sp)+           ; dstw mode 3: SP now 1200
+        bis     -(sp),@0(sp)            ; dstw mode 7: SP now 1176
+; dstr mode 1,2,4,6 in read-only
+        tst     (sp)                    ; dstr mode 1: SP now 1176
+        cmp     (sp),-(sp)              ; dstr mode 4: SP now 1174
+        cmp     (sp),(sp)+              ; dstr mode 2: SP now 1176
+        cmp     (sp),0(sp)              ; dstr mode 6: SP now 1176
+; dstr mode 3,5,7 in read-only
+        cmp     (sp),@(sp)+             ; dstr mode 3: SP now 1200
+        cmp     (sp),@-(sp)             ; dstr mode 5: SP now 1176
+        cmp     (sp),@0(sp)             ; dstr mode 7: SP now 1176
+; check that EA is compared against STKLIM
+        clr     sp
+        mov     @#2000,2000(sp)         ; SP=0, EA=2000 -> no trap
+;
+        clr     cp.slr                  ; STKLIM to default
+        mov     #stack,sp               ; SP to default
+;
+9999$:  iot                                     ; end of test A3.3
+;
 ; Section B: Stress tests ====================================================
 ;
 ; Test B1:  address mode torture tests +++++++++++++++++++++++++++++++++++++++
@@ -565,7 +739,7 @@ tc0103: mov     #vhugen,v..iit  ; set iit handler
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#19.      ; all tests done ?
+        hcmpeq  tstno,#22.      ; all tests done ?
 ;
         jmp     loop
 ;

@@ -1,4 +1,4 @@
-; $Id: cpu_eis.mac 1264 2022-07-30 07:42:17Z mueller $
+; $Id: cpu_eis.mac 1314 2022-11-09 10:55:29Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -688,7 +688,7 @@ te0101: mov     #1000$,r4       ; setup data pointer
 ;
 9999$:  iot                     ; end of test E1.1
 ;
-; Test X1.2 -- xor znvc=1 ++++++++++++++++++++++++++++++++++++++++++++
+; Test E1.2 -- xor znvc=1 ++++++++++++++++++++++++++++++++++++++++++++
 ;   check xor with all ccs set; register destination
 ;
 te0102: mov     #1000$,r4       ; setup data pointer

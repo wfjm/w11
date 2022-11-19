@@ -1,11 +1,11 @@
 .\" -*- nroff -*-
-.\" $Id: tmuconv.1 1261 2022-07-23 16:15:03Z mueller $
+.\" $Id: tmuconv.1 1316 2022-11-18 15:26:40Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\"
 .\" ------------------------------------------------------------------
 .
-.TH TMUCONV 1 2022-07-18 "Retro Project" "Retro Project Manual"
+.TH TMUCONV 1 2022-11-18 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 tmuconv \- convert w11a tmu output into human readable format
@@ -50,6 +50,10 @@ trace instruction decodes.
 trace register updates.
 .
 .\" ----------------------------------------------
+.IP "\fB\-t_ru06\fR"
+trace register updates for r0-r5 and sp (subset of \fB\-t_ru\fR)
+.
+.\" ----------------------------------------------
 .IP "\fB\-t_em\fR"
 trace em transactions (external memory bus).
 em transactions that converted to an ib transaction are labeled 'cancel'.
@@ -71,6 +75,10 @@ trace only vector fetch em transactions (subset of \fB\-t_em\fR)
 .IP "\fB\-t_ib\fR"
 trace ib transactions (ibus cycles). em 'cancel' transactions are not shown
 unless the \fB\-emcancel\fR option is given.
+.
+.\" ----------------------------------------------
+.IP "\fB\-t_flow\fR"
+trace flow, equivalent to \fB\-t_id\fR \fB\-t_ru06\fR \fB\-t_vf\fR
 .
 .\" ----------------------------------------------
 .IP "\fB\-t_all\fR"

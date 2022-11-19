@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: tmuconv 1310 2022-10-27 16:15:50Z mueller $
+# $Id: tmuconv 1316 2022-11-18 15:26:40Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2008-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2022-11-18  1316   1.1.10 add -t_ru06 and -t_flow
 # 2022-10-25  1309   1.1.9  rename _gpr -> _gr
 # 2022-08-22  1283   1.1.8  print ru after em,ib, best for reg from mem cases
 #                           map r6,r7 to sp,pc for rdst,1reg,rsrc instructions
@@ -90,7 +91,7 @@ use Getopt::Long;
 my %opts = ();
 
 GetOptions(\%opts, "help", "dump", "cdump", "emcancel",
-	   "t_id", "t_ru", "t_em","t_vf", "t_ib", "t_all")
+	   "t_id", "t_ru", "t_ru06", "t_em","t_vf", "t_ib", "t_flow", "t_all")
   or bailout("bad command options");
 
 my @var_name;
@@ -458,15 +459,20 @@ if ($opts{help}) {
 my $nopts = 0;                              # count options
 $nopts += 1 if $opts{dump};
 $nopts += 1 if $opts{cdump};
+if ($opts{t_flow}) {                        # t_flow implies t_id,t_ru06,t_vf
+  $opts{t_id} = 1;
+  $opts{t_ru06} = 1;
+  $opts{t_vf} = 1;
+}
 if ($opts{t_all}) {                         # t_all implies all t_*
   $opts{t_id} = 1;
   $opts{t_ru} = 1;
   $opts{t_em} = 1;
-  $opts{t_id} = 1;
   $opts{t_ib} = 1;
 }
 $nopts += 1 if $opts{t_id};
 $nopts += 1 if $opts{t_ru};
+$nopts += 1 if $opts{t_ru06};
 $nopts += 1 if $opts{t_em};
 $nopts += 1 if $opts{t_vf};
 $nopts += 1 if $opts{t_ib};
@@ -480,7 +486,7 @@ if ($nopts == 0) {                          # if no opts, assume t_id i_vf
 print "#  cycle id               pc    psw   ireg  code                   nc\n"
   if $opts{t_id};
 print "#  cycle ru    b sr     data\n"
-  if $opts{t_ru};
+  if $opts{t_ru} or $opts{t_ru06};
 print "#  cycle em    d be     addr   wdat   rdat  crwh nc\n"
   if $opts{t_em} or $opts{t_vf};
 print "#  cycle ib cr rmbe     addr   wdat   rdat     a  nc name\n"
@@ -663,10 +669,10 @@ sub do_file {
 #    1694 id         002012 000340 010036  mov  r0,@(sp)+       (8)
 
 
-# handle t_ru
+# handle t_ru and t_ru06
 #   uses cycles with dp_gr_we = '1'
 #
-      if ($opts{t_ru}) {
+      if ($opts{t_ru} or $opts{t_ru06}) {
 	if ($val_curr[$ind_dp_gr_we]) {
 	  my $adst  = $val_curr[$ind_dp_gr_adst];
 	  my $mode  = $val_curr[$ind_dp_gr_mode];
@@ -698,6 +704,9 @@ sub do_file {
 	    }
 	    $ru_str .= sprintf " r%o%o", $rset, $adst;
 	  }
+          if ($opts{t_ru06} and not $opts{t_ru}) { # only r_ru06
+            $ru_str = "" if $adst eq "7";
+          }
 	}
       } # if t_ru
 #
@@ -1002,8 +1011,10 @@ sub print_help {
   print "  --emcancel       show em 'cancel' cycles when --t_ib active\n";
   print "  --t_id           trace instruction decodes\n";
   print "  --t_ru           trace register updates\n";
+  print "  --t_ru06         trace register updates for r0-r5 and sp\n";
   print "  --t_em           trace em transactions\n";
   print "  --t_vf           trace only vector fetch em transactions\n";
   print "  --t_ib           trace ib transactions\n";
+  print "  --t_flow         trace id,ru06, and vf transactions\n";
   print "  --t_all          trace id,ru,em, and ib transactions\n";
 }

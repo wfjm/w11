@@ -29,6 +29,9 @@ The full set of tests is only run for tagged releases.
 ### Summary
 ### New features
 ### Changes
+- tools changes
+  - tools/bin
+    - tmuconv: add -t_ru06 and -t_flow
 - general changes
   - rename _gpr to _gr, use 'general registers' not 'general purpose registers'
 ### Bug Fixes

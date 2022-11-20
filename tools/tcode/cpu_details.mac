@@ -1,4 +1,4 @@
-; $Id: cpu_details.mac 1316 2022-11-18 15:26:40Z mueller $
+; $Id: cpu_details.mac 1317 2022-11-19 15:33:42Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -362,7 +362,11 @@ ta0210: cmpb    systyp,#sy.sih  ; this fatal stack error fails in SimH
 ; Test A3.1 -- STKLIM write/read test ++++++++++++++++++++++++++++++++
 ;   STKLIM is a 16 bit register, upper byte is retained, lower reads always 0
 ;
-ta0301: mov     #1000$,r0               ; ptr to value list
+ta0301:
+;
+; part 1: word access ------------------------------------------------
+;
+        mov     #1000$,r0               ; ptr to value list
         mov     #<1010$-1000$>/2,r1     ; # of values
         mov     #377,r2                 ; LSB byte mask
         mov     #cp.slr,r3              ; ptr to STKLIM
@@ -372,28 +376,51 @@ ta0301: mov     #1000$,r0               ; ptr to value list
         bic     r2,r4                   ; clear LSB
         hcmpeq  r4,(r3)                 ; read and ckeck STKLIM
         sob     r1,100$                 ; go for next STKLIM value
-        br      9999$
+        br      2000$
 ;
 1000$:  .word   ^b0101010101010101
         .word   ^b1010101010101010
         .word   ^b0000000011001100      ; STKLIM = 0 at end of test
 1010$:
 ;
+; part 2: byte access ------------------------------------------------
+;
+2000$:  movb    #7,1(r3)                ; write MSB
+        hcmpeq  #3400,(r3)              ; check MSB written
+;;      movb    #70,(r3)                ; write LSB             (SimH not yet!)
+;;      hcmpeq  #3400,(r3)              ; check MSB unchanged   (SimH not yet!)
+        clr     (r3)                    ; STKLIM to default
+;
 9999$:  iot                                     ; end of test A3.1
 ;
 ; Test A3.2 -- yellow trap + red abort boundary ++++++++++++++++++++++
-;   Verifies push to STKLIM+376 to STKLIM+340 causes a yellow trap
-;   and a push to STKLIM+336 causes a red stack abort for STKLIM
+;
+ta0302:
+;
+; part 1: sequence of yellow traps and a final red stack abort -------
+;   Verifies that push to STKLIM+376 to STKLIM+344 causes a yellow stack
+;   trap and a push to STKLIM+342 succeeds, but the yellow stack trap flow
+;   fails and causes a red stack trap. Done for
 ;         0    yellow below 000400
 ;      1400    yellow below 002000
 ;    157400    yellow below 156000
 ;
-ta0302: mov     #2000$,r0               ; ptr to value list
-        mov     #<2010$-2000$>/2,r1     ; # of values
-        mov     #1000$,v..iit           ; set up iit handler
-        clr     v..iit+2
+;   Note: SimH has simplified stack limit testing in vector flows.
+;         The stack is checked at end of flow. SimH will happily
+;         do yellow trap after push to +342 and write into +336.
+;         This part is therefore skipped for SimH
 ;
-100$:   mov     (r0)+,r5                ; get value
+        cmpb    systyp,#sy.sih          ; on SimH ?
+        bne     10$                     ; if not, execute
+        jmp     2000$                   ; if yes, skip
+;
+10$:    mov     #1200$,r0               ; ptr to value list
+        mov     #<1210$-1200$>/2,r1     ; # of values
+        mov     #1000$,v..iit           ; set up iit handler
+        mov     #cp.pr3,v..iit+2        ; use pr3 as handler signature
+;
+100$:   spl     6                       ; use pr6 as code signature
+        mov     (r0)+,r5                ; get value
         mov     r5,cp.slr               ; load STKLIM
         clr     336(r5)                 ; clear word on red boundary
         mov     r5,sp                   ; load SP
@@ -413,28 +440,88 @@ ta0302: mov     #2000$,r0               ; ptr to value list
         mov     #12.,-(sp)              ; push to STKLIM+350 -> trap
         mov     #13.,-(sp)              ; push to STKLIM+346 -> trap
         mov     #14.,-(sp)              ; push to STKLIM+344 -> trap
-        sub     #6,sp                   ; avoid abort in vector flow
-        mov     #123456,-(sp)           ; push to STKLIM+336 -> abort
+        mov     #15.,-(sp)              ; push to STKLIM+342 -> try trap->abort
+200$:   halt
         halt
 ;
 1000$:  clr     cp.err                  ; HACK: clear CPUERR !!!
-        tst     sp
-        beq     1010$
-        inc     r2
+        tst     sp                      ; red abort seen ?
+        beq     1010$                   ; if yes, check status
+        inc     r2                      ; if no, got for next push
         rti
+;
 1010$:  hcmpeq  #14.,r2                 ; all traps taken ?
+        hcmpeq  #13.,346(r5)            ; check 13th push
+        hcmpeq  #14.,344(r5)            ; check 14th push
+        hcmpeq  #15.,342(r5)            ; check 15th push (was done)
+        hcmpeq  #cp.pr6,340(r5)         ; saved PS of attempted yellow trap
         htsteq  336(r5)                 ; red zone border clean ?
-        sob     r1,100$                 ; go for next STKLIM value
+;;      hcmpeq  #cp.pr6,@#2             ; saved PS of red abort (w11 not yet!)
+;;      hcmpeq  #200$,@#0               ; saved PC of red abort (e11 not yet!)
+        dec     r1                      ; too far for sob
+        beq     1020$
+        jmp     100$                    ; go for next STKLIM value
+;
+1020$:  clr     cp.slr                  ; STKLIM to default
+        mov     #stack,sp               ; SP to default
+        mov     #v..iit+2,v..iit        ; v..iit to catcher
+        clr     v..iit+2
+        spl     0                       ; prio to default
+        br      2000$
+;
+1200$:  .word   000000
+        .word   001400
+        .word   157400
+1210$:
+;
+; part 2: check that red zone does not have yellow islands -----------
+;
+2000$:  cmpb    systyp,#sy.e11          ; on e11 ?
+        beq     3000$                   ; if yes skip, e11 still buggy here
+;
+        mov     #2300$,r0               ; ptr to values
+        mov     #<2310$-2300$>/2,r1     ; # of values
+        mov     #2200$,v..iit           ; set up iit handler
+        mov     #1400,cp.slr            ; set yellow limit to 1776
+;
+2100$:  mov     (r0)+,sp                ; set SP to test value
+        clr     -(sp)                   ; expect red abort, not yellow trap
+        halt
+;
+2200$:  htsteq  sp                      ; check SP=0
+        sob     r1,2100$
 ;
         clr     cp.slr                  ; STKLIM to default
         mov     #stack,sp               ; SP to default
         mov     #v..iit+2,v..iit        ; v..iit to catcher
-        br      9999$
+        clr     v..iit+2
+        br      3000$
 ;
-2000$:  .word   000000
-        .word   001400
-        .word   157400
-2010$:
+2300$:  .word   001400                  ; probe 1376  (possible yellow mirror)
+        .word   001340                  ; probe 1336
+        .word   001000                  ; probe 0776  (possible yellow mirror)
+        .word   000400                  ; probe 0376  (possible yellow mirror)
+2310$:
+;
+; part 3: check red zone PSW protection ------------------------------
+;   push to 177776 should also cause a red stack abort
+;
+3000$:  tstb    systyp                  ; only done in w11
+        ble     9999$
+;
+        mov     #1400,cp.slr            ; set STKLIM
+        mov     #1300,sp                ; SP deep in red zone
+        mov     #3100$,v..iit           ; set up iit handler
+        clr     -(sp)                   ; expect red abort
+        halt
+3100$:  htsteq  sp                      ; check SP=0, on emergency stack
+        mov     #3200$,v..iit           ; set up iit handler
+        clr     -(sp)                   ; expect red abort again
+        halt
+3200$:  htsteq  sp                      ; check SP=0 because of PSW protection
+        clr     cp.slr                  ; STKLIM to default
+        mov     #stack,sp               ; SP to default
+        mov     #v..iit+2,v..iit        ; v..iit to catcher
 ;
 9999$:  iot                                     ; end of test A3.2
 ;

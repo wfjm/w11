@@ -1,6 +1,6 @@
--- $Id: pdp11_vmbox.vhd 1170 2019-06-22 20:58:52Z mueller $
+-- $Id: pdp11_vmbox.vhd 1317 2022-11-19 15:33:42Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2006-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    pdp11_vmbox - syn
@@ -14,10 +14,11 @@
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4-2016.1; ghdl 0.18-0.33
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2022.1; ghdl 0.18-2.0.0
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-11-18  1317   1.6.8  BUGFIX: correct red/yellow zone boundary
 -- 2019-06-22  1170   1.6.7  support membe for em cacc access
 -- 2016-05-22   767   1.6.6  don't init N_REGS (vivado fix for fsm inference)
 -- 2015-07-03   697   1.6.5  much wider DM_STAT_VM
@@ -366,13 +367,15 @@ begin
     is_stackyellow := '0';
     is_stackred := '0';
     if unsigned(VM_ADDR(15 downto 8)) <= unsigned(R_SLIM) then
-      is_stackyellow := '1';
-      if unsigned(VM_ADDR(7 downto 5)) /= 7 then  -- below 340
+      if unsigned(VM_ADDR(15 downto 8)) = unsigned(R_SLIM) and
+         unsigned(VM_ADDR(7 downto 5)) = 7 then
+        is_stackyellow := '1';
+      else
         is_stackred := '1';
       end if;
     end if;
 
-    if VM_ADDR(15 downto 1) = "111111111111111" then  -- vaddr == 177776
+    if VM_ADDR(15 downto 1) = "111111111111111" then  -- PSW protection
       is_stackred := '1';      
     end if;
 

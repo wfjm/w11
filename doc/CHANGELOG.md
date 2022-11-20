@@ -37,6 +37,7 @@ The full set of tests is only run for tagged releases.
 ### Bug Fixes
   - rtl/w11a
     - pdp11_sequencer: BUGFIX: use is_kstackdst1246 also in dstr flow
+    - pdp11_vmbox: BUGFIX: correct red/yellow zone boundary
 
 <!-- --------------------------------------------------------------------- -->
 ---

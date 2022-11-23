@@ -1,10 +1,10 @@
-; $Id: cpu_details.mac 1317 2022-11-19 15:33:42Z mueller $
+; $Id: cpu_details.mac 1320 2022-11-22 18:52:59Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2022-11-18  1316   1.0    Initial version
+; 2022-11-22  1320   1.0    Initial version
 ; 2022-07-18  1259   0.1    First draft
 ;
 ; Test CPU details
@@ -76,7 +76,7 @@
         pi.n06=6*042            ; lsb for pir 6 next
         pi.n07=7*042            ; lsb for pir 7 next
 ;
-ta0101: mov     #1000$,v..pir     ; setup handler
+ta0101: mov     #1000$,v..pir     ; set up handler
         mov     #cp.pr7,v..pir+2  ; which runs at pr7
         mov     #cp.pir,r3      ; ptr to PIRQ
         mov     #cp.psw,r4      ; ptr to PSW
@@ -444,8 +444,7 @@ ta0302:
 200$:   halt
         halt
 ;
-1000$:  clr     cp.err                  ; HACK: clear CPUERR !!!
-        tst     sp                      ; red abort seen ?
+1000$:  tst     sp                      ; red abort seen ?
         beq     1010$                   ; if yes, check status
         inc     r2                      ; if no, got for next push
         rti
@@ -525,10 +524,13 @@ ta0302:
 ;
 9999$:  iot                                     ; end of test A3.2
 ;
-; Test A3.3 -- stack trap address modes ++++++++++++++++++++++++++++++
+; Test A3.3 -- stack trap conditions +++++++++++++++++++++++++++++++++
 ;   Verifies that mode 1,2,4,6 trap for dstw flows and dstr when rmw
 ;   Verifies that mode 3,5,7 writes do not trap
 ;   Verifies that mode 1-7 reads do not trap
+;   Verifies that implict pushes (JSR,MFPI) trap
+;   Verifies that vector push of trap instructions (EMT,TRAP tested) traps
+;   Verifies that vector push of an interrupt (PIRQ tested) traps
 ;   Notes:
 ;   - dstw (mov,clr,..) and dstr (add,bis,...) flows write to stack -> test both
 ;   - inspired by eqkce0 test 041 that verifies do/dont trap instruction cases
@@ -538,16 +540,17 @@ ta0303: tstb    systyp                  ; skip if not on w11
         bge     100$
         jmp     9999$
 ;
-100$:   mov     #1000$,v..iit           ; set up iit handler
+100$:   mov     #1400,cp.slr            ; set yellow limit to 1776
+;
+; part 1: test instructions that should trap -------------------------
+;
+        mov     #1000$,v..iit           ; set up iit handler
         clr     v..iit+2
         mov     #1100$,v..emt           ; set up emt handler
         clr     v..emt+2
         mov     #1200$,v..trp           ; set up trap handler
         clr     v..trp+2
-        mov     #1400,cp.slr            ; set yellow limit to 1776
         clr     r2                      ; clear trap counter
-;
-; part 1: test instructions that should trap -------------------------
 ;
 ; dstw mode 1,2,4,6
         mov     #1000,-(sp)             ; dstw mode 4: SP now 1776 (1)
@@ -571,8 +574,7 @@ ta0303: tstb    systyp                  ; skip if not on w11
 ;
         br      1500$
 ;
-1000$:  clr     cp.err                  ; HACK: clear CPUERR !!!
-        htstne  sp                      ; no red stack aborts expected
+1000$:  htstne  sp                      ; no red stack aborts expected
         inc     r2
         rti
 ;
@@ -587,7 +589,7 @@ ta0303: tstb    systyp                  ; skip if not on w11
 ;
 ; part 2: test instructions that should not trap ---------------------
 ;
-        mov     #stack-2,r2             ; in yellow zone
+2000$:  mov     #stack-2,r2             ; in yellow zone
         mov     r2,(r2)                 ; load on stack (not using SP)
         mov     r2,sp                   ; SP in yellow zone
 ; dstw mode 3,5,7
@@ -611,10 +613,129 @@ ta0303: tstb    systyp                  ; skip if not on w11
         clr     sp
         mov     @#2000,2000(sp)         ; SP=0, EA=2000 -> no trap
 ;
+; part 3: test that interrupt (from PIRQ) vector push traps ----------
+;   Triggers 3 PIRQ interrupts at PR1, PR3, and PR6.
+;   The PIRQ interrupt vector push will issue a ysv trap.
+;   That trap executes before the first instruction of the pir handler.
+;   The iit handler must therefore execute at PR7 to lockout interrupts.
+;   When the iit handler returns, the pir hander will execute.
+;
+3000$:  mov     #3100$,v..iit           ; set up iit handler
+        mov     #cp.pr7,v..iit+2        ; lockout interrupts !
+        mov     #3200$,v..pir           ; set up pir handler
+        mov     #cp.pr7,v..pir+2        ; lockout interrupts
+        mov     #stack,sp               ; SP to default (STKLIM still 1400)
+        clr     r2                      ; clear trap counter
+        mov     #cp.pir,r3              ; ptr to cp.pir
+        mov     #3500$,r5               ; ptr to probe data
+;
+        spl     0
+        movb    #bit06!bit03!bit01,1(r3)   ; request PIRQ 6+3+1
+        nop
+        br      3900$
+;
+; iit handler
+3100$:  htstne  sp              ; no red stack aborts expected
+        hcmpeq  #177777,(r5)+   ; check state
+        inc     r2
+        rti
+;
+; pir handler
+3200$:  mov     (r3),r0         ; get PIRQ
+        bic     #177761,r0      ; mask out index bits (is pri*2)
+        asr     r0              ; now pri*1
+        hcmpeq  r0,(r5)+        ; check state
+        mov     #pi.r00,r1
+        ash     r0,r1           ; pi.r00 <<(pri)
+        bic     r1,(r3)         ; clear PIRQ request
+        rti
+;
+; state check data
+3500$:  .word   177777,6.       ; iit marker + pr6 pirq
+        .word   177777,3.       ; iit marker + pr3 pirq
+        .word   177777,1.       ; iit marker + pr1 pirq
+;
+3900$:  hcmpeq  #3.,r2                  ; all traps taken ?
+        mov     #v..iit+2,v..iit        ; v..iit to catcher
+        clr     v..iit+2
+        mov     #v..pir+2,v..pir        ; v..pir to catcher
+        clr     v..pir+2
+;
+; final cleanup
         clr     cp.slr                  ; STKLIM to default
         mov     #stack,sp               ; SP to default
 ;
 9999$:  iot                                     ; end of test A3.3
+;
+; Test A3.4 -- red stack abort conditions ++++++++++++++++++++++++++++
+;   Verifies that instruction writes abort
+;   Verifies that implict pushes (JSR,MFPI) abort
+;   Verifies that vector push after trap instructions and interrupts abort
+;     Abort on 1st and 2nd push is tested.
+;
+ta0304:
+        mov     #1000$,v..iit           ; set up iit handler
+        mov     #cp.pr7,v..iit+2        ; lockout interrupts !
+        mov     #1400,cp.slr            ; yellow <=1776 and red <= 1736
+        clr     @#1736                  ; ensure top red word zero
+        clr     cp.err                  ; clear CPUERR
+;
+; dstw flow
+        mov     #1740,sp                ; SP at red border
+        mov     #100$,r5
+        mov     #123456,-(sp)
+        halt
+;
+; dstr flow (rmw)
+100$:   mov     #200$,r5
+        add     (sp),-(sp)
+        halt
+;
+; implicit push instructions
+200$:   mov     #300$,r5
+        jsr     pc,210$
+        halt
+210$:   halt
+;
+300$:   mov     #400$,r5
+        mfpi    r0
+        halt
+;
+; vector flow abort in 2nd push, 1st push in yellow (use EMT for test)
+;   Note: SimH scribbles into red zone, therefore test skipped for SimH
+400$:   cmpb    systyp,#sy.sih          ; skip section on SimH
+        beq     500$
+        mov     sp,r0
+        mov     #123456,(r0)+           ; write marker to 1740, r0 to avoid ysv
+        mov     r0,sp                   ; SP now 1402 -> abort on 2nd push
+        mov     #cp.pr3,cp.psw          ; set pr3 as marker
+        mov     #420$,r5                ; leaves NZVC = 0000
+        emt     100
+410$:   halt
+420$:   hcmpeq  #cp.pr3,@#1740          ; check that PS written
+;
+; vector flow abort in 1st push (use PIRQ for test)
+500$:   spl     0
+        mov     #600$,r5
+        mov     #pi.r04,cp.pir          ; request PIRQ 4
+        halt
+600$:   clr     cp.pir
+        br      9000$
+;
+1000$:  htsteq  sp                      ; check SP=0
+        htsteq  @#1736                  ; check stack clean
+        hcmpeq  #cp.rsv,cp.err          ; check CPUERR.rsv (and no ysv)
+        clr     cp.err                  ; clear CPUERR
+        mov     #1740,sp                ; restore SP
+        jmp     (r5)                    ; continue
+;
+9000$:  clr     cp.slr                  ; STKLIM to default
+        mov     #v..iit+2,v..iit        ; v..iit to catcher
+        clr     v..iit+2
+        mov     #stack,sp               ; SP to default
+        spl     0                       ; back to PR0
+;
+9999$:  iot                                     ; end of test A3.4
 ;
 ; Section B: Stress tests ====================================================
 ;
@@ -826,21 +947,22 @@ tc0103: mov     #vhugen,v..iit  ; set iit handler
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#22.      ; all tests done ?
+        hcmpeq  tstno,#23.      ; all tests done ?
 ;
         jmp     loop
 ;
 ; kernel handlers ============================================================
 ;
 ; vhugen - generic handler for expected traps/abort ++++++++++++++++++++++++++
-;   the kernel continution address must be written to vhustp
+;   the continution address must be written to vhustp
 ;   execution will reset vhustp to a catcher value
 ;   --> vhustp must be set for each execution
 ;
-vhugen: tst     (sp)+           ; discard one word of vector push
-        mov     vhustp,(sp)     ; set up kernel return address
+vhugen: add     #4,sp           ; discard vector frame
+        mov     vhustp,100$     ; set up return address
         mov     #vhuhlt,vhustp  ; reset stop address by catcher
-        rts     pc              ; end return to continuation address
+        jmp     @100$           ; end return to continuation address
+100$:   .word   0
 vhustp: .word   vhuhlt
 vhuhlt: halt
 ;

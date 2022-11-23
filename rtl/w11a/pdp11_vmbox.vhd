@@ -1,4 +1,4 @@
--- $Id: pdp11_vmbox.vhd 1317 2022-11-19 15:33:42Z mueller $
+-- $Id: pdp11_vmbox.vhd 1320 2022-11-22 18:52:59Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -18,6 +18,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-11-21  1320   1.6.9  rename some rsv->ser; remove obsolete trap_done;
 -- 2022-11-18  1317   1.6.8  BUGFIX: correct red/yellow zone boundary
 -- 2019-06-22  1170   1.6.7  support membe for em cacc access
 -- 2016-05-22   767   1.6.6  don't init N_REGS (vivado fix for fsm inference)
@@ -119,7 +120,7 @@ architecture syn of pdp11_vmbox is
     kstack : slbit;                     -- access through kernel stack
     ysv : slbit;                        -- yellow stack violation detected
     vaok : slbit;                       -- virtual address valid (from MMU)
-    trap_mmu : slbit;                   -- mmu trace trap requested
+    trap_mmu : slbit;                   -- mmu trap requested
     mdin : slv16;                       -- data input (memory order)
     paddr : slv22;                      -- physical address register
     paddr_iopage : slv9;                -- iopage base (upper 9 bits of paddr)
@@ -384,7 +385,6 @@ begin
     immu_cntl.cacc      := VM_CNTL.cacc;
     immu_cntl.dspace    := VM_CNTL.dspace;
     immu_cntl.mode      := VM_CNTL.mode;
-    immu_cntl.trap_done := VM_CNTL.trap_done;
       
     case r.state is
       when s_idle =>                    -- s_idle: wait for vm_cntl request --
@@ -409,14 +409,14 @@ begin
           if VM_CNTL.wacc='1' and VM_CNTL.macc='1' then
             n.state := s_fail;
             
-          elsif VM_CNTL.kstack='1' and VM_CNTL.intrsv='0' and
+          elsif VM_CNTL.kstack='1' and VM_CNTL.vecser='0' and
                 is_stackred='1' then
             n.state := s_errrsv;
             
           else
             iem_mreq.req := '1';
             iem_mreq.we  := VM_CNTL.wacc;
-            if VM_CNTL.kstack='1'and VM_CNTL.intrsv='0'  then
+            if VM_CNTL.kstack='1' and VM_CNTL.vecser='0'  then
               n.ysv := is_stackyellow;
             end if;
             n.state := s_mem_w;

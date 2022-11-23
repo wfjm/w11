@@ -32,11 +32,18 @@ The full set of tests is only run for tagged releases.
 - tools changes
   - tools/bin
     - tmuconv: add -t_ru06 and -t_flow
+  - tools/tcode
+    - cpu_details.mac: significantly expanded
+- firmware changes
+  - pdp11.vhd: rename, eg srv->ser; drop trap_done; add in_vecysv
+  - pdp11_vmbox.vhd: rename some rsv->ser; remove obsolete trap_done
 - general changes
   - rename _gpr to _gr, use 'general registers' not 'general purpose registers'
 ### Bug Fixes
   - rtl/w11a
-    - pdp11_sequencer: BUGFIX: use is_kstackdst1246 also in dstr flow
+    - pdp11_sequencer:
+      - BUGFIX: use is_kstackdst1246 also in dstr flow
+      - BUGFIX: correct ysv flow implementation
     - pdp11_vmbox: BUGFIX: correct red/yellow zone boundary
 
 <!-- --------------------------------------------------------------------- -->

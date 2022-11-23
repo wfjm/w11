@@ -1,9 +1,10 @@
-# $Id: defs.tcl 1294 2022-09-07 14:21:20Z mueller $
+# $Id: defs.tcl 1320 2022-11-22 18:52:59Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2014-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2022-11-21  1320   1.0.11 rename RUST recrsv -> recser
 # 2022-09-03  1292   1.0.10 shorter field names for MMR0,MMR1
 # 2022-08-07  1273   1.0.9  ssr->mmr rename
 # 2019-04-24  1138   1.0.8  add RCSR defs for KW11-L and KW11-P
@@ -32,7 +33,7 @@ namespace eval rw11 {
   regdsc CP_CNTL {func 3 0}
 
   regdsc CP_STAT {suspext 9} {suspint 8} \
-                 {rust 7 4 "s:init:halt:reset:stop:step:susp:hbpt:runs:vecfet:recrsv:s1010:s1011:sfail:vfail:s1110:s1111"} \
+                 {rust 7 4 "s:init:halt:reset:stop:step:susp:hbpt:runs:vecfet:recser:s1010:s1011:sfail:vfail:s1110:s1111"} \
                  {susp 3} {go 2} {merr 1} {err 0}
   variable RUST_INIT   [bvi b4 "0000"]
   variable RUST_HALT   [bvi b4 "0001"]
@@ -43,7 +44,7 @@ namespace eval rw11 {
   variable RUST_HBPT   [bvi b4 "0110"]
   variable RUST_RUNS   [bvi b4 "0111"]
   variable RUST_VECFET [bvi b4 "1000"]
-  variable RUST_RECRSV [bvi b4 "1001"]
+  variable RUST_RECSER [bvi b4 "1001"]
   variable RUST_SFAIL  [bvi b4 "1100"]
   variable RUST_VFAIL  [bvi b4 "1101"]
 

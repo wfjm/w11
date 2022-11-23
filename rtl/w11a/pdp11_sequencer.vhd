@@ -1,4 +1,4 @@
--- $Id: pdp11_sequencer.vhd 1316 2022-11-18 15:26:40Z mueller $
+-- $Id: pdp11_sequencer.vhd 1320 2022-11-22 18:52:59Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,6 +13,9 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-11-21  1320   1.6.19 rename some rsv->ser and cpustat_type trap_->treq_;
+--                           remove vm_cntl_type.trap_done;
+--                           BUGFIX: correct ysv flow implementation
 -- 2022-11-18  1316   1.6.18 BUGFIX: use is_kstackdst1246 also in dstr flow
 -- 2022-10-29  1312   1.6.17 rename s_int_* -> s_vec_*, s_trap_* -> s_abort_*
 -- 2022-10-25  1309   1.6.16 rename _gpr -> _gr
@@ -461,11 +464,11 @@ begin
       if VM_STAT.ack = '1' then
         pmok := true;
         if VM_STAT.trap_mmu = '1' then  -- remember trap_mmu, may happen on any
-          pnstatus.trap_mmu := '1';       --   memory access of an instruction
+          pnstatus.treq_mmu := '1';       --   memory access of an instruction
         end if;
-        if VM_STAT.trap_ysv = '1' then  -- remember trap_ysv (on any access)
-          if R_CPUERR.ysv = '0' then       -- ysv trap when cpuerr not yet set
-            pnstatus.trap_ysv := '1';
+        if VM_STAT.trap_ysv = '1' then  -- remember trap_ysv (on final writes)
+          if R_STATUS.in_vecysv = '0' then  -- trap when not in ysv vector flow
+            pnstatus.treq_ysv := '1';
           end if;
         end if;
       elsif VM_STAT.err='1' or VM_STAT.fail='1' then
@@ -536,8 +539,8 @@ begin
       pnmmumoni.idone := '1';
       if unsigned(INT_PRI) > unsigned(PSW.pri) then
         pnstate := s_idle;
-      elsif R_STATUS.trap_mmu='1' or pnstatus.trap_mmu='1' or
-            R_STATUS.trap_ysv='1' or pnstatus.trap_ysv='1' or
+      elsif R_STATUS.treq_mmu='1' or pnstatus.treq_mmu='1' or
+            R_STATUS.treq_ysv='1' or pnstatus.treq_ysv='1' or
             PSW.tflag='1' then
         pnstate := s_trap_disp;
       elsif R_STATUS.cpugo='1' and        -- running
@@ -560,8 +563,8 @@ begin
       pnmmumoni.idone := '1';
       if unsigned(INT_PRI) > unsigned(PSW.pri) then
         pnstate := s_idle;
-      elsif R_STATUS.trap_mmu='1' or pnstatus.trap_mmu='1' or
-            R_STATUS.trap_ysv='1' or pnstatus.trap_ysv='1' or
+      elsif R_STATUS.treq_mmu='1' or pnstatus.treq_mmu='1' or
+            R_STATUS.treq_ysv='1' or pnstatus.treq_ysv='1' or
             PSW.tflag='1' then
         pnstate := s_trap_disp;
       elsif R_STATUS.cpugo='1' and       -- running
@@ -658,7 +661,7 @@ begin
     nvmcntl := vm_cntl_init;
     nvmcntl.dspace := '1';                -- DEFAULT
     nvmcntl.mode := PSW.cmode;            -- DEFAULT
-    nvmcntl.intrsv := R_STATUS.do_intrsv; -- DEFAULT
+    nvmcntl.vecser := R_STATUS.in_vecser; -- DEFAULT
     
     ndpcntl := dpath_cntl_init;
     ndpcntl.gr_asrc := SRCREG;            -- DEFAULT
@@ -886,8 +889,8 @@ begin
         ndpcntl.dres_sel := c_dpath_res_vmdout;  -- DRES = VMDOUT
         if (VM_STAT.ack or VM_STAT.err or VM_STAT.fail)='1' then
           nstatus.cmdack   := '1';
-          nstatus.trap_ysv := '0';               -- suppress traps on console
-          nstatus.trap_mmu := '0';
+          nstatus.treq_ysv := '0';               -- suppress traps on console
+          nstatus.treq_mmu := '0';
           nstatus.cmdmerr  := VM_STAT.err or VM_STAT.fail;
           nstate := s_idle;
         end if;
@@ -897,8 +900,8 @@ begin
         nstate := s_cp_memw_w;
         if (VM_STAT.ack or VM_STAT.err or VM_STAT.fail)='1' then
           nstatus.cmdack   := '1';
-          nstatus.trap_ysv := '0';               -- suppress traps on console
-          nstatus.trap_mmu := '0';
+          nstatus.treq_ysv := '0';               -- suppress traps on console
+          nstatus.treq_mmu := '0';
           nstatus.cmdmerr  := VM_STAT.err or VM_STAT.fail;
           nstate := s_idle;
         end if;
@@ -2157,17 +2160,17 @@ begin
         do_start_vec(nstate, ndpcntl, lvector);
 
       when s_trap_disp =>               -- -----------------------------------
-        if R_STATUS.trap_mmu = '1' then
-          nvmcntl.trap_done := '1';     -- mmu trap taken: set mmr0 trap bit
+        if R_STATUS.treq_mmu = '1' then -- mmu trap requested ? 
           lvector := "0101010";         -- mmu trap: vector (250)
-        elsif R_STATUS.trap_ysv = '1' then
+        elsif R_STATUS.treq_ysv = '1' then  -- ysv trap requested ?
           lvector := "0000001";         -- ysv trap: vector (4)          
           ncpuerr.ysv := '1';
+          nstatus.in_vecysv := '1';     -- signal start of ysv vector flow
         else
           lvector := "0000011";         -- trace trap: vector (14)
         end if;
-        nstatus.trap_mmu := '0';        -- clear pending trap flags
-        nstatus.trap_ysv := '0';        -- 
+        nstatus.treq_mmu := '0';        -- clear trap request flags
+        nstatus.treq_ysv := '0';        -- 
         do_start_vec(nstate, ndpcntl, lvector);
 
       when s_int_ext =>                 -- -----------------------------------
@@ -2280,7 +2283,8 @@ begin
         nstate := s_vec_pushpc_w;
         do_memcheck(nstate, nstatus, imemok);
         if imemok then
-          nstatus.do_intrsv := '0';                -- signal end of rsv
+          nstatus.in_vecser := '0';                -- signal end of ser flow
+          nstatus.in_vecysv := '0';                -- signal end of ysv flow
           ndpcntl.gr_we := '1';                    -- load new PC
           idm_pcload := '1';                       -- signal flow change
           do_fork_next(nstate, nstatus, nmmumoni);         -- ???
@@ -2347,21 +2351,23 @@ begin
         ndpcntl.gr_mode := c_psw_kmode;           -- set kmode SP to 4
         ndpcntl.gr_adst := c_gr_sp;
         
-        nstatus.trap_mmu :='0';                   -- drop pending mmu trap
+        nstatus.treq_mmu := '0';                  -- cancel mmu trap request
+        nstatus.treq_ysv := '0';                  -- cancel ysv trap request
 
         if R_VMSTAT.fail = '1' then               -- vmbox failure
           nstatus.cpugo   := '0';                   -- halt cpu
           nstatus.cpurust := c_cpurust_vfail;
           nstate := s_idle; 
 
-        elsif R_STATUS.do_intrsv = '1' then       -- double error
+        elsif R_STATUS.in_vecser = '1' then       -- double fatal stack error
           nstatus.cpugo := '0';                     -- give up, HALT cpu
-          nstatus.cpurust := c_cpurust_recrsv;
+          nstatus.cpurust := c_cpurust_recser;
           nstate := s_idle;
           
         elsif R_VMSTAT.err = '1' then            -- normal vm errors
           if R_VMSTAT.err_rsv = '1' then
-            nstatus.do_intrsv := '1';              -- signal start of rsv
+            nstatus.in_vecser := '1';              -- signal start of ser flow
+            nstatus.in_vecysv := '0';              -- cancel ysv flow
             ndpcntl.gr_we := '1';
 
             if R_VMSTAT.err_odd='1' or R_VMSTAT.err_mmu='1' then

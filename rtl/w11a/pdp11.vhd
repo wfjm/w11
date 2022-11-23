@@ -1,4 +1,4 @@
--- $Id: pdp11.vhd 1310 2022-10-27 16:15:50Z mueller $
+-- $Id: pdp11.vhd 1320 2022-11-22 18:52:59Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -11,6 +11,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-11-21  1320   1.6.16 rename some rsv->ser and cpustat_type trap_->treq_;
+--                           remove vm_cntl_type.trap_done; add in_vecysv;
 -- 2022-10-25  1309   1.6.15 rename _gpr -> _gr
 -- 2022-10-03  1301   1.6.14 add decode_stat_type.is_dstpcmode1
 -- 2022-08-13  1279   1.6.13 ssr->mmr rename
@@ -352,7 +354,7 @@ package pdp11 is
   constant c_cpurust_hbpt   : slv4 := "0110";  -- cpu had hardware bpt
   constant c_cpurust_runs   : slv4 := "0111";  -- cpu running
   constant c_cpurust_vecfet : slv4 := "1000";  -- vector fetch error halt
-  constant c_cpurust_recrsv : slv4 := "1001";  -- recursive red-stack halt
+  constant c_cpurust_recser : slv4 := "1001";  -- recursive stack error halt
   constant c_cpurust_sfail  : slv4 := "1100";  -- sequencer failure
   constant c_cpurust_vfail  : slv4 := "1101";  -- vmbox failure
 
@@ -376,11 +378,12 @@ package pdp11 is
     breset : slbit;                     -- BRESET pulse
     intack : slbit;                     -- INT_ACK pulse
     intvect  : slv9_2;                  -- current interrupt vector
-    trap_mmu : slbit;                   -- mmu trace trap pending
-    trap_ysv : slbit;                   -- ysv trap pending
+    treq_mmu : slbit;                   -- mmu trap requested
+    treq_ysv : slbit;                   -- ysv trap requested
     prefdone : slbit;                   -- prefetch done
     do_grwe : slbit;                    -- pending gr_we
-    do_intrsv : slbit;                  -- active rsv interrupt sequence
+    in_vecser : slbit;                  -- in fatal stack error vector flow
+    in_vecysv : slbit;                  -- in ysv trap flow
   end record cpustat_type;
 
   constant cpustat_init : cpustat_type := (
@@ -392,8 +395,8 @@ package pdp11 is
     '0',                                -- waitsusp
     '0','0','0','0',                    -- itimer,creset,breset,intack
     (others=>'0'),                      -- intvect 
-    '0','0','0',                        -- trap_(mmu|ysv), prefdone
-    '0','0'                             -- do_grwe, do_intrsv
+    '0','0','0',                        -- treq_(mmu|ysv), prefdone
+    '0','0','0'                         -- do_grwe, in_vec(ser|ysv)
   );
 
   type cpuerr_type is record            -- CPU error register
@@ -415,15 +418,14 @@ package pdp11 is
     bytop : slbit;                      -- byte operation
     dspace : slbit;                     -- dspace operation
     kstack : slbit;                     -- access through kernel stack
-    intrsv : slbit;                     -- active rsv interrupt sequence
+    vecser : slbit;                     -- in fatal stack error vector flow
     mode : slv2;                        -- mode
-    trap_done : slbit;                  -- mmu trap taken (to set mmr0 bit)
   end record vm_cntl_type;
 
   constant vm_cntl_init : vm_cntl_type := (
     '0','0','0','0',                    -- req, wacc, macc,cacc
     '0','0','0',                        -- bytop, dspace, kstack
-    '0',"00",'0'                        -- intrsv, mode, trap_done
+    '0',"00"                            -- vecser, mode
   );
 
   type vm_stat_type is record           -- virt memory status port
@@ -436,7 +438,7 @@ package pdp11 is
     err_iobto : slbit;                  -- abort: non-existing I/O resource
     err_rsv : slbit;                    -- abort: red stack violation
     trap_ysv : slbit;                   -- trap: yellow stack violation
-    trap_mmu : slbit;                   -- trap: mmu trace trap
+    trap_mmu : slbit;                   -- trap: mmu trap
   end record vm_stat_type;
 
   constant vm_stat_init : vm_stat_type := (others=>'0');

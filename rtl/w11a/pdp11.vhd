@@ -1,4 +1,4 @@
--- $Id: pdp11.vhd 1320 2022-11-22 18:52:59Z mueller $
+-- $Id: pdp11.vhd 1321 2022-11-24 15:06:47Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -11,6 +11,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-11-24  1321   1.5.17 add cpustat_type intpend
 -- 2022-11-21  1320   1.6.16 rename some rsv->ser and cpustat_type trap_->treq_;
 --                           remove vm_cntl_type.trap_done; add in_vecysv;
 -- 2022-10-25  1309   1.6.15 rename _gpr -> _gr
@@ -377,6 +378,7 @@ package pdp11 is
     creset : slbit;                     -- CRESET pulse
     breset : slbit;                     -- BRESET pulse
     intack : slbit;                     -- INT_ACK pulse
+    intpend : slbit;                    -- interrupt pending
     intvect  : slv9_2;                  -- current interrupt vector
     treq_mmu : slbit;                   -- mmu trap requested
     treq_ysv : slbit;                   -- ysv trap requested
@@ -393,7 +395,7 @@ package pdp11 is
     '0','0',                            -- suspint,suspext
     "00000","000",                      -- cpfunc, cprnum
     '0',                                -- waitsusp
-    '0','0','0','0',                    -- itimer,creset,breset,intack
+    '0','0','0','0','0',                -- itimer,creset,breset,intack,intpend
     (others=>'0'),                      -- intvect 
     '0','0','0',                        -- treq_(mmu|ysv), prefdone
     '0','0','0'                         -- do_grwe, in_vec(ser|ysv)

@@ -1,4 +1,4 @@
-; $Id: cpu_mmu.mac 1313 2022-11-04 14:01:08Z mueller $
+; $Id: cpu_mmu.mac 1321 2022-11-24 15:06:47Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -14,6 +14,16 @@
 ;   Section D: mmr2+mmr1+mmr0 register, abort recovery
 ;   Section E: traps and pdr aia and aiw bits
 ;   Section F: miscellaneous
+;
+; Overall usage of pages in kernel mode
+;   page 0  main code
+;   page 1  main code
+;   page 2
+;   page 3
+;   page 4  code mapped in user/super space; test E1.4 code
+;   page 5  code for test E1.4
+;   page 6  data test target
+;   page 7  iopage
 ;
         .include        |lib/tcode_std_base.mac|
         .include        |lib/defs_mmu.mac|
@@ -34,6 +44,7 @@
 
        kipdr0 = kipdr+ 0
        kdpdr0 = kdpdr+ 0
+       kipdr5 = kipdr+12
        kipdr6 = kipdr+14
        kipar6 = kipar+14
        kdpdr6 = kdpdr+14
@@ -1684,6 +1695,78 @@ te0102: mov     #vhmmut,v..mmu  ; setup MMU trap handler
         clr     v..mmu+2
 9999$:  iot                     ; end of test E1.2
 ;
+; Test E1.3 -- test trap request logic (trap on non-last access) +++++
+;   Test cases where an instruction does multiple memory accesses and the
+;   trap condition is not met on the last one. This verifies that the trap
+;   request is properly recorded and handled at end of instruction execution.
+;   Page 6 has traps enabled (afc=4), all others not.
+;
+te0103: mov     #mmr0,r2                ; ptr to mmr0
+        mov     #p6base,r3              ; ptr to page6 (MMU traps enabled)
+        mov     #1500$,r4               ; ptr to page0 (MMU traps disabled)
+        mov     r4,(r3)                 ; p6base holds ptr to 1500$
+        clr     (r4)                    ; clear target location
+        clr     2(r4)
+        mov     #<127.*md.plf>!md.att,kipdr6   ; enable traps (afc=4)
+        mov     #m0.ent!m0.ena,mmr0     ; enable mmu with traps  ;! MMU 18
+;
+        mov     #vhmmut,v..mmu          ; setup MMU trap handler
+        mov     #1010$,vhvmmu
+        mov     (r3),r5                 ; check r(p6) - trival case
+        halt
+;
+1010$:  mov     #1020$,vhvmmu
+        bic     #m0.trp,(r2)            ; clear trp
+        mov     (r3),(r4)               ; check r(p6),w(p0)
+        halt
+;
+1020$:  mov     #1030$,vhvmmu
+        bic     #m0.trp,(r2)            ; clear trp
+        mov     @(r3)+,2(r4)            ; check r(p6),r(p0),r(p0),w(p0)
+        halt
+;
+1030$:  mov     #1040$,vhvmmu
+        bic     #m0.trp,(r2)            ; clear trp
+        inc     @-(r3)                  ; check r(p6),rm(p0),wm(p0)
+        halt
+;
+1040$:  hcmpeq  #1500$+1,1500$          ; check proper values in target
+        hcmpeq  #1500$,1500$+2          ; as internal consistency check
+        br      2000$
+;
+1500$:  .word   0
+        .word   0
+;
+2000$:  reset                   ; mmu off                       ;! MMU off
+        mov     #<127.*md.plf>!md.arw,kipdr6    ; reset kipdr6
+        mov     #v..mmu+2,v..mmu
+;
+9999$:  iot                                     ; end of test E1.3
+;
+; Test E1.4 -- test trap request after prefetched instructions +++++++
+;   The w11 starts a prefetch of the next instruction when the decode step
+;   detects a register-only operate instruction (as the 11/70 does).
+;   This test checks whether MMU traps are properly detected.
+;   Page 5 has traps enabled (afc=4). A sequence of 'inc r2' instructions is
+;   executed which start in page 4 and continue in page 5. The first in page 5
+;   should cause an MMU trap.
+;
+te0104: mov     #<127.*md.plf>!md.att,kipdr5   ; enable traps (afc=4)
+        mov     #m0.ent!m0.ena,mmr0     ; enable mmu with traps  ;! MMU 18
+        clr     r2                      ; clear counter
+        mov     #1000$,r3               ; ptr to failed landing
+        mov     #vhmmut,v..mmu          ; setup MMU trap handler
+        mov     #1100$,vhvmmu
+        jmp     @#p5base-6              ; start test code
+;
+1000$:  nop                             ; lands here if no trap
+        halt
+1100$:  hcmpeq  #4.,r2                  ; check counter
+;
+        reset                   ; mmu off                       ;! MMU off
+        mov     #<127.*md.plf>!md.arw,kipdr5    ; reset kipdr5
+        mov     #v..mmu+2,v..mmu
+;
 ; Section F: miscellaneous ===================================================
 ;
 ; Test F1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1797,7 +1880,7 @@ tf0102: mov     #154345,@#p6base ; inititialize target
 ;; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#19.      ; all tests done ?
+        hcmpeq  tstno,#20.      ; all tests done ?
 ;
         jmp     loop
 ;
@@ -1857,8 +1940,8 @@ vhustp: .word   vhuhlt
 vhuhlt: halt
 ;
 ; Test codes that will be mapped in user or supervisor mode ==================
-; They are located at 100000 and above and are position-independent code.
-; That allows to assemble and load them together with the main code.
+; They are located in page 4 at 100000 and above and are position-independent
+; code. That allows to assemble and load them together with the main code.
 ;
 ; vc0 - simple code ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;    uses jsr, has stack below 1000 (no problem in user/supervisor mode)
@@ -1925,5 +2008,19 @@ vc2dat: .word   010111
         .word   010222
         .word   010333
         .word   010444
+;
+; Test E1.4 test code
+;   located at border of page 4 and page 5 (touching both)
+;   started via @#p5base-6, therefore no explicit label
+;
+        . = p5base-6
+        inc     r2              ; @117772; r2=1
+        inc     r2              ; @117774; r2=2
+        inc     r2              ; @117776; r2=3
+        inc     r2              ; @120000; r2=4  <-- should trap here
+        inc     r2              ; @120002; r2=5
+        inc     r2              ; @120004; r2=6
+        inc     r2              ; @120006; r2=7
+        jmp     (r3)            ; return to main code
 ;
         .end    start

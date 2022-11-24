@@ -34,6 +34,7 @@ The full set of tests is only run for tagged releases.
     - tmuconv: add -t_ru06 and -t_flow
   - tools/tcode
     - cpu_details.mac: significantly expanded
+    - cpu_mmu.mac: significantly expanded
 - firmware changes
   - pdp11.vhd: rename, eg srv->ser; drop trap_done; add in_vecysv
   - pdp11_vmbox.vhd: rename some rsv->ser; remove obsolete trap_done
@@ -44,6 +45,7 @@ The full set of tests is only run for tagged releases.
     - pdp11_sequencer:
       - BUGFIX: use is_kstackdst1246 also in dstr flow
       - BUGFIX: correct ysv flow implementation
+      - BUGFIX: correct mmu trap handing in s_idecode
     - pdp11_vmbox: BUGFIX: correct red/yellow zone boundary
 
 <!-- --------------------------------------------------------------------- -->

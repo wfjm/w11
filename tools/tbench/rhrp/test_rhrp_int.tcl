@@ -1,9 +1,10 @@
-# $Id: test_rhrp_int.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_rhrp_int.tcl 1321 2022-11-24 15:06:47Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2022-11-24  1321   1.1.4  increase expected interrupt latency (_seq change)
 # 2019-03-09  1120   1.1.3  add proper device check
 # 2015-07-25   704   1.1.2  tmpproc_dotest: use args rather opts
 # 2015-06-20   692   1.1.1  de-configure all drives at begin
@@ -97,7 +98,9 @@ start:  spl     7               ; lock out interrupts
         mov     (r0)+,@#rp.cs1  ;   cs1
         spl     0               ; allow interrupts
 ; 
-        inc     r5              ; time int delay, up to 10 instructions
+        inc     r5              ; time int delay, up to 12 instructions
+        inc     r5  
+        inc     r5  
         inc     r5  
         inc     r5  
         inc     r5  
@@ -192,7 +195,7 @@ proc tmpproc_dotest {cpu symName args} {
                    o.er1    0 \
                    o.ds     0 \
                    o.as     0 \
-                   o.itim  10 \
+                   o.itim  12 \
                    o.icnt   0 \
                    o.pcnt   1 \
                    or.cs1   0 \
@@ -428,7 +431,7 @@ tmpproc_dotest $cpu sym \
             o.er1   0 \
             o.ds    [regbld ibd_rhrp::DS ata mol dpr dry vv] \
             o.as    [regbld ibd_rhrp::AS u0] \
-            o.itim  3
+            o.itim  4
 
 rlc log "    A3.5 search function, valid da,dc, idly=8 ----------"
 
@@ -444,7 +447,7 @@ tmpproc_dotest $cpu sym \
             o.er1   0 \
             o.ds    [regbld ibd_rhrp::DS ata mol dpr dry vv] \
             o.as    [regbld ibd_rhrp::AS u0] \
-            o.itim  9
+            o.itim  10
 
 rlc log "    A3.5 search function, invalid sa, idly=8 -----------"
 # Note: idly is 8, but error ata's come immediately !!

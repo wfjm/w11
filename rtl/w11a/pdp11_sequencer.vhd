@@ -1,4 +1,4 @@
--- $Id: pdp11_sequencer.vhd 1320 2022-11-22 18:52:59Z mueller $
+-- $Id: pdp11_sequencer.vhd 1321 2022-11-24 15:06:47Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,6 +13,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-11-24  1321   1.6.20 BUGFIX: correct mmu trap handing in s_idecode
 -- 2022-11-21  1320   1.6.19 rename some rsv->ser and cpustat_type trap_->treq_;
 --                           remove vm_cntl_type.trap_done;
 --                           BUGFIX: correct ysv flow implementation
@@ -626,6 +627,7 @@ begin
     if unsigned(INT_PRI) > unsigned(PSW.pri) then
       int_pending := '1';
     end if;
+    nstatus.intpend := int_pending;
 
     idm_idle   := '0';
     idm_cpbusy := '0';
@@ -934,11 +936,21 @@ begin
 
         nvmcntl.dspace := '0';
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_pc;       -- VA = PC
-        
-        if ID_STAT.do_pref_dec='1' and PSW.tflag='0' and int_pending='0' and
-           R_STATUS.cpugo='1' and R_STATUS.cpususp='0' and
-           not R_STATUS.cmdbusy='1'
-        then          
+
+        -- The prefetch decision path can be critical (and was on s3).
+        -- It uses R_STATUS.intpend instead of int_pending, using the status
+        -- latched at the previous state is OK. It uses R_STATUS.treq_mmu
+        -- because no MMU trap can occur during this state (only in *_w states).
+        -- It does not check treq_ysv because pipelined instructions can't
+        -- trigger ysv traps, in contrast to MMU traps.
+        if ID_STAT.do_pref_dec='1' and          -- prefetch possible
+          PSW.tflag='0' and                     -- no tbit traps
+          R_STATUS.intpend='0' and              -- no interrupts
+          R_STATUS.treq_mmu='0' and             -- no MMU trap request
+          R_STATUS.cpugo='1' and                -- CPU on go
+          R_STATUS.cpususp='0' and              -- CPU not suspended
+          not R_STATUS.cmdbusy='1'              -- and no command pending
+        then                                    -- then go for prefetch
           nvmcntl.req := '1';
           ndpcntl.gr_pcinc := '1';                     -- (pc)++
           nmmumoni.istart := '1';

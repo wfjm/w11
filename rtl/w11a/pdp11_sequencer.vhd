@@ -1,4 +1,4 @@
--- $Id: pdp11_sequencer.vhd 1321 2022-11-24 15:06:47Z mueller $
+-- $Id: pdp11_sequencer.vhd 1322 2022-11-28 19:31:57Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,6 +13,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-11-28  1322   1.6.21 BUGFIX: correct mmu trap vs interrupt priority
 -- 2022-11-24  1321   1.6.20 BUGFIX: correct mmu trap handing in s_idecode
 -- 2022-11-21  1320   1.6.19 rename some rsv->ser and cpustat_type trap_->treq_;
 --                           remove vm_cntl_type.trap_done;
@@ -538,12 +539,12 @@ begin
                            pnmmumoni : inout mmu_moni_type) is
     begin
       pnmmumoni.idone := '1';
-      if unsigned(INT_PRI) > unsigned(PSW.pri) then
-        pnstate := s_idle;
-      elsif R_STATUS.treq_mmu='1' or pnstatus.treq_mmu='1' or
+      if R_STATUS.treq_mmu='1' or pnstatus.treq_mmu='1' or
             R_STATUS.treq_ysv='1' or pnstatus.treq_ysv='1' or
             PSW.tflag='1' then
         pnstate := s_trap_disp;
+      elsif unsigned(INT_PRI) > unsigned(PSW.pri) then
+        pnstate := s_idle;
       elsif R_STATUS.cpugo='1' and        -- running
             R_STATUS.cpususp='0' and      --   and not suspended
             not R_STATUS.cmdbusy='1' then --   and no cmd pending
@@ -562,12 +563,12 @@ begin
       pndpcntl := pndpcntl;             -- dummy to add driver (vivado)
       pnvmcntl := pnvmcntl;             -- "
       pnmmumoni.idone := '1';
-      if unsigned(INT_PRI) > unsigned(PSW.pri) then
-        pnstate := s_idle;
-      elsif R_STATUS.treq_mmu='1' or pnstatus.treq_mmu='1' or
+      if R_STATUS.treq_mmu='1' or pnstatus.treq_mmu='1' or
             R_STATUS.treq_ysv='1' or pnstatus.treq_ysv='1' or
             PSW.tflag='1' then
         pnstate := s_trap_disp;
+      elsif unsigned(INT_PRI) > unsigned(PSW.pri) then
+        pnstate := s_idle;
       elsif R_STATUS.cpugo='1' and       -- running
             R_STATUS.cpususp='0' and      --   and not suspended
             not R_STATUS.cmdbusy='1' then --   and no cmd pending

@@ -46,6 +46,7 @@ The full set of tests is only run for tagged releases.
       - BUGFIX: use is_kstackdst1246 also in dstr flow
       - BUGFIX: correct ysv flow implementation
       - BUGFIX: correct mmu trap handing in s_idecode
+      - BUGFIX: correct mmu trap vs interrupt priority
     - pdp11_vmbox: BUGFIX: correct red/yellow zone boundary
 
 <!-- --------------------------------------------------------------------- -->

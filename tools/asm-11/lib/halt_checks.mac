@@ -1,4 +1,4 @@
-; $Id: halt_checks.mac 1316 2022-11-18 15:26:40Z mueller $
+; $Id: halt_checks.mac 1322 2022-11-28 19:31:57Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -50,5 +50,11 @@
         .macro  htsbne,src
         tstb    src
         bne     .+4
+        halt
+        .endm
+; tst on ge
+        .macro  htstge,src
+        tst     src
+        bge     .+4
         halt
         .endm

@@ -1,4 +1,4 @@
-; $Id: cpu_details.mac 1320 2022-11-22 18:52:59Z mueller $
+; $Id: cpu_details.mac 1322 2022-11-28 19:31:57Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -142,6 +142,25 @@ ta0101: mov     #1000$,v..pir     ; set up handler
 1300$:  .word   0
 ;
 9999$:  iot                     ; end of test A1.1
+;
+; Test A1.2 -- PIRQ and immediate interrupt ++++++++++++++++++++++++++
+;   This test verifies that an interrupt is taken immediately after the
+;   write of the PIRQ register
+;
+ta0102: spl     0               ; ensure execution at PR0
+        mov     #1000$,v..pir     ; set up handler
+        mov     #cp.pr7,v..pir+2  ; which runs at pr7
+        mov     #pi.r03,cp.pir  ; request PIRQ 3
+        halt                    ; halt if not taken immediatly
+;
+1000$:  clr     cp.pir          ; cancel all PIRQ levels
+        mov     #1100$,(sp)     ; continue
+        rti
+;
+1100$:  mov     #v..pir+2,v..pir; restore pirq vector catcher
+        clr     v..pir+2
+;
+9999$:  iot                     ; end of test A1.2
 ;
 ; Test A2:  CPUERR +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;   This sub-section verifies operation of CPUERR register
@@ -947,7 +966,7 @@ tc0103: mov     #vhugen,v..iit  ; set iit handler
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#23.      ; all tests done ?
+        hcmpeq  tstno,#24.      ; all tests done ?
 ;
         jmp     loop
 ;

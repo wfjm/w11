@@ -1,4 +1,4 @@
-; $Id: cpu_mmu.mac 1321 2022-11-24 15:06:47Z mueller $
+; $Id: cpu_mmu.mac 1322 2022-11-28 19:31:57Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -1408,6 +1408,7 @@ td0101:
 ; Section E: traps and pdr aia and aiw bits ==================================
 ;
 ; Test E1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   Check basic MMU trap and PDR aia/aiw logic
 ;
 ; Test E1.1 -- test m0.trp, pdr aia/aiw transitions ++++++++++++++++++
 ; Summary
@@ -1757,7 +1758,7 @@ te0104: mov     #<127.*md.plf>!md.att,kipdr5   ; enable traps (afc=4)
         mov     #1000$,r3               ; ptr to failed landing
         mov     #vhmmut,v..mmu          ; setup MMU trap handler
         mov     #1100$,vhvmmu
-        jmp     @#p5base-6              ; start test code
+        jmp     @#p5ce14                ; start test code
 ;
 1000$:  nop                             ; lands here if no trap
         halt
@@ -1766,6 +1767,54 @@ te0104: mov     #<127.*md.plf>!md.att,kipdr5   ; enable traps (afc=4)
         reset                   ; mmu off                       ;! MMU off
         mov     #<127.*md.plf>!md.arw,kipdr5    ; reset kipdr5
         mov     #v..mmu+2,v..mmu
+;
+9999$:  iot                                     ; end of test E1.4
+;
+; Test E2:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;   Check MMU trap priority behavior
+;
+; common handler setup for trap and interrupt priority tests
+;
+        mov     #vhtmmu,v..mmu          ; mmu trap handler
+        mov     #cp.pr7,v..mmu+2        ;   run at PR7 (lockout PIRQ)
+        mov     #vhtpir,v..pir          ; PIRQ handler
+        mov     #cp.pr7,v..pir+2        ;   run at PR7 (prevent retrigger)
+        mov     #<127.*md.plf>!md.att,kipdr5   ; enable traps in page 5 (afc=4)
+;
+; Test E2.1 -- mmu trap + interrupt priority +++++++++++++++++++++++++
+;
+te0201: mov     #m0.ent!m0.ena,mmr0     ; enable mmu with traps  ;! MMU 18
+        mov     #1500$,r5               ; set up data pointer
+;
+        spl     0                       ; ensure PR0
+        call    p5ce21                  ; start probe code in page 5
+1000$:  br      2000$                   ; rts will land here
+;
+1500$:  .word   0,0                     ; 1st marker (MMU for movb)
+        .word   0,0                     ; 2nd marker (PIRQ)
+        .word   0,0                     ; 3rd marker (MMU for rts)
+        .word   -1,-1                   ; fence
+;
+2000$:  hcmpeq  #1500$+12.,r5           ; check 3 markers expected
+        mov     #1500$,r5
+        hcmpeq  #250,(r5)+              ; 1st: MMU for movb
+        hcmpeq  #p5ce21+6,(r5)+         ;   PC after movb
+        hcmpeq  #240,(r5)+              ; 2nd: PIRQ
+        hcmpeq  #p5ce21+6,(r5)+         ;   PC after movb
+        hcmpeq  #250,(r5)+              ; 3rd: MMU for rts
+        hcmpeq  #1000$,(r5)+            ;   PC after rts (the return address)
+;
+        reset                   ; mmu off                       ;! MMU off
+;
+9999$:  iot                                     ; end of test E2.1
+;
+; common restore for section E2 --------------------------------------
+;
+        mov     #<127.*md.plf>!md.arw,kipdr5    ; reset kipdr5
+        mov     #v..mmu+2,v..mmu        ; restore v..mmu to catcher
+        clr     v..mmu+2
+        mov     #v..pir+2,v..pir        ; restore v..pir to catcher
+        clr     v..pir+2
 ;
 ; Section F: miscellaneous ===================================================
 ;
@@ -1880,11 +1929,11 @@ tf0102: mov     #154345,@#p6base ; inititialize target
 ;; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#20.      ; all tests done ?
+        hcmpeq  tstno,#22.      ; all tests done ?
 ;
         jmp     loop
 ;
-; kernel handlers ============================================================
+; kernel handlers and helpers ================================================
 ;
 ; vhmmua - expected mmu abort handler ++++++++++++++++++++++++++++++++++++++++
 ;   used to catch expected MMU aborts
@@ -1938,6 +1987,28 @@ vhuemt: tst     (sp)+           ; discard one word of vector push
         rts     pc              ; end return to continuation address
 vhustp: .word   vhuhlt
 vhuhlt: halt
+;
+; vhtmmu - handler for MMU trap tracing ++++++++++++++++++++++++++++++++++++++
+;   Writes signature to data area (ptr in r5).
+;   Signature is vector address + return PC  (PC to test proper context).
+;   Clears MMR0(trp) bit to allow further MMU traps
+;
+vhtmmu: htstge  (r5)            ; r5 at fence ?
+        bic     #m0.trp,mmr0    ; allow further MMU traps
+        mov     #250,(r5)+      ; track MMU vector
+        mov     (sp),(r5)+      ; track PC
+        rti
+;
+; vhtpir - handler for PIRQ interrupt tracing ++++++++++++++++++++++++++++++++
+;   Writes signature to data area (ptr in r5).
+;   Signature is vector address + return PC  (PC to test proper context).
+;   Clears all PIRQ requests to prevent interrupt loop.
+;
+vhtpir: htstge  (r5)            ; r5 at fence ?
+        clr     cp.pir          ; clear all PIRQ interrupts
+        mov     #240,(r5)+      ; track PIRQ vector
+        mov     (sp),(r5)+      ; track PC
+        rti
 ;
 ; Test codes that will be mapped in user or supervisor mode ==================
 ; They are located in page 4 at 100000 and above and are position-independent
@@ -2009,12 +2080,11 @@ vc2dat: .word   010111
         .word   010333
         .word   010444
 ;
-; Test E1.4 test code
+; p5ce14 Test E1.4 test code +++++++++++++++++++++++++++++++++++++++++
 ;   located at border of page 4 and page 5 (touching both)
-;   started via @#p5base-6, therefore no explicit label
 ;
         . = p5base-6
-        inc     r2              ; @117772; r2=1
+p5ce14: inc     r2              ; @117772; r2=1
         inc     r2              ; @117774; r2=2
         inc     r2              ; @117776; r2=3
         inc     r2              ; @120000; r2=4  <-- should trap here
@@ -2022,5 +2092,10 @@ vc2dat: .word   010111
         inc     r2              ; @120004; r2=6
         inc     r2              ; @120006; r2=7
         jmp     (r3)            ; return to main code
+;
+; p5ce21 Test E2.1 test code +++++++++++++++++++++++++++++++++++++++++
+;
+p5ce21: movb    #bit01,cp.pir+1 ; request PIRQ 1
+        return                  ; and return to main flow
 ;
         .end    start

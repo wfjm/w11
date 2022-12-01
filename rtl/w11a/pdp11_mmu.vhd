@@ -1,4 +1,4 @@
--- $Id: pdp11_mmu.vhd 1294 2022-09-07 14:21:20Z mueller $
+-- $Id: pdp11_mmu.vhd 1323 2022-12-01 08:00:41Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -17,7 +17,8 @@
 --
 -- Revision History:
 -- Date         Rev Version  Comment
--- 2022-09-05  1294   1,4.4  BUGFIX: correct trap and PDR A logic
+-- 2022-11-29  1323   1.4.5  rename mmu_mmr0_type dspace->page_dspace
+-- 2022-09-05  1294   1.4.4  BUGFIX: correct trap and PDR A logic
 -- 2022-08-13  1279   1.4.3  ssr->mmr rename
 -- 2011-11-18   427   1.4.2  now numeric_std clean
 -- 2010-10-23   335   1.4.1  use ib_sel
@@ -78,7 +79,7 @@ architecture syn of pdp11_mmu is
   constant mmr0_ibf_ena_trap : integer := 9;
   constant mmr0_ibf_inst_compl : integer := 7;
   subtype  mmr0_ibf_page_mode is integer range 6 downto 5;
-  constant mmr0_ibf_dspace : integer := 4;
+  constant mmr0_ibf_page_dspace : integer := 4;
   subtype  mmr0_ibf_page_num is integer range 3 downto 1;
   constant mmr0_ibf_ena_mmu : integer := 0;
   
@@ -171,7 +172,7 @@ begin
       mmr0out(mmr0_ibf_ena_trap)   := R_MMR0.ena_trap;
       mmr0out(mmr0_ibf_inst_compl) := R_MMR0.inst_compl;
       mmr0out(mmr0_ibf_page_mode)  := R_MMR0.page_mode;
-      mmr0out(mmr0_ibf_dspace)     := R_MMR0.dspace;
+      mmr0out(mmr0_ibf_page_dspace):= R_MMR0.page_dspace;
       mmr0out(mmr0_ibf_page_num)   := R_MMR0.page_num;
       mmr0out(mmr0_ibf_ena_mmu)    := R_MMR0.ena_mmu;
     end if;
@@ -386,9 +387,9 @@ begin
         end if;
 
         if mmr_freeze = '0' then
-          nmmr0.dspace    := DSPACE;
-          nmmr0.page_num  := apf;
-          nmmr0.page_mode := CNTL.mode;
+          nmmr0.page_dspace := DSPACE;
+          nmmr0.page_num    := apf;
+          nmmr0.page_mode   := CNTL.mode;
         end if;
       end if;
     end if;

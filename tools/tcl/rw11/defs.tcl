@@ -1,9 +1,10 @@
-# $Id: defs.tcl 1320 2022-11-22 18:52:59Z mueller $
+# $Id: defs.tcl 1323 2022-12-01 08:00:41Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2014-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2022-11-29  1323   1.0.12 rename adderr -> oddadr (in cpuerr)
 # 2022-11-21  1320   1.0.11 rename RUST recrsv -> recser
 # 2022-09-03  1292   1.0.10 shorter field names for MMR0,MMR1
 # 2022-08-07  1273   1.0.9  ssr->mmr rename
@@ -89,7 +90,7 @@ namespace eval rw11 {
   #
   # CPUERR - CPU Error Register -------------------------------------
   set A_CPUERR   0177766
-  regdsc CPUERR {illhlt 7} {adderr 6} {nxm 5} {iobto 4} {ysv 3} {rsv 2}
+  regdsc CPUERR {illhlt 7} {oddadr 6} {nxm 5} {iobto 4} {ysv 3} {rsv 2}
   #
   # CNTRL - Memory System Control Register -------------------------
   set A_CNTRL    0177746

@@ -1,4 +1,4 @@
--- $Id: pdp11.vhd 1321 2022-11-24 15:06:47Z mueller $
+-- $Id: pdp11.vhd 1323 2022-12-01 08:00:41Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -11,6 +11,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-11-29  1323   1.5.18 rename cpuerr_type adderr->oddadr, mmu_mmr0_type
+--                           dspace->page_dspace; drop mmu_cntl_type.trap_done
 -- 2022-11-24  1321   1.5.17 add cpustat_type intpend
 -- 2022-11-21  1320   1.6.16 rename some rsv->ser and cpustat_type trap_->treq_;
 --                           remove vm_cntl_type.trap_done; add in_vecysv;
@@ -403,7 +405,7 @@ package pdp11 is
 
   type cpuerr_type is record            -- CPU error register
     illhlt : slbit;                     -- illegal halt (in non-kernel mode)
-    adderr : slbit;                     -- address error (odd, jmp/jsr reg)
+    oddadr : slbit;                     -- odd address error
     nxm : slbit;                        -- non-existent memory
     iobto : slbit;                      -- I/O bus timeout (non-exist UB)
     ysv : slbit;                        -- yellow stack violation
@@ -477,12 +479,11 @@ package pdp11 is
     cacc : slbit;                       -- console access (bypass mmu)
     dspace : slbit;                     -- dspace access
     mode : slv2;                        -- processor mode
-    trap_done : slbit;                  -- mmu trap taken (set mmr0 bit)
   end record mmu_cntl_type;
 
   constant mmu_cntl_init : mmu_cntl_type := (
     '0','0','0','0',                    -- req, wacc, macc, cacc
-    '0',"00",'0'                        -- dspace, mode, trap_done
+    '0',"00"                            -- dspace, mode
   );
 
   type mmu_stat_type is record          -- mmu status port
@@ -520,7 +521,7 @@ package pdp11 is
     ena_trap : slbit;                   -- enable traps
     inst_compl : slbit;                 -- instruction complete
     page_mode : slv2;                   -- page mode
-    dspace : slbit;                     -- address space (D=1, I=0)
+    page_dspace : slbit;                -- page address space (D=1, I=0)
     page_num : slv3;                    -- page number
     ena_mmu : slbit;                    -- enable memory management
     trace_prev : slbit;                 -- mmr12 trace status in prev. state

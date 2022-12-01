@@ -1,10 +1,10 @@
-; $Id: cpu_mmu.mac 1322 2022-11-28 19:31:57Z mueller $
+; $Id: cpu_mmu.mac 1323 2022-12-01 08:00:41Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2022-09-10  1297   1.0    Initial version
+; 2022-11-29  1323   1.0    Initial version
 ; 2022-07-24  1262   0.1    First draft
 ;
 ; Test CPU MMU: all aspects of the MMU
@@ -639,9 +639,7 @@ tb0401: clr     mmr3            ; no d dspace, no 22bit
 ; test abort PS on stack
 1020$:  hcmpeq  (sp)+,#^b1010000000000000       ; abort PS
 ;
-        mov     mmr0,r5
-        bic     #m0.ico,r5
-        hcmpeq  r5,#m0.anr!m0.ale!0100!<6*m0.pno>!m0.ena ; check mmr0
+        hcmpeq  mmr0,#m0.anr!m0.ale!0100!<6*m0.pno>!m0.ena ; check mmr0
         hcmpeq  mmr2,#p6base+200                      ; check mmr2
 ;
         reset                                                   ;! MMU off
@@ -1326,13 +1324,8 @@ td0101:
         hcmpeq  vc2sek+0,vc2dat+2 ; 2nd push
         hcmpeq  vc2sek-2,vc2dat+4 ; 3rd push
         hcmpeq  vc2sek-4,vc2dat+6 ; 4th push
-;
-; SimH wrongly sets m0.ico, skip mmr0 check for SimH
-        cmpb    systyp,#sy.sih
-        beq     1010$
         hcmpeq  3000$,#<m0.ale!m0.pmu!m0.dsp!<1*m0.pno>!m0.ena>
-;
-1010$:  hcmpeq  3001$,#^b1111011000010100       ; -2,sp;2,r4
+        hcmpeq  3001$,#^b1111011000010100       ; -2,sp;2,r4
         hcmpeq  3002$,#<vc2l1-vc2>
 ;
 ; reset user mode pdr/par
@@ -1946,9 +1939,7 @@ tf0102: mov     #154345,@#p6base ; inititialize target
 ;
 vhmmua: mov     vhvmmu,r1       ; get context
         beq     1000$           ; if 0 halt
-        mov     mmr0,r0
-        bic     #m0.ico,r0      ; mask ico (for Simh compatibility)
-        hcmpeq  r0,(r1)+        ; check mmr0
+        hcmpeq  mmr0,(r1)+      ; check mmr0
         hcmpeq  mmr1,(r1)+      ; check mmr1
         bic     #m0.anr!m0.ale!m0.ard,mmr0      ; reset mmr0 abort flags
         mov     r1,(sp)         ; set up kernel return address

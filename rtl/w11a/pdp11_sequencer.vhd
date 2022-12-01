@@ -1,4 +1,4 @@
--- $Id: pdp11_sequencer.vhd 1322 2022-11-28 19:31:57Z mueller $
+-- $Id: pdp11_sequencer.vhd 1323 2022-12-01 08:00:41Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,6 +13,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-11-29  1323   1.6.22 rename adderr -> oddadr, don't set after err_mmu
 -- 2022-11-28  1322   1.6.21 BUGFIX: correct mmu trap vs interrupt priority
 -- 2022-11-24  1321   1.6.20 BUGFIX: correct mmu trap handing in s_idecode
 -- 2022-11-21  1320   1.6.19 rename some rsv->ser and cpustat_type trap_->treq_;
@@ -125,7 +126,7 @@ architecture syn of pdp11_sequencer is
   constant ibaddr_cpuerr : slv16 := slv(to_unsigned(8#177766#,16));
   
   constant cpuerr_ibf_illhlt : integer := 7;
-  constant cpuerr_ibf_adderr : integer := 6;
+  constant cpuerr_ibf_oddadr : integer := 6;
   constant cpuerr_ibf_nxm : integer := 5;
   constant cpuerr_ibf_iobto : integer := 4;
   constant cpuerr_ibf_ysv : integer := 3;
@@ -296,7 +297,7 @@ begin
     idout := (others=>'0');
     if IBSEL_CPUERR = '1' then
       idout(cpuerr_ibf_illhlt) := R_CPUERR.illhlt;
-      idout(cpuerr_ibf_adderr) := R_CPUERR.adderr;
+      idout(cpuerr_ibf_oddadr) := R_CPUERR.oddadr;
       idout(cpuerr_ibf_nxm)    := R_CPUERR.nxm;
       idout(cpuerr_ibf_iobto)  := R_CPUERR.iobto;
       idout(cpuerr_ibf_ysv)    := R_CPUERR.ysv;
@@ -2383,8 +2384,8 @@ begin
             nstatus.in_vecysv := '0';              -- cancel ysv flow
             ndpcntl.gr_we := '1';
 
-            if R_VMSTAT.err_odd='1' or R_VMSTAT.err_mmu='1' then
-              ncpuerr.adderr := '1';
+            if R_VMSTAT.err_odd='1' then
+              ncpuerr.oddadr := '1';
             elsif R_VMSTAT.err_nxm = '1' then
               ncpuerr.nxm := '1';
             elsif R_VMSTAT.err_iobto = '1' then
@@ -2394,7 +2395,7 @@ begin
             nstate := s_abort_4;
 
           elsif R_VMSTAT.err_odd = '1' then
-            ncpuerr.adderr := '1';
+            ncpuerr.oddadr := '1';
             nstate := s_abort_4;
           elsif R_VMSTAT.err_nxm = '1' then
             ncpuerr.nxm := '1';

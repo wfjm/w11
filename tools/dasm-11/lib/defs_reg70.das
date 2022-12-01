@@ -1,4 +1,4 @@
-# $Id: defs_reg70.das 1286 2022-08-25 06:53:38Z mueller $
+# $Id: defs_reg70.das 1323 2022-12-01 08:00:41Z mueller $
 #
 # definitions for 11/70 cpu registers
 #
@@ -20,7 +20,7 @@
 .symbol cp.ubm=170200
 #
 .symset %cp.err = cp.hlt=000200,\
-		  cp.aer=000100,\
+		  cp.odd=000100,\
 		  cp.nxm=000040,\
 		  cp.ito=000020,\
 		  cp.ysv=000010,\

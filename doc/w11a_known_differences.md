@@ -13,6 +13,7 @@ The issues of the w11 CPU and systems are listed in a separate document
 - [`jsr sp` pushes original `sp` value](w11a_diff_70_jsr_sp.md)
 - [18-bit UNIBUS address space not mapped](w11a_diff_70_unibus_mapping.md)
 - [MMU traps not suppressed when MMU register accessed](w11a_diff_70_mmu_trap_suppression.md)
+- [MMU aborts have priority over NXM aborts](w11a_diff_70_mmu_nxm_prio.md)
 
 All points relate to very 11/70 specific behavior, no operating system
 depends on them, therefore they are considered acceptable implementation

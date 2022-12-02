@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: tmuconv 1316 2022-11-18 15:26:40Z mueller $
+# $Id: tmuconv 1324 2022-12-01 11:24:20Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2008-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2022-12-01  1324   1.1.11 change VFETCH text for MMU(250) and FPP(244)
 # 2022-11-18  1316   1.1.10 add -t_ru06 and -t_flow
 # 2022-10-25  1309   1.1.9  rename _gpr -> _gr
 # 2022-08-22  1283   1.1.8  print ru after em,ib, best for reg from mem cases
@@ -773,8 +774,8 @@ sub do_file {
 		$emtyp_str .= " 220 RK11"       if ($emlast_addr == 0220);
 		$emtyp_str .= " 224 TM11"       if ($emlast_addr == 0224);
 		$emtyp_str .= " 240 PIRQ"       if ($emlast_addr == 0240);
-		$emtyp_str .= " 244 FPP exp"    if ($emlast_addr == 0244);
-		$emtyp_str .= " 250 MMU trap"   if ($emlast_addr == 0250);
+		$emtyp_str .= " 244 FPE"        if ($emlast_addr == 0244);
+		$emtyp_str .= " 250 MMU"        if ($emlast_addr == 0250);
 		$emtyp_str .= " 254 RHRP"       if ($emlast_addr == 0254);
 		$emtyp_str .= " 260 IIST"       if ($emlast_addr == 0260);
 		$emtyp_str .= " 300 DL11-2-TTI" if ($emlast_addr == 0300);

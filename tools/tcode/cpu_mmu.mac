@@ -1,10 +1,10 @@
-; $Id: cpu_mmu.mac 1323 2022-12-01 08:00:41Z mueller $
+; $Id: cpu_mmu.mac 1324 2022-12-01 11:24:20Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2022-11-29  1323   1.0    Initial version
+; 2022-12-01  1324   1.0    Initial version
 ; 2022-07-24  1262   0.1    First draft
 ;
 ; Test CPU MMU: all aspects of the MMU
@@ -1268,6 +1268,46 @@ tc0203: mov     #vhmmua,v..mmu
         clr     v..mmu+2
 9999$:  iot                     ; end of test C2.3
 ;
+; Test C2.4 -- mmu abort vs nxm abort ++++++++++++++++++++++++++++++++
+;    On a KB11-C a NXM abort has priority over an MMU abort. An access via
+;    an acf=7 (reserved) page mapped to non-existing memory is aborted as an
+;    NXM error (vector 4) and not as an MMU error (vector 250). On a KB11-E
+;    an MMU error is taken. This behavior is checked in test 122 of ekbee1.
+;    The w11, and also SimH and e11, follow the KB11-E behavior which is the
+;    natural and expected behavior.
+;
+
+tc0204: mov     cp.los,kipar6           ; map begin of non-existent memory
+        mov     #<127.*md.plf>!md.arw,kipdr6  ; allow access
+        mov     #m3.e22,mmr3            ; enable 22-bit mode
+        mov     #m0.ena,mmr0            ; enable mmu with traps  ;! MMU 22
+;
+; part1: MMU allows access to NXM memory --> NXM abort ---------------
+;
+        clr     cp.err                  ; clear CPUERR
+        mov     #1000$,v..iit           ; set vector 4 handler for NXM abort
+        clr     @#p6p1p2                ; access
+        halt
+1000$:  mov     #stack,sp               ; vector 4 taken
+        hcmpeq  cp.err,#cp.nxm          ; NXM error seen
+        mov     #v..iit+2,v..iit        ; restore iit handler to catcher
+;
+; part2: MMU denies access to NXM memory --> MMU abort ---------------
+;
+        mov     #<127.*md.plf>!md.an7,kipdr6  ; deny access via acf=7
+        clr     cp.err                  ; clear CPUERR
+        mov     #2000$,v..mmu           ; set vector 250 handler for MMU abort
+        clr     @#p6p1p2                ; access
+        halt
+2000$:  mov     #stack,sp               ; vector 250 taken
+        htsteq  cp.err                  ; check CPUERR (no NXM expected)
+        mov     #v..mmu+2,v..mmu        ; restore mmu handler to catcher
+;
+        reset                   ; mmu off                       ;! MMU off
+        mov     #001400,kipar6                  ; reset kipar6
+        mov     #<127.*md.plf>!md.arw,kipdr6    ; reset kipdr6
+;
+9999$:  iot                                     ; end of test C2.4
 ;
 ; Section D: mmr2+mmr1+mmr0 register, abort recovery =========================
 ;
@@ -1922,7 +1962,7 @@ tf0102: mov     #154345,@#p6base ; inititialize target
 ;; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#22.      ; all tests done ?
+        hcmpeq  tstno,#23.      ; all tests done ?
 ;
         jmp     loop
 ;

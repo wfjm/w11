@@ -1,9 +1,10 @@
-# $Id: test_w11a_inst_quick.tcl 1254 2022-07-13 06:16:19Z mueller $
+# $Id: test_w11a_inst_quick.tcl 1325 2022-12-07 11:52:36Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2022-12-04  1324   1.0.1  use creset option to clear pending traps
 # 2022-07-12  1254   1.0    Initial version
 #
 # Quick instruction test.
@@ -185,7 +186,8 @@ rw11::asmrun  $cpu sym  r0 0 \
                         r5 $sym(chkcc) \
                         sp $sym(stack) \
                         pc $sym(start) \
-                        ps 020
+                        ps 020 \
+                        creset 1
 rw11::asmwait $cpu sym 
 rw11::asmtreg $cpu  r1 0004711 \
                     r2 0123456 \
@@ -328,7 +330,8 @@ rw11::asmrun  $cpu sym  r0 0 \
                         r5 $sym(chkcc) \
                         sp $sym(stack) \
                         pc $sym(start) \
-                        ps 020
+                        ps 020 \
+                        creset 1
 rw11::asmwait $cpu sym 
 rw11::asmtreg $cpu  r1 0000123 \
                     r2 0000321 \

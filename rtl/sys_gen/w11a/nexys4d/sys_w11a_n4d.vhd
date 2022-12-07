@@ -1,4 +1,4 @@
--- $Id: sys_w11a_n4d.vhd 1247 2022-07-06 07:04:33Z mueller $
+-- $Id: sys_w11a_n4d.vhd 1325 2022-12-07 11:52:36Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2019-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -28,6 +28,7 @@
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic MHz
+-- 2022-12-06  1324 2022.1  xc7a100t-1   6852  8773   868  17.5  3240  80
 -- 2022-07-05  1247 2022.1  xc7a100t-1   6805  8961   869  17.5  3282  80
 -- 2019-08-10  1201 2019.1  xc7a100t-1   6850 10258   901  17.5  3563  80
 -- 2019-05-19  1150 2017.2  xc7a100t-1   6811 10322   901  17.5  3496  80 +dz11

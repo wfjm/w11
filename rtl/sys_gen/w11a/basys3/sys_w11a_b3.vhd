@@ -1,4 +1,4 @@
--- $Id: sys_w11a_b3.vhd 1247 2022-07-06 07:04:33Z mueller $
+-- $Id: sys_w11a_b3.vhd 1325 2022-12-07 11:52:36Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -26,6 +26,7 @@
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2022-12-06  1324 2022.1  xc7a35t-1    3050  5501   267  48.0  1829
 -- 2022-07-05  1247 2022.1  xc7a35t-1    3011  5669   267  48.0  1906
 -- 2019-05-19  1150 2017.2  xc7a35t-1    2968  6360   273  48.0  1963 +dz11
 -- 2019-04-27  1140 2017.2  xc7a35t-1    2835  6032   248  47.5  1879 +*buf

@@ -1,9 +1,10 @@
-# $Id: asm.tcl 1177 2019-06-30 12:34:07Z mueller $
+# $Id: asm.tcl 1325 2022-12-07 11:52:36Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2022-12-04  1324   1.0.1  asmrun: add creset option (active with ps option)
 # 2019-04-06  1126   1.0.6  asmwait: allow alternate stop symbol
 # 2017-02-04   784   1.0.5  asmrun: allow 'ps' in initializer list
 # 2015-07-25   704   1.0.4  asmrun,asmtreg,asmtmem: use args in proc definition
@@ -27,7 +28,7 @@ namespace eval rw11 {
   # 
   proc asmrun {cpu symName args} {
     upvar 1 $symName sym
-    array set opts {r0 0 r1 0 r2 0 r3 0 r4 0 r5 0}
+    array set opts {r0 0 r1 0 r2 0 r3 0 r4 0 r5 0 creset 0}
     array set opts $args
 
     if {![info exists opts(pc)]} {
@@ -53,6 +54,10 @@ namespace eval rw11 {
       lappend clist "-w${key}" $opts($key)
     }
     if {[info exists opts(ps)]} {
+      if {$opts(creset)} {
+        rlc log "CRESET"
+        lappend clist "-creset"
+      }
       lappend clist "-wpc" $opts(pc)
       lappend clist "-wps" $opts(ps)
       lappend clist "-start"

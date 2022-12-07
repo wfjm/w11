@@ -1,10 +1,10 @@
-; $Id: cpu_details.mac 1323 2022-12-01 08:00:41Z mueller $
+; $Id: cpu_details.mac 1325 2022-12-07 11:52:36Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2022-11-29  1323   1.0    Initial version
+; 2022-12-06  1324   1.0    Initial version
 ; 2022-07-18  1259   0.1    First draft
 ;
 ; Test CPU details
@@ -391,9 +391,9 @@ ta0210: cmpb    systyp,#sy.sih  ; SimH uses J11 semantics
 ; end of A2.* tests, restore iit handler
         mov     v..iit+2,v..iit ; restore iit handler
 ;
-; Test A3:  STKLIM +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-;   This sub-section verifies operation of STKLIM register
-;   and the yellow stack trap and red stack abort functionality.
+; Test A3:  STKLIM + stack traps and aborts ++++++++++++++++++++++++++++++++++
+;   This sub-section verifies operation of STKLIM register,
+;   the yellow stack trap, and the red stack abort functionality.
 ;
 ; Test A3.1 -- STKLIM write/read test ++++++++++++++++++++++++++++++++
 ;   STKLIM is a 16 bit register, upper byte is retained, lower reads always 0
@@ -773,6 +773,478 @@ ta0304:
 ;
 9999$:  iot                                     ; end of test A3.4
 ;
+; Test A4:  PSW + tbit traps +++++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies operation of PSW register and tbit traps.
+;
+; helper macro for JMP via RTI with new PS,PC
+        .macro  rtijmp,newps,newpc
+        push2   newps,newpc
+        rti
+        halt
+        .endm
+;
+; helper macro for JMP via RTT with new PS,PC
+        .macro  rttjmp,newps,newpc
+        push2   newps,newpc
+        rtt
+        halt
+        .endm
+;
+; helper macro for trace area check setup
+        .macro  htinit,buf,nent
+        hcmpeq  #buf+<4*nent>,r5
+        mov     #buf,r5
+        .endm
+;
+; helper macro for trace area check entry
+        .macro  htitem,tvec,tadr
+        hcmpeq  tvec,(r5)+
+        hcmpeq  tadr,(r5)+
+        .endm
+;
+; Test A4.1 -- PSW direct write/read test ++++++++++++++++++++++++++++
+;
+ta0401:
+;
+; part 1: all bits except register set (cp.ars) ----------------------
+;
+        mov     #cp.psw,r0              ; ptr to PSW
+        mov     #200$,r1                ; ptr to data
+        mov     #cpnzvc,r2              ; NZVC mask
+100$:   mov     (r1)+,r3                ; next value
+        beq     2000$                   ; if 0 end of test
+        mov     r3,(r0)                 ; write PSW
+        mov     (r0),r3                 ; read  PSW
+        bic     r2,r3                   ; clear NZVC
+        cmp     (r1)+,r3                ; check value
+        beq     100$
+        clr     (r0)                    ; if error force kernel
+        halt                            ; and halt
+;
+200$:   .word   cp.t,0                  ; tbit (not direct writable)
+        .word   cp.pr7,cp.pr7           ; prio bits
+        .word   bit10!bit09!bit08,0     ; bit 10:8 unused
+        .word   bit12,bit12             ; pm(0)
+        .word   bit13,bit13             ; pm(1)
+        .word   bit14,bit14             ; cm(0)
+        .word   bit15,bit15             ; cm(1)
+        .word   0
+;
+; part 2: PSW(11) - register set -------------------------------------
+;
+2000$:  mov     #1000,r0                ; write to set 0
+        mov     #1001,r1
+        mov     #1002,r2
+        mov     #1003,r3
+        mov     #1004,r4
+        mov     #1005,r5
+        mov     #cp.ars,cp.psw          ; select set 1
+        hbitne  #cp.ars,cp.psw          ; check PSW write
+        mov     #1010,r0                ; write to set 1
+        mov     #1011,r1
+        mov     #1012,r2
+        mov     #1013,r3
+        mov     #1014,r4
+        mov     #1015,r5
+        clr     cp.psw                  ; select set 0
+        hbiteq  #cp.ars,cp.psw          ; check PSW write
+        hcmpeq  #1000,r0                ; check set 0
+        hcmpeq  #1001,r1
+        hcmpeq  #1002,r2
+        hcmpeq  #1003,r3
+        hcmpeq  #1004,r4
+        hcmpeq  #1005,r5
+        mov     #cp.ars,cp.psw          ; select set 1
+        hcmpeq  #1010,r0                ; check set 0
+        hcmpeq  #1011,r1
+        hcmpeq  #1012,r2
+        hcmpeq  #1013,r3
+        hcmpeq  #1014,r4
+        hcmpeq  #1015,r5
+        clr     cp.psw                  ; select set 0
+;
+; part 3: PSW(cm) and stack registers --------------------------------
+;
+        mov     #cp.psw,r0              ; ptr to PSW
+        clr     (r0)                    ; cm=k
+        mov     #0006,sp
+        mov     #cp.cms,(r0)            ; cm=s
+        mov     #0106,sp
+        mov     #cp.cmu,(r0)            ; cm=u
+        mov     #1106,sp
+        clr     (r0)                    ; cm=k
+        hcmpeq  #0006,sp                ; check
+        mov     #cp.cms,(r0)            ; cm=s
+        mov     sp,r1
+        mov     #cp.cmu,(r0)            ; cm=u
+        mov     sp,r2
+        clr     (r0)                    ; cm=k
+        hcmpeq  #0106,r1                ; check in kernel to allow halt
+        hcmpeq  #1106,r2                ; check in kernel to allow halt
+;
+        clr     (r0)
+        mov     #stack,sp
+;
+9999$:  iot                                     ; end of test A4.1
+;
+; Test A4.2 -- PSW write/read via RTI/RTT ++++++++++++++++++++++++++++
+;   Verifies cm and rset priviledge escalation protection
+;
+ta0402:
+;
+; part 1: from cm=0,rset=0: set cm=11 and rset=1 (fine!) -------------
+;
+        rtijmp  #cp.cmu!cp.ars,#1200$   ; new PS cm=u and rs=1
+;
+1100$:  .word   0                       ; saved PS
+;
+1200$:  mov     cp.psw,1100$            ; save PS (use memory, rset=1!)
+        clr     cp.psw                  ; back to kernel
+        mov     #stack,sp               ; restore stack
+        bic     #cpnzvc,1100$           ; discard NZVC
+        hcmpeq  #cp.cmu!cp.ars,1100$    ; check expected PS
+;
+; part 2: from cm=s,rset=1 mode: set cm=0 and rset=0 (fail!) ---------
+;
+        rtijmp  #cp.cms!cp.ars,#2200$   ; PS cm=s and rs=1
+;
+        .word   0,0                     ; temporary stack
+2100$:  .word   0                       ; 1st saved PS
+2110$:  .word   0                       ; 2nd saved PS
+;
+; now in supervisor mode, try sneak to cm=k and rs=0
+2200$:  mov     cp.psw,2100$            ; save PS
+        mov     #2100$,sp               ; set up stack
+        rtijmp  #0,#2300$               ; new PS cm=k and rs=0
+;
+; lands here after rti from cm=s -> still in cm=s
+2300$:  mov     cp.psw,2110$            ; save PS
+        clr     cp.psw                  ; back to kernel
+        mov     #stack,sp               ; restore stack
+        bic     #cpnzvc,2100$           ; discard NZVC
+        hcmpeq  #cp.cms!cp.ars,2100$    ; check expected 1st PS
+        bic     #cpnzvc,2110$           ; discard NZVC
+        hcmpeq  #cp.cms!cp.ars,2110$    ; check expected 2nd PS (same !)
+;
+; part 3: from cm=s,rset=0 mode: set cm=u and rset=1 (fine!) ---------
+;
+        rtijmp  #cp.cms,#3200$          ; PS cm=s and rs=0
+;
+        .word   0,0                     ; temporary stack
+3100$:  .word   0                       ; 1st saved PS
+3110$:  .word   0                       ; 2nd saved PS
+;
+; now in supervisor mode, continue to cm=u and rs=1
+3200$:  mov     cp.psw,3100$            ; save PS
+        mov     #3100$,sp               ; set up stack
+        rtijmp  #cp.cmu!cp.ars,#3300$   ; new PS cm=u and rs=1
+;
+; lands here after rti from cm=s -> now cm=u
+3300$:  mov     cp.psw,3110$            ; save PS
+        clr     cp.psw                  ; back to kernel
+        mov     #stack,sp               ; restore stack
+        bic     #cpnzvc,3100$           ; discard NZVC
+        hcmpeq  #cp.cms,3100$           ; check expected 1st PS
+        bic     #cpnzvc,2110$           ; discard NZVC
+        hcmpeq  #cp.cmu!cp.ars,3110$    ; check expected 2nd PS (now user)
+;
+; part 4: from cm=u,rset=1 mode: set cm=0 and rset=0 (fail!) ---------
+;
+        rtijmp   #cp.cmu!cp.ars,#4200$  ; PS cm=u and rs=1
+;
+        .word   0,0                     ; temporary stack
+4100$:  .word   0                       ; 1st saved PS
+4110$:  .word   0                       ; 2nd saved PS
+;
+; now in user mode, try sneak to cm=k and rs=0
+4200$:  mov     cp.psw,4100$            ; save PS
+        mov     #4100$,sp               ; set up stack
+        rtijmp  #0,#4300$               ; new PS cm=k and rs=0
+;
+; lands here after rti from cm=u -> still in cm=u
+4300$:  mov     cp.psw,4110$            ; save PS
+        clr     cp.psw                  ; back to kernel
+        mov     #stack,sp               ; restore stack
+        bic     #cpnzvc,4100$           ; discard NZVC
+        hcmpeq  #cp.cmu!cp.ars,4100$    ; check expected 1st PS
+        bic     #cpnzvc,4110$           ; discard NZVC
+        hcmpeq  #cp.cmu!cp.ars,4110$    ; check expected 2nd PS (same !)
+;
+9999$:  iot                                     ; end of test A4.2
+;
+; Test A4.3 -- RTI/RTT tbit basics +++++++++++++++++++++++++++++++++++
+;   Verifies that tbit trap comes immediately after RTI and delayed after RTT
+;
+ta0403:
+;
+; part 1: tbit after RTI ---------------------------------------------
+;
+        mov     #200$,v..bpt
+        rtijmp  #cp.t,#100$             ; PS: tbit; PC 100$
+100$:   nop                             ; should not execute
+        halt
+;
+; here in local BPT handler
+200$:   hcmpeq  #stack-4,sp             ; check single frame
+        hcmpeq  #100$,(sp)              ; check saved PC before nop
+        mov     #stack,sp               ; restore
+        mov     #v..bpt+2,v..bpt
+;
+; part 2: tbit after RTT ---------------------------------------------
+;
+2000$:  mov     #2200$,v..bpt
+        rttjmp  #cp.t,#2100$            ; PS: tbit; PC 2100$
+2100$:  nop                             ; should execute
+        halt
+;
+; here in local BPT handler
+2200$:  hcmpeq  #stack-4,sp             ; check single frame
+        hcmpeq  #2100$+2,(sp)           ; check saved PC after nop
+        mov     #stack,sp               ; restore
+        mov     #v..bpt+2,v..bpt
+;
+9999$:  iot                                     ; end of test A4.3
+;
+; Test A4.4 -- tbit trace tests ++++++++++++++++++++++++++++++++++++++
+;
+ta0404: mov     #vhtbpt,v..bpt          ; BPT handler
+        mov     #cp.pr7,v..bpt+2        ;  run at PR7 (lockout PIRQ)
+        mov     #vhtemt,v..emt          ; EMT handler
+        clr     v..emt+2                ;  run at PR0 (no PIRQ competion)
+        mov     #vhtpir,v..pir          ; PIRQ handler
+        mov     #cp.pr7,v..pir+2        ;  run at PR7 (lockout PIRQ)
+        mov     #vhttrp,v..trp          ; TRAP handler
+        clr     v..trp+2                ;  run at PR0 (no PIRQ competion)
+;
+; part 1: simple instruction sequence --------------------------------
+;   Checks that trace traps are taken instructions which allow prefetch
+;   and that the destination PC is saved for flow control instructions.
+;
+        mov     #1200$,r5
+        mov     #1300$,vhtend
+        rtijmp  #cp.t,#1100$            ; RTI used to see bpt before 1st inst
+;
+1100$:  inc     r0                      ; 1st inst, shouldnt prefetch
+1110$:  dec     r0                      ; 2nd inst, shouldnt prefetch
+1120$:  cmp     #1,#2                   ; 3rd inst
+1130$:  bne     1160$                   ; 4th inst
+        halt
+1140$:  return                          ; 6th inst
+        halt
+1150$:  jmp     1180$                   ; 8th inst
+        halt
+1160$:  call    1140$                   ; 5th inst
+1170$:  br      1150$                   ; 7th inst
+1180$:  trap    100                     ; 9th inst
+1190$:
+;
+1200$:  .word   0,0
+        .word   0,0
+        .word   0,0
+        .word   0,0
+        .word   0,0
+        .word   0,0
+        .word   0,0
+        .word   0,0
+        .word   0,0
+        .word   0,0
+        .word   -1,-1
+;
+1300$:  htinit  1200$,10.               ; expect 10 items
+        htitem  #014,#1100$             ; bpt before inc
+        htitem  #014,#1110$             ; bpt after  inc
+        htitem  #014,#1120$             ; bpt after  dec
+        htitem  #014,#1130$             ; bpt after  cmp
+        htitem  #014,#1160$             ; bpt after  bne (PC is bne target)
+        htitem  #014,#1140$             ; bpt after  jsr (PC is jsr target)
+        htitem  #014,#1170$             ; bpt after  rts (PC is rts target)
+        htitem  #014,#1150$             ; bpt after  br  (PC is br  target)
+        htitem  #014,#1180$             ; bpt after  jmp (PC is jmp target)
+        htitem  #036,#1190$             ; final trap
+;
+; part 2: tracing of trap instructions (EMT tested) ------------------
+;
+2000$:  mov     #2200$,r5
+        mov     #2300$,vhtend
+        rttjmp  #cp.t,#2100$            ; RTT used, no before BPT
+;
+2100$:  dec     r0
+2110$:  emt     100
+2120$:  nop
+2130$:  trap    100
+2140$:
+;
+2200$:  .word   0,0
+        .word   0,0
+        .word   0,0
+        .word   0,0
+        .word   0,0
+        .word   -1,-1
+;
+2300$:  htinit  2200$,5.                ; expect 5 items
+        htitem  #014,#2110$             ; bpt after dec
+        htitem  #032,#2120$             ; emt (with return address)
+        htitem  #014,#2120$             ; bpt after emt (taken after emt)
+        htitem  #014,#2130$             ; bpt after nop
+        htitem  #036,#2140$             ; final trap
+;
+; part 3: tbit vs interrupt precedence (via PIRQ) --------------------
+;   Checks that interrupt has precedence over tbit traps.
+;   Skipped on SimH which implements J11 precedence (tbit over interrupt).
+;
+3000$:  cmpb    systyp,#sy.sih          ; skip on SimH (different service order)
+        beq     4000$
+        cmpb    systyp,#sy.e11          ; skip on e11 (different service order
+        beq     4000$
+;
+3001$:  mov     #3200$,r5
+        mov     #3300$,vhtend
+        rttjmp  #cp.t,#3100$
+;
+3100$:  movb    #bit01,cp.pir+1         ; request PIRQ 1
+3110$:  trap    100
+3120$:
+;
+3200$:  .word   0,0
+        .word   0,0
+        .word   0,0
+        .word   0,0
+        .word   0,0
+        .word   -1,-1
+;
+3300$:  htinit  3200$,3.                ; expect 3 items
+        htitem  #240,#3110$             ; pirq (with return address)
+        htitem  #014,#3110$             ; bpt after movb
+        htitem  #036,#3120$             ; final trap
+;
+; part 4: traced WAIT and tbit ---------------------------------------
+;   Checks that traced WAIT does not produce tbit trap.
+;   Checks that SPL does not produce a tbit trap.
+;   Skipped on SimH which implements J11 semantics for SPL, WAIT, precedence.
+;
+4000$:  cmpb    systyp,#sy.sih          ; skip on SimH
+        beq     5000$
+        cmpb    systyp,#sy.e11          ; skip on e11 (for precedence)
+        beq     5000$
+;
+4001$:  mov     #4200$,r5
+        mov     #4300$,vhtend
+        rttjmp  #cp.t+cp.pr7,#4100$     ; enable tbit, block interrupts
+;
+4100$:  movb    #bit05,cp.pir+1         ; request PIRQ 5
+4110$:  spl     4                       ; allow interrupts, not traced !!
+        wait                            ; also not traced !!
+4120$:  trap    100
+4130$:
+;
+4200$:  .word   0,0
+        .word   0,0
+        .word   0,0
+        .word   0,0
+        .word   -1,-1
+;
+4300$:  htinit  4200$,4.                ; expect 4 items
+        htitem  #014,#4110$             ; bpt after movb
+        htitem  #240,#4120$             ; pirq (with return address)
+        htitem  #014,#4120$             ; bpt after wait
+        htitem  #036,#4130$             ; final trap
+;
+; part 5: WAIT and SPL in user mode ----------------------------------
+;   Checks that WAIT and SPL in user mode are traced (are nop)
+;
+5000$:  mov     #5200$,r5
+        mov     #5300$,vhtend
+        rttjmp  #cp.cmu+cp.t,#5100$     ; user mode, enable tbit
+;
+5100$:  wait
+5110$:  spl     7
+5120$:  trap    100
+5130$:
+;
+5200$:  .word   0,0
+        .word   0,0
+        .word   0,0
+        .word   -1,-1
+;
+5300$:  htinit  5200$,3.                ; expect 3 items
+        htitem  #014,#5110$             ; bpt after wait
+        htitem  #014,#5120$             ; bpt after spl
+        htitem  #036,#5130$             ; final trap
+;
+; part 6: tbit trap after continuation over s_idle -------------------
+;   Checks instructions that complete via s_idle are properly traced
+;   Four instructions branch at completion to s_idle
+;     WAIT      s_op_wait (after interrupt)
+;     RESET     s_op_reset
+;     MOV/CLR   s_opg_gen if is_dstw_pc
+;
+6000$:  mov     #137,@#0                ; write jmp @#6130$ to location 0,2
+        mov     #6130$,@#2
+;
+        mov     #6200$,r5
+        mov     #6300$,vhtend
+        rttjmp  #cp.t,#6100$            ; enable tbit
+;
+6100$:  reset
+6110$:  mov     #6120$,pc
+        halt
+6120$:  clr     pc                      ; continue via jmp @#6130$ at 0,2
+        halt
+6130$:  trap    100
+6140$:
+;
+6200$:  .word   0,0
+        .word   0,0
+        .word   0,0
+        .word   0,0
+        .word   0,0
+        .word   -1,-1
+;
+6300$:  htinit  6200$,5.                ; expect 5 items
+        htitem  #014,#6110$             ; bpt after reset
+        htitem  #014,#6120$             ; bpt after mov
+        htitem  #014,#0                 ; bpt after clr
+        htitem  #014,#6130$             ; bpt after jmp
+        htitem  #036,#6140$             ; final trap
+;
+        clr     @#0
+        clr     @#2
+;
+; part 7: no tbit trap after an abort --------------------------------
+;   Checks that an aborted instruction doesnt tbit trap.
+;   Uses a bus timeout as abort reason (access to 160000).
+;
+7000$:  mov     #7300$,v..iit           ; setup local vector 4 handler
+        mov     #7200$,r5
+        rttjmp  #cp.t,#7100$            ; enable tbit
+;
+7100$:  clr     cp.err                  ; clear CPUERR (will trace trap)
+7110$:  clr     @#160000                ; will fail
+        halt
+;
+7200$:  .word   0,0
+        .word   -1,-1
+;
+7300$:  mov     #stack,sp               ; discard frame
+        hcmpeq  #cp.ito,cp.err          ; check CPUERR
+        htinit  7200$,1.                ; expect 1 item
+        htitem  #014,#7110$             ; bpt after 1st clr
+;
+        mov     #v..iit+2,v..iit        ; restore
+
+; restore ------------------------------------------------------------
+;
+        mov     #v..bpt+2,v..bpt        ; restore v..bpt to catcher
+        clr     v..bpt+2
+        mov     #v..emt+2,v..emt        ; restore v..emt to catcher
+        clr     v..emt+2
+        mov     #v..pir+2,v..pir        ; restore v..pir to catcher
+        clr     v..pir+2
+        mov     #v..trp+2,v..trp        ; restore v..trp to catcher
+        clr     v..trp+2
+;
+9999$:  iot                                     ; end of test A4.4
+;
 ; Section B: Stress tests ====================================================
 ;
 ; Test B1:  address mode torture tests +++++++++++++++++++++++++++++++++++++++
@@ -983,7 +1455,7 @@ tc0103: mov     #vhugen,v..iit  ; set iit handler
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#24.      ; all tests done ?
+        hcmpeq  tstno,#28.      ; all tests done ?
 ;
         jmp     loop
 ;
@@ -1001,5 +1473,50 @@ vhugen: add     #4,sp           ; discard vector frame
 100$:   .word   0
 vhustp: .word   vhuhlt
 vhuhlt: halt
+;
+; vhtbpt - handler for BPT tracing +++++++++++++++++++++++++++++++++++++++++++
+;   Writes signature to data area (ptr in r5).
+;   Signature is vector address + return PC  (PC to test proper context).
+;
+vhtbpt: htstge  (r5)            ; r5 at fence ?
+        mov     #014,(r5)+      ; track BPT vector
+        mov     (sp),(r5)+      ; track PC
+        rtt                     ; end with RTT (!)
+;
+; vhtemt - handler for EMT tracing +++++++++++++++++++++++++++++++++++++++++++
+;   Writes signature to data area (ptr in r5).
+;   Signature is vector address + return PC  (PC to test proper context).
+;
+vhtemt: htstge  (r5)            ; r5 at fence ?
+        mov     #032,(r5)+      ; track EMT vector
+        mov     (sp),(r5)+      ; track PC
+        rti
+;
+; vhtpir - handler for PIRQ interrupt tracing ++++++++++++++++++++++++++++++++
+;   Writes signature to data area (ptr in r5).
+;   Signature is vector address + return PC  (PC to test proper context).
+;   Clears all PIRQ requests to prevent interrupt loop.
+;
+vhtpir: htstge  (r5)            ; r5 at fence ?
+        clr     cp.pir          ; clear all PIRQ interrupts
+        mov     #240,(r5)+      ; track PIRQ vector
+        mov     (sp),(r5)+      ; track PC
+        rti
+;
+; vhttrp - handler for TRAP, ends tracing ++++++++++++++++++++++++++++++++++++
+;   Writes signature to data area (ptr in r5).
+;   Returns to address stored in vhtend
+;   vhtend must be set for each execution
+;
+vhttrp: htstge  (r5)            ; r5 at fence ?
+        mov     #036,(r5)+      ; track TRAP vector
+        mov     (sp),(r5)+      ; track PC
+        mov     vhtend,100$     ; remember vhtend
+        mov     #200$,vhtend    ; restore blocker
+        mov     #stack,sp       ; restore stack
+        jmp     @100$           ; return or block
+100$:   .word   200$            ; value of vhtend at entry
+200$:   halt                    ; blocker
+vhtend: .word   0               ; registered return address
 ;
         .end    start

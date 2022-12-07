@@ -1,10 +1,10 @@
-; $Id: cpu_basics.mac 1316 2022-11-18 15:26:40Z mueller $
+; $Id: cpu_basics.mac 1325 2022-12-07 11:52:36Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2022-07-25  1263   1.0    Initial version
+; 2022-12-06  1324   1.0    Initial version
 ; 2015-08-30   710   0.1    First draft
 ;
 ; Test CPU basics: most instructions except traps, EIS and FPP
@@ -3040,6 +3040,28 @@ tf0202: mov     #cp.psw,r0
 ;
 9999$:  iot                     ; end of test F2.2
 ;
+; Test F2.3 -- reset settling time +++++++++++++++++++++++++++++++++++
+;   This test checks whether interrupt requests are canceled when the
+;   reset instruction completes. Done with PIRQ, checks that not
+;   interrupt taken after reset.
+;
+tf0203: cmpb    systyp,#sy.sih          ; skip on SimH (no SPL 11/70 semantics)
+        beq     9999$
+        mov     #100$,v..pir            ; set up PIRQ handler
+        mov     #cp.pr7,v..pir+2
+        spl     7
+        movb    #bit01,cp.pir+1         ; request PIRQ 1
+        spl     0                       ; SPL enforces execution of next inst
+        reset                           ; cancel PIRQ
+        br      200$                    ; no interrupt should happen
+;
+100$:   halt
+;
+200$:   mov     #v..pir+2,v..pir
+        clr     v..pir+2
+
+9999$:  iot                     ; end of test F2.3
+;
 ; Test F3: trap instructions: bpt,iot,emt,trap +++++++++++++++++++++++++++++++
 ;   This sub-section verifies
 ;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
@@ -3138,7 +3160,7 @@ tf0301: mov     #v..iot+2,v..iot ; block iot handler
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#53.      ; all tests done ?
+        hcmpeq  tstno,#54.      ; all tests done ?
 ;
         jmp     loop
 ;

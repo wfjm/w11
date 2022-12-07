@@ -1,15 +1,16 @@
--- $Id: sys_conf.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: sys_conf.vhd 1325 2022-12-07 11:52:36Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2007-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Package Name:   sys_conf
 -- Description:    Definitions for sys_w11a_s3 (for synthesis)
 --
 -- Dependencies:   -
--- Tool versions:  xst 8.1-14.7; ghdl 0.18-0.35
+-- Tool versions:  xst 8.1-14.7; ghdl 0.18-2022.1
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-12-05  1324   1.4.2  disable dmhbpt,dmcmon,m9312 for timing closure
 -- 2019-04-28  1142   1.4.1  add sys_conf_ibd_m9312
 -- 2019-02-09  1110   1.4    use typ for DL,PC,LP; add dz11,ibtst
 -- 2019-01-27  1108   1.3.7  drop iist
@@ -45,8 +46,8 @@ package sys_conf is
   constant sys_conf_ibtst         : boolean := true;
   constant sys_conf_dmscnt        : boolean := true;
   constant sys_conf_dmpcnt        : boolean := true;
-  constant sys_conf_dmhbpt_nunit  : integer := 2; -- use 0 to disable
-  constant sys_conf_dmcmon_awidth : integer := 8; -- use 0 to disable
+  constant sys_conf_dmhbpt_nunit  : integer := 0; -- use 0 to disable
+  constant sys_conf_dmcmon_awidth : integer := 0; -- use 0 to disable
 
   -- configure w11 cpu core --------------------------------------------------
   constant sys_conf_mem_losize     : natural := 8#037777#; --   1 MByte
@@ -62,7 +63,7 @@ package sys_conf is
   constant sys_conf_ibd_dz11   : integer :=  5;    -- DZ11
   constant sys_conf_ibd_pc11   : integer :=  4;    -- PC11
   constant sys_conf_ibd_lp11   : integer :=  5;    -- LP11
-  constant sys_conf_ibd_deuna  : boolean := true;  -- DEUNA
+  constant sys_conf_ibd_deuna  : boolean := false; -- DEUNA
 
   -- configure mass storage devices
   constant sys_conf_ibd_rk11   : boolean := true;  -- RK11
@@ -72,7 +73,7 @@ package sys_conf is
 
   -- configure other devices
   constant sys_conf_ibd_iist   : boolean := false; -- IIST
-  constant sys_conf_ibd_kw11p  : boolean := true;  -- KW11P
-  constant sys_conf_ibd_m9312  : boolean := true;  -- M9312
+  constant sys_conf_ibd_kw11p  : boolean := false; -- KW11P
+  constant sys_conf_ibd_m9312  : boolean := false; -- M9312
 
 end package sys_conf;

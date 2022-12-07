@@ -1,4 +1,4 @@
--- $Id: pdp11_sequencer.vhd 1323 2022-12-01 08:00:41Z mueller $
+-- $Id: pdp11_sequencer.vhd 1325 2022-12-07 11:52:36Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,6 +13,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-12-05  1324   1.6.23 tbit logic overhaul; use treq_tbit; cleanups
+--                           use resetcnt for 8 cycle RESET wait
 -- 2022-11-29  1323   1.6.22 rename adderr -> oddadr, don't set after err_mmu
 -- 2022-11-28  1322   1.6.21 BUGFIX: correct mmu trap vs interrupt priority
 -- 2022-11-24  1321   1.6.20 BUGFIX: correct mmu trap handing in s_idecode
@@ -407,13 +409,12 @@ begin
                            pbytop   : in slbit := '0';
                            pmacc    : in slbit := '0';
                            pispace  : in slbit := '0';
-                           kstack   : in slbit := '0') is
+                           pkstack  : in slbit := '0') is
     begin
       pnvmcntl.dspace := not pispace;
---      bytop := R_IDSTAT.is_bytop and not is_addr;
       pnvmcntl.bytop  := pbytop;
       pnvmcntl.macc   := pmacc;
-      pnvmcntl.kstack := kstack;
+      pnvmcntl.kstack := pkstack;
       pnvmcntl.req    := '1';
       pnstate := pwstate;
     end procedure do_memread_d;
@@ -539,13 +540,14 @@ begin
                            pnstatus  : inout cpustat_type;
                            pnmmumoni : inout mmu_moni_type) is
     begin
-      pnmmumoni.idone := '1';
-      if R_STATUS.treq_mmu='1' or pnstatus.treq_mmu='1' or
-            R_STATUS.treq_ysv='1' or pnstatus.treq_ysv='1' or
-            PSW.tflag='1' then
+      pnmmumoni.idone := '1';                           -- priority order
+      if pnstatus.treq_mmu='1' or                       -- mmu trap
+           pnstatus.treq_ysv='1' then                   -- ysv trap
         pnstate := s_trap_disp;
-      elsif unsigned(INT_PRI) > unsigned(PSW.pri) then
+      elsif unsigned(INT_PRI) > unsigned(PSW.pri) then  -- interrupts
         pnstate := s_idle;
+      elsif pnstatus.treq_tbit='1' then                 -- tbit trap
+        pnstate := s_trap_disp;
       elsif R_STATUS.cpugo='1' and        -- running
             R_STATUS.cpususp='0' and      --   and not suspended
             not R_STATUS.cmdbusy='1' then --   and no cmd pending
@@ -563,13 +565,14 @@ begin
     begin
       pndpcntl := pndpcntl;             -- dummy to add driver (vivado)
       pnvmcntl := pnvmcntl;             -- "
-      pnmmumoni.idone := '1';
-      if R_STATUS.treq_mmu='1' or pnstatus.treq_mmu='1' or
-            R_STATUS.treq_ysv='1' or pnstatus.treq_ysv='1' or
-            PSW.tflag='1' then
+      pnmmumoni.idone := '1';                           -- priority order
+      if pnstatus.treq_mmu='1' or                       -- mmu trap
+            pnstatus.treq_ysv='1' then                  -- ysv trap
         pnstate := s_trap_disp;
-      elsif unsigned(INT_PRI) > unsigned(PSW.pri) then
+      elsif unsigned(INT_PRI) > unsigned(PSW.pri) then  -- interrupts
         pnstate := s_idle;
+      elsif pnstatus.treq_tbit='1' then                 -- tbit trap
+        pnstate := s_trap_disp;
       elsif R_STATUS.cpugo='1' and       -- running
             R_STATUS.cpususp='0' and      --   and not suspended
             not R_STATUS.cmdbusy='1' then --   and no cmd pending
@@ -780,9 +783,12 @@ begin
               if R_STATUS.cpugo = '1' then -- if already running
                 nstatus.cmderr := '1';       -- reject
               else                         -- if not running
-                nstatus.creset  := '1';      --  do cpu reset
-                nstatus.breset  := '1';      -- and bus reset !
-                nstatus.suspint := '0';      -- clear suspend
+                nstatus.creset    := '1';     --  do cpu reset
+                nstatus.breset    := '1';     -- and bus reset !
+                nstatus.suspint   := '0';     -- clear suspend
+                nstatus.treq_mmu  := '0';     -- cancel trap requests
+                nstatus.treq_ysv  := '0';
+                nstatus.treq_tbit := '0';
                 nstatus.cpurust := c_cpurust_init;
               end if;
               nstate := s_idle;                  
@@ -860,15 +866,20 @@ begin
           nstate := s_op_wait;            --waitsusp is cleared in s_op_wait
 
         elsif R_STATUS.cpugo = '1' and    -- running
-              R_STATUS.cpususp='0' then   --   and not suspended
-          if int_pending = '1' then         -- interrupt pending
-            nstatus.intack  := '1';           -- acknowledle it
-            nstatus.intvect := INT_VECT;      -- latch vector address
-            nstate := s_int_ext;              -- and handle
+               R_STATUS.cpususp='0' then   --   and not suspended
+                                           -- proceed in priority order
+          if R_STATUS.treq_mmu='1' and         -- mmu trap
+              R_STATUS.treq_ysv='1' then       -- ysv trap
+            nstate := s_trap_disp;
+          elsif R_STATUS.intpend = '1' then    -- interrupts
+            nstatus.intack  := '1';              -- acknowledle it
+            nstatus.intvect := INT_VECT;         -- latch vector address
+            nstate := s_int_ext;                 -- and handle
+          elsif R_STATUS.treq_tbit = '1' then  -- tbit trap
+            nstate := s_trap_disp;
           else
-            nstate := s_ifetch;               -- otherwise fetch intruction
+            nstate := s_ifetch;                -- otherwise fetch intruction
           end if;
-          
         end if;
 
       when s_cp_regread =>              -- -----------------------------------
@@ -893,8 +904,6 @@ begin
         ndpcntl.dres_sel := c_dpath_res_vmdout;  -- DRES = VMDOUT
         if (VM_STAT.ack or VM_STAT.err or VM_STAT.fail)='1' then
           nstatus.cmdack   := '1';
-          nstatus.treq_ysv := '0';               -- suppress traps on console
-          nstatus.treq_mmu := '0';
           nstatus.cmdmerr  := VM_STAT.err or VM_STAT.fail;
           nstate := s_idle;
         end if;
@@ -904,8 +913,6 @@ begin
         nstate := s_cp_memw_w;
         if (VM_STAT.ack or VM_STAT.err or VM_STAT.fail)='1' then
           nstatus.cmdack   := '1';
-          nstatus.treq_ysv := '0';               -- suppress traps on console
-          nstatus.treq_mmu := '0';
           nstatus.cmdmerr  := VM_STAT.err or VM_STAT.fail;
           nstate := s_idle;
         end if;
@@ -939,24 +946,29 @@ begin
         nvmcntl.dspace := '0';
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_pc;       -- VA = PC
 
-        -- The prefetch decision path can be critical (and was on s3).
-        -- It uses R_STATUS.intpend instead of int_pending, using the status
-        -- latched at the previous state is OK. It uses R_STATUS.treq_mmu
-        -- because no MMU trap can occur during this state (only in *_w states).
-        -- It does not check treq_ysv because pipelined instructions can't
-        -- trigger ysv traps, in contrast to MMU traps.
-        if ID_STAT.do_pref_dec='1' and          -- prefetch possible
-          PSW.tflag='0' and                     -- no tbit traps
-          R_STATUS.intpend='0' and              -- no interrupts
-          R_STATUS.treq_mmu='0' and             -- no MMU trap request
-          R_STATUS.cpugo='1' and                -- CPU on go
-          R_STATUS.cpususp='0' and              -- CPU not suspended
-          not R_STATUS.cmdbusy='1'              -- and no command pending
-        then                                    -- then go for prefetch
-          nvmcntl.req := '1';
-          ndpcntl.gr_pcinc := '1';                     -- (pc)++
-          nmmumoni.istart := '1';
-          nstatus.prefdone := '1';
+        nstatus.resetcnt := "111";      -- set RESET wait timer
+
+        if PSW.tflag='1' then           -- if PSW tbit set
+          nstatus.treq_tbit := '1';     --   request tbit
+        else
+          -- The prefetch decision path can be critical (and was on s3). It uses
+          -- R_STATUS.intpend instead of int_pending, using the status latched
+          -- at the previous state is OK. It uses R_STATUS.treq_mmu because
+          -- no MMU trap can occur during this state (only in *_w states).
+          -- It does not check treq_ysv because pipelined instructions can't
+          -- trigger ysv traps, in contrast to MMU traps.
+          if ID_STAT.do_pref_dec='1' and          -- prefetch possible
+            R_STATUS.intpend='0' and              -- no interrupts
+            R_STATUS.treq_mmu='0' and             -- no MMU trap request
+            R_STATUS.cpugo='1' and                -- CPU on go
+            R_STATUS.cpususp='0' and              -- CPU not suspended
+            not R_STATUS.cmdbusy='1'              -- and no command pending
+          then                                    -- then go for prefetch
+            nvmcntl.req := '1';
+            ndpcntl.gr_pcinc := '1';                     -- (pc)++
+            nmmumoni.istart := '1';
+            nstatus.prefdone := '1';
+          end if;
         end if;
         
         if ID_STAT.do_fork_op = '1' then
@@ -1213,7 +1225,7 @@ begin
         do_memread_d(nstate, nvmcntl, s_dstr_def_w,
                      pbytop=>R_IDSTAT.is_bytop, pmacc=>R_IDSTAT.is_rmwop,
                      pispace=>R_IDSTAT.is_dstpcmode1,
-                     kstack=>is_kstackdst1246 and R_IDSTAT.is_rmwop);
+                     pkstack=>is_kstackdst1246 and R_IDSTAT.is_rmwop);
 
       when s_dstr_def_w =>              -- -----------------------------------
         nstate := s_dstr_def_w;
@@ -1239,7 +1251,7 @@ begin
         bytop := R_IDSTAT.is_bytop and not DSTDEF;
         do_memread_d(nstate, nvmcntl, s_dstr_inc_w,
                      pbytop=>bytop, pmacc=>macc, pispace=>R_IDSTAT.is_dstpc,
-                     kstack=>is_kstackdst1246 and R_IDSTAT.is_rmwop);
+                     pkstack=>is_kstackdst1246 and R_IDSTAT.is_rmwop);
         
       when s_dstr_inc_w =>              -- -----------------------------------
         nstate := s_dstr_inc_w;
@@ -1275,7 +1287,7 @@ begin
         bytop := R_IDSTAT.is_bytop and not DSTDEF;
         do_memread_d(nstate, nvmcntl, s_dstr_inc_w,
                      pbytop=>bytop, pmacc=>macc,
-                     kstack=>is_kstackdst1246 and R_IDSTAT.is_rmwop);
+                     pkstack=>is_kstackdst1246 and R_IDSTAT.is_rmwop);
 
       when s_dstr_ind =>                -- -----------------------------------
         do_memread_i(nstate, ndpcntl, nvmcntl, s_dstr_ind1_w);
@@ -1302,7 +1314,7 @@ begin
         bytop := R_IDSTAT.is_bytop and not DSTDEF;
         do_memread_d(nstate, nvmcntl, s_dstr_ind2_w,
                      pbytop=>bytop, pmacc=>macc,
-                     kstack=>is_kstackdst1246 and R_IDSTAT.is_rmwop);
+                     pkstack=>is_kstackdst1246 and R_IDSTAT.is_rmwop);
 
       when s_dstr_ind2_w =>             -- -----------------------------------
         nstate := s_dstr_ind2_w;
@@ -1628,16 +1640,24 @@ begin
           nstatus.itimer  := '1';       -- itimer will stay 1 during a WAIT
        end if;
 
-      when s_op_trap =>                 -- traps -----------------------------
+      when s_op_trap =>                 -- trap instructions (IOT,BPT,..) ----
         idm_idone := '1';                      -- instruction done
         lvector := "0000" & R_IDSTAT.trap_vec; -- vector
         do_start_vec(nstate, ndpcntl, lvector);
         
       when s_op_reset =>                -- RESET -----------------------------
+        nstate := s_op_reset;           -- default is spin till timer expire
+        nstatus.resetcnt := slv(unsigned(R_STATUS.resetcnt) - 1);  -- dec timer
         if is_kmode = '1' then          -- if in kernel mode execute
-          nstatus.breset := '1';          -- issue bus reset
+          if R_STATUS.resetcnt = "111" then   -- in first cycle
+            nstatus.breset := '1';            -- issue bus reset
+          end if;
+          if R_STATUS.resetcnt = "000" then   -- in last cycle
+            nstate := s_idle;                 -- done, continue via s_idle
+          end if;
+        else                             -- if not in kernel mode
+          nstate := s_idle;                -- nop, continue via s_idle
         end if;
-        nstate := s_idle;
         
       when s_op_rts =>                  -- RTS -------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_ddst;   -- OUNIT A=DDST
@@ -2183,8 +2203,9 @@ begin
         else
           lvector := "0000011";         -- trace trap: vector (14)
         end if;
-        nstatus.treq_mmu := '0';        -- clear trap request flags
-        nstatus.treq_ysv := '0';        -- 
+        nstatus.treq_mmu  := '0';       -- clear trap request flags
+        nstatus.treq_ysv  := '0';       --
+        nstatus.treq_tbit := '0';       --
         do_start_vec(nstate, ndpcntl, lvector);
 
       when s_int_ext =>                 -- -----------------------------------
@@ -2195,6 +2216,7 @@ begin
 
       when s_vec_getpc =>               -- -----------------------------------
         idm_vfetch := '1';              -- signal vfetch
+        nstatus.treq_tbit := '0';       -- cancel pending tbit request
         nvmcntl.mode := c_psw_kmode;    -- fetch PC from kernel D space
         do_memread_srcinc(nstate, ndpcntl, nvmcntl, s_vec_getpc_w, nmmumoni);
 
@@ -2339,6 +2361,10 @@ begin
         end if;
 
       when s_rti_newpc =>               -- -----------------------------------
+        if R_IDSTAT.op_rti = '1' and            -- if RTI instruction
+           PSW.tflag = '1' then                 --   and PSW tflag set now
+          nstatus.treq_tbit := '1';             --   request immediate tbit
+        end if;
         ndpcntl.ounit_asel := c_ounit_asel_ddst;  -- OUNIT A=DDST
         ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B=const (0)
         ndpcntl.dres_sel := c_dpath_res_ounit;    -- DRES = OUNIT
@@ -2346,11 +2372,7 @@ begin
         ndpcntl.gr_we := '1';                     -- load new PC
         idm_pcload := '1';                        -- signal flow change
         idm_idone := '1';                         -- instruction done
-        if R_IDSTAT.op_rtt = '1' then             -- if RTT instruction
-          nstate := s_ifetch;                       -- force fetch
-        else                                      -- otherwise RTI
-          do_fork_next(nstate, nstatus, nmmumoni);
-        end if;
+        do_fork_next(nstate, nstatus, nmmumoni);
 
   -- exception abort states ---------------------------------------------------
 
@@ -2365,8 +2387,9 @@ begin
         ndpcntl.gr_mode := c_psw_kmode;           -- set kmode SP to 4
         ndpcntl.gr_adst := c_gr_sp;
         
-        nstatus.treq_mmu := '0';                  -- cancel mmu trap request
-        nstatus.treq_ysv := '0';                  -- cancel ysv trap request
+        nstatus.treq_mmu  := '0';                 -- cancel mmu  trap request
+        nstatus.treq_ysv  := '0';                 -- cancel ysv  trap request
+        nstatus.treq_tbit := '0';                 -- cancel tbit trap request
 
         if R_VMSTAT.fail = '1' then               -- vmbox failure
           nstatus.cpugo   := '0';                   -- halt cpu

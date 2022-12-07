@@ -1,4 +1,4 @@
--- $Id: pdp11.vhd 1323 2022-12-01 08:00:41Z mueller $
+-- $Id: pdp11.vhd 1325 2022-12-07 11:52:36Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -11,6 +11,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-12-05  1324   1.5.19 add cpustat_type treq_tbit and resetcnt;
+--                           use op_rti rather op_rtt;
 -- 2022-11-29  1323   1.5.18 rename cpuerr_type adderr->oddadr, mmu_mmr0_type
 --                           dspace->page_dspace; drop mmu_cntl_type.trap_done
 -- 2022-11-24  1321   1.5.17 add cpustat_type intpend
@@ -266,7 +268,7 @@ package pdp11 is
     is_rmwop : slbit;                   -- read-modify-write operation
     is_bytop : slbit;                   -- byte operation
     is_res : slbit;                     -- reserved operation code
-    op_rtt : slbit;                     -- RTT instruction
+    op_rti : slbit;                     -- RTI instruction
     op_mov : slbit;                     -- MOV instruction
     trap_vec : slv3;                    -- trap vector addr bits 4:2
     force_srcsp : slbit;                -- force src register to be sp
@@ -382,8 +384,10 @@ package pdp11 is
     intack : slbit;                     -- INT_ACK pulse
     intpend : slbit;                    -- interrupt pending
     intvect  : slv9_2;                  -- current interrupt vector
+    resetcnt : slv3;                    -- RESET wait timer counter
     treq_mmu : slbit;                   -- mmu trap requested
     treq_ysv : slbit;                   -- ysv trap requested
+    treq_tbit : slbit;                  -- tbit trap requested
     prefdone : slbit;                   -- prefetch done
     do_grwe : slbit;                    -- pending gr_we
     in_vecser : slbit;                  -- in fatal stack error vector flow
@@ -398,8 +402,8 @@ package pdp11 is
     "00000","000",                      -- cpfunc, cprnum
     '0',                                -- waitsusp
     '0','0','0','0','0',                -- itimer,creset,breset,intack,intpend
-    (others=>'0'),                      -- intvect 
-    '0','0','0',                        -- treq_(mmu|ysv), prefdone
+    (others=>'0'),"111",                -- intvect,resetcnt
+    '0','0','0','0',                    -- treq_(mmu|ysv|tbit), prefdone
     '0','0','0'                         -- do_grwe, in_vec(ser|ysv)
   );
 

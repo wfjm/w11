@@ -1,6 +1,6 @@
--- $Id: sys_w11a_n2.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: sys_w11a_n2.vhd 1325 2022-12-07 11:52:36Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2010-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2010-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    sys_w11a_n2 - syn
@@ -21,10 +21,11 @@
 -- Test bench:     tb/tb_sys_w11a_n2
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.2-14.7; ghdl 0.26-0.35
+-- Tool versions:  xst 8.2-14.7; ghdl 0.26-2.0.0
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2022-12-06  1324 14.7  131013 xc3s1200e-4 3225 9040  638 5848 ok:         67%
 -- 2019-05-19  1150 14.7  131013 xc3s1200e-4 3219 8981  638 5796 ok: +dz11   66%
 -- 2019-04-27  1140 14.7  131013 xc3s1200e-4 3087 ????  588 5515 ok: +*buf   63%
 -- 2019-03-02  1116 14.7  131013 xc3s1200e-4 3024 8246  526 5322 ok: +ibtst  61%

@@ -1,6 +1,6 @@
--- $Id: sys_w11a_s3.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: sys_w11a_s3.vhd 1325 2022-12-07 11:52:36Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2007-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    sys_w11a_s3 - syn
@@ -20,10 +20,11 @@
 -- Test bench:     tb/tb_sys_w11a_s3
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.2-14.7; ghdl 0.18-0.35
+-- Tool versions:  xst 8.2-14.7; ghdl 0.18-2.0.0
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
+-- 2022-12-06  1324 14.7  131013 xc3s1000-4  2620 7940  542 4929 OK: -dm,deu 64%
 -- 2019-05-19  1150 14.7  131013 xc3s1000-4  3019 8764  574 5558 OK: +dz11   72%
 -- 2019-04-27  1140 14.7  131013 xc3s1000-4  2890 8306  524 5252 OK: +*buf   68%
 -- 2019-03-02  1116 14.7  131013 xc3s1000-4  2830 8045  462 5086 OK: +ibtst  66%
@@ -73,6 +74,8 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-12-06  1324   2.2.2  remove dmhbpt,dmcmon,deuna,kw11p,m9312 to mitigate
+--                           recurring timing closure problems
 -- 2019-02-16  1112   2.2.1  set BTOWIDTH 7 (was 6, must > vmbox atowidth (6))
 -- 2018-10-13  1055   2.2    use DM_STAT_EXP; IDEC to maxisys; setup PERFEXT
 -- 2016-03-19   748   2.1.1  define rlink SYSID

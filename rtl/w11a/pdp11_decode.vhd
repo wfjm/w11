@@ -1,4 +1,4 @@
--- $Id: pdp11_decode.vhd 1310 2022-10-27 16:15:50Z mueller $
+-- $Id: pdp11_decode.vhd 1325 2022-12-07 11:52:36Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -12,6 +12,7 @@
 -- Tool versions:  ise 8.2-14.7; viv 2014.4-2022.1; ghdl 0.18-2.0.0
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-12-02  1324   1.0.9  use op_rti rather op_rtt
 -- 2022-10-25  1309   1.0.8  rename _gpr -> _gr
 -- 2022-10-03  1301   1.0.7  add STAT.is_dstpcmode1
 -- 2011-11-18   427   1.0.6  now numeric_std clean
@@ -93,7 +94,7 @@ begin
     nstat.is_rmwop := '0';
     nstat.is_bytop := '0';
     nstat.is_res := '1';
-    nstat.op_rtt := '0';
+    nstat.op_rti := '0';
     nstat.op_mov := '0';
     nstat.trap_vec := "000";
     nstat.force_srcsp := '0';
@@ -165,6 +166,7 @@ begin
               nstat.do_fork_op := '1';
               
             when "010" =>               -- RTI
+              nstat.op_rti := '1';
               nstat.force_srcsp := '1';
               nstat.fork_op := c_fork_op_rtti;
               nstat.do_fork_op := '1';
@@ -184,7 +186,6 @@ begin
               nstat.do_fork_op := '1';
 
             when "110" =>               -- RTT
-              nstat.op_rtt := '1';
               nstat.force_srcsp := '1';
               nstat.fork_op := c_fork_op_rtti;
               nstat.do_fork_op := '1';

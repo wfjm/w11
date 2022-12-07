@@ -1,4 +1,4 @@
-# ECO-033: D space used instead of I space for some PC specifiers  (2022-09-08)
+# ECO-034: D space used instead of I space for some PC specifiers  (2022-09-08)
 
 ### Scope
 - was in w11a since 2009

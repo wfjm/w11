@@ -25,6 +25,11 @@ the _PDP-11 Family Differences Table_ in
 - [PDP-11 MICRO/PDP-11 Handbook 1983-84](http://www.bitsavers.org/pdf/dec/pdp11/handbooks/EB-24944-18_Micro_PDP-11_Handbook_1983-84.pdf) Appendix G p387
 - and also [PDP-11 family differences appendix](https://gunkies.org/wiki/PDP-11_family_differences_appendix)
 
+Also helpful are the differences sections in the manuals of for processors
+- [T-11 User's Guide 1982](http://www.bitsavers.org/pdf/dec/pdp11/t11/T11_UsersMan.pdf) Appendix B p221
+- [J-11 Programmer's Reference Rev 2.04 1982](http://www.bitsavers.org/pdf/dec/pdp11/j11/J-11_Programmers_Reference_Jan82.pdf) Section 11.0 p37 (focus on registers and instructions)
+- [KD11-E (11/34) Central Processor Manual](http://www.bitsavers.org/pdf/dec/pdp11/1134/EK-KD11E-TM-001_KD11-E_Central_Processor_Maintenance_Manual_Dec76.pdf) Table 2-8 p41
+
 ### Differences in unspecified behavior between w11a and KB11-C (11/70)
 - [State of N and Z and registers after a `DIV` abort with `V=1`](w11a_diff_70_div_after_v1.md)
 
@@ -47,10 +52,11 @@ this is considered as an acceptable implementation difference.
   **--> a 'watch dog' mechanism will be added in a future version which
   suspends the CPU when the server doesn't respond fast enough.**
 
-### Known differences between w11a and a SimH 11/70
-The SimH emulator models only behavior what is relevant for the normal
-operation of operating systems and user code. Many details which do not
-have impact on normal operation are not modeled for performance reasons.
-Test codes are sometimes sensitive to those details, that's why the most
-relevant are listed here.
-- [SimH: implicit stack pops not recorded in MMR1](w11a_diff_simh_mmr1_rts_mtp.md)
+### Known differences between Simh, e11, a real 11/70, and w11a
+The Simh and e11 simulators do not model some 11/70 details that have no
+effect on normal operation for performance reasons. Test codes, like xxdp
+diagostic programs from DEC or the tcodes of the w11 verification suite are
+sometimes sensitive to those details, so the most relevant ones are
+listed under
+- [Known differences between SimH, 11/70, and w11a](simh_diff_summary.md)
+- [Known differences between e11, 11/70, and w11a](e11_diff_summary.md)

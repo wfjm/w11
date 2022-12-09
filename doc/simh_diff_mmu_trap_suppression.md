@@ -1,0 +1,13 @@
+## Known differences between SimH, 11/70, and w11a
+
+### SimH: MMU traps not suppressed when MMU register accessed
+
+The 11/70 does not execute an MMU trap and doesn't set A or W bits in `PDR`
+when an MMU register is accessed, thus `MMR0` to `MMR3` and any of the
+`PDR` and `PAR` registers.
+
+SimH doesn't support this behavior.
+xxdp `ekbee1` tests 61 and 63 verify this behavior and are skipped.
+
+w11 also doesn't support this behavior, this is documented as
+[w11 known difference](w11a_diff_70_mmu_trap_suppression.md).

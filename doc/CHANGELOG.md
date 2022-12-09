@@ -30,24 +30,42 @@ The full set of tests is only run for tagged releases.
 ### New features
 ### Changes
 - tools changes
+  - tools/asm-11/lib/push_pop.mac: add push2
   - tools/bin
     - tmuconv: add -t_ru06 and -t_flow
   - tools/tcode
+    - cpu_basics.mac: expanded
     - cpu_details.mac: significantly expanded
     - cpu_mmu.mac: significantly expanded
+  - tools/tbench
+    - /w11a/test_w11a_inst_quick.tcl: use creset option to clr pending traps
+  - tools/tcl
+    - rw11/asm.tcl: asmrun: add creset option (active with ps option)
 - firmware changes
-  - pdp11.vhd: rename, eg srv->ser; drop trap_done; add in_vecysv
+  - pdp11.vhd: rename, eg srv->ser; cpustat_type: drop trap_done, add in_vecysv,
+      treq_tbit,resetcnt; decode_stat_type: op_rti instead of op_rtt
+  - pdp11_decode.vhd: use op_rti instead of op_rtt
   - pdp11_vmbox.vhd: rename some rsv->ser; remove obsolete trap_done
+  - pdp11_sequencer.vhd: tbit logic overhaul; use treq_tbit; cleanups;
+      use resetcnt for 8 cycle RESET wait see
+      [ECO-035](ECO-035-stklim-tbit-fixes.md)
+  - rtl/sys_gen/w11a/s3board/sys_conf.vhd: disable monitors for timing closure
+  - rtl/sys_gen/w11a/\*/\*.vmfset: drop removed signals
 - general changes
   - rename _gpr to _gr, use 'general registers' not 'general purpose registers'
 ### Bug Fixes
   - rtl/w11a
     - pdp11_sequencer:
-      - BUGFIX: use is_kstackdst1246 also in dstr flow
-      - BUGFIX: correct ysv flow implementation
-      - BUGFIX: correct mmu trap handing in s_idecode
-      - BUGFIX: correct mmu trap vs interrupt priority
-    - pdp11_vmbox: BUGFIX: correct red/yellow zone boundary
+      - BUGFIX: use is_kstackdst1246 also in dstr flow, see
+      [ECO-035](ECO-035-stklim-tbit-fixes.md)
+      - BUGFIX: correct ysv flow implementation, see
+      [ECO-035](ECO-035-stklim-tbit-fixes.md)
+      - BUGFIX: correct mmu trap handing in s_idecode, see
+      [ECO-035](ECO-035-stklim-tbit-fixes.md)
+      - BUGFIX: correct mmu trap vs interrupt priority, see
+      [ECO-035](ECO-035-stklim-tbit-fixes.md)
+    - pdp11_vmbox: BUGFIX: correct red/yellow zone boundary, see
+      [ECO-035](ECO-035-stklim-tbit-fixes.md)
 
 <!-- --------------------------------------------------------------------- -->
 ---

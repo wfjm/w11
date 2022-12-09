@@ -6,7 +6,7 @@ The 11/70 does not execute an MMU trap and doesn't set A or W bits in `PDR`
 when an MMU register is accessed, thus `MMR0` to `MMR3` and any of the
 `PDR` and `PAR` registers.
 
-This causes test 061 of `ekbee1` to fail.
+This causes `ekbee1` tests 61 and 63 to fail.
 
 The w11 doesn't implement this trap suppression (neither does SimH or e11).
 

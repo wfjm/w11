@@ -29,6 +29,6 @@ EK-KB11C-TM-001_1170procMan.pdf clearly decribes the 11/70 behavior as
 >  JSR.20: decrements SP by 2, new value is stored inb the SP and the DR for  
 >  use in the external data transfer started on JSR.30
 
-`jsr sp` is never used due to its bizarre semantics. The matching `rts sp`
+`jsr sp` is never used due to its bizarre behavior. The matching `rts sp`
 results in a useless `sp` too. Given that, this is considered an
 acceptable deviation from 11/70 behavior.

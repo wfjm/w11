@@ -13,11 +13,11 @@ and T-bit trace trap logic. They caused diagnostic messages in `ekbee1` and
 The 11/70, and also the 11/45, differ from most other PDP-11 models in the
 implementation of the stack protection and trace traps.
 The 11/70 does stack protection checks for write accesses in mode 1,2,4, and 6,
-while for example the J11 only checks for mode 2 and 3.
+while for example the J11 only checks for mode 4 and 5.
 The service order for trap and interrupt processing also differs, on the 11/70
 interrupts have priority over tbit traps, while on the J11 and most other
 models interrupts have lowest priority.
-The SimH simulator uses J11 semantics in both cases, even in 11/70 mode.
+The SimH simulator uses J11 behavior in both cases, even in 11/70 mode.
 In some cases, the w11 implementation followed the SimH implementation, and
 as a result, some J11 behaviors crept into the w11.
 
@@ -42,15 +42,15 @@ as a result, some J11 behaviors crept into the w11.
   - fix: the hack is removed and replaced by proper protection logic.
 - correct mmu trap handing in `s_idecode`
   - issues: in case of register-register operate instructions, like `INC R0`
-      or `ADD R1,R1`, that execute in two cycles, the w11 starts in `s_idecode`
+      or `ADD R1,R2`, that execute in two cycles, the w11 starts in `s_idecode`
       the fetch of the next instruction. That logic checked for interrupts but
       not for MMU traps. MMU traps were therefore only taken at the first
       instruction that was fetch pipelined.
   - fix: correct prefetch logic, suppress prefetch also in case of pending
       traps.
-- correct mmu trap vs interrupt priority
+- correct traps vs interrupt priority
   - issues: the w11 had an incorrect service order, and interrupts had higher
-      precedence than traps.
+      precedence than mmu, ysv and tbit traps.
   - fix: implemented correct 11/70 style precedence, with tbit trap lowest,
       interrupts above tbit traps, and all other traps above interrupts.
 - trace trap logic overhaul

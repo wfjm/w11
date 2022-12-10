@@ -19,6 +19,19 @@
         .include        |lib/defs_kwl.mac|
 ;
 ; Section A: ccops + flow control bxx, sob, jmp, jsr, rts, mark ==============
+;   A1    ccop + bbx
+;   A1.1    ccop + psw
+;   A1.2    ccop + bxx
+;   A2    sob
+;   A3    jmp
+;   A3.1    jmp + dsta
+;   A3.2    jmp + cc
+;   A4    jsr + rts
+;   A4.1    jsr + dsta
+;   A4.2    jsr + cc
+;   A4.3    jsr r0-r5
+;   A4.4    jsr sp and rts sp
+;   A5    mark
 ;
 ; Test A1:  ccop + bxx +++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;   This sub-section verifies
@@ -1028,6 +1041,20 @@ ta0501: mov     #123456,r5      ; token
 9999$:  iot                     ; end of test A5.1
 ;
 ; Section B: unary instructions (word) =======================================
+;   B1    inc
+;   B2    dec
+;   B3    com
+;   B4    neg
+;   B5    adc
+;   B6    sbc
+;   B7    tst
+;   B8    ror
+;   B9    rol
+;   B10   asr
+;   B11   asl
+;   B12   clr
+;   B13   sxt
+;   B14   swab
 ;
         jmp     tb0101
 ;
@@ -1634,6 +1661,13 @@ tb1401: clr     cp.psw
 9999$:  iot                     ; end of test B14.1
 ;
 ; Section C: binary instructions (word) ======================================
+;   C1    add
+;   C2    sub
+;   C3    bic
+;   C4    bis
+;   C5    cmp
+;   C6    bit
+;   C7    mov
 ;
         jmp     tc0101
 ;
@@ -2114,6 +2148,18 @@ tc0701: clr     cp.psw
 9999$:  iot                     ; end of test C7.1
 ;
 ; Section D: unary instructions (byte) =======================================
+;   D1    incb
+;   D2    decb
+;   D3    comb
+;   D4    negb
+;   D5    adcb
+;   D6    sbcb
+;   D7    tstb
+;   D8    rorb
+;   D9    rolb
+;   D10   asrb
+;   D11   aslb
+;   D12   clrb
 ;
         jmp     td0101
 ;
@@ -2651,6 +2697,11 @@ td1201: clr     cp.psw
 ;
 ;
 ; Section E: binary instructions (byte) ======================================
+;   E1    bicb
+;   E2    bisb
+;   E3    cmpb
+;   E4    bitb
+;   E5    movb
 ;
         jmp     te0101
 ;
@@ -2914,6 +2965,14 @@ te0501: clr     cp.psw
 9999$:  iot                     ; end of test E5.1
 ;
 ; Section F: miscellaneous (spl, reset) ======================================
+;   F1    spl
+;   F1.1    spl in kernel mode
+;   F1.2    spl in supervisor and user mode
+;   F2    reset
+;   F2.1    reset in kernel mode
+;   F2.2    reset in supervisor and user mode
+;   F2.3    reset settling time
+;   F3      trap instructions: bpt,iot,emt,trap
 ;
 ; Test F1:  spl ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;   This sub-section verifies

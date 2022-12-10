@@ -1,0 +1,72 @@
+; $Id: ekbbf0_patch_1170.scmd 1319 2022-11-21 14:20:45Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; Patch set ekbbf0 for SimH -- SimH -- SimH -- Simh -- Simh -- Simh
+;
+; AP: patch test 014: DIV ----------------------------------------------------
+;   fails in section 7: 100000 000000 / 2
+;   expects NZVC = 1110  Z=1
+;   SimH sets Z=0 for overflows -> patch comparison
+;
+dep 012074 000012
+;
+;   fails in section  8: 177776 177777 / -1
+;   test specific result register values
+;   SimH does not reproduce 11/70 registers after overflow
+;   skip over this section
+;
+dep 012112 000137
+dep 012114 012204
+;
+;   fails in section 12: 000100 000200 / -177
+;   expects NZVC = 0010  N=0
+;   SimH sets N based on real result sign -> patch comparison
+;
+dep 012532 000012
+;
+; AP: skip test 032: UNIBUS timeout ------------------------------------------
+;   test after 15644 trap priority and uses at 015730 that instruction after
+;   SPL always executed. This SPL semantics not implemented in SimH
+;   Test therefore skipped.
+;
+dep 015510 000137
+dep 015512 016620
+;
+; AP: skip test 036: yellow zone trap ----------------------------------------
+;   It checks yellow zone traps. It uses 'mov r0,(sp)' and 'clr (sp)' to
+;   trigger traps. SimH implements only the J11 behavior, essentially -(sp).
+;   Test therefore skipped.
+;
+dep 017376 000137
+dep 017400 017766
+;
+; AP: skip test 040: red zone trap -------------------------------------------
+;   It check red zone aborts. It uses 'mov r0,(sp)' and 'clr (sp)' to
+;   trigger aborts. SimH implements only the J11 behavior, essentially -(sp).
+;   Same theme as for test 036, therefore test skipped.
+;   Note: the statements of test 040 disable tbit in case it's on, like in odd
+;         passes starting with pass 3 . The next test 041 fails if tbit is on.
+;         Therefore the skip to test 041 is done after the tbit disable code.
+;
+dep 020450 000137
+dep 020452 021136
+;
+; AP: skip test 042: SL comparator test 1 ------------------------------------
+;   Systematically checks STKLIM vs SP and generated traps and aborts.
+;   This test is only executed when switch 03 is set (badly documented!)
+;   If enabled, the test fails for all combinations because the instuction
+;   under test is 'mov (sp),(sp)'. SimH implements only the J11 behavior for
+;   stack limit tests, see test 036. The test can be executed when the
+;   instruction is replaced by 'mov (sp)+,-(sp)'.
+;
+dep 021534  012646
+;
+; AP: skip test 063: WAIT ----------------------------------------------------
+;   It checks that no tbit trap is done after a WAIT.
+;   Only LSI11, 11/45 and 11/70 behave like this, all other modes trap.
+;   SimH implements the general behavior for all models.
+;   Test therefore skipped.
+;
+dep 031540 000137
+dep 031542 032024

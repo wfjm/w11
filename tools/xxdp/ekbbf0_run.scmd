@@ -1,0 +1,41 @@
+; $Id: ekbbf0_run.scmd 1318 2022-11-21 09:27:32Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+do setup_w11a_basic.scmd
+;
+echo PDP 11/70 cpu diagnostic part 2
+echo ..from ekbbf0.lda
+;
+echo output to be expected: 
+echo ..CEKBBF0 11/70 CPU #2
+echo ..END PASS #     1  TOTAL ERRORS SINCE LAST REPORT     0
+;
+echo setup switches:
+;;;; 100000  15  halt on error
+;;;; 040000  14  loop on test
+;;;; 020000  13  inhibit error type outs
+;;;; 010000  12  inhibit T-bit trapping
+echo 004000  11  inhibit iterations
+;;;; 002000  10  ring bell on error
+;;;; 001000  09  loop on error
+;;;; 000400  08  loop on test in SW <07:00>
+;;;; 000200  07  not used
+echo 000100  06  skip bus request 6 test
+echo 000040  05  skip bus request 5 test
+echo 000020  04  skip bus request 4 test
+echo 000010  03  enables test 042
+;;;; 000004  02  test selector (with switch 8)
+;;;; 000002  01  test selector (with switch 8)
+echo 000001  00  skip operator intervention testing
+echo ------
+echo 004171
+echo ---------------------------------------------
+dep sr 4171
+;
+dep pc 200
+load to_lda/ekbbf0.lda
+;
+do ekbbf0_patch_1170.scmd
+;
+cont

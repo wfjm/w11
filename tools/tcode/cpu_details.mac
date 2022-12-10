@@ -44,6 +44,52 @@
        p6base = <6*20000>               ; page 6
 ;
 ; Section A: CPU registers ===================================================
+;   A1    PIRQ
+;   A1.1    PIRQ + spl
+;   A1.2    PIRQ  and immediate interrupt
+;   A2    CPUERR
+;   A2.1    CPUERR cp.hlt
+;   A2.2    CPUERR cp.odd
+;   A2.3    CPUERR cp.nxm
+;   A2.4    CPUERR cp.iot
+;   A2.5    CPUERR cp.ysv
+;   A2.6    CPUERR cp.rsv
+;   A2.7    CPUERR cp.odd + stack error
+;   A2.8    CPUERR cp.nxm + stack error
+;   A2.9    CPUERR cp.ito + stack error
+;   A2.10   CPUERR mmu abort + stack error
+;   A3    STKLIM + stack traps and aborts
+;   A3.1    STKLIM write/read test
+;   A3.2    yellow trap + red abort boundary
+;             part 1: sequence of yellow traps and a final red stack abort
+;             part 2: check that red zone does not have yellow islands
+;             part 3: check red zone PSW protection
+;   A3.3    stack trap conditions
+;             part 1: test instructions that should trap
+;             part 2: test instructions that should not trap
+;             part 3: test that interrupt (from PIRQ) vector push traps
+;   A3.4    red stack abort conditions
+;   A4    PSW + tbit traps
+;   A4.1    PSW direct write/read test
+;             part 1: all bits except register set (cp.ars)
+;             part 2: PSW(11) - register set
+;             part 3: PSW(cm) and stack registers
+;   A4.2    PSW write/read via RTI/RTT
+;             part 1: from cm=0,rset=0: set cm=11 and rset=1 (fine!)
+;             part 2: from cm=s,rset=1 mode: set cm=0 and rset=0 (fail!)
+;             part 3: from cm=s,rset=0 mode: set cm=u and rset=1 (fine!)
+;             part 4: from cm=u,rset=1 mode: set cm=0 and rset=0 (fail!)
+;   A4.3    RTI/RTT tbit basics
+;             part 1: tbit after RTI
+;             part 2: tbit after RTT
+;   A4.4    Test A4.4 -- tbit trace tests
+;             part 1: simple instruction sequence
+;             part 2: tracing of trap instructions (EMT tested)
+;             part 3: tbit vs interrupt precedence (via PIRQ)
+;             part 4: traced WAIT and tbit
+;             part 5: WAIT and SPL in user mode
+;             part 6: tbit trap after continuation over s_idle
+;             part 7: no tbit trap after an abort
 ;
 ; Test A1:  PIRQ +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;   This sub-section verifies operation of PIRQ register
@@ -1246,6 +1292,13 @@ ta0404: mov     #vhtbpt,v..bpt          ; BPT handler
 9999$:  iot                                     ; end of test A4.4
 ;
 ; Section B: Stress tests ====================================================
+;   B1    address mode torture tests
+;   B1.1    src-dst update hazards with (r0)+,(r0)
+;   B1.2    (pc)+ as destination
+;   B1.3    pc as destination in clr, mov, and add
+;   B2    pipeline torture tests
+;   B2.1      self-modifying code, use (pc), -(pc)
+;   B2.2      self-modifying code, use (pc) case 2
 ;
 ; Test B1:  address mode torture tests +++++++++++++++++++++++++++++++++++++++
 ;   This sub-section tests peculiar address node usage
@@ -1402,6 +1455,10 @@ tb0202: mov     #2,r5
 9999$:  iot                     ; end of test B2.2
 ;
 ; Section C: 11/70 specifics =================================================
+;   C1    Implementation differences
+;   C1.1    Register used as source and changed in dst flow
+;   C1.2    PC used as source
+;   C1.3    Registers accessible via 177700-1777717
 ;
 ; Test C1:  Implementation differences +++++++++++++++++++++++++++++++++++++++
 ;   This sub-section verifies that w11 shows 11/70 behavior in cases

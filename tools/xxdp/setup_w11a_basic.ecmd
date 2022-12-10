@@ -1,0 +1,23 @@
+; $Id: setup_w11a_basic.ecmd 1314 2022-11-09 10:55:29Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; minimal configuration for xxdp tests. No devices except console
+;   set nouwin to disable UNIBUS window (17000000-17757777) to UNIBUS map
+;   set memory to 3840kB
+;   this way e11 behaves like w11 and SimH, which simplifies testing
+;
+set cpu 70
+set cpu nouwin
+set memory 3840
+set cpu nofpp
+set idle delay=1
+; set ^E as break character (like in SimH)
+set break 005
+; enable PC value logging (inspect with show pclog)
+set pclog on
+; set sysid, leading '1' indicates simulator, next '2' e11
+set cpu SYSID=0120345
+; set console to 7bit mode
+set tt0: mode=9600,N,7,1
+log tt0: e11_tt0.log

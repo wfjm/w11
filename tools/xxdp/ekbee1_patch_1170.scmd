@@ -1,0 +1,106 @@
+; $Id: ekbee1_patch_1170.scmd 1323 2022-12-01 08:00:41Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; Patch set ekbee1 for SimH -- SimH -- SimH -- Simh -- Simh -- Simh
+;
+;   Note: see HACK and DEBUG section at end, especially for setting breaks
+;
+; AP: skip test 046: 18-bit mapping adder ------------------------------------
+;   uses maintenance bit, unsupported in SimH
+;   Note: all par/pdr setup's done, only tests skiped
+;         the next tests seem to depend on the par/pdr settings
+;
+dep 047720 000412
+dep 050006 000412
+dep 050074 000412
+dep 050162 000412
+dep 050250 000412
+dep 050336 000412
+dep 050424 000412
+dep 050512 000412
+dep 050600 000412
+dep 050666 000412
+dep 050754 000412
+dep 051042 000412
+;
+; AP: patch test 50: 22-bit mapping carry propagation ------------------------
+;   The test does an access to 17000000, the first word of the UNIBUS
+;   window. It expects CPUERR 020 because UBMAP is disabled in MMR3.
+;   SimH doesn't simulate the UNIBUS window and is configured to have a
+;   memory hole instead. So access aborts with NXM instead of timeout.
+;   Patch the testing instruction to it expects NXM in CPUERR
+;
+dep 052212 000040
+;
+; AP: patch test 55: ACF = 1 -------------------------------------------------
+; AP: patch test 56: ACF = 4 -------------------------------------------------
+; AP: patch test 57: ACF = 5 -------------------------------------------------
+;   Tests 055, 056, and 057 verify trap response and check mmr0(6:1) which
+;   isn't frozen for traps. The instruction is 'mov mmr0,pmmr0' with the
+;   scr page 7 (IO page) and dst page 1 (where variables are). The test from
+;   expects for mmr0 011003, the destination page. With SimH one gets 011011,
+;   the last explicit update of MMR0. SimH only updates MMR0 when relevant
+;   and not on every access as a real 11/70 or w11 does.
+;   Patch the locations to avoid the diagnostic message
+;
+dep 054152 011011
+dep 054302 011011
+dep 054366 011011
+dep 054564 011011
+;
+; AP: skip test 061: no MMU trap when MMU reg accessed -----------------------
+;   Test verifies that no MMU traps are issued when MMU regs are accessed.
+;   This is not implemented in SimH, thus test skipped.
+;
+dep 054764 000137
+dep 054766 055204
+;
+; AP: skip test 063: proper timing of MMU traps ------------------------------
+;   Test tests also the trap behavior when MMU registers are accessed
+;   This suppression is not implemented in SimH, thus test skipped.
+;
+dep 055404 000137
+dep 055406 055554
+;
+; AP: skip test 067: verify MMR0(7) ------------------------------------------
+;   Tests verifies MMR0(7) instruction complete. Not implemented in SimH.
+;   The test loops-up.
+;
+dep 056536 000137
+dep 056540 057120
+;
+; AP: patch test 122: KT BEND ------------------------------------------------
+;   Tests MMU vs NXM,ODD,RED behavior
+;   The 1st part tests NXM vs MMU. On a KB11-C handles NXM earlier then MMU (!) 
+;   On a KB11-E MMU takes precedence (as one expects and SimH, e11, and w11 do).
+;   Patch the test such that is checks KB11-E behavior (beq 20$ -> nop)
+;
+dep 076224 000240
+;
+;   The 2nd part tests RED vs MMU. On a 11/70 the MMR0 abort bits are not set
+;   in case of a stack in a non-resident page with an address below STKLIM.
+;   Simh, e11, and w11 do set the MMR0 abort bit, and take a fatal stack error.
+;   Patch test to
+;   - change instruction under test 'clr (sp) -> clr -(sp)'
+;   - ignore that (beq 10$ -> br 10$). And change 'clr (sp) 
+;
+dep 076366 005046
+dep 076376 000407
+;
+; AP: skip test 123: SL register comparator test 2 ---------------------------
+;   Prints message title, but no failed combinations
+;   Fails for same reasons as ekbbf0 test 042.
+;   ekbee1 error print out is buggy, only prints the header and not the table,
+;   therefore only header seen.
+;   Patch test 123 like for for ekbbf0, use 'mov (sp)+,-(sp)'.
+;
+dep 076666 012646
+;
+; HACKS and DEBUG ++++++++++++++++++++++++++++++++++++++++++++++++++++
+;
+; HP: skip test 071: MMR2 pattern test ---------------------------------------
+;   this test tries all PC's in user mode --> skip to ease setting breakpoints
+;
+;; dep 057532 000137
+;; dep 057534 057766

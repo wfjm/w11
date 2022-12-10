@@ -28,6 +28,7 @@ The full set of tests is only run for tagged releases.
 
 ### Summary
 ### New features
+- tools/xxdp: add directory with xxdp setup and patch scripts
 ### Changes
 - tools changes
   - tools/asm-11/lib/push_pop.mac: add push2

@@ -68,6 +68,8 @@
        p7base = <7*20000>               ; page 7
 ;
 ; Section A: pdr,par registers ===============================================
+;   A1.1    test that pdr/par are 16 bit write/readable
+;   A1.2    set up MMU default configuration
 ;
 ; Test A1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;
@@ -197,6 +199,19 @@ ta0102:
 ;
 ; Section B: mmr0,mmr3 registers, mapping, instructions ======================
 ;   Test whether address mapping works (traps and aborts avoided)
+;
+;    B1    mmr0, mmr3 write/read and clear by RESET
+;    B1.1    test mmr0 write/read
+;    B1.2    test mmr3 write/read
+;    B2    kernel mode mapping
+;    B2.1    test 1-to-1 kernel mode mapping
+;    B2.2    test variable kernel mode mapping
+;    B3    user and supervisor mode
+;    B3.1    run code in user/supervisor mode
+;    B3.2    run code in user mode with D space enabled
+;    B4    invalid cpu mode 10
+;    B4.1    check that cmode=10 causes abort
+;    B4.2    check MFPI/MTPI SP response for pmode=10
 ;
 ; Test B1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;   Test mmr0, mmr3 write/read and clear by RESET
@@ -683,6 +698,21 @@ tb0402: tstb    systyp          ; skip if not on w11
 9999$:  iot
 ;
 ; Section C: mmr1+mmr0 register, aborts ======================================
+;   C1    MMU response in mmr1 after a write to that fakes an abort
+;   C2    MMU abort response in mmr0 and mmr1
+;   C2.1    test unary/binary instructions
+;             part 1: unary instructions; test acf to mmr0(15:13) mapping
+;             part 2: unary instructions; fail in second access
+;             part 3: binary instructions; fail in src field
+;             part 4: binary instructions; fail in dst field
+;             part 5: multiple abort flags
+;   C2.2    test MFPI,MFPD,MTPI,MFPD dst aborts
+;             part 1: MFPI, MFPD
+;             part 2: MTPD, MTPI
+;   C2.3    test aborts in implied push/pop
+;             part 1: JSR, MFPI, MFPD (push)
+;             part 2: RTS, MTPI, MTPD (pop)
+;   C2.4    mmu abort vs nxm abort
 ;
 ; Test C1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;   Verify MMU response in mmr1 after a write to that fakes an abort
@@ -1164,7 +1194,7 @@ tc0202: mov     #vhmmua,v..mmu
         clr     v..mmu+2
 9999$:  iot                     ; end of test C2.2
 ;
-; Test C2.3 -- test aborts in implied push/pop; ++++++++++++++++++++++
+; Test C2.3 -- test aborts in implied push/pop +++++++++++++++++++++++
 ;   jsr,mfp* have an implied push; rts,mft* have an implied pop
 ;   This must be tested in supervisor mode to separate 'stack under test'
 ;   from the kernel stack used in MMU 250 vector handling
@@ -1439,6 +1469,13 @@ td0101:
 9999$:  iot                     ; end of test D1.1
 ;
 ; Section E: traps and pdr aia and aiw bits ==================================
+;   E1    basic MMU trap and PDR aia/aiw logic
+;   E1.1    test m0.trp, pdr aia/aiw transitions
+;   E1.2    systematic abort/trap testing for all valid afc
+;   E1.3    test trap request logic (trap on non-last access)
+;   E1.4    test trap request after prefetched instructions
+;   E2    MMU trap priority behavior
+;   E2.1    mmu trap + interrupt priority
 ;
 ; Test E1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;   Check basic MMU trap and PDR aia/aiw logic
@@ -1850,6 +1887,8 @@ te0201: mov     #m0.ent!m0.ena,mmr0     ; enable mmu with traps  ;! MMU 18
         clr     v..pir+2
 ;
 ; Section F: miscellaneous ===================================================
+;   F1.1  test D-to-I mapping for (PC) address modes I
+;   F1.2  test D-to-I mapping for (PC) address modes II
 ;
 ; Test F1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;

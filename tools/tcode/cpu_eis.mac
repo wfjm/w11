@@ -16,6 +16,10 @@
 ;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
 ;     0 111 001 rrr sss sss NZVC DIV
 ;
+;   A1.1    div test basics
+;   A1.2    div test systematic
+;   A1.3    div odd register
+;
 
         jmp     ta0101
 ;
@@ -328,6 +332,9 @@ ta0103: mov     #1000$,r4       ; setup data pointer
 ;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
 ;     0 111 000 rrr sss sss NZ0C MUL
 ;
+;    B1.1    mul even and odd
+;    B1.2    mul+div (and adc,adc,sxt)
+;
 ; Test B1.1 -- mul even and odd ++++++++++++++++++++++++++++++++++++++
 ;   check that mul works with even and odd destination register
 ;
@@ -510,6 +517,9 @@ tc0101: mov     #1000$,r4       ; setup data pointer
 ;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
 ;     0 111 011 rrr sss sss NZVC ASHC
 ;
+;    D1.1    ashc even register
+;    D1.2    ashc odd register
+;
 ; Test D1.1 -- ashc even register  +++++++++++++++++++++++++++++++++++
 ;
 td0101: mov     #1000$,r4       ; setup data pointer
@@ -657,6 +667,9 @@ td0102: mov     #1000$,r4       ; setup data pointer
 ;   This section verifies
 ;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
 ;     0 111 100 rrr ddd ddd NZ0- XOR
+;
+;    E1.1    xor znvc=0
+;    E1.2    xor znvc=1
 ;
 ; Test E1.1 -- xor znvc=0 ++++++++++++++++++++++++++++++++++++++++++++
 ;   check xor with all ccs cleared; memory destination

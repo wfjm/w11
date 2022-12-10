@@ -1,0 +1,20 @@
+; $Id: eqkce1_patch_1170.scmd 1319 2022-11-21 14:20:45Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; Patch set eqkce1 for SimH -- SimH -- SimH -- Simh -- Simh -- Simh
+;
+; AP: skip test 041: check stack overflow ------------------------------------
+;   fails for example at 024632 mov (sp)+,@-(sp) which aborts but shouldn't
+;   because mode 3,5, and 7 don't trap/abort on a 11/70.
+;   SimH implements a different set of STKLIM address modes
+;
+dep 024440 000137
+dep 024442 025130
+;
+; AP: skip test 065: check stack limit register ------------------------------
+;   fails for example at 032542 clr 336(sp) which should abort but didn't
+;   SimH implements a different set of STKLIM address modes
+;
+dep 032354 000137
+dep 032356 032700

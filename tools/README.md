@@ -21,3 +21,4 @@ This directory tree contains **many tools** and is organized in
 | [tests](tests)   | test programs |
 | [tcl](tcl)       | TCL sources for rlink backend |
 | [vivado](vivado) | scripts for Xilinx Vivado |
+| [xxdp](xxdp) | startup and patch scripts for xxdp test execution |

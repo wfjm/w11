@@ -1,0 +1,39 @@
+; $Id: eqkce1_run.scmd 1318 2022-11-21 09:27:32Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+do setup_w11a_basic.scmd
+;
+echo EQKC - instruction exerciser
+echo ..from eqkce1.lda
+;
+;
+echo output to be expected:
+echo ..CEQKC-E...PDP 11/70 CPU EXERCISER
+echo ..1THE QUICK BROWN FOX JUMPED OVER THE LAZY DOGS BACK 0123456789
+echo ..2THE QUICK BROWN FOX JUMPED OVER THE LAZY DOGS BACK 0123456789
+echo ..3THE QUICK BROWN FOX JUMPED OVER THE LAZY DOGS BACK 0123456789
+echo ..4THE QUICK BROWN FOX JUMPED OVER THE LAZY DOGS BACK 0123456789
+echo ..5THE QUICK BROWN FOX JUMPED OVER THE LAZY DOGS BACK 0123456789
+echo ..000:00:00
+echo ..END PASS #     1  TOTAL ERRORS SINCE LAST REPORT      0
+;
+echo setup switches:
+echo 010000  12  INHIBIT UBE
+echo 004000  11  INHIBIT ITTERATIONS
+;;;; 000400   8  ALLOW RELOCATION VIA I/O DEVICE
+echo 000200   7  INHIBIT TYPEOUT OF THIS TEXT AND SYS SIZE
+echo 000100   6  INHIBIT RELOCATION
+echo 000040   5  INHIBIT ROUND ROBIN RELOCATION
+echo 000020   4  INHIBIT RANDOM DISK ADDRESS
+echo 000010   3  INHIBIT MBT
+echo ------
+echo 014370
+dep sr 014370
+;
+dep pc 200
+load to_lda/eqkce1.lda
+;
+do eqkce1_patch_1170.scmd
+;
+cont

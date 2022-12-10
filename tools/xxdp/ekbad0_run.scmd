@@ -1,0 +1,21 @@
+; $Id: ekbad0_run.scmd 1318 2022-11-21 09:27:32Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+do setup_w11a_basic.scmd
+;
+echo PDP 11/70 cpu diagnostic part 1; 
+echo ..from ekbad0 (from xxdp22)
+;
+echo output to be expected: 
+echo ..AA
+echo ..CEKBAD0 11/70 CPU #1
+echo ..
+echo ..END PASS    (repeating)
+echo ---------------------------------------------
+echo
+;
+dep pc 200
+load to_lda/ekbad0.lda
+;
+cont

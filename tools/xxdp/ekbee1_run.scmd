@@ -1,0 +1,35 @@
+; $Id: ekbee1_run.scmd 1318 2022-11-21 09:27:32Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+do setup_w11a_basic.scmd
+;
+echo EKBE - 11/70 memory management
+echo ..from ekbee1.lda
+;
+echo output to be expected:
+echo ..CEKBEE0 11/70 MEM MGMT
+echo ..CPU UNDER TEST FOUND TO BE A KB11-B/C
+echo ..END PASS #     1  TOTAL ERRORS SINCE LAST REPORT      0
+;
+echo setup switches:
+;;;; 100000  15  halt on error
+;;;; 040000  14  loop on test
+;;;; 020000  13  inhibit error typeouts
+;;;; 010000  12  inhibit trace trapping
+echo 004000  11  inhibit iterations
+;;;; 002000  10  ring bell on error
+;;;; 001000  09  loop on error
+;;;; 000400  08  loop on test in SW <06:00>
+;;;; 000200  07  inhibit multiple error typeouts
+;;;;      06-00  test number to loop on
+echo ------
+echo 004000
+dep sr 004000
+;
+dep pc 200
+load to_lda/ekbee1.lda
+;
+do ekbee1_patch_1170.scmd
+;
+cont

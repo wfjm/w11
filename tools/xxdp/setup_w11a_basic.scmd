@@ -1,0 +1,40 @@
+; $Id: setup_w11a_basic.scmd 1314 2022-11-09 10:55:29Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; minimal configuration for xxdp tests. No devices except console
+;
+set cpu 11/70
+set cpu nofpp
+set cpu 3m
+set cpu oct
+set cpu idle
+; set sysid, leading '1' indicates simulator, next '1' SimH
+dep sysid 110234
+;
+; disable simulator stop conditions, especially "read stack trap"
+;
+dep STOP_TRAPS 0
+dep STOP_SPA   0
+;
+set cpu history=100000
+;
+; terminal interface options
+! rm -f simh_dl0.log
+set cons log=simh_dl0.log
+set tto 7b
+;
+; DISABLE all else
+;
+set rk  disabled
+set dz  disabled
+set rl  disabled
+set rp  disabled
+set tm  disabled
+set xu  disabled
+;
+set cr  disabled
+set hk  disabled
+set rx  disabled
+set rq  disabled
+set tq  disabled

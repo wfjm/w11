@@ -1,0 +1,13 @@
+; $Id: ekbad0_run.ecmd 1318 2022-11-21 09:27:32Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; e11 starter for ekbad0 - PDP 11/70 cpu diagnostic part 1
+;
+@setup_w11a_basic.ecmd
+;
+mount pr: to_lda/ekbad0.lda
+boot/halt pr:
+;
+pc=200
+go

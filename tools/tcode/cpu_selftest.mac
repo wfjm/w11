@@ -12,6 +12,8 @@
         .include        |lib/tcode_std_base.mac|
 ;
 ; Section A: Self-Test codes
+;   A1    11/34 self test
+;   A2    11/70 self test
 ;
 ; Test A1 -- 11/34 self test ++++++++++++++++++++++++++++++++++++++++++
 ;  adopted from tb_pdp11core_stim.dat code 34

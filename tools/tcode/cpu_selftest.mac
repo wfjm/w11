@@ -1,4 +1,4 @@
-; $Id: cpu_selftest.mac 1262 2022-07-25 09:44:55Z mueller $
+; $Id: cpu_selftest.mac 1329 2022-12-11 17:28:28Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;

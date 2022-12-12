@@ -1,4 +1,4 @@
-# $Id: ekbee1_patch_w11a.tcl 1324 2022-12-01 11:24:20Z mueller $
+# $Id: ekbee1_patch_w11a.tcl 1329 2022-12-11 17:28:28Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -69,6 +69,24 @@ dep 055406 055554
 dep 056536 000137
 dep 056540 057120
 #
+# AP: patch test 122: KT BEND ------------------------------------------------
+#   Tests MMU vs NXM,ODD,RED behavior
+#   The 1st part tests NXM vs MMU. On a KB11-C handles NXM earlier then MMU (!) 
+#   On a KB11-E MMU takes precedence (as one expects and SimH, e11, and w11 do).
+#   It is tempting to patch the code such that KB11-E behavior is tested. But
+#   that code path is buggy, doesn't clear MMR0, and causes a followup error in
+#   the following test (at 076414) because MMR0 isn't cleared. Therefore, the
+#   patch just inhibits the error print, and MMR0 is cleared afterwards.
+#
+dep 076300 000240
+#
+#   The 2nd part tests RED vs MMU. On a 11/70 the MMR0 abort bits are not set
+#   in case of a stack in a non-resident page with an address below STKLIM.
+#   w11 does set the MMR0 abort bit, and take a fatal stack error.
+#   Patch test to ignore that (beq 10$ -> br 10$) MMR0 abort bit is set.
+#   MMR0 is re-written at 76444 in the following test.
+#
+dep 076376 000407
 #
 # HACKS and DEBUG
 #

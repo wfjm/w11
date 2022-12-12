@@ -1,6 +1,6 @@
 ## Known differences between SimH, 11/70, and w11a
 
-### SimH: stack limit check uses J11 behavior
+### SimH: stack limit check and addressing modes
 
 The stack limit check is implemented slightly differenly on all models that
 support it. All models check the stack limit only in kernel mode for specifiers

@@ -1,4 +1,4 @@
--- $Id: pdp11.vhd 1325 2022-12-07 11:52:36Z mueller $
+-- $Id: pdp11.vhd 1329 2022-12-11 17:28:28Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -11,6 +11,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-12-10  1329   1.5.20 add cpustat_type in_vecflow
 -- 2022-12-05  1324   1.5.19 add cpustat_type treq_tbit and resetcnt;
 --                           use op_rti rather op_rtt;
 -- 2022-11-29  1323   1.5.18 rename cpuerr_type adderr->oddadr, mmu_mmr0_type
@@ -390,8 +391,9 @@ package pdp11 is
     treq_tbit : slbit;                  -- tbit trap requested
     prefdone : slbit;                   -- prefetch done
     do_grwe : slbit;                    -- pending gr_we
-    in_vecser : slbit;                  -- in fatal stack error vector flow
-    in_vecysv : slbit;                  -- in ysv trap flow
+    in_vecflow : slbit;                 -- in vector flow
+    in_vecser  : slbit;                 -- in fatal stack error vector flow
+    in_vecysv  : slbit;                 -- in ysv trap flow
   end record cpustat_type;
 
   constant cpustat_init : cpustat_type := (
@@ -404,7 +406,7 @@ package pdp11 is
     '0','0','0','0','0',                -- itimer,creset,breset,intack,intpend
     (others=>'0'),"111",                -- intvect,resetcnt
     '0','0','0','0',                    -- treq_(mmu|ysv|tbit), prefdone
-    '0','0','0'                         -- do_grwe, in_vec(ser|ysv)
+    '0','0','0','0'                     -- do_grwe, in_vec(flow|ser|ysv)
   );
 
   type cpuerr_type is record            -- CPU error register

@@ -1,4 +1,4 @@
-; $Id: cpu_mmu.mac 1324 2022-12-01 11:24:20Z mueller $
+; $Id: cpu_mmu.mac 1329 2022-12-11 17:28:28Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -39,10 +39,13 @@
 
        sipdr0 = sipdr+ 0
        sipar0 = sipar+ 0
+       sipdr6 = sipdr+14
+       sipar6 = sipar+14
        sipdr7 = sipdr+16
        sipar7 = sipar+16
 
        kipdr0 = kipdr+ 0
+       kipar0 = kipar+ 0
        kdpdr0 = kdpdr+ 0
        kipdr5 = kipdr+12
        kipdr6 = kipdr+14
@@ -713,6 +716,9 @@ tb0402: tstb    systyp          ; skip if not on w11
 ;             part 1: JSR, MFPI, MFPD (push)
 ;             part 2: RTS, MTPI, MTPD (pop)
 ;   C2.4    mmu abort vs nxm abort
+;   C2.5    mmu abort in vector flow - kernel mode
+;   C2.6    mmu abort in vector flow - supervisor mode
+;   C2.7    mmu abort plus stack limit abort
 ;
 ; Test C1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;   Verify MMU response in mmr1 after a write to that fakes an abort
@@ -1339,7 +1345,176 @@ tc0204: mov     cp.los,kipar6           ; map begin of non-existent memory
 ;
 9999$:  iot                                     ; end of test C2.4
 ;
+; Test C2.5 -- mmu abort in vector flow - kernel mode ++++++++++++++++
+;   Verifies the MMU abort after the 2nd and 1st push in a vector flow.
+;   When the handler runs in kernel mode, the vector pushes are to kernel
+;   stack, and this results in a fatal stack error with an emergency stack
+;   and a vector 4 flow.
+;   Tested with a TRAP instruction, page 5 made non-resident, and the
+;   stack located at begin of page 6.
+;   Verify that PS and PC at the beginning of the failed vector flow are saved.
+;   See also cpu_details test A3.5, checks vector push abort by stklim.
+;
+tc0205: mov     #<127.*md.plf>,kipdr5   ; page 5 non-resident (afc=0)
+        mov     #m0.ena,mmr0            ; enable mmu            ;! MMU 18
+        mov     #200$,v..iit            ; iit handler
+        mov     #cp.pr1!cp000c,v..iit+2 ; use PR1+000C as signature iit
+        mov     #110$,v..mmu            ; mmu handler (catcher)
+        mov     #cp.pr2!cp00v0,v..mmu+2 ; use PR2+00V0 as signature mmu
+        mov     #120$,v..trp            ; trap handler (catcher)
+        mov     #cp.pr3!cp0z00,v..trp+2 ; use PR3+0Z00 as signature trp
+;
+; abort on 2nd push
+        mov     #p6base+2,sp            ; 2nd push will fail
+        spl     4
+        ccc
+        trap    100
+100$:   halt                            ; label after trap
+110$:   halt                            ; mmu catcher
+120$:   halt                            ; trap catcher
+;
+200$:   htsteq  sp                      ; check emergency stack done
+        hcmpeq  (sp),#100$              ; PC: return after trap
+        hcmpeq  2(sp),#cp.pr4           ; PS: should be code signature
+;
+; abort on 1st push
+        mov     #400$,v..iit            ; set up iit handler
+        mov     #p6base,sp              ; 1st push will fail
+        spl     5
+        scc
+        trap    200
+300$:   halt                            ; label after trap
+;
+400$:   htsteq  sp                      ; check emergency stack done
+        hcmpeq  (sp),#300$              ; PC: return after trap
+        hcmpeq  2(sp),#cp.pr5!cpnzvc    ; PS: should be code signature
+;
+; restore
+        reset                           ; mmu off               ;! MMU off
+        mov     #<127.*md.plf>!md.arw,kipdr5    ; reset kipdr5
+        mov     #v..iit+2,v..iit        ; v..iit to catcher
+        clr     v..iit+2
+        mov     #v..mmu+2,v..mmu        ; v..mmu to catcher
+        clr     v..mmu+2
+        mov     #v..trp+2,v..trp        ; v..trp to catcher
+        clr     v..trp+2
+        mov     #stack,sp               ; SP to default
+        spl     0                       ; back to PR0
+;
+9999$:  iot                                     ; end of test C2.5
+;
+; Test C2.6 -- mmu abort in vector flow - supervisor mode ++++++++++++
+;   Verifies the MMU abort after the 2nd and 1st push in a vector flow.
+;   When the handler is not in kernel mode a normal mmu vector 240 flow
+;   is started. The mmu handler runs in kernel mode with a valid stack.
+;   Tested with supervisor page 0+6+7 mapped 1-to-1, page 5 set non-resident,
+;   and a PIRQ handler in supervisor space.
+;   Verify that PS and PC at the beginning of the failed vector flow are saved.
+;   Test inspired by ekbee1 test 124.
+;
+tc0206: mov     kipdr0,sipdr0           ; super page 0 1-to-1
+        mov     kipar0,sipar0
+        mov     kipdr6,sipdr6           ; super page 6 1-to-1
+        mov     kipar6,sipar6
+        mov     kipdr7,sipdr7           ; super page 7 1-to-1
+        mov     kipar7,sipar7
+        mov     #m0.ena,mmr0            ; enable mmu            ;! MMU 18
+        mov     #200$,v..mmu            ; mmu handler
+        mov     #cp.pr7!cp000c,v..mmu+2 ; use PR7+000C as signature mmu
+        mov     #110$,v..pir            ; PIRQ handler (catcher in supervisor)
+        mov     #cp.cms!cp.pr6!cp00v0,v..pir+2 ; use PR6+00V0 as signature pir
+;
+; abort on 2nd push ------------------------------
+        mov     #stack,sp               ; set kernel SP
+        mov     #cp.cms!cp.pr7,cp.psw   ; switch to supervisor mode, PR7
+        mov     #p6base+2,sp            ; set supervisor SP, 2nd push will fail
+        movb    #bit04,cp.pir+1         ; request PIRQ 4
+        ccc
+        mov     #cp.cms!cp.pr1,cp.psw   ; to prio PR1 -> trigger PRIQ interrupt
+100$:   halt                            ; label after mov
+110$:   halt                            ; PIRQ catcher
+;
+200$:   hcmpeq  cp.psw,#cp.pms!cp.pr7!cp000c  ; MMU handler, in kernel mode
+        clr     cp.pir                  ; cancel PIRQ
+        hcmpeq  sp,#stack-4             ; check stack, 1 frame
+        hcmpeq  (sp),#100$              ; PC: return after mov
+        hcmpeq  2(sp),#cp.cms!cp.pr1    ; PS: should be code signature
+;
+; abort on 1st push ------------------------------
+        mov     #400$,v..mmu            ; mmu handler
+        mov     #stack,sp               ; set kernel SP
+        mov     #cp.cms!cp.pr7,cp.psw   ; switch to supervisor mode, PR7
+        mov     #p6base,sp              ; set supervisor SP, 1st push will fail
+        movb    #bit05,cp.pir+1         ; request PIRQ 5
+        ccc
+        mov     #cp.cms!cp.pr2,cp.psw   ; to prio PR2 -> trigger PRIQ interrupt
+300$:   halt                            ; label after mov
+;
+400$:   hcmpeq  cp.psw,#cp.pms!cp.pr7!cp000c  ; MMU handler, in kernel mode
+        clr     cp.pir                  ; cancel PIRQ
+        hcmpeq  sp,#stack-4             ; check stack, 1 frame
+        hcmpeq  (sp),#300$              ; PC: return after mov
+        hcmpeq  2(sp),#cp.cms!cp.pr2    ; PS: should be code signature
+;
+; restore ----------------------------------------
+        clr     cp.psw                  ; to kernel
+        reset                           ; mmu off               ;! MMU off
+        clr     sipdr0
+        clr     sipar0
+        clr     sipdr6
+        clr     sipar6
+        clr     sipdr7
+        clr     sipar7
+        mov     #v..mmu+2,v..mmu        ; v..mmu to catcher
+        clr     v..mmu+2
+        mov     #v..pir+2,v..pir        ; v..pir to catcher
+        clr     v..pir+2
+        mov     #stack,sp               ; SP to default
+;
+9999$:  iot                                     ; end of test C2.6
+;
+; Test C2.7 -- mmu abort plus stack limit abort ++++++++++++++++++++++
+;   Consider an instruction that is aborted due to red stack violation an the
+;   destination address would cause an MMU abort. Tested in ekbee1 test 122
+;   2nd part. The 11/70 and the simulators take a vector 4 and do not set MMR0
+;   abort bits. The w11 also takes a vector 4 but will set MMR0 abort bits. 
+;   Verify this w11 specific behavior.
+;
+tc0207: tstb    systyp          ; skip if not on w11
+        blt     9999$
+;
+        mov     #<127.*md.plf>,kipdr6   ; page 6 non-resident (afc=0)
+        mov     #m0.ena,mmr0            ; enable mmu            ;! MMU 18
+        mov     #200$,v..iit            ; iit handler
+        mov     #cp.pr1!cp000c,v..iit+2 ; use PR1+000C as signature iit
+        mov     #110$,v..mmu            ; mmu handler (catcher)
+        mov     #cp.pr2!cp00v0,v..mmu+2 ; use PR2+00V0 as signature mmu
+        mov     #p6base,cp.slr          ; red zone at 140340
+        mov     #p6base+336,sp          ; in red zone
+        spl     4
+        ccc
+        inc     (sp)                    ; fails (use inc to avoid dstw cc issue)
+100$:   halt                            ; label after clr
+110$:   halt                            ; mmu catcher
+;
+200$:   htsteq  sp                      ; check emergency stack done
+        hcmpeq  (sp),#100$              ; PC: return after trap
+        hcmpeq  2(sp),#cp.pr4           ; PS: should be code signature
+        hcmpeq  #m0.anr!<6*m0.pno>!m0.ena,mmr0     ; check mmr0, expect abort
+;
+        reset                           ; mmu off               ;! MMU off
+        mov     #stack,sp               ; SP to default
+        mov     #<127.*md.plf>!md.arw,kipdr6    ; reset kipdr6
+        mov     #v..iit+2,v..iit        ; v..iit to catcher
+        clr     v..iit+2
+        mov     #v..mmu+2,v..mmu        ; v..mmu to catcher
+        clr     v..mmu+2
+        spl     0                       ; back to PR0        
+;
+9999$:  iot                                     ; end of test C2.7
+;
 ; Section D: mmr2+mmr1+mmr0 register, abort recovery =========================
+;   D1    code in user mode with D space, simulated SP extend
 ;
 ; Test D1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;
@@ -2001,7 +2176,7 @@ tf0102: mov     #154345,@#p6base ; inititialize target
 ;; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#23.      ; all tests done ?
+        hcmpeq  tstno,#26.      ; all tests done ?
 ;
         jmp     loop
 ;

@@ -23,17 +23,7 @@ END PASS #     2  TOTAL ERRORS SINCE LAST REPORT      0
 ```
 
 ### w11 remarks
-Requires [patch](ekbee1_patch_w11a.tcl). Still two diagnostics
-```
-  TMCE KT BEND DOESN'T GO LOW ON TMCD SL RED
-  ERRORPC TEST NUMBER
-  076414  000122  
-  
-  SSRA PS RESTORE(1) DOESN'T GET TO RACK E63
-  OR E63(5) BAD
-  ERRORPC TEST NUMBER
-  077344  000124  
-```
+Requires [patch](ekbee1_patch_w11a.tcl).
 
 ### SimH remarks (tested with V3.12-3 RC2)
 Requires [patch](ekbee1_patch_1170.scmd).

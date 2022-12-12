@@ -57,6 +57,8 @@ The full set of tests is only run for tagged releases.
 ### Bug Fixes
   - rtl/w11a
     - pdp11_sequencer:
+      - BUGFIX: get correct PS after vector push abort, see
+      [ECO-036](ECO-036-vpush_abort_ps.md)
       - BUGFIX: use is_kstackdst1246 also in dstr flow, see
       [ECO-035](ECO-035-stklim-tbit-fixes.md)
       - BUGFIX: correct ysv flow implementation, see

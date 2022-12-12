@@ -1,4 +1,4 @@
--- $Id: pdp11_sequencer.vhd 1325 2022-12-07 11:52:36Z mueller $
+-- $Id: pdp11_sequencer.vhd 1329 2022-12-11 17:28:28Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,6 +13,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-12-10  1329   1.6.24 BUGFIX: get correct PS after vector push abort
 -- 2022-12-05  1324   1.6.23 tbit logic overhaul; use treq_tbit; cleanups
 --                           use resetcnt for 8 cycle RESET wait
 -- 2022-11-29  1323   1.6.22 rename adderr -> oddadr, don't set after err_mmu
@@ -590,7 +591,7 @@ begin
                            pvector  : in slv9_2) is
     begin
       pndpcntl.dtmp_sel := c_dpath_dtmp_psw;    -- DTMP = PSW 
-      pndpcntl.dtmp_we := '1';
+      pndpcntl.dtmp_we := not R_STATUS.in_vecflow;  -- save PS on first entry
       pndpcntl.ounit_azero := '1';              -- OUNIT A = 0
       pndpcntl.ounit_const := pvector & "00";   -- vector
       pndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B=const(vector)
@@ -789,6 +790,9 @@ begin
                 nstatus.treq_mmu  := '0';     -- cancel trap requests
                 nstatus.treq_ysv  := '0';
                 nstatus.treq_tbit := '0';
+                nstatus.in_vecflow := '0';    -- cancel in_* flags
+                nstatus.in_vecser  := '0';
+                nstatus.in_vecysv  := '0';
                 nstatus.cpurust := c_cpurust_init;
               end if;
               nstate := s_idle;                  
@@ -2216,6 +2220,7 @@ begin
 
       when s_vec_getpc =>               -- -----------------------------------
         idm_vfetch := '1';              -- signal vfetch
+        nstatus.in_vecflow := '1';      -- signal vector flow
         nstatus.treq_tbit := '0';       -- cancel pending tbit request
         nvmcntl.mode := c_psw_kmode;    -- fetch PC from kernel D space
         do_memread_srcinc(nstate, ndpcntl, nvmcntl, s_vec_getpc_w, nmmumoni);
@@ -2319,8 +2324,9 @@ begin
         nstate := s_vec_pushpc_w;
         do_memcheck(nstate, nstatus, imemok);
         if imemok then
-          nstatus.in_vecser := '0';                -- signal end of ser flow
-          nstatus.in_vecysv := '0';                -- signal end of ysv flow
+          nstatus.in_vecflow := '0';               -- signal end vector flow
+          nstatus.in_vecser  := '0';               -- signal end of ser flow
+          nstatus.in_vecysv  := '0';               -- signal end of ysv flow
           ndpcntl.gr_we := '1';                    -- load new PC
           idm_pcload := '1';                       -- signal flow change
           do_fork_next(nstate, nstatus, nmmumoni);         -- ???

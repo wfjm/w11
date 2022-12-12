@@ -1,10 +1,10 @@
-; $Id: cpu_details.mac 1325 2022-12-07 11:52:36Z mueller $
+; $Id: cpu_details.mac 1329 2022-12-11 17:28:28Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2022-12-06  1324   1.0    Initial version
+; 2022-12-10  1329   1.0    Initial version
 ; 2022-07-18  1259   0.1    First draft
 ;
 ; Test CPU details
@@ -69,6 +69,7 @@
 ;             part 2: test instructions that should not trap
 ;             part 3: test that interrupt (from PIRQ) vector push traps
 ;   A3.4    red stack abort conditions
+;   A3.5    vector push abort recovery
 ;   A4    PSW + tbit traps
 ;   A4.1    PSW direct write/read test
 ;             part 1: all bits except register set (cp.ars)
@@ -819,6 +820,72 @@ ta0304:
 ;
 9999$:  iot                                     ; end of test A3.4
 ;
+; Test A3.5 -- vector push abort recovery ++++++++++++++++++++++++++++
+;   Verify that the frame pushed to the emergency stack after a vector push
+;   abort has the PS and PC values at entry into the initial vector flow and
+;   not the values read in the vector fetch of the failed vector flow.
+;   Test abort on 2nd and 1st push after a TRAP instruction.
+;   Skipped on SimH that has different vector flow stack limit check logic.
+;   See also cpu_mmu tests C2.5,C2.6, they check vector push abort by mmu.
+;
+ta0305: cmpb    systyp,#sy.sih          ; skip in SimH (different stklim logic)
+        beq     9999$
+;
+        mov     #200$,v..iit            ; set up iit handler
+        mov     #cp.pr5!cp0z0c,v..iit+2 ; use PR5+0Z0C as signature iit
+        mov     #110$,v..trp            ; set up TRAP handler (catcher)
+        mov     #cp.pr6!cpn0v0,v..trp+2 ; use PR6+N0V0 as signature trp
+        mov     #1400,cp.slr            ; yellow <=1776 and red <= 1736
+;
+; on abort 2nd push ------------------------------
+        mov     #1742,sp                ; 2nd push will fail
+        spl     3                       ; use PR3 as signature code
+        ccc                             ; clear all ccs
+        trap    100                     ; will fail
+100$:   halt                            ; label after trap
+110$:   halt                            ; trap catcher
+;
+200$:   htsteq  sp                      ; check emergency stack done
+        hcmpeq  (sp),#100$              ; PC: return after trap
+        hcmpeq  2(sp),#cp.pr3           ; PS: should be code signature
+;
+; on abort 1st push ------------------------------
+        mov     #400$,v..iit            ; set up iit handler
+        mov     #1740,sp                ; 1st push will fail
+        spl     4                       ; use PR4 as signature code
+        ccc                             ; clear all ccs
+        sec                             ; and set C
+        trap    200                     ; will fail
+300$:   halt
+;
+400$:   htsteq  sp                      ; check emergency stack done
+        hcmpeq  (sp),#300$              ; PC: return after trap
+        hcmpeq  2(sp),#cp.pr4!cp000c    ; PS: should be code signature
+;
+; trap without error, checks in_vecflow reset ----
+        clr     cp.slr                  ; STKLIM to default
+        mov     #600$,v..trp            ; set up TRAP handler (continuation)
+        mov     #stack,sp               ; 1st push will fail
+        spl     2                       ; use PR2 as signature code
+        ccc                             ; clear all ccs
+        sez                             ; and set z
+        trap    300                     ; will fail
+500$:   halt
+;
+600$:   hcmpeq  #stack-4,sp             ; check stack, 1 frame
+        hcmpeq  (sp),#500$              ; PC: return after trap
+        hcmpeq  2(sp),#cp.pr2!cp0z00    ; PS: should be code signature
+;
+; restore
+        mov     #v..iit+2,v..iit        ; v..iit to catcher
+        clr     v..iit+2
+        mov     #v..trp+2,v..trp        ; v..trp to catcher
+        clr     v..trp+2
+        mov     #stack,sp               ; SP to default
+        spl     0                       ; back to PR0
+;
+9999$:  iot                                     ; end of test A3.5
+;
 ; Test A4:  PSW + tbit traps +++++++++++++++++++++++++++++++++++++++++++++++++
 ;   This sub-section verifies operation of PSW register and tbit traps.
 ;
@@ -1512,7 +1579,7 @@ tc0103: mov     #vhugen,v..iit  ; set iit handler
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#28.      ; all tests done ?
+        hcmpeq  tstno,#29.      ; all tests done ?
 ;
         jmp     loop
 ;

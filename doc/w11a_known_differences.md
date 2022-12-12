@@ -6,7 +6,6 @@ The issues of the w11 CPU and systems are listed in a separate document
 
 ### Known differences between w11a and KB11-C (11/70)
 - [Instruction fetch after `SPL`](w11a_diff_70_spl_bug.md)
-- ['fatal stack errors' lose PSW](w11a_diff_70_red_stack_abort.md)
 - [Stack limit checks done independent of register set](w11a_diff_70_stklim_rset.md)
 - ['instruction completed flag' in `MMR0` is not implemented](w11a_diff_70_instruction_complete.md)
 - [`CLR` and `SXT` do a write](w11a_diff_70_clr_sxt_write.md)
@@ -14,6 +13,7 @@ The issues of the w11 CPU and systems are listed in a separate document
 - [18-bit UNIBUS address space not mapped](w11a_diff_70_unibus_mapping.md)
 - [MMU traps not suppressed when MMU register accessed](w11a_diff_70_mmu_trap_suppression.md)
 - [MMU aborts have priority over NXM aborts](w11a_diff_70_mmu_nxm_prio.md)
+- [`MMR0` abort flags are set when stack limit abort done](w11a_diff_70_mmu_stklim_prio.md)
 
 All points relate to very 11/70 specific behavior, no operating system
 depends on them, therefore they are considered acceptable implementation

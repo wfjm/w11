@@ -27,7 +27,12 @@ END PASS #     2  TOTAL ERRORS SINCE LAST REPORT      0
 ```
 
 ### w11 remarks
-Requires [patch](ekbbf0_patch_w11a.tcl).
+Requires [patch](ekbbf0_patch_w11a.tcl). Still one diagnostic
+```
+  RACF E8 BAD
+  ERRORPC TEST NUMBER
+  006122  000002
+```
 
 ### SimH remarks (tested with V3.12-3 RC2)
 Requires [patch](ekbbf0_patch_1170.scmd).

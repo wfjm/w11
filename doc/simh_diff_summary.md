@@ -11,7 +11,8 @@ for all PDP-11 models, and also when `set cpu 11/70` is configured.
 Test codes are sometimes sensitive to those details, so the most relevant
 ones are listed here:
 - [SimH: State of N and Z and registers after a `DIV` abort with `V=1`](simh_diff_div_after_v1.md)
-- [SimH: stack limit check uses J11 behavior](simh_diff_stklim.md)
+- [SimH: stack limit check and addressing modes](simh_diff_stklim_amode.md)
+- [SimH: stack limit check and vector push aborts](simh_diff_stklim_vpush.md)
 - [SimH: Red stack zone PSW protection](simh_diff_red_psw.md)
 - [SimH: trap and interrupt service order has J11 behavior](simh_diff_service-order.md)
 - [SimH: traced `WAIT` has J11 behavior](simh_diff_traced-wait.md)

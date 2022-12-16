@@ -20,5 +20,5 @@ SimH does not support the `MMR0` `instruction completed` flag and the
 associated `MMR2` behavior.
 xxdp `ekbee1` test 67 verifies this behavior and is skipped.
 
-w11 also doesn't support this behavior currently, this is documented as
-[w11 known difference](w11a_diff_70_instruction_complete.md).
+w11 supports `instruction completed` with some minor implementation differences,
+see [w11 known difference](w11a_diff_70_instruction_complete.md).

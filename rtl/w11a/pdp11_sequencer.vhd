@@ -1,4 +1,4 @@
--- $Id: pdp11_sequencer.vhd 1329 2022-12-11 17:28:28Z mueller $
+-- $Id: pdp11_sequencer.vhd 1330 2022-12-16 17:52:40Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,6 +13,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-12-12  1330   1.6.25 implement MMR0,MMR2 instruction complete
 -- 2022-12-10  1329   1.6.24 BUGFIX: get correct PS after vector push abort
 -- 2022-12-05  1324   1.6.23 tbit logic overhaul; use treq_tbit; cleanups
 --                           use resetcnt for 8 cycle RESET wait
@@ -382,7 +383,6 @@ begin
     variable idm_idec   : slbit := '0';      -- idec   for dm_stat_se
     variable idm_idone  : slbit := '0';      -- idone  for dm_stat_se
     variable idm_pcload : slbit := '0';      -- pcload for dm_stat_se
-    variable idm_vfetch : slbit := '0';      -- vfetch for dm_stat_se
     
     alias SRCMOD : slv2 is IREG(11 downto 10); -- src register mode high
     alias SRCDEF : slbit is IREG(9);           -- src register mode defered
@@ -541,7 +541,7 @@ begin
                            pnstatus  : inout cpustat_type;
                            pnmmumoni : inout mmu_moni_type) is
     begin
-      pnmmumoni.idone := '1';                           -- priority order
+                                                        -- priority order
       if pnstatus.treq_mmu='1' or                       -- mmu trap
            pnstatus.treq_ysv='1' then                   -- ysv trap
         pnstate := s_trap_disp;
@@ -566,7 +566,7 @@ begin
     begin
       pndpcntl := pndpcntl;             -- dummy to add driver (vivado)
       pnvmcntl := pnvmcntl;             -- "
-      pnmmumoni.idone := '1';                           -- priority order
+                                                        -- priority order
       if pnstatus.treq_mmu='1' or                       -- mmu trap
             pnstatus.treq_ysv='1' then                  -- ysv trap
         pnstate := s_trap_disp;
@@ -640,12 +640,11 @@ begin
     idm_idec   := '0';
     idm_idone  := '0';
     idm_pcload := '0';
-    idm_vfetch := '0';
     
     imemok := false;
 
     nmmumoni := mmu_moni_init;
-    nmmumoni.pc := PC;
+    nmmumoni.vflow := R_STATUS.in_vecflow;
     
     macc  := '0';
     bytop := '0';
@@ -1604,7 +1603,6 @@ begin
       when s_op_halt =>                 -- HALT -------------------------------
         idm_idone := '1';               -- instruction done
         if is_kmode = '1' then          -- if in kernel mode execute
-          nmmumoni.idone := '1';
           nstatus.cpugo := '0';
           nstatus.cpurust := c_cpurust_halt;
           nstate := s_idle;
@@ -2219,7 +2217,7 @@ begin
   -- vector flow states ------------------------------------------------------
 
       when s_vec_getpc =>               -- -----------------------------------
-        idm_vfetch := '1';              -- signal vfetch
+        nmmumoni.vstart := '1';         -- signal vstart
         nstatus.in_vecflow := '1';      -- signal vector flow
         nstatus.treq_tbit := '0';       -- cancel pending tbit request
         nvmcntl.mode := c_psw_kmode;    -- fetch PC from kernel D space
@@ -2274,6 +2272,8 @@ begin
         ndpcntl.dsrc_we := '1';                  -- update DSRC
         ndpcntl.gr_adst := c_gr_sp;
         ndpcntl.gr_we := '1';                    -- update SP too
+        nmmumoni.regmod := '1';                  -- record vector push in MMR1
+        nmmumoni.isdec := '1';
         nstate := s_vec_pushps;
 
       when s_vec_pushps =>              -- -----------------------------------
@@ -2301,6 +2301,8 @@ begin
         if imemok then
           ndpcntl.dsrc_we := '1';                -- update DSRC
           ndpcntl.gr_we := '1';                  -- update SP too
+          nmmumoni.regmod := '1';                -- record vector push in MMR1
+          nmmumoni.isdec := '1';
           nstate := s_vec_pushpc;
         end if;
         
@@ -2493,8 +2495,8 @@ begin
     DM_STAT_SE.idone  <= idm_idone;
     DM_STAT_SE.itimer <= R_STATUS.itimer;
     DM_STAT_SE.pcload <= idm_pcload;
-    DM_STAT_SE.vfetch <= idm_vfetch;
-      
+    DM_STAT_SE.vstart <= nmmumoni.vstart;
+
   end process proc_next;
 
   proc_cpstat : process (R_STATUS)
@@ -2828,4 +2830,3 @@ begin
   end generate SNUM0;
   
 end syn;
- 

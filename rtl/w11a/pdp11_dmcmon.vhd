@@ -1,4 +1,4 @@
--- $Id: pdp11_dmcmon.vhd 1310 2022-10-27 16:15:50Z mueller $
+-- $Id: pdp11_dmcmon.vhd 1330 2022-12-16 17:52:40Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 --
 -- Revision History: -
 -- Date         Rev Version  Comment
+-- 2022-12-12  1330   2.0.3  dm_stat_se_type: rename vfetch -> vstart
 -- 2022-10-25  1309   2.0.2  rename _gpr -> _gr
 -- 2019-06-02  1159   2.0.1  use rbaddr_ constants
 -- 2017-04-22   884   2.0    use DM_STAT_SE.idle; revised interface, add suspend
@@ -103,7 +104,7 @@
 --        if imode = 1
 --                10 : -- unused --
 --                09 : -- unused --
---                08 : se.vfetch
+--                08 : se.vstart
 --        always
 --             07:05 : dp.psw.pri
 --                04 : dp.psw.tflag
@@ -226,7 +227,7 @@ architecture syn of pdp11_dmcmon is
   constant dat5_rbf_ddst_we  : integer :=     9;
   constant dat5_rbf_dsrc_we  : integer :=     8;
 
-  constant dat5_rbf_vfetch   : integer :=     8; -- if imode=1
+  constant dat5_rbf_vstart   : integer :=     8; -- if imode=1
 
   subtype  dat5_rbf_pri     is integer range  7 downto  5;
   constant dat5_rbf_tflag    : integer :=     4;
@@ -293,7 +294,7 @@ architecture syn of pdp11_dmcmon is
     se_istart    : slbit;               -- se.istart
     se_istart_1  : slbit;               -- se.istart last cycle
     se_idone     : slbit;               -- se.idone
-    se_vfetch    : slbit;               -- se.vfetch
+    se_vstart    : slbit;               -- se.vstart
     se_snum      : slv8;                -- se.snum
     mwdrop       : slbit;               -- mem wait drop flag
   end record regs_type;
@@ -325,7 +326,7 @@ architecture syn of pdp11_dmcmon is
     '0','0',                            -- vm_trap_*
     '0',                                -- vm_pend
     '0','0','0',                        -- se_idle,se_istart(_1)
-    '0','0',                            -- se_idone,se_vfetch
+    '0','0',                            -- se_idone,se_vstart
     (others=>'0'),                      -- se_snum
     '0'                                 -- mwdrop
   );
@@ -672,7 +673,7 @@ architecture syn of pdp11_dmcmon is
     n.se_idle     := DM_STAT_SE.idle;
     n.se_istart   := DM_STAT_SE.istart;
     n.se_idone    := DM_STAT_SE.idone;
-    n.se_vfetch   := DM_STAT_SE.vfetch;
+    n.se_vstart   := DM_STAT_SE.vstart;
     n.se_snum     := DM_STAT_SE.snum;
 
     -- active state logic
@@ -715,7 +716,7 @@ architecture syn of pdp11_dmcmon is
         end if;
       end if;
     else                                -- imode=1
-      itake := r.se_idone or r.se_vfetch or r.vm_err;
+      itake := r.se_idone or r.se_vstart or r.vm_err;
     end if;
     
     if iactive='1' and itake='1' then  -- active and enabled
@@ -818,7 +819,7 @@ architecture syn of pdp11_dmcmon is
       idat5(dat5_rbf_ddst_we)  := R_REGS.dp_ddst_we;
       idat5(dat5_rbf_dsrc_we)  := R_REGS.dp_dsrc_we;
     else
-      idat5(dat5_rbf_vfetch)   := R_REGS.se_vfetch;
+      idat5(dat5_rbf_vstart)   := R_REGS.se_vstart;
     end if;
     idat5(dat5_rbf_pri)      := DM_STAT_DP.psw.pri;
     idat5(dat5_rbf_tflag)    := DM_STAT_DP.psw.tflag;

@@ -1,4 +1,4 @@
--- $Id: pdp11.vhd 1329 2022-12-11 17:28:28Z mueller $
+-- $Id: pdp11.vhd 1330 2022-12-16 17:52:40Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -11,6 +11,9 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-12-12  1330   1.5.21 dm_stat_se_type: rename vfetch -> vstart;
+--                           mmu_moni_type: drop pc,idone, add vstart,vflow
+--                           pdp11_mmu_mmr12: add VADDR port
 -- 2022-12-10  1329   1.5.20 add cpustat_type in_vecflow
 -- 2022-12-05  1324   1.5.19 add cpustat_type treq_tbit and resetcnt;
 --                           use op_rti rather op_rtt;
@@ -504,8 +507,8 @@ package pdp11 is
 
   type mmu_moni_type is record          -- mmu monitor port
     istart : slbit;                     -- instruction start
-    idone : slbit;                      -- instruction done
-    pc : slv16;                         -- PC of new instruction
+    vstart : slbit;                     -- vector start
+    vflow : slbit;                      -- in vector flow
     regmod : slbit;                     -- register modified
     regnum : slv3;                      -- register number
     delta : slv4;                       -- register offset
@@ -514,7 +517,7 @@ package pdp11 is
   end record mmu_moni_type;
 
   constant mmu_moni_init : mmu_moni_type := (
-    '0','0',(others=>'0'),              -- istart, idone, pc
+    '0','0','0',                        -- istart, vstart, vflow
     '0',"000","0000",                   -- regmod, regnum, delta
     '0','0'                             -- isdec, trace_prev
   );
@@ -631,14 +634,14 @@ package pdp11 is
     idone  : slbit;                     -- instruction done
     itimer : slbit;                     -- instruction timer  (for ibdr_rhrp)
     pcload : slbit;                     -- PC loaded (flow change)
-    vfetch : slbit;                     -- vector fetch
+    vstart : slbit;                     -- vector start
     snum : slv8;                        -- current state number
   end record dm_stat_se_type;
 
   constant dm_stat_se_init : dm_stat_se_type := (
     '0','0',                            -- idle,cpbusy
     '0','0','0','0',                    -- istart,idec,idone,itimer
-    '0','0',                            -- pcload,vfetch
+    '0','0',                            -- pcload,vstart
     (others=>'0')                       -- snum
   );
 
@@ -967,6 +970,7 @@ component pdp11_mmu_mmr12 is            -- mmu register mmr1 and mmr2
     CRESET : in slbit;                  -- cpu reset
     TRACE : in slbit;                   -- trace enable
     MONI : in mmu_moni_type;            -- MMU monitor port data
+    VADDR : in slv16;                   -- virtual address
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type          -- ibus response
   );

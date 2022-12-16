@@ -1,9 +1,10 @@
-# $Id: dmpcnt.tcl 1177 2019-06-30 12:34:07Z mueller $
+# $Id: dmpcnt.tcl 1330 2022-12-16 17:52:40Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2018-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2022-12-12  1330   1.1.2  rename vfetch -> vstart
 # 2018-11-09  1066   1.1.1  pc_sta: fix default file name
 # 2018-10-21  1058   1.1    add logger, pc_l* commands
 # 2018-10-13  1055   1.0    Initial version
@@ -26,7 +27,7 @@ namespace eval rw11 {
    # preliminary handling of counter names, hack in first version
   variable pcnt_cnames [list cpu_cpbusy cpu_km_prix cpu_km_pri0 cpu_km_wait \
                              cpu_sm cpu_um cpu_idec cpu_pcload \
-                             cpu_vfetch cpu_irupt ca_rd ca_wr \
+                             cpu_vstart cpu_irupt ca_rd ca_wr \
                              ca_rdhit ca_wrhit ca_rdmem ca_wrmem \
                              ca_rdwait ca_wrwait ib_rd ib_wr \
                              ib_busy rb_rd rb_wr rb_busy \

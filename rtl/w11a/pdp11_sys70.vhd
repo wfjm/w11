@@ -1,6 +1,6 @@
--- $Id: pdp11_sys70.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: pdp11_sys70.vhd 1330 2022-12-16 17:52:40Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    pdp11_sys70 - syn
@@ -23,10 +23,11 @@
 --
 -- Test bench:     tb/tb_pdp11_core (implicit)
 -- Target Devices: generic
--- Tool versions:  ise 14.7; viv 2014.4-2019.1; ghdl 0.33-0.35
+-- Tool versions:  ise 14.7; viv 2014.4-2022.1; ghdl 0.33-2.0.0
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-12-12  1330   1.3.4  dm_stat_se_type: rename vfetch -> vstart
 -- 2019-06-02  1159   1.3.3  use rbaddr_ constants
 -- 2019-03-02  1116   1.3.2  add RESET_SYS; fix pdp11_mem70 reset
 -- 2019-02-16  1112   1.3.1  add ibd_ibtst
@@ -344,7 +345,7 @@ begin
 
       isig(6)  := DM_STAT_SE.idec;          -- cpu_idec
       isig(7)  := DM_STAT_SE.pcload;        -- cpu_pcload
-      isig(8)  := DM_STAT_SE.vfetch;        -- cpu_vfetch
+      isig(8)  := DM_STAT_SE.vstart;        -- cpu_vstart
       isig(9)  := EI_ACKM_L;                -- cpu_irupt (not counting PIRQ!)
       
       isig(10) := DM_STAT_CA.rd;            -- ca_rd

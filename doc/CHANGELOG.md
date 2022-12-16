@@ -46,14 +46,17 @@ The full set of tests is only run for tagged releases.
   - pdp11.vhd: rename, eg srv->ser; cpustat_type: drop trap_done, add in_vecysv,
       treq_tbit,resetcnt; decode_stat_type: op_rti instead of op_rtt
   - pdp11_decode.vhd: use op_rti instead of op_rtt
+  - pdp11_sequencer.vhd:
+    - tbit logic overhaul; use treq_tbit; cleanups; use resetcnt for 8 cycle
+      RESET wait, see [ECO-035](ECO-035-stklim-tbit-fixes.md)
+    - implement MMR0,MMR2 instruction complete,
+      see [ECO-037](ECO-037-mmu-instruction_complete.md)
   - pdp11_vmbox.vhd: rename some rsv->ser; remove obsolete trap_done
-  - pdp11_sequencer.vhd: tbit logic overhaul; use treq_tbit; cleanups;
-      use resetcnt for 8 cycle RESET wait see
-      [ECO-035](ECO-035-stklim-tbit-fixes.md)
   - rtl/sys_gen/w11a/s3board/sys_conf.vhd: disable monitors for timing closure
   - rtl/sys_gen/w11a/\*/\*.vmfset: drop removed signals
 - general changes
   - rename _gpr to _gr, use 'general registers' not 'general purpose registers'
+  - rename vfetch -> vstart
 ### Bug Fixes
   - rtl/w11a
     - pdp11_sequencer:

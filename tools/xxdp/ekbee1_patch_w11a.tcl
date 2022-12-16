@@ -1,4 +1,4 @@
-# $Id: ekbee1_patch_w11a.tcl 1329 2022-12-11 17:28:28Z mueller $
+# $Id: ekbee1_patch_w11a.tcl 1330 2022-12-16 17:52:40Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -63,11 +63,12 @@ dep 055404 000137
 dep 055406 055554
 #
 # AP: skip test 067: verify MMR0(7) ------------------------------------------
-#   Tests verifies MMR0(7) instruction complete. Not implemented in w11.
-#   The test loops-up.
+#   w11 implements MMR0(7) instruction complete but has a different MMR1
+#   response. The 11/70 decrements SP twice before the 1st push, MMR1 has
+#   therefore 173366 after a 1st push abort. The w11 decrements SP before
+#   each push, MMR1 has therefore 000366 1st push abort. Test is patched.
 #
-dep 056536 000137
-dep 056540 057120
+dep 057010 000366
 #
 # AP: patch test 122: KT BEND ------------------------------------------------
 #   Tests MMU vs NXM,ODD,RED behavior

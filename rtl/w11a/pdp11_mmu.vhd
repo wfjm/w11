@@ -1,4 +1,4 @@
--- $Id: pdp11_mmu.vhd 1323 2022-12-01 08:00:41Z mueller $
+-- $Id: pdp11_mmu.vhd 1330 2022-12-16 17:52:40Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -17,6 +17,7 @@
 --
 -- Revision History:
 -- Date         Rev Version  Comment
+-- 2022-12-12  1330   1.4.6  implement MMR0 instruction complete
 -- 2022-11-29  1323   1.4.5  rename mmu_mmr0_type dspace->page_dspace
 -- 2022-09-05  1294   1.4.4  BUGFIX: correct trap and PDR A logic
 -- 2022-08-13  1279   1.4.3  ssr->mmr rename
@@ -129,6 +130,7 @@ begin
     CRESET  => CRESET,
     TRACE   => TRACE,
     MONI    => MONI,
+    VADDR   => VADDR,
     IB_MREQ => IB_MREQ,
     IB_SRES => IB_SRES_MMR12);
 
@@ -364,14 +366,10 @@ begin
       
     elsif nmmr0.ena_mmu='1' and CNTL.cacc='0' then
 
-      if dotrace = '1' then
-        if MONI.istart = '1' then
-          nmmr0.inst_compl := '0';
-        elsif MONI.idone = '1' then
-          nmmr0.inst_compl := '0';      -- disable instr.compl logic
-        end if;
+      if mmr_freeze = '0' then
+        nmmr0.inst_compl := MONI.vflow;
       end if;
-      
+
       if CNTL.req = '1' then
         AIB_WE <= '1';
         if mmr_freeze = '0' then
@@ -391,8 +389,8 @@ begin
           nmmr0.page_num    := apf;
           nmmr0.page_mode   := CNTL.mode;
         end if;
-      end if;
-    end if;
+      end if;  -- CNTL.req = '1'
+    end if;  -- nmmr0.ena_mmu='1' and CNTL.cacc='0'
 
     if CNTL.req='1' and R_MMR0.ena_mmu='1' and CNTL.cacc='0' and
        dotrap='1' then

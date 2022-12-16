@@ -6,11 +6,11 @@ The issues of the w11 CPU and systems are listed in a separate document
 
 ### Known differences between w11a and KB11-C (11/70)
 - [Instruction fetch after `SPL`](w11a_diff_70_spl_bug.md)
-- [Stack limit checks done independent of register set](w11a_diff_70_stklim_rset.md)
-- ['instruction completed flag' in `MMR0` is not implemented](w11a_diff_70_instruction_complete.md)
 - [`CLR` and `SXT` do a write](w11a_diff_70_clr_sxt_write.md)
 - [`jsr sp` pushes original `sp` value](w11a_diff_70_jsr_sp.md)
+- [Stack limit checks done independent of register set](w11a_diff_70_stklim_rset.md)
 - [18-bit UNIBUS address space not mapped](w11a_diff_70_unibus_mapping.md)
+- [`MMR0` instruction complete implementation differences](w11a_diff_70_instruction_complete.md)
 - [MMU traps not suppressed when MMU register accessed](w11a_diff_70_mmu_trap_suppression.md)
 - [MMU aborts have priority over NXM aborts](w11a_diff_70_mmu_nxm_prio.md)
 - [`MMR0` abort flags are set when stack limit abort done](w11a_diff_70_mmu_stklim_prio.md)

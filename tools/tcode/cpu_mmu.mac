@@ -1,16 +1,16 @@
-; $Id: cpu_mmu.mac 1329 2022-12-11 17:28:28Z mueller $
+; $Id: cpu_mmu.mac 1330 2022-12-16 17:52:40Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2022-12-01  1324   1.0    Initial version
+; 2022-12-16  1330   1.0    Initial version
 ; 2022-07-24  1262   0.1    First draft
 ;
 ; Test CPU MMU: all aspects of the MMU
 ;   Section A: pdr,par registers
 ;   Section B: mmr0,mmr3 registers, mapping, instructions
-;   Section C: mmr1+mmr0 register, aborts
+;   Section C: mmr2+mmr1+mmr0 register, aborts
 ;   Section D: mmr2+mmr1+mmr0 register, abort recovery
 ;   Section E: traps and pdr aia and aiw bits
 ;   Section F: miscellaneous
@@ -20,8 +20,8 @@
 ;   page 1  main code
 ;   page 2
 ;   page 3
-;   page 4  code mapped in user/super space; test E1.4 code
-;   page 5  code for test E1.4
+;   page 4  code mapped in user/super space; test E1.4 code (page 4->5 border)
+;   page 5  code for test E1.4 (page 4->5 border)
 ;   page 6  data test target
 ;   page 7  iopage
 ;
@@ -700,7 +700,7 @@ tb0402: tstb    systyp          ; skip if not on w11
 ;
 9999$:  iot
 ;
-; Section C: mmr1+mmr0 register, aborts ======================================
+; Section C: mmr2+mmr1+mmr0 register, aborts =================================
 ;   C1    MMU response in mmr1 after a write to that fakes an abort
 ;   C2    MMU abort response in mmr0 and mmr1
 ;   C2.1    test unary/binary instructions
@@ -718,7 +718,10 @@ tb0402: tstb    systyp          ; skip if not on w11
 ;   C2.4    mmu abort vs nxm abort
 ;   C2.5    mmu abort in vector flow - kernel mode
 ;   C2.6    mmu abort in vector flow - supervisor mode
-;   C2.7    mmu abort plus stack limit abort
+;   C2.7    mmu abort in 1st instruction after vector flow
+;   C2.8    mmu abort of prefetched instruction
+;   C2.9    mmu aborts and memory status
+;   C2.10   mmu abort plus stack limit abort
 ;
 ; Test C1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;   Verify MMU response in mmr1 after a write to that fakes an abort
@@ -1320,23 +1323,25 @@ tc0204: mov     cp.los,kipar6           ; map begin of non-existent memory
 ;
 ; part1: MMU allows access to NXM memory --> NXM abort ---------------
 ;
-        clr     cp.err                  ; clear CPUERR
-        mov     #1000$,v..iit           ; set vector 4 handler for NXM abort
+1000$:  clr     cp.err                  ; clear CPUERR
+        mov     #1100$,v..iit           ; set vector 4 handler for NXM abort
         clr     @#p6p1p2                ; access
         halt
-1000$:  mov     #stack,sp               ; vector 4 taken
+1100$:  mov     #stack,sp               ; vector 4 taken
         hcmpeq  cp.err,#cp.nxm          ; NXM error seen
         mov     #v..iit+2,v..iit        ; restore iit handler to catcher
 ;
 ; part2: MMU denies access to NXM memory --> MMU abort ---------------
 ;
-        mov     #<127.*md.plf>!md.an7,kipdr6  ; deny access via acf=7
+2000$:  mov     #<127.*md.plf>!md.an7,kipdr6  ; deny access via acf=7
         clr     cp.err                  ; clear CPUERR
-        mov     #2000$,v..mmu           ; set vector 250 handler for MMU abort
-        clr     @#p6p1p2                ; access
+        mov     #2100$,v..mmu           ; set vector 250 handler for MMU abort
+2010$:  clr     @#p6p1p2                ; access
         halt
-2000$:  mov     #stack,sp               ; vector 250 taken
-        htsteq  cp.err                  ; check CPUERR (no NXM expected)
+2100$:  mov     #stack,sp               ; vector 250 taken
+        htsteq  cp.err                  ; check CPUERR: no NXM expected
+        hcmpeq  #m0.anr!<6*m0.pno>!m0.ena,mmr0   ; check mmr0
+        hcmpeq  #2010$,mmr2             ; check mmr2: failed instruction
         mov     #v..mmu+2,v..mmu        ; restore mmu handler to catcher
 ;
         reset                   ; mmu off                       ;! MMU off
@@ -1356,6 +1361,8 @@ tc0204: mov     cp.los,kipar6           ; map begin of non-existent memory
 ;   See also cpu_details test A3.5, checks vector push abort by stklim.
 ;
 tc0205: mov     #<127.*md.plf>,kipdr5   ; page 5 non-resident (afc=0)
+        mov     #177777,p6base          ; set signatures (will be overwritten)
+        mov     #177777,p6base-2        ; set signatures (will stay)
         mov     #m0.ena,mmr0            ; enable mmu            ;! MMU 18
         mov     #200$,v..iit            ; iit handler
         mov     #cp.pr1!cp000c,v..iit+2 ; use PR1+000C as signature iit
@@ -1389,8 +1396,12 @@ tc0205: mov     #<127.*md.plf>,kipdr5   ; page 5 non-resident (afc=0)
         hcmpeq  (sp),#300$              ; PC: return after trap
         hcmpeq  2(sp),#cp.pr5!cpnzvc    ; PS: should be code signature
 ;
-; restore
+; check signatures, check that nothing written to page 5
         reset                           ; mmu off               ;! MMU off
+        hcmpeq  #cp.pr4,p6base          ; code signature of 1st push of TRAP
+        hcmpeq  #177777,p6base-2        ; must be untouched
+;
+; restore
         mov     #<127.*md.plf>!md.arw,kipdr5    ; reset kipdr5
         mov     #v..iit+2,v..iit        ; v..iit to catcher
         clr     v..iit+2
@@ -1411,6 +1422,7 @@ tc0205: mov     #<127.*md.plf>,kipdr5   ; page 5 non-resident (afc=0)
 ;   and a PIRQ handler in supervisor space.
 ;   Verify that PS and PC at the beginning of the failed vector flow are saved.
 ;   Test inspired by ekbee1 test 124.
+;   Verify also that MMR0,MMR2 instruction complete (unless on SimH)
 ;
 tc0206: mov     kipdr0,sipdr0           ; super page 0 1-to-1
         mov     kipar0,sipar0
@@ -1440,7 +1452,16 @@ tc0206: mov     kipdr0,sipdr0           ; super page 0 1-to-1
         hcmpeq  (sp),#100$              ; PC: return after mov
         hcmpeq  2(sp),#cp.cms!cp.pr1    ; PS: should be code signature
 ;
+; check mmr0,mmr2 instruction complete (unless on SimH)
+        cmpb    systyp,#sy.sih
+        beq     290$
+        hcmpeq  #m0.anr!m0.ale!m0.ico!m0.pms!<5*m0.pno>!m0.ena,mmr0 ; check mmr0
+        hcmpeq  #^b1111011011110110,mmr1  ; check mmr1: two SP decrements
+        hcmpeq  #v..pir,mmr2            ; check mmr2: failed vector
+290$:
+;
 ; abort on 1st push ------------------------------
+        bic     #m0.anr!m0.ale!m0.ard,mmr0  ; clear mmr0 abort flags
         mov     #400$,v..mmu            ; mmu handler
         mov     #stack,sp               ; set kernel SP
         mov     #cp.cms!cp.pr7,cp.psw   ; switch to supervisor mode, PR7
@@ -1455,6 +1476,14 @@ tc0206: mov     kipdr0,sipdr0           ; super page 0 1-to-1
         hcmpeq  sp,#stack-4             ; check stack, 1 frame
         hcmpeq  (sp),#300$              ; PC: return after mov
         hcmpeq  2(sp),#cp.cms!cp.pr2    ; PS: should be code signature
+;
+; check mmr0,mmr2 instruction complete (unless on SimH)
+        cmpb    systyp,#sy.sih
+        beq     490$
+        hcmpeq  #m0.anr!m0.ale!m0.ico!m0.pms!<5*m0.pno>!m0.ena,mmr0 ; check mmr0
+        hcmpeq  #^b0000000011110110,mmr1  ; check mmr1: one SP decrement
+        hcmpeq  #v..pir,mmr2            ; check mmr2: failed vector
+490$:
 ;
 ; restore ----------------------------------------
         clr     cp.psw                  ; to kernel
@@ -1473,14 +1502,94 @@ tc0206: mov     kipdr0,sipdr0           ; super page 0 1-to-1
 ;
 9999$:  iot                                     ; end of test C2.6
 ;
-; Test C2.7 -- mmu abort plus stack limit abort ++++++++++++++++++++++
+; Test C2.7 -- mmu abort in 1st instruction after vector flow ++++++++
+;   Verifies that 1st instruction after a vector flow has correct MMR0,MMR2
+;   instruction complete signature, especially MMR0(ico)=0. Tested with an
+;   abort of the instruction fetch of 1st instruction. The TRAP handler
+;   address is set to page 6 which is made non-resident.
+;
+tc0207: clr     kipdr6                  ; kernel page 6 non-resident
+        mov     #m0.ena,mmr0            ; enable mmu            ;! MMU 18
+        mov     #p6base+10,v..trp       ; TRAP handler in page 6
+        mov     #200$,v..mmu            ; mmu handler
+100$:   trap    100                     ; will fail
+        halt
+200$:   hcmpeq  #m0.anr!<6*m0.pno>!m0.ena,mmr0 ; check mmr0: ico=0
+        htsteq  mmr1                    ; check mmr1: no regs touched
+        hcmpeq  v..trp,mmr2             ; check mmr2: point to 1st instruction
+;
+        reset                           ; mmu off               ;! MMU off
+        mov     #<127.*md.plf>!md.arw,kipdr6  ; restore kipdr6
+        mov     #v..mmu+2,v..mmu        ; v..mmu to catcher
+        clr     v..mmu+2
+        mov     #v..trp+2,v..trp        ; v..trp to catcher
+        clr     v..trp+2
+        mov     #stack,sp               ; SP to default
+;
+9999$:  iot                                     ; end of test C2.7
+;
+; Test C2.8 -- mmu abort of prefetched instruction +++++++++++++++++++
+;   Verifies that MMR2 points to the correct instruction if the fetch
+;   of a prefetched instruction fails. Uses the code p5ce14 initially
+;   written for E1.4 located at the page 4 to page 5 border.
+;
+tc0208: clr     kipdr5                  ; kernel page 5 non-resident
+        mov     #m0.ena,mmr0            ; enable mmu            ;! MMU 18
+        mov     #200$,v..mmu            ; mmu handler
+        clr     r2                      ; clear counter
+        mov     #100$,r3                ; ptr to failed landing
+        jmp     @#p5ce14                ; start test code
+;
+100$:   halt                            ; lands here if no abort
+200$:   hcmpeq  #3,r2                   ; check, 3 executed inc
+        hcmpeq  #m0.anr!<5*m0.pno>!m0.ena,mmr0 ; check mmr0
+        htsteq  mmr1                    ; check mmr1: no regs touched
+        hcmpeq  #p5base,mmr2            ; check mmr2: point failed instruction
+;
+        reset                           ; mmu off               ;! MMU off
+        mov     #<127.*md.plf>!md.arw,kipdr5  ; restore kipdr5
+        mov     #v..mmu+2,v..mmu        ; v..mmu to catcher
+        clr     v..mmu+2
+        mov     #stack,sp               ; SP to default
+;
+9999$:  iot                                     ; end of test C2.8
+;
+; Test C2.9 -- mmu aborts and memory status ++++++++++++++++++++++++++
+;   Verifies, a bit late, that an aborted write didnt change memory
+;
+tc0209: clr     kipdr6                  ; kernel page 6 non-resident
+        mov     #177777,p6base-2        ; set signatures (will be overwritten)
+        mov     #177777,p6base          ; set signatures (will stay)
+        mov     #m0.ena,mmr0            ; enable mmu            ;! MMU 18
+        mov     #200$,v..mmu            ; mmu handler
+        mov     #p6base-2,r1
+        clr     (r1)+                   ; succeeds
+100$:   clr     (r1)+                   ; fails
+        halt
+;
+200$:   hcmpeq  #m0.anr!<6*m0.pno>!m0.ena,mmr0 ; check mmr0
+        hcmpeq  #^b00010001,mmr1        ; check mmr1: r1 +2
+        hcmpeq  #100$,mmr2              ; check mmr2: point failed instruction
+;
+        reset                           ; mmu off               ;! MMU off
+        htsteq  p6base-2                ; check signature
+        hcmpeq  #177777,p6base          ; check signature
+;
+        mov     #<127.*md.plf>!md.arw,kipdr6  ; restore kipdr6
+        mov     #v..mmu+2,v..mmu        ; v..mmu to catcher
+        clr     v..mmu+2
+        mov     #stack,sp               ; SP to default
+;
+9999$:  iot                                     ; end of test C2.9
+;
+; Test C2.10 -- mmu abort plus stack limit abort +++++++++++++++++++++
 ;   Consider an instruction that is aborted due to red stack violation an the
 ;   destination address would cause an MMU abort. Tested in ekbee1 test 122
 ;   2nd part. The 11/70 and the simulators take a vector 4 and do not set MMR0
 ;   abort bits. The w11 also takes a vector 4 but will set MMR0 abort bits. 
 ;   Verify this w11 specific behavior.
 ;
-tc0207: tstb    systyp          ; skip if not on w11
+tc0210: tstb    systyp          ; skip if not on w11
         blt     9999$
 ;
         mov     #<127.*md.plf>,kipdr6   ; page 6 non-resident (afc=0)
@@ -1493,14 +1602,16 @@ tc0207: tstb    systyp          ; skip if not on w11
         mov     #p6base+336,sp          ; in red zone
         spl     4
         ccc
-        inc     (sp)                    ; fails (use inc to avoid dstw cc issue)
+ 90$:   inc     (sp)                    ; fails (use inc to avoid dstw cc issue)
 100$:   halt                            ; label after clr
 110$:   halt                            ; mmu catcher
 ;
 200$:   htsteq  sp                      ; check emergency stack done
         hcmpeq  (sp),#100$              ; PC: return after trap
         hcmpeq  2(sp),#cp.pr4           ; PS: should be code signature
-        hcmpeq  #m0.anr!<6*m0.pno>!m0.ena,mmr0     ; check mmr0, expect abort
+        hcmpeq  #m0.anr!<6*m0.pno>!m0.ena,mmr0     ; check mmr0: expect abort
+        htsteq  mmr1                    ; check mmr1: no regs changed
+        hcmpeq  #90$,mmr2               ; check mmr2: instruction
 ;
         reset                           ; mmu off               ;! MMU off
         mov     #stack,sp               ; SP to default
@@ -1511,7 +1622,7 @@ tc0207: tstb    systyp          ; skip if not on w11
         clr     v..mmu+2
         spl     0                       ; back to PR0        
 ;
-9999$:  iot                                     ; end of test C2.7
+9999$:  iot                                     ; end of test C2.10
 ;
 ; Section D: mmr2+mmr1+mmr0 register, abort recovery =========================
 ;   D1    code in user mode with D space, simulated SP extend
@@ -1614,10 +1725,10 @@ td0101:
         bic     #^c7,r2         ; mask out regnum field
         asl     r2              ; word offset
         add     sp,r2           ; address of register on stack
-        movb    r0,r3
+        movb    r0,r3           ; sign extend
+        asr     r3              ; and shift 3 bits right
         asr     r3
-        asr     r3
-        asr     r3              ; register correction
+        asr     r3              ; to get register correction
         sub     r3,(r2)         ; and correct register
         swab    r0              ; go for 2nd half
         sob     r1,2100$        ; and loop
@@ -1635,7 +1746,9 @@ td0101:
 ; roll back PC to re-run aborted instruction
         mov     mmr2,(sp)       ; roll back PC
         bic     #<m0.anr!m0.ale!m0.ard>,mmr0    ; clear abort bits
-        rti                     ; return and restart instruction
+        rtt                     ; return and restart instruction
+                                ; MMU abort reruns must use rtt to avoid a
+                                ; spurious tbit trap in case traced instruction 
 ;
 3000$:  .word   0               ; save mmr0
 3001$:  .word   0               ; save mmr1
@@ -2173,12 +2286,33 @@ tf0102: mov     #154345,@#p6base ; inititialize target
 9999$:  iot                     ; end of test F1.2
 ;
 ; Summary
-;; END OF ALL TESTS - loop closure ============================================
+; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#26.      ; all tests done ?
+        hcmpeq  tstno,#29.      ; all tests done ?
+        call    chkpdr          ; kernel pdr/par OK ?
 ;
         jmp     loop
+;
+; pdr/par consistency checker
+;   Verify that kernel pdr/par are in default configuration set up by A1.2.
+;   Implentend as subroutine for debug purposes. Always called at end of tests.
+;
+chkpdr: mov     #kipdr0,r0
+        mov     #kipar0,r1
+        mov     #<127.*md.plf>!md.arw,r2        ; default pdr
+        clr     r3                              ; current par
+        mov     #200,r4                         ; par increment
+        mov     #7.,r5                          ; check 0...6
+100$:   mov     (r0),(r0)                       ; clear AI bits with re-write
+        hcmpeq  r2,(r0)+                        ; check pdr
+        hcmpeq  r3,(r1)+                        ; check par
+        add     r4,r3                           ; step to next par value
+        sob     r5,100$
+        mov     (r0),(r0)                       ; clear AI bits with re-write
+        hcmpeq  r2,(r0)+                        ; check pdr7
+        hcmpeq  #177600,(r1)+                   ; check par7
+        return
 ;
 ; kernel handlers and helpers ================================================
 ;
@@ -2259,12 +2393,13 @@ vhtpir: htstge  (r5)            ; r5 at fence ?
 ; They are located in page 4 at 100000 and above and are position-independent
 ; code. That allows to assemble and load them together with the main code.
 ;
-; vc0 - simple code ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        . = 100000
+;
+; vc0 - simple code ++ used from B3.1 ++++++++++++++++++++++++++++++++++++++++
 ;    uses jsr, has stack below 1000 (no problem in user/supervisor mode)
 ;    does operations with vc0v0, vc0v1, vc0v2
 ;    these location are usually set before and checked afterwards in kernel mode
 ;
-        . = 100000
 vc0:    jmp     100$
         .blkw   14.             ; small stack space
 100$:   mov     #40,sp          ; initialize stack
@@ -2281,7 +2416,7 @@ vc0v0:  .word   0
 vc0v1:  .word   0
 vc0v2:  .word   0
 ;
-; vc1 - simple I/D code ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+; vc1 - simple I/D code ++ used from B3.2 ++++++++++++++++++++++++++++++++++++
 ;    uses jsr, has stack below 1000 (no problem in user/supervisor mode)
 ;    does operations with vc1v0, vc1v1, vc1v2
 ;    these locations are usually set before and checked afterwards in kernel mode
@@ -2307,7 +2442,7 @@ vc1v0:  .word   0
 vc1v1:  .word   0
 vc1v2:  .word   0
 ;
-; vc2 - stack push I/D code ++++++++++++++++++++++++++++++++++++++++++++++++++
+; vc2 - stack push I/D code ++ used from D1.1 ++++++++++++++++++++++++++++++++
 ;    set SP just above the stack page end; push data
 ;    expect kernel handler to extend the stack and re-run failed push
 ;

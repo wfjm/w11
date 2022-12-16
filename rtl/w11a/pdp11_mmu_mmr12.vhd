@@ -1,4 +1,4 @@
--- $Id: pdp11_mmu_mmr12.vhd 1291 2022-09-03 07:00:27Z mueller $
+-- $Id: pdp11_mmu_mmr12.vhd 1330 2022-12-16 17:52:40Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,6 +13,7 @@
 -- 
 -- Revision History:
 -- Date         Rev Version  Comment
+-- 2022-12-12  1330   1.2.5  implement MMR2 instruction complete
 -- 2022-08-30  1291   1.2.4  use ra_delta to steer mmr1 updates
 -- 2022-08-13  1279   1.2.3  ssr->mmr rename
 -- 2011-11-18   427   1.2.2  now numeric_std clean
@@ -43,6 +44,7 @@ entity pdp11_mmu_mmr12 is               -- mmu register mmr1 and mmr2
     CRESET : in slbit;                  -- cpu reset
     TRACE : in slbit;                   -- trace enable
     MONI : in mmu_moni_type;            -- MMU monitor port data
+    VADDR : in slv16;                   -- virtual address
     IB_MREQ : in ib_mreq_type;          -- ibus request
     IB_SRES : out ib_sres_type          -- ibus response
   );
@@ -118,7 +120,7 @@ begin
   end process proc_regs;
 
   proc_comb : process (CRESET, IBSEL_MMR1, IB_MREQ,
-                       R_MMR1, R_MMR2, TRACE, MONI)
+                       R_MMR1, R_MMR2, TRACE, MONI, VADDR)
 
     variable nmmr1 : mmu_mmr1_type := mmu_mmr1_init;
     variable nmmr2 : slv16 := (others=>'0');
@@ -147,9 +149,9 @@ begin
       
     elsif TRACE = '1' then
 
-      if MONI.istart = '1' then
+      if MONI.istart='1' or MONI.vstart='1' then
         nmmr1 := mmu_mmr1_init;
-        nmmr2 := MONI.pc;
+        nmmr2 := VADDR;
 
       elsif MONI.regmod = '1' then
         if R_MMR1.ra_delta = "00000" then

@@ -1,9 +1,10 @@
-# $Id: test_pcnt_codes.tcl 1273 2022-08-07 18:40:56Z mueller $
+# $Id: test_pcnt_codes.tcl 1330 2022-12-16 17:52:40Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2018-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2022-12-12  1330   1.0.2  rename vfetch -> vstart
 # 2022-08-07  1273   1.0.1  ssr->mmr rename
 # 2018-10-13  1055   1.0    Initial version
 # 2018-10-06  1053   0.1    First draft
@@ -179,7 +180,7 @@ tmpproc_dotest $cpu $code \
   cpu_sm        0 \
   cpu_um        0 \
   cpu_idec     34 \
-  cpu_vfetch    0 \
+  cpu_vstart    0 \
   cpu_irupt     0 \
   cpu_pcload   31 \
   ca_rd        35 \
@@ -211,7 +212,7 @@ tmpproc_dotest $cpu $code \
   cpu_um        0 \
   cpu_idec     67 \
   cpu_pcload   31 \
-  cpu_vfetch    0 \
+  cpu_vstart    0 \
   cpu_irupt     0 \
   ca_rd        68 \
   ca_wr         0 \
@@ -243,7 +244,7 @@ tmpproc_dotest $cpu $code \
   cpu_um        0 \
   cpu_idec     67 \
   cpu_pcload   31 \
-  cpu_vfetch    0 \
+  cpu_vstart    0 \
   cpu_irupt     0 \
   ca_rd       133 \
   ca_wr        33 \
@@ -278,7 +279,7 @@ tmpproc_dotest $cpu $code \
   cpu_um        0 \
   cpu_idec     99 \
   cpu_pcload   31 \
-  cpu_vfetch    0 \
+  cpu_vstart    0 \
   cpu_irupt     0 \
   ca_rd       133 \
   ca_wr         0 \
@@ -314,7 +315,7 @@ tmpproc_dotest $cpu $code \
   cpu_sm        0 \
   cpu_um        0 \
   cpu_idec      7 \
-  cpu_vfetch    0 \
+  cpu_vstart    0 \
   cpu_irupt     0 \
   cpu_pcload    0 \
   ca_rd        11 \
@@ -346,7 +347,7 @@ tmpproc_dotest $cpu $code \
   cpu_sm       -4 \
   cpu_um        0 \
   cpu_idec      7 \
-  cpu_vfetch    0 \
+  cpu_vstart    0 \
   cpu_irupt     0 \
   cpu_pcload    0 \
   ca_rd        11 \
@@ -378,7 +379,7 @@ tmpproc_dotest $cpu $code \
   cpu_sm        0 \
   cpu_um       -4 \
   cpu_idec      7 \
-  cpu_vfetch    0 \
+  cpu_vstart    0 \
   cpu_irupt     0 \
   cpu_pcload    0 \
   ca_rd        11 \
@@ -423,7 +424,7 @@ tmpproc_dotest $cpu $code \
   cpu_sm        0 \
   cpu_um        0 \
   cpu_idec     14 \
-  cpu_vfetch    4 \
+  cpu_vstart    4 \
   cpu_irupt     0 \
   cpu_pcload    8 \
   ca_rd        34 \
@@ -480,5 +481,5 @@ tmpproc_dotest $cpu $code \
   cpu_km_wait   0 \
   cpu_sm        0 \
   cpu_um        0 \
-  cpu_vfetch    3 \
+  cpu_vstart    3 \
   cpu_irupt     3 

@@ -1,9 +1,10 @@
-# $Id: test_pcnt_basics.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_pcnt_basics.tcl 1330 2022-12-16 17:52:40Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2018- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2018-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2022-12-12  1330   1.0.1  rename vfetch -> vstart
 # 2018-10-06  1053   1.0    Initial version
 # 2018-09-23  1050   0.1    First draft
 #
@@ -53,7 +54,7 @@ $cpu cp \
 #     5      =0    cpu_um
 #     6      67    cpu_inst
 #     7      31    cpu_pcload
-#     8      =0    cpu_vfetch
+#     8      =0    cpu_vstart
 #     9      =0    cpu_irupt
 rlc log "    A2: test random access (ainc=0) --------------------"
 # read pc(6) twice, (9) once, (7) one, check status

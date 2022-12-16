@@ -1,9 +1,10 @@
-# $Id: dmcmon.tcl 1177 2019-06-30 12:34:07Z mueller $
+# $Id: dmcmon.tcl 1330 2022-12-16 17:52:40Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2022-12-12  1330   2.0.1  rename vfetch -> vstart
 # 2017-04-23   885   2.0    revised interface, add suspend
 # 2017-01-02   837   1.0.2  add procs cme,cml
 # 2016-12-29   833   1.0.1  cm_print: protect against empty lists
@@ -39,7 +40,7 @@ namespace eval rw11 {
   regdsc CM_D5     {cmode 15 2} {pmode 13 2} {rset 11} \
                      {pri 7 3 d} {tflag 4} {cc 3 4 "-"}  {n 3} {z 2} {v 1} {c 0} 
   regdsc CM_D5IM0  {dres_val 10} {ddst_we 9} {dsrc_we 8}
-  regdsc CM_D5IM1  {vfetch 8}
+  regdsc CM_D5IM1  {vstart 8}
 
   variable CM_D8_VMERR_ODD   01
   variable CM_D8_VMERR_MMU   02
@@ -205,7 +206,7 @@ namespace eval rw11 {
       reggetkv rw11::CM_D7    $d7 "d7_" pc idec
       set d7_pc [expr {$d7_pc << 1}]
       reggetkv rw11::CM_D5IM0 $d5 "d5_" dres_val ddst_we dsrc_we
-      reggetkv rw11::CM_D5IM1 $d5 "d5_" vfetch
+      reggetkv rw11::CM_D5IM1 $d5 "d5_" vstart
 
       set p_iflag " "
       if {$d8_istart}              {set p_iflag "-"}
@@ -282,9 +283,9 @@ namespace eval rw11 {
       append line " [cm_print_coct $d0 $p_new 0 $vmbytop]"
 
       if {$imode} {
-        if {$d5_vfetch} {
+        if {$d5_vstart} {
           set vnam [string toupper [rw11::dasm_vec2txt $d1]]
-          append line " !VFETCH [format %3.3o $d1] ${vnam}"
+          append line " !VSTART [format %3.3o $d1] ${vnam}"
         } else {
           # if vmerr and same pc,ireg as previous entry suppress dasm line
           # that ensures that ifetch Eodd's will not give double dasm lines

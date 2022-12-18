@@ -4,7 +4,7 @@
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2022-12-16  1330   1.0    Initial version
+; 2022-12-17  1331   1.0    Initial version
 ; 2022-07-24  1262   0.1    First draft
 ;
 ; Test CPU MMU: all aspects of the MMU
@@ -39,6 +39,12 @@
 
        sipdr0 = sipdr+ 0
        sipar0 = sipar+ 0
+       sipdr1 = sipdr+ 2
+       sipar1 = sipar+ 2
+       sipdr2 = sipdr+ 4
+       sipar2 = sipar+ 4
+       sipdr3 = sipdr+ 6
+       sipar3 = sipar+ 6
        sipdr6 = sipdr+14
        sipar6 = sipar+14
        sipdr7 = sipdr+16
@@ -47,6 +53,8 @@
        kipdr0 = kipdr+ 0
        kipar0 = kipar+ 0
        kdpdr0 = kdpdr+ 0
+       kipdr1 = kipdr+ 2
+       kipar1 = kipar+ 2
        kipdr5 = kipdr+12
        kipdr6 = kipdr+14
        kipar6 = kipar+14
@@ -69,6 +77,18 @@
        p6base = <6*20000>               ; page 6
        p6p1p2 = p6base+<1*100>+2        ; page 6, +1 click, +2
        p7base = <7*20000>               ; page 7
+;
+; helper macro for trace area check setup  (from cpu_details A4)
+        .macro  htinit,buf,nent
+        hcmpeq  #buf+<4*nent>,r5
+        mov     #buf,r5
+        .endm
+;
+; helper macro for trace area check entry  (from cpu_details A4)
+        .macro  htitem,tvec,tadr
+        hcmpeq  tvec,(r5)+
+        hcmpeq  tadr,(r5)+
+        .endm
 ;
 ; Section A: pdr,par registers ===============================================
 ;   A1.1    test that pdr/par are 16 bit write/readable
@@ -1626,6 +1646,7 @@ tc0210: tstb    systyp          ; skip if not on w11
 ;
 ; Section D: mmr2+mmr1+mmr0 register, abort recovery =========================
 ;   D1    code in user mode with D space, simulated SP extend
+;   D2    vector push abort with simulated SP extend
 ;
 ; Test D1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;
@@ -1755,6 +1776,240 @@ td0101:
 3002$:  .word   0               ; save mmr2
 ;
 9999$:  iot                     ; end of test D1.1
+;
+; Test D2:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;
+; Test D2.1 -- vector push abort with simulated SP extend ++++++++++++
+;   This test is a full mock-up of a vector push abort recovery using the
+;   MMR0,MMR2 instruction complete functionality. The test setup is
+;   - the PIRQ handler is delegated to supervisor mode
+;   - the supervisor stack is too short, the 2nd push of a vector flow
+;     causes an MMU length abort
+;   - the MMU handler sees MMR0(7) set to '1', extends the stack, builds
+;     the return frame on the supervisor stack, and starts the PIRQ handler
+;   - the PIRQ handler ends with a call to a simulated system service that
+;     handles the RTI in kernel mode. That is necessary because an RTI from
+;     supervisor mode can not return to kernel mode (escalation protection).
+;   To simulate a full function MMU handler the test setup has in addition
+;   - the PIRQ handler code is in an initially unmapped page. When the code
+;     is started after the stack recovery, the first instruction fetch will
+;     cause an MMU abort, now with MMR0(7) set to '0'. The handler will map
+;     the code page and re-run the instruction.
+;   - the IO page is mapped to supervisor mode with MMU traps enabled.
+;     The first IO page access of the PIRQ handler will therefore cause
+;     an MMU trap, the handler will just log it.
+;
+;   The supervisor mapping is:
+;     page 0+1    1-to-1, this allows to write to trace area
+;     page 2      code area, initially non-resident
+;     page 3      stack area, initially too short
+;     page 7      IO page, with RW traps enabled
+;
+td0201: tstb    systyp          ; skip if not on w11
+        bge     100$
+        jmp     9999$
+;
+; set up supervisor pdr/par
+        vc3sek = 157700            ; initial end of stack in kernel view
+        vc3ses = 077700            ; initial end of stack in supervisor view
+;
+100$:   mov     kipdr0,sipdr0           ; SM p0 1-to-1
+        mov     kipar0,sipar0
+        mov     kipdr1,sipdr1           ; SM p1 1-to-1
+        mov     kipar1,sipar1
+        mov     #<8.*md.plf>,sipdr2     ; SM p2 code, non-resident
+        mov     #<vc3/100>,sipar2
+        mov     #<127.*md.plf>!md.arw!md.dwn,sipdr3     ; SM p3 stack, short
+        mov     #<140000/100>,sipar3
+        mov     #<127.*md.plf>!md.att,sipdr7    ; SM p7 IOpage + rw-trap
+        mov     kipar7,sipar7
+        mov     #m0.ent!m0.ena,mmr0     ; enable mmu            ;! MMU 18
+;
+; set up handlers
+;
+        mov     #3000$,v..mmu           ; MMU handler
+        mov     #cp.pr7,v..mmu+2        ; lockout interrupts
+        mov     #4000$,v..emt           ; EMT handler
+        mov     #cp.pr7,emt+2           ; lockout interrupts
+        mov     #p2base,v..pir          ; PIRQ handler (on page 2 in SM)
+        mov     #cp.cms!cp.pr7,v..pir+2 ; in SM, lockout interrupts
+;
+; now start the game: set SM stack, set r5 and request a PIRQ 4
+;
+        mov     #cp.pms,cp.psw          ; SM now previous mode
+        push    #vc3ses+2               ; SM stack 1 word above end
+        mtpi    sp                      ; and set SM SP
+        mov     #2000$,r5               ; ptr to trace area
+        mov     #cp.pr1,cp.psw          ; code signature PR1
+        movb    #bit04,cp.pir+1         ; request PIRQ 4
+200$:
+;
+; and check state and trace area
+;   kernel SP back to normal
+;   supervisor SP back to normal
+;   sipdr7 has AIA and AIW trace bits set
+;
+        hcmpeq  #cp.pr1,cp.psw          ; check PS
+        hcmpeq  #stack,sp               ; check kernel SP
+        mov     #cp.pms,cp.psw          ; SM now previous mode
+        mfpi    sp                      ; get SM SP
+        hcmpeq  #vc3ses+2,(sp)+         ; check supervisor SP
+        clr     cp.psw                  ; PSW to default
+        hcmpeq  #<127.*md.plf>!md.aia!md.aiw!md.att,sipdr7  ; check sipdr7
+;
+        htinit  2000$,5.                ; expect 5 items
+        htitem  #250,#200$              ; mmu(ico=1) after movb to cp.pir+1
+        htitem  #250,#p2base+2          ; mmu(ico=1) after 1st instruction fetch
+        htitem  #240,#200$              ; PIRQ, sees PC after movb to cp.pir+1
+        htitem  #250,#p2base+<vc3l1-vc3> ; mmu(trap) after clr of cp.pir
+        htitem  #032,#p2base+<vc3l2-vc3> ; EMT after emt 100
+;
+        jmp     9000$
+;
+2000$:  .word   0,0                     ; trace data area
+        .word   0,0
+        .word   0,0
+        .word   0,0
+        .word   0,0
+        .word   -1,-1
+;
+; MMU handler ----------------------------------------------
+;   It expects an abort with ico=1, an abort with ico=0 and a trap.
+;   In these three cases, first the expected environment is checked and
+;   after that the corrective action is taken.
+;
+3000$:  htstge  (r5)                    ; r5 at fence ?
+        mov     #250,(r5)+              ; trace
+        mov     (sp),(r5)+
+;
+; dispatch call cases based in mmr0
+        mov     mmr0,r0
+        bit     #m0.anr!m0.ale!m0.ard,r0  ; abort seen ?
+        beq     3300$                   ; if not branch to trap handling
+        bit     #m0.ico,r0              ; ico seen ?
+        beq     3200$                   ; if not branch to ico=0 handling
+;
+; handle abort with ico=1 ------------------------
+;   Expect length error for supervisor mode I space page 3.
+;   Actions:
+;   - roll-back previous mode SP.
+;   - extend previous mode stack segment.
+;   - move stack frame from from kernel to previous mode.
+;     Note: the push abort leaves on the kernel stack a stack frame identical
+;           to what would have been on supervisor mode stack without abort.
+;   - start handler for aborted vector flow.
+;     Note: MMR2 holds the vector address. So push PS and PC of that vector
+;           to kernel stack and start handler with an RTT.
+;
+        hcmpeq  #m0.ale!m0.ent!m0.ico!m0.pms!<3*m0.pno>!m0.ena,r0  ; check mmr0
+        hcmpeq  #240,mmr2               ; check mmr2: PIRQ vector
+;
+; use MMR1 to correct SM SP
+        mov     mmr1,r1                 ; get mmr1
+        mfpi    sp                      ; get SM sp
+        pop     r2
+        cmp     #^b0000000011110110,r1  ; mmr1: sp -2
+        bne     3100$
+        add     #2,r2                   ; correct SP by 2
+        br      3140$
+3100$:  cmp     #^b1111011011110110,r1  ; mmr1: sp -4
+        bne     3110$
+        add     #4,r2                   ; correct SP by 4
+        br      3140$
+3110$:  halt                            ; unexpected MMR1
+3140$:
+;
+; extend target stack frame --> decrease(!) plf
+;
+        mov     #<126.*md.plf>!md.arw!md.dwn,sipdr3
+;
+; move stack frame from kernel to target mode (SM)
+;
+        sub     #4,r2                   ; final SM SP
+        mtpi    (r2)                    ; move SM frame PC
+        mtpi    2(r2)                   ; move SM frame PS
+        push    r2
+        mtpi    sp                      ; update SM SP
+;
+; use MMR2 to start target handler (PIRQ)
+;
+        mov     mmr2,r2                 ; get vector address
+        push    2(r2)                   ; handler PS
+        push    (r2)                    ; handler PC
+        bic     #m0.anr!m0.ale!m0.ard,mmr0      ; clear abort flags
+        rtt                             ; and start handler
+;
+; handle abort with ico=0 ------------------------
+;   Expect non-resident error for supervisor mode I space page 2
+;   Actions:
+;   - no register roll-back done, MMR1 expected (and checked) to be 0.
+;   - make page resident.
+;   - re-run instruction, MMR2 points to its address.
+;
+3200$:  hcmpeq  #m0.anr!m0.ent!m0.pms!<2*m0.pno>!m0.ena,r0   ; check mmr0
+        htsteq  mmr1                    ; check mmr1: zero after ifetch
+        hcmpeq  #p2base,mmr2            ; check mmr2: PIRQ handler start
+;
+; make code page resident and re-run instruction
+;
+        bis     #md.arw,sipdr2          ; code page read-writable
+        mov     mmr2,(sp)               ; point to failed instruction
+        bic     #m0.anr!m0.ale!m0.ard,mmr0      ; clear abort flags
+        rtt                             ; re-run instruction
+;
+; handle MMU trap --------------------------------
+;   Expect trap from cp.pir register access
+;   Actions:
+;   - just re-allow traps, even though none are expected
+;
+3300$:  hbitne  #m0.trp,r0              ; check mmr1
+        bic     #m0.trp,mmr0            ; re-allow traps
+        rti                             ; continue
+;
+; EMT handler ----------------------------------------------
+;   The EMT handler simulates a system service that does a kernel mode RTI
+;   on behalf of the supervisor mode handler. This allows supervisor mode code
+;   to return to kernel mode code and bypasses the privileged escalation
+;   protection of RTI/RTT in a controlled manner.
+;   It simply moves the stack frame from previous mode to kernel mode and
+;   does an RTI. The EMT return frame on the kernel stack is discarded.
+;
+
+4000$:  htstge  (r5)                    ; r5 at fence ?
+        mov     #032,(r5)+              ; trace
+        mov     (sp),(r5)+
+;
+; move stack frame from hander to kernel stack
+;
+        add     #4,sp                   ; drop return frame
+        mfpi    sp                      ; get SM SP
+        pop     r2
+        mfpi    2(r2)                   ; move frame PS
+        mfpi    (r2)                    ; move frame PC
+        add     #4,r2                   ; correct SM SP
+        push    r2
+        mtpi    sp                      ; update SM SP
+        rti                             ; finish rti from handler
+;
+; finally restore ------------------------------------------
+9000$:  reset                                                   ;! MMU off
+        mov     #sipdr0,r0
+        mov     #sipar0,r1
+        mov     #4,r2
+9010$:  clr     (r0)+           ; reset sipdr 0-3
+        clr     (r1)+           ; reset sipar 0-3
+        sob     r2,9010$
+        clr     sipdr7
+        clr     sipar7
+;
+        mov     #v..mmu+2,v..mmu        ; restore v..mmu to catcher
+        clr     v..mmu+2
+        mov     #v..emt+2,v..emt        ; restore v..emt to catcher
+        clr     v..emt+2
+        mov     #v..pir+2,v..pir        ; restore v..pir to catcher
+        clr     v..pir+2
+;
+9999$:  iot                     ; end of test D2.1
 ;
 ; Section E: traps and pdr aia and aiw bits ==================================
 ;   E1    basic MMU trap and PDR aia/aiw logic
@@ -2111,7 +2366,7 @@ te0103: mov     #mmr0,r2                ; ptr to mmr0
 ;   should cause an MMU trap.
 ;
 te0104: mov     #<127.*md.plf>!md.att,kipdr5   ; enable traps (afc=4)
-        mov     #m0.ent!m0.ena,mmr0     ; enable mmu with traps  ;! MMU 18
+        mov     #m0.ent!m0.ena,mmr0     ; enable mmu with traps ;! MMU 18
         clr     r2                      ; clear counter
         mov     #1000$,r3               ; ptr to failed landing
         mov     #vhmmut,v..mmu          ; setup MMU trap handler
@@ -2127,6 +2382,25 @@ te0104: mov     #<127.*md.plf>!md.att,kipdr5   ; enable traps (afc=4)
         mov     #v..mmu+2,v..mmu
 ;
 9999$:  iot                                     ; end of test E1.4
+;
+; Test E1.5 -- test trap request after IO page access ++++++++++++++++
+;
+te0105: mov     #<127.*md.plf>!md.att,kipdr7   ; enable traps (afc=4)
+        mov     #vhmmut,v..mmu          ; setup MMU trap handler
+        mov     #1000$,vhvmmu
+;
+; The write to mmr0 will not trigger a trap on w11 because the trap decision
+; is taken during address translation and thus before MMR0 is changed.
+; The read access to cp.psw will cause an MMU trap.
+        mov     #m0.ent!m0.ena,mmr0     ; enable mmu with traps ;! MMU 18
+        tst     cp.psw
+        halt
+;
+1000$:  reset                   ; mmu off                       ;! MMU off
+        mov     #<127.*md.plf>!md.arw,kipdr7    ; reset kipdr7
+        mov     #v..mmu+2,v..mmu
+;
+9999$:  iot                                     ; end of test E1.5
 ;
 ; Test E2:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;   Check MMU trap priority behavior
@@ -2153,14 +2427,10 @@ te0201: mov     #m0.ent!m0.ena,mmr0     ; enable mmu with traps  ;! MMU 18
         .word   0,0                     ; 3rd marker (MMU for rts)
         .word   -1,-1                   ; fence
 ;
-2000$:  hcmpeq  #1500$+12.,r5           ; check 3 markers expected
-        mov     #1500$,r5
-        hcmpeq  #250,(r5)+              ; 1st: MMU for movb
-        hcmpeq  #p5ce21+6,(r5)+         ;   PC after movb
-        hcmpeq  #240,(r5)+              ; 2nd: PIRQ
-        hcmpeq  #p5ce21+6,(r5)+         ;   PC after movb
-        hcmpeq  #250,(r5)+              ; 3rd: MMU for rts
-        hcmpeq  #1000$,(r5)+            ;   PC after rts (the return address)
+2000$:  htinit  1500$,3.                ; expect 3 items
+        htitem  #250,#p5ce21+6          ; mmu for movb
+        htitem  #240,#p5ce21+6          ; PIRQ, sees PC after movb
+        htitem  #250,#1000$             ; mmu for rts, PC is return address
 ;
         reset                   ; mmu off                       ;! MMU off
 ;
@@ -2289,16 +2559,16 @@ tf0102: mov     #154345,@#p6base ; inititialize target
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#29.      ; all tests done ?
+        hcmpeq  tstno,#31.      ; all tests done ?
         call    chkpdr          ; kernel pdr/par OK ?
 ;
         jmp     loop
 ;
 ; pdr/par consistency checker
-;   Verify that kernel pdr/par are in default configuration set up by A1.2.
+;   Verify that all I-space pdr/par are in default configuration set up by A1.2.
 ;   Implentend as subroutine for debug purposes. Always called at end of tests.
 ;
-chkpdr: mov     #kipdr0,r0
+chkpdr: mov     #kipdr0,r0                      ; check kernel
         mov     #kipar0,r1
         mov     #<127.*md.plf>!md.arw,r2        ; default pdr
         clr     r3                              ; current par
@@ -2312,6 +2582,17 @@ chkpdr: mov     #kipdr0,r0
         mov     (r0),(r0)                       ; clear AI bits with re-write
         hcmpeq  r2,(r0)+                        ; check pdr7
         hcmpeq  #177600,(r1)+                   ; check par7
+;
+        mov     #sipdr0,r0                      ; check supervisor + user
+        mov     #sipar0,r1
+        mov     #uipdr0,r2
+        mov     #uipar0,r3
+        mov     #8.,r4
+200$:   htsteq  (r0)+                           ; check sipdr
+        htsteq  (r1)+                           ; check sipar
+        htsteq  (r2)+                           ; check uipdr
+        htsteq  (r3)+                           ; check uipar
+        sob     r4,200$
         return
 ;
 ; kernel handlers and helpers ================================================
@@ -2459,6 +2740,18 @@ vc2dat: .word   010111
         .word   010222
         .word   010333
         .word   010444
+;
+; vc3 - PIRQ handler code ++ used from D2.1 ++++++++++++++++++++++++++++++++++
+;   Simply cancels all PIRQ interrupts.
+;   Will be mapped to page 2, the code must therefore be position-independent.
+;
+        . = 105000              ; I space ------------------------------------
+vc3:    htstge  (r5)            ; r5 at fence ?
+        mov     #240,(r5)+      ; trace
+        mov     (sp),(r5)+
+        clr     @#cp.pir        ; cancel PIRQ (use absolute mode!)
+vc3l1:  emt     100             ; delegate RTI to system service
+vc3l2:  halt                    ; label after emt
 ;
 ; p5ce14 Test E1.4 test code +++++++++++++++++++++++++++++++++++++++++
 ;   located at border of page 4 and page 5 (touching both)

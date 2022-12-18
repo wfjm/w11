@@ -46,6 +46,7 @@ The full set of tests is only run for tagged releases.
   - pdp11.vhd: rename, eg srv->ser; cpustat_type: drop trap_done, add in_vecysv,
       treq_tbit,resetcnt; decode_stat_type: op_rti instead of op_rtt
   - pdp11_decode.vhd: use op_rti instead of op_rtt
+  - pdp11_mmu.vhd: logic cleanup
   - pdp11_sequencer.vhd:
     - tbit logic overhaul; use treq_tbit; cleanups; use resetcnt for 8 cycle
       RESET wait, see [ECO-035](ECO-035-stklim-tbit-fixes.md)
@@ -70,8 +71,11 @@ The full set of tests is only run for tagged releases.
       [ECO-035](ECO-035-stklim-tbit-fixes.md)
       - BUGFIX: correct mmu trap vs interrupt priority, see
       [ECO-035](ECO-035-stklim-tbit-fixes.md)
-    - pdp11_vmbox: BUGFIX: correct red/yellow zone boundary, see
-      [ECO-035](ECO-035-stklim-tbit-fixes.md)
+    - pdp11_vmbox:
+      - BUGFIX: correct red/yellow zone boundary, see
+        [ECO-035](ECO-035-stklim-tbit-fixes.md)
+      - BUGFIX: MMU trap after IB access, see
+        [ECO-038](ECO-038-MMU_trap_on_IB_access.md)
 
 <!-- --------------------------------------------------------------------- -->
 ---

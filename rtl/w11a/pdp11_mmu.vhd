@@ -17,6 +17,7 @@
 --
 -- Revision History:
 -- Date         Rev Version  Comment
+-- 2022-12-17  1331   1.4.7  some logic cleanup
 -- 2022-12-12  1330   1.4.6  implement MMR0 instruction complete
 -- 2022-11-29  1323   1.4.5  rename mmu_mmr0_type dspace->page_dspace
 -- 2022-09-05  1294   1.4.4  BUGFIX: correct trap and PDR A logic
@@ -351,6 +352,8 @@ begin
         abo_nonres := '1';
     end case;
 
+    STAT <= mmu_stat_init;
+
     if IBSEL_MMR0='1' and IB_MREQ.we='1' then
 
       if IB_MREQ.be1 = '1' then
@@ -364,38 +367,37 @@ begin
         nmmr0.ena_mmu := IB_MREQ.din(mmr0_ibf_ena_mmu);
       end if;
       
-    elsif nmmr0.ena_mmu='1' and CNTL.cacc='0' then
+    elsif R_MMR0.ena_mmu='1' and CNTL.cacc='0' then
 
-      if mmr_freeze = '0' then
-        nmmr0.inst_compl := MONI.vflow;
+      if mmr_freeze = '0' then          -- independent of an active request will
+        nmmr0.inst_compl := MONI.vflow; -- the inst_compl flag follow vflow
       end if;
 
       if CNTL.req = '1' then
         AIB_WE <= '1';
         if mmr_freeze = '0' then
-          nmmr0.abo_nonres := abo_nonres;
-          nmmr0.abo_length := abo_length;
-          nmmr0.abo_rdonly := abo_rdonly;
+          nmmr0.abo_nonres  := abo_nonres;
+          nmmr0.abo_length  := abo_length;
+          nmmr0.abo_rdonly  := abo_rdonly;
+          nmmr0.page_dspace := DSPACE;
+          nmmr0.page_num    := apf;
+          nmmr0.page_mode   := CNTL.mode;
         end if;
         doabort := abo_nonres or abo_length or abo_rdonly;
 
         if doabort = '0' then
           AIB_SETA <= dotrap;
           AIB_SETW <= iswrite;
+          if dotrap='1'  then           -- if trap condition fulfilled
+            nmmr0.trap_mmu := '1';      -- set trap_mmu flag
+            if R_MMR0.ena_trap='1' and R_MMR0.trap_mmu='0'  then
+              STAT.trap <= '1';         -- trap if enabled and not blocked
+            end if;
+          end if;
         end if;
 
-        if mmr_freeze = '0' then
-          nmmr0.page_dspace := DSPACE;
-          nmmr0.page_num    := apf;
-          nmmr0.page_mode   := CNTL.mode;
-        end if;
       end if;  -- CNTL.req = '1'
-    end if;  -- nmmr0.ena_mmu='1' and CNTL.cacc='0'
-
-    if CNTL.req='1' and R_MMR0.ena_mmu='1' and CNTL.cacc='0' and
-       dotrap='1' then
-      nmmr0.trap_mmu := '1';
-    end if;
+    end if;  -- R_MMR0.ena_mmu='1' and CNTL.cacc='0'
 
     nmmr0.trace_prev := dotrace;
 
@@ -411,13 +413,6 @@ begin
       STAT.vaok <= not doabort;
     else
       STAT.vaok <= '1';
-    end if;
-
-    if R_MMR0.ena_mmu='1' and CNTL.cacc='0' and doabort='0' and
-       R_MMR0.ena_trap='1' and R_MMR0.trap_mmu='0' and dotrap='1' then
-      STAT.trap <= '1';
-    else
-      STAT.trap <= '0';
     end if;
 
     STAT.ena_mmu   <= R_MMR0.ena_mmu;

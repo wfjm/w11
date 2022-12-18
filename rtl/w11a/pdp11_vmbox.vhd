@@ -18,6 +18,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-12-17  1331   1.6.10 BUGFIX: request mmu trap also on ib accesses
 -- 2022-11-21  1320   1.6.9  rename some rsv->ser; remove obsolete trap_done;
 -- 2022-11-18  1317   1.6.8  BUGFIX: correct red/yellow zone boundary
 -- 2019-06-22  1170   1.6.7  support membe for em cacc access
@@ -475,8 +476,6 @@ begin
 
               if EM_SRES.ack_r='1' or EM_SRES.ack_w='1' then
                 ivm_stat.ack := '1';
-                ivm_stat.trap_ysv := r.ysv;
-                ivm_stat.trap_mmu := r.trap_mmu;
                 if r.macc='1' and r.wacc='0' then
                   n.state := s_idle_mw_mem;
                 else
@@ -657,6 +656,9 @@ begin
       n.paddr_iopage := ipaddr_iopage;
     end if;
     
+    ivm_stat.trap_ysv := r.ysv;         -- request ysv trap if condition seen
+    ivm_stat.trap_mmu := r.trap_mmu;    -- forward mmu trap request
+
     iem_mreq.addr := ipaddr(21 downto 1);
     
     N_REGS <= n;

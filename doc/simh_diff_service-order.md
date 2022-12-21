@@ -16,6 +16,9 @@ and one after the hander exit.
 SimH uses the J11 service order with interrupts having the lowest priority for
 all PDP-11 models.
 
-The w11 implements the proper 11/70 service order.
+The w11 implements the 11/70 service order.
+This is verified in a [tcode](../tools/tcode/README.md), the test is
+skipped when executed on SimH
+(see [cpu_details.mac](../tools/tcode/cpu_details.mac) test A4.4 part 3).
 
 See also [traced `WAIT`](simh_diff_traced-wait.md).

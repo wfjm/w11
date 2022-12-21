@@ -40,8 +40,8 @@ The `MMR2` register is loaded from the virtual address
 - at the beginning of an instruction fetch (VA = instruction address)
 
 ### Hindsight
-This is the most mysterious feature of an 11/70. It was only exercised in one
-xxdp test and never used. Because of poor documentation, it took a long time to
-understand what it really does and what it can be used for. Nevertheless,
-the goal of the w11 is to be an as precise as feasible replica of the 11/70,
-and it was time to finally implement this esoteric feature.
+This is the most mysterious feature of an 11/70. It was only exercised in test
+067 of the xxdp program `ekbee1` and never used. Because of poor documentation,
+it took a long time to understand what it really does and what it can be used
+for. Nevertheless, the goal of the w11 is to be an as precise as feasible
+replica of the 11/70, and it was time to finally implement this esoteric feature.

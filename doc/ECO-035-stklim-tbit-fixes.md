@@ -6,8 +6,8 @@
 
 ### Symptom summary
 The w11 had several deficits in the stack protection, the yellow stack trap,
-and T-bit trace trap logic. They caused diagnostic messages in `ekbee1` and
-`eqkce1` xxdp tests.
+and T-bit trace trap logic. They caused diagnostic messages in the xxdp
+programs `ekbee1` and `eqkce1`.
 
 ### Background
 The 11/70, and also the 11/45, differ from most other PDP-11 models in the

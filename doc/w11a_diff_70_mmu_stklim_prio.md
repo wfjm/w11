@@ -18,6 +18,6 @@ The w11 does not implement this suppression, the MMU logic and the stack limit
 check logic are independent. The case described above leads to a vector 4,
 but also sets an abort bit in `MMR0`.
 
-The `ekbee1` diagnostic tests this behavior in test 122. This test is
+The xxdp program `ekbee1` checks this behavior in test 122. This test is
 modified when executed on w11
 (see [patch](../tools/xxdp/ekbee1_patch_w11a.tcl)).

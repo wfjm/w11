@@ -18,7 +18,11 @@ aborted. The `MMR2` contains the vector address in the latter case.
 
 SimH does not support the `MMR0` `instruction completed` flag and the
 associated `MMR2` behavior.
-xxdp `ekbee1` test 67 verifies this behavior and is skipped.
+xxdp program `ekbee1` test 067 verifies this behavior and is skipped
+(see [patch](../tools/xxdp/ekbee1_patch_1170.scmd)).
 
 w11 supports `instruction completed` with some minor implementation differences,
 see [w11 known difference](w11a_diff_70_instruction_complete.md).
+This is verified in a [tcode](../tools/tcode/README.md), the tests are skipped
+when executed on SimH
+(see [cpu_mmu.mac](../tools/tcode/cpu_mmu.mac) test C2.6 and D2.1).

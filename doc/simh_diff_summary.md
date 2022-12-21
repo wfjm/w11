@@ -10,14 +10,18 @@ for all PDP-11 models, and also when `set cpu 11/70` is configured.
 
 Test codes are sometimes sensitive to those details, so the most relevant
 ones are listed here:
-- [SimH: State of N and Z and registers after a `DIV` abort with `V=1`](simh_diff_div_after_v1.md)
-- [SimH: stack limit check and addressing modes](simh_diff_stklim_amode.md)
-- [SimH: stack limit check and vector push aborts](simh_diff_stklim_vpush.md)
-- [SimH: Red stack zone PSW protection](simh_diff_red_psw.md)
-- [SimH: trap and interrupt service order has J11 behavior](simh_diff_service-order.md)
-- [SimH: traced `WAIT` has J11 behavior](simh_diff_traced-wait.md)
-- [SimH: `SPL` doesn't have 11/70 behavior](simh_diff_spl.md)
-- [SimH: MMU traps not suppressed when MMU register accessed](simh_diff_mmu_trap_suppression.md)
-- [SimH: implicit stack pops not recorded in `MMR1`](simh_diff_mmr1_rts_mtp.md)
-- [SimH: The 'instruction completed flag' in `MMR0` is not implemented](simh_diff_instruction_complete.md)
-- [SimH: MMU aborts have priority over NXM aborts](simh_diff_mmu_nxm_prio.md)
+- instruction behavior
+  - [SimH: `SPL` doesn't have 11/70 behavior](simh_diff_spl.md)
+  - [SimH: State of N and Z and registers after a `DIV` abort with `V=1`](simh_diff_div_after_v1.md)
+- stack limit and stack error behavior
+  - [SimH: stack limit check and addressing modes](simh_diff_stklim_amode.md)
+  - [SimH: stack limit check and vector push aborts](simh_diff_stklim_vpush.md)
+  - [SimH: Red stack zone PSW protection](simh_diff_red_psw.md)
+- service order and trap handling
+  - [SimH: trap and interrupt service order has J11 behavior](simh_diff_service-order.md)
+  - [SimH: traced `WAIT` has J11 behavior](simh_diff_traced-wait.md)
+- memory management behavior
+  - [SimH: `MMR1` recording has J11 behavior](simh_diff_mmr1.md)
+  - [SimH: MMU traps not suppressed when MMU register accessed](simh_diff_mmu_trap_suppression.md)
+  - [SimH: The 'instruction completed flag' in `MMR0` is not implemented](simh_diff_instruction_complete.md)
+  - [SimH: MMU aborts have priority over NXM aborts](simh_diff_mmu_nxm_prio.md)

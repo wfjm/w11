@@ -10,6 +10,9 @@ The codes can be executed
 - with SimH, usually via a `load <lda-file>`, `dep pc 200`, `cont`
 - with `e11`, usually via a `mount pr: <lda-file>`, `boot pr:`
 
+The codes use the `SYSID` register to detect the execution environment,
+see [usage of `SYSID` register](../../doc/w11a_diff_70_sysid_usage.md).
+
 A [Makefile](Makefile) is provided with the targets
 ```
   make alllda           all .lda + .lst files
@@ -25,3 +28,6 @@ A [Makefile](Makefile) is provided with the targets
   make <tcode>.te11     run on e11  simulator
   make <tcode>.tw11     run on w11  GHDL simulation (for C7)
 ```
+
+The `Makefile` starts the codes with `SYSID` settings constent with the
+execution environment.

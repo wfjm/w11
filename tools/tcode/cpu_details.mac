@@ -1,4 +1,4 @@
-; $Id: cpu_details.mac 1329 2022-12-11 17:28:28Z mueller $
+; $Id: cpu_details.mac 1332 2022-12-21 11:56:32Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -1207,7 +1207,7 @@ ta0404: mov     #vhtbpt,v..bpt          ; BPT handler
 ;
 3000$:  cmpb    systyp,#sy.sih          ; skip on SimH (different service order)
         beq     4000$
-        cmpb    systyp,#sy.e11          ; skip on e11 (different service order
+        cmpb    systyp,#sy.e11          ; skip on e11 (different service order)
         beq     4000$
 ;
 3001$:  mov     #3200$,r5

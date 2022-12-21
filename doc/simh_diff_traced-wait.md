@@ -15,6 +15,10 @@ precedence in those models.
 SimH uses the J11 service order with interrupts having the lowest priority for
 all PDP-11 models, and consequently, a traced `WAIT` falls through and raises
 a trace trap immediately.
-xxdp `ekbbf0` test 63 verifies the 11/70 behavior and is skipped.
+xxdp program `ekbbf0` test 063 verifies the 11/70 behavior and is skipped
+(see [patch](../tools/xxdp/ekbbf0_patch_1170.scmd)).
 
-The w11 implements the proper 11/70 service order and `WAIT` behavior.
+The w11 implements the 11/70 service order and `WAIT` behavior.
+This is verified in a [tcode](../tools/tcode/README.md), the `WAIT` test is
+skipped when executed on SimH
+(see [cpu_details.mac](../tools/tcode/cpu_details.mac) test A4.4 part 4).

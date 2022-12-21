@@ -1,4 +1,4 @@
-; $Id: cpu_mmu.mac 1330 2022-12-16 17:52:40Z mueller $
+; $Id: cpu_mmu.mac 1332 2022-12-21 11:56:32Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -1442,7 +1442,7 @@ tc0205: mov     #<127.*md.plf>,kipdr5   ; page 5 non-resident (afc=0)
 ;   and a PIRQ handler in supervisor space.
 ;   Verify that PS and PC at the beginning of the failed vector flow are saved.
 ;   Test inspired by ekbee1 test 124.
-;   Verify also that MMR0,MMR2 instruction complete (unless on SimH)
+;   Verify also MMR0,MMR2 instruction complete response (unless on SimH)
 ;
 tc0206: mov     kipdr0,sipdr0           ; super page 0 1-to-1
         mov     kipar0,sipar0

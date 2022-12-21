@@ -16,9 +16,6 @@ writes have been performed and one or two values have been potentially written
 into the red zone. An emergency stack is set up and a vector 4 flow is started
 that will save the PS and PC values taken read in beginning of the aborted
 vector flow.
-The [tcode](../tools/tcode/README.md)
-[cpu_details](../tools/tcode/cpu_details.mac) test A3.5 verifies the 11/70
-behaviour and is skipped when executed on SimH.
 
 **Note**: The SimH behavior for vector push aborts caused by an MMU abort is
 different. These aborts are detected before the actual write, and the vector
@@ -29,3 +26,6 @@ failed and is converted to a fatal stack error. In these cases, SimH
 implements the 11/70 behavior.
 
 The w11 correctly implements the 11/70 behavior in all cases.
+This is verified in a [tcode](../tools/tcode/README.md), the tests are
+skipped when executed on SimH
+(see [cpu_details](../tools/tcode/cpu_details.mac) tests A3.4 and A3.5).

@@ -18,5 +18,5 @@ w11 supports this feature, but has two implementation differences:
   decrements the `SP` twice before the 1st vector push. Therefore, after an
   MMU abort of the 1st vector push, `MMR1` has `000336` on the w11 and `173366`
   on the 11/70.
-  `ekbee1` test 067 checks this `MMR1` response and has been modified
-  (see [patch](../tools/xxdp/ekbee1_patch_w11a.tcl)).
+  xxdp program `ekbee1` test 067 checks this `MMR1` response and has been
+  modified (see [patch](../tools/xxdp/ekbee1_patch_w11a.tcl)).

@@ -260,7 +260,7 @@ Fixed Resolved with buffered DL11 in commit
 
 ### V0.50-10 {[issue #20](https://github.com/wfjm/w11/issues/20)} -- DL11: output chars lost when device polling used
 #### Original Issue
-Part of the console output can be lost when `xxdp` test `eqkce1` is
+Part of the console output can be lost when `xxdp` program `eqkce1` is
 run on FPGA, also some kernel messages during the 2.11bsd boot sequence.
 In both cases very simple polling output routines are used. Most likely
 cause is that device ready polls timeout before the rlink interface can

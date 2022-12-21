@@ -10,8 +10,9 @@ In the KB11-C processor, the NXM condition is handled before the MMU condition.
 This leads to the surprising situation that the access is aborted with a
 vector 4 flow rather than a vector 250 flow.
 
-SimH verifies the MMU abort condition first. xxdp `ekbee1` test 122 verifies
-the 11/70 behavior and is patched.
+SimH verifies the MMU abort condition first. xxdp program `ekbee1` test 122
+verifies the 11/70 behavior and is modified
+(see [patch](../tools/xxdp/ekbee1_patch_1170.scmd)).
 
 w11 also doesn't support this behavior, this is documented as
 [w11 known difference](w11a_diff_70_mmu_nxm_prio.md).

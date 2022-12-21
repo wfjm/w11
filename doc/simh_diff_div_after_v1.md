@@ -14,8 +14,8 @@ in sometimes surprising settings.
 SimH returns Z=0 and N based on the sign of the full 32-bit result, as can be
 easily determined by xor'ing of the sign bits of dividend and divisor.
 
-xxdp `ekbbf0` test 15 tests the exact 11/70 behavior to verify the
-divide logic and is skipped.
+xxdp program `ekbbf0` test 014 checks the exact 11/70 behavior to verify the
+divide logic and is modified (see [patch](../tools/xxdp/ekbbf0_patch_1170.scmd)).
 
 w11 also returns Z=0 and N based on the sign of the full 32-bit result, this
 is documented as [w11 known difference](w11a_diff_70_div_after_v1.md).

@@ -1,7 +1,65 @@
 # Resolved issues
 
+### V0.50-3 {[issue #27](https://github.com/wfjm/w11/issues/27)} -- CPU: no mmu trap when instruction which clears trap enable itself causes a trap
+
+#### Original Issue
+The MMU should issue an mmu trap if the instruction clearing the
+'mmu trap enable' bit (bit 9 in mmr0) itself causes a trap.
+The 11/70 documentation clearly describes this behavior.
+
+This is the reason why test 063 of the `ekbee1` diagnostics currently fails.
+
+Since the MMU trap mechanism is is only available on 11/45 and 11/70, but
+not in the J11, it is not used by common operating systems.
+
+Therefore this is considered a to be a minor deficit. Will be fixed in an
+upcoming release.
+
+#### Reason for closure on 2020-12-08
+Not fixed, documented as [known difference](https://github.com/wfjm/w11/blob/master/doc/w11a_diff_70_mmu_trap_suppression.md).
+
+### V0.50-1 {[issue #23](https://github.com/wfjm/w11/issues/23)} -- CPU: several deficits in trap logic
+
+#### Original Issue
+The current w11a implementation has several deficits in the handling of
+traps and interrupts which lead to non-conforming behavior when multiple
+trap, fault and interrupt conditions occur simultaneously, for example
+- bad stack frame when `IOT` trigger stack violation (TCK-003)
+- bad stack frame when interrupt triggers stack violation (TCK-004)
+- no yellow stack abort when `jsr` triggers a stack violation (TCK-006)
+- no odd address trap when `EMT` is executed with odd `SP` (TCK-007)
+- no yellow stack abort for `mov (sp),(sp)` (TCK-028)
+
+These situations never occur during the execution of operation systems, and
+in case they do, the operating system will crash anyway. Thus there is no
+impact in normal usage, but diagnostics programs do complain. Will be fixed
+in an upcoming release.
+
+#### Fix
+Fixed with commit [40608e3](https://github.com/wfjm/w11/commit/40608e3),
+see [ECO-035](ECO-035-stklim-tbit-fixes.md).
+
+### V0.791-4 {[issue #36](https://github.com/wfjm/w11/issues/36)} -- MMU trap delayed when prefetch in s_idecode
+
+#### Original Issue
+The s_idecode prefetch logic checks only for tflag and int_pending, but not
+for pending MMU traps.
+
+If the instruction read of a RR instruction, like ROR R0 or ADD R0,R1 causes
+an MMU trap, this trap will not executed. In fact, it's not even queued,
+it's lost.
+
+Detected in a code review.  
+No practical consequences, MMU traps are not used by any OS.  
+But clearly a BUG, such cases should trigger an MMU trap.  
+
+#### Fix
+Fixed with commit [85f1854](https://github.com/wfjm/w11/commit/85f1854),
+see [ECO-035](ECO-035-stklim-tbit-fixes.md).
+
 ### V0.791-3 {[issue #35](https://github.com/wfjm/w11/issues/35)} -- MMU: D space used instead of I space for PC deferred specifiers
 
+#### Original Issue
 Test 072 of `ekbee1` fails with
 ```
     D-SPACE ENABLE CIRCUITRY HAS FAILED
@@ -23,11 +81,13 @@ Clearly a bug.
 Wasn't detected so far because this access mode has no practical value  
 and this therefore not used in normal software.
 
+#### Fix
 Fixed with commit [278d2e2](https://github.com/wfjm/w11/commit/278d2e2),
 see [ECO-034](ECO-034-MMU_d-space-pc.md).
 
 ### V0.791-2 {[issue #34](https://github.com/wfjm/w11/issues/34)} -- MMU: ACF=1 traps on any access
 
+#### Original Issue
 Test 055 of `ekbee1` fails with
 ```
     MEMORY MANAGEMENT TRAP OR ABORT HAD INCORRECT CONDITION
@@ -38,11 +98,13 @@ Test 055 of `ekbee1` fails with
 This is caused by a bug in pdp11_mmu. For ACF=1 a trap is taken for any access,
 it should be taken only for read accesses.
 
+#### Fix
 Fixed with commit [1644863](https://github.com/wfjm/w11/commit/1644863),
 see [ECO-033](ECO-033-MMU_AFC-1_PDR-A.md).
 
 ### V0.791-1 {[issue #33](https://github.com/wfjm/w11/issues/33)} -- MMU: PDR A bit is set for every access
 
+#### Original Issue
 The `PDR` `A` bit is described in the Technical Manual as
 >  A bit (bit 7) - This bit is used by software to determine whether or not  
 >  any accesses to this page met the trap condition specified by the Access  
@@ -58,11 +120,13 @@ The w11 currently sets the 'A' bit on any non-aborted access regardless of the A
 
 No practical impact, the 'A' bit in `PDR` is a 11/45 11/70 only feature and not used in OS software.
 
+#### Fix
 Fixed with commit [1644863](https://github.com/wfjm/w11/commit/1644863),
 see [ECO-033](ECO-033-MMU_AFC-1_PDR-A.md).
 
 ### V0.50-6 {[issue #26](https://github.com/wfjm/w11/issues/26)} -- CPU: MMR0 trap bit set when access aborted
 
+#### Original Issue
 The MMU should set the 'trap bit' in `MMR0` only when the access is not
 aborted. The current pdp11_mmu implementation sets the bit even when the
 access is aborted.
@@ -75,11 +139,13 @@ not in the J11, it is not used by common operating systems.
 Therefore this is considered a to be a minor deficit. Will be fixed in an
 upcoming release.
 
+#### Fix
 Fixed with commit [1644863](https://github.com/wfjm/w11/commit/1644863),
 see [ECO-033](ECO-033-MMU_AFC-1_PDR-A.md).
 
 ### V0.50-5 {[issue #25](https://github.com/wfjm/w11/issues/25)} -- CPU: The AIB bit in MMU PDR register set independant of ACF field
 
+#### Original Issue
 The MMU should set the AIB A bit in the the PDR only when _"trap condition is
 met by the Access Control Field (ACF)"_. Thus for
 ```
@@ -101,11 +167,13 @@ in the J11, it is not used by common operating systems.
 Therefore this is considered a to be a minor deficit. Will be fixed in an
 upcoming release.
 
+#### Fix
 Fixed with commit [1644863](https://github.com/wfjm/w11/commit/1644863),
 see [ECO-033](ECO-033-MMU_AFC-1_PDR-A.md).
 
 ### V0.79-2 {[issue #30](https://github.com/wfjm/w11/issues/30)} -- SimH scmd files fail on current 4.* version; only 3.* supported
 
+#### Original Issue
 The SimH scmd scripts were originally developed for SimH 3.8, and worked for
 SimH 3.9 and later releases. The SimH 4.* development team decided not to
 provide releases anymore, and over time this version became incompatible with
@@ -131,10 +199,12 @@ Bottom line:
 - the provided scmd scripts work only with SimH V3.9, V3.10 or V3.11-1
 - an update to the SimH V4.* has low priority
 
+#### Fix
 Fixed with commit [35453c4](https://github.com/wfjm/w11/commit/35453c4)
 
 ### V0.50-4 {[issue #24](https://github.com/wfjm/w11/issues/24)} -- CPU: src+dst deltas summed in mmr1 if register identical
 
+#### Original Issue
 Test 12 of maindec `ekbee1` fails because it expects after a
 ```
         mov    #100000,@#mmr0
@@ -157,6 +227,7 @@ logged accesses end in separate bytes (byte 0 filled first).
 
 The w11a only uses byte 1 when the register number differs.
 
+#### Fix
 Fixed with commit [3bd23c9](https://github.com/wfjm/w11/commit/3bd23c9),
 see [ECO-032](ECO-032-MMR1_fix.md).
 

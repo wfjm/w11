@@ -15,19 +15,6 @@ Only SXT depends on a condition code (N), but doesn't change this cc.
 Therefore, an instruction re-execution will always give the correct result.  
 But clearly a BUG, the condition codes must not change in case of MMU aborts.
 
-### V0.791-4 {[issue #36](https://github.com/wfjm/w11/issues/36)} -- MMU trap delayed when prefetch in s_idecode
-
-The s_idecode prefetch logic checks only for tflag and int_pending, but not
-for pending MMU traps.
-
-If the instruction read of a RR instruction, like ROR R0 or ADD R0,R1 causes
-an MMU trap, this trap will not executed. In fact, it's not even queued,
-it's lost.
-
-Detected in a code review.  
-No practical consequences, MMU traps are not used by any OS.  
-But clearly a BUG, such cases should trigger an MMU trap.  
-
 ### V0.50-2 {[issue #28](https://github.com/wfjm/w11/issues/28)} -- RK11: write protect action too slow
 
 Some simple RK11 drivers, especially in test codes, don't poll for completion
@@ -56,36 +43,6 @@ only the creset is executed.
 Can be resolved by handling write lock locally. Normal OS always do
 a busy poll before starting a function, therefore this is considered
 a minor deficit. Might be fixed in an upcoming release.
-
-### V0.50-3 {[issue #27](https://github.com/wfjm/w11/issues/27)} -- CPU: no mmu trap when instruction which clears trap enable itself causes a trap
-
-The MMU should issue an mmu trap if the instruction clearing the
-'mmu trap enable' bit (bit 9 in mmr0) itself causes a trap.
-The 11/70 documentation clearly describes this behavior.
-
-This is the reason why test 063 of the `ekbee1` diagnostics currently fails.
-
-Since the MMU trap mechanism is is only available on 11/45 and 11/70, but
-not in the J11, it is not used by common operating systems.
-
-Therefore this is considered a to be a minor deficit. Will be fixed in an
-upcoming release.
-
-### V0.50-1 {[issue #23](https://github.com/wfjm/w11/issues/23)} -- CPU: several deficits in trap logic
-
-The current w11a implementation has several deficits in the handling of
-traps and interrupts which lead to non-conforming behavior when multiple
-trap, fault and interrupt conditions occur simultaneously, for example
-- bad stack frame when `IOT` trigger stack violation (TCK-003)
-- bad stack frame when interrupt triggers stack violation (TCK-004)
-- no yellow stack abort when `jsr` triggers a stack violation (TCK-006)
-- no odd address trap when `EMT` is executed with odd `SP` (TCK-007)
-- no yellow stack abort for `mov (sp),(sp)` (TCK-028)
-
-These situations never occur during the execution of operation systems, and
-in case they do, the operating system will crash anyway. Thus there is no
-impact in normal usage, but diagnostics programs do complain. Will be fixed
-in an upcoming release.
 
 ### V0.50-8 {[issue #21](https://github.com/wfjm/w11/issues/21)} -- RK11,RL11: no proper NXM check in 18bit systems
 

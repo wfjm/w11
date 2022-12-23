@@ -1,0 +1,43 @@
+#!/bin/bash
+# $Id: gwstart 1336 2022-12-23 19:31:01Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2016-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2022-12-22  1334   1.2    main Tcl code in tools/gwstart/bin; -w -> -nw
+# 2016-10-03   812   1.1    add -w option
+# 2016-07-23   792   1.0    Initial version
+#
+
+optnw=""
+# handle options
+while (( $# > 0 )) ; do
+  case $1 in
+    -nw)          optnw=$1   ; shift 1 ;;
+    -*)           echo "gwstart-E: invalid option '$1'"; exit 1 ;;
+    *)     break;;
+  esac
+done
+
+# complain if no wave file specified
+if (( $# == 0 )) ; then
+  echo "Usage: gwstart [opts] ghw-file tcl-commands ..."
+  echo "  Options:"
+  echo "  -w       enable Tcl command line on stdio"
+  exit 1
+fi
+
+# use -S to start gtkwave without wish
+# use -T to start gtkwave with wish  (Note -S plus --wish crash gtkwave 3.3.73)
+if [[ -n "$optnw" ]] ; then
+  ghwsopt+=" -S"
+else
+  ghwsopt+=" -T"
+fi
+
+ghwfile=$1
+shift 1
+
+gtkwave $ghwsopt ${RETROBASE}/tools/gwstart/bin/gwinit.tcl $ghwfile -- -- "$@"
+stty sane

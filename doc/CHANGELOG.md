@@ -28,7 +28,9 @@ The full set of tests is only run for tagged releases.
 
 ### Summary
 ### New features
+- gwstart: gtkwave starter
 - tools/xxdp: add directory with xxdp setup and patch scripts
+
 ### Changes
 - tools changes
   - tools/asm-11/lib/push_pop.mac: add push2
@@ -90,7 +92,7 @@ The full set of tests is only run for tagged releases.
 - remove Atlys support (only test designs, a w11 design was never done)
 - cleanup code base, use page,mmr\*,pdr,par instead of segment,ssr\*,sdr,sar
   ([see blog](https://wfjm.github.io/blogs/w11/2022-08-18-on-segments-and-pages.html))
-- sysid encodes now system type, allows to distinguish w11,SimH,e11
+- sysid encodes now system type, allows to distinguish w11,SimH,E11
 - CPU bug fixes in pdp11_mmu and pdp11_sequencer
 - cleanup SimH setup files (\*.scmd), use autoconfig, set disk types
 - asm-11 has now limited macro support
@@ -153,7 +155,7 @@ The full set of tests is only run for tagged releases.
     - encodes emulator(15),type(14:12),cpu_number(11:09) and serial number(8:0)
     - pdp11_reg70: set sysid to 010123 --> real w11
     - *.scmd:      set sysid to 110234 --> emu Simh
-    - *.ecmd:      set sysid to 120345 --> emu e11
+    - *.ecmd:      set sysid to 120345 --> emu E11
 ### Bug Fixes
   - rtl/w11a
     - pdp11_mmu: BUGFIX: correct trap and PDR A logic, see

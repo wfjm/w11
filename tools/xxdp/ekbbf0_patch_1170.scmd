@@ -1,8 +1,8 @@
-; $Id: ekbbf0_patch_1170.scmd 1319 2022-11-21 14:20:45Z mueller $
+; $Id: ekbbf0_patch_1170.scmd 1336 2022-12-23 19:31:01Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
-; Patch set ekbbf0 for SimH -- SimH -- SimH -- Simh -- Simh -- Simh
+; Patch set ekbbf0 for SimH -- tested with SimH V3.12-3
 ;
 ; AP: patch test 014: DIV ----------------------------------------------------
 ;   fails in section 7: 100000 000000 / 2

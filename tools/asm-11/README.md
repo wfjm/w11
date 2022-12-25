@@ -1,4 +1,4 @@
-This directory tree contains the **environment for asm-11 assembler** 
+This directory tree contains the **environment for the asm-11 assembler**
 and is organized in
 
 | Directory | Content |

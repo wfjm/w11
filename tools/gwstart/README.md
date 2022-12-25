@@ -1,4 +1,4 @@
-This directory tree contains the **environment for the gwstart command** 
+This directory tree contains the **environment for the gwstart command**
 and is organized in
 
 | Directory | Content |

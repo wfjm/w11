@@ -31,3 +31,5 @@ depend on the 11/70 behavior and are patched or skipped
 The w11 correctly implements the 11/70 behavior. This is verified in a
 [tcode](../tools/tcode/README.md), the test is skipped when executed on SimH
 (see [cpu_details.mac](../tools/tcode/cpu_details.mac) test A3.3).
+
+Tested with SimH V3.12-3.

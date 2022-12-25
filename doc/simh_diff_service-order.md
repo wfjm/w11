@@ -9,7 +9,7 @@ on all other models interrupts have the lowest priority.
 
 As consequence, `RTI` _can_ be used on an 11/70 to exit from an interrupt driver,
 and exactly one trace trap will happen when an interrupt is honored after
-a traced instruction. On all other models, `RTT` _should_ be used to exit from
+a traced instruction. On all other models, `RTT` _can_ be used to exit from
 an interrupt driver to prevent a double trace trap, one before the interrupt
 and one after the hander exit.
 
@@ -22,3 +22,5 @@ skipped when executed on SimH
 (see [cpu_details.mac](../tools/tcode/cpu_details.mac) test A4.4 part 3).
 
 See also [traced `WAIT`](simh_diff_traced-wait.md).
+
+Tested with SimH V3.12-3.

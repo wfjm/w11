@@ -25,3 +25,5 @@ SimH uses the J11 `MMR1` behavior for all models.
 w11 implements the 11/70 behavior. This is verified in a
 [tcode](../tools/tcode/README.md), the tests are skipped when executed on SimH
 (see [cpu_mmu.mac](../tools/tcode/cpu_mmu.mac) test C1.1 and C2.3).
+
+Tested with SimH V3.12-3.

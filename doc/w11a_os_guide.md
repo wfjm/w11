@@ -279,8 +279,8 @@ to cover some older versions of DEC operating systems, for example
 - RSX-11M PLUS V3.0 or prior
 
 on a simulator. It is commonly assumed that the license terms cover the
-usage of the PDP11 simulator from the 'SimH' suite. Usage of the e11
-simulator is not covered according to the author of e11.
+usage of the PDP11 simulator from the 'SimH' suite. Usage of the E11
+simulator is not covered according to the author of E11.
 
 >  **THIS LICENSE DOES NOT COVER THE USAGE OF THESE HISTORIC DEC**  
 >  **OPERATING SYSTEMS ON ANY 'REAL HARDWARE' IMPLEMENTATION OF A**  

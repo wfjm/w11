@@ -1,8 +1,8 @@
-; $Id: eqkce1_patch_1170.scmd 1319 2022-11-21 14:20:45Z mueller $
+; $Id: eqkce1_patch_1170.scmd 1336 2022-12-23 19:31:01Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
-; Patch set eqkce1 for SimH -- SimH -- SimH -- Simh -- Simh -- Simh
+; Patch set eqkce1 for SimH -- tested with SimH V3.12-3
 ;
 ; AP: skip test 041: check stack overflow ------------------------------------
 ;   fails for example at 024632 mov (sp)+,@-(sp) which aborts but shouldn't

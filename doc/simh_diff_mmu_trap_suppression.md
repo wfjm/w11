@@ -12,3 +12,5 @@ xxdp program `ekbee1` tests 061 and 063 verify this behavior and are skipped
 
 w11 also doesn't support this behavior, this is documented as
 [w11 known difference](w11a_diff_70_mmu_trap_suppression.md).
+
+Tested with SimH V3.12-3.

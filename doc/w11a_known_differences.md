@@ -49,12 +49,12 @@ Also helpful are the differences sections in the manuals of for processors
   A 'watch dog' mechanism will be added in a future version which
   suspends the CPU when the server doesn't respond fast enough.
 
-### Known differences between Simh, e11, a real 11/70, and w11a
-The Simh and e11 simulators do not model some 11/70 details that have no
+### Known differences between Simh, E11, a real 11/70, and w11a
+The Simh and E11 simulators do not model some 11/70 details that have no
 effect on normal operation for performance reasons. Test codes, like
 [xxdp](../tools/xxdp/README.md) diagostic programs or the
 [tcodes](../tools/tcode/README.md) of the w11 verification suite are
 sometimes sensitive to those details, so the most relevant ones are
 listed under
 - [Known differences between SimH, 11/70, and w11a](simh_diff_summary.md)
-- [Known differences between e11, 11/70, and w11a](e11_diff_summary.md)
+- [Known differences between E11, 11/70, and w11a](e11_diff_summary.md)

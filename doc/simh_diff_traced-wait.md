@@ -22,3 +22,5 @@ The w11 implements the 11/70 service order and `WAIT` behavior.
 This is verified in a [tcode](../tools/tcode/README.md), the `WAIT` test is
 skipped when executed on SimH
 (see [cpu_details.mac](../tools/tcode/cpu_details.mac) test A4.4 part 4).
+
+Tested with SimH V3.12-3.

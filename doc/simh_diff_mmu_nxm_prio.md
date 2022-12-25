@@ -16,3 +16,5 @@ verifies the 11/70 behavior and is modified
 
 w11 also doesn't support this behavior, this is documented as
 [w11 known difference](w11a_diff_70_mmu_nxm_prio.md).
+
+Tested with SimH V3.12-3.

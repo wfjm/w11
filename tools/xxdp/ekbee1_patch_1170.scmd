@@ -1,8 +1,8 @@
-; $Id: ekbee1_patch_1170.scmd 1329 2022-12-11 17:28:28Z mueller $
+; $Id: ekbee1_patch_1170.scmd 1336 2022-12-23 19:31:01Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
-; Patch set ekbee1 for SimH -- SimH -- SimH -- Simh -- Simh -- Simh
+; Patch set ekbee1 for SimH -- tested with SimH V3.12-3
 ;
 ;   Note: see HACK and DEBUG section at end, especially for setting breaks
 ;

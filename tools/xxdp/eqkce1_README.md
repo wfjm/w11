@@ -9,7 +9,7 @@
 ti_w11 -c7 @eqkce1_run.tcl                      # w11 on GHDL, using cmoda7
 ti_w11 -tuD,12M,break,xon @eqkce1_run.tcl       # w11 on FPGA, arty as example
 pdp11 eqkce1_run.scmd                           # SimH simulator
-e11 /initfile:eqkce1_run.ecmd                   # e11  simulator
+e11 /initfile:eqkce1_run.ecmd                   # E11  simulator
 ```
 
 ### Expected output when no errors are reported
@@ -43,5 +43,5 @@ Runs without patches
 ### SimH remarks (tested with V3.12-3 RC2)
 Requires [patch](eqkce1_patch_1170.scmd).
 
-### e11 remarks
+### E11 remarks
 _to come_

@@ -18,3 +18,5 @@ or user mode `SPL` is a nop and honors traps and interrupts, see
 Several [tcodes](../tools/tcode/README.md) utilize the `SPL` behavior and
 are skipped when executed on SimH
 (see [cpu_basics.mac](../tools/tcode/cpu_basics.mac) test F2.3).
+
+Tested with SimH V3.12-3.

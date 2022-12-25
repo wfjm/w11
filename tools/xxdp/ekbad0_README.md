@@ -9,7 +9,7 @@
 ti_w11 -c7 @ekbad0_run.tcl                      # w11 on GHDL, using cmoda7
 ti_w11 -tuD,12M,break,xon @ekbad0_run.tcl       # w11 on FPGA, arty as example
 pdp11 ekbad0_run.scmd                           # SimH simulator
-e11 /initfile:ekbad0_run.ecmd                   # e11  simulator
+e11 /initfile:ekbad0_run.ecmd                   # E11  simulator
 ```
 
 ### Expected output (code halts in case of an error)
@@ -23,4 +23,4 @@ END PASS
 ```
 
 ### Remarks
-Runs without patches on w11, SimH and e11.
+Runs without patches on w11, SimH and E11.

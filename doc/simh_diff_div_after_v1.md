@@ -19,3 +19,5 @@ divide logic and is modified (see [patch](../tools/xxdp/ekbbf0_patch_1170.scmd))
 
 w11 also returns Z=0 and N based on the sign of the full 32-bit result, this
 is documented as [w11 known difference](w11a_diff_70_div_after_v1.md).
+
+Tested with SimH V3.12-3.

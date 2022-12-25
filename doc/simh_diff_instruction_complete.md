@@ -26,3 +26,5 @@ see [w11 known difference](w11a_diff_70_instruction_complete.md).
 This is verified in a [tcode](../tools/tcode/README.md), the tests are skipped
 when executed on SimH
 (see [cpu_mmu.mac](../tools/tcode/cpu_mmu.mac) test C2.6 and D2.1).
+
+Tested with SimH V3.12-3.

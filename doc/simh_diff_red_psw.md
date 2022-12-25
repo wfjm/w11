@@ -14,3 +14,5 @@ SimH doesn't support this behavior.
 w11 implements the `PSW` protection. This is verified in a
 [tcode](../tools/tcode/README.md), the test is skipped when executed on SimH
 (see [cpu_details.mac](../tools/tcode/cpu_details.mac) test A3.2).
+
+Tested with SimH V3.12-3.

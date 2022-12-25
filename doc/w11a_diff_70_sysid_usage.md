@@ -8,7 +8,7 @@ has no effect on the logic of the code running on the system.
 
 The w11 project uses the `SYSID` to encode the execution environment.
 This allows distinguishing between operation on a real w11 and operation
-in a software emulation under SimH or e11.
+in a software emulation under SimH or E11.
 It can be used on test and verification codes to reconcile implementation
 differences.
 
@@ -16,9 +16,9 @@ differences.
 - the SYSID is divided into fields
   - bit 15: emulator flag (0=w11,1=emulator)
   - bit 14:12: type, encodes w11 or emulator type
-  - bit 11:09: cpu number on 11/74 systems
+  - bit 11:09: cpu number on 11/70mP systems
   - bit 8:0: serial number
 - current assignments are
   - w11a:  010123
   - SimH:  110234
-  - e11:   120345
+  - E11:   120345

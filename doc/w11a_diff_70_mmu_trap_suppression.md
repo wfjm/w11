@@ -8,7 +8,7 @@ when an MMU register is accessed, thus `MMR0` to `MMR3` and any of the
 
 This causes `ekbee1` tests 61 and 63 to fail.
 
-The w11 doesn't implement this trap suppression (neither does SimH or e11).
+The w11 doesn't implement this trap suppression (neither does SimH or E11).
 
 Since MMU traps are a 11/70,11/45 only feature no OS uses them.
 Given that, this is considered an acceptable deviation from 11/70 behavior.

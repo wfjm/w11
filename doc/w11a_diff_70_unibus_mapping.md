@@ -15,6 +15,6 @@ Notes:
   in a UNIBUS timeout and set the ITO bit CPUERR.
 - SimH doesn't implement the UNIBUS window, in a 4 MB memory conficuration
   the address range 17000000:17757777 will be normal memory.
-- e11 implements the UNIBUS window and from V7.4 on access to main memory
+- E11 implements the UNIBUS window and from V7.4 on access to main memory
   via the UNIBUS map. This can be disabled via `set cpu nouwin`. When used
-  with `set memory 3840` an e11 system will be behave like the w11.
+  with `set memory 3840` an E11 system will be behave like the w11.

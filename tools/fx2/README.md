@@ -1,4 +1,4 @@
-This directory tree contains **firmware for Cypress FX2 USB interface** 
+This directory tree contains **firmware for Cypress FX2 USB interface**
 and is organized in
 
 | Directory | Content |

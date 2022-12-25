@@ -29,3 +29,5 @@ The w11 correctly implements the 11/70 behavior in all cases.
 This is verified in a [tcode](../tools/tcode/README.md), the tests are
 skipped when executed on SimH
 (see [cpu_details](../tools/tcode/cpu_details.mac) tests A3.4 and A3.5).
+
+Tested with SimH V3.12-3.

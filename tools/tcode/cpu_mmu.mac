@@ -1,10 +1,10 @@
-; $Id: cpu_mmu.mac 1332 2022-12-21 11:56:32Z mueller $
+; $Id: cpu_mmu.mac 1337 2022-12-26 11:14:21Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2022-12-17  1331   1.0    Initial version
+; 2022-12-25  1337   1.0    Initial version
 ; 2022-07-24  1262   0.1    First draft
 ;
 ; Test CPU MMU: all aspects of the MMU
@@ -1768,7 +1768,7 @@ td0101:
         mov     mmr2,(sp)       ; roll back PC
         bic     #<m0.anr!m0.ale!m0.ard>,mmr0    ; clear abort bits
         rtt                     ; return and restart instruction
-                                ; MMU abort reruns must use rtt to avoid a
+                                ; MMU abort re-runs must use rtt to avoid a
                                 ; spurious tbit trap in case traced instruction 
 ;
 3000$:  .word   0               ; save mmr0
@@ -1877,6 +1877,12 @@ td0201: tstb    systyp          ; skip if not on w11
 ;   It expects an abort with ico=1, an abort with ico=0 and a trap.
 ;   In these three cases, first the expected environment is checked and
 ;   after that the corrective action is taken.
+;   Notes:
+;   - the case of simultaneous MMU abort and trap (abort flags set and
+;     m0.trp newly set) is not handled in this simple demonstrator.
+;   - the code uses m*pd even though D-space is not enabled.
+;   - the code uses RTT to return for an instruction re-execution. That avoids
+;     a spurious tbit trap in case the aborted instruction was traced.
 ;
 3000$:  htstge  (r5)                    ; r5 at fence ?
         mov     #250,(r5)+              ; trace
@@ -1906,7 +1912,7 @@ td0201: tstb    systyp          ; skip if not on w11
 ;
 ; use MMR1 to correct SM SP
         mov     mmr1,r1                 ; get mmr1
-        mfpi    sp                      ; get SM sp
+        mfpd    sp                      ; get SM sp
         pop     r2
         cmp     #^b0000000011110110,r1  ; mmr1: sp -2
         bne     3100$
@@ -1926,10 +1932,10 @@ td0201: tstb    systyp          ; skip if not on w11
 ; move stack frame from kernel to target mode (SM)
 ;
         sub     #4,r2                   ; final SM SP
-        mtpi    (r2)                    ; move SM frame PC
-        mtpi    2(r2)                   ; move SM frame PS
+        mtpd    (r2)                    ; move SM frame PC
+        mtpd    2(r2)                   ; move SM frame PS
         push    r2
-        mtpi    sp                      ; update SM SP
+        mtpd    sp                      ; update SM SP
 ;
 ; use MMR2 to start target handler (PIRQ)
 ;
@@ -1955,7 +1961,9 @@ td0201: tstb    systyp          ; skip if not on w11
         bis     #md.arw,sipdr2          ; code page read-writable
         mov     mmr2,(sp)               ; point to failed instruction
         bic     #m0.anr!m0.ale!m0.ard,mmr0      ; clear abort flags
-        rtt                             ; re-run instruction
+        rtt                             ; re-run instruction, use rtt to avoid a
+                                        ; spurious tbit trap in case traced
+                                        ; instruction
 ;
 ; handle MMU trap --------------------------------
 ;   Expect trap from cp.pir register access
@@ -1982,13 +1990,13 @@ td0201: tstb    systyp          ; skip if not on w11
 ; move stack frame from hander to kernel stack
 ;
         add     #4,sp                   ; drop return frame
-        mfpi    sp                      ; get SM SP
+        mfpd    sp                      ; get SM SP
         pop     r2
-        mfpi    2(r2)                   ; move frame PS
-        mfpi    (r2)                    ; move frame PC
+        mfpd    2(r2)                   ; move frame PS
+        mfpd    (r2)                    ; move frame PC
         add     #4,r2                   ; correct SM SP
         push    r2
-        mtpi    sp                      ; update SM SP
+        mtpd    sp                      ; update SM SP
         rti                             ; finish rti from handler
 ;
 ; finally restore ------------------------------------------

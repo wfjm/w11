@@ -1,4 +1,4 @@
-# ECO-035:  STKLIM, yellow and tbit trap fixes (2022-12-06)
+# ECO-035:  STKLIM, yellow and tbit trap fixes (2022-12-06,2022-12-26)
 
 ### Scope
 - mostly in w11a since 2008
@@ -59,10 +59,13 @@ as a result, some J11 behaviors crept into the w11.
       was implanted by ignoring any break condition. This gives the expected
       behavior in all most all cases but deviates in a few corner cases like
       single stepping code.
-  - fix: implement the approach used by 11/70, but also J11, to set a request
+  - fix 1: implement the approach used by 11/70, but also J11, to set a request
       flag at the beginning of instruction processing, in state `s_idecode`,
       and take the tbit trap decision based on that flag at the end of
       instruction execution.
+  - fix 2: use the 11/70 logic that the request flag _loads_ the `PSW` tbit
+      instead of _setting_ it when `PSW` tbit=1. This ensures that a traced
+      `RTI` or `RTT` does not tbit trap when a `PS` with tbit=0 is loaded.
 - `RESET` wait time
   - issues: on the w11 the `RESET` instruction caused a one-cycle `breset`
       pulse and continued immediately. The clearing of pending interrupts takes

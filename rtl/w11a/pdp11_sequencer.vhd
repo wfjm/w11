@@ -1,4 +1,4 @@
--- $Id: pdp11_sequencer.vhd 1330 2022-12-16 17:52:40Z mueller $
+-- $Id: pdp11_sequencer.vhd 1337 2022-12-26 11:14:21Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,6 +13,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-12-26  1337   1.6.26 tbit logic overhaul 2, now fully 11/70 compatible
 -- 2022-12-12  1330   1.6.25 implement MMR0,MMR2 instruction complete
 -- 2022-12-10  1329   1.6.24 BUGFIX: get correct PS after vector push abort
 -- 2022-12-05  1324   1.6.23 tbit logic overhaul; use treq_tbit; cleanups
@@ -951,9 +952,8 @@ begin
 
         nstatus.resetcnt := "111";      -- set RESET wait timer
 
-        if PSW.tflag='1' then           -- if PSW tbit set
-          nstatus.treq_tbit := '1';     --   request tbit
-        else
+        nstatus.treq_tbit := PSW.tflag; -- copy PSW.tflag to treq_bit
+        if PSW.tflag = '0' then         -- if PSW tbit clear consider prefetch
           -- The prefetch decision path can be critical (and was on s3). It uses
           -- R_STATUS.intpend instead of int_pending, using the status latched
           -- at the previous state is OK. It uses R_STATUS.treq_mmu because
@@ -2219,7 +2219,6 @@ begin
       when s_vec_getpc =>               -- -----------------------------------
         nmmumoni.vstart := '1';         -- signal vstart
         nstatus.in_vecflow := '1';      -- signal vector flow
-        nstatus.treq_tbit := '0';       -- cancel pending tbit request
         nvmcntl.mode := c_psw_kmode;    -- fetch PC from kernel D space
         do_memread_srcinc(nstate, ndpcntl, nvmcntl, s_vec_getpc_w, nmmumoni);
 
@@ -2326,6 +2325,7 @@ begin
         nstate := s_vec_pushpc_w;
         do_memcheck(nstate, nstatus, imemok);
         if imemok then
+          nstatus.treq_tbit := PSW.tflag;          -- copy PSW.tflag to treq_bit
           nstatus.in_vecflow := '0';               -- signal end vector flow
           nstatus.in_vecser  := '0';               -- signal end of ser flow
           nstatus.in_vecysv  := '0';               -- signal end of ysv flow
@@ -2369,9 +2369,10 @@ begin
         end if;
 
       when s_rti_newpc =>               -- -----------------------------------
-        if R_IDSTAT.op_rti = '1' and            -- if RTI instruction
-           PSW.tflag = '1' then                 --   and PSW tflag set now
-          nstatus.treq_tbit := '1';             --   request immediate tbit
+        if R_IDSTAT.op_rti = '1' then           -- if RTI instruction
+          nstatus.treq_tbit := PSW.tflag;       --   copy PSW.tflag to treq_bit
+        else                                    -- else RTT
+          nstatus.treq_tbit := '0';             --   no tbit trap
         end if;
         ndpcntl.ounit_asel := c_ounit_asel_ddst;  -- OUNIT A=DDST
         ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B=const (0)

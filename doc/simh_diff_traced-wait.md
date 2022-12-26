@@ -2,7 +2,7 @@
 
 ### SimH: traced `WAIT` has J11 behavior
 
-On an 11/70 (and an 11/45) a traced `WAIT` will wait until an interrupt happens
+On an 11/70 (and an 11/45), a traced `WAIT` will wait until an interrupt happens
 and finish without raising a trace trap because the interrupt has higher
 service precedence. The trace trap related to the `WAIT` will happen when the
 interrupt driver exits with an `RTI`.

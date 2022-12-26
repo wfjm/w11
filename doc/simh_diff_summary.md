@@ -20,6 +20,8 @@ ones are listed here:
 - service order and trap handling
   - [SimH: trap and interrupt service order has J11 behavior](simh_diff_service-order.md)
   - [SimH: traced `WAIT` has J11 behavior](simh_diff_traced-wait.md)
+  - [SimH: traced `RTI`/`RTT` that clears tbit does trap](simh_diff_traced-rti-rtt.md)
+  - [SimH: vector flow that sets tbit does not trap](simh_diff_traced-vector.md)
 - memory management behavior
   - [SimH: `MMR1` recording has J11 behavior](simh_diff_mmr1.md)
   - [SimH: MMU traps not suppressed when MMU register accessed](simh_diff_mmu_trap_suppression.md)

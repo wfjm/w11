@@ -1,10 +1,10 @@
-; $Id: cpu_details.mac 1332 2022-12-21 11:56:32Z mueller $
+; $Id: cpu_details.mac 1337 2022-12-26 11:14:21Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2022-12-10  1329   1.0    Initial version
+; 2022-12-25  1337   1.0    Initial version
 ; 2022-07-18  1259   0.1    First draft
 ;
 ; Test CPU details
@@ -80,17 +80,24 @@
 ;             part 2: from cm=s,rset=1 mode: set cm=0 and rset=0 (fail!)
 ;             part 3: from cm=s,rset=0 mode: set cm=u and rset=1 (fine!)
 ;             part 4: from cm=u,rset=1 mode: set cm=0 and rset=0 (fail!)
+;             part 5: from cm=k,pri=0: set pri=6 (fine!)
+;             part 6: from cm=s,pri=0: set pri=6 (fail!)
+;             part 7: from cm=u,pri=0: set pri=6 (fail!)
 ;   A4.3    RTI/RTT tbit basics
 ;             part 1: tbit after RTI
 ;             part 2: tbit after RTT
 ;   A4.4    Test A4.4 -- tbit trace tests
-;             part 1: simple instruction sequence
-;             part 2: tracing of trap instructions (EMT tested)
-;             part 3: tbit vs interrupt precedence (via PIRQ)
-;             part 4: traced WAIT and tbit
-;             part 5: WAIT and SPL in user mode
-;             part 6: tbit trap after continuation over s_idle
-;             part 7: no tbit trap after an abort
+;             part  0: traced TRAP that clears tbit
+;             part  1: simple instruction sequence
+;             part  2: tracing of trap instructions (EMT tested)
+;             part  3: tbit vs interrupt precedence (via PIRQ)
+;             part  4: traced WAIT and tbit
+;             part  5: WAIT and SPL in user mode
+;             part  6: tbit trap after continuation over s_idle
+;             part  7: no tbit trap after an abort
+;             part  8: traced RTI that clears tbit
+;             part  9: EMT that sets tbit
+;             part 10: PIRQ that sets tbit
 ;
 ; Test A1:  PIRQ +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;   This sub-section verifies operation of PIRQ register
@@ -1001,7 +1008,7 @@ ta0401:
 9999$:  iot                                     ; end of test A4.1
 ;
 ; Test A4.2 -- PSW write/read via RTI/RTT ++++++++++++++++++++++++++++
-;   Verifies cm and rset priviledge escalation protection
+;   Verifies cm, rset and priority priviledge escalation protection
 ;
 ta0402:
 ;
@@ -1083,6 +1090,50 @@ ta0402:
         bic     #cpnzvc,4110$           ; discard NZVC
         hcmpeq  #cp.cmu!cp.ars,4110$    ; check expected 2nd PS (same !)
 ;
+; part 5: from cm=k,pri=0: set pri=6 (fine!) -------------------------
+;
+        rtijmp  #cp.pr6,#5100$          ; new PS cm=k,pri=6
+;
+5100$:  hcmpeq  #cp.pr6,cp.psw          ; check PS
+        clr     cp.psw                  ; back to normal
+        mov     #stack,sp               ; restore stack
+;
+; part 6: from cm=s,pri=0: set pri=6 (fail!) -------------------------
+;
+        rtijmp  #cp.cms,#6200$          ; PS cm=s
+;
+        .word   0,0                     ; temporary stack
+6100$:  .word   0                       ; saved PS
+;
+; now in supervisor mode, try sneak to cm=s and pri=6
+6200$:  mov     #6100$,sp               ; set up stack
+        rtijmp  #cp.cms!cp.pr6,#6300$   ; new PS cm=s and pri=6
+;
+; lands here after rti from cm=s
+6300$:  mov     cp.psw,6100$            ; save PS
+        clr     cp.psw                  ; back to kernel
+        mov     #stack,sp               ; restore stack
+        bic     #cpnzvc,6100$           ; discard NZVC
+        hcmpeq  #cp.cms,6100$           ; check expected PS, pri stays 0 !
+;
+; part 7: from cm=u,pri=0: set pri=6 (fail!) -------------------------
+;
+        rtijmp  #cp.cmu,#7200$          ; PS cm=u
+;
+        .word   0,0                     ; temporary stack
+7100$:  .word   0                       ; saved PS
+;
+; now in user mode, try sneak to cm=u and pri=6
+7200$:  mov     #7100$,sp               ; set up stack
+        rtijmp  #cp.cmu!cp.pr6,#7300$   ; new PS cm=u and pri=6
+;
+; lands here after rti from cm=u
+7300$:  mov     cp.psw,7100$            ; save PS
+        clr     cp.psw                  ; back to kernel
+        mov     #stack,sp               ; restore stack
+        bic     #cpnzvc,7100$           ; discard NZVC
+        hcmpeq  #cp.cmu,7100$           ; check expected PS, pri stays 0 !
+;
 9999$:  iot                                     ; end of test A4.2
 ;
 ; Test A4.3 -- RTI/RTT tbit basics +++++++++++++++++++++++++++++++++++
@@ -1129,7 +1180,26 @@ ta0404: mov     #vhtbpt,v..bpt          ; BPT handler
         mov     #vhttrp,v..trp          ; TRAP handler
         clr     v..trp+2                ;  run at PR0 (no PIRQ competion)
 ;
-; part 1: simple instruction sequence --------------------------------
+; part  0: traced TRAP that clears tbit ------------------------------
+;   Checks that a traced TRAP which loads a PS with tbit=0 does not trap.
+;   Tested separately because the trace zone exit of subsequent tests uses TRAP.
+;
+        mov     #200$,r5
+        mov     #300$,vhtend
+        rtijmp  #cp.t,#100$            ; RTI used to see bpt before 1st inst
+;
+100$:   trap    100
+110$:
+;
+200$:   .word   0,0
+        .word   0,0
+        .word   -1,-1
+;
+300$:   htinit  200$,2.                ; expect 2 items
+        htitem  #014,#100$             ; bpt before trap (none after !)
+        htitem  #036,#110$             ; final trap
+;
+; part  1: simple instruction sequence -------------------------------
 ;   Checks that trace traps are taken instructions which allow prefetch
 ;   and that the destination PC is saved for flow control instructions.
 ;
@@ -1175,7 +1245,7 @@ ta0404: mov     #vhtbpt,v..bpt          ; BPT handler
         htitem  #014,#1180$             ; bpt after  jmp (PC is jmp target)
         htitem  #036,#1190$             ; final trap
 ;
-; part 2: tracing of trap instructions (EMT tested) ------------------
+; part  2: tracing of trap instructions (EMT tested) -----------------
 ;
 2000$:  mov     #2200$,r5
         mov     #2300$,vhtend
@@ -1201,12 +1271,19 @@ ta0404: mov     #vhtbpt,v..bpt          ; BPT handler
         htitem  #014,#2130$             ; bpt after nop
         htitem  #036,#2140$             ; final trap
 ;
-; part 3: tbit vs interrupt precedence (via PIRQ) --------------------
+; part  3: tbit vs interrupt precedence (via PIRQ) -------------------
 ;   Checks that interrupt has precedence over tbit traps.
-;   Skipped on SimH which implements J11 precedence (tbit over interrupt).
+;   On a 11/70 and the w11 the PIRQ handler is sprung first, and sees as return
+;   address the PC after the movb that triggers the PIRQ. The tbit trap is
+;   sprung on return of the PIRQ handler, and also sees as return address
+;   the PC after the movb that triggers the PIRQ.
+;   On a J11 and on SimH the BPT handler is sprung first, and sees as return
+;   address the PC after the movb that triggers the PIRQ. After the signature
+;   is looged, the handler lower priority to 0, at that point the PIRQ
+;   handler is sprung and sees as return address the PC after the clr cp.psw
+;   that enabled the PIRQ interrupt.
 ;
-3000$:  cmpb    systyp,#sy.sih          ; skip on SimH (different service order)
-        beq     4000$
+3000$:  mov     #1,vhtbp0               ; ask BPT to lower priority
         cmpb    systyp,#sy.e11          ; skip on e11 (different service order)
         beq     4000$
 ;
@@ -1221,21 +1298,28 @@ ta0404: mov     #vhtbpt,v..bpt          ; BPT handler
 3200$:  .word   0,0
         .word   0,0
         .word   0,0
-        .word   0,0
-        .word   0,0
         .word   -1,-1
 ;
 3300$:  htinit  3200$,3.                ; expect 3 items
+        cmpb    systyp,#sy.sih          ; different checks for SimH service order
+        beq     3310$
+; checks for w11
         htitem  #240,#3110$             ; pirq (with return address)
         htitem  #014,#3110$             ; bpt after movb
         htitem  #036,#3120$             ; final trap
+        br      4000$
+; checks for SimH
+3310$:  htitem  #014,#3110$             ; bpt after movb first
+        htitem  #240,#vhtbpe            ; pirq from bpt handler
+        htitem  #036,#3120$             ; final trap
 ;
-; part 4: traced WAIT and tbit ---------------------------------------
+; part  4: traced WAIT and tbit --------------------------------------
 ;   Checks that traced WAIT does not produce tbit trap.
 ;   Checks that SPL does not produce a tbit trap.
 ;   Skipped on SimH which implements J11 semantics for SPL, WAIT, precedence.
 ;
-4000$:  cmpb    systyp,#sy.sih          ; skip on SimH
+4000$:
+        cmpb    systyp,#sy.sih          ; skip on SimH
         beq     5000$
         cmpb    systyp,#sy.e11          ; skip on e11 (for precedence)
         beq     5000$
@@ -1262,7 +1346,7 @@ ta0404: mov     #vhtbpt,v..bpt          ; BPT handler
         htitem  #014,#4120$             ; bpt after wait
         htitem  #036,#4130$             ; final trap
 ;
-; part 5: WAIT and SPL in user mode ----------------------------------
+; part  5: WAIT and SPL in user mode ---------------------------------
 ;   Checks that WAIT and SPL in user mode are traced (are nop)
 ;
 5000$:  mov     #5200$,r5
@@ -1284,7 +1368,7 @@ ta0404: mov     #vhtbpt,v..bpt          ; BPT handler
         htitem  #014,#5120$             ; bpt after spl
         htitem  #036,#5130$             ; final trap
 ;
-; part 6: tbit trap after continuation over s_idle -------------------
+; part  6: tbit trap after continuation over s_idle ------------------
 ;   Checks instructions that complete via s_idle are properly traced
 ;   Four instructions branch at completion to s_idle
 ;     WAIT      s_op_wait (after interrupt)
@@ -1323,7 +1407,7 @@ ta0404: mov     #vhtbpt,v..bpt          ; BPT handler
         clr     @#0
         clr     @#2
 ;
-; part 7: no tbit trap after an abort --------------------------------
+; part  7: no tbit trap after an abort -------------------------------
 ;   Checks that an aborted instruction doesnt tbit trap.
 ;   Uses a bus timeout as abort reason (access to 160000).
 ;
@@ -1344,7 +1428,79 @@ ta0404: mov     #vhtbpt,v..bpt          ; BPT handler
         htitem  #014,#7110$             ; bpt after 1st clr
 ;
         mov     #v..iit+2,v..iit        ; restore
-
+;
+; part  8: traced RTI that clears tbit -------------------------------
+;   Checks that a traced RTI loading a PS with tbit=0 does not trap.
+;   Skipped on SimH which does TRAP (confirmed bug, to be fixed).
+;
+8000$:  cmpb    systyp,#sy.sih          ; skip on SimH (traced RTI traps)
+        beq     9000$
+;
+        push2   #0,#8300$               ; frame used by RTI
+        mov     #8200$,r5
+        rttjmp  #cp.t,#8100$
+;
+8100$:  nop                             ; will tbit trap
+8110$:  rti                             ; will not tbit trap (new PS tbit=0)
+;
+8200$:  .word   0,0
+        .word   -1,-1
+;
+8300$:  htinit  8200$,1.                ; expect 1 item
+        htitem  #014,#8110$             ; bpt after nop
+;
+; part  9: EMT that sets tbit ----------------------------------------
+;  Checks that a vector flow loading a PS with tbit=1 does trap.
+;  Test case is the EMT instruction.
+;  Skipped on SimH which does not trap (tbd whether that is J11 behavior or bug).
+;
+9000$:  cmpb    systyp,#sy.sih          ; skip on SimH (RTI traps, EMT not)
+        beq     10000$
+;
+        mov     #9100$,v..emt
+        mov     #cp.t,v..emt+2
+        mov     #9200$,r5
+;
+        emt     100
+        br      9300$
+;
+9100$:  nop                             ; will tbit trap
+9110$:  rti                             ; will not tbit trap (new PS tbit=0)
+;
+9200$:  .word   0,0
+        .word   0,0
+        .word   -1,-1
+;
+9300$:  htinit  9200$,2.                ; expect 2 items
+        htitem  #014,#9100$             ; bpt at entry of EMT handler
+        htitem  #014,#9110$             ; bpt after nop
+;
+; part 10: PIRQ that sets tbit ---------------------------------------
+;  Checks that a vector flow loading a PS with tbit=1 does trap.
+;  Test case is a PIRQ interrupt.
+;  Skipped on SimH which does not trap (tbd whether that is J11 behavior or bug).
+;
+10000$: cmpb    systyp,#sy.sih          ; skip on SimH (RTI traps, PIRQ not)
+        beq     9999$
+;
+        mov     #10100$,v..pir
+        mov     #cp.pr7!cp.t,v..pir+2
+        mov     #10200$,r5
+;
+        movb    #bit01,cp.pir+1         ; request PIRQ 1
+        br      10300$
+;
+10100$: clr     cp.pir                  ; will tbit trap
+10110$: rti                             ; will not tbit trap (new PS tbit=0)
+;
+10200$: .word   0,0
+        .word   0,0
+        .word   -1,-1
+;
+10300$: htinit  10200$,2.               ; expect 2 items
+        htitem  #014,#10100$            ; bpt at entry of PIRQ handler
+        htitem  #014,#10110$            ; bpt after movb
+;
 ; restore ------------------------------------------------------------
 ;
         mov     #v..bpt+2,v..bpt        ; restore v..bpt to catcher
@@ -1601,11 +1757,17 @@ vhuhlt: halt
 ; vhtbpt - handler for BPT tracing +++++++++++++++++++++++++++++++++++++++++++
 ;   Writes signature to data area (ptr in r5).
 ;   Signature is vector address + return PC  (PC to test proper context).
+;   If vhtbp0 is non-zero, the handler lowers priority to PRI=0 before RTT.
 ;
 vhtbpt: htstge  (r5)            ; r5 at fence ?
         mov     #014,(r5)+      ; track BPT vector
         mov     (sp),(r5)+      ; track PC
-        rtt                     ; end with RTT (!)
+        tst     vhtbp0          ; should PRI be lowered ?
+        beq     vhtbpe
+        clr     vhtbp0          ; and clear flag
+        clr     cp.psw          ; now PRI=0, immediate effect
+vhtbpe: rtt                     ; end with RTT (!)
+vhtbp0: .word   0
 ;
 ; vhtemt - handler for EMT tracing +++++++++++++++++++++++++++++++++++++++++++
 ;   Writes signature to data area (ptr in r5).

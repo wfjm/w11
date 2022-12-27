@@ -1,4 +1,4 @@
--- $Id: pdp11_dpath.vhd 1310 2022-10-27 16:15:50Z mueller $
+-- $Id: pdp11_dpath.vhd 1339 2022-12-27 12:11:34Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -19,6 +19,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-12-27  1339   1.2.7  remove PCOUT port
 -- 2022-10-25  1309   1.2.6  rename _gpr -> _gr
 -- 2015-07-19   702   1.2.5  set new DM_STAT_DP fields
 -- 2014-08-10   581   1.2.4  use c_cc_f_*
@@ -58,7 +59,6 @@ entity pdp11_dpath is                   -- CPU datapath
     CP_DIN : in slv16;                  -- console port data in
     CP_DOUT : out slv16;                -- console port data out
     PSWOUT : out psw_type;              -- current psw
-    PCOUT : out slv16;                  -- current pc
     IREG : out slv16;                   -- ireg out
     VM_ADDR : out slv16;                -- virt. memory address
     VM_DOUT : in slv16;                 -- virt. memory data out
@@ -317,7 +317,6 @@ begin
   STAT.ccout_z <= CCOUT(c_cc_f_z);      -- current Z cc flag
     
   PSWOUT  <= PSW;
-  PCOUT   <= GR_PC;
   IREG    <= R_IREG;
   VM_DIN  <= DRES;
   CP_DOUT <= R_CPDOUT;

@@ -1,4 +1,4 @@
-; $Id: cpu_mmu.mac 1337 2022-12-26 11:14:21Z mueller $
+; $Id: cpu_mmu.mac 1339 2022-12-27 12:11:34Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -9,7 +9,7 @@
 ;
 ; Test CPU MMU: all aspects of the MMU
 ;   Section A: pdr,par registers
-;   Section B: mmr0,mmr3 registers, mapping, instructions
+;   Section B: mmr0,mmr3 registers, mapping, instructions; MTP* and MFP*
 ;   Section C: mmr2+mmr1+mmr0 register, aborts
 ;   Section D: mmr2+mmr1+mmr0 register, abort recovery
 ;   Section E: traps and pdr aia and aiw bits
@@ -231,7 +231,14 @@ ta0102:
 ;    B2.2    test variable kernel mode mapping
 ;    B3    user and supervisor mode
 ;    B3.1    run code in user/supervisor mode
-;    B3.2    run code in user mode with D space enabled
+;    B3.2    run code in user mode with D space; MFP*, MTP*
+;              part 1: run code vc1 in user mode
+;              part 2: test MTPD and MFPD
+;              part 3: test MTPI and MFPI
+;              part 4: test MTPD,MFPD with @(sp)+
+;              part 5: test MTPI,MFPI with @(sp)+
+;              part 6: test MFPD,MFPI and MTPD,MTPI for sp register access
+;              part 7: test MFPD,MFPI and MTPD,MTPI for register r0-r5 access
 ;    B4    invalid cpu mode 10
 ;    B4.1    check that cmode=10 causes abort
 ;    B4.2    check MFPI/MTPI SP response for pmode=10
@@ -460,7 +467,7 @@ tb0301:
 ;
 9999$:  iot                     ; end of test B3.1
 ;
-; Test B3.2 -- run code in user mode with D space enabled ++++++++++++
+; Test B3.2 -- run code in user mode with D space; mfp*, mtp* ++++++++
 ;   code vc1 is executed in user and in supervisor mode
 ;   the code runs in seg0 with D space enabled
 ;
@@ -479,7 +486,7 @@ tb0302:
         mov     #m3.dum,mmr3    ; user d dspace, no 22bit
         mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 18
 ;
-; run code vc1 in user mode --------------------------------
+; part 1: run code vc1 in user mode ----------------------------------
 ;
 ; set user mode pdr/par, only short page 0; I and D
         mov     #<8.*md.plf>!md.arw,uipdr0
@@ -506,6 +513,8 @@ tb0302:
 ;
 ; psw has now pm=user and cm=kernel; good setup to test MFPI and friends
 ;
+; part 2: test MTPD and MFPD -----------------------------------------
+;
 ; test MFPD (data access)
 ;
         mov     #<vc1v0-vc1dat>,r5      ; initialize data pointer
@@ -530,6 +539,8 @@ tb0302:
         cmp     r4,r3           ; more to do ?
         blo     2000$
 ;
+; part 3: test MTPI and MFPI -----------------------------------------
+;
 ; test MFPI (data access)
 ;
         mov     #<vc1-vc1>,r5     ; initialize data pointer
@@ -553,9 +564,9 @@ tb0302:
         cmp     r4,r3           ; more to do ?
         blo     3000$
 ;
-; Test MTPD,MFPD with @(sp)+
-;   Note: (sp)+ is not a useful address mode for MTPD
-;         It will use the cm sp as address in pm.
+; part 4: test MTPD,MFPD with @(sp)+ ---------------------------------
+;   Note: (sp) or (sp)+ are not a useful address mode for MTPD
+;         It will use the cm sp as address in pm, rarely what one wants
 ;         So @(sp)+ is the only mode with sp in src worth to be tested
 ;
         clr     vc1v0
@@ -568,7 +579,7 @@ tb0302:
         mfpd    @(sp)+
         hcmpeq  (sp)+,#054322   ; check
 ;
-; Test MTPI,MFPI with @(sp)+
+; part 5: test MTPI,MFPI with @(sp)+ ---------------------------------
 ;
         clr     vc1ida
         push    #<vc1ida-vc1>   ; I addr of vc1ida
@@ -580,7 +591,8 @@ tb0302:
         mfpi    @(sp)+
         hcmpeq  (sp)+,#012322   ; check
 ;
-; Test MFPD,MFPI and MTPD,MTPI for sp register access
+;
+; part 6: test MFPD,MFPI and MTPD,MTPI for sp register access --------
 ;   accessing sp will access user mode stack pointer (which is != kernel stack)
 ;
 ; read sp via mfpd and mfpi
@@ -604,7 +616,7 @@ tb0302:
         mfpd   sp               ; read back user stack
         hcmpeq (sp)+,r5         ; check
 ;
-; Test MFPD,MFPI and MTPD,MTPI for register r0-r5 access
+; part 7: test MFPD,MFPI and MTPD,MTPI for register r0-r5 access -----
 ;   accessing r0-r5 simply acccesses common registers
 ;   that is usually not used, but should work
 ;
@@ -736,6 +748,8 @@ tb0402: tstb    systyp          ; skip if not on w11
 ;             part 1: JSR, MFPI, MFPD (push)
 ;             part 2: RTS, MTPI, MTPD (pop)
 ;   C2.4    mmu abort vs nxm abort
+;             part 1: MMU allows access to NXM memory --> NXM abort
+;             part 2: MMU denies access to NXM memory --> MMU abort
 ;   C2.5    mmu abort in vector flow - kernel mode
 ;   C2.6    mmu abort in vector flow - supervisor mode
 ;   C2.7    mmu abort in 1st instruction after vector flow
@@ -1341,7 +1355,7 @@ tc0204: mov     cp.los,kipar6           ; map begin of non-existent memory
         mov     #m3.e22,mmr3            ; enable 22-bit mode
         mov     #m0.ena,mmr0            ; enable mmu with traps  ;! MMU 22
 ;
-; part1: MMU allows access to NXM memory --> NXM abort ---------------
+; part 1: MMU allows access to NXM memory --> NXM abort --------------
 ;
 1000$:  clr     cp.err                  ; clear CPUERR
         mov     #1100$,v..iit           ; set vector 4 handler for NXM abort
@@ -1351,7 +1365,7 @@ tc0204: mov     cp.los,kipar6           ; map begin of non-existent memory
         hcmpeq  cp.err,#cp.nxm          ; NXM error seen
         mov     #v..iit+2,v..iit        ; restore iit handler to catcher
 ;
-; part2: MMU denies access to NXM memory --> MMU abort ---------------
+; part 2: MMU denies access to NXM memory --> MMU abort --------------
 ;
 2000$:  mov     #<127.*md.plf>!md.an7,kipdr6  ; deny access via acf=7
         clr     cp.err                  ; clear CPUERR

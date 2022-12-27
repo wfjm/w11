@@ -1,4 +1,4 @@
-# $Id: sys_w11a_n2.imfset 1150 2019-05-19 17:52:54Z mueller $
+# $Id: sys_w11a_n2.imfset 1339 2022-12-27 12:11:34Z mueller $
 #
 # ----------------------------------------------------------------------------
 [xst]
@@ -46,12 +46,10 @@ Input <RLB_MONI\..*> is never used
 Input <CCIN<2:1>> is never used
 Input <EI_ACK> is never used
 Input <IREG<\d*:\d*>> is never used
-Input <MONI.idone> is never used
+Input <MONI.vflow> is never used
 Input <MONI.trace_prev> is never used
 Input <DIN<\d*:\d*>> is never used
 Input <I_MEM_WAIT> is never used
-Input <CNTL.trap_done> is never used
-Input <VADDR<\d*:\d*>> is never used
 Input <CE_USEC> is never used
 
 Signal <TXSIZE_FX2> is assigned but never used
@@ -101,7 +99,6 @@ FF/Latch <SYS70/W11A/SEQ/R_STATUS.intvect_8> has a constant value of 0
 FF/Latch <CRAMCTL/IOB_MEM_ADDRH/R_DO_21> has a constant value of 0
 FF/Latch <CRAMCTL/IOB_MEM_ADDRH/R_DO_20> has a constant value of 0
 FF/Latch <CRAMCTL/R_REGS.cntdly_2> has a constant value of 0
-FF/Latch <R_SSR0.inst_compl> has a constant value of 0
 FF/Latch <RLINK/CORE/RL/R_LREGS\.attn_.*> has a constant value of 0 
 FF/Latch <SYS70/DMPCNT.I0/R_REGS\.psig_\d*> has a constant value of 0
 FF/Latch <SYS70/DMPCNT.I0/PRE\[\d*\]\.ENA.CNT/R_CNT_\d*> has a constant value

@@ -1,4 +1,4 @@
--- $Id: pdp11.vhd 1330 2022-12-16 17:52:40Z mueller $
+-- $Id: pdp11.vhd 1339 2022-12-27 12:11:34Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -11,6 +11,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-12-27  1339   1.5.22 _sequencer: rm PC port; _dpath: rm PCOUT port
 -- 2022-12-12  1330   1.5.21 dm_stat_se_type: rename vfetch -> vstart;
 --                           mmu_moni_type: drop pc,idone, add vstart,vflow
 --                           pdp11_mmu_mmr12: add VADDR port
@@ -1022,7 +1023,6 @@ component pdp11_dpath is                -- CPU datapath
     CP_DIN : in slv16;                  -- console port data in
     CP_DOUT : out slv16;                -- console port data out
     PSWOUT : out psw_type;              -- current psw
-    PCOUT : out slv16;                  -- current pc
     IREG : out slv16;                   -- ireg out
     VM_ADDR : out slv16;                -- virt. memory address
     VM_DOUT : in slv16;                 -- virt. memory data out
@@ -1045,7 +1045,6 @@ component pdp11_sequencer is            -- cpu sequencer
     CLK : in slbit;                     -- clock
     GRESET : in slbit;                  -- general reset
     PSW : in psw_type;                  -- processor status
-    PC : in slv16;                      -- program counter
     IREG : in slv16;                    -- IREG
     ID_STAT : in decode_stat_type;      -- instr. decoder status
     DP_STAT : in dpath_stat_type;       -- data path status

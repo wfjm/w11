@@ -1,4 +1,4 @@
--- $Id: pdp11_sequencer.vhd 1337 2022-12-26 11:14:21Z mueller $
+-- $Id: pdp11_sequencer.vhd 1338 2022-12-26 18:00:37Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,6 +13,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-12-27  1339   1.6.27 remove PC port
 -- 2022-12-26  1337   1.6.26 tbit logic overhaul 2, now fully 11/70 compatible
 -- 2022-12-12  1330   1.6.25 implement MMR0,MMR2 instruction complete
 -- 2022-12-10  1329   1.6.24 BUGFIX: get correct PS after vector push abort
@@ -102,7 +103,6 @@ entity pdp11_sequencer is               -- CPU sequencer
     CLK : in slbit;                     -- clock
     GRESET : in slbit;                  -- general reset
     PSW : in psw_type;                  -- processor status
-    PC : in slv16;                      -- program counter
     IREG : in slv16;                    -- IREG
     ID_STAT : in decode_stat_type;      -- instr. decoder status
     DP_STAT : in dpath_stat_type;       -- data path status
@@ -351,7 +351,7 @@ begin
     end if;
   end process proc_state;
 
-  proc_next: process (R_STATE, R_STATUS, PSW, PC, CP_CNTL,
+  proc_next: process (R_STATE, R_STATUS, PSW, CP_CNTL,
                       ID_STAT, R_IDSTAT, IREG, VM_STAT, DP_STAT,
                       R_CPUERR, R_VMSTAT, IB_MREQ, IBSEL_CPUERR,
                       INT_PRI, INT_VECT, ESUSP_I, HBPT)

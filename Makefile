@@ -1,4 +1,4 @@
-# $Id: Makefile 1244 2022-06-03 14:06:30Z mueller $
+# $Id: Makefile 1339 2022-12-27 12:11:34Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2011-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
@@ -8,6 +8,7 @@
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2022-12-27  1388   1.2.14 drop ISE targets except for w11a
 # 2022-06-03  1244   1.2.13 use 3G memory for njobihtm in vivado targets
 # 2019-08-07  1201   1.2.12 drop nexys4, add nexys4d
 # 2019-01-10  1111   1.2.11 drop w11a/arty_bram
@@ -38,31 +39,31 @@
 #   ISE based targets, by board type -----------------------
 #     S3board ------------------------------------
 
-SYN_ise += rtl/sys_gen/tst_rlink/s3board
-SYN_ise += rtl/sys_gen/tst_serloop/s3board
-SYN_ise += rtl/sys_gen/tst_snhumanio/s3board
-SYN_ise += rtl/sys_gen/tst_sram/s3board
+#SYN_ise += rtl/sys_gen/tst_rlink/s3board
+#SYN_ise += rtl/sys_gen/tst_serloop/s3board
+#SYN_ise += rtl/sys_gen/tst_snhumanio/s3board
+#SYN_ise += rtl/sys_gen/tst_sram/s3board
 SYN_ise += rtl/sys_gen/w11a/s3board
 
 #     Nexys2 -------------------------------------
 #SYN_ise += rtl/sys_gen/tst_fx2loop/nexys2/ic
 #SYN_ise += rtl/sys_gen/tst_fx2loop/nexys2/ic3
-SYN_ise += rtl/sys_gen/tst_rlink/nexys2
-SYN_ise += rtl/sys_gen/tst_rlink_cuff/nexys2/ic
+#SYN_ise += rtl/sys_gen/tst_rlink/nexys2
+#SYN_ise += rtl/sys_gen/tst_rlink_cuff/nexys2/ic
 #SYN_ise += rtl/sys_gen/tst_rlink_cuff/nexys2/ic3
-SYN_ise += rtl/sys_gen/tst_serloop/nexys2
-SYN_ise += rtl/sys_gen/tst_snhumanio/nexys2
-SYN_ise += rtl/sys_gen/tst_sram/nexys2
+#SYN_ise += rtl/sys_gen/tst_serloop/nexys2
+#SYN_ise += rtl/sys_gen/tst_snhumanio/nexys2
+#SYN_ise += rtl/sys_gen/tst_sram/nexys2
 SYN_ise += rtl/sys_gen/w11a/nexys2
 
 #     Nexys3 -------------------------------------
 #SYN_ise += rtl/sys_gen/tst_fx2loop/nexys3/ic
 #SYN_ise += rtl/sys_gen/tst_fx2loop/nexys3/ic3
-SYN_ise += rtl/sys_gen/tst_rlink/nexys3
-SYN_ise += rtl/sys_gen/tst_rlink_cuff/nexys3/ic
-SYN_ise += rtl/sys_gen/tst_serloop/nexys3
-SYN_ise += rtl/sys_gen/tst_snhumanio/nexys3
-SYN_ise += rtl/sys_gen/tst_sram/nexys3
+#SYN_ise += rtl/sys_gen/tst_rlink/nexys3
+#SYN_ise += rtl/sys_gen/tst_rlink_cuff/nexys3/ic
+#SYN_ise += rtl/sys_gen/tst_serloop/nexys3
+#SYN_ise += rtl/sys_gen/tst_snhumanio/nexys3
+#SYN_ise += rtl/sys_gen/tst_sram/nexys3
 SYN_ise += rtl/sys_gen/w11a/nexys3
 
 #   Vivado based targets, by board type --------------------
@@ -97,23 +98,23 @@ SYN_viv += rtl/sys_gen/w11a/cmoda7
 #     Component tests ----------------------------
 
 #     S3board ------------------------------------
-SIM_ise += rtl/sys_gen/tst_rlink/s3board/tb
-SIM_ise += rtl/sys_gen/tst_serloop/s3board/tb
-SIM_ise += rtl/sys_gen/tst_sram/s3board/tb
+#SIM_ise += rtl/sys_gen/tst_rlink/s3board/tb
+#SIM_ise += rtl/sys_gen/tst_serloop/s3board/tb
+#SIM_ise += rtl/sys_gen/tst_sram/s3board/tb
 SIM_ise += rtl/sys_gen/w11a/s3board/tb
 
 #     Nexys2 -------------------------------------
-SIM_ise += rtl/sys_gen/tst_rlink/nexys2/tb
-SIM_ise += rtl/sys_gen/tst_rlink_cuff/nexys2/ic/tb
-SIM_ise += rtl/sys_gen/tst_serloop/nexys2/tb
-SIM_ise += rtl/sys_gen/tst_sram/nexys2/tb
+#SIM_ise += rtl/sys_gen/tst_rlink/nexys2/tb
+#SIM_ise += rtl/sys_gen/tst_rlink_cuff/nexys2/ic/tb
+#SIM_ise += rtl/sys_gen/tst_serloop/nexys2/tb
+#SIM_ise += rtl/sys_gen/tst_sram/nexys2/tb
 SIM_ise += rtl/sys_gen/w11a/nexys2/tb
 
 #     Nexys3 -------------------------------------
-SIM_ise += rtl/sys_gen/tst_rlink/nexys3/tb
-SIM_ise += rtl/sys_gen/tst_rlink_cuff/nexys3/ic/tb
-SIM_ise += rtl/sys_gen/tst_serloop/nexys3/tb
-SIM_ise += rtl/sys_gen/tst_sram/nexys3/tb
+#SIM_ise += rtl/sys_gen/tst_rlink/nexys3/tb
+#SIM_ise += rtl/sys_gen/tst_rlink_cuff/nexys3/ic/tb
+#SIM_ise += rtl/sys_gen/tst_serloop/nexys3/tb
+#SIM_ise += rtl/sys_gen/tst_sram/nexys3/tb
 SIM_ise += rtl/sys_gen/w11a/nexys3/tb
 
 #   Vivado flow --------------------------------------------

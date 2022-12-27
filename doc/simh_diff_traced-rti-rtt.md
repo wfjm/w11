@@ -9,7 +9,8 @@ tbit=0 does not cause a tbit trap. More precisely:
 
 The Processor Handbook documentation is misleading and at one point simply wrong.
 
-On SimH, a traced `RTI` or `RTT` does trap. Confirmed bug, will be fixed.
+On SimH, a traced `RTI` or `RTT` does trap.
+Confirmed deficiency, will be fixed.
 
 The w11 implements traced `RTI` or `RTT` correctly, the corresponding test
 is skipped when executed on SimH

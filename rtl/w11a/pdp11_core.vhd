@@ -1,6 +1,6 @@
--- $Id: pdp11_core.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: pdp11_core.vhd 1339 2022-12-27 12:11:34Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2006-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    pdp11_core - syn
@@ -18,9 +18,10 @@
 --                 tb/tb_rlink_tba_pdp11core
 --
 -- Target Devices: generic
--- Tool versions:  ise 8.2-14.7; viv 2014.4-2018.2; ghdl 0.18-0.34
+-- Tool versions:  ise 8.2-14.7; viv 2014.4-2022.1; ghdl 0.18-2.0.0
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-12-27  1339   1.4.5  _sequencer: rm PC port; _dpath: rm PCOUT port
 -- 2018-10-07  1054   1.4.4  drop ITIMER, now routed via DM_STAT_SE.itimer
 -- 2016-10-03   812   1.4.3  drop SNUM signal, not used anymore
 -- 2015-07-19   702   1.4.2  add DM_STAT_SE port; re-arrange DM_STAT_CO usage
@@ -97,7 +98,6 @@ architecture syn of pdp11_core is
   signal DP_CNTL : dpath_cntl_type := dpath_cntl_init;
   signal DP_STAT : dpath_stat_type := dpath_stat_init;
   signal DP_PSW : psw_type := psw_init;
-  signal DP_PC : slv16 := (others=>'0');
   signal DP_IREG : slv16 := (others=>'0');
   signal VM_DIN : slv16 := (others=>'0');
   signal VM_ADDR : slv16 := (others=>'0'); 
@@ -150,7 +150,6 @@ begin
       CP_DIN  => CP_DIN,
       CP_DOUT => CP_DOUT,
       PSWOUT  => DP_PSW,
-      PCOUT   => DP_PC,
       IREG    => DP_IREG,
       VM_ADDR => VM_ADDR,
       VM_DOUT => VM_DOUT,
@@ -171,7 +170,6 @@ begin
       CLK       => CLK,
       GRESET    => GRESET,
       PSW       => DP_PSW,
-      PC        => DP_PC,
       IREG      => DP_IREG,
       ID_STAT   => ID_STAT,
       DP_STAT   => DP_STAT,

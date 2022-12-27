@@ -1,4 +1,4 @@
-# $Id: sys_w11a_n3.imfset 1150 2019-05-19 17:52:54Z mueller $
+# $Id: sys_w11a_n3.imfset 1339 2022-12-27 12:11:34Z mueller $
 #
 # ----------------------------------------------------------------------------
 [xst]
@@ -55,12 +55,10 @@ Input <DM_STAT_.*> is never used
 Input <CCIN<2:1>> is never used
 Input <EI_ACK> is never used
 Input <IREG<\d*:\d*>> is never used
-Input <MONI.idone> is never used
+Input <MONI.vflow> is never used
 Input <MONI.trace_prev> is never used
 Input <DIN<\d*:\d*>> is never used
 Input <I_MEM_WAIT> is never used
-Input <CNTL.trap_done> is never used
-Input <VADDR<\d*:\d*>> is never used
 Input <CE_USEC> is never used
 
 FF/Latch <R_STATUS.suspext> has a constant value of 0

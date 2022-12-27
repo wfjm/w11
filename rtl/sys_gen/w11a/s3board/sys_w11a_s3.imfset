@@ -1,4 +1,4 @@
-# $Id: sys_w11a_s3.imfset 1150 2019-05-19 17:52:54Z mueller $
+# $Id: sys_w11a_s3.imfset 1339 2022-12-27 12:11:34Z mueller $
 #
 # ----------------------------------------------------------------------------
 [xst]
@@ -34,13 +34,10 @@ Input <IB_MREQ\..*> is never used
 Input <SER_MONI\..*> is never used
 
 Input <CCIN<2:1>> is never used
-Input <EI_ACK> is never used
 Input <IREG<\d*:\d*>> is never used
-Input <MONI.idone> is never used
+Input <MONI.vflow> is never used
 Input <MONI.trace_prev> is never used
 Input <DIN<\d*:\d*>> is never used
-Input <CNTL.trap_done> is never used
-Input <VADDR<\d*:\d*>> is never used
 Input <CE_USEC> is never used
 
 Signal <RXFIFO_SIZE<2:0>> is assigned but never used
@@ -72,6 +69,20 @@ Signal <IB_SRES_IIST\..*> is used but never assigned
 Signal <EI_REQ_IIST> is used but never assigned
 Signal <EI_ACK_IIST> is assigned but never used
 
+# signals for de-configured entities
+Signal <DM_STAT_VM\..*> is assigned but never used
+Signal <RB_SRES_DMCMON\..*> is used but never assigned
+Signal <RB_SRES_DMHBPT\..*> is used but never assigned
+Signal <IB_SRES_M9312\..*> is used but never assigned
+Signal <IB_SRES_KW11P\..*> is used but never assigned
+Signal <IB_SRES_DEUNA\..*> is used but never assigned
+Signal <RB_LAM_DEUNA> is used but never assigned
+Signal <EI_REQ_KW11P> is used but never assigned
+Signal <EI_REQ_DEUNA> is used but never assigned
+Signal <EI_ACK_KW11P> is assigned but never used
+Signal <EI_ACK_DEUNA> is assigned but never used
+Signal <HPBT> is used but never assigned
+
 FF/Latch <R_REGS.escseen> has a constant value of 0
 FF/Latch <R_REGS.escpend> has a constant value of 0
 FF/Latch <R_STATUS.suspext> has a constant value of 0
@@ -79,7 +90,6 @@ FF/Latch <R_REGS.dtyp_3> has a constant value of 0
 
 FF/Latch <SYS70/W11A/SEQ/R_IDSTAT.res_sel_2> has a constant value of 0
 FF/Latch <SYS70/W11A/SEQ/R_STATUS.intvect_8> has a constant value of 0
-FF/Latch <R_SSR0.inst_compl> has a constant value of 0
 FF/Latch <RLINK/CORE/RL/R_LREGS\.attn_.*> has a constant value of 0 
 FF/Latch <SYS70/DMPCNT.I0/R_REGS\.psig_\d*> has a constant value of 0
 FF/Latch <SYS70/DMPCNT.I0/PRE\[\d*\]\.ENA.CNT/R_CNT_\d*> has a constant value

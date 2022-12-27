@@ -1,8 +1,8 @@
-# $Id: sys_w11a_c7.vmfset 1325 2022-12-07 11:52:36Z mueller $
+# $Id: sys_w11a_c7.vmfset 1338 2022-12-26 18:00:37Z mueller $
 #
 # Validated code/tool version combinations
 #   Date          rev   viv   
-#   2022-05-26   1242   2022.1
+#   2022-12-26   1338   2022.1
 #   2022-04-23   1225   2020.1
 #   2019-06-05   1159   2019.1
 #   2019-02-02   1108   2018.3
@@ -53,7 +53,7 @@ i [Synth 8-3331] pdp11_lunit .* CCIN[(1|2)]
 # --> some psr bits are unused                                  # OK 2018-11-18
 i [Synth 8-3331] pdp11_psr .* DIN[(8|9|10)]
 # --> not all moni fields used                                  # OK 2018-11-18
-i [Synth 8-3331] pdp11_mmu_ssr12 .* MONI[(idone|trace_prev)]
+i [Synth 8-3331] pdp11_mmu_mmr12 .* MONI[(vflow|trace_prev)]
 # --> not all CNTL fieds used; also 6 LSBs from vaddr           # OK 2018-11-18
 i [Synth 8-3331] pdp11_mmu .* VADDR[(0|1|2|3|4|5)]
 # --> so far no usage of usec and msec pulse                    # OK 2018-11-18
@@ -84,10 +84,8 @@ i [Synth 8-7129] IREG[1(1|2|3|4)] .* pdp11_sequencer
 i [Synth 8-7129] CCIN[(1|2)] .* pdp11_lunit
 # --> some psr bits are unused                                  # OK 2022-05-26
 i [Synth 8-7129] DIN[(8|9|10)] .* pdp11_psr
-# --> not all moni fields used                                  # OK 2022-05-26
-i [Synth 8-7129] MONI[(idone|trace_prev)] .* pdp11_mmu_ssr12
-# --> not all CNTL fieds used; also 6 LSBs from vaddr           # OK 2022-05-26
-i [Synth 8-7129] VADDR[(0|1|2|3|4|5)] .* pdp11_mmu
+# --> not all moni fields used                                  # OK 2022-12-26
+i [Synth 8-7129] MONI[(vflow|trace_prev)] .* pdp11_mmu_mmr12
 # --> so far no usage of usec and msec pulse                    # OK 2022-05-26
 i [Synth 8-7129] (CE_USEC|CE_MSEC) .* rlink_sp2c
 # --> small memory, not all addr lines connected                # OK 2022-05-26

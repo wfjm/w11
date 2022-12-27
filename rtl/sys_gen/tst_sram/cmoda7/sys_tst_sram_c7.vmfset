@@ -1,8 +1,8 @@
-# $Id: sys_tst_sram_c7.vmfset 1242 2022-05-27 17:08:43Z mueller $
+# $Id: sys_tst_sram_c7.vmfset 1338 2022-12-26 18:00:37Z mueller $
 #
 # Validated code/tool version combinations
 #   Date          rev   viv   
-#   2022-05-26   1242   2022.1
+#   2022-12-26   1338   2022.1
 #   2022-04-23   1225   2020.1
 #   2019-02-02   1108   2018.3
 #   2019-02-02   1108   2017.2
@@ -53,6 +53,10 @@ i [Synth 8-7129] MEM_ACK_W .* tst_sram
 # --> rlink_sp2c doesn't use CE_USEC and CE_MSEC                # OK 2022-05-26
 i [Synth 8-7129] CE_(USEC|MSEC) .* rlink_sp2c
 {:}
+
+# port driven by constant --------------------------------------
+# --> RGBLED0 currently unused                                  # OK 2022-12-26
+i [Synth 8-3917] O_RGBLED0_N[\d]
 
 # sequential element removed (2017.1 nonsense) -----------------
 I [Synth 8-6014] _reg                                           # generic

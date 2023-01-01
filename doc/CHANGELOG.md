@@ -62,17 +62,22 @@ The full set of tests is only run for tagged releases.
   - rename vfetch -> vstart
 ### Bug Fixes
   - rtl/w11a
+    - pdp11_psr:
+      - BUGFIX: inhibit CCWE when PSW being written, see
+        [ECO-039](ECO-039-cc_and_aborts.md)
     - pdp11_sequencer:
-      - BUGFIX: get correct PS after vector push abort, see
-      [ECO-036](ECO-036-vpush_abort_ps.md)
       - BUGFIX: use is_kstackdst1246 also in dstr flow, see
-      [ECO-035](ECO-035-stklim-tbit-fixes.md)
+        [ECO-035](ECO-035-stklim-tbit-fixes.md)
       - BUGFIX: correct ysv flow implementation, see
-      [ECO-035](ECO-035-stklim-tbit-fixes.md)
+        [ECO-035](ECO-035-stklim-tbit-fixes.md)
       - BUGFIX: correct mmu trap handing in s_idecode, see
-      [ECO-035](ECO-035-stklim-tbit-fixes.md)
+        [ECO-035](ECO-035-stklim-tbit-fixes.md)
       - BUGFIX: correct mmu trap vs interrupt priority, see
-      [ECO-035](ECO-035-stklim-tbit-fixes.md)
+        [ECO-035](ECO-035-stklim-tbit-fixes.md)
+      - BUGFIX: get correct PS after vector push abort, see
+        [ECO-036](ECO-036-vpush_abort_ps.md)
+      - BUGFIX: cc state unchanged after abort, see
+        [ECO-039](ECO-039-cc_and_aborts.md)
     - pdp11_vmbox:
       - BUGFIX: correct red/yellow zone boundary, see
         [ECO-035](ECO-035-stklim-tbit-fixes.md)

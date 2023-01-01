@@ -1,4 +1,4 @@
--- $Id: pdp11_sequencer.vhd 1338 2022-12-26 18:00:37Z mueller $
+-- $Id: pdp11_sequencer.vhd 1340 2023-01-01 08:43:05Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,7 +13,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2022-12-27  1339   1.6.27 remove PC port
+-- 2022-12-31  1340   1.6.27 BUGFIX: cc state unchanged after abort
 -- 2022-12-26  1337   1.6.26 tbit logic overhaul 2, now fully 11/70 compatible
 -- 2022-12-12  1330   1.6.25 implement MMR0,MMR2 instruction complete
 -- 2022-12-10  1329   1.6.24 BUGFIX: get correct PS after vector push abort
@@ -1376,7 +1376,6 @@ begin
   --               -> do_fork_next
 
       when s_dstw_def =>                -- -----------------------------------
-        ndpcntl.psr_ccwe := '1';
         ndpcntl.dres_sel := R_IDSTAT.res_sel;      -- DRES = choice of idec
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_ddst; -- VA = DDST
         nvmcntl.kstack := is_kstackdst1246;
@@ -1386,12 +1385,12 @@ begin
         nstate := s_dstw_def_w;
         do_memcheck(nstate, nstatus, imemok);
         if imemok then
+          ndpcntl.psr_ccwe := '1';
           idm_idone := '1';                        -- instruction done
           do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
         end if;
 
       when s_dstw_inc =>                -- -----------------------------------
-        ndpcntl.psr_ccwe := '1';
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_ddst;   -- VA = DDST
         ndpcntl.ounit_asel := c_ounit_asel_ddst;     -- OUNIT A=DDST  (for else)
         do_const_opsize(ndpcntl, R_IDSTAT.is_bytop, DSTDEF, DSTREG);  --(...)
@@ -1427,6 +1426,7 @@ begin
         nstatus.do_grwe := '0';
         do_memcheck(nstate, nstatus, imemok);
         if imemok then
+          ndpcntl.psr_ccwe := '1';
           idm_idone := '1';                        -- instruction done
           do_fork_next(nstate, nstatus, nmmumoni); -- fetch next
         end if;
@@ -1442,7 +1442,6 @@ begin
         end if;
 
       when s_dstw_dec =>                -- -----------------------------------
-        ndpcntl.psr_ccwe := '1';
         ndpcntl.ounit_asel := c_ounit_asel_ddst; -- OUNIT A=DDST
         do_const_opsize(ndpcntl, R_IDSTAT.is_bytop, DSTDEF, DSTREG);
         ndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B=const
@@ -1467,7 +1466,6 @@ begin
         end if;          
 
       when s_dstw_ind =>                -- -----------------------------------
-        ndpcntl.psr_ccwe := '1';
         do_memread_i(nstate, ndpcntl, nvmcntl, s_dstw_ind_w);
 
       when s_dstw_ind_w =>              -- -----------------------------------

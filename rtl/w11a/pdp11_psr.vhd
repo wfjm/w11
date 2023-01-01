@@ -1,4 +1,4 @@
--- $Id: pdp11_psr.vhd 1287 2022-08-27 09:40:43Z mueller $
+-- $Id: pdp11_psr.vhd 1340 2023-01-01 08:43:05Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,6 +13,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-12-31  1340   1.6.27 BUGFIX: inhibit CCWE when PSW being written
 -- 2022-08-27  1287   1.2.3  handle pm protection like cm, remove or'ing cm
 -- 2011-11-18   427   1.2.2  now numeric_std clean
 -- 2010-10-23   335   1.2.1  use ib_sel
@@ -57,6 +58,7 @@ architecture syn of pdp11_psr is
 
   signal IBSEL_PSR : slbit := '0';
   signal R_PSW : psw_type := psw_init;  -- ps register
+  signal R_WE_1 : slbit := '0';         -- ps written in previous cycle
 
 begin
   
@@ -91,12 +93,14 @@ begin
       
     if rising_edge(CLK) then
 
+      R_WE_1 <= IBSEL_PSR and IB_MREQ.we; -- remember ps write
+
       if CRESET = '1' then
         R_PSW <= psw_init;
 
       else
         
-        if CCWE = '1' then
+        if CCWE='1' and R_WE_1='0' then   -- update cc unless ps written
           R_PSW.cc <= CCIN;
         end if;
 

@@ -1,4 +1,4 @@
-; $Id: cpu_details.mac 1337 2022-12-26 11:14:21Z mueller $
+; $Id: cpu_details.mac 1340 2023-01-01 08:43:05Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -9,7 +9,7 @@
 ;
 ; Test CPU details
 ;   Section A: CPU registers
-;   Section B: stress tests
+;   Section B: stress and flow tests
 ;   Section C: 11/70 specifics
 ;
         .include        |lib/tcode_std_base.mac|
@@ -86,7 +86,7 @@
 ;   A4.3    RTI/RTT tbit basics
 ;             part 1: tbit after RTI
 ;             part 2: tbit after RTT
-;   A4.4    Test A4.4 -- tbit trace tests
+;   A4.4    tbit trace tests
 ;             part  0: traced TRAP that clears tbit
 ;             part  1: simple instruction sequence
 ;             part  2: tracing of trap instructions (EMT tested)
@@ -927,6 +927,8 @@ ta0305: cmpb    systyp,#sy.sih          ; skip in SimH (different stklim logic)
 ta0401:
 ;
 ; part 1: all bits except register set (cp.ars) ----------------------
+;   Note: In a direct PSW write the cc of the write prevail.
+;         This part tests dstw flow via MOV. Part 4 will test dstr flow.
 ;
         mov     #cp.psw,r0              ; ptr to PSW
         mov     #200$,r1                ; ptr to data
@@ -934,14 +936,16 @@ ta0401:
 100$:   mov     (r1)+,r3                ; next value
         beq     2000$                   ; if 0 end of test
         mov     r3,(r0)                 ; write PSW
-        mov     (r0),r3                 ; read  PSW
-        bic     r2,r3                   ; clear NZVC
-        cmp     (r1)+,r3                ; check value
+        cmp     (r0),(r1)+              ; check PSW
         beq     100$
         clr     (r0)                    ; if error force kernel
         halt                            ; and halt
 ;
-200$:   .word   cp.t,0                  ; tbit (not direct writable)
+200$:   .word   cp.c,cp.c               ; C cc
+        .word   cp.v,cp.v               ; V cc
+        .word   cp.z,cp.z               ; Z cc
+        .word   cp.n,cp.n               ; N cc
+        .word   cp.t,0                  ; tbit (not direct writable)
         .word   cp.pr7,cp.pr7           ; prio bits
         .word   bit10!bit09!bit08,0     ; bit 10:8 unused
         .word   bit12,bit12             ; pm(0)
@@ -952,7 +956,8 @@ ta0401:
 ;
 ; part 2: PSW(11) - register set -------------------------------------
 ;
-2000$:  mov     #1000,r0                ; write to set 0
+2000$:  clr     cp.psw                  ; select set 0
+        mov     #1000,r0                ; write to set 0
         mov     #1001,r1
         mov     #1002,r2
         mov     #1003,r3
@@ -1004,6 +1009,21 @@ ta0401:
 ;
         clr     (r0)
         mov     #stack,sp
+;
+; part 4: verify PSW manipulation via BIS and BIC
+;   Note: In a direct PSW write the cc of the write prevail.
+;
+        mov     #cp.psw,r0              ; ptr to PSW
+        ccc
+        bis     #cp.n!cp.c,(r0)         ; set N+C
+        hcmpeq  #cpn00c,(r0)
+        ccc
+        bis     #cp.pr7!cp.z!cp.v,(r0)  ; set PRI=7,Z+V
+        hcmpeq  #cp.pr7!cp0zv0,(r0)
+        scc
+        bic     #cp.z!cp.v,(r0)         ; clr Z+V
+        hcmpeq  #cp.pr7!cpn00c,(r0)
+        clr     (r0)                    ; back to normal
 ;
 9999$:  iot                                     ; end of test A4.1
 ;
@@ -1514,14 +1534,20 @@ ta0404: mov     #vhtbpt,v..bpt          ; BPT handler
 ;
 9999$:  iot                                     ; end of test A4.4
 ;
-; Section B: Stress tests ====================================================
+; Section B: Stress and fllow tests ==========================================
 ;   B1    address mode torture tests
 ;   B1.1    src-dst update hazards with (r0)+,(r0)
 ;   B1.2    (pc)+ as destination
 ;   B1.3    pc as destination in clr, mov, and add
 ;   B2    pipeline torture tests
-;   B2.1      self-modifying code, use (pc), -(pc)
-;   B2.2      self-modifying code, use (pc) case 2
+;   B2.1    self-modifying code, use (pc), -(pc)
+;   B2.2    self-modifying code, use (pc) case 2
+;   B3    specifier flow tests
+;   B3.1    dstw flow and cc
+;             part 1: check cc for MOV for all modes
+;             part 2: check cc for CLR for all modes
+;             part 3: check cc for SXT for all modes
+;             part 4: check cc for MOV after abort for all modes
 ;
 ; Test B1:  address mode torture tests +++++++++++++++++++++++++++++++++++++++
 ;   This sub-section tests peculiar address node usage
@@ -1677,6 +1703,135 @@ tb0202: mov     #2,r5
 ;
 9999$:  iot                     ; end of test B2.2
 ;
+; Test B3:  specifier flow tests +++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section tests flow and cc properties
+;
+; Test B3.1 -- dstw flow and cc ++++++++++++++++++++++++++++++++++++++
+;
+tb0301: mov     #123,r0                 ; src for MOV
+        mov     #100$,r1                ; dst for (r1),(r1)+,-(r1),0(r1)
+        mov     #200$,r2                ; dst for @(r2)+,@-(r2),@0(r2)
+        mov     #cp.psw,r3              ; ptr to PSW
+        br      1000$
+;
+100$:   .word   0                       ; dst target
+200$:   .word   100$                    ; ptr to dst
+300$:   .word   1                       ; odd address ptr
+;
+; part 1: check cc for MOV for all modes
+;
+1000$:  scc
+        mov     r0,r4                   ; mode 0
+        hcmpeq  #cp000c,(r3)            ; N=0,Z=0,V=0 and keep C
+        scc
+        mov     r0,(r1)                 ; mode 1
+        hcmpeq  #cp000c,(r3)            ; N=0,Z=0,V=0 and keep C
+        scc
+        mov     r0,(r1)+                ; mode 2
+        hcmpeq  #cp000c,(r3)            ; N=0,Z=0,V=0 and keep C
+        scc
+        mov     r0,-(r1)                ; mode 4
+        hcmpeq  #cp000c,(r3)            ; N=0,Z=0,V=0 and keep C
+        scc
+        mov     r0,0(r1)                ; mode 6
+        hcmpeq  #cp000c,(r3)            ; N=0,Z=0,V=0 and keep C
+        scc
+        mov     r0,@(r2)+               ; mode 3
+        hcmpeq  #cp000c,(r3)            ; N=0,Z=0,V=0 and keep C
+        scc
+        mov     r0,@-(r2)               ; mode 5
+        hcmpeq  #cp000c,(r3)            ; N=0,Z=0,V=0 and keep C
+        scc
+        mov     r0,@0(r2)               ; mode 7
+        hcmpeq  #cp000c,(r3)            ; N=0,Z=0,V=0 and keep C
+;
+; part 2: check cc for CLR for all modes
+;
+2000$:  scc
+        clr     r4                      ; mode 0
+        hcmpeq  #cp0z00,(r3)            ; N=0,Z=1,V=0,C=0
+        scc
+        clr     (r1)                    ; mode 1
+        hcmpeq  #cp0z00,(r3)            ; N=0,Z=1,V=0,C=0
+        scc
+        clr     (r1)+                   ; mode 2
+        hcmpeq  #cp0z00,(r3)            ; N=0,Z=1,V=0,C=0
+        scc
+        clr     -(r1)                   ; mode 4
+        hcmpeq  #cp0z00,(r3)            ; N=0,Z=1,V=0,C=0
+        scc
+        clr     0(r1)                   ; mode 6
+        hcmpeq  #cp0z00,(r3)            ; N=0,Z=1,V=0,C=0
+        scc
+        clr     @(r2)+                  ; mode 3
+        hcmpeq  #cp0z00,(r3)            ; N=0,Z=1,V=0,C=0
+        scc
+        clr     @-(r2)                  ; mode 5
+        hcmpeq  #cp0z00,(r3)            ; N=0,Z=1,V=0,C=0
+        scc
+        clr     @0(r2)                  ; mode 7
+        hcmpeq  #cp0z00,(r3)            ; N=0,Z=1,V=0,C=0
+;
+; part 3: check cc for SXT for all modes
+;
+3000$:  scc
+        sxt     r4                      ; mode 0
+        hcmpeq  #cpn00c,(r3)            ; Z=0,V=0 and keep N,C
+        scc
+        sxt     (r1)                    ; mode 1
+        hcmpeq  #cpn00c,(r3)            ; Z=0,V=0 and keep N,C
+        scc
+        sxt     (r1)+                   ; mode 2
+        hcmpeq  #cpn00c,(r3)            ; Z=0,V=0 and keep N,C
+        scc
+        sxt     -(r1)                   ; mode 4
+        hcmpeq  #cpn00c,(r3)            ; Z=0,V=0 and keep N,C
+        scc
+        sxt     0(r1)                   ; mode 6
+        hcmpeq  #cpn00c,(r3)            ; Z=0,V=0 and keep N,C
+        scc
+        sxt     @(r2)+                  ; mode 3
+        hcmpeq  #cpn00c,(r3)            ; Z=0,V=0 and keep N,C
+        scc
+        sxt     @-(r2)                  ; mode 5
+        hcmpeq  #cpn00c,(r3)            ; Z=0,V=0 and keep N,C
+        scc
+        sxt     @0(r2)                  ; mode 7
+        hcmpeq  #cpn00c,(r3)            ; Z=0,V=0 and keep N,C
+;
+; part 4: check cc for MOV after abort for all memory modes
+;   Notes:
+;   - w11 updates the cc state after possible address errors
+;   - SimH updates the cc state before possible address errors
+;
+4000$:  cmpb    systyp,#sy.sih          ; skip on SimH
+        beq     9999$
+        clr     r5                      ; abort counter
+        mov     #4100$,v..iit           ; set up iit handler
+        mov     #1,r1                   ; odd dst for (r1),(r1)+,-(r1),0(r1)
+        mov     #300$,r2                ; odd dst for @(r2)+,@-(r2),@0(r2)
+        scc
+;
+        mov     r0,(r1)                 ; mode 1
+        mov     r0,(r1)+                ; mode 2
+        mov     #3,r1                   ; restore r1
+        scc
+        mov     r0,-(r1)                ; mode 4
+        mov     r0,0(r1)                ; mode 6
+        mov     r0,@(r2)+               ; mode 3
+        mov     r0,@-(r2)               ; mode 5
+        mov     r0,@0(r2)               ; mode 7
+        br      4200$
+;
+4100$:  inc     r5                      ; bump counter
+        hcmpeq  #cpnzvc,2(sp)           ; PS cc untouched !!
+        rti                             ; continue (possible here!)
+;
+4200$:  hcmpeq  #7.,r5                  ; check that all 7 mov get address error
+        mov     #v..iit+2,v..iit        ; restore
+;
+9999$:  iot                     ; end of test B3.1
+;
 ; Section C: 11/70 specifics =================================================
 ;   C1    Implementation differences
 ;   C1.1    Register used as source and changed in dst flow
@@ -1735,7 +1890,7 @@ tc0103: mov     #vhugen,v..iit  ; set iit handler
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#29.      ; all tests done ?
+        hcmpeq  tstno,#30.      ; all tests done ?
 ;
         jmp     loop
 ;

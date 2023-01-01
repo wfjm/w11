@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: tmuconv 1324 2022-12-01 11:24:20Z mueller $
+# $Id: tmuconv 1340 2023-01-01 08:43:05Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2008-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2022-12-29  1340   1.1.12 fix ru header
 # 2022-12-01  1324   1.1.11 change VFETCH text for MMU(250) and FPP(244)
 # 2022-11-18  1316   1.1.10 add -t_ru06 and -t_flow
 # 2022-10-25  1309   1.1.9  rename _gpr -> _gr
@@ -486,7 +487,7 @@ if ($nopts == 0) {                          # if no opts, assume t_id i_vf
 # write header
 print "#  cycle id               pc    psw   ireg  code                   nc\n"
   if $opts{t_id};
-print "#  cycle ru    b sr     data\n"
+print "#  cycle ru    b sr     data grstat\n"
   if $opts{t_ru} or $opts{t_ru06};
 print "#  cycle em    d be     addr   wdat   rdat  crwh nc\n"
   if $opts{t_em} or $opts{t_vf};

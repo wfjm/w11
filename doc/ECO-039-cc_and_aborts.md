@@ -6,7 +6,7 @@
 
 ### Background
 The PDP-11 architecture requires that
-- for direct writes to the `PSW` the cc state of the write must prevail
+- for direct writes to the `PSW`, the cc state of the write must prevail
 - the cc state must remain unchanged after an instruction abort
 
 The first requirement implies that the usual updating of cc's after an
@@ -48,6 +48,10 @@ In a first round, the `dstw` flow was fixed. The condition code requests
 `s_dstw_inc`, `s_dstw_dec`, and `s_dstw_ind` and add to the two exit states
 `s_dstw_def_w` and `s_dstw_inc_w`.
 
+In a second round, the `MTP*` and `MFP*` instructions, which use the `dsta`
+flow, were fixed. Again, the `ndpcntl.psr_ccwe := '1';` was moved to the
+last `*_w` state of the respective flows.
+
 ### Hindsight
 Further analysis showed that this bug had in practice no consequences
 - `MOV` and `CLR` don't depend on the cc state, so a re-execution with a
@@ -56,6 +60,6 @@ Further analysis showed that this bug had in practice no consequences
   extension. `MFP*` and `MTP*` also don't depend on the cc state and
   re-execution will give correct results. Moreover, they are  usually used
   in kernel mode and therefore never re-executed in 2.11bsd.  
-- `SXT` depends on the `N` bit, but that bit is not changed by this
+- `SXT` depends on the `N` bit, but this bit is not changed by this
   instruction, so a re-execution with Z, V, or C changed will give a
   correct result.

@@ -1,6 +1,6 @@
--- $Id: pdp11_dpath.vhd 1339 2022-12-27 12:11:34Z mueller $
+-- $Id: pdp11_dpath.vhd 1342 2023-01-02 15:18:19Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    pdp11_dpath - syn
@@ -19,6 +19,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2023-01-01  1342   1.2.8  use c_dpath_dsrc_src,c_dpath_ddst_dst
 -- 2022-12-27  1339   1.2.7  remove PCOUT port
 -- 2022-10-25  1309   1.2.6  rename _gpr -> _gr
 -- 2015-07-19   702   1.2.5  set new DM_STAT_DP fields
@@ -242,7 +243,7 @@ begin
     if rising_edge(CLK) then
       
       if CNTL.dsrc_we = '1' then
-        if CNTL.dsrc_sel = '0' then
+        if CNTL.dsrc_sel = c_dpath_dsrc_src then
           R_DSRC <= GR_DSRC;
         else
           R_DSRC <= DRES;
@@ -250,7 +251,7 @@ begin
       end if;
 
       if CNTL.ddst_we = '1' then
-        if CNTL.ddst_sel = '0' then
+        if CNTL.ddst_sel = c_dpath_ddst_dst then
           R_DDST <= GR_DDST;
         else
           R_DDST <= DRES;

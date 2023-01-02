@@ -1,6 +1,6 @@
--- $Id: pdp11_sequencer.vhd 1340 2023-01-01 08:43:05Z mueller $
+-- $Id: pdp11_sequencer.vhd 1342 2023-01-02 15:18:19Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    pdp11_sequencer - syn
@@ -13,7 +13,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2022-12-31  1340   1.6.27 BUGFIX: cc state unchanged after abort
+-- 2023-01-01  1342   1.6.27 BUGFIX: cc state unchanged after abort
 -- 2022-12-26  1337   1.6.26 tbit logic overhaul 2, now fully 11/70 compatible
 -- 2022-12-12  1330   1.6.25 implement MMR0,MMR2 instruction complete
 -- 2022-12-10  1329   1.6.24 BUGFIX: get correct PS after vector push abort
@@ -2070,6 +2070,8 @@ begin
         
       when s_opa_mtp_pop_w =>           -- -----------------------------------
         nstate := s_opa_mtp_pop_w;
+        ndpcntl.ddst_sel := c_dpath_ddst_dst;     -- DDST = R(DST)
+        ndpcntl.ddst_we  := '1';                  -- update DDST (needed for sp)
         ndpcntl.dres_sel := c_dpath_res_vmdout;   -- DRES = VMDOUT
         ndpcntl.dtmp_sel := c_dpath_dtmp_dres;    -- DTMP = DRES
         do_memcheck(nstate, nstatus, imemok);
@@ -2087,8 +2089,6 @@ begin
             end case;
           end if;
         end if;
-        ndpcntl.ddst_sel := c_dpath_ddst_dst;     -- DDST = R(DST)
-        ndpcntl.ddst_we  := '1';                  -- update DDST (needed for sp)
 
       when s_opa_mtp_reg =>             -- -----------------------------------
         ndpcntl.ounit_asel := c_ounit_asel_dtmp;  -- OUNIT A = DTMP
@@ -2104,7 +2104,6 @@ begin
         ndpcntl.ounit_asel := c_ounit_asel_dtmp;  -- OUNIT A = DTMP
         ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B = const(0)
         ndpcntl.dres_sel := c_dpath_res_ounit;    -- DRES = OUNIT
-        ndpcntl.psr_ccwe := '1';                  -- set cc (from ounit too)
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_ddst;-- VA = DDST
         nvmcntl.dspace := IREG(15);            -- msb indicates I/D: 0->I, 1->D
         nvmcntl.mode := PSW.pmode;
@@ -2114,8 +2113,11 @@ begin
         
       when s_opa_mtp_mem_w =>           -- -----------------------------------
         nstate := s_opa_mtp_mem_w;
+        ndpcntl.ounit_asel := c_ounit_asel_dtmp;  -- OUNIT A = DTMP     (for cc)
+        ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B = const(0) (for cc)
         do_memcheck(nstate, nstatus, imemok);
         if imemok then
+          ndpcntl.psr_ccwe := '1';                -- set cc (ounit via res_sel)
           idm_idone := '1';                       -- instruction done
           do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
         end if;
@@ -2166,7 +2168,6 @@ begin
         ndpcntl.ounit_asel := c_ounit_asel_ddst;   -- OUNIT A=DDST
         ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const(0)
         ndpcntl.dres_sel := c_dpath_res_ounit;     -- DRES = OUNIT
-        ndpcntl.psr_ccwe := '1';                   -- set cc (from ounit too)
         ndpcntl.vmaddr_sel := c_dpath_vmaddr_dsrc; -- VA = DSRC
         nvmcntl.dspace := '1';
         nvmcntl.kstack := is_kmode;
@@ -2176,8 +2177,11 @@ begin
 
       when s_opa_mfp_push_w =>          -- -----------------------------------
         nstate := s_opa_mfp_push_w;
+        ndpcntl.ounit_asel := c_ounit_asel_ddst;   -- OUNIT A=DDST     (for cc)
+        ndpcntl.ounit_bsel := c_ounit_bsel_const;  -- OUNIT B=const(0) (for cc)
         do_memcheck(nstate, nstatus, imemok);
         if imemok then
+          ndpcntl.psr_ccwe := '1';                -- set cc (ounit via res_sel)
           idm_idone := '1';                       -- instruction done
           do_fork_next(nstate, nstatus, nmmumoni);  -- fetch next
         end if;

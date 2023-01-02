@@ -17,6 +17,8 @@ ones are listed here:
   - [SimH: stack limit check and addressing modes](simh_diff_stklim_amode.md)
   - [SimH: stack limit check and vector push aborts](simh_diff_stklim_vpush.md)
   - [SimH: Red stack zone PSW protection](simh_diff_red_psw.md)
+- instruction abort handling
+  - [SimH: condition codes are not always unchanged after an abort](simh_diff_cc_and_aborts.md)
 - service order and trap handling
   - [SimH: trap and interrupt service order has J11 behavior](simh_diff_service-order.md)
   - [SimH: traced `WAIT` has J11 behavior](simh_diff_traced-wait.md)

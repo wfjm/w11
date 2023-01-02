@@ -1,10 +1,10 @@
-; $Id: cpu_basics.mac 1329 2022-12-11 17:28:28Z mueller $
+; $Id: cpu_basics.mac 1342 2023-01-02 15:18:19Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2015-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2022-12-06  1324   1.0    Initial version
+; 2023-01-02  1342   1.0    Initial version
 ; 2015-08-30   710   0.1    First draft
 ;
 ; Test CPU basics: most instructions except traps, EIS and FPP
@@ -13,7 +13,7 @@
 ;   Section C: binary instructions (word)
 ;   Section D: unary instructions (byte)
 ;   Section E: binary instructions (byte)
-;   Section F: miscellaneous (spl, reset, bpt,...)
+;   Section F: miscellaneous (spl, reset, bpt, m*p*, ...)
 ;
         .include        |lib/tcode_std_base.mac|
         .include        |lib/defs_kwl.mac|
@@ -2964,7 +2964,7 @@ te0501: clr     cp.psw
 ;
 9999$:  iot                     ; end of test E5.1
 ;
-; Section F: miscellaneous (spl, reset) ======================================
+; Section F: miscellaneous (spl, reset, bpt, m*p*, ...) ======================
 ;   F1    spl
 ;   F1.1    spl in kernel mode
 ;   F1.2    spl in supervisor and user mode
@@ -2973,6 +2973,13 @@ te0501: clr     cp.psw
 ;   F2.2    reset in supervisor and user mode
 ;   F2.3    reset settling time
 ;   F3      trap instructions: bpt,iot,emt,trap
+;   F4    MTP* and MFP* basics
+;   F4.1    MTP* with all address mode
+;   F4.2    MTP* and cc for reg dst
+;   F4.3    MTP* and cc for mem dst
+;   F4.4    MFP* with all address modes
+;   F4.5    MFP* and cc for reg dst
+;   F4.6    MFP* and cc for mem dst
 ;
 ; Test F1:  spl ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;   This sub-section verifies
@@ -3216,10 +3223,360 @@ tf0301: mov     #v..iot+2,v..iot ; block iot handler
 ;
 9999$:  iot                     ; end of test F3.1
 ;
+; Test F4: MTP* and MFP* basics ++++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies
+;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
+;     0 000 110 101 ddd ddd NZ0- MFPI
+;     0 000 110 110 ddd ddd NZ0- MTPI
+;     1 000 110 101 ddd ddd NZ0- MFPD
+;     1 000 110 110 ddd ddd NZ0- MTPD
+;
+;   Only basic read-write functionality tested with cm=pm=kernel with MMU off.
+;   Only M*PI is tested, with MMU off there is not difference between I and D.
+;   All destination address modes are verified.
+;   This also verifies the dsta flow.
+;
+; Test F4.1 MTP* with all address modes ++++++++++++++++++++++++++++++
+;   Tests mode 0-7, and the special cases sp, (sp), -(sp), @(sp)+, n(sp),
+;
+tf0401: clr     cp.psw
+        mov     #123,r0                 ; src for MOV
+        mov     #100$,r1                ; dst for (r1),(r1)+,-(r1),0(r1)
+        mov     #200$,r2                ; dst for @(r2)+,@-(r2),@0(r2)
+        mov     r1,r3                   ; ptr to dst
+;
+        clr     r5
+        push    r0
+        mtpi    r5                      ; mode 0 - general purpose register
+        hcmpeq  r0,r5                   ; check dst
+;
+        inc     r0
+        push    r0
+        mtpi    (r1)                    ; mode 1
+        hcmpeq  r0,(r3)                 ; check dst
+;
+        inc     r0
+        push    r0
+        mtpi    (r1)+                   ; mode 2
+        hcmpeq  #100$+2,r1              ; check r1
+        hcmpeq  r0,(r3)                 ; check dst
+;
+        inc     r0
+        push    r0
+        mtpi    -(r1)                   ; mode 4
+        hcmpeq  #100$,r1                ; check r1
+        hcmpeq  r0,(r3)                 ; check dst
+;
+        inc     r0
+        push    r0
+        mtpi    0(r1)                   ; mode 6
+        hcmpeq  r0,(r3)                 ; check dst
+;
+        inc     r0
+        push    r0
+        mtpi    @(r2)+                  ; mode 3
+        hcmpeq  #200$+2,r2              ; check r2
+        hcmpeq  r0,(r3)                 ; check dst
+;
+        inc     r0
+        push    r0
+        mtpi    @-(r2)                  ; mode 5
+        hcmpeq  #200$,r2                ; check r2
+        hcmpeq  r0,(r3)                 ; check dst
+;
+        inc     r0
+        push    r0
+        mtpi    @0(r2)                  ; mode 7
+        hcmpeq  r0,(r3)                 ; check dst
+;
+        hcmpeq  #stack,sp               ; check SP normal
+;
+; check SP special cases
+;
+        inc     r0
+        push    r0
+        mtpi    sp                      ; mode 0: SP as target
+        hcmpeq  r0,sp                   ; check SP
+;
+        mov     #stack-2,sp             ; ptr to writable stack word
+        inc     r0
+        push    r0
+        mtpi    (sp)                    ; mode 1: (SP) as target
+        hcmpeq  #stack-2,sp             ; check SP
+        hcmpeq  r0,stack-2              ; was stack modified ?
+        mov     #stack,sp               ; SP to normal
+;
+        inc     r0
+        push    r0
+        mtpi    -(sp)                   ; mode 4: -(SP) as target
+        hcmpeq  #stack-2,sp             ; check SP
+        hcmpeq  r0,stack-2              ; was stack modified ?
+        tst     (sp)+                   ; pop value
+;
+        inc     r0
+        push    #100$                   ; push address - read 2nd
+        push    r0                      ; push value   - read 1st
+        mtpi    @(sp)+                  ; mode 3: @(SP)+ as target
+        hcmpeq  r0,(r3)                 ; check dst
+;
+        inc     r0
+        push    r0
+        mtpi    -2(sp)                  ; mode 6 - n(SP) as target
+        hcmpeq  #stack,sp               ; check SP
+        hcmpeq  r0,stack-2              ; was stack modified ?
+;
+        br      9999$
+;
+100$:   .word   0                       ; dst target
+200$:   .word   100$                    ; ptr to dst
+;
+9999$:  iot                     ; end of test F4.1
+;
+; Test F4.2 MTP* and cc for reg dst ++++++++++++++++++++++++++++++++++
+;
+tf0402: mov     #cp.psw,r4
+        clr     (r4)
+;
+        clr     -(sp)                   ; zero value
+        ccc
+        mtpi    r5
+        hcmpeq  #cp0z00,(r4)            ; check N=0,Z=1
+;
+        push    #1.                     ; positive value
+        ccc
+        <sen!sez>                       ; NZ=1
+        mtpi    r5
+        hcmpeq  #cp0000,(r4)            ; check N=0,Z=0
+;
+        push    #-1.                    ; negative value
+        ccc
+        mtpi    r5
+        hcmpeq  #cpn000,(r4)            ; check N=1,Z=0
+;
+        push    #1.                     ; positive value
+        sec                             ; C=1
+        mtpi    r5
+        hcmpeq  #cp000c,(r4)            ; check C=1 kept
+;
+        push    #1.                     ; positive word
+        scc                             ; NZVC=1
+        mtpi    r5
+        hcmpeq  #cp000c,(r4)            ; check C kept, NZV cleared
+;
+9999$:  iot                     ; end of test F4.2
+;
+; Test F4.3 MTP* and cc for mem dst ++++++++++++++++++++++++++++++++++
+;
+tf0403: mov     #100$,r1                ; dst for (r1)
+        mov     #cp.psw,r4
+        clr     (r4)
+;
+        clr     -(sp)                   ; zero value
+        ccc
+        mtpi    (r1)
+        hcmpeq  #cp0z00,(r4)            ; check N=0,Z=1
+;
+        push    #1.                     ; positive value
+        ccc
+        <sen!sez>                       ; NZ=1
+        mtpi    (r1)
+        hcmpeq  #cp0000,(r4)            ; check N=0,Z=0
+;
+        push    #-1.                    ; positive value
+        ccc
+        mtpi    (r1)
+        hcmpeq  #cpn000,(r4)            ; check N=1,Z=0
+;
+        push    #1.                     ; positive value
+        sec                             ; C=1
+        mtpi    (r1)
+        hcmpeq  #cp000c,(r4)            ; check C=1 kept
+;
+        push    #1.                     ; positive value
+        scc                             ; NZVC=1
+        mtpi    (r1)
+        hcmpeq  #cp000c,(r4)            ; check C kept, NZV cleared
+        br      9999$
+;
+100$:   .word   0                       ; dst target
+;
+9999$:  iot                     ; end of test F4.3
+;
+; Test F4.4 MFP* with all address modes ++++++++++++++++++++++++++++++
+;   Tests mode 0-7, and the special cases sp, (sp), (sp)+, @(sp)+, n(sp)
+;
+tf0404: clr     cp.psw
+        mov     #321,r0                 ; current test value
+        mov     #100$,r1                ; dst for (r1),(r1)+,-(r1),0(r1)
+        mov     #200$,r2                ; dst for @(r2)+,@-(r2),@0(r2)
+        mov     r1,r3                   ; ptr to dst
+;
+        mov     r0,r5
+        mfpi    r5                      ; mode 0 - general purpose register
+        hcmpeq  r0,(sp)+                ; check
+;
+        inc     r0
+        mov     r0,(r3)
+        mfpi    (r1)                    ; mode 1
+        hcmpeq  r0,(sp)+                ; check
+;
+        inc     r0
+        mov     r0,(r3)
+        mfpi    (r1)+                   ; mode 2
+        hcmpeq  #100$+2,r1              ; check r1
+        hcmpeq  r0,(sp)+                ; check
+;
+        inc     r0
+        mov     r0,(r3)
+        mfpi    -(r1)                   ; mode 4
+        hcmpeq  #100$,r1                ; check r1
+        hcmpeq  r0,(sp)+                ; check
+;
+        inc     r0
+        mov     r0,(r3)
+        mfpi    0(r1)                   ; mode 6
+        hcmpeq  r0,(sp)+                ; check
+;
+        inc     r0
+        mov     r0,(r3)
+        mfpi    @(r2)+                  ; mode 3
+        hcmpeq  #200$+2,r2              ; check r2
+        hcmpeq  r0,(sp)+                ; check
+;
+        inc     r0
+        mov     r0,(r3)
+        mfpi    @-(r2)                  ; mode 5
+        hcmpeq  #200$,r2                ; check r2
+        hcmpeq  r0,(sp)+                ; check
+;
+        inc     r0
+        mov     r0,(r3)
+        mfpi    @0(r2)                  ; mode 7
+        hcmpeq  r0,(sp)+                ; check
+;
+        hcmpeq  #stack,sp               ; check SP normal
+;
+; check SP special cases
+;
+        mfpi    sp                      ; mode 0: SP as source
+        hcmpeq  #stack,(sp)+            ; check
+;
+        inc     r0
+        push    r0
+        mfpi    (sp)                    ; mode 1: (SP) as source
+        hcmpeq  r0,(sp)+                ; check mfpi pushed value
+        hcmpeq  r0,(sp)+                ; check data pushed value
+        hcmpeq  #stack,sp               ; check stack state
+;
+        inc     r0
+        push    r0
+        mfpi    (sp)+                   ; mode 2: (SP)+ as source
+        hcmpeq  r0,(sp)+                ; check mfpi pushed value
+        hcmpeq  #stack,sp               ; check stack state
+;
+        inc     r0
+        mov     r0,(r3)                 ; write data
+        push    r3                      ; push address
+        mfpi    @(sp)+                  ; mode 3: @(SP)+ as source
+        hcmpeq  r0,(sp)+                ; check mfpi pushed value
+        hcmpeq  #stack,sp               ; check stack state
+;
+        inc     r0
+        push    r0
+        mfpi    0(sp)                   ; mode 6: n(SP) as source
+        hcmpeq  r0,(sp)+                ; check mfpi pushed value
+        hcmpeq  r0,(sp)+                ; check data pushed value
+        hcmpeq  #stack,sp               ; check stack state
+;
+        br      9999$
+;
+100$:   .word   0                       ; dst target
+200$:   .word   100$                    ; ptr to dst
+;
+9999$:  iot                     ; end of test F4.4
+;
+; Test F4.5 MFP* and cc for reg dst ++++++++++++++++++++++++++++++++++
+;
+tf0405: mov     #cp.psw,r4
+        clr     (r4)
+;
+        clr     r5                      ; zero value
+        ccc
+        mfpi    r5
+        hcmpeq  #cp0z00,(r4)            ; check N=0,Z=1
+        tst     (sp)+                   ; pop value
+;
+        inc     r5                      ; positive value
+        ccc
+        <sen!sez>                       ; NZ=1
+        mfpi    r5
+        hcmpeq  #cp0000,(r4)            ; check N=0,Z=0
+        tst     (sp)+                   ; pop value
+;
+        neg     r5                      ; negative value
+        ccc
+        mfpi    r5
+        hcmpeq  #cpn000,(r4)            ; check N=1,Z=0
+        tst     (sp)+                   ; pop value
+;
+        neg     r5                      ; positive value
+        sec                             ; C=1
+        mfpi    r5
+        hcmpeq  #cp000c,(r4)            ; check C=1 kept
+        tst     (sp)+                   ; pop value
+;
+        scc                             ; NZVC=1
+        mfpi    r5
+        hcmpeq  #cp000c,(r4)            ; check C kept, NZV cleared
+        tst     (sp)+                   ; pop value
+;
+9999$:  iot                     ; end of test F4.5
+;
+; Test F4.6 MFP* and cc for mem dst ++++++++++++++++++++++++++++++++++
+;
+tf0406: mov     #100$,r1                ; dst for (r1)
+        mov     #cp.psw,r4
+        clr     (r4)
+;
+        clr     (r1)                    ; zero value
+        ccc
+        mfpi    (r1)
+        hcmpeq  #cp0z00,(r4)            ; check N=0,Z=1
+        tst     (sp)+                   ; pop value
+;
+        inc     (r1)                    ; positive value
+        ccc
+        <sen!sez>                       ; NZ=1
+        mfpi    (r1)
+        hcmpeq  #cp0000,(r4)            ; check N=0,Z=0
+        tst     (sp)+                   ; pop value
+;
+        neg     (r1)                    ; negative value
+        ccc
+        mfpi    (r1)
+        hcmpeq  #cpn000,(r4)            ; check N=1,Z=0
+        tst     (sp)+                   ; pop value
+;
+        neg     (r1)                    ; positive value
+        sec                             ; C=1
+        mfpi    (r1)
+        hcmpeq  #cp000c,(r4)            ; check C=1 kept
+        tst     (sp)+                   ; pop value
+;
+        scc                             ; NZVC=1
+        mfpi    (r1)
+        hcmpeq  #cp000c,(r4)            ; check C kept, NZV cleared
+        tst     (sp)+                   ; pop value
+        br      9999$
+;
+100$:   .word   0                       ; dst target
+;
+9999$:  iot                     ; end of test F4.6
+;
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#54.      ; all tests done ?
+        hcmpeq  tstno,#60.      ; all tests done ?
 ;
         jmp     loop
 ;

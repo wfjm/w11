@@ -1,10 +1,10 @@
-; $Id: cpu_details.mac 1340 2023-01-01 08:43:05Z mueller $
+; $Id: cpu_details.mac 1342 2023-01-02 15:18:19Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2022-12-25  1337   1.0    Initial version
+; 2023-01-02  1342   1.0    Initial version
 ; 2022-07-18  1259   0.1    First draft
 ;
 ; Test CPU details
@@ -1542,12 +1542,14 @@ ta0404: mov     #vhtbpt,v..bpt          ; BPT handler
 ;   B2    pipeline torture tests
 ;   B2.1    self-modifying code, use (pc), -(pc)
 ;   B2.2    self-modifying code, use (pc) case 2
-;   B3    specifier flow tests
+;   B3    specifier flow and abort tests
 ;   B3.1    dstw flow and cc
 ;             part 1: check cc for MOV for all modes
 ;             part 2: check cc for CLR for all modes
 ;             part 3: check cc for SXT for all modes
 ;             part 4: check cc for MOV after abort for all modes
+;   B3.2    mtp and cc after abort
+;   B3.3    mfp and cc after abort
 ;
 ; Test B1:  address mode torture tests +++++++++++++++++++++++++++++++++++++++
 ;   This sub-section tests peculiar address node usage
@@ -1703,7 +1705,7 @@ tb0202: mov     #2,r5
 ;
 9999$:  iot                     ; end of test B2.2
 ;
-; Test B3:  specifier flow tests +++++++++++++++++++++++++++++++++++++++++++++
+; Test B3:  specifier flow and abort tests +++++++++++++++++++++++++++++++++++
 ;   This sub-section tests flow and cc properties
 ;
 ; Test B3.1 -- dstw flow and cc ++++++++++++++++++++++++++++++++++++++
@@ -1824,13 +1826,57 @@ tb0301: mov     #123,r0                 ; src for MOV
         br      4200$
 ;
 4100$:  inc     r5                      ; bump counter
-        hcmpeq  #cpnzvc,2(sp)           ; PS cc untouched !!
+        hcmpeq  #cpnzvc,2(sp)           ; check PS cc untouched
         rti                             ; continue (possible here!)
 ;
 4200$:  hcmpeq  #7.,r5                  ; check that all 7 mov get address error
         mov     #v..iit+2,v..iit        ; restore
 ;
 9999$:  iot                     ; end of test B3.1
+;
+; Test B3.2 -- mtp and cc after abort ++++++++++++++++++++++++++++++++
+;   Verifies that cc is unchanged if last write fails.
+;   MTP* uses the dsta flow, it is sufficient to test only mode 1 and
+;   an odd address abort.
+;
+tb0302: cmpb    systyp,#sy.sih          ; skip on SimH
+        beq     9999$
+;
+        mov     #1,r1                   ; use odd address
+        mov     #1000$,v..iit           ; set up iit handler
+        clr     -(sp)                   ; push value
+        scc
+        mtpi    (r1)                    ; will fail
+        halt
+;
+1000$:  hcmpeq  #cpnzvc,2(sp)           ; check PS cc untouched
+        mov     #stack,sp               ; restore
+        mov     #v..iit+2,v..iit        ; restore
+;
+9999$:  iot                     ; end of test B3.2
+;
+; Test B3.3 -- mfp and cc after abort ++++++++++++++++++++++++++++++++
+;   Verifies that cc is unchanged if last write fails.
+;   The last write in MFP* is a stack push, the test uses an odd address abort.
+;
+tb0303: cmpb    systyp,#sy.sih          ; skip on SimH
+        beq     9999$
+;
+        inc     sp                      ; set up odd stack
+        mov     #100$,r1                ; set up read address (a valid one)
+        mov     #1000$,v..iit           ; set up iit handler
+        scc
+        mfpi    (r1)                    ; will fail
+        halt
+;
+100$:   .word   123
+;
+1000$:  hcmpeq  #cpnzvc,2(sp)           ; check PS cc untouched
+        htsteq  sp                      ; check that fatal stack error seen
+        mov     #stack,sp               ; restore
+        mov     #v..iit+2,v..iit        ; restore
+;
+9999$:  iot                     ; end of test B3.3
 ;
 ; Section C: 11/70 specifics =================================================
 ;   C1    Implementation differences
@@ -1890,7 +1936,7 @@ tc0103: mov     #vhugen,v..iit  ; set iit handler
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#30.      ; all tests done ?
+        hcmpeq  tstno,#32.      ; all tests done ?
 ;
         jmp     loop
 ;

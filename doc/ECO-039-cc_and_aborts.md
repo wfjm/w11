@@ -52,6 +52,16 @@ In a second round, the `MTP*` and `MFP*` instructions, which use the `dsta`
 flow, were fixed. Again, the `ndpcntl.psr_ccwe := '1';` was moved to the
 last `*_w` state of the respective flows.
 
+The condition code update for `dstr` flows, used by general operate instructions
+like `BIS` or `INC`, is done in state `s_opg_gen` _before_ the concluding write
+of the _read-modify-write_ sequence. This is considered acceptable since all
+address errors have already been caught before in the read phase. The only
+possible cause for aborting of the write phase is an `ibus` timeout. This is
+highly unlikely since reading the same register worked. In addition,
+instructions that access `ibus` registers shouldn't be re-executed anyway since
+device registers don't have memory semantics and a read operation can already
+change the device state.
+
 ### Hindsight
 Further analysis showed that this bug had in practice no consequences
 - `MOV` and `CLR` don't depend on the cc state, so a re-execution with a

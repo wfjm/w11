@@ -1,10 +1,10 @@
-; $Id: cpu_details.mac 1342 2023-01-02 15:18:19Z mueller $
+; $Id: cpu_details.mac 1343 2023-01-02 18:03:39Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2023-01-02  1342   1.0    Initial version
+; 2023-01-02  1343   1.0    Initial version
 ; 2022-07-18  1259   0.1    First draft
 ;
 ; Test CPU details
@@ -1550,6 +1550,9 @@ ta0404: mov     #vhtbpt,v..bpt          ; BPT handler
 ;             part 4: check cc for MOV after abort for all modes
 ;   B3.2    mtp and cc after abort
 ;   B3.3    mfp and cc after abort
+;   B3.4    dstr flow and cc
+;             part 1: check cc for INC for all modes
+;             part 2: check cc for INC after abort for all modes
 ;
 ; Test B1:  address mode torture tests +++++++++++++++++++++++++++++++++++++++
 ;   This sub-section tests peculiar address node usage
@@ -1829,7 +1832,7 @@ tb0301: mov     #123,r0                 ; src for MOV
         hcmpeq  #cpnzvc,2(sp)           ; check PS cc untouched
         rti                             ; continue (possible here!)
 ;
-4200$:  hcmpeq  #7.,r5                  ; check that all 7 mov get address error
+4200$:  hcmpeq  #7.,r5                  ; check that all 7 mov got address error
         mov     #v..iit+2,v..iit        ; restore
 ;
 9999$:  iot                     ; end of test B3.1
@@ -1877,6 +1880,76 @@ tb0303: cmpb    systyp,#sy.sih          ; skip on SimH
         mov     #v..iit+2,v..iit        ; restore
 ;
 9999$:  iot                     ; end of test B3.3
+;
+; Test B3.4 -- dstr flow and cc ++++++++++++++++++++++++++++++++++++++
+;   Verifies dstr flow and uses INC as easy to handle test case.
+;
+tb0304: clr     r0                      ; src for INC
+        mov     #100$,r1                ; dst for (r1),(r1)+,-(r1),0(r1)
+        mov     #200$,r2                ; dst for @(r2)+,@-(r2),@0(r2)
+        mov     #cp.psw,r3              ; ptr to PSW
+        br      1000$
+;
+100$:   .word   0                       ; dst target
+200$:   .word   100$                    ; ptr to dst
+300$:   .word   1                       ; odd address ptr
+;
+; part 1: check cc for INC for all modes
+;
+1000$:  scc
+        inc     r0
+        hcmpeq  #cp000c,(r3)            ; NZV=0 and keep C
+        scc
+        inc     (r1)                    ; mode 1
+        hcmpeq  #cp000c,(r3)            ; N=0,Z=0,V=0 and keep C
+        scc
+        inc     (r1)+                   ; mode 2
+        hcmpeq  #cp000c,(r3)            ; N=0,Z=0,V=0 and keep C
+        scc
+        inc     -(r1)                   ; mode 4
+        hcmpeq  #cp000c,(r3)            ; N=0,Z=0,V=0 and keep C
+        scc
+        inc     0(r1)                   ; mode 6
+        hcmpeq  #cp000c,(r3)            ; N=0,Z=0,V=0 and keep C
+        scc
+        inc     @(r2)+                  ; mode 3
+        hcmpeq  #cp000c,(r3)            ; N=0,Z=0,V=0 and keep C
+        scc
+        inc     @-(r2)                  ; mode 5
+        hcmpeq  #cp000c,(r3)            ; N=0,Z=0,V=0 and keep C
+        scc
+        inc     @0(r2)                  ; mode 7
+        hcmpeq  #cp000c,(r3)            ; N=0,Z=0,V=0 and keep C
+;
+        hcmpeq  #7.,(r1)                ; check that 7 inc's done
+;
+; part 2: check cc for INC after abort for all memory modes
+;
+2000$:  clr     r5
+        mov     #2100$,v..iit           ; set up iit handler
+        mov     #1,r1                   ; odd dst for (r1),(r1)+,-(r1),0(r1)
+        mov     #300$,r2                ; odd dst for @(r2)+,@-(r2),@0(r2)
+        scc
+;
+        inc     (r1)                    ; mode 1
+        inc     (r1)+                   ; mode 2
+        mov     #3,r1                   ; restore r1
+        scc
+        inc     -(r1)                   ; mode 4
+        inc     0(r1)                   ; mode 6
+        inc     @(r2)+                  ; mode 3
+        inc     @-(r2)                  ; mode 5
+        inc     @0(r2)                  ; mode 7
+        br      2200$
+;
+2100$:  inc     r5                      ; bump counter
+        hcmpeq  #cpnzvc,2(sp)           ; check PS cc untouched
+        rti                             ; continue (possible here!)
+;
+2200$:  hcmpeq  #7.,r5                  ; check that all 7 inc got address error
+        mov     #v..iit+2,v..iit        ; restore
+;
+9999$:  iot                     ; end of test B3.4
 ;
 ; Section C: 11/70 specifics =================================================
 ;   C1    Implementation differences
@@ -1936,7 +2009,7 @@ tc0103: mov     #vhugen,v..iit  ; set iit handler
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#32.      ; all tests done ?
+        hcmpeq  tstno,#33.      ; all tests done ?
 ;
         jmp     loop
 ;

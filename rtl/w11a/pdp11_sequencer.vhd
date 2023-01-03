@@ -1,4 +1,4 @@
--- $Id: pdp11_sequencer.vhd 1342 2023-01-02 15:18:19Z mueller $
+-- $Id: pdp11_sequencer.vhd 1343 2023-01-02 18:03:39Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,7 +13,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
--- 2023-01-01  1342   1.6.27 BUGFIX: cc state unchanged after abort
+-- 2023-01-02  1342   1.6.27 BUGFIX: cc state unchanged after abort
 -- 2022-12-26  1337   1.6.26 tbit logic overhaul 2, now fully 11/70 compatible
 -- 2022-12-12  1330   1.6.25 implement MMR0,MMR2 instruction complete
 -- 2022-12-10  1329   1.6.24 BUGFIX: get correct PS after vector push abort
@@ -1812,7 +1812,10 @@ begin
           ndpcntl.gr_bytop := '0';               --  no bytop, do sign extend
         end if;
 
-        ndpcntl.psr_ccwe := '1';
+        ndpcntl.psr_ccwe := '1';  -- acceptable even here though before the final
+                                  -- write which is a macc completion. That can
+                                  -- only fail due to a ibus timeout, all other
+                                  -- errors were caught during initial read.
 
         if R_IDSTAT.is_dstw_reg = '1' then
           ndpcntl.gr_we := '1';

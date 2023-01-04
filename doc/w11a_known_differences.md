@@ -8,17 +8,21 @@ The issues of the w11 CPU and systems are listed in a separate document
 - instruction behavior
   - [Instruction fetch after `SPL`](w11a_diff_70_spl_bug.md)
   - [`CLR` and `SXT` do a write](w11a_diff_70_clr_sxt_write.md)
-  - [`jsr sp` pushes original `sp` value](w11a_diff_70_jsr_sp.md)
   - [State of N and Z and registers after a `DIV` abort with `V=1`](w11a_diff_70_div_after_v1.md)
 - stack limit and stack error behavior
   - [Stack limit checks done independent of register set](w11a_diff_70_stklim_rset.md)
+  - [No unconditional instruction fetch after stack error abort](w11a_diff_70_ser_forced_fetch.md)
+- instruction abort handling
+  - [`PC` is incremented before an instruction fetch abort](w11a_diff_70_fetch_abort.md)
 - memory management behavior
   - [`MMR0` instruction complete implementation differences](w11a_diff_70_instruction_complete.md)
   - [MMU traps not suppressed when MMU register accessed](w11a_diff_70_mmu_trap_suppression.md)
   - [MMU aborts have priority over NXM aborts](w11a_diff_70_mmu_nxm_prio.md)
   - [`MMR0` abort flags are set when stack limit abort done](w11a_diff_70_mmu_stklim_prio.md)
-- other differences
+- not implemented 11/70 features
   - [18-bit UNIBUS address space not mapped](w11a_diff_70_unibus_mapping.md)
+  - [MMU maintenance mode not implemented](w11a_diff_70_mmu_no_maint.md)
+- other differences
   - [Usage of 11/70 `SYSID` register](w11a_diff_70_sysid_usage.md)
 
 All points relate to very 11/70 specific behavior, no operating system

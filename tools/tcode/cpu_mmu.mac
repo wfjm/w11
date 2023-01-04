@@ -1,4 +1,4 @@
-; $Id: cpu_mmu.mac 1339 2022-12-27 12:11:34Z mueller $
+; $Id: cpu_mmu.mac 1344 2023-01-03 15:51:21Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -668,8 +668,8 @@ tb0302:
 ;    Should abort with m0.anr and m0.ale for all adresses
 ;    w11 aborts with m0.anr, but sets m0.ale only when fail above 1st click
 ;    Test an address above the first click to have full 11/70 style response
-;    Note: w11 increments PC before abort (as 11/70 does)
-;          SimH increments PC after abort
+;    Note: w11 increments PC in case of an abort
+;          SimH does not increment PC in case of an abort (as 11/70 does)
 ;
 tb0401: clr     mmr3            ; no d dspace, no 22bit
         mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 18

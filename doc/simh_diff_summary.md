@@ -13,10 +13,12 @@ ones are listed here:
 - instruction behavior
   - [SimH: `SPL` doesn't have 11/70 behavior](simh_diff_spl.md)
   - [SimH: State of N and Z and registers after a `DIV` abort with `V=1`](simh_diff_div_after_v1.md)
+  - [SimH: `JSR SP` pushes modified `SP` value](simh_diff_jsr_sp.md)
 - stack limit and stack error behavior
   - [SimH: stack limit check and addressing modes](simh_diff_stklim_amode.md)
   - [SimH: stack limit check and vector push aborts](simh_diff_stklim_vpush.md)
   - [SimH: Red stack zone PSW protection](simh_diff_red_psw.md)
+  - [SimH: No unconditional instruction fetch after stack error abort](simh_diff_ser_forced_fetch.md)
 - instruction abort handling
   - [SimH: condition codes are not always unchanged after an abort](simh_diff_cc_and_aborts.md)
 - service order and trap handling
@@ -29,3 +31,6 @@ ones are listed here:
   - [SimH: MMU traps not suppressed when MMU register accessed](simh_diff_mmu_trap_suppression.md)
   - [SimH: The 'instruction completed flag' in `MMR0` is not implemented](simh_diff_instruction_complete.md)
   - [SimH: MMU aborts have priority over NXM aborts](simh_diff_mmu_nxm_prio.md)
+- not implemented 11/70 features
+  - [SimH: 18-bit UNIBUS address space not mapped](simh_diff_unibus_mapping.md)
+  - [SimH: MMU maintenance mode not implemented](simh_diff_mmu_no_maint.md)

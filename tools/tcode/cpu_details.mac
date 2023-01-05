@@ -1,10 +1,10 @@
-; $Id: cpu_details.mac 1343 2023-01-02 18:03:39Z mueller $
+; $Id: cpu_details.mac 1345 2023-01-04 18:05:42Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2023-01-02  1343   1.0    Initial version
+; 2023-01-04  1345   1.0    Initial version
 ; 2022-07-18  1259   0.1    First draft
 ;
 ; Test CPU details
@@ -545,8 +545,8 @@ ta0302:
         hcmpeq  #15.,342(r5)            ; check 15th push (was done)
         hcmpeq  #cp.pr6,340(r5)         ; saved PS of attempted yellow trap
         htsteq  336(r5)                 ; red zone border clean ?
-;;      hcmpeq  #cp.pr6,@#2             ; saved PS of red abort (w11 not yet!)
-;;      hcmpeq  #200$,@#0               ; saved PC of red abort (e11 not yet!)
+        hcmpeq  #cp.pr6,@#2             ; saved PS of red abort
+        hcmpeq  #200$,@#0               ; saved PC of red abort
         dec     r1                      ; too far for sob
         beq     1020$
         jmp     100$                    ; go for next STKLIM value
@@ -1534,14 +1534,16 @@ ta0404: mov     #vhtbpt,v..bpt          ; BPT handler
 ;
 9999$:  iot                                     ; end of test A4.4
 ;
-; Section B: Stress and fllow tests ==========================================
+; Section B: Stress and flow tests ===========================================
 ;   B1    address mode torture tests
 ;   B1.1    src-dst update hazards with (r0)+,(r0)
 ;   B1.2    (pc)+ as destination
 ;   B1.3    pc as destination in clr, mov, and add
+;   B1.4    (pc)+ as destination case 2
 ;   B2    pipeline torture tests
 ;   B2.1    self-modifying code, use (pc), -(pc)
 ;   B2.2    self-modifying code, use (pc) case 2
+;   B2.3    self-modifying code, use (pc) case 3
 ;   B3    specifier flow and abort tests
 ;   B3.1    dstw flow and cc
 ;             part 1: check cc for MOV for all modes
@@ -1553,6 +1555,10 @@ ta0404: mov     #vhtbpt,v..bpt          ; BPT handler
 ;   B3.4    dstr flow and cc
 ;             part 1: check cc for INC for all modes
 ;             part 2: check cc for INC after abort for all modes
+;   B4    byte mode flow tests
+;   B4.1    srcr and byte access
+;   B4.2    dstr and byte access
+;   B4.3    dstw and byte access
 ;
 ; Test B1:  address mode torture tests +++++++++++++++++++++++++++++++++++++++
 ;   This sub-section tests peculiar address node usage
@@ -1646,6 +1652,24 @@ tb0103: mov     #000137,@#0  ; setup jmp 1000$ at mem(0)
 ;
 9999$:  iot                     ; end of test B1.3
 ;
+; Test B1.4 -- (pc)+ as destination case 2 +++++++++++++++++++++++++++
+;   'inc #177777' seen as 're-entry protection' in several xxdp test codes
+;
+tb0104: mov     #3,r0                   ; try counter
+        clr     r1                      ; 1st entry counter
+        clr     r2                      ; other entry counter
+100$:   inc     #177777                 ; value will be modified
+        bne     200$                    ; ne if not 1st entry
+        inc     r1                      ; 1st entry
+        br      300$
+200$:   inc     r2                      ; other entries
+300$:   sob     r0,100$
+        hcmpeq  #1,r1                   ; check 1st entry count
+        hcmpeq  #2,r2                   ; check other entry count
+        mov     #177777,100$+2          ; restore
+;
+9999$:  iot                     ; end of test B1.4
+;
 ; Test B2:  pipeline torture tests +++++++++++++++++++++++++++++++++++++++++++
 ;   This sub-section tests self-modifying code
 ;
@@ -1707,6 +1731,18 @@ tb0202: mov     #2,r5
 1999$:  halt                    ; halt as target for 'jmp (r1)'
 ;
 9999$:  iot                     ; end of test B2.2
+;
+; Test B2.3 -- self-modifying code, use (pc) case 3 ++++++++++++++++++
+;    The 'mtpi (pc)' usage was seen in maindec-11-dekbb-c
+;
+tb0203: push    #scc                    ; scc instruction
+        clr     cp.psw
+        mtpi    (pc)
+100$:   halt                            ; will be overwritten
+        hcmpeq  #cpnzvc,cp.psw          ; check that scc was executed
+        clr     100$                    ; restore
+;
+9999$:  iot                     ; end of test B2.3
 ;
 ; Test B3:  specifier flow and abort tests +++++++++++++++++++++++++++++++++++
 ;   This sub-section tests flow and cc properties
@@ -1951,6 +1987,94 @@ tb0304: clr     r0                      ; src for INC
 ;
 9999$:  iot                     ; end of test B3.4
 ;
+; Test B4:  byte mode flow tests +++++++++++++++++++++++++++++++++++++++++++++
+;   This sub-section verifies correct byte mode increment/decrement behavior.
+;   Done by flow for srcr, dstr and dstw. The dsta flow does not access bytes.
+;   Only address changes are checked with representative instructions. The
+;   correct byte data behavior was already tested in cpu_basics on a per
+;   instruction basis.
+;
+; Test B4.1 -- srcr and byte access ++++++++++++++++++++++++++++++++++
+;
+tb0401: mov     #100$,r1                ; src for (r1)+,-(r1)
+        mov     #200$,r2                ; src for @(r2)+,@-(r2)
+;
+        bisb    (r1)+,r5                ; mode 2  gpr -> inc 1
+        hcmpeq  #100$+1,r1
+        bisb    -(r1),r5                ; mode 4  gpr -> dec 1
+        hcmpeq  #100$,r1
+;
+        bisb    @(r2)+,r5               ; mode 3  gpr -> inc 2
+        hcmpeq  #200$+2,r2
+        bisb    @-(r2),r5               ; mode 5  gpr -> dec 2
+        hcmpeq  #200$,r2
+;
+        bisb    -(sp),r5                ; mode 4  sp -> dec 2  (stupid case)
+        hcmpeq  #stack-2,sp
+        bisb    (sp)+,r5                ; mode 2  sp -> inc 2
+        hcmpeq  #stack,sp
+;
+        br      9999$
+;
+100$:   .word   0                       ; src target
+200$:   .word   100$                    ; ptr to src
+;
+9999$:  iot                     ; end of test B4.1
+;
+; Test B4.2 -- dstr and byte access ++++++++++++++++++++++++++++++++++
+;
+tb0402: mov     #100$,r1                ; dst for (r1)+,-(r1)
+        mov     #200$,r2                ; dst for @(r2)+,@-(r2)
+;
+        bisb    r5,(r1)+                ; mode 2  gpr -> inc 1
+        hcmpeq  #100$+1,r1
+        bisb    r5,-(r1)                ; mode 4  gpr -> dec 1
+        hcmpeq  #100$,r1
+;
+        bisb    r5,@(r2)+               ; mode 3  gpr -> inc 2
+        hcmpeq  #200$+2,r2
+        bisb    r5,@-(r2)               ; mode 5  gpr -> dec 2
+        hcmpeq  #200$,r2
+;
+        bisb    r5,-(sp)                ; mode 4  sp -> dec 2  (stupid case)
+        hcmpeq  #stack-2,sp
+        bisb    r5,(sp)+                ; mode 2  sp -> inc 2
+        hcmpeq  #stack,sp
+;
+        br      9999$
+;
+100$:   .word   0                       ; dst target
+200$:   .word   100$                    ; ptr to dst
+;
+9999$:  iot                     ; end of test B4.2
+;
+; Test B4.3 -- dstw and byte access ++++++++++++++++++++++++++++++++++
+;
+tb0403: mov     #100$,r1                ; dst for (r1)+,-(r1)
+        mov     #200$,r2                ; dst for @(r2)+,@-(r2)
+;
+        movb    r5,(r1)+                ; mode 2  gpr -> inc 1
+        hcmpeq  #100$+1,r1
+        movb    r5,-(r1)                ; mode 4  gpr -> dec 1
+        hcmpeq  #100$,r1
+;
+        movb    r5,@(r2)+               ; mode 3  gpr -> inc 2
+        hcmpeq  #200$+2,r2
+        movb    r5,@-(r2)               ; mode 5  gpr -> dec 2
+        hcmpeq  #200$,r2
+;
+        clrb    -(sp)                   ; mode 4  sp -> dec 2
+        hcmpeq  #stack-2,sp
+        clrb    (sp)+                   ; mode 2  sp -> inc 2  (stupid case)
+        hcmpeq  #stack,sp
+;
+        br      9999$
+;
+100$:   .word   0                       ; dst target
+200$:   .word   100$                    ; ptr to dst
+;
+9999$:  iot                     ; end of test B4.3
+;
 ; Section C: 11/70 specifics =================================================
 ;   C1    Implementation differences
 ;   C1.1    Register used as source and changed in dst flow
@@ -2009,7 +2133,7 @@ tc0103: mov     #vhugen,v..iit  ; set iit handler
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#33.      ; all tests done ?
+        hcmpeq  tstno,#38.      ; all tests done ?
 ;
         jmp     loop
 ;

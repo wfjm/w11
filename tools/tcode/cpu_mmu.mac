@@ -1,10 +1,10 @@
-; $Id: cpu_mmu.mac 1344 2023-01-03 15:51:21Z mueller $
+; $Id: cpu_mmu.mac 1345 2023-01-04 18:05:42Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2022-12-25  1337   1.0    Initial version
+; 2023-01-04  1345   1.0    Initial version
 ; 2022-07-24  1262   0.1    First draft
 ;
 ; Test CPU MMU: all aspects of the MMU
@@ -239,6 +239,7 @@ ta0102:
 ;              part 5: test MTPI,MFPI with @(sp)+
 ;              part 6: test MFPD,MFPI and MTPD,MTPI for sp register access
 ;              part 7: test MFPD,MFPI and MTPD,MTPI for register r0-r5 access
+;    B3.3    test MFPI,MTPI with cm=pm=user
 ;    B4    invalid cpu mode 10
 ;    B4.1    check that cmode=10 causes abort
 ;    B4.2    check MFPI/MTPI SP response for pmode=10
@@ -468,8 +469,7 @@ tb0301:
 9999$:  iot                     ; end of test B3.1
 ;
 ; Test B3.2 -- run code in user mode with D space; mfp*, mtp* ++++++++
-;   code vc1 is executed in user and in supervisor mode
-;   the code runs in seg0 with D space enabled
+;   Code vc1 is executed in user mode, runs in page 0 with D space enabled.
 ;
 ;   This test verifies
 ;     x xxx xxx xxx xxx xxx NZVC Instruction / Remark
@@ -503,6 +503,7 @@ tb0302:
         clr     -(sp)           ; will start at 0
         rti                     ; and launch it
         halt
+;
 1000$:                          ; continuation point
 ; check psw
         ccc                     ; clear cc -> psw reflects pm setting
@@ -660,6 +661,51 @@ tb0302:
 3011$:
 ;
 9999$:  iot                     ; end of test B3.2
+;
+; Test B3.3 -- test MFPI,MTPI with cm=pm=user ++++++++++++++++++++++++
+;   Verifies that MFPI acts like MFPD when cm=pm=user and that MTPI has no
+;   such restriction and can modify I space when PDR ACF allows.
+;   Runs code vc4 with D space enabled, code in page 0 and data in page 1.
+;
+tb0303:
+; set up emt handler
+        mov     #vhuemt,v..emt
+        clr     v..emt+2        ; pr0 kernel
+; enable mmu
+        mov     #m3.dum,mmr3    ; user d dspace, no 22bit
+        mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 18
+; set up data
+        clr     vc4l1
+; set user mode pdr/par, I page 0 and D page 1
+        mov     #<8.*md.plf>!md.arw,uipdr0      ; I space writable
+        mov     #<vc4/100>,uipar0
+        mov     #<8.*md.plf>!md.arw,udpdr1
+        mov     #<vc4dat/100>,udpar1
+; start code in user mode
+        mov     #1000$,vhustp   ; set up continuation address
+        mov     #<cp.cmu!cp.pmu>,-(sp)   ; next psw: user mode
+        clr     -(sp)           ; will start at 0
+        rti                     ; and launch it
+        halt
+;
+1000$:                          ; continuation point
+        hcmpeq  #040111,r0      ; check direct D space access to vc4v1
+        hcmpeq  #040222,r1      ; check MFPI access to vc4v2 (D instead of I!)
+        hcmpeq  #040333,r2      ; check MFPD access to vc4v3
+        hcmpeq  #040444,vc4l1   ; check modified vc4l1
+;
+; reset user mode pdr/par
+        clr     uipdr0
+        clr     uipar0
+        clr     udpdr1
+        clr     udpar1
+;
+        reset                   ; mmu off                       ;! MMU off
+        clr     cp.psw          ; crop pm in psw
+        mov     #v..emt+2,v..emt        ; restore emt catcher
+        clr     v..emt+2
+;
+9999$:  iot                     ; end of test B3.3
 ;
 ; Test B4:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;   Test invalid cpu mode 10
@@ -2065,13 +2111,14 @@ td0201: tstb    systyp          ; skip if not on w11
 ;                   trp=0;pdr      0   0   0    -   any par write clears aia,aiw
 ;
 ;   acf=4 ent=1     tst (r3)       1   0   1   yes  trap taken, trp set, aia set
-;                   clr (r3)       1   1   1    no  no trap, aia set
+;                   clr (r3)       1   1   1    no  no trap (trp=1!), aia set
 ;                   trp=0;pdr      0   0   0     -  any pdr write clears aia,aiw
 ;                   clr (r3)       1   1   1   yes  trap taken, trp,aia,aiw set
-;                   tst (r3)       1   1   1    no  no trap, no additional bits
+;                   tst (r3)       1   1   1    no  no trap (trp=1!), no bits
 ;                   trp=0;pdr      0   0   0     -  any par write clears aia,aiw
 ;
-;   Uses page 6 with plf=1 and varying acf
+;   Uses page 6 with plf=1 and varying acf.
+;   Checks that m0.trp must be cleared before a 2nd MMU trap is taken
 ;
 te0101: mov     #vhmmut,v..mmu  ; setup MMU trap handler
         clr     v..mmu+2        ; pr0 kernel
@@ -2149,7 +2196,7 @@ te0101: mov     #vhmmut,v..mmu  ; setup MMU trap handler
 1010$:  hbitne  mmr0,#m0.trp        ; check trp=1
         hcmpeq  (r4),#md.plf!md.aia!md.att  ; check aia=1
 ;
-; clr (r3)       1   1   1    no  no trap, aia set
+; clr (r3)       1   1   1    no  no trap (trp=1!), aia set
         clr     (r3)                ; probe write
         hbitne  mmr0,#m0.trp        ; check trp=1
         hcmpeq  (r4),#md.plf!md.aia!md.aiw!md.att  ; check aia=1,aiw=1
@@ -2166,7 +2213,7 @@ te0101: mov     #vhmmut,v..mmu  ; setup MMU trap handler
 1020$:  hbitne  mmr0,#m0.trp        ; check trp=1
         hcmpeq  (r4),#md.plf!md.aia!md.aiw!md.att  ; check aia=1,aiw=1
 ;
-; tst (r3)       1   1   1    no  no trap, no additional bits
+; tst (r3)       1   1   1    no  no trap (trp=1!), no additional bits
         tst     (r3)                ; probe read
         hbitne  mmr0,#m0.trp        ; check trp=1
         hcmpeq  (r4),#md.plf!md.aia!md.aiw!md.att  ; check aia=1,aiw=1
@@ -2581,7 +2628,7 @@ tf0102: mov     #154345,@#p6base ; inititialize target
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#31.      ; all tests done ?
+        hcmpeq  tstno,#32.      ; all tests done ?
         call    chkpdr          ; kernel pdr/par OK ?
 ;
         jmp     loop
@@ -2774,6 +2821,32 @@ vc3:    htstge  (r5)            ; r5 at fence ?
         clr     @#cp.pir        ; cancel PIRQ (use absolute mode!)
 vc3l1:  emt     100             ; delegate RTI to system service
 vc3l2:  halt                    ; label after emt
+;
+; vc4 - MFPI/MTPI user mode test code ++ used from B3.3 ++++++++++++++++++++++
+;   Returns all values to be checked in registers
+;     r0:  D space access to vc4v1
+;     r1:  MFPI read of vc4v2; I space requested, but D space received
+;     r2:  MFPD read of vc4v3
+;
+        . = 106000              ; I space ------------------------------------
+vc4:    mov     #<vc4stk-vc4dat+p1base>,sp      ; initialize stack
+        mov     @#vc4v1-vc4dat+p1base,r0        ; simple D space access
+        mfpi    @#vc4v2-vc4dat+p1base           ; reads D space! I would abort!
+        pop     r1                              ; save value
+        mfpd    @#vc4v3-vc4dat+p1base           ; read D space
+        pop     r2                              ; save value
+        push    #040444
+        mtpi    vc4l1                           ; write to I space allowed
+        emt     100             ; will end code
+;
+vc4l1:  .word   0
+;
+        . = 107000              ; D space ------------------------------------
+vc4dat: .blkw   16.             ; small stack space
+vc4stk:
+vc4v1:  .word   040111
+vc4v2:  .word   040222
+vc4v3:  .word   040333
 ;
 ; p5ce14 Test E1.4 test code +++++++++++++++++++++++++++++++++++++++++
 ;   located at border of page 4 and page 5 (touching both)

@@ -1,10 +1,10 @@
-; $Id: cpu_basics.mac 1344 2023-01-03 15:51:21Z mueller $
+; $Id: cpu_basics.mac 1345 2023-01-04 18:05:42Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2015-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2023-01-02  1342   1.0    Initial version
+; 2023-01-04  1345   1.0    Initial version
 ; 2015-08-30   710   0.1    First draft
 ;
 ; Test CPU basics: most instructions except traps, EIS and FPP
@@ -31,6 +31,7 @@
 ;   A4.2    jsr + cc
 ;   A4.3    jsr r0-r5
 ;   A4.4    jsr sp and rts sp
+;   A4.5    jsr r1,(r1)+
 ;   A5    mark
 ;
 ; Test A1:  ccop + bxx +++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -960,7 +961,7 @@ ta0403: clr     900$            ; reset call counter
 ; Test A4.4 -- jsr sp and rts sp ++++++++++++++++++++++++++++++++++++++
 ;   In case of jsr sp and rts sp, the sp register is used both as linkage
 ;   register and implicitly as stack pointer. That interferes and gives
-;   quite bizarre semantics, certainly never used, but should work
+;   quite bizarre behavior, certainly never used, but should work
 ;   - jsr sp,<dst> will
 ;     - push current SP onto stack
 ;     - set SP to the location of following instruction
@@ -999,6 +1000,24 @@ ta0404: hcmpeq  sp,#stack       ; check stack is default
         rts     sp
 ;
 9999$:  iot                     ; end of test A4.4
+;
+; Test A4.5 -- jsr r1,(r1)+ ++++++++++++++++++++++++++++++++++++++++++
+;   Using the same register in the destination specifier and as linkage
+;   register is possible and works as usual.
+;
+ta0405: mov     #200$,r1
+        jsr     r1,(r1)+                ; calls 200$
+100$:   .word   000301                  ; 1st arg
+        .word   000302                  ; 2nd arg
+        hcmpeq  #200$+2,r1              ; check that incremented r1 restored
+        br      9999$
+;
+200$:   hcmpeq  #100$,r1                ; check r1 holds address after jsr
+        hcmpeq  #301,(r1)+              ; process 1st arg
+        hcmpeq  #302,(r1)+              ; process 1st arg
+        rts     r1
+;
+9999$:  iot                     ; end of test A4.5
 ;
 ; Test A5 -- mark ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;   This sub-section verifies
@@ -3575,7 +3594,7 @@ tf0406: mov     #100$,r1                ; dst for (r1)
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#60.      ; all tests done ?
+        hcmpeq  tstno,#61.      ; all tests done ?
 ;
         jmp     loop
 ;

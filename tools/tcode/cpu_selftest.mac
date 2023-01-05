@@ -1,17 +1,21 @@
-; $Id: cpu_selftest.mac 1329 2022-12-11 17:28:28Z mueller $
+; $Id: cpu_selftest.mac 1345 2023-01-04 18:05:42Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2022-07-18  1258   1.0    Initial version
+; 2023-01-04  1345   1.0    Initial version
 ; 2022-07-13  1254   0.1    First draft
 ;
 ; Test CPU basics
 ;
         .include        |lib/tcode_std_base.mac|
+        .include        |lib/defs_mmu.mac|
 ;
-; Section A: Self-Test codes
+; Section A: self test codes
+; Section B: CPU probe codes
+;
+; Section A: self test codes =================================================
 ;   A1    11/34 self test
 ;   A2    11/70 self test
 ;
@@ -213,7 +217,41 @@ ta0201:
 ;
 9999$:  iot                     ; end of test A2
 ;
+; Section B: CPU probe codes =================================================
+;   B1    2.11BSD 11/70 cpuprobe
+;
+; Test B1 -- 2.11BSD cpuprobe ++++++++++++++++++++++++++++++++++++++++
+;   The key decisions of the 2.11BSD cpu model detection. Only the sequence
+;   leading to a 11/70 detection is done, all other branches end in a halt.
+;   Full code is in /usr/src/sys/pdpstand/M.s starting as cpuprobe.
+;
+tb0101: mov     #1000$,v..iit           ; vector  4 handler
+        mov     #1000$,v..rit           ; vector 10 handler
+;
+        tst     @#ubmap                 ; look for unibus map
+        tst     @#kdpar+14              ; look for split I/D (check kdpar6)
+        mov     #100$,1100$             ; setup catcher
+        mfpt                            ; only 22,44 and J11 have MFPT
+        halt
+100$:   br      1200$                   ; that's all, should be a 11/70
+;
+1000$:  mov     1100$,(sp)              ; set up return
+        bne     1010$                   ; catcher set ?
+        halt                            ; halt of none set
+1010$:  clr     1100$                   ; reset catcher
+        rti
+;
+1100$:  .word   0                       ; catcher address
+;
+1200$:  mov     #v..iit+2,v..iit        ; restore
+        mov     #v..rit+2,v..rit        ; restore
+;
+9999$:  iot                     ; end of test B1
+;
 ; END OF ALL TESTS - loop closure --------------------------------------------
+;
+        mov     tstno,r0        ; hack, for easy monitoring ...
+        hcmpeq  tstno,#3.       ; all tests done ?
 ;
         jmp     loop
 ;

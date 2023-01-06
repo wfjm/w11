@@ -1,18 +1,19 @@
-# $Id: test_w11a_dstm_word_flow.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_w11a_dstr_word_flow.tcl 1346 2023-01-06 12:56:08Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2023-01-05  1346   1.0.3  renamed dstm -> dstr (as it is named vhdl)
 # 2014-07-27   575   1.0.2  drop tout value from asmwait, reply on asmwait_tout
 # 2014-03-01   552   1.0.1  check that unused regs stay 0
 # 2013-03-31   502   1.0    Initial version
 #
-# Test dstm flow with inc ... instructions for word access
+# Test dstr flow with inc ... instructions for word access
 #
 
 # ----------------------------------------------------------------------------
-rlc log "test_w11a_dstm_word_flow: test dstm flow for word with inc ..."
+rlc log "test_w11a_dstr_word_flow: test dstr flow for word with inc ..."
 rlc log "  r0,(r0),(r0)+,@(r0)+,-(r0),@-(r0) (mode=0,1,2,3,4,5)"
 
 # code register pre/post conditions beyond defaults

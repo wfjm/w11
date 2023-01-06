@@ -1,10 +1,10 @@
-; $Id: cpu_details.mac 1345 2023-01-04 18:05:42Z mueller $
+; $Id: cpu_details.mac 1346 2023-01-06 12:56:08Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2023-01-04  1345   1.0    Initial version
+; 2023-01-06  1346   1.0    Initial version
 ; 2022-07-18  1259   0.1    First draft
 ;
 ; Test CPU details
@@ -98,6 +98,7 @@
 ;             part  8: traced RTI that clears tbit
 ;             part  9: EMT that sets tbit
 ;             part 10: PIRQ that sets tbit
+;    A5    MBRK
 ;
 ; Test A1:  PIRQ +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;   This sub-section verifies operation of PIRQ register
@@ -1534,6 +1535,23 @@ ta0404: mov     #vhtbpt,v..bpt          ; BPT handler
 ;
 9999$:  iot                                     ; end of test A4.4
 ;
+; Test A5:  MBRK +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+; Test A5.1 -- MBRK direct write/read test +++++++++++++++++++++++++++
+;   MBRK is a writable and readable 8 bit register an has no specific
+;   function in w11.
+;
+ta0501: mov     #cp.mbr,r0
+        clr     (r0)
+        htsteq  (r0)
+        mov     #177777,(r0)            ; test word write
+        hcmpeq  #377,(r0)
+        movb    #123,(r0)               ; write low byte
+        hcmpeq  #123,(r0)
+        movb    #321,1(r0)              ; write high byte (no effect)
+        hcmpeq  #123,(r0)
+;
+9999$:  iot                                     ; end of test A5.1
+;
 ; Section B: Stress and flow tests ===========================================
 ;   B1    address mode torture tests
 ;   B1.1    src-dst update hazards with (r0)+,(r0)
@@ -2133,7 +2151,7 @@ tc0103: mov     #vhugen,v..iit  ; set iit handler
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#38.      ; all tests done ?
+        hcmpeq  tstno,#39.      ; all tests done ?
 ;
         jmp     loop
 ;

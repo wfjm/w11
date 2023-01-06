@@ -1,9 +1,10 @@
-// $Id: Rw11Cpu.hpp 1274 2022-08-08 09:21:53Z mueller $
+// $Id: Rw11Cpu.hpp 1346 2023-01-06 12:56:08Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2023-01-05  1346   1.2.22 add kCPUUBMAP
 // 2022-08-08  1274   1.2.21 ssr->mmr rename
 // 2019-06-07  1160   1.2.20 Stats() not longer const
 // 2019-04-30  1143   1.2.19 add HasM9312()
@@ -33,7 +34,6 @@
 // 2013-04-12   504   1.0    Initial version
 // 2013-01-27   478   0.1    First draft
 // ---------------------------------------------------------------------------
-
 
 /*!
   \brief   Declaration of class Rw11Cpu.
@@ -246,6 +246,7 @@ namespace Retro {
       static const uint16_t  kCPUERR    = 0177766; //!< CPU CPUERR address
       static const uint16_t  kCPUSYSID  = 0177764; //!< CPU SYSID  address
       static const uint16_t  kCPUSDREG  = 0177570; //!< CPU SDREG  address
+      static const uint16_t  kCPUUBMAP  = 0170200; //!< UBMAP base address
     
       static const uint16_t  kMEMHISIZE = 0177762; //!< MEM HISIZE address
       static const uint16_t  kMEMLOSIZE = 0177760; //!< MEM LOSIZE address

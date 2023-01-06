@@ -1,0 +1,4 @@
+# simulation stuff
+rlink_cext_*
+sysmon_stim
+tmu_ofile

@@ -1,9 +1,10 @@
-# $Id: test_cp_cpubasics.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_cp_cpubasics.tcl 1346 2023-01-06 12:56:08Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2013-2015 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2023-01-05  1346   1.1.2  add creset test
 # 2015-07-19   702   1.1.1  ignore attn in stat checks
 # 2015-05-09   676   1.1    w11a start/stop/suspend overhaul
 # 2013-03-31   502   1.0    Initial version
@@ -114,7 +115,7 @@ $cpu cp -resume \
 tmpproc_checkr2inc $rr2_1
 tmpproc_checkr2inc [expr {$rr2_2 - $rr2_1}]
 
-rlc log "    suspend than step, two steps should inc r2 once"
+rlc log "    suspend then step, two steps should inc r2 once"
 $cpu cp -suspend \
         -wr2 00000 \
         -step \
@@ -133,3 +134,25 @@ rlc log "    creset, check cpususp=0"
 #       cycle delay. So do -estat after next command
 $cpu cp -creset \
         -rr2 -estat 0
+
+rlc log "  A3: check that creset clears PSW,MMR0, MMR3 ---------------"
+
+set mmr0  [$cpu imap mmr0]
+set mmr3  [$cpu imap mmr3]
+set psw_val  [regbld rw11::PSW rset {pri 7}]
+set mmr0_val [regbld rw11::MMR0 anr ale ard trp ent ena]
+set mmr3_val [regbld rw11::MMR3 ena_ubm ena_22bit d_km d_sm d_um]
+
+rlc log "    write ps,mmr0,mmr3 and read back"
+$cpu cp -wps  $psw_val \
+        -wibr $mmr0 $mmr0_val \
+        -wibr $mmr3 $mmr3_val \
+        -rps  -edata $psw_val \
+        -ribr $mmr0 -edata $mmr0_val \
+        -ribr $mmr3 -edata $mmr3_val
+
+rlc log "    creset and check that ps,mmr0,mmr3 cleared"
+$cpu cp -creset \
+        -rps  -edata 0 \
+        -ribr $mmr0 -edata 0 \
+        -ribr $mmr3 -edata 0

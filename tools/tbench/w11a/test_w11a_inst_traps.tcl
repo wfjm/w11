@@ -1,9 +1,10 @@
-# $Id: test_w11a_inst_traps.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_w11a_inst_traps.tcl 1346 2023-01-06 12:56:08Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2013-2014 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2023-01-06  1346   1.0.3  use defs_cpu.mac include
 # 2014-07-27   575   1.0.2  drop tout value from asmwait, reply on asmwait_tout
 # 2014-03-01   552   1.0.1  check that unused regs stay 0; use stack:; check sp;
 # 2013-04-01   502   1.0    Initial version
@@ -12,51 +13,51 @@
 #
 
 # ----------------------------------------------------------------------------
-rlc log "test_w11a_inst_traps: test trap type instructions"
+rlc log "test_w11a_inst_traps: test trap type instructions -------------------"
 
 # code register pre/post conditions beyond defaults
 #   r5   #data   -> #data+6*5*2
 $cpu ldasm -lst lst -sym sym {
+        .include        |lib/defs_cpu.mac|
+;
         . = 14
-        .word   h.bpt           ; vec 14: bpt
+        .word   vh.bpt          ; vec 14: bpt
         .word   340
-        .word   h.iot           ; vec 20: iot
+        .word   vh.iot          ; vec 20: iot
         .word   341
         . = 30
-        .word   h.emt           ; vec 30: emt
+        .word   vh.emt          ; vec 30: emt
         .word   342
-        .word   h.trp           ; vec 34: trap
+        .word   vh.trp          ; vec 34: trap
         .word   343
-;
-        psw = 177776
 ;
         . = 1000
 stack:
-start:  mov     #350,@#psw
+start:  mov     #350,@#cp.psw
         bpt
-350$:   mov     #351,@#psw
+350$:   mov     #351,@#cp.psw
         iot
-351$:   mov     #352,@#psw
+351$:   mov     #352,@#cp.psw
         emt     100
-352$:   mov     #353,@#psw
+352$:   mov     #353,@#cp.psw
         emt     200
-353$:   mov     #354,@#psw
+353$:   mov     #354,@#cp.psw
         trap    10
-354$:   mov     #355,@#psw
+354$:   mov     #355,@#cp.psw
         trap    20
 355$:   halt
 stop:
 ;
-h.bpt:  mov     @#psw,(r5)+             ; record psw
+vh.bpt: mov     @#cp.psw,(r5)+          ; record psw
         mov     #1014,(r5)+             ; record trap id
         br      iexit
-h.iot:  mov     @#psw,(r5)+
+vh.iot: mov     @#cp.psw,(r5)+
         mov     #1020,(r5)+
         br      iexit
-h.emt:  mov     @#psw,(r5)+
+vh.emt: mov     @#cp.psw,(r5)+
         mov     #1030,(r5)+
         br      iexit
-h.trp:  mov     @#psw,(r5)+
+vh.trp: mov     @#cp.psw,(r5)+
         mov     #1034,(r5)+
 ;
 iexit:  mov     (sp),r4                 ; get stack PC

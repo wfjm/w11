@@ -1,13 +1,13 @@
-# $Id: test_w11a_mem70.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_w11a_mem70.tcl 1346 2023-01-06 12:56:08Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2017-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
 # 2017-06-25   916   1.0    Initial version
 #
 # Test 11/70 memory system registers and cache
-#   adopt from old pdpcp style stim files
+#   adapted from old pdpcp style stim files
 #     tb/tb_w11a_mem70.dat       --> tests 1-3
 #     tb/tb_w11a_mem70_n2.dat    --> test 4 (size adaptive now)
 #     tb/tb_w11a_mem70_s3.dat    /

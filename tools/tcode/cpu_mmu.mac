@@ -1,10 +1,10 @@
-; $Id: cpu_mmu.mac 1345 2023-01-04 18:05:42Z mueller $
+; $Id: cpu_mmu.mac 1346 2023-01-06 12:56:08Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2023-01-04  1345   1.0    Initial version
+; 2023-01-05  1346   1.0    Initial version
 ; 2022-07-24  1262   0.1    First draft
 ;
 ; Test CPU MMU: all aspects of the MMU
@@ -53,8 +53,11 @@
        kipdr0 = kipdr+ 0
        kipar0 = kipar+ 0
        kdpdr0 = kdpdr+ 0
+       kdpar0 = kdpar+ 0
        kipdr1 = kipdr+ 2
        kipar1 = kipar+ 2
+       kdpdr1 = kdpdr+ 2
+       kdpar1 = kdpar+ 2
        kipdr5 = kipdr+12
        kipdr6 = kipdr+14
        kipar6 = kipar+14
@@ -62,6 +65,8 @@
        kdpar6 = kdpar+14
        kipdr7 = kipdr+16
        kipar7 = kipar+16
+       kdpdr7 = kdpdr+16
+       kdpar7 = kdpar+16
 
        p0p1p2 = <1*100>+2               ; page 0, +1 click, +2
        p0p1p4 = <1*100>+4               ; page 0, +1 click, +4
@@ -2514,8 +2519,10 @@ te0201: mov     #m0.ent!m0.ena,mmr0     ; enable mmu with traps  ;! MMU 18
         clr     v..pir+2
 ;
 ; Section F: miscellaneous ===================================================
-;   F1.1  test D-to-I mapping for (PC) address modes I
-;   F1.2  test D-to-I mapping for (PC) address modes II
+;   F1    test D-to-I mapping
+;   F1.1    for (PC) address modes I
+;   F1.2    for (PC) address modes II
+;   F2    test LOSIZE register and access to full memory
 ;
 ; Test F1:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;
@@ -2624,11 +2631,66 @@ tf0102: mov     #154345,@#p6base ; inititialize target
 ;
 9999$:  iot                     ; end of test F1.2
 ;
-; Summary
+; Test F2:  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;
+; Test F2.1 -- test LOSIZE register and access to full memory ++++++++
+;   Read memory size from LOSIZE, write one word every 64 kB and read back.
+;   Quite fast: at most 60 words (4M-256k)/64k.
+;   Tests runs with kernel D space enabled (an exception!)
+;
+tf0201: mov     kipdr0,kdpdr0           ; set up kernel D space 1-to-1 mapping
+        mov     kipar0,kdpar0
+        mov     kipdr1,kdpdr1
+        mov     kipar1,kdpar1
+        mov     kipdr6,kdpdr6
+        mov     kipar6,kdpar6
+        mov     kipdr7,kdpdr7
+        mov     kipar7,kdpar7
+        mov     #m3.e22!m3.dkm,mmr3     ; enable D space for kernel; 22 bit
+        mov     #m0.ena,mmr0            ; enable mmu            ;! MMU 22
+;
+        htsteq  hisize                  ; HISIZE must be zero
+        mov     losize,r0               ; last accessible click (64B)
+        inc     r0
+        ccc
+        ror     r0                      ; shift right 10 bits, no sign extend
+        ash     #-9.,r0                 ; memory size in 64 kB chunks
+        dec     r0                      ; number of chunks to test
+        ble     2000$                   ; quit if memory too small
+        mov     #2000,r1                ; step size 64kB in clicks
+        mov     #kdpar6,r2              ; ptr to kdpar6
+        mov     #p6base,r3              ; ptr to write/read test location
+; write memory
+        mov     r0,r4                   ; initialize counter
+        mov     r1,r5                   ; initialize current par
+100$:   mov     r5,(r2)                 ; set par
+        mov     r5,(r3)                 ; write data
+        add     r1,r5                   ; bump pointer
+        sob     r4,100$
+; read memory
+        mov     r0,r4                   ; initialize counter
+        mov     r1,r5                   ; initialize current par
+200$:   mov     r5,(r2)                 ; set par
+        hcmpeq  r5,(r3)                 ; check data
+        add     r1,r5                   ; bump pointer
+        sob     r4,200$
+;
+2000$:  reset                   ; mmu off                       ;! MMU off
+        clr     kdpdr0
+        clr     kdpar0
+        clr     kdpdr1
+        clr     kdpar1
+        clr     kdpdr6
+        clr     kdpar6
+        clr     kdpdr7
+        clr     kdpar7
+;
+9999$:  iot                     ; end of test F2.1
+;
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#32.      ; all tests done ?
+        hcmpeq  tstno,#33.      ; all tests done ?
         call    chkpdr          ; kernel pdr/par OK ?
 ;
         jmp     loop

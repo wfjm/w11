@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: tmuconv 1340 2023-01-01 08:43:05Z mueller $
+# $Id: tmuconv 1346 2023-01-06 12:56:08Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2008-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2008-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2023-01-05  1346   1.1.13 add memory system register names
 # 2022-12-29  1340   1.1.12 fix ru header
 # 2022-12-01  1324   1.1.11 change VFETCH text for MMU(250) and FPP(244)
 # 2022-11-18  1316   1.1.10 add -t_ru06 and -t_flow
@@ -279,6 +280,12 @@ my %pdp11_regs = (			    # use simh naming convention
      177770=> "mbrk",
      177766=> "cpuerr",
      177764=> "sysid",
+     177762=> "hisize",			    # not a simh name !!
+     177760=> "losize",			    # not a simh name !!
+     177752=> "hm",			    # not a simh name !!
+     177744=> "syserr",			    # not a simh name !!
+     177742=> "hiaddr",			    # not a simh name !!
+     177740=> "loaddr",			    # not a simh name !!
      177600=> "uipdr0",
      177602=> "uipdr1",
      177604=> "uipdr2",

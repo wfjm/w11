@@ -1,9 +1,10 @@
-// $Id: RtclRw11Cpu.cpp 1292 2022-09-04 06:10:05Z mueller $
+// $Id: RtclRw11Cpu.cpp 1346 2023-01-06 12:56:08Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2023-01-05  1346   1.2.37 use kCPUUBMAP
 // 2022-09-03  1292   1.2.36 M_show: fix mmr1 display, better mmr0 display
 // 2022-08-11  1276   1.2.35 ssr->mmr rename
 // 2022-07-07  1249   1.2.34 BUGFIX: quit before mem write if asm-11 error seen
@@ -1466,7 +1467,7 @@ int RtclRw11Cpu::M_show(RtclArgs& args)
     } else if (opt == "-ubmap") {
       uint16_t ubmap[64];
       RlinkCommandList clist;
-      clist.AddWreg(base + Rw11Cpu::kCPAL, 0170200);
+      clist.AddWreg(base + Rw11Cpu::kCPAL, Rw11Cpu::kCPUUBMAP);
       clist.AddRblk(base + Rw11Cpu::kCPMEMI, ubmap, 64);
       if (!Server().Exec(clist, emsg)) return args.Quit(emsg);
       sos << "unibus map:" << endl;

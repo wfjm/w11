@@ -1,9 +1,10 @@
-// $Id: Rw11Cpu.cpp 1274 2022-08-08 09:21:53Z mueller $
+// $Id: Rw11Cpu.cpp 1346 2023-01-06 12:56:08Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2013-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2023-01-05  1346   1.2.22 add kCPUUBMAP
 // 2022-08-08  1274   1.2.21 ssr->mmr rename
 // 2019-06-29  1175   1.2.20 MemWriteByte(): use membe 
 // 2019-04-30  1143   1.2.19 add m9312 setup and HasM9312()
@@ -144,6 +145,7 @@ const uint16_t  Rw11Cpu::kCPUMBRK;
 const uint16_t  Rw11Cpu::kCPUERR;
 const uint16_t  Rw11Cpu::kCPUSYSID;
 const uint16_t  Rw11Cpu::kCPUSDREG;
+const uint16_t  Rw11Cpu::kCPUUBMAP;
     
 const uint16_t  Rw11Cpu::kMEMHISIZE;
 const uint16_t  Rw11Cpu::kMEMLOSIZE;

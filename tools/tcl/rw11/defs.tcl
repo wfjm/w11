@@ -1,9 +1,10 @@
-# $Id: defs.tcl 1323 2022-12-01 08:00:41Z mueller $
+# $Id: defs.tcl 1346 2023-01-06 12:56:08Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2014-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2014-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2023-01-05  1346   1.0.13 add A_UBMAP
 # 2022-11-29  1323   1.0.12 rename adderr -> oddadr (in cpuerr)
 # 2022-11-21  1320   1.0.11 rename RUST recrsv -> recser
 # 2022-09-03  1292   1.0.10 shorter field names for MMR0,MMR1
@@ -95,6 +96,9 @@ namespace eval rw11 {
   # CNTRL - Memory System Control Register -------------------------
   set A_CNTRL    0177746
   regdsc CNTRL  {frep 5 2} {fmiss 3 2} {disutrap 1} {distrap 0}
+  #
+  # UBMAP - Unibus mapping register base ---------------------------
+  set A_UBMAP    0170200
   #
   # setup regmap
   #

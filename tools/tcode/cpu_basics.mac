@@ -1,10 +1,10 @@
-; $Id: cpu_basics.mac 1345 2023-01-04 18:05:42Z mueller $
+; $Id: cpu_basics.mac 1347 2023-01-07 12:48:58Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2015-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2023-01-04  1345   1.0    Initial version
+; 2023-01-07  1347   1.0    Initial version
 ; 2015-08-30   710   0.1    First draft
 ;
 ; Test CPU basics: most instructions except traps, EIS and FPP
@@ -31,7 +31,7 @@
 ;   A4.2    jsr + cc
 ;   A4.3    jsr r0-r5
 ;   A4.4    jsr sp and rts sp
-;   A4.5    jsr r1,(r1)+
+;   A4.5    jsr r1,(r1)+ and jsr r2,@(r2)+
 ;   A5    mark
 ;
 ; Test A1:  ccop + bxx +++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1001,7 +1001,7 @@ ta0404: hcmpeq  sp,#stack       ; check stack is default
 ;
 9999$:  iot                     ; end of test A4.4
 ;
-; Test A4.5 -- jsr r1,(r1)+ ++++++++++++++++++++++++++++++++++++++++++
+; Test A4.5 -- jsr r1,(r1)+ and jsr r2,@(r2)+ ++++++++++++++++++++++++
 ;   Using the same register in the destination specifier and as linkage
 ;   register is possible and works as usual.
 ;
@@ -1010,13 +1010,34 @@ ta0405: mov     #200$,r1
 100$:   .word   000301                  ; 1st arg
         .word   000302                  ; 2nd arg
         hcmpeq  #200$+2,r1              ; check that incremented r1 restored
-        br      9999$
+        br      1000$
 ;
 200$:   hcmpeq  #100$,r1                ; check r1 holds address after jsr
         hcmpeq  #301,(r1)+              ; process 1st arg
         hcmpeq  #302,(r1)+              ; process 1st arg
         rts     r1
 ;
+; Even using the 'linkage register' as list pointer in the caller and as
+; argument pointer in the callee works as expected.
+;
+1000$:  mov     #1100$,r2               ; r2 prt to list of subroutines
+        jsr     r2,@(r2)+               ; call 1st in list
+        .word   000401
+        jsr     r2,@(r2)+               ; call 2nd in list
+        .word   000501
+        .word   000502
+        br      9999$
+;
+1100$:  .word   1200$
+        .word   1300$
+;
+1200$:  hcmpeq  #401,(r2)+              ; process 1st arg
+        rts     r2
+;
+1300$:  hcmpeq  #501,(r2)+              ; process 1st arg
+        hcmpeq  #502,(r2)+              ; process 2nd arg
+        rts     r2
+
 9999$:  iot                     ; end of test A4.5
 ;
 ; Test A5 -- mark ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

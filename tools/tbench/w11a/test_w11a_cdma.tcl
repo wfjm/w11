@@ -1,10 +1,10 @@
-# $Id: test_w11a_cdma.tcl 1346 2023-01-06 12:56:08Z mueller $
+# $Id: test_w11a_cdma.tcl 1347 2023-01-07 12:48:58Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
-# 2023-01-06  1346   1.0    Initial version
+# 2023-01-07  1347   1.0    Initial version
 #
 # Test bwm/brm while CPU active
 #
@@ -83,6 +83,7 @@ rw11::asmtreg $cpu  pc $sym(start:100$)
 $cpu cp -wal $sym(buf) \
         -brm [llength $buf] -edata $buf
 rw11::asmtreg $cpu  pc $sym(start:100$)
-# stop code
-$cpu cp -stop
+# stop code and harvest attention
+$cpu cp -stop \
+        -attn
 

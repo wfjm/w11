@@ -1,4 +1,4 @@
-; $Id: cpu_mmu.mac 1346 2023-01-06 12:56:08Z mueller $
+; $Id: cpu_mmu.mac 1347 2023-01-07 12:48:58Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -28,60 +28,60 @@
         .include        |lib/tcode_std_base.mac|
         .include        |lib/defs_mmu.mac|
 ; some useful definitions
-       uipdr0 = uipdr+ 0
-       uipar0 = uipar+ 0
-       udpdr0 = udpdr+ 0
-       udpar0 = udpar+ 0
-       udpdr1 = udpdr+ 2
-       udpar1 = udpar+ 2
-       udpdr2 = udpdr+ 4
-       udpar2 = udpar+ 4
+        uipdr0 = uipdr+ 0
+        uipar0 = uipar+ 0
+        udpdr0 = udpdr+ 0
+        udpar0 = udpar+ 0
+        udpdr1 = udpdr+ 2
+        udpar1 = udpar+ 2
+        udpdr2 = udpdr+ 4
+        udpar2 = udpar+ 4
 
-       sipdr0 = sipdr+ 0
-       sipar0 = sipar+ 0
-       sipdr1 = sipdr+ 2
-       sipar1 = sipar+ 2
-       sipdr2 = sipdr+ 4
-       sipar2 = sipar+ 4
-       sipdr3 = sipdr+ 6
-       sipar3 = sipar+ 6
-       sipdr6 = sipdr+14
-       sipar6 = sipar+14
-       sipdr7 = sipdr+16
-       sipar7 = sipar+16
+        sipdr0 = sipdr+ 0
+        sipar0 = sipar+ 0
+        sipdr1 = sipdr+ 2
+        sipar1 = sipar+ 2
+        sipdr2 = sipdr+ 4
+        sipar2 = sipar+ 4
+        sipdr3 = sipdr+ 6
+        sipar3 = sipar+ 6
+        sipdr6 = sipdr+14
+        sipar6 = sipar+14
+        sipdr7 = sipdr+16
+        sipar7 = sipar+16
 
-       kipdr0 = kipdr+ 0
-       kipar0 = kipar+ 0
-       kdpdr0 = kdpdr+ 0
-       kdpar0 = kdpar+ 0
-       kipdr1 = kipdr+ 2
-       kipar1 = kipar+ 2
-       kdpdr1 = kdpdr+ 2
-       kdpar1 = kdpar+ 2
-       kipdr5 = kipdr+12
-       kipdr6 = kipdr+14
-       kipar6 = kipar+14
-       kdpdr6 = kdpdr+14
-       kdpar6 = kdpar+14
-       kipdr7 = kipdr+16
-       kipar7 = kipar+16
-       kdpdr7 = kdpdr+16
-       kdpar7 = kdpar+16
+        kipdr0 = kipdr+ 0
+        kipar0 = kipar+ 0
+        kdpdr0 = kdpdr+ 0
+        kdpar0 = kdpar+ 0
+        kipdr1 = kipdr+ 2
+        kipar1 = kipar+ 2
+        kdpdr1 = kdpdr+ 2
+        kdpar1 = kdpar+ 2
+        kipdr5 = kipdr+12
+        kipdr6 = kipdr+14
+        kipar6 = kipar+14
+        kdpdr6 = kdpdr+14
+        kdpar6 = kdpar+14
+        kipdr7 = kipdr+16
+        kipar7 = kipar+16
+        kdpdr7 = kdpdr+16
+        kdpar7 = kdpar+16
 
-       p0p1p2 = <1*100>+2               ; page 0, +1 click, +2
-       p0p1p4 = <1*100>+4               ; page 0, +1 click, +4
-       p1base = <1*20000>               ; page 1
-       p1p0p2 = p1base+2                ; page 1, +2
-       p1m1p0 = p1base+<127.*100>       ; page 1, 128-1 click
-       p2base = <2*20000>               ; page 2
-       p2m1p0 = p2base+<127.*100>       ; page 1, 128-1 click
-       p2m1m4 = p2base+<127.*100>-4     ; page 1, 128-1 click, -4
-       p3base = <3*20000>               ; page 3
-       p4base = <4*20000>               ; page 4
-       p5base = <5*20000>               ; page 5
-       p6base = <6*20000>               ; page 6
-       p6p1p2 = p6base+<1*100>+2        ; page 6, +1 click, +2
-       p7base = <7*20000>               ; page 7
+        p0p1p2 = <1*100>+2              ; page 0, +1 click, +2
+        p0p1p4 = <1*100>+4              ; page 0, +1 click, +4
+        p1base = <1*20000>              ; page 1
+        p1p0p2 = p1base+2               ; page 1, +2
+        p1m1p0 = p1base+<127.*100>      ; page 1, 128-1 click
+        p2base = <2*20000>              ; page 2
+        p2m1p0 = p2base+<127.*100>      ; page 1, 128-1 click
+        p2m1m4 = p2base+<127.*100>-4    ; page 1, 128-1 click, -4
+        p3base = <3*20000>              ; page 3
+        p4base = <4*20000>              ; page 4
+        p5base = <5*20000>              ; page 5
+        p6base = <6*20000>              ; page 6
+        p6p1p2 = p6base+<1*100>+2       ; page 6, +1 click, +2
+        p7base = <7*20000>              ; page 7
 ;
 ; helper macro for trace area check setup  (from cpu_details A4)
         .macro  htinit,buf,nent

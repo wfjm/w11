@@ -1,10 +1,10 @@
-# $Id: test_cp_cpubasics.tcl 1346 2023-01-06 12:56:08Z mueller $
+# $Id: test_cp_cpubasics.tcl 1347 2023-01-07 12:48:58Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2013-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
-# 2023-01-05  1346   1.1.2  add creset test
+# 2023-01-06  1347   1.1.2  add creset test
 # 2015-07-19   702   1.1.1  ignore attn in stat checks
 # 2015-05-09   676   1.1    w11a start/stop/suspend overhaul
 # 2013-03-31   502   1.0    Initial version
@@ -14,6 +14,7 @@
 #  2. execute code via -start, -stapc
 #  3. single step code via -step
 #  4. verify -suspend, -resume
+#  5. verify -creset
 #
 
 # ----------------------------------------------------------------------------
@@ -25,9 +26,9 @@ rlc log "    load simple linear code via lsasm"
 $cpu ldasm -lst lst -sym sym {
         . = 1000
 start:  inc   r2
-        inc   r2
-        inc   r2
-        halt
+100$:   inc   r2
+200$:   inc   r2
+300$:   halt
 stop:
 }
 
@@ -54,21 +55,21 @@ rlc log "    execute via -step"
 $cpu cp -wr2  00300 \
         -wpc  $sym(start)
 $cpu cp -step \
-        -rpc -edata [expr {$sym(start)+002}] \
+        -rpc -edata $sym(start:100$) \
         -rr2 -edata 00301 \
-        -rstat -edata 000100
+        -rstat -edata [regbld rw11::CP_STAT {rust step}]
 $cpu cp -step \
-        -rpc -edata [expr {$sym(start)+004}] \
+        -rpc -edata $sym(start:200$) \
         -rr2 -edata 00302 \
-        -rstat -edata 000100
+        -rstat -edata [regbld rw11::CP_STAT {rust step}]
 $cpu cp -step \
-        -rpc -edata [expr {$sym(start)+006}] \
+        -rpc -edata $sym(start:300$) \
         -rr2 -edata 00303 \
-        -rstat -edata 000100
+        -rstat -edata [regbld rw11::CP_STAT {rust step}]
 $cpu cp -step \
-        -rpc -edata [expr {$sym(start)+010}] \
+        -rpc -edata $sym(stop) \
         -rr2 -edata 00303 \
-        -rstat -edata 000020
+        -rstat -edata [regbld rw11::CP_STAT {rust halt}]
 
 rlc log "  A2: suspend/resume basics; cpugo,cpususp flags ------------"
 # define tmpproc for r2 increment checks
@@ -135,24 +136,28 @@ rlc log "    creset, check cpususp=0"
 $cpu cp -creset \
         -rr2 -estat 0
 
-rlc log "  A3: check that creset clears PSW,MMR0, MMR3 ---------------"
+rlc log "  A3: check that creset clears PSW,STKLIM,MMR0,MMR3 ---------"
 
-set mmr0  [$cpu imap mmr0]
-set mmr3  [$cpu imap mmr3]
+set stklim  [$cpu imap stklim]
+set mmr0    [$cpu imap mmr0]
+set mmr3    [$cpu imap mmr3]
 set psw_val  [regbld rw11::PSW rset {pri 7}]
 set mmr0_val [regbld rw11::MMR0 anr ale ard trp ent ena]
 set mmr3_val [regbld rw11::MMR3 ena_ubm ena_22bit d_km d_sm d_um]
 
-rlc log "    write ps,mmr0,mmr3 and read back"
+rlc log "    write ps,stklim,mmr0,mmr3 and read back"
 $cpu cp -wps  $psw_val \
-        -wibr $mmr0 $mmr0_val \
-        -wibr $mmr3 $mmr3_val \
+        -wibr $stklim 0400 \
+        -wibr $mmr0   $mmr0_val \
+        -wibr $mmr3   $mmr3_val \
         -rps  -edata $psw_val \
-        -ribr $mmr0 -edata $mmr0_val \
-        -ribr $mmr3 -edata $mmr3_val
+        -ribr $stklim -edata 0400 \
+        -ribr $mmr0   -edata $mmr0_val \
+        -ribr $mmr3   -edata $mmr3_val
 
-rlc log "    creset and check that ps,mmr0,mmr3 cleared"
+rlc log "    creset and check that ps,stklim,mmr0,mmr3 cleared"
 $cpu cp -creset \
         -rps  -edata 0 \
-        -ribr $mmr0 -edata 0 \
-        -ribr $mmr3 -edata 0
+        -ribr $stklim -edata 0 \
+        -ribr $mmr0   -edata 0 \
+        -ribr $mmr3   -edata 0

@@ -1,10 +1,10 @@
-// $Id: RtclRw11Cpu.cpp 1346 2023-01-06 12:56:08Z mueller $
+// $Id: RtclRw11Cpu.cpp 1347 2023-01-07 12:48:58Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2013-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2023-01-05  1346   1.2.37 use kCPUUBMAP
+// 2023-01-06  1347   1.2.37 use kCPUUBMAP, fix rust code name
 // 2022-09-03  1292   1.2.36 M_show: fix mmr1 display, better mmr0 display
 // 2022-08-11  1276   1.2.35 ssr->mmr rename
 // 2022-07-07  1249   1.2.34 BUGFIX: quit before mem write if asm-11 error seen
@@ -1299,7 +1299,7 @@ int RtclRw11Cpu::M_show(RtclArgs& args)
   const char* mode[4]  = {"k","s","?","u"};
   const char* rust[16] = {"init",     "HALTed",   "reset",   "stopped",
                           "stepped",  "suspend",  "hbpt",    "..run..",
-                          "F:vecfet", "F:redstk", "1010",    "1011",
+                          "F:vecfet", "F:recser", "1010",    "1011",
                           "F:seq",    "F:vmbox" , "1101",    "1111"};
 
   while (args.NextOpt(opt, optset)) {

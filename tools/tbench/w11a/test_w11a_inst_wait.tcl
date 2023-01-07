@@ -1,10 +1,10 @@
-# $Id: test_w11a_inst_wait.tcl 1346 2023-01-06 12:56:08Z mueller $
+# $Id: test_w11a_inst_wait.tcl 1347 2023-01-07 12:48:58Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
-# 2023-01-06  1346   1.0    Initial version
+# 2023-01-06  1347   1.0    Initial version
 #
 # Test WAIT instruction. Can't be done in tcode because the test requires
 # console interaction for monitoring the CPU state.
@@ -39,24 +39,27 @@ rlc log "  A1: test that wait does wait-------------------------------"
 rw11::asmrun  $cpu sym  r0 0
 
 # check that wait does wait
-rw11::asmtreg $cpu  r0 1 \
-                    sp $sym(stack) \
-                    pc $sym(start:200$)
-rw11::asmtreg $cpu  r0 1 \
-                    sp $sym(stack) \
-                    pc $sym(start:200$)
-rw11::asmtreg $cpu  r0 1 \
-                    sp $sym(stack) \
-                    pc $sym(start:200$)
+$cpu cp -rr0   -edata 1 \
+        -rsp   -edata $sym(stack) \
+        -rpc   -edata $sym(start:200$) \
+        -rstat -edata [regbld rw11::CP_STAT {rust runs} go]
+$cpu cp -rr0   -edata 1 \
+        -rsp   -edata $sym(stack) \
+        -rpc   -edata $sym(start:200$) \
+        -rstat -edata [regbld rw11::CP_STAT {rust runs} go]
+$cpu cp -rr0   -edata 1 \
+        -rsp   -edata $sym(stack) \
+        -rpc   -edata $sym(start:200$) \
+        -rstat -edata [regbld rw11::CP_STAT {rust runs} go]
 
 # trigger PIRQ interrupt with console write to cp.pir
 $cpu cp -wibr [$cpu imap pirq] [regbld rw11::PIRQ {pir 2}]
 
 # check that interrupt was handled and cpu halted
 rw11::asmwait $cpu sym;         # checks pc
-rw11::asmtreg $cpu  r0 2 \
-                    sp $sym(stack)
-
+$cpu cp -rr0   -edata 2 \
+        -rsp   -edata $sym(stack) \
+        -rstat -edata [regbld rw11::CP_STAT {rust halt}]
 
 rlc log "  A2: test that doesn't block when single stepped -----------"
 
@@ -64,17 +67,17 @@ $cpu cp -wr0  0 \
         -wpc  $sym(start)
 # step over 1st inc
 $cpu cp -step \
-        -rr0 -edata 1 \
-        -rpc -edata $sym(start:100$) \
-        -rstat -edata 000100
+        -rr0   -edata 1 \
+        -rpc   -edata $sym(start:100$) \
+        -rstat -edata [regbld rw11::CP_STAT {rust step}]
 # step over wait
 $cpu cp -step \
-        -rr0 -edata 1 \
-        -rpc -edata $sym(start:200$) \
-        -rstat -edata 000100
+        -rr0   -edata 1 \
+        -rpc   -edata $sym(start:200$) \
+        -rstat -edata [regbld rw11::CP_STAT {rust step}]
 # step over 2nd inc
 $cpu cp -step \
-        -rr0 -edata 2 \
-        -rpc -edata $sym(start:300$) \
-        -rstat -edata 000100
+        -rr0   -edata 2 \
+        -rpc   -edata $sym(start:300$) \
+        -rstat -edata [regbld rw11::CP_STAT {rust step}]
 $cpu cp -stop

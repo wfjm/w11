@@ -1,6 +1,6 @@
--- $Id: tbd_pdp11core.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: tbd_pdp11core.vhd 1348 2023-01-08 13:33:01Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2007-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    tbd_pdp11core - syn
@@ -17,7 +17,7 @@
 -- To test:        pdp11_core
 --
 -- Target Devices: generic
--- Tool versions:  xst 8.2-14.7; viv 2016.2-2018.2; ghdl 0.18-0.34
+-- Tool versions:  xst 8.2-14.7; viv 2016.2-2022.1; ghdl 0.18-2.0.0
 --
 -- Synthesized (xst):
 -- Date         Rev  ise         Target      flop lutl lutm slic t peri
@@ -32,6 +32,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2023-01-08  1348   1.6.5  pass DM_STAT_SE to pdp11_tmu_sb
 -- 2018-10-07  1054   1.6.4  drop ITIMER from core
 -- 2018-10-05  1053   1.6.3  use DM_STAT_CA instead of DM_STAT_SY
 -- 2015-11-01   712   1.6.2  use sbcntl_sbf_tmu
@@ -118,6 +119,7 @@ architecture syn of tbd_pdp11core is
   signal IB_SRES_M : ib_sres_type := ib_sres_init;
 
   signal DM_STAT_DP : dm_stat_dp_type := dm_stat_dp_init;
+  signal DM_STAT_SE : dm_stat_se_type := dm_stat_se_init;
   signal DM_STAT_VM : dm_stat_vm_type := dm_stat_vm_init;
   signal DM_STAT_CO : dm_stat_co_type := dm_stat_co_init;
   signal DM_STAT_CA : dm_stat_ca_type := dm_stat_ca_init;
@@ -177,7 +179,7 @@ begin
       BRESET  => BRESET,
       IB_MREQ_M  => IB_MREQ_M,
       IB_SRES_M  => IB_SRES_M,
-      DM_STAT_SE => open,
+      DM_STAT_SE => DM_STAT_SE,
       DM_STAT_DP => DM_STAT_DP,
       DM_STAT_VM => DM_STAT_VM,
       DM_STAT_CO => DM_STAT_CO
@@ -218,6 +220,7 @@ begin
      port map (
       CLK        => CLK,
       DM_STAT_DP => DM_STAT_DP,
+      DM_STAT_SE => DM_STAT_SE,
       DM_STAT_VM => DM_STAT_VM,
       DM_STAT_CO => DM_STAT_CO,
       DM_STAT_CA => DM_STAT_CA

@@ -35,7 +35,10 @@ The full set of tests is only run for tagged releases.
 - tools changes
   - tools/asm-11/lib/push_pop.mac: add push2
   - tools/bin
-    - tmuconv: add -t_ru06 and -t_flow
+    - tmuconv
+      - add -t_ru06, -t_emm, -t_flow, -t_fle, -t_fli, -t_flei
+      - em transactions show transaction type
+      - vfetch/vpush heuristics replaced to vstart based detection
   - tools/tcode
     - cpu_basics.mac: expanded
     - cpu_details.mac: significantly expanded
@@ -54,6 +57,7 @@ The full set of tests is only run for tagged releases.
       RESET wait, see [ECO-035](ECO-035-stklim-tbit-fixes.md)
     - implement MMR0,MMR2 instruction complete,
       see [ECO-037](ECO-037-mmu-instruction_complete.md)
+  - pdp11_tmu.vhd: add vm.vmcntl.[cm]acc, se.[iv]start fields
   - pdp11_vmbox.vhd: rename some rsv->ser; remove obsolete trap_done
   - rtl/sys_gen/w11a/s3board/sys_conf.vhd: disable monitors for timing closure
   - rtl/sys_gen/w11a/\*/\*.vmfset: drop removed signals

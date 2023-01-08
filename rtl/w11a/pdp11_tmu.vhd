@@ -1,6 +1,6 @@
--- $Id: pdp11_tmu.vhd 1310 2022-10-27 16:15:50Z mueller $
+-- $Id: pdp11_tmu.vhd 1348 2023-01-08 13:33:01Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2008-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2008-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    pdp11_tmu - sim
@@ -14,6 +14,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2023-01-08  1348   1.3.3  add vm.vmcntl.[cm]acc, se.[iv]start fields
 -- 2022-10-25  1309   1.3.2  rename _gpr -> _gr
 -- 2018-10-05  1053   1.3.1  use DM_STAT_CA instead of DM_STAT_SY
 -- 2016-12-28   833   1.3    open tmu_ofile only when used
@@ -48,6 +49,7 @@ entity pdp11_tmu is                     -- trace and monitor unit
     CLK : in slbit;                     -- clock
     ENA : in slbit := '0';              -- enable trace output
     DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - dpath
+    DM_STAT_SE : in dm_stat_se_type;    -- debug and monitor status - sequencer
     DM_STAT_VM : in dm_stat_vm_type;    -- debug and monitor status - vmbox
     DM_STAT_CO : in dm_stat_co_type;    -- debug and monitor status - core
     DM_STAT_CA : in dm_stat_ca_type     -- debug and monitor status - cache
@@ -87,6 +89,7 @@ begin
         write(oline, string'("#"));
         write(oline, string'(" clkcycle:d"));
         write(oline, string'(" cpu:o"));
+
         write(oline, string'(" dp.pc:o"));
         write(oline, string'(" dp.psw:o"));
         write(oline, string'(" dp.ireg:o"));
@@ -101,6 +104,11 @@ begin
         write(oline, string'(" dp.gr_bytop:b"));
         write(oline, string'(" dp.gr_we:b"));
 
+        write(oline, string'(" se.istart:b"));
+        write(oline, string'(" se.vstart:b"));
+
+        write(oline, string'(" vm.vmcntl.cacc:b"));
+        write(oline, string'(" vm.vmcntl.macc:b"));
         write(oline, string'(" vm.ibmreq.aval:b"));
         write(oline, string'(" vm.ibmreq.re:b"));
         write(oline, string'(" vm.ibmreq.we:b"));
@@ -183,6 +191,7 @@ begin
         -- sequence of writes must equal the sequence of field desciptors above
         write(oline, clkcycle, right, 9);
         write(oline, string'(" 0"));
+
         writeoct(oline, DM_STAT_DP.pc,   right, 7);
         writeoct(oline, ipsw, right, 7);
         writeoct(oline, DM_STAT_DP.ireg, right, 7);
@@ -194,9 +203,14 @@ begin
         writeoct(oline, DM_STAT_DP.dres, right, 7);
         writeoct(oline, DM_STAT_DP.gr_adst, right, 2);
         writeoct(oline, DM_STAT_DP.gr_mode, right, 2);
-        write(oline, DM_STAT_DP.gr_bytop, right, 2);
-        write(oline, DM_STAT_DP.gr_we, right, 2);
+        write(oline,    DM_STAT_DP.gr_bytop, right, 2);
+        write(oline,    DM_STAT_DP.gr_we, right, 2);
 
+        write(oline,    DM_STAT_SE.istart, right, 2);
+        write(oline,    DM_STAT_SE.vstart, right, 2);
+
+        write(oline,    DM_STAT_VM.vmcntl.cacc, right, 2);
+        write(oline,    DM_STAT_VM.vmcntl.macc, right, 2);
         write(oline,    DM_STAT_VM.ibmreq.aval, right, 2);
         write(oline,    DM_STAT_VM.ibmreq.re, right, 2);
         write(oline,    DM_STAT_VM.ibmreq.we, right, 2);

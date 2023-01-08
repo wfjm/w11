@@ -1,10 +1,10 @@
-# $Id: test_w11a_cdma.tcl 1347 2023-01-07 12:48:58Z mueller $
+# $Id: test_w11a_cdma.tcl 1348 2023-01-08 13:33:01Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
-# 2023-01-07  1347   1.0    Initial version
+# 2023-01-07  1348   1.0    Initial version
 #
 # Test bwm/brm while CPU active
 #
@@ -61,18 +61,29 @@ $cpu cp -wal $sym(data) \
 rlc log "  A2: bwm/brm while CPU in WAIT -----------------------------"
 
 $cpu ldasm -lst lst -sym sym {
+        .include        |lib/defs_cpu.mac|
+;
+; setup pirq vector
+        . = 000240
+        .word   vh.pir
+        .word   cp.pr7
+;
         . = 1000
+;
 stack:
 start:  wait                    ; wait for interrupt
 100$:   halt
 stop:
 ;
+; PIRQ handler
+vh.pir: clr     cp.pir          ; cancel PIRQ requests
+        rti
+;
 buf:    .blkw 128.              ; buffer for dma
 }
 
 # start code
-$cpu cp -creset \
-        -stapc $sym(start)
+rw11::asmrun  $cpu sym
 # check that wait does wait
 rw11::asmtreg $cpu  pc $sym(start:100$)
 # write to buffer
@@ -83,7 +94,6 @@ rw11::asmtreg $cpu  pc $sym(start:100$)
 $cpu cp -wal $sym(buf) \
         -brm [llength $buf] -edata $buf
 rw11::asmtreg $cpu  pc $sym(start:100$)
-# stop code and harvest attention
-$cpu cp -stop \
-        -attn
-
+# end code via PIRQ interrupt with console write to cp.pir
+$cpu cp -wibr [$cpu imap pirq] [regbld rw11::PIRQ {pir 2}]
+rw11::asmwait $cpu sym;         # checks pc

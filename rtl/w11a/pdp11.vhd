@@ -1,6 +1,6 @@
--- $Id: pdp11.vhd 1339 2022-12-27 12:11:34Z mueller $
+-- $Id: pdp11.vhd 1348 2023-01-08 13:33:01Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Package Name:   pdp11
@@ -11,6 +11,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2023-01-08  1348   1.5.23 _tmu,_tmu_sb: add port DM_STAT_SE
 -- 2022-12-27  1339   1.5.22 _sequencer: rm PC port; _dpath: rm PCOUT port
 -- 2022-12-12  1330   1.5.21 dm_stat_se_type: rename vfetch -> vstart;
 --                           mmu_moni_type: drop pc,idone, add vstart,vflow
@@ -1169,6 +1170,7 @@ component pdp11_tmu is                  -- trace and monitor unit
     CLK : in slbit;                     -- clock
     ENA : in slbit := '0';              -- enable trace output
     DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - dpath
+    DM_STAT_SE : in dm_stat_se_type;    -- debug and monitor status - sequencer
     DM_STAT_VM : in dm_stat_vm_type;    -- debug and monitor status - vmbox
     DM_STAT_CO : in dm_stat_co_type;    -- debug and monitor status - core
     DM_STAT_CA : in dm_stat_ca_type     -- debug and monitor status - cache
@@ -1185,6 +1187,7 @@ component pdp11_tmu_sb is               -- trace and mon. unit; simbus wrapper
    port (
     CLK : in slbit;                     -- clock
     DM_STAT_DP : in dm_stat_dp_type;    -- debug and monitor status - dpath
+    DM_STAT_SE : in dm_stat_se_type;    -- debug and monitor status - sequencer
     DM_STAT_VM : in dm_stat_vm_type;    -- debug and monitor status - vmbox
     DM_STAT_CO : in dm_stat_co_type;    -- debug and monitor status - core
     DM_STAT_CA : in dm_stat_ca_type     -- debug and monitor status - cache

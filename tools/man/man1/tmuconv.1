@@ -1,11 +1,11 @@
 .\" -*- nroff -*-
-.\" $Id: tmuconv.1 1316 2022-11-18 15:26:40Z mueller $
+.\" $Id: tmuconv.1 1348 2023-01-08 13:33:01Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
-.\" Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2013-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\"
 .\" ------------------------------------------------------------------
 .
-.TH TMUCONV 1 2022-11-18 "Retro Project" "Retro Project Manual"
+.TH TMUCONV 1 2023-01-08 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 tmuconv \- convert w11a tmu output into human readable format
@@ -30,7 +30,7 @@ output is \fB\-t_id\fR \fB\-t_vf\fR.
 .SH OPTIONS
 .
 .\" ----------------------------------------------
-.IP "\fB\-dump\fR"
+.IP "\fB\-dump\fR" 8
 dump all information.
 .
 .\" ----------------------------------------------
@@ -51,7 +51,7 @@ trace register updates.
 .
 .\" ----------------------------------------------
 .IP "\fB\-t_ru06\fR"
-trace register updates for r0-r5 and sp (subset of \fB\-t_ru\fR)
+trace register updates for r0-r5 and sp (subset of \fB\-t_ru\fR).
 .
 .\" ----------------------------------------------
 .IP "\fB\-t_em\fR"
@@ -60,13 +60,36 @@ em transactions that converted to an ib transaction are labeled 'cancel'.
 They are not shown when \fB\-t_ib\fR is active and no \fB\-emcancel\fR option
 is given. This gives the most readable output for \fB\-t_all\fR.
 
-Reads from well known vector addresses are labeled 'VFETCH'.
-This is very helpful for the detection of interrupts.
-See also \fB\-t_vf\fR.
-Note: every read from location 200 will therefore be labeled 'VFETCH 200 LP11',
-also when it is an instruction fetch for a 'JMP' instruction in old maindecs
-with start address 200.
+Each transaction is associated with type
+.RS
+.RS 3
+.PD 0
+.IP "  i" 5
+instruction fetch
+.IP "  v"
+vector fetch or push
+.IP "  m"
+read modify write
+.IP "  c"
+control port access (often cdma)
+.PD
+.RE
+
+A blank type field means 'none of the above' and is used for all em
+transactions issued by instructions including index word and immediate
+value reads.
+
+The vector fetch transactions are further annotated for well known vector
+addresses. This is very helpful for the detection of interrupts.
+.RE
 .
+.\" ----------------------------------------------
+.IP "\fB\-t_emm\fR"
+trace only em transaction that are not type i or c and are not canceled
+(subset of  \fB\-t_em\fR).
+Useful in conjunction with \fB\-t_id\fR because the information of the
+instruction fetch read is included in the \fB\-t_id\fR output.
+
 .\" ----------------------------------------------
 .IP "\fB\-t_vf\fR"
 trace only vector fetch em transactions (subset of \fB\-t_em\fR)
@@ -78,7 +101,23 @@ unless the \fB\-emcancel\fR option is given.
 .
 .\" ----------------------------------------------
 .IP "\fB\-t_flow\fR"
-trace flow, equivalent to \fB\-t_id\fR \fB\-t_ru06\fR \fB\-t_vf\fR
+trace instruction flow,
+is equivalent to \fB\-t_id\fR \fB\-t_ru06\fR \fB\-t_vf\fR
+.
+.\" ----------------------------------------------
+.IP "\fB\-t_fle\fR"
+trace instruction flow and show instruction related em transactions,
+is equivalent to \fB\-t_id\fR \fB\-t_ru06\fR \fB\-t_emm\fR
+.
+.\" ----------------------------------------------
+.IP "\fB\-t_fli\fR"
+trace instruction flow and show ibus transactions,
+equivalent to \fB\-t_id\fR \fB\-t_ru06\fR \fB\-t_vf\fR \fB\-t_ib\fR
+.
+.\" ----------------------------------------------
+.IP "\fB\-t_flei\fR"
+combination of "\fB\-t_fle\fR" and "\fB\-t_fli\fR",
+is equivalent to \fB\-t_id\fR \fB\-t_ru06\fR \fB\-t_emm\fR \fB\-t_ib\fR
 .
 .\" ----------------------------------------------
 .IP "\fB\-t_all\fR"
@@ -149,6 +188,8 @@ the symbolic name of the register
 .RS 2
 .PD 0
 .IP "-" 2
+the access type flag (values see \fB\-t_em\fP descriprion)
+.IP "-"
 the r/w flag
 .IP "-"
 the byte enables
@@ -171,12 +212,15 @@ in case of vector fetches and associated stack pushes some descriptive text
 .EX
   cycle         be     addr   wdat   rdat  crwh  nc
   11374 em    w 11 00000004 000006         0010 (1) 
-  52574 em    r 11 00002164        177624  0101 (1) 
+  52574 em    r 11 00002164        177624  0101 (1)
 
-  52530 em    r 11 00000020        002142  0101 (1) 
-  52532 em    r 11 00000022        000340  0101 (1) VFETCH 020 IOT
-  52536 em    w 11 00001776 000017         0010 (1) 
-  52538 em    w 11 00001774 004316         0010 (1) SPUSH
+  86703 em   mr 11 00003320        000000  0101 (1)
+  86705 em   mw 11 00003320 000001         0010 (1)
+
+  87102 em   vr 11 00000020        002222  0101 (1) VFETCH PC 020 IOT
+  87104 em   vr 11 00000022        000340  0101 (1) VFETCH PS
+  87108 em   vw 11 00001776 000004         0010 (1) VPUSH PS
+  87114 em   vw 11 00001774 003324         0010 (5) VPUSH PC
 .EE
 
 \fB\-t_ib\fP: the ibus transaction trace gives

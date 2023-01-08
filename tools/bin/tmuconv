@@ -1,10 +1,13 @@
 #!/usr/bin/perl -w
-# $Id: tmuconv 1346 2023-01-06 12:56:08Z mueller $
+# $Id: tmuconv 1348 2023-01-08 13:33:01Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2008-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2023-01-08  1348   1.1.14 use vm.vmcntl.[cm]acc, se.[iv]start fields; add type
+#                           column to em line; remove VFETCH/VPUSH heuristics;
+#                           add -t_emm, -t_fle, -t_fli, -i_flei
 # 2023-01-05  1346   1.1.13 add memory system register names
 # 2022-12-29  1340   1.1.12 fix ru header
 # 2022-12-01  1324   1.1.11 change VFETCH text for MMU(250) and FPP(244)
@@ -49,6 +52,10 @@
 #   dp.gr_mode:o
 #   dp.gr_bytop:b
 #   dp.gr_we:b
+#   se.istart:b
+#   se.vstart:b
+#   vm.vmcntl.cacc:b
+#   vm.vmcntl.macc:b
 #   vm.ibmreq.aval:b
 #   vm.ibmreq.re:b
 #   vm.ibmreq.we:b
@@ -94,7 +101,9 @@ use Getopt::Long;
 my %opts = ();
 
 GetOptions(\%opts, "help", "dump", "cdump", "emcancel",
-	   "t_id", "t_ru", "t_ru06", "t_em","t_vf", "t_ib", "t_flow", "t_all")
+	   "t_id", "t_ru", "t_ru06", "t_em", "t_emm", "t_vf", "t_ib",
+           "t_flow", "t_fle", "t_fli", "t_flei",
+           "t_all")
   or bailout("bad command options");
 
 my @var_name;
@@ -122,6 +131,11 @@ my $ind_dp_gr_mode;
 my $ind_dp_gr_bytop;
 my $ind_dp_gr_we;
 
+my $ind_se_istart;
+my $ind_se_vstart;
+
+my $ind_vm_vmcntl_cacc;
+my $ind_vm_vmcntl_macc;
 my $ind_vm_ibmreq_aval;
 my $ind_vm_ibmreq_re;
 my $ind_vm_ibmreq_we;
@@ -468,12 +482,29 @@ if ($opts{help}) {
 my $nopts = 0;                              # count options
 $nopts += 1 if $opts{dump};
 $nopts += 1 if $opts{cdump};
-if ($opts{t_flow}) {                        # t_flow implies t_id,t_ru06,t_vf
+if ($opts{t_flow}) {                        # t_flow -> t_id,t_ru06,t_vf
   $opts{t_id} = 1;
   $opts{t_ru06} = 1;
   $opts{t_vf} = 1;
 }
-if ($opts{t_all}) {                         # t_all implies all t_*
+if ($opts{t_fle}) {                         # t_fle  -> t_id,t_ru06,t_emm
+  $opts{t_id} = 1;
+  $opts{t_ru06} = 1;
+  $opts{t_emm} = 1;
+}
+if ($opts{t_fli}) {                         # t_fli  -> t_id,t_ru06,t_vf,t_ib
+  $opts{t_id} = 1;
+  $opts{t_ru06} = 1;
+  $opts{t_vf} = 1;
+  $opts{t_ib} = 1;
+}
+if ($opts{t_flei}) {                        # t_flei -> t_id,t_ru06,t_emm,t_ib
+  $opts{t_id} = 1;
+  $opts{t_ru06} = 1;
+  $opts{t_emm} = 1;
+  $opts{t_ib} = 1;
+}
+if ($opts{t_all}) {                         # t_all   -> all t_*
   $opts{t_id} = 1;
   $opts{t_ru} = 1;
   $opts{t_em} = 1;
@@ -483,6 +514,7 @@ $nopts += 1 if $opts{t_id};
 $nopts += 1 if $opts{t_ru};
 $nopts += 1 if $opts{t_ru06};
 $nopts += 1 if $opts{t_em};
+$nopts += 1 if $opts{t_emm};
 $nopts += 1 if $opts{t_vf};
 $nopts += 1 if $opts{t_ib};
 
@@ -496,15 +528,14 @@ print "#  cycle id               pc    psw   ireg  code                   nc\n"
   if $opts{t_id};
 print "#  cycle ru    b sr     data grstat\n"
   if $opts{t_ru} or $opts{t_ru06};
-print "#  cycle em    d be     addr   wdat   rdat  crwh nc\n"
-  if $opts{t_em} or $opts{t_vf};
+print "#  cycle em   td be     addr   wdat   rdat  crwh nc\n"
+  if $opts{t_em} or $opts{t_emm} or $opts{t_vf};
 print "#  cycle ib cr rmbe     addr   wdat   rdat     a  nc name\n"
   if $opts{t_ib};
 
 foreach my $file (@ARGV) {
   do_file($file);
 }
-
 
 #-------------------------------------------------------------------------------
 
@@ -517,15 +548,15 @@ sub do_file {
   my $change_cyc = 0;
   my $emreq_cyc = 0;
   my $emreq_str = "";
+  my $emreq_typ = ' ';
   my $ibreq_cyc = 0;
   my $ibreq_typ = "";
   my $ibreq_str = "";
   my $ibreq_nam = "";
+  my $in_vflow  = 0;                        # vector flow flag
 
   my $emcurr_we   = 0;			    # curr em write enable (or undef)
   my $emcurr_addr = undef;		    # curr em address
-  my $emlast_we   = 0;			    # prev em write enable (or undef)
-  my $emlast_addr = undef;		    # prev em address
 
   while (<IFILE>) {
     chomp;
@@ -559,6 +590,11 @@ sub do_file {
       $ind_dp_gr_bytop      = $name{'dp.gr_bytop'}->{ind};
       $ind_dp_gr_we         = $name{'dp.gr_we'}->{ind};
 
+      $ind_se_istart        = $name{'se.istart'}->{ind};
+      $ind_se_vstart        = $name{'se.vstart'}->{ind};
+
+      $ind_vm_vmcntl_cacc   = $name{'vm.vmcntl.cacc'}->{ind};
+      $ind_vm_vmcntl_macc   = $name{'vm.vmcntl.macc'}->{ind};
       $ind_vm_ibmreq_aval   = $name{'vm.ibmreq.aval'}->{ind};
       $ind_vm_ibmreq_re     = $name{'vm.ibmreq.re'}->{ind};
       $ind_vm_ibmreq_we     = $name{'vm.ibmreq.we'}->{ind};
@@ -627,6 +663,9 @@ sub do_file {
       my $ibres_str = "";
       my $ibreq_we  = 0;
       my $ibreq_act = 0;
+
+      $in_vflow = 1 if ($val_curr[$ind_se_vstart]);         # vflow start
+      $in_vflow = 0 if ($val_curr[$ind_se_istart]);         # vflow end
 
       if ($opts{dump} || $opts{cdump}) {
 	my @val_change;
@@ -725,10 +764,15 @@ sub do_file {
 #                    vm_emsres_ack_w = '1'
 #                    vm_emsreq_cancel = '1'
 #
-      if ($opts{t_em} or $opts{t_vf}) {
+      if ($opts{t_em} or $opts{t_emm} or $opts{t_vf}) {
 	if ($val_curr[$ind_vm_emmreq_req]) {
 	  $emreq_cyc = $cyc_curr;
-	  $emreq_str = sprintf "%s %s %8.8o",
+          $emreq_typ = $in_vflow ? 'v' : ' ';
+          $emreq_typ = 'i' if $val_curr[$ind_se_istart];
+          $emreq_typ = 'c' if $val_curr[$ind_vm_vmcntl_cacc];
+          $emreq_typ = 'm' if $val_curr[$ind_vm_vmcntl_macc];
+	  $emreq_str = sprintf "%s%s %s %8.8o",
+	                 $emreq_typ,
 	                 ($val_curr[$ind_vm_emmreq_we] ? "w" : "r"),
 	                 $val_curr[$ind_vm_emmreq_be],
 	                 $val_curr[$ind_vm_emmreq_addr];
@@ -758,44 +802,51 @@ sub do_file {
 	    } else {
 	      $emreq_str .= " " x 7;
 	    }
-	    if (defined $emlast_we && $emcurr_we == $emlast_we) {
-	      if ($emcurr_we && $emcurr_addr == $emlast_addr-2) {
-		$emtyp_str = "SPUSH";
-	      } elsif ((not $emcurr_we) && $emcurr_addr == $emlast_addr+2 &&
-		      $emcurr_addr < 0400 && ($emcurr_addr % 04) == 02) {
+            if ($in_vflow) {
+              if (not $emcurr_we) {         # vflow reads
 		$emtyp_str = "VFETCH";
-		$emtyp_str .= " 004 ill.inst"   if ($emlast_addr == 0004);
-		$emtyp_str .= " 010 res.inst"   if ($emlast_addr == 0010);
-		$emtyp_str .= " 014 BPT"        if ($emlast_addr == 0014);
-		$emtyp_str .= " 020 IOT"        if ($emlast_addr == 0020);
-		$emtyp_str .= " 030 EMT"        if ($emlast_addr == 0030);
-		$emtyp_str .= " 034 TRAP"       if ($emlast_addr == 0034);
-		$emtyp_str .= " 060 DL11-TTI"   if ($emlast_addr == 0060);
-		$emtyp_str .= " 064 DL11-TTO"   if ($emlast_addr == 0064);
-		$emtyp_str .= " 070 PC11-PTR"   if ($emlast_addr == 0070);
-		$emtyp_str .= " 074 PC11-PTP"   if ($emlast_addr == 0074);
-		$emtyp_str .= " 100 KW11-L"     if ($emlast_addr == 0100);
-		$emtyp_str .= " 104 KW11-P"     if ($emlast_addr == 0104);
-		$emtyp_str .= " 120 DEUNA"      if ($emlast_addr == 0120);
-		$emtyp_str .= " 160 RL11"       if ($emlast_addr == 0160);
-		$emtyp_str .= " 200 LP11"       if ($emlast_addr == 0200);
-		$emtyp_str .= " 220 RK11"       if ($emlast_addr == 0220);
-		$emtyp_str .= " 224 TM11"       if ($emlast_addr == 0224);
-		$emtyp_str .= " 240 PIRQ"       if ($emlast_addr == 0240);
-		$emtyp_str .= " 244 FPE"        if ($emlast_addr == 0244);
-		$emtyp_str .= " 250 MMU"        if ($emlast_addr == 0250);
-		$emtyp_str .= " 254 RHRP"       if ($emlast_addr == 0254);
-		$emtyp_str .= " 260 IIST"       if ($emlast_addr == 0260);
-		$emtyp_str .= " 300 DL11-2-TTI" if ($emlast_addr == 0300);
-		$emtyp_str .= " 304 DL11-2-TTO" if ($emlast_addr == 0304);
-	      }
-	    }
-	  }
-          if ($opts{t_vf} and not $opts{t_em}) { # only -t_vf
+                $emtyp_str .= $in_vflow==1 ? ' PC' : ' PS';
+                if  ($in_vflow == 1) {
+                  $emtyp_str .= " 004 ill.inst"   if ($emcurr_addr == 0004);
+                  $emtyp_str .= " 010 res.inst"   if ($emcurr_addr == 0010);
+                  $emtyp_str .= " 014 BPT"        if ($emcurr_addr == 0014);
+                  $emtyp_str .= " 020 IOT"        if ($emcurr_addr == 0020);
+                  $emtyp_str .= " 030 EMT"        if ($emcurr_addr == 0030);
+                  $emtyp_str .= " 034 TRAP"       if ($emcurr_addr == 0034);
+                  $emtyp_str .= " 060 DL11-TTI"   if ($emcurr_addr == 0060);
+                  $emtyp_str .= " 064 DL11-TTO"   if ($emcurr_addr == 0064);
+                  $emtyp_str .= " 070 PC11-PTR"   if ($emcurr_addr == 0070);
+                  $emtyp_str .= " 074 PC11-PTP"   if ($emcurr_addr == 0074);
+                  $emtyp_str .= " 100 KW11-L"     if ($emcurr_addr == 0100);
+                  $emtyp_str .= " 104 KW11-P"     if ($emcurr_addr == 0104);
+                  $emtyp_str .= " 120 DEUNA"      if ($emcurr_addr == 0120);
+                  $emtyp_str .= " 160 RL11"       if ($emcurr_addr == 0160);
+                  $emtyp_str .= " 200 LP11"       if ($emcurr_addr == 0200);
+                  $emtyp_str .= " 220 RK11"       if ($emcurr_addr == 0220);
+                  $emtyp_str .= " 224 TM11"       if ($emcurr_addr == 0224);
+                  $emtyp_str .= " 240 PIRQ"       if ($emcurr_addr == 0240);
+                  $emtyp_str .= " 244 FPE"        if ($emcurr_addr == 0244);
+                  $emtyp_str .= " 250 MMU"        if ($emcurr_addr == 0250);
+                  $emtyp_str .= " 254 RHRP"       if ($emcurr_addr == 0254);
+                  $emtyp_str .= " 260 IIST"       if ($emcurr_addr == 0260);
+                  $emtyp_str .= " 300 DL11-2-TTI" if ($emcurr_addr == 0300);
+                  $emtyp_str .= " 304 DL11-2-TTO" if ($emcurr_addr == 0304);
+                }
+              } else {                      # vflow writes
+                $emtyp_str  = "VPUSH";
+                $emtyp_str .= $in_vflow==3 ? ' PS' : ' PC';
+              }
+              $in_vflow += 1;
+            } # if $in_vflow
+	  } # if not vm_emmreq_cancel
+          if ($opts{t_vf} and not ($opts{t_em} or $opts{t_emm})) { # only -t_vf
             $emres_str = "" unless $emtyp_str =~ m/^VFETCH/;
           }
-	  $emlast_we   = $emcurr_we;
-	  $emlast_addr = $emcurr_addr;
+          if ($opts{t_emm} and not $opts{t_em}) {
+            $emres_str = "" if $val_curr[$ind_vm_emmreq_cancel];
+            $emres_str = "" if $emreq_typ eq 'i'; # suppress instruction fetch
+            $emres_str = "" if $emreq_typ eq 'c'; # suppress control port access
+          }
 	}
       }  # if t_em or t_vf
 #
@@ -846,7 +897,7 @@ sub do_file {
 
       print "$cyc_str id    $id_str\n"     if $id_str;
       if ($emres_str) {
-	printf "$cyc_str em    $emreq_str  $emres_str (%d) $emtyp_str\n",
+	printf "$cyc_str em   $emreq_str  $emres_str (%d) $emtyp_str\n",
 	  $cyc_curr-$emreq_cyc;
       }
       if ($ibres_str) {
@@ -1022,8 +1073,12 @@ sub print_help {
   print "  --t_ru           trace register updates\n";
   print "  --t_ru06         trace register updates for r0-r5 and sp\n";
   print "  --t_em           trace em transactions\n";
+  print "  --t_emm          trace em transactions except type i and c\n";
   print "  --t_vf           trace only vector fetch em transactions\n";
   print "  --t_ib           trace ib transactions\n";
-  print "  --t_flow         trace id,ru06, and vf transactions\n";
-  print "  --t_all          trace id,ru,em, and ib transactions\n";
+  print "  --t_flow         trace id, ru06 and vf transactions\n";
+  print "  --t_fle          trace id, ru06 and emm transactions\n";
+  print "  --t_fli          trace id, ru06, vf and ib transactions\n";
+  print "  --t_flei         trace id, ru06, emm and ib transactions\n";
+  print "  --t_all          trace id, ru, em and ib transactions\n";
 }

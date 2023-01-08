@@ -1,6 +1,6 @@
--- $Id: pdp11_sys70.vhd 1330 2022-12-16 17:52:40Z mueller $
+-- $Id: pdp11_sys70.vhd 1348 2023-01-08 13:33:01Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    pdp11_sys70 - syn
@@ -27,6 +27,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2023-01-08  1348   1.3.5  pass DM_STAT_SE to pdp11_tmu_sb
 -- 2022-12-12  1330   1.3.4  dm_stat_se_type: rename vfetch -> vstart
 -- 2019-06-02  1159   1.3.3  use rbaddr_ constants
 -- 2019-03-02  1116   1.3.2  add RESET_SYS; fix pdp11_mem70 reset
@@ -443,6 +444,7 @@ begin
     port map (
       CLK        => CLK,
       DM_STAT_DP => DM_STAT_DP,
+      DM_STAT_SE => DM_STAT_SE,
       DM_STAT_VM => DM_STAT_VM,
       DM_STAT_CO => DM_STAT_CO,
       DM_STAT_CA => DM_STAT_CA

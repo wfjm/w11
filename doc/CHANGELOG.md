@@ -82,6 +82,8 @@ The full set of tests is only run for tagged releases.
         [ECO-036](ECO-036-vpush_abort_ps.md)
       - BUGFIX: cc state unchanged after abort, see
         [ECO-039](ECO-039-cc_and_aborts.md)
+      - BUGFIX: handle CPUERR.rsv correctly, see
+        [ECO-040](ECO-040-cpuerr_rsv.md)
     - pdp11_vmbox:
       - BUGFIX: correct red/yellow zone boundary, see
         [ECO-035](ECO-035-stklim-tbit-fixes.md)

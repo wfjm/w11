@@ -1,4 +1,4 @@
--- $Id: pdp11.vhd 1348 2023-01-08 13:33:01Z mueller $
+-- $Id: pdp11.vhd 1349 2023-01-11 14:52:42Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -11,6 +11,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2023-01-11  1349   1.5.24 vm_stat_type: add err_ser
 -- 2023-01-08  1348   1.5.23 _tmu,_tmu_sb: add port DM_STAT_SE
 -- 2022-12-27  1339   1.5.22 _sequencer: rm PC port; _dpath: rm PCOUT port
 -- 2022-12-12  1330   1.5.21 dm_stat_se_type: rename vfetch -> vstart;
@@ -452,6 +453,7 @@ package pdp11 is
     err_nxm : slbit;                    -- abort: non-existing memory
     err_iobto : slbit;                  -- abort: non-existing I/O resource
     err_rsv : slbit;                    -- abort: red stack violation
+    err_ser : slbit;                    -- abort: fatal stack error
     trap_ysv : slbit;                   -- trap: yellow stack violation
     trap_mmu : slbit;                   -- trap: mmu trap
   end record vm_stat_type;

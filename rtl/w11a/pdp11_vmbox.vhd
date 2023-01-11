@@ -1,6 +1,6 @@
--- $Id: pdp11_vmbox.vhd 1331 2022-12-18 11:55:47Z mueller $
+-- $Id: pdp11_vmbox.vhd 1349 2023-01-11 14:52:42Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2006-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2006-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    pdp11_vmbox - syn
@@ -18,6 +18,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2022-01-11  1349   1.6.11 use err_ser to indicate fatal stack error
 -- 2022-12-17  1331   1.6.10 BUGFIX: request mmu trap also on ib accesses
 -- 2022-11-21  1320   1.6.9  rename some rsv->ser; remove obsolete trap_done;
 -- 2022-11-18  1317   1.6.8  BUGFIX: correct red/yellow zone boundary
@@ -429,14 +430,14 @@ begin
         if r.bytop='0' and r.paddr(0)='1' then -- odd address ?
           ivm_stat.err := '1';
           ivm_stat.err_odd := '1';
-          ivm_stat.err_rsv := r.kstack;      -- escalate to rsv if kstack
+          ivm_stat.err_ser := r.kstack;      -- escalate to ser if kstack
           iem_mreq.cancel  := '1';           -- cancel pending mem request
           n.state := s_idle;            
 
         elsif r.vaok = '0' then          -- MMU abort ?
           ivm_stat.err := '1';
           ivm_stat.err_mmu := '1';
-          ivm_stat.err_rsv := r.kstack;      -- escalate to rsv if kstack
+          ivm_stat.err_ser := r.kstack;      -- escalate to ser if kstack
           iem_mreq.cancel  := '1';           -- cancel pending mem request
           n.state := s_idle;
 
@@ -468,7 +469,7 @@ begin
             if unsigned(r.paddr(21 downto 6)) > sys_conf_mem_losize then
               ivm_stat.err := '1';
               ivm_stat.err_nxm := '1';
-              ivm_stat.err_rsv := r.kstack;   -- escalate to rsv if kstack
+              ivm_stat.err_ser := r.kstack;   -- escalate to ser if kstack
               iem_mreq.cancel  := '1';        -- cancel pending mem request
               n.state := s_idle;
 
@@ -606,12 +607,13 @@ begin
       when s_errrsv =>                  -- s_errrsv: red stack violation -----
         ivm_stat.err := '1';
         ivm_stat.err_rsv := '1';
+        ivm_stat.err_ser := '1';          -- an rsv is always a ser
         n.state := s_idle;
 
       when s_errib =>                   -- s_errib: ibus error handler -------
         ivm_stat.err := '1';
         ivm_stat.err_iobto := '1';
-        ivm_stat.err_rsv := r.kstack;    -- escalate to rsv if kstack
+        ivm_stat.err_ser := r.kstack;    -- escalate to ser if kstack
         n.state := s_idle;
 
       when others => null;

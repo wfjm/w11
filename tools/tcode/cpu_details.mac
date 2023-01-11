@@ -1,10 +1,10 @@
-; $Id: cpu_details.mac 1346 2023-01-06 12:56:08Z mueller $
+; $Id: cpu_details.mac 1349 2023-01-11 14:52:42Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2023-01-06  1346   1.0    Initial version
+; 2023-01-11  1349   1.0    Initial version
 ; 2022-07-18  1259   0.1    First draft
 ;
 ; Test CPU details
@@ -357,7 +357,7 @@ ta0207: cmpb    systyp,#sy.e11  ; e11 V7.3 pushes to odd stack, abort after halt
         clr     -(sp)           ; odd-address abort, fatal stack error
         halt
 1000$:  htsteq  sp              ; check SP=0
-1010$:  hcmpeq  (r0),#<cp.rsv+cp.odd> ; check CPUERR
+1010$:  hcmpeq  (r0),#cp.odd    ; check CPUERR
         clr     (r0)            ; clear CPUERR (any write should)
         htsteq  (r0)            ; check CPUERR
         mov     #stack,sp       ; restore stack
@@ -383,7 +383,7 @@ ta0208: cmpb    systyp,#sy.e11  ; e11 V7.3 pushes to bad stack, abort after halt
         clr     -(sp)           ; non-existing memory, fatal stack error
         halt
 1000$:  htsteq  sp              ; check SP=0
-1010$:  hcmpeq  (r0),#<cp.rsv+cp.nxm> ; check CPUERR
+1010$:  hcmpeq  (r0),#cp.nxm    ; check CPUERR
         clr     (r0)            ; clear CPUERR (any write should)
         htsteq  (r0)            ; check CPUERR
         mov     #stack,sp       ; restore stack
@@ -408,7 +408,7 @@ ta0209: cmpb    systyp,#sy.e11  ; e11 V7.3 pushes to bad stack, abort after halt
         clr     -(sp)           ; non-existing memory, fatal stack error
         halt
 1000$:  htsteq  sp              ; check SP=0
-1010$:  hcmpeq  (r0),#<cp.rsv+cp.ito> ; check CPUERR
+1010$:  hcmpeq  (r0),#cp.ito    ; check CPUERR
         clr     (r0)            ; clear CPUERR (any write should)
         htsteq  (r0)            ; check CPUERR
         mov     #stack,sp       ; restore stack
@@ -432,7 +432,7 @@ ta0210: cmpb    systyp,#sy.sih  ; SimH uses J11 semantics
         clr     -(sp)           ; MMU abort, fatal stack error
         halt
 1000$:  htsteq  sp              ; check SP=0
-1010$:  hcmpeq  (r0),#cp.rsv    ; check CPUERR
+1010$:  hcmpeq  (r0),#0         ; check CPUERR (none set on w11)
         clr     (r0)            ; clear CPUERR (any write should)
         htsteq  (r0)            ; check CPUERR
         mov     #stack,sp       ; restore stack

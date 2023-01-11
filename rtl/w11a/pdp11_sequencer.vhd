@@ -1,4 +1,4 @@
--- $Id: pdp11_sequencer.vhd 1343 2023-01-02 18:03:39Z mueller $
+-- $Id: pdp11_sequencer.vhd 1349 2023-01-11 14:52:42Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,6 +13,7 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2023-01-11  1349   1.6.28 BUGFIX: handle CPUERR.rsv correctly
 -- 2023-01-02  1342   1.6.27 BUGFIX: cc state unchanged after abort
 -- 2022-12-26  1337   1.6.26 tbit logic overhaul 2, now fully 11/70 compatible
 -- 2022-12-12  1330   1.6.25 implement MMR0,MMR2 instruction complete
@@ -2393,7 +2394,7 @@ begin
       when s_vmerr =>                   -- -----------------------------------
         nstate := s_cpufail;
 
-                                            -- setup for R_VMSTAT.err_rsv='1'
+                                            -- setup for R_VMSTAT.err_ser='1'
         ndpcntl.ounit_azero := '1';               -- OUNIT A = 0
         ndpcntl.ounit_const := "000000100";       -- emergency stack pointer
         ndpcntl.ounit_bsel := c_ounit_bsel_const; -- OUNIT B=const(vector)
@@ -2416,7 +2417,7 @@ begin
           nstate := s_idle;
           
         elsif R_VMSTAT.err = '1' then            -- normal vm errors
-          if R_VMSTAT.err_rsv = '1' then
+          if R_VMSTAT.err_ser = '1' then
             nstatus.in_vecser := '1';              -- signal start of ser flow
             nstatus.in_vecysv := '0';              -- cancel ysv flow
             ndpcntl.gr_we := '1';
@@ -2427,8 +2428,9 @@ begin
               ncpuerr.nxm := '1';
             elsif R_VMSTAT.err_iobto = '1' then
               ncpuerr.iobto := '1';
+            elsif R_VMSTAT.err_rsv = '1' then
+              ncpuerr.rsv := '1';
             end if;
-            ncpuerr.rsv := '1';
             nstate := s_abort_4;
 
           elsif R_VMSTAT.err_odd = '1' then

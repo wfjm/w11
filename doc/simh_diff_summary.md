@@ -18,6 +18,7 @@ ones are listed here:
   - [SimH: stack limit check and addressing modes](simh_diff_stklim_amode.md)
   - [SimH: stack limit check and vector push aborts](simh_diff_stklim_vpush.md)
   - [SimH: Red stack zone PSW protection](simh_diff_red_psw.md)
+  - [SimH: `CPUERR.rsv` has J11 behavior](simh_diff_cpuerr_rsv.md)
   - [SimH: No unconditional instruction fetch after stack error abort](simh_diff_ser_forced_fetch.md)
 - instruction abort handling
   - [SimH: condition codes are not always unchanged after an abort](simh_diff_cc_and_aborts.md)

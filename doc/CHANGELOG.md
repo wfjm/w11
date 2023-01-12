@@ -2,6 +2,7 @@
 
 ### Table of contents
 - Current [HEAD](#user-content-head)
+- Release [w11a_V0.793](#user-content-w11a_v0.793)
 - Release [w11a_V0.792](#user-content-w11a_v0.792)
 - Release [w11a_V0.791](#user-content-w11a_v0.791)
 - Release [w11a_V0.79](#user-content-w11a_v0.79)
@@ -28,9 +29,25 @@ The full set of tests is only run for tagged releases.
 
 ### Summary
 ### New features
+### Changes
+
+<!-- --------------------------------------------------------------------- -->
+---
+## <a id="w11a_v0.793">2023-01-12: [w11a_V0.793](https://github.com/wfjm/w11/releases/tag/w11a_V0.793) - rev 1350(wfjm)</a>
+
+### Summary
+- all known w11a CPU core issues and fixable deficiencies resolved
+- tcodes significantly expanded
+- tbench expanded, covers all cases that need control port interaction
+- [w11a differences](w11a_known_differences.md) re-organized and completed
+- [SimH differences](simh_diff_summary.md) re-organized and completed
+- tmu and tmuconv improvements
+- gwstart added, improves working GHDL plus gtkwave
+- xxdp run scripts added for w11a and SimH
+- Doxygen support now for V1.9.5
+### New features
 - gwstart: gtkwave starter
 - tools/xxdp: add directory with xxdp setup and patch scripts
-
 ### Changes
 - tools changes
   - tools/asm-11/lib/push_pop.mac: add push2

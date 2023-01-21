@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: asm-11 1264 2022-07-30 07:42:17Z mueller $
+# $Id: asm-11 1351 2023-01-13 08:38:27Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2023-01-12  1351   1.1.4  BUGFIX: support @(R) modifier with omitted offset
 # 2022-07-28  1264   1.1.3  add -E and -M options
 # 2022-07-23  1262   1.1.2  BUGFIX: '100(pc)' was compiled as '100'
 # 2019-07-13  1189   1.1.1  drop superfluous exists for $opts
@@ -881,9 +882,10 @@ sub parse_line {
         }
 
       } else {                              # all operands seen
+        # size is opcode and number index words, handle @(R) case without ebeg
         my $nword = 1;
-        $nword += 1 if defined $l{o1ebeg};
-        $nword += 1 if defined $l{o2ebeg};
+        $nword += 1 if defined $l{o1ebeg} || (defined $l{o1mod} && $l{o1mod}==7);
+        $nword += 1 if defined $l{o2ebeg} || (defined $l{o2mod} && $l{o2mod}==7);
         incdot(2*$nword);
         $state = 'end';
       }
@@ -927,13 +929,15 @@ sub parse_line {
         if (check_token($rt, 'DEL', ')')) {
           $rt = get_token(\%l, $tmask);
           if (check_token($rt, 'OP', '+')) {
-            $op_cmod = $op_cmod_def ? 3 : 2;
+            $op_cmod = $op_cmod_def ? 3 : 2;       # (R)+ or @(R)+ seen
             $state = 'g_end';
           } else {
             if ($op_cmod_def) {
-              $state = 'q';
+              pushback_token(\%l);                #  @(R) seen
+              $op_cmod = 7;
+              $state = 'g_end';
             } else {
-              pushback_token(\%l);
+              pushback_token(\%l);                #  (R) seen
               $op_cmod = 1;
               $state = 'g_end';
             }
@@ -2249,8 +2253,10 @@ sub out_opcode_o {
 
 sub out_opdata {
   my ($rl,$mod,$reg,$rel,$ebeg,$eend) = @_;
-  # FIXME_code: shouldn't we die here ?
-  return unless defined $ebeg;
+  if (not defined $ebeg) {
+    out_wop($rl, 0) if $mod == 7;         # emit 0 index for @(R) case
+    return;
+  }
 
   my $val = eval_exp($rl,$ebeg,$eend);
   unless (defined $val) {

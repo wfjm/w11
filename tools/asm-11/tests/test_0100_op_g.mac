@@ -1,6 +1,6 @@
-; $Id: test_0100_op_g.mac 1262 2022-07-25 09:44:55Z mueller $
+; $Id: test_0100_op_g.mac 1351 2023-01-13 08:38:27Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2013-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; test opcodes with one general operand
 ;
@@ -21,8 +21,9 @@ p1:
         inc     @-(r2)          ;;!! 005252
         inc     1234(r3)        ;;!! 005263 001234
         inc     @1234(r4)       ;;!! 005274 001234
-        inc     a               ;;!! 005267 177742
-        inc     @pa             ;;!! 005277 177740
+        inc     @(r4)           ;;!! 005274 000000
+        inc     a               ;;!! 005267 177736
+        inc     @pa             ;;!! 005277 177734
         inc     @#a             ;;!! 005237 001000
 
 ; pc relative addressing
@@ -42,8 +43,8 @@ p2:
         neg     @-(r2)          ;;!! 005452
         adc     1234(r3)        ;;!! 005563 001234
         sbc     @1234(r4)       ;;!! 005674 001234
-        tst     a               ;;!! 005767 177666
-        ror     @pa             ;;!! 006077 177664
+        tst     a               ;;!! 005767 177662
+        ror     @pa             ;;!! 006077 177660
         rol     @#a             ;;!! 006137 001000
         asr     @r2             ;;!! 006212
         asl     (r3)            ;;!! 006313
@@ -53,8 +54,8 @@ p2:
 ;       csm     @-(r2)          ;;!! 
 ;       tstset  1234(r3)        ;;!! 
 ;       wrtlck  @1234(r4)       ;;!! 
-        clrb    a               ;;!! 105067 177640
-        comb    @pa             ;;!! 105177 177636
+        clrb    a               ;;!! 105067 177634
+        comb    @pa             ;;!! 105177 177632
         incb    @#a             ;;!! 105237 001000
         decb    @r2             ;;!! 105312
         negb    (r3)            ;;!! 105413
@@ -63,9 +64,9 @@ p2:
         tstb    -(r1)           ;;!! 105741
         rorb    @-(r2)          ;;!! 106052
         rolb    1234(r3)        ;;!! 106163 001234
-        asrb     @1234(r4)      ;;!! 106274 001234
-        aslb    a               ;;!! 106367 177600
-        mtps    @pa             ;;!! 106477 177576
+        asrb    @1234(r4)       ;;!! 106274 001234
+        aslb    a               ;;!! 106367 177574
+        mtps    @pa             ;;!! 106477 177572
         mfpd    @#a             ;;!! 106537 001000
         mtpd    @r2             ;;!! 106612
         mfps    (r3)            ;;!! 106713
@@ -74,5 +75,9 @@ p2:
 
         inc     100(pc)         ;;!! 005267  000100
         inc     @100(pc)        ;;!! 005277  000100
+        dec     @(pc)           ;;!! 005377  000000
+
+; phase error catcher
+d:      .word   0
 
         .end

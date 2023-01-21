@@ -1,4 +1,4 @@
-; $Id: cpu_basics.mac 1347 2023-01-07 12:48:58Z mueller $
+; $Id: cpu_basics.mac 1351 2023-01-13 08:38:27Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2015-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -3325,7 +3325,7 @@ tf0401: clr     cp.psw
 ;
         inc     r0
         push    r0
-        mtpi    @0(r2)                  ; mode 7
+        mtpi    @(r2)                   ; mode 7
         hcmpeq  r0,(r3)                 ; check dst
 ;
         hcmpeq  #stack,sp               ; check SP normal
@@ -3490,7 +3490,7 @@ tf0404: clr     cp.psw
 ;
         inc     r0
         mov     r0,(r3)
-        mfpi    @0(r2)                  ; mode 7
+        mfpi    @(r2)                   ; mode 7
         hcmpeq  r0,(sp)+                ; check
 ;
         hcmpeq  #stack,sp               ; check SP normal

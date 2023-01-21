@@ -1,4 +1,4 @@
-; $Id: cpu_details.mac 1349 2023-01-11 14:52:42Z mueller $
+; $Id: cpu_details.mac 1351 2023-01-13 08:38:27Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -685,12 +685,12 @@ ta0303: tstb    systyp                  ; skip if not on w11
         mov     r2,sp                   ; SP in yellow zone
 ; dstw mode 3,5,7
         mov     (sp)+,@-(sp)            ; dstw mode 5: SP now 1176
-        mov     @0(sp),@(sp)+           ; dstw mode 3: SP now 1200
-        mov     -(sp),@0(sp)            ; dstw mode 7: SP now 1176
+        mov     @(sp),@(sp)+            ; dstw mode 3: SP now 1200
+        mov     -(sp),@(sp)             ; dstw mode 7: SP now 1176
 ; dstr mode 3,5,7 when rmw
         bis     (sp)+,@-(sp)            ; dstw mode 5: SP now 1176
-        bis     @0(sp),@(sp)+           ; dstw mode 3: SP now 1200
-        bis     -(sp),@0(sp)            ; dstw mode 7: SP now 1176
+        bis     @(sp),@(sp)+            ; dstw mode 3: SP now 1200
+        bis     -(sp),@(sp)             ; dstw mode 7: SP now 1176
 ; dstr mode 1,2,4,6 in read-only
         tst     (sp)                    ; dstr mode 1: SP now 1176
         cmp     (sp),-(sp)              ; dstr mode 4: SP now 1174
@@ -699,7 +699,7 @@ ta0303: tstb    systyp                  ; skip if not on w11
 ; dstr mode 3,5,7 in read-only
         cmp     (sp),@(sp)+             ; dstr mode 3: SP now 1200
         cmp     (sp),@-(sp)             ; dstr mode 5: SP now 1176
-        cmp     (sp),@0(sp)             ; dstr mode 7: SP now 1176
+        cmp     (sp),@(sp)              ; dstr mode 7: SP now 1176
 ; check that EA is compared against STKLIM
         clr     sp
         mov     @#2000,2000(sp)         ; SP=0, EA=2000 -> no trap
@@ -1801,7 +1801,7 @@ tb0301: mov     #123,r0                 ; src for MOV
         mov     r0,@-(r2)               ; mode 5
         hcmpeq  #cp000c,(r3)            ; N=0,Z=0,V=0 and keep C
         scc
-        mov     r0,@0(r2)               ; mode 7
+        mov     r0,@(r2)                ; mode 7
         hcmpeq  #cp000c,(r3)            ; N=0,Z=0,V=0 and keep C
 ;
 ; part 2: check cc for CLR for all modes
@@ -1828,7 +1828,7 @@ tb0301: mov     #123,r0                 ; src for MOV
         clr     @-(r2)                  ; mode 5
         hcmpeq  #cp0z00,(r3)            ; N=0,Z=1,V=0,C=0
         scc
-        clr     @0(r2)                  ; mode 7
+        clr     @(r2)                   ; mode 7
         hcmpeq  #cp0z00,(r3)            ; N=0,Z=1,V=0,C=0
 ;
 ; part 3: check cc for SXT for all modes
@@ -1855,7 +1855,7 @@ tb0301: mov     #123,r0                 ; src for MOV
         sxt     @-(r2)                  ; mode 5
         hcmpeq  #cpn00c,(r3)            ; Z=0,V=0 and keep N,C
         scc
-        sxt     @0(r2)                  ; mode 7
+        sxt     @(r2)                   ; mode 7
         hcmpeq  #cpn00c,(r3)            ; Z=0,V=0 and keep N,C
 ;
 ; part 4: check cc for MOV after abort for all memory modes
@@ -1879,7 +1879,7 @@ tb0301: mov     #123,r0                 ; src for MOV
         mov     r0,0(r1)                ; mode 6
         mov     r0,@(r2)+               ; mode 3
         mov     r0,@-(r2)               ; mode 5
-        mov     r0,@0(r2)               ; mode 7
+        mov     r0,@(r2)                ; mode 7
         br      4200$
 ;
 4100$:  inc     r5                      ; bump counter
@@ -1972,7 +1972,7 @@ tb0304: clr     r0                      ; src for INC
         inc     @-(r2)                  ; mode 5
         hcmpeq  #cp000c,(r3)            ; N=0,Z=0,V=0 and keep C
         scc
-        inc     @0(r2)                  ; mode 7
+        inc     @(r2)                   ; mode 7
         hcmpeq  #cp000c,(r3)            ; N=0,Z=0,V=0 and keep C
 ;
         hcmpeq  #7.,(r1)                ; check that 7 inc's done
@@ -1993,7 +1993,7 @@ tb0304: clr     r0                      ; src for INC
         inc     0(r1)                   ; mode 6
         inc     @(r2)+                  ; mode 3
         inc     @-(r2)                  ; mode 5
-        inc     @0(r2)                  ; mode 7
+        inc     @(r2)                   ; mode 7
         br      2200$
 ;
 2100$:  inc     r5                      ; bump counter

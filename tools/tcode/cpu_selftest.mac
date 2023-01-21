@@ -1,4 +1,4 @@
-; $Id: cpu_selftest.mac 1345 2023-01-04 18:05:42Z mueller $
+; $Id: cpu_selftest.mac 1351 2023-01-13 08:38:27Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -87,7 +87,7 @@ ta0101: clr     r0              ; r0=000000 c=0
 8$:     mov     r5,r2           ; r2=302$+6
 	mov     -6(r5),r5       ; r5=177777
 	movb    r5,@(r2)+       ; 400$[0] = 377; r2=302$+10
-	bisb    r5,@0(r2)       ; 400$[1] = 377
+	bisb    r5,@(r2)        ; 400$[1] = 377
 	cmp     r3,@-(r2)       ; r2=302$+6
 	beq     9$
         halt

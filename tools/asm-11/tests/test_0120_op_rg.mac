@@ -1,6 +1,6 @@
-; $Id: test_0120_op_rg.mac 1184 2019-07-10 20:39:44Z mueller $
+; $Id: test_0120_op_rg.mac 1351 2023-01-13 08:38:27Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2014- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2014-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; test opcodes with 1 1/2 operands
 ;
@@ -13,10 +13,24 @@ pa:     .word   a
 sub:    rts     pc              ;;!! 001004: 000207
         jsr     pc,sub          ;;!! 001006: 004767 177772
 
-        xor     r1,a            ;;!! 074167 177762 
+; all modes with one opcode
+        xor     r1,r2           ;;!! 074102
+        xor     r1,@r2          ;;!! 074112
+        xor     r1,(r3)         ;;!! 074113
+        xor     r1,(r4)+        ;;!! 074124
+        xor     r1,@(r5)+       ;;!! 074135
+        xor     r1,-(r4)        ;;!! 074144
+        xor     r1,@-(r4)       ;;!! 074154
+        xor     r1,1234(r3)     ;;!! 074163 001234
+        xor     r1,@1234(r3)    ;;!! 074173 001234
+        xor     r1,@(r3)        ;;!! 074173 000000
+        xor     r1,a            ;;!! 074167 177730
+        xor     r1,@pa          ;;!! 074177 177726
+        xor     r1,@#a          ;;!! 074137 001000
 
-        mul     a,r2            ;;!! 070267 177756
-        div     @pa,r2          ;;!! 071277 177754
+; all 'rg' type opcodes, random modes
+        mul     a,r2            ;;!! 070267 177714
+        div     @pa,r2          ;;!! 071277 177712
         ash     #12,r3          ;;!! 072327 000012
         ashc    @#a,r4          ;;!! 073437 001000
 

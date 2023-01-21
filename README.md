@@ -8,7 +8,7 @@
 The project contains the VHDL code for a **complete DEC PDP-11 system**:
 a
 [PDP-11/70](http://www.bitsavers.org/pdf/dec/pdp11/1170/EK-KB11C-TM-001_1170procMan.pdf)
-CPU with memory management unit, but without floating point unit,
+CPU with a memory management unit, but without a floating point unit,
 a complete set of mass storage peripherals
 ([RK11/RK05](http://www.bitsavers.org/pdf/dec/unibus/RK11-C_manual1971.pdf),
 [RL11/RL02](http://www.bitsavers.org/pdf/dec/disc/rl01_rl02/EK-RL122-TM-001_techAug82.pdf),
@@ -31,7 +31,8 @@ The design is **FPGA proven**, runs currently on Digilent
 [Nexys3](rtl/sys_gen/w11a/nexys3),
 [Nexys2](rtl/sys_gen/w11a/nexys2) and
 [S3board](rtl/sys_gen/w11a/s3board)
-boards and boots 5th Edition UNIX and 2.11BSD UNIX. 
+boards and boots 5th Edition UNIX, 2.11BSD UNIX, as well as various DEC
+operating systems from provided [oskits](tools/oskit/README.md).
 
 For more information look into:
 - w11 project [home page](https://wfjm.github.io/home/w11/)

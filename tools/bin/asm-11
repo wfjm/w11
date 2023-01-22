@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: asm-11 1351 2023-01-13 08:38:27Z mueller $
+# $Id: asm-11 1352 2023-01-22 08:29:50Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2013-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2023-01-13  1352   1.1.5  BUGFIX: misused # and @ don't cause BUGCHECKs anymore
 # 2023-01-12  1351   1.1.4  BUGFIX: support @(R) modifier with omitted offset
 # 2022-07-28  1264   1.1.3  add -E and -M options
 # 2022-07-23  1262   1.1.2  BUGFIX: '100(pc)' was compiled as '100'
@@ -1735,8 +1736,8 @@ sub get_token1 {
   if ($c =~ m/^(\*|\/|\&|\!)$/ ) {          # binary operators
     return finish_token(\%t, tag=> 'OP', typ=> 'b',  val=> shift @$rcl);
   }
-  if ($c =~ m/^(\#|\@)$/ ) {                # unary operators
-    return finish_token(\%t, tag=> 'OP', typ=> 'u',  val=> shift @$rcl);
+  if ($c =~ m/^(\#|\@)$/ ) {                # prefix operators
+    return finish_token(\%t, tag=> 'OP', typ=> 'p',  val=> shift @$rcl);
   }
 
   # ' and " operator
@@ -2547,8 +2548,8 @@ sub dump_rl {
       $$rl{psect}, $$rl{dot};
   my $i = 0;
   foreach my $rt (@{$$rl{tl}}) {
-    printf "   tl[%2d]: tag=%-4s, om=%-2s, em=%-2s, val='%s'",
-      $i, $$rt{tag}, savestr1($$rt{om}), savestr1($$rt{em}),
+    printf "   tl[%2d]: tag=%-4s, typ=%-2s, om=%-2s, em=%-2s, val='%s'",
+      $i, $$rt{tag}, savestr1($$rt{typ}), savestr1($$rt{om}), savestr1($$rt{em}),
         savestr($$rt{val});
     printf ", nval=%6.6o",$$rt{nval} if defined $$rt{nval};
     printf ", pend=%d",$$rt{pend} if defined $$rt{pend};

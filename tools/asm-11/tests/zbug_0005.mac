@@ -1,0 +1,20 @@
+; $Id: zbug_0005.mac 1352 2023-01-22 08:29:50Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; for asm-11 prior rev 1350
+;
+; ISSUE: faulty @(R) handling
+;        - asm-11 refused with a 'Q' error
+;        - macro-11 accepts as equivalent to @0(R)
+;
+; REASON: parser error
+;
+        .asect
+        . = 400
+
+        mov     r0,@(r1)        ;;!! 000400: 010071 000000
+        cmp     @(r2),r0        ;;!! 000404: 027200 000000
+        cmp     @(r2),@(r3)     ;;!! 000410: 027273 000000 000000
+        
+        .end

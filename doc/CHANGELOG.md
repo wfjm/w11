@@ -31,7 +31,9 @@ The full set of tests is only run for tagged releases.
 ### New features
 ### Changes
 ### Bug Fixes
-  - tools/bin/asm-11: BUGFIX: support @(R) modifier with omitted offset
+  - tools/bin/asm-11:
+    - BUGFIX: support @(R) modifier with omitted offset
+    - BUGFIX: misused # and @ don't cause BUGCHECKs anymore
 
 <!-- --------------------------------------------------------------------- -->
 ---

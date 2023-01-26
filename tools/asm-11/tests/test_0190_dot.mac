@@ -1,6 +1,6 @@
-; $Id: test_0190_dot.mac 1184 2019-07-10 20:39:44Z mueller $
+; $Id: test_0190_dot.mac 1353 2023-01-23 18:13:53Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2015-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; test dot '.' handling
 ;    '.' refers in MACRO-11 (RT11 V4.0) to
@@ -8,7 +8,7 @@
 ;        - current address in case of .word lists
 ;
         .asect
-        .blkw   400 
+        . = 1000
 
 ; use . in branches
 

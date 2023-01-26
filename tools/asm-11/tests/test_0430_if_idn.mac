@@ -1,0 +1,75 @@
+; $Id: test_0430_if_idn.mac 1355 2023-01-25 21:14:24Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test .if idn|dif basics
+;
+        .asect
+        . = 1000
+;
+        .list   me
+;
+; Note: if idn/dif seems to be broken in RT-11 MACRO-11
+;
+        .if     idn,r0,r0               ; idn
+        .word   001001                  ;;!! 001001
+        .endc
+        .if     idn,@nn(r1),<@nn(r1)>   ; idn
+        .word   001002                  ;;!! 001002
+        .endc
+        .if     idn,a,^/a/              ; idn
+        .word   001003                  ;;!! 001003
+        .endc
+        .if     idn,a+b,a+b             ; idn
+        .word   001004                  ;;!! 001004
+        .endc
+        .if     idn,a+b,a+c             ; idn
+        .word   001005                  ; not assembled
+        .endc
+1000$:                                  ;;!! 001010:
+;
+        .if     dif,r0,r1               ; dif
+        .word   002001                  ;;!! 002001
+        .endc
+        .if     dif,0,<1>               ; dif
+        .word   002002                  ;;!! 002002
+        .endc
+        .if     dif,<a>,^/b/            ; dif
+        .word   002003                  ;;!! 002003
+        .endc
+        .if     dif,a+b,a+c             ; dif
+        .word   002004                  ;;!! 002004
+        .endc
+        .if     dif,a+b,a+b             ; dif
+        .word   002005                  ; not assembled
+        .endc
+1100$:                                  ;;!! 001020:
+;
+; test from macro
+        .macro  tstidn  a,b
+        .if     idn,a,b
+        .word   003001
+        .endc
+        .endm
+        .macro  tstdif  a,b
+        .if     dif,a,b
+        .word   003002
+        .endc
+        .endm
+;
+        . = 2000
+        tstidn  r0,r0
+        tstidn  @nn(r1),<@nn(r1)>
+        tstidn  a,^/a/
+        tstidn  a+b,a+b
+        tstidn  a+b,a+c
+2000$:                                  ;;!! 002010:
+;
+        tstdif  r0,r1
+        tstdif  0,<1>
+        tstdif  <a>,^/b/
+        tstdif  a+b,a+c
+        tstdif  a+b,a+b
+2100$:                                  ;;!! 002020:
+;
+        .end

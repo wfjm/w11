@@ -1,0 +1,35 @@
+; $Id: testerr_0040_inst.mac 1356 2023-01-26 15:10:23Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test bad instruction cases
+;
+        .asect
+        . = 1000
+
+; bad opcodes
+        xxx                     ;;!! U  ; implicit .word with unknown symbol
+        xxx     r0              ;;!! Q  ; AU in MACRO-11
+        xxx     r0,r2           ;;!! Q  ; AU in MACRO-11
+;
+; missing operands
+        clr                     ;;!! Q  ; A in MACRO-11
+        mov     r0              ;;!! Q  ; A in MACRO-11
+        mov     r0,             ;;!! Q  ; A in MACRO-11
+        emt                     ;;!! Q  ; ok in MACRO-11 (0 default)
+        jsr                     ;;!! Q  ; A in MACRO-11
+        jsr     pc              ;;!! Q  ; A in MACRO-11
+        jsr     pc,             ;;!! Q  ; A in MACRO-11
+        rts                     ;;!! Q  ; A in MACRO-11
+        br                      ;;!! Q  ; A in MACRO-11
+        sob                     ;;!! Q  ; A in MACRO-11
+        sob     r0              ;;!! Q  ; A in MACRO-11
+        sob     r0,             ;;!! Q  ; A in MACRO-11
+;
+; extra operands
+        clr     r0,r1           ;;!! Q
+        clr     r0   r1         ;;!! Q
+        mov     r0,r1,r2        ;;!! Q
+        mov     r0,r1   r2      ;;!! Q
+;
+        .end

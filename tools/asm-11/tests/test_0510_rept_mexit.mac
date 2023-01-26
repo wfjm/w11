@@ -1,0 +1,50 @@
+; $Id: test_0510_rept_mexit.mac 1353 2023-01-23 18:13:53Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test .rept and .mexit
+;
+        .asect
+        . = 1000
+
+; list macro expansion
+        .list   me
+;
+; single .rept with an .mexit abort
+        a = 1020                ; write limit
+        .rept   1024.
+        .word   001001          ; before limit check
+        .if     ge,.-a          ; stop if beyond limit
+        .mexit
+        .endc
+        .word   001002          ; after limit check
+                                ; next
+        .endr
+1000$:                          ;;!! 001022:
+;
+; .rept called from a macro, ensure that macro .mexit is independent
+        . = 2000
+        a = 2020                ; write limit
+        .macro  mtest
+        .rept   1024.
+        .word   002001          ; before limit check
+        .if     ge,.-a          ; stop if beyond limit
+        .mexit
+        .endc
+        .word   002002          ; after limit check
+                                ; next
+        .endr
+        .word   002010
+        .word   002011
+        .word   002012
+        .word   002013
+        .mexit
+        .word   002020
+        .word   002021
+        .word   002022
+        .word   002023
+        .endm
+;
+        mtest
+2000$:                          ;;!! 002032:
+        .end

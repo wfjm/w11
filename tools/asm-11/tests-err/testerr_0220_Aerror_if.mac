@@ -1,0 +1,37 @@
+; $Id: testerr_0220_Aerror_if.mac 1355 2023-01-25 21:14:24Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test A error code (Assembly error)
+; case: test bad .if
+;
+        .asect
+        . = 1000
+
+; invalid .if statements
+        .if                     ;;!! A
+        .endc
+        .if     bad             ;;!! A
+        .endc
+        .if     eq              ;;!! A
+        .endc
+        .if     ne,             ;;!! A
+        .endc
+        .if     ge,bad          ;;!! U
+        .endc
+        .if     gt,#100         ;;!! Q          ; AQ in MACRO-11
+        .endc                   ;;!! O          ; valid in MACRO-11
+        .if     df              ;;!! A
+        .endc
+        .if     df,             ;;!! A
+        .endc
+        .if     idn             ;;!! A
+        .endc
+        .if     idn,            ;;!! A
+        .endc
+        .if     idn,a           ;;!! A
+        .endc
+        .if     idn,a,          ;;!! A          ; valid in MACRO-11
+        .endc
+
+        .end

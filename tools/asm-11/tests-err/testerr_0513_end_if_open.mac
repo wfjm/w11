@@ -1,0 +1,16 @@
+; $Id: testerr_0513_end_if_open.mac 1356 2023-01-26 15:10:23Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test .end
+; case: missing .endc causes to E error
+;
+        .asect
+        . = 1000
+;
+        .if     eq,0
+        .word   1001
+; missing .endc
+;
+        .end                    ;;!! O
+;;!! E

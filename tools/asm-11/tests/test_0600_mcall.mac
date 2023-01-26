@@ -1,0 +1,25 @@
+; $Id: test_0600_mcall.mac 1354 2023-01-24 16:29:10Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test .mcall basics
+;
+        .asect
+        . = 1000
+;
+        .if     df,...top       ; asm-11 only
+
+; list macro expansion
+        .list   me
+;
+        .mcall  push,pop
+;
+        push    #100
+        push    #200
+        pop     r0
+;
+        .mdelete  push
+        pop     r1
+;
+        .endc
+        .end

@@ -1,0 +1,30 @@
+; $Id: test_0350_macro_concat.mac 1355 2023-01-25 21:14:24Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test .macro concatination, the ' operator
+;
+        .asect
+        . = 1000
+
+; list macro expansion
+        .list   me
+;
+; define and use macro with a concatinated label
+; check label creation with .if df
+;
+        .macro  tconc1  a,b,dst
+a'b:    clr     dst
+        .endm
+        tconc1  xx,yy,(r0)
+        .if     ndf,xxyy
+        .error  ; label xxyy not defined
+        .endc
+;
+; define and use macro with a concatinated string
+        .macro  tconc2  a,b
+        .ascii  /a'b/                   ;;!! $l1
+        .endm
+        tconc2  dc,ba                   ;;!= l1 = 144 143 142 141
+ 
+        .end

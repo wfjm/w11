@@ -1,0 +1,18 @@
+; $Id: testerr_0512_end_rept_open.mac 1354 2023-01-24 16:29:10Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test .end
+; case: missing .endr causes to E error
+;
+        .asect
+        . = 1000
+;
+        .list   me
+;
+        .rept   2
+        .word   1001            ;;!! 001001
+; missing .endr
+;
+        .end
+;;!! E

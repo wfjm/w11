@@ -1,0 +1,14 @@
+; $Id: testerr_0500_end_extra.mac 1354 2023-01-24 16:29:10Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test .end
+; case: code after .end
+;
+        .asect
+        . = 1000
+;
+        .end
+        never
+        seen
+        code

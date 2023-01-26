@@ -1,11 +1,11 @@
-; $Id: test_0170_misc.mac 1262 2022-07-25 09:44:55Z mueller $
+; $Id: test_0170_misc.mac 1353 2023-01-23 18:13:53Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; test special pst entries call and return
 ;
         .asect
-        .blkw   400 
+        . = 1000
 
 ; call/return
 

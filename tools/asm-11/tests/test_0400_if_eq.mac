@@ -1,0 +1,81 @@
+; $Id: test_0400_if_eq.mac 1353 2023-01-23 18:13:53Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test .if eq|ne|gt|le|lt|ge basics
+;
+        .asect
+        . = 1000
+;
+        a = 1
+        b = 2
+        c = a + b
+;
+;
+        .if     eq,-1           ; eq -1 ---------
+        .word   001001          ; not assembled
+        .endc
+        .if     eq,0            ; eq  0
+        .word   001002          ;;!! 001002
+        .endc
+        .if     eq,a            ; eq +1
+        .word   001003          ; not assembled
+        .endc
+1000$:                          ;;!! 001002:
+;
+        .if     ne,-a           ; ne -1 ----------
+        .word   002001          ;;!! 002001
+        .endc
+        .if     ne,a-a          ; ne 0
+        .word   002001          ; not assembled
+        .endc
+        .if     ne,a            ; ne 1
+        .word   002003          ;;!! 002003
+        .endc
+1100$:                          ;;!! 001006:
+;
+        .if     gt,a-b          ; gt -1 ----------
+        .word   003001          ; not assembled
+        .endc
+        .if     gt,b-b          ; gt 0
+        .word   003001          ; not assembled
+        .endc
+        .if     gt,b-a          ; gt 1
+        .word   003003          ;;!! 003003
+        .endc
+1200$:                          ;;!! 001010:
+;
+        .if     le,b-c          ; le -1 ----------
+        .word   004001          ;;!! 004001
+        .endc
+        .if     le,c-c          ; le 0
+        .word   004002          ;;!! 004002
+        .endc
+        .if     le,c-b          ; le 1
+        .word   004003          ; not assembled
+        .endc
+1300$:                          ;;!! 001014:
+;
+        .if     lt,b-3          ; lt -1 ----------
+        .word   005001          ;;!! 005001
+        .endc
+        .if     lt,c-a-b        ; lt 0
+        .word   005002          ; not assembled
+        .endc
+        .if     lt,c-2          ; lt 1
+        .word   005003          ; not assembled
+        .endc
+1400$:                          ;;!! 001016:
+;
+        .if     ge,c-a-b-1      ; ge -1 ----------
+        .word   006001          ; not assembled
+        .endc
+        .if     ge,b-a-1        ; ge 0
+        .word   006002          ;;!! 006002
+        .endc
+        .if     ge,b-1          ; ge 1
+        .word   006003          ;;!! 006003
+        .endc
+1500$:                          ;;!! 001022:
+;
+        .end

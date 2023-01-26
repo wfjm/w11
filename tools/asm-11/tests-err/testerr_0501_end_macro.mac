@@ -1,0 +1,22 @@
+; $Id: testerr_0501_end_macro.mac 1354 2023-01-24 16:29:10Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test .end
+; case: .end in macro expansion rejected with O error
+;
+        .asect
+        . = 1000
+;
+        .list   me
+;
+        .macro  mend
+        .end                    ;;!! O
+        .word   1001            ;;!! 001001
+        .endm
+;
+        mend
+        .word   1002            ;;!! 001002
+1000$:                          ;;!! 001004:
+;
+        .end

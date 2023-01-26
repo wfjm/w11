@@ -1,0 +1,52 @@
+; $Id: test_0330_macro_nchr.mac 1355 2023-01-25 21:14:24Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test .macro string passing and .nchr
+;
+        .asect
+        . = 1000
+
+; list macro expansion
+        .list   me
+
+; define macro using .ascii strings and .nchr
+        .macro  tascii val
+        .ascii  /val/                   ;;!! $l1
+        .nchr   $$$$,^\val\
+        .byte   $$$$                    ;;!! $l2
+        .endm
+;
+;;!= l2 = 001003: 003
+        tascii  xyz                     ;;!= l1 = 170 171 172
+;;!= l2 = 001013: 007
+        tascii  <abc def>               ;;!= l1 = 141 142 143 040 144
+;;!= l2 = 001023: 007
+        tascii  ^/123 456/              ;;!= l1 = 061 062 063 040 064
+;;!= l2 = 001030: 004
+        tascii  val=halt                ;;!= l1 = 150 141 154 164
+;
+        a = 76
+        b = 5432
+;;!= l2 = 001033: 002
+        tascii  \a                      ;;!= l1 = 067 066
+;;!= l2 = 001040: 004
+        tascii  \b                      ;;!= l1 = 065 064 063 062
+;
+; define macro which uses full instruction as agrument
+;
+        .macro  toper op1
+        op1                             ;;!! $l1
+        .endm
+;
+; and use it with <> and ^// syntax
+;
+        . = 2000
+        toper   nop                     ;;!= l1 = 002000: 000240
+        toper   <clr @#v1>              ;;!= l1 = 002002: 005037 002012
+        toper   ^/mov r0,r1/            ;;!= l1 = 002006: 010001
+        toper   op1=halt                ;;!= l1 = 002010: 000000
+;
+v1:     .word   0
+;
+        .end

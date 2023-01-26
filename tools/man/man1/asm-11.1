@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: asm-11.1 1286 2022-08-25 06:53:38Z mueller $
+.\"  $Id: asm-11.1 1356 2023-01-26 15:10:23Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\"
 .\" ------------------------------------------------------------------
 .
-.TH ASM-11 1 2019-05-25 "Retro Project" "Retro Project Manual"
+.TH ASM-11 1 2023-01-25 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 asm-11 \- simple assembler for MACRO-11 style PDP-11 code
@@ -51,7 +51,7 @@ Activated with the \fB\-\-lsm\fP or \fB\-\-olsm\fP options.
 the MACRO-11 assembler.
 Activated with the \fB\-\-lst\fP or \fB\-\-olst\fP options.
 
-\fBasm-11\fP provides only the most basic assembler directives
+\fBasm-11\fP provides many basic assembler directives
 
 .EX
   .ascii    stores ascii string
@@ -61,37 +61,70 @@ Activated with the \fB\-\-lst\fP or \fB\-\-olst\fP options.
   .blkw     allocate words of storage
   .byte     store bytes of data
   .end      end of source
+  .endc     end of .if conditional block
   .endm     end of macro
+  .endr     end of .rept repeat block
+  .error    raise error
   .even     ensure word aligment
   .include  include another source file
+  .if       assembles block if condition is met
+  .iff      assembles block if condition tests false
+  .ift      assembles block if condition tests true
+  .iftf     assembles block regardless of condition
   .list     parsed but otherwise ignored; me always enabled
   .nlist    parsed but otherwise ignored
-  .macro    subset of macro functionality
+  .macro    starts macro defintion (subset)
+  .mcall    load macro definitions
+  .mdelete  delete macro definitions
+  .mexit    terminate macro or .rept expansion
+  .narg     number of macro arguments
+  .nchr     calculate string length
+  .ntype    evaluate addressing mode
   .odd      align to odd byte address
+  .print    insert output into listing
+  .rept     starts repeat block definition
   .word     store words of data
 .EE
 
-and thus restricted macro support and neither conditional assembly,
-nor psect support.
+and thus restricted macro support and no psect support.
 .
-.SS Level of macro support
-Enough for simple macros and useful for writing test benches.
-Auto-labels are supported (?name syntax). Main limitations:
+.SS Differences between asm-11 and MACRO-11
 .RS 2
 .PD 0
 .IP "-" 2
-no \\var support (pass by value)
+only single \.asect supported, no \.psect support
 .IP "-"
-only positional parameters
+registers must be named r0,..,r5,sp,pc
 .IP "-"
-no concatination support
+the %n notation and register expressions are not supported
 .IP "-"
-no .mexit, .mdelete, .mcall support
+the \.emt and \.trap instruction must have the trap number specified
+.IP "-"
+a .macro definition must end with \.endm (\.endr not accepted)
+.IP "-"
+a .rept block must end with \.endr (\.endm not accepted)
+.IP "-"
+macros: the \\ operator accepts only symbols, no expressions
+.IP "-"
+a \.if dif/idn doesn't work with blank arguments
+.IP "-"
+a \.if df/ndf sees opcodes as defined (MACRO-11 doesn't)
+.IP "-"
+a \.if df/ndf sees register names as undefined (MACRO-11 doesn't)
+.IP "-"
+error codes on invail statements differ, especially A and Q
 .PD
 .RE
 .PP
-
 .
+.SS Design goal for directive support
+The following directives will be added in future releases
+
+.EX
+  .flt2     store 32 bit float
+  .flt4     store 64 bit float
+.EE
+
 .\" ------------------------------------------------------------------
 .SH OPTIONS
 .
@@ -103,12 +136,19 @@ The default search path is '.'  plus \fI$RETROBASE/tools/asm-11\fP if
 \fB\-I\fP can be given multiple times und must have a single path name.
 .
 .\" ----------------------------------------------
+.IP "\fB\-L\fI path\fR"
+adds \fIpath\fP to the .library search path used by the \.mcall directive.
+The default search path is \fI$RETROBASE/tools/asm-11\fP if \fBRETROBASE\fP is
+defined.
+\fB\-L\fP can be given multiple times und must have a single path name.
+.
+.\" ----------------------------------------------
 .IP "\fB\-E\fR"
 write .include processed code to \fIstdout\fP and stop after 1st pass.
 No other outputs are created, options like \fB\-\-lst\fR are ignored.
 Useful for the generation of self-contained macro files that are free
-of .include directives and thus free of external references. Was inspired
-by the -E option of gcc(1).
+of .include and .mcall directives and thus free of external references.
+Was inspired by the -E option of gcc(1).
 .
 .\" ----------------------------------------------
 .IP "\fB\-M\fR"

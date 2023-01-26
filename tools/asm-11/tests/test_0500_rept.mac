@@ -1,0 +1,54 @@
+; $Id: test_0500_rept.mac 1353 2023-01-23 18:13:53Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test .rept basics
+;
+        .asect
+        . = 1000
+
+; list macro expansion
+        .list   me
+;
+        a = 1
+        b = 2
+;
+; single level .rept
+;
+        .rept   a-b             ; .rept -1
+        .word   001001          ; not assembled
+        .endr
+1000$:                          ;;!! 001000:
+;
+        .rept   a-a             ; .rept 0
+        .word   002001          ; not assembled
+        .endr
+1100$:                          ;;!! 001000:
+;
+        .rept   a               ; .rept 1
+        .word   003001          ;;!! 003001
+        .word   003002          ;;!! 003002
+        .endr
+1200$:                          ;;!! 001004:
+;
+        .rept   a+a             ; .rept 2
+        .word   004001          ;;!! 004001
+        .word   004002          ;;!! 004002
+        .word   004003          ;;!! 004003
+        .word   004004          ;;!! 004004
+        .endr
+1300$:                          ;;!! 001024:
+;
+; double level .rept
+;
+        c = 1
+        .rept   a+b
+        .ascii  /abcd/
+        .rept   c
+        .byte   010,c
+        .endr
+        c = c + 1
+        .endr
+2000$:                          ;;!! 001054:
+;
+        .end

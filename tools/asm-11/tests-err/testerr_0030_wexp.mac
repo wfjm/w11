@@ -1,0 +1,40 @@
+; $Id: testerr_0030_wexp.mac 1356 2023-01-26 15:10:23Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test bad .word,.byte and .blkw,.blkb
+;
+        .asect
+        . = 1000
+
+; .word and .byte require one argument in asm-11
+        .word                   ;;!! Q  ; ok in MACRO-11
+        .byte                   ;;!! Q  ; ok in MACRO-11
+        .even
+;
+; word expression invalid in asm-11 (no register expressions)
+        .word   r1              ;;!! U  ; ok in MACRO-11
+        .word   pc              ;;!! U  ; ok in MACRO-11
+;
+; invalid word expressions
+
+        .word   @r2             ;;!! Q  ; A in MACRO-11
+        .word   (r3)            ;;!! Q  ; A in MACRO-11
+        .word   (r4)+           ;;!! Q  ; A in MACRO-11
+        .word   @(r5)+          ;;!! Q  ; A in MACRO-11
+        .word   -(r1)           ;;!! Q  ; A in MACRO-11
+        .word   @-(r2)          ;;!! Q  ; A in MACRO-11
+        .word   1234(r3)        ;;!! Q  ; A in MACRO-11
+        .word   @1234(r4)       ;;!! Q  ; A in MACRO-11
+        .word   @pa             ;;!! Q  ; A in MACRO-11
+        .word   @#a             ;;!! Q  ; A in MACRO-11
+;
+; .blkw and .blkb tests
+        .blkw                   ; ok, default 1 assumed
+        .blkb                   ; ok, default 1 assumed
+        .even
+;  
+        .blkw   @r2             ;;!! Q  ; MACRO-11 allocates space, asm-11 not
+        .blkb   1234(r3)        ;;!! Q  ; MACRO-11 allocates space, asm-11 not
+;
+        .end

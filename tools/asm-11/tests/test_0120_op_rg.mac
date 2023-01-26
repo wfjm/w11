@@ -1,11 +1,11 @@
-; $Id: test_0120_op_rg.mac 1351 2023-01-13 08:38:27Z mueller $
+; $Id: test_0120_op_rg.mac 1353 2023-01-23 18:13:53Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2014-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; test opcodes with 1 1/2 operands
 ;
         .asect
-        .blkw   400 
+        . = 1000
 
 a:      .word   0
 pa:     .word   a

@@ -1,0 +1,22 @@
+; $Id: testerr_0400_Perror_error.mac 1354 2023-01-24 16:29:10Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test P error code (phase error)
+; case: .error, test also .print
+;
+        .asect
+        . = 1000
+;
+        .error                  ;;!! P
+        .error  123             ;;!! P  000123
+        .error  bad             ;;!! PU
+        .error  234,bad         ;;!! PQ 000234
+;
+        .print                  ;;!!
+        .print  456             ;;!! 000456
+        .print  bad             ;;!! U
+;
+1000$:                          ;;!! 001000:
+;
+        .end

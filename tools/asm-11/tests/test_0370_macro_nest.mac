@@ -1,0 +1,42 @@
+; $Id: test_0370_macro_nest.mac 1356 2023-01-26 15:10:23Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test macro redifinitions and nested .macro definitions
+;
+        .asect
+        . = 1000
+
+; list macro expansion
+        .list   me
+;
+; define a macro
+        .macro  mtest   a
+        mov     a,-(sp)                         ;;!! $l1
+        .endm
+;
+        mtest   r0                              ;;!= l1 = 010046
+;
+; redefine this macro
+        .macro  mtest   a
+        mov     -(sp),a                         ;;!! $l1
+        .endm
+;
+        mtest   r0                              ;;!= l1 = 014600
+;
+; define a macro that defines macros
+        .macro  mdef
+        .macro  push    src
+        mov     src,-(sp)                       ;;!! $l1
+        .endm   push
+        .macro  pop     dst
+        mov     -(sp),dst                       ;;!! $l1
+        .endm   pop
+        .endm   mdef
+;
+        mdef                    ; will create push,pop macro
+;
+        push    r1                              ;;!= l1 = 010146
+        pop     r1                              ;;!= l1 = 014601
+;
+        .end

@@ -1,0 +1,36 @@
+; $Id: test_0440_iff.mac 1353 2023-01-23 18:13:53Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test .if basics
+;
+        .asect
+        . = 1000
+;
+        a = 1
+        b = 2
+        c = a + b
+;
+        .if     eq,0            ; eq  0 ----------
+        .word   001001          ;;!! 001001
+        .iff
+        .word   011001          ; not assembled
+        .iftf
+        .word   021001          ;;!! 021001
+        .ift
+        .word   031001          ;;!! 031001
+        .endc
+1000$:                          ;;!! 001006:
+;
+        .if     eq,a            ; eq  1 ----------
+        .word   002001          ; not assembled
+        .iff
+        .word   012001          ;;!! 012001
+        .iftf
+        .word   022001          ;;!! 022001
+        .ift
+        .word   032001          ; not assembled
+        .endc
+1100$:                          ;;!! 001012:
+;
+        .end

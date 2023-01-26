@@ -1,0 +1,19 @@
+; $Id: testerr_0503_end_if.mac 1356 2023-01-26 15:10:23Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test .end
+; case: .end in .if expansion rejected with O error
+;
+        .asect
+        . = 1000
+;
+        .if     eq,0
+        .end                    ;;!! O
+        .word   1001            ;;!! 001001
+        .endc
+;
+        .word   1002            ;;!! 001002
+1000$:                          ;;!! 001004:
+;
+        .end

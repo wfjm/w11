@@ -1,0 +1,29 @@
+; $Id: testerr_0310_Oerror_mdel.mac 1354 2023-01-24 16:29:10Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test O error code (opcode error)
+; case: mdelete (skipped in RT11 MACRO-11 because .mdelete not available)
+;
+        .asect
+        . = 1000
+;
+        .if     df,...top       ; asm-11 only
+;
+; .mdelete: single non-existing macro
+        .mdelete  mbad          ;;!! O
+;
+; .mdelete: delete list with one non-existing macro
+        .macro  mok1
+        .endm
+        .macro  mok2
+        .endm
+        .macro  mok3
+        .endm
+        .mdelete  mok1          ; is OK
+        .mdelete  mok2,bad,mok3 ;;!! O
+        .mdelete  mok2          ;;!! O
+        .mdelete  mok3          ;;!! O
+;
+        .endc
+        .end

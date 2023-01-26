@@ -1,0 +1,58 @@
+; $Id: test_0360_macro_mexit.mac 1355 2023-01-25 21:14:24Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test .macro and .mexit
+;
+        .asect
+        . = 1000
+
+; list macro expansion
+        .list   me
+;
+; nested macro calls, ensure that .mexit individually
+        .macro  mtop,src
+        mbot    #1,a
+        mbot    src,b
+        .mexit
+        bad     code            ; never assembled
+        .endm
+;
+        .macro  mbot,src,dst
+        mov     src,dst
+        .mexit
+        bad     code            ; never assembled
+        .endm
+;
+        mtop    #2
+1000$:                          ;;!! 001014:
+        mtop    #3
+1100$:                          ;;!! 001030:
+;
+; nested macro calls, ensure that dangling .if are closed properly
+        .macro  mtop1
+        mbot1   0
+        .if     ne,0
+        .iff
+        mbot1   1
+        .ift
+        .word   001001          ; never assembled
+        .iff
+        .word   001002          ; written once
+        .endc
+        .endm
+;
+        .macro  mbot1,val
+        .word   002001          ; written twice
+        .if     ne,val
+        .mexit
+        .endc
+        .word   002002          ; written once
+        .endm
+;
+        mtop1
+2000$:                          ;;!! 001040:
+;
+a:      .word   0
+b:      .word   0
+        .end

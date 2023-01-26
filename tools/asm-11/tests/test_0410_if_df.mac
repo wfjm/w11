@@ -1,0 +1,136 @@
+; $Id: test_0410_if_df.mac 1355 2023-01-25 21:14:24Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test .if df|ndf basics
+;
+        .asect
+        . = 1000
+;
+        a = 1
+        b = 2
+        c = a+b
+;
+; single symbol tests
+        .if     df,a            ; df Y -----------
+        .word   001001          ;;!! 001001
+        .endc
+        .if     df,ano          ; df N -----------
+        .word   001002          ; not assembled
+        .endc
+1000$:                          ;;!! 001002:
+;
+        .if     ndf,a           ; ndf Y  ----------
+        .word   002001          ; not assembled
+        .endc
+        .if     ndf,ano         ; ndf N -----------
+        .word   002002          ;;!! 002002
+        .endc
+1100$:                          ;;!! 001004:
+;
+; sym & sym tests
+        .if     df,a&b          ; df Y&Y ---------
+        .word   003001          ;;!! 003001
+        .endc
+        .if     df,a&bno        ; df Y&N ---------
+        .word   003002          ; not assembled
+        .endc
+        .if     df,ano & b      ; df N&Y --------
+        .word   003003          ; not assembled
+        .endc
+        .if     df,ano & bno    ; df N&N --------
+        .word   003004          ; not assembled
+        .endc
+2000$:                          ;;!! 001006:
+;
+        .if     ndf,a&b         ; ndf Y&Y --------
+        .word   004001          ; not assembled
+        .endc
+        .if     ndf,a&bno       ; ndf Y&N --------
+        .word   004002          ;;!! 004002
+        .endc
+        .if     ndf,ano & b     ; ndf N&Y -------
+        .word   004003          ;;!! 004003
+        .endc
+        .if     ndf,ano & bno   ; ndf N&N -------
+        .word   004004          ;;!! 004004
+        .endc
+2100$:                          ;;!! 001014:
+;
+; sym ! sym tests
+        .if     df,a!b          ; df Y&Y ---------
+        .word   005001          ;;!! 005001
+        .endc
+        .if     df,a!bno        ; df Y&N ---------
+        .word   005002          ;;!! 005002
+        .endc
+        .if     df,ano ! b      ; df N&Y --------
+        .word   005003          ;;!! 005003
+        .endc
+        .if     df,ano ! bno    ; df N&N --------
+        .word   005004          ; not assembled
+        .endc
+2200$:                          ;;!! 001022:
+;
+        .if     ndf,a!b         ; ndf Y!Y --------
+        .word   006001          ;;!! 006001
+        .endc
+        .if     ndf,a!bno       ; ndf Y!N --------
+        .word   006002          ; not assembled
+        .endc
+        .if     ndf,ano ! b     ; ndf N!Y -------
+        .word   006003          ; not assembled
+        .endc
+        .if     ndf,ano ! bno   ; ndf N!N -------
+        .word   006004          ; not assembled
+        .endc
+2300$:                          ;;!! 001024:
+;
+; 3 sym tests
+        .if     df,a&b&c        ; df Y&Y&Y ---------
+        .word   007001          ;;!! 007001
+        .endc
+        .if     df,a&b&cno      ; df Y&Y&N ---------
+        .word   007002          ; not assembled
+        .endc
+        .if     df,a&b!cno      ; df Y&Y!N ---------
+        .word   007003          ;;!! 007003
+        .endc
+        .if     df,ano&bno!c    ; df N&N!Y ---------
+        .word   007004          ;;!! 007004
+        .endc
+2400$:                          ;;!! 001032:
+;
+; check response for register, instruction, macro, and directive names
+;
+        . = 2000
+        .macro  mtest
+        .print  007  ; mtest macro
+        .endm
+        mtest
+;
+; register names (ndf in asm-11, df in MACRO-11)
+        .if     df,pc
+        .word   010001
+        .endc
+3000$:                          ;;!! 002000:
+;
+; instruction opcodes (df in asm-11, ndf in MACRO-11)
+        .if     df,cmpb
+        .word   010002
+        .endc
+3100$:                          ;;!! 002002:
+;
+; macro names (ndf in asm-11 and MACRO-11)
+        .if     df,mtest
+        .word   010003
+        .endc
+3200$:                          ;;!! 002002:
+;
+; directive names (ndf in asm-11 and MACRO-11)
+        .if     df,.macro
+        .word   010004
+        .endc
+3300$:                          ;;!! 002002:
+;
+        .end

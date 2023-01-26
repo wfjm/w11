@@ -1,0 +1,27 @@
+; $Id: testerr_0300_Oerror.mac 1355 2023-01-25 21:14:24Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test O error code (opcode error)
+;
+        .asect
+        . = 1000
+;
+; misplaced .end*
+        .endr                   ;;!! O
+        .endm                   ;;!! O
+        .endc                   ;;!! O
+;
+; misplaced .mexit
+        .mexit                  ;;!! O
+;
+; misplaced .narg,.ntype
+        .narg   $$$             ;;!! O          ; OQ in MACRO-11
+        .ntype  $$$,arg         ;;!! OQ
+;
+; misplaced .if(t|f|tf)
+        .ift                    ;;!! O
+        .iff                    ;;!! O
+        .iftf                   ;;!! O
+;
+        .end

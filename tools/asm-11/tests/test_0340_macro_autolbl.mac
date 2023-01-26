@@ -1,0 +1,56 @@
+; $Id: test_0340_macro_autolbl.mac 1355 2023-01-25 21:14:24Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2019-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test .macro with auto-label creation; test nested macro calls
+;
+        .asect
+        . = 1000
+
+; list macro expansion
+        .list   me
+;
+; define macro using ?lbl and defaults
+;
+        .macro  scopy,src,dst=#t02tmp,?lbl
+        mov     src,r0
+        mov     dst,r1
+lbl:    movb    (r0)+,(r1)+
+        bne     lbl                     ;;!! $l1
+        .endm   scopy
+;
+t02:    scopy   #t02a1+<2*2>,#t02buf    ;;!= l1 = 001012: 001376
+1$:                                     ;;!! 001014:
+        scopy   #t02a2                  ;;!= l1 = 001026: 001376
+2$:                                     ;;!! 001030:
+        mov     #t02a1,r5
+        scopy   r5                      ;;!= l1 = 001044: 001376
+3$:                                     ;;!! 001046:
+;
+t02a1:  .asciz  /1234567890/
+t02a2:  .asciz  /abcdefghij/
+t02buf: .blkb   32.
+t02tmp: .blkb   32.
+;
+; define push/pop macro
+        .macro  push,src
+        mov     src,-(sp)
+        .endm
+        .macro  pop,dst
+        mov     (sp)+,dst
+        .endm
+;
+; and a macro with nested macro calls
+        .macro  bcopy,src,dst
+        push    r0
+        push    r1
+        scopy   #src,#dst
+        pop     r1
+        pop     r0
+        .endm
+;
+        . = 2000
+t03:    bcopy   t02a1,t02tmp            ;;!= l1 = 002016: 001376
+1$:                                     ;;!! 002024:
+
+        .end

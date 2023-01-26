@@ -1,0 +1,61 @@
+; $Id: test_0320_macro_narg.mac 1355 2023-01-25 21:14:24Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test .macro keyword arguments and .narg and \ operator
+;
+        .asect
+        . = 1000
+
+; list macro expansion
+        .list   me
+
+; define macro with defaults and .narg
+        .macro  quad,a1,a2,a3=76,a4=77
+        .word   a1                      ;;!! $l1
+        .word   a2                      ;;!! $l2
+        .word   a3                      ;;!! $l3
+        .word   a4                      ;;!! $l4
+        .narg   $$$                     ;;!! $l5
+        .word   $$$                     ;;!! $l5
+        .endm
+;
+; use macro with defaults and keyword arguments, test .narg
+; Note: .narg does not count keyword arguments
+;
+;;!= l1 = 000001
+;;!= l2 = 000002
+;;!= l3 = 000003
+;;!= l4 = 000004
+        quad    1,2,3,4                 ;;!= l5 = 000004
+;
+;;!= l1 = 000011
+;;!= l2 = 000012
+;;!= l3 = 000076
+;;!= l4 = 000077
+        quad    11,12                   ;;!= l5 = 000002
+;
+;;!= l1 = 000023
+;;!= l2 = 000021
+;;!= l3 = 000076
+;;!= l4 = 000077
+        quad    a2=21,a1=22,23          ;;!= l5 = 000001
+;
+;;!= l1 = 000034
+;;!= l2 = 000033
+;;!= l3 = 000032
+;;!= l4 = 000031
+        quad    a4=31,a3=32,a2=33,a1=34 ;;!= l5 = 000000
+;
+; use macro with \ operator (pass by value)
+;
+        a = 12
+        b = 3456
+;
+;;!= l1 = 000012
+;;!= l2 = 003456
+;;!= l3 = 000013
+;;!= l4 = 003457
+        quad    \a,\b,a+1,b+1           ;;!= l5 = 000004
+;
+        .end

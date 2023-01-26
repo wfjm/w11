@@ -1,0 +1,36 @@
+; $Id: test_0420_if_b.mac 1353 2023-01-23 18:13:53Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test .if b|nb basics
+;
+        .asect
+        . = 1000
+;
+        a = 1
+        b = 2
+;
+; direct tests
+        .if     b,              ; b - -----------
+        .word   001001          ;;!! 001001
+        .endc
+        .if     b,a             ; b t -----------
+        .word   001002          ; not assembled
+        .endc
+        .if     b,@20(r0)       ; b t -----------
+        .word   001003          ; not assembled
+        .endc
+1000$:                          ;;!! 001002:
+;
+        .if     nb,             ; nb - ----------
+        .word   002001          ; not assembled
+        .endc
+        .if     nb,a            ; nb t ----------
+        .word   002002          ;;!! 002002
+        .endc
+        .if     nb,@20(r0)      ; nb t ----------
+        .word   002003          ;;!! 002003
+        .endc
+1100$:                          ;;!! 001006:
+;
+        .end

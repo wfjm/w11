@@ -1,0 +1,69 @@
+; $Id: testerr_0600_macro.mac 1356 2023-01-26 15:10:23Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test error response for .macro and macro calls
+;
+        .asect
+        . = 1000
+;
+        .list   me
+;
+; .macro without macro name -> O error and no macro defined
+        .macro                          ;;!! O
+        .endm                           ;;!! O
+;
+; .macro with non-matching name in .endm
+        .macro  badend
+        .word   0
+        .endm   endbad                  ;;!! A
+;
+; .macro with redundant key names
+        .macro  argnam  a,b,a           ;;!! A
+        .word   a
+        .word   b
+        .endm
+;
+; .macro with bad key name
+        .macro  badarg  100
+        .endm
+;
+; .macro with bad auto-label name
+        .macro  badlbl  ?100
+        .endm
+;
+; .macro with \ modfier in key definition
+        .macro  badmod  \a
+        .endm
+;
+; extra or bad arguments in macro call
+        .macro  extarg  a
+        .word   a
+        .endm
+;
+        a = 123
+;
+        extarg  100                     ; ok
+        extarg  100,200                 ;;!! Q
+        extarg  a=100                   ; ok
+        extarg  a=                      ; ok
+        extarg  c=100                   ;;!! AU
+        extarg  \a                      ; ok
+        extarg  \b                      ;;!! U
+        extarg  \100                    ;;!! Q  ; ok in MACRO-11
+        extarg  ?a                      ;;!! Q  ; ok in MACRO-11
+;
+; .narg,.ntype,.nchr without symbol and/or value
+        .macro  badnxx  a,b
+        .word   a
+        .ascii  /b/
+        .narg                           ;;!! A
+        .nchr                           ;;!! A
+        .nchr   $$$                     ;;!! A  ; ok in MACRO-11
+        .ntype                          ;;!! A
+        .ntype  $$$                     ;;!! A
+        .endm
+;
+        badnxx  100,^/foo/
+;
+        .end

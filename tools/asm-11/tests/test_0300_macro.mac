@@ -1,76 +1,87 @@
-; $Id: test_0300_macro.mac 1262 2022-07-25 09:44:55Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2019-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; test .macro basics
 ;
         .asect
-        .blkw   400
+        . = 1000
 
 ; list macro expansion
-
         .list   me
 
-; define and use simple macros
-
+; define simple macros
+        .macro  push,src
+        mov     src,-(sp)               ;;!! $l1
+        .endm
+        .macro  word,val
+        .word   val                     ;;!! $l1
+        .endm
+;
+; use a simple macro with all addressing modes
+;
+v1:     .word   0
+        .word   0
+v2:     .word   v1
+        .word   v1+2
+        off = 2
+;
+        push    r5                      ;;!= l1 = 010546
+        push    (r4)                    ;;!= l1 = 011446
+        push    (r3)+                   ;;!= l1 = 012346
+        push    @(r2)+                  ;;!= l1 = 013246
+        push    -(r1)                   ;;!= l1 = 014146
+        push    @-(r0)                  ;;!= l1 = 015046
+        push    10(r0)                  ;;!= l1 = 016046 000010
+        push    10+2(r1)                ;;!= l1 = 016146 000012
+        push    10+<1+2*2>(r2)          ;;!= l1 = 016246 000016
+        push    @20(r3)                 ;;!= l1 = 017346 000020
+        push    @20+^b100(r4)           ;;!= l1 = 017446 000024
+        push    v1                      ;;!= l1 = 016746 177724
+        push    @v2                     ;;!= l1 = 017746 177724
+;
+; simple word generation
+;
+        a = 1
+        b = 2
+        word    100                     ;;!= l1 = 000100
+        word    a+b+1                   ;;!= l1 = 000004
+        word    <^b1010+b-2*a>          ;;!= l1 = 000012
+;
+; define and a macro with 3 arguments (use . and $ in key names)
+;
+        .macro  test x .x $x
+        .word   x                       ;;!! 001001
+        .word   .x                      ;;!! 001002
+        .word   $x                      ;;!! 001003
+        .endm
+        test    1001 1002 1003
+;
+; some simple macro usage
+;
         .macro  scall,dst
-        jsr     pc,dst
+        jsr     pc,dst                  ;;!! $l1
         .endm
         .macro  sret
-        rts     pc
+        rts     pc                      ;;!! $l1
         .endm
         .macro  push,src
-        mov     src,-(sp)
+        mov     src,-(sp)               ;;!! $l1
         .endm
         .macro  pop,dst
-        mov     (sp)+,dst
+        mov     (sp)+,dst               ;;!! $l1
         .endm
-
-t01:    scall   t01sub
-        halt
-1$:                             ;;!! 001006:
-
-t01sub: push    r0
-        push    r1
-        pop     r1
-        pop     r0
-        sret
-1$:                             ;;!! 001020:
-
-; macro with defaults and auto-label
-
-        .macro  scopy,src,dst=#t02tmp,?lbl
-        mov     src,r0
-        mov     dst,r1
-lbl:    movb    (r0)+,(r1)+     ;;!! 112021
-        bne     lbl             ;;!! 001376
-        .endm   scopy
-
-        . = 02000
-t02:    scopy   #t02a1+<2*2>,#t02buf
-1$:                             ;;!! 002014:
-        scopy   #t02a2
-2$:                             ;;!! 002030:
-        mov     #t02a1,r5
-        scopy   r5
-3$:                             ;;!! 002046:
 ;
-t02a1:  .asciz  /1234567890/
-t02a2:  .asciz  /abcdefghij/
-t02buf: .blkb   32.
-t02tmp: .blkb   32.
+        . = 2000
+t01:    scall   t01sub                  ;;!= l1 = 002000: 004767 000002
+        halt
+1$:                                     ;;!! 002006:
 
-; nested macro calls
+t01sub: push    r0                      ;;!= l1 = 002006: 010046
+        push    r1                      ;;!= l1 = 002010: 010146
+        pop     r1                      ;;!= l1 = 002012: 012601
+        pop     r0                      ;;!= l1 = 002014: 012600
+        sret                            ;;!= l1 = 002016: 000207
+1$:                                     ;;!! 002020:
 
-        .macro  bcopy,src,dst
-        push    r0
-        push    r1
-        scopy   #src,#dst
-        pop     r1
-        pop     r0
-        .endm
 
-        . = 3000
-t03:    bcopy   t02a1,t02tmp
-1$:                             ;;!! 003024:
         .end

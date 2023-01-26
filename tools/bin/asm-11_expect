@@ -1,10 +1,12 @@
 #!/usr/bin/perl -w
-# $Id: asm-11_expect 1189 2019-07-13 16:41:07Z mueller $
+# $Id: asm-11_expect 1355 2023-01-25 21:14:24Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2023-01-25  1355   1.2    add simple substitution mechanism
+# 2023-01-24  1354   1.1.3  handle new flag column in output format
 # 2019-07-13  1189   1.1.2  drop superfluous exists for $opts
 # 2019-05-25  1152   1.1.1  skip data checks if dot not defined
 # 2018-11-03  1065   1.1    add and use bailout; update exit code usage
@@ -46,14 +48,19 @@ exit 0;
 #-------------------------------------------------------------------------------
 #
 #; Input file list:
-#    1    6                              ; comment
-#    1   17 000000                       zero:
-#    1   23 002000 000101                w0:     .word   101
-#    1   17 001011 377                           .byte   ^c0
-#    1   70 001206 046374 001234 001234          bic     1234(r3),@1234(r4)
-#    1   24 001036 067527 066162 020544          .word   "Wo,"rl,"d!,0
-#                  000000
-#EEfnolinno dot... word1. word2. word2.
+#    1     6                              ; comment
+#    1    17 000000                       zero:
+#    1    23 002000 000101                w0:     .word   101
+#    1    17 001011 377                           .byte   ^c0
+#    1    70 001206 046374 001234 001234          bic     1234(r3),@1234(r4)
+#    1    24 001036 067527 066162 020544          .word   "Wo,"rl,"d!,0
+#                   000000
+#    1    21 001012 110 145 154 154               .byte   'H,'e,'l,'l
+#    1M   15                                      .macro  scall,dst
+#    1m   16 001000 004767 000002                 jsr     pc,t01sub
+#
+#EEfnoFlinno dot... word1. word2. word2.  : line with word data
+#EEfnoFlinno dot... by1 by2 by3 by4 by5   : line with byte data
 #
 #          1         2         3
 #0123456789012345678901234567890123456789
@@ -71,6 +78,7 @@ sub do_file {
   }
 
   my @errmsg;                               # error message list
+  my %sub;                                  # substitution hash
   my $echeck = 0;
   my $c_string;
   my $c_pend;
@@ -95,15 +103,19 @@ sub do_file {
     }
 
     my $fileno;
+    my $flag;
     my $lineno;
 
-    if (substr($rest,0,8) =~ m/^\s+(\d+)\s+(\d+)$/) {
+    if (substr($rest,0,9) =~ m/^\s+(\d+)(.)\s+(\d+)$/) {
       $fileno = int($1);
-      $lineno = int($2);
-      $rest = substr($rest,8);
+      $flag   = $2;
+      $lineno = int($3);
+      $rest = substr($rest,9);
     } else {
+      # print "+++1 $line\n";
       next;
     }
+    next if $flag =~ m/^[MRd]$/;      # ignore macro/rept and conditionals
 
     my $dot;
     if (substr($rest,0,7) eq '       ') {
@@ -136,12 +148,18 @@ sub do_file {
       $rest = substr($rest,1);
     }
 
+    # look for substition definitions
+    if ($rest =~ m/;;!=\s*([a-zA-Z][a-zA-Z0-9]*)\s*=\s*(.*)$/) {
+      $sub{$1} = $2;
+    }
+
     # look for expect condition (unless one is pending)
     if ($c_pend) {
       $c_pend = undef;
     } else {
       if ($rest =~ m/;;!!(.*)$/) {
         $c_string = $1;
+        $c_string =~ s/;.*$//;              # drop trailing comment
         if ($rest =~ m/^\s*;;!!/) {
           $c_pend = 1;
           next;
@@ -164,6 +182,22 @@ sub do_file {
     my $c_dot;
     my @c_dat;
 
+    # handle substitutions
+    if ($c_string =~ m/\$([a-zA-Z][a-zA-Z0-9]*)/) {
+      if (exists $sub{$1}) {
+        $c_string  = $`;
+        $c_string .= $sub{$1};
+        $c_string .= $';
+      } else {
+        push @errmsg,
+          {msg  => sprintf("substitution failure for tag '%s'", $1),
+           line => ';;!! ' . $c_string};
+        $c_string = undef;
+        next;
+      }
+    }
+
+    # and parse result
     my $c_rest = $c_string;
     if ($c_rest =~ m/^\s*([A-Z]+)/) {
       $c_err  = $1;
@@ -205,6 +239,12 @@ sub do_file {
         push @errmsg,
           {msg  => sprintf("error mismatch: found='%s', expect='%s'",
                            $err, $c_err),
+           line => $line};
+      }
+    } else {
+      if ($err ne '') {
+        push @errmsg,
+          {msg  => sprintf("error mismatch: found='%s', expect=''", $err),
            line => $line};
       }
     }

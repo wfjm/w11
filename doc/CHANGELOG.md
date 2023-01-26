@@ -30,6 +30,23 @@ The full set of tests is only run for tagged releases.
 ### Summary
 ### New features
 ### Changes
+- tools changes
+  - tools/bin
+    - asm-11
+      - add .if, .if(f|t|tf), .endc, .rept, .endr, .mexit directives
+      - add .error, .print, .mcall, .mdelete directives
+      - add .narg, .nchr, .ntype directives
+      - rewrite macro definition and call argument parsing & handling
+      - add -L option (to set .mcall pathlist)
+      - add auto-generated ...top label
+      - add flag (MRmrd) column in output format
+    - asm-11_expect
+      - add simple substitution mechanism (for macro testing)
+      - handle new flag column in output format
+  - tools/asm-11
+    - tests(-err): many tests added
+    - tests(-err)/Makefile: distclean target added
+    - mlib: macro library, accessed by .mcall
 ### Bug Fixes
   - tools/bin/asm-11:
     - BUGFIX: support @(R) modifier with omitted offset

@@ -1,6 +1,6 @@
-; $Id: zbug_0001.mac 1184 2019-07-10 20:39:44Z mueller $
+; $Id: zbug_0001.mac 1353 2023-01-23 18:13:53Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2013-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; ISSUE: .ascii without label failed with Q
 ; 
@@ -14,7 +14,7 @@
 ; SIDES: prevents also creation of labels with the name of a directive.
 ;
         .asect
-        .blkw   400
+        . = 1000
         
         .word   0
 

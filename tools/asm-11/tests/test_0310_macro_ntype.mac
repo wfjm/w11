@@ -1,0 +1,59 @@
+; $Id: test_0310_macro_ntype.mac 1355 2023-01-25 21:14:24Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2019-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test .macro basics and .ntype
+;
+        .asect
+        . = 1000
+
+; list macro expansion
+        .list   me
+
+; define simple macro with .ntype
+        .macro  pop,dst
+        mov     (sp)+,dst               ;;!! $l1
+        .ntype  $$,dst                  ;;!! $l2
+        .word   $$                      ;;!! $l2
+        .endm
+;
+; use a simple macro with all addressing modes and test .ntype
+;
+v1:     .word   0
+        .word   0
+v2:     .word   v1
+        .word   v1+2
+        off = 2
+;
+;;!= l2 = 000005
+        pop     r5                      ;;!= l1 = 012605
+;;!= l2 = 000014
+        pop     (r4)                    ;;!= l1 = 012614
+;;!= l2 = 000023
+        pop     (r3)+                   ;;!= l1 = 012623
+;;!= l2 = 000032
+        pop     @(r2)+                  ;;!= l1 = 012632
+;;!= l2 = 000041
+        pop     -(r1)                   ;;!= l1 = 012641
+;;!= l2 = 000050
+        pop     @-(r0)                  ;;!= l1 = 012650
+;;!= l2 = 000060
+        pop     10(r0)                  ;;!= l1 = 012660 000010
+;;!= l2 = 000061
+        pop     10+2(r1)                ;;!= l1 = 012661 000012
+;;!= l2 = 000062
+        pop     10+<1+2*2>(r2)          ;;!= l1 = 012662 000016
+;;!= l2 = 000073
+        pop     @20(r3)                 ;;!= l1 = 012673 000020
+;;!= l2 = 000074
+        pop     @20+^b100(r4)           ;;!= l1 = 012674 000024
+;;!= l2 = 000067
+        pop     v1                      ;;!= l1 = 012667 177676
+;;!= l2 = 000067
+        pop     v1+2                    ;;!= l1 = 012667 177672
+;;!= l2 = 000077
+        pop     @v2                     ;;!= l1 = 012677 177666
+;;!= l2 = 000077
+        pop     @v2+off                 ;;!= l1 = 012677 177662
+;
+        .end

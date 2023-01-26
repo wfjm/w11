@@ -1,11 +1,15 @@
 #!/usr/bin/perl -w
-# $Id: asm-11 1352 2023-01-22 08:29:50Z mueller $
+# $Id: asm-11 1356 2023-01-26 15:10:23Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2013-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
-# 2023-01-13  1352   1.1.5  BUGFIX: misused # and @ don't cause BUGCHECKs anymore
+# 2023-01-25  1355   1.2.2  rewrite macro args handling; add .narg,.nchr,.ntype
+# 2023-01-24  1354   1.2.1  add .error,.print,.mcall,.mdelete; add -L; add ...top
+# 2023-01-22  1353   1.2    add .if, .if(f|t|tf), .endc, .rept, .endr, .mexit
+#                           add flag (MRmrd) column in output format
+# 2023-01-13  1352   1.1.5  BUGFIX: misused # and @ don't cause BUGCHECK anymore
 # 2023-01-12  1351   1.1.4  BUGFIX: support @(R) modifier with omitted offset
 # 2022-07-28  1264   1.1.3  add -E and -M options
 # 2022-07-23  1262   1.1.2  BUGFIX: '100(pc)' was compiled as '100'
@@ -20,7 +24,7 @@
 # 2013-04-01   502   1.0.1  BUGFIX: -2(r0),@-2(r0) was broken, parser fixed
 #                           add -lsm (lsmem format) output; add implicit .word
 # 2013-03-29   501   1.0    Initial version
-# 2013-03-22   498   0.5    Second draft (functional, but limited...)
+# 2013-03-22   498   0.5    Second draft (functional, but very limited...)
 # 2013-03-07   496   0.1    First draft
 #
 
@@ -41,6 +45,7 @@ GetOptions(\%opts, "help", "E", "M",
                    "dsym1",  "dsym2",
                    "ttoken", "tparse", "temit", "tout",
                    "I=s@",
+                   "L=s@",
                    "lst", "olst=s",
                    "lda", "olda=s",
                    "cof", "ocof=s",
@@ -50,6 +55,7 @@ GetOptions(\%opts, "help", "E", "M",
 
 unshift @{$opts{I}}, ".";                  # ./ is first in include path
 push @{$opts{I}}, "$ENV{RETROBASE}/tools/asm-11" if defined $ENV{RETROBASE};
+push @{$opts{L}}, "$ENV{RETROBASE}/tools/asm-11/mlib" if defined $ENV{RETROBASE};
 
 # Permanant symbol table
 my %pst = (
@@ -66,6 +72,21 @@ my %pst = (
  '.asect'   => {typ=>'dir'},                #
  '.macro'   => {typ=>'dir'},                #
  '.endm'    => {typ=>'dir'},                #
+ '.mexit'   => {typ=>'dir'},                #
+ '.mcall'   => {typ=>'dir'},                #
+ '.mdelete' => {typ=>'dir'},                #
+ '.narg'    => {typ=>'dir'},                #
+ '.nchr'    => {typ=>'dir'},                #
+ '.ntype'   => {typ=>'dir'},                #
+ '.rept'    => {typ=>'dir'},                #
+ '.endr'    => {typ=>'dir'},                #
+ '.if'      => {typ=>'dir'},                #
+ '.iff'     => {typ=>'dir'},                #
+ '.ift'     => {typ=>'dir'},                #
+ '.iftf'    => {typ=>'dir'},                #
+ '.endc'    => {typ=>'dir'},                #
+ '.error'   => {typ=>'dir'},                #
+ '.print'   => {typ=>'dir'},                #
  '.list'    => {typ=>'dir'},                #
  '.nlist'   => {typ=>'dir'},                #
  '.end'     => {typ=>'dir'},                #
@@ -248,7 +269,8 @@ my $cur_psect = '.abs.';                    # current psect
 
 # local symbol table
 my %lst =
-('.'       => {name=>'.', typ=>'dot', val=>0,  psect=>'.abs.'}
+  ('.'       => {name=>'.',      typ=>'dot', val=>0,  psect=>'.abs.'},
+   '...top'  => {name=>'...top', typ=>'lbl', val=>0,  psect=>'.abs.'}
 );
 my $llbl_scope = '0';                       # current local label scope
 my $llbl_ascope = 0;                        # annonymous local label scope count
@@ -256,9 +278,20 @@ my $llbl_ascope = 0;                        # annonymous local label scope count
 # macro table
 my %mst;
 my $mdefnam;                                # macro currently being defined
-my @mdefstk;                                # open .macro,.rept defs stack
+my $mdeflvl = 0;                            # .macro definition depth
+my @mexecstk;                               # macro execution stack
+my $mexit = 0;                              # mexit flag
 my $mautolbl = 30000;                       # auto-generated label
+# rept stack
+my @reptstk;                                # active .rept stack
+my $reptlvl = 0;                            # .rept definition depth
+# conditional assembly stack
+my @ifstk;                                  # if stack {tst=>0|1, cur=>0|1}
+my $ifcond;                                 # current if condition
+# .end handlinh
+my $end = 0;
 
+# files
 my @flist;                                  # list of filenames
 my $fstem;                                  # stem of last file name
 my $lst_do;                                 # generate listing
@@ -320,7 +353,13 @@ $pass = 1;
 foreach my $fname (@ARGV) {
   read_file($fname);
 }
+if ($end == 0 && ($mdeflvl + $reptlvl +     # no .end but .macro or .rept open
+                  scalar(@ifstk) != 0)) {     # or .endc open
+  pass1_line(1, 0, '', ' ');                  # add dummy line
+  add_err($src[-1], 'E');                     # and signal E error
+}
 exit 0 if $opts{E} || $opts{M};             # stop after pass1 for -E -M
+$lst{'...top'}->{val} = $psect{'.abs.'}{dotmax};
 dump_sym() if $opts{dsym1};
 
 # prepare pass 2
@@ -393,11 +432,12 @@ sub read_file {
   while (<$fh>) {
     chomp;
     my $line = $_;
-    if ($opts{E} && $line !~ m/\s*\.include/) {   # if -E and not .include
+    if ($opts{E} && $line !~ m/\s*\.(include|mcall)/) {   # if -E and no include
       printf "$line\n";                           # write to stdout
     }
     $lineno += 1;
-    pass1_line($fileno, $lineno, $line);
+    pass1_line($fileno, $lineno, $line, ' ');
+    last if $end;
   }
 
   return;
@@ -408,6 +448,9 @@ sub read_file {
 sub exec_macro {
   my ($rmexec) = @_;
   my $mname = $rmexec->{name};
+  my $ifstklvl = scalar(@ifstk);            # remember initial .if stack depth
+  push @mexecstk, {name => $mname,
+                   narg => $rmexec->{narg}};
   foreach my $rmline (@{$mst{$mname}{body}}) {
     my $lrest  = $rmline->{line};
     my $fileno = $rmline->{fileno};
@@ -417,23 +460,39 @@ sub exec_macro {
       $line .= $`;
       $line .= (defined $rmexec->{vals}{$1}) ? $rmexec->{vals}{$1} : $1;
       $lrest = $';
+      if (length($lrest) > 0 && substr($lrest,0,1) eq "'") { # concatenation
+        $lrest = substr($lrest,1);
+      }
     }
     $line .= $lrest;
-    pass1_line($fileno, $lineno, $line);
+    $mexit = 0;
+    pass1_line($fileno, $lineno, $line, 'm');
+    last if $mexit;
   }
+  $mexit = 0;
+  pop @mexecstk;
+  while (scalar(@ifstk) > $ifstklvl) {pop @ifstk;} # drop dangling .if's
   return;
+}
+
+#-------------------------------------------------------------------------------
+sub delete_macro {
+  my ($mname) = @_;
+  return 1 unless exists $mst{$mname};
+  delete $mst{$mname};
+  return 0;
 }
 
 #-------------------------------------------------------------------------------
 
 sub pass1_line {
-  my ($fileno,$lineno,$line) = @_;
+  my ($fileno,$lineno,$line,$flag) = @_;
 
-  my $rl = parse_line($fileno, $lineno, $line);
+  my $rl = parse_line($fileno, $lineno, $line, $flag);
   dump_rl($rl) if $opts{tpass1};
   push @src, $rl;
 
-  # handle .include
+  # handle .include ----------------------------------------
   if (defined $$rl{oper} && $$rl{oper} eq '.include' && defined $$rl{ifile}) {
     my $fnam = $$rl{ifile};
     unless ($fnam =~ m|^/|) {
@@ -447,7 +506,64 @@ sub pass1_line {
     read_file($fnam);
   }
 
-  # handle macro expansions
+  # handle .mcall ------------------------------------------
+  if (defined $$rl{oper} && $$rl{oper} eq '.mcall') {
+    foreach my $mname (@{$$rl{mcall}}) {
+      my $fname;
+      foreach (@{$opts{L}}) {
+        if (-r "$_/${mname}.mac") {
+          $fname = "$_/${mname}.mac";
+          last;
+        }
+      }
+      if (defined $fname) {
+        my $fh = new FileHandle;
+        $fh->open($fname) or bailout("failed to open '$fname': $!");
+
+        push @flist, $fname;
+        if ($opts{M}) {
+          printf "%s : %s\n", create_fname($opts{olda},'.lda'), $fname;
+          printf "%s : %s\n", create_fname($opts{olda},'.lst'), $fname;
+        }
+        my $lineno = 0;
+        my $fileno = scalar(@flist);
+        my $mseen;
+        while (<$fh>) {
+          chomp;
+          my $line = $_;
+          $lineno += 1;
+          $mseen = 1 if $line =~m/^\s*\.macro/; # .macro seen ?
+          next unless $mseen;
+          pass1_line($fileno, $lineno, $line, ' ');
+          printf "$line\n" if $opts{E};     # if -E write to stdout
+          last if $mdeflvl == 0;                # final .endm seen ?
+        }
+      } else {
+        add_err($rl,'U');
+      }
+    }
+  }
+
+  # handle .rept expansions --------------------------------
+  if (defined $$rl{oper} && $$rl{oper} eq '.endr') {
+    if (scalar(@reptstk) > 0) {
+      my $ifstklvl = scalar(@ifstk);    # remember initial .if stack depth
+      my $cnt = $reptstk[-1]{cnt};
+      for (my $i=0; $i<$cnt; $i++) {    # repeat body cnt times
+        foreach my $rline (@{$reptstk[-1]{body}}) {
+          $mexit = 0;
+          pass1_line($rline->{fileno}, $rline->{lineno}, $rline->{line}, 'r');
+          last if $mexit;
+        }
+        last if $mexit;
+      }
+      $mexit = 0;
+      pop @reptstk;
+      while (scalar(@ifstk) > $ifstklvl) {pop @ifstk;} # drop dangling .if's
+    }
+  }
+
+  # handle macro expansions --------------------------------
   if (defined $$rl{oper} && defined $$rl{mexec}) {
     exec_macro($$rl{mexec});
   }
@@ -457,7 +573,7 @@ sub pass1_line {
 #-------------------------------------------------------------------------------
 
 sub parse_line {
-  my ($fileno,$lineno,$line) = @_;
+  my ($fileno,$lineno,$line,$flag) = @_;
 
   my %l = ( fileno => $fileno,              # file number
             lineno => $lineno,              # line number
@@ -465,6 +581,7 @@ sub parse_line {
             cl     => [split '',$line],     # char list
             tl     => [],                   # token list
             err    => '',                   # error tags
+            flag   => $flag,                # line flag
             psect  => $cur_psect,           # current psect
             dot    => getdot(),             # current dot
             outw   => [],                   # output: words
@@ -514,25 +631,43 @@ sub parse_line {
     }
   }
 
-  if (defined $mdefnam) {                   # handle .macro,... definitions
-    my $ltrim = $line;
-    my $mdefend;
-    $ltrim =~ s/^[a-zA-Z\$\.][a-zA-Z0-9\$\.]*://; # trim label
-    $ltrim =~ s/^[0-9]+\$]://;                    # trim local label
-    $ltrim =~ s/^\s*//;                           # trim leading white
-    if ($ltrim =~ m/^(\.[a-zA-Z\$\.][a-zA-Z0-9\$\.]*)/) {  # directive seen
-      my $dnam = $1;
-      if ($dnam =~ m/^\.(macro|rept)/) {          # nested .macro etc seen
-        push @mdefstk, $dnam;
-      } elsif ($dnam =~ m/^\.(endm|endr)/) {      # .endm or .endr seen
-        if (scalar(@mdefstk) > 1) {
-          pop @mdefstk;
-        } else {
-          $mdefend = 1;
-        }
+  # handling for .macro and .rept definitions and conditional blocks
+  my $dnam = '';
+  my $ltrim = $line;
+  $ltrim =~ s/^[a-zA-Z\$\.][a-zA-Z0-9\$\.]*://; # trim label
+  $ltrim =~ s/^[0-9]+\$]://;                    # trim local label
+  $ltrim =~ s/^\s*//;                           # trim leading white
+  if ($ltrim =~ m/^(\.[a-zA-Z\$\.][a-zA-Z0-9\$\.]*)/) {  # directive seen
+    $dnam = $1;
+  }
+
+  if (scalar(@ifstk)) {                     # is .if conditional block active ?
+    unless ($dnam =~ m/^\.(iff|ift|iftf|endc)$/) { # and not sub-cond or end
+      unless ($ifstk[-1]{cur}) {            # if (sub-)cond false
+        $l{flag} = 'd';                       # mark condition drop
+        return \%l;                           # ignore line
       }
     }
-    unless ($mdefend) {
+  }
+
+  if ($reptlvl > 0) {                       # handle .rept definition
+    $reptlvl += 1 if $dnam eq '.rept';      #   nested .rept found ?
+    $reptlvl -= 1 if $dnam eq '.endr';      #   .endr found ?
+    if ($reptlvl > 0) {                     # final .endr not yet seen
+      $l{flag} = 'R';
+      push @{$reptstk[-1]{body}}, {line   => $l{line},
+                                   fileno => $l{fileno},
+                                   lineno => $l{lineno}
+                                  };
+      return \%l;
+    }
+  }
+
+  if (defined $mdefnam) {                   # handle .macro definition
+    $mdeflvl += 1 if $dnam eq '.macro';     #   nested .macro found ?
+    $mdeflvl -= 1 if $dnam eq '.endm';      #   .endm found ?
+    if ($mdeflvl > 0) {
+      $l{flag} = 'M';
       push @{$mst{$mdefnam}{body}}, {line   => $l{line},
                                      fileno => $l{fileno},
                                      lineno => $l{lineno}
@@ -541,7 +676,7 @@ sub parse_line {
     }
   }
 
-  while (1) {
+  STATE: while (1) {
     if ($opts{tparse}) {
       printf "-- state = %-8s",$state;
       my $rest = '';
@@ -678,71 +813,323 @@ sub parse_line {
               $state = 'q';
             }
 
-          } elsif ($op eq '.macro') {         # .macro ---------------
-            $rt = get_token(\%l, $tmask);
-            if ($$rt{tag} eq 'SYM') {
-              $mdefnam = $$rt{val};
-              $mst{$mdefnam} = {name => $mdefnam,
-                                typ  => '.macro',
-                                args => [],
-                                body => []
-                               };
-              my $mod;
-              $state = 'end';
-              while (1) {                   # loop over argument definitions
-                $rt = get_token(\%l, TMASK_MACROARG);
-                last if $$rt{tag} eq 'EOL';
-                next if $$rt{tag} eq 'DEL'; # FIXME_code: that's likely not OK
-                if ($$rt{tag} eq 'MMOD') {  # modifier seen ?
-                  $mod = $$rt{val};
-                  $rt = get_token(\%l, TMASK_MACROARG);
-                  if ($$rt{tag} eq 'SYM') {   # ensure next token is symbol
-                    pushback_token(\%l);
-                    next;
+          } elsif ($op eq '.if') {            # .if ------------------
+            my $tst = 0;
+            $rt = get_token(\%l, $tmask);     # get condition
+            if ($$rt{tag} eq 'SYM') {         # if SYM found
+              my $cond = $$rt{val};
+
+              if ($cond =~ m/^(eq|ne|gt|le|lt|ge)$/) { # eq|ne|gt|le|lt|ge
+                $rt = get_token(\%l, $tmask);     #  drop ',' delimiter
+                pushback_token(\%l) unless check_token($rt, 'DEL', ',');
+                $ifcond = $cond;
+                $state = 'dl_beg';
+                next STATE;
+
+              } elsif ($cond =~ m/^(df|ndf)$/) {  # df|ndf -----------
+                $rt = get_token(\%l, $tmask);     #  drop ',' delimiter
+                pushback_token(\%l) unless check_token($rt, 'DEL', ',');
+                my $op = '=';
+                while (1) {
+                  $rt = get_token(\%l, $tmask);     #  get symbol name
+                  if ($$rt{tag} eq 'SYM') {
+                    my $def = defined getsym(\%l, $$rt{val});
+                    $tst  = $def if $op eq '=';
+                    $tst &= $def if $op eq '&';
+                    $tst |= $def if $op eq '|';
                   } else {
-                    $state = 'q';
+                    add_err(\%l, 'A');              # quit with A error
+                    last;
+                  }
+                  $rt = get_token(\%l, $tmask);   # get & or ! operator
+                  last if ($$rt{tag} eq 'EOL');   # quit if EOL
+                  $op = undef;
+                  $op = '&' if check_token($rt, 'OP', '&');
+                  $op = '|' if check_token($rt, 'OP', '!');
+                  if (not defined $op) {
+                    add_err(\%l, 'A');            # quit with A error
                     last;
                   }
                 }
-                if ($$rt{tag} eq 'SYM') {   # key name seen
-                  my $key = $$rt{val};
-                  my $val;
-                  $rt = get_token(\%l, TMASK_MACROARG);
-                  if ($$rt{tag} eq 'ASS') {   # is it key=val pair ?
+                $tst = not $tst if $cond eq 'ndf';
+
+              } elsif ($cond =~ m/^(b|nb)$/) {    # b|nb --------------
+                $rt = get_token(\%l, $tmask);     #  drop ',' delimiter
+                pushback_token(\%l) unless check_token($rt, 'DEL', ',');
+                my $cnt = 0;
+                while (1) {
+                  $rt = get_token(\%l, $tmask);   # count all tokens
+                  last if ($$rt{tag} eq 'EOL');   # quit if EOL
+                  $cnt += 1;
+                }
+                $tst = ($cond eq 'b') ? $cnt == 0 : $cnt > 0;
+
+              } elsif ($cond =~ m/^(idn|dif)$/) { # idn|dif ----------
+                my $val1;
+                my $val2;
+                $rt = get_token(\%l, TMASK_MACROARG);  #  get 1st value
+                $rt = get_token(\%l, TMASK_MACROARG) if $$rt{tag} eq 'DEL';
+                if ($$rt{tag} eq 'SYM' || $$rt{tag} eq 'MVAL') {
+                  $val1 = $$rt{val};
+                  $rt = get_token(\%l, TMASK_MACROARG);  #  get 2nd value
+                  $rt = get_token(\%l, TMASK_MACROARG) if $$rt{tag} eq 'DEL';
+                  if ($$rt{tag} eq 'SYM' || $$rt{tag} eq 'MVAL') {
+                    $val2 = $$rt{val};
+                  }
+                }
+                if (defined $val1 && defined $val2) {
+                  $tst = ($cond eq 'idn') ? ($val1 eq $val2) : ($val1 ne $val2);
+                } else {
+                  add_err(\%l, 'A');
+                }
+
+              } else {                      # bad condition -> A error
+                add_err(\%l, 'A');
+              }
+            } else {                        # no conditiion -> A error
+              add_err(\%l, 'A');
+            }
+            push @ifstk, {tst => $tst, cur => $tst};
+            $state = 'end';
+
+          } elsif ($op =~ m/^\.if(t|f|tf)$/) {  # .if(f|t|tf) ----------
+            if (scalar(@ifstk) == 0) {          # .if block not active ?
+              add_err(\%l, 'O');                  # quit with O error
+              last STATE;
+            }
+            my $tst = $ifstk[-1]{tst};        # test value
+            my $cur = $tst;                   # for .itf
+            $cur = $tst ? 0 : 1 if $op eq '.iff';
+            $cur = 1            if $op eq '.iftf';
+            $ifstk[-1]{cur} = $cur;
+            $state = 'end';
+
+          } elsif ($op eq '.endc') {          # .endc ----------------
+            if (scalar(@ifstk) == 0) {          # .if block not active ?
+              add_err(\%l, 'O');                  # quit with O error
+              last STATE;
+            }
+            pop @ifstk;
+            $state = 'end';
+
+          } elsif ($op eq '.macro') {         # .macro ---------------
+            $rt = get_token(\%l, $tmask);
+            if ($$rt{tag} eq 'SYM') {
+              $l{flag} = 'M';
+              $mdeflvl = 1;
+              $mdefnam = $$rt{val};
+              $mst{$mdefnam} = {name => $mdefnam,
+                                args => [],
+                                body => []
+                               };
+              while (1) {                   # loop over argument definitions
+                $rt = get_token(\%l, TMASK_MACROARG);
+                last if $$rt{tag} eq 'EOL';
+                next if $$rt{tag} eq 'DEL'; # FIXME_code: is that OK ?
+
+                my $mod;
+                my $key;
+                my $val;
+                if ($$rt{tag} eq 'MMOD') {  # modifier seen ?
+                  if ($$rt{val} eq '?') {   # modifier '?' ?
+                    $mod = $$rt{val};
                     $rt = get_token(\%l, TMASK_MACROARG);
-                    if ($$rt{tag} eq 'SYM' || $$rt{tag} eq 'MVAL') {
-                      $val = $$rt{val};
-                    } elsif ($$rt{tag} eq 'DEL' || $$rt{tag} eq 'EOL') {
-                      $val = '';
+                    if ($$rt{tag} eq 'SYM') {   # ensure it's symbol
+                      $key = $$rt{val};
                     } else {
-                      $state = 'q';
-                      last;
+                      add_err(\%l, 'AQ');   # no symbol after ? -> AQ error
                     }
                   } else {
-                    pushback_token(\%l);
+                    add_err(\%l, 'AQ');     # other then ? modifier -> AQ error
                   }
+                } elsif ($$rt{tag} eq 'SYM') {     # if symbol
+                  $key = $$rt{val};
+                } elsif ($$rt{tag} eq 'MKEY') {    # if key
+                  $key = $$rt{val};
+                  $rt = get_token(\%l, TMASK_MACROARG);
+                  if ($$rt{tag} eq 'SYM' || $$rt{tag} eq 'MVAL') {
+                    $val = $$rt{val};
+                  } else {
+                    add_err(\%l, 'Q');      # no value after key= -> Q error
+                  }
+                } else {
+                 add_err(\%l, 'AQ');        # neither mod,sym,key -> AQ error
+                }
+                foreach my $rarg (@{$mst{$mdefnam}{args}}) {
+                  if ($rarg->{key} eq $key) { # key already seen ?
+                    add_err(\%l, 'A');        # key already defined -> A error
+                    $key = undef;
+                    last;
+                  }
+                }
+                if (defined $key) {
                   push @{$mst{$mdefnam}{args}}, {key => $key,
                                                  val => $val,
                                                  mod => $mod
                                                 };
-                } else {
-                  $state = 'q';
-                  last;
                 }
               }
             } else {
-              $state = 'q';
+              add_err(\%l, 'O');            # no macro name -> O error
             }
+            $state = 'end';
 
           } elsif ($op eq '.endm') {          # .endm ----------------
-            $rt = get_token(\%l, $tmask);
-            if ($$rt{tag} eq 'EOL' || $$rt{tag} eq 'SYM') {
-              add_err(\%l, 'A') if $$rt{tag} eq 'SYM' && $$rt{val} ne $mdefnam;
-              $mdefnam = undef;
-              $state = 'end';
+            if (not defined $mdefnam) {       # .macro not active ?
+              add_err(\%l, 'O');                  # quit with O error
             } else {
-              $state = 'q';
+              $l{flag} = "M";
+              $rt = get_token(\%l, $tmask);
+              if ($$rt{tag} eq 'SYM') {       # if non-matching name -> A error
+                add_err(\%l, 'A') if $$rt{val} ne $mdefnam;
+              }
             }
+            $mdefnam = undef;
+            $state = 'end';
+
+          } elsif ($op eq '.mexit') {         # .mexit ---------------
+            if (scalar(@mexecstk)+scalar(@reptstk) == 0) { # outside macro|rept?
+              add_err(\%l, 'O');                # quit with O error
+            } else {
+              $mexit = 1;
+            }
+            $state = 'end';
+
+          } elsif ($op eq '.mcall') {         # .mcall ---------------
+            while(1) {
+              $rt = get_token(\%l, $tmask);
+              $rt = get_token(\%l, $tmask) if check_token($rt, 'DEL', ',');
+              last if $$rt{tag} eq 'EOL';
+              if ($$rt{tag} eq 'SYM') {       # name found
+                push @{$l{mcall}}, $$rt{val};
+              } else {
+                add_err(\%l, 'A');            # signal A error
+              }
+            }
+            $state = 'end';
+
+          } elsif ($op eq '.mdelete') {       # .mdelete -------------
+            while(1) {
+              $rt = get_token(\%l, $tmask);
+              $rt = get_token(\%l, $tmask) if check_token($rt, 'DEL', ',');
+              last if $$rt{tag} eq 'EOL';
+              if ($$rt{tag} eq 'SYM') {       # name found
+                add_err(\%l, 'O') if delete_macro($$rt{val});
+              } else {
+                add_err(\%l, 'A');            # signal A error
+              }
+            }
+            $state = 'end';
+
+          } elsif ($op eq '.narg') {          # .narg ----------------
+            $rt = get_token(\%l, $tmask);
+            my $val = 0;
+            if (scalar(@mexecstk) > 0) {      # inside macro?
+              if ($$rt{tag} eq 'SYM') {       # name found ?
+                $val = $mexecstk[-1]{narg};
+                setsym(\%l, 'ass', $$rt{val}, $val);
+                $l{typ}    = 'nxx';
+                $l{asym}   = $$rt{val};
+              } else {
+                add_err(\%l, 'A');            # no symbol -> A error
+              }
+            } else {
+              add_err(\%l, 'O');              # outside macro -> O error
+            }
+            $l{lstval} = $val;
+            $state = 'end';
+
+          } elsif ($op eq '.nchr') {          # .nchr ----------------
+            $rt = get_token(\%l, $tmask);
+            my $val = 0;
+            if ($$rt{tag} eq 'SYM') {       # name found ?
+              my $sym = $$rt{val};
+              $rt = get_token(\%l, TMASK_MACROARG);
+              $rt = get_token(\%l, TMASK_MACROARG) if $$rt{tag} eq 'DEL';
+              if ($$rt{tag} eq 'SYM' || $$rt{tag} eq 'MVAL') {
+                $val = length($$rt{val});
+                setsym(\%l, 'ass', $sym, $val);
+                $l{typ}    = 'nxx';
+                $l{asym}   = $sym;
+              } else {
+                add_err(\%l, 'A');          # no value -> A error
+              }
+            } else {
+              add_err(\%l, 'A');            # no symbol-> A error
+            }
+            $l{lstval} = $val;
+            $state = 'end';
+
+          } elsif ($op eq '.ntype') {         # .ntype ---------------
+            $rt = get_token(\%l, $tmask);
+            my $val = 0;
+            if (scalar(@mexecstk) > 0) {      # inside macro ?
+              if ($$rt{tag} eq 'SYM') {       # name found ?
+                my $sym = $$rt{val};
+                $rt = get_token(\%l, TMASK_MACROARG);
+                $rt = get_token(\%l, TMASK_MACROARG) if $$rt{tag} eq 'DEL';
+                if ($$rt{tag} eq 'SYM' || $$rt{tag} eq 'MVAL') {
+                  my $aexp = $$rt{val};       # address expression
+                  my $reg = 'pc';             # register name
+                  my $mod = 0;                # address mode
+                  # determine ntype with a bit of heuristics, avoid full parsing
+                  if ($aexp =~ m/^@#.*$/) {                          # @#xxx
+                    $mod = 3;
+                  } elsif ($aexp =~ m/^#.*$/) {                       # #xxx
+                    $mod = 2;
+                  } elsif ($aexp =~ m/^(r[0-5]|sp|pc)$/) {            # rx
+                    $mod = 0;
+                    $reg = $1;
+                  } elsif ($aexp =~ m/^\((r[0-5]|sp|pc)\)$/) {        # (rx)
+                    $mod = 1;
+                    $reg = $1;
+                  } elsif ($aexp =~ m/^(@?)\((r[0-5]|sp|pc)\)\+$/) {   # @?(rx)+
+                    $mod = ($1 eq '@') ? 3 : 2;
+                    $reg = $2;
+                  } elsif ($aexp =~ m/^(@?)-\((r[0-5]|sp|pc)\)$/) {   # @?-(rx)
+                    $mod = ($1 eq '@') ? 5 : 4;
+                    $reg = $2;
+                  } elsif ($aexp =~ m/^(@?).+\((r[0-5]|sp|pc)\)$/) {  # @?nn(rx)
+                    $mod = ($1 eq '@') ? 7 : 6;
+                    $reg = $2;
+                  } elsif ($aexp =~ m/^(@?).+$/) {                    # @?nn
+                    $mod = ($1 eq '@') ? 7 : 6;
+                  }
+                  #
+                  $val = 8*$mod + $pst{$reg}{val};
+                  setsym(\%l, 'ass', $sym, $val);
+                  $l{typ}    = 'nxx';
+                  $l{asym}   = $sym;
+                } else {
+                  add_err(\%l, 'A');          # no value -> A error
+                }
+              } else {
+                add_err(\%l, 'A');            # no symbol-> A error
+              }
+            } else {
+              add_err(\%l, 'O');              # outside macro -> O error
+            }
+            $l{lstval} = $val;
+            $state = 'end';
+
+          } elsif ($op eq '.rept') {          # .rept ----------------
+            $l{flag} = 'R';
+            $state = 'dl_beg';
+
+          } elsif ($op eq '.endr') {          # .endr ----------------
+            if (scalar(@reptstk) == 0) {      # .rept block not active ?
+              add_err(\%l, 'O');                  # quit with O error
+            } else {
+              $l{flag} = "R";
+            }
+            $state = 'end';
+
+          } elsif ($op eq '.error') {         # .error ---------------
+            add_err(\%l, 'P');                  # signal P error
+            $state = 'dl_beg';
+
+          } elsif ($op eq '.print') {         # .print ---------------
+            $state = 'dl_beg';
 
           } elsif ($op eq '.list' ||          # .list ----------------
                    $op eq '.nlist') {         # .nlist ---------------
@@ -791,21 +1178,69 @@ sub parse_line {
                     );
         foreach my $marg (@{$mst{$op}{args}}) {
           push @{$mexec{keys}}, $marg->{key};
-          $mexec{vals}{$marg->{key}} = $marg->{val}; # set defaults
+          $mexec{vals}{$marg->{key}} =
+           defined $marg->{val} ? $marg->{val} : ''; # set defaults
         }
         my $iarg = 0;
+        my $narg = 0;
         while (1) {
           $rt = get_token(\%l, TMASK_MACROARG);
+          my $key;
+          my $val;
           last if $$rt{tag} eq 'EOL';
-          next if $$rt{tag} eq 'DEL'; # FIXME_code: that's for sure not OK
-          if ($$rt{tag} eq 'SYM' || $$rt{tag} eq 'MVAL' ||
-              $$rt{tag} eq 'MSTR') {
-            my $key = $mexec{keys}[$iarg];   # FIXME_code: check valid index !
-            my $val = $$rt{val};             # FIXME_code: strip <> or ^// !
+          next if $$rt{tag} eq 'DEL';   # FIXME_code: is that OK ?
+          if ($$rt{tag} eq 'MMOD') {    # modifier seen ?
+            if ($$rt{val} eq '\\') {    # modifier '\' ?
+              $rt = get_token(\%l, TMASK_MACROARG);
+              if ($$rt{tag} eq 'SYM') {     # ensure it's symbol
+                my $num = getsym(\%l, $$rt{val});
+                if (defined $num) {
+                  $val = sprintf "%o",$num;
+                } else {
+                  add_err(\%l, 'U');        # symbol undefined -> U error
+                  $val = '0';
+                }
+              } else {
+                add_err(\%l, 'Q');          # no symbol after \ -> Q error
+              }
+            } else {
+              add_err(\%l, 'Q');            # other then \ modifier -> Q error
+            }
+          } elsif ($$rt{tag} eq 'SYM' || $$rt{tag} eq 'MVAL') {  # symbol,value
+            $val = $$rt{val};
+          } elsif ($$rt{tag} eq 'MKEY') {   # key=val
+            $key = $$rt{val};
+            $rt = get_token(\%l, TMASK_MACROARG);
+            if ($$rt{tag} eq 'SYM' || $$rt{tag} eq 'MVAL') {
+              $val = $$rt{val};
+            } elsif ($$rt{tag} eq 'EOL' || $$rt{tag} eq 'DEL') { # empty key=
+              pushback_token(\%l);
+            } else {
+              add_err(\%l, 'Q');            # bad value after key= -> Q error
+            }
+          } else {
+            add_err(\%l, 'Q');              # neither mod,key,val -> Q error
+          }
+          if (defined $key && not exists $mexec{vals}{$key}) {
+            add_err(\%l, 'AU');             # unknown key -> AU error
+            $key = undef;
+          }
+          if (not defined $key) {
+            if ($iarg < scalar(@{$mexec{keys}})) {
+              $key = $mexec{keys}[$iarg];
+              $iarg += 1;
+              $narg += 1;
+            } else {
+              add_err(\%l, 'Q');            # too many arguments -> Q error
+              $key = undef;
+            }
+          }
+          if (defined $key) {
             $mexec{vals}{$key} = $val;
-            $iarg += 1;
           }
         }
+        # setup narg
+        $mexec{narg} = $narg;
         # finally setup auto-generated labels
         foreach my $marg (@{$mst{$op}{args}}) {
           next unless defined $marg->{mod} && $marg->{mod} eq '?';
@@ -1136,7 +1571,7 @@ sub parse_line {
 
     } elsif ($state eq 'dl_end') {          # state: dl_end ------------------
       $state = 'end';
-      if      ($d_dire eq '.word') {
+      if      ($d_dire eq '.word') {        # .word ------------------
         walign(\%l);
         if (scalar(@d_elist)) {
           $l{typ} = 'data';
@@ -1145,7 +1580,8 @@ sub parse_line {
         } else {
           $state = 'q';
         }
-      } elsif ($d_dire eq '.byte') {
+
+      } elsif ($d_dire eq '.byte') {        # .byte ------------------
         if (scalar(@d_elist)) {
           $l{typ} = 'data';
           $l{delist} = \@d_elist;
@@ -1153,7 +1589,8 @@ sub parse_line {
         } else {
           $state = 'q';
         }
-      } elsif ($d_dire eq '.blkw' || $d_dire eq '.blkb') {
+
+      } elsif ($d_dire eq '.blkw' || $d_dire eq '.blkb') { # .blk[wb]
         $l{lstdot} = 1;
         walign(\%l) if $d_dire eq '.blkw';
         my $val;
@@ -1174,7 +1611,55 @@ sub parse_line {
           add_err(\%l, 'A');
         }
 
-      } elsif ($d_dire eq '.end') {
+      } elsif ($d_dire eq '.if') {          # .if --------------------
+        my $tst = 0;
+        if (scalar(@d_elist) == 1) {
+          my $val = eval_exp(\%l, $d_elist[0]{ibeg}, $d_elist[0]{iend});
+          if (defined $val) {
+            $tst = 1 if $ifcond eq 'eq' && $val == 0;
+            $tst = 1 if $ifcond eq 'ne' && $val != 0;
+            $tst = 1 if $ifcond eq 'gt' && $val >  0;
+            $tst = 1 if $ifcond eq 'le' && $val <= 0;
+            $tst = 1 if $ifcond eq 'lt' && $val <  0;
+            $tst = 1 if $ifcond eq 'ge' && $val >= 0;
+          } else {
+            add_err(\%l, 'U');
+          }
+        } else {
+          add_err(\%l, 'A');
+        }
+        push @ifstk, {tst => $tst, cur => $tst};
+
+      } elsif ($d_dire eq '.rept') {        # .rept ------------------
+        my $cnt;
+        if (scalar(@d_elist) == 1) {
+          $cnt = eval_exp(\%l, $d_elist[0]{ibeg}, $d_elist[0]{iend});
+        }
+        unless (defined $cnt) {
+          add_err(\%l, 'A');
+          $cnt = 0;
+        }
+        $l{lstval} = $cnt;
+        $reptlvl = 1;
+        push @reptstk, {cnt  => $cnt,
+                        body => []
+                       };
+
+      } elsif ($d_dire eq '.error' ||       # .error or --------------
+               $d_dire eq '.print' ) {      # .print -----------------
+        my $val;
+        if (scalar(@d_elist) >= 1) {
+          $val = eval_exp(\%l, $d_elist[0]{ibeg}, $d_elist[0]{iend});
+          if (not defined $val) {
+            $val = 0;
+            add_err(\%l, 'U');
+          }
+        }
+        add_err(\%l, 'Q') if scalar(@d_elist) > 1; # MACRO-11 gives Q !
+        $l{lstdot} = 1;
+        $l{lstval} = $val;
+
+      } elsif ($d_dire eq '.end') {         # .end -------------------
         my $val;
         if (scalar(@d_elist) == 0) {
           $val = 1;
@@ -1185,13 +1670,20 @@ sub parse_line {
         }
         if (defined $val) {
           $l{lstval} = $val;                # set aval to get it in listing
-          $lst{'...end'} = {name => '...end', # and generate marker label
-                            val  => $val,
-                            typ  => 'lbl',
-                            psect=> '.abs'};
         } else {
           $l{lstval} = 0;
           add_err(\%l, 'U');
+        }
+        if (scalar(@mexecstk) +             # if outside macro expansion
+            scalar(@reptstk) +              #   or .rept expansion
+            scalar(@ifstk) == 0) {          #   or conditional code
+          $lst{'...end'} = {name => '...end', # generate marker label
+                            val  => $val,
+                            typ  => 'lbl',
+                            psect=> '.abs'};
+          $end = 1;                           # and end input processing
+        } else {                            # if inside ...
+          add_err(\%l, 'O');                #   quit with O error
         }
 
       } else {
@@ -1281,11 +1773,13 @@ sub walign {
 #-------------------------------------------------------------------------------
 
 sub add_err {
-  my ($rl,$err) = @_;
-  return if index($$rl{err}, $err) >= 0;    # prevent multiple error tags
-  $$rl{err} .= $err;                        # set error tag
-  $errcnt{$err} += 1;                       # and count them
-  $errcnt_tot += 1;
+  my ($rl,$errlist) = @_;
+  foreach my $err (split '',$errlist) {
+    next if index($$rl{err}, $err) >= 0;      # prevent multiple error tags
+    $$rl{err} .= $err;                        # set error tag
+    $errcnt{$err} += 1;                       # and count them
+    $errcnt_tot += 1;
+  }
   return;
 }
 
@@ -1360,7 +1854,6 @@ sub setsym {
                    val  => $val,
                    typ  => $typ,
                    psect=> $cur_psect};
-
   return;
 }
 
@@ -1623,51 +2116,56 @@ sub get_token1 {
   }
 
   if ($tmask & TMASK_MACROARG) {
-    if ($c eq '<' || $c eq '^') {           # <...> and ^/..../
-      my $del = shift @$rcl;
-      my $str = $del;
-      if ($del eq '^') {
-        $del = shift @$rcl;
-        if (not defined $del) {
-          add_err($rl, 'A');
-          return finish_token(\%t, tag=> 'MSTR', val=> $str);
-        }
-        $str .= $del;
-      }
-      while (scalar(@$rcl)) {
-        my $c = shift @$rcl;
-        $str .= $c;
-        return finish_token(\%t, tag=> 'MSTR', val=> $str) if $c eq $del;
-      }
-      add_err($rl, 'A');
-      return finish_token(\%t, tag=> 'MSTR', val=> $str);
-    } elsif ($c =~ m/[a-zA-Z\$\.]/) {       # symbol names
-      while (scalar(@$rcl)) {
-        last if ($$rcl[0] !~ m/[a-zA-Z0-9\$\.]/);
-        $val .= shift @$rcl;
-      }
-      if ((not defined $$rcl[0]) || $$rcl[0]=~ m/(\s|=|,|;)/) { # delimiter seen
-        return finish_token(\%t, tag=> 'SYM', val=> $val);  # it's a symbol
-      } else {                                              # else swallow rest
-        while (scalar(@$rcl)) {
-          last if $$rcl[0] =~ m/(\s|,|;)/;      # stop at white, comma, comment
-          $val .= shift @$rcl;
-        }
-        return finish_token(\%t, tag=> 'MVAL', val=> $val);
-      }
-    } elsif ($c eq '?' || $c eq '\\') {     # ? or \ modifiers
+    if ($c eq '?' || $c eq '\\') {          # ? or \ modifiers -------
       return finish_token(\%t, tag=> 'MMOD', val=> shift @$rcl);
-    } elsif ($c eq '=') {                   # = key/val
-      return finish_token(\%t, tag=> 'ASS', val=> shift @$rcl);
-    } elsif ($c eq ',') {                   # ' seperator
-      return finish_token(\%t, tag=> 'DEL', val=> shift @$rcl);
-    } else {
-      $val = shift @$rcl;
+
+    } elsif ($c eq '<') {                   # <...> ------------------
+      shift @$rcl;
+      my $val;
+      my $c = '';
       while (scalar(@$rcl)) {
-        last if $$rcl[0] =~ m/(\s|,|;)/;      # stop at white, comma, comment
+        $c = shift @$rcl;
+        $val .= $c if $c ne '>';
+        last if $c eq '>';
+      }
+      add_err($rl, 'A') unless $c eq '>';
+      return finish_token(\%t, tag=> 'MVAL', val=> $val);
+
+    } elsif ($c eq '^') {                   # ^/.../ -----------------
+      shift @$rcl;
+      my $val;
+      my $del = shift @$rcl;
+      unless (defined $del) {
+        add_err($rl, 'A');
+        return finish_token(\%t, tag=> 'MVAL', val=> '');
+      }
+      my $c = '';
+      while (scalar(@$rcl)) {
+        $c = shift @$rcl;
+        $val .= $c if $c ne $del;
+        last if $c eq $del;
+      }
+      add_err($rl, 'A') unless $c eq $del;
+      return finish_token(\%t, tag=> 'MVAL', val=> $val);
+
+    } elsif ($c eq ',') {                   # ',' --------------------
+      return finish_token(\%t, tag=> 'DEL', val=> shift @$rcl);
+
+    } else {
+      my $val = shift @$rcl;
+      while (scalar(@$rcl)) {
+        my $c = $$rcl[0];
+        last if ($c =~ m/(\s|,|;)/);        # delimiter seen ?
+        if ($c eq '=') {                    # key=value seen ?
+          if ($val =~ m/^[a-zA-Z\$\.][a-zA-Z0-9\$\.]*$/) { # key name ?
+            shift @$rcl;                    # drop '='
+            return finish_token(\%t, tag=> 'MKEY', val=> $val);
+          }
+        }
         $val .= shift @$rcl;
       }
-      return finish_token(\%t, tag=> 'MVAL', val=> $val);
+      my $tag = ($val =~ m/^[a-zA-Z\$\.][a-zA-Z0-9\$\.]*$/) ? 'SYM' : 'MVAL';
+      return finish_token(\%t, tag=> $tag, val=> $val);
     }
   }
 
@@ -2053,6 +2551,10 @@ sub pass2_out {
       add_err($rl, 'U');
     }
 
+  # handle .nxxx as pseudo-assignment
+  } elsif ($$rl{typ} eq 'nxx') {
+    setsym($rl, 'ass', $$rl{asym}, $$rl{lstval});
+
   } else {
     die "BUGCHECK: unknown line typ '$$rl{typ}'";
   }
@@ -2097,9 +2599,10 @@ sub pass2_lst_end {
 
 #-------------------------------------------------------------------------------
 # line format is
-# er fn lnum    dot <upto 3w or 5b>      source
-# .. dd dddd oooooo oooooo oooooo oooooo <source>
-# ..                ooo ooo ooo ooo ooo  <source>
+# er fnF lnum    dot <upto 3w or 5b>      source
+# .. ddF dddd oooooo oooooo oooooo oooooo <source>
+# ..                 ooo ooo ooo ooo ooo  <source>
+# the flag denotes: MR: macro/rept def, mr: macro/repr exec, d: .if drop
 
 sub pass2_lst_line {
   my ($rl,$fh) = @_;
@@ -2109,6 +2612,7 @@ sub pass2_lst_line {
   my $str = '';
   $str .= sprintf("%-2s", prt_err($rl));
   $str .= sprintf(" %2d", $$rl{fileno});
+  $str .= $$rl{flag};
   $str .= sprintf(" %4d", $$rl{lineno});
 
   # print dot if data is generated for this line, or label
@@ -2648,11 +3152,10 @@ sub dump_sym {
   my @mlist = sort keys %mst;
   if (scalar @mlist) {
     print "\n";
-    print "macro  typ    body argument-list\n";
-    print "------ ------ ---- -------------\n";
+    print "macro  body argument-list\n";
+    print "------ ---- -------------\n";
     foreach my $mnam (@mlist) {
-      printf '%-6s %-6s %4d ', $mnam,
-        $mst{$mnam}{typ}, scalar(@{$mst{$mnam}{body}});
+      printf '%-6s %4d ', $mnam, scalar(@{$mst{$mnam}{body}});
       my $del = '';
       foreach my $arg (@{$mst{$mnam}{args}}) {
         printf '%s', $del;
@@ -2721,6 +3224,7 @@ sub bailout {
 sub print_help {
   print "usage: asm-11 [OPTIONS]... [FILE]...\n";
   print "  --I=path      adds path to the .include search path\n";
+  print "  --L=path      adds path to the .library search path\n";
   print "  --E           write .include processed input to stdout\n";
   print "  --lst         create listing (default file name)\n";
   print "  --olst=fnam   create listing (concrete file name)\n";

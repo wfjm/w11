@@ -1,29 +1,19 @@
-; $Id: vec_cpucatch_reset.mac 1184 2019-07-10 20:39:44Z mueller $
+; $Id: vec_cpucatch_reset.mac 1357 2023-01-26 19:24:10Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2015-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; re-write vector catcher for basic cpu interrupts
-; 
-        mov     #v..iit+2,v..iit ; vec   4 
-        clr     v..iit+2
-        mov     #v..rit+2,v..rit ; vec  10 
-        clr     v..rit+2
-; 
-        mov     #v..bpt+2,v..bpt ; vec  14 (T bit; BPT)
-        clr     v..bpt+2
-        mov     #v..iot+2,v..iot ; vec  20 (IOT)
-        clr     v..iot+2
-        mov     #v..pwr+2,v..pwr ; vec  24 (Power fail, not used)
-        clr     v..pwr+2
-        mov     #v..emt+2,v..emt ; vec  30 (EMT)
-        clr     v..emt+2
-        mov     #v..trp+2,v..trp ; vec  34 (TRAP)
-        clr     v..trp+2
-; 
-        mov     #v..pir+2,v..pir ; vec 240 (PIRQ)
-        clr     v..pir+2
-        mov     #v..fpp+2,v..fpp ; vec 244 (FPP)
-        clr     v..fpp+2
-        mov     #v..mmu+2,v..mmu ; vec 250 (MMU)
-        clr     v..mmu+2
+;
+        .mcall  vecclr
+
+        vecclr  v..iit          ; vec   4
+        vecclr  v..rit          ; vec  10
+        vecclr  v..bpt          ; vec  14 (T bit; BPT)
+        vecclr  v..iot          ; vec  20 (IOT)
+        vecclr  v..pwr          ; vec  24 (Power fail)
+        vecclr  v..emt          ; vec  30 (EMT)
+        vecclr  v..trp          ; vec  34 (TRAP)
+        vecclr  v..pir          ; vec 240 (PIRQ)
+        vecclr  v..fpp          ; vec 244 (FPP)
+        vecclr  v..mmu          ; vec 250 (MMU)
 ; 

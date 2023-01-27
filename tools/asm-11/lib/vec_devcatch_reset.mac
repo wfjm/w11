@@ -1,50 +1,26 @@
-; $Id: vec_devcatch_reset.mac 1184 2019-07-10 20:39:44Z mueller $
+; $Id: vec_devcatch_reset.mac 1357 2023-01-26 19:24:10Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2015-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; re-write vector catcher for device interrupts (subset used by w11)
-; 
-        mov     #v..tti+2,v..tti ; vec  60 (DL11-RX  1st)
-        clr     v..tti+2
-        mov     #v..tto+2,v..tto ; vec  64 (DL11-TX  1st)
-        clr     v..tto+2
 ;
-        mov     #v..ptr+2,v..ptr ; vec  70 (PC11/PTR)
-        clr     v..ptr+2
-        mov     #v..ptp+2,v..ptp ; vec  74 (PC11/PTP)
-        clr     v..ptp+2
+        .mcall  vecclr
 ;
-        mov     #v..kwl+2,v..kwl ; vec 100 (KW11-L)
-        clr     v..kwl+2
-        mov     #v..kwp+2,v..kwp ; vec 104 (KW11-P)
-        clr     v..kwp+2
-;
-        mov     #v..xu+2,v..xu   ; vec 120 (DEUNA)
-        clr     v..xu+2
-;
-        mov     #v..rl+2,v..rl   ; vec 160 (RL11)
-        clr     v..rl+2
-;
-        mov     #v..lp+2,v..lp   ; vec 200 (LP11)
-        clr     v..lp+2
-;
-        mov     #v..rk+2,v..rk   ; vec 220 (RK11)
-        clr     v..rk+2
-        mov     #v..tm+2,v..tm   ; vec 224 (TM11)
-        clr     v..tm+2
-;
-        mov     #v..rp+2,v..rp   ; vec 254 (RHRP)
-        clr     v..rp+2
-        mov     #v..iis+2,v..iis ; vec 260 (IIST)
-        clr     v..iis+2
-;
-        mov     #v..d2r+2,v..d2r ; vec 300 (DL11-RX  2nd)
-        clr     v..d2r+2
-        mov     #v..d2t+2,v..d2t ; vec 304 (DL11-TX  2nd)
-        clr     v..d2t+2
-;
-        mov     #v..dzr+2,v..dzr ; vec 310 (DZ11-RX)
-        clr     v..dzr+2
-        mov     #v..dzt+2,v..dzt ; vec 314 (DZ11-TX)
-        clr     v..dzt+2
+        vecclr  v..tti          ; vec  60 (DL11-RX  1st)
+        vecclr  v..tto          ; vec  64 (DL11-TX  1st)
+        vecclr  v..ptr          ; vec  70 (PC11/PTR)
+        vecclr  v..ptp          ; vec  74 (PC11/PTP)
+        vecclr  v..kwl          ; vec 100 (KW11-L)
+        vecclr  v..kwp          ; vec 104 (KW11-P)
+        vecclr  v..xu           ; vec 120 (DEUNA)
+        vecclr  v..rl           ; vec 160 (RL11)
+        vecclr  v..lp           ; vec 200 (LP11)
+        vecclr  v..rk           ; vec 220 (RK11)
+        vecclr  v..tm           ; vec 224 (TM11)
+        vecclr  v..rp           ; vec 254 (RHRP)
+        vecclr  v..iis          ; vec 260 (IIST)
+        vecclr  v..d2r          ; vec 300 (DL11-RX  2nd)
+        vecclr  v..d2t          ; vec 304 (DL11-TX  2nd)
+        vecclr  v..dzr          ; vec 310 (DZ11-RX)
+        vecclr  v..dzt          ; vec 314 (DZ11-TX)
 ;

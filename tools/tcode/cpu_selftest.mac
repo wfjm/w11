@@ -1,9 +1,10 @@
-; $Id: cpu_selftest.mac 1351 2023-01-13 08:38:27Z mueller $
+; $Id: cpu_selftest.mac 1358 2023-01-27 10:37:36Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
+; 2023-01-27  1358   1.1    use .mcall and mlib
 ; 2023-01-04  1345   1.0    Initial version
 ; 2022-07-13  1254   0.1    First draft
 ;
@@ -11,6 +12,9 @@
 ;
         .include        |lib/tcode_std_base.mac|
         .include        |lib/defs_mmu.mac|
+;
+        .mcall  hcmpeq
+        .mcall  vecset,vecclr
 ;
 ; Section A: self test codes
 ; Section B: CPU probe codes
@@ -207,13 +211,11 @@ ta0201:
 300$:   jmp     @#400$
         halt
 400$:   mov     #160000,r5      ; r5=160000
-        mov     #500$,v..iit    ; setup iit vector
-        clr     v..iit+2
+        vecset  v..iit,500$     ; setup iit handler
         mov     #stack,sp       ; sp=002000
         tst     (r5)            ; will fail, first word of I/O page
         halt
-500$:   mov     #v..iit+2,v..iit ; restore iit catcher
-        clr     v..iit+2
+500$:   vecclr  v..iit          ; restore iit catcher
 ;
 9999$:  iot                     ; end of test A2
 ;
@@ -225,8 +227,8 @@ ta0201:
 ;   leading to a 11/70 detection is done, all other branches end in a halt.
 ;   Full code is in /usr/src/sys/pdpstand/M.s starting as cpuprobe.
 ;
-tb0101: mov     #1000$,v..iit           ; vector  4 handler
-        mov     #1000$,v..rit           ; vector 10 handler
+tb0101: vecset  v..iit,1000$            ; vector  4 handler
+        vecset  v..rit,1000$            ; vector 10 handler
 ;
         tst     @#ubmap                 ; look for unibus map
         tst     @#kdpar+14              ; look for split I/D (check kdpar6)
@@ -243,8 +245,8 @@ tb0101: mov     #1000$,v..iit           ; vector  4 handler
 ;
 1100$:  .word   0                       ; catcher address
 ;
-1200$:  mov     #v..iit+2,v..iit        ; restore
-        mov     #v..rit+2,v..rit        ; restore
+1200$:  vecclr  v..iit                  ; restore
+        vecclr  v..rit                  ; restore
 ;
 9999$:  iot                     ; end of test B1
 ;

@@ -1,15 +1,18 @@
-; $Id: cpu_eis.mac 1329 2022-12-11 17:28:28Z mueller $
+; $Id: cpu_eis.mac 1358 2023-01-27 10:37:36Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
+; 2023-01-27  1358   1.1    use .mcall and mlib
 ; 2022-07-25  1263   1.0    Initial version
 ; 2022-07-11  1251   0.1    First draft
 ;
 ; Test CPU EIS instructions
 ;
         .include        |lib/tcode_std_base.mac|
+;
+        .mcall  hcmpeq
 ;
 ; Section A: div =============================================================
 ;   This section verifies

@@ -1,9 +1,10 @@
-; $Id: cpu_details.mac 1351 2023-01-13 08:38:27Z mueller $
+; $Id: cpu_details.mac 1358 2023-01-27 10:37:36Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
+; 2023-01-27  1358   1.1    use .mcall and mlib
 ; 2023-01-11  1349   1.0    Initial version
 ; 2022-07-18  1259   0.1    First draft
 ;
@@ -14,6 +15,10 @@
 ;
         .include        |lib/tcode_std_base.mac|
         .include        |lib/defs_mmu.mac|
+;
+        .mcall  push,pop,push2
+        .mcall  hcmpeq,htsteq,htstne,htstge,hbiteq,hbitne
+        .mcall  vecset,vecclr
 ;
 ; Preface: set up MMU for kernel mode (for some tests) =======================
 ;
@@ -131,8 +136,7 @@
         pi.n06=6*042            ; lsb for pir 6 next
         pi.n07=7*042            ; lsb for pir 7 next
 ;
-ta0101: mov     #1000$,v..pir     ; set up handler
-        mov     #cp.pr7,v..pir+2  ; which runs at pr7
+ta0101: vecset  v..pir,1000$,cp.pr7     ; set up PIRQ handler at pr7
         mov     #cp.pir,r3      ; ptr to PIRQ
         mov     #cp.psw,r4      ; ptr to PSW
         mov     #1200$,r5       ; ptr to check data
@@ -148,8 +152,7 @@ ta0101: mov     #1000$,v..pir     ; set up handler
         spl     0
         nop                     ; allow interrupts to happen
         htsteq  (r3)            ; PIRQ should clear now
-        mov     #v..pir+2,v..pir; restore pirq vector catcher
-        clr     v..pir+2
+        vecclr  v..pir          ; restore pirq vector catcher
         jmp     9999$
 ;
 ; PIRQ interrupt handler
@@ -203,8 +206,7 @@ ta0101: mov     #1000$,v..pir     ; set up handler
 ;   write of the PIRQ register
 ;
 ta0102: spl     0               ; ensure execution at PR0
-        mov     #1000$,v..pir     ; set up handler
-        mov     #cp.pr7,v..pir+2  ; which runs at pr7
+        vecset  v..pir,1000$,cp.pr7     ; set up PIRQ handler at pr7
         mov     #pi.r03,cp.pir  ; request PIRQ 3
         halt                    ; halt if not taken immediatly
 ;
@@ -212,8 +214,7 @@ ta0102: spl     0               ; ensure execution at PR0
         mov     #1100$,(sp)     ; continue
         rti
 ;
-1100$:  mov     #v..pir+2,v..pir; restore pirq vector catcher
-        clr     v..pir+2
+1100$:  vecclr  v..pir          ; restore pirq vector catcher
 ;
 9999$:  iot                     ; end of test A1.2
 ;
@@ -222,8 +223,7 @@ ta0102: spl     0               ; ensure execution at PR0
 ;
 ; setup for all A2.* tests
         mov     #cp.err,r0      ; ptr tp CPUERR
-        mov     #vhugen,v..iit  ; set iit handler
-        clr     v..iit+2        ; pr0 kernel
+        vecset  v..iit,vhugen   ; set iit handler at pr0
 ;
 ; Test A2.1 -- CPUERR cp.hlt +++++++++++++++++++++++++++++++++++++++++
 ;   Test cp.hlt: halt in non-kernel mode
@@ -444,7 +444,7 @@ ta0210: cmpb    systyp,#sy.sih  ; SimH uses J11 semantics
 ;
 ; -----------------------------------------------
 ; end of A2.* tests, restore iit handler
-        mov     v..iit+2,v..iit ; restore iit handler
+        vecclr  v..iit          ; restore iit catcher
 ;
 ; Test A3:  STKLIM + stack traps and aborts ++++++++++++++++++++++++++++++++++
 ;   This sub-section verifies operation of STKLIM register,
@@ -507,8 +507,7 @@ ta0302:
 ;
 10$:    mov     #1200$,r0               ; ptr to value list
         mov     #<1210$-1200$>/2,r1     ; # of values
-        mov     #1000$,v..iit           ; set up iit handler
-        mov     #cp.pr3,v..iit+2        ; use pr3 as handler signature
+        vecset  v..iit,1000$,cp.pr3     ; set up iit handler, pr3 as signature
 ;
 100$:   spl     6                       ; use pr6 as code signature
         mov     (r0)+,r5                ; get value
@@ -554,8 +553,7 @@ ta0302:
 ;
 1020$:  clr     cp.slr                  ; STKLIM to default
         mov     #stack,sp               ; SP to default
-        mov     #v..iit+2,v..iit        ; v..iit to catcher
-        clr     v..iit+2
+        vecclr  v..iit                  ; v..iit to catcher
         spl     0                       ; prio to default
         br      2000$
 ;
@@ -571,7 +569,7 @@ ta0302:
 ;
         mov     #2300$,r0               ; ptr to values
         mov     #<2310$-2300$>/2,r1     ; # of values
-        mov     #2200$,v..iit           ; set up iit handler
+        vecset  v..iit,2200$            ; set up iit handler
         mov     #1400,cp.slr            ; set yellow limit to 1776
 ;
 2100$:  mov     (r0)+,sp                ; set SP to test value
@@ -583,8 +581,7 @@ ta0302:
 ;
         clr     cp.slr                  ; STKLIM to default
         mov     #stack,sp               ; SP to default
-        mov     #v..iit+2,v..iit        ; v..iit to catcher
-        clr     v..iit+2
+        vecclr  v..iit                  ; v..iit to catcher
         br      3000$
 ;
 2300$:  .word   001400                  ; probe 1376  (possible yellow mirror)
@@ -601,17 +598,17 @@ ta0302:
 ;
         mov     #1400,cp.slr            ; set STKLIM
         mov     #1300,sp                ; SP deep in red zone
-        mov     #3100$,v..iit           ; set up iit handler
+        vecset  v..iit,3100$            ; set up iit handler
         clr     -(sp)                   ; expect red abort
         halt
 3100$:  htsteq  sp                      ; check SP=0, on emergency stack
-        mov     #3200$,v..iit           ; set up iit handler
+        vecset  v..iit,3200$            ; set up iit handler
         clr     -(sp)                   ; expect red abort again
         halt
 3200$:  htsteq  sp                      ; check SP=0 because of PSW protection
         clr     cp.slr                  ; STKLIM to default
         mov     #stack,sp               ; SP to default
-        mov     #v..iit+2,v..iit        ; v..iit to catcher
+        vecclr  v..iit                  ; v..iit to catcher
 ;
 9999$:  iot                                     ; end of test A3.2
 ;
@@ -635,12 +632,9 @@ ta0303: tstb    systyp                  ; skip if not on w11
 ;
 ; part 1: test instructions that should trap -------------------------
 ;
-        mov     #1000$,v..iit           ; set up iit handler
-        clr     v..iit+2
-        mov     #1100$,v..emt           ; set up emt handler
-        clr     v..emt+2
-        mov     #1200$,v..trp           ; set up trap handler
-        clr     v..trp+2
+        vecset  v..iit,1000$            ; set up iit handler
+        vecset  v..emt,1100$            ; set up emt handler
+        vecset  v..trp,1200$            ; set up trap handler
         clr     r2                      ; clear trap counter
 ;
 ; dstw mode 1,2,4,6
@@ -674,9 +668,9 @@ ta0303: tstb    systyp                  ; skip if not on w11
 1300$:  rts     pc                      ; dummy routine
 ;
 1500$:  hcmpeq  #15.,r2                 ; all traps taken ?
-        mov     #v..iit+2,v..iit        ; v..iit to catcher
-        mov     #v..emt+2,v..emt        ; v..emt to catcher
-        mov     #v..trp+2,v..trp        ; v..trp to catcher
+        vecclr  v..iit                  ; v..iit to catcher
+        vecclr  v..emt                  ; v..emt to catcher
+        vecclr  v..trp                  ; v..trp to catcher
 ;
 ; part 2: test instructions that should not trap ---------------------
 ;
@@ -711,10 +705,8 @@ ta0303: tstb    systyp                  ; skip if not on w11
 ;   The iit handler must therefore execute at PR7 to lockout interrupts.
 ;   When the iit handler returns, the pir hander will execute.
 ;
-3000$:  mov     #3100$,v..iit           ; set up iit handler
-        mov     #cp.pr7,v..iit+2        ; lockout interrupts !
-        mov     #3200$,v..pir           ; set up pir handler
-        mov     #cp.pr7,v..pir+2        ; lockout interrupts
+3000$:  vecset  v..iit,3100$,cp.pr7     ; set up iit handler, lockout interrupts
+        vecset  v..pir,3200$,cp.pr7     ; set up pir handler, lockout interrupts
         mov     #stack,sp               ; SP to default (STKLIM still 1400)
         clr     r2                      ; clear trap counter
         mov     #cp.pir,r3              ; ptr to cp.pir
@@ -747,10 +739,8 @@ ta0303: tstb    systyp                  ; skip if not on w11
         .word   177777,1.       ; iit marker + pr1 pirq
 ;
 3900$:  hcmpeq  #3.,r2                  ; all traps taken ?
-        mov     #v..iit+2,v..iit        ; v..iit to catcher
-        clr     v..iit+2
-        mov     #v..pir+2,v..pir        ; v..pir to catcher
-        clr     v..pir+2
+        vecclr  v..iit                  ; v..iit to catcher
+        vecclr  v..pir                  ; v..pir to catcher
 ;
 ; final cleanup
         clr     cp.slr                  ; STKLIM to default
@@ -764,9 +754,7 @@ ta0303: tstb    systyp                  ; skip if not on w11
 ;   Verifies that vector push after trap instructions and interrupts abort
 ;     Abort on 1st and 2nd push is tested.
 ;
-ta0304:
-        mov     #1000$,v..iit           ; set up iit handler
-        mov     #cp.pr7,v..iit+2        ; lockout interrupts !
+ta0304: vecset  v..iit,1000$,cp.pr7     ; set up iit handler, lockout interrupts
         mov     #1400,cp.slr            ; yellow <=1776 and red <= 1736
         clr     @#1736                  ; ensure top red word zero
         clr     cp.err                  ; clear CPUERR
@@ -821,8 +809,7 @@ ta0304:
         jmp     (r5)                    ; continue
 ;
 9000$:  clr     cp.slr                  ; STKLIM to default
-        mov     #v..iit+2,v..iit        ; v..iit to catcher
-        clr     v..iit+2
+        vecclr  v..iit                  ; v..iit to catcher
         mov     #stack,sp               ; SP to default
         spl     0                       ; back to PR0
 ;
@@ -839,10 +826,8 @@ ta0304:
 ta0305: cmpb    systyp,#sy.sih          ; skip in SimH (different stklim logic)
         beq     9999$
 ;
-        mov     #200$,v..iit            ; set up iit handler
-        mov     #cp.pr5!cp0z0c,v..iit+2 ; use PR5+0Z0C as signature iit
-        mov     #110$,v..trp            ; set up TRAP handler (catcher)
-        mov     #cp.pr6!cpn0v0,v..trp+2 ; use PR6+N0V0 as signature trp
+        vecset  v..iit,200$,cp.pr5!cp0z0c ; set up iit handler, PR5+0Z0C as sig
+        vecset  v..trp,110$,cp.pr6!cpn0v0 ; set up TRAP handler,PR6+N0V0 as sig
         mov     #1400,cp.slr            ; yellow <=1776 and red <= 1736
 ;
 ; on abort 2nd push ------------------------------
@@ -885,10 +870,8 @@ ta0305: cmpb    systyp,#sy.sih          ; skip in SimH (different stklim logic)
         hcmpeq  2(sp),#cp.pr2!cp0z00    ; PS: should be code signature
 ;
 ; restore
-        mov     #v..iit+2,v..iit        ; v..iit to catcher
-        clr     v..iit+2
-        mov     #v..trp+2,v..trp        ; v..trp to catcher
-        clr     v..trp+2
+        vecclr  v..iit                  ; v..iit to catcher
+        vecclr  v..trp                  ; v..trp to catcher
         mov     #stack,sp               ; SP to default
         spl     0                       ; back to PR0
 ;
@@ -1164,7 +1147,7 @@ ta0403:
 ;
 ; part 1: tbit after RTI ---------------------------------------------
 ;
-        mov     #200$,v..bpt
+        vecset  v..bpt,200$
         rtijmp  #cp.t,#100$             ; PS: tbit; PC 100$
 100$:   nop                             ; should not execute
         halt
@@ -1173,11 +1156,11 @@ ta0403:
 200$:   hcmpeq  #stack-4,sp             ; check single frame
         hcmpeq  #100$,(sp)              ; check saved PC before nop
         mov     #stack,sp               ; restore
-        mov     #v..bpt+2,v..bpt
+        vecclr  v..bpt
 ;
 ; part 2: tbit after RTT ---------------------------------------------
 ;
-2000$:  mov     #2200$,v..bpt
+2000$:  vecset  v..bpt,2200$
         rttjmp  #cp.t,#2100$            ; PS: tbit; PC 2100$
 2100$:  nop                             ; should execute
         halt
@@ -1186,20 +1169,16 @@ ta0403:
 2200$:  hcmpeq  #stack-4,sp             ; check single frame
         hcmpeq  #2100$+2,(sp)           ; check saved PC after nop
         mov     #stack,sp               ; restore
-        mov     #v..bpt+2,v..bpt
+        vecclr  v..bpt
 ;
 9999$:  iot                                     ; end of test A4.3
 ;
 ; Test A4.4 -- tbit trace tests ++++++++++++++++++++++++++++++++++++++
 ;
-ta0404: mov     #vhtbpt,v..bpt          ; BPT handler
-        mov     #cp.pr7,v..bpt+2        ;  run at PR7 (lockout PIRQ)
-        mov     #vhtemt,v..emt          ; EMT handler
-        clr     v..emt+2                ;  run at PR0 (no PIRQ competion)
-        mov     #vhtpir,v..pir          ; PIRQ handler
-        mov     #cp.pr7,v..pir+2        ;  run at PR7 (lockout PIRQ)
-        mov     #vhttrp,v..trp          ; TRAP handler
-        clr     v..trp+2                ;  run at PR0 (no PIRQ competion)
+ta0404: vecset  v..bpt,vhtbpt,cp.pr7    ; BPT handler, PR7 (lockout PIRQ)
+        vecset  v..emt,vhtemt           ; EMT handler, PR0 (no PIRQ competion)
+        vecset  v..pir,vhtpir,cp.pr7    ; PIRQ handler,PR7 (lockout PIRQ)
+        vecset  v..trp,vhttrp           ; TRAP handler,PR0 (no PIRQ competion)
 ;
 ; part  0: traced TRAP that clears tbit ------------------------------
 ;   Checks that a traced TRAP which loads a PS with tbit=0 does not trap.
@@ -1432,7 +1411,7 @@ ta0404: mov     #vhtbpt,v..bpt          ; BPT handler
 ;   Checks that an aborted instruction doesnt tbit trap.
 ;   Uses a bus timeout as abort reason (access to 160000).
 ;
-7000$:  mov     #7300$,v..iit           ; setup local vector 4 handler
+7000$:  vecset  v..iit,7300$            ; setup local vector 4 handler
         mov     #7200$,r5
         rttjmp  #cp.t,#7100$            ; enable tbit
 ;
@@ -1448,7 +1427,7 @@ ta0404: mov     #vhtbpt,v..bpt          ; BPT handler
         htinit  7200$,1.                ; expect 1 item
         htitem  #014,#7110$             ; bpt after 1st clr
 ;
-        mov     #v..iit+2,v..iit        ; restore
+        vecclr  v..iit                  ; restore
 ;
 ; part  8: traced RTI that clears tbit -------------------------------
 ;   Checks that a traced RTI loading a PS with tbit=0 does not trap.
@@ -1478,8 +1457,7 @@ ta0404: mov     #vhtbpt,v..bpt          ; BPT handler
 9000$:  cmpb    systyp,#sy.sih          ; skip on SimH (RTI traps, EMT not)
         beq     10000$
 ;
-        mov     #9100$,v..emt
-        mov     #cp.t,v..emt+2
+        vecset  v..emt,9100$,cp.t       ; set emt handler with T bit
         mov     #9200$,r5
 ;
         emt     100
@@ -1504,8 +1482,7 @@ ta0404: mov     #vhtbpt,v..bpt          ; BPT handler
 10000$: cmpb    systyp,#sy.sih          ; skip on SimH (RTI traps, PIRQ not)
         beq     9999$
 ;
-        mov     #10100$,v..pir
-        mov     #cp.pr7!cp.t,v..pir+2
+        vecset  v..pir,10100$,cp.pr7!cp.t   ; set PIRQ handler, PR7 + T bit
         mov     #10200$,r5
 ;
         movb    #bit01,cp.pir+1         ; request PIRQ 1
@@ -1524,14 +1501,10 @@ ta0404: mov     #vhtbpt,v..bpt          ; BPT handler
 ;
 ; restore ------------------------------------------------------------
 ;
-        mov     #v..bpt+2,v..bpt        ; restore v..bpt to catcher
-        clr     v..bpt+2
-        mov     #v..emt+2,v..emt        ; restore v..emt to catcher
-        clr     v..emt+2
-        mov     #v..pir+2,v..pir        ; restore v..pir to catcher
-        clr     v..pir+2
-        mov     #v..trp+2,v..trp        ; restore v..trp to catcher
-        clr     v..trp+2
+        vecclr  v..bpt                  ; restore v..bpt to catcher
+        vecclr  v..emt                  ; restore v..emt to catcher
+        vecclr  v..pir                  ; restore v..pir to catcher
+        vecclr  v..trp                  ; restore v..trp to catcher
 ;
 9999$:  iot                                     ; end of test A4.4
 ;
@@ -1866,7 +1839,7 @@ tb0301: mov     #123,r0                 ; src for MOV
 4000$:  cmpb    systyp,#sy.sih          ; skip on SimH
         beq     9999$
         clr     r5                      ; abort counter
-        mov     #4100$,v..iit           ; set up iit handler
+        vecset  v..iit,4100$            ; set up iit handler
         mov     #1,r1                   ; odd dst for (r1),(r1)+,-(r1),0(r1)
         mov     #300$,r2                ; odd dst for @(r2)+,@-(r2),@0(r2)
         scc
@@ -1887,7 +1860,7 @@ tb0301: mov     #123,r0                 ; src for MOV
         rti                             ; continue (possible here!)
 ;
 4200$:  hcmpeq  #7.,r5                  ; check that all 7 mov got address error
-        mov     #v..iit+2,v..iit        ; restore
+        vecclr  v..iit                  ; restore
 ;
 9999$:  iot                     ; end of test B3.1
 ;
@@ -1900,7 +1873,7 @@ tb0302: cmpb    systyp,#sy.sih          ; skip on SimH
         beq     9999$
 ;
         mov     #1,r1                   ; use odd address
-        mov     #1000$,v..iit           ; set up iit handler
+        vecset  v..iit,1000$            ; set up iit handler
         clr     -(sp)                   ; push value
         scc
         mtpi    (r1)                    ; will fail
@@ -1908,7 +1881,7 @@ tb0302: cmpb    systyp,#sy.sih          ; skip on SimH
 ;
 1000$:  hcmpeq  #cpnzvc,2(sp)           ; check PS cc untouched
         mov     #stack,sp               ; restore
-        mov     #v..iit+2,v..iit        ; restore
+        vecclr  v..iit                  ; restore
 ;
 9999$:  iot                     ; end of test B3.2
 ;
@@ -1921,7 +1894,7 @@ tb0303: cmpb    systyp,#sy.sih          ; skip on SimH
 ;
         inc     sp                      ; set up odd stack
         mov     #100$,r1                ; set up read address (a valid one)
-        mov     #1000$,v..iit           ; set up iit handler
+        vecset  v..iit,1000$            ; set up iit handler
         scc
         mfpi    (r1)                    ; will fail
         halt
@@ -1931,7 +1904,7 @@ tb0303: cmpb    systyp,#sy.sih          ; skip on SimH
 1000$:  hcmpeq  #cpnzvc,2(sp)           ; check PS cc untouched
         htsteq  sp                      ; check that fatal stack error seen
         mov     #stack,sp               ; restore
-        mov     #v..iit+2,v..iit        ; restore
+        vecclr  v..iit                  ; restore
 ;
 9999$:  iot                     ; end of test B3.3
 ;
@@ -1980,7 +1953,7 @@ tb0304: clr     r0                      ; src for INC
 ; part 2: check cc for INC after abort for all memory modes
 ;
 2000$:  clr     r5
-        mov     #2100$,v..iit           ; set up iit handler
+        vecset  v..iit,2100$            ; set up iit handler
         mov     #1,r1                   ; odd dst for (r1),(r1)+,-(r1),0(r1)
         mov     #300$,r2                ; odd dst for @(r2)+,@-(r2),@0(r2)
         scc
@@ -2001,7 +1974,7 @@ tb0304: clr     r0                      ; src for INC
         rti                             ; continue (possible here!)
 ;
 2200$:  hcmpeq  #7.,r5                  ; check that all 7 inc got address error
-        mov     #v..iit+2,v..iit        ; restore
+        vecclr  v..iit                  ; restore
 ;
 9999$:  iot                     ; end of test B3.4
 ;
@@ -2133,8 +2106,7 @@ tc0102: mov     #1000$,r4
 ; Test C1.3 -- Registers accessible via 177700-1777717 +++++++++++++++
 ;   CPU access to 177700-177717 (regs) timesout {70,J11} or not {05,10}
 ;
-tc0103: mov     #vhugen,v..iit  ; set iit handler
-        clr     v..iit+2        ; pr0 kernel
+tc0103: vecset  v..iit,vhugen   ; set iit handler, pr0 kernel
 ;
         mov     #1000$,vhustp   ; continuation address
         tst     @#177700        ; should fail
@@ -2144,7 +2116,7 @@ tc0103: mov     #vhugen,v..iit  ; set iit handler
         tst     @#177716        ; should fail
         halt
 ;
-1100$:  mov     v..iit+2,v..iit ; restore iit handler
+1100$:  vecclr  v..iit          ; restore iit handler
 ;
 9999$:  iot                     ; end of test C1.3
 ;

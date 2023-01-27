@@ -1,15 +1,19 @@
-; $Id: cpu_badinst_nofpp.mac 1262 2022-07-25 09:44:55Z mueller $
+; $Id: cpu_badinst_nofpp.mac 1358 2023-01-27 10:37:36Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
+; 2023-01-27  1358   1.1    use .mcall and mlib
 ; 2022-07-24  1262   1.0    Initial version
 ; 2022-07-16  1257   0.1    First draft
 ;
 ; Test that invalid instructions trap (including fpp)
 ;
         .include        |lib/tcode_std_base.mac|
+;
+        .mcall  hcmpeq
+        .mcall  vecset,vecclr
 ;
 ; Section A: verify that invalid instructions trap ===========================
         jmp     ta0101
@@ -25,7 +29,7 @@ trpcnt: .word   0
 ;     jmp  to register
 ;   Note: 44,45,70 and J11 trap to 10, all other trap to 4
 ;
-ta0101: mov     #vh.exp,v..rit          ; setup rit handler
+ta0101: vecset  v..rit,vh.exp           ; setup rit handler
         clr     trpcnt
 ;
         jsr     pc,r0
@@ -37,7 +41,7 @@ ta0101: mov     #vh.exp,v..rit          ; setup rit handler
         jmp     r5
         halt
 ;
-        mov     #v..rit+2,v..rit        ; restore rit catcher
+        vecclr  v..rit                  ; restore rit catcher
         hcmpeq  trpcnt,#4.
 ;
 9999$:  iot                     ; end of test A1.1
@@ -46,7 +50,7 @@ ta0101: mov     #vh.exp,v..rit          ; setup rit handler
 ;   check that the following instructions trap to 4 (iit)
 ;     halt in supervisor and user mode
 ;
-ta0102: mov     #vh.exp,v..iit          ; setup iit handler
+ta0102: vecset  v..iit,vh.exp           ; setup iit handler
         clr     trpcnt
 ;
         mov     #cp.cms,cp.psw          ; supervisor mode
@@ -57,7 +61,7 @@ ta0102: mov     #vh.exp,v..iit          ; setup iit handler
         nop                             ; skipped by vh.exp
         clr     cp.psw                  ; back to kernel mode
 ;
-        mov     #v..iit+2,v..iit        ; restore iit catcher
+        vecclr  v..iit                  ; restore iit catcher
         hcmpeq  trpcnt,#2.
 ;
 9999$:  iot                     ; end of test A1.2
@@ -65,7 +69,7 @@ ta0102: mov     #vh.exp,v..iit          ; setup iit handler
 ; Test A1.3 -- reserved (except fpp) +++++++++++++++++++++++++++++++++
 ;   check that reserved instruction code trap to 10 (rit)
 ;
-ta0103: mov     #vh.exp,v..rit          ; setup iit handler
+ta0103: vecset  v..rit,vh.exp           ; setup iit handler
         clr     trpcnt
 ;
         .word   000007                  ; 000007        {MFPT in 11/44, J11}
@@ -127,7 +131,7 @@ ta0103: mov     #vh.exp,v..rit          ; setup iit handler
         .word   107777
         halt
 ;
-        mov     #v..rit+2,v..rit        ; restore iit catcher
+        vecclr  v..rit                  ; restore iit catcher
         hcmpeq  trpcnt,#29.
 ;
 9999$:  iot                     ; end of test A1.3
@@ -135,7 +139,7 @@ ta0103: mov     #vh.exp,v..rit          ; setup iit handler
 ; Test A1.4 -- reserved (nofpp) ++++++++++++++++++++++++++++++++++++++
 ;   check that fpp instructions code trap to 10 (rit)
 ;
-ta0104: mov     #vh.exp,v..rit          ; setup iit handler
+ta0104: vecset  v..rit,vh.exp           ; setup iit handler
         clr     trpcnt
 ;
         .word   170000                  ; 170000-177777
@@ -143,7 +147,7 @@ ta0104: mov     #vh.exp,v..rit          ; setup iit handler
         .word   177777
         halt
 ;
-        mov     #v..rit+2,v..rit        ; restore iit catcher
+        vecclr  v..rit                  ; restore iit catcher
         hcmpeq  trpcnt,#2.
 ;
 9999$:  iot                     ; end of test A1.4

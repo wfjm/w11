@@ -1,9 +1,10 @@
-; $Id: cpu_mmu.mac 1347 2023-01-07 12:48:58Z mueller $
+; $Id: cpu_mmu.mac 1358 2023-01-27 10:37:36Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
+; 2023-01-27  1358   1.1    use .mcall and mlib
 ; 2023-01-05  1346   1.0    Initial version
 ; 2022-07-24  1262   0.1    First draft
 ;
@@ -27,6 +28,11 @@
 ;
         .include        |lib/tcode_std_base.mac|
         .include        |lib/defs_mmu.mac|
+;
+        .mcall  push,pop
+        .mcall  hcmpeq,hcmbeq,htsteq,htstge,hbiteq,hbitne
+        .mcall  vecset,vecclr
+;
 ; some useful definitions
         uipdr0 = uipdr+ 0
         uipar0 = uipar+ 0
@@ -409,9 +415,7 @@ tb0202: mov     #kipar6,r0      ; ptr to kipar6
 ;
 tb0301:
 ; set up emt handler
-        mov     #vhuemt,v..emt
-        clr    v..emt+2         ; pr0 kernel
-; enable mmu
+        vecset  v..emt,vhuemt   ; set up emt handler, pr0 kernel
         clr     mmr3            ; no d dspace, no 22bit
         mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 18
 ;
@@ -468,8 +472,7 @@ tb0301:
         clr     sipar0
 ;
         reset                   ; mmu off                       ;! MMU off
-        mov     #v..emt+2,v..emt        ; restore emt catcher
-        clr     v..emt+2
+        vecclr  v..emt          ; restore emt catcher
 ;
 9999$:  iot                     ; end of test B3.1
 ;
@@ -484,10 +487,7 @@ tb0301:
 ;     1 000 110 110 ddd ddd NZ0- MTPD
 ;
 tb0302:
-; set up emt handler
-        mov     #vhuemt,v..emt
-        clr     v..emt+2        ; pr0 kernel
-; enable mmu
+        vecset  v..emt,vhuemt   ; set up emt handler, pr0 kernel
         mov     #m3.dum,mmr3    ; user d dspace, no 22bit
         mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 18
 ;
@@ -649,8 +649,7 @@ tb0302:
 ;
         reset                   ; mmu off                       ;! MMU off
         clr     cp.psw          ; crop pm in psw
-        mov     #v..emt+2,v..emt        ; restore emt catcher
-        clr     v..emt+2
+        vecclr  v..emt          ; restore emt catcher
         jmp     9999$
 ;
 ; test data for m*pd tests (C=0 for T and C=1 for F)
@@ -673,10 +672,7 @@ tb0302:
 ;   Runs code vc4 with D space enabled, code in page 0 and data in page 1.
 ;
 tb0303:
-; set up emt handler
-        mov     #vhuemt,v..emt
-        clr     v..emt+2        ; pr0 kernel
-; enable mmu
+        vecset  v..emt,vhuemt   ; set up emt handler, pr0 kernel
         mov     #m3.dum,mmr3    ; user d dspace, no 22bit
         mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 18
 ; set up data
@@ -707,8 +703,7 @@ tb0303:
 ;
         reset                   ; mmu off                       ;! MMU off
         clr     cp.psw          ; crop pm in psw
-        mov     #v..emt+2,v..emt        ; restore emt catcher
-        clr     v..emt+2
+        vecclr  v..emt          ; restore emt catcher
 ;
 9999$:  iot                     ; end of test B3.3
 ;
@@ -724,8 +719,7 @@ tb0303:
 ;
 tb0401: clr     mmr3            ; no d dspace, no 22bit
         mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 18
-; setup catcher
-        mov     #1000$,v..mmu
+        vecset  v..mmu,1000$    ; set up local mmu handler
 ; try to run a code in mode 10
         mov     #^b1010000000000000,-(sp)       ; next psw; cm=pm=10
         mov     #p6base+200,-(sp)               ; start address
@@ -744,8 +738,7 @@ tb0401: clr     mmr3            ; no d dspace, no 22bit
         hcmpeq  mmr2,#p6base+200                      ; check mmr2
 ;
         reset                                                   ;! MMU off
-        mov     #v..mmu+2,v..mmu        ; restore mmu catcher
-        clr     v..mmu+2
+        vecclr  v..mmu                  ; restore mmu catcher
 ;
 9999$:  iot                     ; end of test B4.1
 ;
@@ -889,8 +882,7 @@ tc0101: mov     #1000$,r1       ; ptr to abort bit table
 ; Test C2.1 -- test unary/binary instructions ++++++++++++++++++++++++
 ;   Excercise access to kernel page 6 and inspect mmr0 and mmr1
 ;
-tc0201: mov     #vhmmua,v..mmu
-        clr     v..mmu+2        ; pr0 kernel
+tc0201: vecset  v..mmu,vhmmua   ; set up mmu handler, pr0 kernel
         reset
         mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 18
 ;
@@ -1125,8 +1117,7 @@ tc0201: mov     #vhmmua,v..mmu
 9000$:  reset                   ; mmu off                       ;! MMU off
         clr     cp.psw
         mov     #<127.*md.plf>!md.arw,kipdr6    ; restore kernel mapping
-        mov     #v..mmu+2,v..mmu                ; restore mmu catcher
-        clr     v..mmu+2
+        vecclr  v..mmu                          ; restore mmu catcher
 9999$:  iot                     ; end of test C2.1
 ;
 ; Test C2.2 -- test MFPI,MFPD,MTPI,MFPD dst aborts +++++++++++++++++++
@@ -1136,8 +1127,7 @@ tc0201: mov     #vhmmua,v..mmu
 ;                   udpdr1  1 click up   acr=2 read
 ;                   udpdr2  1 click dn   acr=6 w/r
 ;
-tc0202: mov     #vhmmua,v..mmu
-        clr     v..mmu+2        ; pr0 kernel
+tc0202: vecset  v..mmu,vhmmua   ; set up mmu handler, pr0 kernel
         reset
         mov     #cp.pmu,cp.psw  ; pm to user
         mov     #m3.dum,mmr3    ; enable user D space
@@ -1284,8 +1274,7 @@ tc0202: mov     #vhmmua,v..mmu
         clr     uipdr0                          ; reset user mode pdr
         clr     udpdr1
         clr     udpdr2
-        mov     #v..mmu+2,v..mmu                ; restore mmu catcher
-        clr     v..mmu+2
+        vecclr  v..mmu                          ; restore mmu catcher
 9999$:  iot                     ; end of test C2.2
 ;
 ; Test C2.3 -- test aborts in implied push/pop +++++++++++++++++++++++
@@ -1294,14 +1283,16 @@ tc0202: mov     #vhmmua,v..mmu
 ;   from the kernel stack used in MMU 250 vector handling
 ;   Environment:    psw cm=supervisor;pm=user
 ;                   si.0   as 1-to-1  (easy switch between kernel and supervisor)
+;                   si.1   as 1-to-1  (easy switch between kernel and supervisor)
 ;                   si.7   as 1-to-1  (psw access)
 ;                   ui.0   as 1-to-1  (for read access)
 ;
-tc0203: mov     #vhmmua,v..mmu
-        clr     v..mmu+2        ; pr0 kernel
+tc0203: vecset  v..mmu,vhmmua   ; set up mmu handler, pr0 kernel
         reset
         mov     kipdr0,sipdr0   ; super 0: 1-to-1
         clr     sipar0
+        mov     kipdr1,sipdr1   ; super 1: 1-to-1
+        mov     kipar1,sipar1
         mov     kipdr7,sipdr7   ; super 7: 1-to-1
         mov     kipar7,sipar7
         mov     kipdr0,uipdr0   ; user  0: 1-to-1
@@ -1316,12 +1307,12 @@ tc0203: mov     #vhmmua,v..mmu
 ;   1100$: mfpi (r2)
 ;   1200$: mfpd (r2)
 ;
-1000$:  mov     #020040,sp      ; set SP into 1st click page 1, non-resident
+1000$:  mov     #p2base+40,sp    ; set SP into 1st click page 2, non-resident
         mov     #1010$,vhvmmu
         mov     #1001$,r2
         jsr     pc,(r2)         ; will fail
 1001$:  halt
-1010$:  .word   m0.anr!m0.pms!<1*m0.pno>!m0.ena ; mmr0
+1010$:  .word   m0.anr!m0.pms!<2*m0.pno>!m0.ena ; mmr0
         ;         dddddrrrdddddrrr
         .word   ^b0000000011110110              ; mmr1 -2,6
 ;
@@ -1329,14 +1320,14 @@ tc0203: mov     #vhmmua,v..mmu
         mov     #swsyid,r2      ; any valid address
         mfpi    (r2)            ; will fail
         halt
-1110$:  .word   m0.anr!m0.pms!<1*m0.pno>!m0.ena ; mmr0
+1110$:  .word   m0.anr!m0.pms!<2*m0.pno>!m0.ena ; mmr0
         ;         dddddrrrdddddrrr
         .word   ^b0000000011110110              ; mmr1 -2,6
 ;
 1200$:  mov     #1210$,vhvmmu
         mfpd    (r2)            ; will fail
         halt
-1210$:  .word   m0.anr!m0.pms!<1*m0.pno>!m0.ena ; mmr0
+1210$:  .word   m0.anr!m0.pms!<2*m0.pno>!m0.ena ; mmr0
         ;         dddddrrrdddddrrr
         .word   ^b0000000011110110              ; mmr1 -2,6
 ;
@@ -1356,40 +1347,40 @@ tc0203: mov     #vhmmua,v..mmu
         clr     2210$+2         ; expect mmr1 = 0
 1999$:
 ;
-2000$:  mov     #020040,sp      ; set SP into 1st click page 1, non-resident
+2000$:  mov     #p2base+40,sp   ; set SP into 1st click page 2, non-resident
         mov     #2010$,vhvmmu
         rts     pc              ; will fail
         halt
-2010$:  .word   m0.anr!m0.pms!<1*m0.pno>!m0.ena ; mmr0
+2010$:  .word   m0.anr!m0.pms!<2*m0.pno>!m0.ena ; mmr0
         ;         dddddrrrdddddrrr
         .word   ^b0000000000010110              ; mmr1 +2,6
 ;
-2100$:  mov     #020040,sp      ; set SP into 1st click page 1, non-resident
+2100$:  mov     #p2base+40,sp   ; set SP into 1st click page 2, non-resident
         mov     #2110$,vhvmmu
         mov     #1,r2           ; not used
         mtpi    (r2)            ; will fail
         halt
-2110$:  .word   m0.anr!m0.pms!<1*m0.pno>!m0.ena ; mmr0
+2110$:  .word   m0.anr!m0.pms!<2*m0.pno>!m0.ena ; mmr0
         ;         dddddrrrdddddrrr
         .word   ^b0000000000010110              ; mmr1 +2,6
 ;
-2200$:  mov     #020040,sp      ; set SP into 1st click page 1, non-resident
+2200$:  mov     #p2base+40,sp   ; set SP into 1st click page 1, non-resident
         mov     #2210$,vhvmmu
         mov     #1,r2           ; not used
         mtpd    (r2)            ; will fail
         halt
-2210$:  .word   m0.anr!m0.pms!<1*m0.pno>!m0.ena ; mmr0
+2210$:  .word   m0.anr!m0.pms!<2*m0.pno>!m0.ena ; mmr0
         ;         dddddrrrdddddrrr
         .word   ^b0000000000010110              ; mmr1 +2,6
 ;
 9000$:  clr     cp.psw
         reset                   ; mmu off                       ;! MMU off
         clr     sipdr0                          ; reset super/user pdf
+        clr     sipdr1
         clr     sipdr7
         clr     sipar7
         clr     uipdr0
-        mov     #v..mmu+2,v..mmu                ; restore mmu catcher
-        clr     v..mmu+2
+        vecclr  v..mmu                          ; restore mmu catcher
 9999$:  iot                     ; end of test C2.3
 ;
 ; Test C2.4 -- mmu abort vs nxm abort ++++++++++++++++++++++++++++++++
@@ -1409,25 +1400,25 @@ tc0204: mov     cp.los,kipar6           ; map begin of non-existent memory
 ; part 1: MMU allows access to NXM memory --> NXM abort --------------
 ;
 1000$:  clr     cp.err                  ; clear CPUERR
-        mov     #1100$,v..iit           ; set vector 4 handler for NXM abort
+        vecset  v..iit,1100$            ; set vector 4 handler for NXM abort
         clr     @#p6p1p2                ; access
         halt
 1100$:  mov     #stack,sp               ; vector 4 taken
         hcmpeq  cp.err,#cp.nxm          ; NXM error seen
-        mov     #v..iit+2,v..iit        ; restore iit handler to catcher
+        vecclr  v..iit                  ; restore iit handler to catcher
 ;
 ; part 2: MMU denies access to NXM memory --> MMU abort --------------
 ;
 2000$:  mov     #<127.*md.plf>!md.an7,kipdr6  ; deny access via acf=7
         clr     cp.err                  ; clear CPUERR
-        mov     #2100$,v..mmu           ; set vector 250 handler for MMU abort
+        vecset  v..mmu,2100$            ; set vector 250 handler for MMU abort
 2010$:  clr     @#p6p1p2                ; access
         halt
 2100$:  mov     #stack,sp               ; vector 250 taken
         htsteq  cp.err                  ; check CPUERR: no NXM expected
         hcmpeq  #m0.anr!<6*m0.pno>!m0.ena,mmr0   ; check mmr0
         hcmpeq  #2010$,mmr2             ; check mmr2: failed instruction
-        mov     #v..mmu+2,v..mmu        ; restore mmu handler to catcher
+        vecclr  v..mmu                  ; restore mmu handler to catcher
 ;
         reset                   ; mmu off                       ;! MMU off
         mov     #001400,kipar6                  ; reset kipar6
@@ -1449,12 +1440,9 @@ tc0205: mov     #<127.*md.plf>,kipdr5   ; page 5 non-resident (afc=0)
         mov     #177777,p6base          ; set signatures (will be overwritten)
         mov     #177777,p6base-2        ; set signatures (will stay)
         mov     #m0.ena,mmr0            ; enable mmu            ;! MMU 18
-        mov     #200$,v..iit            ; iit handler
-        mov     #cp.pr1!cp000c,v..iit+2 ; use PR1+000C as signature iit
-        mov     #110$,v..mmu            ; mmu handler (catcher)
-        mov     #cp.pr2!cp00v0,v..mmu+2 ; use PR2+00V0 as signature mmu
-        mov     #120$,v..trp            ; trap handler (catcher)
-        mov     #cp.pr3!cp0z00,v..trp+2 ; use PR3+0Z00 as signature trp
+        vecset  v..iit,200$,cp.pr1!cp000c ; iit handler, PR1+000C as signature
+        vecset  v..mmu,110$,cp.pr2!cp00v0 ; mmu handler, PR2+00V0 as signature
+        vecset  v..trp,120$,cp.pr3!cp0z00 ; trap handler,PR3+0Z00 as signature
 ;
 ; abort on 2nd push
         mov     #p6base+2,sp            ; 2nd push will fail
@@ -1488,12 +1476,9 @@ tc0205: mov     #<127.*md.plf>,kipdr5   ; page 5 non-resident (afc=0)
 ;
 ; restore
         mov     #<127.*md.plf>!md.arw,kipdr5    ; reset kipdr5
-        mov     #v..iit+2,v..iit        ; v..iit to catcher
-        clr     v..iit+2
-        mov     #v..mmu+2,v..mmu        ; v..mmu to catcher
-        clr     v..mmu+2
-        mov     #v..trp+2,v..trp        ; v..trp to catcher
-        clr     v..trp+2
+        vecclr  v..iit                  ; v..iit to catcher
+        vecclr  v..mmu                  ; v..mmu to catcher
+        vecclr  v..trp                  ; v..trp to catcher
         mov     #stack,sp               ; SP to default
         spl     0                       ; back to PR0
 ;
@@ -1516,10 +1501,8 @@ tc0206: mov     kipdr0,sipdr0           ; super page 0 1-to-1
         mov     kipdr7,sipdr7           ; super page 7 1-to-1
         mov     kipar7,sipar7
         mov     #m0.ena,mmr0            ; enable mmu            ;! MMU 18
-        mov     #200$,v..mmu            ; mmu handler
-        mov     #cp.pr7!cp000c,v..mmu+2 ; use PR7+000C as signature mmu
-        mov     #110$,v..pir            ; PIRQ handler (catcher in supervisor)
-        mov     #cp.cms!cp.pr6!cp00v0,v..pir+2 ; use PR6+00V0 as signature pir
+        vecset  v..mmu,200$,cp.pr7!cp000c ; mmu handler, PR7+000C as signature
+        vecset  v..pir,110$,cp.cms!cp.pr6!cp00v0 ; PIRQ handler in supervisor
 ;
 ; abort on 2nd push ------------------------------
         mov     #stack,sp               ; set kernel SP
@@ -1579,10 +1562,8 @@ tc0206: mov     kipdr0,sipdr0           ; super page 0 1-to-1
         clr     sipar6
         clr     sipdr7
         clr     sipar7
-        mov     #v..mmu+2,v..mmu        ; v..mmu to catcher
-        clr     v..mmu+2
-        mov     #v..pir+2,v..pir        ; v..pir to catcher
-        clr     v..pir+2
+        vecclr  v..mmu                  ; v..mmu to catcher
+        vecclr  v..pir                  ; v..pir to catcher
         mov     #stack,sp               ; SP to default
 ;
 9999$:  iot                                     ; end of test C2.6
@@ -1595,8 +1576,8 @@ tc0206: mov     kipdr0,sipdr0           ; super page 0 1-to-1
 ;
 tc0207: clr     kipdr6                  ; kernel page 6 non-resident
         mov     #m0.ena,mmr0            ; enable mmu            ;! MMU 18
-        mov     #p6base+10,v..trp       ; TRAP handler in page 6
-        mov     #200$,v..mmu            ; mmu handler
+        vecset  v..trp,p6base+10        ; TRAP handler in page 6
+        vecset  v..mmu,200$             ; mmu handler
 100$:   trap    100                     ; will fail
         halt
 200$:   hcmpeq  #m0.anr!<6*m0.pno>!m0.ena,mmr0 ; check mmr0: ico=0
@@ -1605,10 +1586,8 @@ tc0207: clr     kipdr6                  ; kernel page 6 non-resident
 ;
         reset                           ; mmu off               ;! MMU off
         mov     #<127.*md.plf>!md.arw,kipdr6  ; restore kipdr6
-        mov     #v..mmu+2,v..mmu        ; v..mmu to catcher
-        clr     v..mmu+2
-        mov     #v..trp+2,v..trp        ; v..trp to catcher
-        clr     v..trp+2
+        vecclr  v..mmu                  ; v..mmu to catcher
+        vecclr  v..trp                  ; v..trp to catcher
         mov     #stack,sp               ; SP to default
 ;
 9999$:  iot                                     ; end of test C2.7
@@ -1620,7 +1599,7 @@ tc0207: clr     kipdr6                  ; kernel page 6 non-resident
 ;
 tc0208: clr     kipdr5                  ; kernel page 5 non-resident
         mov     #m0.ena,mmr0            ; enable mmu            ;! MMU 18
-        mov     #200$,v..mmu            ; mmu handler
+        vecset  v..mmu,200$             ; mmu handler
         clr     r2                      ; clear counter
         mov     #100$,r3                ; ptr to failed landing
         jmp     @#p5ce14                ; start test code
@@ -1633,8 +1612,7 @@ tc0208: clr     kipdr5                  ; kernel page 5 non-resident
 ;
         reset                           ; mmu off               ;! MMU off
         mov     #<127.*md.plf>!md.arw,kipdr5  ; restore kipdr5
-        mov     #v..mmu+2,v..mmu        ; v..mmu to catcher
-        clr     v..mmu+2
+        vecclr  v..mmu                  ; v..mmu to catcher
         mov     #stack,sp               ; SP to default
 ;
 9999$:  iot                                     ; end of test C2.8
@@ -1646,7 +1624,7 @@ tc0209: clr     kipdr6                  ; kernel page 6 non-resident
         mov     #177777,p6base-2        ; set signatures (will be overwritten)
         mov     #177777,p6base          ; set signatures (will stay)
         mov     #m0.ena,mmr0            ; enable mmu            ;! MMU 18
-        mov     #200$,v..mmu            ; mmu handler
+        vecset  v..mmu,200$             ; mmu handler
         mov     #p6base-2,r1
         clr     (r1)+                   ; succeeds
 100$:   clr     (r1)+                   ; fails
@@ -1661,8 +1639,7 @@ tc0209: clr     kipdr6                  ; kernel page 6 non-resident
         hcmpeq  #177777,p6base          ; check signature
 ;
         mov     #<127.*md.plf>!md.arw,kipdr6  ; restore kipdr6
-        mov     #v..mmu+2,v..mmu        ; v..mmu to catcher
-        clr     v..mmu+2
+        vecclr  v..mmu                  ; v..mmu to catcher
         mov     #stack,sp               ; SP to default
 ;
 9999$:  iot                                     ; end of test C2.9
@@ -1679,10 +1656,8 @@ tc0210: tstb    systyp          ; skip if not on w11
 ;
         mov     #<127.*md.plf>,kipdr6   ; page 6 non-resident (afc=0)
         mov     #m0.ena,mmr0            ; enable mmu            ;! MMU 18
-        mov     #200$,v..iit            ; iit handler
-        mov     #cp.pr1!cp000c,v..iit+2 ; use PR1+000C as signature iit
-        mov     #110$,v..mmu            ; mmu handler (catcher)
-        mov     #cp.pr2!cp00v0,v..mmu+2 ; use PR2+00V0 as signature mmu
+        vecset  v..iit,200$,cp.pr1!cp000c ; iit handler, PR1+000C as signature
+        vecset  v..mmu,110$,cp.pr2!cp00v0 ; mmu handler, PR2+00V0 as signature
         mov     #p6base,cp.slr          ; red zone at 140340
         mov     #p6base+336,sp          ; in red zone
         spl     4
@@ -1701,10 +1676,8 @@ tc0210: tstb    systyp          ; skip if not on w11
         reset                           ; mmu off               ;! MMU off
         mov     #stack,sp               ; SP to default
         mov     #<127.*md.plf>!md.arw,kipdr6    ; reset kipdr6
-        mov     #v..iit+2,v..iit        ; v..iit to catcher
-        clr     v..iit+2
-        mov     #v..mmu+2,v..mmu        ; v..mmu to catcher
-        clr     v..mmu+2
+        vecclr  v..iit                  ; v..iit to catcher
+        vecclr  v..mmu                  ; v..mmu to catcher
         spl     0                       ; back to PR0        
 ;
 9999$:  iot                                     ; end of test C2.10
@@ -1721,11 +1694,8 @@ tc0210: tstb    systyp          ; skip if not on w11
 ;
 td0101:
 ; set up emt handler
-        mov     #vhuemt,v..emt
-        clr     v..emt+2        ; pr0 kernel
-; set up mmu handler
-        mov     #2000$,v..mmu
-        mov     #cp.pr7,v..mmu+2
+        vecset  v..emt,vhuemt           ; set up emt handler, pr0 kernel
+        vecset  v..mmu,2000$,cp.pr7     ; set up mmu handler, pr7 kernel
 ; set up user mode pdr/par; short code/data page 0
 ; short stack page 1, base 140000, length 1 click (plf=127.) --> 157700:157776
         vc2sek = 157700            ; initial end of stack in kernel view
@@ -1779,10 +1749,8 @@ td0101:
         clr     udpar1
 ;
         reset                   ; mmu off                       ;! MMU off
-        mov     #v..emt+2,v..emt        ; restore emt catcher
-        clr     v..emt+2
-        mov     #v..mmu+2,v..mmu        ; restore mmu catcher
-        clr     v..mmu+2
+        vecclr  v..emt          ; restore emt catcher
+        vecclr  v..mmu          ; restore mmu catcher
         jmp     9999$
 ;
 ; the MMU trap handler
@@ -1892,12 +1860,9 @@ td0201: tstb    systyp          ; skip if not on w11
 ;
 ; set up handlers
 ;
-        mov     #3000$,v..mmu           ; MMU handler
-        mov     #cp.pr7,v..mmu+2        ; lockout interrupts
-        mov     #4000$,v..emt           ; EMT handler
-        mov     #cp.pr7,emt+2           ; lockout interrupts
-        mov     #p2base,v..pir          ; PIRQ handler (on page 2 in SM)
-        mov     #cp.cms!cp.pr7,v..pir+2 ; in SM, lockout interrupts
+        vecset  v..mmu,3000$,cp.pr7         ; MMU handler, lockout interrupts
+        vecset  v..emt,4000$,cp.pr7         ; EMT handler, lockout interrupts
+        vecset  v..pir,p2base,cp.cms!cp.pr7 ;PIRQ handler (on page 2 in SM,PR7)
 ;
 ; now start the game: set SM stack, set r5 and request a PIRQ 4
 ;
@@ -2075,12 +2040,9 @@ td0201: tstb    systyp          ; skip if not on w11
         clr     sipdr7
         clr     sipar7
 ;
-        mov     #v..mmu+2,v..mmu        ; restore v..mmu to catcher
-        clr     v..mmu+2
-        mov     #v..emt+2,v..emt        ; restore v..emt to catcher
-        clr     v..emt+2
-        mov     #v..pir+2,v..pir        ; restore v..pir to catcher
-        clr     v..pir+2
+        vecclr  v..mmu          ; restore v..mmu to catcher
+        vecclr  v..emt          ; restore v..emt to catcher
+        vecclr  v..pir          ; restore v..pir to catcher
 ;
 9999$:  iot                     ; end of test D2.1
 ;
@@ -2125,8 +2087,7 @@ td0201: tstb    systyp          ; skip if not on w11
 ;   Uses page 6 with plf=1 and varying acf.
 ;   Checks that m0.trp must be cleared before a 2nd MMU trap is taken
 ;
-te0101: mov     #vhmmut,v..mmu  ; setup MMU trap handler
-        clr     v..mmu+2        ; pr0 kernel
+te0101: vecset  v..mmu,vhmmut   ; setup MMU trap handler, pr0 kernel
         reset
         mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 18
         mov     #kipdr6,r4      ; keep in register
@@ -2231,8 +2192,7 @@ te0101: mov     #vhmmut,v..mmu  ; setup MMU trap handler
 9000$:  reset                   ; mmu off                       ;! MMU off
         clr     cp.psw
         mov     #<127.*md.plf>!md.arw,kipdr6    ; restore kernel mapping
-        mov     #v..mmu+2,v..mmu                ; restore mmu catcher
-        clr     v..mmu+2
+        vecclr  v..mmu                          ; restore mmu catcher
 9999$:  iot                     ; end of test E1.1
 ;
 ; Test E1.2 -- systematic abort/trap testing for all valid afc +++++++
@@ -2251,8 +2211,7 @@ te0101: mov     #vhmmut,v..mmu  ; setup MMU trap handler
 ;    6   tst (r3)     r-ok         -   0   0   no
 ;    6   mov r0,(r3)  w-ok         -   0   1   no
 ;
-te0102: mov     #vhmmut,v..mmu  ; setup MMU trap handler
-        clr     v..mmu+2        ; pr0 kernel
+te0102: vecset  v..mmu,vhmmut   ; setup MMU trap handler, pr0 kernel
         reset
         mov     #m0.ent!m0.ena,mmr0 ; enable mmu with traps     ;! MMU 18
         clr     vhvmmu          ; dont expect traps initially
@@ -2379,8 +2338,7 @@ te0102: mov     #vhmmut,v..mmu  ; setup MMU trap handler
 9000$:  reset                   ; mmu off                       ;! MMU off
         clr     cp.psw
         mov     #<127.*md.plf>!md.arw,kipdr6    ; restore kernel mapping
-        mov     #v..mmu+2,v..mmu                ; restore mmu catcher
-        clr     v..mmu+2
+        vecclr  v..mmu                          ; restore mmu catcher
 9999$:  iot                     ; end of test E1.2
 ;
 ; Test E1.3 -- test trap request logic (trap on non-last access) +++++
@@ -2398,7 +2356,7 @@ te0103: mov     #mmr0,r2                ; ptr to mmr0
         mov     #<127.*md.plf>!md.att,kipdr6   ; enable traps (afc=4)
         mov     #m0.ent!m0.ena,mmr0     ; enable mmu with traps  ;! MMU 18
 ;
-        mov     #vhmmut,v..mmu          ; setup MMU trap handler
+        vecset  v..mmu,vhmmut           ; setup MMU trap handler
         mov     #1010$,vhvmmu
         mov     (r3),r5                 ; check r(p6) - trival case
         halt
@@ -2427,7 +2385,7 @@ te0103: mov     #mmr0,r2                ; ptr to mmr0
 ;
 2000$:  reset                   ; mmu off                       ;! MMU off
         mov     #<127.*md.plf>!md.arw,kipdr6    ; reset kipdr6
-        mov     #v..mmu+2,v..mmu
+        vecclr  v..mmu                          ; reset v..mmu
 ;
 9999$:  iot                                     ; end of test E1.3
 ;
@@ -2443,7 +2401,7 @@ te0104: mov     #<127.*md.plf>!md.att,kipdr5   ; enable traps (afc=4)
         mov     #m0.ent!m0.ena,mmr0     ; enable mmu with traps ;! MMU 18
         clr     r2                      ; clear counter
         mov     #1000$,r3               ; ptr to failed landing
-        mov     #vhmmut,v..mmu          ; setup MMU trap handler
+        vecset  v..mmu,vhmmut           ; setup MMU trap handler
         mov     #1100$,vhvmmu
         jmp     @#p5ce14                ; start test code
 ;
@@ -2453,14 +2411,14 @@ te0104: mov     #<127.*md.plf>!md.att,kipdr5   ; enable traps (afc=4)
 ;
         reset                   ; mmu off                       ;! MMU off
         mov     #<127.*md.plf>!md.arw,kipdr5    ; reset kipdr5
-        mov     #v..mmu+2,v..mmu
+        vecclr  v..mmu                          ; reset v..mmu
 ;
 9999$:  iot                                     ; end of test E1.4
 ;
 ; Test E1.5 -- test trap request after IO page access ++++++++++++++++
 ;
 te0105: mov     #<127.*md.plf>!md.att,kipdr7   ; enable traps (afc=4)
-        mov     #vhmmut,v..mmu          ; setup MMU trap handler
+        vecset  v..mmu,vhmmut           ; setup MMU trap handler
         mov     #1000$,vhvmmu
 ;
 ; The write to mmr0 will not trigger a trap on w11 because the trap decision
@@ -2472,7 +2430,7 @@ te0105: mov     #<127.*md.plf>!md.att,kipdr7   ; enable traps (afc=4)
 ;
 1000$:  reset                   ; mmu off                       ;! MMU off
         mov     #<127.*md.plf>!md.arw,kipdr7    ; reset kipdr7
-        mov     #v..mmu+2,v..mmu
+        vecclr  v..mmu                          ; reset v..mmu
 ;
 9999$:  iot                                     ; end of test E1.5
 ;
@@ -2481,10 +2439,8 @@ te0105: mov     #<127.*md.plf>!md.att,kipdr7   ; enable traps (afc=4)
 ;
 ; common handler setup for trap and interrupt priority tests
 ;
-        mov     #vhtmmu,v..mmu          ; mmu trap handler
-        mov     #cp.pr7,v..mmu+2        ;   run at PR7 (lockout PIRQ)
-        mov     #vhtpir,v..pir          ; PIRQ handler
-        mov     #cp.pr7,v..pir+2        ;   run at PR7 (prevent retrigger)
+        vecset  v..mmu,vhtmmu,cp.pr7    ; mmu trap handler, PR7 (lockout PIRQ)
+        vecset  v..pir,vhtpir,cp.pr7    ; PIRQ handler, PR7 (prevent retrigger)
         mov     #<127.*md.plf>!md.att,kipdr5   ; enable traps in page 5 (afc=4)
 ;
 ; Test E2.1 -- mmu trap + interrupt priority +++++++++++++++++++++++++
@@ -2513,10 +2469,8 @@ te0201: mov     #m0.ent!m0.ena,mmr0     ; enable mmu with traps  ;! MMU 18
 ; common restore for section E2 --------------------------------------
 ;
         mov     #<127.*md.plf>!md.arw,kipdr5    ; reset kipdr5
-        mov     #v..mmu+2,v..mmu        ; restore v..mmu to catcher
-        clr     v..mmu+2
-        mov     #v..pir+2,v..pir        ; restore v..pir to catcher
-        clr     v..pir+2
+        vecclr  v..mmu                  ; restore v..mmu to catcher
+        vecclr  v..pir                  ; restore v..pir to catcher
 ;
 ; Section F: miscellaneous ===================================================
 ;   F1    test D-to-I mapping
@@ -2587,8 +2541,7 @@ tf0101: mov     #m3.dkm,mmr3    ; enable D space for kernel
 ;
         clr     kdpdr6          ; reset kdpdr6
         clr     kdpar6          ; reset kdpar6
-        mov     #v..mmu+2,v..mmu                ; restore mmu catcher
-        clr     v..mmu+2
+        vecclr  v..mmu          ; restore mmu catcher
 ;
 9999$:  iot                     ; end of test F1.1
 ;

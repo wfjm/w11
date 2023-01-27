@@ -1,6 +1,6 @@
-; $Id: vec_devcatch.mac 1184 2019-07-10 20:39:44Z mueller $
+; $Id: vec_devcatch.mac 1357 2023-01-26 19:24:10Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2015- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2015-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; vector catcher for device interrupts (subset used by w11)
 ; 
@@ -25,58 +25,28 @@
 ;   160100  310?   5  9  9    3  3/1  DZ11-RX
 ;           314?   5  8  8    ^       DZ11-TX
 ;
-        . = 000060
-v..tti: .word   v..tti+2        ; vec  60 (DL11-RX  1st)
-        .word   0
-v..tto: .word   v..tto+2        ; vec  64 (DL11-TX  1st)
-        .word   0
+        .mcall  vecini
 ;
-v..ptr: .word   v..ptr+2        ; vec  70 (PC11/PTR)
-        .word   0
-v..ptp: .word   v..ptp+2        ; vec  74 (PC11/PTP)
-        .word   0
-;
-        . = 000100
-v..kwl: .word   v..kwl+2        ; vec 100 (KW11-L)
-        .word   0
-v..kwp: .word   v..kwp+2        ; vec 104 (KW11-P)
-        .word   0
-;
-        . = 000120
-v..xu:  .word   v..xu+2         ; vec 120 (DEUNA)
-        .word   0
-;
-        . = 000160
-v..rl:  .word   v..rl+2         ; vec 160 (RL11)
-        .word   0
+        vecini  060,v..tti      ; vec  60 (DL11-RX  1st)
+        vecini  064,v..tto      ; vec  64 (DL11-TX  1st)
+        vecini  070,v..ptr      ; vec  70 (PC11/PTR)
+        vecini  074,v..ptp      ; vec  74 (PC11/PTP)
+        vecini  100,v..kwl      ; vec 100 (KW11-L)
+        vecini  104,v..kwp      ; vec 104 (KW11-P)
+        vecini  120,v..xu       ; vec 120 (DEUNA)
+        vecini  160,v..rl       ; vec 160 (RL11)
 ;
 ; Note on vector 200
 ;   MAINDECs use 200 also as default start address. This vector catcher
 ;   might therefore be overwritten later by startup code of test programs.
 ;
-        . = 000200
-v..lp:  .word   v..lp+2         ; vec 200 (LP11)
-        .word   0
-;
-        . = 000220
-v..rk:  .word   v..rk+2         ; vec 220 (RK11)
-        .word   0
-v..tm:  .word   v..tm+2         ; vec 224 (TM11)
-        .word   0
-;
-        . = 000254
-v..rp:  .word   v..rp+2         ; vec 254 (RHRP)
-        .word   0
-v..iis: .word   v..iis+2        ; vec 260 (IIST)
-        .word   0
-;
-        . = 000300
-v..d2r: .word   v..d2r+2        ; vec 300 (DL11-RX  2nd)
-        .word   0
-v..d2t: .word   v..d2t+2        ; vec 304 (DL11-TX  2nd)
-        .word   0
-v..dzr: .word   v..dzr+2        ; vec 310 (DZ11-RX)
-        .word   0
-v..dzt: .word   v..dzt+2        ; vec 314 (DZ11-TX)
-        .word   0
+        vecini  200,v..lp       ; vec 200 (LP11)
+        vecini  220,v..rk       ; vec 220 (RK11)
+        vecini  224,v..tm       ; vec 224 (TM11)
+        vecini  254,v..rp       ; vec 254 (RHRP)
+        vecini  260,v..iis      ; vec 260 (IIST)
+        vecini  300,v..d2r      ; vec 300 (DL11-RX  2nd)
+        vecini  304,v..d2t      ; vec 304 (DL11-TX  2nd)
+        vecini  310,v..dzr      ; vec 310 (DZ11-RX)
+        vecini  314,v..dzt      ; vec 314 (DZ11-TX)
 ;

@@ -1,0 +1,8 @@
+; $Id: vecclr.mac 1357 2023-01-26 19:24:10Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+        .macro  vecclr,name
+        mov     #name+2,@#name
+        clr     @#name+2
+        .endm

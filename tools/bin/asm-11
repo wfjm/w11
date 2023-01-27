@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: asm-11 1356 2023-01-26 15:10:23Z mueller $
+# $Id: asm-11 1357 2023-01-26 19:24:10Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2013-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2023-01-26  1357   1.2.3  skip redundant loads in .mcall
 # 2023-01-25  1355   1.2.2  rewrite macro args handling; add .narg,.nchr,.ntype
 # 2023-01-24  1354   1.2.1  add .error,.print,.mcall,.mdelete; add -L; add ...top
 # 2023-01-22  1353   1.2    add .if, .if(f|t|tf), .endc, .rept, .endr, .mexit
@@ -509,6 +510,7 @@ sub pass1_line {
   # handle .mcall ------------------------------------------
   if (defined $$rl{oper} && $$rl{oper} eq '.mcall') {
     foreach my $mname (@{$$rl{mcall}}) {
+      next if exists $mst{$mname};          # quit if already loaded
       my $fname;
       foreach (@{$opts{L}}) {
         if (-r "$_/${mname}.mac") {

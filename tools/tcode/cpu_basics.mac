@@ -1,9 +1,10 @@
-; $Id: cpu_basics.mac 1351 2023-01-13 08:38:27Z mueller $
+; $Id: cpu_basics.mac 1358 2023-01-27 10:37:36Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2015-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
+; 2023-01-27  1358   1.1    use .mcall and mlib
 ; 2023-01-07  1347   1.0    Initial version
 ; 2015-08-30   710   0.1    First draft
 ;
@@ -17,6 +18,10 @@
 ;
         .include        |lib/tcode_std_base.mac|
         .include        |lib/defs_kwl.mac|
+;
+        .mcall  push
+        .mcall  hcmpeq,hcmbeq,htsteq,htsbeq,hbiteq,hbitne
+        .mcall  vecset,vecclr
 ;
 ; Section A: ccops + flow control bxx, sob, jmp, jsr, rts, mark ==============
 ;   A1    ccop + bbx
@@ -3152,8 +3157,7 @@ tf0202: mov     #cp.psw,r0
 ;
 tf0203: cmpb    systyp,#sy.sih          ; skip on SimH (no SPL 11/70 semantics)
         beq     9999$
-        mov     #100$,v..pir            ; set up PIRQ handler
-        mov     #cp.pr7,v..pir+2
+        vecset  v..pir,100$,cp.pr7      ; set up PIRQ handler
         spl     7
         movb    #bit01,cp.pir+1         ; request PIRQ 1
         spl     0                       ; SPL enforces execution of next inst
@@ -3162,8 +3166,7 @@ tf0203: cmpb    systyp,#sy.sih          ; skip on SimH (no SPL 11/70 semantics)
 ;
 100$:   halt
 ;
-200$:   mov     #v..pir+2,v..pir
-        clr     v..pir+2
+200$:   vecclr  v..pir                  ; reset PIRQ handler
 
 9999$:  iot                     ; end of test F2.3
 ;
@@ -3178,37 +3181,31 @@ tf0203: cmpb    systyp,#sy.sih          ; skip on SimH (no SPL 11/70 semantics)
 ;
 ; Test F3.1 trap instructions: bpt,iot,emt,trap ++++++++++++++++++++++
 ;
-tf0301: mov     #v..iot+2,v..iot ; block iot handler
-        clr     v..iot+2
+tf0301: vecclr  v..iot          ; IOT handler to catcher
         clr     cp.psw          ; clear psw
         mov     #3000$,r5       ; setup expect buffer
 ;
 ; test bpt
 ;
-        mov     #2000$,v..bpt   ; setup bpt handler: nzvc = 0011
-        mov     #cp.pr7!cp00vc,v..bpt+2
+        vecset  v..bpt,2000$,cp.pr7!cp00vc  ; setup bpt handler: nzvc = 0011
         spl     1
         ccc
         sec
         bpt                     ; bpt with pr1 + nzvc = 0001
-        mov     #v..bpt+2,v..bpt ; block bpt again
-        clr     v..bpt+2
+        vecclr  v..bpt          ; block bpt again
 ;
 ; test iot
 ;
-        mov     #2000$,v..iot   ; setup bpt handler: nzvc = 0100
-        mov     #cp.pr7!cp0z00,v..iot+2
+        vecset  v..iot,2000$,cp.pr7!cp0z00  ; setup bpt handler: nzvc = 0100
         spl     2
         ccc
         sev
         iot                     ; iot with pr2 + nzvc = 0010
-        mov     #v..iot+2,v..iot ; block iot again
-        clr     v..iot+2
+        vecclr  v..iot          ; block iot again
 ;
 ; test emt 123
 ;
-        mov     #2000$,v..emt   ; setup emt handler: nzvc = 0101
-        mov     #cp.pr7!cp0z0c,v..emt+2
+        vecset  v..emt,2000$,cp.pr7!cp0z0c  ; setup emt handler: nzvc = 0101
         spl     3
         ccc
         sez
@@ -3218,13 +3215,11 @@ tf0301: mov     #v..iot+2,v..iot ; block iot handler
         ccc
         sez
         emt     234              ; emt with pr4 + nzvc = 0100
-        mov     #v..emt+2,v..emt ; block emt again
-        clr     v..emt+2
+        vecclr  v..emt           ; block emt again
 ;
 ; test trap 321
 ;
-        mov     #2000$,v..trp   ; setup trap handler: nzvc = 0110
-        mov     #cp.pr7!cp0zv0,v..trp+2
+        vecset  v..trp,2000$,cp.pr7!cp0zv0  ; setup trap handler: nzvc = 0110
         spl     5
         ccc
         sen
@@ -3234,14 +3229,12 @@ tf0301: mov     #v..iot+2,v..iot ; block iot handler
         ccc
         sen
         trap    135              ; trap with pr6 + nzvc = 1000
-        mov     #v..trp+2,v..trp ; block trap again
-        clr     v..trp+2
+        vecclr  v..trp           ; block trap again
 ;
 ; end of trap instruction tests
 ;
         cmp     r5,#3001$
-        mov     #vh.iot,v..iot  ; restore iot handler
-        mov     #cp.pr7,v..iot+2
+        vecset  v..iot,vh.iot,cp.pr7    ; restore iot handler
         jmp     9999$
 ;
 ; vector handler (used for all trap type instructions)

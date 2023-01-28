@@ -1,11 +1,11 @@
 .\"  -*- nroff -*-
-.\"  $Id: asm-11.1 1356 2023-01-26 15:10:23Z mueller $
+.\"  $Id: asm-11.1 1359 2023-01-27 20:58:50Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
-.\" Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2013-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\"
 .\" ------------------------------------------------------------------
 .
-.TH ASM-11 1 2023-01-25 "Retro Project" "Retro Project Manual"
+.TH ASM-11 1 2023-01-27 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
 asm-11 \- simple assembler for MACRO-11 style PDP-11 code
@@ -71,8 +71,8 @@ Activated with the \fB\-\-lst\fP or \fB\-\-olst\fP options.
   .iff      assembles block if condition tests false
   .ift      assembles block if condition tests true
   .iftf     assembles block regardless of condition
-  .list     parsed but otherwise ignored; me always enabled
-  .nlist    parsed but otherwise ignored
+  .list     minimal support for cnd,me,meb
+  .nlist    minimal support for cnd,me,meb
   .macro    starts macro defintion (subset)
   .mcall    load macro definitions
   .mdelete  delete macro definitions
@@ -113,6 +113,10 @@ a \.if df/ndf sees opcodes as defined (MACRO-11 doesn't)
 a \.if df/ndf sees register names as undefined (MACRO-11 doesn't)
 .IP "-"
 error codes on invail statements differ, especially A and Q
+.IP "-"
+the \.(n)list acts only on cnd, me and meb, ignores other values
+.IP "-"
+the \.(n)list default is cnd=0,me=0,meb=1 (MACRO-11 cnd=1,meb=0)
 .PD
 .RE
 .PP
@@ -205,6 +209,19 @@ If \fIFILE\fP is '-' the output is written to \fIstdout\fP.
 create lsmem style memory dump in \fBlsm-11\fP(5) format and write it to
 file \fIfnam\fR.
 If \fIfnam\fP is '-' the compound output is written to \fIstdout\fP.
+.
+.\" ----------------------------------------------
+.IP "\fB\-list\fI opt\fR"
+is equivalent to a '.list \fIopt\fP' directive at the beginning of the code.
+Supported values for \fIopt\fP are 'cnd', 'me' and 'meb'. Startup
+default is 'cnd' and 'me' disabled and 'meb' enabled.
+\fB\-list\fP can be given multiple times.
+.
+.\" ----------------------------------------------
+.IP "\fB\-nlist\fI opt\fR"
+is equivalent to a '.nlist \fIopt\fP' directive at the beginning of the code.
+\fB\-nlist\fP can be given multiple times.
+\fB\-nlist\fP options are processed after \fB\-list\fP options.
 .
 .\" ----------------------------------------------
 .IP "\fB\-help\fR"

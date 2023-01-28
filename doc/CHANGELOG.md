@@ -36,7 +36,9 @@ The full set of tests is only run for tagged releases.
       - add .if, .if(f|t|tf), .endc, .rept, .endr, .mexit directives
       - add .error, .print, .mcall, .mdelete directives
       - add .narg, .nchr, .ntype directives
+      - add minimal .list,.nlist support for cnd, me and meb
       - rewrite macro definition and call argument parsing & handling
+      - add -list and -nlist options
       - add -L option (to set .mcall pathlist)
       - add auto-generated ...top label
       - add flag (MRmrd) column in output format
@@ -47,6 +49,8 @@ The full set of tests is only run for tagged releases.
     - tests(-err): many tests added
     - tests(-err)/Makefile: distclean target added
     - mlib: macro library, accessed by .mcall
+  - tools/tcode
+    - use .mcall and mlib
 ### Bug Fixes
   - tools/bin/asm-11:
     - BUGFIX: support @(R) modifier with omitted offset

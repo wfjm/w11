@@ -1,6 +1,8 @@
-; $Id: vecset.mac 1357 2023-01-26 19:24:10Z mueller $
+; $Id: vecset.mac 1359 2023-01-27 20:58:50Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; set vector to handler and PS (default pr0 kernel)
 ;
         .macro  vecset,name,hdl,pri
         mov     #hdl,@#name
@@ -8,4 +10,5 @@
         clr     @#name+2
         .iff
         mov     #pri,@#name+2
+        .endc
         .endm

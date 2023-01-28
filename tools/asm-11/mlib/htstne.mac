@@ -1,8 +1,9 @@
-; $Id: htstne.mac 1354 2023-01-24 16:29:10Z mueller $
+; $Id: htstne.mac 1359 2023-01-27 20:58:50Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
-; tst on ne
+; halt check: tst on ne
+;
         .macro  htstne,src
         tst     src
         bne     .+4

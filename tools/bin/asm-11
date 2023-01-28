@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: asm-11 1357 2023-01-26 19:24:10Z mueller $
+# $Id: asm-11 1359 2023-01-27 20:58:50Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2013-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2023-01-27  1359   1.2.4  add minimal .list,.nlist (cnd,me,meb); add -(n)list
 # 2023-01-26  1357   1.2.3  skip redundant loads in .mcall
 # 2023-01-25  1355   1.2.2  rewrite macro args handling; add .narg,.nchr,.ntype
 # 2023-01-24  1354   1.2.1  add .error,.print,.mcall,.mdelete; add -L; add ...top
@@ -15,7 +16,7 @@
 # 2022-07-28  1264   1.1.3  add -E and -M options
 # 2022-07-23  1262   1.1.2  BUGFIX: '100(pc)' was compiled as '100'
 # 2019-07-13  1189   1.1.1  drop superfluous exists for $opts
-# 2019-05-25  1152   1.1    add .macro,.endm,.list,.nlist
+# 2019-05-25  1152   1.1    add .macro,.endm; dummy .list,.nlist
 # 2019-04-25  1138   1.0.7  print lines with errors to stderr unless -lst seen
 # 2019-04-19  1133   1.0.6  .end directive autocreates '...end' label
 # 2018-11-03  1065   1.0.5  add and use bailout
@@ -47,6 +48,7 @@ GetOptions(\%opts, "help", "E", "M",
                    "ttoken", "tparse", "temit", "tout",
                    "I=s@",
                    "L=s@",
+                   "list=s@", "nlist=s@",
                    "lst", "olst=s",
                    "lda", "olda=s",
                    "cof", "ocof=s",
@@ -57,6 +59,26 @@ GetOptions(\%opts, "help", "E", "M",
 unshift @{$opts{I}}, ".";                  # ./ is first in include path
 push @{$opts{I}}, "$ENV{RETROBASE}/tools/asm-11" if defined $ENV{RETROBASE};
 push @{$opts{L}}, "$ENV{RETROBASE}/tools/asm-11/mlib" if defined $ENV{RETROBASE};
+
+# .list/.nlist status
+my %list = (cnd => 0,                       # unsatisfied conditional code   off
+            me  => 0,                       # macro&repeat expansions        off
+            meb => 1);                      # macro&repeat expansions binary  on
+# --list and --nlist
+foreach my $arg (@{$opts{list}}) {
+  if (exists $list{$arg}) {
+    $list{$arg} = 1;
+  } else {
+    bailout("bad -list option '$arg'");
+  }
+}
+foreach my $arg (@{$opts{nlist}}) {
+  if (exists $list{$arg}) {
+    $list{$arg} = 0;
+  } else {
+    bailout("bad -nlist option '$arg'");
+  }
+}
 
 # Permanant symbol table
 my %pst = (
@@ -356,7 +378,7 @@ foreach my $fname (@ARGV) {
 }
 if ($end == 0 && ($mdeflvl + $reptlvl +     # no .end but .macro or .rept open
                   scalar(@ifstk) != 0)) {     # or .endc open
-  pass1_line(1, 0, '', ' ');                  # add dummy line
+  pass1_line(1, 0, '');                       # add dummy line
   add_err($src[-1], 'E');                     # and signal E error
 }
 exit 0 if $opts{E} || $opts{M};             # stop after pass1 for -E -M
@@ -437,7 +459,7 @@ sub read_file {
       printf "$line\n";                           # write to stdout
     }
     $lineno += 1;
-    pass1_line($fileno, $lineno, $line, ' ');
+    pass1_line($fileno, $lineno, $line);
     last if $end;
   }
 
@@ -467,7 +489,7 @@ sub exec_macro {
     }
     $line .= $lrest;
     $mexit = 0;
-    pass1_line($fileno, $lineno, $line, 'm');
+    pass1_line($fileno, $lineno, $line);
     last if $mexit;
   }
   $mexit = 0;
@@ -487,9 +509,9 @@ sub delete_macro {
 #-------------------------------------------------------------------------------
 
 sub pass1_line {
-  my ($fileno,$lineno,$line,$flag) = @_;
+  my ($fileno,$lineno,$line) = @_;
 
-  my $rl = parse_line($fileno, $lineno, $line, $flag);
+  my $rl = parse_line($fileno, $lineno, $line);
   dump_rl($rl) if $opts{tpass1};
   push @src, $rl;
 
@@ -536,7 +558,7 @@ sub pass1_line {
           $lineno += 1;
           $mseen = 1 if $line =~m/^\s*\.macro/; # .macro seen ?
           next unless $mseen;
-          pass1_line($fileno, $lineno, $line, ' ');
+          pass1_line($fileno, $lineno, $line);
           printf "$line\n" if $opts{E};     # if -E write to stdout
           last if $mdeflvl == 0;                # final .endm seen ?
         }
@@ -554,7 +576,7 @@ sub pass1_line {
       for (my $i=0; $i<$cnt; $i++) {    # repeat body cnt times
         foreach my $rline (@{$reptstk[-1]{body}}) {
           $mexit = 0;
-          pass1_line($rline->{fileno}, $rline->{lineno}, $rline->{line}, 'r');
+          pass1_line($rline->{fileno}, $rline->{lineno}, $rline->{line});
           last if $mexit;
         }
         last if $mexit;
@@ -567,6 +589,7 @@ sub pass1_line {
 
   # handle macro expansions --------------------------------
   if (defined $$rl{oper} && defined $$rl{mexec}) {
+    $$rl{lstdot} = 1 unless $list{me} || $list{meb};
     exec_macro($$rl{mexec});
   }
   return;
@@ -575,7 +598,7 @@ sub pass1_line {
 #-------------------------------------------------------------------------------
 
 sub parse_line {
-  my ($fileno,$lineno,$line,$flag) = @_;
+  my ($fileno,$lineno,$line) = @_;
 
   my %l = ( fileno => $fileno,              # file number
             lineno => $lineno,              # line number
@@ -583,7 +606,7 @@ sub parse_line {
             cl     => [split '',$line],     # char list
             tl     => [],                   # token list
             err    => '',                   # error tags
-            flag   => $flag,                # line flag
+            flag   => '',                   # line flags
             psect  => $cur_psect,           # current psect
             dot    => getdot(),             # current dot
             outw   => [],                   # output: words
@@ -625,6 +648,10 @@ sub parse_line {
 
   printf "-- parse: '$line'\n" if $opts{tparse} || $opts{ttoken};
 
+  # basics flags
+  add_flag(\%l, 'm') if scalar(@mexecstk);  # in macro execution
+  add_flag(\%l, 'r') if scalar(@reptstk);   # in .rept expansion
+
   # quit if invalid character found (non 7 bit ascii in asm-11)
   foreach my $c (@{$l{cl}}) {
     if (ord($c) > 127) {
@@ -644,9 +671,10 @@ sub parse_line {
   }
 
   if (scalar(@ifstk)) {                     # is .if conditional block active ?
+    add_flag(\%l,'c');                        # flag conditional block
     unless ($dnam =~ m/^\.(iff|ift|iftf|endc)$/) { # and not sub-cond or end
       unless ($ifstk[-1]{cur}) {            # if (sub-)cond false
-        $l{flag} = 'd';                       # mark condition drop
+        add_flag(\%l,'d');                    # flag condition drop
         return \%l;                           # ignore line
       }
     }
@@ -656,7 +684,7 @@ sub parse_line {
     $reptlvl += 1 if $dnam eq '.rept';      #   nested .rept found ?
     $reptlvl -= 1 if $dnam eq '.endr';      #   .endr found ?
     if ($reptlvl > 0) {                     # final .endr not yet seen
-      $l{flag} = 'R';
+      add_flag(\%l,'R');                    # flag .rept definition
       push @{$reptstk[-1]{body}}, {line   => $l{line},
                                    fileno => $l{fileno},
                                    lineno => $l{lineno}
@@ -669,7 +697,7 @@ sub parse_line {
     $mdeflvl += 1 if $dnam eq '.macro';     #   nested .macro found ?
     $mdeflvl -= 1 if $dnam eq '.endm';      #   .endm found ?
     if ($mdeflvl > 0) {
-      $l{flag} = 'M';
+      add_flag(\%l,'M');                    # flag .macro definition
       push @{$mst{$mdefnam}{body}}, {line   => $l{line},
                                      fileno => $l{fileno},
                                      lineno => $l{lineno}
@@ -891,6 +919,7 @@ sub parse_line {
             } else {                        # no conditiion -> A error
               add_err(\%l, 'A');
             }
+            add_flag(\%l,'c');              # flag conditional block
             push @ifstk, {tst => $tst, cur => $tst};
             $state = 'end';
 
@@ -917,7 +946,7 @@ sub parse_line {
           } elsif ($op eq '.macro') {         # .macro ---------------
             $rt = get_token(\%l, $tmask);
             if ($$rt{tag} eq 'SYM') {
-              $l{flag} = 'M';
+              add_flag(\%l,'M');              # flag .macro definition
               $mdeflvl = 1;
               $mdefnam = $$rt{val};
               $mst{$mdefnam} = {name => $mdefnam,
@@ -980,7 +1009,7 @@ sub parse_line {
             if (not defined $mdefnam) {       # .macro not active ?
               add_err(\%l, 'O');                  # quit with O error
             } else {
-              $l{flag} = "M";
+              add_flag(\%l,'M');                  # flag .macro definition
               $rt = get_token(\%l, $tmask);
               if ($$rt{tag} eq 'SYM') {       # if non-matching name -> A error
                 add_err(\%l, 'A') if $$rt{val} ne $mdefnam;
@@ -1115,14 +1144,14 @@ sub parse_line {
             $state = 'end';
 
           } elsif ($op eq '.rept') {          # .rept ----------------
-            $l{flag} = 'R';
+            add_flag(\%l,'R');                # flag .rept definition
             $state = 'dl_beg';
 
           } elsif ($op eq '.endr') {          # .endr ----------------
             if (scalar(@reptstk) == 0) {      # .rept block not active ?
               add_err(\%l, 'O');                  # quit with O error
             } else {
-              $l{flag} = "R";
+              add_flag(\%l,'R');              # flag .rept definition
             }
             $state = 'end';
 
@@ -1138,8 +1167,12 @@ sub parse_line {
             while (1) {                       # loop over options
               $rt = get_token(\%l, $tmask);
               last if $$rt{tag} eq 'EOL';
-              next if $$rt{tag} eq 'DEL';     # FIXME_code: check delimiter
-              # FIXME_code: handle .list/.nlist
+              next if check_token($rt, 'DEL', ',');
+              if ($$rt{tag} eq 'SYM') {
+                $list{$$rt{val}} = $op eq '.list' if exists $list{$$rt{val}};
+              } else {
+                add_err(\%l, 'A');            # non-symbol as arg -> O error
+              }
             }
             $state = 'end';
           } elsif ($op eq '.end') {           # .end -----------------
@@ -1777,11 +1810,19 @@ sub walign {
 sub add_err {
   my ($rl,$errlist) = @_;
   foreach my $err (split '',$errlist) {
-    next if index($$rl{err}, $err) >= 0;      # prevent multiple error tags
-    $$rl{err} .= $err;                        # set error tag
-    $errcnt{$err} += 1;                       # and count them
+    next if index($$rl{err}, $err) >= 0;     # prevent multiple error tags
+    $$rl{err} .= $err;                       # set error tag
+    $errcnt{$err} += 1;                      # and count them
     $errcnt_tot += 1;
   }
+  return;
+}
+#-------------------------------------------------------------------------------
+
+sub add_flag {
+  my ($rl,$flag) = @_;
+  next if index($$rl{flag}, $flag) >= 0;     # prevent multiple flags
+  $$rl{flag} .= $flag;                       # set flag
   return;
 }
 
@@ -2612,9 +2653,30 @@ sub pass2_lst_line {
   my @ow = @{$$rl{outw}};
   my @ob = @{$$rl{outb}};
   my $str = '';
+  my $flag = ' ';
+
+  # check active .list and skip if not selected
+  if ($$rl{flag} =~ m/d/) {
+    return unless $list{cnd};
+  }
+  if ($$rl{flag} =~ m/[mr]/) {
+    if (scalar(@ow)+scalar(@ob) == 0) {
+      return unless $list{me};
+    } else {
+      return unless $list{me} || $list{meb};
+    }
+  }
+
+  # print err,fileno,flag,lineno
+  # flag priority list lowest first
+  $flag = 'm' if $$rl{flag} =~ m/m/;
+  $flag = 'r' if $$rl{flag} =~ m/r/;
+  $flag = 'd' if $$rl{flag} =~ m/d/;
+  $flag = 'M' if $$rl{flag} =~ m/M/;
+  $flag = 'R' if $$rl{flag} =~ m/R/;
   $str .= sprintf("%-2s", prt_err($rl));
   $str .= sprintf(" %2d", $$rl{fileno});
-  $str .= $$rl{flag};
+  $str .= $flag;
   $str .= sprintf(" %4d", $$rl{lineno});
 
   # print dot if data is generated for this line, or label
@@ -3049,9 +3111,12 @@ sub dump_rl {
   my ($rl) = @_;
 
   printf "-- line:   '%s'\n", $$rl{line};
-  printf "   err=%-3s, typ=%-4s, oper=%-6s, lineno=%3d, psect=%-6s, .=%6.6o\n",
-    prt_err($rl), savestr($$rl{typ}), savestr($$rl{oper}), $$rl{lineno},
-      $$rl{psect}, $$rl{dot};
+  printf "   e=%-3s f=%-3s t=%-6s o=%-8s l=%4d p=%-6s .=%6.6o",
+    prt_err($rl), (join '', sort split '', $$rl{flag}),
+    savestr($$rl{typ}), savestr($$rl{oper}), $$rl{lineno},
+    $$rl{psect}, $$rl{dot};
+  printf "  MRmri=%d %d %d %d %d\n",
+    $mdeflvl, $reptlvl, scalar(@mexecstk), scalar(@reptstk), scalar(@ifstk);
   my $i = 0;
   foreach my $rt (@{$$rl{tl}}) {
     printf "   tl[%2d]: tag=%-4s, typ=%-2s, om=%-2s, em=%-2s, val='%s'",
@@ -3120,7 +3185,7 @@ sub dump_rl {
     printf "\n";
   }
   foreach my $key (sort keys %{$rl}) {
-    next if $key =~ m/^(line|err|typ|oper|lineno|psect|dot|opcode|opfmt|o[12](mod|reg|ebeg|eend)|ebeg|eend|tl|delist|outw|outb|cl|mexec)$/;
+    next if $key =~ m/^(line|err|typ|oper|lineno|psect|dot|opcode|opfmt|o[12](mod|reg|ebeg|eend)|ebeg|eend|tl|delist|outw|outb|cl|mexec|flag|mcall)$/;
     printf "   %-6s: %s\n", $key, savestr($$rl{$key});
   }
   return;
@@ -3236,6 +3301,8 @@ sub print_help {
   print "  --ocof=fnam   create compound output (concrete file name)\n";
   print "  --lsm         create lsmem style memory dump (default file name)\n";
   print "  --olsm=fnam   create lsmem style memory dump (concrete file name)\n";
+  print "  --list=opt    enable .list option\n";
+  print "  --nlist=opt   disable .list option\n";
   print "  --tpass1      trace line context in pass 1\n";
   print "  --tpass2      trace line context in pass 2\n";
   print "  --dsym1       dump psect and ust tables after pass 1\n";

@@ -1,0 +1,12 @@
+; $Id: rtijmp.mac 1359 2023-01-27 20:58:50Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; macro for JMP via RTI with new PS,PC
+; usage: rtijmp  #cp.cmu+cp.t,#5100$
+;
+        .macro  rtijmp,newps,newpc
+        push2   newps,newpc
+        rti
+        halt
+        .endm

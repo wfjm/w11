@@ -1,9 +1,11 @@
-; $Id: testerr_0513_end_if_open.mac 1356 2023-01-26 15:10:23Z mueller $
+; $Id: testerr_0513_end_if_open.mac 1359 2023-01-27 20:58:50Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; test .end
 ; case: missing .endc causes to E error
+;
+        .list   cnd
 ;
         .asect
         . = 1000

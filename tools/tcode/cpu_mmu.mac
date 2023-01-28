@@ -1,10 +1,10 @@
-; $Id: cpu_mmu.mac 1358 2023-01-27 10:37:36Z mueller $
+; $Id: cpu_mmu.mac 1359 2023-01-27 20:58:50Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2023-01-27  1358   1.1    use .mcall and mlib
+; 2023-01-27  1358   1.1    use .mcall and mlib; use hta??? macros
 ; 2023-01-05  1346   1.0    Initial version
 ; 2022-07-24  1262   0.1    First draft
 ;
@@ -32,6 +32,7 @@
         .mcall  push,pop
         .mcall  hcmpeq,hcmbeq,htsteq,htstge,hbiteq,hbitne
         .mcall  vecset,vecclr
+        .mcall  htabuf,htaadd,htaini,htacmp
 ;
 ; some useful definitions
         uipdr0 = uipdr+ 0
@@ -88,18 +89,6 @@
         p6base = <6*20000>              ; page 6
         p6p1p2 = p6base+<1*100>+2       ; page 6, +1 click, +2
         p7base = <7*20000>              ; page 7
-;
-; helper macro for trace area check setup  (from cpu_details A4)
-        .macro  htinit,buf,nent
-        hcmpeq  #buf+<4*nent>,r5
-        mov     #buf,r5
-        .endm
-;
-; helper macro for trace area check entry  (from cpu_details A4)
-        .macro  htitem,tvec,tadr
-        hcmpeq  tvec,(r5)+
-        hcmpeq  tadr,(r5)+
-        .endm
 ;
 ; Section A: pdr,par registers ===============================================
 ;   A1.1    test that pdr/par are 16 bit write/readable
@@ -1887,21 +1876,16 @@ td0201: tstb    systyp          ; skip if not on w11
         clr     cp.psw                  ; PSW to default
         hcmpeq  #<127.*md.plf>!md.aia!md.aiw!md.att,sipdr7  ; check sipdr7
 ;
-        htinit  2000$,5.                ; expect 5 items
-        htitem  #250,#200$              ; mmu(ico=1) after movb to cp.pir+1
-        htitem  #250,#p2base+2          ; mmu(ico=1) after 1st instruction fetch
-        htitem  #240,#200$              ; PIRQ, sees PC after movb to cp.pir+1
-        htitem  #250,#p2base+<vc3l1-vc3> ; mmu(trap) after clr of cp.pir
-        htitem  #032,#p2base+<vc3l2-vc3> ; EMT after emt 100
+        htaini  2000$,5.                ; expect 5 items
+        htacmp  #250,#200$              ; mmu(ico=1) after movb to cp.pir+1
+        htacmp  #250,#p2base+2          ; mmu(ico=1) after 1st instruction fetch
+        htacmp  #240,#200$              ; PIRQ, sees PC after movb to cp.pir+1
+        htacmp  #250,#p2base+<vc3l1-vc3> ; mmu(trap) after clr of cp.pir
+        htacmp  #032,#p2base+<vc3l2-vc3> ; EMT after emt 100
 ;
         jmp     9000$
 ;
-2000$:  .word   0,0                     ; trace data area
-        .word   0,0
-        .word   0,0
-        .word   0,0
-        .word   0,0
-        .word   -1,-1
+2000$:  htabuf  5.                      ; trace area
 ;
 ; MMU handler ----------------------------------------------
 ;   It expects an abort with ico=1, an abort with ico=0 and a trap.
@@ -2452,15 +2436,12 @@ te0201: mov     #m0.ent!m0.ena,mmr0     ; enable mmu with traps  ;! MMU 18
         call    p5ce21                  ; start probe code in page 5
 1000$:  br      2000$                   ; rts will land here
 ;
-1500$:  .word   0,0                     ; 1st marker (MMU for movb)
-        .word   0,0                     ; 2nd marker (PIRQ)
-        .word   0,0                     ; 3rd marker (MMU for rts)
-        .word   -1,-1                   ; fence
+1500$:  htabuf  3.                      ; trace area
 ;
-2000$:  htinit  1500$,3.                ; expect 3 items
-        htitem  #250,#p5ce21+6          ; mmu for movb
-        htitem  #240,#p5ce21+6          ; PIRQ, sees PC after movb
-        htitem  #250,#1000$             ; mmu for rts, PC is return address
+2000$:  htaini  1500$,3.                ; expect 3 items
+        htacmp  #250,#p5ce21+6          ; mmu for movb
+        htacmp  #240,#p5ce21+6          ; PIRQ, sees PC after movb
+        htacmp  #250,#1000$             ; mmu for rts, PC is return address
 ;
         reset                   ; mmu off                       ;! MMU off
 ;
@@ -2739,8 +2720,7 @@ vhuhlt: halt
 ;
 vhtmmu: htstge  (r5)            ; r5 at fence ?
         bic     #m0.trp,mmr0    ; allow further MMU traps
-        mov     #250,(r5)+      ; track MMU vector
-        mov     (sp),(r5)+      ; track PC
+        htaadd  #v..mmu         ; track MMU vector, track return PC
         rti
 ;
 ; vhtpir - handler for PIRQ interrupt tracing ++++++++++++++++++++++++++++++++
@@ -2750,8 +2730,7 @@ vhtmmu: htstge  (r5)            ; r5 at fence ?
 ;
 vhtpir: htstge  (r5)            ; r5 at fence ?
         clr     cp.pir          ; clear all PIRQ interrupts
-        mov     #240,(r5)+      ; track PIRQ vector
-        mov     (sp),(r5)+      ; track PC
+        htaadd  #v..pir         ; track PIRQ vector, track return PC
         rti
 ;
 ; Test codes that will be mapped in user or supervisor mode ==================
@@ -2831,8 +2810,7 @@ vc2dat: .word   010111
 ;
         . = 105000              ; I space ------------------------------------
 vc3:    htstge  (r5)            ; r5 at fence ?
-        mov     #240,(r5)+      ; trace
-        mov     (sp),(r5)+
+        htaadd  #v..pir         ; track PIRQ vector, track return PC
         clr     @#cp.pir        ; cancel PIRQ (use absolute mode!)
 vc3l1:  emt     100             ; delegate RTI to system service
 vc3l2:  halt                    ; label after emt

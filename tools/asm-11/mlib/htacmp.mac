@@ -1,0 +1,11 @@
+; $Id: htacmp.mac 1359 2023-01-27 20:58:50Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; macro for trace area check entry
+; usage: htacmp  #v..bpt,#100$
+;
+        .macro  htacmp,tvec,tadr
+        hcmpeq  tvec,(r5)+
+        hcmpeq  tadr,(r5)+
+        .endm

@@ -1,6 +1,8 @@
-; $Id: vecini.mac 1357 2023-01-26 19:24:10Z mueller $
+; $Id: vecini.mac 1359 2023-01-27 20:58:50Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; allocate and initialize vector, set up as catcher
 ;
         .macro  vecini,addr,name
         . = addr

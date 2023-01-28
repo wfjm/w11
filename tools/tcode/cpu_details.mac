@@ -1,10 +1,10 @@
-; $Id: cpu_details.mac 1358 2023-01-27 10:37:36Z mueller $
+; $Id: cpu_details.mac 1359 2023-01-27 20:58:50Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
-; 2023-01-27  1358   1.1    use .mcall and mlib
+; 2023-01-27  1359   1.1    use .mcall and mlib; use rt?jmp, hta??? macros
 ; 2023-01-11  1349   1.0    Initial version
 ; 2022-07-18  1259   0.1    First draft
 ;
@@ -19,6 +19,8 @@
         .mcall  push,pop,push2
         .mcall  hcmpeq,htsteq,htstne,htstge,hbiteq,hbitne
         .mcall  vecset,vecclr
+        .mcall  rtijmp,rttjmp
+        .mcall  htabuf,htaadd,htaini,htacmp
 ;
 ; Preface: set up MMU for kernel mode (for some tests) =======================
 ;
@@ -880,32 +882,6 @@ ta0305: cmpb    systyp,#sy.sih          ; skip in SimH (different stklim logic)
 ; Test A4:  PSW + tbit traps +++++++++++++++++++++++++++++++++++++++++++++++++
 ;   This sub-section verifies operation of PSW register and tbit traps.
 ;
-; helper macro for JMP via RTI with new PS,PC
-        .macro  rtijmp,newps,newpc
-        push2   newps,newpc
-        rti
-        halt
-        .endm
-;
-; helper macro for JMP via RTT with new PS,PC
-        .macro  rttjmp,newps,newpc
-        push2   newps,newpc
-        rtt
-        halt
-        .endm
-;
-; helper macro for trace area check setup
-        .macro  htinit,buf,nent
-        hcmpeq  #buf+<4*nent>,r5
-        mov     #buf,r5
-        .endm
-;
-; helper macro for trace area check entry
-        .macro  htitem,tvec,tadr
-        hcmpeq  tvec,(r5)+
-        hcmpeq  tadr,(r5)+
-        .endm
-;
 ; Test A4.1 -- PSW direct write/read test ++++++++++++++++++++++++++++
 ;
 ta0401:
@@ -1191,13 +1167,11 @@ ta0404: vecset  v..bpt,vhtbpt,cp.pr7    ; BPT handler, PR7 (lockout PIRQ)
 100$:   trap    100
 110$:
 ;
-200$:   .word   0,0
-        .word   0,0
-        .word   -1,-1
+200$:   htabuf  2.
 ;
-300$:   htinit  200$,2.                ; expect 2 items
-        htitem  #014,#100$             ; bpt before trap (none after !)
-        htitem  #036,#110$             ; final trap
+300$:   htaini  200$,2.                ; expect 2 items
+        htacmp  #v..bpt,#100$          ; bpt before trap (none after !)
+        htacmp  #v..trp,#110$          ; final trap
 ;
 ; part  1: simple instruction sequence -------------------------------
 ;   Checks that trace traps are taken instructions which allow prefetch
@@ -1221,29 +1195,19 @@ ta0404: vecset  v..bpt,vhtbpt,cp.pr7    ; BPT handler, PR7 (lockout PIRQ)
 1180$:  trap    100                     ; 9th inst
 1190$:
 ;
-1200$:  .word   0,0
-        .word   0,0
-        .word   0,0
-        .word   0,0
-        .word   0,0
-        .word   0,0
-        .word   0,0
-        .word   0,0
-        .word   0,0
-        .word   0,0
-        .word   -1,-1
+1200$:  htabuf  10.
 ;
-1300$:  htinit  1200$,10.               ; expect 10 items
-        htitem  #014,#1100$             ; bpt before inc
-        htitem  #014,#1110$             ; bpt after  inc
-        htitem  #014,#1120$             ; bpt after  dec
-        htitem  #014,#1130$             ; bpt after  cmp
-        htitem  #014,#1160$             ; bpt after  bne (PC is bne target)
-        htitem  #014,#1140$             ; bpt after  jsr (PC is jsr target)
-        htitem  #014,#1170$             ; bpt after  rts (PC is rts target)
-        htitem  #014,#1150$             ; bpt after  br  (PC is br  target)
-        htitem  #014,#1180$             ; bpt after  jmp (PC is jmp target)
-        htitem  #036,#1190$             ; final trap
+1300$:  htaini  1200$,10.               ; expect 10 items
+        htacmp  #v..bpt,#1100$          ; bpt before inc
+        htacmp  #v..bpt,#1110$          ; bpt after  inc
+        htacmp  #v..bpt,#1120$          ; bpt after  dec
+        htacmp  #v..bpt,#1130$          ; bpt after  cmp
+        htacmp  #v..bpt,#1160$          ; bpt after  bne (PC is bne target)
+        htacmp  #v..bpt,#1140$          ; bpt after  jsr (PC is jsr target)
+        htacmp  #v..bpt,#1170$          ; bpt after  rts (PC is rts target)
+        htacmp  #v..bpt,#1150$          ; bpt after  br  (PC is br  target)
+        htacmp  #v..bpt,#1180$          ; bpt after  jmp (PC is jmp target)
+        htacmp  #v..trp,#1190$          ; final trap
 ;
 ; part  2: tracing of trap instructions (EMT tested) -----------------
 ;
@@ -1257,19 +1221,14 @@ ta0404: vecset  v..bpt,vhtbpt,cp.pr7    ; BPT handler, PR7 (lockout PIRQ)
 2130$:  trap    100
 2140$:
 ;
-2200$:  .word   0,0
-        .word   0,0
-        .word   0,0
-        .word   0,0
-        .word   0,0
-        .word   -1,-1
+2200$:  htabuf  5.
 ;
-2300$:  htinit  2200$,5.                ; expect 5 items
-        htitem  #014,#2110$             ; bpt after dec
-        htitem  #032,#2120$             ; emt (with return address)
-        htitem  #014,#2120$             ; bpt after emt (taken after emt)
-        htitem  #014,#2130$             ; bpt after nop
-        htitem  #036,#2140$             ; final trap
+2300$:  htaini  2200$,5.                ; expect 5 items
+        htacmp  #v..bpt,#2110$          ; bpt after dec
+        htacmp  #v..emt,#2120$          ; emt (with return address)
+        htacmp  #v..bpt,#2120$          ; bpt after emt (taken after emt)
+        htacmp  #v..bpt,#2130$          ; bpt after nop
+        htacmp  #v..trp,#2140$          ; final trap
 ;
 ; part  3: tbit vs interrupt precedence (via PIRQ) -------------------
 ;   Checks that interrupt has precedence over tbit traps.
@@ -1295,23 +1254,20 @@ ta0404: vecset  v..bpt,vhtbpt,cp.pr7    ; BPT handler, PR7 (lockout PIRQ)
 3110$:  trap    100
 3120$:
 ;
-3200$:  .word   0,0
-        .word   0,0
-        .word   0,0
-        .word   -1,-1
+3200$:  htabuf  3.
 ;
-3300$:  htinit  3200$,3.                ; expect 3 items
+3300$:  htaini  3200$,3.                ; expect 3 items
         cmpb    systyp,#sy.sih          ; different checks for SimH service order
         beq     3310$
 ; checks for w11
-        htitem  #240,#3110$             ; pirq (with return address)
-        htitem  #014,#3110$             ; bpt after movb
-        htitem  #036,#3120$             ; final trap
+        htacmp  #v..pir,#3110$          ; pirq (with return address)
+        htacmp  #v..bpt,#3110$          ; bpt after movb
+        htacmp  #v..trp,#3120$          ; final trap
         br      4000$
 ; checks for SimH
-3310$:  htitem  #014,#3110$             ; bpt after movb first
-        htitem  #240,#vhtbpe            ; pirq from bpt handler
-        htitem  #036,#3120$             ; final trap
+3310$:  htacmp  #v..bpt,#3110$          ; bpt after movb first
+        htacmp  #v..pir,#vhtbpe         ; pirq from bpt handler
+        htacmp  #v..trp,#3120$          ; final trap
 ;
 ; part  4: traced WAIT and tbit --------------------------------------
 ;   Checks that traced WAIT does not produce tbit trap.
@@ -1334,17 +1290,13 @@ ta0404: vecset  v..bpt,vhtbpt,cp.pr7    ; BPT handler, PR7 (lockout PIRQ)
 4120$:  trap    100
 4130$:
 ;
-4200$:  .word   0,0
-        .word   0,0
-        .word   0,0
-        .word   0,0
-        .word   -1,-1
+4200$:  htabuf  4.
 ;
-4300$:  htinit  4200$,4.                ; expect 4 items
-        htitem  #014,#4110$             ; bpt after movb
-        htitem  #240,#4120$             ; pirq (with return address)
-        htitem  #014,#4120$             ; bpt after wait
-        htitem  #036,#4130$             ; final trap
+4300$:  htaini  4200$,4.                ; expect 4 items
+        htacmp  #v..bpt,#4110$          ; bpt after movb
+        htacmp  #v..pir,#4120$          ; pirq (with return address)
+        htacmp  #v..bpt,#4120$          ; bpt after wait
+        htacmp  #v..trp,#4130$          ; final trap
 ;
 ; part  5: WAIT and SPL in user mode ---------------------------------
 ;   Checks that WAIT and SPL in user mode are traced (are nop)
@@ -1358,15 +1310,12 @@ ta0404: vecset  v..bpt,vhtbpt,cp.pr7    ; BPT handler, PR7 (lockout PIRQ)
 5120$:  trap    100
 5130$:
 ;
-5200$:  .word   0,0
-        .word   0,0
-        .word   0,0
-        .word   -1,-1
+5200$:  htabuf  3.
 ;
-5300$:  htinit  5200$,3.                ; expect 3 items
-        htitem  #014,#5110$             ; bpt after wait
-        htitem  #014,#5120$             ; bpt after spl
-        htitem  #036,#5130$             ; final trap
+5300$:  htaini  5200$,3.                ; expect 3 items
+        htacmp  #v..bpt,#5110$          ; bpt after wait
+        htacmp  #v..bpt,#5120$          ; bpt after spl
+        htacmp  #v..trp,#5130$          ; final trap
 ;
 ; part  6: tbit trap after continuation over s_idle ------------------
 ;   Checks instructions that complete via s_idle are properly traced
@@ -1390,19 +1339,14 @@ ta0404: vecset  v..bpt,vhtbpt,cp.pr7    ; BPT handler, PR7 (lockout PIRQ)
 6130$:  trap    100
 6140$:
 ;
-6200$:  .word   0,0
-        .word   0,0
-        .word   0,0
-        .word   0,0
-        .word   0,0
-        .word   -1,-1
+6200$:  htabuf  5.
 ;
-6300$:  htinit  6200$,5.                ; expect 5 items
-        htitem  #014,#6110$             ; bpt after reset
-        htitem  #014,#6120$             ; bpt after mov
-        htitem  #014,#0                 ; bpt after clr
-        htitem  #014,#6130$             ; bpt after jmp
-        htitem  #036,#6140$             ; final trap
+6300$:  htaini  6200$,5.                ; expect 5 items
+        htacmp  #v..bpt,#6110$          ; bpt after reset
+        htacmp  #v..bpt,#6120$          ; bpt after mov
+        htacmp  #v..bpt,#0              ; bpt after clr
+        htacmp  #v..bpt,#6130$          ; bpt after jmp
+        htacmp  #v..trp,#6140$          ; final trap
 ;
         clr     @#0
         clr     @#2
@@ -1419,13 +1363,12 @@ ta0404: vecset  v..bpt,vhtbpt,cp.pr7    ; BPT handler, PR7 (lockout PIRQ)
 7110$:  clr     @#160000                ; will fail
         halt
 ;
-7200$:  .word   0,0
-        .word   -1,-1
+7200$:  htabuf  1.
 ;
 7300$:  mov     #stack,sp               ; discard frame
         hcmpeq  #cp.ito,cp.err          ; check CPUERR
-        htinit  7200$,1.                ; expect 1 item
-        htitem  #014,#7110$             ; bpt after 1st clr
+        htaini  7200$,1.                ; expect 1 item
+        htacmp  #v..bpt,#7110$          ; bpt after 1st clr
 ;
         vecclr  v..iit                  ; restore
 ;
@@ -1443,11 +1386,10 @@ ta0404: vecset  v..bpt,vhtbpt,cp.pr7    ; BPT handler, PR7 (lockout PIRQ)
 8100$:  nop                             ; will tbit trap
 8110$:  rti                             ; will not tbit trap (new PS tbit=0)
 ;
-8200$:  .word   0,0
-        .word   -1,-1
+8200$:  htabuf  1.
 ;
-8300$:  htinit  8200$,1.                ; expect 1 item
-        htitem  #014,#8110$             ; bpt after nop
+8300$:  htaini  8200$,1.                ; expect 1 item
+        htacmp  #v..bpt,#8110$          ; bpt after nop
 ;
 ; part  9: EMT that sets tbit ----------------------------------------
 ;  Checks that a vector flow loading a PS with tbit=1 does trap.
@@ -1466,13 +1408,11 @@ ta0404: vecset  v..bpt,vhtbpt,cp.pr7    ; BPT handler, PR7 (lockout PIRQ)
 9100$:  nop                             ; will tbit trap
 9110$:  rti                             ; will not tbit trap (new PS tbit=0)
 ;
-9200$:  .word   0,0
-        .word   0,0
-        .word   -1,-1
+9200$:  htabuf  2.
 ;
-9300$:  htinit  9200$,2.                ; expect 2 items
-        htitem  #014,#9100$             ; bpt at entry of EMT handler
-        htitem  #014,#9110$             ; bpt after nop
+9300$:  htaini  9200$,2.                ; expect 2 items
+        htacmp  #v..bpt,#9100$          ; bpt at entry of EMT handler
+        htacmp  #v..bpt,#9110$          ; bpt after nop
 ;
 ; part 10: PIRQ that sets tbit ---------------------------------------
 ;  Checks that a vector flow loading a PS with tbit=1 does trap.
@@ -1491,13 +1431,11 @@ ta0404: vecset  v..bpt,vhtbpt,cp.pr7    ; BPT handler, PR7 (lockout PIRQ)
 10100$: clr     cp.pir                  ; will tbit trap
 10110$: rti                             ; will not tbit trap (new PS tbit=0)
 ;
-10200$: .word   0,0
-        .word   0,0
-        .word   -1,-1
+10200$: htabuf  2.
 ;
-10300$: htinit  10200$,2.               ; expect 2 items
-        htitem  #014,#10100$            ; bpt at entry of PIRQ handler
-        htitem  #014,#10110$            ; bpt after movb
+10300$: htaini  10200$,2.               ; expect 2 items
+        htacmp  #v..bpt,#10100$         ; bpt at entry of PIRQ handler
+        htacmp  #v..bpt,#10110$         ; bpt after movb
 ;
 ; restore ------------------------------------------------------------
 ;
@@ -2148,8 +2086,7 @@ vhuhlt: halt
 ;   If vhtbp0 is non-zero, the handler lowers priority to PRI=0 before RTT.
 ;
 vhtbpt: htstge  (r5)            ; r5 at fence ?
-        mov     #014,(r5)+      ; track BPT vector
-        mov     (sp),(r5)+      ; track PC
+        htaadd  #v..bpt         ; track BPT vector, track return PC
         tst     vhtbp0          ; should PRI be lowered ?
         beq     vhtbpe
         clr     vhtbp0          ; and clear flag
@@ -2162,8 +2099,7 @@ vhtbp0: .word   0
 ;   Signature is vector address + return PC  (PC to test proper context).
 ;
 vhtemt: htstge  (r5)            ; r5 at fence ?
-        mov     #032,(r5)+      ; track EMT vector
-        mov     (sp),(r5)+      ; track PC
+        htaadd  #v..emt         ; track EMT vector, track return PC
         rti
 ;
 ; vhtpir - handler for PIRQ interrupt tracing ++++++++++++++++++++++++++++++++
@@ -2173,8 +2109,7 @@ vhtemt: htstge  (r5)            ; r5 at fence ?
 ;
 vhtpir: htstge  (r5)            ; r5 at fence ?
         clr     cp.pir          ; clear all PIRQ interrupts
-        mov     #240,(r5)+      ; track PIRQ vector
-        mov     (sp),(r5)+      ; track PC
+        htaadd  #v..pir         ; track PIRQ vector, track return PC
         rti
 ;
 ; vhttrp - handler for TRAP, ends tracing ++++++++++++++++++++++++++++++++++++
@@ -2183,8 +2118,7 @@ vhtpir: htstge  (r5)            ; r5 at fence ?
 ;   vhtend must be set for each execution
 ;
 vhttrp: htstge  (r5)            ; r5 at fence ?
-        mov     #036,(r5)+      ; track TRAP vector
-        mov     (sp),(r5)+      ; track PC
+        htaadd  #v..trp         ; track TRAP vector, track return PC
         mov     vhtend,100$     ; remember vhtend
         mov     #200$,vhtend    ; restore blocker
         mov     #stack,sp       ; restore stack

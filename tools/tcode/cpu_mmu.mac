@@ -1,9 +1,10 @@
-; $Id: cpu_mmu.mac 1359 2023-01-27 20:58:50Z mueller $
+; $Id: cpu_mmu.mac 1360 2023-01-29 11:51:48Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
+; 2023-01-28  1360   1.1.1  remove <../100> expressions for 6 bit right shift
 ; 2023-01-27  1358   1.1    use .mcall and mlib; use hta??? macros
 ; 2023-01-05  1346   1.0    Initial version
 ; 2022-07-24  1262   0.1    First draft
@@ -33,6 +34,7 @@
         .mcall  hcmpeq,hcmbeq,htsteq,htstge,hbiteq,hbitne
         .mcall  vecset,vecclr
         .mcall  htabuf,htaadd,htaini,htacmp
+        .mcall  rtijmp
 ;
 ; some useful definitions
         uipdr0 = uipdr+ 0
@@ -89,6 +91,18 @@
         p6base = <6*20000>              ; page 6
         p6p1p2 = p6base+<1*100>+2       ; page 6, +1 click, +2
         p7base = <7*20000>              ; page 7
+;
+; Helper macro to set mmu par from an absolute address
+; Just needs an 6 bit right shift. A simple #<addr/100> doesnt work for
+; addr >= 100000 because of the signed number behavior of the division operator.
+; The macro distingishes the positive and negative address cases.
+;
+        .macro    setpar,addr,par
+        mov       #addr,r0
+        ash       #-6.,r0
+        bic       #176000,r0
+        mov       r0,par
+        .endm
 ;
 ; Section A: pdr,par registers ===============================================
 ;   A1.1    test that pdr/par are 16 bit write/readable
@@ -412,16 +426,14 @@ tb0301:
 ;
 ; set user mode pdr/par, only short page 0
         mov     #<8.*md.plf>!md.arw,uipdr0
-        mov     #<vc0/100>,uipar0
+        setpar  vc0,uipar0
 ; set up data for user mode run
         mov     #023456,vc0v0;
         mov     #000123,vc0v1
         mov     #077321,vc0v2
 ; start code in user mode
         mov     #1000$,vhustp   ; set up continuation address
-        mov     #<cp.cmu!cp.pmu>,-(sp)   ; next psw: user mode
-        clr     -(sp)           ; will start at 0
-        rti                     ; and launch it
+        rtijmp  #<cp.cmu!cp.pmu>,#0     ; start with PS=user, PC=0
         halt
 1000$:                          ; continuation point
 ; check psw
@@ -438,16 +450,14 @@ tb0301:
 ;
 ; set supervisor mode pdr/par, only short page 0
         mov     #<8.*md.plf>!md.arw,sipdr0
-        mov     #<vc0/100>,sipar0
+        setpar  vc0,sipar0
 ; set up data for user mode run
         mov     #017171,vc0v0
         mov     #000321,vc0v1
         mov     #100123,vc0v2
 ; start code in supervisor mode
         mov     #2000$,vhustp   ; set up continuation address
-        mov     #<cp.cms!cp.pms>,-(sp)   ; next psw: supervisor mode
-        clr     -(sp)           ; will start at 0
-        rti                     ; and launch it
+        rtijmp  #<cp.cms!cp.pms>,#0     ; start with: PS=supervisor, PC=0
         halt
 2000$:                          ; continuation point
 ; check psw
@@ -484,18 +494,16 @@ tb0302:
 ;
 ; set user mode pdr/par, only short page 0; I and D
         mov     #<8.*md.plf>!md.arw,uipdr0
-        mov     #<vc1/100>,uipar0
+        setpar  vc1,uipar0
         mov     #<8.*md.plf>!md.arw,udpdr0
-        mov     #<vc1dat/100>,udpar0
+        setpar  vc1dat,udpar0
 ; set up data for user mode run
         mov     #020305,vc1v0
         mov     #000212,vc1v1
         mov     #033121,vc1v2
 ; start code in user mode
         mov     #1000$,vhustp   ; set up continuation address
-        mov     #<cp.cmu!cp.pmu>,-(sp)   ; next psw: user mode
-        clr     -(sp)           ; will start at 0
-        rti                     ; and launch it
+        rtijmp  #<cp.cmu!cp.pmu>,#0     ; start with PS=user, PC=0
         halt
 ;
 1000$:                          ; continuation point
@@ -668,14 +676,12 @@ tb0303:
         clr     vc4l1
 ; set user mode pdr/par, I page 0 and D page 1
         mov     #<8.*md.plf>!md.arw,uipdr0      ; I space writable
-        mov     #<vc4/100>,uipar0
+        setpar  vc4,uipar0
         mov     #<8.*md.plf>!md.arw,udpdr1
-        mov     #<vc4dat/100>,udpar1
+        setpar  vc4dat,udpar1
 ; start code in user mode
         mov     #1000$,vhustp   ; set up continuation address
-        mov     #<cp.cmu!cp.pmu>,-(sp)   ; next psw: user mode
-        clr     -(sp)           ; will start at 0
-        rti                     ; and launch it
+        rtijmp  #<cp.cmu!cp.pmu>,#0     ; start with PS=user, PC=0
         halt
 ;
 1000$:                          ; continuation point
@@ -710,9 +716,7 @@ tb0401: clr     mmr3            ; no d dspace, no 22bit
         mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 18
         vecset  v..mmu,1000$    ; set up local mmu handler
 ; try to run a code in mode 10
-        mov     #^b1010000000000000,-(sp)       ; next psw; cm=pm=10
-        mov     #p6base+200,-(sp)               ; start address
-        rti                                     ; fake code start
+        rtijmp  #^b1010000000000000,#p6base+200 ; start with PS:cm=pm=10
         halt
 ; test abort PC on stack
 1000$:  cmpb    systyp,#sy.sih                  ; on SimH ?
@@ -1364,11 +1368,14 @@ tc0203: vecset  v..mmu,vhmmua   ; set up mmu handler, pr0 kernel
 ;
 9000$:  clr     cp.psw
         reset                   ; mmu off                       ;! MMU off
-        clr     sipdr0                          ; reset super/user pdf
+        clr     sipdr0                          ; reset super/user pdr/par
+        clr     sipar0
         clr     sipdr1
+        clr     sipar1
         clr     sipdr7
         clr     sipar7
         clr     uipdr0
+        clr     uipar0
         vecclr  v..mmu                          ; restore mmu catcher
 9999$:  iot                     ; end of test C2.3
 ;
@@ -1691,11 +1698,11 @@ td0101:
         vc2seu = 037700            ; initial end of stack in user view
 ;
         mov     #<8.*md.plf>!md.arw,uipdr0
-        mov     #<vc2/100>,uipar0
+        setpar  vc2,uipar0
         mov     #<8.*md.plf>!md.arw,udpdr0
-        mov     #<vc2dat/100>,udpar0
+        setpar  vc2dat,udpar0
         mov     #<127.*md.plf>!md.arw!md.dwn,udpdr1
-        mov     #<140000/100>,udpar1
+        setpar  140000,udpar1
 ; enable mmu
         mov     #m3.dum,mmr3    ; user d dspace, no 22bit
         mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 18
@@ -1713,9 +1720,7 @@ td0101:
         clr     3002$
 ; start code in user mode
         mov     #1000$,vhustp   ; set up continuation address
-        mov     #<cp.cmu!cp.pmu>,-(sp)   ; next psw: user mode
-        clr     -(sp)           ; will start at 0
-        rti                     ; and launch it
+        rtijmp  #<cp.cmu!cp.pmu>,#0     ; start with PS=user, PC=0
         halt
 1000$:                          ; continuation point
         hcmpeq  r5,#0           ; ran sob to end ?
@@ -1840,9 +1845,9 @@ td0201: tstb    systyp          ; skip if not on w11
         mov     kipdr1,sipdr1           ; SM p1 1-to-1
         mov     kipar1,sipar1
         mov     #<8.*md.plf>,sipdr2     ; SM p2 code, non-resident
-        mov     #<vc3/100>,sipar2
+        setpar  vc3,sipar2
         mov     #<127.*md.plf>!md.arw!md.dwn,sipdr3     ; SM p3 stack, short
-        mov     #<140000/100>,sipar3
+        setpar  140000,sipar3
         mov     #<127.*md.plf>!md.att,sipdr7    ; SM p7 IOpage + rw-trap
         mov     kipar7,sipar7
         mov     #m0.ent!m0.ena,mmr0     ; enable mmu            ;! MMU 18

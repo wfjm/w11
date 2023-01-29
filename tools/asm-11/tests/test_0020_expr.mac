@@ -1,4 +1,4 @@
-; $Id: test_0020_expr.mac 1184 2019-07-10 20:39:44Z mueller $
+; $Id: test_0020_expr.mac 1360 2023-01-29 11:51:48Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2013- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -20,6 +20,21 @@
         u5 = ^c300              ;;!! 177477
         u6 = ^c-300             ;;!! 000277
 
+; unary operator precedence (matters for ^c,- sequences)
+
+        a  = 1
+        am = -1
+;
+        .word   ^c-a            ;;!! 000000     ; 000001  - 177777 ^c 000000
+        .word   -^ca            ;;!! 000002     ; 000001 ^c 177776  - 000002
+        .word   ^c<-a>          ;;!! 000000     ; 000001  - 177777 ^c 000000
+        .word   -<^ca>          ;;!! 000002     ; 000001 ^c 177776  - 000002
+;
+        .word   ^c-am           ;;!! 177776     ; 177777  - 000001 ^c 177776
+        .word   -^cam           ;;!! 000000     ; 177777 ^c 000000  - 000000
+        .word   ^c<-am>         ;;!! 177776     ; 177777  - 000001 ^c 177776
+        .word   -<^cam>         ;;!! 000000     ; 177777 ^c 000000  - 000000
+
 ; binary operators
 
         b1 = 1100 + 100         ;;!! 001200
@@ -28,6 +43,33 @@
         b4 = 2000 / 4           ;;!! 000400
         b5 = 1770 & 0077        ;;!! 000070
         b6 = 1000 ! 100         ;;!! 001100
+
+; unary after binary operators and proper sign in * and /
+
+        .word   100.*5.         ;;!! 000764
+        .word   100.*-5.        ;;!! 177014
+        .word   -100.*5.        ;;!! 177014
+        .word   -100.*-5.       ;;!! 000764
+;
+        .word   100./5.         ;;!! 000024
+        .word   100./-5.        ;;!! 177754
+        .word   -100./5.        ;;!! 177754
+        .word   -100./-5.       ;;!! 000024
+;
+        a = 100.
+        b = 5.
+        .word   a/b             ;;!! 000024
+        .word   a/-b            ;;!! 177754
+        .word   -a/b            ;;!! 177754
+        .word   -a/-b           ;;!! 000024
+        .word   -a/--b          ;;!! 177754
+;
+        ma = -100.
+        mb = -5.
+        .word   a/b             ;;!! 000024
+        .word   a/mb            ;;!! 177754
+        .word   ma/b            ;;!! 177754
+        .word   ma/mb           ;;!! 000024
 
 ; radix prefixes and suffixes
 

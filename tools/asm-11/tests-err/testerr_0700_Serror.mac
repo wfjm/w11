@@ -1,0 +1,18 @@
+; $Id: testerr_0700_Serror.mac 1360 2023-01-29 11:51:48Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test S error code (size error, asm-11 specific)
+;
+        .asect
+        . = 1000
+;
+        .if     df,...top       ; asm-11 only
+        .nlist  meb             ; disable listing, only error lines printed
+        .rept 010000
+        .word 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0   ;;!!S
+        .endr
+        .word   0               ;;!! 000000:    ; should not be reached
+        .endc
+;
+        .end

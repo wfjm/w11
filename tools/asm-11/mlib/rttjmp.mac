@@ -1,4 +1,4 @@
-; $Id: rttjmp.mac 1359 2023-01-27 20:58:50Z mueller $
+; $Id: rttjmp.mac 1360 2023-01-29 11:51:48Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -6,6 +6,7 @@
 ; usage: rtijmp  #cp.cmu+cp.t,#5100$
 ;
         .macro  rttjmp,newps,newpc
+        .mcall  push2
         push2   newps,newpc
         rtt
         halt

@@ -1,5 +1,5 @@
 .\"  -*- nroff -*-
-.\"  $Id: asm-11.1 1359 2023-01-27 20:58:50Z mueller $
+.\"  $Id: asm-11.1 1360 2023-01-29 11:51:48Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
 .\" Copyright 2013-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\"
@@ -94,9 +94,13 @@ and thus restricted macro support and no psect support.
 .IP "-" 2
 only single \.asect supported, no \.psect support
 .IP "-"
+assembler stops with error code 'S' when '.' exceeds 160000
+.IP "-"
 registers must be named r0,..,r5,sp,pc
 .IP "-"
 the %n notation and register expressions are not supported
+.IP "-"
+labeled assignment statements cause a 'Q' error (MACRO-11 accepts)
 .IP "-"
 the \.emt and \.trap instruction must have the trap number specified
 .IP "-"
@@ -112,11 +116,38 @@ a \.if df/ndf sees opcodes as defined (MACRO-11 doesn't)
 .IP "-"
 a \.if df/ndf sees register names as undefined (MACRO-11 doesn't)
 .IP "-"
-error codes on invail statements differ, especially A and Q
+error codes on invail statements differ, especially 'A' and 'Q'
 .IP "-"
 the \.(n)list acts only on cnd, me and meb, ignores other values
 .IP "-"
 the \.(n)list default is cnd=0,me=0,meb=1 (MACRO-11 cnd=1,meb=0)
+.IP "-"
+the following directives are not supported:
+\&.cross,
+\&.csect,
+\&.dsabl,
+\&.enabl,
+\&.flt2,
+\&.flt4,
+\&.globl,
+\&.ident,
+\&.iif,
+\&.irp,
+\&.irpc,
+\&.library,
+\&.limit,
+\&.nocross,
+\&.packed,
+\&.page,
+\&.psect,
+\&.rad50,
+\&.radix,
+\&.rem,
+\&.restore,
+\&.save,
+\&.sbttl,
+\&.title,
+\&.weak
 .PD
 .RE
 .PP

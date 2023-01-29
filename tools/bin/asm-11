@@ -1,10 +1,12 @@
 #!/usr/bin/perl -w
-# $Id: asm-11 1359 2023-01-27 20:58:50Z mueller $
+# $Id: asm-11 1360 2023-01-29 11:51:48Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2013-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2023-01-29  1360   1.2.5  BUFGIX: expressions: allow uop after bop operator;
+#                           proper sign handling for '/','*' and .if ge,gt,le,lt
 # 2023-01-27  1359   1.2.4  add minimal .list,.nlist (cnd,me,meb); add -(n)list
 # 2023-01-26  1357   1.2.3  skip redundant loads in .mcall
 # 2023-01-25  1355   1.2.2  rewrite macro args handling; add .narg,.nchr,.ntype
@@ -572,7 +574,7 @@ sub pass1_line {
   if (defined $$rl{oper} && $$rl{oper} eq '.endr') {
     if (scalar(@reptstk) > 0) {
       my $ifstklvl = scalar(@ifstk);    # remember initial .if stack depth
-      my $cnt = $reptstk[-1]{cnt};
+      my $cnt = int16($reptstk[-1]{cnt});
       for (my $i=0; $i<$cnt; $i++) {    # repeat body cnt times
         foreach my $rline (@{$reptstk[-1]{body}}) {
           $mexit = 0;
@@ -1515,7 +1517,7 @@ sub parse_line {
       $rt = get_token(\%l, $tmask);
       if      ($$rt{tag} eq 'OP' && $$rt{typ}=~'b') { # OP(b)
         $$rt{typ}='b';
-        $state = 'e_bop1';
+        $state = 'e_uop';
       } elsif (check_token($rt, 'DEL', '>')) {
         if (scalar(@e_pbeg) == 0) {
           $state = 'q';
@@ -1531,17 +1533,6 @@ sub parse_line {
       } else {
         pushback_token(\%l);
         $state = 'e_end';
-      }
-
-    } elsif ($state eq 'e_bop1') {          # state: e_bop1 ------------------
-      $rt = get_token(\%l, $tmask);
-      if      ($$rt{tag} eq 'NUM' || $$rt{tag} eq 'SYM') {
-        $state = 'e_bop';
-      } elsif (check_token($rt, 'DEL', '<')) {
-        push @e_pbeg, scalar(@{$l{tl}})-1;
-        $state = 'e_uop';
-      } else {
-        $state = 'q';
       }
 
     } elsif ($state eq 'e_end') {           # state: e_end -------------------
@@ -1651,6 +1642,7 @@ sub parse_line {
         if (scalar(@d_elist) == 1) {
           my $val = eval_exp(\%l, $d_elist[0]{ibeg}, $d_elist[0]{iend});
           if (defined $val) {
+            $val = int16($val);             # sign extend
             $tst = 1 if $ifcond eq 'eq' && $val == 0;
             $tst = 1 if $ifcond eq 'ne' && $val != 0;
             $tst = 1 if $ifcond eq 'gt' && $val >  0;
@@ -1788,6 +1780,12 @@ sub parse_line {
       die "BUGCHECK: unexpected state '$state'\n";
     }
   }
+  # check that no code is generated above 160000
+  if (defined $l{dot} && $l{dot} >= 0160000) { # if '.' >= 160000
+    add_err(\%l, 'S');                         # -> signal S (asm-11 specific)
+    $mexit = 1;                                # abort .macro or .rept
+    $end = 1;                                  # abort file reading
+  }
 
   return \%l;
 }
@@ -1850,7 +1848,7 @@ sub setdot {
 sub incdot {
   my ($inc) = @_;
   return unless defined $inc;
-  setdot(getdot() + $inc);
+  setdot(0177777 & (getdot() + $inc));
   return;
 }
 
@@ -2001,27 +1999,38 @@ sub eval_exp {
       die "BUGCHECK: bop not defined" unless defined $bop;
       my $v2 = pop @val;
       my $v1 = pop @val;
+      my $v;
       return undef unless defined $v1 && defined $v2;
       if      ($bop eq '+') {               # '+': addition
-        push @val, int($v1) + int($v2);
+        $v = int($v1) + int($v2);
       } elsif ($bop eq '-') {               # '-': subtraction
-        push @val, int($v1) - int($v2);
+        $v = int($v1) - int($v2);
       } elsif ($bop eq '*') {               # '*': multiplication
-        push @val, int($v1) * int($v2);
+        $v = int16($v1) * int16($v2);
       } elsif ($bop eq '/') {               # '/': division
-        push @val, int(int($v1) / int($v2));
+        $v = int(int16($v1) / int16($v2));
       } elsif ($bop eq '&') {               # '&': bit-wise and
-        push @val, int($v1) & int($v2);
+        $v = int($v1) & int($v2);
       } elsif ($bop eq '!') {               # '!': bit-wise or
-        push @val, int($v1) | int($v2);
+        $v = int($v1) | int($v2);
       } else {
         die "BUGCHECK: tag='OP(b)', val='$bop'\n";
       }
+      push @val, (0177777 & $v);
       $bop = undef;
     }
 
   }
   return pop @val;
+}
+
+#-------------------------------------------------------------------------------
+# returns 16bit sign extended integer value
+sub int16 {
+  my ($val) = @_;
+  $val = 0177777 & int($val);
+  $val = ($val - 0200000) if (0100000 & $val);
+  return $val;
 }
 
 #-------------------------------------------------------------------------------
@@ -2660,10 +2669,12 @@ sub pass2_lst_line {
     return unless $list{cnd};
   }
   if ($$rl{flag} =~ m/[mr]/) {
-    if (scalar(@ow)+scalar(@ob) == 0) {
-      return unless $list{me};
-    } else {
-      return unless $list{me} || $list{meb};
+    if ($$rl{err} eq '') {                  # show line in case of errors
+      if (scalar(@ow)+scalar(@ob) == 0) {
+        return unless $list{me};
+      } else {
+        return unless $list{me} || $list{meb};
+      }
     }
   }
 

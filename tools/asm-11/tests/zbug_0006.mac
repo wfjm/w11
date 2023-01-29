@@ -1,0 +1,43 @@
+; $Id: zbug_0006.mac 1360 2023-01-29 11:51:48Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; for asm-11 prior rev 1360
+;
+; ISSUE: faulty handling of unnary +/- in expresions
+;
+; REASON: error in parser (didnt allow uop after bop) and
+;         error in sign sign handling for '*" and '/' operator
+;
+        .asect
+        . = 1000
+;
+        .word   100.            ;;!! 000144
+        .word   -100.           ;;!! 177634
+;
+        .word   100.*5.         ;;!! 000764
+        .word   100.*-5.        ;;!! 177014
+        .word   -100.*5.        ;;!! 177014
+        .word   -100.*-5.       ;;!! 000764
+;
+        .word   100./5.         ;;!! 000024
+        .word   100./-5.        ;;!! 177754
+        .word   -100./5.        ;;!! 177754
+        .word   -100./-5.       ;;!! 000024
+;
+        a = 100.
+        b = 5.
+        .word   a/b             ;;!! 000024
+        .word   a/-b            ;;!! 177754
+        .word   -a/b            ;;!! 177754
+        .word   -a/-b           ;;!! 000024
+        .word   -a/--b          ;;!! 177754
+;
+        ma = -100.
+        mb = -5.
+        .word   a/b             ;;!! 000024
+        .word   a/mb            ;;!! 177754
+        .word   ma/b            ;;!! 177754
+        .word   ma/mb           ;;!! 000024
+;
+        .end

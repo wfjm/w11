@@ -1,4 +1,4 @@
-; $Id: testerr_0040_inst.mac 1356 2023-01-26 15:10:23Z mueller $
+; $Id: testerr_0040_inst.mac 1361 2023-01-30 07:48:17Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -6,7 +6,27 @@
 ;
         .asect
         . = 1000
-
+;
+a       = 1
+v:      .word   0
+r:      rts     pc
+;
+; bad operand type
+        jsr     v,r             ;;!! R
+        rts     v               ;;!! R
+        xor     v,v             ;;!! R
+        ash     #3,v            ;;!! R
+        ashc    #3,v            ;;!! R
+        mul     #3,v            ;;!! R
+        div     #3,v            ;;!! R
+        sob     v,.             ;;!! R
+;
+; correct syntax and operand type, but bad usage caught via truncation
+        spl     v               ;;!! T
+        mark    v               ;;!! T
+        emt     v               ;;!! T  ; A in MACRO-11
+        trap    v               ;;!! T  ; A in MACRO-11
+;
 ; bad opcodes
         xxx                     ;;!! U  ; implicit .word with unknown symbol
         xxx     r0              ;;!! Q  ; AU in MACRO-11
@@ -17,12 +37,12 @@
         mov     r0              ;;!! Q  ; A in MACRO-11
         mov     r0,             ;;!! Q  ; A in MACRO-11
         emt                     ;;!! Q  ; ok in MACRO-11 (0 default)
-        jsr                     ;;!! Q  ; A in MACRO-11
+        jsr                     ;;!! QR ; A in MACRO-11
         jsr     pc              ;;!! Q  ; A in MACRO-11
         jsr     pc,             ;;!! Q  ; A in MACRO-11
-        rts                     ;;!! Q  ; A in MACRO-11
+        rts                     ;;!! R  ; A in MACRO-11
         br                      ;;!! Q  ; A in MACRO-11
-        sob                     ;;!! Q  ; A in MACRO-11
+        sob                     ;;!! QR ; A in MACRO-11
         sob     r0              ;;!! Q  ; A in MACRO-11
         sob     r0,             ;;!! Q  ; A in MACRO-11
 ;
@@ -31,5 +51,24 @@
         clr     r0   r1         ;;!! Q
         mov     r0,r1,r2        ;;!! Q
         mov     r0,r1   r2      ;;!! Q
+        halt    r0              ;;!! Q
+        rti     v               ;;!! Q
+        rtt     v               ;;!! Q
+        wait    v               ;;!! Q
+        bpt     v               ;;!! Q
+        iot     v               ;;!! Q
+;
+; bad specifies
+        clr     (r0             ;;!! Q
+        clr     r0)             ;;!! Q
+        clr     +(r0)           ;;!! Q  ; A in MACRO-11
+        clr     (r0)-           ;;!! Q
+        clr     -(r0            ;;!! Q
+        clr     @+(r0)          ;;!! Q  ; A in MACRO-11
+        clr     @(r0)-          ;;!! Q
+        clr     a(              ;;!! Q  ; AQ in MACRO-11
+        clr     a(r0            ;;!! Q
+        clr     @a(             ;;!! Q  ; AQ in MACRO-11
+        clr     @a(r0           ;;!! Q
 ;
         .end

@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: asm-11 1360 2023-01-29 11:51:48Z mueller $
+# $Id: asm-11 1361 2023-01-30 07:48:17Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2013-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2023-01-30  1361   1.2.6  use 'R' error code; fix 'S' logic
 # 2023-01-29  1360   1.2.5  BUFGIX: expressions: allow uop after bop operator;
 #                           proper sign handling for '/','*' and .if ge,gt,le,lt
 # 2023-01-27  1359   1.2.4  add minimal .list,.nlist (cnd,me,meb); add -(n)list
@@ -1310,10 +1311,10 @@ sub parse_line {
             add_err(\%l, 'T');
           }
           $op_cmod = 0;
-          $state = 'op_end';
         } else {
-          $state = 'q';
+          add_err(\%l, 'R');
         }
+        $state = 'op_end';
       } elsif ($$op_rop{typ} eq 'e') {      # operand: expression
         push @stack, 'op_end';
         $state = 'e_beg';
@@ -1780,8 +1781,10 @@ sub parse_line {
       die "BUGCHECK: unexpected state '$state'\n";
     }
   }
-  # check that no code is generated above 160000
-  if (defined $l{dot} && $l{dot} >= 0160000) { # if '.' >= 160000
+  # Check that no code is generated between 160000 and 161000.
+  # That stops code growth into the IO page, but allows to compile
+  # code for a m9312 type boot PROMs which start at 165000.
+  if (defined $l{dot} &&  $l{dot} > 0160000 &&  $l{dot} < 0161000) {
     add_err(\%l, 'S');                         # -> signal S (asm-11 specific)
     $mexit = 1;                                # abort .macro or .rept
     $end = 1;                                  # abort file reading
@@ -2729,12 +2732,12 @@ sub pass2_lst_line {
   print $fh $str;
   if (1) {
     while (scalar(@ow)) {
-      $str = '                 ';
+      $str = '                  ';
       for (my $i=0; $i<3; $i++) { $str .= prt76o(shift @ow); }
       print $fh $str . "\n";
     }
     while (scalar(@ob)) {
-      $str = '                 ';
+      $str = '                  ';
       for (my $i=0; $i<5; $i++) { $str .= prt43o(shift @ob); }
       print $fh $str . "\n";
     }

@@ -1,10 +1,11 @@
-# $Id: asm.tcl 1325 2022-12-07 11:52:36Z mueller $
+# $Id: asm.tcl 1362 2023-01-31 18:16:17Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2013-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
-# 2022-12-04  1324   1.0.1  asmrun: add creset option (active with ps option)
+# 2023-01-31  1362   1.1    asmrun: re-organize -stop -creset handling
+# 2022-12-04  1324   1.0.7  asmrun: add creset option (active with ps option)
 # 2019-04-06  1126   1.0.6  asmwait: allow alternate stop symbol
 # 2017-02-04   784   1.0.5  asmrun: allow 'ps' in initializer list
 # 2015-07-25   704   1.0.4  asmrun,asmtreg,asmtmem: use args in proc definition
@@ -49,21 +50,26 @@ namespace eval rw11 {
       }
     }
 
+    # the CPU must be stopped and either be reset or ps loaded before the
+    # registers are updated. If not they can end in the wrong register set.
+    # Therefore -stapc can't be used here.
+
     set clist {}
-    foreach key {r0 r1 r2 r3 r4 r5 sp} {
-      lappend clist "-w${key}" $opts($key)
-    }
+
+    lappend clist "-stop"
     if {[info exists opts(ps)]} {
       if {$opts(creset)} {
         rlc log "CRESET"
         lappend clist "-creset"
       }
-      lappend clist "-wpc" $opts(pc)
       lappend clist "-wps" $opts(ps)
-      lappend clist "-start"
     } else {
-      lappend clist "-stapc" $opts(pc)
+      lappend clist "-creset"
     }
+    foreach key {r0 r1 r2 r3 r4 r5 sp pc} {
+      lappend clist "-w${key}" $opts($key)
+    }
+    lappend clist "-start"
 
     $cpu cp {*}$clist
 

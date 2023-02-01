@@ -1,9 +1,10 @@
-# $Id: shell.tcl 1280 2022-08-15 09:12:03Z mueller $
+# $Id: shell.tcl 1362 2023-01-31 18:16:17Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2015-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2023-01-31  1362   2.2.6  add rw11::shell_attnmuted to mute CPU attn messages
 # 2018-10-21  1058   2.2.5  add after#\d+ scrubber (a real HACK, sorry)
 # 2017-04-23   885   2.2.4  adopt .cm* to new interface
 # 2017-04-22   883   2.2.3  integrate rbmon: add .rme,.rmd,.rmf,.rml
@@ -28,7 +29,8 @@ namespace eval rw11 {
   variable shell_depth     0;                   # recursion stopper
   variable shell_cpu       "cpu0";              # current cpu command
   variable shell_cpu_stat  "";                  # cpu status
-  variable shell_attnhdl_added 0
+  variable shell_attnhdl_added 0;               # 1 if CPU attn handler added
+  variable shell_attnhdl_muted 0;               # 1 if CPU attn output muted
   variable shell_eofchar_save {puts {}}
 
   #
@@ -134,11 +136,16 @@ namespace eval rw11 {
   # shell_attncpu: cpu attn handler ------------------------------------------
   # 
   proc shell_attncpu {} {
-    puts "CPU attention"
-    puts [cpu0 show -r0ps]
+    variable shell_attnhdl_muted
+    if {$shell_attnhdl_muted == 0} {
+      puts "CPU attention"
+      puts [cpu0 show -r0ps]
+    }
     shell_update_cpu_stat
-    puts -nonewline [::tclreadline::prompt1]
-    flush stdout
+    if {$shell_attnhdl_muted == 0} {
+      puts -nonewline [::tclreadline::prompt1]
+      flush stdout
+    }
     return
   }
 

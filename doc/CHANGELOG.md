@@ -29,6 +29,7 @@ The full set of tests is only run for tagged releases.
 
 ### Summary
 ### New features
+- tools/mcode: added folders rk11 and rlink
 ### Changes
 - tools changes
   - tools/bin

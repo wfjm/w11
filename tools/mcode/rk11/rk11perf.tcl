@@ -6,7 +6,7 @@
 # Date         Rev Version  Comment
 # 2023-01-31  1362   1.1    add more usage modes; mute CPU attn messages
 # 2019-03-09  1120   1.0.1  use -wal
-# 2017-05-07   895   1.0    Initial version
+# 2014-12-28   622   1.0    Initial version
 #
 # Simple rk11 I/O performance tester
 #

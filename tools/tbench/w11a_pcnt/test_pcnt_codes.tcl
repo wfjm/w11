@@ -1,6 +1,6 @@
-# $Id: test_pcnt_codes.tcl 1330 2022-12-16 17:52:40Z mueller $
+# $Id: test_pcnt_codes.tcl 1365 2023-02-02 11:46:43Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2018-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2018-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
@@ -15,7 +15,7 @@
 rlc log "test_pcnt_codes: test counters --------------------------------------"
 
 if {[$cpu get haspcnt] == 0} {
-  rlc log "  test_pcnt_regs-W: no pcnt unit found, test aborted"
+  rlc log "  test_pcnt_codes-W: no pcnt unit found, test aborted"
   return
 }
 

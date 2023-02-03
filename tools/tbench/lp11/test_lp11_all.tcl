@@ -1,9 +1,10 @@
-# $Id: test_lp11_all.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_lp11_all.tcl 1364 2023-02-02 11:18:54Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2019-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2023-02-02  1364   1.0.4  use .mcall and vecdef
 # 2019-05-30  1155   1.0.3  size->fuse rename
 # 2019-04-19  1134   1.0.2  fifo not longer cleared by breset
 # 2019-04-06  1126   1.0.1  check csr.err and csr.rlim not changed by breset
@@ -368,13 +369,11 @@ rlc log "  B2: test csr.ie and cpu write -> rri read -----------------"
 $cpu ldasm -lst lst -sym sym {
         .include  |lib/defs_cpu.mac|
         .include  |lib/defs_lp.mac|
-;
         .include  |lib/vec_cpucatch.mac|
         .include  |lib/vec_devcatch.mac|
-; 
-        . = v..lp               ; setup LP11 interrupt vector
-        .word vh.lp
-        .word cp.pr7
+        .mcall  vecdef
+;
+        vecdef  v..lp,vh.lp     ; setup LP11 interrupt vector
 ;
         . = 1000                ; data area
 stack:

@@ -1,0 +1,18 @@
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; set vector to handler and PS (default pr7 kernel) at compile time
+; Notes:
+; - must be initialized before with vecini
+; - use vecset for run time set up
+; - changes '.', use only right after vec_cpucatch and vec_devcatch
+;
+        .macro  vecdef,name,hdl,psw
+        . = name
+        .word   hdl
+        .if     b,psw
+        .word   cp.pr7
+        .iff
+        .word   psw
+        .endc
+        .endm

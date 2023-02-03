@@ -1,9 +1,10 @@
-# $Id: test_pc11_pr.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_pc11_pr.tcl 1364 2023-02-02 11:18:54Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2019-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2023-02-02  1364   1.0.2  use .mcall and vecdef
 # 2019-05-30  1155   1.0.1  size->fuse rename
 # 2019-04-21  1134   1.0    Initial version
 # 2019-04-12  1131   0.1    First draft
@@ -276,9 +277,11 @@ rlc log "  B1: test csr.ie and basic interrupt response --------------"
 $cpu ldasm -lst lst -sym sym {
         .include  |lib/defs_cpu.mac|
         .include  |lib/defs_pc.mac|
-        . = va.ptr               ; setup PC11 reader interrupt vector
-        .word vh.ptr
-        .word cp.pr7
+        .include  |lib/vec_cpucatch.mac|
+        .include  |lib/vec_devcatch.mac|
+        .mcall  vecdef
+;
+        vecdef    v..ptr,vh.ptr ; setup  reader vector
 ;
         . = 1000                ; code area
 stack:
@@ -347,13 +350,11 @@ rlc log "  B2: test csr.ie and rri write -> cpu read -----------------"
 $cpu ldasm -lst lst -sym sym {
         .include  |lib/defs_cpu.mac|
         .include  |lib/defs_pc.mac|
-;
         .include  |lib/vec_cpucatch.mac|
         .include  |lib/vec_devcatch.mac|
+        .mcall  vecdef
 ; 
-        . = v..ptr              ; setup PC11 reader interrupt vector
-        .word vh.ptr
-        .word cp.pr7
+        vecdef    v..ptr,vh.ptr ; setup  reader vector
 ;
         . = 1000                ; data area
 stack:

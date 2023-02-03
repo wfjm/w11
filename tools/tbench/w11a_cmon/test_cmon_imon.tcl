@@ -1,6 +1,6 @@
-# $Id: test_cmon_imon.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_cmon_imon.tcl 1365 2023-02-02 11:46:43Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2015-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
@@ -13,7 +13,7 @@
 rlc log "test_cmon_imon: test last instruction monitor -----------------------"
 
 if {[$cpu get hascmon] == 0} {
-  rlc log "  test_cmon_regs-W: no cmon unit found, test aborted"
+  rlc log "  test_cmon_imon-W: no cmon unit found, test aborted"
   return
 }
 

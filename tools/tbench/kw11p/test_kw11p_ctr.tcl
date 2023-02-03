@@ -1,6 +1,6 @@
-# $Id: test_kw11p_ctr.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_kw11p_ctr.tcl 1365 2023-02-02 11:46:43Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2018-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2018-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
@@ -10,10 +10,10 @@
 # Test ctr response with CSR(fix)
 
 # ----------------------------------------------------------------------------
-rlc log "test_kw11p_regs: test ctr response with CSR(fix) --------------------"
+rlc log "test_kw11p_ctr: test ctr response with CSR(fix) ---------------------"
 
 if {[$cpu get haskw11p] == 0} {
-  rlc log "  test_kw11p_regs-W: no kw11p unit found, test aborted"
+  rlc log "  test_kw11p_ctr-W: no kw11p unit found, test aborted"
   return
 }
 

@@ -1,6 +1,6 @@
-# $Id: test_rhrp_int.tcl 1321 2022-11-24 15:06:47Z mueller $
+# $Id: test_rhrp_int.tcl 1365 2023-02-02 11:46:43Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
@@ -19,7 +19,7 @@ rlc log "test_rhrp_int: test interrupt response ------------------------------"
 rlc log "  setup: unit 0:RP06(mol), 1:RM05(mol,wrl), 2: RP07(mol=0), 3: off"
 package require ibd_rhrp
 if {![ibd_rhrp::setup]} {
-  rlc log "  test_rhrp_regs-W: device not found, test aborted"
+  rlc log "  test_rhrp_int-W: device not found, test aborted"
   return
 }
 

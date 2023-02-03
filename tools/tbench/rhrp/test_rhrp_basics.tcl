@@ -1,6 +1,6 @@
-# $Id: test_rhrp_basics.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_rhrp_basics.tcl 1365 2023-02-02 11:46:43Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
@@ -18,7 +18,7 @@ rlc log "test_rhrp_basics: basic access tests --------------------------------"
 rlc log "  setup context"
 package require ibd_rhrp
 if {![ibd_rhrp::setup]} {
-  rlc log "  test_rhrp_regs-W: device not found, test aborted"
+  rlc log "  test_rhrp_basics-W: device not found, test aborted"
   return
 }
 

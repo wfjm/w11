@@ -1,6 +1,6 @@
-# $Id: test_ibmon_ibtst.tcl 1274 2022-08-08 09:21:53Z mueller $
+# $Id: test_ibmon_ibtst.tcl 1365 2023-02-02 11:46:43Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2019-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2019-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
@@ -9,7 +9,7 @@
 #
 
 # ----------------------------------------------------------------------------
-rlc log "test_ibmon_ibtest: tests with ibd_ibtst as target -------------------"
+rlc log "test_ibmon_ibtst: tests with ibd_ibtst as target --------------------"
 
 if {[$cpu get hasibmon] == 0} {
   rlc log "  test_ibmon_ibtst-W: no ibmon unit found, test aborted"

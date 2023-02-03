@@ -1,6 +1,6 @@
-# $Id: test_m9312_all.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_m9312_all.tcl 1365 2023-02-02 11:46:43Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2019-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
@@ -12,7 +12,7 @@
 rlc log "test_m9312_all: test m9312 response ---------------------------------"
 
 if {[$cpu get hasm9312] == 0} {
-  rlc log "  test_m9312_regs-W: no m9312 unit found, test aborted"
+  rlc log "  test_m9312_all-W: no m9312 unit found, test aborted"
   return
 }
 package require ibd_m9312

@@ -1,6 +1,6 @@
-# $Id: test_ibtst_stat.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_ibtst_stat.tcl 1365 2023-02-02 11:46:43Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2019-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
@@ -20,7 +20,7 @@
 rlc log "test_ibtst_stat: test stat register response -------------------------"
 
 if {[$cpu get hasibtst] == 0} {
-  rlc log "  test_ibtst_data-W: no ibtst unit found, test aborted"
+  rlc log "  test_ibtst_stat-W: no ibtst unit found, test aborted"
   return
 }
 package require ibd_ibtst

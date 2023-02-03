@@ -1,6 +1,6 @@
-# $Id: test_deuna_int.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_deuna_int.tcl 1365 2023-02-02 11:46:43Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2017-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
@@ -13,7 +13,7 @@
 rlc log "test_deuna_int: test interrupt response -----------------------------"
 package require ibd_deuna
 if {![ibd_deuna::setup]} {
-  rlc log "  test_deuna_regs-W: device not found, test aborted"
+  rlc log "  test_deuna_int-W: device not found, test aborted"
   return
 }
 

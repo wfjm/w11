@@ -1,6 +1,6 @@
-# $Id: test_dz11_loop.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_dz11_loop.tcl 1365 2023-02-02 11:46:43Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2019-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
@@ -13,7 +13,7 @@
 rlc log "test_dz11_loop: test dz11 receiver+transmit response ----------------"
 package require ibd_dz11
 if {![ibd_dz11::setup]} {
-  rlc log "  test_dz11_tx-W: device not found, test aborted"
+  rlc log "  test_dz11_loop-W: device not found, test aborted"
   return
 }
 

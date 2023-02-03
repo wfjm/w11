@@ -1,16 +1,17 @@
-# $Id: test_dl11_tx.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_dl11_tx.tcl 1365 2023-02-02 11:46:43Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2019-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2023-02-02  1364   1.0.2  use .mcall and vecdef
 # 2019-05-30  1155   1.0.1  size->fuse rename
 # 2019-04-26  1139   1.0    Initial version (derived from test_pc11_pp.tcl)
 #
 # Test DL11 transmitter response
 
 # ----------------------------------------------------------------------------
-rlc log "test_dl11_tx: test dl11 paper puncher resonse -----------------------"
+rlc log "test_dl11_tx: test dl11 transmitter response ------------------------"
 package require ibd_dl11
 if {![ibd_dl11::setup]} {
   rlc log "  test_dl11_tx-W: device not found, test aborted"
@@ -315,13 +316,11 @@ rlc log "  B2: test csr.ie and cpu write -> rri read -----------------"
 $cpu ldasm -lst lst -sym sym {
         .include  |lib/defs_cpu.mac|
         .include  |lib/defs_dl.mac|
-;
         .include  |lib/vec_cpucatch.mac|
         .include  |lib/vec_devcatch.mac|
+        .mcall  vecdef
 ; 
-        . = v..tto              ; setup DL11 transmitter interrupt vector
-        .word vh.tto
-        .word cp.pr7
+        vecdef  v..tto,vh.tto   ; setup transmitter vector
 ;
         . = 1000                ; data area
 stack:

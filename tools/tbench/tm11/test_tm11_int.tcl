@@ -1,6 +1,6 @@
-# $Id: test_tm11_int.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_tm11_int.tcl 1365 2023-02-02 11:46:43Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2015-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
@@ -16,7 +16,7 @@ rlc log "test_tm11_int: test interrupt response ------------------------------"
 rlc log "  setup: all units online"
 package require ibd_tm11
 if {![ibd_tm11::setup]} {
-  rlc log "  test_tm11_regs-W: device not found, test aborted"
+  rlc log "  test_tm11_int-W: device not found, test aborted"
   return
 }
 

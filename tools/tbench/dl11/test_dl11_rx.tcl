@@ -1,19 +1,20 @@
-# $Id: test_dl11_rx.tcl 1178 2019-06-30 12:39:40Z mueller $
+# $Id: test_dl11_rx.tcl 1365 2023-02-02 11:46:43Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2019-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Revision History:
 # Date         Rev Version  Comment
+# 2023-02-02  1364   1.0.2  use .mcall and vecdef
 # 2019-05-30  1155   1.0.1  size->fuse rename
 # 2019-04-26  1139   1.0    Initial version (derived from test_pc11_pr.tcl)
 #
 # Test DL11 receiver response 
 
 # ----------------------------------------------------------------------------
-rlc log "test_dl11_pr: test dl11 paper reader resonse ------------------------"
+rlc log "test_dl11_rx: test dl11 receiver response ---------------------------"
 package require ibd_dl11
 if {![ibd_dl11::setup]} {
-  rlc log "  test_dl11_pr-W: device not found, test aborted"
+  rlc log "  test_dl11_rx-W: device not found, test aborted"
   return
 }
 
@@ -174,9 +175,11 @@ rlc log "  B1: test csr.ie and basic interrupt response --------------"
 $cpu ldasm -lst lst -sym sym {
         .include  |lib/defs_cpu.mac|
         .include  |lib/defs_dl.mac|
-        . = va.tti               ; setup DL11 receiver interrupt vector
-        .word vh.tti
-        .word cp.pr7
+        .include  |lib/vec_cpucatch.mac|
+        .include  |lib/vec_devcatch.mac|
+        .mcall  vecdef
+;
+        vecdef  v..tti,vh.tti   ; setup receiver vector
 ;
         . = 1000                ; code area
 stack:
@@ -214,13 +217,11 @@ rlc log "  B2: test csr.ie and rri write -> cpu read -----------------"
 $cpu ldasm -lst lst -sym sym {
         .include  |lib/defs_cpu.mac|
         .include  |lib/defs_dl.mac|
-;
         .include  |lib/vec_cpucatch.mac|
         .include  |lib/vec_devcatch.mac|
+        .mcall  vecdef
 ; 
-        . = v..tti              ; setup DL11 receiver interrupt vector
-        .word vh.tti
-        .word cp.pr7
+        vecdef  v..tti,vh.tti   ; setup receiver vector
 ;
         . = 1000                ; data area
 stack:

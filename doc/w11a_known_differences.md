@@ -22,6 +22,7 @@ The issues of the w11 CPU and systems are listed in a separate document
 - not implemented 11/70 features
   - [18-bit UNIBUS address space not mapped](w11a_diff_70_unibus_mapping.md)
   - [MMU maintenance mode not implemented](w11a_diff_70_mmu_no_maint.md)
+  - [no cache parity and minimal subset of memory system controls](w11a_diff_70_cache_memory.md)
 - other differences
   - [Usage of 11/70 `SYSID` register](w11a_diff_70_sysid_usage.md)
 

@@ -23,31 +23,38 @@ and a rather complete set of UNIBUS peripherals
 and last but not least a cache and memory controllers for SRAM, PSRAM and
 SDRAM (via Xilinx MIG core).
 The design is **FPGA proven**, runs currently on Digilent
-[Arty A7](rtl/sys_gen/w11a/arty),
-[Basys3](rtl/sys_gen/w11a/basys3),
-[Cmod A7](rtl/sys_gen/w11a/cmoda7),
-[Nexys A7](rtl/sys_gen/w11a/nexys4d),
-[Nexys4](rtl/sys_gen/w11a/nexys4),
-[Nexys3](rtl/sys_gen/w11a/nexys3),
-[Nexys2](rtl/sys_gen/w11a/nexys2) and
-[S3board](rtl/sys_gen/w11a/s3board)
+[Arty A7](rtl/sys_gen/w11a/arty/README.md),
+[Basys3](rtl/sys_gen/w11a/basys3/README.md),
+[Cmod A7](rtl/sys_gen/w11a/cmoda7/README.md),
+[Nexys A7](rtl/sys_gen/w11a/nexys4d/README.md),
+[Nexys4](rtl/sys_gen/w11a/nexys4/README.md),
+[Nexys3](rtl/sys_gen/w11a/nexys3/README.md),
+[Nexys2](rtl/sys_gen/w11a/nexys2/README.md) and
+[S3board](rtl/sys_gen/w11a/s3board/README.md)
 boards and boots 5th Edition UNIX, 2.11BSD UNIX, as well as various DEC
 operating systems from provided [oskits](tools/oskit/README.md).
 
+The current implementation forwards the IO requests from all devices via a
+fast serial connection to a backend server on a PC, which translates these
+requests and maps them to contemporary interfaces.
+True standalone systems are on the project roadmap.
+
 For more information look into:
-- w11 project [home page](https://wfjm.github.io/home/w11/)
-  and [blog](https://wfjm.github.io/blogs/w11/)
-- [change log](doc/CHANGELOG.md)
-  and [installation notes](doc/INSTALL.md)
-- guides to build bit files and test benches
+- w11 project [home page](https://wfjm.github.io/home/w11/), especially the
+  sections on [feature set](https://wfjm.github.io/home/w11/impl/) and
+  [overall architecture](https://wfjm.github.io/home/w11/impl/architecture.html).
+- w11 project [blog](https://wfjm.github.io/blogs/w11/).
+- [change log](doc/CHANGELOG.md).
+  and [installation notes](doc/INSTALL.md).
+- guides to build bit files and test benches.
   with [Xilinx Vivado](doc/README_buildsystem_Vivado.md)
-  and [Xilinx ISE](doc/README_buildsystem_ISE.md)
+  and [Xilinx ISE](doc/README_buildsystem_ISE.md).
 - guides to [run test benches](doc/w11a_tb_guide.md)
-  and to [boot operating systems](doc/w11a_os_guide.md)
-- known [issues](doc/README_known_issues.md)
-- known [differences](doc/w11a_known_differences.md)
+  and to [boot operating systems](doc/w11a_os_guide.md).
+- known [issues](doc/README_known_issues.md).
+- known [differences](doc/w11a_known_differences.md).
 - the impatient readers can try their luck with the
-  [quick start guide](doc/INSTALL_quickstart.md)
+  [quick start guide](doc/INSTALL_quickstart.md).
 
 A short description of the directory layout
 [is provided separately](https://wfjm.github.io/home/w11/impl/dirlayout.html),

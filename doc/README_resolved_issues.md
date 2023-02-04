@@ -1,5 +1,22 @@
 # Resolved issues
 
+### V0.791-5 {[issue #37](https://github.com/wfjm/w11/issues/37)} -- PSW changed after MMU aborts in dstw flows
+
+#### Original Issue
+The dstw flow updates the condition codes before the the last possible
+MMU abort. Example is the ccwe = 1 in s_dstw_def.
+The condition codes are therefore changed when an MMU abort happens.
+
+Detected in a code rewiew.  
+Not practical consequences because only CLR, SXT, and MOV are affected.  
+Only SXT depends on a condition code (N), but doesn't change this cc.  
+Therefore, an instruction re-execution will always give the correct result.  
+But clearly a BUG, the condition codes must not change in case of MMU aborts.
+
+#### Fix
+Fixed with commit [b59d545](https://github.com/wfjm/w11/commit/b59d545),
+see [ECO-039](ECO-039-cc_and_aborts.md).
+
 ### V0.50-3 {[issue #27](https://github.com/wfjm/w11/issues/27)} -- CPU: no mmu trap when instruction which clears trap enable itself causes a trap
 
 #### Original Issue

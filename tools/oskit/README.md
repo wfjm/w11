@@ -8,8 +8,8 @@ This directory tree contains **OS disk/tape image kits** and is organized in
 | _all other_  | folders with individual OS kits |
 
 The available OS kits are summarized in the table below with
-- **DL**: number of DL11 lines supported by OS (for bsd also with active ttys)
-- **DZ**: number of DZ11 lines supported by OS (for bsd also with active ttys)
+- **DL**: number of DL11 lines supported by OS (for BSD also with active `ttys`)
+- **DZ**: number of DZ11 lines supported by OS (for BSD also with active `ttys`)
 - **PC**: PC11 (paper tape reader/puncher) support
 - **XU**: DEUNA support
 - **MinMem**: minimal required memory size

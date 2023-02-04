@@ -1,19 +1,7 @@
 # Known issues
 Notes
-- resolved issues are summarized in [resolved issues](README_resolved_issues.md)
+- resolved issues are summarized in [resolved issues](README_resolved_issues.md).
 - the case id indicates the release when the issue was first recognized.
-
-### V0.791-5 {[issue #37](https://github.com/wfjm/w11/issues/37)} -- PSW changed after MMU aborts in dstw flows
-
-The dstw flow updates the condition codes before the the last possible
-MMU abort. Example is the ccwe = 1 in s_dstw_def.
-The condition codes are therefore changed when an MMU abort happens.
-
-Detected in a code rewiew.  
-Not practical consequences because only CLR, SXT, and MOV are affected.  
-Only SXT depends on a condition code (N), but doesn't change this cc.  
-Therefore, an instruction re-execution will always give the correct result.  
-But clearly a BUG, the condition codes must not change in case of MMU aborts.
 
 ### V0.50-2 {[issue #28](https://github.com/wfjm/w11/issues/28)} -- RK11: write protect action too slow
 

@@ -1,12 +1,12 @@
 ## Notes on oskit: Unix 5th Edition system on RK05 volumes
 
 ### General remarks
-See notes in [w11a_os_guide.md](../../../doc/w11a_os_guide.md) on
-  1. I/O emulation setup
-  2. FPGA Board setup
-  3. Rlink and Backend Server setup
-  4. SimH simulator setup
-  5. Legal terms
+See notes on
+- [I/O emulation setup](../../../doc/w11a_io_emulation.md)
+- [FPGA Board setup](../../../doc/w11a_board_connection.md)
+- [Rlink and Backend Server setup](../../../doc/w11a_backend_setup.md)
+- [SimH simulator setup](../../../doc/w11a_simh_setup.md)
+- [Legal terms](../../../doc/w11a_os_guide.md)
 
 ### Installation
 A disk set is available from

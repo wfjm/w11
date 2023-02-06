@@ -44,9 +44,9 @@ For more information look into:
   sections on [feature set](https://wfjm.github.io/home/w11/impl/) and
   [overall architecture](https://wfjm.github.io/home/w11/impl/architecture.html).
 - w11 project [blog](https://wfjm.github.io/blogs/w11/).
-- [change log](doc/CHANGELOG.md).
+- [change log](doc/CHANGELOG.md)
   and [installation notes](doc/INSTALL.md).
-- guides to build bit files and test benches.
+- guides to build bit files and test benches
   with [Xilinx Vivado](doc/README_buildsystem_Vivado.md)
   and [Xilinx ISE](doc/README_buildsystem_ISE.md).
 - guides to [run test benches](doc/w11a_tb_guide.md)

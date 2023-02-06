@@ -1,6 +1,12 @@
-; $Id: setup_w11a_min.scmd 1280 2022-08-15 09:12:03Z mueller $
+; $Id: setup_w11a_min.scmd 1367 2023-02-06 14:11:34Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2009-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2009-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; Revision History:
+; Date         Rev Version  Comment
+; 2922-08-14  1280  1.1.1   set sysid, indicate simulator and SimH
+; 2022-07-14  1256  1.1     use autoconfig, cleanups
+; 2009-09-13   238  1.0     Initial version
 ;
 ; Setup file for 'minimal' w11a configuration under simh 3.8 and above
 ;
@@ -22,12 +28,6 @@
 ; 0 RH70 + 0 RP06    drives     -
 ; 0 TM11 + 0 drives             -
 ; 0 DEUNA                       -
-;
-; Revision History: 
-; Date         Rev Version  Comment
-; 2922-08-14  1280  1.1.1   set sysid, indicate simulator and SimH
-; 2022-07-14  1256  1.1     use autoconfig, cleanups
-; 2009-09-13   238  1.0     Initial version
 ;
 ; processor options
 ;

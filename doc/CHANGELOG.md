@@ -28,6 +28,7 @@ software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
 ### Summary
+- Doxygen support now for V1.9.6
 ### New features
 - tools/mcode: added folders rk11 and rlink
 ### Changes

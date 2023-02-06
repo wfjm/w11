@@ -21,14 +21,15 @@ finished.
 
 All examples below use the same basic setup
 - set up vt100 emulator window for 1st and 2nd DL11
-
-         console_starter -s -d DL0 &
-         console_starter -s -d DL1 &
-
+  ```bash
+      console_starter -s -d DL0 &
+      console_starter -s -d DL1 &
+  ```
    **Note**: the `-s` ensures that the port numbers used by SimH are taken!
 
 - the simulator is usually started with `.scmd` command file, for
   [oskits](../tools/oskit/README.md) for example with
-
-         cd $RETROBASE/tools/oskit/<oskit-name>
-         pdp11 <oskit-name>_boot.scmd
+  ```bash
+      cd $RETROBASE/tools/oskit/<oskit-name>
+      pdp11 <oskit-name>_boot.scmd
+  ```

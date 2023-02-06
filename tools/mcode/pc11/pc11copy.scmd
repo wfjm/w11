@@ -1,4 +1,4 @@
-; $Id: pc11copy.scmd 1275 2022-08-10 08:10:40Z mueller $
+; $Id: pc11copy.scmd 1367 2023-02-06 14:11:34Z mueller $
 ;
 ; Setup file for pc11copy
 ;
@@ -13,3 +13,4 @@ att ptp simh_pc11copy.dat
 ;
 load pc11copy.lda
 cont
+quit

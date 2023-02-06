@@ -1,6 +1,12 @@
-; $Id: setup_w11a_max.scmd 1280 2022-08-15 09:12:03Z mueller $
+; $Id: setup_w11a_max.scmd 1367 2023-02-06 14:11:34Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2008-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2008-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; Revision History:
+; Date         Rev Version  Comment
+; 2922-08-14  1280  1.1.1   set sysid, indicate simulator and SimH
+; 2022-07-14  1256  1.1     use autoconfig, cleanups
+; 2008-12-28   182  1.0     Initial version
 ;
 ; Setup file for 'maximal' w11a configuration under simh 3.8 and above
 ;
@@ -20,12 +26,6 @@
 ; 1 RH70 + 4 RP06    drives     176700/254/BR5
 ; 1 TM11 + 4 drives             172520/224/BR5
 ; 1 DEUNA                       174510/120/BR5 *
-;
-; Revision History: 
-; Date         Rev Version  Comment
-; 2922-08-14  1280  1.1.1   set sysid, indicate simulator and SimH
-; 2022-07-14  1256  1.1     use autoconfig, cleanups
-; 2008-12-28   182  1.0     Initial version
 ;
 ; processor options
 ;

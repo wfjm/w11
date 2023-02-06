@@ -1,4 +1,7 @@
-This directory tree contains **miscellaneous codes** and is organized in
+This directory tree contains **miscellaneous codes**.
+
+The _mcodes_ are MACRO-11 stand-alone codes. They demonstrate system or
+device capabilities or measure performance. The tree is organized in
 
 | Directory | Content |
 | --------- | ------- |
@@ -10,3 +13,4 @@ This directory tree contains **miscellaneous codes** and is organized in
 | [rk11](rk11)   | for RK11 |
 | [rlink](rlink) | for rlink |
 | [sys](sys)     | for whole system |
+| [tm11](tm11)   | for TM11 |

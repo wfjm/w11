@@ -1,4 +1,4 @@
-; $Id: dz11echo.scmd 1275 2022-08-10 08:10:40Z mueller $
+; $Id: dz11echo.scmd 1367 2023-02-06 14:11:34Z mueller $
 ;
 ; Setup file for dz11echo
 ;
@@ -10,4 +10,7 @@ set cons telnet=5670
 att dz   -m 5672
 ;
 load dz11echo.lda
+;
+echo stop with ^E and q
+;
 cont

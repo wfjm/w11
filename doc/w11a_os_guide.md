@@ -13,11 +13,11 @@ be installed separately, see instructions in the respective READMEs.
 
 The typical startup procedure starts some `vt100` emulator windows with the
 `console_starter` and executes the backend server like
-```
-  cd $RETROBASE/tools/oskit/<oskit-name>
-  console_starter -d DL0 &
-  console_starter -d DL1 &
-  ti_w11 <opt>  @<oskit-name>_boot.tcl
+```bash
+    cd $RETROBASE/tools/oskit/<oskit-name>
+    console_starter -d DL0 &
+    console_starter -d DL1 &
+    ti_w11 <opt>  @<oskit-name>_boot.tcl
 ```
 with the options `<opt>` as described in
 [Rlink and Backend Server setup](w11a_backend_setup.md).

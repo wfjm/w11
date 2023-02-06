@@ -1,9 +1,10 @@
-; $Id: pc11read.mac 1275 2022-08-10 08:10:40Z mueller $
+; $Id: pc11read.mac 1367 2023-02-06 14:11:34Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2019-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2019-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
+; 2023-02-04  1367   1.0.2  use .mcall and vecdef; fix stop handling
 ; 2022-08-09  1275   1.0.1  use call/return
 ; 2019-04-21  1134   1.0    Initial version
 ;
@@ -23,10 +24,9 @@
 ;
         .include  |lib/vec_cpucatch.mac|
         .include  |lib/vec_devcatch.mac|
-
-        . = v..ptr
-        .word   vh.ptr
-        .word   cp.pr7
+        .mcall  vecdef
+;
+        vecdef  v..ptr,vh.ptr                   ; PC11 pr vector
 ;
 ; stack area -----------------------------------------------
 ;
@@ -42,8 +42,8 @@ stack:
 ; start/stop area ---------------------------------
 ;
 start:  br      start1
-stop:   halt                            ; sucessfull stop
-        reset                           ; and allow re-start
+stop1:  halt                            ; sucessfull stop
+stop:   reset                           ; and allow re-start
 ;
 ; main program ------------------------------------
 ;
@@ -86,7 +86,7 @@ vh.ptr: tst     @#pr.csr                ; reader error
 100$:   inc     @#pr.csr                ; go for next char
         rti
 
-200$:   jmp     stop
+200$:   jmp     stop1
 
 rerr:   halt                            ; reader error halt
         br      rerr

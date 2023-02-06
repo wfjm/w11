@@ -1,9 +1,10 @@
-; $Id: pc11write.mac 1276 2022-08-12 10:25:13Z mueller $
+; $Id: pc11write.mac 1367 2023-02-06 14:11:34Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2019-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2019-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
+; 2023-02-04  1367   1.0.3  use .mcall and vecdef; fix stop handling
 ; 2022-08-10  1276   1.0.2  check line count after last char is accepted
 ; 2022-08-09  1275   1.0.1  use call/return
 ; 2019-04-21  1134   1.0    Initial version
@@ -24,10 +25,9 @@
 ;
         .include  |lib/vec_cpucatch.mac|
         .include  |lib/vec_devcatch.mac|
-
-        . = v..ptp
-        .word   vh.ptp
-        .word   cp.pr7
+        .mcall  vecdef
+;
+        vecdef  v..ptp,vh.ptp                   ; PC11 pp vector
 ;
 ; stack area -----------------------------------------------
 ;
@@ -43,8 +43,8 @@ stack:
 ; start/stop area ---------------------------------
 ;
 start:  br      start1
-stop:   halt                            ; sucessfull stop
-        reset                           ; and allow re-start
+stop1:  halt                            ; sucessfull stop
+stop:   reset                           ; and allow re-start
 ;
 ; main program ------------------------------------
 ;
@@ -82,7 +82,7 @@ vh.ptp: tst     @#pp.csr                ; punch error
         mov     #bnum,r1                ; ready for next line
 100$:   rti
 
-200$:   jmp     stop
+200$:   jmp     stop1
 
 perr:   halt                            ; puncher error halt
         br      perr

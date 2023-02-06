@@ -1,4 +1,4 @@
-; $Id: pc11write.scmd 1275 2022-08-10 08:10:40Z mueller $
+; $Id: pc11write.scmd 1367 2023-02-06 14:11:34Z mueller $
 ;
 ; Setup file for pc11write
 ;
@@ -13,3 +13,4 @@ att ptp simh_pc11write.dat
 ;
 load pc11write.lda
 cont
+quit

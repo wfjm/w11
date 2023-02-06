@@ -9,3 +9,7 @@ tmu_ofile
 
 # Simh stuff
 simh_*.dat
+
+# w11 stuff
+w11_*.dat
+tirri_*.dat

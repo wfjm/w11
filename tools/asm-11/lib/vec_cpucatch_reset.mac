@@ -1,4 +1,4 @@
-; $Id: vec_cpucatch_reset.mac 1357 2023-01-26 19:24:10Z mueller $
+; $Id: vec_cpucatch_reset.mac 1367 2023-02-06 14:11:34Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2015-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -16,4 +16,3 @@
         vecclr  v..pir          ; vec 240 (PIRQ)
         vecclr  v..fpp          ; vec 244 (FPP)
         vecclr  v..mmu          ; vec 250 (MMU)
-; 

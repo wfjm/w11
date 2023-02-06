@@ -1,0 +1,21 @@
+; $Id: tm11test.scmd 1367 2023-02-06 14:11:34Z mueller $
+;
+; Setup file for tm11write
+;
+! make tm11test.lda
+;
+do ../../simh/setup_w11a_mcode.scmd
+set tm  enabled
+set tm4 disabled
+set tm5 disabled
+set tm6 disabled
+set tm7 disabled
+;
+; attach TM11 drive 0, ensure fresh file
+! rm -f simh_tm11test.tap
+att tm0 simh_tm11test.tap
+;
+load tm11test.lda
+cont
+det tm0
+quit

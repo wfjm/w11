@@ -1,9 +1,10 @@
-; $Id: pc11copy.mac 1277 2022-08-12 15:00:20Z mueller $
+; $Id: pc11copy.mac 1367 2023-02-06 14:11:34Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2019-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2019-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
+; 2023-02-04  1367   1.2.1  use .mcall and vecdef; fix stop handling
 ; 2022-08-10  1276   1.2    kw11-p: use 100 kHz/13.; ensure last puncher irupt
 ; 2019-04-25  1138   1.1    add kw11-l/p stress
 ; 2019-04-21  1134   1.0    Initial version
@@ -26,23 +27,12 @@
 ;
         .include  |lib/vec_cpucatch.mac|
         .include  |lib/vec_devcatch.mac|
-
-        . = v..ptr              ; PC11 pr vector
-        .word   vh.ptr
-        .word   cp.pr7
-
-        . = v..ptp              ; PC11 pp vector
-        .word   vh.ptp
-        .word   cp.pr7
-
-        . = v..kwl              ; KW11-L vector
-        .word   vh.kwl
-        .word   cp.ars!cp.pr7   ; use alt-reg-set !
-
-        . = v..kwp              ; KW11-P vector
-        .word   vh.kwp
-        .word   cp.ars!cp.pr7   ; use alt-reg-set !
-
+        .mcall  vecdef
+;
+        vecdef  v..ptr,vh.ptr                   ; PC11 pr vector
+        vecdef  v..ptp,vh.ptp                   ; PC11 pp vector
+        vecdef  v..kwl,vh.kwl,cp.ars!cp.pr7     ; KW11-L vector, alt-reg-set !
+        vecdef  v..kwp,vh.kwp,cp.ars!cp.pr7     ; KW11-P vector, alt-reg-set !
 ;
 ; stack area -----------------------------------------------
 ;
@@ -62,8 +52,8 @@ stack:
 ; start/stop area ---------------------------------
 ;
 start:  br      start1
-stop:   halt                            ; sucessfull stop
-        reset                           ; and allow re-start
+stop1:  halt                            ; sucessfull stop
+stop:   reset                           ; and allow re-start
 ;
 ; main program ------------------------------------
 ;
@@ -129,7 +119,7 @@ vh.ptr: tst     @#pr.csr                ; at eof ?
         beq     320$                    ; if not stop
         wait                            ; if yes  wait
         br      310$
-320$:   jmp     stop
+320$:   jmp     stop1
 
 rerr:   halt                            ; reader error halt
         br      rerr
@@ -161,7 +151,7 @@ vh.ptp: tst     @#pp.csr                ; punch error
         bic     #pp.ie,@#pp.csr         ; otherwise stop punch
 110$:   rti
 
-200$:   jmp     stop
+200$:   jmp     stop1
         
 perr:   halt                            ; puncher error halt
         br      perr

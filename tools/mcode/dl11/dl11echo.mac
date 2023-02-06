@@ -1,15 +1,16 @@
-; $Id: dl11echo.mac 1275 2022-08-10 08:10:40Z mueller $
+; $Id: dl11echo.mac 1367 2023-02-06 14:11:34Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2019-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2019-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
+; 2023-02-04  1367   1.0.2  use .mcall and vecdef
 ; 2022-08-09  1275   1.0.1  use call/return
 ; 2019-04-21  1134   1.0    Initial version
 ;
 ; DL11 echo
-;   default is direct echo, only modification is to add a LF after CR
-;   other mode can be selected by two ESC plus a character:
+;   Default is direct echo, only modification is to add a LF after CR.
+;   Other modes can be selected by two ESC plus a character:
 ;     ESC + ESC + u -> uppercase
 ;     ESC + ESC + l -> lowercase
 ;     ESC + ESC + o -> octal echo (16 per line)
@@ -32,18 +33,11 @@
 ;
         .include  |lib/vec_cpucatch.mac|
         .include  |lib/vec_devcatch.mac|
-
-        . = v..tti              ; DL11 rx vector
-        .word   vh.tti
-        .word   cp.ars!cp.pr7   ; use alt-reg-set !
-        
-        . = v..tto              ; DL11 tx vector
-        .word   vh.tto
-        .word   cp.ars!cp.pr7   ; use alt-reg-set !
-        
-        . = v..kwl              ; KW11-L vector
-        .word   vh.kwl
-        .word   cp.ars!cp.pr7   ; use alt-reg-set !
+        .mcall  vecdef
+;
+        vecdef  v..tti,vh.tti,cp.ars!cp.pr7     ; DL11 rx vector, alt-reg-set !
+        vecdef  v..tto,vh.tto,cp.ars!cp.pr7     ; DL11 tx vector, alt-reg-set !
+        vecdef  v..kwl,vh.kwl,cp.ars!cp.pr7     ; KW11-L vector,  alt-reg-set !
 ;
 ; stack area -----------------------------------------------
 ;

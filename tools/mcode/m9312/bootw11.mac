@@ -1,6 +1,6 @@
-; $Id: bootw11.mac 1275 2022-08-10 08:10:40Z mueller $
+; $Id: bootw11.mac 1367 2023-02-06 14:11:34Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2019-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2019-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
@@ -161,7 +161,10 @@ bootgo: clr       r2            ; why ?
         clr       pc
 ;
 ; RK11 boot loader +++++++++++++++++++++++++++++++++++++++++
-;   RK boot loader code adapted from simh project
+;   RK boot loader code adapted from SimH project
+;      in   r0  unit number
+;     out   r0  unit number
+;     out   r1  csr address
 ;
         .include  |lib/defs_rk.mac|
 ;
@@ -184,7 +187,10 @@ bootrk: mov     r0,r3
         jmp     bootgo
 ;
 ; RL11 boot loader +++++++++++++++++++++++++++++++++++++++++
-;   RL boot loader code adapted from simh project
+;   RL boot loader code adapted from SimH project
+;      in   r0  unit number
+;     out   r0  unit number
+;     out   r1  csr address
 ;
         .include  |lib/defs_rl.mac|
 ;
@@ -229,7 +235,10 @@ bootrl: mov     r0,r3
         jmp     bootgo
 ;
 ; RH70 boot loader +++++++++++++++++++++++++++++++++++++++++
-;   RH70 boot loader code adapted from simh project
+;   RH70 boot loader code adapted from SimH project
+;      in   r0  unit number
+;     out   r0  unit number
+;     out   r1  csr address
 ;
         .include  |lib/defs_rp.mac|
 ;
@@ -259,7 +268,10 @@ bootrp: mov     #rp.cs1,r1              ;
         . = hirom
 ;
 ; TM11 boot loader +++++++++++++++++++++++++++++++++++++++++
-;   TM boot loader code adapted from simh project
+;   TM boot loader code adapted from SimH project
+;      in   r0  unit number
+;     out   r0  unit number
+;     out   r1  csr address
 ;
         .include  |lib/defs_tm.mac|
 boottm: mov     #tm.cr,r1               ; load csr
@@ -288,6 +300,8 @@ boottm: mov     #tm.cr,r1               ; load csr
 ;
 ; PC11 boot loader +++++++++++++++++++++++++++++++++++++++++
 ;   PC boot loader code adapted pc11boot.mac
+;     loads lda file from PR0 and starts loaded code at transfer address or
+;     or at 0200 in case none is given
 ;
         .include  |lib/defs_pc.mac|
 ; 

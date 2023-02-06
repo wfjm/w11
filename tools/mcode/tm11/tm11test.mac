@@ -1,0 +1,469 @@
+; $Id: tm11test.mac 1367 2023-02-06 14:11:34Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2019-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; Revision History:
+; Date         Rev Version  Comment
+; 2023-02-04  1367   1.0.2  use .mcall and vecdef; fix stop handling
+; 2022-08-09  1275   1.0.1  use call/return
+; 2019-07-09  1183   1.0    Initial version
+; 2019-06-30  1180   0.1    First draft
+;
+; write/read test for one TM11 drive (unit 0)
+;
+; definitions ----------------------------------------------
+;
+        .include  |lib/defs_cpu.mac|
+        .include  |lib/defs_kwl.mac|
+        .include  |lib/defs_tm.mac|
+        .include  |lib/defs_bits.mac|
+;
+        bufblk  = 4.            ; wbuf/rbuf size in blocks of 256 bytes
+        bufsiz  = 256.*bufblk   ; wbuf/rbuf size in bytes
+        tout    = 100.          ; default timeout (in 50Hz ticks)
+;
+        c.rew   =  0            ; rewind
+        c.wdat  =  1            ; write data
+        c.weof  =  2            ; write eof
+        c.rdat  =  3            ; read  data
+        c.reof  =  4            ; read  eof
+        c.sfr   =  5            ; space forw record
+        c.sbr   =  6            ; space back record
+        c.sff   =  7            ; space forw file
+        c.sbf   = 10            ; space back file
+;
+; vector area ----------------------------------------------
+;
+        .include  |lib/vec_cpucatch.mac|
+        .include  |lib/vec_devcatch.mac|
+        .mcall  vecdef
+;
+        vecdef  v..tm,vh.tm,cp.ars!cp.pr7       ; TM11 vector,   alt-reg-set !
+        vecdef  v..kwl,vh.kwl,cp.ars!cp.pr7     ; KW11-L vector, alt-reg-set !
+;
+; stack area -----------------------------------------------
+;
+        . = 1000                        ; stack (below); code (above)
+stack:  
+;
+; code area ------------------------------------------------
+; start/stop area ---------------------------------
+;
+start:  br      start1
+stop1:  halt                            ; sucessfull stop
+stop:   br      stop                    ; no restart (yet)
+;
+; main program ------------------------------------
+;
+start1: mov     #stack,sp               ; setup stack
+        call    inibuf                  ; setup wbuf
+;
+        spl     7
+        call    doinit                  ; check for unit ready
+        mov     #kl.ie,@#kl.csr         ; activate clock
+        spl     0                       ; allow interrupts
+;
+100$:   call    getdsp                  ; setup display pattern
+        wait                            ; and wait
+        br      100$
+;
+; getdsp: determine display pattern --------------
+;    sssccccccrrrrrrr
+;    -> sec:  15:13
+;    -> cmd:  12:07
+;    -> cnt:  06:00
+;
+getdsp: spl     7
+        mov     pcsec,r0                ; get ptr into section table
+        sub     #sectbl,r0              ; get word index
+        bne     100$                    ; if ne not in init
+        mov     scnt,r0                 ; else show scnt
+        bic     #160000,r0              ; and keep sect=0
+        br      200$
+;
+100$:   ash     #12.,r0                 ; set sect number field
+        mov     pcstp,r1
+        sub     @pcsec,r1               ; get step number *4
+        ash     #5.,r1
+        bic     #160177,r1              ; mask step part
+        bis     r1,r0                   ; and or in step number field
+        mov     scnt,r1
+        bic     #^c177,r1               ; mask cnt part
+        bis     r1,r0                   ; and or in count field
+;
+200$:   spl     0
+        mov     r0,dsppat
+        return
+;
+; tm11 interrupt handler -------------------------
+;
+vh.tm:  mov     ccind,r0
+        mov     @#tm.sr,r1              ; get status
+        mov     r1,r2
+        bic     #<tm.eof!tm.bot>,r1     ; ignore eof,bot flags
+        cmp     #<tm.onl!tm.tur>,r1     ; check no errors and online
+        bne     991$
+        bic     r1,r2                   ; get eof,bot flags only
+        cmp     ccsta,r2                ; and check them
+        bne     992$
+;
+100$:   call    @cmdver(r0)             ; and verify last command
+        inc     scnt                    ; bump repeat count
+        call    docmd                   ; and issue next command
+        rti
+991$:   halt
+992$:   halt
+;
+; kw11-l interrupt handler ------------------------
+;
+vh.kwl: cmp     #sectbl,pcsec           ; in init ?
+        bne     100$
+        call    doinit                  ; if yes, check unit
+100$:   tst     timer                   ; timer active
+        beq     900$                    ; if eq not
+        dec     timer                   ; run down timer
+        bne     900$                    ; if ne ok
+        halt                            ; else expired
+900$:   rti
+;
+; doinit: check for tm11 unit ready --------------
+;
+doinit: inc     scnt                    ; count up for display
+        mov     #tm.d98,@#tm.cr         ; set den=d98,unit=0,ie=0
+        mov     @#tm.sr,r0
+        bit     #tm.onl,r0              ; unit online ?
+        beq     900$                    ; if not continue
+        cmp     #<tm.onl!tm.bot!tm.tur>,r0 ; bot=1 and wrl=0 ?
+        beq     100$
+        halt                            ; if not halt
+100$:   call    dosect                  ; and start section
+900$:   return
+;
+; dosect: next setup test section ----------------
+;
+dosect: add     #2,pcsec                ; next section
+        mov     @pcsec,r0               ; get step list start
+        bne     100$                    ; if eq end of sectbl seen
+        jmp     stop1                   ; and stop
+;
+100$:   mov     r0,pcstp                ; setup step ptr
+        br      dostep                  ; continue with step setup
+;
+; dostep: setup step -----------------------------
+;
+dostep: mov     @pcstp,r0               ; load step cmd and cnt
+        bne     100$                    ; if eq end seen
+        br      dosect                  ; do dosect instead
+;
+100$:   clr     scnt                    ; clear repeat count
+        br      docmd                   ; continue init cmd
+;
+; docmd: setup command ---------------------------
+;
+docmd:  mov     pcstp,r0                ; load step ptr
+        mov     (r0)+,r1                ; load cmd and cnt
+        mov     (r0)+,ccpar             ; keep current command parameter
+        mov     (r0)+,ccsta             ; keep current command status
+        mov     r1,r2
+        bic     #^c<bit12-1>,r2         ; get cnt
+        cmp     scnt,r2                 ; all repeats done ?
+        blt     100$                    ; if lt no, issue one more
+        mov     r0,pcstp                ; else point to next step
+        br      dostep                  ; and setup next step
+;
+100$:   ash     #-11.,r1
+        bic     #^c<2*17>,r1            ; get cmd word index
+        mov     r1,ccind
+        mov     ccpar,r2
+        neg     r2
+        mov     r2,@#tm.bc              ; common tm.bc init (cmd parameter)
+        mov     #160000,@#tm.ba         ; common tm.ba init (inval addr)
+        call    @cmdact(r1)             ; and issue command
+        bis     #<tm.d98!tm.ie!tm.go>,r0  ; finish command
+        mov     r0,@#tm.cr              ; and execute tm11 command
+        mov     #tout,timer             ; and setup timout
+        return
+;
+; command action handlers ------------------------
+; -- c.rew   =  0  rewind -------------------
+carew:  mov     #tm.frw,r0              ; Rewind cmd
+        return
+;
+; -- c.wdat  =  1  write data ---------------
+cawdat: call    setbuf                  ; setup wbuf for write
+        mov     #wbuf,@#tm.ba
+        mov     #tm.fwr,r0              ; Write cmd
+        return
+;
+; -- c.weof  =  2  write eof ----------------
+caweof: mov     #tm.fwe,r0              ; Write EOF cmd
+        return
+;
+; -- c.rdat  =  3  read  data ---------------
+; -- c.reof  =  4  read  eof ----------------
+cardat: call    setbuf                  ; setup wbuf for compare
+        call    clrbuf                  ; setup rbuf
+;
+careof: mov     #bufsiz,r0
+        neg     r0
+        mov     r0,@#tm.bc
+        mov     #rbuf,@#tm.ba
+        mov     #tm.frd,r0              ; Read cmd
+        return
+;
+; -- c.sfr   =  5  space forw record --------
+casfr:  mov     #tm.fsf,r0              ; Space forward cmd
+        return
+;
+; -- c.sbr   =  6  space back record --------
+casbr:  mov     #tm.fsr,r0              ; Space reverse cmd
+        return
+;
+; -- c.sff   =  7  space forw file ----------
+casff:  clr     @#tm.bc
+        mov     #tm.fsf,r0              ; Space forward cmd
+        return
+;
+; -- c.sbf   = 10  space back file ----------
+casbf:  clr     @#tm.bc
+        mov     #tm.fsr,r0              ; Space reverse cmd
+        return
+;
+; command verification handlers ------------------
+; called with ccind in r0
+; -- c.rew   =  0  rewind -------------------
+cvrew:                                  ; FIXME: bot state check !
+        clr     filno                   ; again at file 0
+        clr     recno                   ; again at record 0
+        return
+;
+; -- c.wdat  =  1  write data ---------------
+cvwdat: tst     @#tm.bc                 ; all bytes written ?
+        bne     991$                    ; if ne not
+        inc     recno                   ; next record
+        return
+991$:   halt
+;
+; -- c.weof  =  2  write eof ----------------
+cvweof: inc     filno                   ; next file
+        clr     recno
+        return
+;
+; -- c.rdat  =  3  read  data ---------------
+cvrdat: mov     #bufsiz,r1
+        neg     r1                      ; initial tm.bc value
+        add     ccpar,r1                ; tm.bc after expected record read
+        cmp     r1,@#tm.bc              ; does it match ?
+        bne     991$                    ; if ne no
+        call    chkbuf                  ; verify rbuf against wbuf
+        inc     recno                   ; next record
+        return
+991$:   halt
+;
+; -- c.reof  =  4  read  eof ----------------
+cvreof: bit     #tm.err,@#tm.cr         ; err should be set (because of eof)
+        beq     991$                    ; if eq tm.err not seen
+        inc     filno                   ; next file
+        clr     recno
+        return
+991$:   halt
+;
+; -- c.sfr   =  5  space forw record --------
+cvsfr:
+        add     ccpar,recno             ; update record number
+        return
+;
+; -- c.sbr   =  6  space back record --------
+cvsbr:
+        sub     ccpar,recno             ; update record number
+        return
+;
+; -- c.sff   =  7  space forw file ----------
+cvsff:
+        inc     filno                   ; next file
+        clr     recno
+        return
+;
+; -- c.sbf   = 10  space back file ----------
+cvsbf:  
+        dec     filno                   ; previous file
+        clr     recno                   ; !! weof-weof-sbf sequence
+        return
+;
+; inibuf: initialize write buffer ----------------
+;
+inibuf: mov     #wbuf,r0                ; ptr to buffer
+        mov     #bufblk,r1              ; get number of 256 byte blocks
+        clr     r2
+100$:   movb    r2,(r0)+                ; write chunk number
+        inc     r2
+        mov     #255.,r3
+        clr     r4
+200$:   inc     r4
+        movb    r4,(r0)+                ; write byte in chunk number
+        sob     r3,200$
+        sob     r1,100$
+        return
+;
+; setbuf: setup write buffer ---------------------
+;
+setbuf: mov     #wbuf,r0                ; ptr to buffer
+        mov     filno,(r0)+             ; write file number
+        mov     recno,(r0)+             ; write record number
+        mov     ccpar,(r0)+             ; write record length
+        return
+;
+; clrbuf: setup read buffer ----------------------
+;
+clrbuf: mov     #rbuf,r0
+        add     ccpar,r0                ; ptr beyond expected data end
+        sub     #2.,r0                  ; ptr 2 byte before data end
+        clrb    (r0)+                   ; clear 2 byte for data check
+        clrb    (r0)+
+        clrb    (r0)+                   ; clear 2 more bytes for length check
+        clrb    (r0)+
+        return
+;
+; chkbuf: compare read with write buffer ---------
+;
+chkbuf: mov     #rbuf,r0
+        mov     #wbuf,r1
+        mov     ccpar,r2
+        mov     r2,r3
+        asr     r2                      ; word count
+100$:   cmp     (r0)+,(r1)+             ; check buf word wise
+        bne     991$
+        sob     r2,100$
+        ror     r3                      ; shift lsb of ccpar into c
+        bcc     200$                    ; if cc even record length
+        cmpb    (r0)+,(r1)+             ; else check last byte
+        bne     992$
+200$:   tstb    (r0)+                   ; check for not overwrite
+        bne     993$
+        return
+;
+991$:   halt
+992$:   halt
+993$:   halt
+;
+; data area ------------------------------------------------
+;
+dsppat: .word   0
+timer:  .word   0               ; timer
+pcsec:  .word   sectbl          ; ptr to current section
+pcstp:  .word   0               ; ptr to current step
+filno:  .word   0               ; file number
+recno:  .word   0               ; record number
+scnt:   .word   0               ; step repeat count
+ccind:  .word   0               ; current command index
+ccpar:  .word   0               ; current command parameter
+ccsta:  .word   0               ; current command status
+;
+cmdact: .word   carew           ; c.rew   =  0
+        .word   cawdat          ; c.wdat  =  1
+        .word   caweof          ; c.weof  =  2
+        .word   cardat          ; c.rdat  =  3
+        .word   careof          ; c.reof  =  4
+        .word   casfr           ; c.sfr   =  5
+        .word   casbr           ; c.sbr   =  6
+        .word   casff           ; c.sff   =  7
+        .word   casbf           ; c.sbf   = 10
+;
+cmdver: .word   cvrew           ; c.rew   =  0
+        .word   cvwdat          ; c.wdat  =  1
+        .word   cvweof          ; c.weof  =  2
+        .word   cvrdat          ; c.rdat  =  3
+        .word   cvreof          ; c.reof  =  4
+        .word   cvsfr           ; c.sfr   =  5
+        .word   cvsbr           ; c.sbr   =  6
+        .word   cvsff           ; c.sff   =  7
+        .word   cvsbf           ; c.sbf   = 10
+;
+sectbl: .word   0               ; init state
+        .word   sl.wr1          ; 1st write
+        .word   sl.rd1          ; 1st read
+        .word   sl.wr2          ; 2nd write
+        .word   sl.rd2          ; 2nd read
+        .word   sl.rd2          ; 2nd re-read
+        .word   0               ;
+        
+        .macro  tcmd  cmd,rcnt,par,sta
+        .word   <bit12*cmd>+rcnt,par,sta
+        .endm   tcmd
+;
+        .macro  tweof
+        tcmd    c.weof,2,0,0
+        tcmd    c.sbf,1,1,tm.eof
+        .endm   tweof
+;
+        .macro  treof
+        tcmd    c.reof,1,0,tm.eof
+        .endm   treof
+;
+sl.wr1: tcmd    c.wdat,2,80.,0
+        tcmd    c.wdat,2,160.,0
+        tweof
+        tcmd    c.wdat,3,92.,0
+        tcmd    c.wdat,2,100.,0
+        tcmd    c.wdat,2,96.,0
+        tcmd    c.wdat,1,97.,0
+        tcmd    c.wdat,1,98.,0
+        tcmd    c.wdat,1,99.,0
+        tcmd    c.wdat,1,100.,0
+        tweof
+        .word   0
+;
+; after wr1: BOT-2*80-2*160-EOF-3*92-2*100-2*96-97-98-99-100-EOF-EOF
+;
+sl.rd1: tcmd    c.rew,1,0,tm.bot
+        tcmd    c.rdat,2,80.,0
+        tcmd    c.rdat,2,160.,0
+        treof
+        tcmd    c.rdat,3,92.,0
+        tcmd    c.rdat,2,100.,0
+        tcmd    c.rdat,2,96.,0
+        tcmd    c.rdat,1,97.,0
+        tcmd    c.rdat,1,98.,0
+        tcmd    c.rdat,1,99.,0
+        tcmd    c.rdat,1,100.,0
+        treof
+        treof
+        .word   0
+;
+sl.wr2: tcmd    c.rew,1,0,tm.bot
+        tcmd    c.sff,1,0,tm.eof        ; skip 1 file
+        tcmd    c.sfr,1,4,0             ; skip 4 records
+        tcmd    c.wdat,2,110.,0
+        tcmd    c.wdat,2,120.,0
+        tweof
+        tcmd    c.wdat,2,130.,0
+        tcmd    c.wdat,2,140.,0
+        tweof
+        .word   0
+;
+; after wr2: BOT-2*80-2*160-EOF-3*92-100-2*110-2*120-EOF-2*130-2*140-EOF-EOF
+;
+sl.rd2: tcmd    c.rew,1,0,tm.bot
+        tcmd    c.rdat,2,80.,0
+        tcmd    c.rdat,2,160.,0
+        tcmd    c.sbr,1,3,0             ; go back to record 1
+        tcmd    c.rdat,1,80.,0          ; re-read record 1
+        tcmd    c.rdat,1,160.,0         ; re-read record 2
+        tcmd    c.sfr,1,1,0             ; skip record 3
+        treof
+        tcmd    c.rdat,3,92.,0
+        tcmd    c.rdat,1,100.,0
+        tcmd    c.rdat,2,110.,0
+        tcmd    c.rdat,2,120.,0
+        treof
+        tcmd    c.rdat,2,130.,0
+        tcmd    c.rdat,2,140.,0
+        treof
+        treof        
+        .word   0
+;
+wbuf:   .blkb   bufsiz                  ; write buffer
+rbuf:   .blkb   bufsiz                  ; read buffer
+        .word   0                       ; fence word
+;
+        .end    start

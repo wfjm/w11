@@ -1,6 +1,6 @@
-; $Id: memclr.mac 1280 2022-08-15 09:12:03Z mueller $
+; $Id: memclr.mac 1367 2023-02-06 14:11:34Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2009-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2009-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
@@ -34,7 +34,7 @@ beg:	clr     (r3)+
 ;
 ; main clear routine, will be erased by code at 0 and 2 at the end...
 ;
-        .=200
+        . = 400
 start:	mov     #start,sp
         reset
         mov     #end,r0			; r0=end-of-code address

@@ -1,0 +1,8 @@
+# configure tb_cmoda7 with cmoda7_dummy test target;
+# use vhdl configure file (tb_cmoda7_dummy.vhd) to allow
+# that all configurations will co-exist in work library
+# configure
+cmoda7_aif = cmoda7_dummy.vbom
+# design
+tb_cmoda7.vbom
+tb_cmoda7_dummy.vhd

@@ -1,0 +1,8 @@
+# configure tb_nexys3_fusp_cuff with nexys3_fusp_cuff_dummy test target;
+# use vhdl configure file (tb_nexys3_fusp_cuff_dummy.vhd) to allow
+# that all configurations will co-exist in work library
+# configure
+nexys3_fusp_cuff_aif = nexys3_fusp_cuff_dummy.vbom
+# design
+tb_nexys3_fusp_cuff.vbom
+tb_nexys3_fusp_cuff_dummy.vhd

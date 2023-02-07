@@ -1,0 +1,8 @@
+# configure tb_artys7 with artys7_dummy test target;
+# use vhdl configure file (tb_artys7_dummy.vhd) to allow
+# that all configurations will co-exist in work library
+# configure
+artys7_aif = artys7_dummy.vbom
+# design
+tb_artys7.vbom
+tb_artys7_dummy.vhd

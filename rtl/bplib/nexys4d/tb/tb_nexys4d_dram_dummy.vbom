@@ -1,0 +1,8 @@
+# configure tb_nexys4d_dram with nexys4d_dram_dummy test target;
+# use vhdl configure file (tb_nexys4d_dram_dummy.vhd) to allow
+# that all configurations will co-exist in work library
+# configure
+nexys4d_dram_aif = nexys4d_dram_dummy.vbom
+# design
+tb_nexys4d_dram.vbom
+tb_nexys4d_dram_dummy.vhd

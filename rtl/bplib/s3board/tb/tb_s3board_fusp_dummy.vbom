@@ -1,0 +1,8 @@
+# configure tb_s3board_fusp with s3board_fusp_dummy test target;
+# use vhdl configure file (tb_s3board_fusp_dummy.vhd) to allow
+# that all configurations will co-exist in work library
+# configure
+s3board_fusp_aif = s3board_fusp_dummy.vbom
+# design
+tb_s3board_fusp.vbom
+tb_s3board_fusp_dummy.vhd

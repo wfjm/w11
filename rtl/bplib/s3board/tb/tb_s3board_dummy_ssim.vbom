@@ -1,0 +1,8 @@
+# configure for _*sim case
+# Note: s3board_dummy_ssim.vhd, not ../s3board_dummy_ssim.vhd
+#       there is a make rule %_ssim.vhd : ../%.vbom !!
+# configure
+s3board_aif = s3board_dummy_ssim.vhd
+# design
+tb_s3board_dummy.vbom
+@top:tb_s3board_dummy

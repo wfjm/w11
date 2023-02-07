@@ -1,0 +1,8 @@
+# configure tb_nexys2 with nexys2_dummy test target;
+# use vhdl configure file (tb_nexys2_dummy.vhd) to allow
+# that all configurations will co-exist in work library
+# configure
+nexys2_aif = nexys2_dummy.vbom
+# design
+tb_nexys2.vbom
+tb_nexys2_dummy.vhd

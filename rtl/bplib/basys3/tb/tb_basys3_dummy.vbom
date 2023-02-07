@@ -1,0 +1,8 @@
+# configure tb_basys3 with basys3_dummy test target;
+# use vhdl configure file (tb_basys3_dummy.vhd) to allow
+# that all configurations will co-exist in work library
+# configure
+basys3_aif = basys3_dummy.vbom
+# design
+tb_basys3.vbom
+tb_basys3_dummy.vhd

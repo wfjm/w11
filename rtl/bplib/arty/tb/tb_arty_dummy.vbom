@@ -1,0 +1,8 @@
+# configure tb_arty with arty_dummy test target;
+# use vhdl configure file (tb_arty_dummy.vhd) to allow
+# that all configurations will co-exist in work library
+# configure
+arty_aif = arty_dummy.vbom
+# design
+tb_arty.vbom
+tb_arty_dummy.vhd

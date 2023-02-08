@@ -30,7 +30,10 @@ The full set of tests is only run for tagged releases.
 ### Summary
 - Doxygen support now for V1.9.6
 ### New features
-- tools/mcode: added folders rk11 and rlink
+- new systems
+  - rtl/sys_gen/tst_serloop/basys3     - serport loop tester for Basys3
+- new tools
+  - tools/mcode: added folders rk11 and rlink
 ### Changes
 - tools changes
   - tools/bin
@@ -75,8 +78,9 @@ The full set of tests is only run for tagged releases.
 - xxdp run scripts added for w11a and SimH
 - Doxygen support now for V1.9.5
 ### New features
-- gwstart: gtkwave starter
-- tools/xxdp: add directory with xxdp setup and patch scripts
+- new tools
+  - gwstart: gtkwave starter
+  - tools/xxdp: add directory with xxdp setup and patch scripts
 ### Changes
 - tools changes
   - tools/asm-11/lib/push_pop.mac: add push2

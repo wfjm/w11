@@ -1,10 +1,10 @@
--- $Id: sys_tst_serloop1_n4d.vhd 1247 2022-07-06 07:04:33Z mueller $
+-- $Id: sys_tst_serloop1_n4d.vhd 1369 2023-02-08 18:59:50Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2017-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    sys_tst_serloop1_n4d - syn
--- Description:    Tester serial link for nexys4d (serport_1clock case)
+-- Description:    Serial link tester design for nexys4d (serport_1clock case)
 --
 -- Dependencies:   vlib/xlib/s7_cmt_sfs
 --                 vlib/genlib/clkdivce

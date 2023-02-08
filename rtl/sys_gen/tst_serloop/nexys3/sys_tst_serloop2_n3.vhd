@@ -1,10 +1,10 @@
--- $Id: sys_tst_serloop2_n3.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: sys_tst_serloop2_n3.vhd 1369 2023-02-08 18:59:50Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2011- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    sys_tst_serloop2_n3 - syn
--- Description:    Tester serial link for nexys3
+-- Description:    Serial link tester design for nexys3 (serport_2clock case)
 --
 -- Dependencies:   vlib/xlib/dcm_sfs
 --                 genlib/clkdivce

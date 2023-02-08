@@ -1,0 +1,16 @@
+# $Id: tbrun.yml 1369 2023-02-08 18:59:50Z mueller $
+#
+# Revision History:
+# Date         Rev Version  Comment
+# 2023-02-07  1369   1.0    Initial version
+#
+- default:
+    mode: ${viv_modes}
+#
+- tag:  [default, viv, sys_tst_serloop1, b3]
+  test: |
+    tbrun_tbw tb_tst_serloop1_b3${ms}
+
+- tag:  [default, viv, sys_tst_serloop2, b3]
+  test: |
+    tbrun_tbw tb_tst_serloop2_b3${ms}

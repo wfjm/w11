@@ -1,0 +1,6 @@
+# $Id: tbw.dat 1369 2023-02-08 18:59:50Z mueller $
+#
+[tb_tst_serloop1_b3]
+tb_tst_serloop_stim = ../../tb/tb_tst_serloop_p0_xon_stim.dat
+[tb_tst_serloop2_b3]
+tb_tst_serloop_stim = ../../tb/tb_tst_serloop_p0_xon_stim.dat

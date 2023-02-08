@@ -1,0 +1,17 @@
+# libs
+../../../vlib/slvtypes.vhd
+../../../bplib/bpgen/bpgenlib.vbom
+../tst_serlooplib.vbom
+../../../vlib/serport/serportlib.vbom
+${sys_conf := sys_conf2.vhd}
+# components
+../../../bplib/bpgen/s7_cmt_1ce1ce.vbom
+../../../bplib/bpgen/bp_rs232_2line_iob.vbom
+../../../bplib/bpgen/sn_humanio.vbom
+../tst_serloop_hiomap.vbom
+../../../vlib/serport/serport_2clock2.vbom
+../tst_serloop.vbom
+# design
+sys_tst_serloop2_b3.vhd
+@xdc:../../../bplib/basys3/basys3_pclk.xdc
+@xdc:../../../bplib/basys3/basys3_pins.xdc

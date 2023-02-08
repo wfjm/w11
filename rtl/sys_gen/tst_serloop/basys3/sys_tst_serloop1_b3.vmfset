@@ -1,0 +1,62 @@
+# $Id: sys_tst_serloop1_b3.vmfset 1369 2023-02-08 18:59:50Z mueller $
+#
+# Validated code/tool version combinations
+#   Date          rev   viv   
+#   2023-02-08   1369   2022.1
+#
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+[syn]
+
+# general issues -----------------------------------------------
+{2018.2:}
+# stupid new warning, Xilinx suggests to safely ingnore
+I [Constraints 18-5210]                                         # generic
+{2022.1:}
+# new warning on 'Parallel synthesis criteria is not met', safe tp ignore
+I [Synth 8-7080]
+{:}
+
+# +++# port driven by constant --------------------------------------
+# --> upper 8 LEDs unused                                       # OK 2023-02-08
+i [Synth 8-3917] O_LED[(8|9)]
+i [Synth 8-3917] O_LED[1\d]
+
+# tying undriven pin to constant -------------------------------
+# upper 8 LEDs unused                                           # OK 2023-02-08
+i [Synth 8-3295] HIO:LED[\d*]
+
+# unconnected ports --------------------------------------------
+{:2019.2}
+# --> unused SWI and BTN                                        # OK 2023-02-08
+i [Synth 8-3331] tst_serloop_hiomap.*SWI[\d]
+i [Synth 8-3331] tst_serloop_hiomap.*BTN[\d]
+# --> clkdiv isn't displayed                                    # OK 2023-02-08
+i [Synth 8-3331] SER_MONI[abclkdiv.*][\d*]
+# --> other unused fields which aren't visualized               # OK 2023-02-08
+i [Synth 8-3331] SER_MONI[(rxact|txact|abdone|rxerr|rxovr)]
+i [Synth 8-3331] HIO_CNTL[enaftdi]
+{2022.1:}
+# --> unused SWI and BTN                                        # OK 2023-02-08
+i [Synth 8-7129] SWI[\d] .* tst_serloop_hiomap
+i [Synth 8-7129] BTN[\d] .* tst_serloop_hiomap
+# --> clkdiv isn't displayed                                    # OK 2023-02-08
+i [Synth 8-7129] SER_MONI[abclkdiv.*][\d*]
+# --> other unused fields which aren't visualized               # OK 2023-02-08
+i [Synth 8-7129] SER_MONI[(rxact|txact|abdone|rxerr|rxovr)]
+i [Synth 8-7129] HIO_CNTL[enaftdi]
+{:}
+
+# sequential element removed (2017.1 nonsense) -----------------
+I [Synth 8-6014] _reg                                           # generic
+
+# unused sequential element ------------------------------------
+{2017.2:2018.2}
+# --> many HIO pins not used                                    # OK 2023-02-08
+i [Synth 8-3332] HIO/IOB_(SWI|BTN)/R_DI_reg[\d*]
+i [Synth 8-3332] HIO/DEB.DEB_(SWI|BTN)/R_REGS_reg[(dref|dout|dchange)][\d*]
+{:}
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+[imp]
+I [Vivado 12-2489]                                # multiple of 1 ps
+I [Physopt 32-742]                                # BRAM Flop Optimization

@@ -1,7 +1,7 @@
 #!/bin/bash
-# $Id: gwstart 1336 2022-12-23 19:31:01Z mueller $
+# $Id: gwstart 1369 2023-02-08 18:59:50Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2016-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2016-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
@@ -24,7 +24,7 @@ done
 if (( $# == 0 )) ; then
   echo "Usage: gwstart [opts] ghw-file tcl-commands ..."
   echo "  Options:"
-  echo "  -w       enable Tcl command line on stdio"
+  echo "  -nw      disable Tcl command line input on stdio"
   exit 1
 fi
 

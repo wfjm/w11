@@ -2,6 +2,7 @@
 
 ### Table of contents
 - Current [HEAD](#user-content-head)
+- Release [w11a_V0.794](#user-content-w11a_v0.794)
 - Release [w11a_V0.793](#user-content-w11a_v0.793)
 - Release [w11a_V0.792](#user-content-w11a_v0.792)
 - Release [w11a_V0.791](#user-content-w11a_v0.791)
@@ -28,7 +29,21 @@ software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
 ### Summary
+### New features
+### Changes
+### Bug Fixes
+
+<!-- --------------------------------------------------------------------- -->
+---
+## <a id="w11a_v0.794">2023-02-09: [w11a_V0.794](https://github.com/wfjm/w11/releases/tag/w11a_V0.794) - rev 1370(wfjm)</a>
+
+### Summary
+- asm-11 finalized, .if,.rept,.mcall added; many updates and fixes
+- macro library added (tools/asm-11/mlib) and used via .mcall throughout
+- documentation for tools/mcode added
+- other documentation updates
 - Doxygen support now for V1.9.6
+- tst_serloop designs added for Basys3
 ### New features
 - new systems
   - rtl/sys_gen/tst_serloop/basys3     - serport loop tester for Basys3

@@ -1,6 +1,6 @@
-# $Id: Makefile 1339 2022-12-27 12:11:34Z mueller $
+# $Id: Makefile 1371 2023-02-10 11:14:03Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2011-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2011-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # 'Meta Makefile' for whole retro project
 #   allows to make all synthesis targets
@@ -8,7 +8,8 @@
 #
 #  Revision History: 
 # Date         Rev Version  Comment
-# 2022-12-27  1388   1.2.14 drop ISE targets except for w11a
+# 2023-02-10  1371   1.2.15 add tst_serloop for basys3
+# 2022-12-27  1339   1.2.14 drop ISE targets except for w11a
 # 2022-06-03  1244   1.2.13 use 3G memory for njobihtm in vivado targets
 # 2019-08-07  1201   1.2.12 drop nexys4, add nexys4d
 # 2019-01-10  1111   1.2.11 drop w11a/arty_bram
@@ -69,7 +70,7 @@ SYN_ise += rtl/sys_gen/w11a/nexys3
 #   Vivado based targets, by board type --------------------
 #     Basys3 -------------------------------------
 SYN_viv += rtl/sys_gen/tst_snhumanio/basys3
-#SYN_viv += rtl/sys_gen/tst_serloop/basys3
+SYN_viv += rtl/sys_gen/tst_serloop/basys3
 SYN_viv += rtl/sys_gen/tst_rlink/basys3
 SYN_viv += rtl/sys_gen/w11a/basys3
 
@@ -131,7 +132,7 @@ SIM_viv += rtl/w11a/tb
 
 #     Basys3 -------------------------------------
 SIM_viv += rtl/sys_gen/tst_rlink/basys3/tb
-#SIM_viv += rtl/sys_gen/tst_serloop/basys3/tb
+SIM_viv += rtl/sys_gen/tst_serloop/basys3/tb
 SIM_viv += rtl/sys_gen/w11a/basys3/tb
 
 #     Nexys4d ------------------------------------

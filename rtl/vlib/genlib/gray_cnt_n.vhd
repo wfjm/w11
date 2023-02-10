@@ -1,6 +1,6 @@
--- $Id: gray_cnt_n.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: gray_cnt_n.vhd 1371 2023-02-10 11:14:03Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2007- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 -- 
 ------------------------------------------------------------------------------
 -- Module Name:    gray_cnt_n - syn
@@ -9,12 +9,21 @@
 -- Dependencies:   -
 -- Test bench:     tb/tb_gray_cnt_n
 -- Target Devices: generic
--- Tool versions:  xst 8.1-14.7; ghdl 0.18-0.33
+-- Tool versions:  xst 8.1-14.7; viv 2014.4-2022.1; ghdl 0.18-2.0.0
 -- Revision History: 
 -- Date         Rev Version    Comment
 -- 2007-12-26   106   1.0      Initial version 
 --
--- Some synthesis results:
+-- Some synthesis results (after synthesis step):
+-- - 2023-02-10 viv 2022.1 for xc7a100tcsg324-1:
+--   DWIDTH  LUT Flop
+--        4    5    5
+--        5    6    6
+--        6    8    7
+--        8   10    9
+--       16   24   17
+--       32   52   33
+--       64  105   65
 -- - 2016-03-25 ise 14.7   for xc6slx16-csg324-2:
 --   DWIDTH  LUT Flop   clock(xst est.)
 --        4    5    5   421MHz/ 2.37ns

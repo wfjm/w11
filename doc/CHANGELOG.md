@@ -75,7 +75,7 @@ The full set of tests is only run for tagged releases.
   - tools/bin/asm-11:
     - BUGFIX: support @(R) modifier with omitted offset
     - BUGFIX: misused # and @ don't cause BUGCHECKs anymore
-    - BUFGIX: expressions: allow uunary after binary operator
+    - BUFGIX: expressions: allow unary after binary operator
     - BUFGIX: proper sign handling for '/','*' operator and .if ge,gt,le,lt
 
 <!-- --------------------------------------------------------------------- -->

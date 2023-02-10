@@ -1,6 +1,6 @@
--- $Id: gray_cnt_5.vhd 1181 2019-07-08 17:00:50Z mueller $
+-- $Id: gray_cnt_5.vhd 1371 2023-02-10 11:14:03Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2007-2017 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2007-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 -- 
 ------------------------------------------------------------------------------
 -- Module Name:    gray_cnt_5 - syn
@@ -9,13 +9,16 @@
 -- Dependencies:   -
 -- Test bench:     -
 -- Target Devices: generic
--- Tool versions:  xst 8.1-14.7; viv 2014.4-2016.4; ghdl 0.18-0.33
+-- Tool versions:  xst 8.1-14.7; viv 2014.4-2022.1; ghdl 0.18-2.0.0
 -- Revision History: 
 -- Date         Rev Version    Comment
 -- 2017-01-07   840   1.1      disable fsm recognition in vivado
 -- 2007-12-26   106   1.0      Initial version 
 -- 
--- Some synthesis results:
+-- Some synthesis results (after synthesis step):
+-- - 2023-02-10 viv 2022.1 for xc7a100tcsg324-1:
+--   LUT Flop
+--     5    5
 -- - 2007-12-27 ise 8.2.03 for xc3s1000-ft256-4:
 --   LUT Flop   clock(xst est.)
 --     9    5   302MHz/ 3.31ns

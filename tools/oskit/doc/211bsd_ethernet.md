@@ -8,22 +8,17 @@ with the Linux host as well as with any other node.
 
 ### Setup of _tap_ and _bridge_
 The _tap_ device should be created such that it is accessible by the
-account under with _ti_w11_ executes. This way only setting up _tap_
-and _bridge_ require root access, but not subsequent usage.
+account under with _ti_w11_ executes. This way only setting up the _tap_
+device require root access, but not subsequent usage.
 
-Two support scripts help in the set up
+A support script
 ```
-    ip_create_br
+    ip_create_tap [tap-name] [bridge-name]
 ```
-
-creates a bridge named _br0_ and re-connects the physical ethernet interface.
-The script works on a PC with a single physical Ethernet interface.
-```
-    ip_create_tap [tap-name]
-```
-
-add a user-mode _tap_ device to the bridge _br0_. If the bridge doesn't exist
-`ip_create_br` is called. If no name is given _tap0_ is used.
+creates a new _tap_ device and connects it to an already existing _bridge_.
+If no names are given _tap0_ and _br0_ are used, respectively.
+The _tap_ device will be accessible by the account that executes the
+`ip_create_tap` command.
 
 ### Used MAC addresses
 The MAC addresses used by w11a are

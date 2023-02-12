@@ -29,8 +29,13 @@ software or firmware builds or that the documentation is consistent.
 The full set of tests is only run for tagged releases.
 
 ### Summary
+- revamp tap and bridge handling
 ### New features
 ### Changes
+- tools changes
+  - tools/bin
+    - ip_inspect, ip_create_br: removed
+    - ip_create_tap: rewritten with 'ip' commands
 ### Bug Fixes
 
 <!-- --------------------------------------------------------------------- -->

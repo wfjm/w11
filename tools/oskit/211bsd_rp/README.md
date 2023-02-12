@@ -110,7 +110,7 @@ Download, unpack and copy the disk images (*.dsk), e.g.
   Now the system is in multi-user mode, daemons running. You can explore
   the system, e.g. with a `pstat -T` or a `mount` command.
 
-  The second DL11 and the first four DZ11 lines can me activated too.
+  The second DL11 and the first four DZ11 lines can be activated too.
   Also simple networking via SLIP and a DZ11 line, for details see
   [using SLIP with 211bsd](../doc/211bsd_slip.md).
   

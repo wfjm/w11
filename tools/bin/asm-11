@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: asm-11 1361 2023-01-30 07:48:17Z mueller $
+# $Id: asm-11 1373 2023-02-16 11:21:26Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2013-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2023-02-16  1373   1.2.7  BUGFIX: fix directly nested .if behavior
 # 2023-01-30  1361   1.2.6  use 'R' error code; fix 'S' logic
 # 2023-01-29  1360   1.2.5  BUFGIX: expressions: allow uop after bop operator;
 #                           proper sign handling for '/','*' and .if ge,gt,le,lt
@@ -312,7 +313,7 @@ my $mautolbl = 30000;                       # auto-generated label
 my @reptstk;                                # active .rept stack
 my $reptlvl = 0;                            # .rept definition depth
 # conditional assembly stack
-my @ifstk;                                  # if stack {tst=>0|1, cur=>0|1}
+my @ifstk;                                  # if stack {tst=>0|1,cur=>0|1,dif=>n}
 my $ifcond;                                 # current if condition
 # .end handlinh
 my $end = 0;
@@ -675,10 +676,16 @@ sub parse_line {
 
   if (scalar(@ifstk)) {                     # is .if conditional block active ?
     add_flag(\%l,'c');                        # flag conditional block
-    unless ($dnam =~ m/^\.(iff|ift|iftf|endc)$/) { # and not sub-cond or end
-      unless ($ifstk[-1]{cur}) {            # if (sub-)cond false
-        add_flag(\%l,'d');                    # flag condition drop
-        return \%l;                           # ignore line
+    unless ($ifstk[-1]{cur}) {              # if (sub-)cond false
+      $ifstk[-1]{dif} += 1 if $dnam eq '.if';     # nested .if   in dropped code
+      if ($ifstk[-1]{dif} > 0) {
+        $ifstk[-1]{dif} -= 1 if $dnam eq '.endc'; # nested .endc in dropped code
+        add_flag(\%l,'d');                      # flag condition drop
+        return \%l;                             # ignore line
+      }
+      unless ($dnam =~ m/^\.(iff|ift|iftf|endc)$/) { # and not sub-cond or end
+        add_flag(\%l,'d');                      # flag condition drop
+        return \%l;                             # ignore line
       }
     }
   }
@@ -923,7 +930,7 @@ sub parse_line {
               add_err(\%l, 'A');
             }
             add_flag(\%l,'c');              # flag conditional block
-            push @ifstk, {tst => $tst, cur => $tst};
+            push @ifstk, {tst => $tst, cur => $tst, dif => 0};
             $state = 'end';
 
           } elsif ($op =~ m/^\.if(t|f|tf)$/) {  # .if(f|t|tf) ----------
@@ -932,7 +939,7 @@ sub parse_line {
               last STATE;
             }
             my $tst = $ifstk[-1]{tst};        # test value
-            my $cur = $tst;                   # for .itf
+            my $cur = $tst;                   # for .ift
             $cur = $tst ? 0 : 1 if $op eq '.iff';
             $cur = 1            if $op eq '.iftf';
             $ifstk[-1]{cur} = $cur;
@@ -1312,6 +1319,7 @@ sub parse_line {
           }
           $op_cmod = 0;
         } else {
+          $op_creg = 0;
           add_err(\%l, 'R');
         }
         $state = 'op_end';
@@ -1656,7 +1664,7 @@ sub parse_line {
         } else {
           add_err(\%l, 'A');
         }
-        push @ifstk, {tst => $tst, cur => $tst};
+        push @ifstk, {tst => $tst, cur => $tst, dif => 0};
 
       } elsif ($d_dire eq '.rept') {        # .rept ------------------
         my $cnt;
@@ -1822,7 +1830,7 @@ sub add_err {
 
 sub add_flag {
   my ($rl,$flag) = @_;
-  next if index($$rl{flag}, $flag) >= 0;     # prevent multiple flags
+  return if index($$rl{flag}, $flag) >= 0;   # prevent multiple flags
   $$rl{flag} .= $flag;                       # set flag
   return;
 }
@@ -3129,8 +3137,9 @@ sub dump_rl {
     prt_err($rl), (join '', sort split '', $$rl{flag}),
     savestr($$rl{typ}), savestr($$rl{oper}), $$rl{lineno},
     $$rl{psect}, $$rl{dot};
-  printf "  MRmri=%d %d %d %d %d\n",
-    $mdeflvl, $reptlvl, scalar(@mexecstk), scalar(@reptstk), scalar(@ifstk);
+  printf "  MRmrid=%d %d %d %d %d %d\n",
+    $mdeflvl, $reptlvl, scalar(@mexecstk), scalar(@reptstk), scalar(@ifstk),
+    (scalar(@ifstk) ? $ifstk[-1]{dif} : 0);
   my $i = 0;
   foreach my $rt (@{$$rl{tl}}) {
     printf "   tl[%2d]: tag=%-4s, typ=%-2s, om=%-2s, em=%-2s, val='%s'",

@@ -1,0 +1,77 @@
+; $Id: test_0460_if_nest.mac 1373 2023-02-16 11:21:26Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; test nested .if
+;
+        .asect
+        . = 1000
+
+; list macro expansion
+        .list   me,cnd
+;
+        .macro  testif,p0,p1,p2
+        maskt = 0
+        maskf = 0
+        .if ne,p0               ; p0=1
+        maskt = maskt + 000100
+        .if ne,p1               ; p0=1,p1=1
+        maskt = maskt + 000010
+        .if ne,p2               ; p0=1,p1=1,p2=1
+        maskt = maskt + 000001
+        .iff                    ; p0=1,p1=1,p2=0
+        maskf = maskf + 000001
+        .endc
+        .iff                    ; p0=1,p1=0
+        maskf = maskf + 000010
+        .if ne,p2               ; p0=1,p1=0,p2=1
+        maskt = maskt + 000001
+        .iff                    ; p0=1,p1=0,p2=0
+        maskf = maskf + 000001
+        .endc
+        .endc
+        .iff                    ; p0=0
+        maskf = maskf + 000100
+        .if ne,p1               ; p0=0,p1=1
+        maskt = maskt + 000010
+        .if ne,p2               ; p0=0,p1=1,p2=1
+        maskt = maskt + 000001
+        .iff                    ; p0=0,p1=1,p2=0
+        maskf = maskf + 000001
+        .endc                   ; p0=0,p1=0
+        .iff
+        maskf = maskf + 000010
+        .if ne,p2               ; p0=0,p1=0,p2=1
+        maskt = maskt + 000001
+        .iff                    ; p0=0,p1=0,p2=0
+        maskf = maskf + 000001
+        .endc
+        .endc
+        .endc
+        .endm
+;
+        testif  0,0,0
+        .word   maskt,maskf     ;;!! 000000 000111
+;
+        testif  0,0,1
+        .word   maskt,maskf     ;;!! 000001 000110
+;
+        testif  0,1,0
+        .word   maskt,maskf     ;;!! 000010 000101
+;
+        testif  0,1,1
+        .word   maskt,maskf     ;;!! 000011 000100
+;
+        testif  1,0,0
+        .word   maskt,maskf     ;;!! 000100 000011
+;
+        testif  1,0,1
+        .word   maskt,maskf     ;;!! 000101 000010
+;
+        testif  1,1,0
+        .word   maskt,maskf     ;;!! 000110 000001
+;
+        testif  1,1,1
+        .word   maskt,maskf     ;;!! 000111 000000
+;
+        .end

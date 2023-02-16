@@ -1,0 +1,56 @@
+#!/bin/bash
+# $Id: ip_delete_tap 1373 2023-02-16 11:21:26Z mueller $
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+#
+#  Revision History:
+# Date         Rev Version  Comment
+# 2023-02-16  1373   1.0    Initial version
+#
+
+# handle options
+optdry=""
+while (( $# > 0 )) ; do
+  case $1 in
+    -dry|--dry)     optdry=$1      ; shift 1 ;;
+    -*)             echo "ip_delete_br-E: invalid option '$1'"; exit 1 ;;
+    *)     break;;
+  esac
+done
+
+prefdry=""
+if [[ -n "$optdry" ]] ; then
+  prefdry="echo"
+fi
+
+tap=${1:-tap0}
+
+ip link show ${tap} >/dev/null 2>&1
+if [ $? != 0 ]
+then
+  echo "ip_delete_tap-I: tap ${tap} doesn't exist"
+  exit 0
+fi
+
+# sanitize PATH, use what sudo has
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+which_ip=$(which ip)
+which_brctl=$(which brctl)
+
+if [[ -z "$which_ip" ]]
+then 
+  echo "ip_delete_br-E: ip command not in PATH"
+  exit 1
+fi
+
+# print info that sudo password prompt is expected
+if [[ $(id -u) -ne 0 ]] ; then echo "ip_delete_br-I: uses sudo" ; fi
+
+$prefdry sudo  ip tuntap delete ${tap} mode tap
+
+#
+if [[ -n "$which_brctl" ]]
+then 
+  $prefdry $which_brctl show ${br}
+fi

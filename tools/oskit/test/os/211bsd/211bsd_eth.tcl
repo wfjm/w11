@@ -1,9 +1,10 @@
-# $Id: 211bsd_eth.tcl 1196 2019-07-20 18:18:16Z mueller $
+# $Id: 211bsd_eth.tcl 1373 2023-02-16 11:21:26Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2019- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2019-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2023-02-14  1373   1.1.1  use 'ip -j -p a' to probe tap0 existence
 # 2019-07-20  1196   1.1    Use os namespace 211bsd
 # 2019-06-29  1173   1.0    Initial version
 # 2019-06-10  1163   0.1    First draft
@@ -19,10 +20,10 @@ namespace eval 211bsd {
   #
   lappend ::tenv(procs_preboot) "211bsd::eth_preboot"
   proc eth_preboot {} {
-    et_spawn "if_tst" ifconfig
+    et_spawn "if_tst" "ip" "-j" "-p" "a"
     set rc 1
     expect {
-      -re "tap0 +Link" { set rc 0; exp_continue}
+      -re {"ifname": "tap0"} { set rc 0; exp_continue}
       eof              { }
     }
     et_close "if_tst"

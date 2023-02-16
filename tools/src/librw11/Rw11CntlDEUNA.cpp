@@ -1,6 +1,6 @@
-// $Id: Rw11CntlDEUNA.cpp 1186 2019-07-12 17:49:59Z mueller $
+// $Id: Rw11CntlDEUNA.cpp 1373 2023-02-16 11:21:26Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright 2014-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
@@ -551,7 +551,7 @@ bool Rw11CntlDEUNA::RcvCallback(RethBuf::pbuf_t& pbuf)
       }
       return true;
     }
-  } else {                                  // machted
+  } else {                                  // matched
     if (matchdst == 0) {
       fStats.Inc(kStatNRxFraFDst);
     } else if (matchdst == 1) {

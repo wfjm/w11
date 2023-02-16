@@ -1,0 +1,37 @@
+; $Id: zbug_0007.mac 1373 2023-02-16 11:21:26Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; for asm-11 prior rev 1372
+;
+; ISSUE: faulty handling of directly nested .if blocks
+;
+; REASON: error in drop code, didnt handle .if in a dropped .if section correctly
+;
+        .asect
+        . = 1000
+        .list   me,cnd
+;
+        .macro  call5,func,args,lbl
+        jsr     r5,func
+        .if     nb,args         ; aaa
+        .if     nb,lbl          ; lll
+lbl:    .word   args
+        .iff
+        .word   args
+        .endc
+        .endc
+        .endm
+;
+        call5   f1
+        call5   f2,<p1>
+        call5   f3,<p1,p2>,a2
+;
+f1:     rts     r5
+f2:     rts     r5
+f3:     rts     r5
+;
+p1:     .word   0
+p2:     .word   0
+;
+        .end

@@ -1,50 +1,68 @@
 #!/bin/bash
-# $Id: ip_create_tap 1172 2019-06-29 07:27:24Z mueller $
+# $Id: ip_create_tap 1373 2023-02-16 11:21:26Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2017-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2017-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2023-02-16  1373   1.1    add -dry option, use 'ip' commands
 # 2017-04-14   873   1.0    Initial version
 # 2017-03-04   858   0.5    First draft
 #
 
-tap=${1:-tap0}
+# handle options
+optdry=""
+while (( $# > 0 )) ; do
+  case $1 in
+    -dry|--dry)     optdry=$1      ; shift 1 ;;
+    -*)             echo "ip_create_br-E: invalid option '$1'"; exit 1 ;;
+    *)     break;;
+  esac
+done
 
-if ifconfig | grep -q "${tap}\s*Link"
-then
-  echo "tap ${tap} already exists"
-  exit 1
+prefdry=""
+if [[ -n "$optdry" ]] ; then
+  prefdry="echo"
 fi
 
-ifconfig | grep -q "br0\s*Link"
+tap=${1:-tap0}
+br=${2:-br0}
+
+ip link show ${tap} >/dev/null 2>&1
+if [ $? == 0 ]
+then
+  echo "ip_create_tap-I: tap ${tap} already exists"
+  exit 0
+fi
+
+ip link show ${br} >/dev/null 2>&1
 if [ $? != 0 ]
 then
-  echo "ip_create_tap-I: create bridge br0"
-  ip_create_br
+  echo "ip_create_tap-E: bridge ${br} does not exist"
+  exit 1
 fi
 
 # sanitize PATH, use what sudo has
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-which_ifconfig=$(which ifconfig)
-which_tunctl=$(which tunctl)
+which_ip=$(which ip)
 which_brctl=$(which brctl)
 
-if [[ -z "$which_ifconfig" || -z "$which_tunctl" || -z "$which_brctl" ]]
+if [[ -z "$which_ip" ]]
 then 
-  echo "ip_create_br-E: ifconfig, brctl, or route not in PATH"
+  echo "ip_create_br-E: ip command not in PATH"
   exit 1
 fi
 
-# print info so that sudo password prompt is expected
-if [[ $(id -u) -ne 0 ]] ; then echo "ip_create_br-I: requires sudo" ; fi
+# print info that sudo password prompt is expected
+if [[ $(id -u) -ne 0 ]] ; then echo "ip_create_br-I: uses sudo" ; fi
 
-sudo $which_tunctl -t ${tap} -u $USER
-sudo $which_ifconfig ${tap} up
-# bridge in the tap device
-sudo $which_brctl addif br0 ${tap}
-sudo $which_ifconfig ${tap} 0.0.0.0
+$prefdry sudo  ip tuntap add ${tap} mode tap user $USER
+$prefdry sudo  ip link set ${tap} up
+$prefdry sudo  ip link set ${tap} master ${br}
 
 #
-$which_ifconfig ${tap}
+if [[ -n "$which_brctl" ]]
+then 
+  $prefdry $which_brctl show ${br}
+fi

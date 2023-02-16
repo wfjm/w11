@@ -1,4 +1,4 @@
-; $Id: test_0350_macro_concat.mac 1359 2023-01-27 20:58:50Z mueller $
+; $Id: test_0350_macro_concat.mac 1373 2023-02-16 11:21:26Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -8,8 +8,7 @@
         . = 1000
 
 ; list macro expansion
-        .list   me
-        .list   cnd
+        .list   me,cnd
 ;
 ; define and use macro with a concatinated label
 ; check label creation with .if df

@@ -1,34 +1,26 @@
 .\"  -*- nroff -*-
-.\"  $Id: ip_create_tap.1 1373 2023-02-16 11:21:26Z mueller $
+.\"  $Id: ip_delete_tap.1 1373 2023-02-16 11:21:26Z mueller $
 .\" SPDX-License-Identifier: GPL-3.0-or-later
-.\" Copyright 2017-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+.\" Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 .\"
 .\" ------------------------------------------------------------------
 .
-.TH IP_CREATE_TAP 1 2023-02-16 "Retro Project" "Retro Project Manual"
+.TH IP_DELETE_TAP 1 2023-02-12 "Retro Project" "Retro Project Manual"
 .\" ------------------------------------------------------------------
 .SH NAME
-ip_create_tap \- add a user-mode tap device to a bridge
+ip_delete_tap \- remove a user-mode tap device
 .\" ------------------------------------------------------------------
 .SH SYNOPSIS
 .
-.SY ip_create_tap
+.SY ip_delete_tap
 .OP \-dry
 .RI [ TAPNAME ]
-.RI [ BRIDGENAME ]
 .YS
 .
 .\" ------------------------------------------------------------------
 .SH DESCRIPTION
 
-This script adds a tap device, named \fITAPNAME\fP or 'tap0' by default,
-to a bridge, named \fIBRIDGENAME\fP or 'br0' by default.
-
-The script first checks whether the tap device already exists and exits
-if it does. Next, the script first checks whether the bridge exists and
-exits with an error if not. Then, a tap device is created.
-The tap device will be accessible to the user which executes the script.
-Finally, the created tap device is connected to the bridge.
+This script removes a tap device, named \fITAPNAME\fP or 'tap0' by default.
 
 If the \fB\-dry\fP option is specified, the generated commands are only
 printed and not executed.
@@ -39,7 +31,7 @@ execute privileged commands, and might therefore ask for the user password.
 
 .\" ------------------------------------------------------------------
 .SH "SEE ALSO"
-.BR ip_delete_tap (1)
+.BR ip_create_tap (1)
 
 .\" ------------------------------------------------------------------
 .SH AUTHOR

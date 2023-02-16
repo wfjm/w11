@@ -1,4 +1,4 @@
-; $Id: test_0430_if_idn.mac 1359 2023-01-27 20:58:50Z mueller $
+; $Id: test_0430_if_idn.mac 1373 2023-02-16 11:21:26Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -7,8 +7,7 @@
         .asect
         . = 1000
 ;
-        .list   me
-        .list   cnd
+        .list   me,cnd
 ;
 ; Note: if idn/dif seems to be broken in RT-11 MACRO-11
 ;

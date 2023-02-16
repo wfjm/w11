@@ -36,7 +36,10 @@ The full set of tests is only run for tagged releases.
   - tools/bin
     - ip_inspect, ip_create_br: removed
     - ip_create_tap: rewritten with 'ip' commands
+    - ip_delete_tap: added
 ### Bug Fixes
+  - tools/bin/asm-11:
+    - BUGFIX: fix directly nested .if behavior
 
 <!-- --------------------------------------------------------------------- -->
 ---

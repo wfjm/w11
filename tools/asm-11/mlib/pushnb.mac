@@ -1,0 +1,11 @@
+; $Id: pushnb.mac 1374 2023-02-18 10:30:46Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; push word to the stack if argument is non-blank (helper for popm)
+;
+        .macro  pushnb,v0
+        .if     nb,v0
+        mov     v0,-(sp)
+        .endc
+        .endm

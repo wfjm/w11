@@ -1,0 +1,15 @@
+; $Id: popm.mac 1374 2023-02-18 10:30:46Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; pop multiple words from the stack (pops last first)
+;
+        .macro  popm,v0,v1,v2,v3,v4,v5
+        .mcall  popnb
+        popnb   v5
+        popnb   v4
+        popnb   v3
+        popnb   v2
+        popnb   v1
+        popnb   v0
+        .endm

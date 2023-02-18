@@ -1,9 +1,10 @@
-; $Id: cpu_details.mac 1359 2023-01-27 20:58:50Z mueller $
+; $Id: cpu_details.mac 1374 2023-02-18 10:30:46Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
+; 2023-02-17  1374   1.1.1  use pushm,popm
 ; 2023-01-27  1359   1.1    use .mcall and mlib; use rt?jmp, hta??? macros
 ; 2023-01-11  1349   1.0    Initial version
 ; 2022-07-18  1259   0.1    First draft
@@ -16,7 +17,7 @@
         .include        |lib/tcode_std_base.mac|
         .include        |lib/defs_mmu.mac|
 ;
-        .mcall  push,pop,push2
+        .mcall  push,pop,push2,pushm,popm
         .mcall  hcmpeq,htsteq,htstne,htstge,hbiteq,hbitne
         .mcall  vecset,vecclr
         .mcall  rtijmp,rttjmp
@@ -237,9 +238,8 @@ ta0201: mov     #177777,(r0)    ; clear CPUERR (any write should)
         mov     #2,r3           ; number of modes
 ;
 1000$:  clr     r1              ; clear tracer
-        mov     #3000$,vhustp     ; continuation address
-        push    (r2)+             ; frame: psw
-        push    #2000$            ; frame: address
+        mov     #3000$,vhustp   ; continuation address
+        push2   (r2)+,#2000$    ; frame: psw,address
         rti                     ; start user mode code
         halt
 ;
@@ -1497,10 +1497,7 @@ ta0501: mov     #cp.mbr,r0
 tb0101: mov     #2,r5
 100$:   mov     #1000$,r0
         mov     #1110$,r1
-        push    1000$+2         ; save data that will change
-        push    1000$+6
-        push    1100$+0
-        push    1100$+4
+        pushm   1000$+2,1000$+6,1100$+0,1100$+4  ; save data that will change
 ;
         mov     (r0)+,(r0)+     ; mov 111 over 222
         add     (r0)+,(r0)+     ; add 333 to   444
@@ -1512,10 +1509,7 @@ tb0101: mov     #2,r5
         hcmpeq  1100$+4,#000444
         hcmpeq  1100$+0,#000333
 ;
-        pop     1100$+4         ; restore data
-        pop     1100$+0
-        pop     1000$+6
-        pop     1000$+2
+        popm    1000$+2,1000$+6,1100$+0,1100$+4  ; restore data
         sob     r5,100$
         jmp     9999$
 ;
@@ -1535,9 +1529,7 @@ tb0101: mov     #2,r5
 ; Test B1.2 -- (pc)+ as destination ++++++++++++++++++++++++++++++++++
 ;
 tb0102: mov     #2,r5
-100$:   push    1000$+4         ; save data that will change
-        push    1100$+4
-        push    1200$+2
+100$:   pushm   1000$+4,1100$+4,1200$+2 ; save data that will change
 ;
         clr     r0
 1000$:  mov     #1,#0           ; (pc)+,(pc)+: write #1 over #0
@@ -1549,9 +1541,7 @@ tb0102: mov     #2,r5
         hcmpeq  1100$+4,#3
         hcmpeq  r0,#1
 ;
-        pop     1200$+2         ; restore data
-        pop     1100$+4
-        pop     1000$+4
+        popm    1000$+4,1100$+4,1200$+2 ; restore data
         sob     r5,100$
 ;
 9999$:  iot                     ; end of test B1.2

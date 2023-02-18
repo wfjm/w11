@@ -1,9 +1,10 @@
-; $Id: cpu_mmu.mac 1360 2023-01-29 11:51:48Z mueller $
+; $Id: cpu_mmu.mac 1374 2023-02-18 10:30:46Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
+; 2023-02-17  1374   1.1.2  use push2,pushm,popm
 ; 2023-01-28  1360   1.1.1  remove <../100> expressions for 6 bit right shift
 ; 2023-01-27  1358   1.1    use .mcall and mlib; use hta??? macros
 ; 2023-01-05  1346   1.0    Initial version
@@ -30,7 +31,7 @@
         .include        |lib/tcode_std_base.mac|
         .include        |lib/defs_mmu.mac|
 ;
-        .mcall  push,pop
+        .mcall  push,pop,push2,pushm,popm
         .mcall  hcmpeq,hcmbeq,htsteq,htstge,hbiteq,hbitne
         .mcall  vecset,vecclr
         .mcall  htabuf,htaadd,htaini,htacmp
@@ -1760,12 +1761,7 @@ td0101:
 ; save all registers
         clr     -(sp)           ; save dummy PC
         mfpd    sp              ; save pm SP
-        push    r5              ; and r5..r0
-        push    r4
-        push    r3
-        push    r2
-        push    r1
-        push    r0
+        pushm   r5,r4,r3,r2,r1,r0 ; and r5..r0
 ; roll back register changes
         mov     mmr1,r0         ; get mmr1
         mov     #2,r1           ; handle both halfes
@@ -1783,12 +1779,7 @@ td0101:
 ; increase stack by one click --> decrease(!) plf
         mov     #<126.*md.plf>!md.arw!md.dwn,udpdr1
 ; restore all registers
-        pop     r0              ; restore r0..r5
-        pop     r1
-        pop     r2
-        pop     r3
-        pop     r4
-        pop     r5
+        popm    r5,r4,r3,r2,r1,r0 ; restore r0..r5
         mtpd    sp              ; restore pm SP
         tst     (sp)+           ; pop dummy PC
 ; roll back PC to re-run aborted instruction
@@ -1959,8 +1950,7 @@ td0201: tstb    systyp          ; skip if not on w11
 ; use MMR2 to start target handler (PIRQ)
 ;
         mov     mmr2,r2                 ; get vector address
-        push    2(r2)                   ; handler PS
-        push    (r2)                    ; handler PC
+        push2   2(r2),(r2)              ; handler PS,PC
         bic     #m0.anr!m0.ale!m0.ard,mmr0      ; clear abort flags
         rtt                             ; and start handler
 ;

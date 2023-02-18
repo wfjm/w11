@@ -1,9 +1,10 @@
-# $Id: shell.tcl 1362 2023-01-31 18:16:17Z mueller $
+# $Id: shell.tcl 1374 2023-02-18 10:30:46Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2015-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2023-02-17  1374   2.2.7  update '.ha' text output
 # 2023-01-31  1362   2.2.6  add rw11::shell_attnmuted to mute CPU attn messages
 # 2018-10-21  1058   2.2.5  add after#\d+ scrubber (a real HACK, sorry)
 # 2017-04-23   885   2.2.4  adopt .cm* to new interface
@@ -642,10 +643,15 @@ namespace eval rw11 {
     append rval "\n  MS       - for memory access via mmu mode=M and space=S"
     append rval "\n           -   M (mode)  as c,p,k,s,u for cm,pm,kern,sup,user"
     append rval "\n           -   S (space) as i,d for instruction,data"
-    append rval "\n  i        - print as instruction with dasm"
-    append rval "\n  a        - print as ascii"
+    append rval "\n  b        - print as binary"
+    append rval "\n  o        - print as octal (default)"
     append rval "\n  d        - print as decimal"
     append rval "\n  x        - print as hex"
+    append rval "\n  O        - print as octal bytes"
+    append rval "\n  D        - print as decimal bytes"
+    append rval "\n  X        - print as hex bytes"
+    append rval "\n  a        - print as ascii (octal + character)"
+    append rval "\n  i        - print as instruction with dasm"
     append rval "\n"
     append rval "\nexamples:"
     append rval "\n  .e rpa.cs1        - register rhrp.cs1"

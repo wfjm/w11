@@ -1,0 +1,12 @@
+; $Id: $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; set up argument for a callp
+;
+        .macro  callpp,val
+        .if     nb,val
+        $$$cpp = $$$cpp + 1
+        mov     val,-(sp)
+        .endc
+        .endm

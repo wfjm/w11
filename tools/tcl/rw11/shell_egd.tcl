@@ -1,9 +1,10 @@
-# $Id: shell_egd.tcl 1274 2022-08-08 09:21:53Z mueller $
+# $Id: shell_egd.tcl 1374 2023-02-18 10:30:46Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2015-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
+# 2023-02-17  1374   1.1.4  add 'ODX' format options (byte wise odx)
 # 2022-08-08  1274   1.1.3  ssr->mmr rename
 # 2019-04-21  1134   1.1.2  shell_aspec_parse: allow 8,9 in numeric address
 # 2017-06-09   910   1.1.1  BUGFIX: shell_pspec_map: fix mapping for addr>20000
@@ -71,12 +72,12 @@ namespace eval rw11 {
     set opt_cnt  1
     foreach opt $opts {
       switch -regexp -matchvar mvar -- $opt {
-        {^[lr]$}        { set opt_lr  $opt }
-        {^[cpksu][id]$} { set opt_am  $opt }
-        {^[peu]$}       { set opt_am  $opt }
-        {^[iabodxfF]$}  { set opt_fmt $opt }
-        {^(\d)+$}       { set opt_cnt $opt }
-        default         { error "-E: bad option: $opt"}
+        {^[lr]$}          { set opt_lr  $opt }
+        {^[cpksu][id]$}   { set opt_am  $opt }
+        {^[peu]$}         { set opt_am  $opt }
+        {^[iabodxODXfF]$} { set opt_fmt $opt }
+        {^(\d)+$}         { set opt_cnt $opt }
+        default           { error "-E: bad option: $opt"}
       }
     }
 
@@ -299,6 +300,33 @@ namespace eval rw11 {
             x {
               for {set i 0} {$i < 12 && $ind < $cnt} {incr i; incr ind} {
                 append line [format " %04x" [lindex $rval $ind]]
+              }
+            }
+
+            O {
+              for {set i 0} {$i <  8 && $ind < $cnt} {incr i; incr ind} {
+                set val  [lindex $rval $ind]
+                set val0 [expr { $val     & 0xff}]
+                set val1 [expr {($val>>8) & 0xff}]
+                append line [format " %03o %03o" $val0 $val1]
+              }
+            }
+
+            D {
+              for {set i 0} {$i <  8 && $ind < $cnt} {incr i; incr ind} {
+                set val  [lindex $rval $ind]
+                set val0 [expr { $val     & 0xff}]
+                set val1 [expr {($val>>8) & 0xff}]
+                append line [format " %3d %3d" $val0 $val1]
+              }
+            }
+
+            X {
+              for {set i 0} {$i <  8 && $ind < $cnt} {incr i; incr ind} {
+                set val  [lindex $rval $ind]
+                set val0 [expr { $val     & 0xff}]
+                set val1 [expr {($val>>8) & 0xff}]
+                append line [format " %02x %02x" $val0 $val1]
               }
             }
 

@@ -37,6 +37,8 @@ The full set of tests is only run for tagged releases.
     - ip_inspect, ip_create_br: removed
     - ip_create_tap: rewritten with 'ip' commands
     - ip_delete_tap: added
+  - tools/asm-11/mlib: add pushm,popm,callp and helpers
+  - tcl/rw11/shell_egd.tcl: add ODX format option for .e command
 ### Bug Fixes
   - tools/bin/asm-11:
     - BUGFIX: fix directly nested .if behavior

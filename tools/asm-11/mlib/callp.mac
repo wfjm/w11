@@ -1,0 +1,30 @@
+; $Id: $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; set up 'jsr pc' call with argument list on stack
+;
+        .macro  callp,func,p0,p1,p2,p3,p4,p5,p6,p7
+        .mcall  callpp
+        $$$cpp = 0
+        callpp  p7
+        callpp  p6
+        callpp  p5
+        callpp  p4
+        callpp  p3
+        callpp  p2
+        callpp  p1
+        callpp  p0
+        call    func
+        .if     ne,$$$cpp       ; any arguments ?
+        .if     eq,$$$cpp-1     ; 1 argument ?
+        tst     (sp)+           ; pop one
+        .iff
+        .if     eq,$$$cpp-2     ; 2 arguments ?
+        cmp     (sp)+,(sp)+     ; pop two
+        .iff
+        add     #2*$$$cpp,sp    ; pop n
+        .endc
+        .endc
+        .endc
+        .endm

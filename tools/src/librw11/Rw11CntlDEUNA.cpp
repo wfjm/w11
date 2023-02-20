@@ -1,9 +1,10 @@
-// $Id: Rw11CntlDEUNA.cpp 1373 2023-02-16 11:21:26Z mueller $
+// $Id: Rw11CntlDEUNA.cpp 1376 2023-02-20 15:05:03Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2014-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2023-02-20  1376   0.5.11 log transitions into and out of kStateRxPoll
 // 2019-06-15  1164   0.5.10 adapt to new RtimerFd API
 // 2019-04-19  1133   0.5.9  use ExecWibr()
 // 2019-02-23  1114   0.5.8  use std::bind instead of lambda
@@ -708,6 +709,7 @@ void Rw11CntlDEUNA::Dump(std::ostream& os, int ind, const char* text,
 // -I xua: cmd pr0=oooooo cmd=getcmd fu=...... udbb=oooooo
 // -I xua: txr t00 < dddd,oooooo,dddd; bbbbbbbb,bbbb: OSE, ...
 // -I xua: snd 00:00:00:00:00:00 > 00:00:00:00:00:00 typ: xxxx len: dddd
+// -I xua: rxr poll xxxx ; qlen: ddd; r00,OSE,OSE
 // command specific lines
 // -I xua: GETPCBB: oooooo
 // -I xua: RPA: 08:00:2b:00:00:00
@@ -878,6 +880,18 @@ int Rw11CntlDEUNA::AttnHandler(RlinkServer::AttnArgs& args)
     {
       fStats.Inc(kStatNPcmdPdmd);
       if (Running()) {
+        if (fRxRingState == kStateRxPoll) {
+          if (fTraceLevel>1) {
+            RlogMsg lmsg(LogFile());
+            lmsg << "-I " << Name() << ": rxr poll pdmd "
+                 << "; qlen: " << RosPrintf(fRxBufQueue.size(),"d", 3)
+                 << "; r" << RosPrintf(fRxRingIndex,"d0", 2)
+                 << ","  << RingDsc2OSEString(fRxDscCurPC,'-')
+                 << ","  << RingDsc2OSEString(fRxDscNxtPC,'-');
+          }
+          fRxPollTimer.Cancel();
+          fRxRingState = kStateRxIdle;
+        }
         StartTxRing(fTxDscCurPC, fTxDscNxtPC);
         StartRxRing(fRxDscCurPC, fRxDscNxtPC);        
       }
@@ -1444,7 +1458,17 @@ void Rw11CntlDEUNA::StartRxRing(const uint16_t dsccur[4],
 //! FIXME_docs
 void Rw11CntlDEUNA::StopRxRing()
 {
-  if (fRxRingState == kStateRxPoll) fRxPollTimer.Cancel();
+  if (fRxRingState == kStateRxPoll) {
+    if (fTraceLevel>1) {
+      RlogMsg lmsg(LogFile());
+      lmsg << "-I " << Name() << ": rxr poll stop "
+           << "; qlen: " << RosPrintf(fRxBufQueue.size(),"d", 3)
+           << "; r" << RosPrintf(fRxRingIndex,"d0", 2)
+           << ","  << RingDsc2OSEString(fRxDscCur,'-')
+           << ","  << RingDsc2OSEString(fRxDscNxt,'-');
+    }
+    fRxPollTimer.Cancel();
+  }
   fRxRingState = kStateRxIdle;
   return;
 }
@@ -1672,8 +1696,16 @@ int Rw11CntlDEUNA::RxRingHandler()
   // now decide whether to idle, continue, or poll
   if (fRxBufQueue.empty()) return 0;        // quit if nothing to do
   if (!(fRxDscCur[2] & kRXR2_M_OWN)) {      // no free buffer
-    fRxPollTimer.SetRelative(fRxPollTime);
+    if (fTraceLevel>1) {
+        RlogMsg lmsg(LogFile());
+        lmsg << "-I " << Name() << ": rxr poll start"
+             << "; qlen: " << RosPrintf(fRxBufQueue.size(),"d", 3)
+             << "; r" << RosPrintf(fRxRingIndex,"d0", 2)
+             << ","  << RingDsc2OSEString(fRxDscCur,'-')
+             << ","  << RingDsc2OSEString(fRxDscNxt,'-');
+    }
     fRxRingState = kStateRxPoll;              // activate timer
+    fRxPollTimer.SetRelative(fRxPollTime);
     return 0;
   }
 
@@ -1692,6 +1724,13 @@ int Rw11CntlDEUNA::RxPollHandler(const pollfd& pfd)
   if (!Running() ||                         // if not running
       fRxRingState != kStateRxPoll ||       // if not polling
       !cnt) return 0;                       // if not expired -> quit
+
+  if (fTraceLevel>1) {
+    RlogMsg lmsg(LogFile());
+    lmsg << "-I " << Name() << ": rxr poll done "
+         << "; qlen: " << RosPrintf(fRxBufQueue.size(),"d", 3)
+         << "; r" << RosPrintf(fRxRingIndex,"d0", 2);
+  }
 
   fRxRingState = kStateRxIdle;              // end poll
   StartRxRing();                            // re-start rx ring

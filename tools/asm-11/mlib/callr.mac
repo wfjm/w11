@@ -1,0 +1,16 @@
+; $Id: callr.mac 1375 2023-02-19 15:54:12Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; set up 'jsr pc' call with argument passed in registers
+;
+        .macro  callr,func,p0,p1,p2,p3,p4,p5
+        .mcall  callrp
+        callrp  r0,p0
+        callrp  r1,p1
+        callrp  r2,p2
+        callrp  r3,p3
+        callrp  r4,p4
+        callrp  r5,p5
+        call    func
+        .endm

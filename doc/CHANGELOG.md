@@ -30,18 +30,25 @@ The full set of tests is only run for tagged releases.
 
 ### Summary
 - revamp tap and bridge handling
+
 ### New features
+
 ### Changes
 - tools changes
   - tools/bin
     - ip_inspect, ip_create_br: removed
     - ip_create_tap: rewritten with 'ip' commands
     - ip_delete_tap: added
-  - tools/asm-11/mlib: add pushm,popm,callp and helpers
-  - tcl/rw11/shell_egd.tcl: add ODX format option for .e command
+  - tools/asm-11/mlib: add pushm,popm,calls,callr and helpers
+  - src/librw11/Rw11CntlDEUNA.cpp
+    - log transitions into and out of kStateRxPoll
+  - tcl/rw11/shell_egd.tcl: add ODX format options for .e command
+
 ### Bug Fixes
-  - tools/bin/asm-11:
+  - tools/bin/asm-11
     - BUGFIX: fix directly nested .if behavior
+  - src/librtools
+    - RtimerFd.cpp: BUGFIX: SetRelative(): correct is-positive check
 
 <!-- --------------------------------------------------------------------- -->
 ---
@@ -54,11 +61,13 @@ The full set of tests is only run for tagged releases.
 - other documentation updates
 - Doxygen support now for V1.9.6
 - tst_serloop designs added for Basys3
+
 ### New features
 - new systems
   - rtl/sys_gen/tst_serloop/basys3     - serport loop tester for Basys3
 - new tools
   - tools/mcode: added folders rk11 and rlink
+
 ### Changes
 - tools changes
   - tools/bin
@@ -102,10 +111,12 @@ The full set of tests is only run for tagged releases.
 - gwstart added, improves working GHDL plus gtkwave
 - xxdp run scripts added for w11a and SimH
 - Doxygen support now for V1.9.5
+
 ### New features
 - new tools
   - gwstart: gtkwave starter
   - tools/xxdp: add directory with xxdp setup and patch scripts
+
 ### Changes
 - tools changes
   - tools/asm-11/lib/push_pop.mac: add push2
@@ -139,6 +150,7 @@ The full set of tests is only run for tagged releases.
 - general changes
   - rename _gpr to _gr, use 'general registers' not 'general purpose registers'
   - rename vfetch -> vstart
+
 ### Bug Fixes
   - rtl/w11a
     - pdp11_psr:
@@ -185,12 +197,14 @@ The full set of tests is only run for tagged releases.
 - added dasm-11, a PDP-11 disassembler
 - all actively used commands have now a man page
 - Doxygen support now for V1.9.4; remove discontinued Tcl support
+
 ### New features
 - new verification codes
   - tools/sys/mcode: added memclr.mac (writes zero into memory)
   - tools/tcode: fast cpu verification codes
   - tools/tests: test programs
 - tools/bin: added dasm-11, a PDP-11 disassembler
+
 ### Changes
 - tools changes
   - ci.yml: define TBW_GHDL_OPTS and suppress IEEE package warnings at t=0ms
@@ -242,6 +256,7 @@ The full set of tests is only run for tagged releases.
     - pdp11_reg70: set sysid to 010123 --> real w11
     - *.scmd:      set sysid to 110234 --> emu Simh
     - *.ecmd:      set sysid to 120345 --> emu E11
+
 ### Bug Fixes
   - rtl/w11a
     - pdp11_mmu: BUGFIX: correct trap and PDR A logic, see

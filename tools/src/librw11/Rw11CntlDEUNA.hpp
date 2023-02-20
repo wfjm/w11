@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDEUNA.hpp 1185 2019-07-12 17:29:12Z mueller $
+// $Id: Rw11CntlDEUNA.hpp 1376 2023-02-20 15:05:03Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2014-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
@@ -122,18 +122,18 @@ namespace Retro {
       static const uint16_t kPC0_M_MBZ  = 0xff00;  //!< MBZ
 
       static const uint16_t kFUNC_NOOP   =   0;  //!< NOOP: noop
-      static const uint16_t kFUNC_RDPA   =   2;  //!< RDPA: read def MAC 
-      static const uint16_t kFUNC_RPA    =   4;  //!< RPA:  read  phys MAC 
-      static const uint16_t kFUNC_WPA    =   5;  //!< WPA:  write phys MAC 
+      static const uint16_t kFUNC_RDPA   =   2;  //!< RDPA: read def MAC
+      static const uint16_t kFUNC_RPA    =   4;  //!< RPA:  read  phys MAC
+      static const uint16_t kFUNC_WPA    =   5;  //!< WPA:  write phys MAC
       static const uint16_t kFUNC_RMAL   =   6;  //!< RMAL: read  mcast MAC list
       static const uint16_t kFUNC_WMAL   =   7;  //!< RMAL: write mcast MAC list
-      static const uint16_t kFUNC_RRF    = 010;  //!< RRF:  read  ring format 
-      static const uint16_t kFUNC_WRF    = 011;  //!< WRF:  write ring format 
-      static const uint16_t kFUNC_RCTR   = 012;  //!< RCTR: read counters 
-      static const uint16_t kFUNC_RCCTR  = 013;  //!< RCCTR: read&clr counters 
-      static const uint16_t kFUNC_RMODE  = 014;  //!< RMODE: read  mode 
-      static const uint16_t kFUNC_WMODE  = 015;  //!< WMODE: write write 
-      static const uint16_t kFUNC_RSTAT  = 016;  //!< RSTAT:  read  status 
+      static const uint16_t kFUNC_RRF    = 010;  //!< RRF:  read  ring format
+      static const uint16_t kFUNC_WRF    = 011;  //!< WRF:  write ring format
+      static const uint16_t kFUNC_RCTR   = 012;  //!< RCTR: read counters
+      static const uint16_t kFUNC_RCCTR  = 013;  //!< RCCTR: read&clr counters
+      static const uint16_t kFUNC_RMODE  = 014;  //!< RMODE: read  mode
+      static const uint16_t kFUNC_WMODE  = 015;  //!< WMODE: write mode
+      static const uint16_t kFUNC_RSTAT  = 016;  //!< RSTAT:  read  status
       static const uint16_t kFUNC_RCSTAT = 017;  //!< RCSTAT: read&clr status
       static const uint16_t kFUNC_RSID   = 022;  //!< RSID: read system id
       static const uint16_t kFUNC_WSID   = 023;  //!< WSID: write system id
@@ -141,7 +141,7 @@ namespace Retro {
       static const uint16_t kSTAT_M_ERRS = kWBit15;//!< ERRS: error summary
       static const uint16_t kSTAT_M_MERR = kWBit14;//!< MERR: multiple errors
       static const uint16_t kSTAT_M_BABL = kWBit13;//!< BABL: xmit on long(DELUA)
-      static const uint16_t kSTAT_M_CERR = kWBit12;//!< CERR: collision test er
+      static const uint16_t kSTAT_M_CERR = kWBit12;//!< CERR: collision test err
       static const uint16_t kSTAT_M_TMOT = kWBit11;//!< TMOT: UNIBUS timeout
       static const uint16_t kSTAT_M_RRNG = kWBit09;//!< RRNG: rx ring error
       static const uint16_t kSTAT_M_TRNG = kWBit08;//!< TRNG: tx ring error

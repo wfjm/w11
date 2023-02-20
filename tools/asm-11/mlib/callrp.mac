@@ -1,0 +1,11 @@
+; $Id: callrp.mac 1375 2023-02-19 15:54:12Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; set up argument for a callr
+;
+        .macro  callrp,reg,val
+        .if     nb,val
+        mov     val,reg
+        .endc
+        .endm

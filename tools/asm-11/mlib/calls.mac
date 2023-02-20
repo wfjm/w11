@@ -1,0 +1,30 @@
+; $Id: calls.mac 1375 2023-02-19 15:54:12Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; set up 'jsr pc' call with argument list on stack
+;
+        .macro  calls,func,p0,p1,p2,p3,p4,p5,p6,p7
+        .mcall  callsp
+        $$$csp = 0
+        callsp  p7
+        callsp  p6
+        callsp  p5
+        callsp  p4
+        callsp  p3
+        callsp  p2
+        callsp  p1
+        callsp  p0
+        call    func
+        .if     ne,$$$csp       ; any arguments ?
+        .if     eq,$$$csp-1     ; 1 argument ?
+        tst     (sp)+           ; pop one
+        .iff
+        .if     eq,$$$csp-2     ; 2 arguments ?
+        cmp     (sp)+,(sp)+     ; pop two
+        .iff
+        add     #2*$$$csp,sp    ; pop n
+        .endc
+        .endc
+        .endc
+        .endm

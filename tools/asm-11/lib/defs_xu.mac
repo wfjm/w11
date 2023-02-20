@@ -1,9 +1,10 @@
-; $Id: defs_xu.mac 1184 2019-07-10 20:39:44Z mueller $
+; $Id: defs_xu.mac 1376 2023-02-20 15:05:03Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2017-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; definitions for DEUNA controler
-; 
+;   uses also xf,.... name prefixes for clarity
+;
 ; vector address/priority definition
 ; 
         va.xu=000120
@@ -18,20 +19,104 @@
 ;
 ; symbol definitions for xu.pr0
 ;
-        xu.ser=100000
-        xu.pce=040000
-        xu.rxi=020000
-        xu.txi=010000
-        xu.dni=004000
-        xu.rcb=002000
-        xu.usc=000400
-        xu.ir =000200
-        xu.ie =000100
-        xu.rst=000040
+        xu.ser=100000           ; SERI: status error interrupt
+        xu.pce=040000           ; PCEI: port command error interrupt
+        xu.rxi=020000           ; RXI:  receive ring interrupt
+        xu.txi=010000           ; TXI:  transmit ring interrupt
+        xu.dni=004000           ; DNI:  done interrupt (port command done)
+        xu.rcb=002000           ; RCBI: receive buffer unavailable interrupt
+        xu.usc=000400           ; USCI: unsolicited state change interrupt
+        xu.ir =000200           ; INTR: interrupt summary
+        xu.ie =000100           ; INTE: interrupt enable
+        xu.rst=000040           ; RSET: DEUNA reset
+        xu.fso=000017           ; command: STOP
+        xu.fha=000016           ; command: HALT (for DELUA)
+        xu.fpd=000010           ; command: PDMD (polling demand)
+        xu.fsa=000004           ; command: START
+        xu.fgc=000002           ; command: GET CMD
+        xu.fgp=000001           ; command: GET PCBB
 ;
 ; symbol definitions for xu.pr1
 ;
-        xu.xpw=100000
-        xu.ica=040000
-        xu.pct=000200
-        xu.deu=000020
+        xu.xpw=100000           ; XPWR: transceiver power OK
+        xu.ica=040000           ; ICAB: port/link cabling OK
+        xu.pct=000200           ; PCTO: port command timeout
+        xu.deu=000020           ; 0=DEUNA; 1=DELUA
+        xu.sma=000017           ; STATE field mask
+        xu.sha=000010           ; state: PRIMARY HALT (for DELUA)
+        xu.sru=000003           ; state: RUNNING
+        xu.srd=000002           ; state: READY
+        xu.sre=000000           ; state: RESET
+;
+; port control functions, use in LSB of PCB[0]
+;
+        xf.wi =000023           ; WSID:   write system id
+        xf.ri =000022           ; RSID:   read  system id
+        xf.rcc=000017           ; RCSTAT: read&clear status
+        xf.rs =000016           ; RSTAT:  read  status
+        xf.wm =000015           ; WMODE:  write mode
+        xf.rm =000014           ; RMODE:  read  mode
+        xf.rcc=000013           ; RCCTR:  read and clear counters
+        xf.rc =000012           ; RCTR:   read  counters
+        xf.wrf=000011           ; WRF :   write ring format
+        xf.rrf=000010           ; RRF :   read  ring format
+        xf.wma=000007           ; WMAL:   write mcast MAC list
+        xf.rma=000006           ; RMAL:   read  mcast MAC list
+        xf.wpa=000005           ; WPA:    write physical MAC
+        xf.rpa=000004           ; RPA:    read  physical MAC
+        xf.rda=000002           ; RPDA:   read  default MAC
+        xf.no =000000           ; NOOP:   no operation
+;
+; mode register, write/read via PCB[1]
+;
+        xm.pro=100000           ; PROM: promiscuous mode
+        xm.eam=040000           ; ENAL: enable all multicast
+        xm.dcr=020000           ; DRDC: disable chaining on receive
+        xm.tpa=010000           ; TPAD: transmit message paddinf enable
+        xm.etc=004000           ; ETC:  enable collision check
+        xm.pro=001000           ; DMNT: disable maintenance message
+        xm.dtc=000010           ; DTCR: disable transmit CRC
+        xm.lop=000004           ; LOOP: internal loopback mode
+        xm.pro=000001           ; HDPX: half-suplex mode
+;
+; status register, write/read via PCB[1]
+;
+        xs.ers=100000           ; ERRS: error summary
+        xs.mer=040000           ; MERR: multiple errors
+        xs.cer=010000           ; CERR: collision test error
+        xs.tmo=004000           ; TMOT: timeout error
+        xs.rre=001000           ; RRNG: receive ring error
+        xs.tre=000400           ; TRNG: transmit ring error
+        xs.rpa=000200           ; PTCH: ROM patch
+        xs.rco=000100           ; RRAM: RAM code operational
+        xs.rev=000077           ; RREV: ROM revisions (field mask)
+;
+; transmit descriptor word 2 and word 3
+;
+        t2.own=100000           ; OWN:  if 1 owned by DEUNA
+        t2.ers=040000           ; ERRS: error summary
+        t2.mtc=020000           ; MTCH: station match
+        t2.mor=010000           ; MORE: multiple retries needed
+        t2.one=004000           ; ONE:  one collision
+        t2.def=002000           ; DEF:  deferred
+        t2.stp=001000           ; STP:  start of packet
+        t2.enp=000400           ; ENP:  end of packet
+        t3.ble=100000           ; BUFL: buffer length error
+        t3.uto=040000           ; UBTO: UNIBUS timeout
+        t3.lco=010000           ; LCOL: late collision
+        t3.lca=004000           ; LCAR: loss of carrier
+        t3.rle=002000           ; RTRY: retry limit exceeded
+;
+; receive descriptor word 2 and word 3
+;
+        r2.own=100000           ; OWN:  if 1 owned by DEUNA
+        r2.ers=040000           ; ERRS: error summary
+        r2.fra=020000           ; FRAM: frame error
+        r2.ofl=010000           ; OFLO: message overflow
+        r2.crc=004000           ; CRC:  CRC error
+        r2.stp=001000           ; STP:  start of packet
+        r2.enp=000400           ; ENP:  end of packet
+        r3.ble=100000           ; BUFL: buffer length error
+        r3.uto=040000           ; UBTO: UNIBUS timeout
+        r3.nch=010000           ; NCHN: no data chaining
+        r3.mle=007777           ; MLEN: message length

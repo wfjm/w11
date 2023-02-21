@@ -1,9 +1,10 @@
-// $Id: RtclRw11CntlDEUNA.cpp 1186 2019-07-12 17:49:59Z mueller $
+// $Id: RtclRw11CntlDEUNA.cpp 1377 2023-02-21 10:05:30Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright 2014-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2023-02-21  1377   1.0.3  add EtherType filter
 // 2019-02-23  1114   1.0.2  use std::bind instead of lambda
 // 2018-12-15  1082   1.0.1  use lambda instead of boost::bind
 // 2017-04-16   878   1.0    Initial version
@@ -44,6 +45,8 @@ RtclRw11CntlDEUNA::RtclRw11CntlDEUNA()
   fGets.Add<string>        ("dpa",    bind(&Rw11CntlDEUNA::MacDefault,  pobj));
   fGets.Add<const Rtime&>  ("rxpoll", bind(&Rw11CntlDEUNA::RxPollTime,  pobj));
   fGets.Add<size_t>        ("rxqlim", bind(&Rw11CntlDEUNA::RxQueLimit,  pobj));
+  fGets.Add<bool>          ("etfena", bind(&Rw11CntlDEUNA::EtfEnable,   pobj));
+  fGets.Add<bool>          ("etftra", bind(&Rw11CntlDEUNA::EtfTrace,    pobj));
   fGets.Add<bool>          ("run",    bind(&Rw11CntlDEUNA::Running,     pobj));
 
   fSets.Add<const string&> ("type",
@@ -54,6 +57,10 @@ RtclRw11CntlDEUNA::RtclRw11CntlDEUNA()
                               bind(&Rw11CntlDEUNA::SetRxPollTime,pobj, _1));
   fSets.Add<size_t>        ("rxqlim",
                               bind(&Rw11CntlDEUNA::SetRxQueLimit,pobj, _1));
+  fSets.Add<bool>          ("etfena",
+                              bind(&Rw11CntlDEUNA::SetEtfEnable,pobj, _1));
+  fSets.Add<bool>          ("etftra",
+                              bind(&Rw11CntlDEUNA::SetEtfTrace,pobj, _1));
 }
 
 //------------------------------------------+-----------------------------------

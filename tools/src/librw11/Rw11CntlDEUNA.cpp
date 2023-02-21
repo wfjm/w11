@@ -1,9 +1,10 @@
-// $Id: Rw11CntlDEUNA.cpp 1376 2023-02-20 15:05:03Z mueller $
+// $Id: Rw11CntlDEUNA.cpp 1377 2023-02-21 10:05:30Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2014-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2023-02-21  1377   0.6    add EtherType filter
 // 2023-02-20  1376   0.5.11 log transitions into and out of kStateRxPoll
 // 2019-06-15  1164   0.5.10 adapt to new RtimerFd API
 // 2019-04-19  1133   0.5.9  use ExecWibr()
@@ -220,6 +221,10 @@ Rw11CntlDEUNA::Rw11CntlDEUNA()
     fRxRingSize(0),
     fRxRingELen(0),
     fMacDefault(RethTools::String2Mac("08:00:2b:00:00:00")),
+    fMacList{},
+    fMcastCnt(0),
+    fEtfEnable(false),
+    fEtfTrace(false),
     fPr0Last(0),
     fPr1Pcto(false),
     fPr1Delua(false),
@@ -246,7 +251,20 @@ Rw11CntlDEUNA::Rw11CntlDEUNA()
     fRxPollTimer("Rw11CntlDEUNA::fRxPollTimer."),
     fRxBufQueue(),
     fRxBufCurr(),
-    fRxBufOffset(0)
+    fRxBufOffset(0),
+    fCtrTimeCleared(),
+    fCtrRxFra(0),
+    fCtrRxFraMcast(0),
+    fCtrRxByt(0),
+    fCtrRxBytMcast(0),
+    fCtrRxFraLoInt(0),
+    fCtrRxFraLoBuf(0),
+    fCtrTxFra(0),
+    fCtrTxFraMcast(0),
+    fCtrTxByt(0),
+    fCtrTxBytMcast(0),
+    fCtrTxFraAbort(0),
+    fCtrFraLoop(0)
 {
   // must be here because Units have a back-ptr (not available at Rw11CntlBase)
   fspUnit[0].reset(new Rw11UnitDEUNA(this, 0)); // single unit controller
@@ -292,8 +310,9 @@ Rw11CntlDEUNA::Rw11CntlDEUNA()
   fStats.Define(kStatNRxFraFProm , "NRxFraFProm" , "in frames promiscous");
   fStats.Define(kStatNRxFraFUDrop, "NRxFraFUDrop", "in frames drop miss mac");
   fStats.Define(kStatNRxFraFMDrop, "NRxFraFMDrop", "in frames drop miss mcast");
-  fStats.Define(kStatNRxFraQLDrop, "NRxFraQLDrop", "in frames drop drop");
+  fStats.Define(kStatNRxFraQLDrop, "NRxFraQLDrop", "in frames drop queue lim");
   fStats.Define(kStatNRxFraNRDrop, "NRxFraNRDrop", "in frames drop not running");
+  fStats.Define(kStatNRxFraETDrop, "NRxFraETDrop", "in frames drop etf miss");
   fStats.Define(kStatNRxFra      , "NRxFra"      , "rcvd frames");
   fStats.Define(kStatNRxFraMcast , "NRxFraMcast" , "rcvd bcast+mcast frames");
   fStats.Define(kStatNRxFraBcast , "NRxFraBcast" , "rcvd bcast frames");
@@ -548,11 +567,25 @@ bool Rw11CntlDEUNA::RcvCallback(RethBuf::pbuf_t& pbuf)
       }
       if (fTraceLevel>1) {
         RlogMsg lmsg(LogFile());
-        lmsg << "-I " << Name() << ": fdrop " << pbuf->FrameInfo() << endl;
+        lmsg << "-I " << Name() << ": fdr " << pbuf->FrameInfo() << endl;
       }
       return true;
     }
   } else {                                  // matched
+    if (EtfEnable()) {                      // EtherType filer enabled ?
+      uint16_t etype = pbuf->Type();
+      bool etfok = false;
+      etfok |= etype == 0x0800;             // EtherType APV4
+      etfok |= etype == 0x0806;             // EtherType ARP
+      if (!etfok) {                         // drop by EtherType
+        fStats.Inc(kStatNRxFraETDrop);
+        if (fTraceLevel>1 && EtfTrace()) {
+          RlogMsg lmsg(LogFile());
+          lmsg << "-I " << Name() << ": edr " << pbuf->FrameInfo() << endl;
+        }
+        return true;
+      }
+    }
     if (matchdst == 0) {
       fStats.Inc(kStatNRxFraFDst);
     } else if (matchdst == 1) {
@@ -566,7 +599,7 @@ bool Rw11CntlDEUNA::RcvCallback(RethBuf::pbuf_t& pbuf)
     fStats.Inc(kStatNRxFraQLDrop);
     if (fTraceLevel>0) {
       RlogMsg lmsg(LogFile());
-      lmsg << "-I " << Name() << ": qdrop " << pbuf->FrameInfo() << endl;
+      lmsg << "-I " << Name() << ": qdr " << pbuf->FrameInfo() << endl;
     }
     return true;
   }
@@ -629,8 +662,10 @@ void Rw11CntlDEUNA::Dump(std::ostream& os, int ind, const char* text,
        << RosPrintf(fMacList[2+i],"x0",12)  << "  "
        << RethTools::Mac2String(fMacList[2+i]) << endl;
   }
+  os << bl << "  fEtfEnable:       " << RosPrintf(fEtfEnable) << endl;
+  os << bl << "  fEtfTrace:        " << RosPrintf(fEtfTrace) << endl;
 
-  os << bl << "  fPr0Last*:       " << RosPrintf(fPr0Last,"o0", 6) << endl;
+  os << bl << "  fPr0Last*:        " << RosPrintf(fPr0Last,"o0", 6) << endl;
   os << bl << "  fPr1*:           " 
      << " Pcto="  << RosPrintf(fPr1Pcto)
      << " Delua=" << RosPrintf(fPr1Delua)

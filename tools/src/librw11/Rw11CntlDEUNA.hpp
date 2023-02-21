@@ -1,9 +1,10 @@
-// $Id: Rw11CntlDEUNA.hpp 1376 2023-02-20 15:05:03Z mueller $
+// $Id: Rw11CntlDEUNA.hpp 1377 2023-02-21 10:05:30Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright 2014-2019 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2014-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2023-02-21  1377   0.6    add EtherType filter
 // 2017-04-14   875   0.5    Initial version (minimal functions, 211bsd ready)
 // 2014-06-09   561   0.1    First draft 
 // ---------------------------------------------------------------------------
@@ -44,10 +45,14 @@ namespace Retro {
       void          SetMacDefault(const std::string& mac);
       void          SetRxPollTime(const Rtime& time);
       void          SetRxQueLimit(size_t rxqlim);
+      void          SetEtfEnable(bool etfena);
+      void          SetEtfTrace(bool etftra);
 
       std::string   MacDefault() const;
       const Rtime&  RxPollTime() const;
       size_t        RxQueLimit() const;
+      bool          EtfEnable() const;
+      bool          EtfTrace() const;
 
       bool          Running() const;
 
@@ -242,6 +247,7 @@ namespace Retro {
         kStatNRxFraFMDrop,
         kStatNRxFraQLDrop,
         kStatNRxFraNRDrop,
+        kStatNRxFraETDrop,
         kStatNRxFra,
         kStatNRxFraMcast,
         kStatNRxFraBcast,
@@ -357,6 +363,8 @@ namespace Retro {
       uint64_t      fMacDefault;            //!< default MAC
       uint64_t      fMacList[2+kDimMcast];  //!< MAC list:0=phys,1=bcast,2+=mcast
       int           fMcastCnt;              //!< mcast count
+      bool          fEtfEnable;             //!< EtherType filter enable
+      bool          fEtfTrace;              //!< EtherType filter trave
       uint16_t      fPr0Last;               //!< last pr0 value
       bool          fPr1Pcto;               //!< pr1 pcto flag
       bool          fPr1Delua;              //!< pr1 delua flag

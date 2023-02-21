@@ -1,10 +1,11 @@
-// $Id: Rw11CntlDEUNA.ipp 1186 2019-07-12 17:49:59Z mueller $
+// $Id: Rw11CntlDEUNA.ipp 1377 2023-02-21 10:05:30Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2017-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
-// 2017-02-25   856   1.0    Initial version
+// 2023-02-21  1377   0.6    add EtherType filter
+// 2017-02-25   856   0.5    Initial version
 // ---------------------------------------------------------------------------
 
 /*!
@@ -13,6 +14,22 @@
 
 // all method definitions in namespace Retro
 namespace Retro {
+
+//--------------------------------------+-----------------------------------
+//! FIXME_docs
+inline void Rw11CntlDEUNA::SetEtfEnable(bool etfena)
+{
+  fEtfEnable = etfena;
+  return;
+}
+
+//--------------------------------------+-----------------------------------
+//! FIXME_docs
+inline void Rw11CntlDEUNA::SetEtfTrace(bool etftra)
+{
+  fEtfTrace = etftra;
+  return;
+}
 
 //--------------------------------------+-----------------------------------
 //! FIXME_docs
@@ -26,6 +43,20 @@ inline const Rtime& Rw11CntlDEUNA::RxPollTime() const
 inline size_t Rw11CntlDEUNA::RxQueLimit() const
 {
   return fRxQueLimit;
+}
+
+//--------------------------------------+-----------------------------------
+//! FIXME_docs
+inline bool Rw11CntlDEUNA::EtfEnable() const
+{
+  return fEtfEnable;
+}
+
+//--------------------------------------+-----------------------------------
+//! FIXME_docs
+inline bool Rw11CntlDEUNA::EtfTrace() const
+{
+  return fEtfTrace;
 }
 
 //--------------------------------------+-----------------------------------

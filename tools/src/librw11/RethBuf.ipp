@@ -1,9 +1,10 @@
-// $Id: RethBuf.ipp 1186 2019-07-12 17:49:59Z mueller $
+// $Id: RethBuf.ipp 1378 2023-02-23 10:45:17Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright 2017-2018 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2017-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2023-02-22  1378   1.1    improved Info/Dump methods
 // 2018-12-18  1089   1.0.1  use c++ style casts
 // 2017-02-25   856   1.0    Initial version
 // 2017-02-12   850   0.1    First draft
@@ -89,14 +90,6 @@ inline const uint16_t* RethBuf::Buf16() const
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline const uint32_t* RethBuf::Buf32() const
-{
-  return reinterpret_cast<uint32_t*>(const_cast<uint8_t*>(fBuf));
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
 inline uint8_t* RethBuf::Buf8()
 {
   return fBuf;
@@ -113,17 +106,9 @@ inline uint16_t* RethBuf::Buf16()
 //------------------------------------------+-----------------------------------
 //! FIXME_docs
 
-inline uint32_t* RethBuf::Buf32()
-{
-  return reinterpret_cast<uint32_t*>(fBuf);
-}
-
-//------------------------------------------+-----------------------------------
-//! FIXME_docs
-
 inline void RethBuf::SetMacDestination(uint64_t mac)
 {
-  RethTools::Mac2WList(mac, Buf16()+kWOffDstMac);
+  RethTools::Mac2WList(mac, Buf16()+kEOffDstMac/2);
   return;
 }
 
@@ -132,7 +117,7 @@ inline void RethBuf::SetMacDestination(uint64_t mac)
 
 inline void RethBuf::SetMacSource(uint64_t mac)
 {
-  RethTools::Mac2WList(mac, Buf16()+kWOffSrcMac);
+  RethTools::Mac2WList(mac, Buf16()+kEOffSrcMac/2);
   return;
 }
 
@@ -141,7 +126,7 @@ inline void RethBuf::SetMacSource(uint64_t mac)
 
 inline uint64_t RethBuf::MacDestination() const
 {
-  return RethTools::WList2Mac(Buf16()+kWOffDstMac);
+  return RethTools::WList2Mac(Buf16()+kEOffDstMac/2);
 }
 
 //------------------------------------------+-----------------------------------
@@ -149,7 +134,7 @@ inline uint64_t RethBuf::MacDestination() const
 
 inline uint64_t RethBuf::MacSource() const
 {
-  return RethTools::WList2Mac(Buf16()+kWOffSrcMac);
+  return RethTools::WList2Mac(Buf16()+kEOffSrcMac/2);
 }
 
 //------------------------------------------+-----------------------------------

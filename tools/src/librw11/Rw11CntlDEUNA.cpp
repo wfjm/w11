@@ -1,9 +1,10 @@
-// $Id: Rw11CntlDEUNA.cpp 1377 2023-02-21 10:05:30Z mueller $
+// $Id: Rw11CntlDEUNA.cpp 1378 2023-02-23 10:45:17Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2014-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2023-02-22  1378   0.6.1  use RethBuf::HeaderInfoAll
 // 2023-02-21  1377   0.6    add EtherType filter
 // 2023-02-20  1376   0.5.11 log transitions into and out of kStateRxPoll
 // 2019-06-15  1164   0.5.10 adapt to new RtimerFd API
@@ -553,6 +554,22 @@ bool Rw11CntlDEUNA::RcvCallback(RethBuf::pbuf_t& pbuf)
     return true;
   }
 
+  if (EtfEnable()) {                        // EtherType filter enabled ?
+    uint16_t etype = pbuf->EType();
+    bool etfok = false;
+    etfok |= etype == 0x0800;               // EtherType APV4
+    etfok |= etype == 0x0806;               // EtherType ARP
+    if (!etfok) {                           // drop by EtherType
+      fStats.Inc(kStatNRxFraETDrop);
+      if (fTraceLevel>1 && EtfTrace()) {
+        RlogMsg lmsg(LogFile());
+        lmsg << "-I " << Name() << ": edr "
+             << pbuf->HeaderInfoAll(fTraceLevel>2, 12) << endl;
+      }
+      return true;
+    }
+  }
+
   uint64_t macdst = pbuf->MacDestination();
   int matchdst = MacFilter(macdst);
 
@@ -567,25 +584,12 @@ bool Rw11CntlDEUNA::RcvCallback(RethBuf::pbuf_t& pbuf)
       }
       if (fTraceLevel>1) {
         RlogMsg lmsg(LogFile());
-        lmsg << "-I " << Name() << ": fdr " << pbuf->FrameInfo() << endl;
+        lmsg << "-I " << Name() << ": fdr "
+             << pbuf->HeaderInfoAll(fTraceLevel>2, 12) << endl;
       }
       return true;
     }
   } else {                                  // matched
-    if (EtfEnable()) {                      // EtherType filer enabled ?
-      uint16_t etype = pbuf->Type();
-      bool etfok = false;
-      etfok |= etype == 0x0800;             // EtherType APV4
-      etfok |= etype == 0x0806;             // EtherType ARP
-      if (!etfok) {                         // drop by EtherType
-        fStats.Inc(kStatNRxFraETDrop);
-        if (fTraceLevel>1 && EtfTrace()) {
-          RlogMsg lmsg(LogFile());
-          lmsg << "-I " << Name() << ": edr " << pbuf->FrameInfo() << endl;
-        }
-        return true;
-      }
-    }
     if (matchdst == 0) {
       fStats.Inc(kStatNRxFraFDst);
     } else if (matchdst == 1) {
@@ -599,7 +603,8 @@ bool Rw11CntlDEUNA::RcvCallback(RethBuf::pbuf_t& pbuf)
     fStats.Inc(kStatNRxFraQLDrop);
     if (fTraceLevel>0) {
       RlogMsg lmsg(LogFile());
-      lmsg << "-I " << Name() << ": qdr " << pbuf->FrameInfo() << endl;
+      lmsg << "-I " << Name() << ": qdr "
+           << pbuf->HeaderInfoAll(fTraceLevel>2, 12) << endl;
     }
     return true;
   }
@@ -696,7 +701,7 @@ void Rw11CntlDEUNA::Dump(std::ostream& os, int ind, const char* text,
   os << bl << "  fRxBufQueue.size: " << RosPrintf(rxquesize,"d", 4) << endl;
   for (size_t i=0; i<rxquesize; i++) {
     os << bl << "  fRxBufQueue[" << RosPrintf(i,"d", 4)
-       << "]: " << fRxBufQueue[i]->FrameInfo() << endl;
+       << "]: " << fRxBufQueue[i]->HeaderInfoAll(detail>0,12) << endl;
   }
   if (fRxBufCurr) {
     fRxBufCurr->Dump(os, ind+2, "fRxBufCurr:", detail);
@@ -1603,7 +1608,7 @@ int Rw11CntlDEUNA::TxRingHandler()
     }
   }
 
-  if (fTraceLevel>2) {
+  if (fTraceLevel>3) {
     RlogMsg lmsg(LogFile());
     std::ostringstream sos;
     fTxBuf.Dump(sos, 4, "fTxBuf: ");
@@ -1880,7 +1885,8 @@ void Rw11CntlDEUNA::LogFrameInfo(char rxtx, const RethBuf& buf)
 
   bool tx = (rxtx == 't');
   RlogMsg lmsg(LogFile());
-  lmsg << "-I " << Name() << ":" << (tx ? " snd " : " rcv ") << buf.FrameInfo();
+  lmsg << "-I " << Name() << ":" << (tx ? " snd " : " rcv ")
+       << buf.HeaderInfoAll(fTraceLevel>2, 12);
   return;
 }
 

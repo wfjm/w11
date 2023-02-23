@@ -1,9 +1,10 @@
-// $Id: RethTools.cpp 1186 2019-07-12 17:49:59Z mueller $
+// $Id: RethTools.cpp 1378 2023-02-23 10:45:17Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright 2017- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+// Copyright 2017-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2023-02-22  1378   1.1    add IpAddr2String
 // 2017-04-15   875   1.0    Initial version
 // 2017-02-04   849   0.1    First draft
 // ---------------------------------------------------------------------------
@@ -11,6 +12,8 @@
 /*!
   \brief   Implemenation of RethTools .
 */
+
+#include <sstream>
 
 #include "librtools/Rexception.hpp"
 #include "librtools/Rtools.hpp"
@@ -81,6 +84,19 @@ uint64_t String2Mac(const std::string& str)
   RerrMsg emsg;
   if (!String2Mac(str, mac, emsg)) throw Rexception(emsg);
   return mac;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+std::string IpAddr2String(const uint8_t ipaddr[4])
+{
+  ostringstream sos;
+  sos << uint16_t(ipaddr[0])
+      << "." << uint16_t(ipaddr[1])
+      << "." << uint16_t(ipaddr[2])
+      << "." << uint16_t(ipaddr[3]);
+  return sos.str();
 }
 
 } // end namespace RethTools

@@ -1,4 +1,4 @@
-# $Id: 211bsd_rpeth_boot.tcl 1154 2019-05-30 13:21:01Z mueller $
+# $Id: 211bsd_rpeth_boot.tcl 1378 2023-02-23 10:45:17Z mueller $
 #
 # Setup file for 211bsd RP06 based system with ethernet
 #
@@ -31,6 +31,7 @@ cpu0rpa0 att 211bsd_rpeth.dsk
 # setup network
 cpu0xua set type deuna
 cpu0xua set dpa  retro:00
+cpu0xua set etfena 1
 
 cpu0xua0 att tap:tap0
 

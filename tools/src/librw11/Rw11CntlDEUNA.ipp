@@ -1,4 +1,4 @@
-// $Id: Rw11CntlDEUNA.ipp 1377 2023-02-21 10:05:30Z mueller $
+// $Id: Rw11CntlDEUNA.ipp 1379 2023-02-24 09:17:23Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2017-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
@@ -57,6 +57,20 @@ inline bool Rw11CntlDEUNA::EtfEnable() const
 inline bool Rw11CntlDEUNA::EtfTrace() const
 {
   return fEtfTrace;
+}
+
+//--------------------------------------+-----------------------------------
+//! FIXME_docs
+inline float Rw11CntlDEUNA::TxLoss() const
+{
+  return fTxLoss;
+}
+
+//--------------------------------------+-----------------------------------
+//! FIXME_docs
+inline float Rw11CntlDEUNA::RxLoss() const
+{
+  return fRxLoss;
 }
 
 //--------------------------------------+-----------------------------------

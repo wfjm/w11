@@ -1,9 +1,10 @@
-// $Id: Rw11CntlDEUNA.hpp 1377 2023-02-21 10:05:30Z mueller $
+// $Id: Rw11CntlDEUNA.hpp 1379 2023-02-24 09:17:23Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2014-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2023-02-24  1379   0.6.1  add simulated tx and rx packet loss mechanism
 // 2023-02-21  1377   0.6    add EtherType filter
 // 2017-04-14   875   0.5    Initial version (minimal functions, 211bsd ready)
 // 2014-06-09   561   0.1    First draft 
@@ -18,6 +19,7 @@
 #define included_Retro_Rw11CntlDEUNA 1
 
 #include <deque>
+#include <random>
 
 #include "librtools/Rtime.hpp"
 #include "librtools/RtimerFd.hpp"
@@ -47,12 +49,16 @@ namespace Retro {
       void          SetRxQueLimit(size_t rxqlim);
       void          SetEtfEnable(bool etfena);
       void          SetEtfTrace(bool etftra);
+      void          SetTxLoss(float txloss);
+      void          SetRxLoss(float txloss);
 
       std::string   MacDefault() const;
       const Rtime&  RxPollTime() const;
       size_t        RxQueLimit() const;
       bool          EtfEnable() const;
       bool          EtfTrace() const;
+      float         TxLoss() const;
+      float         RxLoss() const;
 
       bool          Running() const;
 
@@ -248,6 +254,7 @@ namespace Retro {
         kStatNRxFraQLDrop,
         kStatNRxFraNRDrop,
         kStatNRxFraETDrop,
+        kStatNRxFraLoss,
         kStatNRxFra,
         kStatNRxFraMcast,
         kStatNRxFraBcast,
@@ -263,6 +270,7 @@ namespace Retro {
         kStatNTxBytMcast,
         kStatNTxFraAbort,
         kStatNTxFraPad,
+        kStatNTxFraLoss,
         kStatNFraLoop,
         kDimStat
       };    
@@ -364,7 +372,9 @@ namespace Retro {
       uint64_t      fMacList[2+kDimMcast];  //!< MAC list:0=phys,1=bcast,2+=mcast
       int           fMcastCnt;              //!< mcast count
       bool          fEtfEnable;             //!< EtherType filter enable
-      bool          fEtfTrace;              //!< EtherType filter trave
+      bool          fEtfTrace;              //!< EtherType filter trace
+      float         fTxLoss;                //!< tx loss fraction
+      float         fRxLoss;                //!< rx loss fraction
       uint16_t      fPr0Last;               //!< last pr0 value
       bool          fPr1Pcto;               //!< pr1 pcto flag
       bool          fPr1Delua;              //!< pr1 delua flag
@@ -405,6 +415,8 @@ namespace Retro {
       uint32_t      fCtrTxBytMcast;         //!< ctr: xmit mcast bytes
       uint32_t      fCtrTxFraAbort;         //!< ctr: xmit aborted frames
       uint32_t      fCtrFraLoop;            //!< ctr: loopback frames
+      std::default_random_engine            fRanEngine;  //!< random engine
+      std::uniform_real_distribution<float> fRanGen;     //!< random generator
  };
   
 } // end namespace Retro

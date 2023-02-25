@@ -1,9 +1,10 @@
-// $Id: Rw11CntlDEUNA.cpp 1378 2023-02-23 10:45:17Z mueller $
+// $Id: Rw11CntlDEUNA.cpp 1379 2023-02-24 09:17:23Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2014-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2023-02-24  1379   0.6.2  add simulated tx and rx packet loss mechanism
 // 2023-02-22  1378   0.6.1  use RethBuf::HeaderInfoAll
 // 2023-02-21  1377   0.6    add EtherType filter
 // 2023-02-20  1376   0.5.11 log transitions into and out of kStateRxPoll
@@ -226,6 +227,8 @@ Rw11CntlDEUNA::Rw11CntlDEUNA()
     fMcastCnt(0),
     fEtfEnable(false),
     fEtfTrace(false),
+    fTxLoss(0.0),
+    fRxLoss(0.0),
     fPr0Last(0),
     fPr1Pcto(false),
     fPr1Delua(false),
@@ -248,7 +251,7 @@ Rw11CntlDEUNA::Rw11CntlDEUNA()
     fRxDscCur{},
     fRxDscNxt{},
     fRxPollTime(0.01),
-    fRxQueLimit(1000),
+    fRxQueLimit(64),
     fRxPollTimer("Rw11CntlDEUNA::fRxPollTimer."),
     fRxBufQueue(),
     fRxBufCurr(),
@@ -265,7 +268,9 @@ Rw11CntlDEUNA::Rw11CntlDEUNA()
     fCtrTxByt(0),
     fCtrTxBytMcast(0),
     fCtrTxFraAbort(0),
-    fCtrFraLoop(0)
+    fCtrFraLoop(0),
+    fRanEngine(),
+    fRanGen(0.0,1.0)
 {
   // must be here because Units have a back-ptr (not available at Rw11CntlBase)
   fspUnit[0].reset(new Rw11UnitDEUNA(this, 0)); // single unit controller
@@ -314,6 +319,7 @@ Rw11CntlDEUNA::Rw11CntlDEUNA()
   fStats.Define(kStatNRxFraQLDrop, "NRxFraQLDrop", "in frames drop queue lim");
   fStats.Define(kStatNRxFraNRDrop, "NRxFraNRDrop", "in frames drop not running");
   fStats.Define(kStatNRxFraETDrop, "NRxFraETDrop", "in frames drop etf miss");
+  fStats.Define(kStatNRxFraLoss,   "NRxFraLoss",   "in frames loss");
   fStats.Define(kStatNRxFra      , "NRxFra"      , "rcvd frames");
   fStats.Define(kStatNRxFraMcast , "NRxFraMcast" , "rcvd bcast+mcast frames");
   fStats.Define(kStatNRxFraBcast , "NRxFraBcast" , "rcvd bcast frames");
@@ -329,6 +335,7 @@ Rw11CntlDEUNA::Rw11CntlDEUNA()
   fStats.Define(kStatNTxBytMcast , "NTxBytMcast" , "xmit mcast bytes");
   fStats.Define(kStatNTxFraAbort , "NTxFraAbort" , "xmit aborted frames");
   fStats.Define(kStatNTxFraPad   , "NTxFraPad"   , "xmit padded frames");
+  fStats.Define(kStatNTxFraLoss,   "NTxFraLoss",   "xmit frames loss");
   fStats.Define(kStatNFraLoop    , "NFraLoop"    , "loopback frames");
 }
 
@@ -489,6 +496,30 @@ void Rw11CntlDEUNA::SetRxQueLimit(size_t rxqlim)
   return;
 }
 
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rw11CntlDEUNA::SetTxLoss(float txloss)
+{
+  if (txloss < 0.0 || txloss > 0.9)
+    throw Rexception("Rw11CntlDEUNA::SetTxLoss",
+                     string("Bad args: not in [0.0,0.9]"));
+  fTxLoss = txloss;
+  return;
+}
+
+//------------------------------------------+-----------------------------------
+//! FIXME_docs
+
+void Rw11CntlDEUNA::SetRxLoss(float rxloss)
+{
+  if (rxloss < 0.0 || rxloss > 0.9)
+    throw Rexception("Rw11CntlDEUNA::SetRxLoss",
+                     string("Bad args: not in [0.0,0.9]"));
+  fRxLoss = rxloss;
+  return;
+}
+
 //--------------------------------------+-----------------------------------
 //! FIXME_docs
 
@@ -564,6 +595,19 @@ bool Rw11CntlDEUNA::RcvCallback(RethBuf::pbuf_t& pbuf)
       if (fTraceLevel>1 && EtfTrace()) {
         RlogMsg lmsg(LogFile());
         lmsg << "-I " << Name() << ": edr "
+             << pbuf->HeaderInfoAll(fTraceLevel>2, 12) << endl;
+      }
+      return true;
+    }
+  }
+
+  if (fRxLoss > 0.0) {                      // rx loss enabled ?
+    float ran = fRanGen(fRanEngine);
+    if (ran < fRxLoss) {                    // simulated rx loss
+      fStats.Inc(kStatNRxFraLoss);
+      if (fTraceLevel>1) {
+        RlogMsg lmsg(LogFile());
+        lmsg << "-I " << Name() << ": rlo "
              << pbuf->HeaderInfoAll(fTraceLevel>2, 12) << endl;
       }
       return true;
@@ -669,6 +713,8 @@ void Rw11CntlDEUNA::Dump(std::ostream& os, int ind, const char* text,
   }
   os << bl << "  fEtfEnable:       " << RosPrintf(fEtfEnable) << endl;
   os << bl << "  fEtfTrace:        " << RosPrintf(fEtfTrace) << endl;
+  os << bl << "  fTxLoss:          " << RosPrintf(fTxLoss,"f",5,3) << endl;
+  os << bl << "  fRxLoss:          " << RosPrintf(fRxLoss,"f",5,3) << endl;
 
   os << bl << "  fPr0Last*:        " << RosPrintf(fPr0Last,"o0", 6) << endl;
   os << bl << "  fPr1*:           " 
@@ -1211,13 +1257,19 @@ bool Rw11CntlDEUNA::ExecGetcmd(RlinkCommandList& clist)
       uint16_t txelen, rxelen;
       uint16_t txsize, rxsize;
       Wlist2UBAddrLen(&udb[0], txbase, txelen);
-      if (txbase & ~kUBA_M) return false;
       txsize = udb[2];
-      if (txsize <= 1) return false;
       Wlist2UBAddrLen(&udb[3], rxbase, rxelen);
-      if (rxbase & ~kUBA_M) return false;
       rxsize = udb[5];
-      if (rxsize <= 1) return false;
+      if (txbase & ~kUBA_M || txsize <= 1 ||
+          rxbase & ~kUBA_M || rxsize <= 1) {
+         RlogMsg lmsg(LogFile());
+         lmsg << "-E " << Name() << ": bad WRF"
+              << " txbase=" << RosPrintf(txbase,"o", 8)
+              << " txsize=" << RosPrintf(txsize,"d", 2)
+              << " rxbase=" << RosPrintf(rxbase,"o", 8)
+              << " rxsize=" << RosPrintf(rxsize,"d", 2);
+        return false;
+      }
       fRingValid  = true;
       fTxRingBase = txbase;
       fTxRingELen = txelen;
@@ -1617,10 +1669,19 @@ int Rw11CntlDEUNA::TxRingHandler()
 
   LogFrameInfo('t', fTxBuf);               // log transmitted frame
   if (unit.HasVirt()) {                    //  attached ?
-    RerrMsg emsg;
-    unit.Virt().Snd(fTxBuf, emsg);
-    // FIXME_code: error handling 
-  }  
+    if (fTxLoss > 0.0 && fRanGen(fRanEngine) < fTxLoss) { // tx loss enabled ?
+      fStats.Inc(kStatNTxFraLoss);
+      if (fTraceLevel>1) {
+        RlogMsg lmsg(LogFile());
+        lmsg << "-I " << Name() << ": tlo "
+             << fTxBuf.HeaderInfoAll(fTraceLevel>2, 12) << endl;
+      }
+    } else {
+      RerrMsg emsg;
+      unit.Virt().Snd(fTxBuf, emsg);
+      // FIXME_code: error handling
+    }
+  }
 
   LogRingInfo('t','>');                    // log final ring dsc state
   Server().Exec(clist);

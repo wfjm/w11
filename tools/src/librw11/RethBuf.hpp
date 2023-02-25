@@ -1,9 +1,10 @@
-// $Id: RethBuf.hpp 1378 2023-02-23 10:45:17Z mueller $
+// $Id: RethBuf.hpp 1379 2023-02-24 09:17:23Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2017-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2023-02-24  1379   1.1.1  add copy constructor
 // 2023-02-22  1378   1.1    improved Info/Dump methods
 // 2018-12-22  1091   1.0.1  Dump() not longer virtual (-Wnon-virtual-dtor fix)
 // 2017-04-17   880   1.0    Initial version
@@ -30,6 +31,7 @@ namespace Retro {
       typedef std::shared_ptr<RethBuf> pbuf_t;
     
                     RethBuf();
+                    RethBuf(const RethBuf& src);
                    ~RethBuf();
     
       void          Clear();

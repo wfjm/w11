@@ -1,9 +1,10 @@
-// $Id: RtclRw11CntlDEUNA.cpp 1377 2023-02-21 10:05:30Z mueller $
+// $Id: RtclRw11CntlDEUNA.cpp 1379 2023-02-24 09:17:23Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2014-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2023-02-24  1379   1.0.4  add simulated tx and rx packet loss mechanism
 // 2023-02-21  1377   1.0.3  add EtherType filter
 // 2019-02-23  1114   1.0.2  use std::bind instead of lambda
 // 2018-12-15  1082   1.0.1  use lambda instead of boost::bind
@@ -47,6 +48,8 @@ RtclRw11CntlDEUNA::RtclRw11CntlDEUNA()
   fGets.Add<size_t>        ("rxqlim", bind(&Rw11CntlDEUNA::RxQueLimit,  pobj));
   fGets.Add<bool>          ("etfena", bind(&Rw11CntlDEUNA::EtfEnable,   pobj));
   fGets.Add<bool>          ("etftra", bind(&Rw11CntlDEUNA::EtfTrace,    pobj));
+  fGets.Add<float>         ("txloss", bind(&Rw11CntlDEUNA::TxLoss,      pobj));
+  fGets.Add<float>         ("rxloss", bind(&Rw11CntlDEUNA::RxLoss,      pobj));
   fGets.Add<bool>          ("run",    bind(&Rw11CntlDEUNA::Running,     pobj));
 
   fSets.Add<const string&> ("type",
@@ -61,6 +64,10 @@ RtclRw11CntlDEUNA::RtclRw11CntlDEUNA()
                               bind(&Rw11CntlDEUNA::SetEtfEnable,pobj, _1));
   fSets.Add<bool>          ("etftra",
                               bind(&Rw11CntlDEUNA::SetEtfTrace,pobj, _1));
+  fSets.Add<float>         ("txloss",
+                              bind(&Rw11CntlDEUNA::SetTxLoss,pobj, _1));
+  fSets.Add<float>         ("rxloss",
+                              bind(&Rw11CntlDEUNA::SetRxLoss,pobj, _1));
 }
 
 //------------------------------------------+-----------------------------------

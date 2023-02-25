@@ -1,9 +1,10 @@
-// $Id: RethBuf.cpp 1378 2023-02-23 10:45:17Z mueller $
+// $Id: RethBuf.cpp 1379 2023-02-24 09:17:23Z mueller $
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright 2017-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 // 
 // Revision History: 
 // Date         Rev Version  Comment
+// 2023-02-24  1379   1.1.1  add copy constructor
 // 2023-02-22  1378   1.1    improved Info/Dump methods
 // 2017-04-16   880   1.0    Initial version
 // 2017-02-12   850   0.1    First draft
@@ -19,6 +20,7 @@
 #include <arpa/inet.h>
 
 #include <sstream>
+#include <cstring>
 
 #include "librtools/RosFill.hpp"
 #include "librtools/RosPrintf.hpp"
@@ -81,6 +83,15 @@ RethBuf::RethBuf()
   : fTime(),
     fSize(0)
 {}
+
+//------------------------------------------+-----------------------------------
+//! Copy constructor
+RethBuf::RethBuf(const RethBuf& src)
+  : fTime(src.fTime),
+    fSize(src.fSize)
+{
+  memcpy(fBuf, src.fBuf, src.fSize);
+}
 
 //------------------------------------------+-----------------------------------
 //! Destructor
@@ -183,9 +194,11 @@ std::string RethBuf::HeaderInfo1() const
     auto prot  = GetB(kElength+kIpOffProt);
     auto tlen  = GetS(kElength+kIpOffLen);
     auto flags = GetB(kElength+kIpOffFlags);
+    auto ipsrc = RethTools::IpAddr2String(Buf8()+kElength+kIpOffSrcIP);
+    auto ipdst = RethTools::IpAddr2String(Buf8()+kElength+kIpOffDstIP);
     sos << "IPv4: prot " << RosPrintf(prot,"d",3)
-        << ": " << RethTools::IpAddr2String(Buf8()+kElength+kIpOffSrcIP)
-        << " > " << RethTools::IpAddr2String(Buf8()+kElength+kIpOffDstIP)
+        << ": " << RosPrintf(ipsrc.c_str(),"-s", 15)
+        << " > " << RosPrintf(ipdst.c_str(),"-s", 15)
         << " siz: " << RosPrintf(tlen,"d", 4);
     if (flags & 0x04) sos << " DF";
     if (flags & 0x08) sos << " MF";

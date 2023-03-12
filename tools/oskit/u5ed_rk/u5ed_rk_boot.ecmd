@@ -1,0 +1,16 @@
+; $Id: u5ed_rk_boot.ecmd 1381 2023-03-12 12:16:45Z mueller $
+;
+; Setup file for Unix 5th Edition RK05 based system
+;
+; Usage:
+;   e11 /initfile:u5ed_rk_boot.ecmd
+;
+@../../e11/setup_w11a_min.ecmd
+;
+; set console to 7bit mode
+set tt0: mode=9600,N,7,1
+;
+mount dk0 u5ed_rk.dsk
+log dk0: e11_dk0.log
+;
+boo dk0:

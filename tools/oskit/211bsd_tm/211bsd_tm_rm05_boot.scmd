@@ -1,10 +1,9 @@
-; $Id: 211bsd_tm_rm05_boot.scmd 690 2015-06-07 18:23:51Z mueller $
+; $Id: 211bsd_tm_rm05_boot.scmd 1381 2023-03-12 12:16:45Z mueller $
 ;
-; Setup file for creating a 211bsd RM05 system from a TM11 dist kit
+; Setup file for creating a 2.11BSD RM05 system from a TM11 dist kit
 ;
 ; Usage:
-;
-; pdp11 211bsd_tm_boot.scmd
+;   pdp11 211bsd_tm_boot.scmd
 ;
 do ../../simh/setup_w11a_max.scmd
 set tto 7b

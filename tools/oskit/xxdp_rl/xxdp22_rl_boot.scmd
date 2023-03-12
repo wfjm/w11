@@ -1,10 +1,9 @@
-; $Id: xxdp22_rl_boot.scmd 1256 2022-07-15 09:14:14Z mueller $
+; $Id: xxdp22_rl_boot.scmd 1381 2023-03-12 12:16:45Z mueller $
 ;
 ; Setup file for XXDP V2.2 RL02 based system
 ;
 ; Usage:
-;
-; pdp11 xxdp22_rl_boot.scmd
+;   pdp11 xxdp22_rl_boot.scmd
 ;
 do ../../simh/setup_w11a_max.scmd
 ;

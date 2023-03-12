@@ -5,6 +5,7 @@ For general system setup see notes on
 - [FPGA Board setup](w11a_board_connection.md)
 - [Rlink and Backend Server setup](w11a_backend_setup.md)
 - [SimH simulator setup](w11a_simh_setup.md)
+- [e11 simulator setup](w11a_e11_setup.md)
 
 Ready to be used 'oskits' are provided under
 [tools/oskit](../tools/oskit/README.md).

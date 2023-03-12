@@ -1,0 +1,12 @@
+; $Id: xxdp22_rl_boot.ecmd 1381 2023-03-12 12:16:45Z mueller $
+;
+; Setup file for XXDP V2.2 RL02 based system
+;
+; Usage:
+;   e11 /initfile:xxdp22_rl_boot.ecmd
+;
+@../../e11/setup_w11a_max.ecmd
+;
+mount dl0: xxdp22.dsk /RL02
+;
+boo dl0:

@@ -1,10 +1,9 @@
-; $Id: rt11-53_rl_boot.scmd 1256 2022-07-15 09:14:14Z mueller $
+; $Id: rt11-53_rl_boot.scmd 1381 2023-03-12 12:16:45Z mueller $
 ;
 ; Setup file for RT-11 V5.3 RL02 based system
 ;
 ; Usage:
-;
-; pdp11 rt11-53_rl_boot.scmd
+;   pdp11 rt11-53_rl_boot.scmd
 ;
 do ../../simh/setup_w11a_max.scmd
 ;

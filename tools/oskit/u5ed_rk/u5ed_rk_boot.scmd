@@ -1,10 +1,9 @@
-; $Id: u5ed_rk_boot.scmd 922 2017-07-02 12:13:36Z mueller $
+; $Id: u5ed_rk_boot.scmd 1381 2023-03-12 12:16:45Z mueller $
 ;
 ; Setup file for Unix 5th Edition RK05 based system
 ;
 ; Usage:
-;
-; pdp11 u5ed_rk_boot.scmd
+;   pdp11 u5ed_rk_boot.scmd
 ;
 do ../../simh/setup_w11a_min.scmd
 set tto 7b

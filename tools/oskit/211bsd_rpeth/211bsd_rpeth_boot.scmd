@@ -1,12 +1,10 @@
-; $Id: 211bsd_rpeth_boot.scmd 899 2017-05-27 13:25:41Z mueller $
+; $Id: 211bsd_rpeth_boot.scmd 1381 2023-03-12 12:16:45Z mueller $
 ;
-; Setup file for 211bsd RP06 based system with ethernet
+; Setup file for 2.11BSD RP06 based system with Ethernet
 ;
 ; Usage:
-;
-; ip_create_tap
-;
-; pdp11 211bsd_rpnet_boot.scmd
+;   ip_create_tap
+;   pdp11 211bsd_rpeth_boot.scmd
 ;
 do ../../simh/setup_w11a_max.scmd
 set tto 7b

@@ -30,8 +30,12 @@ The full set of tests is only run for tagged releases.
 
 ### Summary
 - revamp tap and bridge handling
+- support e11 as additional emulator for most systems
 
 ### New features
+- new tools
+  - tools/e11: added configuration files for e11
+  - oskit/\*/: added startup files for e11 where possible
 
 ### Changes
 - tools changes

@@ -1,0 +1,14 @@
+; $Id: 211bsd_rl_boot.ecmd 1381 2023-03-12 12:16:45Z mueller $
+;
+; Setup file for 2.11BSD RL02 based system
+;
+; Usage:
+;   e11 /initfile:211bsd_rl_boot.ecmd
+;
+@../../e11/setup_w11a_max.ecmd
+set tt0: mode=9600,N,7,1
+;
+mount dl0: 211bsd_rl_root.dsk /RL02
+mount dl1: 211bsd_rl_usr.dsk  /RL02
+;
+boo dl0:

@@ -7,6 +7,7 @@ This directory tree contains **many tools** and is organized in
 | [bin_xilinx_wrapper](bin_xilinx_wrapper) | wrappers for Xilinx environments |
 | [dasm-11](dasm-11) | environment for the `dasm-11` disassembler |
 | [dox](dox)       | configuration files for Doxygen |
+| [e11](e11)       | configuration files for `e11` |
 | [exptest](exptest) | configuration files for `ostest` and other expect based tests |
 | [fx2](fx2)       | firmware for Cypress FX2 USB interface |
 | [gwstart](gwstart) | environment for the `gwstart` command |

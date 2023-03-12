@@ -1,10 +1,9 @@
-; $Id: 211bsd_rk_boot.scmd 519 2013-05-12 20:44:16Z mueller $
+; $Id: 211bsd_rk_boot.scmd 1381 2023-03-12 12:16:45Z mueller $
 ;
-; Setup file for 211bsd RK based system
+; Setup file for 2.11BSD RK based system
 ;
 ; Usage:
-;
-; pdp11 211bsd_rk_boot.scmd
+;   pdp11 211bsd_rk_boot.scmd
 ;
 do ../../simh/setup_w11a_max.scmd
 set tto 7b

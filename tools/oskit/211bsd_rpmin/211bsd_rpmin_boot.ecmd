@@ -1,0 +1,14 @@
+; $Id: 211bsd_rpmin_boot.ecmd 1381 2023-03-12 12:16:45Z mueller $
+;
+; Setup file for 2.11BSD RP06 based minimal memory system
+;
+; Usage:
+;   e11 /initfile:211bsd_rpmin_boot.ecmd
+;
+@../../e11/setup_w11a_max.ecmd
+set memory 512
+set tt0: mode=9600,N,7,1
+;
+mount db0: 211bsd_rpmin.dsk  /RP06
+;
+boo db0:

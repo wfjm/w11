@@ -1,0 +1,12 @@
+; $Id: rt11-53_rl_boot.ecmd 1381 2023-03-12 12:16:45Z mueller $
+;
+; Setup file for RT-11 V5.3 RL02 based system
+;
+; Usage:
+;   e11 /initfile:rt11-53_rl_boot.ecmd
+;
+@../../e11/setup_w11a_max.ecmd
+;
+mount dl0: RT11_V5.3_SYSTEM.dsk
+;
+boo dl0:

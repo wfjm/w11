@@ -1,0 +1,12 @@
+; $Id: rt11-40_rk_boot.ecmd 1381 2023-03-12 12:16:45Z mueller $
+;
+; Setup file for RT-11 V4.0 RK05 based system
+;
+; Usage:
+;   e11 /initfile:rt11-40_rk_boot.ecmd
+;
+@../../e11/setup_w11a_min.ecmd
+;
+mount dk0: rtv4_rk.dsk  /RK05
+;
+boo dk0:

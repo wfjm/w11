@@ -1,4 +1,4 @@
-; $Id: setup_w11a_max.scmd 1367 2023-02-06 14:11:34Z mueller $
+; $Id: setup_w11a_max.scmd 1381 2023-03-12 12:16:45Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2008-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -10,7 +10,7 @@
 ;
 ; Setup file for 'maximal' w11a configuration under simh 3.8 and above
 ;
-; This setup reflects the full w11a system on a Nexys[234] board
+; This setup reflects the full w11a system on Nexys or Arty type boards
 ;   --> 4 MByte, 2 DL11, DZ+LP+PC, RK05+RL02+RP06+TM11, DEUNA
 ;
 ; 11/70 CPU no FPP, 4 MByte memory

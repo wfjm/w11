@@ -1,10 +1,9 @@
-; $Id: 211bsd_rp_boot.scmd 686 2015-06-04 21:08:08Z mueller $
+; $Id: 211bsd_rp_boot.scmd 1381 2023-03-12 12:16:45Z mueller $
 ;
-; Setup file for 211bsd RP06 based system
+; Setup file for 2.11BSD RP06 based system
 ;
 ; Usage:
-;
-; pdp11 211bsd_rp_boot.scmd
+;   pdp11 211bsd_rp_boot.scmd
 ;
 do ../../simh/setup_w11a_max.scmd
 set tto 7b

@@ -1,0 +1,14 @@
+; $Id: rsx11mp-30_rp_boot.ecmd 1381 2023-03-12 12:16:45Z mueller $
+;
+; Setup file for RSX11-M+ V3.0 RP06 based system
+;
+; Usage:
+;   e11 /initfile:rsx11mp-30_rp_boot.ecmd
+;
+@../../e11/setup_w11a_max.ecmd
+;
+; disk setup
+;
+mount db0: rsx11mp-30.dsk /RP06
+;
+boo db0:

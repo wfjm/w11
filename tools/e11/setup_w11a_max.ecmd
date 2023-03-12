@@ -1,0 +1,94 @@
+; $Id: setup_w11a_max.ecmd 1381 2023-03-12 12:16:45Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2023- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; Setup file for 'maximal' w11a configuration under e11 v7.4 and above
+;
+; This setup reflects the full w11a system on Nexys or Arty type boards
+;   --> 4 MByte, 2 DL11, DZ+LP+PC, RK05+RL02+RP06+TM11, {DEUNA}
+;   Note: no DEUNA and Ethernet support yet
+;
+; Address and vector assignments are done by e11 autoconfig (unless marked *)
+; These assignments match the real w11a implementation
+;
+; 11/70 CPU no FPP, 4 MByte memory
+; 1 KW11-L                      177546/100/BR6
+; 1 KW11-P                      172540/104/BR6
+; 2 DL11                        177560/060/BR4   (cons)
+;                               176500/300/BR4 * (2nd)
+; 1 DZ11                        160100/310/BR5 *
+; 1 LP11                        177514/200/BR4
+; 1 PC11                        177550/070/BR4
+; 1 RK11 + 8 RK05    drives     177400/220/BR5
+; 1 RL11 + 4 RL01/02 drives     174400/160/BR5
+; 1 RH70 + 4 RP06    drives     176700/254/BR5
+; 1 TM11 + 4 drives             172520/224/BR5
+; 0 DEUNA                       174510/120/BR5 *
+;
+; setup w11 like processor configuration
+;   set nouwin to disable UNIBUS window (17000000-17757777) to UNIBUS map
+;   set memory to 3840
+;   this way e11 behaves like w11 and SimH, which simplifies tcodes
+;
+set cpu 70
+set cpu nouwin
+set memory 1024
+set cpu nofpp
+set idle delay=1
+; set ^E as break character (like in SimH)
+set break 005
+; enable PC value logging (inspect with show pclog)
+set pclog on
+; set sysid, leading '1' indicates simulator, next '2' e11
+set cpu SYSID=0120345
+;
+; clock options
+;
+set hz 50
+assign kp0:
+;
+; setup pdp11 console via telnet
+;
+set tt0: DL11A
+log tt0: e11_dl0.log
+;
+; 2nd DL11 interface
+;
+set tt1: DL11A  CSR=0176500 VEC=0300 PRIO=4
+assign tt1: TELSINGLE: /PORT=5671
+log tt1: e11_dl1.log
+;
+set yza: DZ11 CSR=0160100 VEC=0310 PRIO=5
+set TELNETa: PORT=5672
+assign yza0-7: TELNETa:
+log yza0:  e11_dz0.log
+log yza1:  e11_dz1.log
+log yza2:  e11_dz2.log
+log yza3:  e11_dz3.log
+;
+; line printer
+;
+assign lp0: /dev/null
+log lp0: e11_lpt.dat
+;
+; paper tape read/punch
+;
+mount pr0: NULL:
+mount pp0: e11_ptp.dat
+;
+; disk drives (ensure RK11, dummy mount rk7:)
+;
+mount dk7: NULL:
+;
+mount dl3: NULL: /RL02
+;
+mount db3: NULL: /RP06
+;
+; tape drives
+;
+mount mt7: NULL:
+;
+; ethernet interfaces (none)
+;
+; sho dev
+;

@@ -1,10 +1,9 @@
-; $Id: rsx11mp-30_rp_boot.scmd 1256 2022-07-15 09:14:14Z mueller $
+; $Id: rsx11mp-30_rp_boot.scmd 1381 2023-03-12 12:16:45Z mueller $
 ;
 ; Setup file for RSX11-M+ V3.0 RP06 based system
 ;
 ; Usage:
-;
-; pdp11 rsx11mp-30_rp_boot.scmd
+;   pdp11 rsx11mp-30_rp_boot.scmd
 ;
 do ../../simh/setup_w11a_max.scmd
 set tto 7b

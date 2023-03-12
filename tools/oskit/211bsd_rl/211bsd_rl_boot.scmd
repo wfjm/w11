@@ -1,10 +1,9 @@
-; $Id: 211bsd_rl_boot.scmd 1256 2022-07-15 09:14:14Z mueller $
+; $Id: 211bsd_rl_boot.scmd 1381 2023-03-12 12:16:45Z mueller $
 ;
-; Setup file for 211bsd RL02 based system
+; Setup file for 2.11BSD RL02 based system
 ;
 ; Usage:
-;
-; pdp11 211bsd_rl_boot.scmd
+;   pdp11 211bsd_rl_boot.scmd
 ;
 do ../../simh/setup_w11a_max.scmd
 set tto 7b

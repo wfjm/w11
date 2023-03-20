@@ -1,9 +1,10 @@
-# $Id: Makefile 1275 2022-08-10 08:10:40Z mueller $
+# $Id: Makefile 1383 2023-03-20 08:19:14Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2023-03-19  1382   1.1.1  add header line for %.te11 target
 # 2022-08-08  1275   1.1    add auto-dependency rule
 # 2022-07-29  1264   1.0    Initial version
 #---
@@ -35,6 +36,7 @@ DEP_all  = $(MAC_all:.mac=.dep)
 	pdp11 tcode_exec.scmd $* | grep -q "HALT instruction, PC: 002002"
 # execute e11 simulation; output goes to tmp_e11_tt0.log
 %.te11 : %.lda
+	@echo "execute $* ---------------------------------------------------"
 	@rm -f tmp_e11.ini
 	@echo "@tcode.ecmd" >> tmp_e11.ini
 	@echo "mount pr: $*.lda" >> tmp_e11.ini

@@ -7,7 +7,7 @@ This directory tree contains **many tools** and is organized in
 | [bin_xilinx_wrapper](bin_xilinx_wrapper) | wrappers for Xilinx environments |
 | [dasm-11](dasm-11) | environment for the `dasm-11` disassembler |
 | [dox](dox)       | configuration files for Doxygen |
-| [e11](e11)       | configuration files for `e11` |
+| [e11](e11)       | configuration files for E11 emulator |
 | [exptest](exptest) | configuration files for `ostest` and other expect based tests |
 | [fx2](fx2)       | firmware for Cypress FX2 USB interface |
 | [gwstart](gwstart) | environment for the `gwstart` command |
@@ -15,7 +15,7 @@ This directory tree contains **many tools** and is organized in
 | [man](man)       | man pages |
 | [mcode](mcode)   | miscellaneous stand-alone codes for system tests |
 | [oskit](oskit)   | support files for OS disk/tape image kits |
-| [simh](simh)     | configuration files for `SimH pdp11` |
+| [simh](simh)     | configuration files for `SimH pdp11` emulator |
 | [src](src)       | C++ sources for rlink backend |
 | [sys](sys)       | udev rules for USB device handling |
 | [tbench](tbench) | w11 test bench |

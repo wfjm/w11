@@ -4,7 +4,7 @@ See notes on
 - [FPGA Board setup](../../../doc/w11a_board_connection.md)
 - [Rlink and Backend Server setup](../../../doc/w11a_backend_setup.md)
 - [SimH simulator setup](../../../doc/w11a_simh_setup.md)
-- [e11 simulator setup](../../../doc/w11a_e11_setup.md)
+- [E11 simulator setup](../../../doc/w11a_e11_setup.md)
 - [Legal terms](../../../doc/w11a_os_guide.md)
 - **and read [README_license.txt](README_license.txt) !!**
 

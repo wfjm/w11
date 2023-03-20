@@ -30,12 +30,13 @@ The full set of tests is only run for tagged releases.
 
 ### Summary
 - revamp tap and bridge handling
-- support e11 as additional emulator for most systems
+- support E11 as additional emulator for most systems
 
 ### New features
 - new tools
-  - tools/e11: added configuration files for e11
-  - oskit/\*/: added startup files for e11 where possible
+  - tools/e11: added configuration files for E11
+  - tools/(tcode|xxdp): added startup files for E11
+  - oskit/\*/: added startup files for E11 where feasible
 
 ### Changes
 - tools changes
@@ -51,6 +52,8 @@ The full set of tests is only run for tagged releases.
 ### Bug Fixes
   - tools/bin/asm-11
     - BUGFIX: fix directly nested .if behavior
+  - tools/tcode
+    - BUGFIX: use mmr0 page mode for PSW PM if ico=1
   - src/librtools
     - RtimerFd.cpp: BUGFIX: SetRelative(): correct is-positive check
 

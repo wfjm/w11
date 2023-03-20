@@ -9,11 +9,13 @@ The issues of the w11 CPU and systems are listed in a separate document
   - [Instruction fetch after `SPL`](w11a_diff_70_spl_bug.md)
   - [`CLR` and `SXT` do a write](w11a_diff_70_clr_sxt_write.md)
   - [State of N and Z and registers after a `DIV` abort with `V=1`](w11a_diff_70_div_after_v1.md)
+- instruction abort handling
+  - [`PC` is incremented before an instruction fetch abort](w11a_diff_70_fetch_abort.md)
+- vector flow abort handling
+  - [`SP` decremented only once after 1st vector push abort](w11a_diff_70_vecflow_abort_sp.md)
 - stack limit and stack error behavior
   - [Stack limit checks done independent of register set](w11a_diff_70_stklim_rset.md)
   - [No unconditional instruction fetch after stack error abort](w11a_diff_70_ser_forced_fetch.md)
-- instruction abort handling
-  - [`PC` is incremented before an instruction fetch abort](w11a_diff_70_fetch_abort.md)
 - memory management behavior
   - [`MMR0` instruction complete implementation differences](w11a_diff_70_instruction_complete.md)
   - [MMU traps not suppressed when MMU register accessed](w11a_diff_70_mmu_trap_suppression.md)

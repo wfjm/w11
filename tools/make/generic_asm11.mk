@@ -1,9 +1,10 @@
-# $Id: generic_asm11.mk 1275 2022-08-10 08:10:40Z mueller $
+# $Id: generic_asm11.mk 1382 2023-03-18 21:02:11Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2013-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2013-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History: 
 # Date         Rev Version  Comment
+# 2023-03-14  1382   1.1.1  fix ldart target rule
 # 2022-08-08  1275   1.1    add auto-dependency rule
 # 2013-04-06   503   1.0.1  use --hostinc for mac2lda
 # 2013-03-22   496   1.0    Initial version
@@ -36,7 +37,7 @@ endif
 %.lsterr : %.mac
 	$(ASM11) --olst=%.lsterr $< || true
 #
-%.lstrt %ldart : %.mac
+%.lstrt %.ldart : %.mac
 	$(MAC2LDA) --hostinc --suff=rt $*
 #
 # Expect rules

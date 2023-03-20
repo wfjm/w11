@@ -1,9 +1,12 @@
-; $Id: cpu_mmu.mac 1374 2023-02-18 10:30:46Z mueller $
+; $Id: cpu_mmu.mac 1383 2023-03-20 08:19:14Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
+; 2023-03-19  1382   1.1.3  C2.6: add e11 handling (w11 and e11 mmr1 difference)
+;                           D2.1: BUGFIX: use mmr0 page mode for PSW PM if ico=1
+;                           D2.1: add e11 handling (no PC inc on fetch abort)
 ; 2023-02-17  1374   1.1.2  use push2,pushm,popm
 ; 2023-01-28  1360   1.1.1  remove <../100> expressions for 6 bit right shift
 ; 2023-01-27  1358   1.1    use .mcall and mlib; use hta??? macros
@@ -852,10 +855,9 @@ tc0101: mov     #1000$,r1       ; ptr to abort bit table
 ;
 ; check @(pc)+ behavior
 ;   w11  updates mmr1 in this case, as is also expected in ekbee1
-;   Simh only adds 'general purpose register updates', thus not pc
-;   e11  doesnt like this test either
-        tstb     systyp          ; skip test if on SimH or e11
-        blt      100$            ; systyp<0 --> not on w11
+;   Simh only adds 'general purpose register updates', thus not pc.
+        cmpb    systyp,#sy.sih   ; skip test if on SimH
+        beq     100$
         reset
         mov     -(r1),@#mmr0    ; r1,-2,pc,2    00010 111 11110 001 via ale
         hcmpeq  (r3),#^b0001011111110001;
@@ -1517,7 +1519,7 @@ tc0206: mov     kipdr0,sipdr0           ; super page 0 1-to-1
         hcmpeq  (sp),#100$              ; PC: return after mov
         hcmpeq  2(sp),#cp.cms!cp.pr1    ; PS: should be code signature
 ;
-; check mmr0,mmr2 instruction complete (unless on SimH)
+; check mmr0,mmr1,mmr2 instruction complete (unless on SimH)
         cmpb    systyp,#sy.sih
         beq     290$
         hcmpeq  #m0.anr!m0.ale!m0.ico!m0.pms!<5*m0.pno>!m0.ena,mmr0 ; check mmr0
@@ -1542,11 +1544,16 @@ tc0206: mov     kipdr0,sipdr0           ; super page 0 1-to-1
         hcmpeq  (sp),#300$              ; PC: return after mov
         hcmpeq  2(sp),#cp.cms!cp.pr2    ; PS: should be code signature
 ;
-; check mmr0,mmr2 instruction complete (unless on SimH)
+; check mmr0,mmr1,mmr2 instruction complete (unless on SimH)
+; Note: w11 has one SP decrements in the case, 11/70 and e11 two.
         cmpb    systyp,#sy.sih
         beq     490$
-        hcmpeq  #m0.anr!m0.ale!m0.ico!m0.pms!<5*m0.pno>!m0.ena,mmr0 ; check mmr0
-        hcmpeq  #^b0000000011110110,mmr1  ; check mmr1: one SP decrement
+        cmpb    systyp,#sy.e11
+        bne     410$
+        mov     #^b1111011011110110,420$+2  ; e11, as 11/70, has two SP decs
+;
+410$:   hcmpeq  #m0.anr!m0.ale!m0.ico!m0.pms!<5*m0.pno>!m0.ena,mmr0 ; check mmr0
+420$:   hcmpeq  #^b0000000011110110,mmr1  ; check mmr1: one SP decrement
         hcmpeq  #v..pir,mmr2            ; check mmr2: failed vector
 490$:
 ;
@@ -1648,7 +1655,7 @@ tc0209: clr     kipdr6                  ; kernel page 6 non-resident
 ;   abort bits. The w11 also takes a vector 4 but will set MMR0 abort bits. 
 ;   Verify this w11 specific behavior.
 ;
-tc0210: tstb    systyp          ; skip if not on w11
+tc0210: tstb    systyp                  ; skip if not on w11
         blt     9999$
 ;
         mov     #<127.*md.plf>,kipdr6   ; page 6 non-resident (afc=0)
@@ -1749,7 +1756,7 @@ td0101:
         jmp     9999$
 ;
 ; the MMU trap handler
-;   - saves all registers (starting with PC dummp)
+;   - saves all registers (starting with PC dump)
 ;   - rolls back register changes seen in MMR1
 ;   - increases the stack by one click
 ;   - restore all registers
@@ -1823,8 +1830,8 @@ td0101:
 ;     page 3      stack area, initially too short
 ;     page 7      IO page, with RW traps enabled
 ;
-td0201: tstb    systyp          ; skip if not on w11
-        bge     100$
+td0201: cmpb    systyp,#sy.sih          ; skip on on SimH
+        bne     100$
         jmp     9999$
 ;
 ; set up supervisor pdr/par
@@ -1872,9 +1879,16 @@ td0201: tstb    systyp          ; skip if not on w11
         clr     cp.psw                  ; PSW to default
         hcmpeq  #<127.*md.plf>!md.aia!md.aiw!md.att,sipdr7  ; check sipdr7
 ;
-        htaini  2000$,5.                ; expect 5 items
+; on w11 the PC is incremented after an instruction fetch abort while on an
+; 11/70 and with e11 it is not. Set up PC seen in 2nd MMU call accordingly
+        mov     #p2base+2,r0            ; PC after fault (for w11)
+        cmpb    systyp,#sy.e11          ; e11 ?
+        bne     210$
+        sub     #2,r0                   ; PC before fault (for e11)
+;
+210$:   htaini  2000$,5.                ; expect 5 items
         htacmp  #250,#200$              ; mmu(ico=1) after movb to cp.pir+1
-        htacmp  #250,#p2base+2          ; mmu(ico=1) after 1st instruction fetch
+        htacmp  #250,r0                 ; mmu(ico=1) PC differs for w11 and e11
         htacmp  #240,#200$              ; PIRQ, sees PC after movb to cp.pir+1
         htacmp  #250,#p2base+<vc3l1-vc3> ; mmu(trap) after clr of cp.pir
         htacmp  #032,#p2base+<vc3l2-vc3> ; EMT after emt 100
@@ -1898,7 +1912,7 @@ td0201: tstb    systyp          ; skip if not on w11
         mov     #250,(r5)+              ; trace
         mov     (sp),(r5)+
 ;
-; dispatch call cases based in mmr0
+; dispatch call cases based on mmr0
         mov     mmr0,r0
         bit     #m0.anr!m0.ale!m0.ard,r0  ; abort seen ?
         beq     3300$                   ; if not branch to trap handling
@@ -1908,6 +1922,7 @@ td0201: tstb    systyp          ; skip if not on w11
 ; handle abort with ico=1 ------------------------
 ;   Expect length error for supervisor mode I space page 3.
 ;   Actions:
+;   - determine target mode from mmr0 page mode and set is as previous mode.
 ;   - roll-back previous mode SP.
 ;   - extend previous mode stack segment.
 ;   - move stack frame from from kernel to previous mode.
@@ -1920,7 +1935,14 @@ td0201: tstb    systyp          ; skip if not on w11
         hcmpeq  #m0.ale!m0.ent!m0.ico!m0.pms!<3*m0.pno>!m0.ena,r0  ; check mmr0
         hcmpeq  #240,mmr2               ; check mmr2: PIRQ vector
 ;
-; use MMR1 to correct SM SP
+; Use page mode from mmr0 as previous mode
+;   psw(13:12) is PM, mmr0(6:5) is page mode --> shift 7 bits left
+        mov     r0,r1                   ; copy mmr0
+        bic     #^cm0.pmu,r1            ; get page mode bits
+        ash     #7,r1                   ; shift to PM bits position
+        bic     #cp.pmu,cp.psw          ; clear PM bits
+        bis     r1,cp.psw               ; set PM bits from mmr0
+; use MMR1 to correct SP
         mov     mmr1,r1                 ; get mmr1
         mfpd    sp                      ; get SM sp
         pop     r2
@@ -1970,9 +1992,9 @@ td0201: tstb    systyp          ; skip if not on w11
         bis     #md.arw,sipdr2          ; code page read-writable
         mov     mmr2,(sp)               ; point to failed instruction
         bic     #m0.anr!m0.ale!m0.ard,mmr0      ; clear abort flags
-        rtt                             ; re-run instruction, use rtt to avoid a
-                                        ; spurious tbit trap in case traced
-                                        ; instruction
+        rtt                             ; re-run instruction, use rtt to avoid
+                                        ; a spurious tbit trap in case of a
+                                        ; traced instruction
 ;
 ; handle MMU trap --------------------------------
 ;   Expect trap from cp.pir register access
@@ -1984,8 +2006,8 @@ td0201: tstb    systyp          ; skip if not on w11
         rti                             ; continue
 ;
 ; EMT handler ----------------------------------------------
-;   The EMT handler simulates a system service that does a kernel mode RTI
-;   on behalf of the supervisor mode handler. This allows supervisor mode code
+;   The EMT handler simulates a system service that does a kernel mode RTI on
+;   behalf of the supervisor mode handler. This allows supervisor mode code
 ;   to return to kernel mode code and bypasses the privileged escalation
 ;   protection of RTI/RTT in a controlled manner.
 ;   It simply moves the stack frame from previous mode to kernel mode and

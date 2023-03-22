@@ -1,6 +1,6 @@
-; $Id: ekbee1_patch_1170.scmd 1336 2022-12-23 19:31:01Z mueller $
+; $Id: ekbee1_patch_1170.scmd 1382 2023-03-18 21:02:11Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
-; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Patch set ekbee1 for SimH -- tested with SimH V3.12-3
 ;
@@ -38,7 +38,7 @@ dep 052212 000040
 ; AP: patch test 57: ACF = 5 -------------------------------------------------
 ;   Tests 055, 056, and 057 verify trap response and check mmr0(6:1) which
 ;   isn't frozen for traps. The instruction is 'mov mmr0,pmmr0' with the
-;   scr page 7 (IO page) and dst page 1 (where variables are). The test from
+;   src page 7 (IO page) and dst page 1 (where variables are). The test from
 ;   expects for mmr0 011003, the destination page. With SimH one gets 011011,
 ;   the last explicit update of MMR0. SimH only updates MMR0 when relevant
 ;   and not on every access as a real 11/70 or w11 does.
@@ -83,7 +83,7 @@ dep 076300 000240
 ;
 ;   The 2nd part tests RED vs MMU. On a 11/70 the MMR0 abort bits are not set
 ;   in case of a stack in a non-resident page with an address below STKLIM.
-;   Simh, e11, and w11 do set the MMR0 abort bit, and take a fatal stack error.
+;   Simh and w11 do set the MMR0 abort bit, and take a fatal stack error.
 ;   Patch test to change instruction under test 'clr (sp) -> clr -(sp)' so that
 ;   the condition is really tested.
 ;

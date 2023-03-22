@@ -1,0 +1,15 @@
+; $Id: eqkce1_run.ecmd 1318 2022-11-21 09:27:32Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; e11 starter for eqkce1 - 11/70 instruction exerciser
+;
+@setup_w11a_basic.ecmd
+;
+mount pr: to_lda/eqkce1.lda
+boot/halt pr:
+;
+set switch 014370
+;
+pc=200
+go

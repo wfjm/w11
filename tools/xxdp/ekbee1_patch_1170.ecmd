@@ -1,0 +1,30 @@
+; $Id: ekbee1_patch_1170.ecmd 1383 2023-03-20 08:19:14Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; Patch set ekbee1 for e11 -- e11 -- e11 -- e11 -- e11 -- e11 -- e11
+;
+; AP: patch test 50: 22-bit mapping carry propagation ------------------------
+;   The test does an access to 17000000, the first word of the UNIBUS
+;   window. It expects CPUERR 020 because UBMAP is disabled in MMR3.
+;   e11 supports UWIN, but is configured with NOUWIN and a memory hole to
+;   behave like w11 and Simh. So access aborts with nxm instead of timeout.
+;   Patch the testing instruction to it expects nxm in CPUERR
+;
+dep 052212 000040
+;
+; AP: patch test 122: KT BEND ------------------------------------------------
+;   Tests MMU vs NXM,ODD,RED behavior
+;   The 1st part tests NXM vs MMU. On a KB11-C handles NXM earlier then MMU (!) 
+;   On a KB11-E MMU takes precedence (as one expects and SimH, e11, and w11 do).
+;   Patch the test such that is checks KB11-E behavior (beq 20$ -> nop)
+;
+dep 076224 000240
+;
+; HP: skip test 071: MMR2 pattern test ---------------------------------------
+;   this test tries all PC's in user mode --> skip to ease setting breakpoints
+;
+;; dep 057532 000137
+;; dep 057534 057766
+;
+; break 077244

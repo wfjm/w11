@@ -53,7 +53,7 @@ The full set of tests is only run for tagged releases.
   - tools/bin/asm-11
     - BUGFIX: fix directly nested .if behavior
   - tools/tcode
-    - BUGFIX: use mmr0 page mode for PSW PM if ico=1
+    - cpu_mmu.mac: BUGFIX: use mmr0 page mode for PSW PM if ico=1
   - src/librtools
     - RtimerFd.cpp: BUGFIX: SetRelative(): correct is-positive check
 

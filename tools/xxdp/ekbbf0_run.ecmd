@@ -1,0 +1,16 @@
+; $Id: ekbbf0_run.ecmd 1382 2023-03-18 21:02:11Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; e11 starter for ekbbf0 - PDP 11/70 cpu diagnostic part 2
+;
+@setup_w11a_basic.ecmd
+;
+mount pr: to_lda/ekbbf0.lda
+boot/halt pr:
+;
+; Note: SW 03 up, thus test 042 executed (as for SimH)
+set switch 004171
+;
+pc=200
+go

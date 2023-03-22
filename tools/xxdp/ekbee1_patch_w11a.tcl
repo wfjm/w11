@@ -1,6 +1,6 @@
-# $Id: ekbee1_patch_w11a.tcl 1330 2022-12-16 17:52:40Z mueller $
+# $Id: ekbee1_patch_w11a.tcl 1381 2023-03-12 12:16:45Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+# Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 # Patch set ekbee1 for w11a -- w11a -- w11a -- w11a -- w11a -- w11a
 #
@@ -38,7 +38,7 @@ dep 052212 000040
 #  AP: patch test 57: ACF = 5 -------------------------------------------------
 #    Tests 055, 056, and 057 verify trap response and check mmr0(6:1) which
 #    isn't frozen for traps. The instruction is 'mov mmr0,pmmr0' with the
-#    scr page 7 (IO page) and dst page 1 (where variables are). The test
+#    src page 7 (IO page) and dst page 1 (where variables are). The test
 #    expects for mmr0 011003, the destination page. On w11 one gets 011017,
 #    the source page. Simply different flows. Certainly not an error.
 #    Patch the locations to avoid the diagnostic message.

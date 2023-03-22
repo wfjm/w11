@@ -1,0 +1,23 @@
+; $Id: ekbee1_run.ecmd 1318 2022-11-21 09:27:32Z mueller $
+; SPDX-License-Identifier: GPL-3.0-or-later
+; Copyright 2022- by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+;
+; e11 starter for ekbee1 - 11/70 memory management
+;
+@setup_w11a_basic.ecmd
+;
+; set memory size to 3808 kB (from 3840 kB)
+; that gives a 32 kB gap between top of memory and begin of UNIBUS window
+; and enables the 1st section of test 122 to run (MMU vs NXM)
+;
+set memory 3808
+;
+mount pr: to_lda/ekbee1.lda
+boot/halt pr:
+;
+set switch 004000
+;
+@ekbee1_patch_1170.ecmd
+;
+pc=200
+go

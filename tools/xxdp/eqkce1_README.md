@@ -38,10 +38,10 @@ END PASS #     1  TOTAL ERRORS SINCE LAST REPORT      0
 ```
 
 ### w11 remarks
-Runs without patches
+Runs without patches.
 
 ### SimH remarks (tested with V3.12-3 RC2)
 Requires [patch](eqkce1_patch_1170.scmd).
 
-### E11 remarks
-_to come_
+### E11 remarks (tested with V7.4 ALPHA 03/21/23)
+Runs without patches.

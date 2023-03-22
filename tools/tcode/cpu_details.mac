@@ -1,9 +1,12 @@
-; $Id: cpu_details.mac 1374 2023-02-18 10:30:46Z mueller $
+; $Id: cpu_details.mac 1384 2023-03-22 07:35:32Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
+; 2023-03-21  1384   1.1.2  remove e11 exemptions for A2.3, A2.5-9,
+;                           A3.2 part 2+3; A3.3, A4.4 part 3+4;
+;                           A4.4 part 5: skip on e11 (SPL in u mode handling)
 ; 2023-02-17  1374   1.1.1  use pushm,popm
 ; 2023-01-27  1359   1.1    use .mcall and mlib; use rt?jmp, hta??? macros
 ; 2023-01-11  1349   1.0    Initial version
@@ -280,9 +283,7 @@ ta0202: mov     #1000$,vhustp   ; continuation address
 ;   will return a non-existent memory abort even in a maximum memory
 ;   configuration.
 ;
-ta0203: cmpb    systyp,#sy.e11  ; e11 V7.3 return wrong CPUERR value
-        beq     9999$
-        push    kipar6          ; save kipar6
+ta0203: push    kipar6          ; save kipar6
         mov     #177400,kipar6
         mov     #m3.e22,mmr3    ; 22-bit mode
         mov     #m0.ena,mmr0    ; enable mmu                    ;! MMU 22
@@ -315,9 +316,7 @@ ta0204: mov     #1000$,vhustp   ; continuation address
 ;   Test cp.ysv: yellow stack trap
 ;   Since stack is still usable after the trap, the vhugen handler can be used.
 ;
-ta0205: cmpb    systyp,#sy.e11  ; e11 V7.3 doesnt trap, runs on hold
-        beq     9999$
-        mov     #1000$,vhustp   ; continuation address
+ta0205: mov     #1000$,vhustp   ; continuation address
         mov     #400,sp
         clr     -(sp)           ; should trap (not abort)
         halt                    ; not executed, handler continues at 1000$
@@ -331,9 +330,7 @@ ta0205: cmpb    systyp,#sy.e11  ; e11 V7.3 doesnt trap, runs on hold
 ; Test A2.6 -- CPUERR cp.rsv +++++++++++++++++++++++++++++++++++++++++
 ;   Test cp.rsv: red stack trap - simple low stack case
 ;
-ta0206: cmpb    systyp,#sy.e11  ; e11 V7.3 doesnt abort, runs on hold
-        beq     9999$
-        mov     #1000$,v..iit   ; setup direct iit handler
+ta0206: mov     #1000$,v..iit   ; setup direct iit handler
         mov     #340,sp
         clr     -(sp)           ; should abort (not trap)
         halt
@@ -348,9 +345,7 @@ ta0206: cmpb    systyp,#sy.e11  ; e11 V7.3 doesnt abort, runs on hold
 ; Test A2.7 -- CPUERR cp.odd + stack error +++++++++++++++++++++++++++
 ;   Test cp.odd: fatal stack error after odd stack
 ;
-ta0207: cmpb    systyp,#sy.e11  ; e11 V7.3 pushes to odd stack, abort after halt
-        beq     9999$
-        cmpb    systyp,#sy.sih  ; SimH uses J11 semantics
+ta0207: cmpb    systyp,#sy.sih  ; SimH uses J11 behavior
         bne     100$
         mov     #<cp.rsv+cp.odd>,1010$+2 ; and sets rsv for all stack errors
 ;
@@ -370,9 +365,7 @@ ta0207: cmpb    systyp,#sy.e11  ; e11 V7.3 pushes to odd stack, abort after halt
 ;   Test cp.nxm: fatal stack error after non-existent memory abort
 ;   Setup like in A2.3, put stack at p6base+4
 ;
-ta0208: cmpb    systyp,#sy.e11  ; e11 V7.3 pushes to bad stack, abort after halt
-        beq     9999$
-        cmpb    systyp,#sy.sih  ; SimH uses J11 semantics
+ta0208: cmpb    systyp,#sy.sih  ; SimH uses J11 behavior
         bne     100$
         mov     #<cp.rsv+cp.nxm>,1010$+2 ; and sets rsv for all stack errors
 ;
@@ -399,9 +392,7 @@ ta0208: cmpb    systyp,#sy.e11  ; e11 V7.3 pushes to bad stack, abort after halt
 ;   Test cp.ito: fatal stack error after unibus timeout
 ;   Setup like in A2.4, put stack at 160004
 ;
-ta0209: cmpb    systyp,#sy.e11  ; e11 V7.3 pushes to bad stack, abort after halt
-        beq     9999$
-        cmpb    systyp,#sy.sih  ; SimH uses J11 semantics
+ta0209: cmpb    systyp,#sy.sih  ; SimH uses J11 behavior
         bne     100$
         mov     #<cp.rsv+cp.ito>,1010$+2 ; and sets rsv for all stack errors
 ;
@@ -421,7 +412,7 @@ ta0209: cmpb    systyp,#sy.e11  ; e11 V7.3 pushes to bad stack, abort after halt
 ;   Test cp.rsv: fatal stack error after mmu abort
 ;   Set kernel I page 6 to non-resident
 ;
-ta0210: cmpb    systyp,#sy.sih  ; SimH uses J11 semantics
+ta0210: cmpb    systyp,#sy.sih  ; SimH uses J11 behavior
         bne     100$
         mov     #cp.rsv,1010$+2 ; and sets rsv for all stack errors
 ;
@@ -566,10 +557,7 @@ ta0302:
 ;
 ; part 2: check that red zone does not have yellow islands -----------
 ;
-2000$:  cmpb    systyp,#sy.e11          ; on e11 ?
-        beq     3000$                   ; if yes skip, e11 still buggy here
-;
-        mov     #2300$,r0               ; ptr to values
+2000$:  mov     #2300$,r0               ; ptr to values
         mov     #<2310$-2300$>/2,r1     ; # of values
         vecset  v..iit,2200$            ; set up iit handler
         mov     #1400,cp.slr            ; set yellow limit to 1776
@@ -594,9 +582,10 @@ ta0302:
 ;
 ; part 3: check red zone PSW protection ------------------------------
 ;   push to 177776 should also cause a red stack abort
+;   w11 and e11 implement this, SimH doesnt
 ;
-3000$:  tstb    systyp                  ; only done in w11
-        ble     9999$
+3000$:  cmpb    systyp,#sy.sih          ; skip on SimH
+        beq     9999$
 ;
         mov     #1400,cp.slr            ; set STKLIM
         mov     #1300,sp                ; SP deep in red zone
@@ -624,10 +613,10 @@ ta0302:
 ;   Notes:
 ;   - dstw (mov,clr,..) and dstr (add,bis,...) flows write to stack -> test both
 ;   - inspired by eqkce0 test 041 that verifies do/dont trap instruction cases
-;   - SimH and e11 currently do not support full 11/70 mode semantics
+;   - SimH currently does not support full 11/70 mode behaviour
 ;
-ta0303: tstb    systyp                  ; skip if not on w11
-        bge     100$
+ta0303: cmpb    systyp,#sy.sih          ; skip on SimH
+        bne     100$
         jmp     9999$
 ;
 100$:   mov     #1400,cp.slr            ; set yellow limit to 1776
@@ -825,7 +814,7 @@ ta0304: vecset  v..iit,1000$,cp.pr7     ; set up iit handler, lockout interrupts
 ;   Skipped on SimH that has different vector flow stack limit check logic.
 ;   See also cpu_mmu tests C2.5,C2.6, they check vector push abort by mmu.
 ;
-ta0305: cmpb    systyp,#sy.sih          ; skip in SimH (different stklim logic)
+ta0305: cmpb    systyp,#sy.sih          ; skip on SimH (different stklim logic)
         beq     9999$
 ;
         vecset  v..iit,200$,cp.pr5!cp0z0c ; set up iit handler, PR5+0Z0C as sig
@@ -1243,9 +1232,6 @@ ta0404: vecset  v..bpt,vhtbpt,cp.pr7    ; BPT handler, PR7 (lockout PIRQ)
 ;   that enabled the PIRQ interrupt.
 ;
 3000$:  mov     #1,vhtbp0               ; ask BPT to lower priority
-        cmpb    systyp,#sy.e11          ; skip on e11 (different service order)
-        beq     4000$
-;
 3001$:  mov     #3200$,r5
         mov     #3300$,vhtend
         rttjmp  #cp.t,#3100$
@@ -1272,12 +1258,9 @@ ta0404: vecset  v..bpt,vhtbpt,cp.pr7    ; BPT handler, PR7 (lockout PIRQ)
 ; part  4: traced WAIT and tbit --------------------------------------
 ;   Checks that traced WAIT does not produce tbit trap.
 ;   Checks that SPL does not produce a tbit trap.
-;   Skipped on SimH which implements J11 semantics for SPL, WAIT, precedence.
+;   Skipped on SimH which implements J11 behavior for SPL, WAIT, precedence.
 ;
-4000$:
-        cmpb    systyp,#sy.sih          ; skip on SimH
-        beq     5000$
-        cmpb    systyp,#sy.e11          ; skip on e11 (for precedence)
+4000$:  cmpb    systyp,#sy.sih          ; skip on SimH
         beq     5000$
 ;
 4001$:  mov     #4200$,r5
@@ -1300,8 +1283,12 @@ ta0404: vecset  v..bpt,vhtbpt,cp.pr7    ; BPT handler, PR7 (lockout PIRQ)
 ;
 ; part  5: WAIT and SPL in user mode ---------------------------------
 ;   Checks that WAIT and SPL in user mode are traced (are nop)
+;   Checks that SPL in user mode is traced in w11 (unlike on 11/70)
+;   Skipped on e11 which implements 11/70 SPL behavior
 ;
-5000$:  mov     #5200$,r5
+5000$:  cmpb    systyp,#sy.e11          ; skip on e11
+        beq     6000$
+        mov     #5200$,r5
         mov     #5300$,vhtend
         rttjmp  #cp.cmu+cp.t,#5100$     ; user mode, enable tbit
 ;

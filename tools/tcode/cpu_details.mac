@@ -1,9 +1,10 @@
-; $Id: cpu_details.mac 1384 2023-03-22 07:35:32Z mueller $
+; $Id: cpu_details.mac 1385 2023-03-23 08:27:44Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
+; 2023-03-22  1385   1.1.3  add A3.6, verify PSW after vector push abort
 ; 2023-03-21  1384   1.1.2  remove e11 exemptions for A2.3, A2.5-9,
 ;                           A3.2 part 2+3; A3.3, A4.4 part 3+4;
 ;                           A4.4 part 5: skip on e11 (SPL in u mode handling)
@@ -80,7 +81,8 @@
 ;             part 2: test instructions that should not trap
 ;             part 3: test that interrupt (from PIRQ) vector push traps
 ;   A3.4    red stack abort conditions
-;   A3.5    vector push abort recovery
+;   A3.5    vector push abort recovery - saved PS
+;   A3.6    vector push abort recovery - restored PSW
 ;   A4    PSW + tbit traps
 ;   A4.1    PSW direct write/read test
 ;             part 1: all bits except register set (cp.ars)
@@ -806,7 +808,7 @@ ta0304: vecset  v..iit,1000$,cp.pr7     ; set up iit handler, lockout interrupts
 ;
 9999$:  iot                                     ; end of test A3.4
 ;
-; Test A3.5 -- vector push abort recovery ++++++++++++++++++++++++++++
+; Test A3.5 -- vector push abort recovery - saved PS +++++++++++++++++
 ;   Verify that the frame pushed to the emergency stack after a vector push
 ;   abort has the PS and PC values at entry into the initial vector flow and
 ;   not the values read in the vector fetch of the failed vector flow.
@@ -846,14 +848,14 @@ ta0305: cmpb    systyp,#sy.sih          ; skip on SimH (different stklim logic)
         hcmpeq  (sp),#300$              ; PC: return after trap
         hcmpeq  2(sp),#cp.pr4!cp000c    ; PS: should be code signature
 ;
-; trap without error, checks in_vecflow reset ----
+; trap without error -----------------------------
         clr     cp.slr                  ; STKLIM to default
         mov     #600$,v..trp            ; set up TRAP handler (continuation)
-        mov     #stack,sp               ; 1st push will fail
+        mov     #stack,sp               ; SP to default
         spl     2                       ; use PR2 as signature code
         ccc                             ; clear all ccs
         sez                             ; and set z
-        trap    300                     ; will fail
+        trap    300                     ; will work
 500$:   halt
 ;
 600$:   hcmpeq  #stack-4,sp             ; check stack, 1 frame
@@ -868,6 +870,43 @@ ta0305: cmpb    systyp,#sy.sih          ; skip on SimH (different stklim logic)
 ;
 9999$:  iot                                     ; end of test A3.5
 ;
+; Test A3.6 -- vector push abort recovery - restored PSW +++++++++++++
+;   Verify that the PSW is restored when a vector flow is aborted during a push.
+;   The previous test A3.5 checks that the correct PS is saved on stack. This
+;   test verifies that the PSW is restored before the new vector is fetched.
+;   This affects the previous mode bits because they are taken from the PSW
+;   at the time the new PS is fetched. To test this, PIRQ is set up with a
+;   handler in supervisor space and an odd SP value. That will cause a vector 4
+;   abort during first push. A PIRQ is requested from kernel mode. The PSW
+;   seen by the vector 4 handler should see a previous mode of kernel, and not
+;   supervisor.
+;   See also cpu_mmu tests C2.5,C2.6, they check vector push abort by mmu.
+;
+ta0306: vecset  v..pir,200$,cp.cms!cp.pr6       ; set up PIRQ handler
+        vecset  v..iit,300$,cp.pr5              ; set up iit handler
+;
+        mov     #cp.pms,cp.psw          ; supervisor now previous mode
+        push    #1777                   ; use odd address
+        mtpi    sp                      ; for supervisor stack
+        mov     #cp.pr1,cp.psw          ; code signature PR1, back to kernel
+        movb    #bit04,cp.pir+1         ; request PIRQ 4
+100$:   halt
+200$:   halt                            ; PIRQ handler, should not be called
+;
+300$:   hcmpeq  #cp.pr5,cp.psw          ; CM=PM=kernel
+        hcmpeq  #stack-4,sp             ; 1 frame pushed
+        hcmpeq  #100$,(sp)              ; saved PC
+        hcmpeq  #cp.pr1,2(sp)           ; saved PC
+;
+; restore
+        vecclr  v..pir                  ; v..pir to catcher
+        vecclr  v..iit                  ; v..iit to catcher
+        mov     #stack,sp               ; SP to default
+        clr     cp.pir                  ; cancel PIRQ
+        clr     cp.psw                  ; back to kernel PR0
+;
+9999$:  iot                                     ; end of test A3.6
+
 ; Test A4:  PSW + tbit traps +++++++++++++++++++++++++++++++++++++++++++++++++
 ;   This sub-section verifies operation of PSW register and tbit traps.
 ;
@@ -2038,7 +2077,7 @@ tc0103: vecset  v..iit,vhugen   ; set iit handler, pr0 kernel
 ; END OF ALL TESTS - loop closure ============================================
 ;
         mov     tstno,r0        ; hack, for easy monitoring ...
-        hcmpeq  tstno,#39.      ; all tests done ?
+        hcmpeq  tstno,#40.      ; all tests done ?
 ;
         jmp     loop
 ;

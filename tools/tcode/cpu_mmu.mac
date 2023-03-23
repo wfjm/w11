@@ -1,4 +1,4 @@
-; $Id: cpu_mmu.mac 1383 2023-03-20 08:19:14Z mueller $
+; $Id: cpu_mmu.mac 1385 2023-03-23 08:27:44Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -1932,6 +1932,8 @@ td0201: cmpb    systyp,#sy.sih          ; skip on on SimH
 ;     Note: MMR2 holds the vector address. So push PS and PC of that vector
 ;           to kernel stack and start handler with an RTT.
 ;
+        ccc                             ; clear ccs before PSW check
+        hcmpeq  #cp.pr7,cp.psw          ; PSW has CM=PM=kernel
         hcmpeq  #m0.ale!m0.ent!m0.ico!m0.pms!<3*m0.pno>!m0.ena,r0  ; check mmr0
         hcmpeq  #240,mmr2               ; check mmr2: PIRQ vector
 ;

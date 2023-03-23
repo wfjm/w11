@@ -50,6 +50,10 @@ The full set of tests is only run for tagged releases.
   - tcl/rw11/shell_egd.tcl: add ODX format options for .e command
 
 ### Bug Fixes
+  - rtl/w11a
+  - pdp11_sequencer:
+    - BUGFIX: restore PSW after vector push abort, see
+      [ECO-041](ECO-041-vpush_abort_psw.md)
   - tools/bin/asm-11
     - BUGFIX: fix directly nested .if behavior
   - tools/tcode

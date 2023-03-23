@@ -47,3 +47,7 @@ first entry.
 This deficit had no impact on OS operation and had therefore low priority.
 However, the goal of the w11 is to be an as precise as feasible replica of
 the 11/70, and it was overdue to fix this.
+
+### Note 2023-03-22
+This fixed only part of the problem, see [ECO-041](ECO-041-vpush_abort_psw.md)
+for the full solution.

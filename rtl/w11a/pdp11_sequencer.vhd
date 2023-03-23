@@ -1,4 +1,4 @@
--- $Id: pdp11_sequencer.vhd 1349 2023-01-11 14:52:42Z mueller $
+-- $Id: pdp11_sequencer.vhd 1384 2023-03-22 07:35:32Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
 -- Copyright 2006-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
@@ -13,11 +13,12 @@
 --
 -- Revision History: 
 -- Date         Rev Version  Comment
+-- 2023-03-21  1384   1.6.29 BUGFIX: restore PSW after vector push abort
 -- 2023-01-11  1349   1.6.28 BUGFIX: handle CPUERR.rsv correctly
 -- 2023-01-02  1342   1.6.27 BUGFIX: cc state unchanged after abort
 -- 2022-12-26  1337   1.6.26 tbit logic overhaul 2, now fully 11/70 compatible
 -- 2022-12-12  1330   1.6.25 implement MMR0,MMR2 instruction complete
--- 2022-12-10  1329   1.6.24 BUGFIX: get correct PS after vector push abort
+-- 2022-12-10  1329   1.6.24 BUGFIX: store correct PS after vector push abort
 -- 2022-12-05  1324   1.6.23 tbit logic overhaul; use treq_tbit; cleanups
 --                           use resetcnt for 8 cycle RESET wait
 -- 2022-11-29  1323   1.6.22 rename adderr -> oddadr, don't set after err_mmu
@@ -593,7 +594,7 @@ begin
                            pvector  : in slv9_2) is
     begin
       pndpcntl.dtmp_sel := c_dpath_dtmp_psw;    -- DTMP = PSW 
-      pndpcntl.dtmp_we := not R_STATUS.in_vecflow;  -- save PS on first entry
+      pndpcntl.dtmp_we := '1';                  -- save PS
       pndpcntl.ounit_azero := '1';              -- OUNIT A = 0
       pndpcntl.ounit_const := pvector & "00";   -- vector
       pndpcntl.ounit_bsel := c_ounit_bsel_const;-- OUNIT B=const(vector)
@@ -2303,6 +2304,12 @@ begin
 
         nstate := s_vec_pushps_w;
         do_memcheck(nstate, nstatus, imemok);
+        if VM_STAT.err = '1' then                -- if err restore PS from DTMP
+          ndpcntl.ounit_asel := c_ounit_asel_dtmp;   -- OUNIT A=DTMP
+          ndpcntl.ounit_const := "000000000";        -- OUNIT const=0
+          ndpcntl.psr_func := c_psr_func_wall;       -- write all fields
+          ndpcntl.psr_we := '1';                     -- re-store PS from DTMP
+        end if;
         if imemok then
           ndpcntl.dsrc_we := '1';                -- update DSRC
           ndpcntl.gr_we := '1';                  -- update SP too
@@ -2330,6 +2337,12 @@ begin
 
         nstate := s_vec_pushpc_w;
         do_memcheck(nstate, nstatus, imemok);
+        if VM_STAT.err = '1' then                  -- if err restore PS from DTMP
+          ndpcntl.ounit_asel := c_ounit_asel_dtmp; -- OUNIT A=DTMP
+          ndpcntl.ounit_const := "000000000";      -- OUNIT const=0
+          ndpcntl.psr_func := c_psr_func_wall;     -- write all fields
+          ndpcntl.psr_we := '1';                   -- re-store PS from DTMP
+        end if;
         if imemok then
           nstatus.treq_tbit := PSW.tflag;          -- copy PSW.tflag to treq_bit
           nstatus.in_vecflow := '0';               -- signal end vector flow
@@ -2448,7 +2461,7 @@ begin
             do_start_vec(nstate, ndpcntl, lvector);
           end if;
         end if;
-        
+
       when s_cpufail =>                 -- -----------------------------------
         nstatus.cpugo   := '0';
         nstatus.cpurust := c_cpurust_sfail;

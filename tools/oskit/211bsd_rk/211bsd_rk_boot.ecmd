@@ -1,4 +1,4 @@
-; $Id: 211bsd_rk_boot.ecmd 1381 2023-03-12 12:16:45Z mueller $
+; $Id: 211bsd_rk_boot.ecmd 1388 2023-05-19 15:18:42Z mueller $
 ;
 ; Setup file for 2.11BSD RK based system
 ;
@@ -7,6 +7,7 @@
 ;
 @../../e11/setup_w11a_max.ecmd
 set tt0: mode=9600,N,7,1
+set tt1: mode=9600,N,7,1
 ;
 mount dk0: 211bsd_rk_root.dsk /RK05
 mount dk1: 211bsd_rk_swap.dsk /RK05

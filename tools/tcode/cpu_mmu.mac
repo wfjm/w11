@@ -1,4 +1,4 @@
-; $Id: cpu_mmu.mac 1385 2023-03-23 08:27:44Z mueller $
+; $Id: cpu_mmu.mac 1386 2023-03-25 18:35:46Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2022-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
@@ -1545,7 +1545,7 @@ tc0206: mov     kipdr0,sipdr0           ; super page 0 1-to-1
         hcmpeq  2(sp),#cp.cms!cp.pr2    ; PS: should be code signature
 ;
 ; check mmr0,mmr1,mmr2 instruction complete (unless on SimH)
-; Note: w11 has one SP decrements in the case, 11/70 and e11 two.
+; Note: w11 has one SP decrement in the case, 11/70 and e11 have two.
         cmpb    systyp,#sy.sih
         beq     490$
         cmpb    systyp,#sy.e11

@@ -1,9 +1,9 @@
-; $Id: defs_xu.mac 1376 2023-02-20 15:05:03Z mueller $
+; $Id: defs_xu.mac 1387 2023-03-27 07:29:02Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2017-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; definitions for DEUNA controler
-;   uses also xf,.... name prefixes for clarity
+;   uses also xf,xm,xr,xs,xt,r2,r3,t2,t3 name prefixes for clarity
 ;
 ; vector address/priority definition
 ; 
@@ -91,7 +91,14 @@
         xs.rco=000100           ; RRAM: RAM code operational
         xs.rev=000077           ; RREV: ROM revisions (field mask)
 ;
-; transmit descriptor word 2 and word 3
+; transmit descriptor offsets
+;
+        xt.len=0                ; SLEN[15:00] segment length
+        xt.buf=2                ; SEGB[15:00] segment base MDB
+        xt.fl2=4                ; flags and SEGB[17:16]
+        xt.fl3=6                ; flags
+;
+; transmit descriptor word 2 (xt.fl2) and word 3 (xt.fl3)
 ;
         t2.own=100000           ; OWN:  if 1 owned by DEUNA
         t2.ers=040000           ; ERRS: error summary
@@ -106,6 +113,13 @@
         t3.lco=010000           ; LCOL: late collision
         t3.lca=004000           ; LCAR: loss of carrier
         t3.rle=002000           ; RTRY: retry limit exceeded
+;
+; receive descriptor offsets
+;
+        xr.len=0                ; SLEN[15:01] segment length
+        xr.buf=2                ; SEGB[15:00] segment base MDB
+        xr.fl2=4                ; flags and SEGB[17:16]
+        xr.fl3=6                ; flags and MLEN
 ;
 ; receive descriptor word 2 and word 3
 ;

@@ -1,10 +1,10 @@
-# $Id: shell.tcl 1374 2023-02-18 10:30:46Z mueller $
+# $Id: shell.tcl 1387 2023-03-27 07:29:02Z mueller $
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2015-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 #
 #  Revision History:
 # Date         Rev Version  Comment
-# 2023-02-17  1374   2.2.7  update '.ha' text output
+# 2023-03-26  1387   2.2.7  update '.h' and '.ha' text output
 # 2023-01-31  1362   2.2.6  add rw11::shell_attnmuted to mute CPU attn messages
 # 2018-10-21  1058   2.2.5  add after#\d+ scrubber (a real HACK, sorry)
 # 2017-04-23   885   2.2.4  adopt .cm* to new interface
@@ -581,7 +581,7 @@ namespace eval rw11 {
     append rval "\n    .d aspec vals       ; deposit"
     append rval "\n                        ; see .ha for help on aspec format"
     append rval "\nCPU hardware breakpoint:"
-    append rval "\n    .bs ind typ lo hi   ; set bpt"
+    append rval "\n    .bs ind typ lo hi   ; set bpt; typ: \[ksu\]?\[rwi\]+"
     append rval "\n    .br ?ind?           ; remove bpt"
     append rval "\n    .bl                 ; list bpt"
     if {[$shell_cpu get hascmon]} {
@@ -592,14 +592,14 @@ namespace eval rw11 {
     }
     if {[$shell_cpu get hasibmon]} {
     append rval "\nibus monitor:"
-      append rval "\n    .ime                ; ibmon enable; mode: \[lrcnRW\]*"
+      append rval "\n    .ime ?mode?         ; ibmon enable; mode: \[lrcnRW\]*"
       append rval "\n    .imd                ; ibmon disable"
       append rval "\n    .imf ?lo? ?hi?      ; ibmon filter"
       append rval "\n    .iml ?nent?         ; ibmon list"
     }
     if {[rlc get hasrbmon]} {
     append rval "\nrbus monitor:"
-      append rval "\n    .rme                ; rbmon enable; mode: \[nRW\]*"
+      append rval "\n    .rme ?mode?         ; rbmon enable; mode: \[nRW\]*"
       append rval "\n    .rmd                ; rbmon disable"
       append rval "\n    .rmf ?lo? ?hi?      ; rbmon filter"
       append rval "\n    .rml ?nent?         ; rbmon list"
@@ -610,6 +610,7 @@ namespace eval rw11 {
     append rval "\nmiscellaneous:"
     append rval "\n    .hr ?name? ?am?     ; list ibus registers; am: \[rl\]\[rw\]"
     append rval "\n    .h                  ; this help text"
+    append rval "\n    .ha                 ; help text on .e,.g,.d aspec format"
     append rval "\n    .q                  ; quit shell, return to ti_rri"
     append rval "\n    .qq                 ; quit ti_rri unconditionally"
     return $rval
@@ -635,9 +636,9 @@ namespace eval rw11 {
     append rval "\n"
     append rval "\nopt format (multiple opt's allowed)"
     append rval "\n  nnn      - repeat count (decimal, in words)"
-    append rval "\n  l        - for iopage access: loc (as seen by CPU)"
+    append rval "\n  l        - for iopage access: loc (as seen by CPU) (default)"
     append rval "\n  r        - for iopage access: rem (as seen by rlink)"
-    append rval "\n  p        - for memory access: physical (16bit)"
+    append rval "\n  p        - for memory access: physical (16bit) (default)"
     append rval "\n  e        - for memory access: extended (22 bit)"
     append rval "\n  u        - for memory access via ubmap (22 bit)"
     append rval "\n  MS       - for memory access via mmu mode=M and space=S"
@@ -657,7 +658,7 @@ namespace eval rw11 {
     append rval "\n  .e rpa.cs1        - register rhrp.cs1"
     append rval "\n  .e rpa.cs1/12/r   - 12 regs starting rpa.cs1, rlink view"
     append rval "\n  .e @pc/8/ci/i     - use pc, mmu in ci mode, 8 words as instructions"
-    append rval "\n  .e @r0/8/cd       - use r0. mmu in cd mode, show 8 words"
+    append rval "\n  .e @r0/8/cd       - use r0, mmu in cd mode, show 8 words"
     return $rval
   }
 

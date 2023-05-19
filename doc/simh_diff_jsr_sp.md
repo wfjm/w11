@@ -50,6 +50,6 @@ acceptable deviation from 11/70 behavior.
 The w11 correctly implements the 11/70 behavior.
 This is verified in a [tcode](../tools/tcode/README.md), the test is
 modified when executed on SimH
-(see [cpu_details](../tools/tcode/cpu_basics.mac) tests A4.4).
+(see [cpu_basics](../tools/tcode/cpu_basics.mac) tests A4.4).
 
 Tested with SimH V3.12-3.

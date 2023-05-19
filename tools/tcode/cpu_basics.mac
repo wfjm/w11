@@ -1,9 +1,10 @@
-; $Id: cpu_basics.mac 1358 2023-01-27 10:37:36Z mueller $
+; $Id: cpu_basics.mac 1388 2023-05-19 15:18:42Z mueller $
 ; SPDX-License-Identifier: GPL-3.0-or-later
 ; Copyright 2015-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 ;
 ; Revision History:
 ; Date         Rev Version  Comment
+; 2023-03-27  1388   1.1.1  A4.4: change exemptions, e11 now like 11/70 and w11
 ; 2023-01-27  1358   1.1    use .mcall and mlib
 ; 2023-01-07  1347   1.0    Initial version
 ; 2015-08-30   710   0.1    First draft
@@ -988,12 +989,13 @@ ta0404: hcmpeq  sp,#stack       ; check stack is default
         hcmpeq  sp,200$         ; check loaded SP
         mov     #stack-2,sp     ; restore stack to where jsr pushed it
 ;
-; w11 saves original sp, like 11/70, SimH,e11 save sp after it was decremented
+; w11 saves original sp, like 11/70, and e11
+; SimH saves sp after it was decremented
 ;
         mov     #stack,r1
-        tstb    systyp          ; check environment
-        bge     210$            ; >=0 is on w11
-        sub     #2,r1           ; if not, subtract 2 (now sp-2)
+        cmpb    systyp,#sy.sih  ; on SimH ?
+        bne     210$
+        sub     #2,r1           ; if yes, subtract 2 (now sp-2)
 210$:   hcmpeq  (sp)+,r1        ; check jsr stored stack pointer
         hcmpeq  100$,#123       ; check writes via SP in routine
         hcmpeq  100$+2,#345     ; check writes via SP in routine

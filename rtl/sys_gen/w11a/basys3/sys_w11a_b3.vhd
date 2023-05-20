@@ -1,6 +1,6 @@
--- $Id: sys_w11a_b3.vhd 1325 2022-12-07 11:52:36Z mueller $
+-- $Id: sys_w11a_b3.vhd 1389 2023-05-20 15:48:59Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2015-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2015-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    sys_w11a_b3 - syn
@@ -22,10 +22,11 @@
 -- Test bench:     tb/tb_sys_w11a_b3
 --
 -- Target Devices: generic
--- Tool versions:  viv 2014.4-2022.1; ghdl 0.31-2.0.0
+-- Tool versions:  viv 2014.4-2023.1; ghdl 0.31-2.0.0
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic
+-- 2023-05-19  1388 2023.1  xc7a35t-1    3054  5523   267  48.0  1864
 -- 2022-12-06  1324 2022.1  xc7a35t-1    3050  5501   267  48.0  1829
 -- 2022-07-05  1247 2022.1  xc7a35t-1    3011  5669   267  48.0  1906
 -- 2019-05-19  1150 2017.2  xc7a35t-1    2968  6360   273  48.0  1963 +dz11

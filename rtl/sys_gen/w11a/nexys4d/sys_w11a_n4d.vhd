@@ -1,6 +1,6 @@
--- $Id: sys_w11a_n4d.vhd 1325 2022-12-07 11:52:36Z mueller $
+-- $Id: sys_w11a_n4d.vhd 1389 2023-05-20 15:48:59Z mueller $
 -- SPDX-License-Identifier: GPL-3.0-or-later
--- Copyright 2019-2022 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
+-- Copyright 2019-2023 by Walter F.J. Mueller <W.F.J.Mueller@gsi.de>
 --
 ------------------------------------------------------------------------------
 -- Module Name:    sys_w11a_n4d - syn
@@ -24,10 +24,11 @@
 -- Test bench:     tb/tb_sys_w11a_n4d
 --
 -- Target Devices: generic
--- Tool versions:  viv 2017.2-2022.1; ghdl 0.34-2.0.0
+-- Tool versions:  viv 2017.2-2023.1; ghdl 0.34-2.0.0
 --
 -- Synthesized:
 -- Date         Rev  viv    Target       flop  lutl  lutm  bram  slic MHz
+-- 2023-05-19  1388 2023.1  xc7a100t-1   6854  8782   845  17.5  3230  80
 -- 2022-12-06  1324 2022.1  xc7a100t-1   6852  8773   868  17.5  3240  80
 -- 2022-07-05  1247 2022.1  xc7a100t-1   6805  8961   869  17.5  3282  80
 -- 2019-08-10  1201 2019.1  xc7a100t-1   6850 10258   901  17.5  3563  80

@@ -31,6 +31,7 @@ The full set of tests is only run for tagged releases.
 ### Summary
 - revamp tap and bridge handling
 - support E11 as additional emulator for most systems
+- Doxygen support now for V1.9.7
 
 ### New features
 - new tools

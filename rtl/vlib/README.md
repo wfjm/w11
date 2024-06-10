@@ -11,4 +11,4 @@ and is organized in
 | [rlink](rlink)     | rlink interface |
 | [serport](serport) | serial port interface |
 | [simlib](simlib)   | helper modules for test benches |
-| [xlib](xlib)       | warppers for some Xilinx components |
+| [xlib](xlib)       | wrappers for some Xilinx components |
